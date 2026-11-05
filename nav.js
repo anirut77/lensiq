@@ -11,8 +11,14 @@
       { href: "neuro.html", title: "วิเคราะห์อารมณ์ (Neuromarketing)", desc: "ทดสอบโฆษณาและบรรจุภัณฑ์จากสีหน้า" },
       { href: "signage.html", title: "ป้ายโฆษณาอัจฉริยะ", desc: "Smart signage และคีออสก์ไร้สัมผัส" },
       { href: "customers.html", title: "จดจำลูกค้า", desc: "ประวัติการสั่งและเมนูแนะนำ" },
-      { href: "booth.html", title: "วิเคราะห์บูธ", desc: "นับผู้เข้าชมและเวลาหยุดชม" },
-      { href: "faceread.html", title: "โหงวเฮ้ง AI", desc: "อ่านโหงวเฮ้งจากใบหน้า สร้างสีสันในบูธ" }
+      { href: "booth.html", title: "วิเคราะห์บูธ", desc: "นับผู้เข้าชมและเวลาหยุดชม" }
+    ] },
+    { label: "ดูดวง AI", id: "fortune", items: [
+      { href: "fortune.html", title: "รวมระบบดูดวง", desc: "เลือกศาสตร์ที่ต้องการ" },
+      { href: "faceread.html", title: "โหงวเฮ้ง AI", desc: "อ่านโหงวเฮ้งจากใบหน้า" },
+      { href: "palm.html", title: "ดูลายมือ AI", desc: "ถ่ายฝ่ามือ อ่านเส้นหลัก" },
+      { href: "horoscope.html", title: "ดวงวันเดือนปีเกิด", desc: "โหราไทย ปาจื้อ เลขศาสตร์" },
+      { href: "tarot.html", title: "ไพ่ทาโรต์ & เซียมซี", desc: "เปิดไพ่ เสี่ยงเซียมซี" }
     ] },
     { label: "วิเคราะห์", id: "ana", items: [
       { href: "store.html", title: "วิเคราะห์หน้าร้าน", desc: "นับคน แผนที่ความร้อน และคิว" },

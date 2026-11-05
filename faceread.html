@@ -11,17 +11,17 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="faceread.css?v=1">
+<link rel="stylesheet" href="faceread.css?v=3">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=2"></script>
+<script src="nav.js?v=3"></script>
 
 <main class="fr" id="frApp">
   <div class="fr-head">
     <span class="eyebrow">Engagement · Booth</span>
     <h1>โหงวเฮ้ง AI</h1>
-    <p class="lead">อ่านลักษณะใบหน้าตามศาสตร์โหงวเฮ้ง (面相) ด้วยจุดบนใบหน้า 68 จุด บอกธาตุประจำรูปหน้า สามส่วนของใบหน้า ห้าอวัยวะ และเคล็ดเสริมดวง สำหรับสร้างสีสันในบูธ อีเวนต์ และแคมเปญการตลาด</p>
+    <p class="lead">อ่านลักษณะใบหน้าตามศาสตร์โหงวเฮ้ง (面相) ด้วยจุดบนใบหน้า 68 จุด บอกธาตุประจำรูปหน้า สิบสองวัง ห้าภูเขาสี่สายน้ำ สามส่วน ห้าอวัยวะ แผนที่อายุ และเคล็ดเสริมดวง สำหรับสร้างสีสันในบูธ อีเวนต์ และแคมเปญการตลาด</p>
   </div>
 
   <p class="fr-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span><b>เพื่อความบันเทิงตามความเชื่อโหงวเฮ้ง ไม่ใช่วิทยาศาสตร์</b> ไม่ควรใช้ตัดสินใจเรื่องการจ้างงาน การเงิน ความสัมพันธ์ หรือประเมินบุคคล</span></p>
@@ -71,7 +71,13 @@
     <div class="fr-res-top">
       <figure class="fr-photo">
         <canvas id="frResCanvas" width="900" height="1125" aria-label="ภาพใบหน้าพร้อมเส้นแบ่งสามส่วนและจุดสำคัญ" role="img"></canvas>
-        <figcaption>แถบสี = สามส่วนของใบหน้า · เส้น = ห้าอวัยวะ · ป้าย = จุดสำคัญ</figcaption>
+        <div class="fr-ovl" role="group" aria-label="เลือกภาพซ้อนบนใบหน้า">
+          <button type="button" data-mode="zones" aria-pressed="true">สามส่วน</button>
+          <button type="button" data-mode="palaces" aria-pressed="false">สิบสองวัง</button>
+          <button type="button" data-mode="mountains" aria-pressed="false">ห้าภูเขา</button>
+          <button type="button" data-mode="ages" aria-pressed="false">แผนที่อายุ</button>
+        </div>
+        <figcaption id="frOvlCap">แถบสี = สามส่วนของใบหน้า · เส้น = ห้าอวัยวะ · ป้าย = จุดสำคัญ</figcaption>
       </figure>
       <div class="fr-element" id="frElement">
         <div class="el-head">
@@ -93,6 +99,29 @@
       <article class="fr-card"><h3><span class="ic">♥</span>ความรัก &amp; มิตรภาพ</h3><p id="frLove"></p></article>
     </div>
 
+    <section class="fr-block" id="frPalBlock">
+      <h3>สิบสองวัง (十二宫)</h3>
+      <p class="fr-small" id="frPalTop"></p>
+      <ol class="fr-pal" id="frPalaces"></ol>
+      <p class="fr-small" id="frPalNote"></p>
+    </section>
+
+    <section class="fr-block">
+      <h3>ห้าภูเขา สี่สายน้ำ (五岳四渎)</h3>
+      <div class="fr-mr">
+        <div>
+          <div class="mr-score"><b id="frMtScore">—</b><span>ความสมดุลห้าภูเขา</span></div>
+          <ul class="mr-list" id="frMountains"></ul>
+          <p id="frMtText"></p>
+        </div>
+        <div>
+          <div class="mr-score"><b id="frRvScore">—</b><span>ความกลมกลืนสี่สายน้ำ</span></div>
+          <ul class="mr-list" id="frRivers"></ul>
+          <p id="frRvText"></p>
+        </div>
+      </div>
+    </section>
+
     <section class="fr-block">
       <h3>ห้าอวัยวะ (โหงวกวน) และจุดสำคัญ</h3>
       <div class="table-wrap">
@@ -110,7 +139,7 @@
         <p id="frZoneText"></p>
       </section>
       <section class="fr-block">
-        <h3>ช่วงวัยที่ใบหน้าส่วนใดเด่น</h3>
+        <h3>แผนที่อายุ (百岁流年)</h3>
         <p class="fr-small" id="frAgeHint"></p>
         <ul class="fr-ages" id="frAges"></ul>
       </section>
@@ -122,10 +151,32 @@
       <ul class="fr-tips" id="frTips"></ul>
     </section>
 
+    <section class="fr-block fr-reco" id="frReco" hidden>
+      <h3 id="frRecoTitle">ของแนะนำตามธาตุ</h3>
+      <ul class="reco-list" id="frRecoList"></ul>
+      <p class="reco-promo" id="frRecoPromo"></p>
+      <p class="fr-small" id="frRecoNote"></p>
+    </section>
+
+    <section class="fr-block fr-lead" id="frLead" hidden>
+      <h3 id="frLeadTitle">รับสิทธิพิเศษ</h3>
+      <p class="fr-small" id="frLeadLead"></p>
+      <form id="frLeadForm" novalidate>
+        <label><span id="frLeadNickL">ชื่อเล่น</span><input id="frLeadNick" name="nick" maxlength="40" autocomplete="nickname" required></label>
+        <label><span id="frLeadContactL">ช่องทางติดต่อ</span><input id="frLeadContact" name="contact" maxlength="80" autocomplete="off" required></label>
+        <label class="fr-check fr-consent"><input type="checkbox" id="frLeadConsent" required> <span id="frLeadConsentT"></span></label>
+        <p class="fr-lead-msg" id="frLeadMsg" role="status" aria-live="polite"></p>
+        <button class="btn primary" type="submit">ส่งข้อมูล</button>
+      </form>
+    </section>
+
     <details class="fr-how">
       <summary>ดูวิธีคำนวณ</summary>
       <p class="fr-small">ใช้จุด 68 จุด (เฉลี่ยหลายเฟรมเมื่อใช้กล้อง) หมุนให้แนวตาอยู่แนวนอน แล้ววัดทุกระยะเป็นหน่วย IPD (ระยะระหว่างกึ่งกลางตาสองข้าง) จึงไม่ขึ้นกับขนาดภาพ ค่า z เทียบกับค่าอ้างอิงทั่วไป แล้วรวมเป็นคะแนนธาตุและแปลงเป็นร้อยละ</p>
       <p class="fr-small" id="frHairNote"></p>
+      <p class="fr-small"><b>สอบเทียบ:</b> ค่ากลาง (มัธยฐาน) และช่วงกระจาย (IQR) ได้จากภาพหน้าตรงทางการสาธารณสมบัติ 33 ภาพที่ผ่านเกณฑ์ (หลากหลายเชื้อสาย รวมเอเชียตะวันออก/ตะวันออกเฉียงใต้ 15 ภาพ) วัดด้วยระบบเดียวกับหน้านี้ ค่าในตารางแสดงเป็นค่า z = ห่างจากค่ากลางกี่ช่วงกระจาย ตัวอย่างยังน้อย ไม่ใช่ค่าประชากร</p>
+      <p class="fr-small"><b>สิบสองวังและชนิดอวัยวะเป็นค่าตัวแทนโดยประมาณ:</b> จุด 68 จุดบอกได้เพียงตำแหน่งและสัดส่วน จึงใช้ความกว้าง/ความยาว/ระยะของบริเวณแทน "ความอิ่มเต็ม" ตามตำรา วัดไม่ได้: ความหนาและเส้นขนคิ้ว ชั้นตา แววตา ความโด่งของจมูก (ต้องมองด้านข้าง) ผิว ไฝ และใบหู ความสว่างของแต่ละวังเทียบกับใบหน้าของคุณเอง (ไม่เทียบสีผิวกับคนอื่น) และขึ้นกับแสงขณะถ่าย</p>
+      <ul class="fr-small" id="frTypeHow"></ul>
       <div class="table-wrap"><table class="fr-table raw"><thead><tr><th scope="col">ค่า</th><th scope="col">ผล</th><th scope="col">จุดที่ใช้</th></tr></thead><tbody id="frRaw"></tbody></table></div>
       <ul class="fr-small" id="frScoreRaw"></ul>
     </details>
@@ -146,6 +197,19 @@
       <label class="fr-check"><input type="checkbox" id="frStatsOn"> นับจำนวนครั้งและสัดส่วนธาตุในเครื่องนี้</label>
       <button class="btn ghost" id="frStatsClear" type="button">ล้างสถิติ</button>
     </section>
+    <section class="fr-block fr-settings-wrap">
+      <details class="fr-settings" id="frSettings">
+        <summary>ตั้งค่าบูธ (สำหรับเจ้าของบูธ)</summary>
+        <label class="fr-check"><input type="checkbox" id="frSetReco"> แสดง “ของแนะนำตามธาตุ”</label>
+        <label class="fr-check"><input type="checkbox" id="frSetLeads"> เปิดฟอร์มรับข้อมูลลูกค้า (ต้องติ๊กยินยอม)</label>
+        <p class="fr-small" id="frLeadCount"></p>
+        <div class="fr-set-actions">
+          <button class="btn ghost" id="frLeadsCsv" type="button">ส่งออก CSV</button>
+          <button class="btn ghost" id="frLeadsClear" type="button">ลบข้อมูลลูกค้าทั้งหมด</button>
+        </div>
+        <p class="fr-small">ข้อมูลลูกค้าเก็บเฉพาะในเบราว์เซอร์เครื่องนี้ (localStorage “fr-leads”) ไม่มีภาพใบหน้า ควรส่งออกและลบเมื่อจบงาน และแจ้งวัตถุประสงค์ตาม PDPA</p>
+      </details>
+    </section>
     <section class="fr-block">
       <h3>แหล่งอ้างอิง</h3>
       <p class="fr-small">เนื้อหาเรียบเรียงใหม่ในเชิงบวกจากแนวคิดโหงวเฮ้งที่สอนกันทั่วไป แต่ละสำนักอาจแบ่งรูปหน้าและช่วงวัยต่างกัน</p>
@@ -160,7 +224,7 @@
 <div class="toast" id="frToast" role="status"></div>
 
 <script src="vendor/face-api.js"></script>
-<script src="faceread-kb.js?v=1"></script>
-<script src="faceread.js?v=1"></script>
+<script src="faceread-kb.js?v=3"></script>
+<script src="faceread.js?v=3"></script>
 </body>
 </html>

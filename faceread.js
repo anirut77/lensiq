@@ -69,8 +69,8 @@
      สุ่มสีผิวหน้าผากเหนือหว่างคิ้ว (YCbCr) แล้วไล่ขึ้นตามแนวตั้งฉากกับแนวตา
      จนแถบตัวอย่างมีสัดส่วนพิกเซลที่คล้ายผิวต่ำกว่า 45% ติดกัน 4 แถว = แนวผม
      ตรวจความสมเหตุสมผล: ความสูงหน้าผาก (คิ้ว→แนวผม) ต้องอยู่ 0.65–1.45 เท่าของส่วนกลาง (คิ้ว→ฐานจมูก)
-     ถ้าไม่ผ่าน (หน้าม้า หมวก ศีรษะล้าน แสงไม่พอ) ใช้ค่ามาตรฐาน = ส่วนกลาง × 1.0 และระบุว่า "ประมาณการ" */
-  var HAIR = { minRatio: 0.65, maxRatio: 1.45, fallbackRatio: 1.0, skinFrac: 0.45, run: 4, dC: 11, dY: 48 };
+     ถ้าไม่ผ่าน (หน้าม้า หมวก ศีรษะล้าน แสงไม่พอ) ใช้ค่ามาตรฐาน = ส่วนกลาง × 0.81 (มัธยฐานของชุดสอบเทียบ n=25) และระบุว่า "ประมาณการ" */
+  var HAIR = { minRatio: 0.65, maxRatio: 1.45, fallbackRatio: 0.81, skinFrac: 0.45, run: 4, dC: 11, dY: 48 };
   function ycc(d, i) {
     var r = d[i], g = d[i + 1], b = d[i + 2];
     return [0.299 * r + 0.587 * g + 0.114 * b, 128 - 0.168736 * r - 0.331264 * g + 0.5 * b, 128 + 0.5 * r - 0.418688 * g - 0.081312 * b];
@@ -135,10 +135,21 @@
     var mouthW = dist(a[48], a[54]);
     var lipC = mid(a[62], a[66]), corners = mid(a[48], a[54]);
     var pose = headPose(pts);
+    // ----- ค่าเสริมสำหรับสิบสองวัง / ห้าภูเขา / ชนิดอวัยวะ -----
+    var mx = (a[27][0] + a[30][0] + a[33][0] + a[8][0]) / 4; // แนวกึ่งกลางหน้า
+    var half = function (i) { return Math.abs(a[i][0] - mx); };
+    var cheekL = ((half(1) + half(2)) / 2) / (((half(4) + half(5)) / 2) || 1e-6);   // โหนกแก้มฝั่งซ้ายภาพ ÷ กรามฝั่งเดียวกัน
+    var cheekR = ((half(15) + half(14)) / 2) / (((half(12) + half(11)) / 2) || 1e-6);
+    var arch = function (h, idx, t) { // ความโก่งของคิ้ว: จุดที่สูงเหนือเส้นตรงหัวคิ้ว→หางคิ้วมากที่สุด ÷ ความยาวคิ้ว
+      var A = a[h], B = a[t], best = 0, dx = (B[0] - A[0]) || 1e-6;
+      idx.forEach(function (i) { var yc = A[1] + (B[1] - A[1]) * (a[i][0] - A[0]) / dx; best = Math.max(best, yc - a[i][1]); });
+      return best / (dist(A, B) || 1e-6);
+    };
+    var eyeWL = dist(a[36], a[39]), eyeWR = dist(a[42], a[45]);
     return {
       ipdPx: F.ipd, roll: pose.roll, yaw: pose.yaw,
       upper: upper, middle: middle, lower: lower, upperEstimated: upperEst,
-      upperShare: upper / total, middleShare: middle / total, lowerShare: lower / total,
+      upperShare: upper / total, middleShare: middle / total, lowerShare: lower / total, mlRatio: middle / (lower || 1),
       lengthRatio: total / fullW,             // ความยาวหน้า (แนวผม→คาง) / ความกว้างหน้า (0–16)
       jawRatio: jawW / cheekW,                // ความกว้างกราม (4–12) / ความกว้างโหนกแก้ม (1–15)
       foreheadRatio: browSpan / jawW,         // ช่วงคิ้ว (17–26) แทนความกว้างหน้าผาก / กราม
@@ -158,56 +169,279 @@
       mouthW: mouthW,                         // ความกว้างปาก 48–54 (IPD)
       lipUpper: dist(a[51], a[62]), lipLower: dist(a[66], a[57]),
       lipTotal: dist(a[51], a[62]) + dist(a[66], a[57]),
-      mouthTilt: (lipC[1] - corners[1]) / mouthW // มุมปากสูงกว่ากึ่งกลางปาก (+) = ยกขึ้น
+      mouthTilt: (lipC[1] - corners[1]) / mouthW, // มุมปากสูงกว่ากึ่งกลางปาก (+) = ยกขึ้น
+      // ----- ค่าเสริม -----
+      cheekL: cheekL, cheekR: cheekR, cheekProm: (cheekL + cheekR) / 2,               // ห้าภูเขา: โหนกแก้ม (1–2 / 14–15) เทียบกราม (4–5 / 11–12)
+      browArch: (arch(21, [18, 19, 20], 17) + arch(22, [23, 24, 25], 26)) / 2,       // ความโก่งคิ้ว
+      eyeTilt: ((a[39][1] - a[36][1]) + (a[42][1] - a[45][1])) / 2 / eyeW,           // หางตาสูงกว่าหัวตา (+)
+      underEye: (a[31][1] + a[35][1]) / 2 - (a[40][1] + a[41][1] + a[46][1] + a[47][1]) / 4, // ใต้ตา→ปีกจมูก (IPD) — วังบุตร
+      templeW: ((a[36][0] - a[0][0]) + (a[16][0] - a[45][0])) / 2,                  // หางตา→ขอบหน้า (IPD) — วังคู่ครอง
+      noseBridge: dist(a[27], a[30]) / (middle || 1),                               // สันจมูก 27→30 ÷ ส่วนกลาง — วังพลังกาย
+      foreheadH: upper / (middle || 1),                                             // ความสูงหน้าผาก ÷ ส่วนกลาง — วังการงาน
+      templeSpan: browSpan / (fullW || 1),                                          // ช่วงคิ้ว ÷ ความกว้างหน้า — วังวาสนา
+      browAsym: Math.abs((a[19][1] + a[20][1]) / 2 - (a[23][1] + a[24][1]) / 2),     // ระดับคิ้วซ้าย–ขวาต่างกัน (IPD) — วังบุพการี
+      jawLowW: dist(a[5], a[11]) / cheekW,                                          // คางส่วนข้าง 5–11 ÷ โหนกแก้ม — วังบริวาร
+      lipRatio: dist(a[51], a[62]) / (dist(a[66], a[57]) || 1e-6),                  // ริมฝีปากบน ÷ ล่าง
+      mouthAsym: Math.abs(a[48][1] - a[54][1]) / mouthW,
+      alarAsym: Math.abs(dist(a[33], a[31]) - dist(a[33], a[35])) / (dist(a[31], a[35]) || 1e-6),
+      eyeAsym: Math.abs(eyeWL - eyeWR) / eyeW
     };
   }
 
-  /* ค่าเฉลี่ย/ส่วนเบี่ยงเบนอ้างอิง [mean, sd] — สอบเทียบคร่าว ๆ จากภาพหน้าตรงสาธารณสมบัติไม่กี่ภาพ
-     (เป็นค่าตั้งต้นเพื่อความบันเทิง ไม่ใช่ค่าประชากร) ปรับได้เมื่อเก็บตัวอย่างมากขึ้น
-     ใช้แปลงเป็นค่า z สำหรับคิดคะแนนธาตุ */
+  /* ================= ค่าอ้างอิง (NORMS) — สอบเทียบด้วย pipeline ของหน้านี้เอง =================
+     ที่มา: ภาพหน้าตรงทางการของเจ้าหน้าที่รัฐบาลสหรัฐฯ (สาธารณสมบัติ, Wikimedia Commons) 39 ภาพ
+       หลากหลายเชื้อสาย: เอเชียตะวันออก/ตะวันออกเฉียงใต้ 15 (รวมผู้มีเชื้อสายไทย 1), เอเชียใต้ 5, ละตินอเมริกา 5,
+       แอฟริกัน 4, ยุโรป 8, ชนพื้นเมืองอเมริกัน 1, หญิง 17 / ชาย 22
+     ขั้นตอน: อัปโหลดเข้า faceread.html ใน headless Chrome (WASM, ไม่ใช้ WebGL) → เก็บค่า measure() ของแต่ละภาพ
+       ตัดภาพที่ไม่ผ่านตรวจคุณภาพ (หันข้าง/เอียง) ออก 6 ภาพ เหลือ n = 33
+       ค่าที่ขึ้นกับแนวผม (lengthRatio, *Share, foreheadH) ใช้เฉพาะภาพที่ตรวจพบแนวผม n = 25
+     รูปแบบ [มัธยฐาน, IQR/1.349] (ค่าเบี่ยงเบนแบบทนค่าผิดปกติ) แล้วแปลงเป็นค่า z = (x − มัธยฐาน) / ค่าเบี่ยงเบน
+     หมายเหตุ: จุด 68 จุดของ face-api ถูกดึงเข้าหารูปหน้าเฉลี่ยค่อนข้างมาก ค่าเบี่ยงเบนของกรอบหน้าจึงแคบ
+     ตัวอย่างยังเล็กและเป็นภาพถ่ายสตูดิโอ ไม่ใช่ค่าประชากร — เป็นค่าตั้งต้นเพื่อความบันเทิงเท่านั้น */
   var NORMS = {
-    lengthRatio: [1.37, 0.06], jawRatio: [0.835, 0.02], foreheadRatio: [0.965, 0.04], chinWidth: [0.535, 0.025],
-    chinAngle: [128, 8], jawCorner: [155, 4], lowerShare: [0.35, 0.025]
+    lengthRatio: [1.324, 0.063], jawRatio: [0.837, 0.0066], foreheadRatio: [0.963, 0.0197], chinWidth: [0.537, 0.0065],
+    chinAngle: [134.2, 6.95], jawCorner: [153.2, 1.72], lowerShare: [0.359, 0.0145], upperShare: [0.286, 0.0183], middleShare: [0.356, 0.0233],
+    mlRatio: [1.002, 0.081],
+    browEye: [1.652, 0.0375], browGap: [0.309, 0.0289], browRise: [-0.063, 0.0263], browArch: [0.163, 0.0166], interBrow: [1.526, 0.0405],
+    eyeAspect: [3.509, 0.175], eyeGap: [1.612, 0.0144], eyeTilt: [0.0587, 0.0214], underEye: [0.639, 0.0437], templeW: [0.471, 0.0241],
+    noseLen: [0.723, 0.0347], alarWidth: [0.661, 0.0251], noseBridge: [0.539, 0.022], philtrumShare: [0.176, 0.017],
+    mouthW: [0.973, 0.0633], lipTotal: [0.209, 0.016], lipRatio: [0.539, 0.0574], mouthTilt: [0.073, 0.0439],
+    cheekProm: [1.276, 0.0108], cheekL: [1.279, 0.0188], cheekR: [1.278, 0.0172], foreheadH: [0.81, 0.102], templeSpan: [0.789, 0.01],
+    jawLowW: [0.701, 0.0091], browAsym: [0.0037, 0.0038], mouthAsym: [0.0104, 0.0077], alarAsym: [0.018, 0.0148], eyeAsym: [0.0229, 0.0191]
   };
-  var z = function (m, k) { var n = NORMS[k]; return clamp((m[k] - n[0]) / n[1], -2.5, 2.5); };
+  /** ค่า z ของค่าที่วัด k (หรือค่า v ที่ส่งมา) เทียบ NORMS ตัดที่ ±2.5 */
+  var zOf = function (k, v) { var n = NORMS[k]; return clamp((v - n[0]) / n[1], -2.5, 2.5); };
+  var z = function (m, k) { return zOf(k, m[k]); };
 
-  /* ================= เกณฑ์จัดหมวด (แก้ไขได้) ================= */
+  /* ================= เกณฑ์จัดหมวด (แก้ไขได้) =================
+     ค่าดิบตั้งจากเปอร์เซ็นไทล์ของชุดสอบเทียบ (ประมาณ P25/P75 หรือ P10/P90) ส่วนชนิดอวัยวะใช้ค่า z จาก NORMS */
   var T = {
-    browLong: 1.78, browShort: 1.48, browRise: 0.0, browHigh: 0.32, browLow: 0.21,  // คิ้ว: browEye ทั่วไป ≈1.65, browRise ทั่วไป ≈ −0.045
-    eyeLong: 3.8, eyeRound: 3.0, eyeWide: 1.75, eyeClose: 1.45,                     // ตา: eyeAspect ≈3.4, eyeGap ≈1.6 (จุดตาของ face-api แคบกว่าตาจริง)
-    alarFull: 0.78, alarRefined: 0.62, noseLong: 0.8,                               // จมูก: alarWidth ≈0.68, noseLen ≈0.73 IPD
-    mouthWide: 1.1, mouthSmall: 0.86, lipFull: 0.25, mouthUp: 0.06,                 // ปาก: mouthW ≈0.98, lipTotal ≈0.21
-    browGapWide: 1.65, browGapNarrow: 1.35,                                         // อิ้นตึ๊ง: interBrow ≈1.5
-    philLong: 0.23, philShort: 0.155,                                               // ร่องใต้จมูก ÷ ส่วนล่าง ≈0.18
-    chinBroad: 0.56, chinPointed: 0.5, chinAngleBroad: 136, chinAnglePointed: 118,  // คาง: chinWidth ≈0.535, chinAngle ≈128°
-    zoneBalanced: 0.045 // ส่วนต่างสัดส่วนสูงสุด–ต่ำสุดของสามส่วนที่ถือว่าสมดุล
+    browHigh: 0.335, browLow: 0.29,                                                  // ระยะคิ้ว→ตา P75/P25
+    eyeWide: 1.635, eyeClose: 1.585,                                                 // ระยะหัวตา ÷ ความยาวตา ≈P90/P10 (จุดตาของ face-api แคบกว่าตาจริง)
+    mouthUp: 0.09,                                                                   // มุมปากยก ≈P75 (มัธยฐาน 0.073 เพราะภาพทางการมักยิ้ม)
+    browGapWide: 1.56, browGapNarrow: 1.5,                                           // อิ้นตึ๊ง P75/P25
+    philLong: 0.19, philShort: 0.163,                                                // ร่องใต้จมูก ÷ ส่วนล่าง P75/P25
+    chinBroad: 0.541, chinPointed: 0.532, chinAngleBroad: 138, chinAnglePointed: 128.5, // คาง P75/P25
+    zoneDom: 0.8,   // ค่า z ของสัดส่วนสามส่วนที่ถือว่า "เด่น"
+    typeZ: 0.6,     // ค่า z ที่ถือว่าลักษณะชัด (ใช้จัดชนิดคิ้ว/ตา/จมูก/ปาก)
+    palaceZ: 0.45   // ค่า z แบ่งวังเป็น 3 ระดับ (≈ แบ่งสามส่วนเท่า ๆ กันถ้าการแจกแจงปกติ)
   };
+
+  /* ชนิดอวัยวะจากรูปร่างที่วัดได้ (เป็นตัวแทนโดยประมาณ — ความหนาคิ้ว ชั้นตา แววตา สันจมูกด้านข้าง วัดจากจุด 68 จุดไม่ได้) */
+  function browType(m) {
+    var L = z(m, "browEye"), A = z(m, "browArch"), R = z(m, "browRise"), t = T.typeZ;
+    if (L <= -1.5 * t) return "short";            // คิ้วสั้นกระชับ
+    if (R >= 1.5 * t && A < t) return "sword";     // หางคิ้วชี้ขึ้น เส้นตรง = คิ้วดาบ 剑眉
+    if (A >= 1.5 * t) return "crescent";           // โก่งชัด = คิ้วพระจันทร์เสี้ยว 新月眉
+    if (L >= t && A >= 0) return "willow";         // ยาวโค้งอ่อน = คิ้วใบหลิว 柳叶眉
+    if (A <= -1.2 * t) return "straight";          // แทบไม่โก่ง = คิ้วตรง 一字眉
+    if (R <= -1.5 * t) return "gentle";            // หางคิ้วลาดลงนุ่ม = คิ้วเมตตา
+    if (L >= 1.5 * t) return "long";               // ยาวเกินตา = คิ้วยาว 长眉
+    return "balanced";
+  }
+  function eyeType(m) {
+    var S = z(m, "eyeAspect"), U = z(m, "eyeTilt"), t = T.typeZ;
+    if (S >= t && U >= t) return "phoenix";        // ยาว หางตาชี้ขึ้น = ตาหงส์ 丹凤眼
+    if (S >= t && U <= -t) return "elephant";      // ยาว หางตาลาด = ตาช้าง 象眼
+    if (S >= t) return "dragon";                   // ยาว แนวตาระดับ = ตามังกร 龙眼
+    if (S <= -t && U >= 0.5 * t) return "deer";    // กลม หางตาชี้ขึ้น = ตากวาง 鹿眼
+    if (S <= -t) return "tiger";                   // กลมโต = ตาเสือ 虎眼
+    return "balanced";
+  }
+  function noseType(m) {
+    var A = z(m, "alarWidth"), L = z(m, "noseLen"), t = T.typeZ;
+    if (A >= 0.7 * t && L >= 0.7 * t) return "gall";  // ปีกจมูกอิ่ม สันยาว = จมูกถุงน้ำดีแขวน/ชมพู่ 悬胆鼻
+    if (A >= 1.2 * t) return "lion";                  // ปีกจมูกกว้างเด่น = จมูกสิงห์ 狮鼻
+    if (L >= 1.2 * t) return "tube";                  // สันยาวตรง = จมูกกระบอก 截筒鼻
+    if (A <= -1.2 * t) return "refined";              // ปีกจมูกเรียว
+    if (L <= -1.2 * t) return "compact";              // จมูกกะทัดรัด
+    return "balanced";
+  }
+  function mouthType(m) {
+    var W = z(m, "mouthW"), F = z(m, "lipTotal"), U = z(m, "mouthTilt"), t = T.typeZ;
+    if (U >= 1.3 * t && Math.abs(W) < 1.5 * t) return "moon";  // มุมปากโค้งขึ้น = ปากจันทร์หงาย 仰月口
+    if (W >= t && F >= 0.7 * t) return "square";               // กว้างและอิ่ม = ปากสี่เหลี่ยม 四字口
+    if (W >= 1.3 * t) return "wide";
+    if (W <= -t && F >= 0.5 * t) return "cherry";              // เล็กแต่อิ่ม = ปากเชอร์รี่ 樱桃口
+    if (W <= -1.3 * t) return "small";
+    if (F >= 1.3 * t) return "full";
+    return "balanced";
+  }
 
   function classify(m) {
-    var brow = m.browEye >= T.browLong ? "long" : m.browEye <= T.browShort ? "short" : m.browRise >= T.browRise ? "rising" : "balanced";
     var browNote = m.browGap >= T.browHigh ? "high" : m.browGap <= T.browLow ? "low" : null;
-    var eye = m.eyeAspect >= T.eyeLong ? "long" : m.eyeAspect <= T.eyeRound ? "round" : "balanced";
     var eyeNote = m.eyeGap >= T.eyeWide ? "wide" : m.eyeGap <= T.eyeClose ? "close" : "normal";
-    var nose = m.alarWidth >= T.alarFull ? "full" : m.noseLen >= T.noseLong ? "long" : m.alarWidth <= T.alarRefined ? "refined" : "balanced";
-    var mouth = m.mouthW >= T.mouthWide ? "wide" : m.lipTotal >= T.lipFull ? "full" : m.mouthW <= T.mouthSmall ? "small" : "balanced";
     var mouthNote = m.mouthTilt >= T.mouthUp ? "up" : "level";
+    var lipNote = m.lipRatio >= NORMS.lipRatio[0] + NORMS.lipRatio[1] ? "upperFull" : m.lipRatio <= NORMS.lipRatio[0] - NORMS.lipRatio[1] ? "lowerFull" : "even";
     var yintang = m.interBrow >= T.browGapWide ? "wide" : m.interBrow <= T.browGapNarrow ? "narrow" : "balanced";
     var philtrum = m.philtrumShare >= T.philLong ? "long" : m.philtrumShare <= T.philShort ? "short" : "balanced";
     var chin = (m.chinWidth >= T.chinBroad || m.chinAngle >= T.chinAngleBroad) && m.chinAngle > T.chinAnglePointed ? "broad"
       : (m.chinWidth <= T.chinPointed || m.chinAngle <= T.chinAnglePointed) ? "pointed" : "balanced";
-    var shares = { upper: m.upperShare, middle: m.middleShare, lower: m.lowerShare };
-    var keys = Object.keys(shares).sort(function (x, y) { return shares[y] - shares[x]; });
-    var balanced = shares[keys[0]] - shares[keys[2]] < T.zoneBalanced;
-    // ถ้าส่วนบนเป็นค่าประมาณการ ไม่ตัดสินว่าส่วนบนเด่น
-    var dom = balanced ? null : keys[0];
-    if (dom === "upper" && m.upperEstimated) dom = null;
+    // สามส่วน: เทียบสัดส่วนกับมัธยฐานของชุดสอบเทียบ (ไม่ใช่เทียบกันตรง ๆ เพราะแนวคิ้วจาก landmark ทำให้ส่วนบนสั้นกว่าเสมอ)
+    var shares = { upper: m.upperShare, middle: m.middleShare, lower: m.lowerShare }, dom = null, zs;
+    if (!m.upperEstimated) {
+      zs = { upper: z(m, "upperShare"), middle: z(m, "middleShare"), lower: z(m, "lowerShare") };
+      var best = Object.keys(zs).sort(function (x, y) { return zs[y] - zs[x]; })[0];
+      if (zs[best] >= T.zoneDom) dom = best;
+    } else { // แนวผมเป็นค่าประมาณการ: เทียบได้เฉพาะส่วนกลางกับส่วนล่าง
+      var zml = z(m, "mlRatio"); zs = { middle: zml, lower: -zml };
+      dom = zml >= T.zoneDom ? "middle" : zml <= -T.zoneDom ? "lower" : null;
+    }
     return {
-      brow: { cat: brow, note: browNote }, eye: { cat: eye, note: eyeNote }, nose: { cat: nose },
-      mouth: { cat: mouth, note: mouthNote }, ear: { cat: "na" },
+      brow: { cat: browType(m), note: browNote }, eye: { cat: eyeType(m), note: eyeNote }, nose: { cat: noseType(m) },
+      mouth: { cat: mouthType(m), note: mouthNote, lip: lipNote }, ear: { cat: "na" },
       yintang: { cat: yintang }, philtrum: { cat: philtrum }, chin: { cat: chin },
-      zones: { balanced: !dom, dominant: dom, shares: shares }
+      zones: { balanced: !dom, dominant: dom, shares: shares, z: zs }
     };
   }
+
+  /* ================= สิบสองวัง (十二宫) =================
+     แต่ละวังใช้ค่าที่วัดได้เป็น "ตัวแทน" (proxy) ของขนาด/ความกว้าง/ความอิ่มของบริเวณนั้น
+     ระดับ: high = เด่นชัด, mid = สมดุล, low = ละเอียดประณีต (ทุกระดับมีความหมายเชิงบวก — ข้อความอยู่ใน KB.palaces)
+     keys: [[ค่าใน measure, น้ำหนัก]] น้ำหนักลบ = ยิ่งน้อยยิ่งเด่น */
+  var PALACES = [
+    { id: "ming",     keys: [["interBrow", 1]] },                    // 命宫 หว่างคิ้ว (印堂) 21–22
+    { id: "caibo",    keys: [["alarWidth", 0.7], ["noseLen", 0.5]] }, // 财帛宫 ปลายจมูก/ปีกจมูก 30–35
+    { id: "xiongdi",  keys: [["browEye", 1]] },                      // 兄弟宫 คิ้ว 17–26
+    { id: "fuqi",     keys: [["templeW", 1]] },                      // 夫妻宫 หางตา (奸门) นอก 36/45
+    { id: "zinv",     keys: [["underEye", 1]] },                     // 子女宫 ใต้ตา (泪堂)
+    { id: "jie",      keys: [["noseBridge", 1]] },                   // 山根 สันจมูกช่วงบน 27–28 (นำเสนอเป็น "พลังกาย" เชิงบวกเท่านั้น)
+    { id: "qianyi",   keys: [["foreheadRatio", 1]] },                // 迁移宫 มุมหน้าผากด้านบน (驿马)
+    { id: "nupu",     keys: [["jawLowW", 1]] },                      // 奴仆宫 คางด้านข้าง (地阁 สองข้าง) 5–7 / 9–11
+    { id: "guanlu",   keys: [["foreheadH", 1]], hair: true },        // 官禄宫 กลางหน้าผาก (中正)
+    { id: "tianzhai", keys: [["browGap", 1]] },                      // 田宅宫 เปลือกตาบน/ช่องคิ้ว–ตา
+    { id: "fude",     keys: [["templeSpan", 1]] },                   // 福德宫 เหนือหางคิ้ว
+    { id: "fumu",     keys: [["browAsym", -1]] }                     // 父母宫 日月角 เหนือหัวคิ้วสองข้าง (ใช้ความสมดุลซ้าย–ขวา)
+  ];
+  function palaceScores(m, light) {
+    return PALACES.map(function (P, i) {
+      var s = 0, w2 = 0;
+      P.keys.forEach(function (k) { s += k[1] * z(m, k[0]); w2 += k[1] * k[1]; });
+      var zz = s / Math.sqrt(w2), est = !!(P.hair && m.upperEstimated);
+      if (est) zz = 0;
+      var lv = zz >= T.palaceZ ? "high" : zz <= -T.palaceZ ? "low" : "mid";
+      return { id: P.id, n: i + 1, z: zz, level: lv, estimated: est, value: m[P.keys[0][0]], key: P.keys[0][0], light: light ? light[P.id] || null : null };
+    });
+  }
+  /** วังเด่น 3 อันดับ (ใช้ในการ์ดแชร์) — ไม่นับวังที่เป็นค่าประมาณการ */
+  function topPalaces(ps, n) {
+    return ps.filter(function (p) { return !p.estimated; }).slice().sort(function (a, b) { return b.z - a.z; }).slice(0, n || 3);
+  }
+
+  /* ================= ห้าภูเขา สี่สายน้ำ (五岳四渎) =================
+     ห้าภูเขา: หน้าผาก=ภูเขาใต้ (南岳衡山), จมูก=ภูเขากลาง (中岳嵩山), โหนกแก้มสองข้าง=ภูเขาตะวันออก/ตะวันตก (东岳泰山/西岳华山),
+               คาง=ภูเขาเหนือ (北岳恒山) — ตำราถือว่าภูเขากลางควรมีภูเขารอบด้าน "โอบอุ้ม" อย่างสมดุล
+     สี่สายน้ำ: ตา (河渎), จมูก (济渎), ปาก (淮渎), หู (江渎 — ภาพหน้าตรงไม่เห็น จึงข้าม) — ตำราชอบสายน้ำที่ "ชัด ยาว และสมดุล" */
+  var sd = function (xs) { var mu = xs.reduce(function (s, v) { return s + v; }, 0) / xs.length; return Math.sqrt(xs.reduce(function (s, v) { return s + (v - mu) * (v - mu); }, 0) / xs.length); };
+  function mountains(m) {
+    var list = [
+      { id: "south", z: m.upperEstimated ? 0 : z(m, "foreheadH"), estimated: !!m.upperEstimated },
+      { id: "center", z: (z(m, "noseLen") + z(m, "alarWidth")) / Math.SQRT2 },
+      { id: "east", z: zOf("cheekProm", m.cheekL) },   // ฝั่งซ้ายของภาพ
+      { id: "west", z: zOf("cheekProm", m.cheekR) },   // ฝั่งขวาของภาพ
+      { id: "north", z: (z(m, "chinWidth") + z(m, "lowerShare") * (m.upperEstimated ? 0 : 1)) / (m.upperEstimated ? 1 : Math.SQRT2) }
+    ];
+    var spread = sd(list.map(function (x) { return x.z; }));
+    var lr = Math.abs(m.cheekL - m.cheekR) / NORMS.cheekL[1]; // ความต่างโหนกแก้มซ้าย–ขวา (หน่วยค่าเบี่ยงเบน)
+    var score = Math.round(clamp(100 - 14 * spread - 6 * lr, 45, 99));
+    var lead = list.filter(function (x) { return !x.estimated; }).sort(function (a, b) { return b.z - a.z; })[0];
+    return { list: list, score: score, spread: spread, lead: lead.id, level: score >= 82 ? "high" : score >= 68 ? "mid" : "low" };
+  }
+  function rivers(m) {
+    var f = function (v) { return Math.round(clamp(v, 45, 99)); };
+    var list = [
+      { id: "eye",   score: f(98 - 8 * Math.abs(z(m, "eyeGap")) - 9 * Math.max(0, z(m, "eyeAsym"))) },
+      { id: "nose",  score: f(98 - 7 * Math.abs(z(m, "alarWidth")) - 9 * Math.max(0, z(m, "alarAsym"))) },
+      { id: "mouth", score: f(98 - 6 * Math.abs(z(m, "mouthW")) - 9 * Math.max(0, z(m, "mouthAsym")) + 3 * Math.max(0, z(m, "mouthTilt"))) },
+      { id: "ear",   score: null }
+    ];
+    var ok = list.filter(function (r) { return r.score != null; });
+    var avg = Math.round(ok.reduce(function (s, r) { return s + r.score; }, 0) / ok.length);
+    return { list: list, score: avg, level: avg >= 85 ? "high" : avg >= 72 ? "mid" : "low" };
+  }
+
+  /* ================= บริเวณบนใบหน้า (พิกัดมาตรฐาน หน่วย IPD) =================
+     ใช้ทั้งวาดซ้อนบนภาพ และสุ่มค่าความสว่าง — คืน { id: [polygon, ...] } */
+  function regions(a, upper) {
+    var browY = meanPt(pick(a, range(17, 26)))[1], hairY = browY - upper, fh = upper;
+    var P = function (x, y) { return [x, y]; };
+    var rect = function (x0, y0, x1, y1) { return [P(x0, y0), P(x1, y0), P(x1, y1), P(x0, y1)]; };
+    var lerp = function (p, q, t) { return [p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t]; };
+    var sh = function (p, dy) { return [p[0], p[1] + dy]; };
+    var mx = (a[27][0] + a[33][0]) / 2;
+    var browPoly = function (ids) { var top = ids.map(function (i) { return sh(a[i], -0.07); }), bot = ids.slice().reverse().map(function (i) { return sh(a[i], 0.06); }); return top.concat(bot); };
+    var underEye = function (lid, o, inn) { return lid.map(function (i) { return sh(a[i], 0.04); }).concat([sh(a[inn], 0.28), sh(a[o], 0.28)]); };
+    var lidGap = function (brow, lid) { return brow.map(function (i) { return sh(a[i], 0.07); }).concat(lid.map(function (i) { return sh(a[i], -0.04); })); };
+    var R = {
+      ming: [rect(a[21][0] + 0.04, Math.min(a[21][1], a[22][1]) - 0.24, a[22][0] - 0.04, a[27][1] - 0.04)],
+      caibo: [[a[31], P(a[31][0] + 0.02, a[29][1]), P(a[35][0] - 0.02, a[29][1]), a[35], a[34], a[33], a[32]]],
+      xiongdi: [browPoly([17, 18, 19, 20, 21]), browPoly([22, 23, 24, 25, 26])],
+      fuqi: [rect(a[0][0] + 0.05, a[36][1] - 0.2, a[36][0] - 0.07, a[36][1] + 0.12), rect(a[45][0] + 0.07, a[45][1] - 0.2, a[16][0] - 0.05, a[45][1] + 0.12)],
+      zinv: [underEye([36, 41, 40, 39], 36, 39), underEye([42, 47, 46, 45], 42, 45)],
+      jie: [rect(a[27][0] - 0.09, a[27][1] - 0.02, a[27][0] + 0.09, a[28][1] + 0.04)],
+      qianyi: [rect(a[17][0] - 0.02, hairY + 0.06, a[18][0] + 0.02, hairY + fh * 0.42), rect(a[25][0] - 0.02, hairY + 0.06, a[26][0] + 0.02, hairY + fh * 0.42)],
+      nupu: [[a[4], a[5], a[6], lerp(a[6], a[48], 0.4), lerp(a[4], a[48], 0.4)], [a[12], a[11], a[10], lerp(a[10], a[54], 0.4), lerp(a[12], a[54], 0.4)]],
+      guanlu: [rect(mx - 0.17, hairY + fh * 0.32, mx + 0.17, hairY + fh * 0.68)],
+      tianzhai: [lidGap([17, 18, 19, 20, 21], [39, 38, 37, 36]), lidGap([22, 23, 24, 25, 26], [45, 44, 43, 42])],
+      fude: [rect(a[17][0] + 0.02, browY - fh * 0.42, a[19][0] - 0.02, Math.min(a[18][1], a[17][1]) - 0.1), rect(a[24][0] + 0.02, browY - fh * 0.42, a[26][0] - 0.02, Math.min(a[25][1], a[26][1]) - 0.1)],
+      fumu: [rect(a[19][0] + 0.02, hairY + fh * 0.1, mx - 0.19, hairY + fh * 0.4), rect(mx + 0.19, hairY + fh * 0.1, a[24][0] - 0.02, hairY + fh * 0.4)]
+    };
+    // แผนที่อายุ (百岁流年) — ใช้บริเวณเดียวกันประกอบกัน
+    var eyeL = range(36, 41).map(function (i) { return a[i]; }), eyeR = range(42, 47).map(function (i) { return a[i]; });
+    var cheekL = [a[1], a[2], lerp(a[2], a[31], 0.45), lerp(a[1], a[39], 0.45)], cheekR = [a[15], a[14], lerp(a[14], a[35], 0.45), lerp(a[15], a[42], 0.45)];
+    R.age = {
+      ear: [rect(a[0][0] - 0.28, a[0][1] - 0.1, a[0][0] - 0.04, a[2][1] + 0.1), rect(a[16][0] + 0.04, a[16][1] - 0.1, a[16][0] + 0.28, a[14][1] + 0.1)],
+      top: [rect(mx - 0.22, hairY, mx + 0.22, hairY + fh * 0.32)],
+      upside: R.qianyi.concat(R.fumu),
+      midfh: R.guanlu.concat(R.ming),
+      brow: R.xiongdi,
+      eye: [eyeL, eyeR],
+      root: R.jie,
+      bridge: [rect(a[28][0] - 0.09, a[28][1], a[29][0] + 0.09, a[30][1] - 0.04), cheekL, cheekR],
+      tip: R.caibo,
+      phil: [[a[32], a[33], a[34], a[52], a[51], a[50]]],
+      mouth: [range(48, 59).map(function (i) { return a[i]; }), [a[31], lerp(a[31], a[48], 0.8), lerp(a[48], a[4], 0.25)], [a[35], lerp(a[35], a[54], 0.8), lerp(a[54], a[12], 0.25)]],
+      chin: [[a[4]].concat(range(5, 12).map(function (i) { return a[i]; })).concat([lerp(a[12], a[54], 0.5), a[57], lerp(a[4], a[48], 0.5)])],
+      rim: [range(0, 16).map(function (i) { return a[i]; }).concat([P(a[16][0], hairY), P(a[0][0], hairY)])]
+    };
+    return R;
+  }
+  function inPoly(p, poly) {
+    var c = false;
+    for (var i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      var xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
+      if (((yi > p[1]) !== (yj > p[1])) && (p[0] < (xj - xi) * (p[1] - yi) / ((yj - yi) || 1e-9) + xi)) c = !c;
+    }
+    return c;
+  }
+  /** ความสว่าง (Y) เฉลี่ยในแต่ละวังเทียบกับทั้งใบหน้า — ใช้เป็นตัวแทน "ความผ่องใส" แบบสัมพัทธ์
+     (เทียบกับหน้าตัวเองเสมอ จึงไม่ขึ้นกับสีผิว) คืน { id: { rel, even } } */
+  function regionLight(img, F, R) {
+    if (!img || !img.data) return null;
+    var lumaIn = function (polys) {
+      var vals = [];
+      polys.forEach(function (poly) {
+        var xs = poly.map(function (p) { return p[0]; }), ys = poly.map(function (p) { return p[1]; });
+        var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
+        var st = Math.max(0.02, Math.max(x1 - x0, y1 - y0) / 14);
+        for (var y = y0; y <= y1; y += st) for (var x = x0; x <= x1; x += st) {
+          if (!inPoly([x, y], poly)) continue;
+          var q = toImage(F, [x, y]), s = samplePx(img, q[0], q[1]); if (s) vals.push(s[0]);
+        }
+      });
+      return vals;
+    };
+    var face = lumaIn(R.age.rim).sort(function (a, b) { return a - b; });
+    if (face.length < 20) return null;
+    var ref = face[Math.floor(face.length / 2)] || 1, out = {};
+    PALACES.forEach(function (P) {
+      var v = lumaIn(R[P.id]); if (v.length < 4) return;
+      var mu = v.reduce(function (s, x) { return s + x; }, 0) / v.length;
+      out[P.id] = { rel: mu / ref, even: 1 - Math.min(1, sd(v) / (mu || 1)) };
+    });
+    return out;
+  }
+  var lightLabel = function (L) { return !L ? null : L.rel >= 1.04 ? "bright" : L.even >= 0.9 ? "even" : "depth"; };
 
   /* ================= คะแนนห้าธาตุ =================
      ใช้ค่า z ของสัดส่วนรูปหน้า แล้วแปลงเป็น % ด้วย softmax
@@ -237,8 +471,8 @@
     return null;
   }
 
-  /** ประกอบคำทำนาย (เชิงบวกทั้งหมด) จากผลจัดหมวด */
-  function buildReading(m, cls, el, age) {
+  /** ประกอบคำทำนาย (เชิงบวกทั้งหมด) จากผลจัดหมวด — ext = { palaces, mountains, rivers } (ไม่บังคับ) */
+  function buildReading(m, cls, el, age, ext) {
     var E = KB.elements[el.top.id], E2 = KB.elements[el.second.id], f = KB.features, p = KB.points, z_ = KB.zones;
     var c = function (feat, k) { return f[feat].cats[cls[feat].cat][k]; };
     var pc = function (pt, k) { return p[pt].cats[cls[pt].cat][k]; };
@@ -246,15 +480,22 @@
     var eyeNote = f.eye.notes[cls.eye.note];
     var browNote = cls.brow.note ? f.brow.notes[cls.brow.note] : "";
     var aa = ageArea(age);
+    ext = ext || {};
+    var pal = function (id) { var q = (ext.palaces || []).filter(function (x) { return x.id === id; })[0]; return q && KB.palaces[id] ? KB.palaces[id].levels[q.level] : ""; };
+    var tops = ext.palaces ? topPalaces(ext.palaces, 3) : [];
     return {
       element: E, elementId: el.top.id, second: E2, secondId: el.second.id,
-      overview: E.overview + " และมีพลังธาตุ" + E2.th + "เสริม (" + E2.traits[0] + ") " + zoneText,
-      work: E.work + " ตำแหน่งคิ้วของคุณเป็นแบบ " + c("brow", "label") + " " + c("brow", "meaning") + " และอิ้นตึ๊งแบบ " + pc("yintang", "label") + " " + pc("yintang", "meaning"),
-      money: E.money + " จมูกแบบ " + c("nose", "label") + " " + c("nose", "meaning"),
-      love: E.love + " ดวงตาแบบ " + c("eye", "label") + " " + c("eye", "meaning") + " ส่วนปากแบบ " + c("mouth", "label") + " " + c("mouth", "meaning"),
-      notes: [browNote, eyeNote, f.mouth.notes[cls.mouth.note]].filter(Boolean),
+      overview: E.overview + " และมีพลังธาตุ" + E2.th + "เสริม (" + E2.traits[0] + ") " + zoneText +
+        (ext.mountains ? " " + KB.mountains.levels[ext.mountains.level] : ""),
+      work: E.work + " คิ้วของคุณเป็นแบบ" + c("brow", "label") + " " + c("brow", "meaning") + " และอิ้นตึ๊งแบบ" + pc("yintang", "label") + " " + pc("yintang", "meaning") +
+        (pal("guanlu") ? " วังการงาน: " + pal("guanlu") : ""),
+      money: E.money + " จมูกแบบ" + c("nose", "label") + " " + c("nose", "meaning") + (pal("caibo") ? " วังทรัพย์: " + pal("caibo") : ""),
+      love: E.love + " ดวงตาแบบ" + c("eye", "label") + " " + c("eye", "meaning") + " ส่วนปากแบบ" + c("mouth", "label") + " " + c("mouth", "meaning") +
+        (pal("fuqi") ? " วังคู่ครอง: " + pal("fuqi") : ""),
+      notes: [browNote, eyeNote, f.mouth.notes[cls.mouth.note], f.mouth.lipNotes[cls.mouth.lip]].filter(Boolean),
       tips: [E.tip, f.nose.tip, p.yintang.tip, f.mouth.tip].filter(Boolean),
       colors: E.colors,
+      topPalaces: tops.map(function (q) { return KB.palaces[q.id].th; }),
       age: aa
     };
   }
@@ -309,6 +550,21 @@
     ["mouthW", "ความกว้างปาก (IPD)", "48–54"],
     ["lipTotal", "ความหนาริมฝีปากบน+ล่าง (IPD)", "(51→62) + (66→57)"],
     ["mouthTilt", "มุมปากยก (+) ÷ ความกว้างปาก", "กึ่งกลาง 62/66 เทียบ 48/54"],
+    ["browArch", "ความโก่งคิ้ว ÷ ความยาวคิ้ว", "จุด 18–20 เหนือเส้น 17→21 (และ 23–25 เหนือ 22→26)"],
+    ["eyeTilt", "หางตาสูงกว่าหัวตา (+) ÷ ความยาวตา", "y(39)−y(36), y(42)−y(45)"],
+    ["lipRatio", "ริมฝีปากบน ÷ ล่าง", "(51→62) ÷ (66→57)"],
+    ["cheekL", "โหนกแก้มซ้ายภาพ ÷ กราม (ภูเขาตะวันออก)", "ครึ่งกว้างที่ 1–2 ÷ ที่ 4–5 จากแนวกึ่งกลาง"],
+    ["cheekR", "โหนกแก้มขวาภาพ ÷ กราม (ภูเขาตะวันตก)", "ครึ่งกว้างที่ 14–15 ÷ ที่ 11–12"],
+    ["foreheadH", "ความสูงหน้าผาก ÷ ส่วนกลาง (วังการงาน)", "แนวผม→แนวคิ้ว ÷ แนวคิ้ว→33"],
+    ["templeW", "หางตา→ขอบหน้า IPD (วังคู่ครอง)", "x(36)−x(0), x(16)−x(45)"],
+    ["underEye", "ใต้ตา→ปีกจมูก IPD (วังบุตร)", "เปลือกตาล่าง 40/41/46/47 → 31/35"],
+    ["noseBridge", "สันจมูก ÷ ส่วนกลาง (วังพลังกาย)", "27→30 ÷ คิ้ว→33"],
+    ["templeSpan", "ช่วงคิ้ว ÷ ความกว้างหน้า (วังวาสนา)", "(17–26) ÷ (0–16)"],
+    ["jawLowW", "คางส่วนข้าง ÷ โหนกแก้ม (วังบริวาร)", "(5–11) ÷ (1–15)"],
+    ["browAsym", "ระดับคิ้วซ้าย–ขวาต่างกัน IPD (วังบุพการี)", "|y(19,20) − y(23,24)|"],
+    ["eyeAsym", "ความต่างความยาวตาซ้าย–ขวา", "|36–39 − 42–45| ÷ ความยาวตา"],
+    ["alarAsym", "ความต่างปีกจมูกซ้าย–ขวา", "|33→31 − 33→35| ÷ 31–35"],
+    ["mouthAsym", "ความต่างระดับมุมปาก", "|y(48) − y(54)| ÷ ความกว้างปาก"],
     ["yaw", "การหันซ้าย–ขวา (0 = ตรง)", "ระยะปลายจมูก 30 ถึงขอบหน้าสองข้าง"],
     ["roll", "ศีรษะเอียง (องศา)", "แนวตาซ้าย–ขวา"]
   ];
@@ -324,21 +580,44 @@
     return out;
   }
 
-  /** วิเคราะห์ครบชุด: pts (68 จุดในพิกัดภาพ), img (ImageData-like สำหรับหาแนวผม) */
+  /* ================= ฟอร์มรับข้อมูลลูกค้า (ต้องยินยอม) — localStorage "fr-leads" =================
+     เก็บเฉพาะชื่อเล่น ช่องทางติดต่อ ธาตุ เวลา และข้อความยินยอมที่ผู้ใช้เห็น ไม่เก็บภาพหรือค่าใบหน้า */
+  function addLead(list, e, now) {
+    list = Array.isArray(list) ? list.slice() : [];
+    var nick = String(e && e.nick || "").trim().slice(0, 40), contact = String(e && e.contact || "").trim().slice(0, 80);
+    if (!nick || !contact) return { ok: false, list: list, error: "กรอกชื่อเล่นและช่องทางติดต่อ" };
+    if (!(e && e.consent === true)) return { ok: false, list: list, error: "กรุณาติ๊กยินยอมก่อนส่ง" };
+    list.push({ ts: new Date(now || Date.now()).toISOString(), nick: nick, contact: contact, element: e.element || "", consent: String(e.consentText || "").slice(0, 300) });
+    return { ok: true, list: list };
+  }
+  /** CSV (UTF-8 + BOM ให้ Excel อ่านภาษาไทยได้) กันสูตร (=,+,-,@) ด้วยการเติม ' นำหน้า */
+  function leadsToCsv(list) {
+    var cell = function (v) { v = String(v == null ? "" : v); if (/^[=+\-@\t\r]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; };
+    var rows = [["เวลา", "ชื่อเล่น", "ช่องทางติดต่อ", "ธาตุ", "ข้อความยินยอม"]].concat((list || []).map(function (l) { return [l.ts, l.nick, l.contact, l.element, l.consent]; }));
+    return "\ufeff" + rows.map(function (r) { return r.map(cell).join(","); }).join("\r\n");
+  }
+
+  /** วิเคราะห์ครบชุด: pts (68 จุดในพิกัดภาพ), img (ImageData-like สำหรับหาแนวผมและความสว่างแต่ละวัง) */
   function analyze(pts, img, age) {
     var hair = estimateHairline(img, pts);
     var m = measure(pts, hair);
     var cls = classify(m);
     var el = elementScores(m);
-    var reading = KB ? buildReading(m, cls, el, age) : null;
-    return { hair: hair, m: m, cls: cls, el: el, reading: reading };
+    var A = align(pts), reg = regions(A.a, m.upper);
+    var light = regionLight(img, A.F, reg);
+    var pals = palaceScores(m, light);
+    var mt = mountains(m), rv = rivers(m);
+    var reading = KB ? buildReading(m, cls, el, age, { palaces: pals, mountains: mt, rivers: rv }) : null;
+    return { hair: hair, m: m, cls: cls, el: el, palaces: pals, mountains: mt, rivers: rv, regions: reg, light: light, reading: reading };
   }
 
   var FRCore = {
     dist: dist, angleAt: angleAt, frame: frame, toAligned: toAligned, toImage: toImage, align: align, headPose: headPose,
     averageLandmarks: averageLandmarks, estimateHairline: estimateHairline, measure: measure, classify: classify,
     elementScores: elementScores, buildReading: buildReading, ageArea: ageArea, quality: quality, lightStats: lightStats,
-    analyze: analyze, addStat: addStat, round: round, NORMS: NORMS, THRESH: T, HAIR: HAIR, QUALITY: Q, METRICS: METRICS, ELEMENTS: ELEMENTS
+    analyze: analyze, addStat: addStat, round: round, NORMS: NORMS, zOf: zOf,
+    palaceScores: palaceScores, topPalaces: topPalaces, mountains: mountains, rivers: rivers, regions: regions, regionLight: regionLight, lightLabel: lightLabel, inPoly: inPoly,
+    browType: browType, eyeType: eyeType, noseType: noseType, mouthType: mouthType, addLead: addLead, leadsToCsv: leadsToCsv, PALACES: PALACES, THRESH: T, HAIR: HAIR, QUALITY: Q, METRICS: METRICS, ELEMENTS: ELEMENTS
   };
   if (typeof module !== "undefined" && module.exports) module.exports = FRCore;
   root.FRCore = FRCore;
@@ -362,7 +641,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var btnCam = $("#frStartCam"), btnRead = $("#frRead"), fileIn = $("#frFile"), qcList = $("#frQc"), countEl = $("#frCount");
   var resultSec = $("#frResult"), resCanvas = $("#frResCanvas");
   var ready = false, busy = false, looping = false, lastDet = null, lastQ = null, current = null, forceRead = null;
-  var prefs = Object.assign({ stats: true, photoOnCard: false }, lsGet(PREF_KEY, {}));
+  var prefs = Object.assign({ stats: true, photoOnCard: false, reco: !!(KB.recommend && KB.recommend.enabled), leads: !!(KB.leads && KB.leads.enabled) }, lsGet(PREF_KEY, {}));
 
   function engine(msg, cls) { var e = $("#frEngine"); e.textContent = msg; e.className = "fr-engine " + (cls || ""); }
 
@@ -598,8 +877,17 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     touch();
   }
 
-  /** ภาพผล: ครอปรอบใบหน้า + แถบสามส่วน + เส้นรอบอวัยวะ + ป้ายจุดสำคัญ */
-  function drawResultImage(canvas, src, pts, R) {
+  /** ภาพผล: ครอปรอบใบหน้า แล้วซ้อนภาพตามโหมด
+     zones = แถบสามส่วน + เส้นห้าอวัยวะ + ป้ายจุดสำคัญ | palaces = สิบสองวัง | mountains = ห้าภูเขาสี่สายน้ำ | ages = แผนที่อายุ */
+  var OVL_CAP = {
+    zones: "แถบสี = สามส่วนของใบหน้า · เส้น = ห้าอวัยวะ · ป้าย = จุดสำคัญ",
+    palaces: "หมายเลข = สิบสองวัง (ตรงกับรายการด้านล่าง) · สีทอง = วังเด่น 3 อันดับ",
+    mountains: "วงกลม = ห้าภูเขา (หน้าผาก จมูก โหนกแก้ม คาง) · เส้นฟ้า = สายน้ำ (ตา จมูก ปาก)",
+    ages: "ตัวเลข = อายุเริ่มต้นของแต่ละช่วงในแผนที่อายุ · สีทอง = ช่วงวัยของคุณ (เมื่อกรอกอายุ)"
+  };
+  var ovlMode = "zones";
+  function drawResultImage(canvas, src, pts, R, mode) {
+    mode = mode || ovlMode;
     var F = FR.frame(pts), a = pts.map(function (p) { return FR.toAligned(F, p); });
     var browY = (function () { var s = 0; for (var i = 17; i <= 26; i++) s += a[i][1]; return s / 10; })();
     var hairY = browY - R.m.upper, noseY = a[33][1], chinY = a[8][1];
@@ -609,19 +897,90 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     h = w / 0.8; top = (top + bot) / 2 - h / 2;
     var W = 900, H = 1125, s = W / w; canvas.width = W; canvas.height = H;
     var c = canvas.getContext("2d");
-    // วาดภาพแบบหมุนตามแนวตาให้ตรง
     c.save();
     c.fillStyle = "#0e1430"; c.fillRect(0, 0, W, H);
     c.translate(W / 2, -top * s); c.scale(s / F.ipd, s / F.ipd); c.translate(-cxA * F.ipd, 0); c.rotate(-F.theta); c.translate(-F.c[0], -F.c[1]);
     c.drawImage(src, 0, 0);
     c.restore();
     var P = function (q) { return [W / 2 + (q[0] - cxA) * s, (q[1] - top) * s]; };
-    c.fillStyle = "rgba(14,20,48,.18)"; c.fillRect(0, 0, W, H);
-    // แถบสามส่วน
-    var x0 = P([minX - 0.12, 0])[0], x1 = P([maxX + 0.12, 0])[0];
-    var bands = [[hairY, browY, "rgba(103,79,242,.16)", "บน"], [browY, noseY, "rgba(34,211,238,.14)", "กลาง"], [noseY, chinY, "rgba(240,180,60,.16)", "ล่าง"]];
     var fs = Math.round(W / 34);
     c.font = "500 " + fs + "px Prompt, system-ui, sans-serif"; c.textBaseline = "middle";
+    var line = function (idx, close, color, lw) {
+      c.beginPath(); idx.forEach(function (i, k) { var p = P(a[i]); if (k) c.lineTo(p[0], p[1]); else c.moveTo(p[0], p[1]); });
+      if (close) c.closePath(); c.strokeStyle = color; c.lineWidth = lw || 3; c.lineJoin = "round"; c.stroke();
+    };
+    var poly = function (pl, fill, stroke, lw) {
+      c.beginPath(); pl.forEach(function (q, k) { var p = P(q); if (k) c.lineTo(p[0], p[1]); else c.moveTo(p[0], p[1]); }); c.closePath();
+      if (fill) { c.fillStyle = fill; c.fill(); }
+      if (stroke) { c.strokeStyle = stroke; c.lineWidth = lw || 2; c.lineJoin = "round"; c.stroke(); }
+    };
+    var centroid = function (pl) { var x = 0, y = 0; pl.forEach(function (q) { x += q[0]; y += q[1]; }); return P([x / pl.length, y / pl.length]); };
+    var badge = function (x, y, text, bg, fg, r) {
+      r = r || fs * 0.62; c.font = "600 " + Math.round(r * 1.05) + "px Prompt, system-ui, sans-serif";
+      var tw = Math.max(r * 2, c.measureText(text).width + r * 0.9);
+      c.fillStyle = bg; c.beginPath(); if (c.roundRect) c.roundRect(x - tw / 2, y - r, tw, r * 2, r); else c.arc(x, y, r, 0, Math.PI * 2); c.fill();
+      c.strokeStyle = "rgba(14,20,48,.55)"; c.lineWidth = 1.5; c.stroke();
+      c.fillStyle = fg; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(text, x, y + 1); c.textAlign = "left";
+    };
+    var rg = function (x, y) { var r = []; for (var i = x; i <= y; i++) r.push(i); return r; };
+    c.fillStyle = mode === "zones" ? "rgba(14,20,48,.18)" : "rgba(14,20,48,.34)"; c.fillRect(0, 0, W, H);
+
+    if (mode === "palaces") {
+      var tops = FR.topPalaces(R.palaces, 3).map(function (p) { return p.id; });
+      R.palaces.forEach(function (p) {
+        var hot = tops.indexOf(p.id) >= 0, polys = R.regions[p.id];
+        polys.forEach(function (pl) { poly(pl, hot ? "rgba(250,204,21,.30)" : "rgba(34,211,238,.18)", hot ? "#facc15" : "rgba(165,243,252,.9)", hot ? 3 : 2); });
+      });
+      R.palaces.forEach(function (p) {
+        var hot = tops.indexOf(p.id) >= 0;
+        R.regions[p.id].forEach(function (pl) { var q = centroid(pl); badge(q[0], q[1], String(p.n), hot ? "#facc15" : "#fff", "#0e1430"); });
+      });
+      return;
+    }
+    if (mode === "mountains") {
+      line(rg(0, 16), false, "rgba(255,255,255,.5)", 2);
+      var RV = function (idx) { line(idx, true, "#67e8f9", 4); };
+      RV(rg(36, 41)); RV(rg(42, 47)); RV(rg(48, 59)); line([27, 28, 29, 30], false, "#67e8f9", 4); line([31, 32, 33, 34, 35], false, "#67e8f9", 4);
+      var mid = function (i, j) { return [(a[i][0] + a[j][0]) / 2, (a[i][1] + a[j][1]) / 2]; };
+      var cx = (a[27][0] + a[33][0]) / 2;
+      var spots = {
+        south: [cx, hairY + R.m.upper * 0.45], center: mid(29, 30),
+        east: [a[1][0] * 0.62 + a[39][0] * 0.38, (a[1][1] + a[29][1]) / 2], west: [a[15][0] * 0.62 + a[42][0] * 0.38, (a[15][1] + a[29][1]) / 2],
+        north: [a[8][0], (a[8][1] * 0.6 + a[57][1] * 0.4)]
+      };
+      var lab = { south: "ใต้ · หน้าผาก", center: "กลาง · จมูก", east: "ตะวันออก", west: "ตะวันตก", north: "เหนือ · คาง" };
+      var lead = R.mountains.lead;
+      R.mountains.list.forEach(function (mt) {
+        var p = P(spots[mt.id]), rr = s * (0.16 + 0.03 * Math.max(-1.5, Math.min(1.5, mt.z)));
+        c.beginPath(); c.arc(p[0], p[1], rr, 0, Math.PI * 2);
+        c.fillStyle = mt.id === lead ? "rgba(250,204,21,.32)" : "rgba(196,181,253,.25)"; c.fill();
+        c.strokeStyle = mt.id === lead ? "#facc15" : "#c4b5fd"; c.lineWidth = 3; c.stroke();
+        badge(p[0], p[1] + rr + fs * 0.75, lab[mt.id], mt.id === lead ? "#facc15" : "rgba(255,255,255,.95)", "#0e1430", fs * 0.5);
+      });
+      return;
+    }
+    if (mode === "ages") {
+      var ages = R.regions.age, cur = R.reading.age;
+      KB.ageMap.forEach(function (g) {
+        if (g.region === "rim") return;
+        var on = cur && cur === g;
+        (ages[g.region] || []).forEach(function (pl) { poly(pl, on ? "rgba(250,204,21,.35)" : "rgba(255,255,255,.07)", on ? "#facc15" : "rgba(255,255,255,.45)", on ? 4 : 1.5); });
+      });
+      if (cur && cur.region === "rim") poly(ages.rim[0], null, "#facc15", 5);
+      KB.ageMap.forEach(function (g) {
+        if (g.region === "rim") return;
+        var on = cur && cur === g, pl = (ages[g.region] || [])[0]; if (!pl) return;
+        var q = centroid(pl);
+        if (g.region === "bridge") q = centroid(ages.bridge[0]);
+        badge(q[0], q[1], g.from + (on ? "–" + g.to : ""), on ? "#facc15" : "rgba(255,255,255,.92)", "#0e1430", fs * (on ? 0.6 : 0.46));
+      });
+      if (cur) badge(W / 2, H - fs * 1.4, "ช่วงวัยของคุณ: " + cur.th + " (" + cur.from + "–" + (cur.to >= 120 ? "100+" : cur.to) + " ปี)", "#facc15", "#0e1430", fs * 0.6);
+      return;
+    }
+    // zones (ค่าเริ่มต้น)
+    var x0 = P([minX - 0.12, 0])[0], x1 = P([maxX + 0.12, 0])[0];
+    var bands = [[hairY, browY, "rgba(103,79,242,.16)", "บน"], [browY, noseY, "rgba(34,211,238,.14)", "กลาง"], [noseY, chinY, "rgba(240,180,60,.16)", "ล่าง"]];
+    c.font = "500 " + fs + "px Prompt, system-ui, sans-serif";
     bands.forEach(function (b, i) {
       var y0 = P([0, b[0]])[1], y1 = P([0, b[1]])[1];
       c.fillStyle = b[2]; c.fillRect(x0, y0, x1 - x0, y1 - y0);
@@ -631,18 +990,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       pill(c, b[3] + " " + share + "%", 14, (y0 + y1) / 2, fs * 0.85, "left", "rgba(14,20,48,.78)", "#fff");
     });
     var yc = P([0, chinY])[1]; c.strokeStyle = "rgba(255,255,255,.55)"; c.beginPath(); c.moveTo(x0, yc); c.lineTo(x1, yc); c.stroke();
-    // เส้นรอบอวัยวะ
-    var line = function (idx, close, color) {
-      c.beginPath(); idx.forEach(function (i, k) { var p = P(a[i]); if (k) c.lineTo(p[0], p[1]); else c.moveTo(p[0], p[1]); });
-      if (close) c.closePath(); c.strokeStyle = color; c.lineWidth = 3; c.lineJoin = "round"; c.stroke();
-    };
-    var rg = function (x, y) { var r = []; for (var i = x; i <= y; i++) r.push(i); return r; };
     line(rg(0, 16), false, "rgba(255,255,255,.75)");
     line(rg(17, 21), false, "#c4b5fd"); line(rg(22, 26), false, "#c4b5fd");
     line(rg(36, 41), true, "#67e8f9"); line(rg(42, 47), true, "#67e8f9");
     line(rg(27, 30), false, "#fcd34d"); line([31, 32, 33, 34, 35], false, "#fcd34d");
     line(rg(48, 59), true, "#fda4af");
-    // ป้ายจุดสำคัญ (ด้านขวา/ซ้ายสลับกัน พร้อมเส้นโยง)
     var mp = function (i, j) { return [(a[i][0] + a[j][0]) / 2, (a[i][1] + a[j][1]) / 2]; };
     var labels = [
       [[a[27][0], hairY], "แนวผม" + (R.m.upperEstimated ? " (ประมาณการ)" : ""), "R"],
@@ -652,6 +1004,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       [a[54], "มุมปาก", "R"],
       [a[8], "คาง", "L"]
     ];
+    c.font = "500 " + fs + "px Prompt, system-ui, sans-serif";
     labels.forEach(function (l) {
       var p = P(l[0]), right = l[2] === "R", lx = right ? W - 14 : 14;
       c.strokeStyle = "rgba(255,255,255,.8)"; c.lineWidth = 2;
@@ -661,6 +1014,13 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       pill(c, l[1], lx, p[1], fs * 0.85, right ? "right" : "left", "rgba(255,255,255,.95)", "#0e1430");
     });
   }
+  function setOverlay(mode) {
+    ovlMode = mode;
+    document.querySelectorAll(".fr-ovl button").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.mode === mode ? "true" : "false"); });
+    $("#frOvlCap").textContent = OVL_CAP[mode];
+    if (current) drawResultImage(resCanvas, current.cv, current.pts, current.R, mode);
+  }
+  document.querySelectorAll(".fr-ovl button").forEach(function (b) { b.addEventListener("click", function () { touch(); setOverlay(b.dataset.mode); }); });
   function pill(c, text, x, y, size, align, bg, fg) {
     c.font = "500 " + Math.round(size) + "px Prompt, system-ui, sans-serif";
     var w = c.measureText(text).width + size, h = size * 1.6, x0 = align === "right" ? x - w : x;
@@ -670,6 +1030,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
 
   var fmt = function (v, d) { return typeof v === "number" ? (Math.round(v * Math.pow(10, d)) / Math.pow(10, d)).toFixed(d) : String(v); };
+  var zTxt = function (zv) { return Math.abs(zv) < 0.05 ? "z 0.0" : "z " + (zv > 0 ? "+" : "−") + fmt(Math.abs(zv), 1); };
   function renderReading(R) {
     var rd = R.reading, E = rd.element, cls = R.cls, m = R.m;
     $("#frElement").style.setProperty("--el", E.color);
@@ -689,14 +1050,46 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#frLove").textContent = rd.love;
     $("#frNotes").innerHTML = rd.notes.map(function (n) { return "<li>" + esc(n) + "</li>"; }).join("");
 
+    // สิบสองวัง
+    var PK = KB.palaces, tops = FR.topPalaces(R.palaces, 3);
+    $("#frPalTop").innerHTML = "วังเด่นของคุณ: " + tops.map(function (p) { return "<b>" + esc(PK[p.id].th) + "</b>"; }).join(" · ") + " — กดปุ่ม <b>สิบสองวัง</b> ใต้ภาพเพื่อดูตำแหน่ง";
+    $("#frPalaces").innerHTML = R.palaces.map(function (p) {
+      var K = PK[p.id], hot = tops.some(function (t) { return t.id === p.id; }), lt = FR.lightLabel(p.light);
+      return '<li class="pal ' + p.level + (hot ? " hot" : "") + '"><span class="pal-n" aria-hidden="true">' + p.n + "</span><div>" +
+        '<div class="pal-h"><b>' + esc(K.th) + '</b> <span class="cn">' + esc(K.cn) + "</span>" +
+        '<span class="pal-lv">' + esc(KB.palaceLevels[p.level]) + "</span>" + (p.estimated ? '<span class="est">ประมาณการ</span>' : "") +
+        (lt ? '<span class="pal-lt">' + esc(KB.lightLabels[lt]) + "</span>" : "") + "</div>" +
+        '<p class="pal-w">' + esc(K.where) + " · วัดจาก " + esc(K.proxy) + " = " + fmt(p.value, p.key === "browAsym" ? 3 : 2) + " (" + (p.estimated ? "ไม่พบแนวผม ใช้ค่ากลาง" : zTxt(p.z)) + ")</p>" +
+        "<p>" + esc(K.levels[p.level]) + "</p><p class=\"pal-tip\">เคล็ด: " + esc(K.tip) + "</p></div></li>";
+    }).join("");
+    $("#frPalNote").textContent = KB.palaceLevels.high + " / " + KB.palaceLevels.mid + " / " + KB.palaceLevels.low + " = บริเวณนั้นเด่น ใกล้ค่ากลาง หรือกระชับกว่าค่ากลาง ทุกระดับมีความหมายดีในแบบของตัวเอง · " +
+      (R.light ? "ป้ายความสว่าง: " + KB.lightNote : "");
+
+    // ห้าภูเขา สี่สายน้ำ
+    var MT = KB.mountains, RV = KB.rivers, pct = function (zv) { return Math.round(Math.max(6, Math.min(100, 50 + zv * 20))); };
+    $("#frMtScore").textContent = R.mountains.score;
+    $("#frMountains").innerHTML = R.mountains.list.map(function (x) {
+      var K = MT.items[x.id];
+      return '<li class="' + (x.id === R.mountains.lead ? "lead" : "") + '"><span><b>' + esc(K.th) + '</b> <span class="cn">' + esc(K.cn) + "</span><small>" + esc(K.meaning) + "</small></span>" +
+        '<i class="mbar" style="--w:' + pct(x.z) + '%"></i><em>' + (x.estimated ? "ประมาณการ" : zTxt(x.z)) + "</em></li>";
+    }).join("");
+    $("#frMtText").textContent = MT.levels[R.mountains.level] + " " + MT.lead[R.mountains.lead];
+    $("#frRvScore").textContent = R.rivers.score;
+    $("#frRivers").innerHTML = R.rivers.list.map(function (x) {
+      var K = RV.items[x.id];
+      return '<li><span><b>' + esc(K.th) + '</b> <span class="cn">' + esc(K.cn) + "</span><small>" + esc(K.meaning) + "</small></span>" +
+        (x.score == null ? '<i class="mbar off"></i><em>—</em>' : '<i class="mbar" style="--w:' + x.score + '%"></i><em>' + x.score + "</em>") + "</li>";
+    }).join("");
+    $("#frRvText").textContent = RV.levels[R.rivers.level];
+
     // ตารางห้าอวัยวะ + จุดสำคัญ
     var f = KB.features, p = KB.points;
-    var row = function (name, val, cat) { return "<tr><th scope=\"row\">" + esc(name) + "</th><td>" + val + "</td><td><b>" + esc(cat.label) + "</b></td><td>" + esc(cat.meaning) + "</td></tr>"; };
+    var row = function (name, val, cat) { return "<tr><th scope=\"row\">" + esc(name) + "</th><td>" + val + "</td><td><b>" + esc(cat.label) + "</b>" + (cat.how ? "<br><small>" + esc(cat.how) + "</small>" : "") + "</td><td>" + esc(cat.meaning) + "</td></tr>"; };
     var rows = [
-      row("คิ้ว", "ยาว " + fmt(m.browEye, 2) + "× ของตา<br>ห่างตา " + fmt(m.browGap, 2) + " IPD", f.brow.cats[cls.brow.cat]),
-      row("ตา", "ยาว/สูง " + fmt(m.eyeAspect, 2) + "<br>ระยะหัวตา " + fmt(m.eyeGap, 2) + "× ตา", f.eye.cats[cls.eye.cat]),
+      row("คิ้ว", "ยาว " + fmt(m.browEye, 2) + "× ของตา<br>โก่ง " + fmt(m.browArch, 3) + " · หางคิ้ว " + (m.browRise >= 0 ? "+" : "") + fmt(m.browRise, 3), f.brow.cats[cls.brow.cat]),
+      row("ตา", "ยาว/สูง " + fmt(m.eyeAspect, 2) + "<br>หางตา " + (m.eyeTilt >= 0 ? "+" : "") + fmt(m.eyeTilt, 3) + " · ระยะหัวตา " + fmt(m.eyeGap, 2) + "×", f.eye.cats[cls.eye.cat]),
       row("จมูก", "ยาว " + fmt(m.noseLen, 2) + " IPD<br>ฐาน " + fmt(m.alarWidth, 2) + "× ระยะหัวตา", f.nose.cats[cls.nose.cat]),
-      row("ปาก", "กว้าง " + fmt(m.mouthW, 2) + " IPD<br>ริมฝีปาก " + fmt(m.lipTotal, 2) + " IPD", f.mouth.cats[cls.mouth.cat]),
+      row("ปาก", "กว้าง " + fmt(m.mouthW, 2) + " IPD<br>ริมฝีปาก " + fmt(m.lipTotal, 2) + " IPD · บน/ล่าง " + fmt(m.lipRatio, 2), f.mouth.cats[cls.mouth.cat]),
       row("หู", "—", f.ear.cats.na),
       row("อิ้นตึ๊ง (หว่างคิ้ว)", fmt(m.interBrow, 2) + "× ความยาวตา", p.yintang.cats[cls.yintang.cat]),
       row("ร่องใต้จมูก", fmt(m.philtrumShare * 100, 0) + "% ของส่วนล่าง", p.philtrum.cats[cls.philtrum.cat]),
@@ -712,28 +1105,92 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       return '<div class="zone' + (dom ? " dom" : "") + '"><div class="zbar"><i style="--w:' + Math.round(zz[1] * 100 / 0.5) + '%"></i></div><div><b>' + esc(Z[k].th) + "</b> " + Math.round(zz[1] * 100) + "%" +
         (k === "upper" && m.upperEstimated ? ' <span class="est">ประมาณการ</span>' : "") + "<small>" + esc(Z[k].age) + " · " + esc(Z[k].theme) + "</small></div></div>";
     }).join("");
-    $("#frZoneText").textContent = (cls.zones.dominant ? Z[cls.zones.dominant].dominant : Z.balanced) + (m.upperEstimated ? " (แนวผมเป็นค่าประมาณการ จึงไม่ประเมินว่าส่วนบนเด่น)" : "");
+    $("#frZoneText").textContent = (cls.zones.dominant ? Z[cls.zones.dominant].dominant : Z.balanced) +
+      " (เทียบกับค่ากลางของชุดสอบเทียบ" + (m.upperEstimated ? " · แนวผมเป็นค่าประมาณการ จึงเทียบเฉพาะส่วนกลางกับส่วนล่าง" : "") + ")";
 
-    // ช่วงวัย
+    // แผนที่อายุ
     var aa = rd.age;
     $("#frAges").innerHTML = KB.ageMap.map(function (g) {
       var on = aa && aa === g;
-      return '<li class="' + (on ? "on" : "") + '"><b>' + g.from + (g.to >= 120 ? "+ ปี" : "–" + g.to + " ปี") + "</b><span>" + esc(g.th) + "</span>" + (on ? '<p>' + esc(g.msg) + "</p>" : "") + "</li>";
+      return '<li class="' + (on ? "on" : "") + '"><b>' + g.from + (g.to >= 120 ? "+ ปี" : "–" + g.to + " ปี") + "</b><span>" + esc(g.th) + "</span>" +
+        (on ? '<p>' + esc(g.msg) + '</p><p class="pos">ตำแหน่ง: ' + esc(g.pos) + "</p>" : "") + "</li>";
     }).join("");
-    $("#frAgeHint").textContent = aa ? "ไฮไลต์ช่วงวัยปัจจุบันของคุณ" : "กรอกอายุ (ไม่บังคับ) ก่อนอ่าน เพื่อดูตำแหน่งที่เด่นในช่วงวัยของคุณ";
+    $("#frAgeHint").textContent = aa ? "ไฮไลต์ช่วงวัยปัจจุบันของคุณ — กดปุ่ม แผนที่อายุ ใต้ภาพเพื่อดูตำแหน่งบนใบหน้า" : "กรอกอายุ (ไม่บังคับ) ก่อนอ่าน เพื่อดูตำแหน่งที่เด่นในช่วงวัยของคุณ (ตำราย่อ 100 ตำแหน่งเป็น 13 ช่วง)";
 
     // เคล็ดเสริมดวง & สีมงคล
-    $("#frTips").innerHTML = rd.tips.concat(KB.generalTips.slice(0, 1)).map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("");
+    var palTip = tops.length ? [PK[tops[0].id].th + ": " + PK[tops[0].id].tip] : [];
+    $("#frTips").innerHTML = rd.tips.concat(palTip, KB.generalTips.slice(0, 1)).map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("");
     $("#frColors").innerHTML = rd.colors.map(function (c) { return '<li><i style="background:' + c.hex + '"></i>' + esc(c.name) + "</li>"; }).join("");
 
+    renderReco(R);
+    renderLeadForm();
+
     // วิธีคำนวณ
-    $("#frHairNote").textContent = "แนวผม: " + (R.hair.estimated ? "ประมาณการ (" + R.hair.reason + ") ใช้ความสูงหน้าผาก = ส่วนกลาง × " + FR.HAIR.fallbackRatio : "ตรวจพบจากการเปลี่ยนสีผิว→ผม (YCbCr)");
+    $("#frHairNote").textContent = "แนวผม: " + (R.hair.estimated ? "ประมาณการ (" + R.hair.reason + ") ใช้ความสูงหน้าผาก = ส่วนกลาง × " + FR.HAIR.fallbackRatio + " (ค่ามัธยฐานของชุดสอบเทียบ)" : "ตรวจพบจากการเปลี่ยนสีผิว→ผม (YCbCr)");
     $("#frRaw").innerHTML = FR.METRICS.map(function (mm) {
-      var v = m[mm[0]], zv = R.el.z[mm[0]];
-      return "<tr><td>" + esc(mm[1]) + "</td><td class=\"num\">" + fmt(v, mm[0] === "chinAngle" || mm[0] === "jawCorner" || mm[0] === "roll" ? 1 : 3) + "</td><td>" + esc(mm[2]) + (zv != null ? "<br><small>z = " + fmt(zv, 2) + "</small>" : "") + "</td></tr>";
+      var v = m[mm[0]], zv = FR.NORMS[mm[0]] ? FR.zOf(mm[0], v) : null;
+      return "<tr><td>" + esc(mm[1]) + "</td><td class=\"num\">" + fmt(v, mm[0] === "chinAngle" || mm[0] === "jawCorner" || mm[0] === "roll" ? 1 : 3) + "</td><td>" + esc(mm[2]) + (zv != null ? "<br><small>z = " + fmt(zv, 2) + " (ค่ากลาง " + FR.NORMS[mm[0]][0] + ")</small>" : "") + "</td></tr>";
     }).join("");
-    $("#frScoreRaw").innerHTML = R.el.ranked.map(function (r) { return "<li>" + esc(KB.elements[r.id].th) + ": คะแนน " + fmt(r.score, 2) + " → " + r.pct + "%</li>"; }).join("");
+    $("#frScoreRaw").innerHTML = R.el.ranked.map(function (r) { return "<li>" + esc(KB.elements[r.id].th) + ": คะแนน " + fmt(r.score, 2) + " → " + r.pct + "%</li>"; }).join("") +
+      "<li>ห้าภูเขา: 100 − 14×(ส่วนเบี่ยงเบนของค่า z ทั้งห้า = " + fmt(R.mountains.spread, 2) + ") − 6×(ความต่างโหนกแก้มซ้าย–ขวา) → " + R.mountains.score + "</li>" +
+      "<li>สี่สายน้ำ: " + esc(KB.rivers.how) + " → " + R.rivers.score + "</li>";
+    $("#frTypeHow").innerHTML = [
+      "ชนิดคิ้ว: ความยาวคิ้ว÷ตา (" + zTxt(FR.zOf("browEye", m.browEye)) + "), ความโก่ง (" + zTxt(FR.zOf("browArch", m.browArch)) + "), หางคิ้วสูง/ต่ำ (" + zTxt(FR.zOf("browRise", m.browRise)) + ") — วัดความหนาและเส้นขนคิ้วไม่ได้",
+      "ชนิดตา: ยาว÷สูง (" + zTxt(FR.zOf("eyeAspect", m.eyeAspect)) + "), หางตาชี้ขึ้น (" + zTxt(FR.zOf("eyeTilt", m.eyeTilt)) + ") — วัดชั้นตาและแววตาไม่ได้",
+      "ชนิดจมูก: ปีกจมูก (" + zTxt(FR.zOf("alarWidth", m.alarWidth)) + "), ความยาว (" + zTxt(FR.zOf("noseLen", m.noseLen)) + ") — ความโด่งต้องมองด้านข้าง จึงไม่ได้วัด",
+      "ชนิดปาก: ความกว้าง (" + zTxt(FR.zOf("mouthW", m.mouthW)) + "), ความอิ่ม (" + zTxt(FR.zOf("lipTotal", m.lipTotal)) + "), มุมปาก (" + zTxt(FR.zOf("mouthTilt", m.mouthTilt)) + ")",
+      "เกณฑ์: |z| ≥ " + FR.THRESH.typeZ + " ถือว่าลักษณะชัด, วังแบ่ง 3 ระดับที่ z = ±" + FR.THRESH.palaceZ
+    ].map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("");
   }
+
+  /* ---------- ของแนะนำตามธาตุ (ตั้งค่าได้ใน KB.recommend และแผงตั้งค่า) ---------- */
+  function renderReco(R) {
+    var RC = KB.recommend, box = $("#frReco");
+    if (!RC || !prefs.reco || !R) { box.hidden = true; return; }
+    var E = KB.elements[R.el.top.id], items = (RC.items && RC.items[R.el.top.id]) || [];
+    box.hidden = !items.length;
+    box.style.setProperty("--el", E.color);
+    $("#frRecoTitle").textContent = RC.title + " · ธาตุ" + E.th + (RC.brand ? " — " + RC.brand : "");
+    $("#frRecoList").innerHTML = items.map(function (it) {
+      return '<li><span class="reco-tag">' + esc(it.tag || "") + "</span><b>" + esc(it.name) + "</b><small>" + esc(it.desc || "") + "</small></li>";
+    }).join("");
+    $("#frRecoPromo").textContent = RC.promo || "";
+    $("#frRecoPromo").hidden = !RC.promo;
+    $("#frRecoNote").textContent = RC.note || "";
+  }
+
+  /* ---------- ฟอร์มรับข้อมูล (ปิดเป็นค่าเริ่มต้น ต้องติ๊กยินยอม) ---------- */
+  var LEADS_KEY = "fr-leads", LD = KB.leads || {};
+  $("#frLeadTitle").textContent = LD.title || "";
+  $("#frLeadLead").textContent = LD.lead || "";
+  $("#frLeadNickL").textContent = LD.nick || "ชื่อเล่น";
+  $("#frLeadContactL").textContent = LD.contact || "ช่องทางติดต่อ";
+  $("#frLeadConsentT").textContent = LD.consent || "";
+  function renderLeadForm() {
+    $("#frLead").hidden = !prefs.leads || !current;
+    $("#frLeadMsg").textContent = ""; $("#frLeadMsg").className = "fr-lead-msg";
+  }
+  $("#frLeadForm").addEventListener("submit", function (e) {
+    e.preventDefault(); touch();
+    var r = FR.addLead(lsGet(LEADS_KEY, []), { nick: $("#frLeadNick").value, contact: $("#frLeadContact").value, consent: $("#frLeadConsent").checked, consentText: LD.consent, element: current ? KB.elements[current.R.el.top.id].th : "" });
+    var msg = $("#frLeadMsg");
+    if (!r.ok) { msg.textContent = r.error; msg.className = "fr-lead-msg err"; return; }
+    lsSet(LEADS_KEY, r.list);
+    this.reset(); msg.textContent = LD.thanks || "บันทึกแล้ว"; msg.className = "fr-lead-msg ok";
+    renderLeadCount();
+  });
+  function renderLeadCount() { var n = lsGet(LEADS_KEY, []).length; $("#frLeadCount").textContent = "ข้อมูลลูกค้าในเครื่องนี้: " + n + " รายการ"; $("#frLeadsCsv").disabled = !n; }
+  $("#frSetReco").checked = !!prefs.reco;
+  $("#frSetLeads").checked = !!prefs.leads;
+  $("#frSetReco").addEventListener("change", function () { prefs.reco = this.checked; lsSet(PREF_KEY, prefs); if (current) renderReco(current.R); });
+  $("#frSetLeads").addEventListener("change", function () { prefs.leads = this.checked; lsSet(PREF_KEY, prefs); renderLeadForm(); });
+  $("#frLeadsCsv").addEventListener("click", function () {
+    var blob = new Blob([FR.leadsToCsv(lsGet(LEADS_KEY, []))], { type: "text/csv;charset=utf-8" }), u = URL.createObjectURL(blob);
+    var a = document.createElement("a"); a.href = u; a.download = "lensiq-faceread-leads.csv"; document.body.append(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(u); }, 1000);
+  });
+  $("#frLeadsClear").addEventListener("click", function () { if (confirm("ลบข้อมูลลูกค้าทั้งหมดในเครื่องนี้?")) { try { localStorage.removeItem(LEADS_KEY); } catch (e) { /* ไม่เป็นไร */ } renderLeadCount(); } });
+  renderLeadCount();
 
   /* ---------- การ์ดแชร์ 1080×1350 ---------- */
   function wrapTh(c, text, maxW) {
@@ -778,16 +1235,21 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     c.font = "400 34px " + F; c.fillStyle = "#c9d0ea";
     c.fillText(R.el.top.pct + "% · ธาตุรอง" + rd.second.th + " " + R.el.second.pct + "%", W / 2, 850);
     // 3 จุดเด่น
-    c.font = "500 40px " + F;
-    var y = 950;
+    c.font = "500 38px " + F;
+    var y = 935;
     E.traits.slice(0, 3).forEach(function (t) {
-      c.fillStyle = "rgba(255,255,255,.08)"; c.beginPath(); if (c.roundRect) c.roundRect(150, y - 40, W - 300, 80, 40); else c.rect(150, y - 40, W - 300, 80); c.fill();
-      c.fillStyle = "#fff"; c.fillText(t, W / 2, y + 2); y += 100;
+      c.fillStyle = "rgba(255,255,255,.08)"; c.beginPath(); if (c.roundRect) c.roundRect(150, y - 36, W - 300, 72, 36); else c.rect(150, y - 36, W - 300, 72); c.fill();
+      c.fillStyle = "#fff"; c.fillText(t, W / 2, y + 2); y += 86;
     });
+    // วังเด่น (สิบสองวัง)
+    if (rd.topPalaces && rd.topPalaces.length) {
+      c.font = "500 32px " + F; c.fillStyle = "#facc15";
+      wrapTh(c, "วังเด่น: " + rd.topPalaces.join(" · "), W - 160).slice(0, 1).forEach(function (l) { c.fillText(l, W / 2, 1188); });
+    }
     // สีมงคล
     c.font = "400 30px " + F; c.fillStyle = "#c9d0ea";
     var colTxt = "สีมงคล: " + E.colors.map(function (q) { return q.name.replace(/ \(.+\)/, ""); }).join(" · ");
-    c.fillText(colTxt, W / 2, 1240);
+    c.fillText(colTxt, W / 2, 1246);
     c.font = "400 24px " + F; c.fillStyle = "#8f9bc4";
     wrapTh(c, KB.disclaimerShort + " · ประมวลผลในเครื่อง ไม่บันทึกภาพ", W - 160).forEach(function (l, i) { c.fillText(l, W / 2, 1296 + i * 30); });
     return cv;

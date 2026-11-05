@@ -1,0 +1,88 @@
+Rider-Waite-Smith tarot card images (vendor/tarot/*.jpg)
+
+Artwork: Pamela Colman Smith, under the direction of Arthur Edward Waite.
+Published by William Rider & Son, London, 1909 ("Roses & Lilies" first-edition scans).
+License: PUBLIC DOMAIN (author died 1951; published 1909, public domain in the US and in countries with life+70 or shorter terms).
+Source: Wikimedia Commons, Category:Rider-Waite tarot deck (Roses & Lilies)
+  https://commons.wikimedia.org/wiki/Category:Rider-Waite_tarot_deck_(Roses_%26_Lilies)
+Processing: Commons 330px thumbnails, resized to 260px wide, light denoise, re-encoded as progressive JPEG (<=35 KB each) for offline use.
+
+File -> Commons source page:
+cups01.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_01.jpeg
+cups02.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_02.jpeg
+cups03.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_03.jpeg
+cups04.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_04.jpeg
+cups05.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_05.jpeg
+cups06.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_06.jpeg
+cups07.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_07.jpeg
+cups08.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_08.jpeg
+cups09.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_09.jpeg
+cups10.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_10.jpeg
+cups11.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_11.jpeg
+cups12.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_12.jpeg
+cups13.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_13.jpeg
+cups14.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Cups_14.jpeg
+m00.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_00_Fool.jpeg
+m01.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_01_Magician.jpeg
+m02.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_02_High_Priestess.jpeg
+m03.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_03_Empress.jpeg
+m04.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_04_Emperor.jpeg
+m05.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_05_Hierophant.jpeg
+m06.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_06_Lovers.jpeg
+m07.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_07_Chariot.jpeg
+m08.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_08_Strength.jpeg
+m09.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_09_Hermit.jpeg
+m10.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_10_Wheel_of_Fortune.jpeg
+m11.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_11_Justice.jpeg
+m12.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_12_Hanged_Man.jpeg
+m13.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_13_Death.jpeg
+m14.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_14_Temperance.jpeg
+m15.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_15_Devil.jpeg
+m16.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_16_Tower.jpeg
+m17.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_17_Star.jpeg
+m18.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_18_Moon.jpeg
+m19.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_19_Sun.jpeg
+m20.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_20_Judgement.jpeg
+m21.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_21_World.jpeg
+pentacles01.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_01.jpeg
+pentacles02.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_02.jpeg
+pentacles03.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_03.jpeg
+pentacles04.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_04.jpeg
+pentacles05.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_05.jpeg
+pentacles06.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_06.jpeg
+pentacles07.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_07.jpeg
+pentacles08.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_08.jpeg
+pentacles09.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_09.jpeg
+pentacles10.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_10.jpeg
+pentacles11.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_11.jpeg
+pentacles12.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_12.jpeg
+pentacles13.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_13.jpeg
+pentacles14.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Pentacles_14.jpeg
+swords01.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_01.jpeg
+swords02.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_02.jpeg
+swords03.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_03.jpeg
+swords04.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_04.jpeg
+swords05.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_05.jpeg
+swords06.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_06.jpeg
+swords07.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_07.jpeg
+swords08.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_08.jpeg
+swords09.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_09.jpeg
+swords10.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_10.jpeg
+swords11.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_11.jpeg
+swords12.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_12.jpeg
+swords13.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_13.jpeg
+swords14.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Swords_14.jpeg
+wands01.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_01.jpeg
+wands02.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_02.jpeg
+wands03.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_03.jpeg
+wands04.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_04.jpeg
+wands05.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_05.jpeg
+wands06.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_06.jpeg
+wands07.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_07.jpeg
+wands08.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_08.jpeg
+wands09.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_09.jpeg
+wands10.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_10.jpeg
+wands11.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_11.jpeg
+wands12.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_12.jpeg
+wands13.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_13.jpeg
+wands14.jpg  https://commons.wikimedia.org/wiki/File:RWS1909_-_Wands_14.jpeg

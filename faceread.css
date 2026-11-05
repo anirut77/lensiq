@@ -98,7 +98,7 @@
 .fr-table tbody th{color:var(--navy);font-weight:600;white-space:nowrap}
 .fr-table td:nth-child(2){font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
 .fr-table.raw td.num{font-variant-numeric:tabular-nums;color:var(--navy)}
-.fr-two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fr-two{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
 .fr-two .fr-block{margin-bottom:16px}
 .fr-zones{display:grid;gap:10px;margin-bottom:10px}
 .zone{display:grid;grid-template-columns:70px 1fr;gap:12px;align-items:center;padding:8px;border-radius:10px}
@@ -136,8 +136,68 @@
 .fr-idle{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 20px;border-radius:99px;z-index:70;font-size:.95rem;max-width:calc(100% - 32px);text-align:center}
 .fr-kiosk-exit{position:fixed;right:16px;top:16px;z-index:70}
 
+
+/* ---------- ภาพซ้อน (สามส่วน / สิบสองวัง / ห้าภูเขา / แผนที่อายุ) ---------- */
+.fr-ovl{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:8px 10px 0}
+.fr-ovl button{min-height:44px;border:1px solid rgba(255,255,255,.25);border-radius:10px;background:rgba(255,255,255,.06);color:#dfe4f7;font:inherit;font-size:.85rem;padding:4px 6px;cursor:pointer;line-height:1.2}
+.fr-ovl button[aria-pressed=true]{background:#facc15;border-color:#facc15;color:#0e1430;font-weight:600}
+.fr-ovl button:focus-visible{outline:2px solid #22d3ee;outline-offset:2px}
+
+/* ---------- สิบสองวัง ---------- */
+.fr-pal{list-style:none;padding:0;margin:8px 0 10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:10px}
+.pal{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);font-size:.9rem}
+.pal.hot{border-color:#e2b100;background:#fffbea}
+.pal-n{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;font-weight:600;font-size:.85rem}
+.pal.hot .pal-n{background:#facc15;color:#0e1430}
+.pal-h{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin-bottom:4px}
+.pal-h b{color:var(--navy);font-weight:600}
+.cn{color:var(--muted);font-size:.82rem}
+.pal-lv,.pal-lt{font-size:.75rem;border-radius:99px;padding:1px 8px;background:#fff;border:1px solid var(--line);color:var(--navy)}
+.pal.high .pal-lv{background:#e8f6ee;border-color:#a7dcbc;color:#14653b}
+.pal.low .pal-lv{background:#efeaff;border-color:#cfc4ff;color:#4b36d6}
+.pal-lt{background:#fff6e0;border-color:#f1d58a;color:#6b4e00}
+.pal p{margin:2px 0 0}
+.pal-w{font-size:.8rem;color:var(--muted)}
+.pal-tip{font-size:.84rem;color:var(--muted)}
+
+/* ---------- ห้าภูเขา สี่สายน้ำ ---------- */
+.fr-mr{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.mr-score{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}
+.mr-score b{font-size:2rem;color:var(--gold);font-weight:700;font-variant-numeric:tabular-nums}
+.mr-score span{color:var(--muted);font-size:.88rem}
+.mr-list{list-style:none;padding:0;margin:0 0 10px;display:grid;gap:8px}
+.mr-list li{display:grid;grid-template-columns:minmax(0,1fr) 80px 4.6em;gap:8px;align-items:center;font-size:.88rem;padding:6px 8px;border-radius:10px}
+.mr-list li.lead{background:#fffbea}
+.mr-list small{display:block;color:var(--muted);font-size:.78rem}
+.mr-list em{font-style:normal;text-align:right;font-variant-numeric:tabular-nums;color:var(--navy);font-size:.82rem}
+.mbar{height:10px;border-radius:99px;background:var(--alt);position:relative;overflow:hidden}
+.mbar::after{content:"";position:absolute;inset:0 auto 0 0;width:var(--w,0);background:var(--gold);border-radius:99px}
+.mbar.off::after{display:none}
+.fr-ages li p.pos{font-size:.8rem;color:#a5f3fc}
+
+/* ---------- ของแนะนำ & ฟอร์ม ---------- */
+.fr-reco{--el:#674ff2;border-top:5px solid var(--el)}
+.reco-list{list-style:none;padding:0;margin:0 0 10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px}
+.reco-list li{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);display:grid;gap:2px}
+.reco-list b{color:var(--navy)}
+.reco-list small{color:var(--muted)}
+.reco-tag{justify-self:start;font-size:.72rem;padding:1px 8px;border-radius:99px;background:var(--el);color:#fff}
+.reco-promo{font-weight:500;color:var(--navy);background:#fffbea;border:1px dashed #e2b100;border-radius:10px;padding:10px 12px;margin:0 0 6px}
+.fr-lead form{display:grid;gap:10px;max-width:560px;padding:0;margin:0;border:0;background:none;box-shadow:none}
+.fr-lead label:not(.fr-check){display:grid;gap:4px;font-size:.9rem}
+.fr-lead input:not([type=checkbox]){min-height:44px;font-size:16px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;font-family:inherit}
+.fr-consent{align-items:flex-start!important;font-size:.85rem!important}
+.fr-consent input{flex:none;margin-top:2px}
+.fr-lead .btn{justify-self:start;min-height:44px}
+.fr-lead-msg{margin:0;font-size:.88rem;min-height:1.2em}
+.fr-lead-msg.ok{color:#14653b}.fr-lead-msg.err{color:#a12b20}
+.fr-settings-wrap{order:3;grid-column:1/-1}
+.fr-settings summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:500;color:var(--navy)}
+.fr-set-actions{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
+.fr-set-actions .btn{min-height:44px}
+
 /* ---------- โหมดบูธ ---------- */
-body.fr-kiosk .nav,body.fr-kiosk .fr-head .lead,body.fr-kiosk .fr-head .eyebrow,body.fr-kiosk .fr-foot,body.fr-kiosk .fr-how,body.fr-kiosk #frPrint,body.fr-kiosk .fr-privacy{display:none}
+body.fr-kiosk .nav,body.fr-kiosk .fr-head .lead,body.fr-kiosk .fr-head .eyebrow,body.fr-kiosk .fr-foot,body.fr-kiosk .fr-how,body.fr-kiosk .fr-settings-wrap,body.fr-kiosk #frPrint,body.fr-kiosk .fr-privacy{display:none}
 body.fr-kiosk{--nav-h:0px}
 body.fr-kiosk .fr{padding-top:20px;padding-bottom:110px}
 body.fr-kiosk .btn.big{min-height:68px;font-size:1.25rem}
@@ -145,7 +205,7 @@ body.fr-kiosk .fr-cam{max-height:62vh}
 body.fr-kiosk .fr-card p,body.fr-kiosk .fr-table{font-size:1rem}
 
 @media(max-width:900px){
-  .fr-stage,.fr-res-top,.fr-two,.fr-foot{grid-template-columns:1fr}
+  .fr-stage,.fr-res-top,.fr-two,.fr-foot,.fr-mr{grid-template-columns:1fr}
 }
 @media(max-width:560px){
   .fr{padding:20px 16px 60px}
@@ -161,11 +221,13 @@ body.fr-kiosk .fr-card p,body.fr-kiosk .fr-table{font-size:1rem}
   .fr-table.raw tr{display:grid;grid-template-columns:1fr auto;gap:2px 10px}
   .fr-table.raw td:last-child{grid-column:1/-1;font-size:.8rem;color:var(--muted)}
   .fr-ages li{grid-template-columns:6.5em 1fr}
+  .fr-ovl{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mr-list li{grid-template-columns:minmax(0,1fr) 56px 4.4em}
   .fr-kiosk-exit{top:auto;bottom:16px;right:16px}
 }
 
 @media print{
-  .nav,.fr-head,.fr-disclaimer,.fr-engine,.fr-stage,.fr-foot,.fr-res-actions,.fr-cardimg,.toast,.fr-idle,.fr-kiosk-exit,.https-note{display:none!important}
+  .nav,.fr-head,.fr-disclaimer,.fr-engine,.fr-stage,.fr-foot,.fr-res-actions,.fr-ovl,.fr-lead,.fr-cardimg,.toast,.fr-idle,.fr-kiosk-exit,.https-note{display:none!important}
   body{background:#fff}
   .fr{padding:0}
   .fr-result{margin:0}

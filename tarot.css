@@ -1,0 +1,240 @@
+/* ไพ่ทาโรต์ & เซียมซี — ใช้ตัวแปรสีจาก styles.css */
+[hidden]{display:none!important}
+:root{
+  --card-ar:7/12;
+  /* หลังไพ่ LENSIQ: กรอบนีออน + ลวดลายดาว + โลโก้วงเล็บเลนส์ */
+  --card-back:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 240'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231e2a5a'/%3E%3Cstop offset='1' stop-color='%230e1430'/%3E%3C/linearGradient%3E%3Cpattern id='p' width='20' height='20' patternUnits='userSpaceOnUse'%3E%3Cpath d='M10 4l1.2 4.8L16 10l-4.8 1.2L10 16l-1.2-4.8L4 10l4.8-1.2z' fill='%23674ff2' opacity='.35'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='140' height='240' rx='10' fill='url(%23g)'/%3E%3Crect x='9' y='9' width='122' height='222' rx='6' fill='url(%23p)' stroke='%2322d3ee' stroke-width='1.6' opacity='.95'/%3E%3Crect x='15' y='15' width='110' height='210' rx='4' fill='none' stroke='%23674ff2' stroke-width='1'/%3E%3Ccircle cx='70' cy='120' r='34' fill='%230e1430' stroke='%2322d3ee' stroke-width='1.4'/%3E%3Cpath d='M52 112v-10h10M88 112v-10H78M52 128v10h10M88 128v10H78' stroke='%2322d3ee' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='70' cy='120' r='8' fill='%23674ff2'/%3E%3Cpath d='M70 30l3 9 9 3-9 3-3 9-3-9-9-3 9-3zM70 186l3 9 9 3-9 3-3 9-3-9-9-3 9-3z' fill='%23a5f3fc'/%3E%3C/svg%3E");
+}
+.tr{max-width:1200px;margin:auto;padding:36px 5vw 80px}
+.tr-head{text-align:center}
+.tr-head .eyebrow{display:block}
+.tr h1{font-size:clamp(1.8rem,4.5vw,2.6rem);margin:6px 0 8px;text-align:center}
+.tr .lead{margin:0 auto 18px;text-align:center;max-width:760px}
+.tr h2{font-size:1.15rem;text-align:left;margin:0 0 10px;color:var(--navy)}
+.tr h3{font-size:1.02rem;color:var(--navy);font-weight:600;margin:0 0 10px}
+.tr-small{font-size:.85rem;color:var(--muted)}
+.muted{color:var(--muted)}
+.btn.big{min-height:52px;font-size:1.02rem}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+
+.tr-disclaimer{display:flex;gap:12px;align-items:flex-start;max-width:860px;margin:0 auto 16px;padding:14px 16px;border-radius:14px;background:#fff6e0;border:1px solid #f1d58a;color:#4d3900;font-size:.93rem}
+.tr-disclaimer svg{flex:none;width:24px;height:24px;fill:none;stroke:#a06d00;stroke-width:2;stroke-linecap:round}
+.tr-disclaimer b{color:#3d2d00}
+
+/* ---------- แท็บ ---------- */
+.tr-tabs{display:flex;gap:6px;max-width:560px;margin:0 auto 18px;padding:5px;background:#fff;border:1px solid var(--line);border-radius:99px;box-shadow:var(--shadow)}
+.tr-tab{flex:1;min-height:44px;border:0;border-radius:99px;background:none;color:var(--muted);font-weight:500;padding:6px 10px}
+.tr-tab[aria-selected=true]{background:var(--navy);color:#fff}
+.tr-panel{scroll-margin-top:calc(var(--nav-h) + 12px)}
+
+.tr-steps{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;font-size:.82rem}
+.tr-steps span{padding:4px 12px;border-radius:99px;background:var(--alt);color:var(--muted)}
+.tr-steps span.on{background:var(--gold);color:#fff}
+
+/* ---------- ขั้น 1 ตั้งคำถาม ---------- */
+.tr-setup{max-width:860px;margin:0 auto;gap:16px}
+.tr-setup fieldset{border:0;padding:0;min-width:0}
+.tr-setup legend{font-weight:600;color:var(--navy);margin-bottom:8px;font-size:.98rem}
+.tr-topics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.tr-spreads{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:8px}
+.tr-opt{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:0;min-height:52px;padding:10px 14px;border:1.5px solid var(--line);border-radius:14px;background:var(--bg);color:var(--text);cursor:pointer;font-size:.95rem;transition:border-color .15s,background .15s}
+.tr-opt input{position:absolute;opacity:0;width:1px;height:1px}
+.tr-opt b{font-weight:600;color:var(--navy)}
+.tr-opt small{color:var(--muted);font-size:.8rem;line-height:1.35}
+.tr-opt .ic{color:var(--gold);margin-right:6px}
+.tr-opt:has(input:checked){border-color:var(--gold);background:#f1edff;box-shadow:inset 0 0 0 1px var(--gold)}
+.tr-opt:has(input:focus-visible){outline:2px solid var(--aqua);outline-offset:2px}
+.tr-topics .tr-opt{align-items:center;justify-content:center;text-align:center}
+.tr-q textarea{font-size:16px;resize:vertical;min-height:60px}
+.tr-optrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.tr-check{display:flex;flex-direction:row;align-items:center;gap:10px;min-height:44px;font-size:.95rem;color:var(--text);cursor:pointer}
+.tr-check input{width:22px;height:22px;accent-color:var(--gold)}
+#trKiosk[aria-pressed=true]{background:var(--navy);color:#fff}
+
+/* ---------- ไพ่ (หลัง/หน้า + พลิก) ---------- */
+.tcard{position:relative;display:block;width:100%;aspect-ratio:var(--card-ar);padding:0;border:0;background:none;perspective:900px;border-radius:8px;cursor:pointer;color:inherit}
+.tc-in{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+.tcard.flip .tc-in{transform:rotateY(180deg)}
+.tc-back,.tc-face{position:absolute;inset:0;border-radius:8px;overflow:hidden;-webkit-backface-visibility:hidden;backface-visibility:hidden;box-shadow:0 6px 16px rgba(14,20,48,.25)}
+.tc-back{background:var(--card-back) center/100% 100% no-repeat,#0e1430}
+.tc-face{transform:rotateY(180deg);background:#f4ecd8}
+.tc-face img{display:block;width:100%;height:100%;object-fit:cover}
+.tcard.rev .tc-face img{transform:rotate(180deg)}
+.tcard:focus-visible{outline:3px solid var(--aqua);outline-offset:3px}
+
+/* ---------- ขั้น 2 สับและเลือก ---------- */
+.tr-pick{max-width:1100px;margin:0 auto;scroll-margin-top:calc(var(--nav-h) + 12px)}
+.tr-pick-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 16px}
+.tr-pick-head h2:focus{outline:none}
+.tr-pick-count{font-weight:600;color:var(--gold)}
+.tr-fan-wrap{position:relative;border-radius:var(--r);background:radial-gradient(ellipse at 50% 0%,#2a3a7a,#0e1430 70%);padding:18px 0 10px;box-shadow:var(--shadow)}
+.tr-fan{position:relative;height:calc(var(--fw,80px)*12/7 + 46px);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:thin;touch-action:pan-x;cursor:grab}
+.tr-fan.dragging{cursor:grabbing}
+.tr-fan-inner{position:relative;height:100%}
+.fcard{position:absolute;top:24px;width:var(--fw,80px);aspect-ratio:var(--card-ar);padding:0;border:0;border-radius:7px;background:var(--card-back) center/100% 100% no-repeat,#0e1430;box-shadow:-2px 2px 6px rgba(0,0,0,.35);transform-origin:50% 140%;transition:transform .25s,top .2s,opacity .3s;cursor:pointer}
+.fcard:hover,.fcard:focus-visible{top:6px;z-index:5;box-shadow:0 0 0 2px #22d3ee,0 8px 16px rgba(0,0,0,.4)}
+.fcard.gone{opacity:0;pointer-events:none}
+.tr-fan.dealing .fcard{transition:left .5s cubic-bezier(.2,.7,.2,1),transform .5s,top .2s,opacity .3s}
+.tr-deck{position:absolute;left:50%;top:50%;width:84px;aspect-ratio:var(--card-ar);transform:translate(-50%,-50%);pointer-events:none}
+.tr-deck i{position:absolute;inset:0;border-radius:7px;background:var(--card-back) center/100% 100% no-repeat;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.tr-deck.go i:nth-child(odd){animation:riffleL .45s ease-in-out 3 alternate}
+.tr-deck.go i:nth-child(even){animation:riffleR .45s ease-in-out 3 alternate}
+@keyframes riffleL{to{transform:translateX(-46px) rotate(-12deg)}}
+@keyframes riffleR{to{transform:translateX(46px) rotate(12deg)}}
+.tr-fan-hint{text-align:center;margin:8px 0}
+.tr-pick-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px 0 16px}
+.tr-pick-actions .btn{flex:0 1 auto;padding:8px 18px}
+
+/* กระดานตำแหน่ง */
+.tr-board{display:grid;justify-content:center;margin:8px auto 16px}
+.slot{position:relative;display:flex;flex-direction:column;align-items:center;min-width:0}
+.slot .ph{width:100%;aspect-ratio:var(--card-ar);border:2px dashed #b9c1dd;border-radius:8px;display:grid;place-items:center;color:var(--muted);font-weight:600;font-size:1.1rem;background:rgba(255,255,255,.5)}
+.slot.next .ph{border-color:var(--gold);color:var(--gold);background:#f1edff}
+.slot .lbl{display:block;font-size:.74rem;line-height:1.3;color:var(--muted);text-align:center;margin-top:4px;max-width:100%;overflow-wrap:anywhere}
+.slot.x{z-index:3;pointer-events:none}
+.slot.x .tcard,.slot.x .ph{transform:rotate(90deg) scale(.82);pointer-events:auto}
+.slot.x .ph{place-items:end center;padding-bottom:4px;background:rgba(255,255,255,.75);font-size:.9rem}
+.slot.x .lbl{position:absolute;bottom:-2px;left:50%;transform:translate(-50%,100%);white-space:nowrap;display:none}
+.slot .tcard.land{animation:land .35s ease-out}
+@keyframes land{from{transform:translateY(-30px) scale(1.08);opacity:.2}}
+.slot.x .tcard.land{animation:none}
+
+/* ---------- ขั้น 3 ผลลัพธ์ ---------- */
+.tr-result{margin-top:26px;scroll-margin-top:calc(var(--nav-h) + 12px)}
+.tr-result>h2{font-size:clamp(1.35rem,3vw,1.8rem);text-align:center;margin-bottom:2px}
+.tr-result>h2:focus,#ssTitle:focus{outline:none}
+.tr-disc-mini{text-align:center;font-size:.82rem;color:var(--muted);margin-bottom:8px}
+.tr-res-meta{text-align:center;color:var(--text);margin-bottom:14px}
+.tr-res-meta q{color:var(--navy);font-style:italic}
+.tr-synth,.tr-block,.tr-read,.ss-result,.tr-setup{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);min-width:0}
+.tr-synth{padding:20px;margin-bottom:18px;border-top:6px solid var(--gold);background:linear-gradient(180deg,#f1edff,#fff 50%)}
+.tr-synth h3{font-size:1.2rem}
+.syn-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:18px;align-items:start}
+.syn-bars{display:grid;gap:6px}
+.elbar{display:grid;grid-template-columns:3.6em 1fr 1.6em;gap:8px;align-items:center;font-size:.86rem}
+.elbar i{height:10px;border-radius:99px;background:var(--alt);position:relative;overflow:hidden}
+.elbar i::after{content:"";position:absolute;inset:0 auto 0 0;width:var(--w);background:var(--c);border-radius:99px}
+.elbar b{text-align:right;font-weight:500;font-variant-numeric:tabular-nums}
+.syn-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.syn-chips span{background:#fff;border:1px solid var(--line);border-radius:99px;padding:3px 12px;font-size:.84rem;color:var(--navy)}
+.syn-list{margin:0;padding-left:20px;display:grid;gap:6px;font-size:.94rem}
+.syn-advice{margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--navy);color:#fff;font-size:.95rem}
+.syn-advice b{color:#a5f3fc;font-weight:500}
+.tr-readings{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:14px;margin-bottom:18px}
+.tr-read{display:grid;grid-template-columns:84px minmax(0,1fr);gap:14px;padding:14px;align-items:start}
+.tr-read .tcard{width:84px}
+.tr-read .pos{font-size:.78rem;color:var(--gold);font-weight:600;letter-spacing:.02em}
+.tr-read h3{margin:0 0 2px;font-size:1.02rem}
+.tr-read h3 small{font-weight:400;color:var(--muted);font-size:.8rem}
+.orient{display:inline-block;font-size:.72rem;border-radius:6px;padding:0 6px;margin-left:4px;vertical-align:middle;background:#e6f6ee;color:#14653b}
+.orient.r{background:#fff1e0;color:#7a4300}
+.kws{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
+.kws span{font-size:.75rem;background:var(--alt);color:var(--navy);border-radius:99px;padding:1px 9px}
+.tr-read p{font-size:.92rem}
+.tr-read .lead-pos{color:var(--muted);font-size:.84rem;margin-bottom:2px}
+.tr-read .more{margin-top:6px;min-height:40px;padding:4px 14px;font-size:.88rem;border-width:1px}
+.tr-res-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.tr-res-actions .btn{flex:1 1 180px}
+.tr-cardimg{display:block;width:min(100%,420px);margin:16px auto 0;border-radius:14px;box-shadow:var(--shadow)}
+
+/* ---------- ไพ่ประจำวัน ---------- */
+.tr-daily{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:24px;align-items:start;max-width:900px;margin:0 auto}
+.tr-daily-card{display:grid;justify-items:center;gap:10px;text-align:center}
+.tr-daily-date{font-weight:600;color:var(--navy)}
+.tcard.big{width:min(240px,62vw)}
+.tr-daily-text{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:20px}
+.tr-daily-text dl{display:grid;gap:8px;margin:10px 0}
+.tr-daily-text dt{font-weight:600;color:var(--navy);font-size:.9rem}
+.tr-daily-text dd{margin:0;font-size:.93rem}
+
+/* ---------- เซียมซี ---------- */
+.ss{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:24px;align-items:start;max-width:960px;margin:0 auto}
+.ss-stage{display:grid;justify-items:center;gap:12px;text-align:center;padding:18px;border-radius:var(--r);background:radial-gradient(ellipse at 50% 20%,#2a3a7a,#0e1430 75%);color:#c9d0ea;box-shadow:var(--shadow)}
+.ss-stage .tr-small{color:#c9d0ea}
+.ss-cup{position:relative;width:min(210px,56vw);transform-origin:50% 90%}
+.ss-cup svg{display:block;width:100%;height:auto;overflow:visible}
+.ss-cup.shaking{animation:ssShake .16s ease-in-out infinite alternate}
+@keyframes ssShake{from{transform:rotate(-9deg) translateY(2px)}to{transform:rotate(9deg) translateY(-3px)}}
+.ss-cup.shaking .ss-sticks{animation:ssJig .1s linear infinite alternate}
+@keyframes ssJig{to{transform:translateY(-5px)}}
+.ss-fall{position:absolute;left:50%;top:-6%;width:16px;height:62%;margin-left:-8px;border-radius:5px;background:linear-gradient(90deg,#d9b56b,#f3dca0);box-shadow:0 4px 10px rgba(0,0,0,.4);animation:ssFall .9s cubic-bezier(.3,.6,.4,1) forwards;display:grid;place-items:start center;padding-top:8px}
+.ss-fall span{writing-mode:vertical-rl;font-weight:700;color:#7a1d1d;font-size:.85rem}
+@keyframes ssFall{0%{transform:translateY(40px) rotate(0)}45%{transform:translateY(-70px) rotate(-8deg)}100%{transform:translate(70px,90px) rotate(62deg)}}
+.ss-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:100%}
+.ss-actions .btn{flex:1 1 160px}
+.ss-stage .btn.ghost{color:#fff;border-color:#c9d0ea}
+.ss-stage .btn.ghost:hover{background:#fff;color:var(--navy)}
+.ss-stage .btn.primary{background:#c0392b;border-color:#c0392b}
+.ss-result{padding:20px;border-top:6px solid #c0392b}
+.ss-res-head{display:flex;gap:14px;align-items:center;margin-bottom:10px}
+.ss-no{flex:none;display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:#c0392b;color:#fff;font-size:1.6rem;font-weight:700}
+.ss-res-head h2{margin:0}
+.ss-level{display:inline-block;font-size:.8rem;border-radius:99px;padding:1px 10px;background:#fff6e0;color:#6b4e00;border:1px solid #f1d58a}
+.ss-verse{white-space:pre-line;font-size:1.12rem;color:var(--navy);text-align:center;padding:12px;border-radius:12px;background:#fdf6ea;margin-bottom:10px;line-height:1.8}
+.ss-meaning{margin-bottom:10px}
+.ss-cats{list-style:none;padding:0;margin:0 0 10px;display:grid;gap:6px}
+.ss-cats li{display:grid;grid-template-columns:7em 1fr;gap:8px;padding:8px 10px;border-radius:10px;background:var(--bg);font-size:.92rem}
+.ss-cats b{font-weight:600;color:var(--navy)}
+.ss-cats .ic{color:#c0392b;margin-right:4px}
+
+/* ---------- ส่วนท้าย ---------- */
+.tr-foot{display:grid;grid-template-columns:1fr 1.4fr;gap:16px;margin-top:30px}
+.tr-block{padding:18px}
+.stat-n{font-size:.95rem;margin-bottom:6px}.stat-n b{font-size:1.6rem;color:var(--navy)}
+#trStats{display:grid;gap:6px;margin-bottom:10px}
+.stat-top{font-size:.85rem;color:var(--muted)}
+.tr-sources{margin:6px 0 10px;padding-left:20px;font-size:.9rem;display:grid;gap:4px}
+.tr-sources a{color:#4b36d6;text-decoration:underline;word-break:break-word}
+.tr-foot .btn{margin-top:4px}
+
+/* ---------- โมดัลรายละเอียดไพ่ ---------- */
+.tr-modal{margin:auto;max-width:none;border:0;padding:0;border-radius:18px;width:min(760px,calc(100% - 24px));max-height:calc(100dvh - 32px);box-shadow:0 30px 80px rgba(14,20,48,.4)}
+.tr-modal::backdrop{background:rgba(14,20,48,.6)}
+.tr-modal-in{position:relative;padding:20px;overflow-y:auto;max-height:calc(100dvh - 32px)}
+.tr-modal-x{position:absolute;top:10px;right:10px;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:1.5rem;line-height:1;color:var(--navy)}
+.md{display:grid;grid-template-columns:160px minmax(0,1fr);gap:18px}
+.md img{width:100%;border-radius:10px;box-shadow:var(--shadow)}
+.md img.rev{transform:rotate(180deg)}
+.md h2{padding-right:44px;margin-bottom:2px}
+.md .sub{text-align:left;margin:0 0 8px;font-size:.88rem}
+.md h3{margin:12px 0 6px;font-size:.98rem}
+.md dl{display:grid;grid-template-columns:5.5em 1fr;gap:4px 10px;font-size:.9rem;margin:0}
+.md dt{font-weight:600;color:var(--navy)}
+.md dd{margin:0}
+.md .adv{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--alt);font-size:.92rem}
+
+.tr-idle{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 20px;border-radius:99px;z-index:70;font-size:.95rem;max-width:calc(100% - 32px);text-align:center}
+.tr-kiosk-exit{position:fixed;right:16px;top:16px;z-index:70}
+
+/* ---------- โหมดบูธ ---------- */
+body.tr-kiosk .nav,body.tr-kiosk .tr-head .lead,body.tr-kiosk .tr-head .eyebrow,body.tr-kiosk .tr-foot{display:none}
+body.tr-kiosk{--nav-h:0px}
+body.tr-kiosk .tr{padding-top:20px;padding-bottom:110px}
+body.tr-kiosk .btn.big{min-height:68px;font-size:1.25rem}
+body.tr-kiosk .tr-tab{min-height:56px;font-size:1.1rem}
+
+@media(max-width:900px){
+  .tr-foot,.syn-grid{grid-template-columns:1fr}
+  .tr-daily,.ss{grid-template-columns:1fr}
+  .tr-daily-card{order:0}
+}
+@media(max-width:560px){
+  .tr{padding:20px 16px 60px}
+  .tr .lead{font-size:.95rem}
+  .tr-topics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tr-setup{padding:16px}
+  .tr-read{grid-template-columns:64px minmax(0,1fr);gap:10px;padding:12px}
+  .tr-read .tcard{width:64px}
+  .md{grid-template-columns:1fr}
+  .md img{width:140px;margin:0 auto}
+  .tr-modal-in{padding:16px}
+  .ss-cats li{grid-template-columns:1fr}
+  .tr-kiosk-exit{top:auto;bottom:16px;right:16px}
+}
+@media(prefers-reduced-motion:reduce){
+  .tc-in,.fcard{transition:none!important}
+}
+@media print{
+  .nav,.tr-head,.tr-disclaimer,.tr-tabs,.tr-steps,.tr-setup,.tr-pick,.tr-foot,.tr-res-actions,.tr-cardimg,.toast,.tr-idle,.tr-kiosk-exit{display:none!important}
+  body{background:#fff}
+}

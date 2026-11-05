@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title>ดูลายมือ AI | LENSIQ</title>
+<meta name="description" content="อ่านลายมือจากภาพถ่ายฝ่ามือด้วย AI เพื่อความบันเทิงในบูธและอีเวนต์ ประมวลผลในเบราว์เซอร์ ไม่บันทึกภาพ">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="palm.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=3"></script>
+
+<main class="pl" id="plApp">
+  <div class="pl-head">
+    <span class="eyebrow">Engagement · Booth</span>
+    <h1>ดูลายมือ AI</h1>
+    <p class="lead">ถ่ายรูปฝ่ามือ แล้วให้ AI หาจุดบนมือ 21 จุดและไล่เส้นชีวิต เส้นสมอง เส้นหัวใจ เส้นวาสนา คุณปรับเส้นให้ตรงกับมือจริงได้ก่อนอ่าน ได้ธาตุประจำมือ บุคลิก การงาน การเงิน ความรัก และเคล็ดเสริมดวง ใช้สร้างสีสันในบูธ อีเวนต์ และแคมเปญการตลาด</p>
+  </div>
+
+  <p class="pl-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span><b>เพื่อความบันเทิงตามความเชื่อเรื่องลายมือ ไม่ใช่วิทยาศาสตร์</b> ไม่ควรใช้ตัดสินใจเรื่องการจ้างงาน การเงิน ความสัมพันธ์ หรือประเมินบุคคล และเส้นชีวิตไม่ได้บอกว่าชีวิตจะยืนยาวแค่ไหน</span></p>
+
+  <div class="pl-engine" id="plEngine" role="status">กำลังเตรียมระบบ...</div>
+
+  <ol class="pl-steps" aria-label="ขั้นตอน">
+    <li class="on" data-step="1"><b>1</b><span>ถ่ายรูปฝ่ามือ</span></li>
+    <li data-step="2"><b>2</b><span>ตรวจและปรับเส้น</span></li>
+    <li data-step="3"><b>3</b><span>อ่านลายมือ</span></li>
+  </ol>
+
+  <!-- ขั้นที่ 1: ถ่ายภาพ / อัปโหลด -->
+  <section class="pl-stage" id="plStage" aria-label="ถ่ายภาพหรืออัปโหลดรูปฝ่ามือ">
+    <div class="pl-camcard">
+      <div class="pl-cam" id="plCam">
+        <video id="plVideo" autoplay muted playsinline></video>
+        <canvas id="plOverlay" width="720" height="960"></canvas>
+        <div class="pl-cam-hint" id="plCamHint">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12M11 11.5V4a1.5 1.5 0 0 1 3 0v7.5M14 11.5V5.5a1.5 1.5 0 0 1 3 0V13M17 10.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1.5a6 6 0 0 1-4.6-2.2L4.6 14.6a1.6 1.6 0 0 1 2.4-2.1L8 13.6"/></svg>
+          <p>กด <b>เปิดกล้อง</b> แล้ววางฝ่ามือให้อยู่ในกรอบ<br>หรือ <b>อัปโหลดรูปฝ่ามือ</b></p>
+        </div>
+        <div class="pl-count" id="plCount" hidden aria-live="assertive"></div>
+      </div>
+      <div class="pl-actions">
+        <button class="btn primary big" id="plStartCam" type="button">เปิดกล้อง</button>
+        <button class="btn primary big" id="plSnap" type="button" hidden>ถ่ายภาพฝ่ามือ</button>
+        <label class="btn ghost big pl-upload">อัปโหลดรูป<input id="plFile" type="file" accept="image/*"></label>
+      </div>
+    </div>
+
+    <div class="pl-side">
+      <div class="pl-panel">
+        <h2>เลือกมือที่จะอ่าน</h2>
+        <div class="seg" role="radiogroup" aria-label="มือที่ถ่าย">
+          <button type="button" role="radio" aria-checked="false" data-side="left">มือซ้าย</button>
+          <button type="button" role="radio" aria-checked="true" data-side="right">มือขวา</button>
+        </div>
+        <div class="seg" role="radiogroup" aria-label="มือข้างที่ถนัด">
+          <button type="button" role="radio" aria-checked="false" data-dom="left">ถนัดซ้าย</button>
+          <button type="button" role="radio" aria-checked="true" data-dom="right">ถนัดขวา</button>
+        </div>
+        <p class="pl-sidenote" id="plSideNote"></p>
+        <ul class="pl-qc" id="plQc" aria-live="polite">
+          <li class="no"><span class="dot" aria-hidden="true">!</span><span>พบมือ <small>— เปิดกล้องหรืออัปโหลดรูป</small></span></li>
+        </ul>
+        <p class="pl-small">แบฝ่ามือตรงเข้าหากล้อง กางนิ้วเล็กน้อย ให้เห็นข้อมือ แสงสว่างสม่ำเสมอ (เปิดไฟฉายได้ถ้ามือถือรองรับ)</p>
+        <div class="pl-opts">
+          <button class="btn ghost" id="plKiosk" type="button" aria-pressed="false">โหมดบูธ (เต็มจอ)</button>
+        </div>
+      </div>
+      <p class="pl-privacy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>ประมวลผลในเบราว์เซอร์ทั้งหมด ไม่ส่งและไม่บันทึกภาพ</p>
+    </div>
+  </section>
+
+  <!-- ขั้นที่ 2: ปักจุดเอง (สำรอง) / ปรับเส้น -->
+  <section class="pl-edit" id="plEdit" hidden aria-labelledby="plEditTitle">
+    <h2 id="plEditTitle" tabindex="-1">ตรวจและปรับเส้นบนฝ่ามือ</h2>
+    <p class="pl-honest" id="plHonest">AI ไล่เส้นให้อัตโนมัติ แต่ลายมือในภาพถ่ายมักไม่ชัด <b>ปรับเส้นให้ตรงกับมือจริงเพื่อผลที่แม่นขึ้น</b> — ลากจุดกลมบนเส้นที่เลือก</p>
+    <div class="pl-edit-grid">
+      <div class="pl-editor">
+        <div class="pl-tapbar" id="plTapBar" hidden aria-live="polite">
+          <span id="plTapMsg"></span>
+          <button class="btn ghost" id="plTapUndo" type="button">ย้อนจุด</button>
+        </div>
+        <canvas id="plEditCanvas" width="600" height="800" aria-label="ภาพฝ่ามือพร้อมเส้นที่ปรับได้" role="img"></canvas>
+        <p class="pl-small pl-editcap" id="plEditCap"></p>
+      </div>
+      <div class="pl-tools">
+        <div class="pl-panel" id="plLineTools">
+          <h3>เลือกเส้นที่จะปรับ</h3>
+          <div class="pl-chips" id="plLineChips" role="radiogroup" aria-label="เส้นที่จะปรับ"></div>
+          <label class="pl-check"><input type="checkbox" id="plFateNone"> มองไม่เห็นเส้นวาสนา (ตำราถือว่าปกติ)</label>
+          <div class="pl-row">
+            <button class="btn ghost" id="plResetLines" type="button">คืนค่าอัตโนมัติ</button>
+            <button class="btn ghost" id="plTapMode" type="button">ปักจุดมือเอง</button>
+          </div>
+        </div>
+        <div class="pl-panel">
+          <h3>เส้นรอง <small>(ไม่บังคับ — ดูจากมือจริง)</small></h3>
+          <div class="pl-minor" id="plMinor"></div>
+        </div>
+        <div class="pl-panel">
+          <h3>เนินที่ดูอิ่มเด่น <small>(ไม่บังคับ เลือกได้หลายเนิน)</small></h3>
+          <div class="pl-chips" id="plMounts"></div>
+          <p class="pl-small" id="plMountNote"></p>
+        </div>
+        <button class="btn primary big full" id="plRead" type="button">อ่านลายมือ</button>
+        <button class="btn ghost full" id="plBack" type="button">ถ่ายใหม่</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ขั้นที่ 3: ผลลัพธ์ -->
+  <section class="pl-result" id="plResult" hidden aria-labelledby="plResTitle">
+    <h2 id="plResTitle" tabindex="-1">ผลอ่านลายมือของคุณ</h2>
+    <p class="pl-disc-mini">เพื่อความบันเทิงตามความเชื่อ ไม่ใช่วิทยาศาสตร์</p>
+    <p class="pl-sidebadge" id="plSideBadge"></p>
+    <div class="pl-res-top">
+      <figure class="pl-photo">
+        <canvas id="plResCanvas" width="720" height="900" aria-label="ภาพฝ่ามือพร้อมเส้นหลักและตำแหน่งเนิน" role="img"></canvas>
+        <figcaption>สีส้ม = เส้นชีวิต · ฟ้า = เส้นสมอง · ชมพู = เส้นหัวใจ · ม่วง = เส้นวาสนา</figcaption>
+      </figure>
+      <div class="pl-element" id="plElement">
+        <div class="el-head">
+          <div><span class="el-k">ธาตุประจำมือ</span><h3 id="plElName">—</h3></div>
+          <span class="el-pct" id="plElPct">—</span>
+        </div>
+        <p class="el-shape" id="plElShape"></p>
+        <ul class="el-traits" id="plElTraits"></ul>
+        <p class="el-second" id="plElSecond"></p>
+        <div class="el-bars" id="plElBars"></div>
+        <p class="pl-small" id="plElNote"></p>
+      </div>
+    </div>
+
+    <div class="pl-cards">
+      <article class="pl-card"><h3><span class="ic">✦</span>บุคลิก</h3><p id="plPers"></p></article>
+      <article class="pl-card"><h3><span class="ic">◆</span>การงาน</h3><p id="plWork"></p></article>
+      <article class="pl-card"><h3><span class="ic">●</span>การเงิน</h3><p id="plMoney"></p></article>
+      <article class="pl-card"><h3><span class="ic">♥</span>ความรัก &amp; มิตรภาพ</h3><p id="plLove"></p></article>
+    </div>
+
+    <section class="pl-block">
+      <h3>เส้นหลักทั้งสี่</h3>
+      <div class="pl-lines" id="plLines"></div>
+      <p class="pl-small" id="plLifeNote"></p>
+    </section>
+
+    <div class="pl-two">
+      <section class="pl-block">
+        <h3>นิ้วมือ</h3>
+        <ul class="pl-list" id="plFingers"></ul>
+      </section>
+      <section class="pl-block">
+        <h3>เส้นรองและเนิน</h3>
+        <ul class="pl-list" id="plExtras"></ul>
+      </section>
+    </div>
+
+    <section class="pl-block pl-lucky">
+      <h3>เคล็ดเสริมดวง &amp; สีมงคล</h3>
+      <ul class="pl-colors" id="plColors"></ul>
+      <ul class="pl-tips" id="plTips"></ul>
+    </section>
+
+    <details class="pl-how">
+      <summary>ดูวิธีคำนวณ</summary>
+      <p class="pl-small" id="plHowSrc"></p>
+      <p class="pl-small">วัดทุกระยะเทียบกับความกว้างฝ่ามือ (โคนนิ้วชี้ถึงโคนนิ้วก้อย) จึงไม่ขึ้นกับขนาดภาพ เส้นในภาพผ่านการปรับความคมชัดเฉพาะที่และตัวกรองร่อง (Hessian หลายสเกล) แล้วไล่ตามแนวที่ตำราระบุ ความลึกของเส้นเป็นค่าประมาณจากความเข้มของร่องในภาพ ขึ้นกับแสงอย่างมาก</p>
+      <div class="table-wrap"><table class="pl-table"><thead><tr><th scope="col">ค่า</th><th scope="col">ผล</th><th scope="col">ความหมายของค่า</th></tr></thead><tbody id="plRaw"></tbody></table></div>
+    </details>
+
+    <div class="pl-res-actions">
+      <button class="btn primary big" id="plShare" type="button">แชร์การ์ดผลลัพธ์</button>
+      <button class="btn ghost big" id="plPrint" type="button">พิมพ์</button>
+      <button class="btn ghost big" id="plEditAgain" type="button">กลับไปปรับเส้น</button>
+      <button class="btn ghost big" id="plAgain" type="button">อ่านคนถัดไป</button>
+    </div>
+    <img class="pl-cardimg" id="plCardImg" alt="การ์ดผลอ่านลายมือสำหรับแชร์" hidden>
+  </section>
+
+  <div class="pl-foot">
+    <section class="pl-block">
+      <h3>สถิติบูธ (ไม่ระบุตัวตน)</h3>
+      <div id="plStats"></div>
+      <label class="pl-check"><input type="checkbox" id="plStatsOn"> นับจำนวนครั้งและสัดส่วนธาตุในเครื่องนี้</label>
+      <button class="btn ghost" id="plStatsClear" type="button">ล้างสถิติ</button>
+    </section>
+    <section class="pl-block">
+      <h3>แหล่งอ้างอิง</h3>
+      <p class="pl-small">เนื้อหาเรียบเรียงใหม่ในเชิงบวกจากแนวคิดลายมือตะวันตก จีน/ญี่ปุ่น และไทย แต่ละสำนักตีความต่างกันได้</p>
+      <ul class="pl-sources" id="plSources"></ul>
+      <p class="pl-small" id="plEthics"></p>
+      <p class="pl-small">โมเดลจุดบนมือ: MediaPipe Hands (lite) เวอร์ชัน TensorFlow.js — Apache License 2.0</p>
+    </section>
+  </div>
+</main>
+
+<div class="pl-idle" id="plIdle" hidden role="status"></div>
+<button class="btn primary pl-kiosk-exit" id="plKioskExit" type="button" hidden>ออกจากโหมดบูธ</button>
+<div class="toast" id="plToast" role="status"></div>
+
+<script src="vendor/face-api.js"></script>
+<script src="palm-kb.js?v=1"></script>
+<script src="palm.js?v=1"></script>
+</body>
+</html>
