@@ -588,7 +588,9 @@
     const base = apiBase();
     if (!statusP || statusBase !== base) {
       statusBase = base;
-      statusP = typeof fetch !== "function" ? Promise.resolve({ enabled: false })
+      // โฮสต์แบบเว็บนิ่ง (GitHub Pages) ไม่มี backend — ไม่ต้องถาม เว้นแต่ตั้ง LENSIQ_API_BASE ไว้
+      const staticHost = !base && typeof location !== "undefined" && /\.github\.io$/i.test(location.hostname);
+      statusP = (typeof fetch !== "function" || staticHost) ? Promise.resolve({ enabled: false })
         : fetch(base + "/api/fortune/status").then(r => (r.ok ? r.json() : { enabled: false })).then(j => Object.assign({ enabled: false }, j)).catch(() => ({ enabled: false }));
     }
     return statusP;
