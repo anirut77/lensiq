@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title>แดชบอร์ดรวม | LENSIQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="insights.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header><script src="nav.js?v=1"></script>
+
+<main class="iq">
+  <h1>แดชบอร์ดรวม</h1>
+  <p class="lead">สรุปข้อมูลจากทุกระบบกล้อง AI ที่บันทึกไว้ในเบราว์เซอร์นี้ไว้ในหน้าเดียว ข้อมูลไม่ถูกส่งออกนอกเครื่อง</p>
+
+  <div class="toolbar">
+    <div class="range" role="group" aria-label="ช่วงเวลา">
+      <button type="button" data-p="today" aria-pressed="false">วันนี้</button><button type="button" data-p="d7" aria-pressed="true">7 วัน</button><button type="button" data-p="d30" aria-pressed="false">30 วัน</button><button type="button" data-p="all" aria-pressed="false">ทั้งหมด</button>
+    </div>
+    <span class="range-note" id="rangeNote"></span>
+  </div>
+
+  <div class="banner" id="demoBanner" hidden>
+    <span>กำลังแสดง<b>ข้อมูลตัวอย่าง</b>ปนอยู่ (รายการที่มีป้าย “(ตัวอย่าง)”)</span>
+    <button type="button" class="btn-s" id="removeDemoBanner">ลบข้อมูลตัวอย่าง</button>
+  </div>
+
+  <section class="card iq-empty" id="empty" hidden>
+    <h2>ยังไม่มีข้อมูล</h2>
+    <p>แดชบอร์ดนี้อ่านข้อมูลที่ระบบต่าง ๆ บันทึกไว้ในเบราว์เซอร์เครื่องนี้ เริ่มได้สองทาง</p>
+    <ol>
+      <li>เปิดระบบใดระบบหนึ่งด้านล่าง ใช้งานกล้องสักครู่ แล้วกลับมาที่หน้านี้</li>
+      <li>หรือกด <b>สร้างข้อมูลตัวอย่าง</b> เพื่อดูหน้าตาแดชบอร์ด (ลบออกได้ภายหลัง ไม่ทับข้อมูลจริง)</li>
+    </ol>
+    <button type="button" class="btn-p" id="seedDemoEmpty">สร้างข้อมูลตัวอย่าง</button>
+    <ul class="mods-list" id="emptyList"></ul>
+  </section>
+
+  <div id="dash" hidden>
+    <section aria-labelledby="kpiTitle">
+      <h2 class="sr" id="kpiTitle">ตัวเลขสำคัญ</h2>
+      <div class="kpis" id="kpis"></div>
+    </section>
+
+    <div class="row2">
+      <section class="card" id="trend" aria-labelledby="trendTitle">
+        <div class="card-h"><h2 id="trendTitle">แนวโน้มรวม</h2><span class="muted" id="trendSub"></span></div>
+        <ul class="legend" id="trendLegend"></ul>
+        <div class="chart" id="trendChart"></div>
+        <p class="nodata" id="trendEmpty" hidden>ไม่มีข้อมูลในช่วงนี้ ลองเลือกช่วงเวลาที่ยาวขึ้น</p>
+        <p class="note" id="trendNote"></p>
+        <div id="trendTable"></div>
+      </section>
+
+      <section class="card" id="funnel" aria-labelledby="funnelTitle">
+        <div class="card-h"><h2 id="funnelTitle">เส้นทางลูกค้า</h2><span class="muted">คนผ่าน → หยุดดู → มีส่วนร่วม → ซื้อ</span></div>
+        <div id="funnelBody"></div>
+        <p class="note" id="funnelNote"></p>
+      </section>
+    </div>
+
+    <h2 class="sec">รายระบบ</h2>
+    <div class="mods" id="modules"></div>
+  </div>
+
+  <section class="card data" aria-labelledby="dataTitle">
+    <h2 id="dataTitle">จัดการข้อมูล</h2>
+    <p class="muted" id="dataInfo"></p>
+    <div class="actions">
+      <button type="button" class="btn-p" id="exportJson">สำรองข้อมูลทั้งหมด (JSON)</button>
+      <label class="btn-s file">กู้คืนจากไฟล์สำรอง<input type="file" id="importFile" accept="application/json,.json"></label>
+      <button type="button" class="btn-s" id="exportCsv">ส่งออกสรุป (CSV)</button>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn-s" id="seedDemo">สร้างข้อมูลตัวอย่าง</button>
+      <button type="button" class="btn-s danger" id="removeDemo" hidden>ลบข้อมูลตัวอย่าง</button>
+    </div>
+    <p class="iq-msg" id="dataMsg" role="status" aria-live="polite"></p>
+    <p class="note">ไฟล์สำรองรวมข้อมูลทุกระบบในเบราว์เซอร์นี้ รวมถึงสินค้าและตัวอย่างที่สอนของระบบสแกนสินค้า แต่ไม่รวมรูปโฆษณาที่อัปโหลดและเทมเพลตตู้ถ่ายรูป ไฟล์อาจมีชื่อลูกค้าและข้อมูลใบหน้า (ค่าตัวเลข) โปรดเก็บอย่างปลอดภัย · ข้อมูลตัวอย่างทุกรายการมีป้าย “(ตัวอย่าง)” และไม่ทับข้อมูลจริง</p>
+  </section>
+</main>
+
+<div class="iq-tip" id="iqTip" role="tooltip" hidden></div>
+<script src="insights.js?v=2"></script>
+</body>
+</html>

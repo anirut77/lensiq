@@ -1,0 +1,68 @@
+.cx input,.cx select{width:100%}
+.cx label.check input{width:auto}
+.cam-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.cam-actions .btn{flex:1;padding:10px 16px}
+.search-results{list-style:none;padding:0;margin-top:8px;display:grid;gap:6px;max-height:200px;overflow:auto}
+.search-results button{width:100%;min-height:44px;text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.search-results button:hover{border-color:var(--navy)}
+.search-results small{color:var(--muted)}
+
+.greet{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.greet h2{margin:0;font-size:1.35rem}
+.greet .sub-line{color:var(--muted);font-size:.85rem}
+.badge{display:inline-block;padding:2px 12px;border-radius:99px;font-size:.78rem;background:var(--alt);color:var(--navy)}
+.badge.regular{background:#e6f6ee;color:#14653b}.badge.lapsed{background:#fff6e0;color:#7a5a05}.badge.new{background:#e8f0fb;color:#1d4f8f}
+.last-order{background:var(--bg);border-radius:12px;padding:12px 14px;margin:14px 0}
+.last-order b{color:var(--navy)}
+.quick{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.quick .btn{flex:1;min-width:150px;padding:10px 14px;font-size:.9rem}
+.reco{border-left:3px solid var(--gold);padding:8px 12px;margin-top:12px;background:#f3f0ff;border-radius:0 10px 10px 0;font-size:.9rem}
+.new-cust{text-align:center}
+.new-cust h2{text-align:center}
+
+.opts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+fieldset{border:0;padding:0;margin:0;min-width:0}
+legend{font-size:.85rem;color:var(--muted);margin-bottom:4px}
+.seg{display:flex;flex-wrap:wrap;gap:4px}
+.seg button{flex:1;min-width:44px;min-height:44px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 4px;font-size:.88rem;color:var(--text)}
+.seg button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.total{font-size:1rem;text-align:right}.total b{font-size:1.3rem;color:var(--navy)}
+#orderForm h2 .for{font-size:.9rem;color:var(--muted);font-weight:400}
+
+.menu-form{display:grid;grid-template-columns:2fr 1.2fr 1fr auto;gap:10px;margin-top:14px;padding:0;border:0;box-shadow:none}
+.menu-form .btn{padding:8px 18px}
+td button.link{background:none;border:0;color:var(--series-1);text-decoration:underline;padding:0 8px;min-height:44px;min-width:44px}
+td button.del{background:none;border:0;color:#c0392b;font-size:.82rem}
+tr.click{cursor:pointer}tr.click:hover td{background:var(--bg)}
+.row-actions input{width:200px}
+.profile-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.privacy{text-align:center;margin-top:24px}
+/* กล้อง: neuro.css สะท้อนภาพเสมอ — หน้านี้สะท้อนเฉพาะกล้องหน้า (JS ใส่ .mirror) */
+.cx .cam video,.cx .cam canvas{transform:none}
+.cx .cam.mirror video,.cx .cam.mirror canvas{transform:scaleX(-1)}
+.cam-switch{display:flex;gap:8px;flex-wrap:wrap;flex-basis:100%}
+.cam-switch[hidden]{display:none}
+.cam-switch .btn{flex:0 1 auto}
+.cam-switch select{flex:1;min-width:0;min-height:44px;font-size:.88rem}
+#enrollCamSlot+.cam-switch,.cx .cam+.cam-switch{margin-top:10px}
+.cx .tab{min-height:44px}
+.cx input,.cx select{min-height:44px}
+.cx label.check input{min-height:0;width:20px;height:20px;flex:none}
+.engine-link{color:inherit;text-decoration:underline;font-weight:500}
+@media(max-width:820px){.opts{grid-template-columns:1fr}.menu-form{grid-template-columns:1fr 1fr}.menu-form .btn{grid-column:1/-1}}
+@media(max-width:640px){
+  .cx{padding:24px 16px 70px}
+  .cx input,.cx select,.cx textarea{font-size:16px} /* กัน iOS ซูม */
+  .cx .tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .cx .tab{white-space:nowrap;flex:none}
+  .cx .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cx .tile .v{font-size:1.25rem;overflow-wrap:anywhere}
+  .row-actions{width:100%}
+  .row-actions input{width:100%}
+  .row-actions .btn{flex:1}
+  .quick .btn{min-width:0;flex-basis:100%}
+  .cx .card{padding:16px}
+}
+.cx .bars .row{grid-template-columns:minmax(0,110px) minmax(40px,1fr) auto}
+.cx .bars .row span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cx #customerCard{margin-bottom:20px}

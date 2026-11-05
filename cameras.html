@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title>ระบบกล้อง AI | LENSIQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.hub{max-width:1200px;margin:auto;padding:40px 5vw 90px}
+.hub-head{text-align:center;margin-bottom:8px}
+.hub-head .eyebrow{display:block;margin-bottom:6px}
+.hub h1{font-size:clamp(1.7rem,4vw,2.5rem);text-align:center;color:var(--navy);font-weight:600;margin:0 0 10px}
+.hub .lead{text-align:center;margin:0 auto 22px;color:var(--muted);max-width:760px}
+.jump{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:0 0 12px;padding:0;list-style:none}
+.jump a{display:inline-flex;align-items:center;min-height:44px;padding:6px 16px;border:1px solid var(--line);border-radius:99px;background:#fff;color:var(--navy);font-size:.9rem}
+.jump a:hover{border-color:var(--gold)}
+.group{scroll-margin-top:calc(var(--nav-h) + 16px);margin-top:36px}
+.group-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.hub h2{font-size:1.25rem;color:var(--navy);font-weight:600;margin:0;text-align:left}
+.group-head p{color:var(--muted);font-size:.9rem}
+.apps{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr));gap:16px}
+.app{display:flex;flex-direction:column;gap:8px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:var(--shadow);color:inherit;text-decoration:none;transition:transform .15s,border-color .15s,box-shadow .15s;min-width:0}
+.app:hover,.app:focus-visible{transform:translateY(-2px);border-color:var(--gold);box-shadow:0 14px 34px rgba(14,20,48,.12)}
+.app .ic{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:var(--alt);color:var(--gold)}
+.app .ic svg{width:24px;height:24px}
+.app h3{margin:0;font-size:1.02rem;color:var(--navy);font-weight:600}
+.app p{margin:0;font-size:.88rem;color:var(--muted)}
+.app dl{margin:4px 0 0;font-size:.8rem;display:grid;grid-template-columns:auto 1fr;gap:2px 8px}
+.app dt{color:var(--navy);font-weight:500}.app dd{margin:0;color:var(--muted)}
+.app.feature{background:linear-gradient(135deg,#0e1430,#1e2a5a);border-color:transparent;color:#fff}
+.app.feature h3{color:#fff}.app.feature p,.app.feature dd{color:#c9d0ea}.app.feature dt{color:#fff}
+.app.feature .ic{background:rgba(255,255,255,.1);color:#22d3ee}
+.badge{display:inline-block;background:var(--gold);color:#fff;border-radius:6px;padding:0 7px;font-size:.7rem;font-weight:500;margin-left:6px;vertical-align:middle}
+.howto{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;font-size:.92rem;line-height:1.75}
+.howto ol{padding-left:22px;margin:10px 0}.howto li{margin:4px 0}.howto code{background:var(--alt);padding:1px 6px;border-radius:6px;font-size:.88em;word-break:break-all}
+.note{background:#fff;border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:12px;padding:14px 16px;font-size:.88rem;color:var(--muted);margin-top:36px}
+</style>
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=1"></script>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-emotion" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5s1.3 2 3.5 2 3.5-2 3.5-2M9 9.5h.01M15 9.5h.01"/></symbol>
+    <symbol id="i-screen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="i-booth" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-5 9 5M5 9v11M19 9v11M3 20h18M9 20v-6h6v6"/></symbol>
+    <symbol id="i-store" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v10h16V10M3 6l2-3h14l2 3v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0z"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></symbol>
+    <symbol id="i-scan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-id" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16a3 3 0 0 1 6 0M15 10h3M15 13h3"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4M9 13h6M9 17h6"/></symbol>
+  </defs>
+</svg>
+<main class="hub">
+  <div class="hub-head">
+    <span class="eyebrow">LENSIQ Platform</span>
+    <h1>ระบบทั้งหมด</h1>
+    <p class="lead">ทุกระบบใช้กล้องที่มีอยู่และประมวลผลบนเครื่องในเบราว์เซอร์ ไม่ต้องส่งภาพขึ้นคลาวด์ ใช้ได้กับเว็บแคม กล้อง USB มือถือ แท็บเล็ต หรือกล้อง IP (ผ่านคอมพิวเตอร์หน้างาน)</p>
+  </div>
+  <ul class="jump" aria-label="ไปยังหมวด">
+    <li><a href="#marketing">การตลาด</a></li>
+    <li><a href="#analytics">การวิเคราะห์</a></li>
+    <li><a href="#photo">ตู้ถ่ายรูป</a></li>
+    <li><a href="#extra">ระบบเสริม</a></li>
+    <li><a href="#mobile">ใช้บนมือถือ</a></li>
+  </ul>
+
+  <section class="group" id="marketing" aria-labelledby="h-mkt">
+    <div class="group-head"><h2 id="h-mkt">การตลาด</h2><p>วัดผลโฆษณา บูธ และประสบการณ์ลูกค้า</p></div>
+    <div class="apps">
+      <a class="app" href="neuro.html"><span class="ic"><svg aria-hidden="true"><use href="#i-emotion"/></svg></span><h3>วิเคราะห์อารมณ์ (Neuromarketing)</h3><p>ทดสอบโฆษณาและบรรจุภัณฑ์จากสีหน้า ความสนใจ และระดับอารมณ์ของผู้ชม</p><dl><dt>ใช้กับ</dt><dd>ทดสอบสื่อ แพ็กเกจจิ้ง Focus group</dd><dt>กล้อง</dt><dd>เว็บแคมหน้าผู้ทดสอบ</dd></dl></a>
+      <a class="app" href="signage.html"><span class="ic"><svg aria-hidden="true"><use href="#i-screen"/></svg></span><h3>ป้ายโฆษณาอัจฉริยะ</h3><p>เลือกโฆษณาตามกลุ่มผู้ชม วัดจำนวนคนที่มองจอและเวลาที่ดู พร้อมคีออสก์สั่งงานด้วยมือไม่ต้องแตะจอ</p><dl><dt>ใช้กับ</dt><dd>จอ Digital Signage บูธ ร้านค้า</dd><dt>กล้อง</dt><dd>เว็บแคมติดบนจอ</dd></dl></a>
+      <a class="app" href="customers.html"><span class="ic"><svg aria-hidden="true"><use href="#i-user"/></svg></span><h3>จดจำลูกค้า</h3><p>จำลูกค้าที่ยินยอม ดูรายการที่สั่งบ่อยและล่าสุด เพื่อแนะนำได้ตรงใจ</p><dl><dt>ใช้กับ</dt><dd>คาเฟ่ ร้านค้า เคาน์เตอร์บริการ</dd><dt>กล้อง</dt><dd>เว็บแคมที่เคาน์เตอร์</dd></dl></a>
+      <a class="app" href="booth.html"><span class="ic"><svg aria-hidden="true"><use href="#i-booth"/></svg></span><h3>วิเคราะห์บูธ</h3><p>นับผู้เข้าชม จำคนเดิมแบบไม่ระบุตัวตน วัดเวลาหยุดชม และนับผู้ร่วมกิจกรรม</p><dl><dt>ใช้กับ</dt><dd>งานแสดงสินค้า อีเวนต์ Pop-up</dd><dt>กล้อง</dt><dd>เว็บแคม/มือถือหันออกหน้าบูธ</dd></dl></a>
+    </div>
+  </section>
+
+  <section class="group" id="analytics" aria-labelledby="h-ana">
+    <div class="group-head"><h2 id="h-ana">การวิเคราะห์</h2><p>ข้อมูลการเดินร้าน คิว และภาพรวมทุกระบบ</p></div>
+    <div class="apps">
+      <a class="app feature" href="insights.html"><span class="ic"><svg aria-hidden="true"><use href="#i-chart"/></svg></span><h3>แดชบอร์ดรวม<span class="badge">ใหม่</span></h3><p>สรุปตัวเลขสำคัญจากทุกระบบในหน้าเดียว ดูแนวโน้มและส่งออกรายงาน</p><dl><dt>ใช้กับ</dt><dd>ผู้จัดการ ทีมการตลาด</dd><dt>กล้อง</dt><dd>ไม่ต้องใช้ (อ่านจากระบบอื่น)</dd></dl></a>
+      <a class="app" href="store.html"><span class="ic"><svg aria-hidden="true"><use href="#i-store"/></svg></span><h3>วิเคราะห์หน้าร้าน</h3><p>นับคนเข้า–ออก จำนวนคนในร้าน แผนที่ความร้อนของจุดที่คนเดิน ความยาวคิว และเวลารอ</p><dl><dt>ใช้กับ</dt><dd>ร้านค้า ตัวแทนจำหน่าย ห้าง</dd><dt>กล้อง</dt><dd>มุมสูงเหนือประตู/มุมห้อง</dd></dl></a>
+      <a class="app" href="checkout.html"><span class="ic"><svg aria-hidden="true"><use href="#i-scan"/></svg></span><h3>สแกนสินค้าด้วยกล้อง</h3><p>สอนให้ระบบจำสินค้าเองได้ในไม่กี่นาที ใช้คิดเงินแบบบริการตนเอง และนับสต็อก</p><dl><dt>ใช้กับ</dt><dd>จุดขาย ตู้แช่ คลังสินค้า</dd><dt>กล้อง</dt><dd>กล้องมองลงบนโต๊ะ</dd></dl></a>
+    </div>
+  </section>
+
+  <section class="group" id="photo" aria-labelledby="h-photo">
+    <div class="group-head"><h2 id="h-photo">ตู้ถ่ายรูป</h2><p>สร้างประสบการณ์และคอนเทนต์ในงาน</p></div>
+    <div class="apps">
+      <a class="app" href="photobooth.html"><span class="ic"><svg aria-hidden="true"><use href="#i-camera"/></svg></span><h3>ตู้สติ๊กเกอร์ &amp; รูปติดบัตร</h3><p>ถ่ายภาพเป็นชุด แต่งกรอบ สติ๊กเกอร์ และพื้นหลัง พร้อมโหมดรูปติดบัตรและเปลี่ยนชุด</p><dl><dt>ใช้กับ</dt><dd>อีเวนต์ บูธ งานแต่ง ร้านถ่ายรูป</dd><dt>กล้อง</dt><dd>เว็บแคม มือถือ หรือแท็บเล็ต</dd></dl></a>
+    </div>
+  </section>
+
+  <section class="group" id="extra" aria-labelledby="h-extra">
+    <div class="group-head"><h2 id="h-extra">ระบบเสริม</h2><p>งานปฏิบัติการ บุคลากร และเครื่องมือ</p></div>
+    <div class="apps">
+      <a class="app" href="qc.html"><span class="ic"><svg aria-hidden="true"><use href="#i-check"/></svg></span><h3>ตรวจคุณภาพสินค้าบนไลน์ผลิต</h3><p>ตรวจระดับบรรจุ ฝา และฉลากบนสายการผลิต คัดชิ้นที่ไม่ผ่าน และสรุปสาเหตุของเสีย</p><dl><dt>ใช้กับ</dt><dd>โรงงาน ไลน์บรรจุ</dd><dt>กล้อง</dt><dd>กล้องติดตายตัวพร้อมไฟส่องหลังชิ้นงาน</dd></dl></a>
+      <a class="app" href="driver.html"><span class="ic"><svg aria-hidden="true"><use href="#i-eye"/></svg></span><h3>เฝ้าระวังความง่วงคนขับ</h3><p>ตรวจการหลับตา หาว สัปหงก และละสายตาจากถนน แล้วเตือนด้วยเสียงทันที</p><dl><dt>ใช้กับ</dt><dd>รถขนส่ง รถบริการ</dd><dt>กล้อง</dt><dd>กล้องอินฟราเรดหน้าคนขับ</dd></dl></a>
+      <a class="app" href="attendance.html"><span class="ic"><svg aria-hidden="true"><use href="#i-id"/></svg></span><h3>เช็คชื่อด้วยใบหน้า</h3><p>ลงชื่อเข้าอบรม สัมมนา หรือเข้า–ออกงานด้วยการสแกนใบหน้า</p><dl><dt>ใช้กับ</dt><dd>อบรม สัมมนา สำนักงาน</dd><dt>กล้อง</dt><dd>เว็บแคม/แท็บเล็ตที่จุดลงทะเบียน</dd></dl></a>
+      <a class="app" href="converter.html"><span class="ic"><svg aria-hidden="true"><use href="#i-file"/></svg></span><h3>แปลง PDF เป็น Word</h3><p>แปลงไฟล์ PDF เป็นเอกสาร Word คงรูปแบบเดิม ประมวลผลบนเซิร์ฟเวอร์ของเราเอง ไม่ส่งไฟล์ออกภายนอก</p><dl><dt>ใช้กับ</dt><dd>งานเอกสารทั่วไป</dd><dt>กล้อง</dt><dd>ไม่ต้องใช้</dd></dl></a>
+    </div>
+  </section>
+
+  <section class="group" id="mobile" aria-labelledby="h-mobile">
+    <h2 id="h-mobile">ใช้งานบนมือถือและแท็บเล็ต</h2>
+    <div class="howto">
+      <p>เบราว์เซอร์บนมือถืออนุญาตให้ใช้กล้องเฉพาะเว็บที่เปิดผ่าน <b>https://</b> เท่านั้น ให้เปิดเซิร์ฟเวอร์ในโหมดมือถือดังนี้</p>
+      <ol>
+        <li>ให้คอมพิวเตอร์ที่รันระบบและมือถืออยู่ใน Wi‑Fi เดียวกัน</li>
+        <li>บนคอมพิวเตอร์ เปิด Terminal ที่โฟลเดอร์โปรเจกต์ แล้วรัน <code>./start.sh mobile</code></li>
+        <li>หน้าจอจะแสดงที่อยู่ เช่น <code>https://192.168.1.20:8443</code> ให้พิมพ์ที่อยู่นั้นในเบราว์เซอร์มือถือ (Safari หรือ Chrome)</li>
+        <li>ครั้งแรกจะมีคำเตือนเรื่องใบรับรอง เพราะเป็นใบรับรองที่สร้างเอง ให้กด “ขั้นสูง/แสดงรายละเอียด” แล้วเลือก “ไปต่อ/เยี่ยมชมเว็บไซต์นี้”</li>
+        <li>เมื่อเปิดหน้าที่ใช้กล้อง ให้กด “อนุญาต” การใช้กล้อง และใช้ปุ่มสลับกล้องหน้า/หลังได้</li>
+      </ol>
+      <p class="hint">ข้อมูลสถิติจะถูกเก็บในเบราว์เซอร์ของแต่ละเครื่องแยกกัน ใช้โหมดนี้เฉพาะในเครือข่ายที่ไว้ใจได้ สำหรับติดตั้งใช้งานจริงแบบถาวร แนะนำให้ใช้โดเมนพร้อมใบรับรอง HTTPS จริง</p>
+    </div>
+  </section>
+
+  <p class="note"><b>ข้อควรรู้ด้าน PDPA:</b> ระบบที่วิเคราะห์ใบหน้าหรือพฤติกรรมคนต้องติดป้ายแจ้งและขอความยินยอมตามกฎหมาย ระบบในหน้านี้ออกแบบให้ไม่บันทึกภาพคนและเก็บเพียงสถิติไว้ในเครื่อง ผลการประเมินเพศ อายุ และอารมณ์เป็นการคาดคะเนที่อาจคลาดเคลื่อน</p>
+</main>
+</body>
+</html>

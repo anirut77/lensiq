@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title>ตรวจคุณภาพสินค้าบนสายการผลิต | LENSIQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="qc.css?v=2">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=1"></script>
+
+<main class="qcp">
+  <h1>ตรวจคุณภาพสินค้าบนสายการผลิต <small class="h1-sub">ตัวอย่าง: ขวดเครื่องดื่ม</small></h1>
+  <p class="lead">ตรวจชิ้นงานบนสายพานด้วยการประมวลผลภาพในเครื่อง เทียบกับชิ้นงานตัวอย่างที่ผ่าน นับยอดผ่าน/คัดทิ้ง และส่งออกรายงานประจำกะ — เดโมนี้ใช้ขวดเครื่องดื่มเป็นตัวอย่าง ตรวจระดับการบรรจุ ฝา และฉลาก</p>
+
+  <div class="engine" id="engine" role="status">กำลังเตรียมระบบ...</div>
+
+  <div class="top">
+    <section class="card">
+      <div class="src">
+        <label>แหล่งภาพ
+          <select id="srcSel">
+            <option value="sim" selected>ภาพจำลองสายการผลิต</option>
+            <option value="camera">กล้อง (มือถือ / เว็บแคม / กล้อง USB อุตสาหกรรม)</option>
+            <option value="video">ไฟล์วิดีโอ (เล่นวนซ้ำ)</option>
+            <option value="image">ทดสอบด้วยรูปภาพ</option>
+          </select>
+        </label>
+        <label data-src="camera" hidden>เลือกกล้อง<select id="camSel"><option value="">กล้องเริ่มต้น</option></select></label>
+        <div class="flip" data-src="camera" hidden><button class="btn ghost" id="flipCam" type="button">สลับกล้องหน้า/หลัง</button></div>
+        <label data-src="video" hidden>ไฟล์วิดีโอ<input id="videoFile" type="file" accept="video/*"></label>
+        <label data-src="image" hidden>ไฟล์รูปภาพ<input id="imageFile" type="file" accept="image/*"></label>
+        <label data-src="sim">ความเร็วสายพาน
+          <select id="simSpeed"><option value="3200">ช้า (~19 ขวด/นาที)</option><option value="2400" selected>ปกติ (25 ขวด/นาที)</option><option value="1600">เร็ว (~38 ขวด/นาที)</option></select>
+        </label>
+      </div>
+
+      <div class="stage">
+        <canvas id="frame" width="640" height="480"></canvas>
+        <canvas id="overlay" width="640" height="480" aria-label="ภาพจากกล้องพร้อมพื้นที่ตรวจ ลากเพื่อกำหนดพื้นที่"></canvas>
+      </div>
+      <video id="video" class="offscreen" muted playsinline></video>
+
+      <div class="actions">
+        <button class="btn primary" id="toggle" type="button">เริ่มตรวจต่อเนื่อง</button>
+        <button class="btn ghost" id="inspectNow" type="button">ตรวจเดี๋ยวนี้</button>
+        <span class="pill" id="fps">—</span>
+      </div>
+      <div class="actions small">
+        <button class="btn ghost" id="captureBg" type="button">1. บันทึกพื้นหลังว่าง</button>
+        <button class="btn ghost" id="captureGolden" type="button">2. บันทึกขวดตัวอย่างที่ผ่าน</button>
+        <button class="btn ghost" id="simCalib" type="button" hidden>สอบเทียบภาพจำลองอัตโนมัติ</button>
+      </div>
+    </section>
+
+    <section class="card result">
+      <div class="banner idle" id="banner" role="status" aria-live="polite"><b>รอตรวจ</b><span>ยังไม่มีผลการตรวจ</span></div>
+      <table class="measure"><tbody id="measure"><tr><td>ผลการวัดแต่ละจุดจะแสดงที่นี่</td></tr></tbody></table>
+      <p class="hint" id="simTruth"></p>
+      <h3>เริ่มใช้งาน</h3>
+      <ol class="steps">
+        <li>เลือกแหล่งภาพ (ไม่มีสายการผลิต? ใช้ภาพจำลองแล้วกด “สอบเทียบภาพจำลองอัตโนมัติ”)</li>
+        <li>เลือกพื้นที่ทางขวา แล้ว<b>ลากกรอบบนภาพ</b> ให้ครบ 4 จุด</li>
+        <li>นำขวดออก กด <b>บันทึกพื้นหลังว่าง</b></li>
+        <li>วางขวดที่ผ่านมาตรฐาน กด <b>บันทึกขวดตัวอย่างที่ผ่าน</b></li>
+        <li>กด <b>เริ่มตรวจต่อเนื่อง</b> หรือ <b>ตรวจเดี๋ยวนี้</b></li>
+      </ol>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>สูตรการตรวจ</h2>
+      <div class="recipe-row">
+        <label>สูตรที่ใช้<select id="recipeSel"></select></label>
+        <label>ชื่อสูตร<input id="recipeName" maxlength="50"></label>
+      </div>
+      <div class="row-actions">
+        <button class="btn ghost" id="recipeNew" type="button">บันทึกเป็นสูตรใหม่</button>
+        <button class="btn ghost danger" id="recipeDel" type="button">ลบสูตรนี้</button>
+      </div>
+      <h3>พื้นที่ตรวจ (เลือก แล้วลากบนภาพ)</h3>
+      <div class="chips" id="roiChips"></div>
+      <button class="btn ghost tiny" id="clearRoi" type="button">ไม่ตรวจจุดนี้ (ลบพื้นที่)</button>
+      <p class="hint">ระดับน้ำ: แถบแนวตั้งแคบ ๆ ผ่านคอขวด · ฝา: ครอบฝาโดยเว้นพื้นหลังเหนือฝาเล็กน้อย · ฉลาก: ครอบเฉพาะฉลาก · ขวด/ทริกเกอร์: บริเวณที่ขวดหยุด/ผ่าน</p>
+      <h3>ข้อมูลขวดตัวอย่าง</h3>
+      <ul class="golden" id="goldenInfo"></ul>
+    </section>
+
+    <section class="card">
+      <h2>เกณฑ์ความคลาดเคลื่อน</h2>
+      <form id="tolForm" class="tol" novalidate>
+        <fieldset>
+          <legend>ระดับน้ำ</legend>
+          <label>ลักษณะภาพน้ำ
+            <select name="mode"><option value="dark">น้ำมืดกว่าอากาศ (ทั่วไป)</option><option value="bright">น้ำสว่างกว่า / ไฟส่องหลัง</option></select>
+          </label>
+          <label>ยอมให้คลาด ±<span class="pair"><input name="fill" type="number" min="0" step="0.5"><select name="fillUnit"><option value="px">พิกเซล</option><option value="%">% ของพื้นที่</option></select></span></label>
+          <label>คอนทราสต์ขั้นต่ำของผิวน้ำ<input name="minContrast" type="number" min="1" max="200"></label>
+        </fieldset>
+        <fieldset>
+          <legend>ฝา</legend>
+          <label>สีต่างได้ไม่เกิน (ΔE)<input name="capDE" type="number" min="1" max="100"></label>
+          <label>พื้นที่ฝาขั้นต่ำ (% ของตัวอย่าง)<input name="capCov" type="number" min="5" max="100"></label>
+          <label>เอียงได้ไม่เกิน (องศา)<input name="capTilt" type="number" min="1" max="45"></label>
+          <label>ยกสูงได้ไม่เกิน (พิกเซล)<input name="capHigh" type="number" min="1" max="50"></label>
+        </fieldset>
+        <fieldset>
+          <legend>ฉลาก</legend>
+          <label>ความคล้ายขั้นต่ำ (%)<input name="labelSim" type="number" min="0" max="100"></label>
+          <label>เลื่อนได้ไม่เกิน (พิกเซล)<input name="labelShift" type="number" min="0" max="100"></label>
+        </fieldset>
+        <fieldset>
+          <legend>ทริกเกอร์ (โหมดต่อเนื่อง)</legend>
+          <label>พบขวดเมื่อพื้นที่เปลี่ยน ≥ (%)<input name="trig_on" type="number" min="1" max="90"></label>
+          <label>ขวดออกเมื่อเหลือ &lt; (%)<input name="trig_off" type="number" min="0" max="50"></label>
+          <label>จำนวนเฟรมที่ต้องนิ่ง<input name="trig_stableFrames" type="number" min="1" max="30"></label>
+          <label class="check"><input name="trig_requireStill" type="checkbox"> ต้องหยุดนิ่งก่อนตรวจ (ปิดถ้าสายพานไม่หยุด)</label>
+        </fieldset>
+      </form>
+    </section>
+  </div>
+
+  <section class="card">
+    <div class="report-head">
+      <h2>สถิติกะ <small>เริ่ม <span id="shiftStart"></span></small></h2>
+      <div class="row-actions">
+        <button class="btn ghost" id="exportCsv" type="button">ส่งออกรายงานกะ CSV</button>
+        <button class="btn ghost danger" id="resetShift" type="button">รีเซ็ตกะ</button>
+      </div>
+    </div>
+    <div class="tiles" id="tiles"></div>
+    <div class="grid2 inner">
+      <div><h3>สาเหตุที่คัดทิ้ง (Pareto)</h3><canvas id="pareto" class="pareto" aria-label="แผนภูมิพาเรโตสาเหตุการคัดทิ้ง"></canvas></div>
+      <div><h3>จำนวนตามสาเหตุ</h3><ul class="acts" id="byReason"></ul></div>
+    </div>
+    <h3>ขวดที่ถูกคัดทิ้งล่าสุด (20 ขวด)</h3>
+    <div class="rejects" id="rejects"></div>
+  </section>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>อุปกรณ์ที่แนะนำสำหรับสายการผลิตจริง</h2>
+      <ul class="notes">
+        <li><b>กล้องติดตั้งตายตัว</b> ระยะและมุมคงที่ ตั้งค่าโฟกัส/รับแสง/สมดุลแสงขาวแบบแมนนวล (ปิดอัตโนมัติ) ไม่เช่นนั้นสีและความสว่างจะเปลี่ยนจนต้องสอบเทียบใหม่</li>
+        <li><b>แผงไฟส่องหลัง (backlight)</b> สีขาวสม่ำเสมอด้านหลังขวด ทำให้ผิวน้ำในคอขวดเป็นเส้นตัดชัดเจน เหมาะกับการวัดระดับน้ำที่สุด</li>
+        <li><b>แสงคงที่</b> ปิดกั้นแสงจากหน้าต่าง/ไฟเพดาน ใช้ไฟ LED แบบไม่กะพริบ หากต้องตรวจสีฝาและฉลากให้เพิ่มไฟส่องด้านหน้าแบบกระจายแสง</li>
+        <li><b>เซนเซอร์ตรวจจับขวด</b> (photoelectric) ช่วยทริกเกอร์แม่นกว่าการเทียบภาพ เมื่อความเร็วสายพานสูง ควรใช้กล้องชัตเตอร์เร็ว (global shutter)</li>
+        <li><b>เชื่อมต่อ PLC / แขนคัดทิ้ง</b> ในอนาคตผ่านพอร์ตอนุกรม (RS-232/RS-485, Modbus) หรือ HTTP ไปยังเกตเวย์ — ตอนนี้ทดลองได้ด้วยเว็บฮุกด้านล่าง</li>
+      </ul>
+      <p class="hint">วิธีตรวจ: ระดับน้ำ = เฉลี่ยความสว่างรายแถวในแถบคอขวด แล้วหาจุดที่ความสว่างเปลี่ยนแรงที่สุด (ผิวน้ำ) · ฝา = เทียบกับพื้นหลังว่างเพื่อดูว่ามีฝา สีเฉลี่ย (ΔE ในระบบสี Lab) และขอบบนซ้าย/ขวาเพื่อดูการเอียงหรือยกสูง · ฉลาก = ความหนาแน่นของขอบลวดลายและความคล้ายของฮิสโตแกรมสีเทียบขวดตัวอย่าง</p>
+    </section>
+    <section class="card">
+      <h2>การแจ้งเตือนและการเชื่อมต่อ</h2>
+      <label class="check"><input id="beep" type="checkbox"> เสียงเตือนเมื่อคัดทิ้ง</label>
+      <button class="btn ghost tiny" id="testBeep" type="button">ทดสอบเสียง</button>
+      <label class="check"><input id="webhookOn" type="checkbox"> ส่ง JSON ไปยังเว็บฮุกเมื่อคัดทิ้ง (ปิดไว้เป็นค่าเริ่มต้น)</label>
+      <label>URL เว็บฮุก (POST)<input id="webhook" type="url" placeholder="http://192.168.1.50:8080/reject" maxlength="300"></label>
+      <p class="hint">ตัวอย่างข้อมูลที่ส่ง: {"event":"reject","time":"…","recipe":"…","reasons":["capMissing"],…} ปลายทางต้องอนุญาต CORS จากหน้านี้ ข้อมูลทั้งหมดเก็บในเบราว์เซอร์เครื่องนี้เท่านั้น</p>
+    </section>
+  </div>
+</main>
+
+<script src="qc.js?v=2"></script>
+</body>
+</html>

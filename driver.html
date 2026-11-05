@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title>เฝ้าระวังความง่วงคนขับ | LENSIQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="driver.css?v=2">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=1"></script>
+
+<main class="dr">
+  <h1>เฝ้าระวังความง่วงคนขับ</h1>
+  <p class="lead">ตรวจจับอาการง่วงและการละสายตาของพนักงานขับรถในฟลีตขนส่งและรถส่งสินค้าแบบเรียลไทม์ จากการหลับตา (EAR) การหาว (MAR) PERCLOS และท่าทางศีรษะ ประมวลผลในเครื่อง ไม่บันทึกภาพ</p>
+
+  <div class="engine" id="engine" role="status">กำลังโหลดโมเดลวิเคราะห์ใบหน้า...</div>
+  <p class="disclaimer"><b>ข้อควรทราบ:</b> ระบบนี้เป็นเดโมเพื่อช่วยเตือนเท่านั้น ไม่ใช่อุปกรณ์ความปลอดภัยที่ผ่านการรับรอง ไม่สามารถทดแทนการพักผ่อนที่เพียงพอ การปฏิบัติตามกฎหมายเวลาขับรถ และวิจารณญาณของผู้ขับขี่</p>
+
+  <section class="card" id="setup">
+    <h2>เริ่มเที่ยววิ่ง</h2>
+    <div class="setup-grid">
+      <form id="tripForm" novalidate>
+        <label>ชื่อคนขับ<input name="driver" maxlength="40" autocomplete="off" required></label>
+        <label>ทะเบียนรถ<input name="plate" maxlength="20" autocomplete="off" placeholder="เช่น 1กข 1234" required></label>
+        <div class="cam-pick">
+          <label>กล้อง<select id="camSel"><option value="">กำลังค้นหากล้อง...</option></select></label>
+          <button class="btn ghost" id="flipCam" type="button">สลับกล้องหน้า/หลัง</button>
+        </div>
+        <button class="btn primary" type="submit">เริ่มเที่ยว + ปรับเทียบ 5 วินาที</button>
+        <p class="form-msg" id="tripMsg" role="status"></p>
+      </form>
+      <form id="settings" class="settings" novalidate>
+        <h3>ตั้งค่าการตรวจจับ</h3>
+        <label>สัดส่วนเกณฑ์หลับตา (× ค่า EAR ปกติ)<input name="ratio" type="number" step="0.05" min="0.5" max="0.9"></label>
+        <label>เกณฑ์หาว (MAR ปากด้านใน)<input name="marYawn" type="number" step="0.05" min="0.3" max="1"></label>
+        <label>แนะนำให้พักเมื่อถูกเตือนกี่ครั้งใน 30 นาที<input name="breakN" type="number" step="1" min="1" max="10"></label>
+        <label>ขนาดภาพตรวจจับ<select name="inputSize"><option value="224">224 px (เร็ว แนะนำ)</option><option value="320">320 px (แม่นขึ้น ช้าลง)</option></select></label>
+        <label class="check"><input name="speech" type="checkbox"> พูดเตือนเป็นเสียงภาษาไทย</label>
+        <button class="btn ghost" id="testSound" type="button">ทดสอบเสียงเตือน</button>
+      </form>
+    </div>
+    <p class="hint">ขั้นตอนปรับเทียบ: ลืมตาตามปกติและมองไปที่ถนน 5 วินาที ระบบจะหาค่า EAR ปกติของคุณ แล้วตั้งเกณฑ์หลับตา = ค่าปกติ × สัดส่วน (ถ้าไม่พบใบหน้าจะใช้ 0.25)</p>
+  </section>
+
+  <section class="live" id="live" aria-label="แผงขับขี่">
+    <div class="live-top">
+      <div class="status l0" id="status" role="status" aria-live="assertive"><b>ปกติ</b><span id="stateText">กำลังเตรียมระบบ...</span></div>
+      <div class="live-actions">
+        <span class="trip-info" id="tripInfo"></span>
+        <button class="btn dark" id="mute" type="button" aria-pressed="false">ปิดเสียงเตือน</button>
+        <button class="btn dark" id="driveMode" type="button">โหมดขับขี่</button>
+        <button class="btn stop" id="stop" type="button">จบเที่ยว</button>
+      </div>
+    </div>
+
+    <div class="live-grid">
+      <div class="cam-col">
+        <div class="cam" id="cam">
+          <video id="video" autoplay muted playsinline></video><canvas id="overlay"></canvas>
+          <div class="calib" id="calib" hidden><b id="calibCount">5</b><span>ลืมตาตามปกติ มองไปที่ถนน</span></div>
+        </div>
+        <div class="cam-meta">
+          <span class="pill" id="fps">—</span>
+          <label class="thr">เกณฑ์ EAR<input id="thr" type="number" step="0.005" min="0.08" max="0.4" value="0.250"></label>
+          <button class="btn dark sm" id="recal" type="button">ปรับเทียบใหม่</button>
+        </div>
+        <p class="base-info" id="baseInfo"></p>
+      </div>
+
+      <div class="meter-col">
+        <div class="gauge">
+          <svg viewBox="0 0 200 120" role="img" aria-label="คะแนนความล้า">
+            <path class="g-bg" d="M20 105 A80 80 0 0 1 180 105" pathLength="100"/>
+            <path id="gArc" class="g-val lo" d="M20 105 A80 80 0 0 1 180 105" pathLength="100" stroke-dasharray="0 100"/>
+          </svg>
+          <div class="g-text"><b id="gNum">0</b><span>คะแนนความล้า · <em id="gLabel">สดชื่น</em></span></div>
+        </div>
+        <div class="metrics">
+          <div class="m"><span class="k">EAR (ตา)</span><b id="vEar">—</b></div>
+          <div class="m"><span class="k">กะพริบ/นาที</span><b id="vBlink">—</b></div>
+          <div class="m"><span class="k">PERCLOS 60 วิ</span><b id="vPerclos">—</b></div>
+          <div class="m"><span class="k">หาว</span><b id="vYawn">0</b></div>
+          <div class="m"><span class="k">ศีรษะตก</span><b id="vNod">0</b></div>
+          <div class="m"><span class="k">หลับใน/หลับตานาน</span><b id="vMicro">0</b></div>
+          <div class="m wide"><span class="k">เวลาขับ</span><b id="vTime">—</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spark-wrap">
+      <div class="spark-head"><span>EAR 60 วินาทีล่าสุด</span><span class="legend"><i class="ln"></i>EAR <i class="th"></i>เกณฑ์หลับตา <i class="cl"></i>ช่วงหลับตา</span></div>
+      <canvas id="spark" aria-label="กราฟค่า EAR ย้อนหลัง 60 วินาที"></canvas>
+    </div>
+    <ul class="alerts" id="alerts" aria-label="การแจ้งเตือนล่าสุด"><li class="empty">ยังไม่มีการแจ้งเตือน</li></ul>
+    <p class="live-note">* PERCLOS จะนับเป็นทางการเมื่อมีข้อมูลอย่างน้อย 20 วินาที</p>
+  </section>
+
+  <section class="card" id="summary" hidden></section>
+
+  <section class="card">
+    <div class="report-head">
+      <h2>ประวัติเที่ยววิ่ง</h2>
+      <div class="row-actions">
+        <button class="btn ghost" id="csvTrips" type="button">ส่งออกสรุปเที่ยว CSV</button>
+        <button class="btn ghost" id="csvEvents" type="button">ส่งออกเหตุการณ์ CSV</button>
+        <button class="btn ghost danger" id="clearData" type="button">ลบข้อมูลทั้งหมด</button>
+      </div>
+    </div>
+    <p class="form-msg" id="histMsg" role="status"></p>
+    <div class="table-wrap"><table id="history"></table></div>
+    <p class="hint">ความเป็นส่วนตัว: ไม่บันทึกภาพหรือวิดีโอ เก็บเฉพาะบันทึกเหตุการณ์และสรุปเที่ยวในเบราว์เซอร์เครื่องนี้ (localStorage) เท่านั้น ลบได้ทุกเมื่อ</p>
+  </section>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>อุปกรณ์แนะนำสำหรับใช้งานจริง</h2>
+      <ul class="notes">
+        <li><b>กล้องอินฟราเรด (IR) สำหรับกลางคืน</b> — กล้อง USB/กล้องติดรถแบบ NIR 850–940 nm พร้อมไฟ IR LED และฟิลเตอร์ตัดแสงที่มองเห็น ช่วยให้เห็นดวงตาในที่มืดและลดแสงไฟหน้ารถสวน ใช้ได้แม้คนขับสวมแว่นกันแดดบางชนิด</li>
+        <li><b>ตำแหน่งติดตั้ง</b> — บนคอนโซลหรือเสา A ต่ำกว่าระดับสายตาเล็กน้อย ห่าง 50–80 ซม. หันตรงใบหน้า ไม่บังทัศนวิสัย</li>
+        <li><b>มือถือ/แท็บเล็ตติดรถ</b> — ยึดกับแท่นวางบนคอนโซลในแนวนอน ใช้กล้องหน้าหันเข้าหาคนขับ ต่อไฟชาร์จตลอด เปิด "โหมดขับขี่" เพื่อแสดงผลเต็มจอและป้องกันจอดับ</li>
+        <li><b>เสียง</b> — ต่อลำโพงรถหรือเปิดเสียงอุปกรณ์ให้ดังพอได้ยินขณะขับ</li>
+      </ul>
+    </section>
+    <section class="card">
+      <h2>วิธีทำงานและข้อจำกัด</h2>
+      <ul class="notes">
+        <li><b>หลับตา</b> — EAR จากจุดรอบดวงตา (36–47) ต่ำกว่าเกณฑ์ สั้นกว่า 0.5 วิ = กะพริบตา, 0.5–1.5 วิ = หลับใน (เฝ้าระวัง), เกิน 1.5 วิ = เตือน, เกิน 3 วิ = อันตราย</li>
+        <li><b>PERCLOS</b> — สัดส่วนเวลาหลับตาใน 60 วินาที เกิน 15% = เตือน</li>
+        <li><b>หาว</b> — MAR ปากด้านใน (60–67) สูงต่อเนื่องเกิน 1.5 วิ</li>
+        <li><b>ศีรษะตก</b> — ระยะแนวตั้งปลายจมูกถึงเส้นตา เปลี่ยนจากค่าปกติเกิน 20% อย่างฉับพลัน · <b>ละสายตา</b> — หันหน้าออกจากแนวถนนเกิน 2.5 วิ · <b>ไม่พบใบหน้า</b> เกิน 3 วิ</li>
+        <li><b>ไม่รองรับการตรวจจับการใช้โทรศัพท์</b> — โมเดลที่ใช้ตรวจเฉพาะใบหน้า ไม่สามารถระบุวัตถุในมือได้อย่างน่าเชื่อถือ</li>
+        <li>ความแม่นยำลดลงเมื่อแสงน้อย ใส่แว่นสะท้อนแสง หรือกล้องสั่น ควรปรับเทียบใหม่เมื่อเปลี่ยนคนขับหรือมุมกล้อง</li>
+      </ul>
+    </section>
+  </div>
+</main>
+
+<div class="flash" id="flash" aria-hidden="true"></div>
+<div class="break" id="breakBanner" role="alertdialog" aria-label="แนะนำให้พัก" hidden>
+  <b>แนะนำให้พักรถ</b>
+  <span>ตรวจพบสัญญาณความง่วงหลายครั้งใน 30 นาที กรุณาหาที่จอดปลอดภัยและพักอย่างน้อย 15–20 นาที</span>
+  <button class="btn primary" id="breakOk" type="button">รับทราบ</button>
+</div>
+
+<script src="vendor/face-api.js"></script>
+<script src="driver.js?v=2"></script>
+</body>
+</html>

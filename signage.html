@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title>ป้ายโฆษณาอัจฉริยะ | LENSIQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="signage.css?v=2">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=1"></script>
+
+<main class="sg">
+  <h1>ป้ายโฆษณาอัจฉริยะ</h1>
+  <p class="lead">จอโฆษณาที่เลือกคอนเทนต์ตามกลุ่มผู้ชมหน้าจอ วัดผลการมองและความสนใจแบบไม่ระบุตัวตน พร้อมคีออสก์สั่งงานด้วยมือไม่ต้องสัมผัสจอ ประมวลผลในเครื่อง ไม่บันทึกภาพ</p>
+
+  <div class="engine" id="engine" role="status">กำลังเตรียมระบบ...</div>
+
+  <div class="tabs" role="tablist" aria-label="โหมดการใช้งาน">
+    <button type="button" role="tab" id="t-player" data-tab="player" aria-controls="tab-player" aria-selected="true">จอโฆษณา</button>
+    <button type="button" role="tab" id="t-kiosk" data-tab="kiosk" aria-controls="tab-kiosk" aria-selected="false" tabindex="-1">คีออสก์ไร้สัมผัส</button>
+    <button type="button" role="tab" id="t-report" data-tab="report" aria-controls="tab-report" aria-selected="false" tabindex="-1">รายงาน</button>
+  </div>
+
+  <!-- ===== จอโฆษณา ===== -->
+  <section id="tab-player" role="tabpanel" aria-labelledby="t-player">
+    <div class="player-grid">
+      <section class="card">
+        <div class="stage" id="stage">
+          <div class="ad" id="ad" aria-live="polite"></div>
+          <button class="fs-exit" type="button" aria-label="ออกจากเต็มจอ">&times;</button>
+          <span class="why" id="why"></span>
+          <div class="adbar"><i id="adProgress"></i></div>
+          <div class="pip" id="pip"><video id="video" autoplay muted playsinline></video><canvas id="overlay"></canvas></div>
+        </div>
+        <div class="cam-actions">
+          <button class="btn primary" id="startFace" type="button">เริ่มวัดผู้ชม</button>
+          <button class="btn ghost" id="pipToggle" type="button">ซ่อนภาพกล้อง</button>
+          <button class="btn ghost" id="fs" type="button">เต็มจอ</button>
+          <button class="btn ghost" id="skip" type="button">ข้ามโฆษณา</button>
+          <span class="pill" id="fps">—</span>
+          <div class="cam-switch" id="camSwitch" hidden></div>
+        </div>
+        <label class="switch"><input type="checkbox" id="demoToggle" checked> ใช้อายุ/เพศ (ค่าประมาณ) ในการเลือกโฆษณาและเก็บสถิติ</label>
+        <p class="disclaimer">อายุและเพศเป็นค่าประมาณจากโมเดล AI อาจคลาดเคลื่อนและมีอคติต่อบางกลุ่ม (เช่น สีผิว แสง มุมกล้อง) ใช้เพื่อเลือกคอนเทนต์และดูแนวโน้มรวมเท่านั้น ไม่ใช้ตัดสินหรือระบุตัวบุคคล ปิดได้ด้วยสวิตช์ด้านบน</p>
+      </section>
+      <section class="card">
+        <h2>ผู้ชมตอนนี้</h2>
+        <div class="tiles" id="liveTiles"></div>
+        <h3>โฆษณาที่กำลังเล่น</h3>
+        <div id="nowPlaying"></div>
+        <p class="hint">กรอบเขียว = มองจอ · กรอบส้ม = อยู่หน้าจอแต่ไม่ได้มอง นับเฉพาะคนที่กล้องเห็นต่อเนื่องอย่างน้อย 3 เฟรม</p>
+      </section>
+    </div>
+
+    <div class="player-grid lib">
+      <section class="card">
+        <div class="report-head"><h2>คลังโฆษณา</h2><div class="row-actions"><button class="btn ghost" id="newAd" type="button">+ เพิ่มใหม่</button><button class="btn ghost" id="resetAds" type="button">คืนค่าตัวอย่าง</button></div></div>
+        <ul class="adlist" id="adList"></ul>
+        <p class="hint">โฆษณาที่ไม่กำหนดกลุ่มเป้าหมายจะใช้วนทั่วไปเมื่อไม่มีผู้ชม เมื่อมีผู้ชม ระบบเลือกโฆษณาที่ตรงกลุ่มมากที่สุด (อายุ 2 คะแนน, เพศ 1, อารมณ์ 1)</p>
+      </section>
+      <section class="card">
+        <h2 id="formTitle">เพิ่มโฆษณาใหม่</h2>
+        <form id="adForm" novalidate>
+          <label>ชื่อโฆษณา<input name="title" maxlength="40" required></label>
+          <label>ข้อความ<input name="text" maxlength="120"></label>
+          <div class="row2">
+            <label>สีพื้นหลัง<input name="color" type="color" value="#2a78d6"></label>
+            <label>ระยะเวลา (วินาที)<input name="duration" type="number" min="3" max="60" value="8" required></label>
+          </div>
+          <label>รูปพื้นหลัง (ไม่บังคับ, ≤ 5 MB เก็บในเบราว์เซอร์นี้เท่านั้น)<input name="image" type="file" accept="image/png,image/jpeg,image/webp,image/gif"></label>
+          <label class="chk" id="rmImgWrap" hidden><input type="checkbox" name="removeImage"> ลบรูปเดิม</label>
+          <fieldset>
+            <legend>กลุ่มอายุเป้าหมาย (ไม่เลือก = ทุกช่วงอายุ)</legend>
+            <label class="chk"><input type="checkbox" name="ages" value="u18"> ต่ำกว่า 18</label>
+            <label class="chk"><input type="checkbox" name="ages" value="18_34"> 18–34</label>
+            <label class="chk"><input type="checkbox" name="ages" value="35_54"> 35–54</label>
+            <label class="chk"><input type="checkbox" name="ages" value="55p"> 55+</label>
+          </fieldset>
+          <div class="row2">
+            <label>เพศ<select name="gender"><option value="any">ทุกเพศ</option><option value="male">ชาย</option><option value="female">หญิง</option></select></label>
+            <label>อารมณ์ผู้ชม<select name="mood"><option value="any">ทุกอารมณ์</option><option value="happy">กำลังยิ้ม</option><option value="neutral">สีหน้าปกติ</option></select></label>
+          </div>
+          <button class="btn primary" type="submit">บันทึกโฆษณา</button>
+          <p class="form-msg" id="adMsg" role="status"></p>
+        </form>
+      </section>
+    </div>
+  </section>
+
+  <!-- ===== คีออสก์ไร้สัมผัส ===== -->
+  <section id="tab-kiosk" role="tabpanel" aria-labelledby="t-kiosk" hidden>
+    <section class="card">
+      <div class="kiosk" id="kiosk">
+        <button class="fs-exit" type="button" aria-label="ออกจากเต็มจอ">&times;</button>
+        <div class="k-list" id="kList">
+          <p class="k-head">LENSIQ CAFÉ · เลือกเครื่องดื่มของคุณ</p>
+          <div class="k-row">
+            <button class="k-nav" type="button" data-hold="prev" aria-label="สินค้าก่อนหน้า">‹</button>
+            <div class="k-track" id="kTrack"></div>
+            <button class="k-nav" type="button" data-hold="next" aria-label="สินค้าถัดไป">›</button>
+          </div>
+          <div class="k-dots" id="kDots"></div>
+          <button class="btn primary k-select" type="button" data-hold="select">เลือกสินค้านี้</button>
+        </div>
+        <div class="k-detail" id="kDetail" hidden>
+          <div id="kDetailBody"></div>
+          <button class="btn ghost k-back" type="button" data-hold="back">‹ กลับ</button>
+        </div>
+        <div class="kpip" id="kpip"><canvas id="hoverlay"></canvas></div>
+        <div class="k-cursor" id="kCursor" hidden aria-hidden="true">
+          <svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="22" class="track"/><circle cx="28" cy="28" r="22" class="prog" id="kRing"/><circle cx="28" cy="28" r="7" class="dot"/></svg>
+        </div>
+        <div class="k-toast" id="kToast" role="status"></div>
+      </div>
+      <div class="cam-actions">
+        <button class="btn primary" id="startHand" type="button">เริ่มสั่งงานด้วยมือ</button>
+        <button class="btn ghost" id="kFs" type="button">เต็มจอ</button>
+        <div class="cam-switch" id="kCamSwitch" hidden></div>
+        <span class="pill" id="gesture">แตะ ปัดจอ เมาส์ หรือปุ่มลูกศรได้ระหว่างที่ยังไม่เปิดกล้อง</span>
+      </div>
+    </section>
+    <section class="card">
+      <h2>วิธีใช้ท่ามือ</h2>
+      <ul class="howto">
+        <li><b>ปัดมือไปทางซ้าย / ขวา</b><span>เลื่อนดูสินค้าถัดไป / ก่อนหน้า</span></li>
+        <li><b>ชี้นิ้วค้างบนปุ่ม 1.2 วินาที</b><span>เลือก (วงแหวนรอบเคอร์เซอร์แสดงความคืบหน้า)</span></li>
+        <li><b>จีบนิ้วโป้งกับนิ้วชี้</b><span>เลือกสินค้าที่อยู่ตรงกลางหรือปุ่มที่ชี้อยู่</span></li>
+        <li><b>แบมือนิ่ง ๆ</b><span>ย้อนกลับจากหน้ารายละเอียด</span></li>
+      </ul>
+      <p class="hint">ยืนห่างกล้องประมาณ 0.5–1.5 เมตร ให้เห็นมือทั้งมือ แสงสว่างพอ ระบบนับเฉพาะจำนวนครั้งของแต่ละท่า ไม่เก็บภาพ</p>
+    </section>
+  </section>
+
+  <!-- ===== รายงาน ===== -->
+  <section id="tab-report" role="tabpanel" aria-labelledby="t-report" hidden>
+    <section class="card">
+      <div class="report-head">
+        <h2>สรุปผลโฆษณา</h2>
+        <div class="row-actions">
+          <button class="btn ghost" id="exportCsv" type="button">ส่งออก CSV</button>
+          <button class="btn ghost danger" id="clearStats" type="button">ล้างสถิติ</button>
+        </div>
+      </div>
+      <p class="hint" id="since"></p>
+      <div class="tiles" id="repTiles"></div>
+      <div class="table-wrap"><table id="adTable"></table></div>
+      <p class="hint">OTS = จำนวนคนที่อยู่หน้าจอขณะโฆษณาเล่น · ผู้ชม = คนที่หันมองจอ · เวลามอง = คน × วินาทีที่มอง · ยิ้ม % = สัดส่วนเวลาที่ผู้ชมยิ้มขณะมอง</p>
+    </section>
+    <div class="grid2">
+      <section class="card"><h3>อายุและเพศของผู้ผ่านหน้าจอ (ค่าประมาณ)</h3><canvas class="chart" id="chAge" role="img" aria-label="กราฟอายุและเพศ"></canvas><p class="hint" id="ageNote"></p></section>
+      <section class="card"><h3>ผู้ชมรายชั่วโมง (สะสม)</h3><canvas class="chart" id="chHour" role="img" aria-label="กราฟผู้ชมรายชั่วโมง"></canvas></section>
+    </div>
+    <div class="grid2">
+      <section class="card"><h3>เวลามองรวมต่อโฆษณา (วินาที)</h3><canvas class="chart" id="chAttn" role="img" aria-label="กราฟเวลามองต่อโฆษณา"></canvas></section>
+      <section class="card"><h3>การสั่งงานด้วยมือที่คีออสก์ (ครั้ง)</h3><canvas class="chart" id="chGest" role="img" aria-label="กราฟจำนวนท่ามือ"></canvas>
+        <h3>สินค้าที่ถูกเลือก</h3><ul class="acts" id="selList"></ul></section>
+    </div>
+  </section>
+
+  <section class="card pdpa">
+    <h2>ความเป็นส่วนตัว (PDPA)</h2>
+    <p class="notice">พื้นที่นี้ใช้กล้องวิเคราะห์ภาพแบบไม่ระบุตัวตน เพื่อนับจำนวนผู้ชม วัดการมองจอ และประมาณช่วงอายุ/เพศ/สีหน้าแบบรวม สำหรับเลือกโฆษณาและวัดผล ระบบประมวลผลในเครื่องนี้ ไม่บันทึกภาพหรือวิดีโอ ไม่จดจำใบหน้า และไม่ส่งข้อมูลออกนอกเครื่อง ข้อมูลรายคนถูกทิ้งทันทีเมื่อออกจากหน้าจอ เหลือเพียงสถิติรวม หากไม่ต้องการเข้าร่วม กรุณาแจ้งเจ้าหน้าที่</p>
+    <button class="btn ghost danger" id="wipeAll" type="button">ลบข้อมูลทั้งหมดในเครื่องนี้</button>
+  </section>
+</main>
+
+<script src="vendor/face-api.js"></script>
+<script src="signage.js?v=2"></script>
+</body>
+</html>

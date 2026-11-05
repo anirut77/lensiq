@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title>วิเคราะห์บูธ | LENSIQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="booth.css?v=2">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=1"></script>
+
+<main class="bt">
+  <h1>วิเคราะห์ผู้เข้าชมบูธ</h1>
+  <p class="lead">นับผู้เข้าชมบูธในงานอีเวนต์และนิทรรศการ จำผู้เข้าชมแบบไม่ระบุตัวตน วัดเวลาที่หยุดชม สีหน้า และการเข้าร่วมกิจกรรม ประมวลผลในเครื่อง ไม่บันทึกภาพ</p>
+
+  <div class="engine" id="engine" role="status">กำลังโหลดโมเดลวิเคราะห์ใบหน้า...</div>
+
+  <div class="grid2 top">
+    <section class="card">
+      <div class="cam mirror"><video id="video" autoplay muted playsinline></video><canvas id="overlay"></canvas></div>
+      <div class="cam-actions">
+        <button class="btn primary" id="toggle" type="button">เริ่มนับผู้เข้าชม</button>
+        <span class="pill" id="fps">—</span>
+      </div>
+      <div class="join">
+        <label>กิจกรรม<input id="activity" maxlength="40" value="ทดลองสินค้า"></label>
+        <button class="btn ghost" id="join" type="button">บันทึกผู้เข้าร่วมกิจกรรม<span class="kbd"> (Space)</span></button>
+      </div>
+      <p class="form-msg" id="joinMsg" role="status"></p>
+    </section>
+
+    <section class="card">
+      <h2>ภาพรวมวันนี้</h2>
+      <div class="tiles" id="tiles"></div>
+      <h3>กิจกรรม</h3>
+      <ul class="acts" id="acts"></ul>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="card"><h3>ผู้เข้าชมใหม่รายชั่วโมง</h3><div id="hourly"></div></section>
+    <section class="card"><h3>จำนวนคนในกล้องตามเวลา</h3><div id="crowd"></div></section>
+  </div>
+  <div class="grid2">
+    <section class="card"><h3>เวลาที่หยุดชม (คน)</h3><div id="dwell"></div></section>
+    <section class="card"><h3>สีหน้าหลักของผู้เข้าชม (คน)</h3><div id="emo"></div></section>
+  </div>
+
+  <section class="card">
+    <div class="report-head">
+      <h2>ผู้เข้าชม (ไม่ระบุตัวตน)</h2>
+      <div class="row-actions">
+        <button class="btn ghost" id="exportCsv" type="button">ส่งออก CSV</button>
+        <button class="btn ghost" id="exportJson" type="button">ส่งออกสรุป JSON</button>
+      </div>
+    </div>
+    <div class="table-wrap"><table id="visitors"></table></div>
+  </section>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>ตั้งค่างาน</h2>
+      <form id="eventForm" novalidate>
+        <label>ชื่องาน / บูธ<input name="name" maxlength="60" required></label>
+        <label>วันที่<input name="date" type="date" required></label>
+        <button class="btn primary" type="submit">เริ่มงานใหม่ (ล้างข้อมูลเดิม)</button>
+      </form>
+      <button class="btn ghost danger" id="purge" type="button">ล้างข้อมูลใบหน้าของวันนี้</button>
+      <p class="hint">การล้างข้อมูลใบหน้าจะลบค่าลักษณะใบหน้าที่ใช้จำคน แต่เก็บสถิติรวมไว้ ระบบลบให้อัตโนมัติเมื่อขึ้นวันใหม่หรือเริ่มงานใหม่</p>
+    </section>
+    <section class="card">
+      <h2>ป้ายแจ้งความเป็นส่วนตัว</h2>
+      <p class="notice" id="notice">พื้นที่นี้มีการวิเคราะห์ภาพจากกล้องแบบไม่ระบุตัวตน เพื่อนับจำนวนผู้เข้าชมและวัดความสนใจต่อบูธ ระบบไม่บันทึกภาพหรือวิดีโอ และลบข้อมูลลักษณะใบหน้าภายในวันเดียวกัน หากไม่ต้องการเข้าร่วม กรุณาแจ้งเจ้าหน้าที่</p>
+      <button class="btn ghost" id="printNotice" type="button">พิมพ์ป้าย</button>
+    </section>
+  </div>
+</main>
+
+<div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+
+<script src="vendor/face-api.js"></script>
+<script src="booth.js?v=2"></script>
+</body>
+</html>

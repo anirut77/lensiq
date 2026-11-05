@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title>สแกนสินค้าด้วยกล้อง | LENSIQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="checkout.css?v=2">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=1"></script>
+
+<main class="co">
+  <h1>สแกนสินค้าด้วยกล้อง</h1>
+  <p class="lead">สอนระบบให้จำสินค้าจากกล้องได้เองในไม่กี่นาที แล้วใช้คิดเงินแบบบริการตนเองหรือนับสต็อก ประมวลผลในเบราว์เซอร์ทั้งหมด ไม่ส่งภาพออกนอกเครื่อง</p>
+
+  <div class="engine" id="engine" role="status">กำลังเตรียมระบบ...</div>
+
+  <div class="tabs" role="tablist" aria-label="โหมดการทำงาน">
+    <button type="button" role="tab" data-tab="train" aria-controls="panel-train" id="tab-train">1. สอนสินค้า</button>
+    <button type="button" role="tab" data-tab="pay" aria-controls="panel-pay" id="tab-pay">2. ชำระเงิน</button>
+    <button type="button" role="tab" data-tab="stock" aria-controls="panel-stock" id="tab-stock">3. นับสต็อก</button>
+    <button type="button" role="tab" data-tab="report" aria-controls="panel-report" id="tab-report">4. รายงานขาย</button>
+  </div>
+
+  <div class="work" id="work">
+    <section class="card camcard" aria-label="กล้อง">
+      <div class="cam" id="cam"><video id="video" autoplay muted playsinline></video><canvas id="overlay"></canvas></div>
+      <div class="pred" id="pred" aria-live="polite"><b>กำลังเตรียมกล้อง...</b></div>
+      <div class="cam-actions">
+        <label class="sel">กล้อง<select id="camSel" aria-label="เลือกกล้อง"><option value="">กล้องเริ่มต้น</option></select></label>
+        <button class="btn ghost sm" id="camBtn" type="button">เปิดกล้อง</button>
+        <button class="btn ghost sm" id="flipCam" type="button" title="สลับกล้องหน้า/หลัง" aria-label="สลับกล้องหน้า/หลัง">สลับกล้องหน้า/หลัง</button>
+        <label class="chk"><input type="checkbox" id="mirror"> กลับด้านภาพ</label>
+        <span class="pill" id="fps">—</span>
+      </div>
+      <p class="hint">วางสินค้าให้อยู่ในกรอบสี่เหลี่ยมกลางภาพ ใช้กล้องหลังของมือถือ/แท็บเล็ต เว็บแคม หรือกล้องเอกสาร (USB) ที่มองลงพื้นโต๊ะได้ แสงสม่ำเสมอจะแม่นยำที่สุด</p>
+    </section>
+
+    <!-- A) สอนสินค้า -->
+    <div class="panel" id="panel-train" role="tabpanel" aria-labelledby="tab-train" hidden>
+      <section class="card">
+        <div class="report-head"><h2>สินค้าและตัวอย่างภาพ</h2><span class="pill" id="trainSummary"></span></div>
+        <p class="hint top">กด<b>ค้าง</b>ที่ปุ่ม "เก็บภาพ" แล้วค่อย ๆ หมุนสินค้าในกรอบ ระบบเก็บประมาณ 5 ภาพต่อวินาที แนะนำอย่างน้อย 20 ภาพจากหลายมุม และอย่าลืมสอน "พื้นหลัง" ตอนไม่มีสินค้า</p>
+        <ul class="tlist" id="trainList"></ul>
+        <p class="hint warn" id="otherNote" hidden></p>
+        <p class="form-msg" id="trainMsg" role="status"></p>
+      </section>
+      <section class="card">
+        <h2>เพิ่ม / แก้ไขสินค้า</h2>
+        <form id="prodForm" novalidate>
+          <input type="hidden" name="pid">
+          <label>ชื่อสินค้า<input name="name" maxlength="80" required></label>
+          <div class="f2">
+            <label>รหัสสินค้า (SKU)<input name="sku" maxlength="40"></label>
+            <label>ราคา (บาท)<input name="price" type="number" min="0" step="0.25" inputmode="decimal" required></label>
+          </div>
+          <label>บาร์โค้ด (ไม่บังคับ)<input name="barcode" maxlength="40" inputmode="numeric" autocomplete="off"></label>
+          <div class="row-actions"><button class="btn primary" type="submit">เพิ่มสินค้า</button><button class="btn ghost" id="cancelEdit" type="button" hidden>ยกเลิก</button></div>
+        </form>
+      </section>
+      <section class="card">
+        <h2>โมเดล</h2>
+        <div class="row-actions">
+          <button class="btn ghost" id="runEval" type="button">ทดสอบความแม่นยำ</button>
+          <button class="btn ghost" id="exportModel" type="button">ส่งออกโมเดล (JSON)</button>
+          <button class="btn ghost" id="importModel" type="button">นำเข้าโมเดล</button>
+          <input type="file" id="modelFile" accept="application/json,.json" hidden>
+        </div>
+        <p class="hint">ข้อมูลการสอนเก็บในเบราว์เซอร์นี้ (IndexedDB) ส่งออกไฟล์เพื่อสำรองหรือนำไปใช้กับเครื่องคิดเงินเครื่องอื่น</p>
+        <div id="evalOut"></div>
+      </section>
+    </div>
+
+    <!-- B) ชำระเงิน -->
+    <div class="panel" id="panel-pay" role="tabpanel" aria-labelledby="tab-pay" hidden>
+      <section class="card">
+        <div class="report-head"><h2>ตะกร้าสินค้า</h2><span class="pill" id="cartQty">0 ชิ้น</span></div>
+        <div class="toggles">
+          <label class="chk"><input type="checkbox" id="autoScan"> สแกนอัตโนมัติด้วยกล้อง</label>
+          <label class="chk"><input type="checkbox" id="beepChk"> เสียงบี๊บ</label>
+        </div>
+        <ul class="cart" id="cartList"></ul>
+        <div class="total"><span>ยอดชำระ</span><b id="cartTotal">฿0.00</b></div>
+        <p class="hint vat" id="cartVat"></p>
+        <div class="row-actions pay-actions">
+          <button class="btn primary big" id="checkoutBtn" type="button" disabled>ชำระเงิน</button>
+          <button class="btn ghost danger" id="clearCart" type="button">ล้างตะกร้า</button>
+        </div>
+        <p class="form-msg" id="payMsg" role="status"></p>
+      </section>
+      <section class="card">
+        <h2>เพิ่มสินค้าเอง</h2>
+        <div class="inline"><select id="manualSel" aria-label="เลือกสินค้า"></select><button class="btn ghost sm" id="manualAdd" type="button">เพิ่ม</button></div>
+        <form class="inline" id="bcForm"><input id="bcIn" placeholder="ยิงหรือพิมพ์บาร์โค้ดแล้วกด Enter" aria-label="บาร์โค้ด" autocomplete="off" inputmode="numeric"><button class="btn ghost sm" type="submit">ค้นหา</button></form>
+        <p class="hint" id="bcNote">กำลังตรวจสอบการอ่านบาร์โค้ด...</p>
+      </section>
+      <details class="card settings">
+        <summary>ตั้งค่าความไวในการจำสินค้า</summary>
+        <label>ความคล้ายขั้นต่ำ (ต่ำกว่านี้ = ไม่รู้จัก) <output id="out-minSim"></output><input type="range" id="set-minSim" min="0.4" max="0.95" step="0.01"></label>
+        <label>ความมั่นใจขั้นต่ำ (สัดส่วนโหวต 5 เพื่อนบ้าน) <output id="out-minConf"></output><input type="range" id="set-minConf" min="0.4" max="1" step="0.2"></label>
+        <label>ต้องเห็นนิ่งนาน <output id="out-stableMs"></output><input type="range" id="set-stableMs" min="200" max="2000" step="100"></label>
+        <button class="btn ghost sm" id="resetSettings" type="button">คืนค่าเริ่มต้น</button>
+        <p class="hint">ถ้านับสินค้าผิดบ่อย ให้เพิ่มความคล้ายขั้นต่ำ ถ้าจำไม่ค่อยได้ ให้ลดลงหรือสอนภาพเพิ่ม หลังนับแล้วต้องนำสินค้าออกจากกรอบ (เห็นพื้นหลัง) ก่อนจึงจะนับชิ้นเดิมซ้ำได้</p>
+      </details>
+    </div>
+
+    <!-- C) นับสต็อก -->
+    <div class="panel" id="panel-stock" role="tabpanel" aria-labelledby="tab-stock" hidden>
+      <section class="card">
+        <div class="report-head">
+          <h2>นับสต็อก</h2>
+          <div class="row-actions">
+            <button class="btn ghost" id="stockCsv" type="button">ส่งออก CSV</button>
+            <button class="btn ghost danger" id="stockReset" type="button">เริ่มนับใหม่</button>
+          </div>
+        </div>
+        <label class="chk"><input type="checkbox" id="stockAuto"> นับอัตโนมัติ (+1 เมื่อสินค้าผ่านกรอบ)</label>
+        <p class="hint">ส่งสินค้าผ่านกรอบกล้องทีละชิ้น ระบบนับ +1 เมื่อจำได้ และรอให้กรอบว่างก่อนนับชิ้นถัดไป ใส่ "ควรมี" เพื่อดูส่วนต่าง</p>
+        <div class="table-wrap"><table class="stock"><thead><tr><th>สินค้า</th><th class="n">ควรมี</th><th class="n">นับได้</th><th class="n">ส่วนต่าง</th></tr></thead><tbody id="stockBody"></tbody></table></div>
+        <p class="hint" id="stockTotal"></p>
+        <p class="form-msg" id="stockMsg" role="status"></p>
+      </section>
+    </div>
+  </div>
+
+  <!-- D) รายงานขาย -->
+  <div class="panel" id="panel-report" role="tabpanel" aria-labelledby="tab-report" hidden>
+    <section class="card">
+      <div class="tiles" id="repTiles"></div>
+      <div class="report-head">
+        <h2>ยอดขายตามสินค้า</h2>
+        <div class="seg" role="group" aria-label="แสดงตาม">
+          <button type="button" data-metric="revenue" aria-pressed="true">ยอดเงิน</button>
+          <button type="button" data-metric="qty" aria-pressed="false">จำนวนชิ้น</button>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="chart" role="img" aria-label="กราฟแท่งยอดขายตามสินค้า"></canvas></div>
+      <div class="table-wrap"><table id="repTable"></table></div>
+    </section>
+    <section class="card">
+      <div class="report-head">
+        <h2>ใบเสร็จ</h2>
+        <div class="row-actions">
+          <button class="btn ghost" id="salesCsv" type="button">ส่งออก CSV (รายการ)</button>
+          <button class="btn ghost" id="productCsv" type="button">ส่งออก CSV (ตามสินค้า)</button>
+          <button class="btn ghost danger" id="clearSales" type="button">ล้างข้อมูลการขาย</button>
+        </div>
+      </div>
+      <div class="table-wrap"><table id="orderTable"></table></div>
+    </section>
+  </div>
+  <!-- แถบชำระเงินด้านล่างจอ (มือถือ/แท็บเล็ต) -->
+  <div class="paybar" id="paybar" aria-label="สรุปตะกร้า">
+    <button type="button" class="pb-cart" id="pbCart"><small id="pbQty">0 ชิ้น</small><b id="pbTotal">฿0.00</b></button>
+    <button type="button" class="btn primary pb-pay" id="pbPay" disabled>ชำระเงิน</button>
+  </div>
+</main>
+
+<dialog id="payDlg" aria-labelledby="dlgTitle">
+  <div id="dlgStep1">
+    <h2 id="dlgTitle">สรุปรายการ</h2>
+    <div id="dlgSummary"></div>
+    <label>วิธีชำระเงิน<select id="payMethod"><option>เงินสด</option><option>QR พร้อมเพย์</option><option>บัตรเครดิต/เดบิต</option></select></label>
+    <div id="cashRow"><label>รับเงินมา (บาท)<input id="cashIn" type="number" min="0" step="1" inputmode="decimal"></label><p class="form-msg" id="changeOut"></p></div>
+    <div class="row-actions end"><button class="btn ghost" id="cancelPay" type="button">ยกเลิก</button><button class="btn primary" id="confirmPay" type="button">ยืนยันชำระเงิน</button></div>
+  </div>
+  <div id="dlgStep2" hidden>
+    <div class="receipt" id="receipt">
+      <div class="rc-head"><b>LENSIQ Demo Store</b><span>ใบเสร็จรับเงินอย่างย่อ</span></div>
+      <div class="rc-meta"><span>เลขที่ <b id="rcNo"></b></span><span id="rcTime"></span></div>
+      <div id="rcBody"></div>
+      <p class="rc-thanks">ขอบคุณที่ใช้บริการ</p>
+    </div>
+    <div class="row-actions end"><button class="btn ghost" id="printRc" type="button">พิมพ์ใบเสร็จ</button><button class="btn primary" id="doneRc" type="button">เสร็จสิ้น / ลูกค้าถัดไป</button></div>
+  </div>
+</dialog>
+
+<script src="vendor/face-api.js"></script>
+<script src="checkout.js?v=2"></script>
+</body>
+</html>

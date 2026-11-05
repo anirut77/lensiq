@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title>จดจำลูกค้า | LENSIQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="neuro.css">
+<link rel="stylesheet" href="customers.css?v=2">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=1"></script>
+
+<main class="nm cx">
+  <h1>จดจำลูกค้าและประวัติเครื่องดื่ม</h1>
+  <p class="lead">สมาชิกที่ยินยอมสแกนใบหน้า ระบบจะทักทาย แสดงเมนูที่สั่งบ่อย ออเดอร์ล่าสุด และแนะนำเครื่องดื่ม เพื่อการตลาดแบบจดจำพฤติกรรมลูกค้า</p>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-t="pos" role="tab">หน้าร้าน</button>
+    <button class="tab" data-t="enroll" role="tab">สมัครสมาชิก</button>
+    <button class="tab" data-t="analytics" role="tab">สมาชิกและวิเคราะห์</button>
+    <button class="tab" data-t="menu" role="tab">เมนูเครื่องดื่ม</button>
+  </div>
+
+  <div class="engine" id="engine" role="status">กำลังโหลดโมเดลจดจำใบหน้า...</div>
+
+  <!-- ===== หน้าร้าน ===== -->
+  <section class="pane" id="pane-pos">
+    <div class="grid2">
+      <div class="card">
+        <div class="cam" id="camBox"><video id="video" autoplay muted playsinline></video><canvas id="camOverlay"></canvas></div>
+        <div class="cam-actions" id="posCamActions">
+          <button class="btn primary" id="scanToggle" type="button">เริ่มสแกนลูกค้า</button>
+          <button class="btn ghost" id="nextCustomer" type="button">ลูกค้าคนถัดไป</button>
+          <div class="cam-switch" id="camSwitch" hidden></div>
+        </div>
+        <p class="hint" id="scanStatus">ลูกค้ามองกล้อง ระบบจะจดจำอัตโนมัติ</p>
+        <h3>ค้นหาสมาชิกด้วยชื่อ / เบอร์โทร</h3>
+        <input id="search" type="search" placeholder="พิมพ์ชื่อหรือเบอร์โทร" autocomplete="off" aria-label="ค้นหาสมาชิกด้วยชื่อหรือเบอร์โทร">
+        <ul class="search-results" id="searchResults"></ul>
+      </div>
+
+      <div>
+        <div class="card" id="customerCard"><p class="empty">ยังไม่มีลูกค้า เริ่มสแกนหรือค้นหาด้วยชื่อ</p></div>
+        <form class="card" id="orderForm" novalidate>
+          <h2>บันทึกออเดอร์ <span class="for" id="orderFor"></span></h2>
+          <label>เครื่องดื่ม<select name="drink" id="drinkSel"></select></label>
+          <div class="opts">
+            <fieldset><legend>ขนาด</legend><div class="seg" data-name="size"></div></fieldset>
+            <fieldset><legend>ความหวาน</legend><div class="seg" data-name="sweet"></div></fieldset>
+            <fieldset><legend>แบบ</legend><div class="seg" data-name="temp"></div></fieldset>
+          </div>
+          <label>จำนวน<input name="qty" type="number" min="1" max="20" value="1"></label>
+          <div class="total">ราคา <b id="orderTotal">฿0</b></div>
+          <button class="btn primary full" type="submit">บันทึกออเดอร์</button>
+          <p class="form-msg" id="orderMsg" role="status"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== สมัครสมาชิก ===== -->
+  <section class="pane" id="pane-enroll" hidden>
+    <div class="grid2">
+      <div class="card"><div id="enrollCamSlot"></div><p class="hint">ให้ลูกค้ามองกล้องตรง ๆ แสงส่องด้านหน้า ไม่สวมหน้ากาก</p></div>
+      <form class="card" id="enrollForm" novalidate>
+        <h2>สมัครสมาชิก (สมัครใจ)</h2>
+        <label>ชื่อ / ชื่อเล่น<input name="name" required maxlength="60" autocomplete="off"></label>
+        <label>เบอร์โทร (ไม่บังคับ)<input name="phone" type="tel" maxlength="15" autocomplete="off" inputmode="tel"></label>
+        <label class="check"><input type="checkbox" name="consent" required>
+          <span>ข้าพเจ้ายินยอมโดยสมัครใจให้ร้านเก็บ<strong>ข้อมูลชีวมิติจากใบหน้า</strong> (ค่าตัวเลขลักษณะใบหน้า ไม่ใช่รูปถ่าย) และประวัติการสั่งเครื่องดื่ม เพื่อจดจำและแนะนำเมนูเท่านั้น ไม่เปิดเผยต่อบุคคลอื่น และขอลบข้อมูลหรือถอนความยินยอมได้ทุกเมื่อ การไม่ยินยอมไม่มีผลต่อการซื้อสินค้า</span></label>
+        <button class="btn primary full" type="submit">สแกนใบหน้าและสมัคร</button>
+        <p class="form-msg" id="enrollMsg" role="status"></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===== วิเคราะห์ ===== -->
+  <section class="pane" id="pane-analytics" hidden>
+    <div class="card">
+      <div class="tiles" id="aTiles"></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>เครื่องดื่มขายดี (จำนวนแก้ว)</h3><div id="aTop"></div></div>
+      <div class="card"><h3>กลุ่มลูกค้าตามความถี่</h3><div id="aSeg"></div>
+        <p class="hint">ใหม่ = มา 1 วัน · ประจำ = มา 2 วันขึ้นไป · หายไปนาน = ไม่มาเกิน 30 วัน</p></div>
+    </div>
+    <div class="card">
+      <div class="report-head">
+        <h2>สมาชิกทั้งหมด</h2>
+        <div class="row-actions">
+          <input id="memberFilter" type="search" placeholder="กรองชื่อ/เบอร์" autocomplete="off" aria-label="กรองสมาชิกด้วยชื่อหรือเบอร์">
+          <button class="btn ghost" id="exportCsv" type="button">ส่งออกออเดอร์ CSV</button>
+        </div>
+      </div>
+      <div class="table-wrap"><table id="memberTable"></table></div>
+    </div>
+    <div class="card" id="profile" hidden></div>
+  </section>
+
+  <!-- ===== เมนู ===== -->
+  <section class="pane" id="pane-menu" hidden>
+    <div class="card">
+      <h2>รายการเครื่องดื่ม</h2>
+      <p class="hint">ราคาเป็นราคาขนาด S · ขนาด M +10 บาท · L +20 บาท</p>
+      <div class="table-wrap"><table id="menuTable"></table></div>
+      <form id="menuForm" class="menu-form" novalidate>
+        <input name="name" placeholder="ชื่อเมนู" maxlength="40" required>
+        <input name="cat" placeholder="หมวด เช่น กาแฟ" maxlength="20" required list="catList">
+        <datalist id="catList"></datalist>
+        <input name="price" type="number" min="0" max="9999" placeholder="ราคา" required>
+        <button class="btn primary" type="submit">เพิ่มเมนู</button>
+      </form>
+      <p class="form-msg" id="menuMsg" role="status"></p>
+    </div>
+  </section>
+
+  <p class="hint privacy">ข้อมูลทั้งหมดเก็บในเบราว์เซอร์เครื่องนี้ ไม่เก็บรูปถ่าย เก็บเฉพาะค่าตัวเลขลักษณะใบหน้าของสมาชิกที่ยินยอม · ระบบนี้เป็นต้นแบบ หากใช้หลายสาขาต้องมีฐานข้อมูลกลางที่เข้ารหัสและนโยบายตาม PDPA</p>
+</main>
+
+<div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+
+<script src="vendor/face-api.js"></script>
+<script src="customers.js?v=2"></script>
+</body>
+</html>
