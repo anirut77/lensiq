@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title>โหงวเฮ้ง AI | LENSIQ</title>
+<meta name="description" content="อ่านโหงวเฮ้งจากใบหน้าด้วย AI เพื่อความบันเทิงในบูธและอีเวนต์ ประมวลผลในเบราว์เซอร์ ไม่บันทึกภาพ">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="faceread.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=2"></script>
+
+<main class="fr" id="frApp">
+  <div class="fr-head">
+    <span class="eyebrow">Engagement · Booth</span>
+    <h1>โหงวเฮ้ง AI</h1>
+    <p class="lead">อ่านลักษณะใบหน้าตามศาสตร์โหงวเฮ้ง (面相) ด้วยจุดบนใบหน้า 68 จุด บอกธาตุประจำรูปหน้า สามส่วนของใบหน้า ห้าอวัยวะ และเคล็ดเสริมดวง สำหรับสร้างสีสันในบูธ อีเวนต์ และแคมเปญการตลาด</p>
+  </div>
+
+  <p class="fr-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span><b>เพื่อความบันเทิงตามความเชื่อโหงวเฮ้ง ไม่ใช่วิทยาศาสตร์</b> ไม่ควรใช้ตัดสินใจเรื่องการจ้างงาน การเงิน ความสัมพันธ์ หรือประเมินบุคคล</span></p>
+
+  <div class="fr-engine" id="frEngine" role="status">กำลังเตรียมระบบ...</div>
+
+  <section class="fr-stage" id="frStage" aria-label="ถ่ายภาพหรืออัปโหลดรูป">
+    <div class="fr-camcard">
+      <div class="fr-cam" id="frCam">
+        <video id="frVideo" autoplay muted playsinline></video>
+        <canvas id="frOverlay" width="640" height="480"></canvas>
+        <div class="fr-cam-hint" id="frCamHint">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+          <p>กด <b>เปิดกล้อง</b> แล้วจัดใบหน้าให้อยู่ในวงรี<br>หรือ <b>อัปโหลดรูปหน้าตรง</b></p>
+        </div>
+        <div class="fr-count" id="frCount" hidden aria-live="assertive"></div>
+      </div>
+      <div class="fr-actions">
+        <button class="btn primary big" id="frStartCam" type="button">เปิดกล้อง</button>
+        <button class="btn primary big" id="frRead" type="button" hidden disabled>อ่านโหงวเฮ้ง</button>
+        <label class="btn ghost big fr-upload">อัปโหลดรูป<input id="frFile" type="file" accept="image/*"></label>
+      </div>
+      <button class="btn ghost fr-force" id="frForce" type="button" hidden>อ่านต่อแม้ไม่ผ่านเกณฑ์ (ผลอาจคลาดเคลื่อน)</button>
+    </div>
+
+    <div class="fr-side">
+      <div class="fr-panel">
+        <h2>ก่อนอ่าน ตรวจให้พร้อม</h2>
+        <ul class="fr-qc" id="frQc" aria-live="polite">
+          <li class="no"><span class="dot" aria-hidden="true">!</span><span>พบใบหน้า <small>— เปิดกล้องหรืออัปโหลดรูป</small></span></li>
+        </ul>
+        <p class="fr-small">หน้าตรง มองกล้อง แสงด้านหน้าสม่ำเสมอ เปิดหน้าผากให้เห็นแนวผม ถอดแว่นกันแดด</p>
+        <label class="fr-age">อายุ (ไม่บังคับ — ใช้ไฮไลต์ช่วงวัย)
+          <input id="frAge" type="number" inputmode="numeric" min="1" max="120" placeholder="เช่น 32">
+        </label>
+        <div class="fr-opts">
+          <button class="btn ghost" id="frKiosk" type="button" aria-pressed="false">โหมดบูธ (เต็มจอ)</button>
+        </div>
+      </div>
+      <p class="fr-privacy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>ประมวลผลในเบราว์เซอร์ทั้งหมด ไม่ส่งและไม่บันทึกภาพ</p>
+    </div>
+  </section>
+
+  <section class="fr-result" id="frResult" hidden aria-labelledby="frResTitle">
+    <h2 id="frResTitle" tabindex="-1">ผลอ่านโหงวเฮ้งของคุณ</h2>
+    <p class="fr-disc-mini">เพื่อความบันเทิงตามความเชื่อ ไม่ใช่วิทยาศาสตร์</p>
+    <div class="fr-res-top">
+      <figure class="fr-photo">
+        <canvas id="frResCanvas" width="900" height="1125" aria-label="ภาพใบหน้าพร้อมเส้นแบ่งสามส่วนและจุดสำคัญ" role="img"></canvas>
+        <figcaption>แถบสี = สามส่วนของใบหน้า · เส้น = ห้าอวัยวะ · ป้าย = จุดสำคัญ</figcaption>
+      </figure>
+      <div class="fr-element" id="frElement">
+        <div class="el-head">
+          <div><span class="el-k">ธาตุประจำรูปหน้า</span><h3 id="frElName">—</h3></div>
+          <span class="el-pct" id="frElPct">—</span>
+        </div>
+        <p class="el-shape" id="frElShape"></p>
+        <ul class="el-traits" id="frElTraits"></ul>
+        <p class="el-second" id="frElSecond"></p>
+        <div class="el-bars" id="frElBars"></div>
+        <p class="fr-small" id="frElNote"></p>
+      </div>
+    </div>
+
+    <div class="fr-cards">
+      <article class="fr-card"><h3><span class="ic">✦</span>ภาพรวมบุคลิก</h3><p id="frOverview"></p><ul class="fr-notes" id="frNotes"></ul></article>
+      <article class="fr-card"><h3><span class="ic">◆</span>การงาน</h3><p id="frWork"></p></article>
+      <article class="fr-card"><h3><span class="ic">●</span>การเงิน</h3><p id="frMoney"></p></article>
+      <article class="fr-card"><h3><span class="ic">♥</span>ความรัก &amp; มิตรภาพ</h3><p id="frLove"></p></article>
+    </div>
+
+    <section class="fr-block">
+      <h3>ห้าอวัยวะ (โหงวกวน) และจุดสำคัญ</h3>
+      <div class="table-wrap">
+        <table class="fr-table">
+          <thead><tr><th scope="col">ตำแหน่ง</th><th scope="col">ค่าที่วัดได้</th><th scope="col">ลักษณะ</th><th scope="col">ความหมายตามความเชื่อ</th></tr></thead>
+          <tbody id="frFeatures"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="fr-two">
+      <section class="fr-block">
+        <h3>สามส่วนของใบหน้า (ซันเต๋ง)</h3>
+        <div class="fr-zones" id="frZones"></div>
+        <p id="frZoneText"></p>
+      </section>
+      <section class="fr-block">
+        <h3>ช่วงวัยที่ใบหน้าส่วนใดเด่น</h3>
+        <p class="fr-small" id="frAgeHint"></p>
+        <ul class="fr-ages" id="frAges"></ul>
+      </section>
+    </div>
+
+    <section class="fr-block fr-lucky">
+      <h3>เคล็ดเสริมดวง &amp; สีมงคล</h3>
+      <ul class="fr-colors" id="frColors"></ul>
+      <ul class="fr-tips" id="frTips"></ul>
+    </section>
+
+    <details class="fr-how">
+      <summary>ดูวิธีคำนวณ</summary>
+      <p class="fr-small">ใช้จุด 68 จุด (เฉลี่ยหลายเฟรมเมื่อใช้กล้อง) หมุนให้แนวตาอยู่แนวนอน แล้ววัดทุกระยะเป็นหน่วย IPD (ระยะระหว่างกึ่งกลางตาสองข้าง) จึงไม่ขึ้นกับขนาดภาพ ค่า z เทียบกับค่าอ้างอิงทั่วไป แล้วรวมเป็นคะแนนธาตุและแปลงเป็นร้อยละ</p>
+      <p class="fr-small" id="frHairNote"></p>
+      <div class="table-wrap"><table class="fr-table raw"><thead><tr><th scope="col">ค่า</th><th scope="col">ผล</th><th scope="col">จุดที่ใช้</th></tr></thead><tbody id="frRaw"></tbody></table></div>
+      <ul class="fr-small" id="frScoreRaw"></ul>
+    </details>
+
+    <div class="fr-res-actions">
+      <button class="btn primary big" id="frShare" type="button">แชร์การ์ดผลลัพธ์</button>
+      <button class="btn ghost big" id="frPrint" type="button">พิมพ์</button>
+      <button class="btn ghost big" id="frAgain" type="button">อ่านคนถัดไป</button>
+      <label class="fr-check"><input type="checkbox" id="frPhotoCard"> ใส่รูปของฉันในการ์ด</label>
+    </div>
+    <img class="fr-cardimg" id="frCardImg" alt="การ์ดผลอ่านโหงวเฮ้งสำหรับแชร์" hidden>
+  </section>
+
+  <div class="fr-foot">
+    <section class="fr-block">
+      <h3>สถิติบูธ (ไม่ระบุตัวตน)</h3>
+      <div id="frStats"></div>
+      <label class="fr-check"><input type="checkbox" id="frStatsOn"> นับจำนวนครั้งและสัดส่วนธาตุในเครื่องนี้</label>
+      <button class="btn ghost" id="frStatsClear" type="button">ล้างสถิติ</button>
+    </section>
+    <section class="fr-block">
+      <h3>แหล่งอ้างอิง</h3>
+      <p class="fr-small">เนื้อหาเรียบเรียงใหม่ในเชิงบวกจากแนวคิดโหงวเฮ้งที่สอนกันทั่วไป แต่ละสำนักอาจแบ่งรูปหน้าและช่วงวัยต่างกัน</p>
+      <ul class="fr-sources" id="frSources"></ul>
+      <p class="fr-small">หลักการ: เนื้อหาเป็นเชิงบวกเท่านั้น ไม่ทำนายสุขภาพ เคราะห์ร้าย หรือความสัมพันธ์ในทางลบ ไม่ให้คะแนนความสวยงาม และไม่อ้างอิงเพศหรือเชื้อชาติ</p>
+    </section>
+  </div>
+</main>
+
+<div class="fr-idle" id="frIdle" hidden role="status"></div>
+<button class="btn primary fr-kiosk-exit" id="frKioskExit" type="button" hidden>ออกจากโหมดบูธ</button>
+<div class="toast" id="frToast" role="status"></div>
+
+<script src="vendor/face-api.js"></script>
+<script src="faceread-kb.js?v=1"></script>
+<script src="faceread.js?v=1"></script>
+</body>
+</html>

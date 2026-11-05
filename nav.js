@@ -1,5 +1,5 @@
 /* LENSIQ shared site header.
-   Usage in every page:  <header class="nav" id="siteNav"></header><script src="nav.js?v=1"></script>
+   Usage in every page:  <header class="nav" id="siteNav"></header><script src="nav.js?v=2"></script>
    Plain script, no dependencies. Change the brand in BRAND below. */
 (function () {
   "use strict";
@@ -11,7 +11,8 @@
       { href: "neuro.html", title: "วิเคราะห์อารมณ์ (Neuromarketing)", desc: "ทดสอบโฆษณาและบรรจุภัณฑ์จากสีหน้า" },
       { href: "signage.html", title: "ป้ายโฆษณาอัจฉริยะ", desc: "Smart signage และคีออสก์ไร้สัมผัส" },
       { href: "customers.html", title: "จดจำลูกค้า", desc: "ประวัติการสั่งและเมนูแนะนำ" },
-      { href: "booth.html", title: "วิเคราะห์บูธ", desc: "นับผู้เข้าชมและเวลาหยุดชม" }
+      { href: "booth.html", title: "วิเคราะห์บูธ", desc: "นับผู้เข้าชมและเวลาหยุดชม" },
+      { href: "faceread.html", title: "โหงวเฮ้ง AI", desc: "อ่านโหงวเฮ้งจากใบหน้า สร้างสีสันในบูธ" }
     ] },
     { label: "วิเคราะห์", id: "ana", items: [
       { href: "store.html", title: "วิเคราะห์หน้าร้าน", desc: "นับคน แผนที่ความร้อน และคิว" },
