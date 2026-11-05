@@ -83,7 +83,7 @@
   var menu = header.querySelector(".site-menu");
   var scrim = header.querySelector(".nav-scrim");
   var subBtns = Array.prototype.slice.call(header.querySelectorAll(".has-sub > .nav-link"));
-  var mq = window.matchMedia("(max-width: 859.98px)");
+  var mq = window.matchMedia("(max-width: 859.98px), (pointer: coarse) and (max-height: 600px)");
   var hoverMq = window.matchMedia("(hover: hover) and (pointer: fine)");
 
   function setNavH() { document.documentElement.style.setProperty("--nav-h", header.offsetHeight + "px"); }
