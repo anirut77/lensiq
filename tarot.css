@@ -238,3 +238,19 @@ body.tr-kiosk .tr-tab{min-height:56px;font-size:1.1rem}
   .nav,.tr-head,.tr-disclaimer,.tr-tabs,.tr-steps,.tr-setup,.tr-pick,.tr-foot,.tr-res-actions,.tr-cardimg,.toast,.tr-idle,.tr-kiosk-exit{display:none!important}
   body{background:#fff}
 }
+
+/* ---------- คำทำนายโดยละเอียด (fortune-ai.js) ---------- */
+.tr-reading{grid-column:1/-1;margin-top:16px;padding:16px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(127,127,160,.25)}
+.tr-reading .rd-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px}
+.tr-reading .rd-head h3{margin:0}
+.tr-reading .rd-src{font-size:.78rem;padding:3px 10px;border-radius:99px;border:1px solid rgba(127,127,160,.4);opacity:.85}
+.tr-reading .rd-src.ai{background:#efeaff;border-color:#cfc4ff;color:#4b36c9;opacity:1}
+.tr-reading .rd-consent:empty{display:none}
+.tr-reading .rd-consent{margin:8px 0;font-size:.85rem}
+.tr-reading .fa-section{margin-top:14px}
+.tr-reading .fa-section h3{font-size:1.02rem;margin:0 0 6px}
+.tr-reading .rd-body p{line-height:1.85;margin:0 0 10px;text-align:left}
+.tr-reading[aria-busy=true] .rd-body{opacity:.55;transition:opacity .2s}
+.tr-reading .rd-actions{display:flex;justify-content:flex-end;margin-top:6px}
+.tr-reading .rd-actions .btn{min-height:44px}
+@media print{.tr-reading .rd-actions,.tr-reading .rd-consent{display:none}}

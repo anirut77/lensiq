@@ -456,6 +456,7 @@
       H.angle = ang;
       var hc = [ang < LT.headStraight ? "straight" : ang < LT.headSloping ? "gentle" : "sloping", H.end[0] >= LT.headLong ? "long" : H.end[0] < LT.headShort ? "short" : "medium"];
       var hd = depthCat(H.depth); if (hd === "deep" || hd === "faint") hc.push(hd);
+      if (H.breaks > 0) hc.push("breaks");
       C.head = hc;
     }
     if (Ht) {
@@ -463,6 +464,7 @@
       var eu = Ht.minU;
       var tc = [eu < LT.heartIndex ? "endIndex" : eu < LT.heartBetween ? "endBetween" : "endMiddle", Ht.curv >= LT.heartCurved ? "curved" : "straight"];
       var td = depthCat(Ht.depth); if (td === "deep" || td === "faint") tc.push(td);
+      if (Ht.breaks > 0) tc.push("breaks");
       C.heart = tc;
     }
     if (lines.fate) {
@@ -472,6 +474,7 @@
         var fc = [bot[1] < 0.72 ? "fromMiddle" : bot[0] < 0.33 ? "fromLife" : bot[0] > 0.62 ? "fromMoon" : "fromWrist"];
         if (top[1] <= LT.fateLong) fc.push("long");
         if (depthCat(Ft.depth) === "deep") fc.push("deep");
+        if (Ft.breaks > 0) fc.push("breaks");
         C.fate = fc;
       }
     }
@@ -541,7 +544,89 @@
     return out;
   }
 
+  /* ================= ข้อเท็จจริงสำหรับ FortuneAI (สัญญาข้อมูลใน fortune-ai.js) =================
+     แปลงผล analyze() → facts { domain:"palm", topic, subject, headline, items[], extras }
+     ความหมายมาจาก KB.interp (หลายสำนวนต่อหัวข้อ) evidence เติมค่าที่วัดได้จริงจาก KB.evidence
+     strength 0..1 จากค่า z ของรูปมือ/ความชัดของเส้น/ข้อมูลที่ผู้ใช้ยืนยัน + เพิ่มให้หมวดที่ตรงหัวข้อที่เลือก
+     opt = { topic, nickname, minor, mounts, side: "left"|"right", isDominant } */
+  var TOPIC_IDS = ["overall", "love", "work", "money"];
+  var fx = function (v, d) { return typeof v === "number" && isFinite(v) ? v.toFixed(d == null ? 2 : d) : "—"; };
+  var tpl = function (s, vars) { return String(s || "").replace(/\{(\w+)\}/g, function (_, k) { return vars[k] == null ? "" : String(vars[k]); }); };
+  var rel = function (zv, hi, lo) { var a = Math.abs(zv); return a < 0.5 ? "ใกล้ค่าทั่วไป" : (zv > 0 ? hi : lo) + (a >= 1.5 ? "กว่าค่าทั่วไปชัดเจน" : "กว่าค่าทั่วไป"); };
+  /** ตัดคำออกตัวที่ขึ้นต้นสำนวน เพราะตัวเรียบเรียงเติมคำออกตัวเองอยู่แล้ว (กันซ้ำ "ว่ากันว่าว่ากันว่า") */
+  var HEDGE_RE = /^(?:ตามตำรา(?:ลายมือ(?:จีน|ญี่ปุ่น|ตะวันตก|ไทย)?|จีน|ญี่ปุ่น|ตะวันตก)?|ตามความเชื่อ(?:จีน|ไทย|ญี่ปุ่น)?|ว่ากันว่า|เชื่อกันว่า|คนโบราณ(?:มอง|เชื่อ|ถือ)ว่า|หมอดู(?:ลายมือ)?(?:จีน|ญี่ปุ่น|ไทย|ตะวันตก)?(?:มอง|เชื่อ|ถือ)ว่า|ในศาสตร์ลายมือ(?:นั้น)?)\s*/;
+  var unhedge = function (t) { var u = String(t).replace(HEDGE_RE, ""); return u.length >= 20 && u !== t ? u.replace(/^(?:ว่า|,)\s*/, "") : t; };
+  var DEPTH_W = { deep: "ลึกชัด", faint: "บางเบา", medium: "ปานกลาง" };
+  function buildFacts(R, opt) {
+    opt = opt || {};
+    var I = (KB && KB.interp) || {}, EV = (KB && KB.evidence) || {}, hm = R.hm, el = R.el, C = R.lc.cats, M = R.lc.m, items = [];
+    var topic = TOPIC_IDS.indexOf(opt.topic) >= 0 ? opt.topic : "overall";
+    var add = function (id, group, label, evidence, strength, only) {
+      var src = I[id]; if (!src) return;
+      var meanings = {};
+      Object.keys(src).forEach(function (t) { if (!only || only.indexOf(t) >= 0) meanings[t] = src[t].map(unhedge); });
+      var tags = Object.keys(meanings); if (!tags.length) return;
+      if (topic !== "overall" && meanings[topic]) strength += 0.15;
+      items.push({ id: id, group: group, label: label, evidence: evidence || "", strength: Math.round(clamp(strength, 0.05, 1) * 100) / 100, tags: tags, meanings: meanings });
+    };
+    var E = KB.elements[el.top.id], E2 = KB.elements[el.second.id];
+    add("element." + el.top.id, "ธาตุประจำมือ", "มือธาตุ" + E.th, tpl(EV.element, { palmRatio: fx(hm.palmRatio), fingerPct: fx(hm.fingerRatio * 100, 0) }), 0.6 + el.top.pct / 250);
+    if (el.second.pct >= 15) add("element." + el.second.id, "ธาตุรอง", "ธาตุรองอย่างธาตุ" + E2.th, "ธาตุรอง " + el.second.pct + "%", 0.2 + el.second.pct / 300, ["personality", "social", "work"]);
+    add("shape.palm." + el.palmShape, "รูปฝ่ามือ", el.palmShape === "long" ? "ฝ่ามือทรงยาว" : "ฝ่ามือทรงเหลี่ยม", tpl(EV["shape.palm"], { palmRatio: fx(hm.palmRatio), rel: rel(el.zp, "ยาว", "สั้น") }), clamp(0.22 + 0.14 * Math.abs(el.zp), 0.2, 0.7));
+    add("shape.fingers." + el.fingerShape, "นิ้วมือ", el.fingerShape === "long" ? "นิ้วเรียวยาว" : "นิ้วสั้นกระชับ", tpl(EV["shape.fingers"], { fingerPct: fx(hm.fingerRatio * 100, 0), rel: rel(el.zf, "ยาว", "สั้น") }), clamp(0.22 + 0.14 * Math.abs(el.zf), 0.2, 0.7));
+    if (opt.isDominant != null) {
+      var sd = opt.isDominant ? "dominant" : "other";
+      add("side." + sd, "มือที่อ่าน", KB.sides[sd].th, tpl(EV.side, { hand: opt.side === "left" ? "มือซ้าย" : "มือขวา", th: KB.sides[sd].th }), 0.3);
+    }
+    var BASE = { wide: 0.6, close: 0.55, long: 0.5, short: 0.45, straight: 0.62, gentle: 0.55, sloping: 0.66, medium: 0.4, endIndex: 0.64, endBetween: 0.58, endMiddle: 0.58, curved: 0.6,
+      deep: 0.5, faint: 0.42, breaks: 0.44, joined: 0.46, separate: 0.46, absent: 0.38, fromWrist: 0.58, fromLife: 0.58, fromMoon: 0.6, fromMiddle: 0.55 };
+    var pct = function (v) { return fx(v * 100, 0); };
+    var lineEv = function (id, c, mm) {
+      var th = KB.lines[id].th;
+      if (c === "absent" || !mm) return "คุณระบุว่ามองไม่เห็นเส้นวาสนาชัด";
+      if (c === "deep" || c === "faint") return mm.depth == null ? "" : "ความชัดของร่อง" + th + " " + fx(mm.depth) + " จาก 1 ถือว่า" + DEPTH_W[c];
+      if (c === "breaks") return "พบช่วงขาดหรือเส้นต่อ " + mm.breaks + " ช่วงตามแนว" + th;
+      if (id === "life" && (c === "wide" || c === "close")) return "เส้นชีวิตโค้งออกไปถึง " + pct(mm.maxU) + "% ของความกว้างฝ่ามือ";
+      if (id === "life" && (c === "joined" || c === "separate") && M.head) return "จุดเริ่มเส้นชีวิตห่างจากเส้นสมอง " + pct(dist([mm.start[0], mm.start[1] * asp], [M.head.start[0], M.head.start[1] * asp])) + "% ของความกว้างฝ่ามือ";
+      if (id === "head" && mm.angle != null && (c === "straight" || c === "gentle" || c === "sloping")) return "เส้นสมองลาดลง " + fx(mm.angle, 0) + " องศา";
+      if (id === "heart" && /^end/.test(c)) return "ปลายเส้นหัวใจห่างจากขอบฝั่งนิ้วชี้ " + pct(Math.max(0, mm.minU)) + "% ของความกว้างฝ่ามือ";
+      if (id === "heart") return "ความโค้งของเส้นหัวใจ " + pct(mm.curv) + "% ของช่วงเส้น";
+      return th + "ยาว " + fx(mm.length) + " เท่าของความกว้างฝ่ามือ";
+    };
+    var asp = opt.asp || hm.palmL / hm.palmW;
+    LINE_IDS.forEach(function (id) {
+      if (!C[id]) return;
+      var def = KB.lines[id], mm = M[id];
+      C[id].forEach(function (c) {
+        var cat = def.cats[c]; if (!cat) return;
+        add(id + "." + c, def.th, def.th + "แบบ" + cat.label.replace(/^ปลายเส้น/, "").replace(/\//g, "หรือ"), lineEv(id, c, mm), BASE[c] == null ? 0.45 : BASE[c]);
+      });
+    });
+    var fc = fingerCat(hm), tc = thumbCat(hm);
+    add("finger." + fc, "นิ้วชี้กับนิ้วนาง", KB.fingers[fc].label, tpl(EV.finger, { indexPct: fx(hm.indexRing * 100, 0) }), fc === "equal" ? 0.32 : 0.48);
+    if (tc !== "na") add("thumb." + tc, "นิ้วโป้ง", KB.thumb[tc].label, tpl(EV.thumb, { thumbPct: fx(hm.thumbRatio * 100, 0) }), tc === "medium" ? 0.3 : 0.46);
+    var minor = opt.minor || {};
+    Object.keys(KB.minor).forEach(function (k) {
+      if (minor[k] !== true && minor[k] !== false) return;
+      var d = KB.minor[k];
+      add("minor." + k + "." + (minor[k] ? "yes" : "no"), "เส้นรอง", d.th.replace(/\s*\(.*\)/, "") + (minor[k] ? "ซึ่งเห็นชัด" : "ซึ่งยังไม่เด่น"), tpl(EV.minor, { th: d.th.replace(/\s*\(.*\)/, ""), seen: minor[k] ? "เห็นชัด" : "ยังไม่เห็นชัด" }), minor[k] ? 0.6 : 0.28);
+    });
+    (opt.mounts || []).forEach(function (k) {
+      var d = KB.mounts[k]; if (!d) return;
+      add("mount." + k, "เนินบนฝ่ามือ", d.th + "อิ่มเด่น", tpl(EV.mount, { th: d.th, under: d.under }), 0.55);
+    });
+    var subject = {}, nick = String(opt.nickname || "").replace(/[<>{}]/g, "").trim().slice(0, 24);
+    if (nick) subject.nickname = nick;
+    return {
+      domain: "palm", topic: topic, subject: subject,
+      headline: "มือธาตุ" + E.th + " " + el.top.pct + "% เสริมด้วยธาตุ" + E2.th,
+      items: items,
+      extras: { luckyColors: E.colors.map(function (c) { return c.name; }), tips: [E.tip] }
+    };
+  }
+
   var PalmCore = {
+    buildFacts: buildFacts, TOPIC_IDS: TOPIC_IDS,
     DET: DET, LM: LM, NORMS: NORMS, CANON: CANON, TEMPLATES: TEMPLATES, LINE_IDS: LINE_IDS, TRACE: TRACE, LT: LT, ELEMENTS: ELEMENTS, TAP_ORDER: TAP_ORDER,
     dist: dist, lerp: lerp, round: round, ssdAnchors: ssdAnchors, decodePalms: decodePalms, nms: nms, iou: iou, letterbox: letterbox, unletterbox: unletterbox,
     palmRoi: palmRoi, landmarksRoi: landmarksRoi, roiCropMatrix: roiCropMatrix, projectLandmarks: projectLandmarks,
@@ -1058,14 +1143,87 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     PC.LINE_IDS.forEach(function (id) { lines[id] = { cp: S.lines[id].cp, present: id !== "fate" || S.lines[id].present }; });
     var seed = Math.round(S.hand.wrist[0] + S.hand.wrist[1]);
     var R = PC.analyze({ hand: S.hand, lines: lines, R: S.R, F: S.F, minor: S.minor, mounts: S.mounts, isDominant: S.side === S.dom, seed: seed });
-    S.result = R;
+    S.result = R; S.narr = null;
     renderResult(R);
+    narrate(false);
     if (prefs.stats) { lsSet(STATS_KEY, PC.addStat(lsGet(STATS_KEY, null), R.el.top.id)); renderStats(); }
     resultSec.hidden = false; setStep(3);
     $("#plCardImg").hidden = true;
     resultSec.scrollIntoView({ behavior: smooth(), block: "start" });
     $("#plResTitle").focus({ preventScroll: true });
   });
+
+  /* ---------- คำทำนายโดยละเอียด (FortuneAI: เรียบเรียงในเครื่อง หรือ Claude AI เมื่อเซิร์ฟเวอร์เปิดและผู้ใช้ยินยอม) ---------- */
+  var FA = window.FortuneAI || null;
+  var TOPICS = [["overall", "ภาพรวม"], ["love", "ความรัก"], ["work", "การงาน"], ["money", "การเงิน"]];
+  var topic = "overall", narrToken = 0;
+  function renderTopics() {
+    $$("[data-topics]").forEach(function (box) {
+      box.innerHTML = TOPICS.map(function (t) { return '<button type="button" role="radio" data-topic="' + t[0] + '" aria-checked="' + (t[0] === topic) + '">' + t[1] + "</button>"; }).join("");
+    });
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-topic]"); if (!b) return;
+    if (b.dataset.topic === topic) return;
+    topic = b.dataset.topic; renderTopics(); touch();
+    if (S.result) narrate(false);
+  });
+  renderTopics();
+  function renderPlain(box, res) {
+    box.innerHTML = (res.sections || []).map(function (sc) {
+      return '<section class="fa-section"><h3>' + esc(sc.title || "") + "</h3>" + (sc.paragraphs || []).map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("") + "</section>";
+    }).join("");
+  }
+  function legacyResult(R) {
+    var rd = R.reading;
+    return { source: "local", sections: [{ id: "personality", title: "บุคลิก", paragraphs: [rd.personality] }, { id: "work", title: "การงาน", paragraphs: [rd.work] },
+      { id: "money", title: "การเงิน", paragraphs: [rd.money] }, { id: "love", title: "ความรัก & มิตรภาพ", paragraphs: [rd.love] }] };
+  }
+  function narrate(again) {
+    if (!S.result) return;
+    var my = ++narrToken, box = $("#plNarr"), btn = $("#plRegen"), R = S.result;
+    var facts = PC.buildFacts(R, { topic: topic, nickname: $("#plNick").value, minor: S.minor, mounts: S.mounts, side: S.side, isDominant: S.side === S.dom, asp: S.F ? S.F.asp : null });
+    S.facts = facts;
+    var useAI = !!(FA && FA.hasConsent && FA.hasConsent());
+    box.setAttribute("aria-busy", "true"); btn.disabled = true;
+    if (!box.firstChild || useAI) box.innerHTML = '<p class="fa-loading">' + (useAI ? "กำลังให้ AI เรียบเรียงคำทำนาย..." : "กำลังเรียบเรียงคำทำนาย...") + "</p>";
+    var p = !FA ? Promise.resolve(legacyResult(R)) : again && FA.regenerate ? FA.regenerate(facts, { useAI: useAI }) : FA.interpret(facts, { useAI: useAI });
+    p.catch(function (e) { console.error(e); return FA && FA.compose ? FA.compose(facts) : legacyResult(R); }).then(function (res) {
+      if (my !== narrToken || !S.result) return;
+      S.narr = res;
+      if (FA && FA.renderSections) FA.renderSections(box, res, { aiBadge: false }); else renderPlain(box, res);
+      var src = $("#plSrc"), ai = res.source === "ai";
+      src.textContent = ai ? "เรียบเรียงโดย Claude AI" : "เรียบเรียงในเครื่อง";
+      src.classList.toggle("ai", ai);
+      box.removeAttribute("aria-busy"); btn.disabled = false;
+    });
+  }
+  $("#plRegen").addEventListener("click", function () { touch(); narrate(true); });
+  $("#plNick").addEventListener("change", function () { if (S.result) narrate(false); });
+  if (FA && FA.consentControl) FA.consentControl($("#plConsent"), { onChange: function () { if (S.result) narrate(false); } }).catch(function () { /* ไม่มีเซิร์ฟเวอร์ AI */ });
+
+  /** ดึง 2–3 ประโยคสั้น (≤ max ตัวอักษร) จากคำทำนายที่เรียบเรียงแล้ว สำหรับการ์ดแชร์
+      หาสำนวนจาก KB ที่ปรากฏจริงในภาพรวม/หัวข้อแรก ๆ ตามลำดับที่อ่าน แล้วตัดที่ช่องว่างระหว่างวลีให้สั้นลง */
+  var CARD_HEDGE = /^(?:ตามตำรา(?:แล้ว)?|ตามความเชื่อ(?:แล้ว)?|ในความเชื่อ|ว่ากันว่า|เชื่อกันว่า|ดูเหมือนว่า|มีแนวโน้มว่า)\s*(?:บอกว่า|หมายถึง|หมายความว่า|มักตีความว่า)?\s*/;
+  function shortClause(m, max) {
+    var seg = String(m).replace(CARD_HEDGE, "").split(/\s+/).filter(Boolean), c = "";
+    for (var i = 0; i < seg.length && c.length < 20; i++) { var nx = c ? c + " " + seg[i] : seg[i]; if (nx.length > max) break; c = nx; }
+    return c.length >= 20 && !/[0-9()%]/.test(c) && !/(?:แบบนี้|อย่างนี้|ทรงนี้|ของคุณ|ว่า|ที่|และ|หรือ|เช่น|ค่อย ๆ|กับ|ให้)$/.test(c) ? c : "";
+  }
+  function keySentences(res, n, max, facts) {
+    var secs = (res && res.sections) || [], out = [];
+    var text = secs.filter(function (x) { return x.id !== "advice"; }).slice(0, 4).map(function (x) { return (x.paragraphs || []).join(" "); }).join(" ");
+    var found = [];
+    ((facts && facts.items) || []).forEach(function (it) {
+      Object.keys(it.meanings || {}).forEach(function (k) {
+        it.meanings[k].forEach(function (m) { var c = String(m).trim().replace(/[.。\s]+$/, ""), at = text.indexOf(c); if (at >= 0) found.push({ at: at, m: c }); });
+      });
+    });
+    found.sort(function (a, b) { return a.at - b.at; });
+    found.forEach(function (f) { if (out.length >= n) return; var c = shortClause(f.m, max); if (c && out.indexOf(c) < 0) out.push(c); });
+    if (out.length < 2 && res && res.source === "ai") secs.slice(0, 2).forEach(function (x) { (x.paragraphs || []).forEach(function (p) { if (out.length < n) { var c = shortClause(p, max); if (c && out.indexOf(c) < 0) out.push(c); } }); });
+    return out;
+  }
 
   function drawResultImage(R) {
     var F = S.F, c = resCanvas.getContext("2d");
@@ -1104,7 +1262,6 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#plElTraits").innerHTML = E.traits.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("");
     $("#plElNote").textContent = KB.elementsNote;
     $("#plSideBadge").innerHTML = rd.side ? "<b>" + esc(S.side === "left" ? "มือซ้าย" : "มือขวา") + "</b>" + esc(rd.side.th + " — " + rd.side.text) : "";
-    $("#plPers").textContent = rd.personality; $("#plWork").textContent = rd.work; $("#plMoney").textContent = rd.money; $("#plLove").textContent = rd.love;
     $("#plLines").innerHTML = rd.lines.map(function (l) {
       return '<div class="line-card" style="--c:' + l.color + '"><h4>' + esc(l.th) + "<span>" + esc(l.cn) + '</span></h4><p class="about">' + esc(l.about) + "</p><ul>" +
         l.items.map(function (it) { return "<li><b>" + esc(it.label) + "</b>" + esc(it.meaning) + "</li>"; }).join("") + "</ul></div>";
@@ -1173,11 +1330,19 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     c.font = "700 92px " + FF; c.fillText("มือธาตุ" + E.th, W / 2, 750);
     c.font = "400 34px " + FF; c.fillStyle = "#c9d0ea";
     c.fillText(R.el.top.pct + "% · ธาตุรอง" + rd.second.th + " " + R.el.second.pct + "%", W / 2, 830);
-    c.font = "500 38px " + FF;
-    var y = 925;
-    E.traits.slice(0, 3).forEach(function (t) {
-      c.fillStyle = "rgba(255,255,255,.08)"; c.beginPath(); if (c.roundRect) c.roundRect(150, y - 38, W - 300, 76, 38); else c.rect(150, y - 38, W - 300, 76); c.fill();
-      c.fillStyle = "#fff"; c.fillText(t, W / 2, y + 2); y += 92;
+    // 2–3 ประโยคเด่นจากคำทำนายที่เรียบเรียงแล้ว (สำรอง: จุดเด่นของธาตุ)
+    var keys = keySentences(S.narr, 5, 60, S.facts), drawn = 0;
+    if (!keys.length) keys = E.traits.slice(0, 3);
+    c.font = "400 33px " + FF;
+    var y = 880;
+    keys.forEach(function (t) {
+      var ls = wrapTh(c, t, W - 260); if (ls.length > 2) { ls = ls.slice(0, 2); ls[1] = ls[1].replace(/.$/, "…"); }
+      var h = ls.length * 44 + 26;
+      if (drawn >= 3 || y + h > 1160) return;
+      drawn++;
+      c.fillStyle = "rgba(255,255,255,.08)"; c.beginPath(); if (c.roundRect) c.roundRect(110, y, W - 220, h, 26); else c.rect(110, y, W - 220, h); c.fill();
+      c.fillStyle = "#fff"; ls.forEach(function (l, i) { c.fillText(l, W / 2, y + 35 + i * 44); });
+      y += h + 14;
     });
     c.font = "400 30px " + FF; c.fillStyle = "#c9d0ea";
     rd.lines.filter(function (l) { return l.id === "head" || l.id === "heart"; }).forEach(function (l, i) { c.fillText(l.th + ": " + l.items[0].label, W / 2, 1196 + i * 40, W - 140); });
@@ -1228,7 +1393,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   function reset() {
     resultSec.hidden = true; editSec.hidden = true;
-    S.src = S.hand = S.F = S.canon = S.R = S.auto = S.lines = S.result = null; S.minor = {}; S.mounts = []; S.taps = []; S.mode = "edit"; S.sideAuto = false;
+    S.src = S.hand = S.F = S.canon = S.R = S.auto = S.lines = S.result = S.narr = S.facts = null;
+    $("#plNick").value = ""; narrToken++; $("#plNarr").innerHTML = ""; // ชื่อเล่นไม่เก็บ ล้างทุกครั้งที่เริ่มคนถัดไป S.minor = {}; S.mounts = []; S.taps = []; S.mode = "edit"; S.sideAuto = false;
     renderMinor(); renderMounts(); renderSide();
     resCanvas.getContext("2d").clearRect(0, 0, resCanvas.width, resCanvas.height);
     edCv.getContext("2d").clearRect(0, 0, edCv.width, edCv.height);
@@ -1290,5 +1456,5 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   if (!window.isSecureContext) showHttpsNote($("#plEngine"));
   engine("กำลังโหลดโมเดลจุดบนมือ...");
   loadModels().catch(function () {});
-  window.__palm = { get S() { return S; }, makeCard: makeCard, reset: reset, detectHand: detectHand, loadModels: loadModels }; // ใช้ทดสอบ
+  window.__palm = { get S() { return S; }, makeCard: makeCard, narrate: narrate, keySentences: keySentences, reset: reset, detectHand: detectHand, loadModels: loadModels }; // ใช้ทดสอบ
 })();

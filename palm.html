@@ -11,11 +11,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="palm.css?v=1">
+<link rel="stylesheet" href="palm.css?v=2">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=3"></script>
+<script src="nav.js?v=4"></script>
 
 <main class="pl" id="plApp">
   <div class="pl-head">
@@ -65,6 +65,13 @@
           <button type="button" role="radio" aria-checked="true" data-dom="right">ถนัดขวา</button>
         </div>
         <p class="pl-sidenote" id="plSideNote"></p>
+        <label class="pl-nick">ชื่อเล่น (ไม่บังคับ — ใช้ในคำทำนาย ไม่บันทึก)
+          <input id="plNick" type="text" maxlength="24" autocomplete="off" placeholder="เช่น มิว">
+        </label>
+        <div class="fa-topic-wrap">
+          <span class="fa-topic-l" id="plTopicL">อยากรู้เรื่องไหนเป็นพิเศษ</span>
+          <div class="fa-topics" role="radiogroup" aria-labelledby="plTopicL" data-topics></div>
+        </div>
         <ul class="pl-qc" id="plQc" aria-live="polite">
           <li class="no"><span class="dot" aria-hidden="true">!</span><span>พบมือ <small>— เปิดกล้องหรืออัปโหลดรูป</small></span></li>
         </ul>
@@ -138,12 +145,19 @@
       </div>
     </div>
 
-    <div class="pl-cards">
-      <article class="pl-card"><h3><span class="ic">✦</span>บุคลิก</h3><p id="plPers"></p></article>
-      <article class="pl-card"><h3><span class="ic">◆</span>การงาน</h3><p id="plWork"></p></article>
-      <article class="pl-card"><h3><span class="ic">●</span>การเงิน</h3><p id="plMoney"></p></article>
-      <article class="pl-card"><h3><span class="ic">♥</span>ความรัก &amp; มิตรภาพ</h3><p id="plLove"></p></article>
-    </div>
+    <section class="pl-block fa-reading" id="plReading" aria-labelledby="plReadTitle">
+      <div class="fa-head">
+        <h3 id="plReadTitle">คำทำนายโดยละเอียด</h3>
+        <span class="fa-src" id="plSrc">เรียบเรียงในเครื่อง</span>
+      </div>
+      <div class="fa-topics" role="radiogroup" aria-label="หัวข้อที่สนใจ" data-topics></div>
+      <div class="fa-consent-wrap" id="plConsent"></div>
+      <div class="fa-body" id="plNarr" aria-live="polite"></div>
+      <div class="fa-actions">
+        <button class="btn ghost" id="plRegen" type="button">อ่านอีกสำนวน</button>
+        <span class="pl-small">ทุกครั้งที่กด ระบบจะเรียบเรียงใหม่จากผลวัดชุดเดิม ความหมายหลักไม่เปลี่ยน</span>
+      </div>
+    </section>
 
     <section class="pl-block">
       <h3>เส้นหลักทั้งสี่</h3>
@@ -206,7 +220,9 @@
 <div class="toast" id="plToast" role="status"></div>
 
 <script src="vendor/face-api.js"></script>
-<script src="palm-kb.js?v=1"></script>
-<script src="palm.js?v=1"></script>
+<script src="lensiq-config.js"></script>
+<script src="fortune-ai.js?v=2"></script>
+<script src="palm-kb.js?v=2"></script>
+<script src="palm.js?v=2"></script>
 </body>
 </html>

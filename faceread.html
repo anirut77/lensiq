@@ -11,11 +11,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="faceread.css?v=3">
+<link rel="stylesheet" href="faceread.css?v=4">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=3"></script>
+<script src="nav.js?v=4"></script>
 
 <main class="fr" id="frApp">
   <div class="fr-head">
@@ -57,6 +57,13 @@
         <label class="fr-age">อายุ (ไม่บังคับ — ใช้ไฮไลต์ช่วงวัย)
           <input id="frAge" type="number" inputmode="numeric" min="1" max="120" placeholder="เช่น 32">
         </label>
+        <label class="fr-age">ชื่อเล่น (ไม่บังคับ — ใช้ในคำทำนาย ไม่บันทึก)
+          <input id="frNick" type="text" maxlength="24" autocomplete="off" placeholder="เช่น บี">
+        </label>
+        <div class="fa-topic-wrap">
+          <span class="fa-topic-l" id="frTopicL">อยากรู้เรื่องไหนเป็นพิเศษ</span>
+          <div class="fa-topics" role="radiogroup" aria-labelledby="frTopicL" data-topics></div>
+        </div>
         <div class="fr-opts">
           <button class="btn ghost" id="frKiosk" type="button" aria-pressed="false">โหมดบูธ (เต็มจอ)</button>
         </div>
@@ -92,12 +99,19 @@
       </div>
     </div>
 
-    <div class="fr-cards">
-      <article class="fr-card"><h3><span class="ic">✦</span>ภาพรวมบุคลิก</h3><p id="frOverview"></p><ul class="fr-notes" id="frNotes"></ul></article>
-      <article class="fr-card"><h3><span class="ic">◆</span>การงาน</h3><p id="frWork"></p></article>
-      <article class="fr-card"><h3><span class="ic">●</span>การเงิน</h3><p id="frMoney"></p></article>
-      <article class="fr-card"><h3><span class="ic">♥</span>ความรัก &amp; มิตรภาพ</h3><p id="frLove"></p></article>
-    </div>
+    <section class="fr-block fa-reading" id="frReading" aria-labelledby="frReadTitle">
+      <div class="fa-head">
+        <h3 id="frReadTitle">คำทำนายโดยละเอียด</h3>
+        <span class="fa-src" id="frSrc">เรียบเรียงในเครื่อง</span>
+      </div>
+      <div class="fa-topics" role="radiogroup" aria-label="หัวข้อที่สนใจ" data-topics></div>
+      <div class="fa-consent-wrap" id="frConsent"></div>
+      <div class="fa-body" id="frNarr" aria-live="polite"></div>
+      <div class="fa-actions">
+        <button class="btn ghost" id="frRegen" type="button">อ่านอีกสำนวน</button>
+        <span class="fr-small">ทุกครั้งที่กด ระบบจะเรียบเรียงใหม่จากผลวัดชุดเดิม ความหมายหลักไม่เปลี่ยน</span>
+      </div>
+    </section>
 
     <section class="fr-block" id="frPalBlock">
       <h3>สิบสองวัง (十二宫)</h3>
@@ -224,7 +238,9 @@
 <div class="toast" id="frToast" role="status"></div>
 
 <script src="vendor/face-api.js"></script>
-<script src="faceread-kb.js?v=3"></script>
-<script src="faceread.js?v=3"></script>
+<script src="lensiq-config.js"></script>
+<script src="fortune-ai.js?v=2"></script>
+<script src="faceread-kb.js?v=4"></script>
+<script src="faceread.js?v=4"></script>
 </body>
 </html>

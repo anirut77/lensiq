@@ -18,7 +18,9 @@
       { href: "faceread.html", title: "โหงวเฮ้ง AI", desc: "อ่านโหงวเฮ้งจากใบหน้า" },
       { href: "palm.html", title: "ดูลายมือ AI", desc: "ถ่ายฝ่ามือ อ่านเส้นหลัก" },
       { href: "horoscope.html", title: "ดวงวันเดือนปีเกิด", desc: "โหราไทย ปาจื้อ เลขศาสตร์" },
-      { href: "tarot.html", title: "ไพ่ทาโรต์ & เซียมซี", desc: "เปิดไพ่ เสี่ยงเซียมซี" }
+      { href: "tarot.html", title: "ไพ่ทาโรต์ & เซียมซี", desc: "เปิดไพ่ เสี่ยงเซียมซี" },
+      { href: "fengshui.html", title: "ฮวงจุ้ย AI", desc: "เลขกัว เข็มทิศ ผังบ้าน" },
+      { href: "numbers.html", title: "เลขมงคล AI", desc: "เบอร์โทร ทะเบียนรถ เลขบ้าน" }
     ] },
     { label: "วิเคราะห์", id: "ana", items: [
       { href: "store.html", title: "วิเคราะห์หน้าร้าน", desc: "นับคน แผนที่ความร้อน และคิว" },

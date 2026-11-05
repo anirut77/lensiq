@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title>เลขมงคล AI | LENSIQ</title>
+<meta name="description" content="วิเคราะห์เลขมงคลเบอร์มือถือ ทะเบียนรถ บ้านเลขที่ เลขบัญชี และชื่อ ตามความเชื่อเลขศาสตร์ไทย เพื่อความบันเทิง คำนวณในเบราว์เซอร์ ไม่บันทึกตัวเลข">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="numbers.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=4"></script>
+
+<main class="nm" id="nmApp">
+  <div class="nm-head">
+    <span class="eyebrow">Engagement · Booth</span>
+    <h1>เลขมงคล AI</h1>
+    <p class="lead">อ่านพลังตัวเลขตามความเชื่อเลขศาสตร์ไทย ทั้งเบอร์มือถือ ทะเบียนรถ บ้านเลขที่ เลขบัญชี และชื่อ ดูคู่เลข ผลรวม รูปแบบจำง่าย พร้อมคะแนนที่อธิบายที่มาได้ทุกข้อ</p>
+  </div>
+
+  <p class="nm-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span><b>เพื่อความบันเทิงตามความเชื่อเรื่องตัวเลข ไม่ใช่วิทยาศาสตร์</b> ไม่ใช้เพื่อการพนันหรือการเสี่ยงโชค และไม่ควรใช้ตัดสินใจเรื่องสำคัญ แต่ละสำนักให้ความหมายต่างกัน</span></p>
+
+  <div class="nm-tabs" id="nmTabs" role="tablist" aria-label="เลือกสิ่งที่ต้องการวิเคราะห์">
+    <button class="nm-tab" role="tab" type="button" data-tab="phone" aria-selected="true">เบอร์มือถือ</button>
+    <button class="nm-tab" role="tab" type="button" data-tab="plate" aria-selected="false" tabindex="-1">ทะเบียนรถ</button>
+    <button class="nm-tab" role="tab" type="button" data-tab="house" aria-selected="false" tabindex="-1">บ้าน/ห้อง</button>
+    <button class="nm-tab" role="tab" type="button" data-tab="account" aria-selected="false" tabindex="-1">เลขบัญชี</button>
+    <button class="nm-tab" role="tab" type="button" data-tab="name" aria-selected="false" tabindex="-1">ชื่อ</button>
+    <button class="nm-tab" role="tab" type="button" data-tab="lucky" aria-selected="false" tabindex="-1">เลขนำโชควันนี้</button>
+    <button class="nm-tab" role="tab" type="button" data-tab="compare" aria-selected="false" tabindex="-1">เปรียบเทียบหลายเบอร์</button>
+  </div>
+
+  <section class="nm-stage">
+    <form class="nm-form" id="nmForm" novalidate role="tabpanel" aria-label="กรอกข้อมูล">
+      <label data-for="phone">เบอร์มือถือ 10 หลัก
+        <input id="nmPhone" type="tel" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="08x-xxx-xxxx">
+      </label>
+      <label data-for="plate" hidden>ทะเบียนรถ (ไม่ต้องใส่จังหวัด)
+        <input id="nmPlate" type="text" autocomplete="off" maxlength="12" placeholder="เช่น 1กข 2345">
+        <small>ตัวอักษรถูกแปลงเป็นตัวเลขตามตารางเลขศาสตร์ที่นิยม แล้วรวมกับตัวเลขบนป้าย</small>
+      </label>
+      <label data-for="house" hidden>บ้านเลขที่ หรือเลขห้อง
+        <input id="nmHouse" type="text" inputmode="numeric" autocomplete="off" maxlength="16" placeholder="เช่น 99/123 หรือ 1205">
+      </label>
+      <label data-for="account" hidden>เลขบัญชีเฉพาะ 4–7 ตัวท้าย
+        <input id="nmAcct" type="text" inputmode="numeric" autocomplete="off" maxlength="7" placeholder="เช่น 4589">
+        <small>ไม่ต้องกรอกเลขบัญชีเต็ม — ความเชื่อนิยมดูเฉพาะตัวท้าย</small>
+      </label>
+      <label data-for="name" hidden>ชื่อภาษาไทย (ชื่อจริงหรือชื่อเล่น)
+        <input id="nmName" type="text" autocomplete="off" maxlength="40" placeholder="เช่น สมใจ">
+      </label>
+      <div data-for="compare" class="nm-cmp-ins" hidden>
+        <p class="nm-small">กรอกได้สูงสุด 5 เบอร์ เพื่อเทียบคะแนนแบบเดียวกัน</p>
+        <input class="nm-cmp-in" type="tel" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="เบอร์ที่ 1" aria-label="เบอร์ที่ 1">
+        <input class="nm-cmp-in" type="tel" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="เบอร์ที่ 2" aria-label="เบอร์ที่ 2">
+        <input class="nm-cmp-in" type="tel" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="เบอร์ที่ 3" aria-label="เบอร์ที่ 3">
+        <input class="nm-cmp-in" type="tel" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="เบอร์ที่ 4" aria-label="เบอร์ที่ 4">
+        <input class="nm-cmp-in" type="tel" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="เบอร์ที่ 5" aria-label="เบอร์ที่ 5">
+      </div>
+      <label class="nm-check" data-for="phone compare"><input type="checkbox" id="nmAll"> อ่านทุกคู่ตลอดทั้งเบอร์ (ค่าเริ่มต้น: 7 ตัวท้าย)</label>
+      <p class="nm-small" data-for="lucky" hidden>เลือกวันเกิดด้านล่าง แล้วรับเลขนำโชคเล็ก ๆ ประจำวันนี้ — เพื่อความสนุกเท่านั้น</p>
+
+      <div class="nm-row">
+        <label>วันเกิด <small id="nmWdHint">(ไม่บังคับ)</small>
+          <select id="nmWd"><option value="">ไม่ระบุ</option></select>
+        </label>
+        <label data-for="phone plate house account name">อยากรู้เรื่องไหนเป็นพิเศษ
+          <select id="nmTopic">
+            <option value="overall">ภาพรวม</option>
+            <option value="work">การงาน</option>
+            <option value="money">การเงิน</option>
+            <option value="love">ความรัก</option>
+          </select>
+        </label>
+      </div>
+      <p class="nm-err" id="nmErr" role="alert"></p>
+      <button class="btn primary big" id="nmGo" type="submit">วิเคราะห์เลขมงคล</button>
+      <div class="nm-opts">
+        <button class="btn ghost" id="nmKiosk" type="button" aria-pressed="false">โหมดบูธ (เต็มจอ)</button>
+      </div>
+      <p class="nm-privacy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>คำนวณในเบราว์เซอร์ ไม่ส่งและไม่บันทึกตัวเลขหรือชื่อของคุณ</p>
+    </form>
+  </section>
+
+  <!-- ผลวิเคราะห์ -->
+  <section class="nm-result" id="nmResult" hidden aria-labelledby="nmResTitle">
+    <h2 id="nmResTitle" tabindex="-1">ผลวิเคราะห์เลขมงคล</h2>
+    <p class="nm-disc-mini">เพื่อความบันเทิงตามความเชื่อ ไม่ใช่วิทยาศาสตร์</p>
+    <div class="nm-top">
+      <div class="nm-scorecard">
+        <div class="ring" id="nmRing" role="img" aria-label="คะแนน"><b id="nmScore">0</b><small>/100</small></div>
+        <div>
+          <span class="nm-small" id="nmResKind"></span>
+          <p class="nm-num" id="nmResNum"></p>
+          <p class="nm-word" id="nmScoreWord"></p>
+        </div>
+      </div>
+      <div class="nm-block">
+        <h3>ที่มาของคะแนน</h3>
+        <ul class="nm-break" id="nmBreak"></ul>
+      </div>
+    </div>
+
+    <div class="nm-block">
+      <div class="nm-strip" id="nmStrip"></div>
+      <p class="nm-small" id="nmStripCap"></p>
+    </div>
+
+    <section class="nm-block" id="nmPairsBlock">
+      <h3>คู่เลข</h3>
+      <ul class="nm-pairs" id="nmPairs"></ul>
+    </section>
+
+    <div class="nm-two">
+      <section class="nm-block"><h3>ผลรวม</h3><div class="nm-sum" id="nmSum"></div></section>
+      <section class="nm-block" id="nmPatBlock"><h3>รูปแบบจำง่าย</h3><ul class="nm-pats" id="nmPats"></ul></section>
+    </div>
+    <section class="nm-block" id="nmKala" hidden></section>
+
+    <section class="nm-block nm-narr-wrap">
+      <div class="nm-narr-h">
+        <h3>คำอ่านเลขมงคล</h3>
+        <span class="src-badge local" id="nmSrc">เรียบเรียงในเครื่อง</span>
+      </div>
+      <div class="nm-consent" id="nmConsent" hidden>
+        <label class="nm-check"><input type="checkbox" id="nmAI"> ให้ Claude AI ช่วยเรียบเรียง (ส่งเฉพาะคู่เลขและผลรวมที่คำนวณได้ ไม่ส่งเลขเต็มหรือชื่อ)</label>
+      </div>
+      <div class="nm-narr" id="nmNarr" aria-live="polite"></div>
+      <p class="nm-small" id="nmNarrNote"></p>
+      <button class="btn ghost" id="nmAgain2" type="button">อ่านอีกสำนวน</button>
+    </section>
+
+    <section class="nm-block" id="nmGoals" hidden>
+      <h3>แนะนำการเลือกเบอร์ตามเป้าหมาย</h3>
+      <ul class="nm-goals" id="nmGoalList"></ul>
+    </section>
+
+    <section class="nm-block">
+      <h3>เลขนำโชคจากผลนี้</h3>
+      <div class="lk-nums small" id="nmLuckyNums"></div>
+      <p class="nm-small">ใช้เป็นกำลังใจเล็ก ๆ ไม่ใช่สำหรับการพนันหรือการเสี่ยงโชค</p>
+    </section>
+
+    <div class="nm-res-actions">
+      <button class="btn primary big" id="nmShare" type="button">แชร์การ์ดผลลัพธ์</button>
+      <button class="btn ghost big" id="nmPrint" type="button">พิมพ์</button>
+      <button class="btn ghost big" id="nmAgain" type="button">วิเคราะห์เลขใหม่</button>
+    </div>
+    <p class="nm-small nm-center">การ์ดแชร์จะปิดบังตัวเลขบางส่วนเสมอ เช่น 08x-xxx-4589</p>
+    <img class="nm-cardimg" id="nmCardImg" alt="การ์ดผลเลขมงคลสำหรับแชร์" hidden>
+  </section>
+
+  <section class="nm-result" id="nmLucky" hidden aria-label="เลขนำโชควันนี้">
+    <div class="nm-block nm-lucky"><h3>เลขนำโชควันนี้</h3><div id="nmLuckyBody"></div></div>
+  </section>
+
+  <section class="nm-result" id="nmCompare" hidden aria-label="ผลเปรียบเทียบ">
+    <div class="nm-block">
+      <h3>เปรียบเทียบหลายเบอร์</h3>
+      <div class="table-wrap"><table class="nm-table">
+        <thead><tr><th scope="col">เบอร์</th><th scope="col">คะแนน</th><th scope="col">ผลรวม</th><th scope="col">คู่เด่นมาก</th><th scope="col">คู่ควรระวัง</th></tr></thead>
+        <tbody id="nmCmpBody"></tbody>
+      </table></div>
+      <p class="nm-small">คะแนนเป็นเพียงความเชื่อ เบอร์ที่คุณจำง่ายและรู้สึกดีด้วยคือเบอร์ที่ดีที่สุด</p>
+    </div>
+  </section>
+
+  <div class="nm-foot">
+    <section class="nm-block">
+      <h3>สถิติบูธ (ไม่ระบุตัวตน)</h3>
+      <div id="nmStats"></div>
+      <label class="nm-check"><input type="checkbox" id="nmStatsOn"> นับจำนวนครั้งและประเภทในเครื่องนี้ (ไม่เก็บตัวเลข)</label>
+      <button class="btn ghost" id="nmStatsClear" type="button">ล้างสถิติ</button>
+    </section>
+    <section class="nm-block">
+      <details class="nm-how">
+        <summary>ดูวิธีคำนวณ</summary>
+        <ul class="nm-small">
+          <li><b>คู่เลข:</b> อ่านเลขที่อยู่ติดกันทีละคู่ เบอร์มือถือดู 7 ตัวท้ายเป็นค่าเริ่มต้น (6 คู่) หรือเลือกอ่านทุกคู่ คู่ท้ายสุดถ่วงน้ำหนัก ×1.6 คู่รองท้าย ×1.3 เพราะหลายตำราให้ความสำคัญกับตัวท้าย</li>
+          <li><b>ระดับคู่:</b> เด่นมาก 100 · ดี 82 · กลาง ๆ 60 · ควรระวัง 35 (24 กับ 42 ถือเป็นคู่เดียวกัน แต่บอกโทนตามเลขที่นำ)</li>
+          <li><b>ผลรวม:</b> บวกทุกหลัก หากเกิน 99 ทอนซ้ำ อ่านผลรวม 2 หลักเหมือนคู่เลข และดูเลขโดดหลังทอนประกอบ ผลรวมที่แหล่งอ้างอิงยกเป็นตัวอย่างเชิงบวกได้ระดับเด่นมาก</li>
+          <li><b>คะแนน:</b> คู่เลข 65% + ผลรวม 20% + รูปแบบจำง่าย 15% (เลขซ้ำ เรียง กระจก คู่ซ้ำสลับ ไม่มี 0) ทะเบียนและชื่อใช้สัดส่วนตามที่แสดงในผล</li>
+        </ul>
+        <h4>ค่าตัวอักษร (แก้ได้ใน numbers-kb.js)</h4>
+        <div class="table-wrap"><table class="nm-table mini"><tbody id="nmLetterTable"></tbody></table></div>
+        <h4>อักษรกาลกิณีตามวันเกิด</h4>
+        <div class="table-wrap"><table class="nm-table mini"><tbody id="nmKalaTable"></tbody></table></div>
+        <h4>เคล็ดลับทั่วไป</h4>
+        <ul class="nm-small" id="nmTips"></ul>
+      </details>
+    </section>
+    <section class="nm-block nm-src">
+      <h3>แหล่งอ้างอิง</h3>
+      <p class="nm-small">เนื้อหาเรียบเรียงใหม่ในเชิงบวกจากแนวคิดเลขศาสตร์ที่เผยแพร่ทั่วไป แต่ละสำนักให้ความหมายและตารางค่าอักษรต่างกัน</p>
+      <ul class="nm-sources" id="nmSources"></ul>
+      <p class="nm-small">หลักการ: เชิงบวกเสมอ คู่ที่ควรระวังใช้ถ้อยคำอ่อนโยน ไม่ทำนายเคราะห์ร้าย ไม่ให้เลขสำหรับการพนัน และไม่เก็บตัวเลขของผู้ใช้</p>
+    </section>
+  </div>
+</main>
+
+<div class="nm-idle" id="nmIdle" hidden role="status"></div>
+<button class="btn primary nm-kiosk-exit" id="nmKioskExit" type="button" hidden>ออกจากโหมดบูธ</button>
+<div class="toast" id="nmToast" role="status"></div>
+
+<script src="lensiq-config.js"></script>
+<script src="fortune-ai.js?v=2"></script>
+<script src="numbers-kb.js?v=1"></script>
+<script src="numbers.js?v=1"></script>
+</body>
+</html>

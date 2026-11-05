@@ -103,8 +103,85 @@
     return out;
   }
 
+  /* ---------- ข้อเท็จจริงสำหรับ fortune-ai.js (สัญญา facts) ---------- */
+  var POS_W = { heart: 0.95, today: 0.95, present: 0.9, situation: 0.9, you: 0.9, outcome: 0.88, advice: 0.86, future: 0.82, near: 0.8, crown: 0.78, trend: 0.8, bond: 0.85, other: 0.8,
+    obstacle: 0.76, cross: 0.76, lesson: 0.74, root: 0.66, past: 0.62, self: 0.7, env: 0.62, hope: 0.68 };
+  var TIME_LEAD = { past: "ที่ผ่านมา ", future: "ในระยะต่อไป ", near: "ในอีกไม่นานนี้ ", outcome: "ถ้าเดินต่อในทางนี้ ", trend: "ในวันข้างหน้า ", crown: "ในระยะยาว " };
+  var TIME_TPL = ["พลังของ{A}และ{B}จะเข้ามามีบทบาทในเรื่องนี้มากขึ้น", "เรื่องของ{A}จะค่อย ๆ ชัดเจนขึ้นจนคุณสัมผัสได้", "จังหวะชีวิตจะพาคุณไปพบบทเรียนเรื่อง{B}", "สิ่งที่เกี่ยวกับ{A}จะเป็นตัวกำหนดทิศทางของเรื่องนี้"];
+  var fillT = function (t, v) { return t.replace(/\{(\w+)\}/g, function (_, k) { return v[k] != null ? v[k] : ""; }); };
+  var TOPIC_FA = { general: "overall", love: "love", work: "work", money: "money" };
+  var pickR = function (r, a) { return a[Math.floor(r() * a.length)]; };
+  /** picks = [{id, rev}] ตามลำดับตำแหน่ง; คืน facts ตามสัญญาของ fortune-ai.js */
+  function buildFacts(picks, topic, spreadKey, opts) {
+    opts = opts || {};
+    var r = opts.rng || Math.random, S = KB.spreads[spreadKey], P = KB.patterns, items = [];
+    var cards = picks.map(function (p) { return KB.byId[p.id]; }), Y = synthesize(picks, topic, spreadKey), n = picks.length;
+    // 1) รูปแบบของทั้งชุด
+    var pat = [pickR(r, P.overviewOpen[topic])];
+    if (n >= 3) {
+      pat.push(pickR(r, Y.majors / n >= 0.5 ? P.majorsHigh : Y.majors ? P.majorsSome : P.majorsNone));
+      if (Y.dominant) pat.push(pickR(r, P.elementDominant[Y.dominant]));
+      var miss = Object.keys(Y.elements).filter(function (k) { return !Y.elements[k]; });
+      if (miss.length && n >= 5) pat.push(pickR(r, P.elementMissing[pickR(r, miss)]));
+      pat.push(pickR(r, Y.reversed / n >= 0.5 ? P.reversedHigh : Y.reversed ? P.reversedSome : P.reversedNone));
+      if (Y.courts >= 2) pat.push(pickR(r, P.courts));
+      if (Y.aces) pat.push(pickR(r, P.aces));
+      var half = Math.floor(n / 2), early = picks.slice(0, half).filter(function (p) { return p.rev; }).length, late = picks.slice(n - half).filter(function (p) { return p.rev; }).length;
+      if (early >= Math.max(1, half - 1) && late === 0) pat.push(pickR(r, P.flow.rising));
+      else if (late >= Math.max(1, half - 1) && early === 0) pat.push(pickR(r, P.flow.settling));
+    }
+    items.push({ id: "spread.pattern", group: "ภาพรวมของไพ่", label: "ไพ่ทั้งชุด", evidence: S.th + " · ชุดใหญ่ " + Y.majors + "/" + n + " · กลับหัว " + Y.reversed + "/" + n,
+      strength: 0.97, tags: ["overview", "advice"], meanings: { overview: pat, advice: P.topicClose[topic].slice() } });
+    // 2) ไพ่แต่ละตำแหน่ง — ไม่ใช้กรอบประโยคเดียวกันซ้ำกับไพ่ใบอื่นในคำทำนายเดียว
+    var usedT = {}, tCount = 0, tOff = Math.floor(r() * TIME_TPL.length);
+    var uniq = function (arr, ids) { var out = arr.filter(function (x, j) { return !ids[j] || !usedT[ids[j]]; }); ids.forEach(function (t) { if (t) usedT[t] = 1; }); return out; };
+    picks.forEach(function (p, i) {
+      var c = cards[i], pos = S.positions[i], o = p.rev ? "r" : "u", ph = c.phr[o], T = c.phrTpl[o];
+      var m = { overview: uniq(ph.general, T.general), love: uniq(ph.love, T.love), work: uniq(ph.work, T.work), money: uniq(ph.money, T.money) };
+      if (TIME_LEAD[pos.key]) { var kw = c.keywords; m.timing = [TIME_LEAD[pos.key] + fillT(TIME_TPL[(tOff + tCount++) % TIME_TPL.length], { A: kw[0], B: kw[1] })]; }
+      if (pos.advice || pos.key === "outcome" || pos.key === "today" || i === n - 1) m.advice = uniq(c.phr.advice, c.phrTpl.advice);
+      var w = (POS_W[pos.key] || 0.6) + (c.arcana === "major" ? 0.04 : 0);
+      var posName = pos.th.replace(/^\d+ · /, "");
+      items.push({ id: "card." + pos.key + "." + c.id + (p.rev ? ".r" : ""), group: posName, label: KB.readName(c) + " (" + KB.readEn(c) + ")" + (p.rev ? " กลับหัว" : ""),
+        evidence: "ตำแหน่งที่ " + (i + 1) + " (" + posName + "): " + KB.readEn(c) + (p.rev ? " (กลับหัว)" : ""), strength: Math.min(1, w), tags: Object.keys(m), meanings: m });
+    });
+    // 3) คู่ไพ่ที่น่าสนใจ (สูงสุด 3 คู่)
+    var pairs = [];
+    for (var a = 0; a < n; a++) for (var b = a + 1; b < n; b++) { var notes = KB.pairNotes(picks[a].id, picks[b].id); if (notes) pairs.push([a, b, notes]); }
+    pairs.slice(0, 3).forEach(function (q) {
+      var A = cards[q[0]], B = cards[q[1]], m = { overview: q[2].slice() };
+      items.push({ id: "pair." + KB.pairKey(A.id, B.id), group: "คู่ไพ่", label: "คู่ไพ่" + KB.readName(A) + "กับ" + KB.readName(B), evidence: "ตำแหน่งที่ " + (q[0] + 1) + " และ " + (q[1] + 1), strength: 0.74, tags: Object.keys(m), meanings: m });
+    });
+    // 4) เลขซ้ำ / ไพ่ราชสำนักระดับเดียวกัน
+    var nums = {}, ranks = {};
+    cards.forEach(function (c) { if (c.arcana === "minor") { if (c.n <= 10) nums[c.n] = (nums[c.n] || 0) + 1; else ranks[c.n] = (ranks[c.n] || 0) + 1; } });
+    Object.keys(nums).filter(function (k) { return nums[k] >= 2; }).slice(0, 1).forEach(function (k) {
+      items.push({ id: "num." + k, group: "เลขของไพ่", label: "ไพ่เลข " + k + " ออกซ้ำ", evidence: nums[k] + " ใบ", strength: 0.6, tags: ["overview"], meanings: { overview: KB.numberNotes(+k) } });
+    });
+    Object.keys(ranks).filter(function (k) { return ranks[k] >= 2; }).slice(0, 1).forEach(function (k) {
+      items.push({ id: "court." + k, group: "ไพ่ราชสำนัก", label: "ไพ่ราชสำนักระดับเดียวกัน", evidence: ranks[k] + " ใบ", strength: 0.58, tags: ["overview", "social"], meanings: { overview: P.courtRank[k].slice(), social: P.courtRank[k].slice() } });
+    });
+    var nick = String(opts.nickname || "").trim();
+    return { domain: "tarot", topic: TOPIC_FA[topic] || "overall", subject: nick && nick.length <= 12 && !/\s/.test(nick) ? { nickname: nick } : {},
+      headline: Y.headline, items: items };
+  }
+  /** เซียมซี → facts */
+  function siamseeFacts(s, opts) {
+    opts = opts || {};
+    var ph = KB.siamseePhr(s);
+    return { domain: "siamsee", topic: opts.topic || "overall", subject: {}, headline: "เซียมซีใบที่ " + s.n + " · " + s.level,
+      items: [{ id: "siamsee." + s.n, group: "เซียมซี", label: "เซียมซีใบที่ " + s.n + " (" + s.level + ")", evidence: s.verse.join(" "), strength: 0.95,
+        tags: ["overview", "work", "money", "love", "advice", "timing"], meanings: { overview: ph.meaning, work: ph.work, money: ph.money, love: ph.love, advice: ph.mind, timing: ph.travel } }] };
+  }
+  /** ข้อความประจำการ์ดใบเดียวในตำแหน่ง (สุ่มสำนวนนำ + ความหมาย) */
+  function positionText(card, rev, topic, pos, r) {
+    r = r || Math.random;
+    var m = pickR(r, card.phr[rev ? "r" : "u"][topic || "general"]);
+    return pos ? pickR(r, KB.posLeads(pos.key, card, rev)) + " " + m : m;
+  }
+
   var TR = { randInt: randInt, shuffle: shuffle, makeDeck: makeDeck, dayKey: dayKey, hashStr: hashStr, mulberry32: mulberry32, dailyCard: dailyCard,
-    meaning: meaning, interpret: interpret, synthesize: synthesize, addStat: addStat };
+    meaning: meaning, interpret: interpret, synthesize: synthesize, addStat: addStat, buildFacts: buildFacts, siamseeFacts: siamseeFacts, positionText: positionText };
   if (typeof module !== "undefined" && module.exports) module.exports = TR;
   else root.TR = TR;
 })(typeof window !== "undefined" ? window : this);
@@ -315,6 +392,63 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     showResult();
   });
 
+  /* ---------- คำทำนายโดยละเอียด (ผ่าน fortune-ai.js; ถ้าไม่มีจะแสดงแบบย่อ) ---------- */
+  var FA = window.FortuneAI || null, readings = {};
+  function readingBlock(id, title) {
+    return '<section class="tr-reading" id="' + id + '" aria-labelledby="' + id + '-h"><div class="rd-head"><h3 id="' + id + '-h">' + esc(title) + '</h3><span class="rd-src" id="' + id + '-src"></span></div>' +
+      '<div class="rd-consent" id="' + id + '-consent"></div><div class="rd-body" id="' + id + '-body" aria-live="polite"><p class="muted">กำลังเรียบเรียงคำทำนาย…</p></div>' +
+      '<div class="rd-actions"><button type="button" class="btn ghost" id="' + id + '-again">อ่านอีกสำนวน</button></div></section>';
+  }
+  function plainRender(el, res) {
+    el.innerHTML = (res.sections || []).map(function (s) { return '<section class="fa-section"><h3>' + esc(s.title || "") + "</h3>" + (s.paragraphs || []).map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("") + "</section>"; }).join("");
+  }
+  function localFallback(facts) {
+    var sec = { id: "overview", title: "ภาพรวม", paragraphs: [] };
+    facts.items.slice(0, 6).forEach(function (it) { var k = Object.keys(it.meanings)[0]; if (k) sec.paragraphs.push(it.label + " — " + it.meanings[k][0]); });
+    return { source: "local", sections: [sec] };
+  }
+  /** ประโยคเด่นสั้น ๆ (≤ 60 ตัวอักษร) สำหรับการ์ดแชร์: ความหมายจาก facts ที่ปรากฏอยู่ในภาพรวมที่เรียบเรียงแล้ว (ไม่ใช้ประโยคเชื่อม) */
+  function keyLines(res, facts, n) {
+    var secs = res.sections || [], ov = secs.find(function (s) { return s.id === "overview"; }) || secs[0];
+    var text = ov ? ov.paragraphs.join(" ") : "", all = secs.map(function (s) { return s.paragraphs.join(" "); }).join(" ");
+    var cand = [];
+    var okKey = function (k) { return ["overview", "personality", "advice"].indexOf(k) >= 0 || k === facts.topic || (facts.topic === "overall" && k !== "timing"); };
+    (facts.items || []).forEach(function (it) { Object.keys(it.meanings).filter(okKey).forEach(function (k) { it.meanings[k].forEach(function (m) { cand.push({ m: m, w: it.strength + (text.indexOf(m) >= 0 ? 1 : all.indexOf(m) >= 0 ? 0.5 : 0) }); }); }); });
+    cand.sort(function (a, b) { return b.w - a.w || a.m.length - b.m.length; });
+    var out = [];
+    [false, true].forEach(function (trunc) {
+      cand.forEach(function (c) {
+        if (out.length >= n || c.w < 1.3) return;
+        var x = c.m.trim();
+        if (x.length > 60) { if (!trunc) return; var cut = x.lastIndexOf(" ", 58); x = cut > 24 ? x.slice(0, cut) : ""; }
+        if (x.length >= 16 && out.every(function (o) { return o.slice(0, 12) !== x.slice(0, 12); })) out.push(x);
+      });
+    });
+    return out;
+  }
+  function bindReading(id, factsFn) {
+    var root = document.getElementById(id); if (!root) return;
+    var st2 = readings[id] = {};
+    var body = document.getElementById(id + "-body"), src = document.getElementById(id + "-src");
+    function run() {
+      var seed = (Math.random() * 4294967296) >>> 0, r = FA && FA.rng ? FA.rng(seed) : Math.random;
+      var facts = factsFn(r);
+      var useAI = FA && FA.hasConsent ? FA.hasConsent() : false;
+      var p = FA && FA.interpret ? FA.interpret(facts, { useAI: useAI, seed: seed, trace: true }) : Promise.resolve(localFallback(facts));
+      root.setAttribute("aria-busy", "true");
+      return p.catch(function () { return localFallback(facts); }).then(function (res) {
+        st2.result = res; st2.lines = keyLines(res, facts, 3);
+        if (FA && FA.renderSections) FA.renderSections(body, res, { aiBadge: false }); else plainRender(body, res);
+        src.textContent = res.source === "ai" ? "เรียบเรียงโดย AI (Claude)" : "เรียบเรียงในเครื่อง · สำนวนใหม่ทุกครั้ง";
+        src.className = "rd-src" + (res.source === "ai" ? " ai" : "");
+        root.removeAttribute("aria-busy");
+      });
+    }
+    document.getElementById(id + "-again").addEventListener("click", function () { touch(); run(); });
+    if (FA && FA.consentControl) FA.consentControl(document.getElementById(id + "-consent"), { onChange: function () { run(); } }).catch(function () { /* ไม่มีเซิร์ฟเวอร์ AI */ });
+    return run();
+  }
+
   function showResult() {
     st.phase = "result"; setStep(3);
     var S = KB.spreads[st.spread], T = KB.topics[st.topic];
@@ -327,10 +461,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       return '<div class="elbar"><span>' + e.icon + " " + esc(e.th) + '</span><i style="--w:' + Math.round(v / Y.n * 100) + "%;--c:" + e.color + '"></i><b>' + v + "</b></div>";
     }).join("");
     $("#trSynth").innerHTML = "<h3>" + esc(Y.headline) + '</h3><div class="syn-grid"><div><div class="syn-bars" aria-label="จำนวนไพ่ตามธาตุ">' + bars + '</div><div class="syn-chips"><span>ชุดใหญ่ ' + Y.majors + "/" + Y.n + "</span><span>กลับหัว " + Y.reversed + "/" + Y.n + "</span>" +
-      (Y.courts ? "<span>ราชสำนัก " + Y.courts + "</span>" : "") + (Y.aces ? "<span>เอซ " + Y.aces + "</span>" : "") + '</div></div><div><ul class="syn-list">' +
-      Y.lines.map(function (l) { return "<li>" + esc(l) + "</li>"; }).join("") + '</ul><p class="syn-advice"><b>คำแนะนำโดยรวม</b><br>' + esc(Y.advice) + "</p></div></div>";
+      (Y.courts ? "<span>ราชสำนัก " + Y.courts + "</span>" : "") + (Y.aces ? "<span>เอซ " + Y.aces + "</span>" : "") + '</div></div><div><p class="syn-advice"><b>คำแนะนำโดยรวม</b><br>' + esc(Y.advice) + "</p></div></div>" + readingBlock("trRd", "คำทำนายโดยละเอียด");
+    var pk = st.picks.slice(), tp = st.topic, sp = st.spread;
+    bindReading("trRd", function (r) { return TR.buildFacts(pk, tp, sp, { rng: r }); });
     $("#trReadings").innerHTML = st.picks.map(function (p, i) {
       var c = KB.byId[p.id], pos = S.positions[i], I = TR.interpret(c, p.rev, st.topic, pos);
+      I.text = TR.positionText(c, p.rev, st.topic, pos) + (pos.advice ? " — " + c.advice : "");
       return '<article class="tr-read"><button type="button" class="tcard flip' + (p.rev ? " rev" : "") + '" data-i="' + i + '" aria-label="ดูความหมายเต็มของ ' + esc(c.th) + '">' + cardHTML(c, p.rev) + "</button><div>" +
         '<span class="pos">' + esc(pos.th) + "</span><h3>" + esc(c.th) + " <small>" + esc(c.en) + '</small><span class="orient' + (p.rev ? " r" : "") + '">' + I.orient + "</span></h3>" +
         '<div class="kws">' + c.keywords.map(function (k) { return "<span>" + esc(k) + "</span>"; }).join("") + "</div>" +
@@ -413,6 +549,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#ssVerse").textContent = s.verse.join("\n");
     $("#ssMeaning").textContent = s.meaning;
     $("#ssCats").innerHTML = KB.siamseeCats.map(function (c) { return '<li><b><span class="ic" aria-hidden="true">' + c.icon + "</span>" + esc(c.th) + "</b><span>" + esc(s[c.key]) + "</span></li>"; }).join("");
+    $("#ssRead").innerHTML = readingBlock("ssRd", "คำทำนายโดยละเอียด");
+    bindReading("ssRd", function () { return TR.siamseeFacts(s); });
     $("#ssResult").hidden = false;
     $("#ssDraw").disabled = false; ssBusy = false;
     if (prefs.stats) { lsSet(STATS_KEY, TR.addStat(lsGet(STATS_KEY, null), [], "siamsee")); renderStats(); }
@@ -505,7 +643,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       c.font = "500 32px " + F; c.fillStyle = "#f3c969"; c.fillText("ระดับ: " + s.level, W / 2, 580);
       c.font = "500 42px " + F; c.fillStyle = "#fdf6ea";
       s.verse.forEach(function (l, k) { c.fillText(l, W / 2, 668 + k * 62); });
-      msgs = [s.meaning, "การงาน: " + s.work, "ความรัก: " + s.love];
+      var sl = (readings.ssRd && readings.ssRd.lines) || [];
+      msgs = sl.length >= 2 ? sl : [s.meaning, "การงาน: " + s.work, "ความรัก: " + s.love];
       msgTop = 830;
     } else {
       var picks, labels, sub;
@@ -536,7 +675,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       }
       msgTop = y0 + rows * (chh + (n > 1 ? 56 : 20)) + 30;
       if (opt.kind === "daily") msgs = [daily.th + " — " + daily.keywords.slice(0, 3).join(" · "), daily.upright.general, "คำแนะนำ: " + daily.advice];
-      else msgs = current.synth.keyMessages;
+      else { var tl = (readings.trRd && readings.trRd.lines) || []; msgs = tl.length >= 2 ? [current.synth.headline].concat(tl).slice(0, 3) : current.synth.keyMessages; }
     }
     // 3 ข้อความหลัก
     var space = 1250 - msgTop, boxH = Math.min(124, (space - 2 * 16) / 3), fs = boxH < 100 ? 28 : 32;
@@ -639,5 +778,5 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   $("#trCredit").textContent = KB.imageCredit + " · รายละเอียดใน vendor/tarot/CREDITS.txt";
 
   if (location.hash === "#siamsee") selectTab("tabSiamsee"); else if (location.hash === "#daily") selectTab("tabDaily");
-  window.__tr = { state: st, get current() { return current; }, makeCard: makeCard, resetAll: resetAll, drawSiamsee: drawSiamsee }; // ใช้ทดสอบ
+  window.__tr = { state: st, readings: readings, get current() { return current; }, makeCard: makeCard, resetAll: resetAll, drawSiamsee: drawSiamsee }; // ใช้ทดสอบ
 })();

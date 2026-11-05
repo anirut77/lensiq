@@ -214,3 +214,23 @@ body.hs-kiosk .hs-tabs [role=tab]{min-height:56px;font-size:1.05rem}
   .hs-block,.fact,.hero{box-shadow:none;break-inside:avoid}
   .hs-disc-mini{font-size:.9rem;color:#000}
 }
+
+/* ---------- คำทำนายโดยละเอียด (fortune-ai.js) ---------- */
+.hs-reading{margin-top:16px}
+.hs-reading .rd-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px}
+.hs-reading .rd-head h3{margin:0}
+.rd-src{font-size:.78rem;padding:3px 10px;border-radius:99px;background:var(--bg);border:1px solid var(--line);color:var(--muted)}
+.rd-src.ai{background:#efeaff;border-color:#cfc4ff;color:#4b36c9}
+.rd-topics{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+.rd-topics button{min-height:44px;padding:6px 16px;border-radius:99px;border:1px solid var(--line);background:#fff;color:var(--muted);font:inherit;font-weight:500;cursor:pointer}
+.rd-topics button[aria-checked=true]{background:#674ff2;border-color:#674ff2;color:#fff}
+.rd-consent:empty{display:none}
+.rd-consent{margin:8px 0;font-size:.85rem;color:var(--muted)}
+.rd-body .fa-section{margin-top:14px}
+.rd-body .fa-section h3{font-size:1.02rem;margin:0 0 6px;color:#3b2fb0}
+.rd-body p{line-height:1.85;margin:0 0 10px}
+.rd-body .fa-note{font-size:.85rem;color:var(--muted)}
+.hs-reading[aria-busy=true] .rd-body{opacity:.55;transition:opacity .2s}
+.rd-actions{display:flex;justify-content:flex-end;margin-top:6px}
+.rd-actions .btn{min-height:44px}
+@media print{.rd-topics,.rd-actions,.rd-consent{display:none}}

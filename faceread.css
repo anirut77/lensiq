@@ -237,3 +237,30 @@ body.fr-kiosk .fr-card p,body.fr-kiosk .fr-table{font-size:1rem}
   .fr-photo{max-width:340px}
   .fr-disc-mini{font-size:.9rem;color:#000}
 }
+
+/* ---------- คำทำนายโดยละเอียด (FortuneAI) ---------- */
+.fa-topic-wrap{margin-top:12px}
+.fa-topic-l{display:block;font-size:.9rem;margin-bottom:6px}
+.fa-topics{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px;border-radius:14px;background:var(--alt)}
+.fa-topics button{min-height:44px;border:0;border-radius:10px;background:transparent;color:var(--muted);font:inherit;font-weight:500;font-size:.92rem;cursor:pointer;padding:0 4px}
+.fa-topics button[aria-checked=true]{background:#fff;color:var(--navy);box-shadow:0 2px 8px rgba(14,20,48,.1)}
+.fa-topics button:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+.fa-reading{margin:20px 0 16px;border-top:5px solid var(--gold,#c9a227)}
+.fa-reading .fa-topics{margin:10px 0 4px;max-width:520px}
+.fa-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
+.fa-head h3{margin:0}
+.fa-src{font-size:.8rem;font-weight:500;padding:4px 10px;border-radius:999px;background:var(--alt);color:var(--muted)}
+.fa-src.ai{background:#efeaff;color:#4b36c9}
+.fa-consent-wrap:not(:empty){margin:10px 0;font-size:.88rem;color:var(--muted)}
+.fa-consent-wrap input{width:20px;height:20px;margin-top:2px;flex:none}
+.fa-body{margin-top:8px}
+.fa-body .fa-section{padding:14px 0 4px;border-top:1px solid var(--line)}
+.fa-body .fa-section:first-child{border-top:0}
+.fa-body .fa-section h3{font-size:1.02rem;color:var(--navy);margin:0 0 6px}
+.fa-body p{font-size:.96rem;line-height:1.85;color:var(--text);margin:0 0 10px;max-width:72ch}
+.fa-body .fa-note{font-size:.85rem;color:var(--muted)}
+.fa-loading{color:var(--muted);font-size:.92rem}
+.fa-body[aria-busy=true] .fa-section{opacity:.55}
+.fa-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:8px}
+body.fr-kiosk .fa-body p{font-size:1.05rem}
+@media print{.fa-actions,.fa-consent-wrap,.fa-reading .fa-topics{display:none}}

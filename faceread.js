@@ -611,7 +611,91 @@
     return { hair: hair, m: m, cls: cls, el: el, palaces: pals, mountains: mt, rivers: rv, regions: reg, light: light, reading: reading };
   }
 
+  /* ================= ข้อเท็จจริงสำหรับ FortuneAI (สัญญาข้อมูลใน fortune-ai.js) =================
+     แปลงผล analyze() → facts { domain:"face", topic, subject, headline, items[], extras }
+     ความหมายแต่ละหมวดมาจาก KB.interp (หลายสำนวนต่อหัวข้อ) ส่วน evidence เติมค่าที่วัดได้จริงจาก KB.evidence
+     strength 0..1 จากค่า z (ยิ่งห่างค่ากลางยิ่งเด่น) + เพิ่มให้หมวดที่ตรงกับหัวข้อที่ผู้ใช้เลือก */
+  var TOPIC_IDS = ["overall", "love", "work", "money"];
+  var fx = function (v, d) { return typeof v === "number" && isFinite(v) ? v.toFixed(d == null ? 2 : d) : "—"; };
+  var tpl = function (s, vars) { return String(s || "").replace(/\{(\w+)\}/g, function (_, k) { return vars[k] == null ? "" : String(vars[k]); }); };
+  var plain = function (s) { return String(s || "").replace(/\s*\([^)]*\)\s*/g, " ").replace(/\s+/g, " ").trim(); };
+  /** คำบอกระดับเทียบค่ากลาง เช่น rel(1.2, "กว้าง", "แคบ") → "กว้างกว่าค่ากลาง" */
+  var rel = function (zv, hi, lo) { var a = Math.abs(zv); return a < 0.5 ? "ใกล้ค่ากลาง" : (zv > 0 ? hi : lo) + (a >= 1.5 ? "กว่าค่ากลางชัดเจน" : "กว่าค่ากลาง"); };
+  /** ตัดคำออกตัว ("ตามตำรา", "ว่ากันว่า" ...) ที่ขึ้นต้นสำนวน เพราะตัวเรียบเรียงเติมคำออกตัวให้เองอยู่แล้ว (กันซ้ำ "ว่ากันว่าว่ากันว่า") */
+  var HEDGE_RE = /^(?:ตามตำรา(?:โหงวเฮ้ง|ลายมือ(?:จีน|ญี่ปุ่น|ตะวันตก)?|จีน)?|ตามความเชื่อ(?:จีน|ไทย)?|ว่ากันว่า|เชื่อกันว่า|คนโบราณ(?:มอง|เชื่อ|ถือ)ว่า|ในศาสตร์โหงวเฮ้ง(?:นั้น)?|หมอดู(?:ลายมือ)?(?:จีน|ญี่ปุ่น|ไทย)?(?:มอง|เชื่อ)ว่า)\s*/;
+  var unhedge = function (t) { var u = String(t).replace(HEDGE_RE, ""); return u.length >= 20 && u !== t ? u.replace(/^(?:ว่า|,)\s*/, "") : t; };
+  var zStrength = function (zs, base) { var mx = 0; zs.forEach(function (v) { if (isFinite(v)) mx = Math.max(mx, Math.abs(v)); }); return clamp((base == null ? 0.32 : base) + 0.16 * mx, 0.2, 0.92); };
+  var PAL_PART = { ming: ["หว่างคิ้ว", "กว้าง", "แคบ"], caibo: ["ปลายและปีกจมูก", "อิ่ม", "เรียว"], xiongdi: ["คิ้ว", "ยาว", "สั้น"], fuqi: ["ช่วงหางตาถึงขมับ", "กว้าง", "แคบ"],
+    zinv: ["บริเวณใต้ตา", "กว้าง", "กระชับ"], jie: ["สันจมูกช่วงบน", "ยาว", "สั้น"], qianyi: ["มุมหน้าผาก", "กว้าง", "แคบ"], nupu: ["คางสองข้าง", "กว้าง", "เรียว"],
+    guanlu: ["หน้าผาก", "สูง", "ต่ำ"], tianzhai: ["ช่องระหว่างคิ้วกับตา", "กว้าง", "แคบ"], fude: ["บริเวณเหนือหางคิ้ว", "กว้าง", "แคบ"], fumu: ["ระดับคิ้วซ้าย–ขวา", "สมดุล", "ต่างกันมาก"] };
+  var MT_PART = { south: "หน้าผาก", center: "จมูก", east: "โหนกแก้มซ้ายภาพ", west: "โหนกแก้มขวาภาพ", north: "คาง" };
+  function buildFacts(R, opt) {
+    opt = opt || {};
+    var I = (KB && KB.interp) || {}, EV = (KB && KB.evidence) || {}, m = R.m, cls = R.cls, items = [];
+    var topic = TOPIC_IDS.indexOf(opt.topic) >= 0 ? opt.topic : "overall";
+    var add = function (id, group, label, evidence, strength, only) {
+      var src = I[id]; if (!src) return;
+      var meanings = {};
+      Object.keys(src).forEach(function (t) { if (!only || only.indexOf(t) >= 0) meanings[t] = src[t].map(unhedge); });
+      var tags = Object.keys(meanings); if (!tags.length) return;
+      if (topic !== "overall" && meanings[topic]) strength += 0.15;
+      items.push({ id: id, group: group, label: label, evidence: evidence || "", strength: Math.round(clamp(strength, 0.05, 1) * 100) / 100, tags: tags, meanings: meanings });
+    };
+    var Zr = function (k) { return zOf(k, m[k]); };
+    var E = KB.elements[R.el.top.id], E2 = KB.elements[R.el.second.id];
+    add("element." + R.el.top.id, "ธาตุประจำรูปหน้า", "ธาตุ" + E.th, tpl(EV.element, { lengthRatio: fx(m.lengthRatio), jawPct: fx(m.jawRatio * 100, 0) }), 0.62 + R.el.top.pct / 250);
+    if (R.el.second.pct >= 12) add("element." + R.el.second.id, "ธาตุรอง", "ธาตุรองอย่างธาตุ" + E2.th, "ธาตุรอง " + R.el.second.pct + "%", 0.22 + R.el.second.pct / 300, ["personality", "social", "work"]);
+    var Z = cls.zones;
+    add("zone." + (Z.dominant || "balanced"), "สามส่วนของใบหน้า",
+      Z.dominant ? { upper: "ใบหน้าส่วนบนเด่น", middle: "ใบหน้าส่วนกลางเด่น", lower: "ใบหน้าส่วนล่างเด่น" }[Z.dominant] : "ใบหน้าสามส่วนสมดุล",
+      tpl(EV.zone, { upper: Math.round(m.upperShare * 100), middle: Math.round(m.middleShare * 100), lower: Math.round(m.lowerShare * 100) }),
+      Z.dominant ? zStrength([Z.z[Z.dominant]], 0.36) : 0.4);
+    var F = KB.features, lab = function (f) { return plain(F[f].cats[cls[f].cat].label); };
+    add("brow." + cls.brow.cat, "คิ้ว", lab("brow"), tpl(EV.brow, { browEye: fx(m.browEye), archRel: rel(Zr("browArch"), "มาก", "น้อย") }),
+      cls.brow.cat === "balanced" ? 0.34 : zStrength([Zr("browEye"), Zr("browArch"), Zr("browRise")]));
+    if (cls.brow.note) add("brow.note." + cls.brow.note, "คิ้ว", cls.brow.note === "high" ? "คิ้วอยู่ห่างตา" : "คิ้วอยู่ใกล้ตา", tpl(EV["brow.note"], { rel: rel(Zr("browGap"), "กว้าง", "แคบ") }), zStrength([Zr("browGap")], 0.2));
+    var tz = Zr("eyeTilt");
+    add("eye." + cls.eye.cat, "ดวงตา", lab("eye"), tpl(EV.eye, { eyeAspect: fx(m.eyeAspect, 1), tiltWord: tz >= 0.5 ? "ชี้ขึ้น" : tz <= -0.5 ? "ลาดลงนุ่ม ๆ" : "อยู่ระดับเดียวกับหัวตา" }),
+      cls.eye.cat === "balanced" ? 0.34 : zStrength([Zr("eyeAspect"), tz]));
+    if (cls.eye.note !== "normal") add("eye.note." + cls.eye.note, "ดวงตา", cls.eye.note === "wide" ? "ระยะห่างระหว่างตากว้าง" : "ระยะห่างระหว่างตาชิด", tpl(EV["eye.note"], { eyeGap: fx(m.eyeGap) }), zStrength([Zr("eyeGap")], 0.2));
+    add("nose." + cls.nose.cat, "จมูก", lab("nose"), tpl(EV.nose, { lenRel: rel(Zr("noseLen"), "ยาว", "สั้น"), alarRel: rel(Zr("alarWidth"), "กว้าง", "แคบ") }),
+      cls.nose.cat === "balanced" ? 0.36 : zStrength([Zr("noseLen"), Zr("alarWidth")], 0.36));
+    add("mouth." + cls.mouth.cat, "ปาก", lab("mouth"), tpl(EV.mouth, { mouthW: fx(m.mouthW), lipRel: rel(Zr("lipTotal"), "อิ่ม", "บาง") }),
+      cls.mouth.cat === "balanced" ? 0.34 : zStrength([Zr("mouthW"), Zr("lipTotal"), Zr("mouthTilt")]));
+    add("mouth.note." + cls.mouth.note, "ปาก", cls.mouth.note === "up" ? "มุมปากยกขึ้น" : "มุมปากเรียบตรง", tpl(EV["mouth.note"], { tiltPct: fx(Math.max(0, m.mouthTilt) * 100, 0) }), zStrength([Zr("mouthTilt")], 0.18));
+    if (cls.mouth.lip !== "even") add("mouth.lip." + cls.mouth.lip, "ปาก", cls.mouth.lip === "upperFull" ? "ริมฝีปากบนอิ่ม" : "ริมฝีปากล่างอิ่มกว่าริมฝีปากบน", tpl(EV["mouth.lip"], { lipPct: fx(m.lipRatio * 100, 0) }), 0.26);
+    var P = KB.points;
+    add("yintang." + cls.yintang.cat, "อิ้นตึ๊ง", P.yintang.cats[cls.yintang.cat].label, tpl(EV.yintang, { interBrow: fx(m.interBrow) }), zStrength([Zr("interBrow")], 0.3));
+    add("philtrum." + cls.philtrum.cat, "ร่องใต้จมูก", P.philtrum.cats[cls.philtrum.cat].label, tpl(EV.philtrum, { philPct: fx(m.philtrumShare * 100, 0) }), zStrength([Zr("philtrumShare")], 0.24));
+    add("chin." + cls.chin.cat, "คาง", P.chin.cats[cls.chin.cat].label, tpl(EV.chin, { chinAngle: fx(m.chinAngle, 0), widthRel: rel(Zr("chinWidth"), "กว้าง", "แคบ") }), zStrength([Zr("chinWidth"), Zr("chinAngle")], 0.3));
+    (R.palaces || []).forEach(function (p) {
+      if (p.estimated) return;
+      var K = KB.palaces[p.id], pp = PAL_PART[p.id] || [K.th, "เด่น", "กระชับ"];
+      add("palace." + p.id + "." + p.level, "สิบสองวัง", K.th, tpl(EV.palace, { part: pp[0], rel: rel(p.z, pp[1], pp[2]) }), clamp(0.24 + 0.16 * Math.abs(p.z), 0.2, 0.85));
+    });
+    if (R.mountains) {
+      var lead = R.mountains.list.filter(function (x) { return x.id === R.mountains.lead; })[0];
+      var mtTh = KB.mountains.items[R.mountains.lead].th.split(" · ");
+      add("mountain.lead." + R.mountains.lead, "ห้าภูเขา", mtTh[0] + "บริเวณ" + (mtTh[1] || "").replace(/\s*\(.*$/, ""), tpl(EV["mountain.lead"], { part: MT_PART[R.mountains.lead], score: R.mountains.score }), zStrength([lead ? lead.z : 0], 0.34));
+      add("mountain.level." + R.mountains.level, "ห้าภูเขา", "ความสมดุลของห้าภูเขา", tpl(EV["mountain.level"], { score: R.mountains.score }), 0.3);
+    }
+    if (R.rivers) add("river.level." + R.rivers.level, "สี่สายน้ำ", "ความกลมกลืนของสี่สายน้ำ", tpl(EV["river.level"], { score: R.rivers.score }), 0.28);
+    var aa = ageArea(opt.age);
+    if (aa) add("age." + aa.from, "แผนที่อายุ", "ช่วงวัยที่ตรงกับตำแหน่ง" + aa.th, tpl(EV.age, { age: opt.age, th: aa.th }), 0.62);
+    var tops = topPalaces(R.palaces || [], 1);
+    var subject = {}, nick = String(opt.nickname || "").replace(/[<>{}]/g, "").trim().slice(0, 24);
+    if (nick) subject.nickname = nick;
+    if (aa) subject.ageBand = "ช่วงวัย " + aa.from + (aa.to >= 120 ? "+ ปี" : "–" + aa.to + " ปี");
+    return {
+      domain: "face", topic: topic, subject: subject,
+      headline: "ธาตุ" + E.th + " " + R.el.top.pct + "% เสริมด้วยธาตุ" + E2.th,
+      items: items,
+      extras: { luckyColors: E.colors.map(function (c) { return c.name.replace(/\s*\(.*\)/, ""); }), tips: [E.tip].concat(tops.length ? [KB.palaces[tops[0].id].tip] : []) }
+    };
+  }
+
   var FRCore = {
+    buildFacts: buildFacts, TOPIC_IDS: TOPIC_IDS,
     dist: dist, angleAt: angleAt, frame: frame, toAligned: toAligned, toImage: toImage, align: align, headPose: headPose,
     averageLandmarks: averageLandmarks, estimateHairline: estimateHairline, measure: measure, classify: classify,
     elementScores: elementScores, buildReading: buildReading, ageArea: ageArea, quality: quality, lightStats: lightStats,
@@ -866,15 +950,90 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var img = cv.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, cv.width, cv.height);
     var ageV = parseInt($("#frAge").value, 10);
     var R = FR.analyze(pts, img, ageV >= 1 && ageV <= 120 ? ageV : null);
-    current = { cv: cv, pts: pts, box: box, R: R };
+    current = { cv: cv, pts: pts, box: box, R: R, age: ageV >= 1 && ageV <= 120 ? ageV : null, narr: null };
     drawResultImage(resCanvas, cv, pts, R);
     renderReading(R);
+    narrate(false);
     if (prefs.stats) { lsSet(STATS_KEY, FR.addStat(lsGet(STATS_KEY, null), R.el.top.id)); renderStats(); }
     resultSec.hidden = false;
     $("#frCardImg").hidden = true;
     resultSec.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
     $("#frResTitle").focus({ preventScroll: true });
     touch();
+  }
+
+  /* ---------- คำทำนายโดยละเอียด (FortuneAI: เรียบเรียงในเครื่อง หรือ Claude AI เมื่อเซิร์ฟเวอร์เปิดและผู้ใช้ยินยอม) ---------- */
+  var FA = window.FortuneAI || null;
+  var TOPICS = [["overall", "ภาพรวม"], ["love", "ความรัก"], ["work", "การงาน"], ["money", "การเงิน"]];
+  var topic = "overall", narrToken = 0;
+  function renderTopics() {
+    document.querySelectorAll("[data-topics]").forEach(function (box) {
+      box.innerHTML = TOPICS.map(function (t) { return '<button type="button" role="radio" data-topic="' + t[0] + '" aria-checked="' + (t[0] === topic) + '">' + t[1] + "</button>"; }).join("");
+    });
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-topic]"); if (!b) return;
+    if (b.dataset.topic === topic) return;
+    topic = b.dataset.topic; renderTopics(); touch();
+    if (current) narrate(false);
+  });
+  renderTopics();
+  /** แสดงผลแบบย่อเมื่อ fortune-ai.js ไม่มี renderSections (เช่น โหลดไม่สำเร็จ) */
+  function renderPlain(box, res) {
+    box.innerHTML = (res.sections || []).map(function (sc) {
+      return '<section class="fa-section"><h3>' + esc(sc.title || "") + "</h3>" + (sc.paragraphs || []).map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("") + "</section>";
+    }).join("");
+  }
+  /** ตัวสำรองเมื่อไม่มี FortuneAI เลย: ใช้ข้อความเดิมจาก buildReading */
+  function legacyResult(R) {
+    var rd = R.reading;
+    return { source: "local", sections: [{ id: "overview", title: "ภาพรวม", paragraphs: [rd.overview] }, { id: "work", title: "การงาน", paragraphs: [rd.work] },
+      { id: "money", title: "การเงิน", paragraphs: [rd.money] }, { id: "love", title: "ความรัก & มิตรภาพ", paragraphs: [rd.love] }] };
+  }
+  function narrate(again) {
+    if (!current) return;
+    var my = ++narrToken, box = $("#frNarr"), btn = $("#frRegen"), R = current.R;
+    var facts = FR.buildFacts(R, { topic: topic, nickname: $("#frNick").value, age: current.age });
+    current.facts = facts;
+    var useAI = !!(FA && FA.hasConsent && FA.hasConsent());
+    box.setAttribute("aria-busy", "true"); btn.disabled = true;
+    if (!box.firstChild || useAI) box.innerHTML = '<p class="fa-loading">' + (useAI ? "กำลังให้ AI เรียบเรียงคำทำนาย..." : "กำลังเรียบเรียงคำทำนาย...") + "</p>";
+    var p = !FA ? Promise.resolve(legacyResult(R)) : again && FA.regenerate ? FA.regenerate(facts, { useAI: useAI }) : FA.interpret(facts, { useAI: useAI });
+    p.catch(function (e) { console.error(e); return FA && FA.compose ? FA.compose(facts) : legacyResult(R); }).then(function (res) {
+      if (my !== narrToken || !current) return;
+      current.narr = res;
+      if (FA && FA.renderSections) FA.renderSections(box, res, { aiBadge: false }); else renderPlain(box, res);
+      var src = $("#frSrc"), ai = res.source === "ai";
+      src.textContent = ai ? "เรียบเรียงโดย Claude AI" : "เรียบเรียงในเครื่อง";
+      src.classList.toggle("ai", ai);
+      box.removeAttribute("aria-busy"); btn.disabled = false;
+    });
+  }
+  $("#frRegen").addEventListener("click", function () { touch(); narrate(true); });
+  $("#frNick").addEventListener("change", function () { if (current) narrate(false); });
+  if (FA && FA.consentControl) FA.consentControl($("#frConsent"), { onChange: function () { if (current) narrate(false); } }).catch(function () { /* ไม่มีเซิร์ฟเวอร์ AI — ใช้ในเครื่อง */ });
+
+  /** ดึง 2–3 ประโยคสั้น (≤ max ตัวอักษร) จากคำทำนายที่เรียบเรียงแล้ว สำหรับการ์ดแชร์
+      หาสำนวนจาก KB ที่ปรากฏจริงในภาพรวม/หัวข้อแรก ๆ ตามลำดับที่อ่าน แล้วตัดที่ช่องว่างระหว่างวลีให้สั้นลง */
+  var CARD_HEDGE = /^(?:ตามตำรา(?:แล้ว)?|ตามความเชื่อ(?:แล้ว)?|ในความเชื่อ|ว่ากันว่า|เชื่อกันว่า|ดูเหมือนว่า|มีแนวโน้มว่า)\s*(?:บอกว่า|หมายถึง|หมายความว่า|มักตีความว่า)?\s*/;
+  function shortClause(m, max) {
+    var seg = String(m).replace(CARD_HEDGE, "").split(/\s+/).filter(Boolean), c = "";
+    for (var i = 0; i < seg.length && c.length < 20; i++) { var nx = c ? c + " " + seg[i] : seg[i]; if (nx.length > max) break; c = nx; }
+    return c.length >= 20 && !/[0-9()%]/.test(c) && !/(?:แบบนี้|อย่างนี้|ทรงนี้|ของคุณ|ว่า|ที่|และ|หรือ|เช่น|ค่อย ๆ|กับ|ให้)$/.test(c) ? c : "";
+  }
+  function keySentences(res, n, max, facts) {
+    var secs = (res && res.sections) || [], out = [];
+    var text = secs.filter(function (x) { return x.id !== "advice"; }).slice(0, 4).map(function (x) { return (x.paragraphs || []).join(" "); }).join(" ");
+    var found = [];
+    ((facts && facts.items) || []).forEach(function (it) {
+      Object.keys(it.meanings || {}).forEach(function (k) {
+        it.meanings[k].forEach(function (m) { var c = String(m).trim().replace(/[.。\s]+$/, ""), at = text.indexOf(c); if (at >= 0) found.push({ at: at, m: c }); });
+      });
+    });
+    found.sort(function (a, b) { return a.at - b.at; });
+    found.forEach(function (f) { if (out.length >= n) return; var c = shortClause(f.m, max); if (c && out.indexOf(c) < 0) out.push(c); });
+    if (out.length < 2 && res && res.source === "ai") secs.slice(0, 2).forEach(function (x) { (x.paragraphs || []).forEach(function (p) { if (out.length < n) { var c = shortClause(p, max); if (c && out.indexOf(c) < 0) out.push(c); } }); });
+    return out;
   }
 
   /** ภาพผล: ครอปรอบใบหน้า แล้วซ้อนภาพตามโหมด
@@ -1044,11 +1203,6 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       return '<div class="elbar"><span>' + esc(e.th) + '</span><i style="--w:' + r.pct + '%;--c:' + e.color + '"></i><b>' + r.pct + "%</b></div>";
     }).join("");
     $("#frElTraits").innerHTML = E.traits.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("");
-    $("#frOverview").textContent = rd.overview;
-    $("#frWork").textContent = rd.work;
-    $("#frMoney").textContent = rd.money;
-    $("#frLove").textContent = rd.love;
-    $("#frNotes").innerHTML = rd.notes.map(function (n) { return "<li>" + esc(n) + "</li>"; }).join("");
 
     // สิบสองวัง
     var PK = KB.palaces, tops = FR.topPalaces(R.palaces, 3);
@@ -1234,12 +1388,19 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     c.font = "700 92px " + F; c.fillText("ธาตุ" + E.th, W / 2, 770);
     c.font = "400 34px " + F; c.fillStyle = "#c9d0ea";
     c.fillText(R.el.top.pct + "% · ธาตุรอง" + rd.second.th + " " + R.el.second.pct + "%", W / 2, 850);
-    // 3 จุดเด่น
-    c.font = "500 38px " + F;
-    var y = 935;
-    E.traits.slice(0, 3).forEach(function (t) {
-      c.fillStyle = "rgba(255,255,255,.08)"; c.beginPath(); if (c.roundRect) c.roundRect(150, y - 36, W - 300, 72, 36); else c.rect(150, y - 36, W - 300, 72); c.fill();
-      c.fillStyle = "#fff"; c.fillText(t, W / 2, y + 2); y += 86;
+    // 2–3 ประโยคเด่นจากคำทำนายที่เรียบเรียงแล้ว (สำรอง: จุดเด่นของธาตุ)
+    var keys = keySentences(current.narr, 5, 60, current.facts), drawn = 0;
+    if (!keys.length) keys = E.traits.slice(0, 3);
+    c.font = "400 33px " + F;
+    var y = 912;
+    keys.forEach(function (t) {
+      var ls = wrapTh(c, t, W - 260); if (ls.length > 2) { ls = ls.slice(0, 2); ls[1] = ls[1].replace(/.$/, "…"); }
+      var h = ls.length * 44 + 26;
+      if (drawn >= 3 || y + h > 1158) return;
+      drawn++;
+      c.fillStyle = "rgba(255,255,255,.08)"; c.beginPath(); if (c.roundRect) c.roundRect(110, y, W - 220, h, 26); else c.rect(110, y, W - 220, h); c.fill();
+      c.fillStyle = "#fff"; ls.forEach(function (l, i) { c.fillText(l, W / 2, y + 35 + i * 44); });
+      y += h + 14;
     });
     // วังเด่น (สิบสองวัง)
     if (rd.topPalaces && rd.topPalaces.length) {
@@ -1296,6 +1457,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var ctx = resCanvas.getContext("2d"); ctx.clearRect(0, 0, resCanvas.width, resCanvas.height);
     $("#frCardImg").hidden = true; if (cardUrl) { URL.revokeObjectURL(cardUrl); cardUrl = null; }
     if (document.body.classList.contains("fr-kiosk")) $("#frAge").value = "";
+    $("#frNick").value = ""; narrToken++; $("#frNarr").innerHTML = ""; // ชื่อเล่นไม่เก็บ ล้างทุกครั้งที่เริ่มคนถัดไป
     $("#frStage").scrollIntoView({ block: "start" });
     engine(ready ? "พร้อมอ่านคนถัดไป" : "พร้อมใช้งาน", "ok");
   }
@@ -1351,5 +1513,5 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   if (!window.isSecureContext) showHttpsNote($("#frEngine"));
   engine("กำลังโหลดโมเดลวิเคราะห์ใบหน้า...");
   loadModels().catch(function () {});
-  window.__fr = { get current() { return current; }, makeCard: makeCard, reset: reset }; // ใช้ทดสอบ
+  window.__fr = { get current() { return current; }, makeCard: makeCard, reset: reset, narrate: narrate, keySentences: keySentences }; // ใช้ทดสอบ
 })();

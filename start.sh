@@ -2,6 +2,8 @@
 # เปิดเว็บ LENSIQ
 #   ./start.sh          ใช้บนเครื่องนี้       -> http://localhost:8000
 #   ./start.sh mobile   ให้มือถือ/แท็บเล็ตในวง Wi-Fi เดียวกันใช้กล้องได้ (HTTPS) -> https://<IP เครื่องนี้>:8443
+# เปิด "ดูดวง AI" ด้วย Claude (ไม่บังคับ): export ANTHROPIC_API_KEY=sk-ant-... ก่อนรัน  (รายละเอียด AI-SETUP.md)
+#   ถ้า .venv มีอยู่แล้วก่อนเพิ่มฟีเจอร์นี้ ให้รัน .venv/bin/pip install -r requirements.txt หนึ่งครั้ง
 cd "$(dirname "$0")"
 [ -d .venv ] || { python3 -m venv .venv && .venv/bin/pip install -q -r requirements.txt; }
 pkill -f "server.py" 2>/dev/null

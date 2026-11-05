@@ -1,0 +1,570 @@
+/* numbers.js — เลขมงคล AI (LENSIQ)
+ * ส่วนที่ 1: NMCore — ฟังก์ชันคำนวณล้วน (ทดสอบด้วย Node ได้ ไม่แตะ DOM/storage)
+ * ส่วนที่ 2: UI — ทำงานเฉพาะในเบราว์เซอร์
+ * ความเป็นส่วนตัว: คำนวณในเบราว์เซอร์ ไม่ส่งและไม่บันทึกตัวเลข/ชื่อ สถิติเก็บเพียงจำนวนครั้งและประเภท
+ */
+(function (root) {
+  "use strict";
+  const KB = (typeof module !== "undefined" && module.exports) ? require("./numbers-kb.js") : root.NM_KB;
+
+  /* ======================= NMCore ======================= */
+  const onlyDigits = s => String(s == null ? "" : s).replace(/[๐-๙]/g, c => String(c.charCodeAt(0) - 0x0E50)).replace(/\D/g, "");
+  const isThaiMobile = d => /^0[689]\d{8}$/.test(d);
+  const pairKey = p => (p[0] <= p[1] ? p[0] + p[1] : p[1] + p[0]);
+  const reduceDigit = n => { n = Math.abs(n); while (n > 9) n = String(n).split("").reduce((a, c) => a + +c, 0); return n; };
+  const sumDigits = d => String(d).split("").reduce((a, c) => a + (+c || 0), 0);
+
+  function pairInfo(p) {
+    const k = pairKey(p), e = KB.pairs[k];
+    const g = KB.grades[e[0]], a = KB.digits[+p[0]], b = KB.digits[+p[1]];
+    const order = p[0] === p[1] ? "เลขเบิ้ล เน้นพลัง" + a.q + "เป็นสองเท่า" : "เลข " + p[0] + " นำ: เริ่มจาก" + a.q + " แล้วส่งต่อเป็น" + b.q;
+    return { pair: p, key: k, grade: e[0], gradeTh: g.th, pts: g.pts, care: e[0] === "c", tags: e[1].slice(), name: e[2], phrases: e[3].slice(), order };
+  }
+
+  /** คู่เลขที่อยู่ติดกัน: mode "last7" = 7 ตัวท้าย (6 คู่), "all" = ทุกคู่ ตำแหน่งนับจากหลักแรกของเลขเต็ม (เริ่ม 1) */
+  function extractPairs(d, mode) {
+    d = String(d);
+    const start = mode === "last7" && d.length > 7 ? d.length - 7 : 0;
+    const out = [];
+    for (let i = start; i < d.length - 1; i++) out.push({ pair: d[i] + d[i + 1], pos: [i + 1, i + 2] });
+    const m = out.length;
+    out.forEach((p, k) => { p.weight = k === m - 1 ? 1.6 : k === m - 2 ? 1.3 : 1; p.emph = k === m - 1 ? "คู่ท้ายสุด" : k === m - 2 ? "คู่รองท้าย" : ""; });
+    return { start: start + 1, pairs: out };
+  }
+
+  const ROOT_GRADE = { 0: "c", 1: "n", 2: "n", 3: "n", 4: "n", 5: "g", 6: "g", 7: "n", 8: "n", 9: "g" };
+  /** ความหมายผลรวม 1–99 (เกิน 99 จะทอนเป็น 2 หลักก่อน) kind: phone | plate | name | house | account */
+  function sumInfo(s, kind) {
+    let sum = s;
+    while (sum > 99) sum = sumDigits(sum);
+    const r = reduceDigit(sum), rd = KB.digits[r];
+    const notable = (KB.sumNotable[kind] || KB.sumNotable.phone).indexOf(sum) >= 0;
+    const plateCare = kind === "plate" && KB.plateCareSums.indexOf(sum) >= 0;
+    let grade, phrases, name, tags;
+    if (sum < 10) {
+      grade = ROOT_GRADE[sum]; phrases = rd.m.slice(); name = "เลข " + sum + " · " + rd.planet; tags = ["personality"];
+    } else {
+      const p = pairInfo(String(sum));
+      grade = p.grade; name = p.name; tags = p.tags;
+      phrases = p.phrases.map((t, i) => KB.sumIntro[i % KB.sumIntro.length].replace(/\{s\}/g, sum) + " " + t);
+    }
+    if (notable && grade !== "G") grade = grade === "c" ? "n" : "G";
+    if (plateCare && grade !== "c") grade = "n";
+    const rootLine = "ทอนเป็นเลขโดดได้ " + r + " (" + rd.planet + ") หมายถึง" + rd.q;
+    const extra = plateCare ? "ตามบางตำราผลรวมนี้ชวนให้ขับขี่อย่างใจเย็นและตรวจเช็กรถสม่ำเสมอ ซึ่งเป็นนิสัยดีของผู้ขับขี่ทุกคนอยู่แล้ว" : "";
+    return { sum, raw: s, root: r, grade, gradeTh: KB.grades[grade].th, pts: KB.grades[grade].pts, notable, name, tags, phrases, rootLine, extra };
+  }
+
+  /** รูปแบบตัวเลขที่จดจำง่าย (ในช่วงที่วิเคราะห์) offset = ตำแหน่งเริ่มของช่วงในเลขเต็ม */
+  function detectPatterns(d, offset) {
+    d = String(d); offset = offset || 1;
+    const out = [], P = (i, n) => "ตำแหน่งที่ " + (offset + i) + "–" + (offset + i + n - 1);
+    for (let i = 0; i < d.length;) { let j = i; while (j + 1 < d.length && d[j + 1] === d[i]) j++; const n = j - i + 1; if (n >= 3) out.push({ id: "run", label: "เลขซ้ำ " + n + " ตัว (" + d.slice(i, j + 1) + ")", evidence: P(i, n), digit: +d[i], bonus: 12 }); i = j + 1; }
+    for (const step of [1, -1]) for (let i = 0; i < d.length;) { let j = i; while (j + 1 < d.length && +d[j + 1] - +d[j] === step) j++; const n = j - i + 1; if (n >= 3) out.push({ id: step > 0 ? "up" : "down", label: (step > 0 ? "เลขเรียงขึ้น " : "เลขเรียงลง ") + d.slice(i, j + 1), evidence: P(i, n), bonus: 10 }); i = j > i ? j : i + 1; }
+    let best = null;
+    for (let n = Math.min(d.length, 7); n >= 4 && !best; n--) for (let i = 0; i + n <= d.length; i++) { const s = d.slice(i, i + n); if (s === s.split("").reverse().join("") && new Set(s).size > 1) { best = { id: "mirror", label: "เลขกระจก " + s, evidence: P(i, n), bonus: 12 }; break; } }
+    if (best) out.push(best);
+    for (let i = 0; i + 4 <= d.length; i++) { const s = d.slice(i, i + 4); if (s[0] === s[2] && s[1] === s[3] && s[0] !== s[1]) { out.push({ id: "abab", label: "คู่ซ้ำสลับ " + s, evidence: P(i, 4), bonus: 10 }); break; } }
+    if (d.length >= 4) { const t = d.slice(-4); if (t[0] === t[1] && t[2] === t[3] && t[0] !== t[2]) out.push({ id: "aabb", label: "ท้ายเบิ้ลคู่ " + t, evidence: P(d.length - 4, 4), bonus: 8 }); }
+    if (d.indexOf("0") < 0 && d.length >= 4) out.push({ id: "nozero", label: "ไม่มีเลข 0 ในช่วงที่อ่าน", evidence: "ตำราส่วนใหญ่ถือว่าอ่านพลังได้ต่อเนื่อง", bonus: 8 });
+    return out;
+  }
+
+  function weightedPairs(list) {
+    if (!list.length) return { score: 0, items: [] };
+    let s = 0, w = 0;
+    const items = list.map(p => { const i = Object.assign({}, pairInfo(p.pair), p); s += i.pts * p.weight; w += p.weight; return i; });
+    return { score: Math.round(s / w), items };
+  }
+  const patScore = pats => Math.min(100, 50 + pats.reduce((a, p) => a + p.bonus, 0));
+
+  /** วิเคราะห์ชุดตัวเลข (เบอร์ บ้าน บัญชี) */
+  function analyzeDigits(d, opts) {
+    opts = opts || {};
+    const kind = opts.kind || "phone", mode = opts.mode || (kind === "phone" ? "last7" : "all");
+    const ex = extractPairs(d, mode), seg = d.slice(ex.start - 1);
+    const wp = weightedPairs(ex.pairs);
+    const sum = sumInfo(sumDigits(d), kind);
+    const patterns = detectPatterns(seg, ex.start);
+    const ps = patScore(patterns);
+    const W = { pairs: 0.65, sum: 0.2, pattern: 0.15 };
+    const score = Math.round(wp.score * W.pairs + sum.pts * W.sum + ps * W.pattern);
+    return {
+      kind, mode, digits: d, segStart: ex.start, pairs: wp.items, sum, patterns, score,
+      breakdown: [
+        { id: "pairs", th: "คู่เลข (" + wp.items.length + " คู่ ถ่วงน้ำหนักคู่ท้าย)", w: W.pairs, v: wp.score },
+        { id: "sum", th: "ผลรวม " + sum.sum + " (" + sum.gradeTh + ")", w: W.sum, v: sum.pts },
+        { id: "pattern", th: "รูปแบบจำง่าย (" + patterns.length + " แบบ)", w: W.pattern, v: ps },
+      ],
+    };
+  }
+
+  function analyzePhone(input, mode) {
+    const d = onlyDigits(input);
+    if (!d) return { error: "กรุณากรอกเบอร์มือถือ" };
+    if (!isThaiMobile(d)) return { error: "เบอร์มือถือไทยต้องมี 10 หลัก ขึ้นต้นด้วย 06 08 หรือ 09" };
+    return Object.assign(analyzeDigits(d, { kind: "phone", mode: mode === "all" ? "all" : "last7" }), { display: formatPhone(d), masked: maskPhone(d) });
+  }
+  function analyzeHouse(input) {
+    const raw = String(input || "").trim(), d = onlyDigits(raw);
+    if (d.length < 1 || d.length > 10) return { error: "กรอกบ้านเลขที่หรือเลขห้อง 1–10 หลัก" };
+    const r = d.length === 1 ? { kind: "house", mode: "all", digits: d, segStart: 1, pairs: [], sum: sumInfo(+d, "house"), patterns: [], score: 0, breakdown: [] } : analyzeDigits(d, { kind: "house", mode: "all" });
+    if (d.length === 1) { r.score = Math.round(r.sum.pts); r.breakdown = [{ id: "sum", th: "เลขโดด " + d, w: 1, v: r.sum.pts }]; }
+    return Object.assign(r, { display: raw.replace(/[^\d/\-]/g, "").slice(0, 16) || d, masked: maskHouse(raw) });
+  }
+  function analyzeAccount(input) {
+    const d = onlyDigits(input);
+    if (d.length < 4 || d.length > 7) return { error: "กรอกเฉพาะ 4–7 ตัวท้ายของเลขบัญชี (ไม่ต้องกรอกเลขเต็ม)" };
+    return Object.assign(analyzeDigits(d, { kind: "account", mode: "all" }), { display: d, masked: maskAccount(d) });
+  }
+
+  /* ---------- ตัวอักษรไทย ---------- */
+  const LV = {};
+  Object.keys(KB.letterValues).forEach(v => { for (const ch of KB.letterValues[v]) LV[ch] = +v; });
+  const letterValue = ch => LV[ch] || 0;
+  function weekdayById(id) { return KB.weekdays.find(w => w.id === id) || null; }
+  function kalaFound(text, wd) { if (!wd) return []; const out = []; for (const ch of text) if (wd.kala.indexOf(ch) >= 0 && out.indexOf(ch) < 0) out.push(ch); return out; }
+
+  function analyzeName(input, weekdayId) {
+    const name = String(input || "").normalize("NFC").replace(/\s+/g, "");
+    if (!/[ก-ฮ]/.test(name)) return { error: "กรอกชื่อเป็นภาษาไทยอย่างน้อย 1 ตัวอักษร" };
+    const chars = [], skipped = [];
+    let total = 0;
+    for (const ch of name) { const v = letterValue(ch); if (v) { chars.push({ ch, v }); total += v; } else skipped.push(ch); }
+    const sum = sumInfo(total, "name"), wd = weekdayById(weekdayId), kala = kalaFound(name, wd);
+    const kalaPts = !wd ? null : kala.length ? 60 : 100;
+    const score = kalaPts == null ? sum.pts : Math.round(sum.pts * 0.75 + kalaPts * 0.25);
+    return {
+      kind: "name", total, chars, skipped, sum, weekday: wd, kala, score, pairs: [], patterns: [], masked: "ชื่อ " + chars.length + " ตัวอักษร",
+      breakdown: [{ id: "sum", th: "ผลรวมค่าอักษร " + total + " (" + sum.gradeTh + ")", w: kalaPts == null ? 1 : 0.75, v: sum.pts }].concat(kalaPts == null ? [] : [{ id: "kala", th: kala.length ? "มีอักษรที่บางตำราให้ใส่ใจ (" + kala.join(" ") + ")" : "ไม่พบอักษรกาลกิณีของ" + wd.th, w: 0.25, v: kalaPts }]),
+    };
+  }
+
+  /** ทะเบียนรถ เช่น "1กข 2345" "กข-2345" (ไม่ต้องใส่จังหวัด) */
+  function analyzePlate(input, weekdayId) {
+    const raw = String(input || "").normalize("NFC").replace(/[๐-๙]/g, c => String(c.charCodeAt(0) - 0x0E50));
+    const m = raw.replace(/[\s\-.]/g, "").match(/^(\d?)([ก-ฮ]{1,3})(\d{1,4})$/);
+    if (!m) return { error: "รูปแบบทะเบียนเช่น 1กข 2345 หรือ กข 1234 (ตัวอักษร 1–3 ตัว ตามด้วยเลข 1–4 หลัก)" };
+    const lead = m[1], letters = m[2], num = m[3];
+    const letterVals = Array.from(letters).map(ch => ({ ch, v: letterValue(ch) }));
+    const total = sumDigits(lead + num) + letterVals.reduce((a, l) => a + l.v, 0);
+    const sum = sumInfo(total, "plate");
+    const ex = extractPairs(num, "all");
+    const ex2 = ex.pairs.map(p => Object.assign({}, p, { pos: p.pos.map(x => x + lead.length + letters.length) }));
+    const wp = weightedPairs(ex2);
+    const wd = weekdayById(weekdayId), kala = kalaFound(letters, wd);
+    const patterns = detectPatterns(num, lead.length + letters.length + 1).filter(p => p.id !== "nozero" || num.length >= 4);
+    const parts = [];
+    if (wp.items.length) parts.push({ id: "pairs", th: "คู่เลขบนป้าย (" + wp.items.length + " คู่)", w: 0.45, v: wp.score });
+    parts.push({ id: "sum", th: "ผลรวมทั้งป้าย " + sum.sum + " (" + sum.gradeTh + ")", w: wp.items.length ? 0.4 : 0.85, v: sum.pts });
+    parts.push(wd ? { id: "kala", th: kala.length ? "อักษรที่บางตำราให้ใส่ใจ (" + kala.join(" ") + ")" : "ไม่พบอักษรกาลกิณีของ" + wd.th, w: 0.15, v: kala.length ? 60 : 100 }
+      : { id: "pattern", th: "รูปแบบจำง่าย (" + patterns.length + " แบบ)", w: 0.15, v: patScore(patterns) });
+    const score = Math.round(parts.reduce((a, p) => a + p.w * p.v, 0));
+    return { kind: "plate", lead, letters, num, letterVals, total, sum, pairs: wp.items, patterns, weekday: wd, kala, score, breakdown: parts, display: (lead + letters + " " + num).trim(), masked: maskPlate(lead, letters, num) };
+  }
+
+  /* ---------- เลขนำโชควันนี้ (สนุก ๆ) ---------- */
+  function luckyToday(weekdayId, date) {
+    const wd = weekdayById(weekdayId) || KB.weekdays[0];
+    date = date || new Date();
+    const dayIdx = date.getDay(), today = KB.weekdays[[0, 1, 2, 3, 5, 6, 7][dayIdx]];
+    let seed = date.getFullYear() * 400 + (date.getMonth() + 1) * 32 + date.getDate() + wd.num * 7;
+    const r = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+    const fav = Object.keys(KB.pairs).filter(k => KB.pairs[k][0] === "G");
+    const mine = fav.filter(k => k.indexOf(String(wd.num)) >= 0);
+    const pool = mine.length ? mine : fav;
+    let pair = pool[Math.floor(r() * pool.length)];
+    if (r() < 0.5) pair = pair[1] + pair[0];
+    const extra = 1 + Math.floor(r() * 9);
+    const nums = [String(wd.num), String(reduceDigit(wd.power)), String(today.num === wd.num ? extra : today.num)].filter((v, i, a) => a.indexOf(v) === i);
+    return { weekday: wd, today, numbers: nums, pair, pairInfo: pairInfo(pair), color: wd.color,
+      notes: ["เลข " + wd.num + " คือเลขประจำ" + wd.th, "เลข " + reduceDigit(wd.power) + " มาจากกำลังวัน (" + wd.power + ") ทอนเป็นเลขโดด", today.num === wd.num ? "วันนี้ตรงกับวันเกิดของคุณ จึงเพิ่มเลขประจำวันนี้ " + extra + " ให้อีกตัว" : "วันนี้เป็น" + today.th + " เลขประจำวันคือ " + today.num] };
+  }
+
+  /* ---------- ปิดบังตัวเลขบนการ์ดแชร์ ---------- */
+  function maskPhone(d) { d = onlyDigits(d); return d.length < 8 ? "x".repeat(Math.max(0, d.length - 2)) + d.slice(-2) : d.slice(0, 2) + "x-xxx-" + d.slice(-4); }
+  function formatPhone(d) { return d.length === 10 ? d.slice(0, 3) + "-" + d.slice(3, 6) + "-" + d.slice(6) : d; }
+  function maskAccount(d) { d = onlyDigits(d); return "xxx-" + d.slice(-4); }
+  function maskHouse(s) { const d = onlyDigits(s); return d.length <= 2 ? "เลขที่ x" + d.slice(-1) : "เลขที่ " + "x".repeat(d.length - 2) + d.slice(-2); }
+  function maskPlate(lead, letters, num) { return (lead ? "x" : "") + letters + " " + "x".repeat(Math.max(0, num.length - 2)) + num.slice(-2); }
+
+  /* ---------- เปรียบเทียบหลายเบอร์ ---------- */
+  function compare(list, mode) {
+    return (list || []).map(s => String(s || "").trim()).filter(Boolean).slice(0, 5).map((s, i) => {
+      const r = analyzePhone(s, mode);
+      if (r.error) return { idx: i, input: s, error: r.error };
+      return { idx: i, display: r.display, score: r.score, sum: r.sum.sum, best: r.pairs.filter(p => p.grade === "G").map(p => p.pair), care: r.pairs.filter(p => p.care).map(p => p.pair), last: r.pairs[r.pairs.length - 1], r };
+    }).sort((a, b) => (b.score || -1) - (a.score || -1));
+  }
+
+  /* ---------- นับว่าตรงเป้าหมายแค่ไหน ---------- */
+  function goalMatch(r) {
+    const have = (r.pairs || []).map(p => p.pair);
+    return Object.keys(KB.goals).map(k => { const g = KB.goals[k], hit = have.filter((p, i) => g.pairs.indexOf(p) >= 0 && have.indexOf(p) === i); return { id: k, th: g.th, hit, tips: g.tips }; });
+  }
+
+  /* ---------- facts สำหรับ fortune-ai.js ----------
+     privacy: ใส่เฉพาะคู่/ผลรวม/รูปแบบที่เด่น ไม่ใส่เลขเต็ม; opts.forAI = true จะตัดตำแหน่งออกด้วย */
+  const KIND_TH = { phone: "เบอร์มือถือ", plate: "ทะเบียนรถ", house: "บ้านเลขที่/เลขห้อง", account: "เลขบัญชี (ตัวท้าย)", name: "ชื่อ" };
+  function buildFacts(r, topic, opts) {
+    opts = opts || {};
+    const items = [], seen = {};
+    (r.pairs || []).forEach(p => {
+      if (seen[p.pair]) { seen[p.pair].evidence += (opts.forAI ? "" : ", " + p.pos.join("–")); seen[p.pair].strength = Math.min(1, seen[p.pair].strength + 0.08); return; }
+      const meanings = {};
+      p.tags.forEach(t => { meanings[t] = p.phrases.filter((x, i) => !(p.care && i === 1)); });
+      if (p.care) meanings.advice = [p.phrases[1], "คู่ " + p.pair + ": " + p.phrases[1]];
+      const it = {
+        id: "pair." + p.pair, group: "คู่เลข", label: "คู่ " + p.pair + " · " + p.name,
+        evidence: "คู่ " + p.pair + (opts.forAI ? "" : " ตำแหน่งที่ " + p.pos.join("–")) + (p.emph ? " · " + p.emph : ""),
+        strength: +(p.pts / 100 * (0.6 + 0.25 * p.weight)).toFixed(3), tags: p.tags.concat(p.care ? ["advice"] : []), meanings,
+      };
+      seen[p.pair] = it; items.push(it);
+    });
+    items.sort((a, b) => b.strength - a.strength);
+    const top = items.filter(i => i.tags.indexOf("advice") < 0).slice(0, 5).concat(items.filter(i => i.tags.indexOf("advice") >= 0).slice(0, 2));
+    if (top[0]) top[0].meanings.overview = top[0].meanings[top[0].tags[0]].map(s => "จุดเด่นที่สุดคือ" + top[0].label.replace(/^คู่ \d+ · /, "") + " — " + s);
+    const s = r.sum;
+    const sumItem = { id: "sum." + s.sum, group: "ผลรวม", label: "ผลรวม " + s.sum + " · " + s.name, evidence: (r.kind === "name" || r.kind === "plate" ? "ผลรวมค่าอักษรและตัวเลข " : "ผลรวมทุกหลัก ") + s.raw + (s.raw !== s.sum ? " → " + s.sum : ""), strength: +(s.pts / 100 * 0.9).toFixed(3), tags: ["overview"].concat(s.tags), meanings: { overview: s.phrases.map(p => p + " " + s.rootLine) } };
+    s.tags.forEach(t => { sumItem.meanings[t] = s.phrases; });
+    if (s.extra) { sumItem.tags.push("advice"); sumItem.meanings.advice = [s.extra]; }
+    top.push(sumItem);
+    (r.patterns || []).slice(0, 3).forEach(p => {
+      const dm = p.digit != null ? KB.digits[p.digit].m : null;
+      top.push({ id: "pattern." + p.id, group: "รูปแบบตัวเลข", label: p.label, evidence: opts.forAI ? "" : p.evidence, strength: 0.5, tags: ["personality"],
+        meanings: { personality: dm ? dm.map(x => p.label + " ช่วยขับพลังให้ชัดขึ้น: " + x) : [p.label + " ทำให้จำง่ายและติดหู", p.label + " ช่วยให้คนรอบตัวจดจำได้เร็ว", "รูปแบบ " + p.label + " สะท้อนความเป็นระเบียบและจังหวะที่ลงตัว"] } });
+    });
+    if (r.kala && r.kala.length) top.push({ id: "kala", group: "อักษรตามวันเกิด", label: "อักษร " + r.kala.join(" "), evidence: "ตามตารางกาลกิณี" + r.weekday.th, strength: 0.4, tags: ["advice"],
+      meanings: { advice: ["ตามบางตำรา อักษร " + r.kala.join(" ") + " เป็นอักษรที่คน" + r.weekday.th + "ให้ใส่ใจ หากชอบความสบายใจจะเลือกเลี่ยงก็ได้ แต่ไม่ได้มีผลร้ายใด ๆ", "อักษร " + r.kala.join(" ") + " เป็นเพียงความเชื่อตามวันเกิด ความตั้งใจและการกระทำของคุณสำคัญกว่าเสมอ"] } });
+    const gm = r.kind === "phone" ? goalMatch(r) : [];
+    const want = topic && KB.goals[topic] ? KB.goals[topic].tips : KB.generalTips;
+    return {
+      domain: "numbers", topic: topic || "overall", subject: {},
+      headline: KIND_TH[r.kind] + " คะแนน " + r.score + "/100 · ผลรวม " + s.sum,
+      items: top,
+      extras: { luckyNumbers: luckyFromResult(r), tips: want.slice(0, 3).concat(gm.filter(g => g.hit.length).map(g => "ด้าน" + g.th + ": มีคู่ที่ตรงเป้าหมาย " + g.hit.join(", "))) },
+    };
+  }
+  function luckyFromResult(r) {
+    const best = (r.pairs || []).filter(p => p.grade === "G" || p.grade === "g").map(p => p.pair);
+    const out = [String(r.sum.root)];
+    best.forEach(p => { if (out.indexOf(p) < 0 && out.length < 4) out.push(p); });
+    return out;
+  }
+
+  /* ---------- สถิติไม่ระบุตัวตน (ไม่เก็บตัวเลข) ---------- */
+  function addStat(st, type, now) {
+    st = st && typeof st === "object" ? st : {};
+    const d = new Date(now || Date.now());
+    const day = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    const out = { v: 1, total: (st.total || 0) + 1, days: Object.assign({}, st.days || {}), types: Object.assign({}, st.types || {}) };
+    out.days[day] = (out.days[day] || 0) + 1;
+    out.types[type] = (out.types[type] || 0) + 1;
+    return out;
+  }
+
+  const NMCore = { onlyDigits, isThaiMobile, pairKey, pairInfo, extractPairs, sumDigits, reduceDigit, sumInfo, detectPatterns, analyzeDigits, analyzePhone, analyzeHouse, analyzeAccount, analyzeName, analyzePlate, letterValue, luckyToday, maskPhone, maskAccount, maskHouse, maskPlate, compare, goalMatch, buildFacts, addStat, KIND_TH, KB };
+  if (typeof module !== "undefined" && module.exports) { module.exports = NMCore; return; }
+  root.NMCore = NMCore;
+  if (typeof document === "undefined") return;
+
+  /* ======================= UI ======================= */
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const lsGet = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
+  const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* โหมดส่วนตัว */ } };
+  const STATS_KEY = "nm-stats", PREF_KEY = "nm-prefs", IDLE_MS = 60000;
+  const prefs = Object.assign({ stats: true, ai: false }, lsGet(PREF_KEY, {}));
+  const F = root.FortuneAI || null;
+  let mode = "phone", current = null, currentFacts = null, aiEnabled = false, narrSeq = 0;
+
+  const TABS = ["phone", "plate", "house", "account", "name", "lucky", "compare"];
+  function setTab(t, focus) {
+    mode = t;
+    document.querySelectorAll(".nm-tab").forEach(b => { const on = b.dataset.tab === t; b.setAttribute("aria-selected", on ? "true" : "false"); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus(); });
+    document.querySelectorAll("[data-for]").forEach(el => { el.hidden = el.dataset.for.split(" ").indexOf(t) < 0; });
+    $("#nmErr").textContent = "";
+    $("#nmGo").textContent = { lucky: "ดูเลขนำโชควันนี้", compare: "เปรียบเทียบ", name: "วิเคราะห์ชื่อ", plate: "วิเคราะห์ทะเบียน" }[t] || "วิเคราะห์เลขมงคล";
+    $("#nmWdHint").textContent = t === "lucky" ? "(จำเป็นสำหรับเลขนำโชค)" : t === "plate" || t === "name" ? "(ไม่บังคับ — ใช้ดูอักษรกาลกิณี)" : "(ไม่บังคับ)";
+  }
+  document.querySelectorAll(".nm-tab").forEach(b => b.addEventListener("click", () => { setTab(b.dataset.tab); hideResults(); }));
+  $("#nmTabs").addEventListener("keydown", e => {
+    const i = TABS.indexOf(mode); let n = -1;
+    if (e.key === "ArrowRight") n = (i + 1) % TABS.length; else if (e.key === "ArrowLeft") n = (i - 1 + TABS.length) % TABS.length; else if (e.key === "Home") n = 0; else if (e.key === "End") n = TABS.length - 1;
+    if (n >= 0) { e.preventDefault(); setTab(TABS[n], true); hideResults(); }
+  });
+
+  // จัดรูปแบบเบอร์ระหว่างพิมพ์ (ยอมรับเลขไทย)
+  $("#nmPhone").addEventListener("input", function () { const d = onlyDigits(this.value).slice(0, 10); const f = d.length > 6 ? d.slice(0, 3) + "-" + d.slice(3, 6) + "-" + d.slice(6) : d.length > 3 ? d.slice(0, 3) + "-" + d.slice(3) : d; if (f !== this.value) this.value = f; });
+  $("#nmAcct").addEventListener("input", function () { const d = onlyDigits(this.value).slice(0, 7); if (d !== this.value) this.value = d; });
+
+  function hideResults() { $("#nmResult").hidden = true; $("#nmLucky").hidden = true; $("#nmCompare").hidden = true; current = null; $("#nmCardImg").hidden = true; }
+
+  $("#nmForm").addEventListener("submit", e => {
+    e.preventDefault(); touch();
+    const wdId = $("#nmWd").value, err = $("#nmErr");
+    err.textContent = "";
+    let r;
+    if (mode === "lucky") {
+      if (!wdId) { err.textContent = "เลือกวันเกิดก่อน แล้วกดอีกครั้ง"; $("#nmWd").focus(); return; }
+      hideResults(); renderLucky(luckyToday(wdId)); stat("lucky"); return;
+    }
+    if (mode === "compare") {
+      const list = Array.from(document.querySelectorAll(".nm-cmp-in")).map(i => i.value);
+      const rows = compare(list, $("#nmAll").checked ? "all" : "last7");
+      if (!rows.length) { err.textContent = "กรอกอย่างน้อย 1 เบอร์ (สูงสุด 5 เบอร์)"; return; }
+      hideResults(); renderCompare(rows); stat("compare"); return;
+    }
+    if (mode === "phone") r = analyzePhone($("#nmPhone").value, $("#nmAll").checked ? "all" : "last7");
+    else if (mode === "plate") r = analyzePlate($("#nmPlate").value, wdId);
+    else if (mode === "house") r = analyzeHouse($("#nmHouse").value);
+    else if (mode === "account") r = analyzeAccount($("#nmAcct").value);
+    else r = analyzeName($("#nmName").value, wdId);
+    if (r.error) { err.textContent = r.error; return; }
+    hideResults(); current = r; renderResult(r); stat(mode);
+  });
+
+  /* ---------- แสดงผล ---------- */
+  const GCLS = { G: "g2", g: "g1", n: "n", c: "c" };
+  function scoreWord(s) { return s >= 85 ? "พลังเด่นมาก" : s >= 72 ? "พลังดี" : s >= 58 ? "พลังสมดุล" : "พลังเรียบง่าย ค่อย ๆ เติม"; }
+  function renderResult(r) {
+    const sec = $("#nmResult"); sec.hidden = false;
+    $("#nmResKind").textContent = KIND_TH[r.kind];
+    $("#nmResNum").textContent = r.kind === "name" ? $("#nmName").value.trim() : r.display;
+    $("#nmScore").textContent = r.score;
+    $("#nmRing").style.setProperty("--p", r.score);
+    $("#nmScoreWord").textContent = scoreWord(r.score);
+    $("#nmBreak").innerHTML = r.breakdown.map(b => '<li><span>' + esc(b.th) + '</span><i class="bar" style="--w:' + b.v + '%"></i><b>' + b.v + '</b><small>× ' + Math.round(b.w * 100) + "%</small></li>").join("") +
+      '<li class="tot"><span>รวม (ถ่วงน้ำหนัก)</span><i></i><b>' + r.score + "</b><small>/100</small></li>";
+    // แถบตัวเลข/ตัวอักษร
+    let strip = "";
+    if (r.kind === "name") strip = r.chars.map(c => '<span class="cell"><b>' + esc(c.ch) + "</b><small>" + c.v + "</small></span>").join("");
+    else if (r.kind === "plate") strip = (r.lead ? '<span class="cell"><b>' + r.lead + "</b><small>" + r.lead + "</small></span>" : "") + r.letterVals.map(l => '<span class="cell lt' + (r.kala.indexOf(l.ch) >= 0 ? " kala" : "") + '"><b>' + esc(l.ch) + "</b><small>" + l.v + "</small></span>").join("") + '<span class="gap"></span>' + Array.from(r.num).map(c => '<span class="cell on"><b>' + c + "</b></span>").join("");
+    else strip = Array.from(r.digits).map((c, i) => '<span class="cell' + (i + 1 >= r.segStart ? " on" : "") + '"><b>' + c + "</b><small>" + (i + 1) + "</small></span>").join("");
+    $("#nmStrip").innerHTML = strip;
+    $("#nmStripCap").textContent = r.kind === "phone" ? (r.mode === "last7" ? "ไฮไลต์ = 7 ตัวท้ายที่ใช้อ่านคู่เลข (ตัวเลขเล็ก = ตำแหน่ง)" : "อ่านคู่เลขทุกคู่ (ตัวเลขเล็ก = ตำแหน่ง)") : r.kind === "plate" ? "ตัวเลขเล็ก = ค่าของตัวอักษรตามตารางเลขศาสตร์" : r.kind === "name" ? "ตัวเลขเล็ก = ค่าของแต่ละอักษร/สระ/วรรณยุกต์" + (r.skipped.length ? " (ข้ามอักขระที่ไม่มีในตาราง " + r.skipped.length + " ตัว)" : "") : "ตัวเลขเล็ก = ตำแหน่ง";
+    // คู่เลข
+    $("#nmPairsBlock").hidden = !r.pairs.length;
+    $("#nmPairs").innerHTML = r.pairs.map(p => '<li class="pr ' + GCLS[p.grade] + '"><div class="pr-h"><b class="pr-n">' + p.pair + '</b><span class="pr-g">' + esc(p.gradeTh) + '</span><span class="pr-pos">ตำแหน่ง ' + p.pos.join("–") + (p.emph ? " · " + p.emph : "") + '</span></div><p class="pr-name">' + esc(p.name) + "</p><p>" + esc(p.phrases[p.care ? 1 : 0]) + '</p><p class="pr-o">' + esc(p.order) + "</p></li>").join("");
+    // ผลรวม
+    const s = r.sum;
+    $("#nmSum").innerHTML = '<div class="sum-n ' + GCLS[s.grade] + '"><b>' + s.sum + "</b><span>" + esc(s.gradeTh) + "</span></div><div><p class=\"sum-name\">" + esc(s.name) + (s.notable ? ' <span class="badge">ผลรวมยอดนิยม</span>' : "") + "</p><p>" + esc(s.phrases[0]) + '</p><p class="nm-small">' + esc(s.rootLine) + (s.raw !== s.sum ? " · ผลรวมจริง " + s.raw + " ทอนเป็น " + s.sum : "") + "</p>" + (s.extra ? '<p class="nm-small">' + esc(s.extra) + "</p>" : "") + "</div>";
+    // รูปแบบ
+    $("#nmPatBlock").hidden = !r.patterns.length;
+    $("#nmPats").innerHTML = r.patterns.map(p => "<li><b>" + esc(p.label) + "</b> <small>" + esc(p.evidence) + " · +" + p.bonus + "</small></li>").join("");
+    // อักษรกาลกิณี
+    const kb = $("#nmKala");
+    if (r.kind === "plate" || r.kind === "name") {
+      kb.hidden = false;
+      kb.innerHTML = !r.weekday ? '<p class="nm-small">เลือกวันเกิดด้านบน (ไม่บังคับ) เพื่อดูอักษรที่บางตำราแนะให้ใส่ใจ</p>' :
+        r.kala.length ? "<p>ตามบางตำรา อักษร <b>" + esc(r.kala.join(" ")) + "</b> เป็นอักษรที่คน" + esc(r.weekday.th) + "ให้ใส่ใจ (กาลกิณี) — เป็นเพียงความเชื่อ ไม่ได้มีผลร้ายใด ๆ หากชอบความสบายใจ ครั้งหน้าจะเลือกเลี่ยงก็ได้</p>" + (r.weekday.kalaNote ? '<p class="nm-small">' + esc(r.weekday.kalaNote) + "</p>" : "") :
+        "<p>ไม่พบอักษรกาลกิณีของ" + esc(r.weekday.th) + " (" + esc(r.weekday.kala.split("").join(" ")) + ") — สบายใจได้</p>";
+    } else kb.hidden = true;
+    // เป้าหมาย (เฉพาะเบอร์)
+    const gb = $("#nmGoals");
+    gb.hidden = r.kind !== "phone";
+    if (r.kind === "phone") $("#nmGoalList").innerHTML = goalMatch(r).map(g => '<li><h4>' + esc(g.th) + ' <span class="badge' + (g.hit.length ? " on" : "") + '">' + (g.hit.length ? "มี " + g.hit.length + " คู่ตรงเป้า" : "ยังไม่มีคู่ตรงเป้า") + "</span></h4>" + (g.hit.length ? '<p class="nm-small">คู่ที่พบ: ' + g.hit.join(", ") + "</p>" : "") + "<ul>" + g.tips.map(t => "<li>" + esc(t) + "</li>").join("") + "</ul></li>").join("");
+    $("#nmLuckyNums").innerHTML = luckyFromResult(r).map(n => "<span>" + n + "</span>").join("");
+    narrate();
+    $("#nmResTitle").focus({ preventScroll: true });
+    sec.scrollIntoView({ block: "start", behavior: "smooth" });
+  }
+
+  function renderLucky(L) {
+    const box = $("#nmLucky"); box.hidden = false;
+    $("#nmLuckyBody").innerHTML = '<p class="nm-small">' + esc(L.weekday.th) + " · สีประจำวันเกิด" + esc(L.color) + '</p><div class="lk-nums">' + L.numbers.map(n => "<span>" + n + "</span>").join("") + '</div><ul class="nm-small">' + L.notes.map(n => "<li>" + esc(n) + "</li>").join("") + '</ul><div class="lk-pair"><b>' + L.pair + "</b><div><p class=\"sum-name\">คู่เด่นวันนี้ · " + esc(L.pairInfo.name) + "</p><p>" + esc(L.pairInfo.phrases[0]) + '</p></div></div><p class="nm-small">ใช้เป็นกำลังใจเล็ก ๆ เช่น เลือกเลขที่นั่งหรือเลขล็อกเกอร์ ไม่ใช่สำหรับการพนันหรือการเสี่ยงโชค</p>';
+    box.scrollIntoView({ block: "start", behavior: "smooth" });
+  }
+
+  function renderCompare(rows) {
+    const box = $("#nmCompare"); box.hidden = false;
+    $("#nmCmpBody").innerHTML = rows.map((r, i) => r.error ? '<tr><th scope="row">—</th><td colspan="4">' + esc(r.input) + ' <small class="err">' + esc(r.error) + "</small></td></tr>" :
+      '<tr' + (i === 0 ? ' class="top"' : "") + '><th scope="row">' + esc(r.display) + (i === 0 ? ' <span class="badge on">คะแนนสูงสุด</span>' : "") + '</th><td data-l="คะแนน"><b>' + r.score + '</b></td><td data-l="ผลรวม">' + r.sum + '</td><td data-l="คู่เด่นมาก">' + (r.best.join(", ") || "—") + '</td><td data-l="คู่ควรระวัง">' + (r.care.join(", ") || "ไม่มี") + "</td></tr>").join("");
+    box.scrollIntoView({ block: "start", behavior: "smooth" });
+  }
+
+  /* ---------- คำอ่าน (fortune-ai.js) ---------- */
+  function fallbackRender(res, box) {
+    box.innerHTML = (res.sections || []).map(s => '<section class="nr-sec"><h4>' + esc(s.title) + "</h4>" + (s.paragraphs || []).map(p => "<p>" + esc(p) + "</p>").join("") + "</section>").join("") || '<p class="nm-small">ยังไม่มีคำอ่าน</p>';
+  }
+  function renderNarr(res) {
+    const box = $("#nmNarr");
+    let done = false;
+    if (F && typeof F.renderSections === "function") {
+      try { F.renderSections(box, res, { aiBadge: false, showNote: false }); done = box.childNodes.length > 0 || !(res.sections || []).length; } catch (e) { done = false; }
+    }
+    if (!done) fallbackRender(res, box);
+    const ai = res.source === "ai";
+    const b = $("#nmSrc"); b.textContent = ai ? "เรียบเรียงโดย Claude AI" : "เรียบเรียงในเครื่อง"; b.className = "src-badge " + (ai ? "ai" : "local");
+    $("#nmNarrNote").textContent = res.note || "";
+  }
+  async function narrate(again) {
+    const box = $("#nmNarr");
+    if (!current) return;
+    const my = ++narrSeq, useAI = !!(aiEnabled && (F && typeof F.hasConsent === "function" ? F.hasConsent() : prefs.ai));
+    const topic = $("#nmTopic").value;
+    currentFacts = buildFacts(current, topic, { forAI: useAI });
+    if (!F) { box.innerHTML = '<p class="nm-small">ไม่พบตัวเรียบเรียงคำอ่าน (fortune-ai.js)</p>'; return; }
+    $("#nmAgain2").disabled = true; box.setAttribute("aria-busy", "true");
+    if (useAI) box.innerHTML = '<p class="nm-small">กำลังเรียบเรียงคำอ่าน...</p>';
+    let res;
+    try {
+      if (again && typeof F.regenerate === "function") res = await F.regenerate(currentFacts, { useAI });
+      if (!res || !Array.isArray(res.sections)) res = await F.interpret(currentFacts, { useAI });
+    } catch (e) { res = F.compose ? F.compose(currentFacts) : { source: "local", sections: [] }; }
+    if (my !== narrSeq) return;
+    renderNarr(res);
+    $("#nmAgain2").disabled = false; box.removeAttribute("aria-busy");
+  }
+  $("#nmAgain2").addEventListener("click", () => { touch(); narrate(true); });
+  $("#nmTopic").addEventListener("change", () => { if (current) narrate(); });
+
+  function setupConsent() {
+    const wrap = $("#nmConsent");
+    if (!F || typeof F.status !== "function") { wrap.hidden = true; return; }
+    F.status().then(st => {
+      aiEnabled = !!(st && st.enabled);
+      if (!aiEnabled) { wrap.hidden = true; return; }
+      wrap.hidden = false;
+      if (typeof F.consentControl === "function") {
+        wrap.replaceChildren();
+        Promise.resolve(F.consentControl(wrap, { onChange: () => { if (current) narrate(); } })).then(el => { if (!el) wrap.hidden = true; }).catch(() => { wrap.hidden = true; });
+        return;
+      }
+      const cb = $("#nmAI"); cb.checked = !!prefs.ai;
+      cb.addEventListener("change", () => { prefs.ai = cb.checked; lsSet(PREF_KEY, prefs); narrate(); });
+    }).catch(() => { wrap.hidden = true; });
+  }
+
+  /* ---------- การ์ดแชร์ 1080×1350 (ปิดบังตัวเลข) ---------- */
+  function wrapText(c, text, x, y, maxW, lh, maxLines) {
+    const words = text.split(/(\s+)/); let line = "", n = 0;
+    const flush = () => { c.fillText(line.trim(), x, y + n * lh); n++; line = ""; };
+    for (const w of words) {
+      const t = line + w;
+      if (c.measureText(t).width > maxW && line.trim()) { if (n === maxLines - 1) { c.fillText(line.trim().replace(/.$/, "…"), x, y + n * lh); return n + 1; } flush(); line = w.trimStart(); }
+      else if (c.measureText(t).width > maxW) { let s = ""; for (const ch of t) { if (c.measureText(s + ch).width > maxW) { line = s; flush(); s = ""; if (n >= maxLines) return n; } s += ch; } line = s; }
+      else line = t;
+    }
+    if (line.trim()) flush();
+    return n;
+  }
+  async function makeCard() {
+    const r = current, W = 1080, H = 1350, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+    const c = cv.getContext("2d");
+    try { await document.fonts.load("600 40px Prompt"); await document.fonts.load("400 30px Prompt"); } catch (e) { /* ใช้ฟอนต์ระบบ */ }
+    const g = c.createLinearGradient(0, 0, W, H); g.addColorStop(0, "#0e1430"); g.addColorStop(1, "#2a1f6b"); c.fillStyle = g; c.fillRect(0, 0, W, H);
+    c.globalAlpha = 0.08; c.fillStyle = "#fff"; c.font = "700 420px Prompt, sans-serif"; c.textAlign = "right"; c.fillText(String(r.sum.sum), W - 30, 520); c.globalAlpha = 1;
+    c.textAlign = "left"; c.fillStyle = "#22d3ee"; c.font = "600 34px Prompt, sans-serif"; c.fillText("LENSIQ · เลขมงคล AI", 80, 120);
+    c.fillStyle = "#c9d0ea"; c.font = "400 36px Prompt, sans-serif"; c.fillText(KIND_TH[r.kind], 80, 200);
+    c.fillStyle = "#fff"; c.font = "600 88px Prompt, sans-serif"; c.fillText(r.masked, 80, 300);
+    // วงคะแนน
+    const cx = 220, cy = 520, R = 130;
+    c.lineWidth = 26; c.strokeStyle = "rgba(255,255,255,.12)"; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.stroke();
+    c.strokeStyle = "#facc15"; c.lineCap = "round"; c.beginPath(); c.arc(cx, cy, R, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * r.score / 100); c.stroke();
+    c.fillStyle = "#fff"; c.textAlign = "center"; c.font = "700 96px Prompt, sans-serif"; c.fillText(String(r.score), cx, cy + 30);
+    c.font = "400 28px Prompt, sans-serif"; c.fillStyle = "#c9d0ea"; c.fillText("คะแนน / 100", cx, cy + 76);
+    c.textAlign = "left"; c.fillStyle = "#facc15"; c.font = "600 46px Prompt, sans-serif"; c.fillText(scoreWord(r.score), 410, 470);
+    c.fillStyle = "#fff"; c.font = "400 34px Prompt, sans-serif"; c.fillText("ผลรวม " + r.sum.sum + " · " + r.sum.gradeTh, 410, 530);
+    c.fillStyle = "#c9d0ea"; c.font = "400 30px Prompt, sans-serif"; wrapText(c, r.sum.name, 410, 580, 600, 40, 2);
+    // คู่เด่น
+    const best = r.pairs.filter(p => !p.care).sort((a, b) => b.pts * b.weight - a.pts * a.weight).filter((p, i, a) => a.findIndex(q => q.pair === p.pair) === i).slice(0, 3);
+    let y = 720;
+    c.fillStyle = "#22d3ee"; c.font = "600 34px Prompt, sans-serif"; c.fillText(best.length ? "คู่เลขเด่น" : "ความหมายผลรวม", 80, y); y += 30;
+    if (best.length) best.forEach(p => {
+      y += 24; c.fillStyle = "rgba(255,255,255,.08)"; c.beginPath(); c.roundRect ? c.roundRect(80, y, W - 160, 130, 22) : c.rect(80, y, W - 160, 130); c.fill();
+      c.fillStyle = "#facc15"; c.font = "700 64px Prompt, sans-serif"; c.fillText(p.pair, 110, y + 88);
+      c.fillStyle = "#fff"; c.font = "600 32px Prompt, sans-serif"; c.fillText(p.name, 250, y + 52);
+      c.fillStyle = "#c9d0ea"; c.font = "400 26px Prompt, sans-serif"; wrapText(c, p.phrases[0], 250, y + 94, W - 360, 34, 1);
+      y += 130;
+    });
+    else { c.fillStyle = "#fff"; c.font = "400 32px Prompt, sans-serif"; wrapText(c, r.sum.phrases[0], 80, y + 50, W - 160, 46, 5); }
+    c.fillStyle = "#c9d0ea"; c.font = "400 26px Prompt, sans-serif"; c.textAlign = "center";
+    c.fillText(KB.disclaimerShort + " · ไม่ใช้เพื่อการพนัน", W / 2, H - 70);
+    return cv;
+  }
+  let cardUrl = null;
+  $("#nmShare").addEventListener("click", async function () {
+    if (!current) return; touch();
+    const b = this; b.disabled = true;
+    try {
+      const cv = await makeCard();
+      const blob = await new Promise(res => cv.toBlob(res, "image/png"));
+      if (cardUrl) URL.revokeObjectURL(cardUrl);
+      cardUrl = URL.createObjectURL(blob);
+      const im = $("#nmCardImg"); im.src = cardUrl; im.hidden = false;
+      const file = new File([blob], "lensiq-เลขมงคล.png", { type: "image/png" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try { await navigator.share({ files: [file], title: "เลขมงคล AI — LENSIQ", text: KIND_TH[current.kind] + " คะแนน " + current.score + "/100 · " + KB.disclaimerShort }); return; }
+        catch (e) { if (e.name === "AbortError") return; }
+      }
+      const a = document.createElement("a"); a.href = cardUrl; a.download = "lensiq-numbers.png"; document.body.append(a); a.click(); a.remove();
+      toast("บันทึกการ์ดแล้ว (ตัวเลขถูกปิดบังบางส่วน)");
+    } catch (e) { console.error(e); toast("สร้างการ์ดไม่สำเร็จ"); }
+    finally { b.disabled = false; }
+  });
+  $("#nmPrint").addEventListener("click", () => { touch(); window.print(); });
+  $("#nmAgain").addEventListener("click", reset);
+
+  function toast(msg) { const t = $("#nmToast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove("show"), 2200); }
+  function reset() {
+    hideResults();
+    if (cardUrl) { URL.revokeObjectURL(cardUrl); cardUrl = null; }
+    ["#nmPhone", "#nmPlate", "#nmHouse", "#nmAcct", "#nmName"].forEach(s => { $(s).value = ""; });
+    document.querySelectorAll(".nm-cmp-in").forEach(i => { i.value = ""; });
+    if (document.body.classList.contains("nm-kiosk")) $("#nmWd").value = "";
+    $("#nmApp").scrollIntoView({ block: "start" });
+  }
+
+  /* ---------- สถิติ ---------- */
+  const TYPE_TH = { phone: "เบอร์มือถือ", plate: "ทะเบียนรถ", house: "บ้าน/ห้อง", account: "บัญชี", name: "ชื่อ", lucky: "เลขนำโชค", compare: "เปรียบเทียบ" };
+  function stat(type) { if (prefs.stats) { lsSet(STATS_KEY, addStat(lsGet(STATS_KEY, null), type)); renderStats(); } }
+  function renderStats() {
+    const st = lsGet(STATS_KEY, null), box = $("#nmStats");
+    if (!st || !st.total) { box.innerHTML = '<p class="nm-small">ยังไม่มีการวิเคราะห์ในเครื่องนี้</p>'; return; }
+    const d = new Date(), today = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    box.innerHTML = '<p class="stat-n"><b>' + st.total + "</b> ครั้ง <small>(วันนี้ " + ((st.days || {})[today] || 0) + ")</small></p>" +
+      Object.keys(TYPE_TH).filter(k => (st.types || {})[k]).map(k => { const n = st.types[k]; return '<div class="stbar"><span>' + TYPE_TH[k] + '</span><i style="--w:' + Math.round(n / st.total * 100) + '%"></i><b>' + n + "</b></div>"; }).join("");
+  }
+  $("#nmStatsOn").checked = !!prefs.stats;
+  $("#nmStatsOn").addEventListener("change", function () { prefs.stats = this.checked; lsSet(PREF_KEY, prefs); });
+  $("#nmStatsClear").addEventListener("click", () => { if (confirm("ล้างสถิติในเครื่องนี้?")) { try { localStorage.removeItem(STATS_KEY); } catch (e) { /* ไม่เป็นไร */ } renderStats(); } });
+  renderStats();
+
+  /* ---------- โหมดบูธ ---------- */
+  let idleT = null, idleTick = null, wasFs = false;
+  function touch() {
+    clearTimeout(idleT); clearInterval(idleTick);
+    const el = $("#nmIdle"); el.hidden = true;
+    if (!document.body.classList.contains("nm-kiosk")) return;
+    if ($("#nmResult").hidden && $("#nmLucky").hidden && $("#nmCompare").hidden) return;
+    const until = Date.now() + IDLE_MS;
+    idleTick = setInterval(() => { const left = Math.ceil((until - Date.now()) / 1000); if (left <= 15) { el.hidden = false; el.textContent = "กลับหน้าเริ่มต้นใน " + left + " วินาที — แตะเพื่ออยู่ต่อ"; } }, 1000);
+    idleT = setTimeout(() => { clearInterval(idleTick); el.hidden = true; reset(); }, IDLE_MS);
+  }
+  ["pointerdown", "keydown", "wheel", "touchstart"].forEach(ev => document.addEventListener(ev, () => { if (document.body.classList.contains("nm-kiosk")) touch(); }, { passive: true }));
+  function setKiosk(on) {
+    document.body.classList.toggle("nm-kiosk", on);
+    $("#nmKiosk").setAttribute("aria-pressed", on ? "true" : "false");
+    $("#nmKioskExit").hidden = !on;
+    if (on) {
+      const de = document.documentElement;
+      if (de.requestFullscreen && !document.fullscreenElement) de.requestFullscreen().then(() => { wasFs = true; }).catch(() => {});
+      $("#nmApp").scrollIntoView({ block: "start" });
+    } else if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+    touch();
+  }
+  $("#nmKiosk").addEventListener("click", () => setKiosk(!document.body.classList.contains("nm-kiosk")));
+  $("#nmKioskExit").addEventListener("click", () => setKiosk(false));
+  document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && wasFs) { wasFs = false; setKiosk(false); } });
+
+  // วันเกิด/แหล่งอ้างอิง/ตารางอักษรจาก KB
+  $("#nmWd").insertAdjacentHTML("beforeend", KB.weekdays.map(w => '<option value="' + w.id + '">' + esc(w.th) + "</option>").join(""));
+  $("#nmSources").innerHTML = KB.sources.map(s => '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.label) + "</a></li>").join("");
+  $("#nmLetterTable").innerHTML = Object.keys(KB.letterValues).map(v => '<tr><th scope="row">' + v + "</th><td>" + esc(KB.letterValues[v].split("").map(ch => /[ก-ฮ]/.test(ch) ? ch : "◌" + ch).join(" ").replace(/◌([เแโใไา])/g, "$1")) + "</td></tr>").join("");
+  $("#nmKalaTable").innerHTML = KB.weekdays.map(w => '<tr><th scope="row">' + esc(w.th) + "</th><td>" + esc(w.kala.split("").join(" ")) + (w.kalaNote ? " <small>(" + esc(w.kalaNote) + ")</small>" : "") + "</td></tr>").join("");
+  $("#nmTips").innerHTML = KB.generalTips.map(t => "<li>" + esc(t) + "</li>").join("");
+  setTab("phone");
+  setupConsent();
+  root.__nm = { get current() { return current; }, get facts() { return currentFacts; }, makeCard, reset, setTab };
+})(typeof window !== "undefined" ? window : globalThis);
