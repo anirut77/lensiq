@@ -543,12 +543,22 @@
     return out;
   }
   /** แบบสุ่ม: แก่นละ 1 สำนวน (สุ่มกรอบใหม่ทุกครั้ง) — ใช้สร้าง facts เพื่อไม่ให้แก่นเดียวกันซ้ำในคำทำนายเดียว */
-  function meaningsRandom(entry, frameOverride, r) {
+  // used (ไม่บังคับ) = { frameKey: [ดัชนีกรอบที่ใช้แล้ว] } ใช้ร่วมกันทั้งคำทำนาย เพื่อไม่ให้กรอบเดิม เช่น "เวลาทำงานหรือเรียน" ซ้ำในคำทำนายเดียว
+  function meaningsRandom(entry, frameOverride, r, used) {
     r = r || Math.random; var out = {};
     Object.keys(entry || {}).forEach(function (k) {
       var tag = TAGMAP[k]; if (!tag || !entry[k]) return;
-      var F = FRAMES[(frameOverride && frameOverride[k]) || k] || FRAMES.t;
-      out[tag] = (out[tag] || []).concat(String(entry[k]).split("|").map(function (c) { return F[Math.floor(r() * F.length)].replace("{C}", c); }));
+      var fk = (frameOverride && frameOverride[k]) || k, F = FRAMES[fk] || FRAMES.t;
+      out[tag] = (out[tag] || []).concat(String(entry[k]).split("|").map(function (c) {
+        var i = Math.floor(r() * F.length);
+        if (used) {
+          var u = used[fk] || (used[fk] = []);
+          if (u.length >= F.length) u.length = 0;
+          var free = []; for (var j = 0; j < F.length; j++) if (u.indexOf(j) < 0) free.push(j);
+          i = free[Math.floor(r() * free.length)]; u.push(i);
+        }
+        return F[i].replace("{C}", c);
+      }));
     });
     return out;
   }

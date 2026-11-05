@@ -130,7 +130,7 @@
       if (early >= Math.max(1, half - 1) && late === 0) pat.push(pickR(r, P.flow.rising));
       else if (late >= Math.max(1, half - 1) && early === 0) pat.push(pickR(r, P.flow.settling));
     }
-    items.push({ id: "spread.pattern", group: "ภาพรวมของไพ่", label: "ไพ่ทั้งชุด", evidence: S.th + " · ชุดใหญ่ " + Y.majors + "/" + n + " · กลับหัว " + Y.reversed + "/" + n,
+    items.push({ id: "spread.pattern", group: "ภาพรวมของไพ่", label: "รูปแบบของไพ่ทั้งชุด", short: "ไพ่ทั้งชุด", evidence: S.th + " มีไพ่ชุดใหญ่ " + Y.majors + " ใบ" + (Y.reversed ? " กลับหัว " + Y.reversed + " ใบ" : " ไม่มีใบกลับหัว"),
       strength: 0.97, tags: ["overview", "advice"], meanings: { overview: pat, advice: P.topicClose[topic].slice() } });
     // 2) ไพ่แต่ละตำแหน่ง — ไม่ใช้กรอบประโยคเดียวกันซ้ำกับไพ่ใบอื่นในคำทำนายเดียว
     var usedT = {}, tCount = 0, tOff = Math.floor(r() * TIME_TPL.length);
@@ -142,7 +142,7 @@
       if (pos.advice || pos.key === "outcome" || pos.key === "today" || i === n - 1) m.advice = uniq(c.phr.advice, c.phrTpl.advice);
       var w = (POS_W[pos.key] || 0.6) + (c.arcana === "major" ? 0.04 : 0);
       var posName = pos.th.replace(/^\d+ · /, "");
-      items.push({ id: "card." + pos.key + "." + c.id + (p.rev ? ".r" : ""), group: posName, label: KB.readName(c) + " (" + KB.readEn(c) + ")" + (p.rev ? " กลับหัว" : ""),
+      items.push({ id: "card." + pos.key + "." + c.id + (p.rev ? ".r" : ""), group: posName, label: KB.readName(c) + " (" + KB.readEn(c) + ")" + (p.rev ? " กลับหัว" : ""), short: "ไพ่" + KB.readName(c) + (p.rev ? "กลับหัว" : ""),
         evidence: "ตำแหน่งที่ " + (i + 1) + " (" + posName + "): " + KB.readEn(c) + (p.rev ? " (กลับหัว)" : ""), strength: Math.min(1, w), tags: Object.keys(m), meanings: m });
     });
     // 3) คู่ไพ่ที่น่าสนใจ (สูงสุด 3 คู่)
@@ -150,16 +150,16 @@
     for (var a = 0; a < n; a++) for (var b = a + 1; b < n; b++) { var notes = KB.pairNotes(picks[a].id, picks[b].id); if (notes) pairs.push([a, b, notes]); }
     pairs.slice(0, 3).forEach(function (q) {
       var A = cards[q[0]], B = cards[q[1]], m = { overview: q[2].slice() };
-      items.push({ id: "pair." + KB.pairKey(A.id, B.id), group: "คู่ไพ่", label: "คู่ไพ่" + KB.readName(A) + "กับ" + KB.readName(B), evidence: "ตำแหน่งที่ " + (q[0] + 1) + " และ " + (q[1] + 1), strength: 0.74, tags: Object.keys(m), meanings: m });
+      items.push({ id: "pair." + KB.pairKey(A.id, B.id), group: "คู่ไพ่", label: "คู่ไพ่" + KB.readName(A) + "กับ" + KB.readName(B), short: "ไพ่คู่นี้", evidence: "ตำแหน่งที่ " + (q[0] + 1) + " และ " + (q[1] + 1), strength: 0.74, tags: Object.keys(m), meanings: m });
     });
     // 4) เลขซ้ำ / ไพ่ราชสำนักระดับเดียวกัน
     var nums = {}, ranks = {};
     cards.forEach(function (c) { if (c.arcana === "minor") { if (c.n <= 10) nums[c.n] = (nums[c.n] || 0) + 1; else ranks[c.n] = (ranks[c.n] || 0) + 1; } });
     Object.keys(nums).filter(function (k) { return nums[k] >= 2; }).slice(0, 1).forEach(function (k) {
-      items.push({ id: "num." + k, group: "เลขของไพ่", label: "ไพ่เลข " + k + " ออกซ้ำ", evidence: nums[k] + " ใบ", strength: 0.6, tags: ["overview"], meanings: { overview: KB.numberNotes(+k) } });
+      items.push({ id: "num." + k, group: "เลขของไพ่", label: "ไพ่เลข " + k + " ออกซ้ำ", short: "เลข " + k + " ที่ซ้ำกัน", evidence: nums[k] + " ใบ", strength: 0.6, tags: ["overview"], meanings: { overview: KB.numberNotes(+k) } });
     });
     Object.keys(ranks).filter(function (k) { return ranks[k] >= 2; }).slice(0, 1).forEach(function (k) {
-      items.push({ id: "court." + k, group: "ไพ่ราชสำนัก", label: "ไพ่ราชสำนักระดับเดียวกัน", evidence: ranks[k] + " ใบ", strength: 0.58, tags: ["overview", "social"], meanings: { overview: P.courtRank[k].slice(), social: P.courtRank[k].slice() } });
+      items.push({ id: "court." + k, group: "ไพ่ราชสำนัก", label: "ไพ่ราชสำนักระดับเดียวกัน", short: "ไพ่ราชสำนัก", evidence: ranks[k] + " ใบ", strength: 0.58, tags: ["overview", "social"], meanings: { overview: P.courtRank[k].slice(), social: P.courtRank[k].slice() } });
     });
     var nick = String(opts.nickname || "").trim();
     return { domain: "tarot", topic: TOPIC_FA[topic] || "overall", subject: nick && nick.length <= 12 && !/\s/.test(nick) ? { nickname: nick } : {},
@@ -169,8 +169,8 @@
   function siamseeFacts(s, opts) {
     opts = opts || {};
     var ph = KB.siamseePhr(s);
-    return { domain: "siamsee", topic: opts.topic || "overall", subject: {}, headline: "เซียมซีใบที่ " + s.n + " · " + s.level,
-      items: [{ id: "siamsee." + s.n, group: "เซียมซี", label: "เซียมซีใบที่ " + s.n + " (" + s.level + ")", evidence: s.verse.join(" "), strength: 0.95,
+    return { domain: "siamsee", topic: opts.topic || "overall", subject: {}, headline: "เซียมซีใบที่ " + s.n + " (" + s.level + ")",
+      items: [{ id: "siamsee." + s.n, group: "เซียมซี", label: "เซียมซีใบที่ " + s.n + " (" + s.level + ")", short: "เซียมซีใบนี้", evidence: s.verse.join(" "), strength: 0.95,
         tags: ["overview", "work", "money", "love", "advice", "timing"], meanings: { overview: ph.meaning, work: ph.work, money: ph.money, love: ph.love, advice: ph.mind, timing: ph.travel } }] };
   }
   /** ข้อความประจำการ์ดใบเดียวในตำแหน่ง (สุ่มสำนวนนำ + ความหมาย) */

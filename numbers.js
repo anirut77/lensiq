@@ -215,7 +215,7 @@
       p.tags.forEach(t => { meanings[t] = p.phrases.filter((x, i) => !(p.care && i === 1)); });
       if (p.care) meanings.advice = [p.phrases[1], "คู่ " + p.pair + ": " + p.phrases[1]];
       const it = {
-        id: "pair." + p.pair, group: "คู่เลข", label: "คู่ " + p.pair + " · " + p.name,
+        id: "pair." + p.pair, group: "คู่เลข", label: "คู่ " + p.pair + " (" + p.name + ")", short: "คู่ " + p.pair,
         evidence: "คู่ " + p.pair + (opts.forAI ? "" : " ตำแหน่งที่ " + p.pos.join("–")) + (p.emph ? " · " + p.emph : ""),
         strength: +(p.pts / 100 * (0.6 + 0.25 * p.weight)).toFixed(3), tags: p.tags.concat(p.care ? ["advice"] : []), meanings,
       };
@@ -223,9 +223,9 @@
     });
     items.sort((a, b) => b.strength - a.strength);
     const top = items.filter(i => i.tags.indexOf("advice") < 0).slice(0, 5).concat(items.filter(i => i.tags.indexOf("advice") >= 0).slice(0, 2));
-    if (top[0]) top[0].meanings.overview = top[0].meanings[top[0].tags[0]].map(s => "จุดเด่นที่สุดคือ" + top[0].label.replace(/^คู่ \d+ · /, "") + " — " + s);
+    if (top[0]) top[0].meanings.overview = top[0].meanings[top[0].tags[0]].map(s => "จุดเด่นที่สุดคือ" + top[0].label.replace(/^คู่ \d+ \((.*)\)$/, "$1") + " — " + s);
     const s = r.sum;
-    const sumItem = { id: "sum." + s.sum, group: "ผลรวม", label: "ผลรวม " + s.sum + " · " + s.name, evidence: (r.kind === "name" || r.kind === "plate" ? "ผลรวมค่าอักษรและตัวเลข " : "ผลรวมทุกหลัก ") + s.raw + (s.raw !== s.sum ? " → " + s.sum : ""), strength: +(s.pts / 100 * 0.9).toFixed(3), tags: ["overview"].concat(s.tags), meanings: { overview: s.phrases.map(p => p + " " + s.rootLine) } };
+    const sumItem = { id: "sum." + s.sum, group: "ผลรวม", label: "ผลรวม " + s.sum + " (" + s.name + ")", short: "ผลรวม " + s.sum, evidence: (r.kind === "name" || r.kind === "plate" ? "ผลรวมค่าอักษรและตัวเลข " : "ผลรวมทุกหลัก ") + s.raw + (s.raw !== s.sum ? " → " + s.sum : ""), strength: +(s.pts / 100 * 0.9).toFixed(3), tags: ["overview"].concat(s.tags), meanings: { overview: s.phrases.map(p => p + " " + s.rootLine) } };
     s.tags.forEach(t => { sumItem.meanings[t] = s.phrases; });
     if (s.extra) { sumItem.tags.push("advice"); sumItem.meanings.advice = [s.extra]; }
     top.push(sumItem);
@@ -242,7 +242,7 @@
       domain: "numbers", topic: topic || "overall", subject: {},
       headline: KIND_TH[r.kind] + " คะแนน " + r.score + "/100 · ผลรวม " + s.sum,
       items: top,
-      extras: { luckyNumbers: luckyFromResult(r), tips: want.slice(0, 3).concat(gm.filter(g => g.hit.length).map(g => "ด้าน" + g.th + ": มีคู่ที่ตรงเป้าหมาย " + g.hit.join(", "))) },
+      extras: { luckyNumbers: luckyFromResult(r), tips: want.slice(0, 3).concat(gm.filter(g => g.hit.length).map(g => "เบอร์นี้มีคู่ " + g.hit.join(" และ ") + " ซึ่งตรงกับเป้าหมายด้าน" + g.th)) },
     };
   }
   function luckyFromResult(r) {

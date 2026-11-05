@@ -498,6 +498,7 @@
   /* ---------------- ข้อเท็จจริงสำหรับ fortune-ai.js (สัญญา facts) ---------------- */
   var EL_TH = { wood: "ไม้", fire: "ไฟ", earth: "ดิน", metal: "ทอง", water: "น้ำ" };
   var PLANET_TH = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์", "ราหู"];
+  function thaiAnd(a) { return a.length < 2 ? a.join("") : a.slice(0, -1).join(" ") + "และ" + a[a.length - 1]; }
   function firstCore(s) { return String(s || "").split("|")[0]; }
   function item(id, group, label, evidence, strength, tags, meanings, polarity) {
     var o = { id: id, group: group, label: label, evidence: evidence, strength: strength, tags: tags, meanings: meanings };
@@ -509,40 +510,44 @@
   /** P = ผล analyze(); opts: {topic: "overall"|"love"|"work"|"money", nickname} */
   function buildFacts(P, opts) {
     opts = opts || {};
-    var K = KB, R = K.R, items = [], rnd = opts.rng || Math.random, M = function (e, fo) { return K.meaningsRandom(e, fo, rnd); }, bz = P.bazi, push = function (it) { if (Object.keys(it.meanings).length) items.push(it); };
-    var pl = P.thaiDay.planet, d = K.days[pl];
-    push(item("thai.day." + pl, "วันเกิด", "เกิดวัน" + (pl === 7 ? "พุธกลางคืน" : K.weekdayNames[pl]), "ดาว" + PLANET_TH[pl] + "ประจำวันเกิด · สี" + d.color, 0.9, null, M(R.days[pl])));
+    // short = ชื่อย่อที่ตัวเรียบเรียงใช้หลังเอ่ยชื่อเต็มครั้งแรก; evidence = ภาษาคนอ่าน (ตัวเลขเทคนิคอยู่ในตาราง)
+    var K = KB, R = K.R, items = [], rnd = opts.rng || Math.random, usedF = {}, M = function (e, fo) { return K.meaningsRandom(e, fo, rnd, usedF); }, bz = P.bazi,
+      push = function (it, short) { if (short) it.short = short; if (Object.keys(it.meanings).length) items.push(it); };
+    var part = function (deg) { return deg < 10 ? "ช่วงต้นราศี" : deg < 20 ? "ช่วงกลางราศี" : "ช่วงปลายราศี"; };
+    var pl = P.thaiDay.planet, d = K.days[pl], dayName = pl === 7 ? "พุธกลางคืน" : K.weekdayNames[pl];
+    push(item("thai.day." + pl, "วันเกิด", "เกิดวัน" + dayName, "ดาว" + PLANET_TH[pl] + "ประจำวันเกิด สีประจำวันคือสี" + d.color, 0.9, null, M(R.days[pl])), "วันเกิด" + dayName);
     var ra = P.sunRasi.index;
-    push(item("thai.rasi." + ra, "ราศีเกิด", "ราศี" + K.rasi[ra].th, "อาทิตย์สถิตราศี" + K.rasi[ra].th + " " + P.sunRasi.deg.toFixed(1) + "° · " + K.rasiEl[K.rasi[ra].el], 0.72, null, M(R.rasi[ra])));
-    if (P.lagna) { var lg = P.lagna.index; push(item("thai.lagna." + lg, "ลัคนา", "ลัคนาราศี" + K.rasi[lg].th, "ลัคนาสถิตราศี" + K.rasi[lg].th + " " + P.lagna.deg.toFixed(1) + "° (โดยประมาณ)", 0.66, null, M(R.lagna[lg]))); }
+    push(item("thai.rasi." + ra, "ราศีเกิด", "ราศี" + K.rasi[ra].th, "ดวงอาทิตย์อยู่" + part(P.sunRasi.deg) + " เป็นราศีธาตุ" + K.rasiEl[K.rasi[ra].el].replace(/^ธาตุ/, ""), 0.72, null, M(R.rasi[ra])), "ราศี" + K.rasi[ra].th);
+    if (P.lagna) { var lg = P.lagna.index; push(item("thai.lagna." + lg, "ลัคนา", "ลัคนาราศี" + K.rasi[lg].th, "คำนวณจากเวลาเกิดโดยประมาณ", 0.66, null, M(R.lagna[lg])), "ลัคนา"); }
     var an = P.zodiac.thai.animal, yel = STEM_EL[cyc(P.zodiac.thai.year - 4).stem], ae = R.animals[an], ye = R.yearEl[yel];
     var combo = ["ในฐานะคนปี" + K.animals[an].th + "ธาตุ" + EL_TH[yel] + " คุณ" + firstCore(ae.p) + " และ" + firstCore(ye.p),
-      "คนปี" + K.animals[an].th + "ธาตุ" + EL_TH[yel] + "อย่างคุณ" + firstCore(ae.p).replace(/^มี/, "มี") + " ผสานกับธาตุ" + EL_TH[yel] + "ที่ทำให้คุณ" + firstCore(ye.p)];
+      "คนปี" + K.animals[an].th + "ธาตุ" + EL_TH[yel] + "อย่างคุณ" + firstCore(ae.p) + " ผสานกับธาตุ" + EL_TH[yel] + "ที่ทำให้คุณ" + firstCore(ye.p)];
     var am = mergeM(M(ae), M({ p: ye.p, w: ye.w, l: ye.l, a: ye.a }));
     am.personality = combo.concat(am.personality || []);
-    push(item("cn.year." + an + "." + yel, "ปีนักษัตร", "ปี" + K.animals[an].th + " ธาตุ" + EL_TH[yel], "นักษัตรแบบไทย · ก้านปี " + STEMS[cyc(P.zodiac.thai.year - 4).stem] + " ธาตุ" + EL_TH[yel], 0.6, null, am));
+    push(item("cn.year." + an + "." + yel, "ปีนักษัตร", "ปี" + K.animals[an].th + " ธาตุ" + EL_TH[yel], "นับปีนักษัตรแบบไทย", 0.6, null, am), "ปี" + K.animals[an].th);
     var dms = bz.day.stem, dmEl = STEM_EL[dms];
-    push(item("bazi.dm." + dms, "ปาจื้อ", "ธาตุประจำตัวแบบ " + STEMS[dms] + " " + K.stems[dms].th + " ธาตุ" + EL_TH[dmEl] + K.stems[dms].yy, "เสาวัน " + bz.day.gz + " — ธาตุประจำตัว" + EL_TH[dmEl], 0.85, null, M(R.dm[dms])));
+    push(item("bazi.dm." + dms, "ปาจื้อ", "ธาตุประจำตัว" + EL_TH[dmEl] + K.stems[dms].yy + " " + K.stems[dms].th + " (" + STEMS[dms] + ")", "เสาวัน " + bz.day.gz + " — ธาตุประจำตัว" + EL_TH[dmEl], 0.85, null, M(R.dm[dms])), "ธาตุ" + EL_TH[dmEl] + K.stems[dms].yy);
     var f = P.favorable;
-    push(item("bazi.strength." + (f.strong ? "strong" : "weak"), "ปาจื้อ", "ธาตุประจำตัวค่อนข้าง" + (f.strong ? "แข็ง" : "อ่อน"), "ธาตุตัวเอง + ธาตุที่หนุน " + Math.round(f.ratio * 100) + "% ของทั้งดวง", 0.45, null, M(R.strength[f.strong ? "strong" : "weak"])));
+    push(item("bazi.strength." + (f.strong ? "strong" : "weak"), "ปาจื้อ", "ธาตุประจำตัวค่อนข้าง" + (f.strong ? "แข็ง" : "อ่อน"), "ธาตุที่หนุนตัวคุณมีราว " + Math.round(f.ratio * 100) + "% ของดวง", 0.45, null, M(R.strength[f.strong ? "strong" : "weak"])), "ธาตุที่" + (f.strong ? "แข็ง" : "อ่อน"));
     var tot = ELEMENTS.reduce(function (s, k) { return s + P.counts[k]; }, 0) || 1;
     var byCount = ELEMENTS.slice().sort(function (a, b) { return P.counts[b] - P.counts[a]; });
-    if (P.counts[byCount[0]] / tot >= 0.34) push(item("bazi.excess." + byCount[0], "สมดุลห้าธาตุ", "ธาตุ" + EL_TH[byCount[0]] + "เด่นมาก", "ธาตุ" + EL_TH[byCount[0]] + " " + P.counts[byCount[0]] + " จาก " + Math.round(tot * 10) / 10, 0.55, null, M(R.excess[byCount[0]], { w: "W" })));
+    if (P.counts[byCount[0]] / tot >= 0.34) push(item("bazi.excess." + byCount[0], "สมดุลห้าธาตุ", "ธาตุ" + EL_TH[byCount[0]] + "เด่นมาก", "ธาตุ" + EL_TH[byCount[0]] + "มีสัดส่วนราว " + Math.round(P.counts[byCount[0]] / tot * 100) + "% ของดวง", 0.55, null, M(R.excess[byCount[0]], { w: "W" })), "ธาตุ" + EL_TH[byCount[0]] + "ที่มีมาก");
     ELEMENTS.filter(function (k) { return P.counts[k] / tot < 0.07; }).slice(0, 2).forEach(function (k) {
-      push(item("bazi.lack." + k, "สมดุลห้าธาตุ", "ธาตุ" + EL_TH[k] + "น้อย", "ธาตุ" + EL_TH[k] + " " + P.counts[k] + " จาก " + Math.round(tot * 10) / 10, 0.42, null, M(R.lack[k], { w: "W" }), "challenge"));
+      push(item("bazi.lack." + k, "สมดุลห้าธาตุ", "ธาตุ" + EL_TH[k] + "น้อย", P.counts[k] ? "ธาตุ" + EL_TH[k] + "มีเพียงเล็กน้อยในดวง" : "แทบไม่พบธาตุ" + EL_TH[k] + "ในดวง", 0.42, null, M(R.lack[k], { w: "W" }), "challenge"), "ธาตุ" + EL_TH[k] + "ที่ขาด");
     });
     var TG = tenGods(bz);
     TG.ranked.slice(0, 2).forEach(function (g, i) {
       var where = TG.pillars.filter(function (r) { return r.stem === g; }).map(function (r) { return { year: "ก้านปี", month: "ก้านเดือน", hour: "ก้านยาม" }[r.pillar]; });
-      push(item("bazi.god." + g, "สิบเทพในดวง", GOD_TH[g].replace(" (", " (" + GOD_ZH[g] + ") ").replace(/\)$/, ""), (where.length ? where.join(" ") + " " : "ก้านแฝงในกิ่ง ") + "เทียบ日主 " + STEMS[dms] + " · น้ำหนัก " + TG.weights[g], i ? 0.44 : 0.5, null, M(R.gods[g])));
+      var nm = GOD_TH[g].split(" (")[0], desc = (GOD_TH[g].split(" (")[1] || "").replace(/\)$/, "");
+      push(item("bazi.god." + g, "สิบเทพในดวง", nm + " (" + GOD_ZH[g] + ") หรือ “" + desc + "”", where.length ? "ปรากฏที่" + thaiAnd(where) : "แฝงอยู่ในกิ่งของดวง", i ? 0.44 : 0.5, null, M(R.gods[g])), nm);
     });
     var fe = K.elements[f.primary];
-    push(item("bazi.useful." + f.primary, "ธาตุเสริม", "ธาตุเสริม" + EL_TH[f.primary], "ประเมินแบบย่อจากความแข็งของธาตุประจำตัว", 0.48, null, M(R.useful[f.primary], { w: "W" })));
+    push(item("bazi.useful." + f.primary, "ธาตุเสริม", "ธาตุเสริม" + EL_TH[f.primary], "ธาตุที่ช่วยถ่วงสมดุลให้ดวง", 0.48, null, M(R.useful[f.primary], { w: "W" })), "ธาตุ" + EL_TH[f.primary] + "ที่เสริมดวง");
     var lp = P.lifePath.value;
-    push(item("num.lp." + lp, "เลขศาสตร์", "เลขชีวิต " + lp, "ผลรวมวันเดือนปีเกิด " + P.lifePath.total + (P.lifePath.total !== lp ? " → " + lp : ""), 0.7, null, M(R.lp[lp])));
+    push(item("num.lp." + lp, "เลขศาสตร์", "เลขชีวิต " + lp, "รวมเลขวันเดือนปีเกิดได้ " + P.lifePath.total + (P.lifePath.total !== lp ? " แล้วทอนเหลือ " + lp : ""), 0.7, null, M(R.lp[lp])), "เลขชีวิต");
     var dd = P.input.d;
-    push(item("num.bday." + dd, "เลขศาสตร์", "เกิดวันที่ " + dd, "เลขวันเกิด " + P.birthday, 0.41, null, M({ p: R.bday[dd] })));
-    if (P.name && P.name.sum) { var nr = reduceNum(P.name.sum, false); push(item("num.name." + nr, "เลขศาสตร์", "ผลรวมชื่อ " + P.name.sum, "ลดเหลือ " + nr, 0.41, null, M(R.name[nr]))); }
+    push(item("num.bday." + dd, "เลขศาสตร์", "เกิดวันที่ " + dd, "เลขวันเกิด " + P.birthday, 0.41, null, M({ p: R.bday[dd] })), "เลขวันที่ " + dd);
+    if (P.name && P.name.sum) { var nr = reduceNum(P.name.sum, false); push(item("num.name." + nr, "เลขศาสตร์", "ผลรวมชื่อ " + P.name.sum, "ทอนแล้วเหลือ " + nr, 0.41, null, M(R.name[nr])), "ผลรวมชื่อ"); }
     items.forEach(function (it) { it.tags = tagsOf(it.meanings); });
     var nick = String(opts.nickname || "").trim();
     return {
@@ -556,11 +561,11 @@
   /** ข้อเท็จจริงดวงวันนี้ (D = daily(), mo = monthly()) */
   function buildDailyFacts(P, D, mo, opts) {
     opts = opts || {};
-    var K = KB, R = K.R, items = [], rnd = opts.rng || Math.random, dayO = { w: "dw", m: "dm", l: "dl", a: "da" }, monO = { w: "mw", m: "mw", l: "mw", a: "mw" };
+    var K = KB, R = K.R, items = [], rnd = opts.rng || Math.random, usedF = {}, dayO = { w: "dw", m: "dm", l: "dl", a: "da" }, monO = { w: "mw", m: "mw", l: "mw", a: "mw" };
     items.push(item("today.bhumi." + D.bhumi, "ทักษาจร", "วัน" + K.bhumi[D.bhumi].th + "ของคุณ", "ดาว" + PLANET_TH[D.weekday] + "วันนี้ตกภูมิ" + K.bhumi[D.bhumi].th + "ในทักษาวันเกิด", D.bhumi === "kalakini" ? 0.8 : 0.9, null, K.meaningsRandom(R.bhumi[D.bhumi], dayO), D.bhumi === "kalakini" ? "challenge" : ""));
-    items.push(item("today.rel." + D.rel, "ปาจื้อวันนี้", "เสาวัน " + D.pillar.gz + " (" + K.relations[D.rel].th.split(" (")[0] + ")", "ธาตุวันนี้" + EL_TH[D.todayEl] + " เทียบธาตุประจำตัว", 0.7, null, K.meaningsRandom(R.rel[D.rel], dayO, rnd)));
+    items.push(item("today.rel." + D.rel, "ปาจื้อวันนี้", "เสาวัน " + D.pillar.gz + " (" + K.relations[D.rel].th.split(" (")[0] + ")", "ธาตุวันนี้" + EL_TH[D.todayEl] + " เทียบธาตุประจำตัว", 0.7, null, K.meaningsRandom(R.rel[D.rel], dayO, rnd, usedF)));
     if (D.clash) items.push(item("today.clash", "ปาจื้อวันนี้", "กิ่งวันชงปีเกิด", "ตามความเชื่อ", 0.5, null, { timing: K.phr({ t: R.branch.clash }, "t"), advice: ["ใจเย็นและเผื่อเวลาให้ทุกเรื่อง แล้ววันนี้จะผ่านไปอย่างราบรื่น"] }, "challenge"));
-    var mm = K.meaningsRandom(R.rel[mo.rel], monO, rnd); mm.timing = (mm.work || []).slice(0, 3);
+    var mm = K.meaningsRandom(R.rel[mo.rel], monO, rnd, usedF); mm.timing = (mm.work || []).slice(0, 3);
     if (mo.branchRel === "clash" || mo.branchRel === "harmony" || mo.branchRel === "trine") mm.timing = mm.timing.concat(K.phr({ t: R.branch[mo.branchRel] }, "t"));
     items.push(item("month.rel." + mo.rel, "ดวงเดือนนี้", "เดือน " + mo.pillar.gz, "ธาตุเดือนเทียบธาตุประจำตัว", 0.55, null, { timing: mm.timing, advice: (mm.advice || []).slice(0, 2) }));
     items.forEach(function (it) { it.tags = tagsOf(it.meanings); if (!it.polarity) delete it.polarity; });

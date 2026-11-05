@@ -615,6 +615,11 @@
       var d = KB.mounts[k]; if (!d) return;
       add("mount." + k, "เนินบนฝ่ามือ", d.th + "อิ่มเด่น", tpl(EV.mount, { th: d.th, under: d.under }), 0.55);
     });
+    // short = ชื่อย่อที่ตัวเรียบเรียงใช้หลังเอ่ยชื่อเต็มครั้งแรก เช่น "เส้นหัวใจแบบค่อนข้างตรง" → "เส้นหัวใจ"
+    items.forEach(function (it) {
+      var sh = it.label.replace(/(แบบ|ซึ่ง|อิ่มเด่น|ค่อนข้าง|ยาวใกล้เคียง|ทรง|สั้นกระชับ|ยาวเรียว).*$/, "").trim();
+      if (sh && sh !== it.label && sh.length >= 3) it.short = sh;
+    });
     var subject = {}, nick = String(opt.nickname || "").replace(/[<>{}]/g, "").trim().slice(0, 24);
     if (nick) subject.nickname = nick;
     return {

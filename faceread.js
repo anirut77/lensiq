@@ -682,6 +682,15 @@
     if (R.rivers) add("river.level." + R.rivers.level, "สี่สายน้ำ", "ความกลมกลืนของสี่สายน้ำ", tpl(EV["river.level"], { score: R.rivers.score }), 0.28);
     var aa = ageArea(opt.age);
     if (aa) add("age." + aa.from, "แผนที่อายุ", "ช่วงวัยที่ตรงกับตำแหน่ง" + aa.th, tpl(EV.age, { age: opt.age, th: aa.th }), 0.62);
+    // short = ชื่อย่อที่ตัวเรียบเรียงใช้หลังเอ่ยชื่อเต็มครั้งแรก (ไม่บังคับ)
+    var SHORT = { "brow.note": "ระยะคิ้วกับตา", "eye.note": "ระยะห่างของดวงตา", "mouth.note": "มุมปาก", "mouth.lip": "ริมฝีปาก", "mountain.level": "ห้าภูเขา", "river.level": "สี่สายน้ำ", "age": "ช่วงวัยนี้" };
+    items.forEach(function (it) {
+      var k = it.id.split(".").slice(0, 2).join("."), sh = SHORT[k] || SHORT[it.id.split(".")[0]];
+      if (!sh && /^element\./.test(it.id)) sh = it.label.replace(/^ธาตุรองอย่าง/, "");
+      if (!sh && /^zone\./.test(it.id)) sh = it.label.replace(/เด่น$|สมดุล$/, "");
+      if (!sh && /^mountain\.lead/.test(it.id)) sh = it.label.split("บริเวณ")[0];
+      if (sh && sh !== it.label) it.short = sh;
+    });
     var tops = topPalaces(R.palaces || [], 1);
     var subject = {}, nick = String(opt.nickname || "").replace(/[<>{}]/g, "").trim().slice(0, 24);
     if (nick) subject.nickname = nick;

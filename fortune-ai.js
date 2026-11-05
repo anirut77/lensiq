@@ -99,7 +99,8 @@
       last = pool.pop(); return last;
     };
   }
-  const fill = (t, v) => t.replace(/\{(\w+)\}/g, (m, k) => (v[k] == null ? "" : typeof v[k] === "function" ? v[k]() : v[k]));
+  // {N}เอง → "คุณเอง" เสมอ (กัน "คุณต้นเอง" อ่านกำกวม)
+  const fill = (t, v) => t.replace(/\{N\}(?=เอง)/g, "คุณ").replace(/\{(\w+)\}/g, (m, k) => (v[k] == null ? "" : typeof v[k] === "function" ? v[k]() : v[k]));
 
   /* ======================= คลังสำนวน ======================= */
   // {N} = คุณ / คุณ{ชื่อเล่น}, {D} = ชื่อศาสตร์
@@ -260,8 +261,17 @@
     "^สิ่งที่พบคือ{LE} ซึ่ง{V}{M}", "ลักษณะเด่นอย่าง{LE} {H}{M}", "^ในส่วนของ{G} พบ{LE} {H}{M}", "{L}ที่ปรากฏนี้{V}{M}",
   ];
   const NEEDS_GROUP = /\{G\}/;
+  // ความหมายที่ขึ้นต้นด้วย "…ว่า" ของตัวเอง (เช่น "เพื่อนร่วมงานมักเห็นว่า…") — ห้ามต่อหลัง "หมายถึง/บ่งบอกว่า"
+  const WA_FRAMES = ["{LEV}ทำให้{M}", "^ด้วย{LE} {M}", "{LEV}เป็นเหตุผลที่{M}"];
+  // ความหมายที่ขึ้นต้นด้วยหัวเรื่องของตัวเอง (เช่น "ด้านการงาน คุณ…") — ยกหัวเรื่องขึ้นต้นประโยค
+  const HOIST_FRAMES = ["^{LEAD} {LEV}{V}{M}"];
+  // ประโยคปิดหัวข้อหลัก: ข้อแนะนำที่ลงมือได้จริงจากสิ่งที่พบ {TW} = หัวข้อ, {M} = ข้อแนะนำ
+  const ACTION_FRAMES = [
+    "สิ่งที่ลงมือได้ทันทีในเรื่อง{TW}คือ{M}", "ถ้าจะเลือกทำเพียงข้อเดียวเพื่อเรื่อง{TW} ข้อที่เหมาะที่สุดคือ{M}",
+    "ข้อแนะนำที่ใช้ได้จริงสำหรับเรื่อง{TW}ในช่วงนี้คือ{M}", "ก้าวแรกที่ทำได้เลยในเรื่อง{TW}คือ{M}",
+  ];
   const NEXT_FRAMES = ["{H}{M}", "{L}ยังบอกอีกว่า{M}", "^ส่วน{L} {H}{M}", "^สำหรับ{L} {H}{M}", "^หากดูที่{L} {H}{M}", "{L}ยังช่วยเสริมด้วยว่า{M}", "{L}{V}{M}"];
-  const MORE_FRAMES = ["{H}{M}", "{H}{M}", "^ในมุมเดียวกันนี้ {M}", "^อีกความหมายหนึ่งของ{L}คือ{M}", "^ตำราบางสำนักยังเสริมว่า{M}", "^ไม่เพียงเท่านั้น {L}ยัง{V}{M}"];
+  const MORE_FRAMES = ["{H}{M}", "{H}{M}", "^ในมุมเดียวกันนี้ {M}", "^อีกความหมายหนึ่งของ{L}คือ{M}", "^ตำราบางสำนักยังเสริมว่า{M}", "^ไม่เพียงเท่านั้น {L}ยัง{PV}{M}"];
   const SYN_PAIR = [
     "ทั้ง{A}และ{B}ช่วยเสริมกันในเรื่อง{TW} ทำให้จุดนี้เด่นชัดเป็นพิเศษ",
     "เมื่อ{A}มาประกอบกับ{B} พลังด้าน{TW}ของ{N}จึงยิ่งหนักแน่น",
@@ -336,12 +346,71 @@
   /* ======================= ตัวเรียบเรียงในเครื่อง ======================= */
   const cleanMeaning = m => String(m || "").trim().replace(/[.。\s]+$/u, "");
   const thaiList = (arr, sp) => arr.length <= 1 ? (arr[0] || "") : arr.slice(0, -1).join(" ") + (sp ? " และ " : " และ") + arr[arr.length - 1];
-  const tidy = s => s.replace(/\s{2,}/g, " ").replace(/\s+\)/g, ")").replace(/\(\s+/g, "(").trim();
+  const CJK_RE = /[⺀-鿿豈-﫿]/;
+  const CJK_PAREN = /\s*[(（][^()（）]*[⺀-鿿豈-﫿][^()（）]*[)）]/g;
+  // คำออกตัวซ้อนกัน เช่น "ว่ากันว่าตามความเชื่อแล้ว คุณ…" → "ว่ากันว่าคุณ…"
+  const DOUBLE_HEDGE = /(ว่ากันว่า|เชื่อกันว่า|ตามตำราเชื่อว่า|มีแนวโน้มว่า|ดูเหมือนว่า|ตามตำรามักตีความว่า|ในทางตำรามักตีความว่า|ในความเชื่อหมายความว่า|ซึ่งตามความเชื่อหมายถึง|ตามความเชื่อแล้วบอกว่า)\s*(?:ตามความเชื่อ(?:แล้ว)?|ว่ากันว่า|เชื่อกันว่า|ตามตำราเชื่อว่า)\s*/g;
+  const tidy = s => s.replace(DOUBLE_HEDGE, "$1").replace(/\s{2,}/g, " ").replace(/\s+\)/g, ")").replace(/\(\s+/g, "(").replace(/\(\)/g, "").replace(/([)”])(?=[\u0E01-\u0E4E])/g, "$1 ").replace(/(\d)(?=[\u0E01-\u0E2E\u0E40-\u0E44])/g, "$1 ").replace(/\s+([,!?])/g, "$1").trim();
+  // ความหมายที่มีคำออกตัวอยู่แล้ว → ไม่เติมคำออกตัวซ้ำ ใช้คำเชื่อมเรียบ ๆ แทน
+  const HEDGY = /ตามความเชื่อ|ตามตำรา|ว่ากันว่า|เชื่อกันว่า|มีแนวโน้ม/;
+  const IMPER = /^(ลอง|ควร|อย่า|หมั่น|ฝึก|เลือก|จด|ตั้งใจ|ให้เวลา|เปิดใจ|ใช้เวลา|เริ่มจาก|ค่อย ๆ|ปล่อย|พักใจ|รักษา|เตรียม)/;
+  const IMP_FRAMES = ["{LEV}ชวนให้{M}", "{LEV}แนะให้{M}", "^ตามคำแนะนำของ{LE} {M}"];
+  const SELF_SAYS = /^.{0,50}?(บอก|ชี้|สะท้อน|แสดง|หมายความ|เตือน)[^\s]{0,16}ว่า/;
+  const SELF_FIRST = ["จาก{LE} {M}", "เมื่อดูที่{LE} {M}", "สำหรับ{LE} {M}"];
+  const SELF_NEXT = ["ส่วน{L} {M}", "สำหรับ{L} {M}"];
+  const COND_START = /^(ถ้า|หาก|เมื่อ|ยิ่ง|ตราบใดที่)/;
+  const COND_VERBS = ["บอกว่า", "ชวนให้คิดว่า", "ฝากไว้ว่า"];
+  const PLAIN_VERBS = ["บ่งบอกว่า", "สะท้อนว่า", "ชี้ว่า", "เป็นสัญญาณว่า", "เผยให้เห็นว่า"];
+
+  /* ---------- คำนำหน้าความหมาย (lead-in) ----------
+     คลังความรู้บางศาสตร์ใส่กรอบประโยคไว้หน้าแก่นความหมายแล้ว เช่น "ถ้าพูดถึงเส้นทางอาชีพ คุณ…"
+     ถ้าเอากรอบของตัวเรียบเรียงไปต่อหน้าอีกชั้นจะกลายเป็น "…หมายถึงถ้าพูดถึง…" จึงต้องแยกคำนำหน้าออกก่อน
+     รายการนี้รวมจากการสแกนกรอบของคลังความรู้ (HSKB.FRAMES) + คำพื้นฐานที่พบบ่อย */
+  const BASE_LEADS = [
+    "ถ้าพูดถึงเส้นทางอาชีพ", "ด้านการงานนั้น", "ด้านการงาน", "เวลาทำงานหรือเรียน", "เพื่อนร่วมงานมักเห็นว่า", "ในที่ทำงาน", "ในเรื่องงาน",
+    "คนรอบตัวมักสัมผัสได้ว่า", "ลึก ๆ แล้ว", "ในชีวิตประจำวัน", "ถ้าให้สรุปตัวตนสั้น ๆ",
+    "เรื่องเงิน", "ด้านการเงิน", "พอเป็นเรื่องรายรับรายจ่าย", "ในมุมของเงินทอง",
+    "ในความรัก", "เรื่องหัวใจ", "กับคนที่รัก", "เมื่อมีคนสำคัญในชีวิต",
+    "กับเพื่อนและคนรอบตัว", "ในวงสังคม", "ในหมู่เพื่อน", "สำหรับคนรอบข้าง", "ในสายตาคนอื่น", "เมื่อพบกันครั้งแรก",
+    "คำแนะนำสำหรับคุณคือ", "ถ้าอยากให้ดวงส่งเสริมเต็มที่", "เคล็ดเล็ก ๆ ที่ช่วยได้มากคือ", "ในแง่จังหวะเวลา", "ถ้ามองเรื่องจังหวะชีวิต",
+  ];
+  // คำนำหน้าที่ตัดทิ้งเสมอ (ยกขึ้นต้นประโยคแล้วไม่เป็นธรรมชาติ)
+  const DROP_LEADS = /^(ลึก ๆ แล้ว|คำแนะนำสำหรับคุณคือ|ถ้าอยากให้ดวงส่งเสริมเต็มที่|เคล็ดเล็ก ๆ ที่ช่วยได้มากคือ)$/;
+  let leadCache = null, leadSrc = null;
+  function leadIns() {
+    const kb = root.HSKB && root.HSKB.FRAMES;
+    if (leadCache && leadSrc === kb) return leadCache;
+    const set = new Set(BASE_LEADS);
+    if (kb && typeof kb === "object") for (const k in kb) for (const f of [].concat(kb[k])) {
+      const i = String(f).indexOf("{C}"); if (i <= 0) continue;
+      const lead = String(f).slice(0, i).replace(/คุณ$/, "").trim();
+      if (lead.length >= 3) set.add(lead);
+    }
+    leadCache = Array.from(set).sort((a, b) => b.length - a.length); leadSrc = kb;
+    return leadCache;
+  }
+  // คืน { lead, rest, kind } เมื่อความหมายขึ้นต้นด้วยคำนำหน้าของตัวเอง; kind: "wa" (…ว่า) | "drop" | "topic"
+  const GENERIC_LEAD = /^((?:ด้าน|เรื่อง|ในเรื่อง|ในด้าน|ถ้าพูดถึง|ถ้ามอง|เวลา|ในมุม|สำหรับ|เมื่อ|พอเป็น)[^\s]{1,24}) (?=คุณ)/;
+  function splitLead(m) {
+    let lead = null;
+    for (const l of leadIns()) if (m.startsWith(l) && (/(ว่า|คือ)$/.test(l) || /^(\s|คุณ|$)/.test(m.slice(l.length)))) { lead = l; break; }
+    if (!lead) { const g = GENERIC_LEAD.exec(m); if (g) lead = g[1]; }
+    if (!lead) return null;
+    const rest = m.slice(lead.length).trim();
+    if (!rest) return null;
+    return { lead, rest, kind: DROP_LEADS.test(lead) || /คือ$/.test(lead) ? "drop" : /ว่า$/.test(lead) ? "wa" : "topic" };
+  }
+  // คำแทน (สรรพนาม) ของสิ่งที่เพิ่งพูดถึง เพื่อไม่ต้องเอ่ยชื่อซ้ำ
+  function pronounOf(name) {
+    const m = /^(ธาตุ|ราศี|ลัคนา|เลข|ไพ่|เส้น|เนิน|คิ้ว|จมูก|หน้าผาก|ทิศ)/.exec(name || "");
+    return m ? (m[1] === "ไพ่" ? "ไพ่ใบนี้" : m[1] + "นี้") : "จุดนี้";
+  }
 
   function normalizeFacts(facts) {
     const f = facts && typeof facts === "object" ? facts : {};
     const items = (Array.isArray(f.items) ? f.items : []).filter(it => it && typeof it === "object" && it.label).map((it, i) => ({
       id: String(it.id || "item" + i), group: String(it.group || ""), label: String(it.label),
+      short: it.short ? String(it.short) : "",
       evidence: it.evidence ? String(it.evidence) : "", strength: typeof it.strength === "number" && isFinite(it.strength) ? Math.max(0, Math.min(1, it.strength)) : 0.5,
       polarity: it.polarity === "challenge" ? "challenge" : "", tags: Array.isArray(it.tags) ? it.tags.map(String) : [],
       meanings: it.meanings && typeof it.meanings === "object" ? it.meanings : {}, _i: i,
@@ -356,13 +425,21 @@
     };
   }
 
+  // หลักฐานในประโยคต้องอ่านง่าย: ตัดส่วนที่เป็นศัพท์เทคนิค (องศา อักษรจีน น้ำหนัก การประเมิน) ไว้ให้ตารางแสดงแทน
+  function proseEvidence(ev) {
+    const parts = String(ev || "").split(/\s*[·•|]\s*/).map(p => p.trim()).filter(p => p && !/°|น้ำหนัก|ประเมิน|\bweight\b|=/.test(p) && !CJK_RE.test(p));
+    const s = parts.join(" ").trim();
+    // ยาวเกินหรือมีวงเล็บซ้อน (เช่น "ตำแหน่งที่ 2 (ปัจจุบัน): …") → ไม่ใส่ในประโยค
+    return s.length > 70 || /[():]/.test(s) || /^คุณ(ยืนยัน|เลือก|ระบุ)/.test(s) ? "" : s;
+  }
+
   function makeCtx(F, r) {
     const ctx = {
-      r, F, used: new Set(), mentioned: new Set(), evidenceShown: new Set(), accepted: [], all: [], nickUses: 0,
+      r, F, used: new Set(), mentioned: new Set(), fullShown: new Set(), leads: new Set(), accepted: [], all: [], nickUses: 0,
       opener: deck(r, OPENERS), conn: deck(r, CONNECTORS), closer: deck(r, CLOSERS), advice: deck(r, ADVICE_FRAMES),
-      hedge: deck(r, HEDGES), link: deck(r, LINKS), verb: deck(r, VERBS), first: deck(r, FIRST_FRAMES), next: deck(r, NEXT_FRAMES), more: deck(r, MORE_FRAMES),
-      pair: deck(r, SYN_PAIR), contrast: deck(r, SYN_CONTRAST), bridge: deck(r, BRIDGES), headline: deck(r, HEADLINES),
-      intro: {}, lastConn: null,
+      hedge: deck(r, HEDGES), link: deck(r, LINKS), verb: deck(r, VERBS), plain: deck(r, PLAIN_VERBS), first: deck(r, FIRST_FRAMES), next: deck(r, NEXT_FRAMES), more: deck(r, MORE_FRAMES),
+      pair: deck(r, SYN_PAIR), contrast: deck(r, SYN_CONTRAST), bridge: deck(r, BRIDGES), headline: deck(r, HEADLINES), action: deck(r, ACTION_FRAMES),
+      wa: deck(r, WA_FRAMES), hoist: deck(r, HOIST_FRAMES), intro: {}, lastConn: null,
     };
     for (const k in INTROS) ctx.intro[k] = deck(r, INTROS[k]);
     // คุณ / คุณ{ชื่อเล่น} — ใช้ชื่อเล่นอย่างพอดี ไม่เกิน 3 ครั้งต่อคำทำนาย
@@ -371,8 +448,21 @@
     return ctx;
   }
 
-  // เพิ่มประโยคเมื่อปลอดภัยและไม่ซ้ำ/คล้ายประโยคก่อนหน้า
-  function accept(ctx, s) {
+  // ชื่อสิ่งที่พบ: ครั้งแรกใช้ชื่อเต็ม (+หลักฐาน) ครั้งต่อไปใช้ชื่อย่อ (short) และตัดวงเล็บอักษรจีนออก
+  function ref(ctx, it, opt) {
+    opt = opt || {};
+    if (!ctx.fullShown.has(it.id)) {
+      ctx.fullShown.add(it.id);
+      const ev = opt.evidence && !/[)”"]$/.test(it.label) ? proseEvidence(it.evidence) : "";
+      return { name: it.label, ev, first: true };
+    }
+    const s = (it.short || it.label).replace(CJK_PAREN, "").trim() || it.label.replace(CJK_PAREN, "").trim();
+    return { name: s, ev: "", first: false };
+  }
+  const refName = (ctx, it) => ref(ctx, it).name;
+
+  // ตรวจความซ้ำ (ยังไม่บันทึก) — คืนค่าประโยคที่จัดแล้ว หรือ null
+  function vet(ctx, s) {
     s = tidy(s);
     if (!s || !isSafe(s)) return null;
     const n = normSentence(s);
@@ -382,7 +472,7 @@
       if (a.n === n) return null;
       if (n.length >= 12 && a.n.length >= 12 && dice(a.bg, bg) >= 0.82) return null;
     }
-    ctx.accepted.push({ n, bg }); ctx.all.push(s);
+    ctx.accepted.push({ n, bg });
     return s;
   }
 
@@ -390,49 +480,101 @@
     const pool = [];
     for (const k of keys) { const arr = it.meanings[k]; if (Array.isArray(arr)) for (const m of arr) { const c = cleanMeaning(m); if (c && !ctx.used.has(c) && isSafe(c)) pool.push(c); } }
     if (!pool.length) return null;
-    const m = pick(ctx.r, pool); ctx.used.add(m); return m;
+    // เลี่ยงสำนวนที่ขึ้นต้นด้วยคำนำหน้าที่ใช้ไปแล้วในคำทำนายนี้
+    const fresh = pool.filter(c => { const sp = splitLead(c); return !sp || !ctx.leads.has(sp.lead); });
+    const m = pick(ctx.r, fresh.length ? fresh : pool); ctx.used.add(m); return m;
   }
   const hasKeys = (it, keys) => keys.some(k => Array.isArray(it.meanings[k]) && it.meanings[k].length);
 
   // สร้างประโยคจากสิ่งที่พบ 1 รายการ (+ คืนค่าว่าเติมคำเชื่อมได้หรือไม่)
   function itemSentence(ctx, it, m, mode) {
     const r = ctx.r;
+    // ความหมายที่ขึ้นต้นด้วยชื่อสิ่งที่พบอยู่แล้ว → ใช้ตามนั้น ไม่ต้องเอ่ยชื่อซ้ำ
+    if (m.indexOf(it.label) === 0 || (it.short && m.indexOf(it.short) === 0)) {
+      ctx.fullShown.add(it.id); ctx.mentioned.add(it.id); ctx.lastItem = it.id;
+      return { text: m, noConn: false };
+    }
+    const wantEv = mode === "first" && r() < 0.8;
+    const R0 = ref(ctx, it, { evidence: wantEv });
+    const LE = R0.name + (R0.ev ? " (" + R0.ev + ")" : "");
+    const LEV = LE + (R0.ev ? " " : "");
+    const L = mode === "more" ? (r() < 0.6 ? pronounOf(it.short || it.label) : R0.name) : R0.name;
+    ctx.mentioned.add(it.id);
+    const prevItem = ctx.lastItem; ctx.lastItem = it.id;
+    const hedgy = HEDGY.test(m);
+    const V = () => (hedgy ? ctx.plain() : ctx.verb());
+    // ความหมายมีคำนำหน้าของตัวเอง → ใช้กรอบเบา ๆ ไม่ซ้อนสองชั้น
+    const sp = splitLead(m);
+    if (sp) {
+      const fresh = !ctx.leads.has(sp.lead);
+      // ใช้คำนำหน้าได้ไม่เกิน 1 ครั้งต่อหัวข้อ และไม่ซ้ำทั้งคำทำนาย นอกนั้นตัดทิ้ง
+      if (sp.kind !== "drop" && fresh && !ctx.secLead && r() < 0.75) {
+        ctx.leads.add(sp.lead); ctx.secLead = 1;
+        if (sp.kind === "wa") {
+          let f = ctx.wa(); if (/^\^ด้วย/.test(f) && /^เกิด/.test(R0.name)) f = "{LEV}ทำให้{M}";
+          const noConn = f[0] === "^";
+          return { text: fill(noConn ? f.slice(1) : f, ctx.vars({ LE, LEV, M: m })), noConn };
+        }
+        return { text: fill(ctx.hoist().replace(/^\^/, ""), ctx.vars({ LEAD: sp.lead, LE, LEV, V: V(), M: sp.rest })), noConn: true };
+      }
+      m = sp.rest;
+    }
+    // ความหมายแบบคำแนะนำ ("ลอง…", "อย่า…") หรือเงื่อนไข ("ถ้า…") ต่อหลัง "หมายถึง/บ่งบอกว่า" ไม่ได้ ต้องใช้กริยานำที่เข้ากัน
+    if (IMPER.test(m)) {
+      const neg = /^อย่า/.test(m);
+      const f = neg ? "{LEV}เตือนเบา ๆ ว่า{M}" : pick(r, IMP_FRAMES);
+      return { text: fill(f[0] === "^" ? f.slice(1) : f, ctx.vars({ LE, LEV, M: neg ? m : m.replace(/^ควร(?:จะ)?\s*/, "") })), noConn: f[0] === "^" };
+    }
+    const cond = COND_START.test(m);
+    // ความหมายที่มีกริยารายงานของตัวเองอยู่ต้นประโยค ("…บอกว่า…") → วางชื่อไว้หน้าเฉย ๆ ไม่ใส่ "บ่งบอกว่า" ซ้อน
+    if (!cond && SELF_SAYS.test(m)) {
+      const f = R0.first ? pick(r, SELF_FIRST) : pick(r, SELF_NEXT);
+      return { text: fill(f, ctx.vars({ LE, L, M: m })), noConn: true };
+    }
     let frame;
     if (mode === "first") {
-      for (let k = 0; k < 4; k++) { frame = ctx.first(); if (!NEEDS_GROUP.test(frame) || (it.group && it.group !== it.label)) break; frame = "{LEV}{V}{M}"; }
-    } else frame = mode === "more" ? ctx.more() : ctx.next();
-    let ev = "";
-    if (mode === "first" && /\{LEV?\}/.test(frame) && it.evidence && !ctx.evidenceShown.has(it.id) && r() < 0.8) { ev = it.evidence; ctx.evidenceShown.add(it.id); }
-    const LE = it.label + (ev ? " (" + ev + ")" : "");
+      for (let k = 0; k < 4; k++) { frame = ctx.first(); if (!NEEDS_GROUP.test(frame) || (it.group && it.group !== it.label && it.label.indexOf(it.group) !== 0)) break; frame = "{LEV}{V}{M}"; }
+    } else {
+      // กรอบที่ไม่เอ่ยชื่อ ใช้ได้เฉพาะเมื่อประโยคก่อนหน้าพูดถึงสิ่งเดียวกัน ไม่งั้นผู้อ่านจะไม่รู้ว่าหมายถึงอะไร
+      for (let k = 0; k < 4; k++) { frame = mode === "more" ? ctx.more() : ctx.next(); if (/\{L/.test(frame) || prevItem === it.id) break; }
+      if (!/\{L/.test(frame) && prevItem !== it.id) frame = "^ส่วน{L} {H}{M}";
+    }
+    if (!R0.first && /\{G\}/.test(frame)) frame = "{LEV}{V}{M}";
     const noConn = frame[0] === "^";
-    const text = fill(noConn ? frame.slice(1) : frame, ctx.vars({ LE, LEV: LE + (ev ? " " : ""), L: it.label, G: it.group, H: /\{LE\} \{H\}/.test(frame) ? ctx.link() : ctx.hedge(), V: ctx.verb(), M: m }));
-    ctx.mentioned.add(it.id);
+    const plainV = hedgy || cond;
+    const H = plainV ? "" : /\{LE\} \{H\}/.test(frame) ? ctx.link() : ctx.hedge();
+    const text = fill(noConn ? frame.slice(1) : frame, ctx.vars({ LE, LEV, L, PV: ctx.plain(), G: it.group, H: plainV && /\{LE\} \{H\}/.test(frame) ? (cond ? pick(r, COND_VERBS) : ctx.plain()) : H, V: cond ? pick(r, COND_VERBS) : V(), M: m }));
     return { text, noConn };
   }
 
   function withConnector(ctx, s) {
     let c = ctx.conn();
     if (c === ctx.lastConn) c = ctx.conn();
+    // "ที่น่าสนใจคือ ว่ากันว่า…" / "ข้อดีคือ ถ้า…" อ่านสะดุด → เลี่ยงคำเชื่อมที่ลงท้ายด้วย "คือ" เมื่อประโยคขึ้นต้นด้วยคำออกตัว/เงื่อนไข
+    for (let k = 0; k < 4 && /คือ$/.test(c) && (STRIP_PREFIX.some(p => s.indexOf(p) === 0) || COND_START.test(s)); k++) c = ctx.conn();
+    if (/คือ$/.test(c) && (STRIP_PREFIX.some(p => s.indexOf(p) === 0) || COND_START.test(s))) return s;
     ctx.lastConn = c;
     return c + " " + s;
   }
 
-  // แบ่งย่อหน้า 2–4 ประโยค; ประโยคที่ 2 เป็นต้นไปอาจเติมคำเชื่อม
+  // แบ่งย่อหน้า 2–4 ประโยค (กรองประโยคซ้ำก่อนแบ่ง เพื่อไม่ให้เหลือย่อหน้าประโยคเดียว); ประโยคที่ 2 เป็นต้นไปอาจเติมคำเชื่อม
   function paragraphs(ctx, list) {
     const r = ctx.r, out = [];
+    const ok = [];
+    for (const u of list) { const s = vet(ctx, u.text); if (s) ok.push(Object.assign({}, u, { text: s })); }
     let i = 0;
-    while (i < list.length) {
+    while (i < ok.length) {
       let size = 2 + Math.floor(r() * 3);
-      if (list.length - (i + size) === 1) size++;
-      const chunk = list.slice(i, i + size);
-      const parts = [];
-      chunk.forEach((u, j) => {
+      const left = ok.length - (i + size);
+      if (left === 1) size = size < 4 ? size + 1 : size - 1;
+      const chunk = ok.slice(i, i + size);
+      const parts = chunk.map((u, j) => {
         let s = u.text;
-        if (j > 0 && !u.noConn && !u.fixed && r() < 0.6) s = withConnector(ctx, s);
-        s = accept(ctx, s);
-        if (s) parts.push(s);
+        if (j > 0 && !u.noConn && !u.fixed && r() < 0.6) s = tidy(withConnector(ctx, s));
+        ctx.all.push(s);
+        return s;
       });
-      if (parts.length) out.push(parts.join(" "));
+      out.push(parts.join(" "));
       i += size;
     }
     return out;
@@ -443,18 +585,19 @@
     const strong = list.filter(it => it.strength >= 0.6 && it.polarity !== "challenge");
     const weak = list.filter(it => it.polarity === "challenge" || it.strength <= 0.4);
     if (strong.length >= 2 && strong[0].label !== strong[1].label) {
-      out.push({ text: fill(ctx.pair(), ctx.vars({ A: strong[0].label, B: strong[1].label, TW: tagWord })), fixed: true });
+      out.push({ text: fill(ctx.pair(), ctx.vars({ A: refName(ctx, strong[0]), B: refName(ctx, strong[1]), TW: tagWord })), fixed: true });
     }
     if (weak.length && strong.length && weak[0].label !== strong[0].label) {
-      out.push({ text: fill(ctx.contrast(), ctx.vars({ W: weak[0].label, S: strong[0].label, TW: tagWord })), fixed: true });
+      out.push({ text: fill(ctx.contrast(), ctx.vars({ W: refName(ctx, weak[0]), S: refName(ctx, strong[0]), TW: tagWord })), fixed: true });
     }
     return out;
   }
 
   function buildOverview(ctx, plan) {
     const { F, r } = ctx;
+    ctx.secLead = 0; ctx.lastItem = null;
     const units = [{ text: fill(ctx.opener(), ctx.vars()), fixed: true }];
-    if (F.headline) units.push({ text: fill(ctx.headline(), ctx.vars({ X: F.headline })), fixed: true });
+    if (F.headline) units.push({ text: fill(ctx.headline(), ctx.vars({ X: thaiList(F.headline.replace(CJK_PAREN, "").split(/\s*·\s*/).filter(Boolean)) })), fixed: true });
     const k = Math.min(F.items.length, 3 + Math.floor(r() * 3));
     const top = F.items.slice(0, k);
     const pref = ["overview", "personality"].concat(F.topic !== "overall" ? [F.topic] : []);
@@ -471,13 +614,31 @@
         if (!best || score > best.score) best = { a: top[i], b: top[j], tag: shared.indexOf(F.topic) >= 0 ? F.topic : shared[0], score };
       }
     }
-    if (best) units.push({ text: fill(ctx.pair(), ctx.vars({ A: best.a.label, B: best.b.label, TW: TAG_WORDS[best.tag] })), fixed: true });
+    if (best) units.push({ text: fill(ctx.pair(), ctx.vars({ A: refName(ctx, best.a), B: refName(ctx, best.b), TW: TAG_WORDS[best.tag] })), fixed: true });
     const w = top.find(it => it.polarity === "challenge");
     const s = top.find(it => it !== w && it.polarity !== "challenge");
-    if (w && s) units.push({ text: fill(ctx.contrast(), ctx.vars({ W: w.label, S: s.label, TW: TAG_WORDS.overview })), fixed: true });
+    if (w && s) units.push({ text: fill(ctx.contrast(), ctx.vars({ W: refName(ctx, w), S: refName(ctx, s), TW: TAG_WORDS.overview })), fixed: true });
     if (plan.topicHasSection) units.push({ text: fill(ctx.bridge(), ctx.vars({ TW: TAG_WORDS[F.topic] })), fixed: true });
     else if (r() < 0.6) units.push({ text: fill(ctx.closer(), ctx.vars({ T: CLOSER_TOPIC.overview })), fixed: true });
     return paragraphs(ctx, units);
+  }
+
+  // ข้อแนะนำที่ลงมือได้จริง 1 ข้อ ดึงจากหมวด advice ของสิ่งที่พบในหัวข้อนั้น
+  const DOABLE = /^(ลอง|ควร|หมั่น|ฝึก|เลือก|จด|ตั้ง|ใช้|จัด|เติม|วาง|หัน|พก|ใส่|เปิด|แบ่ง|นับ|เขียน|ทำ|เริ่ม|ให้เวลา|พูด|ฟัง|ถาม|คุย)/;
+  function actionLine(ctx, chosen, id) {
+    const cands = [];
+    for (const it of chosen.concat(ctx.F.items)) for (const raw of it.meanings.advice || []) {
+      const c = cleanMeaning(raw); if (!c || ctx.used.has(c) || !isSafe(c)) continue;
+      const sp = splitLead(c); const m = (sp ? sp.rest : c).replace(/^(คุณ)?ควร(?:จะ)?\s*/, "");
+      if (m.length >= 8 && cands.every(x => x.c !== c)) cands.push({ c, m, ok: DOABLE.test(m) });
+    }
+    for (const t of (Array.isArray(ctx.F.extras.tips) ? ctx.F.extras.tips : [])) {
+      const c = cleanMeaning(t); if (c && !ctx.used.has(c) && isSafe(c) && c.length >= 8) cands.push({ c, m: c.replace(/^(คุณ)?ควร(?:จะ)?\s*/, ""), ok: DOABLE.test(c), tip: true });
+    }
+    if (!cands.length) return null;
+    const good = cands.filter(x => x.ok), x = (good.length ? good : cands)[0];
+    ctx.used.add(x.c);
+    return { text: fill(ctx.action(), ctx.vars({ TW: TAG_WORDS[id] || "นี้", M: x.m })), fixed: true };
   }
 
   function buildSection(ctx, id, isTopic) {
@@ -488,7 +649,7 @@
     const extraUnits = [];
     if (id === "advice") {
       const list = v => (Array.isArray(v) ? v.map(String).filter(Boolean).slice(0, 6) : []);
-      for (const t of list(extras.tips)) extraUnits.push({ text: fill(ctx.advice(), ctx.vars({ M: cleanMeaning(t) })), noConn: true });
+      for (const t of list(extras.tips)) if (!ctx.used.has(cleanMeaning(t))) extraUnits.push({ text: fill(ctx.advice(), ctx.vars({ M: cleanMeaning(t) })), noConn: true });
       if (list(extras.luckyColors).length) extraUnits.push({ text: fill(pick(r, COLOR_LINES), ctx.vars({ X: thaiList(list(extras.luckyColors)) })), noConn: true });
       if (list(extras.luckyNumbers).length) extraUnits.push({ text: fill(pick(r, NUMBER_LINES), ctx.vars({ X: " " + thaiList(list(extras.luckyNumbers), true) + " " })), noConn: true });
       if (list(extras.directions).length) extraUnits.push({ text: fill(pick(r, DIRECTION_LINES), ctx.vars({ X: thaiList(list(extras.directions)) })), noConn: true });
@@ -498,12 +659,13 @@
     const maxItems = isTopic ? 8 : 3 + Math.floor(r() * 3);
     // เรียงตามความเด่น + สุ่มเล็กน้อย เพื่อให้ลำดับต่างกันในแต่ละรอบ แต่ตัวเด่นยังมาก่อน
     const chosen = rel.map(it => ({ it, k: it.strength + r() * 0.18 })).sort((a, b) => b.k - a.k).slice(0, maxItems).map(x => x.it);
+    ctx.secLead = 0; ctx.lastItem = null;
     const units = [{ text: fill(ctx.intro[id](), ctx.vars()), fixed: true }];
     const body = [];
     for (const it of chosen) {
-      const m = pickMeaning(ctx, it, keys);
+      let m = pickMeaning(ctx, it, keys);
       if (!m) continue;
-      if (id === "advice") { body.push({ text: fill(ctx.advice(), ctx.vars({ M: m })), noConn: true }); ctx.mentioned.add(it.id); continue; }
+      if (id === "advice") { const sp = splitLead(m); if (sp) m = sp.rest; body.push({ text: fill(ctx.advice(), ctx.vars({ M: m })), noConn: true }); ctx.mentioned.add(it.id); continue; }
       body.push(itemSentence(ctx, it, m, ctx.mentioned.has(it.id) ? "next" : "first"));
       if (isTopic && r() < 0.55) { const m2 = pickMeaning(ctx, it, keys); if (m2) body.push(itemSentence(ctx, it, m2, "more")); }
     }
@@ -512,7 +674,10 @@
     if (syn.length) body.splice(Math.min(body.length, 2 + Math.floor(r() * 2)), 0, syn[0]);
     if (isTopic && syn[1]) body.push(syn[1]); else if (syn[1] && r() < 0.5) body.push(syn[1]);
     units.push(...body, ...extraUnits);
-    if (isTopic || r() < 0.6 || id === "advice") units.push({ text: fill(ctx.closer(), ctx.vars({ T: CLOSER_TOPIC[id] })), fixed: true });
+    // หัวข้อที่ผู้ใช้สนใจ: ปิดด้วยข้อแนะนำที่ทำได้จริงจากสิ่งที่พบ (แทนคำปิดกว้าง ๆ)
+    const act = isTopic && id !== "advice" ? actionLine(ctx, chosen, id) : null;
+    if (act) units.push(act);
+    else if (isTopic || r() < 0.6 || id === "advice") units.push({ text: fill(ctx.closer(), ctx.vars({ T: CLOSER_TOPIC[id] })), fixed: true });
     const paras = paragraphs(ctx, units);
     return paras.length ? { id, title: SECTION_TITLES[id], paragraphs: paras } : null;
   }

@@ -198,6 +198,9 @@
 
   /* ---------- facts สำหรับ fortune-ai.js ---------- */
   var dirTh = function (d) { return KB.dirs[d].th; };
+  // ชื่อภาษาไทยก่อน อักษรจีนอยู่ในวงเล็บ เช่น "坎 ขั้น" → "ขั้น (坎)", "กลุ่มตะวันออก (東四命)" → "กลุ่มตะวันออก"
+  function triTh(t) { var m = /^([\u2E80-\u9FFF]+)\s+(.+)$/.exec(String(t || "")); return m ? m[2] + " (" + m[1] + ")" : String(t || ""); }
+  function noCn(t) { return String(t || "").replace(/\s*\([^)]*[\u2E80-\u9FFF][^)]*\)/g, ""); }
   function buildFacts(st) {
     var items = [], extras = { luckyColors: [], directions: [], tips: [] };
     var K = st.kua, now = st.now || new Date();
@@ -207,7 +210,7 @@
     var five = Object.keys(chart).filter(function (p) { return chart[p] === 5; })[0];
     var two = Object.keys(chart).filter(function (p) { return chart[p] === 2; })[0];
     items.push({
-      id: "year.center." + yc, group: "ดาวประจำปี", label: "ปี " + mi.solarYear + " ดาว " + yc + " " + YS.th + " เข้าศูนย์กลาง",
+      id: "year.center." + yc, group: "ดาวประจำปี", label: "ปี " + mi.solarYear + " ดาว " + yc + " " + YS.th + " เข้าศูนย์กลาง", short: "ดาวประจำปี",
       evidence: "ผังดาวเหินรายปี (ลั่วซู) · ปีเริ่มที่ลี่ชุน", strength: 0.8, tags: ["overview", "timing"],
       meanings: {
         overview: [
@@ -221,7 +224,7 @@
       }
     });
     items.push({
-      id: "month.center." + mi.center, group: "ดาวประจำเดือน", label: "เดือน" + KB.monthNames[mi.k] + " ดาว " + mi.center + " " + MS.th + " เข้าศูนย์กลาง",
+      id: "month.center." + mi.center, group: "ดาวประจำเดือน", label: "เดือน" + KB.monthNames[mi.k] + " ดาว " + mi.center + " " + MS.th + " เข้าศูนย์กลาง", short: "ดาวประจำเดือน",
       evidence: "เดือนสุริยคติจีน (เริ่มตามสารทจีน 12 จุด)", strength: 0.5, tags: ["timing"],
       meanings: { timing: [
         "เดือนนี้ (" + KB.monthNames[mi.k] + ") ดาว " + mi.center + " " + MS.th + " มาอยู่กลางบ้าน จังหวะของเดือนเน้น" + MS.theme,
@@ -231,55 +234,55 @@
     if (K) {
       var I = KB.kuaInfo[K.kua], G = KB.groups[K.group], EL = KB.elements[I.element], T = KB.kuaTable[K.kua];
       items.push({
-        id: "kua." + K.kua, group: "เลขกัว", label: "เลขกัว " + K.kua + " · " + G.th,
+        id: "kua." + K.kua, group: "เลขกัว", label: "เลขกัว " + K.kua + " " + G.th, short: "เลขกัว " + K.kua,
         evidence: "ปีสุริยคติ " + K.solarYear + (K.raw === 5 ? " (ได้ 5 ใช้ " + K.kua + ")" : ""), strength: 1, tags: ["overview", "personality"],
         meanings: {
           overview: [
-            "เลขกัวของคุณคือ " + K.kua + " (" + I.trigram + ") อยู่ใน" + G.th + " ทิศที่เข้ากับคุณตามตำราคือ" + G.dirs.map(dirTh).join(" ") ,
-            "ตามศาสตร์ปาจ้าย คุณเป็นคน" + G.th + " เลขกัว " + K.kua + " ธาตุ" + EL.th + " ทิศหลักที่ส่งเสริมคือ" + dirTh(T.shengqi)
+            "เลขกัวของคุณคือ " + K.kua + " ตรงกับตรีแกรม" + triTh(I.trigram) + " อยู่ใน" + noCn(G.th) + " ทิศที่เข้ากับคุณตามตำราคือ" + G.dirs.slice(0, -1).map(dirTh).join(" ") + " และ" + dirTh(G.dirs[G.dirs.length - 1]),
+            "ตามศาสตร์ปาจ้าย คุณเป็นคน" + noCn(G.th) + " เลขกัว " + K.kua + " ธาตุ" + EL.th + " ทิศหลักที่ส่งเสริมคือ" + dirTh(T.shengqi)
           ],
           personality: [
             "ธาตุ" + EL.th + "ของเลขกัว " + K.kua + " มักสะท้อนความเป็นคน" + I.vibe.join(" ") ,
-            "ตำราเปรียบเลขกัว " + K.kua + " กับตรีแกรม " + I.trigram + " ผู้ที่มีพลังแบบนี้มักถูกมองว่า" + I.vibe[0] + "และ" + I.vibe[1]
+            "ตำราเปรียบเลขกัว " + K.kua + " กับตรีแกรม" + noCn(triTh(I.trigram)) + " ผู้ที่มีพลังแบบนี้มักถูกมองว่า" + I.vibe[0] + "และ" + I.vibe[1]
           ]
         }
       });
       var s1 = KB.stars8;
-      items.push({ id: "dir.shengqi", group: "ทิศมงคล", label: "เซิงชี่ " + dirTh(T.shengqi), strength: 0.9, tags: ["work", "money"],
+      items.push({ id: "dir.shengqi", group: "ทิศมงคล", label: "ทิศ" + dirTh(T.shengqi) + " (เซิงชี่)", short: "ทิศเซิงชี่", strength: 0.9, tags: ["work", "money"],
         meanings: {
           work: ["หันหน้าโต๊ะทำงานไปทาง" + dirTh(T.shengqi) + " (เซิงชี่ " + s1.shengqi.cn + ") ช่วยเสริมความรู้สึกกระตือรือร้นและกล้าเริ่มสิ่งใหม่", "ทิศพลังก้าวหน้าของคุณคือ" + dirTh(T.shengqi) + " เหมาะกับการนั่งวางแผนงานหรือประชุมสำคัญ"],
           money: ["ประตูหรือมุมทำงานที่เปิดรับทาง" + dirTh(T.shengqi) + " ตามตำราเชื่อว่าช่วยให้โอกาสใหม่ๆ ไหลเข้ามา", "ลองจัดมุมวางแผนการเงินให้หันไปทาง" + dirTh(T.shengqi) + " แล้วตั้งเป้าเล็กๆ ที่ทำได้จริง"]
         } });
-      items.push({ id: "dir.tianyi", group: "ทิศมงคล", label: "เทียนอี " + dirTh(T.tianyi), strength: 0.75, tags: ["advice"],
+      items.push({ id: "dir.tianyi", group: "ทิศมงคล", label: "ทิศ" + dirTh(T.tianyi) + " (เทียนอี)", short: "ทิศเทียนอี", strength: 0.75, tags: ["advice"],
         meanings: { advice: ["หัวเตียงที่ชี้ไปทาง" + dirTh(T.tianyi) + " (เทียนอี พลังฟื้นฟู) ช่วยให้รู้สึกได้พักผ่อนเต็มที่", "ทิศ" + dirTh(T.tianyi) + "เป็นทิศพลังฟื้นฟูของคุณ เหมาะกับมุมพักผ่อนหรือโต๊ะอาหาร"] } });
-      items.push({ id: "dir.yannian", group: "ทิศมงคล", label: "เหยียนเหนียน " + dirTh(T.yannian), strength: 0.7, tags: ["love", "social"],
+      items.push({ id: "dir.yannian", group: "ทิศมงคล", label: "ทิศ" + dirTh(T.yannian) + " (เหยียนเหนียน)", short: "ทิศเหยียนเหนียน", strength: 0.7, tags: ["love", "social"],
         meanings: {
           love: ["ทิศ" + dirTh(T.yannian) + " (เหยียนเหนียน) คือทิศความสัมพันธ์ หัวเตียงคู่หรือมุมนั่งคุยที่หันทางนี้ช่วยให้บรรยากาศอบอุ่น", "ถ้าอยากให้บ้านมีบทสนทนาดีๆ ลองจัดโซฟาหันไปทาง" + dirTh(T.yannian)],
           social: ["มุมรับแขกที่หันไปทาง" + dirTh(T.yannian) + " ตามตำราช่วยเรื่องมิตรภาพและความร่วมมือ", "โต๊ะประชุมที่หันทาง" + dirTh(T.yannian) + " เหมาะกับการคุยตกลงร่วมกัน"]
         } });
-      items.push({ id: "dir.fuwei", group: "ทิศมงคล", label: "ฟูเว่ย " + dirTh(T.fuwei), strength: 0.6, tags: ["personality", "advice"],
+      items.push({ id: "dir.fuwei", group: "ทิศมงคล", label: "ทิศ" + dirTh(T.fuwei) + " (ฟูเว่ย)", short: "ทิศฟูเว่ย", strength: 0.6, tags: ["personality", "advice"],
         meanings: {
           personality: ["ทิศ" + dirTh(T.fuwei) + " (ฟูเว่ย) คือทิศพลังมั่นคงของคุณ เหมาะกับช่วงที่อยากทบทวนตัวเอง", "เมื่ออยากมีสมาธิ ลองนั่งหันหน้าไปทาง" + dirTh(T.fuwei)],
           advice: ["มุมอ่านหนังสือหรือนั่งสมาธิที่หันทาง" + dirTh(T.fuwei) + " ช่วยให้ใจนิ่ง", "หัวเตียงทาง" + dirTh(T.fuwei) + " เป็นอีกทางเลือกสำหรับการนอนสงบ"]
         } });
       var low = ["huohai", "wugui", "liusha", "jueming"].map(function (s) { return dirTh(T[s]); });
-      items.push({ id: "dir.quiet", group: "ทิศที่ควรจัดให้โปร่ง", label: low.join(" · "), strength: 0.4, tags: ["advice"],
+      items.push({ id: "dir.quiet", group: "ทิศที่ควรจัดให้โปร่ง", label: "ทิศ" + low.slice(0, -1).join(" ") + " และ" + low[low.length - 1], short: "ทิศกลุ่มนี้", strength: 0.4, tags: ["advice"],
         meanings: { advice: ["ทิศ" + low.join(" ") + " เป็นทิศที่ควรจัดให้โปร่งหรือใช้น้อยสำหรับคุณ เหมาะเป็นห้องน้ำ ห้องเก็บของ หรือทางเดิน", "ถ้าโต๊ะหรือเตียงจำเป็นต้องอยู่ทาง" + low[3] + " ไม่ต้องกังวล ใช้ทิศมงคลข้ออื่นช่วย เช่น ปรับมุมหันหน้าเล็กน้อย"] } });
       extras.directions = ["shengqi", "tianyi", "yannian", "fuwei"].map(function (s) { return dirTh(T[s]) + " (" + KB.stars8[s].th + ")"; });
       extras.luckyColors = EL.colors.slice(0, 3).concat(KB.elements[Object.keys(KB.elements).filter(function (k) { return KB.elements[k].generates === I.element; })[0]].colors.slice(0, 1));
     }
     // ทิศที่บันทึกจากเข็มทิศ
-    var recLabel = { door: "ประตูหลัก", desk: "โต๊ะทำงาน (ทิศที่หันหน้า)", bed: "หัวเตียง" };
+    var recLabel = { door: "ประตูหลัก", desk: "โต๊ะทำงาน", bed: "หัวเตียง" }, recVerb = { door: "หันไปทาง", desk: "หันหน้าไปทาง", bed: "หันไปทาง" };
     var recTag = { door: "money", desk: "work", bed: "love" };
     Object.keys(st.recorded || {}).forEach(function (k) {
       var dir = st.recorded[k]; if (!dir) return;
       var s = K ? starOfDir(K.kua, dir) : null, S8 = s ? KB.stars8[s] : null;
       var good = S8 && S8.good, txt;
-      if (!S8) txt = recLabel[k] + "หันไปทาง" + dirTh(dir);
-      else if (good) txt = recLabel[k] + "หันไปทาง" + dirTh(dir) + " ซึ่งตรงกับทิศ" + S8.th + " (" + S8.name + ") ของคุณ เป็นการจัดวางที่ส่งเสริมดี";
-      else txt = recLabel[k] + "หันไปทาง" + dirTh(dir) + " ซึ่งเป็น" + S8.name + "ของคุณ ลองปรับมุมไปทาง" + dirTh(K.stars.shengqi) + "หรือ" + dirTh(K.stars.tianyi) + "ถ้าทำได้ หรือเสริมด้วยแสงและความเป็นระเบียบ";
+      if (!S8) txt = recLabel[k] + recVerb[k] + dirTh(dir);
+      else if (good) txt = recLabel[k] + recVerb[k] + dirTh(dir) + " ซึ่งตรงกับทิศ" + S8.th + " (" + S8.name + ") ของคุณ เป็นการจัดวางที่ส่งเสริมดี";
+      else txt = recLabel[k] + recVerb[k] + dirTh(dir) + " ซึ่งเป็น" + S8.name + "ของคุณ ลองปรับมุมไปทาง" + dirTh(K.stars.shengqi) + "หรือ" + dirTh(K.stars.tianyi) + "ถ้าทำได้ หรือเสริมด้วยแสงและความเป็นระเบียบ";
       var m = {}; m[recTag[k]] = [txt, txt]; m.advice = [txt];
-      items.push({ id: "rec." + k + "." + dir, group: "ทิศที่วัดได้", label: recLabel[k] + " → " + dirTh(dir), evidence: "เข็มทิศ " + (st.recordedDeg && st.recordedDeg[k] != null ? Math.round(st.recordedDeg[k]) + "°" : ""), strength: good ? 0.85 : 0.65, tags: [recTag[k], "advice"], meanings: m });
+      items.push({ id: "rec." + k + "." + dir, group: "ทิศที่วัดได้", label: recLabel[k] + "ที่" + recVerb[k] + dirTh(dir), short: recLabel[k], evidence: "เข็มทิศ " + (st.recordedDeg && st.recordedDeg[k] != null ? Math.round(st.recordedDeg[k]) + "°" : ""), strength: good ? 0.85 : 0.65, tags: [recTag[k], "advice"], meanings: m });
     });
     // ห้องในผังบ้าน
     (st.rooms || []).forEach(function (r) {
@@ -290,7 +293,7 @@
         advice: [R.th + " (โซน" + dirTh(A.dir) + "): " + S.cure, "สำหรับ" + R.th + " " + S.cure]
       };
       m[tag] = (m[tag] || []).concat(["โซน" + dirTh(A.dir) + "ตามปากั้วคือเรื่อง" + B.area + " " + R.th + "ที่อยู่ตรงนี้ลองเติมสี" + B.colors.map(function (c) { return c[0]; }).join("/") + " หรือ " + B.items]);
-      items.push({ id: "room." + r.room + "." + A.dir + ".s" + A.star, group: "ผังบ้าน", label: R.th + " · " + dirTh(A.dir) + " · ดาว " + A.star, evidence: "ปากั้ว: " + B.short, strength: Math.min(1, 0.4 + A.priority / 6), tags: ["timing", "advice", tag], meanings: m });
+      items.push({ id: "room." + r.room + "." + A.dir + ".s" + A.star, group: "ผังบ้าน", label: R.th + "โซน" + dirTh(A.dir) + " (ดาว " + A.star + ")", short: R.th, evidence: "ปากั้ว: " + B.short, strength: Math.min(1, 0.4 + A.priority / 6), tags: ["timing", "advice", tag], meanings: m });
     });
     // ภาพห้อง
     (st.photos || []).forEach(function (ph, i) {
