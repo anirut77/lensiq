@@ -146,7 +146,7 @@
     if (sessionP) return sessionP;
     sessionP = (async () => {
       if (typeof ort === "undefined") throw new Error("ไม่พบ onnxruntime-web");
-      ort.env.wasm.wasmPaths = base + "ort/";
+      ort.env.wasm.wasmPaths = new URL(base + "ort/", location.href).href;
       ort.env.wasm.numThreads = self.crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency || 1) : 1;
       return ort.InferenceSession.create(base + "models/modnet.onnx", { executionProviders: ["wasm"], graphOptimizationLevel: "all" });
     })();
