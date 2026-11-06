@@ -58,7 +58,7 @@ export default async function ({ base, launch, check, fakeCams }) {
     await check("studio: page loads with ?cpu, nav group links studio, engine ready", async () => {
       page = await browser.newPage(null, { initScripts: [fakeCams, "window.__LQ_FAKE_CAMS = { n: 1, mode: 'ok' };"] });
       await page.send("Page.setDownloadBehavior", { behavior: "deny" }).catch(() => {});
-      await page.goto(`${base}/studio.html?cpu&faceparse=1`);
+      await page.goto(`${base}/studio.html?cpu`); // default deployed mode: MediaPipe Selfie Multiclass (Apache-2.0), committed
       await assertNoWebGL(page);
       const nav = await page.evaluate(() => [...document.querySelectorAll("#navsub-photo a")].map(a => a.getAttribute("href")));
       assert(nav.includes("photobooth.html") && nav.includes("studio.html"), "nav group: " + nav);
@@ -86,15 +86,17 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(Math.abs(px.corner[0] - 0xd7) < 12 && Math.abs(px.corner[2] - 0xf7) < 12, "bg " + px.corner);
       assert(px.face[0] > 150 && px.face[0] > px.face[2], "face visible " + px.face);
       assert(!(px.chest[0] > 150 && px.chest[1] < 90), "original red shirt hidden at chest " + px.chest);
-      // layer order: face parsing (BiSeNet, ORT wasm) split head/hair/neck; a neck layer reaches from the jaw to below the collar
+      // layer order: MediaPipe Selfie Multiclass (ORT wasm) split head/hair/neck/clothes; a neck layer reaches from the jaw to below the collar
       const ly = await page.evaluate(() => {
         const S = window.__studio.state, f = S.face, W = S.W, nk = S.cache.neck, F = S.cache.fit, x = Math.round(f.chinX);
         const collarTop = Math.round(F.N.y + F.s * (PBOutfits.CANON.collarY + (F.drop || 0)));
         let gap = 0; for (let y = Math.round(f.chinY); y < collarTop + 4; y++) if (nk.alpha[y * W + x] < .5 && S.layers.keep[y * W + x] < .5) gap++;
         return { parse: S.parse, gap, neckBelowCollar: nk.alpha[(collarTop + 6) * W + x], ratio: S.fitAuto.width / f.fw };
       });
-      const hasModel = (await import("node:fs")).existsSync(new URL("../../vendor/models/faceparse-bisenet-r18-q8.onnx", import.meta.url));
-      assert(hasModel ? ly.parse === "BiSeNet" : ly.parse !== "BiSeNet", "parser " + ly.parse + " (model file present: " + hasModel + ")");
+      const fs = await import("node:fs");
+      assert(ly.parse === "MediaPipe Multiclass", "default parser is the commercially licensed model: " + ly.parse);
+      assert(fs.existsSync(new URL("../../vendor/models/selfie-multiclass-256-f16.onnx", import.meta.url)) && /Apache License/.test(fs.readFileSync(new URL("../../vendor/models/SELFIE-MULTICLASS-LICENSE.txt", import.meta.url), "utf8")), "model + licence vendored");
+      assert(!page.requests.some(r => /faceparse-bisenet/.test(r.url)), "non-commercial BiSeNet weights are not requested by default");
       assert(ly.gap <= 2 && ly.neckBelowCollar > .9, "neck continuous from chin to collar " + JSON.stringify(ly));
       assert(ly.ratio >= 2.5 && ly.ratio <= 3.3, "shoulder width prior " + ly.ratio);
     });
@@ -187,8 +189,7 @@ export default async function ({ base, launch, check, fakeCams }) {
       await privacyScan(page);
       const posts = page.requests.filter(r => r.method !== "GET" && !r.url.startsWith("data:") && !r.url.startsWith("blob:"));
       assert(!posts.length, "no uploads: " + posts.map(r => r.url).join(", "));
-      // this page opted in with ?faceparse=1; without the (non-commercial, not committed) model file its 404 is expected
-      const errs = realErrors(page).filter(e => !/faceparse-bisenet/.test(e.url || ""));
+      const errs = realErrors(page);
       assert(!errs.length, "console errors: " + JSON.stringify(errs.slice(0, 3)));
       await page.close();
     });

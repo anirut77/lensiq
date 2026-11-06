@@ -21,7 +21,7 @@ function savePeople(opts) {
   const snap = people.slice();
   return saveQ(() => LQVault.splitSave("att-people", FACE_KEY, snap, "descriptor", localStorage, opts)
     .then(m => { if (m) showFaceState(m); return true; })
-    .catch(e => { if (e.name === "VaultLockedError") showFaceState("locked"); else alert("พื้นที่จัดเก็บเต็มหรือถูกบล็อก"); return false; }));
+    .catch(e => { if (e.name === "VaultLockedError") showFaceState("locked"); else if (e.name === "VaultInsecureError") showFaceState("insecure"); else alert("พื้นที่จัดเก็บเต็มหรือถูกบล็อก"); return false; }));
 }
 function showFaceState(st) {
   faceState = st;
@@ -43,6 +43,8 @@ const storageReady = LQVault.splitLoad("att-people", FACE_KEY, "descriptor", loc
 
 let mode = "checkin", scanning = false, ready = false, lastMsgAt = 0;
 let matcher = null;
+/* ต้องใกล้กว่าคนอันดับสองอย่างน้อยเท่านี้จึงยอมรับ (กันเช็คชื่อผิดคน) — วัดบน LFW: ผิดคนลดจาก 0.88% เหลือ 0.24% ที่ 100 คน (ACCURACY.md) */
+const MATCH_MARGIN = 0.05;
 const lastSaid = new Map();   // pid -> เวลาแจ้งล่าสุด (กันข้อความซ้ำรายคน)
 const lastResult = new Map(); // pid -> {kind, text} ผลเช็คชื่อล่าสุดของคนนั้น
 const confirm2 = LQTrack.createConfirm({ need: 2, windowMs: 1500 }); // ต้องเห็นตรงกัน 2 เฟรมก่อนบันทึก
@@ -130,10 +132,9 @@ async function init() {
 }
 
 function rebuildMatcher() {
+  // คลังใบหน้าในหน่วยความจำ [{label:id, d}] — จับคู่ด้วย LQTrack.matchFace (ระยะ < matchDistance และต้องห่างอันดับสองอย่างน้อย MATCH_MARGIN)
   const withFace = people.filter(p => Array.isArray(p.descriptor));
-  matcher = withFace.length
-    ? new faceapi.FaceMatcher(withFace.map(p => new faceapi.LabeledFaceDescriptors(p.id, [new Float32Array(p.descriptor)])), settings.matchDistance)
-    : null;
+  matcher = withFace.length ? withFace.map(p => ({ label: p.id, d: new Float32Array(p.descriptor) })) : null;
 }
 
 // ---------- ตรวจจับใบหน้า ----------
@@ -154,7 +155,7 @@ async function detectFaces(max = MAX_FACES) {
 function bestMatch(f, i) {
   if (TEST && typeof window.__LQ_FAKE_MATCH === "function") return window.__LQ_FAKE_MATCH(f.fake || f, i) || { label: "unknown", distance: 1 };
   if (!matcher || !f.descriptor) return { label: "unknown", distance: 1 };
-  const m = matcher.findBestMatch(f.descriptor);
+  const m = LQTrack.matchFace(f.descriptor, matcher, { maxDist: settings.matchDistance, margin: MATCH_MARGIN });
   return { label: m.label, distance: m.distance };
 }
 
@@ -171,6 +172,8 @@ async function capture(samples = 3) {
   return Array.from(ds[0], (_, k) => ds.reduce((s, d) => s + d[k], 0) / ds.length);
 }
 
+// ลงทะเบียนใบหน้าได้เฉพาะเมื่อเข้ารหัสได้ (https/localhost + WebCrypto + IndexedDB) — ไม่เช่นนั้นปิดปุ่มและบอกเหตุผล
+{ const why = LQVault.enrollBlockReason(); if (why) { const m = $("#regMsg"); m.textContent = why; m.className = "form-msg err"; $("#regForm").querySelector("button[type=submit],button").disabled = true; } }
 $("#regForm").addEventListener("submit", async e => {
   e.preventDefault();
   const f = e.target, m = $("#regMsg"), btn = f.querySelector("button");
@@ -180,12 +183,13 @@ $("#regForm").addEventListener("submit", async e => {
   if (!name || !code) return set("กรุณากรอกชื่อและรหัส", "err");
   if (!f.consent.checked) return set("ต้องยินยอมการเก็บข้อมูลใบหน้าก่อน", "err");
   if (faceState === "locked") return set(LQVault.STATE_TH.locked, "err");
+  { const why = LQVault.enrollBlockReason(); if (why) return set(why, "err"); } // เข้ารหัสไม่ได้ (เช่น ไม่ใช่ https) = ไม่เก็บใบหน้า
   if (people.some(p => p.code === code)) return set("รหัสนี้ลงทะเบียนแล้ว", "err");
   btn.disabled = true; set("กำลังสแกน กรุณามองกล้องนิ่ง ๆ...", "");
   try {
     const descriptor = await capture();
     if (matcher) {
-      const best = matcher.findBestMatch(new Float32Array(descriptor));
+      const best = LQTrack.matchFace(new Float32Array(descriptor), matcher, { maxDist: settings.matchDistance });
       if (best.label !== "unknown") {
         const dup = people.find(p => p.id === best.label);
         throw new Error(`ใบหน้านี้ลงทะเบียนแล้วในชื่อ ${dup.name}`);
@@ -330,7 +334,7 @@ $("#wipeFaces").onclick = async () => {
   if (scanning) $("#startScan").click();
   people = [];
   await saveQ(async () => { await LQVault.wipe([FACE_KEY]); try { localStorage.removeItem("att-people"); } catch {} });
-  showFaceState(LQVault.supported() ? "enc" : "plain");
+  showFaceState(LQVault.supported() ? "enc" : LQVault.enrollBlockReason() ? "insecure" : "plain");
   rebuildMatcher(); renderPeople(); say("ลบข้อมูลใบหน้าทั้งหมดแล้ว", "ok");
 };
 {

@@ -2,54 +2,55 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
-<title>แดชบอร์ดรวม | LENSIQ</title>
+<title data-i18n="iq.title">แดชบอร์ดรวม | LENSIQ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=6">
-<link rel="stylesheet" href="insights.css?v=3">
+<link rel="stylesheet" href="insights.css?v=4">
 </head>
 <body>
-<header class="nav" id="siteNav"></header><script src="nav.js?v=10"></script>
+<header class="nav" id="siteNav"></header><script src="nav.js?v=11"></script>
 
 <main class="iq">
-  <h1>แดชบอร์ดรวม</h1>
-  <p class="lead">สรุปและแปลผลข้อมูลจากทุกระบบกล้อง AI ที่บันทึกไว้ในเบราว์เซอร์นี้ พร้อมความมั่นใจทางสถิติ คาดการณ์ และสิ่งที่ควรทำ ข้อมูลไม่ถูกส่งออกนอกเครื่อง</p>
+  <h1 data-i18n="iq.s.1">แดชบอร์ดรวม</h1>
+  <p class="lead" data-i18n="iq.s.2">สรุปและแปลผลข้อมูลจากทุกระบบกล้อง AI ที่บันทึกไว้ในเบราว์เซอร์นี้ พร้อมความมั่นใจทางสถิติ คาดการณ์ และสิ่งที่ควรทำ ข้อมูลไม่ถูกส่งออกนอกเครื่อง</p>
 
   <div class="toolbar" role="region" aria-label="ตัวกรองช่วงเวลา">
     <div class="range" role="group" aria-label="ช่วงเวลา">
-      <button type="button" data-p="today" aria-pressed="false">วันนี้</button><button type="button" data-p="d7" aria-pressed="true">7 วัน</button><button type="button" data-p="d30" aria-pressed="false">30 วัน</button><button type="button" data-p="d90" aria-pressed="false">90 วัน</button><button type="button" data-p="all" aria-pressed="false">ทั้งหมด</button><button type="button" data-p="custom" aria-pressed="false">กำหนดเอง</button>
+      <button type="button" data-p="today" aria-pressed="false" data-i18n="iq.s.3">วันนี้</button><button type="button" data-p="d7" aria-pressed="true" data-i18n="iq.s.4">7 วัน</button><button type="button" data-p="d30" aria-pressed="false" data-i18n="iq.s.5">30 วัน</button><button type="button" data-p="d90" aria-pressed="false" data-i18n="iq.s.6">90 วัน</button><button type="button" data-p="all" aria-pressed="false" data-i18n="iq.s.7">ทั้งหมด</button><button type="button" data-p="custom" aria-pressed="false" data-i18n="iq.s.8">กำหนดเอง</button>
     </div>
     <div class="custom" id="customRange" hidden>
       <label>จาก <input type="date" id="cFrom"></label>
       <label>ถึง <input type="date" id="cTo"></label>
     </div>
-    <label class="cmp">เทียบกับ
+    <label class="cmp"><span data-i18n="iq.cmp">เทียบกับ</span>
       <select id="compare">
-        <option value="prev">ช่วงก่อนหน้า (ยาวเท่ากัน)</option>
-        <option value="week">ช่วงเดียวกันสัปดาห์ก่อน</option>
-        <option value="none">ไม่เทียบ</option>
+        <option value="prev" data-i18n="iq.s.9">ช่วงก่อนหน้า (ยาวเท่ากัน)</option>
+        <option value="week" data-i18n="iq.s.10">ช่วงเดียวกันสัปดาห์ก่อน</option>
+        <option value="none" data-i18n="iq.s.11">ไม่เทียบ</option>
       </select>
     </label>
     <span class="range-note" id="rangeNote"></span>
   </div>
 
   <div class="banner" id="demoBanner" hidden>
-    <span>กำลังแสดง<b>ข้อมูลตัวอย่าง</b>ปนอยู่ (รายการที่มีป้าย “(ตัวอย่าง)”)</span>
-    <button type="button" class="btn-s" id="removeDemoBanner">ลบข้อมูลตัวอย่าง</button>
+    <span data-i18n="iq.banner">กำลังแสดงข้อมูลตัวอย่างปนอยู่ (รายการที่มีป้าย “(ตัวอย่าง)”)</span>
+    <button type="button" class="btn-s" id="removeDemoBanner" data-i18n="iq.s.13">ลบข้อมูลตัวอย่าง</button>
   </div>
 
   <section class="card iq-empty" id="empty" hidden>
-    <h2>ยังไม่มีข้อมูล</h2>
-    <p>แดชบอร์ดนี้อ่านข้อมูลที่ระบบต่าง ๆ บันทึกไว้ในเบราว์เซอร์เครื่องนี้ เริ่มได้สองทาง</p>
+    <h2 data-i18n="iq.s.14">ยังไม่มีข้อมูล</h2>
+    <p data-i18n="iq.s.15">แดชบอร์ดนี้อ่านข้อมูลที่ระบบต่าง ๆ บันทึกไว้ในเบราว์เซอร์เครื่องนี้ เริ่มได้สองทาง</p>
     <ol>
-      <li>เปิดระบบใดระบบหนึ่งด้านล่าง ใช้งานกล้องสักครู่ แล้วกลับมาที่หน้านี้</li>
-      <li>หรือกด <b>สร้างข้อมูลตัวอย่าง</b> เพื่อดูหน้าตาแดชบอร์ด (ลบออกได้ภายหลัง ไม่ทับข้อมูลจริง)</li>
+      <li data-i18n="iq.s.16">เปิดระบบใดระบบหนึ่งด้านล่าง ใช้งานกล้องสักครู่ แล้วกลับมาที่หน้านี้</li>
+      <li>หรือกด <b data-i18n="iq.s.17">สร้างข้อมูลตัวอย่าง</b> เพื่อดูหน้าตาแดชบอร์ด (ลบออกได้ภายหลัง ไม่ทับข้อมูลจริง)</li>
     </ol>
-    <button type="button" class="btn-p" id="seedDemoEmpty">สร้างข้อมูลตัวอย่าง</button>
+    <button type="button" class="btn-p" id="seedDemoEmpty" data-i18n="iq.s.18">สร้างข้อมูลตัวอย่าง</button>
     <ul class="mods-list" id="emptyList"></ul>
   </section>
 
@@ -57,46 +58,51 @@
 
   <div id="dash" hidden>
     <section class="card summary" id="summary" aria-labelledby="sumTitle">
-      <div class="card-h"><h2 id="sumTitle">สรุปผลอัตโนมัติ</h2><span class="muted" id="insightSub"></span></div>
+      <div class="card-h"><h2 id="sumTitle" data-i18n="iq.s.19">สรุปผลอัตโนมัติ</h2><span class="muted" id="insightSub"></span></div>
       <div class="ins-grid" id="insightCards"></div>
       <button type="button" class="btn-s more" id="insightMore" aria-expanded="false" aria-controls="insightCards" hidden></button>
-      <p class="note">ทุกข้อความสร้างจากตัวเลขในเบราว์เซอร์นี้ ไม่ใช้ AI และไม่ส่งข้อมูลออกนอกเครื่อง · “ความมั่นใจ” มาจากการทดสอบทางสถิติ ข้อมูลน้อยจะบอกตรง ๆ ว่ายังสรุปไม่ได้</p>
+      <p class="note" data-i18n="iq.s.20">ทุกข้อความสร้างจากตัวเลขในเบราว์เซอร์นี้ ไม่ใช้ AI และไม่ส่งข้อมูลออกนอกเครื่อง · “ความมั่นใจ” มาจากการทดสอบทางสถิติ ข้อมูลน้อยจะบอกตรง ๆ ว่ายังสรุปไม่ได้</p>
       <details class="method" id="methodHelp">
-        <summary>วิธีคำนวณ</summary>
-        <h3>ความมั่นใจหมายถึงอะไร</h3>
-        <p>แต่ละข้อทดสอบว่า ถ้าไม่มีความเปลี่ยนแปลงจริง ความต่างที่เห็นจะเกิดจากความผันผวนตามปกติได้ง่ายแค่ไหน ตัวเลขในส่วน “ตัวเลขทางสถิติ” ของแต่ละการ์ดคือโอกาสที่จะเห็นความต่างขนาดนี้หรือมากกว่าในกรณีที่ไม่มีอะไรเปลี่ยน ตัวเลขนี้ไม่ใช่โอกาสที่ข้อสรุปจะถูกหรือผิด และไม่ได้บอกว่าความต่างใหญ่พอจะสำคัญต่อธุรกิจหรือไม่ จึงควรดูช่วงที่น่าจะเป็น (95%) ประกอบด้วย</p>
+        <summary data-i18n="iq.s.21">วิธีคำนวณ</summary>
+        <h3 data-i18n="iq.s.22">ความมั่นใจหมายถึงอะไร</h3>
+        <p data-i18n="iq.s.23">แต่ละข้อทดสอบว่า ถ้าไม่มีความเปลี่ยนแปลงจริง ความต่างที่เห็นจะเกิดจากความผันผวนตามปกติได้ง่ายแค่ไหน ตัวเลขในส่วน “ตัวเลขทางสถิติ” ของแต่ละการ์ดคือโอกาสที่จะเห็นความต่างขนาดนี้หรือมากกว่าในกรณีที่ไม่มีอะไรเปลี่ยน ตัวเลขนี้ไม่ใช่โอกาสที่ข้อสรุปจะถูกหรือผิด และไม่ได้บอกว่าความต่างใหญ่พอจะสำคัญต่อธุรกิจหรือไม่ จึงควรดูช่วงที่น่าจะเป็น (95%) ประกอบด้วย</p>
         <ul>
-          <li><b>มั่นใจสูง</b> ค่าหลังปรับ (q) ต่ำกว่า 1% · <b>ค่อนข้างมั่นใจ</b> ต่ำกว่า 5% · <b>ยังไม่แน่ชัด</b> ต่ำกว่า 20% · นอกนั้น <b>ไม่ต่างชัด</b></li>
-          <li><b>ข้อมูลยังน้อย</b> เมื่อจำนวนวันหรือจำนวนคนยังไม่พอจะทดสอบ</li>
+          <li><b data-i18n="iq.s.24">มั่นใจสูง</b> ค่าหลังปรับ (q) ต่ำกว่า 1% · <b data-i18n="iq.s.25">ค่อนข้างมั่นใจ</b> ต่ำกว่า 5% · <b data-i18n="iq.s.26">ยังไม่แน่ชัด</b> ต่ำกว่า 20% · นอกนั้น <b data-i18n="iq.s.27">ไม่ต่างชัด</b></li>
+          <li><b data-i18n="iq.s.28">ข้อมูลยังน้อย</b> เมื่อจำนวนวันหรือจำนวนคนยังไม่พอจะทดสอบ</li>
         </ul>
-        <h3>ดูหลายข้อพร้อมกัน</h3>
-        <p>หน้านี้ทดสอบหลายเรื่องพร้อมกัน (ตัวเลขสำคัญเทียบช่วงก่อน แยกกล้อง ความสัมพันธ์ และ A/B) ยิ่งดูหลายข้อ ยิ่งมีโอกาสเจอความต่างที่เกิดขึ้นเองโดยบังเอิญ ระบบจึงปรับค่าด้วยวิธี Benjamini–Hochberg ทุกครั้งที่เปลี่ยนช่วงเวลา แล้วใช้ค่าหลังปรับ (q) ตั้งระดับความมั่นใจ</p>
-        <h3>เทียบจำนวนคนหรือบิลรายวัน</h3>
-        <p>ยอดรายวันขึ้นลงมากกว่าที่การนับแบบสุ่มล้วน (Poisson) คาดไว้ เพราะอากาศ วันหยุด หรือกิจกรรม ระบบจึงใช้แบบจำลอง negative binomial ที่ปรับผลของวันในสัปดาห์ และประมาณความผันผวนรายวันจากประวัติย้อนหลังสูงสุดราว 120 วัน (แบ่งเป็นก้อนละ 14 วัน เพื่อไม่ให้แนวโน้มช้า ๆ ถูกนับเป็นความผันผวน) ในการจำลองที่ยอดรายวันแกว่ง ±30% โดยไม่มีอะไรเปลี่ยน วิธีเดิม (exact Poisson) บอกว่าต่างชัดผิดราวครึ่งหนึ่งของครั้ง ส่วนวิธีนี้ผิดราว 5% ตามที่ตั้งไว้</p>
-        <h3>ความสัมพันธ์ระหว่างตัวชี้วัด</h3>
-        <p>ก่อนหาค่า r ระบบตัดผลของวันในสัปดาห์และแนวโน้มออกจากทั้งสองค่า (ไม่ให้วันเสาร์ที่คนเยอะทั้งคู่กลายเป็นความสัมพันธ์) และเพราะค่าของวันที่ติดกันมักคล้ายกัน จึงนับจำนวนข้อมูลอิสระให้น้อยลงตามสหสัมพันธ์ต่อเนื่อง (Bartlett / AR(1)) ก่อนคำนวณช่วง 95% และความมั่นใจ ความสัมพันธ์ไม่ใช่หลักฐานว่าค่าหนึ่งเป็นสาเหตุของอีกค่า</p>
-        <h3>เปรียบเทียบ A/B</h3>
-        <p>ชิ้นที่มีข้อมูลน้อยมักได้ตัวเลขสูงหรือต่ำเกินจริงโดยบังเอิญ ระบบจึงแสดงทั้งค่าดิบและค่าหลังปรับตามขนาดข้อมูล (empirical Bayes ซึ่งดึงชิ้นที่ข้อมูลน้อยเข้าหาค่าเฉลี่ยรวม) และจัดอันดับด้วยค่าหลังปรับ ชิ้นที่ข้อมูลไม่ถึงเกณฑ์มีเครื่องหมาย * และไม่นำมาจัดอันดับ</p>
+        <h3 data-i18n="iq.s.29">ดูหลายข้อพร้อมกัน</h3>
+        <p data-i18n="iq.s.30">หน้านี้ทดสอบหลายเรื่องพร้อมกัน (ตัวเลขสำคัญเทียบช่วงก่อน แยกกล้อง ความสัมพันธ์ และ A/B) ยิ่งดูหลายข้อ ยิ่งมีโอกาสเจอความต่างที่เกิดขึ้นเองโดยบังเอิญ ระบบจึงปรับค่าด้วยวิธี Benjamini–Hochberg ทุกครั้งที่เปลี่ยนช่วงเวลา แล้วใช้ค่าหลังปรับ (q) ตั้งระดับความมั่นใจ</p>
+        <h3 data-i18n="iq.s.31">เทียบจำนวนคนหรือบิลรายวัน</h3>
+        <p data-i18n="iq.s.32">ยอดรายวันขึ้นลงมากกว่าการนับแบบสุ่มล้วน (Poisson) เพราะอากาศ วันหยุด หรือกิจกรรม และมักสูงหรือต่ำต่อเนื่องกันหลายวัน ระบบจึงใช้แบบจำลอง negative binomial ที่ปรับผลของวันในสัปดาห์ แล้วเผื่อ “ระดับที่ค่อย ๆ ลอยขึ้นลง” แบบ AR(1) ซึ่งประมาณจากประวัติย้อนหลังสูงสุดราว 120 วัน (REML ผ่าน Kalman filter และเฉลี่ยหลายแบบตามความน่าจะเป็น) ในการจำลองที่ไม่มีอะไรเปลี่ยนจริง วิธีที่ถือว่าแต่ละวันเป็นอิสระบอกว่า “ต่างชัด” ผิด 11–34% ของครั้งเมื่อระดับลอยต่อเนื่อง ส่วนวิธีนี้ผิดราว 2–9%</p>
+        <h3 data-i18n="iq.s.33">ความสัมพันธ์ระหว่างตัวชี้วัด</h3>
+        <p data-i18n="iq.s.34">ก่อนหาค่า r ระบบตัดผลของวันในสัปดาห์และแนวโน้มออกจากทั้งสองค่า (ไม่ให้วันเสาร์ที่คนเยอะทั้งคู่กลายเป็นความสัมพันธ์) และเพราะค่าของวันที่ติดกันมักคล้ายกัน จึงนับจำนวนข้อมูลอิสระให้น้อยลงตามสหสัมพันธ์ต่อเนื่อง (Bartlett / AR(1)) ก่อนคำนวณช่วง 95% และความมั่นใจ ความสัมพันธ์ไม่ใช่หลักฐานว่าค่าหนึ่งเป็นสาเหตุของอีกค่า</p>
+        <h3 data-i18n="iq.s.35">เปรียบเทียบ A/B</h3>
+        <p data-i18n="iq.s.36">เมื่อมีหลายตัวเลือก การจับคู่ “ดีสุดกับแย่สุด” แล้วทดสอบตรง ๆ จะเจอความต่างปลอมบ่อยมาก (โฆษณา 6 ชิ้นที่ได้ผลเท่ากันจริง บอกว่าต่างราว 37% ของครั้ง) ระบบจึงทดสอบรวมทุกตัวเลือกก่อน (chi-square หรือ Welch ANOVA) แล้วเทียบครบทุกคู่ ปรับด้วยวิธี Holm ทำให้โอกาสสรุปผิดอย่างน้อยหนึ่งคู่ไม่เกินราว 5% ตัวเลือกต้องมีข้อมูลขั้นต่ำ (คนผ่านจอ 30 คน หรือผู้ทดสอบ 10 คน) จึงจัดอันดับ ชิ้นที่ข้อมูลน้อยมีเครื่องหมาย * และค่าหลังปรับตามขนาดข้อมูล (empirical Bayes) ใช้กันชิ้นที่บังเอิญได้ตัวเลขสูงขึ้นเป็นอันดับหนึ่ง</p>
       </details>
     </section>
 
     <section aria-labelledby="kpiTitle">
-      <h2 class="sr" id="kpiTitle">ตัวเลขสำคัญ</h2>
+      <h2 class="sr" id="kpiTitle" data-i18n="iq.h.kpi">ตัวเลขสำคัญ</h2>
       <div class="kpis" id="kpis"></div>
+    </section>
+
+    <section class="card" id="qualCard" aria-labelledby="qualTitle" hidden>
+      <div class="card-h"><h2 id="qualTitle" data-i18n="iq.h.quality">ความน่าเชื่อถือของข้อมูล</h2><span class="muted" data-i18n="iq.h.qualitySub">ข้อมูลครบแค่ไหน และกล้องดับช่วงไหน</span></div>
+      <div id="qualBody"></div>
     </section>
 
     <div class="row2">
       <section class="card" id="trend" aria-labelledby="trendTitle">
-        <div class="card-h"><h2 id="trendTitle">แนวโน้มรวม</h2><span class="muted" id="trendSub"></span></div>
+        <div class="card-h"><h2 id="trendTitle" data-i18n="iq.s.37">แนวโน้มรวม</h2><span class="muted" id="trendSub"></span></div>
         <ul class="legend" id="trendLegend"></ul>
         <div class="chart" id="trendChart"></div>
-        <p class="nodata" id="trendEmpty" hidden>ไม่มีข้อมูลในช่วงนี้ ลองเลือกช่วงเวลาที่ยาวขึ้น</p>
+        <p class="nodata" id="trendEmpty" hidden data-i18n="iq.s.38">ไม่มีข้อมูลในช่วงนี้ ลองเลือกช่วงเวลาที่ยาวขึ้น</p>
         <p class="note" id="trendNote"></p>
         <div id="trendTable"></div>
       </section>
 
       <section class="card" id="funnel" aria-labelledby="funnelTitle">
-        <div class="card-h"><h2 id="funnelTitle">เส้นทางลูกค้า</h2><span class="muted">จากเข้ามาจนถึงซื้อ พร้อมช่วงความเชื่อมั่น 95%</span></div>
+        <div class="card-h"><h2 id="funnelTitle" data-i18n="iq.s.39">เส้นทางลูกค้า</h2><span class="muted" data-i18n="iq.s.40">จากเข้ามาจนถึงซื้อ พร้อมช่วงความเชื่อมั่น 95%</span></div>
         <div id="storeFunnel"></div>
         <div id="funnelBody"></div>
         <p class="note" id="funnelNote"></p>
@@ -105,14 +111,14 @@
 
     <div class="row2 even">
       <section class="card" id="heatCard" aria-labelledby="heatTitle" hidden>
-        <div class="card-h"><h2 id="heatTitle">ช่วงเวลาที่คนเยอะ (วัน × ชั่วโมง)</h2><span class="muted" id="heatSub"></span></div>
+        <div class="card-h"><h2 id="heatTitle" data-i18n="iq.s.41">ช่วงเวลาที่คนเยอะ (วัน × ชั่วโมง)</h2><span class="muted" id="heatSub"></span></div>
         <div class="chart" id="heatChart"></div>
         <div class="heat-legend" id="heatLegend" aria-hidden="true"></div>
         <div id="heatTable"></div>
       </section>
 
       <section class="card" id="fcCard" aria-labelledby="fcTitle" hidden>
-        <div class="card-h"><h2 id="fcTitle">คาดการณ์และวันผิดปกติ</h2><span class="muted" id="fcSub"></span></div>
+        <div class="card-h"><h2 id="fcTitle" data-i18n="iq.s.42">คาดการณ์และวันผิดปกติ</h2><span class="muted" id="fcSub"></span></div>
         <ul class="legend"><li><i class="key"></i>จริง</li><li><i class="key dash"></i>คาดการณ์</li><li><i class="key band"></i>ช่วงคาดการณ์ 80%</li><li><i class="key ring"></i>วันผิดปกติ</li></ul>
         <div class="chart" id="fcChart"></div>
         <p class="note" id="fcNote"></p>
@@ -122,92 +128,98 @@
 
     <div class="row2 even">
       <section class="card" id="corrCard" aria-labelledby="corrTitle" hidden>
-        <div class="card-h"><h2 id="corrTitle">ความสัมพันธ์ระหว่างตัวชี้วัด</h2><span class="muted">รายวัน · Pearson r หลังตัดผลวันในสัปดาห์และแนวโน้ม · ช่วง 95% เผื่อค่าที่ติดกันคล้ายกัน</span></div>
+        <div class="card-h"><h2 id="corrTitle" data-i18n="iq.s.43">ความสัมพันธ์ระหว่างตัวชี้วัด</h2><span class="muted" data-i18n="iq.s.44">รายวัน · Pearson r หลังตัดผลวันในสัปดาห์และแนวโน้ม · ช่วง 95% เผื่อค่าที่ติดกันคล้ายกัน</span></div>
         <div id="corrBody"></div>
-        <p class="note">สองค่าที่ขึ้นลงพร้อมกันไม่ได้แปลว่าค่าหนึ่งเป็นสาเหตุของอีกค่า ใช้เป็นจุดเริ่มต้นของการทดลอง</p>
+        <p class="note" data-i18n="iq.s.45">สองค่าที่ขึ้นลงพร้อมกันไม่ได้แปลว่าค่าหนึ่งเป็นสาเหตุของอีกค่า ใช้เป็นจุดเริ่มต้นของการทดลอง</p>
       </section>
 
       <section class="card" id="abCard" aria-labelledby="abTitle" hidden>
-        <div class="card-h"><h2 id="abTitle">เปรียบเทียบ A/B</h2><span class="muted">จุด = ค่าดิบ · เส้น = ช่วงความเชื่อมั่น 95% · ขีดตั้ง = ค่าหลังปรับตามขนาดข้อมูล</span></div>
+        <div class="card-h"><h2 id="abTitle" data-i18n="iq.s.46">เปรียบเทียบ A/B</h2><span class="muted" data-i18n="iq.s.47">จุด = ค่าดิบ · เส้น = ช่วงความเชื่อมั่น 95% · ขีดตั้ง = ค่าหลังปรับตามขนาดข้อมูล</span></div>
         <div id="abBody"></div>
       </section>
     </div>
 
     <div class="row2 even">
       <section class="card" id="camCard" aria-labelledby="camTitle" hidden>
-        <div class="card-h"><h2 id="camTitle">แยกตามกล้อง / เครื่อง</h2><span class="muted">คนเข้าในช่วงที่เลือก</span></div>
+        <div class="card-h"><h2 id="camTitle" data-i18n="iq.s.48">แยกตามกล้อง / เครื่อง</h2><span class="muted" data-i18n="iq.s.49">คนเข้าในช่วงที่เลือก</span></div>
         <div id="camBody"></div>
         <p class="note" id="camNote"></p>
       </section>
 
       <section class="card" id="cohortCard" aria-labelledby="cohortTitle" hidden>
-        <div class="card-h"><h2 id="cohortTitle">ลูกค้ากลับมาซ้ำ</h2><span class="muted">cohort รายสัปดาห์</span></div>
+        <div class="card-h"><h2 id="cohortTitle" data-i18n="iq.s.50">ลูกค้ากลับมาซ้ำ</h2><span class="muted" data-i18n="iq.s.51">cohort รายสัปดาห์</span></div>
         <div id="cohortBody"></div>
       </section>
     </div>
 
     <div class="row2 even">
       <section class="card" id="goalCard" aria-labelledby="goalTitle">
-        <div class="card-h"><h2 id="goalTitle">เป้าหมาย</h2><span class="muted">เทียบกับช่วงที่เลือก</span></div>
+        <div class="card-h"><h2 id="goalTitle" data-i18n="iq.s.52">เป้าหมาย</h2><span class="muted" data-i18n="iq.s.53">เทียบกับช่วงที่เลือก</span></div>
         <div id="goalBody"></div>
         <details class="setup">
-          <summary>ตั้งเป้า</summary>
-          <form id="goalForm" class="rules"><div class="fields"></div><button type="submit" class="btn-p">บันทึกเป้า</button></form>
+          <summary data-i18n="iq.s.54">ตั้งเป้า</summary>
+          <form id="goalForm" class="rules"><div class="fields"></div><button type="submit" class="btn-p" data-i18n="iq.s.55">บันทึกเป้า</button></form>
         </details>
         <p class="iq-msg" id="goalMsg" role="status" aria-live="polite"></p>
         <p class="note" id="goalNote"></p>
       </section>
 
       <section class="card" id="alertCard" aria-labelledby="alertTitle">
-        <div class="card-h"><h2 id="alertTitle">กฎแจ้งเตือน</h2><span class="muted">ตรวจเมื่อเปิดหน้านี้</span></div>
+        <div class="card-h"><h2 id="alertTitle" data-i18n="iq.s.56">กฎแจ้งเตือน</h2><span class="muted" data-i18n="iq.s.57">ตรวจเมื่อเปิดหน้านี้</span></div>
         <form id="alertForm" class="rules"><div class="fields"></div>
-          <div class="actions"><button type="submit" class="btn-p">บันทึกกฎ</button><button type="button" class="btn-s" id="notifyPerm" hidden>อนุญาตแจ้งเตือนเบราว์เซอร์</button></div>
+          <div class="actions"><button type="submit" class="btn-p" data-i18n="iq.s.58">บันทึกกฎ</button><button type="button" class="btn-s" id="notifyPerm" hidden data-i18n="iq.s.59">อนุญาตแจ้งเตือนเบราว์เซอร์</button></div>
         </form>
         <p class="iq-msg" id="alertMsg" role="status" aria-live="polite"></p>
         <p class="note" id="alertNote"></p>
       </section>
     </div>
 
-    <h2 class="sec">รายระบบ</h2>
+    <h2 class="sec" data-i18n="iq.s.60">รายระบบ</h2>
     <div class="mods" id="modules"></div>
   </div>
 
   <section class="card data" id="reportCard" aria-labelledby="reportTitle" hidden>
-    <h2 id="reportTitle">รายงานและส่งออก</h2>
-    <p class="muted">รายงานสรุปพร้อมพิมพ์หรือบันทึกเป็น PDF จากหน้าต่างพิมพ์ของเบราว์เซอร์</p>
+    <h2 id="reportTitle" data-i18n="iq.s.61">รายงานและส่งออก</h2>
+    <p class="muted" data-i18n="iq.s.62">รายงานสรุปพร้อมพิมพ์หรือบันทึกเป็น PDF จากหน้าต่างพิมพ์ของเบราว์เซอร์</p>
     <div class="actions">
-      <button type="button" class="btn-p" id="reportDay">รายงานประจำวัน</button>
-      <button type="button" class="btn-p" id="reportWeek">รายงานประจำสัปดาห์</button>
+      <button type="button" class="btn-p" id="reportDay" data-i18n="iq.s.63">รายงานประจำวัน</button>
+      <button type="button" class="btn-p" id="reportWeek" data-i18n="iq.s.64">รายงานประจำสัปดาห์</button>
     </div>
     <div class="actions">
-      <button type="button" class="btn-s" id="exportAnalysis">ส่งออกผลวิเคราะห์ (JSON)</button>
-      <button type="button" class="btn-s" id="exportDaily">ส่งออกรายวัน + พยากรณ์ (CSV)</button>
+      <button type="button" class="btn-s" id="exportAnalysis" data-i18n="iq.s.65">ส่งออกผลวิเคราะห์ (JSON)</button>
+      <button type="button" class="btn-s" id="exportDaily" data-i18n="iq.s.66">ส่งออกรายวัน + พยากรณ์ (CSV)</button>
     </div>
     <p class="iq-msg" id="reportMsg" role="status" aria-live="polite"></p>
   </section>
 
   <section class="card data" aria-labelledby="dataTitle">
-    <h2 id="dataTitle">จัดการข้อมูล</h2>
+    <h2 id="dataTitle" data-i18n="iq.s.67">จัดการข้อมูล</h2>
     <p class="muted" id="dataInfo"></p>
     <div class="actions">
-      <button type="button" class="btn-p" id="exportJson">สำรองข้อมูลทั้งหมด (JSON)</button>
+      <button type="button" class="btn-p" id="exportJson" data-i18n="iq.s.68">สำรองข้อมูลทั้งหมด (JSON)</button>
       <label class="btn-s file">กู้คืนจากไฟล์สำรอง<input type="file" id="importFile" accept="application/json,.json"></label>
-      <button type="button" class="btn-s" id="exportCsv">ส่งออกสรุป (CSV)</button>
+      <button type="button" class="btn-s" id="exportCsv" data-i18n="iq.s.69">ส่งออกสรุป (CSV)</button>
     </div>
     <div class="actions">
-      <button type="button" class="btn-s" id="seedDemo">สร้างข้อมูลตัวอย่าง</button>
-      <button type="button" class="btn-s danger" id="removeDemo" hidden>ลบข้อมูลตัวอย่าง</button>
+      <button type="button" class="btn-s" id="seedDemo" data-i18n="iq.s.70">สร้างข้อมูลตัวอย่าง</button>
+      <button type="button" class="btn-s danger" id="removeDemo" hidden data-i18n="iq.s.71">ลบข้อมูลตัวอย่าง</button>
     </div>
     <p class="iq-msg" id="dataMsg" role="status" aria-live="polite"></p>
-    <p class="note">ไฟล์สำรองรวมข้อมูลทุกระบบในเบราว์เซอร์นี้ รวมถึงสินค้าและตัวอย่างที่สอนของระบบสแกนสินค้า แต่ไม่รวมรูปโฆษณาที่อัปโหลดและเทมเพลตตู้ถ่ายรูป ไฟล์อาจมีชื่อลูกค้าและข้อมูลใบหน้า (ค่าตัวเลข) โปรดเก็บอย่างปลอดภัย · ข้อมูลตัวอย่างทุกรายการมีป้าย “(ตัวอย่าง)” และไม่ทับข้อมูลจริง</p>
+    <p class="note" data-i18n="iq.s.72">ไฟล์สำรองรวมข้อมูลทุกระบบในเบราว์เซอร์นี้ รวมถึงสินค้าและตัวอย่างที่สอนของระบบสแกนสินค้า แต่ไม่รวมรูปโฆษณาที่อัปโหลดและเทมเพลตตู้ถ่ายรูป ไฟล์อาจมีชื่อลูกค้าและข้อมูลใบหน้า (ค่าตัวเลข) โปรดเก็บอย่างปลอดภัย · ข้อมูลตัวอย่างทุกรายการมีป้าย “(ตัวอย่าง)” และไม่ทับข้อมูลจริง</p>
   </section>
 </main>
 
 <div class="report" id="report" aria-hidden="true"></div>
 
 <div class="iq-tip" id="iqTip" role="tooltip" hidden></div>
+<script src="i18n/zh-insights.js?v=1"></script>
 <script src="lensiq-agg.js?v=1"></script>
-<script src="lensiq-stats.js?v=2"></script>
-<script src="insights.js?v=7"></script>
+<script src="lensiq-stats.js?v=3"></script>
+<script src="insights-data.js?v=8"></script>
+<script src="insights-demo.js?v=8"></script>
+<script src="insights-analysis.js?v=8"></script>
+<script src="insights-cards.js?v=8"></script>
+<script src="insights-charts.js?v=8"></script>
+<script src="insights-ui.js?v=8"></script>
 </body>
 </html>

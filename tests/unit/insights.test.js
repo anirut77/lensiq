@@ -100,3 +100,102 @@ test("demo add/remove leaves no residue (incl. byCam days and st-heat-c1), real 
   assert.deepEqual(ls, real);
   assert.equal(I.iqHasDemo(browserSnap(ls)), false);
 });
+
+// ---------- interpretation text: context-appropriate wording for every card type, data quality, i18n coverage ----------
+const ST = require("../../lensiq-stats.js");
+const NOW2 = new Date(2026, 10, 6, 15).getTime();
+const rng2 = seed => { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
+/** scenarios that produce every card type: full demo, demo + goals/alerts, short data, flat noisy store, store with an outage */
+function scenarios() {
+  const out = [];
+  for (const seed of [7, 11]) {
+    const D = I.iqCollect(I.iqBuildDemo({}, NOW2, seed).set);
+    for (const p of ["today", "d7", "d30", "d90", "all"]) for (const compare of ["prev", "week"]) out.push({ D, r: I.iqRange(p, NOW2, D, { compare }), opt: { now: NOW2, goals: { storeInDay: 400, convPct: 5, revenueDay: 1e6 }, alerts: { queueWaitMin: 0.5, occMax: 1 } } });
+  }
+  const R = rng2(3), snap = {};
+  for (let d = 1; d <= 3; d++) { const day = I.iqAddDays("2026-11-06", -d), h = Array(24).fill(0); h[10] = 9; snap["st-day-" + day] = JSON.stringify({ date: day, in: 9, out: 9, peak: 3, maxQueue: 1, hourly: { in: h, out: h }, zones: {}, byCam: {} }); }
+  const Ds = I.iqCollect(snap); out.push({ D: Ds, r: I.iqRange("d7", NOW2, Ds), opt: { now: NOW2 } });
+  const snap2 = {};
+  for (let d = 1; d <= 70; d++) {
+    const day = I.iqAddDays("2026-11-06", -d), n = Math.round(150 * (1 + 0.3 * (2 * R() - 1))), h = Array(24).fill(0);
+    for (let k = 9; k <= 20; k++) h[k] = Math.round(n / 12);
+    if (d === 9) for (let k = 13; k <= 20; k++) h[k] = 0; // camera dark 13:00–20:59
+    snap2["st-day-" + day] = JSON.stringify({ date: day, in: h.reduce((s, v) => s + v, 0), out: 0, peak: 5, maxQueue: 1, hourly: { in: h, out: h }, zones: {}, byCam: {} });
+  }
+  const Do = I.iqCollect(snap2); out.push({ D: Do, r: I.iqRange("d30", NOW2, Do), opt: { now: NOW2 } });
+  return out;
+}
+
+test("every card type uses wording that fits its question (change / correlation / A-B) and has exactly one action", () => {
+  const seen = new Set();
+  const changeOnly = /จากเดิม|เปลี่ยนจริง|ความผันผวนรายวัน/; // period-comparison phrases
+  for (const { D, r, opt } of scenarios()) {
+    const A = I.iqAnalyze(D, r, opt), C = I.iqInsights(D, A);
+    assert.deepEqual(I.iqTextOk(C), [], r.preset + ": bad text");
+    for (const c of C) {
+      seen.add(c.id.replace(/^(corr|goal|alert)-.*/, "$1"));
+      assert.ok(typeof c.action === "string" && c.action.length > 8 && !/\n/.test(c.action), c.id + ": one action");
+      assert.ok(c.title.length <= 90, c.id + ": short title " + c.title);
+      if (c.kind === "corr") { assert.ok(!changeOnly.test(c.sure + c.title), c.id + ": correlation card uses period-change wording: " + c.sure); assert.match(c.sure, /ขึ้นลง|เกี่ยวกัน|บังเอิญ|ข้อมูลยังน้อย/); }
+      if (c.kind === "diff") { assert.ok(!changeOnly.test(c.sure), c.id + ": A/B card uses period-change wording: " + c.sure); }
+      if (c.kind === "change" && c.level !== "insufficient") assert.ok(/เปลี่ยน|ผันผวน|ระหว่าง/.test(c.sure), c.id + ": change wording " + c.sure);
+      if (c.level === "strong" || c.level === "moderate") assert.ok(!/อาจเป็นแค่|ยังไม่เห็น/.test(c.sure), c.id + ": confident card hedges " + c.sure);
+      if (c.level === "none" || c.level === "weak") assert.ok(!/น่าจะเปลี่ยนจริง|ต่างกันจริง|ขึ้นลงไปด้วยกันจริง/.test(c.sure), c.id + ": unsure card claims " + c.sure);
+      assert.ok(!/บังเอิญไม่ถึง|โอกาสเป็นความบังเอิญ/.test(JSON.stringify(c)), c.id + ": p-value misread");
+    }
+    // the weekday caution is only shown when the weekday effect was NOT removed
+    A.corr.forEach(c => { if (c.adjusted === "weekday+trend") assert.ok(!/ขึ้นกับวันในสัปดาห์เหมือนกัน/.test(c.caution), c.id + ": weekday caution after weekday removal"); });
+  }
+  for (const id of ["short", "alert", "quality", "store-change", "anomaly", "peak", "forecast", "conv", "corr", "ab-sg", "ab-neuro", "cohort", "booth", "qc", "dr", "goal"]) assert.ok(seen.has(id), "scenario set covers card type " + id + " (seen " + [...seen] + ")");
+});
+
+test("data reliability: coverage, missing days and a camera outage are detected and explained", () => {
+  const sc = scenarios().at(-1), A = I.iqAnalyze(sc.D, sc.r, sc.opt), Q = A.quality;
+  assert.equal(Q.sources.find(x => x.id === "store").coverage, 1);
+  const o = Q.outages.find(x => x.day === I.iqAddDays("2026-11-06", -9));
+  assert.ok(o && o.from === 13 && o.to === 20 && o.lost > 50, JSON.stringify(Q.outages));
+  assert.equal(Q.outages.length, 1, "no false outages on normal days");
+  const C = I.iqInsights(sc.D, A), q = C.find(c => c.id === "quality");
+  assert.ok(q && /13:00–20:59/.test(q.body) && /ตรวจไฟ/.test(q.action), q && q.body);
+  // demo: injected half-day outage is found
+  const D = I.iqCollect(I.iqBuildDemo({}, NOW2, 7).set), Ad = I.iqAnalyze(D, I.iqRange("d30", NOW2, D), { now: NOW2 });
+  assert.ok(Ad.quality.outages.some(x => x.kind === "store" && x.day === I.iqAddDays("2026-11-06", -26)), JSON.stringify(Ad.quality.outages));
+});
+
+test("conversion-drop alert uses day-level (quasi-binomial) test, not person-level z", () => {
+  const snap = {};
+  for (let d = 0; d <= 20; d++) {
+    const day = I.iqAddDays("2026-11-06", -d), n = 200, h = Array(24).fill(0); h[12] = n;
+    snap["st-day-" + day] = JSON.stringify({ date: day, in: n, out: n, peak: 5, maxQueue: 1, hourly: { in: h, out: h }, zones: {}, byCam: {} });
+  }
+  const sales = [];
+  for (let d = 1; d <= 14; d++) { const day = I.iqAddDays("2026-11-06", -d), k = d <= 7 ? (d % 2 ? 10 : 22) : (d % 2 ? 26 : 14); for (let i = 0; i < k; i++) sales.push({ t: I.iqDayStart(day) + 12 * 3600000 + i * 1000, total: 50, qty: 1 }); }
+  snap["co-sales"] = JSON.stringify(sales);
+  const D = I.iqCollect(snap), A = I.iqAnalyze(D, I.iqRange("d7", NOW2, D), { now: NOW2, alerts: { convDropPct: 10 } });
+  const a = A.alerts.find(x => x.id === "conv");
+  assert.ok(a && a.test.method === "quasi-binomial", JSON.stringify(a));
+  // person-level z would call 16 vs 20 bills/day on 200 people "clear"; with day-to-day swings 10↔22 it is not
+  const t = ST.twoProp(112, 1400, 140, 1400);
+  assert.ok(a.test.p > t.p, `daily p ${a.test.p} vs person-level ${t.p}`);
+});
+
+test("i18n: every generated text key has a Chinese entry; Thai stays the default without LQI18N", () => {
+  const fs = require("node:fs"), path = require("node:path"), root = path.join(__dirname, "../..");
+  const zh = require("../../i18n/zh-insights.js").zh;
+  const src = ["insights-cards.js", "insights-ui.js", "insights-analysis.js"].map(f => fs.readFileSync(path.join(root, f), "utf8")).join("\n");
+  const keys = [...new Set([...src.matchAll(/\b(?:T|iqT)\("(iq\.[\w.]+)"/g)].map(m => m[1]))].filter(k => !k.endsWith("."));
+  const missing = keys.filter(k => !(k in zh));
+  assert.deepEqual(missing, [], "keys without zh");
+  const html = fs.readFileSync(path.join(root, "insights.html"), "utf8");
+  const hk = [...new Set([...html.matchAll(/data-i18n="(iq\.[\w.]+)"/g)].map(m => m[1]))];
+  assert.deepEqual(hk.filter(k => !(k in zh)), [], "html keys without zh");
+  for (const lv of ["strong", "moderate", "weak", "none", "insufficient"]) for (const kd of ["change", "corr", "diff"]) assert.ok(zh[`iq.conf.${kd}.${lv}`], `iq.conf.${kd}.${lv}`);
+  // placeholders preserved in translation
+  for (const k of keys) { const th = (src.match(new RegExp(`T\\("${k.replace(/\./g, "\\.")}", "([^"]*)"`)) || [])[1] || ""; const need = (th.match(/\{\w+\}/g) || []).sort().join(); const have = (zh[k].match(/\{\w+\}/g) || []).sort().join(); assert.equal([...new Set(have.split(","))].join(), [...new Set(need.split(","))].join(), k + " placeholders"); }
+  // with a translator present the cards switch language
+  globalThis.LQI18N = { tf: (k, th, v) => (zh[k] || th).replace(/\{(\w+)\}/g, (m, n) => (v && v[n] != null ? v[n] : m)) };
+  try {
+    const D = I.iqCollect(I.iqBuildDemo({}, NOW2, 7).set), A = I.iqAnalyze(D, I.iqRange("d30", NOW2, D), { now: NOW2 }), C = I.iqInsights(D, A);
+    assert.ok(C.filter(c => /[一-鿿]/.test(c.title)).length >= C.length - 1, C.map(c => c.title).join(" | "));
+  } finally { delete globalThis.LQI18N; }
+});

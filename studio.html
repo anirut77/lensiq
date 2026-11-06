@@ -2,24 +2,25 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
-<title>สตูดิโอแต่งชุด AI | LENSIQ</title>
+<title data-i18n="studio.title">สตูดิโอแต่งชุด AI | LENSIQ</title>
 <meta name="description" content="แต่งชุดจากเทมเพลตให้เหมือนใส่จริง ตัดพื้นหลัง เกลาขอบผม ผสานแสงสี รีทัชผิว และทำรูปติดบัตร ประมวลผลบนเครื่องทั้งหมด">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=6">
-<link rel="stylesheet" href="studio.css?v=1">
+<link rel="stylesheet" href="studio.css?v=2">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=10"></script>
+<script src="nav.js?v=11"></script>
 
 <main class="st">
-  <h1>สตูดิโอแต่งชุด AI</h1>
-  <p class="lead">อัปโหลดรูปหรือถ่ายจากกล้อง ระบบตัดพื้นหลัง เกลาขอบผม แล้วสวมชุดจากเทมเพลตให้เข้ากับไหล่และคอ ปรับแสงสีให้กลมกลืนเหมือนใส่ถ่ายจริง พร้อมรีทัชแบบเป็นธรรมชาติ</p>
+  <h1 data-i18n="studio.h1">สตูดิโอแต่งชุด AI</h1>
+  <p class="lead" data-i18n="studio.lead">อัปโหลดรูปหรือถ่ายจากกล้อง ระบบตัดพื้นหลัง เกลาขอบผม แล้วสวมชุดจากเทมเพลตให้เข้ากับไหล่และคอ ปรับแสงสีให้กลมกลืนเหมือนใส่ถ่ายจริง พร้อมรีทัชแบบเป็นธรรมชาติ</p>
   <div class="engine" id="stEngine" role="status">กำลังเตรียมระบบ...</div>
 
   <div class="st-layout">
@@ -27,19 +28,19 @@
       <!-- ขั้นที่ 1: เลือกรูป -->
       <div class="st-src" id="stSrc">
         <div class="st-drop">
-          <p class="st-step">1 · เลือกรูปบุคคล</p>
-          <p class="hint">หน้าตรง เห็นศีรษะถึงกลางอก แสงสม่ำเสมอ ภาพจะถูกประมวลผลบนเครื่องนี้เท่านั้น</p>
+          <p class="st-step" data-i18n="studio.step1">1 · เลือกรูปบุคคล</p>
+          <p class="hint" data-i18n="studio.step1hint">หน้าตรง เห็นศีรษะถึงกลางอก แสงสม่ำเสมอ ภาพจะถูกประมวลผลบนเครื่องนี้เท่านั้น</p>
           <div class="st-row">
-            <label class="btn primary st-file"><input type="file" id="stFile" accept="image/*"><span>อัปโหลดรูป</span></label>
-            <button class="btn ghost" id="stCamBtn" type="button">เปิดกล้อง</button>
+            <label class="btn primary st-file"><input type="file" id="stFile" accept="image/*"><span data-i18n="studio.upload">อัปโหลดรูป</span></label>
+            <button class="btn ghost" id="stCamBtn" type="button" data-i18n="studio.camOpen">เปิดกล้อง</button>
           </div>
         </div>
         <div class="st-cam" id="stCam" hidden>
           <video id="stVideo" autoplay muted playsinline></video>
           <div class="st-row st-camctl" id="stCamCtl" hidden></div>
           <div class="st-row">
-            <button class="btn primary" id="stShoot" type="button">ถ่ายภาพ</button>
-            <button class="btn ghost" id="stCamClose" type="button">ปิดกล้อง</button>
+            <button class="btn primary" id="stShoot" type="button" data-i18n="studio.shoot">ถ่ายภาพ</button>
+            <button class="btn ghost" id="stCamClose" type="button" data-i18n="studio.camClose">ปิดกล้อง</button>
           </div>
         </div>
       </div>
@@ -53,122 +54,123 @@
           <div class="st-split-line" id="stSplitLine" aria-hidden="true"></div>
           <div class="st-busy" id="stBusy" hidden>กำลังประมวลผล...</div>
         </div>
-        <label class="slider st-split">ก่อน | หลัง<input type="range" id="stSplit" min="0" max="100" value="0" aria-label="เลื่อนเทียบภาพก่อนและหลัง"></label>
+        <label class="slider st-split" data-i18n="studio.split">ก่อน | หลัง<input type="range" id="stSplit" min="0" max="100" value="0" aria-label="เลื่อนเทียบภาพก่อนและหลัง"></label>
         <div class="seg" id="stMode" role="group" aria-label="เครื่องมือ">
-          <button type="button" data-m="view" class="on">ดูภาพ</button>
-          <button type="button" data-m="fit">จุดคอและไหล่</button>
-          <button type="button" data-m="restore">แปรงคืนตัวคน</button>
-          <button type="button" data-m="erase">แปรงลบพื้นหลัง</button>
+          <button type="button" data-m="view" class="on" data-i18n="studio.mode.view">ดูภาพ</button>
+          <button type="button" data-m="fit" data-i18n="studio.mode.fit">จุดคอและไหล่</button>
+          <button type="button" data-m="restore" data-i18n="studio.mode.restore">แปรงคืนตัวคน</button>
+          <button type="button" data-m="erase" data-i18n="studio.mode.erase">แปรงลบพื้นหลัง</button>
         </div>
-        <label class="slider" id="stBrushRow" hidden>ขนาดแปรง<input type="range" id="stBrush" min="4" max="80" value="24"></label>
+        <label class="slider" id="stBrushRow" hidden data-i18n="studio.brush">ขนาดแปรง<input type="range" id="stBrush" min="4" max="80" value="24"></label>
         <p class="hint" id="stHint">ลากจุดสีบนภาพเพื่อปรับตำแหน่งคอและไหล่ หรือใช้แปรงแก้ขอบตัวคน</p>
         <div class="st-row">
-          <button class="btn ghost" id="stNew" type="button">เปลี่ยนรูป</button>
-          <button class="btn ghost" id="stUndoEdit" type="button">ล้างการแก้ด้วยแปรง</button>
+          <button class="btn ghost" id="stNew" type="button" data-i18n="studio.newPhoto">เปลี่ยนรูป</button>
+          <button class="btn ghost" id="stUndoEdit" type="button" data-i18n="studio.undoBrush">ล้างการแก้ด้วยแปรง</button>
         </div>
       </div>
     </section>
 
     <aside class="card st-panel" aria-label="ตัวเลือก">
       <details open>
-        <summary>ชุด</summary>
+        <summary data-i18n="studio.sec.outfit">ชุด</summary>
         <div class="choices" id="stOutfits"></div>
         <div class="st-row">
-          <label class="btn ghost st-file sm"><input type="file" id="stGarmentFile" accept="image/*"><span>เพิ่มชุด (PNG พื้นใส / รูปคนใส่ชุด)</span></label>
-          <button class="btn ghost sm" id="stAnchorBtn" type="button">ตั้งจุดคอ/ไหล่ของชุด</button>
+          <label class="btn ghost st-file sm"><input type="file" id="stGarmentFile" accept="image/*"><span data-i18n="studio.addOutfit">เพิ่มชุด (PNG พื้นใส / รูปคนใส่ชุด)</span></label>
+          <button class="btn ghost sm" id="stAnchorBtn" type="button" data-i18n="studio.anchorBtn">ตั้งจุดคอ/ไหล่ของชุด</button>
         </div>
-        <p class="hint" id="stGarmentMsg">ชุดที่เพิ่มจะเก็บไว้ในเบราว์เซอร์นี้ (ใช้ร่วมกับหน้า ตู้ถ่ายรูป) ไม่ถูกส่งออกนอกเครื่อง</p>
+        <p class="hint" id="stGarmentMsg"><span data-i18n="studio.outfitNote">ชุดที่เพิ่มจะเก็บไว้ในเบราว์เซอร์นี้ (ใช้ร่วมกับหน้า ตู้ถ่ายรูป) ไม่ถูกส่งออกนอกเครื่อง</span></p>
       </details>
       <details open>
-        <summary>ปรับชุด</summary>
-        <label class="slider">ขนาด<input type="range" id="aScale" min="80" max="125" value="100"></label>
-        <label class="slider">หมุน<input type="range" id="aRot" min="-15" max="15" value="0"></label>
-        <label class="slider">ซ้าย–ขวา<input type="range" id="aX" min="-30" max="30" value="0"></label>
-        <label class="slider">ขึ้น–ลง<input type="range" id="aY" min="-30" max="30" value="0"></label>
-        <label class="slider">ความสว่างชุด<input type="range" id="aBright" min="75" max="125" value="100"></label>
-        <label class="check"><input type="checkbox" id="oHide" checked><span>ซ่อนเสื้อเดิมที่ไม่ถูกชุดคลุม</span></label>
-        <button class="btn ghost sm" id="stAutoFit" type="button">จัดชุดอัตโนมัติอีกครั้ง</button>
+        <summary data-i18n="studio.sec.adjust">ปรับชุด</summary>
+        <label class="slider" data-i18n="studio.adj.scale">ขนาด<input type="range" id="aScale" min="80" max="125" value="100"></label>
+        <label class="slider" data-i18n="studio.adj.rot">หมุน<input type="range" id="aRot" min="-15" max="15" value="0"></label>
+        <label class="slider" data-i18n="studio.adj.x">ซ้าย–ขวา<input type="range" id="aX" min="-30" max="30" value="0"></label>
+        <label class="slider" data-i18n="studio.adj.y">ขึ้น–ลง<input type="range" id="aY" min="-30" max="30" value="0"></label>
+        <label class="slider" data-i18n="studio.adj.bright">ความสว่างชุด<input type="range" id="aBright" min="75" max="125" value="100"></label>
+        <label class="check"><input type="checkbox" id="oHide" checked><span data-i18n="studio.adj.hide">ซ่อนเสื้อเดิมที่ไม่ถูกชุดคลุม</span></label>
+        <button class="btn ghost sm" id="stAutoFit" type="button" data-i18n="studio.autoFit">จัดชุดอัตโนมัติอีกครั้ง</button>
       </details>
       <details>
-        <summary>ผสานภาพ</summary>
-        <label class="slider">กลมกลืนแสงสี<input type="range" id="oHarm" min="0" max="100" value="100"></label>
-        <label class="slider">เงาคอเสื้อ<input type="range" id="oShadow" min="0" max="100" value="60"></label>
-        <label class="slider">แสงขอบ<input type="range" id="oWrap" min="0" max="100" value="30"></label>
+        <summary data-i18n="studio.sec.blend">ผสานภาพ</summary>
+        <label class="slider" data-i18n="studio.blend.harm">กลมกลืนแสงสี<input type="range" id="oHarm" min="0" max="100" value="100"></label>
+        <label class="slider" data-i18n="studio.blend.shadow">เงาคอเสื้อ<input type="range" id="oShadow" min="0" max="100" value="60"></label>
+        <label class="slider" data-i18n="studio.blend.wrap">แสงขอบ<input type="range" id="oWrap" min="0" max="100" value="30"></label>
       </details>
       <details open>
-        <summary>ฉากหลัง</summary>
+        <summary data-i18n="studio.sec.bg">ฉากหลัง</summary>
         <div class="seg wrap" id="stBg"></div>
-        <label class="slider" id="stBgColorRow">เลือกสี<input type="color" id="stBgColor" value="#d7e7f7"></label>
+        <label class="slider" id="stBgColorRow" data-i18n="studio.bg.pick">เลือกสี<input type="color" id="stBgColor" value="#d7e7f7"></label>
       </details>
       <details>
-        <summary>รีทัช</summary>
-        <label class="check"><input type="checkbox" id="rAuto" checked><span>ปรับแสงและสมดุลสีขาวอัตโนมัติ</span></label>
-        <label class="slider">ผิวเนียน<input type="range" id="rSmooth" min="0" max="100" value="30"></label>
-        <label class="slider">ลดจุดด่าง<input type="range" id="rBlemish" min="0" max="100" value="30"></label>
-        <label class="slider">ตาสดใส<input type="range" id="rEyes" min="0" max="100" value="20"></label>
-        <label class="slider">ใต้ตา<input type="range" id="rUnder" min="0" max="100" value="20"></label>
-        <label class="slider">ฟันขาว<input type="range" id="rTeeth" min="0" max="100" value="0"></label>
-        <label class="slider">ความคม<input type="range" id="rSharp" min="0" max="100" value="20"></label>
-        <p class="hint">ค่าเริ่มต้นตั้งไว้แบบบางเบา เพื่อให้ยังเหมือนตัวจริง</p>
+        <summary data-i18n="studio.sec.retouch">รีทัช</summary>
+        <label class="check"><input type="checkbox" id="rAuto" checked><span data-i18n="studio.rt.auto">ปรับแสงและสมดุลสีขาวอัตโนมัติ</span></label>
+        <label class="slider" data-i18n="studio.rt.smooth">ผิวเนียน<input type="range" id="rSmooth" min="0" max="100" value="30"></label>
+        <label class="slider" data-i18n="studio.rt.blemish">ลดจุดด่าง<input type="range" id="rBlemish" min="0" max="100" value="30"></label>
+        <label class="slider" data-i18n="studio.rt.eyes">ตาสดใส<input type="range" id="rEyes" min="0" max="100" value="20"></label>
+        <label class="slider" data-i18n="studio.rt.under">ใต้ตา<input type="range" id="rUnder" min="0" max="100" value="20"></label>
+        <label class="slider" data-i18n="studio.rt.teeth">ฟันขาว<input type="range" id="rTeeth" min="0" max="100" value="0"></label>
+        <label class="slider" data-i18n="studio.rt.sharp">ความคม<input type="range" id="rSharp" min="0" max="100" value="20"></label>
+        <p class="hint" data-i18n="studio.rt.note">ค่าเริ่มต้นตั้งไว้แบบบางเบา เพื่อให้ยังเหมือนตัวจริง</p>
       </details>
       <details open>
-        <summary>บันทึกภาพ</summary>
+        <summary data-i18n="studio.sec.save">บันทึกภาพ</summary>
         <div class="st-row">
-          <button class="btn primary sm" id="stPng" type="button" disabled>ดาวน์โหลด PNG</button>
+          <button class="btn primary sm" id="stPng" type="button" disabled data-i18n="studio.png">ดาวน์โหลด PNG</button>
           <button class="btn ghost sm" id="stJpg" type="button" disabled>JPEG</button>
         </div>
-        <h3>รูปติดบัตร (300 DPI)</h3>
+        <h3 data-i18n="studio.idTitle">รูปติดบัตร (300 DPI)</h3>
         <div class="seg" id="stIdSize"></div>
         <div class="st-row">
-          <button class="btn ghost sm" id="stIdOne" type="button" disabled>รูปเดี่ยว</button>
-          <button class="btn ghost sm" id="stIdSheet" type="button" disabled>แผ่นพิมพ์ 4×6 นิ้ว</button>
+          <button class="btn ghost sm" id="stIdOne" type="button" disabled data-i18n="studio.idOne">รูปเดี่ยว</button>
+          <button class="btn ghost sm" id="stIdSheet" type="button" disabled data-i18n="studio.idSheet">แผ่นพิมพ์ 4×6 นิ้ว</button>
         </div>
-        <p class="note">ชุดเป็นภาพจำลอง ไม่มีตราหรือเครื่องหมายยศ บางหน่วยงานไม่รับรูปที่ผ่านการตกแต่ง กรุณาตรวจข้อกำหนดก่อนใช้งานจริง</p>
+        <p class="note" data-i18n="studio.idNote">ชุดเป็นภาพจำลอง ไม่มีตราหรือเครื่องหมายยศ บางหน่วยงานไม่รับรูปที่ผ่านการตกแต่ง กรุณาตรวจข้อกำหนดก่อนใช้งานจริง</p>
       </details>
     </aside>
   </div>
 
   <details class="card st-tech">
-    <summary>เทคนิคที่ใช้</summary>
+    <summary data-i18n="studio.tech.title">เทคนิคที่ใช้</summary>
     <ul>
-      <li><b>ตัดพื้นหลัง</b> MODNet (ZHKKKe/MODNet, Apache-2.0) ทำงานบนเครื่องผ่าน ONNX Runtime Web (WASM) แล้วเกลาขอบตามภาพจริงด้วย Guided Filter (He และคณะ 2010)</li>
-      <li><b>ลบสีฉากเดิมที่ขอบผม</b> ประมาณสีตัวคนจากสมการ matting แบบหยาบไปละเอียด (แนวคิดจาก Fast Multi-Level Foreground Estimation, pymatting)</li>
-      <li><b>สวมชุดให้เข้ารูป</b> หาไหล่และคอจากเงาตัวคน และคางจากจุดบนใบหน้า 68 จุด แล้วดัดชุดด้วย Thin-Plate Spline ให้จุดคอและไหล่ตรงกันพอดี (แนวคิดเดียวกับโมดูลจับคู่รูปทรงใน CP-VTON / VITON-HD แต่ใช้จุดยึดแทนโมเดล)</li>
-      <li><b>ศีรษะอยู่หน้าคอเสื้อ</b> ใช้เส้นคางกำหนดลำดับชั้น ผมและคางจึงทับคอเสื้อเหมือนจริง และซ่อนเสื้อเดิมที่โผล่นอกชุด</li>
-      <li><b>รอยต่อเนียน</b> ผสมภาพหลายความถี่ด้วย Laplacian Pyramid (Burt และ Adelson 1983) ความถี่ต่ำผสมนุ่ม ขอบชุดยังคม</li>
-      <li><b>แสงสีกลมกลืน</b> ปรับสีแสงแบบ gray-world ความสว่างตามผิวหน้า แสงซ้าย/ขวาตามใบหน้า และเปลี่ยนสีผิวที่ติดมากับชุดเป็นสีผิวผู้ถ่ายด้วย Reinhard color transfer ในปริภูมิ L*a*b*</li>
-      <li><b>เงาและแสงขอบ</b> เงาใต้คาง เงาที่คอบริเวณขอบคอเสื้อ และ light wrap ให้แสงฉากหลังซึมเข้าขอบตัว</li>
-      <li><b>เนื้อภาพเดียวกัน</b> วัดระดับ noise ของภาพถ่ายแล้วเติม grain ให้ชุดเท่ากัน</li>
-      <li><b>รีทัช</b> frequency separation โดยใช้ guided filter เฉพาะบริเวณผิว (ไม่แตะตา คิ้ว ปาก ผม) ลดจุดด่าง ยกใต้ตา ตา/ฟันสดใสเล็กน้อย ปรับแสงและสมดุลสีขาวอัตโนมัติ และเพิ่มความคมโดยไม่เน้นรูขุมขน</li>
+      <li><b data-i18n="studio.tech.matteB">ตัดพื้นหลัง</b> <span data-i18n="studio.tech.matte">MODNet (ZHKKKe/MODNet, Apache-2.0) ทำงานบนเครื่องผ่าน ONNX Runtime Web (WASM) แล้วเกลาขอบผมตามภาพจริงด้วย Guided Filter (He และคณะ 2010)</span></li>
+      <li><b data-i18n="studio.tech.parseB">แยกผม ใบหน้า หู เครื่องประดับ คอ และเสื้อเดิม</b> <span data-i18n="studio.tech.parse">MediaPipe Selfie Multiclass (Google, Apache-2.0) แปลงเป็น ONNX รันสามรอบ (ทั้งภาพ ครึ่งตัว และศีรษะ) ต่างหู แว่น และหมวกจึงอยู่หน้าชุด ไม่กลายเป็นรู ผลนี้ยังใช้อุดรูของ matte และหาใบหน้าเมื่อหาจุดบนใบหน้าไม่ได้</span></li>
+      <li><b data-i18n="studio.tech.fitB">สวมชุดตามรูปร่างจริง</b> <span data-i18n="studio.tech.fit">วัดไหล่และคอจากเงาตัวคนและจุดบนใบหน้า 68 จุด แล้ววาดชุดให้ไหล่ แขน และลำตัวตัดตามเงาตัวจริง ปกเสื้อกว้างเท่าคอที่วัดได้ และขอบคอเสื้อวางที่ระดับคอเสื้อเดิม ส่วนที่ผมบังไหล่ประมาณจากแนวไหล่ข้างเคียง</span></li>
+      <li><b data-i18n="studio.tech.layerB">ลำดับชั้นเหมือนสวมจริง</b> <span data-i18n="studio.tech.layer">ฉาก › ปกด้านหลังคอ › คอ › ตัวชุด › ศีรษะ ผม และมือ ผมยาวจึงคลุมไหล่ชุดได้ ส่วนคอที่เสื้อเดิมบังจะสร้างต่อจากผิวคอจริงด้วยเงาทรงกระบอกและเงาใต้คาง</span></li>
+      <li><b data-i18n="studio.tech.clothB">แสงเงาผ้า</b> <span data-i18n="studio.tech.cloth">ความนูนของลำตัวและแขนคำนวณจากระยะถึงขอบเงาตัว รวมกับชั้นผ้า ปก ตะเข็บ และรอยยับ แล้วให้แสงตามทิศแสงบนใบหน้า</span></li>
+      <li><b data-i18n="studio.tech.colorB">แสงสีกลมกลืน</b> <span data-i18n="studio.tech.color">ปรับสีแสงแบบ gray-world ความสว่างตามผิวหน้า และเปลี่ยนสีผิวที่ติดมากับชุดภาพจริงเป็นสีผิวผู้ถ่ายด้วย Reinhard color transfer ในปริภูมิ L*a*b*</span></li>
+      <li><b data-i18n="studio.tech.shadowB">เงาและแสงขอบ</b> <span data-i18n="studio.tech.shadow">เงาใต้คาง เงาที่คอบริเวณขอบคอเสื้อ เงาผมบนชุด และ light wrap ให้แสงฉากหลังซึมเข้าขอบตัว</span></li>
+      <li><b data-i18n="studio.tech.grainB">เนื้อภาพเดียวกัน</b> <span data-i18n="studio.tech.grain">วัดระดับ noise ของภาพถ่ายแล้วเติม grain ให้ชุดเท่ากัน</span></li>
+      <li><b data-i18n="studio.tech.retouchB">รีทัช</b> <span data-i18n="studio.tech.retouch">frequency separation โดยใช้ guided filter เฉพาะบริเวณผิว (ไม่แตะตา คิ้ว ปาก ผม) ลดจุดด่าง ยกใต้ตา ตาและฟันสดใสเล็กน้อย ปรับแสงและสมดุลสีขาวอัตโนมัติ และเพิ่มความคมโดยไม่เน้นรูขุมขน</span></li>
     </ul>
-    <p class="hint">เขียนขึ้นใหม่จากแนวคิดในงานวิจัยและโครงการโอเพนซอร์ส: jrosebr1/color_transfer (MIT), pymatting/pymatting (MIT), YuAo/YUCIHighPassSkinSmoothing (MIT), twyunting/Laplacian-Pyramids, shadow2496/VITON-HD, เอกสาร LightWrap ของ Nuke/Natron — ไม่ได้คัดลอกโค้ด GPL</p>
+    <p class="hint" data-i18n="studio.tech.credits">เขียนขึ้นใหม่จากแนวคิดในงานวิจัยและโครงการโอเพนซอร์ส: jrosebr1/color_transfer (MIT), pymatting/pymatting (MIT), YuAo/YUCIHighPassSkinSmoothing (MIT), เอกสาร LightWrap ของ Nuke/Natron — ไม่ได้คัดลอกโค้ด GPL ไฟล์โมเดลและสัญญาอนุญาตอยู่ใน vendor/models/</p>
   </details>
-  <p class="note"><b>ความเป็นส่วนตัว (PDPA):</b> รูปของคุณประมวลผลในเบราว์เซอร์บนเครื่องนี้ทั้งหมด ไม่ถูกอัปโหลดหรือบันทึก ปิดหน้านี้แล้วภาพจะหายไป สิ่งที่บันทึกมีเพียงเทมเพลตชุดที่คุณเพิ่มเอง (เก็บใน IndexedDB ของเบราว์เซอร์ ลบได้ที่หน้า ตู้ถ่ายรูป › จัดการเทมเพลต) ใช้รูปบุคคลอื่นเฉพาะเมื่อได้รับความยินยอม</p>
+  <p class="note"><b data-i18n="studio.pdpaB">ความเป็นส่วนตัว (PDPA):</b> <span data-i18n="studio.pdpa">รูปของคุณประมวลผลในเบราว์เซอร์บนเครื่องนี้ทั้งหมด ไม่ถูกอัปโหลดหรือบันทึก ปิดหน้านี้แล้วภาพจะหายไป สิ่งที่บันทึกมีเพียงเทมเพลตชุดที่คุณเพิ่มเอง (เก็บใน IndexedDB ของเบราว์เซอร์ ลบได้ที่หน้า ตู้ถ่ายรูป › จัดการเทมเพลต) ใช้รูปบุคคลอื่นเฉพาะเมื่อได้รับความยินยอม</span></p>
 </main>
 
 <dialog class="st-dlg" id="stAnchorDlg" aria-labelledby="stAnchorTitle">
-  <h2 id="stAnchorTitle">ตั้งจุดยึดของชุด</h2>
-  <p class="hint">ลากจุด <b class="k-chin">คาง</b> ไปตรงตำแหน่งที่คางผู้สวมควรอยู่ และจุด <b class="k-sh">ไหล่</b> ไปที่ปลายไหล่ทั้งสองข้าง</p>
+  <h2 id="stAnchorTitle" data-i18n="studio.anchor.title">ตั้งจุดยึดของชุด</h2>
+  <p class="hint"><span data-i18n="studio.anchor.h1">ลากจุด</span> <b class="k-chin" data-i18n="studio.anchor.chin">คาง</b> <span data-i18n="studio.anchor.h2">ไปตรงตำแหน่งที่คางผู้สวมควรอยู่ และจุด</span> <b class="k-sh" data-i18n="studio.anchor.sh">ไหล่</b> <span data-i18n="studio.anchor.h3">ไปที่ปลายไหล่ทั้งสองข้าง</span></p>
   <div class="st-anchor-wrap"><canvas id="stAnchorCv"></canvas></div>
   <div class="st-row">
-    <button class="btn primary sm" id="stAnchorSave" type="button">บันทึก</button>
-    <button class="btn ghost sm" id="stAnchorReset" type="button">คืนค่าอัตโนมัติ</button>
-    <button class="btn ghost sm" id="stAnchorClose" type="button">ปิด</button>
+    <button class="btn primary sm" id="stAnchorSave" type="button" data-i18n="studio.anchor.save">บันทึก</button>
+    <button class="btn ghost sm" id="stAnchorReset" type="button" data-i18n="studio.anchor.reset">คืนค่าอัตโนมัติ</button>
+    <button class="btn ghost sm" id="stAnchorClose" type="button" data-i18n="studio.anchor.close">ปิด</button>
   </div>
 </dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="vendor/face-api.js"></script>
-<script src="lensiq-track.js?v=1"></script>
-<script src="lensiq-camera.js?v=1"></script>
-<script src="lensiq-detect.js?v=1"></script>
+<script src="lensiq-track.js?v=2"></script>
+<script src="lensiq-camera.js?v=2"></script>
+<script src="lensiq-detect.js?v=2"></script>
 <script src="photobooth-layout.js"></script>
 <script src="vendor/ort/ort.wasm.min.js"></script>
 <script src="lensiq-config.js?v=2"></script>
-<script src="photobooth-hq.js?v=6"></script>
+<script src="photobooth-hq.js?v=7"></script>
 <script src="photobooth-templates.js?v=1"></script>
-<script src="photobooth-outfits.js?v=2"></script>
-<script src="studio-core.js?v=2"></script>
-<script src="studio.js?v=2"></script>
+<script src="photobooth-outfits.js?v=3"></script>
+<script src="i18n/zh-studio.js?v=1"></script>
+<script src="studio-core.js?v=3"></script>
+<script src="studio.js?v=3"></script>
 </body>
 </html>

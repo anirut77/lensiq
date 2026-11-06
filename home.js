@@ -3,6 +3,11 @@
   "use strict";
 
   var reduceMq = window.matchMedia("(prefers-reduced-motion: reduce)");
+  // i18n (lensiq-i18n.js, loaded by nav.js): Thai text below is the default; keys in i18n/zh-common.js ("home.*")
+  var T = function (key, thai, vars) {
+    if (window.LQI18N) return window.LQI18N.tf(key, thai, vars);
+    return vars ? thai.replace(/\{(\w+)\}/g, function (m, k) { return vars[k] != null ? String(vars[k]) : m; }) : thai;
+  };
 
   /* ================= Hero canvas ================= */
   var cv = document.getElementById("visionCanvas");
@@ -53,9 +58,9 @@
       ctx.fillStyle = sg; rr(screen.x, screen.y, screen.w, screen.h, 8); ctx.fill();
       ctx.strokeStyle = "rgba(255,255,255,.25)"; ctx.stroke();
       ctx.fillStyle = "rgba(255,255,255,.85)"; ctx.font = "500 13px " + FONT; ctx.textAlign = "center";
-      ctx.fillText("จอโฆษณา", screen.x + screen.w / 2, screen.y + 40);
+      ctx.fillText(T("home.cv.screen", "จอโฆษณา"), screen.x + screen.w / 2, screen.y + 40);
       ctx.fillStyle = "rgba(255,255,255,.5)"; ctx.font = "11px " + FONT;
-      ctx.fillText("แคมเปญ A · " + (Math.floor(t) % 15 + 1) + "/15 วิ", screen.x + screen.w / 2, screen.y + 60);
+      ctx.fillText(T("home.cv.campaign", "แคมเปญ A · {n}/15 วิ", { n: Math.floor(t) % 15 + 1 }), screen.x + screen.w / 2, screen.y + 60);
       ctx.fillStyle = "rgba(34,211,238,.8)"; ctx.fillRect(screen.x + 20, screen.y + 72, (screen.w - 40) * ((t % 15) / 15), 3);
       ctx.textAlign = "left";
     };
@@ -144,8 +149,8 @@
         corners(bx, by, bw, bh, col, 12 * s.sc + 4);
         ctx.strokeStyle = i === top ? "rgba(139,120,255,.9)" : "rgba(34,211,238,.6)"; ctx.lineWidth = 1.2;
         ctx.strokeRect(s.x - 26 * s.sc, hy - 28 * s.sc, 52 * s.sc, 54 * s.sc);
-        label(bx, by - 4, "ความสนใจ " + s.interest + "%", col);
-        if (i === top && s.sc > 0.75) label(bx, by - 8 - 20 * ls, "อารมณ์: ยิ้ม", "#ffd27a");
+        label(bx, by - 4, T("home.cv.interest", "ความสนใจ {n}%", { n: s.interest }), col);
+        if (i === top && s.sc > 0.75) label(bx, by - 8 - 20 * ls, T("home.cv.smile", "อารมณ์: ยิ้ม"), "#ffd27a");
       });
       // heat points from feet
       if (now - lastHeat > 260) {
@@ -163,9 +168,9 @@
       ctx.fillStyle = "rgba(10,15,38,.78)"; rr(12, H - 62, 230, 50, 10); ctx.fill();
       ctx.strokeStyle = "rgba(255,255,255,.14)"; ctx.lineWidth = 1; ctx.stroke();
       ctx.fillStyle = "#fff"; ctx.font = "500 13px " + FONT;
-      ctx.fillText("กำลังมองจอ " + watching + " คน", 24, H - 41);
+      ctx.fillText(T("home.cv.watching", "กำลังมองจอ {n} คน", { n: watching }), 24, H - 41);
       ctx.fillStyle = "#b9c1e0"; ctx.font = "12px " + FONT;
-      ctx.fillText("ความสนใจเฉลี่ย " + Math.round(sum / people.length) + "%", 24, H - 22);
+      ctx.fillText(T("home.cv.avg", "ความสนใจเฉลี่ย {n}%", { n: Math.round(sum / people.length) }), 24, H - 22);
       // mini bars
       ctx.fillStyle = "rgba(10,15,38,.78)"; rr(W - 152, H - 62, 140, 50, 10); ctx.fill(); ctx.stroke();
       var vals = [0.8, 0.55, 0.3, 0.62, 0.45, 0.72];
@@ -216,11 +221,11 @@
     var $ = function (id) { return document.getElementById(id); };
     var msg = $("leadMsg");
     var rules = {
-      lqName: function (v) { return v.trim().length >= 2 ? "" : "กรุณากรอกชื่ออย่างน้อย 2 ตัวอักษร"; },
-      lqEmail: function (v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()) ? "" : "กรุณากรอกอีเมลให้ถูกต้อง เช่น name@company.com"; },
-      lqPhone: function (v) { var d = v.replace(/[\s\-()+]/g, ""); return !d || /^\d{9,12}$/.test(d) ? "" : "เบอร์โทรควรเป็นตัวเลข 9–12 หลัก (เว้นว่างได้)"; },
-      lqInterest: function (v) { return v ? "" : "กรุณาเลือกด้านที่สนใจ"; },
-      lqConsent: function (_, el) { return el.checked ? "" : "กรุณายืนยันการให้ติดต่อกลับ"; }
+      lqName: function (v) { return v.trim().length >= 2 ? "" : T("home.err.name", "กรุณากรอกชื่ออย่างน้อย 2 ตัวอักษร"); },
+      lqEmail: function (v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()) ? "" : T("home.err.email", "กรุณากรอกอีเมลให้ถูกต้อง เช่น name@company.com"); },
+      lqPhone: function (v) { var d = v.replace(/[\s\-()+]/g, ""); return !d || /^\d{9,12}$/.test(d) ? "" : T("home.err.phone", "เบอร์โทรควรเป็นตัวเลข 9–12 หลัก (เว้นว่างได้)"); },
+      lqInterest: function (v) { return v ? "" : T("home.err.interest", "กรุณาเลือกด้านที่สนใจ"); },
+      lqConsent: function (_, el) { return el.checked ? "" : T("home.err.consent", "กรุณายืนยันการให้ติดต่อกลับ"); }
     };
     var check = function (id) {
       var el = $(id), err = rules[id](el.value, el);
@@ -246,7 +251,7 @@
       var bad = Object.keys(rules).filter(function (id) { return !check(id); });
       if (bad.length) {
         msg.className = "form-msg err";
-        msg.textContent = "กรุณาแก้ไขข้อมูลที่ไฮไลต์ไว้ " + bad.length + " รายการ";
+        msg.textContent = T("home.err.fix", "กรุณาแก้ไขข้อมูลที่ไฮไลต์ไว้ {n} รายการ", { n: bad.length });
         $(bad[0]).focus();
         return;
       }
@@ -266,10 +271,19 @@
       form.reset();
       Object.keys(rules).forEach(function (id) { $(id).classList.remove("invalid"); $(id).removeAttribute("aria-invalid"); });
       msg.className = "form-msg ok";
-      msg.textContent = "ขอบคุณคุณ" + lead.name + " ได้รับคำขอเดโมแล้ว (โหมดเดโม: " +
-        (saved ? "บันทึกไว้ในเบราว์เซอร์เครื่องนี้ ไม่ได้ส่งออกไปที่ใด" : "เบราว์เซอร์ไม่อนุญาตให้บันทึกข้อมูล จึงไม่ได้เก็บไว้") + ")";
+      msg.textContent = saved
+        ? T("home.ok.saved", "ขอบคุณคุณ{name} ได้รับคำขอเดโมแล้ว (โหมดเดโม: บันทึกไว้ในเบราว์เซอร์เครื่องนี้ ไม่ได้ส่งออกไปที่ใด)", { name: lead.name })
+        : T("home.ok.unsaved", "ขอบคุณคุณ{name} ได้รับคำขอเดโมแล้ว (โหมดเดโม: เบราว์เซอร์ไม่อนุญาตให้บันทึกข้อมูล จึงไม่ได้เก็บไว้)", { name: lead.name });
     });
   }
+
+  // language switch: refresh visible validation messages in the new language
+  window.addEventListener("lq-lang", function () {
+    if (!form) return;
+    Array.prototype.forEach.call(form.querySelectorAll(".invalid"), function (el) {
+      el.dispatchEvent(new Event(el.type === "checkbox" || el.tagName === "SELECT" ? "change" : "blur"));
+    });
+  });
 
   var y = document.getElementById("year");
   if (y) y.textContent = new Date().getFullYear();

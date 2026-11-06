@@ -1,4 +1,4 @@
-/* เลขมงคล AI — ใช้ตัวแปรสีจาก styles.css */
+/* เลขมงคล — ใช้ตัวแปรสีจาก styles.css */
 [hidden]{display:none!important}
 .nm{max-width:1100px;margin:auto;padding:36px 5vw 80px}
 .nm-head{text-align:center}
@@ -62,12 +62,13 @@
 .nm-break .bar{height:10px;border-radius:99px;background:var(--alt);position:relative;overflow:hidden}
 .nm-break .bar::after{content:"";position:absolute;inset:0 auto 0 0;width:var(--w);background:var(--gold);border-radius:99px}
 .nm-break b{text-align:right;font-variant-numeric:tabular-nums;color:var(--navy)}
-.nm-break small{color:var(--muted);font-variant-numeric:tabular-nums}
+.nm-break small{color:var(--muted);font-variant-numeric:tabular-nums;font-size:.75rem}
 
 .nm-strip{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
 .nm-strip .cell{display:grid;justify-items:center;min-width:40px;padding:6px 4px;border-radius:10px;background:var(--bg);border:1px solid var(--line);color:var(--muted)}
 .nm-strip .cell b{font-size:1.35rem;line-height:1.2;font-weight:600}
-.nm-strip .cell small{font-size:.72rem}
+.nm-strip .cell small{font-size:.75rem}
+#nmKalaTable small{font-size:.75rem}
 .nm-strip .cell.on{background:#efeaff;border-color:#cfc4ff;color:var(--navy)}
 .nm-strip .cell.lt{background:#e8f6fb;border-color:#a5e3f0;color:var(--navy)}
 .nm-strip .cell.kala{background:#fff6e0;border-color:#f1d58a}
@@ -97,7 +98,7 @@
 .sum-n.g2{background:#e8f6ee;color:#14653b}.sum-n.g1{background:#e3f4f9;color:#0b6b84}.sum-n.c{background:#fff6e0;color:#6b4e00}
 .sum-name{font-weight:600;color:var(--navy);margin:0 0 4px}
 .nm-sum p{margin:0 0 4px}
-.badge{display:inline-block;font-size:.72rem;font-weight:500;border-radius:99px;padding:1px 8px;background:var(--alt);color:var(--muted);vertical-align:middle}
+.badge{display:inline-block;font-size:.75rem;font-weight:500;border-radius:99px;padding:1px 8px;background:var(--alt);color:var(--muted);vertical-align:middle}
 .badge.on,.sum-name .badge{background:#efeaff;color:#4b36d6}
 .nm-pats{margin:0;padding-left:18px;display:grid;gap:6px;font-size:.9rem}
 .nm-pats small{color:var(--muted)}
@@ -155,7 +156,7 @@
 .stbar i::after{content:"";position:absolute;inset:0 auto 0 0;width:var(--w);background:var(--gold);border-radius:99px}
 .stbar b{text-align:right;font-weight:500}
 .nm-sources{margin:6px 0 10px;padding-left:20px;font-size:.9rem;display:grid;gap:4px}
-.nm-sources a{color:#4b36d6;text-decoration:underline;word-break:break-word}
+.nm-sources a{color:#4b36d6;text-decoration:underline;word-break:break-word;display:inline-flex;align-items:center;min-height:44px}
 .nm-foot .btn{margin-top:4px;min-height:44px}
 
 .nm-idle{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 20px;border-radius:99px;z-index:70;font-size:.95rem;max-width:calc(100% - 32px);text-align:center}
@@ -180,7 +181,7 @@ body.nm-kiosk .nm-form input:not([type=checkbox]),body.nm-kiosk .nm-form select{
   .nm-scorecard{gap:14px;padding:16px}
   .ring{width:104px;height:104px}
   .ring b{font-size:2.1rem}
-  .nm-break li{grid-template-columns:minmax(0,1fr) 48px 2.2em 3em;font-size:.82rem}
+  .nm-break li{grid-template-columns:minmax(0,1fr) 48px 2.2em 3.6em;font-size:.82rem}
   .nm-strip{gap:4px}
   .nm-strip .cell{min-width:30px;padding:5px 2px}
   .nm-strip .cell b{font-size:1.15rem}

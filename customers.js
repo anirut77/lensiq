@@ -88,7 +88,9 @@ function storeStats(members, orders, now = Date.now()) {
 // ================= แอป (ทำงานเฉพาะในเบราว์เซอร์) =================
 if (typeof document !== "undefined") (() => {
   const MODEL_URL = "vendor/models/";
-  const MATCH_DISTANCE = 0.5;
+  // วัดบน LFW (tests/bench/face.bench.mjs, ACCURACY.md): 0.50 = จำสมาชิกได้ ~78% (ลงทะเบียนภาพเดียว) แต่แทบไม่จำผิดคน
+  // — ร้านค้าแสดงชื่อ/ประวัติการสั่ง จึงเลือกฝั่งปลอดภัย ; MATCH_MARGIN กันกรณีหน้าคล้ายสมาชิกสองคน
+  const MATCH_DISTANCE = 0.5, MATCH_MARGIN = 0.05;
   const K = { members: "cx-members", orders: "cx-orders", menu: "cx-menu" };
   const DEFAULT_MENU = [
     ["อเมริกาโน่", "กาแฟ", 50], ["ลาเต้", "กาแฟ", 60], ["คาปูชิโน่", "กาแฟ", 60], ["มอคค่า", "กาแฟ", 65],
@@ -125,7 +127,7 @@ if (typeof document !== "undefined") (() => {
     const snap = members.slice();
     return saveQ(() => LQVault.splitSave(K.members, FACE_KEY, snap, "descriptor", localStorage, opts)
       .then(m => { if (m) showFaceState(m); return true; })
-      .catch(e => { if (e.name === "VaultLockedError") showFaceState("locked"); else alert("พื้นที่จัดเก็บเต็มหรือถูกบล็อก"); return false; }));
+      .catch(e => { if (e.name === "VaultLockedError") showFaceState("locked"); else if (e.name === "VaultInsecureError") showFaceState("insecure"); else alert("พื้นที่จัดเก็บเต็มหรือถูกบล็อก"); return false; }));
   }
   function showFaceState(st) {
     faceState = st;
@@ -205,7 +207,8 @@ if (typeof document !== "undefined") (() => {
   }
   function rebuildMatcher() {
     const withFace = members.filter(m => m.descriptor);
-    matcher = withFace.length ? new faceapi.FaceMatcher(withFace.map(m => new faceapi.LabeledFaceDescriptors(m.id, [new Float32Array(m.descriptor)])), MATCH_DISTANCE) : null;
+    // คลังใบหน้าในหน่วยความจำ — LQTrack.matchFace: ระยะ < MATCH_DISTANCE และห่างจากสมาชิกอันดับสอง >= MATCH_MARGIN
+    matcher = withFace.length ? withFace.map(m => ({ label: m.id, d: new Float32Array(m.descriptor) })) : null;
   }
   const detOpts = () => new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
   // ใบหน้าทั้งหมดในภาพ เรียงจากใหญ่ไปเล็ก -> [{box:{x,y,width,height} พิกเซลวิดีโอ, descriptor|null, fake?}]
@@ -224,7 +227,7 @@ if (typeof document !== "undefined") (() => {
   function bestMatch(f, i) {
     if (TEST && typeof window.__LQ_FAKE_MATCH === "function") return window.__LQ_FAKE_MATCH(f.fake || f, i) || { label: "unknown", distance: 1 };
     if (!matcher || !f.descriptor) return { label: "unknown", distance: 1 };
-    const m = matcher.findBestMatch(f.descriptor);
+    const m = LQTrack.matchFace(f.descriptor, matcher, { maxDist: MATCH_DISTANCE, margin: MATCH_MARGIN });
     return { label: m.label, distance: m.distance };
   }
   // ทุกใบหน้า (สูงสุด 4) -> [{box, label, distance}] สมาชิกหนึ่งคนจับคู่ได้แค่ใบหน้าเดียว (ใกล้สุดได้ไป)
@@ -416,6 +419,8 @@ if (typeof document !== "undefined") (() => {
     }
     return Array.from(ds[0], (_, k) => +(ds.reduce((s, d) => s + d[k], 0) / ds.length).toFixed(5));
   }
+  // สมัครด้วยใบหน้าได้เฉพาะเมื่อเข้ารหัสได้ — ไม่เช่นนั้นปิดปุ่มและบอกเหตุผล
+  { const why = LQVault.enrollBlockReason(); if (why) { const m = $("#enrollMsg"); m.textContent = why; m.className = "form-msg err"; $("#enrollForm").querySelector("button[type=submit]").disabled = true; } }
   $("#enrollForm").addEventListener("submit", async e => {
     e.preventDefault();
     const f = e.target, m = $("#enrollMsg"), btn = f.querySelector("button");
@@ -425,12 +430,13 @@ if (typeof document !== "undefined") (() => {
     if (!name) return set("กรุณากรอกชื่อ", "err");
     if (!f.consent.checked) return set("ต้องได้รับความยินยอมจากลูกค้าก่อน", "err");
     if (faceState === "locked") return set(LQVault.STATE_TH.locked, "err");
+    { const why = LQVault.enrollBlockReason(); if (why) return set(why, "err"); } // เข้ารหัสไม่ได้ = ไม่เก็บใบหน้า
     if (phone && members.some(x => x.phone === phone)) return set("เบอร์นี้เป็นสมาชิกอยู่แล้ว", "err");
     btn.disabled = true; set("กำลังสแกน กรุณามองกล้องนิ่ง ๆ...", "");
     try {
       const descriptor = await capture();
       if (matcher) {
-        const best = matcher.findBestMatch(new Float32Array(descriptor));
+        const best = LQTrack.matchFace(new Float32Array(descriptor), matcher, { maxDist: MATCH_DISTANCE });
         if (best.label !== "unknown") throw new Error(`ใบหน้านี้เป็นสมาชิกอยู่แล้ว (คุณ${members.find(x => x.id === best.label)?.name})`);
       }
       const now = Date.now();
@@ -575,7 +581,7 @@ if (typeof document !== "undefined") (() => {
     const now = Date.now();
     members.forEach(m => { if (m.descriptor) m.faceDeletedAt = now; delete m.descriptor; });
     await saveQ(async () => { await LQVault.wipe([FACE_KEY]); store(K.members, members); });
-    showFaceState(LQVault.supported() ? "enc" : "plain");
+    showFaceState(LQVault.supported() ? "enc" : LQVault.enrollBlockReason() ? "insecure" : "plain");
     rebuildMatcher(); renderAnalytics();
     $("#privMsg").textContent = "ลบข้อมูลใบหน้าทั้งหมดแล้ว";
   };

@@ -153,6 +153,35 @@ export default async function ({ base, launch, check }) {
       });
     }
     await page.send("Emulation.clearDeviceMetricsOverride");
+    await check("390 px touch: every control in main ≥ 44 px tall, no text under 12 px; data-reliability panel shows the injected outage", async () => {
+      await page.send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
+      await page.send("Emulation.setTouchEmulationEnabled", { enabled: true });
+      await page.reload();
+      await page.waitFor(`document.querySelectorAll("#insightCards .ins").length >= 4`, 5000);
+      await page.evaluate(() => { document.querySelector('.range button[data-p="d30"]').click(); document.querySelectorAll("main details").forEach(d => { d.open = true; }); });
+      await sleep(400);
+      const m = await page.evaluate(() => {
+        const vis = e => { const s = getComputedStyle(e), r = e.getBoundingClientRect(); return s.visibility !== "hidden" && s.display !== "none" && r.width > 0 && r.height > 0; };
+        const ctl = [...document.querySelectorAll("main a, main button, main select, main input, main summary")].filter(e => vis(e) && e.type !== "hidden" && e.type !== "file" && !(e.type === "checkbox" && e.closest("label")));
+        const small = ctl.filter(e => e.getBoundingClientRect().height < 44).map(e => e.tagName + "." + e.className + " " + Math.round(e.getBoundingClientRect().height));
+        const text = [...document.querySelectorAll("main *")].filter(e => vis(e) && [...e.childNodes].some(n => n.nodeType === 3 && n.nodeValue.trim()));
+        const tiny = text.filter(e => parseFloat(getComputedStyle(e).fontSize) < 12).map(e => e.tagName + "." + (e.className.baseVal ?? e.className) + " " + getComputedStyle(e).fontSize);
+        return { n: ctl.length, small: small.slice(0, 5), tiny: tiny.slice(0, 5), qual: !document.getElementById("qualCard").hidden && document.getElementById("qualBody").textContent };
+      });
+      await page.send("Emulation.setTouchEmulationEnabled", { enabled: false });
+      assert(m.n > 30 && !m.small.length, "controls under 44 px: " + JSON.stringify(m.small));
+      assert(!m.tiny.length, "text under 12 px: " + JSON.stringify(m.tiny));
+      assert(m.qual && /12:00–21:59|กล้องดับ/.test(m.qual), "reliability panel " + String(m.qual).slice(0, 200));
+    });
+
+    await check("TH | 中文: switching to Chinese re-renders static and generated text; back to Thai restores it", async () => {
+      await page.waitFor(`!!window.LQI18N`, 5000);
+      const zh = await page.evaluate(async () => { LQI18N.setLang("zh"); await new Promise(r => setTimeout(r, 300)); return { h1: document.querySelector("main h1").textContent, card: document.querySelector("#insightCards h3").textContent, sure: document.querySelector("#insightCards .ins-sure").textContent, lang: document.documentElement.lang }; });
+      assert(zh.h1 === "综合仪表板" && /[\u4e00-\u9fff]/.test(zh.card) && /置信度/.test(zh.sure) && zh.lang === "zh-Hans", "zh " + JSON.stringify(zh));
+      const th = await page.evaluate(async () => { LQI18N.setLang("th"); await new Promise(r => setTimeout(r, 300)); return { h1: document.querySelector("main h1").textContent, sure: document.querySelector("#insightCards .ins-sure").textContent }; });
+      assert(th.h1 === "แดชบอร์ดรวม" && /ความมั่นใจ/.test(th.sure), "th " + JSON.stringify(th));
+      assert(!unexpected(page).length, "console errors: " + JSON.stringify(unexpected(page).slice(0, 3)));
+    });
 
     await check("small data (< 7 days): says ข้อมูลยังน้อย, no fake confidence, no NaN", async () => {
       await page.evaluate(() => {

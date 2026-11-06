@@ -56,8 +56,8 @@ def convert_with_repair(src, dst, tmp):
     """แปลงตรง ๆ ก่อน ถ้าล้มให้ซ่อมโครงสร้าง PDF แล้วลองอีกครั้ง"""
     try:
         run_convert(src, dst)
-    except Exception:
-        import traceback; traceback.print_exc()
+    except Exception as e:  # ไม่ log เนื้อหาไฟล์/เส้นทาง — เฉพาะชนิดข้อผิดพลาด
+        app.logger.info("convert: first pass failed (%s), repairing", type(e).__name__)
         fixed = os.path.join(tmp, "fixed.pdf")
         doc = fitz.open(src)
         if doc.needs_pass:
@@ -112,6 +112,7 @@ SECURITY_HEADERS = {
     "Permissions-Policy": "camera=(self), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=()",
     "X-Frame-Options": "SAMEORIGIN",
     "Cross-Origin-Opener-Policy": "same-origin",
+    "Cross-Origin-Resource-Policy": "same-origin",
 }
 
 
@@ -272,6 +273,35 @@ def api_guard():
     return None
 
 
+# ไฟล์ที่ไม่ใช่หน้าเว็บ: ซอร์สเซิร์ฟเวอร์, ใบรับรอง, ข้อมูล, log, เครื่องมือพัฒนา, โฟลเดอร์ซ่อน (.git .venv .github)
+_DENY_PREFIX = (".", "server.py", "tryon.py", "logs", "certs", "requirements", "start.sh", "data", "tests", "tools",
+                "node_modules", "__pycache__", "package.json", "package-lock.json", "eslint.config")
+_DENY_SUFFIX = (".py", ".pyc", ".sh", ".pem", ".key", ".crt", ".log", ".env", ".sqlite", ".db")
+
+
+def _static_denied(low):
+    return (low.startswith(_DENY_PREFIX) or low.endswith(_DENY_SUFFIX) or ".venv" in low or ".git" in low
+            or "/." in low or "\\" in low or "\x00" in low)
+
+
+@app.errorhandler(404)
+@app.errorhandler(405)
+@app.errorhandler(413)
+@app.errorhandler(500)
+def api_errors(e):
+    """ข้อผิดพลาดของ /api/* ตอบเป็น JSON สั้น ๆ ไม่มี stack trace / ข้อความภายใน ; หน้าอื่นใช้ข้อความธรรมดา"""
+    code = getattr(e, "code", 500) or 500
+    msg = {404: "ไม่พบ", 405: "ไม่รองรับเมธอดนี้", 413: "ข้อมูลใหญ่เกินกำหนด"}.get(code, "เกิดข้อผิดพลาด")
+    if code == 500:
+        app.logger.error("unhandled %s on %s", type(getattr(e, "original_exception", e)).__name__, request.path)
+    if request.path.startswith("/api/"):
+        body = {"error": msg}
+        if request.path.startswith("/api/fortune"):
+            body["fallback"] = True
+        return jsonify(body), code
+    return (msg, code, {"Content-Type": "text/plain; charset=utf-8"})
+
+
 @app.get("/")
 def index():
     return send_from_directory(ROOT, "index.html")
@@ -281,8 +311,7 @@ def index():
 def static_files(path):
     # เสิร์ฟเฉพาะไฟล์หน้าเว็บ ไม่เปิดเผยโฟลเดอร์ระบบ/ซอร์สเซิร์ฟเวอร์
     low = path.lower()  # macOS แยกตัวพิมพ์ไม่ได้: Data/agg.json = data/agg.json
-    if low.startswith((".", "server.py", "tryon.py", "logs", "certs", "requirements", "start.sh", "data", "tests", "__pycache__")) \
-            or ".venv" in low or ".git" in low or "/." in low:
+    if _static_denied(low):
         return ("Not found", 404)
     return send_from_directory(ROOT, path)
 
@@ -300,8 +329,8 @@ def convert():
                 return jsonify(error="ไม่ใช่ไฟล์ PDF"), 400
         try:
             convert_with_repair(src, dst, tmp)
-        except Exception as e:  # ไฟล์เสีย/มีรหัสผ่าน ฯลฯ
-            import traceback; traceback.print_exc()
+        except Exception as e:  # ไฟล์เสีย/มีรหัสผ่าน ฯลฯ — ไม่ส่ง/ไม่ log รายละเอียดภายใน
+            app.logger.warning("convert: failed (%s)", type(e).__name__)
             msg = "ไฟล์มีรหัสผ่าน ไม่รองรับ" if "password" in str(e).lower() else "แปลงไม่สำเร็จ ไฟล์อาจเสียหายหรือมีโครงสร้างที่ไม่รองรับ"
             return jsonify(error=msg), 422
         # อ่านเข้าหน่วยความจำก่อน เพราะโฟลเดอร์ชั่วคราวจะถูกลบเมื่อออกจาก with
@@ -341,7 +370,8 @@ def tryon_run():
     try:
         png = tryon.run(h, g, desc)
     except tryon.TryOnError as e:
-        app.logger.warning("tryon: %s", e)
+        # รายละเอียดจากผู้ให้บริการ (อาจมีข้อมูลภายใน) อยู่ใน log เท่านั้น ; ผู้ใช้เห็นข้อความทั่วไปของ TryOnError
+        app.logger.warning("tryon: status=%s %s", e.status, getattr(e, "detail", "") or "")
         return jsonify(error=str(e)), e.status
     from io import BytesIO
     return send_file(BytesIO(png), mimetype="image/png")
@@ -599,8 +629,8 @@ def _client_ip():
 
 
 def _rate_limited(ip):
-    rpm = int(os.environ.get("LENSIQ_FORTUNE_RPM", "10"))
-    daily_max = int(os.environ.get("LENSIQ_FORTUNE_DAILY_MAX", "500"))
+    rpm = _env_int("LENSIQ_FORTUNE_RPM", 10)  # ค่าผิดรูปแบบ -> ค่าเริ่มต้น (ไม่ทำให้เกิด 500)
+    daily_max = _env_int("LENSIQ_FORTUNE_DAILY_MAX", 500)
     now = time.time()
     with _rl_lock:
         day = time.strftime("%Y-%m-%d")
@@ -940,7 +970,7 @@ _agg_fail = {}
 
 
 def _agg_rate_limited(ip):
-    rpm = int(os.environ.get("LENSIQ_AGG_RPM", "120"))
+    rpm = _env_int("LENSIQ_AGG_RPM", 120)
     now = time.time()
     with _rl_lock:
         f = _agg_fail.get(ip)

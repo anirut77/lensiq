@@ -58,7 +58,7 @@
   function kuaGroup(k) { return [1, 3, 4, 9].indexOf(k) >= 0 ? "east" : "west"; }
   function kua(solarY, formula) {
     var raw = kuaRaw(solarY, formula), eff = kuaEffective(raw, formula);
-    return { raw: raw, kua: eff, formula: formula, group: kuaGroup(eff), stars: KB.kuaTable[eff] };
+    return { raw: raw, kua: eff, formula: formula, group: kuaGroup(eff), stars: KB.kuaTable[eff], solarYear: solarY };
   }
   /** ดาวแปดคฤหาสน์ของทิศหนึ่งสำหรับเลขกัว */
   function starOfDir(k, dir) { var t = KB.kuaTable[k]; for (var s in t) if (t[s] === dir) return s; return null; }

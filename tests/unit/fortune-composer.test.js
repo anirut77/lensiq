@@ -159,15 +159,16 @@ test("composer: main reading is 1,500–2,500 chars; the rest sits behind อ่
     else assert.equal(main, full, "short readings are shown in full");
   }
   assert.ok(inRange / eligible >= 0.97, `${inRange}/${eligible} within 1,500–2,500`);
-  // faceread/palm (7k+ chars) keep all content, folded
+  // the whole reading (including อ่านเพิ่มเติม) is capped at ~3,000 chars — no 7k-char faceread/palm walls
+  for (const { d, seed, r } of R) assert.ok(fullText(r).length <= FA.MAIN_LENGTH.full, `${d}#${seed} full ${fullText(r).length}`);
   const face = R.find(x => x.d === "face").r;
-  assert.ok(fullText(face).length > 5000 && mainText(face).length <= 2500);
-  assert.ok(face.sections.some(s => s.collapsed || typeof s.main === "number"));
+  assert.ok(fullText(face).length > 2200 && mainText(face).length <= 2500);
+  assert.ok(R.filter(x => x.d === "face" || x.d === "palm").some(x => x.r.sections.some(s => s.collapsed || typeof s.main === "number")));
 });
 test("render: folded paragraphs and sections are inside <details> อ่านเพิ่มเติม, nothing lost", () => {
   const r = readings().find(x => x.d === "palm").r;
   const html = FA.toHTML(r);
-  assert.match(html, /<details class="fa-more[^"]*"><summary>อ่านเพิ่มเติม/);
+  assert.match(html, /<details class="fa-more[^"]*"><summary[^>]*>อ่านเพิ่มเติม/);
   const plain = html.replace(/<[^>]+>/g, " ");
   const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   for (const s of r.sections) for (const p of s.paragraphs) assert.ok(plain.includes(esc(p)) || html.includes(esc(p)), p.slice(0, 40));
@@ -205,8 +206,8 @@ test("composer: money section never carries love-only advice; topic action line 
     const money = r.sections.find(s => s.id === "money");
     if (!money) continue;
     for (const p of money.paragraphs) {
-      const m = /ข้อที่เหมาะที่สุดคือ(.+?)(?:\s|$)|สิ่งที่ลงมือได้ทันทีในเรื่องการเงินคือ(.+?)(?:\s|$)/.exec(p);
-      if (m) assert.ok(!/คนรัก|คู่รัก|แฟน|ความรู้สึกดี/.test(m[1] || m[2]), `${d}#${seed}: ${p}`);
+      const m = /เพื่อเรื่องการเงิน แนะนำให้(.+?)(?:\s|$)|ในเรื่องการเงิน(?:ที่ทำได้เลย)?คือ(.+?)(?:\s|$)|สำหรับเรื่องการเงินช่วงนี้คือ(.+?)(?:\s|$)/.exec(p);
+      if (m) assert.ok(!/คนรัก|คู่รัก|แฟน|ความรู้สึกดี/.test(m[1] || m[2] || m[3]), `${d}#${seed}: ${p}`);
     }
   }
 });

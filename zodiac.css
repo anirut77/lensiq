@@ -2,9 +2,9 @@
 .zd-animals{grid-template-columns:repeat(auto-fill,minmax(82px,1fr))}
 .zd-an{padding:8px 4px;gap:0}
 .zd-emo{font-size:1.7rem;line-height:1.2}
-.zd-an small{font-size:.72rem}
+.zd-an small{font-size:.75rem}
 .zd-birth{background:var(--alt);border-radius:14px;padding:10px 14px}
-.zd-birth summary{cursor:pointer;font-weight:500;color:var(--navy);min-height:32px}
+.zd-birth summary{cursor:pointer;font-weight:500;color:var(--navy);min-height:44px;padding:10px 0;box-sizing:border-box}
 .zd-birth[open] summary{margin-bottom:10px}
 .zd-birth label{margin-top:6px}
 .zd-era{display:flex;gap:16px}

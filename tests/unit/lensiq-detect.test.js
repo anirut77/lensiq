@@ -38,3 +38,20 @@ test("Node: isTest/fake are inert without a browser", () => {
   assert.equal(D.isTest(), false);
   assert.equal(D.fake("c1", 0), null);
 });
+
+test("tileRects covers the frame with the requested overlap; mergeTiles drops duplicates and tile-cut halves", () => {
+  const D = require("../../lensiq-detect.js");
+  const r = D.tileRects(2, 2, 0.2);
+  assert.equal(r.length, 4);
+  for (const t of r) { assert.ok(t.x >= 0 && t.y >= 0 && t.x + t.w <= 1 + 1e-9 && t.y + t.h <= 1 + 1e-9); }
+  assert.ok(Math.abs(r[0].w - 1 / 1.8) < 1e-9 && Math.abs(r[1].x + r[1].w - 1) < 1e-9, "edge tiles touch the borders");
+  assert.ok(r[0].x + r[0].w > r[1].x, "neighbouring tiles overlap");
+  assert.deepEqual(D.tileRects(1, 1), [{ x: 0, y: 0, w: 1, h: 1 }]);
+  const full = { x: 0.40, y: 0.30, w: 0.10, h: 0.30, score: 0.9 };
+  const same = { x: 0.405, y: 0.30, w: 0.10, h: 0.30, score: 0.8 };   // IoU > 0.5
+  const half = { x: 0.40, y: 0.30, w: 0.05, h: 0.30, score: 0.85 };   // cut by a tile edge, fully inside `full`
+  const other = { x: 0.70, y: 0.30, w: 0.10, h: 0.30, score: 0.5 };
+  const m = D.mergeTiles([same, half, full, other]);
+  assert.deepEqual(m.map(d => d.score), [0.9, 0.5]);
+  assert.equal(D.mergeTiles([full, other], { max: 1 }).length, 1);
+});

@@ -25,15 +25,15 @@
         tmp[o + x] = s / (Math.min(w - 1, hi) - Math.max(0, x - r) + 1);
       }
     }
-    for (let x = 0; x < w; x++) {
-      let s = 0;
-      for (let y = 0; y <= Math.min(r, h - 1); y++) s += tmp[y * w + x];
-      for (let y = 0; y < h; y++) {
-        const lo = y - r - 1, hi = y + r;
-        if (hi < h && y > 0) s += tmp[hi * w + x];
-        if (lo >= 0) s -= tmp[lo * w + x];
-        out[y * w + x] = s / (Math.min(h - 1, hi) - Math.max(0, y - r) + 1);
-      }
+    // แกนตั้ง: ผลรวมสะสมรายคอลัมน์ เดินทีละแถว (อ่านหน่วยความจำต่อเนื่อง)
+    const col = new Float64Array(w);
+    for (let y = 0; y <= Math.min(r, h - 1); y++) { const o = y * w; for (let x = 0; x < w; x++) col[x] += tmp[o + x]; }
+    for (let y = 0; y < h; y++) {
+      const lo = y - r - 1, hi = y + r;
+      if (hi < h && y > 0) { const o = hi * w; for (let x = 0; x < w; x++) col[x] += tmp[o + x]; }
+      if (lo >= 0) { const o = lo * w; for (let x = 0; x < w; x++) col[x] -= tmp[o + x]; }
+      const inv = 1 / (Math.min(h - 1, hi) - Math.max(0, y - r) + 1), o = y * w;
+      for (let x = 0; x < w; x++) out[o + x] = col[x] * inv;
     }
     return out;
   }
@@ -199,6 +199,44 @@
     return { logits: o.data, S, C: o.dims[1] };
   }
 
+  // ---------- แยกส่วนตัวคน 6 คลาส (MediaPipe Selfie Multiclass 256, Apache-2.0) — ค่าเริ่มต้นของสตูดิโอ ----------
+  // โมเดล: vendor/models/selfie-multiclass-256-f16.onnx (แปลงจาก .tflite ของ Google เป็น ONNX, ดู SELFIE-MULTICLASS-LICENSE.txt)
+  // คลาส: 0 background, 1 hair, 2 body-skin, 3 face-skin, 4 clothes, 5 others (เครื่องประดับ/แว่น/หมวก)
+  const MC_LABELS = ["background", "hair", "body_skin", "face_skin", "clothes", "others"];
+  let mcP = null;
+  function loadMulticlass(base = "vendor/") {
+    if (mcP) return mcP;
+    mcP = (async () => {
+      if (typeof ort === "undefined") throw new Error("ไม่พบ onnxruntime-web");
+      ort.env.wasm.wasmPaths = new URL(base + "ort/", location.href).href;
+      ort.env.wasm.numThreads = self.crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency || 1) : 1;
+      return ort.InferenceSession.create(base + "models/selfie-multiclass-256-f16.onnx", { executionProviders: ["wasm"], graphOptimizationLevel: "all" });
+    })();
+    mcP.catch(() => { mcP = null; });
+    return mcP;
+  }
+  /**
+   * รันโมเดล 6 คลาสบนสี่เหลี่ยม rect = {x, y, w, h} ของ canvas (ยืดเป็น 256×256 แบบเดียวกับ MediaPipe; นอกภาพเติมสีเทากลาง)
+   * คืน { prob: Float32Array [6 * S * S] (softmax, เรียงแบบ CHW), S: 256, C: 6, rect }
+   */
+  async function multiclassParse(canvas, rect) {
+    const s = await loadMulticlass(), S = 256;
+    const c = Object.assign(document.createElement("canvas"), { width: S, height: S }), x = c.getContext("2d", { willReadFrequently: true });
+    x.fillStyle = "#808080"; x.fillRect(0, 0, S, S);
+    x.imageSmoothingEnabled = true; x.imageSmoothingQuality = "high";
+    const kx = S / rect.w, ky = S / rect.h; x.drawImage(canvas, -rect.x * kx, -rect.y * ky, canvas.width * kx, canvas.height * ky);
+    const px = x.getImageData(0, 0, S, S).data, n = S * S, data = new Float32Array(3 * n);
+    for (let i = 0; i < n; i++) for (let ch = 0; ch < 3; ch++) data[i * 3 + ch] = px[i * 4 + ch] / 255;
+    const res = await s.run({ [s.inputNames[0]]: new ort.Tensor("float32", data, [1, S, S, 3]) });
+    const o = res[s.outputNames[0]].data, C = 6, prob = new Float32Array(C * n), e = new Float32Array(C);
+    for (let i = 0; i < n; i++) {
+      let m = -Infinity; for (let k = 0; k < C; k++) if (o[i * C + k] > m) m = o[i * C + k];
+      let sum = 0; for (let k = 0; k < C; k++) { e[k] = Math.exp(o[i * C + k] - m); sum += e[k]; }
+      for (let k = 0; k < C; k++) prob[k * n + i] = e[k] / sum;
+    }
+    return { prob, S, C, rect };
+  }
+
   /** ขยาย alpha ด้วย bilinear (ผ่าน canvas เพื่อความเร็ว) */
   function upsample(a, sw, sh, W, H) {
     const c = Object.assign(document.createElement("canvas"), { width: sw, height: sh }), x = c.getContext("2d");
@@ -247,6 +285,6 @@
     return c;
   }
 
-  const api = { boxFilter, guidedFilter, refineAlpha, decontaminate, skinMask, fillPoly, smoothSkin, loadMatting, modnetAlpha, loadParsing, faceParse, maskAlpha, cutout, retouch };
+  const api = { boxFilter, guidedFilter, refineAlpha, decontaminate, skinMask, fillPoly, smoothSkin, loadMatting, modnetAlpha, loadParsing, faceParse, MC_LABELS, loadMulticlass, multiclassParse, maskAlpha, cutout, retouch };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.PBHQ = api;
 })(typeof window !== "undefined" ? window : globalThis);

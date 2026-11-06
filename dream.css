@@ -2,15 +2,15 @@
 .dr-label{font-weight:600;color:var(--navy);font-size:.95rem;margin-bottom:6px}
 .dr-sel li{background:#f1edff;padding-right:4px}
 .dr-sel .dr-empty{background:none;padding:0;font-size:.88rem}
-.dr-x{border:0;background:none;color:var(--muted);font-size:1.15rem;line-height:1;min-width:32px;min-height:32px;border-radius:50%}
+.dr-x{border:0;background:none;color:var(--muted);font-size:1.15rem;line-height:1;min-width:44px;min-height:44px;border-radius:50%}
 .dr-x:hover{background:#fff}
 .dr-pops,.dr-list{display:flex;flex-wrap:wrap;gap:6px}
-.dr-pop,.dr-sym,.dr-cat{min-height:40px;padding:4px 12px;border-radius:99px;border:1.5px solid var(--line);background:var(--bg);color:var(--navy);font-size:.9rem}
+.dr-pop,.dr-sym,.dr-cat{min-height:44px;padding:4px 12px;border-radius:99px;border:1.5px solid var(--line);background:var(--bg);color:var(--navy);font-size:.9rem}
 .dr-pop[aria-pressed=true],.dr-sym[aria-pressed=true]{background:#f1edff;border-color:var(--gold)}
 .dr-cat[aria-pressed=true]{background:var(--navy);border-color:var(--navy);color:#fff}
 .dr-sym span{margin-right:4px}
 .dr-browse{background:var(--alt);border-radius:14px;padding:10px 14px}
-.dr-browse summary{cursor:pointer;font-weight:500;color:var(--navy);min-height:32px}
+.dr-browse summary{cursor:pointer;font-weight:500;color:var(--navy);min-height:44px;padding:10px 0;box-sizing:border-box}
 .dr-browse[open] summary{margin-bottom:10px}
 .dr-cats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
 .dr-searchlbl{margin-bottom:10px}

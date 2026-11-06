@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>LENSIQ bench</title></head>
+<body>
+<!-- Served at /__bench.html (repo root) by tests/bench/lib.mjs so TF.js finds vendor/*.wasm like the real pages.
+     Accuracy benchmark host page (tests/bench/*.bench.mjs). Loads the SAME production modules the camera pages use
+     (vendor/face-api.js + lensiq-detect.js + lensiq-track.js + lensiq-hand.js) and exposes thin wrappers as window.LQB. -->
+<script src="vendor/face-api.js"></script>
+<script src="lensiq-detect.js"></script>
+<script src="lensiq-track.js"></script>
+<script src="lensiq-hand.js"></script>
+<script src="tests/bench/bench-page.js"></script>
+</body></html>

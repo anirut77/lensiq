@@ -21,22 +21,33 @@
   };
   /** จุดยึดในพิกัดมาตรฐาน: N = โคนคอ, L/R = บนไหล่ใกล้ปลายไหล่, width = ความกว้างไหล่ (เดลตอยด์) ที่แถว N.y + 0.45 */
   const CANON = { N: { x: 0, y: 0 }, L: { x: -1.4, y: .24 }, R: { x: 1.4, y: .24 }, width: 3.0, lineY: .07, deltoidY: .68, collarY: -.22 };
-  const NW = .33, NY = -.22, SH = 1.5, BOT = 7;
+  // NW = ครึ่งความกว้างคอเสื้อ (ปรับตามคอจริงต่อการเรนเดอร์), SH = ครึ่งความกว้างไหล่ของโครงร่าง, WIDE = โหมดตัดตามเงาตัวจริง
+  const NW0 = .33, SH0 = 1.5, NY = -.22, BOT = 7;
+  let NW = NW0, SH = SH0, WIDE = false;
 
   // ---------------------------------------------------------------- เส้นทาง (พิกัดมาตรฐาน)
   /** โครงร่างตัวเสื้อ: ไหล่ลาด (trapezius) → เดลตอยด์ → แขนตกลงด้านล่าง; ด้านบนระหว่างคอคือคอเสื้อด้านหน้า (neckline(path, x->y)) */
   /** ไหล่ด้านหนึ่ง (sd = -1 ซ้ายภาพ, 1 ขวาภาพ) จากข้างคอ (sd*nw, ny) ลงไปถึงขอบล่าง */
   function side(c, sd, nw, ny) {
+    if (WIDE) { // โครงร่างกว้างพิเศษ ขอบบนสูงกว่าไหล่จริง (ตัดด้วยเงาตัวคนภายหลัง) — ช่วงใกล้คอสูงตามแนวคอเสื้อ
+      // แนวกล้ามเนื้อบ่า (trapezius) จากข้างคอลงสู่ปลายไหล่ แล้วยกสูงออกด้านนอก (ไหล่จริงตัดเอง)
+      c.bezierCurveTo(sd * (nw + .1), ny + .05, sd * .75, ny + .2, sd * 1.2, .04);
+      c.bezierCurveTo(sd * 1.45, -.02, sd * 1.6, -.2, sd * 1.8, -.3);
+      c.lineTo(sd * 3.2, -.3); c.lineTo(sd * 3.2, BOT); return;
+    }
     c.bezierCurveTo(sd * .6, ny + .09, sd * .95, .03, sd * 1.2, .13);
     c.bezierCurveTo(sd * 1.4, .2, sd * SH, .38, sd * SH, .74);
     c.bezierCurveTo(sd * (SH + .02), 1.4, sd * (SH + .06), 2.6, sd * (SH + .14), BOT);
   }
   function silhouette(c, frontDip = .1, nw = NW, ny = NY) {
     c.moveTo(nw, ny); side(c, 1, nw, ny);
+    if (WIDE) { c.lineTo(-3.2, BOT); c.lineTo(-3.2, -.3); c.lineTo(-1.8, -.3); c.bezierCurveTo(-1.6, -.2, -1.45, -.02, -1.2, .04); c.bezierCurveTo(-.75, ny + .2, -(nw + .1), ny + .05, -nw, ny); }
+    else {
     c.lineTo(-SH - .14, BOT);
     c.bezierCurveTo(-SH - .06, 2.6, -SH - .02, 1.4, -SH, .74);
     c.bezierCurveTo(-SH, .38, -1.4, .2, -1.2, .13);
     c.bezierCurveTo(-.95, .03, -.6, ny + .09, -nw, ny);
+    }
     c.bezierCurveTo(-nw * .6, ny + frontDip * .8, -nw * .25, ny + frontDip, 0, ny + frontDip);
     c.bezierCurveTo(nw * .25, ny + frontDip, nw * .6, ny + frontDip * .8, nw, ny);
     c.closePath();
@@ -62,7 +73,8 @@
     };
   }
   function painter(W, H, T, drop = 0) {
-    const warp = (x, y) => [x, y + drop * (1 - smooth01((y - NY - .05) / (1.0 - NY - .05)))];
+    // ยก/ลดเฉพาะบริเวณคอเสื้อ (ไหล่และแนวบ่าคงที่ตามไหล่จริง)
+    const warp = (x, y) => [x, y + drop * (1 - smooth01((y - NY - .05) / (1.0 - NY - .05))) * (1 - smooth01((Math.abs(x) - NW - .12) / .65))];
     const mkc = () => { const c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d", { willReadFrequently: true }); x.setTransform(T.a, T.b, T.c, T.d, T.e, T.f); x.lineJoin = "round"; x.lineCap = "round"; return [c, x]; };
     const [ca, A0] = mkc(), [ch, H0] = mkc(), [cs, S0] = mkc();
     const wrapC = x => { const w = warpCtx(x, warp); return new Proxy(x, { get: (t, k) => k in w ? w[k] : (typeof t[k] === "function" ? t[k].bind(t) : t[k]), set: (t, k, v) => { t[k] = v; return true; } }); };
@@ -146,7 +158,7 @@
   // แต่ละแบบ: fabric (สีหลัก, ลายผ้า, เงาวาว), back(P) วาดชั้นหลังคอ, front(P) วาดชั้นหน้า
   const KINDS = {
     suit: suitKind("#2d3138", "#353a42", "#7a1f2b", "rgba(255,255,255,.10)"),
-    suit_navy: suitKind("#1d2c48", "#22355a", "#2b4f93", "rgba(255,255,255,.14)"),
+    suit_navy: suitKind("#1d2c48", "#22355a", "#2a3d66", "rgba(255,255,255,.07)"),
     lady: ladyKind("#2a3c5c", "#2f4468"),
     lady_black: ladyKind("#1e1e22", "#26262b"),
     shirt_tie: {
@@ -241,8 +253,10 @@
       back: P => backBand(P, "#d9dbdf", NY + .02),
       front: P => {
         // เสื้อด้านใน (คอกลม)
-        P.part(c => { c.moveTo(-NW - .04, NY + .04); c.quadraticCurveTo(0, .38, NW + .04, NY + .04); c.lineTo(.7, 0); c.lineTo(0, 1.6); c.lineTo(-.7, 0); c.closePath(); }, "#f2f3f5", .34);
-        P.seam(c => { c.moveTo(-NW - .04, NY + .04); c.quadraticCurveTo(0, .38, NW + .04, NY + .04); }, .008, .4);
+        // เสื้อด้านในคอกลมแนบคอ (ไม่เปิดคอกว้าง — ไม่ต้องสร้างผิวหน้าอกจำนวนมาก)
+        P.part(c => { c.moveTo(-NW - .04, NY + .02); c.quadraticCurveTo(0, NY + .3, NW + .04, NY + .02); c.lineTo(.7, 0); c.lineTo(0, 1.6); c.lineTo(-.7, 0); c.closePath(); }, "#f2f3f5", .34);
+        P.part(c => { c.moveTo(-NW - .04, NY + .02); c.quadraticCurveTo(0, NY + .3, NW + .04, NY + .02); c.lineTo(NW + .02, NY + .07); c.quadraticCurveTo(0, NY + .36, -NW - .02, NY + .07); c.closePath(); }, "#f6f7f8", .4); // ขอบคอ (rib)
+        P.seam(c => { c.moveTo(-NW - .02, NY + .07); c.quadraticCurveTo(0, NY + .36, NW + .02, NY + .07); }, .006, .3);
         for (const sd of [-1, 1]) P.part(c => jacketPanel(c, sd, NW + .06, NY + .06, 1.55), jacket, .42);
         sleeveSeams(P, .9);
         P.seam(c => { c.moveTo(0, 1.55); c.bezierCurveTo(0, 2.1, .04, 2.6, .14, BOT); }, .012, .8);
@@ -269,68 +283,111 @@
     if (y < .5) h -= (.5 - y) * (.5 - y) * .5 * Math.min(1, ax / .6); // ไหล่ลาดไปด้านหลัง
     return h;
   }
-  function shade(P, W, H, T, inv, fabric, light, seed, s) {
-    const box = bboxAlpha(P.ca, W, H); if (!box) return null;
+  function shade(P, W, H, T, inv, fabric, light, seed, s, clip = null, form = null) {
+    let box = bboxAlpha(P.ca, W, H); if (!box) return null;
+    if (clip) { // ตัดกรอบให้เหลือเฉพาะส่วนที่มีตัวคน (ลดงานต่อพิกเซลมาก)
+      if (!clip.__bbox) { let cx0 = W, cy0 = H, cx1 = -1, cy1 = -1; for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (clip[y * W + x] > .004) { if (x < cx0) cx0 = x; if (x > cx1) cx1 = x; if (y < cy0) cy0 = y; if (y > cy1) cy1 = y; } clip.__bbox = cx1 < 0 ? null : { x0: cx0, y0: cy0, x1: cx1, y1: cy1 }; }
+      const cb = clip.__bbox; if (!cb) return null;
+      box = { x0: Math.max(box.x0, cb.x0), y0: Math.max(box.y0, cb.y0), x1: Math.min(box.x1, cb.x1), y1: Math.min(box.y1, cb.y1) };
+      if (box.x1 < box.x0 || box.y1 < box.y0) return null;
+    }
     const { x0, y0, x1, y1 } = box, bw = x1 - x0 + 1, bh = y1 - y0 + 1;
-    const A = P.ca.getContext("2d").getImageData(x0, y0, bw, bh), a = A.data;
+    const A = P.ca.getContext("2d", { willReadFrequently: true }).getImageData(x0, y0, bw, bh), a = A.data;
+    // ตัดตามเงาตัวคนจริง (ไหล่/แขนตามรูปร่างจริง ไม่ใช่กล่อง)
+    if (clip) for (let j = 0; j < bh; j++) for (let i = 0; i < bw; i++) { const k = j * bw + i; if (a[k * 4 + 3]) a[k * 4 + 3] = Math.round(a[k * 4 + 3] * clip[(j + y0) * W + i + x0]); }
     // ระดับชั้นผ้า: เบลอเล็กน้อยให้ขอบมน (ผ่าน canvas filter — ไม่ใช้ WebGL)
     const blurred = r => { const c = document.createElement("canvas"); c.width = bw; c.height = bh; const x = c.getContext("2d", { willReadFrequently: true }); x.filter = `blur(${r.toFixed(2)}px)`; x.drawImage(P.ch, x0, y0, bw, bh, 0, 0, bw, bh); return x.getImageData(0, 0, bw, bh).data; };
     const h1 = blurred(Math.max(.6, s * .012)), h2 = blurred(Math.max(2, s * .09));
-    const sm = P.cs.getContext("2d").getImageData(x0, y0, bw, bh).data;
-    const n = bw * bh, Ht = new Float32Array(n), seamA = new Float32Array(n);
-    const folds = P.folds, f = fabric;
+    const sm = P.cs.getContext("2d", { willReadFrequently: true }).getImageData(x0, y0, bw, bh).data;
+    // ร่องตะเข็บแบบนุ่ม (เบลอ) -> เกิดแสง/เงาสองข้างของตะเข็บเหมือนผ้าจริง แทนเส้นวาด
+    const smB = (() => { const c = document.createElement("canvas"); c.width = bw; c.height = bh; const x = c.getContext("2d", { willReadFrequently: true }); x.filter = `blur(${Math.max(.8, s * .006).toFixed(2)}px)`; x.drawImage(P.cs, x0, y0, bw, bh, 0, 0, bw, bh); return x.getImageData(0, 0, bw, bh).data; })();
+    const n = bw * bh, Ht = new Float32Array(n), seamA = new Float32Array(n), PX = new Float32Array(n), PY = new Float32Array(n);
+    const s2 = s * s, ia = T.a / s2, ib = T.b / s2, ic = T.c / s2, id = T.d / s2; // พิกัดภาพ -> พิกัดมาตรฐาน (inverse ของ T แบบ inline)
+    // รอยยับเป็นอาร์เรย์แบน (เลี่ยง destructuring ในลูปต่อพิกเซล): x0 y0 x1 y1 w amp bx0 by0 bx1 by1
+    const NF = P.folds.length, FD = new Float64Array(NF * 10), f = fabric;
+    P.folds.forEach(([a, b, c, d, w, amp], q) => FD.set([a, b, c, d, w, amp, Math.min(a, c) - 3 * w, Math.min(b, d) - 3 * w, Math.max(a, c) + 3 * w, Math.max(b, d) + 3 * w], q * 10));
     for (let j = 0; j < bh; j++) for (let i = 0; i < bw; i++) {
       const k = j * bw + i; if (!a[k * 4 + 3]) continue;
-      const p = inv(i + x0 + .5, j + y0 + .5);
-      let h = bodyForm(p.x, p.y) + h1[k * 4] / 255 * .22;
-      for (let q = 0; q < folds.length; q++) {
-        const [fx0, fy0, fx1, fy1, fw, amp] = folds[q], dx = fx1 - fx0, dy = fy1 - fy0, L2 = dx * dx + dy * dy || 1;
-        const t = Math.max(0, Math.min(1, ((p.x - fx0) * dx + (p.y - fy0) * dy) / L2)), ex = p.x - fx0 - t * dx, ey = p.y - fy0 - t * dy, d2 = (ex * ex + ey * ey) / (fw * fw);
-        if (d2 < 9) h += amp * Math.exp(-d2) * Math.sin(Math.PI * Math.min(1, t * 1.2 + .1));
+      const dX = i + x0 + .5 - T.e, dY = j + y0 + .5 - T.f, p = { x: dX * ia + dY * ib, y: dX * ic + dY * id }; PX[k] = p.x; PY[k] = p.y;
+      let h = (form ? form[(j + y0) * W + i + x0] : bodyForm(p.x, p.y)) + h1[k * 4] / 255 * .22;
+      const ux = p.x, uy = p.y;
+      for (let q = 0; q < NF * 10; q += 10) {
+        if (ux < FD[q + 6] || ux > FD[q + 8] || uy < FD[q + 7] || uy > FD[q + 9]) continue; // นอกกรอบของรอยยับ
+        const fx0 = FD[q], fy0 = FD[q + 1], dx = FD[q + 2] - fx0, dy = FD[q + 3] - fy0, fw = FD[q + 4], L2 = dx * dx + dy * dy || 1;
+        const t = Math.max(0, Math.min(1, ((ux - fx0) * dx + (uy - fy0) * dy) / L2)), ex = ux - fx0 - t * dx, ey = uy - fy0 - t * dy, d2 = (ex * ex + ey * ey) / (fw * fw);
+        if (d2 < 9) h += FD[q + 5] * Math.exp(-d2) * Math.sin(Math.PI * Math.min(1, t * 1.2 + .1));
       }
-      const sv = sm[k * 4 + 3] / 255; seamA[k] = sv; h -= sv * .012;
+      const sv = sm[k * 4 + 3] / 255; seamA[k] = sv; h -= smB[k * 4 + 3] / 255 * .03;
+      if (form) h += .26 * Math.sqrt(Math.max(0, 1 - (p.x / 2.3) ** 2)) + fiberTile()[4][(((j + y0) & 255) << 8) | ((i + x0) & 255)] * .012; // ลำตัวโค้ง + ผ้าทิ้งตัวไม่เรียบสนิท
       Ht[k] = h * s; // เป็นพิกเซล
     }
-    const L = norm3(light.x, -.8, .75), flat = L[2], amb = .5, kd = .62, out = new ImageData(bw, bh), o = out.data;
-    const tw = f.period * s; // คาบลายทอเป็นพิกเซล
+    const L = norm3(light.x, -.8, .75), flat = L[2], amb = .36, kd = .78, out = new ImageData(bw, bh), o = out.data;
+    const tw = f.period * s, hv = norm3(L[0], L[1], L[2] + 1), TL = fiberTile(); // คาบลายทอเป็นพิกเซล
     for (let j = 0; j < bh; j++) for (let i = 0; i < bw; i++) {
       const k = j * bw + i, al = a[k * 4 + 3]; if (!al) continue;
       const hx = (Ht[i < bw - 1 && a[(k + 1) * 4 + 3] ? k + 1 : k] - Ht[i > 0 && a[(k - 1) * 4 + 3] ? k - 1 : k]) * .5;
       const hy = (Ht[j < bh - 1 && a[(k + bw) * 4 + 3] ? k + bw : k] - Ht[j > 0 && a[(k - bw) * 4 + 3] ? k - bw : k]) * .5;
-      const nn = norm3(-hx, -hy, 1), dif = Math.max(0, nn[0] * L[0] + nn[1] * L[1] + nn[2] * L[2]);
+      const il = 1 / Math.sqrt(hx * hx + hy * hy + 1), n0 = -hx * il, n1 = -hy * il, n2 = il, dif = Math.max(0, n0 * L[0] + n1 * L[1] + n2 * L[2]);
       let sh = (amb + kd * dif) / (amb + kd * flat);
       const ao = 1 - Math.min(.45, Math.max(0, (h2[k * 4] - h1[k * 4]) / 255) * 2.2); // ร่อง/ใต้ชิ้นที่ยกสูง = มืด
-      sh *= ao * (1 - seamA[k] * .28);
+      sh *= ao * (1 - seamA[k] * .1);
       // เงาวาว (Blinn-Phong อย่างหยาบ) + ลายทอ + noise
-      const hv = norm3(L[0], L[1], L[2] + 1), spec = Math.pow(Math.max(0, nn[0] * hv[0] + nn[1] * hv[1] + nn[2] * hv[2]), 18) * f.sheen;
-      const X = i + x0, Y = j + y0, twill = Math.sin((X + Y) * 2 * Math.PI / Math.max(2.2, tw)) * f.twill + (hash2(X, Y, seed) - .5) * f.twill * 1.4;
-      const p = inv(X + .5, Y + .5), mott = (vnoise(p.x * 7, p.y * 7, seed) - .5) * f.mottle * 2 + (vnoise(p.x * 22, p.y * 22, seed + 3) - .5) * f.mottle;
-      const m = sh * (1 + twill + mott);
+      const spec = f.sheen ? Math.pow(Math.max(0, n0 * hv[0] + n1 * hv[1] + n2 * hv[2]), 18) * f.sheen : 0;
+      // เนื้อผ้า: noise แบบเส้นด้าย (ยืดตามแนวเส้นยืน) ละเอียดระดับพิกเซล แทนลายเส้นทแยงสม่ำเสมอ
+      const X = i + x0, Y = j + y0, tile = TL, ti = ((Y & 255) << 8) | (X & 255), twill = tile[0][ti] * f.twill * 1.6 + tile[1][ti] * f.twill * .9 + Math.sin((X + Y) * 2 * Math.PI / Math.max(2.2, tw)) * f.twill * .25;
+      const p = { x: PX[k], y: PY[k] }, mott = tile[3][ti] * f.mottle * 2 + tile[2][ti] * f.mottle;
+      // แสงรวมแบบสตูดิโอ: ด้านบน/กลางอกสว่าง ล่างและด้านข้างค่อย ๆ มืดลง
+      const fall = 1 - .1 * smooth01((p.y - .6) / 5) - .05 * smooth01((Math.abs(p.x) - 1.1) / 1.2);
+      const m = sh * fall * (1 + twill + mott);
       for (let c = 0; c < 3; c++) o[k * 4 + c] = a[k * 4 + c] * m + 255 * spec;
       o[k * 4 + 3] = al;
     }
-    const c = document.createElement("canvas"); c.width = W; c.height = H; c.getContext("2d").putImageData(out, x0, y0);
+    // willReadFrequently: ผู้เรียกอ่านพิกเซลกลับ (getImageData) — ให้ canvas อยู่บน CPU ไม่ต้องอ่านกลับจาก GPU
+    const c = document.createElement("canvas"); c.width = W; c.height = H; c.getContext("2d", { willReadFrequently: true }).putImageData(out, x0, y0);
     return c;
+  }
+  /** แผ่น noise 256×256 (คำนวณครั้งเดียว): [0] เส้นด้ายยืด (ยาวตามแนวตั้ง), [1] เม็ดละเอียดต่อพิกเซล, [2] ด่างเล็ก 8px, [3] ด่าง 32px, [4] ผ้าทิ้งตัว 64px — ค่า -0.5..0.5 */
+  let FIBER = null;
+  function fiberTile() {
+    if (FIBER) return FIBER;
+    const N = 256, a = new Float32Array(N * N), b = new Float32Array(N * N), c = new Float32Array(N * N), d = new Float32Array(N * N), e = new Float32Array(N * N);
+    // periodic value noise: ห่อพิกัดตาราง (ไม่มีรอยต่อเมื่อวางซ้ำ)
+    const pv = (x, y, px, py, sd) => { const xi = Math.floor(x), yi = Math.floor(y), tx = x - xi, ty = y - yi, sx = tx * tx * (3 - 2 * tx), sy = ty * ty * (3 - 2 * ty), w = (q, m) => ((q % m) + m) % m;
+      const h = (u, v) => hash2(w(u, px), w(v, py), sd), A = h(xi, yi), B = h(xi + 1, yi), C = h(xi, yi + 1), D = h(xi + 1, yi + 1); return A + (B - A) * sx + (C - A) * sy + (A - B - C + D) * sx * sy; };
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const i = y * N + x; a[i] = pv(x * .75, y * .25, N * .75, N * .25, 5) - .5; b[i] = hash2(x, y, 7) - .5; c[i] = pv(x / 8, y / 8, N / 8, N / 8, 3) - .5; d[i] = pv(x / 32, y / 32, N / 32, N / 32, 11) - .5; e[i] = pv(x / 64, y / 64, N / 64, N / 64, 13) - .5; }
+    return (FIBER = [a, b, c, d, e]);
   }
   const norm3 = (x, y, z) => { const l = Math.hypot(x, y, z) || 1; return [x / l, y / l, z / l]; };
   function bboxAlpha(canvas, W, H) {
-    const d = canvas.getContext("2d").getImageData(0, 0, W, H).data; let x0 = W, y0 = H, x1 = -1, y1 = -1;
+    const d = canvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, W, H).data; let x0 = W, y0 = H, x1 = -1, y1 = -1;
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (d[(y * W + x) * 4 + 3]) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
     return x1 < 0 ? null : { x0, y0, x1, y1 };
   }
 
   /** วาดชุดลงพิกัดภาพ: s = พิกเซลต่อหน่วย, theta = มุมแนวไหล่, N = ตำแหน่งโคนคอ; คืน {front, back} (canvas W×H) */
-  function layers(kind, { W, H, s, theta = 0, N, light = { x: -.3 }, seed = 7, drop = 0 }) {
+  /**
+   * clip = เงาตัวคน (Float32Array W×H, 0..1) — ถ้ามี วาดโครงร่างกว้างแล้วตัดตามรูปร่างจริง; form = ความนูนของลำตัว/แขน (หน่วยมาตรฐาน)
+   * nw = ครึ่งความกว้างคอเสื้อ (หน่วยมาตรฐาน) ให้พอดีคอจริง
+   */
+  function layers(kind, { W, H, s, theta = 0, N, light = { x: -.3 }, seed = 7, drop = 0, clip = null, form = null, nw = null }) {
     const K = KINDS[kind]; if (!K) return null;
+    NW = nw ? Math.max(.24, Math.min(.44, nw)) : NW0; WIDE = !!clip;
+    try { return layersImpl(K, { W, H, s, theta, N, light, seed, drop, clip, form }); } finally { NW = NW0; WIDE = false; }
+  }
+  function layersImpl(K, { W, H, s, theta, N, light, seed, drop, clip, form }) {
     const cs = Math.cos(theta), sn = Math.sin(theta);
     const T = { a: s * cs, b: s * sn, c: -s * sn, d: s * cs, e: N.x, f: N.y };
     const inv = (X, Y) => { const dx = X - N.x, dy = Y - N.y; return { x: (dx * cs + dy * sn) / s, y: (-dx * sn + dy * cs) / s }; };
     const out = {};
     for (const part of ["back", "front"]) {
-      const P = painter(W, H, T, Math.max(-.3, Math.min(.6, drop))); K[part](P);
-      out[part] = shade(P, W, H, T, inv, K.fabric, light, seed + (part === "back" ? 11 : 0), s) || P.ca;
+      const P = painter(W, H, T, Math.max(-.8, Math.min(.6, drop))); K[part](P);
+      if (part === "front") for (const sd of [-1, 1]) { // รอยยับธรรมชาติ: ใต้รักแร้ลงสู่เอว, หัวไหล่, ข้อพับแขน
+        P.fold(sd * 1.22, .95, sd * .62, 2.3, .11, .022); P.fold(sd * 1.3, 1.55, sd * .85, 2.9, .12, .018);
+        P.fold(sd * .95, .2, sd * 1.32, .42, .09, .012); P.fold(sd * 1.45, 2.4, sd * 1.75, 2.75, .08, .02);
+      }
+      out[part] = shade(P, W, H, T, inv, K.fabric, light, seed + (part === "back" ? 11 : 0), s, part === "front" ? clip : null, form) || P.ca;
       if (part === "back") { // ด้านในปกหลังคอ: มืดกว่า (อยู่ในเงาของคอ)
-        const x = out.back.getContext("2d"); x.globalCompositeOperation = "source-atop"; x.fillStyle = "rgba(20,24,30,.28)"; x.fillRect(0, 0, W, H); x.globalCompositeOperation = "source-over";
+        const x = out.back.getContext("2d", { willReadFrequently: true }); x.globalCompositeOperation = "source-atop"; x.fillStyle = "rgba(20,24,30,.28)"; x.fillRect(0, 0, W, H); x.globalCompositeOperation = "source-over";
       }
     }
     return out;

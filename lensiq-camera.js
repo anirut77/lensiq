@@ -14,7 +14,7 @@
  *   nextSlot(cams) -> 'c1'..'c4' | null
  *   pickNext(entries:[{key, enabled, vt, weight}]) -> key|null    min virtual time among enabled; ties by key
  *   mapSeatToImage(seatSide, cameraFacesOccupants=true) -> 'imageLeft'|'imageRight'|'largest'   ('right', true) -> 'imageLeft'
- *   readCapacity(storage) / writeCapacity(storage, maxLive, now) -> 'lq-camcap' = {v:1, maxLive, at} (decrease-only)
+ *   readCapacity(storage, now) / writeCapacity(storage, maxLive, now) -> "lq-camcap" = {v:1, maxLive, at} (decrease-only; expires after 7 days)
  *
  * DOM
  *   listCameras() -> Promise<[{deviceId, groupId, label, facing:'user'|'environment'|null}]>
@@ -135,14 +135,18 @@
     const left = seatSide === "right";
     return (cameraFacesOccupants ? left : !left) ? "imageLeft" : "imageRight";
   }
-  function readCapacity(storage) {
+  // a proven limit expires after CAP_TTL_MS (new camera plugged in, browser update...) and is then probed again
+  const CAP_TTL_MS = 7 * 864e5;
+  function readCapacity(storage, now = Date.now()) {
     try {
       const o = JSON.parse(storage.getItem(CAP_KEY));
-      return o && o.v === 1 && Number.isInteger(o.maxLive) && o.maxLive >= 1 ? o.maxLive : null;
+      if (!(o && o.v === 1 && Number.isInteger(o.maxLive) && o.maxLive >= 1)) return null;
+      if (Number.isFinite(o.at) && now - o.at > CAP_TTL_MS) return null;
+      return o.maxLive;
     } catch { return null; }
   }
   function writeCapacity(storage, maxLive, now = Date.now()) {
-    const cur = readCapacity(storage);
+    const cur = readCapacity(storage, now);
     const v = Math.max(1, cur == null ? maxLive : Math.min(cur, maxLive));
     try { storage.setItem(CAP_KEY, JSON.stringify({ v: 1, maxLive: v, at: now })); } catch { /* storage full */ }
     return v;
@@ -397,7 +401,8 @@
     const opt = { ns: "lq", max: 4, grid: null, tile: null, facing: "environment", idealOne: { width: 1280, height: 720 }, idealMany: { width: 640, height: 480 }, frameRateMany: 15, probeMs: 800, onChange: null, ...o };
     const K = { cams: `${opt.ns}-cams`, set: slot => `${opt.ns}-cam-${slot}` };
     const cams = [];
-    let capacity = hasDOM ? readCapacity(localStorage) : null, destroyed = false;
+    const LS = (() => { try { return hasDOM ? localStorage : null; } catch { return null; } })(); // Safari: blocked storage throws on access
+    let capacity = LS ? readCapacity(LS) : null, destroyed = false;
     const emit = (type, extra) => { try { opt.onChange && opt.onChange(hub, { type, ...(extra || {}) }); } catch (e) { console.error(e); } };
     const sleep = ms => new Promise(r => setTimeout(r, ms));
     const liveTrack = c => c.stream && c.stream.getVideoTracks()[0];
@@ -484,7 +489,10 @@
       return free.deviceId;
     }
 
-    async function add({ deviceId, name, role, slot, label, _restore } = {}) {
+    // public add() calls run one at a time: two quick clicks must not both pick the same free device
+    let addQ = Promise.resolve();
+    function add(a) { const r = addQ.then(() => addNow(a)); addQ = r.catch(() => {}); return r; }
+    async function addNow({ deviceId, name, role, slot, label, _restore } = {}) {
       if (destroyed) throw named("InvalidStateError", "hub destroyed");
       if (cams.length >= opt.max) throw named("CapacityError", `max ${opt.max}`, { max: opt.max, reason: "max" });
       const liveBefore = cams.filter(c => c.active);
@@ -504,7 +512,8 @@
       for (const p of liveBefore) {
         const tr = liveTrack(p); if (!tr) continue;
         p._probing = true;
-        const hit = () => { proven = true; };
+        // a track that ends/mutes while the page is hidden or the hub is being torn down proves nothing
+        const hit = () => { if (!destroyed && !(hasDOM && document.hidden) && p.status !== "paused") proven = true; };
         tr.addEventListener("ended", hit); tr.addEventListener("mute", hit);
         watchers.push(() => { tr.removeEventListener("ended", hit); tr.removeEventListener("mute", hit); p._probing = false; });
       }
@@ -512,17 +521,24 @@
       let err = null;
       try { await c.start(id); }
       catch (e) { err = e; }
+      // a saved camera id that no longer exists (camera swapped, Safari site data cleared): fall back to any camera once
+      if (err && _restore && id && /Overconstrained|NotFound/.test(err.name || "") && !destroyed) {
+        try { err = null; await c.start(""); } catch (e) { err = e; }
+      }
+      if (destroyed) { c.destroy(); removeTile(c); const i = cams.indexOf(c); if (i >= 0) cams.splice(i, 1); throw named("InvalidStateError", "hub destroyed"); }
       if (liveBefore.length) {
         if (!err) await sleep(opt.probeMs);
-        for (const p of liveBefore) { const tr = liveTrack(p); if (!tr || tr.readyState === "ended" || tr.muted || !p.active) proven = true; }
+        // only a track that still exists and has ended/muted counts (a camera the user stopped or a hidden tab does not)
+        if (!(hasDOM && document.hidden)) for (const p of liveBefore) { const tr = liveTrack(p); if (tr && p.status !== "paused" && (tr.readyState === "ended" || tr.muted)) proven = true; }
       }
       watchers.forEach(f => f());
       if (proven) {
-        c.destroy(); removeTile(c); cams.splice(cams.indexOf(c), 1);
+        c.destroy(); removeTile(c); { const i = cams.indexOf(c); if (i >= 0) cams.splice(i, 1); }
+        emit("removed", { slot: s });
         for (const p of liveBefore) {
           try { await p.start(p.deviceId || p.wantDeviceId); } catch (e) { setStatus(p, "error", { error: e }); }
         }
-        capacity = writeCapacity(localStorage, liveBefore.length);
+        capacity = LS ? writeCapacity(LS, liveBefore.length) : liveBefore.length;
         save(); await applyMany();
         const ce = named("CapacityError", `capacity ${capacity}`, { max: capacity, reason: "proven" });
         emit("capacity", { max: capacity });
@@ -530,7 +546,7 @@
       }
       if (err) {
         if (_restore) { setStatus(c, "error", { error: err }); c.lastError = err; save(); return c; }
-        c.destroy(); removeTile(c); cams.splice(cams.indexOf(c), 1);
+        c.destroy(); removeTile(c); { const i = cams.indexOf(c); if (i >= 0) cams.splice(i, 1); }
         emit("removed", { slot: s });
         throw err;
       }
@@ -560,7 +576,7 @@
           const m = e.label && list.find(d => d.label === e.label && !cams.some(c => c.deviceId === d.deviceId));
           if (m) id = m.deviceId;
         }
-        try { out.push(await add({ deviceId: id, name: e.name, role: e.role, slot: e.slot, label: e.label, _restore: true })); }
+        try { out.push(await addNow({ deviceId: id, name: e.name, role: e.role, slot: e.slot, label: e.label, _restore: true })); }
         catch (err) {
           if (err.name === "CapacityError") break;
           console.warn("restore", e.slot, err);

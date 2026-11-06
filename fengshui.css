@@ -1,4 +1,4 @@
-/* ฮวงจุ้ย AI — ใช้ตัวแปรสีจาก styles.css */
+/* ฮวงจุ้ย — ใช้ตัวแปรสีจาก styles.css */
 [hidden]{display:none!important}
 .fs{max-width:1200px;margin:auto;padding:36px 5vw 80px}
 .fs-head{text-align:center}
@@ -176,7 +176,7 @@
 .stat-n{font-size:.95rem;margin-bottom:6px}.stat-n b{font-size:1.6rem;color:var(--navy)}
 #fsStats{display:grid;gap:2px;margin-bottom:8px}
 .fs-sources{margin:6px 0 10px;padding-left:20px;font-size:.88rem;display:grid;gap:4px}
-.fs-sources a{color:#4b36d6;text-decoration:underline;word-break:break-word}
+.fs-sources a{color:#4b36d6;text-decoration:underline;word-break:break-word;display:inline-flex;align-items:center;min-height:44px}
 
 .fs-idle{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 20px;border-radius:99px;z-index:70;font-size:.95rem;max-width:calc(100% - 32px);text-align:center}
 .fs-kiosk-exit{position:fixed;right:16px;top:16px;z-index:70}

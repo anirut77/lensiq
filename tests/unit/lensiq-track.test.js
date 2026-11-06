@@ -172,3 +172,19 @@ test("(13) snapshot has no det payload; geometry helpers", () => {
   assert.equal(T.DEFAULTS.ASSIGN, "greedy");
   for (const k of ["person", "face", "hand", "object"]) assert.equal(T.PRESET[k].ASSIGN, "hungarian");
 });
+
+test("matchFace: nearest under maxDist, margin to the runner-up rejects ambiguous matches", () => {
+  const T = require("../../lensiq-track.js");
+  const v = (...a) => Float32Array.from(a);
+  const gal = [{ label: "a", d: v(0, 0) }, { label: "b", d: v(1, 0) }, { label: "a", d: v(0, 0.1) }];
+  assert.strictEqual(T.matchFace(v(0.1, 0), gal, { maxDist: 0.55 }).label, "a");
+  assert.strictEqual(T.matchFace(v(5, 5), gal, { maxDist: 0.55 }).label, "unknown");
+  // between a and b: a at 0.45, b at 0.55 -> accepted without margin, rejected with margin 0.2 (ambiguous)
+  const mid = v(0.45, 0);
+  assert.strictEqual(T.matchFace(mid, gal, { maxDist: 0.55 }).label, "a");
+  const r = T.matchFace(mid, gal, { maxDist: 0.55, margin: 0.2 });
+  assert.strictEqual(r.label, "unknown"); assert.ok(r.ambiguous);
+  // the runner-up must be ANOTHER label: two samples of "a" never make it ambiguous
+  assert.strictEqual(T.matchFace(v(0, 0.05), gal, { maxDist: 0.55, margin: 0.2 }).label, "a");
+  assert.strictEqual(T.matchFace(v(0, 0), null).label, "unknown");
+});

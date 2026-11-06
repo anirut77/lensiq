@@ -1,0 +1,101 @@
+# LENSIQ CI — lint + unit (Node), server tests (Python), end-to-end (headless Chrome, no WebGL).
+# The site itself is static (GitHub Pages); this workflow only tests it.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: Lint + unit (Node 22)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test:unit
+      - name: CSP <meta> present and current on every page
+        run: node tools/csp-meta.mjs --check
+
+  python:
+    name: Server tests (Python 3.11)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - run: pip install -r requirements.txt
+      - run: python -m unittest discover -s tests/python -v
+
+  e2e:
+    name: End-to-end (headless Chrome)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Python venv for server.py (agg / csp e2e start the real server)
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install -r requirements.txt
+      - id: chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+      - run: npm ci
+      - name: mobile-audit detector self-test
+        run: node tools/mobile-audit.mjs --selftest
+        env:
+          LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
+      - name: e2e (one retry per failing file)
+        run: npm run test:e2e:ci
+        env:
+          LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
+      - name: pages under the GitHub Pages <meta> CSP
+        run: node tools/check-csp.mjs
+        env:
+          LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
+      - name: phone layout report (390 px)
+        if: always()
+        run: node tools/mobile-audit.mjs --json mobile-audit.json
+        env:
+          LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-audit
+          path: mobile-audit.json
+          if-no-files-found: ignore

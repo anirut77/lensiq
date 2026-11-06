@@ -51,7 +51,7 @@
 .tile{background:var(--bg);border-radius:12px;padding:12px 14px;border:1px solid transparent}
 .tile .k{font-size:.78rem;color:var(--muted)}
 .tile .v{font-size:1.5rem;font-weight:500;color:var(--navy);font-variant-numeric:tabular-nums}
-.tile .s{font-size:.74rem;color:var(--muted)}
+.tile .s{font-size:.75rem;color:var(--muted)}
 .tile.in .v{color:var(--in)}.tile.out .v{color:var(--out)}
 .tile.hot{background:#fdeaea;border-color:#c0392b}
 .tile.hot .v{color:#a12b20}
@@ -123,3 +123,7 @@ canvas.heat{width:100%;height:auto;display:block;border-radius:10px;border:1px s
 #accForm .chk{min-height:44px;display:flex}
 .st form .chk input{width:20px;min-height:0;flex:none}
 .tile.warm{background:#fff5e0;border-color:#d79b00}
+/* หมายเหตุความแม่นยำ/Beta (ผลวัดใน ACCURACY.md และ cameras.html#accuracy) */
+.acc-note{margin:6px 0 14px;padding:10px 14px;border:1px solid var(--line,#e3e6ef);border-left:4px solid #c9a45c;border-radius:10px;background:#fffdf7;font-size:.86rem;line-height:1.6;color:#4a5068}
+.acc-note .beta{display:inline-block;margin-right:6px;padding:0 8px;border-radius:6px;background:#0e1430;color:#fff;font-size:.75rem;font-weight:500}
+.acc-note a{display:inline;color:inherit;text-decoration:underline} /* ลิงก์ในประโยค (ข้อยกเว้น WCAG 2.5.8) */

@@ -29,6 +29,10 @@
  *   pickPrimary(boxes, prevBox, {minIou=0.3, prefer='largest', lockOnly=false}) -> {index (-1 none), continuity, n}
  *     prefer: 'largest' | 'center' | 'imageLeft' | 'imageRight' | {x,y} (nearest to point). Score = area * prior.
  *     prevBox && best IoU >= minIou -> that box (continuity:true). prevBox && lockOnly && none >= minIou -> -1.
+ *   matchFace(desc, gallery:[{label, d}], {maxDist=0.55, margin=0}) -> {label|'unknown', distance, second, ambiguous}
+ *     nearest enrolled descriptor by Euclidean distance (face-api 128-D). Accepted only when distance < maxDist AND the
+ *     runner-up (another label) is at least `margin` further away. margin 0.05 cut "member shown as someone else" 3–5x
+ *     on LFW 1:N (tests/bench/face.bench.mjs, ACCURACY.md) for a ~1–5 point drop in recognition.
  *   snapshot(T) -> plain JSON {nextId, tracks:[...], lost:[...]} without det payloads (no descriptors ever).
  */
 (function (root) {
@@ -291,6 +295,18 @@
     return { index: bi, continuity: false, n };
   }
 
+  function matchFace(desc, gallery, { maxDist = 0.55, margin = 0 } = {}) {
+    let best = null, bd = Infinity, sd = Infinity;
+    if (desc && gallery) for (const g of gallery) {
+      if (!g || !g.d || g.d.length !== desc.length) continue;
+      let s = 0; for (let i = 0; i < desc.length; i++) { const v = desc[i] - g.d[i]; s += v * v; }
+      const x = Math.sqrt(s);
+      if (x < bd) { if (best !== g.label) sd = bd; bd = x; best = g.label; } else if (x < sd && g.label !== best) sd = x;
+    }
+    const ambiguous = bd < maxDist && sd - bd < margin;
+    return { label: best != null && bd < maxDist && !ambiguous ? best : "unknown", distance: bd, second: sd, ambiguous };
+  }
+
   function snapshot(T) {
     const r4 = v => (Number.isFinite(v) ? Math.round(v * 1e4) / 1e4 : v);
     const one = t => ({
@@ -303,7 +319,7 @@
 
   const api = {
     iou, center, foot, dist2d, toNorm, DEFAULTS, PRESET, newTracker, updateTracker, lsa,
-    trackerCfgFor, assignUnique, createConfirm, pickPrimary, snapshot
+    trackerCfgFor, assignUnique, createConfirm, pickPrimary, matchFace, snapshot
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") root.LQTrack = api;

@@ -56,11 +56,11 @@
 /* KPI */
 .kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:16px}
 .kpi{background:var(--iq-surface);border:1px solid var(--iq-line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0;transition:border-color .15s}
-.kpi:hover,.kpi:focus-visible{border-color:var(--navy)}
+.kpi:hover,.kpi:focus-within{border-color:var(--navy)}
 .kpi .k{font-size:.8rem;color:var(--iq-ink2);line-height:1.35}
 .kpi .v{font-size:1.55rem;font-weight:600;color:var(--navy);line-height:1.25;overflow-wrap:anywhere}
-.kpi .d{font-size:.74rem;color:var(--iq-ink);font-variant-numeric:tabular-nums}
-.kpi .s{font-size:.74rem;color:var(--iq-ink2);line-height:1.4}
+.kpi .d{font-size:.75rem;color:var(--iq-ink);font-variant-numeric:tabular-nums}
+.kpi .s{font-size:.75rem;color:var(--iq-ink2);line-height:1.4}
 
 .row2{display:grid;gap:16px}
 
@@ -74,7 +74,7 @@
 .iq-svg:focus-visible{outline:2px solid var(--aqua);outline-offset:2px;border-radius:6px}
 .iq-svg .grid{stroke:var(--iq-grid);stroke-width:1}
 .iq-svg .base{stroke:var(--iq-axis);stroke-width:1}
-.iq-svg .tick{fill:var(--iq-ink2);font-size:11px;font-variant-numeric:tabular-nums}
+.iq-svg .tick{fill:var(--iq-ink2);font-size:12px;font-variant-numeric:tabular-nums}
 .iq-svg .endlab{fill:var(--iq-ink);font-size:12px}
 .iq-svg .leader{stroke:var(--iq-ink2);stroke-width:1}
 .iq-svg .line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
@@ -110,14 +110,14 @@
 #funnelBody{display:grid;gap:12px}
 .fn-h{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:.9rem}
 .fn-h b{font-weight:500;color:var(--iq-ink)}
-.fn-n{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--alt);color:var(--navy);font-size:.72rem;font-weight:600}
-.src{font-size:.72rem;color:var(--iq-ink2);border:1px solid var(--iq-line);border-radius:99px;padding:1px 8px}
+.fn-n{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--alt);color:var(--navy);font-size:.75rem;font-weight:600}
+.src{font-size:.75rem;color:var(--iq-ink2);border:1px solid var(--iq-line);border-radius:99px;padding:1px 8px}
 .src:hover{border-color:var(--navy);color:var(--navy)}
 .fn-line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;margin-top:4px}
 .fn-t{height:20px}
 .fn-b{height:20px;background:var(--s1);border-radius:0 4px 4px 0}
 .fn-v{font-weight:600;color:var(--iq-ink);font-variant-numeric:tabular-nums;min-width:3ch;text-align:right}
-.fn-s{font-size:.74rem;color:var(--iq-ink2);margin-top:2px}
+.fn-s{font-size:.75rem;color:var(--iq-ink2);margin-top:2px}
 .fn-miss{font-size:.78rem;color:var(--iq-ink2);margin-top:4px;padding:6px 10px;border:1px dashed var(--iq-line);border-radius:8px}
 .fn-row.none .fn-h b{color:var(--iq-ink2)}
 
@@ -132,9 +132,9 @@
 .mod .nodata{padding:6px 0;text-align:left}
 .mod-s{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 10px}
 .mod-s div{background:var(--bg);border-radius:10px;padding:6px 8px;min-width:0}
-.mod-s dt{font-size:.7rem;color:var(--iq-ink2)}
+.mod-s dt{font-size:.75rem;color:var(--iq-ink2)}
 .mod-s dd{margin:0;font-size:.95rem;font-weight:600;color:var(--navy);overflow-wrap:anywhere}
-.cap{font-size:.74rem;color:var(--iq-ink2);margin:0 0 6px;overflow-wrap:anywhere}
+.cap{font-size:.75rem;color:var(--iq-ink2);margin:0 0 6px;overflow-wrap:anywhere}
 
 /* data management */
 .data{margin-top:28px}
@@ -146,7 +146,7 @@
 
 /* tooltip */
 .iq-tip{position:fixed;z-index:60;pointer-events:none;background:var(--surface,#fff);color:var(--text);border:1px solid var(--line);box-shadow:0 6px 20px rgba(0,0,0,.14);border-radius:10px;padding:8px 10px;font-size:.8rem;max-width:min(260px,calc(100vw - 16px))}
-.iq-tip .tt-h{color:var(--muted);font-size:.74rem;margin-bottom:3px}
+.iq-tip .tt-h{color:var(--muted);font-size:.75rem;margin-bottom:3px}
 .iq-tip .tt-r{display:flex;align-items:center;gap:6px;line-height:1.5}
 .iq-tip .tt-r b{font-weight:600;font-variant-numeric:tabular-nums}
 .iq-tip .tt-r span{color:var(--muted)}
@@ -173,7 +173,7 @@
 .ins.good{border-left-color:var(--good)}.ins.bad{border-left-color:var(--bad)}.ins.warn{border-left-color:var(--warn)}.ins.info{border-left-color:var(--s1)}
 .ins-h{display:flex;gap:8px;align-items:flex-start}
 .ins-h h3{font-size:.95rem;font-weight:600;color:var(--navy);margin:0;line-height:1.4;overflow-wrap:anywhere}
-.ins-ic{flex:none;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;font-size:.72rem;font-weight:700;color:#fff;background:var(--s1);margin-top:1px}
+.ins-ic{flex:none;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;font-size:.75rem;font-weight:700;color:#fff;background:var(--s1);margin-top:1px}
 .ins.good .ins-ic{background:var(--good)}.ins.bad .ins-ic{background:var(--bad)}.ins.warn .ins-ic{background:var(--warn)}
 .ins-b{margin:0;font-size:.86rem;color:var(--iq-ink);overflow-wrap:anywhere}
 .ins-sure{display:flex;gap:8px;align-items:flex-start;font-size:.78rem;color:var(--iq-ink2);line-height:1.45}
@@ -204,7 +204,7 @@
 .spark .sp-d{fill:var(--s1)}
 .kpi .d.up{color:var(--good)}.kpi .d.dn{color:var(--bad)}
 .kpi .d .conf{color:var(--iq-ink2)}
-.kpi .ci{font-size:.72rem;color:var(--iq-ink2);font-variant-numeric:tabular-nums}
+.kpi .ci{font-size:.75rem;color:var(--iq-ink2);font-variant-numeric:tabular-nums}
 
 .row2.even{margin-top:16px}
 .row2+.row2{margin-top:16px}
@@ -218,7 +218,7 @@
 .iq-svg .h3,.hk.h3{fill:var(--q3);background:var(--q3)}.iq-svg .h4,.hk.h4{fill:var(--q4);background:var(--q4)}.iq-svg .h5,.hk.h5{fill:var(--q5);background:var(--q5)}
 .iq-svg .hn,.hk.hn{fill:var(--qn);background:var(--qn)}
 .iq-svg .hring{fill:none;stroke:var(--iq-ink);stroke-width:2}
-.heat-legend{display:flex;flex-wrap:wrap;align-items:center;gap:4px;font-size:.74rem;color:var(--iq-ink2);margin-top:6px}
+.heat-legend{display:flex;flex-wrap:wrap;align-items:center;gap:4px;font-size:.75rem;color:var(--iq-ink2);margin-top:6px}
 .hk{display:inline-block;width:18px;height:10px;border-radius:2px}
 .hk-n{display:inline-flex;align-items:center;gap:4px;margin-left:10px}
 
@@ -266,7 +266,7 @@
 .cams .n,.cohort .n{text-align:right;font-variant-numeric:tabular-nums}
 .cams .spk{width:70px}
 .cams .spk .spark{width:64px}
-.tag{display:inline-block;margin-left:6px;font-size:.68rem;color:var(--iq-ink2);border:1px solid var(--iq-line);border-radius:99px;padding:0 6px}
+.tag{display:inline-block;margin-left:6px;font-size:.75rem;color:var(--iq-ink2);border:1px solid var(--iq-line);border-radius:99px;padding:0 6px}
 .share{display:inline-block;width:40px;height:6px;border-radius:3px;background:var(--iq-grid);margin-right:6px;vertical-align:middle;overflow:hidden}
 .share i{display:block;height:100%;background:var(--s1)}
 .cohort .rc{min-width:40px}
@@ -282,7 +282,7 @@
 .goal-t{height:10px;border-radius:5px;background:var(--iq-grid);overflow:hidden;margin-top:4px}
 .goal-t i{display:block;height:100%;background:var(--s1);border-radius:5px}
 .goal.met .goal-t i{background:var(--good)}
-.goal-s{font-size:.74rem;color:var(--iq-ink2);margin-top:2px}
+.goal-s{font-size:.75rem;color:var(--iq-ink2);margin-top:2px}
 .setup summary{cursor:pointer;color:var(--navy);font-size:.88rem;padding:6px 0}
 .rules .fields{display:grid;gap:10px;margin:8px 0 12px}
 .rules label{display:grid;gap:4px;font-size:.82rem;color:var(--iq-ink2);align-content:end}
@@ -336,4 +336,31 @@
   .report .rp-meta,.report .rp-foot,.report .rp-sure{color:#444;font-size:9.5pt}
   .report .rp-ins{break-inside:avoid;border-left:3px solid #666;padding-left:8pt;margin:6pt 0}
   @page{margin:14mm}
+}
+
+/* ---------- KPI: ส่วนลิงก์ + คำอธิบาย ---------- */
+.kpi-main{display:flex;flex-direction:column;gap:2px;color:inherit;text-decoration:none;min-width:0}
+.kpi-main:focus-visible{outline:2px solid var(--aqua);outline-offset:2px;border-radius:8px}
+.kx{font-size:.78rem;color:var(--iq-ink2);margin-top:4px}
+.kx summary{cursor:pointer;color:var(--navy);display:flex;align-items:center;min-height:32px}
+.kx p{margin:2px 0 0;line-height:1.5}
+/* ---------- ความน่าเชื่อถือของข้อมูล ---------- */
+#qualCard{margin-bottom:16px}
+.q-grade{margin:4px 0 8px;font-size:.9rem;color:var(--iq-ink)}
+.q-grade b{display:inline-block;border-radius:99px;padding:2px 10px;margin-right:4px;background:var(--alt);color:var(--navy)}
+.q-good b{background:var(--good-bg,#e6f6ec);color:var(--good)}
+.q-fair b{background:var(--warn-bg,#fff4dc);color:#8a5a00}
+.q-check b{background:var(--bad-bg);color:var(--bad)}
+.q-out{margin:4px 0 0;padding-left:18px;font-size:.84rem;color:var(--iq-ink)}
+.ins-sure b{color:var(--iq-ink);font-weight:600}
+/* ---------- จอสัมผัส / มือถือ: เป้ากดอย่างน้อย 44px ---------- */
+@media (max-width:760px),(pointer:coarse){
+  .iq button,.iq select,.iq summary,.iq .btn-p,.iq .btn-s,.iq input[type=date],.iq input[type=number],.range button,.kx summary{min-height:44px}
+  .iq summary{display:flex;align-items:center}
+  .iq .ins-more,.iq .open,.iq .src,.iq .mods-list a,.iq .ins-stat a,.iq a.kpi-main + *{display:inline-flex;align-items:center;min-height:44px}
+  .iq .mods-list a{min-width:44px}
+  .iq .src{padding:0 12px}
+  .iq .chk{min-height:44px;display:flex;align-items:center;gap:8px}
+  .iq .chk input{width:22px;height:22px}
+  .kpi-main{min-height:44px}
 }

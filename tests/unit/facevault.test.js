@@ -1,5 +1,5 @@
 // tests/unit/facevault.test.js — lensiq-facevault.js: AES-GCM envelope, non-extractable key, legacy migration,
-// fallback without WebCrypto, locked (key lost) never overwritten, retention.
+// refuses writes without a secure context (no plaintext fallback), locked (key lost) never overwritten, retention.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const V = require("../../lensiq-facevault.js");
@@ -67,23 +67,75 @@ test("splitSave writes faces encrypted then meta without descriptors; faces:fals
   assert.equal(JSON.parse(ls.getItem("att-people"))[0].lastSeen, 3);
 });
 
-test("fallback without WebCrypto: plaintext wrapper, nothing lost, re-encrypted once available", async () => {
+test("no secure context / WebCrypto: default refuses face writes (no plaintext), legacy data kept, re-encrypted once available", async () => {
   V._setKeyStore(null); V._reset();
   const saved = globalThis.indexedDB; delete globalThis.indexedDB;
-  const ls = mem();
-  ls.setItem("att-people", JSON.stringify([{ id: "p1", name: "ก", descriptor: D(3) }]));
-  assert.equal(V.supported(), false);
-  const r = await V.splitLoad("att-people", "lqv-att-faces", "descriptor", ls, { stamp: true, now: 100 });
-  assert.equal(r.state, "plain");
-  assert.deepEqual(r.records[0].descriptor, D(3));
-  assert.equal(JSON.parse(ls.getItem("lqv-att-faces")).plain, "lq1");
-  assert.equal(JSON.parse(ls.getItem("att-people"))[0].created, 100, "legacy record stamped");
-  if (saved) globalThis.indexedDB = saved;
+  try {
+    const ls = mem();
+    ls.setItem("att-people", JSON.stringify([{ id: "p1", name: "ก", descriptor: D(3) }]));
+    assert.equal(V.supported(), false);
+    assert.equal(V.insecureReason(), "no-indexeddb");
+    assert.match(V.enrollBlockReason(), /https:\/\//);
+    const r = await V.splitLoad("att-people", "lqv-att-faces", "descriptor", ls, { stamp: true, now: 100 });
+    assert.equal(r.state, "insecure");
+    assert.deepEqual(r.records[0].descriptor, D(3), "legacy value usable in memory");
+    assert.equal(ls.getItem("lqv-att-faces"), null, "no plaintext vault written");
+    const meta = JSON.parse(ls.getItem("att-people"));
+    assert.equal(meta[0].created, 100, "legacy record stamped");
+    assert.deepEqual(meta[0].descriptor, D(3), "legacy value not dropped (no data loss)");
+    // new enrolment refused, nothing written
+    await assert.rejects(V.write("lqv-att-faces", { v: 1, faces: { p2: D(4) } }, ls), e => e.name === "VaultInsecureError" && e.code === "insecure-context" && e.reason === "no-indexeddb");
+    await assert.rejects(V.splitSave("att-people", "lqv-att-faces", [{ id: "p2", descriptor: D(4) }], "descriptor", ls), { name: "VaultInsecureError" });
+    assert.equal(ls.getItem("lqv-att-faces"), null);
+    // removing all faces still works without encryption
+    ls.setItem("lqv-att-faces", "{}");
+    assert.equal(await V.splitSave("att-people", "lqv-att-faces", [{ id: "p1", name: "ก" }], "descriptor", ls), "insecure");
+    assert.equal(ls.getItem("lqv-att-faces"), null);
+    assert.equal(V.STATE_TH.insecure, V.enrollBlockReason());
+  } finally { if (saved) globalThis.indexedDB = saved; }
+  // secure context again -> legacy migrated into an encrypted envelope
   V._setKeyStore(keyStore()); V._reset();
-  const r2 = await V.splitLoad("att-people", "lqv-att-faces", "descriptor", ls);
+  const ls2 = mem();
+  ls2.setItem("att-people", JSON.stringify([{ id: "p1", name: "ก", descriptor: D(3) }]));
+  const r2 = await V.splitLoad("att-people", "lqv-att-faces", "descriptor", ls2);
   assert.equal(r2.state, "enc");
-  assert.ok(V.isEnvelope(JSON.parse(ls.getItem("lqv-att-faces"))));
+  assert.ok(V.isEnvelope(JSON.parse(ls2.getItem("lqv-att-faces"))));
   assert.deepEqual(r2.records[0].descriptor, D(3));
+  assert.equal(V.enrollBlockReason(), null);
+});
+
+test("isSecureContext === false refuses even when WebCrypto exists", async () => {
+  V._setKeyStore(keyStore()); V._reset();
+  const had = Object.getOwnPropertyDescriptor(globalThis, "isSecureContext");
+  Object.defineProperty(globalThis, "isSecureContext", { value: false, configurable: true });
+  try {
+    assert.equal(V.insecureReason(), "insecure-context");
+    await assert.rejects(V.write("k", { a: 1 }, mem()), e => e.code === "insecure-context");
+  } finally { if (had) Object.defineProperty(globalThis, "isSecureContext", had); else delete globalThis.isSecureContext; }
+});
+
+test("encrypt failure never falls back to plaintext", async () => {
+  V._setKeyStore({ get: async () => null, add: async () => { throw new Error("quota"); }, del: async () => {} }); V._reset();
+  const realGen = crypto.subtle.generateKey;
+  const ls = mem();
+  crypto.subtle.generateKey = async () => { throw new Error("boom"); };
+  try {
+    await assert.rejects(V.write("k", { a: 1 }, ls), e => e.name === "VaultInsecureError" && e.reason === "encrypt-failed");
+    assert.equal(ls.getItem("k"), null);
+  } finally { crypto.subtle.generateKey = realGen; }
+});
+
+test("explicit opt-in allowPlaintext keeps the legacy plaintext wrapper (not recommended)", async () => {
+  V._setKeyStore(null); V._reset();
+  const saved = globalThis.indexedDB; delete globalThis.indexedDB;
+  try {
+    V.configure({ allowPlaintext: true });
+    const ls = mem();
+    assert.equal(V.enrollBlockReason(), null);
+    assert.equal(await V.write("k", { a: 1 }, ls), "plain");
+    assert.equal(JSON.parse(ls.getItem("k")).plain, "lq1");
+  } finally { V._reset(); if (saved) globalThis.indexedDB = saved; }
+  assert.equal(V.configure().allowPlaintext, false, "_reset restores the default");
 });
 
 test("key lost: locked, data kept, writes refused until wipe", async () => {

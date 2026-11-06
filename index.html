@@ -2,20 +2,21 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
-<title>LENSIQ | Computer Vision เพื่อการตลาดและการวิเคราะห์</title>
-<meta name="description" content="LENSIQ แพลตฟอร์ม Computer Vision ภาษาไทย สำหรับการตลาด การวิเคราะห์หน้าร้าน และตู้ถ่ายรูป ใช้กล้องที่มีอยู่ ประมวลผลบนเครื่อง ออกแบบตาม PDPA">
+<title data-i18n="home.doc.title">LENSIQ | Computer Vision เพื่อการตลาดและการวิเคราะห์</title>
+<meta name="description" data-i18n-attr="content:home.doc.desc" content="LENSIQ แพลตฟอร์ม Computer Vision ภาษาไทย สำหรับการตลาด การวิเคราะห์หน้าร้าน และตู้ถ่ายรูป ใช้กล้องที่มีอยู่ ประมวลผลบนเครื่อง ออกแบบตาม PDPA">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=6">
-<link rel="stylesheet" href="home.css?v=1">
+<link rel="stylesheet" href="styles.css?v=7">
+<link rel="stylesheet" href="home.css?v=2">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=10"></script>
+<script src="nav.js?v=11"></script>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
@@ -48,25 +49,25 @@
   <section class="hero" aria-labelledby="hero-title">
     <div class="hero-inner">
       <div class="hero-copy">
-        <p class="pill"><span class="dot" aria-hidden="true"></span>ประมวลผลบนเครื่อง · ภาษาไทยทั้งระบบ</p>
-        <h1 id="hero-title">เปลี่ยนกล้องธรรมดา<br>ให้เป็น<span class="grad">ข้อมูลการตลาด</span></h1>
-        <p class="hero-lead">LENSIQ คือชุดระบบ Computer Vision เพื่อการตลาดและการวิเคราะห์ ตั้งแต่วัดความสนใจต่อโฆษณา นับคนหน้าร้าน ไปจนถึงตู้ถ่ายรูปในงานอีเวนต์ ใช้ได้ทันทีบนเบราว์เซอร์ ทั้งคอมพิวเตอร์ แท็บเล็ต และมือถือ</p>
+        <p class="pill"><span class="dot" aria-hidden="true"></span><span data-i18n="home.hero.pill">ประมวลผลบนเครื่อง · ภาษาไทยทั้งระบบ</span></p>
+        <h1 id="hero-title"><span data-i18n="home.hero.t1">เปลี่ยนกล้องธรรมดา</span><br><span data-i18n="home.hero.t2">ให้เป็น</span><span class="grad" data-i18n="home.hero.t3">ข้อมูลการตลาด</span></h1>
+        <p class="hero-lead" data-i18n="home.hero.lead">LENSIQ คือชุดระบบ Computer Vision เพื่อการตลาดและการวิเคราะห์ ตั้งแต่วัดความสนใจต่อโฆษณา นับคนหน้าร้าน ไปจนถึงตู้ถ่ายรูปในงานอีเวนต์ ใช้ได้ทันทีบนเบราว์เซอร์ ทั้งคอมพิวเตอร์ แท็บเล็ต และมือถือ</p>
         <div class="cta">
-          <a class="btn primary glow" href="cameras.html">ดูระบบทั้งหมด<svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-          <a class="btn ghost light" href="photobooth.html">ลองตู้ถ่ายรูป</a>
+          <a class="btn primary glow" href="cameras.html"><span data-i18n="home.hero.cta1">ดูระบบทั้งหมด</span><svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a class="btn ghost light" href="photobooth.html" data-i18n="home.hero.cta2">ลองตู้ถ่ายรูป</a>
         </div>
         <ul class="hero-points">
-          <li><svg class="i" aria-hidden="true"><use href="#i-tick"/></svg>ไม่ต้องติดตั้งแอป</li>
-          <li><svg class="i" aria-hidden="true"><use href="#i-tick"/></svg>ใช้กล้องที่มีอยู่</li>
-          <li><svg class="i" aria-hidden="true"><use href="#i-tick"/></svg>ออกแบบตาม PDPA</li>
+          <li><svg class="i" aria-hidden="true"><use href="#i-tick"/></svg><span data-i18n="home.hero.p1">ไม่ต้องติดตั้งแอป</span></li>
+          <li><svg class="i" aria-hidden="true"><use href="#i-tick"/></svg><span data-i18n="home.hero.p2">ใช้กล้องที่มีอยู่</span></li>
+          <li><svg class="i" aria-hidden="true"><use href="#i-tick"/></svg><span data-i18n="home.hero.p3">ออกแบบตาม PDPA</span></li>
         </ul>
       </div>
       <figure class="hero-vis">
         <div class="vis-frame">
-          <canvas id="visionCanvas" role="img" aria-label="ภาพจำลองกล้อง AI ตรวจจับผู้คน แสดงกรอบตรวจจับ ระดับความสนใจ และจุดความร้อน"></canvas>
-          <div class="vis-bar" aria-hidden="true"><span class="rec"></span>LIVE · ภาพจำลอง<span class="sp"></span>on-device</div>
+          <canvas id="visionCanvas" role="img" aria-label="ภาพจำลองกล้อง AI ตรวจจับผู้คน แสดงกรอบตรวจจับ ระดับความสนใจ และจุดความร้อน" data-i18n-attr="aria-label:home.hero.canvas"></canvas>
+          <div class="vis-bar" aria-hidden="true"><span class="rec"></span><span data-i18n="home.hero.live">LIVE · ภาพจำลอง</span><span class="sp"></span>on-device</div>
         </div>
-        <figcaption>ภาพจำลองที่สร้างจากโค้ด ไม่ใช่ภาพบุคคลจริง</figcaption>
+        <figcaption data-i18n="home.hero.caption">ภาพจำลองที่สร้างจากโค้ด ไม่ใช่ภาพบุคคลจริง</figcaption>
       </figure>
     </div>
   </section>
@@ -74,70 +75,82 @@
   <!-- PILLARS -->
   <section class="block" id="solutions" aria-labelledby="sol-title">
     <div class="wrap">
-      <p class="kicker">โซลูชัน</p>
-      <h2 id="sol-title">สามเสาหลักของ LENSIQ</h2>
-      <p class="sub">เลือกใช้เฉพาะระบบที่ต้องการ หรือรวมทุกอย่างไว้ในแดชบอร์ดเดียว</p>
-      <div class="pillars">
+      <p class="kicker" data-i18n="home.sol.kicker">โซลูชัน</p>
+      <h2 id="sol-title" data-i18n="home.sol.title">สามเสาหลักของ LENSIQ</h2>
+      <p class="sub" data-i18n="home.sol.sub">เลือกใช้เฉพาะระบบที่ต้องการ หรือรวมทุกอย่างไว้ในแดชบอร์ดเดียว</p>
+      <div class="pillars snap" tabindex="0" aria-label="โซลูชัน" data-i18n-attr="aria-label:home.sol.kicker">
         <article class="pillar">
           <span class="pi"><svg aria-hidden="true"><use href="#i-emotion"/></svg></span>
-          <h3>การตลาด</h3>
-          <p>รู้ว่าลูกค้าสนใจอะไร รู้สึกอย่างไร และตอบสนองต่อสื่อแบบไหน</p>
+          <h3 data-i18n="home.sol.mkt">การตลาด</h3>
+          <p data-i18n="home.sol.mkt.p">รู้ว่าลูกค้าสนใจอะไร รู้สึกอย่างไร และตอบสนองต่อสื่อแบบไหน</p>
           <ul class="links">
-            <li><a href="neuro.html">วิเคราะห์อารมณ์ (Neuromarketing)<svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
-            <li><a href="signage.html">ป้ายโฆษณาอัจฉริยะ &amp; คีออสก์ไร้สัมผัส<svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
-            <li><a href="customers.html">จดจำลูกค้า &amp; ประวัติการสั่ง<svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
-            <li><a href="booth.html">วิเคราะห์บูธ<svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
-            <li><a href="fortune.html">ดูดวงอัจฉริยะ: โหงวเฮ้ง ลายมือ วันเกิด ไพ่ทาโรต์<svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+            <li><a href="neuro.html"><span data-i18n="home.link.neuro">วิเคราะห์อารมณ์ (Neuromarketing)</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+            <li><a href="signage.html"><span data-i18n="home.link.signage">ป้ายโฆษณาอัจฉริยะ &amp; คีออสก์ไร้สัมผัส</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+            <li><a href="customers.html"><span data-i18n="home.link.customers">จดจำลูกค้า &amp; ประวัติการสั่ง</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+            <li><a href="booth.html"><span data-i18n="home.link.booth">วิเคราะห์บูธ</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+            <li><a href="fortune.html"><span data-i18n="home.link.fortune">ดูดวงเพื่อความบันเทิง: โหงวเฮ้ง ลายมือ วันเกิด ไพ่ทาโรต์</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
           </ul>
         </article>
         <article class="pillar">
           <span class="pi"><svg aria-hidden="true"><use href="#i-chart"/></svg></span>
-          <h3>การวิเคราะห์</h3>
-          <p>นับคน วัดเวลารอ ดูเส้นทางการเดิน และสรุปผลเป็นตัวเลขที่ตัดสินใจได้</p>
+          <h3 data-i18n="home.sol.ana">การวิเคราะห์</h3>
+          <p data-i18n="home.sol.ana.p">นับคน วัดเวลารอ ดูเส้นทางการเดิน และสรุปผลเป็นตัวเลขที่ตัดสินใจได้</p>
           <ul class="links">
-            <li><a href="store.html">วิเคราะห์หน้าร้าน (Traffic · Heatmap · คิว)<svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
-            <li><a href="insights.html">แดชบอร์ดรวม<svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
-            <li><a href="checkout.html">สแกนสินค้าด้วยกล้อง<svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+            <li><a href="store.html"><span data-i18n="home.link.store">วิเคราะห์หน้าร้าน (Traffic · Heatmap · คิว)</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+            <li><a href="insights.html"><span data-i18n="home.link.insights">แดชบอร์ดรวม</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+            <li><a href="checkout.html"><span data-i18n="home.link.checkout">สแกนสินค้าด้วยกล้อง</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
           </ul>
         </article>
         <article class="pillar">
           <span class="pi"><svg aria-hidden="true"><use href="#i-camera"/></svg></span>
-          <h3>ตู้สติ๊กเกอร์ &amp; ภาพถ่าย</h3>
-          <p>สร้างคอนเทนต์ให้แบรนด์ในงาน พร้อมกรอบ สติ๊กเกอร์ และรูปติดบัตร</p>
+          <h3 data-i18n="home.sol.photo">ตู้สติ๊กเกอร์ &amp; ภาพถ่าย</h3>
+          <p data-i18n="home.sol.photo.p">สร้างคอนเทนต์ให้แบรนด์ในงาน พร้อมกรอบ สติ๊กเกอร์ และรูปติดบัตร</p>
           <ul class="links">
-            <li><a href="photobooth.html">ตู้สติ๊กเกอร์ (Photo booth)<svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
-            <li><a href="photobooth.html">รูปติดบัตร &amp; เปลี่ยนชุด<svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+            <li><a href="photobooth.html"><span data-i18n="home.link.photobooth">ตู้สติ๊กเกอร์ (Photo booth) &amp; รูปติดบัตร</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+            <li><a href="studio.html"><span data-i18n="home.link.studio">สตูดิโอแต่งชุด &amp; ตัดพื้นหลัง</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
           </ul>
         </article>
       </div>
     </div>
   </section>
 
-  <!-- HOW -->
+  <!-- HOW + HARDWARE -->
   <section class="block alt" id="how" aria-labelledby="how-title">
     <div class="wrap">
-      <p class="kicker">ทำงานอย่างไร</p>
-      <h2 id="how-title">เริ่มใช้งานได้ใน 3 ขั้นตอน</h2>
+      <p class="kicker" data-i18n="home.how.kicker">ทำงานอย่างไร</p>
+      <h2 id="how-title" data-i18n="home.how.title">เริ่มใช้งานได้ใน 3 ขั้นตอน</h2>
       <ol class="steps">
         <li>
           <span class="num" aria-hidden="true">1</span>
           <span class="si"><svg aria-hidden="true"><use href="#i-plug"/></svg></span>
-          <h3>เชื่อมกล้อง</h3>
-          <p>เปิดหน้าเว็บของระบบ แล้วอนุญาตให้ใช้กล้อง ใช้ได้ทั้งเว็บแคม กล้อง USB มือถือ หรือแท็บเล็ต</p>
+          <h3 data-i18n="home.how.s1">เชื่อมกล้อง</h3>
+          <p data-i18n="home.how.s1.p">เปิดหน้าเว็บของระบบ แล้วอนุญาตให้ใช้กล้อง ใช้ได้ทั้งเว็บแคม กล้อง USB มือถือ หรือแท็บเล็ต</p>
         </li>
         <li>
           <span class="num" aria-hidden="true">2</span>
           <span class="si"><svg aria-hidden="true"><use href="#i-cpu"/></svg></span>
-          <h3>AI ประมวลผลบนเครื่อง</h3>
-          <p>โมเดลทำงานในเบราว์เซอร์ของอุปกรณ์หน้างาน ภาพไม่ถูกส่งออกไปที่ใด เหลือเพียงตัวเลขสถิติ</p>
+          <h3 data-i18n="home.how.s2">ประมวลผลบนเครื่อง</h3>
+          <p data-i18n="home.how.s2.p">โมเดลทำงานในเบราว์เซอร์ของอุปกรณ์หน้างาน ภาพไม่ถูกส่งออกไปที่ใด เหลือเพียงตัวเลขสถิติ</p>
         </li>
         <li>
           <span class="num" aria-hidden="true">3</span>
           <span class="si"><svg aria-hidden="true"><use href="#i-dash"/></svg></span>
-          <h3>แดชบอร์ด &amp; รายงาน</h3>
-          <p>ดูผลแบบเรียลไทม์ เปรียบเทียบช่วงเวลา และส่งออกเป็นไฟล์เพื่อนำไปประชุมหรือทำรายงานต่อ</p>
+          <h3 data-i18n="home.how.s3">แดชบอร์ด &amp; รายงาน</h3>
+          <p data-i18n="home.how.s3.p">ดูผลแบบเรียลไทม์ เปรียบเทียบช่วงเวลา และส่งออกเป็นไฟล์เพื่อนำไปประชุมหรือทำรายงานต่อ</p>
         </li>
       </ol>
+      <div class="hw" id="hardware">
+        <div>
+          <h3 id="hw-title" class="hw-title" data-i18n="home.hw.title">ใช้อุปกรณ์ที่มีอยู่แล้วได้เลย</h3>
+          <p class="hw-sub" data-i18n="home.hw.sub">ทุกระบบทำงานผ่านเบราว์เซอร์รุ่นใหม่ (Chrome, Edge, Safari) รวมถึงเบราว์เซอร์บนมือถือ ไม่ต้องติดตั้งโปรแกรมเพิ่ม</p>
+        </div>
+        <ul class="hw-list" aria-labelledby="hw-title">
+          <li><svg aria-hidden="true"><use href="#i-webcam"/></svg><b data-i18n="home.hw.webcam">เว็บแคม</b><span data-i18n="home.hw.webcam.p">ติดโน้ตบุ๊กหรือจอ</span></li>
+          <li><svg aria-hidden="true"><use href="#i-phone"/></svg><b data-i18n="home.hw.phone">มือถือ</b><span data-i18n="home.hw.phone.p">กล้องหน้าหรือหลัง</span></li>
+          <li><svg aria-hidden="true"><use href="#i-tablet"/></svg><b data-i18n="home.hw.tablet">แท็บเล็ต</b><span data-i18n="home.hw.tablet.p">เหมาะกับคีออสก์และตู้ถ่ายรูป</span></li>
+          <li><svg aria-hidden="true"><use href="#i-usb"/></svg><b data-i18n="home.hw.usb">กล้อง USB</b><span data-i18n="home.hw.usb.p">สำหรับมุมสูงหรือไลน์ผลิต</span></li>
+        </ul>
+      </div>
     </div>
   </section>
 
@@ -145,16 +158,16 @@
   <section class="block dark" id="privacy" aria-labelledby="pv-title">
     <div class="wrap pv">
       <div class="pv-copy">
-        <p class="kicker light">ความเป็นส่วนตัว</p>
-        <h2 id="pv-title">PDPA by design</h2>
-        <p>เราออกแบบทุกระบบโดยตั้งต้นจากความเป็นส่วนตัวของผู้คนหน้ากล้อง เพื่อให้ธุรกิจใช้ข้อมูลได้อย่างมั่นใจ</p>
-        <p class="pv-note">หมายเหตุ: การใช้งานจริงควรติดป้ายแจ้งเตือนกล้อง และขอความยินยอมในกรณีที่ต้องจดจำบุคคล ผลประเมินเพศ อายุ และอารมณ์เป็นการคาดคะเนที่อาจคลาดเคลื่อน</p>
+        <p class="kicker light" data-i18n="home.pv.kicker">ความเป็นส่วนตัว</p>
+        <h2 id="pv-title" data-i18n="home.pv.title">PDPA by design</h2>
+        <p data-i18n="home.pv.p">เราออกแบบทุกระบบโดยตั้งต้นจากความเป็นส่วนตัวของผู้คนหน้ากล้อง เพื่อให้ธุรกิจใช้ข้อมูลได้อย่างมั่นใจ</p>
+        <p class="pv-note" data-i18n="home.pv.note">หมายเหตุ: การใช้งานจริงควรติดป้ายแจ้งเตือนกล้อง และขอความยินยอมในกรณีที่ต้องจดจำบุคคล ผลประเมินเพศ อายุ และอารมณ์เป็นการคาดคะเนที่อาจคลาดเคลื่อน</p>
       </div>
       <ul class="pv-list">
-        <li><svg aria-hidden="true"><use href="#i-cpu"/></svg><div><b>ประมวลผลบนเครื่อง</b><span>ภาพจากกล้องไม่ถูกอัปโหลดขึ้นคลาวด์</span></div></li>
-        <li><svg aria-hidden="true"><use href="#i-blur"/></svg><div><b>ไม่เก็บภาพใบหน้า</b><span>บันทึกเฉพาะสถิติแบบไม่ระบุตัวตน</span></div></li>
-        <li><svg aria-hidden="true"><use href="#i-sign"/></svg><div><b>ขอความยินยอมก่อนจดจำ</b><span>ระบบจดจำลูกค้าทำงานเฉพาะคนที่ยินยอม</span></div></li>
-        <li><svg aria-hidden="true"><use href="#i-trash"/></svg><div><b>ลบข้อมูลได้ทันที</b><span>ล้างข้อมูลทั้งหมดได้ในคลิกเดียว</span></div></li>
+        <li><svg aria-hidden="true"><use href="#i-cpu"/></svg><div><b data-i18n="home.pv.l1">ประมวลผลบนเครื่อง</b><span data-i18n="home.pv.l1.p">ภาพจากกล้องไม่ถูกอัปโหลดขึ้นคลาวด์</span></div></li>
+        <li><svg aria-hidden="true"><use href="#i-blur"/></svg><div><b data-i18n="home.pv.l2">ไม่เก็บภาพใบหน้า</b><span data-i18n="home.pv.l2.p">ระบบนับคนบันทึกเฉพาะสถิติแบบไม่ระบุตัวตน</span></div></li>
+        <li><svg aria-hidden="true"><use href="#i-lock"/></svg><div><b data-i18n="home.pv.l3">ยินยอมก่อนจดจำ · เข้ารหัส</b><span data-i18n="home.pv.l3.p">จดจำเฉพาะคนที่ยินยอม ค่าใบหน้าเข้ารหัสในเครื่อง (ต้องเปิดผ่าน https)</span></div></li>
+        <li><svg aria-hidden="true"><use href="#i-trash"/></svg><div><b data-i18n="home.pv.l4">ลบข้อมูลได้ทันที</b><span data-i18n="home.pv.l4.p">กำหนดระยะเวลาเก็บ และล้างข้อมูลทั้งหมดได้ในคลิกเดียว</span></div></li>
       </ul>
     </div>
   </section>
@@ -162,205 +175,188 @@
   <!-- USE CASES -->
   <section class="block" id="usecases" aria-labelledby="uc-title">
     <div class="wrap">
-      <p class="kicker">ตัวอย่างการใช้งาน</p>
-      <h2 id="uc-title">เหมาะกับใครบ้าง</h2>
-      <p class="sub">ตัวอย่างสถานการณ์ที่ระบบช่วยตอบคำถามทางธุรกิจได้</p>
-      <div class="cases">
+      <p class="kicker" data-i18n="home.uc.kicker">ตัวอย่างการใช้งาน</p>
+      <h2 id="uc-title" data-i18n="home.uc.title">เหมาะกับใครบ้าง</h2>
+      <p class="sub" data-i18n="home.uc.sub">ตัวอย่างสถานการณ์ที่ระบบช่วยตอบคำถามทางธุรกิจได้</p>
+      <div class="cases snap" tabindex="0" aria-label="ตัวอย่างการใช้งาน" data-i18n-attr="aria-label:home.uc.kicker">
         <article class="case">
           <span class="ci"><svg aria-hidden="true"><use href="#i-event"/></svg></span>
-          <h3>งานอีเวนต์ / บูธ</h3>
-          <p>นับผู้เข้าชมบูธ วัดเวลาหยุดชม และให้ตู้ถ่ายรูปดึงคนเข้าบูธ พร้อมสรุปผลหลังจบงาน</p>
-          <p class="uses">ใช้ร่วมกับ: <a href="booth.html">วิเคราะห์บูธ</a> · <a href="photobooth.html">ตู้ถ่ายรูป</a></p>
+          <h3 data-i18n="home.uc.event">งานอีเวนต์ / บูธ</h3>
+          <p data-i18n="home.uc.event.p">นับผู้เข้าชมบูธ วัดเวลาหยุดชม และให้ตู้ถ่ายรูปดึงคนเข้าบูธ พร้อมสรุปผลหลังจบงาน</p>
+          <p class="uses"><span data-i18n="home.uc.uses">ใช้ร่วมกับ:</span> <a href="booth.html" data-i18n="home.link.booth">วิเคราะห์บูธ</a> · <a href="photobooth.html" data-i18n="nav.photobooth.title">ตู้ถ่ายรูป</a></p>
         </article>
         <article class="case">
           <span class="ci"><svg aria-hidden="true"><use href="#i-store"/></svg></span>
-          <h3>ร้านค้าปลีก</h3>
-          <p>ดูช่วงเวลาที่คนเข้าร้านมากที่สุด โซนที่คนเดินผ่าน และความยาวคิว เพื่อจัดพนักงานให้พอดี</p>
-          <p class="uses">ใช้ร่วมกับ: <a href="store.html">วิเคราะห์หน้าร้าน</a> · <a href="signage.html">ป้ายอัจฉริยะ</a></p>
+          <h3 data-i18n="home.uc.retail">ร้านค้าปลีก</h3>
+          <p data-i18n="home.uc.retail.p">ดูช่วงเวลาที่คนเข้าร้านมากที่สุด โซนที่คนเดินผ่าน และความยาวคิว เพื่อจัดพนักงานให้พอดี</p>
+          <p class="uses"><span data-i18n="home.uc.uses">ใช้ร่วมกับ:</span> <a href="store.html" data-i18n="nav.store.title">วิเคราะห์หน้าร้าน</a> · <a href="signage.html" data-i18n="home.uc.signage">ป้ายอัจฉริยะ</a></p>
         </article>
         <article class="case">
           <span class="ci"><svg aria-hidden="true"><use href="#i-box"/></svg></span>
-          <h3>ทดสอบโฆษณา / บรรจุภัณฑ์</h3>
-          <p>ให้กลุ่มตัวอย่างดูสื่อหรือแพ็กเกจจิ้งหลายแบบ แล้วเทียบความสนใจและอารมณ์ทีละวินาที</p>
-          <p class="uses">ใช้ร่วมกับ: <a href="neuro.html">Neuromarketing</a></p>
+          <h3 data-i18n="home.uc.ad">ทดสอบโฆษณา / บรรจุภัณฑ์</h3>
+          <p data-i18n="home.uc.ad.p">ให้กลุ่มตัวอย่างดูสื่อหรือแพ็กเกจจิ้งหลายแบบ แล้วเทียบความสนใจและอารมณ์ทีละวินาที</p>
+          <p class="uses"><span data-i18n="home.uc.uses">ใช้ร่วมกับ:</span> <a href="neuro.html">Neuromarketing</a></p>
         </article>
         <article class="case">
           <span class="ci"><svg aria-hidden="true"><use href="#i-org"/></svg></span>
-          <h3>องค์กร</h3>
-          <p>เช็คชื่ออบรมด้วยใบหน้า ตรวจคุณภาพบนไลน์ผลิต และเฝ้าระวังความง่วงของพนักงานขับรถ</p>
-          <p class="uses">ใช้ร่วมกับ: <a href="attendance.html">เช็คชื่อ</a> · <a href="qc.html">QC</a> · <a href="driver.html">คนขับ</a></p>
+          <h3 data-i18n="home.uc.org">องค์กร</h3>
+          <p data-i18n="home.uc.org.p">เช็คชื่ออบรมด้วยใบหน้า ตรวจคุณภาพบนไลน์ผลิต และเฝ้าระวังความง่วงของพนักงานขับรถ</p>
+          <p class="uses"><span data-i18n="home.uc.uses">ใช้ร่วมกับ:</span> <a href="attendance.html" data-i18n="home.uc.att">เช็คชื่อ</a> · <a href="qc.html">QC</a> · <a href="driver.html" data-i18n="home.uc.driver">คนขับ</a></p>
         </article>
       </div>
-    </div>
-  </section>
-
-  <!-- HARDWARE -->
-  <section class="block alt" id="hardware" aria-labelledby="hw-title">
-    <div class="wrap hw">
-      <div>
-        <p class="kicker">อุปกรณ์ที่ต้องใช้</p>
-        <h2 id="hw-title" class="left">ใช้อุปกรณ์ที่มีอยู่แล้วได้เลย</h2>
-        <p class="sub left">ทุกระบบทำงานผ่านเบราว์เซอร์รุ่นใหม่ (Chrome, Edge, Safari) รวมถึงเบราว์เซอร์บนมือถือ ไม่ต้องติดตั้งโปรแกรมเพิ่ม</p>
-      </div>
-      <ul class="hw-list">
-        <li><svg aria-hidden="true"><use href="#i-webcam"/></svg><b>เว็บแคม</b><span>ติดโน้ตบุ๊กหรือจอ</span></li>
-        <li><svg aria-hidden="true"><use href="#i-phone"/></svg><b>มือถือ</b><span>กล้องหน้าหรือหลัง</span></li>
-        <li><svg aria-hidden="true"><use href="#i-tablet"/></svg><b>แท็บเล็ต</b><span>เหมาะกับคีออสก์และตู้ถ่ายรูป</span></li>
-        <li><svg aria-hidden="true"><use href="#i-usb"/></svg><b>กล้อง USB</b><span>สำหรับมุมสูงหรือไลน์ผลิต</span></li>
-      </ul>
     </div>
   </section>
 
   <!-- PACKAGES -->
-  <section class="block" id="packages" aria-labelledby="pk-title">
+  <section class="block alt" id="packages" aria-labelledby="pk-title">
     <div class="wrap">
-      <p class="kicker">แพ็กเกจ</p>
-      <h2 id="pk-title">เลือกแพ็กเกจที่เหมาะกับงาน</h2>
-      <p class="sub">ราคาขึ้นกับจำนวนจุดติดตั้งและระยะเวลาใช้งาน กรุณาติดต่อฝ่ายขายเพื่อรับใบเสนอราคา</p>
-      <div class="plans">
+      <p class="kicker" data-i18n="home.pk.kicker">แพ็กเกจ</p>
+      <h2 id="pk-title" data-i18n="home.pk.title">เลือกแพ็กเกจที่เหมาะกับงาน</h2>
+      <p class="sub" data-i18n="home.pk.sub">ราคาขึ้นกับจำนวนจุดติดตั้งและระยะเวลาใช้งาน กรุณาติดต่อฝ่ายขายเพื่อรับใบเสนอราคา</p>
+      <div class="plans snap" tabindex="0" aria-label="แพ็กเกจ" data-i18n-attr="aria-label:home.pk.kicker">
         <article class="plan">
           <h3>Starter</h3>
-          <p class="for">สำหรับร้านค้าหรือทีมที่อยากเริ่มทดลอง</p>
-          <p class="pp">ติดต่อฝ่ายขาย</p>
+          <p class="for" data-i18n="home.pk.s.for">สำหรับร้านค้าหรือทีมที่อยากเริ่มทดลอง</p>
+          <p class="pp" data-i18n="home.pk.contact">ติดต่อฝ่ายขาย</p>
           <ul>
-            <li>เลือกได้ 1 ระบบ</li>
-            <li>1 จุดติดตั้ง</li>
-            <li>แดชบอร์ดพื้นฐาน</li>
-            <li>คู่มือการติดตั้งภาษาไทย</li>
+            <li data-i18n="home.pk.s.1">เลือกได้ 1 ระบบ</li>
+            <li data-i18n="home.pk.s.2">1 จุดติดตั้ง</li>
+            <li data-i18n="home.pk.s.3">แดชบอร์ดพื้นฐาน</li>
+            <li data-i18n="home.pk.s.4">คู่มือการติดตั้งภาษาไทย</li>
           </ul>
-          <a class="btn ghost full" href="#contact" data-plan="Starter">ขอใบเสนอราคา</a>
+          <a class="btn ghost full" href="#contact" data-plan="Starter" data-i18n="home.pk.quote">ขอใบเสนอราคา</a>
         </article>
         <article class="plan featured">
-          <p class="ribbon">เหมาะกับงานอีเวนต์</p>
+          <p class="ribbon" data-i18n="home.pk.e.ribbon">เหมาะกับงานอีเวนต์</p>
           <h3>Event</h3>
-          <p class="for">สำหรับบูธ งานแสดงสินค้า และกิจกรรมระยะสั้น</p>
-          <p class="pp">ติดต่อฝ่ายขาย</p>
+          <p class="for" data-i18n="home.pk.e.for">สำหรับบูธ งานแสดงสินค้า และกิจกรรมระยะสั้น</p>
+          <p class="pp" data-i18n="home.pk.contact">ติดต่อฝ่ายขาย</p>
           <ul>
-            <li>วิเคราะห์บูธ + ตู้ถ่ายรูป</li>
-            <li>ปรับกรอบรูปตามแบรนด์</li>
-            <li>รายงานสรุปหลังจบงาน</li>
-            <li>ทีมช่วยติดตั้งหน้างาน</li>
+            <li data-i18n="home.pk.e.1">วิเคราะห์บูธ + ตู้ถ่ายรูป</li>
+            <li data-i18n="home.pk.e.2">ปรับกรอบรูปตามแบรนด์</li>
+            <li data-i18n="home.pk.e.3">รายงานสรุปหลังจบงาน</li>
+            <li data-i18n="home.pk.e.4">ทีมช่วยติดตั้งหน้างาน</li>
           </ul>
-          <a class="btn primary full" href="#contact" data-plan="Event">ขอใบเสนอราคา</a>
+          <a class="btn primary full" href="#contact" data-plan="Event" data-i18n="home.pk.quote">ขอใบเสนอราคา</a>
         </article>
         <article class="plan">
           <h3>Enterprise</h3>
-          <p class="for">สำหรับหลายสาขาหรือการใช้งานระยะยาว</p>
-          <p class="pp">ติดต่อฝ่ายขาย</p>
+          <p class="for" data-i18n="home.pk.n.for">สำหรับหลายสาขาหรือการใช้งานระยะยาว</p>
+          <p class="pp" data-i18n="home.pk.contact">ติดต่อฝ่ายขาย</p>
           <ul>
-            <li>เลือกใช้ได้ทุกระบบ</li>
-            <li>หลายจุดติดตั้ง / หลายสาขา</li>
-            <li>แดชบอร์ดรวมและส่งออกข้อมูล</li>
-            <li>ที่ปรึกษาด้าน PDPA</li>
+            <li data-i18n="home.pk.n.1">เลือกใช้ได้ทุกระบบ</li>
+            <li data-i18n="home.pk.n.2">หลายจุดติดตั้ง / หลายสาขา</li>
+            <li data-i18n="home.pk.n.3">แดชบอร์ดรวมและส่งออกข้อมูล</li>
+            <li data-i18n="home.pk.n.4">ที่ปรึกษาด้าน PDPA</li>
           </ul>
-          <a class="btn ghost full" href="#contact" data-plan="Enterprise">ขอใบเสนอราคา</a>
+          <a class="btn ghost full" href="#contact" data-plan="Enterprise" data-i18n="home.pk.quote">ขอใบเสนอราคา</a>
         </article>
       </div>
     </div>
   </section>
 
   <!-- FAQ -->
-  <section class="block alt" id="faq" aria-labelledby="faq-title">
+  <section class="block" id="faq" aria-labelledby="faq-title">
     <div class="wrap narrow">
-      <p class="kicker">คำถามที่พบบ่อย</p>
+      <p class="kicker" data-i18n="home.faq.kicker">คำถามที่พบบ่อย</p>
       <h2 id="faq-title">FAQ</h2>
       <div class="faq">
         <details>
-          <summary>ต้องซื้อกล้องใหม่ไหม</summary>
-          <p>ไม่จำเป็น ใช้เว็บแคม กล้องโน้ตบุ๊ก มือถือ หรือแท็บเล็ตที่มีอยู่ได้ ส่วนงานที่ต้องการมุมสูงหรือภาพนิ่งบนไลน์ผลิตอาจแนะนำกล้อง USB เพิ่มเติม</p>
+          <summary data-i18n="home.faq.q1">ต้องซื้อกล้องใหม่ไหม</summary>
+          <p data-i18n="home.faq.a1">ไม่จำเป็น ใช้เว็บแคม กล้องโน้ตบุ๊ก มือถือ หรือแท็บเล็ตที่มีอยู่ได้ ส่วนงานที่ต้องการมุมสูงหรือภาพนิ่งบนไลน์ผลิตอาจแนะนำกล้อง USB เพิ่มเติม</p>
         </details>
         <details>
-          <summary>ภาพจากกล้องถูกส่งขึ้นคลาวด์หรือไม่</summary>
-          <p>ไม่ ระบบประมวลผลในเบราว์เซอร์ของอุปกรณ์หน้างาน และบันทึกเฉพาะตัวเลขสถิติ เช่น จำนวนคนหรือระยะเวลาหยุดชม</p>
+          <summary data-i18n="home.faq.q2">ภาพจากกล้องถูกส่งขึ้นคลาวด์หรือไม่</summary>
+          <p data-i18n="home.faq.a2">ไม่ ระบบประมวลผลในเบราว์เซอร์ของอุปกรณ์หน้างาน และบันทึกเฉพาะตัวเลขสถิติ เช่น จำนวนคนหรือระยะเวลาหยุดชม ฟีเจอร์เสริมที่ส่งข้อมูลออก (เช่น เรียบเรียงคำทำนายด้วย Claude) จะถามความยินยอมก่อนทุกครั้ง</p>
         </details>
         <details>
-          <summary>ใช้งานบนมือถือได้หรือไม่</summary>
-          <p>ได้ หน้าเว็บรองรับหน้าจอมือถือ และใช้กล้องของมือถือได้โดยตรง สำหรับการใช้งานต่อเนื่องหลายชั่วโมงแนะนำให้ต่อสายชาร์จไว้</p>
+          <summary data-i18n="home.faq.q3">ใช้งานบนมือถือได้หรือไม่</summary>
+          <p data-i18n="home.faq.a3">ได้ หน้าเว็บรองรับหน้าจอมือถือ และใช้กล้องของมือถือได้โดยตรง (ต้องเปิดผ่าน https) สำหรับการใช้งานต่อเนื่องหลายชั่วโมงแนะนำให้ต่อสายชาร์จไว้</p>
         </details>
         <details>
-          <summary>ต้องขอความยินยอมตาม PDPA อย่างไร</summary>
-          <p>ควรติดป้ายแจ้งว่ามีการใช้กล้องวิเคราะห์ในพื้นที่ และขอความยินยอมเป็นรายบุคคลสำหรับระบบที่จดจำใบหน้า เช่น จดจำลูกค้าหรือเช็คชื่อ ทีมงานช่วยแนะนำแนวทางได้</p>
+          <summary data-i18n="home.faq.q4">ต้องขอความยินยอมตาม PDPA อย่างไร</summary>
+          <p data-i18n="home.faq.a4">ควรติดป้ายแจ้งว่ามีการใช้กล้องวิเคราะห์ในพื้นที่ และขอความยินยอมโดยชัดแจ้งเป็นรายบุคคลสำหรับระบบที่จดจำใบหน้า เช่น จดจำลูกค้าหรือเช็คชื่อ มีตัวอย่างข้อความยินยอมและแบบประเมิน DPIA ให้ใช้</p>
         </details>
         <details>
-          <summary>ความแม่นยำของการประเมินอายุ เพศ และอารมณ์เป็นอย่างไร</summary>
-          <p>เป็นการคาดคะเนจากภาพ ซึ่งขึ้นกับแสง มุมกล้อง และระยะห่าง จึงเหมาะกับการดูแนวโน้มของกลุ่มมากกว่าการตัดสินรายบุคคล</p>
+          <summary data-i18n="home.faq.q5">ความแม่นยำของการประเมินอายุ เพศ และอารมณ์เป็นอย่างไร</summary>
+          <p data-i18n="home.faq.a5">เป็นการคาดคะเนจากภาพ ซึ่งขึ้นกับแสง มุมกล้อง และระยะห่าง จึงเหมาะกับการดูแนวโน้มของกลุ่มมากกว่าการตัดสินรายบุคคล</p>
         </details>
         <details>
-          <summary>เชื่อมต่อกับระบบอื่นได้ไหม</summary>
-          <p>ส่งออกข้อมูลเป็นไฟล์ CSV ได้ และบางระบบส่งข้อมูลผ่าน Webhook ได้ สำหรับการเชื่อมต่อเฉพาะทางสามารถพูดคุยกับฝ่ายขายได้</p>
+          <summary data-i18n="home.faq.q6">เชื่อมต่อกับระบบอื่นได้ไหม</summary>
+          <p data-i18n="home.faq.a6">ส่งออกข้อมูลเป็นไฟล์ CSV ได้ และบางระบบส่งข้อมูลผ่าน Webhook ได้ สำหรับการเชื่อมต่อเฉพาะทางสามารถพูดคุยกับฝ่ายขายได้</p>
         </details>
       </div>
     </div>
   </section>
 
   <!-- CONTACT -->
-  <section class="block" id="contact" aria-labelledby="ct-title">
+  <section class="block alt" id="contact" aria-labelledby="ct-title">
     <div class="wrap contact">
       <div class="ct-copy">
-        <p class="kicker">ขอเดโม</p>
-        <h2 id="ct-title" class="left">นัดสาธิตระบบกับทีมงาน</h2>
-        <p class="sub left">บอกเราว่าสนใจระบบไหน ทีมงานจะติดต่อกลับเพื่อสาธิตกับกล้องจริงและประเมินจุดติดตั้ง</p>
+        <p class="kicker" data-i18n="home.ct.kicker">ขอเดโม</p>
+        <h2 id="ct-title" class="left" data-i18n="home.ct.title">นัดสาธิตระบบกับทีมงาน</h2>
+        <p class="sub left" data-i18n="home.ct.sub">บอกเราว่าสนใจระบบไหน ทีมงานจะติดต่อกลับเพื่อสาธิตกับกล้องจริงและประเมินจุดติดตั้ง</p>
         <ul class="ct-points">
-          <li><svg aria-hidden="true"><use href="#i-tick"/></svg>สาธิตออนไลน์หรือที่หน้างาน</li>
-          <li><svg aria-hidden="true"><use href="#i-tick"/></svg>แนะนำอุปกรณ์ที่เหมาะสม</li>
-          <li><svg aria-hidden="true"><use href="#i-tick"/></svg>แนวทาง PDPA สำหรับธุรกิจของคุณ</li>
+          <li><svg aria-hidden="true"><use href="#i-tick"/></svg><span data-i18n="home.ct.p1">สาธิตออนไลน์หรือที่หน้างาน</span></li>
+          <li><svg aria-hidden="true"><use href="#i-tick"/></svg><span data-i18n="home.ct.p2">แนะนำอุปกรณ์ที่เหมาะสม</span></li>
+          <li><svg aria-hidden="true"><use href="#i-tick"/></svg><span data-i18n="home.ct.p3">แนวทาง PDPA สำหรับธุรกิจของคุณ</span></li>
         </ul>
       </div>
       <form id="leadForm" novalidate>
-        <p class="demo-note" role="note"><b>โหมดเดโม:</b> แบบฟอร์มนี้ไม่ได้ส่งข้อมูลไปที่ใด ข้อมูลจะถูกเก็บไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น</p>
+        <p class="demo-note" role="note"><b data-i18n="home.form.demo.b">โหมดเดโม:</b> <span data-i18n="home.form.demo">แบบฟอร์มนี้ไม่ได้ส่งข้อมูลไปที่ใด ข้อมูลจะถูกเก็บไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น</span></p>
         <div class="f2">
           <div class="field">
-            <label for="lqName">ชื่อ–นามสกุล <span class="req" aria-hidden="true">*</span></label>
+            <label for="lqName"><span data-i18n="home.form.name">ชื่อ–นามสกุล</span> <span class="req" aria-hidden="true">*</span></label>
             <input id="lqName" name="name" autocomplete="name" required aria-describedby="lqNameErr">
             <p class="err" id="lqNameErr" aria-live="polite"></p>
           </div>
           <div class="field">
-            <label for="lqOrg">บริษัท / หน่วยงาน</label>
+            <label for="lqOrg" data-i18n="home.form.org">บริษัท / หน่วยงาน</label>
             <input id="lqOrg" name="org" autocomplete="organization">
           </div>
         </div>
         <div class="f2">
           <div class="field">
-            <label for="lqEmail">อีเมล <span class="req" aria-hidden="true">*</span></label>
+            <label for="lqEmail"><span data-i18n="home.form.email">อีเมล</span> <span class="req" aria-hidden="true">*</span></label>
             <input id="lqEmail" name="email" type="email" autocomplete="email" inputmode="email" required aria-describedby="lqEmailErr">
             <p class="err" id="lqEmailErr" aria-live="polite"></p>
           </div>
           <div class="field">
-            <label for="lqPhone">เบอร์โทร</label>
+            <label for="lqPhone" data-i18n="home.form.phone">เบอร์โทร</label>
             <input id="lqPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel" aria-describedby="lqPhoneErr">
             <p class="err" id="lqPhoneErr" aria-live="polite"></p>
           </div>
         </div>
         <div class="field">
-          <label for="lqInterest">สนใจด้านใด <span class="req" aria-hidden="true">*</span></label>
+          <label for="lqInterest"><span data-i18n="home.form.interest">สนใจด้านใด</span> <span class="req" aria-hidden="true">*</span></label>
           <select id="lqInterest" name="interest" required aria-describedby="lqInterestErr">
-            <option value="">— เลือก —</option>
-            <option>การตลาด (Neuromarketing / ป้ายอัจฉริยะ / บูธ)</option>
-            <option>การวิเคราะห์หน้าร้าน</option>
-            <option>ตู้ถ่ายรูป</option>
-            <option>ระบบเสริม (QC / คนขับ / เช็คชื่อ)</option>
-            <option>ยังไม่แน่ใจ อยากปรึกษา</option>
+            <option value="" data-i18n="home.form.choose">— เลือก —</option>
+            <option value="marketing" data-i18n="home.form.i1">การตลาด (Neuromarketing / ป้ายอัจฉริยะ / บูธ)</option>
+            <option value="store" data-i18n="home.form.i2">การวิเคราะห์หน้าร้าน</option>
+            <option value="photobooth" data-i18n="home.form.i3">ตู้ถ่ายรูป</option>
+            <option value="addons" data-i18n="home.form.i4">ระบบเสริม (QC / คนขับ / เช็คชื่อ)</option>
+            <option value="unsure" data-i18n="home.form.i5">ยังไม่แน่ใจ อยากปรึกษา</option>
           </select>
           <p class="err" id="lqInterestErr" aria-live="polite"></p>
         </div>
         <div class="field">
-          <label for="lqPlan">แพ็กเกจที่สนใจ</label>
+          <label for="lqPlan" data-i18n="home.form.plan">แพ็กเกจที่สนใจ</label>
           <select id="lqPlan" name="plan">
-            <option value="">ยังไม่ระบุ</option>
-            <option>Starter</option>
-            <option>Event</option>
-            <option>Enterprise</option>
+            <option value="" data-i18n="home.form.plan.none">ยังไม่ระบุ</option>
+            <option value="Starter">Starter</option>
+            <option value="Event">Event</option>
+            <option value="Enterprise">Enterprise</option>
           </select>
         </div>
         <div class="field">
-          <label for="lqMsg">รายละเอียดเพิ่มเติม</label>
-          <textarea id="lqMsg" name="message" rows="3" maxlength="1000" placeholder="เช่น จำนวนสาขา วันจัดงาน หรือคำถามอื่น ๆ"></textarea>
+          <label for="lqMsg" data-i18n="home.form.msg">รายละเอียดเพิ่มเติม</label>
+          <textarea id="lqMsg" name="message" rows="3" maxlength="1000" placeholder="เช่น จำนวนสาขา วันจัดงาน หรือคำถามอื่น ๆ" data-i18n-attr="placeholder:home.form.msg.ph"></textarea>
         </div>
         <div class="field">
-          <label class="check"><input type="checkbox" id="lqConsent" name="consent" required aria-describedby="lqConsentErr"> ยินยอมให้ติดต่อกลับตามข้อมูลที่ให้ไว้</label>
+          <label class="check"><input type="checkbox" id="lqConsent" name="consent" required aria-describedby="lqConsentErr"> <span data-i18n="home.form.consent">ยินยอมให้ติดต่อกลับตามข้อมูลที่ให้ไว้</span></label>
           <p class="err" id="lqConsentErr" aria-live="polite"></p>
         </div>
-        <button class="btn primary full" type="submit">ส่งคำขอเดโม</button>
+        <button class="btn primary full" type="submit" data-i18n="home.form.submit">ส่งคำขอเดโม</button>
         <p class="form-msg" id="leadMsg" role="status" aria-live="polite"></p>
       </form>
     </div>
@@ -371,16 +367,17 @@
   <div class="foot-grid">
     <div class="foot-brand">
       <a class="logo light" href="index.html">LENS<span>IQ</span></a>
-      <p>Computer Vision เพื่อการตลาดและการวิเคราะห์</p>
+      <p data-i18n="foot.tagline">Computer Vision เพื่อการตลาดและการวิเคราะห์</p>
     </div>
-    <nav aria-label="การตลาด"><h3>การตลาด</h3><a href="neuro.html">วิเคราะห์อารมณ์</a><a href="signage.html">ป้ายโฆษณาอัจฉริยะ</a><a href="customers.html">จดจำลูกค้า</a><a href="booth.html">วิเคราะห์บูธ</a><a href="faceread.html">โหงวเฮ้ง AI</a></nav>
-    <nav aria-label="วิเคราะห์"><h3>วิเคราะห์</h3><a href="store.html">วิเคราะห์หน้าร้าน</a><a href="insights.html">แดชบอร์ดรวม</a><a href="checkout.html">สแกนสินค้า</a></nav>
-    <nav aria-label="ตู้ถ่ายรูปและระบบเสริม"><h3>ตู้ถ่ายรูป &amp; ระบบเสริม</h3><a href="photobooth.html">ตู้ถ่ายรูป</a><a href="qc.html">ตรวจคุณภาพสินค้า</a><a href="driver.html">ความง่วงคนขับ</a><a href="attendance.html">เช็คชื่อด้วยใบหน้า</a></nav>
-    <nav aria-label="เครื่องมือ"><h3>เครื่องมือ</h3><a href="converter.html">แปลง PDF เป็น Word</a><a href="cameras.html">ระบบทั้งหมด</a><a href="#contact">ขอเดโม</a></nav>
+    <nav aria-label="การตลาด" data-i18n-attr="aria-label:nav.group.mkt"><h3 data-i18n="nav.group.mkt">การตลาด</h3><a href="neuro.html" data-i18n="foot.neuro">วิเคราะห์อารมณ์</a><a href="signage.html" data-i18n="nav.signage.title">ป้ายโฆษณาอัจฉริยะ</a><a href="customers.html" data-i18n="nav.customers.title">จดจำลูกค้า</a><a href="booth.html" data-i18n="nav.booth.title">วิเคราะห์บูธ</a><a href="fortune.html" data-i18n="foot.fortune">ดูดวง (เพื่อความบันเทิง)</a></nav>
+    <nav aria-label="วิเคราะห์" data-i18n-attr="aria-label:nav.group.ana"><h3 data-i18n="nav.group.ana">วิเคราะห์</h3><a href="store.html" data-i18n="nav.store.title">วิเคราะห์หน้าร้าน</a><a href="insights.html" data-i18n="nav.insights.title">แดชบอร์ดรวม</a><a href="checkout.html" data-i18n="foot.checkout">สแกนสินค้า</a></nav>
+    <nav aria-label="ตู้ถ่ายรูปและระบบเสริม" data-i18n-attr="aria-label:foot.photo"><h3 data-i18n="foot.photo">ตู้ถ่ายรูป &amp; ระบบเสริม</h3><a href="photobooth.html" data-i18n="nav.photobooth.title">ตู้ถ่ายรูป</a><a href="studio.html" data-i18n="nav.studio.title">สตูดิโอแต่งชุด</a><a href="qc.html" data-i18n="foot.qc">ตรวจคุณภาพสินค้า</a><a href="driver.html" data-i18n="foot.driver">ความง่วงคนขับ</a><a href="attendance.html" data-i18n="foot.attendance">เช็คชื่อด้วยใบหน้า</a></nav>
+    <nav aria-label="เครื่องมือ" data-i18n-attr="aria-label:foot.tools"><h3 data-i18n="foot.tools">เครื่องมือ</h3><a href="converter.html" data-i18n="foot.converter">แปลง PDF เป็น Word</a><a href="cameras.html" data-i18n="nav.cta">ระบบทั้งหมด</a><a href="#contact" data-i18n="home.ct.kicker">ขอเดโม</a></nav>
   </div>
-  <p class="foot-legal">© <span id="year">2026</span> LENSIQ · เว็บไซต์สาธิต ข้อมูลในแบบฟอร์มเก็บไว้ในเบราว์เซอร์ของคุณเท่านั้น</p>
+  <p class="foot-legal">© <span id="year">2026</span> LENSIQ · <span data-i18n="foot.legal">เว็บไซต์สาธิต ข้อมูลในแบบฟอร์มเก็บไว้ในเบราว์เซอร์ของคุณเท่านั้น</span></p>
 </footer>
 
-<script src="home.js?v=1"></script>
+
+<script src="home.js?v=2"></script>
 </body>
 </html>

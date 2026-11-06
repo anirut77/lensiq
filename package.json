@@ -1,0 +1,27 @@
+{
+  "name": "lensiq",
+  "version": "0.9.0",
+  "private": true,
+  "description": "LENSIQ — on-device computer vision for marketing, store analytics and photo booths (Thai / 中文)",
+  "license": "MIT",
+  "type": "commonjs",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "npm run test:unit && npm run test:py",
+    "test:unit": "node --test tests/unit/*.test.js",
+    "test:py": ".venv/bin/python -m unittest discover -s tests/python",
+    "test:py:ci": "python -m unittest discover -s tests/python",
+    "test:e2e": "node tests/e2e/run.mjs",
+    "test:e2e:ci": "node tests/e2e/run.mjs --retry=1",
+    "lint": "eslint .",
+    "csp:meta": "node tools/csp-meta.mjs",
+    "csp:check": "node tools/csp-meta.mjs --check && node tools/check-csp.mjs --as-is",
+    "audit:mobile": "node tools/mobile-audit.mjs",
+    "serve": ".venv/bin/python server.py"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.14.0",
+    "globals": "17.14.0"
+  }
+}

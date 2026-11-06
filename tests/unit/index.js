@@ -24,3 +24,6 @@ require("./fortune-new.test.js");
 require("./numbers.test.js");
 require("./fortune-consistency.test.js");
 require("./fortune-composer.test.js");
+require("./fortune-engines.test.js");
+require("./bench-metrics.test.js");
+require("./fortune-semantic.test.js");

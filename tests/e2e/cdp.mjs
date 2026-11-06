@@ -6,7 +6,15 @@ import { mkdtempSync, readFileSync, rmSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-export const CHROME = process.env.LQ_CHROME || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+// Chrome binary: LQ_CHROME / CHROME_PATH (browser-actions/setup-chrome output), else the usual macOS / Linux / Windows paths
+const CANDIDATES = [
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/usr/bin/chromium", "/usr/bin/chromium-browser",
+  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+];
+export const CHROME = process.env.LQ_CHROME || process.env.CHROME_PATH || CANDIDATES.find(p => existsSync(p)) || CANDIDATES[0];
+// CI containers run as root without a user namespace sandbox
+const CI_ARGS = process.env.CI ? ["--no-sandbox", "--disable-dev-shm-usage"] : [];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 export async function launch({ headless = true, extraArgs = [] } = {}) {
@@ -17,14 +25,15 @@ export async function launch({ headless = true, extraArgs = [] } = {}) {
     "--remote-debugging-port=0", `--user-data-dir=${dir}`, "--no-first-run", "--no-default-browser-check",
     "--disable-background-timer-throttling", "--disable-renderer-backgrounding", "--disable-backgrounding-occluded-windows",
     "--disable-extensions", "--disable-component-update", "--disable-sync", "--metrics-recording-only", "--mute-audio",
-    ...extraArgs, "about:blank"
+    ...CI_ARGS, ...extraArgs, "about:blank"
   ].filter(Boolean);
   const proc = spawn(CHROME, args, { stdio: ["ignore", "ignore", "pipe"] });
   let stderr = "";
   proc.stderr.on("data", d => { stderr += d; if (stderr.length > 20000) stderr = stderr.slice(-10000); });
   const portFile = join(dir, "DevToolsActivePort");
   let wsUrl = null;
-  for (let i = 0; i < 200 && !wsUrl; i++) {
+  const startMs = +process.env.LQ_CHROME_START_MS || 30000; // busy CI runners can take > 10 s to start Chrome
+  for (let i = 0; i < startMs / 50 && !wsUrl; i++) {
     if (proc.exitCode != null) throw new Error("Chrome exited: " + stderr.slice(-2000));
     if (existsSync(portFile)) {
       const [port, path] = readFileSync(portFile, "utf8").trim().split("\n");
@@ -133,7 +142,9 @@ export async function launch({ headless = true, extraArgs = [] } = {}) {
     if (proc.exitCode == null) proc.kill("SIGKILL");
     try { rmSync(dir, { recursive: true, force: true }); } catch { /* ignore */ }
   }
-  return { newPage, close, send, proc };
+  // on(fn): raw CDP events ({method, params, sessionId}) — e.g. Debugger.paused when diagnosing a hung page
+  const on = fn => { listeners.add(fn); return () => listeners.delete(fn); };
+  return { newPage, close, send, proc, on };
 }
 
 // ---------- shared assertions ----------

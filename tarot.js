@@ -113,10 +113,13 @@
   var PAST_POS = { past: 1, root: 1 };
   var FUTURE_RE = /จะ|ในอนาคต|เร็ว ๆ นี้|ข้างหน้า|ต่อจากนี้|ในวันข้างหน้า/;
   // ความหมายของไพ่ในตำแหน่งอดีต: เลือกสำนวนที่ไม่มีคำบอกอนาคตก่อน ถ้าไม่มีเลย ตัด "(กำลัง)จะ" ออกให้เป็นกาลปัจจุบัน/อดีต
+  // "ตอนนี้/ช่วงนี้/กำลัง…" ในไพ่ตำแหน่งอดีตอ่านขัดกับตำแหน่ง → เปลี่ยนเป็น "ในช่วงที่ผ่านมา"
+  var NOW_RE = /ตอนนี้|ช่วงนี้|ขณะนี้/g;
   function pastTense(arr) {
     var plain = arr.filter(function (x) { return !FUTURE_RE.test(x); });
-    if (plain.length) return plain;
-    return arr.filter(function (x) { return !/ในอนาคต|เร็ว ๆ นี้|ข้างหน้า|ต่อจากนี้/.test(x); }).map(function (x) { return x.replace(/(?:กำลัง)?จะ(?=\S)/g, ""); }).filter(Boolean);
+    var out = plain.length ? plain : arr.filter(function (x) { return !/ในอนาคต|เร็ว ๆ นี้|ข้างหน้า|ต่อจากนี้/.test(x); }).map(function (x) { return x.replace(/(?:กำลัง)?จะ(?=\S)/g, ""); }).filter(Boolean);
+    var noNow = out.filter(function (x) { return !/ตอนนี้|ช่วงนี้|ขณะนี้/.test(x); });
+    return noNow.length ? noNow : out.map(function (x) { return x.replace(/กำลัง(?=เป็น)/g, "").replace(NOW_RE, "ในช่วงที่ผ่านมา"); });
   }
   var fillT = function (t, v) { return t.replace(/\{(\w+)\}/g, function (_, k) { return v[k] != null ? v[k] : ""; }); };
   var TOPIC_FA = { general: "overall", love: "love", work: "work", money: "money" };

@@ -53,29 +53,56 @@
     var TI = KB.TIMES[time]; if (!TI) return "";
     return ty && ty.omen === false && TI.r ? TI.r : TI.o;
   }
+  /* ฝันที่ตำราไม่ถือเป็นลาง (จิตนิวรณ์/ธาตุกำเริบ) ต้องไม่มีถ้อยคำทำนายล่วงหน้า:
+     ความหมายที่มีคำว่า ลาง/สัญญาณ/นิมิต/จะมี…เข้ามา ถูกแทนด้วยความหมายแบบ "ภาพสะท้อนใจ" ของธีมเดียวกัน */
+  var OMEN_WORDS = /ลาง|สัญญาณ|นิมิต|บอกเหตุ|เห็นผล|โชคลาภ|โชคดี|ไหลมา|เข้ามา|เนื้อคู่|จะได้|จะมี|จะงอกเงย|กำลังจะ|อาจมี|มีโอกาส|มีแนวโน้ม|บารมี|ข่าวดี|อุปถัมภ์|คุ้มครอง/;
+  function thaiList(a) { return a.length <= 1 ? (a[0] || "") : a.slice(0, -1).join(" ") + " และ" + a[a.length - 1]; }
   function buildFacts(ids, mood, time, topic, opts) {
     opts = opts || {};
     var r = opts.rng || Math.random, pk = FK.pickR, items = [], M = KB.MOODS[mood], boost = M ? M.w : 0;
-    ids.filter(function (id) { return BY[id]; }).slice(0, 8).forEach(function (id, i) {
-      var s = BY[id], T = KB.THEMES[s.theme], x = s.x;
-      var m = {
-        overview: [s.o, pk(r, T.o)],
-        love: x.l ? [x.l, pk(r, T.l)] : T.l.slice(),
-        work: x.w ? [x.w, pk(r, T.w)] : T.w.slice(),
-        money: x.m ? [x.m, pk(r, T.m)] : T.m.slice(),
-        advice: x.a ? [x.a].concat(T.a) : T.a.slice()
-      };
+    var valid = ids.filter(function (id) { return BY[id]; }).slice(0, 8);
+    var ty = KB.TYPES[dreamType(valid, mood, time)], TI = KB.TIMES[time], omen = ty.omen !== false;
+    var clean = function (arr) { return arr.filter(function (t) { return t && (omen || !OMEN_WORDS.test(t)); }); };
+    valid.forEach(function (id, i) {
+      var s = BY[id], T = KB.THEMES[s.theme], x = s.x, R = T.r || {};
+      var m;
+      if (omen) {
+        m = {
+          overview: [s.o, pk(r, T.o)],
+          love: x.l ? [x.l, pk(r, T.l)] : T.l.slice(),
+          work: x.w ? [x.w, pk(r, T.w)] : T.w.slice(),
+          money: x.m ? [x.m, pk(r, T.m)] : T.m.slice(),
+          advice: x.a ? [x.a].concat(T.a) : T.a.slice()
+        };
+      } else {
+        // ความหมายดั้งเดิมยังบอกได้ว่า "ตำราโยงภาพนี้กับเรื่องอะไร" แต่ไม่อ้างว่าเป็นลางของฝันครั้งนี้
+        var ov = OMEN_WORDS.test(s.o) ? "ฝันเห็น" + s.th + " ตำราดั้งเดิมโยงเข้ากับเรื่อง" + T.th + " ในฝันแบบนี้จึงอ่านได้ว่าใจกำลังให้ความสำคัญกับเรื่อง" + T.th : s.o;
+        m = {
+          overview: clean([ov, pk(r, R.o || T.o)]),
+          love: clean([x.l, R.l]), work: clean([x.w, R.w]), money: clean([x.m, R.m]),
+          advice: clean([x.a].concat(T.a))
+        };
+        Object.keys(m).forEach(function (k) { if (!m[k].length) delete m[k]; });
+      }
       items.push({ id: "sym." + id, group: "สัญลักษณ์ในฝัน", label: "ฝันเห็น" + s.th, short: s.th + "ในฝัน", evidence: "หมวด" + KB.CATS[s.cat] + " · ธีม" + T.th,
-        strength: Math.min(1, (i === 0 ? 0.92 : 0.84 - i * 0.04) + boost), tags: Object.keys(m), meanings: m });
+        strength: Math.min(1, (i === 0 ? 0.92 : 0.84 - i * 0.04) + boost), tags: Object.keys(m), meanings: m,
+        focus: ["overview", "advice"].concat((KB.THEME_FOCUS && KB.THEME_FOCUS[s.theme]) || []), theme: s.theme });
     });
-    var dom = dominantTheme(ids);
-    if (dom) { var D = KB.THEMES[dom]; items.push({ id: "theme." + dom, group: "ธีมเด่นของฝัน", label: "ธีม" + D.th, short: "ธีม" + D.th, strength: 0.8, tags: ["overview", "advice"], meanings: { overview: D.o.slice(), advice: D.a.slice() } }); }
-    if (M) items.push({ id: "mood." + mood, group: "ความรู้สึกในฝัน", label: "ความรู้สึก" + M.th, short: "ความรู้สึกในฝัน", strength: 0.62, tags: ["personality"], meanings: { personality: [M.o] } });
-    var ty = KB.TYPES[dreamType(ids, mood, time)], TI = KB.TIMES[time];
-    // ความหมายของช่วงเวลาต้องเข้ากับประเภทฝัน: ฝันที่ไม่ใช่ลาง (จิตนิวรณ์/ธาตุกำเริบ) ห้ามพูดว่า "มักเห็นผลเร็ว"
-    var tm = { timing: [ty.o] }; if (TI) tm.timing.push(timeMeaning(ty, time));
-    items.push({ id: "type", group: "ประเภทฝัน", label: "ฝันแบบ" + ty.th, short: "ฝันแบบ" + ty.th, strength: 0.6, tags: ["timing"], meanings: tm });
-    return { domain: "dream", topic: topic || "overall", subject: {}, headline: "ฝันเห็น" + ids.slice(0, 3).map(function (id) { return BY[id] ? BY[id].th : id; }).join(" "), items: items };
+    var dom = dominantTheme(valid);
+    if (dom) {
+      var D = KB.THEMES[dom], dm = { overview: omen ? D.o.slice() : (D.r ? D.r.o.slice() : clean(D.o)), advice: clean(D.a.slice()) };
+      items.push({ id: "theme." + dom, group: "ธีมเด่นของฝัน", label: "ธีม" + D.th, short: "ธีม" + D.th, strength: 0.8, tags: ["overview", "advice"], meanings: dm, focus: ["overview", "advice"].concat((KB.THEME_FOCUS && KB.THEME_FOCUS[dom]) || []), theme: dom });
+    }
+    // ความรู้สึกในฝันเป็นส่วนหนึ่งของการอ่านฝัน (ไม่ใช่ "บุคลิก") — วางในภาพรวม ใช้ประโยคตามคลังโดยตรง
+    if (M) items.push({ id: "mood." + mood, group: "ความรู้สึกในฝัน", label: "ความรู้สึก" + M.th, short: "ความรู้สึกในฝัน", strength: 0.62, tags: ["overview"], meanings: { overview: [M.o] }, plain: true });
+    // ประเภทฝันกำหนดวิธีอ่านทั้งหมด จึงขึ้นก่อนในภาพรวม (ความหมายของช่วงเวลาต้องเข้ากับประเภทฝัน)
+    // ภาพรวมอธิบายประเภทฝัน; หัวข้อจังหวะเวลาพูดเฉพาะช่วงเวลาที่ฝัน (ไม่ทวนคำอธิบายประเภทซ้ำ)
+    var tm = { overview: ["ตามตำราไทย ฝันครั้งนี้เข้าลักษณะ" + ty.th + " " + (ty.d || "")], timing: TI ? [timeMeaning(ty, time)] : [] };
+    if (!TI) delete tm.timing;
+    items.push({ id: "type", group: "ประเภทฝัน", label: "ฝันแบบ" + ty.th, short: "ฝันแบบ" + ty.th, strength: 0.95, tags: Object.keys(tm), meanings: tm, plain: true, omen: omen, timingFull: [ty.o].concat(TI ? [timeMeaning(ty, time)] : []) });
+    var names = valid.slice(0, 3).map(function (id) { return BY[id].th; });
+    return { domain: "dream", topic: topic || "overall", subject: {}, headline: names.length ? "ฝันเห็น" + thaiList(names) : "", items: items,
+      register: omen ? "omen" : "reflect" };
   }
   /** ค้นสัญลักษณ์ตามชื่อ/คำค้น (สำหรับช่องค้นหา) */
   function search(q, cat) {

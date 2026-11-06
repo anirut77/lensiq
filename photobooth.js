@@ -438,7 +438,8 @@ const drawOutfit = PBOutfits.draw;
 const TPL = { outfits: new Map(), items: [] };
 /** รายการชุด: ชุดจากรูปจริงขึ้นก่อน ตามด้วยชุดภาพวาด */
 function outfitList() {
-  return [["none", OUTFITS.none], ...[...TPL.outfits].map(([id, t]) => ["tpl:" + id, t.name]), ...Object.entries(OUTFITS).filter(([k]) => k !== "none").map(([k, n]) => [k, n + " (ภาพวาด)"])];
+  const tr = (k, th) => window.LQI18N && LQI18N.tf ? LQI18N.tf(k, th) : th;
+  return [["none", tr("pbo.none", OUTFITS.none)], ...[...TPL.outfits].map(([id, t]) => ["tpl:" + id, t.name]), ...Object.entries(OUTFITS).filter(([k]) => k !== "none").map(([k, n]) => [k, tr("pbo." + k, n) + tr("pbo.drawn", " (ภาพวาด)")])];
 }
 function registerTemplate(item, canvas) {
   const key = "tpl:" + item.id;
@@ -892,3 +893,5 @@ document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
 renderThemes(); renderBgSwatches(); renderOutfitChoices(); renderIdSizes(); renderPurposes(); syncGuide(); syncLayoutBtns(); syncPreview(); autoShootTick(); loadTemplates();
 document.fonts?.ready.then(renderThemes);
 init();
+// เปลี่ยนภาษา (TH/中文): วาดรายการชุดใหม่ให้ชื่อชุดเป็นภาษาที่เลือก
+window.addEventListener("lq-lang", () => renderOutfitChoices());

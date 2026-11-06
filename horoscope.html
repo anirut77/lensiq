@@ -2,38 +2,39 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
-<title>ดวงวันเดือนปีเกิด | LENSIQ</title>
+<title data-i18n="horoscope.title">ดวงวันเดือนปีเกิด | LENSIQ</title>
 <meta name="description" content="ดูดวงจากวันเดือนปีเกิด รวมโหราศาสตร์ไทย ทักษา ราศี ลัคนา ปาจื้อ เลขศาสตร์ ดวงวันนี้ และดวงคู่ เพื่อความบันเทิง คำนวณในเบราว์เซอร์ ไม่บันทึกข้อมูล">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=6">
-<link rel="stylesheet" href="horoscope.css?v=2">
+<link rel="stylesheet" href="horoscope.css?v=3">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=10"></script>
+<script src="nav.js?v=11"></script>
 
 <main class="hs" id="hsApp">
   <div class="hs-head">
     <span class="eyebrow">Engagement · Booth</span>
-    <h1>ดวงวันเดือนปีเกิด</h1>
-    <p class="lead">รวมศาสตร์ดูดวงยอดนิยมไว้ในที่เดียว ทั้งโหราศาสตร์ไทย (วันเกิด ทักษา ราศี ลัคนา เลข 7 ตัว) ปาจื้อสี่เสา เลขศาสตร์ ดวงวันนี้ และดวงคู่ ไม่ต้องใช้กล้อง เพียงกรอกวันเกิด</p>
+    <h1 data-i18n="horoscope.h1">ดวงวันเดือนปีเกิด</h1>
+    <p data-i18n="horoscope.lead" class="lead">รวมศาสตร์ดูดวงยอดนิยมไว้ในที่เดียว ทั้งโหราศาสตร์ไทย (วันเกิด ทักษา ราศี ลัคนา เลข 7 ตัว) ปาจื้อสี่เสา เลขศาสตร์ ดวงวันนี้ และดวงคู่ ไม่ต้องใช้กล้อง เพียงกรอกวันเกิด</p>
   </div>
 
-  <p class="hs-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span><b>เพื่อความบันเทิงตามความเชื่อทางโหราศาสตร์ ไม่ใช่วิทยาศาสตร์</b> ไม่ควรใช้ตัดสินใจเรื่องสุขภาพ การเงิน การงาน หรือความสัมพันธ์</span></p>
+  <p class="hs-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span><b data-i18n="horoscope.disclaimer">เพื่อความบันเทิงตามความเชื่อทางโหราศาสตร์ ไม่ใช่วิทยาศาสตร์</b> ไม่ควรใช้ตัดสินใจเรื่องสุขภาพ การเงิน การงาน หรือความสัมพันธ์</span></p>
 
   <section class="hs-stage" id="hsStage" aria-label="กรอกวันเกิด">
     <form class="hs-form" id="hsForm" novalidate>
-      <h2>กรอกวันเดือนปีเกิด</h2>
+      <h2 data-i18n="horoscope.h21">กรอกวันเดือนปีเกิด</h2>
       <label>ชื่อเล่นหรือชื่อจริง (ไม่บังคับ — ใช้คำนวณเลขศาสตร์ชื่อ)
         <input id="hsName" type="text" maxlength="60" autocomplete="off" placeholder="เช่น สมใจ">
       </label>
       <fieldset class="hs-date">
-        <legend>วันเดือนปีเกิด</legend>
+        <legend data-i18n="horoscope.legend1">วันเดือนปีเกิด</legend>
         <div class="hs-date-row">
           <label class="sr-wrap"><span class="sr-only">วันที่</span><select id="hsDay" aria-label="วันที่"></select></label>
           <label class="sr-wrap"><span class="sr-only">เดือน</span><select id="hsMonth" aria-label="เดือน"></select></label>
@@ -52,7 +53,7 @@
         <label class="hs-check"><input type="checkbox" id="hsNoTime"> ไม่ทราบเวลาเกิด</label>
       </div>
       <details class="hs-adv">
-        <summary>ตั้งค่าเพิ่มเติม (สถานที่เกิด เขตเวลา วิธีนับวัน)</summary>
+        <summary data-i18n="horoscope.summary1">ตั้งค่าเพิ่มเติม (สถานที่เกิด เขตเวลา วิธีนับวัน)</summary>
         <label>จังหวัดที่เกิด (ใช้คำนวณลัคนา)
           <select id="hsProv"></select>
         </label>
@@ -88,25 +89,25 @@
       </details>
       <p class="form-msg err" id="hsErr" role="alert"></p>
       <div class="hs-actions">
-        <button class="btn primary big" type="submit" id="hsGo">ดูดวง</button>
-        <button class="btn ghost big" type="button" id="hsKiosk" aria-pressed="false">โหมดบูธ (เต็มจอ)</button>
+        <button data-i18n="horoscope.hsGo" class="btn primary big" type="submit" id="hsGo">ดูดวง</button>
+        <button data-i18n="fortune.common.kiosk" class="btn ghost big" type="button" id="hsKiosk" aria-pressed="false">โหมดบูธ (เต็มจอ)</button>
       </div>
       <p class="hs-privacy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>คำนวณในเบราว์เซอร์ทั้งหมด ไม่ส่งและไม่บันทึกวันเกิดหรือชื่อ</p>
     </form>
   </section>
 
   <section class="hs-result" id="hsResult" hidden aria-labelledby="hsResTitle">
-    <h2 id="hsResTitle" tabindex="-1">ดวงของคุณ</h2>
+    <h2 data-i18n="horoscope.hsResTitle" id="hsResTitle" tabindex="-1">ดวงของคุณ</h2>
     <p class="hs-disc-mini">เพื่อความบันเทิงตามความเชื่อ ไม่ใช่วิทยาศาสตร์</p>
     <p class="hs-sub" id="hsResSub"></p>
 
     <div class="hs-tabs" role="tablist" aria-label="หมวดดวง" id="hsTabs">
-      <button role="tab" id="tab-ov" aria-controls="pn-ov" aria-selected="true">ภาพรวม</button>
-      <button role="tab" id="tab-th" aria-controls="pn-th" aria-selected="false" tabindex="-1">โหราไทย</button>
-      <button role="tab" id="tab-bz" aria-controls="pn-bz" aria-selected="false" tabindex="-1">ปาจื้อ</button>
-      <button role="tab" id="tab-nu" aria-controls="pn-nu" aria-selected="false" tabindex="-1">เลขศาสตร์</button>
-      <button role="tab" id="tab-td" aria-controls="pn-td" aria-selected="false" tabindex="-1">ดวงวันนี้</button>
-      <button role="tab" id="tab-cp" aria-controls="pn-cp" aria-selected="false" tabindex="-1">ดวงคู่</button>
+      <button data-i18n="horoscope.tab-ov" role="tab" id="tab-ov" aria-controls="pn-ov" aria-selected="true">ภาพรวม</button>
+      <button data-i18n="horoscope.tab-th" role="tab" id="tab-th" aria-controls="pn-th" aria-selected="false" tabindex="-1">โหราไทย</button>
+      <button data-i18n="horoscope.tab-bz" role="tab" id="tab-bz" aria-controls="pn-bz" aria-selected="false" tabindex="-1">ปาจื้อ</button>
+      <button data-i18n="horoscope.tab-nu" role="tab" id="tab-nu" aria-controls="pn-nu" aria-selected="false" tabindex="-1">เลขศาสตร์</button>
+      <button data-i18n="horoscope.tab-td" role="tab" id="tab-td" aria-controls="pn-td" aria-selected="false" tabindex="-1">ดวงวันนี้</button>
+      <button data-i18n="horoscope.tab-cp" role="tab" id="tab-cp" aria-controls="pn-cp" aria-selected="false" tabindex="-1">ดวงคู่</button>
     </div>
 
     <div role="tabpanel" id="pn-ov" aria-labelledby="tab-ov" class="hs-panel" tabindex="0"></div>
@@ -116,10 +117,10 @@
     <div role="tabpanel" id="pn-td" aria-labelledby="tab-td" class="hs-panel" tabindex="0" hidden></div>
     <div role="tabpanel" id="pn-cp" aria-labelledby="tab-cp" class="hs-panel" tabindex="0" hidden>
       <form class="hs-form hs-partner" id="hsPartner" novalidate>
-        <h3>วันเกิดของอีกคน</h3>
+        <h3 data-i18n="horoscope.h31">วันเกิดของอีกคน</h3>
         <label>ชื่อเล่น (ไม่บังคับ)<input id="hsPName" type="text" maxlength="40" autocomplete="off" placeholder="เช่น ต้นข้าว"></label>
         <fieldset class="hs-date">
-          <legend>วันเดือนปีเกิด</legend>
+          <legend data-i18n="horoscope.legend2">วันเดือนปีเกิด</legend>
           <div class="hs-date-row">
             <label class="sr-wrap"><span class="sr-only">วันที่</span><select id="hsPDay" aria-label="วันที่ของอีกคน"></select></label>
             <label class="sr-wrap"><span class="sr-only">เดือน</span><select id="hsPMonth" aria-label="เดือนของอีกคน"></select></label>
@@ -130,28 +131,28 @@
           <label>เวลาเกิด (ถ้าทราบ)<input id="hsPTime" type="time" step="60"></label>
         </div>
         <p class="form-msg err" id="hsPErr" role="alert"></p>
-        <button class="btn primary big" type="submit">ดูดวงคู่</button>
+        <button data-i18n="horoscope.button1" class="btn primary big" type="submit">ดูดวงคู่</button>
       </form>
       <div id="hsCompat" aria-live="polite"></div>
     </div>
 
     <div class="hs-res-actions">
-      <button class="btn primary big" id="hsShare" type="button">แชร์การ์ดดวง</button>
-      <button class="btn ghost big" id="hsPrint" type="button">พิมพ์</button>
-      <button class="btn ghost big" id="hsAgain" type="button">ดูดวงคนถัดไป</button>
+      <button data-i18n="horoscope.hsShare" class="btn primary big" id="hsShare" type="button">แชร์การ์ดดวง</button>
+      <button data-i18n="fortune.common.print" class="btn ghost big" id="hsPrint" type="button">พิมพ์</button>
+      <button data-i18n="horoscope.hsAgain" class="btn ghost big" id="hsAgain" type="button">ดูดวงคนถัดไป</button>
     </div>
     <img class="hs-cardimg" id="hsCardImg" alt="การ์ดดวงวันเดือนปีเกิดสำหรับแชร์" hidden>
   </section>
 
   <div class="hs-foot">
     <section class="hs-block">
-      <h3>สถิติบูธ (ไม่ระบุตัวตน)</h3>
+      <h3 data-i18n="fortune.common.stats">สถิติบูธ (ไม่ระบุตัวตน)</h3>
       <div id="hsStats"></div>
       <label class="hs-check"><input type="checkbox" id="hsStatsOn"> นับจำนวนครั้งและปีนักษัตรในเครื่องนี้</label>
-      <button class="btn ghost" id="hsStatsClear" type="button">ล้างสถิติ</button>
+      <button data-i18n="fortune.common.statsClear" class="btn ghost" id="hsStatsClear" type="button">ล้างสถิติ</button>
     </section>
     <section class="hs-block">
-      <h3>แหล่งอ้างอิง</h3>
+      <h3 data-i18n="fortune.common.sources">แหล่งอ้างอิง</h3>
       <p class="hs-small">เนื้อหาเรียบเรียงใหม่ในเชิงบวกจากความเชื่อที่เผยแพร่ทั่วไป แต่ละสำนักอาจตีความต่างกัน ส่วนการคำนวณดาราศาสตร์อิงสูตรมาตรฐานและตรวจสอบกับตารางที่เผยแพร่</p>
       <ul class="hs-sources" id="hsSources"></ul>
       <p class="hs-small">หลักการ: เนื้อหาเป็นเชิงบวก ไม่ทำนายความตาย โรคภัย อุบัติเหตุ หรือภัยพิบัติ เรื่องกาลกิณีและปีชงใช้ถ้อยคำแนะนำให้ใจเย็นเท่านั้น</p>
@@ -160,11 +161,12 @@
 </main>
 
 <div class="hs-idle" id="hsIdle" hidden role="status"></div>
-<button class="btn primary hs-kiosk-exit" id="hsKioskExit" type="button" hidden>ออกจากโหมดบูธ</button>
+<button data-i18n="fortune.common.kioskExit" class="btn primary hs-kiosk-exit" id="hsKioskExit" type="button" hidden>ออกจากโหมดบูธ</button>
 <div class="toast" id="hsToast" role="status"></div>
 
+<script src="i18n/zh-fortune.js?v=2"></script>
 <script src="lensiq-config.js?v=2"></script>
-<script src="fortune-ai.js?v=6"></script>
+<script src="fortune-ai.js?v=7"></script>
 <script src="horoscope-kb.js?v=3"></script>
 <script src="horoscope.js?v=4"></script>
 </body>

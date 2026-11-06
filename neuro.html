@@ -2,30 +2,33 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
-<title>วิเคราะห์อารมณ์ Neuromarketing | LENSIQ</title>
+<title data-i18n="neuro.s1">วิเคราะห์อารมณ์ Neuromarketing | LENSIQ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=6">
-<link rel="stylesheet" href="neuro.css?v=5">
+<link rel="stylesheet" href="neuro.css?v=6">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=10"></script>
+<script src="nav.js?v=11"></script>
+<script src="i18n/zh-neuro.js?v=1"></script>
 
 <main class="nm">
-  <h1>วิเคราะห์อารมณ์จากใบหน้า (Neuromarketing)</h1>
-  <p class="lead">วัดปฏิกิริยาทางสีหน้าของผู้ชมขณะดูโฆษณา วิดีโอ หรือภาพสินค้า แล้วสรุปเป็นค่า Valence, Arousal, Attention และ Engagement ตามช่วงเวลา</p>
-  <p class="disclaimer" id="nmCaveat"><b>ข้อควรทราบ:</b> ค่า Valence (บวก/ลบ) และ Arousal (ความตื่นตัว) ในหน้านี้เป็น<strong>ค่าประมาณจากสีหน้า</strong> ไม่ใช่การวัดอารมณ์หรือความรู้สึกภายในโดยตรง งานทบทวนวรรณกรรม (<a href="https://doi.org/10.1177/1529100619832930" target="_blank" rel="noopener">Barrett et al., 2019</a>) พบว่าสีหน้ากับอารมณ์จริงสัมพันธ์กันไม่สม่ำเสมอ และต่างกันไปตามบุคคล วัฒนธรรม และบริบท ผลจึงใช้ได้เพื่อการสาธิตหรือเป็นสัญญาณเบื้องต้นในงานวิจัยเท่านั้น ห้ามใช้ตัดสินบุคคล คัดเลือกพนักงาน หรือประเมินทางการแพทย์</p>
+  <h1 data-i18n="neuro.s2">วิเคราะห์อารมณ์จากใบหน้า (Neuromarketing)</h1>
+  <p class="lead" data-i18n="neuro.s3">วัดปฏิกิริยาทางสีหน้าของผู้ชมขณะดูโฆษณา วิดีโอ หรือภาพสินค้า แล้วสรุปเป็นค่า Valence, Arousal, Attention และ Engagement ตามช่วงเวลา</p>
+  <p class="acc-note" role="note"><b class="beta">Beta</b> <span data-i18n="neuro.s4">สีหน้าไม่ได้บอกความรู้สึกจริงเสมอไป ค่าที่ได้เหมาะสำหรับเปรียบเทียบสื่อในเงื่อนไขเดียวกัน ยังไม่ได้วัดกับชุดข้อมูลอารมณ์มาตรฐาน</span> <a href="cameras.html#accuracy" data-i18n="neuro.s5">วิธีวัดและข้อจำกัด</a></p>
+  <p class="disclaimer" id="nmCaveat"><b data-i18n="neuro.s6">ข้อควรทราบ:</b> <span data-i18n="neuro.s7">ค่า Valence (บวก/ลบ) และ Arousal (ความตื่นตัว) ในหน้านี้เป็น</span><strong data-i18n="neuro.s8">ค่าประมาณจากสีหน้า</strong> <span data-i18n="neuro.s9">ไม่ใช่การวัดอารมณ์หรือความรู้สึกภายในโดยตรง งานทบทวนวรรณกรรม (</span><a href="https://doi.org/10.1177/1529100619832930" target="_blank" rel="noopener">Barrett et al., 2019</a><span data-i18n="neuro.s10">) พบว่าสีหน้ากับอารมณ์จริงสัมพันธ์กันไม่สม่ำเสมอ และต่างกันไปตามบุคคล วัฒนธรรม และบริบท ผลจึงใช้ได้เพื่อการสาธิตหรือเป็นสัญญาณเบื้องต้นในงานวิจัยเท่านั้น ห้ามใช้ตัดสินบุคคล คัดเลือกพนักงาน หรือประเมินทางการแพทย์</span></p>
 
   <div class="tabs" role="tablist">
-    <button class="tab active" data-t="test" role="tab" aria-selected="true">ทดสอบสื่อ</button>
-    <button class="tab" data-t="live" role="tab" aria-selected="false">วิเคราะห์สด</button>
-    <button class="tab" data-t="report" role="tab" aria-selected="false">รายงานและเปรียบเทียบ</button>
-    <button class="tab" data-t="about" role="tab" aria-selected="false">หลักการและข้อจำกัด</button>
+    <button class="tab active" data-t="test" role="tab" aria-selected="true" data-i18n="neuro.s11">ทดสอบสื่อ</button>
+    <button class="tab" data-t="live" role="tab" aria-selected="false" data-i18n="neuro.s12">วิเคราะห์สด</button>
+    <button class="tab" data-t="report" role="tab" aria-selected="false" data-i18n="neuro.s13">รายงานและเปรียบเทียบ</button>
+    <button class="tab" data-t="about" role="tab" aria-selected="false" data-i18n="neuro.s14">หลักการและข้อจำกัด</button>
   </div>
 
   <div class="engine" id="engine" role="status">กำลังโหลดโมเดลวิเคราะห์ใบหน้า...</div>
@@ -34,20 +37,20 @@
   <section class="pane" id="pane-test">
     <div class="grid2">
       <form id="setup" class="card" novalidate>
-        <h2>1. ตั้งค่าการทดสอบ</h2>
-        <label>ชื่อการทดสอบ / ชิ้นงาน<input name="test" required maxlength="60" placeholder="เช่น โฆษณา A - 30 วินาที"></label>
-        <label>รหัสผู้เข้าร่วม<input name="pid" required maxlength="30" placeholder="เช่น P01"></label>
-        <label>ไฟล์สื่อ (วิดีโอหรือภาพ)<input name="file" type="file" accept="video/*,image/*" required></label>
-        <label id="durWrap" hidden>เวลาแสดงภาพ (วินาที)<input name="dur" type="number" min="3" max="120" value="10"></label>
+        <h2 data-i18n="neuro.s15">1. ตั้งค่าการทดสอบ</h2>
+        <label><span data-i18n="neuro.s16">ชื่อการทดสอบ / ชิ้นงาน</span><input name="test" required maxlength="60" placeholder="เช่น โฆษณา A - 30 วินาที" data-i18n-attr="placeholder:neuro.s17"></label>
+        <label><span data-i18n="neuro.s18">รหัสผู้เข้าร่วม</span><input name="pid" required maxlength="30" placeholder="เช่น P01" data-i18n-attr="placeholder:neuro.s19"></label>
+        <label><span data-i18n="neuro.s20">ไฟล์สื่อ (วิดีโอหรือภาพ)</span><input name="file" type="file" accept="video/*,image/*" required></label>
+        <label id="durWrap" hidden><span data-i18n="neuro.s21">เวลาแสดงภาพ (วินาที)</span><input name="dur" type="number" min="3" max="120" value="10"></label>
         <label class="check"><input type="checkbox" name="consent" required>
-          <span>ผู้เข้าร่วมยินยอมให้กล้องวิเคราะห์สีหน้าระหว่างการทดสอบ ระบบไม่บันทึกภาพหรือวิดีโอ เก็บเฉพาะค่าตัวเลข</span></label>
-        <button class="btn primary full" type="submit">เริ่มทดสอบ</button>
+          <span data-i18n="neuro.s22">ผู้เข้าร่วมยินยอมให้กล้องวิเคราะห์สีหน้าระหว่างการทดสอบ ระบบไม่บันทึกภาพหรือวิดีโอ เก็บเฉพาะค่าตัวเลข</span></label>
+        <button class="btn primary full" type="submit" data-i18n="neuro.s23">เริ่มทดสอบ</button>
         <p class="form-msg" id="setupMsg" role="status"></p>
       </form>
       <div class="card">
-        <h2>2. กล้องผู้ชม</h2>
+        <h2 data-i18n="neuro.s24">2. กล้องผู้ชม</h2>
         <div class="cam mirror"><video id="video" autoplay muted playsinline></video><canvas id="camOverlay"></canvas></div>
-        <p class="hint" id="camHint">จัดให้เห็นใบหน้าเต็ม แสงส่องด้านหน้า</p>
+        <p class="hint" id="camHint" data-i18n="neuro.s25">จัดให้เห็นใบหน้าเต็ม แสงส่องด้านหน้า</p>
       </div>
     </div>
 
@@ -56,8 +59,8 @@
       <div class="stage-bar">
         <span id="stageTime">0.0 วิ</span>
         <span class="pill" id="stageFace">—</span>
-        <span class="pill multi" id="stageMulti" role="status" hidden>พบหลายใบหน้า</span>
-        <button class="btn ghost" id="stopTest" type="button">หยุดและบันทึก</button>
+        <span class="pill multi" id="stageMulti" role="status" hidden data-i18n="neuro.s26">พบหลายใบหน้า</span>
+        <button class="btn ghost" id="stopTest" type="button" data-i18n="neuro.s27">หยุดและบันทึก</button>
       </div>
     </div>
   </section>
@@ -70,13 +73,13 @@
       </div>
       <div class="card">
         <div class="tiles" id="liveTiles"></div>
-        <h3>สัดส่วนอารมณ์ขณะนี้</h3>
+        <h3 data-i18n="neuro.s28">สัดส่วนอารมณ์ขณะนี้</h3>
         <div id="liveBars"></div>
       </div>
     </div>
     <div class="grid2">
-      <div class="card"><h3>แผนที่อารมณ์ (Valence × Arousal)</h3><div id="liveCircumplex"></div><p class="nm-est">ค่าประมาณจากสีหน้า ไม่ใช่อารมณ์ที่วัดได้โดยตรง</p></div>
-      <div class="card"><h3>Valence 60 วินาทีล่าสุด</h3><div id="liveLine"></div></div>
+      <div class="card"><h3 data-i18n="neuro.s29">แผนที่อารมณ์ (Valence × Arousal)</h3><div id="liveCircumplex"></div><p class="nm-est" data-i18n="neuro.s30">ค่าประมาณจากสีหน้า ไม่ใช่อารมณ์ที่วัดได้โดยตรง</p></div>
+      <div class="card"><h3 data-i18n="neuro.s31">Valence 60 วินาทีล่าสุด</h3><div id="liveLine"></div></div>
     </div>
   </section>
 
@@ -84,18 +87,18 @@
   <section class="pane" id="pane-report" hidden>
     <div class="card">
       <div class="report-head">
-        <label>เลือกผลการทดสอบ<select id="sessionSel"></select></label>
+        <label><span data-i18n="neuro.s32">เลือกผลการทดสอบ</span><select id="sessionSel"></select></label>
         <div class="row-actions">
-          <button class="btn ghost" id="exportCsv" type="button">ส่งออก CSV</button>
-          <button class="btn ghost" id="exportJson" type="button">ส่งออก JSON</button>
-          <button class="btn ghost danger" id="delSession" type="button">ลบผลนี้</button>
+          <button class="btn ghost" id="exportCsv" type="button" data-i18n="neuro.s33">ส่งออก CSV</button>
+          <button class="btn ghost" id="exportJson" type="button" data-i18n="neuro.s34">ส่งออก JSON</button>
+          <button class="btn ghost danger" id="delSession" type="button" data-i18n="neuro.s35">ลบผลนี้</button>
         </div>
       </div>
-      <div id="reportBody"><p class="empty">ยังไม่มีผลการทดสอบ เริ่มจากแท็บ "ทดสอบสื่อ"</p></div>
+      <div id="reportBody"><p class="empty" data-i18n="neuro.s36">ยังไม่มีผลการทดสอบ เริ่มจากแท็บ "ทดสอบสื่อ"</p></div>
     </div>
     <div class="card">
-      <h2>เปรียบเทียบชิ้นงาน (A/B)</h2>
-      <p class="hint">ค่าเฉลี่ยของผู้เข้าร่วมทุกคนแยกตามชื่อการทดสอบ</p>
+      <h2 data-i18n="neuro.s37">เปรียบเทียบชิ้นงาน (A/B)</h2>
+      <p class="hint" data-i18n="neuro.s38">ค่าเฉลี่ยของผู้เข้าร่วมทุกคนแยกตามชื่อการทดสอบ</p>
       <div class="table-wrap"><table id="compare"></table></div>
     </div>
   </section>
@@ -103,34 +106,34 @@
   <!-- ===== หลักการ ===== -->
   <section class="pane about" id="pane-about" hidden>
     <div class="card">
-      <h2>ตัวชี้วัดที่ใช้</h2>
+      <h2 data-i18n="neuro.s39">ตัวชี้วัดที่ใช้</h2>
       <dl>
-        <dt>อารมณ์พื้นฐาน 7 แบบ</dt><dd>เฉย ๆ, มีความสุข, ประหลาดใจ, เศร้า, โกรธ, กลัว, รังเกียจ คำนวณเป็นความน่าจะเป็นจากโมเดล face-api (FaceExpressionNet) ทุกเฟรม</dd>
-        <dt>Valence (บวก / ลบ, −1 ถึง +1)</dt><dd>ความรู้สึกด้านบวกหรือลบ คำนวณจากการถ่วงน้ำหนักอารมณ์แต่ละแบบตามตำแหน่งในแบบจำลอง Circumplex ของ Russell</dd>
-        <dt>Arousal (ระดับการตื่นตัว, −1 ถึง +1)</dt><dd>ความเข้มข้น/ความตื่นตัวของอารมณ์ เช่น ประหลาดใจและกลัวมีค่าสูง เศร้ามีค่าต่ำ</dd>
-        <dt>Attention (%)</dt><dd>สัดส่วนเวลาที่ตรวจพบใบหน้าและหันหน้าเข้าจอ (ประมาณจากตำแหน่งจมูกเทียบกับดวงตา)</dd>
-        <dt>Engagement (%)</dt><dd>ระดับการแสดงออกทางสีหน้า (1 − ค่าเฉย ๆ) ขณะที่กำลังมองจอ แนวคิดเดียวกับ Expressiveness/Engagement ของเครื่องมือเชิงพาณิชย์อย่าง Affectiva</dd>
-        <dt>Peak moments</dt><dd>ช่วงเวลาที่มี Valence สูงสุด ต่ำสุด และ Engagement สูงสุด ใช้หาจังหวะที่ได้ผลหรือควรปรับในชิ้นงาน คลิกบนกราฟเพื่อย้อนดูจังหวะนั้นในสื่อได้</dd>
+        <dt data-i18n="neuro.s40">อารมณ์พื้นฐาน 7 แบบ</dt><dd data-i18n="neuro.s41">เฉย ๆ, มีความสุข, ประหลาดใจ, เศร้า, โกรธ, กลัว, รังเกียจ คำนวณเป็นความน่าจะเป็นจากโมเดล face-api (FaceExpressionNet) ทุกเฟรม</dd>
+        <dt data-i18n="neuro.s42">Valence (บวก / ลบ, −1 ถึง +1)</dt><dd data-i18n="neuro.s43">ความรู้สึกด้านบวกหรือลบ คำนวณจากการถ่วงน้ำหนักอารมณ์แต่ละแบบตามตำแหน่งในแบบจำลอง Circumplex ของ Russell</dd>
+        <dt data-i18n="neuro.s44">Arousal (ระดับการตื่นตัว, −1 ถึง +1)</dt><dd data-i18n="neuro.s45">ความเข้มข้น/ความตื่นตัวของอารมณ์ เช่น ประหลาดใจและกลัวมีค่าสูง เศร้ามีค่าต่ำ</dd>
+        <dt>Attention (%)</dt><dd data-i18n="neuro.s46">สัดส่วนเวลาที่ตรวจพบใบหน้าและหันหน้าเข้าจอ (ประมาณจากตำแหน่งจมูกเทียบกับดวงตา)</dd>
+        <dt>Engagement (%)</dt><dd data-i18n="neuro.s47">ระดับการแสดงออกทางสีหน้า (1 − ค่าเฉย ๆ) ขณะที่กำลังมองจอ แนวคิดเดียวกับ Expressiveness/Engagement ของเครื่องมือเชิงพาณิชย์อย่าง Affectiva</dd>
+        <dt>Peak moments</dt><dd data-i18n="neuro.s48">ช่วงเวลาที่มี Valence สูงสุด ต่ำสุด และ Engagement สูงสุด ใช้หาจังหวะที่ได้ผลหรือควรปรับในชิ้นงาน คลิกบนกราฟเพื่อย้อนดูจังหวะนั้นในสื่อได้</dd>
       </dl>
     </div>
     <div class="card">
-      <h2>ข้อจำกัดที่ต้องรู้</h2>
+      <h2 data-i18n="neuro.s49">ข้อจำกัดที่ต้องรู้</h2>
       <ul>
-        <li>สีหน้า<strong>ไม่ใช่</strong>ตัวบ่งชี้ความรู้สึกภายในที่แม่นยำเสมอไป งานทบทวนวรรณกรรม (Barrett et al., 2019) ชี้ว่าคนแสดงสีหน้าต่างกันตามบุคคลและวัฒนธรรม ควรใช้ผลเป็น "สัญญาณ" ประกอบกับแบบสอบถามหรือสัมภาษณ์</li>
-        <li>คนส่วนใหญ่ดูโฆษณาด้วยสีหน้าเฉย ๆ เป็นหลัก ค่าที่ต่ำจึงเป็นเรื่องปกติ ให้ดูการเปลี่ยนแปลงตามเวลาและเปรียบเทียบระหว่างชิ้นงาน มากกว่าค่าสัมบูรณ์</li>
-        <li>ควรมีผู้เข้าร่วมอย่างน้อย 20-30 คนต่อชิ้นงานจึงจะเปรียบเทียบ A/B ได้น่าเชื่อถือ</li>
-        <li>ความแม่นยำขึ้นกับแสง มุมกล้อง แว่นตา และหน้ากาก Attention ประมาณจากทิศทางศีรษะ ไม่ใช่ eye tracking จริง</li>
-        <li>ใช้เพื่อการสาธิตหรือเป็นสัญญาณเบื้องต้นในงานวิจัยเท่านั้น ไม่ใช้ตัดสินบุคคล คัดเลือกพนักงาน หรือประเมินทางการแพทย์/จิตวิทยา</li>
-        <li>ข้อมูลสีหน้าเป็นข้อมูลส่วนบุคคล ต้องขอความยินยอมตาม PDPA ระบบนี้ประมวลผลในเครื่องและไม่บันทึกภาพ</li>
+        <li><span data-i18n="neuro.s50">สีหน้า</span><strong data-i18n="neuro.s51">ไม่ใช่</strong><span data-i18n="neuro.s52">ตัวบ่งชี้ความรู้สึกภายในที่แม่นยำเสมอไป งานทบทวนวรรณกรรม (Barrett et al., 2019) ชี้ว่าคนแสดงสีหน้าต่างกันตามบุคคลและวัฒนธรรม ควรใช้ผลเป็น "สัญญาณ" ประกอบกับแบบสอบถามหรือสัมภาษณ์</span></li>
+        <li data-i18n="neuro.s53">คนส่วนใหญ่ดูโฆษณาด้วยสีหน้าเฉย ๆ เป็นหลัก ค่าที่ต่ำจึงเป็นเรื่องปกติ ให้ดูการเปลี่ยนแปลงตามเวลาและเปรียบเทียบระหว่างชิ้นงาน มากกว่าค่าสัมบูรณ์</li>
+        <li data-i18n="neuro.s54">ควรมีผู้เข้าร่วมอย่างน้อย 20-30 คนต่อชิ้นงานจึงจะเปรียบเทียบ A/B ได้น่าเชื่อถือ</li>
+        <li data-i18n="neuro.s55">ความแม่นยำขึ้นกับแสง มุมกล้อง แว่นตา และหน้ากาก Attention ประมาณจากทิศทางศีรษะ ไม่ใช่ eye tracking จริง</li>
+        <li data-i18n="neuro.s56">ใช้เพื่อการสาธิตหรือเป็นสัญญาณเบื้องต้นในงานวิจัยเท่านั้น ไม่ใช้ตัดสินบุคคล คัดเลือกพนักงาน หรือประเมินทางการแพทย์/จิตวิทยา</li>
+        <li data-i18n="neuro.s57">ข้อมูลสีหน้าเป็นข้อมูลส่วนบุคคล ต้องขอความยินยอมตาม PDPA ระบบนี้ประมวลผลในเครื่องและไม่บันทึกภาพ</li>
       </ul>
-      <h2>แหล่งอ้างอิงแนวคิด</h2>
+      <h2 data-i18n="neuro.s58">แหล่งอ้างอิงแนวคิด</h2>
       <ul class="refs">
-        <li><a href="https://doi.org/10.1177/1529100619832930" target="_blank" rel="noopener">Barrett, Adolphs, Marsella, Martinez &amp; Pollak (2019)</a> — Emotional Expressions Reconsidered: Challenges to Inferring Emotion From Human Facial Movements, <i>Psychological Science in the Public Interest</i> 20(1): 1–68 — สรุปว่าการอนุมานอารมณ์จากสีหน้ายังมีข้อจำกัดด้านความน่าเชื่อถือ ความจำเพาะ และการใช้ได้ทั่วไป</li>
-        <li><a href="https://github.com/vladmandic/face-api" target="_blank" rel="noopener">vladmandic/face-api</a> — โมเดลตรวจจับใบหน้าและสีหน้าที่ใช้ในหน้านี้</li>
-        <li><a href="https://github.com/face-analysis/emonet" target="_blank" rel="noopener">EmoNet</a> — โมเดลประเมิน Valence/Arousal แบบต่อเนื่อง (Nature Machine Intelligence)</li>
-        <li><a href="https://huggingface.co/spaces/arjun10g/live-expression-reader/blob/main/README.md" target="_blank" rel="noopener">Live Expression Reader</a> — แนวคิดแปลง Valence/Arousal เป็นสถานะ Engaged/Bored (อ้างอิง Whitehill et al., 2014)</li>
-        <li><a href="https://imotions.com/affectiva-requestdemo/" target="_blank" rel="noopener">Affectiva AFFDEX (iMotions)</a> — มาตรฐานเชิงพาณิชย์ด้าน Engagement/Valence ในงาน Neuromarketing</li>
-        <li><a href="https://arxiv.org/pdf/2609.19719" target="_blank" rel="noopener">SeetaPsych</a> — ชุดเครื่องมือวัดทางจิตวิทยาจากพฤติกรรมใบหน้า</li>
+        <li><a href="https://doi.org/10.1177/1529100619832930" target="_blank" rel="noopener">Barrett, Adolphs, Marsella, Martinez &amp; Pollak (2019)</a> — Emotional Expressions Reconsidered: Challenges to Inferring Emotion From Human Facial Movements, <i>Psychological Science in the Public Interest</i> <span data-i18n="neuro.s59">20(1): 1–68 — สรุปว่าการอนุมานอารมณ์จากสีหน้ายังมีข้อจำกัดด้านความน่าเชื่อถือ ความจำเพาะ และการใช้ได้ทั่วไป</span></li>
+        <li><a href="https://github.com/vladmandic/face-api" target="_blank" rel="noopener">vladmandic/face-api</a> <span data-i18n="neuro.s60">— โมเดลตรวจจับใบหน้าและสีหน้าที่ใช้ในหน้านี้</span></li>
+        <li><a href="https://github.com/face-analysis/emonet" target="_blank" rel="noopener">EmoNet</a> <span data-i18n="neuro.s61">— โมเดลประเมิน Valence/Arousal แบบต่อเนื่อง (Nature Machine Intelligence)</span></li>
+        <li><a href="https://huggingface.co/spaces/arjun10g/live-expression-reader/blob/main/README.md" target="_blank" rel="noopener">Live Expression Reader</a> <span data-i18n="neuro.s62">— แนวคิดแปลง Valence/Arousal เป็นสถานะ Engaged/Bored (อ้างอิง Whitehill et al., 2014)</span></li>
+        <li><a href="https://imotions.com/affectiva-requestdemo/" target="_blank" rel="noopener">Affectiva AFFDEX (iMotions)</a> <span data-i18n="neuro.s63">— มาตรฐานเชิงพาณิชย์ด้าน Engagement/Valence ในงาน Neuromarketing</span></li>
+        <li><a href="https://arxiv.org/pdf/2609.19719" target="_blank" rel="noopener">SeetaPsych</a> <span data-i18n="neuro.s64">— ชุดเครื่องมือวัดทางจิตวิทยาจากพฤติกรรมใบหน้า</span></li>
       </ul>
     </div>
   </section>
@@ -139,9 +142,9 @@
 <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
 
 <script src="vendor/face-api.js"></script>
-<script src="lensiq-track.js?v=1"></script>
-<script src="lensiq-camera.js?v=1"></script>
-<script src="lensiq-detect.js?v=1"></script>
+<script src="lensiq-track.js?v=2"></script>
+<script src="lensiq-camera.js?v=2"></script>
+<script src="lensiq-detect.js?v=2"></script>
 <script src="neuro.js?v=4"></script>
 </body>
 </html>

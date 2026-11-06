@@ -327,7 +327,7 @@ test("synthNeck: extends a skin-coloured neck from the jaw down below the new co
   const deep = at(80, 125); // below the old collar, below the new collar line
   assert.ok(deep.a > .95, "neck continues down: " + deep.a);
   assert.ok(deep.c[0] > 150 && deep.c[2] < 140, "skin-coloured, not the old blue collar: " + deep.c);
-  assert.ok(at(80 + fw * .3, 100).a > .5, "neck at least ~0.6 face widths wide");
+  assert.ok(at(Math.round(80 + fw * .27), 100).a > .5, "neck at least ~0.55 face widths wide (real necks are ~0.5-0.6 face widths)");
   assert.equal(at(5, 120).a, 0, "nothing far outside the neck");
 });
 
@@ -342,4 +342,97 @@ test("heuristicParse (fallback without a model): separates hair from the old clo
   const P = S.heuristicParse(rgba, alpha, w, h, face);
   assert.ok(P.hair[120 * w + 80 - 36] > .6, "hair below chin: " + P.hair[120 * w + 44]);
   assert.ok(P.hair[170 * w + 80] < .2 && P.cloth[170 * w + 80] > .6, "shirt is cloth");
+});
+
+// ---------- MediaPipe Selfie Multiclass parser (default, Apache-2.0) + body-shaped garments ----------
+/** synthetic 6-class run over the whole image: class(x, y) -> 0 bg, 1 hair, 2 body-skin, 3 face-skin, 4 clothes, 5 others */
+function mcRun(W, H, S, cls) {
+  const prob = new Float32Array(6 * S * S);
+  for (let j = 0; j < S; j++) for (let i = 0; i < S; i++) { const c = cls((i + .5) * W / S, (j + .5) * H / S); for (let k = 0; k < 6; k++) prob[k * S * S + j * S + i] = k === c ? .95 : .01; }
+  return { prob, S, C: 6, rect: { x: 0, y: 0, w: W, h: H } };
+}
+const mcFace = { cx: 80, chinX: 80, chinY: 90, eyeY: 60, fw: 60 };
+const mcScene = (x, y) => {
+  const dx = Math.abs(x - 80);
+  if (y < 92 && dx < 28 && y > 35) return 3;                    // face (incl. ears)
+  if (y >= 70 && y < 96 && dx >= 30 && dx < 36) return 5;         // earrings beside the jaw
+  if (y < 40 && dx < 34) return 1;                                // hair on top
+  if (y >= 108 && y < 116 && dx < 14) return 5;                   // necklace on the chest
+  if (y >= 92 && y < 112 && dx < 17) return 2;                    // neck
+  if (y >= 150 && x > 120) return 2;                              // a hand far from the neck
+  if (y >= 100) return 4;                                         // clothes
+  return 0;
+};
+
+test("multiclassGroups: earrings join the head (no holes), necklace is hidden with the old clothes, hands are skin not neck", () => {
+  const W = 160, H = 200, P = S.multiclassGroups([mcRun(W, H, 64, mcScene)], W, H, mcFace), at = (k, x, y) => P[k][y * W + x];
+  assert.ok(at("head", 80, 70) > .9, "face");
+  assert.ok(at("head", 113, 82) > .7, "earring kept with the head: " + at("head", 113, 82));
+  assert.ok(at("hair", 80, 30) > .9, "hair");
+  assert.ok(at("neck", 80, 100) > .9, "neck");
+  assert.ok(at("cloth", 80, 112) > .7 && at("head", 80, 112) < .2, "necklace on the chest -> hidden with old clothes");
+  assert.ok(at("skin", 140, 170) > .9 && at("neck", 140, 170) < .1, "hand is skin, not neck");
+  assert.ok(at("cloth", 60, 140) > .9, "clothes");
+});
+
+test("multiclassGroups: a finer head crop refines the coarse run without a seam, hair takes the max of both runs", () => {
+  const W = 160, H = 200, coarse = mcRun(W, H, 32, (x, y) => (y < 120 && Math.abs(x - 80) < 40 ? 1 : 0));
+  const fine = mcRun(W, H, 64, (x, y) => (y < 90 && Math.abs(x - 80) < 30 ? 3 : 0)); fine.rect = { x: 30, y: 20, w: 100, h: 100 };
+  // re-sample the fine run in its own crop coordinates
+  const S2 = 64, f2 = new Float32Array(6 * S2 * S2);
+  for (let j = 0; j < S2; j++) for (let i = 0; i < S2; i++) { const x = 30 + (i + .5) * 100 / S2, y = 20 + (j + .5) * 100 / S2, c = y < 90 && Math.abs(x - 80) < 30 ? 3 : 0; for (let k = 0; k < 6; k++) f2[k * S2 * S2 + j * S2 + i] = k === c ? .95 : .01; }
+  fine.prob = f2;
+  const P = S.multiclassGroups([coarse, fine], W, H, { cx: 80, chinX: 80, chinY: 92, eyeY: 60, fw: 60 });
+  assert.ok(P.hair[100 * W + 112] > .8, "hair outside the fine crop's face stays hair (max over runs)");
+  assert.ok(P.head[60 * W + 80] > .5, "face from the fine run");
+});
+
+test("fillMatteFromParse: fills a MODNet hole inside a confident person region, keeps the outside", () => {
+  const W = 120, H = 120, raw = new Float32Array(W * H);
+  for (let y = 20; y < 110; y++) for (let x = 30; x < 90; x++) raw[y * W + x] = 1;
+  for (let y = 40; y < 60; y++) for (let x = 50; x < 70; x++) raw[y * W + x] = 0; // hole (e.g. a face MODNet missed)
+  const run = mcRun(W, H, 60, (x, y) => (x >= 30 && x < 90 && y >= 20 && y < 110 ? 3 : 0));
+  const out = S.fillMatteFromParse(raw, run, W, H);
+  assert.ok(out[50 * W + 60] > .9, "hole filled");
+  assert.ok(out[50 * W + 10] < .05, "background untouched");
+});
+
+test("faceFromParse: estimates the face box from face-skin when no landmarks are found", () => {
+  const W = 200, H = 240, run = mcRun(W, H, 100, (x, y) => (Math.abs(x - 100) < 40 && y > 50 && y < 150 ? 3 : 0));
+  const f = S.faceFromParse(run, W, H);
+  assert.ok(f && Math.abs(f.cx - 100) < 4 && Math.abs(f.chinY - 150) < 5 && Math.abs(f.fw - 76) < 8, JSON.stringify(f));
+  assert.ok(f.eyeY > 60 && f.eyeY < f.chinY);
+});
+
+test("neckMeasure: neck half-width and the top of the old clothes beside the neck", () => {
+  const W = 160, H = 200, n = W * H, face = { cx: 80, chinX: 80, chinY: 80, eyeY: 50, fw: 60 }, alpha = new Float32Array(n).fill(1);
+  const neck = fill(W, H, (x, y) => (y >= 80 && y < 110 && Math.abs(x - 80) < 17 ? 1 : 0)), keep = fill(W, H, (x, y) => (y < 80 ? 1 : 0));
+  const body = fill(W, H, (x, y) => 1 - neck[y * W + x] - keep[y * W + x]);
+  const m = S.neckMeasure(alpha, { neck, keep, body }, W, H, face);
+  assert.ok(Math.abs(m.half - 17) < 3, "half " + m.half);
+  assert.ok(m.ySide >= 79 && m.ySide <= 84, "old clothes start right beside the neck: " + m.ySide);
+});
+
+test("garmentClip: garment follows the real body outline (not a box) and stays out of the background", () => {
+  const W = 200, H = 220, n = W * H, face = { cx: 100, chinX: 100, chinY: 70, eyeY: 40, fw: 50 };
+  // body: sloping shoulders, narrower waist; head on top
+  const inBody = (x, y) => { const dx = Math.abs(x - 100); if (y < 70) return dx < 25 && y > 15; const half = y < 110 ? 20 + (y - 70) * 1.6 : 84 - (y - 110) * .1; return dx < half; };
+  const alpha = fill(W, H, (x, y) => (inBody(x, y) ? 1 : 0)), keep = fill(W, H, (x, y) => (y < 70 && inBody(x, y) ? 1 : 0)), hair = new Float32Array(n);
+  const fit = { N: { x: 100, y: 80 }, s: 50, theta: 0 };
+  const { clip, form } = S.garmentClip(alpha, { keep, hair }, W, H, face, fit);
+  assert.ok(clip[150 * W + 100] > .95, "torso covered");
+  assert.ok(clip[85 * W + 165] < .05, "background beside the sloping shoulder stays empty (no box corner)");
+  assert.ok(clip[200 * W + 170] > .9, "follows the wide lower body");
+  assert.ok(form[150 * W + 100] > form[150 * W + 178], "rounded: centre higher than near the outline");
+});
+
+test("synthNeck: synthesized neck uses the face skin chroma and a cylinder shading (sides darker than the centre)", () => {
+  const w = 160, h = 200, fw = 60, face = { cx: 80, chinX: 80, chinY: 70, eyeY: 40, fw }, n = w * h;
+  const skin = [200, 150, 120], person = rgbaFill(w, h, (x, y) => (y < 70 ? skin : [240, 240, 240])); // white collar up to the chin: no visible neck
+  const alpha = new Float32Array(n).fill(1), neckS = new Float32Array(n), keepS = fill(w, h, (x, y) => (y < 70 && Math.abs(x - 80) < 30 ? 1 : 0));
+  const r = S.synthNeck(person, alpha, neckS, keepS, w, h, face, { N: { x: 80, y: 100 }, s: 60, theta: 0, drop: 0 }, { skinRGB: skin, noise: 0, half: 17 });
+  const px = (x, y) => [...r.rgba.slice((y * w + x) * 4, (y * w + x) * 4 + 3)];
+  const c = px(80, 92), side = px(94, 92);
+  assert.ok(r.alpha[92 * w + 80] > .95 && c[0] > c[2] + 30, "skin hue, not the white collar: " + c);
+  assert.ok(side[0] + side[1] + side[2] < c[0] + c[1] + c[2], "sides darker (cylinder): " + side + " vs " + c);
 });

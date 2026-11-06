@@ -175,7 +175,7 @@ test("dream: non-omen dream types never claim the dream 'comes true soon'", () =
     const ids = [syms[(i * 7) % syms.length], syms[(i * 13 + 3) % syms.length]];
     const ty = DR.dreamType(ids, mood, time), omen = DKB.TYPES[ty].omen;
     const f = DR.buildFacts(ids, mood, time, TOPICS[i % 4], { rng: lcg(i) });
-    const timing = f.items.find(x => x.id === "type").meanings.timing;
+    const timing = f.items.find(x => x.id === "type").timingFull;
     const all = JSON.stringify(f.items.map(x => x.meanings));
     if (!omen) assert.ok(!PROPHETIC.test(all), `${ty}/${mood}/${time}: ${timing.join(" | ")}`);
     if (time) assert.equal(timing.length, 2);
@@ -184,12 +184,12 @@ test("dream: non-omen dream types never claim the dream 'comes true soon'", () =
   assert.ok(n > 300);
   // กรณีจากรายงานประเมิน
   const f = DR.buildFacts(["snake", "teeth", "flood"], "anxious", "dawn", "money", {});
-  const t = f.items.find(x => x.id === "type").meanings.timing.join(" ");
+  const t = f.items.find(x => x.id === "type").timingFull.join(" ");
   assert.match(t, /จิตนิวรณ์/);
   assert.ok(!/มักเห็นผลเร็ว/.test(t), t);
   // ฝันที่เป็นลาง (บุพนิมิต) ยังคงความเชื่อเรื่องฝันใกล้รุ่ง
   const g = DR.buildFacts(["snake"], "happy", "dawn", "love", {});
-  assert.match(g.items.find(x => x.id === "type").meanings.timing.join(" "), /มักเห็นผลเร็ว/);
+  assert.match(g.items.find(x => x.id === "type").timingFull.join(" "), /มักเห็นผลเร็ว/);
   assert.equal(DR.timeMeaning(DKB.TYPES.jit, "dawn"), DKB.TIMES.dawn.r);
 });
 

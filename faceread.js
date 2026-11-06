@@ -1,4 +1,4 @@
-/* โหงวเฮ้ง AI — อ่านโหงวเฮ้งจากจุดบนใบหน้า 68 จุด (face-api) เพื่อความบันเทิง
+/* อ่านโหงวเฮ้ง — อ่านโหงวเฮ้งจากจุดบนใบหน้า 68 จุด (face-api) เพื่อความบันเทิง
    ประมวลผลในเบราว์เซอร์ทั้งหมด ไม่ส่งและไม่บันทึกภาพ
    ส่วนแรก (FRCore) เป็นฟังก์ชันล้วน ทดสอบใน Node ได้:  const FR = require("./faceread.js")
    ส่วนหลัง (UI) ทำงานเฉพาะในเบราว์เซอร์
@@ -651,6 +651,12 @@
 
   /** วิเคราะห์ครบชุด: pts (68 จุดในพิกัดภาพ), img (ImageData-like สำหรับหาแนวผมและความสว่างแต่ละวัง) */
   function analyze(pts, img, age) {
+    // จุดบนใบหน้าเสีย (เช่น เฟรมที่ตัวตรวจจับคืนจุดซ้อนกันหมด) → แจ้งให้ถ่ายใหม่ แทนที่จะได้ค่า NaN ในคำทำนาย
+    if (!Array.isArray(pts) || pts.length < 68) throw new Error("ต้องมีจุดบนใบหน้า 68 จุด");
+    for (var q = 0; q < 68; q++) if (!pts[q] || !isFinite(pts[q][0]) || !isFinite(pts[q][1])) throw new Error("ตำแหน่งจุดบนใบหน้าไม่สมบูรณ์ ลองถ่ายใหม่");
+    var ec = function (a) { var x = 0, y = 0; for (var k = a; k < a + 6; k++) { x += pts[k][0]; y += pts[k][1]; } return [x / 6, y / 6]; };
+    var eL = ec(36), eR = ec(42);
+    if (!(Math.hypot(eR[0] - eL[0], eR[1] - eL[1]) > 4)) throw new Error("ใบหน้าเล็กหรือไม่ชัดพอ ลองถ่ายใหม่ให้เห็นหน้าตรงและชัด");
     var hair = estimateHairline(img, pts);
     var m = measure(pts, hair);
     var cls = classify(m);
@@ -1464,7 +1470,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     c.restore();
     c.textBaseline = "middle"; c.textAlign = "left";
     c.font = "700 40px " + F; c.fillStyle = "#fff"; c.fillText("LENS", 148, 96); var lw = c.measureText("LENS").width; c.fillStyle = "#a99bff"; c.fillText("IQ", 148 + lw, 96);
-    c.textAlign = "right"; c.font = "500 34px " + F; c.fillStyle = "#c9d0ea"; c.fillText("โหงวเฮ้ง AI", W - 72, 96);
+    c.textAlign = "right"; c.font = "500 34px " + F; c.fillStyle = "#c9d0ea"; c.fillText("อ่านโหงวเฮ้ง", W - 72, 96);
     // วงกลมธาตุ / รูป
     var cy = 460, r = 210;
     c.beginPath(); c.arc(W / 2, cy, r + 14, 0, Math.PI * 2); c.fillStyle = E.color; c.fill();
@@ -1528,7 +1534,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var im = $("#frCardImg"); im.src = cardUrl; im.hidden = false;
       var file = new File([blob], "lensiq-โหงวเฮ้ง.png", { type: "image/png" });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: "โหงวเฮ้ง AI — LENSIQ", text: "ธาตุ" + current.R.reading.element.th + " " + KB.disclaimerShort }); return; }
+        try { await navigator.share({ files: [file], title: "อ่านโหงวเฮ้ง — LENSIQ", text: "ธาตุ" + current.R.reading.element.th + " " + KB.disclaimerShort }); return; }
         catch (e) { if (e.name === "AbortError") return; }
       }
       var a = document.createElement("a"); a.href = cardUrl; a.download = "lensiq-faceread.png"; document.body.append(a); a.click(); a.remove();

@@ -150,7 +150,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       if (!p) return;
       var q = pt(p.lon, rad), e = pt(p.lon, r);
       out.push('<line x1="' + cx + '" y1="' + cy + '" x2="' + e[0].toFixed(1) + '" y2="' + e[1].toFixed(1) + '" stroke="' + col + '" stroke-width="1.5" opacity=".5"/>');
-      out.push('<circle cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="15" fill="' + col + '"/><text x="' + q[0].toFixed(1) + '" y="' + q[1].toFixed(1) + '" text-anchor="middle" dominant-baseline="central" font-size="' + (lbl ? 11 : 16) + '" fill="#fff" font-weight="600">' + sym + "</text>");
+      out.push('<circle cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="15" fill="' + col + '"/><text x="' + q[0].toFixed(1) + '" y="' + q[1].toFixed(1) + '" text-anchor="middle" dominant-baseline="central" font-size="' + (lbl ? 13 : 16) + '" fill="#fff" font-weight="600">' + sym + "</text>");
     };
     mark(C.sun, "☉︎", "#e8590c", 88); mark(C.moon, "☽︎", "#5f3dc4", 62); mark(C.asc, "ASC", "#0891b2", 38, true);
     return '<svg class="as-wheel" viewBox="0 0 320 320" role="img" aria-label="แผนภูมิราศี: อาทิตย์' + esc(KB.SIGNS[C.sun.sign].th) + " จันทร์" + esc(KB.SIGNS[C.moon.sign].th) + (C.asc ? " ลัคนา" + esc(KB.SIGNS[C.asc.sign].th) : "") + '">' + out.join("") + "</svg>";

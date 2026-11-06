@@ -2,59 +2,60 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
-<title>ตู้ถ่ายรูป | LENSIQ</title>
+<title data-i18n="pb.title">ตู้ถ่ายรูป | LENSIQ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=6">
-<link rel="stylesheet" href="photobooth.css?v=8">
+<link rel="stylesheet" href="photobooth.css?v=9">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=10"></script>
+<script src="nav.js?v=11"></script>
 
 <main class="pb">
-  <h1>ตู้ถ่ายรูป</h1>
-  <p class="lead">ตู้ถ่ายรูปสติ๊กเกอร์สำหรับงานอีเวนต์และบูธการตลาด เปลี่ยนฉากหลังอัตโนมัติ แชร์ภาพเข้ามือถือได้ทันที หรือทำรูปติดบัตร 1 นิ้ว / 2 นิ้ว พร้อมชุดจำลอง</p>
+  <h1 data-i18n="pb.h1">ตู้ถ่ายรูป</h1>
+  <p class="lead" data-i18n="pb.lead">ตู้ถ่ายรูปสติ๊กเกอร์สำหรับงานอีเวนต์และบูธการตลาด เปลี่ยนฉากหลังอัตโนมัติ แชร์ภาพเข้ามือถือได้ทันที หรือทำรูปติดบัตร 1 นิ้ว / 2 นิ้ว พร้อมชุดจำลอง</p>
 
   <div class="tabs" role="tablist">
-    <button class="tab active" data-t="booth" role="tab" aria-selected="true">ตู้สติ๊กเกอร์</button>
-    <button class="tab" data-t="id" role="tab" aria-selected="false">รูปติดบัตร</button>
-    <button class="tab" data-t="tpl" role="tab" aria-selected="false">จัดการเทมเพลต</button>
+    <button class="tab active" data-t="booth" role="tab" aria-selected="true" data-i18n="pb.tab.booth">ตู้สติ๊กเกอร์</button>
+    <button class="tab" data-t="id" role="tab" aria-selected="false" data-i18n="pb.tab.id">รูปติดบัตร</button>
+    <button class="tab" data-t="tpl" role="tab" aria-selected="false" data-i18n="pb.tab.tpl">จัดการเทมเพลต</button>
   </div>
 
   <!-- ===== จัดการเทมเพลต (ชุดจริง / กรอบ / ฉากหลัง) ===== -->
   <section id="pane-tpl" hidden>
     <div class="tpl-grid">
       <div class="card">
-        <h2>เพิ่มชุดจากรูปจริง</h2>
-        <p class="note">อัปโหลดรูปคนใส่ชุดจริง (ระบบตัดศีรษะและพื้นหลังออกให้เอง) หรือไฟล์ PNG ชุดพื้นใสที่ซื้อ/ออกแบบไว้</p>
-        <label>ชื่อชุด<input id="tplName" maxlength="40" placeholder="เช่น ชุดปกติขาว ข้าราชการพลเรือน"></label>
-        <label>ไฟล์รูป<input id="tplFile" type="file" accept="image/*"></label>
-        <label class="slider">ระดับคอเสื้อ<input type="range" id="tplNeck" min="20" max="90" value="50"></label>
-        <div class="tpl-preview"><canvas id="tplCanvas" width="10" height="10"></canvas><p id="tplMsg" class="hint">ยังไม่ได้เลือกรูป</p></div>
-        <button class="btn primary full" id="tplSave" type="button" disabled>บันทึกเป็นเทมเพลตชุด</button>
-        <details class="tips"><summary>วิธีถ่ายรูปต้นแบบให้ได้ผลดีที่สุด</summary>
+        <h2 data-i18n="pb.tpl.addH">เพิ่มชุดจากรูปจริง</h2>
+        <p class="note" data-i18n="pb.tpl.addNote">อัปโหลดรูปคนใส่ชุดจริง (ระบบตัดศีรษะและพื้นหลังออกให้เอง) หรือไฟล์ PNG ชุดพื้นใสที่ซื้อ/ออกแบบไว้</p>
+        <label data-i18n="pb.tpl.name">ชื่อชุด<input id="tplName" maxlength="40" data-i18n-attr="placeholder:pb.tpl.name.ph" placeholder="เช่น ชุดปกติขาว ข้าราชการพลเรือน"></label>
+        <label data-i18n="pb.tpl.file">ไฟล์รูป<input id="tplFile" type="file" accept="image/*"></label>
+        <label class="slider" data-i18n="pb.tpl.neck">ระดับคอเสื้อ<input type="range" id="tplNeck" min="20" max="90" value="50"></label>
+        <div class="tpl-preview"><canvas id="tplCanvas" width="10" height="10"></canvas><p id="tplMsg" class="hint"><span data-i18n="pb.tpl.msg">ยังไม่ได้เลือกรูป</span></p></div>
+        <button class="btn primary full" id="tplSave" type="button" disabled data-i18n="pb.tpl.save">บันทึกเป็นเทมเพลตชุด</button>
+        <details class="tips"><summary data-i18n="pb.tpl.tips">วิธีถ่ายรูปต้นแบบให้ได้ผลดีที่สุด</summary>
           <ul>
-            <li>หน้าตรง ไหล่ตรง มองกล้อง เห็นตั้งแต่ศีรษะถึงกลางอก</li>
-            <li>ฉากหลังเรียบ แสงสว่างสม่ำเสมอ ความละเอียดอย่างน้อย 1000 พิกเซล</li>
-            <li>นายแบบผมสั้นหรือรวบผม เพื่อไม่ให้ผมปิดบ่า</li>
-            <li>ใช้รูปที่มีสิทธิ์ใช้งาน (ถ่ายเองหรือซื้อลิขสิทธิ์) และควรตรวจระเบียบการแต่งกายของหน่วยงาน</li>
+            <li data-i18n="pb.tpl.tip1">หน้าตรง ไหล่ตรง มองกล้อง เห็นตั้งแต่ศีรษะถึงกลางอก</li>
+            <li data-i18n="pb.tpl.tip2">ฉากหลังเรียบ แสงสว่างสม่ำเสมอ ความละเอียดอย่างน้อย 1000 พิกเซล</li>
+            <li data-i18n="pb.tpl.tip3">นายแบบผมสั้นหรือรวบผม เพื่อไม่ให้ผมปิดบ่า</li>
+            <li data-i18n="pb.tpl.tip4">ใช้รูปที่มีสิทธิ์ใช้งาน (ถ่ายเองหรือซื้อลิขสิทธิ์) และควรตรวจระเบียบการแต่งกายของหน่วยงาน</li>
           </ul>
         </details>
       </div>
       <div class="card">
-        <h2>กรอบรูปและฉากหลัง (ตู้สติ๊กเกอร์)</h2>
-        <label>ชื่อ<input id="assetName" maxlength="40" placeholder="เช่น กรอบงานแต่ง / ฉากทะเล"></label>
-        <div class="seg" id="assetKind"><button data-k="frame" class="on">กรอบรูป (PNG พื้นใส)</button><button data-k="bg">ฉากหลัง (รูปภาพ)</button></div>
-        <label>ไฟล์<input id="assetFile" type="file" accept="image/*"></label>
-        <button class="btn primary full" id="assetSave" type="button">บันทึก</button>
-        <p class="hint" id="assetMsg">กรอบรูปจะซ้อนทับบนแต่ละภาพ ควรเป็น PNG ที่ตรงกลางโปร่งใส สัดส่วน 4:3</p>
-        <h2 style="margin-top:22px">เทมเพลตที่บันทึกไว้</h2>
-        <div class="tpl-list" id="tplList"><p class="hint">ยังไม่มี</p></div>
+        <h2 data-i18n="pb.asset.h">กรอบรูปและฉากหลัง (ตู้สติ๊กเกอร์)</h2>
+        <label data-i18n="pb.asset.name">ชื่อ<input id="assetName" maxlength="40" data-i18n-attr="placeholder:pb.asset.name.ph" placeholder="เช่น กรอบงานแต่ง / ฉากทะเล"></label>
+        <div class="seg" id="assetKind"><button data-k="frame" class="on" data-i18n="pb.asset.frame">กรอบรูป (PNG พื้นใส)</button><button data-k="bg" data-i18n="pb.asset.bg">ฉากหลัง (รูปภาพ)</button></div>
+        <label data-i18n="pb.asset.file">ไฟล์<input id="assetFile" type="file" accept="image/*"></label>
+        <button class="btn primary full" id="assetSave" type="button" data-i18n="pb.asset.save">บันทึก</button>
+        <p class="hint" id="assetMsg"><span data-i18n="pb.asset.msg">กรอบรูปจะซ้อนทับบนแต่ละภาพ ควรเป็น PNG ที่ตรงกลางโปร่งใส สัดส่วน 4:3</span></p>
+        <h2 style="margin-top:22px" data-i18n="pb.asset.saved">เทมเพลตที่บันทึกไว้</h2>
+        <div class="tpl-list" id="tplList"><p class="hint"><span data-i18n="pb.asset.none">ยังไม่มี</span></p></div>
       </div>
     </div>
   </section>
@@ -70,62 +71,62 @@
         <div class="flash" id="flash"></div>
       </div>
       <video id="video" autoplay muted playsinline hidden></video>
-      <button class="btn primary full big shutter" id="shoot" type="button"><span aria-hidden="true">📸</span> ถ่ายภาพ</button>
-      <p class="hint" id="shootHint">ยืนห่างกล้องประมาณ 1 เมตร ให้เห็นศีรษะและไหล่ แสงส่องด้านหน้า</p>
+      <button class="btn primary full big shutter" id="shoot" type="button" data-i18n="pb.shoot"><span aria-hidden="true">📸</span> ถ่ายภาพ</button>
+      <p class="hint" id="shootHint"><span data-i18n="pb.shootHint">ยืนห่างกล้องประมาณ 1 เมตร ให้เห็นศีรษะและไหล่ แสงส่องด้านหน้า</span></p>
       <div class="stage-tools">
-        <div class="seg" id="timerSel" role="group" aria-label="เวลานับถอยหลัง"><span class="seg-label">นับถอยหลัง</span><button type="button" data-s="3" class="on">3 วิ</button><button type="button" data-s="5">5 วิ</button><button type="button" data-s="10">10 วิ</button></div>
-        <button class="btn ghost kiosk-btn" id="kiosk" type="button" aria-pressed="false">⛶ โหมดคีออสก์</button>
+        <div class="seg" id="timerSel" role="group" aria-label="เวลานับถอยหลัง"><span class="seg-label" data-i18n="pb.timer">นับถอยหลัง</span><button type="button" data-s="3" class="on" data-i18n="pb.t3">3 วิ</button><button type="button" data-s="5" data-i18n="pb.t5">5 วิ</button><button type="button" data-s="10" data-i18n="pb.t10">10 วิ</button></div>
+        <button class="btn ghost kiosk-btn" id="kiosk" type="button" aria-pressed="false" data-i18n="pb.kiosk">⛶ โหมดคีออสก์</button>
       </div>
     </section>
 
     <!-- ===== ตัวเลือกตู้สติ๊กเกอร์ ===== -->
     <section class="card opts" id="opts-booth">
-      <h3>ธีมกรอบ</h3>
+      <h3 data-i18n="pb.theme">ธีมกรอบ</h3>
       <div class="choices" id="themes"></div>
-      <h3>ฉากหลัง</h3>
+      <h3 data-i18n="pb.bg">ฉากหลัง</h3>
       <div class="swatches" id="bgs"></div>
-      <h3>จำนวนภาพและรูปแบบ</h3>
+      <h3 data-i18n="pb.shots">จำนวนภาพและรูปแบบ</h3>
       <div class="seg" id="shots">
-        <button data-n="1">1 ภาพ</button><button data-n="2">2 ภาพ</button><button data-n="4" class="on">4 ภาพ</button>
+        <button data-n="1" data-i18n="pb.n1">1 ภาพ</button><button data-n="2" data-i18n="pb.n2">2 ภาพ</button><button data-n="4" class="on" data-i18n="pb.n4">4 ภาพ</button>
       </div>
       <div class="seg" id="layoutSel">
-        <button data-l="strip" class="on">แถบแนวตั้ง</button><button data-l="grid">ตาราง</button>
+        <button data-l="strip" class="on" data-i18n="pb.strip">แถบแนวตั้ง</button><button data-l="grid" data-i18n="pb.grid">ตาราง</button>
       </div>
-      <h3>ข้อความ</h3>
-      <input id="caption" maxlength="40" value="LENSIQ Photo Booth" aria-label="ข้อความบนภาพ">
-      <label class="check"><input type="checkbox" id="showDate" checked><span>แสดงวันที่</span></label>
+      <h3 data-i18n="pb.caption">ข้อความ</h3>
+      <input id="caption" maxlength="40" value="LENSIQ Photo Booth" data-i18n-attr="aria-label:pb.caption.aria" aria-label="ข้อความบนภาพ">
+      <label class="check"><input type="checkbox" id="showDate" checked><span data-i18n="pb.showDate">แสดงวันที่</span></label>
     </section>
 
     <!-- ===== ตัวเลือกรูปติดบัตร ===== -->
     <section class="card opts" id="opts-id" hidden>
-      <h3>ใช้รูปเพื่อ (ตั้งค่าอัตโนมัติ)</h3>
+      <h3 data-i18n="pb.id.purpose">ใช้รูปเพื่อ (ตั้งค่าอัตโนมัติ)</h3>
       <div class="seg wrap" id="idPurpose"></div>
-      <label class="check"><input type="checkbox" id="autoShoot"><span>ถ่ายอัตโนมัติเมื่อหน้าตรงและนิ่ง</span></label>
-      <h3>ขนาด</h3>
+      <label class="check"><input type="checkbox" id="autoShoot"><span data-i18n="pb.id.auto">ถ่ายอัตโนมัติเมื่อหน้าตรงและนิ่ง</span></label>
+      <h3 data-i18n="pb.id.size">ขนาด</h3>
       <div class="seg" id="idSize"></div>
-      <h3>สีฉากหลัง</h3>
+      <h3 data-i18n="pb.id.bgColor">สีฉากหลัง</h3>
       <div class="seg" id="idBg">
-        <button data-c="#ffffff" class="on">ขาว</button><button data-c="#d7e7f7">ฟ้าอ่อน</button><button data-c="#e4e4e4">เทาอ่อน</button>
+        <button data-c="#ffffff" class="on" data-i18n="pb.id.white">ขาว</button><button data-c="#d7e7f7" data-i18n="pb.id.sky">ฟ้าอ่อน</button><button data-c="#e4e4e4" data-i18n="pb.id.gray">เทาอ่อน</button>
       </div>
-      <h3>ชุดจำลอง</h3>
+      <h3 data-i18n="pb.id.outfit">ชุดจำลอง</h3>
       <div class="choices" id="outfits"></div>
-      <h3>ปรับตำแหน่งชุด</h3>
-      <label class="slider">ขนาด<input type="range" id="oScale" min="70" max="140" value="100"></label>
-      <label class="slider">ซ้าย–ขวา<input type="range" id="oX" min="-30" max="30" value="0"></label>
-      <label class="slider">ขึ้น–ลง<input type="range" id="oY" min="-30" max="30" value="0"></label>
-      <label class="slider">ความสว่างชุด<input type="range" id="oBright" min="70" max="130" value="100"></label>
-      <h3>ปรับภาพ</h3>
-      <label class="slider">ความสว่าง<input type="range" id="adjBright" min="80" max="130" value="100"></label>
-      <label class="slider">ผิวเนียน<input type="range" id="adjSmooth" min="0" max="100" value="0"></label>
-      <p class="note">หมายเหตุ: ชุดเป็นภาพกราฟิกจำลองเพื่อความสะดวก ไม่มีเครื่องหมายราชการหรือยศ บางหน่วยงานไม่รับรูปที่ผ่านการตกแต่งแบบดิจิทัล กรุณาตรวจสอบข้อกำหนดของหน่วยงานก่อนใช้งานจริง</p>
-      <p class="hint"><a href="studio.html">ต้องการให้ชุดเนียนเหมือนใส่จริง ลองสตูดิโอแต่งชุด AI →</a></p>
+      <h3 data-i18n="pb.id.adjOutfit">ปรับตำแหน่งชุด</h3>
+      <label class="slider" data-i18n="pb.id.scale">ขนาด<input type="range" id="oScale" min="70" max="140" value="100"></label>
+      <label class="slider" data-i18n="pb.id.x">ซ้าย–ขวา<input type="range" id="oX" min="-30" max="30" value="0"></label>
+      <label class="slider" data-i18n="pb.id.y">ขึ้น–ลง<input type="range" id="oY" min="-30" max="30" value="0"></label>
+      <label class="slider" data-i18n="pb.id.obright">ความสว่างชุด<input type="range" id="oBright" min="70" max="130" value="100"></label>
+      <h3 data-i18n="pb.id.adj">ปรับภาพ</h3>
+      <label class="slider" data-i18n="pb.id.bright">ความสว่าง<input type="range" id="adjBright" min="80" max="130" value="100"></label>
+      <label class="slider" data-i18n="pb.id.smooth">ผิวเนียน<input type="range" id="adjSmooth" min="0" max="100" value="0"></label>
+      <p class="note" data-i18n="pb.id.note">หมายเหตุ: ชุดเป็นภาพกราฟิกจำลองเพื่อความสะดวก ไม่มีเครื่องหมายราชการหรือยศ บางหน่วยงานไม่รับรูปที่ผ่านการตกแต่งแบบดิจิทัล กรุณาตรวจสอบข้อกำหนดของหน่วยงานก่อนใช้งานจริง</p>
+      <p class="hint"><a href="studio.html" data-i18n="pb.id.studio">ต้องการให้ชุดเนียนเหมือนใส่จริง ลองสตูดิโอแต่งชุด AI →</a></p>
     </section>
   </div>
 
   <!-- ===== ผลลัพธ์ ===== -->
   <section class="card result" id="result" hidden>
     <div class="result-head">
-      <h2 id="resultTitle">ผลลัพธ์</h2>
+      <h2 id="resultTitle"><span data-i18n="pb.result">ผลลัพธ์</span></h2>
       <div class="row-actions" id="resultActions"></div>
     </div>
     <div class="result-body">
@@ -136,29 +137,30 @@
 </main>
 
 <dialog class="handoff" id="handoff" aria-labelledby="handoffTitle">
-  <h2 id="handoffTitle">ส่งต่อภาพ</h2>
-  <p class="hint">กดค้างที่ภาพเพื่อบันทึกลงเครื่อง หรือส่งต่อผ่าน AirDrop / Nearby Share / LINE ได้ทันที ไม่ต้องสแกน QR</p>
+  <h2 id="handoffTitle" data-i18n="pb.ho.title">ส่งต่อภาพ</h2>
+  <p class="hint" data-i18n="pb.ho.hint">กดค้างที่ภาพเพื่อบันทึกลงเครื่อง หรือส่งต่อผ่าน AirDrop / Nearby Share / LINE ได้ทันที ไม่ต้องสแกน QR</p>
   <img id="handoffImg" alt="ภาพผลลัพธ์สำหรับบันทึกหรือส่งต่อ">
   <div class="row-actions">
-    <button class="btn primary" id="hoShare" type="button">แชร์</button>
-    <button class="btn ghost" id="hoCopy" type="button">คัดลอกภาพ</button>
-    <button class="btn ghost" id="hoSave" type="button">⬇ ดาวน์โหลด</button>
-    <button class="btn ghost" id="hoOpen" type="button">เปิดภาพในแท็บใหม่</button>
-    <button class="btn ghost" id="hoClose" type="button">ปิด</button>
+    <button class="btn primary" id="hoShare" type="button" data-i18n="pb.ho.share">แชร์</button>
+    <button class="btn ghost" id="hoCopy" type="button" data-i18n="pb.ho.copy">คัดลอกภาพ</button>
+    <button class="btn ghost" id="hoSave" type="button" data-i18n="pb.ho.save">⬇ ดาวน์โหลด</button>
+    <button class="btn ghost" id="hoOpen" type="button" data-i18n="pb.ho.open">เปิดภาพในแท็บใหม่</button>
+    <button class="btn ghost" id="hoClose" type="button" data-i18n="pb.ho.close">ปิด</button>
   </div>
 </dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="vendor/face-api.js"></script>
-<script src="lensiq-track.js?v=1"></script>
-<script src="lensiq-camera.js?v=1"></script>
-<script src="lensiq-detect.js?v=1"></script>
+<script src="lensiq-track.js?v=2"></script>
+<script src="lensiq-camera.js?v=2"></script>
+<script src="lensiq-detect.js?v=2"></script>
 <script src="photobooth-layout.js"></script>
 <script src="vendor/ort/ort.wasm.min.js"></script>
-<script src="photobooth-hq.js?v=6"></script>
+<script src="photobooth-hq.js?v=7"></script>
 <script src="photobooth-templates.js?v=1"></script>
-<script src="photobooth-outfits.js?v=2"></script>
-<script src="studio-core.js?v=2"></script>
-<script src="photobooth.js?v=10"></script>
+<script src="photobooth-outfits.js?v=3"></script>
+<script src="studio-core.js?v=3"></script>
+<script src="i18n/zh-photobooth.js?v=1"></script>
+<script src="photobooth.js?v=11"></script>
 </body>
 </html>

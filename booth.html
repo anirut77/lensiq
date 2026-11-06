@@ -2,72 +2,75 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
-<title>วิเคราะห์บูธ | LENSIQ</title>
+<title data-i18n="booth.s1">วิเคราะห์บูธ | LENSIQ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=6">
-<link rel="stylesheet" href="booth.css?v=4">
+<link rel="stylesheet" href="booth.css?v=5">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=10"></script>
+<script src="nav.js?v=11"></script>
+<script src="i18n/zh-booth.js?v=1"></script>
 
 <main class="bt">
-  <h1>วิเคราะห์ผู้เข้าชมบูธ</h1>
-  <p class="lead">นับผู้เข้าชมบูธในงานอีเวนต์และนิทรรศการ จำผู้เข้าชมแบบไม่ระบุตัวตน วัดเวลาที่หยุดชม สีหน้า และการเข้าร่วมกิจกรรม ประมวลผลในเครื่อง ไม่บันทึกภาพ</p>
+  <h1 data-i18n="booth.s2">วิเคราะห์ผู้เข้าชมบูธ</h1>
+  <p class="lead" data-i18n="booth.s3">นับผู้เข้าชมบูธในงานอีเวนต์และนิทรรศการ จำผู้เข้าชมแบบไม่ระบุตัวตน วัดเวลาที่หยุดชม สีหน้า และการเข้าร่วมกิจกรรม ประมวลผลในเครื่อง ไม่บันทึกภาพ</p>
+  <p class="acc-note" role="note"><b class="beta">Beta</b> <span data-i18n="booth.s4">นับผู้เข้าชมจากใบหน้าที่หันมาทางกล้อง คนที่ไม่หันหน้ามาจะไม่ถูกนับ · การจำคนเดิมใช้เกณฑ์ 0.50 ซึ่งทดสอบกับ LFW จำคนเดิมได้ราว 73% ต่อคู่ภาพ จึงอาจนับคนเดิมซ้ำได้บ้าง ยังไม่ได้วัดกับวิดีโอบูธจริง ใช้ดูแนวโน้มมากกว่ายอดที่แม่นทุกคน</span> <a href="cameras.html#accuracy" data-i18n="booth.s5">วิธีวัดและข้อจำกัด</a></p>
 
   <div class="engine" id="engine" role="status">กำลังโหลดโมเดลวิเคราะห์ใบหน้า...</div>
 
   <div class="grid2 top">
     <section class="card">
-      <div class="cam-grid" id="camGrid"><div class="cam" id="camPlaceholder"><p class="cam-off">กล้องยังไม่เปิด กด เริ่มกล้อง</p></div></div>
+      <div class="cam-grid" id="camGrid"><div class="cam" id="camPlaceholder"><p class="cam-off" data-i18n="booth.s6">กล้องยังไม่เปิด กด เริ่มกล้อง</p></div></div>
       <div class="cam-actions">
-        <button class="btn primary" id="camStart" type="button">เริ่มกล้อง</button>
+        <button class="btn primary" id="camStart" type="button" data-i18n="booth.s7">เริ่มกล้อง</button>
         <button class="btn ghost" id="toggle" type="button">เริ่มนับผู้เข้าชม</button>
-        <button class="btn ghost" id="addCam" type="button" disabled>+ เพิ่มกล้องเสริม</button>
+        <button class="btn ghost" id="addCam" type="button" disabled data-i18n="booth.s8">+ เพิ่มกล้องเสริม</button>
         <span class="pill" id="fps">—</span>
       </div>
-      <p class="hint">กล้องเสริม (สูงสุดรวม 3 ตัว) เช่น ทางเข้าบูธหรือโต๊ะสาธิต ใช้คลังผู้เข้าชมชุดเดียวกับกล้องหลัก คนเดียวกันที่กล้องหลายตัวเห็นนับครั้งเดียว การมองและสีหน้าวัดจากกล้องหลักเท่านั้น</p>
+      <p class="hint" data-i18n="booth.s9">กล้องเสริม (สูงสุดรวม 3 ตัว) เช่น ทางเข้าบูธหรือโต๊ะสาธิต ใช้คลังผู้เข้าชมชุดเดียวกับกล้องหลัก คนเดียวกันที่กล้องหลายตัวเห็นนับครั้งเดียว การมองและสีหน้าวัดจากกล้องหลักเท่านั้น</p>
       <div class="join">
-        <label>กิจกรรม<input id="activity" maxlength="40" value="ทดลองสินค้า"></label>
-        <button class="btn ghost" id="join" type="button">บันทึกผู้เข้าร่วมกิจกรรม<span class="kbd"> (Space)</span></button>
+        <label><span data-i18n="booth.s10">กิจกรรม</span><input id="activity" maxlength="40" value="ทดลองสินค้า"></label>
+        <button class="btn ghost" id="join" type="button"><span data-i18n="booth.s11">บันทึกผู้เข้าร่วมกิจกรรม</span><span class="kbd"> (Space)</span></button>
       </div>
-      <p class="hint">มีหลายคนในกล้อง: แตะกรอบใบหน้าบนภาพเพื่อบันทึกคนนั้นเข้าร่วมกิจกรรม</p>
+      <p class="hint" data-i18n="booth.s12">มีหลายคนในกล้อง: แตะกรอบใบหน้าบนภาพเพื่อบันทึกคนนั้นเข้าร่วมกิจกรรม</p>
       <p class="form-msg" id="joinMsg" role="status"></p>
     </section>
 
     <section class="card">
-      <h2>ภาพรวมวันนี้</h2>
+      <h2 data-i18n="booth.s13">ภาพรวมวันนี้</h2>
       <div class="tiles" id="tiles"></div>
-      <h3>กิจกรรม</h3>
+      <h3 data-i18n="booth.s14">กิจกรรม</h3>
       <ul class="acts" id="acts"></ul>
     </section>
   </div>
 
   <div class="grid2">
-    <section class="card"><h3>กรวยความสนใจ</h3><ol class="funnel" id="funnel"></ol><p class="hint">ร้อยละเทียบกับผู้ผ่านบูธทั้งหมด (คนไม่ซ้ำจากทุกกล้อง)</p></section>
-    <section class="card"><h3>สถิติต่อกล้อง / จุด</h3><div class="table-wrap"><table id="camStats"></table></div></section>
+    <section class="card"><h3 data-i18n="booth.s15">กรวยความสนใจ</h3><ol class="funnel" id="funnel"></ol><p class="hint" data-i18n="booth.s16">ร้อยละเทียบกับผู้ผ่านบูธทั้งหมด (คนไม่ซ้ำจากทุกกล้อง)</p></section>
+    <section class="card"><h3 data-i18n="booth.s17">สถิติต่อกล้อง / จุด</h3><div class="table-wrap"><table id="camStats"></table></div></section>
   </div>
   <div class="grid2">
-    <section class="card"><h3>ผู้เข้าชมใหม่รายชั่วโมง</h3><div id="hourly"></div></section>
-    <section class="card"><h3>จำนวนคนในกล้องตามเวลา</h3><div id="crowd"></div></section>
+    <section class="card"><h3 data-i18n="booth.s18">ผู้เข้าชมใหม่รายชั่วโมง</h3><div id="hourly"></div></section>
+    <section class="card"><h3 data-i18n="booth.s19">จำนวนคนในกล้องตามเวลา</h3><div id="crowd"></div></section>
   </div>
   <div class="grid2">
-    <section class="card"><h3>เวลาที่หยุดชม (คน)</h3><div id="dwell"></div></section>
-    <section class="card"><h3>สีหน้าหลักของผู้เข้าชม (คน)</h3><div id="emo"></div></section>
+    <section class="card"><h3 data-i18n="booth.s20">เวลาที่หยุดชม (คน)</h3><div id="dwell"></div></section>
+    <section class="card"><h3 data-i18n="booth.s21">สีหน้าหลักของผู้เข้าชม (คน)</h3><div id="emo"></div></section>
   </div>
 
   <section class="card">
     <div class="report-head">
-      <h2>ผู้เข้าชม (ไม่ระบุตัวตน)</h2>
+      <h2 data-i18n="booth.s22">ผู้เข้าชม (ไม่ระบุตัวตน)</h2>
       <div class="row-actions">
-        <button class="btn ghost" id="exportCsv" type="button">ส่งออก CSV</button>
-        <button class="btn ghost" id="exportStats" type="button">ส่งออกสถิติรวม CSV</button>
-        <button class="btn ghost" id="exportJson" type="button">ส่งออกสรุป JSON</button>
+        <button class="btn ghost" id="exportCsv" type="button" data-i18n="booth.s23">ส่งออก CSV</button>
+        <button class="btn ghost" id="exportStats" type="button" data-i18n="booth.s24">ส่งออกสถิติรวม CSV</button>
+        <button class="btn ghost" id="exportJson" type="button" data-i18n="booth.s25">ส่งออกสรุป JSON</button>
       </div>
     </div>
     <div class="table-wrap"><table id="visitors"></table></div>
@@ -75,21 +78,21 @@
 
   <div class="grid2">
     <section class="card">
-      <h2>ตั้งค่างาน</h2>
+      <h2 data-i18n="booth.s26">ตั้งค่างาน</h2>
       <form id="eventForm" novalidate>
-        <label>ชื่องาน / บูธ<input name="name" maxlength="60" required></label>
-        <label>วันที่<input name="date" type="date" required></label>
-        <button class="btn primary" type="submit">เริ่มงานใหม่ (ล้างข้อมูลเดิม)</button>
+        <label><span data-i18n="booth.s27">ชื่องาน / บูธ</span><input name="name" maxlength="60" required></label>
+        <label><span data-i18n="booth.s28">วันที่</span><input name="date" type="date" required></label>
+        <button class="btn primary" type="submit" data-i18n="booth.s29">เริ่มงานใหม่ (ล้างข้อมูลเดิม)</button>
       </form>
-      <button class="btn ghost danger" id="purge" type="button">ล้างข้อมูลใบหน้าของวันนี้</button>
-      <p class="hint">การล้างข้อมูลใบหน้าจะลบค่าลักษณะใบหน้าที่ใช้จำคน แต่เก็บสถิติรวมไว้ ระบบลบให้อัตโนมัติเมื่อขึ้นวันใหม่หรือเริ่มงานใหม่</p>
-      <label class="check"><input type="checkbox" id="remember"><span>จำผู้เข้าชมเมื่อรีเฟรชหน้า</span></label>
-      <p class="hint">ปิดไว้ (ค่าเริ่มต้น): ค่าลักษณะใบหน้าอยู่ในหน้านี้เท่านั้น ปิดหรือรีเฟรชหน้าแล้วระบบจะนับผู้เข้าชมที่กลับมาเป็นคนใหม่ เปิด: เก็บค่าลักษณะใบหน้าในเครื่องนี้ภายในวัน</p>
+      <button class="btn ghost danger" id="purge" type="button" data-i18n="booth.s30">ล้างข้อมูลใบหน้าของวันนี้</button>
+      <p class="hint" data-i18n="booth.s31">การล้างข้อมูลใบหน้าจะลบค่าลักษณะใบหน้าที่ใช้จำคน แต่เก็บสถิติรวมไว้ ระบบลบให้อัตโนมัติเมื่อขึ้นวันใหม่หรือเริ่มงานใหม่</p>
+      <label class="check"><input type="checkbox" id="remember"><span data-i18n="booth.s32">จำผู้เข้าชมเมื่อรีเฟรชหน้า</span></label>
+      <p class="hint" data-i18n="booth.s33">ปิดไว้ (ค่าเริ่มต้น): ค่าลักษณะใบหน้าอยู่ในหน้านี้เท่านั้น ปิดหรือรีเฟรชหน้าแล้วระบบจะนับผู้เข้าชมที่กลับมาเป็นคนใหม่ เปิด: เก็บค่าลักษณะใบหน้าในเครื่องนี้ภายในวัน</p>
     </section>
     <section class="card">
-      <h2>ป้ายแจ้งความเป็นส่วนตัว</h2>
+      <h2 data-i18n="booth.s34">ป้ายแจ้งความเป็นส่วนตัว</h2>
       <p class="notice" id="notice">พื้นที่นี้มีการวิเคราะห์ภาพจากกล้องแบบไม่ระบุตัวตน เพื่อนับจำนวนผู้เข้าชมและวัดความสนใจต่อบูธ ระบบไม่บันทึกภาพหรือวิดีโอ ค่าลักษณะใบหน้าใช้เพียงเพื่อไม่ให้นับคนซ้ำ อยู่ในเครื่องนี้ระหว่างเปิดหน้าเท่านั้น และถูกลบเมื่อปิดหน้าหรือขึ้นวันใหม่ หากไม่ต้องการเข้าร่วม กรุณาแจ้งเจ้าหน้าที่</p>
-      <button class="btn ghost" id="printNotice" type="button">พิมพ์ป้าย</button>
+      <button class="btn ghost" id="printNotice" type="button" data-i18n="booth.s35">พิมพ์ป้าย</button>
     </section>
   </div>
 </main>
@@ -97,9 +100,9 @@
 <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
 
 <script src="vendor/face-api.js"></script>
-<script src="lensiq-track.js?v=1"></script>
-<script src="lensiq-camera.js?v=1"></script>
-<script src="lensiq-detect.js?v=1"></script>
+<script src="lensiq-track.js?v=2"></script>
+<script src="lensiq-camera.js?v=2"></script>
+<script src="lensiq-detect.js?v=2"></script>
 <script src="lensiq-facevault.js?v=1"></script>
 <script src="booth.js?v=5"></script>
 </body>

@@ -90,3 +90,12 @@ test("capacity key is decrease-only", () => {
   assert.equal(C.writeCapacity(s, 1, 3), 1);
   assert.deepEqual(JSON.parse(m.get("lq-camcap")), { v: 1, maxLive: 1, at: 3 });
 });
+
+test("capacity record expires after 7 days (re-probe after a new camera / browser update)", () => {
+  const m = new Map(), s = { getItem: k => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)) };
+  const t0 = 1e12;
+  C.writeCapacity(s, 1, t0);
+  assert.equal(C.readCapacity(s, t0 + 6 * 864e5), 1);
+  assert.equal(C.readCapacity(s, t0 + 8 * 864e5), null);
+  assert.equal(C.writeCapacity(s, 2, t0 + 8 * 864e5), 2, "an expired limit does not cap a new proof");
+});

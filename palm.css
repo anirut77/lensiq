@@ -1,4 +1,4 @@
-/* ดูลายมือ AI — ใช้ตัวแปรสีจาก styles.css (สไตล์เดียวกับ faceread.css) */
+/* ดูลายมือ — ใช้ตัวแปรสีจาก styles.css (สไตล์เดียวกับ faceread.css) */
 [hidden]{display:none!important}
 .pl{max-width:1200px;margin:auto;padding:36px 5vw 80px}
 .pl-head{text-align:center}
@@ -69,7 +69,7 @@
 .seg4 button{font-size:.92rem}
 .pl-domlabel{margin:0 0 4px}
 .pl-tradition{margin:0 0 10px;font-size:.88rem;background:var(--bg);border-radius:10px;padding:2px 12px}
-.pl-tradition summary{cursor:pointer;min-height:40px;display:flex;align-items:center;color:var(--navy);font-weight:500}
+.pl-tradition summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--navy);font-weight:500}
 .pl-tradition ul{margin:0 0 10px;padding-left:18px;display:grid;gap:6px;color:var(--text)}
 .pl-tradition b{color:var(--navy);font-weight:500}
 .pl-sidenote{font-size:.88rem;color:var(--navy);background:var(--bg);border-radius:10px;padding:8px 12px;margin-bottom:10px}
@@ -196,7 +196,7 @@
 .pl-foot{display:grid;grid-template-columns:1fr 1.4fr;gap:16px;margin-top:30px}
 .stat-n{font-size:.95rem;margin-bottom:6px}.stat-n b{font-size:1.6rem;color:var(--navy)}
 .pl-sources{margin:6px 0 10px;padding-left:20px;font-size:.9rem;display:grid;gap:4px}
-.pl-sources a{color:#4b36d6;text-decoration:underline;word-break:break-word}
+.pl-sources a{color:#4b36d6;text-decoration:underline;word-break:break-word;display:inline-flex;align-items:center;min-height:44px}
 .pl-foot .btn{margin-top:4px}
 
 .pl-idle{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 20px;border-radius:99px;z-index:70;font-size:.95rem;max-width:calc(100% - 32px);text-align:center}

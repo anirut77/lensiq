@@ -2,34 +2,35 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
-<title>ไพ่ทาโรต์ &amp; เซียมซี | LENSIQ</title>
+<title data-i18n="tarot.title">ไพ่ทาโรต์ &amp; เซียมซี | LENSIQ</title>
 <meta name="description" content="เปิดไพ่ทาโรต์ Rider–Waite–Smith 78 ใบ ไพ่ประจำวัน และเสี่ยงเซียมซี 28 ใบ เพื่อความบันเทิงในบูธและอีเวนต์ ทำงานในเบราว์เซอร์ ไม่บันทึกคำถาม">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=6">
-<link rel="stylesheet" href="tarot.css?v=2">
+<link rel="stylesheet" href="tarot.css?v=3">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=10"></script>
+<script src="nav.js?v=11"></script>
 
 <main class="tr" id="trApp">
   <div class="tr-head">
     <span class="eyebrow">Engagement · Booth</span>
-    <h1>ไพ่ทาโรต์ &amp; เซียมซี</h1>
-    <p class="lead">ตั้งคำถาม สับไพ่ เลือกไพ่ด้วยมือคุณเอง แล้วอ่านความหมายจากสำรับ Rider–Waite–Smith ครบ 78 ใบ หรือเขย่าเซียมซีเสี่ยงทาย สร้างสีสันให้บูธ อีเวนต์ และแคมเปญการตลาด</p>
+    <h1 data-i18n="tarot.h1">ไพ่ทาโรต์ &amp; เซียมซี</h1>
+    <p data-i18n="tarot.lead" class="lead">ตั้งคำถาม สับไพ่ เลือกไพ่ด้วยมือคุณเอง แล้วอ่านความหมายจากสำรับ Rider–Waite–Smith ครบ 78 ใบ หรือเขย่าเซียมซีเสี่ยงทาย สร้างสีสันให้บูธ อีเวนต์ และแคมเปญการตลาด</p>
   </div>
 
-  <p class="tr-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span><b>เพื่อความบันเทิงตามความเชื่อ ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์</b> ไม่ควรใช้ตัดสินใจเรื่องสุขภาพ การเงิน กฎหมาย หรือความสัมพันธ์ที่สำคัญ</span></p>
+  <p class="tr-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span><b data-i18n="fortune.common.disclaimerBelief">เพื่อความบันเทิงตามความเชื่อ ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์</b> ไม่ควรใช้ตัดสินใจเรื่องสุขภาพ การเงิน กฎหมาย หรือความสัมพันธ์ที่สำคัญ</span></p>
 
   <div class="tr-tabs" role="tablist" aria-label="เลือกโหมด">
-    <button class="tr-tab" role="tab" id="tabTarot" aria-controls="panelTarot" aria-selected="true" type="button">ไพ่ทาโรต์</button>
-    <button class="tr-tab" role="tab" id="tabDaily" aria-controls="panelDaily" aria-selected="false" tabindex="-1" type="button">ไพ่ประจำวัน</button>
-    <button class="tr-tab" role="tab" id="tabSiamsee" aria-controls="panelSiamsee" aria-selected="false" tabindex="-1" type="button">เซียมซี</button>
+    <button data-i18n="tarot.tabTarot" class="tr-tab" role="tab" id="tabTarot" aria-controls="panelTarot" aria-selected="true" type="button">ไพ่ทาโรต์</button>
+    <button data-i18n="tarot.tabDaily" class="tr-tab" role="tab" id="tabDaily" aria-controls="panelDaily" aria-selected="false" tabindex="-1" type="button">ไพ่ประจำวัน</button>
+    <button data-i18n="tarot.tabSiamsee" class="tr-tab" role="tab" id="tabSiamsee" aria-controls="panelSiamsee" aria-selected="false" tabindex="-1" type="button">เซียมซี</button>
   </div>
 
   <!-- ===================== ไพ่ทาโรต์ ===================== -->
@@ -39,21 +40,21 @@
     <!-- ขั้น 1 -->
     <form class="tr-setup" id="trSetup" novalidate>
       <fieldset>
-        <legend>หัวข้อที่อยากถาม</legend>
+        <legend data-i18n="fortune.common.topic">หัวข้อที่อยากถาม</legend>
         <div class="tr-topics" id="trTopics"></div>
       </fieldset>
       <label class="tr-q">คำถามของคุณ (ไม่บังคับ · ไม่ถูกบันทึก)
         <textarea id="trQuestion" rows="2" maxlength="140" placeholder="เช่น ช่วงนี้ควรโฟกัสเรื่องอะไรในการงาน"></textarea>
       </label>
       <fieldset>
-        <legend>รูปแบบการวางไพ่</legend>
+        <legend data-i18n="tarot.legend1">รูปแบบการวางไพ่</legend>
         <div class="tr-spreads" id="trSpreads"></div>
       </fieldset>
       <div class="tr-optrow">
         <label class="tr-check"><input type="checkbox" id="trReversed"> รวมไพ่กลับหัว</label>
-        <button class="btn ghost" id="trKiosk" type="button" aria-pressed="false">โหมดบูธ (เต็มจอ)</button>
+        <button data-i18n="fortune.common.kiosk" class="btn ghost" id="trKiosk" type="button" aria-pressed="false">โหมดบูธ (เต็มจอ)</button>
       </div>
-      <button class="btn primary big full" id="trStart" type="submit">สับไพ่</button>
+      <button data-i18n="tarot.trStart" class="btn primary big full" id="trStart" type="submit">สับไพ่</button>
     </form>
 
     <!-- ขั้น 2 -->
@@ -68,25 +69,25 @@
       </div>
       <p class="tr-small tr-fan-hint" id="trFanHint">เลื่อนซ้าย–ขวาเพื่อดูไพ่ทั้งหมด แล้วแตะใบที่ใจเลือก</p>
       <div class="tr-pick-actions">
-        <button class="btn ghost" id="trReshuffle" type="button">สับใหม่</button>
+        <button data-i18n="tarot.trReshuffle" class="btn ghost" id="trReshuffle" type="button">สับใหม่</button>
         <button class="btn ghost" id="trShake" type="button" hidden>เขย่ามือถือเพื่อสับไพ่</button>
-        <button class="btn ghost" id="trAuto" type="button">เลือกให้อัตโนมัติ</button>
-        <button class="btn ghost" id="trBack" type="button">กลับไปตั้งคำถาม</button>
+        <button data-i18n="tarot.trAuto" class="btn ghost" id="trAuto" type="button">เลือกให้อัตโนมัติ</button>
+        <button data-i18n="tarot.trBack" class="btn ghost" id="trBack" type="button">กลับไปตั้งคำถาม</button>
       </div>
       <div class="tr-board" id="trBoard" aria-label="ตำแหน่งไพ่"></div>
-      <button class="btn primary big full" id="trReveal" type="button" hidden>เปิดไพ่</button>
+      <button data-i18n="tarot.trReveal" class="btn primary big full" id="trReveal" type="button" hidden>เปิดไพ่</button>
     </section>
 
     <!-- ขั้น 3 -->
     <section class="tr-result" id="trResult" hidden aria-labelledby="trResTitle">
-      <h2 id="trResTitle" tabindex="-1">ผลการเปิดไพ่</h2>
+      <h2 data-i18n="tarot.trResTitle" id="trResTitle" tabindex="-1">ผลการเปิดไพ่</h2>
       <p class="tr-disc-mini">เพื่อความบันเทิงตามความเชื่อ ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์</p>
       <p class="tr-res-meta" id="trResMeta"></p>
       <div class="tr-synth" id="trSynth"></div>
       <div class="tr-readings" id="trReadings"></div>
       <div class="tr-res-actions">
-        <button class="btn primary big" id="trShare" type="button">แชร์การ์ดผลลัพธ์</button>
-        <button class="btn ghost big" id="trAgain" type="button">ถามใหม่ / คนถัดไป</button>
+        <button data-i18n="fortune.common.share" class="btn primary big" id="trShare" type="button">แชร์การ์ดผลลัพธ์</button>
+        <button data-i18n="fortune.common.askAgain" class="btn ghost big" id="trAgain" type="button">ถามใหม่ / คนถัดไป</button>
       </div>
       <img class="tr-cardimg" id="trCardImg" alt="การ์ดผลการเปิดไพ่สำหรับแชร์" hidden>
     </section>
@@ -101,7 +102,7 @@
         <p class="tr-small">ไพ่ประจำวันเดียวกันสำหรับทุกคนในวันนี้ เปลี่ยนใหม่ทุกเที่ยงคืน</p>
       </div>
       <div class="tr-daily-text" id="trDailyText" aria-live="polite">
-        <h2>ไพ่ประจำวันนี้</h2>
+        <h2 data-i18n="tarot.h21">ไพ่ประจำวันนี้</h2>
         <p class="muted">แตะไพ่เพื่อเปิดดูพลังของวันนี้</p>
       </div>
     </div>
@@ -133,7 +134,7 @@
           <div class="ss-fall" id="ssFall" hidden><span id="ssFallNo"></span></div>
         </div>
         <div class="ss-actions">
-          <button class="btn primary big" id="ssDraw" type="button">เขย่าเซียมซี</button>
+          <button data-i18n="tarot.ssDraw" class="btn primary big" id="ssDraw" type="button">เขย่าเซียมซี</button>
           <button class="btn ghost" id="ssShake" type="button" hidden>เปิดโหมดเขย่ามือถือ</button>
         </div>
         <p class="tr-small">ตั้งจิตอธิษฐานถึงเรื่องที่อยากรู้ แล้วกดปุ่มหรือเขย่ามือถือ ไม้ 1 อันจะหล่นออกมา</p>
@@ -149,8 +150,8 @@
         <div id="ssRead"></div>
         <p class="tr-small">กลอนและคำทำนายแต่งขึ้นใหม่เพื่อความบันเทิง ไม่ได้อ้างอิงเซียมซีของวัดหรือศาลเจ้าใด</p>
         <div class="tr-res-actions">
-          <button class="btn primary big" id="ssShare" type="button">แชร์การ์ดเซียมซี</button>
-          <button class="btn ghost big" id="ssAgain" type="button">เสี่ยงใหม่</button>
+          <button data-i18n="tarot.ssShare" class="btn primary big" id="ssShare" type="button">แชร์การ์ดเซียมซี</button>
+          <button data-i18n="tarot.ssAgain" class="btn ghost big" id="ssAgain" type="button">เสี่ยงใหม่</button>
         </div>
         <img class="tr-cardimg" id="ssCardImg" alt="การ์ดผลเซียมซีสำหรับแชร์" hidden>
       </article>
@@ -159,13 +160,13 @@
 
   <div class="tr-foot">
     <section class="tr-block">
-      <h3>สถิติบูธ (ไม่ระบุตัวตน)</h3>
+      <h3 data-i18n="fortune.common.stats">สถิติบูธ (ไม่ระบุตัวตน)</h3>
       <div id="trStats"></div>
       <label class="tr-check"><input type="checkbox" id="trStatsOn"> นับจำนวนครั้ง หัวข้อ และไพ่ที่ออกในเครื่องนี้</label>
-      <button class="btn ghost" id="trStatsClear" type="button">ล้างสถิติ</button>
+      <button data-i18n="fortune.common.statsClear" class="btn ghost" id="trStatsClear" type="button">ล้างสถิติ</button>
     </section>
     <section class="tr-block">
-      <h3>แหล่งอ้างอิง</h3>
+      <h3 data-i18n="fortune.common.sources">แหล่งอ้างอิง</h3>
       <p class="tr-small">ความหมายไพ่เรียบเรียงใหม่เป็นภาษาไทยในเชิงสร้างสรรค์จากความหมายดั้งเดิมของสำรับ Rider–Waite–Smith ผู้อ่านไพ่แต่ละสำนักอาจตีความต่างกัน</p>
       <ul class="tr-sources" id="trSources"></ul>
       <p class="tr-small" id="trCredit"></p>
@@ -182,12 +183,13 @@
 </dialog>
 
 <div class="tr-idle" id="trIdle" hidden role="status"></div>
-<button class="btn primary tr-kiosk-exit" id="trKioskExit" type="button" hidden>ออกจากโหมดบูธ</button>
+<button data-i18n="fortune.common.kioskExit" class="btn primary tr-kiosk-exit" id="trKioskExit" type="button" hidden>ออกจากโหมดบูธ</button>
 <div class="toast" id="trToast" role="status"></div>
 
+<script src="i18n/zh-fortune.js?v=2"></script>
 <script src="lensiq-config.js?v=2"></script>
-<script src="fortune-ai.js?v=6"></script>
+<script src="fortune-ai.js?v=7"></script>
 <script src="tarot-kb.js?v=2"></script>
-<script src="tarot.js?v=4"></script>
+<script src="tarot.js?v=5"></script>
 </body>
 </html>

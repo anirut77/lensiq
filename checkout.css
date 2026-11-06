@@ -162,7 +162,7 @@ table.rc tr.sub td{font-size:.8rem;color:var(--muted);padding:0}
   .row-actions .btn{min-height:44px}
   /* ช่องกรอก 16px ป้องกัน iOS ซูมอัตโนมัติ */
   .co input,.co select,.co textarea,dialog input,dialog select{font-size:16px;min-height:44px}
-  .co input[type=checkbox],.co input[type=range]{min-height:0}
+  .co input[type=checkbox]{min-height:0}
   .qty{gap:6px}
   .qty button{width:44px;height:44px;font-size:1.25rem}
   .qty input{width:60px}
@@ -204,3 +204,8 @@ table.rc tr.sub td{font-size:.8rem;color:var(--muted);padding:0}
   dialog::backdrop{display:none}
   dialog .row-actions{display:none}
 }
+
+/* หมายเหตุความแม่นยำ/Beta (ผลวัดใน ACCURACY.md และ cameras.html#accuracy) */
+.acc-note{margin:6px 0 14px;padding:10px 14px;border:1px solid var(--line,#e3e6ef);border-left:4px solid #c9a45c;border-radius:10px;background:#fffdf7;font-size:.86rem;line-height:1.6;color:#4a5068}
+.acc-note .beta{display:inline-block;margin-right:6px;padding:0 8px;border-radius:6px;background:#0e1430;color:#fff;font-size:.75rem;font-weight:500}
+.acc-note a{display:inline;color:inherit;text-decoration:underline} /* ลิงก์ในประโยค (ข้อยกเว้น WCAG 2.5.8) */

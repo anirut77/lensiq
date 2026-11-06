@@ -1,4 +1,4 @@
-/* ดูลายมือ AI — อ่านลายมือจากภาพถ่ายฝ่ามือเพื่อความบันเทิง
+/* ดูลายมือ — อ่านลายมือจากภาพถ่ายฝ่ามือเพื่อความบันเทิง
    ประมวลผลในเบราว์เซอร์ทั้งหมด ไม่ส่งและไม่บันทึกภาพ
    ส่วนแรก (PalmCore) เป็นฟังก์ชันล้วน ทดสอบใน Node ได้:  const PC = require("./palm.js")
    ส่วนหลัง (UI) ทำงานเฉพาะในเบราว์เซอร์
@@ -1342,7 +1342,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#plLineChips").innerHTML = PC.LINE_IDS.map(function (id) {
       var L = KB.lines[id], a = S.lines && S.lines[id] && S.lines[id].auto;
       var conf = a ? (a.conf >= 0.6 ? "ชัด" : a.conf >= 0.3 ? "พอเห็น" : "ไม่ชัด") : "";
-      return '<button type="button" role="radio" class="chip-btn" style="--c:' + L.color + '" data-line="' + id + '" aria-checked="' + (S.active === id) + '"><i></i>' + esc(L.th) + (conf ? " <small>AI: " + conf + "</small>" : "") + "</button>";
+      return '<button type="button" role="radio" class="chip-btn" style="--c:' + L.color + '" data-line="' + id + '" aria-checked="' + (S.active === id) + '"><i></i>' + esc(L.th) + (conf ? " <small>(" + conf + ")</small>" : "") + "</button>";
     }).join("");
     $$("#plLineChips [data-line]").forEach(function (b) { b.addEventListener("click", function () { S.active = b.dataset.line; renderLineChips(); renderEditor(); }); });
   }
@@ -1710,7 +1710,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     c.restore();
     c.textBaseline = "middle"; c.textAlign = "left";
     c.font = "700 40px " + FF; c.fillStyle = "#fff"; c.fillText("LENS", 148, 96); var lw = c.measureText("LENS").width; c.fillStyle = "#a99bff"; c.fillText("IQ", 148 + lw, 96);
-    c.textAlign = "right"; c.font = "500 34px " + FF; c.fillStyle = "#c9d0ea"; c.fillText("ดูลายมือ AI", W - 72, 96);
+    c.textAlign = "right"; c.font = "500 34px " + FF; c.fillStyle = "#c9d0ea"; c.fillText("ดูลายมือ", W - 72, 96);
     // วงกลม + ภาพลายเส้นมือ (ไม่ใช้ภาพถ่าย)
     var cy = 440, r = 220;
     c.beginPath(); c.arc(W / 2, cy, r + 14, 0, Math.PI * 2); c.fillStyle = E.color; c.fill();
@@ -1771,7 +1771,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var im = $("#plCardImg"); im.src = cardUrl; im.hidden = false;
       var file = new File([blob], "lensiq-ดูลายมือ.png", { type: "image/png" });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: "ดูลายมือ AI — LENSIQ", text: "มือธาตุ" + S.result.reading.element.th + " " + KB.disclaimerShort }); return; }
+        try { await navigator.share({ files: [file], title: "ดูลายมือ — LENSIQ", text: "มือธาตุ" + S.result.reading.element.th + " " + KB.disclaimerShort }); return; }
         catch (e) { if (e.name === "AbortError") return; }
       }
       var a = document.createElement("a"); a.href = cardUrl; a.download = "lensiq-palm.png"; document.body.append(a); a.click(); a.remove();

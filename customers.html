@@ -2,30 +2,33 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
-<title>จดจำลูกค้า | LENSIQ</title>
+<title data-i18n="customers.s1">จดจำลูกค้า | LENSIQ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=6">
-<link rel="stylesheet" href="neuro.css">
-<link rel="stylesheet" href="customers.css?v=4">
+<link rel="stylesheet" href="neuro.css?v=2">
+<link rel="stylesheet" href="customers.css?v=5">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=10"></script>
+<script src="nav.js?v=11"></script>
+<script src="i18n/zh-customers.js?v=1"></script>
 
 <main class="nm cx">
-  <h1>จดจำลูกค้าและประวัติเครื่องดื่ม</h1>
-  <p class="lead">สมาชิกที่ยินยอมสแกนใบหน้า ระบบจะทักทาย แสดงเมนูที่สั่งบ่อย ออเดอร์ล่าสุด และแนะนำเครื่องดื่ม เพื่อการตลาดแบบจดจำพฤติกรรมลูกค้า</p>
+  <h1 data-i18n="customers.s2">จดจำลูกค้าและประวัติเครื่องดื่ม</h1>
+  <p class="lead" data-i18n="customers.s3">สมาชิกที่ยินยอมสแกนใบหน้า ระบบจะทักทาย แสดงเมนูที่สั่งบ่อย ออเดอร์ล่าสุด และแนะนำเครื่องดื่ม เพื่อการตลาดแบบจดจำพฤติกรรมลูกค้า</p>
+  <p class="acc-note" role="note"><b class="beta" data-i18n="customers.s4">ความแม่นยำที่วัดได้</b> <span data-i18n="customers.s5">ทดสอบกับภาพใบหน้าสาธารณะ LFW ที่เกณฑ์ 0.50: ภาพเดียวจำสมาชิกได้ราว 78% (ลูกค้ายืนหน้ากล้องหลายเฟรม โอกาสจำได้จึงสูงกว่านี้) · มีสมาชิก 100 คน จะทักผิดเป็นสมาชิกคนอื่นราว 0.1% และทักคนที่ไม่ใช่สมาชิกผิดราว 1.5% ควรให้พนักงานยืนยันชื่อก่อนเปิดประวัติการสั่ง</span> <a href="cameras.html#accuracy" data-i18n="customers.s6">วิธีวัดและข้อจำกัด</a></p>
 
   <div class="tabs" role="tablist">
-    <button class="tab active" data-t="pos" role="tab">หน้าร้าน</button>
-    <button class="tab" data-t="enroll" role="tab">สมัครสมาชิก</button>
-    <button class="tab" data-t="analytics" role="tab">สมาชิกและวิเคราะห์</button>
-    <button class="tab" data-t="menu" role="tab">เมนูเครื่องดื่ม</button>
+    <button class="tab active" data-t="pos" role="tab" data-i18n="customers.s7">หน้าร้าน</button>
+    <button class="tab" data-t="enroll" role="tab" data-i18n="customers.s8">สมัครสมาชิก</button>
+    <button class="tab" data-t="analytics" role="tab" data-i18n="customers.s9">สมาชิกและวิเคราะห์</button>
+    <button class="tab" data-t="menu" role="tab" data-i18n="customers.s10">เมนูเครื่องดื่ม</button>
   </div>
 
   <div class="engine" id="engine" role="status">กำลังโหลดโมเดลจดจำใบหน้า...</div>
@@ -37,28 +40,28 @@
         <div class="cam" id="camBox"><video id="video" autoplay muted playsinline></video><canvas id="camOverlay"></canvas></div>
         <div class="cam-actions" id="posCamActions">
           <button class="btn primary" id="scanToggle" type="button">เริ่มสแกนลูกค้า</button>
-          <button class="btn ghost" id="nextCustomer" type="button">ลูกค้าคนถัดไป</button>
+          <button class="btn ghost" id="nextCustomer" type="button" data-i18n="customers.s11">ลูกค้าคนถัดไป</button>
           <div class="cam-switch" id="camSwitch" hidden></div>
         </div>
         <p class="hint" id="scanStatus" role="status" aria-live="polite">ลูกค้ามองกล้อง ระบบจะจดจำอัตโนมัติ</p>
-        <h3>ค้นหาสมาชิกด้วยชื่อ / เบอร์โทร</h3>
-        <input id="search" type="search" placeholder="พิมพ์ชื่อหรือเบอร์โทร" autocomplete="off" aria-label="ค้นหาสมาชิกด้วยชื่อหรือเบอร์โทร">
+        <h3 data-i18n="customers.s12">ค้นหาสมาชิกด้วยชื่อ / เบอร์โทร</h3>
+        <input id="search" type="search" placeholder="พิมพ์ชื่อหรือเบอร์โทร" autocomplete="off" aria-label="ค้นหาสมาชิกด้วยชื่อหรือเบอร์โทร" data-i18n-attr="placeholder:customers.s13;aria-label:customers.s14">
         <ul class="search-results" id="searchResults"></ul>
       </div>
 
       <div>
-        <div class="card" id="customerCard"><p class="empty">ยังไม่มีลูกค้า เริ่มสแกนหรือค้นหาด้วยชื่อ</p></div>
+        <div class="card" id="customerCard"><p class="empty" data-i18n="customers.s15">ยังไม่มีลูกค้า เริ่มสแกนหรือค้นหาด้วยชื่อ</p></div>
         <form class="card" id="orderForm" novalidate>
-          <h2>บันทึกออเดอร์ <span class="for" id="orderFor"></span></h2>
-          <label>เครื่องดื่ม<select name="drink" id="drinkSel"></select></label>
+          <h2><span data-i18n="customers.s16">บันทึกออเดอร์</span> <span class="for" id="orderFor"></span></h2>
+          <label><span data-i18n="customers.s17">เครื่องดื่ม</span><select name="drink" id="drinkSel"></select></label>
           <div class="opts">
-            <fieldset><legend>ขนาด</legend><div class="seg" data-name="size"></div></fieldset>
-            <fieldset><legend>ความหวาน</legend><div class="seg" data-name="sweet"></div></fieldset>
-            <fieldset><legend>แบบ</legend><div class="seg" data-name="temp"></div></fieldset>
+            <fieldset><legend data-i18n="customers.s18">ขนาด</legend><div class="seg" data-name="size"></div></fieldset>
+            <fieldset><legend data-i18n="customers.s19">ความหวาน</legend><div class="seg" data-name="sweet"></div></fieldset>
+            <fieldset><legend data-i18n="customers.s20">แบบ</legend><div class="seg" data-name="temp"></div></fieldset>
           </div>
-          <label>จำนวน<input name="qty" type="number" min="1" max="20" value="1"></label>
-          <div class="total">ราคา <b id="orderTotal">฿0</b></div>
-          <button class="btn primary full" type="submit">บันทึกออเดอร์</button>
+          <label><span data-i18n="customers.s21">จำนวน</span><input name="qty" type="number" min="1" max="20" value="1"></label>
+          <div class="total"><span data-i18n="customers.s22">ราคา</span> <b id="orderTotal">฿0</b></div>
+          <button class="btn primary full" type="submit" data-i18n="customers.s23">บันทึกออเดอร์</button>
           <p class="form-msg" id="orderMsg" role="status"></p>
         </form>
       </div>
@@ -68,14 +71,14 @@
   <!-- ===== สมัครสมาชิก ===== -->
   <section class="pane" id="pane-enroll" hidden>
     <div class="grid2">
-      <div class="card"><div id="enrollCamSlot"></div><p class="hint">ให้ลูกค้ามองกล้องตรง ๆ แสงส่องด้านหน้า ไม่สวมหน้ากาก</p></div>
+      <div class="card"><div id="enrollCamSlot"></div><p class="hint" data-i18n="customers.s24">ให้ลูกค้ามองกล้องตรง ๆ แสงส่องด้านหน้า ไม่สวมหน้ากาก</p></div>
       <form class="card" id="enrollForm" novalidate>
-        <h2>สมัครสมาชิก (สมัครใจ)</h2>
-        <label>ชื่อ / ชื่อเล่น<input name="name" required maxlength="60" autocomplete="off"></label>
-        <label>เบอร์โทร (ไม่บังคับ)<input name="phone" type="tel" maxlength="15" autocomplete="off" inputmode="tel"></label>
+        <h2 data-i18n="customers.s25">สมัครสมาชิก (สมัครใจ)</h2>
+        <label><span data-i18n="customers.s26">ชื่อ / ชื่อเล่น</span><input name="name" required maxlength="60" autocomplete="off"></label>
+        <label><span data-i18n="customers.s27">เบอร์โทร (ไม่บังคับ)</span><input name="phone" type="tel" maxlength="15" autocomplete="off" inputmode="tel"></label>
         <label class="check"><input type="checkbox" name="consent" required>
-          <span>ข้าพเจ้ายินยอมโดยสมัครใจให้ร้านเก็บ<strong>ข้อมูลชีวมิติจากใบหน้า</strong> (ค่าตัวเลขลักษณะใบหน้า ไม่ใช่รูปถ่าย) และประวัติการสั่งเครื่องดื่ม เพื่อจดจำและแนะนำเมนูเท่านั้น ไม่เปิดเผยต่อบุคคลอื่น และขอลบข้อมูลหรือถอนความยินยอมได้ทุกเมื่อ การไม่ยินยอมไม่มีผลต่อการซื้อสินค้า</span></label>
-        <button class="btn primary full" type="submit">สแกนใบหน้าและสมัคร</button>
+          <span><span data-i18n="customers.s28">ข้าพเจ้ายินยอมโดยสมัครใจให้ร้านเก็บ</span><strong data-i18n="customers.s29">ข้อมูลชีวมิติจากใบหน้า</strong> <span data-i18n="customers.s30">(ค่าตัวเลขลักษณะใบหน้า ไม่ใช่รูปถ่าย) และประวัติการสั่งเครื่องดื่ม เพื่อจดจำและแนะนำเมนูเท่านั้น ไม่เปิดเผยต่อบุคคลอื่น และขอลบข้อมูลหรือถอนความยินยอมได้ทุกเมื่อ การไม่ยินยอมไม่มีผลต่อการซื้อสินค้า</span></span></label>
+        <button class="btn primary full" type="submit" data-i18n="customers.s31">สแกนใบหน้าและสมัคร</button>
         <p class="form-msg" id="enrollMsg" role="status"></p>
       </form>
     </div>
@@ -87,33 +90,33 @@
       <div class="tiles" id="aTiles"></div>
     </div>
     <div class="grid2">
-      <div class="card"><h3>เครื่องดื่มขายดี (จำนวนแก้ว)</h3><div id="aTop"></div></div>
-      <div class="card"><h3>กลุ่มลูกค้าตามความถี่</h3><div id="aSeg"></div>
-        <p class="hint">ใหม่ = มา 1 วัน · ประจำ = มา 2 วันขึ้นไป · หายไปนาน = ไม่มาเกิน 30 วัน</p></div>
+      <div class="card"><h3 data-i18n="customers.s32">เครื่องดื่มขายดี (จำนวนแก้ว)</h3><div id="aTop"></div></div>
+      <div class="card"><h3 data-i18n="customers.s33">กลุ่มลูกค้าตามความถี่</h3><div id="aSeg"></div>
+        <p class="hint" data-i18n="customers.s34">ใหม่ = มา 1 วัน · ประจำ = มา 2 วันขึ้นไป · หายไปนาน = ไม่มาเกิน 30 วัน</p></div>
     </div>
     <div class="card">
       <div class="report-head">
-        <h2>สมาชิกทั้งหมด</h2>
+        <h2 data-i18n="customers.s35">สมาชิกทั้งหมด</h2>
         <div class="row-actions">
-          <input id="memberFilter" type="search" placeholder="กรองชื่อ/เบอร์" autocomplete="off" aria-label="กรองสมาชิกด้วยชื่อหรือเบอร์">
-          <button class="btn ghost" id="exportCsv" type="button">ส่งออกออเดอร์ CSV</button>
+          <input id="memberFilter" type="search" placeholder="กรองชื่อ/เบอร์" autocomplete="off" aria-label="กรองสมาชิกด้วยชื่อหรือเบอร์" data-i18n-attr="placeholder:customers.s36;aria-label:customers.s37">
+          <button class="btn ghost" id="exportCsv" type="button" data-i18n="customers.s38">ส่งออกออเดอร์ CSV</button>
         </div>
       </div>
       <div class="table-wrap"><table id="memberTable"></table></div>
     </div>
     <div class="card" id="profile" hidden></div>
     <div class="card vault">
-      <h2>ความเป็นส่วนตัวของข้อมูลใบหน้า</h2>
+      <h2 data-i18n="customers.s39">ความเป็นส่วนตัวของข้อมูลใบหน้า</h2>
       <p class="hint vault-state" id="faceState" role="status"></p>
       <div class="row-actions">
-        <label>ลบข้อมูลใบหน้าของสมาชิกที่ไม่ได้มาเกิน
+        <label><span data-i18n="customers.s40">ลบข้อมูลใบหน้าของสมาชิกที่ไม่ได้มาเกิน</span>
           <select id="retention">
-            <option value="30">30 วัน</option><option value="90">90 วัน</option><option value="180">180 วัน</option>
-            <option value="365">365 วัน (ค่าเริ่มต้น)</option><option value="730">730 วัน</option>
+            <option value="30" data-i18n="customers.s41">30 วัน</option><option value="90" data-i18n="customers.s42">90 วัน</option><option value="180" data-i18n="customers.s43">180 วัน</option>
+            <option value="365" data-i18n="customers.s44">365 วัน (ค่าเริ่มต้น)</option><option value="730" data-i18n="customers.s45">730 วัน</option>
           </select></label>
-        <button class="btn ghost danger" id="wipeFaces" type="button">ลบข้อมูลใบหน้าทั้งหมด</button>
+        <button class="btn ghost danger" id="wipeFaces" type="button" data-i18n="customers.s46">ลบข้อมูลใบหน้าทั้งหมด</button>
       </div>
-      <p class="hint">นับจากการมาร้านครั้งล่าสุด ระบบลบให้อัตโนมัติเมื่อเปิดหน้านี้ (ประวัติการสั่งยังอยู่ ค้นหาด้วยชื่อได้)</p>
+      <p class="hint" data-i18n="customers.s47">นับจากการมาร้านครั้งล่าสุด ระบบลบให้อัตโนมัติเมื่อเปิดหน้านี้ (ประวัติการสั่งยังอยู่ ค้นหาด้วยชื่อได้)</p>
       <p class="form-msg" id="privMsg" role="status"></p>
     </div>
   </section>
@@ -121,30 +124,30 @@
   <!-- ===== เมนู ===== -->
   <section class="pane" id="pane-menu" hidden>
     <div class="card">
-      <h2>รายการเครื่องดื่ม</h2>
-      <p class="hint">ราคาเป็นราคาขนาด S · ขนาด M +10 บาท · L +20 บาท</p>
+      <h2 data-i18n="customers.s48">รายการเครื่องดื่ม</h2>
+      <p class="hint" data-i18n="customers.s49">ราคาเป็นราคาขนาด S · ขนาด M +10 บาท · L +20 บาท</p>
       <div class="table-wrap"><table id="menuTable"></table></div>
       <form id="menuForm" class="menu-form" novalidate>
-        <input name="name" placeholder="ชื่อเมนู" maxlength="40" required>
-        <input name="cat" placeholder="หมวด เช่น กาแฟ" maxlength="20" required list="catList">
+        <input name="name" placeholder="ชื่อเมนู" maxlength="40" required data-i18n-attr="placeholder:customers.s50">
+        <input name="cat" placeholder="หมวด เช่น กาแฟ" maxlength="20" required list="catList" data-i18n-attr="placeholder:customers.s51">
         <datalist id="catList"></datalist>
-        <input name="price" type="number" min="0" max="9999" placeholder="ราคา" required>
-        <button class="btn primary" type="submit">เพิ่มเมนู</button>
+        <input name="price" type="number" min="0" max="9999" placeholder="ราคา" required data-i18n-attr="placeholder:customers.s52">
+        <button class="btn primary" type="submit" data-i18n="customers.s53">เพิ่มเมนู</button>
       </form>
       <p class="form-msg" id="menuMsg" role="status"></p>
     </div>
   </section>
 
-  <p class="hint privacy">ข้อมูลทั้งหมดเก็บในเบราว์เซอร์เครื่องนี้ ไม่เก็บรูปถ่าย เก็บเฉพาะค่าตัวเลขลักษณะใบหน้าของสมาชิกที่ยินยอม (เข้ารหัสด้วยกุญแจที่อยู่ในเบราว์เซอร์นี้) · ระบบนี้เป็นต้นแบบ หากใช้หลายสาขาต้องมีฐานข้อมูลกลางที่เข้ารหัสและนโยบายตาม PDPA</p>
+  <p class="hint privacy" data-i18n="customers.s54">ข้อมูลทั้งหมดเก็บในเบราว์เซอร์เครื่องนี้ ไม่เก็บรูปถ่าย เก็บเฉพาะค่าตัวเลขลักษณะใบหน้าของสมาชิกที่ยินยอม (เข้ารหัสด้วยกุญแจที่อยู่ในเบราว์เซอร์นี้) · ระบบนี้เป็นต้นแบบ หากใช้หลายสาขาต้องมีฐานข้อมูลกลางที่เข้ารหัสและนโยบายตาม PDPA</p>
 </main>
 
 <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
 
 <script src="vendor/face-api.js"></script>
-<script src="lensiq-track.js?v=1"></script>
-<script src="lensiq-camera.js?v=1"></script>
-<script src="lensiq-detect.js?v=1"></script>
+<script src="lensiq-track.js?v=2"></script>
+<script src="lensiq-camera.js?v=2"></script>
+<script src="lensiq-detect.js?v=2"></script>
 <script src="lensiq-facevault.js?v=1"></script>
-<script src="customers.js?v=4"></script>
+<script src="customers.js?v=5"></script>
 </body>
 </html>

@@ -2,52 +2,53 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
-<title>อี้จิง เสี่ยงกว้า 64 | LENSIQ</title>
+<title data-i18n="iching.title">อี้จิง เสี่ยงกว้า 64 | LENSIQ</title>
 <meta name="description" content="เสี่ยงทายอี้จิง (易經) ด้วยการโยนเหรียญ 3 เหรียญ 6 ครั้ง ได้กว้า 1 ใน 64 พร้อมเส้นเปลี่ยนและกว้าที่จะกลายเป็น เพื่อความบันเทิงในบูธและอีเวนต์">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=6">
-<link rel="stylesheet" href="fortune-kit.css?v=1">
+<link rel="stylesheet" href="fortune-kit.css?v=2">
 <link rel="stylesheet" href="iching.css?v=1">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=10"></script>
+<script src="nav.js?v=11"></script>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><radialGradient id="icGold" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fde68a"/><stop offset=".6" stop-color="#eab308"/><stop offset="1" stop-color="#a16207"/></radialGradient></defs></svg>
 
 <main class="fk ic" id="icApp">
   <div class="fk-head">
     <span class="eyebrow">I Ching · 易經</span>
-    <h1>อี้จิง เสี่ยงกว้า 64</h1>
-    <p class="lead">ตั้งคำถามในใจ แล้วโยนเหรียญ 3 เหรียญ 6 ครั้งเพื่อสร้างกว้า (卦) หรือฉักลักษณ์ 6 เส้น จากล่างขึ้นบน ตามวิธีดั้งเดิมของคัมภีร์แห่งความเปลี่ยนแปลง เส้นที่เปลี่ยนจะบอกแนวโน้มของเรื่องที่ถาม</p>
+    <h1 data-i18n="iching.h1">อี้จิง เสี่ยงกว้า 64</h1>
+    <p data-i18n="iching.lead" class="lead">ตั้งคำถามในใจ แล้วโยนเหรียญ 3 เหรียญ 6 ครั้งเพื่อสร้างกว้า (卦) หรือฉักลักษณ์ 6 เส้น จากล่างขึ้นบน ตามวิธีดั้งเดิมของคัมภีร์แห่งความเปลี่ยนแปลง เส้นที่เปลี่ยนจะบอกแนวโน้มของเรื่องที่ถาม</p>
   </div>
-  <p class="fk-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span><b>เพื่อความบันเทิงตามความเชื่อ ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์</b> ไม่ควรใช้ตัดสินใจเรื่องสุขภาพ การเงิน กฎหมาย หรือความสัมพันธ์ที่สำคัญ</span></p>
+  <p class="fk-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span><b data-i18n="fortune.common.disclaimerBelief">เพื่อความบันเทิงตามความเชื่อ ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์</b> ไม่ควรใช้ตัดสินใจเรื่องสุขภาพ การเงิน กฎหมาย หรือความสัมพันธ์ที่สำคัญ</span></p>
 
   <div class="fk-tabs" role="tablist" aria-label="เลือกโหมด">
-    <button class="fk-tab" role="tab" id="tabCast" aria-controls="panelCast" aria-selected="true" type="button">โยนเหรียญ</button>
-    <button class="fk-tab" role="tab" id="tabDaily" aria-controls="panelDaily" aria-selected="false" tabindex="-1" type="button">กว้าประจำวัน</button>
-    <button class="fk-tab" role="tab" id="tabAll" aria-controls="panelAll" aria-selected="false" tabindex="-1" type="button">64 กว้า</button>
+    <button data-i18n="iching.tabCast" class="fk-tab" role="tab" id="tabCast" aria-controls="panelCast" aria-selected="true" type="button">โยนเหรียญ</button>
+    <button data-i18n="iching.tabDaily" class="fk-tab" role="tab" id="tabDaily" aria-controls="panelDaily" aria-selected="false" tabindex="-1" type="button">กว้าประจำวัน</button>
+    <button data-i18n="iching.tabAll" class="fk-tab" role="tab" id="tabAll" aria-controls="panelAll" aria-selected="false" tabindex="-1" type="button">64 กว้า</button>
   </div>
 
   <section id="panelCast" role="tabpanel" aria-labelledby="tabCast">
     <div class="fk-form fk-block fk-stack" id="icSetup">
-      <fieldset><legend>หัวข้อที่อยากถาม</legend><div class="fk-opts" id="icTopics"></div></fieldset>
+      <fieldset><legend data-i18n="fortune.common.topic">หัวข้อที่อยากถาม</legend><div class="fk-opts" id="icTopics"></div></fieldset>
       <label>คำถามของคุณ (ไม่บังคับ · ไม่ถูกบันทึกหรือส่งออก)
         <textarea id="icQuestion" rows="2" maxlength="140" placeholder="เช่น ควรเริ่มโปรเจกต์ใหม่ช่วงนี้ไหม"></textarea>
       </label>
       <div class="fk-optrow">
         <span class="fk-small">ตั้งจิตถึงคำถาม แล้วโยนเหรียญทีละครั้ง</span>
-        <button class="btn ghost fk-kbtn" id="icKiosk" type="button" aria-pressed="false">โหมดบูธ (เต็มจอ)</button>
+        <button data-i18n="fortune.common.kiosk" class="btn ghost fk-kbtn" id="icKiosk" type="button" aria-pressed="false">โหมดบูธ (เต็มจอ)</button>
       </div>
-      <button class="btn primary big full" id="icStart" type="button">เริ่มเสี่ยงกว้า</button>
+      <button data-i18n="iching.icStart" class="btn primary big full" id="icStart" type="button">เริ่มเสี่ยงกว้า</button>
     </div>
 
     <section class="fk-block ic-stage" id="icStage" hidden aria-labelledby="icStageTitle">
-      <h2 id="icStageTitle">โยนเหรียญ 3 เหรียญ</h2>
+      <h2 data-i18n="iching.icStageTitle" id="icStageTitle">โยนเหรียญ 3 เหรียญ</h2>
       <p class="fk-small" id="icTossCount" aria-live="polite"></p>
       <div class="ic-stage-in">
         <div class="ic-coins" id="icCoins" aria-hidden="true"></div>
@@ -56,15 +57,15 @@
       <ol class="ic-linelist" id="icLines" aria-live="polite"></ol>
       <div class="fk-actions">
         <button class="btn primary big" id="icToss" type="button">โยนเหรียญ</button>
-        <button class="btn ghost" id="icAuto" type="button">โยนที่เหลืออัตโนมัติ</button>
-        <button class="btn ghost" id="icBack" type="button">เริ่มใหม่</button>
+        <button data-i18n="iching.icAuto" class="btn ghost" id="icAuto" type="button">โยนที่เหลืออัตโนมัติ</button>
+        <button data-i18n="iching.icBack" class="btn ghost" id="icBack" type="button">เริ่มใหม่</button>
       </div>
       <p class="fk-small">หัว = 3 · ก้อย = 2 · ผลรวม 6 หรือ 9 คือเส้นเปลี่ยน (วงกลมสีส้ม)</p>
     </section>
 
     <section class="ic-result" id="icResult" hidden aria-labelledby="icResTitle">
       <div class="fk-block">
-        <h2 id="icResTitle" tabindex="-1">ผลการเสี่ยงกว้า</h2>
+        <h2 data-i18n="iching.icResTitle" id="icResTitle" tabindex="-1">ผลการเสี่ยงกว้า</h2>
         <p class="fk-small" id="icResMeta"></p>
         <div class="ic-hexes" id="icHexes"></div>
         <p class="ic-rule" id="icRule"></p>
@@ -72,9 +73,9 @@
       </div>
       <div id="icReadWrap"></div>
       <div class="fk-res-actions">
-        <button class="btn primary big" id="icShare" type="button">แชร์การ์ดผลลัพธ์</button>
-        <button class="btn ghost big" id="icPrint" type="button">พิมพ์</button>
-        <button class="btn ghost big" id="icAgain" type="button">ถามใหม่ / คนถัดไป</button>
+        <button data-i18n="fortune.common.share" class="btn primary big" id="icShare" type="button">แชร์การ์ดผลลัพธ์</button>
+        <button data-i18n="fortune.common.print" class="btn ghost big" id="icPrint" type="button">พิมพ์</button>
+        <button data-i18n="fortune.common.askAgain" class="btn ghost big" id="icAgain" type="button">ถามใหม่ / คนถัดไป</button>
       </div>
       <img class="fk-cardimg" id="icCardImg" alt="การ์ดผลอี้จิงสำหรับแชร์" hidden>
     </section>
@@ -86,7 +87,7 @@
 
   <section id="panelAll" role="tabpanel" aria-labelledby="tabAll" hidden>
     <div class="fk-block">
-      <h2>ตาราง 64 กว้า (ลำดับพระเจ้าเหวิน)</h2>
+      <h2 data-i18n="iching.h21">ตาราง 64 กว้า (ลำดับพระเจ้าเหวิน)</h2>
       <p class="fk-small">แตะกว้าเพื่อดูความหมาย</p>
       <div class="ic-detail" id="icDetail" hidden aria-live="polite"></div>
       <div class="ic-grid" id="icGrid"></div>
@@ -95,13 +96,13 @@
 
   <div class="fk-foot">
     <section class="fk-block">
-      <h3>สถิติบูธ (ไม่ระบุตัวตน)</h3>
+      <h3 data-i18n="fortune.common.stats">สถิติบูธ (ไม่ระบุตัวตน)</h3>
       <div id="icStats"></div>
       <label class="fk-check"><input type="checkbox" id="icStatsOn"> นับจำนวนครั้ง หัวข้อ และกว้าที่ออกในเครื่องนี้</label>
-      <button class="btn ghost" id="icStatsClear" type="button">ล้างสถิติ</button>
+      <button data-i18n="fortune.common.statsClear" class="btn ghost" id="icStatsClear" type="button">ล้างสถิติ</button>
     </section>
     <section class="fk-block">
-      <h3>แหล่งอ้างอิง</h3>
+      <h3 data-i18n="fortune.common.sources">แหล่งอ้างอิง</h3>
       <p class="fk-small">ความหมายเรียบเรียงใหม่เป็นภาษาไทยเชิงสร้างสรรค์จากแก่นของตัวบทดั้งเดิม ความหมายเส้นเปลี่ยนเป็นความหมายตามตำแหน่งเส้นแบบทั่วไป ไม่ใช่คำแปลรายเส้นฉบับเต็ม</p>
       <ul class="fk-sources" id="icSources"></ul>
       <p class="fk-small">หลักการ: เนื้อหาเชิงบวก กว้าที่ตำราเรียกว่ายากลำบากตีความเป็นบทเรียนและจังหวะชีวิต ไม่ทำนายสุขภาพ อุบัติเหตุ หรือเหตุร้าย และไม่บันทึกคำถามของคุณ</p>
@@ -110,10 +111,11 @@
 </main>
 
 <div class="fk-idle" id="icIdle" hidden role="status"></div>
-<button class="btn primary fk-kiosk-exit" id="icKioskExit" type="button" hidden>ออกจากโหมดบูธ</button>
+<button data-i18n="fortune.common.kioskExit" class="btn primary fk-kiosk-exit" id="icKioskExit" type="button" hidden>ออกจากโหมดบูธ</button>
 
+<script src="i18n/zh-fortune.js?v=2"></script>
 <script src="lensiq-config.js?v=2"></script>
-<script src="fortune-ai.js?v=6"></script>
+<script src="fortune-ai.js?v=7"></script>
 <script src="fortune-kit.js?v=1"></script>
 <script src="iching-kb.js?v=2"></script>
 <script src="iching.js?v=2"></script>

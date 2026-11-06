@@ -1,6 +1,14 @@
 /* LENSIQ shared site header.
    Usage in every page:  <header class="nav" id="siteNav"></header><script src="nav.js?v=2"></script>
-   Plain script, no dependencies. Change the brand in BRAND below. */
+   Plain script, no dependencies. Change the brand in BRAND below.
+   Also provides, for every page (no extra <script> tag needed):
+   - i18n: injects lensiq-i18n.js + i18n/zh-common.js (TH | 中文 switch in the header). Menu strings carry
+     data-i18n keys "nav.<page>.title|desc", "nav.group.<id>", "nav.cta" — Thai text here is the default.
+   - Thai line breaking: in headings/labels/buttons each Thai word (Intl.Segmenter + loanword list) becomes a
+     nowrap <span class="lq-w"> with <wbr> between words; elsewhere only known loanwords ("แดชบอร์ด") are wrapped.
+     Each rewritten text node becomes one <span class="lq-run">, so textContent and flex/grid layout are unchanged.
+   - window.LQModels: "กำลังโหลดโมเดล xx MB" notice + cache check for large model downloads.
+   - service worker registration (sw.js: cache-first for vendor/ models, versioned). Disable with ?nosw. */
 (function () {
   "use strict";
 
@@ -15,8 +23,8 @@
     ] },
     { label: "ดูดวงอัจฉริยะ", id: "fortune", items: [
       { href: "fortune.html", title: "รวมระบบดูดวง", desc: "เลือกศาสตร์ที่ต้องการ" },
-      { href: "faceread.html", title: "โหงวเฮ้ง AI", desc: "อ่านโหงวเฮ้งจากใบหน้า" },
-      { href: "palm.html", title: "ดูลายมือ AI", desc: "ถ่ายฝ่ามือ อ่านเส้นหลัก" },
+      { href: "faceread.html", title: "อ่านโหงวเฮ้ง", desc: "อ่านโหงวเฮ้งจากใบหน้า" },
+      { href: "palm.html", title: "ดูลายมือ", desc: "ถ่ายฝ่ามือ อ่านเส้นหลัก" },
       { href: "horoscope.html", title: "ดวงวันเดือนปีเกิด", desc: "โหราไทย ปาจื้อ เลขศาสตร์" },
       { href: "tarot.html", title: "ไพ่ทาโรต์ & เซียมซี", desc: "เปิดไพ่ เสี่ยงเซียมซี" },
       { href: "fengshui.html", title: "ฮวงจุ้ย", desc: "เลขกัว เข็มทิศ ผังบ้าน" },
@@ -37,8 +45,22 @@
     { label: "ระบบทั้งหมด", href: "cameras.html", cta: true }
   ];
 
+  // ---------- i18n loader (lensiq-i18n.js + common Chinese dictionary) ----------
+  var T = function (key, thai, vars) { return window.LQI18N ? window.LQI18N.tf(key, thai, vars) : thai; };
+  (function loadI18n() {
+    var cur = document.currentScript && document.currentScript.src || "";
+    var q = cur.indexOf("?") >= 0 ? cur.slice(cur.indexOf("?")) : "";
+    var have = function (name) { return !!document.querySelector('script[src^="' + name + '"]'); };
+    [["lensiq-i18n.js", !window.LQI18N], ["i18n/zh-common.js", true]].forEach(function (f) {
+      if (!f[1] || have(f[0])) return;
+      var sc = document.createElement("script");
+      sc.src = f[0] + q; sc.async = false; // keep order: core first, then the dictionary
+      (document.head || document.documentElement).appendChild(sc);
+    });
+  })();
+
   var header = document.getElementById("siteNav") || document.querySelector("header.nav");
-  if (!header) return;
+  if (!header) { thaiBreaks(); models(); registerSW(); return; }
   if (!header.classList.contains("nav")) header.classList.add("nav");
 
   var page = (location.pathname.split("/").pop() || "index.html").toLowerCase();
@@ -49,29 +71,34 @@
   var chev = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
   var mark = '<svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="9" fill="#0e1430"/><path d="M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4" stroke="#22d3ee" stroke-width="2.2" fill="none" stroke-linecap="round"/><circle cx="16" cy="16" r="4.2" fill="#674ff2"/></svg>';
 
-  var html = '<a class="skip-link" href="#main">ข้ามไปยังเนื้อหา</a>' +
+  var key = function (href) { return "nav." + href.replace(/\.html$/, ""); };
+  var html = '<a class="skip-link" href="#main" data-i18n="nav.skip">ข้ามไปยังเนื้อหา</a>' +
     '<a class="logo" href="index.html" aria-label="' + esc(BRAND.full) + ' หน้าแรก">' + mark + esc(BRAND.name) + '<span>' + esc(BRAND.accent) + '</span></a>' +
+    '<div class="lang-switch" role="group" aria-label="ภาษา / 语言">' +
+      '<button type="button" data-lang="th" lang="th" aria-pressed="true">TH</button>' +
+      '<button type="button" data-lang="zh" lang="zh-Hans" aria-pressed="false">中文</button>' +
+    '</div>' +
     '<button class="nav-toggle" type="button" aria-expanded="false" aria-controls="siteMenu" aria-label="เปิดเมนู">' +
       '<svg class="i-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>' +
       '<svg class="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>' +
     '</button>' +
     '<div class="nav-scrim" aria-hidden="true"></div>' +
-    '<nav class="site-menu" id="siteMenu" aria-label="เมนูหลัก"><ul class="nav-list">';
+    '<nav class="site-menu" id="siteMenu" aria-label="เมนูหลัก" data-i18n-attr="aria-label:nav.menu"><ul class="nav-list">';
 
   MENU.forEach(function (g) {
     if (g.items) {
       var cur = g.items.some(function (i) { return isCur(i.href); });
-      html += '<li class="nav-item has-sub"><button class="nav-link' + (cur ? " is-current" : "") + '" type="button" aria-expanded="false" aria-controls="navsub-' + g.id + '">' + esc(g.label) + chev + '</button>' +
+      html += '<li class="nav-item has-sub"><button class="nav-link' + (cur ? " is-current" : "") + '" type="button" aria-expanded="false" aria-controls="navsub-' + g.id + '"><span data-i18n="nav.group.' + g.id + '">' + esc(g.label) + '</span>' + chev + '</button>' +
         '<ul class="nav-sub' + (g.items.length > 7 ? " cols-2" : "") + '" id="navsub-' + g.id + '">';
       g.items.forEach(function (i) {
-        html += '<li><a href="' + i.href + '"' + (isCur(i.href) ? ' aria-current="page"' : "") + '><b>' + esc(i.title) + '</b><small>' + esc(i.desc) + '</small></a></li>';
+        html += '<li><a href="' + i.href + '"' + (isCur(i.href) ? ' aria-current="page"' : "") + '><b data-i18n="' + key(i.href) + '.title">' + esc(i.title) + '</b><small data-i18n="' + key(i.href) + '.desc">' + esc(i.desc) + '</small></a></li>';
       });
       html += '</ul></li>';
     } else {
       var c = isCur(g.href) ? ' aria-current="page"' : "";
       html += '<li class="nav-item">' + (g.cta
-        ? '<a class="nav-cta" href="' + g.href + '"' + c + '>' + esc(g.label) + '</a>'
-        : '<a class="nav-link' + (c ? " is-current" : "") + '" href="' + g.href + '"' + c + '>' + esc(g.label) + '</a>') + '</li>';
+        ? '<a class="nav-cta" href="' + g.href + '"' + c + ' data-i18n="nav.cta">' + esc(g.label) + '</a>'
+        : '<a class="nav-link' + (c ? " is-current" : "") + '" href="' + g.href + '"' + c + ' data-i18n="' + key(g.href) + '.title">' + esc(g.label) + '</a>') + '</li>';
     }
   });
   html += '</ul></nav>';
@@ -105,7 +132,7 @@
   function setDrawer(open, returnFocus) {
     header.classList.toggle("menu-open", open);
     toggle.setAttribute("aria-expanded", open ? "true" : "false");
-    toggle.setAttribute("aria-label", open ? "ปิดเมนู" : "เปิดเมนู");
+    toggle.setAttribute("aria-label", open ? T("nav.close", "ปิดเมนู") : T("nav.open", "เปิดเมนู"));
     document.documentElement.classList.toggle("nav-locked", open);
     if (open) {
       setNavH();
@@ -180,5 +207,221 @@
   window.addEventListener("resize", setNavH);
   setNavH();
 
+  // ---------- language switch ----------
+  var langBtns = Array.prototype.slice.call(header.querySelectorAll(".lang-switch button"));
+  function syncLang() {
+    var l = window.LQI18N ? window.LQI18N.lang : "th";
+    langBtns.forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-lang") === l ? "true" : "false"); });
+    toggle.setAttribute("aria-label", header.classList.contains("menu-open") ? T("nav.close", "ปิดเมนู") : T("nav.open", "เปิดเมนู"));
+    setNavH();
+  }
+  langBtns.forEach(function (b) {
+    b.addEventListener("click", function () {
+      var l = b.getAttribute("data-lang");
+      if (window.LQI18N) window.LQI18N.setLang(l);
+      else { try { localStorage.setItem("lq-lang", l); } catch (e) { /* storage blocked */ } location.reload(); }
+    });
+  });
+  window.addEventListener("lq-lang", syncLang);
+  if (window.LQI18N) { window.LQI18N.apply(header); syncLang(); }
+
   window.LENSIQ_BRAND = BRAND;
+  thaiBreaks();
+  models();
+  registerSW();
+
+  // ---------- Thai line breaking: <wbr> at word boundaries ----------
+  function thaiBreaks() {
+    if (/[?&]nowb\b/.test(location.search)) return; // diagnostics: disable the rewrite
+    if (typeof Intl === "undefined" || typeof Intl.Segmenter !== "function") return;
+    var seg;
+    try { seg = new Intl.Segmenter("th", { granularity: "word" }); } catch (e) { return; }
+    var THAI = /[฀-๿]/;
+    // loanwords / names the browser's Thai dictionary (and Intl.Segmenter) split wrongly: keep as one unit
+    var JOIN = ["แดชบอร์ด", "สติ๊กเกอร์", "โหงวเฮ้ง", "ฮวงจุ้ย", "อัจฉริยะ", "คีออสก์", "เซียมซี", "ทาโรต์", "นักษัตร", "อี้จิง", "เว็บแคม", "แท็บเล็ต", "ดาวน์โหลด", "ออฟไลน์", "ออนไลน์", "เบราว์เซอร์", "แพ็กเกจ", "แบรนด์", "โปรโมชัน", "คอนเทนต์", "อีเวนต์", "สตูดิโอ", "ฟีเจอร์", "เซิร์ฟเวอร์", "ฮาร์ดแวร์", "ซอฟต์แวร์", "แอปพลิเคชัน"];
+    var LOAN = new RegExp(JOIN.join("|"), "g");
+    // short UI text: full word segmentation ; everything else: only the loanwords above (cheap)
+    var SEL = "h1,h2,h3,h4,h5,.nav-sub b,.nav-sub small,.nav-link,.nav-cta,.btn,button,label,.chip,.tag,.kicker,.eyebrow,.pill,summary,th,legend,.lead,.sub,.hint,figcaption,.lq-wb";
+    var SKIP = "svg,canvas,script,style,textarea,select,option,pre,code,[contenteditable],.lq-run";
+    function words(text) {
+      var parts = [];
+      var it = seg.segment(text)[Symbol.iterator](), r;
+      while (!(r = it.next()).done) parts.push(r.value.segment);
+      // a lone consonant segment ("แด|ช|บอร์ด") is a final consonant of the previous syllable: glue it back
+      for (var m = parts.length - 1; m > 0; m--) if (/^[ก-ฮ]$/.test(parts[m]) && THAI.test(parts[m - 1])) parts.splice(m - 1, 2, parts[m - 1] + parts[m]);
+      for (var i = 0; i < parts.length; i++) {
+        for (var j = i + 1, acc = parts[i]; j < parts.length && j < i + 5; j++) {
+          acc += parts[j];
+          if (JOIN.indexOf(acc) >= 0) { parts.splice(i, j - i + 1, acc); break; }
+        }
+      }
+      return parts;
+    }
+    function loanParts(text) {
+      var parts = [], last = 0, mm;
+      LOAN.lastIndex = 0;
+      while ((mm = LOAN.exec(text))) { if (mm.index > last) parts.push([text.slice(last, mm.index), 0]); parts.push([mm[0], 1]); last = mm.index + mm[0].length; }
+      if (!parts.length) return null;
+      if (last < text.length) parts.push([text.slice(last), 0]);
+      return parts;
+    }
+    // one text node -> <span class="lq-run"> (a single box, so flex/grid layouts are unchanged) holding
+    // <span class="lq-w"> (nowrap) words with <wbr> between them; textContent stays identical
+    function rebuild(tn, full) {
+      var parts;
+      if (full) parts = words(tn.nodeValue).map(function (p) { return [p, THAI.test(p) && p.length >= 4 && p.length <= 14 && !/\s/.test(p) ? 1 : 0]; });
+      else parts = loanParts(tn.nodeValue);
+      if (!parts || parts.length < 2 && !(parts[0] && parts[0][1])) return;
+      var run = document.createElement("span"); run.className = "lq-run";
+      parts.forEach(function (p, i) {
+        if (p[1]) { var w = document.createElement("span"); w.className = "lq-w"; w.textContent = p[0]; run.appendChild(w); }
+        else run.appendChild(document.createTextNode(p[0]));
+        if (full && i < parts.length - 1 && !/\s$/.test(p[0]) && THAI.test(p[0])) run.appendChild(document.createElement("wbr"));
+      });
+      tn.parentNode.replaceChild(run, tn);
+    }
+    function textNodes(el, min) {
+      var walker = document.createTreeWalker(el, 4 /* SHOW_TEXT */), out = [], n;
+      while ((n = walker.nextNode())) {
+        var p = n.parentElement;
+        if (n.nodeValue.length >= min && THAI.test(n.nodeValue) && p && !p.closest(SKIP)) out.push(n);
+      }
+      return out;
+    }
+    function fix(el) {
+      if (!el || el.nodeType !== 1 || el.hasAttribute("data-lqwb") || el.closest(SKIP)) return;
+      el.setAttribute("data-lqwb", "");
+      textNodes(el, 7).forEach(function (tn) { rebuild(tn, true); });
+    }
+    function run(root) {
+      if ((document.documentElement.lang || "th").indexOf("th") !== 0) return;
+      if (root.nodeType === 3) root = root.parentElement;
+      if (!root || root.nodeType !== 1 || root.closest(SKIP)) return;
+      if (root.matches(SEL)) fix(root);
+      Array.prototype.forEach.call(root.querySelectorAll(SEL), fix);
+      textNodes(root, 4).forEach(function (tn) { LOAN.lastIndex = 0; if (LOAN.test(tn.nodeValue)) rebuild(tn, false); });
+    }
+    var pending = [], timer = 0;
+    var idle = window.requestIdleCallback || function (f) { return setTimeout(f, 120); };
+    function flush() { timer = 0; var p = pending; pending = []; p.forEach(function (r) { if (r.isConnected) run(r); }); }
+    function start() {
+      run(document.body);
+      if (typeof MutationObserver === "undefined") return;
+      new MutationObserver(function (recs) {
+        for (var i = 0; i < recs.length; i++) {
+          var t = recs[i].target;
+          for (var j = 0; j < recs[i].addedNodes.length; j++) {
+            var a = recs[i].addedNodes[j];
+            if (a.nodeType === 1) { if (a.nodeName !== "WBR" && !(a.classList && (a.classList.contains("lq-run") || a.classList.contains("lq-w")))) pending.push(a); }
+            else if (a.nodeType === 3 && t.nodeType === 1) {
+              if (t.hasAttribute("data-lqwb")) t.removeAttribute("data-lqwb"); // text re-set by page code: redo
+              pending.push(t);
+            }
+          }
+        }
+        if (pending.length > 400) pending = [document.body];
+        if (pending.length && !timer) timer = idle(flush);
+      }).observe(document.body, { childList: true, subtree: true });
+    }
+    window.addEventListener("lq-lang", function (e) { if (e.detail && e.detail.lang === "th") run(document.body); });
+    if (document.body) start(); else document.addEventListener("DOMContentLoaded", start);
+  }
+
+  // ---------- window.LQModels: large model download notice ----------
+  function models() {
+    if (window.LQModels) return;
+    var MODEL_CACHE_PREFIX = "lq-models-";
+    function isCached(url) {
+      if (!window.caches || !url) return Promise.resolve(false);
+      var abs = new URL(url, location.href).href;
+      return caches.keys().then(function (ks) {
+        return Promise.all(ks.filter(function (k) { return k.indexOf(MODEL_CACHE_PREFIX) === 0; }).map(function (k) {
+          return caches.open(k).then(function (c) { return c.match(abs, { ignoreSearch: true }); });
+        }));
+      }).then(function (r) { return r.some(Boolean); }).catch(function () { return false; });
+    }
+    function slowNet() {
+      var c = navigator.connection || {};
+      return !!(c.saveData || /(^|-)2g|3g/.test(c.effectiveType || ""));
+    }
+    var box = null, active = 0;
+    function ensureBox() {
+      if (box && box.isConnected) return box;
+      box = document.createElement("div");
+      box.className = "lq-model-note"; box.setAttribute("role", "status"); box.setAttribute("aria-live", "polite");
+      box.innerHTML = '<span class="lq-spin" aria-hidden="true"></span><span class="lq-model-text"></span>' +
+        '<span class="lq-model-bar" aria-hidden="true"><i></i></span>';
+      document.body.appendChild(box);
+      return box;
+    }
+    /** แสดง "กำลังโหลดโมเดล {label} {mb} MB" ; คืน {progress(0..1), done(), fail(msg)} ; ไม่แสดงถ้าอยู่ในแคชแล้ว (opts.url) */
+    function loading(opts) {
+      opts = opts || {};
+      var shown = false, closed = false, b = null;
+      var text = function () {
+        var mb = opts.mb ? " " + (Math.round(opts.mb * 10) / 10) + " MB" : "";
+        return T("models.loading", "กำลังโหลดโมเดล{label}{mb} (ครั้งแรกเท่านั้น หลังจากนี้ใช้ได้แม้ออฟไลน์)",
+          { label: opts.label ? " " + opts.label : "", mb: mb });
+      };
+      var show = function () {
+        if (closed || shown || !document.body) return;
+        shown = true; active++;
+        b = ensureBox(); b.classList.remove("err"); b.querySelector(".lq-model-text").textContent = text(); b.classList.add("show");
+      };
+      var hide = function () {
+        if (closed) return; closed = true;
+        if (shown && --active <= 0 && b) { active = 0; b.classList.remove("show"); }
+      };
+      (opts.url ? isCached(opts.url) : Promise.resolve(false)).then(function (hit) { if (!hit) show(); });
+      return {
+        progress: function (p) { if (b && shown && !closed) b.querySelector(".lq-model-bar i").style.width = Math.max(0, Math.min(1, p)) * 100 + "%"; },
+        done: hide,
+        fail: function (msg) {
+          if (!b) { show(); }
+          if (b) { b.classList.add("err"); b.querySelector(".lq-model-text").textContent = msg || T("models.fail", "โหลดโมเดลไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่"); }
+          setTimeout(hide, 6000);
+        }
+      };
+    }
+    /** ถามก่อนดาวน์โหลดเมื่อเน็ตช้า/ประหยัดข้อมูล หรือไฟล์ใหญ่กว่า opts.askOverMb (ค่าเริ่ม 40) ; อยู่ในแคชแล้ว = true ทันที */
+    function confirmDownload(opts) {
+      opts = opts || {};
+      return isCached(opts.url).then(function (hit) {
+        if (hit) return true;
+        if (!slowNet() && !(opts.mb > (opts.askOverMb || 40))) return true;
+        return window.confirm(T("models.confirm", "ต้องดาวน์โหลดโมเดล{label} ประมาณ {mb} MB ดาวน์โหลดตอนนี้หรือไม่?",
+          { label: opts.label ? " " + opts.label : "", mb: Math.round((opts.mb || 0) * 10) / 10 }));
+      });
+    }
+    /** fetch พร้อมแสดงความคืบหน้า -> ArrayBuffer */
+    function fetchWithNotice(url, opts) {
+      opts = opts || {};
+      var h = loading({ label: opts.label, mb: opts.mb, url: url });
+      return fetch(url).then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        var total = +r.headers.get("content-length") || (opts.mb || 0) * 1048576;
+        if (!r.body || !r.body.getReader || !total) return r.arrayBuffer();
+        var reader = r.body.getReader(), got = 0, chunks = [];
+        return (function pump() {
+          return reader.read().then(function (x) {
+            if (x.done) {
+              var out = new Uint8Array(got), o = 0;
+              chunks.forEach(function (c) { out.set(c, o); o += c.length; });
+              return out.buffer;
+            }
+            chunks.push(x.value); got += x.value.length; h.progress(got / total);
+            return pump();
+          });
+        })();
+      }).then(function (buf) { h.done(); return buf; }, function (e) { h.fail(); throw e; });
+    }
+    window.LQModels = { loading: loading, isCached: isCached, confirm: confirmDownload, fetch: fetchWithNotice, slowNet: slowNet };
+  }
+
+  // ---------- service worker (offline cache for vendor/ models) ----------
+  function registerSW() {
+    if (!("serviceWorker" in navigator) || !window.isSecureContext || /[?&]nosw\b/.test(location.search)) return;
+    var go = function () { navigator.serviceWorker.register("sw.js").catch(function () { /* unsupported / blocked: pages work without it */ }); };
+    if (document.readyState === "complete") go(); else window.addEventListener("load", go);
+  }
 })();

@@ -184,7 +184,7 @@
 #trStats{display:grid;gap:6px;margin-bottom:10px}
 .stat-top{font-size:.85rem;color:var(--muted)}
 .tr-sources{margin:6px 0 10px;padding-left:20px;font-size:.9rem;display:grid;gap:4px}
-.tr-sources a{color:#4b36d6;text-decoration:underline;word-break:break-word}
+.tr-sources a{color:#4b36d6;text-decoration:underline;word-break:break-word;display:inline-flex;align-items:center;min-height:44px}
 .tr-foot .btn{margin-top:4px}
 
 /* ---------- โมดัลรายละเอียดไพ่ ---------- */

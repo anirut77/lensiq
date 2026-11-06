@@ -2,23 +2,26 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
-<title>วิเคราะห์หน้าร้าน | LENSIQ</title>
+<title data-i18n="store.s1">วิเคราะห์หน้าร้าน | LENSIQ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=6">
-<link rel="stylesheet" href="store.css?v=5">
+<link rel="stylesheet" href="store.css?v=6">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=10"></script>
+<script src="nav.js?v=11"></script>
+<script src="i18n/zh-store.js?v=1"></script>
 
 <main class="st">
-  <h1>วิเคราะห์หน้าร้าน</h1>
-  <p class="lead">นับคนเข้า–ออก จำนวนคนในร้าน โซนยอดนิยม ความยาวคิว และฮีตแมปจุดที่ลูกค้ายืน ประมวลผลในเบราว์เซอร์ ไม่บันทึกภาพ เก็บเฉพาะตัวเลขสรุป</p>
+  <h1 data-i18n="store.s2">วิเคราะห์หน้าร้าน</h1>
+  <p class="lead" data-i18n="store.s3">นับคนเข้า–ออก จำนวนคนในร้าน โซนยอดนิยม ความยาวคิว และฮีตแมปจุดที่ลูกค้ายืน ประมวลผลในเบราว์เซอร์ ไม่บันทึกภาพ เก็บเฉพาะตัวเลขสรุป</p>
+  <p class="acc-note" role="note"><b class="beta" data-i18n="store.s4">ค่าประมาณ (Beta)</b> <span data-i18n="store.s5">วัดกับวิดีโอสาธารณะ 5 ชุด: ยอดข้ามเส้นคลาดเคลื่อนราว ±10–30% ต่อวัน และราว 1 ใน 4 ของครั้งที่นับเป็นการนับผิด คนที่ตัวเล็กในภาพ (อยู่ไกล) และที่คนแน่นจะแม่นยำน้อยลง ติดกล้องสูงเหนือประตูให้คนเดินตัดเส้น แล้วลองนับด้วยคนเทียบสัก 30 นาทีก่อนใช้ตัวเลข</span> <a href="cameras.html#accuracy" data-i18n="store.s6">วิธีวัดและข้อจำกัด</a></p>
 
   <div class="engine" id="engine" role="status">กำลังเตรียมระบบ...</div>
   <div id="alerts" role="alert" aria-live="assertive"></div>
@@ -26,159 +29,160 @@
   <div class="grid2 top">
     <section class="card">
       <div class="cam-grid" id="camGrid"></div>
-      <div class="cam grid-empty" id="gridEmpty"><p>กด "เปิดกล้อง" เพื่อเริ่ม · เพิ่มได้สูงสุด 4 กล้อง (แต่ละกล้องมีเส้นนับและโซนของตัวเอง)</p></div>
+      <div class="cam grid-empty" id="gridEmpty"><p data-i18n="store.s7">กด "เปิดกล้อง" เพื่อเริ่ม · เพิ่มได้สูงสุด 4 กล้อง (แต่ละกล้องมีเส้นนับและโซนของตัวเอง)</p></div>
       <div class="cam-actions">
-        <button class="btn primary" id="startCam" type="button">เปิดกล้อง</button>
-        <button class="btn ghost" id="addCam" type="button">+ เพิ่มกล้อง</button>
-        <label class="btn ghost file-btn">ใช้ไฟล์วิดีโอทดสอบ<input id="file" type="file" accept="video/*"></label>
+        <button class="btn primary" id="startCam" type="button" data-i18n="store.s8">เปิดกล้อง</button>
+        <button class="btn ghost" id="addCam" type="button" data-i18n="store.s9">+ เพิ่มกล้อง</button>
+        <label class="btn ghost file-btn"><span data-i18n="store.s10">ใช้ไฟล์วิดีโอทดสอบ</span><input id="file" type="file" accept="video/*"></label>
         <button class="btn ghost" id="stop" type="button" disabled>หยุด</button>
         <span class="pill" id="fps">—</span>
       </div>
-      <div class="tools" role="group" aria-label="เครื่องมือวาด">
-        <button class="seg" type="button" data-tool="none" aria-pressed="true">ดูอย่างเดียว</button>
-        <button class="seg" type="button" data-tool="line" aria-pressed="false">ลากเส้นนับ</button>
-        <button class="seg" type="button" data-tool="zone" aria-pressed="false">ลากโซน</button>
-        <button class="seg" type="button" id="swap">สลับทิศเข้า/ออก</button>
-        <button class="seg" type="button" id="clearLine">ลบเส้นนับ</button>
-        <button class="seg" type="button" data-tool="staff" aria-pressed="false">ลากโซนพนักงาน</button>
-        <button class="seg" type="button" id="clearStaff">ลบโซนพนักงาน</button>
-        <label class="chk"><input type="checkbox" id="heatOn">แสดงฮีตแมป</label>
+      <div class="tools" role="group" aria-label="เครื่องมือวาด" data-i18n-attr="aria-label:store.s11">
+        <button class="seg" type="button" data-tool="none" aria-pressed="true" data-i18n="store.s12">ดูอย่างเดียว</button>
+        <button class="seg" type="button" data-tool="line" aria-pressed="false" data-i18n="store.s13">ลากเส้นนับ</button>
+        <button class="seg" type="button" data-tool="zone" aria-pressed="false" data-i18n="store.s14">ลากโซน</button>
+        <button class="seg" type="button" id="swap" data-i18n="store.s15">สลับทิศเข้า/ออก</button>
+        <button class="seg" type="button" id="clearLine" data-i18n="store.s16">ลบเส้นนับ</button>
+        <button class="seg" type="button" data-tool="staff" aria-pressed="false" data-i18n="store.s17">ลากโซนพนักงาน</button>
+        <button class="seg" type="button" id="clearStaff" data-i18n="store.s18">ลบโซนพนักงาน</button>
+        <label class="chk"><input type="checkbox" id="heatOn"><span data-i18n="store.s19">แสดงฮีตแมป</span></label>
       </div>
       <p class="hint" id="drawMsg" role="status"></p>
       <details class="phone-tip">
-        <summary>ใช้มือถือเป็นกล้องประจำจุด</summary>
+        <summary data-i18n="store.s20">ใช้มือถือเป็นกล้องประจำจุด</summary>
         <ul>
-          <li>ใช้กล้องหลัง (ค่าเริ่มต้นของหน้านี้) ตั้งบนขาตั้งหรือติดผนังสูงประมาณ 2–2.5 เมตร มุมก้มลงเฉียง ๆ ให้เห็นประตูและพื้นที่ทั้งหมด</li>
-          <li>ตั้งเครื่องแนวนอนจะเห็นพื้นที่กว้างกว่า เสียบสายชาร์จไว้ และปิดการล็อกหน้าจออัตโนมัติ (หน้านี้ขอให้จอเปิดค้างระหว่างวิเคราะห์ถ้าเบราว์เซอร์รองรับ)</li>
-          <li>หลายกล้องพร้อมกันใช้ได้บนคอมพิวเตอร์ (สูงสุด 4 ตัว) มือถือส่วนใหญ่เปิดได้ทีละกล้อง — ใช้ 1 เครื่องต่อ 1 จุด แล้วรวมยอดด้วย <a href="#aggPanel">เชื่อมหลายเครื่อง</a></li>
-          <li>เปิดหน้านี้ค้างไว้ ถ้าสลับไปแอปอื่น กล้องจะหยุดชั่วคราวและเปิดต่อเองเมื่อกลับมา</li>
-          <li>ต้องเปิดผ่าน https:// บนมือถือ — ดูวิธีในหน้า <a href="cameras.html">ระบบทั้งหมด</a></li>
+          <li data-i18n="store.s21">ใช้กล้องหลัง (ค่าเริ่มต้นของหน้านี้) ตั้งบนขาตั้งหรือติดผนังสูงประมาณ 2–2.5 เมตร มุมก้มลงเฉียง ๆ ให้เห็นประตูและพื้นที่ทั้งหมด</li>
+          <li data-i18n="store.s22">ตั้งเครื่องแนวนอนจะเห็นพื้นที่กว้างกว่า เสียบสายชาร์จไว้ และปิดการล็อกหน้าจออัตโนมัติ (หน้านี้ขอให้จอเปิดค้างระหว่างวิเคราะห์ถ้าเบราว์เซอร์รองรับ)</li>
+          <li><span data-i18n="store.s23">หลายกล้องพร้อมกันใช้ได้บนคอมพิวเตอร์ (สูงสุด 4 ตัว) มือถือส่วนใหญ่เปิดได้ทีละกล้อง — ใช้ 1 เครื่องต่อ 1 จุด แล้วรวมยอดด้วย</span> <a href="#aggPanel" data-i18n="store.s24">เชื่อมหลายเครื่อง</a></li>
+          <li data-i18n="store.s25">เปิดหน้านี้ค้างไว้ ถ้าสลับไปแอปอื่น กล้องจะหยุดชั่วคราวและเปิดต่อเองเมื่อกลับมา</li>
+          <li><span data-i18n="store.s26">ต้องเปิดผ่าน https:// บนมือถือ — ดูวิธีในหน้า</span> <a href="cameras.html" data-i18n="store.s27">ระบบทั้งหมด</a></li>
         </ul>
       </details>
     </section>
 
     <section class="card">
-      <div class="report-head"><h2>ภาพรวมวันนี้</h2><button class="btn ghost small" id="resetOcc" type="button">ตั้งคนในร้านเป็น 0</button></div>
-      <div class="tools kpi-scope" id="kpiScope" role="radiogroup" aria-label="ขอบเขตตัวเลข" hidden>
-        <button class="seg" type="button" data-scope="local" aria-pressed="false">เฉพาะเครื่องนี้</button>
-        <button class="seg" type="button" data-scope="all" aria-pressed="true">รวมทุกเครื่อง</button>
+      <div class="report-head"><h2 data-i18n="store.s28">ภาพรวมวันนี้</h2><button class="btn ghost small" id="resetOcc" type="button" data-i18n="store.s29">ตั้งคนในร้านเป็น 0</button></div>
+      <div class="tools kpi-scope" id="kpiScope" role="radiogroup" aria-label="ขอบเขตตัวเลข" hidden data-i18n-attr="aria-label:store.s30">
+        <button class="seg" type="button" data-scope="local" aria-pressed="false" data-i18n="store.s31">เฉพาะเครื่องนี้</button>
+        <button class="seg" type="button" data-scope="all" aria-pressed="true" data-i18n="store.s32">รวมทุกเครื่อง</button>
       </div>
       <div class="tiles" id="tiles"></div>
       <div class="bycam" id="byCam"></div>
-      <h3>คนเข้า–ออกรายชั่วโมง</h3>
-      <div class="legend"><span><i class="sw in"></i>เข้า</span><span><i class="sw out"></i>ออก</span></div>
-      <canvas id="hourly" role="img" aria-label="กราฟคนเข้าออกรายชั่วโมง"></canvas>
+      <h3 data-i18n="store.s33">คนเข้า–ออกรายชั่วโมง</h3>
+      <div class="legend"><span><i class="sw in"></i><span data-i18n="store.s34">เข้า</span></span><span><i class="sw out"></i><span data-i18n="store.s35">ออก</span></span></div>
+      <canvas id="hourly" role="img" aria-label="กราฟคนเข้าออกรายชั่วโมง" data-i18n-attr="aria-label:store.s36"></canvas>
     </section>
   </div>
 
   <div class="grid2">
     <section class="card">
-      <div class="report-head"><h2>โซนในร้าน</h2><span class="pill" id="zoneCam"></span></div>
+      <div class="report-head"><h2 data-i18n="store.s37">โซนในร้าน</h2><span class="pill" id="zoneCam"></span></div>
       <div id="zoneList" class="zlist"></div>
-      <p class="hint">ติ๊ก "คิว" ได้หนึ่งโซนเพื่อวัดความยาวคิว และ "แคชเชียร์" หนึ่งโซนเพื่อคำนวณอัตราการซื้อโดยประมาณ (จำนวนครั้งที่เข้าโซนแคชเชียร์ ÷ จำนวนคนเข้าร้าน)</p>
+      <p class="hint" data-i18n="store.s38">ติ๊ก "คิว" ได้หนึ่งโซนเพื่อวัดความยาวคิว และ "แคชเชียร์" หนึ่งโซนเพื่อคำนวณอัตราการซื้อโดยประมาณ (จำนวนครั้งที่เข้าโซนแคชเชียร์ ÷ จำนวนคนเข้าร้าน)</p>
       <div class="table-wrap"><table id="zoneTable"></table></div>
     </section>
     <section class="card">
       <div class="report-head">
-        <h2>ฮีตแมปตำแหน่งยืน <span class="pill" id="heatCam"></span></h2>
+        <h2><span data-i18n="store.s39">ฮีตแมปตำแหน่งยืน</span> <span class="pill" id="heatCam"></span></h2>
         <div class="row-actions">
-          <button class="btn ghost" id="heatReset" type="button">รีเซ็ตฮีตแมป</button>
-          <button class="btn ghost" id="heatPng" type="button">บันทึกเป็น PNG</button>
+          <button class="btn ghost" id="heatReset" type="button" data-i18n="store.s40">รีเซ็ตฮีตแมป</button>
+          <button class="btn ghost" id="heatPng" type="button" data-i18n="store.s41">บันทึกเป็น PNG</button>
         </div>
       </div>
-      <canvas id="heatPreview" class="heat" role="img" aria-label="ฮีตแมปตำแหน่งที่ลูกค้ายืน บนพื้นหลังเรียบ ไม่มีภาพบุคคล"></canvas>
-      <p class="hint">สะสมจากจุดกึ่งกลางด้านล่างของกรอบตัวคน (ตำแหน่งเท้า) แสดงบนพื้นหลังเรียบ ไม่มีภาพบุคคล</p>
+      <canvas id="heatPreview" class="heat" role="img" aria-label="ฮีตแมปตำแหน่งที่ลูกค้ายืน บนพื้นหลังเรียบ ไม่มีภาพบุคคล" data-i18n-attr="aria-label:store.s42"></canvas>
+      <p class="hint" data-i18n="store.s43">สะสมจากจุดกึ่งกลางด้านล่างของกรอบตัวคน (ตำแหน่งเท้า) แสดงบนพื้นหลังเรียบ ไม่มีภาพบุคคล</p>
     </section>
   </div>
 
   <div class="grid2">
     <section class="card" aria-labelledby="h-sum">
-      <div class="report-head"><h2 id="h-sum">สรุปวันนี้</h2><span class="pill" id="sumScope"></span></div>
+      <div class="report-head"><h2 id="h-sum" data-i18n="store.s44">สรุปวันนี้</h2><span class="pill" id="sumScope"></span></div>
       <ul class="summary" id="summary"></ul>
     </section>
     <section class="card" aria-labelledby="h-acc">
-      <h2 id="h-acc">นับให้แม่นขึ้น</h2>
+      <h2 id="h-acc" data-i18n="store.s45">นับให้แม่นขึ้น</h2>
       <form id="accForm" novalidate>
-        <label class="chk"><input type="checkbox" name="reid">ลดการนับซ้ำ (จำลักษณะภาพคนชั่วคราว)</label>
-        <label>ไม่นับคนเดิมข้ามเส้นทิศเดิมซ้ำภายใน (วินาที)<input name="reidWindowSec" type="number" min="2" max="120" inputmode="numeric"></label>
-        <label>ถือว่าเป็นพนักงานเมื่ออยู่ในโซนพนักงานเกิน (นาที)<input name="staffMin" type="number" min="0.05" step="0.5" inputmode="decimal"></label>
-        <label>ไม่นับพนักงาน (คน) — หักจากคนในร้าน<input name="staffOffset" type="number" min="0" inputmode="numeric"></label>
+        <label class="chk"><input type="checkbox" name="reid"><span data-i18n="store.s46">ลดการนับซ้ำ (จำลักษณะภาพคนชั่วคราว)</span></label>
+        <label><span data-i18n="store.s47">ไม่นับคนเดิมข้ามเส้นทิศเดิมซ้ำภายใน (วินาที)</span><input name="reidWindowSec" type="number" min="2" max="120" inputmode="numeric"></label>
+        <label><span data-i18n="store.s48">ถือว่าเป็นพนักงานเมื่ออยู่ในโซนพนักงานเกิน (นาที)</span><input name="staffMin" type="number" min="0.05" step="0.5" inputmode="decimal"></label>
+        <label><span data-i18n="store.s49">ไม่นับพนักงาน (คน) — หักจากคนในร้าน</span><input name="staffOffset" type="number" min="0" inputmode="numeric"></label>
       </form>
       <p class="form-msg" id="accMsg" role="status"></p>
-      <p class="hint" id="reidInfo">ลดการนับซ้ำ: ใช้ค่าลักษณะภาพของคน (MobileNetV2) ต่อรหัสเดิมเมื่อคนถูกบังชั่วคราว และไม่นับข้ามเส้นซ้ำ ค่าเหล่านี้อยู่ในหน่วยความจำเท่านั้น ไม่บันทึก ไม่ส่งออก ลบทิ้งเมื่อกดหยุดหรือขึ้นวันใหม่</p>
-      <p class="hint">โซนพนักงาน: กด "ลากโซนพนักงาน" แล้ววาดบริเวณที่มีแต่พนักงาน (เช่น หลังเคาน์เตอร์) ใครอยู่ในโซนนี้นานเกินเวลาที่ตั้ง จะไม่ถูกนับเข้า–ออก โซน และฮีตแมปตั้งแต่นั้น</p>
+      <p class="hint" id="reidInfo" data-i18n="store.s50">ลดการนับซ้ำ: ใช้ค่าลักษณะภาพของคน (MobileNetV2) ต่อรหัสเดิมเมื่อคนถูกบังชั่วคราว และไม่นับข้ามเส้นซ้ำ ค่าเหล่านี้อยู่ในหน่วยความจำเท่านั้น ไม่บันทึก ไม่ส่งออก ลบทิ้งเมื่อกดหยุดหรือขึ้นวันใหม่</p>
+      <p class="hint" data-i18n="store.s51">โซนพนักงาน: กด "ลากโซนพนักงาน" แล้ววาดบริเวณที่มีแต่พนักงาน (เช่น หลังเคาน์เตอร์) ใครอยู่ในโซนนี้นานเกินเวลาที่ตั้ง จะไม่ถูกนับเข้า–ออก โซน และฮีตแมปตั้งแต่นั้น</p>
     </section>
   </div>
 
   <div class="grid2">
     <section class="card">
-      <h2>ตั้งค่าและข้อมูล</h2>
+      <h2 data-i18n="store.s52">ตั้งค่าและข้อมูล</h2>
       <form id="settingsForm" novalidate>
-        <label>แจ้งเตือนเมื่อคนในร้านถึง (คน)<input name="maxOcc" type="number" min="1" inputmode="numeric"></label>
-        <label>เวลาบริการต่อคน (วินาที)<input name="serviceSec" type="number" min="1" inputmode="numeric"></label>
-        <label>แจ้งเตือนเมื่อคิวยาวถึง (คน)<input name="queueAlert" type="number" min="1" inputmode="numeric"></label>
-        <label>เป้ารอคิวไม่เกิน (วินาที, 0 = ไม่ใช้)<input name="queueSlaSec" type="number" min="0" inputmode="numeric"></label>
-        <label>เป้าคนเข้าต่อชั่วโมง (คน, 0 = ไม่ใช้)<input name="hourlyTarget" type="number" min="0" inputmode="numeric"></label>
-        <label>ความละเอียดการตรวจจับ (กล้องที่เลือก)<select name="detW"><option value="0">อัตโนมัติ – ตามจำนวนกล้อง</option><option value="320">320px – เร็ว (กล้องใกล้ คนตัวใหญ่)</option><option value="416">416px – สมดุล</option><option value="512">512px – แม่นยำ (กล้องไกล คนตัวเล็ก)</option></select></label>
+        <label><span data-i18n="store.s53">แจ้งเตือนเมื่อคนในร้านถึง (คน)</span><input name="maxOcc" type="number" min="1" inputmode="numeric"></label>
+        <label><span data-i18n="store.s54">เวลาบริการต่อคน (วินาที)</span><input name="serviceSec" type="number" min="1" inputmode="numeric"></label>
+        <label><span data-i18n="store.s55">แจ้งเตือนเมื่อคิวยาวถึง (คน)</span><input name="queueAlert" type="number" min="1" inputmode="numeric"></label>
+        <label><span data-i18n="store.s56">เป้ารอคิวไม่เกิน (วินาที, 0 = ไม่ใช้)</span><input name="queueSlaSec" type="number" min="0" inputmode="numeric"></label>
+        <label><span data-i18n="store.s57">เป้าคนเข้าต่อชั่วโมง (คน, 0 = ไม่ใช้)</span><input name="hourlyTarget" type="number" min="0" inputmode="numeric"></label>
+        <label><span data-i18n="store.s58">คนตัวเล็ก/อยู่ไกล (กล้องที่เลือก)</span><select name="tiles"><option value="" data-i18n="store.s59">ปกติ – ตรวจทั้งภาพ (เร็วที่สุด)</option><option value="2x1" data-i18n="store.s60">แบ่งภาพซ้าย–ขวา – เห็นคนไกลขึ้น ช้าลงราว 3 เท่า</option><option value="2x2" data-i18n="store.s61">แบ่งภาพ 4 ส่วน – เห็นคนไกลที่สุด ช้าลงราว 5 เท่า (เหมาะกับกล้องตัวเดียว)</option></select></label>
+        <p class="hint"><span data-i18n="store.s62">โมเดลตรวจจับคนย่อภาพเหลือ 300×300 จุดเสมอ คนที่ตัวเล็กในภาพ (สูงไม่ถึงราว 1 ใน 5 ของภาพ) จึงหลุดบ่อย การแบ่งภาพช่วยให้เห็นคนไกลขึ้นแต่ประมวลผลช้าลง ดูผลวัดได้ที่</span> <a href="cameras.html#accuracy" data-i18n="store.s63">ความแม่นยำที่วัดได้</a></p>
       </form>
       <p class="form-msg" id="setMsg" role="status"></p>
       <div class="row-actions">
-        <button class="btn primary" id="exportCsv" type="button">ส่งออก CSV</button>
-        <button class="btn ghost" id="exportHourly" type="button">CSV รายชั่วโมง</button>
-        <button class="btn ghost danger" id="clearData" type="button">ลบข้อมูลสถิติทั้งหมด</button>
+        <button class="btn primary" id="exportCsv" type="button" data-i18n="store.s64">ส่งออก CSV</button>
+        <button class="btn ghost" id="exportHourly" type="button" data-i18n="store.s65">CSV รายชั่วโมง</button>
+        <button class="btn ghost danger" id="clearData" type="button" data-i18n="store.s66">ลบข้อมูลสถิติทั้งหมด</button>
       </div>
-      <p class="hint">ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้ เป็นตัวเลขสรุปรายวัน (จำนวนเข้า–ออก โซน คิว ฮีตแมป) ไม่มีภาพหรือข้อมูลระบุตัวบุคคล ถ้าเปิด "เชื่อมหลายเครื่อง" จะส่งเฉพาะตัวเลขสรุป (ไม่รวมฮีตแมป) ไปยังเครื่องหลักในร้าน</p>
+      <p class="hint" data-i18n="store.s67">ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้ เป็นตัวเลขสรุปรายวัน (จำนวนเข้า–ออก โซน คิว ฮีตแมป) ไม่มีภาพหรือข้อมูลระบุตัวบุคคล ถ้าเปิด "เชื่อมหลายเครื่อง" จะส่งเฉพาะตัวเลขสรุป (ไม่รวมฮีตแมป) ไปยังเครื่องหลักในร้าน</p>
     </section>
     <section class="card">
-      <h2>ป้ายแจ้งความเป็นส่วนตัว (PDPA)</h2>
+      <h2 data-i18n="store.s68">ป้ายแจ้งความเป็นส่วนตัว (PDPA)</h2>
       <p class="notice" id="notice">ร้านนี้ใช้กล้องวิเคราะห์จำนวนผู้ใช้บริการแบบไม่ระบุตัวตน เพื่อนับจำนวนคนเข้า–ออก จัดการคิว และปรับปรุงการจัดวางสินค้า ระบบประมวลผลภาพในเครื่องทันที ไม่บันทึกภาพหรือวิดีโอ และไม่จดจำใบหน้า เก็บเฉพาะตัวเลขสถิติรวม สอบถามเพิ่มเติมได้ที่พนักงาน</p>
-      <button class="btn ghost" id="printNotice" type="button">พิมพ์ป้าย</button>
+      <button class="btn ghost" id="printNotice" type="button" data-i18n="store.s69">พิมพ์ป้าย</button>
     </section>
   </div>
   <section class="card agg" id="aggPanel" aria-labelledby="h-agg">
-    <div class="report-head"><h2 id="h-agg">เชื่อมหลายเครื่อง</h2><span class="pill" id="aggState">ใช้เครื่องเดียว</span></div>
-    <p class="hint agg-intro">มือถือส่วนใหญ่เปิดได้ทีละกล้อง จึงใช้ 1 เครื่องต่อ 1 จุด (ประตู/โซน) แล้วรวมยอดที่เครื่องหลัก แต่ละเครื่องประมวลผลภาพเอง <b>ส่งออกเฉพาะตัวเลขสรุปรายวัน</b> (จำนวนเข้า–ออก รายชั่วโมง โซน คิว และชื่อเครื่อง/กล้อง/โซน) ไม่มีภาพ วิดีโอ ฮีตแมป หรือข้อมูลระบุตัวบุคคล</p>
-    <div class="tools" role="radiogroup" aria-label="บทบาทของเครื่องนี้">
-      <button class="seg" type="button" data-role="" aria-pressed="true">ใช้เครื่องเดียว</button>
-      <button class="seg" type="button" data-role="hub" aria-pressed="false">เครื่องหลัก (รวมยอด)</button>
-      <button class="seg" type="button" data-role="node" aria-pressed="false">เครื่องลูก (จุดนับ)</button>
+    <div class="report-head"><h2 id="h-agg" data-i18n="store.s70">เชื่อมหลายเครื่อง</h2><span class="pill" id="aggState">ใช้เครื่องเดียว</span></div>
+    <p class="hint agg-intro"><span data-i18n="store.s71">มือถือส่วนใหญ่เปิดได้ทีละกล้อง จึงใช้ 1 เครื่องต่อ 1 จุด (ประตู/โซน) แล้วรวมยอดที่เครื่องหลัก แต่ละเครื่องประมวลผลภาพเอง</span> <b data-i18n="store.s72">ส่งออกเฉพาะตัวเลขสรุปรายวัน</b> <span data-i18n="store.s73">(จำนวนเข้า–ออก รายชั่วโมง โซน คิว และชื่อเครื่อง/กล้อง/โซน) ไม่มีภาพ วิดีโอ ฮีตแมป หรือข้อมูลระบุตัวบุคคล</span></p>
+    <div class="tools" role="radiogroup" aria-label="บทบาทของเครื่องนี้" data-i18n-attr="aria-label:store.s74">
+      <button class="seg" type="button" data-role="" aria-pressed="true" data-i18n="store.s75">ใช้เครื่องเดียว</button>
+      <button class="seg" type="button" data-role="hub" aria-pressed="false" data-i18n="store.s76">เครื่องหลัก (รวมยอด)</button>
+      <button class="seg" type="button" data-role="node" aria-pressed="false" data-i18n="store.s77">เครื่องลูก (จุดนับ)</button>
     </div>
     <p class="engine agg-msg" id="aggMsg" role="status" hidden></p>
 
     <div id="aggHub" hidden>
       <div class="agg-code" id="aggCodeBox" hidden>
-        <div><div class="k">รหัสจับคู่</div><div class="code" id="aggCode">—</div></div>
+        <div><div class="k" data-i18n="store.s78">รหัสจับคู่</div><div class="code" id="aggCode">—</div></div>
         <div class="row-actions">
-          <button class="btn ghost small" id="aggCopyLink" type="button">คัดลอกลิงก์จับคู่</button>
-          <button class="btn ghost small" id="aggRotate" type="button">เปลี่ยนรหัส</button>
+          <button class="btn ghost small" id="aggCopyLink" type="button" data-i18n="store.s79">คัดลอกลิงก์จับคู่</button>
+          <button class="btn ghost small" id="aggRotate" type="button" data-i18n="store.s80">เปลี่ยนรหัส</button>
         </div>
       </div>
       <p class="hint" id="aggLink"></p>
       <form id="aggViewForm" class="agg-form" hidden novalidate>
-        <label>รหัสจับคู่ (ดูได้บนคอมพิวเตอร์ที่รันเซิร์ฟเวอร์)<input name="code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="20" placeholder="XXXX-XXXX-XXXX"></label>
-        <button class="btn primary small" type="submit">ดูยอดรวม</button>
+        <label><span data-i18n="store.s81">รหัสจับคู่ (ดูได้บนคอมพิวเตอร์ที่รันเซิร์ฟเวอร์)</span><input name="code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="20" placeholder="XXXX-XXXX-XXXX"></label>
+        <button class="btn primary small" type="submit" data-i18n="store.s82">ดูยอดรวม</button>
       </form>
       <div class="tiles agg-tiles" id="aggTiles"></div>
       <div class="table-wrap"><table id="aggTable"></table></div>
-      <p class="hint">คนในร้านรวม = เข้ารวม − ออกรวม (คนเข้าประตูหนึ่งออกอีกประตูได้) · สูงสุดรวมเป็นค่าประมาณจากยอดรายชั่วโมง · เครื่องที่ไม่ส่งข้อมูลเกิน 1 นาทีแสดงว่า "ขาดการติดต่อ"</p>
+      <p class="hint" data-i18n="store.s83">คนในร้านรวม = เข้ารวม − ออกรวม (คนเข้าประตูหนึ่งออกอีกประตูได้) · สูงสุดรวมเป็นค่าประมาณจากยอดรายชั่วโมง · เครื่องที่ไม่ส่งข้อมูลเกิน 1 นาทีแสดงว่า "ขาดการติดต่อ"</p>
     </div>
 
     <div id="aggNode" hidden>
       <form id="aggJoinForm" class="agg-form" novalidate>
-        <label>ชื่อเครื่องนี้ (เช่น ประตูหน้า)<input name="nodeName" maxlength="40" autocomplete="off"></label>
-        <label>รหัสจับคู่จากเครื่องหลัก<input name="code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="20" placeholder="XXXX-XXXX-XXXX"></label>
-        <label>ที่อยู่เครื่องหลัก<input name="hub" type="url" inputmode="url" autocomplete="off" spellcheck="false"></label>
-        <div class="row-actions"><button class="btn primary small" type="submit" id="aggJoin">จับคู่</button><button class="btn ghost small" type="button" id="aggUnpair" hidden>เลิกจับคู่</button></div>
+        <label><span data-i18n="store.s84">ชื่อเครื่องนี้ (เช่น ประตูหน้า)</span><input name="nodeName" maxlength="40" autocomplete="off"></label>
+        <label><span data-i18n="store.s85">รหัสจับคู่จากเครื่องหลัก</span><input name="code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="20" placeholder="XXXX-XXXX-XXXX"></label>
+        <label><span data-i18n="store.s86">ที่อยู่เครื่องหลัก</span><input name="hub" type="url" inputmode="url" autocomplete="off" spellcheck="false"></label>
+        <div class="row-actions"><button class="btn primary small" type="submit" id="aggJoin" data-i18n="store.s87">จับคู่</button><button class="btn ghost small" type="button" id="aggUnpair" hidden data-i18n="store.s88">เลิกจับคู่</button></div>
       </form>
       <p class="hint" id="aggNodeInfo"></p>
     </div>
 
     <details class="phone-tip agg-manual" id="aggManual">
-      <summary>ไม่มีเซิร์ฟเวอร์? ส่งต่อด้วยไฟล์</summary>
-      <p>เมื่อเปิดหน้านี้จากเว็บสาธิต (GitHub Pages) หรือเปิดไฟล์ตรง ๆ จะไม่มีเซิร์ฟเวอร์กลางให้ส่งข้อมูลอัตโนมัติ ให้กด "ส่งออกสรุปวันนี้" บนแต่ละเครื่อง ส่งไฟล์ .json มาที่เครื่องหลัก (เช่น AirDrop/LINE/อีเมล) แล้วกด "นำเข้าสรุปจากเครื่องอื่น" ไฟล์มีเพียงตัวเลขสรุป</p>
+      <summary data-i18n="store.s89">ไม่มีเซิร์ฟเวอร์? ส่งต่อด้วยไฟล์</summary>
+      <p data-i18n="store.s90">เมื่อเปิดหน้านี้จากเว็บสาธิต (GitHub Pages) หรือเปิดไฟล์ตรง ๆ จะไม่มีเซิร์ฟเวอร์กลางให้ส่งข้อมูลอัตโนมัติ ให้กด "ส่งออกสรุปวันนี้" บนแต่ละเครื่อง ส่งไฟล์ .json มาที่เครื่องหลัก (เช่น AirDrop/LINE/อีเมล) แล้วกด "นำเข้าสรุปจากเครื่องอื่น" ไฟล์มีเพียงตัวเลขสรุป</p>
       <div class="row-actions">
-        <button class="btn ghost small" id="aggExport" type="button">ส่งออกสรุปวันนี้ (.json)</button>
-        <label class="btn ghost small file-btn">นำเข้าสรุปจากเครื่องอื่น<input id="aggImport" type="file" accept="application/json,.json" multiple></label>
+        <button class="btn ghost small" id="aggExport" type="button" data-i18n="store.s91">ส่งออกสรุปวันนี้ (.json)</button>
+        <label class="btn ghost small file-btn"><span data-i18n="store.s92">นำเข้าสรุปจากเครื่องอื่น</span><input id="aggImport" type="file" accept="application/json,.json" multiple></label>
       </div>
     </details>
   </section>
@@ -187,10 +191,10 @@
 <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
 
 <script src="vendor/face-api.js"></script>
-<script src="lensiq-track.js?v=1"></script>
-<script src="lensiq-camera.js?v=1"></script>
-<script src="lensiq-detect.js?v=1"></script>
+<script src="lensiq-track.js?v=2"></script>
+<script src="lensiq-camera.js?v=2"></script>
+<script src="lensiq-detect.js?v=2"></script>
 <script src="lensiq-agg.js?v=1"></script>
-<script src="store.js?v=7"></script>
+<script src="store.js?v=8"></script>
 </body>
 </html>

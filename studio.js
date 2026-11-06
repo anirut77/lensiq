@@ -1,9 +1,11 @@
 /* สตูดิโอแต่งชุด AI — ประมวลผลบนเครื่องทั้งหมด (ไม่ส่งภาพออก ไม่เก็บภาพ; เก็บเฉพาะเทมเพลตชุดที่ผู้ใช้เพิ่มเองใน IndexedDB)
  *
- * ขั้นตอน: รูป -> MODNet (PBHQ.modnetAlpha) -> refineMatte + estimateForeground -> ใบหน้า (face-api 68 จุด หรือประมาณจาก matte)
- *   -> แยก ผม/ใบหน้า/คอ/เสื้อเดิม ด้วย BiSeNet face parsing (PBHQ.faceParse; สำรอง = จัดกลุ่มสี) -> วัดไหล่จาก silhouette (ไม่รวมผม)
- *   -> วาดชุดตรงลงพิกัดภาพ (ขนาด/มุมเอียงตามไหล่จริง, แสงเงาผ้า) -> harmonize -> ต่อคอใต้คอเสื้อ -> รีทัชตัวคน
- *   -> รวมภาพตามลำดับชั้น: ฉาก → ปกหลังคอ → คอ → ชุด → ศีรษะ+ผม (ผมคลุมไหล่ชุดได้ ไม่มีเส้นตัดตรง) + เงา + light wrap
+ * ขั้นตอน: รูป -> MODNet (PBHQ.modnetAlpha) + อุดรูด้วยโมเดล 6 คลาส -> refineMatte -> ใบหน้า (face-api 68 จุด / จากผลแยกส่วน / จาก matte)
+ *   -> แยก ผม/ใบหน้า+หู+เครื่องประดับ/คอ/เสื้อเดิม/มือ ด้วย MediaPipe Selfie Multiclass (Apache-2.0, PBHQ.multiclassParse 3 รอบ)
+ *      [BiSeNet เป็นตัวเลือกเท่านั้น: ?faceparse=1 / LENSIQ_FACEPARSE — น้ำหนักไม่ใช่เชิงพาณิชย์; สำรองสุดท้าย = จัดกลุ่มสี]
+ *   -> วัดไหล่/คอจาก silhouette -> วาดชุดลงพิกัดภาพแล้วตัดตามเงาตัวจริง (ไหล่ แขน ลำตัว) + แสงเงา/รอยยับจริงจากเสื้อเดิม
+ *   -> harmonize -> ต่อคอใต้คอเสื้อ -> รีทัช
+ *   -> รวมภาพตามลำดับชั้น: ฉาก → ปกหลังคอ → คอ → ชุด → ศีรษะ+ผม+มือ (ผมคลุมไหล่ชุดได้ ไม่มีเส้นตัดตรง) + เงา + light wrap
  * ฟังก์ชันภาพทั้งหมดอยู่ใน studio-core.js (StudioCore) ซึ่งมีรายการแหล่งอ้างอิงของแต่ละเทคนิค
  */
 (function () {
@@ -16,6 +18,8 @@
   const now = () => performance.now();
   const MAX_SIDE = 1200;
   const FAKE = !!(window.LQDetect && LQDetect.isTest());
+  /** ข้อความตามภาษา (ไทยเป็นค่าเริ่มต้น; จีนจาก i18n/zh-studio.js ผ่าน lensiq-i18n.js) */
+  const T = (k, th, v) => window.LQI18N && LQI18N.tf ? LQI18N.tf(k, th, v) : th.replace(/\{(\w+)\}/g, (m, q) => v && v[q] != null ? v[q] : m);
 
   // ---------- สถานะระบบ ----------
   const eng = {};
@@ -52,6 +56,8 @@
   function init() {
     status("matte", "กำลังโหลดโมเดลตัดพื้นหลัง (MODNet)...", "");
     PBHQ.loadMatting().then(() => status("matte", "ตัดพื้นหลัง MODNet พร้อม", "ok"), e => { console.warn(e); status("matte", "MODNet ใช้ไม่ได้ (ใช้การแยกสีฉากแทน)", "warn"); });
+    status("parse", "กำลังโหลดโมเดลแยกผม/คอ/เสื้อ...", "");
+    PBHQ.loadMulticlass().then(() => status("parse", "แยกผม/ใบหน้า/คอ/เสื้อ (MediaPipe Multiclass) พร้อม", "ok"), e => { console.warn(e); status("parse", "โหลดโมเดลแยกผม/คอไม่ได้ (ใช้การจัดกลุ่มสีแทน)", "warn"); });
     status("face", "กำลังโหลดตัวตรวจใบหน้า...", "");
     loadFace().catch(() => {});
     loadGarments();
@@ -59,7 +65,7 @@
   }
 
   // ---------- ชุด ----------
-  const NONE = { key: "none", name: "ไม่ใส่ชุด" };
+  const NONE = { key: "none", get name() { return T("studio.js.none", "ไม่ใส่ชุด"); } };
   async function loadGarments() {
     const list = [NONE];
     let items = [];
@@ -67,7 +73,7 @@
     for (const it of items) {
       try { const c = await PBTpl.blobToCanvas(it.blob); list.push(tplGarment(it, c)); } catch (e) { console.warn(e); }
     }
-    for (const [k, name] of Object.entries(PBOutfits.NAMES)) list.push({ key: "v:" + k, name, kind: "vector", vk: k });
+    for (const [k, th] of Object.entries(PBOutfits.NAMES)) list.push({ key: "v:" + k, get name() { return T("pbo." + k, th); }, kind: "vector", vk: k });
     ST.garments = list;
     if (!list.some(g => g.key === ST.gKey)) ST.gKey = list.find(g => g.kind === "tpl") ? list.find(g => g.kind === "tpl").key : "v:suit_navy";
     if (ST.gKey === "none" && !ST._userNone) ST.gKey = list.find(g => g.kind === "tpl") ? list.find(g => g.kind === "tpl").key : "v:suit_navy";
@@ -112,7 +118,7 @@
       const b = document.createElement("button"); b.type = "button"; b.className = "choice" + (g.key === ST.gKey ? " on" : "");
       b.setAttribute("aria-pressed", g.key === ST.gKey ? "true" : "false");
       b.append(thumb(g), document.createTextNode(g.name));
-      if (g.kind === "tpl") { const t = document.createElement("span"); t.className = "tag-real"; t.textContent = "ภาพจริง"; b.append(t); }
+      if (g.kind === "tpl") { const t = document.createElement("span"); t.className = "tag-real"; t.textContent = T("studio.js.real", "ภาพจริง"); b.append(t); }
       b.onclick = () => { ST.gKey = g.key; ST._userNone = g.key === "none"; ST.manual = null; renderGarments(); schedule("fit"); };
       box.append(b);
     });
@@ -122,7 +128,7 @@
   // เพิ่มชุดใหม่: PNG พื้นใส หรือรูปคนใส่ชุด (ตัดพื้นหลัง + ศีรษะด้วย PBTpl.prepareOutfit) -> บันทึกใน IndexedDB
   $("#stGarmentFile").onchange = async e => {
     const f = e.target.files[0]; e.target.value = ""; if (!f) return;
-    const msg = $("#stGarmentMsg"); msg.textContent = "กำลังเตรียมชุด (ตัดพื้นหลังและศีรษะ)...";
+    const msg = $("#stGarmentMsg"); msg.textContent = T("studio.js.outfit.preparing", "กำลังเตรียมชุด (ตัดพื้นหลังและศีรษะ)...");
     try {
       try { await loadFace(); } catch { /* ไม่มีตัวตรวจใบหน้า: ใช้จุดยึดจากรูปทรง */ }
       const prep = await PBTpl.prepareOutfit(f), fin = PBTpl.finalizeOutfit(prep, .5);
@@ -130,9 +136,9 @@
       await PBTpl.put(item);
       const g = tplGarment(item, fin.canvas);
       ST.garments.splice(1, 0, g); ST.gKey = g.key; ST.manual = null;
-      msg.textContent = `เพิ่มชุด "${item.name}" แล้ว — ถ้าไหล่ไม่ตรง กด "ตั้งจุดคอ/ไหล่ของชุด"`;
+      msg.textContent = T("studio.js.outfit.added", 'เพิ่มชุด "{n}" แล้ว — ถ้าไหล่ไม่ตรง กด "ตั้งจุดคอ/ไหล่ของชุด"', { n: item.name });
       renderGarments(); schedule("fit");
-    } catch (err) { console.warn(err); msg.textContent = "เพิ่มชุดไม่สำเร็จ: " + err.message; }
+    } catch (err) { console.warn(err); msg.textContent = T("studio.js.outfit.fail", "เพิ่มชุดไม่สำเร็จ: {e}", { e: err.message }); }
   };
 
   // ---------- ตัวแก้จุดยึดของชุด ----------
@@ -160,7 +166,7 @@
   $("#stAnchorCv").addEventListener("pointerup", () => { anc.drag = null; });
   $("#stAnchorSave").onclick = async () => {
     const g = anc.g; g.fit = anc.pts;
-    if (g.kind === "tpl") { try { g.item = { ...g.item, fit: g.fit }; await PBTpl.put(g.item); } catch (e) { toast("บันทึกจุดยึดไม่สำเร็จ: " + e.message); } }
+    if (g.kind === "tpl") { try { g.item = { ...g.item, fit: g.fit }; await PBTpl.put(g.item); } catch (e) { toast(T("studio.js.anchorFail", "บันทึกจุดยึดไม่สำเร็จ: {e}", { e: e.message })); } }
     $("#stAnchorDlg").close(); ST.manual = null; schedule("fit");
   };
   $("#stAnchorReset").onclick = () => { const g = anc.g, f = g.fit; g.fit = null; anc.pts = JSON.parse(JSON.stringify(garmentAnchors(g))); g.fit = f; drawAnchor(); };
@@ -168,14 +174,14 @@
 
   // ---------- ฉากหลัง ----------
   const BGS = [
-    ["blur", "ฉากเดิมเบลอ"], ["orig", "ฉากเดิม"], ["#ffffff", "ขาว"], ["#d7e7f7", "ฟ้าอ่อน"], ["#e4e4e4", "เทาอ่อน"], ["#1f3b6e", "น้ำเงิน"],
-    ["grad", "ไล่สีสตูดิโอ"], ["custom", "สีที่เลือก"]
+    ["blur", "ฉากเดิมเบลอ", "blur"], ["orig", "ฉากเดิม", "orig"], ["#ffffff", "ขาว", "white"], ["#d7e7f7", "ฟ้าอ่อน", "sky"], ["#e4e4e4", "เทาอ่อน", "gray"], ["#1f3b6e", "น้ำเงิน", "blue"],
+    ["grad", "ไล่สีสตูดิโอ", "grad"], ["custom", "สีที่เลือก", "custom"]
   ];
   let bgKey = "#d7e7f7", bgTpls = [];
   async function renderBgChoices() {
     try { bgTpls = (await PBTpl.all()).filter(i => i.kind === "bg"); } catch { bgTpls = []; }
     const box = $("#stBg");
-    box.innerHTML = [...BGS, ...bgTpls.map(t => ["tpl:" + t.id, t.name])].map(([k, n]) => `<button type="button" data-k="${k}" class="${k === bgKey ? "on" : ""}">${esc(n)}</button>`).join("");
+    box.innerHTML = [...BGS.map(([k, n, q]) => [k, T("studio.js.bg." + q, n)]), ...bgTpls.map(t => ["tpl:" + t.id, t.name])].map(([k, n]) => `<button type="button" data-k="${k}" class="${k === bgKey ? "on" : ""}">${esc(n)}</button>`).join("");
     box.querySelectorAll("button").forEach(b => b.onclick = () => { bgKey = b.dataset.k; renderBgChoices(); schedule("bg"); });
     $("#stBgColorRow").hidden = bgKey !== "custom";
   }
@@ -216,7 +222,7 @@
   }
   $("#stFile").onchange = async e => {
     const f = e.target.files[0]; e.target.value = ""; if (!f) return;
-    try { await load(await fileToCanvas(f)); } catch (err) { console.warn(err); toast("เปิดรูปไม่ได้: " + err.message); }
+    try { await load(await fileToCanvas(f)); } catch (err) { console.warn(err); toast(T("studio.js.openFail", "เปิดรูปไม่ได้: {e}", { e: err.message })); }
   };
 
   // ---------- กล้อง (LQCam) ----------
@@ -229,11 +235,11 @@
     }
     $("#stCam").hidden = false;
     try { await cam.start(); v.classList.toggle("mirror", !!cam.mirrored); }
-    catch (e) { console.warn(e); toast(LQCam.errorText ? LQCam.errorText(e) : "เปิดกล้องไม่ได้"); $("#stCam").hidden = true; }
+    catch (e) { console.warn(e); toast(LQCam.errorText ? LQCam.errorText(e) : T("studio.js.camFail", "เปิดกล้องไม่ได้")); $("#stCam").hidden = true; }
   };
   $("#stCamClose").onclick = () => { if (cam) cam.stop(); $("#stCam").hidden = true; };
   $("#stShoot").onclick = async () => {
-    const v = $("#stVideo"); if (!v.videoWidth) return toast("กล้องยังไม่พร้อม");
+    const v = $("#stVideo"); if (!v.videoWidth) return toast(T("studio.js.camNotReady", "กล้องยังไม่พร้อม"));
     const c = mk(v.videoWidth, v.videoHeight); c.getContext("2d").drawImage(v, 0, 0); // ไม่กลับด้าน: ให้เหมือนจริง
     cam.stop(); $("#stCam").hidden = true;
     await load(toWork(c));
@@ -243,7 +249,9 @@
   async function detectFace(src) {
     try { await loadFace(); } catch { return null; }
     try {
-      const d = await faceapi.detectSingleFace(src, new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: .4 })).withFaceLandmarks();
+      let d = null;
+      // ลองหลายขนาดอินพุต (ใบหน้าเล็ก/ใหญ่มาก ภาพเก่า แว่นหนา) ก่อนใช้การประมาณจากผลแยกส่วน
+      for (const [inputSize, scoreThreshold] of [[416, .4], [608, .3], [320, .3], [224, .25]]) { d = await faceapi.detectSingleFace(src, new faceapi.TinyFaceDetectorOptions({ inputSize, scoreThreshold })).withFaceLandmarks(); if (d) break; }
       if (!d) return null;
       const P = d.landmarks.positions.map(p => ({ x: p.x, y: p.y }));
       const ctr = a => ({ x: a.reduce((s, p) => s + p.x, 0) / a.length, y: a.reduce((s, p) => s + p.y, 0) / a.length });
@@ -259,7 +267,7 @@
     ST.src = canvas; ST.W = canvas.width; ST.H = canvas.height;
     ST.px = ctx2(canvas).getImageData(0, 0, ST.W, ST.H).data;
     ST.edit = new Float32Array(ST.W * ST.H); ST.editVer = 0;
-    showView(); busy(true, "กำลังตัดพื้นหลัง...");
+    showView(); busy(true, T("studio.js.busy.matte", "กำลังตัดพื้นหลัง..."));
     await sleep(20);
     const W = ST.W, H = ST.H;
     try {
@@ -268,23 +276,36 @@
       if (raw) { let s = 0; for (let i = 0; i < raw.length; i += 7) s += raw[i]; if (s / (raw.length / 7) < .02) raw = null; }
       if (!raw) { raw = SC.borderKeyAlpha(ST.px, W, H); ST.method = "แยกสีฉาก"; }
       ST.timings.matte = now() - t; t = now();
-      busy(true, "กำลังเกลาขอบผม...");
+      // โมเดล 6 คลาสรอบแรก (ทั้งภาพ): ใช้อุดรูที่ MODNet พลาด (ภาพขาวดำเก่า/แสงน้อย/ฉากลาย) และหาใบหน้าเมื่อไม่พบ landmark
+      ST.mcFull = null;
+      if (!parseOptIn()) try { ST.mcFull = await PBHQ.multiclassParse(canvas, { x: 0, y: 0, w: W, h: H }); raw = SC.fillMatteFromParse(raw, ST.mcFull, W, H); } catch (e) { console.warn("multiclass", e); }
+      ST.timings.parse0 = now() - t; t = now();
+      busy(true, T("studio.js.busy.refine", "กำลังเกลาขอบผม..."));
       await sleep(0);
       ST.alpha = SC.refineMatte(ST.px, raw, W, H, { r: Math.max(2, Math.max(W, H) / 512), k: ST.method === "MODNet" ? 1.6 : 3 });
       ST.timings.refine = now() - t; t = now();
-      ST.fg = SC.estimateForeground(ST.px, ST.alpha, W, H);
-      ST.timings.foreground = now() - t; t = now();
-      busy(true, "กำลังหาใบหน้า คอ และไหล่...");
+      busy(true, T("studio.js.busy.face", "กำลังหาใบหน้า คอ และไหล่..."));
       let face = await detectFace(canvas);
+      if (!face && ST.mcFull) { face = SC.faceFromParse(ST.mcFull, W, H); if (face) { face.chinX = face.cx; face.detected = false; } }
       if (!face) { face = SC.headFromMatte(ST.alpha, W, H); if (face) { face.chinX = face.cx; face.detected = false; } }
       if (!face) face = { cx: W / 2, chinX: W / 2, eyeY: H * .35, chinY: H * .5, fw: W * .28, faceH: H * .15, angle: 0, detected: false };
       ST.face = face;
+      // ใบหน้าตาม landmark ต้องเป็นตัวคนเสมอ (MODNet พลาดบนใบหน้าในภาพขาวดำเก่าบางภาพ)
+      if (face.detected && face.P) ST.alpha = SC.fillFaceMatte(ST.alpha, W, H, face);
       ST.timings.face = now() - t; t = now();
-      busy(true, "กำลังแยกผม ใบหน้า และคอ...");
+      ST.fg = SC.estimateForeground(ST.px, ST.alpha, W, H);
+      ST.timings.foreground = now() - t; t = now();
+      busy(true, T("studio.js.busy.parse", "กำลังแยกผม ใบหน้า และคอ..."));
       await sleep(0);
-      const { P, crop } = await parsePerson(canvas, face);
+      const { P, crop } = await parsePerson(canvas, face); ST.parseP = P;
       ST.layers = SC.personLayers(ST.px, ST.alpha, W, H, face, P, crop);
       ST.timings.parse = now() - t; t = now();
+      // มือ/แขนเปลือย (ผิวกายที่อยู่ต่ำกว่าอก เช่น กอดอก ประสานมือ) วางหน้าชุดใหม่ — ไม่หายไปใต้ชุด
+      ST.hands = null;
+      const monoImg = (() => { const st = SC.labStats(ST.px, W, H, null, { step: 6 }); return !!st && Math.hypot(st.mean[1], st.mean[2]) < 2.5 && st.std[1] < 2.5 && st.std[2] < 2.5; })();
+      if (P.skin) { const h = new Float32Array(W * H), y0 = Math.round(face.chinY + face.fw * .9); let cnt = 0; for (let y = Math.max(0, y0); y < H; y++) for (let x = 0; x < W; x++) { const i = y * W + x, v = SC.smooth((P.skin[i] - .4) / .3) * SC.smooth((y - y0) / (face.fw * .15)); if (v > 0 && (monoImg || SC.skinLikelihood(ST.px[i * 4], ST.px[i * 4 + 1], ST.px[i * 4 + 2]) > .15)) { h[i] = v; cnt++; } } if (cnt > face.fw * face.fw * .02) ST.hands = h; }
+      ST.neckM = SC.neckMeasure(ST.alpha, ST.layers, W, H, face);
+      ST.clothSh = SC.clothShading(ST.px, ST.alpha, ST.layers, W, H, face);
       ST.fitAuto = SC.measureShoulders(ST.alpha, W, H, face, { keep: ST.layers.keep, hair: ST.layers.hair, neck: ST.layers.neck, canon: PBOutfits.CANON });
       ST.body = { left: ST.fitAuto.l, right: ST.fitAuto.r, neck: { x: ST.fitAuto.N.x, y: ST.fitAuto.N.y }, width: ST.fitAuto.width, theta: ST.fitAuto.theta, ok: ST.fitAuto.measured };
       ST.masks = SC.faceMasks(ST.px, W, H, face, ST.alpha);
@@ -306,19 +327,34 @@
       await renderNow("fit");
       ST.timings.firstResult = now() - T0;
       ST.phase = "done";
-      const hint = face.detected ? "" : " (ไม่พบจุดบนใบหน้า: ประมาณจากรูปทรง ปรับจุดคอ/ไหล่ได้)";
-      status("run", `ตัดพื้นหลังด้วย ${ST.method} · แยกผม/คอ: ${ST.parse} · เสร็จใน ${(ST.timings.firstResult / 1000).toFixed(1)} วินาที${hint}`, face.detected ? "ok" : "warn");
+      const hint = face.detected ? "" : " " + T("studio.js.noFace", "(ไม่พบจุดบนใบหน้า: ประมาณจากรูปทรง ปรับจุดคอ/ไหล่ได้)");
+      status("run", T("studio.js.done", "ตัดพื้นหลังด้วย {m} · แยกผม/คอ: {p} · เสร็จใน {s} วินาที{hint}", { m: ST.method, p: ST.parse, s: (ST.timings.firstResult / 1000).toFixed(1), hint }), face.detected ? "ok" : "warn");
       ["#stPng", "#stJpg", "#stIdOne", "#stIdSheet"].forEach(s => $(s).disabled = false);
     } catch (e) {
-      console.error(e); ST.phase = "error"; ST.err = String(e && e.message || e); status("run", "ประมวลผลไม่สำเร็จ: " + ST.err, "err");
+      console.error(e); ST.phase = "error"; ST.err = String(e && e.message || e); status("run", T("studio.js.fail", "ประมวลผลไม่สำเร็จ: {e}", { e: ST.err }), "err");
     } finally { busy(false); }
   }
 
   // ---------- ปรับชุด ----------
   /** แยก ผม/ใบหน้า/คอ/เสื้อ: BiSeNet บนครอปรอบใบหน้า (ถ้าผมยาวถึงขอบล่างของครอป รันซ้ำด้วยครอปที่ใหญ่ขึ้น) สำรอง = heuristic */
+  const parseOptIn = () => self.LENSIQ_FACEPARSE === true || /[?&]faceparse=1(&|$)/.test(location.search);
   async function parsePerson(canvas, face) {
     const W = ST.W, H = ST.H;
-    if (!FAKE) try {
+    const optIn = parseOptIn();
+    // ค่าเริ่มต้น: MediaPipe Selfie Multiclass (Apache-2.0) 3 รอบ — ทั้งภาพ, ครึ่งตัว, ศีรษะ (ความละเอียดสูงที่ผม/หู/ต่างหู)
+    if (!optIn) try {
+      const fw = face.fw, sq = (cx, cy, side) => ({ x: cx - side / 2, y: cy - side / 2, w: side, h: side });
+      const rects = ST.mcFull ? [] : [{ x: 0, y: 0, w: W, h: H }];
+      const bust = sq(face.cx, face.chinY + fw * .55, fw * 4.6), head = sq(face.cx, face.eyeY + fw * .35, fw * 2.9);
+      if (bust.w < Math.max(W, H) * .4) rects.push(bust); // คนเล็กมากในภาพเท่านั้น: เพิ่มรอบครึ่งตัว (รอบศีรษะครอบคลุมคอ/คอเสื้อแล้ว)
+      // รอบศีรษะเฉพาะเมื่อใบหน้าในรอบทั้งภาพยังเล็ก (< 60 ช่องของกริด 256) — ภาพหน้าใหญ่ใช้รอบเดียวพอ (เร็วขึ้น)
+      if (head.w < Math.max(W, H) * .6 && fw * 256 / Math.max(W, H) < 60) rects.push(head);
+      const runs = ST.mcFull ? [ST.mcFull] : []; for (const r of rects) runs.push(await PBHQ.multiclassParse(canvas, r));
+      const P = SC.multiclassGroups(runs, W, H, face);
+      ST.parse = "MediaPipe Multiclass"; status("parse", "แยกผม/ใบหน้า/คอ/เสื้อ (MediaPipe Multiclass) พร้อม", "ok");
+      return { P, crop: null };
+    } catch (e) { console.warn("multiclass parsing", e); status("parse", "แยกผม/คอด้วยโมเดลไม่ได้ (ใช้การจัดกลุ่มสีแทน)", "warn"); }
+    if (!FAKE && optIn) try {
       let crop = SC.parseCrop(face, 3), r = await PBHQ.faceParse(canvas, crop), g = SC.parseGroups(r.logits, r.S * r.S, r.C);
       const S = r.S; let edge = 0; for (let y = S - 6; y < S; y++) for (let x = 0; x < S; x++) edge += g.hair[y * S + x];
       if (edge / (6 * S) > .08) { crop = SC.parseCrop(face, 4.4); r = await PBHQ.faceParse(canvas, crop); g = SC.parseGroups(r.logits, r.S * r.S, r.C); }
@@ -339,7 +375,6 @@
     const tf = p => { const x = (p.x - c.x) * s, y = (p.y - c.y) * s; return { x: c.x + x * cos - y * sin + dx, y: c.y + x * sin + y * cos + dy }; };
     return { chin: tf(T.chin), l: tf(T.l), r: tf(T.r) };
   }
-  const COLLAR_GAP = .15; // ระยะขั้นต่ำจากคางถึงขอบบนคอเสื้อ (เท่าความกว้างหน้า)
   const pixels = c => ctx2(c).getImageData(0, 0, c.width, c.height).data;
   /** ทิศแสงจากความสว่างแก้มซ้าย/ขวา (ใช้ให้แสงเงาผ้าตรงกับใบหน้า) */
   function lightDir() { const lr = ST.harm && ST.harm.lr; return { x: lr ? SC.clamp((lr[1] - lr[0]) / Math.max(1, lr[0] + lr[1]) * 4, -.6, .6) : -.2 }; }
@@ -350,10 +385,16 @@
   function fitGarment(g) {
     const W = ST.W, H = ST.H, T = adjustedTargets(), fit = SC.fitFromTargets(T, PBOutfits.CANON);
     if (g.kind === "vector") {
-      // ขอบบนคอเสื้ออยู่ใต้คางระยะคงที่: ไหล่สูง (คอสั้น/ก้มหน้า) ลดคอเสื้อลง, ไหล่ต่ำ ยกขึ้น (drop) โดยไม่เปลี่ยนไหล่
-      const f = ST.face, cs = Math.cos(fit.theta), sn = Math.sin(fit.theta), dx = f.chinX - fit.N.x, dy = f.chinY - fit.N.y;
-      fit.drop = SC.clamp((-dx * sn + dy * cs) / fit.s + COLLAR_GAP * f.fw / fit.s - PBOutfits.CANON.collarY, -.3, .6); // ลบ = ยกคอเสื้อขึ้น (คอยาว/ไหล่ต่ำ)
-      const L = PBOutfits.layers(g.vk, { W, H, s: fit.s, theta: fit.theta, N: fit.N, light: lightDir(), seed: 7, drop: fit.drop });
+      const f = ST.face, cs = Math.cos(fit.theta), sn = Math.sin(fit.theta), NM = ST.neckM;
+      // ขอบบนคอเสื้อข้างคอ = ขอบบนของเสื้อเดิมข้างคอ (คลุมเสื้อเดิมพอดี ไม่มีเศษเสื้อเดิม/ช่องว่างที่คอ) จำกัดช่วง 0.12–0.6 เท่าหน้าใต้คาง
+      // คอสั้น/คอเสื้อเดิมสูงถึงคาง: ยกคอเสื้อขึ้นชิดคางได้ (ไม่สร้างคอยาวผิดจริง)
+      const yT = SC.clamp(NM && NM.ySide != null ? NM.ySide - f.fw * .04 : f.chinY + f.fw * .3, f.chinY + f.fw * (NM && NM.ySide != null && NM.ySide < f.chinY + f.fw * .1 ? .05 : .12), f.chinY + f.fw * .36);
+      const nwU = NM ? (NM.half + f.fw * .02) / fit.s : null;
+      fit.drop = SC.clamp(((yT - fit.N.y) - sn * (nwU || .33) * fit.s) / (fit.s * cs) - PBOutfits.CANON.collarY, -.8, .6);
+      const ck = [fit.N.x, fit.N.y, fit.s, fit.theta].map(v => v.toFixed(2)).join("|") + "|" + ST.editVer;
+      if (ST.cache.clipKey !== ck) { ST.cache.clip = SC.garmentClip(SC.applyMatteEdits(ST.alpha, ST.editVer ? ST.edit : null), ST.layers, W, H, f, fit); ST.cache.clipKey = ck; }
+      const C = ST.cache.clip;
+      const L = PBOutfits.layers(g.vk, { W, H, s: fit.s, theta: fit.theta, N: fit.N, light: lightDir(), seed: 7, drop: fit.drop, clip: C.clip, form: C.form, nw: nwU });
       return { front: pixels(L.front), back: pixels(L.back), targets: T, fit };
     }
     prepGarment(g);
@@ -394,7 +435,7 @@
   function schedule(level) { pending = level; clearTimeout(schedule.t); schedule.t = setTimeout(() => { if (!running && ST.phase === "done") renderNow(pending); }, 90); }
   async function renderNow(level) {
     if (!ST.alpha) return;
-    running = true; pending = null; busy(true, "กำลังรวมภาพ...");
+    running = true; pending = null; busy(true, T("studio.js.busy.compose", "กำลังรวมภาพ..."));
     await sleep(0);
     try {
       const W = ST.W, H = ST.H, t0 = now(), g = curG(), f = ST.face;
@@ -408,6 +449,8 @@
         if (ST.cache.gk !== gk) {
           const fit = fitGarment(g), hm = { strength: val("oHarm") / 100, bright: val("aBright") / 100, mono: !!ST.harm.mono }, ref = { gray: null, faceLum: g.faceLum, hasSkin: g.kind === "tpl" };
           ST.cache.front = SC.harmonizeGarment(fit.front, W, H, ST.harm, ref, hm);
+          // แสงเงาและรอยยับจริงจากเสื้อเดิม (ตามแถบ "กลมกลืนแสงสี")
+          if (ST.clothSh && hm.strength > 0) { const fr = ST.cache.front, sh = ST.clothSh, k = hm.strength; for (let i = 0; i < W * H; i++) { if (!fr[i * 4 + 3] || sh[i] === 1) continue; const m = 1 + (sh[i] - 1) * k; fr[i * 4] *= m; fr[i * 4 + 1] *= m; fr[i * 4 + 2] *= m; } }
           ST.cache.back = fit.back ? SC.harmonizeGarment(fit.back, W, H, ST.harm, { ...ref, hasSkin: false }, { ...hm, seed: 13 }) : null;
           ST.cache.gk = gk; ST.targets = fit.targets; ST.cache.fit = fit.fit; ST.cache.nkKey = null;
         }
@@ -415,9 +458,10 @@
         ST.timings.fit = now() - t; t = now();
         // คอ: คอจริง + ต่อคอลงใต้คอเสื้อใหม่ (แคชตามชุด/รีทัช/การแก้ matte)
         const nkKey = gk + "|" + ST.cache.rtKey + "|" + ST.editVer;
-        if (ST.cache.nkKey !== nkKey) { ST.cache.neck = SC.synthNeck(person, pA, Ly.neck, Ly.keep, W, H, f, ST.cache.fit, { skinRGB: ST.harm.skinRGB, noise: Math.min(4, ST.harm.noise || 0), hair: Ly.hair, collarY: PBOutfits.CANON.collarY }); ST.cache.nkKey = nkKey; }
+        if (ST.cache.nkKey !== nkKey) { ST.cache.neck = SC.synthNeck(person, pA, Ly.neck, Ly.keep, W, H, f, ST.cache.fit, { skinRGB: ST.harm.skinRGB, noise: Math.min(4, ST.harm.noise || 0), hair: Ly.hair, collarY: PBOutfits.CANON.collarY, half: ST.neckM ? ST.neckM.half : null }); ST.cache.nkKey = nkKey; }
         neck = ST.cache.neck;
         for (let i = 0; i < n; i++) keepA[i] = pA[i] * Ly.keep[i];
+        if (ST.hands) for (let i = 0; i < n; i++) if (ST.hands[i] > 0) keepA[i] = Math.max(keepA[i], pA[i] * ST.hands[i]);
         const fA = new Float32Array(n); for (let i = 0; i < n; i++) fA[i] = front[i * 4 + 3] / 255;
         neckShade = SC.contactShadow(fA, W, H, f, { chin: .3 * sv, collar: .38 * sv });
         const hairA = new Float32Array(n); for (let i = 0; i < n; i++) hairA[i] = keepA[i] * Ly.hair[i];
@@ -429,10 +473,10 @@
       const r = SC.composeLayers({ w: W, h: H, bg, person, keepA, neck, back, front, under, neckShade, gShade, wrap: bgKey === "orig" ? 0 : val("oWrap") / 100 * .4, wrapR: Math.max(4, Math.round(Math.max(W, H) / 120)) });
       ST.timings.composite = now() - t;
       ST.timings.render = now() - t0;
-      ST.out = r.rgba;
+      ST.out = r.rgba; ST.fgAlpha = r.fgAlpha; ST.keepA = keepA;
       $("#stOut").getContext("2d").putImageData(new ImageData(r.rgba, W, H), 0, 0);
       drawOverlay();
-    } catch (e) { console.error(e); toast("รวมภาพไม่สำเร็จ: " + e.message); }
+    } catch (e) { console.error(e); toast(T("studio.js.composeFail", "รวมภาพไม่สำเร็จ: {e}", { e: e.message })); }
     finally {
       running = false; busy(false);
       if (pending) schedule(pending);
@@ -449,7 +493,7 @@
     mode = b.dataset.m; $("#stMode").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
     $("#stBrushRow").hidden = !(mode === "restore" || mode === "erase");
     $("#stCompare").dataset.mode = mode;
-    $("#stHint").textContent = mode === "fit" ? "ลากจุดม่วง = คาง, จุดฟ้า = ปลายไหล่ เพื่อให้ชุดเข้ารูป" : mode === "view" ? "เลื่อนแถบ ก่อน | หลัง เพื่อเทียบภาพ" : "ระบายบนภาพ: " + (mode === "restore" ? "คืนส่วนของตัวคนที่ถูกตัดหาย" : "ลบพื้นหลังที่ติดมา");
+    $("#stHint").textContent = mode === "fit" ? T("studio.js.hint.fit", "ลากจุดม่วง = คาง, จุดฟ้า = ปลายไหล่ เพื่อให้ชุดเข้ารูป") : mode === "view" ? T("studio.js.hint.view", "เลื่อนแถบ ก่อน | หลัง เพื่อเทียบภาพ") : mode === "restore" ? T("studio.js.hint.restore", "ระบายบนภาพ: คืนส่วนของตัวคนที่ถูกตัดหาย") : T("studio.js.hint.erase", "ระบายบนภาพ: ลบพื้นหลังที่ติดมา");
     drawOverlay();
   });
   function drawOverlay(cursor) {
@@ -507,7 +551,7 @@
   const stamp = () => { const d = new Date(), p = n => String(n).padStart(2, "0"); return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`; };
   function save(c, type, name) {
     return new Promise(res => c.toBlob(b => {
-      if (!b) { toast("สร้างไฟล์ไม่สำเร็จ"); return res(null); }
+      if (!b) { toast(T("studio.js.fileFail", "สร้างไฟล์ไม่สำเร็จ")); return res(null); }
       const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = `${name}-${stamp()}.${type === "image/jpeg" ? "jpg" : "png"}`;
       document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
       window.__studio.lastExport = { type, size: b.size, w: c.width, h: c.height, name: a.download }; res(b);
@@ -539,5 +583,7 @@
 
   // ---------- test hook (ใช้โดย tests/e2e/studio.e2e.mjs; ไม่เก็บหรือส่งข้อมูล) ----------
   window.__studio = { load: c => load(toWork(c)), state: ST, render: () => renderNow("test"), garments: () => ST.garments.map(g => g.key), select: k => { ST.gKey = k; renderGarments(); return renderNow("test"); }, idPhoto, lastExport: null };
+  // เปลี่ยนภาษา: วาดรายการชุด/ฉากหลังใหม่ (ข้อความสถานะจะเป็นภาษาใหม่ในรอบประมวลผลถัดไป)
+  window.addEventListener("lq-lang", () => { if (ST.garments.length) renderGarments(); renderBgChoices(); });
   init();
 })();

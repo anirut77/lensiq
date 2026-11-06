@@ -635,7 +635,9 @@ if (typeof document !== "undefined") (() => {
   void VARS;
 
   let source = "sim", running = false;
-  let simT0 = performance.now(), activeRoi = "fill", drag = null;
+  // นาฬิกาภาพจำลอง: เดินตามรอบการวาด แต่ไม่เกิน SIM_MAX_DT ต่อรอบ — เครื่องช้า/หลายไลน์ = สายพานจำลองช้าลงแทนการข้ามเฟรม (ไม่ "พลาด" ขวดเพราะเครื่องช้า)
+  const SIM_MAX_DT = 70;
+  let simClock = 0, simLastNow = 0, activeRoi = "fill", drag = null;
 
   // สูตรของแต่ละไลน์
   const recById = id => recipes.find(r => r.id === id);
@@ -767,11 +769,12 @@ if (typeof document !== "undefined") (() => {
     if (!hub) hub = makeHub();
     engine(`กำลังเปิดกล้อง ${nLanes()} ไลน์...`);
     let err = null;
-    try { await hub.restore(); } catch (e) { err = e; }
-    while (!err && hub.cams.length < nLanes()) {
-      try { await hub.add({ name: `ไลน์ ${hub.cams.length + 1}` }); } catch (e) { err = e; }
+    const h = hub; // ผู้ใช้อาจเปลี่ยนแหล่งภาพระหว่างรอ — ใช้ hub ของรอบนี้เท่านั้น
+    try { await h.restore(); } catch (e) { err = e; }
+    while (!err && hub === h && h.cams.length < nLanes()) {
+      try { await h.add({ name: `ไลน์ ${h.cams.length + 1}` }); } catch (e) { err = e; }
     }
-    if (source !== "camera" || !hub) return;
+    if (source !== "camera" || !hub || hub !== h) return;
     const cams = hub.cams.slice().sort((a, b) => a.slot.localeCompare(b.slot));
     activeLanes().forEach((L, i) => {
       const c = cams[i] || null; L.hubCam = c;
@@ -790,7 +793,7 @@ if (typeof document !== "undefined") (() => {
     for (const L of activeLanes()) withLane(L, () => { mirrorCam = false; stillImg = null; prev = null; cur = null; pst = QC.presenceInit(); });
     running = false; $("#toggle").textContent = "เริ่มตรวจต่อเนื่อง"; $("#toggle").classList.remove("on"); renderRecipe();
     if (s === "camera") { if (nLanes() === 1) await listCameras(); startCamera(); }
-    else if (s === "sim") { for (const L of activeLanes()) withLane(L, () => setSize(640, 480)); simT0 = performance.now(); engine("ภาพจำลองสายการผลิต: สายพานเดิน-หยุด สุ่มขวดบกพร่องประมาณ 30% ใช้สูตร “ภาพจำลอง” แล้วกด “สอบเทียบภาพจำลองอัตโนมัติ”", "ok"); }
+    else if (s === "sim") { for (const L of activeLanes()) withLane(L, () => setSize(640, 480)); simClock = 0; engine("ภาพจำลองสายการผลิต: สายพานเดิน-หยุด สุ่มขวดบกพร่องประมาณ 30% ใช้สูตร “ภาพจำลอง” แล้วกด “สอบเทียบภาพจำลองอัตโนมัติ”", "ok"); }
     else if (s === "video") engine(`เลือกไฟล์วิดีโอของสายการผลิต (เล่นวนซ้ำ)${nLanes() > 1 ? " — ใช้กับไลน์ที่เลือก" : ""}`);
     else if (s === "image") engine(`เลือกรูปภาพขวด — ใช้รูปสายพานว่างสำหรับ “บันทึกพื้นหลังว่าง” และรูปขวดดีสำหรับ “บันทึกขวดตัวอย่างที่ผ่าน”${nLanes() > 1 ? " (ใช้กับไลน์ที่เลือก)" : ""}`);
   }
@@ -826,14 +829,14 @@ if (typeof document !== "undefined") (() => {
     img.src = URL.createObjectURL(f);
     e.target.value = "";
   };
-  $("#simSpeed").onchange = () => { simT0 = performance.now(); };
+  $("#simSpeed").onchange = () => { simClock = 0; };
 
   window.__QC = { simPairRate: 0 }; // เฉพาะการทดสอบ: โอกาสมีขวดสองใบชิดกันในภาพจำลอง (ค่าเริ่มต้น 0 = ภาพจำลองเดิม)
   function grab(now) {
     if (source === "sim") {
       if (simBuf.length !== 2 || simBuf[0].width !== W || simBuf[0].height !== H) simBuf = [new ImageData(W, H), new ImageData(W, H)];
       const img = simBuf[0] === cur ? simBuf[1] : simBuf[0], period = +$("#simSpeed").value;
-      simInfo = QC.simFrame(img, rec.sim || "600", now - simT0 + curLane.idx * period * 0.37, period, 0.3, { pairRate: +window.__QC.simPairRate || 0 });
+      simInfo = QC.simFrame(img, rec.sim || "600", simClock + curLane.idx * period * 0.37, period, 0.3, { pairRate: +window.__QC.simPairRate || 0 });
       fctx.putImageData(img, 0, 0); prev = cur; cur = img; return true;
     }
     const src = source === "image" ? stillImg : video;
@@ -1211,7 +1214,7 @@ if (typeof document !== "undefined") (() => {
     persistRecipes(); renderInfo();
   });
   $("#tolForm").addEventListener("submit", e => e.preventDefault());
-  $("#recipeSel").onchange = e => { rec = recipes.find(r => r.id === e.target.value) || recipes[0]; persistRecipes(); last = null; pst = QC.presenceInit(); loadBg(); if (source === "sim") simT0 = performance.now(); engine(`${laneTag(curLane)}ใช้สูตร “${rec.name}”`, "ok"); renderLaneTabs(); };
+  $("#recipeSel").onchange = e => { rec = recipes.find(r => r.id === e.target.value) || recipes[0]; persistRecipes(); last = null; pst = QC.presenceInit(); loadBg(); if (source === "sim") simClock = 0; engine(`${laneTag(curLane)}ใช้สูตร “${rec.name}”`, "ok"); renderLaneTabs(); };
   $("#recipeName").onchange = e => { const n = e.target.value.trim(); if (n) { rec.name = n.slice(0, 50); persistRecipes(); renderRecipe(); renderLaneTabs(); } };
   $("#recipeNew").onclick = () => {
     const n = prompt("ชื่อสูตรใหม่ (เช่น ขวดใส 600 มล. ไลน์ 2)", rec.name + " (สำเนา)"); if (!n) return;
@@ -1389,6 +1392,7 @@ if (typeof document !== "undefined") (() => {
   function tick(now) {
     requestAnimationFrame(tick);
     if (source === "image") { use(selLane()); drawOverlay(); show(); return; }
+    if (source === "sim") { simClock += simLastNow ? Math.max(0, Math.min(now - simLastNow, SIM_MAX_DT)) : 0; simLastNow = now; }
     for (const L of activeLanes()) { use(L); stepLane(now); }
     use(selLane());
     drawOverlay(); show();

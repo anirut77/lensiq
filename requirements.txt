@@ -1,4 +1,49 @@
-flask
-pdf2docx
-pymupdf==1.24.14
-anthropic
+# LENSIQ server.py — exact pins (direct + transitive), resolved and tested on Python 3.9 (macOS) and 3.11 (CI, Linux).
+# Upgrade deliberately: bump here, run `npm run test:py` and `npm run test:e2e`, note it in CHANGELOG.md.
+# Hash-locked install (recommended for production): see SECURITY.md "Dependency pinning"
+#   pip install pip-tools && pip-compile --generate-hashes --strip-extras -o requirements.lock requirements.txt
+#   pip install --require-hashes -r requirements.lock
+# Licence notes (LICENSES/THIRD_PARTY.md): PyMuPDF is AGPL-3.0 / commercial, pdf2docx is GPL-3.0 — used only by /api/convert.
+
+# --- direct ---
+Flask==3.1.3
+pdf2docx==0.5.8
+PyMuPDF==1.24.14
+anthropic==0.125.0
+
+# --- Flask ---
+Werkzeug==3.1.9
+Jinja2==3.1.6
+MarkupSafe==3.0.4
+itsdangerous==2.2.0
+click==8.1.8
+blinker==1.9.0
+importlib_metadata==8.7.1 ; python_version < "3.10"
+zipp==3.23.1 ; python_version < "3.10"
+
+# --- pdf2docx ---
+fire==0.7.1
+termcolor==3.1.0
+fonttools==4.60.2
+numpy==2.0.2
+opencv-python-headless==5.0.0.93
+python-docx==1.2.0
+lxml==6.1.3
+typing_extensions==4.16.0
+
+# --- anthropic ---
+anyio==4.12.1
+exceptiongroup==1.3.1 ; python_version < "3.11"
+idna==3.20
+sniffio==1.3.1
+distro==1.9.0
+docstring_parser==0.18.0
+httpx==0.28.1
+httpcore==1.0.9
+h11==0.16.0
+certifi==2026.10.23
+jiter==0.16.0
+pydantic==2.13.5
+pydantic_core==2.46.5
+annotated-types==0.7.0
+typing-inspection==0.4.2

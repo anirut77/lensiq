@@ -2,10 +2,11 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
-<title>ระบบกล้อง AI | LENSIQ</title>
+<title data-i18n="cameras.s1">ระบบกล้อง AI | LENSIQ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -35,16 +36,24 @@
 .app.feature{background:linear-gradient(135deg,#0e1430,#1e2a5a);border-color:transparent;color:#fff}
 .app.feature h3{color:#fff}.app.feature p,.app.feature dd{color:#c9d0ea}.app.feature dt{color:#fff}
 .app.feature .ic{background:rgba(255,255,255,.1);color:#22d3ee}
-.badge{display:inline-block;background:var(--gold);color:#fff;border-radius:6px;padding:0 7px;font-size:.7rem;font-weight:500;margin-left:6px;vertical-align:middle}
+.badge{display:inline-block;background:var(--gold);color:#fff;border-radius:6px;padding:0 7px;font-size:.75rem;font-weight:500;margin-left:6px;vertical-align:middle}
 .howto{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;font-size:.92rem;line-height:1.75}
 .howto ol{padding-left:22px;margin:10px 0}.howto li{margin:4px 0}.howto code{background:var(--alt);padding:1px 6px;border-radius:6px;font-size:.88em;word-break:break-all}
 .howto h3{margin:18px 0 6px;font-size:1rem;color:var(--navy);font-weight:500}
+.group > p.hint > a:only-child{display:inline-flex;align-items:center;min-height:44px}
+.acc-wrap{overflow-x:auto;margin:12px 0}
+.acc-t{width:100%;border-collapse:collapse;font-size:.86rem;min-width:560px}
+.acc-t caption{text-align:left;font-weight:600;color:var(--navy);margin-bottom:6px}
+.acc-t th,.acc-t td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+.acc-t th{background:var(--alt);color:var(--navy);font-weight:500}
+.howto.acc ul{padding-left:20px;margin:8px 0}.howto.acc li{margin:6px 0}
 .note{background:#fff;border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:12px;padding:14px 16px;font-size:.88rem;color:var(--muted);margin-top:36px}
 </style>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=10"></script>
+<script src="nav.js?v=11"></script>
+<script src="i18n/zh-cameras.js?v=1"></script>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
     <symbol id="i-emotion" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5s1.3 2 3.5 2 3.5-2 3.5-2M9 9.5h.01M15 9.5h.01"/></symbol>
@@ -65,99 +74,129 @@
 <main class="hub">
   <div class="hub-head">
     <span class="eyebrow">LENSIQ Platform</span>
-    <h1>ระบบทั้งหมด</h1>
-    <p class="lead">ทุกระบบใช้กล้องที่มีอยู่และประมวลผลบนเครื่องในเบราว์เซอร์ ไม่ต้องส่งภาพขึ้นคลาวด์ ใช้ได้กับเว็บแคม กล้อง USB มือถือ แท็บเล็ต หรือกล้อง IP (ผ่านคอมพิวเตอร์หน้างาน)</p>
+    <h1 data-i18n="cameras.s2">ระบบทั้งหมด</h1>
+    <p class="lead" data-i18n="cameras.s3">ทุกระบบใช้กล้องที่มีอยู่และประมวลผลบนเครื่องในเบราว์เซอร์ ไม่ต้องส่งภาพขึ้นคลาวด์ ใช้ได้กับเว็บแคม กล้อง USB มือถือ แท็บเล็ต หรือกล้อง IP (ผ่านคอมพิวเตอร์หน้างาน)</p>
   </div>
-  <ul class="jump" aria-label="ไปยังหมวด">
-    <li><a href="#marketing">การตลาด</a></li>
-    <li><a href="#fortune">ดูดวงอัจฉริยะ</a></li>
-    <li><a href="#analytics">การวิเคราะห์</a></li>
-    <li><a href="#photo">ตู้ถ่ายรูป</a></li>
-    <li><a href="#extra">ระบบเสริม</a></li>
-    <li><a href="#mobile">ใช้บนมือถือ</a></li>
+  <ul class="jump" aria-label="ไปยังหมวด" data-i18n-attr="aria-label:cameras.s4">
+    <li><a href="#marketing" data-i18n="cameras.s5">การตลาด</a></li>
+    <li><a href="#fortune" data-i18n="cameras.s6">ดูดวงอัจฉริยะ</a></li>
+    <li><a href="#analytics" data-i18n="cameras.s7">การวิเคราะห์</a></li>
+    <li><a href="#photo" data-i18n="cameras.s8">ตู้ถ่ายรูป</a></li>
+    <li><a href="#extra" data-i18n="cameras.s9">ระบบเสริม</a></li>
+    <li><a href="#accuracy" data-i18n="cameras.s10">ความแม่นยำ</a></li>
+    <li><a href="#mobile" data-i18n="cameras.s11">ใช้บนมือถือ</a></li>
   </ul>
 
   <section class="group" id="marketing" aria-labelledby="h-mkt">
-    <div class="group-head"><h2 id="h-mkt">การตลาด</h2><p>วัดผลโฆษณา บูธ และประสบการณ์ลูกค้า</p></div>
+    <div class="group-head"><h2 id="h-mkt" data-i18n="cameras.s12">การตลาด</h2><p data-i18n="cameras.s13">วัดผลโฆษณา บูธ และประสบการณ์ลูกค้า</p></div>
     <div class="apps">
-      <a class="app" href="neuro.html"><span class="ic"><svg aria-hidden="true"><use href="#i-emotion"/></svg></span><h3>วิเคราะห์อารมณ์ (Neuromarketing)</h3><p>ทดสอบโฆษณาและบรรจุภัณฑ์จากสีหน้า ความสนใจ และระดับอารมณ์ของผู้ชม</p><dl><dt>ใช้กับ</dt><dd>ทดสอบสื่อ แพ็กเกจจิ้ง Focus group</dd><dt>กล้อง</dt><dd>เว็บแคมหน้าผู้ทดสอบ</dd></dl></a>
-      <a class="app" href="signage.html"><span class="ic"><svg aria-hidden="true"><use href="#i-screen"/></svg></span><h3>ป้ายโฆษณาอัจฉริยะ</h3><p>เลือกโฆษณาตามกลุ่มผู้ชม วัดจำนวนคนที่มองจอและเวลาที่ดู พร้อมคีออสก์สั่งงานด้วยมือไม่ต้องแตะจอ</p><dl><dt>ใช้กับ</dt><dd>จอ Digital Signage บูธ ร้านค้า</dd><dt>กล้อง</dt><dd>เว็บแคมติดบนจอ</dd></dl></a>
-      <a class="app" href="customers.html"><span class="ic"><svg aria-hidden="true"><use href="#i-user"/></svg></span><h3>จดจำลูกค้า</h3><p>จำลูกค้าที่ยินยอม ดูรายการที่สั่งบ่อยและล่าสุด เพื่อแนะนำได้ตรงใจ</p><dl><dt>ใช้กับ</dt><dd>คาเฟ่ ร้านค้า เคาน์เตอร์บริการ</dd><dt>กล้อง</dt><dd>เว็บแคมที่เคาน์เตอร์</dd></dl></a>
-      <a class="app" href="booth.html"><span class="ic"><svg aria-hidden="true"><use href="#i-booth"/></svg></span><h3>วิเคราะห์บูธ</h3><p>นับผู้เข้าชม จำคนเดิมแบบไม่ระบุตัวตน วัดเวลาหยุดชม และนับผู้ร่วมกิจกรรม</p><dl><dt>ใช้กับ</dt><dd>งานแสดงสินค้า อีเวนต์ Pop-up</dd><dt>กล้อง</dt><dd>เว็บแคม/มือถือหันออกหน้าบูธ</dd></dl></a>
+      <a class="app" href="neuro.html"><span class="ic"><svg aria-hidden="true"><use href="#i-emotion"/></svg></span><h3 data-i18n="cameras.s14">วิเคราะห์อารมณ์ (Neuromarketing)</h3><p data-i18n="cameras.s15">ทดสอบโฆษณาและบรรจุภัณฑ์จากสีหน้า ความสนใจ และระดับอารมณ์ของผู้ชม</p><dl><dt data-i18n="cameras.s16">ใช้กับ</dt><dd data-i18n="cameras.s17">ทดสอบสื่อ แพ็กเกจจิ้ง Focus group</dd><dt data-i18n="cameras.s18">กล้อง</dt><dd data-i18n="cameras.s19">เว็บแคมหน้าผู้ทดสอบ</dd></dl></a>
+      <a class="app" href="signage.html"><span class="ic"><svg aria-hidden="true"><use href="#i-screen"/></svg></span><h3 data-i18n="cameras.s20">ป้ายโฆษณาอัจฉริยะ</h3><p data-i18n="cameras.s21">เลือกโฆษณาตามกลุ่มผู้ชม วัดจำนวนคนที่มองจอและเวลาที่ดู พร้อมคีออสก์สั่งงานด้วยมือไม่ต้องแตะจอ</p><dl><dt data-i18n="cameras.s22">ใช้กับ</dt><dd data-i18n="cameras.s23">จอ Digital Signage บูธ ร้านค้า</dd><dt data-i18n="cameras.s24">กล้อง</dt><dd data-i18n="cameras.s25">เว็บแคมติดบนจอ</dd></dl></a>
+      <a class="app" href="customers.html"><span class="ic"><svg aria-hidden="true"><use href="#i-user"/></svg></span><h3 data-i18n="cameras.s26">จดจำลูกค้า</h3><p data-i18n="cameras.s27">จำลูกค้าที่ยินยอม ดูรายการที่สั่งบ่อยและล่าสุด เพื่อแนะนำได้ตรงใจ</p><dl><dt data-i18n="cameras.s28">ใช้กับ</dt><dd data-i18n="cameras.s29">คาเฟ่ ร้านค้า เคาน์เตอร์บริการ</dd><dt data-i18n="cameras.s30">กล้อง</dt><dd data-i18n="cameras.s31">เว็บแคมที่เคาน์เตอร์</dd></dl></a>
+      <a class="app" href="booth.html"><span class="ic"><svg aria-hidden="true"><use href="#i-booth"/></svg></span><h3 data-i18n="cameras.s32">วิเคราะห์บูธ</h3><p data-i18n="cameras.s33">นับผู้เข้าชม จำคนเดิมแบบไม่ระบุตัวตน วัดเวลาหยุดชม และนับผู้ร่วมกิจกรรม</p><dl><dt data-i18n="cameras.s34">ใช้กับ</dt><dd data-i18n="cameras.s35">งานแสดงสินค้า อีเวนต์ Pop-up</dd><dt data-i18n="cameras.s36">กล้อง</dt><dd data-i18n="cameras.s37">เว็บแคม/มือถือหันออกหน้าบูธ</dd></dl></a>
     </div>
   </section>
 
   <section class="group" id="fortune" aria-labelledby="h-fortune">
-    <div class="group-head"><h2 id="h-fortune">ดูดวงอัจฉริยะ</h2><p>กิจกรรมเพื่อความบันเทิง ดึงคนเข้าบูธ และสร้างคอนเทนต์ให้แชร์</p></div>
+    <div class="group-head"><h2 id="h-fortune" data-i18n="cameras.s38">ดูดวงอัจฉริยะ</h2><p data-i18n="cameras.s39">กิจกรรมเพื่อความบันเทิง ดึงคนเข้าบูธ และสร้างคอนเทนต์ให้แชร์</p></div>
     <div class="apps">
-      <a class="app" href="faceread.html"><span class="ic"><svg aria-hidden="true"><use href="#i-face"/></svg></span><h3>โหงวเฮ้ง AI<span class="badge">ใหม่</span></h3><p>อ่านโหงวเฮ้งจากใบหน้าเพื่อความบันเทิง บอกธาตุประจำรูปหน้า สามส่วนของใบหน้า และเคล็ดเสริมดวง พร้อมการ์ดแชร์</p><dl><dt>ใช้กับ</dt><dd>บูธ อีเวนต์ แคมเปญโซเชียล</dd><dt>กล้อง</dt><dd>เว็บแคม มือถือ หรืออัปโหลดรูป</dd></dl></a>
-      <a class="app" href="palm.html"><span class="ic"><svg aria-hidden="true"><use href="#i-face"/></svg></span><h3>ดูลายมือ AI<span class="badge">ใหม่</span></h3><p>ถ่ายฝ่ามือ AI หาตำแหน่งมือและเส้นหลัก ผู้ใช้ปรับเส้นเองได้ อ่านธาตุมือ เส้นชีวิต สมอง หัวใจ วาสนา</p><dl><dt>ใช้กับ</dt><dd>บูธ อีเวนต์ คาเฟ่</dd><dt>กล้อง</dt><dd>กล้องหลังมือถือ/แท็บเล็ต</dd></dl></a>
-      <a class="app" href="horoscope.html"><span class="ic"><svg aria-hidden="true"><use href="#i-face"/></svg></span><h3>ดวงวันเดือนปีเกิด<span class="badge">ใหม่</span></h3><p>โหราศาสตร์ไทย ทักษา สีมงคล ราศี ลัคนา ปาจื้อสี่เสา เลขศาสตร์ ดวงวันนี้ และดวงคู่</p><dl><dt>ใช้กับ</dt><dd>แคมเปญออนไลน์ บูธ</dd><dt>กล้อง</dt><dd>ไม่ต้องใช้</dd></dl></a>
-      <a class="app" href="tarot.html"><span class="ic"><svg aria-hidden="true"><use href="#i-face"/></svg></span><h3>ไพ่ทาโรต์ &amp; เซียมซี<span class="badge">ใหม่</span></h3><p>ไพ่ Rider–Waite 78 ใบ หลายรูปแบบการวาง และเซียมซี 28 ใบ เขย่ามือถือเพื่อเสี่ยงได้</p><dl><dt>ใช้กับ</dt><dd>บูธ อีเวนต์ โซเชียล</dd><dt>กล้อง</dt><dd>ไม่ต้องใช้</dd></dl></a>
-      <a class="app" href="fengshui.html"><span class="ic"><svg aria-hidden="true"><use href="#i-face"/></svg></span><h3>ฮวงจุ้ย<span class="badge">ใหม่</span></h3><p>เลขกัวและทิศมงคล เข็มทิศเสมือนจริงบนมือถือ ผังบ้านพร้อมดาวเหินประจำปีและธาตุเสริม</p><dl><dt>ใช้กับ</dt><dd>บูธอสังหาฯ เฟอร์นิเจอร์ ของแต่งบ้าน</dd><dt>กล้อง</dt><dd>กล้องหลัง + เข็มทิศมือถือ</dd></dl></a>
-      <a class="app" href="numbers.html"><span class="ic"><svg aria-hidden="true"><use href="#i-face"/></svg></span><h3>เลขมงคล<span class="badge">ใหม่</span></h3><p>วิเคราะห์เบอร์โทร ทะเบียนรถ เลขบ้าน และชื่อ ด้วยความหมายคู่เลขและผลรวม</p><dl><dt>ใช้กับ</dt><dd>บูธค่ายมือถือ ดีลเลอร์รถ</dd><dt>กล้อง</dt><dd>ไม่ต้องใช้</dd></dl></a>
-      <a class="app" href="iching.html"><span class="ic"><svg aria-hidden="true"><use href="#i-face"/></svg></span><h3>อี้จิง เสี่ยงกว้า<span class="badge">ใหม่</span></h3><p>โยนเหรียญ 6 ครั้ง ได้กว้าจาก 64 กว้า พร้อมเส้นแปรและกว้าที่เปลี่ยนไป</p><dl><dt>ใช้กับ</dt><dd>งานอีเวนต์ ร้านชา บูธตรุษจีน</dd><dt>กล้อง</dt><dd>ไม่ต้องใช้</dd></dl></a>
-      <a class="app" href="zodiac.html"><span class="ic"><svg aria-hidden="true"><use href="#i-face"/></svg></span><h3>12 นักษัตร · ปีชง<span class="badge">ใหม่</span></h3><p>ดวงรายปีตามปีนักษัตร ปีชง คู่ชง คู่มงคล สีและทิศมงคล</p><dl><dt>ใช้กับ</dt><dd>แคมเปญตรุษจีน ห้าง ธนาคาร</dd><dt>กล้อง</dt><dd>ไม่ต้องใช้</dd></dl></a>
-      <a class="app" href="astro.html"><span class="ic"><svg aria-hidden="true"><use href="#i-face"/></svg></span><h3>ราศีตะวันตก<span class="badge">ใหม่</span></h3><p>ราศีอาทิตย์ ราศีจันทร์ และลัคนา คำนวณจากวันเวลาและสถานที่เกิด</p><dl><dt>ใช้กับ</dt><dd>แบรนด์วัยรุ่น คาเฟ่ บูธ Gen Z</dd><dt>กล้อง</dt><dd>ไม่ต้องใช้</dd></dl></a>
-      <a class="app" href="dream.html"><span class="ic"><svg aria-hidden="true"><use href="#i-face"/></svg></span><h3>ทำนายฝัน<span class="badge">ใหม่</span></h3><p>พิมพ์เล่าความฝัน ระบบจับสัญลักษณ์กว่า 100 แบบและแปลความหมาย (ไม่มีเลขเด็ด)</p><dl><dt>ใช้กับ</dt><dd>แอปไลฟ์สไตล์ คอนเทนต์รายวัน</dd><dt>กล้อง</dt><dd>ไม่ต้องใช้</dd></dl></a>
+      <a class="app" href="faceread.html"><span class="ic"><svg aria-hidden="true"><use href="#i-face"/></svg></span><h3><span data-i18n="cameras.s40">อ่านโหงวเฮ้ง</span><span class="badge" data-i18n="cameras.s41">ใหม่</span></h3><p data-i18n="cameras.s42">อ่านโหงวเฮ้งจากใบหน้าเพื่อความบันเทิง บอกธาตุประจำรูปหน้า สามส่วนของใบหน้า และเคล็ดเสริมดวง พร้อมการ์ดแชร์</p><dl><dt data-i18n="cameras.s43">ใช้กับ</dt><dd data-i18n="cameras.s44">บูธ อีเวนต์ แคมเปญโซเชียล</dd><dt data-i18n="cameras.s45">กล้อง</dt><dd data-i18n="cameras.s46">เว็บแคม มือถือ หรืออัปโหลดรูป</dd></dl></a>
+      <a class="app" href="palm.html"><span class="ic"><svg aria-hidden="true"><use href="#i-face"/></svg></span><h3><span data-i18n="cameras.s47">ดูลายมือ</span><span class="badge" data-i18n="cameras.s48">ใหม่</span></h3><p data-i18n="cameras.s49">ถ่ายฝ่ามือ ระบบหาตำแหน่งมือและเส้นหลัก ผู้ใช้ปรับเส้นเองได้ อ่านธาตุมือ เส้นชีวิต สมอง หัวใจ วาสนา</p><dl><dt data-i18n="cameras.s50">ใช้กับ</dt><dd data-i18n="cameras.s51">บูธ อีเวนต์ คาเฟ่</dd><dt data-i18n="cameras.s52">กล้อง</dt><dd data-i18n="cameras.s53">กล้องหลังมือถือ/แท็บเล็ต</dd></dl></a>
+      <a class="app" href="horoscope.html"><span class="ic"><svg aria-hidden="true"><use href="#i-face"/></svg></span><h3><span data-i18n="cameras.s54">ดวงวันเดือนปีเกิด</span><span class="badge" data-i18n="cameras.s55">ใหม่</span></h3><p data-i18n="cameras.s56">โหราศาสตร์ไทย ทักษา สีมงคล ราศี ลัคนา ปาจื้อสี่เสา เลขศาสตร์ ดวงวันนี้ และดวงคู่</p><dl><dt data-i18n="cameras.s57">ใช้กับ</dt><dd data-i18n="cameras.s58">แคมเปญออนไลน์ บูธ</dd><dt data-i18n="cameras.s59">กล้อง</dt><dd data-i18n="cameras.s60">ไม่ต้องใช้</dd></dl></a>
+      <a class="app" href="tarot.html"><span class="ic"><svg aria-hidden="true"><use href="#i-face"/></svg></span><h3><span data-i18n="cameras.s61">ไพ่ทาโรต์</span> &amp; <span data-i18n="cameras.s62">เซียมซี</span><span class="badge" data-i18n="cameras.s63">ใหม่</span></h3><p data-i18n="cameras.s64">ไพ่ Rider–Waite 78 ใบ หลายรูปแบบการวาง และเซียมซี 28 ใบ เขย่ามือถือเพื่อเสี่ยงได้</p><dl><dt data-i18n="cameras.s65">ใช้กับ</dt><dd data-i18n="cameras.s66">บูธ อีเวนต์ โซเชียล</dd><dt data-i18n="cameras.s67">กล้อง</dt><dd data-i18n="cameras.s68">ไม่ต้องใช้</dd></dl></a>
+      <a class="app" href="fengshui.html"><span class="ic"><svg aria-hidden="true"><use href="#i-face"/></svg></span><h3><span data-i18n="cameras.s69">ฮวงจุ้ย</span><span class="badge" data-i18n="cameras.s70">ใหม่</span></h3><p data-i18n="cameras.s71">เลขกัวและทิศมงคล เข็มทิศเสมือนจริงบนมือถือ ผังบ้านพร้อมดาวเหินประจำปีและธาตุเสริม</p><dl><dt data-i18n="cameras.s72">ใช้กับ</dt><dd data-i18n="cameras.s73">บูธอสังหาฯ เฟอร์นิเจอร์ ของแต่งบ้าน</dd><dt data-i18n="cameras.s74">กล้อง</dt><dd data-i18n="cameras.s75">กล้องหลัง + เข็มทิศมือถือ</dd></dl></a>
+      <a class="app" href="numbers.html"><span class="ic"><svg aria-hidden="true"><use href="#i-face"/></svg></span><h3><span data-i18n="cameras.s76">เลขมงคล</span><span class="badge" data-i18n="cameras.s77">ใหม่</span></h3><p data-i18n="cameras.s78">วิเคราะห์เบอร์โทร ทะเบียนรถ เลขบ้าน และชื่อ ด้วยความหมายคู่เลขและผลรวม</p><dl><dt data-i18n="cameras.s79">ใช้กับ</dt><dd data-i18n="cameras.s80">บูธค่ายมือถือ ดีลเลอร์รถ</dd><dt data-i18n="cameras.s81">กล้อง</dt><dd data-i18n="cameras.s82">ไม่ต้องใช้</dd></dl></a>
+      <a class="app" href="iching.html"><span class="ic"><svg aria-hidden="true"><use href="#i-face"/></svg></span><h3><span data-i18n="cameras.s83">อี้จิง เสี่ยงกว้า</span><span class="badge" data-i18n="cameras.s84">ใหม่</span></h3><p data-i18n="cameras.s85">โยนเหรียญ 6 ครั้ง ได้กว้าจาก 64 กว้า พร้อมเส้นแปรและกว้าที่เปลี่ยนไป</p><dl><dt data-i18n="cameras.s86">ใช้กับ</dt><dd data-i18n="cameras.s87">งานอีเวนต์ ร้านชา บูธตรุษจีน</dd><dt data-i18n="cameras.s88">กล้อง</dt><dd data-i18n="cameras.s89">ไม่ต้องใช้</dd></dl></a>
+      <a class="app" href="zodiac.html"><span class="ic"><svg aria-hidden="true"><use href="#i-face"/></svg></span><h3><span data-i18n="cameras.s90">12 นักษัตร · ปีชง</span><span class="badge" data-i18n="cameras.s91">ใหม่</span></h3><p data-i18n="cameras.s92">ดวงรายปีตามปีนักษัตร ปีชง คู่ชง คู่มงคล สีและทิศมงคล</p><dl><dt data-i18n="cameras.s93">ใช้กับ</dt><dd data-i18n="cameras.s94">แคมเปญตรุษจีน ห้าง ธนาคาร</dd><dt data-i18n="cameras.s95">กล้อง</dt><dd data-i18n="cameras.s96">ไม่ต้องใช้</dd></dl></a>
+      <a class="app" href="astro.html"><span class="ic"><svg aria-hidden="true"><use href="#i-face"/></svg></span><h3><span data-i18n="cameras.s97">ราศีตะวันตก</span><span class="badge" data-i18n="cameras.s98">ใหม่</span></h3><p data-i18n="cameras.s99">ราศีอาทิตย์ ราศีจันทร์ และลัคนา คำนวณจากวันเวลาและสถานที่เกิด</p><dl><dt data-i18n="cameras.s100">ใช้กับ</dt><dd data-i18n="cameras.s101">แบรนด์วัยรุ่น คาเฟ่ บูธ Gen Z</dd><dt data-i18n="cameras.s102">กล้อง</dt><dd data-i18n="cameras.s103">ไม่ต้องใช้</dd></dl></a>
+      <a class="app" href="dream.html"><span class="ic"><svg aria-hidden="true"><use href="#i-face"/></svg></span><h3><span data-i18n="cameras.s104">ทำนายฝัน</span><span class="badge" data-i18n="cameras.s105">ใหม่</span></h3><p data-i18n="cameras.s106">พิมพ์เล่าความฝัน ระบบจับสัญลักษณ์กว่า 100 แบบและแปลความหมาย (ไม่มีเลขเด็ด)</p><dl><dt data-i18n="cameras.s107">ใช้กับ</dt><dd data-i18n="cameras.s108">แอปไลฟ์สไตล์ คอนเทนต์รายวัน</dd><dt data-i18n="cameras.s109">กล้อง</dt><dd data-i18n="cameras.s110">ไม่ต้องใช้</dd></dl></a>
     </div>
-    <p class="hint"><a href="fortune.html">ดูหน้ารวมระบบดูดวง →</a></p>
+    <p class="hint"><a href="fortune.html" data-i18n="cameras.s111">ดูหน้ารวมระบบดูดวง →</a></p>
   </section>
 
   <section class="group" id="analytics" aria-labelledby="h-ana">
-    <div class="group-head"><h2 id="h-ana">การวิเคราะห์</h2><p>ข้อมูลการเดินร้าน คิว และภาพรวมทุกระบบ</p></div>
+    <div class="group-head"><h2 id="h-ana" data-i18n="cameras.s112">การวิเคราะห์</h2><p data-i18n="cameras.s113">ข้อมูลการเดินร้าน คิว และภาพรวมทุกระบบ</p></div>
     <div class="apps">
-      <a class="app feature" href="insights.html"><span class="ic"><svg aria-hidden="true"><use href="#i-chart"/></svg></span><h3>แดชบอร์ดรวม<span class="badge">ใหม่</span></h3><p>สรุปตัวเลขสำคัญจากทุกระบบในหน้าเดียว ดูแนวโน้มและส่งออกรายงาน</p><dl><dt>ใช้กับ</dt><dd>ผู้จัดการ ทีมการตลาด</dd><dt>กล้อง</dt><dd>ไม่ต้องใช้ (อ่านจากระบบอื่น)</dd></dl></a>
-      <a class="app" href="store.html"><span class="ic"><svg aria-hidden="true"><use href="#i-store"/></svg></span><h3>วิเคราะห์หน้าร้าน</h3><p>นับคนเข้า–ออก จำนวนคนในร้าน แผนที่ความร้อนของจุดที่คนเดิน ความยาวคิว และเวลารอ</p><dl><dt>ใช้กับ</dt><dd>ร้านค้า ตัวแทนจำหน่าย ห้าง</dd><dt>กล้อง</dt><dd>มุมสูงเหนือประตู/มุมห้อง</dd></dl></a>
-      <a class="app" href="checkout.html"><span class="ic"><svg aria-hidden="true"><use href="#i-scan"/></svg></span><h3>สแกนสินค้าด้วยกล้อง</h3><p>สอนให้ระบบจำสินค้าเองได้ในไม่กี่นาที ใช้คิดเงินแบบบริการตนเอง และนับสต็อก</p><dl><dt>ใช้กับ</dt><dd>จุดขาย ตู้แช่ คลังสินค้า</dd><dt>กล้อง</dt><dd>กล้องมองลงบนโต๊ะ</dd></dl></a>
+      <a class="app feature" href="insights.html"><span class="ic"><svg aria-hidden="true"><use href="#i-chart"/></svg></span><h3><span data-i18n="cameras.s114">แดชบอร์ดรวม</span><span class="badge" data-i18n="cameras.s115">ใหม่</span></h3><p data-i18n="cameras.s116">สรุปตัวเลขสำคัญจากทุกระบบในหน้าเดียว ดูแนวโน้มและส่งออกรายงาน</p><dl><dt data-i18n="cameras.s117">ใช้กับ</dt><dd data-i18n="cameras.s118">ผู้จัดการ ทีมการตลาด</dd><dt data-i18n="cameras.s119">กล้อง</dt><dd data-i18n="cameras.s120">ไม่ต้องใช้ (อ่านจากระบบอื่น)</dd></dl></a>
+      <a class="app" href="store.html"><span class="ic"><svg aria-hidden="true"><use href="#i-store"/></svg></span><h3 data-i18n="cameras.s121">วิเคราะห์หน้าร้าน</h3><p data-i18n="cameras.s122">นับคนเข้า–ออก จำนวนคนในร้าน แผนที่ความร้อนของจุดที่คนเดิน ความยาวคิว และเวลารอ</p><dl><dt data-i18n="cameras.s123">ใช้กับ</dt><dd data-i18n="cameras.s124">ร้านค้า ตัวแทนจำหน่าย ห้าง</dd><dt data-i18n="cameras.s125">กล้อง</dt><dd data-i18n="cameras.s126">มุมสูงเหนือประตู/มุมห้อง</dd></dl></a>
+      <a class="app" href="checkout.html"><span class="ic"><svg aria-hidden="true"><use href="#i-scan"/></svg></span><h3 data-i18n="cameras.s127">สแกนสินค้าด้วยกล้อง</h3><p data-i18n="cameras.s128">สอนให้ระบบจำสินค้าเองได้ในไม่กี่นาที ใช้คิดเงินแบบบริการตนเอง และนับสต็อก</p><dl><dt data-i18n="cameras.s129">ใช้กับ</dt><dd data-i18n="cameras.s130">จุดขาย ตู้แช่ คลังสินค้า</dd><dt data-i18n="cameras.s131">กล้อง</dt><dd data-i18n="cameras.s132">กล้องมองลงบนโต๊ะ</dd></dl></a>
     </div>
   </section>
 
   <section class="group" id="photo" aria-labelledby="h-photo">
-    <div class="group-head"><h2 id="h-photo">ตู้ถ่ายรูป</h2><p>สร้างประสบการณ์และคอนเทนต์ในงาน</p></div>
+    <div class="group-head"><h2 id="h-photo" data-i18n="cameras.s133">ตู้ถ่ายรูป</h2><p data-i18n="cameras.s134">สร้างประสบการณ์และคอนเทนต์ในงาน</p></div>
     <div class="apps">
-      <a class="app" href="photobooth.html"><span class="ic"><svg aria-hidden="true"><use href="#i-camera"/></svg></span><h3>ตู้สติ๊กเกอร์ &amp; รูปติดบัตร</h3><p>ถ่ายภาพเป็นชุด แต่งกรอบ สติ๊กเกอร์ และพื้นหลัง พร้อมโหมดรูปติดบัตรและเปลี่ยนชุด</p><dl><dt>ใช้กับ</dt><dd>อีเวนต์ บูธ งานแต่ง ร้านถ่ายรูป</dd><dt>กล้อง</dt><dd>เว็บแคม มือถือ หรือแท็บเล็ต</dd></dl></a>
-      <a class="app" href="studio.html"><span class="ic"><svg aria-hidden="true"><use href="#i-camera"/></svg></span><h3>สตูดิโอแต่งชุด AI<span class="badge">ใหม่</span></h3><p>สวมชุดจากเทมเพลตให้เข้ากับคอและไหล่ ตัดพื้นหลัง เกลาขอบผม ผสานแสงสีให้เหมือนใส่ถ่ายจริง รีทัชผิวแบบเป็นธรรมชาติ และทำรูปติดบัตร</p><dl><dt>ใช้กับ</dt><dd>ร้านถ่ายรูป รูปสมัครงาน/สมัครเรียน</dd><dt>กล้อง</dt><dd>อัปโหลดรูป หรือเว็บแคม/มือถือ</dd></dl></a>
+      <a class="app" href="photobooth.html"><span class="ic"><svg aria-hidden="true"><use href="#i-camera"/></svg></span><h3><span data-i18n="cameras.s135">ตู้สติ๊กเกอร์</span> &amp; <span data-i18n="cameras.s136">รูปติดบัตร</span></h3><p data-i18n="cameras.s137">ถ่ายภาพเป็นชุด แต่งกรอบ สติ๊กเกอร์ และพื้นหลัง พร้อมโหมดรูปติดบัตรและเปลี่ยนชุด</p><dl><dt data-i18n="cameras.s138">ใช้กับ</dt><dd data-i18n="cameras.s139">อีเวนต์ บูธ งานแต่ง ร้านถ่ายรูป</dd><dt data-i18n="cameras.s140">กล้อง</dt><dd data-i18n="cameras.s141">เว็บแคม มือถือ หรือแท็บเล็ต</dd></dl></a>
+      <a class="app" href="studio.html"><span class="ic"><svg aria-hidden="true"><use href="#i-camera"/></svg></span><h3><span data-i18n="cameras.s142">สตูดิโอแต่งชุด</span><span class="badge" data-i18n="cameras.s143">ใหม่</span></h3><p data-i18n="cameras.s144">สวมชุดจากเทมเพลตให้เข้ากับคอและไหล่ ตัดพื้นหลัง เกลาขอบผม ผสานแสงสีให้เหมือนใส่ถ่ายจริง รีทัชผิวแบบเป็นธรรมชาติ และทำรูปติดบัตร</p><dl><dt data-i18n="cameras.s145">ใช้กับ</dt><dd data-i18n="cameras.s146">ร้านถ่ายรูป รูปสมัครงาน/สมัครเรียน</dd><dt data-i18n="cameras.s147">กล้อง</dt><dd data-i18n="cameras.s148">อัปโหลดรูป หรือเว็บแคม/มือถือ</dd></dl></a>
     </div>
   </section>
 
   <section class="group" id="extra" aria-labelledby="h-extra">
-    <div class="group-head"><h2 id="h-extra">ระบบเสริม</h2><p>งานปฏิบัติการ บุคลากร และเครื่องมือ</p></div>
+    <div class="group-head"><h2 id="h-extra" data-i18n="cameras.s149">ระบบเสริม</h2><p data-i18n="cameras.s150">งานปฏิบัติการ บุคลากร และเครื่องมือ</p></div>
     <div class="apps">
-      <a class="app" href="qc.html"><span class="ic"><svg aria-hidden="true"><use href="#i-check"/></svg></span><h3>ตรวจคุณภาพสินค้าบนไลน์ผลิต</h3><p>ตรวจระดับบรรจุ ฝา และฉลากบนสายการผลิต คัดชิ้นที่ไม่ผ่าน และสรุปสาเหตุของเสีย</p><dl><dt>ใช้กับ</dt><dd>โรงงาน ไลน์บรรจุ</dd><dt>กล้อง</dt><dd>กล้องติดตายตัวพร้อมไฟส่องหลังชิ้นงาน</dd></dl></a>
-      <a class="app" href="driver.html"><span class="ic"><svg aria-hidden="true"><use href="#i-eye"/></svg></span><h3>เฝ้าระวังความง่วงคนขับ</h3><p>ตรวจการหลับตา หาว สัปหงก และละสายตาจากถนน แล้วเตือนด้วยเสียงทันที</p><dl><dt>ใช้กับ</dt><dd>รถขนส่ง รถบริการ</dd><dt>กล้อง</dt><dd>กล้องอินฟราเรดหน้าคนขับ</dd></dl></a>
-      <a class="app" href="attendance.html"><span class="ic"><svg aria-hidden="true"><use href="#i-id"/></svg></span><h3>เช็คชื่อด้วยใบหน้า</h3><p>ลงชื่อเข้าอบรม สัมมนา หรือเข้า–ออกงานด้วยการสแกนใบหน้า</p><dl><dt>ใช้กับ</dt><dd>อบรม สัมมนา สำนักงาน</dd><dt>กล้อง</dt><dd>เว็บแคม/แท็บเล็ตที่จุดลงทะเบียน</dd></dl></a>
-      <a class="app" href="converter.html"><span class="ic"><svg aria-hidden="true"><use href="#i-file"/></svg></span><h3>แปลง PDF เป็น Word</h3><p>แปลงไฟล์ PDF เป็นเอกสาร Word คงรูปแบบเดิม ประมวลผลบนเซิร์ฟเวอร์ของเราเอง ไม่ส่งไฟล์ออกภายนอก</p><dl><dt>ใช้กับ</dt><dd>งานเอกสารทั่วไป</dd><dt>กล้อง</dt><dd>ไม่ต้องใช้</dd></dl></a>
+      <a class="app" href="qc.html"><span class="ic"><svg aria-hidden="true"><use href="#i-check"/></svg></span><h3 data-i18n="cameras.s151">ตรวจคุณภาพสินค้าบนไลน์ผลิต</h3><p data-i18n="cameras.s152">ตรวจระดับบรรจุ ฝา และฉลากบนสายการผลิต คัดชิ้นที่ไม่ผ่าน และสรุปสาเหตุของเสีย</p><dl><dt data-i18n="cameras.s153">ใช้กับ</dt><dd data-i18n="cameras.s154">โรงงาน ไลน์บรรจุ</dd><dt data-i18n="cameras.s155">กล้อง</dt><dd data-i18n="cameras.s156">กล้องติดตายตัวพร้อมไฟส่องหลังชิ้นงาน</dd></dl></a>
+      <a class="app" href="driver.html"><span class="ic"><svg aria-hidden="true"><use href="#i-eye"/></svg></span><h3 data-i18n="cameras.s157">เฝ้าระวังความง่วงคนขับ</h3><p data-i18n="cameras.s158">ตรวจการหลับตา หาว สัปหงก และละสายตาจากถนน แล้วเตือนด้วยเสียงทันที</p><dl><dt data-i18n="cameras.s159">ใช้กับ</dt><dd data-i18n="cameras.s160">รถขนส่ง รถบริการ</dd><dt data-i18n="cameras.s161">กล้อง</dt><dd data-i18n="cameras.s162">กล้องอินฟราเรดหน้าคนขับ</dd></dl></a>
+      <a class="app" href="attendance.html"><span class="ic"><svg aria-hidden="true"><use href="#i-id"/></svg></span><h3 data-i18n="cameras.s163">เช็คชื่อด้วยใบหน้า</h3><p data-i18n="cameras.s164">ลงชื่อเข้าอบรม สัมมนา หรือเข้า–ออกงานด้วยการสแกนใบหน้า</p><dl><dt data-i18n="cameras.s165">ใช้กับ</dt><dd data-i18n="cameras.s166">อบรม สัมมนา สำนักงาน</dd><dt data-i18n="cameras.s167">กล้อง</dt><dd data-i18n="cameras.s168">เว็บแคม/แท็บเล็ตที่จุดลงทะเบียน</dd></dl></a>
+      <a class="app" href="converter.html"><span class="ic"><svg aria-hidden="true"><use href="#i-file"/></svg></span><h3 data-i18n="cameras.s169">แปลง PDF เป็น Word</h3><p data-i18n="cameras.s170">แปลงไฟล์ PDF เป็นเอกสาร Word คงรูปแบบเดิม ประมวลผลบนเซิร์ฟเวอร์ของเราเอง ไม่ส่งไฟล์ออกภายนอก</p><dl><dt data-i18n="cameras.s171">ใช้กับ</dt><dd data-i18n="cameras.s172">งานเอกสารทั่วไป</dd><dt data-i18n="cameras.s173">กล้อง</dt><dd data-i18n="cameras.s174">ไม่ต้องใช้</dd></dl></a>
+    </div>
+  </section>
+
+  <section class="group" id="accuracy" aria-labelledby="h-acc">
+    <div class="group-head"><h2 id="h-acc" data-i18n="cameras.s175">ความแม่นยำที่วัดได้</h2><p data-i18n="cameras.s176">วัดกับชุดข้อมูลสาธารณะที่มีคำตอบจริง ด้วยโค้ดเดียวกับที่หน้าเว็บใช้ (เบราว์เซอร์ ไม่ใช้ WebGL)</p></div>
+    <div class="howto acc">
+      <p><b data-i18n="cameras.s177">อ่านก่อน:</b> <span data-i18n="cameras.s178">ภาพในชุดทดสอบเป็นถนน สถานี และภาพข่าว ไม่ใช่หน้าร้านของคุณ แสง มุมกล้อง และความหนาแน่นของคนต่างกัน ผลหน้างานจริงมักแย่กว่านี้ ก่อนใช้ตัวเลขตัดสินใจ ควรนับด้วยคนเทียบสัก 30 นาที ตัวเลขทั้งหมดมาจากการวัดครั้งเดียวบนเครื่องเดียว</span></p>
+      <div class="acc-wrap"><table class="acc-t">
+        <caption data-i18n="cameras.s179">สรุปผลวัด</caption>
+        <thead><tr><th scope="col" data-i18n="cameras.s180">ระบบ</th><th scope="col" data-i18n="cameras.s181">ชุดข้อมูล</th><th scope="col" data-i18n="cameras.s182">ตัววัด</th><th scope="col" data-i18n="cameras.s183">ผล</th></tr></thead>
+        <tbody>
+          <tr><td data-i18n="cameras.s184">นับคนเข้า–ออก (หน้าร้าน)</td><td data-i18n="cameras.s185">MOT17 02/04/09, PETS09-S2L1, TUD-Stadtmitte · 275 ครั้งที่ข้ามเส้นจริง</td><td data-i18n="cameras.s186">ยอดรวมคลาดเคลื่อน · เหตุการณ์ที่นับถูก</td><td data-i18n="cameras.s187">+8% (รายทิศ ±19%) · นับแล้วถูกจริง 72% เจอ 78% ของที่ข้ามจริง (5 ภาพ/วินาที)</td></tr>
+          <tr><td data-i18n="cameras.s188">ตรวจจับคน</td><td data-i18n="cameras.s189">ชุดเดียวกัน</td><td data-i18n="cameras.s190">พบคน (recall) / ถูกต้อง (precision)</td><td data-i18n="cameras.s191">คนตัวใหญ่ในภาพ 69–91% · คนสูงไม่ถึง 1/5 ของภาพ 5–34% (แบ่งภาพ 2×2 เพิ่มเป็น 14–50%)</td></tr>
+          <tr><td data-i18n="cameras.s192">เช็คชื่อด้วยใบหน้า</td><td data-i18n="cameras.s193">LFW 2,200 คู่ + จำลองผู้ลงทะเบียน 20–200 คน</td><td data-i18n="cameras.s194">จำได้ / ผิดคน / คนนอกถูกจับคู่</td><td data-i18n="cameras.s195">100 คน เกณฑ์ 0.55: จำได้ 89% ต่อภาพ · ผิดคน 0.24% · คนนอก 5.9%</td></tr>
+          <tr><td data-i18n="cameras.s196">จดจำลูกค้า</td><td>LFW</td><td data-i18n="cameras.s197">จำได้ / ผิดคน / คนนอกถูกทัก</td><td data-i18n="cameras.s198">100 คน เกณฑ์ 0.50: จำได้ 78% ต่อภาพ · ผิดคน 0.09% · คนนอก 1.5%</td></tr>
+          <tr><td data-i18n="cameras.s199">อายุ/เพศ (ป้ายโฆษณา)</td><td data-i18n="cameras.s200">UTKFace 2,000 ภาพ</td><td data-i18n="cameras.s201">อายุคลาดเคลื่อน · ช่วงอายุ · เพศ</td><td data-i18n="cameras.s202">±5 ปี · ช่วงอายุถูก 79% · เพศถูก 96% (เอเชีย 92%) — ค่าที่ดีเกินจริง เพราะโมเดลเคยเรียนจากชุดนี้บางส่วน</td></tr>
+          <tr><td data-i18n="cameras.s203">ตรวจจับมือ (คีออสก์)</td><td data-i18n="cameras.s204">HaGRID 720 ภาพ 18 ท่า</td><td data-i18n="cameras.s205">พบมือที่ยก / ถูกต้อง</td><td data-i18n="cameras.s206">88% / 99% · ท่าแบมือ 95%</td></tr>
+          <tr><td data-i18n="cameras.s207">สแกนสินค้า · ตรวจคุณภาพ · ความง่วง · อารมณ์ · บูธ</td><td>—</td><td>—</td><td data-i18n="cameras.s208">ยังไม่ได้วัดกับชุดข้อมูลมาตรฐาน (แสดงป้าย Beta ในหน้า)</td></tr>
+        </tbody>
+      </table></div>
+      <h3 data-i18n="cameras.s209">ข้อจำกัดที่พบและสิ่งที่ปรับแล้ว</h3>
+      <ul>
+        <li><b data-i18n="cameras.s210">คนตัวเล็ก/อยู่ไกลหลุดบ่อย:</b> <span data-i18n="cameras.s211">โมเดลตรวจจับคนย่อภาพเหลือ 300×300 จุดเสมอ การตั้งความละเอียดสูงขึ้นจึงไม่ช่วย (วัดได้ผลเท่ากันทุกขนาด) เราเปลี่ยนเป็นตัวเลือก “คนตัวเล็ก/อยู่ไกล” ที่แบ่งภาพตรวจทีละส่วน เห็นคนไกลเพิ่มขึ้นชัดเจน แต่ช้าลง 3–5 เท่า เหมาะกับการนับคนในโซน/ฮีตแมปมากกว่าเส้นนับ</span></li>
+        <li><b data-i18n="cameras.s212">รหัสสลับเมื่อคนเดินสวนกัน</b> <span data-i18n="cameras.s213">ทำให้นับข้ามเส้นเกิน ปรับตัวติดตามให้จับคู่ระยะสั้นลงและรอคนที่ถูกบังนานขึ้น ความคลาดเคลื่อนรายทิศลดจาก 39% เหลือ 19%</span></li>
+        <li><b data-i18n="cameras.s214">ลดการนับซ้ำ (re-ID)</b> <span data-i18n="cameras.s215">ตัดยอดลง 5–15% ช่วยเมื่อคนเดินวนแถวประตู แต่ทำให้นับขาดมากขึ้นในที่คนแน่น จึงปิดไว้เป็นค่าเริ่มต้น</span></li>
+        <li><b data-i18n="cameras.s216">ใบหน้า:</b> <span data-i18n="cameras.s217">เพิ่มกฎ “ต้องใกล้กว่าคนอันดับสองชัดเจน” ลดการเช็คชื่อผิดคน 3–4 เท่า ถ้ามีผู้ลงทะเบียนเกิน 100 คน แนะนำลดเกณฑ์เป็น 0.50</span></li>
+        <li data-i18n="cameras.s218">อายุ/เพศ/อารมณ์เป็นการคาดคะเน ใช้ดูภาพรวมกลุ่มผู้ชม ไม่ใช้ตัดสินเรื่องของคนใดคนหนึ่ง</li>
+      </ul>
+      <p class="hint" data-i18n="cameras.s219">วิธีวัด ตารางเต็ม และสัญญาอนุญาตของชุดข้อมูล อยู่ในไฟล์ ACCURACY.md ของโปรเจกต์ (สคริปต์วัดซ้ำได้ใน tests/bench) ชุดข้อมูลใช้เพื่อการประเมินเท่านั้น ไม่ได้รวมไว้ในโปรแกรม: MOTChallenge (CC BY-NC-SA 3.0), LFW (เพื่อการวิจัย), UTKFace (วิจัยที่ไม่ใช่เชิงพาณิชย์), HaGRID (CC BY-SA 4.0)</p>
     </div>
   </section>
 
   <section class="group" id="mobile" aria-labelledby="h-mobile">
-    <h2 id="h-mobile">ใช้งานบนมือถือและแท็บเล็ต</h2>
+    <h2 id="h-mobile" data-i18n="cameras.s220">ใช้งานบนมือถือและแท็บเล็ต</h2>
     <div class="howto">
-      <p>เบราว์เซอร์บนมือถืออนุญาตให้ใช้กล้องเฉพาะเว็บที่เปิดผ่าน <b>https://</b> เท่านั้น ให้เปิดเซิร์ฟเวอร์ในโหมดมือถือดังนี้</p>
+      <p><span data-i18n="cameras.s221">เบราว์เซอร์บนมือถืออนุญาตให้ใช้กล้องเฉพาะเว็บที่เปิดผ่าน</span> <b>https://</b> <span data-i18n="cameras.s222">เท่านั้น ให้เปิดเซิร์ฟเวอร์ในโหมดมือถือดังนี้</span></p>
       <ol>
-        <li>ให้คอมพิวเตอร์ที่รันระบบและมือถืออยู่ใน Wi‑Fi เดียวกัน</li>
-        <li>บนคอมพิวเตอร์ เปิด Terminal ที่โฟลเดอร์โปรเจกต์ แล้วรัน <code>./start.sh mobile</code></li>
-        <li>หน้าจอจะแสดงที่อยู่ เช่น <code>https://192.168.1.20:8443</code> ให้พิมพ์ที่อยู่นั้นในเบราว์เซอร์มือถือ (Safari หรือ Chrome)</li>
-        <li>ครั้งแรกจะมีคำเตือนเรื่องใบรับรอง เพราะเป็นใบรับรองที่สร้างเอง ให้กด “ขั้นสูง/แสดงรายละเอียด” แล้วเลือก “ไปต่อ/เยี่ยมชมเว็บไซต์นี้”</li>
-        <li>เมื่อเปิดหน้าที่ใช้กล้อง ให้กด “อนุญาต” การใช้กล้อง และใช้ปุ่มสลับกล้องหน้า/หลังได้</li>
+        <li data-i18n="cameras.s223">ให้คอมพิวเตอร์ที่รันระบบและมือถืออยู่ใน Wi‑Fi เดียวกัน</li>
+        <li><span data-i18n="cameras.s224">บนคอมพิวเตอร์ เปิด Terminal ที่โฟลเดอร์โปรเจกต์ แล้วรัน</span> <code>./start.sh mobile</code></li>
+        <li><span data-i18n="cameras.s225">หน้าจอจะแสดงที่อยู่ เช่น</span> <code>https://192.168.1.20:8443</code> <span data-i18n="cameras.s226">ให้พิมพ์ที่อยู่นั้นในเบราว์เซอร์มือถือ (Safari หรือ Chrome)</span></li>
+        <li data-i18n="cameras.s227">ครั้งแรกจะมีคำเตือนเรื่องใบรับรอง เพราะเป็นใบรับรองที่สร้างเอง ให้กด “ขั้นสูง/แสดงรายละเอียด” แล้วเลือก “ไปต่อ/เยี่ยมชมเว็บไซต์นี้”</li>
+        <li data-i18n="cameras.s228">เมื่อเปิดหน้าที่ใช้กล้อง ให้กด “อนุญาต” การใช้กล้อง และใช้ปุ่มสลับกล้องหน้า/หลังได้</li>
       </ol>
-      <p class="hint"><b>หลายกล้องพร้อมกันใช้ได้บนคอมพิวเตอร์ (สูงสุด 4 ตัว) มือถือส่วนใหญ่เปิดได้ทีละกล้อง — ใช้ 1 เครื่องต่อ 1 จุด</b></p>
-      <p class="hint">ข้อมูลสถิติจะถูกเก็บในเบราว์เซอร์ของแต่ละเครื่องแยกกัน ใช้โหมดนี้เฉพาะในเครือข่ายที่ไว้ใจได้ สำหรับติดตั้งใช้งานจริงแบบถาวร แนะนำให้ใช้โดเมนพร้อมใบรับรอง HTTPS จริง</p>
+      <p class="hint"><b data-i18n="cameras.s229">หลายกล้องพร้อมกันใช้ได้บนคอมพิวเตอร์ (สูงสุด 4 ตัว) มือถือส่วนใหญ่เปิดได้ทีละกล้อง — ใช้ 1 เครื่องต่อ 1 จุด</b></p>
+      <p class="hint" data-i18n="cameras.s230">ข้อมูลสถิติจะถูกเก็บในเบราว์เซอร์ของแต่ละเครื่องแยกกัน ใช้โหมดนี้เฉพาะในเครือข่ายที่ไว้ใจได้ สำหรับติดตั้งใช้งานจริงแบบถาวร แนะนำให้ใช้โดเมนพร้อมใบรับรอง HTTPS จริง</p>
 
-      <h3 id="multi-device">ใช้มือถือหลายเครื่องรวมยอดเดียว (วิเคราะห์หน้าร้าน)</h3>
-      <p>ตั้งมือถือหรือแท็บเล็ต 1 เครื่องต่อ 1 จุด (ประตูหน้า ประตูหลัง โซนสินค้า) แล้วให้คอมพิวเตอร์ในร้านเป็นเครื่องหลักที่รวมยอด</p>
+      <h3 id="multi-device" data-i18n="cameras.s231">ใช้มือถือหลายเครื่องรวมยอดเดียว (วิเคราะห์หน้าร้าน)</h3>
+      <p data-i18n="cameras.s232">ตั้งมือถือหรือแท็บเล็ต 1 เครื่องต่อ 1 จุด (ประตูหน้า ประตูหลัง โซนสินค้า) แล้วให้คอมพิวเตอร์ในร้านเป็นเครื่องหลักที่รวมยอด</p>
       <ol>
-        <li>บนคอมพิวเตอร์เครื่องหลัก รัน <code>./start.sh mobile</code> หน้าจอจะแสดงที่อยู่ เช่น <code>https://192.168.1.20:8443</code> และรหัสจับคู่</li>
-        <li>บนคอมพิวเตอร์เครื่องเดียวกัน เปิด <code>https://localhost:8443/store.html</code> เลื่อนไปที่ “เชื่อมหลายเครื่อง” แล้วเลือก “เครื่องหลัก (รวมยอด)” จะเห็นรหัสจับคู่และปุ่มคัดลอกลิงก์จับคู่</li>
-        <li>บนมือถือแต่ละเครื่อง เปิด <code>https://192.168.1.20:8443/store.html</code> (ใช้ IP ของเครื่องหลัก) เลือก “เครื่องลูก (จุดนับ)” ตั้งชื่อจุด ใส่รหัสจับคู่ แล้วกด “จับคู่” หรือเปิดลิงก์จับคู่ที่ส่งมาจากเครื่องหลัก</li>
-        <li>บนมือถือ กด “เปิดกล้อง” วาดเส้นนับ/โซนตามปกติ เครื่องจะส่งยอดให้เครื่องหลักทุก 15 วินาที ถ้าเน็ตหลุดจะเก็บไว้แล้วส่งให้เองเมื่อเชื่อมต่อได้</li>
+        <li><span data-i18n="cameras.s233">บนคอมพิวเตอร์เครื่องหลัก รัน</span> <code>./start.sh mobile</code> <span data-i18n="cameras.s234">หน้าจอจะแสดงที่อยู่ เช่น</span> <code>https://192.168.1.20:8443</code> <span data-i18n="cameras.s235">และรหัสจับคู่</span></li>
+        <li><span data-i18n="cameras.s236">บนคอมพิวเตอร์เครื่องเดียวกัน เปิด</span> <code>https://localhost:8443/store.html</code> <span data-i18n="cameras.s237">เลื่อนไปที่ “เชื่อมหลายเครื่อง” แล้วเลือก “เครื่องหลัก (รวมยอด)” จะเห็นรหัสจับคู่และปุ่มคัดลอกลิงก์จับคู่</span></li>
+        <li><span data-i18n="cameras.s238">บนมือถือแต่ละเครื่อง เปิด</span> <code>https://192.168.1.20:8443/store.html</code> <span data-i18n="cameras.s239">(ใช้ IP ของเครื่องหลัก) เลือก “เครื่องลูก (จุดนับ)” ตั้งชื่อจุด ใส่รหัสจับคู่ แล้วกด “จับคู่” หรือเปิดลิงก์จับคู่ที่ส่งมาจากเครื่องหลัก</span></li>
+        <li data-i18n="cameras.s240">บนมือถือ กด “เปิดกล้อง” วาดเส้นนับ/โซนตามปกติ เครื่องจะส่งยอดให้เครื่องหลักทุก 15 วินาที ถ้าเน็ตหลุดจะเก็บไว้แล้วส่งให้เองเมื่อเชื่อมต่อได้</li>
       </ol>
-      <p class="hint">มือถือส่งเฉพาะตัวเลขสรุปรายวัน (จำนวนเข้า–ออก รายชั่วโมง โซน คิว และชื่อจุด) ไม่ส่งภาพ วิดีโอ หรือฮีตแมป เซิร์ฟเวอร์รับเฉพาะเครื่องในวง LAN ที่จับคู่แล้ว เครื่องหลักลบเครื่องลูกหรือเปลี่ยนรหัสได้ตลอด ยอดรวมจะแสดงในหน้า “วิเคราะห์หน้าร้าน” และ “แดชบอร์ดรวม” ของเครื่องหลัก บนเว็บสาธิต (GitHub Pages) ไม่มีเซิร์ฟเวอร์กลาง ให้ใช้ “ส่งต่อด้วยไฟล์” แทน</p>
+      <p class="hint" data-i18n="cameras.s241">มือถือส่งเฉพาะตัวเลขสรุปรายวัน (จำนวนเข้า–ออก รายชั่วโมง โซน คิว และชื่อจุด) ไม่ส่งภาพ วิดีโอ หรือฮีตแมป เซิร์ฟเวอร์รับเฉพาะเครื่องในวง LAN ที่จับคู่แล้ว เครื่องหลักลบเครื่องลูกหรือเปลี่ยนรหัสได้ตลอด ยอดรวมจะแสดงในหน้า “วิเคราะห์หน้าร้าน” และ “แดชบอร์ดรวม” ของเครื่องหลัก บนเว็บสาธิต (GitHub Pages) ไม่มีเซิร์ฟเวอร์กลาง ให้ใช้ “ส่งต่อด้วยไฟล์” แทน</p>
     </div>
   </section>
 
-  <p class="note"><b>ข้อควรรู้ด้าน PDPA:</b> ระบบที่วิเคราะห์ใบหน้าหรือพฤติกรรมคนต้องติดป้ายแจ้งและขอความยินยอมตามกฎหมาย ระบบในหน้านี้ออกแบบให้ไม่บันทึกภาพคนและเก็บเพียงสถิติไว้ในเครื่อง ผลการประเมินเพศ อายุ และอารมณ์เป็นการคาดคะเนที่อาจคลาดเคลื่อน</p>
+  <p class="note"><b data-i18n="cameras.s242">ข้อควรรู้ด้าน PDPA:</b> <span data-i18n="cameras.s243">ระบบที่วิเคราะห์ใบหน้าหรือพฤติกรรมคนต้องติดป้ายแจ้งและขอความยินยอมตามกฎหมาย ระบบในหน้านี้ออกแบบให้ไม่บันทึกภาพคนและเก็บเพียงสถิติไว้ในเครื่อง ผลการประเมินเพศ อายุ และอารมณ์เป็นการคาดคะเนที่อาจคลาดเคลื่อน ดู</span> <a href="#accuracy" data-i18n="cameras.s244">ความแม่นยำที่วัดได้</a></p>
 </main>
 </body>
 </html>

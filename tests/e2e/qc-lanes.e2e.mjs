@@ -3,6 +3,8 @@
 // - single lane (default): simulator calibrates + inspects, log entries get lane "L1", webhook body has lane
 // - 3 lanes in the simulator: own recipe/background per lane, per-lane stats, lane table + p-chart, two-bottle warning
 // - 2 lanes on fake cameras via createHub; muteOthers = capacity fallback (1 live lane + message)
+// - the simulator clock is frame-paced (max 70 ms per drawn frame), so a loaded machine slows the belt instead of
+//   skipping the still phase; budgets below are generous upper bounds, the waits return as soon as the condition holds
 // - no console errors, no overflow at 390/1280, privacy: no images in localStorage, IndexedDB holds only bg/thumbs
 import { assert, assertNoWebGL } from "./cdp.mjs";
 
@@ -106,7 +108,7 @@ export default async function ({ base, launch, check, fakeCams }) {
       const tol = await page.evaluate(() => { const rs = JSON.parse(localStorage.getItem("qc-recipes")); return __QC.lanes.map(l => rs.find(r => r.id === l.rec).tol.capDE); });
       assert(tol[0] === 15 && tol[1] === 22 && tol[2] === 15, "per-lane tolerances " + tol);
       await page.evaluate(() => document.getElementById("toggle").click());
-      const st = await page.waitFor(`(() => { const s = __QC.shift; const L = s.lanes; return ["L1","L2","L3"].every(k => L[k] && L[k].total >= 2) && L; })()`, 40000);
+      const st = await page.waitFor(`(() => { const s = __QC.shift; const L = s.lanes; return ["L1","L2","L3"].every(k => L[k] && L[k].total >= 2) && L; })()`, 90000);
       assert(st.L2.total >= 2 && st.L3.total >= 2, "per-lane totals " + JSON.stringify(st));
       const hookLanes = await page.evaluate(() => window.__hook.map(h => h.lane));
       assert(hookLanes.every(l => /^L[1-3]$/.test(l)), "webhook lanes " + hookLanes);
@@ -116,7 +118,7 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(/p̄ =/.test(pc.info) && pc.g >= 1, "per-lane p-chart " + JSON.stringify(pc));
       // two bottles in the trigger area
       await page.evaluate(() => { __QC.simPairRate = 1; });
-      const m = await page.waitFor(`(() => { const L = __QC.shift.lanes; const n = Object.values(L).reduce((s, l) => s + (l.multi || 0), 0); return n >= 1 && { n, msg: document.getElementById("engine").textContent }; })()`, 20000);
+      const m = await page.waitFor(`(() => { const L = __QC.shift.lanes; const n = Object.values(L).reduce((s, l) => s + (l.multi || 0), 0); return n >= 1 && { n, msg: document.getElementById("engine").textContent }; })()`, 45000);
       assert(m.n >= 1, "multi warnings " + JSON.stringify(m));
       await page.evaluate(() => { __QC.simPairRate = 0; document.getElementById("toggle").click(); });
       await overflow(page, 390);

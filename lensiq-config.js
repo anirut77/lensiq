@@ -8,7 +8,8 @@
  */
 window.LENSIQ_API_BASE = window.LENSIQ_API_BASE || "";
 
-/* LENSIQ_FACEPARSE: ใช้โมเดลแยกผม/คอ/เสื้อ (vendor/models/faceparse-bisenet-r18-q8.onnx) ในสตูดิโอแต่งชุด
- *   false (ค่าเริ่มต้น) = ใช้วิธีแยกด้วยสีแทน — น้ำหนักโมเดลฝึกจากชุดข้อมูลที่อนุญาตเฉพาะงานไม่ใช่เชิงพาณิชย์
- *   ตั้ง true เมื่อมีไฟล์โมเดลและยืนยันสิทธิ์การใช้งานแล้ว (ดู vendor/models/FACEPARSE-LICENSE.txt) */
+/* LENSIQ_FACEPARSE: สตูดิโอแต่งชุดใช้ BiSeNet (vendor/models/faceparse-bisenet-r18-q8.onnx) แทนโมเดลค่าเริ่มต้น
+ *   false (ค่าเริ่มต้น) = MediaPipe Selfie Multiclass (Apache-2.0, vendor/models/selfie-multiclass-256-f16.onnx — ใช้เชิงพาณิชย์ได้)
+ *   true = BiSeNet: น้ำหนักฝึกจาก CelebAMask-HQ (ใช้ได้เฉพาะงานวิจัย/ไม่ใช่เชิงพาณิชย์) ไฟล์ไม่อยู่ใน git
+ *          เปิดเฉพาะเมื่อมีไฟล์โมเดลและสิทธิ์การใช้งานแล้ว (ดู vendor/models/FACEPARSE-LICENSE.txt) หรือทดสอบด้วย ?faceparse=1 */
 window.LENSIQ_FACEPARSE = window.LENSIQ_FACEPARSE === true;

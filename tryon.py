@@ -53,9 +53,25 @@ def build_input(human_png, garment_png, description):
 
 
 class TryOnError(Exception):
-    def __init__(self, msg, status=502):
+    """msg = ข้อความที่แสดงผู้ใช้ได้ ; detail = รายละเอียดจากผู้ให้บริการ (log เท่านั้น ห้ามส่งให้ผู้ใช้)"""
+    def __init__(self, msg, status=502, detail=""):
         super().__init__(msg)
         self.status = status
+        self.detail = detail
+
+
+def _replicate_url(url):
+    """ส่ง token ไปเฉพาะ https://api.replicate.com เท่านั้น (กัน URL ปลอมในคำตอบพา token ออกไป)"""
+    if not isinstance(url, str) or not url.startswith(API + "/"):
+        raise TryOnError("AI ตอบกลับในรูปแบบที่ไม่รองรับ", 502, detail="unexpected poll url")
+    return url
+
+
+def _https_url(url):
+    """รูปผลลัพธ์ต้องเป็น https:// (กัน file:// / http ภายในเครือข่าย = SSRF)"""
+    if not isinstance(url, str) or not url.lower().startswith("https://"):
+        raise TryOnError("AI ไม่ได้ส่งรูปกลับมา", 502, detail="non-https output url")
+    return url
 
 
 def run(human_png, garment_png, description=""):
@@ -78,18 +94,19 @@ def run(human_png, garment_png, description=""):
             if time.time() - t0 > TIMEOUT_S:
                 raise TryOnError("AI ใช้เวลานานเกินไป ลองใหม่อีกครั้ง", 504)
             time.sleep(2)
-            pred = _req("GET", pred["urls"]["get"], cfg["token"])
+            pred = _req("GET", _replicate_url((pred.get("urls") or {}).get("get")), cfg["token"])
         if pred["status"] != "succeeded":
-            raise TryOnError("AI ประมวลผลไม่สำเร็จ: " + str(pred.get("error") or pred["status"]))
+            raise TryOnError("AI ประมวลผลไม่สำเร็จ ลองใหม่อีกครั้ง", 502, detail=str(pred.get("error") or pred["status"])[:300])
         out = pred.get("output")
         url = out[0] if isinstance(out, list) else out
         if not url:
             raise TryOnError("AI ไม่ได้ส่งรูปกลับมา")
-        with urllib.request.urlopen(url, timeout=60) as r:
-            return r.read()
+        with urllib.request.urlopen(_https_url(url), timeout=60) as r:
+            return r.read(25 * 1024 * 1024)
     except urllib.error.HTTPError as e:
         detail = e.read().decode(errors="ignore")[:300]
         status = 401 if e.code in (401, 403) else 502
-        raise TryOnError(f"Replicate ตอบกลับ {e.code}: {detail}", status)
+        msg = "ตั้งค่า API key ของบริการ AI ไม่ถูกต้อง" if status == 401 else "บริการ AI ขัดข้องชั่วคราว"
+        raise TryOnError(msg, status, detail=f"HTTP {e.code}: {detail}")
     except urllib.error.URLError as e:
-        raise TryOnError(f"เชื่อมต่อ Replicate ไม่ได้: {e.reason}", 502)
+        raise TryOnError("เชื่อมต่อบริการ AI ไม่ได้", 502, detail=str(e.reason)[:200])

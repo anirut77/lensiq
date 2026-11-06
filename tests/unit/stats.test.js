@@ -135,8 +135,10 @@ test("funnel, cohorts, A/B helpers, season grid", () => {
   const ab = S.abRates([{ name: "a", x: 50, n: 100 }, { name: "b", x: 30, n: 100 }, { name: "c", x: 9, n: 10 }], { minN: 30 });
   assert.equal(ab.best.name, "a"); assert.equal(ab.runner.name, "b"); assert.equal(ab.groups[0].name, "c"); // shown, but too few to win
   near(ab.test.diff, 0.2, 1e-12); assert.ok(ab.test.p < 0.01);
-  const am = S.abMeans([{ name: "x", values: [1, 2, 3, 4, 5] }, { name: "y", values: [3, 4, 5, 6, 7] }, { name: "z", values: [9] }]);
-  assert.equal(am.best.name, "y"); assert.equal(am.groups.find(g => g.name === "z").enough, false); near(am.test.p, 0.08052, 1e-4);
+  const am = S.abMeans([{ name: "x", values: [1, 2, 3, 4, 5] }, { name: "y", values: [3, 4, 5, 6, 7] }, { name: "z", values: [9] }], { minN: 3 });
+  assert.equal(am.best.name, "y"); assert.equal(am.groups.find(g => g.name === "z").enough, false); near(am.test.pRaw, 0.08052, 1e-4);
+  // default: < 10 values per arm → no ranking, no confidence label
+  assert.equal(S.abMeans([{ name: "x", values: [1, 2, 3, 4, 5] }, { name: "y", values: [3, 4, 5, 6, 7] }]).enough, false);
   const g = S.seasonGrid([{ wd: 1, h: 9, v: 4 }, { wd: 1, h: 9, v: 6 }, { wd: 2, h: 10, v: 3 }]);
   assert.equal(g.mean[1][9], 5); assert.equal(g.n[1][9], 2); assert.equal(g.mean[0][0], null); assert.equal(g.max, 5);
   assert.equal(S.confLevel(0.001), "strong"); assert.equal(S.confLevel(0.03), "moderate"); assert.equal(S.confLevel(0.1), "weak"); assert.equal(S.confLevel(0.5), "none"); assert.equal(S.confLevel(0.001, false), "insufficient");
@@ -152,20 +154,64 @@ const simDays = (R, { mu = 150, h = 0, L = 30, H = 84, eff = 1 } = {}) => Array.
 });
 const oldP = days => { const s = g => days.filter(d => d.g === g).reduce((t, d) => t + d.y, 0), L = days.filter(d => d.g === "A").length; return S.poissonTest(s("A"), L, s("B"), L).p; };
 
-test("countCompare (negative binomial GLM): seeded simulation — false-positive rate ≈ 5% under 0–50% day-to-day noise, power for +20%", () => {
-  const REPS = 500, rows = [];
+test("A/B with many arms: omnibus + Holm over all pairs keeps family-wise false positives ≤ 5% (seeded simulation)", () => {
+  const R = rng(4242), binom = (n, p) => { let k = 0; for (let i = 0; i < n; i++) if (R() < p) k++; return k; };
+  const g = () => Math.sqrt(-2 * Math.log(1 - R())) * Math.cos(2 * Math.PI * R());
+  const REPS = 300;
+  for (const [k, n] of [[6, 300], [10, 100], [6, 40]]) {
+    let fw = 0, old = 0;
+    for (let it = 0; it < REPS; it++) { const A = S.abRates(Array.from({ length: k }, (_, i) => ({ id: i, x: binom(n, 0.4), n }))); if (A.pairs.some(p => p.pAdj < 0.05)) fw++; if (A.spread.pRaw < 0.05) old++; }
+    assert.ok(fw / REPS <= 0.06, `rates k=${k} n=${n}: family-wise ${fw / REPS}`);
+    assert.ok(old / REPS > 0.2, `best-vs-worst raw p is the biased statistic it replaces: ${old / REPS}`);
+  }
+  for (const [k, n] of [[4, 10], [6, 12]]) {
+    let fw = 0;
+    for (let it = 0; it < REPS; it++) { const A = S.abMeans(Array.from({ length: k }, (_, i) => ({ id: i, values: Array.from({ length: n }, () => Math.min(1, Math.max(0, 0.4 + 0.2 * g()))) }))); if (A.pairs.some(p => p.pAdj < 0.05)) fw++; }
+    assert.ok(fw / REPS <= 0.07, `means k=${k} n=${n}: family-wise ${fw / REPS}`);
+  }
+  // 5 vs 5 testers: below the 10-per-arm minimum → no confidence label at all
+  const tiny = S.abMeans([{ id: "a", values: [0.7, 0.72, 0.68, 0.71, 0.69] }, { id: "b", values: [0.3, 0.35, 0.4, 0.33, 0.38] }]);
+  assert.equal(tiny.enough, false); assert.equal(tiny.spread, null);
+  // power: one ad +12 points among six (n = 300 each) is still found most of the time
+  let hit = 0;
+  for (let it = 0; it < 150; it++) { const A = S.abRates([0, 0, 0, 0, 0, 0.12].map((d, i) => ({ id: i, x: binom(300, 0.4 + d), n: 300 }))); if (A.best.id === 5 && A.spread.pAdj < 0.05) hit++; }
+  assert.ok(hit / 150 >= 0.7, "power " + hit / 150);
+  // hand check: chi-square survival, Welch ANOVA with k = 2 equals Welch t²
+  near(S.chi2Sf(3.841459, 1), 0.05, 1e-5); near(S.chi2Sf(11.0705, 5), 0.05, 1e-5);
+  const a = [1, 3, 2, 5, 4, 6, 2, 3, 4, 5], b = [4, 6, 5, 8, 7, 9, 5, 7, 6, 8];
+  near(S.welchAnova([{ values: a }, { values: b }]).p, S.welch(a, b).p, 1e-6);
+});
+
+test("countCompare (negative binomial GLM + AR(1) level): seeded simulation — false positives ≤ 7% under 0–50% day-to-day noise, power for +20%", () => {
+  const REPS = 300, rows = [];
   for (const h of [0, 0.25, 0.5]) {
     const R = rng(1000 + h * 100); let fp = 0, fpOld = 0;
     for (let k = 0; k < REPS; k++) { const d = simDays(R, { h }); if (S.countCompare(d).p < 0.05) fp++; if (oldP(d) < 0.05) fpOld++; }
     rows.push({ h, fp: fp / REPS, fpOld: fpOld / REPS });
   }
-  for (const r of rows) assert.ok(r.fp >= 0.03 && r.fp <= 0.07, `noise ±${r.h * 100}%: false positives ${(r.fp * 100).toFixed(1)}% (want 5% ± 2%)`);
+  // without drift the AR-averaged test is conservative here (≈ 1–2% for 30 vs 30 days) — the price of staying honest when the level drifts (next test)
+  for (const r of rows) assert.ok(r.fp <= 0.07, `noise ±${r.h * 100}%: false positives ${(r.fp * 100).toFixed(1)}% (want ≤ 7%)`);
   // the exact Poisson test it replaces is badly miscalibrated on the same data (30 vs 30 days: unbalanced weekdays + overdispersion)
   assert.ok(rows.find(r => r.h === 0.25).fpOld > 0.25, "old exact Poisson false positives " + rows.map(r => r.fpOld));
   // power: true +20% change, ±30% noise, 30 vs 30 days
   const R = rng(77); let hit = 0;
   for (let k = 0; k < 200; k++) { const t = S.countCompare(simDays(R, { h: 0.3, eff: 1.2 })); if (t.p < 0.05 && t.adjChange > 0) hit++; }
   assert.ok(hit / 200 >= 0.85, `power for +20%: ${hit / 2}%`);
+});
+
+test("countCompare: latent level drift AR(φ) — false positives stay near 5% (was 11–34% when days were treated as independent)", () => {
+  const g = R => Math.sqrt(-2 * Math.log(1 - R())) * Math.cos(2 * Math.PI * R());
+  const gam8 = R => { const d = 8 - 1 / 3, c = 1 / Math.sqrt(9 * d); for (;;) { let x, v; do { x = g(R); v = 1 + c * x; } while (v <= 0); v = v * v * v; if (Math.log(R()) < 0.5 * x * x + d - d * v + d * Math.log(v)) return d * v / 8; } };
+  const WD = [0.8, 0.9, 0.9, 1, 1.1, 1.4, 1.3];
+  // n days, A = last L, B = the L before ; log level AR(φ) with stationary SD 0.23 ; NB(k = 8) day noise
+  const sim = (R, n, L, phi) => { let lv = phi ? 0.228 * g(R) : 0; return Array.from({ length: n }, (_, i) => { lv = phi ? phi * lv + 0.228 * Math.sqrt(1 - phi * phi) * g(R) : 0; return { y: poisson(R, 120 * WD[i % 7] * Math.exp(lv) * gam8(R)), e: 1, wd: i % 7, g: i >= n - L ? "A" : i >= n - 2 * L ? "B" : "h", t: i }; }); };
+  const REPS = 150, rows = [];
+  for (const [n, L] of [[60, 7], [120, 14]]) for (const phi of [0, 0.6, 0.85]) {
+    const R = rng(900 + n + phi * 100); let fp = 0;
+    for (let k = 0; k < REPS; k++) if (S.countCompare(sim(R, n, L, phi)).p < 0.05) fp++;
+    rows.push(`${n}d ${L}v${L} φ=${phi}: ${(fp / REPS * 100).toFixed(1)}%`);
+    assert.ok(fp / REPS <= 0.09, rows.at(-1));
+  }
 });
 
 test("countCompare: weekday adjustment, partial today, zero side, short history", () => {
@@ -176,7 +222,7 @@ test("countCompare: weekday adjustment, partial today, zero side, short history"
   for (const wd of [1, 2, 3, 4, 1, 2, 3]) days.push({ y: Math.round(100 * WKM[wd]), e: 1, wd, g: "B" });
   const t = S.countCompare(days);
   assert.ok(t.change > 0.2, "raw change " + t.change); near(t.adjChange, 0, 0.01, "weekday-adjusted change"); assert.ok(t.p > 0.5 && t.wdAdj);
-  assert.ok(t.lo < 0 && t.hi > 0); assert.equal(t.method, "negbin-glm");
+  assert.ok(t.lo < 0 && t.hi > 0); assert.equal(t.method, "negbin-ar1-gls");
   // partial day: half a day with half the count = same rate
   const p = S.countCompare([...days.filter(d => d.g === "h"), { y: 50, e: 0.5, wd: 3, g: "A" }, { y: 100, e: 1, wd: 3, g: "B" }]);
   near(p.rate1, 100, 1e-9); near(p.adjChange, 0, 1e-6);

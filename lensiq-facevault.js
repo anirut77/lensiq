@@ -5,8 +5,11 @@
  * - ซองข้อมูลใน localStorage: {"enc":"lq1","iv":"<base64 12 ไบต์>","ct":"<base64>"} ; ชื่อคีย์ localStorage ใช้เป็น AAD
  *   (ย้ายซองไปคีย์อื่นจะถอดไม่ได้)
  * - ข้อมูลเดิมที่เป็นข้อความธรรมดา (ก่อนมีระบบนี้) อ่านได้ และถูกเข้ารหัสใหม่อัตโนมัติเมื่อบันทึก (splitLoad)
- * - ไม่มี crypto.subtle / IndexedDB (เช่นเปิดผ่าน http บนเครื่องอื่น = ไม่ใช่ secure context): ทำงานต่อแบบไม่เข้ารหัส
- *   {"plain":"lq1","data":...} และแจ้งเตือน — ไม่ทิ้งข้อมูล
+ * - ไม่มี crypto.subtle / IndexedDB / secure context (เช่นเปิดผ่าน http:// บนเครื่องอื่น, private mode บางแบบ):
+ *   ค่าเริ่มต้น = "ปฏิเสธการเขียน" (โยน VaultInsecureError, state "insecure") — ไม่มีการเก็บค่าใบหน้าแบบไม่เข้ารหัส
+ *   หน้าเว็บเรียก LQVault.enrollBlockReason() ก่อนเริ่มลงทะเบียนใบหน้า แล้วแสดงข้อความนั้นแทนปุ่มลงทะเบียน
+ *   (โหมดเดิมที่เก็บ {"plain":"lq1","data":...} เปิดได้เฉพาะเมื่อตั้ง LQVault.configure({allowPlaintext:true}) เอง — ไม่แนะนำ)
+ * - ข้อมูลเดิมที่ไม่เข้ารหัสยังอ่านได้ (ลบได้) แต่ไม่เขียนกลับแบบไม่เข้ารหัส
  * - ถอดรหัสไม่ได้ (กุญแจหาย เช่นล้าง IndexedDB) -> สถานะ "locked": ไม่ลบเอง ไม่เขียนทับ จนกว่าผู้ใช้กด "ลบข้อมูลใบหน้าทั้งหมด"
  *
  * เบราว์เซอร์: window.LQVault ; Node (ทดสอบ): require("./lensiq-facevault.js") แล้ว LQVault._setKeyStore(...)
@@ -20,6 +23,12 @@
   class VaultLockedError extends Error {
     constructor(key) { super("ข้อมูลใบหน้าที่เข้ารหัสไว้ถอดรหัสไม่ได้ (กุญแจในเบราว์เซอร์นี้หายไป)"); this.name = "VaultLockedError"; this.key = key; }
   }
+  const INSECURE_TH = "บันทึกข้อมูลใบหน้าไม่ได้: เบราว์เซอร์นี้เข้ารหัสไม่ได้ ต้องเปิดผ่าน https:// หรือ localhost และไม่ใช้โหมดส่วนตัวที่ปิด IndexedDB";
+  /** เขียนไม่ได้เพราะไม่มี secure context / WebCrypto / IndexedDB (หรือเข้ารหัสล้มเหลว) — ไม่มีการเก็บแบบไม่เข้ารหัส */
+  class VaultInsecureError extends Error {
+    constructor(key, reason) { super(INSECURE_TH); this.name = "VaultInsecureError"; this.code = "insecure-context"; this.key = key; this.reason = reason || "insecure"; }
+  }
+  const cfg = { allowPlaintext: false };
 
   const subtle = () => (root.crypto && root.crypto.subtle) || null;
   const storage = () => { try { return root.localStorage || null; } catch { return null; } };
@@ -55,6 +64,21 @@
 
   function supported() {
     return !!(subtle() && getKeyStore() && (root.isSecureContext !== false));
+  }
+  /** เหตุผลที่เขียนแบบเข้ารหัสไม่ได้ ("insecure-context" | "no-webcrypto" | "no-indexeddb") หรือ null */
+  function insecureReason() {
+    if (root.isSecureContext === false) return "insecure-context";
+    if (!subtle()) return "no-webcrypto";
+    if (!getKeyStore()) return "no-indexeddb";
+    return null;
+  }
+  /** ข้อความภาษาไทยให้หน้าเว็บแสดงแทนการลงทะเบียนใบหน้า หรือ null เมื่อพร้อม */
+  function enrollBlockReason() {
+    return supported() || cfg.allowPlaintext ? null : INSECURE_TH;
+  }
+  function configure(o) {
+    if (o && typeof o.allowPlaintext === "boolean") cfg.allowPlaintext = o.allowPlaintext;
+    return Object.assign({}, cfg);
   }
 
   const keyP = new Map(); // แคชกุญแจของหน้านี้ ต่อคีย์ข้อมูล
@@ -109,13 +133,17 @@
     return { data: o, state: "plain" }; // ข้อมูลรุ่นเก่า
   }
 
-  /** เขียนคีย์ -> "enc" | "plain" ; คีย์ที่ถอดรหัสไม่ได้ (locked) ห้ามเขียนทับ เว้นแต่ {force:true} */
+  /** เขียนคีย์ -> "enc" ("plain" เฉพาะเมื่อ configure({allowPlaintext:true})) ; คีย์ที่ถอดรหัสไม่ได้ (locked) ห้ามเขียนทับ เว้นแต่ {force:true}
+   *  เข้ารหัสไม่ได้ -> โยน VaultInsecureError (e.code === "insecure-context") และไม่เขียนอะไรลง localStorage */
   async function write(name, data, ls = storage(), opts = {}) {
     if (locked.has(name) && !opts.force) throw new VaultLockedError(name);
     let out, mode;
     if (supported()) {
-      try { out = await seal(name, data, await getKey(name, true)); mode = "enc"; } catch (e) { console.warn("LQVault: encrypt failed, storing unencrypted", e); }
-    }
+      try { out = await seal(name, data, await getKey(name, true)); mode = "enc"; } catch (e) {
+        if (!cfg.allowPlaintext) throw new VaultInsecureError(name, "encrypt-failed");
+        console.warn("LQVault: encrypt failed, storing unencrypted (allowPlaintext)", e);
+      }
+    } else if (!cfg.allowPlaintext) throw new VaultInsecureError(name, insecureReason());
     if (!out) { out = JSON.stringify({ plain: TAG, data }); mode = "plain"; }
     ls.setItem(name, out); // พื้นที่เต็ม = โยน error ให้ผู้เรียกแจ้งผู้ใช้
     locked.delete(name);
@@ -165,14 +193,20 @@
     });
     let state = r.state, migrated = false;
     const needEncrypt = r.state === "plain" && supported();
+    const canWrite = supported() || cfg.allowPlaintext;
+    if (!canWrite && (legacy || pruned)) {
+      // เข้ารหัสไม่ได้: ไม่ย้ายค่าใบหน้ารุ่นเก่า (ไม่เขียนสำเนาไม่เข้ารหัสใหม่) — ใช้ในหน่วยความจำ แล้วเขียน meta ที่ประทับวันได้
+      legacy = false; pruned = false;
+    }
     if (r.state !== "locked" && (legacy || pruned || needEncrypt || stamped)) {
       try {
         if (legacy || pruned || needEncrypt) state = await write(vaultKey, { v: 1, faces }, ls);
-        ls.setItem(metaKey, JSON.stringify(strip(recs, field)));
+        ls.setItem(metaKey, JSON.stringify(canWrite ? strip(recs, field) : recs)); // เขียนเข้ารหัสไม่ได้: ไม่ตัดค่ารุ่นเก่าทิ้ง (ไม่ทำข้อมูลหาย)
         migrated = legacy;
       } catch (e) { console.warn("LQVault: migration skipped", e); }
     }
-    if (state === "empty") state = supported() ? "enc" : "plain";
+    if (state === "empty") state = supported() ? "enc" : cfg.allowPlaintext ? "plain" : "insecure";
+    else if (state === "plain" && !canWrite) state = "insecure";
     return { records, state, migrated };
   }
 
@@ -182,7 +216,9 @@
     if (opts.faces !== false) {
       const faces = {};
       for (const r of records) if (r && Array.isArray(r[field])) faces[r.id] = Array.from(r[field], x => +x);
-      mode = await write(vaultKey, { v: 1, faces }, ls);
+      // ไม่มีค่าใบหน้าให้เก็บ + เข้ารหัสไม่ได้ (เช่นลบสมาชิกคนสุดท้ายบน http) -> ลบซองเดิมแทนการเขียน ไม่โยน error
+      if (!Object.keys(faces).length && !supported() && !cfg.allowPlaintext) { try { ls.removeItem(vaultKey); } catch {} mode = "insecure"; }
+      else mode = await write(vaultKey, { v: 1, faces }, ls);
     }
     ls.setItem(metaKey, JSON.stringify(strip(records, field)));
     return mode;
@@ -204,11 +240,13 @@
   const STATE_TH = {
     enc: "ข้อมูลใบหน้าเข้ารหัส (AES-GCM) ด้วยกุญแจที่อยู่ในเบราว์เซอร์นี้เท่านั้น",
     plain: "เบราว์เซอร์นี้เข้ารหัสไม่ได้ (ต้องเปิดผ่าน https:// หรือ localhost) — ข้อมูลใบหน้าเก็บแบบไม่เข้ารหัส",
+    insecure: INSECURE_TH,
     locked: "ข้อมูลใบหน้าเดิมถอดรหัสไม่ได้ (กุญแจในเบราว์เซอร์นี้หายไป) — กด \"ลบข้อมูลใบหน้าทั้งหมด\" เพื่อเริ่มใหม่"
   };
 
-  const api = { supported, read, write, wipe, splitLoad, splitSave, queue, expired, isEnvelope, VaultLockedError, RETENTION_CHOICES, STATE_TH, DAY,
-    _setKeyStore(ks) { keyStore = ks; keyP.clear(); }, _reset() { keyP.clear(); locked.clear(); } };
+  const api = { supported, insecureReason, enrollBlockReason, configure, read, write, wipe, splitLoad, splitSave, queue, expired, isEnvelope,
+    VaultLockedError, VaultInsecureError, RETENTION_CHOICES, STATE_TH, DAY,
+    _setKeyStore(ks) { keyStore = ks; keyP.clear(); }, _reset() { keyP.clear(); locked.clear(); cfg.allowPlaintext = false; } };
   root.LQVault = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

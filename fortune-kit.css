@@ -60,7 +60,7 @@
 .fk-reading .rd-src{font-size:.78rem;padding:3px 10px;border-radius:99px;border:1px solid rgba(127,127,160,.4);opacity:.85}
 .fk-reading .rd-src.ai{background:#efeaff;border-color:#cfc4ff;color:#4b36c9;opacity:1}
 .fk-reading .rd-topics{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
-.fk-reading .rd-topics button{min-height:40px;padding:4px 14px;border-radius:99px;border:1.5px solid var(--line);background:var(--bg);color:var(--navy);font-size:.9rem}
+.fk-reading .rd-topics button{min-height:44px;padding:4px 14px;border-radius:99px;border:1.5px solid var(--line);background:var(--bg);color:var(--navy);font-size:.9rem}
 .fk-reading .rd-topics button[aria-checked=true]{background:var(--navy);border-color:var(--navy);color:#fff}
 .fk-reading .rd-consent:empty{display:none}
 .fk-reading .rd-consent{margin:8px 0;font-size:.85rem}
@@ -79,7 +79,7 @@
 .elbar i::after{content:"";position:absolute;inset:0;width:var(--w);background:var(--c);border-radius:99px}
 .elbar b{text-align:right;color:var(--navy)}
 .fk-sources{padding-left:18px;margin:6px 0;font-size:.85rem}
-.fk-sources a{color:#4b36d6;text-decoration:underline;word-break:break-word}
+.fk-sources a{color:#4b36d6;text-decoration:underline;word-break:break-word;display:inline-flex;align-items:center;min-height:44px}
 .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
 
 /* โหมดบูธ */

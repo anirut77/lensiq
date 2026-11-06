@@ -70,7 +70,7 @@ th{white-space:nowrap}
 .tune{margin-top:12px;font-size:.85rem;color:var(--muted)}
 .tune summary{cursor:pointer;min-height:44px;display:flex;align-items:center}
 .tune label{display:block;margin-top:6px}
-.tune input[type=range]{width:100%;min-height:32px}
+.tune input[type=range]{width:100%;min-height:44px}
 .tune small{display:block;margin-top:4px}
 /* ความเป็นส่วนตัวของข้อมูลใบหน้า */
 .vault{margin-top:16px;font-size:.85rem;color:var(--muted)}
@@ -80,3 +80,8 @@ th{white-space:nowrap}
 .vault small{display:block;margin:4px 0 10px}
 .vault-state{margin:4px 0 8px;font-size:.82rem}
 .vault-state.plain,.vault-state.locked{color:#8a4b00}
+
+/* หมายเหตุความแม่นยำ/Beta (ผลวัดใน ACCURACY.md และ cameras.html#accuracy) */
+.acc-note{margin:6px 0 14px;padding:10px 14px;border:1px solid var(--line,#e3e6ef);border-left:4px solid #c9a45c;border-radius:10px;background:#fffdf7;font-size:.86rem;line-height:1.6;color:#4a5068}
+.acc-note .beta{display:inline-block;margin-right:6px;padding:0 8px;border-radius:6px;background:#0e1430;color:#fff;font-size:.75rem;font-weight:500}
+.acc-note a{display:inline;color:inherit;text-decoration:underline} /* ลิงก์ในประโยค (ข้อยกเว้น WCAG 2.5.8) */
