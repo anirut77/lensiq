@@ -66,3 +66,10 @@ tr.click{cursor:pointer}tr.click:hover td{background:var(--bg)}
 .cx .bars .row{grid-template-columns:minmax(0,110px) minmax(40px,1fr) auto}
 .cx .bars .row span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cx #customerCard{margin-bottom:20px}
+/* ชิปเลือกสมาชิกเมื่อพบหลายคนในกล้อง */
+#scanStatus.has-chips{display:grid;gap:8px;padding:10px 12px;background:#e6f6ee;border-radius:12px;color:#14653b}
+#scanStatus .chips-head{font-weight:500;overflow-wrap:anywhere}
+#scanStatus .chips{display:flex;flex-wrap:wrap;gap:8px}
+#scanStatus .chip{min-height:44px;padding:6px 16px;border-radius:99px;border:1px solid #2ecc71;background:#fff;color:var(--navy);font-size:.92rem;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#scanStatus .chip:hover,#scanStatus .chip:focus-visible{background:#2ecc71;color:#fff}
+#scanStatus .hint{font-size:.8rem}

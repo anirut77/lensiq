@@ -18,62 +18,22 @@ const status = (k, t, c) => { engineMsgs[k] = { t, c }; engine(); };
 
 // ---------- กล้องบนมือถือ/แท็บเล็ต: สลับหน้า/หลัง เลือกอุปกรณ์ หยุดเมื่อซ่อนหน้า ----------
 const HTTPS_MSG = "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด";
-function createCamera(video, { width = 1280, height = 720, onChange, onError } = {}) {
-  const cam = { stream: null, facing: "user", deviceId: "", currentId: "", devices: [], mirror: true, active: false, paused: false };
+/* ปุ่มสลับกล้อง + ตัวเลือกกล้อง (แสดงเมื่อมีกล้อง ≥ 2 ตัว) วางทับมุมขวาบนของกรอบกล้อง — กล้องเองใช้ LQCam.create (lensiq-camera.js) */
+function mountCamCtl(host, cam, onError) {
   const escA = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  video.muted = true; video.playsInline = true; video.autoplay = true;
-  video.setAttribute("playsinline", ""); video.setAttribute("muted", ""); video.setAttribute("autoplay", "");
-  cam.stop = () => { cam.stream?.getTracks().forEach(t => t.stop()); cam.stream = null; cam.active = false; video.srcObject = null; };
-  cam.start = async () => {
-    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) throw Object.assign(new Error(HTTPS_MSG), { name: "Insecure" });
-    cam.stop();
-    const base = { width: { ideal: width }, height: { ideal: height } };
-    const want = cam.deviceId ? { ...base, deviceId: { exact: cam.deviceId } } : { ...base, facingMode: { ideal: cam.facing } };
-    let s;
-    try { s = await navigator.mediaDevices.getUserMedia({ video: want, audio: false }); }
-    catch (e) {
-      if (!["OverconstrainedError", "NotFoundError", "NotReadableError"].includes(e.name) || !(cam.deviceId || cam.facing !== "user")) throw e;
-      cam.deviceId = ""; s = await navigator.mediaDevices.getUserMedia({ video: base, audio: false });
-    }
-    cam.stream = s; video.srcObject = s;
-    try { await video.play(); } catch (e) { console.warn("video.play", e); }
-    if (!video.videoWidth) await new Promise(r => { video.addEventListener("loadedmetadata", r, { once: true }); setTimeout(r, 3000); });
-    const tr = s.getVideoTracks()[0], st = tr?.getSettings?.() || {}, label = tr?.label || "";
-    try { cam.devices = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "videoinput" && d.deviceId); } catch { cam.devices = []; }
-    const fm = st.facingMode || (/back|rear|environment|หลัง/i.test(label) ? "environment" : /front|user|หน้า|facetime/i.test(label) ? "user" : cam.deviceId ? "user" : cam.facing);
-    cam.facing = fm === "environment" ? "environment" : "user";
-    cam.mirror = cam.facing === "user"; // กลับด้านภาพพรีวิวเฉพาะกล้องหน้า
-    cam.currentId = st.deviceId || "";
-    cam.active = true;
-    cam.renderControls?.();
-    onChange?.(cam);
-    return cam;
+  const box = document.createElement("div"); box.className = "cam-ctl"; box.hidden = true;
+  box.innerHTML = `<button type="button" class="cam-flip" aria-label="สลับกล้องหน้า/หลัง" title="สลับกล้องหน้า/หลัง"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h11l-3-3M20 16H9l3 3"/></svg><span>สลับกล้อง</span></button><select class="cam-pick" aria-label="เลือกกล้อง"></select>`;
+  host.append(box);
+  const flip = box.querySelector(".cam-flip"), pick = box.querySelector(".cam-pick");
+  const run = p => { box.classList.add("busy"); p.catch(e => { if (e?.name !== "AbortError") onError?.(e); }).finally(() => box.classList.remove("busy")); };
+  flip.onclick = () => run(cam.flip());
+  pick.onchange = () => run(cam.start(pick.value));
+  return () => {
+    const devs = cam.devices.filter(d => d.deviceId);
+    box.hidden = devs.length < 2;
+    pick.innerHTML = devs.map((d, i) => `<option value="${escA(d.deviceId)}">${escA(d.label || "กล้อง " + (i + 1))}</option>`).join("");
+    if (cam.deviceId) pick.value = cam.deviceId;
   };
-  cam.flip = () => { cam.facing = cam.facing === "user" ? "environment" : "user"; cam.deviceId = ""; return cam.start(); };
-  cam.use = id => { cam.deviceId = id; return cam.start(); };
-  /* ปุ่มสลับกล้อง + ตัวเลือกกล้อง (แสดงเมื่อมีมากกว่า 1 ตัว) วางทับมุมขวาบนของกรอบกล้อง */
-  cam.mountControls = host => {
-    const box = document.createElement("div"); box.className = "cam-ctl"; box.hidden = true;
-    box.innerHTML = `<button type="button" class="cam-flip" aria-label="สลับกล้องหน้า/หลัง" title="สลับกล้องหน้า/หลัง"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h11l-3-3M20 16H9l3 3"/></svg><span>สลับกล้อง</span></button><select class="cam-pick" aria-label="เลือกกล้อง"></select>`;
-    host.append(box);
-    const flip = box.querySelector(".cam-flip"), pick = box.querySelector(".cam-pick");
-    const run = p => { box.classList.add("busy"); p.catch(e => onError?.(e)).finally(() => box.classList.remove("busy")); };
-    flip.onclick = () => run(cam.flip());
-    pick.onchange = () => run(cam.use(pick.value));
-    cam.renderControls = () => {
-      box.hidden = cam.devices.length < 2;
-      pick.innerHTML = cam.devices.map((d, i) => `<option value="${escA(d.deviceId)}">${escA(d.label || "กล้อง " + (i + 1))}</option>`).join("");
-      if (cam.currentId) pick.value = cam.currentId;
-    };
-  };
-  // หยุดกล้องเมื่อสลับแอป/ล็อกจอ (ประหยัดแบตและคืนกล้องให้แอปอื่น) แล้วเปิดใหม่เมื่อกลับมา
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) { if (cam.stream) { cam.paused = true; cam.stop(); onChange?.(cam); } }
-    else if (cam.paused) { cam.paused = false; cam.start().catch(e => onError?.(e)); }
-  });
-  window.addEventListener("pagehide", () => { if (cam.stream) { cam.paused = true; cam.stop(); } });
-  window.addEventListener("pageshow", e => { if (e.persisted && cam.paused) { cam.paused = false; cam.start().catch(err => onError?.(err)); } });
-  return cam;
 }
 /* ข้อความเตือนเมื่อเปิดผ่าน http บนเครื่องอื่น (กล้องใช้ได้เฉพาะ https / localhost) */
 function showHttpsNote(before) {
@@ -214,19 +174,20 @@ async function init() {
   const camP = camera.start().catch(camErr);
 
   const face = (async () => {
-    const tf = faceapi.tf; tf.setWasmPaths("vendor/");
-    let ok = false;
-    for (const b of ["webgl", "wasm", "cpu"]) { try { if (await tf.setBackend(b)) { await tf.ready(); ok = true; break; } } catch (e) { console.warn(b, e); } }
-    if (!ok) throw new Error("no backend");
+    if (FAKE) return; // ?fakedet บน localhost: ตัวตรวจจับจำลองสำหรับทดสอบ ไม่โหลดโมเดล
+    await LQDetect.tfBackend();
     await Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri("vendor/models/"), faceapi.nets.faceLandmark68Net.loadFromUri("vendor/models/")]);
     try { await faceapi.nets.faceExpressionNet.loadFromUri("vendor/models/"); exprOK = true; } catch (e) { console.warn("expression model", e); }
   })().then(() => { faceOK = true; status("face", "ตรวจจับใบหน้าพร้อม", "ok"); },
     e => { console.error(e); status("face", "ตรวจจับใบหน้าไม่ได้ (โหมดรูปติดบัตรจัดตำแหน่งอัตโนมัติไม่ได้)", "warn"); });
 
   const segP = (async () => {
+    // กราฟ ImageSegmenter ของ MediaPipe ต้องใช้ GL แม้เลือก CPU delegate: ไม่มี WebGL (หรือ ?cpu) = ข้ามไปเลย ไม่พ่น error
+    if (window.LQDetect && (!LQDetect.hasWebGL() || /[?&](cpu|nogl)\b/.test(location.search))) throw Object.assign(new Error("no WebGL"), { name: "NoWebGL" });
     const { FilesetResolver, ImageSegmenter } = await import("./vendor/mediapipe/vision_bundle.mjs");
     const files = await FilesetResolver.forVisionTasks(new URL("vendor/mediapipe/wasm", location.href).href);
     let last;
+    // ไม่มี WebGL (หรือ ?cpu): ข้าม GPU delegate ที่จะล้มเหลวและพ่น error ลงคอนโซล
     for (const delegate of ["GPU", "CPU"]) {
       try {
         return await ImageSegmenter.createFromOptions(files, {
@@ -237,7 +198,7 @@ async function init() {
     }
     throw last;
   })().then(s => { seg = s; status("seg", "เปลี่ยนฉากหลังอัตโนมัติพร้อม", "ok"); },
-    e => { console.error(e); status("seg", "เปลี่ยนฉากหลังไม่ได้ในเครื่องนี้ (ใช้ภาพต้นฉบับแทน)", "warn"); renderBgSwatches(); });
+    e => { if (e.name === "NoWebGL") console.warn("segmenter skipped: no WebGL"); else console.error(e); status("seg", "เปลี่ยนฉากหลังไม่ได้ในเครื่องนี้ (ใช้ภาพต้นฉบับแทน)", "warn"); renderBgSwatches(); });
 
   // โหลด MODNet ล่วงหน้า (ใช้ตอนกดถ่าย เพื่อขอบผม/ขอบตัวเนียน)
   status("hq", "กำลังโหลดโมเดลตัดพื้นหลังความละเอียดสูง...", "");
@@ -249,19 +210,45 @@ async function init() {
 }
 
 // ---------- กล้อง ----------
-const camera = createCamera(video, {
-  onChange: c => {
+let renderCamCtl = () => {};
+const camera = LQCam.create(video, {
+  facing: "user", ideal: { width: 1280, height: 720 },
+  onChange: (c, ev) => {
+    if (ev.type === "devices") { renderCamCtl(); return; }
     camOK = c.active && !!video.videoWidth; syncPreview();
+    if (ev.type === "ended") { status("cam", "สัญญาณกล้องหลุด — โหลดหน้าใหม่หรือเลือกกล้องอีกครั้ง", "err"); return; }
+    if (ev.type === "error") return;
     status("cam", c.active ? (c.facing === "environment" ? "กล้องหลังพร้อม" : "กล้องพร้อม") : "พักกล้องไว้ขณะสลับแอป", c.active ? "ok" : "");
   },
-  onError: camErr
+  onError: (c, e) => { if (e?.name !== "AbortError") camErr(e); }
 });
+const FAKE = !!(window.LQDetect && LQDetect.isTest());
+/* ทุกใบหน้าในภาพ เรียงจากใหญ่ไปเล็ก (ใบหน้าแรก = ใช้จัดตำแหน่ง) — รูปติดบัตรต้องมีคนเดียว */
+async function detectFaces(src, size, thr, expr) {
+  const W = src.videoWidth || src.width, H = src.videoHeight || src.height;
+  let list;
+  if (FAKE) list = (LQDetect.fake(camera.deviceId || "c1", performance.now()) || []).map(d => {
+    const box = { x: d.x * W, y: d.y * H, width: d.w * W, height: d.h * H }, c = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    // จุดจำลองเฉพาะที่ถ่ายอัตโนมัติใช้ (หางตา 36/45, ปลายจมูก 30); ไม่มีเมธอดของ face-api จึงครอปกึ่งกลางตอนถ่ายจริง
+    const positions = Array.from({ length: 68 }, () => ({ ...c }));
+    positions[36] = { x: box.x + box.width * .3, y: box.y + box.height * .4 }; positions[45] = { x: box.x + box.width * .7, y: box.y + box.height * .4 };
+    positions[30] = { x: c.x, y: box.y + box.height * .6 };
+    return { detection: { box, score: d.score }, landmarks: { positions } };
+  });
+  else {
+    let q = faceapi.detectAllFaces(src, new faceapi.TinyFaceDetectorOptions({ inputSize: size, scoreThreshold: thr })).withFaceLandmarks();
+    if (expr) q = q.withFaceExpressions();
+    list = await q;
+  }
+  return list.sort((a, b) => b.detection.box.width * b.detection.box.height - a.detection.box.width * a.detection.box.height);
+}
+const MULTI_HINT = "มีบุคคลอื่นในภาพ ให้อยู่คนเดียวในกรอบ";
 function camErr(e) {
   console.warn(e); camOK = false;
   if (e.name === "Insecure") showHttpsNote($("#engine"));
   status("cam", e.name === "Insecure" ? HTTPS_MSG : "เปิดกล้องไม่ได้: " + ({ NotAllowedError: "ไม่ได้รับอนุญาต", NotFoundError: "ไม่พบกล้อง", NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่" }[e.name] || e.message), "err");
 }
-camera.mountControls($(".preview"));
+renderCamCtl = mountCamCtl($(".preview"), camera, camErr);
 /* ขนาดพรีวิว: ตู้สติ๊กเกอร์ = 4:3 ตามช่องภาพจริง, รูปติดบัตร = ตามสัดส่วนกล้อง (แนวตั้งบนมือถือ) */
 function previewDims() {
   if (mode !== "id") return [800, 600];
@@ -287,11 +274,11 @@ function loop() {
   const W = preview.width, H = preview.height;
   try {
     if (mode === "booth") {
-      const f = grab(W, H, camera.mirror);
+      const f = grab(W, H, camera.mirrored);
       const shot = { img: f, mask: booth.bg !== "none" ? segment(f) : null };
       pctx.clearRect(0, 0, W, H); composeCell(pctx, shot, 0, 0, W, H, booth.bg);
     } else {
-      const f = grab(W, H, camera.mirror), mask = segment(f);
+      const f = grab(W, H, camera.mirrored), mask = segment(f);
       if (mask) { pctx.fillStyle = idState.bg; pctx.fillRect(0, 0, W, H); pctx.drawImage(personLayer({ img: f, mask }), 0, 0); }
       else pctx.drawImage(f, 0, 0);
     }
@@ -377,7 +364,7 @@ async function shootBooth() {
   for (let i = 0; i < booth.n; i++) {
     $("#shootHint").textContent = `ภาพที่ ${i + 1} / ${booth.n} — เตรียมโพสท่า!`;
     busy = false; await countdown(3); busy = true;
-    const img = grab(800, 600, camera.mirror);
+    const img = grab(800, 600, camera.mirrored);
     booth.shots.push({ img, mask: segment(img) });
     await sleep(500);
   }
@@ -600,9 +587,10 @@ async function autoShootTick() {
   const on = $("#autoShoot").checked && mode === "id" && camOK && faceOK && !busy && !$("#count").textContent && !$("#shoot").disabled;
   if (on) {
     try {
-      const r = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: .5 })).withFaceLandmarks();
+      const all = await detectFaces(video, 224, .5, false), r = all[0], n = all.length;
       let good = false;
-      if (r) {
+      if (n > 1) { $("#shootHint").textContent = MULTI_HINT; autoLast = null; } // ไม่ถ่ายอัตโนมัติเมื่อมีคนอื่นในภาพ
+      else if (r) {
         const P = r.landmarks.positions, vw = video.videoWidth, vh = video.videoHeight;
         const eyeMid = { x: (P[36].x + P[45].x) / 2, y: (P[36].y + P[45].y) / 2 }, ed = Math.hypot(P[45].x - P[36].x, P[45].y - P[36].y);
         const yaw = Math.abs((P[30].x - eyeMid.x) / ed), tilt = Math.abs(Math.atan2(P[45].y - P[36].y, P[45].x - P[36].x)) * 57.3;
@@ -625,17 +613,16 @@ async function shootId() {
   const vw = video.videoWidth, vh = video.videoHeight, img = mk(vw, vh);
   img.getContext("2d").drawImage(video, 0, 0); // ไม่กลับด้าน: รูปติดบัตรต้องเหมือนจริง
   const mask = segment(img);
-  let face = null, qc = null;
+  let face = null, qc = null, nFaces = 0;
   if (faceOK) {
-    let q = faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: .4 })).withFaceLandmarks();
-    if (exprOK) q = q.withFaceExpressions();
-    const r = await q;
-    if (r) {
+    const all = await detectFaces(img, 416, .4, exprOK), r = all[0]; // ใบหน้าใหญ่สุดใช้จัดตำแหน่ง
+    nFaces = all.length;
+    if (r && r.landmarks && r.landmarks.getJawOutline) {
       const lm = r.landmarks, jaw = lm.getJawOutline(), ctr = p => ({ x: p.reduce((s, q) => s + q.x, 0) / p.length, y: p.reduce((s, q) => s + q.y, 0) / p.length });
       let a = ctr(lm.getLeftEye()), b = ctr(lm.getRightEye()); if (a.x > b.x) [a, b] = [b, a];
       const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
       face = { cx: mid.x, eyeY: mid.y, chinY: mid.y + Math.hypot(jaw[8].x - mid.x, jaw[8].y - mid.y), angle: Math.atan2(b.y - a.y, b.x - a.x), fw: Math.hypot(jaw[16].x - jaw[0].x, jaw[16].y - jaw[0].y) };
-      qc = qualityCheck(img, r, face, a, b);
+      qc = qualityCheck(img, r, face, a, b, nFaces);
       face.P = lm.positions.map(p => ({ x: p.x, y: p.y }));
     }
   }
@@ -643,7 +630,7 @@ async function shootId() {
   if (!face) {
     $("#shootHint").textContent = faceOK ? "ไม่พบใบหน้า กรุณาหันหน้าตรง แสงพอ แล้วถ่ายใหม่ (ใช้การครอปกึ่งกลางแทน)" : "ระบบตรวจจับใบหน้าไม่พร้อม ใช้การครอปกึ่งกลางแทน";
     face = { cx: vw / 2, eyeY: vh * .4, chinY: vh * .62, angle: 0, fw: vh * .3 };
-  } else $("#shootHint").textContent = "จัดตำแหน่งอัตโนมัติแล้ว เลือกชุดและปรับตำแหน่งได้ทางซ้าย";
+  } else $("#shootHint").textContent = nFaces > 1 ? MULTI_HINT + " (จัดตำแหน่งจากใบหน้าที่ใหญ่ที่สุด ควรถ่ายใหม่)" : "จัดตำแหน่งอัตโนมัติแล้ว เลือกชุดและปรับตำแหน่งได้ทางซ้าย";
   let person = null, method = "";
   const hint = $("#shootHint").textContent;
   $("#shootHint").textContent = "กำลังตัดพื้นหลังและเกลาขอบความละเอียดสูง...";
@@ -658,7 +645,7 @@ async function shootId() {
 }
 
 /* ตรวจคุณภาพรูปติดบัตรจากจุดบนใบหน้า (ค่าประมาณ ไม่ใช่การรับรองของหน่วยงาน) */
-function qualityCheck(img, r, face, eyeL, eyeR) {
+function qualityCheck(img, r, face, eyeL, eyeR, nFaces = 1) {
   const lm = r.landmarks, P = lm.positions, d = (p, q) => Math.hypot(p.x - q.x, p.y - q.y);
   const ear = e => (d(e[1], e[5]) + d(e[2], e[4])) / (2 * d(e[0], e[3]) || 1);
   const eyesOpen = Math.min(ear(lm.getLeftEye()), ear(lm.getRightEye()));
@@ -676,6 +663,7 @@ function qualityCheck(img, r, face, eyeL, eyeR) {
   const bright = (L + R) / 2, balance = Math.abs(L - R) / Math.max(1, (L + R) / 2), sharp = lap / lapN;
   const ex = r.expressions, neutral = ex ? (ex.neutral || 0) : null, smile = ex ? (ex.happy || 0) : null;
   const items = [
+    [nFaces <= 1, "มีบุคคลเดียวในภาพ", "มีบุคคลอื่นในภาพ รูปติดบัตรต้องมีผู้ถ่ายคนเดียว ควรถ่ายใหม่"],
     [Math.abs(yaw) < .12, "หน้าตรง ไม่หันซ้าย/ขวา", "หน้าเอียงไปด้านข้าง ควรมองตรงกล้อง"],
     [Math.abs(tilt) < 6, `ศีรษะตรง (ปรับเอียงให้แล้ว ${Math.abs(tilt).toFixed(1)}°)`, `ศีรษะเอียง ${Math.abs(tilt).toFixed(1)}° ระบบหมุนแก้ให้แล้ว แต่ควรถ่ายใหม่ให้ตรง`],
     [eyesOpen > .2, "ลืมตาปกติ", "ตาอาจปิดหรือหรี่ ควรถ่ายใหม่"],

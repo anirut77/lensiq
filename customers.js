@@ -121,98 +121,32 @@ if (typeof document !== "undefined") (() => {
   let ready = false, matcher = null, scanning = false, current = null;
 
   const engine = (msg, cls = "") => { const e = $("#engine"); e.textContent = msg; e.className = "engine " + cls; };
-  // ---------- กล้อง (มือถือ/แท็บเล็ต): เลือกกล้องหน้า/หลัง · สะท้อนภาพเฉพาะกล้องหน้า · ปิดกล้องเมื่อสลับแอปแล้วเปิดต่อ ----------
   const INSECURE_MSG = "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด";
-  function createCamera(video, o = {}) {
-    const opt = { facing: "user", constraints: {}, layout() {}, onError(e) { console.error(e); }, ...o };
-    const BACK = /back|rear|environment|หลัง/i;
-    let stream = null, want = { facing: opt.facing, deviceId: "" }, cur = { facing: opt.facing, deviceId: "" }, devices = [], resume = false;
-    const uis = [];
-    const gum = v => navigator.mediaDevices.getUserMedia({ video: { ...opt.constraints, ...v }, audio: false });
-    function halt() { stream?.getTracks().forEach(t => t.stop()); stream = null; if (video.srcObject) video.srcObject = null; }
-    async function start(next) {
-      if (next) want = { facing: next.facing || want.facing, deviceId: next.deviceId || "" };
-      if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) throw Object.assign(new Error("insecure context"), { name: "Insecure" });
-      halt();
-      let s;
-      try { s = await gum(want.deviceId ? { deviceId: { exact: want.deviceId } } : { facingMode: { ideal: want.facing } }); }
-      catch (e) { if (!want.deviceId || !/Overconstrained|NotFound/.test(e.name)) throw e; want.deviceId = ""; s = await gum({ facingMode: { ideal: want.facing } }); }
-      stream = s;
-      const tr = s.getVideoTracks()[0], st = tr?.getSettings?.() || {};
-      cur = { deviceId: st.deviceId || want.deviceId, facing: st.facingMode || (BACK.test(tr?.label || "") ? "environment" : "user") };
-      if (tr) tr.addEventListener("ended", () => { if (stream === s) stream = null; });
-      video.muted = true; video.playsInline = true; video.setAttribute("playsinline", ""); video.setAttribute("muted", "");
-      video.srcObject = s;
-      try { await video.play(); } catch (e) { if (e.name !== "AbortError") throw e; }
-      if (!video.videoWidth) await new Promise(r => video.addEventListener("loadedmetadata", r, { once: true }));
-      opt.layout(api); refreshDevices();
-      return s;
-    }
-    async function refreshDevices() {
-      try { devices = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "videoinput"); } catch { devices = []; }
-      for (const ui of uis) {
-        ui.hidden = devices.length < 2;
-        const [flip, sel] = ui.children;
-        flip.textContent = cur.facing === "environment" ? "ใช้กล้องหน้า" : "ใช้กล้องหลัง";
-        sel.innerHTML = devices.map((d, i) => `<option value="${d.deviceId.replace(/"/g, "&quot;")}">${(d.label || "กล้อง " + (i + 1)).replace(/[<&]/g, "")}</option>`).join("");
-        if (cur.deviceId) sel.value = cur.deviceId;
-      }
-    }
-    function switchTo(n) {
-      if (!stream) { want = { facing: n.facing || want.facing, deviceId: n.deviceId || "" }; cur = { ...cur, ...want }; return refreshDevices(); }
-      start(n).catch(opt.onError);
-    }
-    const api = {
-      start, refreshDevices,
-      stop() { resume = false; halt(); },
-      get active() { return !!stream && stream.active; },
-      get mirrored() { return cur.facing !== "environment"; },
-      attach(el) {
-        uis.push(el); el.hidden = true;
-        el.innerHTML = `<button class="btn ghost" type="button">ใช้กล้องหลัง</button><select aria-label="เลือกกล้อง"></select>`;
-        el.children[0].onclick = () => switchTo({ facing: cur.facing === "environment" ? "user" : "environment" });
-        el.children[1].onchange = e => switchTo({ deviceId: e.target.value });
-        refreshDevices();
-      }
-    };
-    video.addEventListener("resize", () => { if (stream) opt.layout(api); });
-    let rt = 0; const relayout = () => { clearTimeout(rt); rt = setTimeout(() => { if (stream) opt.layout(api); }, 150); };
-    addEventListener("resize", relayout); addEventListener("orientationchange", relayout);
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) { if (stream) { resume = true; halt(); } }
-      else if (resume) { resume = false; start().catch(opt.onError); }
-    });
-    addEventListener("pagehide", halt);
-    navigator.mediaDevices?.addEventListener?.("devicechange", refreshDevices);
-    return api;
-  }
-
+  const TEST = !!(window.LQDetect && LQDetect.isTest()); // localhost + ?fakedet เท่านั้น
+  const MAX_FACES = 4;
+  // ---------- กล้อง (LQCam): เลือกกล้องหน้า/หลัง · สะท้อนภาพเฉพาะกล้องหน้า · ปิดกล้องเมื่อสลับแอปแล้วเปิดต่อ · จำกล้องที่เลือก ----------
+  // กล้องตัวเดียว: กล่อง camBox ถูกย้ายไปมาระหว่างแท็บหน้าร้านกับสมัครสมาชิก (showTab)
   const camSwitch = $("#camSwitch");
-  const camera = createCamera(video, {
-    layout(c) {
-      camBox.classList.toggle("mirror", c.mirrored);
-      if (video.videoWidth && (overlay.width !== video.videoWidth || overlay.height !== video.videoHeight)) { overlay.width = video.videoWidth; overlay.height = video.videoHeight; }
-    },
-    onError: e => showInitError(e)
+  function layout(c = camera) {
+    camBox.classList.toggle("mirror", c.mirrored);
+    if (video.videoWidth && (overlay.width !== video.videoWidth || overlay.height !== video.videoHeight)) { overlay.width = video.videoWidth; overlay.height = video.videoHeight; }
+  }
+  const camera = LQCam.create(video, {
+    facing: "user", persistKey: "cx-cam",
+    onChange: (c, ev) => { if (ev.type === "started" || ev.type === "resumed") layout(c); },
+    onError: (c, e) => { if (e && e.name !== "AbortError") showInitError(e); }
   });
+  video.addEventListener("resize", () => { if (camera.active) layout(); });
   camera.attach(camSwitch);
 
   // ---------- เริ่มระบบ ----------
-  async function initBackend() {
-    const tf = faceapi.tf;
-    tf.setWasmPaths("vendor/");
-    for (const name of ["webgl", "wasm", "cpu"]) {
-      try { if (await tf.setBackend(name)) { await tf.ready(); return name; } } catch (e) { console.warn(name, e); }
-    }
-    throw new Error("no backend");
-  }
   async function init() {
     engine("กำลังเปิดกล้องและโหลดโมเดล...");
     try {
       if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) throw Object.assign(new Error("insecure"), { name: "Insecure" });
       const [, backend] = await Promise.all([
         camera.start(),
-        initBackend().then(async b => {
+        TEST ? Promise.resolve("test") : LQDetect.tfBackend().then(async b => {
           await Promise.all([
             faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
             faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
@@ -239,40 +173,95 @@ if (typeof document !== "undefined") (() => {
     matcher = withFace.length ? new faceapi.FaceMatcher(withFace.map(m => new faceapi.LabeledFaceDescriptors(m.id, [new Float32Array(m.descriptor)])), MATCH_DISTANCE) : null;
   }
   const detOpts = () => new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
-  async function detectOne() {
-    const r = await faceapi.detectAllFaces(video, detOpts()).withFaceLandmarks().withFaceDescriptors();
+  // ใบหน้าทั้งหมดในภาพ เรียงจากใหญ่ไปเล็ก -> [{box:{x,y,width,height} พิกเซลวิดีโอ, descriptor|null, fake?}]
+  async function detectFaces(max = MAX_FACES) {
+    let faces;
+    const fk = TEST ? LQDetect.fake("cx", performance.now()) : null;
+    if (fk) {
+      const W = video.videoWidth || overlay.width || 1, H = video.videoHeight || overlay.height || 1;
+      faces = fk.map(d => ({ box: { x: d.x * W, y: d.y * H, width: d.w * W, height: d.h * H }, descriptor: d.descriptor ? Float32Array.from(d.descriptor) : null, fake: d }));
+    } else {
+      const r = await faceapi.detectAllFaces(video, detOpts()).withFaceLandmarks().withFaceDescriptors();
+      faces = r.map(x => { const b = x.detection.box; return { box: { x: b.x, y: b.y, width: b.width, height: b.height }, descriptor: x.descriptor }; });
+    }
+    return faces.sort((a, b) => b.box.width * b.box.height - a.box.width * a.box.height).slice(0, max);
+  }
+  function bestMatch(f, i) {
+    if (TEST && typeof window.__LQ_FAKE_MATCH === "function") return window.__LQ_FAKE_MATCH(f.fake || f, i) || { label: "unknown", distance: 1 };
+    if (!matcher || !f.descriptor) return { label: "unknown", distance: 1 };
+    const m = matcher.findBestMatch(f.descriptor);
+    return { label: m.label, distance: m.distance };
+  }
+  // ทุกใบหน้า (สูงสุด 4) -> [{box, label, distance}] สมาชิกหนึ่งคนจับคู่ได้แค่ใบหน้าเดียว (ใกล้สุดได้ไป)
+  async function detectAll() {
+    const faces = await detectFaces();
+    const ms = faces.map(bestMatch);
+    const cands = [];
+    ms.forEach((m, i) => { if (m.label !== "unknown" && members.some(x => x.id === m.label && x.descriptor)) cands.push({ i, key: m.label, dist: m.distance }); });
+    const got = LQTrack.assignUnique(cands, MATCH_DISTANCE);
+    const res = faces.map((f, i) => { const a = got.get(i); return { box: f.box, label: a ? a.key : "unknown", distance: a ? a.dist : ms[i].distance }; });
+    drawFaces(res);
+    return res;
+  }
+  // วาดทุกกรอบ สีตามผลจับคู่ · ป้ายชื่อกลับด้านเพราะแคนวาสถูกสะท้อนด้วย CSS
+  function drawFaces(res) {
     const ctx = overlay.getContext("2d"); ctx.clearRect(0, 0, overlay.width, overlay.height);
-    // เลือกใบหน้าที่ใหญ่ที่สุด (คนที่ยืนหน้าเคาน์เตอร์)
-    const best = r.sort((a, b) => b.detection.box.area - a.detection.box.area)[0];
-    if (best) { const b = best.detection.box; ctx.lineWidth = 3; ctx.strokeStyle = "#6cc4e3"; ctx.strokeRect(b.x, b.y, b.width, b.height); }
-    return { best, count: r.length };
+    const fs = Math.max(14, Math.round(overlay.width / 36)), mir = camera.mirrored;
+    ctx.font = `500 ${fs}px Prompt, sans-serif`; ctx.textBaseline = "bottom";
+    for (const r of res) {
+      const b = r.box, m = r.label !== "unknown" && members.find(x => x.id === r.label);
+      const col = m ? "#2ecc71" : "#e67e22", text = m ? m.name : "ไม่ใช่สมาชิก";
+      ctx.lineWidth = 3; ctx.strokeStyle = col; ctx.strokeRect(b.x, b.y, b.width, b.height);
+      const tw = ctx.measureText(text).width + 12, ty = Math.max(fs + 8, b.y);
+      ctx.save();
+      if (mir) { ctx.translate(b.x + b.width, 0); ctx.scale(-1, 1); } else ctx.translate(b.x, 0);
+      ctx.fillStyle = col; ctx.fillRect(0, ty - fs - 8, tw, fs + 8);
+      ctx.fillStyle = "#0e1430"; ctx.fillText(text, 6, ty - 3);
+      ctx.restore();
+    }
   }
 
   // ---------- สแกนหน้าร้าน ----------
+  // นับเฟรมติดกันต่อคน (Map<label,count>) — ต้องตรงกัน 2 เฟรมกันการจำผิด
+  // สมาชิก 1 คน -> เลือกอัตโนมัติ · 2 คนขึ้นไป -> ชิปให้แคชเชียร์แตะเลือก · ผู้ที่ไม่ใช่สมาชิกไม่แย่งสมาชิก
   async function scanLoop() {
-    let lastLabel = null, streak = 0;
+    const streak = new Map();
+    clearChips();
     while (scanning) {
       const t0 = performance.now();
       try {
         if (video.readyState < 2) { await sleep(300); continue; } // กล้องถูกพักขณะสลับแอป/สลับกล้อง
-        const { best } = await detectOne();
+        const res = await detectAll();
         if (!scanning) break;
-        if (!best) { $("#scanStatus").textContent = "กำลังสแกน... ไม่พบใบหน้า"; lastLabel = null; streak = 0; }
+        const seen = new Set(res.map(r => r.label));
+        for (const k of [...streak.keys()]) if (!seen.has(k)) streak.delete(k);
+        seen.forEach(k => streak.set(k, (streak.get(k) || 0) + 1));
+        const present = res.filter(r => r.label !== "unknown").map(r => r.label);
+        const confirmed = present.filter(k => streak.get(k) >= 2);
+        if (!res.length) setStatus("กำลังสแกน... ไม่พบใบหน้า");
+        else if (confirmed.length >= 2) { stopScan(false); showChips(confirmed); break; }
+        else if (confirmed.length === 1 && present.length === 1) { stopScan(); selectCustomer(confirmed[0], "สแกนใบหน้า"); break; }
+        else if (!present.length && streak.get("unknown") >= 2) { stopScan(); showUnknown(); break; }
         else {
-          const label = matcher ? matcher.findBestMatch(best.descriptor).label : "unknown";
-          streak = label === lastLabel ? streak + 1 : 1; lastLabel = label;
-          $("#scanStatus").textContent = `กำลังยืนยันตัวตน... (${streak}/2)`;
-          if (streak >= 2) { // ต้องตรงกัน 2 เฟรมติดกันกันการจำผิด
-            stopScan();
-            if (label === "unknown") showUnknown(); else selectCustomer(label, "สแกนใบหน้า");
-            break;
-          }
+          const n = Math.max(0, ...res.map(r => streak.get(r.label) || 0));
+          setStatus(`กำลังยืนยันตัวตน... (${Math.min(2, n)}/2)${present.length > 1 ? ` · พบสมาชิก ${present.length} คน` : ""}`);
         }
       } catch (e) { console.error(e); }
       await sleep(Math.max(0, 300 - (performance.now() - t0)));
     }
   }
-  function stopScan() { scanning = false; $("#scanToggle").textContent = "เริ่มสแกนลูกค้า"; overlay.getContext("2d").clearRect(0, 0, overlay.width, overlay.height); }
+  const setStatus = t => { $("#scanStatus").textContent = t; };
+  function clearChips() { $("#scanStatus").classList.remove("has-chips"); }
+  function showChips(ids) {
+    const ms = ids.map(id => members.find(m => m.id === id)).filter(Boolean);
+    const el = $("#scanStatus");
+    el.classList.add("has-chips");
+    el.innerHTML = `<span class="chips-head">พบสมาชิก ${ms.length} คน: ${esc(ms.map(m => m.name).join(", "))}</span>`
+      + `<span class="chips">${ms.map(m => `<button type="button" class="chip" data-id="${esc(m.id)}">${esc(m.name)}</button>`).join("")}</span>`
+      + `<span class="hint">แตะชื่อลูกค้าที่กำลังสั่ง</span>`;
+  }
+  $("#scanStatus").addEventListener("click", e => { const b = e.target.closest("button.chip[data-id]"); if (b) { clearChips(); selectCustomer(b.dataset.id, "สแกนใบหน้า"); } });
+  function stopScan(clear = true) { scanning = false; $("#scanToggle").textContent = "เริ่มสแกนลูกค้า"; if (clear) overlay.getContext("2d").clearRect(0, 0, overlay.width, overlay.height); }
   $("#scanToggle").onclick = () => {
     if (!ready) return ($("#scanStatus").textContent = "กล้องยังไม่พร้อม — ใช้ค้นหาด้วยชื่อแทนได้");
     if (scanning) return stopScan();
@@ -284,7 +273,7 @@ if (typeof document !== "undefined") (() => {
   // ---------- การ์ดลูกค้า ----------
   function selectCustomer(id, via) {
     current = members.find(m => m.id === id) || null;
-    $("#scanStatus").textContent = current ? `พบสมาชิกจาก${via}` : "";
+    clearChips(); $("#scanStatus").textContent = current ? `พบสมาชิกจาก${via}` : "";
     $("#search").value = ""; $("#searchResults").innerHTML = "";
     renderCustomer();
   }
@@ -384,8 +373,9 @@ if (typeof document !== "undefined") (() => {
   async function capture(samples = 3) {
     const ds = [];
     for (let i = 0; i < samples; i++) {
-      const r = await faceapi.detectAllFaces(video, detOpts()).withFaceLandmarks().withFaceDescriptors();
+      const r = await detectFaces(Infinity); // สมัครสมาชิกได้ทีละหนึ่งใบหน้าเท่านั้น
       if (r.length !== 1) throw new Error(r.length ? "พบหลายใบหน้า กรุณาให้เหลือคนเดียวในกล้อง" : "ไม่พบใบหน้า กรุณามองกล้องตรง ๆ");
+      if (!r[0].descriptor) throw new Error("อ่านลักษณะใบหน้าไม่สำเร็จ กรุณาลองใหม่");
       ds.push(r[0].descriptor); await sleep(350);
     }
     return Array.from(ds[0], (_, k) => +(ds.reduce((s, d) => s + d[k], 0) / ds.length).toFixed(5));

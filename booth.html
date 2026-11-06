@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=5">
-<link rel="stylesheet" href="booth.css?v=2">
+<link rel="stylesheet" href="booth.css?v=3">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -24,15 +24,17 @@
 
   <div class="grid2 top">
     <section class="card">
-      <div class="cam mirror"><video id="video" autoplay muted playsinline></video><canvas id="overlay"></canvas></div>
+      <div class="cam mirror"><video id="video" autoplay muted playsinline></video><canvas id="overlay" aria-label="ภาพกล้อง แตะกรอบใบหน้าเพื่อบันทึกผู้เข้าร่วมกิจกรรม"></canvas><p class="cam-off">กล้องยังไม่เปิด กด เริ่มกล้อง</p></div>
       <div class="cam-actions">
-        <button class="btn primary" id="toggle" type="button">เริ่มนับผู้เข้าชม</button>
+        <button class="btn primary" id="camStart" type="button">เริ่มกล้อง</button>
+        <button class="btn ghost" id="toggle" type="button">เริ่มนับผู้เข้าชม</button>
         <span class="pill" id="fps">—</span>
       </div>
       <div class="join">
         <label>กิจกรรม<input id="activity" maxlength="40" value="ทดลองสินค้า"></label>
         <button class="btn ghost" id="join" type="button">บันทึกผู้เข้าร่วมกิจกรรม<span class="kbd"> (Space)</span></button>
       </div>
+      <p class="hint">มีหลายคนในกล้อง: แตะกรอบใบหน้าบนภาพเพื่อบันทึกคนนั้นเข้าร่วมกิจกรรม</p>
       <p class="form-msg" id="joinMsg" role="status"></p>
     </section>
 
@@ -74,10 +76,12 @@
       </form>
       <button class="btn ghost danger" id="purge" type="button">ล้างข้อมูลใบหน้าของวันนี้</button>
       <p class="hint">การล้างข้อมูลใบหน้าจะลบค่าลักษณะใบหน้าที่ใช้จำคน แต่เก็บสถิติรวมไว้ ระบบลบให้อัตโนมัติเมื่อขึ้นวันใหม่หรือเริ่มงานใหม่</p>
+      <label class="check"><input type="checkbox" id="remember"><span>จำผู้เข้าชมเมื่อรีเฟรชหน้า</span></label>
+      <p class="hint">ปิดไว้ (ค่าเริ่มต้น): ค่าลักษณะใบหน้าอยู่ในหน้านี้เท่านั้น ปิดหรือรีเฟรชหน้าแล้วระบบจะนับผู้เข้าชมที่กลับมาเป็นคนใหม่ เปิด: เก็บค่าลักษณะใบหน้าในเครื่องนี้ภายในวัน</p>
     </section>
     <section class="card">
       <h2>ป้ายแจ้งความเป็นส่วนตัว</h2>
-      <p class="notice" id="notice">พื้นที่นี้มีการวิเคราะห์ภาพจากกล้องแบบไม่ระบุตัวตน เพื่อนับจำนวนผู้เข้าชมและวัดความสนใจต่อบูธ ระบบไม่บันทึกภาพหรือวิดีโอ และลบข้อมูลลักษณะใบหน้าภายในวันเดียวกัน หากไม่ต้องการเข้าร่วม กรุณาแจ้งเจ้าหน้าที่</p>
+      <p class="notice" id="notice">พื้นที่นี้มีการวิเคราะห์ภาพจากกล้องแบบไม่ระบุตัวตน เพื่อนับจำนวนผู้เข้าชมและวัดความสนใจต่อบูธ ระบบไม่บันทึกภาพหรือวิดีโอ ค่าลักษณะใบหน้าใช้เพียงเพื่อไม่ให้นับคนซ้ำ อยู่ในเครื่องนี้ระหว่างเปิดหน้าเท่านั้น และถูกลบเมื่อปิดหน้าหรือขึ้นวันใหม่ หากไม่ต้องการเข้าร่วม กรุณาแจ้งเจ้าหน้าที่</p>
       <button class="btn ghost" id="printNotice" type="button">พิมพ์ป้าย</button>
     </section>
   </div>
@@ -86,6 +90,9 @@
 <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
 
 <script src="vendor/face-api.js"></script>
-<script src="booth.js?v=2"></script>
+<script src="lensiq-track.js?v=1"></script>
+<script src="lensiq-camera.js?v=1"></script>
+<script src="lensiq-detect.js?v=1"></script>
+<script src="booth.js?v=3"></script>
 </body>
 </html>

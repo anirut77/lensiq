@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=5">
-<link rel="stylesheet" href="neuro.css?v=3">
+<link rel="stylesheet" href="neuro.css?v=4">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -55,6 +55,7 @@
       <div class="stage-bar">
         <span id="stageTime">0.0 วิ</span>
         <span class="pill" id="stageFace">—</span>
+        <span class="pill multi" id="stageMulti" role="status" hidden>พบหลายใบหน้า</span>
         <button class="btn ghost" id="stopTest" type="button">หยุดและบันทึก</button>
       </div>
     </div>
@@ -135,6 +136,9 @@
 <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
 
 <script src="vendor/face-api.js"></script>
-<script src="neuro.js?v=3"></script>
+<script src="lensiq-track.js?v=1"></script>
+<script src="lensiq-camera.js?v=1"></script>
+<script src="lensiq-detect.js?v=1"></script>
+<script src="neuro.js?v=4"></script>
 </body>
 </html>

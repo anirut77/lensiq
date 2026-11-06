@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=5">
 <link rel="stylesheet" href="neuro.css">
-<link rel="stylesheet" href="customers.css?v=2">
+<link rel="stylesheet" href="customers.css?v=3">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -40,7 +40,7 @@
           <button class="btn ghost" id="nextCustomer" type="button">ลูกค้าคนถัดไป</button>
           <div class="cam-switch" id="camSwitch" hidden></div>
         </div>
-        <p class="hint" id="scanStatus">ลูกค้ามองกล้อง ระบบจะจดจำอัตโนมัติ</p>
+        <p class="hint" id="scanStatus" role="status" aria-live="polite">ลูกค้ามองกล้อง ระบบจะจดจำอัตโนมัติ</p>
         <h3>ค้นหาสมาชิกด้วยชื่อ / เบอร์โทร</h3>
         <input id="search" type="search" placeholder="พิมพ์ชื่อหรือเบอร์โทร" autocomplete="off" aria-label="ค้นหาสมาชิกด้วยชื่อหรือเบอร์โทร">
         <ul class="search-results" id="searchResults"></ul>
@@ -127,6 +127,9 @@
 <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
 
 <script src="vendor/face-api.js"></script>
-<script src="customers.js?v=2"></script>
+<script src="lensiq-track.js?v=1"></script>
+<script src="lensiq-camera.js?v=1"></script>
+<script src="lensiq-detect.js?v=1"></script>
+<script src="customers.js?v=3"></script>
 </body>
 </html>

@@ -5,7 +5,10 @@
 const SG = {
   YAW_LIMIT: 0.3,      // |yaw| น้อยกว่านี้ = หันมองจอ
   IOU_MIN: 0.3,        // IoU ขั้นต่ำที่ถือว่าเป็นใบหน้าเดิม
-  TRACK_TTL_MS: 1500,  // หายไปเกินนี้ถือว่าออกจากจอ
+  TRACK_TTL_MS: 1500,  // หายไปเกินนี้ย้ายเข้าพูล "ถูกบัง"
+  LOST_MS: 1500,       // อยู่ในพูลถูกบังได้อีกเท่านี้ ถ้ากลับมาใกล้ตำแหน่งเดิมใช้ id เดิม (กัน OTS นับซ้ำ)
+  DIST_MAX: 0.2,       // ระยะจุดกึ่งกลาง (สัดส่วนภาพ) ที่ยังถือว่าเป็นใบหน้าเดิม
+  REVIVE_DIST: 0.3,    // ระยะกลับมาจากพูลถูกบัง
   MIN_FRAMES: 3,       // เห็นอย่างน้อย 3 เฟรมจึงนับ (กันตรวจจับผิด)
   MAX_DT_S: 0.6,       // ช่วงห่างสูงสุดระหว่างเฟรมที่นำมาคิดเวลา
   HAPPY_P: 0.5,        // ความน่าจะเป็น happy ที่ถือว่ายิ้ม
@@ -35,15 +38,28 @@ function iou(a, b) {
   return uni > 0 ? inter / uni : 0;
 }
 
-function newTracker() { return { seq: 0, tracks: [] }; }
+// ตัวติดตามใช้ LQTrack (Hungarian + ระยะจุดกึ่งกลาง + ทำนายความเร็ว + พูลหายชั่วคราว) แล้วผูก id "T"+seq ของหน้านี้ไว้
+const LQT = typeof LQTrack !== "undefined" ? LQTrack : (typeof require === "function" ? require("./lensiq-track.js") : null);
+function lqCfg(cfg) {
+  return {
+    ...LQT.PRESET.face, IOU_MIN: cfg.IOU_MIN ?? SG.IOU_MIN,
+    DIST_MAX: cfg.DIST_MAX ?? SG.DIST_MAX,              // ลูปราว 5 fps ใบหน้าขยับได้ไกลกว่า preset ต่อเฟรม
+    MAX_MISSED_MS: cfg.TRACK_TTL_MS ?? SG.TRACK_TTL_MS,
+    LOST_TTL_MS: (cfg.TRACK_TTL_MS ?? SG.TRACK_TTL_MS) + (cfg.LOST_MS ?? SG.LOST_MS), // นับจากเห็นล่าสุด
+    REVIVE_DIST: cfg.REVIVE_DIST ?? SG.REVIVE_DIST
+  };
+}
+function newTracker() { return { seq: 0, tracks: [], lq: LQT.newTracker(lqCfg(SG)), byLq: new Map() }; }
 
-// det: { box, look:bool, happy:bool, age?:number, male?:number(0..1) }
-// คืน { present: tracks ที่เห็นเฟรมนี้, ended: tracks ที่ออกไปแล้ว }
-function updateTracks(T, dets, now, cfg = SG) {
-  const pairs = [];
-  dets.forEach((d, di) => T.tracks.forEach((t, ti) => { const v = iou(t.box, d.box); if (v >= cfg.IOU_MIN) pairs.push([v, di, ti]); }));
-  pairs.sort((a, b) => b[0] - a[0]);
-  const usedD = new Set(), usedT = new Set(), present = [];
+// det: { box, look:bool, happy:bool, age?:number, male?:number(0..1) }  box = {x,y,width,height} พิกเซล (หรือ 0..1 ถ้าไม่ส่ง size)
+// size: { W, H } ขนาดภาพต้นทาง (ค่าเริ่มต้น 1 = box เป็นค่าปกติ 0..1 อยู่แล้ว)
+// คืน { present: tracks ที่เห็นเฟรมนี้, ended: tracks ที่ LQTrack ลบทิ้งแล้ว (หายเกิน TRACK_TTL_MS + LOST_MS) }
+function updateTracks(T, dets, now, cfg = SG, size = {}) {
+  if (!T.lq) { T.lq = LQT.newTracker(lqCfg(cfg)); T.byLq = new Map(); }
+  const W = size.W || 1, H = size.H || 1;
+  const lqDets = dets.map((d, i) => ({ ...LQT.toNorm(d.box, W, H), score: 1, i }));
+  const r = LQT.updateTracker(T.lq, lqDets, now, lqCfg(cfg));
+  const present = [];
   const apply = (t, d) => {
     const dt = Math.min(cfg.MAX_DT_S, Math.max(0, (now - t.lastSeen) / 1000));
     t.box = d.box; t.frames++; t.lastSeen = now;
@@ -54,17 +70,18 @@ function updateTracks(T, dets, now, cfg = SG) {
     if (typeof d.male === "number" && isFinite(d.male)) { t.maleSum += d.male; t.maleN++; }
     present.push(t);
   };
-  for (const [, di, ti] of pairs) {
-    if (usedD.has(di) || usedT.has(ti)) continue;
-    usedD.add(di); usedT.add(ti); apply(T.tracks[ti], dets[di]);
+  for (const lt of r.seen) {
+    const d = dets[lt.det.i];
+    let t = T.byLq.get(lt.id);
+    if (!t) {
+      t = { id: "T" + (++T.seq), box: d.box, first: now, lastSeen: now, frames: 0, lookFrames: 0, attnS: 0, happyFrames: 0, ageSum: 0, ageN: 0, maleSum: 0, maleN: 0, lookNow: false, happyNow: false };
+      T.byLq.set(lt.id, t); T.tracks.push(t);
+    }
+    apply(t, d);
   }
-  dets.forEach((d, di) => {
-    if (usedD.has(di)) return;
-    const t = { id: "T" + (++T.seq), box: d.box, first: now, lastSeen: now, frames: 0, lookFrames: 0, attnS: 0, happyFrames: 0, ageSum: 0, ageN: 0, maleSum: 0, maleN: 0, lookNow: false, happyNow: false };
-    T.tracks.push(t); apply(t, d);
-  });
-  const ended = T.tracks.filter(t => now - t.lastSeen > cfg.TRACK_TTL_MS);
-  T.tracks = T.tracks.filter(t => now - t.lastSeen <= cfg.TRACK_TTL_MS);
+  const ended = [];
+  for (const id of r.removed) { const t = T.byLq.get(id); if (t) { ended.push(t); T.byLq.delete(id); } }
+  if (ended.length) { const gone = new Set(ended); T.tracks = T.tracks.filter(t => !gone.has(t)); }
   return { present, ended };
 }
 
@@ -442,14 +459,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
 
   // ---------- โมเดลใบหน้า ----------
   let faceReady = null, backend = "";
-  async function initBackend() {
-    const tf = faceapi.tf;
-    tf.setWasmPaths("vendor/");
-    for (const name of ["webgl", "wasm", "cpu"]) {
-      try { if (await tf.setBackend(name)) { await tf.ready(); return name; } } catch (e) { console.warn(name, e); }
-    }
-    throw new Error("no backend");
-  }
+  const initBackend = () => LQDetect.tfBackend(); // webgl → wasm → cpu (?cpu ข้าม webgl)
   function loadFace() {
     faceReady ??= initBackend().then(async b => {
       backend = b;
@@ -549,7 +559,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
           const dets = await detectFaces();
           if (!faceRunning) break;
           const now = Date.now();
-          const { present, ended } = updateTracks(tracker, dets, now);
+          const { present, ended } = updateTracks(tracker, dets, now, SG, { W: video.videoWidth || 1, H: video.videoHeight || 1 });
           ended.forEach(t => finalizeTrack(stats, t, settings.useDemo));
           recordFrame(stats, play, present, (now - lastT) / 1000); lastT = now;
           seg = dominantSegment(tracker.tracks.filter(t => now - t.lastSeen < 1000), settings.useDemo);

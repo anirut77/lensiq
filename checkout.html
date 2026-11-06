@@ -85,6 +85,7 @@
         <div class="toggles">
           <label class="chk"><input type="checkbox" id="autoScan"> สแกนอัตโนมัติด้วยกล้อง</label>
           <label class="chk"><input type="checkbox" id="beepChk"> เสียงบี๊บ</label>
+          <label class="chk"><input type="checkbox" id="multiCodePay"> สแกนหลายบาร์โค้ดพร้อมกัน</label>
         </div>
         <ul class="cart" id="cartList"></ul>
         <div class="total"><span>ยอดชำระ</span><b id="cartTotal">฿0.00</b></div>
@@ -122,6 +123,7 @@
           </div>
         </div>
         <label class="chk"><input type="checkbox" id="stockAuto"> นับอัตโนมัติ (+1 เมื่อสินค้าผ่านกรอบ)</label>
+        <label class="chk"><input type="checkbox" id="multiCodeStock"> สแกนหลายบาร์โค้ดพร้อมกัน</label>
         <p class="hint">ส่งสินค้าผ่านกรอบกล้องทีละชิ้น ระบบนับ +1 เมื่อจำได้ และรอให้กรอบว่างก่อนนับชิ้นถัดไป ใส่ "ควรมี" เพื่อดูส่วนต่าง</p>
         <div class="table-wrap"><table class="stock"><thead><tr><th>สินค้า</th><th class="n">ควรมี</th><th class="n">นับได้</th><th class="n">ส่วนต่าง</th></tr></thead><tbody id="stockBody"></tbody></table></div>
         <p class="hint" id="stockTotal"></p>
@@ -183,6 +185,6 @@
 </dialog>
 
 <script src="vendor/face-api.js"></script>
-<script src="checkout.js?v=2"></script>
+<script src="checkout.js?v=3"></script>
 </body>
 </html>

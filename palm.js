@@ -14,6 +14,7 @@
 (function (root) {
   "use strict";
   var KB = root.PALM_KB || (typeof require === "function" ? require("./palm-kb.js") : null);
+  var LQT = root.LQTrack || (typeof require === "function" ? require("./lensiq-track.js") : null);
 
   var dist = function (a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); };
   var lerp = function (a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]; };
@@ -630,7 +631,31 @@
     };
   }
 
+  /* ================= หลายมือในภาพ: เลือกมือในกรอบนำทาง ================= */
+  var GUIDE_C = { x: 0.5, y: 0.5 };
+  /** กรอบรอบจุด 21 จุด (px) */
+  function handBox(pts) {
+    var xs = pts.map(function (p) { return p[0]; }), ys = pts.map(function (p) { return p[1]; });
+    var x0 = Math.min.apply(null, xs), y0 = Math.min.apply(null, ys);
+    return { x: x0, y: y0, w: Math.max.apply(null, xs) - x0, h: Math.max.apply(null, ys) - y0 };
+  }
+  /** เลือกมือหลักจาก hands = [{box:{x,y,w,h} (px)}]: มือเดิม (IoU ≥ 0.3 กับ prevBox 0..1) ไม่เช่นนั้นมือที่ใกล้กลางกรอบนำทาง → {index, n, boxN} */
+  function pickHand(hands, prevBox, W, H) {
+    hands = hands || [];
+    var boxes = hands.map(function (h) { return LQT.toNorm(h.box, W, H); });
+    var r = LQT.pickPrimary(boxes, prevBox || null, { minIou: 0.3, prefer: GUIDE_C });
+    return { index: r.index, n: r.n, continuity: r.continuity, boxN: r.index >= 0 ? boxes[r.index] : null };
+  }
+  /** มือแบสมมติ 21 จุดในกรอบ box (px) — ใช้กับตัวตรวจจับจำลองในการทดสอบเท่านั้น */
+  function synthHand(box) {
+    var u = [[0.5, 1], [0.3, 0.9], [0.18, 0.78], [0.1, 0.66], [0.05, 0.56], [0.32, 0.5], [0.32, 0.33], [0.32, 0.2], [0.32, 0.08],
+      [0.47, 0.48], [0.47, 0.3], [0.47, 0.15], [0.47, 0], [0.62, 0.5], [0.62, 0.33], [0.62, 0.2], [0.62, 0.08], [0.76, 0.55], [0.76, 0.43], [0.76, 0.33], [0.76, 0.24]];
+    var w = box.w != null ? box.w : box.width, h = box.h != null ? box.h : box.height;
+    return u.map(function (q) { return [box.x + q[0] * w, box.y + q[1] * h]; });
+  }
+
   var PalmCore = {
+    handBox: handBox, pickHand: pickHand, synthHand: synthHand, GUIDE_C: GUIDE_C,
     buildFacts: buildFacts, TOPIC_IDS: TOPIC_IDS,
     DET: DET, LM: LM, NORMS: NORMS, CANON: CANON, TEMPLATES: TEMPLATES, LINE_IDS: LINE_IDS, TRACE: TRACE, LT: LT, ELEMENTS: ELEMENTS, TAP_ORDER: TAP_ORDER,
     dist: dist, lerp: lerp, round: round, ssdAnchors: ssdAnchors, decodePalms: decodePalms, nms: nms, iou: iou, letterbox: letterbox, unletterbox: unletterbox,
@@ -683,69 +708,27 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   $$("[data-dom]").forEach(function (b) { b.addEventListener("click", function () { S.dom = b.dataset.dom; prefs.dom = S.dom; lsSet(PREF_KEY, prefs); renderSide(); }); });
   renderSide();
 
-  /* ---------- กล้อง (รูปแบบเดียวกับ faceread.js; ค่าเริ่มต้นกล้องหลัง + ไฟฉาย) ---------- */
-  function createCamera(video, o) {
-    o = o || {};
-    var c = { stream: null, facing: "environment", deviceId: "", currentId: "", devices: [], mirror: false, active: false, paused: false, torch: false, torchCap: false };
-    video.muted = true; video.playsInline = true; video.autoplay = true;
-    video.setAttribute("playsinline", ""); video.setAttribute("muted", ""); video.setAttribute("autoplay", "");
-    c.stop = function () { if (c.stream) c.stream.getTracks().forEach(function (t) { t.stop(); }); c.stream = null; c.active = false; c.torch = false; video.srcObject = null; };
-    c.track = function () { return c.stream && c.stream.getVideoTracks()[0]; };
-    c.start = async function () {
-      if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw Object.assign(new Error(HTTPS_MSG), { name: "Insecure" });
-      c.stop();
-      var base = { width: { ideal: 1920 }, height: { ideal: 1080 } };
-      var want = c.deviceId ? Object.assign({}, base, { deviceId: { exact: c.deviceId } }) : Object.assign({}, base, { facingMode: { ideal: c.facing } });
-      var s;
-      try { s = await navigator.mediaDevices.getUserMedia({ video: want, audio: false }); }
-      catch (e) {
-        if (["OverconstrainedError", "NotFoundError", "NotReadableError"].indexOf(e.name) < 0) throw e;
-        c.deviceId = ""; s = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-      }
-      c.stream = s; video.srcObject = s;
-      try { await video.play(); } catch (e) { console.warn("video.play", e); }
-      if (!video.videoWidth) await new Promise(function (r) { video.addEventListener("loadedmetadata", r, { once: true }); setTimeout(r, 3000); });
-      var tr = c.track(), st = (tr && tr.getSettings && tr.getSettings()) || {}, label = (tr && tr.label) || "";
-      try { c.devices = (await navigator.mediaDevices.enumerateDevices()).filter(function (d) { return d.kind === "videoinput" && d.deviceId; }); } catch (e) { c.devices = []; }
-      var fm = st.facingMode || (/back|rear|environment|หลัง/i.test(label) ? "environment" : /front|user|หน้า|facetime/i.test(label) ? "user" : c.devices.length < 2 ? "user" : c.facing);
-      c.facing = fm === "environment" ? "environment" : "user";
-      c.mirror = c.facing === "user";
-      c.currentId = st.deviceId || "";
-      try { var cap = tr.getCapabilities ? tr.getCapabilities() : {}; c.torchCap = !!cap.torch; } catch (e) { c.torchCap = false; }
-      c.active = true;
-      if (c.renderControls) c.renderControls();
-      if (o.onChange) o.onChange(c);
-      return c;
+  /* ---------- กล้อง (LQCam.create: กล้องหลัง 1920×1080 + ไฟฉาย; สำรองข้อจำกัดทีละขั้นโดยไม่ทิ้งความละเอียดที่ขอ) ---------- */
+  /** ปุ่มไฟฉาย (เมื่อกล้องรองรับ) + สลับกล้อง + ตัวเลือกกล้อง (เมื่อมี ≥ 2 ตัว) วางทับมุมขวาบนของกรอบกล้อง */
+  function mountCamCtl(host, c, onError) {
+    var box = document.createElement("div"); box.className = "cam-ctl"; box.hidden = true;
+    box.innerHTML = '<button type="button" class="cam-torch" aria-pressed="false" aria-label="เปิด/ปิดไฟฉาย" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10l-2 6H9zM9 9v12h6V9M12 13v3"/></svg><span>ไฟฉาย</span></button>' +
+      '<button type="button" class="cam-flip" aria-label="สลับกล้องหน้า/หลัง" title="สลับกล้องหน้า/หลัง"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h11l-3-3M20 16H9l3 3"/></svg><span>สลับกล้อง</span></button><select class="cam-pick" aria-label="เลือกกล้อง"></select>';
+    host.append(box);
+    var torch = box.querySelector(".cam-torch"), flip = box.querySelector(".cam-flip"), pickEl = box.querySelector(".cam-pick");
+    var render = function () {
+      var devs = c.devices.filter(function (d) { return d.deviceId; }), multi = devs.length >= 2, tc = c.active && c.torchSupported;
+      flip.hidden = !multi; pickEl.hidden = !multi; torch.hidden = !tc;
+      torch.setAttribute("aria-pressed", c.torch ? "true" : "false");
+      box.hidden = !multi && !tc;
+      pickEl.innerHTML = devs.map(function (d, i) { return '<option value="' + esc(d.deviceId) + '">' + esc(d.label || "กล้อง " + (i + 1)) + "</option>"; }).join("");
+      if (c.deviceId) pickEl.value = c.deviceId;
     };
-    c.flip = function () { c.facing = c.facing === "user" ? "environment" : "user"; c.deviceId = ""; return c.start(); };
-    c.use = function (id) { c.deviceId = id; return c.start(); };
-    c.setTorch = async function (on) { var tr = c.track(); if (!tr || !c.torchCap) return false; await tr.applyConstraints({ advanced: [{ torch: !!on }] }); c.torch = !!on; return true; };
-    c.mountControls = function (host) {
-      var box = document.createElement("div"); box.className = "cam-ctl"; box.hidden = true;
-      box.innerHTML = '<button type="button" class="cam-torch" aria-pressed="false" aria-label="เปิด/ปิดไฟฉาย" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10l-2 6H9zM9 9v12h6V9M12 13v3"/></svg><span>ไฟฉาย</span></button>' +
-        '<button type="button" class="cam-flip" aria-label="สลับกล้องหน้า/หลัง" title="สลับกล้องหน้า/หลัง"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h11l-3-3M20 16H9l3 3"/></svg><span>สลับกล้อง</span></button><select class="cam-pick" aria-label="เลือกกล้อง"></select>';
-      host.append(box);
-      var torch = box.querySelector(".cam-torch"), flip = box.querySelector(".cam-flip"), pickEl = box.querySelector(".cam-pick");
-      var run = function (p) { box.classList.add("busy"); p.catch(function (e) { if (o.onError) o.onError(e); }).finally(function () { box.classList.remove("busy"); }); };
-      flip.onclick = function () { run(c.flip()); };
-      pickEl.onchange = function () { run(c.use(pickEl.value)); };
-      torch.onclick = function () { run(c.setTorch(!c.torch).then(function () { torch.setAttribute("aria-pressed", c.torch ? "true" : "false"); })); };
-      c.renderControls = function () {
-        var multi = c.devices.length >= 2;
-        flip.hidden = !multi; pickEl.hidden = !multi; torch.hidden = !c.torchCap;
-        torch.setAttribute("aria-pressed", c.torch ? "true" : "false");
-        box.hidden = !multi && !c.torchCap;
-        pickEl.innerHTML = c.devices.map(function (d, i) { return '<option value="' + esc(d.deviceId) + '">' + esc(d.label || "กล้อง " + (i + 1)) + "</option>"; }).join("");
-        if (c.currentId) pickEl.value = c.currentId;
-      };
-    };
-    document.addEventListener("visibilitychange", function () {
-      if (document.hidden) { if (c.stream) { c.paused = true; c.stop(); if (o.onChange) o.onChange(c); } }
-      else if (c.paused) { c.paused = false; c.start().catch(function (e) { if (o.onError) o.onError(e); }); }
-    });
-    window.addEventListener("pagehide", function () { if (c.stream) { c.paused = true; c.stop(); } });
-    window.addEventListener("pageshow", function (e) { if (e.persisted && c.paused) { c.paused = false; c.start().catch(function (err) { if (o.onError) o.onError(err); }); } });
-    return c;
+    var run = function (p) { box.classList.add("busy"); p.catch(function (e) { if (e && e.name !== "AbortError" && onError) onError(e); }).finally(function () { box.classList.remove("busy"); render(); }); };
+    flip.onclick = function () { run(c.flip()); };
+    pickEl.onchange = function () { run(c.start(pickEl.value)); };
+    torch.onclick = function () { run(c.setTorch(!c.torch)); };
+    return render;
   }
   function showHttpsNote(before) {
     if (window.isSecureContext || document.querySelector(".https-note")) return;
@@ -764,26 +747,27 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     if (ov.width !== vw || ov.height !== vh) { ov.width = vw; ov.height = vh; }
     cam.style.aspectRatio = vw + " / " + vh;
   }
-  var camera = createCamera(video, {
-    onChange: function (c) { cam.classList.toggle("mirror", c.mirror); cam.classList.toggle("live", c.active); layoutCam(); if (c.active) startLoop(); },
-    onError: camErr
+  var renderCamCtl = function () {};
+  var camera = LQCam.create(video, {
+    facing: "environment", ideal: { width: 1920, height: 1080 }, torch: true,
+    onChange: function (c, ev) {
+      renderCamCtl();
+      if (ev.type === "devices") return;
+      cam.classList.toggle("mirror", c.mirrored); cam.classList.toggle("live", c.active); layoutCam();
+      if (ev.type === "started" && c.active) { prevHand = null; startLoop(); }
+      if (ev.type === "ended") engine("สัญญาณกล้องหลุด — กดเปิดกล้องอีกครั้ง", "err");
+    },
+    onError: function (c, e) { if (e && e.name !== "AbortError") camErr(e); }
   });
-  camera.mountControls(cam);
+  renderCamCtl = mountCamCtl(cam, camera, camErr);
   video.addEventListener("resize", layoutCam);
 
   /* ---------- โมเดลจุดบนมือ (tfjs graph model, ไม่ต้องใช้ WebGL) ---------- */
-  async function initBackend() {
-    var tf = faceapi.tf;
-    tf.setWasmPaths("vendor/");
-    var names = ["webgl", "wasm", "cpu"];
-    for (var i = 0; i < names.length; i++) {
-      try { if (await tf.setBackend(names[i])) { await tf.ready(); return names[i]; } } catch (e) { console.warn(names[i], e); }
-    }
-    throw new Error("no backend");
-  }
+  var FAKE = !!(window.LQDetect && LQDetect.isTest()); // ?fakedet บน localhost: ตัวตรวจจับจำลองสำหรับทดสอบ ไม่โหลดโมเดล
   var modelsP = null;
   function loadModels() {
-    if (!modelsP) modelsP = initBackend().then(function (b) {
+    if (FAKE) { ready = true; models = models || { fake: true }; engine("พร้อมใช้งาน (ตัวตรวจจับจำลองสำหรับทดสอบ)", "ok"); return Promise.resolve(models); }
+    if (!modelsP) modelsP = LQDetect.tfBackend().then(function (b) {
       var tf = faceapi.tf;
       return Promise.all([tf.loadGraphModel(MODEL_DIR + "detector/model.json"), tf.loadGraphModel(MODEL_DIR + "landmark/model.json")]).then(function (m) {
         models = { tf: tf, det: m[0], lm: m[1], anchors: PC.ssdAnchors(), backend: b };
@@ -807,23 +791,41 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       return { pts: PC.projectLandmarks(lm, roi), score: score, handedness: hd };
     } finally { tf.dispose(out); inp.dispose(); }
   }
-  /** หาเมือในภาพ: ตรวจฝ่ามือ → จุด 21 จุด → กรอบใหม่จากจุด → จุดรอบสอง (แม่นขึ้น) */
-  async function detectHand(src, quick) {
-    var tf = models.tf, W = src.width || src.videoWidth, H = src.height || src.videoHeight;
+  /** หามือในภาพ (สูงสุด 2 มือ): ตรวจฝ่ามือ → จุด 21 จุด → กรอบใหม่จากจุด → จุดรอบสอง (แม่นขึ้น)
+      คืน [{pts, score, det, handedness, box:{x,y,w,h} px}] — handedness ดิบจากโมเดล (ภาพไม่กลับด้าน ใช้ PC.guessSide ตัดสินข้างมือ) */
+  async function detectHands(src, quick) {
+    var W = src.width || src.videoWidth, H = src.height || src.videoHeight;
+    if (FAKE) {
+      var fk = LQDetect.fake(camera.deviceId || "c1", performance.now()) || [];
+      return fk.map(function (d) { var box = { x: d.x * W, y: d.y * H, w: d.w * W, h: d.h * H }, pts = PC.synthHand(box); return { pts: pts, score: d.score, det: d.score, handedness: null, box: PC.handBox(pts) }; });
+    }
+    var tf = models.tf;
     var lb = PC.letterbox(W, H, 192), x = c192.getContext("2d");
     x.fillStyle = "#000"; x.fillRect(0, 0, 192, 192); x.drawImage(src, lb.dx, lb.dy, lb.dw, lb.dh);
     var inp = tf.tidy(function () { return tf.browser.fromPixels(c192).toFloat().div(255).expandDims(0); });
     var out = models.det.predict(inp), raw;
     try { raw = await out.data(); } finally { tf.dispose([inp, out]); }
-    var dets = PC.nms(PC.decodePalms(raw, models.anchors, 0.5), 0.3, 1);
-    if (!dets.length) return null;
-    var d = PC.unletterbox(dets[0], lb.pad), roi = PC.palmRoi(d, W, H);
-    var r1 = await runLandmarks(src, roi);
-    if (r1.score < 0.5) return null;
-    if (quick) return { pts: r1.pts, score: r1.score, det: d.score };
-    var r2 = await runLandmarks(src, PC.landmarksRoi(r1.pts));
-    var r = r2.score >= 0.5 ? r2 : r1;
-    return { pts: r.pts, score: r.score, det: d.score };
+    var dets = PC.nms(PC.decodePalms(raw, models.anchors, 0.5), 0.3, 2), hands = [];
+    for (var i = 0; i < dets.length; i++) {
+      var d = PC.unletterbox(dets[i], lb.pad), roi = PC.palmRoi(d, W, H);
+      var r1 = await runLandmarks(src, roi);
+      if (r1.score < 0.5) continue;
+      var r = r1;
+      if (!quick) { var r2 = await runLandmarks(src, PC.landmarksRoi(r1.pts)); if (r2.score >= 0.5) r = r2; }
+      hands.push({ pts: r.pts, score: r.score, det: d.score, handedness: r.handedness, box: PC.handBox(r.pts) });
+    }
+    // สองกรอบฝ่ามืออาจได้จุดของมือเดียวกัน: ตัดมือที่ซ้อนกันมาก
+    return hands.filter(function (h, k) { return hands.slice(0, k).every(function (o) { return PC.iou(o.box, h.box) < 0.5; }); });
+  }
+  /** มือเดียว (มือหลัก) หรือ null — รูปแบบเดิม {pts, score, det, handedness} สำหรับโค้ดทดสอบ */
+  async function detectHand(src, quick) {
+    var W = src.width || src.videoWidth, H = src.height || src.videoHeight;
+    return primaryHand(await detectHands(src, quick), null, W, H).hand;
+  }
+  /** มือหลักในภาพ (ใกล้กลางกรอบนำทาง / มือเดิม) → {hand, n, others, boxN} */
+  function primaryHand(hands, prev, W, H) {
+    var p = PC.pickHand(hands, prev, W, H);
+    return { hand: p.index >= 0 ? hands[p.index] : null, n: hands.length, boxN: p.boxN, others: hands.filter(function (h, i) { return i !== p.index; }) };
   }
 
   /* ---------- กรอบนำทาง + ตรวจสดจากกล้อง ---------- */
@@ -840,7 +842,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     if (c.roundRect) c.roundRect(-s * 0.13, -s * 0.72, s * 0.26, s * 0.78, s * 0.13); else c.rect(-s * 0.13, -s * 0.72, s * 0.26, s * 0.78);
     c.restore();
   }
-  function drawGuide(pts, ok) {
+  function drawGuide(pts, ok, others) {
     var w = ov.width, h = ov.height; octx.clearRect(0, 0, w, h);
     octx.lineWidth = Math.max(3, w / 240); octx.setLineDash([w / 60, w / 90]);
     octx.strokeStyle = ok ? "#22d3ee" : "rgba(255,255,255,.8)";
@@ -854,6 +856,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       });
       pts.forEach(function (p) { octx.beginPath(); octx.arc(p[0], p[1], r, 0, Math.PI * 2); octx.fill(); });
     }
+    (others || []).forEach(function (o) { // มืออื่น: หรี่ลง ไม่ใช้ในการอ่าน
+      var b = o.box;
+      octx.fillStyle = "rgba(14,20,48,.5)"; octx.fillRect(b.x, b.y, b.w, b.h);
+      octx.strokeStyle = "rgba(255,255,255,.35)"; octx.lineWidth = Math.max(2, w / 400); octx.strokeRect(b.x, b.y, b.w, b.h);
+    });
   }
   function renderQc(items) {
     $("#plQc").innerHTML = items.map(function (q) {
@@ -861,9 +868,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     }).join("");
   }
   var probe = document.createElement("canvas");
-  function quality(pts, W, H, src) {
+  function quality(pts, W, H, src, n) {
     var q = [{ id: "hand", label: "พบมือ", ok: !!pts, tip: "แบฝ่ามือเข้าหากล้องให้เห็นทั้งมือ" }];
     if (!pts) return q;
+    if (n != null) q.push({ id: "single", label: "ใช้มือเดียวในกรอบ", ok: n <= 1, tip: "พบ " + n + " มือ ใช้มือที่จะอ่านเพียงข้างเดียว (อ่านมือที่อยู่กลางกรอบ)" });
     var hand = PC.handFromLandmarks(pts), m = PC.measureHand(hand);
     q.push({ id: "size", label: "มือใหญ่พอ", ok: m.palmW / Math.min(W, H) >= 0.14, tip: "ขยับมือเข้าใกล้กล้องอีกนิด" });
     var inside = pts.every(function (p) { return p[0] > W * 0.02 && p[0] < W * 0.98 && p[1] > H * 0.02 && p[1] < H * 0.98; });
@@ -877,15 +885,18 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     q.push({ id: "light", label: "แสงพอดี", ok: lum > 80 && lum < 235, tip: lum <= 80 ? "แสงน้อย ลองเปิดไฟฉายหรือหันเข้าหาแสง" : "แสงจ้าเกินไป ลองเลี่ยงแสงสะท้อน" });
     return q;
   }
-  var lastQ = null;
+  var lastQ = null, prevHand = null;
+  /** ป้ายเตือนบนภาพกล้องเมื่อเห็นมากกว่า 1 มือ */
+  function renderMulti(n) { var el = $("#plMulti"); if (el) el.hidden = !(n > 1); }
   async function startLoop() {
     if (looping) return; looping = true;
     while (camera.active && looping) {
       if (!S.busy && ready && video.videoWidth) {
         try {
-          var r = await detectHand(video, true);
-          lastQ = quality(r && r.pts, video.videoWidth, video.videoHeight, video);
-          if (!S.busy) { renderQc(lastQ); drawGuide(r && r.pts, lastQ.every(function (q) { return q.ok; })); }
+          var W = video.videoWidth, H = video.videoHeight, ph = primaryHand(await detectHands(video, true), prevHand, W, H), r = ph.hand;
+          prevHand = ph.boxN;
+          lastQ = quality(r && r.pts, W, H, video, ph.n);
+          if (!S.busy) { renderQc(lastQ); drawGuide(r && r.pts, lastQ.every(function (q) { return q.ok; }), ph.others); renderMulti(ph.n); }
         } catch (e) { console.warn(e); }
       } else if (!ready && video.videoWidth) drawGuide(null, false);
       await sleep(400);
@@ -943,9 +954,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     resultSec.hidden = true;
     engine("กำลังหาจุดบนมือ...");
     await frame2();
-    var det = null;
-    try { await loadModels(); det = await detectHand(cv, false); } catch (e) { console.warn(e); }
-    var q = quality(det && det.pts, cv.width, cv.height, cv);
+    var det = null, nh = 0;
+    try { await loadModels(); var hs = await detectHands(cv, false); nh = hs.length; det = primaryHand(hs, null, cv.width, cv.height).hand; } catch (e) { console.warn(e); }
+    var q = quality(det && det.pts, cv.width, cv.height, cv, nh);
     renderQc(q);
     if (!det) {
       engine("ไม่พบมือในภาพอัตโนมัติ — แตะจุดบนมือเอง 7 จุดเพื่อไปต่อ", "err");
@@ -1461,5 +1472,5 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   if (!window.isSecureContext) showHttpsNote($("#plEngine"));
   engine("กำลังโหลดโมเดลจุดบนมือ...");
   loadModels().catch(function () {});
-  window.__palm = { get S() { return S; }, makeCard: makeCard, narrate: narrate, keySentences: keySentences, reset: reset, detectHand: detectHand, loadModels: loadModels }; // ใช้ทดสอบ
+  window.__palm = { get S() { return S; }, makeCard: makeCard, narrate: narrate, keySentences: keySentences, reset: reset, detectHand: detectHand, detectHands: detectHands, loadModels: loadModels }; // ใช้ทดสอบ
 })();

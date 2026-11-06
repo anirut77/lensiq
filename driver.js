@@ -108,8 +108,38 @@ function summarizeTrip(trip, events, endT) {
     counts, total: events.filter(e => e.type !== "break").length, maxLevel,
     maxFatigue: trip.maxFatigue || 0, maxPerclos: +(trip.maxPerclos || 0).toFixed(3),
     safety: safetyScore(events, durationMs, trip.maxFatigue || 0),
-    thr: trip.thr, baseEar: trip.baseEar, calibrated: !!trip.calibrated, aborted: !!trip.aborted
+    thr: trip.thr, baseEar: trip.baseEar, calibrated: !!trip.calibrated, aborted: !!trip.aborted,
+    occupantsMax: trip.occupantsMax || 0   // จำนวนใบหน้าสูงสุดที่เห็นพร้อมกัน (ค่ารวม ไม่เก็บข้อมูลรายบุคคล)
   };
+}
+
+/* เลือกใบหน้าคนขับจากทุกใบหน้าในภาพ (กล่องปกติ 0..1 พิกัดภาพจริงไม่กลับด้าน)
+   - ยังไม่ล็อก: เลือกตามฝั่งที่นั่ง (ขนาดกล่อง × น้ำหนักฝั่ง) — คนขับนั่งขวา กล้องหันเข้าหาคน -> ฝั่งซ้ายของภาพ
+   - ล็อกแล้ว (prevBox): ต้องซ้อนทับกล่องเดิม IoU ≥ 0.3 ไม่งั้นลองเทียบกับกล่องที่ปรับเทียบไว้ (anchor)
+     ไม่ตรงทั้งคู่ -> index -1 = ไม่พบใบหน้าคนขับ (face_missing) ห้ามสลับไปจับผู้โดยสาร */
+const DR_MAX_FACES = 4;
+function pickDriver(boxes, prevBox, seatSide = "right", anchor = null) {
+  const T = typeof LQTrack !== "undefined" ? LQTrack : require("./lensiq-track.js");
+  const C = typeof LQCam !== "undefined" ? LQCam : require("./lensiq-camera.js");
+  const prefer = C.mapSeatToImage(seatSide, true);
+  const r = T.pickPrimary(boxes, prevBox, { prefer, lockOnly: prevBox != null, minIou: 0.3 });
+  if (r.index < 0 && anchor && prevBox && anchor !== prevBox) return T.pickPrimary(boxes, anchor, { prefer, lockOnly: true, minIou: 0.3 });
+  return r;
+}
+
+/* ใบหน้าจำลองสำหรับโหมดทดสอบ ?fakedet (localhost เท่านั้น): สร้าง landmark 68 จุดจากกล่อง + ค่า ear/mar ที่กำหนด */
+function synthFace(d, W, H) {
+  const x = d.x * W, y = d.y * H, w = d.w * W, h = d.h * H, ear = d.ear ?? 0.3, mar = d.mar ?? 0.1;
+  const c = { x: x + w / 2, y: y + h / 2 }, pts = Array.from({ length: 68 }, () => ({ ...c }));
+  const eye = (i0, cx, cy) => {
+    const ew = 0.2 * w, hh = ear * ew / 2;
+    [[-ew / 2, 0], [-ew / 6, -hh], [ew / 6, -hh], [ew / 2, 0], [ew / 6, hh], [-ew / 6, hh]].forEach(([dx, dy], k) => { pts[i0 + k] = { x: cx + dx, y: cy + dy }; });
+  };
+  eye(36, x + 0.3 * w, y + 0.4 * h); eye(42, x + 0.7 * w, y + 0.4 * h);
+  const mw = 0.3 * w, mh = mar * mw / 2, mx = x + 0.5 * w, my = y + 0.78 * h;
+  [[-mw / 2, 0], [-mw / 4, -mh], [0, -mh], [mw / 4, -mh], [mw / 2, 0], [mw / 4, mh], [0, mh], [-mw / 4, mh]].forEach(([dx, dy], k) => { pts[60 + k] = { x: mx + dx, y: my + dy }; });
+  pts[30] = { x: x + 0.5 * w, y: y + 0.6 * h };
+  return { pts, box: { x, y, width: w, height: h }, score: d.score ?? 0.9 };
 }
 
 const csvCell = v => { const s = v == null ? "" : String(v); return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
@@ -225,10 +255,10 @@ function createMonitor(baseline = {}, cfgIn = {}) {
   return { update, finish, log, setThreshold(v) { B.thr = v; }, get baseline() { return { ...B }; }, get maxFatigue() { return maxFatigue; }, get maxPerclos() { return maxPerclos; } };
 }
 
-if (typeof module !== "undefined") module.exports = { DR_DEFAULTS, DR_TYPES, DR_LEVELS, eyeAspectRatio, mouthAspectRatio, faceMetrics, createPerclos, calibrate, fatigueScore, countRecent, shouldRecommendBreak, safetyScore, summarizeTrip, csvCell, toCsv, createMonitor, median };
+if (typeof module !== "undefined") module.exports = { DR_DEFAULTS, DR_TYPES, DR_LEVELS, eyeAspectRatio, mouthAspectRatio, faceMetrics, createPerclos, calibrate, fatigueScore, countRecent, shouldRecommendBreak, safetyScore, summarizeTrip, csvCell, toCsv, createMonitor, median, pickDriver, synthFace, DR_MAX_FACES };
 
 // ================= ส่วนหน้าจอ =================
-if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
+if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof LQCam !== "undefined") (() => {
   const $ = s => document.querySelector(s);
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -243,9 +273,11 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
   function engine(msg, cls = "") { const e = $("#engine"); e.textContent = msg; e.className = "engine " + cls; }
 
   // ---------- การตั้งค่า ----------
-  const settings = { ratio: 0.7, marYawn: 0.5, breakN: 3, inputSize: 224, speech: true, ...load(K.settings, {}) };
+  const SEATS = ["right", "left", "auto"];
+  const settings = { ratio: 0.7, marYawn: 0.5, breakN: 3, inputSize: 224, speech: true, seatSide: "right", ...load(K.settings, {}) };
+  if (!SEATS.includes(settings.seatSide)) settings.seatSide = "right";
   const sf = $("#settings");
-  const syncSettingsUI = () => { sf.ratio.value = settings.ratio; sf.marYawn.value = settings.marYawn; sf.breakN.value = settings.breakN; sf.inputSize.value = settings.inputSize; sf.speech.checked = settings.speech; };
+  const syncSettingsUI = () => { sf.ratio.value = settings.ratio; sf.marYawn.value = settings.marYawn; sf.breakN.value = settings.breakN; sf.inputSize.value = settings.inputSize; sf.speech.checked = settings.speech; sf.seatSide.value = settings.seatSide; };
   syncSettingsUI();
   sf.addEventListener("change", () => {
     const num = (v, lo, hi, d) => { const n = parseFloat(v); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
@@ -254,6 +286,8 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
     settings.breakN = Math.round(num(sf.breakN.value, 1, 10, 3));
     settings.inputSize = sf.inputSize.value === "320" ? 320 : 224;
     settings.speech = sf.speech.checked;
+    const seat = SEATS.includes(sf.seatSide.value) ? sf.seatSide.value : "right";
+    if (seat !== settings.seatSide) { settings.seatSide = seat; if (phase !== "trip") clearLock(); }
     syncSettingsUI(); save(K.settings, settings);
     detOpts = new faceapi.TinyFaceDetectorOptions({ inputSize: settings.inputSize, scoreThreshold: 0.4 });
   });
@@ -307,47 +341,31 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
   $("#testSound").onclick = () => { alarm.ensure(); alarm.beep(); setTimeout(() => alarm.beep(), 250); speak("ทดสอบเสียง กรุณาพักรถ", true); };
 
   // ---------- กล้อง / โมเดล ----------
-  let ready = false, modelsReady = false, stream = null;
+  const TEST = LQDetect.isTest(); // ?fakedet บน localhost: ใช้ใบหน้าจำลอง ไม่โหลดโมเดล
+  let ready = false, modelsReady = false;
   let detOpts = new faceapi.TinyFaceDetectorOptions({ inputSize: settings.inputSize, scoreThreshold: 0.4 });
 
-  async function initBackend() {
-    const tf = faceapi.tf;
-    tf.setWasmPaths("vendor/");
-    for (const name of ["webgl", "wasm", "cpu"]) {
-      try { if (await tf.setBackend(name)) { await tf.ready(); return name; } } catch (e) { console.warn(name, e); }
-    }
-    throw new Error("no backend");
+  function listCameras() {
+    const sel = $("#camSel"), devs = cam.devices;
+    sel.innerHTML = devs.map((d, i) => `<option value="${esc(d.deviceId)}"${d.deviceId === cam.deviceId ? " selected" : ""}>${esc(d.label || `กล้อง ${i + 1}`)}</option>`).join("") || `<option value="">ไม่พบกล้อง</option>`;
   }
 
-  async function listCameras() {
-    const sel = $("#camSel");
-    try {
-      const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "videoinput");
-      const cur = stream?.getVideoTracks()[0]?.getSettings().deviceId;
-      sel.innerHTML = devs.map((d, i) => `<option value="${esc(d.deviceId)}"${d.deviceId === cur ? " selected" : ""}>${esc(d.label || `กล้อง ${i + 1}`)}</option>`).join("") || `<option value="">ไม่พบกล้อง</option>`;
-    } catch { sel.innerHTML = `<option value="">ไม่สามารถอ่านรายการกล้อง</option>`; }
-  }
-
-  let facing = "user", camPaused = false; // กล้องหน้า (หันเข้าหาคนขับ) เป็นค่าเริ่มต้น
   function fitOverlay() { if (video.videoWidth && (overlay.width !== video.videoWidth || overlay.height !== video.videoHeight)) { overlay.width = video.videoWidth; overlay.height = video.videoHeight; } }
   video.addEventListener("resize", fitOverlay); // หมุนจอ -> ขนาดภาพจากกล้องเปลี่ยน
-  async function openCamera(deviceId) {
-    if (stream) stream.getTracks().forEach(t => t.stop());
-    stream = null;
-    const video_ = { width: { ideal: 640 }, height: { ideal: 480 } };
-    if (deviceId) video_.deviceId = { exact: deviceId }; else video_.facingMode = { ideal: facing };
-    try { stream = await navigator.mediaDevices.getUserMedia({ video: video_, audio: false }); }
-    catch (e) { if (deviceId && (e.name === "OverconstrainedError" || e.name === "NotFoundError")) { localStorage.removeItem(K.cam); return openCamera(null); } throw e; }
-    video.srcObject = stream; await video.play();
-    if (!video.videoWidth) await new Promise(r => video.addEventListener("loadedmetadata", r, { once: true }));
-    fitOverlay();
-    const tr = stream.getVideoTracks()[0], ts = tr.getSettings();
-    if (ts.facingMode) facing = ts.facingMode === "user" ? "user" : "environment";
-    // กลับด้านภาพ (เหมือนกระจก) เฉพาะกล้องหน้า/เว็บแคมที่ไม่บอกทิศ — กล้องหลังแสดงตามจริง
-    $("#cam").classList.toggle("mirror", ts.facingMode ? ts.facingMode === "user" : facing === "user");
-    camPaused = false;
-    tr.addEventListener("ended", () => { if (camPaused) return; if (trip) engine("สัญญาณกล้องหลุด กรุณาตรวจสอบสายกล้องแล้วกดลองใหม่", "err"); addRetry(); });
-  }
+  // กล้องหน้า (หันเข้าหาคนขับ) เป็นค่าเริ่มต้น · dr-cam เก็บ {deviceId,label} (อ่านค่าเดิมที่เป็นสตริงได้)
+  // ปิดกล้องเมื่อสลับแอป/ล็อกจอ และเปิดใหม่เมื่อกลับมา (autoPause — ระหว่างนั้นหยุดตรวจ ไม่นับเป็น "ไม่พบใบหน้า")
+  const cam = LQCam.create(video, {
+    facing: "user", ideal: { width: 640, height: 480 }, persistKey: K.cam,
+    onChange: (c, ev) => {
+      if (ev.type === "started") {
+        fitOverlay();
+        $("#cam").classList.toggle("mirror", c.mirrored); // กลับด้านภาพเฉพาะกล้องหน้า
+      } else if (ev.type === "devices") listCameras();
+      else if (ev.type === "resumed") { if (trip) engine("กลับมาเฝ้าระวังต่อแล้ว", "ok"); }
+      else if (ev.type === "ended") { if (trip) engine("สัญญาณกล้องหลุด กรุณาตรวจสอบสายกล้องแล้วกดลองใหม่", "err"); addRetry(); }
+    },
+    onError: (c, err) => { if (err.name !== "AbortError") { engine(`เปิดกล้องไม่สำเร็จ: ${cameraError(err) || err.message}`, "err"); addRetry(); } }
+  });
 
   function addRetry() {
     if ($("#engine button")) return;
@@ -364,7 +382,8 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
       NotFoundError: "ไม่พบกล้อง — ตรวจสอบการต่อกล้องหน้ารถ/กล้อง IR",
       NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่ — ปิดโปรแกรมนั้นแล้วกดลองใหม่",
       OverconstrainedError: "กล้องที่เลือกไม่รองรับการตั้งค่านี้ ลองเลือกกล้องอื่น",
-      AbortError: "เปิดกล้องไม่สำเร็จ ลองใหม่อีกครั้ง"
+      AbortError: "เปิดกล้องไม่สำเร็จ ลองใหม่อีกครั้ง",
+      Ended: "สัญญาณกล้องหลุด"
     }[e.name];
     return m;
   }
@@ -375,63 +394,66 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
     try {
       if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) throw Object.assign(new Error("insecure"), { name: "Insecure" });
       const [, backend] = await Promise.all([
-        openCamera(load(K.cam, null)),
-        modelsReady ? Promise.resolve(faceapi.tf.getBackend()) : initBackend().then(async b => {
+        cam.start(),
+        TEST ? Promise.resolve("test") : modelsReady ? LQDetect.tfBackend() : LQDetect.tfBackend().then(async b => {
           await Promise.all(["tinyFaceDetector", "faceLandmark68Net"].map(n => faceapi.nets[n].loadFromUri("vendor/models/")));
           modelsReady = true; return b;
         })
       ]);
-      await listCameras();
+      await cam.refreshDevices();
       ready = true;
       engine(`พร้อมใช้งาน (ตัวประมวลผล: ${backend.toUpperCase()}${backend === "webgl" ? "" : " — ใช้โหมดประหยัด ขนาดภาพตรวจจับ " + settings.inputSize + " px"})`, "ok");
       if (!trip) $("#stateText").textContent = "พร้อม — กรอกข้อมูลแล้วกดเริ่มเที่ยว";
     } catch (e) {
-      console.error(e);
+      console.warn(e);
       const m = cameraError(e);
       engine(`ระบบไม่พร้อม: ${m || "โหลดโมเดลไม่สำเร็จ"} (${e.name}: ${e.message || "-"})`, "err");
       addRetry();
-      if (e.name === "Insecure") { const a = document.createElement("a"); a.href = "cameras.html"; a.className = "btn ghost"; a.style.cssText = "margin-left:10px;padding:4px 14px"; a.textContent = "วิธีเปิดผ่าน https"; $("#engine").append(a); }
+      if (e.name === "Insecure" && !$("#engine a")) { const a = document.createElement("a"); a.href = "cameras.html"; a.className = "btn ghost"; a.style.cssText = "margin-left:10px;padding:4px 14px"; a.textContent = "วิธีเปิดผ่าน https"; $("#engine").append(a); }
     }
   }
 
-  $("#flipCam").onclick = async () => {
-    facing = facing === "user" ? "environment" : "user";
-    localStorage.removeItem(K.cam);
+  async function switchCam(run) {
     try {
       engine("กำลังสลับกล้อง...");
       if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) throw Object.assign(new Error("insecure"), { name: "Insecure" });
-      await openCamera(null);
-      const id = stream?.getVideoTracks()[0]?.getSettings().deviceId; if (id) save(K.cam, id);
-      await listCameras();
-      engine((facing === "user" ? "ใช้กล้องหน้า" : "ใช้กล้องหลัง") + (trip ? " — แนะนำให้กดปรับเทียบใหม่" : ""), "ok");
-    } catch (err) { engine(`สลับกล้องไม่สำเร็จ: ${cameraError(err) || err.message}`, "err"); addRetry(); }
-  };
-  // ปิดกล้องเมื่อสลับแอป/ล็อกจอ และเปิดใหม่เมื่อกลับมา (ระหว่างนั้นหยุดตรวจ ไม่นับเป็น "ไม่พบใบหน้า")
-  document.addEventListener("visibilitychange", async () => {
-    if (document.hidden) {
-      if (stream) { camPaused = true; stream.getTracks().forEach(t => t.stop()); stream = null; video.srcObject = null; }
-    } else if (camPaused && ready) {
-      try { await openCamera(load(K.cam, null)); if (trip) engine("กลับมาเฝ้าระวังต่อแล้ว", "ok"); }
-      catch (err) { engine(`เปิดกล้องอีกครั้งไม่สำเร็จ: ${cameraError(err) || err.message}`, "err"); addRetry(); }
-    }
-  });
-  $("#camSel").onchange = async e => {
-    const id = e.target.value; if (!id) return;
-    save(K.cam, id);
-    try { engine("กำลังสลับกล้อง..."); await openCamera(id); engine("สลับกล้องแล้ว" + (trip ? " — แนะนำให้กดปรับเทียบใหม่" : ""), "ok"); }
-    catch (err) { engine(`สลับกล้องไม่สำเร็จ: ${cameraError(err) || err.message}`, "err"); addRetry(); }
-  };
+      await run();
+      clearLock(); // มุมกล้องเปลี่ยน -> ล้างกล้องคนขับที่ล็อกไว้
+      listCameras();
+      engine((cam.facing === "environment" ? "ใช้กล้องหลัง" : "ใช้กล้องหน้า") + (trip ? " — แนะนำให้กดปรับเทียบใหม่" : ""), "ok");
+    } catch (err) { if (err.name !== "AbortError") { engine(`สลับกล้องไม่สำเร็จ: ${cameraError(err) || err.message}`, "err"); addRetry(); } }
+  }
+  $("#flipCam").onclick = () => switchCam(() => cam.flip());
+  $("#camSel").onchange = e => { const id = e.target.value; if (id) switchCam(() => cam.start(id)); };
 
   // ---------- การตรวจจับ ----------
+  // ล็อกคนขับ: prevBox = กล่องคนขับเฟรมล่าสุด, anchor = กล่องตอนปรับเทียบเสร็จ (ปกติ 0..1 เก็บในหน่วยความจำเท่านั้น)
+  let prevBox = null, anchor = null;
+  function clearLock() { prevBox = null; anchor = null; }
+
+  /* ตรวจทุกใบหน้า (สูงสุด 4) แล้วเลือกคนขับ -> {f: ใบหน้าคนขับหรือ null, others: ใบหน้าอื่น, n} */
   async function detect() {
-    const r = await faceapi.detectSingleFace(video, detOpts).withFaceLandmarks();
-    if (!r) return null;
-    return { pts: r.landmarks.positions.map(p => ({ x: p.x, y: p.y })), box: r.detection.box };
+    const W = video.videoWidth, H = video.videoHeight;
+    let faces;
+    if (TEST) faces = (LQDetect.fake("driver", performance.now()) || []).slice(0, DR_MAX_FACES).map(d => synthFace(d, W, H));
+    else {
+      const rs = await faceapi.detectAllFaces(video, detOpts).withFaceLandmarks();
+      faces = rs.sort((a, b) => b.detection.score - a.detection.score).slice(0, DR_MAX_FACES)
+        .map(r => ({ pts: r.landmarks.positions.map(p => ({ x: p.x, y: p.y })), box: r.detection.box, score: r.detection.score }));
+    }
+    const boxes = faces.map(f => LQTrack.toNorm(f.box, W, H));
+    const pick = pickDriver(boxes, prevBox, settings.seatSide, anchor);
+    if (pick.index >= 0) prevBox = boxes[pick.index];
+    return { f: pick.index >= 0 ? faces[pick.index] : null, others: faces.filter((_, i) => i !== pick.index), n: faces.length };
   }
 
-  function drawFace(f, m) {
+  function drawFace(f, m, others = []) {
     const ctx = overlay.getContext("2d");
     ctx.clearRect(0, 0, overlay.width, overlay.height);
+    // ใบหน้าอื่น (ผู้โดยสาร) แสดงจาง ๆ ไม่นำมาคำนวณ
+    ctx.lineWidth = 2; ctx.setLineDash([6, 6]); ctx.strokeStyle = "rgba(255,255,255,.22)";
+    others.forEach(o => ctx.strokeRect(o.box.x, o.box.y, o.box.width, o.box.height));
+    ctx.setLineDash([]);
     if (!f) return;
     const poly = (a, b, color) => { ctx.strokeStyle = color; ctx.beginPath(); for (let i = a; i <= b; i++) ctx[i === a ? "moveTo" : "lineTo"](f.pts[i].x, f.pts[i].y); ctx.closePath(); ctx.stroke(); };
     ctx.lineWidth = 2;
@@ -439,7 +461,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
     poly(36, 41, eyeC); poly(42, 47, eyeC);
     poly(60, 67, m && m.mar > settings.marYawn ? "#ffb020" : "#6cc4e3");
     ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(f.pts[30].x, f.pts[30].y, 3, 0, 7); ctx.fill();
-    ctx.strokeStyle = "rgba(255,255,255,.35)"; ctx.strokeRect(f.box.x, f.box.y, f.box.width, f.box.height);
+    ctx.strokeStyle = "rgba(61,220,132,.8)"; ctx.strokeRect(f.box.x, f.box.y, f.box.width, f.box.height);
   }
 
   // ---------- เที่ยววิ่ง ----------
@@ -474,7 +496,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
     set("", "");
     save("dr-lastDriver", driver); save("dr-lastPlate", plate);
     alarm.ensure();
-    trip = { id: "T" + Date.now().toString(36).toUpperCase(), driver, plate, start: Date.now(), thr: null, baseEar: null, calibrated: false };
+    trip = { id: "T" + Date.now().toString(36).toUpperCase(), driver, plate, start: Date.now(), thr: null, baseEar: null, calibrated: false, occupantsMax: 0 };
     $("#summary").hidden = true;
     document.body.classList.add("on-trip");
     $("#tripInfo").textContent = `${driver} · ${plate}`;
@@ -484,7 +506,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
   });
 
   function startCalibration() {
-    phase = "calib"; calibSamples = []; series = [];
+    phase = "calib"; calibSamples = []; series = []; clearLock();
     $("#calib").hidden = false;
     $("#stateText").textContent = "กำลังปรับเทียบ";
     setLevel(0);
@@ -502,6 +524,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
     const c = calibrate(calibSamples, settings.ratio);
     $("#calib").hidden = true;
     trip.thr = c.thr; trip.baseEar = c.ear; trip.calibrated = c.ok;
+    anchor = prevBox; // กล่องคนขับตอนปรับเทียบ = จุดยึดสำหรับล็อกคนขับ
     monitor = createMonitor(c, { marYawn: settings.marYawn, breakWarnings: settings.breakN });
     $("#thr").value = c.thr.toFixed(3);
     $("#baseInfo").textContent = c.ok ? `ค่า EAR ปกติ ${c.ear.toFixed(3)} × ${settings.ratio} (จาก ${c.n} เฟรม)` : `ปรับเทียบไม่สำเร็จ (พบใบหน้า ${c.n} เฟรม) — ใช้ค่าเริ่มต้น 0.25 และปิดการตรวจศีรษะตก`;
@@ -524,10 +547,11 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
     let lastUi = 0;
     while (running) {
       const t0 = performance.now();
-      if (camPaused || !stream || video.readyState < 2) { await sleep(250); continue; }
+      if (!cam.active || video.readyState < 2) { await sleep(250); continue; }
       try {
-        const f = await detect();
+        const { f, others, n } = await detect();
         if (!running) break;
+        if (trip && n > (trip.occupantsMax || 0)) trip.occupantsMax = n;
         const now = Date.now();
         const m = f ? faceMetrics(f.pts) : null;
         fpsTimes.push(performance.now()); fpsTimes = fpsTimes.filter(t => t > performance.now() - 3000);
@@ -536,10 +560,10 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
         $("#fps").className = "pill" + (fpsTimes.length >= 6 && fps < 8 ? " slow" : "");
         if (phase === "calib") {
           calibSamples.push(m ? { face: true, ...m } : { face: false });
-          drawFace(f, null);
+          drawFace(f, null, others);
         } else if (phase === "trip" && monitor) {
           const r = monitor.update(m ? { t: now, face: true, ...m } : { t: now, face: false });
-          drawFace(f, r.metrics);
+          drawFace(f, r.metrics, others);
           series.push({ t: now, ear: r.metrics.ear, closed: r.metrics.closed });
           while (series.length && series[0].t < now - 60000) series.shift();
           r.events.forEach(ev => { ev.trip = trip.id; allEvents.push(ev); onEvent(ev); });
@@ -629,7 +653,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
     const s = summarizeTrip({ ...trip, ...peak() }, evs, end);
     trips.unshift(s);
     save(K.trips, trips); save(K.events, allEvents.slice(-5000)); localStorage.removeItem(K.current);
-    trip = null; monitor = null; phase = "idle";
+    trip = null; monitor = null; phase = "idle"; clearLock();
     document.body.classList.remove("on-trip");
     exitDriving();
     setLevel(0); $("#breakBanner").hidden = true; $("#calib").hidden = true;
@@ -649,7 +673,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
         <div class="tile"><div class="k">คะแนนความปลอดภัย</div><div class="v ${s.safety >= 80 ? "good" : s.safety >= 60 ? "" : "bad"}">${s.safety}</div><div class="s">จาก 100</div></div>
       </div>
       <ul class="acts">${types.length ? types.map(k => `<li><span>${DR_TYPES[k]}</span><b>${s.counts[k]} ครั้ง</b></li>`).join("") : `<li class="empty">ไม่พบเหตุการณ์ความเสี่ยง</li>`}</ul>
-      <p class="hint">PERCLOS สูงสุด ${(s.maxPerclos * 100).toFixed(0)}% · เกณฑ์หลับตา EAR ${s.thr != null ? s.thr.toFixed(3) : "—"}${s.calibrated ? "" : " (ค่าเริ่มต้น)"}</p>`;
+      <p class="hint">PERCLOS สูงสุด ${(s.maxPerclos * 100).toFixed(0)}% · เกณฑ์หลับตา EAR ${s.thr != null ? s.thr.toFixed(3) : "—"}${s.calibrated ? "" : " (ค่าเริ่มต้น)"}${s.occupantsMax > 1 ? ` · พบใบหน้าในรถสูงสุด ${s.occupantsMax} คน (ติดตามเฉพาะคนขับ)` : ""}</p>`;
     box.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -716,6 +740,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
   document.addEventListener("visibilitychange", async () => { if (document.visibilityState === "visible" && document.body.classList.contains("driving") && !wakeLock) { try { wakeLock = await navigator.wakeLock?.request("screen"); } catch {} } });
   window.addEventListener("beforeunload", persist);
 
+  if (TEST) window.__LQ_DR = { get series() { return series.slice(); }, get phase() { return phase; }, get locked() { return !!prevBox; }, get anchor() { return anchor; }, get trip() { return trip; }, get camId() { return cam.deviceId; } };
   renderHistory(); gauge(0);
   init();
 })();

@@ -98,6 +98,41 @@ function gateStep(g, label, now, opt = {}) {
   return null;
 }
 
+/* ตัวกันนับซ้ำของบาร์โค้ด: หนึ่ง gate ต่อหนึ่งรหัส (Map) ใช้ได้หลายบาร์โค้ดพร้อมกันในเฟรมเดียว
+   multi=false: เหมือนเดิมทุกประการ — gate เดียว ใช้รหัสแรกที่ pick(codes) เลือก (ค่าเริ่มต้น = รหัสแรก)
+   step(codes, now, pick?) -> รหัสที่ควรเพิ่มในรอบนี้ (ตามลำดับที่เห็น) · gate ที่ไม่เห็นนาน clearMs ถูกลบทิ้ง */
+function createCodeGates(cfg = {}) {
+  const clearMs = cfg.clearMs ?? 1200, multi = cfg.multi !== false;
+  const opt = { stableMs: cfg.stableMs ?? 0, minFrames: cfg.minFrames ?? 1, clearMs, unknownClearMs: clearMs };
+  const gates = new Map(); // code -> { g, last }
+  let single = gateInit(false);
+  function prune(now) {
+    for (const [code, e] of gates) if (now - e.last >= clearMs && !e.g.locked) gates.delete(code);
+  }
+  function step(codes, now, pick) {
+    const list = (codes || []).map(c => (c && typeof c === "object" ? c.rawValue : c)).filter(v => v != null && v !== "").map(String);
+    if (!multi) {
+      const code = pick ? (pick(list) ?? list[0] ?? null) : (list[0] ?? null);
+      const add = gateStep(single, code ? "bc:" + code : BG, now, opt);
+      return add ? [add.slice(3)] : [];
+    }
+    const out = [], seen = new Set();
+    for (const code of list) {
+      if (seen.has(code)) continue;
+      seen.add(code);
+      let e = gates.get(code);
+      if (!e) gates.set(code, e = { g: gateInit(false), last: now });
+      e.last = now;
+      if (gateStep(e.g, "bc:" + code, now, opt)) out.push(code);
+    }
+    for (const [code, e] of gates) if (!seen.has(code)) gateStep(e.g, BG, now, opt);
+    prune(now);
+    return out;
+  }
+  function reset() { gates.clear(); single = gateInit(false); }
+  return { step, prune, reset, multi, get size() { return multi ? gates.size : (single.locked ? 1 : 0); }, has: code => gates.has(String(code)) };
+}
+
 /* ทดสอบแบบ leave-one-out: ทายทีละตัวอย่างโดยไม่ใช้ตัวมันเอง */
 function looEval(samples, opt = {}) {
   const per = {}, conf = {};
@@ -283,8 +318,11 @@ if (typeof document !== "undefined") (() => {
   let capture = null; // {label, last}
   let cart = LS.get("cart", []);
   let stock = LS.get("stock", { expected: {}, counts: {}, started: Date.now() });
-  const settings = Object.assign({ minSim: CFG.MIN_SIM, minSimBy: {}, minConf: CFG.MIN_CONF, stableMs: CFG.STABLE_MS, auto: true, beep: true, mirror: false, stockAuto: true }, LS.get("settings", {}));
-  let payGate = gateInit(true), stockGate = gateInit(true), codeGate = gateInit(false), flash = null;
+  const settings = Object.assign({ minSim: CFG.MIN_SIM, minSimBy: {}, minConf: CFG.MIN_CONF, stableMs: CFG.STABLE_MS, auto: true, beep: true, mirror: false, stockAuto: true, multiCodePay: false, multiCodeStock: true }, LS.get("settings", {}));
+  let payGate = gateInit(true), stockGate = gateInit(true), flash = null;
+  // บาร์โค้ด: gate แยกตามแท็บ (ชำระเงิน/นับสต็อก) ตามการตั้งค่า "สแกนหลายบาร์โค้ดพร้อมกัน"
+  const mkCodeGates = t => createCodeGates({ clearMs: 1200, multi: t === "stock" ? settings.multiCodeStock : settings.multiCodePay });
+  const codeGates = { pay: mkCodeGates("pay"), stock: mkCodeGates("stock") };
 
   // ---------- สถานะระบบ ----------
   let modelMsg = { text: "กำลังโหลดโมเดลจำสินค้า...", cls: "" }, camMsg = null;
@@ -642,9 +680,8 @@ if (typeof document !== "undefined") (() => {
     try {
       const codes = await detector.detect(video);
       const now = performance.now();
-      const code = codes.map(c => c.rawValue).find(v => findByBarcode(products, v)) || (codes[0]?.rawValue ?? null);
-      const add = gateStep(codeGate, code ? "bc:" + code : BG, now, { stableMs: 0, minFrames: 1, clearMs: 1200, unknownClearMs: 1200 });
-      if (add) handleBarcode(add.slice(3), "กล้อง (บาร์โค้ด)");
+      const pick = list => list.find(v => findByBarcode(products, v)) ?? null; // โหมดรหัสเดียว: รหัสแรกที่ตรงสินค้า
+      for (const code of codeGates[tab].step(codes, now, pick)) handleBarcode(code, "กล้อง (บาร์โค้ด)");
     } catch (e) { console.warn(e); }
     bcBusy = false;
   }
@@ -980,6 +1017,11 @@ if (typeof document !== "undefined") (() => {
   const stockAuto = $("#stockAuto");
   stockAuto.checked = settings.stockAuto;
   stockAuto.onchange = () => { settings.stockAuto = stockAuto.checked; stockGate = gateInit(true); saveSettings(); };
+  [["pay", "multiCodePay"], ["stock", "multiCodeStock"]].forEach(([t, k]) => {
+    const el = $("#" + k); if (!el) return;
+    el.checked = !!settings[k];
+    el.onchange = () => { settings[k] = el.checked; codeGates[t] = mkCodeGates(t); saveSettings(); };
+  });
   $("#stockReset").onclick = () => {
     if (!confirm("เริ่มนับใหม่? จำนวนที่นับได้จะเป็น 0 (จำนวนที่ควรมียังอยู่)")) return;
     stock.counts = {}; stock.started = Date.now(); saveStock(); renderStock(); stockMsg("เริ่มนับใหม่แล้ว", "ok");
@@ -1066,7 +1108,7 @@ if (typeof document !== "undefined") (() => {
 })();
 
 if (typeof module !== "undefined" && module.exports) module.exports = {
-  BG, CFG, DEFAULT_PRODUCTS, LEGACY_DEFAULT_IDS, isUntouchedLegacy, MODEL_FORMAT, MODEL_FORMATS_OK, BASIC_DIM, basicFeatures, cosine, knnPredict, decide, gateInit, gateStep, looEval,
+  BG, CFG, DEFAULT_PRODUCTS, LEGACY_DEFAULT_IDS, isUntouchedLegacy, MODEL_FORMAT, MODEL_FORMATS_OK, BASIC_DIM, basicFeatures, cosine, knnPredict, decide, gateInit, gateStep, createCodeGates, looEval,
   cartAdd, cartSetQty, cartTotals, orderNo, nextSeq, dayKey, salesByProduct, findByBarcode, normBarcode,
   stockRows, toCSV, csvCell, serializeModel, parseModel
 };

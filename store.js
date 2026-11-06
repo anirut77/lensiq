@@ -13,17 +13,11 @@ const ST_CFG = {
 
 const dayKey = (ts = Date.now()) => { const d = new Date(ts); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
 
-/* กล่อง {x,y,w,h} พิกัดสัดส่วน 0..1 */
-function iou(a, b) {
-  const x1 = Math.max(a.x, b.x), y1 = Math.max(a.y, b.y);
-  const x2 = Math.min(a.x + a.w, b.x + b.w), y2 = Math.min(a.y + a.h, b.y + b.h);
-  const inter = Math.max(0, x2 - x1) * Math.max(0, y2 - y1);
-  const uni = a.w * a.h + b.w * b.h - inter;
-  return uni > 0 ? inter / uni : 0;
-}
-const center = b => ({ x: b.x + b.w / 2, y: b.y + b.h / 2 });
-const foot = b => ({ x: b.x + b.w / 2, y: Math.min(1, b.y + b.h) });
-const dist2d = (p, q) => Math.hypot(p.x - q.x, p.y - q.y);
+/* ตัวติดตามที่ใช้ร่วมกันทุกหน้า (lensiq-track.js) — เบราว์เซอร์: window.LQTrack · Node: require */
+const ST_LQT = typeof LQTrack !== "undefined" ? LQTrack : (typeof require === "function" ? require("./lensiq-track.js") : null);
+
+/* กล่อง {x,y,w,h} พิกัดสัดส่วน 0..1 — คณิตเดียวกับ LQTrack จึงใช้ของ LQTrack */
+const iou = ST_LQT.iou, center = ST_LQT.center, foot = ST_LQT.foot, dist2d = ST_LQT.dist2d;
 
 /* สี่เหลี่ยมจากจุดลากสองจุด (ลากทิศไหนก็ได้) */
 function normRect(p, q) {
@@ -104,7 +98,8 @@ function checkCrossing(mem, line, p, swap = false, margin = ST_CFG.LINE_MARGIN) 
 
 // ---------- ข้อมูลรายวัน ----------
 function newDay(date = dayKey()) {
-  return { date, in: 0, out: 0, occ: 0, peak: 0, peakAt: 0, maxQueue: 0, hourly: { in: Array(24).fill(0), out: Array(24).fill(0) }, zones: {} };
+  // zones: คีย์ "<slot>:<zoneId>" (zv 2) · byCam: {slot: {name, in, out}} ; in/out/peak เป็นยอดรวมทุกกล้อง
+  return { date, in: 0, out: 0, occ: 0, peak: 0, peakAt: 0, maxQueue: 0, hourly: { in: Array(24).fill(0), out: Array(24).fill(0) }, zones: {}, byCam: {}, zv: 2 };
 }
 /* บันทึกการข้ามเส้น คนในร้านไม่ต่ำกว่า 0 */
 function applyCrossing(day, dir, now) {
@@ -225,6 +220,96 @@ function nms(cand, iouThr = 0.5, maxOut = 20) {
   return keep;
 }
 
+// ---------- หลายกล้อง (1–4) ----------
+const ST_SLOTS = ["c1", "c2", "c3", "c4"];
+/* โซนของแต่ละกล้องใช้รหัส "<slot>:<zoneId>" ใน day.zones จึงไม่ชนกันข้ามกล้อง */
+const nsZone = (slot, zid) => `${slot}:${zid}`;
+/* ความกว้างภาพที่ส่งเข้าโมเดลตามจำนวนกล้อง (ประหยัดเวลาประมวลผลรวม) */
+const autoDetW = n => n <= 1 ? 416 : n === 2 ? 352 : 320;
+/* สถานะต่อกล้อง (อยู่ในหน่วยความจำเท่านั้น) */
+function newPipe() { return { tracker: ST_LQT.newTracker(ST_LQT.PRESET.person), lineMem: {}, zoneLive: {}, zoneCounts: {}, lastSeen: [] }; }
+/* ประมวลผลหนึ่งเฟรมของหนึ่งกล้องลง `day` ที่ใช้ร่วมกัน
+   cam = {slot, name, role:'door'|'zone'|'both', line, swap, zones:[{id,name,x,y,w,h}]}
+   - นับข้ามเส้นเฉพาะ role door/both ; โซนเฉพาะ role zone/both
+   - day.in/out/peak เป็นยอดรวม ; day.byCam[slot] = {name, in, out}
+   คืน {conf, obs, crossings:[{id, dir}]} */
+function stepCam(pipe, cam, day, dets, now, tcfg) {
+  tcfg = tcfg || ST_LQT.trackerCfgFor(ST_LQT.PRESET.person, 0);
+  const { seen, removed } = ST_LQT.updateTracker(pipe.tracker, dets, now, tcfg);
+  removed.forEach(id => delete pipe.lineMem[id]);
+  const conf = seen.filter(t => t.hits >= (tcfg.MIN_HITS ?? ST_CFG.MIN_HITS));
+  pipe.lastSeen = conf;
+  if (!day.byCam) day.byCam = {};
+  const bc = day.byCam[cam.slot] || (day.byCam[cam.slot] = { name: cam.name || cam.slot, in: 0, out: 0 });
+  if (cam.name) bc.name = cam.name;
+  const role = cam.role || "both", crossings = [];
+  if (cam.line && role !== "zone") for (const t of conf) {
+    const mem = pipe.lineMem[t.id] || (pipe.lineMem[t.id] = {});
+    const dir = checkCrossing(mem, cam.line, center(t.box), !!cam.swap);
+    if (dir) { applyCrossing(day, dir, now); bc[dir]++; t.flash = { dir, until: now + 800 }; crossings.push({ id: t.id, dir }); }
+  }
+  const obs = conf.map(t => ({ id: t.id, foot: foot(t.box) }));
+  const zones = role === "door" ? [] : (cam.zones || []).map(z => ({ ...z, id: nsZone(cam.slot, z.id) }));
+  const alive = new Set(pipe.tracker.tracks.map(t => t.id));
+  pipe.zoneCounts = zoneStep(pipe.zoneLive, zones, obs, alive, day, now);
+  return { conf, obs, crossings };
+}
+/* ย้ายข้อมูลรูปแบบกล้องเดียว -> หลายกล้อง (เรียกซ้ำได้ ผลเหมือนเดิม ไม่ลบข้อมูลเดิม)
+   get(key) -> string|null ; set(key, string) ; keys = รายชื่อคีย์ทั้งหมด (สำหรับ st-day-*)
+   - st-cams มี c1 · เส้น/โซน/swap/detW เดิมใน st-settings -> st-cam-c1 (ค่าเดิมยังอยู่ใน st-settings)
+   - โซนคิว/แคชเชียร์ -> st-settings.queueZone / cashierZone ("c1:<id>") · st-settings.sv = 2
+   - st-heat -> st-heat-c1 (เก็บคีย์เดิมไว้หนึ่งรุ่น)
+   - st-day-*.zones เติม "c1:" หน้าคีย์หนึ่งครั้ง (day.zv = 2) และ byCam.c1 จากยอดเดิม
+   คืนรายการสิ่งที่เปลี่ยน */
+function migrateStore(get, set, keys = []) {
+  const J = (k, d) => { try { const v = JSON.parse(get(k)); return v ?? d; } catch { return d; } };
+  const done = [];
+  if (get("st-cams") == null) {
+    set("st-cams", JSON.stringify({ v: 1, cams: [{ slot: "c1", deviceId: "", label: "", name: "กล้อง 1", role: "both" }] }));
+    done.push("st-cams");
+  }
+  const S = J("st-settings", null);
+  if (S && typeof S === "object" && !Array.isArray(S)) {
+    const zs = Array.isArray(S.zones) ? S.zones.filter(z => z && typeof z === "object" && z.id) : [];
+    if (get("st-cam-c1") == null && (S.line || zs.length || S.swap || (S.detW && S.detW !== 416))) {
+      set("st-cam-c1", JSON.stringify({
+        line: S.line || null, swap: !!S.swap,
+        zones: zs.map(z => ({ id: z.id, name: z.name, x: z.x, y: z.y, w: z.w, h: z.h })),
+        detW: S.detW && S.detW !== 416 ? S.detW : 0
+      }));
+      done.push("st-cam-c1");
+    }
+    if (S.sv !== 2) {
+      const q = zs.find(z => z.queue), c = zs.find(z => z.cashier);
+      const out = { ...S, sv: 2 };
+      if (out.queueZone == null) out.queueZone = q ? nsZone("c1", q.id) : "";
+      if (out.cashierZone == null) out.cashierZone = c ? nsZone("c1", c.id) : "";
+      set("st-settings", JSON.stringify(out));
+      done.push("st-settings");
+    }
+  }
+  if (get("st-heat") != null && get("st-heat-c1") == null) { set("st-heat-c1", get("st-heat")); done.push("st-heat-c1"); }
+  for (const k of keys) {
+    if (!/^st-day-\d{4}-\d{2}-\d{2}$/.test(k)) continue;
+    const d = J(k, null);
+    if (!d || typeof d !== "object" || d.zv === 2) continue;
+    const zones = {};
+    for (const [id, z] of Object.entries(d.zones || {})) zones[id.includes(":") ? id : nsZone("c1", id)] = z;
+    const out = { ...d, zones, zv: 2 };
+    if (!out.byCam && (d.in || d.out)) out.byCam = { c1: { name: "กล้อง 1", in: d.in || 0, out: d.out || 0 } };
+    set(k, JSON.stringify(out));
+    done.push(k);
+  }
+  return done;
+}
+/* ชื่อโซนสำหรับแสดง: เติมชื่อกล้องเมื่อมีหลายกล้อง */
+function zoneLabel(day, key, z) {
+  const i = key.indexOf(":"), cams = Object.keys(day.byCam || {});
+  if (i < 0 || cams.length < 2) return z.name;
+  const bc = day.byCam[key.slice(0, i)];
+  return bc ? `${bc.name} · ${z.name}` : z.name;
+}
+
 // ---------- CSV ----------
 function csvCell(v) { const s = String(v ?? ""); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }
 function buildCsv(days, cashierId) {
@@ -235,12 +320,14 @@ function buildCsv(days, cashierId) {
     const c = conversion(d, cashierId);
     rows.push([d.date, d.in, d.out, d.peak, d.peakAt ? new Date(d.peakAt).toTimeString().slice(0, 5) : "", d.maxQueue, c == null ? "" : (c * 100).toFixed(1)]);
   });
+  rows.push([], ["รายกล้อง"], ["วันที่", "กล้อง", "เข้า", "ออก"]);
+  days.forEach(d => Object.keys(d.byCam || {}).sort().forEach(s => { const b = d.byCam[s]; rows.push([d.date, b.name || s, b.in || 0, b.out || 0]); }));
   rows.push([], ["โซน"], ["วันที่", "โซน", "จำนวนครั้งที่เข้า", "เวลาอยู่เฉลี่ย (วินาที)", "คนพร้อมกันสูงสุด"]);
-  days.forEach(d => Object.values(d.zones).forEach(z => rows.push([d.date, z.name, z.visits, avgDwellSec(z).toFixed(1), z.peak])));
+  days.forEach(d => Object.entries(d.zones).forEach(([k, z]) => rows.push([d.date, zoneLabel(d, k, z), z.visits, avgDwellSec(z).toFixed(1), z.peak])));
   return "﻿" + rows.map(r => r.map(csvCell).join(",")).join("\n");
 }
 
-if (typeof module !== "undefined") module.exports = { ST_CFG, dayKey, iou, center, foot, normRect, pointInRect, newTracker, updateTracker, lineSide, segmentsIntersect, checkCrossing, newDay, applyCrossing, zoneStep, closeZones, avgDwellSec, queueInfo, conversion, newHeat, heatAdd, heatMax, heatColor, heatToRGBA, buildCsv, decodePersons, nms };
+if (typeof module !== "undefined") module.exports = { ST_CFG, ST_SLOTS, dayKey, iou, center, foot, normRect, pointInRect, newTracker, updateTracker, lineSide, segmentsIntersect, checkCrossing, newDay, applyCrossing, zoneStep, closeZones, avgDwellSec, queueInfo, conversion, newHeat, heatAdd, heatMax, heatColor, heatToRGBA, buildCsv, decodePersons, nms, nsZone, autoDetW, newPipe, stepCam, migrateStore, zoneLabel };
 
 // ================= ส่วนหน้าจอ =================
 if (typeof document !== "undefined") (() => {
@@ -251,97 +338,113 @@ if (typeof document !== "undefined") (() => {
   const fmtClock = ts => new Date(ts).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
   const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem(P + k)); return v ?? d; } catch { return d; } };
   const save = (k, v) => { try { localStorage.setItem(P + k, JSON.stringify(v)); } catch { engine("พื้นที่จัดเก็บเต็ม กรุณาส่งออก CSV แล้วล้างข้อมูล", "err"); } };
-  const video = $("#video"), overlay = $("#overlay"), cam = $("#cam");
+  const grid = $("#camGrid");
+
+  try { migrateStore(k => localStorage.getItem(k), (k, v) => localStorage.setItem(k, v), Object.keys(localStorage)); }
+  catch (e) { console.warn("migrateStore", e); }
 
   // ---- สถานะ ----
-  const S = Object.assign({ line: null, swap: false, zones: [], maxOcc: 20, serviceSec: 60, queueAlert: 5, detW: 416, heatOn: false }, load("settings", {}));
+  // G = ค่าตั้งรวม (st-settings) ; ค่าต่อกล้องอยู่ใน cam.settings (st-cam-<slot>) = {line, swap, zones, detW}
+  const G = Object.assign({ maxOcc: 20, serviceSec: 60, queueAlert: 5, heatOn: false, queueZone: "", cashierZone: "" }, load("settings", {}));
   let day = Object.assign(newDay(), load("day-" + dayKey(), {}));
-  const heat = newHeat();
-  { const h = load("heat", null); if (h && h.length === heat.data.length) heat.data.set(h); }
-  let tracker = newTracker(), lineMem = {}, zoneLive = {}, zoneCounts = {}, lastSeen = [];
-  let detector = null, delegateUsed = "", running = false, fileUrl = null, wakeLock = null;
-  let detectErrors = 0, lastProc = 0, lastTs = 0, fpsTimes = [], lastDash = 0, lastSave = 0, tool = "none", drag = null;
+  if (!day.byCam) day.byCam = {};
+  const pipes = new Map(), heats = new Map();
+  let model = null, delegateUsed = "", running = false, wakeLock = null, fileCam = null, fileUrl = null;
+  let lastDash = 0, lastSave = 0, tool = "none", sel = "c1";
+  const detectErrors = {};
 
-  const persistSettings = () => save("settings", S);
+  const persistSettings = () => save("settings", G);
   const persistDay = () => save("day-" + day.date, day);
-  const persistHeat = () => save("heat", Array.from(heat.data, v => Math.round(v * 10) / 10));
-  const zoneBy = flag => S.zones.find(z => z[flag]);
+  const camSet = c => (c.settings = Object.assign({ line: null, swap: false, zones: [], detW: 0 }, c.settings || {}));
+  const persistCam = c => { camSet(c); c.saveSettings(); };
+  const pipeOf = slot => pipes.get(slot) || pipes.set(slot, newPipe()).get(slot);
+  function heatOf(slot) {
+    let h = heats.get(slot);
+    if (!h) { h = newHeat(); const a = load("heat-" + slot, null); if (Array.isArray(a) && a.length === h.data.length) h.data.set(a); heats.set(slot, h); }
+    return h;
+  }
+  const persistHeat = () => heats.forEach((h, slot) => save("heat-" + slot, Array.from(h.data, v => Math.round(v * 10) / 10)));
+  // กล้องที่กำลังใช้ (สด/ไฟล์) และรายการที่บันทึกไว้ (เมื่อยังไม่เปิดกล้อง)
+  const srcCams = () => fileCam ? [fileCam] : hub.cams;
+  const storedCams = () => LQCam.parseCams(localStorage.getItem(P + "cams")).cams.map(e => ({ slot: e.slot, name: e.name || `กล้อง ${e.slot.slice(1)}`, role: e.role, settings: Object.assign({ line: null, swap: false, zones: [], detW: 0 }, load("cam-" + e.slot, {})) }));
+  const cfgList = () => { const s = srcCams(); return s.length ? s : storedCams(); };
+  const selCam = () => { const s = srcCams(); return s.find(c => c.slot === sel) || s[0] || null; };
+  const zoneCount = id => { let n = 0; pipes.forEach(p => { n += p.zoneCounts[id] || 0; }); return n; };
+  const zoneDef = id => { for (const c of cfgList()) for (const z of camSet(c).zones) if (nsZone(c.slot, z.id) === id) return { cam: c, z }; return null; };
 
   function engine(msg, cls = "") { const e = $("#engine"); e.textContent = msg; e.className = "engine " + cls; }
-  // ---------- กล้อง (มือถือ/แท็บเล็ต): เลือกกล้องหน้า/หลัง · สะท้อนภาพเฉพาะกล้องหน้า · ปิดกล้องเมื่อสลับแอปแล้วเปิดต่อ ----------
-  const INSECURE_MSG = "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด";
-  function createCamera(video, o = {}) {
-    const opt = { facing: "user", constraints: {}, layout() {}, onError(e) { console.error(e); }, ...o };
-    const BACK = /back|rear|environment|หลัง/i;
-    let stream = null, want = { facing: opt.facing, deviceId: "" }, cur = { facing: opt.facing, deviceId: "" }, devices = [], resume = false;
-    const uis = [];
-    const gum = v => navigator.mediaDevices.getUserMedia({ video: { ...opt.constraints, ...v }, audio: false });
-    function halt() { stream?.getTracks().forEach(t => t.stop()); stream = null; if (video.srcObject) video.srcObject = null; }
-    async function start(next) {
-      if (next) want = { facing: next.facing || want.facing, deviceId: next.deviceId || "" };
-      if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) throw Object.assign(new Error("insecure context"), { name: "Insecure" });
-      halt();
-      let s;
-      try { s = await gum(want.deviceId ? { deviceId: { exact: want.deviceId } } : { facingMode: { ideal: want.facing } }); }
-      catch (e) { if (!want.deviceId || !/Overconstrained|NotFound/.test(e.name)) throw e; want.deviceId = ""; s = await gum({ facingMode: { ideal: want.facing } }); }
-      stream = s;
-      const tr = s.getVideoTracks()[0], st = tr?.getSettings?.() || {};
-      cur = { deviceId: st.deviceId || want.deviceId, facing: st.facingMode || (BACK.test(tr?.label || "") ? "environment" : "user") };
-      if (tr) tr.addEventListener("ended", () => { if (stream === s) stream = null; });
-      video.muted = true; video.playsInline = true; video.setAttribute("playsinline", ""); video.setAttribute("muted", "");
-      video.srcObject = s;
-      try { await video.play(); } catch (e) { if (e.name !== "AbortError") throw e; }
-      if (!video.videoWidth) await new Promise(r => video.addEventListener("loadedmetadata", r, { once: true }));
-      opt.layout(api); refreshDevices();
-      return s;
-    }
-    async function refreshDevices() {
-      try { devices = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "videoinput"); } catch { devices = []; }
-      for (const ui of uis) {
-        ui.hidden = devices.length < 2;
-        const [flip, sel] = ui.children;
-        flip.textContent = cur.facing === "environment" ? "ใช้กล้องหน้า" : "ใช้กล้องหลัง";
-        sel.innerHTML = devices.map((d, i) => `<option value="${d.deviceId.replace(/"/g, "&quot;")}">${(d.label || "กล้อง " + (i + 1)).replace(/[<&]/g, "")}</option>`).join("");
-        if (cur.deviceId) sel.value = cur.deviceId;
-      }
-    }
-    function switchTo(n) {
-      if (!stream) { want = { facing: n.facing || want.facing, deviceId: n.deviceId || "" }; cur = { ...cur, ...want }; return refreshDevices(); }
-      start(n).catch(opt.onError);
-    }
-    const api = {
-      start, refreshDevices,
-      stop() { resume = false; halt(); },
-      get active() { return !!stream && stream.active; },
-      get mirrored() { return cur.facing !== "environment"; },
-      attach(el) {
-        uis.push(el); el.hidden = true;
-        el.innerHTML = `<button class="btn ghost" type="button">ใช้กล้องหลัง</button><select aria-label="เลือกกล้อง"></select>`;
-        el.children[0].onclick = () => switchTo({ facing: cur.facing === "environment" ? "user" : "environment" });
-        el.children[1].onchange = e => switchTo({ deviceId: e.target.value });
-        refreshDevices();
-      }
-    };
-    video.addEventListener("resize", () => { if (stream) opt.layout(api); });
-    let rt = 0; const relayout = () => { clearTimeout(rt); rt = setTimeout(() => { if (stream) opt.layout(api); }, 150); };
-    addEventListener("resize", relayout); addEventListener("orientationchange", relayout);
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) { if (stream) { resume = true; halt(); } }
-      else if (resume) { resume = false; start().catch(opt.onError); }
+
+  // ---- กล้องหลายตัว (LQCam hub) ----
+  const STATUS_TH = { idle: "ปิด", starting: "กำลังเปิด", live: "ทำงาน", paused: "พัก", error: "ผิดพลาด" };
+  function buildTile(c) {
+    const t = document.createElement("div");
+    t.className = "st-tile";
+    t.innerHTML = `<div class="tile-head">
+        <input class="cam-name" maxlength="40" aria-label="ชื่อกล้อง">
+        <select class="cam-role" aria-label="หน้าที่ของกล้อง"><option value="both">นับเข้า–ออก + โซน</option><option value="door">นับเข้า–ออก (ประตู)</option><option value="zone">โซนอย่างเดียว</option></select>
+        <span class="pill st-status"></span><span class="pill st-hz">—</span>
+        <button class="btn ghost small cam-del" type="button">ลบกล้อง</button>
+      </div>
+      <div class="cam"></div>
+      <p class="cam-warn">อย่าให้เส้นนับ/โซนเดียวกันอยู่ในกล้องสองตัว (นับซ้ำ)</p>`;
+    t.querySelector(".cam").append(c.video, c.overlay);
+    c.overlay.setAttribute("aria-label", "ภาพจากกล้องพร้อมเส้นนับและโซน");
+    const nm = t.querySelector(".cam-name"), rl = t.querySelector(".cam-role");
+    nm.value = c.name; rl.value = ["both", "door", "zone"].includes(c.role) ? c.role : "both";
+    nm.addEventListener("change", () => {
+      const v = nm.value.trim() || c.name;
+      if (c === fileCam) c.name = v; else hub.rename(c.slot, v);
+      nm.value = c.name; if (day.byCam[c.slot]) day.byCam[c.slot].name = c.name;
+      renderZoneEditor(); renderDash();
     });
-    addEventListener("pagehide", halt);
-    navigator.mediaDevices?.addEventListener?.("devicechange", refreshDevices);
-    return api;
+    rl.addEventListener("change", () => {
+      if (c === fileCam) c.role = rl.value; else hub.setRole(c.slot, rl.value);
+      const p = pipes.get(c.slot); if (p) { closeZones(p.zoneLive, day); p.lineMem = {}; p.zoneCounts = {}; }
+      renderDash(); draw(c);
+    });
+    t.querySelector(".cam-del").addEventListener("click", e => { e.stopPropagation(); removeCam(c); });
+    t.addEventListener("click", () => select(c.slot));
+    const lay = () => layout(c);
+    c.video.addEventListener("loadedmetadata", lay); c.video.addEventListener("resize", lay);
+    bindDraw(c);
+    camSet(c);
+    return t;
+  }
+  function layout(c) {
+    const box = c.tile && c.tile.querySelector(".cam");
+    if (box && c.video.videoWidth) box.style.aspectRatio = `${c.video.videoWidth} / ${c.video.videoHeight}`;
+    sizeOverlay(c);
+  }
+  function tileUi() {
+    const cams = srcCams();
+    grid.classList.toggle("multi", cams.length > 1);
+    $("#gridEmpty").hidden = cams.length > 0;
+    for (const c of cams) {
+      if (!c.tile) continue;
+      c.tile.classList.toggle("sel", c.slot === (selCam() || {}).slot && cams.length > 1);
+      const st = c.tile.querySelector(".st-status");
+      st.textContent = STATUS_TH[c.status] || c.status; st.dataset.s = c.status;
+      c.tile.querySelector(".cam-del").hidden = c === fileCam;
+    }
+    $("#addCam").disabled = !!fileCam || hub.cams.length >= 4;
+  }
+  function makeHub() {
+    return LQCam.createHub({
+      ns: "st", grid, tile: buildTile, facing: "environment",
+      onChange(h, ev) {
+        if (ev.type === "added" || ev.type === "removed") { syncSched(); renderZoneEditor(); renderDash(); }
+        if (ev.type === "started" || ev.type === "resumed") { const c = h.cam(ev.slot); if (c) setTimeout(() => layout(c), 0); }
+        tileUi();
+      }
+    });
+  }
+  let hub = makeHub();
+  function select(slot) {
+    if (sel === slot) return;
+    sel = slot; tileUi(); renderZoneEditor(); syncForm(); drawHeatPreview();
   }
 
-  // หน้าร้านใช้กล้องหลังเป็นค่าเริ่มต้น (มือถือตั้งเป็นกล้องประจำจุด) และไม่สะท้อนภาพ เพื่อให้เส้นนับ/โซนตรงกับพื้นที่จริง
-  const camera = createCamera(video, {
-    facing: "environment", constraints: { width: { ideal: 1280 }, height: { ideal: 720 } },
-    layout() { if (video.videoWidth) cam.style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`; sizeOverlay(); },
-    onError: e => { stopSource(); showError(e, startCamera); }
-  });
-  camera.attach($("#camSwitch"));
-  // กันจอดับระหว่างวิเคราะห์ (มือถือที่ตั้งเป็นกล้องประจำจุด)
+  // ---- กันจอดับระหว่างวิเคราะห์ (มือถือที่ตั้งเป็นกล้องประจำจุด) ----
   async function keepAwake(on) {
     try {
       if (on && !wakeLock && navigator.wakeLock && document.visibilityState === "visible") { wakeLock = await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release", () => { wakeLock = null; }); }
@@ -350,167 +453,191 @@ if (typeof document !== "undefined") (() => {
   }
   document.addEventListener("visibilitychange", () => { if (!document.hidden && running) keepAwake(true); });
 
-  // ---- โหลดโมเดล (TensorFlow.js COCO-SSD ใน face-api.js — ไม่ต้องใช้ WebGL) ----
-  async function initBackend() {
-    const tf = faceapi.tf;
-    tf.setWasmPaths("vendor/");
-    const order = new URLSearchParams(location.search).has("cpu") ? ["wasm", "cpu"] : ["webgl", "wasm", "cpu"];
-    for (const name of order) {
-      try { if (await tf.setBackend(name)) { await tf.ready(); return name; } } catch (e) { console.warn(name, e); }
-    }
-    throw new Error("ไม่มีตัวประมวลผล TensorFlow.js ที่ใช้ได้");
-  }
+  // ---- โหลดโมเดล (COCO-SSD ผ่าน LQDetect — WASM/CPU ได้ ไม่ต้องใช้ WebGL) ----
   async function loadDetector() {
-    if (detector) return detector;
+    if (LQDetect.isTest()) { delegateUsed = "test"; return null; }
+    if (model) return model;
     engine("กำลังโหลดโมเดลตรวจจับคน...");
     try {
       if (typeof faceapi === "undefined") throw new Error("ไม่พบไลบรารี vendor/face-api.js");
-      delegateUsed = await initBackend();
-      const tf = faceapi.tf;
-      const model = await tf.loadGraphModel(new URL("vendor/models/cocossd/model.json", location.href).href);
-      // อุ่นเครื่องหนึ่งครั้ง
-      const warm = tf.zeros([1, 180, 320, 3], "int32");
-      (await model.executeAsync(warm)).forEach(t => t.dispose()); warm.dispose();
-      detector = model; return detector;
+      delegateUsed = await LQDetect.tfBackend();
+      model = await LQDetect.loadCoco("vendor/models/cocossd/model.json");
+      return model;
     } catch (e) { throw Object.assign(e, { model: true }); }
   }
 
-  /* ตรวจจับคนหนึ่งเฟรม (ย่อภาพเหลือกว้าง ~320px เพื่อความเร็ว) คืนกล่องพิกัดสัดส่วน */
-  const small = document.createElement("canvas");
-  async function detectPeople() {
-    const tf = faceapi.tf, W = video.videoWidth, H = video.videoHeight;
-    const sw = Math.min(S.detW || 416, W), sh = Math.round(H * sw / W);
-    if (small.width !== sw || small.height !== sh) { small.width = sw; small.height = sh; }
-    small.getContext("2d", { willReadFrequently: true }).drawImage(video, 0, 0, sw, sh);
-    const input = tf.tidy(() => tf.browser.fromPixels(small).expandDims(0));
-    let outs;
-    try { outs = await detector.executeAsync(input); } finally { input.dispose(); }
-    try {
-      const bt = outs.find(t => t.shape.length === 4 && t.shape[3] === 4), st = outs.find(t => t !== bt);
-      const [scores, boxes] = await Promise.all([st.data(), bt.data()]);
-      return decodePersons(boxes, scores, st.shape[1], st.shape[2], 0.4, 0.5, 20);
-    } finally { outs.forEach(t => t.dispose()); }
+  /* ตรวจจับคนหนึ่งเฟรมของกล้องหนึ่งตัว (ย่อภาพเหลือกว้าง detW px — 416/352/320 ตามจำนวนกล้อง) คืนกล่องพิกัดสัดส่วน */
+  async function detectPeople(c) {
+    const fk = LQDetect.fake(c.slot, performance.now());
+    if (fk) return fk;
+    if (!model) return [];
+    const detW = camSet(c).detW || autoDetW(srcCams().filter(x => x.active).length);
+    return LQDetect.detectCoco(model, c.video, { detW, canvas: c._small || (c._small = document.createElement("canvas")) });
   }
 
   function showError(e, retry) {
     console.error(e);
-    const m = { Insecure: INSECURE_MSG, NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง กรุณาอนุญาตในการตั้งค่าเบราว์เซอร์", NotFoundError: "ไม่พบกล้องในเครื่องนี้ ลองใช้ไฟล์วิดีโอทดสอบแทน", OverconstrainedError: "ไม่พบกล้องในเครื่องนี้ ลองใช้ไฟล์วิดีโอทดสอบแทน", NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่", MediaError: "เปิดไฟล์วิดีโอไม่ได้ ลองไฟล์ MP4/WebM อื่น" }[e.name];
+    const kind = LQCam.errorKind(e);
+    const m = e.name === "MediaError" ? "เปิดไฟล์วิดีโอไม่ได้ ลองไฟล์ MP4/WebM อื่น" : LQCam.errorText(e);
     engine(`ระบบไม่พร้อม: ${e.model ? "โหลดโมเดลตรวจจับคนไม่สำเร็จ" : m || "เกิดข้อผิดพลาด"} (${e.name}: ${e.message || "-"})`, "err");
     const b = document.createElement("button");
     b.type = "button"; b.className = "btn ghost retry"; b.textContent = "ลองใหม่"; b.onclick = retry;
     $("#engine").append(" ", b);
-    if (e.name === "Insecure") { const a = document.createElement("a"); a.href = "cameras.html"; a.className = "engine-link"; a.textContent = "ดูวิธีเปิดผ่าน https"; $("#engine").append(" ", a); }
+    if (kind === "insecure") { const a = document.createElement("a"); a.href = "cameras.html"; a.className = "engine-link"; a.textContent = "ดูวิธีเปิดผ่าน https"; $("#engine").append(" ", a); }
+  }
+  const engineRunning = label => engine(`กำลังวิเคราะห์ (${label}) — ตัวประมวลผล: ${delegateUsed.toUpperCase()}${delegateUsed === "webgl" || delegateUsed === "test" ? "" : " อาจช้ากว่าปกติ"}`, "ok");
+
+  // ---- ตัวจัดคิวประมวลผล (หนึ่งกล้องต่อหนึ่งรอบ ไม่ซ้อนกัน) ----
+  const sched = LQCam.createScheduler({ targetHz: 10 });
+  const schedKeys = new Set();
+  function syncSched() {
+    const cams = srcCams();
+    for (const c of cams) {
+      if (schedKeys.has(c.slot) && c._sched === sched) continue;
+      sched.add(c.slot, () => tick(c), { cam: c }); schedKeys.add(c.slot); c._sched = sched;
+    }
+    for (const k of [...schedKeys]) if (!cams.some(c => c.slot === k)) { sched.remove(k); schedKeys.delete(k); }
+    for (const c of cams) sched.setEnabled(c.slot, true);
+  }
+  async function tick(c) {
+    if (!running || !c.active || c.video.readyState < 2 || c.video.paused) return;
+    try {
+      const dets = await detectPeople(c);
+      if (!running) return;
+      detectErrors[c.slot] = 0;
+      process(c, dets, Date.now());
+    } catch (e) {
+      console.error(e);
+      if ((detectErrors[c.slot] = (detectErrors[c.slot] || 0) + 1) >= 5) { stopSource(); showError(Object.assign(e, { model: true }), startCamera); }
+    }
   }
 
   // ---- แหล่งภาพ ----
   function stopSource() {
-    running = false; keepAwake(false);
-    camera.stop();
-    video.pause(); video.removeAttribute("src"); video.srcObject = null; video.load();
+    running = false; keepAwake(false); sched.stop();
+    hub.stopAll();
+    if (fileCam) { fileCam.video.pause(); fileCam.video.removeAttribute("src"); fileCam.video.load(); fileCam.active = false; fileCam.status = "idle"; }
     if (fileUrl) { URL.revokeObjectURL(fileUrl); fileUrl = null; }
-    closeZones(zoneLive, day); persistDay();
-    tracker = newTracker(); lineMem = {}; zoneCounts = {}; lastSeen = [];
+    pipes.forEach(p => closeZones(p.zoneLive, day)); pipes.clear();
+    persistDay(); persistHeat();
     $("#stop").disabled = true; $("#fps").textContent = "—";
-    draw(); renderDash();
+    srcCams().forEach(c => draw(c)); tileUi(); renderDash();
+  }
+  function dropFileCam() {
+    if (!fileCam) return;
+    fileCam.tile.remove(); fileCam = null; syncSched();
   }
 
   async function startCamera() {
-    stopSource();
+    stopSource(); dropFileCam();
     engine("กำลังเปิดกล้อง...");
     try {
-      video.loop = false;
-      await camera.start();
-      await begin("กล้อง");
+      if (hub.cams.length) await hub.startAll();
+      else await hub.restore();
+      if (!hub.cams.length) await hub.add({});
+      const live = hub.cams.filter(c => c.active);
+      if (!live.length) throw hub.cams.find(c => c.lastError)?.lastError || Object.assign(new Error("no camera"), { name: "NotFoundError" });
+      if (!live.some(c => c.slot === sel)) sel = live[0].slot;
+      await begin(live.length > 1 ? `กล้อง ${live.length} ตัว` : "กล้อง");
     } catch (e) { stopSource(); showError(e, startCamera); }
+  }
+  async function addCamera() {
+    if (fileCam) { stopSource(); dropFileCam(); }
+    try {
+      if (!running) { await startCamera(); return; } // ยังไม่ได้เปิด: เปิดกล้องที่ตั้งไว้ก่อน (กดอีกครั้งเพื่อเพิ่ม)
+      engine("กำลังเพิ่มกล้อง...");
+      const c = await hub.add({});
+      sel = c.slot; syncSched(); tileUi(); renderZoneEditor(); syncForm();
+      engineRunning(`กล้อง ${hub.cams.filter(x => x.active).length} ตัว`);
+    } catch (e) {
+      console.warn(e);
+      engine(LQCam.errorText(e) || "เพิ่มกล้องไม่สำเร็จ", e.name === "CapacityError" ? "warn" : "err");
+      tileUi();
+    }
+  }
+  function removeCam(c) {
+    if (c === fileCam) return;
+    const s = camSet(c);
+    if ((s.line || s.zones.length) && !confirm(`ลบ "${c.name}" พร้อมเส้นนับและโซนของกล้องนี้? (สถิติที่นับแล้วยังอยู่)`)) return;
+    const p = pipes.get(c.slot); if (p) closeZones(p.zoneLive, day);
+    pipes.delete(c.slot); heats.delete(c.slot);
+    try { localStorage.removeItem(P + "heat-" + c.slot); } catch { /* ignore */ }
+    for (const k of ["queueZone", "cashierZone"]) if (G[k] && G[k].startsWith(c.slot + ":")) G[k] = "";
+    persistSettings(); persistDay();
+    hub.remove(c.slot);
+    if (!hub.cams.some(x => x.active)) { running = false; sched.stop(); $("#stop").disabled = true; }
+    tileUi(); renderZoneEditor(); renderDash(); drawHeatPreview();
   }
 
   async function startFile(file) {
     stopSource();
+    hub.destroy(); hub = makeHub(); // หยุดและซ่อนกล้องสด (การตั้งค่ากล้องยังอยู่)
+    if (fileCam) fileCam.tile.remove();
     try {
+      const video = document.createElement("video"), overlay = document.createElement("canvas");
+      video.muted = true; video.playsInline = true; video.setAttribute("playsinline", ""); video.loop = true;
+      const st = storedCams().find(e => e.slot === "c1");
+      fileCam = {
+        slot: "c1", name: st ? st.name : "กล้อง 1", role: st ? st.role : "both", video, overlay, status: "live", active: true,
+        settings: load("cam-c1", {}), saveSettings() { save("cam-c1", this.settings); },
+        intervalMsEma: 0, lastInferAt: 0, frames: 0, inferMsEma: 0,
+        noteInfer(t0, ms) { if (this.lastInferAt) this.intervalMsEma = this.intervalMsEma ? this.intervalMsEma * 0.8 + (t0 - this.lastInferAt) * 0.2 : t0 - this.lastInferAt; this.lastInferAt = t0; this.frames++; this.inferMsEma = this.inferMsEma ? this.inferMsEma * 0.8 + ms * 0.2 : ms; }
+      };
+      fileCam.tile = buildTile(fileCam); fileCam.tile.dataset.slot = "c1"; grid.append(fileCam.tile);
+      sel = "c1"; tileUi(); renderZoneEditor(); syncForm();
       fileUrl = URL.createObjectURL(file);
-      video.src = fileUrl; video.loop = true;
+      video.src = fileUrl;
+      await new Promise((res, rej) => {
+        if (video.readyState >= 1) return res();
+        video.addEventListener("loadedmetadata", res, { once: true });
+        video.addEventListener("error", () => rej(Object.assign(new Error(video.error?.message || "media error"), { name: "MediaError" })), { once: true });
+      });
+      await video.play();
+      layout(fileCam);
       await begin("ไฟล์วิดีโอ: " + file.name);
     } catch (e) { stopSource(); showError(e.name === "NotSupportedError" ? Object.assign(e, { name: "MediaError" }) : e, () => $("#file").click()); }
   }
 
   async function begin(label) {
-    await new Promise((res, rej) => {
-      if (video.readyState >= 1) return res();
-      video.addEventListener("loadedmetadata", res, { once: true });
-      video.addEventListener("error", () => rej(Object.assign(new Error(video.error?.message || "media error"), { name: "MediaError" })), { once: true });
-    });
-    await video.play();
-    cam.style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
-    sizeOverlay();
     await loadDetector();
     running = true; $("#stop").disabled = false; keepAwake(true);
-    engine(`กำลังวิเคราะห์ (${label}) — ตัวประมวลผล: ${delegateUsed.toUpperCase()}${delegateUsed === "webgl" ? "" : " อาจช้ากว่าปกติ"}`, "ok");
-    requestAnimationFrame(loop);
+    engineRunning(label);
+    srcCams().forEach(c => layout(c));
+    syncSched(); sched.start(); tileUi(); renderZoneEditor(); syncForm(); renderDash();
   }
 
-  // ---- วนตรวจจับ ~12 fps (ไม่ซ้อนกัน หากเครื่องช้าจะลด fps เอง) ----
-  let busy = false;
-  function loop() {
-    if (!running) return;
-    requestAnimationFrame(loop);
-    const t = performance.now();
-    if (busy || t - lastProc < 80 || video.readyState < 2 || video.paused) return;
-    lastProc = t; busy = true;
-    detectPeople().then(dets => {
-      detectErrors = 0;
-      if (!running) return;
-      process(dets, Date.now());
-      const t2 = performance.now();
-      fpsTimes.push(t2); while (fpsTimes.length && t2 - fpsTimes[0] > 1000) fpsTimes.shift();
-      $("#fps").textContent = `${fpsTimes.length} fps · ${lastSeen.length} คน`;
-    }).catch(e => {
-      console.error(e);
-      if (++detectErrors >= 5) { stopSource(); showError(Object.assign(e, { model: true }), () => begin("ลองใหม่")); }
-    }).finally(() => { busy = false; });
-  }
-
-  function process(dets, now) {
-    if (dayKey(now) !== day.date) { closeZones(zoneLive, day); persistDay(); day = newDay(dayKey(now)); }
-    const { seen, removed } = updateTracker(tracker, dets, now);
-    removed.forEach(id => delete lineMem[id]);
-    const conf = seen.filter(t => t.hits >= ST_CFG.MIN_HITS);
-    lastSeen = conf;
-    if (S.line) for (const t of conf) {
-      const mem = lineMem[t.id] || (lineMem[t.id] = {});
-      const dir = checkCrossing(mem, S.line, center(t.box), S.swap);
-      if (dir) { applyCrossing(day, dir, now); t.flash = { dir, until: now + 800 }; }
-    }
-    const obs = conf.map(t => ({ id: t.id, foot: foot(t.box) }));
-    zoneCounts = zoneStep(zoneLive, S.zones, obs, new Set(tracker.tracks.map(t => t.id)), day, now);
-    const q = zoneBy("queue");
-    if (q) day.maxQueue = Math.max(day.maxQueue, zoneCounts[q.id] || 0);
-    obs.forEach(o => heatAdd(heat, o.foot));
-    draw(now);
+  function process(c, dets, now) {
+    if (dayKey(now) !== day.date) { pipes.forEach(p => closeZones(p.zoneLive, day)); persistDay(); day = newDay(dayKey(now)); }
+    const s = camSet(c), pipe = pipeOf(c.slot);
+    const tcfg = ST_LQT.trackerCfgFor(ST_LQT.PRESET.person, c.intervalMsEma);
+    const r = stepCam(pipe, { slot: c.slot, name: c.name, role: c.role, line: s.line, swap: s.swap, zones: s.zones }, day, dets, now, tcfg);
+    if (G.queueZone) day.maxQueue = Math.max(day.maxQueue, zoneCount(G.queueZone));
+    const H = heatOf(c.slot); r.obs.forEach(o => heatAdd(H, o.foot));
+    draw(c, now);
     if (now - lastDash > 1000) { lastDash = now; renderDash(); }
     if (now - lastSave > 10000) { lastSave = now; persistDay(); persistHeat(); }
   }
 
-  // ---- วาดภาพซ้อน ----
-  function sizeOverlay() {
-    const r = overlay.getBoundingClientRect(), dpr = devicePixelRatio || 1;
-    overlay.width = Math.max(1, Math.round(r.width * dpr)); overlay.height = Math.max(1, Math.round(r.height * dpr));
-    draw();
+  // ---- วาดภาพซ้อน (ต่อกล้อง) ----
+  function sizeOverlay(c) {
+    const r = c.overlay.getBoundingClientRect(), dpr = devicePixelRatio || 1;
+    c.overlay.width = Math.max(1, Math.round(r.width * dpr)); c.overlay.height = Math.max(1, Math.round(r.height * dpr));
+    draw(c);
   }
   const heatCanvas = document.createElement("canvas");
-  function paintHeat(ctx, w, h) {
-    heatCanvas.width = heat.w; heatCanvas.height = heat.h;
-    const hc = heatCanvas.getContext("2d");
-    hc.putImageData(new ImageData(heatToRGBA(heat), heat.w, heat.h), 0, 0);
+  function paintHeat(ctx, H, w, h) {
+    heatCanvas.width = H.w; heatCanvas.height = H.h;
+    heatCanvas.getContext("2d").putImageData(new ImageData(heatToRGBA(H), H.w, H.h), 0, 0);
     ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
     ctx.drawImage(heatCanvas, 0, 0, w, h); ctx.restore();
   }
-  function paintLine(ctx, line, w, h, k) {
+  function paintLine(ctx, line, swap, w, h, k) {
     const ax = line.a.x * w, ay = line.a.y * h, bx = line.b.x * w, by = line.b.y * h;
     ctx.lineWidth = 3 * k; ctx.strokeStyle = "#8b7bff"; ctx.setLineDash([]);
     ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
     // ลูกศรทิศ "เข้า" ชี้ไปฝั่ง +1 (หรือ -1 ถ้าสลับ)
     let nx = -(by - ay), ny = bx - ax; const L = Math.hypot(nx, ny) || 1; nx /= L; ny /= L;
-    if (S.swap) { nx = -nx; ny = -ny; }
+    if (swap) { nx = -nx; ny = -ny; }
     const mx = (ax + bx) / 2, my = (ay + by) / 2, len = 34 * k;
     ctx.strokeStyle = ctx.fillStyle = "#2a78d6"; ctx.lineWidth = 3 * k;
     ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(mx + nx * len, my + ny * len); ctx.stroke();
@@ -526,21 +653,23 @@ if (typeof document !== "undefined") (() => {
     ctx.fillStyle = bg; ctx.fillRect(lx, ly, tw, th);
     ctx.fillStyle = "#fff"; ctx.textBaseline = "middle"; ctx.fillText(text, lx + 5 * k, ly + th / 2);
   }
-  function paintZones(ctx, w, h, k, counts) {
-    S.zones.forEach(z => {
-      const col = z.queue ? "#eb6834" : z.cashier ? "#1a7f4b" : "#6cc4e3";
+  function paintZones(ctx, c, w, h, k, counts) {
+    camSet(c).zones.forEach(z => {
+      const id = nsZone(c.slot, z.id), col = id === G.queueZone ? "#eb6834" : id === G.cashierZone ? "#1a7f4b" : "#6cc4e3";
       ctx.strokeStyle = col; ctx.lineWidth = 2 * k; ctx.setLineDash([6 * k, 4 * k]);
       ctx.strokeRect(z.x * w, z.y * h, z.w * w, z.h * h); ctx.setLineDash([]);
-      label(ctx, counts ? `${z.name} · ${counts[z.id] || 0}` : z.name, z.x * w + 2 * k, z.y * h + 2 * k, col, k);
+      label(ctx, counts ? `${z.name} · ${counts[id] || 0}` : z.name, z.x * w + 2 * k, z.y * h + 2 * k, col, k);
     });
   }
-  function draw(now = Date.now()) {
-    const ctx = overlay.getContext("2d"), w = overlay.width, h = overlay.height, k = devicePixelRatio || 1;
+  function draw(c, now = Date.now()) {
+    if (!c || !c.overlay) return;
+    const ctx = c.overlay.getContext("2d"), w = c.overlay.width, h = c.overlay.height, k = devicePixelRatio || 1, s = camSet(c);
+    const pipe = pipes.get(c.slot);
     ctx.clearRect(0, 0, w, h);
-    if (S.heatOn) paintHeat(ctx, w, h);
-    paintZones(ctx, w, h, k, zoneCounts);
-    if (S.line) paintLine(ctx, S.line, w, h, k);
-    for (const t of lastSeen) {
+    if (G.heatOn) paintHeat(ctx, heatOf(c.slot), w, h);
+    if (c.role !== "door") paintZones(ctx, c, w, h, k, pipe ? pipe.zoneCounts : {});
+    if (s.line && c.role !== "zone") paintLine(ctx, s.line, s.swap, w, h, k);
+    for (const t of pipe ? pipe.lastSeen : []) {
       const b = t.box, fl = t.flash && t.flash.until > now ? t.flash.dir : null;
       ctx.strokeStyle = fl === "in" ? "#2a78d6" : fl === "out" ? "#eb6834" : "#ffffff";
       ctx.lineWidth = (fl ? 4 : 2) * k;
@@ -548,6 +677,7 @@ if (typeof document !== "undefined") (() => {
       label(ctx, `#${t.id}${fl ? (fl === "in" ? " เข้า" : " ออก") : ""}`, b.x * w, Math.max(0, b.y * h - 18 * k), fl === "in" ? "#2a78d6" : fl === "out" ? "#eb6834" : "#0e1430", k);
       const f = foot(b); ctx.fillStyle = "#8b7bff"; ctx.beginPath(); ctx.arc(f.x * w, f.y * h, 4 * k, 0, Math.PI * 2); ctx.fill();
     }
+    const drag = c._drag;
     if (drag) {
       ctx.strokeStyle = "#8b7bff"; ctx.lineWidth = 2 * k; ctx.setLineDash([5 * k, 4 * k]);
       if (tool === "line") { ctx.beginPath(); ctx.moveTo(drag.a.x * w, drag.a.y * h); ctx.lineTo(drag.b.x * w, drag.b.y * h); ctx.stroke(); }
@@ -555,90 +685,107 @@ if (typeof document !== "undefined") (() => {
       ctx.setLineDash([]);
     }
   }
+  const drawAll = () => srcCams().forEach(c => draw(c));
 
-  // ---- วาดเส้น/โซนด้วยการลาก ----
-  // วาดด้วยนิ้วหรือเมาส์ (Pointer Events + touch-action:none บนแคนวาสขณะเลือกเครื่องมือ)
-  const ptOf = e => { const r = overlay.getBoundingClientRect(); return { x: Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)), y: Math.max(0, Math.min(1, (e.clientY - r.top) / r.height)) }; };
-  overlay.addEventListener("pointerdown", e => {
-    if (tool === "none") return;
-    if (!e.isPrimary) return;
-    e.preventDefault(); overlay.setPointerCapture?.(e.pointerId); const p = ptOf(e); drag = { a: p, b: p }; draw();
-  });
-  overlay.addEventListener("pointermove", e => { if (drag && e.isPrimary) { e.preventDefault(); drag.b = ptOf(e); draw(); } });
-  overlay.addEventListener("pointerup", e => {
-    if (!drag) return;
-    drag.b = ptOf(e);
-    const { a, b } = drag; drag = null;
-    if (tool === "line" && Math.hypot(b.x - a.x, b.y - a.y) > 0.03) {
-      S.line = { a, b }; lineMem = {}; persistSettings();
-      $("#drawMsg").textContent = "บันทึกเส้นนับแล้ว ลูกศรสีน้ำเงินคือทิศ \"เข้า\" กด \"สลับทิศ\" หากกลับด้าน";
-    } else if (tool === "zone") {
-      const r = normRect(a, b);
-      if (r.w > 0.03 && r.h > 0.03) {
-        const names = ["ชั้นวางสินค้า", "แคชเชียร์", "จุดรอคิว", "โปรโมชัน"];
-        const name = names.find(n => !S.zones.some(z => z.name === n)) || `โซน ${S.zones.length + 1}`;
-        S.zones.push({ id: "z" + Date.now().toString(36), name, queue: false, cashier: false, ...r });
-        persistSettings(); renderZoneEditor();
-        $("#drawMsg").textContent = `เพิ่มโซน "${name}" แล้ว แก้ชื่อและกำหนดเป็นโซนคิว/แคชเชียร์ได้ในรายการโซน`;
+  // ---- วาดเส้น/โซนด้วยการลาก (บนภาพของกล้องที่เลือก) ----
+  function bindDraw(c) {
+    const ov = c.overlay;
+    const ptOf = e => { const r = ov.getBoundingClientRect(); return { x: Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)), y: Math.max(0, Math.min(1, (e.clientY - r.top) / r.height)) }; };
+    ov.addEventListener("pointerdown", e => {
+      select(c.slot);
+      if (tool === "none" || !e.isPrimary) return;
+      e.preventDefault(); ov.setPointerCapture?.(e.pointerId); const p = ptOf(e); c._drag = { a: p, b: p }; draw(c);
+    });
+    ov.addEventListener("pointermove", e => { if (c._drag && e.isPrimary) { e.preventDefault(); c._drag.b = ptOf(e); draw(c); } });
+    ov.addEventListener("pointerup", e => {
+      if (!c._drag) return;
+      c._drag.b = ptOf(e);
+      const { a, b } = c._drag; c._drag = null;
+      const s = camSet(c);
+      if (tool === "line" && Math.hypot(b.x - a.x, b.y - a.y) > 0.03) {
+        s.line = { a, b }; if (pipes.get(c.slot)) pipes.get(c.slot).lineMem = {}; persistCam(c);
+        $("#drawMsg").textContent = `บันทึกเส้นนับของ "${c.name}" แล้ว ลูกศรสีน้ำเงินคือทิศ "เข้า" กด "สลับทิศ" หากกลับด้าน`;
+      } else if (tool === "zone") {
+        const r = normRect(a, b);
+        if (r.w > 0.03 && r.h > 0.03) {
+          const names = ["ชั้นวางสินค้า", "แคชเชียร์", "จุดรอคิว", "โปรโมชัน"];
+          const used = new Set(cfgList().flatMap(x => camSet(x).zones.map(z => z.name)));
+          const name = names.find(n => !used.has(n)) || `โซน ${s.zones.length + 1}`;
+          s.zones.push({ id: "z" + Date.now().toString(36), name, ...r });
+          persistCam(c); renderZoneEditor();
+          $("#drawMsg").textContent = `เพิ่มโซน "${name}" ใน "${c.name}" แล้ว แก้ชื่อและกำหนดเป็นโซนคิว/แคชเชียร์ได้ในรายการโซน`;
+        }
       }
-    }
-    draw(); renderDash();
-  });
-  overlay.addEventListener("pointercancel", () => { drag = null; draw(); });
+      draw(c); renderDash(); drawHeatPreview();
+    });
+    ov.addEventListener("pointercancel", () => { c._drag = null; draw(c); });
+  }
   document.querySelectorAll("[data-tool]").forEach(b => b.addEventListener("click", () => {
     tool = b.dataset.tool;
     document.querySelectorAll("[data-tool]").forEach(x => x.setAttribute("aria-pressed", x === b));
-    overlay.classList.toggle("drawing", tool !== "none");
-    $("#drawMsg").textContent = { line: "ลากนิ้วหรือเมาส์บนภาพเพื่อวาดเส้นนับคนเข้า/ออก (เช่น ขวางประตู)", zone: "ลากนิ้วหรือเมาส์บนภาพเพื่อวาดสี่เหลี่ยมโซน", none: "" }[tool];
+    grid.classList.toggle("drawing", tool !== "none");
+    const many = srcCams().length > 1 ? " (แตะภาพของกล้องที่ต้องการ)" : "";
+    $("#drawMsg").textContent = { line: "ลากนิ้วหรือเมาส์บนภาพเพื่อวาดเส้นนับคนเข้า/ออก (เช่น ขวางประตู)" + many, zone: "ลากนิ้วหรือเมาส์บนภาพเพื่อวาดสี่เหลี่ยมโซน" + many, none: "" }[tool];
   }));
 
-  // ---- รายการโซน ----
+  // ---- รายการโซน (ของกล้องที่เลือก) ----
   function renderZoneEditor() {
-    const box = $("#zoneList");
-    if (!S.zones.length) { box.innerHTML = `<p class="hint">ยังไม่มีโซน เลือก "ลากโซน" แล้วลากบนภาพ</p>`; return; }
-    box.innerHTML = S.zones.map(z => `<div class="zrow" data-id="${z.id}">
+    const box = $("#zoneList"), c = selCam() || cfgList()[0];
+    $("#zoneCam").textContent = c && cfgList().length > 1 ? `กล้อง: ${c.name}` : "";
+    const zones = c ? camSet(c).zones : [];
+    if (!zones.length) { box.innerHTML = `<p class="hint">ยังไม่มีโซน${c && cfgList().length > 1 ? "ในกล้องนี้" : ""} เลือก "ลากโซน" แล้วลากบนภาพ</p>`; return; }
+    box.innerHTML = zones.map(z => { const id = nsZone(c.slot, z.id); return `<div class="zrow" data-id="${esc(z.id)}">
       <input class="zname" aria-label="ชื่อโซน" maxlength="30" value="${esc(z.name)}">
-      <label class="chk"><input type="checkbox" data-flag="queue" ${z.queue ? "checked" : ""}>คิว</label>
-      <label class="chk"><input type="checkbox" data-flag="cashier" ${z.cashier ? "checked" : ""}>แคชเชียร์</label>
-      <button class="btn ghost danger" type="button" data-del aria-label="ลบโซน ${esc(z.name)}">ลบ</button></div>`).join("");
+      <label class="chk"><input type="checkbox" data-flag="queueZone" ${G.queueZone === id ? "checked" : ""}>คิว</label>
+      <label class="chk"><input type="checkbox" data-flag="cashierZone" ${G.cashierZone === id ? "checked" : ""}>แคชเชียร์</label>
+      <button class="btn ghost danger" type="button" data-del aria-label="ลบโซน ${esc(z.name)}">ลบ</button></div>`; }).join("");
   }
+  const editCam = () => selCam();
   $("#zoneList").addEventListener("input", e => {
-    const row = e.target.closest(".zrow"); if (!row) return;
-    const z = S.zones.find(x => x.id === row.dataset.id);
-    if (e.target.classList.contains("zname")) z.name = e.target.value.trim() || "โซน";
-    persistSettings(); draw();
+    const row = e.target.closest(".zrow"), c = editCam(); if (!row || !c || !e.target.classList.contains("zname")) return;
+    const z = camSet(c).zones.find(x => x.id === row.dataset.id); if (!z) return;
+    z.name = e.target.value.trim() || "โซน";
+    persistCam(c); draw(c);
   });
   $("#zoneList").addEventListener("change", e => {
-    const row = e.target.closest(".zrow"), flag = e.target.dataset.flag; if (!row || !flag) return;
-    S.zones.forEach(z => { z[flag] = z.id === row.dataset.id ? e.target.checked : false; }); // มีได้โซนละหนึ่ง
-    persistSettings(); renderZoneEditor(); draw(); renderDash();
+    const row = e.target.closest(".zrow"), flag = e.target.dataset.flag, c = editCam(); if (!row || !flag || !c) return;
+    const id = nsZone(c.slot, row.dataset.id);
+    G[flag] = e.target.checked ? id : (G[flag] === id ? "" : G[flag]); // มีได้หนึ่งโซนรวมทุกกล้อง
+    persistSettings(); renderZoneEditor(); drawAll(); renderDash();
   });
   $("#zoneList").addEventListener("click", e => {
     if (!e.target.matches("[data-del]")) return;
-    const id = e.target.closest(".zrow").dataset.id;
-    S.zones = S.zones.filter(z => z.id !== id); delete zoneLive[id];
-    persistSettings(); renderZoneEditor(); draw(); renderDash();
+    const c = editCam(); if (!c) return;
+    const zid = e.target.closest(".zrow").dataset.id, id = nsZone(c.slot, zid), s = camSet(c);
+    s.zones = s.zones.filter(z => z.id !== zid);
+    const p = pipes.get(c.slot); if (p) delete p.zoneLive[id];
+    for (const k of ["queueZone", "cashierZone"]) if (G[k] === id) G[k] = "";
+    persistCam(c); persistSettings(); renderZoneEditor(); draw(c); renderDash();
   });
 
   // ---- แดชบอร์ด ----
   function renderDash() {
-    const q = zoneBy("queue"), cz = zoneBy("cashier");
-    const qi = q ? queueInfo(zoneCounts[q.id] || 0, S.serviceSec) : null;
-    const conv = conversion(day, cz?.id);
-    const occAlert = day.occ >= S.maxOcc, qAlert = qi && qi.length >= S.queueAlert;
+    const qd = G.queueZone ? zoneDef(G.queueZone) : null, cd = G.cashierZone ? zoneDef(G.cashierZone) : null;
+    const qi = qd ? queueInfo(zoneCount(G.queueZone), G.serviceSec) : null;
+    const conv = conversion(day, cd ? G.cashierZone : null);
+    const occAlert = day.occ >= G.maxOcc, qAlert = qi && qi.length >= G.queueAlert;
     const tile = (k, v, s = "", cls = "") => `<div class="tile ${cls}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`;
     $("#tiles").innerHTML =
       tile("เข้าวันนี้", day.in, "คน", "in") + tile("ออกวันนี้", day.out, "คน", "out") +
-      tile("คนในร้านตอนนี้", day.occ, `สูงสุดที่ตั้งไว้ ${S.maxOcc} คน`, occAlert ? "hot" : "") +
+      tile("คนในร้านตอนนี้", day.occ, `สูงสุดที่ตั้งไว้ ${G.maxOcc} คน`, occAlert ? "hot" : "") +
       tile("สูงสุดวันนี้", day.peak, day.peakAt ? "เวลา " + fmtClock(day.peakAt) : "") +
       tile("คิวตอนนี้", qi ? `${qi.length} คน` : "—", qi ? `รอประมาณ ${fmtDur(qi.waitSec)}` : "ยังไม่กำหนดโซนคิว", qAlert ? "hot" : "") +
-      tile("อัตราการซื้อโดยประมาณ", conv == null ? "—" : (conv * 100).toFixed(0) + "%", cz ? `เข้าโซน${esc(cz.name)} / คนเข้าร้าน` : "ยังไม่กำหนดโซนแคชเชียร์");
+      tile("อัตราการซื้อโดยประมาณ", conv == null ? "—" : (conv * 100).toFixed(0) + "%", cd ? `เข้าโซน${esc(cd.z.name)} / คนเข้าร้าน` : "ยังไม่กำหนดโซนแคชเชียร์");
+    const bc = Object.keys(day.byCam || {}).sort().map(s => day.byCam[s]).filter(b => b.in || b.out);
+    $("#byCam").innerHTML = bc.length > 1 || cfgList().length > 1 ? bc.map(b => `<span class="pill">${esc(b.name)}: เข้า ${b.in} · ออก ${b.out}</span>`).join("") : "";
     const al = [];
-    if (occAlert) al.push(`คนในร้านถึง ${day.occ} คน (เกินหรือเท่ากับที่กำหนด ${S.maxOcc} คน)`);
+    if (occAlert) al.push(`คนในร้านถึง ${day.occ} คน (เกินหรือเท่ากับที่กำหนด ${G.maxOcc} คน)`);
     if (qAlert) al.push(`คิวยาว ${qi.length} คน รอประมาณ ${fmtDur(qi.waitSec)} — ควรเปิดจุดชำระเงินเพิ่ม`);
     $("#alerts").innerHTML = al.map(a => `<div class="alert">${esc(a)}</div>`).join("");
+    const many = cfgList().length > 1;
+    const rows = cfgList().flatMap(c => camSet(c).zones.map(z => ({ c, z, id: nsZone(c.slot, z.id) })));
     $("#zoneTable").innerHTML = `<thead><tr><th>โซน</th><th class="n">อยู่ตอนนี้</th><th class="n">เข้าวันนี้ (ครั้ง)</th><th class="n">เวลาอยู่เฉลี่ย</th></tr></thead><tbody>` +
-      (S.zones.length ? S.zones.map(z => { const zs = day.zones[z.id]; return `<tr><td>${esc(z.name)}${z.queue ? " <span class=\"tag q\">คิว</span>" : ""}${z.cashier ? " <span class=\"tag c\">แคชเชียร์</span>" : ""}</td><td class="n">${zoneCounts[z.id] || 0}</td><td class="n">${zs?.visits || 0}</td><td class="n">${zs?.dwellN ? fmtDur(avgDwellSec(zs)) : "—"}</td></tr>`; }).join("")
+      (rows.length ? rows.map(({ c, z, id }) => { const zs = day.zones[id]; return `<tr><td>${many ? esc(c.name) + " · " : ""}${esc(z.name)}${id === G.queueZone ? " <span class=\"tag q\">คิว</span>" : ""}${id === G.cashierZone ? " <span class=\"tag c\">แคชเชียร์</span>" : ""}</td><td class="n">${zoneCount(id)}</td><td class="n">${zs?.visits || 0}</td><td class="n">${zs?.dwellN ? fmtDur(avgDwellSec(zs)) : "—"}</td></tr>`; }).join("")
         : `<tr><td colspan="4" class="empty">ยังไม่มีโซน</td></tr>`) + "</tbody>";
     drawHourly(); drawHeatPreview();
   }
@@ -683,33 +830,39 @@ if (typeof document !== "undefined") (() => {
   });
   $("#hourly").addEventListener("pointerleave", () => { $("#tooltip").hidden = true; });
 
-  // ---- ฮีตแมป (พื้นหลังเรียบ ไม่มีภาพคน) ----
-  function renderHeatImage(c, w, h, withLegend) {
-    c.width = w; c.height = h;
-    const ctx = c.getContext("2d"), k = w / 640;
+  // ---- ฮีตแมป (ต่อกล้อง พื้นหลังเรียบ ไม่มีภาพคน) ----
+  function renderHeatImage(cv, c, w, h, withLegend) {
+    cv.width = w; cv.height = h;
+    const ctx = cv.getContext("2d"), k = w / 640;
     ctx.fillStyle = "#eef2f5"; ctx.fillRect(0, 0, w, h);
     ctx.strokeStyle = "#dde5ea"; ctx.lineWidth = 1;
     for (let x = 0; x <= w; x += w / 16) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
     for (let y = 0; y <= h; y += h / 12) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
-    paintHeat(ctx, w, h);
-    paintZones(ctx, w, h, k, null);
-    if (S.line) paintLine(ctx, S.line, w, h, k);
+    if (!c) return;
+    paintHeat(ctx, heatOf(c.slot), w, h);
+    paintZones(ctx, c, w, h, k, null);
+    const s = camSet(c); if (s.line) paintLine(ctx, s.line, s.swap, w, h, k);
     if (withLegend) {
-      ctx.fillStyle = "rgba(255,255,255,.88)"; ctx.fillRect(10 * k, h - 40 * k, 250 * k, 30 * k);
+      ctx.fillStyle = "rgba(255,255,255,.88)"; ctx.fillRect(10 * k, h - 40 * k, 330 * k, 30 * k);
       for (let i = 0; i < 100; i++) { const [r, g, b] = heatColor(i / 99); ctx.fillStyle = `rgb(${r},${g},${b})`; ctx.fillRect(16 * k + i * k, h - 30 * k, k + 1, 10 * k); }
       ctx.fillStyle = "#16303f"; ctx.font = `${11 * k}px Prompt, sans-serif`; ctx.textBaseline = "middle";
-      ctx.fillText(`น้อย → มาก · ฮีตแมปตำแหน่งยืน ${day.date}`, 122 * k, h - 25 * k);
+      ctx.fillText(`น้อย → มาก · ฮีตแมป ${c.name} ${day.date}`, 122 * k, h - 25 * k);
     }
   }
-  const heatSize = () => { const ar = video.videoWidth ? video.videoWidth / video.videoHeight : 4 / 3; return [1280, Math.round(1280 / ar)]; };
-  function drawHeatPreview() { const [w, h] = heatSize(); renderHeatImage($("#heatPreview"), w / 2, h / 2, false); }
-  $("#heatOn").checked = S.heatOn;
-  $("#heatOn").addEventListener("change", e => { S.heatOn = e.target.checked; persistSettings(); draw(); });
-  $("#heatReset").addEventListener("click", () => { heat.data.fill(0); persistHeat(); draw(); drawHeatPreview(); });
+  const heatCam = () => selCam() || cfgList().find(c => c.slot === sel) || cfgList()[0] || null;
+  const heatSize = c => { const v = c && c.video; const ar = v && v.videoWidth ? v.videoWidth / v.videoHeight : 4 / 3; return [1280, Math.round(1280 / ar)]; };
+  function drawHeatPreview() {
+    const c = heatCam(), [w, h] = heatSize(c);
+    $("#heatCam").textContent = c && cfgList().length > 1 ? `กล้อง: ${c.name}` : "";
+    renderHeatImage($("#heatPreview"), c, w / 2, h / 2, false);
+  }
+  $("#heatOn").checked = !!G.heatOn;
+  $("#heatOn").addEventListener("change", e => { G.heatOn = e.target.checked; persistSettings(); drawAll(); });
+  $("#heatReset").addEventListener("click", () => { const c = heatCam(); if (!c) return; heatOf(c.slot).data.fill(0); persistHeat(); drawAll(); drawHeatPreview(); });
   $("#heatPng").addEventListener("click", () => {
-    const c = document.createElement("canvas"), [w, h] = heatSize();
-    renderHeatImage(c, w, h, true);
-    c.toBlob(b => download(b, `heatmap-${day.date}.png`), "image/png");
+    const c = heatCam(), cv = document.createElement("canvas"), [w, h] = heatSize(c);
+    renderHeatImage(cv, c, w, h, true);
+    cv.toBlob(b => download(b, `heatmap-${c ? c.slot + "-" : ""}${day.date}.png`), "image/png");
   });
   function download(blob, name) {
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
@@ -718,32 +871,45 @@ if (typeof document !== "undefined") (() => {
 
   // ---- ปุ่มต่าง ๆ / ตั้งค่า ----
   $("#startCam").addEventListener("click", startCamera);
+  $("#addCam").addEventListener("click", addCamera);
   $("#file").addEventListener("change", e => { const f = e.target.files[0]; if (f) startFile(f); e.target.value = ""; });
   $("#stop").addEventListener("click", () => { stopSource(); engine("หยุดวิเคราะห์แล้ว ข้อมูลสรุปถูกบันทึกไว้"); });
-  $("#swap").addEventListener("click", () => { S.swap = !S.swap; persistSettings(); draw(); $("#drawMsg").textContent = "สลับทิศเข้า/ออกแล้ว"; });
-  $("#clearLine").addEventListener("click", () => { S.line = null; lineMem = {}; persistSettings(); draw(); drawHeatPreview(); });
+  $("#swap").addEventListener("click", () => {
+    const c = selCam(); if (!c) { $("#drawMsg").textContent = "เปิดกล้องก่อน"; return; }
+    const s = camSet(c); s.swap = !s.swap; persistCam(c); draw(c); drawHeatPreview(); $("#drawMsg").textContent = `สลับทิศเข้า/ออกของ "${c.name}" แล้ว`;
+  });
+  $("#clearLine").addEventListener("click", () => {
+    const c = selCam(); if (!c) return;
+    camSet(c).line = null; if (pipes.get(c.slot)) pipes.get(c.slot).lineMem = {}; persistCam(c); draw(c); drawHeatPreview();
+  });
   $("#resetOcc").addEventListener("click", () => { day.occ = 0; persistDay(); renderDash(); });
   const sf = $("#settingsForm");
-  ["maxOcc", "serviceSec", "queueAlert", "detW"].forEach(k => { sf[k].value = S[k]; });
+  function syncForm() {
+    ["maxOcc", "serviceSec", "queueAlert"].forEach(k => { sf[k].value = G[k]; });
+    const c = selCam(); sf.detW.value = String(c ? camSet(c).detW || 0 : 0);
+  }
   sf.addEventListener("input", e => {
-    const v = Math.round(+e.target.value);
-    if (!(v > 0)) { $("#setMsg").textContent = "กรุณาใส่ตัวเลขมากกว่า 0"; $("#setMsg").className = "form-msg err"; return; }
-    S[e.target.name] = v; persistSettings(); renderDash();
+    const v = Math.round(+e.target.value), n = e.target.name;
+    if (n === "detW") { const c = selCam(); if (c) { camSet(c).detW = v || 0; persistCam(c); } }
+    else {
+      if (!(v > 0)) { $("#setMsg").textContent = "กรุณาใส่ตัวเลขมากกว่า 0"; $("#setMsg").className = "form-msg err"; return; }
+      G[n] = v; persistSettings(); renderDash();
+    }
     $("#setMsg").textContent = "บันทึกแล้ว"; $("#setMsg").className = "form-msg ok";
   });
   sf.addEventListener("submit", e => e.preventDefault());
 
-  const allDays = () => Object.keys(localStorage).filter(k => k.startsWith(P + "day-")).sort()
+  const allDays = () => Object.keys(localStorage).filter(k => /^st-day-\d{4}-\d{2}-\d{2}$/.test(k)).sort()
     .map(k => k === P + "day-" + day.date ? day : Object.assign(newDay(k.slice(P.length + 4)), load(k.slice(P.length), {})));
   $("#exportCsv").addEventListener("click", () => {
     persistDay();
-    download(new Blob([buildCsv(allDays(), zoneBy("cashier")?.id)], { type: "text/csv;charset=utf-8" }), `store-analytics-${day.date}.csv`);
+    download(new Blob([buildCsv(allDays(), G.cashierZone)], { type: "text/csv;charset=utf-8" }), `store-analytics-${day.date}.csv`);
   });
   $("#clearData").addEventListener("click", () => {
-    if (!confirm("ลบสถิติทุกวันและฮีตแมปทั้งหมด? (การตั้งค่าเส้นและโซนยังอยู่)")) return;
-    Object.keys(localStorage).filter(k => k.startsWith(P + "day-") || k === P + "heat").forEach(k => localStorage.removeItem(k));
-    day = newDay(); heat.data.fill(0); zoneLive = {};
-    renderDash(); draw(); engine("ลบข้อมูลสถิติแล้ว", "ok");
+    if (!confirm("ลบสถิติทุกวันและฮีตแมปทั้งหมด? (การตั้งค่ากล้อง เส้น และโซนยังอยู่)")) return;
+    Object.keys(localStorage).filter(k => k.startsWith(P + "day-") || k === P + "heat" || k.startsWith(P + "heat-")).forEach(k => localStorage.removeItem(k));
+    day = newDay(); heats.forEach(h => h.data.fill(0)); pipes.forEach(p => { p.zoneLive = {}; });
+    renderDash(); drawAll(); engine("ลบข้อมูลสถิติแล้ว", "ok");
   });
   $("#printNotice").addEventListener("click", () => {
     const w = window.open("", "_blank", "width=700,height=500");
@@ -752,12 +918,28 @@ if (typeof document !== "undefined") (() => {
     w.document.close(); w.focus(); w.print();
   });
 
-  let rsT = 0; const onResize = () => { clearTimeout(rsT); rsT = setTimeout(() => { sizeOverlay(); renderDash(); }, 120); };
+  // อัตราประมวลผลต่อกล้อง + จำนวนคนที่เห็น
+  setInterval(() => {
+    const st = sched.stats();
+    let ppl = 0;
+    for (const c of srcCams()) {
+      const hz = running && st[c.slot] ? st[c.slot].hz : 0;
+      if (c.tile) c.tile.querySelector(".st-hz").textContent = running ? `${hz} Hz` : "—";
+      ppl += (pipes.get(c.slot)?.lastSeen.length) || 0;
+    }
+    if (running) $("#fps").textContent = `${ppl} คน`;
+  }, 1000);
+
+  let rsT = 0; const onResize = () => { clearTimeout(rsT); rsT = setTimeout(() => { srcCams().forEach(c => sizeOverlay(c)); renderDash(); }, 120); };
   window.addEventListener("resize", onResize); window.addEventListener("orientationchange", onResize);
-  window.addEventListener("beforeunload", () => { closeZones(zoneLive, day); persistDay(); persistHeat(); });
+  window.addEventListener("beforeunload", () => { pipes.forEach(p => closeZones(p.zoneLive, day)); persistDay(); persistHeat(); });
   setInterval(() => { if (!running && dayKey() !== day.date) { day = newDay(); renderDash(); } }, 60000);
 
-  renderZoneEditor(); sizeOverlay(); renderDash();
-  if (window.isSecureContext) engine("พร้อม — กด \"เปิดกล้อง\" หรือ \"ใช้ไฟล์วิดีโอทดสอบ\" แล้ววาดเส้นนับและโซนบนภาพ");
-  else { engine(INSECURE_MSG + " (ไฟล์วิดีโอทดสอบยังใช้ได้)", "warn"); const a = document.createElement("a"); a.href = "cameras.html"; a.className = "engine-link"; a.textContent = "ดูวิธี"; $("#engine").append(" ", a); }
+  // สำหรับการทดสอบอัตโนมัติ (อ่านอย่างเดียว ไม่มีภาพ)
+  window.__ST = { get day() { return day; }, get hub() { return hub; }, get running() { return running; }, sched, pipes, G };
+
+  sel = (storedCams()[0] || {}).slot || "c1";
+  tileUi(); renderZoneEditor(); syncForm(); renderDash();
+  if (window.isSecureContext) engine("พร้อม — กด \"เปิดกล้อง\" หรือ \"ใช้ไฟล์วิดีโอทดสอบ\" แล้ววาดเส้นนับและโซนบนภาพ (เพิ่มกล้องได้สูงสุด 4 ตัว)");
+  else { engine("บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด (ไฟล์วิดีโอทดสอบยังใช้ได้)", "warn"); const a = document.createElement("a"); a.href = "cameras.html"; a.className = "engine-link"; a.textContent = "ดูวิธี"; $("#engine").append(" ", a); }
 })();

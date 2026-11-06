@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=5">
-<link rel="stylesheet" href="store.css?v=2">
+<link rel="stylesheet" href="store.css?v=3">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -25,13 +25,14 @@
 
   <div class="grid2 top">
     <section class="card">
-      <div class="cam" id="cam"><video id="video" autoplay muted playsinline></video><canvas id="overlay" aria-label="ภาพจากกล้องพร้อมเส้นนับและโซน"></canvas></div>
+      <div class="cam-grid" id="camGrid"></div>
+      <div class="cam grid-empty" id="gridEmpty"><p>กด "เปิดกล้อง" เพื่อเริ่ม · เพิ่มได้สูงสุด 4 กล้อง (แต่ละกล้องมีเส้นนับและโซนของตัวเอง)</p></div>
       <div class="cam-actions">
         <button class="btn primary" id="startCam" type="button">เปิดกล้อง</button>
+        <button class="btn ghost" id="addCam" type="button">+ เพิ่มกล้อง</button>
         <label class="btn ghost file-btn">ใช้ไฟล์วิดีโอทดสอบ<input id="file" type="file" accept="video/*"></label>
         <button class="btn ghost" id="stop" type="button" disabled>หยุด</button>
         <span class="pill" id="fps">—</span>
-        <div class="cam-switch" id="camSwitch" hidden></div>
       </div>
       <div class="tools" role="group" aria-label="เครื่องมือวาด">
         <button class="seg" type="button" data-tool="none" aria-pressed="true">ดูอย่างเดียว</button>
@@ -47,6 +48,7 @@
         <ul>
           <li>ใช้กล้องหลัง (ค่าเริ่มต้นของหน้านี้) ตั้งบนขาตั้งหรือติดผนังสูงประมาณ 2–2.5 เมตร มุมก้มลงเฉียง ๆ ให้เห็นประตูและพื้นที่ทั้งหมด</li>
           <li>ตั้งเครื่องแนวนอนจะเห็นพื้นที่กว้างกว่า เสียบสายชาร์จไว้ และปิดการล็อกหน้าจออัตโนมัติ (หน้านี้ขอให้จอเปิดค้างระหว่างวิเคราะห์ถ้าเบราว์เซอร์รองรับ)</li>
+          <li>หลายกล้องพร้อมกันใช้ได้บนคอมพิวเตอร์ (สูงสุด 4 ตัว) มือถือส่วนใหญ่เปิดได้ทีละกล้อง — ใช้ 1 เครื่องต่อ 1 จุด</li>
           <li>เปิดหน้านี้ค้างไว้ ถ้าสลับไปแอปอื่น กล้องจะหยุดชั่วคราวและเปิดต่อเองเมื่อกลับมา</li>
           <li>ต้องเปิดผ่าน https:// บนมือถือ — ดูวิธีในหน้า <a href="cameras.html">ระบบทั้งหมด</a></li>
         </ul>
@@ -56,6 +58,7 @@
     <section class="card">
       <div class="report-head"><h2>ภาพรวมวันนี้</h2><button class="btn ghost small" id="resetOcc" type="button">ตั้งคนในร้านเป็น 0</button></div>
       <div class="tiles" id="tiles"></div>
+      <div class="bycam" id="byCam"></div>
       <h3>คนเข้า–ออกรายชั่วโมง</h3>
       <div class="legend"><span><i class="sw in"></i>เข้า</span><span><i class="sw out"></i>ออก</span></div>
       <canvas id="hourly" role="img" aria-label="กราฟคนเข้าออกรายชั่วโมง"></canvas>
@@ -64,14 +67,14 @@
 
   <div class="grid2">
     <section class="card">
-      <h2>โซนในร้าน</h2>
+      <div class="report-head"><h2>โซนในร้าน</h2><span class="pill" id="zoneCam"></span></div>
       <div id="zoneList" class="zlist"></div>
       <p class="hint">ติ๊ก "คิว" ได้หนึ่งโซนเพื่อวัดความยาวคิว และ "แคชเชียร์" หนึ่งโซนเพื่อคำนวณอัตราการซื้อโดยประมาณ (จำนวนครั้งที่เข้าโซนแคชเชียร์ ÷ จำนวนคนเข้าร้าน)</p>
       <div class="table-wrap"><table id="zoneTable"></table></div>
     </section>
     <section class="card">
       <div class="report-head">
-        <h2>ฮีตแมปตำแหน่งยืน</h2>
+        <h2>ฮีตแมปตำแหน่งยืน <span class="pill" id="heatCam"></span></h2>
         <div class="row-actions">
           <button class="btn ghost" id="heatReset" type="button">รีเซ็ตฮีตแมป</button>
           <button class="btn ghost" id="heatPng" type="button">บันทึกเป็น PNG</button>
@@ -89,7 +92,7 @@
         <label>แจ้งเตือนเมื่อคนในร้านถึง (คน)<input name="maxOcc" type="number" min="1" inputmode="numeric"></label>
         <label>เวลาบริการต่อคน (วินาที)<input name="serviceSec" type="number" min="1" inputmode="numeric"></label>
         <label>แจ้งเตือนเมื่อคิวยาวถึง (คน)<input name="queueAlert" type="number" min="1" inputmode="numeric"></label>
-        <label>ความละเอียดการตรวจจับ<select name="detW"><option value="320">320px – เร็ว (กล้องใกล้ คนตัวใหญ่)</option><option value="416">416px – สมดุล</option><option value="512">512px – แม่นยำ (กล้องไกล คนตัวเล็ก)</option></select></label>
+        <label>ความละเอียดการตรวจจับ (กล้องที่เลือก)<select name="detW"><option value="0">อัตโนมัติ – ตามจำนวนกล้อง</option><option value="320">320px – เร็ว (กล้องใกล้ คนตัวใหญ่)</option><option value="416">416px – สมดุล</option><option value="512">512px – แม่นยำ (กล้องไกล คนตัวเล็ก)</option></select></label>
       </form>
       <p class="form-msg" id="setMsg" role="status"></p>
       <div class="row-actions">
@@ -109,6 +112,9 @@
 <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
 
 <script src="vendor/face-api.js"></script>
-<script src="store.js?v=4"></script>
+<script src="lensiq-track.js?v=1"></script>
+<script src="lensiq-camera.js?v=1"></script>
+<script src="lensiq-detect.js?v=1"></script>
+<script src="store.js?v=5"></script>
 </body>
 </html>

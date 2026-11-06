@@ -402,7 +402,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   /* ================= 2) เข็มทิศ AR ================= */
   var video = $("#fsVideo"), arCv = $("#fsAr"), arCtx = arCv.getContext("2d"), arBox = $("#fsArBox");
-  var heading = null, rawHeading = null, sensor = false, lastEvt = 0, accuracy = null, stream = null, rafOn = false, manual = false;
+  var heading = null, rawHeading = null, sensor = false, lastEvt = 0, accuracy = null, rafOn = false, manual = false;
   var slider = $("#fsHeadingSlider");
   function setHeading(h, fromSensor) {
     rawHeading = h; heading = FS.smoothHeading(heading, h, fromSensor ? 0.2 : 1);
@@ -440,18 +440,31 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     startCam();
     if (heading == null) setHeading(+slider.value, false);
   }
-  async function startCam() {
-    if (stream) return;
-    if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { $("#fsCamNote").hidden = false; $("#fsCamNote").textContent = "เปิดกล้องได้เฉพาะ https:// หรือ localhost — เข็มทิศยังใช้ได้โดยไม่มีภาพกล้อง"; return; }
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
-      video.srcObject = stream; video.setAttribute("playsinline", ""); video.muted = true;
-      try { await video.play(); } catch (e) { /* autoplay */ }
-      arBox.classList.add("live");
-    } catch (e) { $("#fsCamNote").hidden = false; $("#fsCamNote").textContent = "เปิดกล้องไม่ได้ (" + (e.name || "error") + ") — เข็มทิศยังใช้ได้โดยไม่มีภาพกล้อง"; }
+  /* กล้องผ่านโมดูลกลาง LQCam: ลำดับสำรองเมื่อกล้องไม่รองรับ, หยุด/เปิดเองเมื่อสลับแอปหรือออกจากหน้า (visibilitychange/pagehide/pageshow)
+     และปุ่มสลับ/เลือกกล้องบนภาพ AR (ซ่อนเมื่อมีกล้องตัวเดียว) — ไม่มีกล้องก็ยังใช้เข็มทิศได้ */
+  function camNote(msg) { var n = $("#fsCamNote"); n.hidden = !msg; n.textContent = msg || ""; }
+  function camErrMsg(e) {
+    if (e && e.name === "Insecure") return "เปิดกล้องได้เฉพาะ https:// หรือ localhost — เข็มทิศยังใช้ได้โดยไม่มีภาพกล้อง";
+    var t = window.LQCam && LQCam.errorText ? LQCam.errorText(e) : "";
+    return "เปิดกล้องไม่ได้" + (t ? ": " + t : " (" + ((e && e.name) || "error") + ")") + " — เข็มทิศยังใช้ได้โดยไม่มีภาพกล้อง";
   }
-  function stopCam() { if (stream) stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; video.srcObject = null; arBox.classList.remove("live"); }
-  document.addEventListener("visibilitychange", function () { if (document.hidden && stream) { stopCam(); state.camPaused = true; } else if (!document.hidden && state.camPaused) { state.camPaused = false; startCam(); } });
+  function camLive(on) { arBox.classList.toggle("live", !!on); video.style.transform = on && cam && cam.mirrored ? "scaleX(-1)" : ""; }
+  var cam = window.LQCam ? LQCam.create(video, {
+    facing: "environment", ideal: { width: 1280, height: 720 }, autoPause: true,
+    onChange: function (c, ev) {
+      if (ev.type === "started" || ev.type === "resumed") { camLive(true); camNote(""); }
+      else if (ev.type === "paused" || ev.type === "stopped" || ev.type === "ended") camLive(false);
+    },
+    onError: function (c, e) { camLive(false); camNote(camErrMsg(e)); }
+  }) : null;
+  if (cam) { var camUi = document.createElement("div"); camUi.className = "fs-cam-ui"; arBox.appendChild(camUi); cam.attach(camUi); }
+  async function startCam() {
+    if (!cam) { camNote(camErrMsg({ name: "Insecure" })); return; }
+    if (cam.active) return;
+    try { await cam.start(); }
+    catch (e) { if (e.name === "AbortError" && /superseded/.test(e.message)) return; camLive(false); camNote(camErrMsg(e)); }
+  }
+  function stopCam() { if (cam) cam.stop(); camLive(false); }
   function showManual(on) { $("#fsManual").hidden = !on; manual = on && !sensor ? true : manual; }
   $("#fsCompassStart").addEventListener("click", startCompass);
   $("#fsManualToggle").addEventListener("click", function () { manual = !manual; this.setAttribute("aria-pressed", manual); $("#fsManual").hidden = !manual && sensor; if (manual) setHeading(+slider.value, false); });

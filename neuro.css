@@ -86,6 +86,9 @@ th{background:var(--alt);color:var(--navy);font-weight:500}
 .cam-ctl{position:absolute;top:10px;right:10px;z-index:3;display:flex;gap:6px;align-items:center;max-width:calc(100% - 20px)}
 .cam-ctl[hidden]{display:none}
 .cam-ctl.busy{opacity:.6;pointer-events:none}
+.cam-ctl .btn,.cam-ctl select{min-height:44px;padding:0 14px;border:0;border-radius:99px;background:rgba(14,20,48,.72);color:#fff;font-size:.85rem}
+.cam-ctl select{max-width:160px;font-size:16px;padding:0 10px}
+.pill.multi{background:#b7791f}
 .cam-flip{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border:0;border-radius:99px;background:rgba(14,20,48,.72);color:#fff;font-size:.85rem}
 .cam-pick{min-height:44px;max-width:160px;padding:0 10px;border:0;border-radius:99px;background:rgba(14,20,48,.72);color:#fff;font-size:16px}
 .https-note{margin:0 0 12px;padding:12px 14px;border-radius:12px;background:#fff6e0;color:#5c4300;border:1px solid #f1d58a;font-size:.92rem}
@@ -118,3 +121,4 @@ label.check input{width:20px;height:20px;flex:none}
   .cam-flip span{display:none}
   th,td{padding:8px 10px}
 }
+.nm .cam-ctl select{width:auto;max-width:160px}

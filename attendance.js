@@ -1,5 +1,8 @@
 const MODEL_URL = "vendor/models/";
-const MATCH_DISTANCE = 0.55; // ยิ่งต่ำยิ่งเข้มงวด
+// ค่าความต่างใบหน้าสูงสุดที่ยอมรับ (ยิ่งต่ำยิ่งเข้มงวด) — ตั้งค่าได้ เก็บใน att-settings
+const settings = Object.assign({ matchDistance: 0.55 }, (() => { try { return JSON.parse(localStorage.getItem("att-settings")) || {}; } catch { return {}; } })());
+const MAX_FACES = 5;
+const TEST = !!(window.LQDetect && LQDetect.isTest()); // localhost + ?fakedet เท่านั้น
 const $ = s => document.querySelector(s);
 const video = $("#video"), overlay = $("#overlay"), banner = $("#banner"), camMsg = $("#camMsg");
 const detOpts = () => new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
@@ -11,6 +14,9 @@ let logs = load("att-logs", []);      // {pid,name,code,session,date,time}
 
 let mode = "checkin", scanning = false, ready = false, lastMsgAt = 0;
 let matcher = null;
+const lastSaid = new Map();   // pid -> เวลาแจ้งล่าสุด (กันข้อความซ้ำรายคน)
+const lastResult = new Map(); // pid -> {kind, text} ผลเช็คชื่อล่าสุดของคนนั้น
+const confirm2 = LQTrack.createConfirm({ need: 2, windowMs: 1500 }); // ต้องเห็นตรงกัน 2 เฟรมก่อนบันทึก
 
 $("#date").value = new Date().toISOString().slice(0, 10);
 const session = () => $("#session").value.trim();
@@ -26,80 +32,18 @@ function needSession() {
 }
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-// ---------- โหลดโมเดลและกล้อง ----------
-// ---------- กล้อง (มือถือ/แท็บเล็ต): เลือกกล้องหน้า/หลัง · สะท้อนภาพเฉพาะกล้องหน้า · ปิดกล้องเมื่อสลับแอปแล้วเปิดต่อ ----------
+// ---------- กล้อง (LQCam): เลือกกล้องหน้า/หลัง · สะท้อนภาพเฉพาะกล้องหน้า · ปิดกล้องเมื่อสลับแอปแล้วเปิดต่อ · จำกล้องที่เลือก ----------
 const INSECURE_MSG = "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด";
-function createCamera(video, o = {}) {
-  const opt = { facing: "user", constraints: {}, layout() {}, onError(e) { console.error(e); }, ...o };
-  const BACK = /back|rear|environment|หลัง/i;
-  let stream = null, want = { facing: opt.facing, deviceId: "" }, cur = { facing: opt.facing, deviceId: "" }, devices = [], resume = false;
-  const uis = [];
-  const gum = v => navigator.mediaDevices.getUserMedia({ video: { ...opt.constraints, ...v }, audio: false });
-  function halt() { stream?.getTracks().forEach(t => t.stop()); stream = null; if (video.srcObject) video.srcObject = null; }
-  async function start(next) {
-    if (next) want = { facing: next.facing || want.facing, deviceId: next.deviceId || "" };
-    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) throw Object.assign(new Error("insecure context"), { name: "Insecure" });
-    halt();
-    let s;
-    try { s = await gum(want.deviceId ? { deviceId: { exact: want.deviceId } } : { facingMode: { ideal: want.facing } }); }
-    catch (e) { if (!want.deviceId || !/Overconstrained|NotFound/.test(e.name)) throw e; want.deviceId = ""; s = await gum({ facingMode: { ideal: want.facing } }); }
-    stream = s;
-    const tr = s.getVideoTracks()[0], st = tr?.getSettings?.() || {};
-    cur = { deviceId: st.deviceId || want.deviceId, facing: st.facingMode || (BACK.test(tr?.label || "") ? "environment" : "user") };
-    if (tr) tr.addEventListener("ended", () => { if (stream === s) stream = null; });
-    video.muted = true; video.playsInline = true; video.setAttribute("playsinline", ""); video.setAttribute("muted", "");
-    video.srcObject = s;
-    try { await video.play(); } catch (e) { if (e.name !== "AbortError") throw e; }
-    if (!video.videoWidth) await new Promise(r => video.addEventListener("loadedmetadata", r, { once: true }));
-    opt.layout(api); refreshDevices();
-    return s;
-  }
-  async function refreshDevices() {
-    try { devices = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "videoinput"); } catch { devices = []; }
-    for (const ui of uis) {
-      ui.hidden = devices.length < 2;
-      const [flip, sel] = ui.children;
-      flip.textContent = cur.facing === "environment" ? "ใช้กล้องหน้า" : "ใช้กล้องหลัง";
-      sel.innerHTML = devices.map((d, i) => `<option value="${d.deviceId.replace(/"/g, "&quot;")}">${(d.label || "กล้อง " + (i + 1)).replace(/[<&]/g, "")}</option>`).join("");
-      if (cur.deviceId) sel.value = cur.deviceId;
-    }
-  }
-  function switchTo(n) {
-    if (!stream) { want = { facing: n.facing || want.facing, deviceId: n.deviceId || "" }; cur = { ...cur, ...want }; return refreshDevices(); }
-    start(n).catch(opt.onError);
-  }
-  const api = {
-    start, refreshDevices,
-    stop() { resume = false; halt(); },
-    get active() { return !!stream && stream.active; },
-    get mirrored() { return cur.facing !== "environment"; },
-    attach(el) {
-      uis.push(el); el.hidden = true;
-      el.innerHTML = `<button class="btn ghost" type="button">ใช้กล้องหลัง</button><select aria-label="เลือกกล้อง"></select>`;
-      el.children[0].onclick = () => switchTo({ facing: cur.facing === "environment" ? "user" : "environment" });
-      el.children[1].onchange = e => switchTo({ deviceId: e.target.value });
-      refreshDevices();
-    }
-  };
-  video.addEventListener("resize", () => { if (stream) opt.layout(api); });
-  let rt = 0; const relayout = () => { clearTimeout(rt); rt = setTimeout(() => { if (stream) opt.layout(api); }, 150); };
-  addEventListener("resize", relayout); addEventListener("orientationchange", relayout);
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) { if (stream) { resume = true; halt(); } }
-    else if (resume) { resume = false; start().catch(opt.onError); }
-  });
-  addEventListener("pagehide", halt);
-  navigator.mediaDevices?.addEventListener?.("devicechange", refreshDevices);
-  return api;
+function layout(c = camera) {
+  video.parentElement.classList.toggle("mirror", c.mirrored);
+  if (video.videoWidth && (overlay.width !== video.videoWidth || overlay.height !== video.videoHeight)) { overlay.width = video.videoWidth; overlay.height = video.videoHeight; }
 }
-
-const camera = createCamera(video, {
-  layout(c) {
-    video.parentElement.classList.toggle("mirror", c.mirrored);
-    if (video.videoWidth && (overlay.width !== video.videoWidth || overlay.height !== video.videoHeight)) { overlay.width = video.videoWidth; overlay.height = video.videoHeight; }
-  },
-  onError: e => { ready = false; showCamError(camErrorText(e)); }
+const camera = LQCam.create(video, {
+  facing: "user", persistKey: "att-cam",
+  onChange: (c, ev) => { if (ev.type === "started" || ev.type === "resumed") layout(c); },
+  onError: (c, e) => { if (e && e.name === "AbortError") return; ready = false; showCamError(camErrorText(e)); }
 });
+video.addEventListener("resize", () => { if (camera.active) layout(); });
 camera.attach($("#camSwitch"));
 function showCamError(text) {
   camMsg.classList.remove("hide");
@@ -130,17 +74,6 @@ function camErrorText(e) {
   }
 }
 
-// เลือกตัวประมวลผล: WebGL (เร็วสุด) -> WASM -> CPU (ช้าสุดแต่ใช้ได้ทุกเครื่อง)
-async function initBackend() {
-  const tf = faceapi.tf;
-  tf.setWasmPaths("vendor/");
-  for (const name of ["webgl", "wasm", "cpu"]) {
-    try {
-      if (await tf.setBackend(name)) { await tf.ready(); console.info("face backend:", name); return name; }
-    } catch (e) { console.warn("backend", name, "failed", e); }
-  }
-  throw new Error("ไม่มีตัวประมวลผลที่ใช้ได้");
-}
 
 async function init() {
   ready = false;
@@ -152,7 +85,8 @@ async function init() {
   const cam = (async () => {
     await camera.start();
   })();
-  const models = initBackend().then(() => Promise.all([
+  // เลือกตัวประมวลผล: WebGL -> WASM -> CPU (?cpu ข้าม WebGL) · โหมดทดสอบ (?fakedet) ไม่โหลดโมเดล
+  const models = TEST ? Promise.resolve() : LQDetect.tfBackend().then(() => Promise.all([
     faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
     faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
     faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
@@ -168,16 +102,39 @@ async function init() {
 
 function rebuildMatcher() {
   matcher = people.length
-    ? new faceapi.FaceMatcher(people.map(p => new faceapi.LabeledFaceDescriptors(p.id, [new Float32Array(p.descriptor)])), MATCH_DISTANCE)
+    ? new faceapi.FaceMatcher(people.map(p => new faceapi.LabeledFaceDescriptors(p.id, [new Float32Array(p.descriptor)])), settings.matchDistance)
     : null;
 }
 
-// ---------- ลงทะเบียน ----------
+// ---------- ตรวจจับใบหน้า ----------
+// คืน [{box:{x,y,width,height} (พิกเซลของวิดีโอ), descriptor:Float32Array|null, fake?}] เรียงจากใบใหญ่ไปเล็ก
+async function detectFaces(max = MAX_FACES) {
+  let faces;
+  const fk = TEST ? LQDetect.fake("att", performance.now()) : null;
+  if (fk) {
+    const W = video.videoWidth || overlay.width || 1, H = video.videoHeight || overlay.height || 1;
+    faces = fk.map(d => ({ box: { x: d.x * W, y: d.y * H, width: d.w * W, height: d.h * H }, descriptor: d.descriptor ? Float32Array.from(d.descriptor) : null, fake: d }));
+  } else {
+    const r = await faceapi.detectAllFaces(video, detOpts()).withFaceLandmarks().withFaceDescriptors();
+    faces = r.map(x => { const b = x.detection.box; return { box: { x: b.x, y: b.y, width: b.width, height: b.height }, descriptor: x.descriptor }; });
+  }
+  return faces.sort((a, b) => b.box.width * b.box.height - a.box.width * a.box.height).slice(0, max);
+}
+// ใบหน้าตรงกับใครที่สุด -> {label, distance} (label = id ผู้ลงทะเบียน หรือ "unknown")
+function bestMatch(f, i) {
+  if (TEST && typeof window.__LQ_FAKE_MATCH === "function") return window.__LQ_FAKE_MATCH(f.fake || f, i) || { label: "unknown", distance: 1 };
+  if (!matcher || !f.descriptor) return { label: "unknown", distance: 1 };
+  const m = matcher.findBestMatch(f.descriptor);
+  return { label: m.label, distance: m.distance };
+}
+
+// ---------- ลงทะเบียน (หนึ่งใบหน้าเท่านั้น) ----------
 async function capture(samples = 3) {
   const ds = [];
   for (let i = 0; i < samples; i++) {
-    const r = await faceapi.detectAllFaces(video, detOpts()).withFaceLandmarks().withFaceDescriptors();
+    const r = await detectFaces(Infinity);
     if (r.length !== 1) throw new Error(r.length ? "พบใบหน้าหลายคน กรุณาให้เหลือคนเดียว" : "ไม่พบใบหน้า กรุณาหันหน้าตรงกล้อง");
+    if (!r[0].descriptor) throw new Error("อ่านลักษณะใบหน้าไม่สำเร็จ กรุณาลองใหม่");
     ds.push(r[0].descriptor);
     await new Promise(r => setTimeout(r, 350));
   }
@@ -210,37 +167,95 @@ $("#regForm").addEventListener("submit", async e => {
   btn.disabled = false;
 });
 
-// ---------- สแกนเช็คชื่อ ----------
+// ---------- สแกนเช็คชื่อ (หลายคนพร้อมกัน) ----------
+const TIME = () => new Date().toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+const RES_CLS = { ok: "ok", dup: "warn", pending: "", unknown: "unknown", err: "err" };
+let unknownAt = 0;
+
 async function loop() {
   if (!scanning) return;
   const ctx = overlay.getContext("2d");
-  ctx.clearRect(0, 0, overlay.width, overlay.height);
-  if (video.readyState < 2) { setTimeout(loop, 400); return; } // กล้องพักชั่วคราว (สลับแอป/สลับกล้อง)
+  if (video.readyState < 2) { ctx.clearRect(0, 0, overlay.width, overlay.height); setTimeout(loop, 400); return; } // กล้องพักชั่วคราว
   try {
-    const results = await faceapi.detectAllFaces(video, detOpts()).withFaceLandmarks().withFaceDescriptors();
-    results.forEach(r => {
-      const hit = matcher ? matcher.findBestMatch(r.descriptor) : { label: "unknown" };
-      const person = people.find(p => p.id === hit.label);
-      const b = r.detection.box;
-      ctx.lineWidth = 3; ctx.strokeStyle = person ? "#2ecc71" : "#e67e22";
-      ctx.strokeRect(b.x, b.y, b.width, b.height);
-      if (person) checkIn(person); else if (Date.now() - lastMsgAt > 2500) { say("ไม่พบข้อมูลใบหน้านี้ในระบบ กรุณาลงทะเบียนก่อน", "warn"); lastMsgAt = Date.now(); }
+    const faces = await detectFaces();
+    if (!scanning) return;
+    const now = performance.now();
+    // จับคู่แบบไม่ซ้ำ: แต่ละคนถูกใช้ได้ครั้งเดียวต่อเฟรม ใบหน้าที่ใกล้ที่สุดได้ไป ที่เหลือถือว่าไม่รู้จัก
+    const cands = [];
+    faces.forEach((f, i) => { const m = bestMatch(f, i); if (m.label !== "unknown" && people.some(p => p.id === m.label)) cands.push({ i, key: m.label, dist: m.distance }); });
+    const got = LQTrack.assignUnique(cands, settings.matchDistance);
+    const rows = faces.map((f, i) => {
+      const a = got.get(i), p = a && people.find(x => x.id === a.key);
+      if (!p) return { f, kind: "unknown", name: "ไม่รู้จัก", text: "ไม่พบในระบบ กรุณาลงทะเบียน" };
+      const st = confirm2.hit(p.id, now);
+      if (st === "pending") return { f, kind: "pending", name: p.name, text: "กำลังยืนยันตัวตน..." };
+      if (st === "confirmed") {
+        const r = checkIn(p);
+        if (r.kind === "err") confirm2.reset(p.id); // เช่น ยังไม่กรอกหัวข้อ ให้ลองใหม่เฟรมถัดไป
+        else lastResult.set(p.id, r);
+        notify(p, r);
+        return { f, name: p.name, ...r };
+      }
+      return { f, name: p.name, ...(lastResult.get(p.id) || { kind: "dup", text: "เช็คชื่อแล้ว" }) };
     });
-    if (!results.length && Date.now() - lastMsgAt > 2500) say("กำลังสแกน... กรุณาหันหน้าเข้าหากล้อง");
+    confirm2.prune(now);
+    draw(ctx, rows);
+    renderFaceResults(rows);
+    const unk = rows.filter(r => r.kind === "unknown").length;
+    if (unk) unknownAt = Date.now();
+    showUnknownNote(unk);
+    if (!faces.length && Date.now() - lastMsgAt > 2500) say("กำลังสแกน... กรุณาหันหน้าเข้าหากล้อง");
   } catch (e) { console.error(e); }
   setTimeout(loop, 400);
 }
 
+// ป้ายชื่อบนกรอบ: แคนวาสถูกสะท้อนด้วย CSS จึงต้องกลับด้านตัวอักษรกลับ
+function draw(ctx, rows) {
+  ctx.clearRect(0, 0, overlay.width, overlay.height);
+  const mir = camera.mirrored, fs = Math.max(14, Math.round(overlay.width / 36));
+  ctx.font = `500 ${fs}px Prompt, sans-serif`; ctx.textBaseline = "bottom";
+  for (const r of rows) {
+    const b = r.f.box, col = r.kind === "ok" || r.kind === "dup" ? "#2ecc71" : r.kind === "pending" ? "#22d3ee" : r.kind === "err" ? "#e74c3c" : "#e67e22";
+    ctx.lineWidth = 3; ctx.strokeStyle = col; ctx.strokeRect(b.x, b.y, b.width, b.height);
+    const label = r.kind === "unknown" ? "ไม่รู้จัก" : r.name, tw = ctx.measureText(label).width + 12, ty = Math.max(fs + 8, b.y);
+    ctx.save();
+    if (mir) { ctx.translate(b.x + b.width, 0); ctx.scale(-1, 1); } else ctx.translate(b.x, 0);
+    ctx.fillStyle = col; ctx.fillRect(0, ty - fs - 8, tw, fs + 8);
+    ctx.fillStyle = "#0e1430"; ctx.fillText(label, 6, ty - 3);
+    ctx.restore();
+  }
+}
+
+function renderFaceResults(rows) {
+  const el = $("#faceResults");
+  const shown = rows.filter(r => r.kind !== "unknown");
+  const unk = rows.length - shown.length;
+  el.innerHTML = shown.map(r => `<li class="fr ${RES_CLS[r.kind]}" data-kind="${r.kind}"><span>${esc(r.name)}</span><small>${esc(r.text)}</small></li>`).join("")
+    + (unk ? `<li class="fr unknown" data-kind="unknown"><span>ไม่รู้จัก${unk > 1 ? ` ${unk} คน` : ""}</span><small>ไม่พบในระบบ</small></li>` : "");
+}
+// แจ้งเตือนใบหน้าที่ไม่รู้จัก: บรรทัดแยก ไม่ทับข้อความสำเร็จ
+function showUnknownNote(n) {
+  const el = $("#unknownNote");
+  if (n) { el.textContent = `พบใบหน้าที่ไม่อยู่ในระบบ ${n} คน — ลงทะเบียนที่แท็บ "ลงทะเบียนใบหน้า"`; el.hidden = false; }
+  else if (Date.now() - unknownAt > 2500) el.hidden = true;
+}
+function notify(p, r) {
+  const t = Date.now();
+  if (r.kind !== "ok" && t - (lastSaid.get(p.id) || 0) < 2500) return; // จำกัดความถี่รายคน
+  lastSaid.set(p.id, t); lastMsgAt = t;
+  say(r.kind === "ok" ? `✓ เช็คชื่อสำเร็จ: ${p.name} (${r.time})` : r.kind === "dup" ? `${p.name} ${r.text}` : r.text, RES_CLS[r.kind]);
+}
+
+// บันทึกการเข้าเรียน -> {kind:'ok'|'dup'|'err', text, time?}
 function checkIn(p) {
   const s = session(), d = day();
-  if (!s) { say("กรุณากรอกหัวข้อ/รอบการอบรมก่อน", "warn"); lastMsgAt = Date.now(); return; }
+  if (!s) return { kind: "err", text: "กรุณากรอกหัวข้อ/รอบการอบรมก่อน" };
   const already = logs.find(l => l.pid === p.id && l.session === s && l.date === d);
-  lastMsgAt = Date.now();
-  if (already) return say(`${p.name} เช็คชื่อแล้วเมื่อ ${already.time}`, "warn");
-  const time = new Date().toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  if (already) return { kind: "dup", text: `เช็คชื่อแล้วเมื่อ ${already.time}`, time: already.time };
+  const time = TIME();
   logs.push({ pid: p.id, name: p.name, code: p.code, session: s, date: d, time });
   store("att-logs", logs); renderLogs();
-  say(`✓ เช็คชื่อสำเร็จ: ${p.name} (${time})`, "ok");
+  return { kind: "ok", text: `เช็คชื่อสำเร็จ ${time}`, time };
 }
 
 $("#startScan").onclick = () => {
@@ -249,7 +264,7 @@ $("#startScan").onclick = () => {
   if (!session()) { needSession(); return say("กรุณากรอก \"หัวข้อ/รอบการอบรม\" ที่ช่องด้านบนก่อน แล้วกดเริ่มสแกนอีกครั้ง", "warn"); }
   scanning = !scanning;
   $("#startScan").textContent = scanning ? "หยุดสแกน" : "เริ่มสแกน";
-  if (scanning) loop(); else { overlay.getContext("2d").clearRect(0, 0, overlay.width, overlay.height); say("หยุดสแกนแล้ว"); }
+  if (scanning) loop(); else { overlay.getContext("2d").clearRect(0, 0, overlay.width, overlay.height); $("#faceResults").innerHTML = ""; $("#unknownNote").hidden = true; say("หยุดสแกนแล้ว"); }
 };
 
 // ---------- แสดงผล ----------
@@ -295,5 +310,16 @@ document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
   mode = t.dataset.t;
   if (mode !== "checkin" && scanning) $("#startScan").click();
 });
+
+// ---------- ตั้งค่าความเข้มงวด ----------
+{
+  const inp = $("#matchDist"), out = $("#matchDistVal");
+  inp.value = settings.matchDistance; out.textContent = (+settings.matchDistance).toFixed(2);
+  inp.addEventListener("input", () => {
+    settings.matchDistance = Math.min(0.7, Math.max(0.3, +inp.value || 0.55));
+    out.textContent = settings.matchDistance.toFixed(2);
+    store("att-settings", { matchDistance: settings.matchDistance }); rebuildMatcher();
+  });
+}
 
 renderPeople(); renderLogs(); init();

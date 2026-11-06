@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=5">
-<link rel="stylesheet" href="attendance.css?v=2">
+<link rel="stylesheet" href="attendance.css?v=3">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -44,9 +44,17 @@
       </div>
 
       <div class="pane" id="pane-checkin">
-        <p>ยืนหน้ากล้องให้เห็นใบหน้าชัดเจน ระบบจะบันทึกให้อัตโนมัติ</p>
+        <p>ยืนหน้ากล้องให้เห็นใบหน้าชัดเจน เช็คชื่อได้หลายคนพร้อมกัน ระบบจะบันทึกให้อัตโนมัติ</p>
         <button class="btn primary full" id="startScan" type="button">เริ่มสแกน</button>
         <p class="form-msg scan-msg" id="scanMsg" role="status" aria-live="polite"></p>
+        <ul class="face-results" id="faceResults" aria-live="polite" aria-label="ผลการสแกนแต่ละใบหน้า"></ul>
+        <p class="unknown-note" id="unknownNote" hidden></p>
+        <details class="tune">
+          <summary>ความเข้มงวดในการจดจำ</summary>
+          <label>ค่าความต่างสูงสุด <output id="matchDistVal">0.55</output>
+            <input id="matchDist" type="range" min="0.3" max="0.7" step="0.01" value="0.55"></label>
+          <small>ค่าต่ำ = เข้มงวดขึ้น (จำผิดน้อยลง แต่อาจจำไม่ได้บ้าง) ค่าเริ่มต้น 0.55</small>
+        </details>
         <h3>เช็คชื่อแล้ววันนี้ (<span id="todayCount">0</span>)</h3>
         <ul class="recent" id="recent"></ul>
       </div>
@@ -83,6 +91,9 @@
 </main>
 
 <script src="vendor/face-api.js"></script>
-<script src="attendance.js?v=7"></script>
+<script src="lensiq-track.js?v=1"></script>
+<script src="lensiq-camera.js?v=1"></script>
+<script src="lensiq-detect.js?v=1"></script>
+<script src="attendance.js?v=8"></script>
 </body>
 </html>

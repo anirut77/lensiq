@@ -9,6 +9,7 @@
 (function (root) {
   "use strict";
   var KB = root.FR_KB || (typeof require === "function" ? require("./faceread-kb.js") : null);
+  var LQT = root.LQTrack || (typeof require === "function" ? require("./lensiq-track.js") : null);
 
   /* ================= เรขาคณิตพื้นฐาน ================= */
   var dist = function (a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); };
@@ -502,12 +503,15 @@
 
   /** ตรวจคุณภาพภาพก่อนอ่าน: light = { mean, lr } จาก lightStats */
   var Q = { minFacePx: 110, minFaceFrac: 0.16, yaw: 0.14, roll: 9, lumaLo: 65, lumaHi: 215, lr: 38 };
-  function quality(det, frameW, frameH, light) {
+  /** n = จำนวนใบหน้าที่พบในภาพ (ไม่ส่ง = ไม่ตรวจ) — อ่านได้ทีละคนเท่านั้น */
+  function quality(det, frameW, frameH, light, n) {
     var items = [];
     if (!det) return [{ id: "face", ok: false, label: "พบใบหน้า", tip: "ให้ใบหน้าอยู่ในกรอบวงรี" }];
     items.push({ id: "face", ok: true, label: "พบใบหน้า" });
+    if (n != null) items.push({ id: "single", ok: n === 1, label: "มีใบหน้าเดียวในกรอบ", tip: "พบ " + n + " ใบหน้า ให้อยู่คนเดียวในกรอบ" });
     var w = det.box.width, frac = w / Math.min(frameW, frameH);
     items.push({ id: "size", ok: w >= Q.minFacePx && frac >= Q.minFaceFrac, label: "ใบหน้าใหญ่พอ", tip: "ขยับเข้าใกล้กล้องอีกนิด" });
+    if (!det.pts) return items;
     var pose = headPose(det.pts);
     items.push({ id: "yaw", ok: Math.abs(pose.yaw) <= Q.yaw, label: "หันหน้าตรง", tip: "มองตรงเข้ากล้อง ไม่หันซ้าย–ขวา" });
     items.push({ id: "roll", ok: Math.abs(pose.roll) <= Q.roll, label: "ศีรษะไม่เอียง", tip: "ตั้งศีรษะให้ตรง" });
@@ -515,6 +519,47 @@
       tip: light.mean < Q.lumaLo ? "เพิ่มแสงด้านหน้า" : light.mean > Q.lumaHi ? "แสงจ้าเกินไป" : "แสงด้านข้างไม่เท่ากัน หันเข้าหาแสง" });
     return items;
   }
+  /* ================= หลายใบหน้าในภาพ: เลือกคนเดียว และล็อกไว้ระหว่างเก็บเฟรม ================= */
+  /** เลือกใบหน้าหลักจาก list = [{box:{x,y,width,height}, score, pts}] (พิกัดพิกเซล)
+      prevBox (ปกติ 0..1) ที่ IoU ≥ 0.3 = คนเดิม, ไม่เช่นนั้น = ใบหน้าใหญ่สุด → {index, n, continuity, boxN} */
+  function pickFace(list, prevBox, W, H, opts) {
+    list = list || [];
+    var boxes = list.map(function (d) { return LQT.toNorm(d.box, W, H); });
+    var o = Object.assign({ minIou: 0.3, prefer: "largest" }, opts || {});
+    var p = LQT.pickPrimary(boxes, prevBox || null, o);
+    return { index: p.index, n: p.n, continuity: p.continuity, boxN: p.index >= 0 ? boxes[p.index] : null };
+  }
+  /** ตัวเก็บเฟรมตอนอ่าน: ล็อกกรอบจากเฟรมดีเฟรมแรก แล้วรับเฉพาะเฟรมที่ใบหน้ามี IoU ≥ minIou กับกรอบนั้น
+      จึงไม่เฉลี่ยจุดของสองคนเข้าด้วยกัน. accept(det) = เกณฑ์เฟรมดี (เช่น ท่าศีรษะ) */
+  function createCapture(opts) {
+    var o = Object.assign({ minIou: 0.3, accept: null }, opts || {});
+    var st = { frames: [], dets: [], lockBox: null, skipped: 0 };
+    st.push = function (list, W, H) {
+      var p = pickFace(list, st.lockBox, W, H, { minIou: o.minIou, lockOnly: !!st.lockBox });
+      if (p.index < 0) { if (list && list.length) st.skipped++; return null; }
+      var d = list[p.index];
+      if (!d.pts || (o.accept && !o.accept(d))) return null;
+      if (!st.lockBox) st.lockBox = p.boxN;
+      st.frames.push(d.pts); st.dets.push(d);
+      return d;
+    };
+    st.average = function () { return averageLandmarks(st.frames); };
+    return st;
+  }
+  /** ใบหน้าตรงสมมาตร 68 จุดในกรอบ box (px) — ใช้กับตัวตรวจจับจำลองในการทดสอบเท่านั้น */
+  function synthFace(box) {
+    var ring = function (cx, cy, rx, ry, k, a0) { return range(0, k - 1).map(function (i) { var t = a0 + i * 2 * Math.PI / k; return [cx - rx * Math.cos(t), cy - ry * Math.sin(t)]; }); };
+    var u = [];
+    for (var i = 0; i <= 16; i++) u.push([0.5 - 0.46 * Math.cos(Math.PI * i / 16), 0.35 + 0.6 * Math.sin(Math.PI * i / 16)]);
+    for (i = 0; i < 5; i++) u.push([0.15 + i * 0.0675, 0.28]);
+    for (i = 0; i < 5; i++) u.push([0.58 + i * 0.0675, 0.28]);
+    for (i = 0; i < 4; i++) u.push([0.5, 0.38 + i * 0.075]);
+    for (i = 0; i < 5; i++) u.push([0.42 + i * 0.04, 0.65]);
+    u = u.concat(ring(0.32, 0.4, 0.07, 0.025, 6, 0), ring(0.68, 0.4, 0.07, 0.025, 6, 0), ring(0.5, 0.8, 0.15, 0.05, 12, 0), ring(0.5, 0.8, 0.1, 0.015, 8, 0));
+    var w = box.width != null ? box.width : box.w, h = box.height != null ? box.height : box.h;
+    return u.map(function (q) { return [box.x + q[0] * w, box.y + q[1] * h]; });
+  }
+
   /** ความสว่างเฉลี่ยในกรอบหน้า และผลต่างครึ่งซ้าย–ขวา */
   function lightStats(img, box) {
     var sL = 0, nL = 0, sR = 0, nR = 0, N = 20;
@@ -708,6 +753,7 @@
     dist: dist, angleAt: angleAt, frame: frame, toAligned: toAligned, toImage: toImage, align: align, headPose: headPose,
     averageLandmarks: averageLandmarks, estimateHairline: estimateHairline, measure: measure, classify: classify,
     elementScores: elementScores, buildReading: buildReading, ageArea: ageArea, quality: quality, lightStats: lightStats,
+    pickFace: pickFace, createCapture: createCapture, synthFace: synthFace,
     analyze: analyze, addStat: addStat, round: round, NORMS: NORMS, zOf: zOf,
     palaceScores: palaceScores, topPalaces: topPalaces, mountains: mountains, rivers: rivers, regions: regions, regionLight: regionLight, lightLabel: lightLabel, inPoly: inPoly,
     browType: browType, eyeType: eyeType, noseType: noseType, mouthType: mouthType, addLead: addLead, leadsToCsv: leadsToCsv, PALACES: PALACES, THRESH: T, HAIR: HAIR, QUALITY: Q, METRICS: METRICS, ELEMENTS: ELEMENTS
@@ -733,66 +779,27 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var video = $("#frVideo"), cam = $("#frCam"), ov = $("#frOverlay"), octx = ov.getContext("2d");
   var btnCam = $("#frStartCam"), btnRead = $("#frRead"), fileIn = $("#frFile"), qcList = $("#frQc"), countEl = $("#frCount");
   var resultSec = $("#frResult"), resCanvas = $("#frResCanvas");
-  var ready = false, busy = false, looping = false, lastDet = null, lastQ = null, current = null, forceRead = null;
+  var ready = false, busy = false, looping = false, lastDet = null, lastQ = null, lastN = 0, lockPrev = null, current = null, forceRead = null;
   var prefs = Object.assign({ stats: true, photoOnCard: false, reco: !!(KB.recommend && KB.recommend.enabled), leads: !!(KB.leads && KB.leads.enabled) }, lsGet(PREF_KEY, {}));
 
   function engine(msg, cls) { var e = $("#frEngine"); e.textContent = msg; e.className = "fr-engine " + (cls || ""); }
 
-  /* ---------- กล้อง (รูปแบบเดียวกับ booth.js/neuro.js) ---------- */
-  function createCamera(video, o) {
-    o = o || {};
-    var c = { stream: null, facing: "user", deviceId: "", currentId: "", devices: [], mirror: true, active: false, paused: false };
-    video.muted = true; video.playsInline = true; video.autoplay = true;
-    video.setAttribute("playsinline", ""); video.setAttribute("muted", ""); video.setAttribute("autoplay", "");
-    c.stop = function () { if (c.stream) c.stream.getTracks().forEach(function (t) { t.stop(); }); c.stream = null; c.active = false; video.srcObject = null; };
-    c.start = async function () {
-      if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw Object.assign(new Error(HTTPS_MSG), { name: "Insecure" });
-      c.stop();
-      var base = { width: { ideal: 1280 }, height: { ideal: 720 } };
-      var want = c.deviceId ? Object.assign({}, base, { deviceId: { exact: c.deviceId } }) : Object.assign({}, base, { facingMode: { ideal: c.facing } });
-      var s;
-      try { s = await navigator.mediaDevices.getUserMedia({ video: want, audio: false }); }
-      catch (e) {
-        if (["OverconstrainedError", "NotFoundError", "NotReadableError"].indexOf(e.name) < 0 || !(c.deviceId || c.facing !== "user")) throw e;
-        c.deviceId = ""; s = await navigator.mediaDevices.getUserMedia({ video: base, audio: false });
-      }
-      c.stream = s; video.srcObject = s;
-      try { await video.play(); } catch (e) { console.warn("video.play", e); }
-      if (!video.videoWidth) await new Promise(function (r) { video.addEventListener("loadedmetadata", r, { once: true }); setTimeout(r, 3000); });
-      var tr = s.getVideoTracks()[0], st = (tr && tr.getSettings && tr.getSettings()) || {}, label = (tr && tr.label) || "";
-      try { c.devices = (await navigator.mediaDevices.enumerateDevices()).filter(function (d) { return d.kind === "videoinput" && d.deviceId; }); } catch (e) { c.devices = []; }
-      var fm = st.facingMode || (/back|rear|environment|หลัง/i.test(label) ? "environment" : /front|user|หน้า|facetime/i.test(label) ? "user" : c.deviceId ? "user" : c.facing);
-      c.facing = fm === "environment" ? "environment" : "user";
-      c.mirror = c.facing === "user"; // กลับด้านเฉพาะกล้องหน้า
-      c.currentId = st.deviceId || "";
-      c.active = true;
-      if (c.renderControls) c.renderControls();
-      if (o.onChange) o.onChange(c);
-      return c;
+  /* ---------- กล้อง (LQCam.create จาก lensiq-camera.js: สำรองข้อจำกัดเป็นขั้น, จำกล้องที่เลือก, พักเมื่อซ่อนหน้า) ---------- */
+  /** ปุ่มสลับกล้อง + ตัวเลือกกล้อง (แสดงเมื่อมีกล้อง ≥ 2 ตัว) วางทับมุมขวาบนของกรอบกล้อง */
+  function mountCamCtl(host, c, onError) {
+    var box = document.createElement("div"); box.className = "cam-ctl"; box.hidden = true;
+    box.innerHTML = '<button type="button" class="cam-flip" aria-label="สลับกล้องหน้า/หลัง" title="สลับกล้องหน้า/หลัง"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h11l-3-3M20 16H9l3 3"/></svg><span>สลับกล้อง</span></button><select class="cam-pick" aria-label="เลือกกล้อง"></select>';
+    host.append(box);
+    var flip = box.querySelector(".cam-flip"), pickEl = box.querySelector(".cam-pick");
+    var run = function (p) { box.classList.add("busy"); p.catch(function (e) { if (e && e.name !== "AbortError" && onError) onError(e); }).finally(function () { box.classList.remove("busy"); }); };
+    flip.onclick = function () { run(c.flip()); };
+    pickEl.onchange = function () { run(c.start(pickEl.value)); };
+    return function render() {
+      var devs = c.devices.filter(function (d) { return d.deviceId; });
+      box.hidden = devs.length < 2;
+      pickEl.innerHTML = devs.map(function (d, i) { return '<option value="' + esc(d.deviceId) + '">' + esc(d.label || "กล้อง " + (i + 1)) + "</option>"; }).join("");
+      if (c.deviceId) pickEl.value = c.deviceId;
     };
-    c.flip = function () { c.facing = c.facing === "user" ? "environment" : "user"; c.deviceId = ""; return c.start(); };
-    c.use = function (id) { c.deviceId = id; return c.start(); };
-    c.mountControls = function (host) {
-      var box = document.createElement("div"); box.className = "cam-ctl"; box.hidden = true;
-      box.innerHTML = '<button type="button" class="cam-flip" aria-label="สลับกล้องหน้า/หลัง" title="สลับกล้องหน้า/หลัง"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h11l-3-3M20 16H9l3 3"/></svg><span>สลับกล้อง</span></button><select class="cam-pick" aria-label="เลือกกล้อง"></select>';
-      host.append(box);
-      var flip = box.querySelector(".cam-flip"), pickEl = box.querySelector(".cam-pick");
-      var run = function (p) { box.classList.add("busy"); p.catch(function (e) { if (o.onError) o.onError(e); }).finally(function () { box.classList.remove("busy"); }); };
-      flip.onclick = function () { run(c.flip()); };
-      pickEl.onchange = function () { run(c.use(pickEl.value)); };
-      c.renderControls = function () {
-        box.hidden = c.devices.length < 2;
-        pickEl.innerHTML = c.devices.map(function (d, i) { return '<option value="' + esc(d.deviceId) + '">' + esc(d.label || "กล้อง " + (i + 1)) + "</option>"; }).join("");
-        if (c.currentId) pickEl.value = c.currentId;
-      };
-    };
-    document.addEventListener("visibilitychange", function () {
-      if (document.hidden) { if (c.stream) { c.paused = true; c.stop(); if (o.onChange) o.onChange(c); } }
-      else if (c.paused) { c.paused = false; c.start().catch(function (e) { if (o.onError) o.onError(e); }); }
-    });
-    window.addEventListener("pagehide", function () { if (c.stream) { c.paused = true; c.stop(); } });
-    window.addEventListener("pageshow", function (e) { if (e.persisted && c.paused) { c.paused = false; c.start().catch(function (err) { if (o.onError) o.onError(err); }); } });
-    return c;
   }
   function showHttpsNote(before) {
     if (window.isSecureContext || document.querySelector(".https-note")) return;
@@ -804,33 +811,33 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     console.error(e);
     if (e.name === "Insecure") showHttpsNote($("#frEngine"));
     var m = { Insecure: HTTPS_MSG, NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง — ใช้ปุ่ม อัปโหลดรูป แทนได้", NotFoundError: "ไม่พบกล้อง — ใช้ปุ่ม อัปโหลดรูป แทนได้", NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่" }[e.name];
-    engine(m || "เปิดกล้องไม่ได้: " + (e.message || e.name), "err");
+    engine(m || (LQCam.errorText ? LQCam.errorText(e) : "เปิดกล้องไม่ได้: " + (e.message || e.name)), "err");
   };
   function layoutCam() {
     var vw = video.videoWidth, vh = video.videoHeight; if (!vw) return;
     if (ov.width !== vw || ov.height !== vh) { ov.width = vw; ov.height = vh; }
     cam.style.aspectRatio = vw + " / " + vh;
   }
-  var camera = createCamera(video, {
-    onChange: function (c) { cam.classList.toggle("mirror", c.mirror); cam.classList.toggle("live", c.active); layoutCam(); if (c.active) startLoop(); },
-    onError: camErr
+  var renderCamCtl = function () {};
+  var camera = LQCam.create(video, {
+    facing: "user", ideal: { width: 1280, height: 720 },
+    onChange: function (c, ev) {
+      if (ev.type === "devices") { renderCamCtl(); return; }
+      cam.classList.toggle("mirror", c.mirrored); cam.classList.toggle("live", c.active); layoutCam();
+      if (ev.type === "started" && c.active) { lockPrev = null; startLoop(); }
+      if (ev.type === "ended") engine("สัญญาณกล้องหลุด — กดเปิดกล้องอีกครั้ง", "err");
+    },
+    onError: function (c, e) { if (e && e.name !== "AbortError") camErr(e); }
   });
-  camera.mountControls(cam);
+  renderCamCtl = mountCamCtl(cam, camera, camErr);
   video.addEventListener("resize", layoutCam);
 
-  /* ---------- โมเดล ---------- */
-  async function initBackend() {
-    var tf = faceapi.tf;
-    tf.setWasmPaths("vendor/");
-    var names = ["webgl", "wasm", "cpu"];
-    for (var i = 0; i < names.length; i++) {
-      try { if (await tf.setBackend(names[i])) { await tf.ready(); return names[i]; } } catch (e) { console.warn(names[i], e); }
-    }
-    throw new Error("no backend");
-  }
+  /* ---------- โมเดล (WebGL → WASM → CPU; ?cpu ข้าม WebGL) ---------- */
+  var FAKE = !!(window.LQDetect && LQDetect.isTest()); // ?fakedet บน localhost: ตัวตรวจจับจำลองสำหรับทดสอบ ไม่โหลดโมเดล
   var modelsP = null;
   function loadModels() {
-    if (!modelsP) modelsP = initBackend().then(function (b) {
+    if (FAKE) { ready = true; engine("พร้อมใช้งาน (ตัวตรวจจับจำลองสำหรับทดสอบ)", "ok"); return Promise.resolve("fake"); }
+    if (!modelsP) modelsP = LQDetect.tfBackend().then(function (b) {
       return Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri("vendor/models/"), faceapi.nets.faceLandmark68Net.loadFromUri("vendor/models/")]).then(function () { return b; });
     }).then(function (b) {
       ready = true;
@@ -839,11 +846,22 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     }).catch(function (e) { console.error(e); engine("โหลดโมเดลไม่สำเร็จ: " + (e.message || e), "err"); modelsP = null; throw e; });
     return modelsP;
   }
-  async function detect(input, size) {
-    var r = await faceapi.detectSingleFace(input, new faceapi.TinyFaceDetectorOptions({ inputSize: size || 320, scoreThreshold: 0.45 })).withFaceLandmarks();
-    if (!r) return null;
-    var b = r.detection.box;
-    return { box: { x: b.x, y: b.y, width: b.width, height: b.height }, score: r.detection.score, pts: r.landmarks.positions.map(function (p) { return [p.x, p.y]; }) };
+  /** ทุกใบหน้าในภาพ → [{box:{x,y,width,height}, score, pts}] (พิกัดพิกเซลของ input) */
+  async function detectAll(input, size) {
+    var W = input.videoWidth || input.width, H = input.videoHeight || input.height;
+    if (FAKE) {
+      var fk = LQDetect.fake(camera.deviceId || "c1", performance.now()) || [];
+      return fk.map(function (d) {
+        var box = { x: d.x * W, y: d.y * H, width: d.w * W, height: d.h * H };
+        if (input !== video && camera.mirrored) box.x = W - box.x - box.width; // เฟรมที่ถ่ายถูกกลับด้านแล้ว
+        return { box: box, score: d.score, pts: FR.synthFace(box) };
+      });
+    }
+    var rs = await faceapi.detectAllFaces(input, new faceapi.TinyFaceDetectorOptions({ inputSize: size || 320, scoreThreshold: 0.45 })).withFaceLandmarks();
+    return rs.map(function (r) {
+      var b = r.detection.box;
+      return { box: { x: b.x, y: b.y, width: b.width, height: b.height }, score: r.detection.score, pts: r.landmarks.positions.map(function (p) { return [p.x, p.y]; }) };
+    });
   }
 
   /* ---------- ตรวจคุณภาพสด + วงรีนำทาง ---------- */
@@ -861,7 +879,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     }).join("");
   }
   function qOk(items) { return items.length > 1 && items.every(function (q) { return q.ok || q.id === "light"; }); }
-  function drawGuide(det, ok) {
+  function drawGuide(det, ok, others) {
     var w = ov.width, h = ov.height; octx.clearRect(0, 0, w, h);
     var rx = Math.min(w, h) * 0.24, ry = rx * 1.3;
     octx.lineWidth = Math.max(3, w / 220); octx.setLineDash([w / 60, w / 90]);
@@ -871,17 +889,24 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       octx.fillStyle = ok ? "rgba(34,211,238,.9)" : "rgba(255,255,255,.7)";
       det.pts.forEach(function (p) { octx.beginPath(); octx.arc(p[0], p[1], Math.max(1.5, w / 500), 0, Math.PI * 2); octx.fill(); });
     }
+    (others || []).forEach(function (o) { // ใบหน้าอื่น: หรี่ลง ไม่ใช้ในการอ่าน
+      var b = o.box;
+      octx.fillStyle = "rgba(14,20,48,.55)"; octx.fillRect(b.x, b.y, b.width, b.height);
+      octx.strokeStyle = "rgba(255,255,255,.35)"; octx.lineWidth = Math.max(2, w / 400); octx.strokeRect(b.x, b.y, b.width, b.height);
+    });
   }
   async function startLoop() {
     if (looping) return; looping = true;
     while (camera.active && looping) {
       if (!busy && ready && video.videoWidth) {
         try {
-          var det = await detect(video, 224);
+          var list = await detectAll(video, 224), W = video.videoWidth, H = video.videoHeight;
+          var pk = FR.pickFace(list, lockPrev, W, H), det = pk.index >= 0 ? list[pk.index] : null;
+          lockPrev = pk.boxN;
           var light = null;
           if (det) { grabFrame(probe, false); light = FR.lightStats(pctx.getImageData(0, 0, probe.width, probe.height), det.box); }
-          lastDet = det; lastQ = FR.quality(det, video.videoWidth, video.videoHeight, light);
-          if (!busy) { renderQc(lastQ); drawGuide(det, qOk(lastQ)); btnRead.disabled = !qOk(lastQ); }
+          lastDet = det; lastN = list.length; lastQ = FR.quality(det, W, H, light, list.length);
+          if (!busy) { renderQc(lastQ); drawGuide(det, qOk(lastQ), list.filter(function (d) { return d !== det; })); btnRead.disabled = !qOk(lastQ); }
         } catch (e) { console.warn(e); }
       }
       await sleep(250);
@@ -907,15 +932,17 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     try {
       for (var n = 3; n >= 1; n--) { countEl.textContent = n; countEl.hidden = false; await sleep(800); }
       countEl.textContent = "กำลังอ่าน..."; countEl.classList.add("small");
-      var frames = [], snaps = [];
+      // ล็อกคนแรกที่ผ่านเกณฑ์ แล้วเก็บเฉพาะเฟรมของคนนั้น (ไม่เฉลี่ยจุดของสองคนเข้าด้วยกัน)
+      var capt = FR.createCapture({ minIou: 0.3, accept: function (d) { var pose = FR.headPose(d.pts); return Math.abs(pose.yaw) <= FR.QUALITY.yaw * 1.3 && Math.abs(pose.roll) <= FR.QUALITY.roll * 1.3; } });
+      var frames = capt.frames, snaps = [];
       for (var i = 0; i < FRAMES + 4 && frames.length < FRAMES; i++) {
-        var cv = document.createElement("canvas"); grabFrame(cv, camera.mirror);
-        var d = await detect(cv, 320);
-        if (d) { var pose = FR.headPose(d.pts); if (Math.abs(pose.yaw) <= FR.QUALITY.yaw * 1.3 && Math.abs(pose.roll) <= FR.QUALITY.roll * 1.3) { frames.push(d.pts); snaps.push({ cv: cv, d: d }); } }
+        var cv = document.createElement("canvas"); grabFrame(cv, camera.mirrored);
+        var d = capt.push(await detectAll(cv, 320), cv.width, cv.height);
+        if (d) snaps.push({ cv: cv, d: d });
         countEl.textContent = "กำลังอ่าน " + Math.round(frames.length / FRAMES * 100) + "%";
       }
-      if (frames.length < 4) { engine("ยังจับใบหน้าได้ไม่นิ่งพอ ลองมองตรงและอยู่นิ่ง ๆ อีกครั้ง", "err"); return; }
-      var avg = FR.averageLandmarks(frames);
+      if (frames.length < 4) { engine(capt.skipped ? "มีใบหน้าอื่นเข้ามาในกรอบ ให้อยู่คนเดียวแล้วลองอีกครั้ง" : "ยังจับใบหน้าได้ไม่นิ่งพอ ลองมองตรงและอยู่นิ่ง ๆ อีกครั้ง", "err"); return; }
+      var avg = capt.average();
       var snap = snaps[Math.floor(snaps.length / 2)];
       showResult(snap.cv, avg, snap.d.box);
     } catch (e) { console.error(e); engine("อ่านไม่สำเร็จ: " + (e.message || e), "err"); }
@@ -936,9 +963,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var cv = document.createElement("canvas"); cv.width = Math.round(img.naturalWidth * sc); cv.height = Math.round(img.naturalHeight * sc);
       cv.getContext("2d", { willReadFrequently: true }).drawImage(img, 0, 0, cv.width, cv.height);
       URL.revokeObjectURL(url);
-      var d = await detect(cv, 512) || await detect(cv, 320);
+      var list = await detectAll(cv, 512); if (!list.length) list = await detectAll(cv, 320);
+      var pk = FR.pickFace(list, null, cv.width, cv.height), d = pk.index >= 0 ? list[pk.index] : null;
       var light = d ? FR.lightStats(cv.getContext("2d").getImageData(0, 0, cv.width, cv.height), d.box) : null;
-      var q = FR.quality(d, cv.width, cv.height, light);
+      var q = FR.quality(d, cv.width, cv.height, light, list.length);
       renderQc(q);
       if (!d) { engine("ไม่พบใบหน้าในรูปนี้ ลองใช้รูปหน้าตรงที่เห็นใบหน้าชัด", "err"); return; }
       if (!qOk(q)) {

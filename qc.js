@@ -457,7 +457,7 @@ if (typeof document !== "undefined") (() => {
   const frame = $("#frame"), fctx = frame.getContext("2d", { willReadFrequently: true });
   const overlay = $("#overlay"), octx = overlay.getContext("2d");
   const video = $("#video");
-  let W = 640, H = 480, cur = null, prev = null, bg = null, source = "sim", running = false, stream = null;
+  let W = 640, H = 480, cur = null, prev = null, bg = null, source = "sim", running = false;
   let simBuf = [], simT0 = performance.now(), simInfo = null, stillImg = null;
   let pst = QC.presenceInit(), last = null, lastAt = 0, trigObs = null, activeRoi = "fill", drag = null, fpsT = [];
 
@@ -474,50 +474,64 @@ if (typeof document !== "undefined") (() => {
   }
 
   // ---------- แหล่งภาพ ----------
-  function stopStream() { if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } video.pause(); video.removeAttribute("src"); video.srcObject = null; }
+  /* กล้องผ่านโมดูลกลาง LQCam: ลำดับสำรองเมื่อกล้องที่จำไว้ไม่พร้อม (Overconstrained) จำกล้องที่เลือกไว้ใน 'qc-cam'
+     และหยุด/เปิดกล้องเองเมื่อสลับแอป ล็อกจอ หรือออกจากหน้า (visibilitychange/pagehide/pageshow) */
+  const cam = LQCam.create(video, {
+    facing: "environment", ideal: { width: 1280, height: 720 }, persistKey: "qc-cam", autoPause: true,
+    onChange(c, ev) {
+      if (ev.type === "devices") fillCamSel();
+      else if (ev.type === "resumed" && source === "camera") camReady();
+      else if (ev.type === "ended" && source === "camera") { engine("สัญญาณกล้องหลุด (ถอดสายหรือกล้องถูกปิด)", "err"); retryBtn(() => startCamera()); }
+    },
+    onError(c, e) { if (source === "camera" && e.name !== "AbortError") camFail(e); }
+  });
+  function stopStream() { cam.stop(); video.pause(); video.removeAttribute("src"); video.srcObject = null; }
   function showSourceUi() {
     document.querySelectorAll("[data-src]").forEach(el => { el.hidden = !el.dataset.src.split(" ").includes(source); });
   }
-  async function listCameras() {
-    const sel = $("#camSel"), keep = sel.value;
-    try {
-      const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "videoinput");
-      sel.innerHTML = devs.length ? devs.map((d, i) => `<option value="${esc(d.deviceId)}">${esc(d.label || "กล้อง " + (i + 1))}</option>`).join("") : `<option value="">ไม่พบกล้อง</option>`;
-      if (devs.some(d => d.deviceId === keep)) sel.value = keep;
-    } catch { sel.innerHTML = `<option value="">อ่านรายชื่อกล้องไม่ได้</option>`; }
+  function fillCamSel() {
+    const sel = $("#camSel"), keep = cam.deviceId || sel.value, devs = cam.devices.filter(d => d.deviceId);
+    sel.innerHTML = `<option value="">อัตโนมัติ (กล้องที่ใช้ล่าสุด)</option>` + devs.map((d, i) => `<option value="${esc(d.deviceId)}">${esc(d.label || "กล้อง " + (i + 1))}</option>`).join("");
+    sel.value = devs.some(d => d.deviceId === keep) ? keep : "";
   }
-  let facing = "environment", mirrorCam = false, resumeCam = false; // กล้องหลังเป็นค่าเริ่มต้น กลับด้านภาพเฉพาะกล้องหน้า
-  /* useDevice=false: ใช้ facingMode (ปุ่มสลับกล้องหน้า/หลัง) แทนกล้องที่เลือกในรายการ */
+  async function listCameras() {
+    try { await cam.refreshDevices(); fillCamSel(); }
+    catch { $("#camSel").innerHTML = `<option value="">อ่านรายชื่อกล้องไม่ได้</option>`; }
+  }
+  let mirrorCam = false; // กล้องหลังเป็นค่าเริ่มต้น กลับด้านภาพเฉพาะกล้องหน้า
+  function camReady() {
+    mirrorCam = cam.mirrored;
+    fillCamSel();
+    setSize(video.videoWidth || 640, video.videoHeight || 480);
+    engine(`กล้องพร้อม (${video.videoWidth}×${video.videoHeight}) — ประมวลผลภาพที่ความกว้าง ${W} พิกเซล`, "ok");
+  }
+  function camFail(e) {
+    const m = {
+      Insecure: "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด", NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง กรุณาอนุญาตในแถบที่อยู่ของเบราว์เซอร์",
+      NotFoundError: "ไม่พบกล้อง ตรวจสอบสาย USB ของกล้อง", OverconstrainedError: "กล้องที่เลือกไม่พร้อมใช้งาน ลองเลือกกล้องตัวอื่น",
+      NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่ ปิดโปรแกรมนั้นก่อน", AbortError: "เปิดกล้องไม่สำเร็จ (ถูกยกเลิก)"
+    }[e.name];
+    engine(`เปิดกล้องไม่ได้: ${m || "ข้อผิดพลาดไม่ทราบสาเหตุ"} (${e.name})`, "err");
+    retryBtn(() => startCamera());
+    if (e.name === "Insecure") { const a = document.createElement("a"); a.href = "cameras.html"; a.className = "btn ghost retry"; a.textContent = "วิธีเปิดผ่าน https"; $("#engine").append(" ", a); }
+  }
+  /* useDevice=false: สลับกล้องหน้า/หลัง (cam.flip) แทนกล้องที่เลือกในรายการ
+     ค่าว่างในรายการ = กล้องที่จำไว้ใน qc-cam ถ้ากล้องนั้นหายไป LQCam จะถอยไปใช้กล้องหลัง/กล้องใดก็ได้ */
   async function startCamera(useDevice = true) {
-    stopStream();
+    video.removeAttribute("src");
     engine("กำลังเปิดกล้อง...");
     try {
-      if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) throw Object.assign(new Error("insecure"), { name: "Insecure" });
-      const id = useDevice === true ? $("#camSel").value : "";
-      const base = { width: { ideal: 1280 }, height: { ideal: 720 } };
-      stream = await navigator.mediaDevices.getUserMedia({ video: id ? { ...base, deviceId: { exact: id } } : { ...base, facingMode: { ideal: facing } }, audio: false });
-      video.srcObject = stream; video.loop = false; await video.play();
-      if (!video.videoWidth) await new Promise(r => video.addEventListener("loadedmetadata", r, { once: true }));
-      await listCameras();
-      const tr = stream.getVideoTracks()[0], ts = tr?.getSettings() || {};
-      if (ts.deviceId && $("#camSel").value !== ts.deviceId) $("#camSel").value = ts.deviceId;
-      if (ts.facingMode) facing = ts.facingMode === "user" ? "user" : "environment";
-      mirrorCam = ts.facingMode === "user";
-      setSize(video.videoWidth || 640, video.videoHeight || 480);
-      engine(`กล้องพร้อม (${video.videoWidth}×${video.videoHeight}) — ประมวลผลภาพที่ความกว้าง ${W} พิกเซล`, "ok");
+      if (useDevice === true) await cam.start($("#camSel").value || undefined);
+      else await cam.flip();
+      if (source !== "camera") { cam.stop(); return; }
+      camReady();
     } catch (e) {
-      const m = {
-        Insecure: "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด", NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง กรุณาอนุญาตในแถบที่อยู่ของเบราว์เซอร์",
-        NotFoundError: "ไม่พบกล้อง ตรวจสอบสาย USB ของกล้อง", OverconstrainedError: "กล้องที่เลือกไม่พร้อมใช้งาน ลองเลือกกล้องตัวอื่น",
-        NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่ ปิดโปรแกรมนั้นก่อน", AbortError: "เปิดกล้องไม่สำเร็จ (ถูกยกเลิก)"
-      }[e.name];
-      engine(`เปิดกล้องไม่ได้: ${m || "ข้อผิดพลาดไม่ทราบสาเหตุ"} (${e.name})`, "err");
-      retryBtn(() => startCamera());
-      if (e.name === "Insecure") { const a = document.createElement("a"); a.href = "cameras.html"; a.className = "btn ghost retry"; a.textContent = "วิธีเปิดผ่าน https"; $("#engine").append(" ", a); }
+      if (e.name === "AbortError" && /superseded/.test(e.message)) return; // มีการเปิดกล้องครั้งใหม่ซ้อน
+      camFail(e);
     }
   }
   async function setSource(s) {
-    source = s; mirrorCam = false; resumeCam = false; showSourceUi(); stopStream(); stillImg = null; prev = null; cur = null; running = false; $("#toggle").textContent = "เริ่มตรวจต่อเนื่อง"; renderRecipe(); pst = QC.presenceInit();
+    source = s; mirrorCam = false; showSourceUi(); stopStream(); stillImg = null; prev = null; cur = null; running = false; $("#toggle").textContent = "เริ่มตรวจต่อเนื่อง"; renderRecipe(); pst = QC.presenceInit();
     if (s === "camera") { await listCameras(); startCamera(); }
     else if (s === "sim") { setSize(640, 480); simT0 = performance.now(); engine("ภาพจำลองสายการผลิต: สายพานเดิน-หยุด สุ่มขวดบกพร่องประมาณ 30% ใช้สูตร “ภาพจำลอง” แล้วกด “สอบเทียบภาพจำลองอัตโนมัติ”", "ok"); }
     else if (s === "video") engine("เลือกไฟล์วิดีโอของสายการผลิต (เล่นวนซ้ำ)");
@@ -525,15 +539,10 @@ if (typeof document !== "undefined") (() => {
   }
   $("#srcSel").onchange = e => setSource(e.target.value);
   $("#camSel").onchange = () => source === "camera" && startCamera();
-  $("#flipCam").onclick = () => { if (source !== "camera") return; facing = facing === "user" ? "environment" : "user"; startCamera(false); };
+  $("#flipCam").onclick = () => { if (source !== "camera") return; startCamera(false); };
   // หมุนจอมือถือ -> ขนาดภาพจากกล้องเปลี่ยน ปรับขนาดภาพประมวลผลตาม
   video.addEventListener("resize", () => { if (source === "camera" && video.videoWidth) setSize(video.videoWidth, video.videoHeight); });
-  // ปิดกล้องเมื่อสลับแอป/ล็อกจอ แล้วเปิดใหม่เมื่อกลับมา
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) { if (source === "camera" && stream) { resumeCam = true; stopStream(); } }
-    else if (resumeCam) { resumeCam = false; if (source === "camera") startCamera(); }
-  });
-  navigator.mediaDevices?.addEventListener?.("devicechange", listCameras);
+  // ปิด/เปิดกล้องเมื่อสลับแอป ล็อกจอ และรายการกล้องเมื่อเสียบ/ถอด USB: LQCam จัดการให้ (autoPause, devicechange)
   $("#videoFile").onchange = e => {
     const f = e.target.files[0]; if (!f) return;
     stopStream(); video.src = URL.createObjectURL(f); video.loop = true; video.muted = true;

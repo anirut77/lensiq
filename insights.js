@@ -18,10 +18,15 @@ const iqMean = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : null;
 const iqSum = a => a.reduce((s, x) => s + x, 0);
 const iqParse = (raw, d = null) => { if (raw == null) return d; try { const v = JSON.parse(raw); return v ?? d; } catch { return d; } };
 
-/** คีย์ localStorage ที่เป็นข้อมูลของระบบในชุดเดโมนี้ */
+/** คีย์ localStorage ที่เป็นข้อมูลของระบบในชุดเดโมนี้
+   st- ครอบคลุม st-cams / st-cam-<slot> / st-heat-<slot> แล้ว ; สถิติดูดวงเป็นตัวเลขนับแบบไม่ระบุตัวตนจึงระบุชื่อคีย์ตรง ๆ
+   ห้ามเพิ่ม fr-leads (ชื่อเล่น+ช่องทางติดต่อ = ข้อมูลส่วนบุคคล), fr-prefs หรือ lq-camcap */
+const IQ_FORTUNE_KEYS = ["fr-stats", "palm-stats", "fs-stats"];
 function iqIsModuleKey(k) {
-  return k === "booth-state" || k === "nm-sessions" || /^(cx|st|sg|co|att|qc|dr|iq)-/.test(k);
+  return k === "booth-state" || k === "nm-sessions" || IQ_FORTUNE_KEYS.includes(k) || /^(cx|st|sg|co|att|qc|dr|iq)-/.test(k);
 }
+const IQ_EL = { wood: "ไม้", fire: "ไฟ", earth: "ดิน", metal: "ทอง", water: "น้ำ" };
+const IQ_PALM = { earth: "มือธาตุดิน", air: "มือธาตุลม", fire: "มือธาตุไฟ", water: "มือธาตุน้ำ" };
 
 /* ---------- แปลงข้อมูลดิบของแต่ละระบบให้อยู่ในรูปเดียวกัน ----------
    snap = { key: rawString } (สำเนาของ localStorage) */
@@ -65,9 +70,18 @@ function iqCollect(snap) {
   }
 
   // วิเคราะห์หน้าร้าน (store.js: st-day-YYYY-MM-DD)
+  // หลายกล้อง (zv 2): byCam = {slot: {name, in, out}} ไม่บังคับ ; โซนคีย์ "<slot>:<id>" ชื่อแสดงเติมชื่อกล้องนำหน้า
   const days = Object.keys(snap).filter(k => /^st-day-\d{4}-\d{2}-\d{2}$/.test(k)).sort().map(k => {
     const d = get(k, {}) || {};
-    return { day: k.slice(7), in: d.in || 0, out: d.out || 0, peak: d.peak || 0, maxQueue: d.maxQueue || 0, hourlyIn: (d.hourly && d.hourly.in) || [], zones: d.zones || {}, demo: !!d.iqDemo };
+    const byCam = {};
+    if (d.byCam && typeof d.byCam === "object") for (const [s, b] of Object.entries(d.byCam)) if (b && typeof b === "object") byCam[s] = { name: String(b.name || s), in: +b.in || 0, out: +b.out || 0 };
+    const zones = {};
+    for (const [id, z] of Object.entries(d.zones && typeof d.zones === "object" ? d.zones : {})) {
+      if (!z || typeof z !== "object") continue;
+      const i = id.indexOf(":"), cam = i > 0 ? byCam[id.slice(0, i)] : null;
+      zones[id] = { ...z, name: i > 0 && cam && Object.keys(byCam).length > 1 ? `${cam.name} · ${z.name}` : z.name };
+    }
+    return { day: k.slice(7), in: d.in || 0, out: d.out || 0, peak: d.peak || 0, maxQueue: d.maxQueue || 0, hourlyIn: (d.hourly && d.hourly.in) || [], zones, byCam, demo: !!d.iqDemo };
   });
   if (days.length) D.store = days;
 
@@ -98,6 +112,21 @@ function iqCollect(snap) {
     trips: tr.map(t => ({ t: t.start, safety: t.safety, total: t.total || 0, durationMs: t.durationMs || 0, counts: t.counts || {} })),
     events: (Array.isArray(ev) ? ev : []).map(e => ({ t: e.t, type: e.type, level: e.level }))
   };
+
+  // ดูดวง (faceread.js: fr-stats, palm.js: palm-stats, fengshui.js: fs-stats) — นับครั้งต่อวัน ไม่ระบุตัวตน
+  const fortune = (k, catKey) => {
+    const v = get(k, null);
+    if (!v || typeof v !== "object" || !(v.total > 0)) return null;
+    const days = {};
+    for (const [d, n] of Object.entries(v.days || {})) if (/^\d{4}-\d{2}-\d{2}$/.test(d) && n > 0) days[d] = +n;
+    const cats = {};
+    for (const [c, n] of Object.entries(v[catKey] || {})) if (n > 0) cats[c] = +n;
+    return { total: +v.total, days, [catKey]: cats };
+  };
+  const fr = fortune("fr-stats", "el"), palm = fortune("palm-stats", "types"), fs = fortune("fs-stats", "kua");
+  if (fr) D.fr = fr;
+  if (palm) D.palm = palm;
+  if (fs) D.fs = fs;
   return D;
 }
 
@@ -113,6 +142,7 @@ function iqEarliest(D) {
   const keys = ts.filter(Number.isFinite).map(t => iqDay(t));
   if (D.store) D.store.forEach(d => keys.push(d.day));
   if (D.att) D.att.forEach(l => l.day && keys.push(l.day));
+  ["fr", "palm", "fs"].forEach(m => { if (D[m]) keys.push(...Object.keys(D[m].days)); });
   return keys.length ? keys.sort()[0] : null;
 }
 
@@ -139,7 +169,9 @@ function iqMetrics(D, r) {
   }
   if (D.store) {
     const S = D.store.filter(d => iqIn(d.day, r));
-    M.store = { in: iqSum(S.map(d => d.in)), peak: S.length ? Math.max(...S.map(d => d.peak)) : 0, maxQueue: S.length ? Math.max(...S.map(d => d.maxQueue)) : 0, days: S.filter(d => d.in > 0).length };
+    const byCam = {};
+    S.forEach(d => Object.entries(d.byCam || {}).forEach(([s, b]) => { const c = byCam[s] || (byCam[s] = { name: b.name, in: 0, out: 0 }); c.name = b.name; c.in += b.in; c.out += b.out; }));
+    M.store = { in: iqSum(S.map(d => d.in)), peak: S.length ? Math.max(...S.map(d => d.peak)) : 0, maxQueue: S.length ? Math.max(...S.map(d => d.maxQueue)) : 0, days: S.filter(d => d.in > 0).length, byCam };
   }
   if (D.sg) M.sg = { viewers: D.sg.totals.viewers || 0, ots: D.sg.totals.ots || 0, attn: D.sg.totals.attn || 0, since: D.sg.since };
   if (D.co) {
@@ -173,6 +205,11 @@ function iqMetrics(D, r) {
     E.forEach(e => { byType[e.type] = (byType[e.type] || 0) + 1; });
     M.dr = { trips: T.length, safety: iqMean(T.map(t => t.safety).filter(Number.isFinite)), events: E.length, byType, hours: iqSum(T.map(t => t.durationMs)) / 3600000 };
   }
+  ["fr", "palm", "fs"].forEach(m => {
+    if (!D[m]) return;
+    const days = Object.entries(D[m].days).filter(([d]) => iqIn(d, r));
+    M[m] = { count: iqSum(days.map(([, n]) => n)), total: D[m].total, days: days.length };
+  });
   return M;
 }
 
@@ -271,6 +308,14 @@ function iqModuleBars(D, r, id) {
   if (id === "att" && D.att) { const c = {}; D.att.filter(l => iqIn(l.day, r)).forEach(l => { const k = l.session + " · " + l.day; c[k] = (c[k] || 0) + 1; }); return iqTopBars(c); }
   if (id === "qc" && M.qc) return iqTopBars(M.qc.reasons, IQ_QC_REASONS);
   if (id === "dr" && M.dr) return iqTopBars(M.dr.byType, IQ_DR_TYPES);
+  if (id === "store" && M.store) {
+    const cams = Object.values(M.store.byCam);
+    if (cams.length > 1) return cams.filter(c => c.in || c.out).sort((a, b) => b.in - a.in).map(c => ({ label: c.name, value: c.in, sub: `ออก ${c.out}` }));
+    return [];
+  }
+  if (id === "fr" && D.fr) return iqTopBars(D.fr.el, IQ_EL);
+  if (id === "palm" && D.palm) return iqTopBars(D.palm.types, IQ_PALM);
+  if (id === "fs" && D.fs) { const L = {}; Object.keys(D.fs.kua).forEach(k => { L[k] = "เลขกัว " + k; }); return iqTopBars(D.fs.kua, L); }
   return [];
 }
 
@@ -404,17 +449,20 @@ function iqBuildDemo(snap, now = Date.now(), seed = 20261105) {
     if (day === today && tin === 0) continue;
     const tout = Math.min(tin, iqSum(hout)), peak = Math.max(...hin.map(n => Math.ceil(n / 3)), 1), peakH = hin.indexOf(Math.max(...hin));
     const shelf = Math.round(tin * rnd(0.55, 0.75)), cash = Math.round(tin * rnd(0.3, 0.45));
+    // กล้อง 2 ตัว: ประตูหน้า (c1) + ประตูข้าง/แคชเชียร์ (c2) ; ยอดรวม = ผลรวมของสองกล้อง
+    const in1 = Math.round(tin * rnd(0.6, 0.75)), out1 = Math.min(in1, Math.round(tout * rnd(0.6, 0.75)));
     const D0 = { date: day, in: tin, out: tout, occ: 0, peak, peakAt: timeOn(day, peakH, ri(0, 59)), maxQueue: ri(2, 7), hourly: { in: hin, out: hout },
-      zones: { "iqdemo-z1": { name: `${IQ_DEMO_TAG} ชั้นวางน้ำดื่ม`, visits: shelf, dwellSum: shelf * ri(25, 60) * 1000, dwellN: shelf, peak: ri(3, 8) }, "iqdemo-z2": { name: `${IQ_DEMO_TAG} แคชเชียร์`, visits: cash, dwellSum: cash * ri(40, 90) * 1000, dwellN: cash, peak: ri(2, 6) } }, iqDemo: true };
+      zones: { "c1:iqdemo-z1": { name: `${IQ_DEMO_TAG} ชั้นวางน้ำดื่ม`, visits: shelf, dwellSum: shelf * ri(25, 60) * 1000, dwellN: shelf, peak: ri(3, 8) }, "c2:iqdemo-z2": { name: `${IQ_DEMO_TAG} แคชเชียร์`, visits: cash, dwellSum: cash * ri(40, 90) * 1000, dwellN: cash, peak: ri(2, 6) } },
+      byCam: { c1: { name: `${IQ_DEMO_TAG} ประตูหน้า`, in: in1, out: out1 }, c2: { name: `${IQ_DEMO_TAG} ประตูข้าง`, in: tin - in1, out: tout - out1 } }, zv: 2, iqDemo: true };
     putNew(key, D0, { in: tin, out: tout }); storeDays++;
   }
   if (storeDays) man.modules.push("store");
-  if (snap["st-heat"] == null) {
+  if (snap["st-heat-c1"] == null) {
     const W = 64, H = 48, heat = new Array(W * H).fill(0);
     [[0.3, 0.7, 60], [0.55, 0.5, 90], [0.8, 0.75, 45], [0.45, 0.85, 30]].forEach(([px, py, w]) => {
       for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const dx = x / W - px, dy = y / H - py; heat[y * W + x] += w * Math.exp(-(dx * dx + dy * dy) / 0.006); }
     });
-    putNew("st-heat", heat.map(v => Math.round(v * 10) / 10), { sum: Math.round(iqSum(heat.map(v => Math.round(v * 10) / 10))) });
+    putNew("st-heat-c1", heat.map(v => Math.round(v * 10) / 10), { sum: Math.round(iqSum(heat.map(v => Math.round(v * 10) / 10))) });
   }
 
   // --- ป้ายโฆษณา: สถิติสะสม 14 วัน (ข้ามถ้ามีสถิติจริงแล้ว)
@@ -517,6 +565,7 @@ function iqHasDemo(snap) {
 
 /* ลบข้อมูลตัวอย่าง: รายการในอาร์เรย์ลบตามเครื่องหมาย iqDemo ; คีย์ที่เป็นออบเจ็กต์เดียวลบ/คืนค่าเดิมเฉพาะเมื่อยังไม่ถูกแก้ไข
    คืน { set, remove, kept } */
+const IQ_HEAT_RE = /^st-heat(-c[1-4])?$/;
 function iqRemoveDemo(snap) {
   const man = iqParse(snap[IQ_DEMO_KEY], {}) || {}, created = new Set(man.created_keys || []), set = {}, remove = [], kept = [];
   const restore = k => { if (man.replaced && man.replaced[k] != null) set[k] = man.replaced[k]; else remove.push(k); };
@@ -532,14 +581,15 @@ function iqRemoveDemo(snap) {
     if (k === "sg-stats") return v.iqDemo && (!f || v.totals.ots === f.ots);
     if (k === "qc-shift") return v.iqDemo && (!f || v.total === f.total);
     if (k.startsWith("st-day-")) return v.iqDemo && (!f || (v.in === f.in && v.out === f.out));
-    if (k === "st-heat") return Array.isArray(v) && f && Math.abs(Math.round(iqSum(v)) - f.sum) <= 2;
+    if (IQ_HEAT_RE.test(k)) return Array.isArray(v) && f && Math.abs(Math.round(iqSum(v)) - f.sum) <= 2;
     return false;
   };
-  const singles = Object.keys(snap).filter(k => k === "booth-state" || k === "sg-stats" || k === "qc-shift" || k.startsWith("st-day-") || (k === "st-heat" && created.has(k)));
+  // ฮีตแมป: st-heat (รุ่นเก่า) และ st-heat-<slot> — ลบเฉพาะที่ตัวอย่างสร้างขึ้น
+  const singles = Object.keys(snap).filter(k => k === "booth-state" || k === "sg-stats" || k === "qc-shift" || k.startsWith("st-day-") || (IQ_HEAT_RE.test(k) && created.has(k)));
   singles.forEach(k => {
     const v = iqParse(snap[k], null);
     if (!v) return;
-    const isDemo = k === "st-heat" ? true : !!v.iqDemo;
+    const isDemo = IQ_HEAT_RE.test(k) ? true : !!v.iqDemo;
     if (!isDemo) return;
     if (unchanged(k, v)) restore(k);
     else kept.push(k);
@@ -565,7 +615,7 @@ function iqValidateBackup(obj) {
 
 if (typeof module !== "undefined" && module.exports) module.exports = {
   iqDay, iqAddDays, iqDayStart, iqIsModuleKey, iqCollect, iqRange, iqMetrics, iqKpis, iqSeries, iqTrimHours, iqBuckets, iqFunnel, iqModuleBars, iqCsv,
-  iqBuildDemo, iqHasDemo, iqRemoveDemo, iqBackup, iqValidateBackup, IQ_DEMO_KEY
+  iqBuildDemo, iqHasDemo, iqRemoveDemo, iqBackup, iqValidateBackup, IQ_DEMO_KEY, IQ_FORTUNE_KEYS
 };
 
 // ================= ส่วนหน้าจอ =================
@@ -590,6 +640,9 @@ if (typeof document !== "undefined") (() => {
     { id: "att", name: "เช็คชื่อด้วยใบหน้า", href: "attendance.html", what: "ลงชื่อเข้าอบรมด้วยการสแกนใบหน้า" },
     { id: "qc", name: "ตรวจคุณภาพขวดน้ำ", href: "qc.html", what: "ตรวจระดับน้ำ ฝา และฉลากบนสายการผลิต" },
     { id: "dr", name: "เฝ้าระวังความง่วงคนขับ", href: "driver.html", what: "ตรวจการหลับตา หาว และละสายตา" },
+    { id: "fr", name: "โหงวเฮ้ง (อ่านใบหน้า)", href: "faceread.html", what: "นับจำนวนครั้งที่ดูดวงและธาตุที่ได้ (ไม่เก็บภาพ/ข้อมูลติดต่อ)" },
+    { id: "palm", name: "ดูลายมือ", href: "palm.html", what: "นับจำนวนครั้งที่ดูลายมือและประเภทมือ" },
+    { id: "fs", name: "ฮวงจุ้ย", href: "fengshui.html", what: "นับจำนวนครั้งที่ดูทิศมงคลและเลขกัว" },
     { id: "photo", name: "ตู้ถ่ายรูป", href: "photobooth.html", what: "ตู้สติ๊กเกอร์และรูปติดบัตร" }
   ];
   const nf = n => Math.round(n).toLocaleString("th-TH");
@@ -843,7 +896,15 @@ if (typeof document !== "undefined") (() => {
       const st = (k, v) => { const d = el("div", {}, stats); el("dt", {}, d, k); el("dd", {}, d, v); };
       const body = el("div", {}, card);
       if (m.id === "booth") { const x = M.booth; st("ผู้เข้าชม", nf(x.visitors)); st("หยุดชม", nf(x.stopped)); st("ร่วมกิจกรรม", nf(x.participants)); el("p", { class: "cap" }, body, `งาน: ${D.booth.event.name || "–"}`); timeChart(body, "booth", "ผู้เข้าชมบูธ", "int"); }
-      if (m.id === "store") { const x = M.store; st("คนเข้าร้าน", nf(x.in)); st("สูงสุดในร้าน", nf(x.peak)); st("คิวสูงสุด", nf(x.maxQueue)); timeChart(body, "store", "คนเข้าร้าน", "int"); }
+      if (m.id === "store") {
+        const x = M.store; st("คนเข้าร้าน", nf(x.in)); st("สูงสุดในร้าน", nf(x.peak)); st("คิวสูงสุด", nf(x.maxQueue)); timeChart(body, "store", "คนเข้าร้าน", "int");
+        if (Object.keys(x.byCam).length > 1) { el("p", { class: "cap" }, body, "คนเข้าแยกตามกล้อง"); barChart(body, "store", "int", "คนเข้า"); }
+      }
+      if (m.id === "fr" || m.id === "palm" || m.id === "fs") {
+        const x = M[m.id]; st("ครั้งในช่วงนี้", nf(x.count)); st("รวมทั้งหมด", nf(x.total)); st("วันที่มีผู้ใช้", nf(x.days));
+        el("p", { class: "cap" }, body, { fr: "ธาตุที่ได้ (สะสมทั้งหมด)", palm: "ประเภทมือ (สะสมทั้งหมด)", fs: "เลขกัว (สะสมทั้งหมด)" }[m.id]);
+        barChart(body, m.id, "int", "ครั้ง");
+      }
       if (m.id === "sg") { const x = M.sg; st("ผ่านหน้าจอ", nf(x.ots)); st("มองจอ", nf(x.viewers)); st("อัตรามอง", x.ots ? Math.round(x.viewers / x.ots * 100) + "%" : "–"); el("p", { class: "cap" }, body, `ยอดสะสมตั้งแต่ ${fmtDate(x.since)} · ผู้ชมต่อโฆษณา`); barChart(body, "sg", "int", "ผู้ชม (มองจอ)"); }
       if (m.id === "co") { const x = M.co; st("ยอดขาย", baht(x.revenue)); st("ใบเสร็จ", nf(x.receipts)); st("เฉลี่ย/ใบ", x.receipts ? baht(x.revenue / x.receipts) : "–"); timeChart(body, "coRevenue", "ยอดขายสแกน (บาท)", "baht"); }
       if (m.id === "cx") { const x = M.cx; st("ลูกค้ามาซื้อ", nf(x.customers)); st("แก้ว", nf(x.cups)); st("ยอดขาย", baht(x.revenue)); timeChart(body, "cxRevenue", "ยอดขายลูกค้าที่จดจำ (บาท)", "baht"); }
