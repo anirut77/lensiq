@@ -88,6 +88,21 @@ canvas.heat{width:100%;height:auto;display:block;border-radius:10px;border:1px s
 .phone-tip summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--navy);font-weight:500}
 .phone-tip ul{padding:0 0 12px 18px;display:grid;gap:4px}
 .phone-tip a{color:var(--gold);text-decoration:underline}
+.agg .tools{margin:4px 0 12px}
+.agg-msg{margin:0 0 12px}.agg-msg[hidden],.agg [hidden]{display:none!important}
+.agg-code{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;background:var(--bg);border-radius:12px;padding:12px 14px;margin-bottom:6px}
+.agg-code .k{font-size:.78rem;color:var(--muted)}
+.agg-code .code{font-size:1.5rem;font-weight:600;letter-spacing:.08em;color:var(--navy);font-variant-numeric:tabular-nums;word-break:break-all}
+.agg-form{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;align-items:end;margin:0 0 12px}
+.agg-form label{display:grid;gap:4px;font-size:.84rem;min-width:0}
+.agg-form input{min-height:44px;min-width:0;width:100%}
+.agg-tiles{margin-top:12px}
+.agg td .st-on{color:#14653b}.agg td .st-off{color:#a12b20}.agg td .st-imp{color:var(--muted)}
+.agg tr.total td{font-weight:600;background:var(--alt)}
+.agg .rm{padding:3px 10px;font-size:.78rem;min-height:36px}
+.agg-manual p{margin:0 0 10px}
+.agg-manual .row-actions{padding-bottom:12px}
+#aggLink{word-break:break-all}
 @media(max-width:820px){.grid2{grid-template-columns:1fr}.zrow{grid-template-columns:1fr auto auto}.zrow .btn{grid-column:span 3;justify-self:start}}
 @media(max-width:640px){
   .cam-grid.multi{grid-template-columns:1fr}

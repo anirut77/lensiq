@@ -352,6 +352,7 @@ if (typeof document !== "undefined") (() => {
   let model = null, delegateUsed = "", running = false, wakeLock = null, fileCam = null, fileUrl = null;
   let lastDash = 0, lastSave = 0, tool = "none", sel = "c1";
   const detectErrors = {};
+  let agg = null; // เชื่อมหลายเครื่อง (ตั้งค่าด้านล่าง)
 
   const persistSettings = () => save("settings", G);
   const persistDay = () => save("day-" + day.date, day);
@@ -788,6 +789,7 @@ if (typeof document !== "undefined") (() => {
       (rows.length ? rows.map(({ c, z, id }) => { const zs = day.zones[id]; return `<tr><td>${many ? esc(c.name) + " · " : ""}${esc(z.name)}${id === G.queueZone ? " <span class=\"tag q\">คิว</span>" : ""}${id === G.cashierZone ? " <span class=\"tag c\">แคชเชียร์</span>" : ""}</td><td class="n">${zoneCount(id)}</td><td class="n">${zs?.visits || 0}</td><td class="n">${zs?.dwellN ? fmtDur(avgDwellSec(zs)) : "—"}</td></tr>`; }).join("")
         : `<tr><td colspan="4" class="empty">ยังไม่มีโซน</td></tr>`) + "</tbody>";
     drawHourly(); drawHeatPreview();
+    if (agg) agg.render();
   }
 
   function drawHourly() {
@@ -906,8 +908,8 @@ if (typeof document !== "undefined") (() => {
     download(new Blob([buildCsv(allDays(), G.cashierZone)], { type: "text/csv;charset=utf-8" }), `store-analytics-${day.date}.csv`);
   });
   $("#clearData").addEventListener("click", () => {
-    if (!confirm("ลบสถิติทุกวันและฮีตแมปทั้งหมด? (การตั้งค่ากล้อง เส้น และโซนยังอยู่)")) return;
-    Object.keys(localStorage).filter(k => k.startsWith(P + "day-") || k === P + "heat" || k.startsWith(P + "heat-")).forEach(k => localStorage.removeItem(k));
+    if (!confirm("ลบสถิติทุกวัน ฮีตแมป และยอดจากเครื่องอื่นที่เก็บไว้ทั้งหมด? (การตั้งค่ากล้อง เส้น โซน และการจับคู่ยังอยู่)")) return;
+    Object.keys(localStorage).filter(k => k.startsWith(P + "day-") || k.startsWith(P + "agg-") || k === P + "heat" || k.startsWith(P + "heat-")).forEach(k => localStorage.removeItem(k));
     day = newDay(); heats.forEach(h => h.data.fill(0)); pipes.forEach(p => { p.zoneLive = {}; });
     renderDash(); drawAll(); engine("ลบข้อมูลสถิติแล้ว", "ok");
   });
@@ -935,8 +937,258 @@ if (typeof document !== "undefined") (() => {
   window.addEventListener("beforeunload", () => { pipes.forEach(p => closeZones(p.zoneLive, day)); persistDay(); persistHeat(); });
   setInterval(() => { if (!running && dayKey() !== day.date) { day = newDay(); renderDash(); } }, 60000);
 
+  // ---- เชื่อมหลายเครื่อง ("1 เครื่องต่อ 1 จุด") — ส่ง/รับเฉพาะตัวเลขสรุปรายวัน (lensiq-agg.js) ----
+  // ค่าตั้ง (มี token/รหัสจับคู่) อยู่ใน lq-agg ไม่ใช่ st- จึงไม่ถูกรวมในไฟล์สำรองของหน้าแดชบอร์ดรวม
+  // ยอดจากเครื่องอื่นแคชไว้ที่ st-agg-YYYY-MM-DD (ตัวเลขล้วน) ให้หน้า insights อ่านได้
+  agg = (() => {
+    const A = window.LQAgg, CFG_KEY = "lq-agg", PUSH_MS = 15000, POLL_MS = 5000, ONLINE_MS = 60000;
+    const staticHost = /\.github\.io$/i.test(location.hostname) || location.protocol === "file:";
+    let cfg = {};
+    try { const v = JSON.parse(localStorage.getItem(CFG_KEY)); if (v && typeof v === "object") cfg = v; } catch { /* ignore */ }
+    cfg = Object.assign({ role: "", hub: "", name: "", code: "", node: "", token: "", pending: {}, lastOk: 0 }, cfg);
+    if (!cfg.pending || typeof cfg.pending !== "object") cfg.pending = {};
+    const saveCfg = () => { try { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); } catch { /* ignore */ } };
+    let server = null, pair = null, devices = [], skew = 0, backoff = 0, nextTry = 0, busy = false, pushT = 0, pollT = 0, offline = false;
+    const hubBase = () => { try { return new URL(cfg.hub || location.origin).origin; } catch { return location.origin; } };
+    const fmtCode = c => (A.normCode(c).match(/.{1,4}/g) || []).join("-");
+    function msg(t, cls = "") { const m = $("#aggMsg"); m.hidden = !t; m.textContent = t || ""; m.className = "engine agg-msg " + cls; }
+    async function api(path, { method = "GET", token = "", body, keepalive = false, base = location.origin } = {}) {
+      const headers = {};
+      if (token) headers.Authorization = "Bearer " + token;
+      if (body !== undefined) headers["Content-Type"] = "application/json";
+      const r = await fetch(base + path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body), keepalive, cache: "no-store", credentials: "omit" });
+      let j = null; try { j = await r.json(); } catch { /* not json */ }
+      return { ok: r.ok, status: r.status, j: j || {} };
+    }
+    async function probe(base) {
+      if (staticHost && base === location.origin) return false;
+      try { const r = await api("/api/agg/status", { base }); return r.ok && r.j.ok ? r.j : false; } catch { return false; }
+    }
+    function noServer() {
+      msg(staticHost
+        ? "หน้านี้เปิดจากเว็บสาธิต (GitHub Pages) ซึ่งไม่มีเซิร์ฟเวอร์กลาง การรวมยอดอัตโนมัติใช้ได้เมื่อเปิดหน้านี้จากคอมพิวเตอร์ในร้านที่รัน ./start.sh mobile (ดูวิธีในหน้า ระบบทั้งหมด) — ระหว่างนี้ใช้ \"ส่งต่อด้วยไฟล์\" ด้านล่าง"
+        : "ไม่พบเซิร์ฟเวอร์ LENSIQ ที่ที่อยู่นี้ (เช่น เปิดด้วยเว็บเซิร์ฟเวอร์ธรรมดา) ให้รัน ./start.sh mobile บนคอมพิวเตอร์เครื่องหลัก หรือใช้ \"ส่งต่อด้วยไฟล์\" ด้านล่าง", "warn");
+      $("#aggManual").open = true;
+    }
+    const cacheOf = date => load("agg-" + date, null);
+    const packsOf = date => A.cachePacks(cacheOf(date), date);
+
+    // ---------- เครื่องหลัก ----------
+    const ago = t => { const s = Math.max(0, Math.round((Date.now() + skew - t) / 1000)); return s < 60 ? "เมื่อสักครู่" : s < 3600 ? `${Math.floor(s / 60)} นาทีที่แล้ว` : fmtClock(t - skew); };
+    function render() {
+      if (cfg.role !== "hub") return;
+      const packs = packsOf(day.date), M = A.mergeDay(day, packs);
+      const tile = (k, v, s = "", cls = "") => `<div class="tile ${cls}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`;
+      const setHtml = (el, h) => { if (el._h !== h) { el._h = h; el.innerHTML = h; } }; // ไม่สร้างปุ่มใหม่ถ้าไม่มีอะไรเปลี่ยน
+      setHtml($("#aggTiles"), tile("เข้ารวม", M.in, `${M.rows.length} เครื่อง`, "in") + tile("ออกรวม", M.out, "คน", "out") +
+        tile("คนในร้านรวม", M.occ, "ประมาณ") + tile("สูงสุดรวม", M.peak, "ประมาณ") + tile("คิวสูงสุด", M.maxQueue, "คน"));
+      const st = r => r.local ? "" : r.src === "import" ? `<span class="st-imp">นำเข้าไฟล์</span>` : (Date.now() + skew - r.t) < ONLINE_MS ? `<span class="st-on">ออนไลน์</span>` : `<span class="st-off">ขาดการติดต่อ</span>`;
+      const rows = M.rows.map(r => `<tr><td>${esc(r.name)}${r.local ? " (เครื่องหลัก)" : ""}</td><td>${st(r)}</td><td class="n">${r.in}</td><td class="n">${r.out}</td><td class="n">${r.peak}</td><td>${r.local ? "ตอนนี้" : r.t ? esc(ago(r.t)) : "—"}</td><td>${r.local ? "" : `<button class="btn ghost small rm" type="button" data-rm="${esc(r.id)}" data-src="${esc(r.src)}" aria-label="ลบ ${esc(r.name)}">ลบ</button>`}</td></tr>`);
+      const paired = devices.filter(d => !packs.some(p => p.node === d.node)).map(d => `<tr><td>${esc(d.name)}</td><td><span class="st-off">ยังไม่ส่งข้อมูลวันนี้</span></td><td class="n">0</td><td class="n">0</td><td class="n">0</td><td>${d.seen ? esc(ago(d.seen)) : "—"}</td><td><button class="btn ghost small rm" type="button" data-rm="${esc(d.node)}" data-src="hub" aria-label="ลบ ${esc(d.name)}">ลบ</button></td></tr>`);
+      setHtml($("#aggTable"), `<thead><tr><th>เครื่อง</th><th>สถานะ</th><th class="n">เข้า</th><th class="n">ออก</th><th class="n">สูงสุด</th><th>อัปเดต</th><th></th></tr></thead><tbody>` +
+        (rows.length + paired.length ? rows.join("") + paired.join("") + `<tr class="total"><td>รวม</td><td></td><td class="n">${M.in}</td><td class="n">${M.out}</td><td class="n">${M.peak}</td><td></td><td></td></tr>`
+          : `<tr><td colspan="7" class="empty">ยังไม่มีเครื่องลูก — จับคู่มือถือด้วยรหัสด้านบน</td></tr>`) + "</tbody>");
+      $("#aggState").textContent = `เครื่องหลัก · ${packs.length} เครื่องลูก`;
+    }
+    function mergeServer(j, dates) {
+      for (const date of dates) {
+        const c = A.cacheFromServer(cacheOf(date), j.dates && j.dates[date]);
+        if (c) save("agg-" + date, c); else try { localStorage.removeItem(P + "agg-" + date); } catch { /* ignore */ }
+      }
+      devices = Array.isArray(j.devices) ? j.devices.filter(d => d && A.NODE_RE.test(d.node)).map(d => ({ node: d.node, name: String(d.name || d.node).slice(0, 40), seen: +d.seen || 0 })) : [];
+      if (+j.now) skew = +j.now - Date.now();
+    }
+    async function poll() {
+      clearTimeout(pollT);
+      if (cfg.role !== "hub") return;
+      if (server && cfg.code) {
+        try {
+          const r = await api(`/api/agg?date=${day.date}`, { token: A.normCode(cfg.code) });
+          if (r.status === 401) { msg("รหัสจับคู่ไม่ถูกต้องหรือถูกเปลี่ยนแล้ว", "err"); if (!server.local) { cfg.code = ""; saveCfg(); hubUi(); } }
+          else if (!r.ok) msg(r.j.error || `เซิร์ฟเวอร์ตอบกลับ ${r.status}`, "warn");
+          else { mergeServer(r.j, [day.date]); if (offline) { offline = false; msg(""); } }
+        } catch { offline = true; msg("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กำลังลองใหม่...", "warn"); }
+      }
+      render();
+      if (cfg.role === "hub" && server) pollT = setTimeout(poll, POLL_MS);
+    }
+    function hubUi() {
+      const local = !!(server && server.local);
+      $("#aggCodeBox").hidden = !(local && pair);
+      $("#aggViewForm").hidden = !server || local || !!cfg.code;
+      if (pair) {
+        $("#aggCode").textContent = pair.code;
+        const base = (pair.urls && pair.urls[0]) || (local && /^(localhost|127\.|\[::1\])/.test(location.host) ? "" : location.origin);
+        $("#aggLink").textContent = base ? `บนมือถือแต่ละเครื่อง เปิด ${base}/store.html แล้วเลือก "เครื่องลูก" ใส่รหัสนี้ หรือเปิดลิงก์จับคู่` :
+          "เซิร์ฟเวอร์เปิดให้เฉพาะเครื่องนี้ (./start.sh) — ให้รัน ./start.sh mobile เพื่อให้มือถือในวง Wi‑Fi เดียวกันเชื่อมได้ แล้วเปิด https://<IP เครื่องนี้>:8443/store.html บนมือถือ";
+        $("#aggCopyLink").hidden = !base;
+        $("#aggCopyLink").dataset.link = base ? `${base}/store.html#lq-pair=${A.normCode(pair.code)}` : "";
+      } else $("#aggLink").textContent = "";
+    }
+    async function startHub() {
+      server = await probe(location.origin);
+      if (cfg.role !== "hub") return;
+      if (!server) { noServer(); hubUi(); render(); return; }
+      msg("");
+      if (server.local) {
+        try { const r = await api("/api/agg/pair"); if (r.ok) { pair = r.j; cfg.code = r.j.code; saveCfg(); } } catch { /* ignore */ }
+      }
+      hubUi(); poll();
+    }
+
+    // ---------- เครื่องลูก ----------
+    function nodeUi() {
+      const f = $("#aggJoinForm"), paired = !!cfg.token;
+      f.nodeName.value = f.nodeName.value || cfg.name || ""; f.hub.value = f.hub.value || cfg.hub || location.origin;
+      f.code.closest("label").hidden = paired; f.hub.closest("label").hidden = paired;
+      $("#aggJoin").hidden = paired; $("#aggUnpair").hidden = !paired; f.nodeName.readOnly = paired;
+      const n = Object.keys(cfg.pending).length;
+      $("#aggNodeInfo").textContent = paired
+        ? `จับคู่กับ ${hubBase()} แล้ว · ส่งทุก ${PUSH_MS / 1000} วินาทีระหว่างวิเคราะห์${cfg.lastOk ? " · ส่งล่าสุด " + fmtClock(cfg.lastOk) : ""}${n ? ` · รอส่ง ${n} วัน${offline ? " (ออฟไลน์ จะส่งให้เองเมื่อเชื่อมต่อได้)" : ""}` : ""}`
+        : "ใส่ชื่อเครื่องและรหัสจับคู่ที่แสดงบนเครื่องหลัก แล้วกด จับคู่";
+      if (cfg.role === "node") $("#aggState").textContent = paired ? (offline ? "เครื่องลูก · ออฟไลน์" : "เครื่องลูก · เชื่อมแล้ว") : "เครื่องลูก · ยังไม่จับคู่";
+    }
+    const packNow = () => A.packFromDay(day, cfg.name || "เครื่องไม่มีชื่อ", cfg.node);
+    function queue() {
+      const p = packNow(); cfg.pending[p.date] = p;
+      const ds = Object.keys(cfg.pending).sort(); ds.slice(0, Math.max(0, ds.length - 7)).forEach(d => delete cfg.pending[d]);
+      saveCfg();
+    }
+    const failed = () => { offline = true; backoff = Math.min(120000, backoff ? backoff * 2 : 5000); nextTry = Date.now() + backoff; };
+    async function flush(force = false) {
+      if (cfg.role !== "node" || !cfg.token || busy || (!force && Date.now() < nextTry)) return;
+      busy = true;
+      try {
+        for (const date of Object.keys(cfg.pending).sort()) {
+          const p = cfg.pending[date];
+          let r;
+          try { r = await api("/api/agg", { method: "POST", token: cfg.token, body: p, base: hubBase() }); } catch { failed(); return; }
+          if (r.ok) { if (cfg.pending[date] === p) delete cfg.pending[date]; cfg.lastOk = Date.now(); offline = false; backoff = 0; nextTry = 0; if ($("#aggMsg").classList.contains("warn")) msg(""); continue; }
+          if (r.status === 401) { cfg.token = ""; msg("เครื่องหลักยกเลิกการจับคู่เครื่องนี้แล้ว กรุณาจับคู่ใหม่", "err"); return; }
+          if (r.status === 400 || r.status === 413) { delete cfg.pending[date]; msg("เครื่องหลักไม่รับข้อมูลวันที่ " + date + ": " + (r.j.error || r.status), "warn"); continue; }
+          failed(); if (r.j.error) msg(r.j.error, "warn"); return; // 429 / 5xx -> ลองใหม่ภายหลัง
+        }
+      } finally { busy = false; saveCfg(); nodeUi(); }
+    }
+    async function pushNow() { if (cfg.role !== "node" || !cfg.token) return; queue(); await flush(true); }
+    async function join(e) {
+      e.preventDefault();
+      const f = $("#aggJoinForm"), name = f.nodeName.value.replace(/\s+/g, " ").trim().slice(0, 40), code = A.normCode(f.code.value);
+      let hub = f.hub.value.trim() || location.origin;
+      try { hub = new URL(hub).origin; } catch { return msg("ที่อยู่เครื่องหลักไม่ถูกต้อง (เช่น https://192.168.1.20:8443)", "err"); }
+      if (!name) return msg("กรุณาตั้งชื่อเครื่องนี้ เช่น ประตูหน้า", "err");
+      if (code.length < 8) return msg("กรุณาใส่รหัสจับคู่จากเครื่องหลัก", "err");
+      if (location.protocol === "https:" && hub.startsWith("http:")) return msg("หน้านี้เปิดแบบ https จึงส่งไปยังเครื่องหลักแบบ http ไม่ได้ — ใช้ที่อยู่ https://", "err");
+      msg("กำลังจับคู่...");
+      const s = await probe(hub);
+      if (!s) { if (hub === location.origin) return noServer(); return msg(`เชื่อมต่อ ${hub} ไม่ได้ ตรวจว่าอยู่ Wi‑Fi เดียวกัน เครื่องหลักรัน ./start.sh mobile และเปิดหน้านี้จากที่อยู่ของเครื่องหลัก`, "err"); }
+      if (!A.NODE_RE.test(cfg.node || "")) cfg.node = A.newNodeId();
+      try {
+        const r = await api("/api/agg/join", { method: "POST", token: code, body: { name, node: cfg.node }, base: hub });
+        if (!r.ok) return msg(r.status === 401 ? "รหัสจับคู่ไม่ถูกต้อง" : r.j.error || `จับคู่ไม่สำเร็จ (${r.status})`, "err");
+        Object.assign(cfg, { hub: hub === location.origin ? "" : hub, name: r.j.name || name, node: r.j.node, token: r.j.token }); f.code.value = "";
+        saveCfg(); msg(`จับคู่แล้ว — เครื่องนี้ "${cfg.name}" จะส่งเฉพาะตัวเลขสรุปไปยังเครื่องหลัก`, "ok");
+        nodeUi(); await pushNow();
+      } catch { msg("เชื่อมต่อเครื่องหลักไม่ได้", "err"); }
+    }
+
+    // ---------- ส่งต่อด้วยไฟล์ ----------
+    function exportPack() {
+      if (!A.NODE_RE.test(cfg.node || "")) { cfg.node = A.newNodeId(); saveCfg(); }
+      pipes.forEach(p => closeZones(p.zoneLive, day)); persistDay();
+      const name = cfg.name || $("#aggJoinForm").nodeName.value.trim() || `เครื่อง ${cfg.node.slice(-4)}`;
+      return A.packFromDay(day, name, cfg.node);
+    }
+    function importText(text) {
+      let obj; try { obj = JSON.parse(text); } catch { return { ok: false, error: "ไม่ใช่ไฟล์ JSON" }; }
+      const r = A.cleanPack(obj);
+      if (!r.ok) return r;
+      if (!r.pack.node) return { ok: false, error: "ไฟล์ไม่มีรหัสเครื่อง" };
+      if (r.pack.node === cfg.node) return { ok: false, error: "ไฟล์นี้ส่งออกจากเครื่องนี้เอง (จะนับซ้ำ)" };
+      save("agg-" + r.pack.date, A.cacheUpsert(cacheOf(r.pack.date), r.pack, "import"));
+      render();
+      return { ok: true, pack: r.pack };
+    }
+
+    // ---------- บทบาท ----------
+    function setRole(role, { init = false } = {}) {
+      if (!["", "hub", "node"].includes(role)) role = "";
+      if (!init && cfg.role === "node" && role !== "node" && cfg.token && !confirm("เปลี่ยนบทบาท? เครื่องนี้จะหยุดส่งยอดให้เครื่องหลัก (การจับคู่ยังอยู่)")) return;
+      cfg.role = role; saveCfg();
+      document.querySelectorAll("#aggPanel [data-role]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.role === role)));
+      $("#aggHub").hidden = role !== "hub"; $("#aggNode").hidden = role !== "node";
+      clearTimeout(pollT); msg("");
+      if (role === "") $("#aggState").textContent = "ใช้เครื่องเดียว";
+      if (role === "hub") { $("#aggState").textContent = "เครื่องหลัก"; render(); startHub(); }
+      if (role === "node") {
+        nodeUi();
+        if (!cfg.token && hubBase() === location.origin) probe(location.origin).then(s => { if (!s && cfg.role === "node") noServer(); });
+        else flush(true);
+      }
+    }
+    document.querySelectorAll("#aggPanel [data-role]").forEach(b => b.addEventListener("click", () => setRole(b.dataset.role)));
+    $("#aggJoinForm").addEventListener("submit", join);
+    $("#aggUnpair").addEventListener("click", () => {
+      if (!confirm("เลิกจับคู่เครื่องนี้? ข้อมูลที่ส่งไปแล้วยังอยู่ที่เครื่องหลัก")) return;
+      cfg.token = ""; cfg.pending = {}; saveCfg(); nodeUi(); msg("เลิกจับคู่แล้ว");
+    });
+    $("#aggViewForm").addEventListener("submit", e => { e.preventDefault(); const c = A.normCode(e.target.code.value); if (c.length < 8) return msg("กรุณาใส่รหัสจับคู่", "err"); cfg.code = fmtCode(c); saveCfg(); hubUi(); poll(); });
+    $("#aggRotate").addEventListener("click", async () => {
+      if (!confirm("เปลี่ยนรหัสจับคู่? เครื่องที่จับคู่แล้วยังส่งได้ตามเดิม แต่รหัสเดิมจะใช้จับคู่เครื่องใหม่ไม่ได้")) return;
+      try { const r = await api("/api/agg/pair/rotate", { method: "POST" }); if (r.ok) { pair = { ...pair, code: r.j.code }; cfg.code = r.j.code; saveCfg(); hubUi(); msg("เปลี่ยนรหัสแล้ว", "ok"); } else msg(r.j.error || "เปลี่ยนรหัสไม่สำเร็จ", "err"); } catch { msg("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้", "err"); }
+    });
+    $("#aggCopyLink").addEventListener("click", async () => {
+      const link = $("#aggCopyLink").dataset.link; if (!link) return;
+      try { await navigator.clipboard.writeText(link); msg("คัดลอกลิงก์จับคู่แล้ว ส่งให้มือถือที่จะใช้เป็นจุดนับ (ลิงก์มีรหัสจับคู่ อย่าส่งให้คนนอก)", "ok"); }
+      catch { $("#aggLink").textContent = link; }
+    });
+    $("#aggTable").addEventListener("click", async e => {
+      const b = e.target.closest("button[data-rm]"); if (!b) return;
+      const id = b.dataset.rm, name = b.closest("tr").firstElementChild.textContent;
+      if (!confirm(`ลบ "${name}" ออกจากยอดรวม?${b.dataset.src === "hub" ? " เครื่องนั้นจะต้องจับคู่ใหม่" : ""}`)) return;
+      if (b.dataset.src === "hub" && server) {
+        try { const r = await api(`/api/agg/node/${encodeURIComponent(id)}`, { method: "DELETE", token: A.normCode(cfg.code) }); if (!r.ok) return msg(r.j.error || "ลบไม่สำเร็จ", "err"); } catch { return msg("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้", "err"); }
+      }
+      Object.keys(localStorage).filter(k => k.startsWith(P + "agg-")).forEach(k => { const c = load(k.slice(P.length), null); if (c && c.nodes && c.nodes[id]) { delete c.nodes[id]; save(k.slice(P.length), c); } });
+      devices = devices.filter(d => d.node !== id); render(); poll();
+    });
+    $("#aggExport").addEventListener("click", () => {
+      const p = exportPack();
+      download(new Blob([JSON.stringify(p, null, 1)], { type: "application/json" }), `lensiq-agg-${p.date}-${p.node.slice(-6)}.json`);
+      msg(`ส่งออกสรุปวันที่ ${p.date} แล้ว (ตัวเลขสรุปเท่านั้น) — นำไฟล์ไปกด "นำเข้าสรุปจากเครื่องอื่น" ที่เครื่องหลัก`, "ok");
+    });
+    $("#aggImport").addEventListener("change", async e => {
+      const files = [...e.target.files]; e.target.value = "";
+      const res = [];
+      for (const f of files) { const r = f.size > A.LIM.bytes * 2 ? { ok: false, error: "ไฟล์ใหญ่เกินไป" } : importText(await f.text()); res.push(r.ok ? `✓ ${r.pack.name} (${r.pack.date})` : `✗ ${f.name}: ${r.error}`); }
+      const ok = res.every(s => s.startsWith("✓"));
+      msg((ok ? "นำเข้าแล้ว: " : "") + res.join(" · ") + (ok && cfg.role !== "hub" ? " — เลือก \"เครื่องหลัก\" เพื่อดูยอดรวม" : ""), ok ? "ok" : "err");
+    });
+    // ส่งยอดเป็นระยะระหว่างวิเคราะห์ และส่งค้างที่ยังไม่สำเร็จ
+    setInterval(() => { if (cfg.role === "node" && cfg.token) { if (running) queue(); if (Object.keys(cfg.pending).length) flush(); } }, PUSH_MS);
+    addEventListener("online", () => { nextTry = 0; flush(true); if (cfg.role === "hub") poll(); });
+    // ปิด/สลับหน้า: ส่งยอดล่าสุดแบบ keepalive (sendBeacon ใส่ header Authorization ไม่ได้) และเก็บไว้ในคิวเผื่อส่งไม่ถึง
+    addEventListener("pagehide", () => {
+      if (cfg.role !== "node" || !cfg.token) return;
+      try {
+        queue();
+        fetch(hubBase() + "/api/agg", { method: "POST", keepalive: true, cache: "no-store", credentials: "omit", headers: { Authorization: "Bearer " + cfg.token, "Content-Type": "application/json" }, body: JSON.stringify(cfg.pending[day.date]) }).catch(() => {});
+      } catch { /* ignore */ }
+    });
+    $("#stop").addEventListener("click", () => { pushNow(); });
+
+    // ลิงก์จับคู่ store.html#lq-pair=CODE -> บทบาทเครื่องลูก กรอกรหัสให้ (ลบออกจากแถบที่อยู่ทันที)
+    const m = location.hash.match(/lq-pair=([A-Za-z0-9-]{8,24})/);
+    if (m) {
+      try { history.replaceState(null, "", location.pathname + location.search); } catch { /* ignore */ }
+      if (!cfg.token) { cfg.role = "node"; $("#aggJoinForm").code.value = fmtCode(m[1]); setTimeout(() => $("#aggPanel").scrollIntoView({ block: "start" }), 300); }
+    }
+    setRole(cfg.role, { init: true });
+    return { render, poll, flush, pushNow, exportPack, importText, setRole, get cfg() { return cfg; }, get server() { return server; } };
+  })();
+
   // สำหรับการทดสอบอัตโนมัติ (อ่านอย่างเดียว ไม่มีภาพ)
-  window.__ST = { get day() { return day; }, get hub() { return hub; }, get running() { return running; }, sched, pipes, G };
+  window.__ST = { get day() { return day; }, get hub() { return hub; }, get running() { return running; }, sched, pipes, G, agg };
 
   sel = (storedCams()[0] || {}).slot || "c1";
   tileUi(); renderZoneEditor(); syncForm(); renderDash();

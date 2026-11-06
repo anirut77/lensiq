@@ -70,7 +70,9 @@ def index():
 @app.get("/<path:path>")
 def static_files(path):
     # เสิร์ฟเฉพาะไฟล์หน้าเว็บ ไม่เปิดเผยโฟลเดอร์ระบบ/ซอร์สเซิร์ฟเวอร์
-    if path.startswith((".", "server.py", "tryon.py", "logs", "certs", "requirements", "start.sh")) or ".venv" in path or ".git" in path:
+    low = path.lower()  # macOS แยกตัวพิมพ์ไม่ได้: Data/agg.json = data/agg.json
+    if low.startswith((".", "server.py", "tryon.py", "logs", "certs", "requirements", "start.sh", "data", "tests", "__pycache__")) \
+            or ".venv" in low or ".git" in low or "/." in low:
         return ("Not found", 404)
     return send_from_directory(ROOT, path)
 
@@ -480,11 +482,516 @@ def fortune_run():
     return jsonify(source="ai", sections=sections, model=getattr(resp, "model", FORTUNE_MODEL))
 
 
+# ---------------------------------------------------------------------------
+# รวมสรุปหลายเครื่อง ("1 เครื่องต่อ 1 จุด") — รับเฉพาะตัวเลขสรุปรายวัน ไม่รับภาพ วิดีโอ descriptor หรือกรอบตัวคน
+#   GET    /api/agg/status                         -> {ok, v, local}      (ไม่ต้องใช้รหัส)
+#   GET    /api/agg/pair                           -> {code}              (เฉพาะเครื่องที่รันเซิร์ฟเวอร์ = loopback)
+#   POST   /api/agg/pair/rotate                    -> {code}              (เฉพาะ loopback; เครื่องที่จับคู่แล้วยังใช้ได้)
+#   POST   /api/agg/join   Bearer <รหัสจับคู่>     {name, node?} -> {node, token}
+#   POST   /api/agg        Bearer <token เครื่อง>  pack (ดู lensiq-agg.js) -> {ok, node, date}
+#   GET    /api/agg?date=|from=&to=  Bearer <รหัสจับคู่> -> {dates:{date:[pack+node+receivedAt]}, devices:[...]}
+#   DELETE /api/agg/node/<id>  Bearer <รหัสจับคู่> -> เลิกจับคู่เครื่องนั้นและลบข้อมูลของมัน
+# ความปลอดภัย: รับเฉพาะ remote_addr ที่เป็น loopback/LAN ส่วนตัว (LENSIQ_AGG_ALLOW_ANY=1 เพื่อปิดการตรวจ),
+#   Host ต้องเป็น IP/localhost/*.local (กัน DNS rebinding; เพิ่มชื่อได้ใน LENSIQ_AGG_HOSTS), เทียบรหัสด้วย hmac.compare_digest,
+#   token เครื่องเก็บเป็น sha256, จำกัดอัตรา (LENSIQ_AGG_RPM ต่อ IP ต่อนาที) และล็อกเมื่อใส่รหัสผิดบ่อย,
+#   ไม่มี CORS wildcard (อนุญาตเฉพาะ LENSIQ_AGG_ALLOW_ORIGIN ที่ระบุชัด), ข้อมูลอยู่ใน data/ (gitignore + ไม่เสิร์ฟเป็นไฟล์)
+# ---------------------------------------------------------------------------
+import hashlib, hmac, ipaddress, re, secrets, datetime
+
+AGG_LIM = {"name": 40, "zones": 64, "cams": 4, "int": 10_000_000, "ms": 10 ** 13, "bytes": 16 * 1024,
+           "nodes": 16, "days_kept": 62, "range": 62}
+AGG_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+AGG_SLOT_RE = re.compile(r"^c[1-4]$")
+AGG_ZONE_RE = re.compile(r"^c[1-4]:[A-Za-z0-9_.-]{1,40}$")
+AGG_NODE_RE = re.compile(r"^n[a-z0-9]{8,24}$")
+AGG_TOP = {"v", "format", "node", "name", "date", "in", "out", "occ", "peak", "peakAt", "maxQueue", "t",
+           "hourlyIn", "hourlyOut", "zones", "byCam"}
+AGG_ZONE_KEYS = {"name", "visits", "dwellSum", "dwellN", "peak"}
+AGG_CAM_KEYS = {"name", "in", "out"}
+AGG_CODE_ALPHABET = "ABCDEFGHJKMNPQRSTVWXYZ23456789"  # ไม่มี 0/O 1/I/L U ให้พิมพ์บนมือถือง่าย
+_CTRL_RE = re.compile(r"[\x00-\x1f\x7f-\x9f<>]")
+
+
+class AggError(Exception):
+    def __init__(self, msg, status=400):
+        super().__init__(msg)
+        self.status = status
+
+
+def _agg_name(v, field):
+    if not isinstance(v, str):
+        raise AggError(f"{field} ต้องเป็นข้อความ")
+    s = " ".join(_CTRL_RE.sub(" ", v).split())
+    if not s:
+        raise AggError(f"{field} ว่าง")
+    if len(s) > AGG_LIM["name"]:
+        raise AggError(f"{field} ยาวเกิน {AGG_LIM['name']} ตัวอักษร")
+    return s
+
+
+def _agg_int(v, field, mx=None):
+    mx = AGG_LIM["int"] if mx is None else mx
+    if isinstance(v, bool) or not isinstance(v, (int, float)) or v != v or v in (float("inf"), float("-inf")):
+        raise AggError(f"{field} ต้องเป็นตัวเลข")
+    if v < 0 or v > mx:
+        raise AggError(f"{field} อยู่นอกช่วง")
+    return int(round(v))
+
+
+def _agg_only(o, keys, field):
+    for k in o:
+        if k not in keys:
+            raise AggError(f"{field}: ไม่รู้จักคีย์")
+
+
+def _agg_hours(v, field):
+    if not isinstance(v, list) or len(v) != 24:
+        raise AggError(f"{field} ต้องเป็นตัวเลข 24 ช่อง")
+    return [_agg_int(x, field) for x in v]
+
+
+def _agg_date_ok(d, today=None):
+    """วันที่ต้องอยู่ในช่วง 7 วันที่แล้ว .. พรุ่งนี้ (กันข้อมูลขยะย้อนหลัง/อนาคตไกล)"""
+    try:
+        day = datetime.date.fromisoformat(d)
+    except ValueError:
+        return False
+    today = today or datetime.date.today()
+    return today - datetime.timedelta(days=7) <= day <= today + datetime.timedelta(days=1)
+
+
+def clean_agg(raw, today=None):
+    """ตรวจ pack ตามสัญญาเดียวกับ lensiq-agg.js cleanPack — คีย์ที่ไม่รู้จัก = ปฏิเสธทั้ง pack"""
+    if not isinstance(raw, dict):
+        raise AggError("ข้อมูลต้องเป็นออบเจกต์")
+    _agg_only(raw, AGG_TOP, "pack")
+    if raw.get("v") != 1 or isinstance(raw.get("v"), bool):
+        raise AggError("เวอร์ชันไม่รองรับ")
+    if raw.get("format") is not None and raw.get("format") != "lensiq-agg":
+        raise AggError("format ไม่ถูกต้อง")
+    d = raw.get("date")
+    if not isinstance(d, str) or not AGG_DATE_RE.match(d) or not _agg_date_ok(d, today):
+        raise AggError("date ไม่ถูกต้องหรืออยู่นอกช่วง 7 วัน")
+    p = {"v": 1, "date": d, "name": _agg_name(raw.get("name"), "name"),
+         "in": _agg_int(raw.get("in"), "in"), "out": _agg_int(raw.get("out"), "out")}
+    for k in ("occ", "peak", "maxQueue"):
+        p[k] = 0 if raw.get(k) is None else _agg_int(raw[k], k)
+    for k in ("peakAt", "t"):
+        p[k] = 0 if raw.get(k) is None else _agg_int(raw[k], k, AGG_LIM["ms"])
+    for k in ("hourlyIn", "hourlyOut"):
+        p[k] = [0] * 24 if raw.get(k) is None else _agg_hours(raw[k], k)
+    p["zones"] = {}
+    zs = raw.get("zones")
+    if zs is not None:
+        if not isinstance(zs, dict):
+            raise AggError("zones ต้องเป็นออบเจกต์")
+        if len(zs) > AGG_LIM["zones"]:
+            raise AggError("zones เกินกำหนด")
+        for k, z in zs.items():
+            if not isinstance(k, str) or not AGG_ZONE_RE.match(k) or not isinstance(z, dict):
+                raise AggError("zone ไม่ถูกต้อง")
+            _agg_only(z, AGG_ZONE_KEYS, "zone")
+            p["zones"][k] = {"name": _agg_name(z.get("name"), "zone.name"),
+                             "visits": _agg_int(z.get("visits", 0), "visits"),
+                             "dwellSum": _agg_int(z.get("dwellSum", 0), "dwellSum", AGG_LIM["ms"]),
+                             "dwellN": _agg_int(z.get("dwellN", 0), "dwellN"),
+                             "peak": _agg_int(z.get("peak", 0), "zone.peak")}
+    p["byCam"] = {}
+    bc = raw.get("byCam")
+    if bc is not None:
+        if not isinstance(bc, dict):
+            raise AggError("byCam ต้องเป็นออบเจกต์")
+        if len(bc) > AGG_LIM["cams"]:
+            raise AggError("byCam เกินกำหนด")
+        for k, b in bc.items():
+            if not isinstance(k, str) or not AGG_SLOT_RE.match(k) or not isinstance(b, dict):
+                raise AggError("byCam ไม่ถูกต้อง")
+            _agg_only(b, AGG_CAM_KEYS, "byCam")
+            p["byCam"][k] = {"name": _agg_name(b.get("name"), "byCam.name"),
+                             "in": _agg_int(b.get("in", 0), "byCam.in"), "out": _agg_int(b.get("out", 0), "byCam.out")}
+    return p
+
+
+# ---- ที่เก็บ (ไฟล์ JSON เดียว เขียนแบบ atomic) ----
+_agg_lock = threading.Lock()
+
+
+def agg_dir():
+    return os.environ.get("LENSIQ_DATA_DIR") or os.path.join(ROOT, "data")
+
+
+def _agg_path():
+    return os.path.join(agg_dir(), "agg.json")
+
+
+def _new_code():
+    return "".join(secrets.choice(AGG_CODE_ALPHABET) for _ in range(12))
+
+
+def fmt_code(c):
+    return "-".join(c[i:i + 4] for i in range(0, len(c), 4))
+
+
+def norm_code(s):
+    return re.sub(r"[^A-Z0-9]", "", str(s or "").upper())[:32]
+
+
+def _agg_load():
+    try:
+        with open(_agg_path(), encoding="utf-8") as fh:
+            st = json.load(fh)
+        if isinstance(st, dict) and isinstance(st.get("code"), str):
+            st.setdefault("nodes", {})
+            st.setdefault("days", {})
+            return st
+    except (OSError, ValueError):
+        pass
+    return {"v": 1, "code": _new_code(), "nodes": {}, "days": {}}
+
+
+def _agg_save(st):
+    d = agg_dir()
+    os.makedirs(d, mode=0o700, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=d, prefix=".agg-", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            json.dump(st, fh, ensure_ascii=False, separators=(",", ":"))
+        os.chmod(tmp, 0o600)
+        os.replace(tmp, _agg_path())
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
+def agg_state():
+    """โหลดสถานะ (สร้างรหัสจับคู่ครั้งแรกแล้วบันทึก)"""
+    with _agg_lock:
+        st = _agg_load()
+        if not os.path.exists(_agg_path()):
+            _agg_save(st)
+        return st
+
+
+def _tok_hash(tok):
+    return hashlib.sha256(tok.encode("utf-8")).hexdigest()
+
+
+# ---- ตรวจที่มาของคำขอ ----
+def _remote_ip():
+    try:
+        ip = ipaddress.ip_address((request.remote_addr or "").split("%")[0])
+    except ValueError:
+        return None
+    if ip.version == 6 and ip.ipv4_mapped:
+        ip = ip.ipv4_mapped
+    return ip
+
+
+def _agg_lan_ok():
+    if os.environ.get("LENSIQ_AGG_ALLOW_ANY") == "1":
+        return True
+    ip = _remote_ip()
+    return bool(ip and (ip.is_loopback or ip.is_private or ip.is_link_local))
+
+
+def _agg_is_loopback():
+    ip = _remote_ip()
+    # หลัง reverse proxy ทุกคำขอมาจาก loopback -> ปิดการอ่านรหัสผ่านเว็บ (ดูรหัสใน Terminal แทน)
+    return bool(ip and ip.is_loopback) and os.environ.get("LENSIQ_TRUST_PROXY") != "1"
+
+
+def _agg_host_ok():
+    host = (request.host or "").lower()
+    name = host[1:host.index("]")] if host.startswith("[") and "]" in host else host.rsplit(":", 1)[0] if host.count(":") == 1 else host
+    extra = [h.strip().lower() for h in os.environ.get("LENSIQ_AGG_HOSTS", "").split(",") if h.strip()]
+    if name in ("localhost",) or name.endswith(".local") or name in extra:
+        return True
+    try:
+        ipaddress.ip_address(name)
+        return True
+    except ValueError:
+        return False
+
+
+def _agg_allowed_origins():
+    return [o.strip().rstrip("/") for o in os.environ.get("LENSIQ_AGG_ALLOW_ORIGIN", "").split(",")
+            if o.strip() and o.strip() != "*"]
+
+
+def _agg_origin_ok():
+    origin = request.headers.get("Origin")
+    if not origin:
+        return True
+    own = request.host_url.rstrip("/")
+    return origin.rstrip("/") == own or origin.rstrip("/") in _agg_allowed_origins()
+
+
+_agg_rl = {}
+_agg_fail = {}
+
+
+def _agg_rate_limited(ip):
+    rpm = int(os.environ.get("LENSIQ_AGG_RPM", "120"))
+    now = time.time()
+    with _rl_lock:
+        f = _agg_fail.get(ip)
+        if f:
+            while f and now - f[0] > 600:
+                f.popleft()
+            if len(f) >= 20:
+                return "ใส่รหัสผิดหลายครั้ง กรุณารอ 10 นาที"
+        q = _agg_rl.setdefault(ip, deque())
+        while q and now - q[0] > 60:
+            q.popleft()
+        if len(q) >= rpm:
+            return "ส่งคำขอถี่เกินไป กรุณารอสักครู่"
+        q.append(now)
+        if len(_agg_rl) > 2000:
+            for k in [k for k, v in _agg_rl.items() if not v or now - v[-1] > 60]:
+                _agg_rl.pop(k, None)
+    return None
+
+
+def _agg_note_fail(ip):
+    with _rl_lock:
+        _agg_fail.setdefault(ip, deque()).append(time.time())
+
+
+def _bearer():
+    h = request.headers.get("Authorization", "")
+    return h[7:].strip() if h[:7].lower() == "bearer " else ""
+
+
+def _check_code(st):
+    got = norm_code(_bearer())
+    return bool(got) and hmac.compare_digest(got.encode(), st["code"].encode())
+
+
+def _node_for_token(st, tok):
+    if not tok or len(tok) > 128:
+        return None
+    h = _tok_hash(tok).encode()
+    found = None
+    for nid, n in st["nodes"].items():  # วนครบทุกเครื่องเสมอ
+        if hmac.compare_digest(h, str(n.get("th", "")).encode()):
+            found = nid
+    return found
+
+
+def _agg_err(msg, status):
+    return jsonify(error=msg), status
+
+
+@app.before_request
+def agg_guard():
+    if not request.path.startswith("/api/agg"):
+        return None
+    if not _agg_lan_ok():
+        return _agg_err("รับเฉพาะเครื่องในเครือข่ายเดียวกัน", 403)
+    if not _agg_host_ok():
+        return _agg_err("Host ไม่ได้รับอนุญาต", 403)
+    if not _agg_origin_ok():
+        return _agg_err("Origin ไม่ได้รับอนุญาต", 403)
+    if request.method == "OPTIONS":
+        return ("", 204)
+    limited = _agg_rate_limited(str(_remote_ip()))
+    if limited:
+        return _agg_err(limited, 429)
+    if request.method in ("POST", "PUT") and (request.content_length or 0) > AGG_LIM["bytes"]:
+        return _agg_err("ข้อมูลใหญ่เกินกำหนด", 413)
+    return None
+
+
+@app.after_request
+def agg_headers(resp):
+    if request.path.startswith("/api/agg"):
+        resp.headers["Cache-Control"] = "no-store"
+        resp.headers["X-Content-Type-Options"] = "nosniff"
+        origin = request.headers.get("Origin", "").rstrip("/")
+        if origin and origin in _agg_allowed_origins():  # ไม่มี wildcard
+            resp.headers["Access-Control-Allow-Origin"] = origin
+            resp.headers["Access-Control-Allow-Methods"] = "GET, POST, DELETE, OPTIONS"
+            resp.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type"
+            resp.headers["Access-Control-Max-Age"] = "600"
+            resp.headers["Vary"] = "Origin"
+    return resp
+
+
+def _json_body():
+    if (request.mimetype or "") != "application/json":
+        raise AggError("ต้องส่งเป็น application/json", 415)
+    raw = request.get_data(cache=False, as_text=False)
+    if len(raw) > AGG_LIM["bytes"]:
+        raise AggError("ข้อมูลใหญ่เกินกำหนด", 413)
+    try:
+        return json.loads(raw.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        raise AggError("JSON ไม่ถูกต้อง")
+
+
+def _deny_auth(msg="รหัสจับคู่ไม่ถูกต้อง"):
+    _agg_note_fail(str(_remote_ip()))
+    return _agg_err(msg, 401)
+
+
+@app.get("/api/agg/status")
+def agg_status():
+    return jsonify(ok=True, v=1, local=_agg_is_loopback())
+
+
+@app.get("/api/agg/pair")
+def agg_pair():
+    if not _agg_is_loopback():
+        return _agg_err("ดูรหัสจับคู่ได้เฉพาะบนเครื่องที่รันเซิร์ฟเวอร์", 403)
+    st = agg_state()
+    return jsonify(code=fmt_code(st["code"]), lan=os.environ.get("LENSIQ_MOBILE") == "1", urls=_lan_urls())
+
+
+def _lan_urls():
+    """ที่อยู่ในวง LAN ที่มือถือใช้เปิดเครื่องหลักได้ (เฉพาะโหมดมือถือที่ฟังบน 0.0.0.0)"""
+    if os.environ.get("LENSIQ_MOBILE") != "1":
+        return []
+    import socket
+    ips = set()
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("10.255.255.255", 1))  # UDP connect ไม่ได้ส่งแพ็กเก็ตจริง ใช้หา IP ขาออก
+        ips.add(s.getsockname()[0])
+        s.close()
+    except OSError:
+        pass
+    try:
+        ips.update(socket.gethostbyname_ex(socket.gethostname())[2])
+    except OSError:
+        pass
+    port = request.environ.get("SERVER_PORT", "")
+    out = []
+    for ip in sorted(ips):
+        try:
+            a = ipaddress.ip_address(ip)
+        except ValueError:
+            continue
+        if a.is_private and not a.is_loopback:
+            out.append(f"{request.scheme}://{ip}:{port}" if port else f"{request.scheme}://{ip}")
+    return out[:4]
+
+
+@app.post("/api/agg/pair/rotate")
+def agg_rotate():
+    if not _agg_is_loopback():
+        return _agg_err("เปลี่ยนรหัสได้เฉพาะบนเครื่องที่รันเซิร์ฟเวอร์", 403)
+    with _agg_lock:
+        st = _agg_load()
+        st["code"] = _new_code()
+        _agg_save(st)
+    return jsonify(code=fmt_code(st["code"]))
+
+
+@app.post("/api/agg/join")
+def agg_join():
+    try:
+        body = _json_body()
+        if not isinstance(body, dict):
+            raise AggError("ข้อมูลต้องเป็นออบเจกต์")
+        _agg_only(body, {"name", "node"}, "join")
+        name = _agg_name(body.get("name"), "name")
+        want = body.get("node")
+        if want is not None and (not isinstance(want, str) or not AGG_NODE_RE.match(want)):
+            raise AggError("node ไม่ถูกต้อง")
+    except AggError as e:
+        return _agg_err(str(e), e.status)
+    with _agg_lock:
+        st = _agg_load()
+        if not _check_code(st):
+            return _deny_auth()
+        if want and want in st["nodes"]:
+            want = None  # ไม่ให้แย่งรหัสเครื่องที่มีอยู่แล้ว
+        if len(st["nodes"]) >= AGG_LIM["nodes"]:
+            return _agg_err(f"จับคู่ได้สูงสุด {AGG_LIM['nodes']} เครื่อง ลบเครื่องเก่าที่เครื่องหลักก่อน", 409)
+        nid = want or "n" + "".join(secrets.choice("abcdefghijklmnopqrstuvwxyz0123456789") for _ in range(14))
+        tok = secrets.token_urlsafe(32)
+        now = int(time.time() * 1000)
+        st["nodes"][nid] = {"name": name, "th": _tok_hash(tok), "created": now, "seen": 0}
+        _agg_save(st)
+    return jsonify(node=nid, token=tok, name=name)
+
+
+@app.post("/api/agg")
+def agg_push():
+    tok = _bearer()
+    try:
+        body = _json_body()
+        pack = clean_agg(body)
+    except AggError as e:
+        if not tok:
+            return _deny_auth("ต้องจับคู่ก่อน")
+        return _agg_err(str(e), e.status)
+    with _agg_lock:
+        st = _agg_load()
+        nid = _node_for_token(st, tok)
+        if not nid:
+            return _deny_auth("เครื่องนี้ยังไม่ได้จับคู่หรือถูกยกเลิกแล้ว")
+        now = int(time.time() * 1000)
+        pack["node"] = nid  # ตัวตนมาจาก token เท่านั้น ไม่เชื่อค่าใน body
+        pack.pop("format", None)
+        pack["receivedAt"] = now
+        st["nodes"][nid]["name"] = pack["name"]
+        st["nodes"][nid]["seen"] = now
+        st["days"].setdefault(pack["date"], {})[nid] = pack
+        for old in sorted(st["days"])[:-AGG_LIM["days_kept"]]:
+            st["days"].pop(old, None)
+        _agg_save(st)
+    return jsonify(ok=True, node=nid, date=pack["date"], receivedAt=now)
+
+
+@app.get("/api/agg")
+def agg_get():
+    st = agg_state()
+    if not _check_code(st):
+        return _deny_auth()
+    a = request.args
+    f, t = a.get("from") or a.get("date"), a.get("to") or a.get("date")
+    if not f:
+        f = t = datetime.date.today().isoformat()
+    try:
+        d0, d1 = datetime.date.fromisoformat(f), datetime.date.fromisoformat(t)
+    except (TypeError, ValueError):
+        return _agg_err("วันที่ไม่ถูกต้อง", 400)
+    if d1 < d0 or (d1 - d0).days > AGG_LIM["range"]:
+        return _agg_err("ช่วงวันที่ไม่ถูกต้อง", 400)
+    dates = {}
+    for day, nodes in st["days"].items():
+        if f <= day <= t and nodes:
+            dates[day] = [dict(p, node=nid) for nid, p in sorted(nodes.items()) if nid in st["nodes"]]
+    devices = [{"node": nid, "name": n.get("name", ""), "created": n.get("created", 0), "seen": n.get("seen", 0)}
+               for nid, n in sorted(st["nodes"].items())]
+    return jsonify(v=1, dates=dates, devices=devices, now=int(time.time() * 1000))
+
+
+@app.delete("/api/agg/node/<nid>")
+def agg_delete(nid):
+    if not AGG_NODE_RE.match(nid or ""):
+        return _agg_err("node ไม่ถูกต้อง", 400)
+    with _agg_lock:
+        st = _agg_load()
+        if not _check_code(st):
+            return _deny_auth()
+        existed = st["nodes"].pop(nid, None) is not None
+        for day in st["days"].values():
+            day.pop(nid, None)
+        _agg_save(st)
+    return jsonify(ok=True, removed=existed)
+
+
 if __name__ == "__main__":
     if os.environ.get("LENSIQ_MOBILE") == "1":
         # โหมดมือถือ: เปิดให้เครื่องอื่นในวง LAN เข้าได้ผ่าน HTTPS (กล้องบนมือถือต้องใช้ https)
         certs = os.path.join(ROOT, "certs")
-        app.run(host="0.0.0.0", port=8443, threaded=True,
+        print("รหัสจับคู่หลายเครื่อง (หน้า วิเคราะห์หน้าร้าน > เชื่อมหลายเครื่อง):", fmt_code(agg_state()["code"]), flush=True)
+        app.run(host="0.0.0.0", port=int(os.environ.get("LENSIQ_PORT", "8443")), threaded=True,
                 ssl_context=(os.path.join(certs, "cert.pem"), os.path.join(certs, "key.pem")))
     else:
-        app.run(host="127.0.0.1", port=8000, threaded=True)
+        app.run(host="127.0.0.1", port=int(os.environ.get("LENSIQ_PORT", "8000")), threaded=True)

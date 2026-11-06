@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=5">
-<link rel="stylesheet" href="store.css?v=3">
+<link rel="stylesheet" href="store.css?v=4">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -48,7 +48,7 @@
         <ul>
           <li>ใช้กล้องหลัง (ค่าเริ่มต้นของหน้านี้) ตั้งบนขาตั้งหรือติดผนังสูงประมาณ 2–2.5 เมตร มุมก้มลงเฉียง ๆ ให้เห็นประตูและพื้นที่ทั้งหมด</li>
           <li>ตั้งเครื่องแนวนอนจะเห็นพื้นที่กว้างกว่า เสียบสายชาร์จไว้ และปิดการล็อกหน้าจออัตโนมัติ (หน้านี้ขอให้จอเปิดค้างระหว่างวิเคราะห์ถ้าเบราว์เซอร์รองรับ)</li>
-          <li>หลายกล้องพร้อมกันใช้ได้บนคอมพิวเตอร์ (สูงสุด 4 ตัว) มือถือส่วนใหญ่เปิดได้ทีละกล้อง — ใช้ 1 เครื่องต่อ 1 จุด</li>
+          <li>หลายกล้องพร้อมกันใช้ได้บนคอมพิวเตอร์ (สูงสุด 4 ตัว) มือถือส่วนใหญ่เปิดได้ทีละกล้อง — ใช้ 1 เครื่องต่อ 1 จุด แล้วรวมยอดด้วย <a href="#aggPanel">เชื่อมหลายเครื่อง</a></li>
           <li>เปิดหน้านี้ค้างไว้ ถ้าสลับไปแอปอื่น กล้องจะหยุดชั่วคราวและเปิดต่อเองเมื่อกลับมา</li>
           <li>ต้องเปิดผ่าน https:// บนมือถือ — ดูวิธีในหน้า <a href="cameras.html">ระบบทั้งหมด</a></li>
         </ul>
@@ -99,7 +99,7 @@
         <button class="btn primary" id="exportCsv" type="button">ส่งออก CSV</button>
         <button class="btn ghost danger" id="clearData" type="button">ลบข้อมูลสถิติทั้งหมด</button>
       </div>
-      <p class="hint">ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้เท่านั้น เป็นตัวเลขสรุปรายวัน (จำนวนเข้า–ออก โซน คิว ฮีตแมป) ไม่มีภาพหรือข้อมูลระบุตัวบุคคล</p>
+      <p class="hint">ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้ เป็นตัวเลขสรุปรายวัน (จำนวนเข้า–ออก โซน คิว ฮีตแมป) ไม่มีภาพหรือข้อมูลระบุตัวบุคคล ถ้าเปิด "เชื่อมหลายเครื่อง" จะส่งเฉพาะตัวเลขสรุป (ไม่รวมฮีตแมป) ไปยังเครื่องหลักในร้าน</p>
     </section>
     <section class="card">
       <h2>ป้ายแจ้งความเป็นส่วนตัว (PDPA)</h2>
@@ -107,6 +107,53 @@
       <button class="btn ghost" id="printNotice" type="button">พิมพ์ป้าย</button>
     </section>
   </div>
+  <section class="card agg" id="aggPanel" aria-labelledby="h-agg">
+    <div class="report-head"><h2 id="h-agg">เชื่อมหลายเครื่อง</h2><span class="pill" id="aggState">ใช้เครื่องเดียว</span></div>
+    <p class="hint agg-intro">มือถือส่วนใหญ่เปิดได้ทีละกล้อง จึงใช้ 1 เครื่องต่อ 1 จุด (ประตู/โซน) แล้วรวมยอดที่เครื่องหลัก แต่ละเครื่องประมวลผลภาพเอง <b>ส่งออกเฉพาะตัวเลขสรุปรายวัน</b> (จำนวนเข้า–ออก รายชั่วโมง โซน คิว และชื่อเครื่อง/กล้อง/โซน) ไม่มีภาพ วิดีโอ ฮีตแมป หรือข้อมูลระบุตัวบุคคล</p>
+    <div class="tools" role="radiogroup" aria-label="บทบาทของเครื่องนี้">
+      <button class="seg" type="button" data-role="" aria-pressed="true">ใช้เครื่องเดียว</button>
+      <button class="seg" type="button" data-role="hub" aria-pressed="false">เครื่องหลัก (รวมยอด)</button>
+      <button class="seg" type="button" data-role="node" aria-pressed="false">เครื่องลูก (จุดนับ)</button>
+    </div>
+    <p class="engine agg-msg" id="aggMsg" role="status" hidden></p>
+
+    <div id="aggHub" hidden>
+      <div class="agg-code" id="aggCodeBox" hidden>
+        <div><div class="k">รหัสจับคู่</div><div class="code" id="aggCode">—</div></div>
+        <div class="row-actions">
+          <button class="btn ghost small" id="aggCopyLink" type="button">คัดลอกลิงก์จับคู่</button>
+          <button class="btn ghost small" id="aggRotate" type="button">เปลี่ยนรหัส</button>
+        </div>
+      </div>
+      <p class="hint" id="aggLink"></p>
+      <form id="aggViewForm" class="agg-form" hidden novalidate>
+        <label>รหัสจับคู่ (ดูได้บนคอมพิวเตอร์ที่รันเซิร์ฟเวอร์)<input name="code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="20" placeholder="XXXX-XXXX-XXXX"></label>
+        <button class="btn primary small" type="submit">ดูยอดรวม</button>
+      </form>
+      <div class="tiles agg-tiles" id="aggTiles"></div>
+      <div class="table-wrap"><table id="aggTable"></table></div>
+      <p class="hint">คนในร้านรวม = เข้ารวม − ออกรวม (คนเข้าประตูหนึ่งออกอีกประตูได้) · สูงสุดรวมเป็นค่าประมาณจากยอดรายชั่วโมง · เครื่องที่ไม่ส่งข้อมูลเกิน 1 นาทีแสดงว่า "ขาดการติดต่อ"</p>
+    </div>
+
+    <div id="aggNode" hidden>
+      <form id="aggJoinForm" class="agg-form" novalidate>
+        <label>ชื่อเครื่องนี้ (เช่น ประตูหน้า)<input name="nodeName" maxlength="40" autocomplete="off"></label>
+        <label>รหัสจับคู่จากเครื่องหลัก<input name="code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="20" placeholder="XXXX-XXXX-XXXX"></label>
+        <label>ที่อยู่เครื่องหลัก<input name="hub" type="url" inputmode="url" autocomplete="off" spellcheck="false"></label>
+        <div class="row-actions"><button class="btn primary small" type="submit" id="aggJoin">จับคู่</button><button class="btn ghost small" type="button" id="aggUnpair" hidden>เลิกจับคู่</button></div>
+      </form>
+      <p class="hint" id="aggNodeInfo"></p>
+    </div>
+
+    <details class="phone-tip agg-manual" id="aggManual">
+      <summary>ไม่มีเซิร์ฟเวอร์? ส่งต่อด้วยไฟล์</summary>
+      <p>เมื่อเปิดหน้านี้จากเว็บสาธิต (GitHub Pages) หรือเปิดไฟล์ตรง ๆ จะไม่มีเซิร์ฟเวอร์กลางให้ส่งข้อมูลอัตโนมัติ ให้กด "ส่งออกสรุปวันนี้" บนแต่ละเครื่อง ส่งไฟล์ .json มาที่เครื่องหลัก (เช่น AirDrop/LINE/อีเมล) แล้วกด "นำเข้าสรุปจากเครื่องอื่น" ไฟล์มีเพียงตัวเลขสรุป</p>
+      <div class="row-actions">
+        <button class="btn ghost small" id="aggExport" type="button">ส่งออกสรุปวันนี้ (.json)</button>
+        <label class="btn ghost small file-btn">นำเข้าสรุปจากเครื่องอื่น<input id="aggImport" type="file" accept="application/json,.json" multiple></label>
+      </div>
+    </details>
+  </section>
 </main>
 
 <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
@@ -115,6 +162,7 @@
 <script src="lensiq-track.js?v=1"></script>
 <script src="lensiq-camera.js?v=1"></script>
 <script src="lensiq-detect.js?v=1"></script>
-<script src="store.js?v=5"></script>
+<script src="lensiq-agg.js?v=1"></script>
+<script src="store.js?v=6"></script>
 </body>
 </html>

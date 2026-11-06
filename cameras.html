@@ -38,6 +38,7 @@
 .badge{display:inline-block;background:var(--gold);color:#fff;border-radius:6px;padding:0 7px;font-size:.7rem;font-weight:500;margin-left:6px;vertical-align:middle}
 .howto{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;font-size:.92rem;line-height:1.75}
 .howto ol{padding-left:22px;margin:10px 0}.howto li{margin:4px 0}.howto code{background:var(--alt);padding:1px 6px;border-radius:6px;font-size:.88em;word-break:break-all}
+.howto h3{margin:18px 0 6px;font-size:1rem;color:var(--navy);font-weight:500}
 .note{background:#fff;border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:12px;padding:14px 16px;font-size:.88rem;color:var(--muted);margin-top:36px}
 </style>
 </head>
@@ -138,6 +139,16 @@
       </ol>
       <p class="hint"><b>หลายกล้องพร้อมกันใช้ได้บนคอมพิวเตอร์ (สูงสุด 4 ตัว) มือถือส่วนใหญ่เปิดได้ทีละกล้อง — ใช้ 1 เครื่องต่อ 1 จุด</b></p>
       <p class="hint">ข้อมูลสถิติจะถูกเก็บในเบราว์เซอร์ของแต่ละเครื่องแยกกัน ใช้โหมดนี้เฉพาะในเครือข่ายที่ไว้ใจได้ สำหรับติดตั้งใช้งานจริงแบบถาวร แนะนำให้ใช้โดเมนพร้อมใบรับรอง HTTPS จริง</p>
+
+      <h3 id="multi-device">ใช้มือถือหลายเครื่องรวมยอดเดียว (วิเคราะห์หน้าร้าน)</h3>
+      <p>ตั้งมือถือหรือแท็บเล็ต 1 เครื่องต่อ 1 จุด (ประตูหน้า ประตูหลัง โซนสินค้า) แล้วให้คอมพิวเตอร์ในร้านเป็นเครื่องหลักที่รวมยอด</p>
+      <ol>
+        <li>บนคอมพิวเตอร์เครื่องหลัก รัน <code>./start.sh mobile</code> หน้าจอจะแสดงที่อยู่ เช่น <code>https://192.168.1.20:8443</code> และรหัสจับคู่</li>
+        <li>บนคอมพิวเตอร์เครื่องเดียวกัน เปิด <code>https://localhost:8443/store.html</code> เลื่อนไปที่ “เชื่อมหลายเครื่อง” แล้วเลือก “เครื่องหลัก (รวมยอด)” จะเห็นรหัสจับคู่และปุ่มคัดลอกลิงก์จับคู่</li>
+        <li>บนมือถือแต่ละเครื่อง เปิด <code>https://192.168.1.20:8443/store.html</code> (ใช้ IP ของเครื่องหลัก) เลือก “เครื่องลูก (จุดนับ)” ตั้งชื่อจุด ใส่รหัสจับคู่ แล้วกด “จับคู่” หรือเปิดลิงก์จับคู่ที่ส่งมาจากเครื่องหลัก</li>
+        <li>บนมือถือ กด “เปิดกล้อง” วาดเส้นนับ/โซนตามปกติ เครื่องจะส่งยอดให้เครื่องหลักทุก 15 วินาที ถ้าเน็ตหลุดจะเก็บไว้แล้วส่งให้เองเมื่อเชื่อมต่อได้</li>
+      </ol>
+      <p class="hint">มือถือส่งเฉพาะตัวเลขสรุปรายวัน (จำนวนเข้า–ออก รายชั่วโมง โซน คิว และชื่อจุด) ไม่ส่งภาพ วิดีโอ หรือฮีตแมป เซิร์ฟเวอร์รับเฉพาะเครื่องในวง LAN ที่จับคู่แล้ว เครื่องหลักลบเครื่องลูกหรือเปลี่ยนรหัสได้ตลอด ยอดรวมจะแสดงในหน้า “วิเคราะห์หน้าร้าน” และ “แดชบอร์ดรวม” ของเครื่องหลัก บนเว็บสาธิต (GitHub Pages) ไม่มีเซิร์ฟเวอร์กลาง ให้ใช้ “ส่งต่อด้วยไฟล์” แทน</p>
     </div>
   </section>
 

@@ -11,3 +11,4 @@ require("./booth.test.js");
 require("./single-subject.test.js");
 require("./store.test.js");
 require("./insights.test.js");
+require("./agg.test.js");

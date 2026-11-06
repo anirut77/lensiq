@@ -18,6 +18,9 @@ const iqMean = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : null;
 const iqSum = a => a.reduce((s, x) => s + x, 0);
 const iqParse = (raw, d = null) => { if (raw == null) return d; try { const v = JSON.parse(raw); return v ?? d; } catch { return d; } };
 
+/* รวมยอดหลายเครื่อง (lensiq-agg.js) — เบราว์เซอร์: window.LQAgg · Node: require ; ไม่มีไฟล์ = ข้ามส่วนนี้ */
+const IQ_AGG = typeof LQAgg !== "undefined" ? LQAgg : (typeof require === "function" ? (() => { try { return require("./lensiq-agg.js"); } catch { return null; } })() : null);
+
 /** คีย์ localStorage ที่เป็นข้อมูลของระบบในชุดเดโมนี้
    st- ครอบคลุม st-cams / st-cam-<slot> / st-heat-<slot> แล้ว ; สถิติดูดวงเป็นตัวเลขนับแบบไม่ระบุตัวตนจึงระบุชื่อคีย์ตรง ๆ
    ห้ามเพิ่ม fr-leads (ชื่อเล่น+ช่องทางติดต่อ = ข้อมูลส่วนบุคคล), fr-prefs หรือ lq-camcap */
@@ -81,8 +84,25 @@ function iqCollect(snap) {
       const i = id.indexOf(":"), cam = i > 0 ? byCam[id.slice(0, i)] : null;
       zones[id] = { ...z, name: i > 0 && cam && Object.keys(byCam).length > 1 ? `${cam.name} · ${z.name}` : z.name };
     }
-    return { day: k.slice(7), in: d.in || 0, out: d.out || 0, peak: d.peak || 0, maxQueue: d.maxQueue || 0, hourlyIn: (d.hourly && d.hourly.in) || [], zones, byCam, demo: !!d.iqDemo };
+    return { day: k.slice(7), in: d.in || 0, out: d.out || 0, peak: d.peak || 0, maxQueue: d.maxQueue || 0, hourlyIn: (d.hourly && d.hourly.in) || [], hourlyOut: (d.hourly && d.hourly.out) || [], zones, byCam, demo: !!d.iqDemo };
   });
+  // เชื่อมหลายเครื่อง: st-agg-YYYY-MM-DD = ตัวเลขสรุปจากเครื่องลูก (แคชจากเครื่องหลักหรือไฟล์ที่นำเข้า)
+  // รวมเข้ายอดของวันนั้น และเพิ่มเป็นแถวแยก byCam["n:<node>"] ; ไม่มีคีย์นี้ = ยอดเดิมทุกอย่าง
+  const aggKeys = IQ_AGG ? Object.keys(snap).filter(k => /^st-agg-\d{4}-\d{2}-\d{2}$/.test(k)).sort() : [];
+  for (const k of aggKeys) {
+    const date = k.slice(7), packs = IQ_AGG.cachePacks(get(k, null), date);
+    if (!packs.length) continue;
+    let d = days.find(x => x.day === date);
+    if (!d) { d = { day: date, in: 0, out: 0, peak: 0, maxQueue: 0, hourlyIn: [], hourlyOut: [], zones: {}, byCam: {}, demo: false }; days.push(d); }
+    if (!Object.keys(d.byCam).length && (d.in || d.out)) d.byCam.local = { name: "เครื่องหลัก", in: d.in, out: d.out };
+    const M = IQ_AGG.mergeDay({ in: d.in, out: d.out, peak: d.peak, maxQueue: d.maxQueue, hourly: { in: d.hourlyIn, out: d.hourlyOut } }, packs);
+    Object.assign(d, { in: M.in, out: M.out, peak: M.peak, maxQueue: M.maxQueue, hourlyIn: M.hourlyIn, hourlyOut: M.hourlyOut, nodes: packs.length });
+    for (const p of packs) {
+      d.byCam["n:" + p.node] = { name: p.name, in: p.in, out: p.out };
+      for (const [zk, z] of Object.entries(p.zones)) d.zones[`n:${p.node}/${zk}`] = { ...z, name: `${p.name} · ${z.name}` };
+    }
+  }
+  days.sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0));
   if (days.length) D.store = days;
 
   // ป้ายโฆษณา (signage.js: sg-stats — สถิติสะสม ไม่แยกรายวัน)
@@ -898,7 +918,7 @@ if (typeof document !== "undefined") (() => {
       if (m.id === "booth") { const x = M.booth; st("ผู้เข้าชม", nf(x.visitors)); st("หยุดชม", nf(x.stopped)); st("ร่วมกิจกรรม", nf(x.participants)); el("p", { class: "cap" }, body, `งาน: ${D.booth.event.name || "–"}`); timeChart(body, "booth", "ผู้เข้าชมบูธ", "int"); }
       if (m.id === "store") {
         const x = M.store; st("คนเข้าร้าน", nf(x.in)); st("สูงสุดในร้าน", nf(x.peak)); st("คิวสูงสุด", nf(x.maxQueue)); timeChart(body, "store", "คนเข้าร้าน", "int");
-        if (Object.keys(x.byCam).length > 1) { el("p", { class: "cap" }, body, "คนเข้าแยกตามกล้อง"); barChart(body, "store", "int", "คนเข้า"); }
+        if (Object.keys(x.byCam).length > 1) { el("p", { class: "cap" }, body, Object.keys(x.byCam).some(k => k.startsWith("n:") || k === "local") ? "คนเข้าแยกตามเครื่อง/กล้อง" : "คนเข้าแยกตามกล้อง"); barChart(body, "store", "int", "คนเข้า"); }
       }
       if (m.id === "fr" || m.id === "palm" || m.id === "fs") {
         const x = M[m.id]; st("ครั้งในช่วงนี้", nf(x.count)); st("รวมทั้งหมด", nf(x.total)); st("วันที่มีผู้ใช้", nf(x.days));
@@ -1019,7 +1039,27 @@ if (typeof document !== "undefined") (() => {
   };
   $("#removeDemo").onclick = removeDemo; $("#removeDemoBanner").onclick = removeDemo;
 
+  // เชื่อมหลายเครื่อง: เครื่องหลักที่มีเซิร์ฟเวอร์ดึงยอด 31 วันล่าสุดมาแคช (st-agg-*) — ส่ง/รับเฉพาะตัวเลขสรุป
+  async function refreshAgg() {
+    let cfg = null; try { cfg = JSON.parse(localStorage.getItem("lq-agg")); } catch {}
+    if (!IQ_AGG || !cfg || cfg.role !== "hub" || !cfg.code || /\.github\.io$/i.test(location.hostname) || location.protocol === "file:") return;
+    const to = iqDay(), from = iqAddDays(to, -30);
+    try {
+      const r = await fetch(`/api/agg?from=${from}&to=${to}`, { headers: { Authorization: "Bearer " + IQ_AGG.normCode(cfg.code) }, cache: "no-store", credentials: "omit" });
+      if (!r.ok) return;
+      const j = await r.json(), dates = j && j.dates && typeof j.dates === "object" ? j.dates : {};
+      const keys = new Set(Object.keys(dates).filter(d => IQ_AGG.DATE_RE.test(d) && d >= from && d <= to));
+      for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (/^st-agg-\d{4}-\d{2}-\d{2}$/.test(k) && k.slice(7) >= from && k.slice(7) <= to) keys.add(k.slice(7)); }
+      for (const d of keys) {
+        const c = IQ_AGG.cacheFromServer(iqParse(localStorage.getItem("st-agg-" + d), null), dates[d]);
+        if (c) localStorage.setItem("st-agg-" + d, JSON.stringify(c)); else localStorage.removeItem("st-agg-" + d);
+      }
+      render();
+    } catch (e) { console.warn("agg", e && e.name); }
+  }
+
   // อัปเดตเมื่อระบบอื่นในแท็บอื่นบันทึกข้อมูล
   addEventListener("storage", e => { if (!e.key || iqIsModuleKey(e.key)) render(); });
   render();
+  refreshAgg();
 })();

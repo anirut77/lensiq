@@ -52,8 +52,10 @@ export async function launch({ headless = true, extraArgs = [] } = {}) {
   });
 
   const pages = new Set();
-  async function newPage(url, { initScripts = [], timeout = 20000 } = {}) {
-    const { targetId } = await send("Target.createTarget", { url: "about:blank" });
+  // isolated: true -> own browser context (separate localStorage/cookies), e.g. several "devices" in one Chrome
+  async function newPage(url, { initScripts = [], timeout = 20000, isolated = false } = {}) {
+    const ctxId = isolated ? (await send("Target.createBrowserContext", { disposeOnDetach: true })).browserContextId : undefined;
+    const { targetId } = await send("Target.createTarget", ctxId ? { url: "about:blank", browserContextId: ctxId } : { url: "about:blank" });
     const { sessionId } = await send("Target.attachToTarget", { targetId, flatten: true });
     const s = (m, p) => send(m, p, sessionId);
     const consoleErrors = [], consoleLog = [], requests = [];
@@ -76,7 +78,7 @@ export async function launch({ headless = true, extraArgs = [] } = {}) {
         case "Log.entryAdded":
           if (p.entry && p.entry.level === "error") consoleErrors.push({ kind: "log", text: p.entry.text, url: p.entry.url, source: p.entry.source });
           break;
-        case "Network.requestWillBeSent": requests.push({ url: p.request.url, method: p.request.method, type: p.type }); break;
+        case "Network.requestWillBeSent": requests.push({ url: p.request.url, method: p.request.method, type: p.type, postData: p.request.postData }); break;
         case "Page.loadEventFired": { const w = loadWaiters; loadWaiters = []; w.forEach(f => f()); break; }
       }
     };
@@ -115,6 +117,7 @@ export async function launch({ headless = true, extraArgs = [] } = {}) {
     async function close() {
       listeners.delete(onEvent); pages.delete(page);
       try { await send("Target.closeTarget", { targetId }); } catch { /* already closed */ }
+      if (ctxId) try { await send("Target.disposeBrowserContext", { browserContextId: ctxId }); } catch { /* ignore */ }
     }
     const page = { targetId, sessionId, send: s, evaluate, waitFor, goto, reload, close, consoleErrors, consoleLog, requests };
     pages.add(page);
