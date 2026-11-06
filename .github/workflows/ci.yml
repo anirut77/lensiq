@@ -76,6 +76,8 @@ jobs:
         with:
           chrome-version: stable
       - run: npm ci
+      - name: Thai + CJK fonts (line-breaking checks need real glyphs)
+        run: sudo apt-get update -q && sudo apt-get install -y -q fonts-thai-tlwg fonts-noto-cjk
       - name: mobile-audit detector self-test
         run: node tools/mobile-audit.mjs --selftest
         env:
