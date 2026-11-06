@@ -690,8 +690,8 @@
   function renderLetterTables() {
     const open = !!($("#nmLetterTable").closest("details") || {}).open;
     if (!open) { $("#nmLetterTable").innerHTML = ""; $("#nmKalaTable").innerHTML = ""; return; }
-    $("#nmLetterTable").innerHTML = Object.keys(KB.letterValues).map(v => '<tr><th scope="row">' + v + "</th><td>" + esc(KB.letterValues[v].split("").map(ch => /[ก-ฮ]/.test(ch) ? ch : "◌" + ch).join(" ").replace(/◌([เแโใไา])/g, "$1")) + "</td></tr>").join("");
-    $("#nmKalaTable").innerHTML = KB.weekdays.map(w => '<tr><th scope="row">' + esc(wdName(w)) + "</th><td>" + esc(w.kala.split("").join(" ")) + (w.kalaNote ? " <small>(" + esc(T("numbers.kalaNote." + w.id, w.kalaNote)) + ")</small>" : "") + "</td></tr>").join("");
+    $("#nmLetterTable").innerHTML = Object.keys(KB.letterValues).map(v => '<tr><th scope="row">' + v + '</th><td lang="th">' + esc(KB.letterValues[v].split("").map(ch => /[ก-ฮ]/.test(ch) ? ch : "◌" + ch).join(" ").replace(/◌([เแโใไา])/g, "$1")) + "</td></tr>").join("");
+    $("#nmKalaTable").innerHTML = KB.weekdays.map(w => '<tr><th scope="row">' + esc(wdName(w)) + '</th><td><span lang="th">' + esc(w.kala.split("").join(" ")) + "</span>" + (w.kalaNote ? " <small>(" + esc(T("numbers.kalaNote." + w.id, w.kalaNote)).replace(/[\u0E00-\u0E7F]+/g, m => '<span lang="th">' + m + "</span>") + ")</small>" : "") + "</td></tr>").join("");
   }
   renderKbText();
   { const dt = $("#nmLetterTable").closest("details"); if (dt) dt.addEventListener("toggle", renderLetterTables); }

@@ -1,5 +1,10 @@
 /* i18n/zh-rt-driver.js — run-time Chinese for text written by driver.js (lensiq-i18n-rt.js). */
 (window.LQI18N_RT = window.LQI18N_RT || []).push({
+  "ตรวจหลับตาด้วยภาพดวงตา": "用眼部图像检测闭眼",
+  "ค่าปกติ": "基准值",
+  "ปิดเมื่อ": "闭眼判定",
+  "และใช้ EAR เมื่อตัดภาพตาไม่ได้": "无法截取眼部图像时使用 EAR",
+  "ใช้ EAR อย่างเดียว": "仅使用 EAR",
   "หลับใน": "微睡眠",
   "หลับตานาน": "长时间闭眼",
   "หาว": "打哈欠",

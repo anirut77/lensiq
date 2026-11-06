@@ -67,6 +67,7 @@
     if (frameRate) c.frameRate = { ideal: frameRate };
     return c;
   }
+  /** @param {LQCamChainOpts} [o] */
   function fallbackChain({ deviceId, facing, ideal, frameRate } = {}) {
     const base = idealC(ideal, frameRate), steps = [];
     if (deviceId) steps.push({ deviceId: { exact: deviceId }, ...base });
@@ -252,6 +253,7 @@
   }
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
+  /** @param {LQCamOptions} [o] */
   function create(video, o = {}) {
     const opt = { facing: "user", ideal: null, frameRate: undefined, mirror: "auto", torch: false, persistKey: null, autoPause: true, strictDevice: false, ...o };
     let stream = null, deviceId = "", label = "", facing = opt.facing, devices = [], paused = false, autoResume = false;
@@ -273,7 +275,7 @@
       return fallbackChain(want);
     }
     async function open(id, face) {
-      const steps = chainFor(id, face);
+      const steps = /** @type {MediaTrackConstraints[]} */ (chainFor(id, face));
       let last = null;
       for (const v of steps) {
         try { return await navigator.mediaDevices.getUserMedia({ video: v, audio: false }); }
@@ -297,6 +299,7 @@
       const m = p.label && list.find(d => d.label === p.label);
       return m ? m.deviceId : "";
     }
+    /** @param {string} [id] @param {{ face?: string }} [o] */
     async function start(id, { face } = {}) {
       if (destroyed) throw named("InvalidStateError", "camera destroyed");
       if (!hasDOM || !root.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -453,6 +456,7 @@
       if (opt.grid && !opt.grid.contains(tile)) opt.grid.appendChild(tile);
       return tile;
     }
+    /** @param {any} slot @param {LQCamSlotOpts} [o] */
     function makeCam(slot, { name, role, deviceId, label } = {}) {
       const video = document.createElement("video");
       video.muted = true; video.playsInline = true; video.autoplay = true;
@@ -517,8 +521,10 @@
     }
 
     // public add() calls run one at a time: two quick clicks must not both pick the same free device
+    /** @type {Promise<unknown>} */
     let addQ = Promise.resolve();
     function add(a) { const r = addQ.then(() => addNow(a)); addQ = r.catch(() => {}); return r; }
+    /** @param {LQCamSlotOpts} [o] */
     async function addNow({ deviceId, name, role, slot, label, _restore } = {}) {
       if (destroyed) throw named("InvalidStateError", "hub destroyed");
       if (cams.length >= opt.max) throw named("CapacityError", `max ${opt.max}`, { max: opt.max, reason: "max" });

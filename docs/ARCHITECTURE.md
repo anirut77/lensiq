@@ -130,7 +130,7 @@ Cache Storage is `lq-models-vN`.
 | Command | What it checks | CI |
 |---|---|---|
 | `npm run lint` | ESLint flat config (bug-class rules) | yes |
-| `npm run typecheck` | `tsc --checkJs` on the platform modules (`tsconfig.typecheck.json`, `types/lensiq-globals.d.ts`). `node tools/typecheck.mjs --report` gives per-file error counts for the other files. | yes |
+| `npm run typecheck` | `tsc --checkJs` on the platform and pure-logic modules: 30 of 60 root scripts plus all 48 `i18n/*.js` (`tsconfig.typecheck.json`, `types/lensiq-globals.d.ts`). `node tools/typecheck.mjs --report` gives per-file error counts for the other files. | yes |
 | `npm run test:unit` | `node --test tests/unit` | yes |
 | `npm run test:py` | Flask test client: guard, hub, security, licensing | yes |
 | `npm run test:e2e` | Headless Chrome without WebGL: smoke, CSP, i18n, hub, privacy scans | yes |
@@ -140,6 +140,7 @@ Cache Storage is `lq-models-vN`.
 | `node tools/zh-coverage.mjs --json …` | Per-page Thai % report (artifact) | report |
 | `node tools/check-lfs.mjs` | No Git LFS pointer files in place of binaries | yes |
 | `node tools/mobile-audit.mjs` | 390 px layout report | report |
+| `node tools/build-site.mjs`, `node tools/check-site.mjs` | Pages site built from an allowlist (`_site/`); no server code / tests / tools / docs / `package.json` / `*.py` in it; every reference exists; all 27 pages load in TH + 中文 under `/lensiq/` with no 404. Same steps gate the production deploy (`.github/workflows/pages-lfs.yml`) | yes |
 
 ## 7. Conventions
 

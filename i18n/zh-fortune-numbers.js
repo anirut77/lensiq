@@ -30,7 +30,7 @@
     "numbers.ring.aria": "分数",
     "numbers.consent": "让 Claude AI 协助润色（只发送计算出的数字组合与总和，不发送完整号码或姓名）",
     "numbers.words.small": "把这个号码最突出的能量浓缩成几个词，给你加油打气",
-    "numbers.cardNote": "分享卡片一定会隐藏部分号码，例如 08x-xxx-4589",
+    "numbers.cardNote": "分享卡片会自动隐藏部分号码，例如 08x-xxx-4589",
     "numbers.card.alt": "可分享的吉祥数字结果卡片",
     "numbers.daily.aria": "每日能量",
     "numbers.cmp.aria": "对比结果",

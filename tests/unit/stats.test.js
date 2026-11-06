@@ -199,6 +199,35 @@ test("countCompare (negative binomial GLM + AR(1) level): seeded simulation — 
   assert.ok(hit / 200 >= 0.85, `power for +20%: ${hit / 2}%`);
 });
 
+// strong overdispersion: negative binomial day counts, Var = μ + μ²/k ; k = 0.8 means a day is often half or double the usual
+const gammaR = (R, k) => { const g = () => Math.sqrt(-2 * Math.log(1 - R())) * Math.cos(2 * Math.PI * R()); if (k < 1) return gammaR(R, k + 1) * Math.pow(R(), 1 / k); const d = k - 1 / 3, c = 1 / Math.sqrt(9 * d); for (;;) { let x, v; do { x = g(); v = 1 + c * x; } while (v <= 0); v = v * v * v; if (Math.log(R()) < 0.5 * x * x + d - d * v + d * Math.log(v)) return d * v; } };
+const nbDays = (R, { n = 60, L = 7, mu = 80, k = 0.8, eff = 1 } = {}) => Array.from({ length: n }, (_, i) => {
+  const g = i >= n - L ? "A" : i >= n - 2 * L ? "B" : "h", m = mu * [0.8, 0.9, 0.9, 1, 1.1, 1.4, 1.3][i % 7] * (g === "A" ? eff : 1);
+  return { y: poisson(R, m * (Number.isFinite(k) ? gammaR(R, k) / k : 1)), e: 1, wd: i % 7, g };
+});
+test("countCompare: negative binomial k = 0.8 / 0.5, 7 vs 7 days — small-sample correction keeps false positives ≈ 5% (was 6–11%)", () => {
+  // seeded mulberry32 simulation over several seeds ; binomial SE at 250 reps ≈ 1.4 points, so the band is ±2.5 SE around 5%
+  const REPS = 250, rows = [];
+  for (const k of [0.8, 0.5]) for (const seed of [101, 202]) {
+    const R = rng(seed + k * 1000); let fp = 0, vM = 0, dM = 0;
+    for (let i = 0; i < REPS; i++) { const t = S.countCompare(nbDays(R, { k })); if (t.p < 0.05) fp++; vM += t.small.vMult / REPS; dM += t.small.dfMult / REPS; }
+    rows.push({ k, seed, fp: fp / REPS, vM, dM });
+  }
+  for (const r of rows) {
+    assert.ok(r.fp <= 0.085 && r.fp >= 0.015, `NB k=${r.k} seed ${r.seed}: false positives ${(r.fp * 100).toFixed(1)}% (want ≈ 5%)`);
+    assert.ok(r.vM > 1.03 && r.dM < 0.6, `k=${r.k}: correction active (variance ×${r.vM.toFixed(3)}, df ×${r.dM.toFixed(2)})`);
+  }
+  const pooled = rows.reduce((a, r) => a + r.fp, 0) / rows.length;
+  assert.ok(pooled >= 0.03 && pooled <= 0.07, `pooled false positives ${(pooled * 100).toFixed(1)}%`);
+  // Poisson-level noise: the correction switches itself off (no power lost where it is not needed)
+  const t = S.countCompare(nbDays(rng(9), { k: Infinity }));
+  assert.ok(Math.abs(t.small.vMult - 1) < 0.01 && t.small.dfMult > 0.98, JSON.stringify(t.small));
+  // power is still there for a large real change (×2) under the same heavy noise
+  const R = rng(303); let hit = 0;
+  for (let i = 0; i < 150; i++) { const c = S.countCompare(nbDays(R, { k: 0.8, L: 30, eff: 2 })); if (c.p < 0.05 && c.adjChange > 0) hit++; }
+  assert.ok(hit / 150 >= 0.35, `power for ×2 over 30 vs 30 days at k = 0.8 (≈ 45%; was ≈ 48% before the correction, at an honest 5% level): ${(hit / 1.5).toFixed(0)}%`);
+});
+
 test("countCompare: latent level drift AR(φ) — false positives stay near 5% (was 11–34% when days were treated as independent)", () => {
   const g = R => Math.sqrt(-2 * Math.log(1 - R())) * Math.cos(2 * Math.PI * R());
   const gam8 = R => { const d = 8 - 1 / 3, c = 1 / Math.sqrt(9 * d); for (;;) { let x, v; do { x = g(R); v = 1 + c * x; } while (v <= 0); v = v * v * v; if (Math.log(R()) < 0.5 * x * x + d - d * v + d * Math.log(v)) return d * v / 8; } };

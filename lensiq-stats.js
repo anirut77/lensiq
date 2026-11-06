@@ -7,6 +7,7 @@
    - เทียบจำนวนนับรายวันสองช่วง (countCompare): negative binomial log-linear model ปรับวันในสัปดาห์ ความผันผวน (κ) ประมาณจาก
      เศษเหลือรายวันของประวัติ (ก้อนละ 14 วัน) → t-test ของ log อัตราส่วน (ยอดรายวันผันผวนเกิน Poisson เสมอ การใช้ exact Poisson
      ตรง ๆ ทำให้ “เจอความต่าง” ปลอมราว 40–50% ของครั้งเมื่อยอดแกว่ง ±20–30%) ; poissonTest (exact) เก็บไว้สำหรับจำนวนนับที่เป็นอิสระจริงเท่านั้น
+     ช่วงสั้นที่ยอดแกว่งมาก (NB k ≤ 1): ปรับความแปรปรวนด้วย trigamma ของ “ขนาดตัวอย่างที่มีผล” และลด df ตาม kurtosis (ดู countCompare)
    - เทียบอัตราส่วนรายวันสองช่วง (twoPropDaily): quasi-binomial (φ จากความต่างรายวัน)
    - ทดสอบหลายข้อพร้อมกัน: Benjamini–Hochberg (adjustP) ; ระดับความมั่นใจคิดจากค่าที่ปรับแล้ว (q)
    - ผลต่างค่าเฉลี่ย: Welch t (การแจกแจง t ผ่าน regularized incomplete beta)
@@ -17,7 +18,7 @@
    - สหสัมพันธ์: Pearson + CI/p-value จาก Fisher z ; Spearman (อันดับ)
      อนุกรมเวลา (tsCorrelation): ตัดผลวันในสัปดาห์ + แนวโน้มก่อน แล้วใช้ n_eff แบบ Bartlett/AR(1) ใน CI และ p
    - A/B: empirical Bayes (beta-binomial / normal–normal) ดึงค่าของกลุ่มที่ข้อมูลน้อยเข้าหาค่ากลาง ใช้จัดอันดับแทนค่าดิบ */
-(function (root, factory) {
+(/** @param {any} root */ function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory();
   else root.LQStats = factory();
 })(typeof self !== "undefined" ? self : this, function () {
@@ -198,6 +199,12 @@
     return y.map((_, i) => { const w = []; for (let j = Math.max(0, i - h); j <= Math.min(n - 1, i + h); j++) if (j !== i && fin(d[j])) w.push(d[j]); return w.length >= 3 ? s[i % period] * median(w) : null; });
   }
   /** P(Y ≤ y) ของ negative binomial (ค่าเฉลี่ย mu, Var = mu + κ·mu²) ; κ = 0 → Poisson */
+  /** trigamma ψ′(x) (x > 0): recurrence ขึ้นไปถึง x ≥ 6 แล้วใช้ asymptotic series */
+  function trigamma(x) {
+    let r = 0; while (x < 6) { r += 1 / (x * x); x += 1; }
+    const x2 = 1 / (x * x);
+    return r + 1 / x + x2 / 2 + (1 / x) * x2 * (1 / 6 - x2 * (1 / 30 - x2 * (1 / 42 - x2 / 30)));
+  }
   function nbCdf(y, mu, kappa) {
     if (y < 0) return 0;
     if (!(kappa > 1e-8)) return 1 - gammaP(y + 1, mu);
@@ -548,21 +555,23 @@
     }
     return { beta, rss, M, logdet };
   }
+  const KURT_SHARE = 1 / 3;
   const AR_PHI = [0, 0.2, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95, 0.98], AR_Q = [0, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.4, 0.8, 1.5, 3];
   /** contrast c'β ของ regression ที่ความคลาดเคลื่อนเป็น AR(1) + noise — REML บน grid ของ (φ, q) แล้วเฉลี่ยแบบถ่วงด้วย likelihood
      (model averaging เผื่อความไม่แน่นอนของ φ ซึ่งประมาณได้ไม่แม่นจากข้อมูลไม่กี่สิบวัน)
      แต่ละแบบใช้ df = (n − p)(1 − φ)/(1 + φ) เมื่อส่วนที่ลอยต่อเนื่องมีน้ำหนัก ≥ 10% (ข้อมูลอิสระมีน้อยกว่าจำนวนวัน)
      q = 0 คือไม่มีส่วนต่อเนื่อง → เท่ากับ weighted least squares ธรรมดา ; floorVar = ความแปรปรวนต่ำสุดที่ยอม (เช่น Poisson)
      คืน { est, se, df, p, phi (ถ่วงน้ำหนัก), share (สัดส่วนความแปรปรวนจากส่วนต่อเนื่อง), weights } */
-  function arContrast(z, X, t, h, cvec, { floorVar = 0, phis = AR_PHI, qs = AR_Q, conf = 0.95 } = {}) {
+  function arContrast(z, X, t, h, cvec, { floorVar = 0, phis = AR_PHI, qs = AR_Q, conf = 0.95, vMult = 1, dfMult = 1 } = {}) {
     const n = z.length, p = X[0].length, df0 = n - p; if (df0 < 2) return null;
+    /** @type {Array<{ ll: number, q: number, ph: number, share: number, est: number, v: number, df: number, w?: number }>} */
     const fits = [];
     for (const q of qs) for (const ph of (q === 0 ? [0] : phis)) {
       const W = arWhiten(z, X, t, h, ph, q), o = olsFit(W.Xt, W.zt); if (!o || !(o.rss > 0)) continue;
       const u = solve(o.M, cvec); if (!u) continue;
-      const v = Math.max(floorVar, o.rss / df0 * cvec.reduce((s, c, k) => s + c * u[k], 0));
+      const v = Math.max(floorVar, o.rss / df0 * cvec.reduce((s, c, k) => s + c * u[k], 0)) * vMult;
       const share = q > 0 ? (q / (1 - ph * ph)) / (q / (1 - ph * ph) + 1) : 0, r1 = share >= 0.1 ? ph : 0;
-      fits.push({ ll: -0.5 * (df0 * Math.log(o.rss) + W.logF + o.logdet), q, ph, share, est: cvec.reduce((s, c, k) => s + c * o.beta[k], 0), v, df: Math.max(4, df0 * (1 - r1) / (1 + r1)) });
+      fits.push({ ll: -0.5 * (df0 * Math.log(o.rss) + W.logF + o.logdet), q, ph, share, est: cvec.reduce((s, c, k) => s + c * o.beta[k], 0), v, df: Math.max(3, Math.max(4, df0 * (1 - r1) / (1 + r1)) * dfMult) });
     }
     if (!fits.length) return null;
     const top = Math.max(...fits.map(f => f.ll)); let ws = 0;
@@ -622,10 +631,22 @@
     const u0 = solve(P0, cvec), vPois = u0 ? cvec.reduce((s, c, k) => s + c * u0[k], 0) : 0;
     const kap = fit.kappa || 0, z = y.map((v, i) => Math.log(fit.mu[i]) - off[i] + (v - fit.mu[i]) / fit.mu[i]);
     const h0 = fit.mu.map(m => (1 + kap * m) / m), hm = mean(h0), h = h0.map(v => v / hm);
-    const R = arContrast(z, X, all.map(d => d.t), h, cvec, { floorVar: vPois, conf });
+    // ปรับสำหรับตัวอย่างเล็กเมื่อยอดรายวันผันผวนมาก (κ สูง — เช่น NB k = 1/κ ≤ 1) สองข้อ:
+    //  (ก) log ของยอดรวมแต่ละช่วงเบ้: Var[log ΣY] ≈ ψ′(a) (trigamma) ไม่ใช่ 1/a ที่ delta method ใช้ ; a = (Σμ)² / Σ μ(1+κμ) = “ขนาดตัวอย่างที่มีผล”
+    //      ของช่วงนั้น → คูณความแปรปรวนด้วย a·ψ′(a) ถ่วงตามส่วนของแต่ละช่วง (a ใหญ่ → 1)
+    //  (ข) ความแปรปรวนรายวันประมาณจากข้อมูลที่หางยาว (excess kurtosis ของ NB = 6κ + 1/(μ(1+κμ))) จึงแกว่งกว่า χ² มาก
+    //      → df ที่มีผล = df·2/(2 + γ̄₂) (Box 1953: Var s² ≈ σ⁴(2/df + γ₂/n)) ; γ̄₂ เฉลี่ยถ่วงด้วยน้ำหนักของแต่ละวัน
+    //      ใช้ส่วนหางเพียง KURT_SHARE = 1/3 ของ 6κ — สูตรเต็มทำให้ระมัดระวังเกิน (ผลบวกลวง 2–3%) ; ค่า 1/3 เลือกจากการจำลองหลาย seed
+    //  ผลจากการจำลอง (tests/unit/stats.test.js): ช่วงละ 7 วัน NB k = 0.5–0.8 ผลบวกลวงจาก 6–11% → ราว 4–6% ; k ≥ 2 แทบไม่เปลี่ยน
+    const aOf = g => { let m = 0, v = 0; all.forEach((d, i) => { if (d.g === g) { m += fit.mu[i]; v += fit.mu[i] * (1 + kap * fit.mu[i]); } }); return v > 0 ? m * m / v : Infinity; };
+    const aA = aOf("A"), aB = aOf("B"), cf = a => (fin(a) ? a * trigamma(a) : 1);
+    const vMult = (cf(aA) / aA + cf(aB) / aB) / (1 / aA + 1 / aB);
+    let gw = 0, gs = 0; fit.mu.forEach(m => { const w = m / (1 + kap * m); gw += w; gs += w * (KURT_SHARE * 6 * kap + 1 / (m * (1 + kap * m))); });
+    const g2 = gw > 0 ? gs / gw : 0, dfMult = 2 / (2 + g2);
+    const R = arContrast(z, X, all.map(d => d.t), h, cvec, { floorVar: vPois, conf, vMult, dfMult });
     if (!R) return null;
     const d = R.est;
-    return { ...base, adjRatio: Math.exp(d), adjChange: Math.exp(d) - 1, lo: Math.exp(R.lo) - 1, hi: Math.exp(R.hi) - 1, se: R.se, p: R.p, phi, phiRaw, kappa: fit.kappa, df: R.df, dfModel: df, ar: { phi: R.phi, share: R.share }, days: all.length, wdAdj, enough: df >= minDf };
+    return { ...base, adjRatio: Math.exp(d), adjChange: Math.exp(d) - 1, lo: Math.exp(R.lo) - 1, hi: Math.exp(R.hi) - 1, se: R.se, p: R.p, phi, phiRaw, kappa: fit.kappa, df: R.df, dfModel: df, ar: { phi: R.phi, share: R.share }, small: { vMult, dfMult, aA, aB }, days: all.length, wdAdj, enough: df >= minDf };
   }
 
   /** เทียบอัตราส่วน (เช่น บิล ÷ คนเข้าร้าน) ของสองช่วงจากข้อมูลรายวัน — quasi-binomial
@@ -650,6 +671,7 @@
      se ≈ ความกว้างของช่วง ÷ (2·z) ; MDE = (z_{1−α/2} + z_power)·se = ผลต่างเล็กที่สุดที่จะเห็นชัด (p < α) ได้ราว power ของครั้ง
      ถ้าเก็บข้อมูลต่อจนแต่ละช่วงยาว L วัน se จะหดราว √(days / L) → L = days·((z_α + z_β)·se / |target|)² ; moreDays = L − days
      (สมมติว่าวันใหม่ผันผวนแบบเดิม — ถ้าระดับลอยต่อเนื่องหลายวัน จริง ๆ อาจต้องนานกว่านี้ ; ตรวจด้วยการจำลองใน tests/unit/stats.test.js) */
+  /** @param {{ lo?: number, hi?: number, days?: number, target?: number | null, conf?: number, power?: number, scale?: string, maxDays?: number }} [o] */
   function planMore({ lo, hi, days, target = null, conf = 0.95, power = 0.8, scale = "log", maxDays = 365 } = {}) {
     if (!fin(lo) || !fin(hi) || !(days > 0) || hi <= lo) return null;
     const tf = v => (scale === "log" ? Math.log(1 + v) : v), inv = v => (scale === "log" ? Math.exp(v) - 1 : v);
@@ -711,7 +733,7 @@
     let ex = X, ey = Y, k = 1, adjusted = "none";
     if (wd && n >= 14) {
       const levels = [...new Set(W)].sort(), tm = mean(P);
-      const M = P.map((t, i) => levels.map(l => (W[i] === l ? 1 : 0)).concat([(t - tm) / Math.max(1, n)]));
+      const M = P.map((t, i) => levels.map(l => /** @type {number} */ (W[i] === l ? 1 : 0)).concat([(t - tm) / Math.max(1, n)]));
       const rx = olsResid(X, M), ry = olsResid(Y, M);
       if (rx && ry) { ex = rx; ey = ry; k = levels.length + 1; adjusted = "weekday+trend"; }
     }
@@ -793,7 +815,7 @@
     diff: { strong: "ต่างกันจริง หลักฐานชัด", moderate: "น่าจะต่างกันจริง", weak: "ยังไม่แน่ อาจต่างกันโดยบังเอิญ", none: "ยังไม่เห็นความต่างที่ชัด", insufficient: "ข้อมูลยังน้อย ยังสรุปไม่ได้" }
   };
   const plainConf = (level, kind = "change") => (TH_PLAIN[kind] || TH_PLAIN.change)[level] || TH_PLAIN.change.insufficient;
-  const VERSION = "3.1.0";
+  const VERSION = "3.2.0";
   /** ความแรงของสหสัมพันธ์ */
   function corrWord(r) {
     if (!fin(r)) return "ไม่ทราบ";

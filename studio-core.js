@@ -1305,6 +1305,10 @@
     const yTop = Math.max(0, Math.floor(Math.min(face.chinY - fw * .6, N.y - s * .6)));
     const keep = layers.keep, hair = layers.hair || new Float32Array(n);
     let on = new Uint8Array(n);
+    // ตัวคนข้างคอที่มีผมยาวอยู่ด้านนอก (ปกเสื้อเดิมตั้งระหว่างผมกับคอ): ชุดคลุมได้ — ไม่มีช่องฉากหลังระหว่างผมกับคอ
+    const hq = Math.max(2, Math.round(s * .2)), hairOut = (x, y, sd) => { for (let k = 2; k <= hq; k += 2) { const xx = x + sd * k; if (xx < 0 || xx >= W) break; if (hair[y * W + xx] > .4) return true; } return false; };
+    // ตัวคนใต้ปลายผมยาว (ผมคลุมไหล่ลงมา): ชุดต้องอยู่ใต้ผมด้วย ไม่มีช่องฉากหลังระหว่างปลายผมกับไหล่ชุด
+    const hu = Math.max(2, Math.round(s * .3)), hairAbove = (x, y) => { for (let k = 2; k <= hu; k += 2) { const yy = y - k; if (yy < 0) break; if (hair[yy * W + x] > .4 && alpha[yy * W + x] > .5) return true; } return false; };
     for (let y = yTop; y < H; y++) for (let x = 0; x < W; x++) {
       const i = y * W + x, a = alpha[i]; if (a <= .35) continue;
       const hr = hair[i] > .3, k = keep[i] > .5;
@@ -1313,9 +1317,9 @@
       // matte ติดฉากด้านข้าง (ธง/เสา): โมเดลแยกส่วนบอกว่าไม่ใช่คน — ใช้เฉพาะนอกแนวลำตัว (โมเดลพลาดบนผ้าสีเข้มกลางตัวได้)
       if (pp && pp[i] < .2 && au > 1.3) continue;
       // เหนือแนวไหล่ — ยกเว้นตัวคนข้างคอที่ไม่ใช่ผม (ปกเสื้อเดิมตั้งสูง): ถ้าไม่คลุมจะเห็นฉากหลังเป็นรูระหว่างผมกับคอเสื้อ
-      if (au > nw + .06 && v < shoulderTop(u, side) - .07 && !(au < .9 && v > shoulderTop(u, side) - .17 && !hr && a > .5 && y > face.chinY)) continue;
+      if (au > nw + .06 && v < shoulderTop(u, side) - .07 && !(au < .6 && v > shoulderTop(u, side) - .17 && !hr && a > .5 && y > face.chinY) && !(au < .62 && v > shoulderTop(u, side) - .25 && !hr && a > .5 && y > face.chinY && hairOut(x, y, u < 0 ? -1 : 1)) && !(au < 1.7 && v > shoulderTop(u, side) - .4 && !hr && a > .5 && y > face.chinY && hairAbove(x, y))) continue;
       if (au <= nw + .06 && v < -.45) continue;
-      const env = 1.68 - .06 * smooth((v - 1.0) / 1.5); if (au > env) continue; // กว้างเกินคน (ชุดอวกาศ/หมวกที่ถือ ไม่ทำให้ชุดพองเป็นถุง)
+      const env = 1.68 - .1 * smooth((v - 1.0) / 1.5); if (au > env) continue; // กว้างเกินคน (ชุดอวกาศ/หมวกที่ถือ ไม่ทำให้ชุดพองเป็นถุง)
       if (hr && (au > 1.62 || a < .5)) continue; // ผมยาวที่ตกนอกไหล่: ไม่มีชุดใต้ผม
       on[y * W + x] = 1;
     }
@@ -1333,7 +1337,7 @@
     on = openR(on, W, H, r2);
     // หัวไหล่มน (ไม่เป็นมุมกล่องจากบ่าเสริมของสูทเดิม): เปิดด้วยรัศมีใหญ่เฉพาะช่วงไหล่ด้านนอก
     {
-      const big = openR(on, W, H, Math.max(2, Math.round(s * .16)));
+      const big = openR(on, W, H, Math.max(2, Math.round(s * .09)));
       for (let y = yTop; y < Math.min(H, Math.round(N.y + s * 1.3)); y++) for (let x = 0; x < W; x++) {
         const i = y * W + x; if (!on[i] || big[i]) continue;
         const dx = x - N.x, dy = y - N.y, u = (dx * cs + dy * sn) / s; if (Math.abs(u) > .75) on[i] = 0;
@@ -1371,8 +1375,8 @@
     const clip = blur3Rows(sm, W, H, 1, yTop);
     for (let i = 0; i < n; i++) clip[i] = clamp01((clip[i] - .5) * 1.4 + .5);
     const ins = new Uint8Array(n); for (let i = 0; i < n; i++) ins[i] = clip[i] > .5 ? 1 : 0;
-    const d = edt(ins, W, H, { l: false, r: false, t: true, b: false }), R = s * .42, form = new Float32Array(n);
-    for (let i = 0; i < n; i++) { if (!ins[i]) continue; const t = Math.min(1, d[i] / R); form[i] = .42 * Math.sqrt(1 - (1 - t) * (1 - t)); }
+    const d = edt(ins, W, H, { l: false, r: false, t: true, b: false }), R = s * .3, form = new Float32Array(n);
+    for (let i = 0; i < n; i++) { if (!ins[i]) continue; const t = Math.min(1, d[i] / R); form[i] = .3 * Math.sqrt(1 - (1 - t) * (1 - t)); }
     return { clip, form: blur3Rows(form, W, H, Math.max(2, Math.round(s * .04)), yTop) };
   }
 
@@ -1385,11 +1389,12 @@
       const st = [s0], comp = []; lab[s0] = s0; let tn = 0;
       while (st.length) { const i = st.pop(), x = i % W; comp.push(i); if (near[i]) tn++; for (const j of [x > 0 ? i - 1 : -1, x < W - 1 ? i + 1 : -1, i - W, i + W]) if (j >= 0 && j < n && hands[j] > .5 && lab[j] < 0) { lab[j] = s0; st.push(j); } }
       // ต้องอยู่บน/ติดชุดอย่างน้อย 35% ของก้อน (มือที่วางบนตัว/ปลายแขนเสื้อ) — มือที่ยื่นออกไปถือวัตถุนอกลำตัวถูกตัด
-      if (tn >= comp.length * .35) { any = true; for (const i of comp) out[i] = 1; }
+      if (tn >= comp.length * .35 && comp.length >= r * r * 2) { any = true; for (const i of comp) out[i] = 1; }
     }
     if (!any) return null;
-    const keepNear = dilateR(Uint8Array.from(out, v => v > 0 ? 1 : 0), W, H, 2);
-    for (let i = 0; i < n; i++) out[i] = keepNear[i] ? hands[i] : 0;
+    // ส่วนที่ยื่นออกไปไกลจากชุดมาก (> 2.5r — ปลายถุงมือ/วัตถุที่ถือ) ตัดออก; ส่วนที่ติดชุดคงไว้ทั้งหมด
+    const keepNear = dilateR(Uint8Array.from(out, v => v > 0 ? 1 : 0), W, H, 2), far = dilateR(on, W, H, Math.round(r * 2.5));
+    for (let i = 0; i < n; i++) out[i] = keepNear[i] && far[i] ? hands[i] : 0;
     return out;
   }
   /**
@@ -1413,7 +1418,7 @@
     for (const sd of [-1, 1]) {
       const e7 = edgeU(sd, .75), uS = clamp(e7 ? e7.u - .3 : 1.25, .72, 1.5), vE = Math.min(2.55, vBot - .1);
       const eE = edgeU(sd, vE), uE = clamp(eE ? eE.u - .28 : uS, .72, 1.75);
-      arms.push({ side: sd, S: { u: sd * uS, v: .35 }, E: { u: sd * uE, v: vE }, Wr: { u: sd * (uE - .05), v: vBot + .6 }, w: [.58, .5, .44], hand: false, d: { u: 0, v: 1 }, order: 0 });
+      arms.push({ side: sd, S: { u: sd * uS, v: .35 }, E: { u: sd * uE, v: vE }, Wr: { u: sd * (uE - .05), v: vBot + .6 }, w: [.52, .46, .4], hand: false, d: { u: 0, v: 1 }, order: 0 });
     }
     if (hands) {
       // ก้อนมือ (4-connected, ค่า > .5) ในพิกัดมาตรฐาน
@@ -1443,7 +1448,7 @@
         h.P.forEach((p, k) => { if (t[k] > lim) return; wu += p.u; wv += p.v; c++; const q = -(p.u - E.u) * d.v + (p.v - E.v) * d.u; if (q < pmin) pmin = q; if (q > pmax) pmax = q; });
         const Wr = { u: wu / c + d.u * .05, v: wv / c + d.v * .05 }, fl = Math.hypot(Wr.u - E.u, Wr.v - E.v);
         if (fl < .35 || fl > 2.8) continue;
-        A.Wr = Wr; A.d = d; A.hand = true; A.w = [.58, .5, clamp((pmax - pmin) * 1.05, .3, .48)]; A.order = 2 - h.c.v * .1;
+        A.Wr = Wr; A.d = d; A.hand = true; A.w = [.52, .46, clamp((pmax - pmin) * 1.05, .3, .44)]; A.order = 2 - h.c.v * .1;
       }
       for (const A of arms) if (!A.hand) A.order = -1;
     }
@@ -1565,7 +1570,8 @@
       // ใต้แนวคาง ส่วนที่วางหน้าชุดมีได้เฉพาะผม (กันจุดสีเสื้อเดิมที่โมเดลทายผิดเป็น "ผิว" โผล่บนชุด)
       if (y > Math.max(jy(x), face.chinY) + face.fw * .45) h = P.hwx ? P.hwx[i] : 0; // ใต้คาง: เฉพาะผ้าคลุมศีรษะที่ยืนยันแล้ว
       // ผิวใต้แนวกราม (ตาม landmark) คือคอในเงา ไม่ใช่ใบหน้า -> ไปชั้นคอ (หลังชุด) — ยกเว้นเครื่องประดับ (ต่างหู)
-      else if (face.P && x > face.P[2].x && x < face.P[14].x && y > jy(x) + face.fw * .1 && !(P.acc && P.acc[i] > .3) && !(P.hwx && P.hwx[i] > .5)) { nk = Math.max(nk, h * (P.cloth && P.cloth[i] > h ? 0 : 1)); h = 0; }
+      // เฉพาะแนวคอ (|dx| < ~0.37 หน้า ไล่นุ่ม): ข้างกราม/ใต้หูคงเป็นศีรษะ — ไม่มีขอบตัดตรงแนวตั้งบนผม/แก้มที่ปลายกราม
+      else if (face.P && x > face.P[2].x && x < face.P[14].x && y > jy(x) + face.fw * .1 && !(P.acc && P.acc[i] > .3) && !(P.hwx && P.hwx[i] > .5)) { const wN = 1 - smooth((Math.abs(x - (face.chinX != null ? face.chinX : face.cx)) - face.fw * .32) / (face.fw * .1)); nk = Math.max(nk, h * wN * (P.cloth && P.cloth[i] > h ? 0 : 1)); h *= 1 - wN; }
       const k = smooth((h + hr - .3) / .4), nn = smooth((nk - .3) / .4) * (1 - k);
       keep[i] = k; neck[i] = nn; hair[i] = smooth((hr - .3) / .4); body[i] = Math.max(0, 1 - k - nn);
     }
@@ -1647,7 +1653,7 @@
       a = f.a; b = f.b; measured = true;
     }
     const theta = clamp(Math.atan(b), -.22, .22);
-    a = clamp(a, chinY + fw * .05, chinY + fw * .8); // โคนคอไม่ต่ำกว่าคาง 0.8 หน้า (ปกชุดอวกาศ/บ่าเสริมใหญ่ ไม่ทำให้คอยาวผิดจริง)
+    a = clamp(a, chinY + fw * .35, chinY + fw * .8); // แนวไหล่ต่ำกว่าคางอย่างน้อย 0.35 หน้า (ไม่เป็น 'หัวโต' ไหล่ชิดคาง); โคนคอไม่ต่ำกว่าคาง 0.8 หน้า (ปกชุดอวกาศ/บ่าเสริมใหญ่ ไม่ทำให้คอยาวผิดจริง)
     // ความกว้างไหล่ ณ แถวเดลตอยด์
     const yw = Math.round(a + (C.deltoidY - C.lineY) * fw), widths = [];
     let lsum = 0, rsum = 0, cropped = false;
@@ -1696,6 +1702,58 @@
     if (!l && r) l = [r[0], r[1]]; if (!r && l) r = [l[0], l[1]];
     return { l: l || [0, 0], r: r || [0, 0] };
   }
+  /**
+   * จุดยึดอัตโนมัติของเทมเพลตชุดจากรูปถ่าย (PNG พื้นใส: ชุดวางราบ/หุ่นล่องหน/ตัดจากรูปคน) จาก alpha ของชุด
+   * คืนรายการ [{x, y, u, v, k}] — (x, y) ในภาพเทมเพลต, (u, v) ตำแหน่งในพิกัดมาตรฐานของตัวคน (N = โคนคอ, ไหล่กว้าง 3.0)
+   *  neck  = ก้นช่องคอด้านหน้า (จุดต่ำสุดของขอบบนช่วงกลาง)      -> (0, -0.05)
+   *  cl/cr = ปลายปกคอซ้าย/ขวา (จุดสูงสุดของขอบบนสองข้างช่องคอ)   -> (∓0.33, -0.22)
+   *  l/r   = ปลายไหล่ (ขอบบนเริ่มชันลงเป็นแขนเสื้อ)              -> (∓1.45, 0.25)
+   *  hl/hr = มุมชายเสื้อ                                           -> (∓1.5, v ตามสัดส่วนจริงของเทมเพลต)
+   * คืน null ถ้าไม่พบชุด
+   */
+  function templateAnchors(alpha, W, H) {
+    let x0 = W, x1 = -1, y0 = H, y1 = -1;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (alpha[y * W + x] > .5) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    if (x1 < 0 || x1 - x0 < 8 || y1 - y0 < 8) return null;
+    const Wg = x1 - x0 + 1, Hg = y1 - y0 + 1, top = new Float32Array(W).fill(NaN);
+    for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) if (alpha[y * W + x] > .5) { top[x] = y; break; }
+    // แกนกลาง: กึ่งกลางของแถวกว้างสุดในช่วงบน 35%
+    let cx = (x0 + x1) / 2, bw = 0;
+    for (let y = y0; y < y0 + Hg * .35; y++) { let a = -1, b = -1; for (let x = x0; x <= x1; x++) if (alpha[y * W + x] > .5) { if (a < 0) a = x; b = x; } if (a >= 0 && b - a > bw) { bw = b - a; cx = (a + b) / 2; } }
+    const T = x => { x = clamp(Math.round(x), x0, x1); return isNaN(top[x]) ? y1 : top[x]; };
+    // ช่องคอ: จุดลึกสุดของขอบบนในช่วงกลาง ±0.15 ความกว้าง
+    let nx = cx, ny = -1; for (let x = Math.round(cx - Wg * .15); x <= Math.round(cx + Wg * .15); x++) { const t = T(x); if (t > ny) { ny = t; nx = x; } }
+    // ปลายปกคอ: จุดสูงสุดของขอบบนระหว่างช่องคอถึง 0.3 ความกว้างออกไป
+    const peak = sd => { let bx = nx, by = Infinity; for (let k = 1; k < Wg * .3; k++) { const x = nx + sd * k, t = T(x); if (t < by) { by = t; bx = x; } } return { x: bx, y: by }; };
+    const cl = peak(-1), cr = peak(1);
+    // ปลายไหล่: เดินออกจากปลายปก หาตำแหน่งแรกที่ขอบบนชัน (> 1.2 ต่อพิกเซล) หรือขอบนอกสุด
+    const tip = (c, sd) => { const st = Math.max(2, Math.round(Wg * .01)); let x = c.x + sd * Wg * .12, last = { x: c.x, y: c.y }; while (sd < 0 ? x > x0 + st : x < x1 - st) { const a = T(x), b = T(x + sd * st); if (b - a > st * 1.2) return { x, y: a }; last = { x, y: a }; x += sd * st; } return last; };
+    const l = tip(cl, -1), r = tip(cr, 1);
+    const span = y => { let a = -1, b = -1; for (let x = x0; x <= x1; x++) if (alpha[y * W + x] > .5) { if (a < 0) a = x; b = x; } return { a, b }; };
+    const yh = Math.max(y0, Math.round(y1 - Hg * .02)), hs = span(yh);
+    const sc = Math.max(1, Math.hypot(r.x - l.x, r.y - l.y) / 2.9), hv = (yh - ny) / sc - .05;
+    return [
+      { k: "neck", x: nx, y: ny, u: 0, v: -.05 }, { k: "cl", x: cl.x, y: cl.y, u: -.33, v: -.22 }, { k: "cr", x: cr.x, y: cr.y, u: .33, v: -.22 },
+      { k: "l", x: l.x, y: l.y, u: -1.45, v: .25 }, { k: "r", x: r.x, y: r.y, u: 1.45, v: .25 },
+      { k: "hl", x: hs.a, y: yh, u: -1.5, v: hv }, { k: "hr", x: hs.b, y: yh, u: 1.5, v: hv }
+    ];
+  }
+  /**
+   * ฟังก์ชันย้อนกลับ (พิกัดภาพผลลัพธ์ -> พิกัดเทมเพลต) สำหรับดัดเทมเพลตลงตัวคนด้วย thin-plate spline:
+   * จุดยึดแต่ละจุดมี (u, v) มาตรฐาน -> ตำแหน่งบนตัวคน = fit (N, s, theta) + ค่าชดเชยแนวไหล่รายข้าง (side) + ระดับคอเสื้อ (drop)
+   * คืน { inv, targets }
+   */
+  function templateWarp(anchors, fit, { side = null, drop = 0, lambda = .02 } = {}) {
+    const cs = Math.cos(fit.theta || 0), sn = Math.sin(fit.theta || 0), s = fit.s, N = fit.N;
+    const targets = anchors.map(a => {
+      let v = a.v; const au = Math.abs(a.u);
+      if (side) { const c = a.u < 0 ? side.l : side.r; if (c) v += (c[0] + c[1] * (au - 1)) * smooth((au - .35) / .5); }
+      if (au < .5 && a.v < .3) v += drop * (1 - smooth((au - .3) / .4));
+      return { x: N.x + s * (cs * a.u - sn * v), y: N.y + s * (sn * a.u + cs * v) };
+    });
+    const T = tpsFit(targets, anchors.map(a => ({ x: a.x, y: a.y })), lambda * s * s / 1e4);
+    return { inv: (x, y) => T.map(x, y), targets };
+  }
   /** จากจุดยึด 3 จุด (chin = โคนคอ N, l/r = บนไหล่) -> {N, s, theta} (ใช้กับจุดที่ผู้ใช้ลาก) */
   function fitFromTargets(T, canon = null) {
     const C = canon || { L: { x: -1.4, y: .24 }, R: { x: 1.4, y: .24 } };
@@ -1740,7 +1798,11 @@
         const L = rgbToLab(person[i * 4], person[i * 4 + 1], person[i * 4 + 2]);
         const dC = mono ? 0 : Math.hypot(L[1] - sk[1], L[2] - sk[2]), dL = L[0] - sk[0];
         // ปกขาว/ฉากสว่างที่ทายเป็นคอ (สว่างกว่าผิวหน้ามาก) หรือสร้อยสีเข้ม (มืดกว่าผิวมาก) = ไม่ใช่ผิว
-        const ok = (1 - smooth((dC - 14) / 10)) * (1 - smooth((dL - 12) / 10)) * (1 - smooth((-dL - 30) / 12));
+        // ภาพขาวดำ: แยกด้วยสีไม่ได้ — ยอมให้มืดกว่าผิวหน้าน้อยกว่า (เสื้อ/ปกเดิมสีเข้มไม่ถูกนับเป็นคอจริง)
+        // ผิวเรียบ: ส่วนเบี่ยงเบนความสว่างเฉพาะที่ (5×5) ต่ำ — ผ้าทวีด/ลูกปัด/ลายเสื้อเดิม มีลายสูง ไม่ใช่ผิวคอ
+        let s1 = 0, s2 = 0, sc = 0; for (let dy = -2; dy <= 2; dy += 2) for (let dx = -2; dx <= 2; dx += 2) { const xx = x + dx, yy = y + dy; if (xx < 0 || yy < 0 || xx >= W || yy >= H) continue; const j = yy * W + xx, l = .299 * person[j * 4] + .587 * person[j * 4 + 1] + .114 * person[j * 4 + 2]; s1 += l; s2 += l * l; sc++; }
+        const sdv = Math.sqrt(Math.max(0, s2 / sc - (s1 / sc) ** 2));
+        const ok = (1 - smooth((dC - 14) / 10)) * (1 - smooth((dL - 12) / 10)) * (1 - smooth((-dL - (mono ? 16 : 30)) / (mono ? 8 : 12))) * (1 - smooth((sdv - 14) / 10));
         real[i] = v * ok;
       }
     }
@@ -1839,7 +1901,7 @@
     fillPoly, skinLikelihood, skinKeepMask, faceMasks, smoothSkin, adjustRegion, sharpen,
     estimateNoise, rng, addGrain, harmonizeGarment, contactShadow, lightWrap, blurredBackground,
     PARSE_LABELS, PARSE_GROUPS, parseCrop, parseGroups, cropToImage, multiclassGroups, headwearExtend, hairCleanup, parsePersonProb, fillMatteFromParse, minFilter, dilate01, blur3Rows, clothShading, faceFromParse, fillFaceMatte, distanceInside, canonShoulder, garmentClip, edt, dilateR, erodeR, closeR, openR, fillHoles, componentFrom, shoulderTop, neckMeasure, handsMask, handsNearGarment, armModel, heuristicParse, personLayers,
-    SHOULDER_PRIOR, measureShoulders, sideOffsets, fitFromTargets, synthNeck, hairShadow, composeLayers,
+    SHOULDER_PRIOR, measureShoulders, sideOffsets, templateAnchors, templateWarp, fitFromTargets, synthNeck, hairShadow, composeLayers,
     applyMatteEdits, brush
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

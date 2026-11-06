@@ -92,7 +92,10 @@ if (typeof document !== "undefined") (() => {
   // — ร้านค้าแสดงชื่อ/ประวัติการสั่ง จึงเลือกฝั่งปลอดภัย ; MATCH_MARGIN กันกรณีหน้าคล้ายสมาชิกสองคน
   // round 4 (tests/bench/face1n.bench.mjs): 0.55 + เกณฑ์รายคน 0.85 × ระยะถึงสมาชิกที่ใกล้ที่สุด (ไม่ต่ำกว่า 0.45) + คุณภาพภาพ
   //   + ลงทะเบียน 3 ท่า + ยืนยัน 2 เฟรม: LFW 100 คน จำได้ ~85–88% คนนอกถูกทัก < 1% (เดิม 0.50: 80% / 1.75%)
-  const MATCH_DISTANCE = 0.55, MATCH_MARGIN = 0.05, FACE_RULES = { k: 0.85, floor: 0.45 };
+  // round 5 (LQTrack.FACE_RULES): 0.50 / 0.85 × nn (>= 0.44) / margin 0.09, all scaled to the enrolled group (gallerySpread),
+  //   so a small or Asian-only member list is not looser than a large one (CASIA-FaceV5 20 members: strangers 6.5% -> < 1%).
+  //   A match that is not "confident" (or < 5 members enrolled) is never auto-selected: the cashier taps the name chip.
+  const FACE_RULES = LQTrack.FACE_RULES, MATCH_DISTANCE = FACE_RULES.maxDist, MATCH_MARGIN = FACE_RULES.margin;
   const K = { members: "cx-members", orders: "cx-orders", menu: "cx-menu" };
   const DEFAULT_MENU = [
     ["อเมริกาโน่", "กาแฟ", 50], ["ลาเต้", "กาแฟ", 60], ["คาปูชิโน่", "กาแฟ", 60], ["มอคค่า", "กาแฟ", 65],
@@ -210,9 +213,10 @@ if (typeof document !== "undefined") (() => {
   function rebuildMatcher() {
     const withFace = members.filter(m => m.descriptor);
     // คลังใบหน้าในหน่วยความจำ — LQTrack.matchFace: ระยะ < MATCH_DISTANCE และห่างจากสมาชิกอันดับสอง >= MATCH_MARGIN
-    matcher = withFace.length ? LQTrack.enrolGallery(withFace.map(m => ({ label: m.id, ds: [new Float32Array(m.descriptor)] })), { maxDist: MATCH_DISTANCE, ...FACE_RULES }) : null;
+    matcher = withFace.length ? LQTrack.enrolGallery(withFace.map(m => ({ label: m.id, ds: [new Float32Array(m.descriptor)] })), FACE_RULES) : null;
   }
-  const detOpts = () => new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
+  // 320 แล้ว 224 / 160 เมื่อไม่พบใบหน้า (หน้าใกล้กล้องมาก) — LQDetect.detectFacesCascade, ACCURACY.md §2
+  const detectReal = () => LQDetect.detectFacesCascade(faceapi, video, { sizes: LQDetect.FACE_SIZES, scoreThreshold: 0.5 });
   // ใบหน้าทั้งหมดในภาพ เรียงจากใหญ่ไปเล็ก -> [{box:{x,y,width,height} พิกเซลวิดีโอ, descriptor|null, fake?}]
   async function detectFaces(max = MAX_FACES) {
     let faces;
@@ -221,7 +225,7 @@ if (typeof document !== "undefined") (() => {
       const W = video.videoWidth || overlay.width || 1, H = video.videoHeight || overlay.height || 1;
       faces = fk.map(d => ({ box: { x: d.x * W, y: d.y * H, width: d.w * W, height: d.h * H }, descriptor: d.descriptor ? Float32Array.from(d.descriptor) : null, fake: d }));
     } else {
-      const r = await faceapi.detectAllFaces(video, detOpts()).withFaceLandmarks().withFaceDescriptors();
+      const r = await detectReal();
       faces = r.map(x => { const b = x.detection.box; return { box: { x: b.x, y: b.y, width: b.width, height: b.height }, descriptor: x.descriptor, q: LQTrack.faceQuality({ box: b, score: x.detection.score, landmarks: x.landmarks.positions }) }; });
     }
     return faces.sort((a, b) => b.box.width * b.box.height - a.box.width * a.box.height).slice(0, max);
@@ -231,7 +235,7 @@ if (typeof document !== "undefined") (() => {
     if (!matcher || !f.descriptor) return { label: "unknown", distance: 1 };
     if (f.q && !LQTrack.qualityOk(f.q)) return { label: "unknown", distance: 1, lowq: true };
     const m = LQTrack.matchFace(f.descriptor, matcher, { maxDist: MATCH_DISTANCE, margin: MATCH_MARGIN });
-    return { label: m.label, distance: m.distance };
+    return { label: m.label, distance: m.distance, confident: m.confident };
   }
   // ทุกใบหน้า (สูงสุด 4) -> [{box, label, distance}] สมาชิกหนึ่งคนจับคู่ได้แค่ใบหน้าเดียว (ใกล้สุดได้ไป)
   async function detectAll() {
@@ -239,8 +243,8 @@ if (typeof document !== "undefined") (() => {
     const ms = faces.map(bestMatch);
     const cands = [];
     ms.forEach((m, i) => { if (m.label !== "unknown" && members.some(x => x.id === m.label && x.descriptor)) cands.push({ i, key: m.label, dist: m.distance }); });
-    const got = LQTrack.assignUnique(cands, MATCH_DISTANCE);
-    const res = faces.map((f, i) => { const a = got.get(i); return { box: f.box, label: a ? a.key : "unknown", distance: a ? a.dist : ms[i].distance }; });
+    const got = LQTrack.assignUnique(cands, Infinity); // matchFace already applied the (calibrated) limits
+    const res = faces.map((f, i) => { const a = got.get(i); return { box: f.box, label: a ? a.key : "unknown", distance: a ? a.dist : ms[i].distance, confident: !!a && ms[i].confident !== false }; });
     drawFaces(res);
     return res;
   }
@@ -266,7 +270,7 @@ if (typeof document !== "undefined") (() => {
   // นับเฟรมติดกันต่อคน (Map<label,count>) — ต้องตรงกัน 2 เฟรมกันการจำผิด
   // สมาชิก 1 คน -> เลือกอัตโนมัติ · 2 คนขึ้นไป -> ชิปให้แคชเชียร์แตะเลือก · ผู้ที่ไม่ใช่สมาชิกไม่แย่งสมาชิก
   async function scanLoop() {
-    const streak = new Map();
+    const streak = new Map(), sureN = new Map(); // sureN: เฟรมติดกันที่จับคู่ได้แบบมั่นใจ
     clearChips();
     while (scanning) {
       const t0 = performance.now();
@@ -277,11 +281,15 @@ if (typeof document !== "undefined") (() => {
         const seen = new Set(res.map(r => r.label));
         for (const k of [...streak.keys()]) if (!seen.has(k)) streak.delete(k);
         seen.forEach(k => streak.set(k, (streak.get(k) || 0) + 1));
+        for (const r of res) if (r.label !== "unknown") sureN.set(r.label, r.confident ? (sureN.get(r.label) || 0) + 1 : 0);
+        for (const k of [...sureN.keys()]) if (!seen.has(k)) sureN.delete(k);
         const present = res.filter(r => r.label !== "unknown").map(r => r.label);
         const confirmed = present.filter(k => streak.get(k) >= 2);
         if (!res.length) setStatus("กำลังสแกน... ไม่พบใบหน้า");
         else if (confirmed.length >= 2) { stopScan(false); showChips(confirmed); break; }
-        else if (confirmed.length === 1 && present.length === 1) { stopScan(); selectCustomer(confirmed[0], "สแกนใบหน้า"); break; }
+        else if (confirmed.length === 1 && present.length === 1 && (sureN.get(confirmed[0]) || 0) >= 2) { stopScan(); selectCustomer(confirmed[0], "สแกนใบหน้า"); break; }
+        // จับคู่ได้แต่ไม่มั่นใจ: ไม่เลือกเอง ให้แคชเชียร์แตะชื่อยืนยัน (หรือค้นหาด้วยชื่อ/เบอร์)
+        else if (confirmed.length === 1 && present.length === 1) { stopScan(false); showChips(confirmed, true); break; }
         else if (!present.length && streak.get("unknown") >= 2) { stopScan(); showUnknown(); break; }
         else {
           const n = Math.max(0, ...res.map(r => streak.get(r.label) || 0));
@@ -293,13 +301,15 @@ if (typeof document !== "undefined") (() => {
   }
   const setStatus = t => { $("#scanStatus").textContent = t; };
   function clearChips() { $("#scanStatus").classList.remove("has-chips"); }
-  function showChips(ids) {
+  function showChips(ids, unsure = false) {
     const ms = ids.map(id => members.find(m => m.id === id)).filter(Boolean);
     const el = $("#scanStatus");
     el.classList.add("has-chips");
-    el.innerHTML = `<span class="chips-head">พบสมาชิก ${ms.length} คน: ${esc(ms.map(m => m.name).join(", "))}</span>`
+    el.innerHTML = (unsure
+      ? `<span class="chips-head">ไม่แน่ใจ อาจเป็นคุณ${esc(ms.map(m => m.name).join(", "))}</span>`
+      : `<span class="chips-head">พบสมาชิก ${ms.length} คน: ${esc(ms.map(m => m.name).join(", "))}</span>`)
       + `<span class="chips">${ms.map(m => `<button type="button" class="chip" data-id="${esc(m.id)}">${esc(m.name)}</button>`).join("")}</span>`
-      + `<span class="hint">แตะชื่อลูกค้าที่กำลังสั่ง</span>`;
+      + `<span class="hint">${unsure ? "ถามชื่อลูกค้าก่อน แล้วแตะยืนยัน (หรือค้นหาด้วยชื่อ)" : "แตะชื่อลูกค้าที่กำลังสั่ง"}</span>`;
   }
   $("#scanStatus").addEventListener("click", e => { const b = e.target.closest("button.chip[data-id]"); if (b) { clearChips(); selectCustomer(b.dataset.id, "สแกนใบหน้า"); } });
   function stopScan(clear = true) { scanning = false; $("#scanToggle").textContent = "เริ่มสแกนลูกค้า"; if (clear) overlay.getContext("2d").clearRect(0, 0, overlay.width, overlay.height); }

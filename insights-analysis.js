@@ -1,6 +1,6 @@
 /* insights-analysis.js — แดชบอร์ดรวม LENSIQ: การวิเคราะห์เชิงสถิติ: ตารางรายวัน การทดสอบเทียบช่วง (BH) ฤดูกาล พยากรณ์ ความสัมพันธ์ A/B ความน่าเชื่อถือของข้อมูล เป้าหมาย แจ้งเตือน
    ไม่ใช้ DOM จึงทดสอบด้วย Node ได้ · UMD: เบราว์เซอร์ = window.LQInsightsAnalysis · Node = require("./insights-analysis.js") */
-(function (root, factory) {
+(/** @param {any} root */ function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory(require("./insights-data.js"), require("./lensiq-stats.js"));
   else root.LQInsightsAnalysis = factory(root.LQInsightsData, root.LQStats);
 })(typeof self !== "undefined" ? self : this, function (M_data, LQStats) {
@@ -223,7 +223,7 @@ function iqAnalyze(D, r, opt = {}) {
     addC("ots-in", xs, ys, "คนผ่านจอโฆษณา (รายชั่วโมง สะสม)", "คนเข้าร้าน (รายชั่วโมง)", "ทั้งสองค่าขึ้นกับช่วงเวลาของวันเหมือนกัน ไม่ได้แปลว่าป้ายพาคนเข้าร้าน", false);
   }
   if (D.booth) addC("booth-stop", W(H.booth), W(H.boothStop).map((s, i) => W(H.booth)[i] ? s / W(H.booth)[i] : null), "ผู้เข้าชมบูธต่อวัน", "อัตราหยุดชม", "บูธที่คนแน่นอาจทำให้คนหยุดน้อยลงหรือมากขึ้นได้ทั้งสองทาง");
-  A.corr = corr;
+  A.corr = corr; A.corrSpan = { from: cFrom, to: cTo };
 
   // ---------- A/B ----------
   A.ab = {};

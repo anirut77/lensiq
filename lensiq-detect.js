@@ -28,6 +28,10 @@
  *     window.ort); detectYolox(m, src, opts) same contract as detectCoco (+ split:'auto'); detectPeople(m, src, opts) dispatches.
  *   decodeYolox(out, A, C5, S, {classes, minScore, iou, max, scale}) -> dets in letterboxed-source px (pure)
  *   faceSharpness(src, box px) -> Laplacian variance of the face crop (quality gate)
+ *   detectFacesCascade(faceapi, src, {sizes=[320,224,160], scoreThreshold=0.5, descriptors=true}) -> Promise<results[]>
+ *     TinyFaceDetector + 68 landmarks (+ descriptors) at sizes[0]; only when that finds no face, again at the next size.
+ *     A face that fills a large part of the frame (someone close to a kiosk camera) is often missed at 320 and found at
+ *     160: CASIA-FaceV5 faces found 60% -> see ACCURACY.md §2. Costs a second (cheaper) pass only on empty frames.
  *   isTest() -> boolean   location.hostname in {localhost,127.0.0.1} && URLSearchParams has 'fakedet'
  *   fake(key, now) -> dets|null   isTest() ? (window.__LQ_FAKE_DET?.(key, now) ?? null) : null
  *     Pages call fake() before the real model; with ?fakedet they skip model loading entirely.
@@ -155,6 +159,7 @@
     } finally { outs.forEach(t => t.dispose()); }
   }
   let tileCanvas = null;
+  /** @param {any} model @param {any} src @param {LQDetectOpts} [o] */
   async function detectCoco(model, src, { detW = 416, classes = [0], minScore = 0.4, iou: iouThr = 0.5, max = 20, canvas, tiles = null } = {}) {
     const W = src.videoWidth || src.naturalWidth || src.width, H = src.videoHeight || src.naturalHeight || src.height;
     if (!W || !H) return [];
@@ -193,7 +198,7 @@
     }
     return nms(cand, iouThr, max);
   }
-  const YOLOX_DEFAULT = "vendor/models/yolox/yolox_tiny_416.onnx";
+  const YOLOX_DEFAULT = "vendor/models/yolox/yolox_nano_416.onnx"; // the vendored model (tiny is benchmarked only, not shipped)
   function ortReady() {
     const ort = root.ort;
     if (!ort) throw new Error("ไม่พบไลบรารี vendor/ort/ort.wasm.min.js");
@@ -250,6 +255,7 @@
    * The source is also drawn detW wide into `canvas` (store re-ID crops from it). split:'auto' runs 2 overlapping
    * square-ish halves instead of one letterboxed pass when the frame is wider than 4:3 (a 16:9 frame letterboxed to 416²
    * wastes 44% of the input), so people keep ~1.8× more pixels for the same 2 model runs as COCO-SSD 2×1 tiles. */
+  /** @param {any} m @param {any} src @param {LQDetectOpts} [o] */
   async function detectYolox(m, src, { detW = 416, classes = [0], minScore = 0.4, iou: iouThr = 0.5, max = 20, canvas, tiles = null, split = null } = {}) {
     const W = src.videoWidth || src.naturalWidth || src.width, H = src.videoHeight || src.naturalHeight || src.height;
     if (!W || !H) return [];
@@ -284,6 +290,7 @@
     return p;
   }
   let cropCanvas = null;
+  /** @param {any} model @param {any} src @param {any} box @param {LQDetectOpts} [o] */
   function embedBox(model, src, box, { pad = 0.04, canvas } = {}) {
     const tf = root.faceapi.tf;
     const W = src.videoWidth || src.naturalWidth || src.width, H = src.videoHeight || src.naturalHeight || src.height;
@@ -329,7 +336,17 @@
     return r == null ? null : r;
   }
 
-  const api = { tfBackend, hasWebGL, loadCoco, decodeCoco, nms, detectCoco, decodeYolox, loadYolox, detectYolox, detectPeople, YOLOX_DEFAULT, tileRects, mergeTiles, loadEmbedder, embedBox, EMB_NODE, faceSharpness, isTest, fake };
+  const FACE_SIZES = Object.freeze([320, 224, 160]);
+  async function detectFacesCascade(fa, src, { sizes = FACE_SIZES, scoreThreshold = 0.5, descriptors = true } = {}) {
+    for (const inputSize of sizes) {
+      let q = fa.detectAllFaces(src, new fa.TinyFaceDetectorOptions({ inputSize, scoreThreshold })).withFaceLandmarks();
+      if (descriptors) q = q.withFaceDescriptors();
+      const r = await q;
+      if (r && r.length) return r;
+    }
+    return [];
+  }
+  const api = { detectFacesCascade, FACE_SIZES, tfBackend, hasWebGL, loadCoco, decodeCoco, nms, detectCoco, decodeYolox, loadYolox, detectYolox, detectPeople, YOLOX_DEFAULT, tileRects, mergeTiles, loadEmbedder, embedBox, EMB_NODE, faceSharpness, isTest, fake };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") root.LQDetect = api;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -86,13 +86,15 @@
   /** ตารางปีชงของปี year: [{animal, rel}] */
   function chongTable(year) { var ya = animalOfYear(year); return KB.ANIMALS.map(function (_, i) { return { animal: i, rel: relation(i, ya) }; }); }
   function compat(a, b) { var rel = relation(a, b); return { a: a, b: b, rel: rel, score: KB.COMPAT[rel].score }; }
-  function yearName(y) { var a = KB.ANIMALS[animalOfYear(y)], e = KB.ELEMENTS[elementOfYear(y)]; return "ปี" + a.th + " (" + a.an + ") ธาตุ" + e.th; }
+  // "งูใหญ่ (มังกร)" ในวงเล็บของชื่อปี → "งูใหญ่หรือมังกร" (ไม่ให้เกิดวงเล็บซ้อน "ปีมะโรง (งูใหญ่ (มังกร))")
+  function anFlat(a) { return String(a.an).replace(/\s*[(（]([^)）]+)[)）]\s*$/, "หรือ$1"); }
+  function yearName(y) { var a = KB.ANIMALS[animalOfYear(y)], e = KB.ELEMENTS[elementOfYear(y)]; return "ปี" + a.th + " (" + anFlat(a) + ") ธาตุ" + e.th; }
 
   /* ---------- facts ---------- */
   function buildFacts(R, topic, opts) {
     opts = opts || {};
     var r = opts.rng || Math.random, A = KB.ANIMALS[R.animal], Y = KB.ANIMALS[R.yearAnimal], REL = KB.REL[R.rel], ER = KB.ELREL[R.elRel], items = [];
-    items.push({ id: "animal." + R.animal, group: "ปีเกิด", label: "ปี" + A.th + " (" + A.an + ")", short: "ชาวปี" + A.th, evidence: "นักษัตร" + A.an + " " + A.zh + " ธาตุ" + KB.ELEMENTS[R.birthElement].th,
+    items.push({ id: "animal." + R.animal, group: "ปีเกิด", label: "ปี" + A.th + " (" + anFlat(A) + ")", short: "ชาวปี" + A.th, evidence: "นักษัตร" + A.an + " " + A.zh + " ธาตุ" + KB.ELEMENTS[R.birthElement].th,
       strength: 0.84, tags: ["personality", "work", "money", "love", "social", "advice"], meanings: { personality: A.p.slice(), work: A.w.slice(), money: A.m.slice(), love: A.l.slice(), social: A.s.slice(), advice: [A.a] } });
     var rm = { overview: REL.o.slice(), work: REL.w.slice(), money: REL.m.slice(), love: REL.l.slice(), advice: REL.a.slice(), timing: REL.t.slice() };
     items.push({ id: "rel." + R.rel, group: "ปี " + R.year + " (พ.ศ. " + (R.year + 543) + ")", label: (REL.th === "ปีปกติ" ? "ปีปกติ" : REL.badge.split(" · ").pop()) + "ในปี" + Y.th, short: REL.th === "ปีปกติ" ? "ปีนี้" : "ปี" + REL.th, evidence: yearName(R.year),
@@ -114,18 +116,20 @@
     var A = KB.ANIMALS[C.a], B = KB.ANIMALS[C.b], X = KB.COMPAT[C.rel];
     var m = { love: X.l.slice(), work: X.w.slice(), overview: [X.l[0]] };
     return {
-      domain: "zodiac", topic: topic || "love", subject: {}, headline: "ปี" + A.th + " กับ ปี" + B.th + " · " + X.th,
+      // variant "pair": ตัวเรียบเรียงใช้ประโยคเปิดของการดูคู่ (ไม่ใช่ประโยคเปิดของดวงรายปี)
+      domain: "zodiac", variant: "pair", topic: topic || "love", subject: {}, headline: "คู่ปี" + A.th + "กับปี" + B.th,
       items: [
         { id: "pair." + C.rel, group: "ความเข้ากัน", label: X.th + " ระหว่างปี" + A.th + "กับปี" + B.th, short: "คู่นี้", strength: 0.95, tags: Object.keys(m), meanings: m, polarity: C.score < 75 ? "challenge" : undefined },
         { id: "a." + C.a, group: "ฝ่ายแรก", label: "ชาวปี" + A.th, short: "ปี" + A.th, strength: 0.7, tags: ["love", "personality"], meanings: { love: A.l.slice(), personality: A.p.slice(0, 2) } },
-        { id: "b." + C.b, group: "อีกฝ่าย", label: "ชาวปี" + B.th, short: "ปี" + B.th, strength: 0.68, tags: ["love", "social"], meanings: { love: B.l.slice(), social: B.s.slice() } }
+        // อีกฝ่าย: ใช้คำอ่านบุคคลที่สาม (KB.ANIMALS[i].pl/.ps) ซึ่งขึ้นต้นด้วย "อีกฝ่าย" อยู่แล้ว จึงเป็น plain
+        { id: "b." + C.b, group: "อีกฝ่าย", label: "อีกฝ่าย (ชาวปี" + B.th + ")", short: "อีกฝ่าย", plain: true, strength: 0.68, tags: ["love", "social"], meanings: { love: B.pl.slice(), social: B.ps.slice() } }
       ].map(function (it) { if (!it.polarity) delete it.polarity; return it; })
     };
   }
 
   var ZD = {
     relation: relation, isChong: isChong, animalOfYear: animalOfYear, stemOfYear: stemOfYear, elementOfYear: elementOfYear, zodiacYearOf: zodiacYearOf, currentYear: currentYear,
-    elRel: elRel, bridge: bridge, luckyElements: luckyElements, annual: annual, chongTable: chongTable, compat: compat, yearName: yearName, buildFacts: buildFacts, compatFacts: compatFacts, ORDER: ORDER
+    elRel: elRel, bridge: bridge, luckyElements: luckyElements, annual: annual, chongTable: chongTable, compat: compat, yearName: yearName, anFlat: anFlat, buildFacts: buildFacts, compatFacts: compatFacts, ORDER: ORDER
   };
   if (typeof module !== "undefined" && module.exports) module.exports = ZD;
   root.Zodiac = ZD;
@@ -161,7 +165,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function monthName(m) { return T("zodiac.month", months[m - 1], { m: m }); }
   function yearName(y) {
     var a = ZD.animalOfYear(y), A = KB.ANIMALS[a], e = ZD.elementOfYear(y);
-    return T("zodiac.yearName", "ปี{th} ({an}) ธาตุ{el}", { th: A.th, an: A.an, el: KB.ELEMENTS[e].th, gz: GZ_S[ZD.stemOfYear(y)] + GZ_B[a], zan: T("zodiac.an." + a, A.th), zel: KB.ELEMENTS[e].zh });
+    return T("zodiac.yearName", "ปี{th} ({an}) ธาตุ{el}", { th: A.th, an: ZD.anFlat(A), el: KB.ELEMENTS[e].th, gz: GZ_S[ZD.stemOfYear(y)] + GZ_B[a], zan: T("zodiac.an." + a, A.th), zel: KB.ELEMENTS[e].zh });
   }
   var yearOpt = function (y) { return T("zodiac.yearOpt", "{name} · พ.ศ. {be}", { name: yearName(y), be: y + 543, y: y }); };
 
@@ -234,7 +238,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /** วาดผลรายปี (ใช้ทั้งตอนได้ผลและตอนสลับภาษา) */
   function renderYear() {
     var R = st.res, A = KB.ANIMALS[R.animal], REL = KB.REL[R.rel], dt = function (k, th) { return "<dt>" + esc(T("zodiac.dt." + k, th)) + "</dt>"; };
-    $("#zdHero").innerHTML = '<span class="zd-big" aria-hidden="true">' + A.emo + '</span><div><h2 id="zdResTitle" tabindex="-1">' + esc(T("zodiac.heroTitle", "ชาวปี{a} ({an}) ใน{year}", { a: anName(R.animal), an: A.an, year: yearName(R.year) })) + '</h2><p class="zd-badge ' + TONE_CLS[REL.tone] + '">' + esc(badge(R.rel)) + "</p><p class=\"fk-small\">" + esc(noteText()) + "</p></div>";
+    $("#zdHero").innerHTML = '<span class="zd-big" aria-hidden="true">' + A.emo + '</span><div><h2 id="zdResTitle" tabindex="-1">' + esc(T("zodiac.heroTitle", "ชาวปี{a} ({an}) ใน{year}", { a: anName(R.animal), an: isZh() ? A.an : ZD.anFlat(A), year: yearName(R.year) })) + '</h2><p class="zd-badge ' + TONE_CLS[REL.tone] + '">' + esc(badge(R.rel)) + "</p><p class=\"fk-small\">" + esc(noteText()) + "</p></div>";
     $("#zdFacts").innerHTML = '<dl class="fk-kv"><div>' + dt("year", "ปีที่ดู") + "<dd>" + esc(T("zodiac.yearVal", "พ.ศ. {be} · {a}", { be: R.year + 543, y: R.year, a: anName(R.yearAnimal) })) + " " + KB.ANIMALS[R.yearAnimal].emo + "</dd></div>" +
       "<div>" + dt("el", "ธาตุของปี") + "<dd>" + esc(elRelName(R.elRel)) + "</dd></div>" +
       "<div>" + dt("color", "สีเสริมดวง") + "<dd>" + R.lucky.map(function (e) { return '<span class="zd-sw" style="--c:' + KB.ELEMENTS[e].hex + '"></span>' + esc(colors(e)[0]); }).join(" ") + "</dd></div>" +

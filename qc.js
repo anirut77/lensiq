@@ -95,7 +95,7 @@ const QC = (() => {
   /* วิเคราะห์ฝา: coverage = สัดส่วนพื้นที่ที่มีวัตถุ (ต่างจากพื้นหลัง), สีเฉลี่ย Lab ของส่วนที่เป็นฝา,
      ขอบบนของฝาแยกครึ่งซ้าย/ขวา -> มุมเอียง และความสูงขอบบน (ฝาปิดไม่สนิทจะลอยสูงขึ้น)
      มีภาพพื้นหลังว่าง: เทียบรายพิกเซล / ไม่มี: ใช้สีเฉลี่ยของ 2 แถวบนสุดของ ROI เป็นพื้นหลัง (ต้องเว้นขอบเหนือฝา) */
-  function capAnalyze(img, r, bg) {
+  function capAnalyze(img, r, bg, model = null) {
     const d = img.data, W = img.width;
     let mask;
     if (bg) mask = fgMask(img, bg, r);
@@ -116,7 +116,9 @@ const QC = (() => {
       n++; sr += d[i]; sg += d[i + 1]; sb += d[i + 2];
     }
     const coverage = n / (r.w * r.h);
-    const lab = n ? rgbToLab(sr / n, sg / n, sb / n) : [0, 0, 0];
+    // model = แบบจำลองแสง: สีเฉลี่ยของฝาถูกแปลงกลับเป็นแสงตอนสอบเทียบก่อนเทียบ ΔE
+    const inv = (v, c) => model ? clamp((v - model.ch[c].b) / model.ch[c].a, 0, 255) : v;
+    const lab = n ? rgbToLab(inv(sr / n, 0), inv(sg / n, 1), inv(sb / n, 2)) : [0, 0, 0];
     /* ขอบบนของฝา: หาขอบในแต่ละคอลัมน์ (พื้นหลัง->ฝา) แล้วใช้มัธยฐานของครึ่งซ้ายและครึ่งขวา
        มุมเอียง = atan(ผลต่างความสูงซ้าย-ขวา / ระยะห่างแนวนอน) */
     const half = Math.max(1, r.w >> 1), tops = [[], []], col = new Float32Array(r.h);
@@ -209,19 +211,155 @@ const QC = (() => {
     return best;
   }
 
-  function labelAnalyze(img, r) {
-    const e = edgeMap(img, r);
-    return { edge: e.density, rows: Array.from(e.rows, v => +v.toFixed(4)), hist: Array.from(colorHist(img, r), v => +v.toFixed(5)) };
+  /* โปรไฟล์ความสว่างรายแถวของแถบแนวตั้ง k แถบ ช่วงกลาง frac ของความกว้าง ROI (ใช้วัดมุมเอียงของฉลาก)
+     คืน {xs: กึ่งกลางแถบ (px ภายใน ROI), p: [โปรไฟล์]} */
+  function stripProfiles(img, r, k = 5, frac = 0.6) {
+    const d = img.data, W = img.width, span = r.w * frac, x0 = r.x + (r.w - span) / 2, sw = span / k, xs = [], p = [];
+    for (let s = 0; s < k; s++) {
+      const a = Math.round(x0 + s * sw), b = Math.max(a + 1, Math.round(x0 + (s + 1) * sw)), prof = new Array(r.h);
+      for (let y = 0; y < r.h; y++) {
+        let t = 0;
+        for (let x = a, i = ((r.y + y) * W + a) * 4; x < b; x++, i += 4) t += lumAt(d, i);
+        prof[y] = +(t / (b - a)).toFixed(1);
+      }
+      xs.push((a + b) / 2 - r.x); p.push(prof);
+    }
+    return { xs, p };
+  }
+  /* มุมเอียงของฉลากเทียบตัวอย่าง (องศา, + = ด้านขวาต่ำกว่า): หาระยะเลื่อนแนวตั้งของแต่ละแถบเทียบแถบเดียวกันของตัวอย่าง
+     (สหสัมพันธ์ ไม่ขึ้นกับความสว่าง/คอนทราสต์ + ประมาณค่าทศนิยมแบบพาราโบลา) แล้วฟิตเส้นตรง ระยะเลื่อน = ความชัน × x */
+  function labelAngle(m, g) {
+    if (!m || !g || !g.p || g.p.length !== m.p.length || g.p.length < 3) return null;
+    const pts = [];
+    for (let s = 0; s < g.p.length; s++) {
+      const a = m.p[s], b = g.p[s], n = Math.min(a.length, b.length), maxS = Math.max(1, Math.round(n / 3)), sc = new Map();
+      let best = -Infinity, bs = 0;
+      for (let k = -maxS; k <= maxS; k++) {
+        const lo = Math.max(0, k), hi = Math.min(n, n + k);
+        if (hi - lo < n / 2) continue;
+        const c = histCorrelation(a.slice(lo, hi), b.slice(lo - k, hi - k)); sc.set(k, c);
+        if (c > best) { best = c; bs = k; }
+      }
+      if (best < 0.5) continue;
+      let sub = bs;
+      if (sc.has(bs - 1) && sc.has(bs + 1)) { const l = sc.get(bs - 1), r = sc.get(bs + 1), den = l - 2 * best + r; if (den < 0) sub = bs + clamp(0.5 * (l - r) / den, -0.5, 0.5); }
+      pts.push([m.xs[s], sub]);
+    }
+    if (pts.length < 3) return null;
+    const mx = pts.reduce((t, q) => t + q[0], 0) / pts.length, my = pts.reduce((t, q) => t + q[1], 0) / pts.length;
+    let sxy = 0, sxx = 0;
+    for (const [x, y] of pts) { sxy += (x - mx) * (y - my); sxx += (x - mx) ** 2; }
+    return sxx > 0 ? Math.atan(sxy / sxx) * 180 / Math.PI : null;
   }
 
+  function labelAnalyze(img, r) {
+    const e = edgeMap(img, r);
+    return { edge: e.density, rows: Array.from(e.rows, v => +v.toFixed(4)), hist: Array.from(colorHist(img, r), v => +v.toFixed(5)), strips: stripProfiles(img, r) };
+  }
+
+  const DEF_LABEL_ANGLE = 3.5; // องศา — สูตรเก่าที่ไม่มี tol.labelAngle ใช้ค่านี้ (ฉลากเอียง ≥ 5° ถูกคัดออก)
   function labelJudge(m, g, tol) {
     const sim = histCorrelation(m.hist, g.hist) * 100;
     const edgeRatio = g.edge > 0 ? m.edge / g.edge : 1;
     const sh = bestShift(m.rows, g.rows, Math.max(1, Math.round(g.rows.length / 3)));
-    const out = { sim, edgeRatio, shift: sh.shift, reasons: [] };
+    const angle = labelAngle(m.strips, g.strips), maxAngle = tol.labelAngle ?? DEF_LABEL_ANGLE;
+    const out = { sim, edgeRatio, shift: sh.shift, angle, skew: false, reasons: [] };
     if (edgeRatio < 0.4 || sim < 30) out.reasons.push("labelMissing");
-    else if (sim < tol.labelSim || Math.abs(sh.shift) > tol.labelShift) out.reasons.push("labelShift");
+    else {
+      out.skew = angle != null && maxAngle > 0 && Math.abs(angle) > maxAngle;
+      if (sim < tol.labelSim || Math.abs(sh.shift) > tol.labelShift || out.skew) out.reasons.push("labelShift");
+    }
     return out;
+  }
+
+  // ---------- ปรับแสง (photometric normalisation) ----------
+  /* ตอนสอบเทียบ เก็บพิกเซลตัวอย่าง (สุ่มทุก step) ในกรอบที่ครอบพื้นที่ตรวจทั้งหมด
+     ตอนตรวจ ฟิตความสัมพันธ์เชิงเส้นต่อช่องสี  ภาพปัจจุบัน ≈ a × ตัวอย่าง + b  แบบทนค่าผิดปกติ (Theil–Sen บนค่ามัธยฐานรายช่วง
+     + Tukey IRLS) แล้วแปลงภาพกลับเป็นแสงตอนสอบเทียบ (และแปลงภาพพื้นหลังไปเป็นแสงปัจจุบันสำหรับหน้ากากฝา ซึ่งรักษาพิกเซลที่สว่างจนอิ่มตัว)
+     ข้อบกพร่องเปลี่ยนพิกเซลเพียงส่วนน้อย ส่วนแสง/คอนทราสต์/auto-exposure เปลี่ยนทุกพิกเซลพร้อมกัน */
+  const b64enc = u8 => { let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+  const b64dec = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  function photoBox(rois, W, H) {
+    const rs = ["fill", "cap", "label"].map(k => roiPx(rois[k], W, H)).filter(Boolean);
+    if (!rs.length) return null;
+    const x = Math.min(...rs.map(r => r.x)), y = Math.min(...rs.map(r => r.y));
+    return { x, y, w: Math.max(...rs.map(r => r.x + r.w)) - x, h: Math.max(...rs.map(r => r.y + r.h)) - y };
+  }
+  function photoSample(img, r, step) {
+    const d = img.data, W = img.width, nx = Math.ceil(r.w / step), ny = Math.ceil(r.h / step), out = new Uint8Array(nx * ny * 3);
+    for (let j = 0, k = 0; j < ny; j++) for (let i = 0; i < nx; i++, k += 3) {
+      const p = ((r.y + j * step) * W + r.x + i * step) * 4;
+      out[k] = d[p]; out[k + 1] = d[p + 1]; out[k + 2] = d[p + 2];
+    }
+    return out;
+  }
+  function photoRef(img, rois) {
+    const r = photoBox(rois, img.width, img.height);
+    if (!r) return null;
+    const step = Math.max(2, Math.ceil(Math.sqrt(r.w * r.h / 3000)));
+    return { box: { x: r.x / img.width, y: r.y / img.height, w: r.w / img.width, h: r.h / img.height }, step, px: b64enc(photoSample(img, r, step)) };
+  }
+  const wmedian = (vals, ws) => {
+    const o = vals.map((v, i) => [v, ws[i]]).sort((p, q) => p[0] - q[0]), tot = ws.reduce((a, b) => a + b, 0);
+    let acc = 0; for (const [v, w] of o) { acc += w; if (acc >= tot / 2) return v; }
+    return o.length ? o[o.length - 1][0] : 0;
+  };
+  /* ฟิต c ≈ a·g + b หนึ่งช่องสี จากคู่ (g = ตัวอย่าง, c = ปัจจุบัน) ; คืน {a, b, inl, inl0} */
+  function fitChannel(gv, cv) {
+    const BW = 16, bins = Array.from({ length: 16 }, () => []), pairs = [];
+    for (let i = 0; i < gv.length; i++) {
+      const g = gv[i], c = cv[i];
+      if (g <= 5 || g >= 250 || c <= 2 || c >= 253) continue; // อิ่มตัว: ไม่รู้ค่าจริง
+      bins[g / BW | 0].push(i); pairs.push(i);
+    }
+    const id = { a: 1, b: 0, inl: 0, inl0: 0 };
+    if (pairs.length < 30) return id;
+    const minN = Math.max(6, pairs.length * 0.01), B = [];
+    const med = a => { const s = a.slice().sort((p, q) => p - q); return s[s.length >> 1]; };
+    for (const ix of bins) if (ix.length >= minN) B.push({ g: med(ix.map(i => gv[i])), c: med(ix.map(i => cv[i])), n: ix.length });
+    let a = 1, b = 0;
+    const sl = [], sw = [];
+    for (let i = 0; i < B.length; i++) for (let j = i + 1; j < B.length; j++) if (Math.abs(B[j].g - B[i].g) >= 24) { sl.push((B[j].c - B[i].c) / (B[j].g - B[i].g)); sw.push(Math.min(B[i].n, B[j].n)); }
+    if (sl.length) { a = wmedian(sl, sw); b = wmedian(B.map(q => q.c - a * q.g), B.map(q => q.n)); }
+    else if (B.length) { a = wmedian(B.map(q => q.c / Math.max(1, q.g)), B.map(q => q.n)); b = 0; }
+    // Tukey biweight IRLS บนคู่พิกเซลจริง
+    for (let it = 0; it < 4; it++) {
+      let sw0 = 0, sx = 0, sy = 0, sxx = 0, sxy = 0;
+      for (const i of pairs) {
+        const e = (cv[i] - a * gv[i] - b) / 24; if (Math.abs(e) >= 1) continue;
+        const w = (1 - e * e) ** 2; sw0 += w; sx += w * gv[i]; sy += w * cv[i]; sxx += w * gv[i] * gv[i]; sxy += w * gv[i] * cv[i];
+      }
+      const den = sw0 * sxx - sx * sx;
+      if (sw0 < 20 || den <= 1e-6) break;
+      a = (sw0 * sxy - sx * sy) / den; b = (sy - a * sx) / sw0;
+    }
+    a = clamp(a, 0.5, 1.8); b = clamp(b, -80, 80);
+    let inl = 0, inl0 = 0;
+    for (const i of pairs) { if (Math.abs(cv[i] - a * gv[i] - b) < 12) inl++; if (Math.abs(cv[i] - gv[i]) < 12) inl0++; }
+    return { a, b, inl: inl / pairs.length, inl0: inl0 / pairs.length };
+  }
+  /* แบบจำลองแสง {ch:[{a,b}×3], on} ของภาพปัจจุบันเทียบภาพตัวอย่าง ; on = false เมื่อใกล้เคียงเดิม (ไม่ต้องแปลง) */
+  function photoModel(img, ref) {
+    if (!ref || !ref.px) return null;
+    const r = roiPx(ref.box, img.width, img.height), gs = b64dec(ref.px), cs = photoSample(img, r, ref.step);
+    if (gs.length !== cs.length) return null;
+    const n = gs.length / 3, ch = [];
+    for (let c = 0; c < 3; c++) {
+      const gv = new Uint8Array(n), cv = new Uint8Array(n);
+      for (let i = 0; i < n; i++) { gv[i] = gs[i * 3 + c]; cv[i] = cs[i * 3 + c]; }
+      const f = fitChannel(gv, cv);
+      // ใช้แบบจำลองเฉพาะเมื่ออธิบายภาพได้ดีกว่าการไม่แปลง (กันข้อบกพร่องใหญ่ทำให้ฟิตเพี้ยน)
+      ch.push(f.inl > f.inl0 + 0.02 ? { a: f.a, b: f.b } : { a: 1, b: 0 });
+    }
+    const on = ch.some(q => Math.abs(q.a - 1) > 0.03 || Math.abs(q.b) > 3);
+    return { ch, on };
+  }
+  // แปลงภาพปัจจุบันกลับเป็นแสงตอนสอบเทียบ (dir -1) หรือแปลงภาพแสงตอนสอบเทียบไปเป็นแสงปัจจุบัน (dir +1)
+  function photoApply(img, model, dir = -1) {
+    const lut = model.ch.map(({ a, b }) => Uint8ClampedArray.from({ length: 256 }, (_, v) => dir < 0 ? (v - b) / a : a * v + b));
+    const s = img.data, d = new Uint8ClampedArray(s.length);
+    for (let i = 0; i < s.length; i += 4) { d[i] = lut[0][s[i]]; d[i + 1] = lut[1][s[i + 1]]; d[i + 2] = lut[2][s[i + 2]]; d[i + 3] = s[i + 3]; }
+    return { data: d, width: img.width, height: img.height };
   }
 
   // ---------- ทริกเกอร์ ----------
@@ -393,6 +531,7 @@ const QC = (() => {
       g.label = labelAnalyze(img, lr);
       if (g.label.edge < 0.005) throw new Error("พื้นที่ฉลากแทบไม่มีลวดลาย ตรวจฉลากไม่ได้");
     }
+    g.photo = photoRef(img, rec.rois);
     const tr = roiPx(rec.rois.trigger, W, H);
     if (tr && bg && bg.width === W && bg.height === H) {
       const gr = blobGroups(blobs(img, bg, tr)).sort((p, q) => q.frac - p.frac)[0];
@@ -403,7 +542,12 @@ const QC = (() => {
 
   function inspect(img, rec, bg) {
     const W = img.width, H = img.height, g = rec.golden, tol = rec.tol;
-    const res = { t: Date.now(), reasons: [], fill: null, cap: null, label: null };
+    const res = { t: Date.now(), reasons: [], fill: null, cap: null, label: null, photo: null };
+    /* ปรับแสง: rec.photoNorm === false ปิดได้ ; สูตรที่สอบเทียบก่อนรุ่นนี้ (ไม่มี g.photo) ทำงานแบบเดิม */
+    const model = rec.photoNorm === false ? null : photoModel(img, g.photo);
+    const on = !!(model && model.on), raw = img;
+    if (on) img = photoApply(img, model, -1);
+    if (model) res.photo = { on, gain: model.ch.map(q => +q.a.toFixed(3)), offset: model.ch.map(q => +q.b.toFixed(1)) };
     const fr = roiPx(rec.rois.fill, W, H);
     if (fr && g.fillYN != null) {
       const e = findEdge(rowProfile(img, fr), rec.mode, tol.minContrast);
@@ -415,7 +559,8 @@ const QC = (() => {
     const cr = roiPx(rec.rois.cap, W, H);
     if (cr && g.cap) {
       const useBg = g.cap.withBg && bg ? bg : null;
-      const m = capAnalyze(img, cr, useBg);
+      // หน้ากากฝาเทียบภาพดิบกับพื้นหลังที่แปลงไปเป็นแสงปัจจุบัน (พิกเซลอิ่มตัวยังตรงกัน) ; สีฝาแปลงกลับในตัว capAnalyze
+      const m = on ? capAnalyze(raw, cr, useBg ? photoApply(useBg, model, 1) : null, model) : capAnalyze(img, cr, useBg);
       const gg = { ...g.cap, topY: g.cap.topYN == null ? null : g.cap.topYN * H };
       const j = capJudge(m, gg, tol);
       res.cap = { ...m, ...j };
@@ -531,7 +676,8 @@ const QC = (() => {
 
   return {
     clamp, roiPx, rowProfile, smooth, gradient, findEdge, classifyFill, rgbToLab, deltaE, fgMask,
-    capAnalyze, capJudge, edgeMap, colorHist, histCorrelation, bestShift, labelAnalyze, labelJudge,
+    capAnalyze, capJudge, edgeMap, colorHist, histCorrelation, bestShift, labelAnalyze, labelJudge, stripProfiles, labelAngle,
+    photoRef, photoModel, photoApply, fitChannel,
     diffStats, presenceInit, presenceStep, calibrate, inspect, fillTolPx, REASONS, SHORT,
     blobs, blobGroups, multiCheck, pChart, migrateImages, migrateBgs, migrateThumbs, bgKey, thumbKey, laneStats,
     simGeom, simBackground, simBottle, simNoise, simFrame, SIM_DEFECTS
@@ -1055,7 +1201,7 @@ if (typeof document !== "undefined") (() => {
         rows.push(["ฝา: เอียง/ยก", c.reasons.includes("capTilt") ? "เอียง" : c.reasons.includes("capHigh") ? "ยกสูง" : "ปกติ", `มุม ${f1(c.dAngle)}° · สูงกว่าตัวอย่าง ${f1(c.dTop)} px`, !c.reasons.includes("capTilt") && !c.reasons.includes("capHigh")]);
       }
     }
-    if (r.label) rows.push(["ฉลาก", r.label.reasons.length ? QC.REASONS[r.label.reasons[0]] : "ถูกต้อง", `ความคล้าย ${f1(r.label.sim)}% · ขอบ ${f1(r.label.edgeRatio * 100)}% · เลื่อน ${r.label.shift} px`, !r.label.reasons.length]);
+    if (r.label) rows.push(["ฉลาก", r.label.reasons.length ? QC.REASONS[r.label.reasons[0]] : "ถูกต้อง", `ความคล้าย ${f1(r.label.sim)}% · ขอบ ${f1(r.label.edgeRatio * 100)}% · เลื่อน ${r.label.shift} px${r.label.angle != null ? ` · เอียง ${f1(r.label.angle)}°` : ""}`, !r.label.reasons.length]);
     $("#measure").innerHTML = rows.map(([k, v, d, ok]) => `<tr class="${ok ? "" : "bad"}"><th>${k}</th><td>${esc(v)}</td><td>${esc(d)}</td></tr>`).join("") ||
       `<tr><td colspan="3">ไม่มีพื้นที่ตรวจที่สอบเทียบแล้ว</td></tr>`;
     if (r.sim !== undefined && r.sim !== "") $("#simTruth").textContent = `ภาพจำลองสร้างข้อบกพร่อง: ${r.sim === "ok" ? "ไม่มี (ขวดดี)" : QC.REASONS[r.sim]}`;

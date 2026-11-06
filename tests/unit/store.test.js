@@ -108,3 +108,41 @@ test("buildCsv includes the byCam rows and camera-prefixed zone names", () => {
   assert.match(csv, /ประตูหลัง · แคชเชียร์,2,2\.0,1/);
   assert.match(csv, /2026-11-06,3,1,0,,0,66\.7/); // conversion uses the namespaced cashier id
 });
+
+/* round 5: CROSS.flushLost — a crossing still waiting for confirmation counts when the track disappears (occlusion,
+   leaving the frame) instead of being dropped; flipping back before confirmation still counts nothing */
+test("stepCam flushLost: crossing then vanishing counts once (round 4 dropped it); flip-back still counts nothing", () => {
+  const T5 = require("../../lensiq-track.js");
+  const LN = { a: { x: 0.5, y: 0 }, b: { x: 0.5, y: 1 } };
+  const bx = x => ({ x: x - 0.05, y: 0.3, w: 0.1, h: 0.4, score: 0.9 });
+  const run = (base, xs) => {
+    const day = S.newDay("2026-11-07"), pipe = S.newPipe(), cam = { slot: "c1", name: "d", role: "door", line: LN, zones: [] };
+    const tc = T5.trackerCfgFor(base, 100);
+    let t = 1e6;
+    for (const x of xs) { t += 100; S.stepCam(pipe, cam, day, x == null ? [] : [bx(x)], t, tc); }
+    return day;
+  };
+  assert.equal(S.ST_TRACK.CROSS.flushLost, true);
+  assert.ok(!S.ST_TRACK_R4.CROSS.flushLost);
+  // walks right -> left, crosses the line, is hidden one frame after crossing and never seen again
+  const vanish = [0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.42, ...Array(30).fill(null)];
+  assert.equal(run(S.ST_TRACK, vanish).in, 1, "round 5 counts the crossing");
+  assert.equal(run(S.ST_TRACK_R4, vanish).in, 0, "round 4 lost it");
+  // a full, visible crossing counts once in both
+  const walk = [0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.42, 0.38, 0.34, 0.3, 0.26];
+  assert.equal(run(S.ST_TRACK, walk).in, 1);
+  assert.equal(run(S.ST_TRACK_R4, walk).in, 1);
+  // steps just over the line for one frame and turns back while still tracked -> nothing
+  // (if the tracker instead broke the track at the line, flushLost would count it — the accepted trade-off, measured in
+  // ACCURACY.md section 1)
+  const back = [0.8, 0.77, 0.74, 0.71, 0.68, 0.65, 0.62, 0.59, 0.56, 0.53, 0.5, 0.465, 0.48, 0.51, 0.54, 0.57, 0.6, 0.63];
+  const d = run(S.ST_TRACK, back);
+  assert.equal(d.in + d.out, 0);
+  // flushed, then the same track re-appears on the far side: no second count; re-appears back on the old side: no "out"
+  const far = [0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.42, null, null, 0.36, 0.32, 0.28, 0.24];
+  const df = run(S.ST_TRACK, far);
+  assert.equal(df.in, 1); assert.equal(df.out, 0);
+  const old = [0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.42, null, null, 0.58, 0.62, 0.66];
+  const dold = run(S.ST_TRACK, old);
+  assert.equal(dold.in, 1); assert.equal(dold.out, 0);
+});

@@ -1,11 +1,11 @@
 /* insights-cards.js — แดชบอร์ดรวม LENSIQ: แปลผลเป็นภาษาคน (การ์ดสรุปอัตโนมัติ) รายงาน และส่งออกผลวิเคราะห์
    ไม่ใช้ DOM จึงทดสอบด้วย Node ได้ · UMD: เบราว์เซอร์ = window.LQInsightsCards · Node = require("./insights-cards.js") */
-(function (root, factory) {
+(/** @param {any} root */ function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory(require("./insights-data.js"), require("./insights-analysis.js"), require("./lensiq-stats.js"));
   else root.LQInsightsCards = factory(root.LQInsightsData, root.LQInsightsAnalysis, root.LQStats);
 })(typeof self !== "undefined" ? self : this, function (M_data, M_analysis, LQStats) {
 "use strict";
-  const { iqT, IQ_QC_REASONS, IQ_DR_TYPES, iqPad, iqMean, iqSum, iqMetrics, iqCsvCell } = M_data;
+  const { iqT, IQ_QC_REASONS, IQ_DR_TYPES, iqPad, iqMean, iqSum, iqMetrics, iqCsvCell, iqAddDays } = M_data;
   const { IQ_ST, IQ_WD, iqFin, iqN, iqP, iqChg, iqChgAbs, iqIsFlat, iqPts, iqB, iqDL, iqWdOf, iqPick, iqWin, iqWinKeys, iqVsTarget } = M_analysis;
 
 /* ---------- ข้อความ: ไทยเป็นค่าเริ่มต้น ; มี LQI18N (lensiq-i18n.js) = แปลตามภาษาที่เลือก ----------
@@ -90,14 +90,23 @@ function iqInsights(D, A) {
   const pk = A.heat && A.heat.top[0], lowH = A.heat && A.heat.low;
   const slot = (wd, h) => T("iq.slot", "วัน{wd} {h1}–{h2} น.", { wd: wdName(wd), h1: iqPad(Math.max(0, h - 1)) + ":00", h2: iqPad(Math.min(23, h + 1)) + ":59" });
   const Q = A.quality || { outages: [], sources: [] };
+  // ---------- ช่วงเวลาของข้อมูลที่การ์ดแต่ละใบใช้ (แสดงบนการ์ดทุกใบ) ----------
+  // range = ช่วงที่เลือก ; history = ตั้งใจใช้ข้อมูลย้อนหลังยาวกว่า (บอกจำนวนวันและเหตุผล) ; live = วันนี้/ตามเวลาจริง ; cumulative = ยอดสะสม
+  const span = (f, t) => (f === t ? iqDL(f) : `${iqDL(f)}–${iqDL(t)}`);
+  const scSel = (to = r.to) => ({ kind: "range", from: r.from, to, text: T("iq.scope.sel", "ช่วงที่เลือก {a}", { a: span(r.from, to) }) });
+  const scCmp = () => (r.prev ? { kind: "range", from: r.from, to: r.to, text: T("iq.scope.cmp", "ช่วงที่เลือก {a} เทียบ {b}", { a: span(r.from, r.to), b: span(r.prev.from, r.prev.to) }) } : scSel());
+  const scHist = (f, t, n) => ({ kind: "history", from: f, to: t, days: n, text: T("iq.scope.hist", "ใช้ข้อมูลย้อนหลัง {n} วันเพื่อความแม่นยำ ({a})", { n: iqN(n), a: span(f, t) }) });
 
   if (A.short) add({ id: "short", kind: "info", tone: "info", module: "all", level: "insufficient", title: T("iq.short.title", "ข้อมูลยังน้อย"),
     body: T("iq.short.body", "มีข้อมูลแค่ {n} วัน ตัวเลขที่เห็นเป็นของจริง แต่ยังเทียบ หาวันผิดปกติ หรือคาดการณ์ได้ไม่แม่น", { n: iqN(A.dataDays) }),
     sure: iqSure("insufficient"), why: [T("iq.short.why", "การเทียบแนวโน้มต้องมีอย่างน้อย 7 วัน การคาดการณ์ตามวันในสัปดาห์ต้องมีราว 3 สัปดาห์")],
-    action: T("iq.short.act", "เปิดระบบเก็บข้อมูลทุกวันต่อเนื่องอีก 1–3 สัปดาห์ แล้วกลับมาดูหน้านี้"), score: 2.5 });
+    action: T("iq.short.act", "เปิดระบบเก็บข้อมูลทุกวันต่อเนื่องอีก 1–3 สัปดาห์ แล้วกลับมาดูหน้านี้"), score: 2.5,
+    scope: { kind: "history", days: A.dataDays, text: T("iq.scope.all", "ข้อมูลทั้งหมดที่มี ({n} วัน)", { n: iqN(A.dataDays) }) } });
 
   // แจ้งเตือน: ความมั่นใจและคำแนะนำมาจากตัวแจ้งเตือนเอง (QC/อัตราซื้อตัดสินจากช่วง 95% หรือการทดสอบ ไม่ใช่ค่าที่เห็นตัวเดียว)
-  (A.alerts || []).forEach(a => add({ id: "alert-" + a.id, kind: "info", tone: a.level === "high" ? "bad" : "warn", module: a.id === "qc" ? "qc" : "alert", level: a.cardLevel || "strong", title: TN(a.title), body: a.text, sure: a.sure || T("iq.alert.sure", "เกิดขึ้นจริงตามข้อมูลวันนี้ ไม่ใช่การคาดการณ์"), why: [], action: TN(a.action), alert: a, score: a.level === "high" ? 9 : 4 }));
+  (A.alerts || []).forEach(a => add({ id: "alert-" + a.id, kind: "info", tone: a.level === "high" ? "bad" : "warn", module: a.id === "qc" ? "qc" : "alert", level: a.cardLevel || "strong", title: TN(a.title), body: a.text, sure: a.sure || T("iq.alert.sure", "เกิดขึ้นจริงตามข้อมูลวันนี้ ไม่ใช่การคาดการณ์"), why: [], action: TN(a.action), alert: a, score: a.level === "high" ? 9 : 4,
+    scope: a.id === "conv" ? { kind: "live", from: iqAddDays(A.fullEnd, -6), to: A.fullEnd, text: T("iq.scope.last7", "7 วันล่าสุด ({a}) เทียบ 7 วันก่อนหน้า — ไม่ขึ้นกับช่วงที่เลือก", { a: span(iqAddDays(A.fullEnd, -6), A.fullEnd) }) }
+      : { kind: "live", from: A.today, to: A.today, text: T("iq.scope.live", "วันนี้ ตามเวลาจริง — ไม่ขึ้นกับช่วงที่เลือก") } }));
 
   // ความน่าเชื่อถือของข้อมูล (ข้อมูลหาย / กล้องดับ) — บอกก่อน เพราะกระทบทุกตัวเลข
   if (Q.outages.length || Q.sources.some(x => x.missing && x.missing.length)) {
@@ -134,7 +143,7 @@ function iqInsights(D, A) {
     if (out.length) why.push(T("iq.store.why.out", "กล้องดับบางชั่วโมงในช่วงนี้ {n} วัน ยอดจริงอาจสูงกว่าที่เห็น", { n: out.length }));
     const pct = iqChgAbs(ch);
     if (need) why.unshift(need.why);
-    add({ id: "store-change", kind: "change", tone: flat ? "info" : up ? "good" : "bad", module: "store", level: t.level, test: t, wide,
+    add({ id: "store-change", kind: "change", tone: flat ? "info" : up ? "good" : "bad", module: "store", level: t.level, test: t, wide, scope: scCmp(),
       title: wide ? T("iq.store.wide", "คนเข้าร้าน: ยังบอกไม่ได้ว่าเปลี่ยนจริง") : flat ? iqPick(seed + "s", [T("iq.store.flat1", "คนเข้าร้านใกล้เคียงเดิม"), T("iq.store.flat2", "คนเข้าร้านยังทรงตัว")]) : up ? T("iq.store.up", "คนเข้าร้านเพิ่มขึ้น {pct}", { pct }) : T("iq.store.down", "คนเข้าร้านลดลง {pct}", { pct }),
       body: T("iq.store.body", "เฉลี่ยวันละ {a} คน เทียบกับ {b} คน ({vs})", { a: iqRound(t.rate1), b: iqRound(t.rate2), vs: vsTxt }) + (r.to === A.today ? T("iq.store.today", " · วันนี้คิดตามเวลาที่ผ่านไป") : ""),
       sure: need ? need.sure : band ? iqSure(t.level, T("iq.store.band", "ถ้าเปลี่ยนจริงก็ไม่น่าเกินราว ±{x}", { x: band })) : iqSure(t.level, flat ? "" : rangeTxt(t.lo, t.hi)), stat: iqStat(t, "change", T("iq.store.stat", "ปรับวันในสัปดาห์และเผื่อความผันผวนรายวันจากข้อมูล {n} วัน", { n: iqN(t.days || 0) })), why,
@@ -144,9 +153,11 @@ function iqInsights(D, A) {
       score: IQ_LEVEL_W[t.level] * (1 + Math.min(1, Math.abs(ch || 0) * 3)) });
   }
 
-  // ค่าผิดปกติล่าสุด
-  if (A.forecast && A.forecast.anomalies.length && !A.short) {
-    const a = A.forecast.anomalies.slice().sort((x, y) => (x.day < y.day ? 1 : -1))[0], F = A.forecast, H = A.H, i = H.keys.indexOf(a.day);
+  // ค่าผิดปกติล่าสุด — เฉพาะวันที่อยู่ในช่วงที่เลือก (ตัวตรวจใช้ประวัติทั้งหมดเป็นเกณฑ์ “ปกติ” แต่ไม่โชว์วันนอกช่วง)
+  const anSel = A.forecast ? A.forecast.anomalies.filter(a => a.day >= r.from && a.day <= r.to) : [];
+  if (anSel.length && !A.short) {
+    const a = anSel.slice().sort((x, y) => (x.day < y.day ? 1 : -1))[0], F = A.forecast, H = A.H, i = H.keys.indexOf(a.day);
+    const fy = F.keys.filter((k, j) => iqFin(F.y[j])), fFrom = fy[0] || a.day, fTo = fy[fy.length - 1] || a.day;
     const outage = Q.outages.find(o => o.day === a.day && o.kind === "store");
     const odds = iqFin(a.p) && a.p > 0 ? 1 / a.p : null;
     const why = [T("iq.anom.why2", "ค่าที่คาดมาจากวันใกล้เคียงและรูปแบบของวัน{wd} ค่าที่ได้ห่างจากที่คาดเกินความผันผวนปกติของร้านนี้มาก", { wd: wdName(iqWdOf(a.day)) }) + (odds ? (odds > 1e5 ? T("iq.anom.odds.big", " (ถ้าไม่มีอะไรผิดปกติ แทบไม่มีโอกาสเกิด)") : T("iq.anom.odds", " (ถ้าไม่มีอะไรผิดปกติ จะเกิดราว 1 ใน {k} วัน)", { k: iqRound(odds) })) : "")];
@@ -158,7 +169,8 @@ function iqInsights(D, A) {
     const unit = TN(F.unit), name = TN(F.name);
     add({ id: "anomaly", kind: "info", tone: "warn", module: F.metric === "storeIn" ? "store" : "sales", level: Math.abs(a.z) > 6 ? "strong" : "moderate",
       title: a.dir === "up" ? T("iq.anom.up", "{d}: {name}สูงผิดปกติ", { d: iqDL(a.day), name }) : T("iq.anom.dn", "{d}: {name}ต่ำผิดปกติ", { d: iqDL(a.day), name }),
-      body: T("iq.anom.body", "ได้ {v} {u} ปกติน่าจะราว {e} {u}", { v: iqRound(a.value), e: iqRound(Math.max(0, a.expected)), u: unit }) + (F.anomalies.length > 1 ? T("iq.anom.more", " · ในประวัติมีวันแบบนี้ {n} วัน", { n: F.anomalies.length }) : ""),
+      body: T("iq.anom.body", "ได้ {v} {u} ปกติน่าจะราว {e} {u}", { v: iqRound(a.value), e: iqRound(Math.max(0, a.expected)), u: unit }) + (anSel.length > 1 ? T("iq.anom.more2", " · ในช่วงที่เลือกมีวันแบบนี้ {n} วัน", { n: anSel.length }) : ""),
+      scope: { kind: "range", from: r.from, to: r.to, days: fy.length, text: T("iq.scope.anom", "ช่วงที่เลือก {a} · “ปกติ” คิดจากข้อมูลย้อนหลัง {n} วัน ({b})", { a: span(r.from, r.to), n: iqN(fy.length), b: span(fFrom, fTo) }) },
       sure: outage ? T("iq.anom.sure.out", "ผิดปกติชัด และน่าจะมาจากกล้องดับ") : iqPick(seed + "a", [T("iq.anom.sure1", "ผิดจากรูปแบบปกติชัด แต่ข้อมูลไม่ได้บอกสาเหตุ"), T("iq.anom.sure2", "ผิดปกติชัด ส่วนสาเหตุต้องตรวจเพิ่ม")]), why,
       action: outage ? T("iq.anom.act.out", "ตรวจไฟและอินเทอร์เน็ตของกล้องวันนั้น ไม่ต้องปรับแผนขายจากตัวเลขวันนี้") : a.dir === "up" ? T("iq.anom.act.up", "ดูว่าวันนั้นมีโปรโมชันหรือกิจกรรมอะไร ถ้าใช่ ลองทำซ้ำในวันที่คนน้อย") : T("iq.anom.act.dn", "ถามหน้าร้านว่าวันนั้นปิดบางช่วง ฝนตก หรือมีเหตุอะไร แล้วจดไว้"),
       score: 2.6 });
@@ -173,6 +185,7 @@ function iqInsights(D, A) {
       body: T("iq.peak.body", "เฉลี่ย {v} {u}/ชม.", { v: iqRound(p.v), u: isStore ? T("iq.u.person", "คน") : T("iq.u.bill", "บิล") }) + (lo ? T("iq.peak.low", " · เงียบสุดวัน{wd} {h}:00 น. ({v})", { wd: wdName(lo.wd), h: iqPad(lo.h), v: iqRound(lo.v) }) : "") + T("iq.peak.days", " · ทั้งวันคนมากสุดวัน{b}", { b: wdName(best) }) + (worst >= 0 && worst !== best ? T("iq.peak.days2", " น้อยสุดวัน{w}", { w: wdName(worst) }) : ""),
       sure: h.short ? T("iq.peak.sure.short", "ข้อมูลยังน้อย ({n} วัน) รูปแบบอาจเปลี่ยนได้", { n: h.nDays }) : T("iq.peak.sure", "เฉลี่ยจากข้อมูล {n} วัน (แต่ละช่องราว {w} สัปดาห์)", { n: h.nDays, w: iqN(h.nDays / 7, 0) }),
       why: [T("iq.peak.why", "ค่าเฉลี่ยรายชั่วโมงของแต่ละวันในสัปดาห์ ไม่รวมวันนี้ที่ยังไม่จบ")],
+      scope: h.from >= r.from ? scSel() : scHist(h.from, h.to, h.nDays),
       action: T("iq.peak.act", "จัดคนให้แน่นช่วง{slot}", { slot: slot(p.wd, p.h) }) + (lo ? T("iq.peak.act2", " และใช้ช่วงวัน{wd} {h}:00 น. เติมสินค้า", { wd: wdName(lo.wd), h: iqPad(lo.h) }) : ""),
       score: h.short ? 0.9 : 1.6 });
   }
@@ -184,6 +197,7 @@ function iqInsights(D, A) {
       title: T("iq.fc.title", "7 วันข้างหน้า: {name}ราว {v} {u}", { name, v: iqRound(Tt.mean), u: unit }),
       body: T("iq.fc.body", "น่าจะอยู่ระหว่าง {lo}–{hi} {u} · 7 วันล่าสุดได้ {last} {u} ({chg})", { lo: iqRound(Tt.lo), hi: iqRound(Tt.hi), u: unit, last: iqRound(Tt.last7), chg: Tt.lo <= Tt.last7 && Tt.hi >= Tt.last7 ? T("iq.fc.same", "อยู่ในช่วงที่คาด") : iqChg(Tt.change) }),
       sure: enough ? T("iq.fc.sure", "คาดจากรูปแบบรายสัปดาห์ (Holt-Winters) ช่วงกว้างเท่าที่ข้อมูลแกว่งจริง โอกาสอยู่ในช่วงราว 80%") : T("iq.fc.sure.short", "ข้อมูลยังน้อย ({n} วัน) ใช้ค่าของสัปดาห์ก่อนเป็นตัวคาด ความแม่นยำต่ำ", { n: iqN(F.y.filter(iqFin).length) }),
+      scope: { kind: "history", from: F.keys[0], to: F.keys[F.keys.length - 1], days: F.y.length, text: T("iq.scope.fc", "คาด 7 วันถัดจาก {d} จากข้อมูลย้อนหลัง {n} วัน ({a})", { d: iqDL(F.keys[F.keys.length - 1]), n: iqN(F.y.length), a: span(F.keys[0], F.keys[F.keys.length - 1]) }) },
       why: enough ? [T("iq.fc.why", "เรียนรู้จาก {n} วันที่ผ่านมา ให้น้ำหนักข้อมูลล่าสุด (α={a}) และรูปแบบวันในสัปดาห์ (γ={g})", { n: iqN(F.y.length), a: F.fc.params.alpha, g: F.fc.params.gamma })] : [],
       action: Tt.lo > Tt.last7 ? T("iq.fc.act.up", "สั่งสินค้าและจัดคนให้พอสำหรับราว {hi} {u} (ค่าบนของช่วง)", { hi: iqRound(Tt.hi), u: unit }) : Tt.hi < Tt.last7 ? T("iq.fc.act.dn", "ลดของสดที่เสียง่ายลงราว {p} และวางกิจกรรมดึงลูกค้า", { p: iqChg(Tt.change).replace(/^[+−]/, "") }) : T("iq.fc.act.flat", "วางสต็อกและกะใกล้เคียงสัปดาห์ที่ผ่านมา"),
       score: enough ? 1.5 : 0.7 });
@@ -197,7 +211,7 @@ function iqInsights(D, A) {
     const revDay = iqWin(H, H.revenue, r.from, r.to).filter(iqFin), billsN = iqWin(H, H.bills, r.from, r.to).filter(iqFin);
     const perBill = iqSum(billsN) > 0 ? iqSum(revDay) / iqSum(billsN) : null;
     const lostWk = t && !flat && t.diff < 0 ? -t.diff * inDay * 7 : null;
-    add({ id: "conv", kind: "change", tone: flat ? "info" : t.diff > 0 ? "good" : "bad", module: "sales", level: t ? t.level : (c.n >= 100 && !A.short ? "moderate" : "insufficient"),
+    add({ id: "conv", kind: "change", tone: flat ? "info" : t.diff > 0 ? "good" : "bad", module: "sales", scope: t ? scCmp() : scSel(), level: t ? t.level : (c.n >= 100 && !A.short ? "moderate" : "insufficient"),
       title: !t ? T("iq.conv.t0", "อัตราซื้อ {p}", { p: iqP(c.ci.p, 1) }) : wide ? T("iq.conv.wide", "อัตราซื้อ {p} ยังบอกไม่ได้ว่าเปลี่ยนจริง", { p: iqP(c.ci.p, 1) }) : flat ? T("iq.conv.flat", "อัตราซื้อ {p} ใกล้เคียงเดิม", { p: iqP(c.ci.p, 1) }) : t.diff > 0 ? T("iq.conv.up", "อัตราซื้อดีขึ้น {d}", { d: iqPts(t.diff) }) : T("iq.conv.dn", "อัตราซื้อลดลง {d}", { d: iqPts(-t.diff).replace(/^\+/, "") }),
       body: T("iq.conv.body", "{x} บิลจากคนเข้าร้าน {n} คน", { x: iqRound(c.x), n: iqRound(c.n) }) + (t ? T("iq.conv.vs", " · {vs} {p}", { vs: vsTxt, p: iqP(t.p2, 1) }) : ""),
       stat: iqStat(t, "change", T("iq.conv.stat", "คิดความผันผวนรายวัน (quasi-binomial) เพราะคนในวันเดียวกันไม่ได้ตัดสินใจอิสระต่อกัน")),
@@ -219,6 +233,7 @@ function iqInsights(D, A) {
       title: dir ? T("iq.corr.pos", "{x}มาก {y}ก็มักสูง", { x, y }) : T("iq.corr.neg", "{x}มาก {y}มักต่ำ", { x, y }),
       body: T("iq.corr.body", "{w} (r ≈ {r}) จาก {n} วัน", { w: TN(S.corrWord(c.r).replace(/ \(.*\)$/, "")), r: iqN(c.r, 1), n: c.n }) + (adj ? T("iq.corr.adj", " · ตัดผลของวันในสัปดาห์และแนวโน้มออกแล้ว") : ""),
       sure: iqSure(lv, T("iq.corr.cause", "แต่ยังไม่ใช่หลักฐานว่าอย่างหนึ่งทำให้อีกอย่างเปลี่ยน"), "corr"),
+      scope: !c.daily ? { kind: "cumulative", text: T("iq.scope.cum", "ยอดสะสมตั้งแต่เริ่มใช้ — ไม่ขึ้นกับช่วงที่เลือก") } : A.corrSpan && A.corrSpan.from < r.from ? scHist(A.corrSpan.from, A.corrSpan.to, c.n) : scSel(A.corrSpan ? A.corrSpan.to : r.to),
       stat: iqStat(c, "corr", T("iq.corr.stat", "r = {r} (95%: {lo} ถึง {hi}) · ข้อมูลรายวันติดกันมักคล้ายกัน จึงนับเป็นข้อมูลอิสระได้ราว {ne} จาก {n} วัน", { r: iqN(c.r, 2), lo: iqN(c.lo, 2), hi: iqN(c.hi, 2), ne: iqN(c.nEff, 0), n: c.n })),
       why: [TN(c.caution)], action: c.id === "queue-conv" && c.r < 0 ? T("iq.corr.act.q", "วันที่คาดว่าคนเยอะ เปิดแคชเชียร์เพิ่ม 1 จุด แล้วดูอัตราซื้อ 2 สัปดาห์") : c.id === "dwell-conv" && c.r > 0 ? T("iq.corr.act.d", "เพิ่มจุดชิมหรือป้ายข้อมูลสินค้าให้คนอยู่ในโซนนานขึ้น แล้ววัดผล 2 สัปดาห์") : T("iq.corr.act", "ทดลองเปลี่ยนทีละอย่างแล้ววัดผล เพื่อดูว่าเป็นเหตุและผลจริงไหม"),
       score: IQ_LEVEL_W[lv] * Math.abs(c.r) * 1.2 });
@@ -227,18 +242,19 @@ function iqInsights(D, A) {
   // A/B ป้ายโฆษณา
   if (A.ab.sg) {
     const ab = A.ab.sg;
-    if (!ab.enough) add({ id: "ab-sg", kind: "diff", tone: "info", module: "sg", level: "insufficient", title: T("iq.absg.few.t", "เทียบโฆษณา: ข้อมูลยังน้อย"), body: T("iq.absg.few.b", "ต้องมีคนผ่านจออย่างน้อย {n} คนต่อชิ้น อย่างน้อย 2 ชิ้น", { n: ab.minN }), sure: iqSure("insufficient", "", "diff"), why: [], action: T("iq.absg.few.a", "เปิดป้ายต่อไปให้ทุกชิ้นได้แสดงพอ ๆ กัน"), score: 0.5 });
+    if (!ab.enough) add({ id: "ab-sg", kind: "diff", tone: "info", module: "sg", level: "insufficient", scope: { kind: "cumulative", text: T("iq.scope.cum", "ยอดสะสมตั้งแต่เริ่มใช้ — ไม่ขึ้นกับช่วงที่เลือก") }, title: T("iq.absg.few.t", "เทียบโฆษณา: ข้อมูลยังน้อย"), body: T("iq.absg.few.b", "ต้องมีคนผ่านจออย่างน้อย {n} คนต่อชิ้น อย่างน้อย 2 ชิ้น", { n: ab.minN }), sure: iqSure("insufficient", "", "diff"), why: [], action: T("iq.absg.few.a", "เปิดป้ายต่อไปให้ทุกชิ้นได้แสดงพอ ๆ กัน"), score: 0.5 });
     else {
       const t = ab.spread || ab.test, lv = t.level || "insufficient", b = ab.best, w = ab.worst || ab.runner, few = ab.groups.filter(g => !g.enough), yes = sig(lv);
       const gLo = Math.max(0, t.lo) * 1000, gHi = Math.max(0, t.hi) * 1000;
       add({ id: "ab-sg", kind: "diff", tone: yes ? "good" : "info", module: "sg", level: lv,
         title: yes ? T("iq.absg.t", "“{b}” ดึงสายตาได้ดีที่สุด", { b: nameT(b.name) }) : T("iq.absg.t0", "โฆษณาแต่ละชิ้นดึงสายตาได้ใกล้เคียงกัน"),
-        body: T("iq.absg.b", "คนหันมอง {pb} เทียบ “{w}” {pw} (จาก {k} ชิ้น)", { pb: iqP(b.ci.p), w: nameT(w.name), pw: iqP(w.ci.p), k: ab.groups.filter(g => g.enough).length }),
+        body: T("iq.absg.b2", "คนหันมอง {pb} เทียบ “{w}” {pw} · เทียบโฆษณา {k} ชิ้น จากคนผ่านจอรวม {n} คน", { pb: iqP(b.ci.p), w: nameT(w.name), pw: iqP(w.ci.p), k: ab.groups.filter(g => g.enough).length, n: iqN(iqSum(ab.groups.filter(g => g.enough).map(g => g.n))) }),
         sure: iqSure(lv, yes ? T("iq.absg.ci", "ต่างกันราว {lo} ถึง {hi} จุด", { lo: iqN(t.lo * 100, 0), hi: iqN(t.hi * 100, 0) }) : "", "diff"),
         stat: iqStat(t, "diff", T("iq.absg.stat", "ทดสอบรวมทุกชิ้นก่อน ({m}) แล้วเทียบครบทุกคู่ ({k} คู่) ปรับด้วย Holm · อันดับใช้ค่าหลังปรับตามขนาดข้อมูล ({pb} และ {pw})", { m: ab.omnibus && ab.omnibus.method === "permutation" ? "permutation" : "chi-square", k: t.pairs || 1, pb: iqP(b.eb.p), pw: iqP(w.eb.p) })),
+        scope: { kind: "cumulative", text: T("iq.scope.cum", "ยอดสะสมตั้งแต่เริ่มใช้ — ไม่ขึ้นกับช่วงที่เลือก") },
         why: [T("iq.absg.why", "เป็นยอดสะสม ถ้าแต่ละชิ้นเล่นคนละช่วงเวลา ผลอาจต่างเพราะเวลา ไม่ใช่ตัวโฆษณา"),
           few.length ? T("iq.absg.why.few", "{n} ชิ้นมีคนผ่านจอไม่ถึง {m} คน ยังไม่นำมาจัดอันดับ", { n: few.length, m: ab.minN }) : ""],
-        action: yes ? T("iq.absg.act2", "ย้ายรอบเล่นของ “{w}” ไปให้ “{b}” คาดว่าคนมองเพิ่มราว {lo}–{hi} คนต่อทุก 1,000 คนที่ผ่าน", { w: nameT(w.name), b: nameT(b.name), lo: iqRound(gLo), hi: iqRound(gHi) }) : T("iq.absg.act0", "อย่าเพิ่งตัดชิ้นไหน เล่นสลับให้ครบทุกช่วงเวลาอีก 1–2 สัปดาห์แล้วดูใหม่"),
+        action: yes ? T("iq.absg.act3", "ลองย้ายรอบเล่นของ “{w}” ไปให้ “{b}” · ค่าประมาณ (ไม่ใช่ผลที่รับประกัน): คนมองเพิ่มราว {lo}–{hi} คนต่อทุก 1,000 คนที่ผ่าน ถ้าคนที่ผ่านจอยังคล้ายเดิมและความต่างมาจากตัวโฆษณาจริง ไม่ใช่ช่วงเวลาที่เล่น", { w: nameT(w.name), b: nameT(b.name), lo: iqRound(gLo), hi: iqRound(gHi) }) : T("iq.absg.act0", "อย่าเพิ่งตัดชิ้นไหน เล่นสลับให้ครบทุกช่วงเวลาอีก 1–2 สัปดาห์แล้วดูใหม่"),
         score: IQ_LEVEL_W[lv] * 0.9 });
     }
   }
@@ -261,7 +277,7 @@ function iqInsights(D, A) {
   if (A.cohort && A.cohort.customers) {
     const c = A.cohort, ci = c.repeatCI, enough = c.customers >= 10, r2 = c.rows.filter(x => x.retention.length > 1);
     const w1 = r2.length ? iqMean(r2.map(x => x.retention[1])) : null;
-    add({ id: "cohort", kind: "info", tone: "info", module: "cx", level: enough ? "moderate" : "insufficient", title: T("iq.coh.t", "ลูกค้ากลับมาซื้อซ้ำ {p}", { p: iqP(c.repeatRate) }),
+    add({ id: "cohort", kind: "info", tone: "info", module: "cx", level: enough ? "moderate" : "insufficient", scope: { kind: "history", from: c.start, text: T("iq.scope.since", "ทุกการซื้อตั้งแต่ {d} — ไม่ขึ้นกับช่วงที่เลือก (ต้องดูหลายสัปดาห์จึงเห็นการกลับมาซ้ำ)", { d: iqDL(c.start) }) }, title: T("iq.coh.t", "ลูกค้ากลับมาซื้อซ้ำ {p}", { p: iqP(c.repeatRate) }),
       body: T("iq.coh.b", "{a} จาก {n} คนที่จดจำได้ ซื้อมากกว่า 1 สัปดาห์", { a: iqN(c.repeat), n: iqN(c.customers) }) + (w1 != null ? T("iq.coh.w1", " · กลับมาสัปดาห์ถัดไป {p}", { p: iqP(w1) }) : ""),
       sure: enough ? T("iq.coh.ci", "อัตราจริงน่าจะอยู่ระหว่าง {lo}–{hi}", { lo: iqP(ci.lo), hi: iqP(ci.hi) }) : T("iq.coh.few", "ข้อมูลยังน้อย (ลูกค้าไม่ถึง 10 คน)"), why: [T("iq.coh.why", "นับเฉพาะลูกค้าที่ยินยอมให้จดจำใบหน้า จึงอาจสูงกว่าลูกค้าทั้งหมด")],
       action: enough && ci && ci.hi < 0.4 ? T("iq.coh.act", "ให้คูปองที่ใช้ได้ภายใน 7 วันกับลูกค้าครั้งแรก เป้าหมาย: เพิ่มจาก {a} เป็น {b}", { a: iqP(c.repeatRate), b: iqP(c.repeatRate + 0.05) }) : T("iq.coh.act2", "รักษาลูกค้าประจำด้วยเมนูหรือสิทธิพิเศษตามประวัติการสั่ง"), score: enough ? 1.1 : 0.5 });
@@ -308,7 +324,8 @@ function iqInsights(D, A) {
       action: st === "above" ? T("iq.goal.act.met", "ตั้งเป้าสูงขึ้นเล็กน้อยสำหรับช่วงถัดไป") : st === "below" ? T("iq.goal.act2", "ยังขาดอีก {g}{d} ดูการ์ดอื่นในหน้านี้เพื่อหาจุดที่ปรับได้เร็วที่สุด", { g: f(gap), d: perDay }) : T("iq.goal.act.unclear", "ยังไม่ต้องเปลี่ยนแผน เก็บข้อมูลต่ออีกสักระยะแล้วดูใหม่"), score: st === "above" ? 0.8 : st === "below" ? 1.8 : 1 });
   });
 
-  C.forEach(c => { c.why = (c.why || []).filter(Boolean); });
+  // การ์ดที่เหลือใช้ช่วงที่เลือก (ตัวเลขวันนี้ที่ยังไม่จบไม่รวมในการ์ดที่ใช้ “วันที่จบแล้ว”)
+  C.forEach(c => { c.why = (c.why || []).filter(Boolean); if (!c.scope) c.scope = scSel(); });
   return C.sort((a, b) => b.score - a.score);
 }
 
@@ -317,7 +334,7 @@ const IQ_APP_VERSION = "insights 9 (2026-11)";
 function iqMethods() {
   return {
     app: IQ_APP_VERSION, statsVersion: IQ_ST.VERSION || null,
-    periodCounts: "negative binomial GLM (weekday-adjusted) + AR(1)+noise error on the working variate; (φ, q) by REML via Kalman filter, likelihood-weighted model averaging, df = (n−p)(1−φ)/(1+φ); variance floor = Poisson",
+    periodCounts: "negative binomial GLM (weekday-adjusted) + AR(1)+noise error on the working variate; (φ, q) by REML via Kalman filter, likelihood-weighted model averaging, df = (n−p)(1−φ)/(1+φ); variance floor = Poisson; small-sample correction for strong overdispersion: variance × a·ψ′(a) (a = effective sample size of each period) and df × 2/(2 + γ₂), γ₂ = 2κ + 1/(μ(1+κμ))",
     rates: "Wilson score CI; period comparison quasi-binomial on daily rates (twoPropDaily)",
     multipleTesting: "Benjamini–Hochberg q across all tests on the page; confidence label from q (strong < 1%, moderate < 5%, weak < 20%)",
     abTests: "omnibus first (chi-square / Monte Carlo permutation for small expected counts; Welch ANOVA for means), then all pairs with Holm; decision p = max(Holm p, omnibus p); Bonferroni-adjusted pairwise CIs; ranking by empirical-Bayes shrunk values; min 30 exposures (rates) / 10 testers (means) per arm",
@@ -341,7 +358,7 @@ function iqReport(D, A, cards, kind) {
   return {
     kind, title: kind === "day" ? T("iq.rep.day", "รายงานประจำวัน") : T("iq.rep.week", "รายงานประจำสัปดาห์"), from: A.r.from, to: A.r.to, generatedAt: new Date(A.now).toISOString(),
     kpis: A.kpis.map(k => { const dl = iqKpiDelta(k, ""); return { label: TN(k.label), value: k.value, fmt: k.fmt, delta: k.delta, deltaDir: dl ? dl.dir : null, sure: dl ? dl.conf : k.test ? confShort(k.test.level) : "", ci: k.ci ? k.ci.text : "" }; }),
-    insights: cards.slice(0, 8).map(c => ({ title: c.title, body: c.body, sure: c.sure, why: c.why, action: c.action })),
+    insights: cards.slice(0, 8).map(c => ({ title: c.title, body: c.body, scope: c.scope ? c.scope.text : "", sure: c.sure, why: c.why, action: c.action })),
     forecast: A.forecast && A.forecast.total ? { name: A.forecast.name, unit: A.forecast.unit, ...A.forecast.total, method: A.forecast.fc.method } : null,
     goals: A.goals, alerts: A.alerts, quality: A.quality ? { grade: A.quality.grade, coverage: A.quality.coverage, outages: A.quality.outages.length } : null, methods: iqMethods()
   };

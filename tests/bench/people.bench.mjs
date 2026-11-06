@@ -3,6 +3,7 @@
 // MOTChallenge footage with ground truth (MOT17 train, 2DMOT2015 train: PETS09-S2L1, TUD-Stadtmitte, ...).
 //
 //   LQ_BENCH_DATA=/path/to/data node tests/bench/people.bench.mjs [--sweep] [--seq NAME] [--json out.json]
+//   tuning aids: [--fps 5] [--why] (classify misses / false counts) [--occlude P] [--score-k K] [--drop P] (stress, tuning set only)
 //
 // Data layout: $LQ_BENCH_DATA/mot/**/<SEQ>/{img1/*.jpg, gt/gt.txt[, seqinfo.ini]} (any subset of frames may be present;
 // tests/bench/fetch_datasets.py downloads every 3rd MOT17 frame = 10 fps, the rate the store page actually analyses).
@@ -93,7 +94,21 @@ const decodeEmb = b64 => { const u = Buffer.from(b64, "base64"); return new Floa
 const hl = y => ({ a: { x: 0.02, y }, b: { x: 0.98, y } }), vl = x => ({ a: { x, y: 0.02 }, b: { x, y: 0.98 } });
 const LINES = { V30: vl(0.3), V50: vl(0.5), V70: vl(0.7), H40: hl(0.4), H60: hl(0.6) };
 LINES.H = LINES.V50;
-const toDets = (row, thr) => row.d.map((d, k) => ({ x: d[0], y: d[1], w: d[2], h: d[3], score: d[4], k })).filter(d => d.score >= thr);
+// --drop P (stress test, tuning only): each detection is dropped with probability P (seeded, same for every config) —
+// simulates the missed detections / occlusion gaps of crowded scenes on the easy tuning sequences
+const DROP = +opt("--drop", 0) || 0;
+// --occlude P (stress, tuning only): each ground-truth person disappears from the detections for whole 1-s blocks with
+// probability P per block (an occlusion gap, the MOT17 failure mode) · --score-k K: all scores × K (far/small people
+// score lower, so births from confident boxes only become rarer)
+const OCC = +opt("--occlude", 0) || 0, SCORE_K = +opt("--score-k", 1) || 1;
+const hash01 = (...v) => { let h = 2166136261; for (const x of v) { h = Math.imul(h ^ (x | 0), 16777619); h ^= h >>> 13; } h = Math.imul(h, 2246822519) >>> 0; h ^= h >>> 16; return (h >>> 0) / 4294967296; };
+function stress(s, f, now, dets) {
+  if (!OCC) return dets;
+  const blk = Math.floor((now - 1e9) / 1000), drop = (s.gt.get(f) || []).filter(g => hash01(g.id, blk, 99) < OCC);
+  return dets.filter(d => !drop.some(g => M.iou(g, d) >= 0.4));
+}
+const keepDet = (fi, k) => { let h = Math.imul(fi * 7919 + k * 104729 + 12345, 2654435761) >>> 0; h ^= h >>> 15; h = Math.imul(h, 2246822519) >>> 0; h ^= h >>> 13; return (h >>> 0) / 4294967296 >= DROP; };
+const toDets = (row, thr, fi = 0) => row.d.map((d, k) => ({ x: d[0], y: d[1], w: d[2], h: d[3], score: d[4], k })).filter(d => d.score >= thr && (!DROP || keepDet(fi, d.k)));
 
 function detMetrics(s, cache, thr) {
   return M.detEval(s.frames.map((f, i) => ({ gt: s.gt.get(f) || [], ign: s.ign.get(f) || [], det: toDets(cache.frames[i], thr) })), 0.5);
@@ -116,7 +131,7 @@ function runPipeline(s, cache, { thr, tcfgBase = ST.ST_TRACK || LQT.PRESET.perso
   const frames = [], ev = [];
   s.frames.forEach((f, i) => {
     const now = 1e9 + i * s.dt, row = cache.frames[i];
-    const dets = toDets(row, thr);
+    const dets = stress(s, f, now, toDets(row.d && SCORE_K !== 1 ? { ...row, d: row.d.map(d => [d[0], d[1], d[2], d[3], d[4] * SCORE_K]) } : row, thr, f));
     let embed;
     if (reid) {
       const byKey = new Map(dets.map(d => [`${d.x},${d.y},${d.w},${d.h}`, d]));
@@ -126,7 +141,8 @@ function runPipeline(s, cache, { thr, tcfgBase = ST.ST_TRACK || LQT.PRESET.perso
     frames.push({ gt: s.gt.get(f) || [], ign: s.ign.get(f) || [], hyp: r.conf.map(t => ({ id: t.cid ?? t.id, ...t.box })) });
     for (const c of r.crossings) {
       const t = r.conf.find(x => (x.cid ?? x.id) === c.id);
-      ev.push({ id: c.id, t: now, dir: c.dir, pos: t ? M.projectOnLine(line, LQT.center(t.box)) : 0.5 });
+      const b = c.box || (t && t.box);
+      ev.push({ id: c.id, t: now, dir: c.dir, pos: b ? M.projectOnLine(line, LQT.center(b)) : 0.5 });
     }
   });
   return { frames, ev, dedup: pipe.reid ? pipe.reid.stats : null };
@@ -139,6 +155,32 @@ function gtEvents(s, line) {
   return M.crossingsFromTracks(tracks, line, (mem, ln, p, sw) => ST.checkCrossing(mem, ln, p, sw));
 }
 
+// --why (diagnostic): classify each missed ground-truth crossing — the GT person was not tracked around the crossing
+// ("no track"), the track id changed between the two sides ("id break"), or one id crossed but nothing was counted
+// ("not counted"); and each false count — no GT crossing by the person under that track ("no GT crossing")
+const WHY = flag("--why") ? {} : null;
+function whyMissed(s, frames, gtEv, prEv, acc) {
+  const used = new Set(), bump = k => { acc[k] = (acc[k] || 0) + 1; };
+  const t0 = 1e9, hypOf = (i, gid) => {
+    const gb = frames[i].gt.find(b => b.id === gid); if (!gb) return undefined;
+    let best = null, bi = 0.3; for (const h of frames[i].hyp) { const v = M.iou(gb, h); if (v >= bi) { bi = v; best = h.id; } }
+    return best;
+  };
+  for (const g of gtEv) {
+    const k = prEv.findIndex((p, j) => !used.has(j) && p.dir === g.dir && Math.abs(p.t - g.t) <= 1500 && Math.abs(p.pos - g.pos) <= 0.15);
+    if (k >= 0) { used.add(k); continue; }
+    const fi = Math.round((g.t - t0) / s.dt), win = [];
+    for (let i = Math.max(0, fi - 8); i <= Math.min(frames.length - 1, fi + 8); i++) win.push([i, hypOf(i, g.id)]);
+    const present = win.filter(([, h]) => h !== undefined), got = present.filter(([, h]) => h != null);
+    if (got.length < 0.5 * present.length) { bump(s.name + " miss: no track"); continue; }
+    const before = new Set(got.filter(([i]) => i < fi).map(([, h]) => h)), after = new Set(got.filter(([i]) => i >= fi).map(([, h]) => h));
+    const why = [...after].some(h => before.has(h)) ? " miss: not counted (same id)" : " miss: id break";
+    bump(s.name + why);
+    if (process.env.LQ_BENCH_WHY_TRACE) console.log("  ", s.name, why, g.dir, "t", fi, "pos", g.pos.toFixed(2), win.map(([i, h]) => `${i}:${h === undefined ? "-" : h ?? "x"}`).join(" "),
+      "| hyp centres", win.map(([i, h]) => { const b = frames[i].hyp.find(q => q.id === h); return b ? `${(b.x + b.w / 2).toFixed(3)},${(b.y + b.h / 2).toFixed(3)}` : "."; }).join(" "));
+  }
+  prEv.forEach((p, j) => { if (!used.has(j)) bump(s.name + " false: " + (gtEv.some(g => Math.abs(g.t - p.t) <= 1500 && Math.abs(g.pos - p.pos) <= 0.15) ? "dir/timing" : "no GT crossing")); });
+}
 function evalConfig(seqs, caches, cfg) {
   const per = [];
   for (const s of seqs) {
@@ -149,6 +191,7 @@ function evalConfig(seqs, caches, cfg) {
     for (const [k, L] of Object.entries(LINES)) { if (k === "H") continue;
       const r = L === LINES.H ? base : runPipeline(s, c, { ...cfg, line: L });
       const g = gtEvents(s, L), ce = M.countError(g, r.ev), me = M.matchEvents(g, r.ev, { dt: 1500, dpos: 0.15 });
+      if (WHY) whyMissed(s, r.frames, g, r.ev, WHY);
       gtIn += ce.gtIn; gtOut += ce.gtOut; prIn += ce.prIn; prOut += ce.prOut; tp += me.tp; fp += me.fp; fn += me.fn;
     }
     per.push({ seq: s.name, mota: mot.mota, idf1: id.idf1, idsw: mot.idsw, fp: mot.fp, fn: mot.fn, gt: mot.gt, gtCross: gtIn + gtOut, prCross: prIn + prOut,
@@ -209,9 +252,11 @@ console.log(table(["sequence", "<10%", "10–20%", "20–35%", "≥35%"], seqs.m
 
 // tracking + counting
 const configs = [
-  ["store defaults (round 4: byte + line hysteresis/confirm, dets ≥ 0.3)", { thr: ST.ST_DET_MIN }],
-  ["round-3 defaults (minScore 0.4, DIST_MAX 0.09, MISS 2 s)", { thr: 0.4, tcfgBase: ST.ST_TRACK_R3 }],
+  ["store defaults (round 5: byte + band/confirm + flushLost, dets ≥ 0.3)", { thr: ST.ST_DET_MIN }],
+  ["round-4 defaults (byte + band/confirm)", { thr: ST.ST_DET_MIN, tcfgBase: ST.ST_TRACK_R4 }],
   ["store defaults + ลดการนับซ้ำ (re-ID on)", { thr: ST.ST_DET_MIN, reid: true }],
+  ["round-3 defaults (minScore 0.4, DIST_MAX 0.09, MISS 2 s)", { thr: 0.4, tcfgBase: ST.ST_TRACK_R3 }],
+  ["round-5 candidate, not adopted: + byte HIGH 0.4", { thr: ST.ST_DET_MIN, tcfgBase: { ...ST.ST_TRACK, HIGH: 0.4 } }],
   ["round-2 tracker (DIST_MAX 0.12, MISS 1 s)", { thr: 0.4, tcfgBase: LQT.PRESET.person }],
   ["round-3 defaults + re-ID", { thr: 0.4, reid: true, tcfgBase: ST.ST_TRACK_R3 }]
 ];
@@ -229,13 +274,18 @@ if (flag("--sweep")) {
   for (const sim of [0.75, 0.78, 0.85, 0.88]) configs.push([`minScore 0.4 + re-ID SIM_MIN ${sim}`, { thr: 0.4, reid: true, reidCfg: { SIM_MIN: sim } }]);
 }
 // LQ_BENCH_EXTRA='[["label", {thr, reid, reidCfg, tcfgBase:{...}}], ...]' adds configs (tuning experiments)
-if (process.env.LQ_BENCH_EXTRA) for (const [label, c] of JSON.parse(process.env.LQ_BENCH_EXTRA)) configs.push([label, { ...c, tcfgBase: { ...LQT.PRESET.person, ...(c.tcfgBase || {}) } }]);
+// {"store": true, ...} starts from the store's ST_TRACK (CROSS merged key by key) instead of PRESET.person
+if (process.env.LQ_BENCH_EXTRA) for (const [label, c] of JSON.parse(process.env.LQ_BENCH_EXTRA)) {
+  const base = c.store ? ST.ST_TRACK : LQT.PRESET.person, tb = c.tcfgBase || {};
+  configs.push([label, { thr: c.store ? ST.ST_DET_MIN : 0.4, ...c, tcfgBase: { ...base, ...tb, ...(tb.CROSS || base.CROSS ? { CROSS: { ...(base.CROSS || {}), ...(tb.CROSS || {}) } } : {}) } }]);
+}
 const cm = det.get(416);
 out.tracking = [];
 const trows = [];
 for (const [label, cfg] of configs) {
   const r = evalConfig(seqs, cm, cfg);
   out.tracking.push({ label, cfg: { ...cfg, tcfgBase: cfg.tcfgBase ? { MIN_HITS: cfg.tcfgBase.MIN_HITS, MAX_MISSED_MS: cfg.tcfgBase.MAX_MISSED_MS, LOST_TTL_MS: cfg.tcfgBase.LOST_TTL_MS, DIST_MAX: cfg.tcfgBase.DIST_MAX, IOU_MIN: cfg.tcfgBase.IOU_MIN } : undefined }, ...r });
+  if (WHY) { console.log(`\n--why ${label}:`, JSON.stringify(Object.fromEntries(Object.entries(WHY).sort()))); for (const k in WHY) delete WHY[k]; }
   trows.push([label, pct(r.pooled.mota), pct(r.pooled.idf1), r.pooled.idsw, `${r.pooled.prCross}/${r.pooled.gtCross}`, (r.pooled.countErr >= 0 ? "+" : "") + pct(r.pooled.countErr), pct(r.pooled.absCountErr), pct(r.pooled.evP), pct(r.pooled.evR)]);
 }
 console.log(`\n### Tracking + line counting (store.stepCam, detW=416; 5 virtual lines per sequence: x=0.3/0.5/0.7, y=0.4/0.6)\n`);

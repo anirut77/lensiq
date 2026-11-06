@@ -84,7 +84,7 @@
   }
   function tplGarment(it, canvas) {
     const a = it.anchor || {};
-    return { key: "tpl:" + it.id, name: it.name, kind: "tpl", item: it, canvas, chin: { x: a.cx, y: a.chinY }, fw: a.fw, faceLum: a.faceLum || null, fit: it.fit || null };
+    return { key: "tpl:" + it.id, name: it.name, kind: "tpl", item: it, canvas, chin: { x: a.cx, y: a.chinY }, fw: a.fw, faceLum: a.faceLum || null, fit: it.fit || null, anchors: it.anchors || null };
   }
   /** เตรียมชุด: canvas, alpha, จุดยึด (คาง/ไหล่) */
   function prepGarment(g) {
@@ -134,8 +134,17 @@
     const msg = $("#stGarmentMsg"); msg.textContent = T("studio.js.outfit.preparing", "กำลังเตรียมชุด (ตัดพื้นหลังและศีรษะ)...");
     try {
       try { await loadFace(); } catch { /* ไม่มีตัวตรวจใบหน้า: ใช้จุดยึดจากรูปทรง */ }
-      const prep = await PBTpl.prepareOutfit(f), fin = PBTpl.finalizeOutfit(prep, .5);
-      const item = { id: crypto.randomUUID(), kind: "outfit", name: f.name.replace(/\.[^.]+$/, "").slice(0, 40) || T("studio.js.myOutfit", "ชุดของฉัน"), anchor: fin.anchor, blob: await PBTpl.toBlob(fin.canvas), created: Date.now() };
+      const prep = await PBTpl.prepareOutfit(f);
+      let fin = PBTpl.finalizeOutfit(prep, .5);
+      // ชุดวางราบบนพื้นเรียบ (ไม่มีคน — MODNet ตัดไม่ได้): แยกสีพื้นหลังจากขอบภาพแทน
+      { const a = alphaOf(fin.canvas); let cov = 0; for (let i = 0; i < a.length; i += 7) cov += a[i] > .5; if (cov / (a.length / 7) < .05 || prep.source === "photo" && !(fin.anchor && fin.anchor.faceLum)) {
+        const src = await PBTpl.fileToCanvas(f), px = ctx2(src).getImageData(0, 0, src.width, src.height), al = SC.refineMatte(px.data, SC.borderKeyAlpha(px.data, src.width, src.height), src.width, src.height, { k: 3 });
+        for (let i = 0; i < al.length; i++) px.data[i * 4 + 3] = al[i] * 255;
+        const bb = PBTpl.opaqueBBox(px.data, src.width, src.height) || { x: 0, y: 0, w: src.width, h: src.height }, full = mk(src.width, src.height); full.getContext("2d").putImageData(px, 0, 0);
+        const c = mk(bb.w, bb.h); c.getContext("2d").drawImage(full, -bb.x, -bb.y); fin = { canvas: c, anchor: { faceLum: null } };
+      } }
+      const anchors = SC.templateAnchors(alphaOf(fin.canvas), fin.canvas.width, fin.canvas.height);
+      const item = { id: crypto.randomUUID(), kind: "outfit", name: f.name.replace(/\.[^.]+$/, "").slice(0, 40) || T("studio.js.myOutfit", "ชุดของฉัน"), anchor: fin.anchor, anchors, blob: await PBTpl.toBlob(fin.canvas), created: Date.now() };
       await PBTpl.put(item);
       const g = tplGarment(item, fin.canvas);
       ST.garments.splice(1, 0, g); ST.gKey = g.key; ST.manual = null;
@@ -151,28 +160,39 @@
     anc.s = s; cv.width = Math.round(g.canvas.width * s); cv.height = Math.round(g.canvas.height * s);
     const x = cv.getContext("2d"); x.clearRect(0, 0, cv.width, cv.height); x.drawImage(g.canvas, 0, 0, cv.width, cv.height);
     const P = anc.pts;
+    if (Array.isArray(P)) { // เทมเพลตรูปถ่าย: จุดยึดทุกจุด (ช่องคอ ปก ไหล่ ชายเสื้อ)
+      const col = { neck: "#674ff2", cl: "#a855f7", cr: "#a855f7", l: "#0891b2", r: "#0891b2", hl: "#16a34a", hr: "#16a34a" };
+      x.strokeStyle = "rgba(14,20,48,.6)"; x.setLineDash([4, 4]); x.beginPath(); ["hl", "l", "cl", "neck", "cr", "r", "hr"].forEach((k, i) => { const q = P.find(p => p.k === k); if (q) x[i ? "lineTo" : "moveTo"](q.x * s, q.y * s); }); x.stroke(); x.setLineDash([]);
+      P.forEach(q => { x.fillStyle = col[q.k] || "#674ff2"; x.strokeStyle = "#fff"; x.lineWidth = 2; x.beginPath(); x.arc(q.x * s, q.y * s, 8, 0, 7); x.fill(); x.stroke(); });
+      return;
+    }
     x.strokeStyle = "rgba(14,20,48,.6)"; x.setLineDash([4, 4]); x.beginPath(); x.moveTo(P.l.x * s, P.l.y * s); x.lineTo(P.chin.x * s, P.chin.y * s); x.lineTo(P.r.x * s, P.r.y * s); x.stroke(); x.setLineDash([]);
     [["chin", "#674ff2"], ["l", "#0891b2"], ["r", "#0891b2"]].forEach(([k, col]) => { x.fillStyle = col; x.strokeStyle = "#fff"; x.lineWidth = 2; x.beginPath(); x.arc(P[k].x * s, P[k].y * s, 9, 0, 7); x.fill(); x.stroke(); });
   }
   $("#stAnchorBtn").onclick = () => {
     const g = curG(); if (g.kind !== "tpl") return;
-    anc.g = g; anc.pts = JSON.parse(JSON.stringify(garmentAnchors(g)));
+    anc.g = g; anc.pts = JSON.parse(JSON.stringify(g.anchors || garmentAnchors(g)));
     $("#stAnchorDlg").showModal(); drawAnchor();
   };
   const cvPt = (cv, e) => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * cv.width / r.width, y: (e.clientY - r.top) * cv.height / r.height }; };
   $("#stAnchorCv").addEventListener("pointerdown", e => {
     const p = cvPt(e.currentTarget, e), s = anc.s; let best = null, bd = 30;
-    for (const k of ["chin", "l", "r"]) { const d = Math.hypot(anc.pts[k].x * s - p.x, anc.pts[k].y * s - p.y); if (d < bd) { bd = d; best = k; } }
-    if (best) { anc.drag = best; e.currentTarget.setPointerCapture(e.pointerId); }
+    const keys = Array.isArray(anc.pts) ? anc.pts.map((_, i) => i) : ["chin", "l", "r"];
+    for (const k of keys) { const d = Math.hypot(anc.pts[k].x * s - p.x, anc.pts[k].y * s - p.y); if (d < bd) { bd = d; best = k; } }
+    if (best != null) { anc.drag = best; e.currentTarget.setPointerCapture(e.pointerId); }
   });
-  $("#stAnchorCv").addEventListener("pointermove", e => { if (!anc.drag) return; const p = cvPt(e.currentTarget, e); anc.pts[anc.drag] = { x: p.x / anc.s, y: p.y / anc.s }; drawAnchor(); });
+  $("#stAnchorCv").addEventListener("pointermove", e => { if (anc.drag == null) return; const p = cvPt(e.currentTarget, e); anc.pts[anc.drag] = { ...anc.pts[anc.drag], x: p.x / anc.s, y: p.y / anc.s }; drawAnchor(); });
   $("#stAnchorCv").addEventListener("pointerup", () => { anc.drag = null; });
   $("#stAnchorSave").onclick = async () => {
-    const g = anc.g; g.fit = anc.pts;
-    if (g.kind === "tpl") { try { g.item = { ...g.item, fit: g.fit }; await PBTpl.put(g.item); } catch (e) { toast(T("studio.js.anchorFail", "บันทึกจุดยึดไม่สำเร็จ: {e}", { e: e.message })); } }
+    const g = anc.g; if (Array.isArray(anc.pts)) g.anchors = anc.pts; else g.fit = anc.pts;
+    if (g.kind === "tpl") { try { g.item = Array.isArray(anc.pts) ? { ...g.item, anchors: g.anchors } : { ...g.item, fit: g.fit }; await PBTpl.put(g.item); } catch (e) { toast(T("studio.js.anchorFail", "บันทึกจุดยึดไม่สำเร็จ: {e}", { e: e.message })); } }
     $("#stAnchorDlg").close(); ST.manual = null; schedule("fit");
   };
-  $("#stAnchorReset").onclick = () => { const g = anc.g, f = g.fit; g.fit = null; anc.pts = JSON.parse(JSON.stringify(garmentAnchors(g))); g.fit = f; drawAnchor(); };
+  $("#stAnchorReset").onclick = () => {
+    const g = anc.g;
+    if (Array.isArray(anc.pts)) { prepGarment(g); anc.pts = SC.templateAnchors(g.alpha, g.canvas.width, g.canvas.height) || anc.pts; drawAnchor(); return; }
+    const f = g.fit; g.fit = null; anc.pts = JSON.parse(JSON.stringify(garmentAnchors(g))); g.fit = f; drawAnchor();
+  };
   $("#stAnchorClose").onclick = () => $("#stAnchorDlg").close();
 
   // ---------- ฉากหลัง ----------
@@ -325,6 +345,7 @@
       const sk = ST.harm.skin ? SC.labToRgb(...ST.harm.skin.mean) : null; ST.harm.skinRGB = sk;
       // ภาพขาวดำ (chroma เฉลี่ยของทั้งภาพต่ำมาก) -> ชุดเป็นขาวดำด้วย
       { const st = SC.labStats(ST.px, W, H, null, { step: 4 }); ST.harm.mono = !!st && Math.hypot(st.mean[1], st.mean[2]) < 2.5 && st.std[1] < 2.5 && st.std[2] < 2.5; }
+      if (ST.harm.mono) { const ls = []; for (let i = 0; i < W * H; i += 13) if (ST.alpha[i] > .8) ls.push(.299 * ST.px[i * 4] + .587 * ST.px[i * 4 + 1] + .114 * ST.px[i * 4 + 2]); ls.sort((a, b) => a - b); if (ls.length > 100) ST.harm.tone = { bp: SC.clamp(ls[Math.floor(ls.length * .02)], 0, 60), wp: SC.clamp(ls[Math.floor(ls.length * .98)], 180, 255) }; }
       ST.timings.stats = now() - t;
       const b = $("#stBefore"); b.width = W; b.height = H; b.getContext("2d").drawImage(canvas, 0, 0);
       for (const id of ["stOut", "stOverlay"]) { const c = document.getElementById(id); c.width = W; c.height = H; }
@@ -394,7 +415,8 @@
       const f = ST.face, cs = Math.cos(fit.theta), sn = Math.sin(fit.theta), NM = ST.neckM;
       // ขอบบนคอเสื้อข้างคอ = ขอบบนของเสื้อเดิมข้างคอ (คลุมเสื้อเดิมพอดี ไม่มีเศษเสื้อเดิม/ช่องว่างที่คอ) จำกัดช่วง 0.12–0.6 เท่าหน้าใต้คาง
       // คอสั้น/คอเสื้อเดิมสูงถึงคาง: ยกคอเสื้อขึ้นชิดคางได้ (ไม่สร้างคอยาวผิดจริง)
-      const yT = SC.clamp(NM && NM.ySide != null ? NM.ySide - f.fw * .04 : f.chinY + f.fw * .3, f.chinY + f.fw * (NM && NM.ySide != null && NM.ySide < f.chinY + f.fw * .1 ? .05 : .12), f.chinY + f.fw * .36);
+      // สัดส่วนร่างกาย: คอที่เห็นเหนือคอเสื้อ ≥ 0.12 หน้า (ศีรษะไม่ "จม" อยู่บนบ่า; ไม่ยืดคอยาวในภาพครอปชิด)
+      const yT = SC.clamp(NM && NM.ySide != null ? NM.ySide - f.fw * .04 : f.chinY + f.fw * .3, f.chinY + f.fw * .12, f.chinY + f.fw * .36);
       const nwU = NM ? (NM.half + f.fw * .02) / fit.s : null;
       fit.drop = SC.clamp(((yT - fit.N.y) - sn * (nwU || .33) * fit.s) / (fit.s * cs) - PBOutfits.CANON.collarY, -1.6, .6);
       // ไหล่วัดได้ต่ำมาก (ปกชุดอวกาศ/ไหล่ลาด): ไม่ยืดคอยาวผิดจริง — ยกทั้งชุดขึ้นจนคอเสื้ออยู่ใต้คางพอดี
@@ -413,6 +435,44 @@
       return { front: pixels(L.front), back: pixels(L.back), targets: T, fit };
     }
     prepGarment(g);
+    if (g.anchors && g.anchors.length >= 5) {
+      // เทมเพลตจากรูปถ่าย: ดัดด้วย thin-plate spline จากจุดยึดของชุด (ช่องคอ ปก ไหล่ ชายเสื้อ) ไปยังตำแหน่งบนตัวคน
+      // ตามแนวไหล่จริง (เอียง/ไหล่สองข้างไม่เท่ากัน) — คางและผมวางทับภายหลัง (ลำดับชั้นเดียวกับชุดสำเร็จรูป)
+      fit.side = ST.manual ? null : ST.fitAuto.side;
+      const tw = SC.templateWarp(g.anchors, fit, { side: fit.side }), cs = Math.cos(fit.theta), sn = Math.sin(fit.theta), s = fit.s;
+      const ext = [[-2.3, -.7], [2.3, -.7], [-2.3, 9], [2.3, 9]].map(([u, v]) => ({ x: fit.N.x + s * (cs * u - sn * v), y: fit.N.y + s * (sn * u + cs * v) }));
+      const xs = [...tw.targets, ...ext].map(p => p.x), ys = [...tw.targets, ...ext].map(p => p.y);
+      const box = { x0: Math.max(0, Math.min(...xs)), y0: Math.max(0, Math.min(...ys)), x1: Math.min(W, Math.max(...xs)), y1: Math.min(H, Math.max(...ys)) };
+      const front = SC.warpRGBA(g.px, g.canvas.width, g.canvas.height, W, H, tw.inv, { step: 6, box });
+      // ตัดตามเงาตัวคนจริง (เหมือนชุดสำเร็จรูป): ชุดไม่ยื่นเกินลำตัว/แขน และไม่ทับผมที่ตกนอกไหล่ — ขอบชุดในรูปยังคงเดิมเมื่อแคบกว่าตัว
+      const ck = [fit.N.x, fit.N.y, fit.s, fit.theta].map(v => v.toFixed(2)).join("|") + "|" + ST.editVer;
+      if (ST.cache.clipKey !== ck) { ST.cache.clip = SC.garmentClip(SC.applyMatteEdits(ST.alpha, ST.editVer ? ST.edit : null), ST.layers, W, H, ST.face, fit, { pp: ST.pp, side: fit.side, nw: .33 }); ST.cache.clipKey = ck; }
+      const C = ST.cache.clip; if (!C.hands) C.hands = ST.hands ? SC.handsNearGarment(ST.hands, C.clip, W, H, fit.s * .12) : null; ST.handsUsed = C.hands;
+      for (let i = 0; i < W * H; i++) front[i * 4 + 3] = front[i * 4 + 3] * C.clip[i];
+      const mp = (u, v) => ({ x: fit.N.x + s * (cs * u - sn * v), y: fit.N.y + s * (sn * u + cs * v) });
+      // ขอบช่องคอของเทมเพลต (เศษฉาก/ขอบขาวของรูปต้นฉบับ): กร่อนเข้าเล็กน้อยเฉพาะบริเวณช่องคอ
+      {
+        const q = mp(0, -.1), R = s * .75, x0 = Math.max(0, Math.floor(q.x - R)), x1 = Math.min(W, Math.ceil(q.x + R)), y0 = Math.max(0, Math.floor(q.y - R)), y1 = Math.min(H, Math.ceil(q.y + R * .8)), bw = x1 - x0, bh = y1 - y0;
+        const er = Math.max(1, Math.round(s * .015));
+        if (bw > 4 * er && bh > 4 * er) { const a = new Float32Array(bw * bh); for (let y = 0; y < bh; y++) for (let x = 0; x < bw; x++) a[y * bw + x] = front[((y + y0) * W + x + x0) * 4 + 3] / 255; const e = SC.minFilter(a, bw, bh, er);
+          // เฉพาะด้านในกรอบ (ขอบกรอบไม่ถูกกร่อน — ไม่เกิดเส้นสี่เหลี่ยม) ไล่น้ำหนักตามระยะจากจุดกลางช่องคอ
+          for (let y = er; y < bh - er; y++) for (let x = er; x < bw - er; x++) { const i = ((y + y0) * W + x + x0) * 4 + 3, w = 1 - SC.smooth((Math.hypot(x + x0 - q.x, y + y0 - q.y) - R * .55) / (R * .3)); front[i] = front[i] + (e[y * bw + x] * 255 - front[i]) * w; } }
+      }
+      // แขนท่อนล่างหน้าลำตัว (กอดอก/ประสานมือ): แขนเสื้อตามทิศแขนจริง สีผ้าเดียวกับเทมเพลต
+      if (!C.arms) C.arms = SC.armModel(C.clip, C.hands, W, H, fit, ST.face);
+      if (!g.mainColor) g.mainColor = templateMain(g);
+      const fa = C.arms.some(a => a.hand) ? PBOutfits.forearms({ W, H, s, theta: fit.theta, N: fit.N, light: lightDir(), arms: C.arms, color: `rgb(${g.mainColor.join(",")})`, cuff: g.cuff || null, clip: C.clip, form: C.form }) : null;
+      // แขนท่อนล่างค่อย ๆ ปรากฏจากข้อศอก (ต่อเนียนกับแขนเสื้อในรูป ไม่เป็นปลายท่อกลม)
+      const fe = C.arms.filter(a => a.hand).map(a => { const E = mp(a.E.u, a.E.v), Wr = mp(a.Wr.u, a.Wr.v), L = Math.hypot(Wr.x - E.x, Wr.y - E.y) || 1; return { E, dx: (Wr.x - E.x) / L, dy: (Wr.y - E.y) / L, L }; });
+      if (fa) { const d = pixels(fa); for (let i = 0; i < W * H; i++) { let k = d[i * 4 + 3] / 255; if (k <= 0) continue;
+        { const x = i % W, y = (i / W) | 0; let best = 1e9, ramp = 1; for (const e of fe) { const t = (x - e.E.x) * e.dx + (y - e.E.y) * e.dy, q = Math.abs(-(x - e.E.x) * e.dy + (y - e.E.y) * e.dx); if (q < best) { best = q; ramp = SC.smooth(t / (e.L * .3)); } } k *= ramp; if (k <= 0) continue; } for (let c = 0; c < 3; c++) front[i * 4 + c] = front[i * 4 + c] * (1 - k) + d[i * 4 + c] * k; front[i * 4 + 3] = Math.max(front[i * 4 + 3], k * 255); } }
+      // ซับในคอเสื้อ (มืด) ใต้ช่องคอ: ช่องระหว่างคอเสื้อกับกราม/คอ ไม่เห็นฉากหลัง — คอของผู้ถ่ายวางทับ
+      const bc = mk(W, H), bx = bc.getContext("2d"), lin = g.mainColor.map(v => Math.round(v * .4));
+      bx.fillStyle = `rgb(${lin[0]},${lin[1]},${lin[2]})`; bx.filter = `blur(${Math.max(1, s * .01).toFixed(1)}px)`; bx.beginPath();
+      [mp(-.36, -.3), tw.targets[1], tw.targets[0], tw.targets[2], mp(.36, -.3)].forEach((p, i) => bx[i ? "lineTo" : "moveTo"](p.x, p.y)); bx.closePath(); bx.fill();
+      const back = pixels(bc); for (let i = 0; i < W * H; i++) back[i * 4 + 3] *= C.clip[i]; // เฉพาะภายในเงาชุด (ไม่เป็นสามเหลี่ยมดำข้างคอ)
+      return { front, back, targets: T, fit };
+    }
     const A = garmentAnchors(g), sim = SC.similarity(A.l, A.r, T.l, T.r), c = mk(W, H), x = c.getContext("2d");
     x.imageSmoothingQuality = "high"; x.setTransform(sim.a, sim.b, -sim.b, sim.a, T.l.x - sim.a * A.l.x + sim.b * A.l.y, T.l.y - sim.b * A.l.x - sim.a * A.l.y);
     x.drawImage(g.canvas, 0, 0);
@@ -426,9 +486,15 @@
     const W = ST.W, H = ST.H, f = ST.face, m = ST.masks;
     let px = ST.fg, all = ST.px;
     if (chk("rAuto")) { // gray-world ครึ่งทาง + ความสว่างผิวหน้าเป้าหมาย ~ 160
-      const gw = SC.grayWorld(ST.px, W, H, null, { lo: .88, hi: 1.12, neutral: true }), fl = ST.harm.faceLum;
-      // แก้เฉพาะภาพที่มืด/สว่างเกิน: ผิวหน้า < 140 ยกขึ้น, > 215 ลดลง
-      const ex = !fl ? 1 : fl < 140 ? Math.min(1.3, 150 / fl) : fl > 215 ? Math.max(.9, 200 / fl) : 1, gains = gw.gains.map(g => 1 + (g - 1) * .5);
+      // ความสว่าง: ตัดสินจากความสว่างของทั้งภาพ (ไม่ใช่สีผิว) — ผิวเข้มไม่ถูกทำให้สว่าง/ซีดผิดจริง
+      // สมดุลสี: gray-world ครึ่งทาง จำกัด ±4% (กันผิวอมเขียว/เหลืองจากการชดเชยเกิน)
+      const gw = SC.grayWorld(ST.px, W, H, null, { lo: .92, hi: 1.08, neutral: true });
+      let ys = 0, yc = 0; for (let i = 0; i < W * H; i += 37) { ys += .299 * ST.px[i * 4] + .587 * ST.px[i * 4 + 1] + .114 * ST.px[i * 4 + 2]; yc++; }
+      const ym = ys / Math.max(1, yc), ex = ym < 45 ? Math.min(1.12, 55 / Math.max(1, ym)) : ym > 200 ? Math.max(.92, 185 / ym) : 1; // เฉพาะภาพที่มืดจัดทั้งภาพ
+      // แก้สีเฉพาะเมื่อภาพติดสีชัดเจน (gray-world เบี่ยง > 6%) — ภาพปกติคงสีผิวเดิมทุกประการ (ไม่อมเขียว/เหลือง)
+      // ไม่ปรับสมดุลสีผิว: ฉากเดิมถูกแทนที่อยู่แล้ว และ gray-world ที่อิงฉาก/เสื้อเดิม (ชั้นหนังสือ เสื้อแดง) ทำให้ผิวเพี้ยน
+      // — แก้เฉพาะภาพที่ติดสีรุนแรง (> 15%) และเพียงครึ่งทาง จำกัด ±3%
+      const cast = Math.max(...gw.gains.map(g => Math.abs(g - 1))) > .15, gains = cast ? gw.gains.map(g => SC.clamp(1 + (g - 1) * .5, .97, 1.03)) : [1, 1, 1];
       px = SC.applyGains(px, W, H, gains, { exposure: ex }); all = SC.applyGains(all, W, H, gains, { exposure: ex });
       for (let i = 0; i < W * H; i++) px[i * 4 + 3] = ST.fg[i * 4 + 3];
     }
@@ -457,7 +523,7 @@
       let t = now();
       const person = retouch(); ST.timings.retouch = now() - t; t = now();
       const pA = SC.applyMatteEdits(ST.alpha, ST.editVer ? ST.edit : null), n = W * H, Ly = ST.layers;
-      const gk = [g.key, ...["aScale", "aRot", "aX", "aY", "aBright", "oHarm"].map(val), JSON.stringify(ST.manual), JSON.stringify(g.fit || null)].join("|");
+      const gk = [g.key, ...["aScale", "aRot", "aX", "aY", "aBright", "oHarm"].map(val), JSON.stringify(ST.manual), JSON.stringify(g.fit || null), JSON.stringify(g.anchors || null)].join("|");
       let front = null, back = null, neck = null, neckShade = null, gShade = null, under = null;
       const sv = val("oShadow") / 100, keepA = new Float32Array(n);
       if (g.key !== "none") {
@@ -466,6 +532,8 @@
           ST.cache.front = SC.harmonizeGarment(fit.front, W, H, ST.harm, ref, hm);
           // แสงเงาและรอยยับจริงจากเสื้อเดิม (ตามแถบ "กลมกลืนแสงสี")
           if (ST.clothSh && hm.strength > 0) { const fr = ST.cache.front, sh = ST.clothSh, k = hm.strength; for (let i = 0; i < W * H; i++) { if (!fr[i * 4 + 3] || sh[i] === 1) continue; const m = 1 + (sh[i] - 1) * k; fr[i * 4] *= m; fr[i * 4 + 1] *= m; fr[i * 4 + 2] *= m; } }
+          // ภาพขาวดำ/ภาพเก่า: ช่วงความสว่างของชุดตามภาพจริง (จุดดำ/ขาวของตัวคนเดิม — ภาพเก่ามีดำไม่สนิท ขาวไม่จ้า)
+          if (ST.harm.mono && ST.harm.tone) { const fr = ST.cache.front, { bp, wp } = ST.harm.tone; for (let i = 0; i < W * H; i++) { if (!fr[i * 4 + 3]) continue; for (let c = 0; c < 3; c++) fr[i * 4 + c] = bp + fr[i * 4 + c] * (wp - bp) / 255; } }
           ST.cache.back = fit.back ? SC.harmonizeGarment(fit.back, W, H, ST.harm, { ...ref, hasSkin: false }, { ...hm, seed: 13 }) : null;
           ST.cache.gk = gk; ST.targets = fit.targets; ST.cache.fit = fit.fit;
         }
@@ -477,12 +545,14 @@
         if (ST.cache.nkKey !== nkKey) { ST.cache.neck = SC.synthNeck(person, pA, Ly.neck, Ly.keep, W, H, f, ST.cache.fit, { skinRGB: ST.harm.skinRGB, noise: Math.min(4, ST.harm.noise || 0), hair: Ly.hair, collarY: PBOutfits.CANON.collarY, half: ST.neckM ? ST.neckM.half : null, mono: !!ST.harm.mono }); ST.cache.nkKey = nkKey; }
         neck = ST.cache.neck;
         for (let i = 0; i < n; i++) keepA[i] = pA[i] * Ly.keep[i];
-        const HS = g.kind === "vector" ? ST.handsUsed : ST.hands;
+        const HS = g.kind === "vector" || (g.anchors && g.anchors.length >= 5) ? ST.handsUsed : ST.hands;
         if (HS) for (let i = 0; i < n; i++) if (HS[i] > 0) keepA[i] = Math.max(keepA[i], pA[i] * HS[i]);
         const fA = new Float32Array(n); for (let i = 0; i < n; i++) fA[i] = front[i * 4 + 3] / 255;
         neckShade = SC.contactShadow(fA, W, H, f, { chin: .3 * sv, collar: .38 * sv });
         const hairA = new Float32Array(n); for (let i = 0; i < n; i++) hairA[i] = keepA[i] * Ly.hair[i];
         gShade = sv > 0 ? SC.hairShadow(hairA, W, H, f.fw, { amount: .32 * sv }) : null;
+        // เงาสัมผัสใต้มือ/แขนที่วางหน้าชุด (มือไม่ดู "แปะ"): เบลอ mask มือแล้วเลื่อนลงเล็กน้อย
+        if (sv > 0 && HS) { const ha = new Float32Array(n); for (let i = 0; i < n; i++) ha[i] = HS[i] * pA[i]; const hs = SC.hairShadow(ha, W, H, f.fw, { dy: .05, r: .05, amount: .45 * sv }); if (gShade) for (let i = 0; i < n; i++) gShade[i] = Math.max(gShade[i], hs[i]); else gShade = hs; }
         if (!chk("oHide")) { under = { rgba: person, alpha: new Float32Array(n) }; for (let i = 0; i < n; i++) under.alpha[i] = pA[i] * Ly.body[i]; }
       } else { ST.targets = null; keepA.set(pA); ST.timings.fit = now() - t; t = now(); }
       ST.timings.neck = now() - t; t = now();
@@ -599,7 +669,24 @@
   };
 
   // ---------- test hook (ใช้โดย tests/e2e/studio.e2e.mjs; ไม่เก็บหรือส่งข้อมูล) ----------
-  window.__studio = { load: c => load(toWork(c)), state: ST, render: () => renderNow("test"), garments: () => ST.garments.map(g => g.key), select: k => { ST.gKey = k; renderGarments(); return renderNow("test"); }, idPhoto, lastExport: null };
+  /** เพิ่มเทมเพลตชุดจากรูปถ่าย (canvas พื้นใส + จุดยึด) — ใช้โดยชุดทดสอบ/สคริปต์วัดผล ไม่บันทึกลงเครื่อง */
+  function addTemplate(canvas, anchors, { name = "template", faceLum = null } = {}) {
+    const id = "t" + Math.random().toString(36).slice(2, 8), g = tplGarment({ id, name, anchor: { faceLum }, anchors: anchors || SC.templateAnchors(alphaOf(canvas), canvas.width, canvas.height) }, canvas);
+    ST.garments.splice(1, 0, g); renderGarments(); return g.key;
+  }
+  /** สีผ้าหลักของเทมเพลต: ค่ามัธยฐานของพิกเซลทึบรอบจุดไหล่ (ตัวเสื้อ ไม่ใช่เชิ้ต/เนคไทกลางอก) */
+  function templateMain(g) {
+    // ตัวเสื้อด้านข้าง (ไม่รวมแนวกลางที่เป็นเชิ้ต/เนคไท) ช่วงไหล่ถึงกลางตัว — ค่ามัธยฐานความสว่าง แล้วใช้สีของพิกเซลรอบค่ามัธยฐาน
+    prepGarment(g); const A = g.anchors, W = g.canvas.width, H = g.canvas.height, px = g.px, k = q => A.find(p => p.k === q);
+    const l = k("l"), r = k("r"), n = k("neck"), hl = k("hl"); if (!l || !r || !n) return [60, 60, 60];
+    const y0 = Math.round(Math.max(l.y, r.y)), y1 = Math.round(Math.min(H - 1, y0 + ((hl ? hl.y : H) - y0) * .5)), sw = r.x - l.x, pts = [];
+    for (let y = y0; y <= y1; y += 3) for (let x = Math.round(l.x); x <= r.x; x += 3) { if (Math.abs(x - n.x) < sw * .2) continue; const i = (y * W + x) * 4; if (px[i + 3] < 220) continue; pts.push([.299 * px[i] + .587 * px[i + 1] + .114 * px[i + 2], px[i], px[i + 1], px[i + 2]]); }
+    if (!pts.length) return [60, 60, 60];
+    pts.sort((a, b) => a[0] - b[0]); const mid = pts.slice(Math.floor(pts.length * .4), Math.ceil(pts.length * .6));
+    return [1, 2, 3].map(c => Math.round(mid.reduce((t, p) => t + p[c], 0) / mid.length));
+  }
+  const alphaOf = c => { const d = ctx2(c).getImageData(0, 0, c.width, c.height).data, a = new Float32Array(c.width * c.height); for (let i = 0; i < a.length; i++) a[i] = d[i * 4 + 3] / 255; return a; };
+  window.__studio = { addTemplate, load: c => load(toWork(c)), state: ST, render: () => renderNow("test"), garments: () => ST.garments.map(g => g.key), select: k => { ST.gKey = k; renderGarments(); return renderNow("test"); }, idPhoto, lastExport: null };
   // เปลี่ยนภาษา: วาดรายการชุด/ฉากหลังใหม่ (ข้อความสถานะจะเป็นภาษาใหม่ในรอบประมวลผลถัดไป)
   window.addEventListener("lq-lang", () => { if (ST.garments.length) renderGarments(); renderBgChoices(); });
   init();

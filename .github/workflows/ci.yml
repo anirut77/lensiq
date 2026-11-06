@@ -46,6 +46,8 @@ jobs:
         run: node tools/csp-meta.mjs --check
       - name: no Google Fonts / third-party font references (fonts are self-hosted)
         run: node tools/self-host-fonts.mjs --check
+      - name: published site contains no server code / tests / tools / docs / package.json / *.py (allowlist build)
+        run: node tools/build-site.mjs && node tools/check-site.mjs --static
 
   python:
     name: Server tests (Python 3.11)
@@ -107,6 +109,10 @@ jobs:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
       - name: pages under the GitHub Pages <meta> CSP
         run: node tools/check-csp.mjs
+        env:
+          LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
+      - name: built _site — every page loads under /lensiq/ in TH + 中文 with no 404 (same as the Pages deploy)
+        run: node tools/build-site.mjs && node tools/check-site.mjs
         env:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
       - name: no page requests a third-party origin (th + zh)

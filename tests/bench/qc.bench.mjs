@@ -2,7 +2,7 @@
 // tests/bench/qc.bench.mjs — bottle inspection accuracy of qc.js (QC.calibrate + QC.inspect, the page's own functions and
 // default tolerances) on SYNTHETIC but deliberately harder images than the page's built-in simulator. No dataset needed.
 //
-//   node tests/bench/qc.bench.mjs [--good 60] [--per 25] [--cond "light"] [--json out.json]   (~15 min for all conditions)
+//   node tests/bench/qc.bench.mjs [--good 60] [--per 25] [--cond "light|contrast"] [--json out.json]   (~25 min for all conditions)
 //
 // Renderer (independent of QC.simBottle, which the page was tuned on): 2×2 supersampled PET bottle with cylindrical
 // shading, a specular highlight that runs through the fill window, concave meniscus, rounded shoulder, wrap-around label
@@ -21,7 +21,7 @@ const QC = require(join(REPO, "qc.js"));
 const args = process.argv.slice(2), opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
 const NGOOD = +opt("--good", 60), NPER = +opt("--per", 25);
 const W = 640, H = 480, G = QC.simGeom("600", W, H);
-const TOL = { fill: 6, fillUnit: "px", minContrast: 12, capDE: 15, capCov: 50, capTilt: 6, capHigh: 4, labelSim: 80, labelShift: 6 }; // qc.js defTol()
+const TOL = { fill: 6, fillUnit: "px", minContrast: 12, capDE: 15, capCov: 50, capTilt: 6, capHigh: 4, labelSim: 80, labelShift: 6 }; // qc.js defTol() (labelAngle unset = default 3.5°)
 
 function rng(seed) { let s = seed >>> 0 || 1; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
 const gauss = r => Math.sqrt(-2 * Math.log(r() + 1e-12)) * Math.cos(2 * Math.PI * r());
@@ -90,7 +90,8 @@ function render(p, r) {
     }
     const lg = gain * (1 + grad * (x / W - 0.5));
     const gl = p.glare ? p.glare * Math.exp(-((x - p.cx - 6) ** 2 / (2 * 7 * 7) + (y - p.dy - 150) ** 2 / (2 * 30 * 30))) : 0;
-    F[i] = c[0] * lg + gl; F[i + 1] = c[1] * lg + gl; F[i + 2] = c[2] * lg + gl;
+    const ct = p.contrast ?? 1; // contrast change around mid-grey (camera contrast / gamma drift after calibration)
+    F[i] = (c[0] * lg - 128) * ct + 128 + gl; F[i + 1] = (c[1] * lg - 128) * ct + 128 + gl; F[i + 2] = (c[2] * lg - 128) * ct + 128 + gl;
   }
   if (p.blur) blur(F, p.blur, p.full ? [0, W - 1, 0] : [X0, X1, Y0]);
   for (let k = 0, j = 0; k < F.length; k += 3, j += 4) {
@@ -128,6 +129,7 @@ const DEFECTS = [
   ["label 3 px low (inside 6 px tol.)", null, { labelShift: 3 }],
   ["label 10 px low", ["labelShift"], { labelShift: 10 }],
   ["label 20 px low", ["labelShift"], { labelShift: 20 }],
+  ["label skewed 2° (inside 3.5° tol.)", null, { labelSkew: 2 }],
   ["label skewed 5°", ["labelShift"], { labelSkew: 5 }],
   ["label skewed 10°", ["labelShift"], { labelSkew: 10 }],
   ["scratch on body (not inspected)", null, { scratch: true }]
@@ -139,6 +141,12 @@ const CONDS = [
   ["light +25% after calibration", { light: 1.25 }],
   ["light −10% after calibration", { light: 0.9 }],
   ["light −30% after calibration", { light: 0.7 }],
+  ["brightness +20% after calibration", { light: 1.2 }],
+  ["brightness −20% after calibration", { light: 0.8 }],
+  ["contrast +10% after calibration", { contrast: 1.1 }],
+  ["contrast −10% after calibration", { contrast: 0.9 }],
+  ["brightness +20% and contrast −10%", { light: 1.2, contrast: 0.9 }],
+  ["brightness −20% and contrast +10%", { light: 0.8, contrast: 1.1 }],
   ["side light (±15% across frame)", { grad: 0.3 }],
   ["glare on the neck", { glare: 60 }],
   ["slight defocus (σ 1.2 px)", { blur: 1.2 }],
@@ -174,7 +182,7 @@ for (const liqName of ["tea", "water"]) {
     try { golden = QC.calibrate(render(nominal({ liq: LIQ[liqName] }), r0), rec, withBg ? bg : null); }
     catch (e) { results.push({ liq: liqName, withBg, calibError: e.message }); console.log(`calibration failed (${liqName}, bg ${withBg}): ${e.message}`); continue; }
     rec.golden = golden;
-    for (const [cname, cond] of CONDS.filter(([n]) => !opt("--cond") || n.includes(opt("--cond")))) {
+    for (const [cname, cond] of CONDS.filter(([n]) => !opt("--cond") || opt("--cond").split("|").some(c => n.includes(c)))) {
       const c = { ...cond, liq: LIQ[liqName] }, r = rng(cname.length * 31 + (withBg ? 7 : 3));
       const row = { liq: liqName, withBg, cond: cname, good: { n: 0, rej: 0, reasons: {} }, defects: [] };
       for (let i = 0; i < NGOOD; i++) {

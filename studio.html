@@ -67,7 +67,7 @@
       </div>
     </section>
 
-    <aside class="card st-panel" aria-label="ตัวเลือก">
+    <aside class="card st-panel" aria-label="ตัวเลือก" data-i18n-attr="aria-label:studio.a.panel">
       <details open>
         <summary data-i18n="studio.sec.outfit">ชุด</summary>
         <div class="choices" id="stOutfits"></div>
@@ -75,6 +75,7 @@
           <label class="btn ghost st-file sm"><input type="file" id="stGarmentFile" accept="image/*"><span data-i18n="studio.addOutfit">เพิ่มชุด (PNG พื้นใส / รูปคนใส่ชุด)</span></label>
           <button class="btn ghost sm" id="stAnchorBtn" type="button" data-i18n="studio.anchorBtn">ตั้งจุดคอ/ไหล่ของชุด</button>
         </div>
+        <p class="hint" data-i18n="studio.tplTip">เคล็ดลับ: ผลที่สมจริงที่สุดมาจากการถ่ายรูปชุดจริงของร้าน (วางราบหรือใส่หุ่น บนพื้นเรียบ แสงสม่ำเสมอ เห็นทั้งตัวเสื้อตั้งแต่คอถึงชายเสื้อ) แล้วกด "เพิ่มชุด" — ระบบตัดพื้นหลังและหาจุดคอ/ไหล่ให้อัตโนมัติ ชุดสำเร็จรูปด้านบนเป็นชุดตัวอย่าง</p>
         <p class="hint" id="stGarmentMsg"><span data-i18n="studio.outfitNote">ชุดที่เพิ่มจะเก็บไว้ในเบราว์เซอร์นี้ (ใช้ร่วมกับหน้า ตู้ถ่ายรูป) ไม่ถูกส่งออกนอกเครื่อง</span></p>
       </details>
       <details open>
@@ -166,7 +167,8 @@
 <script src="photobooth-hq.js?v=7"></script>
 <script src="photobooth-templates.js?v=1"></script>
 <script src="photobooth-outfits.js?v=3"></script>
-<script src="i18n/zh-studio.js?v=1"></script>
+<script src="lensiq-i18n-rt.js?v=1"></script>
+<script src="i18n/zh-studio.js?v=2"></script>
 <script src="studio-core.js?v=3"></script>
 <script src="studio.js?v=3"></script>
 </body>

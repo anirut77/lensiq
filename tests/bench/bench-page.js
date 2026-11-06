@@ -79,7 +79,7 @@
        defocus — what consecutive webcam frames of one pose look like) and quality inputs for LQTrack.faceQuality:
        box px size, detector score, 68 landmarks (for yaw), LQDetect.faceSharpness. upscale: draw the image k× larger first
        (small aligned crops such as CASIA-FaceV5 112 px), padTo: grey canvas around it. */
-    async faceFrames(urls, { inputSize = 320, scoreThreshold = 0.5, padTo = 0, upscale = 1, jitter = 2, seed = 1 } = {}) {
+    async faceFrames(urls, { inputSize = 320, scoreThreshold = 0.5, padTo = 0, upscale = 1, jitter = 2, seed = 1, sizes = null } = {}) {
       if (!faceReady) {
         await LQDetect.tfBackend();
         await Promise.all(["tinyFaceDetector", "faceLandmark68Net", "faceRecognitionNet"].map(n => faceapi.nets[n].loadFromUri(MODEL)));
@@ -99,7 +99,8 @@
           x.filter = `brightness(${br.toFixed(3)})` + (bl > 0.3 ? ` blur(${bl.toFixed(2)}px)` : "");
           x.drawImage(im, (P - iw * sc) / 2 + dx, (P - ih * sc) / 2 + dy, iw * sc, ih * sc);
           x.filter = "none";
-          const rs = await faceapi.detectAllFaces(c, opts).withFaceLandmarks().withFaceDescriptors();
+          // sizes: [320, 224, 160] = LQDetect.detectFacesCascade exactly as attendance.js / customers.js call it (round 5)
+          const rs = sizes ? await LQDetect.detectFacesCascade(faceapi, c, { sizes, scoreThreshold }) : await faceapi.detectAllFaces(c, opts).withFaceLandmarks().withFaceDescriptors();
           if (!rs.length) { frames.push({ n: 0 }); continue; }
           const r = rs.slice().sort((a, b) => b.detection.box.area - a.detection.box.area)[0], b = r.detection.box;
           const lm = r.landmarks.positions.map(p => [Math.round(p.x * 10) / 10, Math.round(p.y * 10) / 10]);

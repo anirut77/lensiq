@@ -73,3 +73,13 @@ test("floatingHand: a hand shown far from any garment is flagged; a hand on the 
   assert.ok(Q.floatingHand({ keepA: far, frontA, W, H, face, hands: far }) > Q.LIMITS.floatingHand);
   assert.equal(Q.floatingHand({ keepA: on, frontA, W, H, face, hands: on }), 0);
 });
+
+test("neckJoin: a background notch between the collar and the jaw, and a half-transparent collar fringe, are measured", () => {
+  const fg = fill(W, H, (x, y) => (y > 70 && !(y > 85 && y < 95 && Math.abs(x - 112) < 5) ? 1 : 0)), keepA = fill(W, H, (x, y) => (y < 80 ? 1 : 0));
+  const front = fill(W, H, (x, y) => (y > 95 ? 1 : Math.abs(x - 90) < 6 && y > 85 && y <= 95 ? .3 : 0));
+  const r = Q.neckJoin({ fg, frontA: front, keepA, W, H, face, fit });
+  assert.ok(r.gapPct > Q.LIMITS.neckJoinGap, "notch " + r.gapPct);
+  assert.ok(r.fringePct > 0, "fringe " + r.fringePct);
+  const clean = Q.neckJoin({ fg: fill(W, H, (x, y) => (y > 70 ? 1 : 0)), frontA: fill(W, H, (x, y) => (y > 95 ? 1 : 0)), keepA, W, H, face, fit });
+  assert.equal(clean.gapPct, 0);
+});

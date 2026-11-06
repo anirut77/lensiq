@@ -157,8 +157,10 @@ export default async function ({ base, launch, check, fakeCams }) {
       await page.evaluate(() => document.getElementById("stAnchorBtn").click());
       assert(await page.evaluate(() => document.getElementById("stAnchorDlg").open), "dialog open");
       await page.evaluate(() => document.getElementById("stAnchorSave").click());
-      const fit = await page.evaluate(() => PBTpl.all().then(a => a.find(i => i.name === "jacket-test").fit));
-      assert(fit && fit.chin && fit.l && fit.r, "fit saved " + JSON.stringify(fit));
+      // photo templates: auto-detected anchors (neck hole, collar points, shoulder tips, hem) are saved by the editor
+      const it = await page.evaluate(() => PBTpl.all().then(a => a.find(i => i.name === "jacket-test")));
+      const ok = (it.anchors && it.anchors.length >= 5 && it.anchors.every(p => Number.isFinite(p.x) && Number.isFinite(p.y) && Number.isFinite(p.u))) || (it.fit && it.fit.chin && it.fit.l && it.fit.r);
+      assert(ok, "anchors saved " + JSON.stringify(it.anchors || it.fit));
       await sleep(300); await page.evaluate(() => window.__studio.render());
       const chest = await page.evaluate(() => [...document.getElementById("stOut").getContext("2d").getImageData(450, 950, 1, 1).data]);
       assert(chest[2] > chest[0], "navy jacket on chest " + chest);

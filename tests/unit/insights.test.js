@@ -282,3 +282,35 @@ test("QC straddling the target: 94.3% (CI ≈ 92–96%) says 'ยังสรุ
   assert.ok(b.ci.hi < 0.95); assert.match(b.title, /ต่ำกว่าเกณฑ์/); assert.match(b.action, /หยุดไลน์/);
   assert.equal(run(588, 600).A.alerts.find(x => x.id === "qc"), undefined, "98% → no alert");
 });
+
+// ---------- every card states the time window it uses, consistent with the selected range ----------
+test("card time scope: anomalies only inside the selection; longer windows are labelled with their day count (TH + zh)", () => {
+  const NOW = new Date(2026, 10, 7, 15).getTime();
+  const zh = require("../../i18n/zh-insights.js").zh;
+  for (const seed of [7, 11, 20261105]) {
+    const D = I.iqCollect(I.iqBuildDemo({}, NOW, seed).set);
+    for (const p of ["d7", "today", "d30"]) {
+      const r = I.iqRange(p, NOW, D), A = I.iqAnalyze(D, r, { now: NOW }), C = I.iqInsights(D, A);
+      for (const c of C) {
+        assert.ok(c.scope && typeof c.scope.text === "string" && c.scope.text.length > 4, `${p} ${c.id}: has a scope label`);
+        if (c.scope.kind === "range") assert.ok(c.scope.from === r.from && c.scope.to <= r.to, `${p} ${c.id}: range scope = selection ${JSON.stringify(c.scope)}`);
+        if (c.scope.kind === "history" && c.scope.from) assert.match(c.scope.text, /ย้อนหลัง [\d,]+ วัน|ตั้งแต่|ทั้งหมดที่มี/, `${p} ${c.id}: history scope says how long`);
+      }
+      // an anomaly card never reports a day outside the selected range (was: 26 Oct shown while 1–7 Nov selected)
+      const an = C.find(c => c.id === "anomaly");
+      if (an) { const day = A.forecast.anomalies.filter(a => a.day >= r.from && a.day <= r.to).sort((a, b) => (a.day < b.day ? 1 : -1))[0]; assert.ok(day, `${p}: anomaly card only with an in-range anomaly`); }
+      else assert.equal(A.forecast.anomalies.filter(a => a.day >= r.from && a.day <= r.to).length, 0, `${p}: in-range anomaly not shown`);
+      // correlation over a short selection uses more history → says so explicitly with the actual number of days
+      C.filter(c => c.kind === "corr").forEach(c => { if (r.days < 14) { assert.equal(c.scope.kind === "range", false, c.id); assert.ok(c.scope.text.includes(String(A.corr.find(x => "corr-" + x.id === c.id).n)) || c.scope.kind === "cumulative", c.scope.text); } });
+      const ab = C.find(c => c.id === "ab-sg");
+      if (ab) {
+        assert.equal(ab.scope.kind, "cumulative");
+        assert.ok(!/จาก \d+ ชิ้น/.test(ab.body), "ambiguous 'from k items' wording: " + ab.body);
+        if (/คนต่อทุก 1,000/.test(ab.action)) assert.match(ab.action, /ค่าประมาณ/, "per-1,000 projection labelled as an estimate with assumptions");
+      }
+    }
+  }
+  // the same keys exist in Chinese with the same placeholders
+  for (const k of ["iq.scope.sel", "iq.scope.cmp", "iq.scope.hist", "iq.scope.anom", "iq.scope.fc", "iq.scope.cum", "iq.scope.since", "iq.scope.live", "iq.scope.last7", "iq.scope.all", "iq.absg.b2", "iq.absg.act3", "iq.ui.scope"]) assert.ok(zh[k], k);
+  assert.match(zh["iq.absg.act3"], /估算/); assert.ok(!/（共 \{k\} 个）/.test(zh["iq.absg.b2"]));
+});

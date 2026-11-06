@@ -8,7 +8,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="attendance.s1">เช็คชื่ออบรมด้วยใบหน้า | LENSIQ</title>
 <link rel="stylesheet" href="styles.css?v=8">
-<link rel="stylesheet" href="attendance.css?v=5">
+<link rel="stylesheet" href="attendance.css?v=6">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -54,8 +54,8 @@
         <p class="unknown-note" id="unknownNote" hidden></p>
         <details class="tune">
           <summary data-i18n="attendance.s16">ความเข้มงวดในการจดจำ</summary>
-          <label><span data-i18n="attendance.s17">ค่าความต่างสูงสุด</span> <output id="matchDistVal">0.55</output>
-            <input id="matchDist" type="range" min="0.3" max="0.7" step="0.01" value="0.55"></label>
+          <label><span data-i18n="attendance.s17">ค่าความต่างสูงสุด</span> <output id="matchDistVal">0.50</output>
+            <input id="matchDist" type="range" min="0.3" max="0.7" step="0.01" value="0.50"></label>
           <small data-i18n="attendance.s18">ค่าต่ำ = เข้มงวดขึ้น (จำผิดน้อยลง แต่อาจจำไม่ได้บ้าง) ค่าเริ่มต้น 0.55</small>
         </details>
         <h3><span data-i18n="attendance.s19">เช็คชื่อแล้ววันนี้ (</span><span id="todayCount">0</span>)</h3>
@@ -105,10 +105,10 @@
 </main>
 
 <script src="vendor/face-api.js"></script>
-<script src="lensiq-track.js?v=2"></script>
+<script src="lensiq-track.js?v=3"></script>
 <script src="lensiq-camera.js?v=2"></script>
-<script src="lensiq-detect.js?v=2"></script>
+<script src="lensiq-detect.js?v=3"></script>
 <script src="lensiq-facevault.js?v=1"></script>
-<script src="attendance.js?v=10"></script>
+<script src="attendance.js?v=11"></script>
 </body>
 </html>

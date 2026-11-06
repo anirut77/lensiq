@@ -130,11 +130,13 @@
     "studio.js.st.faceFail": "无法检测面部关键点（改按轮廓估计）",
     "studio.js.m.colorKey": "背景色分离",
     "studio.js.myOutfit": "我的服装",
+    "studio.tplTip": "提示：最逼真的效果来自拍摄店里的真实服装（平铺或穿在人台上，纯色背景、光线均匀，拍全从领口到下摆的整件衣服），然后点“添加服装”——系统会自动抠除背景并找出领口/肩点。上方的预设服装仅为示例。",
     "studio.a.stage": "图片",
     "studio.a.before": "换装前的图片",
     "studio.a.after": "换装后的图片",
     "studio.a.split": "拖动对比换装前后",
     "studio.a.tools": "工具",
+    "studio.a.panel": "选项",
     "studio.hint0": "拖动图片上的彩色点调整颈部和肩膀位置，或用画笔修正人物边缘",
     "studio.desc": "按模板换装，效果如同真实穿着：抠除背景、细化发丝、协调光色、美颜修图并制作证件照，全部在本设备上处理",
     "studio.js.p.colorCluster": "颜色聚类",
@@ -148,6 +150,14 @@
     "pbo.student": "男大学生制服",
     "pbo.student_f": "女大学生制服"
   } };
+  // ID-photo size buttons: studio.js writes the Thai labels of photobooth-layout.js ID_SIZES; lensiq-i18n-rt.js
+  // translates them while 中文 is active (same wording as photobooth.js.size.* in i18n/zh-photobooth.js)
+  (root.LQI18N_RT = root.LQI18N_RT || []).push({
+    "1 นิ้ว (2.5×3.0 ซม.)": "1 寸（2.5×3.0 厘米）",
+    "1.5 นิ้ว (3.0×4.0 ซม.)": "1.5 寸（3.0×4.0 厘米）",
+    "2 นิ้ว (3.5×4.5 ซม.)": "2 寸（3.5×4.5 厘米）",
+    "4×6 นิ้ว (โฟโต้)": "4×6 英寸（相纸）"
+  });
   if (root.LQI18N && typeof root.LQI18N.add === "function") root.LQI18N.add(dict);
   else (root.LQI18N_Q = root.LQI18N_Q || []).push(dict);
   if (typeof module === "object" && module.exports) module.exports = dict;

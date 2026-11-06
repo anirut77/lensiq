@@ -158,3 +158,33 @@ test("handsNearGarment: a hand holding something outside the garment is dropped,
   assert.ok(h[80 * W + 60] > .5 && h[80 * W + 110] === 0);
   assert.equal(S.handsNearGarment(fill(W, H, (x, y) => ((x - 112) ** 2 + (y - 80) ** 2 < 20 ? 1 : 0)), clip, W, H, 4), null);
 });
+
+/** a flat-lay jacket silhouette: neck hole, collar points, sloping shoulders, sleeves hanging down, straight hem */
+function jacket(W, H) {
+  return fill(W, H, (x, y) => {
+    const dx = Math.abs(x - 100);
+    if (y < 20 || y > 190) return 0;
+    if (dx < 18 && y < 20 + (18 - dx) * 1.4) return 0;                 // V neck hole, bottom at (100, ~45)
+    const top = 20 + Math.max(0, dx - 18) * .25;                         // shoulder line slopes down
+    if (dx > 80) return y > top + (dx - 80) * 3 && dx < 95 ? 1 : 0;      // sleeves hang down
+    return y >= top ? 1 : 0;
+  });
+}
+test("templateAnchors: neck hole, collar points, shoulder tips and hem corners of a flat-lay garment", () => {
+  const W = 200, H = 210, a = S.templateAnchors(jacket(W, H), W, H), k = q => a.find(p => p.k === q);
+  assert.ok(a && a.length === 7);
+  assert.ok(Math.abs(k("neck").x - 100) < 4 && k("neck").y > 35, "neck hole bottom " + JSON.stringify(k("neck")));
+  assert.ok(k("cl").x < 100 && k("cr").x > 100 && k("cl").y < k("neck").y, "collar points above the neck hole");
+  assert.ok(k("l").x < 40 && k("r").x > 160, "shoulder tips near the sleeve: " + k("l").x + " " + k("r").x);
+  assert.ok(k("hl").y > 180 && k("hr").x > k("hl").x, "hem corners at the bottom");
+  assert.equal(S.templateAnchors(new Float32Array(W * H), W, H), null);
+});
+test("templateWarp: anchors land on the person's shoulder line; a tilted / asymmetric fit moves them accordingly", () => {
+  const anchors = [{ k: "neck", x: 100, y: 45, u: 0, v: -.05 }, { k: "cl", x: 82, y: 20, u: -.33, v: -.22 }, { k: "cr", x: 118, y: 20, u: .33, v: -.22 }, { k: "l", x: 20, y: 40, u: -1.45, v: .25 }, { k: "r", x: 180, y: 40, u: 1.45, v: .25 }, { k: "hl", x: 10, y: 190, u: -1.5, v: 3 }, { k: "hr", x: 190, y: 190, u: 1.5, v: 3 }];
+  const fit = { N: { x: 300, y: 200 }, s: 100, theta: 0 }, w = S.templateWarp(anchors, fit);
+  for (let i = 0; i < anchors.length; i++) { const p = w.inv(w.targets[i].x, w.targets[i].y); assert.ok(Math.hypot(p.x - anchors[i].x, p.y - anchors[i].y) < 1.5, "anchor " + anchors[i].k + " maps back"); }
+  assert.ok(Math.abs(w.targets[3].x - (300 - 145)) < 1e-6 && Math.abs(w.targets[3].y - 225) < 1e-6, "left shoulder at the canonical point");
+  const t = S.templateWarp(anchors, { ...fit, theta: .1 }), sd = S.templateWarp(anchors, fit, { side: { l: [.1, 0], r: [0, 0] } });
+  assert.ok(t.targets[4].y > t.targets[3].y, "tilted: right shoulder lower");
+  assert.ok(sd.targets[3].y > w.targets[3].y + 5 && Math.abs(sd.targets[4].y - w.targets[4].y) < 1e-6, "left shoulder lowered only");
+});

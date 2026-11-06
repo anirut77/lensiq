@@ -12,9 +12,9 @@ const MEMBERS = [
 const HOOKS = `
   window.__faces = [];
   window.__LQ_FAKE_DET = () => window.__faces.map(f => Object.assign({ score: 0.95 }, f));
-  window.__LQ_FAKE_MATCH = d => d && d.who ? { label: d.who, distance: d.dist == null ? 0.3 : d.dist } : { label: "unknown", distance: 0.9 };
+  window.__LQ_FAKE_MATCH = d => d && d.who ? { label: d.who, distance: d.dist == null ? 0.3 : d.dist, confident: d.unsure ? false : undefined } : { label: "unknown", distance: 0.9 };
 `;
-const FACE = (x, size, who) => ({ x, y: 0.2, w: size, h: size * 1.3, who });
+const FACE = (x, size, who, unsure) => ({ x, y: 0.2, w: size, h: size * 1.3, who, unsure });
 
 export default async function ({ base, launch, check, fakeCams }) {
   const browser = await launch();
@@ -50,6 +50,16 @@ export default async function ({ base, launch, check, fakeCams }) {
       const c = await card();
       assert(c.includes("สวัสดีคุณบอส"), "clicked member selected: " + c.slice(0, 80));
       assert(!(await page.evaluate(() => document.querySelectorAll("#scanStatus button.chip").length)), "chips cleared");
+    });
+
+    await check("round 5: one member matched but not confident -> no auto-select, the cashier taps the chip", async () => {
+      await scan([FACE(0.3, 0.3, "mA", true)]);
+      await page.waitFor(() => document.querySelectorAll("#scanStatus button.chip").length === 1, 6000);
+      const st = await page.evaluate(() => document.querySelector("#scanStatus").textContent);
+      assert(st.includes("ไม่แน่ใจ") && st.includes("แอน"), "unsure heading: " + st);
+      assert(!(await card()).includes("สวัสดีคุณ"), "not selected automatically");
+      await page.evaluate(() => document.querySelector('#scanStatus button.chip[data-id="mA"]').click());
+      assert((await card()).includes("สวัสดีคุณแอน"), "selected after the tap");
     });
 
     await check("only non-members: new-customer card", async () => {

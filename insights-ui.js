@@ -147,6 +147,8 @@ if (typeof document !== "undefined") (() => {
       el("h3", { id: "ins-" + i }, h, c.title);
       el("span", { class: "sr" }, h, ` (${TN(toneTxt)})`);
       el("p", { class: "ins-b" }, a, c.body);
+      // ช่วงเวลาของข้อมูลที่การ์ดนี้ใช้ — บอกทุกใบ (บางใบตั้งใจใช้ข้อมูลย้อนหลังยาวกว่าช่วงที่เลือก)
+      if (c.scope && c.scope.text) { const sc = el("p", { class: "muted ins-scope", "data-scope": c.scope.kind || "range", style: "margin:0" }, a); el("b", {}, sc, T("iq.ui.scope", "ข้อมูลที่ใช้: ")); sc.append(c.scope.text); }
       const s = el("div", { class: "ins-sure" }, a);
       const lvWord = T("iq.lv." + c.level, LV_WORD[c.level] || LV_WORD.insufficient);
       const m = el("span", { class: "meter", role: "img", "aria-label": T("iq.ui.meter", "ความมั่นใจ {w} ({n} จาก 4)", { w: lvWord, n: LV[c.level] || 0 }) }, s);
@@ -568,7 +570,7 @@ if (typeof document !== "undefined") (() => {
     R.kpis.forEach(k => { const tr = el("tr", {}, tb); el("td", {}, tr, k.label); el("td", {}, tr, fmtVal(k.value, k.fmt)); el("td", {}, tr, k.deltaDir === "flat" ? TN("ทรงตัว") : iqFin(k.delta) ? LQInsightsAnalysis.iqChg(k.delta) : "–"); el("td", {}, tr, [k.sure, k.ci].filter(Boolean).join(" · ") || "–"); });
     if (R.alerts.length) { el("h2", {}, box, TN("การแจ้งเตือน")); const ul = el("ul", {}, box); R.alerts.forEach(a => el("li", {}, ul, `${TN(a.title)}: ${a.text}`)); }
     el("h2", {}, box, TN("สรุปผลอัตโนมัติ"));
-    R.insights.forEach(c => { const s = el("section", { class: "rp-ins" }, box); el("h3", {}, s, c.title); el("p", {}, s, c.body); el("p", { class: "rp-sure" }, s, TN("ความมั่นใจ: ") + c.sure); if (c.why.length) el("p", {}, s, TN("เหตุผลที่เป็นไปได้: ") + c.why.join(" · ")); el("p", {}, s, T("iq.ui.do", "ควรทำ: ") + c.action); });
+    R.insights.forEach(c => { const s = el("section", { class: "rp-ins" }, box); el("h3", {}, s, c.title); el("p", {}, s, c.body); if (c.scope) el("p", { class: "rp-scope" }, s, T("iq.ui.scope", "ข้อมูลที่ใช้: ") + c.scope); el("p", { class: "rp-sure" }, s, TN("ความมั่นใจ: ") + c.sure); if (c.why.length) el("p", {}, s, TN("เหตุผลที่เป็นไปได้: ") + c.why.join(" · ")); el("p", {}, s, T("iq.ui.do", "ควรทำ: ") + c.action); });
     if (R.forecast) { el("h2", {}, box, TN("คาดการณ์ 7 วันข้างหน้า")); el("p", {}, box, T("iq.rep.fc", "{name} ราว {m} {u} (ช่วง 80%: {lo}–{hi})", { name: TN(R.forecast.name), m: nf(R.forecast.mean), u: TN(R.forecast.unit), lo: nf(R.forecast.lo), hi: nf(R.forecast.hi) })); }
     if (R.goals.length) { el("h2", {}, box, TN("เป้าหมาย")); const ul = el("ul", {}, box); R.goals.forEach(g => el("li", {}, ul, `${TN(g.label)}: ${g.actual == null ? TN("ไม่มีข้อมูล") : g.status === "above" ? TN("ถึงเป้า") : g.status === "below" ? T("iq.goal.pct", "ได้ {p}% ของเป้า", { p: Math.round(g.progress * 100) }) : T("iq.goal.pctu", "ได้ {p}% ของเป้า · ยังสรุปไม่ได้ (ช่วง 95% คร่อมเป้า)", { p: Math.round(g.progress * 100) })}`)); }
     const Mt = iqMethods();

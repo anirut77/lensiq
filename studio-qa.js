@@ -85,7 +85,7 @@
   function hemCheck({ frontA, fg, W, H, fit }) {
     const s = fit.s, y0 = Math.round(fit.N.y + s * 1.1), k = Math.max(2, Math.round(s * .1)), Ls = [], Rs = [];
     // รูในชุด = ฉากหลังที่ถูกชุดล้อมทั้ง 4 ทิศภายใน 0.15 s (รูเล็ก/เศษ matte) — ช่องว่างจริงระหว่างแขนกับลำตัว (ใหญ่กว่านี้) ไม่นับ
-    let area = 0, holes = 0; const q = Math.max(2, Math.round(s * .15)), G = (x, y) => x >= 0 && y >= 0 && x < W && y < H && frontA[y * W + x] > .5;
+    let area = 0, holes = 0; const q = Math.max(2, Math.round(s * .15)), G = /** @type {(x: number, y: number) => any} */ ((x, y) => x >= 0 && y >= 0 && x < W && y < H && frontA[y * W + x] > .5);
     for (let y = Math.max(0, y0); y < H; y++) {
       let l = -1, r = -1; for (let x = 0; x < W; x++) if (frontA[y * W + x] > .5) { if (l < 0) l = x; r = x; }
       Ls.push(l); Rs.push(r); if (l < 0) continue;
@@ -172,8 +172,22 @@
     }
     return +(c / (fw * fw)).toFixed(3);
   }
+  /**
+   * รอยต่อคอ-คอเสื้อ (แถบจากแนวกรามถึงโคนคอ N, |dx| < 0.6 หน้า): ฉากหลังที่ถูกล้อมซ้าย-ขวา (รอยบาก/ช่อง) และขอบโปร่งครึ่งเดียวของชุด
+   * (เศษขาว/เทาจากขอบเทมเพลต) — คืน { gapPct, fringePct } (% ของพิกเซลในแถบ)
+   */
+  function neckJoin({ fg, frontA, keepA, W, H, face, fit }) {
+    const fw = face.fw, cx = Math.round(face.chinX != null ? face.chinX : face.cx), y0 = Math.round(face.chinY - fw * .05), y1 = Math.min(H - 1, Math.round(fit.N.y + fit.s * .1));
+    let n = 0, gap = 0, fr = 0;
+    for (let y = Math.max(0, y0); y <= y1; y++) {
+      const xa = Math.max(0, cx - Math.round(fw * .6)), xb = Math.min(W - 1, cx + Math.round(fw * .6)); let l = -1, r = -1;
+      for (let x = xa; x <= xb; x++) if (fg[y * W + x] >= .5) { if (l < 0) l = x; r = x; }
+      for (let x = xa; x <= xb; x++) { const i = y * W + x; n++; if (l >= 0 && x > l && x < r && fg[i] < .5) gap++; if (frontA[i] > .08 && frontA[i] < .55 && keepA[i] < .3) fr++; }
+    }
+    return { gapPct: n ? +(100 * gap / n).toFixed(2) : 0, fringePct: n ? +(100 * fr / n).toFixed(2) : 0 };
+  }
   /** เกณฑ์ผ่าน (ปรับเทียบกับการดูภาพ) */
-  const LIMITS = { hairCutRows: 3, neckBgPct: 1.5, neckDE: 16, neckL: [.35, 1.2], neckWide: .75, neckLen: .75, bgChunk: .03, hemRough: .045, bodyWide: 3.75, hemHolePct: .3, shoulderDy: .2, shoulderRaised: .25, accessory: .012, skinIsland: .012, handsOrphan: 0, floatingHand: .02 };
+  const LIMITS = { hairCutRows: 3, neckBgPct: 1.5, neckDE: 16, neckL: [.35, 1.2], neckWide: .75, neckLen: .75, bgChunk: .03, hemRough: .045, bodyWide: 3.75, hemHolePct: .3, shoulderDy: .2, shoulderRaised: .25, accessory: .012, skinIsland: .012, handsOrphan: 0, floatingHand: .02, neckJoinGap: .5, neckJoinFringe: 2 };
   function verdict(m, L = LIMITS) {
     const f = [];
     if (m.hairCut.rows > L.hairCutRows) f.push("hair-cut");
@@ -190,6 +204,7 @@
     if (m.skinIsland > L.skinIsland) f.push("skin-island");
     if (m.hands.orphan > L.handsOrphan) f.push("hand-no-sleeve");
     if (m.floatingHand > L.floatingHand) f.push("floating-hand");
+    if (m.neckJoin && (m.neckJoin.gapPct > L.neckJoinGap || m.neckJoin.fringePct > L.neckJoinFringe)) f.push("neck-join");
     return f;
   }
 
@@ -211,13 +226,13 @@
       accessory: accessory({ keepA, src, W, H, face: f, jaw: SC.jawCurve(f), hw, mono, skinY: S.harm && S.harm.faceLum || 140, hair: L.hair }),
       skinIsland: skinIsland({ keepA, frontA, hands: S.handsUsed || S.hands, hair: L.hair, W, H, face: f, hw }),
       hands: handsCheck({ hands: S.handsUsed || null, W, H, fit, arms: S.cache.clip && S.cache.clip.arms }),
-      floatingHand: floatingHand({ keepA, frontA, src: null, W, H, face: f, hands: S.hands })
+      floatingHand: floatingHand({ keepA, frontA, W, H, face: f, hands: S.hands })
     };
     const fails = verdict(m);
     return { pass: !fails.length, fails, m };
   }
 
-  const api = { hairCut, neckCheck, bgChunk, hemCheck, shoulderCheck, accessory, skinIsland, handsCheck, floatingHand, verdict, evaluate, LIMITS };
+  const api = { hairCut, neckCheck, bgChunk, hemCheck, shoulderCheck, accessory, skinIsland, handsCheck, floatingHand, neckJoin, verdict, evaluate, LIMITS };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") root.StudioQA = api;
 })(typeof window !== "undefined" ? window : globalThis);

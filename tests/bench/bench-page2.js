@@ -24,7 +24,8 @@
     if (gray) { const d = x.getImageData(0, 0, P, P); for (let i = 0; i < d.data.length; i += 4) { const v = (d.data[i] + d.data[i + 1] + d.data[i + 2]) / 3; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; } x.putImageData(d, 0, 0); }
     return c;
   }
-  /* grey 32×16 patch around one eye (6 landmarks), 1.8× the eye width — exploratory eye-openness features */
+  /* grey 32×16 patch around one eye (6 landmarks), 1.8× the eye width — the same crop as driver.js eyePatchRect/eyeGray,
+     input of the eye-patch classifier (eyeClosedScore) */
   const pc = document.createElement("canvas"); pc.width = 32; pc.height = 16;
   function eyePatch(src, p) {
     const cx = p.reduce((a, q) => a + q.x, 0) / 6, cy = p.reduce((a, q) => a + q.y, 0) / 6, w = Math.hypot(p[3].x - p[0].x, p[3].y - p[0].y) * 1.8, h = w / 2;

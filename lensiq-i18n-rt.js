@@ -169,7 +169,7 @@
     while ((n = w.nextNode())) {
       if (n.nodeType === 3) { var r = texts && texts.get(n); if (r && n.nodeValue === r.zh) back.push([n, r.th]); if (r) texts.delete(n); }
       else { var m = attrs && attrs.get(n); if (!m) continue;
-        for (var a in m) { if (a === "value") { if (n.value === m[a].zh) n.value = m[a].th; } else if (n.getAttribute(a) === m[a].zh) n.setAttribute(a, m[a].th); }
+        var el = /** @type {HTMLInputElement} */ (n); for (var a in m) { if (a === "value") { if (el.value === m[a].zh) el.value = m[a].th; } else if (el.getAttribute(a) === m[a].zh) el.setAttribute(a, m[a].th); }
         attrs.delete(n); }
     }
     // new Text nodes (not nodeValue) so nav.js sees an added node and re-applies Thai line breaking
@@ -213,7 +213,7 @@
   }
   // spoken alerts (driver page): speak the Chinese text with a Chinese voice while 中文 is active
   function wrapSpeech() {
-    var S = root.speechSynthesis; if (!S || typeof S.speak !== "function" || S.speak.__lqrt) return;
+    var S = root.speechSynthesis; if (!S || typeof S.speak !== "function" || /** @type {any} */ (S.speak).__lqrt) return;
     var f = S.speak;
     var w = function (u) {
       if (active && u && typeof u.text === "string" && TH.test(u.text)) { try { u.text = tr(u.text); u.lang = "zh-CN"; } catch (e) { /* read-only in some engines */ } }
@@ -247,7 +247,7 @@
   wrapDialogs();
   wrapCanvas();
   wrapSpeech();
-  if (typeof root.addEventListener === "function") root.addEventListener("lq-lang", function (e) { sync(e && e.detail && e.detail.lang); });
+  if (typeof root.addEventListener === "function") root.addEventListener("lq-lang", function (/** @type {CustomEvent} */ e) { sync(e && e.detail && e.detail.lang); });
   // the core fires "lq-lang" once after its first apply when the stored language is Chinese; if it already ran
   // (this file loaded late), start now.
   if (doc && root.LQI18N && root.LQI18N.lang === "zh" && doc.readyState !== "loading") start();

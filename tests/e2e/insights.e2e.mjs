@@ -107,6 +107,21 @@ export default async function ({ base, launch, check }) {
         const r = await page.evaluate(() => ({ cmp: __IQ.last.r.compare, prev: __IQ.last.r.prev }));
         assert(r.cmp === c && (c === "none" ? !r.prev : !!r.prev), `compare ${c}: ` + JSON.stringify(r));
       }
+      // time scope: with a 7-day selection every card says which days it used; anomalies outside the selection are not shown;
+      // cards that intentionally use more history say so with the day count; the signage A/B card is not ambiguous about "items"
+      await page.evaluate(() => document.querySelector('.range button[data-p="d7"]').click());
+      await sleep(150);
+      const sc = await page.evaluate(() => { const r = __IQ.last.r, C = __IQ.last.cards; return { r: { from: r.from, to: r.to }, n: document.querySelectorAll("#insightCards .ins").length, scoped: document.querySelectorAll("#insightCards .ins .ins-scope").length, cards: C.map(c => ({ id: c.id, kind: c.scope && c.scope.kind, from: c.scope && c.scope.from, to: c.scope && c.scope.to, text: c.scope && c.scope.text, body: c.body, action: c.action })), an: __IQ.last.A.forecast.anomalies.map(a => a.day) }; });
+      assert(sc.n >= 1 && sc.scoped === sc.n, `scope label on every card ${sc.scoped}/${sc.n}`);
+      for (const c of sc.cards) {
+        assert(c.text, c.id + ": no scope");
+        if (c.kind === "range") assert(c.from === sc.r.from && c.to <= sc.r.to, `${c.id}: range scope ${c.from}..${c.to} vs ${sc.r.from}..${sc.r.to}`);
+        if (c.kind === "history" && c.from && c.from < sc.r.from) assert(/ย้อนหลัง [\d,]+ วัน|ตั้งแต่|ทั้งหมดที่มี/.test(c.text), c.id + ": history scope without day count " + c.text);
+      }
+      const anCard = sc.cards.find(c => c.id === "anomaly");
+      assert(!anCard === !sc.an.some(d => d >= sc.r.from && d <= sc.r.to), "anomaly card iff an anomaly falls inside the selection " + JSON.stringify({ an: sc.an, r: sc.r }));
+      const abc = sc.cards.find(c => c.id === "ab-sg");
+      assert(abc && abc.kind === "cumulative" && !/จาก \d+ ชิ้น/.test(abc.body) && (!/1,000/.test(abc.action) || /ค่าประมาณ/.test(abc.action)), "signage A/B wording " + JSON.stringify(abc));
       await page.evaluate(() => document.querySelector('.range button[data-p="d30"]').click());
       await page.evaluate(() => document.getElementById("insightMore").click());
       const all = await page.evaluate(() => ({ shown: document.querySelectorAll("#insightCards .ins").length, total: __IQ.last.cards.length }));

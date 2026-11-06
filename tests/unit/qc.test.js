@@ -114,3 +114,76 @@ test("presenceStep keeps extra per-arrival flags until the bottle leaves", () =>
   const r = QC.presenceStep(s, { frac: 0, cx: 0.5, motion: 0 }, 3, cfg);
   assert.equal(r.event, "missed"); assert.equal(r.st.multi, undefined, "reset when the bottle leaves");
 });
+
+/* ---- photometric normalisation + label skew (round 5) ---- */
+const TOL5 = { fill: 6, fillUnit: "px", minContrast: 12, capDE: 15, capCov: 50, capTilt: 6, capHigh: 4, labelSim: 80, labelShift: 6 }; // defTol()
+function scene(defect = null, cx = W / 2, seed = 3) { const im = img(); QC.simBackground(im, G); QC.simBottle(im, G, cx, defect); QC.simNoise(im, seed, 4); return im; }
+// lighting change after calibration: brightness gain, then contrast around mid-grey (clipped like a camera)
+function relight(im, gain = 1, contrast = 1) {
+  const d = new Uint8ClampedArray(im.data.length);
+  for (let i = 0; i < d.length; i += 4) { for (let c = 0; c < 3; c++) d[i + c] = (im.data[i + c] * gain - 128) * contrast + 128; d[i + 3] = 255; }
+  return { data: d, width: im.width, height: im.height };
+}
+// rotate the printed label by deg around its centre (nearest neighbour, only inside the bottle body)
+function skewLabel(im, deg) {
+  const out = { data: new Uint8ClampedArray(im.data), width: W, height: H }, a = deg * Math.PI / 180;
+  const cx = W / 2, cy = G.labelTop + G.labelH / 2, hw = G.bodyW / 2 - 4;
+  for (let y = G.bodyTop; y < G.belt; y++) for (let x = cx - hw; x <= cx + hw; x++) {
+    const sx = Math.round(cx + (x - cx) * Math.cos(a) + (y - cy) * Math.sin(a)), sy = Math.round(cy - (x - cx) * Math.sin(a) + (y - cy) * Math.cos(a));
+    if (sx < cx - hw || sx > cx + hw || sy < G.bodyTop || sy >= G.belt) continue;
+    const o = (y * W + x) * 4, s = (sy * W + sx) * 4;
+    for (let c = 0; c < 3; c++) out.data[o + c] = im.data[s + c];
+  }
+  return out;
+}
+function recipe(withBg) {
+  const bg = bgImg(), rec = { rois: G.rois, mode: "dark", tol: { ...TOL5 } };
+  rec.golden = QC.calibrate(scene(), rec, withBg ? bg : null);
+  return { rec, bg: withBg ? bg : null };
+}
+
+test("photometric normalisation: ±20% brightness and ±10% contrast after calibration cause no false rejects", () => {
+  for (const withBg of [true, false]) {
+    const { rec, bg } = recipe(withBg);
+    assert.ok(rec.golden.photo && rec.golden.photo.px.length > 100, "golden stores photometric reference");
+    for (const [gain, ct] of [[1, 1], [1.2, 1], [0.8, 1], [1, 1.1], [1, 0.9], [1.2, 0.9], [0.8, 1.1], [1.1, 1.1]]) {
+      for (const [k, cx] of [[0, W / 2], [1, W / 2 - 5], [2, W / 2 + 6]]) {
+        const r = QC.inspect(relight(scene(null, cx, 10 + k), gain, ct), rec, bg);
+        assert.equal(r.pass, true, `bg ${withBg} gain ${gain} contrast ${ct} cx ${cx}: ${r.reasons}`);
+        if (gain !== 1 || ct !== 1) { assert.equal(r.photo.on, true); assert.ok(Math.abs(r.photo.gain[1] - gain * ct) < 0.06, "gain " + r.photo.gain); }
+      }
+    }
+  }
+});
+
+test("photometric normalisation: defects are still rejected under ±20% brightness / ±10% contrast", () => {
+  const { rec, bg } = recipe(true);
+  for (const [gain, ct] of [[1.2, 1], [0.8, 1], [1, 1.1], [1, 0.9]]) {
+    for (const d of QC.SIM_DEFECTS) {
+      const r = QC.inspect(relight(scene(d), gain, ct), rec, bg);
+      assert.ok(r.reasons.includes(d) || (d === "capTilt" && r.reasons.includes("capHigh")), `${d} at gain ${gain} contrast ${ct}: got ${r.reasons}`);
+    }
+  }
+  // without normalisation the same lighting change rejects good bottles (the round-4 failure)
+  const off = QC.inspect(relight(scene(), 1.2, 1), { ...rec, photoNorm: false }, bg);
+  assert.equal(off.pass, false);
+});
+
+test("label skew: ≥5° detected (also under changed lighting), 0–2° passes, old golden without strips still works", () => {
+  const { rec, bg } = recipe(true);
+  for (const deg of [-10, -5, 5, 7, 10]) {
+    const r = QC.inspect(skewLabel(scene(), deg), rec, bg);
+    assert.ok(r.reasons.includes("labelShift") && r.label.skew, `skew ${deg}°: ${r.reasons} angle ${r.label.angle}`);
+    assert.ok(Math.sign(r.label.angle) === Math.sign(deg) && Math.abs(Math.abs(r.label.angle) - Math.abs(deg)) < 2, `angle ${r.label.angle} for ${deg}`);
+    assert.ok(QC.inspect(relight(skewLabel(scene(), deg), 0.8, 1.1), rec, bg).label.skew, `skew ${deg}° at −20% light`);
+  }
+  for (const deg of [0, 1, -2, 2]) {
+    const r = QC.inspect(skewLabel(scene(), deg), rec, bg);
+    assert.equal(r.pass, true, `skew ${deg}°: ${r.reasons} angle ${r.label.angle}`);
+  }
+  // configurable tolerance; recipes calibrated before round 5 (no strips / no photo ref) behave as before
+  assert.equal(QC.inspect(skewLabel(scene(), 7), { ...rec, tol: { ...TOL5, labelAngle: 10 } }, bg).label.skew, false);
+  const legacy = { ...rec, golden: { ...rec.golden, photo: undefined, label: { ...rec.golden.label, strips: undefined } } };
+  const lr = QC.inspect(scene(), legacy, bg);
+  assert.equal(lr.pass, true); assert.equal(lr.label.angle, null); assert.equal(lr.photo, null);
+});

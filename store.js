@@ -275,8 +275,13 @@ const autoDetW = n => n <= 1 ? 416 : n === 2 ? 352 : 320;
    - CROSS: แถบกันสั่นรอบเส้น = max(1.2% ของภาพ, 8% ของความสูงคน) และต้องอยู่ฝั่งใหม่ 2 เฟรมติดจึงนับ (กันรหัสสลับที่เส้น)
    ตัวตรวจจับต้องส่งกล่องตั้งแต่คะแนน ST_DET_MIN (= LOW) ขึ้นไป */
 const ST_DET_MIN = 0.3;
+/* round 5 — CROSS.flushLost: ข้ามเส้นแล้วหายไปก่อนครบการยืนยัน (ถูกบัง/ออกนอกภาพ ไม่ได้ย้อนกลับ) = นับ
+   (เดิม: ไม่นับ -> นับขาดในฝูงชน) ; ทดลองบน PETS09/TUD + ชุดจำลองการถูกบัง/คะแนนต่ำ แล้วตรวจกับ MOT17
+   (ลอง HIGH 0.4 ด้วย — MOT17 ที่ 5 ภาพ/วินาที นับเกิน +56% จึงไม่ใช้ ; ดู ACCURACY.md ส่วนที่ 1) */
 const ST_TRACK = Object.freeze({ ...ST_LQT.PRESET.person, DIST_MAX: 0.09, MAX_MISSED_MS: 2000, ASSIGN: "byte", HIGH: 0.5, LOW: ST_DET_MIN, NEW_MIN: 0.5,
-  CROSS: Object.freeze({ band: 0.012, bandRel: 0.08, confirm: 2 }) });
+  CROSS: Object.freeze({ band: 0.012, bandRel: 0.08, confirm: 2, flushLost: true }) });
+/* ค่าเดิม (round 4) — ไว้เทียบในชุดวัด */
+const ST_TRACK_R4 = Object.freeze({ ...ST_TRACK, CROSS: Object.freeze({ band: 0.012, bandRel: 0.08, confirm: 2 }) });
 /* ค่าเดิม (round 3) — ไว้เทียบในชุดวัด */
 const ST_TRACK_R3 = Object.freeze({ ...ST_LQT.PRESET.person, DIST_MAX: 0.09, MAX_MISSED_MS: 2000 });
 function newPipe() { return { tracker: ST_LQT.newTracker(ST_TRACK), lineMem: {}, zoneLive: {}, zoneCounts: {}, lastSeen: [], boxes: new Map(), reid: null, staff: null, lastNow: 0 }; }
@@ -454,9 +459,20 @@ function stepCam(pipe, cam, day, dets, now, tcfg, opt) {
   if (cam.name) bc.name = cam.name;
   const role = cam.role || "both";
   const active = new Set(conf.map(t => t.cid));
-  if (cam.line && role !== "zone") for (const t of conf) {
+  const lineTracks = conf.slice();
+  if (cam.line && role !== "zone" && tcfg.CROSS && tcfg.CROSS.flushLost) {
+    // flushLost (round 5, ทางเลือก): track ที่ข้ามเส้นแล้วรอยืนยัน แต่หายไปก่อนครบ (ถูกบัง/ออกนอกภาพ) — ยังไม่ย้อนกลับ = นับ
+    const seenIds = new Set(conf.map(t => t.id));
+    for (const o of pipe.tracker.tracks) {
+      const m = !seenIds.has(o.id) && pipe.lineMem[canonOf(R, o.id)];
+      if (m && m.pend) lineTracks.push({ ...o, cid: canonOf(R, o.id), flush: true, staff: !!(SF && SF.flagged.has(canonOf(R, o.id))) });
+    }
+  }
+  if (cam.line && role !== "zone") for (const t of lineTracks) {
     const mem = pipe.lineMem[t.cid] || (pipe.lineMem[t.cid] = {});
-    const dir = tcfg.CROSS ? crossStep(mem, cam.line, center(t.box), !!cam.swap, tcfg.CROSS, t.box.h) : checkCrossing(mem, cam.line, center(t.box), !!cam.swap);
+    let dir;
+    if (t.flush) { dir = mem.pend.dir; mem.side = mem.pend.side; mem.pend = null; } else
+    dir = tcfg.CROSS ? crossStep(mem, cam.line, center(t.box), !!cam.swap, tcfg.CROSS, t.box.h) : checkCrossing(mem, cam.line, center(t.box), !!cam.swap);
     if (!dir || t.staff) continue;
     if (R) {
       let e = R.gal.has(t.cid) ? R.gal.get(t.cid).emb : null;
@@ -464,7 +480,7 @@ function stepCam(pipe, cam, day, dets, now, tcfg, opt) {
       const d = crossDecision(R, t.cid, dir, now, e, active);
       if (!d.count) { res.suppressed.push({ id: t.cid, dir, reason: d.reason }); continue; }
     }
-    applyCrossing(day, dir, now); bc[dir]++; t.flash = { dir, until: now + 800 }; res.crossings.push({ id: t.cid, dir });
+    applyCrossing(day, dir, now); bc[dir]++; t.flash = { dir, until: now + 800 }; res.crossings.push({ id: t.cid, dir, box: t.box });
   }
   if (R) {
     // 3) เติมคลังค่าลักษณะ (เพื่อให้กู้รหัสได้เมื่อถูกบัง) แล้ว 4) อัปเดตค่าเก่า
@@ -626,7 +642,7 @@ function daySummary(d, o = {}) {
   return out;
 }
 
-if (typeof module !== "undefined") module.exports = { ST_TRACK, ST_TRACK_R3, ST_DET_MIN, REID_CFG, l2norm, cosine, newReid, canonOf, reidRemember, reidMatch, crossDecision, newStaff, staffStep, queueWait, slaStep, ensureDay, buildHourlyCsv, daySummary, activeHours, ST_CFG, ST_SLOTS, dayKey, iou, center, foot, normRect, pointInRect, newTracker, updateTracker, lineSide, segmentsIntersect, checkCrossing, crossStep, newDay, applyCrossing, zoneStep, closeZones, avgDwellSec, queueInfo, conversion, newHeat, heatAdd, heatMax, heatColor, heatToRGBA, buildCsv, decodePersons, nms, nsZone, autoDetW, newPipe, stepCam, migrateStore, zoneLabel };
+if (typeof module !== "undefined") module.exports = { ST_TRACK, ST_TRACK_R3, ST_TRACK_R4, ST_DET_MIN, REID_CFG, l2norm, cosine, newReid, canonOf, reidRemember, reidMatch, crossDecision, newStaff, staffStep, queueWait, slaStep, ensureDay, buildHourlyCsv, daySummary, activeHours, ST_CFG, ST_SLOTS, dayKey, iou, center, foot, normRect, pointInRect, newTracker, updateTracker, lineSide, segmentsIntersect, checkCrossing, crossStep, newDay, applyCrossing, zoneStep, closeZones, avgDwellSec, queueInfo, conversion, newHeat, heatAdd, heatMax, heatColor, heatToRGBA, buildCsv, decodePersons, nms, nsZone, autoDetW, newPipe, stepCam, migrateStore, zoneLabel };
 
 // ================= ส่วนหน้าจอ =================
 if (typeof document !== "undefined") (() => {

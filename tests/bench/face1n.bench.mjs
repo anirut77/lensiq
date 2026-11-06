@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 // tests/bench/face1n.bench.mjs — 1:N face identification as attendance.js / customers.js run it, with the round-4 safeguards:
 // multi-photo enrolment, per-person thresholds (LQTrack.enrolGallery), quality gating (LQTrack.faceQuality/qualityOk)
-// and multi-frame consensus (LQTrack.createConsensus). Same face-api pipeline (TinyFaceDetector 320/0.5 + 68 landmarks +
+// and multi-frame consensus (LQTrack.createConsensus); round 5: gallery-calibrated limits (LQTrack.FACE_RULES), the
+// confident / please-confirm split (matchFace.confident) and the detector cascade (LQDetect.detectFacesCascade).
+// Gallery sizes 5, 10, 20, 50, 100, 200 (LQ_BENCH_N=5,20 to change). Same face-api pipeline (TinyFaceDetector 320/0.5 + 68 landmarks +
 // 128-D descriptor) in headless Chrome on WASM.
 //
 //   LQ_BENCH_DATA=/path/to/data node tests/bench/face1n.bench.mjs [--json out.json] [--trials 200]
@@ -24,6 +26,8 @@ const M = require("./metrics.cjs");
 const args = process.argv.slice(2);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
 const TRIALS = +opt("--trials", 200);
+// round 5: the face detector cascade attendance.js / customers.js use (LQDetect.detectFacesCascade); --no-cascade = 320 only
+const CASCADE = args.includes("--no-cascade") ? null : T.FACE_RULES && [320, 224, 160];
 const have = sub => DATA && existsSync(join(DATA, sub));
 if (!have("lfwfull/lfw") && !have("casia5/img")) { console.log("skip face 1:N benchmark: no lfwfull/lfw or casia5/img under " + (DATA || "LQ_BENCH_DATA (not set)")); process.exit(0); }
 
@@ -54,7 +58,8 @@ async function loadLfw() {
   const str = shuffle(people.filter(p => p.f.length === 1)).slice(0, 1200).map(p => ({ id: p.n, f: p.f }));
   const list = [...mem, ...str].flatMap(p => p.f.map(f => `/__data/lfwfull/lfw/${p.id}/${f}`));
   const fr = await frames(`face1n-lfw-${list.length}.json`, list, { inputSize: 320, scoreThreshold: 0.5, jitter: 2 });
-  let k = 0; const take = p => ({ id: p.id, photos: p.f.map(() => fr[k++]) });
+  const fr5 = CASCADE ? await frames(`face1n-lfw-c${CASCADE.join("-")}-${list.length}.json`, list, { scoreThreshold: 0.5, jitter: 2, sizes: CASCADE }) : fr;
+  let k = 0; const take = p => { const k0 = k; k += p.f.length; return { id: p.id, photos: p.f.map((_, j) => fr[k0 + j]), photos5: p.f.map((_, j) => fr5[k0 + j]) }; };
   return { name: "LFW (tuning set)", members: mem.map(take), strangers: str.map(take) };
 }
 async function loadCasia() {
@@ -66,10 +71,11 @@ async function loadCasia() {
   // 112 px tight aligned crops -> drawn 1.5× (168 px) on a 320 px grey canvas, like a webcam face at ~1 m. (2.5× on 400 px
   // left too little context around the face: TinyFaceDetector found only 29% of the faces.)
   const fr = await frames(`face1n-casia-u15-${list.length}.json`, list, { inputSize: 320, scoreThreshold: 0.5, jitter: 2, upscale: 1.5, padTo: 320 });
-  let k = 0; const all = people.map(p => ({ id: p.id, photos: p.f.map(() => fr[k++]) }));
+  const fr5 = CASCADE ? await frames(`face1n-casia-u15-c${CASCADE.join("-")}-${list.length}.json`, list, { scoreThreshold: 0.5, jitter: 2, upscale: 1.5, padTo: 320, sizes: CASCADE }) : fr;
+  let k = 0; const all = people.map(p => { const k0 = k; k += p.f.length; return { id: p.id, photos: p.f.map((_, j) => fr[k0 + j]), photos5: p.f.map((_, j) => fr5[k0 + j]) }; });
   // half of the people can be enrolled, the other half are strangers (one visit each: their first photo)
   seed = 13; const sh = shuffle(all);
-  return { name: "CASIA-FaceV5 (Asian, held out)", members: sh.slice(0, 250).map(p => ({ ...p, photos: p.photos.slice(0, 4) })), strangers: sh.slice(250).map(p => ({ ...p, photos: [p.photos[0]] })) };
+  return { name: "CASIA-FaceV5 (Asian, held out)", members: sh.slice(0, 250).map(p => ({ ...p, photos: p.photos.slice(0, 4), photos5: p.photos5.slice(0, 4) })), strangers: sh.slice(250).map(p => ({ ...p, photos: [p.photos[0]], photos5: [p.photos5[0]] })) };
 }
 
 // ---------- policies ----------
@@ -88,7 +94,13 @@ const POLICIES = process.env.LQ_BENCH_ONLY ? [] : [
   { label: "R4 without quality gate", ...R4, q: null },
   { label: "R4 without per-person limit", ...R4, k: 0 },
   { label: "R4 without consensus (1 frame)", ...R4, need: 1 },
-  { label: "R4 but 3 separate entries (no centroid)", ...R4, centroid: false }
+  { label: "R4 but 3 separate entries (no centroid)", ...R4, centroid: false },
+  // round 5 (shipped): gallery-calibrated limits (LQTrack.FACE_RULES via enrolGallery/matchFace) + detector cascade 320 -> 160
+  { label: "R5 default: calibrated limits + detector cascade 320→224→160", ...R4, rules: T.FACE_RULES, cascade: true },
+  { label: "R5 calibrated limits, detector 320 only", ...R4, rules: T.FACE_RULES },
+  { label: "R4 rules + detector cascade (no calibration)", ...R4, cascade: true },
+  { label: "R5 without the scale (fixed 0.50 / 0.44 / margin 0.09)", ...R4, t: 0.50, floor: 0.44, mg: 0.09, cascade: true },
+  { label: "R5 without consensus (1 frame)", ...R4, rules: T.FACE_RULES, cascade: true, need: 1 }
 ];
 if (process.env.LQ_BENCH_EXTRA) POLICIES.push(...JSON.parse(process.env.LQ_BENCH_EXTRA));
 
@@ -101,52 +113,65 @@ function nearest2(d, gal) {
   for (const g of gal) { const x = fdist(d, g.d); if (x < d1) { if (b !== g.label) d2 = d1; d1 = x; b = g.label; } else if (x < d2 && g.label !== b) d2 = x; }
   return { b, d1, d2 };
 }
+/* -> {label, auto}: auto = the same label also won `need` frames as a *confident* match (matchFace.confident); a visit
+   that is recognised but not auto is what the pages show as "please confirm" (round 5). Round-4 policies: always auto. */
 function visitLabel(frames, P, nnOf) {
-  const cons = T.createConsensus({ need: P.need, of: 3, windowMs: 1e9 });
+  const cons = T.createConsensus({ need: P.need, of: 3, windowMs: 1e9 }), consC = T.createConsensus({ need: P.need, of: 3, windowMs: 1e9 });
+  let auto = null;
   for (let i = 0; i < frames.length; i++) {
     const f = frames[i];
-    let lab = "unknown";
-    if (f && f.ok) {
+    let lab = "unknown", conf = false;
+    if (f && f.ok && f.m) { lab = f.m.label; conf = f.m.confident; }
+    else if (f && f.ok) {
       const lim = P.k && Number.isFinite(nnOf(f.b)) ? Math.max(P.floor || 0.4, Math.min(P.t, P.k * nnOf(f.b))) : P.t;
-      if (f.d1 < lim && !(f.d2 - f.d1 < P.mg)) lab = f.b;
+      if (f.d1 < lim && !(f.d2 - f.d1 < P.mg)) { lab = f.b; conf = true; }
     }
+    const c = consC.push("v", conf ? lab : "unknown", i); if (c) auto = c;
     const got = cons.push("v", lab, i);
-    if (got) return got;
+    if (got) return { label: got, auto: auto === got };
   }
-  return "unknown";
+  return { label: "unknown", auto: false };
 }
 function evalAll(ds, N) {
-  const acc = POLICIES.map(() => ({ gen: 0, ok: 0, mis: 0, str: 0, fa: 0 }));
-  const groups = new Map(); // "photos|q" -> policy indexes
-  POLICIES.forEach((P, k) => { const key = P.photos + "|" + (P.q ? JSON.stringify(P.q) : "") + "|" + (P.centroid ? "c" : ""); if (!groups.has(key)) groups.set(key, []); groups.get(key).push(k); });
+  const acc = POLICIES.map(() => ({ gen: 0, ok: 0, okAuto: 0, mis: 0, str: 0, fa: 0, faAuto: 0 }));
+  const groups = new Map(); // "photos|q|centroid|cascade|rules" -> policy indexes
+  POLICIES.forEach((P, k) => { const key = [P.photos, P.q ? JSON.stringify(P.q) : "", P.centroid ? "c" : "", P.cascade ? "5" : "", P.rules ? JSON.stringify(P.rules) : ""].join("|"); if (!groups.has(key)) groups.set(key, []); groups.get(key).push(k); });
   for (let trial = 0; trial < TRIALS; trial++) {
     const gal = shuffle(ds.members).slice(0, N), inGal = new Set(gal.map(m => m.id));
     const strangers = shuffle([...ds.strangers, ...ds.members.filter(m => !inGal.has(m.id))]).slice(0, 60);
     for (const idx of groups.values()) {
-      const P0 = POLICIES[idx[0]];
+      const P0 = POLICIES[idx[0]], ph = m => (P0.cascade ? m.photos5 : m.photos);
       const people = [];
-      for (const m of gal) { const e = m.photos.slice(0, P0.photos).map(ph => enrolDesc(ph, P0.q)).filter(Boolean); if (e.length) people.push({ label: m.id, ds: P0.centroid ? [mean(e)] : e }); }
-      const entries = people.flatMap(p => p.ds.map(d => ({ label: p.label, d })));
-      // distance from each person to the nearest other enrolled person (enrolGallery's k × nn)
-      const nn = new Map(people.map(p => [p.label, Infinity]));
-      for (let i = 0; i < people.length; i++) for (let j = i + 1; j < people.length; j++) {
-        let m = Infinity; for (const a of people[i].ds) for (const b of people[j].ds) { const x = fdist(a, b); if (x < m) m = x; }
-        if (m < nn.get(people[i].label)) nn.set(people[i].label, m);
-        if (m < nn.get(people[j].label)) nn.set(people[j].label, m);
-      }
-      const nnOf = l => nn.get(l);
+      for (const m of gal) { const e = ph(m).slice(0, P0.photos).map(x => enrolDesc(x, P0.q)).filter(Boolean); if (e.length) people.push({ label: m.id, ds: P0.centroid ? [mean(e)] : e }); }
       const enrolled = new Set(people.map(p => p.label));
-      const frameInfo = ph => ph.map(f => { const ok = !!(f.n && (!P0.q || T.qualityOk(f.q, P0.q))); return ok ? { ok, ...nearest2(f.desc, entries) } : { ok: false }; });
-      const gen = gal.filter(m => enrolled.has(m.id)).map(m => [m.id, frameInfo(m.photos[m.photos.length - 1])]);
-      const str = strangers.map(s => frameInfo(s.photos[0]));
+      const okF = f => !!(f && f.n && (!P0.q || T.qualityOk(f.q, P0.q)));
+      let frameInfo, nnOf = () => Infinity;
+      if (P0.rules) {
+        // the pages' own code path: enrolGallery(FACE_RULES) + matchFace per frame
+        const G = T.enrolGallery(people, P0.rules);
+        frameInfo = p => p.map(f => okF(f) ? { ok: true, m: T.matchFace(f.desc, G, { maxDist: P0.rules.maxDist, margin: P0.rules.margin }) } : { ok: false });
+      } else {
+        const entries = people.flatMap(p => p.ds.map(d => ({ label: p.label, d })));
+        // distance from each person to the nearest other enrolled person (enrolGallery's k × nn)
+        const nn = new Map(people.map(p => [p.label, Infinity]));
+        for (let i = 0; i < people.length; i++) for (let j = i + 1; j < people.length; j++) {
+          let m = Infinity; for (const a of people[i].ds) for (const b of people[j].ds) { const x = fdist(a, b); if (x < m) m = x; }
+          if (m < nn.get(people[i].label)) nn.set(people[i].label, m);
+          if (m < nn.get(people[j].label)) nn.set(people[j].label, m);
+        }
+        nnOf = l => nn.get(l);
+        frameInfo = p => p.map(f => okF(f) ? { ok: true, ...nearest2(f.desc, entries) } : { ok: false });
+      }
+      const gen = gal.filter(m => enrolled.has(m.id)).map(m => { const p = ph(m); return [m.id, frameInfo(p[p.length - 1])]; });
+      const str = strangers.map(x => frameInfo(ph(x)[0]));
       for (const k of idx) {
         const P = POLICIES[k], a = acc[k];
-        for (const [id, fr] of gen) { a.gen++; const r = visitLabel(fr, P, nnOf); if (r === id) a.ok++; else if (r !== "unknown") a.mis++; }
-        for (const fr of str) { a.str++; if (visitLabel(fr, P, nnOf) !== "unknown") a.fa++; }
+        for (const [id, fr] of gen) { a.gen++; const r = visitLabel(fr, P, nnOf); if (r.label === id) { a.ok++; if (r.auto) a.okAuto++; } else if (r.label !== "unknown") a.mis++; }
+        for (const fr of str) { a.str++; const r = visitLabel(fr, P, nnOf); if (r.label !== "unknown") { a.fa++; if (r.auto) a.faAuto++; } }
       }
     }
   }
-  return acc.map(a => ({ gen: a.gen, ok: a.ok / a.gen, mis: a.mis / a.gen, str: a.str, fa: a.fa / a.str, faN: a.fa }));
+  return acc.map(a => ({ gen: a.gen, ok: a.ok / a.gen, okAuto: a.okAuto / a.gen, mis: a.mis / a.gen, str: a.str, fa: a.fa / a.str, faN: a.fa, faAuto: a.faAuto / a.str }));
 }
 
 const out = { date: new Date().toISOString(), trials: TRIALS, sets: [] };
@@ -155,17 +180,17 @@ try {
   if (have("lfwfull/lfw")) sets.push(await loadLfw());
   if (have("casia5/img")) sets.push(await loadCasia());
   for (const ds of sets) {
-    const allF = [...ds.members, ...ds.strangers].flatMap(p => p.photos.flat());
-    const found = allF.filter(f => f.n).length, qok = allF.filter(f => f.n && T.qualityOk(f.q, {})).length;
-    console.log(`\n## 1:N identification — ${ds.name}: ${ds.members.length} members, ${ds.strangers.length} strangers, ${allF.length} frames (face found ${pct(found / allF.length)}, passes quality gate ${pct(qok / Math.max(1, found))} of found)\n`);
-    const rows = [], res = { name: ds.name, members: ds.members.length, strangers: ds.strangers.length, faceFound: found / allF.length, qualityPass: qok / Math.max(1, found), rows: [] };
-    for (const N of (process.env.LQ_BENCH_N ? process.env.LQ_BENCH_N.split(",").map(Number) : [20, 100, 200]).filter(n => n <= ds.members.length)) evalAll(ds, N).forEach((r, k) => {
+    const allF = [...ds.members, ...ds.strangers].flatMap(p => p.photos.flat()), allF5 = [...ds.members, ...ds.strangers].flatMap(p => p.photos5.flat());
+    const found = allF.filter(f => f.n).length, qok = allF.filter(f => f.n && T.qualityOk(f.q, {})).length, found5 = allF5.filter(f => f.n).length;
+    console.log(`\n## 1:N identification — ${ds.name}: ${ds.members.length} members, ${ds.strangers.length} strangers, ${allF.length} frames (face found ${pct(found / allF.length)}${CASCADE ? `, with the 320→224→160 cascade ${pct(found5 / allF5.length)}` : ""}, passes quality gate ${pct(qok / Math.max(1, found))} of found)\n`);
+    const rows = [], res = { name: ds.name, members: ds.members.length, strangers: ds.strangers.length, faceFound: found / allF.length, faceFoundCascade: found5 / allF5.length, qualityPass: qok / Math.max(1, found), rows: [] };
+    for (const N of (process.env.LQ_BENCH_N ? process.env.LQ_BENCH_N.split(",").map(Number) : [5, 10, 20, 50, 100, 200]).filter(n => n <= ds.members.length)) evalAll(ds, N).forEach((r, k) => {
       const P = POLICIES[k];
       const [lo, hi] = M.wilson(r.faN, r.str);
-      res.rows.push({ N, policy: P.label, recognised: r.ok, misidentified: r.mis, strangerAccepted: r.fa, ci: [lo, hi], probes: r.gen, strangers: r.str });
-      rows.push([N, P.label, pct(r.ok), pct(r.mis, 2), `${pct(r.fa, 2)} [${pct(lo, 1)}–${pct(hi, 1)}]`]);
+      res.rows.push({ N, policy: P.label, recognised: r.ok, recognisedAuto: r.okAuto, misidentified: r.mis, strangerAccepted: r.fa, strangerAuto: r.faAuto, ci: [lo, hi], probes: r.gen, strangers: r.str });
+      rows.push([N, P.label, pct(r.ok), pct(r.okAuto), pct(r.mis, 2), `${pct(r.fa, 2)} [${pct(lo, 1)}–${pct(hi, 1)}]`, pct(r.faAuto, 2)]);
     });
-    console.log(table(["enrolled", "policy", "member recognised", "member shown as someone else", "stranger accepted [95% CI]"], rows));
+    console.log(table(["enrolled", "policy", "member recognised", "of which without confirmation", "member shown as someone else", "stranger accepted [95% CI]", "stranger accepted without confirmation"], rows));
     out.sets.push(res);
   }
 } finally { if (bench) await bench.done(); }

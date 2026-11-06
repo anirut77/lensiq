@@ -58,6 +58,7 @@ Everything else below is permissive (MIT / Apache-2.0 / BSD) and needs only the 
 | `modnet.onnx` | 25 MB | photobooth HQ, studio | ZHKKKe/MODNet via Xenova/modnet | Apache-2.0 (current) | VERIFY (F7) |
 | `selfie-multiclass-256-f16.onnx` | 7.8 MB | studio (default parser) | Google MediaPipe Selfie Multiclass 256×256, converted TFLite→ONNX fp16 | Apache-2.0 (model card, May 2023) | OK for commercial use; out-of-scope per card: surveillance, identity recognition |
 | `faceparse-bisenet-r18-q8.onnx` (**git-ignored**, local only, off by default) | 13 MB | studio (optional) | yakhyo/face-parsing (MIT code); trained on CelebAMask-HQ | MIT code / CelebAMask-HQ non-commercial | **NON-COMMERCIAL** (F1). See `vendor/models/FACEPARSE-LICENSE.txt`. |
+| `driver.js` `EYE_MODEL` (130 numbers embedded in the source, not a file) | < 2 KB | driver (closed-eye classifier on 32×16 eye crops, round 5) | Trained by us (`tests/bench/driver-eye-train.cjs`) **only** on the *Open/Closed Eyes* dataset, HF `MichalMlodawski/closed-open-eyes` (AI-generated faces) | Weights: MIT (ours). Training data: **ODC-BY 1.0** — attribution: "Open/Closed Eyes dataset by MichalMlodawski (huggingface.co/datasets/MichalMlodawski/closed-open-eyes), licensed under ODC-BY 1.0". CEW (research only) was used for evaluation only, never for training or threshold choice. | OK-ATTR. Keep this attribution. |
 
 ## Assets
 

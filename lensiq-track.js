@@ -33,6 +33,9 @@
  *     nearest enrolled descriptor by Euclidean distance (face-api 128-D). Accepted only when distance < maxDist AND the
  *     runner-up (another label) is at least `margin` further away. margin 0.05 cut "member shown as someone else" 3–5x
  *     on LFW 1:N (tests/bench/face.bench.mjs, ACCURACY.md) for a ~1–5 point drop in recognition.
+ *     Returns also {limit, confident}. confident = accepted AND (round-5 calibrated gallery: distance <= conf × limit);
+ *     galleries built without FACE_RULES (round 4) report every accepted match as confident.
+ *   enrolGallery(people, FACE_RULES) / gallerySpread(people) / FACE_RULES — round-5 gallery calibration, see below.
  *   snapshot(T) -> plain JSON {nextId, tracks:[...], lost:[...]} without det payloads (no descriptors ever).
  */
 (function (root) {
@@ -320,16 +323,21 @@
   }
 
   function matchFace(desc, gallery, { maxDist = 0.55, margin = 0 } = {}) {
-    let best = null, bd = Infinity, sd = Infinity, bthr = Infinity;
+    let best = null, bd = Infinity, sd = Infinity, bthr = Infinity, bg = null;
     if (desc && gallery) for (const g of gallery) {
       if (!g || !g.d || g.d.length !== desc.length) continue;
       let s = 0; for (let i = 0; i < desc.length; i++) { const v = desc[i] - g.d[i]; s += v * v; }
       const x = Math.sqrt(s);
-      if (x < bd) { if (best !== g.label) sd = bd; bd = x; best = g.label; bthr = g.thr; } else if (x < sd && g.label !== best) sd = x;
+      if (x < bd) { if (best !== g.label) sd = bd; bd = x; best = g.label; bthr = g.thr; bg = g; } else if (x < sd && g.label !== best) sd = x;
     }
     const lim = Number.isFinite(bthr) ? Math.min(maxDist, bthr) : maxDist; // per-person limit (enrolGallery) can only tighten
-    const ambiguous = bd < lim && sd - bd < margin;
-    return { label: best != null && bd < lim && !ambiguous ? best : "unknown", distance: bd, second: sd, ambiguous, limit: lim };
+    const mg = bg && Number.isFinite(bg.mg) ? bg.mg : margin; // calibrated gallery: margin already scaled to this population
+    const ambiguous = bd < lim && sd - bd < mg;
+    const label = best != null && bd < lim && !ambiguous ? best : "unknown";
+    // confident: accepted with room to spare (<= conf × limit) in a calibrated gallery; anything else accepted is a
+    // suggestion a person must confirm (attendance / customers). Round-4 galleries (no mg) are always "confident".
+    const confident = label !== "unknown" && (!bg || !Number.isFinite(bg.mg) || (bg.calibrated !== false && bd <= (bg.conf || 1) * lim));
+    return { label, distance: bd, second: sd, ambiguous, limit: lim, confident };
   }
 
   /* ---------- face quality + enrolment helpers (attendance / customers / booth) ----------
@@ -337,6 +345,7 @@
    *   size = min(w,h) px · yaw = 0 frontal .. 1 profile, from the nose tip (30) between the outer eye corners (36, 45).
    * qualityOk(q, {minSize=40, minScore=0.5, maxYaw=0.6, minSharp=0}) -> boolean   frames failing it are not matched. */
   const QUALITY = Object.freeze({ minSize: 40, minScore: 0.5, maxYaw: 0.6, minSharp: 0 }); // tests/bench/face1n.bench.mjs
+  /** @param {{ box?: { w?: number, h?: number, width?: number, height?: number }, score?: number, landmarks?: any, sharp?: number | null }} [o] */
   function faceQuality({ box, score = 1, landmarks = null, sharp = null } = {}) {
     const w = box ? (box.w != null ? box.w : box.width) : 0, h = box ? (box.h != null ? box.h : box.height) : 0;
     let yaw = 0;
@@ -356,17 +365,45 @@
    *   centroid (default): one entry per person = mean of its 2–3 enrolment photos; else one entry per photo. thr = clamp(k × distance to the
    *   nearest OTHER enrolled person, floor, maxDist): a member whose face is close to someone else's gets a stricter
    *   threshold, so the space between two look-alikes is not handed to strangers. */
-  function enrolGallery(people, { maxDist = 0.55, k = 0.85, floor = 0.45, centroid = true } = {}) {
+  /* Round 5 — gallery calibration (small galleries were the unsafe case: with few people enrolled the per-person limit
+   * k × nn never bites, so strangers met the fixed 0.55 cap; on Asian faces (CASIA-FaceV5) every distance is ~30% shorter
+   * than on LFW, so 0.55 is far too loose there: 6.5% of strangers accepted at 20 enrolled, 10% at 5).
+   * gallerySpread(people) -> {n, pairs, median, scale, calibrated}
+   *   median = median distance between the enrolled people's (centroid) descriptors = this gallery's own "different
+   *   people" distance; scale = min(1, median / FACE_REF_SPREAD). All distance limits and the margin are multiplied by
+   *   scale, so a population whose faces sit closer together in descriptor space gets proportionally stricter limits.
+   *   calibrated = n >= FACE_RULES.minCal (5): with fewer people the median is too noisy to trust -> pages treat every
+   *   match as a suggestion a person must confirm. Never loosens the limits (scale <= 1).
+   * FACE_RULES = the round-5 rules (chosen on LFW only; CASIA-FaceV5 held out — tests/bench/face1n.bench.mjs, ACCURACY.md §2):
+   *   maxDist 0.50 · k 0.85 · floor 0.44 · margin 0.09 · confident when distance <= 0.85 × the person's limit. */
+  const FACE_REF_SPREAD = 0.736; // median centroid-to-centroid distance of LFW members (face-api descriptor, 3-photo centroids)
+  const FACE_RULES = Object.freeze({ adaptive: true, maxDist: 0.50, k: 0.85, floor: 0.44, margin: 0.09, conf: 0.85, minCal: 5 });
+  const meanDesc = ds => Array.from(ds[0], (_, i) => ds.reduce((s, d) => s + d[i], 0) / ds.length);
+  function gallerySpread(people, { ref = FACE_REF_SPREAD, minCal = FACE_RULES.minCal } = {}) {
+    const cs = (people || []).map(p => { const ds = (p.ds || (p.d ? [p.d] : [])).filter(d => d && d.length); return ds.length ? (ds.length > 1 ? meanDesc(ds) : ds[0]) : null; }).filter(Boolean);
+    const ds = [];
+    for (let i = 0; i < cs.length; i++) for (let j = i + 1; j < cs.length; j++) if (cs[i].length === cs[j].length) ds.push(fdist(cs[i], cs[j]));
+    ds.sort((a, b) => a - b);
+    const n = ds.length, median = n ? (n % 2 ? ds[n >> 1] : (ds[n / 2 - 1] + ds[n / 2]) / 2) : NaN;
+    const scale = Number.isFinite(median) && median > 0 ? Math.min(1, median / ref) : 1;
+    return { n: cs.length, pairs: n, median, scale, calibrated: cs.length >= minCal };
+  }
+  /* enrolGallery(..., {adaptive:true, margin, conf, minCal}) (pass LQTrack.FACE_RULES) additionally scales maxDist, floor
+   * and margin by gallerySpread().scale and stores per entry {thr, mg, conf, calibrated}; matchFace then uses the entry's
+   * margin and reports `confident`. Without `adaptive` the round-4 behaviour is unchanged. */
+  function enrolGallery(people, { maxDist = 0.55, k = 0.85, floor = 0.45, centroid = true, adaptive = false, margin = 0, conf = FACE_RULES.conf, minCal = FACE_RULES.minCal, ref = FACE_REF_SPREAD } = {}) {
     const out = [];
-    const mean = ds => Array.from(ds[0], (_, i) => ds.reduce((s, d) => s + d[i], 0) / ds.length);
-    people = (people || []).map(p => { const ds = (p.ds || []).filter(d => d && d.length); return { label: p.label, ds: centroid && ds.length > 1 ? [mean(ds)] : ds }; });
+    people = (people || []).map(p => { const ds = (p.ds || []).filter(d => d && d.length); return { label: p.label, ds: centroid && ds.length > 1 ? [meanDesc(ds)] : ds }; });
+    const cal = adaptive ? gallerySpread(people, { ref, minCal }) : null, s = cal ? cal.scale : 1;
+    const cap = maxDist * s, fl = floor * s;
     for (const p of people) {
       const ds = p.ds;
       let nn = Infinity;
       for (const q of people) if (q !== p && q.label !== p.label) for (const a of ds) for (const b of q.ds || []) { if (b && b.length === a.length) { const x = fdist(a, b); if (x < nn) nn = x; } }
-      const thr = Number.isFinite(nn) ? Math.max(floor, Math.min(maxDist, k * nn)) : maxDist;
-      for (const d of ds) out.push({ label: p.label, d, thr });
+      const thr = Number.isFinite(nn) ? Math.max(fl, Math.min(cap, k * nn)) : cap;
+      for (const d of ds) out.push(cal ? { label: p.label, d, thr, mg: margin * s, conf, calibrated: cal.calibrated } : { label: p.label, d, thr });
     }
+    if (cal) Object.defineProperty(out, "calibration", { value: cal, enumerable: false });
     return out;
   }
   /* createConsensus({need=3, of=5, windowMs=4000}) -> {push(trackKey, label|'unknown', now) -> label|null, reset(key), prune(now)}
@@ -401,7 +438,7 @@
   const api = {
     iou, center, foot, dist2d, toNorm, DEFAULTS, PRESET, newTracker, updateTracker, lsa,
     trackerCfgFor, assignUnique, createConfirm, pickPrimary, matchFace, snapshot,
-    QUALITY, faceQuality, qualityOk, enrolGallery, createConsensus
+    QUALITY, faceQuality, qualityOk, enrolGallery, createConsensus, gallerySpread, FACE_RULES, FACE_REF_SPREAD
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") root.LQTrack = api;

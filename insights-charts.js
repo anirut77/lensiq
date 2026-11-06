@@ -1,6 +1,6 @@
 /* insights-charts.js — กราฟ SVG/HTML ของแดชบอร์ดรวม (เส้น แท่ง แท่งนอน sparkline scatter) + tooltip ที่ใช้ได้ทั้งเมาส์ แตะ และคีย์บอร์ด
    เบราว์เซอร์เท่านั้น: window.LQInsightsCharts ; tooltip ใช้ #iqTip ในหน้า */
-(function (root, factory) {
+(/** @param {any} root */ function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory(require("./insights-data.js"), require("./insights-analysis.js"));
   else root.LQInsightsCharts = factory(root.LQInsightsData, root.LQInsightsAnalysis);
 })(typeof self !== "undefined" ? self : this, function (M_data, M_analysis) {
@@ -65,7 +65,7 @@
   }
 
   /* วาดใหม่เมื่อความกว้างเปลี่ยน */
-  const ro = new ResizeObserver(entries => entries.forEach(en => { const box = en.target; const w = Math.round(en.contentRect.width); if (w && w !== box._w) { box._w = w; box._draw?.(w); } }));
+  const ro = new ResizeObserver(entries => entries.forEach(en => { const box = /** @type {any} */ (en.target); const w = Math.round(en.contentRect.width); if (w && w !== box._w) { box._w = w; box._draw?.(w); } }));
   function responsive(box, draw) { box._draw = draw; box._w = 0; ro.observe(box); const w = Math.round(box.getBoundingClientRect().width); if (w) { box._w = w; draw(w); } }
 
   /* กราฟแท่งแนวตั้ง 1 ชุดข้อมูล (ตามเวลา) */

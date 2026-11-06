@@ -12,8 +12,14 @@ the repository and are never committed.
   on any total.
 - Every number is from one run on one machine. Small test sets are marked; percentages from a few dozen events have wide
   error bars.
-- Round 4 (this version) changed the store detector and tracker, the face-matching rules, the driver eye threshold and
-  the checkout read gate. Each section shows before → after.
+- Round 4 changed the store detector and tracker, the face-matching rules, the driver eye threshold and the checkout
+  read gate. Round 5 (this version) changed:
+  - face matching: group-calibrated limits, a detector cascade, and confirmation when unsure (§2);
+  - driver eye closure: an eye-patch classifier (§5);
+  - QC: lighting normalisation and a label-angle check (§7);
+  - door counting: crossings by tracks lost mid-confirmation now count (§1).
+
+  Each section shows before → after.
 - Pages whose accuracy is modest or not yet measured show a **Beta** or accuracy note at the top (Thai). Thai summary:
   [cameras.html#accuracy](cameras.html#accuracy).
 
@@ -107,6 +113,12 @@ happened; event R = share of true crossings that were counted):
 | 10 fps | round 4, 16:9 frames split in two halves | 275 / 275 | 0.0% | 10.9% | 84.4% | 84.4% | 40.8% |
 | 5 fps | round 4, 16:9 split | 314 / 273 | +15.0% | 22.3% | 74.5% | 85.7% | 39.8% |
 | 5 fps | COCO-SSD fallback + round-4 tracker | 223 / 273 | −18.3% | 24.9% | 82.1% | 67.0% | 20.2% |
+| 5 fps | **round 5: round 4 + `flushLost`** | **272 / 273** | **−0.4%** | 17.2% | 79.0% | 78.8% | 32.9% |
+| 10 fps | **round 5** | **239 / 275** | **−13.1%** | 16.0% | 90.4% | **78.5%** | 32.9% |
+| 10 fps | round 5, 16:9 split | 282 / 275 | +2.5% | 12.0% | 81.9% | 84.0% | 40.8% |
+| 5 fps | round 5, 16:9 split | 320 / 273 | +17.2% | 24.5% | 72.8% | 85.3% | 39.8% |
+| 5 fps | round-5 candidate, rejected: + byte `HIGH` 0.4 | 294 / 273 | +7.7% | 22.3% | 74.1% | 79.9% | 33.2% |
+| 10 fps | round-5 candidate, rejected: + byte `HIGH` 0.4 | 249 / 275 | −9.5% | 13.8% | 87.1% | 78.9% | 32.0% |
 
 **Per sequence**, before (round 3 as shipped: COCO-SSD + round-3 tracker) → after (round 4: YOLOX-Nano + round-4 tracker):
 
@@ -123,17 +135,64 @@ happened; event R = share of true crossings that were counted):
 | MOT17-04 (held out) | 10 fps | 28 → 39 / 54 | −48.1% → −27.8% | 78.6% → **92.3%** | 40.7% → 66.7% |
 | MOT17-09 (held out) | 10 fps | 37 → 33 / 46 | −19.6% → −28.3% | 83.8% → **90.9%** | 67.4% → 65.2% |
 
+### Round 5: counting a crossing that is cut short by occlusion
+
+**Diagnosis.** A new `--why` option in `people.bench.mjs` sorts every missed or false crossing on the tuning set. Most
+misses were "not counted, same id": two people swapping ids at the line, or a person crossing and then disappearing
+before the 2-frame confirmation. To make the easy tuning scenes look more like MOT17, two stress options were added and
+used on **PETS09 + TUD only**: `--occlude 0.25` hides each ground-truth person from the detector for random 1-second
+blocks, and `--score-k 0.75` lowers every detector score, as for far or small people.
+
+**Tried on the tuning set (5 and 10 fps, clean + 3 stress conditions):**
+
+| idea | result on tuning (clean / stressed) | adopted |
+| --- | --- | --- |
+| hand-off of the line memory from a lost track to a new track born nearby within 1–2 s | no change; the 2-s coasting already bridges these gaps | no, code removed |
+| direction voting (2 of 3 frames instead of 2 consecutive) | no change; flip-backs inside the band are rare | no, code removed |
+| confirmation 3 frames | −1.5 to −11% net, lower recall | no |
+| `MIN_HITS` 3 before a track may count | slightly lower recall | no |
+| **`flushLost`: a crossing still awaiting confirmation counts when the track disappears** (it did not turn back) | clean: +1 event (net +1.5 → +2.2% at 5 fps); stressed: net error 1–2 points smaller, recall +1.5–2 points | **yes** |
+| byte stage-1 threshold `HIGH` 0.5 → 0.4 (0.4–0.5 boxes keep their track with the normal gate) | clean: precision −2 to −3 points; stressed: net error −7.5 → −3.0% (5 fps) and −9.6 → −3.7% (10 fps) | tuning said yes, **rejected after MOT17** |
+
+**Held-out check, and an honest caveat.** The first MOT17 run used `flushLost` + `HIGH` 0.4. At 10 fps every MOT17
+sequence improved (−32.5 / −27.8 / −28.3% → −27.5 / −20.4 / −15.2%), but at 5 fps MOT17-04 went from +18.5% to
+**+55.6%** with precision 44%. `HIGH` 0.4 adds ID switches in the crowd (192 → 229 on MOT17 at 5 fps). An ablation on
+MOT17 then showed that `flushLost` alone helps at both rates, so only `flushLost` is shipped. **Because that choice was
+made after looking at MOT17, the round-5 MOT17 numbers below are a second look, not a clean held-out test.**
+
+`flushLost` has a known failure mode, covered by a unit test. If the tracker breaks a track exactly when someone steps
+over the line and turns back, that crossing now counts.
+
+**Per sequence, round 4 → round 5:**
+
+| sequence | rate | counted / GT round 4 → 5 | net error round 4 → 5 | event P round 4 → 5 | event R round 4 → 5 |
+| --- | --- | --- | --- | --- | --- |
+| PETS09-S2L1 (tuning) | 5 and 10 fps | 129 → 130 / 126 | +2.4% → +3.2% | 93.8% → 93.1% | 96.0% → 96.0% |
+| TUD-Stadtmitte (tuning) | 5 fps | 7 → 7 / 8 | −12.5% → −12.5% | 100% → 100% | 87.5% → 87.5% |
+| TUD-Stadtmitte (tuning) | 10 fps | 6 → 6 / 9 | −33.3% → −33.3% | 100% → 100% | 66.7% → 66.7% |
+| MOT17-02 | 5 fps | 34 → 38 / 39 | −12.8% → **−2.6%** | 67.6% → 60.5% | 59.0% → 59.0% |
+| MOT17-04 | 5 fps | 64 → 64 / 54 | +18.5% → +18.5% | 60.9% → 60.9% | 72.2% → 72.2% |
+| MOT17-09 | 5 fps | 32 → 33 / 46 | −30.4% → −28.3% | 78.1% → 75.8% | 54.3% → 54.3% |
+| MOT17-02 | 10 fps | 27 → 29 / 40 | −32.5% → −27.5% | 70.4% → 72.4% | 47.5% → 52.5% |
+| MOT17-04 | 10 fps | 39 → 40 / 54 | −27.8% → −25.9% | 92.3% → 92.5% | 66.7% → 68.5% |
+| MOT17-09 | 10 fps | 33 → 34 / 46 | −28.3% → −26.1% | 90.9% → 91.2% | 65.2% → 67.4% |
+
+The gain is small: 1 to 4 events per sequence. Pooled at 5 fps net error goes from −2.6% to −0.4%, with precision down
+from 80.8% to 79.0%. At 10 fps it goes from −14.9% to −13.1%, precision unchanged (90.6% → 90.4%), recall
+77.1% → 78.5%. On the 16:9 split it overcounts a little more than round 4 (10 fps +0.0% → +2.5%).
+
 **Honest bottom line.**
 
 - **Targets: net error within ±10% and event precision ≥ 85%.** These are met on the door-like tuning scene: PETS09
-  gives +2.4% net and 94% precision at both 5 and 10 fps. Pooled over all five sequences they are met for net error at
-  5 fps (−2.6%), but precision there is 81%. At 10 fps precision is 91%, but net error is −15%.
-- **They are not met on the held-out MOT17 crowds.** Per sequence, net error is −30% to +19% and precision 61–92%.
-  The remaining cause is mostly detection: people under a fifth of the frame and heavy occlusion, not the counting
-  rule. Splitting 16:9 frames in two (10 fps) brings the pooled result to 0.0% net and 84% precision, at double the
+  gives +3.2% net and 93% precision at both 5 and 10 fps. Pooled over all five sequences they are met for net error at
+  5 fps (−0.4%), but precision there is 79%. At 10 fps precision is 90%, but net error is −13%.
+- **They are not met on the MOT17 crowds.** Per sequence, net error is −28% to +19% (round 4: −32.5% to +18.5%) and
+  precision 61–92%. Software changes to the counting rule move this by only a few events. The remaining cause is
+  detection and identity, not the counting rule: people under a fifth of the frame are rarely detected, and ids swap in
+  crowds. Splitting 16:9 frames in two (10 fps) brings the pooled result to +2.5% net and 82% precision, at double the
   compute.
 - **About 1 in 5 counted events is still wrong pooled at 5 fps, and about 1 in 10 at 10 fps.** Round 3 was about 1 in 4.
-  The new rule waits for 2 frames, so it misses some real crossings in crowds. That is why it undercounts at 10 fps.
+  The rule waits for 2 frames, so it still misses some real crossings in crowds. That is why it undercounts at 10 fps.
 - **Practical guidance.** Use a ceiling or high camera over the door, keep people at least 1/4 of the frame tall, and
   draw the line across the walking direction. Run a 30-minute manual count to calibrate. The page still labels counts
   as estimates (Beta).
@@ -200,38 +259,127 @@ measured this on LFW View-1 with one photo per person. Round 4 uses a larger, ha
 | 200 | round 4 default | 84.1% | 0.06% | 0.92% [0.8–1.1%] |
 | 200 | round 3 attendance | 86.8% | 0.65% | 11.56% [11.0–12.1%] |
 
-**The per-person limit does most of the work.** Removing it brings stranger acceptance back to 9%. Consensus and the
-quality gate add smaller gains. At 100 enrolled the target (≤ 1% strangers accepted, ≥ 85% recognised) is met on
-LFW at 0.79% and 85.1%. It holds only with 3-pose enrolment. Members enrolled before round 4, from a single capture, are
-recognised only 74% of the time, so re-enrol them. With 20 enrolled the per-person limits are looser (fewer
-look-alikes), so stranger acceptance is 1.4%.
+**The per-person limit does most of the work at 100 enrolled.** Removing it brings stranger acceptance back to 9%.
+Consensus and the quality gate add smaller gains. Members enrolled before round 4, from a single capture, are recognised
+only 74% of the time, so re-enrol them.
 
-**CASIA-FaceV5, Asian faces (held out)**:
+**CASIA-FaceV5, Asian faces (held out)**, round 4 as published:
 
 | enrolled | rule | face found per frame | member recognised per visit | member shown as someone else | stranger accepted [95% CI] |
 | --- | --- | --- | --- | --- | --- |
+| 20 | round 4 default | 59.6% | 55.7% | 0.00% | **6.49% [6.1–6.9%]** |
 | 100 | round 3 attendance | 59.6% | 69.0% | 0.18% | 7.96% [7.5–8.5%] |
-| 100 | **round 4 default** | 59.6% | **54.1%** | 0.00% | **3.38% [3.1–3.7%]** |
+| 100 | round 4 default | 59.6% | 54.1% | 0.00% | 3.38% [3.1–3.7%] |
 | 100 | round 4 without consensus | 59.6% | 74.2% | 0.00% | 5.77% [5.4–6.2%] |
-| 100 | round 4 with limit 0.40 (diagnostic, not adopted) | 59.6% | 51.3% | 0.00% | 1.90% [1.6–2.3%] |
 | 200 | round 4 default | 59.6% | 51.9% | 0.00% | 2.18% [1.9–2.5%] |
 
-**Finding: the face descriptor is much weaker on these Asian faces, the case that matters in Thailand.**
+**Correction to round 4.** The round-4 version of this page left out the 20-enrolled CASIA row above and advised "do not
+rely on face matching alone with more than about 50 enrolled people". That advice was wrong: it implied small groups are
+safer. They were the **least** safe. Round 4 accepted 6.5% of strangers with 20 enrolled and 11% with 5 enrolled,
+against 3.4% with 100 enrolled. The cause: the per-person limit (0.85 × distance to the nearest other member) only
+tightens when the group is large enough for members to have close neighbours. In a small group every member got the
+fixed 0.55 limit, and on these faces 0.55 is very loose.
 
-- At 100 enrolled, round 4 cuts stranger acceptance from 8.0% to 3.4%, still above the 1% target. Even a limit of 0.40
-  leaves 1.9%.
-- Recognition on this set is capped by the detector, which finds only 60% of the faces in its tight 112-px crops.
-  Consensus needs 2 found frames, so recognition falls to 54%.
-- CASIA-FaceV5 was photographed with one camera in one session, which makes strangers look alike. A real Thai
-  workplace may sit between the two data sets, but this has not been measured.
+### Round 5: limits calibrated to the enrolled group, detector cascade, confirm when unsure
+
+**Why the limits must depend on the group.** On CASIA-FaceV5 every distance is about 30% shorter than on LFW.
+Different people have a median distance of 0.52 instead of 0.78, and the same person 0.25 instead of 0.37. The ratio
+between "same person" and "different people" is almost identical on both sets (0.49). So a fixed limit that is right for
+LFW is far too loose for this population. The pages cannot know a shop's population in advance, but the enrolled
+members are a sample of it.
+
+**What changed** (`lensiq-track.js` `gallerySpread` / `enrolGallery(FACE_RULES)` / `matchFace`, `lensiq-detect.js`
+`detectFacesCascade`, `attendance.js`, `customers.js`):
+
+1. **Group-calibrated limits.** The page takes the median distance between the enrolled people's descriptors and divides
+   it by the LFW value (0.736). This scale is never more than 1. The distance limit (0.50), the per-person floor (0.44)
+   and the margin to the runner-up (0.09) are all multiplied by it. Groups whose faces sit closer together in the model,
+   such as Asian faces with this descriptor, therefore get proportionally stricter limits. A group with fewer than 5
+   people is not calibrated, so every match there needs a person to confirm it.
+2. **Detector cascade.** If TinyFaceDetector finds no face at input 320, it tries 224, then 160. A face that fills much
+   of the frame, such as a person close to a kiosk camera, is often missed at 320 and found at a smaller input. Faces
+   found on CASIA rose from 59.6% to 85.3% of frames, and on LFW from 92.7% to 99.5%. The extra passes run only on
+   frames where nothing was found. On CASIA crops the average detection time went from about 42 to 60 ms per frame on
+   WASM.
+3. **Confident or "please confirm".** A match is *confident* when the distance is at most 0.85 × that member's limit in
+   a calibrated group. Attendance checks someone in automatically only after 2 confident frames. Otherwise it shows
+   "ไม่แน่ใจ — กรุณากดยืนยันตัวตน" with **ยืนยัน** and **ไม่ใช่** buttons. Customers selects the member automatically only
+   after 2 confident frames. Otherwise it shows the name as a chip for the cashier to tap.
+4. Unchanged: 3-pose enrolment, quality gate, 2-of-3-frame consensus.
+
+**How the values were chosen.** All values were tuned on **LFW only**: 24 settings of limit, margin, k and floor. The
+rule was the highest mean LFW recognition among the settings that kept LFW stranger acceptance ≤ 0.5% at every group
+size from 5 to 200. The 0.85 "confident" fraction was also chosen on LFW. CASIA-FaceV5 was then run as the held-out check.
+Each row is 200 random groups, about 12,000 stranger visits.
+
+Disclosure: CASIA was not completely untouched. While exploring the idea, a few early settings were also scored on CASIA
+from cached descriptors. The chosen values follow the LFW-only rule above, but the CASIA check is not perfectly blind.
+
+**CASIA-FaceV5 (held out), round 4 → round 5** ("without confirmation" = recognised automatically; the rest are
+recognised as a suggestion that a person confirms):
+
+| enrolled | member recognised R4 → R5 | of which without confirmation (R5) | member shown as someone else R5 | stranger accepted R4 → **R5** [95% CI] | stranger accepted without confirmation (R5) |
+| --- | --- | --- | --- | --- | --- |
+| 5 | 57.4% → **75.6%** | 56.2% | 0.00% | 10.97% → **0.89%** [0.7–1.1%] | 0.03% |
+| 10 | 55.2% → **75.0%** | 56.1% | 0.00% | 8.83% → **0.56%** [0.4–0.7%] | 0.02% |
+| 20 | 55.8% → **73.8%** | 54.7% | 0.00% | 6.34% → **0.33%** [0.2–0.5%] | 0.00% |
+| 50 | 55.1% → **71.3%** | 50.6% | 0.00% | 4.23% → **0.18%** [0.1–0.3%] | 0.00% |
+| 100 | 53.5% → **68.7%** | 47.4% | 0.00% | 3.13% → **0.18%** [0.1–0.3%] | 0.00% |
+| 200 | 52.0% → **66.4%** | 44.5% | 0.00% | 2.25% → **0.22%** [0.1–0.3%] | 0.00% |
+
+The round-4 numbers in this table come from the round-5 benchmark run, which uses different random groups from the
+round-4 run (6.34% vs 6.49% at 20 enrolled).
+
+**LFW (tuning set), round 4 → round 5:**
+
+| enrolled | member recognised R4 → R5 | of which without confirmation (R5) | stranger accepted R4 → **R5** [95% CI] | stranger accepted without confirmation (R5) |
+| --- | --- | --- | --- | --- |
+| 5 | 90.9% → 91.7% | 68.6% | 1.27% → **0.27%** [0.2–0.4%] | 0.03% |
+| 10 | 89.8% → 90.4% | 69.2% | 1.38% → **0.39%** [0.3–0.5%] | 0.03% |
+| 20 | 88.7% → 89.6% | 66.1% | 1.10% → **0.46%** [0.4–0.6%] | 0.03% |
+| 50 | 86.2% → 87.1% | 61.2% | 1.04% → **0.43%** [0.3–0.6%] | 0.01% |
+| 100 | 84.9% → 85.0% | 57.3% | 0.89% → **0.42%** [0.3–0.5%] | 0.05% |
+| 200 | 84.2% → 82.9% | 53.9% | 1.00% → **0.36%** [0.3–0.5%] | 0.07% |
+
+**What each part contributes** (CASIA, held out; 5 / 20 / 200 enrolled; stranger accepted, then member recognised):
+
+| variant | stranger accepted | member recognised |
+| --- | --- | --- |
+| round 4 rules + cascade, no calibration | 14.7 / 8.6 / 2.7% | 85 / 84 / 78% |
+| round-5 values without the group scale (fixed 0.50 / 0.44 / margin 0.09) + cascade | 4.6 / 0.90 / 0.04% | 82 / 78 / 64% |
+| round 5 calibrated, detector 320 only | 0.87 / 0.26 / 0.31% | 52 / 49 / 43% |
+| **round 5 (calibrated + cascade)** | **0.89 / 0.33 / 0.22%** | **76 / 74 / 66%** |
+| round 5 without consensus (1 frame) | 1.25 / 0.57 / 0.30% | 82 / 80 / 73% |
+
+**Findings.**
+
+- **Target met on the held-out set.** Stranger acceptance on CASIA is ≤ 1% at every group size from 5 to 200, down from
+  2.3–11%. Fewer than 0.05% of strangers are accepted *without* a person confirming.
+- **5 enrolled is closest to the limit.** The point estimate is 0.89%, and the upper end of the 95% interval is 1.1%.
+  Groups this small also have the noisiest calibration, which is why the pages ask for confirmation below 5 people.
+- **The group scale is what fixes small groups.** Without it, the same values still accept 4.6% of strangers at 5
+  enrolled.
+- **The cascade pays for the stricter limits.** Calibration alone would cut CASIA recognition to 43–52%. With the
+  cascade it is 66–76%, higher than round 4 (52–57%) at a fraction of the stranger risk. On LFW recognition is unchanged
+  (within ±1.3 points).
+- **The cost is more confirmations.** About 25–35% of recognised members on LFW, and 25–33% on CASIA, are shown as
+  "please confirm" instead of being handled automatically.
+- **Unchanged limits:**
+  - CASIA-FaceV5 was photographed with one camera in one session. A real Thai workplace has not been measured.
+  - Recognition on Asian faces (66–76%) is still well below LFW (83–92%).
+  - The benchmark's "visits" are jittered copies of one photo, not real video.
 - **Recommendation:**
-  - In Thailand, do not rely on face matching alone with more than about 50 enrolled people.
-  - Keep attendance confirmation on screen. On the customers page the cashier sees the matched member's name and can change the
-    selection.
-  - Pilot on your own staff.
+  - Enrol at least 5 people before relying on automatic check-in.
+  - Keep the on-screen confirmation.
+  - Pilot on your own staff, with a manual list for the first week.
+  - Re-enrol members captured before round 4.
 
-A stronger, commercially licensed face model is the real fix. None that runs on WASM without WebGL was available to
-evaluate in this round.
+A stronger, commercially licensed face model is still the real fix. None that runs on WASM without WebGL was available
+to evaluate.
+
+Store re-ID ("ลดการนับซ้ำ") uses body appearance (MobileNetV2), not faces, and only to avoid double counts, so it never
+names a person and needs no confirmation step. Booth's optional "recognise returning visitors" mode still uses the fixed
+0.50 distance (section 9) and only affects counts.
 
 **UTKFace** has race labels but no identities, so it cannot give a genuine 1:N test. It is used for age/gender only
 (section 3).
@@ -308,20 +456,56 @@ drops only 7–14%, while the dlib-style ×0.7 rule assumes a drop of 30% or mor
 closed-eye frames. The default is now **×0.85**, which leaves open eyes alone in these tests. The settings allow up to
 ×0.95 for drivers whose closures are missed.
 
-An experiment (not shipped) with a 130-weight linear classifier on 16×8 eye patches plus EAR did much better:
+### Round 5: eye-patch classifier shipped
 
-- Trained on the ODC-BY set and tested on CEW: AUC **0.954**, against 0.750 for EAR alone.
-- At its default cut it catches 94% of closed eyes, but calls 20% of open eyes closed.
+**What changed** (`driver.js`). Every analysed frame, the page crops a 32×16 grey patch around each eye from the video
+(`eyePatchRect`: 1.8 × the eye width, centred on the 6 eye landmarks, kept in memory only) and scores it with a
+130-number logistic classifier (`eyeClosedScore`: 16×8 normalised patch per eye, image-right eye mirrored, plus one EAR
+term; mean logit of both eyes). Calibration now also records the driver's own median eye score; a frame is **closed when
+its score exceeds that baseline + 3** (`eyeDelta`). EAR < threshold is still used for frames where no crop is available,
+when calibration fails, and when the calibration frames already score above 2 (`eyeMaxBase`: dark glasses, back-light).
+The blink / microsleep / long-closure / PERCLOS timing rules are unchanged.
 
-It needs video-pixel crops in `driver.js`, which is a bigger change.
+**Training is on Open/Closed Eyes only** (ODC-BY 1.0, attribution in `LICENSES/THIRD_PARTY.md`), with
+`tests/bench/driver-eye-train.cjs` (reproduces the shipped weights exactly). 5-fold out-of-fold AUC on that set is 0.999.
+`eyeDelta` 3 was chosen on that set's jittered open-eye frames (0.5% called closed). **CEW was used only to evaluate**,
+never to train or to pick a threshold; the one guard value `eyeMaxBase` 2 was set after seeing that 23 of 101 CEW people
+calibrate above 0, so treat it as weakly tuned on CEW.
 
-**Bottom line.** Eye-closure detection is weak:
+Results (`tests/bench/driver.bench.mjs`, faces found, input 224). The Open/Closed Eyes rows are the training set, so they
+are optimistic; **CEW is the held-out, real-photo result.**
 
-- At best it catches about half of closed-eye frames.
-- Long-closure and microsleep alerts need consecutive closed frames, so many real closures will be missed.
-- Looking down, glasses, and IR or night cabins were not tested.
+The page rule end to end. Each person is calibrated on 8 jittered frames of their own open-eye photo, the way
+`calibrate()` sees a driver. Their thresholds are then applied to their own open frames ("called closed"), and to every
+closed-eye photo of the set ("caught", averaged over people):
 
-The page is a driver-assistance demo, not a safety device. CEW face detection is low because its crops are 100 px.
+| data set | people / open frames | closed-eye frames caught, old (EAR × 0.85) → new | open frames called closed, old → new | people where the classifier stays off |
+| --- | --- | --- | --- | --- |
+| Open/Closed Eyes (AI-generated, training set) | 150 / 1,165 | 49.5% → **99.5%** | 0.09% → 0.52% | 0 |
+| **CEW (real photos, held out)** | 101 / 682 | 25.7% → **84.4%** | 0.00% → **0.00%** (0 of 682) | 4 |
+
+Pooled over the whole set (one baseline for everyone = the set's median open-eye score, as in the round-4 table above;
+this overstates false alarms because people are not compared with their own baseline):
+
+| data set | AUC EAR → classifier | EAR × 0.85: caught · open called closed · precision | classifier: caught · open called closed · precision |
+| --- | --- | --- | --- |
+| Open/Closed Eyes (training set) | 0.847 → 0.999 | 43.1% · 2.1% · 98.8% | 99.6% · 3.6% · 99.1% |
+| **CEW (held out)** | 0.750 → **0.954** | 17.5% · 2.1% · 85.6% | **91.3%** · 15.3% · 81.2% |
+
+Precision is the share of frames called closed that really are closed, at each set's mix (CEW about 1 : 1). Without a
+personal baseline, a fixed score cut-off does not transfer from the AI-generated faces to real photos: score > 0 calls
+20% of CEW open eyes closed. That is why the page uses the classifier only after calibration.
+
+**Bottom line.**
+
+- Per frame, on real photos, closed eyes caught rose from about **18–26% to 84%**. Open-eye frames called closed
+  against the driver's own baseline stayed at **0 of 682**.
+- 95% upper bound on that false-alarm rate: about 0.5% per frame. Long-closure alerts need 1.5 s of consecutive closed
+  frames, so single false frames do not raise alerts.
+- Still not tested: video of real drowsy drivers, looking down, glasses, and IR or night cabins. A driver who calibrates
+  with half-closed eyes, or the 4% whose calibration frames look closed, falls back to EAR.
+- CEW photos are 100 px faces upscaled; video crops of a driver close to the camera are sharper.
+- The page is a driver-assistance demo, not a safety device.
 
 ## 6. Facial expression (neuro)
 
@@ -348,36 +532,85 @@ reference, human agreement on FER-2013 is about 65%.
 ## 7. Quality control: bottle inspection (qc)
 
 **Pipeline under test.** `QC.calibrate` and `QC.inspect` with the page's default tolerances: fill ±6 px, cap ΔE 15, tilt
-6°, lift 4 px, label similarity 80, label shift 6 px. Script: `tests/bench/qc.bench.mjs`.
+6°, lift 4 px, label similarity 80, label shift 6 px, and (round 5) label angle 3.5°. Script: `tests/bench/qc.bench.mjs`.
 
 **Images are synthetic.** The renderer is independent of the page's simulator and is designed to be harder:
 anti-aliased PET bottle, cylindrical shading, a highlight running through the fill window, concave meniscus,
 wrap-around label, ridged cap. Defects come in graded sizes, some inside tolerance (they should pass) and some outside
 (they should be rejected). The operator procedure is followed: capture the empty belt, calibrate on one good bottle,
-then run. Each cell is 60 good bottles or 25 per defect. Results are for a dark drink with the background image; clear
-water gave identical results.
+then run. Lighting conditions are applied *after* calibration: brightness = gain on every pixel, contrast = stretch
+around mid-grey, both clipped at 0–255 like a camera.
 
-| | as calibrated | stop position ±8/±3 px | light ±10% after calibration | light +25% / −30% | side light ±15% | glare | defocus σ 1.2 | noise σ 10 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| good bottles falsely rejected | 0% | 0% | **100%** | **100%** | 0% | 0% | 0% | 0% |
-| fill 9 px low / 16 px low / 9 px high rejected | 100 / 100 / 100% | 96 / 100 / 92% | 100% | 100% | 100% | 100% | 100% | 100% |
-| no cap / wrong cap colour rejected | 100 / 100% | 100 / 100% | 100% | 100% | 100% | 100% | 100% | 100% |
-| cap tilted 9° / 15° rejected | 100 / 100% | 100 / 100% | 100% | 100% | 100% | 100% | 100% | 96 / 100% |
-| cap raised 6 px / 10 px rejected | 100 / 100% | 72 / 100% | 100% | 100% | 100% | 100% | 100% | 100% |
-| no label / label 10 px or 20 px low rejected | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% |
-| **label skewed 5° / 10° rejected** | **0 / 0%** | 0 / 0% | — | — | 0 / 0% | 0 / 0% | 0 / 0% | 0 / 0% |
-| within-tolerance defects passed | 100% | 92–100% | 0% | 0% | 100% | 100% | 100% | 100% |
-| scratch on the body | not inspected (passes) | | | | | | | |
+**What changed in round 5** (`qc.js`):
+
+1. **Per-frame photometric normalisation.** At calibration the page keeps a small sample of the golden bottle's pixels
+   (one in every 2–3 px over the box around the fill, cap and label areas, about 12 KB per recipe). On each inspection it
+   fits, per colour channel, *current ≈ gain × golden + offset* with a robust fit (Theil–Sen on binned medians, then
+   Tukey-weighted least squares; saturated pixels ignored). A defect changes a minority of pixels, while a lighting
+   or exposure change moves all of them together, so the fit follows the light, not the defect. The fit is only used
+   when it explains the frame better than "no change". The frame is then mapped back to calibration lighting for the
+   fill, label and cap-colour checks, and the empty-belt image is mapped forward to the current lighting for the cap
+   mask, so clipped highlights still match. Recipes calibrated before round 5 work as before until recalibrated;
+   `rec.photoNorm = false` switches it off.
+2. **Label angle check.** The label area is cut into 5 vertical strips. Each strip's row profile is matched against the
+   same strip of the golden label (correlation, so it ignores brightness and contrast, with sub-pixel refinement). A
+   straight line through the strip offsets gives the label angle. A label tilted more than `tol.labelAngle` (default
+   3.5°) is rejected as "ฉลากเบี้ยว/ผิดตำแหน่ง", and the angle is shown in the result.
+
+**Before → after** (dark drink, with the empty-belt image; before = round 4, 30 good bottles and 10 per defect per
+condition; the light ±10% / +25% / −30% "before" columns are the round-4 run with 60 good and 25 per defect):
+
+| condition after calibration | good bottles falsely rejected | label skewed 5° / 10° rejected |
+| --- | --- | --- |
+| none (as calibrated) | 0% → 0% | 0 / 0% → **100 / 100%** |
+| light ±10% | **100% → 0%** | — → 100 / 100% |
+| light +25% / −30% | **100% → 0%** | — → 100 / 100% |
+| brightness +20% | **100% → 0%** | 100 / 100%\* → 100 / 100% |
+| brightness −20% | **100% → 0%** | 100 / 100%\* → 100 / 100% |
+| contrast +10% / −10% | 0% → 0% | 0 / 0% → 100 / 100% |
+| brightness +20% with contrast −10% | **100% → 0%** | 100 / 100%\* → 100 / 100% |
+| brightness −20% with contrast +10% | **100% → 0%** | 100 / 100%\* → 100 / 100% |
+
+\* Before round 5 these "rejections" were not skew detections: every bottle was rejected for cap colour, cap tilt or
+"no label", good or not. Without the empty-belt image, round 4 already passed +20% brightness but rejected every
+bottle at −20% ("no label").
+
+**After round 5, all conditions** (30 good + 10 per defect; dark drink with the empty-belt image; the dark drink without
+it and clear water gave the same pattern):
+
+| | as calibrated | stop position ±8/±3 px | light ±10%, +25%, −30% | brightness ±20% | contrast ±10% | brightness ±20% with contrast ∓10% | side light ±15% | glare | defocus σ 1.2 | noise σ 10 | all at once |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| good bottles falsely rejected | 0% | 0% | 0% | 0% | 0% | 0% | 0% | 0% | 0% | 0% | 0% |
+| fill 9 px low / 16 px low / 9 px high rejected | 100% | 95 / 100 / 90%† | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% |
+| no cap / wrong cap colour rejected | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% |
+| cap tilted 9° / 15° rejected | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% |
+| cap raised 6 px / 10 px rejected | 100% | 83 / 100%† | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100 / 100% (80 / 100% without the belt image) |
+| no label / label 10 px or 20 px low rejected | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% |
+| **label skewed 5° / 10° rejected** | **100 / 100%** | 100 / 100% | 100 / 100% | 100 / 100% | 100 / 100% | 100 / 100% | 100 / 100% | 100 / 100% | 100 / 100% | 100 / 100% | 100 / 100% |
+| within-tolerance defects passed (incl. label skewed 2°) | 100% | 90–100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 90–100% |
+| scratch on the body | not inspected (passes) | | | | | | | | | | |
+
+† Stop jitter, re-measured with 40 per defect: identical with normalisation on and off (95 / 100 / 90% fill, 83% cap
+lift), so these misses come from the belt position, not the new step. Round 4 measured 96 / 100 / 92% and 72%.
+
+`tests/unit/qc.test.js` locks this in on the page's own simulator: no false rejects at ±20% brightness, ±10% contrast
+and their combinations (with and without the belt image, three stop positions), every simulated defect still rejected
+under those changes, labels rotated ±5°, 7° and ±10° rejected (also at −20% light), 0–2° passed.
 
 **Findings.**
 
-1. With stable lighting and a fixed camera the checks work, with 0% false rejects. Belt stop jitter of ±8 px costs a few
-   misses on 6 px cap lifts (72% caught).
-2. **Any change in lighting after calibration, as small as ±10%, makes the page reject every bottle.** The cap colour
-   (ΔE), the background-difference mask and the label colour histogram all shift together. You need fixed lighting,
-   camera auto-exposure turned off, and recalibration whenever the light changes.
-3. **Skewed labels are not detected.** The label check only looks at vertical shift and colour.
-4. Scratches and dents are not inspected at all.
+1. With stable lighting and a fixed camera the checks work, with 0% false rejects. Belt stop jitter of ±8 px still costs
+   some misses on 6 px cap lifts (about 80% caught).
+2. **Global lighting changes after calibration no longer reject good bottles.** Round 4 rejected every bottle after a
+   ±10% change. Now ±10%, ±20%, +25% / −30% brightness and ±10% contrast give 0% false rejects with every defect still
+   caught. This covers a lamp dimming, a shutter or auto-exposure change, or camera contrast drift. It does **not** cover
+   a light that changes *shape* (a new shadow, a reflection moving across the bottle), a colour-temperature change
+   much larger than tested, or a light so bright that the bottle itself clips. Recalibrate after moving lamps.
+3. **Skewed labels are now detected:** 5° and 10° are rejected in every condition, 2° passes. The angle is measured
+   relative to the golden bottle, so calibrate on a straight label.
+4. The continuous-mode trigger (bottle presence) still compares raw brightness with the empty-belt image. A large
+   lighting change can keep it "present", so recapture the empty belt after changing the light.
+5. Scratches and dents are not inspected at all.
 
 These are synthetic images: they show which conditions break which check, not the rate on a real line. Run a pilot with
 labelled rejects.

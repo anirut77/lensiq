@@ -155,9 +155,10 @@
   }
 
   /** คืน alpha (Float32Array ขนาด w*h) จาก MODNet; ภาพยาวสุด ~512px ปัดเป็นพหุคูณของ 32 */
-  async function modnetAlpha(canvas) {
+  async function modnetAlpha(canvas, side = 448) {
+    // อินพุต 448 (เดิม 512): เร็วขึ้น ~25% — ขอบผมละเอียดถูกเกลาด้วย guided filter ที่ความละเอียดเต็มภายหลังอยู่แล้ว
     const s = await loadMatting();
-    const W = canvas.width, H = canvas.height, k = 512 / Math.max(W, H);
+    const W = canvas.width, H = canvas.height, k = side / Math.max(W, H);
     const mw = Math.max(32, Math.round(W * k / 32) * 32), mh = Math.max(32, Math.round(H * k / 32) * 32);
     const c = Object.assign(document.createElement("canvas"), { width: mw, height: mh }), x = c.getContext("2d", { willReadFrequently: true });
     x.drawImage(canvas, 0, 0, mw, mh);

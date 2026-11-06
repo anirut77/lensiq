@@ -4,6 +4,61 @@ Follow this list top to bottom for each site. It does not depend on pricing or p
 
 ---
 
+## 0. Hosting the public demo on GitHub Pages
+
+The public demo (`https://anirut77.github.io/lensiq/`) must be deployed by the **"Pages" GitHub Actions workflow**
+(`.github/workflows/pages-lfs.yml`), not by "Deploy from a branch". The legacy branch deploy publishes the whole
+repository, so `server.py`, `tryon.py`, `package.json`, `tests/`, `tools/`, `docs/` and `types/` are downloadable from
+the site. The workflow publishes only `_site/`, built from an allowlist by `tools/build-site.mjs` (pages, page
+scripts/styles, `i18n/`, `vendor/`, `.nojekyll`, licence notices), and refuses to deploy if `tools/check-site.mjs`
+finds a forbidden file (`server.py`, any `*.py`, `tests/`, `tools/`, `docs/`, `types/`, `package.json`, …), a missing
+reference, or a 404 while crawling all 27 pages in TH and 中文. It works with or without Git LFS objects.
+
+### Before switching (local, about 3 minutes)
+
+```bash
+node tools/build-site.mjs        # builds _site/ and runs the forbidden-file check
+node tools/check-site.mjs        # forbidden files + static references + headless crawl of 27 pages x TH/中文 under /lensiq/
+(cd _site && python3 -m http.server 8080)   # optional: browse http://127.0.0.1:8080/
+```
+
+### The switch (repository admin, about 5 minutes)
+
+1. [ ] GitHub → repository → **Settings → Pages → Build and deployment → Source**: change **"Deploy from a branch"**
+       to **"GitHub Actions"**. (No other field changes. The custom domain, if any, and "Enforce HTTPS" are kept.)
+       The current deployment stays online until the workflow replaces it. Do this first, so the push in step 3 no
+       longer triggers the legacy "pages build and deployment" run that republishes the whole repository.
+2. [ ] **Settings → Environments → github-pages → Deployment branches and tags**: make sure `main` is allowed
+       (default rule "Protected branches only" works when `main` is protected; otherwise add a rule for `main`).
+3. [ ] Push the commit containing `.github/workflows/pages-lfs.yml` (name: **Pages**, trigger `push` on `main`),
+       `tools/build-site.mjs` and `tools/check-site.mjs` to `main`.
+4. [ ] The push starts the **Pages** run (or use **Actions → Pages → Run workflow** on `main`). Wait for both jobs,
+       **Build + verify _site** and **Deploy to GitHub Pages**, to be green. The deploy job prints the page URL.
+5. [ ] Verify on the live site (a 404 is the correct answer for every internal file):
+
+       ```bash
+       B=https://anirut77.github.io/lensiq
+       for p in server.py tryon.py pdfconvert.py package.json requirements.txt tests/README.md tools/build-site.mjs \
+                docs/DEPLOYMENT-CHECKLIST.md types/lensiq-globals.d.ts eslint.config.mjs start.sh; do
+         printf '%s %s\n' "$(curl -s -o /dev/null -w '%{http_code}' "$B/$p")" "$p"; done     # expect 404 for all
+       for p in index.html studio.html store.html sw.js nav.js i18n/zh-common.js vendor/face-api.js \
+                vendor/models/modnet.onnx vendor/fonts/prompt/prompt-300-latin.woff2; do
+         printf '%s %s\n' "$(curl -s -o /dev/null -w '%{http_code}' "$B/$p")" "$p"; done     # expect 200 for all
+       ```
+
+       Then open `index.html`, `studio.html?cpu` and `store.html?cpu` in TH and 中文 and check the models load.
+       GitHub's CDN can serve the old files for up to about 10 minutes after the switch; re-run the checks if a
+       removed file still answers 200.
+6. [ ] The old **"pages build and deployment"** runs no longer appear under Actions after the switch.
+
+**Rollback:** set Source back to "Deploy from a branch" (`main`, `/ (root)`). The site is served from the branch again
+within minutes, and the internal files become public again.
+
+**Adding a new public file type** (e.g. images in a new folder): add a pattern to `ALLOW` in `tools/build-site.mjs`.
+Run `node tools/build-site.mjs --list` to see exactly what will be published.
+
+---
+
 ## 1. Before install: legal and licensing
 
 - [ ] **Modules chosen** and a one-line purpose written for each.

@@ -2,6 +2,8 @@
 // Serves the repo read-only on 127.0.0.1:<random>. Optional `transformHtml(html, path)` rewrites .html responses
 // (check-csp uses it to inject the CSP <meta> before tools/csp-meta.mjs has been run on the files).
 // Like GitHub Pages it sends no security headers, so only <meta> policies apply.
+// Optional `prefix` (e.g. "/lensiq") mounts the root under a sub-path like a GitHub Pages project site; requests
+// outside it get 404. `onResponse(status, path)` is called after every response (tools/check-site.mjs records 4xx).
 import { createServer } from "node:http";
 import { createReadStream, readFileSync, statSync } from "node:fs";
 import { extname, join, normalize, resolve, sep } from "node:path";
@@ -15,11 +17,18 @@ const TYPES = {
   ".tflite": "application/octet-stream", ".woff2": "font/woff2", ".webmanifest": "application/manifest+json"
 };
 
-export function serve(root, { transformHtml = null, port = 0 } = {}) {
+export function serve(root, { transformHtml = null, port = 0, prefix = "", onResponse = null } = {}) {
   const base = resolve(root);
+  const mount = prefix.replace(/\/+$/, "");
   const server = createServer((req, res) => {
     let p;
     try { p = decodeURIComponent(new URL(req.url, "http://x").pathname); } catch { res.writeHead(400).end(); return; }
+    if (onResponse) { const path = p; res.on("finish", () => onResponse(res.statusCode, path)); }
+    if (mount) {
+      if (p === mount) { res.writeHead(301, { Location: mount + "/" }).end(); return; }
+      if (!p.startsWith(mount + "/")) { res.writeHead(404).end("not found"); return; }
+      p = p.slice(mount.length);
+    }
     if (p.endsWith("/")) p += "index.html";
     const file = normalize(join(base, p));
     if (!file.startsWith(base + sep) || /[\\/]\./.test(file.slice(base.length))) { res.writeHead(404).end(); return; }
@@ -37,6 +46,6 @@ export function serve(root, { transformHtml = null, port = 0 } = {}) {
   });
   return new Promise((ok, fail) => {
     server.once("error", fail);
-    server.listen(port, "127.0.0.1", () => ok({ base: `http://127.0.0.1:${server.address().port}`, close: () => new Promise(r => server.close(r)), server }));
+    server.listen(port, "127.0.0.1", () => ok({ base: `http://127.0.0.1:${server.address().port}${mount}`, close: () => new Promise(r => server.close(r)), server }));
   });
 }

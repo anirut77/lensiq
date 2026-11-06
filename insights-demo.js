@@ -1,6 +1,6 @@
 /* insights-demo.js — แดชบอร์ดรวม LENSIQ: สร้างข้อมูลตัวอย่าง (ทุกรายการมีป้าย “(ตัวอย่าง)” ไม่ทับข้อมูลจริง)
    ไม่ใช้ DOM จึงทดสอบด้วย Node ได้ · UMD: เบราว์เซอร์ = window.LQInsightsDemo · Node = require("./insights-demo.js") */
-(function (root, factory) {
+(/** @param {any} root */ function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory(require("./insights-data.js"));
   else root.LQInsightsDemo = factory(root.LQInsightsData);
 })(typeof self !== "undefined" ? self : this, function (M_data) {
@@ -100,6 +100,7 @@ function iqBuildDemo(snap, now = Date.now(), seed = 20261105) {
   // --- วิเคราะห์อารมณ์: 32 การทดสอบ (ฉลากสีฟ้า vs ฉลากสีทอง คนละ 12 คน = ชุด A/B ; วิดีโอ 4 คน = ต่ำกว่าเกณฑ์ 10 คน แสดงแต่ไม่จัดอันดับ)
   const ns = get("nm-sessions", []);
   if (!Array.isArray(ns) || !ns.some(s => s.iqDemo)) {
+    /** @type {Array<[string, string, number, number, number]>} */
     const tests = [["บรรจุภัณฑ์ใหม่ ฉลากสีฟ้า", "image", 10, 0.32, 12], ["บรรจุภัณฑ์ใหม่ ฉลากสีทอง", "image", 10, 0.04, 12], ["โฆษณา Matcha Fizz 20 วิ", "video", 20, 0.3, 4], ["โฆษณา Signature Latte", "video", 18, 0.12, 4]];
     const sessions = []; let si = 0;
     tests.forEach(([name, type, dur, mood, reps], ti) => { for (let rep = 0; rep < reps; rep++) {
@@ -204,7 +205,7 @@ function iqBuildDemo(snap, now = Date.now(), seed = 20261105) {
   const al = get("att-logs", []);
   if (!Array.isArray(al) || !al.some(l => l.iqDemo)) {
     const logs = [];
-    [[9, "อบรมความปลอดภัยในโรงงาน", 18], [4, "อบรมพนักงานขายหน้าร้าน", 14], [1, "ประชุมประจำเดือน", 20]].forEach(([ago, s, n]) => {
+    /** @type {Array<[number, string, number]>} */ ([[9, "อบรมความปลอดภัยในโรงงาน", 18], [4, "อบรมพนักงานขายหน้าร้าน", 14], [1, "ประชุมประจำเดือน", 20]]).forEach(([ago, s, n]) => {
       const day = iqAddDays(today, -ago);
       for (let i = 0; i < n; i++) logs.push(tag({ pid: "iqdemo-p" + (i + 1), name: `${IQ_DEMO_TAG} ${IQ_NAMES[i % IQ_NAMES.length]}`, code: "D" + String(i + 1).padStart(3, "0"), session: `${IQ_DEMO_TAG} ${s}`, date: day, time: `08:${iqPad(30 + Math.floor(i * 1.4))}:${iqPad(ri(0, 59))}` }));
     });

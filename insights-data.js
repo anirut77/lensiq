@@ -1,6 +1,6 @@
 /* insights-data.js — แดชบอร์ดรวม LENSIQ: อ่านและแปลงข้อมูลดิบของทุกระบบ ช่วงเวลา ตัวชี้วัดรวม CSV สำรอง/กู้คืน ลบข้อมูลตัวอย่าง
    ไม่ใช้ DOM จึงทดสอบด้วย Node ได้ · UMD: เบราว์เซอร์ = window.LQInsightsData · Node = require("./insights-data.js") */
-(function (root, factory) {
+(/** @param {any} root */ function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory();
   else root.LQInsightsData = factory();
 })(typeof self !== "undefined" ? self : this, function () {

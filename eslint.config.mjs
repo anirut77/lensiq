@@ -34,7 +34,7 @@ const RULES = {
 };
 
 export default [
-  { ignores: ["vendor/**", "node_modules/**", ".venv/**", "**/*.min.js", "data/**", "logs/**", "certs/**", "*-kb.js"] },
+  { ignores: ["vendor/**", "_site/**", "node_modules/**", ".venv/**", "**/*.min.js", "data/**", "logs/**", "certs/**", "*-kb.js"] },
   js.configs.recommended,
   { rules: RULES },
   {

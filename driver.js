@@ -7,6 +7,8 @@ const DR_DEFAULTS = {
                           // ×0.7 แบบ dlib จับตาปิดได้ < 1% ต่อเฟรม; ×0.85 จับได้ 18–43% โดยตาเปิดถูกนับเป็นปิด ≤ 0.1% — ดู ACCURACY.md / tests/bench/driver.bench.mjs)
   earFallback: 0.25,      // ใช้เมื่อปรับเทียบไม่สำเร็จ
   earMin: 0.12, earMax: 0.35,
+  eyeDelta: 3,            // ตัวจำแนกภาพตา: ปิด = คะแนน > ค่าปกติของคนขับตอนปรับเทียบ + 3 (เลือกบนชุด Open/Closed Eyes เท่านั้น)
+  eyeMaxBase: 2,          // ค่าปกติ > 2 = ตอนปรับเทียบภาพตาก็ดูเหมือนปิดแล้ว (แว่นดำ/มืด/ย้อนแสง) -> ไม่ใช้ตัวจำแนก ใช้ EAR แทน
   calibMinSamples: 10,
   blinkMaxMs: 500,        // หลับตาสั้นกว่านี้ = กะพริบตา
   longCloseMs: 1500,      // หลับตานานเกิน 1.5 วิ = เตือน (ระดับ 2)
@@ -49,6 +51,54 @@ function faceMetrics(pts) {
   };
 }
 
+/* ตัวจำแนกตาปิด/เปิดจากภาพดวงตา (eye-patch classifier) — เสริม EAR เพราะ landmark ของ face-api แทบไม่ขยับตอนหลับตา
+   ภาพตาเทาขนาด 32×16 รอบจุด 6 จุดของตาแต่ละข้าง (กว้าง 1.8 × ความกว้างตา) -> ย่อ 16×8 -> ปรับค่าเฉลี่ย 0 / SD 1 -> โลจิสติกเชิงเส้น
+   128 น้ำหนัก + bias + EAR (ตาขวาของภาพกลับซ้าย-ขวา ให้หันทางเดียวกัน) ฝึกด้วยชุด Open/Closed Eyes (ODC-BY 1.0) เท่านั้น
+   วัดผลบน CEW (ภาพจริง) โดยไม่ใช้ปรับค่า — ดู ACCURACY.md §5 / tests/bench/driver.bench.mjs */
+const EYE_PATCH = { w: 32, h: 16, widthScale: 1.8 };
+/* กรอบภาพตาในพิกัดภาพต้นฉบับจาก landmark 6 จุดของตาหนึ่งข้าง */
+function eyePatchRect(p) {
+  const c = mean(p), w = d2(p[0], p[3]) * EYE_PATCH.widthScale;
+  return { x: c.x - w / 2, y: c.y - w / 4, w, h: w / 2 };
+}
+/* เทา 32×16 (Uint8 512 ค่า) -> เวกเตอร์ 128 ค่า (16×8, mean 0, SD ~1) */
+function eyeVec(g, mirror = false) {
+  const v = new Float64Array(128);
+  for (let y = 0; y < 8; y++) for (let x = 0; x < 16; x++) {
+    const xx = mirror ? 15 - x : x;
+    v[y * 16 + xx] = (g[2 * y * 32 + 2 * x] + g[2 * y * 32 + 2 * x + 1] + g[(2 * y + 1) * 32 + 2 * x] + g[(2 * y + 1) * 32 + 2 * x + 1]) / 4;
+  }
+  let m = 0; for (const a of v) m += a; m /= 128;
+  let s = 0; for (const a of v) s += (a - m) ** 2; s = Math.sqrt(s / 128) + 1;
+  for (let k = 0; k < 128; k++) v[k] = (v[k] - m) / s;
+  return v;
+}
+/* คะแนนตาปิด (logit เฉลี่ยสองตา, > thr = ปิด) จากภาพตาซ้ายของภาพ (landmark 36–41) และขวาของภาพ (42–47) + EAR */
+function eyeClosedScore(gA, gB, ear, model = EYE_MODEL) {
+  if (!gA || !gB || !Number.isFinite(ear)) return NaN;
+  let z = 0;
+  for (const [g, mir] of [[gA, false], [gB, true]]) {
+    const v = eyeVec(g, mir);
+    let s = model.b + model.e * (ear - 0.3) * 20;
+    for (let k = 0; k < 128; k++) s += model.w[k] * v[k];
+    z += s;
+  }
+  return z / 2;
+}
+const EYE_MODEL = {
+  b: 0.891, e: -0.136,          // bias, น้ำหนัก (EAR − 0.3) × 20
+  w: [ // 16×8 ตามแถว (บน -> ล่าง), ตาซ้ายของภาพ; ตาขวาของภาพใช้แบบกลับซ้าย-ขวา
+    -0.232, -0.212, -0.079, 0.065, 0.121, 0.095, 0.121, 0.137, 0.147, 0.132, 0.07, -0.052, -0.121, -0.115, -0.059, 0.04,
+    -0.191, -0.076, -0.041, 0.054, 0.122, 0.165, 0.192, 0.207, 0.14, 0.042, 0.069, -0.009, -0.16, -0.063, -0.013, 0.036,
+    -0.013, 0.012, 0.055, 0.113, 0.178, 0.264, 0.344, 0.27, 0.23, 0.165, 0.073, 0.062, 0.021, 0.014, -0.007, 0.036,
+    0.131, 0.099, 0.175, 0.102, 0.171, 0.14, 0.136, 0.067, 0.107, 0.025, 0.02, 0.04, 0.057, 0.067, 0.093, 0.002,
+    0.164, 0.157, 0.126, -0.027, -0.132, -0.073, -0.068, 0.088, 0.12, -0.112, -0.151, -0.089, -0.063, 0.011, -0.029, 0.047,
+    0.078, 0.034, -0.06, -0.069, -0.193, -0.187, -0.173, -0.134, 0.014, -0.197, -0.28, -0.17, 0.041, -0.006, -0.151, -0.06,
+    -0.019, 0.051, -0.029, -0.071, -0.182, -0.199, -0.178, -0.175, -0.068, -0.1, -0.18, -0.102, -0.044, 0.018, -0.08, -0.082,
+    -0.15, -0.042, 0.035, 0.051, -0.075, -0.157, -0.143, -0.183, -0.119, -0.015, -0.014, 0.001, 0.084, 0.056, -0.027, -0.103
+  ]
+};
+
 /* PERCLOS: สัดส่วนเวลาที่หลับตาในหน้าต่างเลื่อน (ถ่วงด้วยเวลาจริงระหว่างเฟรม) */
 function createPerclos(windowMs = 60000, maxGapMs = 500) {
   let q = [], closedMs = 0, totalMs = 0, lastT = null, lastC = false;
@@ -71,10 +121,15 @@ function createPerclos(windowMs = 60000, maxGapMs = 500) {
 function calibrate(samples, ratio = DR_DEFAULTS.earRatio, cfgIn = {}) {
   const cfg = { ...DR_DEFAULTS, ...cfgIn };
   const ok = samples.filter(s => s && s.face && Number.isFinite(s.ear));
-  if (ok.length < cfg.calibMinSamples) return { ok: false, n: ok.length, ear: null, thr: cfg.earFallback, yaw: 0, pitch: null, mar: null };
+  if (ok.length < cfg.calibMinSamples) return { ok: false, n: ok.length, ear: null, thr: cfg.earFallback, yaw: 0, pitch: null, mar: null, eyeBase: null, eyeThr: null };
   const ear = median(ok.map(s => s.ear));
   const thr = Math.min(cfg.earMax, Math.max(cfg.earMin, ear * ratio));
-  return { ok: true, n: ok.length, ear: +ear.toFixed(4), thr: +thr.toFixed(3), yaw: median(ok.map(s => s.yaw)), pitch: median(ok.map(s => s.pitch)), mar: median(ok.map(s => s.mar)) };
+  // ตัวจำแนกภาพตาใช้เฉพาะเมื่อมีค่าปกติของคนขับเอง (ค่าสัมบูรณ์ข้ามกล้อง/แสงไม่น่าเชื่อถือ: ภาพจริง CEW ตาเปิดถูกนับเป็นปิด 20%)
+  const es = ok.map(s => s.eyeScore).filter(Number.isFinite);
+  const eyeBase = es.length >= cfg.calibMinSamples ? median(es) : null;
+  const eyeThr = eyeBase != null && eyeBase <= cfg.eyeMaxBase ? +(eyeBase + cfg.eyeDelta).toFixed(3) : null;
+  return { ok: true, n: ok.length, ear: +ear.toFixed(4), thr: +thr.toFixed(3), yaw: median(ok.map(s => s.yaw)), pitch: median(ok.map(s => s.pitch)), mar: median(ok.map(s => s.mar)),
+    eyeBase: eyeBase == null ? null : +eyeBase.toFixed(3), eyeThr };
 }
 
 function fatigueScore({ perclos = 0, yawns = 0, nods = 0, microsleeps = 0, longClosures = 0 } = {}) {
@@ -150,7 +205,7 @@ const toCsv = rows => "﻿" + rows.map(r => r.map(csvCell).join(",")).join("\r\n
    เหตุการณ์ถูกสร้างตอนเริ่มเกิด (t = เวลาเริ่ม) แล้วอัปเดต dur/level ในออบเจ็กต์เดิมจนจบ */
 function createMonitor(baseline = {}, cfgIn = {}) {
   const cfg = { ...DR_DEFAULTS, ...cfgIn };
-  const B = { thr: baseline.thr ?? cfg.earFallback, yaw: baseline.yaw ?? 0, pitch: baseline.pitch ?? null };
+  const B = { thr: baseline.thr ?? cfg.earFallback, yaw: baseline.yaw ?? 0, pitch: baseline.pitch ?? null, eyeThr: baseline.eyeThr ?? null };
   const pc = createPerclos(cfg.perclosWindowMs, cfg.maxGapMs);
   const log = [], blinks = [];
   let start = null, out = [], maxFatigue = 0, maxPerclos = 0, lastBreak = -Infinity, transient = { level: 0, until: -Infinity };
@@ -175,7 +230,7 @@ function createMonitor(baseline = {}, cfgIn = {}) {
   function update(s) {
     const t = s.t; out = [];
     if (start == null) start = t;
-    let closed = false, yawDev = 0, pitchRel = null;
+    let closed = false, eyeMode = false, yawDev = 0, pitchRel = null;
     if (!s.face) {
       if (st.miss == null) st.miss = t;
       endEye(t, false); endMouth(t); endLook(t); st.nodHist = []; pc.gap();
@@ -183,7 +238,9 @@ function createMonitor(baseline = {}, cfgIn = {}) {
       if (st.missEv) st.missEv.dur = t - st.miss;
     } else {
       st.miss = null; st.missEv = null;
-      closed = s.ear < B.thr;
+      // ภาพตา (ตัวจำแนก) เมื่อปรับเทียบแล้วและเฟรมนี้ตัดภาพตาได้; ไม่เช่นนั้นใช้ EAR < เกณฑ์ (เดิม)
+      eyeMode = B.eyeThr != null && Number.isFinite(s.eyeScore);
+      closed = eyeMode ? s.eyeScore > B.eyeThr : s.ear < B.thr;
       pc.push(t, closed);
       // ตา: กะพริบ / หลับใน / หลับตานาน
       if (closed) {
@@ -247,6 +304,7 @@ function createMonitor(baseline = {}, cfgIn = {}) {
       events: out, level, reasons,
       metrics: {
         ear: s.face ? s.ear : null, mar: s.face ? s.mar : null, closed, thr: B.thr,
+        eyeScore: s.face && Number.isFinite(s.eyeScore) ? s.eyeScore : null, eyeThr: B.eyeThr, eyeMode,
         perclos, perclosReady: ready, blinkRate: elapsed >= 10000 ? blinks.length * 60000 / elapsed : null,
         closedMs: st.eye != null ? t - st.eye : 0, yawDev, pitchRel, fatigue, maxFatigue, maxPerclos
       }
@@ -256,7 +314,7 @@ function createMonitor(baseline = {}, cfgIn = {}) {
   return { update, finish, log, setThreshold(v) { B.thr = v; }, get baseline() { return { ...B }; }, get maxFatigue() { return maxFatigue; }, get maxPerclos() { return maxPerclos; } };
 }
 
-if (typeof module !== "undefined") module.exports = { DR_DEFAULTS, DR_TYPES, DR_LEVELS, eyeAspectRatio, mouthAspectRatio, faceMetrics, createPerclos, calibrate, fatigueScore, countRecent, shouldRecommendBreak, safetyScore, summarizeTrip, csvCell, toCsv, createMonitor, median, pickDriver, synthFace, DR_MAX_FACES };
+if (typeof module !== "undefined") module.exports = { DR_DEFAULTS, DR_TYPES, DR_LEVELS, EYE_PATCH, EYE_MODEL, eyePatchRect, eyeVec, eyeClosedScore, eyeAspectRatio, mouthAspectRatio, faceMetrics, createPerclos, calibrate, fatigueScore, countRecent, shouldRecommendBreak, safetyScore, summarizeTrip, csvCell, toCsv, createMonitor, median, pickDriver, synthFace, DR_MAX_FACES };
 
 // ================= ส่วนหน้าจอ =================
 if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof LQCam !== "undefined") (() => {
@@ -448,6 +506,23 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     return { f: pick.index >= 0 ? faces[pick.index] : null, others: faces.filter((_, i) => i !== pick.index), n: faces.length };
   }
 
+  /* ภาพตาเทา 32×16 จากเฟรมวิดีโอ (เรขาคณิตเดียวกับชุดทดสอบ tests/bench) — อยู่ในหน่วยความจำเท่านั้น ไม่บันทึก */
+  const eyeCv = document.createElement("canvas"); eyeCv.width = EYE_PATCH.w; eyeCv.height = EYE_PATCH.h;
+  const eyeCtx = eyeCv.getContext("2d", { willReadFrequently: true });
+  function eyeGray(src, p) {
+    const r = eyePatchRect(p);
+    if (!(r.w >= 6)) return null;
+    eyeCtx.clearRect(0, 0, EYE_PATCH.w, EYE_PATCH.h);
+    eyeCtx.drawImage(src, r.x, r.y, r.w, r.h, 0, 0, EYE_PATCH.w, EYE_PATCH.h);
+    const d = eyeCtx.getImageData(0, 0, EYE_PATCH.w, EYE_PATCH.h).data, g = new Uint8Array(EYE_PATCH.w * EYE_PATCH.h);
+    for (let i = 0; i < g.length; i++) g[i] = (d[4 * i] * 0.299 + d[4 * i + 1] * 0.587 + d[4 * i + 2] * 0.114) | 0;
+    return g;
+  }
+  function eyeScoreOf(f, m) {
+    if (TEST || !f || !m) return NaN; // โหมดทดสอบ ?fakedet ไม่มีภาพจริง -> ใช้ EAR
+    try { return eyeClosedScore(eyeGray(video, f.pts.slice(36, 42)), eyeGray(video, f.pts.slice(42, 48)), m.ear); } catch { return NaN; }
+  }
+
   function drawFace(f, m, others = []) {
     const ctx = overlay.getContext("2d");
     ctx.clearRect(0, 0, overlay.width, overlay.height);
@@ -524,11 +599,11 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   function finishCalibration() {
     const c = calibrate(calibSamples, settings.ratio);
     $("#calib").hidden = true;
-    trip.thr = c.thr; trip.baseEar = c.ear; trip.calibrated = c.ok;
+    trip.thr = c.thr; trip.baseEar = c.ear; trip.calibrated = c.ok; trip.eyeThr = c.eyeThr;
     anchor = prevBox; // กล่องคนขับตอนปรับเทียบ = จุดยึดสำหรับล็อกคนขับ
     monitor = createMonitor(c, { marYawn: settings.marYawn, breakWarnings: settings.breakN });
     $("#thr").value = c.thr.toFixed(3);
-    $("#baseInfo").textContent = c.ok ? `ค่า EAR ปกติ ${c.ear.toFixed(3)} × ${settings.ratio} (จาก ${c.n} เฟรม)` : `ปรับเทียบไม่สำเร็จ (พบใบหน้า ${c.n} เฟรม) — ใช้ค่าเริ่มต้น 0.25 และปิดการตรวจศีรษะตก`;
+    $("#baseInfo").textContent = c.ok ? `ค่า EAR ปกติ ${c.ear.toFixed(3)} × ${settings.ratio} (จาก ${c.n} เฟรม)${c.eyeThr != null ? ` · ตรวจหลับตาด้วยภาพดวงตา (ค่าปกติ ${c.eyeBase.toFixed(2)}, ปิดเมื่อ > ${c.eyeThr.toFixed(2)}) และใช้ EAR เมื่อตัดภาพตาไม่ได้` : " · ใช้ EAR อย่างเดียว"}` : `ปรับเทียบไม่สำเร็จ (พบใบหน้า ${c.n} เฟรม) — ใช้ค่าเริ่มต้น 0.25 และปิดการตรวจศีรษะตก`;
     if (!c.ok) engine("ปรับเทียบไม่สำเร็จ: ไม่พบใบหน้าชัดเจนพอ ใช้เกณฑ์ค่าเริ่มต้น 0.25 — ปรับมุมกล้องแล้วกด \"ปรับเทียบใหม่\" ได้", "warn");
     else engine(`ปรับเทียบแล้ว เกณฑ์หลับตา EAR < ${c.thr.toFixed(3)}`, "ok");
     phase = "trip";
@@ -555,6 +630,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
         if (trip && n > (trip.occupantsMax || 0)) trip.occupantsMax = n;
         const now = Date.now();
         const m = f ? faceMetrics(f.pts) : null;
+        if (m) m.eyeScore = eyeScoreOf(f, m);
         fpsTimes.push(performance.now()); fpsTimes = fpsTimes.filter(t => t > performance.now() - 3000);
         const fps = fpsTimes.length / 3;
         $("#fps").textContent = `${fps.toFixed(1)} fps · ${Math.round(performance.now() - t0)} ms/เฟรม`;

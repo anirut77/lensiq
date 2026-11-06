@@ -30,12 +30,51 @@ interface LQModelsApi {
 interface Window {
   LQI18N?: LQI18NApi;
   /** dictionaries queued before lensiq-i18n.js loads (i18n/zh-*.js) */
-  LQI18N_Q?: Array<Record<string, Record<string, string>>> | { push(d: Record<string, Record<string, string>>): number; length: number };
+  LQI18N_Q?: Array<Record<string, object>> | { push(d: Record<string, object>): number; length: number };
+  /** run-time phrase dictionaries queued before lensiq-i18n-rt.js loads (i18n/zh-rt-*.js) */
+  LQI18N_RT?: Array<Record<string, string>> | { push(d: Record<string, string>): number; length: number };
+  LQI18N_RTX?: { tr(thai: string): string; add(d: Record<string, string>): void; readonly active: boolean; stats(): { phrases: number; templates: number; translated: number } };
   LQAgg?: typeof import("../lensiq-agg.js");
   LQVault?: typeof import("../lensiq-facevault.js");
   LQModels?: LQModelsApi;
   LENSIQ_BRAND?: { name: string; accent: string; full: string; tagline: string };
   LENSIQ_API_BASE?: string;
+  /** lensiq-config.js: opt-in to the non-commercial BiSeNet face parser */
+  LENSIQ_FACEPARSE?: boolean;
+  LQStats?: typeof import("../lensiq-stats.js");
+  LQInsightsData?: typeof import("../insights-data.js");
+  LQInsightsAnalysis?: typeof import("../insights-analysis.js");
+  LQInsightsCards?: typeof import("../insights-cards.js");
+  LQInsightsCharts?: typeof import("../insights-charts.js");
+  LQInsightsDemo?: typeof import("../insights-demo.js");
+  TAROT_KB?: typeof import("../tarot-kb.js");
+}
+
+/** insights-data.js reads the multi-device aggregate as a bare global when lensiq-agg.js is loaded with <script> */
+declare var LQAgg: typeof import("../lensiq-agg.js") | undefined;
+/** UMD modules call require() only under Node (guarded by typeof checks); no @types/node in the browser typecheck */
+declare var require: ((id: string) => any) | undefined;
+
+/** Image Capture extension (Chromium): torch / flash on rear cameras */
+interface MediaTrackCapabilities { torch?: boolean }
+
+/** marker set by lensiq-i18n-rt.js on patched prototypes so they are wrapped once */
+interface CanvasRenderingContext2D { __lqrt?: boolean }
+
+/** lensiq-camera.js LQCam.create(video, opts) */
+interface LQCamOptions {
+  facing?: string; ideal?: { width?: number; height?: number } | null; frameRate?: number; mirror?: string | boolean;
+  torch?: boolean; persistKey?: string | null; autoPause?: boolean; strictDevice?: boolean;
+  onChange?: (cam: any, ev: { type: string; [k: string]: unknown }) => void;
+  onError?: (cam: any, err: any) => void;
+}
+interface LQCamChainOpts { deviceId?: string; facing?: string; ideal?: { width?: number; height?: number } | null; frameRate?: number }
+interface LQCamSlotOpts { deviceId?: string; name?: string; role?: string; slot?: string; label?: string; _restore?: boolean }
+
+/** lensiq-detect.js detectCoco / detectYolox / embedBox options */
+interface LQDetectOpts {
+  detW?: number; classes?: number[]; minScore?: number; iou?: number; max?: number;
+  canvas?: HTMLCanvasElement | null; tiles?: any; split?: string | null; pad?: number;
 }
 
 interface Navigator {

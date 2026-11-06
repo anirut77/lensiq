@@ -1,48 +1,79 @@
-# Deploy GitHub Pages WITH Git LFS content. "Deploy from branch" Pages serves LFS *pointer* files, so once vendor/
-# binaries move to LFS (docs/LFS-MIGRATION.md) the site must be deployed by this workflow instead.
-# Activation (step 6 of the migration): Settings → Pages → Source = "GitHub Actions", then uncomment the `push` trigger.
-name: Pages (with LFS)
+# Production deploy of https://anirut77.github.io/lensiq/ — builds _site/ from an explicit allowlist
+# (tools/build-site.mjs: pages, page scripts/styles, i18n/, vendor/, licence notices) so server code, tests, tools,
+# docs, types and package.json are NOT published, verifies it (tools/check-site.mjs: forbidden files, static references,
+# headless crawl of all pages in TH + 中文 with no 404), then deploys it with actions/deploy-pages.
+#
+# Works before and after the Git LFS migration (docs/LFS-MIGRATION.md): with no LFS objects the LFS steps are no-ops;
+# with LFS objects they restore/pull the real binaries and check-lfs refuses to publish pointer files.
+#
+# Requires Settings → Pages → Build and deployment → Source = "GitHub Actions" (see docs/DEPLOYMENT-CHECKLIST.md §0).
+# Switch the source BEFORE (or together with) pushing this workflow to main: while the source is still "Deploy from a
+# branch", the legacy pages-build-deployment run keeps publishing the whole repository.
+name: Pages
 
 on:
-  workflow_dispatch:
+  # push trigger is enabled once Settings → Pages → Source = "GitHub Actions" (docs/DEPLOYMENT-CHECKLIST.md §0).
+  # Until then run it manually (Actions → Pages → Run workflow) right after switching the source.
   # push:
   #   branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
+    name: Build + verify _site
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      # Git LFS: cache keyed by the LFS object list (empty before the migration -> every step below is a no-op)
       - name: LFS object list (cache key)
-        run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
+        run: (git lfs ls-files -l 2>/dev/null || true) | cut -d' ' -f1 | sort > .lfs-assets-id
       - uses: actions/cache@v4
         with:
           path: .git/lfs
           key: lfs-${{ hashFiles('.lfs-assets-id') }}
-      - run: git lfs pull
-      - name: refuse to publish pointer files
-        run: node tools/check-lfs.mjs
-      - name: assemble site (pages + vendor only; no server code, tests or tools)
+      - name: fetch LFS objects (if any)
         run: |
-          mkdir -p _site
-          cp -R *.html *.css *.js i18n vendor _site/
-          rm -f _site/eslint.config.mjs
+          if [ -s .lfs-assets-id ]; then git lfs pull; else echo "no LFS objects tracked — nothing to pull"; fi
+      - name: refuse to publish LFS pointer files
+        run: node tools/check-lfs.mjs
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: assemble _site from the allowlist (fails on server.py / tests / tools / docs / package.json / *.py)
+        run: node tools/build-site.mjs
+      - id: chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+      - name: verify _site (forbidden files, references, crawl of every page in TH + 中文, no 404)
+        run: node tools/check-site.mjs
+        env:
+          LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v4

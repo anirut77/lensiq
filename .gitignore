@@ -10,3 +10,6 @@ vendor/models/faceparse-*.onnx
 
 # npm (ESLint dev dependency only — the site itself has no build step)
 node_modules/
+
+# built GitHub Pages site (tools/build-site.mjs)
+_site/

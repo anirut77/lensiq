@@ -17,9 +17,9 @@ const HOOKS = `
     window.__calls.push(n);
     return window.__faces.map(f => Object.assign({ score: 0.95 }, f));
   };
-  window.__LQ_FAKE_MATCH = d => d && d.who ? { label: d.who, distance: d.dist == null ? 0.3 : d.dist } : { label: "unknown", distance: 0.9 };
+  window.__LQ_FAKE_MATCH = d => d && d.who ? { label: d.who, distance: d.dist == null ? 0.3 : d.dist, confident: d.unsure ? false : undefined } : { label: "unknown", distance: 0.9 };
 `;
-const FACE = (x, who, dist) => ({ x, y: 0.3, w: 0.18, h: 0.3, who, dist });
+const FACE = (x, who, dist, unsure) => ({ x, y: 0.3, w: 0.18, h: 0.3, who, dist, unsure });
 
 export default async function ({ base, launch, check, fakeCams }) {
   const browser = await launch();
@@ -82,6 +82,30 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(r.note, "unknown note visible");
       const l = (await logs()).filter(x => x.session === "รอบ 3");
       assert(l.length === 1 && l[0].pid === "pB", "one check-in: " + JSON.stringify(l));
+      await stopScan();
+    });
+
+    await check("round 5: a match that is not confident is never checked in automatically; 'ยืนยัน' checks in, 'ไม่ใช่' does not", async () => {
+      await clearFaces();
+      await setSession("รอบ 4");
+      await startScan();
+      await page.evaluate(f => { window.__faces = f; window.__calls = []; }, [FACE(0.3, "pA", 0.3, true)]);
+      await page.waitFor("window.__calls.length >= 5", 8000);
+      assert(!(await logs()).some(x => x.session === "รอบ 4"), "no automatic check-in");
+      assert((await kinds()).join() === "ask", "ask row shown: " + await kinds());
+      await page.evaluate(() => document.querySelector("#faceResults [data-yes]").click());
+      const l = (await logs()).filter(x => x.session === "รอบ 4");
+      assert(l.length === 1 && l[0].pid === "pA", "checked in after the click: " + JSON.stringify(l));
+      await page.waitFor(() => document.querySelector("#faceResults li") && document.querySelector("#faceResults li").dataset.kind === "ok", 3000);
+      await clearFaces();
+      await setSession("รอบ 5");
+      await page.evaluate(f => { window.__faces = f; window.__calls = []; }, [FACE(0.3, "pB", 0.3, true)]);
+      await page.waitFor(() => document.querySelector("#faceResults [data-no]"), 5000);
+      await page.evaluate(() => document.querySelector("#faceResults [data-no]").click());
+      await page.evaluate(() => { window.__calls = []; });
+      await page.waitFor("window.__calls.length >= 4", 8000);
+      assert(!(await logs()).some(x => x.session === "รอบ 5"), "declined: not checked in");
+      assert((await kinds()).join() === "unknown", "declined face shown as unknown: " + await kinds());
       await stopScan();
     });
 

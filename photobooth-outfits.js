@@ -86,9 +86,21 @@
     const P = {
       ca, ch, cs, folds: [], forms: [],
       /** ชิ้นผ้า: fill สี + ระดับความสูง (0..1) */
-      part(path, color, h = .3, rule = "nonzero") {
+      part(path, color, h = .3, rule = "nonzero", shadow = 0) {
         A.fillStyle = color; A.beginPath(); path(A); A.fill(rule);
         const g = Math.round(clamp01(h) * 255); Hc.fillStyle = `rgb(${g},${g},${g})`; Hc.beginPath(); path(Hc); Hc.fill(rule);
+        if (shadow > 0) P.castShadow(path, shadow, rule);
+      },
+      /**
+       * เงาตกนุ่มของชิ้นผ้าที่ซ้อนอยู่ด้านบน (ปกสูท ปกเสื้อ ฝากระเป๋า เนคไท) ลงบนชั้นที่อยู่ใต้: เลื่อนตามทิศแสง (ตรงข้ามแสง + ลงล่าง)
+       * แล้วเบลอ — ไม่ตกบนตัวชิ้นเอง (ลบพื้นที่ของชิ้นออกจากเงา)
+       */
+      castShadow(path, k, rule = "nonzero") {
+        if (!P.cd) { const c = document.createElement("canvas"); c.width = W; c.height = H; P.cd = c; P.D0 = c.getContext("2d", { willReadFrequently: true }); P.D = wrapC(P.D0); }
+        const sc = Math.hypot(T.a, T.b), ox = -(P.lightX || 0) * sc * .03, oy = sc * .028, D0 = P.D0, D = P.D;
+        D0.save(); D0.setTransform(T.a, T.b, T.c, T.d, T.e + ox, T.f + oy); D0.filter = `blur(${Math.max(1, sc * .018).toFixed(1)}px)`;
+        D0.fillStyle = `rgba(0,0,0,${clamp01(k)})`; D.beginPath(); path(D); D0.fill(rule); D0.restore();
+        D0.save(); D0.setTransform(T.a, T.b, T.c, T.d, T.e, T.f); D0.globalCompositeOperation = "destination-out"; D0.fillStyle = "#000"; D.beginPath(); path(D); D0.fill(rule); D0.restore();
       },
       /** ตะเข็บ/รอยต่อ: เส้นมืดใน seam canvas (ใช้เป็นร่องใน height) */
       seam(path, w = .012, k = .9) { S.strokeStyle = `rgba(0,0,0,${k})`; S.lineWidth = w; S.beginPath(); path(S); S.stroke(); },
@@ -137,7 +149,7 @@
   // ---------------------------------------------------------------- ชิ้นส่วนที่ใช้ซ้ำ
   function shirtCollar(P, col, sd, spread = .24, len = .32, h = .62) {
     // คอปกด้านหน้าบรรจบกันใต้ขอบบนเล็กน้อย (แบบเชิ้ตจริง) แล้วปลายปกแผ่ลง
-    P.part(c => poly(c, [[sd * (NW - .02), NY - .05], [sd * .05, NY + .17], [sd * spread, len - .08], [sd * (NW + .14), .0], [sd * (NW + .07), NY + .02]]), col, h);
+    P.part(c => poly(c, [[sd * (NW - .02), NY - .05], [sd * .05, NY + .17], [sd * spread, len - .08], [sd * (NW + .14), .0], [sd * (NW + .07), NY + .02]]), col, h, "nonzero", .4);
     P.seam(c => { c.moveTo(sd * .07, NY + .18); c.lineTo(sd * spread * .96, len - .11); }, .006, .35);
   }
   function backBand(P, col, top = NY - .06, h = .2) { // ปกด้านหลังคอ (ชั้น back)
@@ -145,7 +157,7 @@
   }
   function tie(P, col, stripe, d = -.11) {
     P.part(c => poly(c, [[-.075, .05 + d], [.075, .05 + d], [.05, .2 + d], [-.05, .2 + d]]), col, .8); // ปม
-    P.part(c => poly(c, [[-.05, .2 + d], [.05, .2 + d], [.14, 1.1], [.155, 1.9], [0, 2.05], [-.155, 1.9], [-.14, 1.1]]), col, .55);
+    P.part(c => poly(c, [[-.05, .2 + d], [.05, .2 + d], [.14, 1.1], [.155, 1.9], [0, 2.05], [-.155, 1.9], [-.14, 1.1]]), col, .55, "nonzero", .35);
     P.fold(0, .21 + d, 0, .5, .05, -.02);
     if (stripe) for (let i = 0; i < 14; i++) { const y = .26 + d + i * .13; P.line(c => { c.moveTo(-.16, y); c.lineTo(.16, y + .12); }, stripe, .018); }
     P.seam(c => { c.moveTo(-.05, .2 + d); c.lineTo(.05, .2 + d); }, .008, .6);
@@ -164,7 +176,7 @@
     const pts = notch
       ? [[sd * (NW + .02), NY + .03], [sd * .6, -.04], [sd * .64, .31], [sd * .56, .36], [sd * peak[0], peak[1]], [sd * .52, .82], [sd * .07, vy], [sd * (NW + .02), NY + .03]]
       : [[sd * (NW + .02), NY + .03], [sd * .62, -.02], [sd * .74, .45], [sd * .5, .95], [sd * .07, vy], [sd * (NW + .02), NY + .03]];
-    P.part(c => poly(c, pts), col, .42);
+    P.part(c => poly(c, pts), col, .42, "nonzero", .55);
     if (notch) P.seam(c => { c.moveTo(sd * .64, .31); c.lineTo(sd * .44, .34); }, .008, .7);
     P.seam(c => poly(c, pts), .007, .45);
     P.fold(sd * .3, .2, sd * .1, 1.15, .05, .03); // รอยม้วนปก
@@ -173,7 +185,7 @@
   function flapPocket(P, col, cx, y, w = .42, hgt = .4, btn = null) {
     // กระเป๋าเป็นผ้าชั้นบาง (สูงกว่าตัวเสื้อเล็กน้อย) + ตะเข็บจาง — ไม่นูนเป็นแผ่นแบบปั๊มนูน
     P.seam(c => { c.rect(cx - w / 2, y, w, hgt); }, .007, .32);
-    P.part(c => { c.moveTo(cx - w / 2 - .02, y - .02); c.lineTo(cx + w / 2 + .02, y - .02); c.lineTo(cx + w / 2 + .02, y + .1); c.lineTo(cx, y + .15); c.lineTo(cx - w / 2 - .02, y + .1); c.closePath(); }, col, .35);
+    P.part(c => { c.moveTo(cx - w / 2 - .02, y - .02); c.lineTo(cx + w / 2 + .02, y - .02); c.lineTo(cx + w / 2 + .02, y + .1); c.lineTo(cx, y + .15); c.lineTo(cx - w / 2 - .02, y + .1); c.closePath(); }, col, .35, "nonzero", .35);
     P.seam(c => { c.moveTo(cx - w / 2 - .02, y + .1); c.lineTo(cx, y + .15); c.lineTo(cx + w / 2 + .02, y + .1); }, .006, .4);
     if (btn) P.button(cx, y + .1, .03, btn, .8);
   }
@@ -318,12 +330,12 @@
         // ข้อมือ: ปลายแขนเสื้อสั้นกว่าข้อมือเล็กน้อย; สูทมีข้อมือเชิ้ต 0.07 หน่วย
         const shirt = K.cuff && K.cuff !== "self", back = shirt ? .08 : 0, end = { u: A.Wr.u - d.u * back, v: A.Wr.v - d.v * back };
         if (shirt) P.tube([{ u: end.u - d.u * .04, v: end.v - d.v * .04 }, A.Wr], [ws[2] * .92, ws[2] * .9], K.cuff, .45, .7);
-        P.tube([A.S, A.E, end], ws, K.main, .3, .9);
+        P.tube([A.S, A.E, end], ws, K.main, .36, .66);
         P.seam(c => { const q = ws[2] / 2 * .98, nx = -d.v, ny = d.u, b = { u: end.u - d.u * .09, v: end.v - d.v * .09 }; c.moveTo(b.u + nx * q, b.v + ny * q); c.lineTo(b.u - nx * q, b.v - ny * q); }, .008, .45); // ตะเข็บปลายแขน
         if (!shirt) P.button(end.u - d.u * .045 - d.v * ws[2] * .3, end.v - d.v * .045 + d.u * ws[2] * .3, .018, K.main, .7); // กระดุมข้อมือ
         // รอยยับที่ข้อพับศอก (ตั้งฉากกับแขนท่อนล่าง)
         for (let q = 1; q <= 3; q++) { const t = .12 + q * .1, c = { u: A.E.u + d.u * t, v: A.E.v + d.v * t }, nx = -d.v * ws[1] * .35, ny = d.u * ws[1] * .35; P.fold(c.u - nx, c.v - ny, c.u + nx + d.u * .06, c.v + ny + d.v * .06, .035, .018); }
-      } else P.tube(pts, ws, K.main, .32, .82);
+      } else P.tube(pts, ws, K.main, .36, .6);
       // ตะเข็บด้านในของต้นแขน (แนวแขน/ลำตัว) จากใต้รักแร้ถึงศอก + รอยพับใต้รักแร้
       const inner = (p, w) => ({ u: p.u - sd * w / 2 * .96, v: p.v });
       const a = inner({ u: A.S.u, v: .95 }, ws[0]), b = inner(A.E, ws[1]);
@@ -361,6 +373,7 @@
     const blurred = r => { const c = document.createElement("canvas"); c.width = bw; c.height = bh; const x = c.getContext("2d", { willReadFrequently: true }); x.filter = `blur(${r.toFixed(2)}px)`; x.drawImage(P.ch, x0, y0, bw, bh, 0, 0, bw, bh); return x.getImageData(0, 0, bw, bh).data; };
     const h1 = blurred(Math.max(.6, s * .012)), h2 = blurred(Math.max(2, s * .09));
     const sm = P.cs.getContext("2d", { willReadFrequently: true }).getImageData(x0, y0, bw, bh).data;
+    const dsh = P.cd ? P.D0.getImageData(x0, y0, bw, bh).data : null;
     // ร่องตะเข็บแบบนุ่ม (เบลอ) -> เกิดแสง/เงาสองข้างของตะเข็บเหมือนผ้าจริง แทนเส้นวาด
     const smB = (() => { const c = document.createElement("canvas"); c.width = bw; c.height = bh; const x = c.getContext("2d", { willReadFrequently: true }); x.filter = `blur(${Math.max(.8, s * .006).toFixed(2)}px)`; x.drawImage(P.cs, x0, y0, bw, bh, 0, 0, bw, bh); return x.getImageData(0, 0, bw, bh).data; })();
     const n = bw * bh, Ht = new Float32Array(n), seamA = new Float32Array(n), PX = new Float32Array(n), PY = new Float32Array(n);
@@ -380,7 +393,7 @@
         if (d2 < 9) h += FD[q + 5] * Math.exp(-d2) * Math.sin(Math.PI * Math.min(1, t * 1.2 + .1));
       }
       const sv = sm[k * 4 + 3] / 255; seamA[k] = sv; h -= smB[k * 4 + 3] / 255 * .03;
-      if (form) h += .26 * Math.sqrt(Math.max(0, 1 - (p.x / 2.3) ** 2)) + fiberTile()[4][(((j + y0) & 255) << 8) | ((i + x0) & 255)] * .03 + fiberTile()[3][((((j + y0) >> 1) & 255) << 8) | (((i + x0) >> 1) & 255)] * .012; // ลำตัวโค้ง + ผ้าทิ้งตัวไม่เรียบสนิท (คลื่นผ้ากว้าง + ย่อย)
+      if (form) h += .18 * Math.sqrt(Math.max(0, 1 - (p.x / 2.3) ** 2)) + fiberTile()[4][(((j + y0) & 255) << 8) | ((i + x0) & 255)] * .03 + fiberTile()[3][((((j + y0) >> 1) & 255) << 8) | (((i + x0) >> 1) & 255)] * .012; // ลำตัวโค้ง + ผ้าทิ้งตัวไม่เรียบสนิท (คลื่นผ้ากว้าง + ย่อย)
       Ht[k] = h * s; // เป็นพิกเซล
     }
     const L = norm3(light.x, -.8, .75), flat = L[2], amb = .36, kd = .78, out = new ImageData(bw, bh), o = out.data;
@@ -392,7 +405,7 @@
       const il = 1 / Math.sqrt(hx * hx + hy * hy + 1), n0 = -hx * il, n1 = -hy * il, n2 = il, dif = Math.max(0, n0 * L[0] + n1 * L[1] + n2 * L[2]);
       let sh = (amb + kd * dif) / (amb + kd * flat);
       const ao = 1 - Math.min(.4, Math.max(0, (h2[k * 4] - h1[k * 4]) / 255) * 1.7); // ร่อง/ใต้ชิ้นที่ยกสูง = มืด
-      sh *= ao * (1 - seamA[k] * .1);
+      sh *= ao * (1 - seamA[k] * .1) * (dsh ? 1 - dsh[k * 4 + 3] / 255 * .5 : 1);
       // เงาวาว (Blinn-Phong อย่างหยาบ) + ลายทอ + noise
       const spec = f.sheen ? Math.pow(Math.max(0, n0 * hv[0] + n1 * hv[1] + n2 * hv[2]), 18) * f.sheen : 0;
       // เนื้อผ้า: noise แบบเส้นด้าย (ยืดตามแนวเส้นยืน) ละเอียดระดับพิกเซล แทนลายเส้นทแยงสม่ำเสมอ
@@ -442,7 +455,7 @@
     const inv = (X, Y) => { const dx = X - N.x, dy = Y - N.y; return { x: (dx * cs + dy * sn) / s, y: (-dx * sn + dy * cs) / s }; };
     const out = {};
     for (const part of ["back", "front"]) {
-      const P = painter(W, H, T, Math.max(-.8, Math.min(.6, drop))); K[part](P);
+      const P = painter(W, H, T, Math.max(-.8, Math.min(.6, drop))); P.lightX = light && light.x || 0; K[part](P);
       if (part === "front" && ARMS && K.main) { drawSleeves(P, K); P.smoothTubes(); }
       if (part === "front") for (const sd of [-1, 1]) { // รอยยับธรรมชาติ: ใต้รักแร้ลงสู่เอว, หัวไหล่, ข้อพับแขน
         if (ARMS) { P.fold(sd * .95, .2, sd * 1.25, .42, .09, .012); continue; }
@@ -473,7 +486,25 @@
     if (L) { const x = c.getContext("2d"); x.drawImage(L.back, 0, 0); x.drawImage(L.front, 0, 0); }
     return { canvas: c, chin: { x: N.x, y: N.y - .42 * u }, fw: u, N, s: u };
   }
-  const api = { NAMES, CANON, KINDS: Object.keys(KINDS), layers, draw: drawOutfit, render, bodyForm };
+  /**
+   * แขนท่อนล่างที่อยู่หน้าลำตัว (กอดอก/ประสานมือ) สำหรับเทมเพลตรูปถ่าย: แขนเสื้อทรงกระบอกตามทิศแขนจริง (arms จาก StudioCore.armModel)
+   * สีผ้า = สีหลักของเทมเพลต (color), ข้อมือเชิ้ต (cuff) ถ้ามี — คืน canvas W×H (โปร่งใสนอกแขนเสื้อ) หรือ null
+   */
+  function forearms({ W, H, s, theta = 0, N, light = { x: -.2 }, arms, color, cuff = null, clip = null, form = null }) {
+    const hands = (arms || []).filter(a => a.hand); if (!hands.length) return null;
+    const cs = Math.cos(theta), sn = Math.sin(theta), T = { a: s * cs, b: s * sn, c: -s * sn, d: s * cs, e: N.x, f: N.y };
+    const inv = (X, Y) => { const dx = X - N.x, dy = Y - N.y; return { x: (dx * cs + dy * sn) / s, y: (-dx * sn + dy * cs) / s }; };
+    const fabric = { twill: .02, mottle: .03, sheen: .05, period: .035 }, P = painter(W, H, T, 0); P.lightX = light.x || 0;
+    for (const A of hands) {
+      const d = A.d, ws = A.w, back = cuff ? .08 : 0, end = { u: A.Wr.u - d.u * back, v: A.Wr.v - d.v * back }, E0 = { u: A.E.u - d.u * .06, v: A.E.v - d.v * .06 };
+      if (cuff) P.tube([{ u: end.u - d.u * .04, v: end.v - d.v * .04 }, A.Wr], [ws[2] * .92, ws[2] * .9], cuff, .45, .7);
+      P.tube([E0, A.E, end], [ws[1], ws[1], ws[2]], color, .36, .66);
+      for (let q = 1; q <= 3; q++) { const t = .12 + q * .1, c = { u: A.E.u + d.u * t, v: A.E.v + d.v * t }, nx = -d.v * ws[1] * .35, ny = d.u * ws[1] * .35; P.fold(c.u - nx, c.v - ny, c.u + nx + d.u * .06, c.v + ny + d.v * .06, .035, .018); }
+    }
+    P.smoothTubes();
+    return shade(P, W, H, T, inv, fabric, light, 7, s, clip, form) || P.ca;
+  }
+  const api = { NAMES, CANON, KINDS: Object.keys(KINDS), layers, draw: drawOutfit, render, bodyForm, forearms };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") root.PBOutfits = api;
 })(typeof window !== "undefined" ? window : globalThis);
