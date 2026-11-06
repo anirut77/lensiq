@@ -142,6 +142,120 @@ test("funnel, cohorts, A/B helpers, season grid", () => {
   assert.equal(S.confLevel(0.001), "strong"); assert.equal(S.confLevel(0.03), "moderate"); assert.equal(S.confLevel(0.1), "weak"); assert.equal(S.confLevel(0.5), "none"); assert.equal(S.confLevel(0.001, false), "insufficient");
 });
 
+// ---------- overdispersion-aware period comparison, multiple testing, autocorrelation, shrinkage ----------
+const WKM = [1.35, 0.88, 0.95, 1, 1.02, 1.15, 1.5];
+const poisson = (R, l) => { if (l < 30) { const L = Math.exp(-l); let k = 0, p = 1; do { k++; p *= R(); } while (p > L); return k - 1; } return Math.max(0, Math.round(l + Math.sqrt(l) * Math.sqrt(-2 * Math.log(1 - R())) * Math.cos(2 * Math.PI * R()))); };
+/** daily history of H days, A = last L days, B = the L days before ; multiplicative day noise uniform ±h ; A multiplied by eff */
+const simDays = (R, { mu = 150, h = 0, L = 30, H = 84, eff = 1 } = {}) => Array.from({ length: H }, (_, i) => {
+  const g = i >= H - L ? "A" : i >= H - 2 * L ? "B" : "h", wd = i % 7;
+  return { y: poisson(R, mu * WKM[wd] * (g === "A" ? eff : 1) * (1 + h * (2 * R() - 1))), e: 1, wd, g };
+});
+const oldP = days => { const s = g => days.filter(d => d.g === g).reduce((t, d) => t + d.y, 0), L = days.filter(d => d.g === "A").length; return S.poissonTest(s("A"), L, s("B"), L).p; };
+
+test("countCompare (negative binomial GLM): seeded simulation — false-positive rate ≈ 5% under 0–50% day-to-day noise, power for +20%", () => {
+  const REPS = 500, rows = [];
+  for (const h of [0, 0.25, 0.5]) {
+    const R = rng(1000 + h * 100); let fp = 0, fpOld = 0;
+    for (let k = 0; k < REPS; k++) { const d = simDays(R, { h }); if (S.countCompare(d).p < 0.05) fp++; if (oldP(d) < 0.05) fpOld++; }
+    rows.push({ h, fp: fp / REPS, fpOld: fpOld / REPS });
+  }
+  for (const r of rows) assert.ok(r.fp >= 0.03 && r.fp <= 0.07, `noise ±${r.h * 100}%: false positives ${(r.fp * 100).toFixed(1)}% (want 5% ± 2%)`);
+  // the exact Poisson test it replaces is badly miscalibrated on the same data (30 vs 30 days: unbalanced weekdays + overdispersion)
+  assert.ok(rows.find(r => r.h === 0.25).fpOld > 0.25, "old exact Poisson false positives " + rows.map(r => r.fpOld));
+  // power: true +20% change, ±30% noise, 30 vs 30 days
+  const R = rng(77); let hit = 0;
+  for (let k = 0; k < 200; k++) { const t = S.countCompare(simDays(R, { h: 0.3, eff: 1.2 })); if (t.p < 0.05 && t.adjChange > 0) hit++; }
+  assert.ok(hit / 200 >= 0.85, `power for +20%: ${hit / 2}%`);
+});
+
+test("countCompare: weekday adjustment, partial today, zero side, short history", () => {
+  // no change at all, but window A has 3 Saturdays more than B → raw rate higher, adjusted ≈ 0
+  const days = [];
+  for (let i = 0; i < 56; i++) days.push({ y: Math.round(100 * WKM[i % 7]), e: 1, wd: i % 7, g: "h" });
+  for (const wd of [6, 6, 6, 0, 1, 2, 3]) days.push({ y: Math.round(100 * WKM[wd]), e: 1, wd, g: "A" });
+  for (const wd of [1, 2, 3, 4, 1, 2, 3]) days.push({ y: Math.round(100 * WKM[wd]), e: 1, wd, g: "B" });
+  const t = S.countCompare(days);
+  assert.ok(t.change > 0.2, "raw change " + t.change); near(t.adjChange, 0, 0.01, "weekday-adjusted change"); assert.ok(t.p > 0.5 && t.wdAdj);
+  assert.ok(t.lo < 0 && t.hi > 0); assert.equal(t.method, "negbin-glm");
+  // partial day: half a day with half the count = same rate
+  const p = S.countCompare([...days.filter(d => d.g === "h"), { y: 50, e: 0.5, wd: 3, g: "A" }, { y: 100, e: 1, wd: 3, g: "B" }]);
+  near(p.rate1, 100, 1e-9); near(p.adjChange, 0, 1e-6);
+  // a side with zero counts: no crash, no CI, small p only if clearly different
+  const z = S.countCompare([...days.filter(d => d.g === "h"), { y: 0, e: 1, wd: 3, g: "A" }, { y: 100, e: 1, wd: 3, g: "B" }]);
+  assert.ok(z.p < 0.01 && z.lo == null && z.change === -1);
+  // no history and 1 day vs 1 day → not enough to estimate day-to-day variation
+  const s = S.countCompare([{ y: 30, e: 1, wd: 1, g: "A" }, { y: 15, e: 1, wd: 2, g: "B" }]);
+  assert.equal(s.enough, false);
+  assert.equal(S.countCompare([{ y: 1, e: 1, wd: 1, g: "A" }]), null);
+});
+
+test("twoPropDaily (quasi-binomial): day-level noise in a rate does not inflate confidence", () => {
+  const R = rng(3), g = () => Math.sqrt(-2 * Math.log(1 - R())) * Math.cos(2 * Math.PI * R());
+  const bin = (n, p) => { let x = 0; for (let i = 0; i < n; i++) if (R() < p) x++; return x; };
+  let fo = 0, fn = 0; const REPS = 400;
+  for (let k = 0; k < REPS; k++) {
+    const mk = () => Array.from({ length: 30 }, (_, i) => { const n = Math.round(150 * WKM[i % 7]); return { x: bin(n, Math.max(0.005, 0.08 * (1 + 0.3 * g()))), n }; });
+    const A = mk(), B = mk(), sx = a => a.reduce((s, d) => s + d.x, 0), sn = a => a.reduce((s, d) => s + d.n, 0);
+    if (S.twoProp(sx(A), sn(A), sx(B), sn(B)).p < 0.05) fo++;
+    const t = S.twoPropDaily(A, B); if (t.p < 0.05) fn++;
+  }
+  assert.ok(fn / REPS <= 0.07, "quasi-binomial false positives " + fn / REPS);
+  assert.ok(fo / REPS > 0.12, "pooled z-test false positives " + fo / REPS);
+  const t = S.twoPropDaily([{ x: 10, n: 100 }, { x: 12, n: 100 }], [{ x: 20, n: 100 }, { x: 22, n: 100 }]);
+  near(t.diff, -0.1, 1e-12); assert.ok(t.phi >= 1 && t.lo < t.diff && t.hi > t.diff);
+});
+
+test("multiple comparisons: Benjamini–Hochberg and Holm hand values; family of null tests", () => {
+  // BH: sorted p .01 .03 .04 .2 (m=4) → .04, .0533, .0533, .2
+  const q = S.adjustP([0.01, 0.04, 0.03, 0.2, null]);
+  near(q[0], 0.04, 1e-12); near(q[1], 0.16 / 3, 1e-12); near(q[2], 0.16 / 3, 1e-12); near(q[3], 0.2, 1e-12); assert.equal(q[4], null);
+  assert.deepEqual(S.adjustP([0.01, 0.04, 0.03], "holm").map(v => +v.toFixed(10)), [0.03, 0.06, 0.06]);
+  assert.deepEqual(S.adjustP([]), []);
+  const R = rng(11); let raw = 0, bh = 0;
+  for (let k = 0; k < 4000; k++) { const ps = Array.from({ length: 12 }, () => R()); if (ps.some(p => p < 0.05)) raw++; if (S.adjustP(ps).some(v => v < 0.05)) bh++; }
+  assert.ok(raw / 4000 > 0.4 && bh / 4000 < 0.065, `any false 'confident' label among 12 null cards: raw ${raw / 40}% BH ${bh / 40}%`);
+});
+
+test("tsCorrelation: weekday/trend removal + Bartlett n_eff keeps ~5% false positives on autocorrelated series", () => {
+  const R = rng(21), g = () => Math.sqrt(-2 * Math.log(1 - R())) * Math.cos(2 * Math.PI * R());
+  let fo = 0, fn = 0, fs = 0; const REPS = 600;
+  for (let k = 0; k < REPS; k++) {
+    let ex = 0, ey = 0; const x = [], y = [], wd = [], xs = [], ys = [];
+    for (let i = 0; i < 40; i++) { ex = 0.7 * ex + g(); ey = 0.7 * ey + g(); wd.push(i % 7); x.push(ex); y.push(ey); xs.push(10 * WKM[i % 7] + ex); ys.push(5 * WKM[i % 7] + ey); }
+    if (S.correlation(x, y).p < 0.05) fo++;
+    if (S.tsCorrelation(x, y, { wd }).p < 0.05) fn++;
+    if (S.tsCorrelation(xs, ys, { wd }).p < 0.05) fs++; // shared weekday pattern, independent noise
+  }
+  assert.ok(fo / REPS > 0.15, "plain Pearson on AR(1) series " + fo / REPS);
+  assert.ok(fn / REPS <= 0.07 && fs / REPS <= 0.07, `ts correlation false positives ${fn / REPS} / with shared seasonality ${fs / REPS}`);
+  const c = S.tsCorrelation(Array.from({ length: 30 }, (_, i) => i + (i % 3)), Array.from({ length: 30 }, (_, i) => 2 * i - (i % 2)), { wd: Array.from({ length: 30 }, (_, i) => i % 7) });
+  assert.equal(c.adjusted, "weekday+trend"); assert.ok(c.nEff <= c.n && c.rRaw > 0.95 && Math.abs(c.r) < c.rRaw, `trend removed: r ${c.r} raw ${c.rRaw}`);
+  assert.equal(S.tsCorrelation([1, 2], [3, 4]).enough, false);
+});
+
+test("empirical Bayes shrinkage: small-n extremes pulled to the mean, ranking uses shrunk values", () => {
+  const E = S.ebBinom([{ x: 20, n: 25 }, { x: 400, n: 1000 }, { x: 410, n: 1000 }, { x: 380, n: 1000 }, { x: 395, n: 1000 }]);
+  const g = E.groups;
+  assert.ok(g[0].shrunk < 0.8 && g[0].shrunk > E.mean, "tiny group shrunk toward the mean " + g[0].shrunk);
+  assert.ok(g[0].weight < g[1].weight, "less data → more shrinkage");
+  near(g[1].shrunk, 0.4, 0.01); assert.ok(g[0].lo < g[0].shrunk && g[0].shrunk < g[0].hi);
+  // all groups alike → nearly complete pooling
+  const P = S.ebBinom([{ x: 30, n: 100 }, { x: 31, n: 100 }, { x: 29, n: 100 }]);
+  assert.ok(P.groups.every(x => Math.abs(x.shrunk - 0.3) < 0.005));
+  // winner's curse: a 35-view ad at 63% vs 1000-view ads at 44–48% → raw winner, but not after shrinkage
+  const ab = S.abRates([{ id: "s", name: "small", x: 22, n: 35 }, { id: "a", name: "A", x: 480, n: 1000 }, { id: "b", name: "B", x: 460, n: 1000 }, { id: "c", name: "C", x: 440, n: 1000 }], { minN: 30 });
+  assert.equal(ab.best.name, "A"); assert.equal(ab.groups[0].name, "A"); assert.ok(ab.groups.find(x => x.id === "s").eb.p < 0.5 && ab.groups.find(x => x.id === "s").ci.p > 0.6);
+  const N = S.ebNormal([{ mean: 0.9, se: 0.3 }, { mean: 0.5, se: 0.05 }, { mean: 0.45, se: 0.05 }, { mean: 0.55, se: 0.05 }]);
+  assert.ok(N.groups[0].shrunk < 0.75 && N.groups[1].weight > N.groups[0].weight);
+});
+
+test("Thai confidence wording never claims the probability that a result is chance/true", () => {
+  for (const v of Object.values(S.TH_CONF)) assert.ok(!/บังเอิญไม่ถึง|โอกาสเป็นความบังเอิญ|1 ใน 100|1 ใน 20/.test(v), v);
+  assert.equal(S.pTextTH(0.004), "ถ้าไม่มีความเปลี่ยนแปลงจริง โอกาสเห็นความต่างขนาดนี้หรือมากกว่า ≈ 0.4%");
+  assert.match(S.pTextTH(0.0001, { kind: "corr", q: 0.002, m: 9 }), /^ถ้าสองค่านี้ไม่สัมพันธ์กันจริง .* ต่ำกว่า 0\.1% · เมื่อปรับเพราะดู 9 ข้อพร้อมกัน \(Benjamini–Hochberg\) .*≈ 0\.2%$/);
+  assert.equal(S.pTextTH(null), "");
+});
+
 // ---------- insights.js: analysis + Thai interpretation ----------
 const NOW = new Date(2026, 10, 6, 15).getTime();
 const demo = () => { const o = I.iqBuildDemo({}, NOW, 7); return { set: o.set, D: I.iqCollect(o.set) }; };
@@ -225,4 +339,42 @@ test("analysis export holds numbers only (no member names) and CSV has the daily
   const csv = I.iqAnalysisCsv(A).split("\r\n");
   assert.ok(csv[0].startsWith("﻿วันที่,วัน,คนเข้าร้าน"));
   assert.equal(csv.filter(l => /^2026-/.test(l)).length, 30 + 7);
+});
+
+test("insights: confidence labels come from BH q-values across all tests in the view; wording is correct", () => {
+  const { D } = demo();
+  for (const p of ["d7", "d30", "all"]) {
+    const A = I.iqAnalyze(D, I.iqRange(p, NOW, D), { now: NOW }), C = I.iqInsights(D, A);
+    const tests = [...A.kpis.map(k => k.test), ...A.cams.map(c => c.test), ...A.corr, ...Object.values(A.ab).flatMap(ab => [ab.test, ab.spread])].filter(Boolean);
+    assert.ok(A.multi.m >= 3, p + " family size " + A.multi.m);
+    for (const t of tests) {
+      if (t.level === "insufficient") continue;
+      assert.ok(Number.isFinite(t.q) && t.q >= t.p - 1e-12, `${p}: q ${t.q} ≥ p ${t.p}`);
+      assert.equal(t.level, S.confLevel(t.q, true), `${p}: level from q`);
+      assert.equal(t.m, A.multi.m);
+    }
+    const text = JSON.stringify(C);
+    assert.ok(!/บังเอิญไม่ถึง|โอกาสเป็นความบังเอิญ/.test(text), p + ": p-value misread as chance probability");
+    const sc = C.find(c => c.id === "store-change");
+    if (sc && sc.level !== "insufficient") assert.match(sc.stat, /^ถ้าไม่มีความเปลี่ยนแปลงจริง โอกาสเห็นความต่างขนาดนี้หรือมากกว่า/);
+    A.corr.forEach(c => assert.ok(c.nEff <= c.n + 1e-9 && (c.daily ? c.adjusted === "weekday+trend" : true), c.id));
+    A.ab.sg.groups.forEach(g => assert.ok(g.eb.p > 0 && g.eb.p < 1));
+  }
+});
+
+test("insights: no true change + ±30% day-to-day noise → the store card rarely claims confidence (end-to-end, seeded)", () => {
+  const now = new Date(2026, 10, 6, 23, 30).getTime(); let claims = 0, kpiClaims = 0; const RUNS = 60;
+  for (let s = 0; s < RUNS; s++) {
+    const R = rng(500 + s), snap = {};
+    for (let d = 1; d <= 90; d++) {
+      const day = I.iqAddDays("2026-11-06", -d), wd = new Date(I.iqDayStart(day)).getDay(), n = Math.round(160 * WKM[wd] * (1 + 0.3 * (2 * R() - 1)));
+      const h = Array(24).fill(0); h[10] = Math.floor(n / 3); h[14] = Math.floor(n / 3); h[18] = n - 2 * Math.floor(n / 3);
+      snap["st-day-" + day] = JSON.stringify({ date: day, in: n, out: n, peak: 5, maxQueue: 1, hourly: { in: h, out: h }, zones: {}, byCam: {} });
+    }
+    const D = I.iqCollect(snap), A = I.iqAnalyze(D, I.iqRange("d30", now, D), { now }), C = I.iqInsights(D, A);
+    const sc = C.find(c => c.id === "store-change");
+    if (sc && (sc.level === "strong" || sc.level === "moderate")) claims++;
+    const k = A.kpis.find(x => x.id === "store").test; if (k.level === "strong" || k.level === "moderate") kpiClaims++;
+  }
+  assert.ok(claims / RUNS <= 0.1 && kpiClaims / RUNS <= 0.1, `confident claims without a real change: ${claims}/${RUNS}`);
 });

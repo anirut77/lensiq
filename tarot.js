@@ -108,6 +108,16 @@
     obstacle: 0.76, cross: 0.76, lesson: 0.74, root: 0.66, past: 0.62, self: 0.7, env: 0.62, hope: 0.68 };
   var TIME_LEAD = { past: "ที่ผ่านมา ", future: "ในระยะต่อไป ", near: "ในอีกไม่นานนี้ ", outcome: "ถ้าเดินต่อในทางนี้ ", trend: "ในวันข้างหน้า ", crown: "ในระยะยาว " };
   var TIME_TPL = ["พลังของ{A}และ{B}จะเข้ามามีบทบาทในเรื่องนี้มากขึ้น", "เรื่องของ{A}จะค่อย ๆ ชัดเจนขึ้นจนคุณสัมผัสได้", "จังหวะชีวิตจะพาคุณไปพบบทเรียนเรื่อง{B}", "สิ่งที่เกี่ยวกับ{A}จะเป็นตัวกำหนดทิศทางของเรื่องนี้"];
+  // ตำแหน่งอดีต/รากเหง้า: ใช้กาลอดีต ไม่ใช้ "จะ…" (ไม่งั้นได้ "ที่ผ่านมา … จะเป็นตัวกำหนด")
+  var PAST_TPL = ["พลังของ{A}และ{B}มีบทบาทกับเรื่องนี้มาตลอด", "เรื่องของ{A}ค่อย ๆ ก่อตัวจนกลายเป็นพื้นของสถานการณ์ตอนนี้", "คุณได้เรียนรู้เรื่อง{B}มาแล้วไม่น้อย", "สิ่งที่เกี่ยวกับ{A}เคยเป็นตัวกำหนดทิศทางของเรื่องนี้"];
+  var PAST_POS = { past: 1, root: 1 };
+  var FUTURE_RE = /จะ|ในอนาคต|เร็ว ๆ นี้|ข้างหน้า|ต่อจากนี้|ในวันข้างหน้า/;
+  // ความหมายของไพ่ในตำแหน่งอดีต: เลือกสำนวนที่ไม่มีคำบอกอนาคตก่อน ถ้าไม่มีเลย ตัด "(กำลัง)จะ" ออกให้เป็นกาลปัจจุบัน/อดีต
+  function pastTense(arr) {
+    var plain = arr.filter(function (x) { return !FUTURE_RE.test(x); });
+    if (plain.length) return plain;
+    return arr.filter(function (x) { return !/ในอนาคต|เร็ว ๆ นี้|ข้างหน้า|ต่อจากนี้/.test(x); }).map(function (x) { return x.replace(/(?:กำลัง)?จะ(?=\S)/g, ""); }).filter(Boolean);
+  }
   var fillT = function (t, v) { return t.replace(/\{(\w+)\}/g, function (_, k) { return v[k] != null ? v[k] : ""; }); };
   var TOPIC_FA = { general: "overall", love: "love", work: "work", money: "money" };
   var pickR = function (r, a) { return a[Math.floor(r() * a.length)]; };
@@ -138,7 +148,9 @@
     picks.forEach(function (p, i) {
       var c = cards[i], pos = S.positions[i], o = p.rev ? "r" : "u", ph = c.phr[o], T = c.phrTpl[o];
       var m = { overview: uniq(ph.general, T.general), love: uniq(ph.love, T.love), work: uniq(ph.work, T.work), money: uniq(ph.money, T.money) };
-      if (TIME_LEAD[pos.key]) { var kw = c.keywords; m.timing = [TIME_LEAD[pos.key] + fillT(TIME_TPL[(tOff + tCount++) % TIME_TPL.length], { A: kw[0], B: kw[1] })]; }
+      var isPast = !!PAST_POS[pos.key];
+      if (isPast) Object.keys(m).forEach(function (k) { var v = pastTense(m[k]); if (v.length) m[k] = v; else delete m[k]; });
+      if (TIME_LEAD[pos.key]) { var kw = c.keywords; m.timing = [TIME_LEAD[pos.key] + fillT((isPast ? PAST_TPL : TIME_TPL)[(tOff + tCount++) % TIME_TPL.length], { A: kw[0], B: kw[1] })]; }
       if (pos.advice || pos.key === "outcome" || pos.key === "today" || i === n - 1) m.advice = uniq(c.phr.advice, c.phrTpl.advice);
       var w = (POS_W[pos.key] || 0.6) + (c.arcana === "major" ? 0.04 : 0);
       var posName = pos.th.replace(/^\d+ · /, "");

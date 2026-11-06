@@ -11,11 +11,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=6">
 <link rel="stylesheet" href="neuro.css">
-<link rel="stylesheet" href="customers.css?v=3">
+<link rel="stylesheet" href="customers.css?v=4">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=8"></script>
+<script src="nav.js?v=10"></script>
 
 <main class="nm cx">
   <h1>จดจำลูกค้าและประวัติเครื่องดื่ม</h1>
@@ -102,6 +102,20 @@
       <div class="table-wrap"><table id="memberTable"></table></div>
     </div>
     <div class="card" id="profile" hidden></div>
+    <div class="card vault">
+      <h2>ความเป็นส่วนตัวของข้อมูลใบหน้า</h2>
+      <p class="hint vault-state" id="faceState" role="status"></p>
+      <div class="row-actions">
+        <label>ลบข้อมูลใบหน้าของสมาชิกที่ไม่ได้มาเกิน
+          <select id="retention">
+            <option value="30">30 วัน</option><option value="90">90 วัน</option><option value="180">180 วัน</option>
+            <option value="365">365 วัน (ค่าเริ่มต้น)</option><option value="730">730 วัน</option>
+          </select></label>
+        <button class="btn ghost danger" id="wipeFaces" type="button">ลบข้อมูลใบหน้าทั้งหมด</button>
+      </div>
+      <p class="hint">นับจากการมาร้านครั้งล่าสุด ระบบลบให้อัตโนมัติเมื่อเปิดหน้านี้ (ประวัติการสั่งยังอยู่ ค้นหาด้วยชื่อได้)</p>
+      <p class="form-msg" id="privMsg" role="status"></p>
+    </div>
   </section>
 
   <!-- ===== เมนู ===== -->
@@ -121,7 +135,7 @@
     </div>
   </section>
 
-  <p class="hint privacy">ข้อมูลทั้งหมดเก็บในเบราว์เซอร์เครื่องนี้ ไม่เก็บรูปถ่าย เก็บเฉพาะค่าตัวเลขลักษณะใบหน้าของสมาชิกที่ยินยอม · ระบบนี้เป็นต้นแบบ หากใช้หลายสาขาต้องมีฐานข้อมูลกลางที่เข้ารหัสและนโยบายตาม PDPA</p>
+  <p class="hint privacy">ข้อมูลทั้งหมดเก็บในเบราว์เซอร์เครื่องนี้ ไม่เก็บรูปถ่าย เก็บเฉพาะค่าตัวเลขลักษณะใบหน้าของสมาชิกที่ยินยอม (เข้ารหัสด้วยกุญแจที่อยู่ในเบราว์เซอร์นี้) · ระบบนี้เป็นต้นแบบ หากใช้หลายสาขาต้องมีฐานข้อมูลกลางที่เข้ารหัสและนโยบายตาม PDPA</p>
 </main>
 
 <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
@@ -130,6 +144,7 @@
 <script src="lensiq-track.js?v=1"></script>
 <script src="lensiq-camera.js?v=1"></script>
 <script src="lensiq-detect.js?v=1"></script>
-<script src="customers.js?v=3"></script>
+<script src="lensiq-facevault.js?v=1"></script>
+<script src="customers.js?v=4"></script>
 </body>
 </html>

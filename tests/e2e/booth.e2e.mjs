@@ -43,10 +43,15 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(r.st && !("desc" in r.st) && !("cands" in r.st), "booth-state keys " + Object.keys(r.st || {}));
       assert(r.st.visitors.length >= 1, "visitors persisted");
       assert(r.ss && Object.keys(r.ss.desc).length >= 1, "session desc");
-      // turning the option ON puts desc in booth-state; OFF strips it again
+      // turning the option ON stores an AES-GCM envelope (lqv-booth-desc), never plaintext desc; OFF removes it again
       await page.evaluate(() => { const c = document.getElementById("remember"); c.checked = true; c.dispatchEvent(new Event("change")); });
-      assert(await page.evaluate(() => "desc" in JSON.parse(localStorage.getItem("booth-state")) && !sessionStorage.getItem("booth-desc")), "ON -> desc in localStorage");
+      await page.waitFor(() => !!localStorage.getItem("lqv-booth-desc"), 4000);
+      const on = await page.evaluate(async () => ({ st: JSON.parse(localStorage.getItem("booth-state")), env: JSON.parse(localStorage.getItem("lqv-booth-desc")), dec: await LQVault.read("lqv-booth-desc") }));
+      assert(!("desc" in on.st), "ON -> booth-state still has no desc");
+      assert(on.env.enc === "lq1" && on.env.iv && on.env.ct && Object.keys(on.env).length === 3, "ON -> encrypted envelope");
+      assert(on.dec.state === "enc" && Object.keys(on.dec.data.desc).length >= 1, "envelope decrypts to today's desc");
       await page.evaluate(() => { const c = document.getElementById("remember"); c.checked = false; c.dispatchEvent(new Event("change")); });
+      await page.waitFor(() => !localStorage.getItem("lqv-booth-desc"), 4000);
       assert(await page.evaluate(() => !("desc" in JSON.parse(localStorage.getItem("booth-state")))), "OFF -> stripped");
     });
 
@@ -83,6 +88,24 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(await p.evaluate(() => window.__gum) === 0, "no camera on load");
       assert(!p.consoleErrors.length, "console errors: " + JSON.stringify(p.consoleErrors.slice(0, 3)));
       await p.close();
+    });
+
+    await check("legacy plaintext desc with remember ON is migrated to the encrypted vault and survives a new tab", async () => {
+      const today = new Date(); const dk = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+      const legacy = { event: { name: "งานจำ", date: dk }, seq: 1, visitors: [{ id: "V001", first: Date.now() - 6e4, last: Date.now() - 6e4, dwell: 7, visits: 1, arrivals: [Date.now() - 6e4], frames: 5, att: 3, emo: [1, 0, 0, 0, 0, 0, 0], vSum: 0, acts: [] }], timeline: [], desc: { V001: Array(128).fill(0.01) }, descDay: dk };
+      const seed = `localStorage.clear(); localStorage.setItem("booth-prefs", '{"v":1,"remember":true}'); localStorage.setItem("booth-state", ${JSON.stringify(JSON.stringify(legacy))})`;
+      const p = await open(`${base}/booth.html?cpu&fakedet`, seed);
+      await p.waitFor(`window.__booth && __booth.ready && !!localStorage.getItem("lqv-booth-desc")`, 5000);
+      const r = await p.evaluate(() => ({ st: JSON.parse(localStorage.getItem("booth-state")), env: JSON.parse(localStorage.getItem("lqv-booth-desc")) }));
+      assert(!("desc" in r.st), "plaintext desc removed from booth-state");
+      assert(r.env.enc === "lq1" && !JSON.stringify(r.env).includes("0.01"), "envelope only");
+      await p.close();
+      // a fresh tab (no sessionStorage) restores the remembered visitor from the encrypted copy
+      const q = await browser.newPage(null, { initScripts: [fakeCams] });
+      await q.goto(`${base}/booth.html?cpu&fakedet`);
+      await q.waitFor(`window.__booth && __booth.ready && Object.keys(__booth.S.desc).join() === "V001"`, 5000);
+      assert(!q.consoleErrors.length, "console errors: " + JSON.stringify(q.consoleErrors.slice(0, 3)));
+      await q.close();
     });
 
     await check("390 px wide: no horizontal overflow, no console errors (?cpu, real models + loop)", async () => {

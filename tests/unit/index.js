@@ -21,3 +21,6 @@ require("./qc.test.js");
 require("./stats.test.js");
 require("./studio.test.js");
 require("./fortune-new.test.js");
+require("./numbers.test.js");
+require("./fortune-consistency.test.js");
+require("./fortune-composer.test.js");

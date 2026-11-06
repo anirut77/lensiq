@@ -10,15 +10,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=6">
-<link rel="stylesheet" href="neuro.css?v=4">
+<link rel="stylesheet" href="neuro.css?v=5">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=8"></script>
+<script src="nav.js?v=10"></script>
 
 <main class="nm">
   <h1>วิเคราะห์อารมณ์จากใบหน้า (Neuromarketing)</h1>
   <p class="lead">วัดปฏิกิริยาทางสีหน้าของผู้ชมขณะดูโฆษณา วิดีโอ หรือภาพสินค้า แล้วสรุปเป็นค่า Valence, Arousal, Attention และ Engagement ตามช่วงเวลา</p>
+  <p class="disclaimer" id="nmCaveat"><b>ข้อควรทราบ:</b> ค่า Valence (บวก/ลบ) และ Arousal (ความตื่นตัว) ในหน้านี้เป็น<strong>ค่าประมาณจากสีหน้า</strong> ไม่ใช่การวัดอารมณ์หรือความรู้สึกภายในโดยตรง งานทบทวนวรรณกรรม (<a href="https://doi.org/10.1177/1529100619832930" target="_blank" rel="noopener">Barrett et al., 2019</a>) พบว่าสีหน้ากับอารมณ์จริงสัมพันธ์กันไม่สม่ำเสมอ และต่างกันไปตามบุคคล วัฒนธรรม และบริบท ผลจึงใช้ได้เพื่อการสาธิตหรือเป็นสัญญาณเบื้องต้นในงานวิจัยเท่านั้น ห้ามใช้ตัดสินบุคคล คัดเลือกพนักงาน หรือประเมินทางการแพทย์</p>
 
   <div class="tabs" role="tablist">
     <button class="tab active" data-t="test" role="tab" aria-selected="true">ทดสอบสื่อ</button>
@@ -74,7 +75,7 @@
       </div>
     </div>
     <div class="grid2">
-      <div class="card"><h3>แผนที่อารมณ์ (Valence × Arousal)</h3><div id="liveCircumplex"></div></div>
+      <div class="card"><h3>แผนที่อารมณ์ (Valence × Arousal)</h3><div id="liveCircumplex"></div><p class="nm-est">ค่าประมาณจากสีหน้า ไม่ใช่อารมณ์ที่วัดได้โดยตรง</p></div>
       <div class="card"><h3>Valence 60 วินาทีล่าสุด</h3><div id="liveLine"></div></div>
     </div>
   </section>
@@ -115,14 +116,16 @@
     <div class="card">
       <h2>ข้อจำกัดที่ต้องรู้</h2>
       <ul>
-        <li>สีหน้า<strong>ไม่ใช่</strong>ตัวบ่งชี้ความรู้สึกภายในที่แม่นยำเสมอไป งานวิจัย (Barrett et al., 2019) ชี้ว่าคนแสดงสีหน้าต่างกันตามบุคคลและวัฒนธรรม ควรใช้ผลเป็น "สัญญาณ" ประกอบกับแบบสอบถามหรือสัมภาษณ์</li>
+        <li>สีหน้า<strong>ไม่ใช่</strong>ตัวบ่งชี้ความรู้สึกภายในที่แม่นยำเสมอไป งานทบทวนวรรณกรรม (Barrett et al., 2019) ชี้ว่าคนแสดงสีหน้าต่างกันตามบุคคลและวัฒนธรรม ควรใช้ผลเป็น "สัญญาณ" ประกอบกับแบบสอบถามหรือสัมภาษณ์</li>
         <li>คนส่วนใหญ่ดูโฆษณาด้วยสีหน้าเฉย ๆ เป็นหลัก ค่าที่ต่ำจึงเป็นเรื่องปกติ ให้ดูการเปลี่ยนแปลงตามเวลาและเปรียบเทียบระหว่างชิ้นงาน มากกว่าค่าสัมบูรณ์</li>
         <li>ควรมีผู้เข้าร่วมอย่างน้อย 20-30 คนต่อชิ้นงานจึงจะเปรียบเทียบ A/B ได้น่าเชื่อถือ</li>
         <li>ความแม่นยำขึ้นกับแสง มุมกล้อง แว่นตา และหน้ากาก Attention ประมาณจากทิศทางศีรษะ ไม่ใช่ eye tracking จริง</li>
+        <li>ใช้เพื่อการสาธิตหรือเป็นสัญญาณเบื้องต้นในงานวิจัยเท่านั้น ไม่ใช้ตัดสินบุคคล คัดเลือกพนักงาน หรือประเมินทางการแพทย์/จิตวิทยา</li>
         <li>ข้อมูลสีหน้าเป็นข้อมูลส่วนบุคคล ต้องขอความยินยอมตาม PDPA ระบบนี้ประมวลผลในเครื่องและไม่บันทึกภาพ</li>
       </ul>
       <h2>แหล่งอ้างอิงแนวคิด</h2>
       <ul class="refs">
+        <li><a href="https://doi.org/10.1177/1529100619832930" target="_blank" rel="noopener">Barrett, Adolphs, Marsella, Martinez &amp; Pollak (2019)</a> — Emotional Expressions Reconsidered: Challenges to Inferring Emotion From Human Facial Movements, <i>Psychological Science in the Public Interest</i> 20(1): 1–68 — สรุปว่าการอนุมานอารมณ์จากสีหน้ายังมีข้อจำกัดด้านความน่าเชื่อถือ ความจำเพาะ และการใช้ได้ทั่วไป</li>
         <li><a href="https://github.com/vladmandic/face-api" target="_blank" rel="noopener">vladmandic/face-api</a> — โมเดลตรวจจับใบหน้าและสีหน้าที่ใช้ในหน้านี้</li>
         <li><a href="https://github.com/face-analysis/emonet" target="_blank" rel="noopener">EmoNet</a> — โมเดลประเมิน Valence/Arousal แบบต่อเนื่อง (Nature Machine Intelligence)</li>
         <li><a href="https://huggingface.co/spaces/arjun10g/live-expression-reader/blob/main/README.md" target="_blank" rel="noopener">Live Expression Reader</a> — แนวคิดแปลง Valence/Arousal เป็นสถานะ Engaged/Bored (อ้างอิง Whitehill et al., 2014)</li>

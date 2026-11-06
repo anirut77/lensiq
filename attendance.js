@@ -1,6 +1,7 @@
 const MODEL_URL = "vendor/models/";
 // ค่าความต่างใบหน้าสูงสุดที่ยอมรับ (ยิ่งต่ำยิ่งเข้มงวด) — ตั้งค่าได้ เก็บใน att-settings
-const settings = Object.assign({ matchDistance: 0.55 }, (() => { try { return JSON.parse(localStorage.getItem("att-settings")) || {}; } catch { return {}; } })());
+// retentionDays: ลบการลงทะเบียนใบหน้าที่ไม่ได้ใช้เกินกี่วัน (ค่าเริ่ม 365)
+const settings = Object.assign({ matchDistance: 0.55, retentionDays: 365 }, (() => { try { return JSON.parse(localStorage.getItem("att-settings")) || {}; } catch { return {}; } })());
 const MAX_FACES = 5;
 const TEST = !!(window.LQDetect && LQDetect.isTest()); // localhost + ?fakedet เท่านั้น
 const $ = s => document.querySelector(s);
@@ -9,8 +10,36 @@ const detOpts = () => new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scor
 
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
 const store = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { alert("พื้นที่จัดเก็บเต็มหรือถูกบล็อก"); } };
-let people = load("att-people", []);  // {id,name,code,descriptor:number[]}
+// att-people = {id,name,code,created,lastSeen} (ไม่มีค่าใบหน้า) ; ค่าใบหน้าเข้ารหัสอยู่ใน lqv-att-faces (lensiq-facevault.js)
+// ในหน่วยความจำแนบกลับเป็น p.descriptor:number[] ; ข้อมูลรุ่นเก่าที่มี descriptor ใน att-people ถูกย้าย+เข้ารหัสอัตโนมัติ
+const FACE_KEY = "lqv-att-faces";
+let people = [];
 let logs = load("att-logs", []);      // {pid,name,code,session,date,time}
+let faceState = "enc";
+const saveQ = LQVault.queue();
+function savePeople(opts) {
+  const snap = people.slice();
+  return saveQ(() => LQVault.splitSave("att-people", FACE_KEY, snap, "descriptor", localStorage, opts)
+    .then(m => { if (m) showFaceState(m); return true; })
+    .catch(e => { if (e.name === "VaultLockedError") showFaceState("locked"); else alert("พื้นที่จัดเก็บเต็มหรือถูกบล็อก"); return false; }));
+}
+function showFaceState(st) {
+  faceState = st;
+  const el = $("#faceState"); if (!el) return;
+  el.textContent = LQVault.STATE_TH[st] || ""; el.className = "vault-state " + st;
+}
+function applyRetention() {
+  const ids = new Set(LQVault.expired(people, settings.retentionDays));
+  if (!ids.size) return 0;
+  people = people.filter(p => !ids.has(p.id)); savePeople();
+  return ids.size;
+}
+const storageReady = LQVault.splitLoad("att-people", FACE_KEY, "descriptor", localStorage, { stamp: true }).then(r => {
+  people = r.records; showFaceState(r.state);
+  const n = applyRetention();
+  if (n) say(`ลบข้อมูลใบหน้าที่ไม่ได้ใช้เกิน ${settings.retentionDays} วันแล้ว ${n} คน`, "warn");
+  renderPeople();
+}).catch(e => { console.error(e); people = load("att-people", []); renderPeople(); });
 
 let mode = "checkin", scanning = false, ready = false, lastMsgAt = 0;
 let matcher = null;
@@ -92,7 +121,7 @@ async function init() {
     faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
   ]));
 
-  const [c, m] = await Promise.allSettled([cam, models]);
+  const [c, m] = await Promise.allSettled([cam, models, storageReady]);
   if (c.status === "rejected") return showCamError(camErrorText(c.reason));
   if (m.status === "rejected") return showCamError("โหลดโมเดลตรวจจับใบหน้าไม่สำเร็จ ไม่พบไฟล์โมเดลใน vendor/models (ตรวจว่ารันเว็บจากโฟลเดอร์โปรเจกต์ ไม่ได้เปิดไฟล์ตรง ๆ)");
 
@@ -101,8 +130,9 @@ async function init() {
 }
 
 function rebuildMatcher() {
-  matcher = people.length
-    ? new faceapi.FaceMatcher(people.map(p => new faceapi.LabeledFaceDescriptors(p.id, [new Float32Array(p.descriptor)])), settings.matchDistance)
+  const withFace = people.filter(p => Array.isArray(p.descriptor));
+  matcher = withFace.length
+    ? new faceapi.FaceMatcher(withFace.map(p => new faceapi.LabeledFaceDescriptors(p.id, [new Float32Array(p.descriptor)])), settings.matchDistance)
     : null;
 }
 
@@ -149,6 +179,7 @@ $("#regForm").addEventListener("submit", async e => {
   if (!ready) return set("กล้องยังไม่พร้อม", "err");
   if (!name || !code) return set("กรุณากรอกชื่อและรหัส", "err");
   if (!f.consent.checked) return set("ต้องยินยอมการเก็บข้อมูลใบหน้าก่อน", "err");
+  if (faceState === "locked") return set(LQVault.STATE_TH.locked, "err");
   if (people.some(p => p.code === code)) return set("รหัสนี้ลงทะเบียนแล้ว", "err");
   btn.disabled = true; set("กำลังสแกน กรุณามองกล้องนิ่ง ๆ...", "");
   try {
@@ -160,8 +191,10 @@ $("#regForm").addEventListener("submit", async e => {
         throw new Error(`ใบหน้านี้ลงทะเบียนแล้วในชื่อ ${dup.name}`);
       }
     }
-    people.push({ id: crypto.randomUUID(), name, code, descriptor });
-    store("att-people", people); rebuildMatcher(); renderPeople();
+    const now = Date.now();
+    people.push({ id: crypto.randomUUID(), name, code, descriptor, created: now, lastSeen: now });
+    if (!(await savePeople())) { people.pop(); throw new Error("บันทึกข้อมูลใบหน้าไม่สำเร็จ"); }
+    rebuildMatcher(); renderPeople();
     f.reset(); set(`ลงทะเบียน ${name} สำเร็จ`, "ok");
   } catch (err) { set(err.message, "err"); }
   btn.disabled = false;
@@ -190,6 +223,7 @@ async function loop() {
       const st = confirm2.hit(p.id, now);
       if (st === "pending") return { f, kind: "pending", name: p.name, text: "กำลังยืนยันตัวตน..." };
       if (st === "confirmed") {
+        if (Date.now() - (p.lastSeen || 0) > 3600000) { p.lastSeen = Date.now(); savePeople({ faces: false }); } // นับวันเก็บข้อมูลจากการใช้ล่าสุด
         const r = checkIn(p);
         if (r.kind === "err") confirm2.reset(p.id); // เช่น ยังไม่กรอกหัวข้อ ให้ลองใหม่เฟรมถัดไป
         else lastResult.set(p.id, r);
@@ -279,14 +313,37 @@ function renderLogs() {
 }
 function renderPeople() {
   $("#peopleCount").textContent = people.length;
-  $("#people").innerHTML = people.map(p => `<li><span>${esc(p.name)} <small>${esc(p.code)}</small></span><button type="button" data-id="${p.id}" aria-label="ลบข้อมูลใบหน้าของ ${esc(p.name)}">ลบข้อมูล</button></li>`).join("");
+  $("#people").innerHTML = people.map(p => `<li><span>${esc(p.name)} <small>${esc(p.code)}</small>${Array.isArray(p.descriptor) ? "" : ' <small class="hint">(อ่านข้อมูลใบหน้าไม่ได้)</small>'}</span><button type="button" data-id="${p.id}" aria-label="ลบข้อมูลใบหน้าของ ${esc(p.name)}">ลบข้อมูล</button></li>`).join("");
 }
 $("#people").addEventListener("click", e => {
   const id = e.target.dataset.id; if (!id) return;
   const p = people.find(x => x.id === id);
   if (!confirm(`ลบข้อมูลใบหน้าของ ${p.name}? (บันทึกการเข้าเรียนเดิมยังอยู่)`)) return;
-  people = people.filter(x => x.id !== id); store("att-people", people); rebuildMatcher(); renderPeople();
+  const before = people;
+  people = people.filter(x => x.id !== id);
+  savePeople().then(ok => { if (!ok) { people = before; say("ลบไม่สำเร็จ — " + LQVault.STATE_TH.locked, "err"); } rebuildMatcher(); renderPeople(); });
+  rebuildMatcher(); renderPeople();
 });
+// ลบข้อมูลใบหน้าทั้งหมด: ลบการลงทะเบียน ค่าใบหน้าที่เข้ารหัส และกุญแจใน IndexedDB (บันทึกการเข้าเรียนยังอยู่)
+$("#wipeFaces").onclick = async () => {
+  if (!confirm("ลบข้อมูลใบหน้าของผู้ลงทะเบียนทั้งหมด? ทุกคนต้องลงทะเบียนใหม่ (บันทึกการเข้าเรียนเดิมยังอยู่) ย้อนกลับไม่ได้")) return;
+  if (scanning) $("#startScan").click();
+  people = [];
+  await saveQ(async () => { await LQVault.wipe([FACE_KEY]); try { localStorage.removeItem("att-people"); } catch {} });
+  showFaceState(LQVault.supported() ? "enc" : "plain");
+  rebuildMatcher(); renderPeople(); say("ลบข้อมูลใบหน้าทั้งหมดแล้ว", "ok");
+};
+{
+  const sel = $("#retention");
+  sel.value = String(settings.retentionDays);
+  if (sel.value !== String(settings.retentionDays)) { settings.retentionDays = 365; sel.value = "365"; }
+  sel.addEventListener("change", () => {
+    settings.retentionDays = +sel.value || 365;
+    store("att-settings", settings);
+    const n = applyRetention();
+    if (n) { rebuildMatcher(); renderPeople(); say(`ลบข้อมูลใบหน้าที่ไม่ได้ใช้เกิน ${settings.retentionDays} วันแล้ว ${n} คน`, "warn"); }
+  });
+}
 ["#session", "#date"].forEach(s => $(s).addEventListener("input", () => { $(s).classList.remove("invalid"); renderLogs(); }));
 
 // ---------- ส่งออก / ล้าง ----------
@@ -318,7 +375,7 @@ document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
   inp.addEventListener("input", () => {
     settings.matchDistance = Math.min(0.7, Math.max(0.3, +inp.value || 0.55));
     out.textContent = settings.matchDistance.toFixed(2);
-    store("att-settings", { matchDistance: settings.matchDistance }); rebuildMatcher();
+    store("att-settings", settings); rebuildMatcher();
   });
 }
 

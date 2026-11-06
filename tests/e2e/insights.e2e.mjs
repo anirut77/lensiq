@@ -59,6 +59,22 @@ export default async function ({ base, launch, check }) {
       const body = await page.evaluate(() => document.querySelector("main").innerText);
       assert(!/NaN|undefined|Infinity|\[object/.test(body), "bad text: " + (body.match(/.{0,40}(NaN|undefined|Infinity|\[object).{0,40}/) || [""])[0]);
       assert(/มั่นใจ/.test(s.text) && /ควรทำ/.test(s.text), "insight cards carry confidence + action");
+      // statistics layer: p-values worded correctly, BH-adjusted labels, method help, shrunk A/B values, autocorrelation-aware r
+      const st = await page.evaluate(() => ({
+        stat: [...document.querySelectorAll("#insightCards .ins-stat p:first-of-type")].map(p => p.textContent),
+        help: !!document.querySelector("#methodHelp summary") && /Benjamini–Hochberg/.test(document.getElementById("methodHelp").textContent),
+        abShrunk: [...document.querySelectorAll("#abBody .ab-v")].filter(e => /ปรับ/.test(e.textContent)).length,
+        abMarks: document.querySelectorAll("#abBody .ab-s").length,
+        corr: document.getElementById("corrBody").textContent,
+        all: document.querySelector("main").textContent,
+        multi: __IQ.last.A.multi
+      }));
+      assert(st.stat.length >= 2 && st.stat.every(t => /^ถ้า.+โอกาสเห็น.+หรือมากกว่า/.test(t)), "p-value wording: " + st.stat.slice(0, 2));
+      assert(!/บังเอิญไม่ถึง|โอกาสเป็นความบังเอิญ/.test(st.all), "p-value misread as probability of chance");
+      assert(st.help, "วิธีคำนวณ help");
+      assert(st.abShrunk >= 6 && st.abMarks >= 6, `A/B raw + shrunk ${st.abShrunk}/${st.abMarks}`);
+      assert(/หลังตัดผลวันในสัปดาห์/.test(st.corr) && /ข้อมูลอิสระได้ราว/.test(st.corr), "correlation labelled as weekday-adjusted with n_eff");
+      assert(st.multi && st.multi.m >= 3 && st.multi.method === "BH", "BH family " + JSON.stringify(st.multi));
       const A = await page.evaluate(() => ({ an: __IQ.last.A.forecast.anomalies.map(a => a.day), method: __IQ.last.A.forecast.fc.method, days: __IQ.last.A.H.keys.length }));
       assert(A.method === "holt-winters", "forecast method " + A.method);
       assert(A.an.length >= 1 && A.an.length <= 4, "anomalies " + A.an);

@@ -267,15 +267,16 @@ function buildStatsCsv(S, cams = [], now = Date.now()) {
 function purgeFaces(S) { S.desc = {}; S.cands = []; S.descDay = dayKey(); RUNTIME.delete(S); }
 function autoPurge(S, now = Date.now()) { if (S.descDay !== dayKey(now)) { purgeFaces(S); S.descDay = dayKey(now); return true; } return false; }
 
-/* ความเป็นส่วนตัว: remember=false (ค่าเริ่มต้น) -> 'booth-state' ใน localStorage ไม่มี desc เลย
- * ค่าลักษณะใบหน้าอยู่ใน sessionStorage 'booth-desc' (หายเมื่อปิดแท็บ) / remember=true -> เก็บใน 'booth-state' ภายในวัน */
+/* ความเป็นส่วนตัว: 'booth-state' ใน localStorage ไม่มี desc เลยทุกโหมด
+ * ค่าลักษณะใบหน้าของแท็บนี้อยู่ใน sessionStorage 'booth-desc' (หายเมื่อปิดแท็บ)
+ * remember=true -> เพิ่มสำเนา {day, desc} ที่เข้ารหัส (lensiq-facevault.js) ใน localStorage 'lqv-booth-desc' ภายในวัน */
 function serializeState(S, remember) {
   const { cands, desc, ...rest } = S;
-  return remember
-    ? { state: JSON.stringify({ ...rest, desc: desc || {} }), session: null }
-    : { state: JSON.stringify(rest), session: JSON.stringify({ day: S.descDay, desc: desc || {} }) };
+  const d = { day: S.descDay, desc: desc || {} };
+  return { state: JSON.stringify(rest), session: JSON.stringify(d), vault: remember ? d : null };
 }
-function restoreState(lsRaw, ssRaw, remember, now = Date.now()) {
+/* vault = {day, desc} ที่ถอดรหัสจาก 'lqv-booth-desc' แล้ว (ถ้ามี) ; desc ใน booth-state = ข้อมูลรุ่นเก่า (ไม่เข้ารหัส) */
+function restoreState(lsRaw, ssRaw, remember, now = Date.now(), vault = null) {
   let S = null, ss = null;
   try { S = JSON.parse(lsRaw); } catch { S = null; }
   try { ss = JSON.parse(ssRaw); } catch { ss = null; }
@@ -285,8 +286,9 @@ function restoreState(lsRaw, ssRaw, remember, now = Date.now()) {
   if (!Number.isFinite(S.seq)) S.seq = S.visitors.length;
   const legacy = S.desc && typeof S.desc === "object" ? S.desc : null;
   const sess = ss && ss.desc && typeof ss.desc === "object" && ss.day === S.descDay ? ss.desc : null;
-  // remember: ใช้ค่าจาก localStorage (ข้อมูลเดิมก่อนมีตัวเลือกนี้ก็อ่านได้) / ไม่จำ: ใช้ค่าของแท็บนี้ หรือย้ายค่าเดิมมาไว้ในแท็บ
-  S.desc = (remember ? legacy || sess : sess || legacy) || {};
+  const enc = remember && vault && vault.desc && typeof vault.desc === "object" && vault.day === S.descDay ? vault.desc : null;
+  // ค่าของแท็บนี้ก่อน แล้วจึงสำเนาที่เข้ารหัส (เมื่อเลือกจำ) ; ค่าเดิมรุ่นเก่าใน booth-state ถูกย้ายออกเมื่อบันทึกครั้งถัดไป
+  S.desc = sess || enc || legacy || {};
   S.cands = [];
   autoPurge(S, now);
   return S;
@@ -303,7 +305,8 @@ function showHttpsNote(before) {
 }
 
 if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof LQCam !== "undefined") (() => {
-  const KEY = "booth-state", DESC_KEY = "booth-desc", PREF_KEY = "booth-prefs";
+  const KEY = "booth-state", DESC_KEY = "booth-desc", PREF_KEY = "booth-prefs", VAULT_KEY = "lqv-booth-desc";
+  const V = typeof LQVault !== "undefined" ? LQVault : null, vaultQ = V ? V.queue() : f => f();
   const $ = s => document.querySelector(s);
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -316,12 +319,31 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   try { const p = JSON.parse(localStorage.getItem(PREF_KEY)); if (p && typeof p === "object") prefs.remember = p.remember === true; } catch {}
 
   let S = restoreState(localStorage.getItem(KEY), ssGet(DESC_KEY), prefs.remember);
+  let vaultPending = false; // มีงานเขียนสำเนาเข้ารหัสรออยู่แล้ว -> ไม่ต้องต่อคิวซ้ำ (เขียนค่าล่าสุดของ S ตอนถึงคิว)
   const persist = () => {
     const o = serializeState(S, prefs.remember);
     try { localStorage.setItem(KEY, o.state); } catch { engine("พื้นที่จัดเก็บเต็ม กรุณาส่งออกข้อมูลแล้วเริ่มงานใหม่", "err"); }
-    try { if (o.session) sessionStorage.setItem(DESC_KEY, o.session); else sessionStorage.removeItem(DESC_KEY); } catch {}
+    try { sessionStorage.setItem(DESC_KEY, o.session); } catch {}
+    if (!V) return;
+    if (o.vault) {
+      if (vaultPending) return;
+      vaultPending = true;
+      vaultQ(() => {
+        vaultPending = false;
+        const d = serializeState(S, prefs.remember).vault;
+        if (!d) return;
+        // ข้อมูลรายวันที่ลบเองทุกวันอยู่แล้ว: ซองเดิมที่ถอดไม่ได้ (กุญแจหาย) เขียนทับได้
+        return V.write(VAULT_KEY, d, localStorage, { force: true }).catch(e => console.warn(e));
+      });
+    } else if (localStorage.getItem(VAULT_KEY) != null) vaultQ(() => V.wipe([VAULT_KEY]));
   };
-  persist(); // ล้าง desc เดิมออกจาก localStorage ทันทีเมื่อไม่ได้เลือกจำ
+  // จำผู้เข้าชม: ถอดรหัสสำเนาของวันนี้ (อยู่ในคิวก่อนการเขียนใด ๆ) แล้วใช้ ถ้าแท็บนี้ยังไม่มีค่าของตัวเอง
+  if (V && prefs.remember) vaultQ(() => V.read(VAULT_KEY).then(r => {
+    if (r.state === "locked" || !r.data) return;
+    const S2 = restoreState(localStorage.getItem(KEY), null, true, Date.now(), r.data);
+    if (!Object.keys(S.desc).length && Object.keys(S2.desc).length) S.desc = S2.desc;
+  }).catch(e => console.warn(e)));
+  persist(); // ล้าง desc เดิม (ไม่เข้ารหัส) ออกจาก booth-state ทันที
 
   const ef = $("#eventForm");
   ef.name.value = S.event.name; ef.date.value = S.event.date || dayKey();
@@ -704,7 +726,9 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   });
   $("#purge").onclick = () => {
     if (!confirm("ลบข้อมูลลักษณะใบหน้าทั้งหมดของวันนี้? สถิติจะยังอยู่ แต่ระบบจะจำคนเดิมไม่ได้อีก (นับเป็นคนใหม่)")) return;
-    purgeFaces(S); frames.clear(); persist(); engine("ล้างข้อมูลใบหน้าแล้ว สถิติรวมยังอยู่", "ok");
+    purgeFaces(S); frames.clear(); persist();
+    if (V) vaultQ(() => V.wipe([VAULT_KEY])); // ลบสำเนาเข้ารหัสและกุญแจด้วย
+    engine("ล้างข้อมูลใบหน้าแล้ว สถิติรวมยังอยู่", "ok");
   };
   const NOTICE = {
     off: "พื้นที่นี้มีการวิเคราะห์ภาพจากกล้องแบบไม่ระบุตัวตน เพื่อนับจำนวนผู้เข้าชมและวัดความสนใจต่อบูธ ระบบไม่บันทึกภาพหรือวิดีโอ ค่าลักษณะใบหน้าใช้เพียงเพื่อไม่ให้นับคนซ้ำ อยู่ในเครื่องนี้ระหว่างเปิดหน้าเท่านั้น และถูกลบเมื่อปิดหน้าหรือขึ้นวันใหม่ หากไม่ต้องการเข้าร่วม กรุณาแจ้งเจ้าหน้าที่",

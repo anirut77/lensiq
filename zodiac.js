@@ -96,7 +96,7 @@
     items.push({ id: "animal." + R.animal, group: "ปีเกิด", label: "ปี" + A.th + " (" + A.an + ")", short: "ชาวปี" + A.th, evidence: "นักษัตร" + A.an + " " + A.zh + " ธาตุ" + KB.ELEMENTS[R.birthElement].th,
       strength: 0.84, tags: ["personality", "work", "money", "love", "social", "advice"], meanings: { personality: A.p.slice(), work: A.w.slice(), money: A.m.slice(), love: A.l.slice(), social: A.s.slice(), advice: [A.a] } });
     var rm = { overview: REL.o.slice(), work: REL.w.slice(), money: REL.m.slice(), love: REL.l.slice(), advice: REL.a.slice(), timing: REL.t.slice() };
-    items.push({ id: "rel." + R.rel, group: "ปี" + R.year, label: REL.badge + " ในปี" + Y.th, short: REL.th === "ปีปกติ" ? "ปีนี้" : "ปี" + REL.th, evidence: yearName(R.year),
+    items.push({ id: "rel." + R.rel, group: "ปี " + R.year + " (พ.ศ. " + (R.year + 543) + ")", label: REL.badge + " ในปี" + Y.th, short: REL.th === "ปีปกติ" ? "ปีนี้" : "ปี" + REL.th, evidence: yearName(R.year),
       strength: 0.95, polarity: REL.tone === "care" ? "challenge" : undefined, tags: Object.keys(rm), meanings: rm });
     var em = { overview: [ER.o], work: [ER.w], money: [ER.m], love: [ER.l] };
     items.push({ id: "el." + R.elRel, group: "พลังธาตุ", label: ER.th + " (ธาตุ" + KB.ELEMENTS[R.yearElement].th + "กับธาตุ" + KB.ELEMENTS[R.birthElement].th + ")", short: "พลังธาตุของปี", strength: 0.78, tags: Object.keys(em), meanings: em });
@@ -184,7 +184,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var z = ZD.zodiacYearOf(b.y, b.m, b.d, $("#zdBoundary").value);
       st.animal = z.animal; st.birthYear = z.year;
       var cny = z.cny;
-      st.note = "เกิดปี" + KB.ANIMALS[z.animal].th + " ธาตุ" + KB.ELEMENTS[z.element].th + " (ตรุษจีนปี " + b.y + " ตรงกับ " + cny.d + " " + months[cny.m - 1] + ")" + (z.differ ? " · ขอบเขตปีแต่ละตำราให้ผลต่างกันสำหรับวันเกิดนี้" : "");
+      st.note = "เกิดปี" + KB.ANIMALS[z.animal].th + " ธาตุ" + KB.ELEMENTS[z.element].th + " (ตรุษจีนปี พ.ศ. " + (b.y + 543) + " ตรงกับ " + cny.d + " " + months[cny.m - 1] + ")" + (z.differ ? " · ขอบเขตปีแต่ละตำราให้ผลต่างกันสำหรับวันเกิดนี้" : "");
     } else if (picked) { st.animal = +picked.value; st.birthYear = null; st.note = "เลือกปีนักษัตรเอง (ใช้ธาตุประจำนักษัตร)"; }
     else { msg.textContent = "กรุณาเลือกปีนักษัตร หรือกรอกวันเกิด"; return; }
     showYear();

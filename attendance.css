@@ -72,3 +72,11 @@ th{white-space:nowrap}
 .tune label{display:block;margin-top:6px}
 .tune input[type=range]{width:100%;min-height:32px}
 .tune small{display:block;margin-top:4px}
+/* ความเป็นส่วนตัวของข้อมูลใบหน้า */
+.vault{margin-top:16px;font-size:.85rem;color:var(--muted)}
+.vault summary{cursor:pointer;min-height:44px;display:flex;align-items:center}
+.vault label{display:block;margin-top:6px}
+.vault select{display:block;width:100%;margin-top:4px;min-height:40px}
+.vault small{display:block;margin:4px 0 10px}
+.vault-state{margin:4px 0 8px;font-size:.82rem}
+.vault-state.plain,.vault-state.locked{color:#8a4b00}

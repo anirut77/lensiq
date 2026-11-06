@@ -1,4 +1,4 @@
-/* numbers.js — เลขมงคล AI (LENSIQ)
+/* numbers.js — เลขมงคล (LENSIQ)
  * ส่วนที่ 1: NMCore — ฟังก์ชันคำนวณล้วน (ทดสอบด้วย Node ได้ ไม่แตะ DOM/storage)
  * ส่วนที่ 2: UI — ทำงานเฉพาะในเบราว์เซอร์
  * ความเป็นส่วนตัว: คำนวณในเบราว์เซอร์ ไม่ส่งและไม่บันทึกตัวเลข/ชื่อ สถิติเก็บเพียงจำนวนครั้งและประเภท
@@ -163,22 +163,21 @@
     return { kind: "plate", lead, letters, num, letterVals, total, sum, pairs: wp.items, patterns, weekday: wd, kala, score, breakdown: parts, display: (lead + letters + " " + num).trim(), masked: maskPlate(lead, letters, num) };
   }
 
-  /* ---------- เลขนำโชควันนี้ (สนุก ๆ) ---------- */
-  function luckyToday(weekdayId, date) {
+  /* ---------- พลังประจำวัน (สี ทิศ คำพลัง — ไม่ใช่ตัวเลข ไม่ใช้เพื่อเสี่ยงโชค) ---------- */
+  function dailyEnergy(weekdayId, date) {
     const wd = weekdayById(weekdayId) || KB.weekdays[0];
     date = date || new Date();
-    const dayIdx = date.getDay(), today = KB.weekdays[[0, 1, 2, 3, 5, 6, 7][dayIdx]];
+    const today = KB.weekdays[[0, 1, 2, 3, 5, 6, 7][date.getDay()]];
     let seed = date.getFullYear() * 400 + (date.getMonth() + 1) * 32 + date.getDate() + wd.num * 7;
     const r = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
-    const fav = Object.keys(KB.pairs).filter(k => KB.pairs[k][0] === "G");
-    const mine = fav.filter(k => k.indexOf(String(wd.num)) >= 0);
-    const pool = mine.length ? mine : fav;
-    let pair = pool[Math.floor(r() * pool.length)];
-    if (r() < 0.5) pair = pair[1] + pair[0];
-    const extra = 1 + Math.floor(r() * 9);
-    const nums = [String(wd.num), String(reduceDigit(wd.power)), String(today.num === wd.num ? extra : today.num)].filter((v, i, a) => a.indexOf(v) === i);
-    return { weekday: wd, today, numbers: nums, pair, pairInfo: pairInfo(pair), color: wd.color,
-      notes: ["เลข " + wd.num + " คือเลขประจำ" + wd.th, "เลข " + reduceDigit(wd.power) + " มาจากกำลังวัน (" + wd.power + ") ทอนเป็นเลขโดด", today.num === wd.num ? "วันนี้ตรงกับวันเกิดของคุณ จึงเพิ่มเลขประจำวันนี้ " + extra + " ให้อีกตัว" : "วันนี้เป็น" + today.th + " เลขประจำวันคือ " + today.num] };
+    r();
+    const word = KB.dailyWords[Math.floor(r() * KB.dailyWords.length)];
+    const direction = KB.dailyDirections[Math.floor(r() * KB.dailyDirections.length)];
+    const same = today.id === wd.id || (today.id === "wed" && wd.id === "wedn");
+    return { weekday: wd, today, color: today.color, birthColor: wd.color, direction, word,
+      notes: ["สี" + today.color + "เป็นสีประจำ" + today.th + "ตามธรรมเนียมไทย",
+        same ? "วันนี้ตรงกับวันเกิดของคุณ สี" + wd.color + "จึงเป็นทั้งสีวันนี้และสีประจำตัว" : "สี" + wd.color + "เป็นสีประจำ" + wd.th + " ใช้เป็นสีเสริมความมั่นใจได้",
+        "ทิศและคำพลังสุ่มจากวันที่และวันเกิด เปลี่ยนใหม่ทุกวัน"] };
   }
 
   /* ---------- ปิดบังตัวเลขบนการ์ดแชร์ ---------- */
@@ -206,49 +205,75 @@
   /* ---------- facts สำหรับ fortune-ai.js ----------
      privacy: ใส่เฉพาะคู่/ผลรวม/รูปแบบที่เด่น ไม่ใส่เลขเต็ม; opts.forAI = true จะตัดตำแหน่งออกด้วย */
   const KIND_TH = { phone: "เบอร์มือถือ", plate: "ทะเบียนรถ", house: "บ้านเลขที่/เลขห้อง", account: "เลขบัญชี (ตัวท้าย)", name: "ชื่อ" };
+  const PATTERN_TH = { run: "เลขซ้ำติดกัน", up: "เลขเรียงขึ้น", down: "เลขเรียงลง", mirror: "เลขกระจก (อ่านกลับได้)", abab: "คู่ซ้ำสลับ", aabb: "ท้ายเบิ้ลคู่", nozero: "ไม่มีเลข 0 ในช่วงที่อ่าน" };
+  const noDigitRef = (x, lead) => String(x).replace(/^เลข \d+ ?/, lead);
   function buildFacts(r, topic, opts) {
     opts = opts || {};
+    const ai = !!opts.forAI;
     const items = [], seen = {};
     (r.pairs || []).forEach(p => {
-      if (seen[p.pair]) { seen[p.pair].evidence += (opts.forAI ? "" : ", " + p.pos.join("–")); seen[p.pair].strength = Math.min(1, seen[p.pair].strength + 0.08); return; }
+      if (seen[p.pair]) { if (!ai) seen[p.pair].evidence += ", " + p.pos.join("–"); seen[p.pair].strength = Math.min(1, seen[p.pair].strength + 0.08); return; }
       const meanings = {};
       p.tags.forEach(t => { meanings[t] = p.phrases.filter((x, i) => !(p.care && i === 1)); });
-      if (p.care) meanings.advice = [p.phrases[1], "คู่ " + p.pair + ": " + p.phrases[1]];
-      const it = {
+      if (p.care) meanings.advice = ai ? [p.phrases[1]] : [p.phrases[1], "คู่ " + p.pair + ": " + p.phrases[1]];
+      // forAI: ไม่ใส่ตัวเลขของคู่ ไม่ใส่ตำแหน่ง — ใช้เพียงชื่อหมวดความหมายและระดับ
+      const it = ai ? {
+        id: "pair." + (items.length + 1), group: "คู่เลข", label: p.name, short: p.name,
+        evidence: "ระดับ" + p.gradeTh,
+      } : {
         id: "pair." + p.pair, group: "คู่เลข", label: "คู่ " + p.pair + " (" + p.name + ")", short: "คู่ " + p.pair,
-        evidence: "คู่ " + p.pair + (opts.forAI ? "" : " ตำแหน่งที่ " + p.pos.join("–")) + (p.emph ? " · " + p.emph : ""),
-        strength: +(p.pts / 100 * (0.6 + 0.25 * p.weight)).toFixed(3), tags: p.tags.concat(p.care ? ["advice"] : []), meanings,
+        evidence: "คู่ " + p.pair + " ตำแหน่งที่ " + p.pos.join("–") + (p.emph ? " · " + p.emph : ""),
       };
+      Object.assign(it, { strength: +(p.pts / 100 * (0.6 + 0.25 * p.weight)).toFixed(3), tags: p.tags.concat(p.care ? ["advice"] : []), meanings });
       seen[p.pair] = it; items.push(it);
     });
     items.sort((a, b) => b.strength - a.strength);
-    const top = items.filter(i => i.tags.indexOf("advice") < 0).slice(0, 5).concat(items.filter(i => i.tags.indexOf("advice") >= 0).slice(0, 2));
+    // forAI: ส่งเพียงคู่เด่น 3 + คู่ควรใส่ใจ 1 (ไม่มีลำดับ/ตำแหน่ง) จึงประกอบกลับเป็นเลขเต็มไม่ได้
+    const nTop = ai ? 3 : 5, nCare = ai ? 1 : 2;
+    const top = items.filter(i => i.tags.indexOf("advice") < 0).slice(0, nTop).concat(items.filter(i => i.tags.indexOf("advice") >= 0).slice(0, nCare));
     if (top[0]) top[0].meanings.overview = top[0].meanings[top[0].tags[0]].map(s => "จุดเด่นที่สุดคือ" + top[0].label.replace(/^คู่ \d+ \((.*)\)$/, "$1") + " — " + s);
-    const s = r.sum;
-    const sumItem = { id: "sum." + s.sum, group: "ผลรวม", label: "ผลรวม " + s.sum + " (" + s.name + ")", short: "ผลรวม " + s.sum, evidence: (r.kind === "name" || r.kind === "plate" ? "ผลรวมค่าอักษรและตัวเลข " : "ผลรวมทุกหลัก ") + s.raw + (s.raw !== s.sum ? " → " + s.sum : ""), strength: +(s.pts / 100 * 0.9).toFixed(3), tags: ["overview"].concat(s.tags), meanings: { overview: s.phrases.map(p => p + " " + s.rootLine) } };
-    s.tags.forEach(t => { sumItem.meanings[t] = s.phrases; });
+    const s = r.sum, rd = KB.digits[s.root];
+    let sumItem;
+    if (ai) {
+      // ไม่ส่งค่าผลรวม (บ้านเลขหลักเดียว ผลรวม = เลขเต็ม) — ส่งเพียงชื่อหมวดและความหมาย
+      const base = s.sum < 10 ? rd.m.map(x => noDigitRef(x, "ผลรวมนี้")) : pairInfo(String(s.sum)).phrases;
+      const rootLine = "เลขโดดหลังทอนเป็นของ" + rd.planet + " หมายถึง" + rd.q;
+      sumItem = { id: "sum", group: "ผลรวม", label: "ผลรวม" + (s.sum < 10 ? "พลัง" + rd.planet : s.name), short: "ผลรวม", evidence: "ผลรวมระดับ" + s.gradeTh, strength: +(s.pts / 100 * 0.9).toFixed(3), tags: ["overview"].concat(s.tags), meanings: { overview: base.map(p => p + " " + rootLine) } };
+      s.tags.forEach(t => { sumItem.meanings[t] = base; });
+    } else {
+      sumItem = { id: "sum." + s.sum, group: "ผลรวม", label: "ผลรวม " + s.sum + " (" + s.name + ")", short: "ผลรวม " + s.sum, evidence: (r.kind === "name" || r.kind === "plate" ? "ผลรวมค่าอักษรและตัวเลข " : "ผลรวมทุกหลัก ") + s.raw + (s.raw !== s.sum ? " → " + s.sum : ""), strength: +(s.pts / 100 * 0.9).toFixed(3), tags: ["overview"].concat(s.tags), meanings: { overview: s.phrases.map(p => p + " " + s.rootLine) } };
+      s.tags.forEach(t => { sumItem.meanings[t] = s.phrases; });
+    }
     if (s.extra) { sumItem.tags.push("advice"); sumItem.meanings.advice = [s.extra]; }
     top.push(sumItem);
     (r.patterns || []).slice(0, 3).forEach(p => {
       const dm = p.digit != null ? KB.digits[p.digit].m : null;
-      top.push({ id: "pattern." + p.id, group: "รูปแบบตัวเลข", label: p.label, evidence: opts.forAI ? "" : p.evidence, strength: 0.5, tags: ["personality"],
-        meanings: { personality: dm ? dm.map(x => p.label + " ช่วยขับพลังให้ชัดขึ้น: " + x) : [p.label + " ทำให้จำง่ายและติดหู", p.label + " ช่วยให้คนรอบตัวจดจำได้เร็ว", "รูปแบบ " + p.label + " สะท้อนความเป็นระเบียบและจังหวะที่ลงตัว"] } });
+      const label = ai ? PATTERN_TH[p.id] || "รูปแบบจำง่าย" : p.label;
+      top.push({ id: "pattern." + p.id, group: "รูปแบบตัวเลข", label, evidence: ai ? "" : p.evidence, strength: 0.5, tags: ["personality"],
+        meanings: { personality: dm ? dm.map(x => label + " ช่วยขับพลังให้ชัดขึ้น: " + (ai ? noDigitRef(x, "") : x)) : [label + " ทำให้จำง่ายและติดหู", label + " ช่วยให้คนรอบตัวจดจำได้เร็ว", "รูปแบบ" + label + " สะท้อนความเป็นระเบียบและจังหวะที่ลงตัว"] } });
     });
-    if (r.kala && r.kala.length) top.push({ id: "kala", group: "อักษรตามวันเกิด", label: "อักษร " + r.kala.join(" "), evidence: "ตามตารางกาลกิณี" + r.weekday.th, strength: 0.4, tags: ["advice"],
-      meanings: { advice: ["ตามบางตำรา อักษร " + r.kala.join(" ") + " เป็นอักษรที่คน" + r.weekday.th + "ให้ใส่ใจ หากชอบความสบายใจจะเลือกเลี่ยงก็ได้ แต่ไม่ได้มีผลร้ายใด ๆ", "อักษร " + r.kala.join(" ") + " เป็นเพียงความเชื่อตามวันเกิด ความตั้งใจและการกระทำของคุณสำคัญกว่าเสมอ"] } });
+    if (r.kala && r.kala.length) {
+      const kl = ai ? "บางตัว" : " " + r.kala.join(" ");
+      top.push({ id: "kala", group: "อักษรตามวันเกิด", label: ai ? "อักษรที่ตำราให้ใส่ใจ" : "อักษร " + r.kala.join(" "), evidence: "ตามตารางกาลกิณี" + r.weekday.th, strength: 0.4, tags: ["advice"],
+        meanings: { advice: ["ตามบางตำรา อักษร" + kl + " เป็นอักษรที่คน" + r.weekday.th + "ให้ใส่ใจ หากชอบความสบายใจจะเลือกเลี่ยงก็ได้ แต่ไม่ได้มีผลร้ายใด ๆ", "อักษร" + kl + " เป็นเพียงความเชื่อตามวันเกิด ความตั้งใจและการกระทำของคุณสำคัญกว่าเสมอ"] } });
+    }
     const gm = r.kind === "phone" ? goalMatch(r) : [];
     const want = topic && KB.goals[topic] ? KB.goals[topic].tips : KB.generalTips;
+    const goalTips = gm.filter(g => g.hit.length).map(g => ai ? "เบอร์นี้มีคู่เลขที่ตรงกับเป้าหมายด้าน" + g.th : "เบอร์นี้มีคู่ " + g.hit.join(" และ ") + " ซึ่งตรงกับเป้าหมายด้าน" + g.th);
+    const extras = { tips: want.slice(0, 3).concat(goalTips) };
+    if (r.weekday) extras.luckyColors = [r.weekday.color];
     return {
       domain: "numbers", topic: topic || "overall", subject: {},
-      headline: KIND_TH[r.kind] + " คะแนน " + r.score + "/100 · ผลรวม " + s.sum,
+      headline: ai ? KIND_TH[r.kind] + " คะแนนพลังรวม " + r.score + "/100" : KIND_TH[r.kind] + " คะแนน " + r.score + "/100 · ผลรวม " + s.sum,
       items: top,
-      extras: { luckyNumbers: luckyFromResult(r), tips: want.slice(0, 3).concat(gm.filter(g => g.hit.length).map(g => "เบอร์นี้มีคู่ " + g.hit.join(" และ ") + " ซึ่งตรงกับเป้าหมายด้าน" + g.th)) },
+      extras,
     };
   }
-  function luckyFromResult(r) {
-    const best = (r.pairs || []).filter(p => p.grade === "G" || p.grade === "g").map(p => p.pair);
-    const out = [String(r.sum.root)];
-    best.forEach(p => { if (out.indexOf(p) < 0 && out.length < 4) out.push(p); });
+  /** คำพลังจากผล (ชื่อหมวดของคู่เด่น) — แทนการให้ "เลขนำโชค" */
+  function strengthWords(r) {
+    const out = [];
+    (r.pairs || []).filter(p => p.grade === "G" || p.grade === "g").forEach(p => { if (out.indexOf(p.name) < 0 && out.length < 4) out.push(p.name); });
+    if (out.length < 4 && r.sum && r.sum.grade !== "c" && out.indexOf(r.sum.name) < 0) out.push(r.sum.name);
     return out;
   }
 
@@ -263,7 +288,7 @@
     return out;
   }
 
-  const NMCore = { onlyDigits, isThaiMobile, pairKey, pairInfo, extractPairs, sumDigits, reduceDigit, sumInfo, detectPatterns, analyzeDigits, analyzePhone, analyzeHouse, analyzeAccount, analyzeName, analyzePlate, letterValue, luckyToday, maskPhone, maskAccount, maskHouse, maskPlate, compare, goalMatch, buildFacts, addStat, KIND_TH, KB };
+  const NMCore = { onlyDigits, isThaiMobile, pairKey, pairInfo, extractPairs, sumDigits, reduceDigit, sumInfo, detectPatterns, analyzeDigits, analyzePhone, analyzeHouse, analyzeAccount, analyzeName, analyzePlate, letterValue, dailyEnergy, strengthWords, maskPhone, maskAccount, maskHouse, maskPlate, compare, goalMatch, buildFacts, addStat, KIND_TH, KB };
   if (typeof module !== "undefined" && module.exports) { module.exports = NMCore; return; }
   root.NMCore = NMCore;
   if (typeof document === "undefined") return;
@@ -278,14 +303,14 @@
   const F = root.FortuneAI || null;
   let mode = "phone", current = null, currentFacts = null, aiEnabled = false, narrSeq = 0;
 
-  const TABS = ["phone", "plate", "house", "account", "name", "lucky", "compare"];
+  const TABS = ["phone", "plate", "house", "account", "name", "daily", "compare"];
   function setTab(t, focus) {
     mode = t;
     document.querySelectorAll(".nm-tab").forEach(b => { const on = b.dataset.tab === t; b.setAttribute("aria-selected", on ? "true" : "false"); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus(); });
     document.querySelectorAll("[data-for]").forEach(el => { el.hidden = el.dataset.for.split(" ").indexOf(t) < 0; });
     $("#nmErr").textContent = "";
-    $("#nmGo").textContent = { lucky: "ดูเลขนำโชควันนี้", compare: "เปรียบเทียบ", name: "วิเคราะห์ชื่อ", plate: "วิเคราะห์ทะเบียน" }[t] || "วิเคราะห์เลขมงคล";
-    $("#nmWdHint").textContent = t === "lucky" ? "(จำเป็นสำหรับเลขนำโชค)" : t === "plate" || t === "name" ? "(ไม่บังคับ — ใช้ดูอักษรกาลกิณี)" : "(ไม่บังคับ)";
+    $("#nmGo").textContent = { daily: "ดูพลังประจำวัน", compare: "เปรียบเทียบ", name: "วิเคราะห์ชื่อ", plate: "วิเคราะห์ทะเบียน" }[t] || "วิเคราะห์เลขมงคล";
+    $("#nmWdHint").textContent = t === "daily" ? "(จำเป็นสำหรับพลังประจำวัน)" : t === "plate" || t === "name" ? "(ไม่บังคับ — ใช้ดูอักษรกาลกิณี)" : "(ไม่บังคับ)";
   }
   document.querySelectorAll(".nm-tab").forEach(b => b.addEventListener("click", () => { setTab(b.dataset.tab); hideResults(); }));
   $("#nmTabs").addEventListener("keydown", e => {
@@ -298,16 +323,16 @@
   $("#nmPhone").addEventListener("input", function () { const d = onlyDigits(this.value).slice(0, 10); const f = d.length > 6 ? d.slice(0, 3) + "-" + d.slice(3, 6) + "-" + d.slice(6) : d.length > 3 ? d.slice(0, 3) + "-" + d.slice(3) : d; if (f !== this.value) this.value = f; });
   $("#nmAcct").addEventListener("input", function () { const d = onlyDigits(this.value).slice(0, 7); if (d !== this.value) this.value = d; });
 
-  function hideResults() { $("#nmResult").hidden = true; $("#nmLucky").hidden = true; $("#nmCompare").hidden = true; current = null; $("#nmCardImg").hidden = true; }
+  function hideResults() { $("#nmResult").hidden = true; $("#nmDaily").hidden = true; $("#nmCompare").hidden = true; current = null; $("#nmCardImg").hidden = true; }
 
   $("#nmForm").addEventListener("submit", e => {
     e.preventDefault(); touch();
     const wdId = $("#nmWd").value, err = $("#nmErr");
     err.textContent = "";
     let r;
-    if (mode === "lucky") {
+    if (mode === "daily") {
       if (!wdId) { err.textContent = "เลือกวันเกิดก่อน แล้วกดอีกครั้ง"; $("#nmWd").focus(); return; }
-      hideResults(); renderLucky(luckyToday(wdId)); stat("lucky"); return;
+      hideResults(); renderDaily(dailyEnergy(wdId)); stat("daily"); return;
     }
     if (mode === "compare") {
       const list = Array.from(document.querySelectorAll(".nm-cmp-in")).map(i => i.value);
@@ -364,15 +389,19 @@
     const gb = $("#nmGoals");
     gb.hidden = r.kind !== "phone";
     if (r.kind === "phone") $("#nmGoalList").innerHTML = goalMatch(r).map(g => '<li><h4>' + esc(g.th) + ' <span class="badge' + (g.hit.length ? " on" : "") + '">' + (g.hit.length ? "มี " + g.hit.length + " คู่ตรงเป้า" : "ยังไม่มีคู่ตรงเป้า") + "</span></h4>" + (g.hit.length ? '<p class="nm-small">คู่ที่พบ: ' + g.hit.join(", ") + "</p>" : "") + "<ul>" + g.tips.map(t => "<li>" + esc(t) + "</li>").join("") + "</ul></li>").join("");
-    $("#nmLuckyNums").innerHTML = luckyFromResult(r).map(n => "<span>" + n + "</span>").join("");
+    const sw = strengthWords(r);
+    $("#nmWordsBlock").hidden = !sw.length;
+    $("#nmWords").innerHTML = sw.map(n => "<span>" + esc(n) + "</span>").join("");
     narrate();
     $("#nmResTitle").focus({ preventScroll: true });
     sec.scrollIntoView({ block: "start", behavior: "smooth" });
   }
 
-  function renderLucky(L) {
-    const box = $("#nmLucky"); box.hidden = false;
-    $("#nmLuckyBody").innerHTML = '<p class="nm-small">' + esc(L.weekday.th) + " · สีประจำวันเกิด" + esc(L.color) + '</p><div class="lk-nums">' + L.numbers.map(n => "<span>" + n + "</span>").join("") + '</div><ul class="nm-small">' + L.notes.map(n => "<li>" + esc(n) + "</li>").join("") + '</ul><div class="lk-pair"><b>' + L.pair + "</b><div><p class=\"sum-name\">คู่เด่นวันนี้ · " + esc(L.pairInfo.name) + "</p><p>" + esc(L.pairInfo.phrases[0]) + '</p></div></div><p class="nm-small">ใช้เป็นกำลังใจเล็ก ๆ เช่น เลือกเลขที่นั่งหรือเลขล็อกเกอร์ ไม่ใช่สำหรับการพนันหรือการเสี่ยงโชค</p>';
+  function renderDaily(L) {
+    const box = $("#nmDaily"); box.hidden = false;
+    $("#nmDailyBody").innerHTML = '<p class="nm-small">วันเกิด' + esc(L.weekday.th.replace(/^วัน/, "")) + " · วันนี้" + esc(L.today.th.replace(/^วัน/, "")) + '</p><dl class="dy-grid">' +
+      "<div><dt>สีวันนี้</dt><dd>" + esc(L.color) + "</dd></div><div><dt>สีเสริมของคุณ</dt><dd>" + esc(L.birthColor) + "</dd></div><div><dt>ทิศเสริมพลัง</dt><dd>" + esc(L.direction) + "</dd></div><div><dt>คำพลังวันนี้</dt><dd>" + esc(L.word.w) + "</dd></div></dl>" +
+      '<p class="dy-word">' + esc(L.word.p) + '</p><ul class="nm-small">' + L.notes.map(n => "<li>" + esc(n) + "</li>").join("") + '</ul><p class="nm-small">เพื่อความสนุกและเป็นกำลังใจเล็ก ๆ เท่านั้น ไม่ใช่คำแนะนำในการตัดสินใจเรื่องสำคัญ</p>';
     box.scrollIntoView({ block: "start", behavior: "smooth" });
   }
 
@@ -455,7 +484,7 @@
     try { await document.fonts.load("600 40px Prompt"); await document.fonts.load("400 30px Prompt"); } catch (e) { /* ใช้ฟอนต์ระบบ */ }
     const g = c.createLinearGradient(0, 0, W, H); g.addColorStop(0, "#0e1430"); g.addColorStop(1, "#2a1f6b"); c.fillStyle = g; c.fillRect(0, 0, W, H);
     c.globalAlpha = 0.08; c.fillStyle = "#fff"; c.font = "700 420px Prompt, sans-serif"; c.textAlign = "right"; c.fillText(String(r.sum.sum), W - 30, 520); c.globalAlpha = 1;
-    c.textAlign = "left"; c.fillStyle = "#22d3ee"; c.font = "600 34px Prompt, sans-serif"; c.fillText("LENSIQ · เลขมงคล AI", 80, 120);
+    c.textAlign = "left"; c.fillStyle = "#22d3ee"; c.font = "600 34px Prompt, sans-serif"; c.fillText("LENSIQ · เลขมงคล", 80, 120);
     c.fillStyle = "#c9d0ea"; c.font = "400 36px Prompt, sans-serif"; c.fillText(KIND_TH[r.kind], 80, 200);
     c.fillStyle = "#fff"; c.font = "600 88px Prompt, sans-serif"; c.fillText(r.masked, 80, 300);
     // วงคะแนน
@@ -495,7 +524,7 @@
       const im = $("#nmCardImg"); im.src = cardUrl; im.hidden = false;
       const file = new File([blob], "lensiq-เลขมงคล.png", { type: "image/png" });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: "เลขมงคล AI — LENSIQ", text: KIND_TH[current.kind] + " คะแนน " + current.score + "/100 · " + KB.disclaimerShort }); return; }
+        try { await navigator.share({ files: [file], title: "เลขมงคล — LENSIQ", text: KIND_TH[current.kind] + " คะแนน " + current.score + "/100 · " + KB.disclaimerShort }); return; }
         catch (e) { if (e.name === "AbortError") return; }
       }
       const a = document.createElement("a"); a.href = cardUrl; a.download = "lensiq-numbers.png"; document.body.append(a); a.click(); a.remove();
@@ -517,7 +546,7 @@
   }
 
   /* ---------- สถิติ ---------- */
-  const TYPE_TH = { phone: "เบอร์มือถือ", plate: "ทะเบียนรถ", house: "บ้าน/ห้อง", account: "บัญชี", name: "ชื่อ", lucky: "เลขนำโชค", compare: "เปรียบเทียบ" };
+  const TYPE_TH = { phone: "เบอร์มือถือ", plate: "ทะเบียนรถ", house: "บ้าน/ห้อง", account: "บัญชี", name: "ชื่อ", daily: "พลังประจำวัน", lucky: "เลขนำโชค (เดิม)", compare: "เปรียบเทียบ" };
   function stat(type) { if (prefs.stats) { lsSet(STATS_KEY, addStat(lsGet(STATS_KEY, null), type)); renderStats(); } }
   function renderStats() {
     const st = lsGet(STATS_KEY, null), box = $("#nmStats");
@@ -537,7 +566,7 @@
     clearTimeout(idleT); clearInterval(idleTick);
     const el = $("#nmIdle"); el.hidden = true;
     if (!document.body.classList.contains("nm-kiosk")) return;
-    if ($("#nmResult").hidden && $("#nmLucky").hidden && $("#nmCompare").hidden) return;
+    if ($("#nmResult").hidden && $("#nmDaily").hidden && $("#nmCompare").hidden) return;
     const until = Date.now() + IDLE_MS;
     idleTick = setInterval(() => { const left = Math.ceil((until - Date.now()) / 1000); if (left <= 15) { el.hidden = false; el.textContent = "กลับหน้าเริ่มต้นใน " + left + " วินาที — แตะเพื่ออยู่ต่อ"; } }, 1000);
     idleT = setTimeout(() => { clearInterval(idleTick); el.hidden = true; reset(); }, IDLE_MS);

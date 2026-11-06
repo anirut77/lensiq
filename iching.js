@@ -1,5 +1,5 @@
 /* อี้จิง (易經) — LENSIQ
-   ส่วนบน: ฟังก์ชันล้วน (โยนเหรียญ 3 เหรียญ, หาฮู่จากเส้น, เส้นเปลี่ยน → ฮู่ที่จะกลายเป็น, กฎอ่านเส้นเปลี่ยน, facts) — ทดสอบใน Node
+   ส่วนบน: ฟังก์ชันล้วน (โยนเหรียญ 3 เหรียญ, หากว้าจากเส้น, เส้นเปลี่ยน → กว้าที่จะกลายเป็น, กฎอ่านเส้นเปลี่ยน, facts) — ทดสอบใน Node
    ส่วนล่าง: UI ในเบราว์เซอร์ (ทำงานเมื่อพบ #icApp)
    วิธีโยนเหรียญ: หัว = 3 ก้อย = 2 รวม 3 เหรียญ → 6 หยินเก่า (เปลี่ยน), 7 หยางอ่อน, 8 หยินอ่อน, 9 หยางเก่า (เปลี่ยน)
    เพื่อความบันเทิงตามความเชื่อ ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์ */
@@ -24,7 +24,7 @@
     var lo = triKey(bits.slice(0, 3)), up = triKey(bits.slice(3, 6));
     return { n: KB.KING_WEN[KB.TRI_ORDER.indexOf(lo)][KB.TRI_ORDER.indexOf(up)], lower: lo, upper: up };
   }
-  /** ฮู่หมายเลข n → bits (ล่าง→บน) */
+  /** กว้าหมายเลข n → bits (ล่าง→บน) */
   function bitsOf(n) {
     for (var a = 0; a < 8; a++) for (var b = 0; b < 8; b++) if (KB.KING_WEN[a][b] === n) return KB.TRIGRAMS[KB.TRI_ORDER[a]].bits.concat(KB.TRIGRAMS[KB.TRI_ORDER[b]].bits);
     return null;
@@ -53,16 +53,16 @@
     out.rule = KB.RULES[n];
     return out;
   }
-  /** สุ่มฮู่ทั้งชุดด้วย crypto (หรือ u32 ที่กำหนด) */
+  /** สุ่มกว้าทั้งชุดด้วย crypto (หรือ u32 ที่กำหนด) */
   function castRandom(u32) { var v = []; for (var i = 0; i < 6; i++) v.push(tossLine(u32).value); return cast(v); }
-  /** ฮู่ประจำวัน — seed จากวันที่ เหมือนกันทั้งวัน */
+  /** กว้าประจำวัน — seed จากวันที่ เหมือนกันทั้งวัน */
   function dailyCast(d) {
     var r = FK.mulberry32(FK.hashStr("lensiq-iching-" + FK.dayKey(d)));
     return castRandom(function () { return Math.floor(r() * 4294967296) >>> 0; });
   }
-  function hexLabel(n) { var h = KB.HEX[n]; return "ฮู่ที่ " + n + " " + h.zh + " (" + h.py + ") · " + h.th; }
+  function hexLabel(n) { var h = KB.HEX[n]; return "กว้าที่ " + n + " " + h.zh + " (" + h.py + ") · " + h.th; }
   /** ชื่อสำหรับประโยคคำทำนาย (ไทยก่อน อักษรจีนในวงเล็บ ซึ่งตัวเรียบเรียงจะตัดออกเมื่อเอ่ยซ้ำ) */
-  function proseLabel(n) { var h = KB.HEX[n]; return "ฮู่ที่ " + n + " " + h.th + " (" + h.zh + " " + h.py + ")"; }
+  function proseLabel(n) { var h = KB.HEX[n]; return "กว้าที่ " + n + " " + h.th + " (" + h.zh + " " + h.py + ")"; }
   function imageOf(lower, upper) { return KB.TRIGRAMS[upper].th + "อยู่เหนือ" + KB.TRIGRAMS[lower].th; }
 
   /* ---------- facts สำหรับ fortune-ai.js ---------- */
@@ -81,7 +81,7 @@
       };
     };
     var pm = hexM(P);
-    items.push({ id: "hex." + c.primary, group: "ฮู่หลัก", label: proseLabel(c.primary), short: "ฮู่" + P.th, evidence: imageOf(c.lower, c.upper) + " · " + fo.rule,
+    items.push({ id: "hex." + c.primary, group: "กว้าหลัก", label: proseLabel(c.primary), short: "กว้า" + P.th, evidence: imageOf(c.lower, c.upper) + " · " + fo.rule,
       strength: fo.hex === "relating" ? 0.86 : 0.97, tags: Object.keys(pm), meanings: pm });
     var lo = KB.TRIGRAMS[c.lower], up = KB.TRIGRAMS[c.upper];
     items.push({ id: "tri.lower." + c.lower, group: "ตัวตนภายใน", label: "ตรีแกรมล่าง" + lo.th + " (" + lo.zh + ")", short: "ตรีแกรม" + lo.th, evidence: lo.q,
@@ -95,18 +95,18 @@
         evidence: "ค่าเส้น " + c.values[pos - 1], strength: fo.hex === "primary" && key === 0 ? 0.9 : 0.74 - pos * 0.005, tags: ["overview", "advice"], meanings: m });
     });
     if (c.relating) {
-      var R = KB.HEX[c.relating], rm = { timing: [fillK(pk(r, F.timing), { H: "ฮู่" + R.th, K: kw(R) }), R.gist], advice: [R.advice] };
+      var R = KB.HEX[c.relating], rm = { timing: [fillK(pk(r, F.timing), { H: "กว้า" + R.th, K: kw(R) }), R.gist], advice: [R.advice] };
       var tk = topic === "overall" ? null : topic;
       if (tk) rm[tk] = [R[tk]];
-      items.push({ id: "rel." + c.relating, group: "ฮู่ที่จะกลายเป็น", label: proseLabel(c.relating), short: "ฮู่" + R.th, evidence: imageOf(c.relLower, c.relUpper),
+      items.push({ id: "rel." + c.relating, group: "กว้าที่จะกลายเป็น", label: proseLabel(c.relating), short: "กว้า" + R.th, evidence: imageOf(c.relLower, c.relUpper),
         strength: fo.hex === "primary" ? 0.8 : 0.93, tags: Object.keys(rm), meanings: rm });
     } else {
       items.push({ id: "still", group: "จังหวะ", label: "ไม่มีเส้นเปลี่ยน", short: "ความนิ่ง", strength: 0.6, tags: ["timing"],
-        meanings: { timing: ["สถานการณ์ช่วงนี้ค่อนข้างนิ่งและมั่นคง สิ่งที่ฮู่หลักบอกจะเป็นแนวทางได้อีกระยะหนึ่ง", "ไม่มีเส้นใดเปลี่ยน แปลว่าพลังของช่วงนี้ชัดเจนและต่อเนื่อง"] } });
+        meanings: { timing: ["สถานการณ์ช่วงนี้ค่อนข้างนิ่งและมั่นคง สิ่งที่กว้าหลักบอกจะเป็นแนวทางได้อีกระยะหนึ่ง", "ไม่มีเส้นใดเปลี่ยน แปลว่าพลังของช่วงนี้ชัดเจนและต่อเนื่อง"] } });
     }
     return {
       domain: "iching", topic: topic || "overall", subject: opts.nickname ? { nickname: opts.nickname } : {},
-      headline: "ฮู่" + P.th + (c.relating ? " ที่กำลังเปลี่ยนไปสู่ฮู่" + KB.HEX[c.relating].th : ""), items: items,
+      headline: "กว้า" + P.th + (c.relating ? " ที่กำลังเปลี่ยนไปสู่กว้า" + KB.HEX[c.relating].th : ""), items: items,
       extras: { tips: [P.advice] }
     };
   }
@@ -125,7 +125,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var IC = window.IChing, KB = window.ICHING_KB, FK = window.FortuneKit, $ = FK.$, esc = FK.esc;
   var st = { values: [], topic: "overall", cast: null, busy: false, daily: null };
 
-  /* ---------- วาดฮู่ (SVG) ---------- */
+  /* ---------- วาดกว้า (SVG) ---------- */
   function hexSVG(bits, changing, cls, label) {
     var W = 120, lh = 12, gap = 9, H = 6 * lh + 5 * gap, out = [];
     for (var i = 0; i < 6; i++) {
@@ -135,7 +135,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       else out.push('<rect x="0" y="' + y + '" width="52" height="' + lh + '" rx="3" fill="' + col + '"/><rect x="68" y="' + y + '" width="52" height="' + lh + '" rx="3" fill="' + col + '"/>');
       if (ch) out.push('<circle cx="' + (W + 14) + '" cy="' + (y + lh / 2) + '" r="5" fill="none" stroke="' + col + '" stroke-width="2.4"/>');
     }
-    return '<svg class="' + (cls || "ic-hex") + '" viewBox="-2 -2 ' + (W + 26) + " " + (H + 4) + '" role="img" aria-label="' + esc(label || "ภาพฮู่") + '">' + out.join("") + "</svg>";
+    return '<svg class="' + (cls || "ic-hex") + '" viewBox="-2 -2 ' + (W + 26) + " " + (H + 4) + '" role="img" aria-label="' + esc(label || "ภาพกว้า") + '">' + out.join("") + "</svg>";
   }
   function drawHex(c, x, y, w, h, bits, changing, color) {
     var lh = h / 8.2, gap = (h - 6 * lh) / 5;
@@ -167,7 +167,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   $("#icCoins").innerHTML = [0, 1, 2].map(function (i) { return '<span class="ic-coin" data-i="' + i + '"><span class="ic-coin-in">' + coinSVG + '</span><b class="ic-coin-v"></b></span>'; }).join("");
   function renderBuild() {
     $("#icBuild").innerHTML = hexSVG(st.values.map(function (v) { return IC.isYang(v) ? 1 : 0; }).concat([undefined, undefined, undefined, undefined, undefined, undefined]).slice(0, 6),
-      st.values.map(function (v, i) { return IC.isChanging(v) ? i + 1 : 0; }).filter(Boolean), "ic-hex big", "ฮู่ที่กำลังสร้าง " + st.values.length + " จาก 6 เส้น");
+      st.values.map(function (v, i) { return IC.isChanging(v) ? i + 1 : 0; }).filter(Boolean), "ic-hex big", "กว้าที่กำลังสร้าง " + st.values.length + " จาก 6 เส้น");
     $("#icLines").innerHTML = st.values.map(function (v, i) { return "<li>เส้นที่ " + (i + 1) + ": <b>" + v + "</b> " + (v === 9 ? "หยางเก่า (เปลี่ยน)" : v === 7 ? "หยาง" : v === 8 ? "หยิน" : "หยินเก่า (เปลี่ยน)") + "</li>"; }).join("");
     $("#icTossCount").textContent = st.values.length < 6 ? "โยนครั้งที่ " + (st.values.length + 1) + " จาก 6 (สร้างเส้นจากล่างขึ้นบน)" : "ครบ 6 เส้นแล้ว";
     $("#icToss").textContent = st.values.length < 6 ? "โยนเหรียญ (" + (st.values.length + 1) + "/6)" : "ดูผล";
@@ -196,7 +196,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function hexCard(n, bits, changing, role) {
     var h = KB.HEX[n], lo = IC.hexFromBits(bits);
     return '<div class="ic-hexcard"><p class="ic-role">' + esc(role) + "</p>" + hexSVG(bits, changing, "ic-hex big", IC.hexLabel(n)) +
-      '<p class="ic-zh" lang="zh">' + esc(h.zh) + '</p><h3>ฮู่ที่ ' + n + " · " + esc(h.th) + '</h3><p class="fk-small">' + esc(h.py) + " · " + esc(IC.imageOf(lo.lower, lo.upper)) + " " + KB.TRIGRAMS[lo.upper].sym + KB.TRIGRAMS[lo.lower].sym + "</p>" +
+      '<p class="ic-zh" lang="zh">' + esc(h.zh) + '</p><h3>กว้าที่ ' + n + " · " + esc(h.th) + '</h3><p class="fk-small">' + esc(h.py) + " · " + esc(IC.imageOf(lo.lower, lo.upper)) + " " + KB.TRIGRAMS[lo.upper].sym + KB.TRIGRAMS[lo.lower].sym + "</p>" +
       '<ul class="fk-chips">' + h.kw.map(function (k) { return "<li>" + esc(k) + "</li>"; }).join("") + "</ul></div>";
   }
   var stats;
@@ -206,8 +206,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#icStage").hidden = true; $("#icResult").hidden = false;
     var q = $("#icQuestion").value.trim();
     $("#icResMeta").innerHTML = "หัวข้อ <b>" + esc(KB.TOPICS[st.topic]) + "</b>" + (q ? '<br>คำถาม: <q>' + esc(q) + "</q>" : "");
-    $("#icHexes").innerHTML = hexCard(c.primary, c.bits, c.changing, "ฮู่หลัก (สถานการณ์ตอนนี้)") +
-      (c.relating ? '<span class="ic-arrow" aria-hidden="true">→</span>' + hexCard(c.relating, c.relBits, [], "ฮู่ที่จะกลายเป็น (แนวโน้ม)") : "");
+    $("#icHexes").innerHTML = hexCard(c.primary, c.bits, c.changing, "กว้าหลัก (สถานการณ์ตอนนี้)") +
+      (c.relating ? '<span class="ic-arrow" aria-hidden="true">→</span>' + hexCard(c.relating, c.relBits, [], "กว้าที่จะกลายเป็น (แนวโน้ม)") : "");
     $("#icRule").innerHTML = "<b>วิธีอ่าน:</b> " + esc(fo.rule) + (fo.lines.length ? " · เส้นที่ให้น้ำหนัก: " + fo.lines.join(", ") : "");
     $("#icGist").innerHTML = '<p class="ic-gist">' + esc(P.gist) + "</p>" + (c.changing.length ? '<ul class="ic-lines">' + c.changing.map(function (p) {
       var L = KB.LINE_POS[p - 1], old = c.values[p - 1] === 9;
@@ -231,8 +231,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function card(c, lines, kind) {
     var P = KB.HEX[c.primary];
     return {
-      kind: kind, glow: "rgba(234,179,8,.32)", artH: 360, title: "ฮู่ที่ " + c.primary + " " + P.zh + " · " + P.th,
-      sub: c.relating ? "กำลังเปลี่ยนเป็นฮู่ที่ " + c.relating + " · " + KB.HEX[c.relating].th : P.kw.join(" · "),
+      kind: kind, glow: "rgba(234,179,8,.32)", artH: 360, title: "กว้าที่ " + c.primary + " " + P.zh + " · " + P.th,
+      sub: c.relating ? "กำลังเปลี่ยนเป็นกว้าที่ " + c.relating + " · " + KB.HEX[c.relating].th : P.kw.join(" · "),
       msgs: (lines && lines.length >= 2 ? lines : [P.gist, P.advice]).slice(0, 2).concat(["คำแนะนำ: " + P.advice]).slice(0, 3),
       foot: KB.disclaimerShort + " · ตัวบทอี้จิงเป็นสาธารณสมบัติ",
       art: function (cx, x, y, w, h) {
@@ -250,19 +250,19 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     if (st.cast) FK.share(this, card(st.cast, rd.lines, "อี้จิง"), "lensiq-iching.jpg", $("#icCardImg"), "อี้จิง — LENSIQ");
   });
 
-  /* ---------- ฮู่ประจำวัน ---------- */
+  /* ---------- กว้าประจำวัน ---------- */
   function renderDaily() {
     if (st.daily) return;
     var c = st.daily = IC.dailyCast(), P = KB.HEX[c.primary];
     var date = (function () { try { return new Date().toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" }); } catch (e) { return FK.dayKey(); } })();
-    $("#icDaily").innerHTML = '<p class="fk-small">' + esc(date) + "</p>" + hexCard(c.primary, c.bits, c.changing, "ฮู่ประจำวันนี้") +
+    $("#icDaily").innerHTML = '<p class="fk-small">' + esc(date) + "</p>" + hexCard(c.primary, c.bits, c.changing, "กว้าประจำวันนี้") +
       '<p class="ic-gist">' + esc(P.gist) + '</p><p class="fk-small">' + esc(KB.DAILY_NOTE) + "</p>" + FK.readingBlock("icDayRd", "คำทำนายประจำวัน", true) +
-      '<div class="fk-res-actions"><button class="btn primary big" id="icDayShare" type="button">แชร์การ์ดประจำวัน</button></div><img class="fk-cardimg" id="icDayImg" alt="การ์ดฮู่ประจำวันสำหรับแชร์" hidden>';
+      '<div class="fk-res-actions"><button class="btn primary big" id="icDayShare" type="button">แชร์การ์ดประจำวัน</button></div><img class="fk-cardimg" id="icDayImg" alt="การ์ดกว้าประจำวันสำหรับแชร์" hidden>';
     FK.bindReading("icDayRd", "iching", function (topic, r) { return IC.buildFacts(c, topic, { rng: r }); }, { withTopics: true });
-    $("#icDayShare").addEventListener("click", function () { FK.share(this, card(c, (FK.readings.icDayRd || {}).lines, "ฮู่ประจำวัน"), "lensiq-iching-daily.jpg", $("#icDayImg"), "ฮู่ประจำวัน — LENSIQ"); });
+    $("#icDayShare").addEventListener("click", function () { FK.share(this, card(c, (FK.readings.icDayRd || {}).lines, "กว้าประจำวัน"), "lensiq-iching-daily.jpg", $("#icDayImg"), "กว้าประจำวัน — LENSIQ"); });
   }
 
-  /* ---------- ตาราง 64 ฮู่ ---------- */
+  /* ---------- ตาราง 64 กว้า ---------- */
   var allDone = false;
   function renderAll() {
     if (allDone) return; allDone = true;
@@ -273,14 +273,14 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   $("#icGrid").addEventListener("click", function (e) {
     var b = e.target.closest(".ic-cell"); if (!b) return;
     var n = +b.dataset.n, h = KB.HEX[n], bits = IC.bitsOf(n);
-    $("#icDetail").innerHTML = hexCard(n, bits, [], "รายละเอียดฮู่") + '<dl class="ic-dl"><dt>แก่น</dt><dd>' + esc(h.gist) + "</dd><dt>ความรัก</dt><dd>" + esc(h.love) + "</dd><dt>การงาน</dt><dd>" + esc(h.work) + "</dd><dt>การเงิน</dt><dd>" + esc(h.money) + "</dd><dt>คำแนะนำ</dt><dd>" + esc(h.advice) + "</dd></dl>";
+    $("#icDetail").innerHTML = hexCard(n, bits, [], "รายละเอียดกว้า") + '<dl class="ic-dl"><dt>แก่น</dt><dd>' + esc(h.gist) + "</dd><dt>ความรัก</dt><dd>" + esc(h.love) + "</dd><dt>การงาน</dt><dd>" + esc(h.work) + "</dd><dt>การเงิน</dt><dd>" + esc(h.money) + "</dd><dt>คำแนะนำ</dt><dd>" + esc(h.advice) + "</dd></dl>";
     $("#icDetail").hidden = false; $("#icDetail").scrollIntoView({ block: "nearest", behavior: FK.reduced ? "auto" : "smooth" });
   });
 
   /* ---------- สถิติ / บูธ / แหล่งอ้างอิง ---------- */
   stats = FK.statsPanel({
     box: "icStats", toggle: "icStatsOn", clear: "icStatsClear", key: "ic-stats", prefKey: "ic-prefs",
-    render: function (s) { return '<p class="fk-small">ฮู่ที่ออกบ่อย</p>' + FK.bars(s.hex, s.total, function (k) { return k + " " + (KB.HEX[k] ? KB.HEX[k].th : ""); }, 5) + '<p class="fk-small">หัวข้อ</p>' + FK.bars(s.topics, s.total, function (k) { return KB.TOPICS[k] || k; }, 4); }
+    render: function (s) { return '<p class="fk-small">กว้าที่ออกบ่อย</p>' + FK.bars(s.hex, s.total, function (k) { return k + " " + (KB.HEX[k] ? KB.HEX[k].th : ""); }, 5) + '<p class="fk-small">หัวข้อ</p>' + FK.bars(s.topics, s.total, function (k) { return KB.TOPICS[k] || k; }, 4); }
   });
   var kiosk = FK.kiosk({ toggle: "icKiosk", exit: "icKioskExit", idle: "icIdle", busy: function () { return !$("#icSetup").hidden ? false : true; }, reset: function () { reset(); selectTab("tabCast"); } });
   $("#icSources").innerHTML = KB.sources.map(function (s) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.label) + "</a></li>"; }).join("");

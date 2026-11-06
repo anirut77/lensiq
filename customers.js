@@ -107,7 +107,12 @@ if (typeof document !== "undefined") (() => {
   const daysAgo = t => { const d = Math.floor((Date.now() - t) / DAY); return d <= 0 ? "วันนี้" : d === 1 ? "เมื่อวาน" : `${d} วันก่อน`; };
   const optText = o => `${o.size} · หวาน ${o.sweet}% · ${o.temp}`;
 
-  let members = load(K.members, []);   // {id,name,phone,descriptor,created}
+  // cx-members = {id,name,phone,created,consentAt,lastSeen?,faceDeletedAt?} (ไม่มีค่าใบหน้า — insights.js อ่านคีย์นี้)
+  // ค่าใบหน้าเข้ารหัสอยู่ใน lqv-cx-faces (lensiq-facevault.js) และแนบกลับเป็น m.descriptor ในหน่วยความจำเท่านั้น
+  const FACE_KEY = "lqv-cx-faces", PRIV_KEY = "cx-privacy";
+  let members = load(K.members, []);
+  let faceState = "enc";
+  const priv = Object.assign({ retentionDays: 365 }, load(PRIV_KEY, {}) || {});
   let orders = load(K.orders, []);     // {id,ticket,mid,drinkId,name,cat,size,sweet,temp,qty,price,time}
   let menu = load(K.menu, null) || DEFAULT_MENU;
   // เมนูตัวอย่างชุดเก่ามีสินค้าแบรนด์น้ำดื่ม — เปลี่ยนชื่อเฉพาะรายการตัวอย่าง (id เดิม) ประวัติออเดอร์เดิมไม่แตะ
@@ -115,7 +120,36 @@ if (typeof document !== "undefined") (() => {
     menu.forEach(d => { const n = DEFAULT_MENU.find(x => x.id === d.id); if (n && /AQUALINE/.test(d.name)) Object.assign(d, { name: n.name, cat: n.cat }); });
     store(K.menu, menu);
   }
-  const saveAll = () => { store(K.members, members); store(K.orders, orders); store(K.menu, menu); };
+  const saveQ = LQVault.queue();
+  function saveMembers(opts) {
+    const snap = members.slice();
+    return saveQ(() => LQVault.splitSave(K.members, FACE_KEY, snap, "descriptor", localStorage, opts)
+      .then(m => { if (m) showFaceState(m); return true; })
+      .catch(e => { if (e.name === "VaultLockedError") showFaceState("locked"); else alert("พื้นที่จัดเก็บเต็มหรือถูกบล็อก"); return false; }));
+  }
+  function showFaceState(st) {
+    faceState = st;
+    const el = $("#faceState"); if (!el) return;
+    el.textContent = LQVault.STATE_TH[st] || ""; el.className = "hint vault-state " + st;
+  }
+  // ลบเฉพาะค่าใบหน้าของสมาชิกที่ไม่ได้มาเกิน N วัน (ประวัติการสั่งยังอยู่ ค้นหาด้วยชื่อได้)
+  function applyRetention() {
+    const now = Date.now(), last = new Map();
+    orders.forEach(o => { if (o.time > (last.get(o.mid) || 0)) last.set(o.mid, o.time); });
+    const ids = new Set(LQVault.expired(members.map(m => ({ ...m, lastSeen: Math.max(m.lastSeen || 0, last.get(m.id) || 0) || undefined })), priv.retentionDays, now));
+    if (!ids.size) return 0;
+    members.forEach(m => { if (ids.has(m.id)) { delete m.descriptor; m.faceDeletedAt = now; m.faceExpired = true; } });
+    saveMembers();
+    return ids.size;
+  }
+  const storageReady = LQVault.splitLoad(K.members, FACE_KEY, "descriptor", localStorage, { stamp: true }).then(r => {
+    members = r.records; showFaceState(r.state);
+    const n = applyRetention();
+    if (n) engine(`ลบข้อมูลใบหน้าของสมาชิกที่ไม่ได้มาเกิน ${priv.retentionDays} วันแล้ว ${n} คน`, "warn");
+    if (current) current = members.find(m => m.id === current.id) || null;
+    renderAnalytics();
+  }).catch(e => console.error(e));
+  const saveAll = () => { saveMembers(); store(K.orders, orders); store(K.menu, menu); };
 
   const video = $("#video"), camBox = $("#camBox"), overlay = $("#camOverlay");
   let ready = false, matcher = null, scanning = false, current = null;
@@ -153,7 +187,8 @@ if (typeof document !== "undefined") (() => {
             faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
           ]);
           return b;
-        })
+        }),
+        storageReady
       ]);
       ready = true; rebuildMatcher();
       engine(`พร้อมใช้งาน (ตัวประมวลผล: ${backend.toUpperCase()})`, "ok");
@@ -273,6 +308,7 @@ if (typeof document !== "undefined") (() => {
   // ---------- การ์ดลูกค้า ----------
   function selectCustomer(id, via) {
     current = members.find(m => m.id === id) || null;
+    if (current && via === "สแกนใบหน้า" && Date.now() - (current.lastSeen || 0) > 3600000) { current.lastSeen = Date.now(); saveMembers({ faces: false }); }
     clearChips(); $("#scanStatus").textContent = current ? `พบสมาชิกจาก${via}` : "";
     $("#search").value = ""; $("#searchResults").innerHTML = "";
     renderCustomer();
@@ -388,6 +424,7 @@ if (typeof document !== "undefined") (() => {
     if (!ready) return set("กล้องยังไม่พร้อม", "err");
     if (!name) return set("กรุณากรอกชื่อ", "err");
     if (!f.consent.checked) return set("ต้องได้รับความยินยอมจากลูกค้าก่อน", "err");
+    if (faceState === "locked") return set(LQVault.STATE_TH.locked, "err");
     if (phone && members.some(x => x.phone === phone)) return set("เบอร์นี้เป็นสมาชิกอยู่แล้ว", "err");
     btn.disabled = true; set("กำลังสแกน กรุณามองกล้องนิ่ง ๆ...", "");
     try {
@@ -396,8 +433,11 @@ if (typeof document !== "undefined") (() => {
         const best = matcher.findBestMatch(new Float32Array(descriptor));
         if (best.label !== "unknown") throw new Error(`ใบหน้านี้เป็นสมาชิกอยู่แล้ว (คุณ${members.find(x => x.id === best.label)?.name})`);
       }
-      const mem = { id: crypto.randomUUID(), name, phone, descriptor, created: Date.now(), consentAt: Date.now() };
-      members.push(mem); store(K.members, members); rebuildMatcher();
+      const now = Date.now();
+      const mem = { id: crypto.randomUUID(), name, phone, descriptor, created: now, consentAt: now, lastSeen: now };
+      members.push(mem);
+      if (!(await saveMembers())) { members.pop(); throw new Error("บันทึกข้อมูลใบหน้าไม่สำเร็จ"); }
+      rebuildMatcher();
       f.reset(); set(`สมัครสมาชิกคุณ${name} สำเร็จ`, "ok");
       selectCustomer(mem.id, "การสมัครสมาชิก"); renderAnalytics();
       setTimeout(() => showTab("pos"), 900);
@@ -462,7 +502,7 @@ if (typeof document !== "undefined") (() => {
     $("#pSelect").onclick = () => { selectCustomer(id, "รายชื่อสมาชิก"); showTab("pos"); };
     if (m.descriptor) $("#pDelFace").onclick = () => {
       if (!confirm(`ลบข้อมูลใบหน้าของคุณ${m.name}? ระบบจะจำใบหน้าไม่ได้อีก แต่ยังค้นหาด้วยชื่อได้`)) return;
-      delete m.descriptor; m.faceDeletedAt = Date.now(); store(K.members, members); rebuildMatcher(); renderAnalytics(); renderProfile(id);
+      delete m.descriptor; m.faceDeletedAt = Date.now(); saveMembers(); rebuildMatcher(); renderAnalytics(); renderProfile(id);
     };
     $("#pDelAll").onclick = () => {
       if (!confirm(`ลบคุณ${m.name} พร้อมข้อมูลใบหน้าและประวัติการสั่งทั้งหมด? ย้อนกลับไม่ได้`)) return;
@@ -515,6 +555,30 @@ if (typeof document !== "undefined") (() => {
     if (name === "analytics") renderAnalytics();
   }
   document.querySelectorAll(".tab").forEach(t => t.onclick = () => showTab(t.dataset.t));
+
+  // ---------- ความเป็นส่วนตัวของข้อมูลใบหน้า ----------
+  {
+    const sel = $("#retention");
+    sel.value = String(priv.retentionDays);
+    if (sel.value !== String(priv.retentionDays)) { priv.retentionDays = 365; sel.value = "365"; }
+    sel.addEventListener("change", () => {
+      priv.retentionDays = +sel.value || 365; store(PRIV_KEY, priv);
+      const n = applyRetention();
+      if (n) { rebuildMatcher(); renderAnalytics(); }
+      $("#privMsg").textContent = n ? `ลบข้อมูลใบหน้าของสมาชิกที่ไม่ได้มาเกิน ${priv.retentionDays} วันแล้ว ${n} คน` : `ตั้งค่าแล้ว: ${priv.retentionDays} วัน`;
+    });
+  }
+  // ลบข้อมูลใบหน้าทั้งหมด: ค่าใบหน้าที่เข้ารหัส + กุญแจใน IndexedDB ; สมาชิกและประวัติการสั่งยังอยู่ (ค้นหาด้วยชื่อได้)
+  $("#wipeFaces").onclick = async () => {
+    if (!confirm("ลบข้อมูลใบหน้าของสมาชิกทุกคน? ระบบจะจำใบหน้าไม่ได้อีก แต่สมาชิกและประวัติการสั่งยังอยู่ ย้อนกลับไม่ได้")) return;
+    stopScan();
+    const now = Date.now();
+    members.forEach(m => { if (m.descriptor) m.faceDeletedAt = now; delete m.descriptor; });
+    await saveQ(async () => { await LQVault.wipe([FACE_KEY]); store(K.members, members); });
+    showFaceState(LQVault.supported() ? "enc" : "plain");
+    rebuildMatcher(); renderAnalytics();
+    $("#privMsg").textContent = "ลบข้อมูลใบหน้าทั้งหมดแล้ว";
+  };
 
   renderDrinkSel(); renderSeg(); renderCustomer(); renderMenu(); renderAnalytics(); init();
 })();

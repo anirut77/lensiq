@@ -225,6 +225,7 @@
     chinBroad: 0.541, chinPointed: 0.532, chinAngleBroad: 138, chinAnglePointed: 128.5, // คาง P75/P25
     zoneDom: 0.8,   // ค่า z ของสัดส่วนสามส่วนที่ถือว่า "เด่น"
     typeZ: 0.6,     // ค่า z ที่ถือว่าลักษณะชัด (ใช้จัดชนิดคิ้ว/ตา/จมูก/ปาก)
+    tiltZ: 0.3,     // ค่า z ของหางตาที่ถือว่า "ชี้ขึ้น/ลาดลง" (ต่ำกว่านี้ = ระดับเดียวกับหัวตา)
     palaceZ: 0.45   // ค่า z แบ่งวังเป็น 3 ระดับ (≈ แบ่งสามส่วนเท่า ๆ กันถ้าการแจกแจงปกติ)
   };
 
@@ -241,12 +242,15 @@
     return "balanced";
   }
   function eyeType(m) {
-    var S = z(m, "eyeAspect"), U = z(m, "eyeTilt"), t = T.typeZ;
-    if (S >= t && U >= t) return "phoenix";        // ยาว หางตาชี้ขึ้น = ตาหงส์ 丹凤眼
-    if (S >= t && U <= -t) return "elephant";      // ยาว หางตาลาด = ตาช้าง 象眼
+    // เกณฑ์หางตา (T.tiltZ) ใช้ค่าเดียวกับคำบรรยายหลักฐาน ("หางตาชี้ขึ้น/ลาดลง/ระดับ") ใน buildFacts
+    // เพื่อให้ชื่อชนิดตา คำอธิบาย และค่าที่วัดได้ไม่ขัดกัน (เช่น ตาเสือ = แนวตาระดับ จึงต้องไม่ลาดลง)
+    var S = z(m, "eyeAspect"), U = z(m, "eyeTilt"), t = T.typeZ, u = T.tiltZ;
+    if (S >= t && U >= u) return "phoenix";        // ยาว หางตาชี้ขึ้น = ตาหงส์ 丹凤眼
+    if (S >= t && U <= -u) return "elephant";      // ยาว หางตาลาด = ตาช้าง 象眼
     if (S >= t) return "dragon";                   // ยาว แนวตาระดับ = ตามังกร 龙眼
-    if (S <= -t && U >= 0.5 * t) return "deer";    // กลม หางตาชี้ขึ้น = ตากวาง 鹿眼
-    if (S <= -t) return "tiger";                   // กลมโต = ตาเสือ 虎眼
+    if (S <= -t && U >= u) return "deer";          // กลม หางตาชี้ขึ้น = ตากวาง 鹿眼
+    if (S <= -t && U <= -u) return "soft";         // กลม หางตาลาด = ตาอ่อนโยน (ตาเมตตา)
+    if (S <= -t) return "tiger";                   // กลมโต แนวตาระดับ = ตาเสือ 虎眼
     return "balanced";
   }
   function noseType(m) {
@@ -276,8 +280,11 @@
     var lipNote = m.lipRatio >= NORMS.lipRatio[0] + NORMS.lipRatio[1] ? "upperFull" : m.lipRatio <= NORMS.lipRatio[0] - NORMS.lipRatio[1] ? "lowerFull" : "even";
     var yintang = m.interBrow >= T.browGapWide ? "wide" : m.interBrow <= T.browGapNarrow ? "narrow" : "balanced";
     var philtrum = m.philtrumShare >= T.philLong ? "long" : m.philtrumShare <= T.philShort ? "short" : "balanced";
-    var chin = (m.chinWidth >= T.chinBroad || m.chinAngle >= T.chinAngleBroad) && m.chinAngle > T.chinAnglePointed ? "broad"
-      : (m.chinWidth <= T.chinPointed || m.chinAngle <= T.chinAnglePointed) ? "pointed" : "balanced";
+    // คาง: ใช้ทั้งความกว้างและมุมปลายคาง แต่ห้ามจัดเป็น "กว้างมน" เมื่อความกว้างวัดได้แคบชัด (และกลับกัน)
+    // เกณฑ์ ±0.5 ของค่า z ความกว้างตรงกับคำบรรยายหลักฐาน "คางกว้าง/แคบกว่าค่ากลาง"
+    var zCW = z(m, "chinWidth");
+    var chin = (m.chinWidth >= T.chinBroad || m.chinAngle >= T.chinAngleBroad) && m.chinAngle > T.chinAnglePointed && zCW > -0.5 ? "broad"
+      : (m.chinWidth <= T.chinPointed || m.chinAngle <= T.chinAnglePointed) && zCW < 0.5 ? "pointed" : "balanced";
     // สามส่วน: เทียบสัดส่วนกับมัธยฐานของชุดสอบเทียบ (ไม่ใช่เทียบกันตรง ๆ เพราะแนวคิ้วจาก landmark ทำให้ส่วนบนสั้นกว่าเสมอ)
     var shares = { upper: m.upperShare, middle: m.middleShare, lower: m.lowerShare }, dom = null, zs;
     if (!m.upperEstimated) {
@@ -673,6 +680,46 @@
   var PAL_PART = { ming: ["หว่างคิ้ว", "กว้าง", "แคบ"], caibo: ["ปลายและปีกจมูก", "อิ่ม", "เรียว"], xiongdi: ["คิ้ว", "ยาว", "สั้น"], fuqi: ["ช่วงหางตาถึงขมับ", "กว้าง", "แคบ"],
     zinv: ["บริเวณใต้ตา", "กว้าง", "กระชับ"], jie: ["สันจมูกช่วงบน", "ยาว", "สั้น"], qianyi: ["มุมหน้าผาก", "กว้าง", "แคบ"], nupu: ["คางสองข้าง", "กว้าง", "เรียว"],
     guanlu: ["หน้าผาก", "สูง", "ต่ำ"], tianzhai: ["ช่องระหว่างคิ้วกับตา", "กว้าง", "แคบ"], fude: ["บริเวณเหนือหางคิ้ว", "กว้าง", "แคบ"], fumu: ["ระดับคิ้วซ้าย–ขวา", "สมดุล", "ต่างกันมาก"] };
+  /* ---------- ความสอดคล้องระหว่างคำบรรยายรูปร่างกับค่าที่วัดได้ ----------
+     คำบรรยายหลักฐานใช้เกณฑ์ |z| ≥ 0.5 ("…กว่าค่ากลาง") และหางตาใช้ T.tiltZ — ชุดกฎด้านล่างใช้เกณฑ์เดียวกัน
+     ถ้าสำนวนในคลังพูดถึงรูปร่างที่ตรงข้ามกับค่าที่วัดได้ สำนวนนั้นจะไม่ถูกใช้ (กฎเดียวกันนี้ใช้ในชุดทดสอบ) */
+  var shapeWordOf = function (sz) { return sz >= T.typeZ ? "เรียวยาว" : sz <= -T.typeZ ? "ค่อนข้างกลม" : "สมส่วน"; };
+  var tiltWordOf = function (tz) { return tz >= T.tiltZ ? "ชี้ขึ้น" : tz <= -T.tiltZ ? "ลาดลงนุ่ม ๆ" : "อยู่ระดับเดียวกับหัวตา"; };
+  var SHAPE_RULES = [
+    // [รูปแบบคำ, ค่าที่วัด, เงื่อนไขที่ถือว่าขัดกัน]
+    [/ตา(?:ที่)?กลม|ดวงตากลม|ตากลมโต/, "eyeAspect", function (v) { return v >= T.typeZ; }],
+    [/(?:ดวง)?ตา(?:ที่)?เรียวยาว|ตายาว/, "eyeAspect", function (v) { return v <= -T.typeZ; }],
+    [/แนวตาระดับ|แนวหางตา(?:ระดับ|สมดุล)|ทั้งความยาวและแนวหางตา/, "eyeTilt", function (v) { return Math.abs(v) >= T.tiltZ; }],
+    [/หางตาชี้ขึ้น/, "eyeTilt", function (v) { return v < T.tiltZ; }],
+    [/หางตาลาด/, "eyeTilt", function (v) { return v > -T.tiltZ; }],
+    [/คิ้ว(?:ที่)?ยาว|ยาวเกินตา|คิ้วยาวโค้ง/, "browEye", function (v) { return v <= -0.5; }],
+    [/คิ้ว(?:ที่)?สั้น|คิ้วกระชับ/, "browEye", function (v) { return v >= 0.5; }],
+    [/คิ้ว(?:ที่)?โก่ง|โก่งโค้ง/, "browArch", function (v) { return v <= -0.5; }],
+    [/คิ้วตรง|เส้นคิ้ว(?:ค่อนข้าง)?ตรง|ที่เส้นตรง/, "browArch", function (v) { return v >= 0.5; }],
+    [/สัน(?:จมูก)?ยาว|จมูกยาว/, "noseLen", function (v) { return v <= -0.5; }],
+    [/จมูก(?:ที่)?(?:สั้น|กะทัดรัด)/, "noseLen", function (v) { return v >= 0.5; }],
+    [/ปีกจมูก(?:ที่)?(?:กว้าง|อิ่ม|ใหญ่)/, "alarWidth", function (v) { return v <= -0.5; }],
+    [/ปีกจมูก(?:ที่)?(?:แคบ|เรียว)|จมูกเรียว/, "alarWidth", function (v) { return v >= 0.5; }],
+    [/ปาก(?:ที่)?กว้าง/, "mouthW", function (v) { return v <= -0.5; }],
+    [/ปาก(?:ที่)?เล็ก/, "mouthW", function (v) { return v >= 0.5; }],
+    [/ริมฝีปาก(?:ที่)?(?:อิ่ม|หนา)|ปากอิ่ม|เล็กแต่ริมฝีปากอิ่ม/, "lipTotal", function (v) { return v <= -0.5; }],
+    [/ริมฝีปาก(?:ที่)?บาง/, "lipTotal", function (v) { return v >= 0.5; }],
+    [/คาง(?:ที่)?(?:กว้าง|มนกว้าง|อิ่ม)/, "chinWidth", function (v) { return v <= -0.5; }],
+    [/คาง(?:ที่)?(?:เรียว|แหลม)|คางเรียวลง/, "chinWidth", function (v) { return v >= 0.5; }],
+    [/ใบหน้า(?:ที่)?กลม|หน้ากลม/, "lengthRatio", function (v) { return v >= 0.5; }],
+    [/ใบหน้า(?:ที่)?ยาว|โครงหน้ายาว|หน้ายาว/, "lengthRatio", function (v) { return v <= -0.5; }],
+    [/กราม(?:ที่)?(?:กว้าง|หนักแน่น)|กรามและคางหนักแน่น|ช่วงล่างกว้าง/, "jawRatio", function (v) { return v <= -0.5; }],
+    [/หน้าผาก(?:ที่)?กว้าง/, "foreheadRatio", function (v) { return v <= -0.5; }]
+  ];
+  /** true เมื่อสำนวน text บรรยายรูปร่างที่ขัดกับค่า z ที่วัดได้ (zm = { ชื่อค่า: z }) */
+  function contradicts(text, zm) {
+    text = String(text || "").replace(/ร่องใต้จมูก|ใต้จมูก/g, "ร่อง"); // "ร่องใต้จมูกยาว" ไม่ใช่ "จมูกยาว"
+    for (var i = 0; i < SHAPE_RULES.length; i++) {
+      var R = SHAPE_RULES[i], v = zm[R[1]];
+      if (typeof v === "number" && R[0].test(text) && R[2](v)) return true;
+    }
+    return false;
+  }
   var MT_PART = { south: "หน้าผาก", center: "จมูก", east: "โหนกแก้มซ้ายภาพ", west: "โหนกแก้มขวาภาพ", north: "คาง" };
   function buildFacts(R, opt) {
     opt = opt || {};
@@ -681,12 +728,19 @@
     var add = function (id, group, label, evidence, strength, only) {
       var src = I[id]; if (!src) return;
       var meanings = {};
-      Object.keys(src).forEach(function (t) { if (!only || only.indexOf(t) >= 0) meanings[t] = src[t].map(unhedge); });
+      Object.keys(src).forEach(function (t) {
+        if (only && only.indexOf(t) < 0) return;
+        // ตัดสำนวนที่บรรยายรูปร่างขัดกับค่าที่วัดได้จริง (เช่น "ตากลม" ทั้งที่วัดได้ว่าตาเรียวยาว)
+        var keep = src[t].filter(function (x) { return !contradicts(x, Zm); }).map(unhedge);
+        if (keep.length) meanings[t] = keep;
+      });
       var tags = Object.keys(meanings); if (!tags.length) return;
       if (topic !== "overall" && meanings[topic]) strength += 0.15;
       items.push({ id: id, group: group, label: label, evidence: evidence || "", strength: Math.round(clamp(strength, 0.05, 1) * 100) / 100, tags: tags, meanings: meanings });
     };
-    var Zr = function (k) { return zOf(k, m[k]); };
+    var Zr = function (k) { return zOf(k, m[k]); }, Zm = {};
+    Object.keys(NORMS).forEach(function (k) { if (typeof m[k] === "number" && isFinite(m[k])) Zm[k] = Zr(k); });
+    if (m.upperEstimated) { delete Zm.lengthRatio; delete Zm.upperShare; delete Zm.foreheadH; }
     var E = KB.elements[R.el.top.id], E2 = KB.elements[R.el.second.id];
     add("element." + R.el.top.id, "ธาตุประจำรูปหน้า", "ธาตุ" + E.th, tpl(EV.element, { lengthRatio: fx(m.lengthRatio), jawPct: fx(m.jawRatio * 100, 0) }), 0.62 + R.el.top.pct / 250);
     if (R.el.second.pct >= 12) add("element." + R.el.second.id, "ธาตุรอง", "ธาตุรองอย่างธาตุ" + E2.th, "ธาตุรอง " + R.el.second.pct + "%", 0.22 + R.el.second.pct / 300, ["personality", "social", "work"]);
@@ -696,11 +750,11 @@
       tpl(EV.zone, { upper: Math.round(m.upperShare * 100), middle: Math.round(m.middleShare * 100), lower: Math.round(m.lowerShare * 100) }),
       Z.dominant ? zStrength([Z.z[Z.dominant]], 0.36) : 0.4);
     var F = KB.features, lab = function (f) { return plain(F[f].cats[cls[f].cat].label); };
-    add("brow." + cls.brow.cat, "คิ้ว", lab("brow"), tpl(EV.brow, { browEye: fx(m.browEye), archRel: rel(Zr("browArch"), "มาก", "น้อย") }),
+    add("brow." + cls.brow.cat, "คิ้ว", lab("brow"), tpl(EV.brow, { browEye: fx(m.browEye), lenRel: rel(Zr("browEye"), "ยาว", "สั้น"), archRel: rel(Zr("browArch"), "มาก", "น้อย") }),
       cls.brow.cat === "balanced" ? 0.34 : zStrength([Zr("browEye"), Zr("browArch"), Zr("browRise")]));
     if (cls.brow.note) add("brow.note." + cls.brow.note, "คิ้ว", cls.brow.note === "high" ? "คิ้วอยู่ห่างตา" : "คิ้วอยู่ใกล้ตา", tpl(EV["brow.note"], { rel: rel(Zr("browGap"), "กว้าง", "แคบ") }), zStrength([Zr("browGap")], 0.2));
-    var tz = Zr("eyeTilt");
-    add("eye." + cls.eye.cat, "ดวงตา", lab("eye"), tpl(EV.eye, { eyeAspect: fx(m.eyeAspect, 1), tiltWord: tz >= 0.5 ? "ชี้ขึ้น" : tz <= -0.5 ? "ลาดลงนุ่ม ๆ" : "อยู่ระดับเดียวกับหัวตา" }),
+    var tz = Zr("eyeTilt"), sz = Zr("eyeAspect");
+    add("eye." + cls.eye.cat, "ดวงตา", lab("eye"), tpl(EV.eye, { eyeAspect: fx(m.eyeAspect, 1), shapeWord: shapeWordOf(sz), tiltWord: tiltWordOf(tz) }),
       cls.eye.cat === "balanced" ? 0.34 : zStrength([Zr("eyeAspect"), tz]));
     if (cls.eye.note !== "normal") add("eye.note." + cls.eye.note, "ดวงตา", cls.eye.note === "wide" ? "ระยะห่างระหว่างตากว้าง" : "ระยะห่างระหว่างตาชิด", tpl(EV["eye.note"], { eyeGap: fx(m.eyeGap) }), zStrength([Zr("eyeGap")], 0.2));
     add("nose." + cls.nose.cat, "จมูก", lab("nose"), tpl(EV.nose, { lenRel: rel(Zr("noseLen"), "ยาว", "สั้น"), alarRel: rel(Zr("alarWidth"), "กว้าง", "แคบ") }),
@@ -749,7 +803,7 @@
   }
 
   var FRCore = {
-    buildFacts: buildFacts, TOPIC_IDS: TOPIC_IDS,
+    buildFacts: buildFacts, TOPIC_IDS: TOPIC_IDS, contradicts: contradicts, SHAPE_RULES: SHAPE_RULES,
     dist: dist, angleAt: angleAt, frame: frame, toAligned: toAligned, toImage: toImage, align: align, headPose: headPose,
     averageLandmarks: averageLandmarks, estimateHairline: estimateHairline, measure: measure, classify: classify,
     elementScores: elementScores, buildReading: buildReading, ageArea: ageArea, quality: quality, lightStats: lightStats,

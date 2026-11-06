@@ -183,6 +183,13 @@
 .ins-why{font-size:.8rem;color:var(--iq-ink2)}
 .ins-why summary{cursor:pointer;color:var(--navy);padding:2px 0}
 .ins-why ul{margin:4px 0 0;padding-left:18px}
+.ins-stat p{margin:4px 0 0;overflow-wrap:anywhere}
+.ins-stat a{color:var(--navy)}
+/* ---------- วิธีคำนวณ ---------- */
+.method summary{cursor:pointer;font-weight:600;color:var(--navy)}
+.method h3{font-size:.9rem;font-weight:600;color:var(--navy);margin:14px 0 4px}
+.method p,.method li{font-size:.84rem;color:var(--iq-ink);line-height:1.6;overflow-wrap:anywhere}
+.method ul{padding-left:18px;margin:4px 0}
 .ins-act{margin:0;font-size:.84rem;color:var(--iq-ink);background:var(--info-bg);border-radius:8px;padding:6px 10px;overflow-wrap:anywhere}
 .ins-act b{font-weight:600}
 .ins p,.ins div,.ins details{flex:none}
@@ -247,6 +254,7 @@
 .ab-w{position:absolute;top:5px;height:4px;border-radius:2px;background:color-mix(in srgb,var(--s1) 45%,transparent)}
 .ab-d{position:absolute;top:2px;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:var(--s1);box-shadow:0 0 0 2px var(--iq-surface)}
 .ab-row.few .ab-d{background:var(--iq-surface);border:2px solid var(--s1);box-sizing:border-box}
+.ab-s{position:absolute;top:0;width:2px;height:14px;margin-left:-1px;border-radius:1px;background:var(--navy)}
 #abBody .sub-h:not(:first-child){margin-top:14px}
 
 /* ---------- ตาราง: กล้อง / cohort ---------- */
@@ -308,7 +316,7 @@
 @media (forced-colors:active){
   .iq-svg .bar,.hb-b,.fn-b{fill:CanvasText;background:CanvasText}
   .iq-svg .hc{stroke:CanvasText;stroke-width:.5}
-  .meter i.on,.ab-d,.goal-t i{background:CanvasText}
+  .meter i.on,.ab-d,.ab-s,.goal-t i{background:CanvasText}
 }
 @media (max-width:420px){
   .corr{grid-template-columns:minmax(0,1fr)}

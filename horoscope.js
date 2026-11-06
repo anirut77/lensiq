@@ -421,11 +421,8 @@
     var rel = relation(dm, te);
     var clash = branchRel(profile.zodiac.lichun.animal, dp.branch) === "clash";
     var fav = profile.favorable.primary;
-    // เลขนำโชค: เลขดาวของ "ศรี" วันนี้ + เลขเหอถูของธาตุเสริม (水1/6 火2/7 木3/8 金4/9 土5/0)
-    var hetu = { water: [1, 6], fire: [2, 7], wood: [3, 8], metal: [4, 9], earth: [5, 0] }[fav];
-    var lucky = [PLANET_NUM[dayT.sri], hetu[0], hetu[1]].filter(function (v, i, a) { return a.indexOf(v) === i; });
-    var lp = profile.lifePath.value; if (lucky.indexOf(lpRoot(lp)) < 0) lucky.push(lpRoot(lp));
-    return { weekday: wd, bhumi: bh, taksaToday: dayT, pillar: dp, rel: rel, todayEl: te, clash: clash, lucky: lucky.slice(0, 4), favEl: fav };
+    // ไม่ให้ "เลขนำโชค" (เลี่ยงการใช้เป็นเลขเสี่ยงโชค) — ใช้ธาตุเสริมของวันเป็นคำพลังแทน
+    return { weekday: wd, bhumi: bh, taksaToday: dayT, pillar: dp, rel: rel, todayEl: te, clash: clash, favEl: fav };
   }
   /** ดวงรายเดือน: เสาเดือนปัจจุบัน (ตามสารท) เทียบธาตุประจำตัว */
   function monthly(profile, jdUT) {
@@ -555,7 +552,7 @@
       subject: nick && nick.length <= 12 && !/\s/.test(nick) ? { nickname: nick } : {},
       headline: "เกิดวัน" + (pl === 7 ? "พุธกลางคืน" : K.weekdayNames[pl]) + " · ราศี" + K.rasi[ra].th + " · ธาตุ" + EL_TH[dmEl] + " · เลขชีวิต " + lp,
       items: items,
-      extras: { luckyColors: [fe.colors.split(" ")[0], K.days[P.taksa.sri].color], luckyNumbers: fe.num.split(", "), directions: [fe.dir.split(" /")[0]] }
+      extras: { luckyColors: [fe.colors.split(" ")[0], K.days[P.taksa.sri].color], energyWords: ["ธาตุ" + fe.th], directions: [fe.dir.split(" /")[0]] }
     };
   }
   /** ข้อเท็จจริงดวงวันนี้ (D = daily(), mo = monthly()) */
@@ -570,7 +567,7 @@
     items.push(item("month.rel." + mo.rel, "ดวงเดือนนี้", "เดือน " + mo.pillar.gz, "ธาตุเดือนเทียบธาตุประจำตัว", 0.55, null, { timing: mm.timing, advice: (mm.advice || []).slice(0, 2) }));
     items.forEach(function (it) { it.tags = tagsOf(it.meanings); if (!it.polarity) delete it.polarity; });
     return { domain: "horoscope", topic: opts.topic || "overall", subject: {}, headline: "วัน" + K.bhumi[D.bhumi].th + " · เสาวัน " + D.pillar.gz, items: items,
-      extras: { luckyColors: [K.days[D.taksaToday.sri].color, K.days[D.taksaToday.dech].color], luckyNumbers: D.lucky.map(String), directions: [K.elements[D.favEl].dir.split(" /")[0]] } };
+      extras: { luckyColors: [K.days[D.taksaToday.sri].color, K.days[D.taksaToday.dech].color], energyWords: ["ธาตุ" + K.elements[D.favEl].th], directions: [K.elements[D.favEl].dir.split(" /")[0]] } };
   }
 
   var HS = {
@@ -958,7 +955,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     html += '<section class="hs-block"><h3>สีเสื้อวันนี้</h3><ul class="advice">' +
       '<li>' + swatch(tk.sri) + "<span><b>ศรี</b> — โชคลาภ เสน่ห์</span></li><li>" + swatch(tk.dech) + "<span><b>เดช</b> — การงาน ความน่าเชื่อถือ</span></li><li>" + swatch(tk.montri) + "<span><b>มนตรี</b> — ผู้ใหญ่เอ็นดู</span></li>" +
       '<li class="soft">' + swatch(tk.kalakini) + "<span><b>ควรเลี่ยง</b> — ตามความเชื่อ (ใส่ได้ถ้าจำเป็น ไม่ต้องกังวล)</span></li></ul>" +
-      '<div class="facts small">' + factCard("เลขนำโชค", D.lucky.join(" · "), "จากดาวศรีวันนี้ ธาตุเสริม และเลขชีวิต") + factCard("ทิศมงคล", esc(EL[D.favEl].dir), "ตามธาตุเสริม" + esc(EL[D.favEl].th)) + factCard("ทิศของดาวศรีวันนี้", esc(DAYS[tk.sri].dir), esc(DAYS[tk.sri].planet)) + "</div></section>";
+      '<div class="facts small">' + factCard("ธาตุเสริมวันนี้", esc("ธาตุ" + EL[D.favEl].th), esc(EL[D.favEl].boost || "ตามธาตุเสริมของดวง")) + factCard("ทิศมงคล", esc(EL[D.favEl].dir), "ตามธาตุเสริม" + esc(EL[D.favEl].th)) + factCard("ทิศของดาวศรีวันนี้", esc(DAYS[tk.sri].dir), esc(DAYS[tk.sri].planet)) + "</div></section>";
     html += '<section class="hs-block"><h3>ดวงเดือนนี้</h3><p>เดือนตามสุริยคติจีน <b>' + mo.pillar.gz + "</b> " + elChip(HS.STEM_EL[mo.pillar.stem]) + " · อาทิตย์สถิตราศี" + esc(KB.rasi[mo.sunRasi].th) + "</p><p><b>" + esc(mrel.th) + "</b> — " + esc(mrel.day.replace("วันนี้", "เดือนนี้")) + "</p>" +
       (mo.branchRel === "clash" ? '<p class="note">เดือนนี้ชงกับปีนักษัตรของคุณ (ตามความเชื่อ) ใช้ความรอบคอบ วางแผนล่วงหน้า แล้วทุกอย่างจะลงตัว</p>' : mo.branchRel === "harmony" || mo.branchRel === "trine" ? '<p class="note good">เดือนนี้กิ่งเดือนประสานกับปีนักษัตรของคุณ — ช่วงดีสำหรับเริ่มต้นสิ่งใหม่และสร้างความร่วมมือ</p>' : "") + "</section>";
     html += readingBlock("hsTdRd", "ดวงวันนี้โดยละเอียด", false);

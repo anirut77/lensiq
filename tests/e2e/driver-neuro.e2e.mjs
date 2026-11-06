@@ -75,6 +75,20 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
       await page.close();
     });
 
+    await check("neuro: valence/arousal caveat visible with Barrett et al. 2019 citation, no overflow", async () => {
+      const page = await browser.newPage(`${base}/neuro.html?cpu`);
+      const c = await page.evaluate(() => {
+        const el = document.getElementById("nmCaveat"), r = el && el.getBoundingClientRect();
+        return el && { text: el.textContent, visible: r.width > 0 && r.height > 0, href: el.querySelector("a") && el.querySelector("a").href,
+          refs: [...document.querySelectorAll(".refs a")].some(a => a.href.includes("10.1177/1529100619832930")) };
+      });
+      assert(c && c.visible, "caveat visible");
+      assert(/ค่าประมาณ/.test(c.text) && /Barrett et al\., 2019/.test(c.text) && /งานวิจัย/.test(c.text), "caveat text: " + (c && c.text));
+      assert(c.href.includes("10.1177/1529100619832930") && c.refs, "DOI link in caveat and references");
+      await noOverflowAt390(page);
+      await page.close();
+    });
+
     await check("neuro: 2 faces -> every sample faces===2, primary = centre face, 'พบหลายใบหน้า' pill visible", async () => {
       const page = await browser.newPage(null, { initScripts: [fakeCams] });
       await page.goto(`${base}/neuro.html?cpu&fakedet`);

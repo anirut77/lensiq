@@ -3,3 +3,7 @@ __pycache__/
 logs/
 certs/
 data/
+.DS_Store
+
+# face-parsing weights (CelebAMask-HQ, non-commercial) — kept local until licence is cleared
+vendor/models/faceparse-*.onnx

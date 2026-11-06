@@ -96,9 +96,13 @@ test("privacy: default serialise strips desc from booth-state; session copy rest
   const off = B.serializeState(S, false);
   assert.ok(!("desc" in JSON.parse(off.state)) && !("cands" in JSON.parse(off.state)));
   assert.deepEqual(JSON.parse(off.session).desc, S.desc);
+  assert.equal(off.vault, null);
+  // remember ON: booth-state still has no desc; the {day, desc} copy goes to the encrypted vault (lqv-booth-desc)
   const on = B.serializeState(S, true);
-  assert.deepEqual(JSON.parse(on.state).desc, S.desc);
-  assert.equal(on.session, null);
+  assert.ok(!("desc" in JSON.parse(on.state)));
+  assert.deepEqual(on.vault, { day: S.descDay, desc: S.desc });
+  assert.deepEqual(B.restoreState(on.state, null, true, T0 + 1000, on.vault).desc, S.desc, "decrypted vault copy restores same day");
+  assert.deepEqual(B.restoreState(on.state, null, false, T0 + 1000, on.vault).desc, {}, "vault ignored when remember is off");
   // reload, same day
   let R = B.restoreState(off.state, off.session, false, T0 + 1000);
   assert.deepEqual(R.desc, S.desc);
@@ -108,7 +112,7 @@ test("privacy: default serialise strips desc from booth-state; session copy rest
   // next day -> purged in both modes
   const next = T0 + 36 * 3600e3;
   assert.deepEqual(B.restoreState(off.state, off.session, false, next).desc, {});
-  assert.deepEqual(B.restoreState(on.state, null, true, next).desc, {});
+  assert.deepEqual(B.restoreState(on.state, null, true, next, on.vault).desc, {});
 });
 
 test("legacy booth-state (desc in localStorage, no prefs) still loads", () => {

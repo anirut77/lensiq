@@ -1,8 +1,24 @@
 """เซิร์ฟเวอร์เว็บ + API แปลง PDF -> DOCX (คงเลย์เอาต์ด้วย pdf2docx)
 
 รัน:  .venv/bin/python server.py   แล้วเปิด http://localhost:8000
+
+ความปลอดภัย (ดูรายละเอียดที่หัวข้อ "ด่านตรวจร่วม" และ "หัวข้อความปลอดภัย" ด้านล่าง):
+  ทุก /api/* ตรวจ Host (กัน DNS rebinding), Origin (กัน CSRF), รับเฉพาะ loopback/LAN, จำกัดอัตรา/ขนาด/Content-Type
+  ทุกคำตอบมี CSP, X-Content-Type-Options, Referrer-Policy, Permissions-Policy (camera=self)
+ตัวแปรแวดล้อม:
+  LENSIQ_PORT, LENSIQ_MOBILE=1            พอร์ต / โหมดมือถือ (HTTPS บน 0.0.0.0)
+  LENSIQ_HOSTS                            ชื่อโดเมนเพิ่มเติมที่ยอมรับใน Host (คั่นด้วย ,) — LENSIQ_AGG_HOSTS เดิมยังใช้ได้
+  LENSIQ_API_ALLOW_ANY=1                  ยอมรับผู้เรียกจาก IP สาธารณะ (โฮสต์บนอินเทอร์เน็ต เช่น Render)
+  LENSIQ_TRUST_PROXY=1, LENSIQ_PROXY_HOPS ใช้ IP จาก X-Forwarded-For (นับจากขวา, ค่าเริ่ม 1 hop)
+  LENSIQ_ALLOW_ORIGIN                     Origin ที่เรียก /api/fortune ข้ามโดเมนได้ (CORS, เดิม)
+  LENSIQ_API_ALLOW_ORIGIN                 Origin เพิ่มเติมที่เรียก /api/convert, /api/tryon ได้ (ค่าเริ่ม = ต้นทางเดียวกันเท่านั้น)
+  LENSIQ_API_RPM (60), LENSIQ_CONVERT_RPM (6), LENSIQ_TRYON_RPM (4), LENSIQ_FORTUNE_RPM (10), LENSIQ_FORTUNE_DAILY_MAX (500)
+  LENSIQ_CONVERT_MAX_MB (50), LENSIQ_TRYON_MAX_MB (20)
+  LENSIQ_CSP_CONNECT                      ต้นทางเพิ่มใน CSP connect-src (เช่น LENSIQ_API_BASE ที่โฮสต์แยก), LENSIQ_CSP=off ปิด CSP
+  /api/agg: LENSIQ_AGG_ALLOW_ANY, LENSIQ_AGG_ALLOW_ORIGIN, LENSIQ_AGG_RPM, LENSIQ_DATA_DIR (ดูหัวข้อ /api/agg)
 """
-import os, tempfile
+import os, re, tempfile, ipaddress, threading, time
+from collections import deque
 from flask import Flask, request, send_file, jsonify, send_from_directory
 from pdf2docx import Converter
 
@@ -62,6 +78,200 @@ def no_cache(resp):
     return resp
 
 
+# ---------------------------------------------------------------------------
+# หัวข้อความปลอดภัย (ทุกคำตอบ) — GitHub Pages ไม่ได้ใช้ไฟล์นี้ จึงไม่กระทบเว็บแบบไฟล์นิ่ง
+#   CSP: ทุกหน้าไม่มี <script> แบบ inline / on*="" (ตรวจแล้ว) จึงใช้ script-src 'self' ได้
+#        'wasm-unsafe-eval' สำหรับ TF.js / MediaPipe / onnxruntime (WASM), style 'unsafe-inline' เพราะมี style="" ใน HTML/JS
+#        ฟอนต์จาก fonts.googleapis.com / fonts.gstatic.com, รูป/วิดีโอจาก data: และ blob: (การ์ดแชร์, ไฟล์ที่ผู้ใช้เลือก)
+#   LENSIQ_CSP_CONNECT  ต้นทางเพิ่มเติมที่หน้าเว็บเรียก fetch ได้ (คั่นด้วยจุลภาค) เช่น LENSIQ_API_BASE ที่โฮสต์แยก
+#   LENSIQ_CSP=off      ปิด CSP (ใช้แก้ปัญหาชั่วคราวเท่านั้น)
+# ---------------------------------------------------------------------------
+def _csp():
+    extra = " ".join(o.strip().rstrip("/") for o in os.environ.get("LENSIQ_CSP_CONNECT", "").split(",")
+                     if re.match(r"^https?://[A-Za-z0-9.\-:\[\]]+/?$", o.strip()))
+    return "; ".join([
+        "default-src 'self'",
+        "script-src 'self' 'wasm-unsafe-eval'",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "font-src 'self' https://fonts.gstatic.com data:",
+        "img-src 'self' data: blob:",
+        "media-src 'self' data: blob:",
+        ("connect-src 'self' data: blob: " + extra).strip(),
+        "worker-src 'self' blob:",
+        "manifest-src 'self'",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'self'",
+    ])
+
+
+SECURITY_HEADERS = {
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "same-origin",
+    "Permissions-Policy": "camera=(self), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=()",
+    "X-Frame-Options": "SAMEORIGIN",
+    "Cross-Origin-Opener-Policy": "same-origin",
+}
+
+
+@app.after_request
+def security_headers(resp):
+    for k, v in SECURITY_HEADERS.items():
+        resp.headers.setdefault(k, v)
+    if os.environ.get("LENSIQ_CSP", "").lower() != "off":
+        resp.headers.setdefault("Content-Security-Policy", _csp())
+    return resp
+
+
+# ---------------------------------------------------------------------------
+# ด่านตรวจร่วมของ API ที่มีค่าใช้จ่าย/ประมวลผลหนัก: /api/convert, /api/tryon, /api/fortune (+ /status)
+# (/api/agg มีด่านของตัวเองด้านล่าง และใช้ _host_ok ร่วมกัน)
+#  1) Host ต้องเป็น IP / localhost / *.local หรือชื่อใน LENSIQ_HOSTS (หรือ LENSIQ_AGG_HOSTS เดิม) — กัน DNS rebinding
+#  2) Origin (ถ้ามี) ต้องเป็นต้นทางเดียวกัน หรืออยู่ใน allowlist — กัน CSRF จากเว็บอื่น
+#       /api/fortune: LENSIQ_ALLOW_ORIGIN (เดิม, "*" = ทุกโดเมน) ; /api/convert, /api/tryon: LENSIQ_API_ALLOW_ORIGIN
+#       Origin "null" ปฏิเสธเสมอ ; ไม่มี Origin แต่ Sec-Fetch-Site เป็น cross-site ก็ปฏิเสธ
+#  3) ที่อยู่ผู้เรียกต้องเป็น loopback / LAN ส่วนตัว เว้นแต่ LENSIQ_API_ALLOW_ANY=1
+#       (ต้องตั้งเมื่อโฮสต์ server.py บนอินเทอร์เน็ต เช่น Render — พร้อม LENSIQ_HOSTS=<ชื่อโดเมน API>)
+#       หลัง proxy (LENSIQ_TRUST_PROXY=1) ใช้ IP จาก X-Forwarded-For ตัวที่ LENSIQ_PROXY_HOPS นับจากขวา (ค่าเริ่ม 1)
+#  4) จำกัดอัตราต่อ IP ต่อนาที: LENSIQ_API_RPM (ทุกคำขอในกลุ่มนี้, 60), LENSIQ_CONVERT_RPM (6), LENSIQ_TRYON_RPM (4)
+#       ส่วน /api/fortune ยังใช้ LENSIQ_FORTUNE_RPM และ LENSIQ_FORTUNE_DAILY_MAX เหมือนเดิม
+#  5) ขนาด (ต้องมี Content-Length): LENSIQ_CONVERT_MAX_MB (50), LENSIQ_TRYON_MAX_MB (20), fortune 80KB
+#  6) Content-Type: convert/tryon = multipart/form-data, fortune = application/json
+# ---------------------------------------------------------------------------
+API_GUARD = {
+    # prefix: (กลุ่ม, ตัวแปร allowlist Origin, ตัวแปร RPM, ค่า RPM เริ่มต้น, ตัวแปรขนาด MB, ขนาดเริ่มต้น (ไบต์), content-type)
+    "/api/convert": ("convert", "LENSIQ_API_ALLOW_ORIGIN", "LENSIQ_CONVERT_RPM", 6, "LENSIQ_CONVERT_MAX_MB", 50 * 1024 * 1024, "multipart/form-data"),
+    "/api/tryon": ("tryon", "LENSIQ_API_ALLOW_ORIGIN", "LENSIQ_TRYON_RPM", 4, "LENSIQ_TRYON_MAX_MB", 20 * 1024 * 1024, "multipart/form-data"),
+    "/api/fortune": ("fortune", "LENSIQ_ALLOW_ORIGIN", None, 0, None, 80 * 1024, "application/json"),
+}
+_api_rl = {}
+
+
+def _host_ok():
+    host = (request.host or "").lower()
+    name = host[1:host.index("]")] if host.startswith("[") and "]" in host else host.rsplit(":", 1)[0] if host.count(":") == 1 else host
+    extra = [h.strip().lower() for v in ("LENSIQ_HOSTS", "LENSIQ_AGG_HOSTS")
+             for h in os.environ.get(v, "").split(",") if h.strip()]
+    if name in ("localhost",) or name.endswith(".local") or name in extra:
+        return True
+    try:
+        ipaddress.ip_address(name)
+        return True
+    except ValueError:
+        return False
+
+
+def _origin_list(var):
+    return [o.strip().rstrip("/") for o in os.environ.get(var, "").split(",") if o.strip()]
+
+
+def _api_origin_ok(var):
+    origin = request.headers.get("Origin")
+    if origin is None:
+        # ฟอร์ม/การนำทางข้ามเว็บจากเบราว์เซอร์รุ่นใหม่จะบอกด้วย Sec-Fetch-Site เสมอ
+        return request.headers.get("Sec-Fetch-Site", "same-origin") in ("same-origin", "none")
+    origin = origin.rstrip("/")
+    if origin == "null":
+        return False
+    if origin == request.host_url.rstrip("/"):
+        return True
+    allow = _origin_list(var)
+    return "*" in allow or origin in allow
+
+
+def _client_ip_obj():
+    """IP ผู้เรียก: หลัง proxy ที่เชื่อถือได้ ใช้ X-Forwarded-For ตัวที่ LENSIQ_PROXY_HOPS นับจากขวา"""
+    raw = request.remote_addr or ""
+    if os.environ.get("LENSIQ_TRUST_PROXY") == "1":
+        xff = [p.strip() for p in request.headers.get("X-Forwarded-For", "").split(",") if p.strip()]
+        if xff:
+            try:
+                hops = max(1, int(os.environ.get("LENSIQ_PROXY_HOPS", "1")))
+            except ValueError:
+                hops = 1
+            raw = xff[-hops] if len(xff) >= hops else xff[0]
+    try:
+        ip = ipaddress.ip_address(raw.split("%")[0])
+    except ValueError:
+        return None
+    return ip.ipv4_mapped if ip.version == 6 and ip.ipv4_mapped else ip
+
+
+def _api_lan_ok(ip):
+    if os.environ.get("LENSIQ_API_ALLOW_ANY") == "1":
+        return True
+    return bool(ip and (ip.is_loopback or ip.is_private or ip.is_link_local))
+
+
+def _env_int(var, default):
+    try:
+        return int(os.environ.get(var, "")) if os.environ.get(var) else default
+    except ValueError:
+        return default
+
+
+def _hit(bucket, key, limit, now):
+    """นับคำขอแบบหน้าต่างเลื่อน 60 วินาที; คืน True เมื่อเกิน"""
+    q = _api_rl.setdefault((bucket, key), deque())
+    while q and now - q[0] > 60:
+        q.popleft()
+    if len(q) >= limit:
+        return True
+    q.append(now)
+    return False
+
+
+def _api_rate_limited(group, ip, rpm_var, rpm_default):
+    now = time.time()
+    key = str(ip)
+    with _rl_lock:
+        if len(_api_rl) > 5000:  # กันหน่วยความจำโต
+            for k in [k for k, v in _api_rl.items() if not v or now - v[-1] > 60]:
+                _api_rl.pop(k, None)
+        if _hit("all", key, _env_int("LENSIQ_API_RPM", 60), now):
+            return True
+        if rpm_var and request.method == "POST" and _hit(group, key, _env_int(rpm_var, rpm_default), now):
+            return True
+    return False
+
+
+@app.before_request
+def api_guard():
+    path = request.path
+    rule = next((v for p, v in API_GUARD.items() if path == p or path.startswith(p + "/")), None)
+    if rule is None:
+        return None
+    group, origin_var, rpm_var, rpm_default, size_var, size_default, ctype = rule
+
+    def err(msg, status):
+        body = {"error": msg}
+        if group == "fortune":
+            body["fallback"] = True  # หน้าเว็บจะใช้ตัวเรียบเรียงในเครื่องแทน
+        return jsonify(body), status
+
+    if not _host_ok():
+        return err("Host ไม่ได้รับอนุญาต", 403)
+    if not _api_origin_ok(origin_var):
+        return err("Origin ไม่ได้รับอนุญาต", 403)
+    ip = _client_ip_obj()
+    if not _api_lan_ok(ip):
+        return err("รับเฉพาะเครื่องในเครือข่ายเดียวกัน", 403)
+    if request.method == "OPTIONS":
+        return ("", 204)
+    if _api_rate_limited(group, ip, rpm_var, rpm_default):
+        return err("ส่งคำขอถี่เกินไป กรุณารอสักครู่", 429)
+    if request.method == "POST" and path == next(p for p, v in API_GUARD.items() if v is rule):
+        if request.content_length is None:
+            return err("ต้องระบุ Content-Length", 411)
+        limit = _env_int(size_var, size_default // (1024 * 1024)) * 1024 * 1024 if size_var else size_default
+        if request.content_length > limit:
+            return err("ข้อมูลใหญ่เกินกำหนด", 413)
+        if (request.mimetype or "") != ctype:
+            return err(f"ต้องส่งเป็น {ctype}", 415)
+    return None
+
+
 @app.get("/")
 def index():
     return send_from_directory(ROOT, "index.html")
@@ -111,6 +321,10 @@ def tryon_status():
     return jsonify(enabled=bool(cfg["token"]), model=cfg["model"], provider="Replicate")
 
 
+def _is_image(b):
+    return b[:8] == b"\x89PNG\r\n\x1a\n" or b[:3] == b"\xff\xd8\xff" or (b[:4] == b"RIFF" and b[8:12] == b"WEBP")
+
+
 @app.post("/api/tryon")
 def tryon_run():
     if not tryon.enabled():
@@ -120,8 +334,12 @@ def tryon_run():
     human, garment = request.files.get("human"), request.files.get("garment")
     if not human or not garment:
         return jsonify(error="ต้องมีรูปผู้ถ่ายและรูปชุด"), 400
+    h, g = human.read(), garment.read()
+    if not (_is_image(h) and _is_image(g)):
+        return jsonify(error="รองรับเฉพาะรูป PNG / JPEG / WebP"), 415
+    desc = " ".join(_CTRL_RE.sub(" ", request.form.get("desc", "")).split())[:120]
     try:
-        png = tryon.run(human.read(), garment.read(), request.form.get("desc", ""))
+        png = tryon.run(h, g, desc)
     except tryon.TryOnError as e:
         app.logger.warning("tryon: %s", e)
         return jsonify(error=str(e)), e.status
@@ -376,11 +594,8 @@ _daily = {"day": None, "n": 0}
 
 
 def _client_ip():
-    if os.environ.get("LENSIQ_TRUST_PROXY") == "1":
-        xff = request.headers.get("X-Forwarded-For", "")
-        if xff:
-            return xff.split(",")[0].strip()
-    return request.remote_addr or "?"
+    ip = _client_ip_obj()  # ใช้กติกาเดียวกับด่านตรวจร่วม (LENSIQ_TRUST_PROXY / LENSIQ_PROXY_HOPS)
+    return str(ip) if ip else "?"
 
 
 def _rate_limited(ip):
@@ -704,16 +919,7 @@ def _agg_is_loopback():
 
 
 def _agg_host_ok():
-    host = (request.host or "").lower()
-    name = host[1:host.index("]")] if host.startswith("[") and "]" in host else host.rsplit(":", 1)[0] if host.count(":") == 1 else host
-    extra = [h.strip().lower() for h in os.environ.get("LENSIQ_AGG_HOSTS", "").split(",") if h.strip()]
-    if name in ("localhost",) or name.endswith(".local") or name in extra:
-        return True
-    try:
-        ipaddress.ip_address(name)
-        return True
-    except ValueError:
-        return False
+    return _host_ok()  # กติกาเดียวกับด่านตรวจร่วม (LENSIQ_HOSTS / LENSIQ_AGG_HOSTS)
 
 
 def _agg_allowed_origins():

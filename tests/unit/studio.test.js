@@ -216,21 +216,6 @@ test("grayWorld gains neutralise a colour cast; applyGains with mask 0 is identi
   assert.deepEqual(S.applyGains(img, w, h, gw.gains, { mask: new Float32Array(w * h) }), img);
 });
 
-test("composite: head stays in front of the garment, original clothes hidden below the garment top, garment drawn", () => {
-  const w = 200, h = 240, { a, chin } = silhouette(w, h);
-  const bg = rgbaFill(w, h, () => [0, 0, 255]), person = rgbaFill(w, h, (x, y) => y < chin ? [220, 170, 150] : [255, 0, 0]);
-  // garment: narrow (doesn't cover the whole red shirt), top at chin+20, overlaps the chin area at x in 90..110 up to chin-6
-  const garment = rgbaFill(w, h, (x, y) => (y > chin + 20 && Math.abs(x - 100) < 40) || (y > chin - 6 && Math.abs(x - 100) < 10) ? [30, 30, 30, 255] : [0, 0, 0, 0]);
-  const face = { cx: 100, chinY: chin, eyeY: chin - 20, fw: 50 };
-  const head = S.headMask(a, w, h, face, 1);
-  const { rgba } = S.composite({ w, h, bg, person, pA: a, garment, head, levels: 3, wrap: 0 });
-  const px = (x, y) => [...rgba.slice((y * w + x) * 4, (y * w + x) * 4 + 3)];
-  assert.ok(px(100, Math.round(chin - 10))[0] > 180, "face above chin visible: " + px(100, Math.round(chin - 10)));
-  assert.ok(px(100, Math.round(chin + 60))[0] < 80, "garment drawn: " + px(100, Math.round(chin + 60)));
-  const side = px(155, Math.round(chin + 80)); // red shirt outside the narrow garment -> hidden -> background (blue)
-  assert.ok(side[2] > 200 && side[0] < 60, "original clothes hidden: " + side);
-});
-
 test("matte edits: restore raises alpha, erase lowers it", () => {
   const w = 20, h = 20, a = new Float32Array(w * h).fill(.5), e = new Float32Array(w * h);
   S.brush(e, w, h, 5, 5, 3, 1); S.brush(e, w, h, 15, 15, 3, -1);
@@ -244,19 +229,117 @@ test("borderKeyAlpha: subject on a plain backdrop -> opaque inside, transparent 
   assert.ok(a[45 * w + 40] > .95 && a[5 * w + 5] < .05);
 });
 
-test("composite with seam: garment edge against the background is a plain alpha blend (not blurred); seam region continuous", () => {
-  const w = 160, h = 160, { a, chin } = silhouette(w, h, { cx: 80, headY: 40, fw: 40, sh: 60 });
-  const bg = rgbaFill(w, h, () => [200, 220, 240]), person = rgbaFill(w, h, (x, y) => y < chin ? [220, 170, 150] : [255, 0, 0]);
-  const garment = rgbaFill(w, h, (x, y) => (y > chin + 8 && Math.abs(x - 80) < 55 - Math.max(0, 20 - (y - chin))) ? [20, 30, 60, 255] : [0, 0, 0, 0]);
-  const face = { cx: 80, chinX: 80, chinY: chin, eyeY: chin - 16, fw: 40 };
-  const head = S.headMask(a, w, h, face, 1);
-  const seam = { x0: 80 - 32, x1: 80 + 32, y0: chin - 6, y1: chin + 36 };
-  const { rgba } = S.composite({ w, h, bg, person, pA: a, garment, head, levels: 3, wrap: 0, seam, neck: { cx: 80, halfW: 12, band: 5 } });
-  // far from the seam: pixels are exactly bg or exactly garment (no low-frequency bleed)
+// ---------------------------------------------------------------- ลำดับชั้น / parsing / การวัดไหล่ / คอ
+const fill = (w, h, f) => { const a = new Float32Array(w * h); for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) a[y * w + x] = f(x, y); return a; };
+
+test("composeLayers: order is bg -> back collar -> neck -> garment -> head+hair (hair falls over the garment, no straight cut)", () => {
+  const w = 60, h = 60, n = w * h;
+  const bg = rgbaFill(w, h, () => [0, 0, 255]), person = rgbaFill(w, h, (x, y) => y < 20 ? [200, 150, 120] : [40, 20, 10]); // face / dark hair
+  const front = rgbaFill(w, h, (x, y) => y >= 30 ? [30, 60, 30, 255] : [0, 0, 0, 0]);
+  const back = rgbaFill(w, h, (x, y) => y >= 24 ? [250, 250, 250, 255] : [0, 0, 0, 0]);
+  const neck = { rgba: rgbaFill(w, h, () => [180, 120, 100]), alpha: fill(w, h, (x, y) => Math.abs(x - 30) < 6 && y >= 18 && y < 40 ? 1 : 0) };
+  // head 0..20; a lock of hair hangs over the garment at x 5..9 down to y 50 with soft (matted) strands
+  const keepA = fill(w, h, (x, y) => y < 20 && Math.abs(x - 30) < 10 ? 1 : (x >= 5 && x < 10 && y < 50 ? (y < 45 ? 1 : .5) : 0));
+  const { rgba, fgAlpha } = S.composeLayers({ w, h, bg, person, keepA, neck, back, front, wrap: 0 });
   const px = (x, y) => [...rgba.slice((y * w + x) * 4, (y * w + x) * 4 + 3)];
-  assert.deepEqual(px(150, h - 5), [200, 220, 240]);
-  assert.deepEqual(px(80, h - 5), [20, 30, 60]);
-  // no red (original shirt) outside the neck columns (the synthetic neck itself is red here)
-  let red = 0; for (let i = 0; i < w * h; i++) if (Math.abs((i % w) - 80) > 14 && rgba[i * 4] > 180 && rgba[i * 4 + 1] < 80) red++;
-  assert.equal(red, 0, "red pixels left: " + red);
+  assert.deepEqual(px(50, 5), [0, 0, 255], "background");
+  assert.deepEqual(px(30, 10), [200, 150, 120], "face on top");
+  assert.deepEqual(px(30, 26), [180, 120, 100], "neck in front of the back collar");
+  assert.deepEqual(px(40, 26), [250, 250, 250], "back collar visible beside the neck");
+  assert.deepEqual(px(30, 35), [30, 60, 30], "garment in front of the neck");
+  assert.deepEqual(px(7, 40), [40, 20, 10], "hair over the garment");
+  assert.deepEqual(px(7, 47), [35, 40, 20], "matted hair tips blend with the garment (not the old clothes)");
+  assert.ok(fgAlpha[45 * w + 30] === 1 && fgAlpha[5 * w + 50] === 0);
+});
+
+test("parseGroups: softmax per pixel summed into head/hair/neck/cloth/bg; cropToImage maps the crop back", () => {
+  const S2 = 4, n = S2 * S2, C = 19, lg = new Float32Array(C * n);
+  for (let i = 0; i < n; i++) lg[(i < 8 ? 17 : 14) * n + i] = 10; // top half hair, bottom half neck
+  const g = S.parseGroups(lg, n, C);
+  for (let i = 0; i < n; i++) { const t = g.head[i] + g.hair[i] + g.neck[i] + g.cloth[i] + g.bg[i]; assert.ok(Math.abs(t - 1) < 1e-5, "sums to 1"); }
+  assert.ok(g.hair[0] > .99 && g.neck[15] > .99 && g.head[0] < .01);
+  const crop = { x: 10, y: 20, side: 40 }, m = S.cropToImage(g.hair, S2, crop, 80, 80);
+  assert.equal(m[5 * 80 + 5], 0, "outside crop");
+  assert.ok(m[25 * 80 + 30] > .99 && m[55 * 80 + 30] < .01, "top of crop hair, bottom not");
+  const pc = S.parseCrop({ cx: 100, eyeY: 80, fw: 50 }, 3);
+  assert.equal(pc.side, 150); assert.equal(pc.x, 25); assert.ok(pc.y + pc.side > 80 + 50 * 1.5, "crop reaches below the shoulders' top");
+});
+
+/** Torso silhouette with given shoulder width/tilt; optional long hair hanging over the shoulders. */
+function torso(w, h, { cx = 150, chinY = 100, fw = 60, width = 3, tilt = 0, hair = false } = {}) {
+  const a = new Float32Array(w * h), hr = new Float32Array(w * h), kp = new Float32Array(w * h), half = width * fw / 2;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = y * w + x, dx = x - cx;
+    const head = (dx / (fw * .5)) ** 2 + ((y - (chinY - fw * .6)) / (fw * .65)) ** 2 < 1;
+    const top = chinY + fw * .3 + Math.abs(dx) * .25 + dx * Math.tan(tilt); // sloped shoulders + tilt
+    const body = y >= top && Math.abs(dx) < half - Math.max(0, (top + fw * .25 - y)) * 1.2;
+    const neck = Math.abs(dx) < fw * .28 && y > chinY - 5 && y < top + 5;
+    const lock = hair && Math.abs(Math.abs(dx) - fw * .75) < fw * .22 && y > chinY - fw * .8 && y < chinY + fw * 1.0;
+    if (head || body || neck || lock) a[i] = 1;
+    if (head) kp[i] = 1;
+    if (lock) { hr[i] = 1; kp[i] = 1; }
+  }
+  return { a, hair: hr, keep: kp };
+}
+test("measureShoulders: width from the silhouette (clamped to 2.5–3.3 face widths), tilt from the shoulder line, robust to hair over the shoulders", () => {
+  const w = 300, h = 300, face = { cx: 150, chinX: 150, chinY: 100, eyeY: 60, fw: 60 };
+  const t1 = torso(w, h, { width: 3 }), m1 = S.measureShoulders(t1.a, w, h, face, { keep: t1.keep });
+  assert.ok(m1.measured && Math.abs(m1.width / 60 - 3) < .15, "width " + m1.width / 60);
+  assert.ok(Math.abs(m1.theta) < .02, "level " + m1.theta);
+  assert.ok(m1.l.x < 150 && m1.r.x > 150 && Math.abs(m1.l.y - m1.r.y) < 3);
+  const t2 = torso(w, h, { width: 3, tilt: .12 }), m2 = S.measureShoulders(t2.a, w, h, face, { keep: t2.keep });
+  assert.ok(Math.abs(m2.theta - .12) < .04, "tilt " + m2.theta);
+  assert.ok(m2.r.y > m2.l.y, "right shoulder lower");
+  // much too wide (crossed arms / bulky jacket) -> clamped by the face-width prior
+  const t3 = torso(w, h, { width: 4.4 }), m3 = S.measureShoulders(t3.a, w, h, face, { keep: t3.keep });
+  assert.ok(Math.abs(m3.width - 3.3 * 60) < 1, "clamped " + m3.width / 60);
+  // long hair over the shoulders: samples under the hair are skipped, level stays the same as without hair
+  const t4 = torso(w, h, { width: 3, hair: true }), m4 = S.measureShoulders(t4.a, w, h, face, { keep: t4.keep, hair: t4.hair });
+  assert.ok(Math.abs(m4.line.a - m1.line.a) < 4 && Math.abs(m4.width - m1.width) < 8, `hair-robust a ${m4.line.a} vs ${m1.line.a}, w ${m4.width} vs ${m1.width}`);
+  // fitFromTargets inverts the anchor mapping
+  const f = S.fitFromTargets({ chin: m2.chin, l: m2.l, r: m2.r });
+  assert.ok(Math.abs(f.s - m2.s) < 1e-6 && Math.abs(f.theta - m2.theta) < 1e-6 && f.N.x === m2.N.x);
+});
+
+test("personLayers: no straight cut — hair below the chin stays in front, original clothes go to the body layer", () => {
+  const w = 120, h = 140, face = { cx: 60, chinX: 60, chinY: 60, eyeY: 35, fw: 40 }, n = w * h;
+  const rgba = rgbaFill(w, h, () => [128, 128, 128]), alpha = new Float32Array(n).fill(1);
+  const P = { head: fill(w, h, (x, y) => y < 60 && Math.abs(x - 60) < 20 ? 1 : 0), hair: fill(w, h, (x, y) => Math.abs(x - 60) >= 20 && Math.abs(x - 60) < 34 && y < 100 ? 1 : 0), neck: fill(w, h, (x, y) => y >= 60 && y < 75 && Math.abs(x - 60) < 10 ? 1 : 0) };
+  P.cloth = fill(w, h, (x, y) => 1 - P.head[y * w + x] - P.hair[y * w + x] - P.neck[y * w + x]);
+  const L = S.personLayers(rgba, alpha, w, h, face, P, null);
+  assert.ok(L.keep[95 * w + 30] > .9, "hair tip at y=95 (far below the chin) kept in front");
+  assert.ok(L.keep[105 * w + 30] < .1, "below the hair: not kept");
+  assert.ok(L.neck[65 * w + 60] > .9 && L.keep[65 * w + 60] < .1, "neck goes under the garment");
+  assert.ok(L.body[120 * w + 60] > .9, "old clothes -> body (hidden)");
+  // a column through the hair: keep goes 1 -> 0 only where the hair ends (no horizontal cut at a fixed row across the image)
+  const ends = [30, 90].map(x => { let e = -1; for (let y = 0; y < h; y++) if (L.keep[y * w + x] > .5) e = y; return e; });
+  assert.ok(ends.every(e => e >= 95), "hair ends " + ends);
+});
+
+test("synthNeck: extends a skin-coloured neck from the jaw down below the new collar, even if the old collar covered it", () => {
+  const w = 160, h = 200, fw = 60, face = { cx: 80, chinX: 80, chinY: 70, eyeY: 40, fw }, n = w * h;
+  const skin = [200, 150, 120], person = rgbaFill(w, h, (x, y) => y < 85 ? skin : [20, 20, 120]); // blue turtleneck from y=85
+  const alpha = new Float32Array(n).fill(1);
+  const neckS = fill(w, h, (x, y) => y >= 70 && y < 85 && Math.abs(x - 80) < 16 ? 1 : 0), keepS = fill(w, h, (x, y) => y < 70 && Math.abs(x - 80) < 30 ? 1 : 0);
+  const fit = { N: { x: 80, y: 110 }, s: 60, theta: 0, drop: 0 };
+  const r = S.synthNeck(person, alpha, neckS, keepS, w, h, face, fit, { skinRGB: skin, noise: 0 });
+  const at = (x, y) => ({ a: r.alpha[y * w + x], c: [...r.rgba.slice((y * w + x) * 4, (y * w + x) * 4 + 3)] });
+  const deep = at(80, 125); // below the old collar, below the new collar line
+  assert.ok(deep.a > .95, "neck continues down: " + deep.a);
+  assert.ok(deep.c[0] > 150 && deep.c[2] < 140, "skin-coloured, not the old blue collar: " + deep.c);
+  assert.ok(at(80 + fw * .3, 100).a > .5, "neck at least ~0.6 face widths wide");
+  assert.equal(at(5, 120).a, 0, "nothing far outside the neck");
+});
+
+test("heuristicParse (fallback without a model): separates hair from the old clothes by colour", () => {
+  const w = 160, h = 220, fw = 60, face = { cx: 80, chinX: 80, chinY: 90, eyeY: 55, fw };
+  const rgba = rgbaFill(w, h, (x, y) => {
+    const dx = Math.abs(x - 80);
+    if (y < 90 && dx < 28) return y < 30 ? [40, 30, 25] : [210, 160, 130];   // hair cap / face
+    if (dx >= 28 && dx < 45 && y < 140) return [40, 30, 25];                    // long dark hair to the shoulders
+    return [30, 60, 160];                                                       // blue shirt
+  }), alpha = new Float32Array(w * h).fill(1);
+  const P = S.heuristicParse(rgba, alpha, w, h, face);
+  assert.ok(P.hair[120 * w + 80 - 36] > .6, "hair below chin: " + P.hair[120 * w + 44]);
+  assert.ok(P.hair[170 * w + 80] < .2 && P.cloth[170 * w + 80] > .6, "shirt is cloth");
 });

@@ -10,11 +10,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=6">
-<link rel="stylesheet" href="attendance.css?v=3">
+<link rel="stylesheet" href="attendance.css?v=4">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=8"></script>
+<script src="nav.js?v=10"></script>
 
 <main class="att">
   <h1>เช็คชื่อเข้าอบรมด้วยการสแกนใบหน้า</h1>
@@ -70,6 +70,17 @@
         </form>
         <h3>ผู้ลงทะเบียนแล้ว (<span id="peopleCount">0</span>)</h3>
         <ul class="people" id="people"></ul>
+        <details class="vault">
+          <summary>ความเป็นส่วนตัวของข้อมูลใบหน้า</summary>
+          <p class="vault-state" id="faceState" role="status"></p>
+          <label>ลบการลงทะเบียนที่ไม่ได้ใช้เกิน
+            <select id="retention">
+              <option value="30">30 วัน</option><option value="90">90 วัน</option><option value="180">180 วัน</option>
+              <option value="365">365 วัน (ค่าเริ่มต้น)</option><option value="730">730 วัน</option>
+            </select></label>
+          <small>นับจากการเช็คชื่อครั้งล่าสุด (หรือวันลงทะเบียน) ระบบลบให้อัตโนมัติเมื่อเปิดหน้านี้</small>
+          <button class="btn ghost danger full" id="wipeFaces" type="button">ลบข้อมูลใบหน้าทั้งหมด</button>
+        </details>
       </div>
 
       <div class="pane" id="pane-records" hidden>
@@ -87,13 +98,14 @@
     </section>
   </div>
 
-  <p class="note">เว็บตัวอย่าง: ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้เท่านั้น ไม่มีระบบตรวจจับภาพถ่ายปลอม (liveness) หากใช้งานจริงควรมีฐานข้อมูลฝั่งเซิร์ฟเวอร์ การเข้ารหัส และนโยบายตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล (PDPA)</p>
+  <p class="note">เว็บตัวอย่าง: ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้เท่านั้น ค่าลักษณะใบหน้าเข้ารหัสด้วยกุญแจที่อยู่ในเบราว์เซอร์นี้ ไม่มีระบบตรวจจับภาพถ่ายปลอม (liveness) หากใช้งานจริงควรมีฐานข้อมูลฝั่งเซิร์ฟเวอร์ และนโยบายตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล (PDPA)</p>
 </main>
 
 <script src="vendor/face-api.js"></script>
 <script src="lensiq-track.js?v=1"></script>
 <script src="lensiq-camera.js?v=1"></script>
 <script src="lensiq-detect.js?v=1"></script>
-<script src="attendance.js?v=8"></script>
+<script src="lensiq-facevault.js?v=1"></script>
+<script src="attendance.js?v=9"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-/* fengshui.js — ฮวงจุ้ย AI (LENSIQ)
+/* fengshui.js — ฮวงจุ้ย (LENSIQ)
  * ส่วนที่ 1: FSCore — ฟังก์ชันคำนวณล้วน (ทดสอบด้วย Node ได้): ลี่ชุน/เดือนสุริยคติ, เลขกัว, ดาวเหิน, ทิศจากเข็มทิศ,
  *           ผังบ้าน 3×3, วิเคราะห์ภาพห้อง, สร้าง facts สำหรับ fortune-ai.js
  * ส่วนที่ 2: ส่วนติดต่อผู้ใช้ (เบราว์เซอร์เท่านั้น)
@@ -740,7 +740,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var rg = c.createRadialGradient(W / 2, 400, 30, W / 2, 400, 520); rg.addColorStop(0, elc + "88"); rg.addColorStop(1, "rgba(14,20,48,0)"); c.fillStyle = rg; c.fillRect(0, 0, W, H);
     c.textBaseline = "middle"; c.textAlign = "left";
     c.font = "700 40px " + F; c.fillStyle = "#fff"; c.fillText("LENS", 72, 92); var lw = c.measureText("LENS").width; c.fillStyle = "#a99bff"; c.fillText("IQ", 72 + lw, 92);
-    c.textAlign = "right"; c.font = "500 34px " + F; c.fillStyle = "#c9d0ea"; c.fillText("ฮวงจุ้ย AI", W - 72, 92);
+    c.textAlign = "right"; c.font = "500 34px " + F; c.fillStyle = "#c9d0ea"; c.fillText("ฮวงจุ้ย", W - 72, 92);
     // วงทิศ 8 ทิศ
     var cx = W / 2, cy = 400, R = 230;
     FS.DIRS.forEach(function (d) {
@@ -790,7 +790,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var im = $("#fsCardImg"); im.src = cardUrl; im.hidden = false;
       var file = new File([blob], "lensiq-fengshui.png", { type: "image/png" });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: "ฮวงจุ้ย AI — LENSIQ", text: KB.disclaimerShort }); return; }
+        try { await navigator.share({ files: [file], title: "ฮวงจุ้ย — LENSIQ", text: KB.disclaimerShort }); return; }
         catch (e) { if (e.name === "AbortError") return; }
       }
       var a = document.createElement("a"); a.href = cardUrl; a.download = "lensiq-fengshui.png"; document.body.append(a); a.click(); a.remove();

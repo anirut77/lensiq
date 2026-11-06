@@ -622,6 +622,7 @@
   var HEDGE_RE = /^(?:ตามตำรา(?:ลายมือ(?:จีน|ญี่ปุ่น|ตะวันตก|ไทย)?|จีน|ญี่ปุ่น|ตะวันตก)?|ตามความเชื่อ(?:จีน|ไทย|ญี่ปุ่น)?|ว่ากันว่า|เชื่อกันว่า|คนโบราณ(?:มอง|เชื่อ|ถือ)ว่า|หมอดู(?:ลายมือ)?(?:จีน|ญี่ปุ่น|ไทย|ตะวันตก)?(?:มอง|เชื่อ|ถือ)ว่า|ในศาสตร์ลายมือ(?:นั้น)?)\s*/;
   var unhedge = function (t) { var u = String(t).replace(HEDGE_RE, ""); return u.length >= 20 && u !== t ? u.replace(/^(?:ว่า|,)\s*/, "") : t; };
   var DEPTH_W = { deep: "ลึกชัด", faint: "บางเบา", medium: "ปานกลาง" };
+  var SHAPE_Z = 0.5; // ตรงกับเกณฑ์ของ rel(): |z| < 0.5 = "ใกล้ค่าทั่วไป"
   function buildFacts(R, opt) {
     opt = opt || {};
     var I = (KB && KB.interp) || {}, EV = (KB && KB.evidence) || {}, hm = R.hm, el = R.el, C = R.lc.cats, M = R.lc.m, items = [];
@@ -637,8 +638,10 @@
     var E = KB.elements[el.top.id], E2 = KB.elements[el.second.id];
     add("element." + el.top.id, "ธาตุประจำมือ", "มือธาตุ" + E.th, tpl(EV.element, { palmRatio: fx(hm.palmRatio), fingerPct: fx(hm.fingerRatio * 100, 0) }), 0.6 + el.top.pct / 250);
     if (el.second.pct >= 15) add("element." + el.second.id, "ธาตุรอง", "ธาตุรองอย่างธาตุ" + E2.th, "ธาตุรอง " + el.second.pct + "%", 0.2 + el.second.pct / 300, ["personality", "social", "work"]);
-    add("shape.palm." + el.palmShape, "รูปฝ่ามือ", el.palmShape === "long" ? "ฝ่ามือทรงยาว" : "ฝ่ามือทรงเหลี่ยม", tpl(EV["shape.palm"], { palmRatio: fx(hm.palmRatio), rel: rel(el.zp, "ยาว", "สั้น") }), clamp(0.22 + 0.14 * Math.abs(el.zp), 0.2, 0.7));
-    add("shape.fingers." + el.fingerShape, "นิ้วมือ", el.fingerShape === "long" ? "นิ้วเรียวยาว" : "นิ้วสั้นกระชับ", tpl(EV["shape.fingers"], { fingerPct: fx(hm.fingerRatio * 100, 0), rel: rel(el.zf, "ยาว", "สั้น") }), clamp(0.22 + 0.14 * Math.abs(el.zf), 0.2, 0.7));
+    // รูปฝ่ามือ/นิ้ว: แยกเป็นข้อเฉพาะเมื่อค่าห่างค่าทั่วไปพอ (|z| ≥ SHAPE_Z) — ถ้าใกล้ค่าทั่วไป คำว่า "ทรงยาว/ทรงเหลี่ยม"
+    // จะขัดกับหลักฐาน "ใกล้ค่าทั่วไป" (ธาตุประจำมือยังสรุปรูปมือไว้แล้ว)
+    if (Math.abs(el.zp) >= SHAPE_Z) add("shape.palm." + el.palmShape, "รูปฝ่ามือ", el.palmShape === "long" ? "ฝ่ามือทรงยาว" : "ฝ่ามือทรงเหลี่ยม", tpl(EV["shape.palm"], { palmRatio: fx(hm.palmRatio), rel: rel(el.zp, "ยาว", "สั้น") }), clamp(0.22 + 0.14 * Math.abs(el.zp), 0.2, 0.7));
+    if (Math.abs(el.zf) >= SHAPE_Z) add("shape.fingers." + el.fingerShape, "นิ้วมือ", el.fingerShape === "long" ? "นิ้วเรียวยาว" : "นิ้วสั้นกระชับ", tpl(EV["shape.fingers"], { fingerPct: fx(hm.fingerRatio * 100, 0), rel: rel(el.zf, "ยาว", "สั้น") }), clamp(0.22 + 0.14 * Math.abs(el.zf), 0.2, 0.7));
     if (opt.isDominant != null) {
       var sd = opt.isDominant ? "dominant" : "other";
       add("side." + sd, "มือที่อ่าน", KB.sides[sd].th, tpl(EV.side, { hand: opt.side === "left" ? "มือซ้าย" : "มือขวา", th: KB.sides[sd].th }), 0.3);
@@ -656,7 +659,11 @@
       if (id === "head" && mm.angle != null && (c === "straight" || c === "gentle" || c === "sloping")) return "เส้นสมองลาดลง " + fx(mm.angle, 0) + " องศา";
       if (id === "heart" && /^end/.test(c)) return "ปลายเส้นหัวใจห่างจากขอบฝั่งนิ้วชี้ " + pct(Math.max(0, mm.minU)) + "% ของความกว้างฝ่ามือ";
       if (id === "heart") return "ความโค้งของเส้นหัวใจ " + pct(mm.curv) + "% ของช่วงเส้น";
-      return th + "ยาว " + fx(mm.length) + " เท่าของความกว้างฝ่ามือ";
+      // ยาว/สั้น จัดจากตำแหน่งปลายเส้น จึงบอกตำแหน่งปลายเส้น (ไม่ใช่ "ยาว x เท่า" ซึ่งอ่านแล้วขัดกับหมวด "สั้น")
+      if (id === "life" && (c === "long" || c === "short") && mm.end) return "ปลายเส้นชีวิตลงไปถึง " + pct(mm.end[1]) + "% ของความยาวฝ่ามือ ถือว่า" + (c === "long" ? "ลงไปลึกใกล้ข้อมือ" : "จบก่อนถึงข้อมือ");
+      if (id === "head" && (c === "long" || c === "short" || c === "medium") && mm.end) return "ปลายเส้นสมองไปถึง " + pct(mm.end[0]) + "% ของความกว้างฝ่ามือ ถือว่า" + (c === "long" ? "ยาว" : c === "short" ? "สั้น" : "ยาวปานกลาง");
+      if (id === "fate" && c === "long" && mm.start && mm.end) return "เส้นวาสนาขึ้นไปเกือบถึงโคนนิ้ว เหลือห่างเพียง " + pct(Math.min(mm.start[1], mm.end[1])) + "% ของความยาวฝ่ามือ";
+      return "ความยาว" + th + " " + fx(mm.length) + " เท่าของความกว้างฝ่ามือ";
     };
     var asp = opt.asp || hm.palmL / hm.palmW;
     LINE_IDS.forEach(function (id) {
@@ -1619,7 +1626,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var li = function (x, pre) { return x ? "<li><b>" + esc((pre || "") + x.label) + "</b>" + esc(x.meaning) + "</li>" : ""; };
     $("#plFingers").innerHTML = [
       li(rd.finger), li(rd.fingerDom, ""), li(rd.pinky), li(rd.thumb), li(rd.thumbAngle), li(rd.spread),
-      "<li><b>ฝ่ามือ" + (R.el.palmShape === "long" ? "ค่อนข้างยาว" : "ค่อนข้างเหลี่ยม") + " · นิ้ว" + (R.el.fingerShape === "long" ? "ค่อนข้างยาว" : "ค่อนข้างสั้น") + "</b>" + esc(E.shape) + "</li>"
+      "<li><b>ฝ่ามือ" + (Math.abs(R.el.zp) < 0.5 ? "สัดส่วนสมดุล" : R.el.palmShape === "long" ? "ค่อนข้างยาว" : "ค่อนข้างเหลี่ยม") + " · นิ้ว" + (Math.abs(R.el.zf) < 0.5 ? "สัดส่วนสมดุล" : R.el.fingerShape === "long" ? "ค่อนข้างยาว" : "ค่อนข้างสั้น") + "</b>" + esc(E.shape) + "</li>"
     ].join("");
     var ex = rd.minor.map(function (m) { return "<li><b>" + esc(m.th) + (m.seen ? " — เห็นชัด" : " — ไม่เห็นชัด") + "</b>" + esc(m.meaning) + "</li>"; })
       .concat(rd.mounts.map(function (m) { return "<li><b>" + esc(m.th) + " เด่น</b>" + esc(m.meaning) + "</li>"; }));

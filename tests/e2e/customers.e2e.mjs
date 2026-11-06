@@ -3,9 +3,11 @@
 import { assert, privacyScan } from "./cdp.mjs";
 
 const D = v => Array.from({ length: 128 }, (_, k) => +(Math.sin(k * v) * 0.1).toFixed(5));
+// legacy format (descriptor inline in cx-members): the page migrates it into the encrypted lqv-cx-faces key on load
+const NOW = Date.now();
 const MEMBERS = [
-  { id: "mA", name: "แอน", phone: "0811111111", descriptor: D(1), created: 1, consentAt: 1 },
-  { id: "mB", name: "บอส", phone: "0822222222", descriptor: D(2), created: 1, consentAt: 1 }
+  { id: "mA", name: "แอน", phone: "0811111111", descriptor: D(1), created: NOW, consentAt: NOW },
+  { id: "mB", name: "บอส", phone: "0822222222", descriptor: D(2), created: NOW, consentAt: NOW }
 ];
 const HOOKS = `
   window.__faces = [];
@@ -71,6 +73,36 @@ export default async function ({ base, launch, check, fakeCams }) {
       await privacyScan(page);
       const ms = await page.evaluate(() => JSON.parse(localStorage.getItem("cx-members")));
       assert(ms.length === 2 && ms.every(m => ["mA", "mB"].includes(m.id)), "only consenting members stored");
+      // insights.js still reads cx-members {id, created}; descriptors moved to the encrypted vault key
+      assert(ms.every(m => !("descriptor" in m) && m.created === NOW), "cx-members has no descriptors, created kept: " + JSON.stringify(ms));
+      const env = await page.evaluate(() => JSON.parse(localStorage.getItem("lqv-cx-faces")));
+      assert(env && env.enc === "lq1" && env.iv && env.ct && Object.keys(env).length === 3, "faces stored as AES-GCM envelope: " + JSON.stringify(env).slice(0, 80));
+      const plain = await page.evaluate(() => Object.keys(localStorage).filter(k => /\[\s*-?0\.\d+(\s*,\s*-?\d*\.?\d+(e-?\d+)?){100,}/.test(localStorage.getItem(k))));
+      assert(!plain.length, "no plaintext 128-number arrays in localStorage: " + plain);
+      const errs = page.consoleErrors.filter(e => e.kind !== "log");
+      assert(!errs.length, "console errors: " + JSON.stringify(errs.slice(0, 3)));
+    });
+
+    await check("reload decrypts (members still recognised); retention drops faces unused > N days; wipe removes all faces + key", async () => {
+      await page.reload();
+      await page.waitFor(() => /พร้อมใช้งาน/.test(document.querySelector("#engine").textContent), 15000);
+      await scan([FACE(0.3, 0.3, "mA")]);
+      await page.waitFor(() => /สวัสดีคุณแอน/.test(document.querySelector("#customerCard").textContent), 6000);
+      // mB last seen 400 days ago -> expired on next load with default 365
+      await page.evaluate(() => { const m = JSON.parse(localStorage.getItem("cx-members")); const b = m.find(x => x.id === "mB"); b.created = b.lastSeen = Date.now() - 400 * 864e5; localStorage.setItem("cx-members", JSON.stringify(m)); });
+      await page.reload();
+      await page.waitFor(() => /พร้อมใช้งาน|ลบข้อมูลใบหน้า/.test(document.querySelector("#engine").textContent), 15000);
+      await page.waitFor(() => LQVault.read("lqv-cx-faces").then(r => r.data && Object.keys(r.data.faces).length === 1), 5000);
+      const st = await page.evaluate(async () => { const r = await LQVault.read("lqv-cx-faces"); return { ids: Object.keys(r.data.faces).sort(), ms: JSON.parse(localStorage.getItem("cx-members")) }; });
+      assert(JSON.stringify(st.ids) === '["mA"]', "only mA keeps a face: " + st.ids);
+      assert(st.ms.length === 2 && st.ms.find(m => m.id === "mB").faceDeletedAt, "mB kept as member, face deleted");
+      await page.evaluate(() => { window.confirm = () => true; document.querySelector("#wipeFaces").click(); });
+      await page.waitFor(() => /ลบข้อมูลใบหน้าทั้งหมดแล้ว/.test(document.querySelector("#privMsg").textContent), 5000);
+      const after = await page.evaluate(async () => ({ v: localStorage.getItem("lqv-cx-faces"), ms: JSON.parse(localStorage.getItem("cx-members")),
+        keys: await new Promise(res => { const r = indexedDB.open("lensiq-vault"); r.onsuccess = () => { const db = r.result; const q = db.transaction("keys").objectStore("keys").getAllKeys(); q.onsuccess = () => { db.close(); res(q.result); }; }; }) }));
+      assert(after.v === null, "vault key removed");
+      assert(after.ms.length === 2 && after.ms.every(m => !m.descriptor), "members + history kept");
+      assert(!after.keys.includes("face-v1:lqv-cx-faces"), "CryptoKey deleted: " + after.keys);
       const errs = page.consoleErrors.filter(e => e.kind !== "log");
       assert(!errs.length, "console errors: " + JSON.stringify(errs.slice(0, 3)));
     });

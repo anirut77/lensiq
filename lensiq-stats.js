@@ -4,13 +4,19 @@
 
    วิธีที่ใช้
    - ช่วงความเชื่อมั่นของสัดส่วน: Wilson score ; ผลต่างสองสัดส่วน: Newcombe hybrid score (วิธีที่ 10) + z-test แบบ pooled
-   - เทียบจำนวนนับสองช่วง: exact conditional (binomial) test ของอัตรา Poisson ; CI ของอัตราส่วนจาก log-normal
+   - เทียบจำนวนนับรายวันสองช่วง (countCompare): negative binomial log-linear model ปรับวันในสัปดาห์ ความผันผวน (κ) ประมาณจาก
+     เศษเหลือรายวันของประวัติ (ก้อนละ 14 วัน) → t-test ของ log อัตราส่วน (ยอดรายวันผันผวนเกิน Poisson เสมอ การใช้ exact Poisson
+     ตรง ๆ ทำให้ “เจอความต่าง” ปลอมราว 40–50% ของครั้งเมื่อยอดแกว่ง ±20–30%) ; poissonTest (exact) เก็บไว้สำหรับจำนวนนับที่เป็นอิสระจริงเท่านั้น
+   - เทียบอัตราส่วนรายวันสองช่วง (twoPropDaily): quasi-binomial (φ จากความต่างรายวัน)
+   - ทดสอบหลายข้อพร้อมกัน: Benjamini–Hochberg (adjustP) ; ระดับความมั่นใจคิดจากค่าที่ปรับแล้ว (q)
    - ผลต่างค่าเฉลี่ย: Welch t (การแจกแจง t ผ่าน regularized incomplete beta)
    - ค่าผิดปกติ: modified z-score (Iglewicz–Hoaglin, 0.6745·(x−median)/MAD, เกณฑ์ 3.5) บนเศษเหลือของ STL แบบย่อ
      (แนวโน้ม = median เคลื่อนที่ 7 วัน ตามด้วยค่าเฉลี่ยเคลื่อนที่ 3 จุด ; ฤดูกาล = median ของแต่ละวันในสัปดาห์)
    - พยากรณ์: Holt-Winters แบบบวก (ฤดูกาลรายสัปดาห์) เลือก α β γ ด้วย grid search ให้ SSE ของการพยากรณ์ล่วงหน้า 1 ก้าวต่ำสุด
      ช่วงพยากรณ์ตาม Hyndman et al. (2008) ; ข้อมูลไม่ถึง 3 สัปดาห์ใช้ seasonal naive ; ไม่ถึง 1 สัปดาห์ใช้ค่าเฉลี่ย
-   - สหสัมพันธ์: Pearson + CI/p-value จาก Fisher z ; Spearman (อันดับ) */
+   - สหสัมพันธ์: Pearson + CI/p-value จาก Fisher z ; Spearman (อันดับ)
+     อนุกรมเวลา (tsCorrelation): ตัดผลวันในสัปดาห์ + แนวโน้มก่อน แล้วใช้ n_eff แบบ Bartlett/AR(1) ใน CI และ p
+   - A/B: empirical Bayes (beta-binomial / normal–normal) ดึงค่าของกลุ่มที่ข้อมูลน้อยเข้าหาค่ากลาง ใช้จัดอันดับแทนค่าดิบ */
 (function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory();
   else root.LQStats = factory();
@@ -310,11 +316,14 @@
     const ids = [...first.keys()], repeat = ids.filter(id => seen.get(id).size > 1).length;
     return { rows, customers: ids.length, repeat, repeatRate: ids.length ? repeat / ids.length : null, repeatCI: wilson(repeat, ids.length) };
   }
-  /** A/B ของอัตรา: groups = [{ id, name, x, n }] → ทุกกลุ่มมี Wilson ; best เทียบ runner-up ด้วย twoProp */
+  /** A/B ของอัตรา: groups = [{ id, name, x, n }] → ทุกกลุ่มมี Wilson (ดิบ) และ eb (ค่าหลัง shrinkage + ช่วง 95%)
+     จัดอันดับด้วยค่าหลัง shrinkage (กันกลุ่มที่ข้อมูลน้อยแต่บังเอิญสูงขึ้นมาเป็นอันดับหนึ่ง) ; best เทียบ runner-up / worst ด้วย twoProp บนค่าดิบ */
   function abRates(groups, { minN = 30 } = {}) {
-    const G = (groups || []).filter(g => g && g.n > 0 && g.x >= 0 && g.x <= g.n).map(g => ({ ...g, ci: wilson(g.x, g.n), enough: g.n >= minN }));
-    const ok = G.filter(g => g.enough).sort((a, b) => b.ci.p - a.ci.p);
-    const res = { groups: G.sort((a, b) => b.ci.p - a.ci.p), best: ok[0] || null, runner: ok[1] || null, worst: ok.length > 1 ? ok[ok.length - 1] : null, test: null, enough: ok.length >= 2 };
+    const G0 = (groups || []).filter(g => g && g.n > 0 && g.x >= 0 && g.x <= g.n), E = ebBinom(G0);
+    const G = G0.map((g, i) => ({ ...g, ci: wilson(g.x, g.n), eb: { p: E.groups[i].shrunk, lo: E.groups[i].lo, hi: E.groups[i].hi, weight: E.groups[i].weight }, enough: g.n >= minN }));
+    const order = (a, b) => b.eb.p - a.eb.p || b.ci.p - a.ci.p;
+    const ok = G.filter(g => g.enough).sort(order);
+    const res = { groups: G.sort(order), prior: { mean: E.mean, M: E.M }, best: ok[0] || null, runner: ok[1] || null, worst: ok.length > 1 ? ok[ok.length - 1] : null, test: null, enough: ok.length >= 2, few: G.filter(g => !g.enough).length };
     if (res.best && res.runner) res.test = twoProp(res.best.x, res.best.n, res.runner.x, res.runner.n);
     if (res.best && res.worst) res.spread = twoProp(res.best.x, res.best.n, res.worst.x, res.worst.n);
     return res;
@@ -323,11 +332,226 @@
   function abMeans(groups, { minN = 3 } = {}) {
     const G = (groups || []).map(g => ({ ...g, ci: meanCI(g.values), n: clean(g.values).length })).filter(g => g.ci);
     G.forEach(g => { g.enough = g.n >= minN; });
-    G.sort((a, b) => b.ci.mean - a.ci.mean);
-    const ok = G.filter(g => g.enough), res = { groups: G, best: ok[0] || null, runner: ok[1] || null, worst: ok.length > 1 ? ok[ok.length - 1] : null, test: null, enough: ok.length >= 2 };
+    // se ของแต่ละกลุ่ม: กลุ่มที่มี 1 ค่า หรือ sd = 0 ใช้ sd รวมภายในกลุ่ม (pooled)
+    const within = G.filter(g => g.n >= 2), dfw = sum(within.map(g => g.n - 1));
+    const sp = dfw > 0 ? Math.sqrt(sum(within.map(g => (g.n - 1) * (sd(g.values) || 0) ** 2)) / dfw) : null;
+    const E = ebNormal(G.map(g => { const s = sd(g.values); return { mean: g.ci.mean, se: (g.n >= 2 && s > 0 ? s : sp || 0) / Math.sqrt(g.n) }; }));
+    G.forEach((g, i) => { g.eb = { mean: E.groups[i].shrunk, weight: E.groups[i].weight }; });
+    G.sort((a, b) => b.eb.mean - a.eb.mean || b.ci.mean - a.ci.mean);
+    const ok = G.filter(g => g.enough), res = { groups: G, prior: { mean: E.mu, tau2: E.tau2 }, best: ok[0] || null, runner: ok[1] || null, worst: ok.length > 1 ? ok[ok.length - 1] : null, test: null, enough: ok.length >= 2, few: G.filter(g => !g.enough).length };
     if (res.best && res.runner) res.test = welch(res.best.values, res.runner.values);
     if (res.best && res.worst) res.spread = welch(res.best.values, res.worst.values);
     return res;
+  }
+
+  /* ---------- เทียบจำนวนนับรายวันแบบเผื่อความผันผวนเกิน Poisson (overdispersion) ---------- */
+  /** แก้ระบบสมการ A x = b (A สมมาตรบวกแน่นอน ขนาดเล็ก) ด้วย Gaussian elimination + partial pivoting ; เอกฐาน = null */
+  function solve(A, b) {
+    const n = b.length, M = A.map((r, i) => r.slice().concat([b[i]]));
+    for (let c = 0; c < n; c++) {
+      let p = c; for (let r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
+      if (!(Math.abs(M[p][c]) > 1e-12)) return null;
+      if (p !== c) { const t = M[p]; M[p] = M[c]; M[c] = t; }
+      for (let r = c + 1; r < n; r++) { const f = M[r][c] / M[c][c]; if (f) for (let k = c; k <= n; k++) M[r][k] -= f * M[c][k]; }
+    }
+    const x = Array(n).fill(0);
+    for (let r = n - 1; r >= 0; r--) { let s = M[r][n]; for (let k = r + 1; k < n; k++) s -= M[r][k] * x[k]; x[r] = s / M[r][r]; }
+    return x;
+  }
+  /** log-linear GLM (IRLS) ของจำนวนนับ: log μ = off + Xβ ; ความแปรปรวน V(μ) = μ(1 + κμ) (κ = 0 → Poisson, κ > 0 → negative binomial)
+     คืน { beta, mu, info (X'WX ที่ W = μ/(1+κμ)), chi2 (Pearson ภายใต้ V), df } ; เอกฐาน = null */
+  function poissonGLM(y, off, X, kappa = 0, start = null) {
+    const n = y.length, p = X[0].length, rate = sum(y) / sum(off.map(Math.exp)) || 1;
+    let mu = start ? start.slice() : y.map((v, i) => (v + rate * Math.exp(off[i])) / 2 + 0.1), beta = null;
+    const infoAt = m => {
+      const I = Array.from({ length: p }, () => Array(p).fill(0));
+      for (let i = 0; i < n; i++) { const xi = X[i], w = m[i] / (1 + kappa * m[i]); for (let a = 0; a < p; a++) if (xi[a]) for (let b = 0; b < p; b++) if (xi[b]) I[a][b] += xi[a] * w * xi[b]; }
+      return I;
+    };
+    for (let it = 0; it < 60; it++) {
+      const XtWX = infoAt(mu), XtWz = Array(p).fill(0);
+      for (let i = 0; i < n; i++) {
+        const w = mu[i] / (1 + kappa * mu[i]), z = Math.log(mu[i]) - off[i] + (y[i] - mu[i]) / mu[i], xi = X[i];
+        for (let a = 0; a < p; a++) if (xi[a]) XtWz[a] += xi[a] * w * z;
+      }
+      const nb = solve(XtWX, XtWz); if (!nb) return null;
+      const d = beta ? Math.max(...nb.map((v, k) => Math.abs(v - beta[k]))) : Infinity;
+      beta = nb;
+      mu = X.map((xi, i) => Math.max(1e-10, Math.exp(Math.min(700, off[i] + xi.reduce((s, v, k) => s + v * beta[k], 0)))));
+      if (d < 1e-9) break;
+    }
+    let chi2 = 0; for (let i = 0; i < n; i++) chi2 += (y[i] - mu[i]) ** 2 / (mu[i] * (1 + kappa * mu[i]));
+    return { beta, mu, info: infoAt(mu), chi2, df: n - p, kappa };
+  }
+  /** negative binomial (NB2) GLM: สลับประมาณ β และ κ ; κ จาก Pearson moment equation Σ (y−μ)²/(μ(1+κμ)) = n − p */
+  function nbGLM(y, off, X) {
+    let fit = poissonGLM(y, off, X, 0); if (!fit || fit.df < 1) return fit;
+    let kappa = 0;
+    for (let it = 0; it < 8; it++) {
+      const f = k => { let s = 0; for (let i = 0; i < y.length; i++) s += (y[i] - fit.mu[i]) ** 2 / (fit.mu[i] * (1 + k * fit.mu[i])); return s - fit.df; };
+      let kn = 0;
+      if (f(0) > 0) { let lo = 0, hi = 1; while (f(hi) > 0 && hi < 1e4) hi *= 4; for (let i = 0; i < 60; i++) { const m = (lo + hi) / 2; if (f(m) > 0) lo = m; else hi = m; } kn = (lo + hi) / 2; }
+      const nf = poissonGLM(y, off, X, kn, fit.mu); if (!nf) break;
+      const done = Math.abs(kn - kappa) <= 1e-6 + 1e-4 * kappa; fit = nf; kappa = kn; if (done) break;
+    }
+    return fit;
+  }
+  /** เทียบอัตราเฉลี่ยต่อวันของสองช่วงจากจำนวนนับรายวัน — negative binomial (NB2) log-linear model + quasi scale
+     days = [{ y: จำนวนนับ, e: สัดส่วนของวัน (1 = ทั้งวัน, วันนี้ < 1), wd: 0..6, g: "A" (ช่วงนี้) | "B" (ช่วงเทียบ) | อื่น ๆ (ประวัติ) }]
+     แบบจำลอง: log μ_d = log e_d + ระดับของกลุ่ม g(d) + ผลของวันในสัปดาห์ wd(d) ; Var(y) = μ(1 + κμ)
+       - ทำไมไม่ใช้ exact Poisson: ยอดรายวันผันผวนเกิน Poisson (อากาศ วันหยุด ฯลฯ) ความแปรปรวนจริงโตตาม μ² ไม่ใช่ μ
+         จำลอง ±30% ต่อวัน → exact Poisson บอก “ต่างชัด” ผิด ~50% ของครั้ง ; แบบนี้ได้ใกล้ 5% ตามที่ตั้ง (ดู tests/unit/stats.test.js)
+       - วันในประวัติที่ไม่อยู่ในสองช่วงถูกแบ่งเป็นก้อนละ block วัน (ระดับของแต่ละก้อนดูดซับแนวโน้มช้า ๆ)
+         จึงใช้ประมาณผลของวันในสัปดาห์และ κ จากเศษเหลือรายวันได้มากกว่าสองช่วงที่เทียบ (ใช้ได้แม้เทียบวันนี้กับเมื่อวาน)
+       - κ จาก Pearson moment equation ; φ = max(1, χ²/(n − p)) คุมไม่ให้ความมั่นใจเกิน Poisson
+       - se = √(φ · c'(X'WX)⁻¹c) ของ β_A − β_B ; t-test ที่ df = n − p (เผื่อความไม่แน่นอนของ κ)
+     คืน { rate1, rate2 (ดิบ ต่อวัน), ratio, change (ดิบ), adjRatio, adjChange (ปรับวันในสัปดาห์), lo, hi (ช่วง 95% ของ adjChange),
+           p, phi, kappa, df, wdAdj, n (= c1 + c2), c1, c2, e1, e2, method, enough } */
+  function countCompare(days, { conf = 0.95, block = 14, minDf = 4 } = {}) {
+    const D = (days || []).filter(d => d && fin(d.y) && d.y >= 0 && fin(d.e) && d.e > 0);
+    const A = D.filter(d => d.g === "A"), B = D.filter(d => d.g === "B");
+    if (!A.length || !B.length) return null;
+    const c1 = sum(A.map(d => d.y)), c2 = sum(B.map(d => d.y)), e1 = sum(A.map(d => d.e)), e2 = sum(B.map(d => d.e));
+    const rate1 = c1 / e1, rate2 = c2 / e2, ratio = rate2 > 0 ? rate1 / rate2 : null;
+    const base = { rate1, rate2, ratio, change: ratio == null ? null : ratio - 1, c1, c2, e1, e2, n: c1 + c2, method: "negbin-glm" };
+    if (c1 + c2 === 0) return { ...base, adjRatio: null, adjChange: null, lo: null, hi: null, p: 1, phi: 1, df: 0, wdAdj: false, enough: false };
+    // ประวัติ: ก้อนละ block วันตามลำดับ (ไม่รวมวันในสองช่วง)
+    const H = D.filter(d => d.g !== "A" && d.g !== "B").map((d, i) => ({ ...d, g: "h" + Math.floor(i / block) }));
+    const hg = [...new Set(H.map(d => d.g))];
+    if (hg.length > 1) { const last = hg[hg.length - 1]; if (H.filter(d => d.g === last).length < Math.ceil(block / 2)) H.forEach(d => { if (d.g === last) d.g = hg[hg.length - 2]; }); }
+    let all = A.concat(B, H);
+    // กลุ่ม/วันในสัปดาห์ที่ยอดรวมเป็น 0 (เช่น ร้านปิดวันอาทิตย์) ค่า MLE ของ μ = 0 → ตัดวันเหล่านั้นออก (ไม่มีผลต่อการประมาณส่วนอื่น)
+    const tot = (k, v) => sum(all.filter(d => d[k] === v).map(d => d.y));
+    all = all.filter(d => tot("g", d.g) > 0 && tot("wd", d.wd) > 0);
+    const groups = [...new Set(all.map(d => d.g))];
+    const wds = [...new Set(all.map(d => d.wd))].sort();
+    const wdAdj = wds.length > 1 && wds.every(w => all.filter(d => d.wd === w).length >= 2) && all.length >= 14;
+    const zeroSide = c1 === 0 || c2 === 0;
+    const cols = groups.length + (wdAdj ? wds.length - 1 : 0);
+    const X = all.map(d => { const r = Array(cols).fill(0); r[groups.indexOf(d.g)] = 1; if (wdAdj) { const k = wds.indexOf(d.wd); if (k > 0) r[groups.length + k - 1] = 1; } return r; });
+    const fit = all.length > cols ? nbGLM(all.map(d => d.y), all.map(d => Math.log(d.e)), X) : null;
+    const df = fit ? fit.df : 0, phiRaw = fit && df > 0 ? fit.chi2 / df : null, phi = Math.max(1, phiRaw || 1);
+    if (zeroSide || !fit || !groups.includes("A") || !groups.includes("B")) {
+      // ด้านหนึ่งเป็นศูนย์: exact conditional test บนจำนวนที่หารด้วย φ (quasi-likelihood scaling)
+      const p = binomTest(Math.round(c1 / phi), Math.round((c1 + c2) / phi), e1 / (e1 + e2));
+      return { ...base, adjRatio: ratio, adjChange: base.change, lo: null, hi: null, p, phi, df, wdAdj: false, enough: df >= minDf };
+    }
+    const ia = groups.indexOf("A"), ib = groups.indexOf("B"), cvec = Array(cols).fill(0); cvec[ia] = 1; cvec[ib] = -1;
+    const v = solve(fit.info, cvec); if (!v) return null;
+    const varU = cvec.reduce((s, c, k) => s + c * v[k], 0), d = fit.beta[ia] - fit.beta[ib];
+    const se = Math.sqrt(phi * varU), dfT = Math.max(1, df), t = d / se;
+    const p = df >= 1 ? 2 * (1 - tCdf(Math.abs(t), dfT)) : 2 * (1 - normCdf(Math.abs(t)));
+    const tc = df >= 1 ? tCrit(dfT, conf) : zCrit(conf);
+    return { ...base, adjRatio: Math.exp(d), adjChange: Math.exp(d) - 1, lo: Math.exp(d - tc * se) - 1, hi: Math.exp(d + tc * se) - 1, se, t, p: Math.min(1, Math.max(0, p)), phi, phiRaw, kappa: fit.kappa, df, days: all.length, wdAdj, enough: df >= minDf };
+  }
+
+  /** เทียบอัตราส่วน (เช่น บิล ÷ คนเข้าร้าน) ของสองช่วงจากข้อมูลรายวัน — quasi-binomial
+     A, B = [{ x, n }] รายวัน ; ค่ารวมเทียบด้วย twoProp แล้วขยาย se ด้วย √φ ; φ = max(1, Pearson χ²/(วัน − 2)) จากความต่างรายวันรอบอัตราของแต่ละช่วง
+     (คนในวันเดียวกันไม่ได้เป็นอิสระต่อกัน — วันคิวยาวทุกคนซื้อน้อยลงพร้อมกัน) ; p จาก t ที่ df = วัน − 2 */
+  function twoPropDaily(A, B, conf = 0.95) {
+    const ok = d => d && fin(d.x) && fin(d.n) && d.n > 0 && d.x >= 0 && d.x <= d.n;
+    const a = (A || []).filter(ok), b = (B || []).filter(ok);
+    const x1 = sum(a.map(d => d.x)), n1 = sum(a.map(d => d.n)), x2 = sum(b.map(d => d.x)), n2 = sum(b.map(d => d.n));
+    const t = twoProp(x1, n1, x2, n2, conf); if (!t) return null;
+    let chi2 = 0, cnt = 0;
+    [[a, x1 / n1], [b, x2 / n2]].forEach(([D, p]) => { if (p > 0 && p < 1) D.forEach(d => { chi2 += (d.x - d.n * p) ** 2 / (d.n * p * (1 - p)); cnt++; }); });
+    const df = cnt - 2, phi = df > 0 ? Math.max(1, chi2 / df) : 1, k = Math.sqrt(phi);
+    const z = t.z / k, p = df >= 1 ? 2 * (1 - tCdf(Math.abs(z), df)) : t.p;
+    const sc = df >= 1 ? tCrit(df, conf) / zCrit(conf) : 1;
+    return { ...t, z, p, lo: t.diff - (t.diff - t.lo) * k * sc, hi: t.diff + (t.hi - t.diff) * k * sc, phi, df, days: a.length + b.length, method: "quasi-binomial" };
+  }
+
+  /* ---------- หลายการทดสอบพร้อมกัน ---------- */
+  /** ปรับ p-value สำหรับการทดสอบหลายข้อ: "BH" (Benjamini–Hochberg, คุม false discovery rate) | "holm" (คุม family-wise error)
+     ค่า null/NaN ไม่นับเป็นสมาชิกและคืน null */
+  function adjustP(ps, method = "BH") {
+    const idx = (ps || []).map((p, i) => [p, i]).filter(([p]) => fin(p)), m = idx.length, out = (ps || []).map(() => null);
+    if (!m) return out;
+    if (method === "holm") {
+      idx.sort((a, b) => a[0] - b[0]); let run = 0;
+      idx.forEach(([p, i], k) => { run = Math.max(run, Math.min(1, (m - k) * p)); out[i] = run; });
+    } else {
+      idx.sort((a, b) => b[0] - a[0]); let run = 1;
+      idx.forEach(([p, i], k) => { const rank = m - k; run = Math.min(run, Math.min(1, p * m / rank)); out[i] = run; });
+    }
+    return out;
+  }
+
+  /* ---------- สหสัมพันธ์ของอนุกรมเวลา ---------- */
+  /** เศษเหลือจาก OLS ของ v บนเมทริกซ์ X (คืน null ถ้าเอกฐาน) */
+  function olsResid(v, X) {
+    const p = X[0].length, XtX = Array.from({ length: p }, () => Array(p).fill(0)), Xty = Array(p).fill(0);
+    X.forEach((xi, i) => { for (let a = 0; a < p; a++) { Xty[a] += xi[a] * v[i]; for (let b = 0; b < p; b++) XtX[a][b] += xi[a] * xi[b]; } });
+    const b = solve(XtX, Xty); if (!b) return null;
+    return v.map((y, i) => y - X[i].reduce((s, x, k) => s + x * b[k], 0));
+  }
+  /** สหสัมพันธ์ lag-1 จากคู่ตำแหน่งที่ติดกันในอนุกรมเดิม (pos = ตำแหน่งเดิม) */
+  function lag1(e, pos) {
+    const m = mean(e); let num = 0, den = 0;
+    e.forEach((v, i) => { den += (v - m) ** 2; if (i && pos[i] === pos[i - 1] + 1) num += (v - m) * (e[i - 1] - m); });
+    return den > 0 ? num / den : 0;
+  }
+  /** สหสัมพันธ์ของอนุกรมเวลารายวัน (หรือรายชั่วโมง) ที่เผื่อสหสัมพันธ์ต่อเนื่อง (autocorrelation)
+     1) ถ้ามี wd (วันในสัปดาห์ของแต่ละจุด) และข้อมูล ≥ 14 คู่: ตัดผลของวันในสัปดาห์และแนวโน้มเส้นตรงออกจากทั้งสองอนุกรม (OLS)
+        แล้วหาสหสัมพันธ์ของเศษเหลือ — ไม่ให้ “วันเสาร์คนเยอะทั้งคู่” หรือ “ทั้งคู่โตขึ้นตามเวลา” กลายเป็นความสัมพันธ์
+     2) ขนาดตัวอย่างที่มีผลจริง (Bartlett, AR(1)): n_eff = (n − k)·(1 − ρx ρy)/(1 + ρx ρy) ; k = จำนวนพารามิเตอร์ที่ตัดออก
+        ρ = สหสัมพันธ์ lag-1 ของเศษเหลือ ; CI และ p ใช้ Fisher z ด้วย se = 1/√(n_eff − 3)
+     คืน { n, nEff, r (หลังปรับ), rRaw, rho (Spearman ดิบ), lo, hi, p, adjusted: "weekday+trend" | "none", ac: [ρx, ρy], enough } */
+  function tsCorrelation(x, y, { wd = null, conf = 0.95, minN = 8, minEff = 6 } = {}) {
+    const X = [], Y = [], P = [], W = [];
+    for (let i = 0; i < Math.min((x || []).length, (y || []).length); i++) if (fin(x[i]) && fin(y[i])) { X.push(x[i]); Y.push(y[i]); P.push(i); W.push(wd ? wd[i] : null); }
+    const n = X.length;
+    if (n < 3) return { n, nEff: n, r: null, rRaw: null, enough: false, adjusted: "none" };
+    const rRaw = pearsonRaw(X, Y), rho = pearsonRaw(ranks(X), ranks(Y));
+    let ex = X, ey = Y, k = 1, adjusted = "none";
+    if (wd && n >= 14) {
+      const levels = [...new Set(W)].sort(), tm = mean(P);
+      const M = P.map((t, i) => levels.map(l => (W[i] === l ? 1 : 0)).concat([(t - tm) / Math.max(1, n)]));
+      const rx = olsResid(X, M), ry = olsResid(Y, M);
+      if (rx && ry) { ex = rx; ey = ry; k = levels.length + 1; adjusted = "weekday+trend"; }
+    }
+    const r = pearsonRaw(ex, ey);
+    if (r == null) return { n, nEff: n, r: null, rRaw, rho, enough: false, adjusted };
+    const ax = Math.max(-0.95, Math.min(0.95, lag1(ex, P))), ay = Math.max(-0.95, Math.min(0.95, lag1(ey, P)));
+    const nEff = Math.max(2, Math.min(n - k + 1, (n - k + 1) * (1 - ax * ay) / (1 + ax * ay)));
+    let lo = null, hi = null, p = null;
+    if (nEff > 3) {
+      const rr = Math.max(-0.999999, Math.min(0.999999, r)), zf = Math.atanh(rr), se = 1 / Math.sqrt(nEff - 3), zc = zCrit(conf);
+      lo = Math.tanh(zf - zc * se); hi = Math.tanh(zf + zc * se); p = 2 * (1 - normCdf(Math.abs(zf) / se));
+    }
+    return { n, nEff, r, rRaw, rho, lo, hi, p, adjusted, ac: [ax, ay], enough: n >= minN && nEff >= minEff };
+  }
+
+  /* ---------- A/B: empirical Bayes shrinkage (ลด winner's curse) ---------- */
+  /** beta-binomial empirical Bayes: groups = [{ x, n }] → prior Beta(α, β) จาก method of moments
+     (ความแปรปรวนระหว่างกลุ่มหักส่วนที่มาจากการสุ่มแบบ binomial) ; ทุกกลุ่มได้ shrunk = (x + α)/(n + α + β)
+     และช่วง 95% จาก posterior Beta(x + α, n − x + β) ; ความต่างระหว่างกลุ่มไม่เกินที่คาดจากการสุ่ม → ดึงเข้าหาค่ากลางทั้งหมด */
+  function betaQuantile(q, a, b) { let lo = 0, hi = 1; for (let i = 0; i < 60; i++) { const m = (lo + hi) / 2; if (ibeta(m, a, b) < q) lo = m; else hi = m; } return (lo + hi) / 2; }
+  function ebBinom(groups, conf = 0.95) {
+    const G = (groups || []).filter(g => g && g.n > 0), k = G.length;
+    if (!k) return { alpha: null, beta: null, M: null, mean: null, groups: [] };
+    const N = sum(G.map(g => g.n)), pbar = sum(G.map(g => g.x)) / N;
+    const S = sum(G.map(g => g.n * (g.x / g.n - pbar) ** 2)), den = N - sum(G.map(g => g.n * g.n)) / N;
+    const tau2 = k > 1 && den > 0 ? (S - pbar * (1 - pbar) * (k - 1)) / den : 0;
+    // tau2 ≤ 0 → รวมเป็นกลุ่มเดียว (prior แคบมาก) ; จำกัด M ไม่ให้เกิน 1e6
+    const M = tau2 > 0 && pbar > 0 && pbar < 1 ? Math.min(1e6, Math.max(1e-6, pbar * (1 - pbar) / tau2 - 1)) : 1e6;
+    const a = Math.max(1e-6, pbar * M), b = Math.max(1e-6, (1 - pbar) * M), lq = (1 - conf) / 2;
+    return {
+      alpha: a, beta: b, M, mean: pbar, tau2: Math.max(0, tau2),
+      groups: G.map(g => ({ ...g, shrunk: (g.x + a) / (g.n + a + b), weight: g.n / (g.n + a + b), lo: betaQuantile(lq, g.x + a, g.n - g.x + b), hi: betaQuantile(1 - lq, g.x + a, g.n - g.x + b) }))
+    };
+  }
+  /** normal–normal empirical Bayes ของค่าเฉลี่ยกลุ่ม: groups = [{ mean, se }] → τ² แบบ DerSimonian–Laird
+     shrunk = μ̂ + τ²/(τ² + se²)·(mean − μ̂) */
+  function ebNormal(groups) {
+    const all = groups || [], ok = g => g && fin(g.mean) && fin(g.se) && g.se > 0, G = all.filter(ok), k = G.length;
+    if (!k) return { mu: null, tau2: null, groups: all.map(g => ({ ...g, shrunk: g ? g.mean : null, weight: 1 })) };
+    const w = G.map(g => 1 / g.se ** 2), sw = sum(w), muF = sum(G.map((g, i) => w[i] * g.mean)) / sw;
+    const Q = sum(G.map((g, i) => w[i] * (g.mean - muF) ** 2)), c = sw - sum(w.map(x => x * x)) / sw;
+    const tau2 = k > 1 && c > 0 ? Math.max(0, (Q - (k - 1)) / c) : 0;
+    const ws = G.map(g => 1 / (g.se ** 2 + tau2)), mu = sum(G.map((g, i) => ws[i] * g.mean)) / sum(ws);
+    // กลุ่มที่ไม่มี se (คืนค่าเดิม น้ำหนัก 1)
+    return { mu, tau2, groups: all.map(g => { if (!ok(g)) return { ...g, shrunk: g ? g.mean : null, weight: 1 }; const B = tau2 / (tau2 + g.se ** 2); return { ...g, shrunk: mu + B * (g.mean - mu), weight: B }; }) };
   }
 
   /* ---------- ภาษาคน ---------- */
@@ -336,13 +560,26 @@
     if (!enough || !fin(p)) return "insufficient";
     return p < 0.01 ? "strong" : p < 0.05 ? "moderate" : p < 0.2 ? "weak" : "none";
   }
+  /* ป้ายความมั่นใจเป็นภาษาธรรมดา ไม่อ้างว่า “โอกาสที่ผลนี้เป็นความจริง/ความบังเอิญ” เท่ากับเท่าไร (p-value ไม่ได้บอกสิ่งนั้น)
+     ตัวเลข p อธิบายแยกด้วย pTextTH() ในส่วนรายละเอียด */
   const TH_CONF = {
     insufficient: "ข้อมูลยังน้อย ยังสรุปไม่ได้",
-    none: "ยังไม่ต่างจากเดิมอย่างมีนัย อาจเป็นความผันผวนตามปกติ",
-    weak: "ยังไม่แน่ชัด อาจเป็นความบังเอิญได้",
-    moderate: "ค่อนข้างมั่นใจ โอกาสเป็นความบังเอิญไม่ถึง 1 ใน 20",
-    strong: "มั่นใจสูง โอกาสเป็นความบังเอิญไม่ถึง 1 ใน 100"
+    none: "ยังไม่ต่างจากเดิมอย่างชัดเจน อาจเป็นความผันผวนตามปกติ",
+    weak: "ยังไม่แน่ชัด ความต่างขนาดนี้เกิดจากความผันผวนตามปกติได้",
+    moderate: "ค่อนข้างมั่นใจ หลักฐานค่อนข้างชัด",
+    strong: "มั่นใจสูง หลักฐานชัดเจน"
   };
+  /** เปอร์เซ็นต์ของ p แบบอ่านง่าย */
+  function pctP(p) { return !fin(p) ? "–" : p < 0.001 ? "ต่ำกว่า 0.1%" : p < 0.01 ? (p * 100).toFixed(1) + "%" : p < 0.995 ? Math.round(p * 100) + "%" : "เกือบ 100%"; }
+  /** อธิบาย p-value อย่างถูกต้อง: “ถ้าไม่มีความเปลี่ยนแปลงจริง โอกาสเห็นความต่างขนาดนี้หรือมากกว่า ≈ x%”
+     kind: "change" | "corr" | "diff" ; q/m = ค่าหลังปรับการทดสอบหลายข้อ (BH) และจำนวนข้อที่ทดสอบพร้อมกัน */
+  function pTextTH(p, { kind = "change", q = null, m = null } = {}) {
+    if (!fin(p)) return "";
+    const head = kind === "corr" ? "ถ้าสองค่านี้ไม่สัมพันธ์กันจริง โอกาสเห็นความสัมพันธ์ขนาดนี้หรือมากกว่า" : kind === "diff" ? "ถ้าทุกตัวเลือกได้ผลเท่ากันจริง โอกาสเห็นความต่างขนาดนี้หรือมากกว่า" : "ถ้าไม่มีความเปลี่ยนแปลงจริง โอกาสเห็นความต่างขนาดนี้หรือมากกว่า";
+    const ap = v => (v < 0.001 ? "" : "≈ ") + pctP(v);
+    const adj = fin(q) && m > 1 ? ` · เมื่อปรับเพราะดู ${m} ข้อพร้อมกัน (Benjamini–Hochberg) ค่าที่ใช้ตัดสินความมั่นใจ ${ap(q)}` : "";
+    return `${head} ${ap(p)}${adj}`;
+  }
   const TH_CONF_SHORT = { insufficient: "ข้อมูลยังน้อย", none: "ไม่ต่างชัด", weak: "ยังไม่แน่ชัด", moderate: "ค่อนข้างมั่นใจ", strong: "มั่นใจสูง" };
   /** ความแรงของสหสัมพันธ์ */
   function corrWord(r) {
@@ -354,9 +591,9 @@
   return {
     fin, clean, sum, mean, median, quantile, sd, mad, describe, movingAvg,
     erf, normCdf, normInv, lgamma, ibeta, tCdf, tCrit, zCrit,
-    wilson, twoProp, binomTest, poissonTest, meanCI, welch,
+    wilson, twoProp, binomTest, poissonTest, countCompare, twoPropDaily, poissonGLM, nbGLM, solve, adjustP, meanCI, welch,
     robustZ, stlLite, anomalies, seasonGrid, holtWinters, forecast,
-    correlation, funnel, cohorts, abRates, abMeans,
-    confLevel, corrWord, TH_CONF, TH_CONF_SHORT
+    correlation, tsCorrelation, funnel, cohorts, abRates, abMeans, ebBinom, ebNormal, betaQuantile,
+    confLevel, corrWord, pctP, pTextTH, TH_CONF, TH_CONF_SHORT
   };
 });

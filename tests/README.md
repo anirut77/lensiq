@@ -25,6 +25,9 @@ isolation, grain, composite ordering (head over collar, original clothes hidden)
 `test_agg.py` covers the multi-device `/api/agg*` endpoints in `server.py`: pairing code only on loopback, join/push/get,
 token-derived node id, wrong-code lockout, rotate/revoke, LAN-only remote address, Host/Origin checks (no CORS wildcard),
 rate limit, strict numeric schema (unknown keys, strings, images rejected) and that `data/` is never served.
+`test_api_guard.py` covers the shared guard on `/api/convert`, `/api/tryon`, `/api/fortune`: Host (DNS rebinding), Origin /
+`Sec-Fetch-Site` (CSRF), LAN-only remote address + `LENSIQ_API_ALLOW_ANY`, `X-Forwarded-For` hops, per-IP rate limits,
+size and content-type limits, try-on image checks, a Render-style deployment, and the CSP / security headers on every response.
 
 ## End-to-end (headless Chrome, no WebGL)
 
@@ -49,6 +52,8 @@ LQ_CHROME=/path/to/chrome node tests/e2e/run.mjs       # other Chrome binary
   Skipped when `.venv/bin/python` is missing.
 - `studio.e2e.mjs` runs `studio.html?cpu` on a synthetic canvas portrait: MODNet matte, fit, blend, retouch, brush,
   handle drag, PNG garment template (IndexedDB), PNG/JPEG/ID/4x6 export, fake-camera capture, overflow 390/1280, privacy.
+- `csp.e2e.mjs` starts `server.py` and opens every page under its Content-Security-Policy, failing on any violation; it also
+  starts TF.js wasm, MediaPipe, onnxruntime-web and the pdf.js worker under the policy. Skipped when `.venv/bin/python` is missing.
 - `hub.e2e.mjs` builds a blank grid inside `/index.html` and drives `LQCam.createHub`: add/restore/scheduler/unplug,
   the capacity proof (`muteOthers`, `throwOthers` -> `CapacityError`, `lq-camcap.maxLive === 1`) and the privacy scan
   (no `data:image` or value over 200 KB in localStorage, no `/api/*` requests).

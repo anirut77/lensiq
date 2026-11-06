@@ -109,7 +109,30 @@ export default async function ({ base, launch, check, fakeCams }) {
       await privacyScan(page);
       const st = await page.evaluate(() => ({ people: JSON.parse(localStorage.getItem("att-people")), keys: Object.keys(localStorage) }));
       assert(st.people.length === 3 && st.people.every(p => ["pA", "pB"].includes(p.id) || p.code === "C03"), "only enrolled people stored");
-      assert(!st.keys.some(k => /desc|face|unknown/i.test(k)), "no extra descriptor keys: " + st.keys);
+      // descriptors live only in the encrypted vault key lqv-att-faces (legacy inline descriptors were migrated on load)
+      assert(!st.keys.some(k => /desc|face|unknown/i.test(k) && k !== "lqv-att-faces"), "no extra descriptor keys: " + st.keys);
+      assert(st.people.every(p => !("descriptor" in p) && p.created), "att-people has no descriptors: " + JSON.stringify(st.people[0]));
+      const env = await page.evaluate(() => JSON.parse(localStorage.getItem("lqv-att-faces")));
+      assert(env && env.enc === "lq1" && env.iv && env.ct && Object.keys(env).length === 3, "faces stored as AES-GCM envelope");
+      const dec = await page.evaluate(async () => { const r = await LQVault.read("lqv-att-faces"); return { state: r.state, n: Object.keys(r.data.faces).length, len: Object.values(r.data.faces)[0].length }; });
+      assert(dec.state === "enc" && dec.n === 3 && dec.len === 128, "decrypts to 3 descriptors: " + JSON.stringify(dec));
+      const errs = page.consoleErrors.filter(e => e.kind !== "log");
+      assert(!errs.length, "console errors: " + JSON.stringify(errs.slice(0, 3)));
+    });
+
+    await check("retention removes enrolments unused > N days; wipe removes all faces, keeps logs", async () => {
+      await page.evaluate(() => { const p = JSON.parse(localStorage.getItem("att-people")); p.find(x => x.id === "pB").lastSeen = Date.now() - 100 * 864e5; p.find(x => x.id === "pB").created = 1; localStorage.setItem("att-people", JSON.stringify(p)); });
+      await page.reload();
+      await page.waitFor("ready === true", 15000);
+      assert(await page.evaluate(() => people.length === 3), "default 365 keeps pB");
+      await page.evaluate(() => { const s = document.querySelector("#retention"); s.value = "90"; s.dispatchEvent(new Event("change")); });
+      const ids = await page.evaluate(() => people.map(p => p.id));
+      assert(ids.length === 2 && !ids.includes("pB"), "pB removed at 90 days: " + ids);
+      assert(JSON.parse(await page.evaluate(() => localStorage.getItem("att-settings"))).retentionDays === 90, "setting saved");
+      const nLogs = (await logs()).length;
+      await page.evaluate(() => { window.confirm = () => true; document.querySelector("#wipeFaces").click(); });
+      await page.waitFor(() => !localStorage.getItem("lqv-att-faces") && people.length === 0, 5000);
+      assert((await logs()).length === nLogs, "logs kept");
       const errs = page.consoleErrors.filter(e => e.kind !== "log");
       assert(!errs.length, "console errors: " + JSON.stringify(errs.slice(0, 3)));
     });

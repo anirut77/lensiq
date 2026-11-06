@@ -7,3 +7,8 @@
  *   แล้วตั้ง LENSIQ_ALLOW_ORIGIN=https://<ชื่อผู้ใช้>.github.io บนเซิร์ฟเวอร์ (ดู AI-SETUP.md)
  */
 window.LENSIQ_API_BASE = window.LENSIQ_API_BASE || "";
+
+/* LENSIQ_FACEPARSE: ใช้โมเดลแยกผม/คอ/เสื้อ (vendor/models/faceparse-bisenet-r18-q8.onnx) ในสตูดิโอแต่งชุด
+ *   false (ค่าเริ่มต้น) = ใช้วิธีแยกด้วยสีแทน — น้ำหนักโมเดลฝึกจากชุดข้อมูลที่อนุญาตเฉพาะงานไม่ใช่เชิงพาณิชย์
+ *   ตั้ง true เมื่อมีไฟล์โมเดลและยืนยันสิทธิ์การใช้งานแล้ว (ดู vendor/models/FACEPARSE-LICENSE.txt) */
+window.LENSIQ_FACEPARSE = window.LENSIQ_FACEPARSE === true;

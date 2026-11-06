@@ -10,10 +10,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=6">
-<link rel="stylesheet" href="insights.css?v=2">
+<link rel="stylesheet" href="insights.css?v=3">
 </head>
 <body>
-<header class="nav" id="siteNav"></header><script src="nav.js?v=8"></script>
+<header class="nav" id="siteNav"></header><script src="nav.js?v=10"></script>
 
 <main class="iq">
   <h1>แดชบอร์ดรวม</h1>
@@ -61,6 +61,23 @@
       <div class="ins-grid" id="insightCards"></div>
       <button type="button" class="btn-s more" id="insightMore" aria-expanded="false" aria-controls="insightCards" hidden></button>
       <p class="note">ทุกข้อความสร้างจากตัวเลขในเบราว์เซอร์นี้ ไม่ใช้ AI และไม่ส่งข้อมูลออกนอกเครื่อง · “ความมั่นใจ” มาจากการทดสอบทางสถิติ ข้อมูลน้อยจะบอกตรง ๆ ว่ายังสรุปไม่ได้</p>
+      <details class="method" id="methodHelp">
+        <summary>วิธีคำนวณ</summary>
+        <h3>ความมั่นใจหมายถึงอะไร</h3>
+        <p>แต่ละข้อทดสอบว่า ถ้าไม่มีความเปลี่ยนแปลงจริง ความต่างที่เห็นจะเกิดจากความผันผวนตามปกติได้ง่ายแค่ไหน ตัวเลขในส่วน “ตัวเลขทางสถิติ” ของแต่ละการ์ดคือโอกาสที่จะเห็นความต่างขนาดนี้หรือมากกว่าในกรณีที่ไม่มีอะไรเปลี่ยน ตัวเลขนี้ไม่ใช่โอกาสที่ข้อสรุปจะถูกหรือผิด และไม่ได้บอกว่าความต่างใหญ่พอจะสำคัญต่อธุรกิจหรือไม่ จึงควรดูช่วงที่น่าจะเป็น (95%) ประกอบด้วย</p>
+        <ul>
+          <li><b>มั่นใจสูง</b> ค่าหลังปรับ (q) ต่ำกว่า 1% · <b>ค่อนข้างมั่นใจ</b> ต่ำกว่า 5% · <b>ยังไม่แน่ชัด</b> ต่ำกว่า 20% · นอกนั้น <b>ไม่ต่างชัด</b></li>
+          <li><b>ข้อมูลยังน้อย</b> เมื่อจำนวนวันหรือจำนวนคนยังไม่พอจะทดสอบ</li>
+        </ul>
+        <h3>ดูหลายข้อพร้อมกัน</h3>
+        <p>หน้านี้ทดสอบหลายเรื่องพร้อมกัน (ตัวเลขสำคัญเทียบช่วงก่อน แยกกล้อง ความสัมพันธ์ และ A/B) ยิ่งดูหลายข้อ ยิ่งมีโอกาสเจอความต่างที่เกิดขึ้นเองโดยบังเอิญ ระบบจึงปรับค่าด้วยวิธี Benjamini–Hochberg ทุกครั้งที่เปลี่ยนช่วงเวลา แล้วใช้ค่าหลังปรับ (q) ตั้งระดับความมั่นใจ</p>
+        <h3>เทียบจำนวนคนหรือบิลรายวัน</h3>
+        <p>ยอดรายวันขึ้นลงมากกว่าที่การนับแบบสุ่มล้วน (Poisson) คาดไว้ เพราะอากาศ วันหยุด หรือกิจกรรม ระบบจึงใช้แบบจำลอง negative binomial ที่ปรับผลของวันในสัปดาห์ และประมาณความผันผวนรายวันจากประวัติย้อนหลังสูงสุดราว 120 วัน (แบ่งเป็นก้อนละ 14 วัน เพื่อไม่ให้แนวโน้มช้า ๆ ถูกนับเป็นความผันผวน) ในการจำลองที่ยอดรายวันแกว่ง ±30% โดยไม่มีอะไรเปลี่ยน วิธีเดิม (exact Poisson) บอกว่าต่างชัดผิดราวครึ่งหนึ่งของครั้ง ส่วนวิธีนี้ผิดราว 5% ตามที่ตั้งไว้</p>
+        <h3>ความสัมพันธ์ระหว่างตัวชี้วัด</h3>
+        <p>ก่อนหาค่า r ระบบตัดผลของวันในสัปดาห์และแนวโน้มออกจากทั้งสองค่า (ไม่ให้วันเสาร์ที่คนเยอะทั้งคู่กลายเป็นความสัมพันธ์) และเพราะค่าของวันที่ติดกันมักคล้ายกัน จึงนับจำนวนข้อมูลอิสระให้น้อยลงตามสหสัมพันธ์ต่อเนื่อง (Bartlett / AR(1)) ก่อนคำนวณช่วง 95% และความมั่นใจ ความสัมพันธ์ไม่ใช่หลักฐานว่าค่าหนึ่งเป็นสาเหตุของอีกค่า</p>
+        <h3>เปรียบเทียบ A/B</h3>
+        <p>ชิ้นที่มีข้อมูลน้อยมักได้ตัวเลขสูงหรือต่ำเกินจริงโดยบังเอิญ ระบบจึงแสดงทั้งค่าดิบและค่าหลังปรับตามขนาดข้อมูล (empirical Bayes ซึ่งดึงชิ้นที่ข้อมูลน้อยเข้าหาค่าเฉลี่ยรวม) และจัดอันดับด้วยค่าหลังปรับ ชิ้นที่ข้อมูลไม่ถึงเกณฑ์มีเครื่องหมาย * และไม่นำมาจัดอันดับ</p>
+      </details>
     </section>
 
     <section aria-labelledby="kpiTitle">
@@ -105,13 +122,13 @@
 
     <div class="row2 even">
       <section class="card" id="corrCard" aria-labelledby="corrTitle" hidden>
-        <div class="card-h"><h2 id="corrTitle">ความสัมพันธ์ระหว่างตัวชี้วัด</h2><span class="muted">รายวัน · Pearson r พร้อมช่วง 95%</span></div>
+        <div class="card-h"><h2 id="corrTitle">ความสัมพันธ์ระหว่างตัวชี้วัด</h2><span class="muted">รายวัน · Pearson r หลังตัดผลวันในสัปดาห์และแนวโน้ม · ช่วง 95% เผื่อค่าที่ติดกันคล้ายกัน</span></div>
         <div id="corrBody"></div>
         <p class="note">สองค่าที่ขึ้นลงพร้อมกันไม่ได้แปลว่าค่าหนึ่งเป็นสาเหตุของอีกค่า ใช้เป็นจุดเริ่มต้นของการทดลอง</p>
       </section>
 
       <section class="card" id="abCard" aria-labelledby="abTitle" hidden>
-        <div class="card-h"><h2 id="abTitle">เปรียบเทียบ A/B</h2><span class="muted">จุด = ค่าที่วัดได้ · เส้น = ช่วงความเชื่อมั่น 95%</span></div>
+        <div class="card-h"><h2 id="abTitle">เปรียบเทียบ A/B</h2><span class="muted">จุด = ค่าดิบ · เส้น = ช่วงความเชื่อมั่น 95% · ขีดตั้ง = ค่าหลังปรับตามขนาดข้อมูล</span></div>
         <div id="abBody"></div>
       </section>
     </div>
@@ -190,7 +207,7 @@
 
 <div class="iq-tip" id="iqTip" role="tooltip" hidden></div>
 <script src="lensiq-agg.js?v=1"></script>
-<script src="lensiq-stats.js?v=1"></script>
-<script src="insights.js?v=6"></script>
+<script src="lensiq-stats.js?v=2"></script>
+<script src="insights.js?v=7"></script>
 </body>
 </html>

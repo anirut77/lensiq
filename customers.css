@@ -73,3 +73,8 @@ tr.click{cursor:pointer}tr.click:hover td{background:var(--bg)}
 #scanStatus .chip{min-height:44px;padding:6px 16px;border-radius:99px;border:1px solid #2ecc71;background:#fff;color:var(--navy);font-size:.92rem;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #scanStatus .chip:hover,#scanStatus .chip:focus-visible{background:#2ecc71;color:#fff}
 #scanStatus .hint{font-size:.8rem}
+/* ความเป็นส่วนตัวของข้อมูลใบหน้า */
+.vault .row-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.vault label{display:flex;flex-direction:column;gap:4px;font-size:.9rem;min-width:0}
+.vault select{min-height:40px;max-width:100%}
+.vault-state.plain,.vault-state.locked{color:#8a4b00}

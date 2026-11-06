@@ -168,6 +168,37 @@
     return upsample(a, mw, mh, W, H);
   }
 
+  // ---------- Face parsing (BiSeNet, ONNX uint8) — แยก ผม/ใบหน้า/คอ/เสื้อ สำหรับลำดับชั้นของสตูดิโอ ----------
+  // โมเดล: github.com/yakhyo/face-parsing (MIT) น้ำหนัก ResNet18 ตัด aux head + dynamic quantization (13 MB) ดู vendor/models/FACEPARSE-LICENSE.txt
+  let parseP = null;
+  function loadParsing(base = "vendor/") {
+    if (parseP) return parseP;
+    parseP = (async () => {
+      // ปิดไว้เป็นค่าเริ่มต้น: น้ำหนักโมเดลฝึกจาก CelebAMask-HQ (ใช้ได้เฉพาะงานวิจัย/ไม่ใช่เชิงพาณิชย์) — เปิดด้วย
+      // window.LENSIQ_FACEPARSE = true ใน lensiq-config.js หรือ ?faceparse=1 เมื่อมีไฟล์โมเดลและสิทธิ์ใช้งานแล้ว
+      if (!(self.LENSIQ_FACEPARSE === true || /[?&]faceparse=1(&|$)/.test(location.search))) throw new Error("faceparse disabled");
+      if (typeof ort === "undefined") throw new Error("ไม่พบ onnxruntime-web");
+      ort.env.wasm.wasmPaths = new URL(base + "ort/", location.href).href;
+      ort.env.wasm.numThreads = self.crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency || 1) : 1;
+      return ort.InferenceSession.create(base + "models/faceparse-bisenet-r18-q8.onnx", { executionProviders: ["wasm"], graphOptimizationLevel: "all" });
+    })();
+    parseP.catch(() => { parseP = null; });
+    return parseP;
+  }
+  /** รัน parser บนครอป {x,y,side} ของ canvas: คืน { logits: Float32Array [19*512*512], S: 512, C: 19 } (นอกภาพเติมสีเทากลาง) */
+  async function faceParse(canvas, crop) {
+    const s = await loadParsing(), S = 512;
+    const c = Object.assign(document.createElement("canvas"), { width: S, height: S }), x = c.getContext("2d", { willReadFrequently: true });
+    x.fillStyle = "#808080"; x.fillRect(0, 0, S, S);
+    x.imageSmoothingEnabled = true; x.imageSmoothingQuality = "high";
+    const k = S / crop.side; x.drawImage(canvas, -crop.x * k, -crop.y * k, canvas.width * k, canvas.height * k);
+    const px = x.getImageData(0, 0, S, S).data, n = S * S, data = new Float32Array(3 * n), mean = [.485, .456, .406], std = [.229, .224, .225];
+    for (let i = 0; i < n; i++) for (let ch = 0; ch < 3; ch++) data[ch * n + i] = (px[i * 4 + ch] / 255 - mean[ch]) / std[ch];
+    const res = await s.run({ [s.inputNames[0]]: new ort.Tensor("float32", data, [1, 3, S, S]) });
+    const o = res[s.outputNames[0]];
+    return { logits: o.data, S, C: o.dims[1] };
+  }
+
   /** ขยาย alpha ด้วย bilinear (ผ่าน canvas เพื่อความเร็ว) */
   function upsample(a, sw, sh, W, H) {
     const c = Object.assign(document.createElement("canvas"), { width: sw, height: sh }), x = c.getContext("2d");
@@ -216,6 +247,6 @@
     return c;
   }
 
-  const api = { boxFilter, guidedFilter, refineAlpha, decontaminate, skinMask, fillPoly, smoothSkin, loadMatting, modnetAlpha, maskAlpha, cutout, retouch };
+  const api = { boxFilter, guidedFilter, refineAlpha, decontaminate, skinMask, fillPoly, smoothSkin, loadMatting, modnetAlpha, loadParsing, faceParse, maskAlpha, cutout, retouch };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.PBHQ = api;
 })(typeof window !== "undefined" ? window : globalThis);

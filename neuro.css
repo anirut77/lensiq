@@ -122,3 +122,8 @@ label.check input{width:20px;height:20px;flex:none}
   th,td{padding:8px 10px}
 }
 .nm .cam-ctl select{width:auto;max-width:160px}
+
+/* ข้อควรทราบ: ค่าประมาณจากสีหน้า */
+.nm .disclaimer{background:#fff8e6;border-left:4px solid var(--gold);border-radius:8px;padding:10px 14px;font-size:.88rem;margin:0 auto 20px;max-width:960px;color:var(--text)}
+.nm .disclaimer a{color:inherit;text-decoration:underline}
+.nm .nm-est{margin:6px 0 0;font-size:.78rem;color:var(--muted)}

@@ -770,20 +770,30 @@ function iqAnalyze(D, r, opt = {}) {
   A.todayFrac = frac;
   const expo = (arr, from, to) => { let e = 0; H.keys.forEach((k, i) => { if (k >= from && k <= to && iqFin(arr[i])) e += k === today ? frac : 1; }); return e; };
   const tot = (arr, from, to) => iqSum(iqWin(H, arr, from, to).filter(iqFin));
-  /** เทียบจำนวนนับช่วงนี้กับช่วงเทียบ (ปรับตามจำนวนวันที่มีข้อมูล) */
+  /** เทียบจำนวนนับรายวันช่วงนี้ (A) กับช่วงเทียบ (B) — quasi-Poisson/negative binomial ปรับวันในสัปดาห์ (LQStats.countCompare)
+     วันอื่นในประวัติ (สูงสุด ~120 วัน ไม่รวมวันนี้) ใช้ประมาณผลของวันในสัปดาห์และความผันผวนรายวัน ; วันนี้คิดตามสัดส่วนเวลาที่ผ่านไป
+     ระดับความมั่นใจตั้งค่าภายหลังจาก q-value (Benjamini–Hochberg) ใน iqAdjustTests */
   const countTest = arr => {
     if (!r.prev) return null;
-    const c1 = tot(arr, r.from, r.to), e1 = expo(arr, r.from, r.to), c2 = tot(arr, r.prev.from, r.prev.to), e2 = expo(arr, r.prev.from, r.prev.to);
-    if (!(e1 > 0 && e2 > 0)) return null;
-    const t = S.poissonTest(c1, e1, c2, e2); if (!t) return null;
-    const enough = !A.short && (c1 + c2) >= 10;
-    return { ...t, cur: c1, prev: c2, e1, e2, level: S.confLevel(t.p, enough), enough };
+    const days = [];
+    H.keys.forEach((k, i) => {
+      const v = arr[i]; if (!iqFin(v)) return;
+      const e = k === today ? frac : 1, wd = iqWdOf(k), inA = k >= r.from && k <= r.to, inB = k >= r.prev.from && k <= r.prev.to;
+      if (inA) days.push({ y: v, e, wd, g: "A" });
+      if (inB) days.push({ y: v, e, wd, g: "B" });
+      if (!inA && !inB && k < today) days.push({ y: v, e, wd, g: "h" });
+    });
+    const t = S.countCompare(days); if (!t) return null;
+    const enough = !A.short && t.n >= 10 && t.enough;
+    return { ...t, cur: t.c1, prev: t.c2, level: S.confLevel(t.p, enough), enough };
   };
   const rateTest = (xa, na) => {
     if (!r.prev) return null;
     const x1 = tot(xa, r.from, r.to), n1 = tot(na, r.from, r.to), x2 = tot(xa, r.prev.from, r.prev.to), n2 = tot(na, r.prev.from, r.prev.to);
     if (!(n1 > 0 && n2 > 0) || x1 > n1 || x2 > n2) return null;
-    const t = S.twoProp(x1, n1, x2, n2); if (!t) return null;
+    // รายวัน → quasi-binomial (คนในวันเดียวกันไม่เป็นอิสระต่อกัน)
+    const daily = (from, to) => H.keys.map((k, i) => (k >= from && k <= to && iqFin(xa[i]) && iqFin(na[i]) ? { x: xa[i], n: na[i] } : null)).filter(Boolean);
+    const t = S.twoPropDaily(daily(r.from, r.to), daily(r.prev.from, r.prev.to)); if (!t) return null;
     const enough = !A.short && n1 >= 30 && n2 >= 30;
     return { ...t, change: t.p2 > 0 ? t.diff / t.p2 : null, level: S.confLevel(t.p, enough), enough };
   };
@@ -813,7 +823,6 @@ function iqAnalyze(D, r, opt = {}) {
     if (k.id === "neuro" && D.neuro) { const ci = S.meanCI(D.neuro.filter(s => iqInT(s.t, r)).map(s => s.positive)); if (ci && ci.lo != null && ci.n >= 3) k.ci = { text: `95%: ${iqP(Math.max(0, ci.lo))}–${iqP(Math.min(1, ci.hi))}` }; }
     // ยอดขาย: ตัวเลขเทียบเป็นยอดเงิน แต่การทดสอบนับเป็นจำนวนบิล จึงบอกชัดว่าความมั่นใจมาจากจำนวนบิล
     if (k.test && iqFin(k.test.change) && k.id !== "co" && k.id !== "cx") k.delta = k.test.change;
-    if (k.test) k.test.short = (k.test.what ? `${k.test.what} ${iqChg(k.test.change)} ` : "") + S.TH_CONF_SHORT[k.test.level];
   });
   // อัตราซื้อ (บิล ÷ คนเข้าร้าน) — ต้องมีทั้งหน้าร้านและการขาย
   if (D.store && (D.co || D.cx)) {
@@ -821,7 +830,6 @@ function iqAnalyze(D, r, opt = {}) {
     if (n > 0 && x <= n) {
       const w = S.wilson(x, n), t = rateTest(H.bills.map((b, i) => iqFin(H.storeIn[i]) ? b : null), H.storeIn.map((v, i) => iqFin(H.bills[i]) ? v : null));
       const k = { id: "conv", label: "อัตราซื้อ (บิล ÷ คนเข้าร้าน)", value: w.p, fmt: "pct1", delta: t && iqFin(t.change) ? t.change : null, sub: `${iqN(x)} บิล จาก ${iqN(n)} คน · ประมาณการ (คนละระบบ)`, ci: { text: `95%: ${iqP(w.lo, 1)}–${iqP(w.hi, 1)}` }, test: t, spark: iqWin(H, H.conv, r.from, r.to) };
-      if (t) t.short = S.TH_CONF_SHORT[t.level];
       const at = K.findIndex(q => q.id === "store"); K.splice(at >= 0 ? at + 1 : K.length, 0, k);
       A.conv = { x, n, ci: w, test: t };
     }
@@ -852,7 +860,9 @@ function iqAnalyze(D, r, opt = {}) {
   const cFrom = r.days >= 14 ? r.from : keys[0], cTo = fullEnd < cFrom ? r.to : fullEnd;
   const W = a => iqWin(H, a, cFrom, cTo);
   const corr = [];
-  const addC = (id, x, y, xName, yName, caution) => { const c = S.correlation(x, y); if (c.n >= 3) corr.push({ id, xName, yName, ...c, x: S.clean(x).length ? x : [], y, caution }); };
+  // อนุกรมรายวัน: ตัดผลวันในสัปดาห์ + แนวโน้มก่อน แล้วปรับ CI/p ด้วยขนาดตัวอย่างที่มีผลจริง (n_eff) — LQStats.tsCorrelation
+  const cWd = iqWinKeys(H, cFrom, cTo).map(iqWdOf);
+  const addC = (id, x, y, xName, yName, caution, daily = true) => { const c = S.tsCorrelation(x, y, { wd: daily ? cWd : null }); if (c.n >= 3) corr.push({ id, xName, yName, ...c, x: S.clean(x).length ? x : [], y, caution, daily }); };
   if (D.store && (D.co || D.cx)) {
     addC("queue-conv", W(H.maxQueue), W(H.conv), "คิวสูงสุดของวัน (คน)", "อัตราซื้อ", "วันที่คนเยอะทั้งคิวยาวและอัตราซื้ออาจเปลี่ยนเพราะความหนาแน่นเอง ไม่ใช่เพราะคิว");
     if (W(H.dwell).some(iqFin)) addC("dwell-conv", W(H.dwell), W(H.conv), "เวลาอยู่ในโซนสินค้าเฉลี่ย (วินาที)", "อัตราซื้อ", "คนที่ตั้งใจซื้ออยู่แล้วอาจใช้เวลานานกว่า ความสัมพันธ์จึงอาจกลับทิศ");
@@ -863,7 +873,7 @@ function iqAnalyze(D, r, opt = {}) {
     H.keys.forEach((k, i) => { if (k >= cFrom && k <= cTo && H.hourly[i]) H.hourly[i].forEach((v, h) => { hin[h] += v; }); });
     const xs = [], ys = [];
     for (let h = 0; h < 24; h++) { const o = D.sg.hourly[String(h)]; if (o && o.ots > 0 && hin[h] > 0) { xs.push(o.ots); ys.push(hin[h]); } }
-    addC("ots-in", xs, ys, "คนผ่านจอโฆษณา (รายชั่วโมง สะสม)", "คนเข้าร้าน (รายชั่วโมง)", "ทั้งสองค่าขึ้นกับช่วงเวลาของวันเหมือนกัน ไม่ได้แปลว่าป้ายพาคนเข้าร้าน");
+    addC("ots-in", xs, ys, "คนผ่านจอโฆษณา (รายชั่วโมง สะสม)", "คนเข้าร้าน (รายชั่วโมง)", "ทั้งสองค่าขึ้นกับช่วงเวลาของวันเหมือนกัน ไม่ได้แปลว่าป้ายพาคนเข้าร้าน", false);
   }
   if (D.booth) addC("booth-stop", W(H.booth), W(H.boothStop).map((s, i) => W(H.booth)[i] ? s / W(H.booth)[i] : null), "ผู้เข้าชมบูธต่อวัน", "อัตราหยุดชม", "บูธที่คนแน่นอาจทำให้คนหยุดน้อยลงหรือมากขึ้นได้ทั้งสองทาง");
   A.corr = corr;
@@ -902,7 +912,7 @@ function iqAnalyze(D, r, opt = {}) {
   A.cams = Object.entries(H.cams).map(([slot, c]) => {
     const cur = iqSum(iqWin(H, c.in, r.from, r.to).filter(iqFin)), e1 = expo(c.in, r.from, r.to);
     let test = null;
-    if (r.prev) { const e2 = expo(c.in, r.prev.from, r.prev.to), p = iqSum(iqWin(H, c.in, r.prev.from, r.prev.to).filter(iqFin)); if (e1 > 0 && e2 > 0) { test = S.poissonTest(cur, e1, p, e2); test.level = S.confLevel(test.p, !A.short && cur + p >= 10); } }
+    if (r.prev && e1 > 0) test = countTest(c.in);
     return { slot, name: c.name, in: cur, node: slot.startsWith("n:") || slot === "local", spark: iqWin(H, c.in, r.from, r.to), test };
   }).filter(c => c.in > 0 || (c.test && c.test.n > 0)).sort((a, b) => b.in - a.in);
   const camTot = iqSum(A.cams.map(c => c.in)); A.cams.forEach(c => { c.share = camTot ? c.in / camTot : null; });
@@ -925,9 +935,37 @@ function iqAnalyze(D, r, opt = {}) {
   if (D.dr) A.drill.dr = dr("drEvents", H.drEvents, "เหตุการณ์คนขับต่อวัน", "ครั้ง");
   Object.keys(A.drill).forEach(k => { if (!A.drill[k]) delete A.drill[k]; });
 
+  // ---------- ทดสอบหลายข้อพร้อมกัน: ระดับความมั่นใจจาก q-value (Benjamini–Hochberg) ----------
+  iqAdjustTests(A);
+  K.forEach(k => { if (k.test) k.test.short = (k.test.what ? `${k.test.what} ${iqChg(k.test.change)} ` : "") + S.TH_CONF_SHORT[k.test.level]; });
+
   A.goals = iqGoals(D, A, opt.goals || {});
   A.alerts = iqEvalAlerts(D, A, opt.alerts || {});
   return A;
+}
+
+/** ทุกการทดสอบที่หน้านี้แสดงป้ายความมั่นใจ (KPI เทียบช่วงก่อน, อัตราซื้อ, แยกกล้อง, ความสัมพันธ์, A/B) ถือเป็นชุดเดียวกัน
+    ปรับด้วย Benjamini–Hochberg (คุมสัดส่วนข้อสรุปผิดในบรรดาข้อที่บอกว่า “ต่างชัด” ไม่ให้เกินราว 5%) แล้วตั้งระดับจาก q
+    การทดสอบเดียวกันที่แสดงหลายที่ (เช่น จำนวนบิลใน KPI สองใบ) นับครั้งเดียว ; ข้อที่ข้อมูลยังน้อยไม่นับและเป็น "insufficient" */
+function iqAdjustTests(A) {
+  const S = IQ_ST, fam = new Map();
+  const reg = (key, t) => { if (t) (fam.get(key) || fam.set(key, []).get(key)).push(t); };
+  (A.kpis || []).forEach(k => reg("kpi:" + (k.id === "co" || k.id === "cx" ? "bills" : k.id), k.test));
+  (A.cams || []).forEach(c => reg("cam:" + c.slot, c.test));
+  (A.corr || []).forEach(c => reg("corr:" + c.id, c));
+  Object.entries(A.ab || {}).forEach(([id, ab]) => {
+    if (!ab || !ab.enough) return;
+    if (ab.test) reg(`ab:${id}:${ab.best.id}|${ab.runner.id}`, ab.test);
+    if (ab.spread) reg(`ab:${id}:${ab.best.id}|${ab.worst.id}`, ab.spread);
+  });
+  const keys = [...fam.keys()].filter(k => fam.get(k).every(t => t.enough !== false && iqFin(t.p)));
+  const q = S.adjustP(keys.map(k => fam.get(k)[0].p), "BH"), m = keys.length;
+  fam.forEach((ts, key) => {
+    const i = keys.indexOf(key);
+    ts.forEach(t => { t.q = i >= 0 ? q[i] : null; t.m = m; t.level = i >= 0 ? S.confLevel(q[i], true) : "insufficient"; });
+  });
+  A.multi = { m, method: "BH" };
+  return A.multi;
 }
 
 /** ฮีตแมปวันในสัปดาห์ × ชั่วโมง (ค่าเฉลี่ยต่อวัน) — หน้าร้าน ไม่มีก็ใช้เวลาของบิลขาย */
@@ -1012,6 +1050,11 @@ function iqSure(level, ciText) {
   const base = IQ_ST.TH_CONF[level] || IQ_ST.TH_CONF.insufficient;
   return ciText ? `${base} · ${ciText}` : base;
 }
+/** ข้อความอธิบายตัวเลขทางสถิติ (แสดงในส่วนรายละเอียดของการ์ด) — p อธิบายตามความหมายจริง ไม่ใช่ “โอกาสที่เป็นความบังเอิญ” */
+function iqStat(t, kind = "change", extra = "") {
+  if (!t || !iqFin(t.p) || t.level === "insufficient") return "";
+  return IQ_ST.pTextTH(t.p, { kind, q: t.q, m: t.m }) + (extra ? ` · ${extra}` : "");
+}
 const IQ_LEVEL_W = { strong: 3, moderate: 2.2, weak: 1.2, none: 0.6, insufficient: 0.5 };
 
 function iqInsights(D, A) {
@@ -1026,7 +1069,7 @@ function iqInsights(D, A) {
   // คนเข้าร้าน เทียบช่วงก่อน
   const ks = A.kpis.find(k => k.id === "store");
   if (ks && ks.test) {
-    const t = ks.test, ch = t.change, up = ch > 0, flat = !iqFin(ch) || t.level === "none" || t.level === "insufficient";
+    const t = ks.test, ch = iqFin(t.adjChange) ? t.adjChange : t.change, up = ch > 0, flat = !iqFin(ch) || t.level === "none" || t.level === "insufficient";
     const why = [];
     const H = A.H, wkend = (f, to) => iqWinKeys(H, f, to).filter((k, i) => [0, 6].includes(iqWdOf(k)) && iqFin(iqWin(H, H.storeIn, f, to)[i])).length;
     const w1 = wkend(r.from, r.to), w2 = wkend(r.prev.from, r.prev.to);
@@ -1038,10 +1081,11 @@ function iqInsights(D, A) {
     if (camMove && A.cams.length > 1) why.push(`จุดที่เปลี่ยนมากที่สุดคือ ${camMove.name} (${iqChg(camMove.test.change)})`);
     if (!why.length) why.push("ไม่พบสิ่งผิดปกติในข้อมูลที่อธิบายการเปลี่ยนแปลงนี้ได้ อาจมาจากปัจจัยภายนอกที่กล้องไม่เห็น");
     const pk = A.heat && A.heat.top[0];
-    const ci = iqFin(t.lo) ? `ช่วงที่น่าจะเป็น ${iqChg(t.lo)} ถึง ${iqChg(t.hi)}` : "";
+    const ci = iqFin(t.lo) ? `ช่วงที่น่าจะเป็น (95%) ${iqChg(t.lo)} ถึง ${iqChg(t.hi)}` : "";
+    const adjNote = t.wdAdj && iqFin(t.adjChange) && iqFin(t.change) && Math.abs(t.adjChange - t.change) >= 0.02 ? ` · เมื่อปรับสัดส่วนวันในสัปดาห์ให้เท่ากันแล้วต่าง ${iqChg(t.adjChange)}` : "";
     add({ id: "store-change", tone: flat ? "info" : up ? "good" : "bad", module: "store", level: t.level, title: flat ? iqPick(seed + "s", ["คนเข้าร้านใกล้เคียงเดิม", "จำนวนคนเข้าร้านยังทรงตัว"]) : `คนเข้าร้าน${up ? "เพิ่มขึ้น" : "ลดลง"} ${iqChg(ch).replace(/^[+−]/, "")}`,
-      body: `เฉลี่ย ${iqN(t.rate1, 0)} คน/วัน เทียบกับ ${iqN(t.rate2, 0)} คน/วัน (${vsTxt})${r.to === A.today ? " (วันนี้คิดตามสัดส่วนเวลาที่ผ่านไป)" : ""}`,
-      sure: iqSure(t.level, ci), why,
+      body: `เฉลี่ย ${iqN(t.rate1, 0)} คน/วัน เทียบกับ ${iqN(t.rate2, 0)} คน/วัน (${vsTxt})${r.to === A.today ? " (วันนี้คิดตามสัดส่วนเวลาที่ผ่านไป)" : ""}${adjNote}`,
+      sure: iqSure(t.level, ci), stat: iqStat(t, "change", `ความผันผวนรายวันและผลของวันในสัปดาห์ประมาณจากข้อมูล ${iqN(t.days || 0)} วัน`), why,
       action: flat ? "รักษาการจัดพนักงานแบบเดิม และดูการ์ดช่วงเวลาที่คนเยอะเพื่อปรับกะ" : up ? (pk ? `เตรียมพนักงานและสินค้าให้พอในช่วง${IQ_WD[pk.wd]} ${iqPad(pk.h)}:00 น. ซึ่งเป็นช่วงที่คนเยอะที่สุด` : "เตรียมพนักงานและสินค้าให้พอกับคนที่เพิ่มขึ้น") : "ตรวจว่ากล้องทำงานครบทุกวัน แล้วลองทำโปรโมชันหน้าร้านในช่วงที่คนน้อย",
       score: IQ_LEVEL_W[t.level] * (1 + Math.min(1, Math.abs(ch || 0) * 3)) });
   }
@@ -1094,6 +1138,7 @@ function iqInsights(D, A) {
     add({ id: "conv", tone: !t || flat ? "info" : t.diff > 0 ? "good" : "bad", module: "sales", level: t ? t.level : (c.n >= 100 && !A.short ? "moderate" : "insufficient"),
       title: !t ? `อัตราซื้อ ${iqP(c.ci.p, 1)}` : flat ? `อัตราซื้อ ${iqP(c.ci.p, 1)} ใกล้เคียงเดิม` : `อัตราซื้อ${t.diff > 0 ? "ดีขึ้น" : "ลดลง"} ${iqPts(t.diff)}`,
       body: `${iqN(c.x)} บิลจากคนเข้าร้าน ${iqN(c.n)} คน${t ? ` · ${vsTxt} ${iqP(t.p2, 1)}` : ""}`,
+      stat: iqStat(t, "change"),
       sure: t ? iqSure(t.level, `อัตราจริงน่าจะอยู่ระหว่าง ${iqP(c.ci.lo, 1)}–${iqP(c.ci.hi, 1)}`) : c.n >= 100 ? `อัตราจริงน่าจะอยู่ระหว่าง ${iqP(c.ci.lo, 1)}–${iqP(c.ci.hi, 1)} (ช่วงนี้ไม่มีช่วงเทียบ)` : IQ_ST.TH_CONF.insufficient,
       why: ["บิลกับคนเข้าร้านนับจากคนละระบบ จึงเป็นค่าประมาณ (กลุ่มที่มาด้วยกันจ่ายบิลเดียว)"].concat((A.corr || []).filter(x => x.id === "queue-conv" && x.enough && x.r < -0.3).map(x => `วันที่คิวยาวมักมีอัตราซื้อต่ำกว่า (r = ${iqN(x.r, 2)})`)),
       action: !t || flat ? "ทดลองจัดวางสินค้าใกล้แคชเชียร์หรือโปรโมชันบิลถัดไป แล้ววัดผลเทียบสัปดาห์นี้" : t.diff > 0 ? "บันทึกว่าช่วงนี้เปลี่ยนอะไร (ราคา จัดวาง โปรโมชัน) เพื่อทำซ้ำ" : "ดูคิวและสินค้าขาดชั้นในช่วงคนเยอะ เพราะเป็นสาเหตุที่พบบ่อยของการเดินออกโดยไม่ซื้อ",
@@ -1102,11 +1147,13 @@ function iqInsights(D, A) {
 
   // ความสัมพันธ์ที่น่าสนใจ (เฉพาะที่ข้อมูลพอและไม่ใช่ค่าที่สัมพันธ์กันโดยธรรมชาติ)
   (A.corr || []).filter(c => c.id !== "in-bills" && c.id !== "ots-in").forEach(c => {
-    const lv = !c.enough ? "insufficient" : S.confLevel(c.p, true);
+    const lv = c.level || "insufficient";
     if (lv === "none" || lv === "insufficient") return;
+    const adj = c.adjusted === "weekday+trend";
     add({ id: "corr-" + c.id, tone: "info", module: "corr", level: lv, title: `${c.xName.replace(/ \(.*\)$/, "")} กับ${c.yName}: ${S.corrWord(c.r)}`,
-      body: `r = ${iqN(c.r, 2)} (95%: ${iqN(c.lo, 2)} ถึง ${iqN(c.hi, 2)}) จาก ${c.n} วัน`,
-      sure: IQ_ST.TH_CONF[lv] + " ว่ามีความสัมพันธ์ แต่ยังไม่ใช่หลักฐานว่าค่าหนึ่งทำให้อีกค่าเปลี่ยน",
+      body: `r = ${iqN(c.r, 2)} (95%: ${iqN(c.lo, 2)} ถึง ${iqN(c.hi, 2)}) จาก ${c.n} วัน${adj ? ` หลังตัดผลของวันในสัปดาห์และแนวโน้ม (ก่อนตัด r = ${iqN(c.rRaw, 2)})` : ""}`,
+      sure: `${S.TH_CONF_SHORT[lv]}ว่าสองค่านี้ขึ้นลงสัมพันธ์กันจริง แต่ยังไม่ใช่หลักฐานว่าค่าหนึ่งทำให้อีกค่าเปลี่ยน`,
+      stat: iqStat(c, "corr", `ข้อมูลรายวันติดกันมักคล้ายกัน จึงนับเป็นข้อมูลอิสระได้ราว ${iqN(c.nEff, 0)} จาก ${c.n} วัน`),
       why: [c.caution], action: c.id === "queue-conv" && c.r < 0 ? "ลองเพิ่มแคชเชียร์ในวันที่คาดว่าคนเยอะ แล้วดูว่าอัตราซื้อดีขึ้นจริงหรือไม่" : c.id === "dwell-conv" && c.r > 0 ? "ลองเพิ่มจุดชิมหรือป้ายข้อมูลสินค้าเพื่อให้คนอยู่ในโซนนานขึ้น แล้ววัดผล" : "ทดลองเปลี่ยนทีละอย่างแล้ววัดผลเพื่อยืนยันเหตุและผล",
       score: IQ_LEVEL_W[lv] * Math.abs(c.r) * 1.2 });
   });
@@ -1116,12 +1163,14 @@ function iqInsights(D, A) {
     const ab = A.ab.sg;
     if (!ab.enough) add({ id: "ab-sg", tone: "info", module: "sg", level: "insufficient", title: "เทียบโฆษณา: ข้อมูลยังน้อย", body: `ต้องมีคนผ่านจออย่างน้อย 30 คนต่อโฆษณาอย่างน้อย 2 ชิ้น`, sure: IQ_ST.TH_CONF.insufficient, why: [], action: "เปิดป้ายโฆษณาต่อไปให้แต่ละชิ้นได้แสดงพอ ๆ กัน", score: 0.5 });
     else {
-      const t = ab.spread || ab.test, lv = S.confLevel(t.p, true), b = ab.best, w = ab.worst || ab.runner;
+      const t = ab.spread || ab.test, lv = t.level || "insufficient", b = ab.best, w = ab.worst || ab.runner, few = ab.groups.filter(g => !g.enough);
       add({ id: "ab-sg", tone: lv === "strong" || lv === "moderate" ? "good" : "info", module: "sg", level: lv,
         title: lv === "none" || lv === "weak" ? "โฆษณาแต่ละชิ้นดึงสายตาได้ใกล้เคียงกัน" : `โฆษณา “${b.name}” ดึงสายตาได้ดีที่สุด`,
-        body: `อัตรามอง ${iqP(b.ci.p)} เทียบ “${w.name}” ${iqP(w.ci.p)} (ต่าง ${iqPts(t.diff)}, 95%: ${iqPts(t.lo)} ถึง ${iqPts(t.hi)})`,
-        sure: iqSure(lv, `ห่างจากอันดับสอง ${iqPts(ab.test.diff)} (${S.TH_CONF_SHORT[S.confLevel(ab.test.p, true)]})`),
-        why: ["ยอดสะสมทุกช่วงเวลา ถ้าแต่ละชิ้นเล่นคนละช่วงเวลา (เช่น ชั่วโมงเร่งด่วน) ผลอาจต่างเพราะเวลา ไม่ใช่ตัวโฆษณา"],
+        body: `อัตรามอง ${iqP(b.ci.p)} เทียบ “${w.name}” ${iqP(w.ci.p)} (ต่าง ${iqPts(t.diff)}, 95%: ${iqPts(t.lo)} ถึง ${iqPts(t.hi)}) · ค่าหลังปรับตามขนาดข้อมูล ${iqP(b.eb.p)} และ ${iqP(w.eb.p)}`,
+        sure: iqSure(lv, `ห่างจากอันดับสอง ${iqPts(ab.test.diff)} (${S.TH_CONF_SHORT[ab.test.level || "insufficient"]})`),
+        stat: iqStat(t, "diff", "อันดับใช้ค่าหลังปรับ (empirical Bayes) ซึ่งดึงชิ้นที่ข้อมูลน้อยเข้าหาค่าเฉลี่ยรวม กันชิ้นที่บังเอิญได้ตัวเลขสูงขึ้นเป็นอันดับหนึ่ง"),
+        why: ["ยอดสะสมทุกช่วงเวลา ถ้าแต่ละชิ้นเล่นคนละช่วงเวลา (เช่น ชั่วโมงเร่งด่วน) ผลอาจต่างเพราะเวลา ไม่ใช่ตัวโฆษณา",
+          few.length ? `${few.length} ชิ้นมีคนผ่านจอไม่ถึง 30 คน (${few.map(g => `“${g.name}” ${g.n} คน`).join(", ")}) ตัวเลขดิบของชิ้นเหล่านี้คลาดเคลื่อนได้มาก จึงยังไม่นำมาจัดอันดับ` : ""],
         action: lv === "strong" || lv === "moderate" ? `เพิ่มรอบเล่น “${b.name}” ในช่วงคนผ่านมาก และปรับหรือลดรอบ “${w.name}”` : "ยังไม่ควรตัดสินจากตัวเลขนี้ ให้หมุนเวียนเล่นสลับกันในทุกช่วงเวลาแล้ววัดต่อ",
         score: IQ_LEVEL_W[lv] * 0.9 });
     }
@@ -1130,11 +1179,13 @@ function iqInsights(D, A) {
     const ab = A.ab.neuro;
     if (!ab.enough) add({ id: "ab-neuro", tone: "info", module: "neuro", level: "insufficient", title: "เทียบสื่อทดสอบอารมณ์: ข้อมูลยังน้อย", body: `ควรมีผู้ทดสอบอย่างน้อย 3 คนต่อสื่อ (ตอนนี้มากสุด ${Math.max(...ab.groups.map(g => g.n))} คน)`, sure: IQ_ST.TH_CONF.insufficient, why: [], action: "ให้ผู้ทดสอบเพิ่มดูทุกสื่อ แล้วเทียบอีกครั้ง", score: 0.5 });
     else {
-      const t = ab.spread || ab.test, w = ab.worst || ab.runner, lv = S.confLevel(t.p, true), sig = lv === "strong" || lv === "moderate";
+      const t = ab.spread || ab.test, w = ab.worst || ab.runner, lv = t.level || "insufficient", sig = lv === "strong" || lv === "moderate", few = ab.groups.filter(g => !g.enough);
       add({ id: "ab-neuro", tone: sig ? "good" : "info", module: "neuro", level: lv,
         title: sig ? `“${ab.best.name}” ได้อารมณ์เชิงบวกมากกว่า “${w.name}”` : "สื่อที่ทดสอบได้อารมณ์ใกล้เคียงกัน",
-        body: `อารมณ์บวกเฉลี่ย “${ab.best.name}” ${iqP(ab.best.ci.mean)} เทียบ “${w.name}” ${iqP(w.ci.mean)} (ต่าง ${iqPts(t.diff)}, 95%: ${iqPts(t.lo)} ถึง ${iqPts(t.hi)})`,
-        sure: iqSure(lv, `ผู้ทดสอบ ${ab.best.n} และ ${w.n} ครั้ง · ห่างจากอันดับสอง${ab.runner && ab.runner !== w ? ` “${ab.runner.name}”` : ""} ${iqPts(ab.test.diff)} (${S.TH_CONF_SHORT[S.confLevel(ab.test.p, true)]})`), why: ["วัดจากสีหน้าระหว่างดูสื่อ ผู้ทดสอบกลุ่มเล็กอาจไม่เหมือนลูกค้าจริง"],
+        body: `อารมณ์บวกเฉลี่ย “${ab.best.name}” ${iqP(ab.best.ci.mean)} เทียบ “${w.name}” ${iqP(w.ci.mean)} (ต่าง ${iqPts(t.diff)}, 95%: ${iqPts(t.lo)} ถึง ${iqPts(t.hi)}) · ค่าหลังปรับตามขนาดข้อมูล ${iqP(ab.best.eb.mean)} และ ${iqP(w.eb.mean)}`,
+        sure: iqSure(lv, `ผู้ทดสอบ ${ab.best.n} และ ${w.n} ครั้ง · ห่างจากอันดับสอง${ab.runner && ab.runner !== w ? ` “${ab.runner.name}”` : ""} ${iqPts(ab.test.diff)} (${S.TH_CONF_SHORT[ab.test.level || "insufficient"]})`),
+        stat: iqStat(t, "diff", "อันดับใช้ค่าหลังปรับ (empirical Bayes) ซึ่งดึงสื่อที่มีผู้ทดสอบน้อยเข้าหาค่าเฉลี่ยรวม"),
+        why: ["วัดจากสีหน้าระหว่างดูสื่อ ผู้ทดสอบกลุ่มเล็กอาจไม่เหมือนลูกค้าจริง", few.length ? `${few.length} สื่อมีผู้ทดสอบไม่ถึง 3 คน ตัวเลขดิบยังเชื่อไม่ได้ จึงยังไม่นำมาจัดอันดับ` : ""],
         action: sig ? `เลือก “${ab.best.name}” แทน “${w.name}” แล้วทดสอบกับกลุ่มผู้ชมที่ใหญ่ขึ้นก่อนตัดสินใจลงทุน` : "เพิ่มผู้ทดสอบหรือปรับสื่อให้ต่างกันชัดขึ้น", score: IQ_LEVEL_W[lv] * 0.8 });
     }
   }
@@ -1209,11 +1260,12 @@ function iqAnalysisJson(D, A, cards) {
   return {
     format: "lensiq-analysis", version: 1, generatedAt: new Date(A.now).toISOString(), range: { from: A.r.from, to: A.r.to, compare: A.r.compare, prev: A.r.prev },
     dataDays: A.dataDays, short: A.short,
-    kpis: A.kpis.map(k => ({ id: k.id, label: k.label, value: k.value, delta: k.delta, ci: k.ci ? k.ci.text : null, p: k.test ? k.test.p : null, confidence: k.test ? k.test.level : null })),
-    insights: cards.map(c => ({ id: c.id, tone: c.tone, confidence: c.level, title: c.title, body: c.body, sure: c.sure, why: c.why, action: c.action })),
+    kpis: A.kpis.map(k => ({ id: k.id, label: k.label, value: k.value, delta: k.delta, ci: k.ci ? k.ci.text : null, p: k.test ? k.test.p : null, q: k.test && iqFin(k.test.q) ? k.test.q : null, confidence: k.test ? k.test.level : null, method: k.test ? k.test.method || "two-proportion-z" : null, adjChange: k.test && iqFin(k.test.adjChange) ? k.test.adjChange : null, dispersionKappa: k.test && iqFin(k.test.kappa) ? k.test.kappa : null })),
+    multipleTesting: A.multi ? { method: "Benjamini-Hochberg", tests: A.multi.m } : null,
+    insights: cards.map(c => ({ id: c.id, tone: c.tone, confidence: c.level, title: c.title, body: c.body, sure: c.sure, stat: c.stat || null, why: c.why, action: c.action })),
     daily: A.H.keys.map((k, i) => ({ day: k, storeIn: A.H.storeIn[i], bills: A.H.bills[i], revenue: A.H.revenue[i] == null ? null : Math.round(A.H.revenue[i] * 100) / 100, conversion: A.H.conv[i], maxQueue: A.H.maxQueue[i], booth: A.H.booth[i] })),
     forecast: F && F.fc ? { metric: F.metric, method: F.fc.method, conf: F.fc.conf, days: F.fkeys.map((k, j) => ({ day: k, mean: F.fc.mean[j], lo: F.fc.lo[j], hi: F.fc.hi[j] })), anomalies: F.anomalies.map(a => ({ day: a.day, value: a.value, expected: a.expected, z: a.z })) } : null,
-    correlations: A.corr.map(c => ({ id: c.id, x: c.xName, y: c.yName, n: c.n, r: c.r, lo: c.lo, hi: c.hi, p: c.p, rho: c.rho, caution: c.caution })),
+    correlations: A.corr.map(c => ({ id: c.id, x: c.xName, y: c.yName, n: c.n, nEff: c.nEff, adjusted: c.adjusted, r: c.r, rRaw: c.rRaw, lo: c.lo, hi: c.hi, p: c.p, q: iqFin(c.q) ? c.q : null, confidence: c.level, rho: c.rho, caution: c.caution })),
     heatmap: A.heat ? { source: A.heat.src, from: A.heat.from, to: A.heat.to, days: A.heat.nDays, meanByWeekdayHour: A.heat.grid } : null,
     goals: A.goals, alerts: A.alerts
   };
@@ -1521,6 +1573,7 @@ if (typeof document !== "undefined") (() => {
       const m = el("span", { class: "meter", role: "img", "aria-label": `ความมั่นใจ ${LV_TXT[c.level] || ""} (${LV[c.level] || 0} จาก 4)` }, s);
       for (let k = 1; k <= 4; k++) el("i", { class: k <= (LV[c.level] || 0) ? "on" : "" }, m);
       el("span", {}, s, c.sure);
+      if (c.stat) { const d = el("details", { class: "ins-why ins-stat" }, a); el("summary", {}, d, "ตัวเลขทางสถิติ"); el("p", {}, d, c.stat); el("a", { href: "#methodHelp" }, el("p", {}, d), "วิธีคำนวณ"); }
       if (c.why && c.why.length) { const d = el("details", { class: "ins-why" }, a); el("summary", {}, d, "เหตุผลที่เป็นไปได้ (จากข้อมูล)"); const ul = el("ul", {}, d); c.why.forEach(w => el("li", {}, ul, w)); }
       const act = el("p", { class: "ins-act" }, a); el("b", {}, act, "ควรทำ: "); act.append(c.action);
       if (SEC[c.module]) el("a", { class: "ins-more", href: SEC[c.module] }, a, "ดูรายละเอียด →");
@@ -1731,9 +1784,9 @@ if (typeof document !== "undefined") (() => {
       if (c.x.length) scatter(el("div", { class: "corr-sc" }, row), c);
       const t = el("div", { class: "corr-t" }, row);
       el("h3", {}, t, `${c.xName} กับ ${c.yName}`);
-      const lv = c.enough ? LQStats.confLevel(c.p, true) : "insufficient";
-      el("p", { class: "corr-r" }, t, c.r == null ? "คำนวณไม่ได้ (ค่าไม่เปลี่ยนเลย)" : `${LQStats.corrWord(c.r)} · r = ${c.r.toFixed(2)}${c.lo != null ? ` (95%: ${c.lo.toFixed(2)} ถึง ${c.hi.toFixed(2)})` : ""} · ${c.n} จุด`);
-      el("p", { class: "corr-s" }, t, c.enough ? LQStats.TH_CONF[lv] : `ข้อมูลยังน้อย (${c.n} จุด ต้องมีอย่างน้อย 8)`);
+      const lv = c.level || "insufficient", adj = c.adjusted === "weekday+trend";
+      el("p", { class: "corr-r" }, t, c.r == null ? "คำนวณไม่ได้ (ค่าไม่เปลี่ยนเลย)" : `${LQStats.corrWord(c.r)} · r = ${c.r.toFixed(2)}${c.lo != null ? ` (95%: ${c.lo.toFixed(2)} ถึง ${c.hi.toFixed(2)})` : ""} · ${c.n} จุด${adj ? ` · หลังตัดผลวันในสัปดาห์และแนวโน้ม (ก่อนตัด r = ${c.rRaw.toFixed(2)})` : ""}`);
+      el("p", { class: "corr-s" }, t, c.enough ? `${LQStats.TH_CONF[lv]} · นับเป็นข้อมูลอิสระได้ราว ${Math.round(c.nEff)} จุด (ค่าที่ติดกันมักคล้ายกัน)${iqFin(c.p) ? " · " + LQStats.pTextTH(c.p, { kind: "corr", q: c.q, m: c.m }) : ""}` : `ข้อมูลยังน้อย (${c.n} จุด นับเป็นข้อมูลอิสระได้ราว ${Math.round(c.nEff || c.n)} จุด ต้องมีอย่างน้อย 8 และ 6)`);
       el("p", { class: "corr-c" }, t, "ข้อควรระวัง: " + c.caution);
     });
   }
@@ -1749,8 +1802,10 @@ if (typeof document !== "undefined") (() => {
       const tr = el("div", { class: "ab-t" }, row);
       const wk = el("i", { class: "ab-w" }, tr); wk.style.left = (Math.max(0, lo) / hi * 100) + "%"; wk.style.width = Math.max(0.5, (Math.min(hi, up) - Math.max(0, lo)) / hi * 100) + "%";
       const dot = el("i", { class: "ab-d" }, tr); dot.style.left = (m / hi * 100) + "%";
-      el("div", { class: "ab-v" }, row, `${pct ? Math.round(m * 100) + "%" : m.toFixed(2)}${g.enough ? "" : " *"}`);
-      const tipRows = [[name, pct ? (m * 100).toFixed(1) + "%" : m.toFixed(2), "s1"], ["ช่วง 95%", g.ci.lo == null ? "–" : `${(lo * 100).toFixed(1)}–${(up * 100).toFixed(1)}%`, ""], [g.n != null ? `จาก ${nf(g.n)} ${g.x != null ? "คนผ่านจอ" : "ครั้ง"}` : "", ""]];
+      const eb = g.eb ? (g.eb.p ?? g.eb.mean) : null, fmtV = v => pct ? Math.round(v * 100) + "%" : v.toFixed(2);
+      if (iqFin(eb)) { const sk = el("i", { class: "ab-s", title: "ค่าหลังปรับ" }, tr); sk.style.left = (Math.max(0, Math.min(hi, eb)) / hi * 100) + "%"; }
+      el("div", { class: "ab-v" }, row, `${fmtV(m)}${iqFin(eb) ? ` · ปรับ ${fmtV(eb)}` : ""}${g.enough ? "" : " *"}`);
+      const tipRows = [[name + " (ดิบ)", pct ? (m * 100).toFixed(1) + "%" : m.toFixed(2), "s1"], ["ช่วง 95%", g.ci.lo == null ? "–" : `${(lo * 100).toFixed(1)}–${(up * 100).toFixed(1)}%`, ""], ["หลังปรับตามขนาดข้อมูล", iqFin(eb) ? (pct ? (eb * 100).toFixed(1) + "%" : eb.toFixed(2)) : "–", ""], [g.n != null ? `จาก ${nf(g.n)} ${g.x != null ? "คนผ่านจอ" : "ครั้ง"}` : "", ""]];
       const show = e => { const b = row.getBoundingClientRect(); showTip(row, g.name, tipRows, e?.clientX ?? b.left + b.width / 2, b.top); };
       row.addEventListener("pointerenter", show); row.addEventListener("pointerdown", show); row.addEventListener("focus", () => show());
       row.addEventListener("pointerleave", e => { if (e.pointerType === "mouse") hideTip(row); }); row.addEventListener("blur", () => hideTip(row));
@@ -1766,11 +1821,11 @@ if (typeof document !== "undefined") (() => {
     };
     if (A.ab.sg) {
       const ab = A.ab.sg, t = ab.spread || ab.test;
-      block("ป้ายโฆษณา: อัตรามองจอต่อโฆษณา", ab, { pct: true, name: "อัตรามอง" }, ab.enough && t ? `ดีที่สุด “${ab.best.name}” ต่างจากต่ำสุด ${(t.diff * 100).toFixed(1)} จุด (95%: ${(t.lo * 100).toFixed(1)} ถึง ${(t.hi * 100).toFixed(1)}) · ${LQStats.TH_CONF_SHORT[LQStats.confLevel(t.p, true)]} · เส้นแนวนอน = ช่วงความเชื่อมั่น 95% (Wilson)` : "ข้อมูลยังน้อย — ต้องมีคนผ่านจออย่างน้อย 30 คนต่อโฆษณา");
+      block("ป้ายโฆษณา: อัตรามองจอต่อโฆษณา", ab, { pct: true, name: "อัตรามอง" }, (ab.enough && t ? `อันดับหนึ่ง (เรียงตามค่าหลังปรับ) “${ab.best.name}” ต่างจากอันดับสุดท้าย ${(t.diff * 100).toFixed(1)} จุด (95%: ${(t.lo * 100).toFixed(1)} ถึง ${(t.hi * 100).toFixed(1)}) · ${LQStats.TH_CONF_SHORT[t.level || "insufficient"]} · จุดทึบ = ค่าดิบ เส้น = ช่วง 95% (Wilson) ขีดตั้ง = ค่าหลังปรับตามขนาดข้อมูล (empirical Bayes)` : "ข้อมูลยังน้อย — ต้องมีคนผ่านจออย่างน้อย 30 คนต่อโฆษณา") + (ab.few ? ` · * = คนผ่านจอไม่ถึง 30 คน ตัวเลขดิบคลาดเคลื่อนได้มาก ไม่นำมาจัดอันดับ` : ""));
     }
     if (A.ab.neuro) {
       const ab = A.ab.neuro, t = ab.spread || ab.test;
-      block("วิเคราะห์อารมณ์: สัดส่วนอารมณ์บวกต่อสื่อ", ab, { pct: true, name: "อารมณ์บวกเฉลี่ย" }, ab.enough && t ? `ดีที่สุด “${ab.best.name}” ต่างจากต่ำสุด ${(t.diff * 100).toFixed(1)} จุด (95%: ${(t.lo * 100).toFixed(1)} ถึง ${(t.hi * 100).toFixed(1)}, Welch t) · ${LQStats.TH_CONF_SHORT[LQStats.confLevel(t.p, true)]} · * = ผู้ทดสอบไม่ถึง 3 คน` : "ข้อมูลยังน้อย — ควรมีผู้ทดสอบอย่างน้อย 3 คนต่อสื่อ (* = ยังไม่ถึง)");
+      block("วิเคราะห์อารมณ์: สัดส่วนอารมณ์บวกต่อสื่อ", ab, { pct: true, name: "อารมณ์บวกเฉลี่ย" }, ab.enough && t ? `อันดับหนึ่ง (เรียงตามค่าหลังปรับ) “${ab.best.name}” ต่างจากอันดับสุดท้าย ${(t.diff * 100).toFixed(1)} จุด (95%: ${(t.lo * 100).toFixed(1)} ถึง ${(t.hi * 100).toFixed(1)}, Welch t) · ${LQStats.TH_CONF_SHORT[t.level || "insufficient"]} · ขีดตั้ง = ค่าหลังปรับตามขนาดข้อมูล · * = ผู้ทดสอบไม่ถึง 3 คน ตัวเลขดิบยังเชื่อไม่ได้` : "ข้อมูลยังน้อย — ควรมีผู้ทดสอบอย่างน้อย 3 คนต่อสื่อ (* = ยังไม่ถึง)");
     }
   }
 
@@ -1790,7 +1845,7 @@ if (typeof document !== "undefined") (() => {
       el("td", { class: "n" }, tr, c.test && iqFin(c.test.change) ? `${c.test.change >= 0 ? "▲" : "▼"} ${Math.abs(Math.round(c.test.change * 100))}% · ${LQStats.TH_CONF_SHORT[c.test.level]}` : "–");
       const sp = el("td", { class: "spk" }, tr); sparkline(sp, c.spark, c.name);
     });
-    $("#camNote").textContent = "เทียบเป็นค่าต่อวันที่มีข้อมูล (exact Poisson test) · จุดที่เป็นเครื่องลูกส่งเฉพาะตัวเลขสรุปมาที่เครื่องหลัก";
+    $("#camNote").textContent = "เทียบเป็นค่าต่อวันที่มีข้อมูล ปรับวันในสัปดาห์และเผื่อความผันผวนรายวัน (negative binomial) · ความมั่นใจปรับแล้วสำหรับการดูหลายข้อพร้อมกัน · จุดที่เป็นเครื่องลูกส่งเฉพาะตัวเลขสรุปมาที่เครื่องหลัก";
   }
 
   // ---------- ลูกค้ากลับมาซ้ำ ----------

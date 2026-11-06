@@ -48,6 +48,11 @@
     var top = Object.keys(c).sort(function (a, b) { return c[b] - c[a]; })[0];
     return top && c[top] >= 2 ? top : null;
   }
+  /** ความหมายของช่วงเวลาที่เข้ากับประเภทฝัน (ty = KB.TYPES[...]) */
+  function timeMeaning(ty, time) {
+    var TI = KB.TIMES[time]; if (!TI) return "";
+    return ty && ty.omen === false && TI.r ? TI.r : TI.o;
+  }
   function buildFacts(ids, mood, time, topic, opts) {
     opts = opts || {};
     var r = opts.rng || Math.random, pk = FK.pickR, items = [], M = KB.MOODS[mood], boost = M ? M.w : 0;
@@ -66,8 +71,9 @@
     var dom = dominantTheme(ids);
     if (dom) { var D = KB.THEMES[dom]; items.push({ id: "theme." + dom, group: "ธีมเด่นของฝัน", label: "ธีม" + D.th, short: "ธีม" + D.th, strength: 0.8, tags: ["overview", "advice"], meanings: { overview: D.o.slice(), advice: D.a.slice() } }); }
     if (M) items.push({ id: "mood." + mood, group: "ความรู้สึกในฝัน", label: "ความรู้สึก" + M.th, short: "ความรู้สึกในฝัน", strength: 0.62, tags: ["personality"], meanings: { personality: [M.o] } });
-    var ty = KB.TYPES[dreamType(ids, mood, time)];
-    var tm = { timing: [ty.o] }; if (KB.TIMES[time]) tm.timing.push(KB.TIMES[time].o);
+    var ty = KB.TYPES[dreamType(ids, mood, time)], TI = KB.TIMES[time];
+    // ความหมายของช่วงเวลาต้องเข้ากับประเภทฝัน: ฝันที่ไม่ใช่ลาง (จิตนิวรณ์/ธาตุกำเริบ) ห้ามพูดว่า "มักเห็นผลเร็ว"
+    var tm = { timing: [ty.o] }; if (TI) tm.timing.push(timeMeaning(ty, time));
     items.push({ id: "type", group: "ประเภทฝัน", label: "ฝันแบบ" + ty.th, short: "ฝันแบบ" + ty.th, strength: 0.6, tags: ["timing"], meanings: tm });
     return { domain: "dream", topic: topic || "overall", subject: {}, headline: "ฝันเห็น" + ids.slice(0, 3).map(function (id) { return BY[id] ? BY[id].th : id; }).join(" "), items: items };
   }
@@ -76,7 +82,7 @@
     var n = normalize(q);
     return KB.SYMBOLS.filter(function (s) { return (!cat || s.cat === cat) && (!n || s.al.some(function (a) { return a.indexOf(n) >= 0 || n.indexOf(a) >= 0; }) || s.th.indexOf(n) >= 0); });
   }
-  var DR = { normalize: normalize, detect: detect, dreamType: dreamType, dominantTheme: dominantTheme, buildFacts: buildFacts, search: search, BY: BY };
+  var DR = { normalize: normalize, detect: detect, dreamType: dreamType, timeMeaning: timeMeaning, dominantTheme: dominantTheme, buildFacts: buildFacts, search: search, BY: BY };
   if (typeof module !== "undefined" && module.exports) module.exports = DR;
   root.Dream = DR;
 })(typeof window !== "undefined" ? window : globalThis);
@@ -146,7 +152,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var ty = KB.TYPES[DR.dreamType(ids, mood, time)], dom = DR.dominantTheme(ids);
     $("#drResult").hidden = false;
     $("#drCards").innerHTML = ids.map(function (id) { var s = DR.BY[id], T = KB.THEMES[s.theme]; return '<article class="dr-card"><span class="dr-ic" aria-hidden="true">' + s.ic + "</span><div><h3>ฝันเห็น" + esc(s.th) + '</h3><p class="dr-theme">ธีม' + esc(T.th) + " · " + esc(KB.CATS[s.cat]) + "</p><p>" + esc(s.o) + "</p></div></article>"; }).join("");
-    $("#drType").innerHTML = "<b>ประเภทฝัน: " + esc(ty.th) + "</b> — " + esc(ty.o) + (dom ? '<br><b>ธีมเด่น:</b> ' + esc(KB.THEMES[dom].th) : "") + (KB.TIMES[time] ? '<br><span class="fk-small">' + esc(KB.TIMES[time].o) + "</span>" : "");
+    $("#drType").innerHTML = "<b>ประเภทฝัน: " + esc(ty.th) + "</b> — " + esc(ty.o) + (dom ? '<br><b>ธีมเด่น:</b> ' + esc(KB.THEMES[dom].th) : "") + (KB.TIMES[time] ? '<br><span class="fk-small">' + esc(DR.timeMeaning(ty, time)) + "</span>" : "");
     $("#drReadWrap").innerHTML = FK.readingBlock("drRd", "คำทำนายฝัน", true);
     FK.bindReading("drRd", "dream", function (topic, r) { return DR.buildFacts(ids, mood, time, topic, { rng: r }); }, { withTopics: true });
     stats.add({ sym: ids, mood: mood, theme: dom || DR.BY[ids[0]].theme });

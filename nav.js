@@ -13,15 +13,15 @@
       { href: "customers.html", title: "จดจำลูกค้า", desc: "ประวัติการสั่งและเมนูแนะนำ" },
       { href: "booth.html", title: "วิเคราะห์บูธ", desc: "นับผู้เข้าชมและเวลาหยุดชม" }
     ] },
-    { label: "ดูดวง AI", id: "fortune", items: [
+    { label: "ดูดวงอัจฉริยะ", id: "fortune", items: [
       { href: "fortune.html", title: "รวมระบบดูดวง", desc: "เลือกศาสตร์ที่ต้องการ" },
       { href: "faceread.html", title: "โหงวเฮ้ง AI", desc: "อ่านโหงวเฮ้งจากใบหน้า" },
       { href: "palm.html", title: "ดูลายมือ AI", desc: "ถ่ายฝ่ามือ อ่านเส้นหลัก" },
       { href: "horoscope.html", title: "ดวงวันเดือนปีเกิด", desc: "โหราไทย ปาจื้อ เลขศาสตร์" },
       { href: "tarot.html", title: "ไพ่ทาโรต์ & เซียมซี", desc: "เปิดไพ่ เสี่ยงเซียมซี" },
-      { href: "fengshui.html", title: "ฮวงจุ้ย AI", desc: "เลขกัว เข็มทิศ ผังบ้าน" },
-      { href: "numbers.html", title: "เลขมงคล AI", desc: "เบอร์โทร ทะเบียนรถ เลขบ้าน" },
-      { href: "iching.html", title: "อี้จิง เสี่ยงฮู่", desc: "โยนเหรียญ 64 ฉะ" },
+      { href: "fengshui.html", title: "ฮวงจุ้ย", desc: "เลขกัว เข็มทิศ ผังบ้าน" },
+      { href: "numbers.html", title: "เลขมงคล", desc: "เบอร์โทร ทะเบียนรถ เลขบ้าน" },
+      { href: "iching.html", title: "อี้จิง เสี่ยงกว้า", desc: "โยนเหรียญ 64 กว้า" },
       { href: "zodiac.html", title: "12 นักษัตร · ปีชง", desc: "ดวงรายปี คู่มงคล" },
       { href: "astro.html", title: "ราศีตะวันตก", desc: "ราศีอาทิตย์ จันทร์ ลัคนา" },
       { href: "dream.html", title: "ทำนายฝัน", desc: "ความหมายสัญลักษณ์ในฝัน" }

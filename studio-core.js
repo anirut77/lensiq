@@ -677,7 +677,7 @@
    *  ref  = { gray (gray-world ของชุดต้นฉบับ หรือ null = เป็นกลาง), faceLum (ของนายแบบ หรือ null) }
    * ขั้นตอน: สมดุลแสงสี (ตามสีแสงของภาพ) → ความสว่าง → เงาทิศทางซ้าย/ขวา → สีผิวส่วนคอ/อกของนายแบบให้เป็นผิวผู้ถ่าย → grain
    */
-  function harmonizeGarment(rgba, w, h, user, ref = {}, { strength = 1, bright = 1, seed = 11 } = {}) {
+  function harmonizeGarment(rgba, w, h, user, ref = {}, { strength = 1, bright = 1, seed = 11, mono = false } = {}) {
     const n = w * h, alpha = new Float32Array(n);
     for (let i = 0; i < n; i++) alpha[i] = rgba[i * 4 + 3] / 255;
     let out = rgba;
@@ -719,7 +719,10 @@
       if (add > .3) out = addGrain(out, w, h, alpha, add * strength, seed);
     }
     if (out === rgba) out = new Uint8ClampedArray(rgba);
-    for (let i = 0; i < n; i++) out[i * 4 + 3] = rgba[i * 4 + 3];
+    for (let i = 0; i < n; i++) {
+      out[i * 4 + 3] = rgba[i * 4 + 3];
+      if (mono) { const y = .299 * out[i * 4] + .587 * out[i * 4 + 1] + .114 * out[i * 4 + 2]; out[i * 4] = out[i * 4 + 1] = out[i * 4 + 2] = y; } // ภาพขาวดำ: ชุดเป็นขาวดำด้วย
+    }
     return out;
   }
 
@@ -771,93 +774,353 @@
     return out;
   }
 
+  // =====================================================================
+  // แยกส่วนใบหน้า/ผม/คอ/เสื้อ (face parsing) และลำดับชั้นภาพ
+  // =====================================================================
+  /*
+   * โมเดล: BiSeNet face parsing (CelebAMask-HQ 19 คลาส) — github.com/yakhyo/face-parsing (MIT; สถาปัตยกรรมจาก
+   * zllrunning/face-parsing.PyTorch, MIT) แปลงเป็น ONNX แล้ว quantize น้ำหนักเป็น uint8 (vendor/models/faceparse-bisenet-r18-q8.onnx)
+   * อินพุต: ภาพครอปสี่เหลี่ยมรอบใบหน้า 512×512 (normalize ImageNet) เอาต์พุต: logits [19,512,512]
+   */
+  const PARSE_LABELS = ["background", "skin", "l_brow", "r_brow", "l_eye", "r_eye", "eye_g", "l_ear", "r_ear", "ear_r", "nose", "mouth", "u_lip", "l_lip", "neck", "neck_l", "cloth", "hair", "hat"];
+  /** กลุ่มคลาส: head = ใบหน้า+หู+ต่างหู+แว่น+หมวก (อยู่หน้าชุด), hair (อยู่หน้าชุด), neck (อยู่หลังชุด), cloth = เสื้อเดิม+สร้อยคอ (ซ่อน) */
+  const PARSE_GROUPS = { head: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 18], hair: [17], neck: [14], cloth: [15, 16], bg: [0] };
+
+  /** กรอบครอป (สี่เหลี่ยมจัตุรัส) สำหรับ parser: ด้าน k×ความกว้างหน้า ศูนย์กลางใต้ตา (ให้ครอบผมยาวถึงไหล่) */
+  function parseCrop(face, k = 3) {
+    const side = Math.max(16, face.fw * k);
+    return { x: face.cx - side / 2, y: face.eyeY + face.fw * .2 * k - side / 2, side };
+  }
+  /** softmax ต่อพิกเซล แล้วรวมความน่าจะเป็นตามกลุ่ม: logits = Float32Array [C, n] (C = 19) → {head, hair, neck, cloth, bg} */
+  function parseGroups(logits, n, C = 19) {
+    const out = {}, gi = new Int8Array(C).fill(-1), names = Object.keys(PARSE_GROUPS);
+    names.forEach((g, k) => { out[g] = new Float32Array(n); PARSE_GROUPS[g].forEach(c => { if (c < C) gi[c] = k; }); });
+    const arr = names.map(g => out[g]), e = new Float32Array(C);
+    for (let i = 0; i < n; i++) {
+      let m = -Infinity; for (let c = 0; c < C; c++) { const v = logits[c * n + i]; if (v > m) m = v; }
+      let s = 0; for (let c = 0; c < C; c++) { e[c] = Math.exp(logits[c * n + i] - m); s += e[c]; }
+      for (let c = 0; c < C; c++) if (gi[c] >= 0) arr[gi[c]][i] += e[c] / s;
+    }
+    return out;
+  }
+  /** ขยาย map S×S ของครอปกลับเป็นพิกัดภาพ W×H (bilinear) — นอกครอป = outside */
+  function cropToImage(map, S, crop, W, H, outside = 0) {
+    const o = new Float32Array(W * H); if (outside) o.fill(outside);
+    const k = S / crop.side, x0 = Math.max(0, Math.floor(crop.x)), y0 = Math.max(0, Math.floor(crop.y));
+    const x1 = Math.min(W, Math.ceil(crop.x + crop.side)), y1 = Math.min(H, Math.ceil(crop.y + crop.side));
+    for (let y = y0; y < y1; y++) {
+      const fy = (y + .5 - crop.y) * k - .5, j0 = clamp(Math.floor(fy), 0, S - 1), j1 = Math.min(S - 1, j0 + 1), ty = clamp01(fy - j0);
+      for (let x = x0; x < x1; x++) {
+        const fx = (x + .5 - crop.x) * k - .5, i0 = clamp(Math.floor(fx), 0, S - 1), i1 = Math.min(S - 1, i0 + 1), tx = clamp01(fx - i0);
+        const a = map[j0 * S + i0] + (map[j0 * S + i1] - map[j0 * S + i0]) * tx, b = map[j1 * S + i0] + (map[j1 * S + i1] - map[j1 * S + i0]) * tx;
+        o[y * W + x] = a + (b - a) * ty;
+      }
+    }
+    return o;
+  }
+  /** ภายในครอปหรือไม่ (ใช้ร่วมกับ cropToImage) */
+  const inCrop = (crop, x, y) => x >= crop.x && x < crop.x + crop.side && y >= crop.y && y < crop.y + crop.side;
+
   /**
-   * รวมภาพสุดท้าย (ทั้งหมดขนาด w×h):
-   *  bg (RGBA), person (RGBA สีที่ประมาณแล้ว), pA (alpha ตัวคน), garment (RGBA หรือ null), head (mask ศีรษะที่อยู่หน้าชุด), shade (เงาสัมผัส)
-   *  opt: hideBody (ซ่อนเสื้อเดิมที่อยู่ใต้แนวคอเสื้อ), levels (Laplacian), wrap (light wrap)
+   * แยกส่วนแบบ heuristic (สำรองเมื่อโหลดโมเดล parsing ไม่ได้): จัดกลุ่มสีผม vs เสื้อเดิม ใน L*a*b* โดยใช้ landmark กำหนดบริเวณเก็บตัวอย่าง
+   *  - ผม: ตัวอย่างเหนือหน้าผากและข้างแก้ม (ที่ไม่ใช่สีผิว) · เสื้อ: ตัวอย่างที่อก/ไหล่ · คอ: สีผิวใต้คางใกล้แกนกลาง
+   * คืน {head, hair, neck, cloth} (Float32Array W*H, 0..1 — ยังไม่คูณ alpha)
+   */
+  function heuristicParse(rgba, alpha, W, H, face) {
+    const n = W * H, fw = face.fw, cx = face.chinX != null ? face.chinX : face.cx, jy = jawCurve(face);
+    const head = new Float32Array(n), hair = new Float32Array(n), neck = new Float32Array(n), cloth = new Float32Array(n);
+    const sample = (x0, x1, y0, y1, skinOk) => {
+      const pts = [], st = Math.max(1, Math.round(fw / 60));
+      for (let y = Math.max(0, Math.round(y0)); y < Math.min(H, y1); y += st) for (let x = Math.max(0, Math.round(x0)); x < Math.min(W, x1); x += st) {
+        const i = y * W + x; if (alpha[i] < .9) continue;
+        const r = rgba[i * 4], g = rgba[i * 4 + 1], b = rgba[i * 4 + 2];
+        if (!skinOk && skinLikelihood(r, g, b) > .4) continue;
+        pts.push(rgbToLab(r, g, b));
+      }
+      if (pts.length < 8) return null;
+      const m = [0, 1, 2].map(c => pts.reduce((s, p) => s + p[c], 0) / pts.length);
+      const sd = [0, 1, 2].map(c => Math.sqrt(pts.reduce((s, p) => s + (p[c] - m[c]) ** 2, 0) / pts.length) + (c ? 3 : 6));
+      return { m, sd, n: pts.length };
+    };
+    const hairM = (() => {
+      const a = [sample(cx - fw * .35, cx + fw * .35, face.eyeY - fw * 1.0, face.eyeY - fw * .62, false), sample(cx - fw * .78, cx - fw * .55, face.eyeY, face.chinY, false), sample(cx + fw * .55, cx + fw * .78, face.eyeY, face.chinY, false)].filter(Boolean);
+      if (!a.length) return null; a.sort((p, q) => q.n - p.n); return a[0];
+    })();
+    const clothM = sample(cx - fw * 1.0, cx + fw * 1.0, face.chinY + fw * 1.1, face.chinY + fw * 1.6, false);
+    const dist = (L, M) => Math.hypot((L[0] - M.m[0]) / M.sd[0], (L[1] - M.m[1]) / M.sd[1], (L[2] - M.m[2]) / M.sd[2]);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const i = y * W + x; if (alpha[i] <= .02) { cloth[i] = 0; continue; }
+      const jyx = jy(x);
+      if (y < jyx && Math.abs(x - cx) < fw * .62) { head[i] = 1; continue; }
+      const r = rgba[i * 4], g = rgba[i * 4 + 1], b = rgba[i * 4 + 2], L = rgbToLab(r, g, b);
+      const dy = y - face.chinY, dx = Math.abs(x - cx);
+      let ph = 0;
+      if (hairM && dx < fw * 1.6 && dy < fw * 1.9) {
+        const dh = dist(L, hairM), dc = clothM ? dist(L, clothM) : 4;
+        ph = smooth((dc - dh + .5) / 2) * smooth((3.5 - dh) / 1.5) * smooth((fw * 1.9 - dy) / (fw * .4));
+        if (y < face.eyeY) ph = Math.max(ph, .9); // เหนือระดับตา (นอกใบหน้า) = ผม
+      } else if (y < face.chinY) ph = 1;
+      const pn = dx < fw * .4 && dy > -fw * .3 && dy < fw * .9 ? skinLikelihood(r, g, b) * (1 - ph) : 0;
+      hair[i] = ph; neck[i] = pn; cloth[i] = Math.max(0, 1 - ph - pn);
+    }
+    return { head, hair, neck, cloth };
+  }
+
+  /**
+   * ชั้นของตัวคนจากผล parsing (ความน่าจะเป็นในพิกัดภาพ; นอกครอป: เหนือเส้นคาง = ศีรษะ, ใต้ = เสื้อ)
+   *  keepS = ศีรษะ+ผม (วางหน้าชุด), neckS = คอ (วางหลังชุด), hairS = ผม, bodyS = ส่วนที่เหลือ (เสื้อเดิม/แขน — ถูกชุดใหม่แทนที่)
+   *  เกลาขอบ keep ด้วย guided filter ตามภาพ (รอยต่อผม/เสื้อเดิม คมตามขอบจริง)
+   */
+  function personLayers(rgba, alpha, W, H, face, P, crop = null) {
+    const n = W * H, jy = jawCurve(face), keep = new Float32Array(n), neck = new Float32Array(n), hair = new Float32Array(n), body = new Float32Array(n);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const i = y * W + x;
+      let h, hr, nk;
+      if (!crop || inCrop(crop, x, y)) { h = P.head[i]; hr = P.hair[i]; nk = P.neck[i]; }
+      else { const above = y < jy(x); h = above ? 1 : 0; hr = 0; nk = 0; }
+      // ใต้แนวคาง ส่วนที่วางหน้าชุดมีได้เฉพาะผม (กันจุดสีเสื้อเดิมที่โมเดลทายผิดเป็น "ผิว" โผล่บนชุด)
+      if (y > Math.max(jy(x), face.chinY) + face.fw * .25) h = 0;
+      const k = smooth((h + hr - .3) / .4), nn = smooth((nk - .3) / .4) * (1 - k);
+      keep[i] = k; neck[i] = nn; hair[i] = smooth((hr - .3) / .4); body[i] = Math.max(0, 1 - k - nn);
+    }
+    // ผมใต้คางต้องต่อเนื่องกับผมบนศีรษะ (flood fill) — ก้อนที่โมเดลทายผิดบนไหล่/เสื้อเดิม ถูกตัดทิ้ง
+    {
+      const on = new Uint8Array(n), seen = new Uint8Array(n), st = [], lim = face.chinY + face.fw * .1;
+      for (let i = 0; i < n; i++) on[i] = keep[i] > .04 && alpha[i] > .1 ? 1 : 0;
+      for (let y = 0; y < Math.min(H, lim); y++) for (let x = 0; x < W; x++) { const i = y * W + x; if (on[i] && !seen[i]) { seen[i] = 1; st.push(i); } }
+      while (st.length) { const i = st.pop(), x = i % W; for (const j of [i - 1, i + 1, i - W, i + W]) { if (j < 0 || j >= n || seen[j] || !on[j] || (j === i - 1 && x === 0) || (j === i + 1 && x === W - 1)) continue; seen[j] = 1; st.push(j); } }
+      for (let i = 0; i < n; i++) if (on[i] && !seen[i]) { body[i] = Math.min(1, body[i] + keep[i]); keep[i] = 0; hair[i] = 0; }
+    }
+    // ใบหน้าจาก landmark (หดเข้า 10%) ที่เป็นสีผิว ต้องอยู่หน้าชุดเสมอ — กันรูบนใบหน้าเมื่อ parser พลาด (ภาพวาด/แสงแปลก)
+    if (face.P && face.P.length >= 68) {
+      const Fm = new Float32Array(n), Pp = face.P, eyeMid = { x: (Pp[36].x + Pp[45].x) / 2, y: (Pp[36].y + Pp[45].y) / 2 }, fh = Math.hypot(Pp[8].x - eyeMid.x, Pp[8].y - eyeMid.y);
+      const lift = p => ({ x: p.x, y: p.y - fh * .3 }), g = grow([...Pp.slice(0, 17), ...Pp.slice(17, 27).reverse().map(lift)], .9);
+      fillPoly(Fm, W, H, g, 1);
+      for (let i = 0; i < n; i++) if (Fm[i] > keep[i] && skinLikelihood(rgba[i * 4], rgba[i * 4 + 1], rgba[i * 4 + 2]) > .25) { keep[i] = Fm[i]; neck[i] = Math.min(neck[i], 1 - keep[i]); body[i] = Math.max(0, 1 - keep[i] - neck[i]); }
+    }
+    // guided filter บนกรอบรอบศีรษะ (ขอบผม/เสื้อเดิมตามขอบภาพ) — นอกกรอบคงเดิม
+    const fw = face.fw, bx = { x0: Math.max(0, Math.floor(face.cx - fw * 2)), x1: Math.min(W, Math.ceil(face.cx + fw * 2)), y0: Math.max(0, Math.floor(face.eyeY - fw * 1.4)), y1: Math.min(H, Math.ceil(face.chinY + fw * 2.4)) };
+    const cw = bx.x1 - bx.x0, ch = bx.y1 - bx.y0;
+    if (cw > 8 && ch > 8) {
+      const I = new Float32Array(cw * ch), p = new Float32Array(cw * ch);
+      for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) { const i = (y + bx.y0) * W + x + bx.x0; I[y * cw + x] = (.299 * rgba[i * 4] + .587 * rgba[i * 4 + 1] + .114 * rgba[i * 4 + 2]) / 255; p[y * cw + x] = keep[i]; }
+      const q = guidedFilter(I, p, cw, ch, Math.max(2, Math.round(fw * .02)), 2e-3);
+      for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
+        const li = y * cw + x, i = (y + bx.y0) * W + x + bx.x0, v = clamp01((q[li] - .5) * 1.25 + .5);
+        // ใช้ค่าที่เกลาเฉพาะบริเวณรอยต่อ (ค่าเดิมไม่ชัดเจน) — ภายในศีรษะ/ภายนอกไม่เปลี่ยน
+        const edge = 1 - Math.abs(keep[i] - .5) * 2; keep[i] = keep[i] + (v - keep[i]) * Math.min(1, edge * 1.5);
+        neck[i] = Math.min(neck[i], 1 - keep[i]); body[i] = Math.max(0, 1 - keep[i] - neck[i]);
+      }
+    }
+    return { keep, neck, hair, body };
+  }
+
+  /**
+   * วัดไหล่จาก silhouette (ไม่รวมศีรษะ ผม คอ) — ทนต่อผมยาวคลุมไหล่และแขนกอดอก:
+   *  1) ขอบบนของไหล่ที่ระยะ 0.7–1.45 เท่าความกว้างหน้าจากแกนกลาง ทั้งสองข้าง (ข้ามจุดที่มีผมอยู่ติดด้านบน)
+   *  2) fit เส้นตรง y = a + b·(x - cx) → มุมเอียงไหล่ (จำกัด ±15°)
+   *  3) ความกว้างไหล่ = ช่วงทึบที่ผ่านแกนกลาง ณ แถวเดลตอยด์ (ไม่รวมผม) จำกัด 2.5–3.3 เท่าความกว้างหน้า (ค่าก่อนหน้า 2.9)
+   * คืน {N, s, theta, width, measured, l, r, chin(=N), samples}
+   */
+  const SHOULDER_PRIOR = { lo: 2.5, hi: 3.3, mid: 2.9 };
+  function measureShoulders(alpha, W, H, face, { keep = null, hair = null, neck = null, canon = null } = {}) {
+    const C = canon || { lineY: .07, deltoidY: .68, width: 3.0, L: { x: -1.4, y: .24 }, R: { x: 1.4, y: .24 } };
+    const fw = face.fw, cx = face.chinX != null ? face.chinX : face.cx, chinY = face.chinY;
+    const bodyAt = i => alpha[i] * (1 - (keep ? keep[i] : 0)) * (1 - (neck ? neck[i] : 0));
+    const y0 = Math.max(0, Math.round(chinY - fw * .4)), y1 = Math.min(H - 1, Math.round(chinY + fw * 1.5)), occR = Math.max(2, Math.round(fw * .05));
+    const samples = [];
+    for (const sd of [-1, 1]) for (const k of [.7, .85, 1.0, 1.15, 1.3, 1.45]) {
+      const x = Math.round(cx + sd * k * fw); if (x < 0 || x >= W) continue;
+      for (let y = y0; y <= y1; y++) {
+        if (bodyAt(y * W + x) <= .5) continue;
+        let occ = false;
+        for (let d = 1; d <= occR && !occ; d++) { const yy = y - d; if (yy < 0) break; const j = yy * W + x; if ((hair && hair[j] > .3 && alpha[j] > .3) || (keep && keep[j] > .5 && alpha[j] > .5)) occ = true; }
+        if (!occ && y > y0) samples.push({ x, y, sd });
+        break;
+      }
+    }
+    let a = chinY + fw * .5, b = 0, measured = false;
+    const fitLine = S => {
+      const n = S.length, mx = S.reduce((s, p) => s + p.x - cx, 0) / n, my = S.reduce((s, p) => s + p.y, 0) / n;
+      let sxx = 0, sxy = 0; for (const p of S) { sxx += (p.x - cx - mx) ** 2; sxy += (p.x - cx - mx) * (p.y - my); }
+      const both = S.some(p => p.sd < 0) && S.some(p => p.sd > 0);
+      const bb = both && sxx > 0 ? sxy / sxx : 0;
+      // ไหล่ลาดเป็นรูป ^ สมมาตร: ถ้ามีข้างเดียวใช้ค่าเฉลี่ยเป็นระดับไหล่ (ไม่เอียง)
+      return { b: bb, a: my - bb * mx };
+    };
+    if (samples.length >= 2) {
+      let f = fitLine(samples), S = samples;
+      const res = p => Math.abs(p.y - (f.a + f.b * (p.x - cx)));
+      const keepS = S.filter(p => res(p) < fw * .18);
+      if (keepS.length >= 2 && keepS.length < S.length) { S = keepS; f = fitLine(S); }
+      a = f.a; b = f.b; measured = true;
+    }
+    const theta = clamp(Math.atan(b), -.26, .26);
+    a = clamp(a, chinY + fw * .05, chinY + fw * 1.1);
+    // ความกว้างไหล่ ณ แถวเดลตอยด์
+    const yw = Math.round(a + (C.deltoidY - C.lineY) * fw), widths = [];
+    let lsum = 0, rsum = 0, cropped = false;
+    for (let dy = -2; dy <= 2; dy++) {
+      const y = yw + Math.round(dy * fw * .03); if (y < 0 || y >= H) continue;
+      const o = y * W, at = x => alpha[o + x] * (1 - (hair ? hair[o + x] : 0)) > .5;
+      let x0 = clamp(Math.round(cx), 0, W - 1);
+      if (!at(x0)) continue;
+      let l = x0, r = x0; while (l > 0 && at(l - 1)) l--; while (r < W - 1 && at(r + 1)) r++;
+      if (l <= 0 || r >= W - 1) cropped = true;
+      widths.push(r - l + 1); lsum += l; rsum += r;
+    }
+    let width = SHOULDER_PRIOR.mid * fw, xc = cx;
+    if (widths.length) {
+      widths.sort((p, q) => p - q);
+      const wm = widths[widths.length >> 1], lm = lsum / widths.length, rm = rsum / widths.length;
+      width = cropped ? Math.max(wm, SHOULDER_PRIOR.mid * fw) : wm;
+      if (!cropped) xc = clamp((lm + rm) / 2, cx - fw * .25, cx + fw * .25);
+    }
+    width = clamp(width, SHOULDER_PRIOR.lo * fw, SHOULDER_PRIOR.hi * fw);
+    const s = width / C.width, cs = Math.cos(theta), sn = Math.sin(theta);
+    const yl = a + Math.tan(theta) * (xc - cx);
+    const N = { x: xc + sn * C.lineY * s, y: yl - cs * C.lineY * s };
+    const map = p => ({ x: N.x + s * (cs * p.x - sn * p.y), y: N.y + s * (sn * p.x + cs * p.y) });
+    return { N, s, theta, width, measured, cropped, l: map(C.L), r: map(C.R), chin: { ...N }, samples, line: { a, b } };
+  }
+  /** จากจุดยึด 3 จุด (chin = โคนคอ N, l/r = บนไหล่) -> {N, s, theta} (ใช้กับจุดที่ผู้ใช้ลาก) */
+  function fitFromTargets(T, canon = null) {
+    const C = canon || { L: { x: -1.4, y: .24 }, R: { x: 1.4, y: .24 } };
+    const d = Math.hypot(T.r.x - T.l.x, T.r.y - T.l.y), s = d / (C.R.x - C.L.x), theta = Math.atan2(T.r.y - T.l.y, T.r.x - T.l.x);
+    return { N: { x: T.chin.x, y: T.chin.y }, s, theta };
+  }
+
+  /**
+   * คอ: ใช้ผิวคอจริง (จาก parsing) แล้ว "ต่อคอ" ลงไปใต้คอเสื้อใหม่ (คอเสื้อเดิมมักบังโคนคอ) ให้สีผิวต่อเนื่อง:
+   *  ขอบซ้าย/ขวาของคอที่เห็น -> ต่อลงแบบบานออกเล็กน้อย (กล้ามเนื้อ trapezius), สีจากแถวล่างสุดของคอจริงรายคอลัมน์ มืดลงเล็กน้อยตามความลึก + grain
+   *  ถ้าไม่เห็นคอเลย (คอเต่า/ไม่มี parsing) สร้างคอจากสีผิวหน้า (มืดลง) กว้าง ~0.54 เท่าความกว้างหน้า
+   *  เติมรูในคอ (สร้อยคอที่ถูกซ่อน) ด้วยสีคอลัมน์เดียวกัน
+   * คืน { rgba, alpha } ของชั้นคอ (ขนาด W×H)
+   */
+  function synthNeck(person, alpha, neckS, keepS, W, H, face, fit, { skinRGB = null, noise = 1.5, seed = 5, hair = null, collarY = -.22 } = {}) {
+    const n = W * H, fw = face.fw, cx = face.chinX != null ? face.chinX : face.cx, jy = jawCurve(face);
+    const rgba = new Uint8ClampedArray(n * 4), A = new Float32Array(n);
+    const cs = Math.cos(fit.theta || 0), sn = Math.sin(fit.theta || 0), s = fit.s, drop = fit.drop || 0;
+    // แนวคอเสื้อใหม่ (ด้านหน้า ~0.3 หน่วยใต้ขอบบนคอเสื้อ): ใช้คอจริงเหนือแนวนี้เป็นต้นแบบ ใต้แนวนี้ชุดบังอยู่แล้ว
+    const yCollar = fit.N.y + s * (collarY + drop + .3) * cs;
+    const yEnd = Math.min(H - 1, Math.ceil(fit.N.y + s * (collarY + drop + .75) + Math.abs(sn) * fw * .8));
+    const yTop = Math.max(0, Math.floor(face.eyeY + (face.chinY - face.eyeY) * .3)), xL = Math.max(0, Math.floor(cx - fw * .9)), xR = Math.min(W - 1, Math.ceil(cx + fw * .9));
+    // 1) ชั้นคอจริง + สีตัวคนใต้ขอบล่างของใบหน้า (กันฉากหลังซึมเป็นเส้นสว่างที่รอยต่อคาง/คอ) — ศีรษะวางทับอยู่แล้ว
+    for (let y = yTop; y <= yEnd; y++) for (let x = xL; x <= xR; x++) {
+      const i = y * W + x, under = keepS[i] * (hair ? 1 - hair[i] : 1) * (Math.abs(x - cx) < fw * .55 ? 1 : 0);
+      const v = alpha[i] * Math.min(1, neckS[i] + under); if (v <= 0) continue;
+      A[i] = v; for (let c = 0; c < 3; c++) rgba[i * 4 + c] = person[i * 4 + c];
+    }
+    // 2) ขอบคอที่เห็นในแต่ละแถว (เหนือแนวคอเสื้อใหม่)
+    const obs = new Map();
+    for (let y = Math.max(0, Math.round(face.chinY - fw * .3)); y <= Math.min(yEnd, yCollar); y++) {
+      let l = -1, r = -1, cnt = 0;
+      for (let x = xL; x <= xR; x++) if (alpha[y * W + x] * neckS[y * W + x] > .5) { if (l < 0) l = x; r = x; cnt++; }
+      const wd = r - l + 1;
+      if (l >= 0 && cnt > wd * .6 && wd >= fw * .22 && wd <= fw * .85 && Math.abs((l + r) / 2 - cx) < fw * .3) obs.set(y, { l, r });
+    }
+    const ys = [...obs.keys()].sort((p, q) => p - q), med = a => a.slice().sort((p, q) => p - q)[a.length >> 1];
+    let yb, edges = new Map(), ref;
+    if (ys.length >= 3) {
+      yb = ys[ys.length - 1];
+      for (const y of ys) { const nb = ys.filter(q => Math.abs(q - y) <= 3).map(q => obs.get(q)); edges.set(y, { l: med(nb.map(e => e.l)), r: med(nb.map(e => e.r)) }); }
+      // สีอ้างอิงรายคอลัมน์: เฉลี่ยผิวคอที่เห็นทั้งหมด (ช่วงกว้างครอบคลุมด้านข้าง) — ไม่ใช้แถวติดคอเสื้อเดิมที่มีเงา
+      const eb0 = edges.get(yb), ext = Math.round(fw * .3), cxx = Math.round((eb0.l + eb0.r) / 2), eb = { l: Math.min(eb0.l, cxx - ext), r: Math.max(eb0.r, cxx + ext) };
+      const cols = eb.r - eb.l + 1, ry0 = Math.round(Math.max(ys[0], yb - fw * .35)), ry1 = Math.max(ry0 + 1, Math.round(yb - fw * .03));
+      ref = { l: eb.l, ch: [0, 1, 2].map(() => new Float32Array(cols)) }; const cnt = new Float32Array(cols);
+      for (let y = Math.max(0, ry0); y <= ry1; y++) for (let x = eb.l; x <= eb.r; x++) { const i = y * W + x; if (alpha[i] * neckS[i] > .8) { for (let c = 0; c < 3; c++) ref.ch[c][x - eb.l] += person[i * 4 + c]; cnt[x - eb.l]++; } }
+      let tot = [0, 0, 0], tn = 0; for (let k = 0; k < cols; k++) if (cnt[k]) { for (let c = 0; c < 3; c++) tot[c] += ref.ch[c][k]; tn += cnt[k]; }
+      const mean = tn ? tot.map(v => v / tn) : (skinRGB || [180, 140, 120]).map(v => v * .85);
+      for (let k = 0; k < cols; k++) for (let c = 0; c < 3; c++) ref.ch[c][k] = cnt[k] ? ref.ch[c][k] / cnt[k] : mean[c];
+      for (let c = 0; c < 3; c++) ref.ch[c] = boxFilter(ref.ch[c], cols, 1, Math.max(1, Math.round(fw * .03)));
+    } else {
+      // ไม่เห็นคอ: เริ่มใต้คาง สีผิวหน้ามืดลง ด้านข้างมืดกว่า (ทรงกระบอก)
+      yb = Math.round(face.chinY - fw * .1);
+      const l = Math.round(cx - fw * .27), r = Math.round(cx + fw * .27), cols = r - l + 1, base = (skinRGB || [190, 150, 125]).map(v => v * .8);
+      edges.set(yb, { l, r });
+      ref = { l, ch: [0, 1, 2].map(c => { const a = new Float32Array(cols); for (let k = 0; k < cols; k++) { const t = (k / Math.max(1, cols - 1)) * 2 - 1; a[k] = base[c] * (.86 + .14 * Math.sqrt(Math.max(0, 1 - t * t))); } return a; }) };
+    }
+    const cols = ref.ch[0].length, R = rng(seed), flare = .2, minHalf = Math.max(fw * .34, s * .36), maxHalf = Math.max(minHalf, s * .4), fe = Math.max(1.5, fw * .02);
+    // คอที่เห็นอยู่ในเงามืด (ใต้คาง/คอเสื้อเดิม): ยกความสว่างของส่วนที่สร้างให้ใกล้ผิวจริง (0.62–1.0 เท่าผิวหน้า)
+    if (skinRGB) {
+      const Ls = .299 * skinRGB[0] + .587 * skinRGB[1] + .114 * skinRGB[2]; let Lr = 0;
+      for (let k = 0; k < cols; k++) Lr += .299 * ref.ch[0][k] + .587 * ref.ch[1][k] + .114 * ref.ch[2][k];
+      Lr /= Math.max(1, cols); const tgt = clamp(Lr, Ls * .62, Ls), g = clamp(tgt / Math.max(1, Lr), .7, 1.8);
+      if (Math.abs(g - 1) > .01) for (let c = 0; c < 3; c++) for (let k = 0; k < cols; k++) ref.ch[c][k] = ref.ch[c][k] * g * .7 + skinRGB[c] * (tgt / Math.max(1, Ls)) * .3 * (g > 1 ? 1 : 0) + (g > 1 ? 0 : ref.ch[c][k] * g * .3);
+    }
+    const colAt = (x, c) => ref.ch[c][clamp(Math.round(x - ref.l), 0, cols - 1)];
+    const widen = e => { const c = (e.l + e.r) / 2, h = Math.max(minHalf, (e.r - e.l) / 2); return { l: c - h, r: c + h, ol: e.l, or: e.r }; };
+    const eb = widen(edges.get(yb)), first = widen(edges.get(ys.length >= 3 ? ys[0] : yb));
+    // ความสว่างแปรผันความถี่ต่ำเล็กน้อย (ผิวจริงไม่เรียบสนิท)
+    const lowN = (x, y) => { const q = fw * .12, xi = Math.floor(x / q), yi = Math.floor(y / q), tx = x / q - xi, ty = y / q - yi, hsh = (a, b) => { let h = (a * 374761393 + b * 668265263 + seed * 97) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }; const u = tx * tx * (3 - 2 * tx), v = ty * ty * (3 - 2 * ty); return (hsh(xi, yi) * (1 - u) + hsh(xi + 1, yi) * u) * (1 - v) + (hsh(xi, yi + 1) * (1 - u) + hsh(xi + 1, yi + 1) * u) * v - .5; };
+    // 3) คอเต็มรูป: จากใต้แนวคาง (เริ่มซ้อนใต้ใบหน้าเล็กน้อย ไม่มีช่องว่าง) ลงไปใต้คอเสื้อใหม่ เติมเฉพาะที่ไม่มีผิวคอจริง
+    const yS = Math.max(0, Math.floor(face.chinY - fw * .45));
+    // ขอบบนของคอรายคอลัมน์ = ขอบล่างของใบหน้าจริง (keep) — คอติดกับใบหน้าตามรูปทรงจริง (หน้าเอียง/หันข้างก็ไม่มีช่องหรือขั้นบันได)
+    const topY = new Float32Array(W).fill(-1), x0c = Math.max(0, Math.floor(cx - maxHalf - fe)), x1c = Math.min(W - 1, Math.ceil(cx + maxHalf + fe));
+    for (let x = x0c; x <= x1c; x++) {
+      // ปลายล่างของช่วงใบหน้าช่วงแรก (ไล่จากบนลงล่าง) — ไม่ใช้ก้อนที่หลุดอยู่ใต้คาง
+      let yk = -1, seen = false;
+      for (let y = Math.max(0, yS - Math.round(fw * .3)); y <= Math.min(yEnd, Math.round(face.chinY + fw * .3)); y++) {
+        const on = keepS[y * W + x] * alpha[y * W + x] > .5 && !(hair && hair[y * W + x] > .5);
+        if (on) { seen = true; yk = y; } else if (seen) break;
+      }
+      topY[x] = yk >= 0 ? Math.min(yk - fw * .03, Math.max(jy(x), yS)) : Math.max(jy(x), yS); // ไม่ต่ำกว่าแนวคาง (parser พลาดใต้คาง ก็ไม่เกิดช่อง)
+    }
+    let last = first;
+    for (let y = yS; y <= yEnd; y++) {
+      const below = y > yb, t = below ? y - yb : 0;
+      if (!below && edges.has(y)) last = widen(edges.get(y));
+      const e = below ? eb : last;
+      // ใต้คอที่เห็น: คอที่สร้างอยู่กึ่งกลางช่องคอเสื้อ (N.x) บานออกเล็กน้อย — ไม่ตามแนวคอเอียงของภาพเดิม
+      const hb = Math.min(maxHalf, (eb.r - eb.l) / 2 + t * flare), nx = fit.N.x;
+      const l = below ? nx - hb : Math.max(e.l, eb.l - fw * .08), r = below ? nx + hb : Math.min(e.r, eb.r + fw * .08);
+      const dark = below ? 1 - .1 * smooth(t / (fw * .45)) : 1;
+      for (let x = Math.max(0, Math.floor(l - fe)); x <= Math.min(W - 1, Math.ceil(r + fe)); x++) {
+        // ใบหน้าอยู่ด้านบน; ด้านข้างใต้หู (เหนือระดับคาง) ใช้เฉพาะผิวคอจริง ไม่สร้างเพิ่ม
+        const i = y * W + x, ty = Math.max(topY[x] >= 0 ? topY[x] : jy(x), face.chinY + fw * (Math.abs(x - cx) < fw * .3 ? -.1 : .05)); if (y < ty - fe) continue;
+        let edge = smooth(Math.min((x - l) / fe + .5, (r - x) / fe + .5, (y - ty) / fe + .5));
+        if (!below) { // เหนือแนวต่อคอ: แถบกลางใต้คาง หรือรูที่มีผิวคอจริงล้อมทั้งซ้ายและขวา (ไม่ลากแถบออกด้านข้าง)
+          const d = Math.round(fe * 2), enclosed = x - d >= 0 && x + d < W && neckS[i - d] * alpha[i - d] > .5 && neckS[i + d] * alpha[i + d] > .5;
+          if (!enclosed) edge = Math.min(edge, smooth((minHalf - Math.abs(x - fit.N.x)) / fe + .5));
+        }
+        if (edge <= A[i] + .02) continue;
+        const g = noise > 0 ? Math.sqrt(-2 * Math.log(R() + 1e-9)) * Math.cos(6.2832 * R()) * noise : 0, lf = 1 + lowN(x, y) * .05;
+        const out = Math.max(0, e.ol - x, x - e.or) / Math.max(1, minHalf * .6), sd = 1 - .1 * smooth(out); // ด้านข้างคอที่ขยายเพิ่ม: เงาอ่อน
+        const k = (edge - A[i]) / Math.max(1e-3, edge);
+        for (let c = 0; c < 3; c++) rgba[i * 4 + c] = rgba[i * 4 + c] * (1 - k) + (colAt(x, c) * dark * sd * lf + g) * k;
+        A[i] = edge;
+      }
+    }
+    for (let i = 0; i < n; i++) rgba[i * 4 + 3] = A[i] * 255;
+    return { rgba, alpha: A, yb, lb: Math.round(eb.l), rb: Math.round(eb.r), yCollar };
+  }
+
+  /** เงาผมที่ตกลงบนชุด: เบลอ mask ผม แล้วเลื่อนลงตามทิศแสง */
+  function hairShadow(hairA, W, H, fw, { dy = .03, r = .03, amount = .35 } = {}) {
+    const R = Math.max(1, Math.round(fw * r)), b = blur3(hairA, W, H, R), out = new Float32Array(W * H), sh = Math.round(fw * dy);
+    for (let y = 0; y < H; y++) { const ys = y - sh; if (ys < 0) continue; for (let x = 0; x < W; x++) out[y * W + x] = clamp01(b[ys * W + x] * 1.3) * amount; }
+    return out;
+  }
+
+  /**
+   * รวมภาพตามลำดับชั้นของสตูดิโอจริง: ฉาก → ปกหลังคอ (back) → คอ (neck) → ชุด (front) → ศีรษะ+ผม (keep)
+   *  person = สีตัวคน (ประมาณ foreground แล้ว), keepA = alpha ของศีรษะ+ผม, neck = {rgba, alpha}, back/front = RGBA ของชุดในพิกัดภาพ
+   *  neckShade = เงาบนคอ (ใต้คาง + ขอบคอเสื้อ), gShade = เงาผมบนชุด, under = {rgba, alpha} ตัวคนเดิมใต้ชุด (เมื่อไม่ซ่อนเสื้อเดิม)
    * คืน { rgba, fgAlpha }
    */
-  function composite({ w, h, bg, person, pA, garment = null, head = null, shade = null, hideBody = true, levels = 4, wrap = .3, wrapR = 8, neck = null, seam = null, neckKeep = null }) {
-    const n = w * h, gA = new Float32Array(n), A = new Float32Array(n);
-    if (garment) for (let i = 0; i < n; i++) gA[i] = (garment[i * 4 + 3] / 255) * (head ? 1 - head[i] : 1);
-    for (let i = 0; i < n; i++) A[i] = pA[i];
-    if (garment && hideBody) {
-      // ซ่อนตัวคน (เสื้อเดิม) ใต้ขอบบนของชุดในแต่ละคอลัมน์ ที่อยู่นอกตัวชุด; ช่องคอเสื้ออยู่เหนือขอบบนจึงยังเห็นคอ
-      // คอลัมน์ที่ไม่มีชุด ใช้ขอบบนของคอลัมน์ชุดที่ใกล้ที่สุด; ศีรษะ (head) ไม่ถูกซ่อนเสมอ
-      const tops = new Int32Array(w).fill(-1);
-      for (let x = 0; x < w; x++) for (let y = 0; y < h; y++) if (garment[(y * w + x) * 4 + 3] > 127) { tops[x] = y; break; }
-      let firstX = -1, lastX = -1; for (let x = 0; x < w; x++) if (tops[x] >= 0) { if (firstX < 0) firstX = x; lastX = x; }
-      if (firstX >= 0) {
-        const fe = Math.max(2, Math.round(w / 300)), T = new Int32Array(w);
-        for (let x = 0; x < w; x++) T[x] = tops[x] >= 0 ? tops[x] : x < firstX ? tops[firstX] : tops[lastX];
-        if (neck) {
-          // นอกช่วงคอ: เส้นตัดไม่ต่ำกว่าคอลัมน์ที่อยู่ใกล้แกนกลางกว่า (ไหล่ของชุดกำหนดรูปทรง เสื้อเดิมจึงไม่โผล่ข้างชุด)
-          // และยกขึ้นอีก band px กันขอบไหล่เสื้อเดิมเป็นเส้นเหนือชุด
-          const c = clamp(Math.round(neck.cx), 0, w - 1), hw = Math.round(neck.halfW);
-          for (let x = c + hw + 1; x < w; x++) T[x] = Math.min(T[x], T[x - 1]);
-          for (let x = c - hw - 1; x >= 0; x--) T[x] = Math.min(T[x], T[x + 1]);
-          for (let x = 0; x < w; x++) T[x] -= Math.round(neck.band * smooth((Math.abs(x - neck.cx) - neck.halfW) / Math.max(1, neck.halfW * .5)));
-        }
-        for (let x = 0; x < w; x++) {
-          const t = T[x], inNeck = neck && neckKeep && Math.abs(x - neck.cx) <= neck.halfW * 1.5;
-          for (let y = inNeck ? 0 : Math.max(0, t - fe); y < h; y++) {
-            // ใต้ขอบบนของชุด ตัวคนเดิมถูกซ่อนทั้งหมด (ชุดบังอยู่แล้ว) — ขอบโปร่งแสงของชุดจึงผสมกับฉากหลัง ไม่ใช่เสื้อเดิม
-            const i = y * w + x, k = smooth((y - (t - fe)) / (2 * fe));
-            let hidden = A[i] * (1 - k);
-            // ช่องคอเสื้อ: เหนือขอบชุดเก็บเฉพาะผิว (คอ) — คอเสื้อเดิมที่ไม่ใช่สีผิวถูกซ่อน
-            if (inNeck && y < t + fe) hidden *= neckKeep[i];
-            A[i] = head ? Math.max(hidden, Math.min(A[i], head[i])) : hidden;
-          }
-        }
-      }
-    }
-    // ฐาน = ฉากหลัง + ตัวคน (มีเงาสัมผัส)
-    const base = [0, 1, 2].map(() => new Float32Array(n));
+  function composeLayers({ w, h, bg, person, keepA, neck = null, back = null, front = null, under = null, neckShade = null, gShade = null, wrap = .3, wrapR = 8 }) {
+    const n = w * h, out = new Uint8ClampedArray(n * 4), fg = new Float32Array(n);
     for (let i = 0; i < n; i++) {
-      const a = A[i], sh = shade ? 1 - shade[i] * (1 - gA[i]) : 1;
-      for (let c = 0; c < 3; c++) base[c][i] = (bg[i * 4 + c] * (1 - a) + person[i * 4 + c] * sh * a) / 255;
+      const j = i * 4;
+      let r = bg[j], g = bg[j + 1], b = bg[j + 2], f = 0;
+      if (under) { const a = under.alpha[i]; if (a > 0) { r += (under.rgba[j] - r) * a; g += (under.rgba[j + 1] - g) * a; b += (under.rgba[j + 2] - b) * a; f = a; } }
+      if (back) { const a = back[j + 3] / 255; if (a > 0) { r += (back[j] - r) * a; g += (back[j + 1] - g) * a; b += (back[j + 2] - b) * a; f = a; } }
+      if (neck) { const a = neck.alpha[i]; if (a > 0) { const s = neckShade ? 1 - neckShade[i] : 1; r += (neck.rgba[j] * s - r) * a; g += (neck.rgba[j + 1] * s - g) * a; b += (neck.rgba[j + 2] * s - b) * a; f = Math.max(f, a); } }
+      if (front) { const a = front[j + 3] / 255; if (a > 0) { const s = gShade ? 1 - gShade[i] : 1; r += (front[j] * s - r) * a; g += (front[j + 1] * s - g) * a; b += (front[j + 2] * s - b) * a; f = Math.max(f, a); } }
+      const a = keepA[i]; if (a > 0) { r += (person[j] - r) * a; g += (person[j + 1] - g) * a; b += (person[j + 2] - b) * a; f = Math.max(f, a); }
+      out[j] = r; out[j + 1] = g; out[j + 2] = b; out[j + 3] = 255; fg[i] = f;
     }
-    let outCh = base;
-    if (garment) {
-      // บริเวณชุด (ขยายขอบ) ใช้ Laplacian blend; ภายนอกคงฐาน
-      let x0 = w, y0 = h, x1 = -1, y1 = -1;
-      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (gA[y * w + x] > 0) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
-      // ผสมปกติ (alpha) ทั้งชุด แล้วใช้ Laplacian blend เฉพาะบริเวณรอยต่อคอ (seam) ถ้าระบุ
-      let res = base;
-      if (seam && x1 >= x0) {
-        res = base.map(ch => Float32Array.from(ch));
-        for (let i = 0; i < n; i++) { const m = gA[i]; if (m <= 0) continue; const gs = shade ? 1 - shade[i] * .6 : 1; for (let c = 0; c < 3; c++) res[c][i] = base[c][i] * (1 - m) + garment[i * 4 + c] / 255 * gs * m; }
-        x0 = Math.max(x0, Math.floor(seam.x0)); x1 = Math.min(x1, Math.ceil(seam.x1)); y0 = Math.max(y0, Math.floor(seam.y0)); y1 = Math.min(y1, Math.ceil(seam.y1));
-      }
-      if (x1 >= x0 && y1 >= y0) {
-        const pad = 1 << (levels + 1); x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad); x1 = Math.min(w - 1, x1 + pad); y1 = Math.min(h - 1, y1 + pad);
-        const cw = x1 - x0 + 1, ch = y1 - y0 + 1, cn = cw * ch, M = new Float32Array(cn);
-        const Ac = [0, 1, 2].map(() => new Float32Array(cn)), Bc = [0, 1, 2].map(() => new Float32Array(cn));
-        for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
-          const li = y * cw + x, gi = (y + y0) * w + x + x0, m = gA[gi]; M[li] = m;
-          for (let c = 0; c < 3; c++) {
-            Ac[c][li] = base[c][gi];
-            const gs = shade ? 1 - shade[gi] * .6 : 1;
-            Bc[c][li] = m > .004 ? garment[gi * 4 + c] / 255 * gs : base[c][gi];
-          }
-        }
-        const bl = laplacianBlend(Ac, Bc, M, cw, ch, levels);
-        let Ab = null;
-        if (seam) { Ab = new Float32Array(cn); for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) Ab[y * cw + x] = A[(y + y0) * w + x + x0]; Ab = blur3(Ab, cw, ch, 2); for (let i = 0; i < cn; i++) Ab[i] = smooth((Ab[i] - .2) / .6); }
-        for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
-          const li = y * cw + x, gi = (y + y0) * w + x + x0;
-          // ภายใน seam: น้ำหนักนุ่มที่ขอบกรอบ เพื่อไม่ให้เกิดรอยต่อของกรอบเอง
-          // และเฉพาะตรงที่ชุดชนกับตัวคน (คอ) — ขอบชุดที่ชนฉากหลังใช้ alpha ปกติ จะได้ไม่เบลอ
-          const k = seam ? Math.min(1, Math.min(x, cw - 1 - x, y, ch - 1 - y) / pad) * (Ab ? Ab[li] : 1) : 1;
-          if (k <= 0) continue;
-          for (let c = 0; c < 3; c++) res[c][gi] = seam ? (k * bl[c][li] + (1 - k) * (Ac[c][li] * (1 - M[li]) + Bc[c][li] * M[li])) : bl[c][li];
-        }
-      }
-      outCh = res;
-    }
-    const rgba = new Uint8ClampedArray(n * 4), fg = new Float32Array(n);
-    for (let i = 0; i < n; i++) { for (let c = 0; c < 3; c++) rgba[i * 4 + c] = outCh[c][i] * 255; rgba[i * 4 + 3] = 255; fg[i] = Math.max(A[i], gA[i]); }
-    return { rgba: wrap > 0 ? lightWrap(rgba, bg, fg, w, h, { radius: wrapR, amount: wrap }) : rgba, fgAlpha: fg };
+    return { rgba: wrap > 0 ? lightWrap(out, bg, fg, w, h, { radius: wrapR, amount: wrap }) : out, fgAlpha: fg };
   }
 
   /** แก้ alpha ด้วยแปรง: edit > 0 = คืนตัวคน, < 0 = ลบ (ค่า -1..1) */
@@ -884,7 +1147,9 @@
     solve, tpsFit, similarity, warpRGBA,
     runAt, spanAt, estimateBody, garmentShoulders, headFromMatte, jawCurve, headMask,
     fillPoly, skinLikelihood, skinKeepMask, faceMasks, smoothSkin, adjustRegion, sharpen,
-    estimateNoise, rng, addGrain, harmonizeGarment, contactShadow, lightWrap, blurredBackground, composite,
+    estimateNoise, rng, addGrain, harmonizeGarment, contactShadow, lightWrap, blurredBackground,
+    PARSE_LABELS, PARSE_GROUPS, parseCrop, parseGroups, cropToImage, heuristicParse, personLayers,
+    SHOULDER_PRIOR, measureShoulders, fitFromTargets, synthNeck, hairShadow, composeLayers,
     applyMatteEdits, brush
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
