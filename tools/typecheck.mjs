@@ -7,7 +7,8 @@
 //                                       error count per file (teams use it to pick files to add to the gate). Exit 0.
 //   node tools/typecheck.mjs --report --errors palm   also print the errors of files whose name contains "palm"
 //
-// Ambient types for the shared window globals live in types/lensiq-globals.d.ts.
+// Ambient types for the shared window globals live in types/lensiq-globals.d.ts; page-script globals (bare LQCam,
+// faceapi, pdfjsLib, BarcodeDetector …) in types/lensiq-pages.d.ts.
 import { execFileSync } from "node:child_process";
 import { readdirSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -38,7 +39,7 @@ const base = JSON.parse(readFileSync(join(repo, "tsconfig.typecheck.json"), "utf
 const gated = new Set(base.files);
 const all = readdirSync(repo).filter(f => f.endsWith(".js")).sort();
 const tmp = join(repo, ".tsconfig.report.json");
-writeFileSync(tmp, JSON.stringify({ compilerOptions: base.compilerOptions, files: ["types/lensiq-globals.d.ts", ...all] }));
+writeFileSync(tmp, JSON.stringify({ compilerOptions: base.compilerOptions, files: ["types/lensiq-globals.d.ts", "types/lensiq-pages.d.ts", ...all] }));
 let out;
 try { out = run(tmp); } finally { rmSync(tmp, { force: true }); }
 const per = {};

@@ -365,6 +365,31 @@
     reckless: /(?<!ไม่|อย่า|อย่าเพิ่ง|ไม่ควร|ไม่ต้อง)ทุ่ม(?:เงิน|เงินเก็บ|เงินออม|สุดตัว|หมดตัว|หมดหน้าตัก|ทั้งหมด)|(?<!ไม่|อย่า|อย่าเพิ่ง|ไม่ควร|ไม่ต้อง)(?:เอา|ใช้|ลง|เท)?(?:เงินเก็บ|เงินออม)(?:ทั้งหมด|ทั้งชีวิต)|(?<!ไม่|อย่า)(?:เท|ลง)หมด(?:หน้าตัก|ตัว)|ขับ(?:รถ)?(?:เร็ว|ซิ่ง|ฝ่า)|ซิ่งรถ|ฝ่าไฟแดง|(?:ดื่ม|เมา)แล้วขับ|ไม่ต้อง(?:คาดเข็มขัด|ใส่หมวกกันน็อก)|เลเวอเรจ|มาร์จิ้นสูง/,
     certainty: /(?<!ไม่|ความไม่|ไม่ได้|ไม่มีอะไร)แน่(?:นอน|\s?ๆ)|(?<!แน่ว|ไม่)แน่(?=$|[\s!.,?])|ชัวร์|การันตี|รับประกัน|ร้อยเปอร์เซ็นต์|100\s*%|ไม่มีพลาด|รวยแน่|(?:ต้อง|จะ)(?:ได้|รวย|ถูก|สำเร็จ)แน่/,
     paid: /แก้กรรม|(?:แก้ชง|สะเดาะเคราะห์|ตัดกรรม|ทำพิธี)[^\s]{0,10}(?:จ่าย|เงิน|บาท|ค่า|โอน)|(?:จ่าย|โอน|ชำระ)(?:เงิน)?[^\s]{0,16}(?:วัด|พิธี|ครู|อาจารย์|หมอดู|บูชา|แก้|สะเดาะ)|ค่า(?:ครู|ยกครู|พิธี|บูชา|ทำพิธี|ดูดวง|แก้ดวง)|เช่า(?:พระ|บูชา|วัตถุมงคล|เครื่องราง)|ซื้อ(?:เครื่องราง|ของขลัง|วัตถุมงคล|พระเครื่อง|กำไลมงคล|หินมงคล|ตะกรุด)|\d[\d,]*\s*บาท|ราคา(?:พิเศษ)?\s*\d/,
+    /* ---- หมวดที่เพิ่มในรอบ 6: เขียนเป็น "รูปความหมาย" (ใคร + ทำอะไร) ไม่ใช่รายการประโยคตัวอย่าง ---- */
+    // ข่าวร้าย/ความสูญเสียเกี่ยวกับคนใกล้ตัว (รวมคำอ้อม เช่น เรื่องเสียใจเกี่ยวกับคนในบ้าน)
+    grief: /(?:เรื่อง|ข่าว)(?:เสียใจ|เศร้า|ร้าย|ไม่ดี|ไม่คาดฝัน)[^\s]{0,24}(?:คนในบ้าน|ครอบครัว|คนใกล้ตัว|คนใกล้ชิด|ญาติ|พ่อ|แม่|ผู้ใหญ่|คนที่รัก|คนสำคัญ|บ้าน|สัตว์เลี้ยง)|(?:สูญเสีย|พราก)[^\s]{0,6}(?:คน|ญาติ|พ่อ|แม่|ผู้ใหญ่|สมาชิก|สัตว์เลี้ยง|บุคคล)|(?:คนในบ้าน|ครอบครัว|คนใกล้ตัว|ญาติ|ผู้ใหญ่|คนที่รัก)[^\s]{0,16}(?:เรื่องเสียใจ|ข่าวร้าย|ข่าวเศร้า|เคราะห์|เรื่องร้าย|ไม่สบาย|จะไม่อยู่)|ข่าวร้าย|ข่าวเศร้า|ไว้อาลัย|เกณฑ์(?:สูญเสีย|เสียคน|พลัดพราก|เสียใจ)/,
+    // ความหวาดกลัวการเดินทาง/อันตรายทางกาย
+    danger: /(?:อย่า|ห้าม|งด|เลี่ยง|ระวัง|หลีกเลี่ยง|ไม่ควร)(?:การ)?(?:ขึ้น|นั่ง|เดินทาง|ขับ|ข้าม|ลง|ไป)(?:เครื่องบิน|เรือ|รถ|ทางไกล|ไกล|น้ำ|ทะเล|ถนน|ต่างประเทศ|ต่างจังหวัด|ที่สูง|ภูเขา)|(?:อย่า|ห้าม|งด|ไม่ควร)เดินทาง|ระวัง(?:ภัย|อันตราย|ของมีคม|ไฟไหม้|น้ำท่วม|โจร|ถูกทำร้าย|การเดินทาง)|เกณฑ์(?:เสียเลือด|เดินทางไม่ปลอดภัย|อันตราย)|เครื่องบิน(?:ตก|มีปัญหา)/,
+    // อ้างความรู้สึก/ความลับของอีกฝ่ายในทางลบ
+    partner: /(?:คนรัก|แฟน|คู่(?:รัก|ครอง|ของคุณ)?|เขา|เธอ|สามี|ภรรยา|อีกฝ่าย|คนที่คุณชอบ|คนคุย)[^\s]{0,14}(?:มีความลับ|ปิดบัง|โกหก|หลอก|ไม่ได้รัก|ไม่รัก|ไม่จริงใจ|หมดใจ|ไม่ได้จริงจัง|ไม่ซื่อ|มีใจให้|แอบชอบคนอื่น|คิดจะไป)|ไม่ได้รักคุณ|ไม่รักคุณ|ความลับกับคนอื่น|(?:แฟนเก่า|คนเก่า|อดีตคนรัก|เขา|เธอ)[^\s]{0,8}(?:จะ|ต้อง)(?:กลับมา|คืนดี)/,
+    // รวยทางลัด/ของมงคลเปลี่ยนชีวิต
+    getrich: /(?:รวย|ร่ำรวย|เงินไหลมา|ยอดขาย(?:พุ่ง|ปัง)|รายได้พุ่ง|เป็นเศรษฐี)[^\s]{0,6}(?:ทันที|ทันตา|ข้ามคืน|ในพริบตา|ชั่วข้ามคืน|แน่|ภายใน\s?\d)|(?:เปลี่ยน|ตั้ง|ซื้อ|ใช้)(?:ชื่อ|นามสกุล|เบอร์|เลขทะเบียน|ทะเบียน)(?:ใหม่|มงคล)?[^\s]{0,24}(?:แล้ว|ก็)(?:จะ)?(?:รวย|ยอดขาย|รายได้|เงิน|โชค|ปัง|พุ่ง|ร่ำรวย|ได้งาน|เลื่อนตำแหน่ง)|(?:ชื่อ|เบอร์|เลข)(?:มงคล|ใหม่)[^\s]{0,10}(?:ทำให้รวย|เปลี่ยนชีวิต)|เปลี่ยนชีวิตทันที/,
+    // การเงินเสี่ยงสูง/นอกระบบ
+    finance: /หุ้นปั่น|ปั่นหุ้น|หุ้นซิ่ง|กู้นอกระบบ|เงินกู้นอกระบบ|หนี้นอกระบบ|ดอกเบี้ย(?:รายวัน|โหด)|แชร์ลูกโซ่|ฟอเร็กซ์|(?<!กว่า|กว่าการ|ไม่|อย่า|ไม่ต้อง|แทนการ)เก็งกำไร|ไบนารี่?ออปชัน|(?:กู้|ยืม|เอาเงิน|รูดบัตร)[^\s]{0,12}(?:มาขยาย|มาลง|มาเล่น|มาเทรด|มาซื้อหุ้น|ไปลงทุน|ไปเล่น|ไปเทรด|ไปซื้อหุ้น)|(?:เล่นหุ้น|ซื้อหุ้น|เทรด|ลงทุน|คริปโต)[^\s]{0,14}(?:กำไรงาม|ได้กำไรแน่|ได้เงินแน่|รวย|ไม่มีขาดทุน|ไม่ขาดทุน|ปังแน่|ช่วงนี้รุ่ง|ขึ้นแน่)|เทหน้าตัก/,
+    // คำสั่งเปลี่ยนชีวิตแบบหุนหันโดยอ้างดวง
+    rash: /(?:ลาออก|เลิกงาน|ยื่นใบลาออก|ปิดกิจการ|ขายบ้าน|ขายรถ|ย้ายประเทศ|เซ็นสัญญา|ตัดสัมพันธ์)[^\s]{0,10}(?:ทันที|เลย|พรุ่งนี้|วันนี้|ได้เลย|ไม่ต้องคิด)/,
+    // งด/เลื่อนการรักษา การหาหมอ (รวมหมอฟัน วัคซีน การตรวจ) และอ้างว่าหายเอง
+    medical2: /(?:งด|หยุด|เลื่อน|ไม่ต้อง|ไม่จำเป็นต้อง|อย่า(?:เพิ่ง)?|ยังไม่ต้อง|เลี่ยง|ไม่ควร|ห้าม)(?:การ)?(?:ไป)?(?:หา|พบ)?(?:หมอ|แพทย์|ทันตแพทย์|โรงพยาบาล|คลินิก)|(?:งด|เลื่อน|ไม่ต้อง|อย่า(?:เพิ่ง)?|ยังไม่ต้อง|ไม่ควร)(?:ฉีด)?วัคซีน|(?:งด|เลื่อน|ไม่ต้อง|อย่า(?:เพิ่ง)?|ยังไม่ต้อง)(?:ไป)?(?:ตรวจ(?:สุขภาพ|ร่างกาย|เลือด|ตามนัด|โรค)|ไปตรวจ|ผ่าตัด|ทำฟัน|รักษา)|อาการ[^\s]{0,12}(?:หายเอง|ดีขึ้นเอง)|หายเองได้|ไม่ต้องรักษา/,
+    // ทำนายการตั้งครรภ์/เพศของลูก/การมีบุตร
+    pregnancy: /ลูกในท้อง|ทารกในครรภ์|เด็กในท้อง|เพศของลูก|เพศลูก|ลูก(?:คนแรก|คนต่อไป)?(?:จะ|น่าจะ|อาจ)(?:เป็น|ได้)?(?:ผู้)?(?:ชาย|หญิง)|(?:ได้|จะมี)ลูก(?:ชาย|สาว|แฝด)|มีบุตรยาก|มีลูกยาก|(?:จะ|อาจ|เตรียม|กำลังจะ)(?:ได้)?(?:ตั้งท้อง|ตั้งครรภ์|มีลูก(?!ศิษย์|น้อง|ค้า|ทีม|มือ)|มีบุตร)|แท้ง/,
+    // เลขให้ไป "เสี่ยง/ลุ้น"
+    luckynum: /(?:เลข|ตัวเลข)(?:มงคล|นำโชค|ดัง|ประจำตัว)(?:ของคุณ)?(?:คือ|ได้แก่|ช่วงนี้คือ)?\s?\d|(?:เอาไป|ลอง|ไป)(?:เสี่ยง|ลุ้น)(?:ดู|โชค)?|ลองเสี่ยงดู/,
+    // คำห้ามเด็ดขาด/ชะตาขาด/คำสาป
+    fatalism: /(?:ห้าม|อย่า(?!ง))[^\s]{0,24}(?<!อย่าง)เด็ดขาด|(?:ห้าม|อย่า)(?:แต่งงาน|หมั้น|มีลูก|ย้ายบ้าน|ซื้อบ้าน|ขึ้นบ้านใหม่|ลงทุน|เปิดร้าน)(?:ปีนี้|เดือนนี้|ช่วงนี้|ในปีนี้)|ชะตาขาด|ดวงซวย|ซวยหนัก|โชคร้าย(?:ตลอด|ทั้งปี)|ถูกสาป|โดนสาป|ต้องคำสาป|ไม่มีวัน(?:สำเร็จ|รวย|มีความสุข|เจอ)|เจ้ากรรมนายเวร|กรรมเก่าตามทัน|ถูกของ|โดนของ|คุณไสย|ดวงตกต่ำ|ชีวิตจะพัง|ไม่มีทางรอด|ไม่มีทางสำเร็จ|ล้มเหลวแน่|ไม่มีอนาคต/,
+    // ตัดสินรูปลักษณ์/คุณค่า/เชื้อชาติ/ศาสนา/เพศ
+    judging: /ขี้เหร่|อัปลักษณ์|หน้าตา(?:ไม่ดี|ไม่สวย|ไม่หล่อ|ไม่น่ามอง)|หน้า(?:ซวย|กาลกิณี)|(?:ผิว|หน้า)(?:คล้ำ|ดำ)[^\s]{0,10}(?:ไม่|อับ|โชคไม่)|(?:คน|ผู้)(?:อ้วน|เตี้ย|ผิวดำ|ผิวคล้ำ)[^\s]{0,10}(?:ไม่|อับ|ซวย|ด้อย)|(?:ผู้หญิง|ผู้ชาย)(?:ไม่ควร|ไม่เหมาะ|ด้อยกว่า)|เชื้อชาติ|ศาสนา(?:ของคุณ)?(?:ทำให้|ไม่)|ไร้ค่า|ไม่มีค่า|ด้อยกว่าคนอื่น/,
+    // คำแนะนำทางกฎหมาย/ภาษี
+    legal: /(?:ไม่ต้อง|อย่า|ไม่จำเป็นต้อง)(?:จ้าง|ปรึกษา|หา)?(?:ทนาย|นักกฎหมาย)|ฟ้องร้อง|ขึ้นศาล|(?:ชนะ|แพ้)คดี|คดีความ|เลี่ยงภาษี|หนีภาษี|ไม่ต้อง(?:เสีย|จ่าย|ยื่น)ภาษี|ไม่ต้องอ่านสัญญา/,
   };
   const UNSAFE_ZH = {
     infidelity: /出轨|外遇|第三者|小三|劈腿|偷吃|变心|移情别恋|另有(?:新欢|他人|别人)|有了别人|心里有别人|脚踏两条船|不忠|背叛/,
@@ -376,6 +401,18 @@
     reckless: /(?:贷款|借钱|借贷|刷卡|抵押)[^。，！？]{0,8}(?:投资|炒|买币|加密|股票)|(?:全部|所有|全部身家)(?:积蓄|存款|的钱)?[^。，！？]{0,6}(?:投入|押上|梭哈|拿去|砸进)|倾家荡产|孤注一掷|梭哈|(?:立刻|马上|立即|今天就)(?:辞职|分手|离职)|开快车|飙车|超速|酒驾|闯红灯|不系安全带|高杠杆/,
     certainty: /(?<!不)一定(?:会|能|可以)|肯定会|必定|必然|注定|保证(?:会|能|赚|成功|发财|有)|打包票|百分之百|绝对会|稳赚|铁定|包你/,
     paid: /改运[^。，]{0,6}(?:费|元|块|钱)|化解[^。，]{0,8}(?:费用|元|块钱|付款|收费)|做法事|法事|开光[^。，]{0,6}(?:费|元)|请符|买符|符咒|(?:转账|汇款|付钱|付款|交钱)[^。，]{0,8}(?:大师|师父|法师|寺|庙|改运|化解|作法|开光)|(?:付费|收费)(?:改运|化解|作法|开光|算命)|\d+\s*元|功德金|香火钱/,
+    grief: /噩耗|坏消息|伤心事|伤心的事|(?:家人|家里|亲人|长辈|身边的人|亲近的人)[^。，]{0,10}(?:出事|不好的消息|伤心|离开|失去)|失去(?:亲人|家人|至亲|长辈|宠物)|丧亲/,
+    danger: /(?:别|不要|避免|千万别|少)(?:坐|乘|搭)(?:飞机|船|车)|(?:别|不要|避免|千万别)(?:出远门|出行|远行|出门|开车|下水|登高)|(?:小心|当心)(?:血光|意外|水|火|刀|交通)|出门[^。，]{0,4}危险|飞机[^。，]{0,4}(?:出事|危险)/,
+    partner: /(?:伴侣|另一半|对方|他|她|爱人|恋人|男友|女友|老公|老婆)[^。，]{0,8}(?:有秘密|隐瞒|欺骗|骗你|不爱你|并不爱你|没有真心|不是真心|三心二意|心里另有|在玩弄|只是玩玩)|不爱你|前任[^。，]{0,4}(?:会|一定|肯定)?(?:回来|回头)/,
+    getrich: /一夜暴富|马上发财|立刻发财|马上致富|立刻变富|立刻翻身|(?:改名|换名|换号|改号|换车牌|改姓)[^。，]{0,12}(?:就|会|能|便)(?:发财|变富|有钱|暴富|大卖|升职|转运)|(?:吉祥号码|幸运号码|好号码)[^。，]{0,8}(?:改变命运|让你发财|带来财富)/,
+    finance: /炒股|炒币|妖股|庄股|内幕消息|高利贷|网贷|地下钱庄|借钱[^。，]{0,6}(?:投资|做生意|炒|扩张|开店)|(?:加|高)杠杆|期货|外汇保证金|虚拟币|传销|资金盘|(?:股票|基金|币)[^。，]{0,8}(?:稳赚|必涨|大涨|翻倍|赚大钱)/,
+    rash: /(?:明天|今天|马上|立刻|立即|现在)(?:就)?(?:辞职|离职|分手|签约|签字|卖房|断绝)|不用(?:多)?(?:想|考虑|犹豫)|别犹豫了?[^。，]{0,4}(?:辞职|签)/,
+    medical2: /(?:别|不要|不用|暂停|推迟|先别|不必|避免)(?:去)?(?:看牙|看医生|看病|就医|就诊|体检|检查|打疫苗|接种|复诊|吃药|治疗|手术|去医院)|(?:自己|自然)(?:会)?(?:好|痊愈|康复)起来|不治(?:也|自)愈/,
+    pregnancy: /(?:会|将|要|快|可能|即将)(?:怀孕|怀上|有孩子|添丁)|生(?:个|一个)?(?:儿子|女儿|男孩|女孩|双胞胎)|胎儿|腹中|肚子里的(?:孩子|宝宝)|生男|生女|男孩还是女孩|(?:孩子|宝宝|胎)[^。，]{0,6}(?:是男|是女|男孩|女孩)|不孕|难以生育|流产/,
+    luckynum: /(?:幸运|吉祥|开运|旺)(?:数字|号码)[^。，]{0,8}\d|拿去(?:试试|碰碰|搏一搏)|试试手气|搏一把|买[^。，]{0,4}\d+号/,
+    fatalism: /(?:绝对|千万|坚决)(?:不能|不可以|不要|别)|(?:今年|这个月|这一年)[^。，]{0,4}(?:不能|不可以|禁止)(?:结婚|订婚|搬家|买房|生孩子|投资)|命中注定|命里注定|注定失败|注定孤独|永远不会|厄运缠身|被诅咒|中邪|霉运|倒大霉|没有未来/,
+    judging: /长得丑|长相差|相貌(?:差|丑|不好)|面相(?:凶|恶|不好|差)|丑陋|(?:皮肤|肤色)(?:黑|暗)[^。，]{0,6}(?:不好|运差|不吉)|女人(?:不该|不适合|比不上)|男人(?:不该|不适合)|种族|宗教[^。，]{0,4}(?:不好|不行|害)|一无是处|你(?:没有|毫无)价值/,
+    legal: /打官司|起诉|诉讼|官司|(?:不用|不必|别)(?:请|找)?律师|逃税|偷税|(?:不用|不必)(?:交|缴|报)税|(?:不用|不必)(?:看|读)合同/,
   };
   const UNSAFE_EN = /\b(?:break(?:s|ing)? up|dump(?:s|ed)? you|leave you|affair|another (?:man|woman)|bet(?:s|ting)?|casino|slots?|guarantee[sd]?|for sure|definitely will|drive fast|speeding|hospital(?:ised|ized)?|injur(?:y|ies|ed)|pass(?:es|ed)? away|short life)\b|100\s*%/i;
   // หมวดที่ข้อความเข้าข่าย ("" = ไม่เข้าข่าย)
@@ -443,8 +480,14 @@
     const win = t.slice(Math.max(0, idx - 16), idx + 20);
     return ZODIAC_MARENG.test(win) && !ILLNESS_TH.test(t) && !ILLNESS_CTX.test(t.replace(/มะเร็ง|Cancer/g, ""));
   }
+  /* ปฏิเสธเนื้อหาต้องห้ามโดยตรง ("ไพ่ความตายหมายถึงการเปลี่ยนผ่าน ไม่ใช่ความตายจริง", "死神牌不是真的死亡")
+     → ลบเฉพาะวลีปฏิเสธนั้นก่อนตรวจ (วลีอื่นในประโยคยังตรวจตามปกติ) */
+  const NEGATED_TH = /(?:ไม่ใช่|ไม่ได้หมายถึง|ไม่ได้แปลว่า|ไม่ได้หมายความว่า|ไม่ได้บอกว่า|ไม่ได้ทำนาย|ไม่เกี่ยวกับ)(?:การ|ความ|เรื่อง|ว่าจะ)?(?:ตาย|เสียชีวิต|เจ็บป่วย|ป่วย|โรค|อุบัติเหตุ|หย่า|เลิกรา|ล้มละลาย|โชคร้าย|เคราะห์ร้าย|ภัยพิบัติ|ลางร้าย)(?:จริง(?:\s?ๆ)?)?/g;
+  const NEGATED_ZH = /(?:不是|并非|不代表|不意味着|不等于|并不表示)(?:真的|真正的|字面上的|现实中的)?(?:死亡|死|疾病|生病|灾难|厄运|离婚|分手)/g;
+  // ชื่อไพ่ (ไพ่ความตาย / Death / XIII / 死神牌) เป็นชื่อเฉพาะ ไม่ใช่คำทำนาย — ตัดชื่อออกก่อนตรวจ (เนื้อความที่เหลือยังตรวจตามปกติ)
+  const CARD_NAME = /ไพ่(?:ใบ)?ความตาย(?:\s*[(（](?:Death|XIII|13)[)）])?|ความตาย\s*[(（](?:Death|XIII)[)）]|死神牌|死神\s*[(（]XIII[)）]|\bDeath\s*[(（]XIII[)）]|(?:the\s+)?Death\s+card/g;
   function isSafe(text) {
-    const t = String(text || "").normalize("NFC");
+    const t = String(text || "").normalize("NFC").replace(NEGATED_TH, " ").replace(NEGATED_ZH, "，").replace(CARD_NAME, " ");
     const en = /Cancer/.test(t) && (ZODIAC_CTX.test(t) || !ILLNESS_CTX.test(t.replace(/มะเร็ง/g, ""))) && !ILLNESS_TH.test(t) ? t.replace(/\bCancer\b/g, "") : t;
     if (BANNED_EN.test(en) || RECKLESS_EN.test(t)) return false;
     if (RECKLESS_TH.test(t) || BANNED_ZH.test(t) || RECKLESS_ZH.test(t)) return false;
@@ -541,6 +584,33 @@
     if (!own || own.test(m)) return false;
     for (const k in TOPIC_LEX) if (k !== id && TOPIC_LEX[k].test(m)) return true;
     return false;
+  }
+  /* ---------- หัวข้อหลักของคำแนะนำ (advice-topic) ----------
+     คำแนะนำในหัวข้อ "คำแนะนำ" และประโยคปิดของหัวข้อที่ถาม ต้องพูดถึงเรื่องที่ผู้ใช้ถาม หรือเป็นคำแนะนำกลาง ๆ (ไม่มีคำของหัวข้อใดเลย)
+     ตัดสินจาก "หัวข้อที่เอ่ยถึงก่อน" — "ใส่ใจการสื่อสารในความสัมพันธ์และการติดตามเงินที่ให้ยืม" เป็นคำแนะนำเรื่องความสัมพันธ์ ไม่ใช่เรื่องเงิน
+     คำที่บังเอิญมีตัวอักษรของหัวข้อ (สีน้ำเงิน โต๊ะทำงาน งานอดิเรก) ไม่นับ */
+  const ADV_TOPIC = {
+    love: /ความรัก|คนรัก|คู่รัก|แฟน|คนโสด|คนมีคู่|คู่ครอง|เนื้อคู่|ความสัมพันธ์(?!กับ(?:เพื่อน|ทีม|ลูกค้า|เพื่อนร่วมงาน|ผู้คน|ผู้ใหญ่))|คู่ชีวิต|คนพิเศษ|คนที่รัก|ออกเดท|อีกฝ่าย|ความรู้สึกดี/,
+    money: /(?<!น้ำ|สี|ขาว|ทอง|\/\s?|(?:สี|โทน)\S{0,40}(?:\s\S{0,20}){0,3})เงิน(?!\s?\/)|ทรัพย์|(?<!ร)ออม|รายได้|รายรับ|รายจ่าย|ใช้จ่าย|โชคลาภ|บัญชี|งบประมาณ|(?:ตั้ง|วาง|กำหนด|แบ่ง)งบ|งบ(?:ใช้จ่าย|รายเดือน|ส่วนตัว|เที่ยว|ช้อป)|ลงทุน|หนี้|ค้าขาย|กระเป๋าสตางค์/,
+    work: /(?<!โต๊ะทำ|มุมทำ|ห้องทำ|โต๊ะ)งาน(?!บ้าน|อดิเรก|เลี้ยง|ศิลป)|อาชีพ|หัวหน้า|ลูกค้า|โปรเจกต์|ผลงาน|ธุรกิจ|เพื่อนร่วมงาน|ตำแหน่งงาน|เลื่อนตำแหน่ง|การเรียน|สอบ/,
+  };
+  const ADV_TOPIC_ZH = {
+    love: /感情|伴侣|恋|另一半|约会|对方|心意|爱人|喜欢的人/,
+    money: /钱|财|储蓄|存款|预算|收入|开支|消费|账|理财|投资/,
+    work: /工作|事业|团队|职场|项目|学业|同事|客户|上司/,
+  };
+  // หัวข้อที่ข้อความพูดถึง เรียงตามตำแหน่งที่เอ่ยถึงก่อน
+  function topicsIn(t) {
+    const s = String(t || ""), lex = /[\u4e00-\u9fff]/.test(s) && !/[\u0E00-\u0E7F]/.test(s) ? ADV_TOPIC_ZH : ADV_TOPIC;
+    const out = [];
+    for (const k in lex) { const m = lex[k].exec(s); if (m) out.push([m.index, k]); }
+    return out.sort((a, b) => a[0] - b[0]).map(x => x[1]);
+  }
+  // คำแนะนำนี้ "เป็นเรื่องของหัวข้ออื่น" สำหรับผู้ที่ถามเรื่อง topic หรือไม่ (topic = overall/ไม่รู้จัก → ไม่กรอง)
+  function adviceOffTopic(t, topic) {
+    if (!ADV_TOPIC[topic]) return false;
+    const ts = topicsIn(t);
+    return ts.length > 0 && ts[0] !== topic;
   }
   const SELF_SAYS = /^.{0,50}?(บอก|ชี้|สะท้อน|แสดง|หมายความ|เตือน|ถือ|เชื่อ|มอง)[^\s]{0,16}ว่า/;
   const SELF_FIRST = ["จาก{LE} {M}", "เมื่อดูที่{LE} {M}", "สำหรับ{LE} {M}"];
@@ -647,7 +717,8 @@
     while ((m = REPORT_RE_G.exec(s))) {
       // คำออกตัวต้นประโยค ("… ตามตำราเชื่อว่างาน…") ไม่มีชื่อนำหน้า — นับเฉพาะเมื่อติดชื่อหรือตามหลังวงเล็บหลักฐาน
       if (/^(?:ตามตำราเชื่อว่า|ว่ากันว่า|เชื่อกันว่า|ตามความเชื่อแล้ว)$/.test(m[0]) && !strict && / $/.test(s.slice(0, m.index)) && !/[)）] $/.test(s.slice(0, m.index))) continue;
-      const pre = /(\S+(?: [(（][^)）]*[)）])?) ?$/.exec(s.slice(Math.max(0, m.index - 80), m.index));
+      // ชื่อที่ขึ้นต้นด้วยตัวเลข ("ผลรวม 44 (…)", "คู่ 56") → รวมคำหน้าตัวเลขเป็นชื่อด้วย
+      const pre = /((?:[^\s\d()（）]+ )?\d\S*(?: [(（][^)）]*[)）])?|\S+(?: [(（][^)）]*[)）])?) ?$/.exec(s.slice(Math.max(0, m.index - 80), m.index));
       if (!pre) continue;
       const before = new Set(contentWords(pre[1]));
       if (!before.size) continue;
@@ -681,6 +752,8 @@
     // สัญลักษณ์ดิบจากป้ายชื่อ/ตาราง: "พบปีปกติ · เดินหน้าได้ตามแผน"
     ["raw-separator", /·|•|\s\|\s|→|←/],
     ["unfilled-slot", /\{[A-Za-z]+\}/],
+    // กริยารายงานซ้อนกรอบเกริ่นอีกชั้น: "ผลรวม 44 แสดงว่าตามแนวที่อ่านผลรวมเป็นคู่เลข ผลรวม 44 ให้ข้อคิดว่า…"
+    ["report-chain", new RegExp(REPORT_V + "(?:ตามแนวที่อ่าน|อ่านแบบเดียวกับ|\\S{0,40}(?:ให้ข้อคิดว่า|ให้ภาพรวมว่า))")],
   ];
   function grammarIssues(t) {
     const out = [];
@@ -896,7 +969,7 @@
   const markUsed = (ctx, m) => { ctx.used.add(m); const c = coreOf(m); for (let i = 0; i + OVL <= c.length; i++) ctx.cores.add(c.substr(i, OVL)); };
   function pickMeaning(ctx, it, keys, secId) {
     const pool = [];
-    for (const k of keys) { const arr = it.meanings[k]; if (Array.isArray(arr)) for (const m of arr) { const c = cleanMeaning(m); if (c && !ctx.used.has(c) && isSafe(c) && !(secId && (offTopic(c, secId) || loveOnlyIn(c, secId))) && !overlapsUsed(ctx, c)) pool.push(c); } }
+    for (const k of keys) { const arr = it.meanings[k]; if (Array.isArray(arr)) for (const m of arr) { const c = cleanMeaning(m); if (c && !ctx.used.has(c) && isSafe(c) && !(secId && (offTopic(c, secId) || loveOnlyIn(c, secId))) && !(secId === "advice" && adviceOffTopic(c, ctx.F.topic)) && !overlapsUsed(ctx, c)) pool.push(c); } }
     if (!pool.length) return null;
     // เลี่ยงสำนวนที่ขึ้นต้นด้วยคำนำหน้าที่ใช้ไปแล้วในคำทำนายนี้
     const fresh = pool.filter(c => { const sp = splitLead(c); return !sp || !ctx.leads.has(sp.lead); });
@@ -909,12 +982,30 @@
   const NEG_FRAMES = ["{LEV}เตือนเบา ๆ ว่า{M}", "{LEV}ฝากข้อคิดไว้ว่า{M}", "^ตามคำแนะนำของ{LE} {M}"];
 
   // สร้างประโยคจากสิ่งที่พบ 1 รายการ (+ คืนค่าว่าเติมคำเชื่อมได้หรือไม่)
+  /* คำขึ้นต้นของชื่อถูกพูดซ้ำทันทีหลังกริยารายงาน: "ช่วงขาขึ้นกำลังมา ชี้ว่าพลังหลักของช่วงนี้…", "ธาตุไฟ ตำราอ่านว่าคนธาตุไฟ…"
+     (ตรวจคำแรก ≥ 4 ตัวอักษรของชื่อ ในอนุประโยคถัดจากกริยา) */
+  function prefixEcho(t, name) {
+    const nm = String(name || "").replace(/\s*[(（][^)）]*[)）]/g, "").trim();
+    // คำขึ้นต้นของทุกช่วงคำไทยในชื่อ ("กว้าที่ 19 ช่วงขาขึ้นกำลังมา" → กว้า, ช่วง)
+    const heads = (nm.match(/[\u0E01-\u0E4E]{4,}/g) || []).map(w => w.slice(0, 4));
+    if (!heads.length) return false;
+    REPORT_RE_G.lastIndex = 0; let m;
+    while ((m = REPORT_RE_G.exec(t))) {
+      if (t.slice(0, m.index).indexOf(nm) < 0) continue;
+      const after = t.slice(m.index + m[0].length, m.index + m[0].length + 30).split(" ")[0];
+      if (heads.some(h => after.indexOf(h) >= 0)) return true;
+    }
+    return false;
+  }
+  // "คนที่มีเส้นนี้มีความคิด…" → "คุณมีความคิด…" (ตัวเรียบเรียงเอ่ยชื่อสิ่งที่พบไว้แล้ว ไม่ต้องอ้างซ้ำ)
+  const PEOPLE_WITH = /^(?:คน|ผู้)ที่มี\S{1,14}(?:นี้|แบบนี้|ลักษณะนี้)(?:มัก)?(?=\S)/;
   function itemSentence(ctx, it, m, mode) {
     const r = ctx.r;
+    if (PEOPLE_WITH.test(m)) m = m.replace(PEOPLE_WITH, "คุณ");
     let R0 = null;
     const done = (text, noConn) => {
       // "X บ่งบอกว่า X…" → ไม่ใช้กริยารายงาน และตัดวงเล็บ/หลักฐานที่ซ้ำกับเนื้อความ: "จาก X …" / "ส่วน X …"
-      if (R0 && text !== m && labelEcho(tidy(text), true)) {
+      if (R0 && text !== m && (labelEcho(tidy(text), true) || prefixEcho(tidy(text), R0.name))) {
         const nm = R0.name.replace(/\s*[(（][^)）]*[)）]/g, "").trim() || R0.name;
         text = (R0.first ? "จาก" : "ส่วน") + nm + " " + m; noConn = true;
       }
@@ -982,6 +1073,8 @@
     let frame;
     if (mode === "first") {
       for (let k = 0; k < 4; k++) { frame = drawB(ctx, ctx.first, FIRST_FRAMES.length) || "{LEV}{V}{M}"; if (!NEEDS_GROUP.test(frame) || (it.group && it.group !== it.label && it.label.indexOf(it.group) !== 0)) break; frame = "{LEV}{V}{M}"; }
+      // "ดูที่ปีเกิด เป็นปีเถาะ ตำราอ่านว่าคุณเป็นคน…" — "เป็น" ซ้ำสองครั้งในประโยคเดียว → ใช้กรอบ "พบ…"
+      if (/เป็น\{LE\}/.test(frame) && /^.{0,40}เป็น/.test(m)) frame = frame.replace("เป็น{LE}", "พบ{LE}");
     } else {
       // กรอบที่ไม่เอ่ยชื่อ ใช้ได้เฉพาะเมื่อประโยคก่อนหน้าพูดถึงสิ่งเดียวกัน ไม่งั้นผู้อ่านจะไม่รู้ว่าหมายถึงอะไร
       for (let k = 0; k < 4; k++) { frame = (mode === "more" ? drawB(ctx, ctx.more, MORE_FRAMES.length) : drawB(ctx, ctx.next, NEXT_FRAMES.length)) || "^ส่วน{L} {H}{M}"; if (/\{L/.test(frame) || prevItem === it.id) break; }
@@ -1144,7 +1237,7 @@
     const cands = [];
     const tips = Array.isArray(ctx.F.extras.tips) ? ctx.F.extras.tips : [];
     for (const raw of chosen.concat(ctx.F.items).flatMap(it => it.meanings.advice || []).concat(tips)) {
-      const c = cleanMeaning(raw); if (!c || ctx.used.has(c) || !isSafe(c) || offTopic(c, id) || overlapsUsed(ctx, c)) continue;
+      const c = cleanMeaning(raw); if (!c || ctx.used.has(c) || !isSafe(c) || offTopic(c, id) || adviceOffTopic(c, id) || (!ADV_TOPIC[id] && topicsIn(c).length) || overlapsUsed(ctx, c)) continue;
       const sp = splitLead(c); const m = bareAdvice(sp ? sp.rest : c);
       if (m.length >= 8 && isImperative(sp ? sp.rest : c) && !/^อย่า/.test(m) && cands.every(x => x.c !== c)) cands.push({ c, m, on: TOPIC_LEX[id] ? TOPIC_LEX[id].test(c) : false });
     }
@@ -1169,7 +1262,7 @@
     ctx.sec = id; ctx.secMeanings[id] = []; ctx.advN = 0;
     if (id === "advice") {
       const list = v => (Array.isArray(v) ? v.map(String).filter(Boolean).slice(0, 6) : []);
-      for (const t of list(extras.tips)) { const c = cleanMeaning(t); if (c && !ctx.used.has(c) && !overlapsUsed(ctx, c)) { markUsed(ctx, c); extraUnits.push(adviceUnit(ctx, c)); } }
+      for (const t of list(extras.tips)) { const c = cleanMeaning(t); if (c && !ctx.used.has(c) && !adviceOffTopic(c, F.topic) && !overlapsUsed(ctx, c)) { markUsed(ctx, c); extraUnits.push(adviceUnit(ctx, c)); } }
       if (list(extras.luckyColors).length) extraUnits.push({ text: fill(pick(r, COLOR_LINES), ctx.vars({ X: thaiList(list(extras.luckyColors)) })), noConn: true, sub: true });
       if (list(extras.energyWords).length) extraUnits.push({ text: fill(pick(r, ENERGY_LINES), ctx.vars({ X: thaiList(list(extras.energyWords)) })), noConn: true, sub: true });
       if (list(extras.directions).length) extraUnits.push({ text: fill(pick(r, DIRECTION_LINES), ctx.vars({ X: thaiList(list(extras.directions)) })), noConn: true, sub: true });
@@ -1437,7 +1530,7 @@
     if (adv >= 0) {
       const host = sections.find(s => s.id === topicId) || sections[sections.length - 1];
       // ข้อแนะนำที่ย้ายไปต่อท้ายหัวข้ออื่นต้องตรงหัวข้อของที่ใหม่ด้วย (ไม่วางคำแนะนำเรื่องคนรักไว้ในหัวข้อการเงิน)
-      const fits = t => !host || !(loveOnlyIn(t, host.id) || (host.id === "money" && t.split(" ").some(cl => cl.length >= 20 && TOPIC_LEX.love.test(cl) && !TOPIC_LEX.money.test(cl))));
+      const fits = t => !adviceOffTopic(t, F.topic) && !(host && adviceOffTopic(t, host.id)) && (!host || !(loveOnlyIn(t, host.id) || (host.id === "money" && t.split(" ").some(cl => cl.length >= 20 && TOPIC_LEX.love.test(cl) && !TOPIC_LEX.money.test(cl)))));
       const kept = briefs[adv].brief.filter(fits);
       if (host && kept.length) host.paragraphs.push(kept.join(" "));
       briefs.splice(adv, 1);
@@ -1532,7 +1625,8 @@
     const D = ZH[domain]; if (!D) return null;
     const ents = zhKeys(domain, it).map(k => D.items[k]).filter(Boolean);
     if (!ents.length) return null;
-    const digits = (String(it.label).match(/\d+/) || [""])[0];
+    // "เลขซ้ำ 3 ตัว (999)" → ใช้ตัวเลขในวงเล็บ (ตัวเลขที่พบจริง) ไม่ใช่จำนวนหลัก
+    const digits = (String(it.label).match(/[(（](\d+)[)）]/) || [])[1] || (String(it.label).match(/\d+/) || [""])[0];
     let n = String(ents[0].n || "").replace(/\{d\}/g, digits), s = String(ents[0].s || ents[0].n || "").replace(/\{d\}/g, digits);
     if (ents.length > 1 && ents[1].n) { n = n + "（" + String(ents[1].n).replace(/\{d\}/g, digits) + "）"; }
     // 名称里的"A · B"在正文里写成"A（B）"，不留原始分隔符
@@ -1609,6 +1703,7 @@
     const dk = { first: deck(r, ZH_FIRST), next: deck(r, ZH_NEXT), chal: deck(r, ZH_CHAL), adv: deck(r, ZH_ADV), close: deck(r, ZH_CLOSE), intro: deck(r, ZH_INTRO) };
     let synN = 0;
     const take = (it, keys) => { for (const k of keys) for (const m of it.meanings[k] || []) if (!used.has(m) && isSafe(m)) { used.add(m); return m; } return null; };
+    const takeOn = it => { for (const m of it.meanings.advice || []) if (!used.has(m) && isSafe(m) && !adviceOffTopic(m, F.topic)) { used.add(m); return m; } return null; };
     const nm = it => (nameShown.has(it.id) ? it.short : (nameShown.add(it.id), it.label));
     const same = deck(r, ZH_SAME);
     // lastSubj：上一句的主语（项目 id）；head：刚由"这次的重点在…"点名、尚未展开的项目
@@ -1681,7 +1776,8 @@
       lastSubj = null;
       secM[id] = [];
       if (id === "advice") {
-        for (const it of rel.slice(0, 4)) { const m = take(it, ["advice"]); if (m) { s.push(advice(m)); secM.advice.push({ it, m }); actions.push(m); } }
+        // 只给和所问主题相关或通用的建议（问财运时不出现"多和伴侣沟通"）
+        for (const it of rel.filter(x => (x.meanings.advice || []).some(m => !used.has(m) && !adviceOffTopic(m, F.topic))).slice(0, 4)) { const m = takeOn(it); if (m) { s.push(advice(m)); secM.advice.push({ it, m }); actions.push(m); } }
         const cols = zhColors([].concat(F.extras.luckyColors || []));
         if (cols.length) s.push(zhEnd(fill(pick(r, ZH_COLOR), { X: zhList(cols) })));
         const dirs = [].concat(F.extras.directions || []).map(d => zhDirsIn(d)[0]).filter(Boolean);
@@ -1707,7 +1803,7 @@
       if (isTopic) {
         // 本主题的行动建议必须真的谈这个主题（不把"多喝水"放在事业里）
         const lex = ZH_TOPIC_LEX[id];
-        const act = items.map(it => (it.meanings.advice || []).find(m => !used.has(m) && (!lex || lex.test(m)))).find(Boolean);
+        const act = items.map(it => (it.meanings.advice || []).find(m => !used.has(m) && (!lex || lex.test(m)) && !adviceOffTopic(m, id) && (ADV_TOPIC[id] || !topicsIn(m).length))).find(Boolean);
         if (act) { used.add(act); actions.push(act); s.push(advice(act)); }
         else s.push(zhEnd(fill(dk.close(), { TW: ZH_TAG[id] })));
       }
@@ -1747,6 +1843,32 @@
   const zhBase = n => String(n).replace(/[（(][^）)]*[）)]/g, "").trim();
   function zhSubject(sen) { const t = sen.trim(); for (const re of ZH_SUBJ_RES) { const m = re.exec(t); if (m) return zhBase(m[1]); } return ""; }
   const ZH_ADV_DUP = /可以先(?:先|也|还|再|又|都|就)|(?:建议你|不妨|试着)(?:也|还|又|都)(?![是要])/;
+  /* advice-topic: ถามเรื่องเงิน/งาน/รัก แต่คำแนะนำ (หัวข้อคำแนะนำ หรือประโยคปิดของหัวข้อที่ถาม) เป็นเรื่องของหัวข้ออื่น */
+  const ACTION_RE = new RegExp("(?:" + ACTION_FRAMES.map(f => reEsc(f).replace(/\\\{TW\\\}/g, "\\S{1,24}?").replace(/\\\{M\\\}/g, "")).join("|") + ")(.+)");
+  const ZH_ACTION_RE = /(?:建议你|不妨|试着|可以先|记得|多|先)[^。！？]*[。！？]?/;
+  function adviceTopicIssues(result) {
+    const out = [], topic = result && result.topic;
+    // ถามภาพรวม: ประโยคปิดของหัวข้อหลัก (ตัวตน) ต้องเป็นคำแนะนำกลาง ๆ ไม่ใช่คำแนะนำเรื่องรัก/เงิน/งาน
+    const overall = topic === "overall";
+    if (!ADV_TOPIC[topic] && !overall) return out;
+    const zh = result.lang === "zh", own = overall ? "personality" : topic;
+    const off = m => (overall ? topicsIn(m).length > 0 : adviceOffTopic(m, topic));
+    for (const s of (result.sections || [])) {
+      if (overall ? s.id !== own : s.id !== "advice" && s.id !== topic) continue;
+      for (const p of s.paragraphs || []) {
+        const sens = zh ? p.split(/(?<=[。！？])/).map(x => x.trim()).filter(Boolean) : sentences(p);
+        sens.forEach((x, i) => {
+          let m = null;
+          if (s.id === "advice") m = x;
+          else if (zh) m = ZH_ACTION_RE.test(x) && /建议|不妨|试着|可以先/.test(x) ? x : null;
+          else { const a = ACTION_RE.exec(x); m = a ? a[1] : null; }
+          // ประโยคที่ถูกแบ่งกลางคำแนะนำ ("…เป็นรายได้เสริม เช่น | สอนหรือรับงานพิเศษ") ตัดสินรวมกับชิ้นก่อนหน้า
+          if (m && off(m) && (s.id !== "advice" || !i || off(sens[i - 1] + " " + m))) out.push({ rule: "advice-topic", section: s.id, excerpt: topic + " ← " + topicsIn(m)[0] + ": " + x.slice(0, 100) });
+        });
+      }
+    }
+    return out;
+  }
   function lintZh(result) {
     const out = [], secs = (result && result.sections) || [];
     const push = (rule, section, excerpt) => out.push({ rule, section: section || "", excerpt: String(excerpt).slice(0, 120) });
@@ -1775,6 +1897,7 @@
     if (fl.length > FILLER_BUDGET) push("filler-budget", "", fl.join(","));
     const sm = result && result.summary;
     if (sm) for (const l of sm.lines || []) if (/[฀-๿]/.test(l.k + l.t)) push("thai-in-zh", "summary", l.k + l.t);
+    out.push(...adviceTopicIssues(result));
     return out;
   }
 
@@ -1829,6 +1952,7 @@
     for (const m of all.matchAll(LINT_CONN_RE)) counts[m[2]] = (counts[m[2]] || 0) + 1;
     for (const p of phrasesIn(all)) if (LINT_STEMS.has(p)) counts[p] = (counts[p] || 0) + 1;
     for (const p in counts) if (counts[p] > PHRASE_BUDGET) out.push({ rule: "connector-overuse", section: "", excerpt: p + " ×" + counts[p] });
+    out.push(...adviceTopicIssues(result));
     return out;
   }
 
@@ -2003,6 +2127,180 @@
     return sections.length ? sections : null;
   }
 
+  /* ======================= ด่านยึดโยงข้อความจาก AI (grounding gate) =======================
+     ตัวกรองหมวดเนื้อหา (isSafe) เป็นรายการ "สิ่งที่ห้าม" ซึ่งไม่มีวันครบ — ข้อความจาก AI จึงต้องผ่านอีกด่านแบบ "รายการที่อนุญาต":
+     ทุกประโยค (หน่วยจาก sentences()) ต้องยึดกับ "ประโยคที่ผ่านการคัดแล้วในเครื่อง" ประโยคใดประโยคหนึ่ง
+       (ความหมายในคลังของสิ่งที่พบ + extras + คำอ่านที่ตัวเรียบเรียงในเครื่องสร้างจาก facts เดียวกัน)
+     กติกา: คำเนื้อหาทุกคำของประโยค AI (ตัดคำเชื่อม/คำออกตัวใน GLUE และชื่อสิ่งที่พบออกแล้ว) ต้องอยู่ในประโยคต้นทางประโยคเดียว
+     ยอมให้ต่างได้ไม่เกิน 1 คำเมื่อเป็นคำขยายกลาง ๆ (SOFT) — AI จึงทำได้แค่เรียบเรียง/เชื่อมความหมายที่มีอยู่ ไม่สามารถเติมข้อกล่าวอ้างใหม่
+     (ข่าวร้าย การเดินทาง ลูกในครรภ์ เลขเสี่ยงโชค ฯลฯ) ได้ แม้ถ้อยคำนั้นจะหลุดตัวกรองหมวดเนื้อหา
+     คำปฏิเสธ/คำห้าม (ไม่ อย่า ห้าม งด ต้อง แน่นอน) ไม่อยู่ใน GLUE — ต้องมาจากประโยคต้นทางเท่านั้น จึงกลับความหมายไม่ได้
+     ประโยคที่ไม่ผ่านถูกตัดทิ้ง หัวข้อที่เหลือน้อยกว่า GROUND_KEEP ของเดิม → ใช้หัวข้อเดียวกันจากตัวเรียบเรียงในเครื่องแทนทั้งหัวข้อ */
+  const GLUE_TH = new Set(("คุณ ของ ที่ และ กับ ก็ จะ ได้ ให้ ใน ว่า เป็น มี คือ ซึ่ง หรือ แต่ ยัง อีก ด้วย นี้ นั้น นี่ ทำให้ เพราะ จึง เลย ๆ มาก ความ การ เรื่อง " +
+    "ส่วน ด้าน สำหรับ จาก ตาม ตำรา เชื่อ กัน ว่ากันว่า เชื่อกันว่า บ่งบอก สะท้อน ชี้ หมายถึง หมายความ แสดง สื่อ อ่าน แปล ตีความ ดู เห็น พบ ผล ครั้ง " +
+    "ถ้า หาก เมื่อ ลอง ควร แนะนำ แนะ ชวน ช่วย ช่วง ช่วงนี้ เอง ไว้ ไป มา อยู่ แล้ว ถึง โดย เพื่อ อย่าง ทั้ง ต่อ กว่า ยิ่ง ค่อนข้าง มัก บ้าง ทุก หลาย บาง " +
+    "อื่น คน เรา ตัวเอง ชีวิต ดวง ศาสตร์ ทำนาย คำทำนาย ภาพรวม หัวข้อ จุด จุดเด่น เด่น สิ่ง สิ่งที่ นอกจากนี้ นอกจาก ถัดมา สุดท้าย ปิดท้าย ก่อน หลัง " +
+    "อีกทั้ง รวมถึง เช่น ได้แก่ คล้าย เหมือน ซึ่งก็ ทว่า อย่างไรก็ตาม ดังนั้น เพราะฉะนั้น สรุป โดยรวม เป็นต้น ข้อ ข้อคิด เคล็ด เคล็ดลับ แนวโน้ม " +
+    "ครับ ค่ะ นะ จ๊ะ ด้วย กำลัง พอ แค่ เพียง ล้วน ต่าง แต่ละ อัน ตัว ทาง ใจ ดั่ง ทั้งนี้ ประการ").split(" ").filter(Boolean));
+  const GLUE_ZH = new Set(("你 的 了 是 在 和 与 也 还 就 都 很 更 会 能 可以 有 这 那 这次 一些 一点 让 把 对 从 看 说明 显示 提示 意味着 表示 象征 代表 " +
+    "方面 来看 而言 说到 另外 同时 所以 因为 如果 时候 可能 比较 不妨 试着 建议 记得 些 个 种 上 里 中 着 过 吧 呢 啊 自己 大家 事情 这样 " +
+    "整体 总体 运势 解读 其中 并且 而且 其实 尤其 特别 再 又 而 及 以及 等 等等 之 其 此 该 各 每 时 后 前 先 再看 首先 最后 总之 方向").split(" ").filter(Boolean));
+  // ต่างจากต้นทางได้ 1 คำเมื่อเป็นคำขยายกลาง ๆ ที่ไม่ใช่ข้อกล่าวอ้าง
+  const SOFT_TH = new Set("ชัด ชัดเจน โดดเด่น พิเศษ เป็นพิเศษ ดี ดีขึ้น ลงตัว เต็มที่ ทีละ ค่อย สม่ำเสมอ น่าสนใจ สำคัญ จริงจัง อบอุ่น งดงาม".split(" "));
+  const SOFT_ZH = new Set("明显 突出 特别 很好 不错 稳 稳定 重要 有趣 温暖".split(" "));
+  const GROUND_KEEP = 0.6;
+  /* คำในกรอบประโยคของตัวเรียบเรียงเอง (คำเกริ่น คำเชื่อม คำปิด กริยารายงาน) — เป็นถ้อยคำที่คัดไว้แล้ว AI ใช้เรียบเรียงได้
+     ยกเว้นคำปฏิเสธ/คำห้าม/คำเตือน/คำเรื่องเงินและโชค ซึ่งต้องมาจากประโยคต้นทางเท่านั้น */
+  const FRAME_DENY = /^(?:ไม่|อย่า|ห้าม|ต้อง|ระวัง|แน่นอน|เตือน|งด|หยุด|เลิก|เสี่ยง|โชค|ลาภ|เงิน|ทรัพย์|รวย|เลข)$/;
+  let FRAME_VOCAB = null, FRAME_SEG = null, FRAME_STR = [];
+  // คำปฏิเสธ: ต้องมาจากต้นทางพร้อมคำที่ตามหลัง ("ไม่"+"ขึ้น" ต้องมีในประโยคต้นทาง ไม่ใช่แค่มี "ไม่" ที่ไหนสักแห่ง)
+  const NEG_TOK = /^(?:ไม่|ไม่ได้|ไม่มี|ไม่เคย|อย่า|ห้าม|ไร้|ไม่ค่อย|不|别|没|没有|不要|不会|不能|不用|无)$/;
+  function frameVocab() {
+    if (FRAME_VOCAB && FRAME_SEG === SEG) return FRAME_VOCAB;
+    const bank = [OPENERS, CONNECTORS, CLOSERS, ADVICE_FRAMES, ADVICE_STATEMENT_FRAMES, HEADLINES, BRIDGES, SYN_PAIR, SYN_CONTRAST, INTRO_DATA, INTRO_TOPIC, ACTION_FRAMES,
+      COLOR_LINES, ENERGY_LINES, DIRECTION_LINES, HEDGES, LINKS, VERBS, FIRST_FRAMES, WA_FRAMES, NEXT_FRAMES, MORE_FRAMES, IMP_FRAMES, NEG_FRAMES, SELF_FIRST, SELF_NEXT, COND_VERBS, PLAIN_VERBS, FRAME_STEMS]
+      .concat(Object.values(INTROS), Object.values(OPENERS_BY_DOMAIN),
+        [ZH_HEAD, ZH_FIRST, ZH_NEXT, ZH_SAME, ZH_CHAL, ZH_REL, ZH_ADV, ZH_ADV_NEG, ZH_INTRO, ZH_BRIDGE, ZH_PAIR, ZH_CLOSE, ZH_COLOR, ZH_DIR],
+        Object.values(ZH_OPENERS), Object.values(ZH_INTRO_PLAIN), Object.values(ZH_TITLES), Object.values(ZH_TAG)).flat(2).map(x => String(x));
+    FRAME_VOCAB = new Set();
+    // แม่แบบทั้งประโยค: ช่อง {X} = อะไรก็ได้สั้น ๆ (หน่วยที่ไม่มีคำเนื้อหา ช่องจึงมีแต่ชื่อ/คำเชื่อม)
+    FRAME_STR = bank.map(t => t.replace(/\^/g, "").replace(/\s+/g, "")).filter(t => t.length >= 2)
+      .map(t => new RegExp("^" + t.split(/\{[A-Z]+\}/).map(reEsc).join("[^]{0,60}?") + "[。！？]?$"));
+    bank.forEach((t, i) => { bank[i] = t.replace(/\{[A-Z]+\}|\^/g, " "); });
+    for (const t of bank) for (const w of groundTokens(t)) if (!FRAME_DENY.test(w) && !/^\d+$/.test(w)) FRAME_VOCAB.add(w);
+    FRAME_SEG = SEG;
+    return FRAME_VOCAB;
+  }
+  const isZhText = t => /[一-鿿]/.test(t) && !/[฀-๿]/.test(t);
+  // คำของข้อความ (ใช้ตัวตัดคำ Intl.Segmenter; ไม่มี → ชิ้นอักษรไทย/จีนยาว 3 ตัวซ้อนกัน)
+  function groundTokens(t) {
+    const s = String(t || "").normalize("NFC").toLowerCase();
+    const out = [];
+    if (SEG) {
+      for (const g of SEG.segment(s)) { const w = g.segment.trim(); if (w && g.isWordLike !== false && /[ก-๎一-鿿0-9a-z]/.test(w)) out.push(w); }
+      return out;
+    }
+    for (const run of s.match(/[ก-๎一-鿿]+|[0-9]+|[a-z]+/g) || []) {
+      if (/^[0-9a-z]+$/.test(run) || run.length <= 3) { out.push(run); continue; }
+      for (let i = 0; i + 3 <= run.length; i++) out.push(run.substr(i, 3));
+    }
+    return out;
+  }
+  const isGlue = (w, zh) => (zh ? GLUE_ZH : GLUE_TH).has(w) || /^[ก-๎]$/.test(w) || frameVocab().has(w);
+  // คลังประโยคที่ผ่านการคัดแล้วสำหรับ facts ชุดนี้ + ชื่อสิ่งที่พบ (เอ่ยชื่อได้อิสระ)
+  function groundCorpus(facts, locals) {
+    const F = normalizeFacts(facts);
+    const names = new Set(), nameStr = new Set();
+    const addNames = t => {
+      // คำปฏิเสธ/คำห้ามในชื่อ ("ไม่มีเลข 0") ไม่นับเป็นคำอิสระ
+      for (const w of groundTokens(t)) if (!FRAME_DENY.test(w) && !NEG_TOK.test(w)) names.add(w);
+      // ชื่อเต็มเป็นสตริง (ตัดออกก่อนตัดคำ — ตัวตัดคำมักตัดชื่อเฉพาะอย่าง "เอซดาบ" ผิดเมื่ออยู่ในประโยค)
+      const str = String(t || "").normalize("NFC");
+      for (const part of str.split(/\s*[(（)）]\s*|\s+·\s+/)) if (part.trim().length >= 3) nameStr.add(part.trim());
+    };
+    for (const it of F.items) { addNames(it.label); addNames(it.short); addNames(it.group); addNames(it.evidence); }
+    addNames(F.headline); addNames((F.subject && F.subject.nickname) || ""); addNames(DOMAIN_NAMES[F.domain] || "");
+    for (const k in SECTION_TITLES) addNames(SECTION_TITLES[k]);
+    const raw = [];
+    for (const it of F.items) for (const k in it.meanings) for (const m of [].concat(it.meanings[k] || [])) raw.push(String(m));
+    const ex = F.extras || {};
+    for (const k of ["tips", "energyWords", "luckyColors", "directions"]) for (const m of [].concat(ex[k] || [])) raw.push(String(m));
+    // ข้อมูลภาษาจีนของสิ่งที่พบเดียวกัน (คลัง i18n/zh-kb-*) ก็เป็นต้นทางที่คัดแล้ว
+    try { zhLoad(); for (const it of F.items) { const z = zhItem(F.domain, it); if (!z) continue; addNames(z.label); addNames(z.short); for (const k in z.meanings) raw.push(...z.meanings[k]); } } catch (e) { /* ไม่มีข้อมูลจีน */ }
+    for (const loc of locals || []) for (const s of (loc && loc.sections) || []) for (const p of s.paragraphs || []) raw.push(...sentences(p));
+    const vetted = [];
+    for (const t of raw) {
+      if (!t || !isSafe(t)) continue;
+      const toks = groundTokens(t), set = new Set(toks);
+      const bi = new Set(); for (let i = 0; i + 1 < toks.length; i++) bi.add(toks[i] + "|" + toks[i + 1]);
+      if (set.size) vetted.push({ t, set, bi, flat: t.normalize("NFC").replace(/\s+/g, "") });
+    }
+    return { names, vetted, nameStr: Array.from(nameStr).sort((a, b) => b.length - a.length) };
+  }
+  const stripNames = (t, corpus) => { let x = String(t).normalize("NFC"); for (const n of corpus.nameStr || []) x = x.split(n.replace(/\s+/g, "")).join("").split(n).join(""); return x.replace(/\s+/g, ""); };
+  // ประโยคเดียวจาก AI ยึดกับประโยคต้นทางได้หรือไม่ → { ok, reason, src? }
+  function groundUnit(u, corpus) {
+    const text = String(u || "").trim();
+    if (!text) return { ok: false, reason: "empty" };
+    if (!isSafe(text)) return { ok: false, reason: "unsafe:" + (unsafeCategory(text.normalize("NFC")) || "banned") };
+    const zh = isZhText(text);
+    // "อย่าลืมว่า…" (อย่าลืม = จำไว้) เป็นคำเชื่อม ไม่ใช่คำห้าม
+    let bare = text.normalize("NFC").replace(/อย่าลืม(?:ว่า)?/g, " ");
+    let named0 = false;
+    for (const n of corpus.nameStr || []) if (bare.indexOf(n) >= 0) { bare = bare.split(n).join(" "); named0 = true; }
+    const toks = groundTokens(bare);
+    const content = Array.from(new Set(toks.filter(w => !isGlue(w, zh) && !corpus.names.has(w))));
+    const named = named0 || toks.some(w => corpus.names.has(w) && !isGlue(w, zh));
+    // ประกอบจากชื่อสิ่งที่พบ/คำเชื่อม/คำในกรอบของตัวเรียบเรียงล้วน ("ด้านการงาน", "ขอเล่าละเอียดในหัวข้อถัดไป") → ไม่มีข้อกล่าวอ้างใหม่
+    if (!content.length) {
+      // ไม่มีคำเนื้อหา → ต้องเป็นวลีที่มีอยู่จริงในกรอบของตัวเรียบเรียงหรือในประโยคต้นทาง (ตัดชื่อออกแล้ว) ไม่ใช่คำเชื่อมที่เรียงใหม่เป็นข้อความใหม่
+      const flat = bare.replace(/\s+/g, "");
+      if (!flat || flat.length <= 3) return { ok: true, reason: "names-only" };
+      frameVocab();
+      const full = text.normalize("NFC").replace(/\s+/g, "");
+      const hit = FRAME_STR.some(re => re.test(full)) || corpus.vetted.some(v => v.flat.indexOf(full) >= 0 || stripNames(v.flat, corpus).indexOf(flat) >= 0);
+      return hit ? { ok: true, reason: named ? "names-only" : "frame-only" } : { ok: false, reason: "free-frame" };
+    }
+    let best = null, bestHit = -1;
+    for (const v of corpus.vetted) {
+      let hit = 0; for (const w of content) if (v.set.has(w)) hit++;
+      if (hit > bestHit) { bestHit = hit; best = v; if (hit === content.length) break; }
+    }
+    // ตัวตัดคำบางครั้งรวมคำเชื่อมกับคำถัดไป ("ว่าการ") → ยอมรับถ้าแยกเป็นสองส่วนที่แต่ละส่วนเป็นคำเชื่อม/ชื่อ/คำในประโยคต้นทาง
+    const known = w => isGlue(w, zh) || corpus.names.has(w) || (best && best.set.has(w));
+    const splits = w => { for (let i = 1; i < w.length; i++) if (known(w.slice(0, i)) && known(w.slice(i))) return true; return false; };
+    const missing = best ? content.filter(w => !best.set.has(w) && !splits(w)) : content;
+    if (SEG && best) {
+      // คำปฏิเสธต้องติดกับคำเดียวกับในประโยคต้นทาง
+      for (let i = 0; i < toks.length; i++) if (NEG_TOK.test(toks[i])) {
+        const nx = toks[i + 1];
+        if (nx && !best.bi.has(toks[i] + "|" + nx)) return { ok: false, reason: "negation", missing: [toks[i] + nx] };
+      }
+    }
+    if (SEG) {
+      const soft = zh ? SOFT_ZH : SOFT_TH;
+      if (!missing.length && best) return { ok: true, reason: "grounded", src: best.t, n: content.length };
+      if (!missing.length || (missing.length === 1 && content.length >= 5 && soft.has(missing[0]))) return { ok: true, reason: "grounded", src: best && best.t };
+      return { ok: false, reason: "ungrounded", missing };
+    }
+    // ไม่มีตัวตัดคำ: ชิ้นอักษร 3 ตัวต้องอยู่ในประโยคต้นทางเดียว ≥ 95 %
+    return bestHit >= Math.ceil(content.length * 0.95) ? { ok: true, reason: "grounded", src: best && best.t } : { ok: false, reason: "ungrounded", missing };
+  }
+  /* sections จาก AI → sections ที่ผ่านด่าน (หรือ null = ใช้ตัวเรียบเรียงในเครื่องทั้งหมด)
+     local = ผลของ compose(facts) (ใช้เป็นคลังต้นทาง และเป็นตัวแทนของหัวข้อที่เหลือน้อยเกินไป) */
+  function groundAI(aiSections, facts, local, extraLocals) {
+    const corpus = groundCorpus(facts, [local].concat(extraLocals || []));
+    const locById = new Map(((local && local.sections) || []).map(s => [s.id, s]));
+    const out = [], log = { kept: 0, dropped: 0, replaced: [], drops: [] };
+    for (const s of aiSections || []) {
+      if (!s || SECTION_IDS.indexOf(s.id) < 0 || out.some(x => x.id === s.id)) continue;
+      let total = 0, kept = 0;
+      const paras = [];
+      for (const p of s.paragraphs || []) {
+        const units = sentences(String(p || ""));
+        const ok = [];
+        let prevDropped = false;
+        for (const u of units) {
+          total++;
+          let g = groundUnit(u, corpus);
+          /* ประโยคไทยไม่มีจุด — ข้อความอันตรายหนึ่งประโยคมักถูกแบ่งเป็นหลายหน่วย ("ลาออกพรุ่งนี้เลย | ดวงบอกให้ไป")
+             หน่วยที่ตามหลังหน่วยที่ถูกตัดจึงต้องยึดกับต้นทางอย่างหนักแน่น (คำเนื้อหา ≥ 3 คำ) ไม่งั้นตัดตามไปด้วย */
+          if (g.ok && prevDropped && !(g.reason === "grounded" && (g.n || 0) >= 3)) g = { ok: false, reason: "after-drop" };
+          if (g.ok) { ok.push(u); kept++; prevDropped = false; } else { log.drops.push({ section: s.id, text: u, reason: g.reason }); prevDropped = g.reason !== "after-drop"; }
+        }
+        if (ok.length) paras.push(ok.join(isZhText(ok.join("")) ? "" : " "));
+      }
+      log.kept += kept; log.dropped += total - kept;
+      if (total && kept / total < GROUND_KEEP && locById.has(s.id)) { out.push(Object.assign({}, locById.get(s.id))); log.replaced.push(s.id); continue; }
+      if (paras.length) out.push({ id: s.id, title: SECTION_TITLES[s.id] || s.id, paragraphs: paras });
+    }
+    const all = log.kept + log.dropped;
+    if (!out.length || !all || log.kept / all < 0.5) return { sections: null, log };
+    // ภาพรวมต้องมีเสมอ
+    if (!out.some(s => s.id === "overview") && locById.has("overview")) out.unshift(Object.assign({}, locById.get("overview")));
+    return { sections: out, log };
+  }
+
   let statusP = null, statusBase = null;
   function status() {
     const base = apiBase();
@@ -2038,9 +2336,16 @@
             const j = await res.json();
             const sections = normalizeAI(j);
             // การ์ดสรุปสั้นคำนวณจากข้อมูลที่วัดได้ในเครื่องเสมอ (ไม่ขึ้นกับสำนวนของ AI)
-            if (sections) { const loc = compose(facts, opts); return { source: "ai", sections, model: j.model, summary: loc.summary }; }
+            // ทุกประโยคจาก AI ต้องผ่านด่านยึดโยง (groundAI) — ประโยคที่ไม่มีต้นทางในคลังถูกตัด หัวข้อที่เหลือน้อยใช้ฉบับในเครื่องแทน
+            if (sections) {
+              const loc = compose(facts, opts);
+              const alt = compose(facts, Object.assign({}, opts, { seed: ((loc.seed || 0) + 7919) >>> 0 }));
+              const g = groundAI(sections, facts, loc, [alt]);
+              if (g.sections) return { source: "ai", sections: g.sections, model: j.model, summary: loc.summary, grounding: { kept: g.log.kept, dropped: g.log.dropped, replaced: g.log.replaced } };
+              note = "คำเรียบเรียงจาก AI ไม่ผ่านการตรวจความถูกต้อง จึงใช้ตัวเรียบเรียงในเครื่องแทน";
+            }
           }
-          note = "AI ไม่พร้อมใช้งานชั่วคราว จึงใช้ตัวเรียบเรียงในเครื่องแทน";
+          if (!note) note = "AI ไม่พร้อมใช้งานชั่วคราว จึงใช้ตัวเรียบเรียงในเครื่องแทน";
         } catch (e) {
           note = "เชื่อมต่อ AI ไม่สำเร็จ จึงใช้ตัวเรียบเรียงในเครื่องแทน";
         } finally { if (timer) clearTimeout(timer); }
@@ -2162,7 +2467,7 @@
     lint, lintSemantic, lintZh, PHRASE_BUDGET, FILLER_BUDGET,
     grammar: { roleOf, grammarIssues, tautology, polesOf, proseLabel, asNoun, RULES: GRAMMAR_RULES.map(x => x[0]) },
     zh: { load: zhLoad, keys: zhKeys, item: (domain, it) => { zhLoad(); return zhItem(domain, it); }, data: () => zhLoad(), TITLES: ZH_TITLES }, MAIN_LENGTH: { min: MAIN_MIN, target: MAIN_TARGET, max: MAIN_MAX, full: FULL_MAX },
-    safety: { isSafe, filterText, sentences, category: t => unsafeCategory(String(t || "").normalize("NFC")), BANNED: BANNED_TH.slice(), ALLOW: ALLOW_TH.slice(), segmenter: () => !!SEG, _useSegmenter: on => { SEG = on ? SEG0 : null; segCache.clear(); for (const k in ownCuts) delete ownCuts[k]; } },
+    safety: { isSafe, filterText, sentences, groundAI, groundUnit, groundCorpus, category: t => unsafeCategory(String(t || "").normalize("NFC")), BANNED: BANNED_TH.slice(), ALLOW: ALLOW_TH.slice(), segmenter: () => !!SEG, _useSegmenter: on => { SEG = on ? SEG0 : null; segCache.clear(); for (const k in ownCuts) delete ownCuts[k]; } },
     _internal: { factsForAI, normalizeAI, normSentence, dice, bigrams, isImperative, offTopic, phrasesIn, splitMain, banks: { OPENERS, OPENERS_BY_DOMAIN, CONNECTORS, CLOSERS, ADVICE_FRAMES, ADVICE_STATEMENT_FRAMES, INTROS } },
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.FortuneAI = api;

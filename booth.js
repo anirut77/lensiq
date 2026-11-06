@@ -34,7 +34,7 @@ function newState(name = "", date = dayKey()) {
  * หลายกล้อง: ตัวติดตามแยกต่อกล้อง (runtime(S, slot)) แต่ผู้เข้าชม/ค่าลักษณะใบหน้า (S.visitors, S.desc, S.cands) ใช้ร่วมกัน
  * คนเดียวกันที่กล้องสองตัวเห็นจึงจับคู่ได้กับ V### เดิม (ระยะ < CFG.MATCH) และนับครั้งเดียว — เฉพาะภายในแท็บ/วันนี้เท่านั้น */
 const RUNTIME = new WeakMap();
-function newRuntime() { return { T: LQT.newTracker(LQT.PRESET.face), bind: new Map(), desc: new Map(), cand: new Map(), frame: 0 }; }
+function newRuntime() { return { T: LQT.newTracker(/** @type {any} */ (LQT.PRESET.face)), bind: new Map(), desc: new Map(), cand: new Map(), frame: 0 }; }
 function runtime(S, cam = "") {
   let M = RUNTIME.get(S); if (!M) { M = new Map(); RUNTIME.set(S, M); }
   let R = M.get(cam); if (!R) { R = newRuntime(); M.set(cam, R); }
@@ -413,7 +413,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     const box = t.querySelector(".cam");
     box.prepend(c.video, c.overlay);
     c.overlay.setAttribute("aria-label", "ภาพกล้อง แตะกรอบใบหน้าเพื่อบันทึกผู้เข้าร่วมกิจกรรม");
-    const nm = t.querySelector(".cam-name"), rl = t.querySelector(".cam-role");
+    const nm = /** @type {HTMLInputElement} */ (t.querySelector(".cam-name")), rl = /** @type {HTMLSelectElement} */ (t.querySelector(".cam-role"));
     nm.value = c.name;
     nm.addEventListener("change", () => { hub.rename(c.slot, nm.value.trim() || c.name); nm.value = c.name; render(inFrameNow()); });
     rl.addEventListener("change", () => setPrimary(rl.value === "primary" ? c.slot : (orderedCams().find(x => x !== c) || c).slot));

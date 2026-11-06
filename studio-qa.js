@@ -176,18 +176,71 @@
    * รอยต่อคอ-คอเสื้อ (แถบจากแนวกรามถึงโคนคอ N, |dx| < 0.6 หน้า): ฉากหลังที่ถูกล้อมซ้าย-ขวา (รอยบาก/ช่อง) และขอบโปร่งครึ่งเดียวของชุด
    * (เศษขาว/เทาจากขอบเทมเพลต) — คืน { gapPct, fringePct } (% ของพิกเซลในแถบ)
    */
-  function neckJoin({ fg, frontA, keepA, W, H, face, fit }) {
+  function neckJoin({ fg, frontA, keepA, W, H, face, fit, neckA = null, hair = null }) {
+    // ช่อง: ฉากโผล่ "ภายใน" ผิว (ขอบซ้ายและขวาของช่องเป็นหน้า/คอ ไม่ใช่ผม/ชุด) และแคบกว่า 0.25 หน้า = รู/บากในคอ
+    // (ฉากจริงระหว่างคอกับผมยาว หรือระหว่างคอกับบ่าเสื้อ ไม่นับ — เดิมนับทั้งหมด ทำให้ภาพผมยาวถูกตีตกเกือบทุกภาพ)
     const fw = face.fw, cx = Math.round(face.chinX != null ? face.chinX : face.cx), y0 = Math.round(face.chinY - fw * .05), y1 = Math.min(H - 1, Math.round(fit.N.y + fit.s * .1));
+    const skin = i => fg[i] >= .5 && frontA[i] < .5 && (!hair || hair[i] < .4) && Math.max(keepA[i], neckA ? neckA[i] : 0) > .5;
     let n = 0, gap = 0, fr = 0;
     for (let y = Math.max(0, y0); y <= y1; y++) {
-      const xa = Math.max(0, cx - Math.round(fw * .6)), xb = Math.min(W - 1, cx + Math.round(fw * .6)); let l = -1, r = -1;
-      for (let x = xa; x <= xb; x++) if (fg[y * W + x] >= .5) { if (l < 0) l = x; r = x; }
-      for (let x = xa; x <= xb; x++) { const i = y * W + x; n++; if (l >= 0 && x > l && x < r && fg[i] < .5) gap++; if (frontA[i] > .08 && frontA[i] < .55 && keepA[i] < .3) fr++; }
+      const xa = Math.max(1, cx - Math.round(fw * .6)), xb = Math.min(W - 2, cx + Math.round(fw * .6));
+      for (let x = xa; x <= xb; x++) {
+        const i = y * W + x; n++; if (frontA[i] > .08 && frontA[i] < .55 && keepA[i] < .3) fr++;
+        if (fg[i] >= .5 || !skin(i - 1)) continue;
+        let e = x; while (e < xb && fg[y * W + e + 1] < .5) e++;
+        if (e < xb && e - x + 1 < fw * .25 && skin(y * W + e + 1)) gap += e - x + 1;
+        x = e;
+      }
     }
     return { gapPct: n ? +(100 * gap / n).toFixed(2) : 0, fringePct: n ? +(100 * fr / n).toFixed(2) : 0 };
   }
+  /** คอแบน: ส่วนเบี่ยงเบนความสว่าง/ค่าเฉลี่ย (CV) ของคอที่มองเห็น — คอที่สร้างเป็นสีเรียบ (แผ่นสีน้ำตาล/เทา) มี CV ต่ำมาก; คืน { cv, area (fw²) } */
+  function neckFlat({ out, neckA, frontA, keepA, W, H, face }) {
+    const fw = face.fw; let s1 = 0, s2 = 0, c = 0;
+    for (let y = Math.round(face.chinY); y < Math.min(H, face.chinY + fw * 1.2); y++) for (let x = Math.max(0, Math.round(face.cx - fw * .6)); x < Math.min(W, face.cx + fw * .6); x++) {
+      const i = y * W + x; if (neckA[i] * (1 - frontA[i]) * (1 - keepA[i]) < .7) continue; const l = lum(out, i); s1 += l; s2 += l * l; c++;
+    }
+    if (c < 30) return { cv: 1, area: 0 };
+    const m = s1 / c; return { cv: +(Math.sqrt(Math.max(0, s2 / c - m * m)) / Math.max(1, m)).toFixed(3), area: +(c / (fw * fw)).toFixed(3) };
+  }
+  /** เกาะหลุด: ก้อนของตัวคนในผลลัพธ์ (fg > .5) ที่ไม่ต่อกับก้อนใหญ่สุด — พิกเซลรวม / fw² */
+  function strayParts({ fg, W, H, face }) {
+    const n = W * H, lab = new Int32Array(n).fill(-1), sizes = []; let id = 0;
+    for (let s0 = 0; s0 < n; s0++) { if (fg[s0] <= .5 || lab[s0] >= 0) continue; const st = [s0]; lab[s0] = id; let c = 0; while (st.length) { const i = st.pop(), x = i % W; c++; for (const j of [x > 0 ? i - 1 : -1, x < W - 1 ? i + 1 : -1, i - W, i + W]) if (j >= 0 && j < n && fg[j] > .5 && lab[j] < 0) { lab[j] = id; st.push(j); } } sizes.push(c); id++; }
+    if (sizes.length < 2) return 0;
+    const big = sizes.indexOf(Math.max(...sizes)); let t = 0; sizes.forEach((v, k) => { if (k !== big && v > 20) t += v; });
+    return +(t / (face.fw * face.fw)).toFixed(3);
+  }
+  /** สีชุดเดิมที่ค้าง: พิกเซลที่วางหน้าชุด (keep) ลึกกว่าคาง 0.6 หน้า ที่ไม่ใช่มือ/ผม และเรียบไม่มีลาย (ไม่ใช่ผ้าคลุมลวดลาย) — fw² */
+  function leftover({ keepA, src, W, H, face, hands, hair }) {
+    const fw = face.fw, r = 2; let c = 0;
+    for (let y = Math.round(face.chinY + fw * .6); y < H - r; y += 2) for (let x = r; x < W - r; x += 2) {
+      const i = y * W + x; if (keepA[i] < .6 || (hands && hands[i] > .3) || (hair && hair[i] > .3)) continue;
+      let s1 = 0, s2 = 0; for (let dy = -r; dy <= r; dy += 2) for (let dx = -r; dx <= r; dx += 2) { const l = lum(src, i + dy * W + dx); s1 += l; s2 += l * l; }
+      const sd = Math.sqrt(Math.max(0, s2 / 9 - (s1 / 9) ** 2)); if (sd < 6) c += 4;
+    }
+    return +(c / (fw * fw)).toFixed(3);
+  }
+  /** บากเป็นขั้น: ขอบซ้าย/ขวาของแถบผิว (หน้า+คอที่มองเห็น) ที่กึ่งกลางคาง กระโดด > 0.06 หน้าในแถวเดียว โดยก่อนและหลังเป็นแนวตั้งตรง
+   *  (มุมฉากแบบ "ขั้นบันได" ที่ปลายกราม/บนคอ — กรามโค้งจริงเปลี่ยนต่อเนื่อง ไม่นับ) — คืน { steps, maxJump (fw) } */
+  function neckNotch({ keepA, neckA, frontA, W, H, face, collarY, hair = null }) {
+    const fw = face.fw, cx = Math.round(face.chinX != null ? face.chinX : face.cx), y0 = Math.max(0, Math.round(face.chinY - fw * .25)), y1 = Math.min(H - 1, Math.round(collarY));
+    const vis = i => (!hair || hair[i] < .4) && Math.max(keepA[i], neckA[i] * (1 - frontA[i])) > .5, BL = [], BR = []; // ไม่นับผม (ปลายผมตัดตรงเป็นธรรมชาติได้)
+    for (let y = y0; y <= y1; y++) {
+      if (!vis(y * W + cx)) { BL.push(null); BR.push(null); continue; }
+      let l = cx, r = cx; while (l > 0 && cx - l < fw && vis(y * W + l - 1)) l--; while (r < W - 1 && r - cx < fw && vis(y * W + r + 1)) r++;
+      BL.push(l); BR.push(r);
+    }
+    let steps = 0, maxJ = 0; const tol = fw * .015, big = fw * .06;
+    for (const B of [BL, BR]) for (let k = 3; k < B.length - 4; k++) {
+      const a = B[k], b = B[k + 1]; if (a == null || b == null || B[k - 3] == null || B[k + 4] == null) continue;
+      const j = Math.abs(b - a); if (j < big) continue;
+      if (Math.abs(B[k - 3] - a) < tol && Math.abs(B[k + 4] - b) < tol) { steps++; maxJ = Math.max(maxJ, j / fw); }
+    }
+    return { steps, maxJump: +maxJ.toFixed(3) };
+  }
   /** เกณฑ์ผ่าน (ปรับเทียบกับการดูภาพ) */
-  const LIMITS = { hairCutRows: 3, neckBgPct: 1.5, neckDE: 16, neckL: [.35, 1.2], neckWide: .75, neckLen: .75, bgChunk: .03, hemRough: .045, bodyWide: 3.75, hemHolePct: .3, shoulderDy: .2, shoulderRaised: .25, accessory: .012, skinIsland: .012, handsOrphan: 0, floatingHand: .02, neckJoinGap: .5, neckJoinFringe: 2 };
+  const LIMITS = { hairCutRows: 3, neckBgPct: 1.2, neckDE: 16, neckL: [.2, 1.2], neckWide: .75, neckLen: .75, bgChunk: .03, hemRough: .045, bodyWide: 3.75, hemHolePct: .3, shoulderDy: .2, shoulderRaised: .25, accessory: .012, skinIsland: .012, handsOrphan: 0, floatingHand: .02, neckJoinGap: 2.5, neckJoinFringe: 2, neckFlatArea: .06, neckFlatCv: .045, stray: .01, leftover: .12, neckNotch: .25 };
   function verdict(m, L = LIMITS) {
     const f = [];
     if (m.hairCut.rows > L.hairCutRows) f.push("hair-cut");
@@ -205,6 +258,10 @@
     if (m.hands.orphan > L.handsOrphan) f.push("hand-no-sleeve");
     if (m.floatingHand > L.floatingHand) f.push("floating-hand");
     if (m.neckJoin && (m.neckJoin.gapPct > L.neckJoinGap || m.neckJoin.fringePct > L.neckJoinFringe)) f.push("neck-join");
+    if (m.neckFlat && m.neckFlat.area > L.neckFlatArea && m.neckFlat.cv < L.neckFlatCv) f.push("neck-flat");
+    if (m.neckNotch && m.neckNotch.maxJump > L.neckNotch) f.push("neck-notch");
+    if (m.stray > L.stray) f.push("stray");
+    if (m.leftover > L.leftover) f.push("leftover");
     return f;
   }
 
@@ -226,13 +283,18 @@
       accessory: accessory({ keepA, src, W, H, face: f, jaw: SC.jawCurve(f), hw, mono, skinY: S.harm && S.harm.faceLum || 140, hair: L.hair }),
       skinIsland: skinIsland({ keepA, frontA, hands: S.handsUsed || S.hands, hair: L.hair, W, H, face: f, hw }),
       hands: handsCheck({ hands: S.handsUsed || null, W, H, fit, arms: S.cache.clip && S.cache.clip.arms }),
-      floatingHand: floatingHand({ keepA, frontA, W, H, face: f, hands: S.hands })
+      floatingHand: floatingHand({ keepA, frontA, W, H, face: f, hands: S.hands }),
+      neckJoin: neckJoin({ fg, frontA, keepA, W, H, face: f, fit, neckA, hair: L.hair }),
+      neckFlat: neckFlat({ out, neckA, frontA, keepA, W, H, face: f }),
+      neckNotch: hw ? { steps: 0, maxJump: 0 } : neckNotch({ keepA, neckA, frontA, W, H, face: f, collarY, hair: L.hair }), // ผ้าคลุมศีรษะ: ขอบผ้าไม่ใช่รอยบาก
+      stray: strayParts({ fg, W, H, face: f }),
+      leftover: leftover({ keepA, src, W, H, face: f, hands: S.handsUsed || S.hands, hair: L.hair })
     };
     const fails = verdict(m);
     return { pass: !fails.length, fails, m };
   }
 
-  const api = { hairCut, neckCheck, bgChunk, hemCheck, shoulderCheck, accessory, skinIsland, handsCheck, floatingHand, neckJoin, verdict, evaluate, LIMITS };
+  const api = { hairCut, neckNotch, neckCheck, bgChunk, hemCheck, shoulderCheck, accessory, skinIsland, handsCheck, floatingHand, neckJoin, neckFlat, strayParts, leftover, verdict, evaluate, LIMITS };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") root.StudioQA = api;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -8,6 +8,9 @@ const DR_DEFAULTS = {
   earFallback: 0.25,      // ใช้เมื่อปรับเทียบไม่สำเร็จ
   earMin: 0.12, earMax: 0.35,
   eyeDelta: 3,            // ตัวจำแนกภาพตา: ปิด = คะแนน > ค่าปกติของคนขับตอนปรับเทียบ + 3 (เลือกบนชุด Open/Closed Eyes เท่านั้น)
+  eyeAdaptive: true,      // เกณฑ์ตาปิดปรับตามค่าปกติของช่วงขับจริง (แสง/มุมเปลี่ยนจากตอนปรับเทียบ) — เพิ่มได้อย่างเดียว ไม่ลดต่ำกว่าค่าปรับเทียบ
+  eyeAdaptWindowMs: 10000, eyeAdaptQ: 0.2, eyeAdaptMin: 15, eyeAdaptMaxRise: 6, // ค่าปกติ = เปอร์เซ็นไทล์ 20 ของ 10 วิล่าสุด (ตาต้องปิด > 80% ของเวลาจึงจะดึงค่าขึ้น)
+                          // วัดแล้ว: ปรับเทียบภาพหนึ่ง ขับอีกภาพ (คนเดียวกัน) ตาเปิดถูกนับเป็นปิด 12.5% ต่อเฟรมถ้าไม่ปรับ — ดู ACCURACY.md §5 / tests/bench/driver-session.bench.mjs
   eyeMaxBase: 2,          // ค่าปกติ > 2 = ตอนปรับเทียบภาพตาก็ดูเหมือนปิดแล้ว (แว่นดำ/มืด/ย้อนแสง) -> ไม่ใช้ตัวจำแนก ใช้ EAR แทน
   calibMinSamples: 10,
   blinkMaxMs: 500,        // หลับตาสั้นกว่านี้ = กะพริบตา
@@ -98,6 +101,13 @@ const EYE_MODEL = {
     -0.15, -0.042, 0.035, 0.051, -0.075, -0.157, -0.143, -0.183, -0.119, -0.015, -0.014, 0.001, 0.084, 0.056, -0.027, -0.103
   ]
 };
+
+/* ค่าปกติของตาในช่วงขับ: เปอร์เซ็นไทล์ q ของคะแนนตาล่าสุด (null เมื่อยังน้อยกว่า min เฟรม) — เปอร์เซ็นไทล์ต่ำ = ตาเปิด
+   จึงไม่ถูกดึงขึ้นด้วยการหลับตาจริง เว้นแต่หลับเกิน (1 − q) ของหน้าต่าง */
+function adaptiveEyeBase(scores, q = DR_DEFAULTS.eyeAdaptQ, min = DR_DEFAULTS.eyeAdaptMin) {
+  const s = scores.filter(Number.isFinite).sort((a, b) => a - b);
+  return s.length < min ? null : s[Math.floor(q * (s.length - 1))];
+}
 
 /* PERCLOS: สัดส่วนเวลาที่หลับตาในหน้าต่างเลื่อน (ถ่วงด้วยเวลาจริงระหว่างเฟรม) */
 function createPerclos(windowMs = 60000, maxGapMs = 500) {
@@ -207,7 +217,7 @@ function createMonitor(baseline = {}, cfgIn = {}) {
   const cfg = { ...DR_DEFAULTS, ...cfgIn };
   const B = { thr: baseline.thr ?? cfg.earFallback, yaw: baseline.yaw ?? 0, pitch: baseline.pitch ?? null, eyeThr: baseline.eyeThr ?? null };
   const pc = createPerclos(cfg.perclosWindowMs, cfg.maxGapMs);
-  const log = [], blinks = [];
+  const log = [], blinks = [], eyeWin = [];
   let start = null, out = [], maxFatigue = 0, maxPerclos = 0, lastBreak = -Infinity, transient = { level: 0, until: -Infinity };
   const st = { miss: null, missEv: null, eye: null, eyeEv: null, mouth: null, mouthEv: null, look: null, lookEv: null, nodActive: false, nodHist: [], percEv: null };
 
@@ -230,7 +240,7 @@ function createMonitor(baseline = {}, cfgIn = {}) {
   function update(s) {
     const t = s.t; out = [];
     if (start == null) start = t;
-    let closed = false, eyeMode = false, yawDev = 0, pitchRel = null;
+    let closed = false, eyeMode = false, eyeThrNow = B.eyeThr, yawDev = 0, pitchRel = null;
     if (!s.face) {
       if (st.miss == null) st.miss = t;
       endEye(t, false); endMouth(t); endLook(t); st.nodHist = []; pc.gap();
@@ -240,7 +250,15 @@ function createMonitor(baseline = {}, cfgIn = {}) {
       st.miss = null; st.missEv = null;
       // ภาพตา (ตัวจำแนก) เมื่อปรับเทียบแล้วและเฟรมนี้ตัดภาพตาได้; ไม่เช่นนั้นใช้ EAR < เกณฑ์ (เดิม)
       eyeMode = B.eyeThr != null && Number.isFinite(s.eyeScore);
-      closed = eyeMode ? s.eyeScore > B.eyeThr : s.ear < B.thr;
+      eyeThrNow = B.eyeThr;
+      if (eyeMode && cfg.eyeAdaptive) {
+        eyeWin.push({ t, v: s.eyeScore });
+        while (eyeWin.length && eyeWin[0].t <= t - cfg.eyeAdaptWindowMs) eyeWin.shift();
+        // ใช้เมื่อหน้าต่างเต็ม ≥ 80% แล้วเท่านั้น: ช่วงแรกหลังปรับเทียบ (แสงเดียวกัน) ใช้เกณฑ์ปรับเทียบ การหลับตาตั้งแต่เริ่มจึงไม่ถูกกลืนเป็นค่าปกติ
+        const b = t - eyeWin[0].t >= cfg.eyeAdaptWindowMs * 0.8 ? adaptiveEyeBase(eyeWin.map(w => w.v), cfg.eyeAdaptQ, cfg.eyeAdaptMin) : null;
+        if (b != null) eyeThrNow = Math.min(B.eyeThr + cfg.eyeAdaptMaxRise, Math.max(B.eyeThr, b + cfg.eyeDelta));
+      }
+      closed = eyeMode ? s.eyeScore > eyeThrNow : s.ear < B.thr;
       pc.push(t, closed);
       // ตา: กะพริบ / หลับใน / หลับตานาน
       if (closed) {
@@ -304,7 +322,7 @@ function createMonitor(baseline = {}, cfgIn = {}) {
       events: out, level, reasons,
       metrics: {
         ear: s.face ? s.ear : null, mar: s.face ? s.mar : null, closed, thr: B.thr,
-        eyeScore: s.face && Number.isFinite(s.eyeScore) ? s.eyeScore : null, eyeThr: B.eyeThr, eyeMode,
+        eyeScore: s.face && Number.isFinite(s.eyeScore) ? s.eyeScore : null, eyeThr: B.eyeThr, eyeThrNow, eyeMode,
         perclos, perclosReady: ready, blinkRate: elapsed >= 10000 ? blinks.length * 60000 / elapsed : null,
         closedMs: st.eye != null ? t - st.eye : 0, yawDev, pitchRel, fatigue, maxFatigue, maxPerclos
       }
@@ -314,7 +332,7 @@ function createMonitor(baseline = {}, cfgIn = {}) {
   return { update, finish, log, setThreshold(v) { B.thr = v; }, get baseline() { return { ...B }; }, get maxFatigue() { return maxFatigue; }, get maxPerclos() { return maxPerclos; } };
 }
 
-if (typeof module !== "undefined") module.exports = { DR_DEFAULTS, DR_TYPES, DR_LEVELS, EYE_PATCH, EYE_MODEL, eyePatchRect, eyeVec, eyeClosedScore, eyeAspectRatio, mouthAspectRatio, faceMetrics, createPerclos, calibrate, fatigueScore, countRecent, shouldRecommendBreak, safetyScore, summarizeTrip, csvCell, toCsv, createMonitor, median, pickDriver, synthFace, DR_MAX_FACES };
+if (typeof module !== "undefined") module.exports = { DR_DEFAULTS, DR_TYPES, DR_LEVELS, EYE_PATCH, EYE_MODEL, eyePatchRect, eyeVec, eyeClosedScore, eyeAspectRatio, mouthAspectRatio, faceMetrics, adaptiveEyeBase, createPerclos, calibrate, fatigueScore, countRecent, shouldRecommendBreak, safetyScore, summarizeTrip, csvCell, toCsv, createMonitor, median, pickDriver, synthFace, DR_MAX_FACES };
 
 // ================= ส่วนหน้าจอ =================
 if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof LQCam !== "undefined") (() => {

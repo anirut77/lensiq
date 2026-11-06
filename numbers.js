@@ -40,19 +40,21 @@
     const r = reduceDigit(sum), rd = KB.digits[r];
     const notable = (KB.sumNotable[kind] || KB.sumNotable.phone).indexOf(sum) >= 0;
     const plateCare = kind === "plate" && KB.plateCareSums.indexOf(sum) >= 0;
-    let grade, phrases, name, tags;
+    let grade, phrases, name, tags, plain;
     if (sum < 10) {
-      grade = ROOT_GRADE[sum]; phrases = rd.m.slice(); name = "เลข " + sum + " ดาว" + rd.planet; tags = ["personality"];
+      grade = ROOT_GRADE[sum]; phrases = rd.m.slice(); plain = phrases; name = "เลข " + sum + " ดาว" + rd.planet; tags = ["personality"];
     } else {
       const p = pairInfo(String(sum));
       grade = p.grade; name = p.name; tags = p.tags;
+      // plain = ความหมายล้วน (ใช้ในคำทำนาย ตัวเรียบเรียงเอ่ยชื่อ "ผลรวม NN" ให้เอง); phrases = มีคำนำ "ผลรวม NN …" สำหรับแสดงในหน้า
+      plain = p.phrases.slice();
       phrases = p.phrases.map((t, i) => KB.sumIntro[i % KB.sumIntro.length].replace(/\{s\}/g, sum) + " " + t);
     }
     if (notable && grade !== "G") grade = grade === "c" ? "n" : "G";
     if (plateCare && grade !== "c") grade = "n";
     const rootLine = "ทอนเป็นเลขโดดได้ " + r + " (" + rd.planet + ") หมายถึง" + rd.q;
     const extra = plateCare ? "ตามบางตำราผลรวมนี้ชวนให้ขับขี่อย่างใจเย็นและตรวจเช็กรถสม่ำเสมอ ซึ่งเป็นนิสัยดีของผู้ขับขี่ทุกคนอยู่แล้ว" : "";
-    return { sum, raw: s, root: r, grade, gradeTh: KB.grades[grade].th, pts: KB.grades[grade].pts, notable, name, tags, phrases, rootLine, extra };
+    return { sum, raw: s, root: r, grade, gradeTh: KB.grades[grade].th, pts: KB.grades[grade].pts, notable, name, tags, phrases, plain, rootLine, extra };
   }
 
   /** รูปแบบตัวเลขที่จดจำง่าย (ในช่วงที่วิเคราะห์) offset = ตำแหน่งเริ่มของช่วงในเลขเต็ม */
@@ -209,6 +211,8 @@
   // หัวข้อที่สำนวนหนึ่งพูดถึง (ดูจากคำในประโยค) — ใช้วางสำนวนให้ตรงหัวข้อ
   const TOPIC_WORDS = { love: /ความรัก|คนรัก|คู่รัก|แฟน|หัวใจ|ความสัมพันธ์|คนที่รัก|คู่ครอง/, money: /เงิน|ทรัพย์|รายได้|ลงทุน|การเงิน|ค้าขาย|ออม/, work: /งาน|อาชีพ|ตำแหน่ง|ธุรกิจ|ทีม/ };
   const phraseTopics = x => Object.keys(TOPIC_WORDS).filter(k => TOPIC_WORDS[k].test(x));
+  // สำนวนนี้วางใต้หัวข้อ t ได้ไหม: สำนวนกลาง ๆ ได้ทุกหัวข้อ, สำนวนที่พูดถึงหัวข้อใดได้เฉพาะหัวข้อนั้น (มิตรภาพรับสำนวนงานได้)
+  const fitsTag = (x, t) => { const on = phraseTopics(x); return !on.length || on.indexOf(t) >= 0 || (t === "social" && on.indexOf("love") < 0 && on.indexOf("money") < 0); };
   const noDigitRef = (x, lead) => String(x).replace(/^เลข \d+ ?/, lead);
   function buildFacts(r, topic, opts) {
     opts = opts || {};
@@ -221,7 +225,7 @@
       const plain = p.phrases.filter((x, i) => !(p.care && i === 1));
       const meanings = {};
       p.tags.forEach(t => {
-        const fit = plain.filter(x => { const on = phraseTopics(x); return !on.length ? true : on.indexOf(t) >= 0 || (t === "social" && on.indexOf("love") < 0 && on.indexOf("money") < 0) || t === "personality" && on.length === 0; });
+        const fit = plain.filter(x => fitsTag(x, t));
         if (fit.length) meanings[t] = fit;
       });
       if (!Object.keys(meanings).length) meanings[p.tags[0]] = plain;
@@ -250,18 +254,24 @@
       const base = s.sum < 10 ? rd.m.map(x => noDigitRef(x, "ผลรวมนี้")) : pairInfo(String(s.sum)).phrases;
       const rootLine = "เลขโดดหลังทอนเป็นของ" + rd.planet + " หมายถึง" + rd.q;
       sumItem = { id: "sum", group: "ผลรวม", label: "ผลรวม" + (s.sum < 10 ? "พลัง" + rd.planet : s.name), short: "ผลรวม", evidence: "ผลรวมระดับ" + s.gradeTh, strength: +(s.pts / 100 * 0.9).toFixed(3), tags: ["overview"].concat(s.tags), meanings: { overview: base.map(p => p + " " + rootLine) } };
-      s.tags.forEach(t => { sumItem.meanings[t] = base; });
+      s.tags.forEach(t => { const fit = base.filter(x => fitsTag(x, t)); sumItem.meanings[t] = fit.length ? fit : base; });
     } else {
-      sumItem = { id: "sum." + s.sum, group: "ผลรวม", label: "ผลรวม " + s.sum + " (" + s.name + ")", short: "ผลรวม " + s.sum, evidence: (r.kind === "name" || r.kind === "plate" ? "ผลรวมค่าอักษรและตัวเลข " : "ผลรวมทุกหลัก ") + s.raw + (s.raw !== s.sum ? " → " + s.sum : ""), strength: +(s.pts / 100 * 0.9).toFixed(3), tags: ["overview"].concat(s.tags), meanings: { overview: s.phrases.map(p => p + " " + s.rootLine) } };
-      s.tags.forEach(t => { sumItem.meanings[t] = s.phrases; });
+      const base = s.plain || s.phrases;
+      sumItem = { id: "sum." + s.sum, group: "ผลรวม", label: "ผลรวม " + s.sum + " (" + s.name + ")", short: "ผลรวม " + s.sum, evidence: (r.kind === "name" || r.kind === "plate" ? "ผลรวมค่าอักษรและตัวเลข " : "ผลรวมทุกหลัก ") + s.raw + (s.raw !== s.sum ? " → " + s.sum : ""), strength: +(s.pts / 100 * 0.9).toFixed(3), tags: ["overview"].concat(s.tags), meanings: { overview: base.map(p => p + " " + s.rootLine) } };
+      s.tags.forEach(t => { const fit = base.filter(x => fitsTag(x, t)); sumItem.meanings[t] = fit.length ? fit : base; });
     }
     if (s.extra) { sumItem.tags.push("advice"); sumItem.meanings.advice = [s.extra]; }
     top.push(sumItem);
     (r.patterns || []).slice(0, 3).forEach(p => {
       const dm = p.digit != null ? KB.digits[p.digit].m : null;
       const label = ai ? PATTERN_TH[p.id] || "รูปแบบจำง่าย" : p.label;
-      top.push({ id: "pattern." + p.id, group: "รูปแบบตัวเลข", label, evidence: ai ? "" : p.evidence, strength: 0.5, tags: ["personality"],
-        meanings: { personality: dm ? dm.map(x => label + " ช่วยขับพลังให้ชัดขึ้น: " + (ai ? noDigitRef(x, "") : x)) : [label + " ทำให้จำง่ายและติดหู", label + " ช่วยให้คนรอบตัวจดจำได้เร็ว", "รูปแบบ" + label + " สะท้อนความเป็นระเบียบและจังหวะที่ลงตัว"] } });
+      // ความหมายเฉพาะของรูปแบบนั้น (KB.patterns) — เลขซ้ำเพิ่มความหมายของเลขที่ซ้ำด้วย
+      const pm = KB.patterns[p.id] || { personality: [] }, meanings = {};
+      for (const t in pm) meanings[t] = pm[t].slice();
+      if (dm) meanings.personality.push("เรื่อง" + KB.digits[p.digit].q + "ถูกเน้นให้ชัดกว่าปกติ เพราะพลังของเลขที่ซ้ำทบกันหลายชั้น");
+      // ไม่มีเลข 0: หลักฐานคือเหตุผลตามตำรา (ข้อความในหน้าเว็บยังใช้ evidence เดิม)
+      const ev = ai ? "" : p.id === "nozero" ? "ตำราเลขศาสตร์มองเลข 0 เป็นช่องว่างของพลัง" : p.evidence;
+      top.push({ id: "pattern." + p.id, group: "รูปแบบตัวเลข", label, evidence: ev, strength: 0.5, tags: Object.keys(meanings), meanings });
     });
     if (r.kala && r.kala.length) {
       const kl = ai ? "บางตัว" : " " + r.kala.join(" ");

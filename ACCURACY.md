@@ -499,13 +499,82 @@ personal baseline, a fixed score cut-off does not transfer from the AI-generated
 **Bottom line.**
 
 - Per frame, on real photos, closed eyes caught rose from about **18–26% to 84%**. Open-eye frames called closed
-  against the driver's own baseline stayed at **0 of 682**.
+  against the driver's own baseline stayed at **0 of 682**. *Round 6 correction: that figure calibrates and tests on
+  jittered copies of the same photo, so it only measures frame-to-frame noise. Calibrating on one photo and testing on
+  another photo of the same person gives **12.5%** — see "Round 6" below.*
 - 95% upper bound on that false-alarm rate: about 0.5% per frame. Long-closure alerts need 1.5 s of consecutive closed
   frames, so single false frames do not raise alerts.
 - Still not tested: video of real drowsy drivers, looking down, glasses, and IR or night cabins. A driver who calibrates
   with half-closed eyes, or the 4% whose calibration frames look closed, falls back to EAR.
 - CEW photos are 100 px faces upscaled; video crops of a driver close to the camera are sharper.
 - The page is a driver-assistance demo, not a safety device.
+
+### Round 6: honest false-alarm benchmark and an adaptive baseline
+
+**Why the round-5 headline was optimistic.** "0 of 682" calibrated each person on 8 jittered copies of one open-eye
+photo and tested on the same photo. Real driving differs from the 5-second calibration in light, pose and camera
+position, and that shift is what causes false alarms.
+
+**New benchmark** (`tests/bench/driver-session.bench.mjs`). CEW's open-eye faces are cut from LFW, with LFW file names
+kept. So for 349 people we have one photo that CEW verified as open-eyed, plus 1–3 other LFW photos of the same person.
+Each pair is calibrated on another photo (session A, 8 jittered frames, `calibrate()`). It is then tested on the
+CEW-verified open photo (session B, 8 different jittered frames). That gives 643 pairs. Everything runs at LFW's native
+250 px through the page pipeline (TinyFaceDetector 224 + landmarks + eye patches). The calibration photos are not labelled
+for eye state. A blink in one would raise that person's baseline, which can hide a false alarm but not create one.
+
+| calibration → driving | pairs / people | open frames | open frames called closed | people with ≥ 1 false frame |
+| --- | --- | --- | --- | --- |
+| same photo, other jitter (round-5 method) | 349 / 349 | 2,751 | 0.36% (10) | 10 |
+| **different photo of the same person** | 643 / 349 | 5,058 | **12.50%** (632) | 118 |
+| no personal baseline: pooled median of everyone's calibration (−2.96) + 3 | — | 5,058 | 10.41% | — |
+| no personal baseline: fixed score > 3 | — | 5,058 | 1.97% | — |
+
+The fixed score > 3 rule gave 4.1% on CEW's own 100 px crops (the evaluator's figure) and 2.0% on these LFW frames.
+Between two photos of the same person, the median open-eye score moves by −3.6 / −0.3 / +3.0 / +6.0 (p10 / p50 / p90 /
+p99). In 10.3% of pairs it moves by more than `eyeDelta` (3), so a baseline fixed at calibration is only as good as the
+calibration light.
+
+**What changed** (`driver.js`, `createMonitor`). The eye-score threshold now follows the trip: it is the larger of
+the calibration threshold and (20th percentile of the last 10 s of eye scores) + `eyeDelta`, with a cap of calibration
++ 6 (`eyeAdaptive`, `eyeAdaptWindowMs`, `eyeAdaptQ`, `eyeAdaptMaxRise`; `adaptiveEyeBase()`).
+
+- It can only rise, so it never becomes more sensitive than calibration.
+- It starts only once the window is 80% full (8 s), so a closure right after calibration is not absorbed.
+- A low percentile moves only when eyes are closed for more than 80% of the window. A 1.5-s long-closure alert and a
+  3-s danger alert fire well before that.
+- The blink, microsleep, long-closure and PERCLOS timing rules are unchanged.
+
+**Simulated drives** (15 fps through `createMonitor`, 643 pairs, seeded). There are three scenarios:
+
+- Open eyes for 10 min on session-B frames. The trip starts in light that differs from calibration, so every alert is
+  false.
+- 2 min on session A, then 2 min on session B. This models a light change mid-trip; alerts in the B half are false.
+- Drowsy: 1 min open, then 5 min with a 2-s closure every 12 s (PERCLOS ≈ 17%). The closed frames are CEW closed-eye
+  photos of other people, so these rates are approximate.
+
+| monitor | open frames called closed | false alarms / min (long closure + PERCLOS) | pairs with ≥ 1 false alarm in 10 min | microsleeps / min | false alarms per mid-trip light change | drowsy: 2-s closures alerted | drowsy: PERCLOS alert raised |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| fixed baseline (round 5) | 12.65% | 0.123 | 147 / 643 | 1.195 | 0.428 | 32.4% | 75.6% |
+| **adaptive, 20th pct of 10 s (default)** | **1.92%** | **0.024** | 108 / 643 | **0.044** | **0.110** | 25.1% | 72.9% |
+| adaptive, 35th pct of 10 s | 1.26% | 0.022 | 100 / 643 | 0.038 | 0.073 | 23.0% | 71.7% |
+| adaptive, median of 10 s | 1.06% | 0.022 | 96 / 643 | 0.037 | 0.062 | 21.2% | 70.5% |
+| adaptive, 20th pct of 30 s | 2.24% | 0.031 | 134 / 643 | 0.076 | 0.236 | 24.9% | 74.0% |
+
+Per frame, CEW closed-eye photos caught against each pair's threshold: fixed 86.3%, adaptive 83.8%.
+
+**Bottom line.**
+
+- When the drive does not match calibration, false alarms drop about 5× with the adaptive baseline: 0.12 → 0.024 per
+  minute (7.4 → about 1.4 per hour). Microsleep notices drop 27×. A light change mid-trip now causes 0.11 false alarms
+  instead of 0.43.
+- That is still **not zero**. About 1 in 6 simulated 10-minute drives had at least one false alarm, mostly in the first
+  8 s, before the window fills, and from PERCLOS.
+- The cost is sensitivity: 2-s closures alerted fell from 32% to 25%, and per-frame catch from 86% to 84%, in this
+  approximate drowsy simulation. The 20th percentile was kept rather than the median because it is the hardest for real
+  closures to pull up.
+- Recalibrating after a big light change ("ปรับเทียบใหม่") remains the best fix.
+- Still not tested: video of real drowsy drivers, and IR or night cabins. Still photos jittered into "video" do not
+  reproduce real blink dynamics.
 
 ## 6. Facial expression (neuro)
 

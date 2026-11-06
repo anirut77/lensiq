@@ -429,6 +429,7 @@ const QC = (() => {
   function pChart(log, { lane = null, size = 20 } = {}) {
     size = Math.max(2, Math.round(size) || 20);
     const L = (log || []).filter(l => l && (lane == null || (l.lane || "L1") === lane));
+    /** @type {{i: number, n: number, d: number, p: number, t0: number, t1: number, ucl?: number, lcl?: number, out?: boolean}[]} */
     const groups = [];
     for (let i = 0; i < L.length; i += size) {
       const g = L.slice(i, i + size), d = g.filter(l => !l.pass).length;
@@ -864,9 +865,9 @@ if (typeof document !== "undefined") (() => {
     video = curLane.idx === 0 ? domVideo : null; lanes[0].video = domVideo;
   }
   function showSourceUi() {
-    document.querySelectorAll("[data-src]").forEach(el => { el.hidden = !el.dataset.src.split(" ").includes(source); });
+    document.querySelectorAll("[data-src]").forEach(/** @param {HTMLElement} el */ el => { el.hidden = !el.dataset.src.split(" ").includes(source); });
     const multi = nLanes() > 1;
-    document.querySelectorAll("[data-single]").forEach(el => { if (multi) el.hidden = true; });
+    document.querySelectorAll("[data-single]").forEach(/** @param {HTMLElement} el */ el => { if (multi) el.hidden = true; });
   }
   function fillCamSel() {
     const sel = $("#camSel"), keep = cam.deviceId || sel.value, devs = cam.devices.filter(d => d.deviceId);
@@ -1410,7 +1411,7 @@ if (typeof document !== "undefined") (() => {
   }
   function fillThumbs() {
     if (!idbOk) return;
-    document.querySelectorAll("#rejects img[data-ik]").forEach(im => {
+    document.querySelectorAll("#rejects img[data-ik]").forEach(/** @param {HTMLImageElement} im */ im => {
       const k = im.dataset.ik; im.removeAttribute("data-ik");
       IDB.get("thumbs", k).then(u => { if (u) { thumbUrls.set(k, u); im.src = u; } }).catch(() => {});
     });

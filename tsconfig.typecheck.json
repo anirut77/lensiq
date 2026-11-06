@@ -21,6 +21,7 @@
   },
   "files": [
     "types/lensiq-globals.d.ts",
+    "types/lensiq-pages.d.ts",
     "lensiq-i18n.js",
     "lensiq-agg.js",
     "lensiq-facevault.js",
@@ -98,6 +99,10 @@
     "i18n/zh-rt-store.js",
     "i18n/zh-signage.js",
     "i18n/zh-store.js",
-    "i18n/zh-studio.js"
+    "i18n/zh-studio.js",
+    "converter.js",
+    "checkout.js",
+    "qc.js",
+    "booth.js"
   ]
 }

@@ -393,7 +393,7 @@
         if (d2 < 9) h += FD[q + 5] * Math.exp(-d2) * Math.sin(Math.PI * Math.min(1, t * 1.2 + .1));
       }
       const sv = sm[k * 4 + 3] / 255; seamA[k] = sv; h -= smB[k * 4 + 3] / 255 * .03;
-      if (form) h += .18 * Math.sqrt(Math.max(0, 1 - (p.x / 2.3) ** 2)) + fiberTile()[4][(((j + y0) & 255) << 8) | ((i + x0) & 255)] * .03 + fiberTile()[3][((((j + y0) >> 1) & 255) << 8) | (((i + x0) >> 1) & 255)] * .012; // ลำตัวโค้ง + ผ้าทิ้งตัวไม่เรียบสนิท (คลื่นผ้ากว้าง + ย่อย)
+      if (form) h += .18 * Math.sqrt(Math.max(0, 1 - (p.x / 2.3) ** 2)) + fiberTile()[4][(((j + y0) & 255) << 8) | ((i + x0) & 255)] * .014; // ลำตัวโค้ง + ผ้าทิ้งตัวไม่เรียบสนิท (คลื่นผ้ากว้าง + ย่อย)
       Ht[k] = h * s; // เป็นพิกเซล
     }
     const L = norm3(light.x, -.8, .75), flat = L[2], amb = .36, kd = .78, out = new ImageData(bw, bh), o = out.data;
@@ -410,7 +410,7 @@
       const spec = f.sheen ? Math.pow(Math.max(0, n0 * hv[0] + n1 * hv[1] + n2 * hv[2]), 18) * f.sheen : 0;
       // เนื้อผ้า: noise แบบเส้นด้าย (ยืดตามแนวเส้นยืน) ละเอียดระดับพิกเซล แทนลายเส้นทแยงสม่ำเสมอ
       const X = i + x0, Y = j + y0, tile = TL, ti = ((Y & 255) << 8) | (X & 255), twill = tile[0][ti] * f.twill * 1.6 + tile[1][ti] * f.twill * .9 + Math.sin((X + Y) * 2 * Math.PI / Math.max(2.2, tw)) * f.twill * .25;
-      const p = { x: PX[k], y: PY[k] }, mott = tile[3][ti] * f.mottle * 2 + tile[2][ti] * f.mottle;
+      const p = { x: PX[k], y: PY[k] }, mott = tile[3][ti] * f.mottle * .8 + tile[2][ti] * f.mottle * .6; // ด่างผ้าเบา ๆ (ไม่เป็น "คราบเมฆ" บนผ้าสีอ่อน)
       // แสงรวมแบบสตูดิโอ: ด้านบน/กลางอกสว่าง ล่างและด้านข้างค่อย ๆ มืดลง
       const fall = 1 - .1 * smooth01((p.y - .6) / 5) - .05 * smooth01((Math.abs(p.x) - 1.1) / 1.2);
       const m = sh * fall * (1 + twill + mott);

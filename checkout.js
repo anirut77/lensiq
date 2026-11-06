@@ -735,9 +735,9 @@ if (typeof document !== "undefined") (() => {
     if (!row) return;
     const n = countOf(label);
     row.querySelector(".cnt").textContent = n;
-    row.querySelector(".meter i").style.width = Math.min(100, n / CFG.RECOMMENDED * 100) + "%";
+    /** @type {HTMLElement} */ (row.querySelector(".meter i")).style.width = Math.min(100, n / CFG.RECOMMENDED * 100) + "%";
     row.classList.toggle("enough", n >= CFG.RECOMMENDED);
-    const th = row.querySelector(".thumb"), p = pById(label);
+    const th = /** @type {HTMLElement} */ (row.querySelector(".thumb")), p = pById(label);
     if (p?.thumb && th && !th.style.backgroundImage) th.style.backgroundImage = `url(${p.thumb})`;
   }
   function startCapture(label, btn) {
@@ -920,6 +920,7 @@ if (typeof document !== "undefined") (() => {
 
   // ตั้งค่าความไว
   function saveSettings() { LS.set("settings", settings); }
+  /** @type {[string, (v: number) => string][]} */
   const SLIDERS = [["minSim", v => v.toFixed(2)], ["minConf", v => Math.round(v * 100) + "%"], ["stableMs", v => (v / 1000).toFixed(1) + " วิ"]];
   function syncSliders() { SLIDERS.forEach(([k, f]) => { $("#set-" + k).value = settings[k]; $("#out-" + k).textContent = f(+settings[k]); }); }
   SLIDERS.forEach(([k, f]) => {

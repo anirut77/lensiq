@@ -54,11 +54,11 @@ async function convertOnServer(file) {
   let res;
   try { res = await fetch("/api/convert", { method: "POST", body: fd }); }
   catch (e) { e.network = true; throw e; }
-  if (res.status === 404 || res.status === 405 || res.status === 501) { const e = new Error("no server"); e.network = true; throw e; }
+  if (res.status === 404 || res.status === 405 || res.status === 501) { const e = /** @type {Error & {network?: boolean}} */ (new Error("no server")); e.network = true; throw e; }
   if (!res.ok) {
     let msg = "แปลงไม่สำเร็จ";
     try { msg = (await res.json()).error || msg; } catch {}
-    const e = new Error(msg); e.server = true; throw e;
+    const e = /** @type {Error & {server?: boolean}} */ (new Error(msg)); e.server = true; throw e;
   }
   return res.blob();
 }
@@ -95,7 +95,7 @@ async function convert(file, onProgress) {
   }
   const all = pages.flat();
   if (!all.length) {
-    const e = new Error("ไม่พบข้อความ (อาจเป็น PDF ภาพสแกน ต้องทำ OCR ก่อน)");
+    const e = /** @type {Error & {code?: string}} */ (new Error("ไม่พบข้อความ (อาจเป็น PDF ภาพสแกน ต้องทำ OCR ก่อน)"));
     e.code = "SCANNED"; throw e;
   }
 
@@ -114,7 +114,7 @@ async function convert(file, onProgress) {
       const newPara = !cur || heading || cur.heading || gap > Math.max(prev.size, l.size) * 1.7;
       if (newPara) {
         flush();
-        cur = {
+        cur = /** @type {{heading: boolean, text: string, size: number, pb?: boolean, build(): any}} */ ({
           heading, text: l.text, size: l.size,
           build() {
             return new Paragraph({
@@ -123,7 +123,7 @@ async function convert(file, onProgress) {
               children: [new TextRun({ text: this.text, bold: this.heading, size: Math.round(this.size * 2) })]
             });
           }
-        };
+        });
         if (!prev && pi > 0) cur.pb = true;
       } else {
         // ต่อบรรทัดในย่อหน้าเดียวกัน ไม่ใส่ช่องว่างให้ภาษาไทยต่อกัน

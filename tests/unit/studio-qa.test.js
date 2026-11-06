@@ -77,9 +77,33 @@ test("floatingHand: a hand shown far from any garment is flagged; a hand on the 
 test("neckJoin: a background notch between the collar and the jaw, and a half-transparent collar fringe, are measured", () => {
   const fg = fill(W, H, (x, y) => (y > 70 && !(y > 85 && y < 95 && Math.abs(x - 112) < 5) ? 1 : 0)), keepA = fill(W, H, (x, y) => (y < 80 ? 1 : 0));
   const front = fill(W, H, (x, y) => (y > 95 ? 1 : Math.abs(x - 90) < 6 && y > 85 && y <= 95 ? .3 : 0));
-  const r = Q.neckJoin({ fg, frontA: front, keepA, W, H, face, fit });
+  // ช่องที่ขอบทั้งสองข้างเป็นคอ (neckA) = รูในคอ; ช่องเดียวกันที่ข้าง ๆ ไม่ใช่ผิว (เช่น ผม) ไม่นับ
+  const neckA = fill(W, H, (x, y) => (y >= 80 && y <= 95 && Math.abs(x - 112) < 30 ? 1 : 0));
+  const r = Q.neckJoin({ fg, frontA: front, keepA, W, H, face, fit, neckA });
+  assert.equal(Q.neckJoin({ fg, frontA: front, keepA, W, H, face, fit, neckA, hair: neckA }).gapPct, 0, "gap bounded by hair is real background");
   assert.ok(r.gapPct > Q.LIMITS.neckJoinGap, "notch " + r.gapPct);
   assert.ok(r.fringePct > 0, "fringe " + r.fringePct);
   const clean = Q.neckJoin({ fg: fill(W, H, (x, y) => (y > 70 ? 1 : 0)), frontA: fill(W, H, (x, y) => (y > 95 ? 1 : 0)), keepA, W, H, face, fit });
   assert.equal(clean.gapPct, 0);
+});
+
+test("neckFlat / strayParts / leftover: flat synthetic neck, detached fragment and plain leftover garment colour are measured", () => {
+  const neckA = fill(W, H, (x, y) => (Math.abs(x - 100) < 18 && y >= 80 && y < 120 ? 1 : 0)), zero = new Float32Array(W * H);
+  const flat = Q.neckFlat({ out: rgbaFill(W, H, () => [150, 100, 80]), neckA, frontA: zero, keepA: zero, W, H, face });
+  assert.ok(flat.cv < Q.LIMITS.neckFlatCv && flat.area > Q.LIMITS.neckFlatArea, JSON.stringify(flat));
+  const tex = Q.neckFlat({ out: rgbaFill(W, H, (x, y) => [150 + ((x * 13 + y * 7) % 90) - 45, 100, 80]), neckA, frontA: zero, keepA: zero, W, H, face });
+  assert.ok(tex.cv > Q.LIMITS.neckFlatCv, "textured " + tex.cv);
+  const fg = fill(W, H, (x, y) => (Math.abs(x - 100) < 60 && y > 20 ? 1 : (x - 10) ** 2 + (y - 220) ** 2 < 40 ? 1 : 0));
+  assert.ok(Q.strayParts({ fg, W, H, face }) > Q.LIMITS.stray, "detached fragment");
+  const keepA = fill(W, H, (x, y) => (y > 150 && y < 170 && Math.abs(x - 100) < 15 ? 1 : 0));
+  assert.ok(Q.leftover({ keepA, src: rgbaFill(W, H, () => [20, 30, 70]), W, H, face, hands: null, hair: null }) > Q.LIMITS.leftover, "plain leftover patch");
+});
+
+test("neckNotch: a face cut flat and wide above a narrow neck column is a stepped notch; a rounded jaw tapering into the neck is not", () => {
+  const zero = new Float32Array(W * H), neckA = fill(W, H, (x, y) => (Math.abs(x - 100) < 12 && y >= 70 && y < 110 ? 1 : 0));
+  const flat = fill(W, H, (x, y) => (y < 80 && Math.abs(x - 100) < 30 ? 1 : 0));
+  const r = Q.neckNotch({ keepA: flat, neckA, frontA: zero, W, H, face, collarY: 105 });
+  assert.ok(r.maxJump > Q.LIMITS.neckNotch, JSON.stringify(r));
+  const round = fill(W, H, (x, y) => (y < 80 && Math.abs(x - 100) < 12 + 18 * Math.sqrt(Math.max(0, 1 - ((y - 50) / 30) ** 2)) ? 1 : 0));
+  assert.equal(Q.neckNotch({ keepA: round, neckA, frontA: zero, W, H, face, collarY: 105 }).maxJump, 0);
 });

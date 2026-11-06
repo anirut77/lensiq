@@ -103,6 +103,7 @@ LQ_BENCH_DATA=~/lq-bench-data node tests/bench/face.bench.mjs   [--json out.json
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/face1n.bench.mjs [--json out.json]   # 1:N round 4: full LFW (tuning) + CASIA-FaceV5 (Asian, held out)
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/hand.bench.mjs   [--json out.json]   # HaGRID subset (hagrid/index.json)
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/driver.bench.mjs [--json out.json]   # eye closure (EAR): oceyes (ODC-BY) + CEW
+LQ_BENCH_DATA=~/lq-bench-data node tests/bench/driver-session.bench.mjs [--minutes 10] [--json out.json]   # eye closure: calibrate on one LFW photo, drive on another (needs lfwfull + cew); alarms/min on simulated drives
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/neuro.bench.mjs  [--json out.json]   # expressions: FER-2013 sample (eval only)
 node tests/bench/qc.bench.mjs       [--cond light] [--json out.json]   # synthetic bottles vs qc.js inspect (no data, ~15 min)
 node tests/bench/checkout.bench.mjs [--n 60] [--json out.json]         # synthetic EAN-13/UPC-A/Code 128 vs BarcodeDetector

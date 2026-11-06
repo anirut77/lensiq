@@ -109,3 +109,47 @@ test("createMonitor: a sustained classifier closure still needs the page's durat
   assert.ok(ev.some(e => e.type === "long_closure"));
   assert.ok(!ev.some(e => e.type === "long_closure" && e.t !== 0));
 });
+
+test("adaptiveEyeBase: low percentile of recent scores, null below the sample minimum", () => {
+  assert.equal(D.adaptiveEyeBase([1, 2, 3], 0.2, 15), null);
+  const s = Array.from({ length: 20 }, (_, i) => i); // 0..19
+  assert.equal(D.adaptiveEyeBase(s, 0.2, 15), 3);
+  assert.equal(D.adaptiveEyeBase([...s, NaN, NaN], 0.5, 15), 9, "NaN (no crop) ignored");
+});
+
+/* round 6: open eyes whose score drifts above the calibration threshold (light or pose changed after calibration) */
+const run = (mon, from, to, score, step = 100) => { const out = { ev: [], closed: 0, n: 0, last: null };
+  for (let t = from; t < to; t += step) { const r = mon.update({ t, face: true, ear: 0.3, mar: 0.1, yaw: 0, pitch: 1, eyeScore: score(t) }); out.ev.push(...r.events); out.n++; if (r.metrics.closed) out.closed++; out.last = r.metrics; }
+  return out; };
+const jit = t => ((t * 7919) % 1000) / 1000 - 0.5; // deterministic ±0.5 noise
+
+test("createMonitor adaptive baseline: open eyes after a +4 session shift stop being called closed; fixed baseline keeps alarming", () => {
+  const cal = { thr: 0.25, eyeThr: -3 + D.DR_DEFAULTS.eyeDelta }; // calibrated at -3 -> threshold 0
+  const score = t => (t < 60000 ? -3 : 1) + jit(t);              // after 60 s the open-eye level moves to +1 (> threshold)
+  const fixed = run(D.createMonitor(cal, { eyeAdaptive: false }), 0, 180000, score);
+  const adapt = run(D.createMonitor(cal), 0, 180000, score);
+  assert.ok(fixed.ev.some(e => e.type === "long_closure" || e.type === "perclos"), "round-5 rule raises false alarms");
+  assert.ok(adapt.closed / adapt.n < 0.1, `adaptive: ${adapt.closed}/${adapt.n} frames closed`);
+  assert.ok(adapt.last.eyeThrNow > 1 && adapt.last.eyeThrNow <= 0 + D.DR_DEFAULTS.eyeAdaptMaxRise);
+  assert.ok(adapt.ev.filter(e => e.type === "long_closure").length <= 1, "at most one alert while the window catches up");
+  assert.equal(adapt.ev.filter(e => e.type === "long_closure" && e.t > 75000).length, 0);
+});
+
+test("createMonitor adaptive baseline: real closures are still caught (threshold only rises, low percentile resists closures)", () => {
+  const cal = { thr: 0.25, eyeThr: 0 };
+  // open at -3, then a 2-s closure (+6) every 12 s for 3 minutes (PERCLOS ≈ 17%)
+  const score = t => (t > 30000 && (t - 30000) % 12000 < 2000 ? 6 : -3) + jit(t);
+  const r = run(D.createMonitor(cal), 0, 210000, score);
+  const lc = r.ev.filter(e => e.type === "long_closure");
+  assert.equal(lc.length, 15, "every 2-s closure raises long_closure");
+  assert.ok(r.ev.some(e => e.type === "perclos"));
+  assert.ok(Math.abs(r.last.eyeThrNow - 0) < 1e-9, "baseline stayed at the calibration level");
+});
+
+test("createMonitor adaptive baseline: never lowers the threshold, never absorbs a closure from the start of the trip", () => {
+  const low = run(D.createMonitor({ thr: 0.25, eyeThr: 0 }), 0, 30000, t => -8 + jit(t));
+  assert.equal(low.last.eyeThrNow, 0);
+  const start = run(D.createMonitor({ thr: 0.25, eyeThr: 0 }), 0, 4000, () => 4);
+  assert.ok(start.ev.some(e => e.type === "long_closure" && e.level === 3), "4 s closed from t=0 reaches danger level");
+  assert.equal(start.closed, start.n);
+});

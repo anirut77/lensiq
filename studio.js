@@ -331,6 +331,8 @@
       if (P.skin) ST.hands = SC.handsMask(ST.px, ST.alpha, P.skin, W, H, face, { mono: monoImg });
       ST.neckM = SC.neckMeasure(ST.alpha, ST.layers, W, H, face);
       ST.clothSh = SC.clothShading(ST.px, ST.alpha, ST.layers, W, H, face);
+      // แสงเงาจากเสื้อเดิม: เก็บเฉพาะความถี่ต่ำ (ลายทาง/ลวดลายเสื้อเดิมไม่กลายเป็น "คราบเมฆ" บนชุดสีอ่อน)
+      if (ST.clothSh) { const b = SC.blur3(ST.clothSh, W, H, Math.max(2, Math.round(face.fw * .05))); for (let i = 0; i < W * H; i++) ST.clothSh[i] = SC.clamp(1 + (b[i] - 1) * .7, .88, 1.08); }
       ST.fitAuto = SC.measureShoulders(ST.alpha, W, H, face, { keep: ST.layers.keep, hair: ST.layers.hair, neck: ST.layers.neck, canon: PBOutfits.CANON });
       ST.body = { left: ST.fitAuto.l, right: ST.fitAuto.r, neck: { x: ST.fitAuto.N.x, y: ST.fitAuto.N.y }, width: ST.fitAuto.width, theta: ST.fitAuto.theta, ok: ST.fitAuto.measured };
       ST.masks = SC.faceMasks(ST.px, W, H, face, ST.alpha);
@@ -548,6 +550,9 @@
         const HS = g.kind === "vector" || (g.anchors && g.anchors.length >= 5) ? ST.handsUsed : ST.hands;
         if (HS) for (let i = 0; i < n; i++) if (HS[i] > 0) keepA[i] = Math.max(keepA[i], pA[i] * HS[i]);
         const fA = new Float32Array(n); for (let i = 0; i < n; i++) fA[i] = front[i * 4 + 3] / 255;
+        // เศษที่หลุดจากตัว (ถุงมือ/วัตถุ/สีชุดเดิม) และช่องฉากหลังระหว่างกราม-คอเสื้อ
+        { const cover = new Float32Array(n); for (let i = 0; i < n; i++) cover[i] = Math.max(fA[i], neck ? neck.alpha[i] : 0); SC.removeStrayIslands(keepA, cover, W, H, Math.round(f.fw * f.fw * .15)); }
+        if (neck) { neck = { ...neck, rgba: new Uint8ClampedArray(neck.rgba), alpha: new Float32Array(neck.alpha) }; SC.fillNeckGaps(neck, keepA, fA, W, H, f, (neck.yCollar || f.chinY + f.fw * .4) + f.fw * .15, ST.harm.skinRGB, ST.layers.hair); }
         neckShade = SC.contactShadow(fA, W, H, f, { chin: .3 * sv, collar: .38 * sv });
         const hairA = new Float32Array(n); for (let i = 0; i < n; i++) hairA[i] = keepA[i] * Ly.hair[i];
         gShade = sv > 0 ? SC.hairShadow(hairA, W, H, f.fw, { amount: .32 * sv }) : null;
