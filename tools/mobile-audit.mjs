@@ -134,7 +134,8 @@ if (argv.includes("--selftest")) {
     await page.send("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: 2, mobile: true });
     await page.goto(`${srv0.base}/converter.html?nosw`);
     await page.evaluate(() => {
-      document.body.innerHTML = '<div id="bad" style="width:3.2em;font-size:16px;word-break:break-all">แดชบอร์ดรวม</div>' +
+      // contenteditable opts the planted bad case out of nav.js's Thai word wrapper (which would otherwise fix it)
+      document.body.innerHTML = '<div id="bad" contenteditable="false" style="width:3.2em;font-size:16px;word-break:break-all">แดชบอร์ดรวม</div>' +
         '<div id="ok" style="width:70px;font-size:16px">แดชบอร์ดรวมสรุปผลจากทุกระบบ</div>' +
         '<p style="font-size:10px">ตัวเล็กเกินไป</p><button style="width:30px;height:30px;min-height:0;min-width:0;padding:0">x</button>' +
         '<div style="width:600px">กว้างเกินจอ</div>';
