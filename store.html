@@ -2,21 +2,21 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="store.s1">วิเคราะห์หน้าร้าน | LENSIQ</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="styles.css?v=8">
 <link rel="stylesheet" href="store.css?v=6">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=11"></script>
+<script src="nav.js?v=12"></script>
 <script src="i18n/zh-store.js?v=1"></script>
+<script src="lensiq-i18n-rt.js?v=1"></script>
+<script src="i18n/zh-rt-common.js?v=1"></script>
+<script src="i18n/zh-rt-store.js?v=1"></script>
 
 <main class="st">
   <h1 data-i18n="store.s2">วิเคราะห์หน้าร้าน</h1>
@@ -123,7 +123,7 @@
         <label><span data-i18n="store.s56">เป้ารอคิวไม่เกิน (วินาที, 0 = ไม่ใช้)</span><input name="queueSlaSec" type="number" min="0" inputmode="numeric"></label>
         <label><span data-i18n="store.s57">เป้าคนเข้าต่อชั่วโมง (คน, 0 = ไม่ใช้)</span><input name="hourlyTarget" type="number" min="0" inputmode="numeric"></label>
         <label><span data-i18n="store.s58">คนตัวเล็ก/อยู่ไกล (กล้องที่เลือก)</span><select name="tiles"><option value="" data-i18n="store.s59">ปกติ – ตรวจทั้งภาพ (เร็วที่สุด)</option><option value="2x1" data-i18n="store.s60">แบ่งภาพซ้าย–ขวา – เห็นคนไกลขึ้น ช้าลงราว 3 เท่า</option><option value="2x2" data-i18n="store.s61">แบ่งภาพ 4 ส่วน – เห็นคนไกลที่สุด ช้าลงราว 5 เท่า (เหมาะกับกล้องตัวเดียว)</option></select></label>
-        <p class="hint"><span data-i18n="store.s62">โมเดลตรวจจับคนย่อภาพเหลือ 300×300 จุดเสมอ คนที่ตัวเล็กในภาพ (สูงไม่ถึงราว 1 ใน 5 ของภาพ) จึงหลุดบ่อย การแบ่งภาพช่วยให้เห็นคนไกลขึ้นแต่ประมวลผลช้าลง ดูผลวัดได้ที่</span> <a href="cameras.html#accuracy" data-i18n="store.s63">ความแม่นยำที่วัดได้</a></p>
+        <p class="hint"><span data-i18n="store.s62">ตัวตรวจจับคน YOLOX-Nano (ค่าเริ่มต้น) ย่อภาพเหลือ 416×416 จุด คนที่สูงไม่ถึงราว 1 ใน 10 ของภาพจึงยังหลุดบ่อย การแบ่งภาพช่วยให้เห็นคนไกลขึ้นแต่ประมวลผลช้าลง (ใช้ ?coco เพื่อใช้ COCO-SSD ตัวเดิม) ดูผลวัดได้ที่</span> <a href="cameras.html#accuracy" data-i18n="store.s63">ความแม่นยำที่วัดได้</a></p>
       </form>
       <p class="form-msg" id="setMsg" role="status"></p>
       <div class="row-actions">
@@ -191,10 +191,11 @@
 <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
 
 <script src="vendor/face-api.js"></script>
-<script src="lensiq-track.js?v=2"></script>
+<script src="lensiq-track.js?v=3"></script>
 <script src="lensiq-camera.js?v=2"></script>
-<script src="lensiq-detect.js?v=2"></script>
+<script src="vendor/ort/ort.wasm.min.js"></script>
+<script src="lensiq-detect.js?v=3"></script>
 <script src="lensiq-agg.js?v=1"></script>
-<script src="store.js?v=8"></script>
+<script src="store.js?v=9"></script>
 </body>
 </html>

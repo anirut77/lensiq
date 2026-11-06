@@ -233,7 +233,7 @@ test("borderKeyAlpha: subject on a plain backdrop -> opaque inside, transparent 
 const fill = (w, h, f) => { const a = new Float32Array(w * h); for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) a[y * w + x] = f(x, y); return a; };
 
 test("composeLayers: order is bg -> back collar -> neck -> garment -> head+hair (hair falls over the garment, no straight cut)", () => {
-  const w = 60, h = 60, n = w * h;
+  const w = 60, h = 60;
   const bg = rgbaFill(w, h, () => [0, 0, 255]), person = rgbaFill(w, h, (x, y) => y < 20 ? [200, 150, 120] : [40, 20, 10]); // face / dark hair
   const front = rgbaFill(w, h, (x, y) => y >= 30 ? [30, 60, 30, 255] : [0, 0, 0, 0]);
   const back = rgbaFill(w, h, (x, y) => y >= 24 ? [250, 250, 250, 255] : [0, 0, 0, 0]);
@@ -290,9 +290,12 @@ test("measureShoulders: width from the silhouette (clamped to 2.5–3.3 face wid
   const t2 = torso(w, h, { width: 3, tilt: .12 }), m2 = S.measureShoulders(t2.a, w, h, face, { keep: t2.keep });
   assert.ok(Math.abs(m2.theta - .12) < .04, "tilt " + m2.theta);
   assert.ok(m2.r.y > m2.l.y, "right shoulder lower");
-  // much too wide (crossed arms / bulky jacket) -> clamped by the face-width prior
+  // wider than any real shoulders (spacesuit / thick coat, > 3.8 face widths) -> a normal 3.0 width (new garment does not balloon)
   const t3 = torso(w, h, { width: 4.4 }), m3 = S.measureShoulders(t3.a, w, h, face, { keep: t3.keep });
-  assert.ok(Math.abs(m3.width - 3.3 * 60) < 1, "clamped " + m3.width / 60);
+  assert.ok(Math.abs(m3.width - 3.0 * 60) < 1, "bulky -> normal width " + m3.width / 60);
+  // a little too wide (broad jacket, 3.6) -> clamped by the face-width prior
+  const t5 = torso(w, h, { width: 3.6 }), m5 = S.measureShoulders(t5.a, w, h, face, { keep: t5.keep });
+  assert.ok(Math.abs(m5.width - 3.3 * 60) < 1, "clamped " + m5.width / 60);
   // long hair over the shoulders: samples under the hair are skipped, level stays the same as without hair
   const t4 = torso(w, h, { width: 3, hair: true }), m4 = S.measureShoulders(t4.a, w, h, face, { keep: t4.keep, hair: t4.hair });
   assert.ok(Math.abs(m4.line.a - m1.line.a) < 4 && Math.abs(m4.width - m1.width) < 8, `hair-robust a ${m4.line.a} vs ${m1.line.a}, w ${m4.width} vs ${m1.width}`);

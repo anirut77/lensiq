@@ -2,20 +2,17 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="pb.title">ตู้ถ่ายรูป | LENSIQ</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="styles.css?v=8">
 <link rel="stylesheet" href="photobooth.css?v=9">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=11"></script>
+<script src="nav.js?v=12"></script>
 
 <main class="pb">
   <h1 data-i18n="pb.h1">ตู้ถ่ายรูป</h1>
@@ -65,7 +62,7 @@
     <!-- พื้นที่กล้อง/พรีวิว (ใช้ร่วมกันทั้ง 2 โหมด) -->
     <section class="card stage">
       <div class="preview">
-        <canvas id="preview" width="800" height="600" aria-label="ภาพจากกล้อง"></canvas>
+        <canvas id="preview" width="800" height="600" aria-label="ภาพจากกล้อง" data-i18n-attr="aria-label:pb.preview.aria"></canvas>
         <div class="guide" id="idGuide" hidden></div>
         <div class="count" id="count" aria-live="assertive"></div>
         <div class="flash" id="flash"></div>
@@ -74,7 +71,7 @@
       <button class="btn primary full big shutter" id="shoot" type="button" data-i18n="pb.shoot"><span aria-hidden="true">📸</span> ถ่ายภาพ</button>
       <p class="hint" id="shootHint"><span data-i18n="pb.shootHint">ยืนห่างกล้องประมาณ 1 เมตร ให้เห็นศีรษะและไหล่ แสงส่องด้านหน้า</span></p>
       <div class="stage-tools">
-        <div class="seg" id="timerSel" role="group" aria-label="เวลานับถอยหลัง"><span class="seg-label" data-i18n="pb.timer">นับถอยหลัง</span><button type="button" data-s="3" class="on" data-i18n="pb.t3">3 วิ</button><button type="button" data-s="5" data-i18n="pb.t5">5 วิ</button><button type="button" data-s="10" data-i18n="pb.t10">10 วิ</button></div>
+        <div class="seg" id="timerSel" role="group" aria-label="เวลานับถอยหลัง" data-i18n-attr="aria-label:pb.timer.aria"><span class="seg-label" data-i18n="pb.timer">นับถอยหลัง</span><button type="button" data-s="3" class="on" data-i18n="pb.t3">3 วิ</button><button type="button" data-s="5" data-i18n="pb.t5">5 วิ</button><button type="button" data-s="10" data-i18n="pb.t10">10 วิ</button></div>
         <button class="btn ghost kiosk-btn" id="kiosk" type="button" aria-pressed="false" data-i18n="pb.kiosk">⛶ โหมดคีออสก์</button>
       </div>
     </section>
@@ -139,7 +136,7 @@
 <dialog class="handoff" id="handoff" aria-labelledby="handoffTitle">
   <h2 id="handoffTitle" data-i18n="pb.ho.title">ส่งต่อภาพ</h2>
   <p class="hint" data-i18n="pb.ho.hint">กดค้างที่ภาพเพื่อบันทึกลงเครื่อง หรือส่งต่อผ่าน AirDrop / Nearby Share / LINE ได้ทันที ไม่ต้องสแกน QR</p>
-  <img id="handoffImg" alt="ภาพผลลัพธ์สำหรับบันทึกหรือส่งต่อ">
+  <img id="handoffImg" alt="ภาพผลลัพธ์สำหรับบันทึกหรือส่งต่อ" data-i18n-attr="alt:pb.ho.img">
   <div class="row-actions">
     <button class="btn primary" id="hoShare" type="button" data-i18n="pb.ho.share">แชร์</button>
     <button class="btn ghost" id="hoCopy" type="button" data-i18n="pb.ho.copy">คัดลอกภาพ</button>

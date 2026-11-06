@@ -44,7 +44,7 @@ Out of scope: a malicious operator, a compromised OS or browser, and side channe
 ### 3.1 Content-Security-Policy
 
 - **server.py** sends this header on every response: `default-src 'self'; script-src 'self' 'wasm-unsafe-eval';
-  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:;
+  style-src 'self' 'unsafe-inline'; font-src 'self' data:;
   img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob: [LENSIQ_CSP_CONNECT];
   worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';
   frame-ancestors 'self'`.
@@ -156,7 +156,6 @@ Registration happens only in a secure context, and `?nosw` disables it.
 | Names, phones and orders in localStorage are not encrypted | Rely on device disk encryption and OS login; use "delete all" / retention; the PDPA pack documents it |
 | Booth "same-day" descriptors live in `sessionStorage` unencrypted, per tab, for one day | Only the opt-in "remember" copy is persisted (encrypted); closing the tab clears it |
 | No `frame-ancestors` on GitHub Pages | No secrets on the pages; serve via server.py or a host with headers for kiosks |
-| Google Fonts discloses visitor IP to Google | Self-host Prompt for strict deployments (see docs/pdpa/data-map.md) |
 | Self-signed certificate for `./start.sh mobile` | LAN-only, trust-on-first-use; use a real certificate (e.g. a local CA) for permanent installs |
 | Rate limits are in-memory, per process | Fine for a single LAN server; put a proxy limit in front of internet deployments |
 | Rotating the pairing code doesn't revoke nodes | By design; delete nodes individually (checklist in docs/DEPLOYMENT-CHECKLIST.md) |

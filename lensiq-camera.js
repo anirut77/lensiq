@@ -8,7 +8,7 @@
  *     no deviceId -> no step 1 · no facing -> no step 2 · no ideal/frameRate -> no step 3 (it would equal `true`).
  *     ideal/frameRate are expanded to {width:{ideal}, height:{ideal}, frameRate:{ideal}}.
  *   errorKind(err) -> 'denied'|'insecure'|'busy'|'notfound'|'overconstrained'|'unknown'
- *   errorText(err) -> Thai message (also handles CapacityError / DuplicateCamera / NoFreeCamera / Ended)
+ *   errorText(err) -> message in the current language (Thai default; zh via LQI18N keys cam.err.*; also handles CapacityError / DuplicateCamera / NoFreeCamera / Ended)
  *   parseCams(json|object) -> {v:1, cams:[{slot, deviceId, label, name, role}]}   tolerant: garbage -> {v:1, cams:[]}
  *   serializeCams(state|cams[]) -> string
  *   nextSlot(cams) -> 'c1'..'c4' | null
@@ -84,20 +84,47 @@
     if (/^(OverconstrainedError|ConstraintNotSatisfiedError)$/.test(n)) return "overconstrained";
     return "unknown";
   }
+  // ข้อความภาษาไทยเป็นค่าเริ่มต้น ; ภาษาจีนผ่าน LQI18N (คีย์ cam.err.*) เมื่อหน้าโหลด lensiq-i18n.js — Node/ไม่มี LQI18N = ไทย
+  const ERR_TH = {
+    capacity: "อุปกรณ์นี้เปิดกล้องพร้อมกันได้สูงสุด {max} ตัว — มือถือส่วนใหญ่เปิดได้ทีละกล้อง ใช้ 1 เครื่องต่อ 1 จุด",
+    duplicate: "กล้องนี้ถูกเพิ่มไว้แล้ว",
+    nofree: "ไม่มีกล้องว่างให้เพิ่ม — ทุกกล้องที่พบถูกใช้งานอยู่แล้ว",
+    ended: "กล้องหลุดการเชื่อมต่อหรือถูกปิด",
+    denied: "ไม่ได้รับอนุญาตให้ใช้กล้อง กรุณาอนุญาตในการตั้งค่าเบราว์เซอร์",
+    insecure: "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด",
+    busy: "กล้องนี้ถูกใช้งานอยู่ หรือแบนด์วิธ USB ไม่พอ",
+    notfound: "ไม่พบกล้องในเครื่องนี้",
+    overconstrained: "กล้องไม่รองรับความละเอียดที่ขอ",
+    unknown: "เปิดกล้องไม่สำเร็จ"
+  };
+  const ERR_ZH = {
+    capacity: "此设备最多可同时打开 {max} 个摄像头 — 大多数手机一次只能打开一个摄像头，请每个点位使用 1 台设备",
+    duplicate: "此摄像头已添加",
+    nofree: "没有可添加的空闲摄像头 — 找到的摄像头都已在使用中",
+    ended: "摄像头已断开连接或被关闭",
+    denied: "未获得摄像头使用权限，请在浏览器设置中允许",
+    insecure: "在手机上必须通过 https:// 打开 — 方法见“全部系统”页面",
+    busy: "此摄像头正被占用，或 USB 带宽不足",
+    notfound: "本设备上未找到摄像头",
+    overconstrained: "摄像头不支持所请求的分辨率",
+    unknown: "打开摄像头失败"
+  };
+  if (typeof window !== "undefined") {
+    const zh = {}; for (const k in ERR_ZH) zh["cam.err." + k] = ERR_ZH[k];
+    (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh });
+  }
+  const errT = (k, vars) => {
+    const I = typeof window !== "undefined" && window.LQI18N;
+    if (I && typeof I.tf === "function") return I.tf("cam.err." + k, ERR_TH[k], vars);
+    return ERR_TH[k].replace(/\{(\w+)\}/g, (m, x) => (vars && vars[x] != null ? vars[x] : m));
+  };
   function errorText(err) {
     const n = (err && err.name) || "";
-    if (n === "CapacityError") return `อุปกรณ์นี้เปิดกล้องพร้อมกันได้สูงสุด ${err.max || 1} ตัว — มือถือส่วนใหญ่เปิดได้ทีละกล้อง ใช้ 1 เครื่องต่อ 1 จุด`;
-    if (n === "DuplicateCamera") return "กล้องนี้ถูกเพิ่มไว้แล้ว";
-    if (n === "NoFreeCamera") return "ไม่มีกล้องว่างให้เพิ่ม — ทุกกล้องที่พบถูกใช้งานอยู่แล้ว";
-    if (n === "Ended") return "กล้องหลุดการเชื่อมต่อหรือถูกปิด";
-    return {
-      denied: "ไม่ได้รับอนุญาตให้ใช้กล้อง กรุณาอนุญาตในการตั้งค่าเบราว์เซอร์",
-      insecure: "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด",
-      busy: "กล้องนี้ถูกใช้งานอยู่ หรือแบนด์วิธ USB ไม่พอ",
-      notfound: "ไม่พบกล้องในเครื่องนี้",
-      overconstrained: "กล้องไม่รองรับความละเอียดที่ขอ",
-      unknown: "เปิดกล้องไม่สำเร็จ"
-    }[errorKind(err)];
+    if (n === "CapacityError") return errT("capacity", { max: err.max || 1 });
+    if (n === "DuplicateCamera") return errT("duplicate");
+    if (n === "NoFreeCamera") return errT("nofree");
+    if (n === "Ended") return errT("ended");
+    return errT(errorKind(err));
   }
   const str = (v, max = 200) => (typeof v === "string" ? v.slice(0, max) : "");
   function parseCams(json) {

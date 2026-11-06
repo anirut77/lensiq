@@ -10,14 +10,16 @@ Templates and reference material for a shop, event or training operator (the **d
 |---|---|
 | [`data-map.md`](data-map.md) | What data each module collects, where it is processed and stored, and what (if anything) leaves the device. Third parties included. |
 | [`retention-table.md`](retention-table.md) | Every storage key and database per module, its default retention, and how to delete it. |
-| [`DPIA-template.md`](DPIA-template.md) | Data Protection Impact Assessment, pre-filled for LENSIQ modules. Complete and sign it before go-live for any module that processes faces. |
+| [`DPIA.md`](DPIA.md) | **Filled DPIA (Thai, with an English summary)** for a standard deployment. It covers purposes and the lawful basis per module, s.26 biometric data, cross-border transfers, retention per storage key, security measures, L×S risk scoring, residual risks and legal-review items L1–L8. **It requires legal review.** Start here. |
+| [`ROPA.md`](ROPA.md) | Record of processing activities (s.39) in Thai, one row per module (M1–M15). |
+| [`DPIA-template.md`](DPIA-template.md) | The blank-ish DPIA template, for deployments that differ from the standard one. |
 | [`consent-texts.md`](consent-texts.md) | Ready-to-use Thai and English notices and consent wording: CCTV/analytics signage, biometric consent, photo booth, AI fortune (cross-border), withdrawal. |
 
 ## Roles
 
 - **You (the shop or event operator) are the data controller.** You decide which modules to run, why, and for how long.
 - **LENSIQ runs on your devices.** By default the software author receives no data. There is no telemetry and no analytics beacon.
-- **Optional processors / third parties** are involved only if you enable them: Anthropic (AI fortune), Replicate (AI try-on), Google (web font delivery), and your own hosting provider if you host `server.py` (option D in the README).
+- **Optional processors / third parties** are involved only if you enable them: Anthropic (AI fortune), Replicate (AI try-on), and your own hosting provider if you host `server.py` (option D in the README). Since v0.10 the web font is self-hosted, so no page contacts Google.
 
 ## How a shop uses this pack (in order)
 
@@ -27,7 +29,7 @@ Templates and reference material for a shop, event or training operator (the **d
    - **Face recognition** (`customers`, `attendance`): biometric data is **sensitive personal data under s.26**. It requires **explicit consent**, given separately and voluntarily. Offer a non-biometric alternative, such as a phone number lookup or a manual sign-in sheet.
    - Emotion analysis (`neuro`): consent from participants.
    - Photo booth / studio / fortune: consent at the kiosk (s.19), plus explicit cross-border consent for the AI features (s.28–29).
-3. **Complete the DPIA** ([`DPIA-template.md`](DPIA-template.md)) and sign it off.
+3. **Complete the DPIA.** Adapt the filled [`DPIA.md`](DPIA.md), or use [`DPIA-template.md`](DPIA-template.md). Have it reviewed by counsel and sign it off. Keep [`ROPA.md`](ROPA.md) current.
 4. **Put up notices and prepare consent texts** ([`consent-texts.md`](consent-texts.md)). Print the signage. The consent checkboxes already built into `customers.html`, `attendance.html`, `neuro.html` and the AI features should match your final wording.
 5. **Set retention.** In customers and attendance, choose a retention period. Plan export and wipe routines ([`retention-table.md`](retention-table.md)).
 6. **Licence review.** Some ML components are not cleared for commercial use. See [`../../LICENSES/THIRD_PARTY.md`](../../LICENSES/THIRD_PARTY.md).

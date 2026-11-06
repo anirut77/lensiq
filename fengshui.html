@@ -2,22 +2,19 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="fengshui.title">ฮวงจุ้ย | LENSIQ</title>
 <meta name="description" content="ฮวงจุ้ย เลขกัว เข็มทิศ AR ผังบ้านดาวประจำปี และคำแนะนำจัดบ้าน เพื่อความบันเทิงและวัฒนธรรม คำนวณในเบราว์เซอร์">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="styles.css?v=8">
 <link rel="stylesheet" href="fengshui.css?v=2">
 <style>.fs-cam-ui{position:absolute;right:8px;bottom:8px;left:8px;z-index:2;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}.fs-cam-ui[hidden]{display:none}.fs-cam-ui .btn{padding:6px 10px;font-size:.8rem;background:rgba(14,20,48,.75);color:#fff}.fs-cam-ui select{max-width:min(220px,100%);min-width:0;font-size:.8rem;padding:6px;border-radius:8px;background:rgba(14,20,48,.75);color:#fff;border:1px solid rgba(255,255,255,.3)}.fs-ar:not(.live) .fs-cam-ui{display:none}</style>
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=11"></script>
+<script src="nav.js?v=12"></script>
 
 <main class="fs" id="fsApp">
   <div class="fs-head">
@@ -26,47 +23,47 @@
     <p data-i18n="fengshui.lead" class="lead">หาเลขกัว (八宅) จากวันเกิด ส่องทิศด้วยเข็มทิศ AR วางผังบ้าน 9 ช่องพร้อมดาวประจำปี (年飞星) และแผนผังปากั้ว แล้วรับคำแนะนำจัดบ้านแบบนุ่มนวล สำหรับบูธ อีเวนต์ และงานอสังหาฯ</p>
   </div>
 
-  <p class="fs-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span><b data-i18n="fengshui.disclaimer">เพื่อความบันเทิงและการเรียนรู้วัฒนธรรมฮวงจุ้ย ไม่ใช่วิทยาศาสตร์</b> ไม่ใช้แทนคำแนะนำด้านสถาปัตยกรรม ความปลอดภัย สุขภาพ หรือการเงิน และไม่จำเป็นต้องซื้อสิ่งของใดๆ</span></p>
+  <p class="fs-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span><b data-i18n="fengshui.disclaimer">เพื่อความบันเทิงและการเรียนรู้วัฒนธรรมฮวงจุ้ย ไม่ใช่วิทยาศาสตร์</b> <span data-i18n="fengshui.disclaimer2">ไม่ใช้แทนคำแนะนำด้านสถาปัตยกรรม ความปลอดภัย สุขภาพ หรือการเงิน และไม่จำเป็นต้องซื้อสิ่งของใดๆ</span></span></p>
 
-  <nav class="fs-steps" aria-label="ขั้นตอน">
-    <a href="#fsS1"><b>1</b>เลขกัว</a><a href="#fsS2"><b>2</b>เข็มทิศ AR</a><a href="#fsS3"><b>3</b>ผังบ้าน</a><a href="#fsS4"><b>4</b>คำทำนาย</a>
+  <nav class="fs-steps" data-i18n-attr="aria-label:fengshui.steps.aria" aria-label="ขั้นตอน">
+    <a href="#fsS1" data-i18n="fengshui.step1"><b>1</b>เลขกัว</a><a href="#fsS2" data-i18n="fengshui.step2"><b>2</b>เข็มทิศ AR</a><a href="#fsS3" data-i18n="fengshui.step3"><b>3</b>ผังบ้าน</a><a href="#fsS4" data-i18n="fengshui.step4"><b>4</b>คำทำนาย</a>
   </nav>
 
   <!-- 1) เลขกัว -->
   <section class="fs-block" id="fsS1" aria-labelledby="fsS1h">
-    <h2 id="fsS1h"><span class="n">1</span>เลขกัวของคุณ</h2>
+    <h2 id="fsS1h" data-i18n="fengshui.s1h"><span class="n">1</span>เลขกัวของคุณ</h2>
     <form id="fsKuaForm" class="fs-form" novalidate>
       <fieldset class="fs-date">
         <legend data-i18n="fengshui.legend1">วันเกิด</legend>
-        <label>วัน<select id="fsDay" aria-label="วันเกิด"></select></label>
-        <label>เดือน<select id="fsMonth" aria-label="เดือนเกิด"></select></label>
-        <label>ปีเกิด<input id="fsYear" type="number" inputmode="numeric" min="1900" max="2700" placeholder="เช่น 2533"></label>
-        <label>ศักราช<select id="fsEra"><option value="be">พ.ศ.</option><option value="ce">ค.ศ.</option></select></label>
+        <label data-i18n="fengshui.lbl.day">วัน<select id="fsDay" data-i18n-attr="aria-label:fengshui.aria.day" aria-label="วันเกิด"></select></label>
+        <label data-i18n="fengshui.lbl.month">เดือน<select id="fsMonth" data-i18n-attr="aria-label:fengshui.aria.month" aria-label="เดือนเกิด"></select></label>
+        <label data-i18n="fengshui.lbl.year">ปีเกิด<input id="fsYear" data-i18n-attr="placeholder:fengshui.ph.year" type="number" inputmode="numeric" min="1900" max="2700" placeholder="เช่น 2533"></label>
+        <label data-i18n="fengshui.lbl.era">ศักราช<select id="fsEra"><option value="be" data-i18n="fengshui.era.be">พ.ศ.</option><option value="ce" data-i18n="fengshui.era.ce">ค.ศ.</option></select></label>
       </fieldset>
       <fieldset class="fs-gender">
         <legend data-i18n="fengshui.legend2">สูตรคำนวณ (ตำราดั้งเดิมแยกตามเพศกำเนิด)</legend>
-        <label class="fs-radio"><input type="radio" name="fsGender" value="m"> ชาย</label>
-        <label class="fs-radio"><input type="radio" name="fsGender" value="f"> หญิง</label>
-        <label class="fs-radio"><input type="radio" name="fsGender" value="n" checked> ไม่ระบุ (แสดงทั้งสองแบบ)</label>
+        <label class="fs-radio" data-i18n="fengshui.g.m"><input type="radio" name="fsGender" value="m"> ชาย</label>
+        <label class="fs-radio" data-i18n="fengshui.g.f"><input type="radio" name="fsGender" value="f"> หญิง</label>
+        <label class="fs-radio" data-i18n="fengshui.g.n"><input type="radio" name="fsGender" value="n" checked> ไม่ระบุ (แสดงทั้งสองแบบ)</label>
       </fieldset>
       <p class="fs-msg" id="fsKuaMsg" role="status" aria-live="polite"></p>
       <button data-i18n="fengshui.button1" class="btn primary big" type="submit">คำนวณเลขกัว</button>
-      <p class="fs-small">วันเกิดใช้คำนวณในเครื่องเท่านั้น ไม่ถูกบันทึกหรือส่งออก · <span id="fsLichunNote"></span></p>
+      <p class="fs-small" data-i18n="fengshui.privacy">วันเกิดใช้คำนวณในเครื่องเท่านั้น ไม่ถูกบันทึกหรือส่งออก · <span id="fsLichunNote"></span></p>
     </form>
     <div class="fs-kua" id="fsKuaOut" hidden aria-live="polite"></div>
   </section>
 
   <!-- 2) เข็มทิศ AR -->
   <section class="fs-block" id="fsS2" aria-labelledby="fsS2h">
-    <h2 id="fsS2h"><span class="n">2</span>เข็มทิศ AR</h2>
+    <h2 id="fsS2h" data-i18n="fengshui.s2h"><span class="n">2</span>เข็มทิศ AR</h2>
     <div class="fs-ar-wrap">
       <div class="fs-ar" id="fsArBox">
         <video id="fsVideo" autoplay muted playsinline></video>
         <canvas id="fsAr" aria-hidden="true"></canvas>
-        <div class="fs-ar-read" aria-live="polite"><b id="fsHeadingNum">—</b><span id="fsHeadingDir">ยังไม่เริ่ม</span></div>
+        <div class="fs-ar-read" aria-live="polite"><b id="fsHeadingNum">—</b><span id="fsHeadingDir"></span></div>
       </div>
       <div class="fs-ar-side">
-        <p class="fs-info" id="fsHeadingInfo"><span class="fs-tag">กด เริ่มเข็มทิศ แล้วหันโทรศัพท์ไปรอบๆ</span></p>
+        <p class="fs-info" id="fsHeadingInfo"></p>
         <div class="fs-row">
           <button data-i18n="fengshui.fsCompassStart" class="btn primary" id="fsCompassStart" type="button">เริ่มเข็มทิศ + กล้อง</button>
           <button data-i18n="fengshui.fsManualToggle" class="btn ghost" id="fsManualToggle" type="button" aria-pressed="false">ตั้งทิศเอง</button>
@@ -85,47 +82,47 @@
           <button data-i18n="fengshui.button4" class="btn ghost" type="button" data-rec="bed">บันทึกทิศเตียง</button>
         </div>
         <details class="fs-help"><summary data-i18n="fengshui.summary1">วิธีวัดให้ถูก</summary>
-          <p class="fs-small"><b>ประตูหลัก:</b> <span id="fsHelpDoor"></span></p>
-          <p class="fs-small"><b>โต๊ะ:</b> <span id="fsHelpDesk"></span></p>
-          <p class="fs-small"><b>เตียง:</b> <span id="fsHelpBed"></span></p>
+          <p class="fs-small"><b data-i18n="fengshui.help.door">ประตูหลัก:</b> <span id="fsHelpDoor"></span></p>
+          <p class="fs-small"><b data-i18n="fengshui.help.desk">โต๊ะ:</b> <span id="fsHelpDesk"></span></p>
+          <p class="fs-small"><b data-i18n="fengshui.help.bed">เตียง:</b> <span id="fsHelpBed"></span></p>
         </details>
         <ul class="fs-reclist" id="fsRecList"></ul>
-        <p class="fs-legend"><span class="lg good"></span>ทิศมงคลของคุณ <span class="lg quiet"></span>ทิศที่ควรจัดให้โปร่ง/ใช้น้อย</p>
+        <p class="fs-legend"><span class="lg good"></span><span data-i18n="fengshui.legend.good">ทิศมงคลของคุณ</span> <span class="lg quiet"></span><span data-i18n="fengshui.legend.quiet">ทิศที่ควรจัดให้โปร่ง/ใช้น้อย</span></p>
       </div>
     </div>
   </section>
 
   <!-- 3) ผังบ้าน -->
   <section class="fs-block" id="fsS3" aria-labelledby="fsS3h">
-    <h2 id="fsS3h"><span class="n">3</span>ผังบ้าน 9 ช่อง</h2>
+    <h2 id="fsS3h" data-i18n="fengshui.s3h"><span class="n">3</span>ผังบ้าน 9 ช่อง</h2>
     <p class="fs-small" id="fsYearInfo"></p>
     <div class="fs-plan-ctl">
-      <label>ทิศหน้าบ้าน (ยืนในบ้าน มองออกทางประตูหลัก)<select id="fsFacing"></select></label>
-      <div class="fs-seg" role="radiogroup" aria-label="ดาวที่แสดง">
-        <label><input type="radio" name="fsView" value="year" checked><span>ดาวประจำปี</span></label>
-        <label><input type="radio" name="fsView" value="month"><span>ดาวประจำเดือน</span></label>
+      <label data-i18n="fengshui.lbl.facing">ทิศหน้าบ้าน (ยืนในบ้าน มองออกทางประตูหลัก)<select id="fsFacing"></select></label>
+      <div class="fs-seg" role="radiogroup" data-i18n-attr="aria-label:fengshui.view.aria" aria-label="ดาวที่แสดง">
+        <label><input type="radio" name="fsView" value="year" checked><span data-i18n="fengshui.view.year">ดาวประจำปี</span></label>
+        <label><input type="radio" name="fsView" value="month"><span data-i18n="fengshui.view.month">ดาวประจำเดือน</span></label>
       </div>
     </div>
-    <p class="fs-small">เลือกประเภทห้อง แล้วแตะช่องในผังเพื่อทำเครื่องหมาย (แตะซ้ำเพื่อเอาออก) · หน้าบ้านอยู่ด้านล่างของผัง</p>
-    <div class="fs-tools" id="fsTools" role="group" aria-label="ประเภทห้อง"></div>
+    <p class="fs-small" data-i18n="fengshui.plan.hint">เลือกประเภทห้อง แล้วแตะช่องในผังเพื่อทำเครื่องหมาย (แตะซ้ำเพื่อเอาออก) · หน้าบ้านอยู่ด้านล่างของผัง</p>
+    <div class="fs-tools" id="fsTools" role="group" data-i18n-attr="aria-label:fengshui.tools.aria" aria-label="ประเภทห้อง"></div>
     <div class="fs-plan">
       <div class="fs-grid" id="fsGrid"></div>
-      <p class="fs-front">ด้านหน้าบ้าน / ประตูหลัก</p>
+      <p class="fs-front" data-i18n="fengshui.front">ด้านหน้าบ้าน / ประตูหลัก</p>
     </div>
     <div id="fsAdvice"></div>
     <div class="fs-photo">
       <h3 data-i18n="fengshui.h31" class="fs-sub">ภาพห้อง (ไม่บังคับ)</h3>
-      <p class="fs-small">ประเมินความสว่าง โทนสีตามห้าธาตุ และความรกโดยประมาณ ภาพประมวลผลในเครื่อง ไม่ถูกบันทึก</p>
+      <p class="fs-small" data-i18n="fengshui.photo.hint">ประเมินความสว่าง โทนสีตามห้าธาตุ และความรกโดยประมาณ ภาพประมวลผลในเครื่อง ไม่ถูกบันทึก</p>
       <div class="fs-row">
-        <label class="fs-for">ภาพนี้เป็นของ<select id="fsPhotoFor"></select></label>
-        <label class="btn ghost fs-upload">อัปโหลดภาพห้อง<input id="fsPhoto" type="file" accept="image/*"></label>
+        <label class="fs-for" data-i18n="fengshui.lbl.photoFor">ภาพนี้เป็นของ<select id="fsPhotoFor"></select></label>
+        <label class="btn ghost fs-upload" data-i18n="fengshui.upload">อัปโหลดภาพห้อง<input id="fsPhoto" type="file" accept="image/*"></label>
       </div>
       <div id="fsPhotoOut"></div>
     </div>
     <details class="fs-how"><summary data-i18n="fengshui.summary2">หลักการที่ใช้</summary>
       <p class="fs-small" id="fsPeriodNote"></p>
       <p class="fs-small" id="fsElNote"></p>
-      <p class="fs-small">ดาวเหินรายปีบินตามผังลั่วซู: กลาง → ตะวันตกเฉียงเหนือ → ตะวันตก → ตะวันออกเฉียงเหนือ → ใต้ → เหนือ → ตะวันตกเฉียงใต้ → ตะวันออก → ตะวันออกเฉียงใต้ ดาวรายเดือนเปลี่ยนตามสารทจีน (วันเริ่มเดือนสุริยคติ)</p>
+      <p class="fs-small" data-i18n="fengshui.flight">ดาวเหินรายปีบินตามผังลั่วซู: กลาง → ตะวันตกเฉียงเหนือ → ตะวันตก → ตะวันออกเฉียงเหนือ → ใต้ → เหนือ → ตะวันตกเฉียงใต้ → ตะวันออก → ตะวันออกเฉียงใต้ ดาวรายเดือนเปลี่ยนตามสารทจีน (วันเริ่มเดือนสุริยคติ)</p>
       <h4 data-i18n="fengshui.h41">ข้อสังเกตแบบไทย</h4>
       <ul class="fs-small" id="fsThaiTips"></ul>
     </details>
@@ -133,19 +130,19 @@
 
   <!-- 4) คำทำนาย -->
   <section class="fs-block" id="fsS4" aria-labelledby="fsS4h">
-    <h2 id="fsS4h"><span class="n">4</span>คำทำนายและคำแนะนำ</h2>
+    <h2 id="fsS4h" data-i18n="fengshui.s4h"><span class="n">4</span>คำทำนายและคำแนะนำ</h2>
     <p class="fs-small" id="fsReadHint"></p>
     <div class="fs-row">
-      <label class="fs-for">เรื่องที่สนใจ<select id="fsTopic"><option value="overall">ภาพรวม</option><option value="work">การงาน</option><option value="money">การเงิน</option><option value="love">ความรัก</option></select></label>
+      <label class="fs-for" data-i18n="fengshui.lbl.topic">เรื่องที่สนใจ<select id="fsTopic"><option value="overall" data-i18n="fengshui.topic.overall">ภาพรวม</option><option value="work" data-i18n="fengshui.topic.work">การงาน</option><option value="money" data-i18n="fengshui.topic.money">การเงิน</option><option value="love" data-i18n="fengshui.topic.love">ความรัก</option></select></label>
     </div>
-    <label class="fs-check" id="fsConsentWrap" hidden><input type="checkbox" id="fsConsent"> ให้ Claude AI ช่วยเรียบเรียง (ส่งเฉพาะผลคำนวณ ไม่ส่งวันเกิดหรือรูป)</label>
+    <label class="fs-check" id="fsConsentWrap" hidden data-i18n="fengshui.consent"><input type="checkbox" id="fsConsent"> ให้ Claude AI ช่วยเรียบเรียง (ส่งเฉพาะผลคำนวณ ไม่ส่งวันเกิดหรือรูป)</label>
     <div class="fs-row">
       <button data-i18n="fengshui.fsReadBtn" class="btn primary big" id="fsReadBtn" type="button">อ่านคำทำนายฮวงจุ้ย</button>
       <button data-i18n="fortune.common.regen" class="btn ghost big" id="fsAgain" type="button" hidden>อ่านอีกสำนวน</button>
     </div>
     <div class="fs-reading" id="fsReading" hidden>
-      <h3 id="fsReadTitle" tabindex="-1">คำทำนายของคุณ <span class="fs-badge" id="fsSource"></span></h3>
-      <p class="fs-small">เพื่อความบันเทิงตามความเชื่อ ไม่ใช่วิทยาศาสตร์</p>
+      <h3 id="fsReadTitle" tabindex="-1" data-i18n="fengshui.readTitle">คำทำนายของคุณ <span class="fs-badge" id="fsSource"></span></h3>
+      <p class="fs-small" data-i18n="fengshui.discMini">เพื่อความบันเทิงตามความเชื่อ ไม่ใช่วิทยาศาสตร์</p>
       <div id="fsSections"></div>
       <div class="fs-extras" id="fsExtras"></div>
     </div>
@@ -153,14 +150,14 @@
       <button data-i18n="fortune.common.share" class="btn primary big" id="fsShare" type="button">แชร์การ์ดผลลัพธ์</button>
       <button data-i18n="fengshui.fsReset" class="btn ghost big" id="fsReset" type="button">เริ่มใหม่ (คนถัดไป)</button>
     </div>
-    <img class="fs-cardimg" id="fsCardImg" alt="การ์ดผลฮวงจุ้ยสำหรับแชร์" hidden>
+    <img class="fs-cardimg" id="fsCardImg" data-i18n-attr="alt:fengshui.card.alt" alt="การ์ดผลฮวงจุ้ยสำหรับแชร์" hidden>
   </section>
 
   <div class="fs-foot">
     <section class="fs-block">
       <h3 data-i18n="fortune.common.stats">สถิติบูธ (ไม่ระบุตัวตน)</h3>
       <div id="fsStats"></div>
-      <label class="fs-check"><input type="checkbox" id="fsStatsOn"> นับจำนวนครั้งและเลขกัวในเครื่องนี้</label>
+      <label class="fs-check" data-i18n="fengshui.stats.chk"><input type="checkbox" id="fsStatsOn"> นับจำนวนครั้งและเลขกัวในเครื่องนี้</label>
       <div class="fs-row">
         <button data-i18n="fortune.common.kiosk" class="btn ghost" id="fsKiosk" type="button" aria-pressed="false">โหมดบูธ (เต็มจอ)</button>
         <button data-i18n="fortune.common.statsClear" class="btn ghost" id="fsStatsClear" type="button">ล้างสถิติ</button>
@@ -170,7 +167,7 @@
       <h3 data-i18n="fortune.common.sources">แหล่งอ้างอิง</h3>
       <p class="fs-small" id="fsSourcesNote"></p>
       <ul class="fs-sources" id="fsSources"></ul>
-      <p class="fs-small">หลักการ: เนื้อหาเชิงบวก ไม่ขู่ ไม่ทำนายเรื่องร้าย ไม่ขายวัตถุมงคลหรือสินค้า ทิศและดาวที่ต้องดูแลใช้คำว่า "ควรจัดให้สงบ/ใช้น้อย"</p>
+      <p class="fs-small" data-i18n="fengshui.principle">หลักการ: เนื้อหาเชิงบวก ไม่ขู่ ไม่ทำนายเรื่องร้าย ไม่ขายวัตถุมงคลหรือสินค้า ทิศและดาวที่ต้องดูแลใช้คำว่า "ควรจัดให้สงบ/ใช้น้อย"</p>
     </section>
   </div>
 </main>
@@ -179,11 +176,13 @@
 <button data-i18n="fortune.common.kioskExit" class="btn primary fs-kiosk-exit" id="fsKioskExit" type="button" hidden>ออกจากโหมดบูธ</button>
 <div class="toast" id="fsToast" role="status"></div>
 
-<script src="i18n/zh-fortune.js?v=2"></script>
+<script src="i18n/zh-fortune.js?v=3"></script>
+<script src="i18n/zh-fortune-fengshui.js?v=1"></script>
+<script src="i18n/zh-kb-fengshui.js?v=1"></script>
 <script src="lensiq-config.js?v=2"></script>
-<script src="fortune-ai.js?v=7"></script>
+<script src="fortune-ai.js?v=8"></script>
 <script src="fengshui-kb.js?v=1"></script>
 <script src="lensiq-camera.js?v=2"></script>
-<script src="fengshui.js?v=5"></script>
+<script src="fengshui.js?v=6"></script>
 </body>
 </html>

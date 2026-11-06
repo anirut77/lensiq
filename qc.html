@@ -2,26 +2,26 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="qc.s1">ตรวจคุณภาพสินค้าบนสายการผลิต | LENSIQ</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="styles.css?v=8">
 <link rel="stylesheet" href="qc.css?v=4">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=11"></script>
+<script src="nav.js?v=12"></script>
 <script src="i18n/zh-qc.js?v=1"></script>
+<script src="lensiq-i18n-rt.js?v=1"></script>
+<script src="i18n/zh-rt-common.js?v=1"></script>
+<script src="i18n/zh-rt-qc.js?v=1"></script>
 
 <main class="qcp">
   <h1><span data-i18n="qc.s2">ตรวจคุณภาพสินค้าบนสายการผลิต</span> <small class="h1-sub" data-i18n="qc.s3">ตัวอย่าง: ขวดเครื่องดื่ม</small></h1>
   <p class="lead" data-i18n="qc.s4">ตรวจชิ้นงานบนสายพานด้วยการประมวลผลภาพในเครื่อง เทียบกับชิ้นงานตัวอย่างที่ผ่าน นับยอดผ่าน/คัดทิ้ง และส่งออกรายงานประจำกะ — เดโมนี้ใช้ขวดเครื่องดื่มเป็นตัวอย่าง ตรวจระดับการบรรจุ ฝา และฉลาก</p>
-  <p class="acc-note" role="note"><b class="beta">Beta</b> <span data-i18n="qc.s5">ผลตรวจขึ้นกับแสง ตำแหน่งกล้อง และเกณฑ์ที่ตั้ง ยังไม่ได้วัดกับภาพจากไลน์ผลิตจริง ควรเทียบกับการตรวจด้วยคนสักระยะก่อนให้คัดทิ้งอัตโนมัติ</span> <a href="cameras.html#accuracy" data-i18n="qc.s6">วิธีวัดและข้อจำกัด</a></p>
+  <p class="acc-note" role="note"><b class="beta">Beta</b> <span data-i18n="qc.s5">วัดด้วยภาพขวดจำลอง: แสงและกล้องคงที่ตรวจข้อบกพร่องได้เกือบทั้งหมดและไม่ปัดตกขวดดี แต่แสงเปลี่ยนเพียง ±10% หลังสอบเทียบจะปัดตกทุกขวด ต้องปิดปรับแสงอัตโนมัติของกล้องและสอบเทียบใหม่เมื่อแสงเปลี่ยน ไม่ตรวจฉลากเอียงและรอยขีดข่วน ควรเทียบกับการตรวจด้วยคนก่อนให้คัดทิ้งอัตโนมัติ</span> <a href="cameras.html#accuracy" data-i18n="qc.s6">วิธีวัดและข้อจำกัด</a></p>
 
   <div class="engine" id="engine" role="status">กำลังเตรียมระบบ...</div>
 

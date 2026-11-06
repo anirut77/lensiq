@@ -26,7 +26,7 @@ export default async function ({ base, launch, check, fakeCams }) {
   const browser = await launch();
   const url = `${base}/booth.html?cpu&fakedet`;
   const open = async cams => {
-    const once = `try{ if(!sessionStorage.getItem("__seeded")){ localStorage.clear(); sessionStorage.setItem("__seeded","1"); } }catch(e){}`;
+    const once = `try{ if(!sessionStorage.getItem("__seeded")){ localStorage.clear(); localStorage.setItem("booth-prefs", '{"v":1,"remember":false,"mode":"recognise"}'); sessionStorage.setItem("__seeded","1"); } }catch(e){}`;
     const page = await browser.newPage(null, { initScripts: [fakeCams, `window.__LQ_FAKE_CAMS=${JSON.stringify(cams)}`, once] });
     await page.goto(url);
     await page.evaluate(script);

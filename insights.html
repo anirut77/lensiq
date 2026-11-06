@@ -2,31 +2,28 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="iq.title">แดชบอร์ดรวม | LENSIQ</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="styles.css?v=8">
 <link rel="stylesheet" href="insights.css?v=4">
 </head>
 <body>
-<header class="nav" id="siteNav"></header><script src="nav.js?v=11"></script>
+<header class="nav" id="siteNav"></header><script src="nav.js?v=12"></script>
 
 <main class="iq">
   <h1 data-i18n="iq.s.1">แดชบอร์ดรวม</h1>
   <p class="lead" data-i18n="iq.s.2">สรุปและแปลผลข้อมูลจากทุกระบบกล้อง AI ที่บันทึกไว้ในเบราว์เซอร์นี้ พร้อมความมั่นใจทางสถิติ คาดการณ์ และสิ่งที่ควรทำ ข้อมูลไม่ถูกส่งออกนอกเครื่อง</p>
 
-  <div class="toolbar" role="region" aria-label="ตัวกรองช่วงเวลา">
-    <div class="range" role="group" aria-label="ช่วงเวลา">
+  <div class="toolbar" role="region" aria-label="ตัวกรองช่วงเวลา" data-i18n-attr="aria-label:iq.s.73">
+    <div class="range" role="group" aria-label="ช่วงเวลา" data-i18n-attr="aria-label:iq.s.74">
       <button type="button" data-p="today" aria-pressed="false" data-i18n="iq.s.3">วันนี้</button><button type="button" data-p="d7" aria-pressed="true" data-i18n="iq.s.4">7 วัน</button><button type="button" data-p="d30" aria-pressed="false" data-i18n="iq.s.5">30 วัน</button><button type="button" data-p="d90" aria-pressed="false" data-i18n="iq.s.6">90 วัน</button><button type="button" data-p="all" aria-pressed="false" data-i18n="iq.s.7">ทั้งหมด</button><button type="button" data-p="custom" aria-pressed="false" data-i18n="iq.s.8">กำหนดเอง</button>
     </div>
     <div class="custom" id="customRange" hidden>
-      <label>จาก <input type="date" id="cFrom"></label>
-      <label>ถึง <input type="date" id="cTo"></label>
+      <label><span data-i18n="iq.s.87">จาก</span> <input type="date" id="cFrom"></label>
+      <label><span data-i18n="iq.s.88">ถึง</span> <input type="date" id="cTo"></label>
     </div>
     <label class="cmp"><span data-i18n="iq.cmp">เทียบกับ</span>
       <select id="compare">
@@ -48,7 +45,7 @@
     <p data-i18n="iq.s.15">แดชบอร์ดนี้อ่านข้อมูลที่ระบบต่าง ๆ บันทึกไว้ในเบราว์เซอร์เครื่องนี้ เริ่มได้สองทาง</p>
     <ol>
       <li data-i18n="iq.s.16">เปิดระบบใดระบบหนึ่งด้านล่าง ใช้งานกล้องสักครู่ แล้วกลับมาที่หน้านี้</li>
-      <li>หรือกด <b data-i18n="iq.s.17">สร้างข้อมูลตัวอย่าง</b> เพื่อดูหน้าตาแดชบอร์ด (ลบออกได้ภายหลัง ไม่ทับข้อมูลจริง)</li>
+      <li><span data-i18n="iq.s.75">หรือกด</span> <b data-i18n="iq.s.17">สร้างข้อมูลตัวอย่าง</b> <span data-i18n="iq.s.76">เพื่อดูหน้าตาแดชบอร์ด (ลบออกได้ภายหลัง ไม่ทับข้อมูลจริง)</span></li>
     </ol>
     <button type="button" class="btn-p" id="seedDemoEmpty" data-i18n="iq.s.18">สร้างข้อมูลตัวอย่าง</button>
     <ul class="mods-list" id="emptyList"></ul>
@@ -67,8 +64,8 @@
         <h3 data-i18n="iq.s.22">ความมั่นใจหมายถึงอะไร</h3>
         <p data-i18n="iq.s.23">แต่ละข้อทดสอบว่า ถ้าไม่มีความเปลี่ยนแปลงจริง ความต่างที่เห็นจะเกิดจากความผันผวนตามปกติได้ง่ายแค่ไหน ตัวเลขในส่วน “ตัวเลขทางสถิติ” ของแต่ละการ์ดคือโอกาสที่จะเห็นความต่างขนาดนี้หรือมากกว่าในกรณีที่ไม่มีอะไรเปลี่ยน ตัวเลขนี้ไม่ใช่โอกาสที่ข้อสรุปจะถูกหรือผิด และไม่ได้บอกว่าความต่างใหญ่พอจะสำคัญต่อธุรกิจหรือไม่ จึงควรดูช่วงที่น่าจะเป็น (95%) ประกอบด้วย</p>
         <ul>
-          <li><b data-i18n="iq.s.24">มั่นใจสูง</b> ค่าหลังปรับ (q) ต่ำกว่า 1% · <b data-i18n="iq.s.25">ค่อนข้างมั่นใจ</b> ต่ำกว่า 5% · <b data-i18n="iq.s.26">ยังไม่แน่ชัด</b> ต่ำกว่า 20% · นอกนั้น <b data-i18n="iq.s.27">ไม่ต่างชัด</b></li>
-          <li><b data-i18n="iq.s.28">ข้อมูลยังน้อย</b> เมื่อจำนวนวันหรือจำนวนคนยังไม่พอจะทดสอบ</li>
+          <li><b data-i18n="iq.s.24">มั่นใจสูง</b> <span data-i18n="iq.s.77">ค่าหลังปรับ (q) ต่ำกว่า 1%</span> · <b data-i18n="iq.s.25">ค่อนข้างมั่นใจ</b> <span data-i18n="iq.s.78">ต่ำกว่า 5%</span> · <b data-i18n="iq.s.26">ยังไม่แน่ชัด</b> <span data-i18n="iq.s.79">ต่ำกว่า 20%</span> · <span data-i18n="iq.s.80">นอกนั้น</span> <b data-i18n="iq.s.27">ไม่ต่างชัด</b></li>
+          <li><b data-i18n="iq.s.28">ข้อมูลยังน้อย</b> <span data-i18n="iq.s.81">เมื่อจำนวนวันหรือจำนวนคนยังไม่พอจะทดสอบ</span></li>
         </ul>
         <h3 data-i18n="iq.s.29">ดูหลายข้อพร้อมกัน</h3>
         <p data-i18n="iq.s.30">หน้านี้ทดสอบหลายเรื่องพร้อมกัน (ตัวเลขสำคัญเทียบช่วงก่อน แยกกล้อง ความสัมพันธ์ และ A/B) ยิ่งดูหลายข้อ ยิ่งมีโอกาสเจอความต่างที่เกิดขึ้นเองโดยบังเอิญ ระบบจึงปรับค่าด้วยวิธี Benjamini–Hochberg ทุกครั้งที่เปลี่ยนช่วงเวลา แล้วใช้ค่าหลังปรับ (q) ตั้งระดับความมั่นใจ</p>
@@ -119,7 +116,7 @@
 
       <section class="card" id="fcCard" aria-labelledby="fcTitle" hidden>
         <div class="card-h"><h2 id="fcTitle" data-i18n="iq.s.42">คาดการณ์และวันผิดปกติ</h2><span class="muted" id="fcSub"></span></div>
-        <ul class="legend"><li><i class="key"></i>จริง</li><li><i class="key dash"></i>คาดการณ์</li><li><i class="key band"></i>ช่วงคาดการณ์ 80%</li><li><i class="key ring"></i>วันผิดปกติ</li></ul>
+        <ul class="legend"><li><i class="key"></i><span data-i18n="iq.s.83">จริง</span></li><li><i class="key dash"></i><span data-i18n="iq.s.84">คาดการณ์</span></li><li><i class="key band"></i><span data-i18n="iq.s.85">ช่วงคาดการณ์ 80%</span></li><li><i class="key ring"></i><span data-i18n="iq.s.86">วันผิดปกติ</span></li></ul>
         <div class="chart" id="fcChart"></div>
         <p class="note" id="fcNote"></p>
         <div id="fcTable"></div>
@@ -197,7 +194,7 @@
     <p class="muted" id="dataInfo"></p>
     <div class="actions">
       <button type="button" class="btn-p" id="exportJson" data-i18n="iq.s.68">สำรองข้อมูลทั้งหมด (JSON)</button>
-      <label class="btn-s file">กู้คืนจากไฟล์สำรอง<input type="file" id="importFile" accept="application/json,.json"></label>
+      <label class="btn-s file"><span data-i18n="iq.s.82">กู้คืนจากไฟล์สำรอง</span><input type="file" id="importFile" accept="application/json,.json"></label>
       <button type="button" class="btn-s" id="exportCsv" data-i18n="iq.s.69">ส่งออกสรุป (CSV)</button>
     </div>
     <div class="actions">
@@ -212,14 +209,14 @@
 <div class="report" id="report" aria-hidden="true"></div>
 
 <div class="iq-tip" id="iqTip" role="tooltip" hidden></div>
-<script src="i18n/zh-insights.js?v=1"></script>
+<script src="i18n/zh-insights.js?v=2"></script>
 <script src="lensiq-agg.js?v=1"></script>
-<script src="lensiq-stats.js?v=3"></script>
-<script src="insights-data.js?v=8"></script>
-<script src="insights-demo.js?v=8"></script>
-<script src="insights-analysis.js?v=8"></script>
-<script src="insights-cards.js?v=8"></script>
-<script src="insights-charts.js?v=8"></script>
-<script src="insights-ui.js?v=8"></script>
+<script src="lensiq-stats.js?v=4"></script>
+<script src="insights-data.js?v=9"></script>
+<script src="insights-demo.js?v=9"></script>
+<script src="insights-analysis.js?v=9"></script>
+<script src="insights-cards.js?v=9"></script>
+<script src="insights-charts.js?v=9"></script>
+<script src="insights-ui.js?v=9"></script>
 </body>
 </html>

@@ -5,7 +5,7 @@
   "neuro.s1": "Neuromarketing 情绪分析 | LENSIQ",
   "neuro.s2": "面部情绪分析（Neuromarketing）",
   "neuro.s3": "测量观众观看广告、视频或商品图片时的面部表情反应，并按时间汇总为 Valence、Arousal、Attention 和 Engagement 指标",
-  "neuro.s4": "面部表情并不总能反映真实感受。结果适用于在相同条件下比较不同素材，尚未在标准情绪数据集上验证",
+  "neuro.s4": "面部表情并不总能反映真实感受。在 FER-2013 上测量：7 种表情正确率 52–59%（随机猜测 14%），对微笑和惊讶较准，对悲伤、愤怒和恐惧较弱。结果仅适用于在相同条件下按群体整体比较不同素材",
   "neuro.s5": "测量方法与局限",
   "neuro.s6": "注意：",
   "neuro.s7": "本页的 Valence（正/负）和 Arousal（唤醒度）是",

@@ -68,8 +68,10 @@
   function trackerCfgFor(base, camIntervalMs) {
     base = base || DEFAULTS;
     const ms = Number.isFinite(camIntervalMs) && camIntervalMs > 0 ? camIntervalMs : 83;
-    const DIST_MAX = Math.min(0.3, base.DIST_MAX * Math.max(1, ms / 83));
-    return { ...base, MAX_MISSED_MS: Math.max(base.MAX_MISSED_MS, 3 * ms), DIST_MAX, REVIVE_DIST: 2 * DIST_MAX };
+    const k = Math.max(1, ms / 83), DIST_MAX = Math.min(base.GATE_CAP || 0.3, base.DIST_MAX * k); // GATE_CAP: optional upper bound at low fps
+    const out = { ...base, MAX_MISSED_MS: Math.max(base.MAX_MISSED_MS, 3 * ms), DIST_MAX, REVIVE_DIST: 2 * DIST_MAX };
+    if (base.DIST_REL) out.DIST_REL = Math.min(1.5, base.DIST_REL * k);
+    return out;
   }
 
   // ---------- Hungarian / linear sum assignment ----------
@@ -161,7 +163,29 @@
     }
     const pred = T.tracks.map(t => predictBox(t, now, cfg));
     const matches = []; // [trackIndex, detIndex] in apply order
-    if (cfg.ASSIGN === "hungarian") {
+    let skip = null; // byte mode: low-score dets never give birth
+    if (cfg.ASSIGN === "byte") {
+      // ByteTrack-style two-stage association (Zhang et al. 2022): 1) all tracks vs confident dets (score >= HIGH),
+      // 2) tracks still unmatched vs low-score dets (LOW <= score < HIGH) with a stricter IoU/distance gate — a person
+      // half-hidden for a frame keeps his track instead of a gap and a new id. Gate is scale-aware: centre distance up
+      // to max(DIST_MAX, DIST_REL × box height), so a near (big) person may move further than a far (small) one.
+      const HIGH = cfg.HIGH != null ? cfg.HIGH : 0.5, LOW = cfg.LOW != null ? cfg.LOW : 0.2;
+      const hi = [], lo = [];
+      dets.forEach((d, j) => { const sc = d.score == null ? 1 : d.score; if (sc >= HIGH) hi.push(j); else if (sc >= LOW) lo.push(j); });
+      const gate = i => Math.max(cfg.DIST_MAX, (cfg.DIST_REL || 0) * Math.max(T.tracks[i].box.h, pred[i].h));
+      const costOf = (i, d, strict) => {
+        const p = pred[i], ov = iou(p, d), dd = dist2d(center(p), center(d)), g = strict ? 0.5 * gate(i) : gate(i);
+        const hr = d.h / Math.max(1e-6, p.h);
+        if (hr > 2 || hr < 0.5) return Infinity;
+        if (!(ov >= (strict ? Math.max(0.3, cfg.IOU_MIN) : cfg.IOU_MIN) || dd <= g)) return Infinity;
+        return 1 - (ov + Math.max(0, 1 - dd / g)) / 2;
+      };
+      const ti = new Set();
+      if (T.tracks.length && hi.length) for (const [i, k] of lsa(T.tracks.map((t, i) => hi.map(j => costOf(i, dets[j], false))))) { matches.push([i, hi[k]]); ti.add(i); }
+      const rest = T.tracks.map((_, i) => i).filter(i => !ti.has(i));
+      if (rest.length && lo.length) for (const [r, k] of lsa(rest.map(i => lo.map(j => costOf(i, dets[j], true))))) matches.push([rest[r], lo[k]]);
+      skip = new Set(lo);
+    } else if (cfg.ASSIGN === "hungarian") {
       const cost = T.tracks.map((t, i) => dets.map(d => {
         const ov = iou(pred[i], d), dd = dist2d(center(pred[i]), center(d));
         if (!(ov >= cfg.IOU_MIN || dd <= cfg.DIST_MAX)) return Infinity;
@@ -190,7 +214,7 @@
     }
     // revive from the lost pool (position only)
     let free = [];
-    dets.forEach((d, j) => { if (!dj.has(j)) free.push(j); });
+    dets.forEach((d, j) => { if (!dj.has(j) && !(skip && skip.has(j)) && !(cfg.NEW_MIN > 0 && (d.score == null ? 1 : d.score) < cfg.NEW_MIN)) free.push(j); });
     if (cfg.LOST_TTL_MS > 0 && T.lost.length && free.length) {
       const cands = [];
       T.lost.forEach((t, li) => {
@@ -296,15 +320,72 @@
   }
 
   function matchFace(desc, gallery, { maxDist = 0.55, margin = 0 } = {}) {
-    let best = null, bd = Infinity, sd = Infinity;
+    let best = null, bd = Infinity, sd = Infinity, bthr = Infinity;
     if (desc && gallery) for (const g of gallery) {
       if (!g || !g.d || g.d.length !== desc.length) continue;
       let s = 0; for (let i = 0; i < desc.length; i++) { const v = desc[i] - g.d[i]; s += v * v; }
       const x = Math.sqrt(s);
-      if (x < bd) { if (best !== g.label) sd = bd; bd = x; best = g.label; } else if (x < sd && g.label !== best) sd = x;
+      if (x < bd) { if (best !== g.label) sd = bd; bd = x; best = g.label; bthr = g.thr; } else if (x < sd && g.label !== best) sd = x;
     }
-    const ambiguous = bd < maxDist && sd - bd < margin;
-    return { label: best != null && bd < maxDist && !ambiguous ? best : "unknown", distance: bd, second: sd, ambiguous };
+    const lim = Number.isFinite(bthr) ? Math.min(maxDist, bthr) : maxDist; // per-person limit (enrolGallery) can only tighten
+    const ambiguous = bd < lim && sd - bd < margin;
+    return { label: best != null && bd < lim && !ambiguous ? best : "unknown", distance: bd, second: sd, ambiguous, limit: lim };
+  }
+
+  /* ---------- face quality + enrolment helpers (attendance / customers / booth) ----------
+   * faceQuality({box:{w,h} px, score, landmarks:[[x,y]|{x,y}]x68?, sharp?}) -> {size, score, yaw, sharp}
+   *   size = min(w,h) px · yaw = 0 frontal .. 1 profile, from the nose tip (30) between the outer eye corners (36, 45).
+   * qualityOk(q, {minSize=40, minScore=0.5, maxYaw=0.6, minSharp=0}) -> boolean   frames failing it are not matched. */
+  const QUALITY = Object.freeze({ minSize: 40, minScore: 0.5, maxYaw: 0.6, minSharp: 0 }); // tests/bench/face1n.bench.mjs
+  function faceQuality({ box, score = 1, landmarks = null, sharp = null } = {}) {
+    const w = box ? (box.w != null ? box.w : box.width) : 0, h = box ? (box.h != null ? box.h : box.height) : 0;
+    let yaw = 0;
+    if (landmarks && landmarks.length >= 46) {
+      const P = i => { const p = landmarks[i]; return Array.isArray(p) ? { x: p[0], y: p[1] } : p; };
+      const l = P(36), r = P(45), n = P(30), span = r.x - l.x;
+      yaw = span > 0 ? Math.min(1, Math.abs((n.x - l.x) / span - 0.5) * 2) : 1;
+    }
+    return { size: Math.round(Math.min(w, h)), score: Math.round(score * 1000) / 1000, yaw: Math.round(yaw * 1000) / 1000, sharp: sharp == null ? null : sharp };
+  }
+  function qualityOk(q, cfg = {}) {
+    const c = { ...QUALITY, ...cfg };
+    return !!q && q.size >= c.minSize && q.score >= c.minScore && q.yaw <= c.maxYaw && (q.sharp == null || q.sharp >= c.minSharp);
+  }
+  const fdist = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) { const v = a[i] - b[i]; s += v * v; } return Math.sqrt(s); };
+  /* enrolGallery(people:[{label, ds:[desc...]}], {maxDist, k=0.8, floor=0.4}) -> [{label, d, thr}]
+   *   centroid (default): one entry per person = mean of its 2–3 enrolment photos; else one entry per photo. thr = clamp(k × distance to the
+   *   nearest OTHER enrolled person, floor, maxDist): a member whose face is close to someone else's gets a stricter
+   *   threshold, so the space between two look-alikes is not handed to strangers. */
+  function enrolGallery(people, { maxDist = 0.55, k = 0.85, floor = 0.45, centroid = true } = {}) {
+    const out = [];
+    const mean = ds => Array.from(ds[0], (_, i) => ds.reduce((s, d) => s + d[i], 0) / ds.length);
+    people = (people || []).map(p => { const ds = (p.ds || []).filter(d => d && d.length); return { label: p.label, ds: centroid && ds.length > 1 ? [mean(ds)] : ds }; });
+    for (const p of people) {
+      const ds = p.ds;
+      let nn = Infinity;
+      for (const q of people) if (q !== p && q.label !== p.label) for (const a of ds) for (const b of q.ds || []) { if (b && b.length === a.length) { const x = fdist(a, b); if (x < nn) nn = x; } }
+      const thr = Number.isFinite(nn) ? Math.max(floor, Math.min(maxDist, k * nn)) : maxDist;
+      for (const d of ds) out.push({ label: p.label, d, thr });
+    }
+    return out;
+  }
+  /* createConsensus({need=3, of=5, windowMs=4000}) -> {push(trackKey, label|'unknown', now) -> label|null, reset(key), prune(now)}
+   *   multi-frame vote per face track: a label is returned once it is the match in `need` of the last `of` frames of
+   *   that track (an 'unknown' frame counts as a vote against). */
+  function createConsensus({ need = 3, of = 5, windowMs = 4000 } = {}) {
+    const m = new Map();
+    return {
+      push(key, label, now) {
+        let e = m.get(key); if (!e) m.set(key, e = { v: [], t: now });
+        e.t = now; e.v.push(label); if (e.v.length > of) e.v.shift();
+        if (label === "unknown") return null;
+        let n = 0; for (const x of e.v) if (x === label) n++;
+        return n >= need ? label : null;
+      },
+      reset(key) { m.delete(key); },
+      prune(now) { for (const [k, e] of m) if (now - e.t > windowMs) m.delete(k); },
+      size: () => m.size
+    };
   }
 
   function snapshot(T) {
@@ -319,7 +400,8 @@
 
   const api = {
     iou, center, foot, dist2d, toNorm, DEFAULTS, PRESET, newTracker, updateTracker, lsa,
-    trackerCfgFor, assignUnique, createConfirm, pickPrimary, matchFace, snapshot
+    trackerCfgFor, assignUnique, createConfirm, pickPrimary, matchFace, snapshot,
+    QUALITY, faceQuality, qualityOk, enrolGallery, createConsensus
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") root.LQTrack = api;

@@ -23,7 +23,7 @@
   const CANON = { N: { x: 0, y: 0 }, L: { x: -1.4, y: .24 }, R: { x: 1.4, y: .24 }, width: 3.0, lineY: .07, deltoidY: .68, collarY: -.22 };
   // NW = ครึ่งความกว้างคอเสื้อ (ปรับตามคอจริงต่อการเรนเดอร์), SH = ครึ่งความกว้างไหล่ของโครงร่าง, WIDE = โหมดตัดตามเงาตัวจริง
   const NW0 = .33, SH0 = 1.5, NY = -.22, BOT = 7;
-  let NW = NW0, SH = SH0, WIDE = false;
+  let NW = NW0, SH = SH0, WIDE = false, SIDE = null, ARMS = null;
 
   // ---------------------------------------------------------------- เส้นทาง (พิกัดมาตรฐาน)
   /** โครงร่างตัวเสื้อ: ไหล่ลาด (trapezius) → เดลตอยด์ → แขนตกลงด้านล่าง; ด้านบนระหว่างคอคือคอเสื้อด้านหน้า (neckline(path, x->y)) */
@@ -31,17 +31,20 @@
   function side(c, sd, nw, ny) {
     if (WIDE) { // โครงร่างกว้างพิเศษ ขอบบนสูงกว่าไหล่จริง (ตัดด้วยเงาตัวคนภายหลัง) — ช่วงใกล้คอสูงตามแนวคอเสื้อ
       // แนวกล้ามเนื้อบ่า (trapezius) จากข้างคอลงสู่ปลายไหล่ แล้วยกสูงออกด้านนอก (ไหล่จริงตัดเอง)
-      c.bezierCurveTo(sd * (nw + .1), ny + .05, sd * .75, ny + .2, sd * 1.2, .04);
-      c.bezierCurveTo(sd * 1.45, -.02, sd * 1.6, -.2, sd * 1.8, -.3);
-      c.lineTo(sd * 3.2, -.3); c.lineTo(sd * 3.2, BOT); return;
+      // โครงร่างตามแนวบ่ามาตรฐาน (เดียวกับเพดานไหล่ของ StudioCore.garmentClip; ค่าชดเชยรายข้างมาจาก warp) จนถึงปลายไหล่
+      // แล้วยกสูง — ขอบบนจริงที่ไหล่มาจากเงาตัวคน: ไม่มีขั้นบันไดที่บ่า และไม่มี "โหนก" ข้างคอเสื้อ
+      for (let u = nw + .08; u <= 1.62; u += .08) c.lineTo(sd * u, shoulderLine(u) - .07);
+      c.lineTo(sd * 1.7, -.5); c.lineTo(sd * 3.2, -.5); c.lineTo(sd * 3.2, BOT); return;
     }
     c.bezierCurveTo(sd * .6, ny + .09, sd * .95, .03, sd * 1.2, .13);
     c.bezierCurveTo(sd * 1.4, .2, sd * SH, .38, sd * SH, .74);
     c.bezierCurveTo(sd * (SH + .02), 1.4, sd * (SH + .06), 2.6, sd * (SH + .14), BOT);
   }
+  /** แนวบ่ามาตรฐาน (หน่วยมาตรฐาน) — สูตรเดียวกับ StudioCore.shoulderTop (ไม่รวมค่าชดเชยรายข้าง) */
+  function shoulderLine(a) { return a < .33 ? -.22 : a < 1.2 ? -.22 + (a - .33) / .87 * .35 : .13 + Math.min(1, (a - 1.2) / .42) ** 2 * .6; }
   function silhouette(c, frontDip = .1, nw = NW, ny = NY) {
     c.moveTo(nw, ny); side(c, 1, nw, ny);
-    if (WIDE) { c.lineTo(-3.2, BOT); c.lineTo(-3.2, -.3); c.lineTo(-1.8, -.3); c.bezierCurveTo(-1.6, -.2, -1.45, -.02, -1.2, .04); c.bezierCurveTo(-.75, ny + .2, -(nw + .1), ny + .05, -nw, ny); }
+    if (WIDE) { c.lineTo(-3.2, BOT); c.lineTo(-3.2, -.5); c.lineTo(-1.7, -.5); for (let u = 1.62; u >= nw + .08; u -= .08) c.lineTo(-u, shoulderLine(u) - .07); c.lineTo(-nw, ny); }
     else {
     c.lineTo(-SH - .14, BOT);
     c.bezierCurveTo(-SH - .06, 2.6, -SH - .02, 1.4, -SH, .74);
@@ -57,7 +60,6 @@
     c.moveTo(sd * nw, ny); side(c, sd, nw, ny); c.lineTo(-sd * .1, BOT); c.lineTo(-sd * .03, vy + .05); c.lineTo(sd * .06, vy); c.closePath();
   }
   const poly = (c, pts) => { c.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]); c.closePath(); };
-  const mirror = pts => pts.map(([x, y]) => [-x, y]);
 
   // ---------------------------------------------------------------- ตัววาด: albedo / height / ตะเข็บ
   /** ตัวห่อ context: แปลงพิกัดทุกจุดด้วย warp (ใช้ลดระดับคอเสื้อลงตามความยาวคอจริง โดยไม่เปลี่ยนไหล่/ลำตัว) */
@@ -74,7 +76,9 @@
   }
   function painter(W, H, T, drop = 0) {
     // ยก/ลดเฉพาะบริเวณคอเสื้อ (ไหล่และแนวบ่าคงที่ตามไหล่จริง)
-    const warp = (x, y) => [x, y + drop * (1 - smooth01((y - NY - .05) / (1.0 - NY - .05))) * (1 - smooth01((Math.abs(x) - NW - .12) / .65))];
+    // + แนวไหล่รายข้าง (SIDE: ไหล่ซ้าย/ขวาของคนจริงลาดไม่เท่ากัน) — ตะเข็บไหล่/อินทรธนู/รอยยับตามไหล่จริงแต่ละข้าง
+    const sideOff = x => { if (!SIDE) return 0; const c = x < 0 ? SIDE.l : SIDE.r, a = Math.abs(x); return c ? (c[0] + c[1] * (a - 1)) * smooth01((a - .35) / .5) : 0; };
+    const warp = (x, y) => [x, y + drop * (1 - smooth01((y - NY - .05) / (1.0 - NY - .05))) * (1 - smooth01((Math.abs(x) - NW - .12) / .65)) + sideOff(x)];
     const mkc = () => { const c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d", { willReadFrequently: true }); x.setTransform(T.a, T.b, T.c, T.d, T.e, T.f); x.lineJoin = "round"; x.lineCap = "round"; return [c, x]; };
     const [ca, A0] = mkc(), [ch, H0] = mkc(), [cs, S0] = mkc();
     const wrapC = x => { const w = warpCtx(x, warp); return new Proxy(x, { get: (t, k) => k in w ? w[k] : (typeof t[k] === "function" ? t[k].bind(t) : t[k]), set: (t, k, v) => { t[k] = v; return true; } }); };
@@ -94,6 +98,32 @@
         P.part(c => c.arc(x, y, r, 0, 7), color, h);
         Hc.fillStyle = "rgba(255,255,255,.35)"; Hc.beginPath(); Hc.arc(x - r * .15, y - r * .15, r * .55, 0, 7); Hc.fill();
         S.fillStyle = "rgba(0,0,0,.5)"; for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { S.beginPath(); S.arc(x + dx * r * .28, y + dy * r * .28, r * .1, 0, 7); S.fill(); }
+      },
+      /**
+       * แขนเสื้อทรงกระบอก: เส้นโพลีไลน์ pts [{u,v}] ความกว้าง ws ต่อจุด — สี (albedo) + ระดับความสูงไล่จากขอบ (lo) ถึงกลาง (hi)
+       * วาดเป็นวงซ้อนกัน 6 ชั้น (ขอบ -> กลาง) ให้ normal โค้งแบบแขนจริง ไม่ใช่แผ่นแบน
+       */
+      tube(pts, ws, color, lo = .4, hi = .85) {
+        const outline = (c, k) => {
+          const L = pts.length, nrm = [];
+          for (let i = 0; i < L; i++) { const a = pts[Math.max(0, i - 1)], b = pts[Math.min(L - 1, i + 1)], dx = b.u - a.u, dy = b.v - a.v, l = Math.hypot(dx, dy) || 1; nrm.push([-dy / l, dx / l]); }
+          const side = sg => pts.map((p, i) => [p.u + sg * nrm[i][0] * ws[i] / 2 * k, p.v + sg * nrm[i][1] * ws[i] / 2 * k]);
+          const A = side(1), B = side(-1).reverse();
+          c.moveTo(A[0][0], A[0][1]); for (let i = 1; i < A.length; i++) c.lineTo(A[i][0], A[i][1]);
+          for (const q of B) c.lineTo(q[0], q[1]); c.closePath();
+          for (let i = 1; i < L - 1; i++) { const p = pts[i]; c.moveTo(p.u + ws[i] / 2 * k, p.v); c.arc(p.u, p.v, ws[i] / 2 * k, 0, 6.2832); } // ข้อศอกมน
+        };
+        A.fillStyle = color; A.beginPath(); outline(A, 1); A.fill("nonzero");
+        // ระดับความสูงเป็นวงซ้อน (เบลอครั้งเดียวภายหลังใน smoothTubes — เร็วกว่าเบลอทุกวงหลายเท่า)
+        for (let q = 0; q < 12; q++) { const k = 1 - q / 12, g = Math.round(255 * clamp01(lo + (hi - lo) * Math.sqrt(Math.max(0, 1 - k * k * .92)))); Hc.fillStyle = `rgb(${g},${g},${g})`; Hc.beginPath(); outline(Hc, k); Hc.fill("nonzero"); }
+        (P.tubes = P.tubes || []).push({ outline, w: ws[0] });
+      },
+      /** เบลอระดับความสูงของแขนเสื้อทุกเส้นครั้งเดียว เฉพาะภายในแขนเสื้อ (ไม่เป็นขั้นบันไดเป็นริ้ว) */
+      smoothTubes() {
+        if (!P.tubes || !P.tubes.length) return;
+        const sc = Math.hypot(T.a, T.b), r = Math.max(1, sc * P.tubes[0].w * .06), tmp = document.createElement("canvas"); tmp.width = W; tmp.height = H;
+        const tx = tmp.getContext("2d"); tx.filter = `blur(${r.toFixed(1)}px)`; tx.drawImage(ch, 0, 0);
+        H0.save(); Hc.beginPath(); for (const t of P.tubes) t.outline(Hc, 1); H0.clip("nonzero"); H0.setTransform(1, 0, 0, 1, 0, 0); H0.drawImage(tmp, 0, 0); H0.restore();
       },
       /** รอยยับ: สันนูนตามเส้นตรง (x0,y0)-(x1,y1) กว้าง w สูง amp (ลบ = ร่อง) */
       fold(x0, y0, x1, y1, w, amp) { const a = warp(x0, y0), b = warp(x1, y1); P.folds.push([a[0], a[1], b[0], b[1], w, amp]); },
@@ -123,6 +153,7 @@
   function sleeveSeams(P, k = .8) {
     for (const sd of [-1, 1]) {
       P.seam(c => { c.moveTo(sd * (NW + .12), NY + .1); c.bezierCurveTo(sd * .7, -.0, sd * .98, .05, sd * 1.2, .14); }, .01, k * .7); // ตะเข็บไหล่
+      if (ARMS) continue; // มีโครงแขนจริง: ตะเข็บวงแขน/แนวแขนวาดตามแขนจริงใน drawSleeves
       P.seam(c => { c.moveTo(sd * 1.2, .14); c.bezierCurveTo(sd * 1.2, .55, sd * 1.16, .95, sd * 1.16, 1.36); }, .011, k); // วงแขน
       P.seam(c => { c.moveTo(sd * 1.16, 1.32); c.bezierCurveTo(sd * 1.17, 1.9, sd * 1.19, 2.6, sd * 1.2, BOT); }, .02, k * .55); // แนวแขนแนบลำตัว
       // รอยยับใต้รักแร้/ข้อพับ
@@ -133,16 +164,17 @@
     const pts = notch
       ? [[sd * (NW + .02), NY + .03], [sd * .6, -.04], [sd * .64, .31], [sd * .56, .36], [sd * peak[0], peak[1]], [sd * .52, .82], [sd * .07, vy], [sd * (NW + .02), NY + .03]]
       : [[sd * (NW + .02), NY + .03], [sd * .62, -.02], [sd * .74, .45], [sd * .5, .95], [sd * .07, vy], [sd * (NW + .02), NY + .03]];
-    P.part(c => poly(c, pts), col, .52);
+    P.part(c => poly(c, pts), col, .42);
     if (notch) P.seam(c => { c.moveTo(sd * .64, .31); c.lineTo(sd * .44, .34); }, .008, .7);
     P.seam(c => poly(c, pts), .007, .45);
     P.fold(sd * .3, .2, sd * .1, 1.15, .05, .03); // รอยม้วนปก
   }
   function pocketWelt(P, x0, y0, x1, y1) { P.seam(c => { c.moveTo(x0, y0); c.lineTo(x1, y1); c.lineTo(x1, y1 + .05); c.lineTo(x0, y0 + .05); c.closePath(); }, .008, .55); P.fold((x0 + x1) / 2, (y0 + y1) / 2 + .025, (x0 + x1) / 2 + .01, (y0 + y1) / 2 + .03, .04, .03); }
   function flapPocket(P, col, cx, y, w = .42, hgt = .4, btn = null) {
-    P.seam(c => { c.rect(cx - w / 2, y, w, hgt); }, .009, .5);
-    P.part(c => { c.moveTo(cx - w / 2 - .02, y - .02); c.lineTo(cx + w / 2 + .02, y - .02); c.lineTo(cx + w / 2 + .02, y + .1); c.lineTo(cx, y + .15); c.lineTo(cx - w / 2 - .02, y + .1); c.closePath(); }, col, .5);
-    P.seam(c => { c.moveTo(cx - w / 2 - .02, y + .1); c.lineTo(cx, y + .15); c.lineTo(cx + w / 2 + .02, y + .1); }, .007, .5);
+    // กระเป๋าเป็นผ้าชั้นบาง (สูงกว่าตัวเสื้อเล็กน้อย) + ตะเข็บจาง — ไม่นูนเป็นแผ่นแบบปั๊มนูน
+    P.seam(c => { c.rect(cx - w / 2, y, w, hgt); }, .007, .32);
+    P.part(c => { c.moveTo(cx - w / 2 - .02, y - .02); c.lineTo(cx + w / 2 + .02, y - .02); c.lineTo(cx + w / 2 + .02, y + .1); c.lineTo(cx, y + .15); c.lineTo(cx - w / 2 - .02, y + .1); c.closePath(); }, col, .35);
+    P.seam(c => { c.moveTo(cx - w / 2 - .02, y + .1); c.lineTo(cx, y + .15); c.lineTo(cx + w / 2 + .02, y + .1); }, .006, .4);
     if (btn) P.button(cx, y + .1, .03, btn, .8);
   }
   function placket(P, y0, n, gap, btn, r = .028) {
@@ -151,7 +183,7 @@
   }
   function shoulderBoard(P, col, sd) { // อินทรธนูแบบเรียบ ไม่มียศ/ตรา
     const a = sd * .2, cs = Math.cos(a), sn = Math.sin(a), pt = (x, y) => [sd * .86 + x * cs - y * sn, .02 + x * sn + y * cs];
-    P.part(c => poly(c, [pt(-.33, -.07), pt(.33, -.07), pt(.33, .07), pt(-.33, .07)]), col, .62);
+    P.part(c => poly(c, [pt(-.33, -.07), pt(.33, -.07), pt(.33, .07), pt(-.33, .07)]), col, .4);
   }
 
   // ---------------------------------------------------------------- ชุดแต่ละแบบ
@@ -162,6 +194,7 @@
     lady: ladyKind("#2a3c5c", "#2f4468"),
     lady_black: ladyKind("#1e1e22", "#26262b"),
     shirt_tie: {
+      main: "#f4f5f6", cuff: "self",
       fabric: { twill: .018, mottle: .02, sheen: .05, period: .045 },
       back: P => backBand(P, "#e9ebee"),
       front: P => {
@@ -174,6 +207,7 @@
       }
     },
     student: {
+      main: "#f4f5f6", cuff: "self",
       fabric: { twill: .016, mottle: .02, sheen: .05, period: .045 },
       back: P => backBand(P, "#e9ebee"),
       front: P => {
@@ -187,6 +221,7 @@
       }
     },
     student_f: {
+      main: "#f6f7f8", cuff: "self",
       fabric: { twill: .014, mottle: .02, sheen: .05, period: .04 },
       back: P => backBand(P, "#eceef0", NY - .02),
       front: P => {
@@ -201,6 +236,7 @@
       }
     },
     civil: {
+      main: "#f3f2ec", cuff: "self",
       fabric: { twill: .02, mottle: .02, sheen: .07, period: .05 },
       back: P => backBand(P, "#e6e6e0", NY - .14),
       front: P => {
@@ -215,6 +251,7 @@
       }
     },
     khaki: {
+      main: "#b39b6c", cuff: "self",
       fabric: { twill: .03, mottle: .03, sheen: .04, period: .05 },
       back: P => backBand(P, "#9f8760"),
       front: P => {
@@ -229,6 +266,7 @@
   };
   function suitKind(jacket, lapel, tieCol, stripe) {
     return {
+      main: jacket, cuff: "#f4f5f7",
       fabric: { twill: .03, mottle: .035, sheen: .09, period: .035 },
       back: P => backBand(P, "#e3e5e8"),
       front: P => {
@@ -249,6 +287,7 @@
   }
   function ladyKind(jacket, lapel) {
     return {
+      main: jacket, cuff: "#f2f3f5",
       fabric: { twill: .025, mottle: .03, sheen: .1, period: .033 },
       back: P => backBand(P, "#d9dbdf", NY + .02),
       front: P => {
@@ -267,13 +306,36 @@
     };
   }
 
+  /**
+   * แขนเสื้อตามแขนจริง (ARMS จาก StudioCore.armModel): ต้นแขนแนบลำตัว (รอยพับใต้รักแร้ + ตะเข็บด้านใน) -> ศอก -> แขนท่อนล่างไปถึงข้อมือ
+   * ปลายแขน: ข้อมือเสื้อเชิ้ตโผล่ (สูท) หรือข้อมือผ้าเดียวกัน + ตะเข็บ; ข้อศอกมีรอยยับ — มือจริงวางทับภายหลัง
+   */
+  function drawSleeves(P, K) {
+    for (const A of ARMS) {
+      const sd = A.side, d = A.d, pts = [A.S, A.E, A.Wr];
+      let ws = A.w.slice();
+      if (A.hand) {
+        // ข้อมือ: ปลายแขนเสื้อสั้นกว่าข้อมือเล็กน้อย; สูทมีข้อมือเชิ้ต 0.07 หน่วย
+        const shirt = K.cuff && K.cuff !== "self", back = shirt ? .08 : 0, end = { u: A.Wr.u - d.u * back, v: A.Wr.v - d.v * back };
+        if (shirt) P.tube([{ u: end.u - d.u * .04, v: end.v - d.v * .04 }, A.Wr], [ws[2] * .92, ws[2] * .9], K.cuff, .45, .7);
+        P.tube([A.S, A.E, end], ws, K.main, .3, .9);
+        P.seam(c => { const q = ws[2] / 2 * .98, nx = -d.v, ny = d.u, b = { u: end.u - d.u * .09, v: end.v - d.v * .09 }; c.moveTo(b.u + nx * q, b.v + ny * q); c.lineTo(b.u - nx * q, b.v - ny * q); }, .008, .45); // ตะเข็บปลายแขน
+        if (!shirt) P.button(end.u - d.u * .045 - d.v * ws[2] * .3, end.v - d.v * .045 + d.u * ws[2] * .3, .018, K.main, .7); // กระดุมข้อมือ
+        // รอยยับที่ข้อพับศอก (ตั้งฉากกับแขนท่อนล่าง)
+        for (let q = 1; q <= 3; q++) { const t = .12 + q * .1, c = { u: A.E.u + d.u * t, v: A.E.v + d.v * t }, nx = -d.v * ws[1] * .35, ny = d.u * ws[1] * .35; P.fold(c.u - nx, c.v - ny, c.u + nx + d.u * .06, c.v + ny + d.v * .06, .035, .018); }
+      } else P.tube(pts, ws, K.main, .32, .82);
+      // ตะเข็บด้านในของต้นแขน (แนวแขน/ลำตัว) จากใต้รักแร้ถึงศอก + รอยพับใต้รักแร้
+      const inner = (p, w) => ({ u: p.u - sd * w / 2 * .96, v: p.v });
+      const a = inner({ u: A.S.u, v: .95 }, ws[0]), b = inner(A.E, ws[1]);
+      P.seam(c => { c.moveTo(a.u, a.v); c.lineTo(b.u, b.v); }, .016, .5);
+      P.seam(c => { c.moveTo(sd * (NW + .12), NY + .1); c.bezierCurveTo(sd * .7, -.0, sd * .98, .05, A.S.u, .14); }, .01, .45); // ตะเข็บไหล่ถึงหัวไหล่จริง
+      P.seam(c => { c.moveTo(A.S.u, .14); c.bezierCurveTo(A.S.u + sd * .02, .5, a.u + sd * .05, .8, a.u, a.v); }, .011, .5); // วงแขน
+      P.fold(a.u, a.v + .05, a.u + sd * .25, a.v + .35, .07, .02); P.fold(a.u, a.v + .4, a.u + sd * .22, a.v + .75, .07, .016);
+    }
+  }
+
   // ---------------------------------------------------------------- แสงเงาต่อพิกเซล
   function hash2(x, y, s) { let h = (x * 374761393 + y * 668265263 + s * 2147483647) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
-  function vnoise(x, y, s) { // value noise ต่อเนื่อง
-    const xi = Math.floor(x), yi = Math.floor(y), tx = x - xi, ty = y - yi, sx = tx * tx * (3 - 2 * tx), sy = ty * ty * (3 - 2 * ty);
-    const a = hash2(xi, yi, s), b = hash2(xi + 1, yi, s), c = hash2(xi, yi + 1, s), d = hash2(xi + 1, yi + 1, s);
-    return a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy;
-  }
   /** รูปทรงลำตัว (หน่วยมาตรฐาน): ลำตัวโค้งแบบกระบอก + แขนสองข้าง + หัวไหล่กลม */
   function bodyForm(x, y) {
     const ax = Math.abs(x);
@@ -318,7 +380,7 @@
         if (d2 < 9) h += FD[q + 5] * Math.exp(-d2) * Math.sin(Math.PI * Math.min(1, t * 1.2 + .1));
       }
       const sv = sm[k * 4 + 3] / 255; seamA[k] = sv; h -= smB[k * 4 + 3] / 255 * .03;
-      if (form) h += .26 * Math.sqrt(Math.max(0, 1 - (p.x / 2.3) ** 2)) + fiberTile()[4][(((j + y0) & 255) << 8) | ((i + x0) & 255)] * .012; // ลำตัวโค้ง + ผ้าทิ้งตัวไม่เรียบสนิท
+      if (form) h += .26 * Math.sqrt(Math.max(0, 1 - (p.x / 2.3) ** 2)) + fiberTile()[4][(((j + y0) & 255) << 8) | ((i + x0) & 255)] * .03 + fiberTile()[3][((((j + y0) >> 1) & 255) << 8) | (((i + x0) >> 1) & 255)] * .012; // ลำตัวโค้ง + ผ้าทิ้งตัวไม่เรียบสนิท (คลื่นผ้ากว้าง + ย่อย)
       Ht[k] = h * s; // เป็นพิกเซล
     }
     const L = norm3(light.x, -.8, .75), flat = L[2], amb = .36, kd = .78, out = new ImageData(bw, bh), o = out.data;
@@ -329,7 +391,7 @@
       const hy = (Ht[j < bh - 1 && a[(k + bw) * 4 + 3] ? k + bw : k] - Ht[j > 0 && a[(k - bw) * 4 + 3] ? k - bw : k]) * .5;
       const il = 1 / Math.sqrt(hx * hx + hy * hy + 1), n0 = -hx * il, n1 = -hy * il, n2 = il, dif = Math.max(0, n0 * L[0] + n1 * L[1] + n2 * L[2]);
       let sh = (amb + kd * dif) / (amb + kd * flat);
-      const ao = 1 - Math.min(.45, Math.max(0, (h2[k * 4] - h1[k * 4]) / 255) * 2.2); // ร่อง/ใต้ชิ้นที่ยกสูง = มืด
+      const ao = 1 - Math.min(.4, Math.max(0, (h2[k * 4] - h1[k * 4]) / 255) * 1.7); // ร่อง/ใต้ชิ้นที่ยกสูง = มืด
       sh *= ao * (1 - seamA[k] * .1);
       // เงาวาว (Blinn-Phong อย่างหยาบ) + ลายทอ + noise
       const spec = f.sheen ? Math.pow(Math.max(0, n0 * hv[0] + n1 * hv[1] + n2 * hv[2]), 18) * f.sheen : 0;
@@ -369,10 +431,10 @@
    * clip = เงาตัวคน (Float32Array W×H, 0..1) — ถ้ามี วาดโครงร่างกว้างแล้วตัดตามรูปร่างจริง; form = ความนูนของลำตัว/แขน (หน่วยมาตรฐาน)
    * nw = ครึ่งความกว้างคอเสื้อ (หน่วยมาตรฐาน) ให้พอดีคอจริง
    */
-  function layers(kind, { W, H, s, theta = 0, N, light = { x: -.3 }, seed = 7, drop = 0, clip = null, form = null, nw = null }) {
+  function layers(kind, { W, H, s, theta = 0, N, light = { x: -.3 }, seed = 7, drop = 0, clip = null, form = null, nw = null, side = null, arms = null }) {
     const K = KINDS[kind]; if (!K) return null;
-    NW = nw ? Math.max(.24, Math.min(.44, nw)) : NW0; WIDE = !!clip;
-    try { return layersImpl(K, { W, H, s, theta, N, light, seed, drop, clip, form }); } finally { NW = NW0; WIDE = false; }
+    NW = nw ? Math.max(.24, Math.min(.44, nw)) : NW0; WIDE = !!clip; SIDE = side; ARMS = arms && arms.length ? arms : null;
+    try { return layersImpl(K, { W, H, s, theta, N, light, seed, drop, clip, form }); } finally { NW = NW0; WIDE = false; SIDE = null; ARMS = null; }
   }
   function layersImpl(K, { W, H, s, theta, N, light, seed, drop, clip, form }) {
     const cs = Math.cos(theta), sn = Math.sin(theta);
@@ -381,7 +443,9 @@
     const out = {};
     for (const part of ["back", "front"]) {
       const P = painter(W, H, T, Math.max(-.8, Math.min(.6, drop))); K[part](P);
+      if (part === "front" && ARMS && K.main) { drawSleeves(P, K); P.smoothTubes(); }
       if (part === "front") for (const sd of [-1, 1]) { // รอยยับธรรมชาติ: ใต้รักแร้ลงสู่เอว, หัวไหล่, ข้อพับแขน
+        if (ARMS) { P.fold(sd * .95, .2, sd * 1.25, .42, .09, .012); continue; }
         P.fold(sd * 1.22, .95, sd * .62, 2.3, .11, .022); P.fold(sd * 1.3, 1.55, sd * .85, 2.9, .12, .018);
         P.fold(sd * .95, .2, sd * 1.32, .42, .09, .012); P.fold(sd * 1.45, 2.4, sd * 1.75, 2.75, .08, .02);
       }

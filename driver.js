@@ -3,7 +3,8 @@
 
 // ================= ส่วนคำนวณ (ไม่ใช้ DOM ทดสอบด้วย Node ได้) =================
 const DR_DEFAULTS = {
-  earRatio: 0.7,          // เกณฑ์หลับตา = ค่า EAR ปกติ × 0.7
+  earRatio: 0.85,         // เกณฑ์หลับตา = ค่า EAR ปกติ × 0.85 (วัดแล้ว: landmark ของ face-api แทบไม่ขยับตอนหลับตา — EAR หลับ/ลืม ≈ 0.86–0.93
+                          // ×0.7 แบบ dlib จับตาปิดได้ < 1% ต่อเฟรม; ×0.85 จับได้ 18–43% โดยตาเปิดถูกนับเป็นปิด ≤ 0.1% — ดู ACCURACY.md / tests/bench/driver.bench.mjs)
   earFallback: 0.25,      // ใช้เมื่อปรับเทียบไม่สำเร็จ
   earMin: 0.12, earMax: 0.35,
   calibMinSamples: 10,
@@ -274,14 +275,14 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
 
   // ---------- การตั้งค่า ----------
   const SEATS = ["right", "left", "auto"];
-  const settings = { ratio: 0.7, marYawn: 0.5, breakN: 3, inputSize: 224, speech: true, seatSide: "right", ...load(K.settings, {}) };
+  const settings = { ratio: DR_DEFAULTS.earRatio, marYawn: 0.5, breakN: 3, inputSize: 224, speech: true, seatSide: "right", ...load(K.settings, {}) };
   if (!SEATS.includes(settings.seatSide)) settings.seatSide = "right";
   const sf = $("#settings");
   const syncSettingsUI = () => { sf.ratio.value = settings.ratio; sf.marYawn.value = settings.marYawn; sf.breakN.value = settings.breakN; sf.inputSize.value = settings.inputSize; sf.speech.checked = settings.speech; sf.seatSide.value = settings.seatSide; };
   syncSettingsUI();
   sf.addEventListener("change", () => {
     const num = (v, lo, hi, d) => { const n = parseFloat(v); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
-    settings.ratio = num(sf.ratio.value, 0.5, 0.9, 0.7);
+    settings.ratio = num(sf.ratio.value, 0.5, 0.95, DR_DEFAULTS.earRatio);
     settings.marYawn = num(sf.marYawn.value, 0.3, 1, 0.5);
     settings.breakN = Math.round(num(sf.breakN.value, 1, 10, 3));
     settings.inputSize = sf.inputSize.value === "320" ? 320 : 224;

@@ -42,19 +42,24 @@
       { href: "photobooth.html", title: "ตู้ถ่ายรูป", desc: "ตู้สติ๊กเกอร์และรูปติดบัตร" },
       { href: "studio.html", title: "สตูดิโอแต่งชุด", desc: "เปลี่ยนชุดให้เหมือนใส่จริง ตัดพื้นหลัง รีทัช" }
     ] },
+    { label: "เกี่ยวกับและสัญญาอนุญาต", href: "about.html" },
     { label: "ระบบทั้งหมด", href: "cameras.html", cta: true }
   ];
 
   // ---------- i18n loader (lensiq-i18n.js + common Chinese dictionary) ----------
   var T = function (key, thai, vars) { return window.LQI18N ? window.LQI18N.tf(key, thai, vars) : thai; };
   (function loadI18n() {
-    var cur = document.currentScript && document.currentScript.src || "";
+    var cs = /** @type {HTMLScriptElement|null} */ (document.currentScript);
+    var cur = cs && cs.src || "";
     var q = cur.indexOf("?") >= 0 ? cur.slice(cur.indexOf("?")) : "";
     var have = function (name) { return !!document.querySelector('script[src^="' + name + '"]'); };
     [["lensiq-i18n.js", !window.LQI18N], ["i18n/zh-common.js", true]].forEach(function (f) {
       if (!f[1] || have(f[0])) return;
       var sc = document.createElement("script");
       sc.src = f[0] + q; sc.async = false; // keep order: core first, then the dictionary
+      // JS-set header strings (menu-toggle aria-label) need a refresh once the dictionary has arrived: the start-up
+      // "lq-lang" event can fire between the core and the dictionary
+      if (f[0] === "i18n/zh-common.js") sc.addEventListener("load", function () { if (typeof syncLang === "function" && langBtns) syncLang(); });
       (document.head || document.documentElement).appendChild(sc);
     });
   })();
@@ -73,8 +78,8 @@
 
   var key = function (href) { return "nav." + href.replace(/\.html$/, ""); };
   var html = '<a class="skip-link" href="#main" data-i18n="nav.skip">ข้ามไปยังเนื้อหา</a>' +
-    '<a class="logo" href="index.html" aria-label="' + esc(BRAND.full) + ' หน้าแรก">' + mark + esc(BRAND.name) + '<span>' + esc(BRAND.accent) + '</span></a>' +
-    '<div class="lang-switch" role="group" aria-label="ภาษา / 语言">' +
+    '<a class="logo" href="index.html" aria-label="' + esc(BRAND.full) + ' หน้าแรก" data-i18n-attr="aria-label:nav.home">' + mark + esc(BRAND.name) + '<span>' + esc(BRAND.accent) + '</span></a>' +
+    '<div class="lang-switch" role="group" aria-label="ภาษา" data-i18n-attr="aria-label:nav.lang">' +
       '<button type="button" data-lang="th" lang="th" aria-pressed="true">TH</button>' +
       '<button type="button" data-lang="zh" lang="zh-Hans" aria-pressed="false">中文</button>' +
     '</div>' +
@@ -113,9 +118,10 @@
     if (m) { if (!m.id) m.id = "main"; skip.setAttribute("href", "#" + m.id); } else skip.remove();
   });
 
-  var toggle = header.querySelector(".nav-toggle");
-  var menu = header.querySelector(".site-menu");
-  var scrim = header.querySelector(".nav-scrim");
+  var toggle = /** @type {HTMLElement} */ (header.querySelector(".nav-toggle"));
+  var menu = /** @type {HTMLElement} */ (header.querySelector(".site-menu"));
+  var scrim = /** @type {HTMLElement} */ (header.querySelector(".nav-scrim"));
+  /** @type {HTMLElement[]} */
   var subBtns = Array.prototype.slice.call(header.querySelectorAll(".has-sub > .nav-link"));
   var mq = window.matchMedia("(max-width: 859.98px), (pointer: coarse) and (max-height: 600px)");
   var hoverMq = window.matchMedia("(hover: hover) and (pointer: fine)");
@@ -138,7 +144,7 @@
       setNavH();
       // On mobile, expand the group containing the current page.
       subBtns.forEach(function (b) { if (b.classList.contains("is-current")) setSub(b, true); });
-      var first = menu.querySelector("a, button");
+      var first = /** @type {HTMLElement|null} */ (menu.querySelector("a, button"));
       if (first) first.focus({ preventScroll: true });
     } else if (returnFocus) toggle.focus();
   }
@@ -147,7 +153,7 @@
   scrim.addEventListener("click", function () { setDrawer(false, true); });
 
   subBtns.forEach(function (btn) {
-    var item = btn.parentNode;
+    var item = /** @type {HTMLElement} */ (btn.parentNode);
     btn.addEventListener("click", function () {
       var open = btn.getAttribute("aria-expanded") !== "true";
       if (!mq.matches) closeSubs(btn);
@@ -156,13 +162,14 @@
     btn.addEventListener("keydown", function (e) {
       if (e.key === "ArrowDown") {
         e.preventDefault(); setSub(btn, true);
-        var a = item.querySelector(".nav-sub a"); if (a) a.focus();
+        var a = /** @type {HTMLElement|null} */ (item.querySelector(".nav-sub a")); if (a) a.focus();
       }
     });
     item.addEventListener("keydown", function (e) {
       if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+      /** @type {HTMLElement[]} */
       var links = Array.prototype.slice.call(item.querySelectorAll(".nav-sub a"));
-      var i = links.indexOf(document.activeElement);
+      var i = links.indexOf(/** @type {HTMLElement} */ (document.activeElement));
       if (i < 0) return;
       e.preventDefault();
       var n = links[(i + (e.key === "ArrowDown" ? 1 : links.length - 1)) % links.length];
@@ -170,7 +177,7 @@
     });
     // Desktop: close dropdown when focus leaves it.
     item.addEventListener("focusout", function (e) {
-      if (!mq.matches && !item.contains(e.relatedTarget)) setSub(btn, false);
+      if (!mq.matches && !item.contains(/** @type {Node} */ (/** @type {FocusEvent} */ (e).relatedTarget))) setSub(btn, false);
     });
     // Desktop with mouse: open on hover.
     item.addEventListener("mouseenter", function () { if (!mq.matches && hoverMq.matches) { closeSubs(btn); setSub(btn, true); } });
@@ -178,12 +185,13 @@
   });
 
   menu.addEventListener("click", function (e) {
-    var a = e.target.closest ? e.target.closest("a") : null;
+    var tg = /** @type {Element} */ (e.target);
+    var a = tg && tg.closest ? tg.closest("a") : null;
     if (a) { closeSubs(); if (header.classList.contains("menu-open")) setDrawer(false); }
   });
 
   document.addEventListener("click", function (e) {
-    if (!mq.matches && !header.contains(e.target)) closeSubs();
+    if (!mq.matches && !header.contains(/** @type {Node} */ (e.target))) closeSubs();
   });
 
   document.addEventListener("keydown", function (e) {
@@ -196,6 +204,7 @@
   // Keep focus inside the drawer while it is open (mobile).
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Tab" || !header.classList.contains("menu-open")) return;
+    /** @type {HTMLElement[]} */
     var f = [toggle].concat(Array.prototype.slice.call(menu.querySelectorAll("a, button"))).filter(function (el) { return el.offsetParent !== null; });
     var first = f[0], last = f[f.length - 1];
     if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
@@ -309,9 +318,9 @@
       if (typeof MutationObserver === "undefined") return;
       new MutationObserver(function (recs) {
         for (var i = 0; i < recs.length; i++) {
-          var t = recs[i].target;
+          var t = /** @type {Element} */ (recs[i].target);
           for (var j = 0; j < recs[i].addedNodes.length; j++) {
-            var a = recs[i].addedNodes[j];
+            var a = /** @type {Element} */ (recs[i].addedNodes[j]);
             if (a.nodeType === 1) { if (a.nodeName !== "WBR" && !(a.classList && (a.classList.contains("lq-run") || a.classList.contains("lq-w")))) pending.push(a); }
             else if (a.nodeType === 3 && t.nodeType === 1) {
               if (t.hasAttribute("data-lqwb")) t.removeAttribute("data-lqwb"); // text re-set by page code: redo
@@ -323,7 +332,7 @@
         if (pending.length && !timer) timer = idle(flush);
       }).observe(document.body, { childList: true, subtree: true });
     }
-    window.addEventListener("lq-lang", function (e) { if (e.detail && e.detail.lang === "th") run(document.body); });
+    window.addEventListener("lq-lang", function (/** @type {CustomEvent} */ e) { if (e.detail && e.detail.lang === "th") run(document.body); });
     if (document.body) start(); else document.addEventListener("DOMContentLoaded", start);
   }
 
@@ -361,7 +370,7 @@
       var text = function () {
         var mb = opts.mb ? " " + (Math.round(opts.mb * 10) / 10) + " MB" : "";
         return T("models.loading", "กำลังโหลดโมเดล{label}{mb} (ครั้งแรกเท่านั้น หลังจากนี้ใช้ได้แม้ออฟไลน์)",
-          { label: opts.label ? " " + opts.label : "", mb: mb });
+          { label: opts.label ? " " + T(opts.label, opts.label) : "", mb: mb }); // label: Thai text doubles as its i18n key
       };
       var show = function () {
         if (closed || shown || !document.body) return;
@@ -390,7 +399,7 @@
         if (hit) return true;
         if (!slowNet() && !(opts.mb > (opts.askOverMb || 40))) return true;
         return window.confirm(T("models.confirm", "ต้องดาวน์โหลดโมเดล{label} ประมาณ {mb} MB ดาวน์โหลดตอนนี้หรือไม่?",
-          { label: opts.label ? " " + opts.label : "", mb: Math.round((opts.mb || 0) * 10) / 10 }));
+          { label: opts.label ? " " + T(opts.label, opts.label) : "", mb: Math.round((opts.mb || 0) * 10) / 10 }));
       });
     }
     /** fetch พร้อมแสดงความคืบหน้า -> ArrayBuffer */

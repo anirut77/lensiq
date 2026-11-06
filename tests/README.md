@@ -97,18 +97,23 @@ Not part of the normal test run: they need public datasets that are **never** co
 10–40 minutes on WASM. Results and the method are published in [ACCURACY.md](../ACCURACY.md).
 
 ```sh
-python3 -I tests/bench/fetch_datasets.py ~/lq-bench-data          # mot lfw utk (pyarrow needed for lfw); outside the repo only
-LQ_BENCH_DATA=~/lq-bench-data node tests/bench/people.bench.mjs [--sweep] [--seq PETS] [--json out.json]
+python3 -I tests/bench/fetch_datasets.py ~/lq-bench-data          # mot lfw utk hagrid oceyes cew fer (pyarrow for lfw/oceyes, bsdtar for cew); outside the repo only
+LQ_BENCH_DATA=~/lq-bench-data node tests/bench/people.bench.mjs [--model yolox_nano_416|coco] [--split auto] [--fps 5] [--sweep] [--seq PETS] [--json out.json]
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/face.bench.mjs   [--json out.json]   # LFW pairs + 1:N, UTKFace age/gender
+LQ_BENCH_DATA=~/lq-bench-data node tests/bench/face1n.bench.mjs [--json out.json]   # 1:N round 4: full LFW (tuning) + CASIA-FaceV5 (Asian, held out)
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/hand.bench.mjs   [--json out.json]   # HaGRID subset (hagrid/index.json)
+LQ_BENCH_DATA=~/lq-bench-data node tests/bench/driver.bench.mjs [--json out.json]   # eye closure (EAR): oceyes (ODC-BY) + CEW
+LQ_BENCH_DATA=~/lq-bench-data node tests/bench/neuro.bench.mjs  [--json out.json]   # expressions: FER-2013 sample (eval only)
+node tests/bench/qc.bench.mjs       [--cond light] [--json out.json]   # synthetic bottles vs qc.js inspect (no data, ~15 min)
+node tests/bench/checkout.bench.mjs [--n 60] [--json out.json]         # synthetic EAN-13/UPC-A/Code 128 vs BarcodeDetector
 ```
 
 - Every script exits 0 with `skip …` when `LQ_BENCH_DATA` (or the dataset inside it) is missing.
 - `lib.mjs` serves the repo plus the dataset folder (read-only, `/__data/`) and opens `tests/bench/bench.html` in headless
-  Chrome without WebGL. `bench-page.js` calls the production code: `LQDetect.detectCoco` / `LQDetect.embedBox` (store
+  Chrome without WebGL. `bench-page.js` calls the production code: `LQDetect.detectPeople` (YOLOX-Nano on ORT WASM, or COCO-SSD) / `LQDetect.embedBox` (store
   re-ID), face-api with the attendance/customers/signage options, `LQHand.createDetector().detect`.
 - Tracking and counting run in Node through `store.js` `stepCam()` (the page's own per-frame function) on the browser
   detections; MOT17 frames are analysed at 10 fps, the rate the store page reaches on WASM.
 - `metrics.cjs` (precision/recall/AP, CLEAR-MOT, IDF1, crossing events, TAR/FAR, 1:N) is unit-tested in
   `tests/unit/bench-metrics.test.js`. Detections are cached in `$LQ_BENCH_CACHE` (default `<data>/.lq-cache`).
-- Licences: MOTChallenge CC BY-NC-SA 3.0 · LFW research use · UTKFace non-commercial research only · HaGRID CC BY-SA 4.0.
+- Licences: MOTChallenge CC BY-NC-SA 3.0 · LFW research use · UTKFace non-commercial research only · HaGRID CC BY-SA 4.0 · Open/Closed Eyes (AI-generated) ODC-BY 1.0 · CEW research use only, no redistribution · FER-2013 research use only (evaluation only).

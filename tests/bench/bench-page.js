@@ -17,14 +17,14 @@
     /* people: detections for a list of frame URLs. minScore low (0.05) so thresholds can be swept offline:
        greedy NMS keeps exactly the same boxes above any higher threshold. embMin>0 -> MobileNetV2 embedding (base64
        Float32) for each det >= embMin, cropped from the detW canvas exactly like store.js frameSrc()+embedBox. */
-    async people(urls, { detW = 416, minScore = 0.05, max = 100, embMin = 0, tiles = null } = {}) {
-      coco = coco || await LQDetect.loadCoco(MODEL + "cocossd/model.json");
+    async people(urls, { detW = 416, minScore = 0.05, max = 100, embMin = 0, tiles = null, model = "coco", split = null } = {}) {
+      const det = model === "coco" ? (coco = coco || await LQDetect.loadCoco(MODEL + "cocossd/model.json")) : await LQDetect.loadYolox(MODEL + "yolox/" + model + ".onnx");
       if (embMin > 0) emb = emb || await LQDetect.loadEmbedder(MODEL + "mobilenet/model.json");
       const out = [];
       for (const u of urls) {
         const im = await img(u);
         const t0 = performance.now();
-        const dets = await LQDetect.detectCoco(coco, im, { detW, minScore, max, canvas: small, tiles });
+        const dets = await LQDetect.detectPeople(det, im, { detW, minScore, max, canvas: small, tiles, split });
         const ms = performance.now() - t0;
         const row = { d: dets.map(d => [r4(d.x), r4(d.y), r4(d.w), r4(d.h), r4(d.score)]), ms: Math.round(ms) };
         if (embMin > 0) {
@@ -71,6 +71,42 @@
         const r = rs.slice().sort((a, b) => b.detection.box.area - a.detection.box.area)[0];
         out.push({ n: rs.length, ms: Math.round(ms), score: r4(r.detection.score), desc: descriptor ? Array.from(r.descriptor, r4) : undefined,
           age: ageGender ? r4(r.age) : undefined, gender: ageGender ? r.gender : undefined, gp: ageGender ? r4(r.genderProbability) : undefined });
+      }
+      return out;
+    }
+    ,
+    /* faceFrames: like faces(), but each image yields 1 + jitter "video frames" (seeded small shift / scale / exposure /
+       defocus — what consecutive webcam frames of one pose look like) and quality inputs for LQTrack.faceQuality:
+       box px size, detector score, 68 landmarks (for yaw), LQDetect.faceSharpness. upscale: draw the image k× larger first
+       (small aligned crops such as CASIA-FaceV5 112 px), padTo: grey canvas around it. */
+    async faceFrames(urls, { inputSize = 320, scoreThreshold = 0.5, padTo = 0, upscale = 1, jitter = 2, seed = 1 } = {}) {
+      if (!faceReady) {
+        await LQDetect.tfBackend();
+        await Promise.all(["tinyFaceDetector", "faceLandmark68Net", "faceRecognitionNet"].map(n => faceapi.nets[n].loadFromUri(MODEL)));
+        faceReady = true;
+      }
+      const opts = new faceapi.TinyFaceDetectorOptions({ inputSize, scoreThreshold });
+      let s = seed >>> 0 || 1; const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+      const out = [];
+      for (const u of urls) {
+        const im = await img(u), iw = im.naturalWidth * upscale, ih = im.naturalHeight * upscale;
+        const P = Math.max(padTo, iw, ih), frames = [];
+        for (let k = 0; k <= jitter; k++) {
+          const c = document.createElement("canvas"); c.width = c.height = P;
+          const x = c.getContext("2d"); x.fillStyle = "#808080"; x.fillRect(0, 0, P, P);
+          const sc = k ? 1 + (rnd() - 0.5) * 0.12 : 1, dx = k ? (rnd() - 0.5) * 0.06 * iw : 0, dy = k ? (rnd() - 0.5) * 0.06 * ih : 0;
+          const br = k ? 0.85 + rnd() * 0.3 : 1, bl = k ? rnd() * 1.2 : 0;
+          x.filter = `brightness(${br.toFixed(3)})` + (bl > 0.3 ? ` blur(${bl.toFixed(2)}px)` : "");
+          x.drawImage(im, (P - iw * sc) / 2 + dx, (P - ih * sc) / 2 + dy, iw * sc, ih * sc);
+          x.filter = "none";
+          const rs = await faceapi.detectAllFaces(c, opts).withFaceLandmarks().withFaceDescriptors();
+          if (!rs.length) { frames.push({ n: 0 }); continue; }
+          const r = rs.slice().sort((a, b) => b.detection.box.area - a.detection.box.area)[0], b = r.detection.box;
+          const lm = r.landmarks.positions.map(p => [Math.round(p.x * 10) / 10, Math.round(p.y * 10) / 10]);
+          frames.push({ n: rs.length, score: r4(r.detection.score), w: Math.round(b.width), h: Math.round(b.height), desc: Array.from(r.descriptor, r4),
+            q: LQTrack.faceQuality({ box: { x: b.x, y: b.y, w: b.width, h: b.height }, score: r.detection.score, landmarks: lm, sharp: LQDetect.faceSharpness(c, { x: b.x, y: b.y, w: b.width, h: b.height }) }) });
+        }
+        out.push(frames);
       }
       return out;
     }

@@ -9,7 +9,7 @@ How personal data flows through each LENSIQ module: **source → processing → 
 | Flow | Detail |
 |---|---|
 | Static files | HTML, JS, models from the host (GitHub Pages, your static host, or `server.py`). The host sees normal web request logs (IP, user agent, URL). |
-| **Google Fonts** | Each page requests `https://fonts.googleapis.com/css2?family=Prompt…` and font files from `fonts.gstatic.com`. **The visitor's IP address and user agent are disclosed to Google (USA).** No cookies are set by this request. Strict deployments should self-host the font (OFL) and remove the `<link>` tags. |
+| Fonts | **Self-hosted since v0.10.** The Prompt font comes from `vendor/fonts/prompt/` on the same host (OFL). No page contacts Google or any other third-party origin: the CSP allows only `'self'`, and `tools/check-external.mjs` verifies this headless on all pages. Chinese text uses the visitor's OS fonts. |
 | Service worker | `sw.js` caches `vendor/` models locally (Cache Storage). These are not personal data. |
 | Camera | `getUserMedia` frames are processed in memory, frame by frame. They are **never** written to storage or sent over the network by the analytics modules. |
 
@@ -30,7 +30,7 @@ How personal data flows through each LENSIQ module: **source → processing → 
 | `studio.html` | Upload or webcam | Matting, outfit fit, retouch | Operator outfit templates (IndexedDB). No guest photos. | No |
 | Fortune pages (`faceread`, `palm`, `horoscope`, `tarot`, `fengshui`, `numbers`, `iching`, `zodiac`, `astro`, `dream`) | Camera (face/palm), typed date/number/text, card draws | Rule-based KB readings. Face/hand landmarks are used in memory only. | Anonymous usage counters (`*-stats`), prefs, AI consent flag (`fa-consent`). **Faceread lead form (off by default, needs a tick):** nickname + contact (`fr-leads`). | **Only with AI enabled + consent:** derived facts (e.g. element, line categories, card names, zodiac) + optional nickname → `server.py` → **Anthropic Claude API (USA)**. No photo, real name, birth date or contact. The server does not log facts. |
 | `insights.html` dashboard | Other modules' local data | Aggregation, statistics | Range, goals and alert prefs (`iq-*`). **Backup export JSON** contains every module key, including member names, phones and attendance names. It **excludes** encrypted face data and the hub token. | Only as a file the operator downloads |
-| `converter.html` PDF→DOCX | User-selected PDF | `server.py` (pdf2docx/PyMuPDF) in a temp dir, deleted after the response | Nothing | To your `server.py` host |
+| `converter.html` PDF→DOCX | User-selected PDF | `server.py` (`pdfconvert.py`: pdfplumber + python-docx by default; pdf2docx/PyMuPDF only if opted in) in a temp dir, deleted after the response. Falls back to in-browser conversion. | Nothing | To your `server.py` host |
 | `index.html` demo request form | Typed name, org, email, phone, message | None | `lq-leads` in localStorage (demo mode, **not sent anywhere**) | No |
 
 ## Server-side (`server.py`, when used)
@@ -48,7 +48,6 @@ How personal data flows through each LENSIQ module: **source → processing → 
 
 | Recipient | Country | Trigger | Data | Safeguard to document |
 |---|---|---|---|---|
-| Google (Fonts) | USA | Every page load (unless self-hosted) | IP, user agent, referrer page | Notice in privacy policy, or self-host |
 | Anthropic (Claude API) | USA | AI fortune enabled + per-user consent | Derived facts, optional nickname | Explicit consent naming the country (s.28–29). Anthropic commercial terms / DPA. |
-| Replicate | USA | Try-on enabled + per-user consent | Person photo, garment image | Explicit consent. Replicate terms. Model licence (see THIRD_PARTY F2). |
+| Replicate | USA | Try-on enabled (token + model + `LENSIQ_TRYON_LICENSE`) + per-user consent | Person photo, garment image | Explicit consent. Replicate terms. Model licence (see THIRD_PARTY F2, `docs/TRYON-LICENSING.md`). |
 | Your hosting provider (e.g. Render) | Provider region | Option D deployment | Request logs, API payloads in transit | Processor agreement |

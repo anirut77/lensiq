@@ -38,12 +38,15 @@ test("replaces an outdated policy (any case), keeps CRLF, works without <meta ch
 });
 
 test("lint() flags markup the policy would block", async () => {
-  const { lint } = await tool();
+  const { lint, policy } = await tool();
   assert.deepEqual(lint(readFileSync(join(FIX, "csp-plain.html"), "utf8")), []);
   const p = lint(readFileSync(join(FIX, "csp-old-crlf.html"), "utf8"));
   assert.ok(p.includes("inline <script>") && p.includes("inline on*= handler"), p.join());
   assert.deepEqual(lint('<script type="application/ld+json">{"a":1}</script>'), []);
-  assert.deepEqual(lint('<script src="https://cdn.example/x.js"></script>'), ["third-party script/style origin"]);
+  assert.match(lint('<script src="https://cdn.example/x.js"></script>').join(), /^third-party script\/style origin/);
+  // fonts are self-hosted now: a Google Fonts stylesheet is a third-party origin like any other
+  assert.match(lint('<link href="https://fonts.googleapis.com/css2?family=Prompt" rel="stylesheet">').join(), /third-party/);
+  assert.ok(!policy().includes("fonts.g"), "no Google origin in the policy");
 });
 
 test("policy matches server.py _csp() except frame-ancestors; connect-src extras validated", async () => {

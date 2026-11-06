@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="about.doc.title">เกี่ยวกับ LENSIQ | ความเป็นส่วนตัวและสัญญาอนุญาต</title>
+<meta name="description" data-i18n-attr="content:about.doc.desc" content="LENSIQ ประมวลผลภาพบนเครื่อง ไม่ส่งภาพออก หลักความเป็นส่วนตัว การบริการ และสัญญาอนุญาตของซอฟต์แวร์โอเพนซอร์สที่ใช้">
+<link rel="stylesheet" href="styles.css?v=8">
+<link rel="stylesheet" href="about.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=12"></script>
+
+<main id="main" class="about">
+  <section class="section about-hero" aria-labelledby="about-title">
+    <p class="eyebrow" data-i18n="about.eyebrow">เกี่ยวกับ</p>
+    <h1 id="about-title" data-i18n="about.title">LENSIQ ทำงานบนเครื่องของคุณ</h1>
+    <p class="lead" data-i18n="about.lead">ชุดระบบ Computer Vision สำหรับการตลาด การวิเคราะห์หน้าร้าน และตู้ถ่ายรูป ที่ประมวลผลภาพในเบราว์เซอร์ทั้งหมด ไม่ส่งภาพหรือวิดีโอออกจากเครื่อง</p>
+  </section>
+
+  <section class="section about-grid" aria-labelledby="about-privacy">
+    <h2 id="about-privacy" data-i18n="about.privacy.title">หลักความเป็นส่วนตัว</h2>
+    <ul class="about-list">
+      <li><b data-i18n="about.p1.t">ไม่เก็บภาพ</b><span data-i18n="about.p1.d">ระบบวิเคราะห์เก็บเฉพาะตัวเลข เช่น จำนวนคน เวลาหยุดชม</span></li>
+      <li><b data-i18n="about.p2.t">ข้อมูลใบหน้าเข้ารหัส</b><span data-i18n="about.p2.d">เฉพาะผู้ที่ยินยอมลงทะเบียน เข้ารหัส AES-256 ด้วยกุญแจที่อยู่ในเบราว์เซอร์นี้เท่านั้น และหมดอายุตามที่ตั้งไว้</span></li>
+      <li><b data-i18n="about.p3.t">ไม่เชื่อมต่อบุคคลที่สาม</b><span data-i18n="about.p3.d">ฟอนต์ โมเดล และไลบรารีทั้งหมดอยู่ในระบบ หน้าเว็บไม่เรียกโดเมนภายนอก</span></li>
+      <li><b data-i18n="about.p4.t">AI ภายนอกปิดเป็นค่าเริ่มต้น</b><span data-i18n="about.p4.d">เปิดได้เมื่อผู้ดูแลตั้งค่าและผู้ใช้กดยินยอมเท่านั้น โดยแจ้งประเทศปลายทางชัดเจน</span></li>
+      <li><b data-i18n="about.p5.t">เอกสาร PDPA</b><span data-i18n="about.p5.d">มี DPIA บันทึกกิจกรรม ข้อความขอความยินยอม และตารางระยะเวลาเก็บ ให้ผู้ควบคุมข้อมูลปรับใช้ (ต้องให้ฝ่ายกฎหมายตรวจทาน)</span></li>
+    </ul>
+  </section>
+
+  <section class="section about-grid" aria-labelledby="about-service">
+    <h2 id="about-service" data-i18n="about.svc.title">การใช้งานเชิงธุรกิจ</h2>
+    <ul class="about-list">
+      <li><b data-i18n="about.s1.t">ทดลองหน้าร้าน 4 สัปดาห์</b><span data-i18n="about.s1.d">วัดเทียบกับการนับด้วยคน พร้อมเกณฑ์ยอมรับ เช่น ยอดรายวันคลาดเคลื่อนไม่เกิน 5%</span></li>
+      <li><b data-i18n="about.s2.t">แพ็กเกจดูแลระบบ</b><span data-i18n="about.s2.d">Basic / Standard / Premium พร้อมเวลาตอบสนองตามระดับความรุนแรง</span></li>
+      <li><b data-i18n="about.s3.t">ความแม่นยำที่เปิดเผย</b><span data-i18n="about.s3.d">ผลวัดบนชุดข้อมูลสาธารณะเผยแพร่พร้อมข้อจำกัด หน้าที่ยังไม่ได้วัดจะแสดงป้าย Beta</span></li>
+    </ul>
+    <p><a class="btn primary" href="index.html#contact" data-i18n="about.cta">ขอเดโม</a></p>
+  </section>
+
+  <section class="section" aria-labelledby="about-oss">
+    <h2 id="about-oss" data-i18n="about.oss.title">ซอฟต์แวร์โอเพนซอร์สและสัญญาอนุญาต</h2>
+    <p class="hint" data-i18n="about.oss.lead">LENSIQ ใช้ส่วนประกอบโอเพนซอร์สต่อไปนี้ ตามเงื่อนไขของแต่ละสัญญาอนุญาต (สำเนาข้อความสัญญาอยู่ในโฟลเดอร์ vendor/)</p>
+    <div class="table-wrap">
+      <table class="oss">
+        <thead><tr><th data-i18n="about.oss.c1">ส่วนประกอบ</th><th data-i18n="about.oss.c2">สัญญาอนุญาต</th><th data-i18n="about.oss.c3">ใช้สำหรับ</th></tr></thead>
+        <tbody>
+          <tr><td>Prompt font © Cadson Demak</td><td>SIL OFL 1.1</td><td data-i18n="about.oss.font">ฟอนต์ของหน้าเว็บ</td></tr>
+          <tr><td>face-api.js (vladmandic) · TensorFlow.js</td><td>MIT · Apache-2.0</td><td data-i18n="about.oss.face">ตรวจจับใบหน้า สีหน้า</td></tr>
+          <tr><td>MediaPipe Tasks Vision · Selfie Multiclass · Hand Landmarker</td><td>Apache-2.0</td><td data-i18n="about.oss.mp">แยกส่วนภาพ ตรวจจับมือ</td></tr>
+          <tr><td>onnxruntime-web · MODNet</td><td>MIT · Apache-2.0</td><td data-i18n="about.oss.ort">ตัดพื้นหลังคุณภาพสูง</td></tr>
+          <tr><td>COCO-SSD · MobileNetV2 (TF.js models)</td><td>Apache-2.0</td><td data-i18n="about.oss.coco">ตรวจจับคน สินค้า</td></tr>
+          <tr><td>pdf.js (Mozilla) · docx</td><td>Apache-2.0 · MIT</td><td data-i18n="about.oss.pdf">แปลง PDF ในเบราว์เซอร์</td></tr>
+          <tr><td>Flask · pdfplumber · pdfminer.six · pypdfium2 · python-docx</td><td>BSD-3 · MIT · BSD-3/Apache-2.0 · MIT</td><td data-i18n="about.oss.srv">เซิร์ฟเวอร์ (ถ้าใช้)</td></tr>
+          <tr><td>Rider–Waite–Smith 1909 (Pamela Colman Smith)</td><td data-i18n="about.oss.pd">สาธารณสมบัติ</td><td data-i18n="about.oss.tarot">ภาพไพ่ทาโรต์</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="hint" data-i18n="about.oss.note">โค้ดของ LENSIQ เผยแพร่ภายใต้ MIT ส่วนประกอบที่มีเงื่อนไขห้ามใช้เชิงพาณิชย์ถูกปิดไว้เป็นค่าเริ่มต้น</p>
+  </section>
+</main>
+
+<footer class="site-foot about-foot">
+  <p class="foot-legal">© 2026 LENSIQ · <a href="index.html" data-i18n="about.home">กลับหน้าแรก</a></p>
+</footer>
+</body>
+</html>

@@ -123,7 +123,27 @@
 if (typeof window !== "undefined" && typeof document !== "undefined" && document.getElementById("icApp")) (function () {
   "use strict";
   var IC = window.IChing, KB = window.ICHING_KB, FK = window.FortuneKit, $ = FK.$, esc = FK.esc;
-  var st = { values: [], topic: "overall", cast: null, busy: false, daily: null };
+  var st = { values: [], topic: "overall", cast: null, busy: false, daily: null, detail: null, coins: null };
+
+  /* ---------- ภาษา (ไทยเป็นค่าเริ่มต้น · จีนจาก i18n/zh-fortune-iching.js และ i18n/zh-kb-iching.js) ---------- */
+  var T = function (k, th, v) { return window.LQI18N ? window.LQI18N.tf(k, th, v) : th.replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : m; }); };
+  var isZh = function () { return !!(window.LQI18N && window.LQI18N.lang === "zh"); };
+  var ZK = function (k) { var D = isZh() && window.FORTUNE_ZH && window.FORTUNE_ZH.iching; return (D && D.items && D.items[k]) || null; };
+  var one = function (v, i) { return Array.isArray(v) ? v[Math.min(i || 0, v.length - 1)] : v; };
+  /** ข้อความความหมายของกว้า: f = gist|love|work|money|advice */
+  var ZF = { gist: "o", love: "l", work: "w", money: "m", advice: "a" };
+  function hx(n, f) { var z = ZK("hex." + n); return z && z[ZF[f]] ? one(z[ZF[f]]) : KB.HEX[n][f]; }
+  function hName(n) { return T("iching.hn." + n, KB.HEX[n].th); }
+  function hChar(n) { var z = ZK("hex." + n); return z ? z.n.split("· ").pop() : KB.HEX[n].zh; }
+  function hKw(n) { var s = isZh() ? T("iching.kw." + n, "") : ""; return s ? s.split("|") : KB.HEX[n].kw; }
+  function triName(k) { return T("iching.tri." + k, KB.TRIGRAMS[k].th); }
+  function image(lo, up) { return T("iching.image", "{up}อยู่เหนือ{lo}", { up: triName(up), lo: triName(lo) }); }
+  function hexLabel(n) { return T("iching.hexLabel", "กว้าที่ {n} {zh} ({py}) · {th}", { n: n, zh: hChar(n), py: KB.HEX[n].py, th: hName(n) }); }
+  function topicName(k) { return T("iching.topic." + k, KB.TOPICS[k] || k); }
+  function ruleText(c) { var n = c.changing.length; return T("iching.rule." + n, KB.RULES[n]); }
+  function linePos(p) { return T("iching.linepos." + p, KB.LINE_POS[p - 1].th); }
+  function lineText(p, old) { var z = ZK("line." + p), L = KB.LINE_POS[p - 1]; return z && z.o ? one(z.o, old ? 0 : 1) : (old ? L.y : L.n)[0]; }
+  function valName(v) { return v === 9 ? T("iching.v9", "หยางเก่า (เปลี่ยน)") : v === 7 ? T("iching.v7", "หยาง") : v === 8 ? T("iching.v8", "หยิน") : T("iching.v6", "หยินเก่า (เปลี่ยน)"); }
 
   /* ---------- วาดกว้า (SVG) ---------- */
   function hexSVG(bits, changing, cls, label) {
@@ -135,7 +155,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       else out.push('<rect x="0" y="' + y + '" width="52" height="' + lh + '" rx="3" fill="' + col + '"/><rect x="68" y="' + y + '" width="52" height="' + lh + '" rx="3" fill="' + col + '"/>');
       if (ch) out.push('<circle cx="' + (W + 14) + '" cy="' + (y + lh / 2) + '" r="5" fill="none" stroke="' + col + '" stroke-width="2.4"/>');
     }
-    return '<svg class="' + (cls || "ic-hex") + '" viewBox="-2 -2 ' + (W + 26) + " " + (H + 4) + '" role="img" aria-label="' + esc(label || "ภาพกว้า") + '">' + out.join("") + "</svg>";
+    return '<svg class="' + (cls || "ic-hex") + '" viewBox="-2 -2 ' + (W + 26) + " " + (H + 4) + '" role="img" aria-label="' + esc(label || T("iching.hexImg", "ภาพกว้า")) + '">' + out.join("") + "</svg>";
   }
   function drawHex(c, x, y, w, h, bits, changing, color) {
     var lh = h / 8.2, gap = (h - 6 * lh) / 5;
@@ -162,18 +182,25 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   });
 
   /* ---------- ขั้นตอนโยนเหรียญ ---------- */
-  $("#icTopics").innerHTML = Object.keys(KB.TOPICS).map(function (k, i) { return '<label class="fk-opt"><input type="radio" name="icTopic" value="' + k + '"' + (i ? "" : " checked") + "><b>" + esc(KB.TOPICS[k]) + "</b></label>"; }).join("");
+  function renderTopics() {
+    $("#icTopics").innerHTML = Object.keys(KB.TOPICS).map(function (k) { return '<label class="fk-opt"><input type="radio" name="icTopic" value="' + k + '"' + (k === st.topic ? " checked" : "") + "><b>" + esc(topicName(k)) + "</b></label>"; }).join("");
+  }
+  renderTopics();
   $("#icTopics").addEventListener("change", function (e) { st.topic = e.target.value; });
   $("#icCoins").innerHTML = [0, 1, 2].map(function (i) { return '<span class="ic-coin" data-i="' + i + '"><span class="ic-coin-in">' + coinSVG + '</span><b class="ic-coin-v"></b></span>'; }).join("");
+  function coinLabels() {
+    document.querySelectorAll(".ic-coin").forEach(function (el, i) { el.querySelector(".ic-coin-v").textContent = st.coins ? (st.coins[i] === 3 ? T("iching.heads", "หัว 3") : T("iching.tails", "ก้อย 2")) : ""; });
+  }
   function renderBuild() {
+    var n = st.values.length;
     $("#icBuild").innerHTML = hexSVG(st.values.map(function (v) { return IC.isYang(v) ? 1 : 0; }).concat([undefined, undefined, undefined, undefined, undefined, undefined]).slice(0, 6),
-      st.values.map(function (v, i) { return IC.isChanging(v) ? i + 1 : 0; }).filter(Boolean), "ic-hex big", "กว้าที่กำลังสร้าง " + st.values.length + " จาก 6 เส้น");
-    $("#icLines").innerHTML = st.values.map(function (v, i) { return "<li>เส้นที่ " + (i + 1) + ": <b>" + v + "</b> " + (v === 9 ? "หยางเก่า (เปลี่ยน)" : v === 7 ? "หยาง" : v === 8 ? "หยิน" : "หยินเก่า (เปลี่ยน)") + "</li>"; }).join("");
-    $("#icTossCount").textContent = st.values.length < 6 ? "โยนครั้งที่ " + (st.values.length + 1) + " จาก 6 (สร้างเส้นจากล่างขึ้นบน)" : "ครบ 6 เส้นแล้ว";
-    $("#icToss").textContent = st.values.length < 6 ? "โยนเหรียญ (" + (st.values.length + 1) + "/6)" : "ดูผล";
+      st.values.map(function (v, i) { return IC.isChanging(v) ? i + 1 : 0; }).filter(Boolean), "ic-hex big", T("iching.building", "กว้าที่กำลังสร้าง {n} จาก 6 เส้น", { n: n }));
+    $("#icLines").innerHTML = st.values.map(function (v, i) { return "<li>" + esc(T("iching.lineN", "เส้นที่ {n}:", { n: i + 1 })) + " <b>" + v + "</b> " + esc(valName(v)) + "</li>"; }).join("");
+    $("#icTossCount").textContent = n < 6 ? T("iching.tossCount", "โยนครั้งที่ {n} จาก 6 (สร้างเส้นจากล่างขึ้นบน)", { n: n + 1 }) : T("iching.tossDone", "ครบ 6 เส้นแล้ว");
+    $("#icToss").textContent = n < 6 ? T("iching.tossBtn", "โยนเหรียญ ({n}/6)", { n: n + 1 }) : T("iching.seeResult", "ดูผล");
   }
   $("#icStart").addEventListener("click", function () {
-    st.values = []; st.cast = null;
+    st.values = []; st.cast = null; st.coins = null;
     $("#icSetup").hidden = true; $("#icStage").hidden = false; $("#icResult").hidden = true;
     renderBuild(); $("#icToss").focus();
   });
@@ -184,7 +211,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var coins = document.querySelectorAll(".ic-coin");
     coins.forEach(function (el) { el.classList.remove("heads", "tails"); el.classList.add("spin"); el.querySelector(".ic-coin-v").textContent = ""; });
     await FK.wait(650);
-    coins.forEach(function (el, i) { el.classList.remove("spin"); el.classList.add(t.coins[i] === 3 ? "heads" : "tails"); el.querySelector(".ic-coin-v").textContent = t.coins[i] === 3 ? "หัว 3" : "ก้อย 2"; });
+    st.coins = t.coins;
+    coins.forEach(function (el, i) { el.classList.remove("spin"); el.classList.add(t.coins[i] === 3 ? "heads" : "tails"); });
+    coinLabels();
     st.values.push(t.value); renderBuild();
     st.busy = false;
     if (st.values.length === 6) { await FK.wait(400); showResult(IC.cast(st.values)); }
@@ -195,32 +224,36 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   function hexCard(n, bits, changing, role) {
     var h = KB.HEX[n], lo = IC.hexFromBits(bits);
-    return '<div class="ic-hexcard"><p class="ic-role">' + esc(role) + "</p>" + hexSVG(bits, changing, "ic-hex big", IC.hexLabel(n)) +
-      '<p class="ic-zh" lang="zh">' + esc(h.zh) + '</p><h3>กว้าที่ ' + n + " · " + esc(h.th) + '</h3><p class="fk-small">' + esc(h.py) + " · " + esc(IC.imageOf(lo.lower, lo.upper)) + " " + KB.TRIGRAMS[lo.upper].sym + KB.TRIGRAMS[lo.lower].sym + "</p>" +
-      '<ul class="fk-chips">' + h.kw.map(function (k) { return "<li>" + esc(k) + "</li>"; }).join("") + "</ul></div>";
+    return '<div class="ic-hexcard"><p class="ic-role">' + esc(role) + "</p>" + hexSVG(bits, changing, "ic-hex big", hexLabel(n)) +
+      '<p class="ic-zh" lang="zh">' + esc(hChar(n)) + '</p><h3>' + esc(T("iching.cardH", "กว้าที่ {n} · {th}", { n: n, th: hName(n) })) + '</h3><p class="fk-small">' + esc(h.py) + " · " + esc(image(lo.lower, lo.upper)) + " " + KB.TRIGRAMS[lo.upper].sym + KB.TRIGRAMS[lo.lower].sym + "</p>" +
+      '<ul class="fk-chips">' + hKw(n).map(function (k) { return "<li>" + esc(k) + "</li>"; }).join("") + "</ul></div>";
   }
   var stats;
+  /** วาดผล (ใช้ทั้งตอนได้ผลและตอนสลับภาษา) — ประกอบคำทำนายใหม่ด้วย facts ชุดเดิม */
+  function renderResult(c) {
+    var fo = IC.focus(c);
+    var q = $("#icQuestion").value.trim();
+    $("#icResMeta").innerHTML = esc(T("iching.resTopic", "หัวข้อ")) + " <b>" + esc(topicName(st.topic)) + "</b>" + (q ? "<br>" + esc(T("iching.resQ", "คำถาม:")) + " <q>" + esc(q) + "</q>" : "");
+    $("#icHexes").innerHTML = hexCard(c.primary, c.bits, c.changing, T("iching.rolePrimary", "กว้าหลัก (สถานการณ์ตอนนี้)")) +
+      (c.relating ? '<span class="ic-arrow" aria-hidden="true">→</span>' + hexCard(c.relating, c.relBits, [], T("iching.roleRelating", "กว้าที่จะกลายเป็น (แนวโน้ม)")) : "");
+    $("#icRule").innerHTML = "<b>" + esc(T("iching.howRead", "วิธีอ่าน:")) + "</b> " + esc(ruleText(c)) + (fo.lines.length ? esc(T("iching.keyLines", " · เส้นที่ให้น้ำหนัก: {l}", { l: fo.lines.join(", ") })) : "");
+    $("#icGist").innerHTML = '<p class="ic-gist">' + esc(hx(c.primary, "gist")) + "</p>" + (c.changing.length ? '<ul class="ic-lines">' + c.changing.map(function (p) {
+      var old = c.values[p - 1] === 9;
+      return "<li" + (fo.lines.indexOf(p) === 0 ? ' class="key"' : "") + "><b>" + esc(linePos(p)) + "</b> — " + esc(lineText(p, old)) + "</li>";
+    }).join("") + "</ul>" : "");
+    $("#icReadWrap").innerHTML = FK.readingBlock("icRd", T("iching.rdTitle", "คำทำนายโดยละเอียด"), true, st.topic);
+    FK.bindReading("icRd", "iching", function (topic, r) { return IC.buildFacts(c, topic, { rng: r }); }, { withTopics: true, topic: st.topic, onTopic: function (t) { st.topic = t; } });
+  }
   function showResult(c) {
     st.cast = c;
-    var fo = IC.focus(c), P = KB.HEX[c.primary];
     $("#icStage").hidden = true; $("#icResult").hidden = false;
-    var q = $("#icQuestion").value.trim();
-    $("#icResMeta").innerHTML = "หัวข้อ <b>" + esc(KB.TOPICS[st.topic]) + "</b>" + (q ? '<br>คำถาม: <q>' + esc(q) + "</q>" : "");
-    $("#icHexes").innerHTML = hexCard(c.primary, c.bits, c.changing, "กว้าหลัก (สถานการณ์ตอนนี้)") +
-      (c.relating ? '<span class="ic-arrow" aria-hidden="true">→</span>' + hexCard(c.relating, c.relBits, [], "กว้าที่จะกลายเป็น (แนวโน้ม)") : "");
-    $("#icRule").innerHTML = "<b>วิธีอ่าน:</b> " + esc(fo.rule) + (fo.lines.length ? " · เส้นที่ให้น้ำหนัก: " + fo.lines.join(", ") : "");
-    $("#icGist").innerHTML = '<p class="ic-gist">' + esc(P.gist) + "</p>" + (c.changing.length ? '<ul class="ic-lines">' + c.changing.map(function (p) {
-      var L = KB.LINE_POS[p - 1], old = c.values[p - 1] === 9;
-      return "<li" + (fo.lines.indexOf(p) === 0 ? ' class="key"' : "") + "><b>" + esc(L.th) + "</b> — " + esc((old ? L.y : L.n)[0]) + "</li>";
-    }).join("") + "</ul>" : "");
-    $("#icReadWrap").innerHTML = FK.readingBlock("icRd", "คำทำนายโดยละเอียด", true, st.topic);
-    FK.bindReading("icRd", "iching", function (topic, r) { return IC.buildFacts(c, topic, { rng: r }); }, { withTopics: true, topic: st.topic, onTopic: function (t) { st.topic = t; } });
+    renderResult(c);
     stats.add({ hex: c.primary, topics: st.topic, changing: c.changing.length });
     $("#icResTitle").focus();
     kiosk.touch();
   }
   function reset() {
-    st.values = []; st.cast = null;
+    st.values = []; st.cast = null; st.coins = null;
     $("#icSetup").hidden = false; $("#icStage").hidden = true; $("#icResult").hidden = true; $("#icCardImg").hidden = true;
     if (document.body.classList.contains("fk-kiosk")) $("#icQuestion").value = "";
     document.querySelectorAll(".ic-coin").forEach(function (el) { el.classList.remove("heads", "tails"); el.querySelector(".ic-coin-v").textContent = ""; });
@@ -229,12 +262,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   $("#icPrint").addEventListener("click", function () { window.print(); });
 
   function card(c, lines, kind) {
-    var P = KB.HEX[c.primary];
+    var n = c.primary;
     return {
-      kind: kind, glow: "rgba(234,179,8,.32)", artH: 360, title: "กว้าที่ " + c.primary + " " + P.zh + " · " + P.th,
-      sub: c.relating ? "กำลังเปลี่ยนเป็นกว้าที่ " + c.relating + " · " + KB.HEX[c.relating].th : P.kw.join(" · "),
-      msgs: (lines && lines.length >= 2 ? lines : [P.gist, P.advice]).slice(0, 2).concat(["คำแนะนำ: " + P.advice]).slice(0, 3),
-      foot: KB.disclaimerShort + " · ตัวบทอี้จิงเป็นสาธารณสมบัติ",
+      kind: kind, glow: "rgba(234,179,8,.32)", artH: 360, title: T("iching.cardTitle", "กว้าที่ {n} {zh} · {th}", { n: n, zh: hChar(n), th: hName(n) }),
+      sub: c.relating ? T("iching.cardSub", "กำลังเปลี่ยนเป็นกว้าที่ {n} · {th}", { n: c.relating, th: hName(c.relating) }) : hKw(n).join(" · "),
+      msgs: (lines && lines.length >= 2 ? lines : [hx(n, "gist"), hx(n, "advice")]).slice(0, 2).concat([T("iching.cardAdvice", "คำแนะนำ: {a}", { a: hx(n, "advice") })]).slice(0, 3),
+      foot: T("iching.cardFoot", KB.disclaimerShort + " · ตัวบทอี้จิงเป็นสาธารณสมบัติ"),
       art: function (cx, x, y, w, h) {
         var hw = 230, hh = 250, x0 = c.relating ? x + w / 2 - hw - 70 : x + (w - hw) / 2, yy = y + 40;
         drawHex(cx, x0, yy, hw, hh, c.bits, c.changing, "#fde68a");
@@ -247,19 +280,20 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   $("#icShare").addEventListener("click", function () {
     var rd = FK.readings.icRd || {};
-    if (st.cast) FK.share(this, card(st.cast, rd.lines, "อี้จิง"), "lensiq-iching.jpg", $("#icCardImg"), "อี้จิง — LENSIQ");
+    if (st.cast) FK.share(this, card(st.cast, rd.lines, T("iching.cardKind", "อี้จิง")), "lensiq-iching.jpg", $("#icCardImg"), T("iching.shareTitle", "อี้จิง — LENSIQ"));
   });
 
   /* ---------- กว้าประจำวัน ---------- */
+  var dailyDone = false;
   function renderDaily() {
-    if (st.daily) return;
-    var c = st.daily = IC.dailyCast(), P = KB.HEX[c.primary];
-    var date = (function () { try { return new Date().toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" }); } catch (e) { return FK.dayKey(); } })();
-    $("#icDaily").innerHTML = '<p class="fk-small">' + esc(date) + "</p>" + hexCard(c.primary, c.bits, c.changing, "กว้าประจำวันนี้") +
-      '<p class="ic-gist">' + esc(P.gist) + '</p><p class="fk-small">' + esc(KB.DAILY_NOTE) + "</p>" + FK.readingBlock("icDayRd", "คำทำนายประจำวัน", true) +
-      '<div class="fk-res-actions"><button class="btn primary big" id="icDayShare" type="button">แชร์การ์ดประจำวัน</button></div><img class="fk-cardimg" id="icDayImg" alt="การ์ดกว้าประจำวันสำหรับแชร์" hidden>';
+    if (dailyDone) return; dailyDone = true;
+    var c = st.daily = st.daily || IC.dailyCast(), P = c.primary;
+    var date = (function () { try { return new Date().toLocaleDateString(isZh() ? "zh-CN" : "th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" }); } catch (e) { return FK.dayKey(); } })();
+    $("#icDaily").innerHTML = '<p class="fk-small">' + esc(date) + "</p>" + hexCard(P, c.bits, c.changing, T("iching.roleDaily", "กว้าประจำวันนี้")) +
+      '<p class="ic-gist">' + esc(hx(P, "gist")) + '</p><p class="fk-small">' + esc(T("iching.dailyNote", KB.DAILY_NOTE)) + "</p>" + FK.readingBlock("icDayRd", T("iching.dayRdTitle", "คำทำนายประจำวัน"), true) +
+      '<div class="fk-res-actions"><button class="btn primary big" id="icDayShare" type="button">' + esc(T("iching.dayShare", "แชร์การ์ดประจำวัน")) + '</button></div><img class="fk-cardimg" id="icDayImg" alt="' + esc(T("iching.dayImgAlt", "การ์ดกว้าประจำวันสำหรับแชร์")) + '" hidden>';
     FK.bindReading("icDayRd", "iching", function (topic, r) { return IC.buildFacts(c, topic, { rng: r }); }, { withTopics: true });
-    $("#icDayShare").addEventListener("click", function () { FK.share(this, card(c, (FK.readings.icDayRd || {}).lines, "กว้าประจำวัน"), "lensiq-iching-daily.jpg", $("#icDayImg"), "กว้าประจำวัน — LENSIQ"); });
+    $("#icDayShare").addEventListener("click", function () { FK.share(this, card(c, (FK.readings.icDayRd || {}).lines, T("iching.dayKind", "กว้าประจำวัน")), "lensiq-iching-daily.jpg", $("#icDayImg"), T("iching.dayShareTitle", "กว้าประจำวัน — LENSIQ")); });
   }
 
   /* ---------- ตาราง 64 กว้า ---------- */
@@ -267,23 +301,40 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function renderAll() {
     if (allDone) return; allDone = true;
     var html = "";
-    for (var n = 1; n <= 64; n++) { var h = KB.HEX[n]; html += '<button type="button" class="ic-cell" data-n="' + n + '">' + hexSVG(IC.bitsOf(n), [], "ic-hex", IC.hexLabel(n)) + "<b>" + n + " " + esc(h.zh) + "</b><small>" + esc(h.th) + "</small></button>"; }
+    for (var n = 1; n <= 64; n++) html += '<button type="button" class="ic-cell" data-n="' + n + '">' + hexSVG(IC.bitsOf(n), [], "ic-hex", hexLabel(n)) + "<b>" + n + " " + esc(hChar(n)) + "</b><small>" + esc(hName(n)) + "</small></button>";
     $("#icGrid").innerHTML = html;
+  }
+  function renderDetail(n) {
+    var dt = function (k, th) { return "<dt>" + esc(T("iching.dt." + k, th)) + "</dt>"; };
+    $("#icDetail").innerHTML = hexCard(n, IC.bitsOf(n), [], T("iching.roleDetail", "รายละเอียดกว้า")) + '<dl class="ic-dl">' + dt("gist", "แก่น") + "<dd>" + esc(hx(n, "gist")) + "</dd>" + dt("love", "ความรัก") + "<dd>" + esc(hx(n, "love")) + "</dd>" +
+      dt("work", "การงาน") + "<dd>" + esc(hx(n, "work")) + "</dd>" + dt("money", "การเงิน") + "<dd>" + esc(hx(n, "money")) + "</dd>" + dt("advice", "คำแนะนำ") + "<dd>" + esc(hx(n, "advice")) + "</dd></dl>";
   }
   $("#icGrid").addEventListener("click", function (e) {
     var b = e.target.closest(".ic-cell"); if (!b) return;
-    var n = +b.dataset.n, h = KB.HEX[n], bits = IC.bitsOf(n);
-    $("#icDetail").innerHTML = hexCard(n, bits, [], "รายละเอียดกว้า") + '<dl class="ic-dl"><dt>แก่น</dt><dd>' + esc(h.gist) + "</dd><dt>ความรัก</dt><dd>" + esc(h.love) + "</dd><dt>การงาน</dt><dd>" + esc(h.work) + "</dd><dt>การเงิน</dt><dd>" + esc(h.money) + "</dd><dt>คำแนะนำ</dt><dd>" + esc(h.advice) + "</dd></dl>";
+    st.detail = +b.dataset.n; renderDetail(st.detail);
     $("#icDetail").hidden = false; $("#icDetail").scrollIntoView({ block: "nearest", behavior: FK.reduced ? "auto" : "smooth" });
   });
 
   /* ---------- สถิติ / บูธ / แหล่งอ้างอิง ---------- */
   stats = FK.statsPanel({
     box: "icStats", toggle: "icStatsOn", clear: "icStatsClear", key: "ic-stats", prefKey: "ic-prefs",
-    render: function (s) { return '<p class="fk-small">กว้าที่ออกบ่อย</p>' + FK.bars(s.hex, s.total, function (k) { return k + " " + (KB.HEX[k] ? KB.HEX[k].th : ""); }, 5) + '<p class="fk-small">หัวข้อ</p>' + FK.bars(s.topics, s.total, function (k) { return KB.TOPICS[k] || k; }, 4); }
+    render: function (s) { return '<p class="fk-small">' + esc(T("iching.statHex", "กว้าที่ออกบ่อย")) + "</p>" + FK.bars(s.hex, s.total, function (k) { return k + " " + (KB.HEX[k] ? hName(k) : ""); }, 5) + '<p class="fk-small">' + esc(T("iching.statTopic", "หัวข้อ")) + "</p>" + FK.bars(s.topics, s.total, function (k) { return KB.TOPICS[k] ? topicName(k) : k; }, 4); }
   });
   var kiosk = FK.kiosk({ toggle: "icKiosk", exit: "icKioskExit", idle: "icIdle", busy: function () { return !$("#icSetup").hidden ? false : true; }, reset: function () { reset(); selectTab("tabCast"); } });
-  $("#icSources").innerHTML = KB.sources.map(function (s) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.label) + "</a></li>"; }).join("");
+  function renderSources() { $("#icSources").innerHTML = KB.sources.map(function (s, i) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(T("iching.src." + i, s.label)) + "</a></li>"; }).join(""); }
+  renderSources();
+
+  /* ---------- สลับภาษา: วาดข้อความแบบไดนามิกใหม่ และประกอบคำทำนายใหม่จาก facts เดิม ---------- */
+  window.addEventListener("lq-lang", function () {
+    renderTopics(); coinLabels(); renderSources();
+    if (stats.render) stats.render();
+    if (!$("#icStage").hidden) renderBuild();
+    if (st.cast && !$("#icResult").hidden) renderResult(st.cast);
+    if (dailyDone) { dailyDone = false; renderDaily(); }
+    if (allDone) { allDone = false; renderAll(); }
+    if (st.detail && !$("#icDetail").hidden) renderDetail(st.detail);
+  });
+
   if (location.hash === "#daily") selectTab("tabDaily"); else if (location.hash === "#all") selectTab("tabAll");
   window.__ic = { state: st, showResult: showResult, reset: reset }; // ใช้ทดสอบ
 })();

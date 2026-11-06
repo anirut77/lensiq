@@ -599,25 +599,56 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var lsSet = function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* โหมดส่วนตัว */ } };
   var prefs = Object.assign({ stats: true, sunrise: true, zi: "23", hidden: false }, lsGet(PREF_KEY, {}));
   var savePrefs = function () { lsSet(PREF_KEY, prefs); };
-  var current = null;
-  var DAYS = KB.days, EL = KB.elements;
+  var current = null, lastPartner = null;
 
-  var thDate = function (y, m, d) { return d + " " + KB.monthsShort[m - 1] + " " + (y + 543); };
-  var thDateLong = function (y, m, d) { return d + " " + KB.months[m - 1] + " พ.ศ. " + (y + 543); };
+  /* ---------- ภาษา: ข้อความไทยเป็นค่าเริ่มต้น ภาษาจีนมาจาก i18n/zh-fortune-horoscope.js (LQI18N + window.HSKB_ZH) ---------- */
+  var T = function (k, th, v) { return window.LQI18N ? window.LQI18N.tf(k, th, v) : th.replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : m; }); };
+  var isZh = function () { return !!(window.LQI18N && window.LQI18N.lang === "zh" && window.HSKB_ZH); };
+  /** รวม KB ไทยกับข้อความจีน (เฉพาะช่องข้อความ ตัวเลข/สีคงเดิม) */
+  function mergeKB(a, b) {
+    if (b === undefined || b === null) return a;
+    if (Array.isArray(a) && Array.isArray(b)) return a.map(function (x, i) { return i < b.length ? mergeKB(x, b[i]) : x; });
+    if (a && b && typeof a === "object" && typeof b === "object" && !Array.isArray(a) && !Array.isArray(b)) {
+      var o = {}; Object.keys(a).forEach(function (k) { o[k] = mergeKB(a[k], b[k]); });
+      Object.keys(b).forEach(function (k) { if (!(k in a)) o[k] = b[k]; }); return o;
+    }
+    return b;
+  }
+  var K = KB, DAYS = KB.days, EL = KB.elements, zhKB = null;
+  function syncKB() { K = isZh() ? (zhKB || (zhKB = mergeKB(KB, window.HSKB_ZH))) : KB; DAYS = K.days; EL = K.elements; }
+
+  var thDate = function (y, m, d) { return isZh() ? y + "年" + m + "月" + d + "日" : d + " " + K.monthsShort[m - 1] + " " + (y + 543); };
+  var thDateLong = function (y, m, d) { return isZh() ? y + "年" + m + "月" + d + "日" : d + " " + K.months[m - 1] + " พ.ศ. " + (y + 543); };
+  var mdShort = function (m, d) { return isZh() ? m + "月" + d + "日" : d + " " + K.monthsShort[m - 1]; };
   var hm = function (h, mi) { return HS.pad2(h) + ":" + HS.pad2(mi); };
-  var elName = function (k) { return "ธาตุ" + EL[k].th; };
   var swatch = function (planet, label) { var d = DAYS[planet]; return '<span class="sw"><i style="background:' + d.hex + '"></i>' + esc(label || d.color) + "</span>"; };
-  var elChip = function (k) { return '<span class="elc" style="--c:' + EL[k].color + ";--s:" + EL[k].soft + '">' + esc(EL[k].zh + " " + EL[k].th) + "</span>"; };
+  var elLabel = function (k) { return isZh() ? EL[k].zh : EL[k].zh + " " + EL[k].th; };
+  var elChip = function (k) { return '<span class="elc" style="--c:' + EL[k].color + ";--s:" + EL[k].soft + '">' + esc(elLabel(k)) + "</span>"; };
+  var elN = function (k) { return T("horoscope.x.el", "ธาตุ{n}", { n: EL[k].th }); };
+  var rasiN = function (i) { return T("horoscope.x.rasi", "ราศี{n}", { n: K.rasi[i].th }); };
+  var yearN = function (a) { return T("horoscope.x.year", "ปี{n}", { n: K.animals[a].th }); };
+  var deity = function (d) { return T("horoscope.x.deity", "{p}ทรง{v}", { p: d.planet, v: d.vehicle }); };
+  var elYY = function (stem, el) { return T("horoscope.x.elyy", "{el}{yy}", { el: EL[el].th, yy: K.stems[stem].yy }); };
+  var stemLabel = function (s) { return isZh() ? HS.STEMS[s] + " · " + elYY(s, HS.STEM_EL[s]) : K.stems[s].th + " " + HS.STEMS[s]; };
+  var bornOn = function (day) { return T("horoscope.x.born", "เกิด{d}", { d: day }); };
 
   /* ---------- ฟอร์ม ---------- */
   function fillDateSelects(dayEl, monEl) {
-    dayEl.innerHTML = '<option value="">วันที่</option>' + Array.from({ length: 31 }, function (_, i) { return '<option value="' + (i + 1) + '">' + (i + 1) + "</option>"; }).join("");
-    monEl.innerHTML = '<option value="">เดือน</option>' + KB.months.map(function (m, i) { return '<option value="' + (i + 1) + '">' + m + "</option>"; }).join("");
+    var dv = dayEl.value, mv = monEl.value;
+    dayEl.innerHTML = '<option value="">' + esc(T("horoscope.x.dayOpt", "วันที่")) + "</option>" + Array.from({ length: 31 }, function (_, i) { return '<option value="' + (i + 1) + '">' + (i + 1) + (isZh() ? "日" : "") + "</option>"; }).join("");
+    monEl.innerHTML = '<option value="">' + esc(T("horoscope.x.monOpt", "เดือน")) + "</option>" + K.months.map(function (m, i) { return '<option value="' + (i + 1) + '">' + esc(m) + "</option>"; }).join("");
+    dayEl.value = dv; monEl.value = mv;
   }
-  fillDateSelects($("#hsDay"), $("#hsMonth"));
-  fillDateSelects($("#hsPDay"), $("#hsPMonth"));
-  $("#hsProv").innerHTML = KB.provinces.map(function (p, i) { return '<option value="' + i + '">' + esc(p[0]) + "</option>"; }).join("") + '<option value="custom">กำหนดละติจูด/ลองจิจูดเอง</option>';
-  $("#hsLunar").innerHTML += KB.lunarMonths.slice(1).map(function (n, i) { return '<option value="' + (i + 1) + '">' + n + "</option>"; }).join("");
+  function fillForm() {
+    fillDateSelects($("#hsDay"), $("#hsMonth"));
+    fillDateSelects($("#hsPDay"), $("#hsPMonth"));
+    var pv = $("#hsProv").value, lv = $("#hsLunar").value;
+    $("#hsProv").innerHTML = K.provinces.map(function (p, i) { return '<option value="' + i + '">' + esc(p[0]) + "</option>"; }).join("") + '<option value="custom">' + esc(T("horoscope.x.provCustom", "กำหนดละติจูด/ลองจิจูดเอง")) + "</option>";
+    $("#hsLunar").innerHTML = '<option value="">' + esc(T("horoscope.x.lunarAuto", "คำนวณอัตโนมัติ (โดยประมาณ)")) + "</option>" + K.lunarMonths.slice(1).map(function (n, i) { return '<option value="' + (i + 1) + '">' + esc(n) + "</option>"; }).join("");
+    if (pv) $("#hsProv").value = pv;
+    $("#hsLunar").value = lv;
+  }
+  fillForm();
   $("#hsProv").addEventListener("change", function () { $("#hsLatLon").hidden = this.value !== "custom"; });
   $("#hsSunrise").checked = !!prefs.sunrise; $("#hsZi").value = prefs.zi; $("#hsHidden").checked = !!prefs.hidden;
   $("#hsSunrise").addEventListener("change", function () { prefs.sunrise = this.checked; savePrefs(); });
@@ -626,6 +657,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   $("#hsNoTime").addEventListener("change", function () { $("#hsTime").disabled = this.checked; if (this.checked) $("#hsTime").value = ""; });
 
   var eraVal = function () { var r = document.querySelector('input[name="hsEra"]:checked'); return r ? r.value : "be"; };
+  function eraText(y, era) {
+    var ce = HS.toCE(y, era);
+    return era === "be" ? T("horoscope.x.beToCe", "พ.ศ. {a} = ค.ศ. {b}", { a: y, b: ce }) : T("horoscope.x.ceToBe", "ค.ศ. {a} = พ.ศ. {b}", { a: y, b: ce + 543 });
+  }
   function yearHint() {
     var raw = $("#hsYear").value.replace(/\D/g, ""), h = $("#hsYearHint");
     if ($("#hsYear").value !== raw) $("#hsYear").value = raw;
@@ -634,27 +669,28 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     // ผู้ใช้ไทยมักพิมพ์ พ.ศ. — สลับระบบให้อัตโนมัติเมื่อเห็นชัดว่าเป็นอีกระบบ
     if (era === "ce" && y >= 2400) { document.querySelector('input[name="hsEra"][value="be"]').checked = true; era = "be"; }
     else if (era === "be" && y >= 1900 && y <= 2150) { document.querySelector('input[name="hsEra"][value="ce"]').checked = true; era = "ce"; }
-    var ce = HS.toCE(y, era);
-    h.textContent = era === "be" ? "พ.ศ. " + y + " = ค.ศ. " + ce : "ค.ศ. " + y + " = พ.ศ. " + (ce + 543);
+    h.textContent = eraText(y, era);
   }
   $("#hsYear").addEventListener("input", yearHint);
-  document.querySelectorAll('input[name="hsEra"]').forEach(function (r) { r.addEventListener("change", function () { var h = $("#hsYearHint"), raw = $("#hsYear").value; if (raw.length === 4) { var y = +raw, ce = HS.toCE(y, eraVal()); h.textContent = eraVal() === "be" ? "พ.ศ. " + y + " = ค.ศ. " + ce : "ค.ศ. " + y + " = พ.ศ. " + (ce + 543); } }); });
+  function eraHint() { var h = $("#hsYearHint"), raw = $("#hsYear").value; if (raw.length === 4) h.textContent = eraText(+raw, eraVal()); }
+  document.querySelectorAll('input[name="hsEra"]').forEach(function (r) { r.addEventListener("change", eraHint); });
 
   function parseTime(v) { var m = /^(\d{1,2}):(\d{2})/.exec(v || ""); return m ? { h: +m[1], mi: +m[2] } : null; }
   function readDate(dEl, mEl, yEl, era) {
     var d = +dEl.value, m = +mEl.value, raw = yEl.value.replace(/\D/g, "");
-    if (!d || !m) return { err: "กรุณาเลือกวันที่และเดือนเกิด" };
-    if (raw.length !== 4) return { err: "กรุณากรอกปีเกิด 4 หลัก (พ.ศ. เช่น 2533 หรือ ค.ศ. เช่น 1990)" };
+    if (!d || !m) return { err: T("horoscope.x.errDM", "กรุณาเลือกวันที่และเดือนเกิด") };
+    if (raw.length !== 4) return { err: T("horoscope.x.errYear", "กรุณากรอกปีเกิด 4 หลัก (พ.ศ. เช่น 2533 หรือ ค.ศ. เช่น 1990)") };
     var y = HS.toCE(+raw, era);
     var e = HS.validateDate(y, m, d);
-    return e ? { err: e } : { y: y, m: m, d: d };
+    return e ? { err: T(e, e) } : { y: y, m: m, d: d }; // ข้อความจาก validateDate ใช้ตัวข้อความไทยเป็นคีย์แปล
   }
   function settings() {
-    var pv = $("#hsProv").value, lat = 13.75, lon = 100.5, place = "กรุงเทพมหานคร";
-    if (pv === "custom") { lat = parseFloat($("#hsLat").value); lon = parseFloat($("#hsLon").value); place = "พิกัดที่กำหนด"; if (!isFinite(lat) || Math.abs(lat) > 66) lat = 13.75; if (!isFinite(lon) || Math.abs(lon) > 180) lon = 100.5; }
-    else { var p = KB.provinces[+pv || 0]; lat = p[1]; lon = p[2]; place = p[0]; }
-    return { lat: lat, lon: lon, place: place, tz: parseFloat($("#hsTz").value), sunrise: $("#hsSunrise").checked, ziMode: $("#hsZi").value, hidden: $("#hsHidden").checked, lunarMonthOverride: +$("#hsLunar").value || null };
+    var pv = $("#hsProv").value, lat = 13.75, lon = 100.5, place = K.provinces[0][0], pi = 0;
+    if (pv === "custom") { lat = parseFloat($("#hsLat").value); lon = parseFloat($("#hsLon").value); place = null; pi = -1; if (!isFinite(lat) || Math.abs(lat) > 66) lat = 13.75; if (!isFinite(lon) || Math.abs(lon) > 180) lon = 100.5; }
+    else { pi = +pv || 0; var p = KB.provinces[pi]; lat = p[1]; lon = p[2]; place = p[0]; }
+    return { lat: lat, lon: lon, place: place, placeIdx: pi, tz: parseFloat($("#hsTz").value), sunrise: $("#hsSunrise").checked, ziMode: $("#hsZi").value, hidden: $("#hsHidden").checked, lunarMonthOverride: +$("#hsLunar").value || null };
   }
+  var placeName = function (inp) { return inp.placeIdx >= 0 && K.provinces[inp.placeIdx] ? K.provinces[inp.placeIdx][0] : T("horoscope.x.placeCustom", "พิกัดที่กำหนด"); };
 
   $("#hsForm").addEventListener("submit", function (e) {
     e.preventDefault(); touch();
@@ -664,18 +700,18 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var t = $("#hsNoTime").checked ? null : parseTime($("#hsTime").value);
     var name = $("#hsName").value.trim();
     var inp = Object.assign({ y: dt.y, m: dt.m, d: dt.d, time: t, name: name }, settings());
-    try { show(HS.analyze(inp)); } catch (ex) { console.error(ex); err.textContent = "คำนวณไม่สำเร็จ กรุณาตรวจสอบข้อมูล"; }
+    try { show(HS.analyze(inp)); } catch (ex) { console.error(ex); err.textContent = T("horoscope.x.errCalc", "คำนวณไม่สำเร็จ กรุณาตรวจสอบข้อมูล"); }
   });
 
   /* ---------- แท็บ ---------- */
   var tabs = Array.from(document.querySelectorAll('#hsTabs [role="tab"]'));
-  function selectTab(tab, focus) {
+  function selectTab(tab, focus, noScroll) {
     tabs.forEach(function (t) {
       var on = t === tab; t.setAttribute("aria-selected", on ? "true" : "false"); t.tabIndex = on ? 0 : -1;
       document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
     });
     if (focus) tab.focus();
-    tab.scrollIntoView({ block: "nearest", inline: "nearest" });
+    if (!noScroll) tab.scrollIntoView({ block: "nearest", inline: "nearest" });
   }
   tabs.forEach(function (t, i) {
     t.addEventListener("click", function () { selectTab(t); touch(); });
@@ -688,6 +724,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /* ---------- SVG: วงทักษา 8 ดาว ---------- */
   // ตำแหน่งทิศ: อาทิตย์ NE, จันทร์ E, อังคาร SE, พุธ S, เสาร์ SW, พฤหัส W, ราหู NW, ศุกร์ N
   var DIR_ANGLE = { 0: -45, 1: 0, 2: 45, 3: 90, 6: 135, 4: 180, 7: 225, 5: 270 };
+  var plainDay = function (p) { return DAYS[p].name.replace(" (กลางวัน)", "").replace(" (ราหู)", "").replace("（白天）", "").replace("（罗睺）", ""); };
   function taksaWheel(P) {
     var cx = 160, cy = 160, R = 150, r0 = 58, out = [];
     var pt = function (a, r) { return [cx + r * Math.cos(a * Math.PI / 180), cy + r * Math.sin(a * Math.PI / 180)]; };
@@ -699,13 +736,13 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var l1 = pt(a, 120), l2 = pt(a, 88);
       var fg = p === 1 ? "#3d2d00" : "#fff";
       out.push('<text x="' + l1[0].toFixed(1) + '" y="' + l1[1].toFixed(1) + '" fill="' + fg + '" font-size="13" font-weight="600" text-anchor="middle" dominant-baseline="middle">' + esc(d.planet.replace("พระ", "")) + " " + d.num + "</text>");
-      out.push('<text x="' + l2[0].toFixed(1) + '" y="' + l2[1].toFixed(1) + '" fill="' + fg + '" font-size="12" text-anchor="middle" dominant-baseline="middle">' + esc(KB.bhumi[bh].th) + "</text>");
+      out.push('<text x="' + l2[0].toFixed(1) + '" y="' + l2[1].toFixed(1) + '" fill="' + fg + '" font-size="12" text-anchor="middle" dominant-baseline="middle">' + esc(K.bhumi[bh].th) + "</text>");
     });
     out.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + (r0 - 4) + '" fill="#fff"/>');
-    out.push('<text x="' + cx + '" y="' + (cy - 9) + '" font-size="13" fill="#525c78" text-anchor="middle">ทักษาของ</text>');
-    out.push('<text x="' + cx + '" y="' + (cy + 12) + '" font-size="15" font-weight="600" fill="#0e1430" text-anchor="middle">' + esc(DAYS[P.thaiDay.planet].name.replace(" (กลางวัน)", "").replace(" (ราหู)", "")) + "</text>");
-    out.push('<text x="' + cx + '" y="8" font-size="11" fill="#525c78" text-anchor="middle" dominant-baseline="hanging">เหนือ</text>');
-    return '<svg class="hs-wheel" viewBox="-6 -6 332 332" role="img" aria-label="วงทักษา 8 ดาว พร้อมภูมิของคุณ">' + out.join("") + "</svg>";
+    out.push('<text x="' + cx + '" y="' + (cy - 9) + '" font-size="13" fill="#525c78" text-anchor="middle">' + esc(T("horoscope.x.wheelOf", "ทักษาของ")) + "</text>");
+    out.push('<text x="' + cx + '" y="' + (cy + 12) + '" font-size="15" font-weight="600" fill="#0e1430" text-anchor="middle">' + esc(plainDay(P.thaiDay.planet)) + "</text>");
+    out.push('<text x="' + cx + '" y="8" font-size="11" fill="#525c78" text-anchor="middle" dominant-baseline="hanging">' + esc(T("horoscope.x.north", "เหนือ")) + "</text>");
+    return '<svg class="hs-wheel" viewBox="-6 -6 332 332" role="img" aria-label="' + esc(T("horoscope.x.wheelAria", "วงทักษา 8 ดาว พร้อมภูมิของคุณ")) + '">' + out.join("") + "</svg>";
   }
 
   /* ---------- SVG: ห้าธาตุ (รูปห้าเหลี่ยม) ---------- */
@@ -726,35 +763,35 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       out.push('<text x="' + p[0] + '" y="' + (p[1] - 5) + '" font-size="16" font-weight="700" fill="' + (c[k] ? "#fff" : e.color) + '" text-anchor="middle" dominant-baseline="middle">' + e.zh + "</text>");
       out.push('<text x="' + p[0] + '" y="' + (p[1] + 12) + '" font-size="11" fill="' + (c[k] ? "#fff" : "#0e1430") + '" text-anchor="middle" dominant-baseline="middle">' + c[k] + "</text>");
       var ly = p[1] + (p[1] > cy ? r + 16 : -r - 12);
-      out.push('<text x="' + p[0] + '" y="' + ly + '" font-size="13" fill="#0e1430" text-anchor="middle" font-weight="' + (k === fav ? 700 : 500) + '">' + esc(e.th) + (k === dm ? " (ตัวเรา)" : "") + (k === fav ? " ★" : "") + "</text>");
+      out.push('<text x="' + p[0] + '" y="' + ly + '" font-size="13" fill="#0e1430" text-anchor="middle" font-weight="' + (k === fav ? 700 : 500) + '">' + esc((isZh() ? "" : e.th) + (k === dm ? T("horoscope.x.pentaMe", " (ตัวเรา)") : "")) + (k === fav ? " ★" : "") + "</text>");
     });
-    return '<svg class="hs-penta" viewBox="0 0 340 340" role="img" aria-label="แผนภาพห้าธาตุ: ' + order.map(function (k) { return EL[k].th + " " + c[k]; }).join(", ") + '">' + out.join("") + "</svg>";
+    return '<svg class="hs-penta" viewBox="0 0 340 340" role="img" aria-label="' + esc(T("horoscope.x.pentaAria", "แผนภาพห้าธาตุ: ") + order.map(function (k) { return EL[k].th + " " + c[k]; }).join(", ")) + '">' + out.join("") + "</svg>";
   }
 
   /* ---------- เนื้อหาแต่ละแท็บ ---------- */
   function pillarCell(label, p, isDay) {
-    if (!p) return '<div class="pl pl-empty"><span class="pl-k">' + label + '</span><b class="pl-c">?</b><b class="pl-c">?</b><small>ไม่ทราบเวลาเกิด</small></div>';
-    var se = HS.STEM_EL[p.stem], be = HS.BRANCH_EL[p.branch], st = KB.stems[p.stem], an = KB.animals[p.branch];
+    if (!p) return '<div class="pl pl-empty"><span class="pl-k">' + esc(label) + '</span><b class="pl-c">?</b><b class="pl-c">?</b><small>' + esc(T("horoscope.x.noTime", "ไม่ทราบเวลาเกิด")) + "</small></div>";
+    var se = HS.STEM_EL[p.stem], be = HS.BRANCH_EL[p.branch], st = K.stems[p.stem], an = K.animals[p.branch];
     var hid = HS.HIDDEN[p.branch].map(function (s) { var e = HS.STEM_EL[s]; return '<i style="color:' + EL[e].color + '" title="' + esc(EL[e].th) + '">' + HS.STEMS[s] + "</i>"; }).join("");
-    return '<div class="pl' + (isDay ? " pl-day" : "") + '"><span class="pl-k">' + label + (isDay ? " · ตัวเรา" : "") + "</span>" +
-      '<b class="pl-c" style="color:' + EL[se].color + '">' + HS.STEMS[p.stem] + '</b><small>' + esc(st.th) + " · " + esc(EL[se].th + st.yy) + "</small>" +
-      '<b class="pl-c" style="color:' + EL[be].color + '">' + HS.BRANCHES[p.branch] + '</b><small>' + esc(an.th + " (" + an.an + ")") + " · " + esc(EL[be].th) + "</small>" +
-      '<span class="pl-h" aria-label="ก้านแฝง">ก้านแฝง ' + hid + "</span></div>";
+    return '<div class="pl' + (isDay ? " pl-day" : "") + '"><span class="pl-k">' + esc(label + (isDay ? T("horoscope.x.plMe", " · ตัวเรา") : "")) + "</span>" +
+      '<b class="pl-c" style="color:' + EL[se].color + '">' + HS.STEMS[p.stem] + '</b><small>' + esc(isZh() ? elYY(p.stem, se) : st.th + " · " + EL[se].th + st.yy) + "</small>" +
+      '<b class="pl-c" style="color:' + EL[be].color + '">' + HS.BRANCHES[p.branch] + '</b><small>' + esc(isZh() ? an.th + " · " + EL[be].th : an.th + " (" + an.an + ")" + " · " + EL[be].th) + "</small>" +
+      '<span class="pl-h" aria-label="' + esc(T("horoscope.x.hidden", "ก้านแฝง")) + '">' + esc(T("horoscope.x.hidden", "ก้านแฝง")) + " " + hid + "</span></div>";
   }
   function factCard(k, v, sub, color) {
     return '<div class="fact"' + (color ? ' style="--c:' + color + '"' : "") + '><span class="fact-k">' + k + '</span><b class="fact-v">' + v + "</b>" + (sub ? '<small>' + sub + "</small>" : "") + "</div>";
   }
   function colorAdvice(base) {
     var t = HS.taksa(base);
-    return [["sri", "โชคลาภ เสน่ห์"], ["dech", "การงาน ความน่าเชื่อถือ"], ["montri", "ผู้ใหญ่เอ็นดู"], ["ayu", "สดชื่น อารมณ์ดี"]].map(function (x) { return '<li>' + swatch(t[x[0]]) + "<span><b>" + KB.bhumi[x[0]].th + "</b> — " + x[1] + "</span></li>"; }).join("") +
-      '<li class="soft">' + swatch(t.kalakini) + "<span><b>กาลกิณี</b> — ตามความเชื่อแนะให้ลดการใช้สีนี้ในวันสำคัญ (ไม่ต้องกังวล ใช้ได้ตามสะดวก)</span></li>";
+    return [["sri", T("horoscope.x.useSri", "โชคลาภ เสน่ห์")], ["dech", T("horoscope.x.useDech", "การงาน ความน่าเชื่อถือ")], ["montri", T("horoscope.x.useMontri", "ผู้ใหญ่เอ็นดู")], ["ayu", T("horoscope.x.useAyu", "สดชื่น อารมณ์ดี")]].map(function (x) { return '<li>' + swatch(t[x[0]]) + "<span><b>" + esc(K.bhumi[x[0]].th) + "</b> — " + esc(x[1]) + "</span></li>"; }).join("") +
+      '<li class="soft">' + swatch(t.kalakini) + "<span><b>" + esc(K.bhumi.kalakini.th) + "</b> — " + esc(T("horoscope.x.kalaNote", "ตามความเชื่อแนะให้ลดการใช้สีนี้ในวันสำคัญ (ไม่ต้องกังวล ใช้ได้ตามสะดวก)")) + "</span></li>";
   }
-  function dayTitle(P) { return DAYS[P.thaiDay.planet].name.replace(" (กลางวัน)", ""); }
+  function dayTitle(P) { return DAYS[P.thaiDay.planet].name.replace(" (กลางวัน)", "").replace("（白天）", ""); }
   function thaiDayNote(P) {
     var t = P.thaiDay, n = [];
-    if (t.shifted) n.push("เกิดก่อน 6 โมงเช้า — ตามโหราศาสตร์ไทยนับเป็นวันก่อนหน้า (ปิดได้ในตั้งค่าเพิ่มเติม)");
-    if (t.rahu) n.push("เกิดวันพุธช่วง 18:00–05:59 จึงเป็น \"พุธกลางคืน\" ดาวประจำวันคือพระราหู");
-    if (t.maybeRahu) n.push("ถ้าเกิดวันพุธหลัง 18:00 น. จะนับเป็นพุธกลางคืน (ราหู) — ใส่เวลาเกิดเพื่อความแม่นยำ");
+    if (t.shifted) n.push(T("horoscope.x.noteShift", "เกิดก่อน 6 โมงเช้า — ตามโหราศาสตร์ไทยนับเป็นวันก่อนหน้า (ปิดได้ในตั้งค่าเพิ่มเติม)"));
+    if (t.rahu) n.push(T("horoscope.x.noteRahu", "เกิดวันพุธช่วง 18:00–05:59 จึงเป็น \"พุธกลางคืน\" ดาวประจำวันคือพระราหู"));
+    if (t.maybeRahu) n.push(T("horoscope.x.noteMaybeRahu", "ถ้าเกิดวันพุธหลัง 18:00 น. จะนับเป็นพุธกลางคืน (ราหู) — ใส่เวลาเกิดเพื่อความแม่นยำ"));
     return n.map(function (s) { return '<p class="note">' + esc(s) + "</p>"; }).join("");
   }
 
@@ -763,15 +800,15 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var TOPIC_BTNS = [["overall", "ภาพรวม"], ["love", "ความรัก"], ["work", "การงาน"], ["money", "การเงิน"]];
   function readingBlock(id, title, withTopics) {
     return '<section class="hs-block hs-reading" id="' + id + '" aria-labelledby="' + id + '-h"><div class="rd-head"><h3 id="' + id + '-h">' + esc(title) + '</h3><span class="rd-src" id="' + id + '-src"></span></div>' +
-      (withTopics ? '<div class="rd-topics" role="radiogroup" aria-label="หัวข้อที่สนใจ">' + TOPIC_BTNS.map(function (t, i) { return '<button type="button" role="radio" data-topic="' + t[0] + '" aria-checked="' + (i ? "false" : "true") + '">' + t[1] + "</button>"; }).join("") + "</div>" : "") +
-      '<div class="rd-consent" id="' + id + '-consent"></div><div class="rd-body" id="' + id + '-body" aria-live="polite"><p class="muted">กำลังเรียบเรียงคำทำนาย…</p></div>' +
-      '<div class="rd-actions"><button type="button" class="btn ghost" id="' + id + '-again">อ่านอีกสำนวน</button></div></section>';
+      (withTopics ? '<div class="rd-topics" role="radiogroup" aria-label="' + esc(T("horoscope.x.topicAria", "หัวข้อที่สนใจ")) + '">' + TOPIC_BTNS.map(function (t, i) { return '<button type="button" role="radio" data-topic="' + t[0] + '" aria-checked="' + (i ? "false" : "true") + '">' + esc(T("horoscope.x.topic." + t[0], t[1])) + "</button>"; }).join("") + "</div>" : "") +
+      '<div class="rd-consent" id="' + id + '-consent"></div><div class="rd-body" id="' + id + '-body" aria-live="polite"><p class="muted">' + esc(T("horoscope.x.composing", "กำลังเรียบเรียงคำทำนาย…")) + "</p></div>" +
+      '<div class="rd-actions"><button type="button" class="btn ghost" id="' + id + '-again">' + esc(T("horoscope.x.again", "อ่านอีกสำนวน")) + "</button></div></section>";
   }
   function plainRender(el, res) {
     el.innerHTML = (res.sections || []).map(function (s) { return '<section class="fa-section"><h3>' + esc(s.title || "") + "</h3>" + (s.paragraphs || []).map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("") + "</section>"; }).join("");
   }
   function localFallback(facts) {
-    var sec = { id: "overview", title: "ภาพรวม", paragraphs: [] };
+    var sec = { id: "overview", title: T("horoscope.x.topic.overall", "ภาพรวม"), paragraphs: [] };
     facts.items.slice(0, 6).forEach(function (it) { var k = Object.keys(it.meanings)[0]; if (k) sec.paragraphs.push(it.label + " — " + it.meanings[k][0]); });
     return { source: "local", sections: [sec] };
   }
@@ -806,9 +843,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var p = FA && FA.interpret ? FA.interpret(facts, { useAI: useAI, seed: seed, trace: true }) : Promise.resolve(localFallback(facts));
       root.setAttribute("aria-busy", "true");
       return p.catch(function () { return localFallback(facts); }).then(function (res) {
-        st.result = res; st.lines = keyLines(res, facts, 3);
+        if (!body.isConnected) return; // แท็บถูกสร้างใหม่ (เช่นสลับภาษา) ระหว่างรอ
+        st.result = res; st.lines = isZh() ? [] : keyLines(res, facts, 3);
         if (FA && FA.renderSections) FA.renderSections(body, res, { aiBadge: false }); else plainRender(body, res);
-        src.textContent = res.source === "ai" ? "เรียบเรียงโดย AI (Claude)" : "เรียบเรียงในเครื่อง · สำนวนใหม่ทุกครั้ง";
+        src.textContent = res.source === "ai" ? T("horoscope.x.srcAI", "เรียบเรียงโดย AI (Claude)") : T("horoscope.x.srcLocal", "เรียบเรียงในเครื่อง · สำนวนใหม่ทุกครั้ง");
         src.className = "rd-src" + (res.source === "ai" ? " ai" : "");
         root.removeAttribute("aria-busy");
       });
@@ -828,77 +866,78 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
 
   function renderOverview(P) {
-    var d = DAYS[P.thaiDay.planet], z = P.zodiac, ra = KB.rasi[P.sunRasi.index], dm = EL[P.dayMaster], lp = KB.numbers[P.lifePath.value];
-    var yEl = HS.STEM_EL[P.bazi.year.stem];
-    var html = '<div class="hero" style="--c:' + d.hex + '"><div class="hero-dot" aria-hidden="true">' + esc(d.short) + '</div><div><span class="hero-k">เกิด' + esc(dayTitle(P)) + " · สี" + esc(d.color) + '</span><h3>' + esc(d.planet) + "ทรง" + esc(d.vehicle) + "</h3><p>" + esc(d.desc) + "</p></div></div>" + thaiDayNote(P);
+    var d = DAYS[P.thaiDay.planet], z = P.zodiac, ra = K.rasi[P.sunRasi.index], dm = EL[P.dayMaster], lp = K.numbers[P.lifePath.value];
+    var html = '<div class="hero" style="--c:' + d.hex + '"><div class="hero-dot" aria-hidden="true">' + esc(d.short) + '</div><div><span class="hero-k">' + esc(T("horoscope.x.heroK", "เกิด{d} · สี{c}", { d: dayTitle(P), c: d.color })) + '</span><h3>' + esc(deity(d)) + "</h3><p>" + esc(d.desc) + "</p></div></div>" + thaiDayNote(P);
     html += '<div class="facts">' +
-      factCard("ราศีเกิด (ไทย)", esc(ra.sym + " ราศี" + ra.th), esc(KB.rasiEl[ra.el] + " · " + ra.trait)) +
-      factCard("ลัคนา", P.lagna ? esc("ราศี" + KB.rasi[P.lagna.index].th) : "—", P.lagna ? "คำนวณโดยประมาณ" : "ใส่เวลาเกิดเพื่อคำนวณ") +
-      factCard("ปีนักษัตร", esc("ปี" + KB.animals[z.thai.animal].th), esc(KB.animals[z.thai.animal].an + " · ธาตุ" + EL[HS.STEM_EL[HS.cyc(z.thai.year - 4).stem]].th)) +
-      factCard("ธาตุประจำตัว (ปาจื้อ)", esc(dm.zh + " " + dm.th), esc(KB.stems[P.bazi.day.stem].th + " " + HS.STEMS[P.bazi.day.stem]), dm.color) +
-      factCard("เลขชีวิต", String(P.lifePath.value), esc(lp.k)) +
-      factCard("พระประจำวันเกิด", esc(d.buddha), "") + "</div>";
-    html += '<div class="hs-grid2"><section class="hs-block"><h3>นิสัยเด่น</h3><ul class="pills">' + d.traits.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul>" +
+      factCard(esc(T("horoscope.x.fRasi", "ราศีเกิด (ไทย)")), esc(ra.sym + " " + rasiN(P.sunRasi.index)), esc(K.rasiEl[ra.el] + " · " + ra.trait)) +
+      factCard(esc(T("horoscope.x.fLagna", "ลัคนา")), P.lagna ? esc(rasiN(P.lagna.index)) : "—", esc(P.lagna ? T("horoscope.x.approx", "คำนวณโดยประมาณ") : T("horoscope.x.needTime", "ใส่เวลาเกิดเพื่อคำนวณ"))) +
+      factCard(esc(T("horoscope.x.fYear", "ปีนักษัตร")), esc(yearN(z.thai.animal)), esc((isZh() ? "" : K.animals[z.thai.animal].an + " · ") + elN(HS.STEM_EL[HS.cyc(z.thai.year - 4).stem]))) +
+      factCard(esc(T("horoscope.x.fDm", "ธาตุประจำตัว (ปาจื้อ)")), esc(elLabel(P.dayMaster)), esc(stemLabel(P.bazi.day.stem)), dm.color) +
+      factCard(esc(T("horoscope.x.fLp", "เลขชีวิต")), String(P.lifePath.value), esc(lp.k)) +
+      factCard(esc(T("horoscope.x.fBuddha", "พระประจำวันเกิด")), esc(d.buddha), "") + "</div>";
+    html += '<div class="hs-grid2"><section class="hs-block"><h3>' + esc(T("horoscope.x.traits", "นิสัยเด่น")) + '</h3><ul class="pills">' + d.traits.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul>" +
       "</section>" +
-      '<section class="hs-block"><h3>สีมงคลประจำตัว (ตามทักษาวันเกิด)</h3><ul class="advice">' + colorAdvice(P.thaiDay.planet) + "</ul></section></div>";
-    html += readingBlock("hsRd", "คำทำนายโดยละเอียด", true);
+      '<section class="hs-block"><h3>' + esc(T("horoscope.x.luckyColors", "สีมงคลประจำตัว (ตามทักษาวันเกิด)")) + '</h3><ul class="advice">' + colorAdvice(P.thaiDay.planet) + "</ul></section></div>";
+    html += readingBlock("hsRd", T("fortune.common.readingDetail", "คำทำนายโดยละเอียด"), true);
     $("#pn-ov").innerHTML = html;
-    void yEl; void lp;
     bindReading("hsRd", function (topic, rng) { return HS.buildFacts(P, { topic: topic, nickname: $("#hsName").value, rng: rng }); }, true);
   }
 
   function renderThai(P) {
-    var d = DAYS[P.thaiDay.planet], t = P.taksa, z = P.zodiac, ra = KB.rasi[P.sunRasi.index], inp = P.input;
-    var html = '<section class="hs-block"><h3>วันเกิดและดาวประจำวัน</h3><div class="hs-grid2"><dl class="kv">' +
-      "<dt>วันเกิด</dt><dd>" + esc(d.name) + (P.thaiDay.shifted ? " <small>(นับแบบไทย)</small>" : "") + "</dd>" +
-      "<dt>ดาวประจำวัน</dt><dd>" + esc(d.planet) + " (เลข " + d.num + ", กำลัง " + d.power + ")</dd>" +
-      "<dt>เทวดาประจำวัน</dt><dd>" + esc(d.planet) + "ทรง" + esc(d.vehicle) + "</dd>" +
-      "<dt>สีประจำวันเกิด</dt><dd>" + swatch(P.thaiDay.planet) + "</dd>" +
-      "<dt>ทิศของดาว</dt><dd>" + esc(d.dir) + "</dd>" +
-      "<dt>พระประจำวันเกิด</dt><dd><b>" + esc(d.buddha) + "</b><br><small>" + esc(d.buddhaNote) + "</small></dd></dl>" +
+    var d = DAYS[P.thaiDay.planet], t = P.taksa, z = P.zodiac, ra = K.rasi[P.sunRasi.index], inp = P.input;
+    var html = '<section class="hs-block"><h3>' + esc(T("horoscope.x.hDay", "วันเกิดและดาวประจำวัน")) + '</h3><div class="hs-grid2"><dl class="kv">' +
+      "<dt>" + esc(T("horoscope.x.kDay", "วันเกิด")) + "</dt><dd>" + esc(d.name) + (P.thaiDay.shifted ? " <small>" + esc(T("horoscope.x.thaiCount", "(นับแบบไทย)")) + "</small>" : "") + "</dd>" +
+      "<dt>" + esc(T("horoscope.x.kPlanet", "ดาวประจำวัน")) + "</dt><dd>" + esc(T("horoscope.x.planetNum", "{p} (เลข {n}, กำลัง {w})", { p: d.planet, n: d.num, w: d.power })) + "</dd>" +
+      "<dt>" + esc(T("horoscope.x.kDeity", "เทวดาประจำวัน")) + "</dt><dd>" + esc(deity(d)) + "</dd>" +
+      "<dt>" + esc(T("horoscope.x.kColor", "สีประจำวันเกิด")) + "</dt><dd>" + swatch(P.thaiDay.planet) + "</dd>" +
+      "<dt>" + esc(T("horoscope.x.kDir", "ทิศของดาว")) + "</dt><dd>" + esc(d.dir) + "</dd>" +
+      "<dt>" + esc(T("horoscope.x.fBuddha", "พระประจำวันเกิด")) + "</dt><dd><b>" + esc(d.buddha) + "</b><br><small>" + esc(d.buddhaNote) + "</small></dd></dl>" +
       "<div><p>" + esc(d.desc) + '</p><ul class="pills">' + d.traits.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" + thaiDayNote(P) + "</div></div></section>";
-    html += '<section class="hs-block"><h3>ทักษาปกรณ์ — ภูมิทั้ง 8 ของคุณ</h3><div class="hs-grid2 wheelgrid">' + taksaWheel(P) +
-      '<div class="table-wrap"><table class="hs-table bhumi"><thead><tr><th scope="col">ภูมิ</th><th scope="col">ดาว</th><th scope="col">สี</th><th scope="col">ความหมาย</th></tr></thead><tbody>' +
-      HS.BHUMI.map(function (b) { var p = t[b]; return '<tr' + (b === "kalakini" ? ' class="soft"' : "") + '><th scope="row">' + esc(KB.bhumi[b].th) + "</th><td>" + esc(DAYS[p].planet) + " " + DAYS[p].num + "</td><td>" + swatch(p) + "</td><td>" + esc(KB.bhumi[b].mean) + "</td></tr>"; }).join("") +
-      '</tbody></table></div></div><p class="hs-small">ลงภูมิ "บริวาร" ที่ดาววันเกิด แล้วเวียนขวาตามวงทักษา 1-2-3-4-7-5-8-6 (อาทิตย์ จันทร์ อังคาร พุธ เสาร์ พฤหัสบดี ราหู ศุกร์) · อักษรที่ตำราตั้งชื่อนิยมเลี่ยง (อักษรกาลกิณี): ' + esc(DAYS[t.kalakini].letters) + "</p></section>";
+    html += '<section class="hs-block"><h3>' + esc(T("horoscope.x.hTaksa", "ทักษาปกรณ์ — ภูมิทั้ง 8 ของคุณ")) + '</h3><div class="hs-grid2 wheelgrid">' + taksaWheel(P) +
+      '<div class="table-wrap"><table class="hs-table bhumi"><thead><tr><th scope="col">' + esc(T("horoscope.x.thBhumi", "ภูมิ")) + '</th><th scope="col">' + esc(T("horoscope.x.thPlanet", "ดาว")) + '</th><th scope="col">' + esc(T("horoscope.x.thColor", "สี")) + '</th><th scope="col">' + esc(T("horoscope.x.thMean", "ความหมาย")) + "</th></tr></thead><tbody>" +
+      HS.BHUMI.map(function (b) { var p = t[b]; return '<tr' + (b === "kalakini" ? ' class="soft"' : "") + '><th scope="row">' + esc(K.bhumi[b].th) + "</th><td>" + esc(DAYS[p].planet) + " " + DAYS[p].num + "</td><td>" + swatch(p) + "</td><td>" + esc(K.bhumi[b].mean) + "</td></tr>"; }).join("") +
+      '</tbody></table></div></div><p class="hs-small">' + esc(T("horoscope.x.taksaHow", "ลงภูมิ \"บริวาร\" ที่ดาววันเกิด แล้วเวียนขวาตามวงทักษา 1-2-3-4-7-5-8-6 (อาทิตย์ จันทร์ อังคาร พุธ เสาร์ พฤหัสบดี ราหู ศุกร์)")) +
+      (isZh() ? "" : " · อักษรที่ตำราตั้งชื่อนิยมเลี่ยง (อักษรกาลกิณี): " + esc(DAYS[t.kalakini].letters)) + "</p></section>";
     // ตารางสีเสื้อ 7 วัน
-    var cols = [["sri", "ศรี · โชคลาภ"], ["dech", "เดช · การงาน"], ["montri", "มนตรี · อุปถัมภ์"], ["ayu", "อายุ · สดชื่น"], ["kalakini", "ควรเลี่ยง"]];
+    var cols = [["sri", T("horoscope.x.colSri", "ศรี · โชคลาภ")], ["dech", T("horoscope.x.colDech", "เดช · การงาน")], ["montri", T("horoscope.x.colMontri", "มนตรี · อุปถัมภ์")], ["ayu", T("horoscope.x.colAyu", "อายุ · สดชื่น")], ["kalakini", T("horoscope.x.colAvoid", "ควรเลี่ยง")]];
     var today = new Date().getDay();
-    html += '<section class="hs-block"><h3>สีเสื้อมงคล 7 วัน (ตามทักษาของวันที่สวมใส่)</h3><div class="table-wrap"><table class="hs-table colors"><thead><tr><th scope="col">วัน</th>' + cols.map(function (c) { return '<th scope="col">' + c[1] + "</th>"; }).join("") + "</tr></thead><tbody>" +
-      [0, 1, 2, 3, 4, 5, 6].map(function (w) { var tk = HS.taksa(w); return '<tr' + (w === today ? ' class="today"' : "") + '><th scope="row">' + esc(KB.weekdayNames[w]) + (w === today ? " <small>วันนี้</small>" : "") + "</th>" + cols.map(function (c) { return '<td data-k="' + esc(c[1]) + '">' + swatch(tk[c[0]]) + "</td>"; }).join("") + "</tr>"; }).join("") +
-      '</tbody></table></div><p class="hs-small">คำนวณจากทักษาของวันที่สวมใส่ (เริ่มบริวารที่ดาวของวันนั้น) ตำราบางสำนักให้สีต่างไปเล็กน้อย สีที่ "ควรเลี่ยง" เป็นเพียงความเชื่อ ใส่ได้ตามสะดวก</p></section>';
+    html += '<section class="hs-block"><h3>' + esc(T("horoscope.x.hColors", "สีเสื้อมงคล 7 วัน (ตามทักษาของวันที่สวมใส่)")) + '</h3><div class="table-wrap"><table class="hs-table colors"><thead><tr><th scope="col">' + esc(T("horoscope.x.thDay", "วัน")) + "</th>" + cols.map(function (c) { return '<th scope="col">' + esc(c[1]) + "</th>"; }).join("") + "</tr></thead><tbody>" +
+      [0, 1, 2, 3, 4, 5, 6].map(function (w) { var tk = HS.taksa(w); return '<tr' + (w === today ? ' class="today"' : "") + '><th scope="row">' + esc(K.weekdayNames[w]) + (w === today ? " <small>" + esc(T("horoscope.x.today", "วันนี้")) + "</small>" : "") + "</th>" + cols.map(function (c) { return '<td data-k="' + esc(c[1]) + '">' + swatch(tk[c[0]]) + "</td>"; }).join("") + "</tr>"; }).join("") +
+      '</tbody></table></div><p class="hs-small">' + esc(T("horoscope.x.colorsNote", "คำนวณจากทักษาของวันที่สวมใส่ (เริ่มบริวารที่ดาวของวันนั้น) ตำราบางสำนักให้สีต่างไปเล็กน้อย สีที่ \"ควรเลี่ยง\" เป็นเพียงความเชื่อ ใส่ได้ตามสะดวก")) + "</p></section>";
     // ราศีและลัคนา
     var lag = P.lagna;
-    html += '<div class="hs-grid2"><section class="hs-block"><h3>ราศีและลัคนา (แบบไทย นิรายนะ)</h3><dl class="kv">' +
-      "<dt>ราศีเกิด (อาทิตย์สถิต)</dt><dd><b>" + esc(ra.sym + " ราศี" + ra.th) + "</b> " + P.sunRasi.deg.toFixed(1) + "°<br><small>" + esc(KB.rasiEl[ra.el] + " · ช่วงโดยประมาณ " + ra.range) + "</small></dd>" +
-      "<dt>ลัคนา</dt><dd>" + (lag ? "<b>ราศี" + esc(KB.rasi[lag.index].th) + "</b> " + lag.deg.toFixed(1) + "°<br><small>" + esc(KB.rasi[lag.index].trait) + "</small>" : "ใส่เวลาเกิดเพื่อคำนวณลัคนา") + "</dd>" +
-      "</dl><p class=\"hs-small\">คำนวณจากตำแหน่งดวงอาทิตย์จริงและอายนางศ์ลาหิรี (ใกล้เคียงสุริยยาตรของไทย ต่างกันราว 1°) " + (lag ? "ลัคนาใช้พิกัด " + esc(inp.place || "") + " (" + inp.lat.toFixed(2) + ", " + inp.lon.toFixed(2) + ") เวลา UTC" + (inp.tz >= 0 ? "+" : "") + inp.tz + " — เป็นค่าโดยประมาณ ถ้าใกล้รอยต่อราศี (ต่ำกว่า 1° หรือเกิน 29°) ตำราไทยอาจได้ราศีข้างเคียง" : "") + "</p></section>";
+    html += '<div class="hs-grid2"><section class="hs-block"><h3>' + esc(T("horoscope.x.hRasi", "ราศีและลัคนา (แบบไทย นิรายนะ)")) + '</h3><dl class="kv">' +
+      "<dt>" + esc(T("horoscope.x.kSunRasi", "ราศีเกิด (อาทิตย์สถิต)")) + "</dt><dd><b>" + esc(ra.sym + " " + rasiN(P.sunRasi.index)) + "</b> " + P.sunRasi.deg.toFixed(1) + "°<br><small>" + esc(K.rasiEl[ra.el] + T("horoscope.x.rangeApprox", " · ช่วงโดยประมาณ ") + ra.range) + "</small></dd>" +
+      "<dt>" + esc(T("horoscope.x.fLagna", "ลัคนา")) + "</dt><dd>" + (lag ? "<b>" + esc(rasiN(lag.index)) + "</b> " + lag.deg.toFixed(1) + "°<br><small>" + esc(K.rasi[lag.index].trait) + "</small>" : esc(T("horoscope.x.needTimeLagna", "ใส่เวลาเกิดเพื่อคำนวณลัคนา"))) + "</dd>" +
+      "</dl><p class=\"hs-small\">" + esc(T("horoscope.x.rasiHow", "คำนวณจากตำแหน่งดวงอาทิตย์จริงและอายนางศ์ลาหิรี (ใกล้เคียงสุริยยาตรของไทย ต่างกันราว 1°) ")) +
+      (lag ? esc(T("horoscope.x.lagnaHow", "ลัคนาใช้พิกัด {place} ({lat}, {lon}) เวลา UTC{tz} — เป็นค่าโดยประมาณ ถ้าใกล้รอยต่อราศี (ต่ำกว่า 1° หรือเกิน 29°) ตำราไทยอาจได้ราศีข้างเคียง", { place: placeName(inp), lat: inp.lat.toFixed(2), lon: inp.lon.toFixed(2), tz: (inp.tz >= 0 ? "+" : "") + inp.tz })) : "") + "</p></section>";
     // ปีนักษัตร
     var c = z.chinese.cny;
-    html += '<section class="hs-block"><h3>ปีนักษัตร</h3><dl class="kv">' +
-      "<dt>แบบไทย</dt><dd><b>ปี" + esc(KB.animals[z.thai.animal].th) + "</b> <small>(เปลี่ยนวันขึ้น 1 ค่ำ เดือน 5 ≈ " + thDate(z.thai.month5.y, z.thai.month5.m, z.thai.month5.d) + ")</small></dd>" +
-      "<dt>แบบจีน (ตรุษจีน)</dt><dd><b>ปี" + esc(KB.animals[z.chinese.animal].th) + "</b> ธาตุ" + esc(EL[HS.STEM_EL[z.chinese.stem]].th) + " <small>(ตรุษจีน " + thDate(c.y, c.m, c.d) + ")</small></dd>" +
-      "<dt>ปาจื้อ (ลี่ชุน)</dt><dd><b>ปี" + esc(KB.animals[z.lichun.animal].th) + "</b> <small>(เปลี่ยนวันลี่ชุน ≈ 4 ก.พ.)</small></dd></dl>" +
-      (z.differ ? '<p class="note">วันเกิดของคุณอยู่ช่วงรอยต่อปีนักษัตร แต่ละระบบจึงให้ปีต่างกัน — ทุกแบบถูกต้องตามหลักของตัวเอง</p>' : "") +
-      '<p class="hs-small">ตำราไทยส่วนใหญ่เปลี่ยนนักษัตรวันขึ้น 1 ค่ำ เดือน 5 (บางแหล่งระบุเดือนอ้าย และไม่ใช่วันสงกรานต์) วันจันทรคติที่นี่คำนวณจากดิถีจันทร์ดับ คลาดเคลื่อนได้ ±1 วัน</p>' +
-      '<details class="hs-how" id="hsCnyBox"><summary>ตารางวันตรุษจีน ค.ศ. 1930–2060</summary><div id="hsCny" class="cny"></div></details></section></div>';
+    html += '<section class="hs-block"><h3>' + esc(T("horoscope.x.fYear", "ปีนักษัตร")) + '</h3><dl class="kv">' +
+      "<dt>" + esc(T("horoscope.x.kThaiYear", "แบบไทย")) + "</dt><dd><b>" + esc(yearN(z.thai.animal)) + "</b> <small>" + esc(T("horoscope.x.thaiYearNote", "(เปลี่ยนวันขึ้น 1 ค่ำ เดือน 5 ≈ {d})", { d: thDate(z.thai.month5.y, z.thai.month5.m, z.thai.month5.d) })) + "</small></dd>" +
+      "<dt>" + esc(T("horoscope.x.kCnYear", "แบบจีน (ตรุษจีน)")) + "</dt><dd><b>" + esc(yearN(z.chinese.animal)) + "</b> " + esc(elN(HS.STEM_EL[z.chinese.stem])) + " <small>" + esc(T("horoscope.x.cnyNote", "(ตรุษจีน {d})", { d: thDate(c.y, c.m, c.d) })) + "</small></dd>" +
+      "<dt>" + esc(T("horoscope.x.kLichun", "ปาจื้อ (ลี่ชุน)")) + "</dt><dd><b>" + esc(yearN(z.lichun.animal)) + "</b> <small>" + esc(T("horoscope.x.lichunNote", "(เปลี่ยนวันลี่ชุน ≈ 4 ก.พ.)")) + "</small></dd></dl>" +
+      (z.differ ? '<p class="note">' + esc(T("horoscope.x.differ", "วันเกิดของคุณอยู่ช่วงรอยต่อปีนักษัตร แต่ละระบบจึงให้ปีต่างกัน — ทุกแบบถูกต้องตามหลักของตัวเอง")) + "</p>" : "") +
+      '<p class="hs-small">' + esc(T("horoscope.x.yearHow", "ตำราไทยส่วนใหญ่เปลี่ยนนักษัตรวันขึ้น 1 ค่ำ เดือน 5 (บางแหล่งระบุเดือนอ้าย และไม่ใช่วันสงกรานต์) วันจันทรคติที่นี่คำนวณจากดิถีจันทร์ดับ คลาดเคลื่อนได้ ±1 วัน")) + "</p>" +
+      '<details class="hs-how" id="hsCnyBox"><summary>' + esc(T("horoscope.x.cnyTable", "ตารางวันตรุษจีน ค.ศ. 1930–2060")) + '</summary><div id="hsCny" class="cny"></div></details></section></div>';
     // เลข 7 ตัว
     var s = P.seven;
-    var lmName = KB.lunarMonths[inp.lunarMonthOverride || P.lunar.month];
-    html += '<section class="hs-block"><h3>เลข 7 ตัว (3 ฐาน + ผลรวม)</h3><div class="table-wrap"><table class="hs-table seven"><tbody>' +
-      KB.sevenRows.map(function (r) { return '<tr><th scope="row">' + esc(r.th) + "</th>" + s[r.key].map(function (v, i) { return "<td><b>" + v + "</b><small>" + esc(r.pos[i]) + "</small></td>"; }).join("") + "</tr>"; }).join("") +
-      '<tr class="sum"><th scope="row">ผลรวม</th>' + s.sum.map(function (v) { return "<td><b>" + v + "</b></td>"; }).join("") + "</tr></tbody></table></div>" +
-      '<p class="hs-small">ตั้งฐาน: วันเกิดเลข ' + s.starts[0] + " · " + esc(lmName) + (inp.lunarMonthOverride ? " (กำหนดเอง)" : " (คำนวณโดยประมาณจากดิถีจันทร์ดับ ปรับได้ในตั้งค่าเพิ่มเติม)") + " · ปี" + esc(KB.animals[z.thai.animal].th) + " เลข " + s.starts[2] + " — แต่ละแถวเริ่มที่เลขของตนแล้วนับเรียง 1–7 วนซ้ำ ผลรวมใช้ดูน้ำหนักของแต่ละภพ (ยิ่งมากยิ่งเด่น) นี่คือตารางพื้นฐาน ระบบเต็ม \"เลข 7 ตัว 9 ฐาน\" มีฐานเพิ่มเติม</p>" +
-      '<ul class="hs-small seven-top">' + topSeven(s).map(function (x) { return "<li><b>" + esc(x.pos) + "</b> (" + x.v + ") — " + esc(KB.sevenMeaning[x.pos] || "") + "</li>"; }).join("") + "</ul></section>";
+    var lmName = K.lunarMonths[inp.lunarMonthOverride || P.lunar.month];
+    html += '<section class="hs-block"><h3>' + esc(T("horoscope.x.hSeven", "เลข 7 ตัว (3 ฐาน + ผลรวม)")) + '</h3><div class="table-wrap"><table class="hs-table seven"><tbody>' +
+      K.sevenRows.map(function (r) { return '<tr><th scope="row">' + esc(r.th) + "</th>" + s[r.key].map(function (v, i) { return "<td><b>" + v + "</b><small>" + esc(r.pos[i]) + "</small></td>"; }).join("") + "</tr>"; }).join("") +
+      '<tr class="sum"><th scope="row">' + esc(T("horoscope.x.sum", "ผลรวม")) + "</th>" + s.sum.map(function (v) { return "<td><b>" + v + "</b></td>"; }).join("") + "</tr></tbody></table></div>" +
+      '<p class="hs-small">' + esc(T("horoscope.x.sevenHow", "ตั้งฐาน: วันเกิดเลข {a} · {lm}{lmNote} · {yr} เลข {c} — แต่ละแถวเริ่มที่เลขของตนแล้วนับเรียง 1–7 วนซ้ำ ผลรวมใช้ดูน้ำหนักของแต่ละภพ (ยิ่งมากยิ่งเด่น) นี่คือตารางพื้นฐาน ระบบเต็ม \"เลข 7 ตัว 9 ฐาน\" มีฐานเพิ่มเติม", {
+        a: s.starts[0], lm: lmName, lmNote: inp.lunarMonthOverride ? T("horoscope.x.lmSet", " (กำหนดเอง)") : T("horoscope.x.lmAuto", " (คำนวณโดยประมาณจากดิถีจันทร์ดับ ปรับได้ในตั้งค่าเพิ่มเติม)"), yr: yearN(z.thai.animal), c: s.starts[2] })) + "</p>" +
+      '<ul class="hs-small seven-top">' + topSeven(s).map(function (x) { return "<li><b>" + esc(x.pos) + "</b> (" + x.v + ") — " + esc(K.sevenMeaning[x.pos] || "") + "</li>"; }).join("") + "</ul></section>";
     $("#pn-th").innerHTML = html;
     $("#hsCnyBox").addEventListener("toggle", function () {
       var box = $("#hsCny"); if (!this.open || box.childElementCount) return;
-      var rows = []; for (var y = 1930; y <= 2060; y++) { var q = HS.chineseNewYear(y); rows.push('<span' + (y === c.y ? ' class="on"' : "") + "><b>" + y + "</b> " + q.d + " " + KB.monthsShort[q.m - 1] + " <small>" + esc(KB.animals[HS.cyc(y - 4).branch].th) + "</small></span>"); }
+      var rows = []; for (var y = 1930; y <= 2060; y++) { var q = HS.chineseNewYear(y); rows.push('<span' + (y === c.y ? ' class="on"' : "") + "><b>" + y + "</b> " + mdShort(q.m, q.d) + " <small>" + esc(K.animals[HS.cyc(y - 4).branch].th) + "</small></span>"); }
       box.innerHTML = rows.join("");
     });
   }
   function topSeven(s) {
-    var names = KB.sevenRows[0].pos, all = [];
+    var names = K.sevenRows[0].pos, all = [];
     s.sum.forEach(function (v, i) { all.push({ v: v, pos: names[i] }); });
     return all.sort(function (a, b) { return b.v - a.v; }).slice(0, 3);
   }
@@ -906,39 +945,40 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function renderBazi(P) {
     var b = P.bazi, dm = EL[P.dayMaster], f = P.favorable, fe = EL[f.primary], fe2 = EL[f.secondary];
     var yEl = EL[HS.STEM_EL[b.year.stem]];
-    var html = '<section class="hs-block"><h3>สี่เสา (四柱八字)</h3><div class="pillars">' + pillarCell("ปี 年", b.year) + pillarCell("เดือน 月", b.month) + pillarCell("วัน 日", b.day, true) + pillarCell("ยาม 時", b.hour) + "</div>" +
-      '<p class="reading">ปี' + esc(KB.animals[b.year.branch].th) + " ธาตุ" + esc(yEl.th) + " · เดือน" + esc(KB.animals[b.month.branch].th) + " · วัน" + esc(KB.stems[b.day.stem].th + KB.animals[b.day.branch].th) + (b.hour ? " · ยาม" + esc(KB.animals[b.hour.branch].th) : "") + "</p>" +
-      (b.unsure ? '<p class="note">วันเกิดตรงกับวันเปลี่ยนเดือนตามสุริยคติจีน ถ้าไม่ทราบเวลา เสาเดือนอาจเป็นเดือนข้างเคียง</p>' : "") +
-      (P.input.time && P.input.time.h >= 23 ? '<p class="note">เกิดยามจื่อดึก (23:00 น. ขึ้นไป) ใช้วิธี: ' + (b.ziMode === "23" ? "เปลี่ยนวันตอน 23:00" : "เปลี่ยนวันตอนเที่ยงคืน") + " (ปรับได้ในตั้งค่าเพิ่มเติม)</p>" : "") + "</section>";
-    html += '<div class="hs-grid2"><section class="hs-block dm" style="--c:' + dm.color + ";--s:" + dm.soft + '"><span class="fact-k">ธาตุประจำตัว (Day Master 日主)</span><h3 class="dm-h">' + esc(dm.zh + " " + KB.stems[b.day.stem].th + " · " + dm.th + KB.stems[b.day.stem].yy) + "</h3><p>" + esc(dm.dm) + "</p>" +
-      '<p class="hs-small">ความแข็งของธาตุตัวเอง (ธาตุเดียวกัน + ธาตุที่หนุน): ' + Math.round(f.ratio * 100) + "% → " + (f.strong ? "ค่อนข้างแข็ง" : "ค่อนข้างอ่อน") + "</p></section>" +
-      '<section class="hs-block"><h3>ธาตุเสริม (แบบง่าย)</h3><p>ธาตุที่ช่วยให้สมดุล: ' + elChip(f.primary) + " " + elChip(f.secondary) + "</p><dl class=\"kv\"><dt>สีนำโชค</dt><dd>" + esc(fe.colors + " / " + fe2.colors) + "</dd><dt>ทิศมงคล</dt><dd>" + esc(fe.dir) + "</dd><dt>เลขเสริม</dt><dd>" + esc(fe.num) + "</dd><dt>เคล็ดลับ</dt><dd>" + esc(fe.boost) + "</dd></dl>" +
-      '<p class="hs-small">หลักง่าย: ถ้าธาตุตัวเองแข็ง เสริมธาตุที่ช่วยระบาย ถ้าอ่อน เสริมธาตุแม่หรือธาตุเดียวกัน — เป็นการประเมินแบบย่อ ซินแสจริงพิจารณาฤดูเกิดและโครงสร้างดวงละเอียดกว่านี้</p></section></div>';
-    html += '<section class="hs-block"><h3>สมดุลห้าธาตุ' + (P.input.hidden ? " (รวมก้านแฝง)" : " (ก้านบน + กิ่งล่าง)") + '</h3><div class="hs-grid2 pentagrid">' + pentagon(P) +
+    var html = '<section class="hs-block"><h3>' + esc(T("horoscope.x.hPillars", "สี่เสา (四柱八字)")) + '</h3><div class="pillars">' + pillarCell(T("horoscope.x.plYear", "ปี 年"), b.year) + pillarCell(T("horoscope.x.plMonth", "เดือน 月"), b.month) + pillarCell(T("horoscope.x.plDay", "วัน 日"), b.day, true) + pillarCell(T("horoscope.x.plHour", "ยาม 時"), b.hour) + "</div>" +
+      '<p class="reading">' + esc(T("horoscope.x.pillarLine", "ปี{y} ธาตุ{ye} · เดือน{m} · วัน{d}", { y: K.animals[b.year.branch].th, ye: yEl.th, m: K.animals[b.month.branch].th, d: isZh() ? b.day.gz : K.stems[b.day.stem].th + K.animals[b.day.branch].th }) +
+        (b.hour ? T("horoscope.x.pillarHour", " · ยาม{h}", { h: K.animals[b.hour.branch].th }) : "")) + "</p>" +
+      (b.unsure ? '<p class="note">' + esc(T("horoscope.x.unsure", "วันเกิดตรงกับวันเปลี่ยนเดือนตามสุริยคติจีน ถ้าไม่ทราบเวลา เสาเดือนอาจเป็นเดือนข้างเคียง")) + "</p>" : "") +
+      (P.input.time && P.input.time.h >= 23 ? '<p class="note">' + esc(T("horoscope.x.ziNote", "เกิดยามจื่อดึก (23:00 น. ขึ้นไป) ใช้วิธี: {m} (ปรับได้ในตั้งค่าเพิ่มเติม)", { m: b.ziMode === "23" ? T("horoscope.x.zi23", "เปลี่ยนวันตอน 23:00") : T("horoscope.x.zi00", "เปลี่ยนวันตอนเที่ยงคืน") })) + "</p>" : "") + "</section>";
+    html += '<div class="hs-grid2"><section class="hs-block dm" style="--c:' + dm.color + ";--s:" + dm.soft + '"><span class="fact-k">' + esc(T("horoscope.x.dmK", "ธาตุประจำตัว (Day Master 日主)")) + '</span><h3 class="dm-h">' + esc(isZh() ? HS.STEMS[b.day.stem] + dm.zh + " · " + elYY(b.day.stem, P.dayMaster) : dm.zh + " " + K.stems[b.day.stem].th + " · " + dm.th + K.stems[b.day.stem].yy) + "</h3><p>" + esc(dm.dm) + "</p>" +
+      '<p class="hs-small">' + esc(T("horoscope.x.strength", "ความแข็งของธาตุตัวเอง (ธาตุเดียวกัน + ธาตุที่หนุน): {p}% → {s}", { p: Math.round(f.ratio * 100), s: f.strong ? T("horoscope.x.strong", "ค่อนข้างแข็ง") : T("horoscope.x.weak", "ค่อนข้างอ่อน") })) + "</p></section>" +
+      '<section class="hs-block"><h3>' + esc(T("horoscope.x.hUseful", "ธาตุเสริม (แบบง่าย)")) + "</h3><p>" + esc(T("horoscope.x.usefulEl", "ธาตุที่ช่วยให้สมดุล: ")) + elChip(f.primary) + " " + elChip(f.secondary) + "</p><dl class=\"kv\"><dt>" + esc(T("horoscope.x.kLuckyColor", "สีนำโชค")) + "</dt><dd>" + esc(fe.colors + " / " + fe2.colors) + "</dd><dt>" + esc(T("horoscope.x.kLuckyDir", "ทิศมงคล")) + "</dt><dd>" + esc(fe.dir) + "</dd><dt>" + esc(T("horoscope.x.kNum", "เลขเสริม")) + "</dt><dd>" + esc(fe.num) + "</dd><dt>" + esc(T("horoscope.x.kTip", "เคล็ดลับ")) + "</dt><dd>" + esc(fe.boost) + "</dd></dl>" +
+      '<p class="hs-small">' + esc(T("horoscope.x.usefulHow", "หลักง่าย: ถ้าธาตุตัวเองแข็ง เสริมธาตุที่ช่วยระบาย ถ้าอ่อน เสริมธาตุแม่หรือธาตุเดียวกัน — เป็นการประเมินแบบย่อ ซินแสจริงพิจารณาฤดูเกิดและโครงสร้างดวงละเอียดกว่านี้")) + "</p></section></div>";
+    html += '<section class="hs-block"><h3>' + esc(T("horoscope.x.hBalance", "สมดุลห้าธาตุ") + (P.input.hidden ? T("horoscope.x.balHidden", " (รวมก้านแฝง)") : T("horoscope.x.balPlain", " (ก้านบน + กิ่งล่าง)"))) + '</h3><div class="hs-grid2 pentagrid">' + pentagon(P) +
       '<div><div class="elbars">' + HS.ELEMENTS.map(function (k) { var tot = HS.ELEMENTS.reduce(function (s, x) { return s + P.counts[x]; }, 0) || 1; return '<div class="elbar"><span>' + esc(EL[k].th) + '</span><i style="--w:' + Math.round(P.counts[k] / tot * 100) + "%;--c:" + EL[k].color + '"></i><b>' + P.counts[k] + "</b></div>"; }).join("") + "</div>" +
-      '<p class="hs-small">ลูกศรทึบ = วงจรให้กำเนิด (ไม้→ไฟ→ดิน→ทอง→น้ำ→ไม้) · เส้นประ = วงจรข่ม · วงขอบเข้ม = ธาตุตัวเรา · ★ = ธาตุเสริม</p></div></div></section>';
+      '<p class="hs-small">' + esc(T("horoscope.x.pentaLegend", "ลูกศรทึบ = วงจรให้กำเนิด (ไม้→ไฟ→ดิน→ทอง→น้ำ→ไม้) · เส้นประ = วงจรข่ม · วงขอบเข้ม = ธาตุตัวเรา · ★ = ธาตุเสริม")) + "</p></div></div></section>";
     var lc = HS.localFromJD(b.lichun, 7);
-    html += '<details class="hs-how"><summary>ดูวิธีคำนวณ</summary><ul class="hs-small">' +
-      "<li>เสาปี: เปลี่ยนที่ลี่ชุน 立春 (อาทิตย์ลองจิจูด 315°) ปีนี้ตรงกับ " + thDate(lc.y, lc.m, lc.d) + " " + hm(lc.h, lc.mi) + " น. (เวลาไทย)</li>" +
-      "<li>เสาเดือน: ลองจิจูดดวงอาทิตย์ขณะเกิด " + b.sunLon.toFixed(2) + "° → เดือนที่ " + (b.monthIndex + 1) + " นับจากเดือนขาล 寅 (เปลี่ยนทุก 30° ที่ 315°, 345°, 15° …)</li>" +
-      "<li>เสาวัน: จากเลขวันจูเลียน (1 ม.ค. 2000 = 戊午) รอบ 60 วัน</li>" +
-      "<li>เสายาม: ช่วงละ 2 ชั่วโมงตามเวลานาฬิกา (ไม่ปรับเวลาสุริยะจริง) ก้านยามตามสูตร 五鼠遁</li>" +
-      "<li>ตำแหน่งดวงอาทิตย์ตามสูตร Meeus ความแม่นยำราว ±15 นาที ตรวจสอบกับตารางสารทของหอดูดาวญี่ปุ่นปี 2024–2025</li></ul></details>";
+    html += '<details class="hs-how"><summary>' + esc(T("fortune.common.howCalc", "ดูวิธีคำนวณ")) + '</summary><ul class="hs-small">' +
+      "<li>" + esc(T("horoscope.x.how1", "เสาปี: เปลี่ยนที่ลี่ชุน 立春 (อาทิตย์ลองจิจูด 315°) ปีนี้ตรงกับ {d} {t} น. (เวลาไทย)", { d: thDate(lc.y, lc.m, lc.d), t: hm(lc.h, lc.mi) })) + "</li>" +
+      "<li>" + esc(T("horoscope.x.how2", "เสาเดือน: ลองจิจูดดวงอาทิตย์ขณะเกิด {l}° → เดือนที่ {n} นับจากเดือนขาล 寅 (เปลี่ยนทุก 30° ที่ 315°, 345°, 15° …)", { l: b.sunLon.toFixed(2), n: b.monthIndex + 1 })) + "</li>" +
+      "<li>" + esc(T("horoscope.x.how3", "เสาวัน: จากเลขวันจูเลียน (1 ม.ค. 2000 = 戊午) รอบ 60 วัน")) + "</li>" +
+      "<li>" + esc(T("horoscope.x.how4", "เสายาม: ช่วงละ 2 ชั่วโมงตามเวลานาฬิกา (ไม่ปรับเวลาสุริยะจริง) ก้านยามตามสูตร 五鼠遁")) + "</li>" +
+      "<li>" + esc(T("horoscope.x.how5", "ตำแหน่งดวงอาทิตย์ตามสูตร Meeus ความแม่นยำราว ±15 นาที ตรวจสอบกับตารางสารทของหอดูดาวญี่ปุ่นปี 2024–2025")) + "</li></ul></details>";
     $("#pn-bz").innerHTML = html;
   }
 
   function renderNum(P) {
-    var lp = P.lifePath, n = KB.numbers[lp.value], bd = KB.numbers[P.birthday], inp = P.input;
-    var html = '<div class="hs-grid2"><section class="hs-block bignum"><span class="fact-k">เลขชีวิต (Life Path)</span><b class="big">' + lp.value + "</b><h3>" + esc(n.k) + "</h3><p>" + esc(n.t) + "</p>" +
-      '<p class="hs-small">วิธีคิด: เดือน ' + inp.m + " → " + lp.parts[0] + " · วัน " + inp.d + " → " + lp.parts[1] + " · ปี ค.ศ. " + inp.y + " → " + lp.parts[2] + " · รวม " + lp.total + (lp.total !== lp.value ? " → " + lp.value : "") + " (เก็บเลขมาสเตอร์ 11, 22, 33 ไว้ ไม่ลดต่อ)</p></section>" +
-      '<section class="hs-block bignum"><span class="fact-k">เลขวันเกิด (Birthday Number)</span><b class="big">' + P.birthday + "</b><h3>" + esc(bd.k) + "</h3><p>" + esc(bd.t) + "</p><p class=\"hs-small\">จากวันที่ " + inp.d + " ลดเหลือหลักเดียว (ยกเว้น 11, 22)</p></section></div>";
-    html += '<section class="hs-block"><h3>ผลรวมเลขชื่อ (เลขศาสตร์ไทย)</h3><label>ชื่อที่ต้องการคำนวณ<input id="hsNameNum" type="text" maxlength="60" autocomplete="off" value="' + esc(inp.name || "") + '" placeholder="พิมพ์ชื่อภาษาไทย"></label><div id="hsNameOut" aria-live="polite"></div>' +
-      '<p class="hs-small">ค่าพยัญชนะตามตารางที่เผยแพร่ทั่วไป (ก ด ถ ท ภ = 1, ข บ ป ง ช = 2 …) ส่วนสระและวรรณยุกต์ใช้ค่าที่พบบ่อย แต่ละสำนักกำหนดต่างกันเล็กน้อย ชื่อไม่ถูกบันทึก</p></section>';
+    var lp = P.lifePath, n = K.numbers[lp.value], bd = K.numbers[P.birthday], inp = P.input;
+    var html = '<div class="hs-grid2"><section class="hs-block bignum"><span class="fact-k">' + esc(T("horoscope.x.lpK", "เลขชีวิต (Life Path)")) + '</span><b class="big">' + lp.value + "</b><h3>" + esc(n.k) + "</h3><p>" + esc(n.t) + "</p>" +
+      '<p class="hs-small">' + esc(T("horoscope.x.lpHow", "วิธีคิด: เดือน {m} → {a} · วัน {d} → {b} · ปี ค.ศ. {y} → {c} · รวม {t}{r} (เก็บเลขมาสเตอร์ 11, 22, 33 ไว้ ไม่ลดต่อ)", { m: inp.m, a: lp.parts[0], d: inp.d, b: lp.parts[1], y: inp.y, c: lp.parts[2], t: lp.total, r: lp.total !== lp.value ? " → " + lp.value : "" })) + "</p></section>" +
+      '<section class="hs-block bignum"><span class="fact-k">' + esc(T("horoscope.x.bdK", "เลขวันเกิด (Birthday Number)")) + '</span><b class="big">' + P.birthday + "</b><h3>" + esc(bd.k) + "</h3><p>" + esc(bd.t) + "</p><p class=\"hs-small\">" + esc(T("horoscope.x.bdHow", "จากวันที่ {d} ลดเหลือหลักเดียว (ยกเว้น 11, 22)", { d: inp.d })) + "</p></section></div>";
+    html += '<section class="hs-block"><h3>' + esc(T("horoscope.x.hName", "ผลรวมเลขชื่อ (เลขศาสตร์ไทย)")) + "</h3><label>" + esc(T("horoscope.x.nameLabel", "ชื่อที่ต้องการคำนวณ")) + '<input id="hsNameNum" type="text" maxlength="60" autocomplete="off" value="' + esc(inp.name || "") + '" placeholder="' + esc(T("horoscope.x.namePh", "พิมพ์ชื่อภาษาไทย")) + '"></label><div id="hsNameOut" aria-live="polite"></div>' +
+      '<p class="hs-small">' + esc(T("horoscope.x.nameNote", "ค่าพยัญชนะตามตารางที่เผยแพร่ทั่วไป (ก ด ถ ท ภ = 1, ข บ ป ง ช = 2 …) ส่วนสระและวรรณยุกต์ใช้ค่าที่พบบ่อย แต่ละสำนักกำหนดต่างกันเล็กน้อย ชื่อไม่ถูกบันทึก")) + "</p></section>";
     $("#pn-nu").innerHTML = html;
     var upd = function () {
       var r = HS.thaiNameNumber($("#hsNameNum").value), o = $("#hsNameOut");
-      if (!r.sum) { o.innerHTML = '<p class="muted">พิมพ์ชื่อเพื่อดูผลรวม</p>'; return; }
-      var root = HS.reduceNum(r.sum, false), m = KB.numbers[root];
+      if (!r.sum) { o.innerHTML = '<p class="muted">' + esc(T("horoscope.x.nameEmpty", "พิมพ์ชื่อเพื่อดูผลรวม")) + "</p>"; return; }
+      var root = HS.reduceNum(r.sum, false), m = K.numbers[root];
       o.innerHTML = '<p class="namesum"><b>' + r.sum + "</b> → " + root + " · " + esc(m.k) + " — " + esc(m.t) + '</p><p class="letters">' + r.detail.map(function (x) { return "<span>" + esc(x[0]) + "<small>" + x[1] + "</small></span>"; }).join("") + "</p>";
     };
     $("#hsNameNum").addEventListener("input", upd); upd();
@@ -946,19 +986,19 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   function renderToday(P) {
     var now = new Date(), td = { y: now.getFullYear(), m: now.getMonth() + 1, d: now.getDate() };
-    var D = HS.daily(P, td), bh = KB.bhumi[D.bhumi], tk = D.taksaToday, rel = KB.relations[D.rel];
-    var mo = HS.monthly(P, HS.julianDay(td.y, td.m, td.d, now.getHours() + now.getMinutes() / 60) - 7 / 24), mrel = KB.relations[mo.rel];
-    var html = '<p class="today-h">' + esc("วัน" + KB.weekdayNames[D.weekday] + "ที่ " + thDateLong(td.y, td.m, td.d)) + "</p>";
-    html += '<div class="hs-grid2"><section class="hs-block"><h3>ทักษาจร: วันนี้เป็นวัน "' + esc(bh.th) + '" ของคุณ</h3><p>' + esc(bh.day) + '</p><p class="hs-small">เทียบดาววันนี้ (' + esc(DAYS[D.weekday].planet) + ") กับทักษาวันเกิดของคุณ (" + esc(DAYS[P.thaiDay.planet].planet) + ")</p></section>" +
-      '<section class="hs-block"><h3>ปาจื้อวันนี้: ' + D.pillar.gz + " " + elChip(D.todayEl) + "</h3><p><b>" + esc(rel.th) + "</b> — " + esc(rel.day) + "</p>" +
-      (D.clash ? '<p class="note">วันนี้กิ่งวันชงกับปีนักษัตรของคุณ (ตามความเชื่อ) แนะนำให้ใจเย็น ค่อย ๆ ตัดสินใจ แล้ววันจะผ่านไปอย่างราบรื่น</p>' : "") + "</section></div>";
-    html += '<section class="hs-block"><h3>สีเสื้อวันนี้</h3><ul class="advice">' +
-      '<li>' + swatch(tk.sri) + "<span><b>ศรี</b> — โชคลาภ เสน่ห์</span></li><li>" + swatch(tk.dech) + "<span><b>เดช</b> — การงาน ความน่าเชื่อถือ</span></li><li>" + swatch(tk.montri) + "<span><b>มนตรี</b> — ผู้ใหญ่เอ็นดู</span></li>" +
-      '<li class="soft">' + swatch(tk.kalakini) + "<span><b>ควรเลี่ยง</b> — ตามความเชื่อ (ใส่ได้ถ้าจำเป็น ไม่ต้องกังวล)</span></li></ul>" +
-      '<div class="facts small">' + factCard("ธาตุเสริมวันนี้", esc("ธาตุ" + EL[D.favEl].th), esc(EL[D.favEl].boost || "ตามธาตุเสริมของดวง")) + factCard("ทิศมงคล", esc(EL[D.favEl].dir), "ตามธาตุเสริม" + esc(EL[D.favEl].th)) + factCard("ทิศของดาวศรีวันนี้", esc(DAYS[tk.sri].dir), esc(DAYS[tk.sri].planet)) + "</div></section>";
-    html += '<section class="hs-block"><h3>ดวงเดือนนี้</h3><p>เดือนตามสุริยคติจีน <b>' + mo.pillar.gz + "</b> " + elChip(HS.STEM_EL[mo.pillar.stem]) + " · อาทิตย์สถิตราศี" + esc(KB.rasi[mo.sunRasi].th) + "</p><p><b>" + esc(mrel.th) + "</b> — " + esc(mrel.day.replace("วันนี้", "เดือนนี้")) + "</p>" +
-      (mo.branchRel === "clash" ? '<p class="note">เดือนนี้ชงกับปีนักษัตรของคุณ (ตามความเชื่อ) ใช้ความรอบคอบ วางแผนล่วงหน้า แล้วทุกอย่างจะลงตัว</p>' : mo.branchRel === "harmony" || mo.branchRel === "trine" ? '<p class="note good">เดือนนี้กิ่งเดือนประสานกับปีนักษัตรของคุณ — ช่วงดีสำหรับเริ่มต้นสิ่งใหม่และสร้างความร่วมมือ</p>' : "") + "</section>";
-    html += readingBlock("hsTdRd", "ดวงวันนี้โดยละเอียด", false);
+    var D = HS.daily(P, td), bh = K.bhumi[D.bhumi], tk = D.taksaToday, rel = K.relations[D.rel];
+    var mo = HS.monthly(P, HS.julianDay(td.y, td.m, td.d, now.getHours() + now.getMinutes() / 60) - 7 / 24), mrel = K.relations[mo.rel];
+    var html = '<p class="today-h">' + esc(T("horoscope.x.todayH", "วัน{w}ที่ {d}", { w: K.weekdayNames[D.weekday], d: thDateLong(td.y, td.m, td.d) })) + "</p>";
+    html += '<div class="hs-grid2"><section class="hs-block"><h3>' + esc(T("horoscope.x.hTaksaToday", "ทักษาจร: วันนี้เป็นวัน \"{b}\" ของคุณ", { b: bh.th })) + "</h3><p>" + esc(bh.day) + '</p><p class="hs-small">' + esc(T("horoscope.x.taksaTodayHow", "เทียบดาววันนี้ ({a}) กับทักษาวันเกิดของคุณ ({b})", { a: DAYS[D.weekday].planet, b: DAYS[P.thaiDay.planet].planet })) + "</p></section>" +
+      '<section class="hs-block"><h3>' + esc(T("horoscope.x.hBaziToday", "ปาจื้อวันนี้: ")) + D.pillar.gz + " " + elChip(D.todayEl) + "</h3><p><b>" + esc(rel.th) + "</b> — " + esc(rel.day) + "</p>" +
+      (D.clash ? '<p class="note">' + esc(T("horoscope.x.clashToday", "วันนี้กิ่งวันชงกับปีนักษัตรของคุณ (ตามความเชื่อ) แนะนำให้ใจเย็น ค่อย ๆ ตัดสินใจ แล้ววันจะผ่านไปอย่างราบรื่น")) + "</p>" : "") + "</section></div>";
+    html += '<section class="hs-block"><h3>' + esc(T("horoscope.x.hColorToday", "สีเสื้อวันนี้")) + '</h3><ul class="advice">' +
+      '<li>' + swatch(tk.sri) + "<span><b>" + esc(K.bhumi.sri.th) + "</b> — " + esc(T("horoscope.x.useSri", "โชคลาภ เสน่ห์")) + "</span></li><li>" + swatch(tk.dech) + "<span><b>" + esc(K.bhumi.dech.th) + "</b> — " + esc(T("horoscope.x.useDech", "การงาน ความน่าเชื่อถือ")) + "</span></li><li>" + swatch(tk.montri) + "<span><b>" + esc(K.bhumi.montri.th) + "</b> — " + esc(T("horoscope.x.useMontri", "ผู้ใหญ่เอ็นดู")) + "</span></li>" +
+      '<li class="soft">' + swatch(tk.kalakini) + "<span><b>" + esc(T("horoscope.x.colAvoid", "ควรเลี่ยง")) + "</b> — " + esc(T("horoscope.x.avoidNote", "ตามความเชื่อ (ใส่ได้ถ้าจำเป็น ไม่ต้องกังวล)")) + "</span></li></ul>" +
+      '<div class="facts small">' + factCard(esc(T("horoscope.x.fFavToday", "ธาตุเสริมวันนี้")), esc(elN(D.favEl)), esc(EL[D.favEl].boost || T("horoscope.x.favDefault", "ตามธาตุเสริมของดวง"))) + factCard(esc(T("horoscope.x.kLuckyDir", "ทิศมงคล")), esc(EL[D.favEl].dir), esc(T("horoscope.x.byFav", "ตามธาตุเสริม{e}", { e: EL[D.favEl].th }))) + factCard(esc(T("horoscope.x.fSriDir", "ทิศของดาวศรีวันนี้")), esc(DAYS[tk.sri].dir), esc(DAYS[tk.sri].planet)) + "</div></section>";
+    html += '<section class="hs-block"><h3>' + esc(T("horoscope.x.hMonth", "ดวงเดือนนี้")) + "</h3><p>" + esc(T("horoscope.x.monthPillar", "เดือนตามสุริยคติจีน ")) + "<b>" + mo.pillar.gz + "</b> " + elChip(HS.STEM_EL[mo.pillar.stem]) + esc(T("horoscope.x.sunIn", " · อาทิตย์สถิตราศี{r}", { r: K.rasi[mo.sunRasi].th })) + "</p><p><b>" + esc(mrel.th) + "</b> — " + esc(isZh() ? mrel.day.replace(/今天/g, "本月") : mrel.day.replace("วันนี้", "เดือนนี้")) + "</p>" +
+      (mo.branchRel === "clash" ? '<p class="note">' + esc(T("horoscope.x.clashMonth", "เดือนนี้ชงกับปีนักษัตรของคุณ (ตามความเชื่อ) ใช้ความรอบคอบ วางแผนล่วงหน้า แล้วทุกอย่างจะลงตัว")) + "</p>" : mo.branchRel === "harmony" || mo.branchRel === "trine" ? '<p class="note good">' + esc(T("horoscope.x.goodMonth", "เดือนนี้กิ่งเดือนประสานกับปีนักษัตรของคุณ — ช่วงดีสำหรับเริ่มต้นสิ่งใหม่และสร้างความร่วมมือ")) + "</p>" : "") + "</section>";
+    html += readingBlock("hsTdRd", T("horoscope.x.todayDetail", "ดวงวันนี้โดยละเอียด"), false);
     $("#pn-td").innerHTML = html;
     bindReading("hsTdRd", function (topic, rng) { return HS.buildDailyFacts(P, D, mo, { topic: topic, rng: rng }); }, false);
   }
@@ -973,30 +1013,40 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     if (dt.err) { err.textContent = dt.err; return; }
     var s = settings();
     var P2 = HS.analyze(Object.assign({}, s, { y: dt.y, m: dt.m, d: dt.d, time: parseTime($("#hsPTime").value), name: "", lunarMonthOverride: null }));
-    renderCompat(current, P2, $("#hsPName").value.trim());
+    lastPartner = { P2: P2, name: $("#hsPName").value.trim() };
+    renderCompat(current, P2, lastPartner.name);
   });
   function renderCompat(P1, P2, pname) {
-    var C = HS.compatibility(P1, P2), lv = KB.compat.levels.find(function (l) { return C.score >= l[0]; });
-    var who = pname ? esc(pname) : "อีกคน";
+    var C = HS.compatibility(P1, P2), lv = K.compat.levels.find(function (l) { return C.score >= l[0]; });
+    var who = pname || T("horoscope.x.other", "อีกคน");
+    var vs = function (a, b) { return T("horoscope.x.vs", "{a} กับ {b}", { a: a, b: b }); };
     var line = function (w) {
-      if (w.k === "zodiac") return "<li><b>ปีนักษัตร</b> ปี" + esc(KB.animals[P1.zodiac.chinese.animal].th) + " กับ ปี" + esc(KB.animals[P2.zodiac.chinese.animal].th) + " — " + esc(KB.R.compat.zodiac[w.rel]) + "</li>";
-      if (w.k === "element") return "<li><b>ธาตุประจำตัว</b> " + elChip(w.a) + " กับ " + elChip(w.b) + " — " + esc(KB.R.compat.element[w.rel]) + "</li>";
-      if (w.k === "thaiday") return "<li><b>วันเกิด</b> " + esc(DAYS[P1.thaiDay.planet].name) + " กับ " + esc(DAYS[P2.thaiDay.planet].name) + " — " + esc(w.friend ? KB.compat.thaiFriend : w.same ? KB.compat.thaiSame : (w.b1 === "kalakini" || w.b2 === "kalakini") ? KB.compat.thaiCare : (["sri", "dech", "montri", "mula"].indexOf(w.b1) >= 0 || ["sri", "dech", "montri", "mula"].indexOf(w.b2) >= 0) ? KB.compat.thaiGood : KB.compat.thaiNeutral) + "</li>";
-      if (w.k === "rasi") return "<li><b>ราศี</b> " + esc(KB.rasi[P1.sunRasi.index].th) + " กับ " + esc(KB.rasi[P2.sunRasi.index].th) + " — " + esc(KB.R.compat.rasi[w.a === w.b ? "same" : w.pts >= 4 ? "good" : "other"]) + "</li>";
-      return "<li><b>เลขชีวิต</b> " + w.a + " กับ " + w.b + " — " + esc(KB.R.compat.lp[w.pts >= 6 ? "group" : w.pts === 5 ? "same" : "other"]) + "</li>";
+      if (w.k === "zodiac") return "<li><b>" + esc(T("horoscope.x.fYear", "ปีนักษัตร")) + "</b> " + esc(vs(yearN(P1.zodiac.chinese.animal), yearN(P2.zodiac.chinese.animal))) + " — " + esc(K.R.compat.zodiac[w.rel]) + "</li>";
+      if (w.k === "element") return "<li><b>" + esc(T("horoscope.x.cElement", "ธาตุประจำตัว")) + "</b> " + elChip(w.a) + " " + esc(T("horoscope.x.with", "กับ")) + " " + elChip(w.b) + " — " + esc(K.R.compat.element[w.rel]) + "</li>";
+      if (w.k === "thaiday") return "<li><b>" + esc(T("horoscope.x.kDay", "วันเกิด")) + "</b> " + esc(vs(DAYS[P1.thaiDay.planet].name, DAYS[P2.thaiDay.planet].name)) + " — " + esc(w.friend ? K.compat.thaiFriend : w.same ? K.compat.thaiSame : (w.b1 === "kalakini" || w.b2 === "kalakini") ? K.compat.thaiCare : (["sri", "dech", "montri", "mula"].indexOf(w.b1) >= 0 || ["sri", "dech", "montri", "mula"].indexOf(w.b2) >= 0) ? K.compat.thaiGood : K.compat.thaiNeutral) + "</li>";
+      if (w.k === "rasi") return "<li><b>" + esc(T("horoscope.x.cRasi", "ราศี")) + "</b> " + esc(vs(K.rasi[P1.sunRasi.index].th, K.rasi[P2.sunRasi.index].th)) + " — " + esc(K.R.compat.rasi[w.a === w.b ? "same" : w.pts >= 4 ? "good" : "other"]) + "</li>";
+      return "<li><b>" + esc(T("horoscope.x.fLp", "เลขชีวิต")) + "</b> " + esc(vs(w.a, w.b)) + " — " + esc(K.R.compat.lp[w.pts >= 6 ? "group" : w.pts === 5 ? "same" : "other"]) + "</li>";
     };
     var R = 54, L = 2 * Math.PI * R;
-    $("#hsCompat").innerHTML = '<section class="hs-block compat"><div class="ring"><svg viewBox="0 0 140 140" role="img" aria-label="ความเข้ากัน ' + C.score + '%"><circle cx="70" cy="70" r="' + R + '" fill="none" stroke="#eceffa" stroke-width="14"/><circle cx="70" cy="70" r="' + R + '" fill="none" stroke="#674ff2" stroke-width="14" stroke-linecap="round" stroke-dasharray="' + (L * C.score / 100).toFixed(1) + " " + L.toFixed(1) + '" transform="rotate(-90 70 70)"/><text x="70" y="76" text-anchor="middle" font-size="30" font-weight="700" fill="#0e1430">' + C.score + '%</text></svg></div>' +
-      "<div><h3>" + esc(lv[1]) + "</h3><p>คุณกับ" + who + " (" + esc(DAYS[P2.thaiDay.planet].name) + " · " + thDate(P2.input.y, P2.input.m, P2.input.d) + ") — " + esc(lv[2]) + '</p><ul class="why">' + C.why.map(line).join("") + '</ul><p class="hs-small">คะแนนเชิงบันเทิง (55–98%) รวมจากหลายศาสตร์ ความสัมพันธ์ที่ดีมาจากความเข้าใจและการใส่ใจกัน ไม่ใช่ตัวเลข</p></div></section>';
+    $("#hsCompat").innerHTML = '<section class="hs-block compat"><div class="ring"><svg viewBox="0 0 140 140" role="img" aria-label="' + esc(T("horoscope.x.compatAria", "ความเข้ากัน {s}%", { s: C.score })) + '"><circle cx="70" cy="70" r="' + R + '" fill="none" stroke="#eceffa" stroke-width="14"/><circle cx="70" cy="70" r="' + R + '" fill="none" stroke="#674ff2" stroke-width="14" stroke-linecap="round" stroke-dasharray="' + (L * C.score / 100).toFixed(1) + " " + L.toFixed(1) + '" transform="rotate(-90 70 70)"/><text x="70" y="76" text-anchor="middle" font-size="30" font-weight="700" fill="#0e1430">' + C.score + '%</text></svg></div>' +
+      "<div><h3>" + esc(lv[1]) + "</h3><p>" + esc(T("horoscope.x.compatWho", "คุณกับ{who} ({day} · {date}) — {desc}", { who: who, day: DAYS[P2.thaiDay.planet].name, date: thDate(P2.input.y, P2.input.m, P2.input.d), desc: lv[2] })) + '</p><ul class="why">' + C.why.map(line).join("") + '</ul><p class="hs-small">' + esc(T("horoscope.x.compatNote", "คะแนนเชิงบันเทิง (55–98%) รวมจากหลายศาสตร์ ความสัมพันธ์ที่ดีมาจากความเข้าใจและการใส่ใจกัน ไม่ใช่ตัวเลข")) + "</p></div></section>";
   }
 
   /* ---------- แสดงผล ---------- */
   var resultSec = $("#hsResult");
-  function show(P) {
-    current = P;
+  function resultSub(P) {
     var inp = P.input;
-    $("#hsResSub").textContent = (inp.name ? inp.name + " · " : "") + "เกิด" + dayTitle(P) + (P.thaiDay.rahu ? " " : "") + "ที่ " + thDateLong(inp.y, inp.m, inp.d) + (inp.time ? " เวลา " + hm(inp.time.h, inp.time.mi) + " น." : " (ไม่ระบุเวลา)");
+    return (inp.name ? inp.name + " · " : "") + (isZh()
+      ? T("horoscope.x.sub", "{day}出生 · {date}{time}", { day: dayTitle(P), date: thDateLong(inp.y, inp.m, inp.d), time: inp.time ? " " + hm(inp.time.h, inp.time.mi) : T("horoscope.x.noTimeSub", " (ไม่ระบุเวลา)") })
+      : "เกิด" + dayTitle(P) + (P.thaiDay.rahu ? " " : "") + "ที่ " + thDateLong(inp.y, inp.m, inp.d) + (inp.time ? " เวลา " + hm(inp.time.h, inp.time.mi) + " น." : " (ไม่ระบุเวลา)"));
+  }
+  function renderAll(P) {
+    $("#hsResSub").textContent = resultSub(P);
     renderOverview(P); renderThai(P); renderBazi(P); renderNum(P); renderToday(P);
+  }
+  function show(P) {
+    current = P; lastPartner = null;
+    renderAll(P);
     $("#hsCompat").innerHTML = "";
     resultSec.hidden = false; selectTab(tabs[0]);
     $("#hsCardImg").hidden = true;
@@ -1009,10 +1059,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /* ---------- การ์ดแชร์ 1080×1350 ---------- */
   function rr(c, x, y, w, h, r) { c.beginPath(); if (c.roundRect) c.roundRect(x, y, w, h, r); else c.rect(x, y, w, h); }
   async function makeCard() {
-    var P = current, d = DAYS[P.thaiDay.planet], dm = EL[P.dayMaster], b = P.bazi, z = P.zodiac, ra = KB.rasi[P.sunRasi.index];
+    var P = current, d = DAYS[P.thaiDay.planet], b = P.bazi, z = P.zodiac, ra = K.rasi[P.sunRasi.index];
     try { await Promise.all([document.fonts.load("700 60px Prompt"), document.fonts.load("500 30px Prompt"), document.fonts.load("400 30px Prompt")]); } catch (e) { /* ใช้ฟอนต์ระบบ */ }
     var W = 1080, H = 1350, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
-    var c = cv.getContext("2d"), F = "Prompt, system-ui, sans-serif";
+    var c = cv.getContext("2d"), F = isZh() ? "Prompt, 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', system-ui, sans-serif" : "Prompt, system-ui, sans-serif";
     var g = c.createLinearGradient(0, 0, W, H); g.addColorStop(0, "#0e1430"); g.addColorStop(1, "#1e2a5a"); c.fillStyle = g; c.fillRect(0, 0, W, H);
     var rg = c.createRadialGradient(W / 2, 380, 30, W / 2, 380, 520); rg.addColorStop(0, d.hex + "88"); rg.addColorStop(1, "rgba(14,20,48,0)"); c.fillStyle = rg; c.fillRect(0, 0, W, H);
     // โลโก้
@@ -1022,44 +1072,45 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     c.beginPath(); c.arc(30, 30, 8, 0, Math.PI * 2); c.fillStyle = "#8b78ff"; c.fill(); c.restore();
     c.textBaseline = "middle"; c.textAlign = "left"; c.font = "700 40px " + F; c.fillStyle = "#fff"; c.fillText("LENS", 148, 96);
     var lw = c.measureText("LENS").width; c.fillStyle = "#a99bff"; c.fillText("IQ", 148 + lw, 96);
-    c.textAlign = "right"; c.font = "500 34px " + F; c.fillStyle = "#c9d0ea"; c.fillText("ดวงวันเดือนปีเกิด", W - 72, 96);
+    c.textAlign = "right"; c.font = "500 34px " + F; c.fillStyle = "#c9d0ea"; c.fillText(T("horoscope.x.cardTitle", "ดวงวันเดือนปีเกิด"), W - 72, 96);
     // วงกลมสีวันเกิด
     var cy = 330; c.beginPath(); c.arc(W / 2, cy, 150, 0, Math.PI * 2); c.fillStyle = d.hex; c.fill();
     c.lineWidth = 10; c.strokeStyle = "rgba(255,255,255,.85)"; c.stroke();
     c.textAlign = "center"; c.fillStyle = P.thaiDay.planet === 1 ? "#3d2d00" : "#fff"; c.font = "700 64px " + F; c.fillText(d.short.replace("(ค)", ""), W / 2, cy - 18);
-    c.font = "500 30px " + F; c.fillText("สี" + d.color.split(" / ")[0], W / 2, cy + 46);
-    c.fillStyle = "#fff"; c.font = "700 70px " + F; c.fillText("เกิด" + dayTitle(P).replace(" (ราหู)", ""), W / 2, 560);
-    c.font = "400 32px " + F; c.fillStyle = "#c9d0ea"; c.fillText(d.planet + "ทรง" + d.vehicle + " · " + d.buddha, W / 2, 624);
+    c.font = "500 30px " + F; c.fillText(T("horoscope.x.cardColor", "สี{c}", { c: d.color.split(" / ")[0] }), W / 2, cy + 46);
+    c.fillStyle = "#fff"; c.font = "700 70px " + F; c.fillText(bornOn(dayTitle(P).replace(" (ราหู)", "")), W / 2, 560);
+    c.font = "400 32px " + F; c.fillStyle = "#c9d0ea"; c.fillText(deity(d) + " · " + d.buddha, W / 2, 624);
     // สี่เสา
-    var ps = [["ปี", b.year], ["เดือน", b.month], ["วัน", b.day], ["ยาม", b.hour]], bw = 190, gap = 24, x0 = (W - (bw * 4 + gap * 3)) / 2;
+    var ps = [[T("horoscope.x.cYear", "ปี"), b.year], [T("horoscope.x.cMonth", "เดือน"), b.month], [T("horoscope.x.cDay", "วัน"), b.day], [T("horoscope.x.cHour", "ยาม"), b.hour]], bw = 190, gap = 24, x0 = (W - (bw * 4 + gap * 3)) / 2;
     ps.forEach(function (q, i) {
       var x = x0 + i * (bw + gap), y = 676; rr(c, x, y, bw, 276, 26); c.fillStyle = i === 2 ? "rgba(255,255,255,.16)" : "rgba(255,255,255,.07)"; c.fill();
       c.fillStyle = "#c9d0ea"; c.font = "400 26px " + F; c.fillText(q[0], x + bw / 2, y + 34);
-      if (!q[1]) { c.fillStyle = "#8f9bc4"; c.font = "500 60px " + F; c.fillText("?", x + bw / 2, y + 140); c.font = "400 22px " + F; c.fillText("ไม่ทราบเวลา", x + bw / 2, y + 248); return; }
+      if (!q[1]) { c.fillStyle = "#8f9bc4"; c.font = "500 60px " + F; c.fillText("?", x + bw / 2, y + 140); c.font = "400 22px " + F; c.fillText(T("horoscope.x.cNoTime", "ไม่ทราบเวลา"), x + bw / 2, y + 248); return; }
       c.font = "700 72px 'Noto Serif SC', 'Songti SC', serif";
       var cc = function (e) { return e === "metal" ? "#d5dae3" : EL[e].color; };
       c.fillStyle = cc(HS.STEM_EL[q[1].stem]); c.fillText(HS.STEMS[q[1].stem], x + bw / 2, y + 100);
       c.fillStyle = cc(HS.BRANCH_EL[q[1].branch]); c.fillText(HS.BRANCHES[q[1].branch], x + bw / 2, y + 180);
-      c.fillStyle = "#fff"; c.font = "400 26px " + F; c.fillText(KB.animals[q[1].branch].th, x + bw / 2, y + 248);
+      c.fillStyle = "#fff"; c.font = "400 26px " + F; c.fillText(K.animals[q[1].branch].th, x + bw / 2, y + 248);
     });
     // ชิปข้อมูล
-    var chips = ["ราศี" + ra.th, "ปี" + KB.animals[z.thai.animal].th, "ธาตุ" + dm.th, "เลขชีวิต " + P.lifePath.value];
+    var chips = [rasiN(P.sunRasi.index), yearN(z.thai.animal), elN(P.dayMaster), T("horoscope.x.cLp", "เลขชีวิต {n}", { n: P.lifePath.value })];
     c.font = "500 34px " + F;
     var cw = chips.map(function (t) { return c.measureText(t).width + 56; }), tot = cw.reduce(function (s, v) { return s + v; }, 0) + 16 * 3, cx = (W - tot) / 2;
     chips.forEach(function (t, i) { rr(c, cx, 982, cw[i], 70, 35); c.fillStyle = "rgba(255,255,255,.1)"; c.fill(); c.fillStyle = "#fff"; c.fillText(t, cx + cw[i] / 2, 1018); cx += cw[i] + 16; });
+    void ra;
     // สีมงคลวันนี้
     var kl = (readings.hsRd && readings.hsRd.lines) || [];
     if (kl.length >= 2) {
       kl.slice(0, 3).forEach(function (t, i) { var fs = 30; c.font = "500 " + fs + "px " + F; while (c.measureText(t).width > W - 150 && fs > 20) { fs -= 2; c.font = "500 " + fs + "px " + F; } c.fillStyle = i ? "#e4e8f7" : "#a5f3fc"; c.fillText(t, W / 2, 1104 + i * 54); });
     } else {
     var tk = HS.taksa(new Date().getDay());
-    c.font = "400 30px " + F; c.fillStyle = "#c9d0ea"; c.fillText("สีเสื้อมงคลวันนี้", W / 2, 1100);
+    c.font = "400 30px " + F; c.fillStyle = "#c9d0ea"; c.fillText(T("horoscope.x.cardColors", "สีเสื้อมงคลวันนี้"), W / 2, 1100);
     [tk.sri, tk.dech, tk.montri].forEach(function (p, i) {
       var x = W / 2 + (i - 1) * 250; c.beginPath(); c.arc(x - 70, 1160, 22, 0, Math.PI * 2); c.fillStyle = DAYS[p].hex; c.fill();
-      c.fillStyle = "#fff"; c.textAlign = "left"; c.font = "500 28px " + F; c.fillText(["ศรี", "เดช", "มนตรี"][i] + " " + DAYS[p].color.split(" / ")[0], x - 38, 1162); c.textAlign = "center";
+      c.fillStyle = "#fff"; c.textAlign = "left"; c.font = "500 28px " + F; c.fillText(K.bhumi[["sri", "dech", "montri"][i]].th + " " + DAYS[p].color.split(" / ")[0], x - 38, 1162); c.textAlign = "center";
     });
     }
-    c.font = "400 24px " + F; c.fillStyle = "#8f9bc4"; c.fillText(KB.disclaimerShort + " · คำนวณในเครื่อง ไม่บันทึกข้อมูล", W / 2, 1290);
+    c.font = "400 24px " + F; c.fillStyle = "#8f9bc4"; c.fillText(K.disclaimerShort + T("horoscope.x.cardFoot", " · คำนวณในเครื่อง ไม่บันทึกข้อมูล"), W / 2, 1290);
     return cv;
   }
   var cardUrl = null;
@@ -1072,14 +1123,14 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       if (cardUrl) URL.revokeObjectURL(cardUrl);
       cardUrl = URL.createObjectURL(blob);
       var im = $("#hsCardImg"); im.src = cardUrl; im.hidden = false;
-      var file = new File([blob], "lensiq-ดวงวันเกิด.png", { type: "image/png" });
+      var file = new File([blob], isZh() ? "lensiq-horoscope.png" : "lensiq-ดวงวันเกิด.png", { type: "image/png" });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: "ดวงวันเดือนปีเกิด — LENSIQ", text: "เกิด" + dayTitle(current) + " · " + KB.disclaimerShort }); return; }
+        try { await navigator.share({ files: [file], title: T("horoscope.x.shareTitle", "ดวงวันเดือนปีเกิด — LENSIQ"), text: bornOn(dayTitle(current)) + " · " + K.disclaimerShort }); return; }
         catch (e) { if (e.name === "AbortError") return; }
       }
       var a = document.createElement("a"); a.href = cardUrl; a.download = "lensiq-horoscope.png"; document.body.append(a); a.click(); a.remove();
-      toast("บันทึกการ์ดแล้ว");
-    } catch (e) { console.error(e); toast("สร้างการ์ดไม่สำเร็จ"); }
+      toast(T("horoscope.x.saved", "บันทึกการ์ดแล้ว"));
+    } catch (e) { console.error(e); toast(T("horoscope.x.cardFail", "สร้างการ์ดไม่สำเร็จ")); }
     finally { b.disabled = false; }
   });
   $("#hsPrint").addEventListener("click", function () { touch(); window.print(); });
@@ -1088,7 +1139,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function toast(msg) { var t = $("#hsToast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.h); toast.h = setTimeout(function () { t.classList.remove("show"); }, 2200); }
 
   function reset() {
-    resultSec.hidden = true; current = null;
+    resultSec.hidden = true; current = null; lastPartner = null;
     $("#hsCardImg").hidden = true; if (cardUrl) { URL.revokeObjectURL(cardUrl); cardUrl = null; }
     $("#hsForm").reset(); $("#hsPartner").reset(); $("#hsCompat").innerHTML = ""; $("#hsYearHint").textContent = ""; $("#hsErr").textContent = "";
     $("#hsTime").disabled = false; $("#hsLatLon").hidden = true;
@@ -1101,15 +1152,15 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /* ---------- สถิติบูธ (ไม่ระบุตัวตน) ---------- */
   function renderStats() {
     var st = lsGet(STATS_KEY, null), box = $("#hsStats");
-    if (!st || !st.total) { box.innerHTML = '<p class="muted">ยังไม่มีการดูดวงในเครื่องนี้</p>'; return; }
+    if (!st || !st.total) { box.innerHTML = '<p class="muted">' + esc(T("horoscope.x.statsEmpty", "ยังไม่มีการดูดวงในเครื่องนี้")) + "</p>"; return; }
     var dd = new Date(), today = dd.getFullYear() + "-" + HS.pad2(dd.getMonth() + 1) + "-" + HS.pad2(dd.getDate());
-    var mx = Math.max.apply(null, KB.animals.map(function (_, i) { return (st.zodiac || {})[i] || 0; })) || 1;
-    box.innerHTML = '<p class="stat-n"><b>' + st.total + "</b> ครั้ง <small>(วันนี้ " + ((st.days || {})[today] || 0) + ")</small></p>" +
-      '<div class="elbars z">' + KB.animals.map(function (a, i) { var n = (st.zodiac || {})[i] || 0; return '<div class="elbar"><span>' + esc(a.th) + '</span><i style="--w:' + Math.round(n / mx * 100) + '%;--c:#674ff2"></i><b>' + n + "</b></div>"; }).join("") + "</div>";
+    var mx = Math.max.apply(null, K.animals.map(function (_, i) { return (st.zodiac || {})[i] || 0; })) || 1;
+    box.innerHTML = '<p class="stat-n"><b>' + st.total + "</b> " + esc(T("horoscope.x.times", "ครั้ง")) + " <small>" + esc(T("horoscope.x.statsToday", "(วันนี้ {n})", { n: (st.days || {})[today] || 0 })) + "</small></p>" +
+      '<div class="elbars z">' + K.animals.map(function (a, i) { var n = (st.zodiac || {})[i] || 0; return '<div class="elbar"><span>' + esc(a.th) + '</span><i style="--w:' + Math.round(n / mx * 100) + '%;--c:#674ff2"></i><b>' + n + "</b></div>"; }).join("") + "</div>";
   }
   $("#hsStatsOn").checked = !!prefs.stats;
   $("#hsStatsOn").addEventListener("change", function () { prefs.stats = this.checked; savePrefs(); });
-  $("#hsStatsClear").addEventListener("click", function () { if (confirm("ล้างสถิติในเครื่องนี้?")) { try { localStorage.removeItem(STATS_KEY); } catch (e) { /* ไม่เป็นไร */ } renderStats(); } });
+  $("#hsStatsClear").addEventListener("click", function () { if (confirm(T("horoscope.x.statsConfirm", "ล้างสถิติในเครื่องนี้?"))) { try { localStorage.removeItem(STATS_KEY); } catch (e) { /* ไม่เป็นไร */ } renderStats(); } });
   renderStats();
 
   /* ---------- โหมดบูธ ---------- */
@@ -1121,7 +1172,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var until = Date.now() + IDLE_MS;
     idleTick = setInterval(function () {
       var left = Math.ceil((until - Date.now()) / 1000);
-      if (left <= 15) { el.hidden = false; el.textContent = "กลับหน้าเริ่มต้นใน " + left + " วินาที — แตะเพื่ออยู่ต่อ"; }
+      if (left <= 15) { el.hidden = false; el.textContent = T("horoscope.x.idle", "กลับหน้าเริ่มต้นใน {n} วินาที — แตะเพื่ออยู่ต่อ", { n: left }); }
     }, 1000);
     idleT = setTimeout(function () { clearInterval(idleTick); el.hidden = true; reset(); }, IDLE_MS);
   }
@@ -1141,6 +1192,21 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   $("#hsKioskExit").addEventListener("click", function () { setKiosk(false); });
   document.addEventListener("fullscreenchange", function () { if (!document.fullscreenElement && wasFs) { wasFs = false; setKiosk(false); } });
 
-  $("#hsSources").innerHTML = KB.sources.map(function (s) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.label) + "</a></li>"; }).join("");
+  function renderSources() { $("#hsSources").innerHTML = K.sources.map(function (s) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.label) + "</a></li>"; }).join(""); }
+  renderSources();
+
+  /* ---------- สลับภาษา: วาดข้อความที่ JS สร้างใหม่ทั้งหมด (คำทำนายจะเรียบเรียงใหม่ในภาษานั้น) ---------- */
+  window.addEventListener("lq-lang", function () {
+    var was = K;
+    syncKB();
+    if (was === K && current == null) return;
+    fillForm(); renderStats(); renderSources(); eraHint();
+    if (!current) return;
+    var sel = tabs.find(function (t) { return t.getAttribute("aria-selected") === "true"; }) || tabs[0];
+    renderAll(current);
+    if (lastPartner) renderCompat(current, lastPartner.P2, lastPartner.name);
+    selectTab(sel, false, true);
+  });
+  syncKB(); if (K !== KB) { fillForm(); renderStats(); renderSources(); }
   window.__hs = { get current() { return current; }, readings: readings, makeCard: makeCard, reset: reset, show: show }; // ใช้ทดสอบ
 })();

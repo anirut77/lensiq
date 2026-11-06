@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """tests/bench/fetch_datasets.py — download the public benchmark data into a directory OUTSIDE the repo.
 
-    python3 -I tests/bench/fetch_datasets.py /path/to/bench-data [mot] [lfw] [utk] [hagrid]
+    python3 -I tests/bench/fetch_datasets.py /path/to/bench-data [mot] [lfw] [lfwfull] [casia5] [utk] [hagrid] [oceyes] [cew] [fer]
 
 Nothing here is committed or redistributed. You are responsible for accepting each dataset's terms:
   mot  MOTChallenge MOT17 train (02, 04, 09; every 3rd frame = 10 fps) + 2DMOT2015 train (PETS09-S2L1, TUD-Stadtmitte)
@@ -13,10 +13,19 @@ Nothing here is committed or redistributed. You are responsible for accepting ea
        40 random images per gesture (seed 42) + their hand boxes are fetched with HTTP Range requests.
   utk  UTKFace aligned & cropped (Zhang et al., CVPR 2017), mirror py97/UTKFace-Cropped — non-commercial research only.
        A seeded random subset of 2,000 faces is extracted.
+  oceyes  "Open and Closed Eyes Dataset" (MichalMlodawski/closed-open-eyes, AI-generated 512 px faces) — ODC-BY 1.0.
+       A seeded sample of 20 of its 1,000 parquet shards (~2,000 faces); needs pyarrow. (driver drowsiness, eye state)
+  cew  Closed Eyes In The Wild (Song et al., Pattern Recognition 2014), NUAA — "for research purposes to a researcher
+       only and not for any commercial use"; do not redistribute. Warped 100x100 faces (1,192 closed / 1,231 open),
+       fetched from the authors' Google Drive link; needs `bsdtar` (libarchive) to unpack the RAR.
+  fer  FER-2013 (Goodfellow et al., ICML 2013 challenge) PrivateTest sample, 100 images per class from the HF mirror
+       3una/Fer2013 — research use only (no licence granted); used for evaluation only, never for training/shipping.
 Layout produced (what the *.bench.mjs scripts read via LQ_BENCH_DATA):
   mot/MOT17/train/MOT17-0X-FRCNN/{img1,gt,seqinfo.ini}  mot/2DMOT2015/train/<SEQ>/{img1,gt}
   lfw/pairs.json + lfw/img/*.jpg                         utk/index.json + utk/img/*.jpg
   hagrid/index.json + hagrid/hagrid-sample-30k-384p/...
+  oceyes/index.json + oceyes/img/*.jpg                   cew/index.json + cew/w/dataset_B_FacialImages/...
+  fer/index.json + fer/test/<class>/*.jpg
 """
 import io, json, os, pickle, random, re, struct, sys, tarfile, urllib.request, zipfile, zlib
 from concurrent.futures import ThreadPoolExecutor
@@ -87,6 +96,23 @@ def lfw(root):
         pairs.append({"a": a, "b": b, "same": r["pair"], "pa": r["img_0"]["path"], "pb": r["img_1"]["path"]})
     json.dump(pairs, open(os.path.join(out, "pairs.json"), "w"))
 
+def lfwfull(root):
+    """full LFW (13,233 images, 5,749 people) for the 1:N benchmark — same tarball scikit-learn downloads (research use)"""
+    out = os.path.join(root, "lfwfull"); os.makedirs(out, exist_ok=True)
+    t = tarfile.open(fileobj=io.BytesIO(http("https://ndownloader.figshare.com/files/5976018", timeout=1800)), mode="r:gz")
+    for m in t.getmembers():  # plain files under lfw/ only (no links, no absolute or .. paths)
+        if m.isfile() and re.match(r"^lfw/[\w.-]+/[\w.-]+\.jpg$", m.name):
+            p = os.path.join(out, m.name); os.makedirs(os.path.dirname(p), exist_ok=True); open(p, "wb").write(t.extractfile(m).read())
+
+def casia5(root):
+    """CASIA-FaceV5 (500 Asian people x 5 photos, 112 px aligned) — original photos only, no augmentations; research use,
+    evaluation only (the HF mirror's Apache-2.0 label is not relied on)"""
+    out = os.path.join(root, "casia5", "img"); os.makedirs(out, exist_ok=True)
+    z = zipfile.ZipFile(io.BytesIO(http("https://huggingface.co/datasets/JustinLeee/Cleaned_Augmented_CASIA_FaceV5/resolve/main/Cleaned_CASIA_FaceV5.zip", timeout=1800)))
+    for n in z.namelist():
+        if re.search(r"/\d{3}_\d\.jpg$", n): open(os.path.join(out, os.path.basename(n)), "wb").write(z.read(n))
+
+
 def utk(root, n=2000):
     out = os.path.join(root, "utk"); os.makedirs(os.path.join(out, "img"), exist_ok=True)
     raw = http("https://huggingface.co/datasets/py97/UTKFace-Cropped/resolve/main/UTKFace.tar.gz", timeout=1200)
@@ -115,9 +141,46 @@ def hagrid(root, per=40):
     json.dump(pick, open(os.path.join(out, "index.json"), "w"))
     remote_zip(url, out, "^(" + "|".join(re.escape(p["f"]) for p in pick) + ")$")
 
+def oceyes(root, shards=20, per=100):
+    import pyarrow.parquet as pq  # pip install pyarrow
+    out = os.path.join(root, "oceyes"); os.makedirs(os.path.join(out, "img"), exist_ok=True)
+    random.seed(42); pick = sorted(random.sample(range(1, 1001), shards)); idx = []
+    for s in pick:
+        t = pq.read_table(io.BytesIO(http("https://huggingface.co/datasets/MichalMlodawski/closed-open-eyes/resolve/main/data/dataset_%03d.parquet" % s, timeout=600)))
+        for r in t.slice(0, per).to_pylist():
+            p = "img/%d.jpg" % r["Image_id"]; open(os.path.join(out, p), "wb").write(r["Image_data"]["file"])
+            idx.append({"f": p, "closed": r["Label"] == "closed_eyes", "le": r["Left_eye_react"], "re": r["Right_eye_react"]})
+        print("  shard %d: %d faces" % (s, len(idx)), flush=True)
+    json.dump(idx, open(os.path.join(out, "index.json"), "w"))
+
+def cew(root):
+    import subprocess
+    out = os.path.join(root, "cew"); os.makedirs(out, exist_ok=True)
+    rar = os.path.join(out, "warped.rar")
+    if not os.path.exists(rar):
+        open(rar, "wb").write(http("https://drive.usercontent.google.com/download?id=1FcRw251WxGKwT6Dt9ncP-1TbW6h445W5&export=download&confirm=t", timeout=600))
+    os.makedirs(os.path.join(out, "w"), exist_ok=True)
+    subprocess.run(["bsdtar", "-xf", rar, "-C", os.path.join(out, "w")], check=True)
+    base = "w/dataset_B_FacialImages"; idx = []
+    for sub, closed in (("ClosedFace", True), ("OpenFace", False)):
+        for n in sorted(os.listdir(os.path.join(out, base, sub))):
+            if n.lower().endswith(".jpg"): idx.append({"f": "%s/%s/%s" % (base, sub, n), "closed": closed})
+    json.dump(idx, open(os.path.join(out, "index.json"), "w"))
+
+def fer(root):
+    out = os.path.join(root, "fer"); idx = []
+    meta = json.loads(http("https://huggingface.co/api/datasets/3una/Fer2013"))
+    files = [s["rfilename"] for s in meta["siblings"] if s["rfilename"].startswith("test/") and s["rfilename"].endswith(".jpg")]
+    def one(f):
+        p = os.path.join(out, f)
+        if not os.path.exists(p):
+            os.makedirs(os.path.dirname(p), exist_ok=True); open(p, "wb").write(http("https://huggingface.co/datasets/3una/Fer2013/resolve/main/" + f))
+    with ThreadPoolExecutor(12) as ex: list(ex.map(one, files))
+    json.dump([{"f": f, "label": f.split("/")[1]} for f in sorted(files)], open(os.path.join(out, "index.json"), "w"))
+
 if __name__ == "__main__":
     if len(sys.argv) < 2: print(__doc__); sys.exit(1)
     root = os.path.abspath(sys.argv[1]); want = sys.argv[2:] or ["mot", "lfw", "utk", "hagrid"]
     repo = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
     if root == repo or root.startswith(repo + os.sep): sys.exit("refusing to download datasets inside the repository")
-    for w in want: print("==", w); {"mot": mot, "lfw": lfw, "utk": utk, "hagrid": hagrid}[w](root)
+    for w in want: print("==", w); {"mot": mot, "lfw": lfw, "lfwfull": lfwfull, "casia5": casia5, "utk": utk, "hagrid": hagrid, "oceyes": oceyes, "cew": cew, "fer": fer}[w](root)

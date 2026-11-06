@@ -15,7 +15,6 @@
   var HARM = PAIRS([[0, 7], [1, 6], [2, 5], [3, 4], [8, 11], [9, 10]]);
   var BREAK = PAIRS([[0, 9], [6, 3], [4, 1], [10, 7], [2, 11], [5, 8]]);
   var PUNISH = PAIRS([[2, 5], [5, 8], [2, 8], [1, 10], [10, 7], [1, 7], [0, 3]]);
-  var SELF_PUNISH = [4, 6, 9, 11];
   var TRINES = [[8, 0, 4], [2, 6, 10], [5, 9, 1], [11, 3, 7]];
   var ORDER = ["clash", "same", "harmony", "trine", "harm", "punish", "break", "neutral"];
 
@@ -96,7 +95,7 @@
     items.push({ id: "animal." + R.animal, group: "ปีเกิด", label: "ปี" + A.th + " (" + A.an + ")", short: "ชาวปี" + A.th, evidence: "นักษัตร" + A.an + " " + A.zh + " ธาตุ" + KB.ELEMENTS[R.birthElement].th,
       strength: 0.84, tags: ["personality", "work", "money", "love", "social", "advice"], meanings: { personality: A.p.slice(), work: A.w.slice(), money: A.m.slice(), love: A.l.slice(), social: A.s.slice(), advice: [A.a] } });
     var rm = { overview: REL.o.slice(), work: REL.w.slice(), money: REL.m.slice(), love: REL.l.slice(), advice: REL.a.slice(), timing: REL.t.slice() };
-    items.push({ id: "rel." + R.rel, group: "ปี " + R.year + " (พ.ศ. " + (R.year + 543) + ")", label: REL.badge + " ในปี" + Y.th, short: REL.th === "ปีปกติ" ? "ปีนี้" : "ปี" + REL.th, evidence: yearName(R.year),
+    items.push({ id: "rel." + R.rel, group: "ปี " + R.year + " (พ.ศ. " + (R.year + 543) + ")", label: (REL.th === "ปีปกติ" ? "ปีปกติ" : REL.badge.split(" · ").pop()) + "ในปี" + Y.th, short: REL.th === "ปีปกติ" ? "ปีนี้" : "ปี" + REL.th, evidence: yearName(R.year),
       strength: 0.95, polarity: REL.tone === "care" ? "challenge" : undefined, tags: Object.keys(rm), meanings: rm });
     var em = { overview: [ER.o], work: [ER.w], money: [ER.m], love: [ER.l] };
     items.push({ id: "el." + R.elRel, group: "พลังธาตุ", label: ER.th + " (ธาตุ" + KB.ELEMENTS[R.yearElement].th + "กับธาตุ" + KB.ELEMENTS[R.birthElement].th + ")", short: "พลังธาตุของปี", strength: 0.78, tags: Object.keys(em), meanings: em });
@@ -107,7 +106,7 @@
     }
     for (var i = items.length - 1; i >= 0; i--) if (!items[i].polarity) delete items[i].polarity;
     return {
-      domain: "zodiac", topic: topic || "overall", subject: {}, headline: "ชาวปี" + A.th + "ใน" + yearName(R.year) + " · " + REL.badge, items: items,
+      domain: "zodiac", topic: topic || "overall", subject: {}, headline: "ชาวปี" + A.th + "ใน" + yearName(R.year) + " · " + REL.th, items: items,
       extras: { luckyColors: R.lucky.map(function (e) { return KB.ELEMENTS[e].colors.join(" / "); }), directions: [R.direction], tips: [FK.pickR(r, REL.a)] }
     };
   }
@@ -136,9 +135,35 @@
 if (typeof window !== "undefined" && typeof document !== "undefined" && document.getElementById("zdApp")) (function () {
   "use strict";
   var ZD = window.Zodiac, KB = window.ZODIAC_KB, FK = window.FortuneKit, HS = window.HSCore, $ = FK.$, esc = FK.esc;
-  var nowYear = ZD.currentYear(), st = { animal: null, birthYear: null, year: nowYear, res: null };
+  var nowYear = ZD.currentYear(), st = { animal: null, birthYear: null, year: nowYear, res: null, note: null, pair: null, msg: null, pairMsg: false };
   var TONE_CLS = { care: "care", good: "good", ok: "ok" };
   var months = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+
+  /* ---------- ภาษา (ไทยเป็นค่าเริ่มต้น · จีนจาก i18n/zh-fortune-zodiac.js และ i18n/zh-kb-zodiac.js) ---------- */
+  var T = function (k, th, v) { return window.LQI18N ? window.LQI18N.tf(k, th, v) : th.replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : m; }); };
+  var isZh = function () { return !!(window.LQI18N && window.LQI18N.lang === "zh"); };
+  var ZK = function (k) { var D = isZh() && window.FORTUNE_ZH && window.FORTUNE_ZH.zodiac; return (D && D.items && D.items[k]) || null; };
+  var one = function (v) { return Array.isArray(v) ? v[0] : v; };
+  var GZ_S = "甲乙丙丁戊己庚辛壬癸", GZ_B = "子丑寅卯辰巳午未申酉戌亥";
+  function anName(i) { return T("zodiac.an." + i, KB.ANIMALS[i].th); }                 // ไทย: ชวด · จีน: 鼠
+  function anSub(i) { return isZh() ? KB.ANIMALS[i].zh : KB.ANIMALS[i].an; }             // ไทย: หนู · จีน: 子
+  function elName(e) { return isZh() ? KB.ELEMENTS[e].zh : KB.ELEMENTS[e].th; }
+  function colors(e) { return T("zodiac.color." + e, KB.ELEMENTS[e].colors.join("|")).split("|"); }
+  function dirName(i) { return T("zodiac.dir." + i, KB.ANIMALS[i].dir); }
+  function traits(i) { return T("zodiac.traits." + i, KB.ANIMALS[i].traits.join("|")).split("|"); }
+  function relName(rel) { var z = ZK("rel." + rel); return z ? z.n : KB.REL[rel].th; }
+  function badge(rel) { return T("zodiac.badge." + rel, KB.REL[rel].badge); }
+  function elRelName(er) { var z = ZK("el." + er); return z ? z.n : KB.ELREL[er].th; }
+  function compatName(rel) { var z = ZK("compat." + rel); return z ? z.n : KB.COMPAT[rel].th; }
+  function compatLine(rel) { var z = ZK("compat." + rel); return z && z.l ? one(z.l) : KB.COMPAT[rel].l[0]; }
+  function relLine(rel) { var z = ZK("rel." + rel); return z && z.o ? one(z.o) : KB.REL[rel].o[0]; }
+  function anLine(i) { var z = ZK("animal." + i); return z && z.p ? one(z.p) : KB.ANIMALS[i].p[0]; }
+  function monthName(m) { return T("zodiac.month", months[m - 1], { m: m }); }
+  function yearName(y) {
+    var a = ZD.animalOfYear(y), A = KB.ANIMALS[a], e = ZD.elementOfYear(y);
+    return T("zodiac.yearName", "ปี{th} ({an}) ธาตุ{el}", { th: A.th, an: A.an, el: KB.ELEMENTS[e].th, gz: GZ_S[ZD.stemOfYear(y)] + GZ_B[a], zan: T("zodiac.an." + a, A.th), zel: KB.ELEMENTS[e].zh });
+  }
+  var yearOpt = function (y) { return T("zodiac.yearOpt", "{name} · พ.ศ. {be}", { name: yearName(y), be: y + 543, y: y }); };
 
   /* แท็บ */
   var tabs = [["tabYear", "panelYear"], ["tabChong", "panelChong"], ["tabPair", "panelPair"]];
@@ -151,19 +176,26 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     b.addEventListener("keydown", function (e) { var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0; if (d) { e.preventDefault(); selectTab(tabs[(i + d + tabs.length) % tabs.length][0], true); } });
   });
 
-  var animalBtns = function (name) { return KB.ANIMALS.map(function (a, i) { return '<label class="fk-opt zd-an"><input type="radio" name="' + name + '" value="' + i + '"><span class="zd-emo" aria-hidden="true">' + a.emo + "</span><b>" + esc(a.th) + "</b><small>" + esc(a.an) + "</small></label>"; }).join(""); };
-  $("#zdAnimals").innerHTML = animalBtns("zdAnimal");
-  $("#zdPairA").innerHTML = animalBtns("zdA");
-  $("#zdPairB").innerHTML = animalBtns("zdB");
-  $("#zdDay").innerHTML = '<option value="">วันที่</option>' + Array.from({ length: 31 }, function (_, i) { return "<option>" + (i + 1) + "</option>"; }).join("");
-  $("#zdMonth").innerHTML = '<option value="">เดือน</option>' + months.map(function (m, i) { return '<option value="' + (i + 1) + '">' + m + "</option>"; }).join("");
-  $("#zdBoundary").innerHTML = Object.keys(KB.boundaries).map(function (k) { return '<option value="' + k + '">' + esc(KB.boundaries[k]) + "</option>"; }).join("");
-  $("#zdYear").innerHTML = [nowYear, nowYear + 1].map(function (y) { return '<option value="' + y + '">' + esc(ZD.yearName(y)) + " · พ.ศ. " + (y + 543) + "</option>"; }).join("");
-  $("#zdChongYear").innerHTML = $("#zdYear").innerHTML;
+  /* ตัวเลือก (สร้างใหม่ตอนสลับภาษาโดยคงค่าที่เลือกไว้) */
+  var animalBtns = function (name) { return KB.ANIMALS.map(function (a, i) { return '<label class="fk-opt zd-an"><input type="radio" name="' + name + '" value="' + i + '"><span class="zd-emo" aria-hidden="true">' + a.emo + "</span><b>" + esc(anName(i)) + "</b><small>" + esc(anSub(i)) + "</small></label>"; }).join(""); };
+  function keep(sel, fn) { var el = $(sel), v = el.value; fn(el); if (v) el.value = v; }
+  function keepRadio(box, name, fn) { var c = document.querySelector('input[name="' + name + '"]:checked'), v = c ? c.value : null; fn(); if (v != null) { var n = $(box).querySelector('input[value="' + v + '"]'); if (n) n.checked = true; } }
+  function renderOptions() {
+    keepRadio("#zdAnimals", "zdAnimal", function () { $("#zdAnimals").innerHTML = animalBtns("zdAnimal"); });
+    keepRadio("#zdPairA", "zdA", function () { $("#zdPairA").innerHTML = animalBtns("zdA"); });
+    keepRadio("#zdPairB", "zdB", function () { $("#zdPairB").innerHTML = animalBtns("zdB"); });
+    keep("#zdDay", function (el) { el.innerHTML = '<option value="">' + esc(T("zodiac.dayPh", "วันที่")) + "</option>" + Array.from({ length: 31 }, function (_, i) { return "<option>" + (i + 1) + "</option>"; }).join(""); });
+    keep("#zdMonth", function (el) { el.innerHTML = '<option value="">' + esc(T("zodiac.monthPh", "เดือน")) + "</option>" + months.map(function (m, i) { return '<option value="' + (i + 1) + '">' + esc(monthName(i + 1)) + "</option>"; }).join(""); });
+    keep("#zdBoundary", function (el) { el.innerHTML = Object.keys(KB.boundaries).map(function (k) { return '<option value="' + k + '">' + esc(T("zodiac.bd." + k, KB.boundaries[k])) + "</option>"; }).join(""); });
+    var yo = [nowYear, nowYear + 1].map(function (y) { return '<option value="' + y + '">' + esc(yearOpt(y)) + "</option>"; }).join("");
+    keep("#zdYear", function (el) { el.innerHTML = yo; });
+    keep("#zdChongYear", function (el) { el.innerHTML = yo; });
+  }
+  renderOptions();
 
   var stats = FK.statsPanel({
     box: "zdStats", toggle: "zdStatsOn", clear: "zdStatsClear", key: "zd-stats", prefKey: "zd-prefs",
-    render: function (s) { return '<p class="fk-small">ปีนักษัตรของผู้เล่น</p>' + FK.bars(s.animal, s.total, function (k) { return KB.ANIMALS[k] ? "ปี" + KB.ANIMALS[k].th : k; }, 6) + '<p class="fk-small">สถานะปีชง</p>' + FK.bars(s.rel, s.total, function (k) { return KB.REL[k] ? KB.REL[k].th : k; }, 4); }
+    render: function (s) { return '<p class="fk-small">' + esc(T("zodiac.statAnimal", "ปีนักษัตรของผู้เล่น")) + "</p>" + FK.bars(s.animal, s.total, function (k) { return KB.ANIMALS[k] ? T("zodiac.yearOf", "ปี{a}", { a: anName(k) }) : k; }, 6) + '<p class="fk-small">' + esc(T("zodiac.statRel", "สถานะปีชง")) + "</p>" + FK.bars(s.rel, s.total, function (k) { return KB.REL[k] ? relName(k) : k; }, 4); }
   });
 
   function readBirth() {
@@ -174,41 +206,53 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     if (err) return { err: err };
     return { y: y, m: m, d: d };
   }
+  /** ข้อความแจ้งเตือน: ข้อความไทยจาก horoscope.js ใช้เป็นคีย์ของพจนานุกรมจีน */
+  function showMsg() { $("#zdMsg").textContent = st.msg ? T(st.msg, st.msg) : ""; }
+  function noteText() {
+    var n = st.note; if (!n) return "";
+    if (n.manual) return T("zodiac.noteManual", "เลือกปีนักษัตรเอง (ใช้ธาตุประจำนักษัตร)");
+    return T("zodiac.noteBirth", "เกิดปี{a} ธาตุ{el} (ตรุษจีนปี พ.ศ. {be} ตรงกับ {d} {month})", { a: anName(n.animal), el: elName(n.element), be: n.y + 543, y: n.y, d: n.cny.d, m: n.cny.m, month: monthName(n.cny.m) }) +
+      (n.differ ? T("zodiac.noteDiffer", " · ขอบเขตปีแต่ละตำราให้ผลต่างกันสำหรับวันเกิดนี้") : "");
+  }
   $("#zdForm").addEventListener("submit", function (e) {
     e.preventDefault();
-    var msg = $("#zdMsg"); msg.textContent = "";
+    st.msg = null; showMsg();
     var b = readBirth(), picked = document.querySelector('input[name="zdAnimal"]:checked');
     st.year = +$("#zdYear").value;
-    if (b.err) { msg.textContent = b.err; return; }
+    if (b.err) { st.msg = b.err; showMsg(); return; }
     if (!b.none) {
       var z = ZD.zodiacYearOf(b.y, b.m, b.d, $("#zdBoundary").value);
       st.animal = z.animal; st.birthYear = z.year;
-      var cny = z.cny;
-      st.note = "เกิดปี" + KB.ANIMALS[z.animal].th + " ธาตุ" + KB.ELEMENTS[z.element].th + " (ตรุษจีนปี พ.ศ. " + (b.y + 543) + " ตรงกับ " + cny.d + " " + months[cny.m - 1] + ")" + (z.differ ? " · ขอบเขตปีแต่ละตำราให้ผลต่างกันสำหรับวันเกิดนี้" : "");
-    } else if (picked) { st.animal = +picked.value; st.birthYear = null; st.note = "เลือกปีนักษัตรเอง (ใช้ธาตุประจำนักษัตร)"; }
-    else { msg.textContent = "กรุณาเลือกปีนักษัตร หรือกรอกวันเกิด"; return; }
+      st.note = { animal: z.animal, element: z.element, y: b.y, cny: z.cny, differ: z.differ };
+    } else if (picked) { st.animal = +picked.value; st.birthYear = null; st.note = { manual: true }; }
+    else { st.msg = "กรุณาเลือกปีนักษัตร หรือกรอกวันเกิด"; showMsg(); return; }
     showYear();
   });
   function scoreBars(sc) {
-    return [["overall", "ภาพรวม"], ["work", "การงาน"], ["money", "การเงิน"], ["love", "ความรัก"]].map(function (x) { return '<div class="elbar"><span>' + x[1] + '</span><i style="--w:' + sc[x[0]] + '%;--c:#674ff2"></i><b>' + sc[x[0]] + "</b></div>"; }).join("");
+    return [["overall", "ภาพรวม"], ["work", "การงาน"], ["money", "การเงิน"], ["love", "ความรัก"]].map(function (x) { return '<div class="elbar"><span>' + esc(T("zodiac.topic." + x[0], x[1])) + '</span><i style="--w:' + sc[x[0]] + '%;--c:#674ff2"></i><b>' + sc[x[0]] + "</b></div>"; }).join("");
+  }
+  /** วาดผลรายปี (ใช้ทั้งตอนได้ผลและตอนสลับภาษา) */
+  function renderYear() {
+    var R = st.res, A = KB.ANIMALS[R.animal], REL = KB.REL[R.rel], dt = function (k, th) { return "<dt>" + esc(T("zodiac.dt." + k, th)) + "</dt>"; };
+    $("#zdHero").innerHTML = '<span class="zd-big" aria-hidden="true">' + A.emo + '</span><div><h2 id="zdResTitle" tabindex="-1">' + esc(T("zodiac.heroTitle", "ชาวปี{a} ({an}) ใน{year}", { a: anName(R.animal), an: A.an, year: yearName(R.year) })) + '</h2><p class="zd-badge ' + TONE_CLS[REL.tone] + '">' + esc(badge(R.rel)) + "</p><p class=\"fk-small\">" + esc(noteText()) + "</p></div>";
+    $("#zdFacts").innerHTML = '<dl class="fk-kv"><div>' + dt("year", "ปีที่ดู") + "<dd>" + esc(T("zodiac.yearVal", "พ.ศ. {be} · {a}", { be: R.year + 543, y: R.year, a: anName(R.yearAnimal) })) + " " + KB.ANIMALS[R.yearAnimal].emo + "</dd></div>" +
+      "<div>" + dt("el", "ธาตุของปี") + "<dd>" + esc(elRelName(R.elRel)) + "</dd></div>" +
+      "<div>" + dt("color", "สีเสริมดวง") + "<dd>" + R.lucky.map(function (e) { return '<span class="zd-sw" style="--c:' + KB.ELEMENTS[e].hex + '"></span>' + esc(colors(e)[0]); }).join(" ") + "</dd></div>" +
+      "<div>" + dt("dir", "ทิศประจำนักษัตร") + "<dd>" + esc(dirName(R.animal)) + "</dd></div>" +
+      "<div>" + dt("support", "คู่เสริมดวง") + "<dd>" + R.supports.map(function (k) { return KB.ANIMALS[k].emo + " " + esc(anName(k)); }).join(" · ") + "</dd></div>" +
+      "<div>" + dt("clash", "คู่ชง") + "<dd>" + KB.ANIMALS[R.clashWith].emo + " " + esc(anName(R.clashWith)) + "</dd></div></dl>" +
+      '<h3 class="zd-h">' + esc(T("zodiac.powerH", "พลังปี (เพื่อความบันเทิง)")) + "</h3>" + scoreBars(R.scores) + '<p class="zd-traits">' + traits(R.animal).map(function (t) { return '<span class="fk-chip">' + esc(t) + "</span>"; }).join(" ") + "</p>";
+    $("#zdReadWrap").innerHTML = FK.readingBlock("zdRd", T("zodiac.rdTitle", "คำทำนายดวงรายปี"), true);
+    FK.bindReading("zdRd", "zodiac", function (topic, r) { return ZD.buildFacts(R, topic, { rng: r }); }, { withTopics: true });
   }
   function showYear() {
-    var R = st.res = ZD.annual(st.animal, st.year, st.birthYear), A = KB.ANIMALS[R.animal], REL = KB.REL[R.rel];
+    var R = st.res = ZD.annual(st.animal, st.year, st.birthYear);
     $("#zdResult").hidden = false;
-    $("#zdHero").innerHTML = '<span class="zd-big" aria-hidden="true">' + A.emo + '</span><div><h2 id="zdResTitle" tabindex="-1">ชาวปี' + esc(A.th) + " (" + esc(A.an) + ') ใน' + esc(ZD.yearName(R.year)) + '</h2><p class="zd-badge ' + TONE_CLS[REL.tone] + '">' + esc(REL.badge) + "</p><p class=\"fk-small\">" + esc(st.note || "") + "</p></div>";
-    $("#zdFacts").innerHTML = '<dl class="fk-kv"><div><dt>ปีที่ดู</dt><dd>พ.ศ. ' + (R.year + 543) + " · " + esc(KB.ANIMALS[R.yearAnimal].th) + " " + KB.ANIMALS[R.yearAnimal].emo + "</dd></div>" +
-      "<div><dt>ธาตุของปี</dt><dd>" + esc(KB.ELREL[R.elRel].th) + "</dd></div>" +
-      "<div><dt>สีเสริมดวง</dt><dd>" + R.lucky.map(function (e) { var E = KB.ELEMENTS[e]; return '<span class="zd-sw" style="--c:' + E.hex + '"></span>' + esc(E.colors[0]); }).join(" ") + "</dd></div>" +
-      "<div><dt>ทิศประจำนักษัตร</dt><dd>" + esc(R.direction) + "</dd></div>" +
-      "<div><dt>คู่เสริมดวง</dt><dd>" + R.supports.map(function (k) { return KB.ANIMALS[k].emo + " " + esc(KB.ANIMALS[k].th); }).join(" · ") + "</dd></div>" +
-      "<div><dt>คู่ชง</dt><dd>" + KB.ANIMALS[R.clashWith].emo + " " + esc(KB.ANIMALS[R.clashWith].th) + "</dd></div></dl>" +
-      '<h3 class="zd-h">พลังปี (เพื่อความบันเทิง)</h3>' + scoreBars(R.scores) + '<p class="zd-traits">' + A.traits.map(function (t) { return '<span class="fk-chip">' + esc(t) + "</span>"; }).join(" ") + "</p>";
-    $("#zdReadWrap").innerHTML = FK.readingBlock("zdRd", "คำทำนายดวงรายปี", true);
-    FK.bindReading("zdRd", "zodiac", function (topic, r) { return ZD.buildFacts(R, topic, { rng: r }); }, { withTopics: true });
+    renderYear();
     stats.add({ animal: R.animal, rel: R.rel });
     $("#zdResTitle").focus(); kiosk.touch();
   }
-  function resetYear() { $("#zdResult").hidden = true; $("#zdCardImg").hidden = true; $("#zdForm").reset(); st.res = null; }
+  function resetYear() { $("#zdResult").hidden = true; $("#zdCardImg").hidden = true; $("#zdForm").reset(); st.res = null; st.msg = null; showMsg(); }
   $("#zdAgain").addEventListener("click", function () { resetYear(); $("#zdForm").scrollIntoView({ block: "start" }); });
   $("#zdPrint").addEventListener("click", function () { window.print(); });
   function emojiArt(emos) {
@@ -222,42 +266,57 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   $("#zdShare").addEventListener("click", function () {
     var R = st.res; if (!R) return;
-    var A = KB.ANIMALS[R.animal], REL = KB.REL[R.rel], lines = (FK.readings.zdRd || {}).lines || [];
-    FK.share(this, { kind: "12 นักษัตร", glow: "rgba(192,57,43,.4)", artH: 380, art: emojiArt([A.emo]), title: "ชาวปี" + A.th + " · " + ZD.yearName(R.year), sub: REL.badge,
-      msgs: (lines.length >= 2 ? lines.slice(0, 2) : [REL.o[0], A.p[0]]).concat(["สีเสริมดวง: " + R.lucky.map(function (e) { return KB.ELEMENTS[e].colors[0]; }).join(" · ") + " · ทิศ" + R.direction]), foot: KB.disclaimerShort },
-      "lensiq-zodiac.jpg", $("#zdCardImg"), "12 นักษัตร — LENSIQ");
+    var A = KB.ANIMALS[R.animal], lines = (FK.readings.zdRd || {}).lines || [];
+    FK.share(this, { kind: T("zodiac.cardKind", "12 นักษัตร"), glow: "rgba(192,57,43,.4)", artH: 380, art: emojiArt([A.emo]), title: T("zodiac.cardTitle", "ชาวปี{a} · {year}", { a: anName(R.animal), year: yearName(R.year) }), sub: badge(R.rel),
+      msgs: (lines.length >= 2 ? lines.slice(0, 2) : [relLine(R.rel), anLine(R.animal)]).concat([T("zodiac.cardLuck", "สีเสริมดวง: {c} · ทิศ{d}", { c: R.lucky.map(function (e) { return colors(e)[0]; }).join(" · "), d: dirName(R.animal) })]), foot: T("zodiac.cardFoot", KB.disclaimerShort) },
+      "lensiq-zodiac.jpg", $("#zdCardImg"), T("zodiac.shareTitle", "12 นักษัตร — LENSIQ"));
   });
 
   /* ตารางปีชง */
   function renderChong() {
-    var y = +$("#zdChongYear").value, T = ZD.chongTable(y);
-    var groups = [["ชงเต็ม", ["clash"]], ["ชงร่วม", ["same", "harm", "punish", "break"]], ["ปีเสริมดวง", ["harmony", "trine"]], ["ปีปกติ", ["neutral"]]];
+    var y = +$("#zdChongYear").value, TB = ZD.chongTable(y);
+    var groups = [["full", "ชงเต็ม", ["clash"], "care"], ["co", "ชงร่วม", ["same", "harm", "punish", "break"], "care"], ["good", "ปีเสริมดวง", ["harmony", "trine"], "good"], ["neutral", "ปีปกติ", ["neutral"], "ok"]];
     $("#zdChongGrid").innerHTML = groups.map(function (g) {
-      var list = T.filter(function (t) { return g[1].indexOf(t.rel) >= 0; });
-      return '<section class="zd-group ' + (g[0] === "ชงเต็ม" || g[0] === "ชงร่วม" ? "care" : g[0] === "ปีเสริมดวง" ? "good" : "ok") + '"><h3>' + g[0] + " <small>(" + list.length + ")</small></h3><ul>" +
-        list.map(function (t) { var A = KB.ANIMALS[t.animal]; return "<li><span aria-hidden=\"true\">" + A.emo + "</span> <b>ปี" + esc(A.th) + "</b> <small>" + esc(KB.REL[t.rel].badge) + "</small></li>"; }).join("") + "</ul></section>";
+      var list = TB.filter(function (t) { return g[2].indexOf(t.rel) >= 0; });
+      return '<section class="zd-group ' + g[3] + '"><h3>' + esc(T("zodiac.grp." + g[0], g[1])) + " <small>(" + list.length + ")</small></h3><ul>" +
+        list.map(function (t) { var A = KB.ANIMALS[t.animal]; return "<li><span aria-hidden=\"true\">" + A.emo + "</span> <b>" + esc(T("zodiac.yearOf", "ปี{a}", { a: anName(t.animal) })) + "</b> <small>" + esc(badge(t.rel)) + "</small></li>"; }).join("") + "</ul></section>";
     }).join("");
-    $("#zdChongNote").textContent = ZD.yearName(y) + " (พ.ศ. " + (y + 543) + ") — สำนักต่าง ๆ ในไทยอาจนับชงร่วมต่างกันเล็กน้อย ตารางนี้ใช้ ชง冲 ไห่害 เฮ้ง刑 ผั่ว破 ตามตำรากิ่งดิน";
+    $("#zdChongNote").textContent = T("zodiac.chongNote", "{name} (พ.ศ. {be}) — สำนักต่าง ๆ ในไทยอาจนับชงร่วมต่างกันเล็กน้อย ตารางนี้ใช้ ชง冲 ไห่害 เฮ้ง刑 ผั่ว破 ตามตำรากิ่งดิน", { name: yearName(y), be: y + 543, y: y });
   }
   $("#zdChongYear").addEventListener("change", renderChong);
   renderChong();
 
   /* คู่มงคล */
+  function renderPair() {
+    var C = st.pair, A = KB.ANIMALS[C.a], B = KB.ANIMALS[C.b];
+    $("#zdPairRes").innerHTML = '<div class="fk-block zd-pairhead"><p class="zd-pairemo" aria-hidden="true">' + A.emo + " + " + B.emo + '</p><h2 tabindex="-1" id="zdPairTitle">' + esc(T("zodiac.pairTitle", "ปี{a} กับ ปี{b}", { a: anName(C.a), b: anName(C.b) })) + '</h2><p class="zd-badge ' + (C.score >= 85 ? "good" : C.score >= 75 ? "ok" : "care") + '">' + esc(compatName(C.rel)) + " · " + C.score + '%</p><p>' + esc(compatLine(C.rel)) + "</p></div>" + FK.readingBlock("zdPairRd", T("zodiac.pairRdTitle", "คำทำนายคู่"), true, "love");
+    FK.bindReading("zdPairRd", "zodiac", function (topic) { return ZD.compatFacts(C, topic); }, { withTopics: true, topic: "love" });
+  }
+  function showPairMsg() { $("#zdPairMsg").textContent = st.pairMsg ? T("zodiac.pairMsg", "กรุณาเลือกปีนักษัตรของทั้งสองฝ่าย") : ""; }
   $("#zdPairForm").addEventListener("submit", function (e) {
     e.preventDefault();
     var a = document.querySelector('input[name="zdA"]:checked'), b = document.querySelector('input[name="zdB"]:checked');
-    if (!a || !b) { $("#zdPairMsg").textContent = "กรุณาเลือกปีนักษัตรของทั้งสองฝ่าย"; return; }
-    $("#zdPairMsg").textContent = "";
-    var C = ZD.compat(+a.value, +b.value), X = KB.COMPAT[C.rel], A = KB.ANIMALS[C.a], B = KB.ANIMALS[C.b];
+    if (!a || !b) { st.pairMsg = true; showPairMsg(); return; }
+    st.pairMsg = false; showPairMsg();
+    st.pair = ZD.compat(+a.value, +b.value);
     $("#zdPairRes").hidden = false;
-    $("#zdPairRes").innerHTML = '<div class="fk-block zd-pairhead"><p class="zd-pairemo" aria-hidden="true">' + A.emo + " + " + B.emo + '</p><h2 tabindex="-1" id="zdPairTitle">ปี' + esc(A.th) + " กับ ปี" + esc(B.th) + '</h2><p class="zd-badge ' + (C.score >= 85 ? "good" : C.score >= 75 ? "ok" : "care") + '">' + esc(X.th) + " · " + C.score + '%</p><p>' + esc(X.l[0]) + "</p></div>" + FK.readingBlock("zdPairRd", "คำทำนายคู่", true, "love");
-    FK.bindReading("zdPairRd", "zodiac", function (topic) { return ZD.compatFacts(C, topic); }, { withTopics: true, topic: "love" });
-    stats.add({ pair: C.rel });
+    renderPair();
+    stats.add({ pair: st.pair.rel });
     $("#zdPairTitle").focus();
   });
 
-  var kiosk = FK.kiosk({ toggle: "zdKiosk", exit: "zdKioskExit", idle: "zdIdle", busy: function () { return !$("#zdResult").hidden || !$("#zdPairRes").hidden; }, reset: function () { resetYear(); $("#zdPairRes").hidden = true; $("#zdPairForm").reset(); selectTab("tabYear"); } });
-  $("#zdSources").innerHTML = KB.sources.map(function (s) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.label) + "</a></li>"; }).join("");
+  var kiosk = FK.kiosk({ toggle: "zdKiosk", exit: "zdKioskExit", idle: "zdIdle", busy: function () { return !$("#zdResult").hidden || !$("#zdPairRes").hidden; }, reset: function () { resetYear(); $("#zdPairRes").hidden = true; $("#zdPairForm").reset(); st.pair = null; selectTab("tabYear"); } });
+  function renderSources() { $("#zdSources").innerHTML = KB.sources.map(function (s, i) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(T("zodiac.src." + i, s.label)) + "</a></li>"; }).join(""); }
+  renderSources();
+
+  /* สลับภาษา: วาดข้อความแบบไดนามิกใหม่ และประกอบคำทำนายใหม่จาก facts เดิม */
+  window.addEventListener("lq-lang", function () {
+    renderOptions(); renderChong(); renderSources(); showMsg(); showPairMsg();
+    if (stats.render) stats.render();
+    if (st.res && !$("#zdResult").hidden) renderYear();
+    if (st.pair && !$("#zdPairRes").hidden) renderPair();
+  });
+
   if (location.hash === "#chong") selectTab("tabChong"); else if (location.hash === "#pair") selectTab("tabPair");
   window.__zd = { state: st, showYear: showYear };
 })();

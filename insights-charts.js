@@ -5,7 +5,7 @@
   else root.LQInsightsCharts = factory(root.LQInsightsData, root.LQInsightsAnalysis);
 })(typeof self !== "undefined" ? self : this, function (M_data, M_analysis) {
 "use strict";
-  const { iqSum, iqMean } = M_data;
+  const { iqSum, iqMean, iqT: TT } = M_data;
   const { iqFin } = M_analysis;
   if (typeof document === "undefined") return {};
   const $ = s => document.querySelector(s);
@@ -19,7 +19,7 @@
 
   const nf = n => Math.round(n).toLocaleString("th-TH");
   const compact = n => Math.abs(n) >= 10000 ? (n / 1000).toLocaleString("th-TH", { maximumFractionDigits: 1 }) + "K" : nf(n);
-  const baht = n => "฿" + (Math.abs(n) >= 100000 ? compact(n) : Math.round(n).toLocaleString("th-TH"));
+  const baht = n => { const v = Math.abs(n) >= 100000 ? compact(n) : Math.round(n).toLocaleString("th-TH"); return M_analysis.iqLang && M_analysis.iqLang() === "zh" ? v + " 泰铢" : "฿" + v; };
   const fmtVal = (v, f) => v == null ? "–" : f === "baht" ? baht(v) : f === "pct" ? Math.round(v * 100) + "%" : f === "pct1" ? (v * 100).toFixed(1) + "%" : f === "score" ? Math.round(v) + "/100" : compact(v);
 
   // ---------- tooltip (เมาส์ แตะ และคีย์บอร์ด) ----------
@@ -101,7 +101,7 @@
       const narrow = W < 520, H = narrow ? 210 : 260, L = 40, R = narrow ? 12 : 92, T = 12, B = 26, n = labels.length;
       const ticks = niceTicks(Math.max(1, ...series.flatMap(s => s.values))), max = ticks.at(-1);
       const x = i => n === 1 ? (L + W - R) / 2 : L + (W - L - R) * i / (n - 1), y = v => T + (1 - v / max) * (H - T - B);
-      const svg = el("svg:svg", { viewBox: `0 0 ${W} ${H}`, width: W, height: H, class: "iq-svg", role: "img", tabindex: 0, "aria-label": "แนวโน้มรวม " + series.map(s => `${s.name} รวม ${nf(iqSum(s.values))}`).join(", ") + " (ดูตัวเลขทั้งหมดในตารางด้านล่าง)" }, box);
+      const svg = el("svg:svg", { viewBox: `0 0 ${W} ${H}`, width: W, height: H, class: "iq-svg", role: "img", tabindex: 0, "aria-label": TT("iq.ch.trend", "แนวโน้มรวม {s} (ดูตัวเลขทั้งหมดในตารางด้านล่าง)", { s: series.map(s => TT("iq.ch.sum", "{n} รวม {v}", { n: s.name, v: nf(iqSum(s.values)) })).join(", ") }) }, box);
       ticks.forEach(v => { el("svg:line", { x1: L, x2: W - R, y1: y(v), y2: y(v), class: v === 0 ? "base" : "grid" }, svg); el("svg:text", { x: L - 6, y: y(v) + 4, "text-anchor": "end", class: "tick" }, svg, compact(v)); });
       const every = Math.max(1, Math.ceil(n / Math.max(2, Math.floor((W - L - R) / 58))));
       labels.forEach((l, i) => { if ((n - 1 - i) % every === 0) el("svg:text", { x: x(i), y: H - 6, "text-anchor": n > 1 && i === n - 1 && x(i) + 24 > W ? "end" : "middle", class: "tick" }, svg, l); });
@@ -152,7 +152,7 @@
 
   function tableView(parent, head, rows) {
     const d = el("details", { class: "iq-table" }, parent);
-    el("summary", {}, d, "ดูเป็นตาราง");
+    el("summary", {}, d, TT("iq.ch.table", "ดูเป็นตาราง"));
     const wrap = el("div", { class: "tw" }, d), t = el("table", {}, wrap), tr = el("tr", {}, el("thead", {}, t));
     head.forEach((h, i) => el("th", { class: i ? "n" : "" }, tr, h));
     const tb = el("tbody", {}, t);
@@ -178,7 +178,7 @@
     const W = 150, H = 104, L = 8, B = 8, T = 6, R = 6;
     const x0 = Math.min(...X), x1 = Math.max(...X), y0 = Math.min(...Y), y1 = Math.max(...Y);
     const sx = v => L + (x1 > x0 ? (v - x0) / (x1 - x0) : 0.5) * (W - L - R), sy = v => H - B - (y1 > y0 ? (v - y0) / (y1 - y0) : 0.5) * (H - T - B);
-    const svg = el("svg:svg", { viewBox: `0 0 ${W} ${H}`, class: "iq-svg sc", role: "img", "aria-label": `แผนภาพการกระจาย ${c.xName} กับ ${c.yName} ${c.n} จุด` }, parent);
+    const svg = el("svg:svg", { viewBox: `0 0 ${W} ${H}`, class: "iq-svg sc", role: "img", "aria-label": TT("iq.ch.scatter", "แผนภาพการกระจาย {x} กับ {y} {n} จุด", { x: TT(c.xName, c.xName), y: TT(c.yName, c.yName), n: c.n }) }, parent);
     el("svg:line", { x1: L, x2: W - R, y1: H - B, y2: H - B, class: "base" }, svg); el("svg:line", { x1: L, x2: L, y1: T, y2: H - B, class: "base" }, svg);
     X.forEach((v, i) => el("svg:circle", { cx: sx(v), cy: sy(Y[i]), r: 3.5, class: "dot s1 sc-d" }, svg));
     // เส้นแนวโน้ม (least squares)

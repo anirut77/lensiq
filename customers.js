@@ -90,7 +90,9 @@ if (typeof document !== "undefined") (() => {
   const MODEL_URL = "vendor/models/";
   // วัดบน LFW (tests/bench/face.bench.mjs, ACCURACY.md): 0.50 = จำสมาชิกได้ ~78% (ลงทะเบียนภาพเดียว) แต่แทบไม่จำผิดคน
   // — ร้านค้าแสดงชื่อ/ประวัติการสั่ง จึงเลือกฝั่งปลอดภัย ; MATCH_MARGIN กันกรณีหน้าคล้ายสมาชิกสองคน
-  const MATCH_DISTANCE = 0.5, MATCH_MARGIN = 0.05;
+  // round 4 (tests/bench/face1n.bench.mjs): 0.55 + เกณฑ์รายคน 0.85 × ระยะถึงสมาชิกที่ใกล้ที่สุด (ไม่ต่ำกว่า 0.45) + คุณภาพภาพ
+  //   + ลงทะเบียน 3 ท่า + ยืนยัน 2 เฟรม: LFW 100 คน จำได้ ~85–88% คนนอกถูกทัก < 1% (เดิม 0.50: 80% / 1.75%)
+  const MATCH_DISTANCE = 0.55, MATCH_MARGIN = 0.05, FACE_RULES = { k: 0.85, floor: 0.45 };
   const K = { members: "cx-members", orders: "cx-orders", menu: "cx-menu" };
   const DEFAULT_MENU = [
     ["อเมริกาโน่", "กาแฟ", 50], ["ลาเต้", "กาแฟ", 60], ["คาปูชิโน่", "กาแฟ", 60], ["มอคค่า", "กาแฟ", 65],
@@ -208,7 +210,7 @@ if (typeof document !== "undefined") (() => {
   function rebuildMatcher() {
     const withFace = members.filter(m => m.descriptor);
     // คลังใบหน้าในหน่วยความจำ — LQTrack.matchFace: ระยะ < MATCH_DISTANCE และห่างจากสมาชิกอันดับสอง >= MATCH_MARGIN
-    matcher = withFace.length ? withFace.map(m => ({ label: m.id, d: new Float32Array(m.descriptor) })) : null;
+    matcher = withFace.length ? LQTrack.enrolGallery(withFace.map(m => ({ label: m.id, ds: [new Float32Array(m.descriptor)] })), { maxDist: MATCH_DISTANCE, ...FACE_RULES }) : null;
   }
   const detOpts = () => new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
   // ใบหน้าทั้งหมดในภาพ เรียงจากใหญ่ไปเล็ก -> [{box:{x,y,width,height} พิกเซลวิดีโอ, descriptor|null, fake?}]
@@ -220,13 +222,14 @@ if (typeof document !== "undefined") (() => {
       faces = fk.map(d => ({ box: { x: d.x * W, y: d.y * H, width: d.w * W, height: d.h * H }, descriptor: d.descriptor ? Float32Array.from(d.descriptor) : null, fake: d }));
     } else {
       const r = await faceapi.detectAllFaces(video, detOpts()).withFaceLandmarks().withFaceDescriptors();
-      faces = r.map(x => { const b = x.detection.box; return { box: { x: b.x, y: b.y, width: b.width, height: b.height }, descriptor: x.descriptor }; });
+      faces = r.map(x => { const b = x.detection.box; return { box: { x: b.x, y: b.y, width: b.width, height: b.height }, descriptor: x.descriptor, q: LQTrack.faceQuality({ box: b, score: x.detection.score, landmarks: x.landmarks.positions }) }; });
     }
     return faces.sort((a, b) => b.box.width * b.box.height - a.box.width * a.box.height).slice(0, max);
   }
   function bestMatch(f, i) {
     if (TEST && typeof window.__LQ_FAKE_MATCH === "function") return window.__LQ_FAKE_MATCH(f.fake || f, i) || { label: "unknown", distance: 1 };
     if (!matcher || !f.descriptor) return { label: "unknown", distance: 1 };
+    if (f.q && !LQTrack.qualityOk(f.q)) return { label: "unknown", distance: 1, lowq: true };
     const m = LQTrack.matchFace(f.descriptor, matcher, { maxDist: MATCH_DISTANCE, margin: MATCH_MARGIN });
     return { label: m.label, distance: m.distance };
   }
@@ -409,13 +412,23 @@ if (typeof document !== "undefined") (() => {
   });
 
   // ---------- สมัครสมาชิก ----------
-  async function capture(samples = 3) {
+  // 3 ท่า (ตรง / หันซ้าย / หันขวาเล็กน้อย) × 2 เฟรมที่ผ่านเกณฑ์คุณภาพ แล้วเฉลี่ย (ใกล้เคียงการลงทะเบียน 3 ภาพที่วัดบน LFW)
+  const POSES = ["มองตรงที่กล้อง", "หันหน้าไปทางซ้ายเล็กน้อย", "หันหน้าไปทางขวาเล็กน้อย"];
+  async function capture(samples = 3, onPose = () => {}) {
     const ds = [];
     for (let i = 0; i < samples; i++) {
-      const r = await detectFaces(Infinity); // สมัครสมาชิกได้ทีละหนึ่งใบหน้าเท่านั้น
-      if (r.length !== 1) throw new Error(r.length ? "พบหลายใบหน้า กรุณาให้เหลือคนเดียวในกล้อง" : "ไม่พบใบหน้า กรุณามองกล้องตรง ๆ");
-      if (!r[0].descriptor) throw new Error("อ่านลักษณะใบหน้าไม่สำเร็จ กรุณาลองใหม่");
-      ds.push(r[0].descriptor); await sleep(350);
+      onPose(POSES[i % POSES.length], i + 1, samples);
+      if (i) await sleep(900);
+      const got = [];
+      for (let tries = 0; got.length < 2 && tries < 8; tries++) {
+        const r = await detectFaces(Infinity); // สมัครสมาชิกได้ทีละหนึ่งใบหน้าเท่านั้น
+        if (r.length !== 1) throw new Error(r.length ? "พบหลายใบหน้า กรุณาให้เหลือคนเดียวในกล้อง" : "ไม่พบใบหน้า กรุณามองกล้องตรง ๆ");
+        if (!r[0].descriptor) throw new Error("อ่านลักษณะใบหน้าไม่สำเร็จ กรุณาลองใหม่");
+        if (!r[0].q || LQTrack.qualityOk(r[0].q)) got.push(r[0].descriptor);
+        await sleep(200);
+      }
+      if (!got.length) throw new Error("ภาพใบหน้าไม่ชัดหรือหันข้างมากเกินไป กรุณาเข้าใกล้กล้องและลองใหม่");
+      ds.push(...got);
     }
     return Array.from(ds[0], (_, k) => +(ds.reduce((s, d) => s + d[k], 0) / ds.length).toFixed(5));
   }
@@ -434,7 +447,7 @@ if (typeof document !== "undefined") (() => {
     if (phone && members.some(x => x.phone === phone)) return set("เบอร์นี้เป็นสมาชิกอยู่แล้ว", "err");
     btn.disabled = true; set("กำลังสแกน กรุณามองกล้องนิ่ง ๆ...", "");
     try {
-      const descriptor = await capture();
+      const descriptor = await capture(3, (pose, i, n) => set(`กำลังสแกน ${i}/${n}: ${pose}...`, ""));
       if (matcher) {
         const best = LQTrack.matchFace(new Float32Array(descriptor), matcher, { maxDist: MATCH_DISTANCE });
         if (best.label !== "unknown") throw new Error(`ใบหน้านี้เป็นสมาชิกอยู่แล้ว (คุณ${members.find(x => x.id === best.label)?.name})`);

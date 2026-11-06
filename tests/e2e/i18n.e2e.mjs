@@ -1,6 +1,7 @@
 // tests/e2e/i18n.e2e.mjs — TH | 中文 switch (nav.js + lensiq-i18n.js + i18n/zh-common.js) on index.html and a fortune
 // page: Chinese applied to nav/hero/form, <html lang>, persisted across reload, switching back restores the Thai markup
-// exactly, no horizontal overflow at 390 and 1280 px, no uncaught exceptions; Thai <wbr> breaks applied in Thai only.
+// exactly, no horizontal overflow at 390 and 1280 px, no uncaught exceptions; Thai <wbr> breaks applied in Thai only;
+// LQI18N.coverage() / ?i18n=debug overlay: index + about fully Chinese (header incl. closed menu).
 import { assert } from "./cdp.mjs";
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -90,6 +91,36 @@ export default async function ({ base, launch, check }) {
         await page.close();
       });
     }
+
+    await check("LQI18N.coverage(): index/about 0 % Thai in 中文 (shared header incl. hidden menu), > 90 % in Thai; ?i18n=debug overlay", async () => {
+      for (const f of ["index.html", "about.html"]) {
+        const page = await browser.newPage(null);
+        await viewport(page, 390, 844, true);
+        await page.goto(`${base}/${f}?nosw&lang=zh&i18n=debug`);
+        await page.waitFor(() => window.LQI18N && document.documentElement.lang === "zh-Hans" && document.getElementById("lq-i18n-debug"), 8000);
+        await sleep(900);
+        const r = await page.evaluate(() => ({
+          body: LQI18N.coverage(),
+          header: LQI18N.coverage(document.getElementById("siteNav"), { all: true }),
+          badge: document.getElementById("lq-i18n-debug").textContent,
+          toggle: document.querySelector(".nav-toggle").getAttribute("aria-label"),
+          logo: document.querySelector(".logo").getAttribute("aria-label")
+        }));
+        assert(r.body.pct === 0 && r.body.cjk > 300, f + " body " + JSON.stringify(r.body.top.slice(0, 3)));
+        assert(r.header.pct === 0 && r.header.mixed === 0 && r.header.cjk > 200, f + " header " + JSON.stringify(r.header.top.slice(0, 3)));
+        assert(/^TH 0% · 0 nodes/.test(r.badge), "badge " + r.badge);
+        assert(r.toggle === "打开菜单" && r.logo === "LENSIQ 首页", JSON.stringify(r));
+        await page.evaluate(() => document.querySelector(".lang-switch button[data-lang=th]").click());
+        await sleep(700);
+        const th = await page.evaluate(() => LQI18N.coverage());
+        assert(th.pct > 90, f + " thai mode pct " + th.pct);
+        assert(await page.evaluate(() => document.querySelectorAll("[data-lq-ol]").length === 0), "no outlines in Thai mode");
+        const ex = page.consoleErrors.filter(e => e.kind === "exception");
+        assert(!ex.length, ex.map(e => e.text).join(" | "));
+        await page.evaluate(() => localStorage.removeItem("lq-lang"));
+        await page.close();
+      }
+    });
   } finally {
     await browser.close();
   }

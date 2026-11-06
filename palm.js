@@ -930,6 +930,20 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   var sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
   var frame2 = function () { return new Promise(function (r) { requestAnimationFrame(function () { setTimeout(r, 0); }); }); };
+  /* ---------- ภาษา (TH ค่าเริ่มต้น | 中文): ข้อความไทยอยู่ในโค้ด/KB, ภาษาจีนจาก i18n/zh-fortune-palm.js และ i18n/zh-kb-palm.js ---------- */
+  var T = function (k, th, v) { return window.LQI18N ? LQI18N.tf(k, th, v) : th.replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : m; }); };
+  var isZh = function () { return !!(window.LQI18N && LQI18N.lang === "zh"); };
+  /** ข้อความจาก KB (palm-kb.js) → คีย์ palm.kb.<path> ในพจนานุกรมภาษาจีน */
+  var KT = function (path, th) { return T("palm.kb." + path, th); };
+  var ZI = function (key) { var z = window.FORTUNE_ZH && window.FORTUNE_ZH.palm; return (z && z.items && z.items[key]) || null; };
+  /** ความหมายภาษาจีนจาก zh-kb (ช่องแรกที่มีตามลำดับ order) — โหมดไทยคืนข้อความเดิม */
+  var ZM = function (key, th, order) {
+    if (!isZh()) return th;
+    var it = ZI(key); if (!it) return th;
+    var o = (order || "opwlmcta").split("");
+    for (var i = 0; i < o.length; i++) if (it[o[i]]) return [].concat(it[o[i]])[0];
+    return th;
+  };
   var HTTPS_MSG = "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด";
   var STATS_KEY = "palm-stats", PREF_KEY = "palm-prefs", IDLE_MS = 60000, MODEL_DIR = "vendor/models/hand/";
   var lsGet = function (k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
@@ -946,15 +960,26 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     pair: [], pairStep: 0, cmp: null, cmpFirst: null, dom: prefs.dom, src: null, hand: null, F: null, canon: null, R: null, auto: null, lines: null, active: "life", minor: {}, mounts: [], mode: "edit", taps: [], result: null, busy: false };
   var ready = false, models = null, looping = false;
 
-  function engine(msg, cls) { var e = $("#plEngine"); e.textContent = msg; e.className = "pl-engine " + (cls || ""); }
+  /** msg = ข้อความ หรือฟังก์ชันที่คืนข้อความ (ฟังก์ชันจะถูกเรียกใหม่เมื่อเปลี่ยนภาษา) */
+  var lastEngine = null;
+  function engine(msg, cls) {
+    lastEngine = [msg, cls];
+    var e = $("#plEngine"); e.textContent = typeof msg === "function" ? msg() : msg; e.className = "pl-engine " + (cls || "");
+  }
   function setStep(n) { $$(".pl-steps li").forEach(function (li) { var k = +li.dataset.step; li.classList.toggle("on", k === n); li.classList.toggle("done", k < n); }); }
   function toast(msg) { var t = $("#plToast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.h); toast.h = setTimeout(function () { t.classList.remove("show"); }, 2200); }
   var smooth = function () { return matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"; };
 
   /* ---------- มือซ้าย/ขวา/อัตโนมัติ/ทั้งสองมือ + มือข้างถนัด ---------- */
   var SIDE_TH = { left: "มือซ้าย", right: "มือขวา" };
+  /** ชื่อข้างมือสำหรับแสดงผล (SIDE_TH ภาษาไทยยังใช้กับ buildFacts/buildComparison) */
+  var sideTh = function (s) { return T("palm.side." + s, SIDE_TH[s]); };
   var inbornSide = function () { return S.dom === "right" ? "left" : "right"; };
-  var roleOf = function (side) { return side === S.dom ? KB.sides.dominant : KB.sides.other; };
+  var roleKey = function (side) { return side === S.dom ? "dominant" : "other"; };
+  /** บทบาทของมือ {th, short, text} ตามภาษาที่เลือก */
+  var roleOf = function (side) { var k = roleKey(side), d = KB.sides[k]; return { th: KT("sides." + k + ".th", d.th), short: KT("sides." + k + ".short", d.short), text: KT("sides." + k + ".text", d.text) }; };
+  var roleInborn = function () { return KT("hands.roles.inborn", KB.hands.roles.inborn); };
+  var roleMade = function () { return KT("hands.roles.made", KB.hands.roles.made); };
   /** ข้างที่ต้องการในรอบนี้ (null = อัตโนมัติ ตรวจจากภาพ) */
   function expectedSide() {
     if (S.sideMode === "left" || S.sideMode === "right") return S.sideMode;
@@ -968,13 +993,13 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $$("[data-dom]").forEach(function (b) { b.setAttribute("aria-checked", b.dataset.dom === S.dom ? "true" : "false"); });
     var exp = expectedSide(), html, H = KB.hands;
     if (S.sideMode === "both") {
-      html = "<b>ดูทั้งสองมือ</b> — มือที่ 1: " + esc(SIDE_TH[inbornSide()] + " (" + H.roles.inborn + ")") + " → มือที่ 2: " + esc(SIDE_TH[S.dom] + " (" + H.roles.made + ")") +
-        '<br><small class="muted">ตอนนี้: มือที่ ' + (S.pairStep + 1) + "/2 · " + esc(SIDE_TH[exp]) + "</small>";
+      html = "<b>" + esc(T("palm.sn.both", "ดูทั้งสองมือ")) + "</b> — " + esc(T("palm.handN", "มือที่ {n}", { n: 1 })) + ": " + esc(sideTh(inbornSide()) + " (" + roleInborn() + ")") + " → " + esc(T("palm.handN", "มือที่ {n}", { n: 2 })) + ": " + esc(sideTh(S.dom) + " (" + roleMade() + ")") +
+        '<br><small class="muted">' + esc(T("palm.sn.now", "ตอนนี้: มือที่ {n}/2", { n: S.pairStep + 1 })) + " · " + esc(sideTh(exp)) + "</small>";
     } else if (exp) {
       var d = roleOf(exp);
-      html = "<b>" + esc(SIDE_TH[exp] + " = " + d.th + " · " + d.short) + "</b> — " + esc(d.text);
+      html = "<b>" + esc(sideTh(exp) + " = " + d.th + " · " + d.short) + "</b> — " + esc(d.text);
     } else {
-      html = "<b>อัตโนมัติ</b> — " + esc(H.modes.auto.short) + (S.liveSide ? " · ตอนนี้เห็น <b>" + esc(SIDE_TH[S.liveSide]) + "</b> (" + esc(roleOf(S.liveSide).short) + ")" : "");
+      html = "<b>" + esc(T("palm.sn.auto", "อัตโนมัติ")) + "</b> — " + esc(KT("hands.modes.auto.short", H.modes.auto.short)) + (S.liveSide ? " · " + esc(T("palm.sn.seeing", "ตอนนี้เห็น")) + " <b>" + esc(sideTh(S.liveSide)) + "</b> (" + esc(roleOf(S.liveSide).short) + ")" : "");
     }
     $("#plSideNote").innerHTML = html;
   }
@@ -987,7 +1012,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     });
   });
   $$("[data-dom]").forEach(function (b) { b.addEventListener("click", function () { if (S.dom === b.dataset.dom) return; S.dom = b.dataset.dom; prefs.dom = S.dom; lsSet(PREF_KEY, prefs); if (S.pairStep === 0) resetPair(); renderSide(); if (S.hand) renderReadSide(); }); });
-  $("#plTradition").innerHTML = KB.hands.tradition.map(function (t) { return "<li><b>" + esc(t.k) + ":</b> " + esc(t.t) + "</li>"; }).join("");
+  function renderTradition() { $("#plTradition").innerHTML = KB.hands.tradition.map(function (t, i) { return "<li><b>" + esc(KT("hands.tradition." + i + ".k", t.k)) + ":</b> " + esc(KT("hands.tradition." + i + ".t", t.t)) + "</li>"; }).join(""); }
+  renderTradition();
   /** ข้างที่ตรวจได้จากภาพ → ข้างที่จะอ่าน (ข้างที่เลือกไว้มาก่อน; อัตโนมัติใช้ผลตรวจ) */
   function applyDetectedSide(rs) {
     S.sideDet = rs;
@@ -999,10 +1025,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var box = $("#plReadSide"); box.hidden = !S.hand;
     if (!S.hand) return;
     var d = roleOf(S.side);
-    $("#plReadSideText").innerHTML = "กำลังอ่าน <b>" + esc(SIDE_TH[S.side]) + "</b> " + esc(d.th + " · " + d.short) + (S.sideSrc === "detect" ? ' <small class="muted">(ตรวจจากภาพ)</small>' : "") +
-      (S.sideMode === "both" ? ' <small class="muted">· มือที่ ' + (S.pairStep + 1) + "/2</small>" : "") +
-      (S.sideMismatch ? '<span class="warn">ภาพนี้ดูเหมือน' + esc(SIDE_TH[S.sideMismatch]) + " แต่เลือกอ่าน" + esc(SIDE_TH[S.side]) + "ไว้ — ถ้าถ่ายผิดข้าง กด ถ่ายใหม่ หรือสลับข้างได้</span>" : "");
-    $("#plSideSwap").textContent = "สลับเป็น" + SIDE_TH[PC.flipSide(S.side)];
+    $("#plReadSideText").innerHTML = esc(T("palm.rs.reading", "กำลังอ่าน")) + " <b>" + esc(sideTh(S.side)) + "</b> " + esc(d.th + " · " + d.short) + (S.sideSrc === "detect" ? ' <small class="muted">' + esc(T("palm.fromImage", "(ตรวจจากภาพ)")) + "</small>" : "") +
+      (S.sideMode === "both" ? ' <small class="muted">· ' + esc(T("palm.handNof2", "มือที่ {n}/2", { n: S.pairStep + 1 })) + "</small>" : "") +
+      (S.sideMismatch ? '<span class="warn">' + esc(T("palm.rs.mismatch", "ภาพนี้ดูเหมือน{seen} แต่เลือกอ่าน{side}ไว้ — ถ้าถ่ายผิดข้าง กด ถ่ายใหม่ หรือสลับข้างได้", { seen: sideTh(S.sideMismatch), side: sideTh(S.side) })) + "</span>" : "");
+    $("#plSideSwap").textContent = T("palm.rs.swap", "สลับเป็น{side}", { side: sideTh(PC.flipSide(S.side)) });
   }
   $("#plSideSwap").addEventListener("click", function () {
     S.side = PC.flipSide(S.side); S.sideSrc = "manual";
@@ -1021,8 +1047,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /** ปุ่มไฟฉาย (เมื่อกล้องรองรับ) + สลับกล้อง + ตัวเลือกกล้อง (เมื่อมี ≥ 2 ตัว) วางทับมุมขวาบนของกรอบกล้อง */
   function mountCamCtl(host, c, onError) {
     var box = document.createElement("div"); box.className = "cam-ctl"; box.hidden = true;
-    box.innerHTML = '<button type="button" class="cam-torch" aria-pressed="false" aria-label="เปิด/ปิดไฟฉาย" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10l-2 6H9zM9 9v12h6V9M12 13v3"/></svg><span>ไฟฉาย</span></button>' +
-      '<button type="button" class="cam-flip" aria-label="สลับกล้องหน้า/หลัง" title="สลับกล้องหน้า/หลัง"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h11l-3-3M20 16H9l3 3"/></svg><span>สลับกล้อง</span></button><select class="cam-pick" aria-label="เลือกกล้อง"></select>';
+    box.innerHTML = '<button type="button" class="cam-torch" aria-pressed="false" aria-label="เปิด/ปิดไฟฉาย" data-i18n-attr="aria-label:palm.cam.torchAria" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10l-2 6H9zM9 9v12h6V9M12 13v3"/></svg><span data-i18n="palm.cam.torch">ไฟฉาย</span></button>' +
+      '<button type="button" class="cam-flip" aria-label="สลับกล้องหน้า/หลัง" title="สลับกล้องหน้า/หลัง" data-i18n-attr="aria-label:palm.cam.flipAria;title:palm.cam.flipAria"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h11l-3-3M20 16H9l3 3"/></svg><span data-i18n="palm.cam.flip">สลับกล้อง</span></button><select class="cam-pick" aria-label="เลือกกล้อง" data-i18n-attr="aria-label:palm.cam.pick"></select>';
     host.append(box);
     var torch = box.querySelector(".cam-torch"), flip = box.querySelector(".cam-flip"), pickEl = box.querySelector(".cam-pick");
     var render = function () {
@@ -1030,7 +1056,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       flip.hidden = !multi; pickEl.hidden = !multi; torch.hidden = !tc;
       torch.setAttribute("aria-pressed", c.torch ? "true" : "false");
       box.hidden = !multi && !tc;
-      pickEl.innerHTML = devs.map(function (d, i) { return '<option value="' + esc(d.deviceId) + '">' + esc(d.label || "กล้อง " + (i + 1)) + "</option>"; }).join("");
+      pickEl.innerHTML = devs.map(function (d, i) { return '<option value="' + esc(d.deviceId) + '">' + esc(d.label || T("palm.cam.n", "กล้อง {n}", { n: i + 1 })) + "</option>"; }).join("");
       if (c.deviceId) pickEl.value = c.deviceId;
     };
     var run = function (p) { box.classList.add("busy"); p.catch(function (e) { if (e && e.name !== "AbortError" && onError) onError(e); }).finally(function () { box.classList.remove("busy"); render(); }); };
@@ -1042,14 +1068,14 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function showHttpsNote(before) {
     if (window.isSecureContext || document.querySelector(".https-note")) return;
     var p = document.createElement("p"); p.className = "https-note"; p.setAttribute("role", "alert");
-    p.innerHTML = 'บนมือถือต้องเปิดผ่าน <b>https://</b> — ดูวิธีในหน้า <a href="cameras.html">ระบบทั้งหมด</a>';
+    p.innerHTML = '<span data-i18n="palm.https.a">บนมือถือต้องเปิดผ่าน</span> <b>https://</b> <span data-i18n="palm.https.b">— ดูวิธีในหน้า</span> <a href="cameras.html" data-i18n="palm.https.link">ระบบทั้งหมด</a>';
     before.before(p);
   }
   var camErr = function (e) {
     console.error(e);
     if (e.name === "Insecure") showHttpsNote($("#plEngine"));
-    var m = { Insecure: HTTPS_MSG, NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง — ใช้ปุ่ม อัปโหลดรูป แทนได้", NotFoundError: "ไม่พบกล้อง — ใช้ปุ่ม อัปโหลดรูป แทนได้", NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่" }[e.name];
-    engine(m || "เปิดกล้องไม่ได้: " + (e.message || e.name), "err");
+    var m = { Insecure: ["palm.err.https", HTTPS_MSG], NotAllowedError: ["palm.err.denied", "ไม่ได้รับอนุญาตให้ใช้กล้อง — ใช้ปุ่ม อัปโหลดรูป แทนได้"], NotFoundError: ["palm.err.nocam", "ไม่พบกล้อง — ใช้ปุ่ม อัปโหลดรูป แทนได้"], NotReadableError: ["palm.err.busy", "กล้องถูกโปรแกรมอื่นใช้อยู่"] }[e.name];
+    engine(function () { return m ? T(m[0], m[1]) : T("palm.err.cam", "เปิดกล้องไม่ได้: {msg}", { msg: e.message || e.name }); }, "err");
   };
   function layoutCam() {
     var vw = video.videoWidth, vh = video.videoHeight; if (!vw) return;
@@ -1064,7 +1090,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       if (ev.type === "devices") return;
       cam.classList.toggle("mirror", c.mirrored); cam.classList.toggle("live", c.active); layoutCam();
       if (ev.type === "started" && c.active) { prevHand = null; startLoop(); }
-      if (ev.type === "ended") engine("สัญญาณกล้องหลุด — กดเปิดกล้องอีกครั้ง", "err");
+      if (ev.type === "ended") engine(function () { return T("palm.eng.camLost", "สัญญาณกล้องหลุด — กดเปิดกล้องอีกครั้ง"); }, "err");
     },
     onError: function (c, e) { if (e && e.name !== "AbortError") camErr(e); }
   });
@@ -1075,16 +1101,16 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var FAKE = !!(window.LQDetect && LQDetect.isTest()); // ?fakedet บน localhost: ตัวตรวจจับจำลองสำหรับทดสอบ ไม่โหลดโมเดล
   var modelsP = null;
   function loadModels() {
-    if (FAKE) { ready = true; models = models || { fake: true }; engine("พร้อมใช้งาน (ตัวตรวจจับจำลองสำหรับทดสอบ)", "ok"); return Promise.resolve(models); }
+    if (FAKE) { ready = true; models = models || { fake: true }; engine(function () { return T("palm.eng.readyFake", "พร้อมใช้งาน (ตัวตรวจจับจำลองสำหรับทดสอบ)"); }, "ok"); return Promise.resolve(models); }
     if (!modelsP) modelsP = LQDetect.tfBackend().then(function (b) {
       var tf = faceapi.tf;
       return Promise.all([tf.loadGraphModel(MODEL_DIR + "detector/model.json"), tf.loadGraphModel(MODEL_DIR + "landmark/model.json")]).then(function (m) {
         models = { tf: tf, det: m[0], lm: m[1], anchors: PC.ssdAnchors(), backend: b };
         ready = true;
-        engine("พร้อมใช้งาน (ตัวประมวลผล: " + b.toUpperCase() + (b === "webgl" ? "" : " — อาจช้ากว่าปกติเล็กน้อย") + ")", "ok");
+        engine(function () { return T("palm.eng.ready", "พร้อมใช้งาน (ตัวประมวลผล: {b}{slow})", { b: b.toUpperCase(), slow: b === "webgl" ? "" : T("palm.eng.slow", " — อาจช้ากว่าปกติเล็กน้อย") }); }, "ok");
         return models;
       });
-    }).catch(function (e) { console.error(e); engine("โหลดโมเดลจุดบนมือไม่สำเร็จ — ยังใช้งานได้โดยแตะจุดบนมือเอง", "err"); modelsP = null; throw e; });
+    }).catch(function (e) { console.error(e); engine(function () { return T("palm.eng.modelFail", "โหลดโมเดลจุดบนมือไม่สำเร็จ — ยังใช้งานได้โดยแตะจุดบนมือเอง"); }, "err"); modelsP = null; throw e; });
     return modelsP;
   }
   var c192 = document.createElement("canvas"), c224 = document.createElement("canvas");
@@ -1162,40 +1188,44 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       octx.strokeStyle = "rgba(255,255,255,.35)"; octx.lineWidth = Math.max(2, w / 400); octx.strokeRect(b.x, b.y, b.w, b.h);
     });
   }
+  /** ป้ายตรวจคุณภาพ: ข้อความ หรือ [คีย์, ไทย, vars] (แปลตอนแสดงผล เพื่อสลับภาษาได้) */
+  var qtx = function (x) { return Array.isArray(x) ? T(x[0], x[1], x[2]) : x; };
+  var lastQcItems = null;
   function renderQc(items) {
+    lastQcItems = items;
     $("#plQc").innerHTML = items.map(function (q) {
-      return '<li class="' + (q.ok ? "ok" : "no") + '"><span class="dot" aria-hidden="true">' + (q.ok ? "✓" : "!") + "</span><span>" + esc(q.label) + (q.ok || !q.tip ? "" : ' <small>— ' + esc(q.tip) + "</small>") + "</span></li>";
+      return '<li class="' + (q.ok ? "ok" : "no") + '"><span class="dot" aria-hidden="true">' + (q.ok ? "✓" : "!") + "</span><span>" + esc(qtx(q.label)) + (q.ok || !q.tip ? "" : ' <small>— ' + esc(qtx(q.tip)) + "</small>") + "</span></li>";
     }).join("");
   }
   var probe = document.createElement("canvas");
   function quality(pts, W, H, src, n) {
-    var q = [{ id: "hand", label: "พบมือ", ok: !!pts, tip: "แบฝ่ามือเข้าหากล้องให้เห็นทั้งมือ" }];
+    var q = [{ id: "hand", label: ["palm.qc.hand", "พบมือ"], ok: !!pts, tip: ["palm.qc.hand.tip", "แบฝ่ามือเข้าหากล้องให้เห็นทั้งมือ"] }];
     if (!pts) return q;
-    if (n != null) q.push({ id: "single", label: "ใช้มือเดียวในกรอบ", ok: n <= 1, tip: "พบ " + n + " มือ ใช้มือที่จะอ่านเพียงข้างเดียว (อ่านมือที่อยู่กลางกรอบ)" });
+    if (n != null) q.push({ id: "single", label: ["palm.qc.single", "ใช้มือเดียวในกรอบ"], ok: n <= 1, tip: ["palm.qc.single.tip", "พบ {n} มือ ใช้มือที่จะอ่านเพียงข้างเดียว (อ่านมือที่อยู่กลางกรอบ)", { n: n }] });
     var hand = PC.handFromLandmarks(pts), m = PC.measureHand(hand);
-    q.push({ id: "size", label: "มือใหญ่พอ", ok: m.palmW / Math.min(W, H) >= 0.14, tip: "ขยับมือเข้าใกล้กล้องอีกนิด" });
+    q.push({ id: "size", label: ["palm.qc.size", "มือใหญ่พอ"], ok: m.palmW / Math.min(W, H) >= 0.14, tip: ["palm.qc.size.tip", "ขยับมือเข้าใกล้กล้องอีกนิด"] });
     var inside = pts.every(function (p) { return p[0] > W * 0.02 && p[0] < W * 0.98 && p[1] > H * 0.02 && p[1] < H * 0.98; });
-    q.push({ id: "frame", label: "เห็นนิ้วและข้อมือครบ", ok: inside, tip: "ถอยมือให้นิ้วและข้อมืออยู่ในภาพ" });
+    q.push({ id: "frame", label: ["palm.qc.frame", "เห็นนิ้วและข้อมือครบ"], ok: inside, tip: ["palm.qc.frame.tip", "ถอยมือให้นิ้วและข้อมืออยู่ในภาพ"] });
     // ความสว่างกลางฝ่ามือ
     var c = PC.lerp(hand.wrist, hand.mcp.middle, 0.5), r = m.palmW * 0.35;
     probe.width = 32; probe.height = 32;
     var x = probe.getContext("2d", { willReadFrequently: true }); x.drawImage(src, c[0] - r, c[1] - r, 2 * r, 2 * r, 0, 0, 32, 32);
     var d = x.getImageData(0, 0, 32, 32).data, s = 0; for (var i = 0; i < d.length; i += 4) s += 0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2];
     var lum = s / (d.length / 4);
-    q.push({ id: "light", label: "แสงพอดี", ok: lum > 80 && lum < 235, tip: lum <= 80 ? "แสงน้อย ลองเปิดไฟฉายหรือหันเข้าหาแสง" : "แสงจ้าเกินไป ลองเลี่ยงแสงสะท้อน" });
+    q.push({ id: "light", label: ["palm.qc.light", "แสงพอดี"], ok: lum > 80 && lum < 235, tip: lum <= 80 ? ["palm.qc.dark", "แสงน้อย ลองเปิดไฟฉายหรือหันเข้าหาแสง"] : ["palm.qc.bright", "แสงจ้าเกินไป ลองเลี่ยงแสงสะท้อน"] });
     return q;
   }
   var lastQ = null, prevHand = null;
   /** ป้ายบนภาพกล้อง: ข้างของกรอบ + ความตรงกรอบ + เตือนเมื่อเห็นมือผิดข้าง */
   function renderGuideBar(tpl, fit, seenWrong, exp) {
     $("#plGuideBar").hidden = false;
-    $("#plGuideSide").textContent = "กรอบ" + SIDE_TH[tpl.side] + (S.sideMode === "auto" ? (S.liveSide ? " (ตรวจพบ)" : " (รอตรวจ)") : "");
+    $("#plGuideSide").textContent = T("palm.guide.side", "กรอบ{side}", { side: sideTh(tpl.side) }) + (S.sideMode === "auto" ? (S.liveSide ? T("palm.guide.found", " (ตรวจพบ)") : T("palm.guide.wait", " (รอตรวจ)")) : "");
     var f = $("#plFit");
-    f.textContent = fit == null ? "" : "ตรงกรอบ " + Math.round(fit * 100) + "%";
+    f.textContent = fit == null ? "" : T("palm.guide.fit", "ตรงกรอบ {p}%", { p: Math.round(fit * 100) });
     f.className = "pl-fit " + (fit == null ? "" : fit >= 0.7 ? "good" : fit >= 0.4 ? "mid" : "low");
     var wEl = $("#plWrong");
     wEl.hidden = !seenWrong;
-    if (seenWrong) wEl.textContent = "ตอนนี้เห็น" + SIDE_TH[seenWrong] + " — " + (S.sideMode === "both" ? "รอบนี้อ่าน" : "เลือก") + SIDE_TH[exp] + "ไว้";
+    if (seenWrong) wEl.textContent = S.sideMode === "both" ? T("palm.guide.wrongBoth", "ตอนนี้เห็น{seen} — รอบนี้อ่าน{side}ไว้", { seen: sideTh(seenWrong), side: sideTh(exp) }) : T("palm.guide.wrong", "ตอนนี้เห็น{seen} — เลือก{side}ไว้", { seen: sideTh(seenWrong), side: sideTh(exp) });
   }
   /** ป้ายเตือนบนภาพกล้องเมื่อเห็นมากกว่า 1 มือ */
   function renderMulti(n) { var el = $("#plMulti"); if (el) el.hidden = !(n > 1); }
@@ -1210,7 +1240,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
           if (S.sideMode === "auto") updateLiveSide(rs);
           lastQ = quality(r && r.pts, W, H, video, ph.n);
           var exp = expectedSide(), wrong = !!(exp && rs && rs.conf >= 0.2 && rs.side !== exp && ph.n <= 1);
-          if (exp && rs) lastQ.push({ id: "side", label: "เป็น" + SIDE_TH[exp] + "ตามที่เลือก", ok: !wrong, tip: "ตอนนี้เห็น" + SIDE_TH[rs.side] });
+          if (exp && rs) lastQ.push({ id: "side", label: ["palm.qc.side", "เป็น{side}ตามที่เลือก", { side: sideTh(exp) }], ok: !wrong, tip: ["palm.qc.side.tip", "ตอนนี้เห็น{side}", { side: sideTh(rs.side) }] });
           var tpl = currentGuide(), fit = r ? PC.fitScore(r.pts, tpl) : null;
           S.guide = { side: tpl.side, fit: fit, wrong: wrong, seen: rs ? rs.side : null, mirrored: tpl.mirrored, thumbOnScreen: tpl.thumbOnScreen };
           if (!S.busy) { renderQc(lastQ); drawGuide(r && r.pts, lastQ.every(function (q) { return q.ok; }), ph.others, tpl); renderMulti(ph.n); renderGuideBar(tpl, fit, wrong ? rs.side : null, exp); }
@@ -1223,12 +1253,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   btnCam.addEventListener("click", async function () {
     btnCam.disabled = true;
-    engine("กำลังเปิดกล้อง...");
+    engine(function () { return T("palm.eng.opening", "กำลังเปิดกล้อง..."); });
     try {
       await camera.start();
       loadModels().catch(function () {});
       $("#plCamHint").hidden = true;
-      engine("กล้องพร้อม — วางฝ่ามือให้อยู่ในกรอบ แล้วกด ถ่ายภาพฝ่ามือ", "ok");
+      engine(function () { return T("palm.eng.camReady", "กล้องพร้อม — วางฝ่ามือให้อยู่ในกรอบ แล้วกด ถ่ายภาพฝ่ามือ"); }, "ok");
       btnCam.hidden = true; btnSnap.hidden = false;
       drawGuide(null, false);
     } catch (e) { camErr(e); btnCam.disabled = false; }
@@ -1244,24 +1274,24 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       cv.width = Math.round(video.videoWidth * sc); cv.height = Math.round(video.videoHeight * sc);
       cv.getContext("2d", { willReadFrequently: true }).drawImage(video, 0, 0, cv.width, cv.height);
       await processImage(cv);
-    } catch (e) { console.error(e); engine("ถ่ายภาพไม่สำเร็จ: " + (e.message || e), "err"); }
+    } catch (e) { console.error(e); engine(T("palm.eng.snapFail", "ถ่ายภาพไม่สำเร็จ: {msg}", { msg: e.message || e }), "err"); }
     finally { countEl.hidden = true; S.busy = false; btnSnap.disabled = false; }
   });
   fileIn.addEventListener("change", async function () {
     var f = fileIn.files && fileIn.files[0]; fileIn.value = "";
     if (!f) return;
     touch();
-    engine("กำลังเปิดรูป...");
+    engine(function () { return T("palm.eng.openingImg", "กำลังเปิดรูป..."); });
     S.busy = true;
     try {
       var url = URL.createObjectURL(f), img = new Image();
-      await new Promise(function (res, rej) { img.onload = res; img.onerror = function () { rej(new Error("เปิดไฟล์รูปไม่ได้")); }; img.src = url; });
+      await new Promise(function (res, rej) { img.onload = res; img.onerror = function () { rej(new Error(T("palm.err.file", "เปิดไฟล์รูปไม่ได้"))); }; img.src = url; });
       var sc = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
       var cv = document.createElement("canvas"); cv.width = Math.round(img.naturalWidth * sc); cv.height = Math.round(img.naturalHeight * sc);
       cv.getContext("2d", { willReadFrequently: true }).drawImage(img, 0, 0, cv.width, cv.height);
       URL.revokeObjectURL(url);
       await processImage(cv);
-    } catch (e) { console.error(e); engine("อ่านรูปไม่สำเร็จ: " + (e.message || e), "err"); }
+    } catch (e) { console.error(e); engine(T("palm.eng.imgFail", "อ่านรูปไม่สำเร็จ: {msg}", { msg: e.message || e }), "err"); }
     finally { S.busy = false; }
   });
 
@@ -1269,25 +1299,30 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   async function processImage(cv) {
     S.src = cv; S.result = null;
     resultSec.hidden = true;
-    engine("กำลังหาจุดบนมือ...");
+    engine(function () { return T("palm.eng.finding", "กำลังหาจุดบนมือ..."); });
     await frame2();
     var det = null, nh = 0;
     try { await loadModels(); var hs = await detectHands(cv, false); nh = hs.length; det = primaryHand(hs, null, cv.width, cv.height).hand; } catch (e) { console.warn(e); }
     var q = quality(det && det.pts, cv.width, cv.height, cv, nh);
     renderQc(q);
     if (!det) {
-      engine("ไม่พบมือในภาพอัตโนมัติ — แตะจุดบนมือเอง 7 จุดเพื่อไปต่อ", "err");
+      engine(function () { return T("palm.eng.noHand", "ไม่พบมือในภาพอัตโนมัติ — แตะจุดบนมือเอง 7 จุดเพื่อไปต่อ"); }, "err");
       startTap();
       return;
     }
     var warn = q.filter(function (x) { return !x.ok; }).map(function (x) { return x.tip; });
     S.hand = PC.handFromLandmarks(det.pts);
     applyDetectedSide(PC.resolveSide({ pts: det.pts, handedness: det.handedness }));
-    if (S.sideMismatch) warn.push("ภาพนี้ดูเหมือน" + SIDE_TH[S.sideMismatch] + " แต่เลือกอ่าน" + SIDE_TH[S.side] + "ไว้");
-    await buildFromHand(warn.length ? "พบ" + SIDE_TH[S.side] + "แล้ว (" + warn.join(" · ") + " — ผลอาจคลาดเคลื่อน)" : "พบ" + SIDE_TH[S.side] + "แล้ว ตรวจและปรับเส้นได้ด้านล่าง", warn.length ? "err" : "ok");
+    var mis = S.sideMismatch, rside = S.side;
+    if (mis) warn.push(["palm.warn.mismatch", "ภาพนี้ดูเหมือน{seen} แต่เลือกอ่าน{side}ไว้", { seen: sideTh(mis), side: sideTh(rside) }]);
+    await buildFromHand(function () {
+      var sv = { side: sideTh(rside) };
+      if (mis) warn[warn.length - 1][2] = { seen: sideTh(mis), side: sideTh(rside) };
+      return warn.length ? T("palm.eng.foundWarn", "พบ{side}แล้ว ({warn} — ผลอาจคลาดเคลื่อน)", { side: sv.side, warn: warn.map(qtx).join(" · ") }) : T("palm.eng.found", "พบ{side}แล้ว ตรวจและปรับเส้นได้ด้านล่าง", sv);
+    }, warn.length ? "err" : "ok");
   }
   async function buildFromHand(msg, cls) {
-    engine("กำลังไล่เส้นบนฝ่ามือ...");
+    engine(function () { return T("palm.eng.tracing", "กำลังไล่เส้นบนฝ่ามือ..."); });
     await frame2();
     var F = PC.palmFrame(S.hand), c = document.createElement("canvas");
     c.width = F.w; c.height = F.h;
@@ -1309,11 +1344,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     S.active = "life"; S.mode = "edit";
     $("#plFateNone").checked = !S.lines.fate.present;
     showEditor();
-    engine(msg || "พร้อมปรับเส้น", cls || "ok");
+    engine(msg || function () { return T("palm.eng.editReady", "พร้อมปรับเส้น"); }, cls || "ok");
   }
 
   /* ---------- ขั้นที่ 2: ตัวแก้ไขเส้น / ปักจุดเอง ---------- */
   var TAP_LABELS = { wrist: "กึ่งกลางข้อมือ", indexBase: "โคนนิ้วชี้", pinkyBase: "โคนนิ้วก้อย", indexTip: "ปลายนิ้วชี้", middleTip: "ปลายนิ้วกลาง", ringTip: "ปลายนิ้วนาง", pinkyTip: "ปลายนิ้วก้อย" };
+  var tapLabel = function (k) { return T("palm.tap." + k, TAP_LABELS[k]); };
   function showEditor() {
     editSec.hidden = false; setStep(2);
     $("#plTapBar").hidden = S.mode !== "tap";
@@ -1332,22 +1368,22 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   function renderTapMsg() {
     var k = PC.TAP_ORDER[S.taps.length];
-    $("#plTapMsg").innerHTML = k ? "แตะจุดที่ " + (S.taps.length + 1) + "/7: <b>" + esc(TAP_LABELS[k]) + "</b>" : "ครบแล้ว";
+    $("#plTapMsg").innerHTML = k ? esc(T("palm.tap.n", "แตะจุดที่ {n}/7", { n: S.taps.length + 1 })) + ": <b>" + esc(tapLabel(k)) + "</b>" : esc(T("palm.tap.done", "ครบแล้ว"));
     $("#plTapUndo").disabled = !S.taps.length;
-    $("#plEditCap").textContent = "แตะตามลำดับ: ข้อมือ → โคนนิ้วชี้ → โคนนิ้วก้อย → ปลายนิ้วชี้ กลาง นาง ก้อย (ใช้วัดสัดส่วนมือและวางแนวเส้น)";
+    $("#plEditCap").textContent = T("palm.tap.order", "แตะตามลำดับ: ข้อมือ → โคนนิ้วชี้ → โคนนิ้วก้อย → ปลายนิ้วชี้ กลาง นาง ก้อย (ใช้วัดสัดส่วนมือและวางแนวเส้น)");
   }
   $("#plTapUndo").addEventListener("click", function () { S.taps.pop(); renderTapMsg(); renderEditor(); });
   $("#plTapMode").addEventListener("click", function () { if (S.src) startTap(); });
   function renderLineChips() {
     $("#plLineChips").innerHTML = PC.LINE_IDS.map(function (id) {
       var L = KB.lines[id], a = S.lines && S.lines[id] && S.lines[id].auto;
-      var conf = a ? (a.conf >= 0.6 ? "ชัด" : a.conf >= 0.3 ? "พอเห็น" : "ไม่ชัด") : "";
-      return '<button type="button" role="radio" class="chip-btn" style="--c:' + L.color + '" data-line="' + id + '" aria-checked="' + (S.active === id) + '"><i></i>' + esc(L.th) + (conf ? " <small>(" + conf + ")</small>" : "") + "</button>";
+      var conf = a ? (a.conf >= 0.6 ? T("palm.conf.hi", "ชัด") : a.conf >= 0.3 ? T("palm.conf.mid", "พอเห็น") : T("palm.conf.lo", "ไม่ชัด")) : "";
+      return '<button type="button" role="radio" class="chip-btn" style="--c:' + L.color + '" data-line="' + id + '" aria-checked="' + (S.active === id) + '"><i></i>' + esc(KT("lines." + id + ".th", L.th)) + (conf ? " <small>(" + conf + ")</small>" : "") + "</button>";
     }).join("");
     $$("#plLineChips [data-line]").forEach(function (b) { b.addEventListener("click", function () { S.active = b.dataset.line; renderLineChips(); renderEditor(); }); });
   }
   $("#plFateNone").addEventListener("change", function () { if (S.lines) { S.lines.fate.present = !this.checked; if (!this.checked) S.active = "fate"; renderLineChips(); renderEditor(); } });
-  $("#plResetLines").addEventListener("click", function () { if (S.auto) { S.lines = JSON.parse(JSON.stringify(S.auto)); $("#plFateNone").checked = !S.lines.fate.present; renderLineChips(); renderEditor(); toast("คืนค่าเส้นอัตโนมัติแล้ว"); } });
+  $("#plResetLines").addEventListener("click", function () { if (S.auto) { S.lines = JSON.parse(JSON.stringify(S.auto)); $("#plFateNone").checked = !S.lines.fate.present; renderLineChips(); renderEditor(); toast(T("palm.toast.reset", "คืนค่าเส้นอัตโนมัติแล้ว")); } });
 
   // แสดงผลภาพมาตรฐาน: กลับซ้าย-ขวาเมื่อกรอบถูกสะท้อน (มือขวา) เพื่อให้ภาพตรงกับมือจริง
   function dispX(x) { return S.F && S.F.mirrored ? S.F.w - x : x; }
@@ -1383,7 +1419,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       c.font = "600 " + Math.round(13 * cssScale()) + "px Prompt, system-ui, sans-serif"; c.textBaseline = "middle";
       S.taps.forEach(function (p, i) {
         c.beginPath(); c.arc(p[0] * k, p[1] * k, r, 0, Math.PI * 2); c.fillStyle = "#22d3ee"; c.fill(); c.lineWidth = 3; c.strokeStyle = "#0e1430"; c.stroke();
-        c.fillStyle = "#fff"; c.strokeStyle = "rgba(14,20,48,.8)"; c.lineWidth = 4; c.strokeText(TAP_LABELS[PC.TAP_ORDER[i]], p[0] * k + r * 1.4, p[1] * k); c.fillText(TAP_LABELS[PC.TAP_ORDER[i]], p[0] * k + r * 1.4, p[1] * k);
+        c.fillStyle = "#fff"; c.strokeStyle = "rgba(14,20,48,.8)"; c.lineWidth = 4; c.strokeText(tapLabel(PC.TAP_ORDER[i]), p[0] * k + r * 1.4, p[1] * k); c.fillText(tapLabel(PC.TAP_ORDER[i]), p[0] * k + r * 1.4, p[1] * k);
       });
       return;
     }
@@ -1403,7 +1439,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       c.lineWidth = 4 * sc; c.strokeStyle = KB.lines[S.active].color; c.stroke();
       if (i === 0) { c.beginPath(); c.arc(p[0], p[1], r * 0.35, 0, Math.PI * 2); c.fillStyle = KB.lines[S.active].color; c.fill(); }
     });
-    $("#plEditCap").textContent = "กำลังปรับ: " + KB.lines[S.active].th + " — " + KB.lines[S.active].where + " · ลากจุดกลมให้ทับรอยเส้นจริง";
+    $("#plEditCap").textContent = T("palm.edit.cap", "กำลังปรับ: {line} — {where} · ลากจุดกลมให้ทับรอยเส้นจริง", { line: KT("lines." + S.active + ".th", KB.lines[S.active].th), where: KT("lines." + S.active + ".where", KB.lines[S.active].where) });
   }
   function evtPt(e) { var r = edCv.getBoundingClientRect(); return [(e.clientX - r.left) * edCv.width / r.width, (e.clientY - r.top) * edCv.height / r.height]; }
   var drag = null;
@@ -1417,7 +1453,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         var t = {}; PC.TAP_ORDER.forEach(function (key, i) { t[key] = S.taps[i]; });
         S.hand = PC.handFromTaps(t); applyDetectedSide(PC.resolveSide({ hand: S.hand })); renderReadSide();
         S.mode = "edit"; $("#plTapBar").hidden = true; $("#plLineTools").hidden = false; $("#plRead").disabled = false; $("#plHonest").hidden = false;
-        buildFromHand("ปักจุดครบแล้ว ตรวจและปรับเส้นได้เลย", "ok");
+        buildFromHand(function () { return T("palm.eng.tapsDone", "ปักจุดครบแล้ว ตรวจและปรับเส้นได้เลย"); }, "ok");
       }
       return;
     }
@@ -1447,10 +1483,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   // เส้นรอง (ผู้ใช้ยืนยัน) และเนิน
   function renderMinor() {
     $("#plMinor").innerHTML = Object.keys(KB.minor).map(function (k) {
-      var d = KB.minor[k], v = S.minor[k];
-      return '<div class="minor-row"><b>' + esc(d.th) + '</b><small>' + esc(d.where) + '</small><span class="tri" role="group" aria-label="' + esc(d.th) + '">' +
-        '<button type="button" data-minor="' + k + '" data-v="1" aria-pressed="' + (v === true) + '">เห็น</button>' +
-        '<button type="button" data-minor="' + k + '" data-v="0" aria-pressed="' + (v === false) + '">ไม่เห็น</button></span></div>';
+      var d = KB.minor[k], v = S.minor[k], nm = KT("minor." + k + ".th", d.th);
+      return '<div class="minor-row"><b>' + esc(nm) + '</b><small>' + esc(KT("minor." + k + ".where", d.where)) + '</small><span class="tri" role="group" aria-label="' + esc(nm) + '">' +
+        '<button type="button" data-minor="' + k + '" data-v="1" aria-pressed="' + (v === true) + '">' + esc(T("palm.minor.yes", "เห็น")) + '</button>' +
+        '<button type="button" data-minor="' + k + '" data-v="0" aria-pressed="' + (v === false) + '">' + esc(T("palm.minor.no", "ไม่เห็น")) + '</button></span></div>';
     }).join("");
     $$("#plMinor [data-minor]").forEach(function (b) {
       b.addEventListener("click", function () { var k = b.dataset.minor, v = b.dataset.v === "1"; S.minor[k] = S.minor[k] === v ? undefined : v; renderMinor(); });
@@ -1459,19 +1495,20 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function renderMounts() {
     $("#plMounts").innerHTML = Object.keys(KB.mounts).map(function (k) {
       var d = KB.mounts[k];
-      return '<button type="button" class="chip-btn" data-mount="' + k + '" aria-pressed="' + (S.mounts.indexOf(k) >= 0) + '">' + esc(d.th) + " <small>" + esc(d.under) + "</small></button>";
+      return '<button type="button" class="chip-btn" data-mount="' + k + '" aria-pressed="' + (S.mounts.indexOf(k) >= 0) + '">' + esc(KT("mounts." + k + ".th", d.th)) + " <small>" + esc(KT("mounts." + k + ".under", d.under)) + "</small></button>";
     }).join("");
     $$("#plMounts [data-mount]").forEach(function (b) {
       b.addEventListener("click", function () { var k = b.dataset.mount, i = S.mounts.indexOf(k); if (i >= 0) S.mounts.splice(i, 1); else S.mounts.push(k); renderMounts(); });
     });
   }
   renderMinor(); renderMounts();
-  $("#plMountNote").textContent = KB.mountsNote;
+  function renderMountNote() { $("#plMountNote").textContent = KT("mountsNote", KB.mountsNote); }
+  renderMountNote();
   // ถ่ายใหม่: ล้างเฉพาะมือปัจจุบัน (โหมดทั้งสองมือยังเก็บผลมือที่ 1 ไว้)
   $("#plBack").addEventListener("click", function () {
     clearReading(); renderSide(); renderPair(); setStep(1); touch();
     $("#plStage").scrollIntoView({ block: "start" });
-    engine("ถ่าย" + SIDE_TH[guideSide()] + "ใหม่ได้เลย", "ok");
+    engine(function () { return T("palm.eng.retake", "ถ่าย{side}ใหม่ได้เลย", { side: sideTh(guideSide()) }); }, "ok");
   });
 
   /* ---------- ขั้นที่ 3: อ่านลายมือ ---------- */
@@ -1505,7 +1542,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var topic = "overall", narrToken = 0;
   function renderTopics() {
     $$("[data-topics]").forEach(function (box) {
-      box.innerHTML = TOPICS.map(function (t) { return '<button type="button" role="radio" data-topic="' + t[0] + '" aria-checked="' + (t[0] === topic) + '">' + t[1] + "</button>"; }).join("");
+      box.innerHTML = TOPICS.map(function (t) { return '<button type="button" role="radio" data-topic="' + t[0] + '" aria-checked="' + (t[0] === topic) + '">' + esc(T("palm.topic." + t[0], t[1])) + "</button>"; }).join("");
     });
   }
   document.addEventListener("click", function (e) {
@@ -1522,8 +1559,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   function legacyResult(R) {
     var rd = R.reading;
-    return { source: "local", sections: [{ id: "personality", title: "บุคลิก", paragraphs: [rd.personality] }, { id: "work", title: "การงาน", paragraphs: [rd.work] },
-      { id: "money", title: "การเงิน", paragraphs: [rd.money] }, { id: "love", title: "ความรัก & มิตรภาพ", paragraphs: [rd.love] }] };
+    var ek = "element." + R.el.top.id;
+    return { source: "local", sections: [{ id: "personality", title: T("palm.sec.personality", "บุคลิก"), paragraphs: [ZM(ek, rd.personality, "p")] }, { id: "work", title: T("palm.sec.work", "การงาน"), paragraphs: [ZM(ek, rd.work, "w")] },
+      { id: "money", title: T("palm.sec.money", "การเงิน"), paragraphs: [ZM(ek, rd.money, "m")] }, { id: "love", title: T("palm.sec.love", "ความรัก & มิตรภาพ"), paragraphs: [ZM(ek, rd.love, "l")] }] };
   }
   function narrate(again) {
     if (!S.result) return;
@@ -1533,7 +1571,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     S.facts = facts;
     var useAI = !!(FA && FA.hasConsent && FA.hasConsent());
     box.setAttribute("aria-busy", "true"); btn.disabled = true;
-    if (!box.firstChild || useAI) box.innerHTML = '<p class="fa-loading">' + (useAI ? "กำลังให้ AI เรียบเรียงคำทำนาย..." : "กำลังเรียบเรียงคำทำนาย...") + "</p>";
+    if (!box.firstChild || useAI) box.innerHTML = '<p class="fa-loading">' + esc(useAI ? T("palm.narr.loadingAI", "กำลังให้ AI เรียบเรียงคำทำนาย...") : T("palm.narr.loading", "กำลังเรียบเรียงคำทำนาย...")) + "</p>";
     var p = !FA ? Promise.resolve(legacyResult(R)) : again && FA.regenerate ? FA.regenerate(facts, { useAI: useAI }) : FA.interpret(facts, { useAI: useAI });
     p.catch(function (e) { console.error(e); return FA && FA.compose ? FA.compose(facts) : legacyResult(R); }).then(function (res) {
       if (my !== narrToken || !S.result) return;
@@ -1541,12 +1579,13 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var shown = res;
       if (S.cmp) { // ส่วนเทียบสองมือ ต่อจากภาพรวม
         var secs = (res.sections || []).slice(), at = secs.length && secs[0].id === "overview" ? 1 : 0;
-        secs.splice(at, 0, { id: "compare", title: S.cmp.title, paragraphs: S.cmp.paragraphs });
+        var cv = cmpView();
+        secs.splice(at, 0, { id: "compare", title: cv.title, paragraphs: cv.paragraphs });
         shown = Object.assign({}, res, { sections: secs });
       }
       if (FA && FA.renderSections) FA.renderSections(box, shown, { aiBadge: false }); else renderPlain(box, shown);
       var src = $("#plSrc"), ai = res.source === "ai";
-      src.textContent = ai ? "เรียบเรียงโดย Claude AI" : "เรียบเรียงในเครื่อง";
+      src.textContent = ai ? T("palm.src.ai", "เรียบเรียงโดย Claude AI") : T("palm.src.local", "เรียบเรียงในเครื่อง");
       src.classList.toggle("ai", ai);
       box.removeAttribute("aria-busy"); btn.disabled = false;
     });
@@ -1563,7 +1602,24 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     for (var i = 0; i < seg.length && c.length < 20; i++) { var nx = c ? c + " " + seg[i] : seg[i]; if (nx.length > max) break; c = nx; }
     return c.length >= 20 && !/[0-9()%]/.test(c) && !/(?:แบบนี้|อย่างนี้|ทรงนี้|ของคุณ|ว่า|ที่|และ|หรือ|เช่น|ค่อย ๆ|กับ|ให้)$/.test(c) ? c : "";
   }
+  /** ภาษาจีน: หาสำนวนจาก zh-kb ของหัวข้อในผลวัดที่ปรากฏในคำทำนาย แล้วตัดที่เครื่องหมาย "，" ถ้ายาวเกิน max */
+  function keySentencesZh(res, n, max, facts) {
+    var secs = (res && res.sections) || [], out = [], found = [];
+    var text = secs.filter(function (x) { return x.id !== "advice"; }).slice(0, 4).map(function (x) { return (x.paragraphs || []).join(""); }).join("");
+    ((facts && facts.items) || []).forEach(function (it) {
+      var z = ZI(it.id); if (!z) return;
+      "opwmlct".split("").forEach(function (fk) { [].concat(z[fk] || []).forEach(function (m) { var at = text.indexOf(m); if (at >= 0) found.push({ at: at, m: m }); }); });
+    });
+    found.sort(function (a, b) { return a.at - b.at; });
+    found.forEach(function (f) {
+      if (out.length >= n) return;
+      var c = f.m.length <= max ? f.m : f.m.split("，")[0];
+      if (c.length >= 8 && c.length <= max && out.indexOf(c) < 0) out.push(c);
+    });
+    return out;
+  }
   function keySentences(res, n, max, facts) {
+    if (isZh()) return keySentencesZh(res, n, max, facts);
     var secs = (res && res.sections) || [], out = [];
     var text = secs.filter(function (x) { return x.id !== "advice"; }).slice(0, 4).map(function (x) { return (x.paragraphs || []).join(" "); }).join(" ");
     var found = [];
@@ -1593,7 +1649,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     c.font = "500 " + fs + "px Prompt, system-ui, sans-serif"; c.textAlign = "center"; c.textBaseline = "middle";
     Object.keys(KB.mounts).forEach(function (k) {
       // เนินที่ผู้ใช้เลือก หรือที่ประเมินจากภาพว่าเด่น = สีทอง
-      var p = uvToDisp(KB.mounts[k].pos), on = S.mounts.indexOf(k) >= 0 || !!(R.mounts && R.mounts.top.indexOf(k) >= 0), t = KB.mounts[k].th.replace("เนิน", "");
+      var p = uvToDisp(KB.mounts[k].pos), on = S.mounts.indexOf(k) >= 0 || !!(R.mounts && R.mounts.top.indexOf(k) >= 0), t = KT("mounts." + k + ".short", KB.mounts[k].th.replace("เนิน", ""));
       c.beginPath(); c.arc(p[0], p[1], (on ? 6 : 3.5) * sc, 0, Math.PI * 2); c.fillStyle = on ? "#fcd34d" : "rgba(255,255,255,.75)"; c.fill();
       var tw = c.measureText(t).width + fs * 0.9, th = fs * 1.5, ty = p[1] + 14 * sc;
       c.fillStyle = on ? "rgba(252,211,77,.95)" : "rgba(14,20,48,.62)";
@@ -1603,56 +1659,103 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     c.textAlign = "left";
   }
   var fmt = function (v, d) { return typeof v === "number" ? v.toFixed(d) : "—"; };
+  /** ชื่อธาตุสั้น (ดิน / 土) และชื่อมือตามธาตุ (มือธาตุดิน / 土型手) */
+  var elTh = function (id) { return KT("elements." + id + ".th", KB.elements[id].th); };
+  var elHand = function (id) { var z = isZh() && ZI("element." + id); return z ? z.n : "มือธาตุ" + KB.elements[id].th; };
+  var LINE_ORDER = { life: "pt", head: "pwm", heart: "lpc", fate: "wtm" };
+  /** หมวดนิ้ว/นิ้วโป้ง… ใน KB → คีย์ใน zh-kb */
+  var GRP_ZK = { fingers: "finger", fingerDom: "fingerdom", pinky: "pinky", thumb: "thumb", thumbAngle: "thumbangle", spread: "spread" };
+  var grpLabel = function (grp, cat, th) { return KT(grp + "." + cat + ".label", th); };
+  var grpMeaning = function (grp, cat, th) { var k = GRP_ZK[grp] + "." + cat; return ZI(k) ? ZM(k, th, "pwcml") : KT(grp + "." + cat + ".meaning", th); };
+  var lineCatLabel = function (id, cat) { var c = KB.lines[id].cats[cat]; return KT("lines." + id + ".cats." + cat, c ? c.label : cat); };
   function renderResult(R) {
-    var rd = R.reading, E = rd.element;
+    var rd = R.reading, E = rd.element, eid = R.el.top.id, sid = R.el.second.id;
     drawResultImage(R);
     $("#plElement").style.setProperty("--el", E.color);
     $("#plElement").style.setProperty("--el-soft", E.soft);
-    $("#plElName").textContent = "ธาตุ" + E.th;
+    $("#plElName").textContent = isZh() ? elHand(eid) : "ธาตุ" + E.th;
     $("#plElPct").textContent = R.el.top.pct + "%";
-    $("#plElShape").textContent = E.shape;
-    $("#plElSecond").innerHTML = "ธาตุรอง: <b>" + esc(rd.second.th) + "</b> " + R.el.second.pct + "%";
-    $("#plElBars").innerHTML = R.el.ranked.map(function (r) { var e = KB.elements[r.id]; return '<div class="elbar"><span>' + esc(e.th) + '</span><i style="--w:' + r.pct + "%;--c:" + e.color + '"></i><b>' + r.pct + "%</b></div>"; }).join("");
-    $("#plElTraits").innerHTML = E.traits.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("");
-    $("#plElNote").textContent = KB.elementsNote;
-    $("#plSideBadge").innerHTML = "<b>อ่านจาก" + esc(SIDE_TH[S.side]) + "</b>" + (rd.side ? esc(rd.side.th + " · " + rd.side.short + " — " + rd.side.text) : "") +
-      (S.sideSrc === "detect" ? ' <small class="muted">(ตรวจจากภาพ)</small>' : "") + (S.sideMode === "both" ? ' <small class="muted">· มือที่ ' + (S.pairStep + 1) + "/2</small>" : "");
+    $("#plElShape").textContent = KT("elements." + eid + ".shape", E.shape);
+    $("#plElSecond").innerHTML = esc(T("palm.el.second", "ธาตุรอง")) + ": <b>" + esc(elTh(sid)) + "</b> " + R.el.second.pct + "%";
+    $("#plElBars").innerHTML = R.el.ranked.map(function (r) { var e = KB.elements[r.id]; return '<div class="elbar"><span>' + esc(elTh(r.id)) + '</span><i style="--w:' + r.pct + "%;--c:" + e.color + '"></i><b>' + r.pct + "%</b></div>"; }).join("");
+    $("#plElTraits").innerHTML = E.traits.map(function (t, i) { return "<li>" + esc(KT("elements." + eid + ".traits." + i, t)) + "</li>"; }).join("");
+    $("#plElNote").textContent = KT("elementsNote", KB.elementsNote);
+    var sk = rd.side ? (rd.side === KB.sides.dominant ? "dominant" : "other") : null;
+    $("#plSideBadge").innerHTML = "<b>" + esc(T("palm.badge.from", "อ่านจาก{side}", { side: sideTh(S.side) })) + "</b>" + (sk ? esc(KT("sides." + sk + ".th", rd.side.th) + " · " + KT("sides." + sk + ".short", rd.side.short) + " — " + KT("sides." + sk + ".text", rd.side.text)) : "") +
+      (S.sideSrc === "detect" ? ' <small class="muted">' + esc(T("palm.fromImage", "(ตรวจจากภาพ)")) + "</small>" : "") + (S.sideMode === "both" ? ' <small class="muted">· ' + esc(T("palm.handNof2", "มือที่ {n}/2", { n: S.pairStep + 1 })) + "</small>" : "");
     $("#plLines").innerHTML = rd.lines.map(function (l) {
-      return '<div class="line-card" style="--c:' + l.color + '"><h4>' + esc(l.th) + "<span>" + esc(l.cn) + '</span></h4><p class="about">' + esc(l.about) + "</p><ul>" +
-        l.items.map(function (it) { return "<li><b>" + esc(it.label) + "</b>" + esc(it.meaning) + "</li>"; }).join("") + "</ul></div>";
+      return '<div class="line-card" style="--c:' + l.color + '"><h4>' + esc(KT("lines." + l.id + ".th", l.th)) + "<span>" + esc(T("palm.lineEn." + l.id, l.cn)) + '</span></h4><p class="about">' + esc(KT("lines." + l.id + ".about", l.about)) + "</p><ul>" +
+        l.items.map(function (it) { return "<li><b>" + esc(lineCatLabel(l.id, it.cat)) + "</b>" + esc(ZM(l.id + "." + it.cat, it.meaning, LINE_ORDER[l.id])) + "</li>"; }).join("") + "</ul></div>";
     }).join("");
-    $("#plLifeNote").textContent = KB.lifeLineNote;
+    $("#plLifeNote").textContent = KT("lifeLineNote", KB.lifeLineNote);
     var hm = R.hm;
-    var li = function (x, pre) { return x ? "<li><b>" + esc((pre || "") + x.label) + "</b>" + esc(x.meaning) + "</li>" : ""; };
+    var li = function (x, grp) { return x ? "<li><b>" + esc(grpLabel(grp, x.cat, x.label)) + "</b>" + esc(grpMeaning(grp, x.cat, x.meaning)) + "</li>" : ""; };
+    var balanced = T("palm.shape.balanced", "สัดส่วนสมดุล");
     $("#plFingers").innerHTML = [
-      li(rd.finger), li(rd.fingerDom, ""), li(rd.pinky), li(rd.thumb), li(rd.thumbAngle), li(rd.spread),
-      "<li><b>ฝ่ามือ" + (Math.abs(R.el.zp) < 0.5 ? "สัดส่วนสมดุล" : R.el.palmShape === "long" ? "ค่อนข้างยาว" : "ค่อนข้างเหลี่ยม") + " · นิ้ว" + (Math.abs(R.el.zf) < 0.5 ? "สัดส่วนสมดุล" : R.el.fingerShape === "long" ? "ค่อนข้างยาว" : "ค่อนข้างสั้น") + "</b>" + esc(E.shape) + "</li>"
+      li(rd.finger, "fingers"), li(rd.fingerDom, "fingerDom"), li(rd.pinky, "pinky"), li(rd.thumb, "thumb"), li(rd.thumbAngle, "thumbAngle"), li(rd.spread, "spread"),
+      "<li><b>" + esc(T("palm.shape.palm", "ฝ่ามือ") + (Math.abs(R.el.zp) < 0.5 ? balanced : R.el.palmShape === "long" ? T("palm.shape.palmLong", "ค่อนข้างยาว") : T("palm.shape.palmSquare", "ค่อนข้างเหลี่ยม")) + " · " +
+        T("palm.shape.fingers", "นิ้ว") + (Math.abs(R.el.zf) < 0.5 ? balanced : R.el.fingerShape === "long" ? T("palm.shape.fingerLong", "ค่อนข้างยาว") : T("palm.shape.fingerShort", "ค่อนข้างสั้น"))) + "</b>" + esc(KT("elements." + eid + ".shape", E.shape)) + "</li>"
     ].join("");
-    var ex = rd.minor.map(function (m) { return "<li><b>" + esc(m.th) + (m.seen ? " — เห็นชัด" : " — ไม่เห็นชัด") + "</b>" + esc(m.meaning) + "</li>"; })
-      .concat(rd.mounts.map(function (m) { return "<li><b>" + esc(m.th) + " เด่น</b>" + esc(m.meaning) + "</li>"; }));
-    $("#plExtras").innerHTML = ex.length ? ex.join("") : '<li class="muted">ไม่ได้เลือกเส้นรองหรือเนิน — ย้อนไปเลือกในขั้นปรับเส้นได้</li>';
+    var ex = rd.minor.map(function (m) { return "<li><b>" + esc(KT("minor." + m.id + ".th", m.th) + (m.seen ? T("palm.minor.seenClear", " — เห็นชัด") : T("palm.minor.notClear", " — ไม่เห็นชัด"))) + "</b>" + esc(ZM("minor." + m.id + "." + (m.seen ? "yes" : "no"), m.meaning, "wmlct")) + "</li>"; })
+      .concat(rd.mounts.map(function (m) { return "<li><b>" + esc(KT("mounts." + m.id + ".th", m.th) + T("palm.mount.prominent", " เด่น")) + "</b>" + esc(ZM("mount." + m.id, m.meaning, "p")) + "</li>"; }));
+    $("#plExtras").innerHTML = ex.length ? ex.join("") : '<li class="muted">' + esc(T("palm.extras.none", "ไม่ได้เลือกเส้นรองหรือเนิน — ย้อนไปเลือกในขั้นปรับเส้นได้")) + "</li>";
     $("#plMountEst").innerHTML = rd.mountsEst.map(function (m) {
-      return '<div class="mest' + (m.top ? " top" : "") + '"><b>' + esc(m.th) + (m.top ? " · เด่น" : "") + "</b><span>" + m.level + "%</span><i style=\"--w:" + m.level + '%"></i><small>' + esc(m.under) +
-        (m.bagua ? " · " + m.bagua.th + " " + m.bagua.cn + " (" + m.bagua.theme + ")" : "") + "</small></div>";
+      var bg = "";
+      if (m.bagua) bg = " · " + (isZh() ? KT("bagua." + m.bagua.id + ".th", m.bagua.th) + "（" + KT("bagua." + m.bagua.id + ".theme", m.bagua.theme) + "）" : m.bagua.th + " " + m.bagua.cn + " (" + m.bagua.theme + ")");
+      return '<div class="mest' + (m.top ? " top" : "") + '"><b>' + esc(KT("mounts." + m.id + ".th", m.th) + (m.top ? T("palm.mest.top", " · เด่น") : "")) + "</b><span>" + m.level + "%</span><i style=\"--w:" + m.level + '%"></i><small>' + esc(KT("mounts." + m.id + ".under", m.under) + bg) + "</small></div>";
     }).join("");
-    $("#plMountEstNote").textContent = KB.mountEstNote;
-    $("#plColors").innerHTML = rd.colors.map(function (c) { return '<li><i style="background:' + c.hex + '"></i>' + esc(c.name) + "</li>"; }).join("");
-    $("#plTips").innerHTML = rd.tips.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("");
-    $("#plHowSrc").textContent = "จุดบนมือ: " + (hm.source === "model" ? "ตรวจอัตโนมัติด้วยโมเดล MediaPipe Hands (21 จุด)" : "ผู้ใช้แตะเอง 7 จุด (โคนนิ้วกลาง/นางเป็นค่าประมาณ)") + " · ตัวประมวลผล: " + (models && models.backend ? models.backend.toUpperCase() : models && models.fake ? "ตัวตรวจจับจำลอง" : "—");
-    var M = R.lc.m, rows = [
-      ["ฝ่ามือยาว ÷ กว้าง", fmt(hm.palmRatio, 2), "ข้อมือ→โคนนิ้วกลาง ÷ โคนนิ้วชี้→ก้อย (ค่าทั่วไป ~" + PC.NORMS.palm + ")"],
-      ["นิ้วกลาง ÷ ฝ่ามือ", fmt(hm.fingerRatio, 2), "ความยาวนิ้วกลาง ÷ ความยาวฝ่ามือ (ค่าทั่วไป ~" + PC.NORMS.finger + ")"],
-      ["นิ้วชี้ ÷ นิ้วนาง", fmt(hm.indexRing, 3), "> 1.02 นิ้วชี้ยาวกว่า · < 0.965 นิ้วนางยาวกว่า"],
-      ["นิ้วโป้ง ÷ ฝ่ามือ", fmt(hm.thumbRatio, 2), "ใช้เฉพาะเมื่อโมเดลตรวจจุดนิ้วโป้งได้"],
-      ["มุมนิ้วโป้ง–นิ้วชี้", fmt(hm.thumbAngle, 0) + "°", "> 60° กางกว้าง · < 34° ชิด (ค่าทั่วไป ~" + PC.NORMS.thumbAngle + "°)"],
-      ["นิ้วก้อย ÷ นิ้วนาง", fmt(hm.pinkyRing, 2), "ค่าทั่วไป ~" + PC.NORMS.pinkyRing],
-      ["ช่องห่างนิ้วเฉลี่ย", fmt(hm.spread, 0) + "°", "> 15° กางห่าง · < 6° ชิด"]
+    $("#plMountEstNote").textContent = KT("mountEstNote", KB.mountEstNote);
+    $("#plColors").innerHTML = rd.colors.map(function (c, i) { return '<li><i style="background:' + c.hex + '"></i>' + esc(KT("elements." + eid + ".colors." + i, c.name)) + "</li>"; }).join("");
+    $("#plTips").innerHTML = rd.tips.map(function (t) {
+      if (!isZh()) return "<li>" + esc(t) + "</li>";
+      var gi = KB.generalTips.indexOf(t), z = t === E.tip ? KT("elements." + eid + ".tip", t) : gi >= 0 ? KT("generalTips." + gi, t) :
+        rd.mounts.length ? T("palm.tip.mount", "จุดเด่นของคุณอยู่ที่{mount}", { mount: KT("mounts." + rd.mounts[0].id + ".th", rd.mounts[0].th) }) : t;
+      return "<li>" + esc(z) + "</li>";
+    }).join("");
+    $("#plHowSrc").textContent = T("palm.how.points", "จุดบนมือ") + ": " + (hm.source === "model" ? T("palm.how.model", "ตรวจอัตโนมัติด้วยโมเดล MediaPipe Hands (21 จุด)") : T("palm.how.taps", "ผู้ใช้แตะเอง 7 จุด (โคนนิ้วกลาง/นางเป็นค่าประมาณ)")) + " · " + T("palm.how.backend", "ตัวประมวลผล") + ": " + (models && models.backend ? models.backend.toUpperCase() : models && models.fake ? T("palm.how.fake", "ตัวตรวจจับจำลอง") : "—");
+    var M = R.lc.m, N = PC.NORMS, rows = [
+      [T("palm.raw.palm", "ฝ่ามือยาว ÷ กว้าง"), fmt(hm.palmRatio, 2), T("palm.raw.palmD", "ข้อมือ→โคนนิ้วกลาง ÷ โคนนิ้วชี้→ก้อย (ค่าทั่วไป ~{n})", { n: N.palm })],
+      [T("palm.raw.finger", "นิ้วกลาง ÷ ฝ่ามือ"), fmt(hm.fingerRatio, 2), T("palm.raw.fingerD", "ความยาวนิ้วกลาง ÷ ความยาวฝ่ามือ (ค่าทั่วไป ~{n})", { n: N.finger })],
+      [T("palm.raw.ir", "นิ้วชี้ ÷ นิ้วนาง"), fmt(hm.indexRing, 3), T("palm.raw.irD", "> 1.02 นิ้วชี้ยาวกว่า · < 0.965 นิ้วนางยาวกว่า")],
+      [T("palm.raw.thumb", "นิ้วโป้ง ÷ ฝ่ามือ"), fmt(hm.thumbRatio, 2), T("palm.raw.thumbD", "ใช้เฉพาะเมื่อโมเดลตรวจจุดนิ้วโป้งได้")],
+      [T("palm.raw.ta", "มุมนิ้วโป้ง–นิ้วชี้"), fmt(hm.thumbAngle, 0) + "°", T("palm.raw.taD", "> 60° กางกว้าง · < 34° ชิด (ค่าทั่วไป ~{n}°)", { n: N.thumbAngle })],
+      [T("palm.raw.pinky", "นิ้วก้อย ÷ นิ้วนาง"), fmt(hm.pinkyRing, 2), T("palm.raw.pinkyD", "ค่าทั่วไป ~{n}", { n: N.pinkyRing })],
+      [T("palm.raw.spread", "ช่องห่างนิ้วเฉลี่ย"), fmt(hm.spread, 0) + "°", T("palm.raw.spreadD", "> 15° กางห่าง · < 6° ชิด")]
     ];
     PC.LINE_IDS.forEach(function (id) {
       var m = M[id]; if (!m || (id === "fate" && !S.lines.fate.present)) return;
-      rows.push([KB.lines[id].th, "ยาว " + fmt(m.length, 2) + " · ลึก " + fmt(m.depth, 2), "ความยาวเป็นเท่าของความกว้างฝ่ามือ · ความลึก 0–1 จากความเข้มของร่อง" + (id === "head" ? " · ลาดลง " + fmt(m.angle, 0) + "°" : "") + (m.breaks ? " · ช่วงขาด " + m.breaks : "")]);
+      rows.push([KT("lines." + id + ".th", KB.lines[id].th), T("palm.raw.lineV", "ยาว {len} · ลึก {depth}", { len: fmt(m.length, 2), depth: fmt(m.depth, 2) }),
+        T("palm.raw.lineD", "ความยาวเป็นเท่าของความกว้างฝ่ามือ · ความลึก 0–1 จากความเข้มของร่อง") + (id === "head" ? T("palm.raw.slope", " · ลาดลง {deg}°", { deg: fmt(m.angle, 0) }) : "") + (m.breaks ? T("palm.raw.breaks", " · ช่วงขาด {n}", { n: m.breaks }) : "")]);
     });
     $("#plRaw").innerHTML = rows.map(function (r) { return "<tr><td>" + esc(r[0]) + '</td><td class="num">' + esc(r[1]) + "</td><td>" + esc(r[2]) + "</td></tr>"; }).join("");
+  }
+  /* ---------- เทียบสองมือตามภาษาที่เลือก (ไทย: ผลจาก PC.buildComparison · จีน: เรียบเรียงจากแถวเทียบชุดเดียวกัน) ---------- */
+  var CMP_ROW = { element: "ธาตุประจำมือ", finger: "นิ้วชี้กับนิ้วนาง", fingerDom: "นิ้วเด่น", thumbAngle: "มุมนิ้วโป้ง", mount: "เนินที่เด่น" };
+  function cmpRowName(key, th) { return KB.lines[key] ? KT("lines." + key + ".th", th) : T("palm.cmp.row." + key, CMP_ROW[key] || th); }
+  function cmpVal(key, R, th) {
+    if (key === "element") return elHand(R.el.top.id);
+    if (KB.lines[key]) return lineCatLabel(key, (R.lc.cats[key] || [])[0]);
+    if (key === "finger") return grpLabel("fingers", PC.fingerCat(R.hm), th);
+    if (key === "fingerDom") return grpLabel("fingerDom", PC.fingerDom(R.hm).id, th);
+    if (key === "thumbAngle") return grpLabel("thumbAngle", PC.thumbAngleCat(R.hm), th);
+    if (key === "mount" && R.mounts) return KT("mounts." + R.mounts.top[0] + ".th", th);
+    return th;
+  }
+  function cmpView() {
+    var c = S.cmp; if (!c) return null;
+    if (!isZh()) return { title: c.title, paragraphs: c.paragraphs, rows: c.cmp.rows };
+    var rows = c.cmp.rows.map(function (r) { return { key: r.key, th: cmpRowName(r.key, r.th), a: cmpVal(r.key, c.A.R, r.a), b: cmpVal(r.key, c.B.R, r.b), same: r.same }; });
+    var V = { a: sideTh(c.A.side), b: sideTh(c.B.side) }, P = [T("palm.cmpz.intro", "{a}บอกศักยภาพที่ติดตัวมา ส่วน{b}บอกสิ่งที่คุณลงมือสร้างขึ้นเอง", V)];
+    var el = rows[0];
+    P.push(el.same ? T("palm.cmpz.sameEl", "ทั้งสองมือเป็น{el}เหมือนกัน", { el: el.a }) : T("palm.cmpz.diffEl", "{a}เป็น{elA} ส่วน{b}เป็น{elB}", { a: V.a, b: V.b, elA: el.a, elB: el.b }));
+    var lr = rows.filter(function (r) { return PC.LINE_IDS.indexOf(r.key) >= 0; });
+    var diff = lr.filter(function (r) { return !r.same; }).slice(0, 2), same = lr.filter(function (r) { return r.same; }).slice(0, diff.length ? 1 : 2);
+    diff.forEach(function (r) { P.push(T("palm.cmpz.diffLine", "{line}บน{a}เป็นแบบ{ca} ส่วนบน{b}เป็นแบบ{cb}", { line: r.th, a: V.a, b: V.b, ca: r.a, cb: r.b })); });
+    same.forEach(function (r) { P.push(T("palm.cmpz.sameLine", "{line}ของทั้งสองมือคล้ายกัน", { line: r.th })); });
+    var mr = rows.filter(function (r) { return r.key === "mount"; })[0];
+    if (mr) P.push(mr.same ? T("palm.cmpz.sameMounts", "{ma}เด่นทั้งสองมือ", { ma: mr.a }) : T("palm.cmpz.mounts", "เนินที่เด่นบนมือที่ติดตัวคือ{ma} และบนมือที่สร้างเองคือ{mb}", { ma: mr.a, mb: mr.b }));
+    P.push(T("palm.cmpz.closing", "มือที่ติดตัวบอกว่าคุณเริ่มจากตรงไหน มือที่สร้างเองบอกว่าคุณมาไกลแค่ไหน"));
+    return { title: T("palm.cmpz.title", c.title), paragraphs: P, rows: rows };
   }
   /* ---------- โหมดทั้งสองมือ: ไปถ่ายมือที่ 2 / ตารางเทียบ ---------- */
   function renderPair() {
@@ -1661,17 +1764,17 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     nx.hidden = !showNext;
     if (showNext) {
       var nextSide = S.side === S.dom ? inbornSide() : S.dom;
-      $("#plPairMsg").innerHTML = "อ่านมือที่ 1: <b>" + esc(SIDE_TH[S.side]) + "</b> (" + esc(roleOf(S.side).short) + ") แล้ว — ต่อไปถ่าย<b>" + esc(SIDE_TH[nextSide]) + "</b> (" + esc(roleOf(nextSide).short) + ") เพื่อเทียบกัน";
-      $("#plNextHand").textContent = "ถ่ายมือที่ 2: " + SIDE_TH[nextSide];
-    }
+      $("#plPairMsg").innerHTML = esc(T("palm.pair.a", "อ่านมือที่ 1:")) + " <b>" + esc(sideTh(S.side)) + "</b> (" + esc(roleOf(S.side).short) + ") " + esc(T("palm.pair.b", "แล้ว — ต่อไปถ่าย")) + "<b>" + esc(sideTh(nextSide)) + "</b> (" + esc(roleOf(nextSide).short) + ") " + esc(T("palm.pair.c", "เพื่อเทียบกัน"));
+      $("#plNextHand").textContent = T("palm.pair.btn", "ถ่ายมือที่ 2: {side}", { side: sideTh(nextSide) });
+    } else $("#plNextHand").textContent = T("palm.nextHand", "ถ่ายมือที่ 2");
     cmpSec.hidden = !S.cmp;
-    if (!S.cmp) return;
-    var c = S.cmp.cmp;
-    $("#plCmpTitle").textContent = S.cmp.title;
-    $("#plCmpA").textContent = SIDE_TH[S.cmp.A.side] + " · " + KB.hands.roles.inborn;
-    $("#plCmpB").textContent = SIDE_TH[S.cmp.B.side] + " · " + KB.hands.roles.made;
-    $("#plCmpSum").textContent = "เหมือนกัน " + c.same + " จาก " + c.total + " หัวข้อ — " + (c.similar ? "สองมือไปในทางเดียวกัน" : "สองมือต่างกันอย่างน่าสนใจ") + " (อ่านคำอธิบายในคำทำนายด้านบน)";
-    $("#plCmpRows").innerHTML = c.rows.map(function (r) { return "<tr><td>" + esc(r.th) + '</td><td class="' + (r.same ? "same" : "") + '">' + esc(r.a) + '</td><td class="' + (r.same ? "same" : "") + '">' + esc(r.b) + (r.same ? " ✓" : "") + "</td></tr>"; }).join("");
+    if (!S.cmp) { $("#plCmpTitle").textContent = T("palm.cmp.title", "เทียบสองมือ"); return; }
+    var c = S.cmp.cmp, cv = cmpView();
+    $("#plCmpTitle").textContent = cv.title;
+    $("#plCmpA").textContent = sideTh(S.cmp.A.side) + " · " + roleInborn();
+    $("#plCmpB").textContent = sideTh(S.cmp.B.side) + " · " + roleMade();
+    $("#plCmpSum").textContent = T("palm.cmp.sum", "เหมือนกัน {same} จาก {total} หัวข้อ — {verdict} (อ่านคำอธิบายในคำทำนายด้านบน)", { same: c.same, total: c.total, verdict: c.similar ? T("palm.cmp.similar", "สองมือไปในทางเดียวกัน") : T("palm.cmp.differ", "สองมือต่างกันอย่างน่าสนใจ") });
+    $("#plCmpRows").innerHTML = cv.rows.map(function (r) { return "<tr><td>" + esc(r.th) + '</td><td class="' + (r.same ? "same" : "") + '">' + esc(r.a) + '</td><td class="' + (r.same ? "same" : "") + '">' + esc(r.b) + (r.same ? " ✓" : "") + "</td></tr>"; }).join("");
   }
   $("#plNextHand").addEventListener("click", function () {
     if (!S.result) return;
@@ -1680,13 +1783,14 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     clearReading();
     renderSide(); renderPair(); setStep(1);
     $("#plStage").scrollIntoView({ behavior: smooth(), block: "start" });
-    engine("ถ่าย" + SIDE_TH[expectedSide()] + " (" + roleOf(expectedSide()).short + ") ต่อได้เลย" + (camera.active ? "" : " — เปิดกล้องหรืออัปโหลดรูป"), "ok");
+    var nxs = expectedSide(), camOn = camera.active;
+    engine(function () { return T("palm.eng.next", "ถ่าย{side} ({role}) ต่อได้เลย", { side: sideTh(nxs), role: roleOf(nxs).short }) + (camOn ? "" : T("palm.eng.nextCam", " — เปิดกล้องหรืออัปโหลดรูป")); }, "ok");
   });
   $("#plEditAgain").addEventListener("click", function () { touch(); editSec.scrollIntoView({ behavior: smooth(), block: "start" }); setStep(2); });
 
   /* ---------- การ์ดแชร์ 1080×1350 ---------- */
   function wrapTh(c, text, maxW) {
-    var segs = (typeof Intl !== "undefined" && Intl.Segmenter) ? Array.from(new Intl.Segmenter("th", { granularity: "word" }).segment(text), function (s) { return s.segment; }) : text.split("");
+    var segs = (typeof Intl !== "undefined" && Intl.Segmenter) ? Array.from(new Intl.Segmenter(isZh() ? "zh" : "th", { granularity: "word" }).segment(text), function (s) { return s.segment; }) : text.split("");
     var lines = [], cur = "";
     segs.forEach(function (sg) { if (c.measureText(cur + sg).width > maxW && cur) { lines.push(cur.trim()); cur = sg.trimStart(); } else cur += sg; });
     if (cur.trim()) lines.push(cur.trim());
@@ -1710,7 +1814,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     c.restore();
     c.textBaseline = "middle"; c.textAlign = "left";
     c.font = "700 40px " + FF; c.fillStyle = "#fff"; c.fillText("LENS", 148, 96); var lw = c.measureText("LENS").width; c.fillStyle = "#a99bff"; c.fillText("IQ", 148 + lw, 96);
-    c.textAlign = "right"; c.font = "500 34px " + FF; c.fillStyle = "#c9d0ea"; c.fillText("ดูลายมือ", W - 72, 96);
+    c.textAlign = "right"; c.font = "500 34px " + FF; c.fillStyle = "#c9d0ea"; c.fillText(T("palm.card.title", "ดูลายมือ"), W - 72, 96);
     // วงกลม + ภาพลายเส้นมือ (ไม่ใช้ภาพถ่าย)
     var cy = 440, r = 220;
     c.beginPath(); c.arc(W / 2, cy, r + 14, 0, Math.PI * 2); c.fillStyle = E.color; c.fill();
@@ -1718,12 +1822,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     drawPalmGlyph(c, W / 2, cy, r, S.lines, S.F ? S.F.asp : 1.6);
     c.restore();
     c.textAlign = "center"; c.fillStyle = "#fff";
-    c.font = "700 92px " + FF; c.fillText("มือธาตุ" + E.th, W / 2, 750);
+    c.font = "700 92px " + FF; c.fillText(elHand(R.el.top.id), W / 2, 750);
     c.font = "400 34px " + FF; c.fillStyle = "#c9d0ea";
-    c.fillText(SIDE_TH[S.side] + " · " + R.el.top.pct + "% · ธาตุรอง" + rd.second.th + " " + R.el.second.pct + "%", W / 2, 830);
+    c.fillText(sideTh(S.side) + " · " + R.el.top.pct + "% · " + T("palm.card.second", "ธาตุรอง{el}", { el: elTh(R.el.second.id) }) + " " + R.el.second.pct + "%", W / 2, 830);
     // 2–3 ประโยคเด่นจากคำทำนายที่เรียบเรียงแล้ว (สำรอง: จุดเด่นของธาตุ)
     var keys = keySentences(S.narr, 5, 60, S.facts), drawn = 0;
-    if (!keys.length) keys = E.traits.slice(0, 3);
+    if (!keys.length) keys = E.traits.slice(0, 3).map(function (t, i) { return KT("elements." + R.el.top.id + ".traits." + i, t); });
     c.font = "400 33px " + FF;
     var y = 880;
     keys.forEach(function (t) {
@@ -1736,9 +1840,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       y += h + 14;
     });
     c.font = "400 30px " + FF; c.fillStyle = "#c9d0ea";
-    rd.lines.filter(function (l) { return l.id === "head" || l.id === "heart"; }).forEach(function (l, i) { c.fillText(l.th + ": " + l.items[0].label, W / 2, 1196 + i * 40, W - 140); });
+    rd.lines.filter(function (l) { return l.id === "head" || l.id === "heart"; }).forEach(function (l, i) { c.fillText(KT("lines." + l.id + ".th", l.th) + ": " + lineCatLabel(l.id, l.items[0].cat), W / 2, 1196 + i * 40, W - 140); });
     c.font = "400 24px " + FF; c.fillStyle = "#8f9bc4";
-    wrapTh(c, KB.disclaimerShort + " · ไม่บันทึกภาพ", W - 140).forEach(function (l, i) { c.fillText(l, W / 2, 1290 + i * 30); });
+    wrapTh(c, KT("disclaimerShort", KB.disclaimerShort) + " · " + T("palm.card.noSave", "ไม่บันทึกภาพ"), W - 140).forEach(function (l, i) { c.fillText(l, W / 2, 1290 + i * 30); });
     return cv;
   }
   /** ลายเส้นฝ่ามือแบบมินิมอลจากเส้นที่ผู้ใช้ยืนยัน (กรอบ u,v → วงกลม) */
@@ -1771,12 +1875,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var im = $("#plCardImg"); im.src = cardUrl; im.hidden = false;
       var file = new File([blob], "lensiq-ดูลายมือ.png", { type: "image/png" });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: "ดูลายมือ — LENSIQ", text: "มือธาตุ" + S.result.reading.element.th + " " + KB.disclaimerShort }); return; }
+        try { await navigator.share({ files: [file], title: T("palm.share.title", "ดูลายมือ — LENSIQ"), text: elHand(S.result.el.top.id) + " " + KT("disclaimerShort", KB.disclaimerShort) }); return; }
         catch (e) { if (e.name === "AbortError") return; }
       }
       var a = document.createElement("a"); a.href = cardUrl; a.download = "lensiq-palm.png"; document.body.append(a); a.click(); a.remove();
-      toast("บันทึกการ์ดแล้ว");
-    } catch (e) { console.error(e); toast("สร้างการ์ดไม่สำเร็จ"); }
+      toast(T("palm.toast.saved", "บันทึกการ์ดแล้ว"));
+    } catch (e) { console.error(e); toast(T("palm.toast.cardFail", "สร้างการ์ดไม่สำเร็จ")); }
     finally { b.disabled = false; }
   });
   $("#plPrint").addEventListener("click", function () { touch(); window.print(); });
@@ -1793,7 +1897,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     resCanvas.getContext("2d").clearRect(0, 0, resCanvas.width, resCanvas.height);
     edCv.getContext("2d").clearRect(0, 0, edCv.width, edCv.height);
     $("#plCardImg").hidden = true; if (cardUrl) { URL.revokeObjectURL(cardUrl); cardUrl = null; }
-    renderQc([{ label: "พบมือ", ok: false, tip: "เปิดกล้องหรืออัปโหลดรูป" }]);
+    renderQc([{ label: ["palm.qc.hand", "พบมือ"], ok: false, tip: ["palm.qc.startTip", "เปิดกล้องหรืออัปโหลดรูป"] }]);
   }
   function reset() {
     clearReading();
@@ -1802,21 +1906,21 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     resetPair(); renderSide();
     setStep(1);
     $("#plStage").scrollIntoView({ block: "start" });
-    engine(ready ? "พร้อมอ่านคนถัดไป" : "พร้อมใช้งาน", "ok");
+    engine(function () { return ready ? T("palm.eng.nextPerson", "พร้อมอ่านคนถัดไป") : T("palm.eng.readyShort", "พร้อมใช้งาน"); }, "ok");
     touch();
   }
 
   /* ---------- สถิติบูธ (ไม่ระบุตัวตน) ---------- */
   function renderStats() {
     var st = lsGet(STATS_KEY, null), box = $("#plStats");
-    if (!st || !st.total) { box.innerHTML = '<p class="muted">ยังไม่มีการอ่านในเครื่องนี้</p>'; return; }
+    if (!st || !st.total) { box.innerHTML = '<p class="muted">' + esc(T("palm.stats.none", "ยังไม่มีการอ่านในเครื่องนี้")) + "</p>"; return; }
     var d = new Date(), today = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-    box.innerHTML = '<p class="stat-n"><b>' + st.total + "</b> ครั้ง <small>(วันนี้ " + ((st.days || {})[today] || 0) + ")</small></p>" +
-      PC.ELEMENTS.map(function (k) { var n = (st.types || {})[k] || 0, e = KB.elements[k]; return '<div class="elbar"><span>' + esc(e.th) + '</span><i style="--w:' + Math.round(n / st.total * 100) + "%;--c:" + e.color + '"></i><b>' + n + "</b></div>"; }).join("");
+    box.innerHTML = '<p class="stat-n"><b>' + st.total + "</b> " + esc(T("palm.stats.times", "ครั้ง")) + " <small>(" + esc(T("palm.stats.today", "วันนี้ {n}", { n: (st.days || {})[today] || 0 })) + ")</small></p>" +
+      PC.ELEMENTS.map(function (k) { var n = (st.types || {})[k] || 0, e = KB.elements[k]; return '<div class="elbar"><span>' + esc(elTh(k)) + '</span><i style="--w:' + Math.round(n / st.total * 100) + "%;--c:" + e.color + '"></i><b>' + n + "</b></div>"; }).join("");
   }
   $("#plStatsOn").checked = !!prefs.stats;
   $("#plStatsOn").addEventListener("change", function () { prefs.stats = this.checked; lsSet(PREF_KEY, prefs); });
-  $("#plStatsClear").addEventListener("click", function () { if (confirm("ล้างสถิติการอ่านในเครื่องนี้?")) { try { localStorage.removeItem(STATS_KEY); } catch (e) { /* ไม่เป็นไร */ } renderStats(); } });
+  $("#plStatsClear").addEventListener("click", function () { if (confirm(T("palm.stats.confirm", "ล้างสถิติการอ่านในเครื่องนี้?"))) { try { localStorage.removeItem(STATS_KEY); } catch (e) { /* ไม่เป็นไร */ } renderStats(); } });
   renderStats();
 
   /* ---------- โหมดบูธ: เต็มจอ ปุ่มใหญ่ กลับหน้าเริ่มอัตโนมัติเมื่อไม่มีการใช้งาน 60 วินาที ---------- */
@@ -1828,7 +1932,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var until = Date.now() + IDLE_MS;
     idleTick = setInterval(function () {
       var left = Math.ceil((until - Date.now()) / 1000);
-      if (left <= 15) { el.hidden = false; el.textContent = "กลับหน้าเริ่มต้นใน " + left + " วินาที — แตะเพื่ออยู่ต่อ"; }
+      if (left <= 15) { el.hidden = false; el.textContent = T("palm.idle", "กลับหน้าเริ่มต้นใน {n} วินาที — แตะเพื่ออยู่ต่อ", { n: left }); }
     }, 1000);
     idleT = setTimeout(function () { clearInterval(idleTick); el.hidden = true; reset(); }, IDLE_MS);
   }
@@ -1850,12 +1954,26 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   document.addEventListener("fullscreenchange", function () { if (!document.fullscreenElement && wasFs) { wasFs = false; setKiosk(false); } });
   window.addEventListener("resize", function () { if (!editSec.hidden) renderEditor(); });
 
-  $("#plSources").innerHTML = KB.sources.map(function (s) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.label) + "</a></li>"; }).join("");
-  $("#plEthics").textContent = KB.ethics;
+  function renderSources() {
+    $("#plSources").innerHTML = KB.sources.map(function (s, i) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(KT("sources." + i, s.label)) + "</a></li>"; }).join("");
+    $("#plEthics").textContent = KT("ethics", KB.ethics);
+  }
+  renderSources();
 
   if (!window.isSecureContext) showHttpsNote($("#plEngine"));
-  engine("กำลังโหลดโมเดลจุดบนมือ...");
+  engine(function () { return T("palm.eng.loading", "กำลังโหลดโมเดลจุดบนมือ..."); });
   loadModels().catch(function () {});
   renderPair();
+
+  /* ---------- สลับภาษา (TH | 中文): วาดข้อความที่สร้างจาก JS ใหม่ และเรียบเรียงคำทำนายใหม่จากผลวัดชุดเดิม ---------- */
+  window.addEventListener("lq-lang", function () {
+    renderSide(); renderTradition(); renderTopics(); renderMinor(); renderMounts(); renderMountNote(); renderSources(); renderStats();
+    if (lastQcItems) renderQc(lastQcItems);
+    if (lastEngine && typeof lastEngine[0] === "function") engine(lastEngine[0], lastEngine[1]);
+    if (S.hand) renderReadSide();
+    if (!editSec.hidden && S.src) { if (S.mode === "tap") renderTapMsg(); else renderLineChips(); renderEditor(); }
+    renderPair();
+    if (S.result) { renderResult(S.result); $("#plCardImg").hidden = true; narrate(false); }
+  });
   window.__palm = { get S() { return S; }, get guide() { return S.guide; }, makeCard: makeCard, narrate: narrate, keySentences: keySentences, reset: reset, detectHand: detectHand, detectHands: detectHands, loadModels: loadModels }; // ใช้ทดสอบ
 })();

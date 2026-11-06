@@ -25,8 +25,8 @@ export function policy({ connect = [] } = {}) {
   return [
     "default-src 'self'",
     "script-src 'self' 'wasm-unsafe-eval'",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com data:",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self' data:",
     "img-src 'self' data: blob:",
     "media-src 'self' data: blob:",
     ("connect-src 'self' data: blob: " + extra.join(" ")).trim(),
@@ -71,7 +71,7 @@ export function lint(html) {
   }
   if (/<[a-z][^>]*\son[a-z]+\s*=\s*["'][^"']*["']/i.test(html.replace(/<script\b[\s\S]*?<\/script>/gi, ""))) problems.push("inline on*= handler");
   if (/(href|src|action)\s*=\s*["']\s*javascript:/i.test(html)) problems.push("javascript: URL");
-  if (/<(script|link)\b[^>]*(src|href)\s*=\s*["']https?:\/\/(?!fonts\.googleapis\.com|fonts\.gstatic\.com)/i.test(html)) problems.push("third-party script/style origin");
+  if (/<(script|link)\b[^>]*(src|href)\s*=\s*["']https?:\/\//i.test(html)) problems.push("third-party script/style origin (fonts are self-hosted: node tools/self-host-fonts.mjs)");
   return problems;
 }
 

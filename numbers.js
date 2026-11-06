@@ -42,7 +42,7 @@
     const plateCare = kind === "plate" && KB.plateCareSums.indexOf(sum) >= 0;
     let grade, phrases, name, tags;
     if (sum < 10) {
-      grade = ROOT_GRADE[sum]; phrases = rd.m.slice(); name = "เลข " + sum + " · " + rd.planet; tags = ["personality"];
+      grade = ROOT_GRADE[sum]; phrases = rd.m.slice(); name = "เลข " + sum + " ดาว" + rd.planet; tags = ["personality"];
     } else {
       const p = pairInfo(String(sum));
       grade = p.grade; name = p.name; tags = p.tags;
@@ -206,6 +206,9 @@
      privacy: ใส่เฉพาะคู่/ผลรวม/รูปแบบที่เด่น ไม่ใส่เลขเต็ม; opts.forAI = true จะตัดตำแหน่งออกด้วย */
   const KIND_TH = { phone: "เบอร์มือถือ", plate: "ทะเบียนรถ", house: "บ้านเลขที่/เลขห้อง", account: "เลขบัญชี (ตัวท้าย)", name: "ชื่อ" };
   const PATTERN_TH = { run: "เลขซ้ำติดกัน", up: "เลขเรียงขึ้น", down: "เลขเรียงลง", mirror: "เลขกระจก (อ่านกลับได้)", abab: "คู่ซ้ำสลับ", aabb: "ท้ายเบิ้ลคู่", nozero: "ไม่มีเลข 0 ในช่วงที่อ่าน" };
+  // หัวข้อที่สำนวนหนึ่งพูดถึง (ดูจากคำในประโยค) — ใช้วางสำนวนให้ตรงหัวข้อ
+  const TOPIC_WORDS = { love: /ความรัก|คนรัก|คู่รัก|แฟน|หัวใจ|ความสัมพันธ์|คนที่รัก|คู่ครอง/, money: /เงิน|ทรัพย์|รายได้|ลงทุน|การเงิน|ค้าขาย|ออม/, work: /งาน|อาชีพ|ตำแหน่ง|ธุรกิจ|ทีม/ };
+  const phraseTopics = x => Object.keys(TOPIC_WORDS).filter(k => TOPIC_WORDS[k].test(x));
   const noDigitRef = (x, lead) => String(x).replace(/^เลข \d+ ?/, lead);
   function buildFacts(r, topic, opts) {
     opts = opts || {};
@@ -213,9 +216,16 @@
     const items = [], seen = {};
     (r.pairs || []).forEach(p => {
       if (seen[p.pair]) { if (!ai) seen[p.pair].evidence += ", " + p.pos.join("–"); seen[p.pair].strength = Math.min(1, seen[p.pair].strength + 0.08); return; }
+      // แต่ละสำนวนวางเฉพาะหัวข้อที่มันพูดถึงจริง (สำนวนเรื่องคนรักไม่ไปอยู่ใต้หัวข้อการเงิน/มิตรภาพ)
+      // สำนวนกลาง ๆ (ไม่มีคำของหัวข้อใด) ใช้ได้กับทุกหัวข้อของคู่นี้
+      const plain = p.phrases.filter((x, i) => !(p.care && i === 1));
       const meanings = {};
-      p.tags.forEach(t => { meanings[t] = p.phrases.filter((x, i) => !(p.care && i === 1)); });
-      if (p.care) meanings.advice = ai ? [p.phrases[1]] : [p.phrases[1], "คู่ " + p.pair + ": " + p.phrases[1]];
+      p.tags.forEach(t => {
+        const fit = plain.filter(x => { const on = phraseTopics(x); return !on.length ? true : on.indexOf(t) >= 0 || (t === "social" && on.indexOf("love") < 0 && on.indexOf("money") < 0) || t === "personality" && on.length === 0; });
+        if (fit.length) meanings[t] = fit;
+      });
+      if (!Object.keys(meanings).length) meanings[p.tags[0]] = plain;
+      if (p.care) meanings.advice = [p.phrases[1]];
       // forAI: ไม่ใส่ตัวเลขของคู่ ไม่ใส่ตำแหน่ง — ใช้เพียงชื่อหมวดความหมายและระดับ
       const it = ai ? {
         id: "pair." + (items.length + 1), group: "คู่เลข", label: p.name, short: p.name,
@@ -224,14 +234,15 @@
         id: "pair." + p.pair, group: "คู่เลข", label: "คู่ " + p.pair + " (" + p.name + ")", short: "คู่ " + p.pair,
         evidence: "คู่ " + p.pair + " ตำแหน่งที่ " + p.pos.join("–") + (p.emph ? " · " + p.emph : ""),
       };
-      Object.assign(it, { strength: +(p.pts / 100 * (0.6 + 0.25 * p.weight)).toFixed(3), tags: p.tags.concat(p.care ? ["advice"] : []), meanings });
+      Object.assign(it, { strength: +(p.pts / 100 * (0.6 + 0.25 * p.weight)).toFixed(3), tags: Object.keys(meanings), meanings, grade: p.grade });
+      if (p.care) it.polarity = "challenge";
       seen[p.pair] = it; items.push(it);
     });
     items.sort((a, b) => b.strength - a.strength);
     // forAI: ส่งเพียงคู่เด่น 3 + คู่ควรใส่ใจ 1 (ไม่มีลำดับ/ตำแหน่ง) จึงประกอบกลับเป็นเลขเต็มไม่ได้
     const nTop = ai ? 3 : 5, nCare = ai ? 1 : 2;
     const top = items.filter(i => i.tags.indexOf("advice") < 0).slice(0, nTop).concat(items.filter(i => i.tags.indexOf("advice") >= 0).slice(0, nCare));
-    if (top[0]) top[0].meanings.overview = top[0].meanings[top[0].tags[0]].map(s => "จุดเด่นที่สุดคือ" + top[0].label.replace(/^คู่ \d+ \((.*)\)$/, "$1") + " — " + s);
+    if (top[0] && !top[0].polarity) { const k0 = top[0].tags.find(t => t !== "advice"); if (k0) top[0].meanings.overview = top[0].meanings[k0].slice(); }
     const s = r.sum, rd = KB.digits[s.root];
     let sumItem;
     if (ai) {
@@ -258,8 +269,12 @@
         meanings: { advice: ["ตามบางตำรา อักษร" + kl + " เป็นอักษรที่คน" + r.weekday.th + "ให้ใส่ใจ หากชอบความสบายใจจะเลือกเลี่ยงก็ได้ แต่ไม่ได้มีผลร้ายใด ๆ", "อักษร" + kl + " เป็นเพียงความเชื่อตามวันเกิด ความตั้งใจและการกระทำของคุณสำคัญกว่าเสมอ"] } });
     }
     const gm = r.kind === "phone" ? goalMatch(r) : [];
-    const want = topic && KB.goals[topic] ? KB.goals[topic].tips : KB.generalTips;
-    const goalTips = gm.filter(g => g.hit.length).map(g => ai ? "เบอร์นี้มีคู่เลขที่ตรงกับเป้าหมายด้าน" + g.th : "เบอร์นี้มีคู่ " + g.hit.join(" และ ") + " ซึ่งตรงกับเป้าหมายด้าน" + g.th);
+    // ข้อแนะนำเลือกเบอร์ต้องไม่ขัดกับผลของเลขนี้: ไม่บอกให้เลี่ยงคู่ที่อยู่ในเลข (คู่นั้นมีคำอธิบายแบบ "ควรใส่ใจ" ของตัวเองแล้ว)
+    // และไม่ยกคู่ที่ตำราจัดว่าควรระวังเป็นตัวอย่างที่ดี — ตัดสินจากระดับในคลังความรู้ (KB.pairs) เสมอ
+    const have = new Set((r.pairs || []).map(p => p.pair));
+    const tipOk = t => { if (typeof t === "string") return true; if ((t.avoid || []).some(x => have.has(x))) return false; return (t.good || []).every(x => (KB.pairs[pairKey(x)] || [])[0] !== "c"); };
+    const want = (topic && KB.goals[topic] ? KB.goals[topic].tips : KB.generalTips).filter(tipOk).map(t => t.t || t);
+    const goalTips = gm.filter(g => g.hit.length && (!topic || topic === "overall" || g.id === topic)).map(g => ai ? "เบอร์นี้มีคู่เลขที่ตรงกับเป้าหมายด้าน" + g.th : "เบอร์นี้มีคู่ " + g.hit.join(" และ ") + " ซึ่งตรงกับเป้าหมายด้าน" + g.th);
     const extras = { tips: want.slice(0, 3).concat(goalTips) };
     if (r.weekday) extras.luckyColors = [r.weekday.color];
     return {
@@ -303,14 +318,77 @@
   const F = root.FortuneAI || null;
   let mode = "phone", current = null, currentFacts = null, aiEnabled = false, narrSeq = 0;
 
+  /* ---------- i18n (ไทยเป็นค่าเริ่มต้น จีนมาจาก i18n/zh-fortune-numbers.js และ i18n/zh-kb-numbers.js) ---------- */
+  const T = (k, th, v) => root.LQI18N ? root.LQI18N.tf(k, th, v) : String(th).replace(/\{(\w+)\}/g, (m, x) => v && v[x] != null ? v[x] : m);
+  const isZh = () => !!(root.LQI18N && root.LQI18N.lang === "zh");
+  const zkItem = id => { const D = root.FORTUNE_ZH && root.FORTUNE_ZH.numbers; return isZh() && D && D.items ? D.items[id] || null : null; };
+  const first = v => Array.isArray(v) ? v[0] : v;
+  const kindName = k => T("numbers.kind." + k, KIND_TH[k]);
+  const gradeName = g => T("numbers.grade." + g, KB.grades[g].th);
+  const planetName = n => T("numbers.dp." + n, KB.digits[n].planet);
+  const digitQ = n => T("numbers.dq." + n, KB.digits[n].q);
+  const wdName = w => T("numbers.wd." + w.id, w.th);
+  const wdColor = w => T("numbers.wdc." + w.id, w.color);
+  /** ชื่อคู่เลข (ไม่มีตัวเลข) เช่น "คู่เสน่ห์เจรจา" / "魅力沟通" */
+  const pairNameL = pair => { const z = zkItem("pair." + pair); return z ? String(z.n).split(" · ").slice(1).join(" · ") : KB.pairs[pairKey(pair)][2]; };
+  /** สำนวนที่แสดงในการ์ดคู่เลข */
+  const pairTextL = p => { const z = zkItem("pair." + p.pair); if (!z) return p.phrases[p.care ? 1 : 0]; return p.care && z.a ? T("numbers.care", "{a}", { a: first(z.a) }) : first(z.o); };
+  const pairOrderL = p => !isZh() ? p.order : p.pair[0] === p.pair[1] ? T("numbers.order.double", "", { q: digitQ(+p.pair[0]) }) : T("numbers.order.lead", "", { d: p.pair[0], a: digitQ(+p.pair[0]), b: digitQ(+p.pair[1]) });
+  const sumNameL = s => !isZh() ? s.name : s.sum < 10 ? T("numbers.digitName", "", { n: s.sum, p: planetName(s.sum) }) : pairNameL(String(s.sum));
+  const sumTextL = s => {
+    if (!isZh()) return s.phrases[0];
+    if (s.sum < 10) { const z = zkItem("sum." + s.sum); return z ? first(z.o) : s.phrases[0]; }
+    const z = zkItem("pair." + s.sum); return z ? T("numbers.sum.intro", "", { s: s.sum, t: first(z.o) }) : s.phrases[0];
+  };
+  const sumRootL = s => !isZh() ? s.rootLine : T("numbers.sum.root", "", { r: s.root, p: planetName(s.root), q: digitQ(s.root) });
+  const sumExtraL = s => !s.extra ? "" : T("numbers.sum.plateCare", s.extra);
+  const emphL = e => e === "คู่ท้ายสุด" ? T("numbers.emph.last", e) : e === "คู่รองท้าย" ? T("numbers.emph.second", e) : e;
+  function patLabelL(p) {
+    if (!isZh()) return p.label;
+    const ds = (String(p.label).match(/\d+/g) || []);
+    if (p.id === "run") { const d = (String(p.label).match(/\((\d+)\)/) || [])[1] || ds[ds.length - 1] || ""; return T("numbers.pat.run", "", { d, n: d.length }); }
+    if (p.id === "nozero") return T("numbers.pat.nozero", p.label);
+    return T("numbers.pat." + p.id, p.label, { d: ds[ds.length - 1] || "" });
+  }
+  function patEvidenceL(p) {
+    if (!isZh()) return p.evidence;
+    if (p.id === "nozero") return T("numbers.pat.nozeroEv", p.evidence);
+    const m = /(\d+)–(\d+)/.exec(p.evidence || ""); return m ? T("numbers.pat.posRange", "", { a: m[1], b: m[2] }) : p.evidence;
+  }
+  function breakdownL(r, b) {
+    if (!isZh()) return b.th;
+    const g = b.id === "sum" ? gradeName(r.sum.grade) : "";
+    if (b.id === "pairs") return r.kind === "plate" ? T("numbers.bd.platePairs", b.th, { n: r.pairs.length }) : T("numbers.bd.pairs", b.th, { n: r.pairs.length });
+    if (b.id === "sum") {
+      if (r.kind === "house" && r.digits && r.digits.length === 1) return T("numbers.bd.single", b.th, { d: r.digits });
+      if (r.kind === "name") return T("numbers.bd.nameSum", b.th, { t: r.total, g });
+      if (r.kind === "plate") return T("numbers.bd.plateSum", b.th, { s: r.sum.sum, g });
+      return T("numbers.bd.sum", b.th, { s: r.sum.sum, g });
+    }
+    if (b.id === "pattern") return T("numbers.bd.pattern", b.th, { n: r.patterns.length });
+    if (b.id === "kala") return r.kala.length ? T("numbers.bd.kalaYes", b.th, { k: r.kala.join(" ") }) : T("numbers.bd.kalaNo", b.th, { wd: wdName(r.weekday) });
+    return b.th;
+  }
+  /** คำพลังจากผล (ตามภาษาปัจจุบัน) — ตรรกะเดียวกับ strengthWords */
+  function strengthWordsL(r) {
+    if (!isZh()) return strengthWords(r);
+    const out = [];
+    (r.pairs || []).filter(p => p.grade === "G" || p.grade === "g").forEach(p => { const n = pairNameL(p.pair); if (out.indexOf(n) < 0 && out.length < 4) out.push(n); });
+    const sn = r.sum ? sumNameL(r.sum) : "";
+    if (out.length < 4 && r.sum && r.sum.grade !== "c" && out.indexOf(sn) < 0) out.push(sn);
+    return out;
+  }
+  const goalTipL = (gid, i, t) => T("numbers.goalTip." + gid + "." + i, t.t || t);
+
   const TABS = ["phone", "plate", "house", "account", "name", "daily", "compare"];
   function setTab(t, focus) {
     mode = t;
     document.querySelectorAll(".nm-tab").forEach(b => { const on = b.dataset.tab === t; b.setAttribute("aria-selected", on ? "true" : "false"); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus(); });
     document.querySelectorAll("[data-for]").forEach(el => { el.hidden = el.dataset.for.split(" ").indexOf(t) < 0; });
     $("#nmErr").textContent = "";
-    $("#nmGo").textContent = { daily: "ดูพลังประจำวัน", compare: "เปรียบเทียบ", name: "วิเคราะห์ชื่อ", plate: "วิเคราะห์ทะเบียน" }[t] || "วิเคราะห์เลขมงคล";
-    $("#nmWdHint").textContent = t === "daily" ? "(จำเป็นสำหรับพลังประจำวัน)" : t === "plate" || t === "name" ? "(ไม่บังคับ — ใช้ดูอักษรกาลกิณี)" : "(ไม่บังคับ)";
+    const go = { daily: "ดูพลังประจำวัน", compare: "เปรียบเทียบ", name: "วิเคราะห์ชื่อ", plate: "วิเคราะห์ทะเบียน" }[t];
+    $("#nmGo").textContent = go ? T("numbers.go." + t, go) : T("numbers.go.default", "วิเคราะห์เลขมงคล");
+    $("#nmWdHint").textContent = t === "daily" ? T("numbers.hint.daily", "(จำเป็นสำหรับพลังประจำวัน)") : t === "plate" || t === "name" ? T("numbers.hint.kala", "(ไม่บังคับ — ใช้ดูอักษรกาลกิณี)") : T("numbers.hint.opt", "(ไม่บังคับ)");
   }
   document.querySelectorAll(".nm-tab").forEach(b => b.addEventListener("click", () => { setTab(b.dataset.tab); hideResults(); }));
   $("#nmTabs").addEventListener("keydown", e => {
@@ -323,7 +401,8 @@
   $("#nmPhone").addEventListener("input", function () { const d = onlyDigits(this.value).slice(0, 10); const f = d.length > 6 ? d.slice(0, 3) + "-" + d.slice(3, 6) + "-" + d.slice(6) : d.length > 3 ? d.slice(0, 3) + "-" + d.slice(3) : d; if (f !== this.value) this.value = f; });
   $("#nmAcct").addEventListener("input", function () { const d = onlyDigits(this.value).slice(0, 7); if (d !== this.value) this.value = d; });
 
-  function hideResults() { $("#nmResult").hidden = true; $("#nmDaily").hidden = true; $("#nmCompare").hidden = true; current = null; $("#nmCardImg").hidden = true; }
+  function hideResults() { $("#nmResult").hidden = true; $("#nmDaily").hidden = true; $("#nmCompare").hidden = true; current = null; lastDaily = null; lastCompare = null; $("#nmCardImg").hidden = true; }
+  let lastDaily = null, lastCompare = null;
 
   $("#nmForm").addEventListener("submit", e => {
     e.preventDefault(); touch();
@@ -331,13 +410,13 @@
     err.textContent = "";
     let r;
     if (mode === "daily") {
-      if (!wdId) { err.textContent = "เลือกวันเกิดก่อน แล้วกดอีกครั้ง"; $("#nmWd").focus(); return; }
+      if (!wdId) { err.textContent = T("numbers.err.wd", "เลือกวันเกิดก่อน แล้วกดอีกครั้ง"); $("#nmWd").focus(); return; }
       hideResults(); renderDaily(dailyEnergy(wdId)); stat("daily"); return;
     }
     if (mode === "compare") {
       const list = Array.from(document.querySelectorAll(".nm-cmp-in")).map(i => i.value);
       const rows = compare(list, $("#nmAll").checked ? "all" : "last7");
-      if (!rows.length) { err.textContent = "กรอกอย่างน้อย 1 เบอร์ (สูงสุด 5 เบอร์)"; return; }
+      if (!rows.length) { err.textContent = T("numbers.err.cmp", "กรอกอย่างน้อย 1 เบอร์ (สูงสุด 5 เบอร์)"); return; }
       hideResults(); renderCompare(rows); stat("compare"); return;
     }
     if (mode === "phone") r = analyzePhone($("#nmPhone").value, $("#nmAll").checked ? "all" : "last7");
@@ -345,76 +424,86 @@
     else if (mode === "house") r = analyzeHouse($("#nmHouse").value);
     else if (mode === "account") r = analyzeAccount($("#nmAcct").value);
     else r = analyzeName($("#nmName").value, wdId);
-    if (r.error) { err.textContent = r.error; return; }
+    if (r.error) { err.textContent = T(r.error, r.error); return; }
     hideResults(); current = r; renderResult(r); stat(mode);
   });
 
   /* ---------- แสดงผล ---------- */
   const GCLS = { G: "g2", g: "g1", n: "n", c: "c" };
-  function scoreWord(s) { return s >= 85 ? "พลังเด่นมาก" : s >= 72 ? "พลังดี" : s >= 58 ? "พลังสมดุล" : "พลังเรียบง่าย ค่อย ๆ เติม"; }
-  function renderResult(r) {
+  function scoreWord(s) { return s >= 85 ? T("numbers.score.w1", "พลังเด่นมาก") : s >= 72 ? T("numbers.score.w2", "พลังดี") : s >= 58 ? T("numbers.score.w3", "พลังสมดุล") : T("numbers.score.w4", "พลังเรียบง่าย ค่อย ๆ เติม"); }
+  function renderResult(r, quiet) {
     const sec = $("#nmResult"); sec.hidden = false;
-    $("#nmResKind").textContent = KIND_TH[r.kind];
+    $("#nmResKind").textContent = kindName(r.kind);
     $("#nmResNum").textContent = r.kind === "name" ? $("#nmName").value.trim() : r.display;
     $("#nmScore").textContent = r.score;
     $("#nmRing").style.setProperty("--p", r.score);
     $("#nmScoreWord").textContent = scoreWord(r.score);
-    $("#nmBreak").innerHTML = r.breakdown.map(b => '<li><span>' + esc(b.th) + '</span><i class="bar" style="--w:' + b.v + '%"></i><b>' + b.v + '</b><small>× ' + Math.round(b.w * 100) + "%</small></li>").join("") +
-      '<li class="tot"><span>รวม (ถ่วงน้ำหนัก)</span><i></i><b>' + r.score + "</b><small>/100</small></li>";
+    $("#nmBreak").innerHTML = r.breakdown.map(b => '<li><span>' + esc(breakdownL(r, b)) + '</span><i class="bar" style="--w:' + b.v + '%"></i><b>' + b.v + '</b><small>× ' + Math.round(b.w * 100) + "%</small></li>").join("") +
+      '<li class="tot"><span>' + esc(T("numbers.bd.total", "รวม (ถ่วงน้ำหนัก)")) + '</span><i></i><b>' + r.score + "</b><small>/100</small></li>";
     // แถบตัวเลข/ตัวอักษร
     let strip = "";
     if (r.kind === "name") strip = r.chars.map(c => '<span class="cell"><b>' + esc(c.ch) + "</b><small>" + c.v + "</small></span>").join("");
     else if (r.kind === "plate") strip = (r.lead ? '<span class="cell"><b>' + r.lead + "</b><small>" + r.lead + "</small></span>" : "") + r.letterVals.map(l => '<span class="cell lt' + (r.kala.indexOf(l.ch) >= 0 ? " kala" : "") + '"><b>' + esc(l.ch) + "</b><small>" + l.v + "</small></span>").join("") + '<span class="gap"></span>' + Array.from(r.num).map(c => '<span class="cell on"><b>' + c + "</b></span>").join("");
     else strip = Array.from(r.digits).map((c, i) => '<span class="cell' + (i + 1 >= r.segStart ? " on" : "") + '"><b>' + c + "</b><small>" + (i + 1) + "</small></span>").join("");
     $("#nmStrip").innerHTML = strip;
-    $("#nmStripCap").textContent = r.kind === "phone" ? (r.mode === "last7" ? "ไฮไลต์ = 7 ตัวท้ายที่ใช้อ่านคู่เลข (ตัวเลขเล็ก = ตำแหน่ง)" : "อ่านคู่เลขทุกคู่ (ตัวเลขเล็ก = ตำแหน่ง)") : r.kind === "plate" ? "ตัวเลขเล็ก = ค่าของตัวอักษรตามตารางเลขศาสตร์" : r.kind === "name" ? "ตัวเลขเล็ก = ค่าของแต่ละอักษร/สระ/วรรณยุกต์" + (r.skipped.length ? " (ข้ามอักขระที่ไม่มีในตาราง " + r.skipped.length + " ตัว)" : "") : "ตัวเลขเล็ก = ตำแหน่ง";
+    $("#nmStripCap").textContent = r.kind === "phone" ? (r.mode === "last7" ? T("numbers.strip.last7", "ไฮไลต์ = 7 ตัวท้ายที่ใช้อ่านคู่เลข (ตัวเลขเล็ก = ตำแหน่ง)") : T("numbers.strip.all", "อ่านคู่เลขทุกคู่ (ตัวเลขเล็ก = ตำแหน่ง)")) : r.kind === "plate" ? T("numbers.strip.plate", "ตัวเลขเล็ก = ค่าของตัวอักษรตามตารางเลขศาสตร์") : r.kind === "name" ? T("numbers.strip.name", "ตัวเลขเล็ก = ค่าของแต่ละอักษร/สระ/วรรณยุกต์") + (r.skipped.length ? T("numbers.strip.skip", " (ข้ามอักขระที่ไม่มีในตาราง {n} ตัว)", { n: r.skipped.length }) : "") : T("numbers.strip.pos", "ตัวเลขเล็ก = ตำแหน่ง");
     // คู่เลข
     $("#nmPairsBlock").hidden = !r.pairs.length;
-    $("#nmPairs").innerHTML = r.pairs.map(p => '<li class="pr ' + GCLS[p.grade] + '"><div class="pr-h"><b class="pr-n">' + p.pair + '</b><span class="pr-g">' + esc(p.gradeTh) + '</span><span class="pr-pos">ตำแหน่ง ' + p.pos.join("–") + (p.emph ? " · " + p.emph : "") + '</span></div><p class="pr-name">' + esc(p.name) + "</p><p>" + esc(p.phrases[p.care ? 1 : 0]) + '</p><p class="pr-o">' + esc(p.order) + "</p></li>").join("");
+    $("#nmPairs").innerHTML = r.pairs.map(p => '<li class="pr ' + GCLS[p.grade] + '"><div class="pr-h"><b class="pr-n">' + p.pair + '</b><span class="pr-g">' + esc(gradeName(p.grade)) + '</span><span class="pr-pos">' + esc(T("numbers.pos", "ตำแหน่ง {p}", { p: p.pos.join("–") }) + (p.emph ? " · " + emphL(p.emph) : "")) + '</span></div><p class="pr-name">' + esc(pairNameL(p.pair)) + "</p><p>" + esc(pairTextL(p)) + '</p><p class="pr-o">' + esc(pairOrderL(p)) + "</p></li>").join("");
     // ผลรวม
     const s = r.sum;
-    $("#nmSum").innerHTML = '<div class="sum-n ' + GCLS[s.grade] + '"><b>' + s.sum + "</b><span>" + esc(s.gradeTh) + "</span></div><div><p class=\"sum-name\">" + esc(s.name) + (s.notable ? ' <span class="badge">ผลรวมยอดนิยม</span>' : "") + "</p><p>" + esc(s.phrases[0]) + '</p><p class="nm-small">' + esc(s.rootLine) + (s.raw !== s.sum ? " · ผลรวมจริง " + s.raw + " ทอนเป็น " + s.sum : "") + "</p>" + (s.extra ? '<p class="nm-small">' + esc(s.extra) + "</p>" : "") + "</div>";
+    $("#nmSum").innerHTML = '<div class="sum-n ' + GCLS[s.grade] + '"><b>' + s.sum + "</b><span>" + esc(gradeName(s.grade)) + "</span></div><div><p class=\"sum-name\">" + esc(sumNameL(s)) + (s.notable ? ' <span class="badge">' + esc(T("numbers.sum.badge", "ผลรวมยอดนิยม")) + '</span>' : "") + "</p><p>" + esc(sumTextL(s)) + '</p><p class="nm-small">' + esc(sumRootL(s)) + (s.raw !== s.sum ? esc(T("numbers.sum.raw", " · ผลรวมจริง {raw} ทอนเป็น {s}", { raw: s.raw, s: s.sum })) : "") + "</p>" + (s.extra ? '<p class="nm-small">' + esc(sumExtraL(s)) + "</p>" : "") + "</div>";
     // รูปแบบ
     $("#nmPatBlock").hidden = !r.patterns.length;
-    $("#nmPats").innerHTML = r.patterns.map(p => "<li><b>" + esc(p.label) + "</b> <small>" + esc(p.evidence) + " · +" + p.bonus + "</small></li>").join("");
+    $("#nmPats").innerHTML = r.patterns.map(p => "<li><b>" + esc(patLabelL(p)) + "</b> <small>" + esc(patEvidenceL(p)) + " · +" + p.bonus + "</small></li>").join("");
     // อักษรกาลกิณี
     const kb = $("#nmKala");
     if (r.kind === "plate" || r.kind === "name") {
       kb.hidden = false;
-      kb.innerHTML = !r.weekday ? '<p class="nm-small">เลือกวันเกิดด้านบน (ไม่บังคับ) เพื่อดูอักษรที่บางตำราแนะให้ใส่ใจ</p>' :
-        r.kala.length ? "<p>ตามบางตำรา อักษร <b>" + esc(r.kala.join(" ")) + "</b> เป็นอักษรที่คน" + esc(r.weekday.th) + "ให้ใส่ใจ (กาลกิณี) — เป็นเพียงความเชื่อ ไม่ได้มีผลร้ายใด ๆ หากชอบความสบายใจ ครั้งหน้าจะเลือกเลี่ยงก็ได้</p>" + (r.weekday.kalaNote ? '<p class="nm-small">' + esc(r.weekday.kalaNote) + "</p>" : "") :
-        "<p>ไม่พบอักษรกาลกิณีของ" + esc(r.weekday.th) + " (" + esc(r.weekday.kala.split("").join(" ")) + ") — สบายใจได้</p>";
+      const zh = isZh();
+      kb.innerHTML = !r.weekday ? '<p class="nm-small">' + esc(T("numbers.kala.pick", "เลือกวันเกิดด้านบน (ไม่บังคับ) เพื่อดูอักษรที่บางตำราแนะให้ใส่ใจ")) + '</p>' :
+        r.kala.length ? (zh ? "<p>" + esc(T("numbers.kala.yes", "", { k: r.kala.join(" "), wd: wdName(r.weekday) })) + "</p>" : "<p>ตามบางตำรา อักษร <b>" + esc(r.kala.join(" ")) + "</b> เป็นอักษรที่คน" + esc(r.weekday.th) + "ให้ใส่ใจ (กาลกิณี) — เป็นเพียงความเชื่อ ไม่ได้มีผลร้ายใด ๆ หากชอบความสบายใจ ครั้งหน้าจะเลือกเลี่ยงก็ได้</p>") + (r.weekday.kalaNote ? '<p class="nm-small">' + esc(T("numbers.kalaNote." + r.weekday.id, r.weekday.kalaNote)) + "</p>" : "") :
+        "<p>" + esc(T("numbers.kala.no", "ไม่พบอักษรกาลกิณีของ{wd} ({k}) — สบายใจได้", { wd: zh ? wdName(r.weekday) : r.weekday.th, k: r.weekday.kala.split("").join(" ") })) + "</p>";
     } else kb.hidden = true;
     // เป้าหมาย (เฉพาะเบอร์)
     const gb = $("#nmGoals");
     gb.hidden = r.kind !== "phone";
-    if (r.kind === "phone") $("#nmGoalList").innerHTML = goalMatch(r).map(g => '<li><h4>' + esc(g.th) + ' <span class="badge' + (g.hit.length ? " on" : "") + '">' + (g.hit.length ? "มี " + g.hit.length + " คู่ตรงเป้า" : "ยังไม่มีคู่ตรงเป้า") + "</span></h4>" + (g.hit.length ? '<p class="nm-small">คู่ที่พบ: ' + g.hit.join(", ") + "</p>" : "") + "<ul>" + g.tips.map(t => "<li>" + esc(t) + "</li>").join("") + "</ul></li>").join("");
-    const sw = strengthWords(r);
+    if (r.kind === "phone") $("#nmGoalList").innerHTML = goalMatch(r).map(g => '<li><h4>' + esc(T("numbers.goal." + g.id, g.th)) + ' <span class="badge' + (g.hit.length ? " on" : "") + '">' + esc(g.hit.length ? T("numbers.goal.hit", "มี {n} คู่ตรงเป้า", { n: g.hit.length }) : T("numbers.goal.none", "ยังไม่มีคู่ตรงเป้า")) + "</span></h4>" + (g.hit.length ? '<p class="nm-small">' + esc(T("numbers.goal.found", "คู่ที่พบ: {p}", { p: g.hit.join(", ") })) + "</p>" : "") + "<ul>" + g.tips.map((t, i) => "<li>" + esc(goalTipL(g.id, i, t)) + "</li>").join("") + "</ul></li>").join("");
+    const sw = strengthWordsL(r);
     $("#nmWordsBlock").hidden = !sw.length;
     $("#nmWords").innerHTML = sw.map(n => "<span>" + esc(n) + "</span>").join("");
     narrate();
+    if (quiet) return;
     $("#nmResTitle").focus({ preventScroll: true });
     sec.scrollIntoView({ block: "start", behavior: "smooth" });
   }
 
-  function renderDaily(L) {
-    const box = $("#nmDaily"); box.hidden = false;
-    $("#nmDailyBody").innerHTML = '<p class="nm-small">วันเกิด' + esc(L.weekday.th.replace(/^วัน/, "")) + " · วันนี้" + esc(L.today.th.replace(/^วัน/, "")) + '</p><dl class="dy-grid">' +
-      "<div><dt>สีวันนี้</dt><dd>" + esc(L.color) + "</dd></div><div><dt>สีเสริมของคุณ</dt><dd>" + esc(L.birthColor) + "</dd></div><div><dt>ทิศเสริมพลัง</dt><dd>" + esc(L.direction) + "</dd></div><div><dt>คำพลังวันนี้</dt><dd>" + esc(L.word.w) + "</dd></div></dl>" +
-      '<p class="dy-word">' + esc(L.word.p) + '</p><ul class="nm-small">' + L.notes.map(n => "<li>" + esc(n) + "</li>").join("") + '</ul><p class="nm-small">เพื่อความสนุกและเป็นกำลังใจเล็ก ๆ เท่านั้น ไม่ใช่คำแนะนำในการตัดสินใจเรื่องสำคัญ</p>';
-    box.scrollIntoView({ block: "start", behavior: "smooth" });
+  function renderDaily(L, quiet) {
+    const box = $("#nmDaily"); box.hidden = false; lastDaily = L;
+    const zh = isZh(), wi = KB.dailyWords.indexOf(L.word), di = KB.dailyDirections.indexOf(L.direction);
+    const word = zh ? { w: T("numbers.dw." + wi + ".w", L.word.w), p: T("numbers.dw." + wi + ".p", L.word.p) } : L.word;
+    const same = L.today.id === L.weekday.id || (L.today.id === "wed" && L.weekday.id === "wedn");
+    const notes = zh ? [T("numbers.daily.n1", "", { c: wdColor(L.today), wd: wdName(L.today) }),
+      same ? T("numbers.daily.n2same", "", { c: wdColor(L.weekday) }) : T("numbers.daily.n2", "", { c: wdColor(L.weekday), wd: wdName(L.weekday) }),
+      T("numbers.daily.n3", "")] : L.notes;
+    const head = zh ? T("numbers.daily.head", "", { b: wdName(L.weekday), t: wdName(L.today) }) : "วันเกิด" + L.weekday.th.replace(/^วัน/, "") + " · วันนี้" + L.today.th.replace(/^วัน/, "");
+    $("#nmDailyBody").innerHTML = '<p class="nm-small">' + esc(head) + '</p><dl class="dy-grid">' +
+      "<div><dt>" + esc(T("numbers.daily.color", "สีวันนี้")) + "</dt><dd>" + esc(zh ? wdColor(L.today) : L.color) + "</dd></div><div><dt>" + esc(T("numbers.daily.birth", "สีเสริมของคุณ")) + "</dt><dd>" + esc(zh ? wdColor(L.weekday) : L.birthColor) + "</dd></div><div><dt>" + esc(T("numbers.daily.dir", "ทิศเสริมพลัง")) + "</dt><dd>" + esc(T("numbers.dir." + di, L.direction)) + "</dd></div><div><dt>" + esc(T("numbers.daily.word", "คำพลังวันนี้")) + "</dt><dd>" + esc(word.w) + "</dd></div></dl>" +
+      '<p class="dy-word">' + esc(word.p) + '</p><ul class="nm-small">' + notes.map(n => "<li>" + esc(n) + "</li>").join("") + '</ul><p class="nm-small">' + esc(T("numbers.daily.foot", "เพื่อความสนุกและเป็นกำลังใจเล็ก ๆ เท่านั้น ไม่ใช่คำแนะนำในการตัดสินใจเรื่องสำคัญ")) + '</p>';
+    if (!quiet) box.scrollIntoView({ block: "start", behavior: "smooth" });
   }
 
-  function renderCompare(rows) {
-    const box = $("#nmCompare"); box.hidden = false;
-    $("#nmCmpBody").innerHTML = rows.map((r, i) => r.error ? '<tr><th scope="row">—</th><td colspan="4">' + esc(r.input) + ' <small class="err">' + esc(r.error) + "</small></td></tr>" :
-      '<tr' + (i === 0 ? ' class="top"' : "") + '><th scope="row">' + esc(r.display) + (i === 0 ? ' <span class="badge on">คะแนนสูงสุด</span>' : "") + '</th><td data-l="คะแนน"><b>' + r.score + '</b></td><td data-l="ผลรวม">' + r.sum + '</td><td data-l="คู่เด่นมาก">' + (r.best.join(", ") || "—") + '</td><td data-l="คู่ควรระวัง">' + (r.care.join(", ") || "ไม่มี") + "</td></tr>").join("");
-    box.scrollIntoView({ block: "start", behavior: "smooth" });
+  function renderCompare(rows, quiet) {
+    const box = $("#nmCompare"); box.hidden = false; lastCompare = rows;
+    const L = { s: esc(T("numbers.th2", "คะแนน")), u: esc(T("numbers.th3", "ผลรวม")), b: esc(T("numbers.th4", "คู่เด่นมาก")), c: esc(T("numbers.th5", "คู่ควรระวัง")) };
+    $("#nmCmpBody").innerHTML = rows.map((r, i) => r.error ? '<tr><th scope="row">—</th><td colspan="4">' + esc(r.input) + ' <small class="err">' + esc(T(r.error, r.error)) + "</small></td></tr>" :
+      '<tr' + (i === 0 ? ' class="top"' : "") + '><th scope="row">' + esc(r.display) + (i === 0 ? ' <span class="badge on">' + esc(T("numbers.cmp.top", "คะแนนสูงสุด")) + '</span>' : "") + '</th><td data-l="' + L.s + '"><b>' + r.score + '</b></td><td data-l="' + L.u + '">' + r.sum + '</td><td data-l="' + L.b + '">' + (r.best.join(", ") || "—") + '</td><td data-l="' + L.c + '">' + (esc(r.care.join(", ")) || esc(T("numbers.cmp.none", "ไม่มี"))) + "</td></tr>").join("");
+    if (!quiet) box.scrollIntoView({ block: "start", behavior: "smooth" });
   }
 
   /* ---------- คำอ่าน (fortune-ai.js) ---------- */
   function fallbackRender(res, box) {
-    box.innerHTML = (res.sections || []).map(s => '<section class="nr-sec"><h4>' + esc(s.title) + "</h4>" + (s.paragraphs || []).map(p => "<p>" + esc(p) + "</p>").join("") + "</section>").join("") || '<p class="nm-small">ยังไม่มีคำอ่าน</p>';
+    box.innerHTML = (res.sections || []).map(s => '<section class="nr-sec"><h4>' + esc(s.title) + "</h4>" + (s.paragraphs || []).map(p => "<p>" + esc(p) + "</p>").join("") + "</section>").join("") || '<p class="nm-small">' + esc(T("numbers.noReading", "ยังไม่มีคำอ่าน")) + '</p>';
   }
   function renderNarr(res) {
     const box = $("#nmNarr");
@@ -424,7 +513,7 @@
     }
     if (!done) fallbackRender(res, box);
     const ai = res.source === "ai";
-    const b = $("#nmSrc"); b.textContent = ai ? "เรียบเรียงโดย Claude AI" : "เรียบเรียงในเครื่อง"; b.className = "src-badge " + (ai ? "ai" : "local");
+    const b = $("#nmSrc"); b.textContent = ai ? T("numbers.src.ai", "เรียบเรียงโดย Claude AI") : T("numbers.src.local", "เรียบเรียงในเครื่อง"); b.className = "src-badge " + (ai ? "ai" : "local");
     $("#nmNarrNote").textContent = res.note || "";
   }
   async function narrate(again) {
@@ -433,9 +522,9 @@
     const my = ++narrSeq, useAI = !!(aiEnabled && (F && typeof F.hasConsent === "function" ? F.hasConsent() : prefs.ai));
     const topic = $("#nmTopic").value;
     currentFacts = buildFacts(current, topic, { forAI: useAI });
-    if (!F) { box.innerHTML = '<p class="nm-small">ไม่พบตัวเรียบเรียงคำอ่าน (fortune-ai.js)</p>'; return; }
+    if (!F) { box.innerHTML = '<p class="nm-small">' + esc(T("numbers.noComposer", "ไม่พบตัวเรียบเรียงคำอ่าน (fortune-ai.js)")) + '</p>'; return; }
     $("#nmAgain2").disabled = true; box.setAttribute("aria-busy", "true");
-    if (useAI) box.innerHTML = '<p class="nm-small">กำลังเรียบเรียงคำอ่าน...</p>';
+    if (useAI) box.innerHTML = '<p class="nm-small">' + esc(T("numbers.loading", "กำลังเรียบเรียงคำอ่าน...")) + '</p>';
     let res;
     try {
       if (again && typeof F.regenerate === "function") res = await F.regenerate(currentFacts, { useAI });
@@ -484,32 +573,32 @@
     try { await document.fonts.load("600 40px Prompt"); await document.fonts.load("400 30px Prompt"); } catch (e) { /* ใช้ฟอนต์ระบบ */ }
     const g = c.createLinearGradient(0, 0, W, H); g.addColorStop(0, "#0e1430"); g.addColorStop(1, "#2a1f6b"); c.fillStyle = g; c.fillRect(0, 0, W, H);
     c.globalAlpha = 0.08; c.fillStyle = "#fff"; c.font = "700 420px Prompt, sans-serif"; c.textAlign = "right"; c.fillText(String(r.sum.sum), W - 30, 520); c.globalAlpha = 1;
-    c.textAlign = "left"; c.fillStyle = "#22d3ee"; c.font = "600 34px Prompt, sans-serif"; c.fillText("LENSIQ · เลขมงคล", 80, 120);
-    c.fillStyle = "#c9d0ea"; c.font = "400 36px Prompt, sans-serif"; c.fillText(KIND_TH[r.kind], 80, 200);
-    c.fillStyle = "#fff"; c.font = "600 88px Prompt, sans-serif"; c.fillText(r.masked, 80, 300);
+    c.textAlign = "left"; c.fillStyle = "#22d3ee"; c.font = "600 34px Prompt, sans-serif"; c.fillText(T("numbers.card.brand", "LENSIQ · เลขมงคล"), 80, 120);
+    c.fillStyle = "#c9d0ea"; c.font = "400 36px Prompt, sans-serif"; c.fillText(kindName(r.kind), 80, 200);
+    c.fillStyle = "#fff"; c.font = "600 88px Prompt, sans-serif"; c.fillText(r.kind === "house" && isZh() ? String(r.masked).replace(/^เลขที่ /, "门牌 ") : r.kind === "name" && isZh() ? T("numbers.kind.name", "ชื่อ") + " · " + r.chars.length : r.masked, 80, 300);
     // วงคะแนน
     const cx = 220, cy = 520, R = 130;
     c.lineWidth = 26; c.strokeStyle = "rgba(255,255,255,.12)"; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.stroke();
     c.strokeStyle = "#facc15"; c.lineCap = "round"; c.beginPath(); c.arc(cx, cy, R, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * r.score / 100); c.stroke();
     c.fillStyle = "#fff"; c.textAlign = "center"; c.font = "700 96px Prompt, sans-serif"; c.fillText(String(r.score), cx, cy + 30);
-    c.font = "400 28px Prompt, sans-serif"; c.fillStyle = "#c9d0ea"; c.fillText("คะแนน / 100", cx, cy + 76);
+    c.font = "400 28px Prompt, sans-serif"; c.fillStyle = "#c9d0ea"; c.fillText(T("numbers.card.score", "คะแนน / 100"), cx, cy + 76);
     c.textAlign = "left"; c.fillStyle = "#facc15"; c.font = "600 46px Prompt, sans-serif"; c.fillText(scoreWord(r.score), 410, 470);
-    c.fillStyle = "#fff"; c.font = "400 34px Prompt, sans-serif"; c.fillText("ผลรวม " + r.sum.sum + " · " + r.sum.gradeTh, 410, 530);
-    c.fillStyle = "#c9d0ea"; c.font = "400 30px Prompt, sans-serif"; wrapText(c, r.sum.name, 410, 580, 600, 40, 2);
+    c.fillStyle = "#fff"; c.font = "400 34px Prompt, sans-serif"; c.fillText(T("numbers.card.sum", "ผลรวม {s} · {g}", { s: r.sum.sum, g: gradeName(r.sum.grade) }), 410, 530);
+    c.fillStyle = "#c9d0ea"; c.font = "400 30px Prompt, sans-serif"; wrapText(c, sumNameL(r.sum), 410, 580, 600, 40, 2);
     // คู่เด่น
     const best = r.pairs.filter(p => !p.care).sort((a, b) => b.pts * b.weight - a.pts * a.weight).filter((p, i, a) => a.findIndex(q => q.pair === p.pair) === i).slice(0, 3);
     let y = 720;
-    c.fillStyle = "#22d3ee"; c.font = "600 34px Prompt, sans-serif"; c.fillText(best.length ? "คู่เลขเด่น" : "ความหมายผลรวม", 80, y); y += 30;
+    c.fillStyle = "#22d3ee"; c.font = "600 34px Prompt, sans-serif"; c.fillText(best.length ? T("numbers.card.best", "คู่เลขเด่น") : T("numbers.card.sumMeaning", "ความหมายผลรวม"), 80, y); y += 30;
     if (best.length) best.forEach(p => {
       y += 24; c.fillStyle = "rgba(255,255,255,.08)"; c.beginPath(); c.roundRect ? c.roundRect(80, y, W - 160, 130, 22) : c.rect(80, y, W - 160, 130); c.fill();
       c.fillStyle = "#facc15"; c.font = "700 64px Prompt, sans-serif"; c.fillText(p.pair, 110, y + 88);
-      c.fillStyle = "#fff"; c.font = "600 32px Prompt, sans-serif"; c.fillText(p.name, 250, y + 52);
-      c.fillStyle = "#c9d0ea"; c.font = "400 26px Prompt, sans-serif"; wrapText(c, p.phrases[0], 250, y + 94, W - 360, 34, 1);
+      c.fillStyle = "#fff"; c.font = "600 32px Prompt, sans-serif"; c.fillText(pairNameL(p.pair), 250, y + 52);
+      c.fillStyle = "#c9d0ea"; c.font = "400 26px Prompt, sans-serif"; wrapText(c, isZh() ? first((zkItem("pair." + p.pair) || {}).o || p.phrases[0]) : p.phrases[0], 250, y + 94, W - 360, 34, 1);
       y += 130;
     });
-    else { c.fillStyle = "#fff"; c.font = "400 32px Prompt, sans-serif"; wrapText(c, r.sum.phrases[0], 80, y + 50, W - 160, 46, 5); }
+    else { c.fillStyle = "#fff"; c.font = "400 32px Prompt, sans-serif"; wrapText(c, sumTextL(r.sum), 80, y + 50, W - 160, 46, 5); }
     c.fillStyle = "#c9d0ea"; c.font = "400 26px Prompt, sans-serif"; c.textAlign = "center";
-    c.fillText(KB.disclaimerShort + " · ไม่ใช้เพื่อการพนัน", W / 2, H - 70);
+    c.fillText(T("numbers.card.foot", "{d} · ไม่ใช้เพื่อการพนัน", { d: T("numbers.disclaimerShort", KB.disclaimerShort) }), W / 2, H - 70);
     return cv;
   }
   let cardUrl = null;
@@ -524,12 +613,12 @@
       const im = $("#nmCardImg"); im.src = cardUrl; im.hidden = false;
       const file = new File([blob], "lensiq-เลขมงคล.png", { type: "image/png" });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: "เลขมงคล — LENSIQ", text: KIND_TH[current.kind] + " คะแนน " + current.score + "/100 · " + KB.disclaimerShort }); return; }
+        try { await navigator.share({ files: [file], title: T("numbers.share.title", "เลขมงคล — LENSIQ"), text: T("numbers.share.text", "{k} คะแนน {s}/100 · {d}", { k: kindName(current.kind), s: current.score, d: T("numbers.disclaimerShort", KB.disclaimerShort) }) }); return; }
         catch (e) { if (e.name === "AbortError") return; }
       }
       const a = document.createElement("a"); a.href = cardUrl; a.download = "lensiq-numbers.png"; document.body.append(a); a.click(); a.remove();
-      toast("บันทึกการ์ดแล้ว (ตัวเลขถูกปิดบังบางส่วน)");
-    } catch (e) { console.error(e); toast("สร้างการ์ดไม่สำเร็จ"); }
+      toast(T("numbers.toast.saved", "บันทึกการ์ดแล้ว (ตัวเลขถูกปิดบังบางส่วน)"));
+    } catch (e) { console.error(e); toast(T("numbers.toast.fail", "สร้างการ์ดไม่สำเร็จ")); }
     finally { b.disabled = false; }
   });
   $("#nmPrint").addEventListener("click", () => { touch(); window.print(); });
@@ -550,14 +639,14 @@
   function stat(type) { if (prefs.stats) { lsSet(STATS_KEY, addStat(lsGet(STATS_KEY, null), type)); renderStats(); } }
   function renderStats() {
     const st = lsGet(STATS_KEY, null), box = $("#nmStats");
-    if (!st || !st.total) { box.innerHTML = '<p class="nm-small">ยังไม่มีการวิเคราะห์ในเครื่องนี้</p>'; return; }
+    if (!st || !st.total) { box.innerHTML = '<p class="nm-small">' + esc(T("numbers.stats.none", "ยังไม่มีการวิเคราะห์ในเครื่องนี้")) + '</p>'; return; }
     const d = new Date(), today = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-    box.innerHTML = '<p class="stat-n"><b>' + st.total + "</b> ครั้ง <small>(วันนี้ " + ((st.days || {})[today] || 0) + ")</small></p>" +
-      Object.keys(TYPE_TH).filter(k => (st.types || {})[k]).map(k => { const n = st.types[k]; return '<div class="stbar"><span>' + TYPE_TH[k] + '</span><i style="--w:' + Math.round(n / st.total * 100) + '%"></i><b>' + n + "</b></div>"; }).join("");
+    box.innerHTML = '<p class="stat-n"><b>' + st.total + "</b> " + esc(T("numbers.stats.total", "ครั้ง")) + " <small>" + esc(T("numbers.stats.today", "(วันนี้ {n})", { n: (st.days || {})[today] || 0 })) + "</small></p>" +
+      Object.keys(TYPE_TH).filter(k => (st.types || {})[k]).map(k => { const n = st.types[k]; return '<div class="stbar"><span>' + esc(T("numbers.type." + k, TYPE_TH[k])) + '</span><i style="--w:' + Math.round(n / st.total * 100) + '%"></i><b>' + n + "</b></div>"; }).join("");
   }
   $("#nmStatsOn").checked = !!prefs.stats;
   $("#nmStatsOn").addEventListener("change", function () { prefs.stats = this.checked; lsSet(PREF_KEY, prefs); });
-  $("#nmStatsClear").addEventListener("click", () => { if (confirm("ล้างสถิติในเครื่องนี้?")) { try { localStorage.removeItem(STATS_KEY); } catch (e) { /* ไม่เป็นไร */ } renderStats(); } });
+  $("#nmStatsClear").addEventListener("click", () => { if (confirm(T("numbers.confirmClear", "ล้างสถิติในเครื่องนี้?"))) { try { localStorage.removeItem(STATS_KEY); } catch (e) { /* ไม่เป็นไร */ } renderStats(); } });
   renderStats();
 
   /* ---------- โหมดบูธ ---------- */
@@ -568,7 +657,7 @@
     if (!document.body.classList.contains("nm-kiosk")) return;
     if ($("#nmResult").hidden && $("#nmDaily").hidden && $("#nmCompare").hidden) return;
     const until = Date.now() + IDLE_MS;
-    idleTick = setInterval(() => { const left = Math.ceil((until - Date.now()) / 1000); if (left <= 15) { el.hidden = false; el.textContent = "กลับหน้าเริ่มต้นใน " + left + " วินาที — แตะเพื่ออยู่ต่อ"; } }, 1000);
+    idleTick = setInterval(() => { const left = Math.ceil((until - Date.now()) / 1000); if (left <= 15) { el.hidden = false; el.textContent = T("numbers.idle", "กลับหน้าเริ่มต้นใน {n} วินาที — แตะเพื่ออยู่ต่อ", { n: left }); } }, 1000);
     idleT = setTimeout(() => { clearInterval(idleTick); el.hidden = true; reset(); }, IDLE_MS);
   }
   ["pointerdown", "keydown", "wheel", "touchstart"].forEach(ev => document.addEventListener(ev, () => { if (document.body.classList.contains("nm-kiosk")) touch(); }, { passive: true }));
@@ -587,13 +676,33 @@
   $("#nmKioskExit").addEventListener("click", () => setKiosk(false));
   document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && wasFs) { wasFs = false; setKiosk(false); } });
 
-  // วันเกิด/แหล่งอ้างอิง/ตารางอักษรจาก KB
-  $("#nmWd").insertAdjacentHTML("beforeend", KB.weekdays.map(w => '<option value="' + w.id + '">' + esc(w.th) + "</option>").join(""));
-  $("#nmSources").innerHTML = KB.sources.map(s => '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.label) + "</a></li>").join("");
-  $("#nmLetterTable").innerHTML = Object.keys(KB.letterValues).map(v => '<tr><th scope="row">' + v + "</th><td>" + esc(KB.letterValues[v].split("").map(ch => /[ก-ฮ]/.test(ch) ? ch : "◌" + ch).join(" ").replace(/◌([เแโใไา])/g, "$1")) + "</td></tr>").join("");
-  $("#nmKalaTable").innerHTML = KB.weekdays.map(w => '<tr><th scope="row">' + esc(w.th) + "</th><td>" + esc(w.kala.split("").join(" ")) + (w.kalaNote ? " <small>(" + esc(w.kalaNote) + ")</small>" : "") + "</td></tr>").join("");
-  $("#nmTips").innerHTML = KB.generalTips.map(t => "<li>" + esc(t) + "</li>").join("");
+  // วันเกิด/แหล่งอ้างอิง/ตารางอักษรจาก KB (เรนเดอร์ใหม่เมื่อสลับภาษา)
+  function renderKbText() {
+    const sel = $("#nmWd"), v = sel.value;
+    sel.querySelectorAll("option[data-wd]").forEach(o => o.remove());
+    sel.insertAdjacentHTML("beforeend", KB.weekdays.map(w => '<option data-wd value="' + w.id + '">' + esc(wdName(w)) + "</option>").join(""));
+    sel.value = v;
+    $("#nmSources").innerHTML = KB.sources.map((s, i) => '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(T("numbers.srcl." + i, s.label)) + "</a></li>").join("");
+    renderLetterTables();
+    $("#nmTips").innerHTML = KB.generalTips.map((t, i) => "<li>" + esc(T("numbers.tip." + i, t)) + "</li>").join("");
+  }
+  // ตารางค่าอักษรไทย/อักษรกาลกิณี: เรนเดอร์เมื่อเปิด "ดูวิธีคำนวณ" เท่านั้น (ข้อมูลอักษรไทยล้วน ไม่ต้องแสดงตอนปิด)
+  function renderLetterTables() {
+    const open = !!($("#nmLetterTable").closest("details") || {}).open;
+    if (!open) { $("#nmLetterTable").innerHTML = ""; $("#nmKalaTable").innerHTML = ""; return; }
+    $("#nmLetterTable").innerHTML = Object.keys(KB.letterValues).map(v => '<tr><th scope="row">' + v + "</th><td>" + esc(KB.letterValues[v].split("").map(ch => /[ก-ฮ]/.test(ch) ? ch : "◌" + ch).join(" ").replace(/◌([เแโใไา])/g, "$1")) + "</td></tr>").join("");
+    $("#nmKalaTable").innerHTML = KB.weekdays.map(w => '<tr><th scope="row">' + esc(wdName(w)) + "</th><td>" + esc(w.kala.split("").join(" ")) + (w.kalaNote ? " <small>(" + esc(T("numbers.kalaNote." + w.id, w.kalaNote)) + ")</small>" : "") + "</td></tr>").join("");
+  }
+  renderKbText();
+  { const dt = $("#nmLetterTable").closest("details"); if (dt) dt.addEventListener("toggle", renderLetterTables); }
   setTab("phone");
+  // สลับภาษา: เรนเดอร์ข้อความไดนามิกใหม่ และเรียบเรียงคำอ่านใหม่จาก facts เดิม (fortune-ai เลือกภาษาเอง)
+  root.addEventListener("lq-lang", () => {
+    setTab(mode); renderKbText(); renderStats();
+    if (current && !$("#nmResult").hidden) renderResult(current, true);
+    if (lastDaily && !$("#nmDaily").hidden) renderDaily(lastDaily, true);
+    if (lastCompare && !$("#nmCompare").hidden) renderCompare(lastCompare, true);
+  });
   setupConsent();
   root.__nm = { get current() { return current; }, get facts() { return currentFacts; }, makeCard, reset, setTab };
 })(typeof window !== "undefined" ? window : globalThis);

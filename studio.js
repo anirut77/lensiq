@@ -24,7 +24,10 @@
   // ---------- สถานะระบบ ----------
   const eng = {};
   function status(k, t, c) {
-    eng[k] = { t, c }; const e = $("#stEngine"), p = Object.values(eng);
+    eng[k] = { t, c }; const e = $("#stEngine");
+    let p = Object.values(eng);
+    // หลังประมวลผลเสร็จ: แสดงบรรทัดผลลัพธ์ (ระบุวิธีที่ใช้แล้ว) + คำเตือนเท่านั้น — ไม่ซ้ำ "MODNet … MODNet"
+    if (eng.run && eng.run.c !== "err") p = [eng.run, ...Object.entries(eng).filter(([q, x]) => q !== "run" && (x.c === "warn" || x.c === "err")).map(([, x]) => x)];
     e.textContent = p.map(x => x.t).join(" · ");
     e.className = "engine " + (p.some(x => x.c === "err") ? "err" : p.some(x => x.c === "warn") ? "warn" : p.every(x => x.c === "ok") ? "ok" : "");
   }
@@ -50,15 +53,15 @@
       await Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri("vendor/models/"), faceapi.nets.faceLandmark68Net.loadFromUri("vendor/models/")]);
       return true;
     })();
-    faceP.then(() => status("face", "ตรวจจุดบนใบหน้าพร้อม", "ok"), e => status("face", e.message === "skip" ? "ประมาณใบหน้าจากรูปทรง" : "ตรวจจุดบนใบหน้าไม่ได้ (ประมาณจากรูปทรงแทน)", e.message === "skip" ? "ok" : "warn"));
+    faceP.then(() => status("face", T("studio.js.st.faceOk", "ตรวจจุดบนใบหน้าพร้อม"), "ok"), e => status("face", e.message === "skip" ? T("studio.js.st.faceSkip", "ประมาณใบหน้าจากรูปทรง") : T("studio.js.st.faceFail", "ตรวจจุดบนใบหน้าไม่ได้ (ประมาณจากรูปทรงแทน)"), e.message === "skip" ? "ok" : "warn"));
     return faceP;
   }
   function init() {
-    status("matte", "กำลังโหลดโมเดลตัดพื้นหลัง (MODNet)...", "");
-    PBHQ.loadMatting().then(() => status("matte", "ตัดพื้นหลัง MODNet พร้อม", "ok"), e => { console.warn(e); status("matte", "MODNet ใช้ไม่ได้ (ใช้การแยกสีฉากแทน)", "warn"); });
-    status("parse", "กำลังโหลดโมเดลแยกผม/คอ/เสื้อ...", "");
-    PBHQ.loadMulticlass().then(() => status("parse", "แยกผม/ใบหน้า/คอ/เสื้อ (MediaPipe Multiclass) พร้อม", "ok"), e => { console.warn(e); status("parse", "โหลดโมเดลแยกผม/คอไม่ได้ (ใช้การจัดกลุ่มสีแทน)", "warn"); });
-    status("face", "กำลังโหลดตัวตรวจใบหน้า...", "");
+    status("matte", T("studio.js.st.matteLoading", "กำลังโหลดโมเดลตัดพื้นหลัง (MODNet)..."), "");
+    PBHQ.loadMatting().then(() => status("matte", T("studio.js.st.matteOk", "ตัดพื้นหลัง MODNet พร้อม"), "ok"), e => { console.warn(e); status("matte", T("studio.js.st.matteFail", "MODNet ใช้ไม่ได้ (ใช้การแยกสีฉากแทน)"), "warn"); });
+    status("parse", T("studio.js.st.parseLoading", "กำลังโหลดโมเดลแยกผม/คอ/เสื้อ..."), "");
+    PBHQ.loadMulticlass().then(() => status("parse", T("studio.js.st.parseOk", "แยกผม/ใบหน้า/คอ/เสื้อ (MediaPipe Multiclass) พร้อม"), "ok"), e => { console.warn(e); status("parse", T("studio.js.st.parseFail", "โหลดโมเดลแยกผม/คอไม่ได้ (ใช้การจัดกลุ่มสีแทน)"), "warn"); });
+    status("face", T("studio.js.st.faceLoading", "กำลังโหลดตัวตรวจใบหน้า..."), "");
     loadFace().catch(() => {});
     loadGarments();
     renderBgChoices(); renderIdSizes();
@@ -132,7 +135,7 @@
     try {
       try { await loadFace(); } catch { /* ไม่มีตัวตรวจใบหน้า: ใช้จุดยึดจากรูปทรง */ }
       const prep = await PBTpl.prepareOutfit(f), fin = PBTpl.finalizeOutfit(prep, .5);
-      const item = { id: crypto.randomUUID(), kind: "outfit", name: f.name.replace(/\.[^.]+$/, "").slice(0, 40) || "ชุดของฉัน", anchor: fin.anchor, blob: await PBTpl.toBlob(fin.canvas), created: Date.now() };
+      const item = { id: crypto.randomUUID(), kind: "outfit", name: f.name.replace(/\.[^.]+$/, "").slice(0, 40) || T("studio.js.myOutfit", "ชุดของฉัน"), anchor: fin.anchor, blob: await PBTpl.toBlob(fin.canvas), created: Date.now() };
       await PBTpl.put(item);
       const g = tplGarment(item, fin.canvas);
       ST.garments.splice(1, 0, g); ST.gKey = g.key; ST.manual = null;
@@ -274,11 +277,12 @@
       let t = now(), raw = null;
       try { raw = await PBHQ.modnetAlpha(canvas); ST.method = "MODNet"; } catch (e) { console.warn("MODNet", e); }
       if (raw) { let s = 0; for (let i = 0; i < raw.length; i += 7) s += raw[i]; if (s / (raw.length / 7) < .02) raw = null; }
-      if (!raw) { raw = SC.borderKeyAlpha(ST.px, W, H); ST.method = "แยกสีฉาก"; }
+      if (!raw) { raw = SC.borderKeyAlpha(ST.px, W, H); ST.method = T("studio.js.m.colorKey", "แยกสีฉาก"); }
       ST.timings.matte = now() - t; t = now();
       // โมเดล 6 คลาสรอบแรก (ทั้งภาพ): ใช้อุดรูที่ MODNet พลาด (ภาพขาวดำเก่า/แสงน้อย/ฉากลาย) และหาใบหน้าเมื่อไม่พบ landmark
       ST.mcFull = null;
-      if (!parseOptIn()) try { ST.mcFull = await PBHQ.multiclassParse(canvas, { x: 0, y: 0, w: W, h: H }); raw = SC.fillMatteFromParse(raw, ST.mcFull, W, H); } catch (e) { console.warn("multiclass", e); }
+      ST.pp = null;
+      if (!parseOptIn()) try { ST.mcFull = await PBHQ.multiclassParse(canvas, { x: 0, y: 0, w: W, h: H }); ST.pp = SC.parsePersonProb(ST.mcFull, W, H); raw = SC.fillMatteFromParse(raw, ST.mcFull, W, H, ST.pp); } catch (e) { console.warn("multiclass", e); }
       ST.timings.parse0 = now() - t; t = now();
       busy(true, T("studio.js.busy.refine", "กำลังเกลาขอบผม..."));
       await sleep(0);
@@ -298,12 +302,13 @@
       busy(true, T("studio.js.busy.parse", "กำลังแยกผม ใบหน้า และคอ..."));
       await sleep(0);
       const { P, crop } = await parsePerson(canvas, face); ST.parseP = P;
+      { const t2 = now(); ST.headwear = !crop ? SC.headwearExtend(ST.px, ST.alpha, P, W, H, face) : null; if (!crop) SC.hairCleanup(ST.px, ST.alpha, P, W, H, face); ST.timings.headwear = now() - t2; } // ฮิญาบ/ผ้าคลุมที่คลุมลงใต้คาง
       ST.layers = SC.personLayers(ST.px, ST.alpha, W, H, face, P, crop);
       ST.timings.parse = now() - t; t = now();
       // มือ/แขนเปลือย (ผิวกายที่อยู่ต่ำกว่าอก เช่น กอดอก ประสานมือ) วางหน้าชุดใหม่ — ไม่หายไปใต้ชุด
       ST.hands = null;
       const monoImg = (() => { const st = SC.labStats(ST.px, W, H, null, { step: 6 }); return !!st && Math.hypot(st.mean[1], st.mean[2]) < 2.5 && st.std[1] < 2.5 && st.std[2] < 2.5; })();
-      if (P.skin) { const h = new Float32Array(W * H), y0 = Math.round(face.chinY + face.fw * .9); let cnt = 0; for (let y = Math.max(0, y0); y < H; y++) for (let x = 0; x < W; x++) { const i = y * W + x, v = SC.smooth((P.skin[i] - .4) / .3) * SC.smooth((y - y0) / (face.fw * .15)); if (v > 0 && (monoImg || SC.skinLikelihood(ST.px[i * 4], ST.px[i * 4 + 1], ST.px[i * 4 + 2]) > .15)) { h[i] = v; cnt++; } } if (cnt > face.fw * face.fw * .02) ST.hands = h; }
+      if (P.skin) ST.hands = SC.handsMask(ST.px, ST.alpha, P.skin, W, H, face, { mono: monoImg });
       ST.neckM = SC.neckMeasure(ST.alpha, ST.layers, W, H, face);
       ST.clothSh = SC.clothShading(ST.px, ST.alpha, ST.layers, W, H, face);
       ST.fitAuto = SC.measureShoulders(ST.alpha, W, H, face, { keep: ST.layers.keep, hair: ST.layers.hair, neck: ST.layers.neck, canon: PBOutfits.CANON });
@@ -349,20 +354,21 @@
       if (bust.w < Math.max(W, H) * .4) rects.push(bust); // คนเล็กมากในภาพเท่านั้น: เพิ่มรอบครึ่งตัว (รอบศีรษะครอบคลุมคอ/คอเสื้อแล้ว)
       // รอบศีรษะเฉพาะเมื่อใบหน้าในรอบทั้งภาพยังเล็ก (< 60 ช่องของกริด 256) — ภาพหน้าใหญ่ใช้รอบเดียวพอ (เร็วขึ้น)
       if (head.w < Math.max(W, H) * .6 && fw * 256 / Math.max(W, H) < 60) rects.push(head);
-      const runs = ST.mcFull ? [ST.mcFull] : []; for (const r of rects) runs.push(await PBHQ.multiclassParse(canvas, r));
-      const P = SC.multiclassGroups(runs, W, H, face);
-      ST.parse = "MediaPipe Multiclass"; status("parse", "แยกผม/ใบหน้า/คอ/เสื้อ (MediaPipe Multiclass) พร้อม", "ok");
+      const t0 = now(), runs = ST.mcFull ? [ST.mcFull] : []; for (const r of rects) runs.push(await PBHQ.multiclassParse(canvas, r));
+      const t1 = now(), P = SC.multiclassGroups(runs, W, H, face);
+      ST.timings.parseRuns = t1 - t0; ST.timings.parseGroups = now() - t1;
+      ST.parse = "MediaPipe Multiclass"; status("parse", T("studio.js.st.parseOk", "แยกผม/ใบหน้า/คอ/เสื้อ (MediaPipe Multiclass) พร้อม"), "ok");
       return { P, crop: null };
-    } catch (e) { console.warn("multiclass parsing", e); status("parse", "แยกผม/คอด้วยโมเดลไม่ได้ (ใช้การจัดกลุ่มสีแทน)", "warn"); }
+    } catch (e) { console.warn("multiclass parsing", e); status("parse", T("studio.js.st.parseRunFail", "แยกผม/คอด้วยโมเดลไม่ได้ (ใช้การจัดกลุ่มสีแทน)"), "warn"); }
     if (!FAKE && optIn) try {
       let crop = SC.parseCrop(face, 3), r = await PBHQ.faceParse(canvas, crop), g = SC.parseGroups(r.logits, r.S * r.S, r.C);
       const S = r.S; let edge = 0; for (let y = S - 6; y < S; y++) for (let x = 0; x < S; x++) edge += g.hair[y * S + x];
       if (edge / (6 * S) > .08) { crop = SC.parseCrop(face, 4.4); r = await PBHQ.faceParse(canvas, crop); g = SC.parseGroups(r.logits, r.S * r.S, r.C); }
       const P = {}; for (const k of ["head", "hair", "neck", "cloth"]) P[k] = SC.cropToImage(g[k], r.S, crop, W, H);
-      ST.parse = "BiSeNet"; status("parse", "แยกผม/คอ (BiSeNet) พร้อม", "ok");
+      ST.parse = "BiSeNet"; status("parse", T("studio.js.st.bisenetOk", "แยกผม/คอ (BiSeNet) พร้อม"), "ok");
       return { P, crop };
-    } catch (e) { console.warn("face parsing", e); status("parse", "แยกผม/คอด้วยโมเดลไม่ได้ (ใช้การจัดกลุ่มสีแทน)", "warn"); }
-    ST.parse = "จัดกลุ่มสี";
+    } catch (e) { console.warn("face parsing", e); status("parse", T("studio.js.st.parseRunFail", "แยกผม/คอด้วยโมเดลไม่ได้ (ใช้การจัดกลุ่มสีแทน)"), "warn"); }
+    ST.parse = T("studio.js.p.colorCluster", "จัดกลุ่มสี");
     return { P: SC.heuristicParse(ST.px, ST.alpha, W, H, face), crop: null };
   }
   function autoTargets() {
@@ -390,11 +396,20 @@
       // คอสั้น/คอเสื้อเดิมสูงถึงคาง: ยกคอเสื้อขึ้นชิดคางได้ (ไม่สร้างคอยาวผิดจริง)
       const yT = SC.clamp(NM && NM.ySide != null ? NM.ySide - f.fw * .04 : f.chinY + f.fw * .3, f.chinY + f.fw * (NM && NM.ySide != null && NM.ySide < f.chinY + f.fw * .1 ? .05 : .12), f.chinY + f.fw * .36);
       const nwU = NM ? (NM.half + f.fw * .02) / fit.s : null;
-      fit.drop = SC.clamp(((yT - fit.N.y) - sn * (nwU || .33) * fit.s) / (fit.s * cs) - PBOutfits.CANON.collarY, -.8, .6);
+      fit.drop = SC.clamp(((yT - fit.N.y) - sn * (nwU || .33) * fit.s) / (fit.s * cs) - PBOutfits.CANON.collarY, -1.6, .6);
+      // ไหล่วัดได้ต่ำมาก (ปกชุดอวกาศ/ไหล่ลาด): ไม่ยืดคอยาวผิดจริง — ยกทั้งชุดขึ้นจนคอเสื้ออยู่ใต้คางพอดี
+      if (fit.drop < -.6) { const k = (-.6 - fit.drop) * fit.s; fit.N = { x: fit.N.x + sn * k, y: fit.N.y - cs * k }; fit.drop = -.6; }
       const ck = [fit.N.x, fit.N.y, fit.s, fit.theta].map(v => v.toFixed(2)).join("|") + "|" + ST.editVer;
-      if (ST.cache.clipKey !== ck) { ST.cache.clip = SC.garmentClip(SC.applyMatteEdits(ST.alpha, ST.editVer ? ST.edit : null), ST.layers, W, H, f, fit); ST.cache.clipKey = ck; }
+      fit.side = ST.manual ? null : ST.fitAuto.side;
+      if (ST.cache.clipKey !== ck) { ST.cache.clip = SC.garmentClip(SC.applyMatteEdits(ST.alpha, ST.editVer ? ST.edit : null), ST.layers, W, H, f, fit, { pp: ST.pp, side: fit.side, nw: nwU || .33 }); ST.cache.clipKey = ck; }
       const C = ST.cache.clip;
-      const L = PBOutfits.layers(g.vk, { W, H, s: fit.s, theta: fit.theta, N: fit.N, light: lightDir(), seed: 7, drop: fit.drop, clip: C.clip, form: C.form, nw: nwU });
+      if (!C.arms) {
+        // มือที่อยู่นอกชุด (ถือหมวก/วัตถุนอกลำตัวที่ถูกตัดออก) จะลอยกลางฉาก — ใช้เฉพาะมือที่อยู่ติดชุด (≤ 0.12 s)
+        C.hands = ST.hands ? SC.handsNearGarment(ST.hands, C.clip, W, H, fit.s * .12) : null;
+        C.arms = SC.armModel(C.clip, C.hands, W, H, fit, f);
+      }
+      ST.handsUsed = C.hands;
+      const L = PBOutfits.layers(g.vk, { W, H, s: fit.s, theta: fit.theta, N: fit.N, light: lightDir(), seed: 7, drop: fit.drop, clip: C.clip, form: C.form, nw: nwU, side: fit.side, arms: C.arms });
       return { front: pixels(L.front), back: pixels(L.back), targets: T, fit };
     }
     prepGarment(g);
@@ -452,16 +467,18 @@
           // แสงเงาและรอยยับจริงจากเสื้อเดิม (ตามแถบ "กลมกลืนแสงสี")
           if (ST.clothSh && hm.strength > 0) { const fr = ST.cache.front, sh = ST.clothSh, k = hm.strength; for (let i = 0; i < W * H; i++) { if (!fr[i * 4 + 3] || sh[i] === 1) continue; const m = 1 + (sh[i] - 1) * k; fr[i * 4] *= m; fr[i * 4 + 1] *= m; fr[i * 4 + 2] *= m; } }
           ST.cache.back = fit.back ? SC.harmonizeGarment(fit.back, W, H, ST.harm, { ...ref, hasSkin: false }, { ...hm, seed: 13 }) : null;
-          ST.cache.gk = gk; ST.targets = fit.targets; ST.cache.fit = fit.fit; ST.cache.nkKey = null;
+          ST.cache.gk = gk; ST.targets = fit.targets; ST.cache.fit = fit.fit;
         }
         front = ST.cache.front; back = ST.cache.back;
         ST.timings.fit = now() - t; t = now();
         // คอ: คอจริง + ต่อคอลงใต้คอเสื้อใหม่ (แคชตามชุด/รีทัช/การแก้ matte)
-        const nkKey = gk + "|" + ST.cache.rtKey + "|" + ST.editVer;
-        if (ST.cache.nkKey !== nkKey) { ST.cache.neck = SC.synthNeck(person, pA, Ly.neck, Ly.keep, W, H, f, ST.cache.fit, { skinRGB: ST.harm.skinRGB, noise: Math.min(4, ST.harm.noise || 0), hair: Ly.hair, collarY: PBOutfits.CANON.collarY, half: ST.neckM ? ST.neckM.half : null }); ST.cache.nkKey = nkKey; }
+        // คอขึ้นกับตำแหน่งคอเสื้อ (fit) ไม่ใช่แบบชุด: เปลี่ยนชุดสำเร็จรูปไม่ต้องสร้างคอใหม่
+        const cf = ST.cache.fit, nkKey = [cf.N.x, cf.N.y, cf.s, cf.theta, cf.drop || 0].map(v => (+v).toFixed(2)).join("|") + "|" + ST.cache.rtKey + "|" + ST.editVer;
+        if (ST.cache.nkKey !== nkKey) { ST.cache.neck = SC.synthNeck(person, pA, Ly.neck, Ly.keep, W, H, f, ST.cache.fit, { skinRGB: ST.harm.skinRGB, noise: Math.min(4, ST.harm.noise || 0), hair: Ly.hair, collarY: PBOutfits.CANON.collarY, half: ST.neckM ? ST.neckM.half : null, mono: !!ST.harm.mono }); ST.cache.nkKey = nkKey; }
         neck = ST.cache.neck;
         for (let i = 0; i < n; i++) keepA[i] = pA[i] * Ly.keep[i];
-        if (ST.hands) for (let i = 0; i < n; i++) if (ST.hands[i] > 0) keepA[i] = Math.max(keepA[i], pA[i] * ST.hands[i]);
+        const HS = g.kind === "vector" ? ST.handsUsed : ST.hands;
+        if (HS) for (let i = 0; i < n; i++) if (HS[i] > 0) keepA[i] = Math.max(keepA[i], pA[i] * HS[i]);
         const fA = new Float32Array(n); for (let i = 0; i < n; i++) fA[i] = front[i * 4 + 3] / 255;
         neckShade = SC.contactShadow(fA, W, H, f, { chin: .3 * sv, collar: .38 * sv });
         const hairA = new Float32Array(n); for (let i = 0; i < n; i++) hairA[i] = keepA[i] * Ly.hair[i];

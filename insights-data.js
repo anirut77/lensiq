@@ -18,6 +18,10 @@ const IQ_DR_TYPES = { microsleep: "หลับใน", long_closure: "หลั
 const iqI18N = () => (typeof self !== "undefined" && self.LQI18N) || (typeof globalThis !== "undefined" && globalThis.LQI18N) || null;
 const iqFill = (s, v) => (v ? String(s).replace(/\{(\w+)\}/g, (m, k) => (v[k] != null ? String(v[k]) : m)) : String(s));
 function iqT(key, thai, vars) { const L = iqI18N(); return L && typeof L.tf === "function" ? L.tf(key, thai, vars) : iqFill(thai, vars); }
+/** ข้อความไทยที่เป็นคีย์ของตัวเอง (ป้ายสั้น หัวตาราง ชื่อขั้น) — แปลตอนเรียก จึงตามภาษาที่เลือกขณะเรนเดอร์ */
+const TN = s => iqT(s, s);
+/** ยอดเงินบาทตามภาษา (ไทย ฿1,234 · จีน 1,234 泰铢) */
+const iqBaht = v => { const L = iqI18N(), n = Math.round(+v || 0); return L && L.lang === "zh" ? n.toLocaleString("zh-CN") + " 泰铢" : "฿" + n.toLocaleString("th-TH"); };
 const iqPad = n => String(n).padStart(2, "0");
 const iqDay = (ts = Date.now()) => { const d = new Date(ts); return `${d.getFullYear()}-${iqPad(d.getMonth() + 1)}-${iqPad(d.getDate())}`; };
 /** เวลาเริ่มวัน (เที่ยงคืนตามเวลาเครื่อง) ของ key YYYY-MM-DD */
@@ -103,7 +107,7 @@ function iqCollect(snap) {
     if (!packs.length) continue;
     let d = days.find(x => x.day === date);
     if (!d) { d = { day: date, in: 0, out: 0, peak: 0, maxQueue: 0, hourlyIn: [], hourlyOut: [], zones: {}, byCam: {}, demo: false }; days.push(d); }
-    if (!Object.keys(d.byCam).length && (d.in || d.out)) d.byCam.local = { name: "เครื่องหลัก", in: d.in, out: d.out };
+    if (!Object.keys(d.byCam).length && (d.in || d.out)) d.byCam.local = { name: TN("เครื่องหลัก"), in: d.in, out: d.out };
     const M = IQ_AGG.mergeDay({ in: d.in, out: d.out, peak: d.peak, maxQueue: d.maxQueue, hourly: { in: d.hourlyIn, out: d.hourlyOut } }, packs);
     Object.assign(d, { in: M.in, out: M.out, peak: M.peak, maxQueue: M.maxQueue, hourlyIn: M.hourlyIn, hourlyOut: M.hourlyOut, nodes: packs.length });
     for (const p of packs) {
@@ -179,7 +183,7 @@ function iqEarliest(D) {
 }
 
 /** preset: today | d7 | d14 | d30 | d90 | all | custom → { from, to, mode, keys, prev, compare } ; keys = รายวัน (mode hour = รายชั่วโมงของวันเดียว)
-   opt = { from, to (custom), compare: "prev" (ช่วงก่อนหน้ายาวเท่ากัน, ค่าเริ่มต้น) | "week" (เลื่อนย้อน 7 วัน) | "none" } */
+   opt = { from, to (custom), compare: "prevTN(" (ช่วงก่อนหน้ายาวเท่ากัน, ค่าเริ่มต้น) | ")weekTN(" (เลื่อนย้อน 7 วัน) | ")none" } */
 const IQ_SPANS = { today: 1, d7: 7, d14: 14, d30: 30, d90: 90 };
 const IQ_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 function iqRange(preset, now, D, opt = {}) {
@@ -260,15 +264,15 @@ function iqKpis(D, r) {
   const M = iqMetrics(D, r), P = r.prev ? iqMetrics(D, { ...r, preset: "prev", from: r.prev.from, to: r.prev.to }) : null;
   const dl = (cur, prev) => (P && prev != null && prev > 0 && cur != null) ? (cur - prev) / prev : null;
   const out = [];
-  if (M.booth) out.push({ id: "booth", label: "ผู้เข้าชมบูธ", value: M.booth.visitors, fmt: "int", delta: dl(M.booth.visitors, P?.booth?.visitors), sub: M.booth.visitors ? `หยุดชม ${Math.round(M.booth.stopped / M.booth.visitors * 100)}% · ร่วมกิจกรรม ${M.booth.participants} คน` : "ไม่มีผู้เข้าชมในช่วงนี้" });
-  if (M.store) out.push({ id: "store", label: "คนเข้าร้าน", value: M.store.in, fmt: "int", delta: dl(M.store.in, P?.store?.in), sub: M.store.in ? `คนในร้านสูงสุด ${M.store.peak} คน · คิวสูงสุด ${M.store.maxQueue}` : "ไม่มีข้อมูลในช่วงนี้" });
-  if (M.sg) out.push({ id: "sg", label: "ผู้ชมโฆษณา (มองจอ)", value: M.sg.viewers, fmt: "int", delta: null, sub: `จาก ${M.sg.ots.toLocaleString("th-TH")} คนที่ผ่านจอ · ยอดสะสม ไม่แยกรายวัน`, cumulative: true });
-  if (M.co) out.push({ id: "co", label: "ยอดขายสแกน", value: M.co.revenue, fmt: "baht", delta: dl(M.co.revenue, P?.co?.revenue), sub: `${M.co.receipts.toLocaleString("th-TH")} ใบเสร็จ · ${M.co.items.toLocaleString("th-TH")} ชิ้น` });
-  if (M.cx) out.push({ id: "cx", label: "ลูกค้าที่จดจำ (มาซื้อ)", value: M.cx.customers, fmt: "int", delta: dl(M.cx.customers, P?.cx?.customers), sub: `สมาชิกทั้งหมด ${M.cx.members} คน · ยอดขาย ฿${Math.round(M.cx.revenue).toLocaleString("th-TH")}` });
-  if (M.neuro) out.push({ id: "neuro", label: "อารมณ์เชิงบวกเฉลี่ย", value: M.neuro.positive, fmt: "pct", delta: null, sub: M.neuro.sessions ? `${M.neuro.sessions} การทดสอบ · มองจอ ${Math.round((M.neuro.attention || 0) * 100)}%` : "ไม่มีการทดสอบในช่วงนี้" });
-  if (M.att) out.push({ id: "att", label: "ผู้เช็คชื่อ", value: M.att.checkins, fmt: "int", delta: dl(M.att.checkins, P?.att?.checkins), sub: `${M.att.sessions} รอบอบรม/วัน` });
-  if (M.qc) out.push({ id: "qc", label: "อัตราผ่าน QC", value: M.qc.yield, fmt: "pct1", delta: null, sub: `ตรวจ ${M.qc.total.toLocaleString("th-TH")} ขวด · คัดทิ้ง ${M.qc.reject.toLocaleString("th-TH")}` });
-  if (M.dr) out.push({ id: "dr", label: "คะแนนความปลอดภัยคนขับ", value: M.dr.safety, fmt: "score", delta: null, sub: `${M.dr.trips} เที่ยว · เหตุการณ์ ${M.dr.events} ครั้ง` });
+  if (M.booth) out.push({ id: "booth", label: "ผู้เข้าชมบูธ", value: M.booth.visitors, fmt: "int", delta: dl(M.booth.visitors, P?.booth?.visitors), sub: M.booth.visitors ? iqT("iq.kpi.sub.booth", "หยุดชม {p}% · ร่วมกิจกรรม {n} คน", { p: Math.round(M.booth.stopped / M.booth.visitors * 100), n: M.booth.participants }) : TN("ไม่มีผู้เข้าชมในช่วงนี้") });
+  if (M.store) out.push({ id: "store", label: "คนเข้าร้าน", value: M.store.in, fmt: "int", delta: dl(M.store.in, P?.store?.in), sub: M.store.in ? iqT("iq.kpi.sub.store", "คนในร้านสูงสุด {p} คน · คิวสูงสุด {q}", { p: M.store.peak, q: M.store.maxQueue }) : TN("ไม่มีข้อมูลในช่วงนี้") });
+  if (M.sg) out.push({ id: "sg", label: "ผู้ชมโฆษณา (มองจอ)", value: M.sg.viewers, fmt: "int", delta: null, sub: iqT("iq.kpi.sub.sg", "จาก {n} คนที่ผ่านจอ · ยอดสะสม ไม่แยกรายวัน", { n: M.sg.ots.toLocaleString("th-TH") }), cumulative: true });
+  if (M.co) out.push({ id: "co", label: "ยอดขายสแกน", value: M.co.revenue, fmt: "baht", delta: dl(M.co.revenue, P?.co?.revenue), sub: iqT("iq.kpi.sub.co", "{r} ใบเสร็จ · {i} ชิ้น", { r: M.co.receipts.toLocaleString("th-TH"), i: M.co.items.toLocaleString("th-TH") }) });
+  if (M.cx) out.push({ id: "cx", label: "ลูกค้าที่จดจำ (มาซื้อ)", value: M.cx.customers, fmt: "int", delta: dl(M.cx.customers, P?.cx?.customers), sub: iqT("iq.kpi.sub.cx2", "สมาชิกทั้งหมด {m} คน · ยอดขาย {v}", { m: M.cx.members, v: iqBaht(M.cx.revenue) }) });
+  if (M.neuro) out.push({ id: "neuro", label: "อารมณ์เชิงบวกเฉลี่ย", value: M.neuro.positive, fmt: "pct", delta: null, sub: M.neuro.sessions ? iqT("iq.kpi.sub.neuro", "{n} การทดสอบ · มองจอ {p}%", { n: M.neuro.sessions, p: Math.round((M.neuro.attention || 0) * 100) }) : TN("ไม่มีการทดสอบในช่วงนี้") });
+  if (M.att) out.push({ id: "att", label: "ผู้เช็คชื่อ", value: M.att.checkins, fmt: "int", delta: dl(M.att.checkins, P?.att?.checkins), sub: iqT("iq.kpi.sub.att", "{n} รอบอบรม/วัน", { n: M.att.sessions }) });
+  if (M.qc) out.push({ id: "qc", label: "อัตราผ่าน QC", value: M.qc.yield, fmt: "pct1", delta: null, sub: iqT("iq.kpi.sub.qc", "ตรวจ {n} ขวด · คัดทิ้ง {r}", { n: M.qc.total.toLocaleString("th-TH"), r: M.qc.reject.toLocaleString("th-TH") }) });
+  if (M.dr) out.push({ id: "dr", label: "คะแนนความปลอดภัยคนขับ", value: M.dr.safety, fmt: "score", delta: null, sub: iqT("iq.kpi.sub.dr", "{n} เที่ยว · เหตุการณ์ {e} ครั้ง", { n: M.dr.trips, e: M.dr.events }) });
   return out;
 }
 
@@ -312,17 +316,17 @@ function iqFunnel(D, r) {
   const pick = list => list.find(c => c.ok) || null;
   const boothOk = !!(M.booth && M.booth.visitors);
   const steps = [
-    { key: "pass", label: "คนผ่าน", src: pick([
-      { ok: boothOk, value: M.booth?.visitors, source: "วิเคราะห์บูธ", note: "ผู้เข้าชมที่กล้องเห็นอย่างน้อย 1 วินาที", href: "booth.html" },
-      { ok: !!(M.store && M.store.in), value: M.store?.in, source: "วิเคราะห์หน้าร้าน", note: "คนเดินข้ามเส้นนับเข้าร้าน", href: "store.html" },
-      { ok: all && !!(M.sg && M.sg.ots), value: M.sg?.ots, source: "ป้ายโฆษณา", note: "คนที่อยู่หน้าจอ (ยอดสะสม)", href: "signage.html" }]) },
-    { key: "look", label: "หยุดดู", src: pick([
-      { ok: boothOk, value: M.booth?.stopped, source: "วิเคราะห์บูธ", note: "หยุดอยู่หน้าบูธตั้งแต่ 5 วินาที", href: "booth.html" },
-      { ok: all && !!(M.sg && M.sg.ots), value: M.sg?.viewers, source: "ป้ายโฆษณา", note: "หันมองจอ (ยอดสะสม)", href: "signage.html" }]) },
-    { key: "engage", label: "มีส่วนร่วม", src: pick([
-      { ok: boothOk, value: M.booth?.engaged, source: "วิเคราะห์บูธ", note: "หยุดชมและหันมองบูธอย่างน้อยครึ่งหนึ่งของเวลา", href: "booth.html" }]) },
-    { key: "buy", label: "ซื้อ", src: pick([
-      { ok: !!((M.co && M.co.receipts) || (M.cx && M.cx.tickets)), value: (M.co?.receipts || 0) + (M.cx?.tickets || 0), source: [M.co?.receipts ? "สแกนสินค้า" : "", M.cx?.tickets ? "จดจำลูกค้า" : ""].filter(Boolean).join(" + "), note: "จำนวนบิลขาย", href: M.co?.receipts ? "checkout.html" : "customers.html" }]) }
+    { key: "pass", label: TN("คนผ่าน"), src: pick([
+      { ok: boothOk, value: M.booth?.visitors, source: TN("วิเคราะห์บูธ"), note: TN("ผู้เข้าชมที่กล้องเห็นอย่างน้อย 1 วินาที"), href: "booth.html" },
+      { ok: !!(M.store && M.store.in), value: M.store?.in, source: TN("วิเคราะห์หน้าร้าน"), note: TN("คนเดินข้ามเส้นนับเข้าร้าน"), href: "store.html" },
+      { ok: all && !!(M.sg && M.sg.ots), value: M.sg?.ots, source: TN("ป้ายโฆษณา"), note: TN("คนที่อยู่หน้าจอ (ยอดสะสม)"), href: "signage.html" }]) },
+    { key: "look", label: TN("หยุดดู"), src: pick([
+      { ok: boothOk, value: M.booth?.stopped, source: TN("วิเคราะห์บูธ"), note: TN("หยุดอยู่หน้าบูธตั้งแต่ 5 วินาที"), href: "booth.html" },
+      { ok: all && !!(M.sg && M.sg.ots), value: M.sg?.viewers, source: TN("ป้ายโฆษณา"), note: TN("หันมองจอ (ยอดสะสม)"), href: "signage.html" }]) },
+    { key: "engage", label: TN("มีส่วนร่วม"), src: pick([
+      { ok: boothOk, value: M.booth?.engaged, source: TN("วิเคราะห์บูธ"), note: TN("หยุดชมและหันมองบูธอย่างน้อยครึ่งหนึ่งของเวลา"), href: "booth.html" }]) },
+    { key: "buy", label: TN("ซื้อ"), src: pick([
+      { ok: !!((M.co && M.co.receipts) || (M.cx && M.cx.tickets)), value: (M.co?.receipts || 0) + (M.cx?.tickets || 0), source: [M.co?.receipts ? TN("สแกนสินค้า") : "", M.cx?.tickets ? TN("จดจำลูกค้า") : ""].filter(Boolean).join(" + "), note: TN("จำนวนบิลขาย"), href: M.co?.receipts ? "checkout.html" : "customers.html" }]) }
   ];
   const have = steps.filter(s => s.src);
   const sources = new Set(have.map(s => s.src.source));
@@ -345,26 +349,26 @@ function iqTopBars(obj, labels = {}, n = 6) {
 }
 function iqModuleBars(D, r, id) {
   const M = iqMetrics(D, r);
-  if (id === "sg" && D.sg) return D.sg.ads.filter(a => a.ots || a.viewers).sort((a, b) => b.viewers - a.viewers).slice(0, 6).map(a => ({ label: a.title, value: a.viewers, sub: `ผ่านจอ ${a.ots} · เล่น ${a.plays} ครั้ง` }));
-  if (id === "neuro" && D.neuro) return D.neuro.filter(s => iqInT(s.t, r)).sort((a, b) => b.t - a.t).slice(0, 6).map(s => ({ label: `${s.test} (${s.pid})`, value: s.positive, sub: `ค่าอารมณ์ ${s.valence == null ? "–" : (s.valence > 0 ? "+" : "") + s.valence.toFixed(2)}` }));
+  if (id === "sg" && D.sg) return D.sg.ads.filter(a => a.ots || a.viewers).sort((a, b) => b.viewers - a.viewers).slice(0, 6).map(a => ({ label: a.title, value: a.viewers, sub: iqT("iq.bar.sg", "ผ่านจอ {o} · เล่น {p} ครั้ง", { o: a.ots, p: a.plays }) }));
+  if (id === "neuro" && D.neuro) return D.neuro.filter(s => iqInT(s.t, r)).sort((a, b) => b.t - a.t).slice(0, 6).map(s => ({ label: `${s.test} (${s.pid})`, value: s.positive, sub: iqT("iq.bar.neuro", "ค่าอารมณ์ {v}", { v: s.valence == null ? "–" : (s.valence > 0 ? "+" : "") + s.valence.toFixed(2) }) }));
   if (id === "att" && D.att) { const c = {}; D.att.filter(l => iqIn(l.day, r)).forEach(l => { const k = l.session + " · " + l.day; c[k] = (c[k] || 0) + 1; }); return iqTopBars(c); }
   if (id === "qc" && M.qc) return iqTopBars(M.qc.reasons, IQ_QC_REASONS);
   if (id === "dr" && M.dr) return iqTopBars(M.dr.byType, IQ_DR_TYPES);
   if (id === "store" && M.store) {
     const cams = Object.values(M.store.byCam);
-    if (cams.length > 1) return cams.filter(c => c.in || c.out).sort((a, b) => b.in - a.in).map(c => ({ label: c.name, value: c.in, sub: `ออก ${c.out}` }));
+    if (cams.length > 1) return cams.filter(c => c.in || c.out).sort((a, b) => b.in - a.in).map(c => ({ label: c.name, value: c.in, sub: iqT("iq.bar.out", "ออก {n}", { n: c.out }) }));
     return [];
   }
   if (id === "fr" && D.fr) return iqTopBars(D.fr.el, IQ_EL);
   if (id === "palm" && D.palm) return iqTopBars(D.palm.types, IQ_PALM);
-  if (id === "fs" && D.fs) { const L = {}; Object.keys(D.fs.kua).forEach(k => { L[k] = "เลขกัว " + k; }); return iqTopBars(D.fs.kua, L); }
+  if (id === "fs" && D.fs) { const L = {}; Object.keys(D.fs.kua).forEach(k => { L[k] = iqT("iq.kua", "เลขกัว {k}", { k }); }); return iqTopBars(D.fs.kua, L); }
   return [];
 }
 
 /* ---------- CSV สรุปรวม ---------- */
 function iqCsvCell(v) { v = v == null ? "" : String(v); if (/^[=+\-@]/.test(v) && isNaN(+v)) v = "'" + v; return /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v; }
 function iqCsv(D, r) {
-  const rows = [["วันที่", "ผู้เข้าชมบูธ", "หยุดชมบูธ", "มีส่วนร่วมบูธ", "คนเข้าร้าน", "ใบเสร็จสแกน", "ยอดขายสแกน (บาท)", "บิลลูกค้าที่จดจำ", "ยอดขายลูกค้าที่จดจำ (บาท)", "ลูกค้าที่จดจำมาซื้อ", "การทดสอบอารมณ์", "อารมณ์เชิงบวกเฉลี่ย (%)", "ผู้เช็คชื่อ", "QC ตรวจ", "QC ผ่าน", "เที่ยววิ่ง", "เหตุการณ์คนขับ"]];
+  const rows = [[TN("วันที่"), TN("ผู้เข้าชมบูธ"), TN("หยุดชมบูธ"), TN("มีส่วนร่วมบูธ"), TN("คนเข้าร้าน"), TN("ใบเสร็จสแกน"), TN("ยอดขายสแกน (บาท)"), TN("บิลลูกค้าที่จดจำ"), TN("ยอดขายลูกค้าที่จดจำ (บาท)"), TN("ลูกค้าที่จดจำมาซื้อ"), TN("การทดสอบอารมณ์"), TN("อารมณ์เชิงบวกเฉลี่ย (%)"), TN("ผู้เช็คชื่อ"), TN("QC ตรวจ"), TN("QC ผ่าน"), TN("เที่ยววิ่ง"), TN("เหตุการณ์คนขับ")]];
   const val = (x, f = v => v) => x == null ? "" : f(x);
   r.keys.forEach(day => {
     const M = iqMetrics(D, { ...r, preset: "day", from: day, to: day });
@@ -375,9 +379,9 @@ function iqCsv(D, r) {
       val(M.att?.checkins), val(M.qc?.total), val(M.qc?.pass), val(M.dr?.trips), val(M.dr?.events)]);
   });
   const T = iqMetrics(D, r);
-  rows.push([], ["รวมช่วงที่เลือก", `${r.from} ถึง ${r.to}`]);
-  iqKpis(D, r).forEach(k => rows.push([k.label, k.value == null ? "" : (k.fmt === "pct" || k.fmt === "pct1" ? (k.value * 100).toFixed(1) + "%" : k.fmt === "score" ? k.value.toFixed(0) : k.value), k.sub]));
-  if (T.sg) rows.push([], ["ป้ายโฆษณา (ยอดสะสมตั้งแต่ " + new Date(T.sg.since).toISOString().slice(0, 10) + ")"], ["ผ่านหน้าจอ", T.sg.ots], ["มองจอ", T.sg.viewers], ["เวลามองรวม (วินาที)", T.sg.attn.toFixed(1)]);
+  rows.push([], [TN("รวมช่วงที่เลือก"), iqT("iq.csv.span", "{a} ถึง {b}", { a: r.from, b: r.to })]);
+  iqKpis(D, r).forEach(k => rows.push([TN(k.label), k.value == null ? "" : (k.fmt === "pct" || k.fmt === "pct1" ? (k.value * 100).toFixed(1) + "%" : k.fmt === "score" ? k.value.toFixed(0) : k.value), k.sub]));
+  if (T.sg) rows.push([], [iqT("iq.csv.sg", "ป้ายโฆษณา (ยอดสะสมตั้งแต่ {d})", { d: new Date(T.sg.since).toISOString().slice(0, 10) })], [TN("ผ่านหน้าจอ"), T.sg.ots], [TN("มองจอ"), T.sg.viewers], [TN("เวลามองรวม (วินาที)"), T.sg.attn.toFixed(1)]);
   return "﻿" + rows.map(r => r.map(iqCsvCell).join(",")).join("\r\n");
 }
 
@@ -430,12 +434,12 @@ function iqBackup(snap, idb = {}, now = Date.now()) {
 }
 /** ตรวจไฟล์สำรอง คืน { ok, error?, keys, idbStores } */
 function iqValidateBackup(obj) {
-  if (!obj || typeof obj !== "object" || obj.format !== "lensiq-backup") return { ok: false, error: "ไม่ใช่ไฟล์สำรองของ LENSIQ" };
-  if (!obj.localStorage || typeof obj.localStorage !== "object") return { ok: false, error: "ไฟล์ไม่มีส่วนข้อมูล localStorage" };
+  if (!obj || typeof obj !== "object" || obj.format !== "lensiq-backup") return { ok: false, error: TN("ไม่ใช่ไฟล์สำรองของ LENSIQ") };
+  if (!obj.localStorage || typeof obj.localStorage !== "object") return { ok: false, error: TN("ไฟล์ไม่มีส่วนข้อมูล localStorage") };
   const keys = Object.keys(obj.localStorage).filter(k => iqIsModuleKey(k) && typeof obj.localStorage[k] === "string");
   const idb = obj.indexedDB && obj.indexedDB["co-checkout"];
   return { ok: true, keys, idbStores: idb ? Object.keys(idb).filter(s => s === "products" || s === "samples") : [] };
 }
 
-return { iqT, IQ_DAY, IQ_DEMO_KEY, IQ_EMO, IQ_VA, IQ_QC_REASONS, IQ_DR_TYPES, iqPad, iqDay, iqDayStart, iqAddDays, iqMean, iqSum, iqParse, IQ_AGG, IQ_FORTUNE_KEYS, iqIsModuleKey, IQ_EL, IQ_PALM, iqCollect, iqEarliest, IQ_SPANS, IQ_DATE_RE, iqRange, iqIn, iqInT, iqMetrics, iqKpis, iqBuckets, iqBucketOf, iqSeries, iqTrimHours, iqFunnel, iqTopBars, iqModuleBars, iqCsvCell, iqCsv, iqHasDemo, IQ_HEAT_RE, iqRemoveDemo, iqBackup, iqValidateBackup };
+return { iqT, TN, IQ_DAY, IQ_DEMO_KEY, IQ_EMO, IQ_VA, IQ_QC_REASONS, IQ_DR_TYPES, iqPad, iqDay, iqDayStart, iqAddDays, iqMean, iqSum, iqParse, IQ_AGG, IQ_FORTUNE_KEYS, iqIsModuleKey, IQ_EL, IQ_PALM, iqCollect, iqEarliest, IQ_SPANS, IQ_DATE_RE, iqRange, iqIn, iqInT, iqMetrics, iqKpis, iqBuckets, iqBucketOf, iqSeries, iqTrimHours, iqFunnel, iqTopBars, iqModuleBars, iqCsvCell, iqCsv, iqHasDemo, IQ_HEAT_RE, iqRemoveDemo, iqBackup, iqValidateBackup };
 });

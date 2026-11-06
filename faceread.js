@@ -827,7 +827,20 @@
 /* ===================================================================================== */
 if (typeof window !== "undefined" && typeof document !== "undefined" && document.getElementById("frApp")) (function () {
   "use strict";
-  var FR = window.FRCore, KB = window.FR_KB;
+  var FR = window.FRCore, KB0 = window.FR_KB, KB = KB0;
+  /* ---------- i18n: T() = ข้อความตามภาษา (ไทยเป็นค่าเริ่มต้น) / KB จีนจาก i18n/zh-fortune-faceread.js (FR_KB_ZH) ซ้อนบน KB ไทย ---------- */
+  var T = function (k, th, v) { return window.LQI18N ? LQI18N.tf(k, th, v) : th.replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : m; }); };
+  var isZh = function () { return !!(window.LQI18N && LQI18N.lang === "zh"); };
+  var overlay = function (base, over) {
+    if (over == null) return base;
+    if (Array.isArray(base)) return base.map(function (b, i) { return overlay(b, Array.isArray(over) ? over[i] : undefined); });
+    if (base && typeof base === "object") {
+      var o = {}; Object.keys(base).forEach(function (k) { o[k] = overlay(base[k], over[k]); }); return o;
+    }
+    return typeof over === typeof base || base == null ? over : base;
+  };
+  var kbZh = null;
+  function kbFor() { if (!isZh() || !window.FR_KB_ZH) return KB0; return kbZh || (kbZh = overlay(KB0, window.FR_KB_ZH)); }
   var $ = function (s) { return document.querySelector(s); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   var sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
@@ -839,39 +852,47 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var video = $("#frVideo"), cam = $("#frCam"), ov = $("#frOverlay"), octx = ov.getContext("2d");
   var btnCam = $("#frStartCam"), btnRead = $("#frRead"), fileIn = $("#frFile"), qcList = $("#frQc"), countEl = $("#frCount");
   var resultSec = $("#frResult"), resCanvas = $("#frResCanvas");
-  var ready = false, busy = false, looping = false, lastDet = null, lastQ = null, lastN = 0, lockPrev = null, current = null, forceRead = null;
+  var ready = false, busy = false, looping = false, lastQ = null, lockPrev = null, current = null, forceRead = null;
   var prefs = Object.assign({ stats: true, photoOnCard: false, reco: !!(KB.recommend && KB.recommend.enabled), leads: !!(KB.leads && KB.leads.enabled) }, lsGet(PREF_KEY, {}));
 
-  function engine(msg, cls) { var e = $("#frEngine"); e.textContent = msg; e.className = "fr-engine " + (cls || ""); }
+  function engine(msg, cls) { engState = null; var e = $("#frEngine"); e.textContent = msg; e.className = "fr-engine " + (cls || ""); }
+  /** ข้อความสถานะแบบมีคีย์: จำไว้เพื่อแปลใหม่เมื่อสลับภาษา */
+  var engState = null;
+  function engineT(k, th, v, cls) { engine(T(k, th, v), cls); engState = [k, th, v, cls]; }
 
   /* ---------- กล้อง (LQCam.create จาก lensiq-camera.js: สำรองข้อจำกัดเป็นขั้น, จำกล้องที่เลือก, พักเมื่อซ่อนหน้า) ---------- */
   /** ปุ่มสลับกล้อง + ตัวเลือกกล้อง (แสดงเมื่อมีกล้อง ≥ 2 ตัว) วางทับมุมขวาบนของกรอบกล้อง */
   function mountCamCtl(host, c, onError) {
     var box = document.createElement("div"); box.className = "cam-ctl"; box.hidden = true;
-    box.innerHTML = '<button type="button" class="cam-flip" aria-label="สลับกล้องหน้า/หลัง" title="สลับกล้องหน้า/หลัง"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h11l-3-3M20 16H9l3 3"/></svg><span>สลับกล้อง</span></button><select class="cam-pick" aria-label="เลือกกล้อง"></select>';
+    var flipL = esc(T("faceread.cam.flip", "สลับกล้องหน้า/หลัง"));
+    box.innerHTML = '<button type="button" class="cam-flip" aria-label="' + flipL + '" title="' + flipL + '"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h11l-3-3M20 16H9l3 3"/></svg><span>' + esc(T("faceread.cam.flipShort", "สลับกล้อง")) + '</span></button><select class="cam-pick" aria-label="' + esc(T("faceread.cam.pick", "เลือกกล้อง")) + '"></select>';
     host.append(box);
     var flip = box.querySelector(".cam-flip"), pickEl = box.querySelector(".cam-pick");
     var run = function (p) { box.classList.add("busy"); p.catch(function (e) { if (e && e.name !== "AbortError" && onError) onError(e); }).finally(function () { box.classList.remove("busy"); }); };
     flip.onclick = function () { run(c.flip()); };
     pickEl.onchange = function () { run(c.start(pickEl.value)); };
     return function render() {
+      var fl = T("faceread.cam.flip", "สลับกล้องหน้า/หลัง"); flip.setAttribute("aria-label", fl); flip.title = fl;
+      flip.querySelector("span").textContent = T("faceread.cam.flipShort", "สลับกล้อง"); pickEl.setAttribute("aria-label", T("faceread.cam.pick", "เลือกกล้อง"));
       var devs = c.devices.filter(function (d) { return d.deviceId; });
       box.hidden = devs.length < 2;
-      pickEl.innerHTML = devs.map(function (d, i) { return '<option value="' + esc(d.deviceId) + '">' + esc(d.label || "กล้อง " + (i + 1)) + "</option>"; }).join("");
+      pickEl.innerHTML = devs.map(function (d, i) { return '<option value="' + esc(d.deviceId) + '">' + esc(d.label || T("faceread.cam.n", "กล้อง {n}", { n: i + 1 })) + "</option>"; }).join("");
       if (c.deviceId) pickEl.value = c.deviceId;
     };
   }
   function showHttpsNote(before) {
     if (window.isSecureContext || document.querySelector(".https-note")) return;
     var p = document.createElement("p"); p.className = "https-note"; p.setAttribute("role", "alert");
-    p.innerHTML = 'บนมือถือต้องเปิดผ่าน <b>https://</b> — ดูวิธีในหน้า <a href="cameras.html">ระบบทั้งหมด</a>';
+    p.innerHTML = esc(T("faceread.httpsA", "บนมือถือต้องเปิดผ่าน")) + ' <b>https://</b> ' + esc(T("faceread.httpsB", "— ดูวิธีในหน้า")) + ' <a href="cameras.html">' + esc(T("faceread.httpsLink", "ระบบทั้งหมด")) + '</a>';
     before.before(p);
   }
   var camErr = function (e) {
     console.error(e);
     if (e.name === "Insecure") showHttpsNote($("#frEngine"));
-    var m = { Insecure: HTTPS_MSG, NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง — ใช้ปุ่ม อัปโหลดรูป แทนได้", NotFoundError: "ไม่พบกล้อง — ใช้ปุ่ม อัปโหลดรูป แทนได้", NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่" }[e.name];
-    engine(m || (LQCam.errorText ? LQCam.errorText(e) : "เปิดกล้องไม่ได้: " + (e.message || e.name)), "err");
+    var m = { Insecure: ["faceread.eng.https", HTTPS_MSG], NotAllowedError: ["faceread.eng.denied", "ไม่ได้รับอนุญาตให้ใช้กล้อง — ใช้ปุ่ม อัปโหลดรูป แทนได้"], NotFoundError: ["faceread.eng.notFound", "ไม่พบกล้อง — ใช้ปุ่ม อัปโหลดรูป แทนได้"], NotReadableError: ["faceread.eng.busyCam", "กล้องถูกโปรแกรมอื่นใช้อยู่"] }[e.name];
+    if (m) engineT(m[0], m[1], null, "err");
+    else if (LQCam.errorText && !isZh()) engine(LQCam.errorText(e), "err");
+    else engineT("faceread.eng.camFail", "เปิดกล้องไม่ได้: {msg}", { msg: e.message || e.name }, "err");
   };
   function layoutCam() {
     var vw = video.videoWidth, vh = video.videoHeight; if (!vw) return;
@@ -885,7 +906,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       if (ev.type === "devices") { renderCamCtl(); return; }
       cam.classList.toggle("mirror", c.mirrored); cam.classList.toggle("live", c.active); layoutCam();
       if (ev.type === "started" && c.active) { lockPrev = null; startLoop(); }
-      if (ev.type === "ended") engine("สัญญาณกล้องหลุด — กดเปิดกล้องอีกครั้ง", "err");
+      if (ev.type === "ended") engineT("faceread.eng.ended", "สัญญาณกล้องหลุด — กดเปิดกล้องอีกครั้ง", null, "err");
     },
     onError: function (c, e) { if (e && e.name !== "AbortError") camErr(e); }
   });
@@ -896,14 +917,15 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var FAKE = !!(window.LQDetect && LQDetect.isTest()); // ?fakedet บน localhost: ตัวตรวจจับจำลองสำหรับทดสอบ ไม่โหลดโมเดล
   var modelsP = null;
   function loadModels() {
-    if (FAKE) { ready = true; engine("พร้อมใช้งาน (ตัวตรวจจับจำลองสำหรับทดสอบ)", "ok"); return Promise.resolve("fake"); }
+    if (FAKE) { ready = true; engineT("faceread.eng.fake", "พร้อมใช้งาน (ตัวตรวจจับจำลองสำหรับทดสอบ)", null, "ok"); return Promise.resolve("fake"); }
     if (!modelsP) modelsP = LQDetect.tfBackend().then(function (b) {
       return Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri("vendor/models/"), faceapi.nets.faceLandmark68Net.loadFromUri("vendor/models/")]).then(function () { return b; });
     }).then(function (b) {
       ready = true;
-      engine("พร้อมใช้งาน (ตัวประมวลผล: " + b.toUpperCase() + (b === "webgl" ? "" : " — อาจช้ากว่าปกติเล็กน้อย") + ")", "ok");
+      if (b === "webgl") engineT("faceread.eng.ready", "พร้อมใช้งาน (ตัวประมวลผล: {b})", { b: b.toUpperCase() }, "ok");
+      else engineT("faceread.eng.readySlow", "พร้อมใช้งาน (ตัวประมวลผล: {b} — อาจช้ากว่าปกติเล็กน้อย)", { b: b.toUpperCase() }, "ok");
       return b;
-    }).catch(function (e) { console.error(e); engine("โหลดโมเดลไม่สำเร็จ: " + (e.message || e), "err"); modelsP = null; throw e; });
+    }).catch(function (e) { console.error(e); engineT("faceread.eng.modelFail", "โหลดโมเดลไม่สำเร็จ: {msg}", { msg: e.message || e }, "err"); modelsP = null; throw e; });
     return modelsP;
   }
   /** ทุกใบหน้าในภาพ → [{box:{x,y,width,height}, score, pts}] (พิกัดพิกเซลของ input) */
@@ -933,9 +955,19 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     c.save(); if (mirror) { c.translate(w, 0); c.scale(-1, 1); } c.drawImage(video, 0, 0, w, h); c.restore();
     return c;
   }
+  /** คำแนะนำในรายการตรวจ (FRCore.quality ส่งเป็นภาษาไทย) → คีย์แปล */
+  var QC_TIP = { "ให้ใบหน้าอยู่ในกรอบวงรี": "faceread.qc.face.tip", "เปิดกล้องหรืออัปโหลดรูป": "faceread.qc.face.tip0", "ขยับเข้าใกล้กล้องอีกนิด": "faceread.qc.size.tip",
+    "มองตรงเข้ากล้อง ไม่หันซ้าย–ขวา": "faceread.qc.yaw.tip", "ตั้งศีรษะให้ตรง": "faceread.qc.roll.tip", "เพิ่มแสงด้านหน้า": "faceread.qc.light.dark",
+    "แสงจ้าเกินไป": "faceread.qc.light.bright", "แสงด้านข้างไม่เท่ากัน หันเข้าหาแสง": "faceread.qc.light.side" };
+  var qcTip = function (q) {
+    if (q.id === "single") { var n = (String(q.tip).match(/\d+/) || [""])[0]; return T("faceread.qc.single.tip", "พบ {n} ใบหน้า ให้อยู่คนเดียวในกรอบ", { n: n }); }
+    return QC_TIP[q.tip] ? T(QC_TIP[q.tip], q.tip) : q.tip;
+  };
+  var lastQc = [{ id: "face", ok: false, label: "พบใบหน้า", tip: "เปิดกล้องหรืออัปโหลดรูป" }];
   function renderQc(items) {
+    lastQc = items;
     qcList.innerHTML = items.map(function (q) {
-      return '<li class="' + (q.ok ? "ok" : "no") + '"><span class="dot" aria-hidden="true">' + (q.ok ? "✓" : "!") + "</span><span>" + esc(q.label) + (q.ok || !q.tip ? "" : ' <small>— ' + esc(q.tip) + "</small>") + "</span></li>";
+      return '<li class="' + (q.ok ? "ok" : "no") + '"><span class="dot" aria-hidden="true">' + (q.ok ? "✓" : "!") + "</span><span>" + esc(T("faceread.qc." + q.id, q.label)) + (q.ok || !q.tip ? "" : ' <small>— ' + esc(qcTip(q)) + "</small>") + "</span></li>";
     }).join("");
   }
   function qOk(items) { return items.length > 1 && items.every(function (q) { return q.ok || q.id === "light"; }); }
@@ -965,7 +997,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
           lockPrev = pk.boxN;
           var light = null;
           if (det) { grabFrame(probe, false); light = FR.lightStats(pctx.getImageData(0, 0, probe.width, probe.height), det.box); }
-          lastDet = det; lastN = list.length; lastQ = FR.quality(det, W, H, light, list.length);
+          lastQ = FR.quality(det, W, H, light, list.length);
           if (!busy) { renderQc(lastQ); drawGuide(det, qOk(lastQ), list.filter(function (d) { return d !== det; })); btnRead.disabled = !qOk(lastQ); }
         } catch (e) { console.warn(e); }
       }
@@ -976,11 +1008,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   btnCam.addEventListener("click", async function () {
     btnCam.disabled = true;
-    engine("กำลังเปิดกล้องและโหลดโมเดล...");
+    engineT("faceread.eng.opening", "กำลังเปิดกล้องและโหลดโมเดล...");
     try {
       await Promise.all([camera.start(), loadModels()]);
       $("#frCamHint").hidden = true;
-      engine("กล้องพร้อม — จัดใบหน้าให้อยู่ในวงรี มองตรง แล้วกด อ่านโหงวเฮ้ง", "ok");
+      engineT("faceread.eng.camReady", "กล้องพร้อม — จัดใบหน้าให้อยู่ในวงรี มองตรง แล้วกด อ่านโหงวเฮ้ง", null, "ok");
       btnCam.hidden = true; btnRead.hidden = false;
     } catch (e) { camErr(e); btnCam.disabled = false; }
   });
@@ -991,7 +1023,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     busy = true; btnRead.disabled = true; touch();
     try {
       for (var n = 3; n >= 1; n--) { countEl.textContent = n; countEl.hidden = false; await sleep(800); }
-      countEl.textContent = "กำลังอ่าน..."; countEl.classList.add("small");
+      countEl.textContent = T("faceread.count.reading", "กำลังอ่าน..."); countEl.classList.add("small");
       // ล็อกคนแรกที่ผ่านเกณฑ์ แล้วเก็บเฉพาะเฟรมของคนนั้น (ไม่เฉลี่ยจุดของสองคนเข้าด้วยกัน)
       var capt = FR.createCapture({ minIou: 0.3, accept: function (d) { var pose = FR.headPose(d.pts); return Math.abs(pose.yaw) <= FR.QUALITY.yaw * 1.3 && Math.abs(pose.roll) <= FR.QUALITY.roll * 1.3; } });
       var frames = capt.frames, snaps = [];
@@ -999,13 +1031,13 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         var cv = document.createElement("canvas"); grabFrame(cv, camera.mirrored);
         var d = capt.push(await detectAll(cv, 320), cv.width, cv.height);
         if (d) snaps.push({ cv: cv, d: d });
-        countEl.textContent = "กำลังอ่าน " + Math.round(frames.length / FRAMES * 100) + "%";
+        countEl.textContent = T("faceread.count.pct", "กำลังอ่าน {p}%", { p: Math.round(frames.length / FRAMES * 100) });
       }
-      if (frames.length < 4) { engine(capt.skipped ? "มีใบหน้าอื่นเข้ามาในกรอบ ให้อยู่คนเดียวแล้วลองอีกครั้ง" : "ยังจับใบหน้าได้ไม่นิ่งพอ ลองมองตรงและอยู่นิ่ง ๆ อีกครั้ง", "err"); return; }
+      if (frames.length < 4) { if (capt.skipped) engineT("faceread.eng.otherFace", "มีใบหน้าอื่นเข้ามาในกรอบ ให้อยู่คนเดียวแล้วลองอีกครั้ง", null, "err"); else engineT("faceread.eng.unstable", "ยังจับใบหน้าได้ไม่นิ่งพอ ลองมองตรงและอยู่นิ่ง ๆ อีกครั้ง", null, "err"); return; }
       var avg = capt.average();
       var snap = snaps[Math.floor(snaps.length / 2)];
       showResult(snap.cv, avg, snap.d.box);
-    } catch (e) { console.error(e); engine("อ่านไม่สำเร็จ: " + (e.message || e), "err"); }
+    } catch (e) { console.error(e); engineT("faceread.eng.readFail", "อ่านไม่สำเร็จ: {msg}", { msg: e.message || e }, "err"); }
     finally { countEl.hidden = true; countEl.classList.remove("small"); busy = false; btnRead.disabled = !(lastQ && qOk(lastQ)); }
   });
 
@@ -1014,11 +1046,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var f = fileIn.files && fileIn.files[0]; fileIn.value = "";
     if (!f) return;
     touch();
-    engine("กำลังโหลดโมเดลและอ่านรูป...");
+    engineT("faceread.eng.uploading", "กำลังโหลดโมเดลและอ่านรูป...");
     try {
       await loadModels();
       var url = URL.createObjectURL(f), img = new Image();
-      await new Promise(function (res, rej) { img.onload = res; img.onerror = function () { rej(new Error("เปิดไฟล์รูปไม่ได้")); }; img.src = url; });
+      await new Promise(function (res, rej) { img.onload = res; img.onerror = function () { rej(new Error(T("faceread.eng.badFile", "เปิดไฟล์รูปไม่ได้"))); }; img.src = url; });
       var sc = Math.min(1, 1280 / Math.max(img.naturalWidth, img.naturalHeight));
       var cv = document.createElement("canvas"); cv.width = Math.round(img.naturalWidth * sc); cv.height = Math.round(img.naturalHeight * sc);
       cv.getContext("2d", { willReadFrequently: true }).drawImage(img, 0, 0, cv.width, cv.height);
@@ -1028,16 +1060,16 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var light = d ? FR.lightStats(cv.getContext("2d").getImageData(0, 0, cv.width, cv.height), d.box) : null;
       var q = FR.quality(d, cv.width, cv.height, light, list.length);
       renderQc(q);
-      if (!d) { engine("ไม่พบใบหน้าในรูปนี้ ลองใช้รูปหน้าตรงที่เห็นใบหน้าชัด", "err"); return; }
+      if (!d) { engineT("faceread.eng.noFace", "ไม่พบใบหน้าในรูปนี้ ลองใช้รูปหน้าตรงที่เห็นใบหน้าชัด", null, "err"); return; }
       if (!qOk(q)) {
-        engine("รูปนี้ยังไม่ผ่านเกณฑ์ (ดูรายการตรวจด้านล่าง) ผลอาจคลาดเคลื่อน", "err");
+        engineT("faceread.eng.notPass", "รูปนี้ยังไม่ผ่านเกณฑ์ (ดูรายการตรวจด้านล่าง) ผลอาจคลาดเคลื่อน", null, "err");
         forceRead = function () { showResult(cv, d.pts, d.box); };
         $("#frForce").hidden = false;
         return;
       }
-      engine("อ่านรูปเรียบร้อย", "ok");
+      engineT("faceread.eng.photoOk", "อ่านรูปเรียบร้อย", null, "ok");
       showResult(cv, d.pts, d.box);
-    } catch (e) { console.error(e); engine("อ่านรูปไม่สำเร็จ: " + (e.message || e), "err"); }
+    } catch (e) { console.error(e); engineT("faceread.eng.photoFail", "อ่านรูปไม่สำเร็จ: {msg}", { msg: e.message || e }, "err"); }
   });
   $("#frForce").addEventListener("click", function () { $("#frForce").hidden = true; if (forceRead) forceRead(); forceRead = null; });
 
@@ -1065,7 +1097,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var topic = "overall", narrToken = 0;
   function renderTopics() {
     document.querySelectorAll("[data-topics]").forEach(function (box) {
-      box.innerHTML = TOPICS.map(function (t) { return '<button type="button" role="radio" data-topic="' + t[0] + '" aria-checked="' + (t[0] === topic) + '">' + t[1] + "</button>"; }).join("");
+      box.innerHTML = TOPICS.map(function (t) { return '<button type="button" role="radio" data-topic="' + t[0] + '" aria-checked="' + (t[0] === topic) + '">' + esc(T("faceread.topic." + t[0], t[1])) + "</button>"; }).join("");
     });
   }
   document.addEventListener("click", function (e) {
@@ -1084,8 +1116,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /** ตัวสำรองเมื่อไม่มี FortuneAI เลย: ใช้ข้อความเดิมจาก buildReading */
   function legacyResult(R) {
     var rd = R.reading;
-    return { source: "local", sections: [{ id: "overview", title: "ภาพรวม", paragraphs: [rd.overview] }, { id: "work", title: "การงาน", paragraphs: [rd.work] },
-      { id: "money", title: "การเงิน", paragraphs: [rd.money] }, { id: "love", title: "ความรัก & มิตรภาพ", paragraphs: [rd.love] }] };
+    return { source: "local", sections: [{ id: "overview", title: T("faceread.legacy.overview", "ภาพรวม"), paragraphs: [rd.overview] }, { id: "work", title: T("faceread.legacy.work", "การงาน"), paragraphs: [rd.work] },
+      { id: "money", title: T("faceread.legacy.money", "การเงิน"), paragraphs: [rd.money] }, { id: "love", title: T("faceread.legacy.love", "ความรัก & มิตรภาพ"), paragraphs: [rd.love] }] };
   }
   function narrate(again) {
     if (!current) return;
@@ -1094,14 +1126,14 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     current.facts = facts;
     var useAI = !!(FA && FA.hasConsent && FA.hasConsent());
     box.setAttribute("aria-busy", "true"); btn.disabled = true;
-    if (!box.firstChild || useAI) box.innerHTML = '<p class="fa-loading">' + (useAI ? "กำลังให้ AI เรียบเรียงคำทำนาย..." : "กำลังเรียบเรียงคำทำนาย...") + "</p>";
+    if (!box.firstChild || useAI) box.innerHTML = '<p class="fa-loading">' + esc(useAI ? T("faceread.narr.ai", "กำลังให้ AI เรียบเรียงคำทำนาย...") : T("faceread.narr.local", "กำลังเรียบเรียงคำทำนาย...")) + "</p>";
     var p = !FA ? Promise.resolve(legacyResult(R)) : again && FA.regenerate ? FA.regenerate(facts, { useAI: useAI }) : FA.interpret(facts, { useAI: useAI });
     p.catch(function (e) { console.error(e); return FA && FA.compose ? FA.compose(facts) : legacyResult(R); }).then(function (res) {
       if (my !== narrToken || !current) return;
       current.narr = res;
       if (FA && FA.renderSections) FA.renderSections(box, res, { aiBadge: false }); else renderPlain(box, res);
       var src = $("#frSrc"), ai = res.source === "ai";
-      src.textContent = ai ? "เรียบเรียงโดย Claude AI" : "เรียบเรียงในเครื่อง";
+      src.textContent = ai ? T("faceread.src.ai", "เรียบเรียงโดย Claude AI") : T("faceread.src.local", "เรียบเรียงในเครื่อง");
       src.classList.toggle("ai", ai);
       box.removeAttribute("aria-busy"); btn.disabled = false;
     });
@@ -1135,12 +1167,16 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   /** ภาพผล: ครอปรอบใบหน้า แล้วซ้อนภาพตามโหมด
      zones = แถบสามส่วน + เส้นห้าอวัยวะ + ป้ายจุดสำคัญ | palaces = สิบสองวัง | mountains = ห้าภูเขาสี่สายน้ำ | ages = แผนที่อายุ */
-  var OVL_CAP = {
+  var OVL_CAP_TH = {
     zones: "แถบสี = สามส่วนของใบหน้า · เส้น = ห้าอวัยวะ · ป้าย = จุดสำคัญ",
     palaces: "หมายเลข = สิบสองวัง (ตรงกับรายการด้านล่าง) · สีทอง = วังเด่น 3 อันดับ",
     mountains: "วงกลม = ห้าภูเขา (หน้าผาก จมูก โหนกแก้ม คาง) · เส้นฟ้า = สายน้ำ (ตา จมูก ปาก)",
     ages: "ตัวเลข = อายุเริ่มต้นของแต่ละช่วงในแผนที่อายุ · สีทอง = ช่วงวัยของคุณ (เมื่อกรอกอายุ)"
   };
+  var OVL_CAP = function (mode) { return T("faceread.ovl." + mode, OVL_CAP_TH[mode]); };
+  /** ช่วงอายุใน R.reading.age มาจาก KB ไทย — เทียบด้วยอายุเริ่ม (KB จีนเป็นออบเจ็กต์คนละตัว) */
+  var sameAge = function (a, g) { return !!(a && g && a.from === g.from); };
+  var ageOf = function (a) { if (!a) return null; for (var i = 0; i < KB.ageMap.length; i++) if (KB.ageMap[i].from === a.from) return KB.ageMap[i]; return a; };
   var ovlMode = "zones";
   function drawResultImage(canvas, src, pts, R, mode) {
     mode = mode || ovlMode;
@@ -1204,7 +1240,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         east: [a[1][0] * 0.62 + a[39][0] * 0.38, (a[1][1] + a[29][1]) / 2], west: [a[15][0] * 0.62 + a[42][0] * 0.38, (a[15][1] + a[29][1]) / 2],
         north: [a[8][0], (a[8][1] * 0.6 + a[57][1] * 0.4)]
       };
-      var lab = { south: "ใต้ · หน้าผาก", center: "กลาง · จมูก", east: "ตะวันออก", west: "ตะวันตก", north: "เหนือ · คาง" };
+      var lab = { south: T("faceread.mt.south", "ใต้ · หน้าผาก"), center: T("faceread.mt.center", "กลาง · จมูก"), east: T("faceread.mt.east", "ตะวันออก"), west: T("faceread.mt.west", "ตะวันตก"), north: T("faceread.mt.north", "เหนือ · คาง") };
       var lead = R.mountains.lead;
       R.mountains.list.forEach(function (mt) {
         var p = P(spots[mt.id]), rr = s * (0.16 + 0.03 * Math.max(-1.5, Math.min(1.5, mt.z)));
@@ -1216,26 +1252,26 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       return;
     }
     if (mode === "ages") {
-      var ages = R.regions.age, cur = R.reading.age;
+      var ages = R.regions.age, cur = ageOf(R.reading.age);
       KB.ageMap.forEach(function (g) {
         if (g.region === "rim") return;
-        var on = cur && cur === g;
+        var on = sameAge(cur, g);
         (ages[g.region] || []).forEach(function (pl) { poly(pl, on ? "rgba(250,204,21,.35)" : "rgba(255,255,255,.07)", on ? "#facc15" : "rgba(255,255,255,.45)", on ? 4 : 1.5); });
       });
       if (cur && cur.region === "rim") poly(ages.rim[0], null, "#facc15", 5);
       KB.ageMap.forEach(function (g) {
         if (g.region === "rim") return;
-        var on = cur && cur === g, pl = (ages[g.region] || [])[0]; if (!pl) return;
+        var on = sameAge(cur, g), pl = (ages[g.region] || [])[0]; if (!pl) return;
         var q = centroid(pl);
         if (g.region === "bridge") q = centroid(ages.bridge[0]);
         badge(q[0], q[1], g.from + (on ? "–" + g.to : ""), on ? "#facc15" : "rgba(255,255,255,.92)", "#0e1430", fs * (on ? 0.6 : 0.46));
       });
-      if (cur) badge(W / 2, H - fs * 1.4, "ช่วงวัยของคุณ: " + cur.th + " (" + cur.from + "–" + (cur.to >= 120 ? "100+" : cur.to) + " ปี)", "#facc15", "#0e1430", fs * 0.6);
+      if (cur) badge(W / 2, H - fs * 1.4, T("faceread.ages.badge", "ช่วงวัยของคุณ: {th} ({from}–{to} ปี)", { th: cur.th, from: cur.from, to: cur.to >= 120 ? "100+" : cur.to }), "#facc15", "#0e1430", fs * 0.6);
       return;
     }
     // zones (ค่าเริ่มต้น)
     var x0 = P([minX - 0.12, 0])[0], x1 = P([maxX + 0.12, 0])[0];
-    var bands = [[hairY, browY, "rgba(103,79,242,.16)", "บน"], [browY, noseY, "rgba(34,211,238,.14)", "กลาง"], [noseY, chinY, "rgba(240,180,60,.16)", "ล่าง"]];
+    var bands = [[hairY, browY, "rgba(103,79,242,.16)", T("faceread.band.upper", "บน")], [browY, noseY, "rgba(34,211,238,.14)", T("faceread.band.middle", "กลาง")], [noseY, chinY, "rgba(240,180,60,.16)", T("faceread.band.lower", "ล่าง")]];
     c.font = "500 " + fs + "px Prompt, system-ui, sans-serif";
     bands.forEach(function (b, i) {
       var y0 = P([0, b[0]])[1], y1 = P([0, b[1]])[1];
@@ -1253,12 +1289,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     line(rg(48, 59), true, "#fda4af");
     var mp = function (i, j) { return [(a[i][0] + a[j][0]) / 2, (a[i][1] + a[j][1]) / 2]; };
     var labels = [
-      [[a[27][0], hairY], "แนวผม" + (R.m.upperEstimated ? " (ประมาณการ)" : ""), "R"],
-      [mp(21, 22), "อิ้นตึ๊ง", "L"],
-      [a[33], "จมูก (ทรัพย์)", "R"],
-      [mp(33, 51), "ร่องใต้จมูก", "L"],
-      [a[54], "มุมปาก", "R"],
-      [a[8], "คาง", "L"]
+      [[a[27][0], hairY], R.m.upperEstimated ? T("faceread.lbl.hairEst", "แนวผม (ประมาณการ)") : T("faceread.lbl.hair", "แนวผม"), "R"],
+      [mp(21, 22), T("faceread.lbl.yintang", "อิ้นตึ๊ง"), "L"],
+      [a[33], T("faceread.lbl.nose", "จมูก (ทรัพย์)"), "R"],
+      [mp(33, 51), T("faceread.lbl.philtrum", "ร่องใต้จมูก"), "L"],
+      [a[54], T("faceread.lbl.mouth", "มุมปาก"), "R"],
+      [a[8], T("faceread.lbl.chin", "คาง"), "L"]
     ];
     c.font = "500 " + fs + "px Prompt, system-ui, sans-serif";
     labels.forEach(function (l) {
@@ -1273,7 +1309,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function setOverlay(mode) {
     ovlMode = mode;
     document.querySelectorAll(".fr-ovl button").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.mode === mode ? "true" : "false"); });
-    $("#frOvlCap").textContent = OVL_CAP[mode];
+    $("#frOvlCap").textContent = OVL_CAP(mode);
     if (current) drawResultImage(resCanvas, current.cv, current.pts, current.R, mode);
   }
   document.querySelectorAll(".fr-ovl button").forEach(function (b) { b.addEventListener("click", function () { touch(); setOverlay(b.dataset.mode); }); });
@@ -1285,16 +1321,19 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     c.fill(); c.fillStyle = fg; c.textAlign = "left"; c.textBaseline = "middle"; c.fillText(text, x0 + size / 2, y + 1);
   }
 
+  /** เหตุผลที่แนวผมเป็นค่าประมาณการ (FRCore ส่งเป็นภาษาไทย) → คีย์แปล */
+  var HAIR_R = { "ไม่มีข้อมูลภาพ": "faceread.hair.r.noImg", "ภาพไม่ครอบคลุมหน้าผาก": "faceread.hair.r.cover", "หน้าผากถูกปิดหรือแสงไม่พอ": "faceread.hair.r.blocked",
+    "แนวผมอยู่นอกภาพ": "faceread.hair.r.out", "ไม่พบขอบแนวผม": "faceread.hair.r.none", "ตำแหน่งที่พบไม่สมเหตุสมผล": "faceread.hair.r.odd" };
   var fmt = function (v, d) { return typeof v === "number" ? (Math.round(v * Math.pow(10, d)) / Math.pow(10, d)).toFixed(d) : String(v); };
   var zTxt = function (zv) { return Math.abs(zv) < 0.05 ? "z 0.0" : "z " + (zv > 0 ? "+" : "−") + fmt(Math.abs(zv), 1); };
   function renderReading(R) {
-    var rd = R.reading, E = rd.element, cls = R.cls, m = R.m;
+    var rd = R.reading, E = KB.elements[R.el.top.id], E2 = KB.elements[R.el.second.id], cls = R.cls, m = R.m;
     $("#frElement").style.setProperty("--el", E.color);
     $("#frElement").style.setProperty("--el-soft", E.soft);
-    $("#frElName").textContent = "ธาตุ" + E.th;
+    $("#frElName").textContent = T("faceread.el.name", "ธาตุ{el}", { el: E.th });
     $("#frElPct").textContent = R.el.top.pct + "%";
     $("#frElShape").textContent = E.shape;
-    $("#frElSecond").innerHTML = "ธาตุรอง: <b>" + esc(rd.second.th) + "</b> " + R.el.second.pct + "%";
+    $("#frElSecond").innerHTML = T("faceread.el.second", "ธาตุรอง: <b>{el}</b> {pct}%", { el: esc(E2.th), pct: R.el.second.pct });
     $("#frElBars").innerHTML = R.el.ranked.map(function (r) {
       var e = KB.elements[r.id];
       return '<div class="elbar"><span>' + esc(e.th) + '</span><i style="--w:' + r.pct + '%;--c:' + e.color + '"></i><b>' + r.pct + "%</b></div>";
@@ -1303,18 +1342,18 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
     // สิบสองวัง
     var PK = KB.palaces, tops = FR.topPalaces(R.palaces, 3);
-    $("#frPalTop").innerHTML = "วังเด่นของคุณ: " + tops.map(function (p) { return "<b>" + esc(PK[p.id].th) + "</b>"; }).join(" · ") + " — กดปุ่ม <b>สิบสองวัง</b> ใต้ภาพเพื่อดูตำแหน่ง";
+    $("#frPalTop").innerHTML = T("faceread.pal.top", "วังเด่นของคุณ: {list} — กดปุ่ม <b>สิบสองวัง</b> ใต้ภาพเพื่อดูตำแหน่ง", { list: tops.map(function (p) { return "<b>" + esc(PK[p.id].th) + "</b>"; }).join(" · ") });
     $("#frPalaces").innerHTML = R.palaces.map(function (p) {
       var K = PK[p.id], hot = tops.some(function (t) { return t.id === p.id; }), lt = FR.lightLabel(p.light);
       return '<li class="pal ' + p.level + (hot ? " hot" : "") + '"><span class="pal-n" aria-hidden="true">' + p.n + "</span><div>" +
-        '<div class="pal-h"><b>' + esc(K.th) + '</b> <span class="cn">' + esc(K.cn) + "</span>" +
-        '<span class="pal-lv">' + esc(KB.palaceLevels[p.level]) + "</span>" + (p.estimated ? '<span class="est">ประมาณการ</span>' : "") +
+        '<div class="pal-h"><b>' + esc(K.th) + "</b>" + (K.cn && K.cn !== K.th ? ' <span class="cn">' + esc(K.cn) + "</span>" : "") +
+        '<span class="pal-lv">' + esc(KB.palaceLevels[p.level]) + "</span>" + (p.estimated ? '<span class="est">' + esc(T("faceread.pal.est", "ประมาณการ")) + "</span>" : "") +
         (lt ? '<span class="pal-lt">' + esc(KB.lightLabels[lt]) + "</span>" : "") + "</div>" +
-        '<p class="pal-w">' + esc(K.where) + " · วัดจาก " + esc(K.proxy) + " = " + fmt(p.value, p.key === "browAsym" ? 3 : 2) + " (" + (p.estimated ? "ไม่พบแนวผม ใช้ค่ากลาง" : zTxt(p.z)) + ")</p>" +
-        "<p>" + esc(K.levels[p.level]) + "</p><p class=\"pal-tip\">เคล็ด: " + esc(K.tip) + "</p></div></li>";
+        '<p class="pal-w">' + esc(T("faceread.pal.measure", "{where} · วัดจาก {proxy} = {v} ({z})", { where: K.where, proxy: K.proxy, v: fmt(p.value, p.key === "browAsym" ? 3 : 2), z: p.estimated ? T("faceread.pal.noHair", "ไม่พบแนวผม ใช้ค่ากลาง") : zTxt(p.z) })) + "</p>" +
+        "<p>" + esc(K.levels[p.level]) + '</p><p class="pal-tip">' + esc(T("faceread.pal.tip", "เคล็ด: {tip}", { tip: K.tip })) + "</p></div></li>";
     }).join("");
-    $("#frPalNote").textContent = KB.palaceLevels.high + " / " + KB.palaceLevels.mid + " / " + KB.palaceLevels.low + " = บริเวณนั้นเด่น ใกล้ค่ากลาง หรือกระชับกว่าค่ากลาง ทุกระดับมีความหมายดีในแบบของตัวเอง · " +
-      (R.light ? "ป้ายความสว่าง: " + KB.lightNote : "");
+    $("#frPalNote").textContent = T("faceread.pal.note", "{high} / {mid} / {low} = บริเวณนั้นเด่น ใกล้ค่ากลาง หรือกระชับกว่าค่ากลาง ทุกระดับมีความหมายดีในแบบของตัวเอง", { high: KB.palaceLevels.high, mid: KB.palaceLevels.mid, low: KB.palaceLevels.low }) + " · " +
+      (R.light ? T("faceread.pal.lightNote", "ป้ายความสว่าง: {note}", { note: KB.lightNote }) : "");
 
     // ห้าภูเขา สี่สายน้ำ
     var MT = KB.mountains, RV = KB.rivers, pct = function (zv) { return Math.round(Math.max(6, Math.min(100, 50 + zv * 20))); };
@@ -1322,9 +1361,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#frMountains").innerHTML = R.mountains.list.map(function (x) {
       var K = MT.items[x.id];
       return '<li class="' + (x.id === R.mountains.lead ? "lead" : "") + '"><span><b>' + esc(K.th) + '</b> <span class="cn">' + esc(K.cn) + "</span><small>" + esc(K.meaning) + "</small></span>" +
-        '<i class="mbar" style="--w:' + pct(x.z) + '%"></i><em>' + (x.estimated ? "ประมาณการ" : zTxt(x.z)) + "</em></li>";
+        '<i class="mbar" style="--w:' + pct(x.z) + '%"></i><em>' + (x.estimated ? esc(T("faceread.mt.est", "ประมาณการ")) : zTxt(x.z)) + "</em></li>";
     }).join("");
-    $("#frMtText").textContent = MT.levels[R.mountains.level] + " " + MT.lead[R.mountains.lead];
+    $("#frMtText").textContent = MT.levels[R.mountains.level] + (isZh() ? "" : " ") + MT.lead[R.mountains.lead];
     $("#frRvScore").textContent = R.rivers.score;
     $("#frRivers").innerHTML = R.rivers.list.map(function (x) {
       var K = RV.items[x.id];
@@ -1337,15 +1376,15 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var f = KB.features, p = KB.points;
     var row = function (name, val, cat) { return "<tr><th scope=\"row\">" + esc(name) + "</th><td>" + val + "</td><td><b>" + esc(cat.label) + "</b>" + (cat.how ? "<br><small>" + esc(cat.how) + "</small>" : "") + "</td><td>" + esc(cat.meaning) + "</td></tr>"; };
     var rows = [
-      row("คิ้ว", "ยาว " + fmt(m.browEye, 2) + "× ของตา<br>โก่ง " + fmt(m.browArch, 3) + " · หางคิ้ว " + (m.browRise >= 0 ? "+" : "") + fmt(m.browRise, 3), f.brow.cats[cls.brow.cat]),
-      row("ตา", "ยาว/สูง " + fmt(m.eyeAspect, 2) + "<br>หางตา " + (m.eyeTilt >= 0 ? "+" : "") + fmt(m.eyeTilt, 3) + " · ระยะหัวตา " + fmt(m.eyeGap, 2) + "×", f.eye.cats[cls.eye.cat]),
-      row("จมูก", "ยาว " + fmt(m.noseLen, 2) + " IPD<br>ฐาน " + fmt(m.alarWidth, 2) + "× ระยะหัวตา", f.nose.cats[cls.nose.cat]),
-      row("ปาก", "กว้าง " + fmt(m.mouthW, 2) + " IPD<br>ริมฝีปาก " + fmt(m.lipTotal, 2) + " IPD · บน/ล่าง " + fmt(m.lipRatio, 2), f.mouth.cats[cls.mouth.cat]),
-      row("หู", "—", f.ear.cats.na),
-      row("อิ้นตึ๊ง (หว่างคิ้ว)", fmt(m.interBrow, 2) + "× ความยาวตา", p.yintang.cats[cls.yintang.cat]),
-      row("ร่องใต้จมูก", fmt(m.philtrumShare * 100, 0) + "% ของส่วนล่าง", p.philtrum.cats[cls.philtrum.cat]),
-      row("มุมปาก", (m.mouthTilt >= 0 ? "+" : "") + fmt(m.mouthTilt, 3), { label: cls.mouth.note === "up" ? "มุมปากยกขึ้น" : "มุมปากเรียบตรง", meaning: f.mouth.notes[cls.mouth.note].split(": ")[1] }),
-      row("คาง", "มุม " + fmt(m.chinAngle, 0) + "°<br>กว้าง " + fmt(m.chinWidth, 2) + "× โหนกแก้ม", p.chin.cats[cls.chin.cat])
+      row(T("faceread.f.brow", "คิ้ว"), T("faceread.f.brow.v", "ยาว {len}× ของตา<br>โก่ง {arch} · หางคิ้ว {rise}", { len: fmt(m.browEye, 2), arch: fmt(m.browArch, 3), rise: (m.browRise >= 0 ? "+" : "") + fmt(m.browRise, 3) }), f.brow.cats[cls.brow.cat]),
+      row(T("faceread.f.eye", "ตา"), T("faceread.f.eye.v", "ยาว/สูง {asp}<br>หางตา {tilt} · ระยะหัวตา {gap}×", { asp: fmt(m.eyeAspect, 2), tilt: (m.eyeTilt >= 0 ? "+" : "") + fmt(m.eyeTilt, 3), gap: fmt(m.eyeGap, 2) }), f.eye.cats[cls.eye.cat]),
+      row(T("faceread.f.nose", "จมูก"), T("faceread.f.nose.v", "ยาว {len} IPD<br>ฐาน {alar}× ระยะหัวตา", { len: fmt(m.noseLen, 2), alar: fmt(m.alarWidth, 2) }), f.nose.cats[cls.nose.cat]),
+      row(T("faceread.f.mouth", "ปาก"), T("faceread.f.mouth.v", "กว้าง {w} IPD<br>ริมฝีปาก {lip} IPD · บน/ล่าง {ratio}", { w: fmt(m.mouthW, 2), lip: fmt(m.lipTotal, 2), ratio: fmt(m.lipRatio, 2) }), f.mouth.cats[cls.mouth.cat]),
+      row(T("faceread.f.ear", "หู"), "—", f.ear.cats.na),
+      row(T("faceread.f.yintang", "อิ้นตึ๊ง (หว่างคิ้ว)"), T("faceread.f.yintang.v", "{v}× ความยาวตา", { v: fmt(m.interBrow, 2) }), p.yintang.cats[cls.yintang.cat]),
+      row(T("faceread.f.philtrum", "ร่องใต้จมูก"), T("faceread.f.philtrum.v", "{v}% ของส่วนล่าง", { v: fmt(m.philtrumShare * 100, 0) }), p.philtrum.cats[cls.philtrum.cat]),
+      row(T("faceread.f.corner", "มุมปาก"), (m.mouthTilt >= 0 ? "+" : "") + fmt(m.mouthTilt, 3), { label: cls.mouth.note === "up" ? T("faceread.f.corner.up", "มุมปากยกขึ้น") : T("faceread.f.corner.level", "มุมปากเรียบตรง"), meaning: f.mouth.notes[cls.mouth.note].split(": ")[1] }),
+      row(T("faceread.f.chin", "คาง"), T("faceread.f.chin.v", "มุม {a}°<br>กว้าง {w}× โหนกแก้ม", { a: fmt(m.chinAngle, 0), w: fmt(m.chinWidth, 2) }), p.chin.cats[cls.chin.cat])
     ];
     $("#frFeatures").innerHTML = rows.join("");
 
@@ -1354,43 +1393,47 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#frZones").innerHTML = zs.map(function (zz) {
       var k = zz[0], dom = cls.zones.dominant === k;
       return '<div class="zone' + (dom ? " dom" : "") + '"><div class="zbar"><i style="--w:' + Math.round(zz[1] * 100 / 0.5) + '%"></i></div><div><b>' + esc(Z[k].th) + "</b> " + Math.round(zz[1] * 100) + "%" +
-        (k === "upper" && m.upperEstimated ? ' <span class="est">ประมาณการ</span>' : "") + "<small>" + esc(Z[k].age) + " · " + esc(Z[k].theme) + "</small></div></div>";
+        (k === "upper" && m.upperEstimated ? ' <span class="est">' + esc(T("faceread.zone.est", "ประมาณการ")) + "</span>" : "") + "<small>" + esc(Z[k].age) + " · " + esc(Z[k].theme) + "</small></div></div>";
     }).join("");
-    $("#frZoneText").textContent = (cls.zones.dominant ? Z[cls.zones.dominant].dominant : Z.balanced) +
-      " (เทียบกับค่ากลางของชุดสอบเทียบ" + (m.upperEstimated ? " · แนวผมเป็นค่าประมาณการ จึงเทียบเฉพาะส่วนกลางกับส่วนล่าง" : "") + ")";
+    $("#frZoneText").textContent = (cls.zones.dominant ? Z[cls.zones.dominant].dominant : Z.balanced) + (isZh() ? "" : " ") +
+      T("faceread.zone.cmp", "(เทียบกับค่ากลางของชุดสอบเทียบ{est})", { est: m.upperEstimated ? T("faceread.zone.cmpEst", " · แนวผมเป็นค่าประมาณการ จึงเทียบเฉพาะส่วนกลางกับส่วนล่าง") : "" });
 
     // แผนที่อายุ
     var aa = rd.age;
     $("#frAges").innerHTML = KB.ageMap.map(function (g) {
-      var on = aa && aa === g;
-      return '<li class="' + (on ? "on" : "") + '"><b>' + g.from + (g.to >= 120 ? "+ ปี" : "–" + g.to + " ปี") + "</b><span>" + esc(g.th) + "</span>" +
-        (on ? '<p>' + esc(g.msg) + '</p><p class="pos">ตำแหน่ง: ' + esc(g.pos) + "</p>" : "") + "</li>";
+      var on = sameAge(aa, g);
+      return '<li class="' + (on ? "on" : "") + '"><b>' + esc(g.to >= 120 ? T("faceread.age.plus", "{from}+ ปี", { from: g.from }) : T("faceread.age.range", "{from}–{to} ปี", { from: g.from, to: g.to })) + "</b><span>" + esc(g.th) + "</span>" +
+        (on ? '<p>' + esc(g.msg) + '</p><p class="pos">' + esc(T("faceread.age.pos", "ตำแหน่ง: {pos}", { pos: g.pos })) + "</p>" : "") + "</li>";
     }).join("");
-    $("#frAgeHint").textContent = aa ? "ไฮไลต์ช่วงวัยปัจจุบันของคุณ — กดปุ่ม แผนที่อายุ ใต้ภาพเพื่อดูตำแหน่งบนใบหน้า" : "กรอกอายุ (ไม่บังคับ) ก่อนอ่าน เพื่อดูตำแหน่งที่เด่นในช่วงวัยของคุณ (ตำราย่อ 100 ตำแหน่งเป็น 13 ช่วง)";
+    $("#frAgeHint").textContent = aa ? T("faceread.age.hintOn", "ไฮไลต์ช่วงวัยปัจจุบันของคุณ — กดปุ่ม แผนที่อายุ ใต้ภาพเพื่อดูตำแหน่งบนใบหน้า") : T("faceread.age.hintOff", "กรอกอายุ (ไม่บังคับ) ก่อนอ่าน เพื่อดูตำแหน่งที่เด่นในช่วงวัยของคุณ (ตำราย่อ 100 ตำแหน่งเป็น 13 ช่วง)");
 
     // เคล็ดเสริมดวง & สีมงคล
-    var palTip = tops.length ? [PK[tops[0].id].th + ": " + PK[tops[0].id].tip] : [];
-    $("#frTips").innerHTML = rd.tips.concat(palTip, KB.generalTips.slice(0, 1)).map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("");
-    $("#frColors").innerHTML = rd.colors.map(function (c) { return '<li><i style="background:' + c.hex + '"></i>' + esc(c.name) + "</li>"; }).join("");
+    var palTip = tops.length ? [PK[tops[0].id].th + (isZh() ? "：" : ": ") + PK[tops[0].id].tip] : [];
+    var tips = [E.tip, f.nose.tip, p.yintang.tip, f.mouth.tip].filter(Boolean);
+    $("#frTips").innerHTML = tips.concat(palTip, KB.generalTips.slice(0, 1)).map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("");
+    $("#frColors").innerHTML = E.colors.map(function (c) { return '<li><i style="background:' + c.hex + '"></i>' + esc(c.name) + "</li>"; }).join("");
 
     renderReco(R);
     renderLeadForm();
 
     // วิธีคำนวณ
-    $("#frHairNote").textContent = "แนวผม: " + (R.hair.estimated ? "ประมาณการ (" + R.hair.reason + ") ใช้ความสูงหน้าผาก = ส่วนกลาง × " + FR.HAIR.fallbackRatio + " (ค่ามัธยฐานของชุดสอบเทียบ)" : "ตรวจพบจากการเปลี่ยนสีผิว→ผม (YCbCr)");
+    $("#frHairNote").textContent = T("faceread.hair", "แนวผม: {v}", { v: R.hair.estimated
+      ? T("faceread.hair.est", "ประมาณการ ({reason}) ใช้ความสูงหน้าผาก = ส่วนกลาง × {r} (ค่ามัธยฐานของชุดสอบเทียบ)", { reason: HAIR_R[R.hair.reason] ? T(HAIR_R[R.hair.reason], R.hair.reason) : R.hair.reason, r: FR.HAIR.fallbackRatio })
+      : T("faceread.hair.found", "ตรวจพบจากการเปลี่ยนสีผิว→ผม (YCbCr)") });
     $("#frRaw").innerHTML = FR.METRICS.map(function (mm) {
       var v = m[mm[0]], zv = FR.NORMS[mm[0]] ? FR.zOf(mm[0], v) : null;
-      return "<tr><td>" + esc(mm[1]) + "</td><td class=\"num\">" + fmt(v, mm[0] === "chinAngle" || mm[0] === "jawCorner" || mm[0] === "roll" ? 1 : 3) + "</td><td>" + esc(mm[2]) + (zv != null ? "<br><small>z = " + fmt(zv, 2) + " (ค่ากลาง " + FR.NORMS[mm[0]][0] + ")</small>" : "") + "</td></tr>";
+      return "<tr><td>" + esc(T("faceread.m." + mm[0], mm[1])) + "</td><td class=\"num\">" + fmt(v, mm[0] === "chinAngle" || mm[0] === "jawCorner" || mm[0] === "roll" ? 1 : 3) + "</td><td>" + esc(T("faceread.m." + mm[0] + ".p", mm[2])) + (zv != null ? "<br><small>z = " + fmt(zv, 2) + " (" + esc(T("faceread.raw.median", "ค่ากลาง {v}", { v: FR.NORMS[mm[0]][0] })) + ")</small>" : "") + "</td></tr>";
     }).join("");
-    $("#frScoreRaw").innerHTML = R.el.ranked.map(function (r) { return "<li>" + esc(KB.elements[r.id].th) + ": คะแนน " + fmt(r.score, 2) + " → " + r.pct + "%</li>"; }).join("") +
-      "<li>ห้าภูเขา: 100 − 14×(ส่วนเบี่ยงเบนของค่า z ทั้งห้า = " + fmt(R.mountains.spread, 2) + ") − 6×(ความต่างโหนกแก้มซ้าย–ขวา) → " + R.mountains.score + "</li>" +
-      "<li>สี่สายน้ำ: " + esc(KB.rivers.how) + " → " + R.rivers.score + "</li>";
+    $("#frScoreRaw").innerHTML = R.el.ranked.map(function (r) { return "<li>" + esc(T("faceread.score.el", "{el}: คะแนน {s} → {pct}%", { el: KB.elements[r.id].th, s: fmt(r.score, 2), pct: r.pct })) + "</li>"; }).join("") +
+      "<li>" + esc(T("faceread.score.mt", "ห้าภูเขา: 100 − 14×(ส่วนเบี่ยงเบนของค่า z ทั้งห้า = {sd}) − 6×(ความต่างโหนกแก้มซ้าย–ขวา) → {score}", { sd: fmt(R.mountains.spread, 2), score: R.mountains.score })) + "</li>" +
+      "<li>" + esc(T("faceread.score.rv", "สี่สายน้ำ: {how} → {score}", { how: KB.rivers.how, score: R.rivers.score })) + "</li>";
+    var zz = function (k) { return zTxt(FR.zOf(k, m[k])); };
     $("#frTypeHow").innerHTML = [
-      "ชนิดคิ้ว: ความยาวคิ้ว÷ตา (" + zTxt(FR.zOf("browEye", m.browEye)) + "), ความโก่ง (" + zTxt(FR.zOf("browArch", m.browArch)) + "), หางคิ้วสูง/ต่ำ (" + zTxt(FR.zOf("browRise", m.browRise)) + ") — วัดความหนาและเส้นขนคิ้วไม่ได้",
-      "ชนิดตา: ยาว÷สูง (" + zTxt(FR.zOf("eyeAspect", m.eyeAspect)) + "), หางตาชี้ขึ้น (" + zTxt(FR.zOf("eyeTilt", m.eyeTilt)) + ") — วัดชั้นตาและแววตาไม่ได้",
-      "ชนิดจมูก: ปีกจมูก (" + zTxt(FR.zOf("alarWidth", m.alarWidth)) + "), ความยาว (" + zTxt(FR.zOf("noseLen", m.noseLen)) + ") — ความโด่งต้องมองด้านข้าง จึงไม่ได้วัด",
-      "ชนิดปาก: ความกว้าง (" + zTxt(FR.zOf("mouthW", m.mouthW)) + "), ความอิ่ม (" + zTxt(FR.zOf("lipTotal", m.lipTotal)) + "), มุมปาก (" + zTxt(FR.zOf("mouthTilt", m.mouthTilt)) + ")",
-      "เกณฑ์: |z| ≥ " + FR.THRESH.typeZ + " ถือว่าลักษณะชัด, วังแบ่ง 3 ระดับที่ z = ±" + FR.THRESH.palaceZ
+      T("faceread.how.brow", "ชนิดคิ้ว: ความยาวคิ้ว÷ตา ({a}), ความโก่ง ({b}), หางคิ้วสูง/ต่ำ ({c}) — วัดความหนาและเส้นขนคิ้วไม่ได้", { a: zz("browEye"), b: zz("browArch"), c: zz("browRise") }),
+      T("faceread.how.eye", "ชนิดตา: ยาว÷สูง ({a}), หางตาชี้ขึ้น ({b}) — วัดชั้นตาและแววตาไม่ได้", { a: zz("eyeAspect"), b: zz("eyeTilt") }),
+      T("faceread.how.nose", "ชนิดจมูก: ปีกจมูก ({a}), ความยาว ({b}) — ความโด่งต้องมองด้านข้าง จึงไม่ได้วัด", { a: zz("alarWidth"), b: zz("noseLen") }),
+      T("faceread.how.mouth", "ชนิดปาก: ความกว้าง ({a}), ความอิ่ม ({b}), มุมปาก ({c})", { a: zz("mouthW"), b: zz("lipTotal"), c: zz("mouthTilt") }),
+      T("faceread.how.rule", "เกณฑ์: |z| ≥ {t} ถือว่าลักษณะชัด, วังแบ่ง 3 ระดับที่ z = ±{p}", { t: FR.THRESH.typeZ, p: FR.THRESH.palaceZ })
     ].map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("");
   }
 
@@ -1401,7 +1444,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var E = KB.elements[R.el.top.id], items = (RC.items && RC.items[R.el.top.id]) || [];
     box.hidden = !items.length;
     box.style.setProperty("--el", E.color);
-    $("#frRecoTitle").textContent = RC.title + " · ธาตุ" + E.th + (RC.brand ? " — " + RC.brand : "");
+    $("#frRecoTitle").textContent = T("faceread.reco.title", "{title} · ธาตุ{el}{brand}", { title: RC.title, el: E.th, brand: RC.brand ? " — " + RC.brand : "" });
     $("#frRecoList").innerHTML = items.map(function (it) {
       return '<li><span class="reco-tag">' + esc(it.tag || "") + "</span><b>" + esc(it.name) + "</b><small>" + esc(it.desc || "") + "</small></li>";
     }).join("");
@@ -1412,11 +1455,16 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   /* ---------- ฟอร์มรับข้อมูล (ปิดเป็นค่าเริ่มต้น ต้องติ๊กยินยอม) ---------- */
   var LEADS_KEY = "fr-leads", LD = KB.leads || {};
-  $("#frLeadTitle").textContent = LD.title || "";
-  $("#frLeadLead").textContent = LD.lead || "";
-  $("#frLeadNickL").textContent = LD.nick || "ชื่อเล่น";
-  $("#frLeadContactL").textContent = LD.contact || "ช่องทางติดต่อ";
-  $("#frLeadConsentT").textContent = LD.consent || "";
+  function renderLeadTexts() {
+    LD = KB.leads || {};
+    $("#frLeadTitle").textContent = LD.title || "";
+    $("#frLeadLead").textContent = LD.lead || "";
+    $("#frLeadNickL").textContent = LD.nick || "ชื่อเล่น";
+    $("#frLeadContactL").textContent = LD.contact || "ช่องทางติดต่อ";
+    $("#frLeadConsentT").textContent = LD.consent || "";
+  }
+  renderLeadTexts();
+  var LEAD_ERR = { "กรอกชื่อเล่นและช่องทางติดต่อ": "faceread.lead.err.empty", "กรุณาติ๊กยินยอมก่อนส่ง": "faceread.lead.err.consent" };
   function renderLeadForm() {
     $("#frLead").hidden = !prefs.leads || !current;
     $("#frLeadMsg").textContent = ""; $("#frLeadMsg").className = "fr-lead-msg";
@@ -1425,37 +1473,52 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     e.preventDefault(); touch();
     var r = FR.addLead(lsGet(LEADS_KEY, []), { nick: $("#frLeadNick").value, contact: $("#frLeadContact").value, consent: $("#frLeadConsent").checked, consentText: LD.consent, element: current ? KB.elements[current.R.el.top.id].th : "" });
     var msg = $("#frLeadMsg");
-    if (!r.ok) { msg.textContent = r.error; msg.className = "fr-lead-msg err"; return; }
+    if (!r.ok) { msg.textContent = LEAD_ERR[r.error] ? T(LEAD_ERR[r.error], r.error) : r.error; msg.className = "fr-lead-msg err"; return; }
     lsSet(LEADS_KEY, r.list);
-    this.reset(); msg.textContent = LD.thanks || "บันทึกแล้ว"; msg.className = "fr-lead-msg ok";
+    this.reset(); msg.textContent = LD.thanks || T("faceread.lead.saved", "บันทึกแล้ว"); msg.className = "fr-lead-msg ok";
     renderLeadCount();
   });
-  function renderLeadCount() { var n = lsGet(LEADS_KEY, []).length; $("#frLeadCount").textContent = "ข้อมูลลูกค้าในเครื่องนี้: " + n + " รายการ"; $("#frLeadsCsv").disabled = !n; }
+  function renderLeadCount() { var n = lsGet(LEADS_KEY, []).length; $("#frLeadCount").textContent = T("faceread.lead.count", "ข้อมูลลูกค้าในเครื่องนี้: {n} รายการ", { n: n }); $("#frLeadsCsv").disabled = !n; }
   $("#frSetReco").checked = !!prefs.reco;
   $("#frSetLeads").checked = !!prefs.leads;
   $("#frSetReco").addEventListener("change", function () { prefs.reco = this.checked; lsSet(PREF_KEY, prefs); if (current) renderReco(current.R); });
   $("#frSetLeads").addEventListener("change", function () { prefs.leads = this.checked; lsSet(PREF_KEY, prefs); renderLeadForm(); });
   $("#frLeadsCsv").addEventListener("click", function () {
-    var blob = new Blob([FR.leadsToCsv(lsGet(LEADS_KEY, []))], { type: "text/csv;charset=utf-8" }), u = URL.createObjectURL(blob);
+    var csv = FR.leadsToCsv(lsGet(LEADS_KEY, []));
+    if (isZh()) { var nl = csv.indexOf("\r\n"), head = T("faceread.csv.head", "").split(","); // หัวตารางภาษาจีน (ข้อมูลแต่ละแถวไม่เปลี่ยน)
+      if (head.length === 5) csv = "\ufeff" + head.map(function (h) { return '"' + h + '"'; }).join(",") + (nl >= 0 ? csv.slice(nl) : ""); }
+    var blob = new Blob([csv], { type: "text/csv;charset=utf-8" }), u = URL.createObjectURL(blob);
     var a = document.createElement("a"); a.href = u; a.download = "lensiq-faceread-leads.csv"; document.body.append(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(u); }, 1000);
   });
-  $("#frLeadsClear").addEventListener("click", function () { if (confirm("ลบข้อมูลลูกค้าทั้งหมดในเครื่องนี้?")) { try { localStorage.removeItem(LEADS_KEY); } catch (e) { /* ไม่เป็นไร */ } renderLeadCount(); } });
+  $("#frLeadsClear").addEventListener("click", function () { if (confirm(T("faceread.lead.clearQ", "ลบข้อมูลลูกค้าทั้งหมดในเครื่องนี้?"))) { try { localStorage.removeItem(LEADS_KEY); } catch (e) { /* ไม่เป็นไร */ } renderLeadCount(); } });
   renderLeadCount();
 
   /* ---------- การ์ดแชร์ 1080×1350 ---------- */
   function wrapTh(c, text, maxW) {
-    var segs = (typeof Intl !== "undefined" && Intl.Segmenter) ? Array.from(new Intl.Segmenter("th", { granularity: "word" }).segment(text), function (s) { return s.segment; }) : text.split("");
+    var segs = (typeof Intl !== "undefined" && Intl.Segmenter) ? Array.from(new Intl.Segmenter(isZh() ? "zh" : "th", { granularity: "word" }).segment(text), function (s) { return s.segment; }) : text.split("");
     var lines = [], cur = "";
     segs.forEach(function (sg) { if (c.measureText(cur + sg).width > maxW && cur) { lines.push(cur.trim()); cur = sg.trimStart(); } else cur += sg; });
     if (cur.trim()) lines.push(cur.trim());
     return lines;
   }
+  /** โหมดจีน: ประโยคเด่นของการ์ดจาก i18n/zh-kb-face.js (หมวดที่เด่นที่สุดก่อน) — ไม่ใช้สำนวนไทยในการ์ดภาษาจีน */
+  function zhKeySentences(facts, n) {
+    var ZI = (window.FORTUNE_ZH && window.FORTUNE_ZH.face && window.FORTUNE_ZH.face.items) || {}, out = [];
+    ((facts && facts.items) || []).slice().sort(function (a, b) { return b.strength - a.strength; }).forEach(function (it) {
+      if (out.length >= n) return;
+      var z = ZI[it.id]; if (!z) return;
+      var f = ["o", "p", "c", "w", "l", "m"].filter(function (k) { return z[k]; })[0]; if (!f) return;
+      var t = [].concat(z[f])[0];
+      if (t && t.length <= 30 && out.indexOf(t) < 0) out.push(t);
+    });
+    return out;
+  }
   async function makeCard() {
-    var R = current.R, rd = R.reading, E = rd.element;
+    var R = current.R, E = KB.elements[R.el.top.id], E2 = KB.elements[R.el.second.id];
     try { await Promise.all([document.fonts.load("700 60px Prompt"), document.fonts.load("500 30px Prompt"), document.fonts.load("400 30px Prompt")]); } catch (e) { /* ใช้ฟอนต์ระบบ */ }
     var W = 1080, H = 1350, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
-    var c = cv.getContext("2d"), F = "Prompt, system-ui, sans-serif";
+    var c = cv.getContext("2d"), F = isZh() ? "Prompt, \"PingFang SC\", \"Noto Sans SC\", \"Microsoft YaHei\", system-ui, sans-serif" : "Prompt, system-ui, sans-serif";
     var g = c.createLinearGradient(0, 0, W, H); g.addColorStop(0, "#0e1430"); g.addColorStop(1, "#1e2a5a");
     c.fillStyle = g; c.fillRect(0, 0, W, H);
     // แสงสีธาตุ
@@ -1470,7 +1533,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     c.restore();
     c.textBaseline = "middle"; c.textAlign = "left";
     c.font = "700 40px " + F; c.fillStyle = "#fff"; c.fillText("LENS", 148, 96); var lw = c.measureText("LENS").width; c.fillStyle = "#a99bff"; c.fillText("IQ", 148 + lw, 96);
-    c.textAlign = "right"; c.font = "500 34px " + F; c.fillStyle = "#c9d0ea"; c.fillText("อ่านโหงวเฮ้ง", W - 72, 96);
+    c.textAlign = "right"; c.font = "500 34px " + F; c.fillStyle = "#c9d0ea"; c.fillText(T("faceread.card.title", "อ่านโหงวเฮ้ง"), W - 72, 96);
     // วงกลมธาตุ / รูป
     var cy = 460, r = 210;
     c.beginPath(); c.arc(W / 2, cy, r + 14, 0, Math.PI * 2); c.fillStyle = E.color; c.fill();
@@ -1482,11 +1545,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     }
     c.restore();
     c.textAlign = "center"; c.fillStyle = "#fff";
-    c.font = "700 92px " + F; c.fillText("ธาตุ" + E.th, W / 2, 770);
+    c.font = "700 92px " + F; c.fillText(T("faceread.card.el", "ธาตุ{el}", { el: E.th }), W / 2, 770);
     c.font = "400 34px " + F; c.fillStyle = "#c9d0ea";
-    c.fillText(R.el.top.pct + "% · ธาตุรอง" + rd.second.th + " " + R.el.second.pct + "%", W / 2, 850);
+    c.fillText(T("faceread.card.sub", "{pct}% · ธาตุรอง{el} {pct2}%", { pct: R.el.top.pct, el: E2.th, pct2: R.el.second.pct }), W / 2, 850);
     // 2–3 ประโยคเด่นจากคำทำนายที่เรียบเรียงแล้ว (สำรอง: จุดเด่นของธาตุ)
-    var keys = keySentences(current.narr, 5, 60, current.facts), drawn = 0;
+    var keys = isZh() ? zhKeySentences(current.facts, 3) : keySentences(current.narr, 5, 60, current.facts), drawn = 0;
     if (!keys.length) keys = E.traits.slice(0, 3);
     c.font = "400 33px " + F;
     var y = 912;
@@ -1500,16 +1563,17 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       y += h + 14;
     });
     // วังเด่น (สิบสองวัง)
-    if (rd.topPalaces && rd.topPalaces.length) {
+    var topPal = FR.topPalaces(R.palaces || [], 3).map(function (q) { return KB.palaces[q.id].th; });
+    if (topPal.length) {
       c.font = "500 32px " + F; c.fillStyle = "#facc15";
-      wrapTh(c, "วังเด่น: " + rd.topPalaces.join(" · "), W - 160).slice(0, 1).forEach(function (l) { c.fillText(l, W / 2, 1188); });
+      wrapTh(c, T("faceread.card.pal", "วังเด่น: {list}", { list: topPal.join(" · ") }), W - 160).slice(0, 1).forEach(function (l) { c.fillText(l, W / 2, 1188); });
     }
     // สีมงคล
     c.font = "400 30px " + F; c.fillStyle = "#c9d0ea";
-    var colTxt = "สีมงคล: " + E.colors.map(function (q) { return q.name.replace(/ \(.+\)/, ""); }).join(" · ");
+    var colTxt = T("faceread.card.colors", "สีมงคล: {list}", { list: E.colors.map(function (q) { return q.name.replace(/ \(.+\)|（.+）/, ""); }).join(" · ") });
     c.fillText(colTxt, W / 2, 1246);
     c.font = "400 24px " + F; c.fillStyle = "#8f9bc4";
-    wrapTh(c, KB.disclaimerShort + " · ประมวลผลในเครื่อง ไม่บันทึกภาพ", W - 160).forEach(function (l, i) { c.fillText(l, W / 2, 1296 + i * 30); });
+    wrapTh(c, T("faceread.card.foot", "{disc} · ประมวลผลในเครื่อง ไม่บันทึกภาพ", { disc: KB.disclaimerShort }), W - 160).forEach(function (l, i) { c.fillText(l, W / 2, 1296 + i * 30); });
     return cv;
   }
   function drawElementGlyph(c, id, x, y, s, col) {
@@ -1532,14 +1596,14 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       if (cardUrl) URL.revokeObjectURL(cardUrl);
       cardUrl = URL.createObjectURL(blob);
       var im = $("#frCardImg"); im.src = cardUrl; im.hidden = false;
-      var file = new File([blob], "lensiq-โหงวเฮ้ง.png", { type: "image/png" });
+      var file = new File([blob], T("faceread.share.file", "lensiq-โหงวเฮ้ง.png"), { type: "image/png" });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: "อ่านโหงวเฮ้ง — LENSIQ", text: "ธาตุ" + current.R.reading.element.th + " " + KB.disclaimerShort }); return; }
+        try { await navigator.share({ files: [file], title: T("faceread.share.title", "อ่านโหงวเฮ้ง — LENSIQ"), text: T("faceread.share.text", "ธาตุ{el} {disc}", { el: KB.elements[current.R.el.top.id].th, disc: KB.disclaimerShort }) }); return; }
         catch (e) { if (e.name === "AbortError") return; }
       }
       var a = document.createElement("a"); a.href = cardUrl; a.download = "lensiq-faceread.png"; document.body.append(a); a.click(); a.remove();
-      toast("บันทึกการ์ดแล้ว");
-    } catch (e) { console.error(e); toast("สร้างการ์ดไม่สำเร็จ"); }
+      toast(T("faceread.toast.saved", "บันทึกการ์ดแล้ว"));
+    } catch (e) { console.error(e); toast(T("faceread.toast.fail", "สร้างการ์ดไม่สำเร็จ")); }
     finally { b.disabled = false; }
   });
   $("#frPrint").addEventListener("click", function () { touch(); window.print(); });
@@ -1556,20 +1620,20 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     if (document.body.classList.contains("fr-kiosk")) $("#frAge").value = "";
     $("#frNick").value = ""; narrToken++; $("#frNarr").innerHTML = ""; // ชื่อเล่นไม่เก็บ ล้างทุกครั้งที่เริ่มคนถัดไป
     $("#frStage").scrollIntoView({ block: "start" });
-    engine(ready ? "พร้อมอ่านคนถัดไป" : "พร้อมใช้งาน", "ok");
+    if (ready) engineT("faceread.eng.next", "พร้อมอ่านคนถัดไป", null, "ok"); else engineT("faceread.eng.readyShort", "พร้อมใช้งาน", null, "ok");
   }
 
   /* ---------- สถิติบูธ (ไม่ระบุตัวตน) ---------- */
   function renderStats() {
     var st = lsGet(STATS_KEY, null), box = $("#frStats");
-    if (!st || !st.total) { box.innerHTML = '<p class="muted">ยังไม่มีการอ่านในเครื่องนี้</p>'; return; }
+    if (!st || !st.total) { box.innerHTML = '<p class="muted">' + esc(T("faceread.stats.empty", "ยังไม่มีการอ่านในเครื่องนี้")) + "</p>"; return; }
     var today = (function () { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); })();
-    box.innerHTML = '<p class="stat-n"><b>' + st.total + "</b> ครั้ง <small>(วันนี้ " + (st.days[today] || 0) + ")</small></p>" +
+    box.innerHTML = '<p class="stat-n">' + T("faceread.stats.total", "<b>{n}</b> ครั้ง <small>(วันนี้ {d})</small>", { n: st.total, d: st.days[today] || 0 }) + "</p>" +
       FR.ELEMENTS.map(function (k) { var n = st.el[k] || 0, e = KB.elements[k]; return '<div class="elbar"><span>' + esc(e.th) + '</span><i style="--w:' + Math.round(n / st.total * 100) + "%;--c:" + e.color + '"></i><b>' + n + "</b></div>"; }).join("");
   }
   $("#frStatsOn").checked = !!prefs.stats;
   $("#frStatsOn").addEventListener("change", function () { prefs.stats = this.checked; lsSet(PREF_KEY, prefs); });
-  $("#frStatsClear").addEventListener("click", function () { if (confirm("ล้างสถิติการอ่านในเครื่องนี้?")) { try { localStorage.removeItem(STATS_KEY); } catch (e) { /* ไม่เป็นไร */ } renderStats(); } });
+  $("#frStatsClear").addEventListener("click", function () { if (confirm(T("faceread.stats.clearQ", "ล้างสถิติการอ่านในเครื่องนี้?"))) { try { localStorage.removeItem(STATS_KEY); } catch (e) { /* ไม่เป็นไร */ } renderStats(); } });
   renderStats();
 
   /* ---------- โหมดบูธ: เต็มจอ ปุ่มใหญ่ กลับหน้าเริ่มอัตโนมัติเมื่อไม่มีการใช้งาน 60 วินาที ---------- */
@@ -1581,7 +1645,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var until = Date.now() + IDLE_MS;
     idleTick = setInterval(function () {
       var left = Math.ceil((until - Date.now()) / 1000);
-      if (left <= 15) { el.hidden = false; el.textContent = "กลับหน้าเริ่มต้นใน " + left + " วินาที — แตะเพื่ออยู่ต่อ"; }
+      if (left <= 15) { el.hidden = false; el.textContent = T("faceread.idle", "กลับหน้าเริ่มต้นใน {s} วินาที — แตะเพื่ออยู่ต่อ", { s: left }); }
     }, 1000);
     idleT = setTimeout(function () { clearInterval(idleTick); el.hidden = true; reset(); }, IDLE_MS);
   }
@@ -1603,12 +1667,32 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   document.addEventListener("fullscreenchange", function () { if (!document.fullscreenElement && wasFs) { wasFs = false; setKiosk(false); } });
 
   // แหล่งอ้างอิงและข้อความจาก KB
-  $("#frSources").innerHTML = KB.sources.map(function (s) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.label) + "</a></li>"; }).join("");
-  $("#frElNote").textContent = KB.elementsNote;
+  function renderStatic() {
+    $("#frSources").innerHTML = KB.sources.map(function (s) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.label) + "</a></li>"; }).join("");
+    $("#frElNote").textContent = KB.elementsNote;
+    $("#frOvlCap").textContent = OVL_CAP(ovlMode);
+    if (!current) $("#frSrc").textContent = T("faceread.src.local", "เรียบเรียงในเครื่อง");
+  }
+  renderStatic();
+  renderQc(lastQc);
+
+  /* ---------- สลับภาษา: แปลข้อความที่ JS เขียนใหม่ทั้งหมด และเรียบเรียงคำทำนายใหม่จากข้อเท็จจริงชุดเดิม ---------- */
+  window.addEventListener("lq-lang", function () {
+    KB = kbFor();
+    if (engState) engineT(engState[0], engState[1], engState[2], engState[3]);
+    renderQc(lastQc); renderTopics(); renderStatic(); renderLeadTexts(); renderLeadCount(); renderStats();
+    var hn = document.querySelector(".https-note"); if (hn) { hn.remove(); showHttpsNote($("#frEngine")); }
+    renderCamCtl();
+    if (current) {
+      drawResultImage(resCanvas, current.cv, current.pts, current.R);
+      renderReading(current.R);
+      narrate(false);
+    }
+  });
 
   // โหลดโมเดลล่วงหน้า (ไม่ขอสิทธิ์กล้องจนกว่าจะกดปุ่ม)
   if (!window.isSecureContext) showHttpsNote($("#frEngine"));
-  engine("กำลังโหลดโมเดลวิเคราะห์ใบหน้า...");
+  engineT("faceread.eng.loading", "กำลังโหลดโมเดลวิเคราะห์ใบหน้า...");
   loadModels().catch(function () {});
   window.__fr = { get current() { return current; }, makeCard: makeCard, reset: reset, narrate: narrate, keySentences: keySentences }; // ใช้ทดสอบ
 })();

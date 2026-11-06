@@ -2,21 +2,18 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="studio.title">สตูดิโอแต่งชุด AI | LENSIQ</title>
-<meta name="description" content="แต่งชุดจากเทมเพลตให้เหมือนใส่จริง ตัดพื้นหลัง เกลาขอบผม ผสานแสงสี รีทัชผิว และทำรูปติดบัตร ประมวลผลบนเครื่องทั้งหมด">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=6">
+<meta name="description" data-i18n-attr="content:studio.desc" content="แต่งชุดจากเทมเพลตให้เหมือนใส่จริง ตัดพื้นหลัง เกลาขอบผม ผสานแสงสี รีทัชผิว และทำรูปติดบัตร ประมวลผลบนเครื่องทั้งหมด">
+<link rel="stylesheet" href="styles.css?v=8">
 <link rel="stylesheet" href="studio.css?v=2">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=11"></script>
+<script src="nav.js?v=12"></script>
 
 <main class="st">
   <h1 data-i18n="studio.h1">สตูดิโอแต่งชุด AI</h1>
@@ -24,7 +21,7 @@
   <div class="engine" id="stEngine" role="status">กำลังเตรียมระบบ...</div>
 
   <div class="st-layout">
-    <section class="card st-stage" aria-label="ภาพ">
+    <section class="card st-stage" aria-label="ภาพ" data-i18n-attr="aria-label:studio.a.stage">
       <!-- ขั้นที่ 1: เลือกรูป -->
       <div class="st-src" id="stSrc">
         <div class="st-drop">
@@ -48,21 +45,21 @@
       <!-- ขั้นที่ 2: ผลลัพธ์ + เทียบก่อน/หลัง + ปรับด้วยมือ -->
       <div class="st-view" id="stView" hidden>
         <div class="st-compare" id="stCompare">
-          <canvas id="stBefore" aria-label="ภาพก่อนแต่ง"></canvas>
-          <canvas id="stOut" aria-label="ภาพหลังแต่ง"></canvas>
+          <canvas id="stBefore" aria-label="ภาพก่อนแต่ง" data-i18n-attr="aria-label:studio.a.before"></canvas>
+          <canvas id="stOut" aria-label="ภาพหลังแต่ง" data-i18n-attr="aria-label:studio.a.after"></canvas>
           <canvas id="stOverlay" aria-hidden="true"></canvas>
           <div class="st-split-line" id="stSplitLine" aria-hidden="true"></div>
-          <div class="st-busy" id="stBusy" hidden>กำลังประมวลผล...</div>
+          <div class="st-busy" id="stBusy" hidden data-i18n="studio.busy">กำลังประมวลผล...</div>
         </div>
-        <label class="slider st-split" data-i18n="studio.split">ก่อน | หลัง<input type="range" id="stSplit" min="0" max="100" value="0" aria-label="เลื่อนเทียบภาพก่อนและหลัง"></label>
-        <div class="seg" id="stMode" role="group" aria-label="เครื่องมือ">
+        <label class="slider st-split" data-i18n="studio.split">ก่อน | หลัง<input type="range" id="stSplit" min="0" max="100" value="0" aria-label="เลื่อนเทียบภาพก่อนและหลัง" data-i18n-attr="aria-label:studio.a.split"></label>
+        <div class="seg" id="stMode" role="group" aria-label="เครื่องมือ" data-i18n-attr="aria-label:studio.a.tools">
           <button type="button" data-m="view" class="on" data-i18n="studio.mode.view">ดูภาพ</button>
           <button type="button" data-m="fit" data-i18n="studio.mode.fit">จุดคอและไหล่</button>
           <button type="button" data-m="restore" data-i18n="studio.mode.restore">แปรงคืนตัวคน</button>
           <button type="button" data-m="erase" data-i18n="studio.mode.erase">แปรงลบพื้นหลัง</button>
         </div>
         <label class="slider" id="stBrushRow" hidden data-i18n="studio.brush">ขนาดแปรง<input type="range" id="stBrush" min="4" max="80" value="24"></label>
-        <p class="hint" id="stHint">ลากจุดสีบนภาพเพื่อปรับตำแหน่งคอและไหล่ หรือใช้แปรงแก้ขอบตัวคน</p>
+        <p class="hint" id="stHint" data-i18n="studio.hint0">ลากจุดสีบนภาพเพื่อปรับตำแหน่งคอและไหล่ หรือใช้แปรงแก้ขอบตัวคน</p>
         <div class="st-row">
           <button class="btn ghost" id="stNew" type="button" data-i18n="studio.newPhoto">เปลี่ยนรูป</button>
           <button class="btn ghost" id="stUndoEdit" type="button" data-i18n="studio.undoBrush">ล้างการแก้ด้วยแปรง</button>

@@ -2,15 +2,12 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="cameras.s1">ระบบกล้อง AI | LENSIQ</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="styles.css?v=8">
 <style>
 .hub{max-width:1200px;margin:auto;padding:40px 5vw 90px}
 .hub-head{text-align:center;margin-bottom:8px}
@@ -52,8 +49,10 @@
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=11"></script>
+<script src="nav.js?v=12"></script>
 <script src="i18n/zh-cameras.js?v=1"></script>
+<script src="lensiq-i18n-rt.js?v=1"></script>
+<script src="i18n/zh-rt-common.js?v=1"></script>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
     <symbol id="i-emotion" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5s1.3 2 3.5 2 3.5-2 3.5-2M9 9.5h.01M15 9.5h.01"/></symbol>
@@ -149,24 +148,24 @@
         <caption data-i18n="cameras.s179">สรุปผลวัด</caption>
         <thead><tr><th scope="col" data-i18n="cameras.s180">ระบบ</th><th scope="col" data-i18n="cameras.s181">ชุดข้อมูล</th><th scope="col" data-i18n="cameras.s182">ตัววัด</th><th scope="col" data-i18n="cameras.s183">ผล</th></tr></thead>
         <tbody>
-          <tr><td data-i18n="cameras.s184">นับคนเข้า–ออก (หน้าร้าน)</td><td data-i18n="cameras.s185">MOT17 02/04/09, PETS09-S2L1, TUD-Stadtmitte · 275 ครั้งที่ข้ามเส้นจริง</td><td data-i18n="cameras.s186">ยอดรวมคลาดเคลื่อน · เหตุการณ์ที่นับถูก</td><td data-i18n="cameras.s187">+8% (รายทิศ ±19%) · นับแล้วถูกจริง 72% เจอ 78% ของที่ข้ามจริง (5 ภาพ/วินาที)</td></tr>
-          <tr><td data-i18n="cameras.s188">ตรวจจับคน</td><td data-i18n="cameras.s189">ชุดเดียวกัน</td><td data-i18n="cameras.s190">พบคน (recall) / ถูกต้อง (precision)</td><td data-i18n="cameras.s191">คนตัวใหญ่ในภาพ 69–91% · คนสูงไม่ถึง 1/5 ของภาพ 5–34% (แบ่งภาพ 2×2 เพิ่มเป็น 14–50%)</td></tr>
-          <tr><td data-i18n="cameras.s192">เช็คชื่อด้วยใบหน้า</td><td data-i18n="cameras.s193">LFW 2,200 คู่ + จำลองผู้ลงทะเบียน 20–200 คน</td><td data-i18n="cameras.s194">จำได้ / ผิดคน / คนนอกถูกจับคู่</td><td data-i18n="cameras.s195">100 คน เกณฑ์ 0.55: จำได้ 89% ต่อภาพ · ผิดคน 0.24% · คนนอก 5.9%</td></tr>
-          <tr><td data-i18n="cameras.s196">จดจำลูกค้า</td><td>LFW</td><td data-i18n="cameras.s197">จำได้ / ผิดคน / คนนอกถูกทัก</td><td data-i18n="cameras.s198">100 คน เกณฑ์ 0.50: จำได้ 78% ต่อภาพ · ผิดคน 0.09% · คนนอก 1.5%</td></tr>
+          <tr><td data-i18n="cameras.s184">นับคนเข้า–ออก (หน้าร้าน)</td><td data-i18n="cameras.s185">MOT17 02/04/09, PETS09-S2L1, TUD-Stadtmitte · 273–275 ครั้งที่ข้ามเส้นจริง</td><td data-i18n="cameras.s186">ยอดรวมคลาดเคลื่อน · เหตุการณ์ที่นับถูก</td><td data-i18n="cameras.s187">ตัวตรวจจับใหม่ YOLOX-Nano + ตัวติดตามใหม่: 5 ภาพ/วินาที ยอดรวม −3% นับแล้วถูกจริง 81% (เดิม +8% / 72%) · 10 ภาพ/วินาที −15% / ถูกจริง 91% · ฉากประตูแบบ PETS +2% / 94% แต่ฝูงชน MOT17 ยังคลาด −30% ถึง +19%</td></tr>
+          <tr><td data-i18n="cameras.s188">ตรวจจับคน</td><td data-i18n="cameras.s189">ชุดเดียวกัน</td><td data-i18n="cameras.s190">พบคน (recall) / ถูกต้อง (precision)</td><td data-i18n="cameras.s191">YOLOX-Nano: พบคน 37% ถูกต้อง 83% (เดิม COCO-SSD 24% / 76%) · คนสูง 10–20% ของภาพ พบ 20–90% (เดิม 7–75%) · คนสูงไม่ถึง 1/10 ของภาพยังหลุดเกือบหมด</td></tr>
+          <tr><td data-i18n="cameras.s192">เช็คชื่อด้วยใบหน้า</td><td data-i18n="cameras.s193">LFW เต็มชุด (ปรับค่า) + CASIA-FaceV5 ใบหน้าเอเชีย 500 คน (ทดสอบแยก) · ผู้ลงทะเบียน 20–200 คน</td><td data-i18n="cameras.s194">จำได้ / ผิดคน / คนนอกถูกจับคู่</td><td data-i18n="cameras.s195">100 คน กฎใหม่ (ลงทะเบียน 3 ท่า เกณฑ์รายคน ตรวจคุณภาพ ยืนยัน 2 เฟรม): LFW จำได้ 85% คนนอก 0.8% (เดิม 8.7%) · ใบหน้าเอเชีย จำได้ 54% คนนอก 3.4% (เดิม 8.0%) — ยังสูง</td></tr>
+          <tr><td data-i18n="cameras.s196">จดจำลูกค้า</td><td>LFW</td><td data-i18n="cameras.s197">จำได้ / ผิดคน / คนนอกถูกทัก</td><td data-i18n="cameras.s198">ใช้กฎเดียวกับเช็คชื่อ (0.55 + เกณฑ์รายคน): LFW 100 คน จำได้ 85% คนนอกถูกทัก 0.8% (เดิม 0.50: 80% / 1.9%)</td></tr>
           <tr><td data-i18n="cameras.s199">อายุ/เพศ (ป้ายโฆษณา)</td><td data-i18n="cameras.s200">UTKFace 2,000 ภาพ</td><td data-i18n="cameras.s201">อายุคลาดเคลื่อน · ช่วงอายุ · เพศ</td><td data-i18n="cameras.s202">±5 ปี · ช่วงอายุถูก 79% · เพศถูก 96% (เอเชีย 92%) — ค่าที่ดีเกินจริง เพราะโมเดลเคยเรียนจากชุดนี้บางส่วน</td></tr>
           <tr><td data-i18n="cameras.s203">ตรวจจับมือ (คีออสก์)</td><td data-i18n="cameras.s204">HaGRID 720 ภาพ 18 ท่า</td><td data-i18n="cameras.s205">พบมือที่ยก / ถูกต้อง</td><td data-i18n="cameras.s206">88% / 99% · ท่าแบมือ 95%</td></tr>
-          <tr><td data-i18n="cameras.s207">สแกนสินค้า · ตรวจคุณภาพ · ความง่วง · อารมณ์ · บูธ</td><td>—</td><td>—</td><td data-i18n="cameras.s208">ยังไม่ได้วัดกับชุดข้อมูลมาตรฐาน (แสดงป้าย Beta ในหน้า)</td></tr>
+          <tr><td data-i18n="cameras.s207">สแกนบาร์โค้ด · ตรวจคุณภาพ · ความง่วง · สีหน้า</td><td>Synthetic · Open/Closed Eyes · CEW · FER-2013</td><td>—</td><td data-i18n="cameras.s208">บาร์โค้ดจำลอง: อ่านถูก ~100% เมื่อโค้ดกว้าง ≥1/5 ภาพ ชัด ไม่ถูกบัง รหัสผิด 0.06% · ขวดจำลอง: แสงคงที่ตรวจได้ ~100% แต่แสงเปลี่ยน ±10% = ปัดตกทุกขวด ไม่ตรวจฉลากเอียง · ตาปิด (ภาพสาธารณะ): จับได้ 18–43% ต่อเฟรม เตือนผิด ≤0.1% · สีหน้า FER-2013: ถูก 52–59% (สุ่ม 14%) · บูธยังไม่ได้วัด</td></tr>
         </tbody>
       </table></div>
       <h3 data-i18n="cameras.s209">ข้อจำกัดที่พบและสิ่งที่ปรับแล้ว</h3>
       <ul>
-        <li><b data-i18n="cameras.s210">คนตัวเล็ก/อยู่ไกลหลุดบ่อย:</b> <span data-i18n="cameras.s211">โมเดลตรวจจับคนย่อภาพเหลือ 300×300 จุดเสมอ การตั้งความละเอียดสูงขึ้นจึงไม่ช่วย (วัดได้ผลเท่ากันทุกขนาด) เราเปลี่ยนเป็นตัวเลือก “คนตัวเล็ก/อยู่ไกล” ที่แบ่งภาพตรวจทีละส่วน เห็นคนไกลเพิ่มขึ้นชัดเจน แต่ช้าลง 3–5 เท่า เหมาะกับการนับคนในโซน/ฮีตแมปมากกว่าเส้นนับ</span></li>
-        <li><b data-i18n="cameras.s212">รหัสสลับเมื่อคนเดินสวนกัน</b> <span data-i18n="cameras.s213">ทำให้นับข้ามเส้นเกิน ปรับตัวติดตามให้จับคู่ระยะสั้นลงและรอคนที่ถูกบังนานขึ้น ความคลาดเคลื่อนรายทิศลดจาก 39% เหลือ 19%</span></li>
+        <li><b data-i18n="cameras.s210">คนตัวเล็ก/อยู่ไกลหลุดบ่อย:</b> <span data-i18n="cameras.s211">เปลี่ยนตัวตรวจจับหลักเป็น YOLOX-Nano (สัญญาอนุญาต Apache-2.0 ทำงานบน WASM ไม่ต้องใช้ WebGL) เร็วเท่าเดิมแต่เห็นคนตัวเล็กมากขึ้นชัดเจน COCO-SSD ยังเป็นตัวสำรอง คนที่สูงไม่ถึง 1/10 ของภาพยังหลุด ตัวเลือก “คนตัวเล็ก/อยู่ไกล” แบ่งภาพตรวจได้ แต่ช้าลง</span></li>
+        <li><b data-i18n="cameras.s212">รหัสสลับเมื่อคนเดินสวนกัน</b> <span data-i18n="cameras.s213">ทำให้นับข้ามเส้นเกิน ตัวติดตามใหม่จับคู่สองขั้น (กล่องมั่นใจก่อน แล้วจึงกล่องคะแนนต่ำ) มีแถบกันสั่นรอบเส้น และต้องอยู่ฝั่งใหม่ 2 เฟรมจึงนับ นับแล้วถูกจริงเพิ่มจาก 72% เป็น 81–91% แต่ในฝูงชนนับขาดมากขึ้น</span></li>
         <li><b data-i18n="cameras.s214">ลดการนับซ้ำ (re-ID)</b> <span data-i18n="cameras.s215">ตัดยอดลง 5–15% ช่วยเมื่อคนเดินวนแถวประตู แต่ทำให้นับขาดมากขึ้นในที่คนแน่น จึงปิดไว้เป็นค่าเริ่มต้น</span></li>
-        <li><b data-i18n="cameras.s216">ใบหน้า:</b> <span data-i18n="cameras.s217">เพิ่มกฎ “ต้องใกล้กว่าคนอันดับสองชัดเจน” ลดการเช็คชื่อผิดคน 3–4 เท่า ถ้ามีผู้ลงทะเบียนเกิน 100 คน แนะนำลดเกณฑ์เป็น 0.50</span></li>
+        <li><b data-i18n="cameras.s216">ใบหน้า:</b> <span data-i18n="cameras.s217">กฎใหม่: เกณฑ์รายคน (คนที่หน้าคล้ายผู้ลงทะเบียนอื่นได้เกณฑ์เข้มขึ้น) ตรวจคุณภาพภาพ ยืนยัน 2 เฟรม และลงทะเบียน 3 ท่า คนนอกถูกจับคู่ลดจาก 8.7% เหลือ 0.8% บน LFW แต่ใบหน้าเอเชียยัง 3.4% — ในไทยไม่ควรใช้ใบหน้าอย่างเดียวเมื่อลงทะเบียนเกินราว 50 คน และควรลงทะเบียนคนเดิมใหม่ด้วย 3 ท่า</span></li>
         <li data-i18n="cameras.s218">อายุ/เพศ/อารมณ์เป็นการคาดคะเน ใช้ดูภาพรวมกลุ่มผู้ชม ไม่ใช้ตัดสินเรื่องของคนใดคนหนึ่ง</li>
       </ul>
-      <p class="hint" data-i18n="cameras.s219">วิธีวัด ตารางเต็ม และสัญญาอนุญาตของชุดข้อมูล อยู่ในไฟล์ ACCURACY.md ของโปรเจกต์ (สคริปต์วัดซ้ำได้ใน tests/bench) ชุดข้อมูลใช้เพื่อการประเมินเท่านั้น ไม่ได้รวมไว้ในโปรแกรม: MOTChallenge (CC BY-NC-SA 3.0), LFW (เพื่อการวิจัย), UTKFace (วิจัยที่ไม่ใช่เชิงพาณิชย์), HaGRID (CC BY-SA 4.0)</p>
+      <p class="hint" data-i18n="cameras.s219">วิธีวัด ตารางเต็ม และสัญญาอนุญาตของชุดข้อมูล อยู่ในไฟล์ ACCURACY.md ของโปรเจกต์ (สคริปต์วัดซ้ำได้ใน tests/bench) ชุดข้อมูลใช้เพื่อการประเมินเท่านั้น ไม่ได้รวมไว้ในโปรแกรม: MOTChallenge (CC BY-NC-SA 3.0), LFW และ CASIA-FaceV5 (เพื่อการวิจัย), UTKFace (วิจัยที่ไม่ใช่เชิงพาณิชย์), HaGRID (CC BY-SA 4.0), Open/Closed Eyes (ODC-BY), CEW และ FER-2013 (เพื่อการวิจัย) — ขวดและบาร์โค้ดเป็นภาพจำลองที่สร้างเอง</p>
     </div>
   </section>
 

@@ -424,3 +424,43 @@ test("insights: no true change + ±30% day-to-day noise → the store card rarel
   }
   assert.ok(claims / RUNS <= 0.1 && kpiClaims / RUNS <= 0.1, `confident claims without a real change: ${claims}/${RUNS}`);
 });
+
+// ---------- calibration by simulation (seeded): anomaly false alarms and "how many more days" ----------
+const simGen = seed => {
+  const r = rng(seed), nrm = () => Math.sqrt(-2 * Math.log(r() + 1e-12)) * Math.cos(2 * Math.PI * r());
+  const gam = k => { if (k < 1) return gam(k + 1) * Math.pow(r(), 1 / k); const d = k - 1 / 3, c = 1 / Math.sqrt(9 * d); for (;;) { let x, v; do { x = nrm(); v = 1 + c * x; } while (v <= 0); v = v * v * v; const u = r(); if (Math.log(u) < 0.5 * x * x + d - d * v + d * Math.log(v)) return d * v; } };
+  const pois = l => { if (l > 60) return Math.max(0, Math.round(l + Math.sqrt(l) * nrm())); const L = Math.exp(-l); let k = 0, p = 1; do { k++; p *= r(); } while (p > L); return k - 1; };
+  return { nrm, gam, pois };
+};
+const WK = [0.8, 0.9, 0.9, 1, 1.1, 1.4, 1.3];
+const simSeries = (G, { mu, k = Infinity, ar = null, n = 60 }) => { const y = []; let lv = 0; for (let i = 0; i < n; i++) { if (ar) lv = ar.phi * lv + ar.sd * G.nrm(); let m = mu * WK[i % 7] * Math.exp(lv); if (k !== Infinity) m *= G.gam(k) / k; y.push(G.pois(m)); } return y; };
+
+test("anomalies: ≤ 0.2 false days per 60 on clean Poisson / negative-binomial / AR(1) series, and large spikes/drops are found", () => {
+  const scen = [["Poisson μ=5", { mu: 5 }], ["Poisson μ=20", { mu: 20 }], ["Poisson μ=100", { mu: 100 }], ["NB μ=100 k=30", { mu: 100, k: 30 }], ["NB μ=100 k=8", { mu: 100, k: 8 }], ["NB μ=20 k=8", { mu: 20, k: 8 }], ["NB μ=200 k=4", { mu: 200, k: 4 }], ["AR(0.7, 8%) μ=100", { mu: 100, ar: { phi: 0.7, sd: 0.08 } }], ["AR(0.9, 5%) + NB k=20", { mu: 200, k: 20, ar: { phi: 0.9, sd: 0.05 } }]];
+  const N = 90;
+  for (const [name, sc] of scen) {
+    const G = simGen(1234); let f = 0;
+    for (let it = 0; it < N; it++) f += S.anomalies(simSeries(G, sc), { minN: 14 }).length;
+    assert.ok(f / N <= 0.2, `${name}: ${(f / N).toFixed(3)} false anomalies per 60 days`);
+  }
+  // power for big, business-relevant anomalies (value set to multiple × the true expected count)
+  for (const [name, sc, mult, minPow] of [["Poisson μ=100 ×1.6", { mu: 100 }, 1.6, 0.85], ["Poisson μ=100 ×0.5", { mu: 100 }, 0.5, 0.9], ["NB μ=100 k=30 ×0.3", { mu: 100, k: 30 }, 0.3, 0.6], ["NB μ=100 k=30 ×2.5", { mu: 100, k: 30 }, 2.5, 0.6]]) {
+    const G = simGen(99); let d = 0;
+    for (let it = 0; it < N; it++) { const y = simSeries(G, sc), i = 20 + (it % 20); y[i] = Math.round(sc.mu * WK[i % 7] * mult); if (S.anomalies(y, { minN: 14 }).some(a => a.i === i)) d++; }
+    assert.ok(d / N >= minPow, `${name}: detected ${(d / N * 100).toFixed(0)}%`);
+  }
+});
+
+test("planMore: the 'days needed' from a non-significant comparison gives ≈ 80% power when that many days are collected", () => {
+  const mk = (G, L, eff) => { const n = Math.max(120, 2 * L + 14), days = []; for (let i = 0; i < n; i++) { const g = i >= n - L ? "A" : i >= n - 2 * L ? "B" : "h"; days.push({ y: G.pois(40 * WK[i % 7] * (g === "A" ? 1 + eff : 1)), e: 1, wd: i % 7, g, t: i }); } return days; };
+  const G = simGen(21), need = [];
+  for (let it = 0; it < 25; it++) { const t = S.countCompare(mk(G, 7, 0)), pl = S.planMore({ lo: t.lo, hi: t.hi, days: 7, target: 0.15 }); need.push(pl.daysPerPeriod); assert.equal(pl.moreDays, pl.daysPerPeriod - 7); }
+  const L = Math.round(S.median(need));
+  assert.ok(L > 12 && L < 40, "days per period for +15% at 40/day: " + L);
+  const G2 = simGen(77); let hit = 0; const N = 50;
+  for (let it = 0; it < N; it++) { const t = S.countCompare(mk(G2, L, 0.15)); if (t.p < 0.05 && t.adjChange > 0) hit++; }
+  assert.ok(hit / N >= 0.6 && hit / N <= 0.97, `power at the planned ${L} days: ${hit / N}`);
+  const P = S.planMore({ lo: -0.1, hi: 0.3, days: 7, target: 0.1 }); near(P.se, (Math.log(1.3) - Math.log(0.9)) / (2 * 1.959964), 1e-6);
+  assert.equal(S.planMore({ lo: -0.5, hi: 2, days: 7, target: 0.02 }).tooLong, true);
+  assert.equal(S.planMore({ lo: null, hi: 0.2, days: 7 }), null);
+});

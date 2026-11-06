@@ -216,8 +216,52 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   var st = { topic: "general", spread: "three", reversed: !!prefs.reversed, deck: null, picks: [], phase: "setup" };
 
+  /* ---------- ภาษา (TH | 中文): ข้อความ UI ผ่าน T(), ชื่อ/ความหมายไพ่ภาษาจีนจาก i18n/zh-kb-tarot.js / zh-kb-siamsee.js ---------- */
+  var T = function (k, th, v) { return window.LQI18N ? LQI18N.tf(k, th, v) : th.replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : m; }); };
+  var isZh = function () { return !!(window.LQI18N && LQI18N.lang === "zh"); };
+  var first = function (x) { return Array.isArray(x) ? x[0] : x; };
+  function zkItem(dom, key) { var Z = window.FORTUNE_ZH; return isZh() && Z && Z[dom] && Z[dom].items ? Z[dom].items[key] || null : null; }
+  function cName(c) { var z = zkItem("tarot", c.id + ".u"); return z ? z.s : c.th; }
+  function cKw(c) { return isZh() ? T("tarot.kw." + c.id, c.keywords.join("|")).split("|") : c.keywords; }
+  function cMean(c, rev) {
+    var z = zkItem("tarot", c.id + (rev ? ".r" : ".u"));
+    return z ? { general: first(z.o), love: first(z.l), work: first(z.w), money: first(z.m) } : (rev ? c.reversed : c.upright);
+  }
+  function cAdv(c) { var z = zkItem("tarot", c.id + ".u"); return z ? first(z.a) : c.advice; }
+  function orientTxt(rev) { return rev ? T("tarot.rev", "กลับหัว") : T("tarot.up", "ตั้งตรง"); }
+  function topicName(k) { return T("tarot.topic." + k, KB.topics[k].th); }
+  function spreadName(k) { return T("tarot.spread." + k, KB.spreads[k].th); }
+  function spreadSub(k) { return T("tarot.spread." + k + ".sub", KB.spreads[k].sub); }
+  function posName(k, i) { return T("tarot.pos." + k + "." + i, KB.spreads[k].positions[i].th); }
+  function posLead(k, i) { return T("tarot.posLead." + k + "." + i, KB.spreads[k].positions[i].lead); }
+  function elName(k) { return T("tarot.el." + k, KB.elements[k].th); }
+  function suitName(k) { return T("tarot.suit." + k, KB.suits[k].th); }
+  function headlineOf(Y, picks) {
+    if (!isZh()) return Y.headline;
+    var n = Y.n;
+    if (n >= 3 && Y.majors / n >= 0.5) return T("tarot.hl.majors", Y.headline);
+    if (Y.dominant) return T("tarot.hl.dom", Y.headline, { el: elName(Y.dominant), theme: T("tarot.elTheme." + Y.dominant, KB.elements[Y.dominant].theme) });
+    if (n >= 3) return T("tarot.hl.balanced", Y.headline);
+    return cKw(KB.byId[picks[0].id])[0];
+  }
+  function adviceOf(Y) { return isZh() ? cAdv(KB.byId[Y.adviceCard]) : Y.advice; }
+  function keyMessagesOf(cur) {
+    var Y = cur.synth; if (!isZh()) return Y.keyMessages;
+    var n = Y.n, ki = n >= 3 ? (cur.spread === "celtic" ? 0 : 1) : 0, kc = KB.byId[cur.picks[ki].id];
+    return [headlineOf(Y, cur.picks) + (n >= 3 ? " — " + (Y.majors ? T("tarot.km.majors", "ไพ่ชุดใหญ่ {n} ใบ", { n: Y.majors }) : T("tarot.km.allMinor", "ไพ่ชุดเล็กทั้งหมด")) : ""),
+      posName(cur.spread, ki).replace(/^\d+ · /, "") + "：" + cName(kc) + " — " + cKw(kc).slice(0, 2).join(" · "),
+      T("tarot.card.adv", "คำแนะนำ: ") + adviceOf(Y)];
+  }
+  var SS_LV = { "ดีมาก": "great", "ดี": "good", "ค่อยเป็นค่อยไป": "slow" };
+  function ssView(s) {
+    var z = zkItem("siamsee", "siamsee." + s.n);
+    if (!z) return { level: s.level, verse: s.verse, meaning: s.meaning, cats: s };
+    return { level: T("tarot.ss.lv." + (SS_LV[s.level] || "good"), s.level), verse: T("tarot.ss.verse." + s.n, s.verse.join("|")).split("|"), meaning: first(z.o),
+      cats: { work: first(z.w), money: first(z.m), love: first(z.l), mind: first(z.a), travel: first(z.t) } };
+  }
+
   function cardHTML(c, rev, flipped, extra) {
-    return '<span class="tc-in"><span class="tc-back"></span><span class="tc-face"><img src="' + c.img + '" alt="' + esc(c.th + " (" + c.en + ")" + (rev ? " กลับหัว" : "")) + '" loading="lazy" decoding="async"></span></span>';
+    return '<span class="tc-in"><span class="tc-back"></span><span class="tc-face"><img src="' + c.img + '" alt="' + esc(cName(c) + " (" + c.en + ")" + (rev ? " " + T("tarot.rev", "กลับหัว") : "")) + '" loading="lazy" decoding="async"></span></span>';
   }
 
   /* ---------- แท็บ ---------- */
@@ -242,14 +286,16 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   });
 
   /* ---------- ขั้น 1 ---------- */
-  $("#trTopics").innerHTML = Object.keys(KB.topics).map(function (k) {
-    var t = KB.topics[k];
-    return '<label class="tr-opt"><input type="radio" name="topic" value="' + k + '"' + (k === st.topic ? " checked" : "") + '><b><span class="ic" aria-hidden="true">' + t.icon + "</span>" + esc(t.th) + "</b></label>";
-  }).join("");
-  $("#trSpreads").innerHTML = KB.spreadOrder.map(function (k) {
-    var s = KB.spreads[k];
-    return '<label class="tr-opt"><input type="radio" name="spread" value="' + k + '"' + (k === st.spread ? " checked" : "") + "><b>" + esc(s.th) + "</b><small>" + esc(s.sub) + "</small></label>";
-  }).join("");
+  function renderSetup() {
+    $("#trTopics").innerHTML = Object.keys(KB.topics).map(function (k) {
+      var t = KB.topics[k];
+      return '<label class="tr-opt"><input type="radio" name="topic" value="' + k + '"' + (k === st.topic ? " checked" : "") + '><b><span class="ic" aria-hidden="true">' + t.icon + "</span>" + esc(topicName(k)) + "</b></label>";
+    }).join("");
+    $("#trSpreads").innerHTML = KB.spreadOrder.map(function (k) {
+      return '<label class="tr-opt"><input type="radio" name="spread" value="' + k + '"' + (k === st.spread ? " checked" : "") + "><b>" + esc(spreadName(k)) + "</b><small>" + esc(spreadSub(k)) + "</small></label>";
+    }).join("");
+  }
+  renderSetup();
   $("#trReversed").checked = st.reversed;
   $("#trReversed").addEventListener("change", function () { st.reversed = this.checked; prefs.reversed = this.checked; lsSet(PREF_KEY, prefs); });
   $("#trTopics").addEventListener("change", function (e) {
@@ -263,7 +309,6 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   /* ---------- ขั้น 2: สับ & เลือก ---------- */
   var fan = $("#trFan"), board = $("#trBoard"), pickSec = $("#trPick");
-  var fanLayout = null;
   async function startShuffle() {
     touch();
     st.deck = TR.makeDeck(st.reversed); st.picks = []; st.phase = "pick";
@@ -271,9 +316,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $(".tr-fan-wrap").hidden = false; $(".tr-pick-actions").hidden = false; $("#trFanHint").hidden = false;
     $("#trReveal").hidden = true; $("#trCardImg").hidden = true;
     setStep(2);
-    var S = KB.spreads[st.spread];
-    $("#trPickTitle").textContent = "ตั้งจิตถึงคำถาม แล้วเลือกไพ่ " + S.positions.length + " ใบ";
-    renderBoard(); updateCount();
+    renderPickHead();
+    renderBoard();
     pickSec.scrollIntoView({ block: "start", behavior: reduced ? "auto" : "smooth" });
     $("#trPickTitle").focus({ preventScroll: true });
     // แอนิเมชันสับ
@@ -293,7 +337,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     return { W: W, fw: fw, step: step, fits: fits, inner: Math.max(W, (n - 1) * step + fw + 24), n: n };
   }
   function renderFan(deal) {
-    var L = fanLayout = computeFan();
+    var L = computeFan();
     fan.style.setProperty("--fw", L.fw + "px");
     var inner = document.createElement("div"); inner.className = "tr-fan-inner"; inner.style.width = L.inner + "px";
     var html = "";
@@ -302,7 +346,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var rot = L.fits ? (t - 0.5) * 24 : (t - 0.5) * 6;
       var top = 24 + (L.fits ? Math.pow(Math.abs(t - 0.5) * 2, 2) * 16 : 0);
       var left = (L.fits ? 32 : 12) + i * L.step;
-      html += '<button type="button" class="fcard' + (d.picked ? " gone" : "") + '" data-i="' + i + '" aria-label="ไพ่ใบที่ ' + (i + 1) + '" style="left:' + (deal && !reduced ? (L.inner - L.fw) / 2 : left) + "px;top:" + top + "px;transform:rotate(" + rot.toFixed(2) + 'deg)" data-left="' + left + '"></button>';
+      html += '<button type="button" class="fcard' + (d.picked ? " gone" : "") + '" data-i="' + i + '" aria-label="' + esc(T("tarot.fanCard", "ไพ่ใบที่ {n}", { n: i + 1 })) + '" style="left:' + (deal && !reduced ? (L.inner - L.fw) / 2 : left) + "px;top:" + top + "px;transform:rotate(" + rot.toFixed(2) + 'deg)" data-left="' + left + '"></button>';
     });
     inner.innerHTML = html; fan.innerHTML = ""; fan.append(inner);
     fan.scrollLeft = (L.inner - L.W) / 2;
@@ -313,7 +357,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         setTimeout(function () { fan.classList.remove("dealing"); }, 600);
       }); });
     }
-    $("#trFanHint").textContent = L.fits ? "แตะหรือคลิกไพ่ใบที่ใจเลือก" : "ปัดหรือลากซ้าย–ขวาเพื่อดูไพ่ทั้ง 78 ใบ แล้วแตะใบที่ใจเลือก";
+    $("#trFanHint").textContent = L.fits ? T("tarot.fanHintFit", "แตะหรือคลิกไพ่ใบที่ใจเลือก") : T("tarot.fanHintScroll", "ปัดหรือลากซ้าย–ขวาเพื่อดูไพ่ทั้ง 78 ใบ แล้วแตะใบที่ใจเลือก");
   }
   // ลากเพื่อเลื่อน (เมาส์) — ทัชใช้การเลื่อนปกติ
   var drag = null, dragMoved = false;
@@ -342,8 +386,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     board.style.gridTemplateColumns = "repeat(" + S.cols + "," + M.u.toFixed(1) + "px)";
     board.style.gridTemplateRows = "repeat(" + S.rows + "," + M.v.toFixed(1) + "px)";
     board.innerHTML = S.positions.map(function (p, i) {
-      var p2 = st.picks[i], short = st.spread === "celtic" ? String(i + 1) : p.th;
-      var inner = p2 ? '<button type="button" class="tcard' + (p2.rev ? " rev" : "") + (p2.open ? " flip" : "") + '" data-i="' + i + '" aria-label="' + esc(p.th) + (p2.open ? " — " + esc(KB.byId[p2.id].th) : " — ไพ่คว่ำ") + '" style="width:' + M.cw + 'px">' + cardHTML(KB.byId[p2.id], p2.rev) + "</button>"
+      var p2 = st.picks[i], pn = posName(st.spread, i), short = st.spread === "celtic" ? String(i + 1) : pn;
+      var inner = p2 ? '<button type="button" class="tcard' + (p2.rev ? " rev" : "") + (p2.open ? " flip" : "") + '" data-i="' + i + '" aria-label="' + esc(pn) + " — " + esc(p2.open ? cName(KB.byId[p2.id]) : T("tarot.faceDown", "ไพ่คว่ำ")) + '" style="width:' + M.cw + 'px">' + cardHTML(KB.byId[p2.id], p2.rev) + "</button>"
         : '<span class="ph" style="width:' + M.cw + 'px" aria-hidden="true">' + (i + 1) + "</span>";
       return '<div class="slot' + (p.x ? " x" : "") + (!p2 && i === st.picks.length ? " next" : "") + '" style="grid-column:' + p.c + " / span 2;grid-row:" + p.r + ' / span 2">' + inner +
         '<span class="lbl" style="max-width:' + (M.cw + 8) + 'px">' + esc(short) + "</span></div>";
@@ -351,11 +395,22 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   board.addEventListener("click", function (e) {
     var b = e.target.closest(".tcard"); if (!b) return;
-    var p = st.picks[+b.dataset.i]; if (p && p.open) openModal(p.id, p.rev, KB.spreads[st.spread].positions[+b.dataset.i]);
+    var p = st.picks[+b.dataset.i]; if (p && p.open) openModal(p.id, p.rev, st.spread, +b.dataset.i);
   });
   function updateCount() {
     var need = KB.spreads[st.spread].positions.length;
-    $("#trPickCount").textContent = "เลือกแล้ว " + st.picks.length + " / " + need;
+    $("#trPickCount").textContent = T("tarot.pickCount", "เลือกแล้ว {a} / {b}", { a: st.picks.length, b: need });
+  }
+  /** หัวข้อขั้นเลือก/เปิดไพ่ ตามสถานะ (เรียกซ้ำเมื่อเปลี่ยนภาษา) */
+  function renderPickHead() {
+    var k = st.spread;
+    if (st.phase === "reveal" || st.phase === "result") {
+      $("#trPickTitle").textContent = T("tarot.yourCards", "ไพ่ของคุณ · {s} ({sub})", { s: spreadName(k), sub: spreadSub(k) });
+      $("#trPickCount").textContent = T("tarot.tapFull", "แตะไพ่เพื่อดูความหมายเต็ม");
+    } else {
+      $("#trPickTitle").textContent = T("tarot.pickTitle", "ตั้งจิตถึงคำถาม แล้วเลือกไพ่ {n} ใบ", { n: KB.spreads[k].positions.length });
+      updateCount();
+    }
   }
   function pick(i, btn) {
     var need = KB.spreads[st.spread].positions.length;
@@ -396,11 +451,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   $("#trReveal").addEventListener("click", async function () {
     touch();
     this.hidden = true; st.phase = "reveal";
-    $("#trPickTitle").textContent = "ไพ่ของคุณ · " + KB.spreads[st.spread].th + " (" + KB.spreads[st.spread].sub + ")"; $("#trPickCount").textContent = "แตะไพ่เพื่อดูความหมายเต็ม";
+    renderPickHead();
     for (var i = 0; i < st.picks.length; i++) {
       st.picks[i].open = true;
       var b = board.querySelector('.tcard[data-i="' + i + '"]');
-      if (b) { b.classList.add("flip"); b.setAttribute("aria-label", KB.spreads[st.spread].positions[i].th + " — " + KB.byId[st.picks[i].id].th); }
+      if (b) { b.classList.add("flip"); b.setAttribute("aria-label", posName(st.spread, i) + " — " + cName(KB.byId[st.picks[i].id])); }
       await wait(st.picks.length > 5 ? 180 : 320);
     }
     await wait(400);
@@ -411,20 +466,25 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var FA = window.FortuneAI || null, readings = {};
   function readingBlock(id, title) {
     return '<section class="tr-reading" id="' + id + '" aria-labelledby="' + id + '-h"><div class="rd-head"><h3 id="' + id + '-h">' + esc(title) + '</h3><span class="rd-src" id="' + id + '-src"></span></div>' +
-      '<div class="rd-consent" id="' + id + '-consent"></div><div class="rd-body" id="' + id + '-body" aria-live="polite"><p class="muted">กำลังเรียบเรียงคำทำนาย…</p></div>' +
-      '<div class="rd-actions"><button type="button" class="btn ghost" id="' + id + '-again">อ่านอีกสำนวน</button></div></section>';
+      '<div class="rd-consent" id="' + id + '-consent"></div><div class="rd-body" id="' + id + '-body" aria-live="polite"><p class="muted">' + esc(T("tarot.composing", "กำลังเรียบเรียงคำทำนาย…")) + '</p></div>' +
+      '<div class="rd-actions"><button type="button" class="btn ghost" id="' + id + '-again">' + esc(T("tarot.regen", "อ่านอีกสำนวน")) + '</button></div></section>';
   }
   function plainRender(el, res) {
     el.innerHTML = (res.sections || []).map(function (s) { return '<section class="fa-section"><h3>' + esc(s.title || "") + "</h3>" + (s.paragraphs || []).map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("") + "</section>"; }).join("");
   }
   function localFallback(facts) {
-    var sec = { id: "overview", title: "ภาพรวม", paragraphs: [] };
+    var sec = { id: "overview", title: topicName("general"), paragraphs: [] };
     facts.items.slice(0, 6).forEach(function (it) { var k = Object.keys(it.meanings)[0]; if (k) sec.paragraphs.push(it.label + " — " + it.meanings[k][0]); });
     return { source: "local", sections: [sec] };
   }
   /** ประโยคเด่นสั้น ๆ (≤ 60 ตัวอักษร) สำหรับการ์ดแชร์: ความหมายจาก facts ที่ปรากฏอยู่ในภาพรวมที่เรียบเรียงแล้ว (ไม่ใช้ประโยคเชื่อม) */
   function keyLines(res, facts, n) {
     var secs = res.sections || [], ov = secs.find(function (s) { return s.id === "overview"; }) || secs[0];
+    if (isZh()) { // ภาษาจีน: ใช้ประโยคสั้นจากภาพรวมที่เรียบเรียงแล้ว (facts เป็นภาษาไทย)
+      var zs = [];
+      (ov ? ov.paragraphs : []).join("").split(/[。！？]/).forEach(function (x) { x = x.trim(); if (x.length >= 8 && x.length <= 40 && zs.length < n && !/[\u0E00-\u0E7F]/.test(x)) zs.push(x); });
+      return zs;
+    }
     var text = ov ? ov.paragraphs.join(" ") : "", all = secs.map(function (s) { return s.paragraphs.join(" "); }).join(" ");
     var cand = [];
     var okKey = function (k) { return ["overview", "personality", "advice"].indexOf(k) >= 0 || k === facts.topic || (facts.topic === "overall" && k !== "timing"); };
@@ -454,7 +514,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       return p.catch(function () { return localFallback(facts); }).then(function (res) {
         st2.result = res; st2.lines = keyLines(res, facts, 3);
         if (FA && FA.renderSections) FA.renderSections(body, res, { aiBadge: false }); else plainRender(body, res);
-        src.textContent = res.source === "ai" ? "เรียบเรียงโดย AI (Claude)" : "เรียบเรียงในเครื่อง · สำนวนใหม่ทุกครั้ง";
+        src.textContent = res.source === "ai" ? T("tarot.srcAI", "เรียบเรียงโดย AI (Claude)") : T("tarot.srcLocal", "เรียบเรียงในเครื่อง · สำนวนใหม่ทุกครั้ง");
         src.className = "rd-src" + (res.source === "ai" ? " ai" : "");
         root.removeAttribute("aria-busy");
       });
@@ -466,27 +526,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   function showResult() {
     st.phase = "result"; setStep(3);
-    var S = KB.spreads[st.spread], T = KB.topics[st.topic];
     var Y = TR.synthesize(st.picks, st.topic, st.spread);
     current = { kind: "tarot", picks: st.picks.slice(), spread: st.spread, topic: st.topic, synth: Y };
-    var q = $("#trQuestion").value.trim();
-    $("#trResMeta").innerHTML = "หัวข้อ <b>" + esc(T.th) + "</b> · " + esc(S.th) + " (" + esc(S.sub) + ")" + (q ? '<br>คำถาม: <q>' + esc(q) + "</q>" : "");
-    var bars = Object.keys(KB.elements).map(function (k) {
-      var e = KB.elements[k], v = Y.elements[k];
-      return '<div class="elbar"><span>' + e.icon + " " + esc(e.th) + '</span><i style="--w:' + Math.round(v / Y.n * 100) + "%;--c:" + e.color + '"></i><b>' + v + "</b></div>";
-    }).join("");
-    $("#trSynth").innerHTML = "<h3>" + esc(Y.headline) + '</h3><div class="syn-grid"><div><div class="syn-bars" aria-label="จำนวนไพ่ตามธาตุ">' + bars + '</div><div class="syn-chips"><span>ชุดใหญ่ ' + Y.majors + "/" + Y.n + "</span><span>กลับหัว " + Y.reversed + "/" + Y.n + "</span>" +
-      (Y.courts ? "<span>ราชสำนัก " + Y.courts + "</span>" : "") + (Y.aces ? "<span>เอซ " + Y.aces + "</span>" : "") + '</div></div><div><p class="syn-advice"><b>คำแนะนำโดยรวม</b><br>' + esc(Y.advice) + "</p></div></div>" + readingBlock("trRd", "คำทำนายโดยละเอียด");
-    var pk = st.picks.slice(), tp = st.topic, sp = st.spread;
-    bindReading("trRd", function (r) { return TR.buildFacts(pk, tp, sp, { rng: r }); });
-    $("#trReadings").innerHTML = st.picks.map(function (p, i) {
-      var c = KB.byId[p.id], pos = S.positions[i], I = TR.interpret(c, p.rev, st.topic, pos);
-      I.text = TR.positionText(c, p.rev, st.topic, pos) + (pos.advice ? " — " + c.advice : "");
-      return '<article class="tr-read"><button type="button" class="tcard flip' + (p.rev ? " rev" : "") + '" data-i="' + i + '" aria-label="ดูความหมายเต็มของ ' + esc(c.th) + '">' + cardHTML(c, p.rev) + "</button><div>" +
-        '<span class="pos">' + esc(pos.th) + "</span><h3>" + esc(c.th) + " <small>" + esc(c.en) + '</small><span class="orient' + (p.rev ? " r" : "") + '">' + I.orient + "</span></h3>" +
-        '<div class="kws">' + c.keywords.map(function (k) { return "<span>" + esc(k) + "</span>"; }).join("") + "</div>" +
-        '<p class="lead-pos">' + esc(I.lead) + "</p><p>" + esc(I.text) + '</p><button type="button" class="btn ghost more" data-i="' + i + '">ดูความหมายเต็ม</button></div></article>';
-    }).join("");
+    renderResult();
     $("#trResult").hidden = false;
     $("#trCardImg").hidden = true;
     if (prefs.stats) { lsSet(STATS_KEY, TR.addStat(lsGet(STATS_KEY, null), st.picks.map(function (p) { return p.id; }), st.topic)); renderStats(); }
@@ -494,9 +536,32 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#trResTitle").focus({ preventScroll: true });
     touch();
   }
+  /** วาดผลการเปิดไพ่จาก current (เรียกซ้ำเมื่อเปลี่ยนภาษา → เรียบเรียงคำทำนายใหม่ในภาษานั้น) */
+  function renderResult() {
+    var S = KB.spreads[current.spread], Y = current.synth, sk = current.spread, tk = current.topic, zh = isZh();
+    var q = $("#trQuestion").value.trim();
+    $("#trResMeta").innerHTML = esc(T("tarot.metaTopic", "หัวข้อ")) + " <b>" + esc(topicName(tk)) + "</b> · " + esc(spreadName(sk)) + " (" + esc(spreadSub(sk)) + ")" + (q ? "<br>" + esc(T("tarot.metaQ", "คำถาม: ")) + "<q>" + esc(q) + "</q>" : "");
+    var bars = Object.keys(KB.elements).map(function (k) {
+      var e = KB.elements[k], v = Y.elements[k];
+      return '<div class="elbar"><span>' + e.icon + " " + esc(elName(k)) + '</span><i style="--w:' + Math.round(v / Y.n * 100) + "%;--c:" + e.color + '"></i><b>' + v + "</b></div>";
+    }).join("");
+    $("#trSynth").innerHTML = "<h3>" + esc(headlineOf(Y, current.picks)) + '</h3><div class="syn-grid"><div><div class="syn-bars" aria-label="' + esc(T("tarot.elAria", "จำนวนไพ่ตามธาตุ")) + '">' + bars + '</div><div class="syn-chips"><span>' + esc(T("tarot.chipMajor", "ชุดใหญ่ {a}/{n}", { a: Y.majors, n: Y.n })) + "</span><span>" + esc(T("tarot.chipRev", "กลับหัว {a}/{n}", { a: Y.reversed, n: Y.n })) + "</span>" +
+      (Y.courts ? "<span>" + esc(T("tarot.chipCourt", "ราชสำนัก {a}", { a: Y.courts })) + "</span>" : "") + (Y.aces ? "<span>" + esc(T("tarot.chipAce", "เอซ {a}", { a: Y.aces })) + "</span>" : "") + '</div></div><div><p class="syn-advice"><b>' + esc(T("tarot.overallAdvice", "คำแนะนำโดยรวม")) + "</b><br>" + esc(adviceOf(Y)) + "</p></div></div>" + readingBlock("trRd", T("tarot.readingTitle", "คำทำนายโดยละเอียด"));
+    var pk = current.picks, tp = tk, sp = sk;
+    bindReading("trRd", function (r) { return TR.buildFacts(pk, tp, sp, { rng: r }); });
+    $("#trReadings").innerHTML = pk.map(function (p, i) {
+      var c = KB.byId[p.id], pos = S.positions[i], nm = cName(c), lead, text;
+      if (zh) { lead = posLead(sk, i); text = cMean(c, p.rev)[tk] + (pos.advice ? " — " + cAdv(c) : ""); }
+      else { lead = TR.interpret(c, p.rev, tk, pos).lead; text = TR.positionText(c, p.rev, tk, pos) + (pos.advice ? " — " + c.advice : ""); }
+      return '<article class="tr-read"><button type="button" class="tcard flip' + (p.rev ? " rev" : "") + '" data-i="' + i + '" aria-label="' + esc(T("tarot.viewFull", "ดูความหมายเต็มของ {c}", { c: nm })) + '">' + cardHTML(c, p.rev) + "</button><div>" +
+        '<span class="pos">' + esc(posName(sk, i)) + "</span><h3>" + esc(nm) + " <small>" + esc(c.en) + '</small><span class="orient' + (p.rev ? " r" : "") + '">' + esc(orientTxt(p.rev)) + "</span></h3>" +
+        '<div class="kws">' + cKw(c).map(function (k) { return "<span>" + esc(k) + "</span>"; }).join("") + "</div>" +
+        '<p class="lead-pos">' + esc(lead) + "</p><p>" + esc(text) + '</p><button type="button" class="btn ghost more" data-i="' + i + '">' + esc(T("tarot.more", "ดูความหมายเต็ม")) + "</button></div></article>";
+    }).join("");
+  }
   $("#trReadings").addEventListener("click", function (e) {
     var b = e.target.closest("[data-i]"); if (!b) return;
-    var i = +b.dataset.i, p = st.picks[i]; openModal(p.id, p.rev, KB.spreads[st.spread].positions[i]);
+    var i = +b.dataset.i, p = current.picks[i]; openModal(p.id, p.rev, current.spread, i);
   });
   $("#trAgain").addEventListener("click", function () { resetTarot(); });
 
@@ -509,37 +574,56 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
 
   /* ---------- โมดัลรายละเอียดไพ่ ---------- */
-  var modal = $("#trModal");
-  function openModal(id, rev, pos) {
-    var c = KB.byId[id], E = KB.elements[c.element];
-    var dl = function (m) { return "<dl><dt>ภาพรวม</dt><dd>" + esc(m.general) + "</dd><dt>ความรัก</dt><dd>" + esc(m.love) + "</dd><dt>การงาน</dt><dd>" + esc(m.work) + "</dd><dt>การเงิน</dt><dd>" + esc(m.money) + "</dd></dl>"; };
-    $("#trModalBody").innerHTML = '<div class="md"><img src="' + c.img + '" alt="' + esc(c.th) + '"' + (rev ? ' class="rev"' : "") + "><div>" +
-      '<h2 id="trModalTitle">' + esc(c.th) + (c.aka ? ' <small class="muted">(' + esc(c.aka) + ")</small>" : "") + "</h2>" +
-      '<p class="sub">' + esc(c.en) + " · " + (c.arcana === "major" ? "ไพ่ชุดใหญ่ " + c.numeral : "ไพ่ชุดเล็ก ชุด" + esc(KB.suits[c.suit].th)) + " · ธาตุ" + esc(E.th) +
-      (pos ? " · ตำแหน่ง: " + esc(pos.th) : "") + (rev != null ? ' <span class="orient' + (rev ? " r" : "") + '">' + (rev ? "กลับหัว" : "ตั้งตรง") + "</span>" : "") + "</p>" +
-      '<div class="kws">' + c.keywords.map(function (k) { return "<span>" + esc(k) + "</span>"; }).join("") + "</div>" +
-      "<h3>ความหมายไพ่ตั้งตรง</h3>" + dl(c.upright) + "<h3>ความหมายไพ่กลับหัว</h3>" + dl(c.reversed) +
-      '<p class="adv"><b>คำแนะนำ:</b> ' + esc(c.advice) + "</p></div></div>";
-    if (modal.showModal) modal.showModal(); else modal.setAttribute("open", "");
+  var modal = $("#trModal"), modalArgs = null;
+  function openModal(id, rev, sk, pi) {
+    modalArgs = [id, rev, sk, pi];
+    renderModal();
+    if (!modal.open) { if (modal.showModal) modal.showModal(); else modal.setAttribute("open", ""); }
     touch();
+  }
+  function renderModal() {
+    var id = modalArgs[0], rev = modalArgs[1], sk = modalArgs[2], pi = modalArgs[3];
+    var c = KB.byId[id], zh = isZh(), nm = cName(c);
+    var dl = function (m) { return "<dl><dt>" + esc(topicName("general")) + "</dt><dd>" + esc(m.general) + "</dd><dt>" + esc(topicName("love")) + "</dt><dd>" + esc(m.love) + "</dd><dt>" + esc(topicName("work")) + "</dt><dd>" + esc(m.work) + "</dd><dt>" + esc(topicName("money")) + "</dt><dd>" + esc(m.money) + "</dd></dl>"; };
+    $("#trModalBody").innerHTML = '<div class="md"><img src="' + c.img + '" alt="' + esc(nm) + '"' + (rev ? ' class="rev"' : "") + "><div>" +
+      '<h2 id="trModalTitle">' + esc(nm) + (c.aka && !zh ? ' <small class="muted">(' + esc(c.aka) + ")</small>" : "") + "</h2>" +
+      '<p class="sub">' + esc(c.en) + " · " + esc(c.arcana === "major" ? T("tarot.md.major", "ไพ่ชุดใหญ่ {num}", { num: c.numeral }) : T("tarot.md.minor", "ไพ่ชุดเล็ก ชุด{suit}", { suit: suitName(c.suit) })) + " · " + esc(T("tarot.md.el", "ธาตุ{el}", { el: elName(c.element) })) +
+      (sk ? " · " + esc(T("tarot.md.pos", "ตำแหน่ง: {p}", { p: posName(sk, pi) })) : "") + (rev != null ? ' <span class="orient' + (rev ? " r" : "") + '">' + esc(orientTxt(rev)) + "</span>" : "") + "</p>" +
+      '<div class="kws">' + cKw(c).map(function (k) { return "<span>" + esc(k) + "</span>"; }).join("") + "</div>" +
+      "<h3>" + esc(T("tarot.md.up", "ความหมายไพ่ตั้งตรง")) + "</h3>" + dl(cMean(c, false)) + "<h3>" + esc(T("tarot.md.rev", "ความหมายไพ่กลับหัว")) + "</h3>" + dl(cMean(c, true)) +
+      '<p class="adv"><b>' + esc(T("tarot.md.adv", "คำแนะนำ:")) + "</b> " + esc(cAdv(c)) + "</p></div></div>";
   }
   $("#trModalClose").addEventListener("click", function () { modal.close ? modal.close() : modal.removeAttribute("open"); });
   modal.addEventListener("click", function (e) { if (e.target === modal) modal.close(); });
 
   /* ---------- ไพ่ประจำวัน ---------- */
   var daily = TR.dailyCard(new Date());
-  var thDate = (function () { try { return new Date().toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" }); } catch (e) { return TR.dayKey(); } })();
-  $("#trDailyDate").textContent = thDate;
-  $("#trDailyImg").src = daily.img; $("#trDailyImg").alt = daily.th + " (" + daily.en + ")";
+  function dateText() { try { return new Date().toLocaleDateString(isZh() ? "zh-CN" : "th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" }); } catch (e) { return TR.dayKey(); } }
+  function renderDailyStatic() {
+    $("#trDailyDate").textContent = dateText();
+    $("#trDailyImg").alt = cName(daily) + " (" + daily.en + ")";
+    var b = $("#trDailyCard");
+    if (b.classList.contains("flip")) { b.setAttribute("aria-label", T("tarot.dailyAriaOpen", "ไพ่ประจำวัน: {c} — แตะเพื่อดูความหมายเต็ม", { c: cName(daily) })); renderDailyText(); }
+    else { b.setAttribute("aria-label", T("tarot.dailyAria", "แตะเพื่อเปิดไพ่ประจำวัน")); renderDailyDefault(); }
+  }
+  function renderDailyDefault() {
+    $("#trDailyText").innerHTML = "<h2>" + esc(T("tarot.h21", "ไพ่ประจำวันนี้")) + '</h2><p class="muted">' + esc(T("tarot.dailyHint", "แตะไพ่เพื่อเปิดดูพลังของวันนี้")) + "</p>";
+  }
+  function renderDailyText() {
+    var u = cMean(daily, false), img = $("#trDailyCardImg"), keep = img && !img.hidden ? img.src : "";
+    $("#trDailyText").innerHTML = "<h2>" + esc(cName(daily)) + ' <small class="muted">' + esc(daily.en) + "</small></h2>" +
+      '<div class="kws">' + cKw(daily).map(function (k) { return "<span>" + esc(k) + "</span>"; }).join("") + "</div>" +
+      "<p>" + esc(u.general) + "</p><dl><dt>♥ " + esc(topicName("love")) + "</dt><dd>" + esc(u.love) + "</dd><dt>◆ " + esc(topicName("work")) + "</dt><dd>" + esc(u.work) + "</dd><dt>● " + esc(topicName("money")) + "</dt><dd>" + esc(u.money) + "</dd></dl>" +
+      '<p class="syn-advice"><b>' + esc(T("tarot.dailyAdvice", "คำแนะนำวันนี้")) + "</b><br>" + esc(cAdv(daily)) + '</p><div class="tr-res-actions" style="margin-top:12px"><button class="btn primary big" id="trDailyShare" type="button">' + esc(T("tarot.dailyShare", "แชร์ไพ่ประจำวัน")) + '</button></div><img class="tr-cardimg" id="trDailyCardImg" alt="' + esc(T("tarot.dailyImgAlt", "การ์ดไพ่ประจำวันสำหรับแชร์")) + '" hidden>';
+    $("#trDailyShare").addEventListener("click", function () { share(this, { kind: "daily" }, $("#trDailyCardImg")); });
+    if (keep) { $("#trDailyCardImg").src = keep; $("#trDailyCardImg").hidden = false; }
+  }
+  $("#trDailyImg").src = daily.img;
+  renderDailyStatic();
   $("#trDailyCard").addEventListener("click", function () {
     var b = this; if (b.classList.contains("flip")) { openModal(daily.id, false, null); return; }
-    b.classList.add("flip"); b.setAttribute("aria-label", "ไพ่ประจำวัน: " + daily.th + " — แตะเพื่อดูความหมายเต็ม");
-    var u = daily.upright;
-    $("#trDailyText").innerHTML = "<h2>" + esc(daily.th) + ' <small class="muted">' + esc(daily.en) + "</small></h2>" +
-      '<div class="kws">' + daily.keywords.map(function (k) { return "<span>" + esc(k) + "</span>"; }).join("") + "</div>" +
-      "<p>" + esc(u.general) + "</p><dl><dt>♥ ความรัก</dt><dd>" + esc(u.love) + "</dd><dt>◆ การงาน</dt><dd>" + esc(u.work) + "</dd><dt>● การเงิน</dt><dd>" + esc(u.money) + "</dd></dl>" +
-      '<p class="syn-advice"><b>คำแนะนำวันนี้</b><br>' + esc(daily.advice) + '</p><div class="tr-res-actions" style="margin-top:12px"><button class="btn primary big" id="trDailyShare" type="button">แชร์ไพ่ประจำวัน</button></div><img class="tr-cardimg" id="trDailyCardImg" alt="การ์ดไพ่ประจำวันสำหรับแชร์" hidden>';
-    $("#trDailyShare").addEventListener("click", function () { share(this, { kind: "daily" }, $("#trDailyCardImg")); });
+    b.classList.add("flip");
+    renderDailyStatic();
     touch();
   });
 
@@ -554,24 +638,30 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     await wait(1600);
     cup.classList.remove("shaking");
     var s = KB.siamsee[TR.randInt(KB.siamsee.length)];
-    $("#ssFallNo").textContent = "ใบที่ " + s.n;
+    ssCurrent = s;
+    $("#ssFallNo").textContent = T("tarot.ss.fall", "ใบที่ {n}", { n: s.n });
     $("#ssFall").hidden = false;
     await wait(950);
-    ssCurrent = s;
-    $("#ssNo").textContent = s.n;
-    $("#ssTitle").textContent = "เซียมซีใบที่ " + s.n;
-    $("#ssLevel").textContent = s.level;
-    $("#ssVerse").textContent = s.verse.join("\n");
-    $("#ssMeaning").textContent = s.meaning;
-    $("#ssCats").innerHTML = KB.siamseeCats.map(function (c) { return '<li><b><span class="ic" aria-hidden="true">' + c.icon + "</span>" + esc(c.th) + "</b><span>" + esc(s[c.key]) + "</span></li>"; }).join("");
-    $("#ssRead").innerHTML = readingBlock("ssRd", "คำทำนายโดยละเอียด");
-    bindReading("ssRd", function () { return TR.siamseeFacts(s); });
+    renderSiamsee();
     $("#ssResult").hidden = false;
     $("#ssDraw").disabled = false; ssBusy = false;
     if (prefs.stats) { lsSet(STATS_KEY, TR.addStat(lsGet(STATS_KEY, null), [], "siamsee")); renderStats(); }
     if (window.innerWidth < 900) $("#ssResult").scrollIntoView({ block: "start", behavior: reduced ? "auto" : "smooth" });
     $("#ssTitle").focus({ preventScroll: true });
     touch();
+  }
+  /** วาดผลเซียมซีจาก ssCurrent (เรียกซ้ำเมื่อเปลี่ยนภาษา) */
+  function renderSiamsee() {
+    var s = ssCurrent, V = ssView(s);
+    $("#ssFallNo").textContent = T("tarot.ss.fall", "ใบที่ {n}", { n: s.n });
+    $("#ssNo").textContent = s.n;
+    $("#ssTitle").textContent = T("tarot.ss.title", "เซียมซีใบที่ {n}", { n: s.n });
+    $("#ssLevel").textContent = V.level;
+    $("#ssVerse").textContent = V.verse.join("\n");
+    $("#ssMeaning").textContent = V.meaning;
+    $("#ssCats").innerHTML = KB.siamseeCats.map(function (c) { return '<li><b><span class="ic" aria-hidden="true">' + c.icon + "</span>" + esc(T("tarot.ss.cat." + c.key, c.th)) + "</b><span>" + esc(V.cats[c.key]) + "</span></li>"; }).join("");
+    $("#ssRead").innerHTML = readingBlock("ssRd", T("tarot.readingTitle", "คำทำนายโดยละเอียด"));
+    bindReading("ssRd", function () { return TR.siamseeFacts(s); });
   }
   $("#ssDraw").addEventListener("click", drawSiamsee);
   $("#ssAgain").addEventListener("click", function () { $("#ssResult").hidden = true; $("#ssFall").hidden = true; $("#ssCup").scrollIntoView({ block: "center" }); drawSiamsee(); });
@@ -591,30 +681,34 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   function handleShake() {
     if (!$("#panelSiamsee").hidden) { if (!ssBusy) drawSiamsee(); }
-    else if (!$("#panelTarot").hidden && st.phase === "pick" && st.picks.length === 0) { startShuffle(); toast("สับไพ่ใหม่แล้ว"); }
+    else if (!$("#panelTarot").hidden && st.phase === "pick" && st.picks.length === 0) { startShuffle(); toast(T("tarot.toast.reshuffled", "สับไพ่ใหม่แล้ว")); }
   }
   async function enableMotion() {
     if (motionOn) return true;
     try {
       if (typeof DeviceMotionEvent.requestPermission === "function") {
         var r = await DeviceMotionEvent.requestPermission(); // iOS ต้องเรียกจากการแตะ
-        if (r !== "granted") { toast("ไม่ได้รับสิทธิ์ตรวจจับการเขย่า ใช้ปุ่มแทนได้"); return false; }
+        if (r !== "granted") { toast(T("tarot.toast.noPerm", "ไม่ได้รับสิทธิ์ตรวจจับการเขย่า ใช้ปุ่มแทนได้")); return false; }
       }
       window.addEventListener("devicemotion", onMotion);
       motionOn = true;
-      ["#trShake", "#ssShake"].forEach(function (s) { $(s).textContent = "พร้อมแล้ว — เขย่ามือถือได้เลย"; $(s).setAttribute("aria-pressed", "true"); });
+      renderShakeBtns();
       return true;
-    } catch (e) { toast("อุปกรณ์นี้ไม่รองรับการเขย่า ใช้ปุ่มแทนได้"); return false; }
+    } catch (e) { toast(T("tarot.toast.unsupported", "อุปกรณ์นี้ไม่รองรับการเขย่า ใช้ปุ่มแทนได้")); return false; }
+  }
+  function renderShakeBtns() {
+    if (!motionOn) return;
+    ["#trShake", "#ssShake"].forEach(function (s) { $(s).textContent = T("tarot.toast.ready", "พร้อมแล้ว — เขย่ามือถือได้เลย"); $(s).setAttribute("aria-pressed", "true"); });
   }
   if (canMotion) {
     $("#trShake").hidden = false; $("#ssShake").hidden = false;
-    $("#trShake").addEventListener("click", function () { enableMotion().then(function (ok) { if (ok) toast("เขย่ามือถือเพื่อสับไพ่ใหม่"); }); });
-    $("#ssShake").addEventListener("click", function () { enableMotion().then(function (ok) { if (ok) toast("เขย่ามือถือเพื่อเสี่ยงเซียมซี"); }); });
+    $("#trShake").addEventListener("click", function () { enableMotion().then(function (ok) { if (ok) toast(T("tarot.toast.shakeTarot", "เขย่ามือถือเพื่อสับไพ่ใหม่")); }); });
+    $("#ssShake").addEventListener("click", function () { enableMotion().then(function (ok) { if (ok) toast(T("tarot.toast.shakeSs", "เขย่ามือถือเพื่อเสี่ยงเซียมซี")); }); });
   }
 
   /* ---------- การ์ดแชร์ 1080×1350 ---------- */
   function wrapTh(c, text, maxW) {
-    var segs = (typeof Intl !== "undefined" && Intl.Segmenter) ? Array.from(new Intl.Segmenter("th", { granularity: "word" }).segment(text), function (s) { return s.segment; }) : text.split("");
+    var segs = (typeof Intl !== "undefined" && Intl.Segmenter) ? Array.from(new Intl.Segmenter(isZh() ? "zh" : "th", { granularity: "word" }).segment(text), function (s) { return s.segment; }) : text.split("");
     var lines = [], cur = "";
     segs.forEach(function (sg) { if (c.measureText(cur + sg).width > maxW && cur) { lines.push(cur.trim()); cur = sg.trimStart(); } else cur += sg; });
     if (cur.trim()) lines.push(cur.trim());
@@ -646,28 +740,28 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     c.textBaseline = "middle"; c.textAlign = "left";
     c.font = "700 40px " + F; c.fillStyle = "#fff"; c.fillText("LENS", 148, 96); var lw = c.measureText("LENS").width; c.fillStyle = "#a99bff"; c.fillText("IQ", 148 + lw, 96);
     c.textAlign = "right"; c.font = "500 34px " + F; c.fillStyle = "#c9d0ea";
-    c.fillText(opt.kind === "siamsee" ? "เซียมซี" : opt.kind === "daily" ? "ไพ่ประจำวัน" : "ไพ่ทาโรต์", W - 72, 96);
+    c.fillText(opt.kind === "siamsee" ? T("tarot.card.kindSs", "เซียมซี") : opt.kind === "daily" ? T("tarot.card.kindDaily", "ไพ่ประจำวัน") : T("tarot.card.kindTarot", "ไพ่ทาโรต์"), W - 72, 96);
     c.textAlign = "center";
     var msgs, msgTop;
     if (opt.kind === "siamsee") {
-      var s = ssCurrent;
+      var s = ssCurrent, V = ssView(s);
       c.beginPath(); c.arc(W / 2, 330, 120, 0, Math.PI * 2); c.fillStyle = "#c0392b"; c.fill();
       c.lineWidth = 6; c.strokeStyle = "#f3c969"; c.stroke();
       c.fillStyle = "#fff"; c.font = "700 120px " + F; c.fillText(String(s.n), W / 2, 338);
-      c.font = "600 54px " + F; c.fillText("เซียมซีใบที่ " + s.n, W / 2, 520);
-      c.font = "500 32px " + F; c.fillStyle = "#f3c969"; c.fillText("ระดับ: " + s.level, W / 2, 580);
+      c.font = "600 54px " + F; c.fillText(T("tarot.ss.title", "เซียมซีใบที่ {n}", { n: s.n }), W / 2, 520);
+      c.font = "500 32px " + F; c.fillStyle = "#f3c969"; c.fillText(T("tarot.card.lv", "ระดับ: {lv}", { lv: V.level }), W / 2, 580);
       c.font = "500 42px " + F; c.fillStyle = "#fdf6ea";
-      s.verse.forEach(function (l, k) { c.fillText(l, W / 2, 668 + k * 62); });
+      V.verse.forEach(function (l, k) { c.fillText(l, W / 2, 668 + k * 62); });
       var sl = (readings.ssRd && readings.ssRd.lines) || [];
-      msgs = sl.length >= 2 ? sl : [s.meaning, "การงาน: " + s.work, "ความรัก: " + s.love];
+      msgs = sl.length >= 2 ? sl : [V.meaning, T("tarot.card.work", "การงาน: ") + V.cats.work, T("tarot.card.love", "ความรัก: ") + V.cats.love];
       msgTop = 830;
     } else {
       var picks, labels, sub;
-      if (opt.kind === "daily") { picks = [{ id: daily.id, rev: false }]; labels = [""]; sub = thDate; }
+      if (opt.kind === "daily") { picks = [{ id: daily.id, rev: false }]; labels = [""]; sub = dateText(); }
       else {
         var S = KB.spreads[current.spread];
-        picks = current.picks; labels = S.positions.map(function (p, k) { return current.spread === "celtic" ? String(k + 1) : p.th; });
-        sub = KB.topics[current.topic].th + " · " + S.th + " (" + S.sub + ")";
+        picks = current.picks; labels = S.positions.map(function (p, k) { return current.spread === "celtic" ? String(k + 1) : posName(current.spread, k); });
+        sub = topicName(current.topic) + " · " + spreadName(current.spread) + " (" + spreadSub(current.spread) + ")";
       }
       c.font = "400 32px " + F; c.fillStyle = "#c9d0ea"; c.fillText(sub, W / 2, 190);
       var n = picks.length, rows = n > 5 ? 2 : 1, per = Math.ceil(n / rows), gap = 22;
@@ -689,8 +783,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         });
       }
       msgTop = y0 + rows * (chh + (n > 1 ? 56 : 20)) + 30;
-      if (opt.kind === "daily") msgs = [daily.th + " — " + daily.keywords.slice(0, 3).join(" · "), daily.upright.general, "คำแนะนำ: " + daily.advice];
-      else { var tl = (readings.trRd && readings.trRd.lines) || []; msgs = tl.length >= 2 ? [current.synth.headline].concat(tl).slice(0, 3) : current.synth.keyMessages; }
+      if (opt.kind === "daily") msgs = [cName(daily) + " — " + cKw(daily).slice(0, 3).join(" · "), cMean(daily, false).general, T("tarot.card.adv", "คำแนะนำ: ") + cAdv(daily)];
+      else { var tl = (readings.trRd && readings.trRd.lines) || []; msgs = tl.length >= 2 ? [headlineOf(current.synth, current.picks)].concat(tl).slice(0, 3) : keyMessagesOf(current); }
     }
     // 3 ข้อความหลัก
     var space = 1250 - msgTop, boxH = Math.min(124, (space - 2 * 16) / 3), fs = boxH < 100 ? 28 : 32;
@@ -704,7 +798,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       ls.forEach(function (l, j) { c.fillText(l, W / 2, y + boxH / 2 + (j - (ls.length - 1) / 2) * (fs * 1.35)); });
     });
     c.font = "400 24px " + F; c.fillStyle = "#8f9bc4";
-    wrapTh(c, KB.disclaimerShort + (opt.kind === "siamsee" ? " · กลอนแต่งขึ้นใหม่" : " · ภาพไพ่ RWS 1909 สาธารณสมบัติ"), W - 160).forEach(function (l, k) { c.fillText(l, W / 2, 1290 + k * 30); });
+    wrapTh(c, T("tarot.discShort", KB.disclaimerShort) + (opt.kind === "siamsee" ? T("tarot.card.footSs", " · กลอนแต่งขึ้นใหม่") : T("tarot.card.footTarot", " · ภาพไพ่ RWS 1909 สาธารณสมบัติ")), W - 160).forEach(function (l, k) { c.fillText(l, W / 2, 1290 + k * 30); });
     return cv;
   }
   var cardUrls = {};
@@ -720,12 +814,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var file = new File([blob], name, { type: "image/jpeg" });
       btn.disabled = false; // อย่าล็อกปุ่มค้างระหว่างแผ่นแชร์ของระบบเปิดอยู่
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: "ไพ่ทาโรต์ & เซียมซี — LENSIQ", text: KB.disclaimerShort }); return; }
+        try { await navigator.share({ files: [file], title: T("tarot.shareTitle", "ไพ่ทาโรต์ & เซียมซี — LENSIQ"), text: T("tarot.discShort", KB.disclaimerShort) }); return; }
         catch (e) { if (e.name === "AbortError") return; }
       }
       var a = document.createElement("a"); a.href = url; a.download = name; document.body.append(a); a.click(); a.remove();
-      toast("บันทึกการ์ดแล้ว");
-    } catch (e) { console.error(e); toast("สร้างการ์ดไม่สำเร็จ"); }
+      toast(T("tarot.toast.saved", "บันทึกการ์ดแล้ว"));
+    } catch (e) { console.error(e); toast(T("tarot.toast.fail", "สร้างการ์ดไม่สำเร็จ")); }
     finally { btn.disabled = false; }
   }
   $("#trShare").addEventListener("click", function () { if (current) share(this, { kind: "tarot" }, $("#trCardImg")); });
@@ -735,18 +829,18 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /* ---------- สถิติ ---------- */
   function renderStats() {
     var s = lsGet(STATS_KEY, null), box = $("#trStats");
-    if (!s || !s.total) { box.innerHTML = '<p class="muted">ยังไม่มีการเปิดไพ่ในเครื่องนี้</p>'; return; }
+    if (!s || !s.total) { box.innerHTML = '<p class="muted">' + esc(T("tarot.stats.empty", "ยังไม่มีการเปิดไพ่ในเครื่องนี้")) + "</p>"; return; }
     var tp = s.topics || {}, keys = ["general", "love", "work", "money", "siamsee"];
     var top = Object.keys(s.cards || {}).sort(function (a, b) { return s.cards[b] - s.cards[a]; }).slice(0, 5);
-    box.innerHTML = '<p class="stat-n"><b>' + s.total + "</b> ครั้ง <small>(วันนี้ " + ((s.days || {})[TR.dayKey()] || 0) + ")</small></p>" +
+    box.innerHTML = '<p class="stat-n"><b>' + s.total + "</b> " + esc(T("tarot.stats.times", "ครั้ง")) + " <small>(" + esc(T("tarot.stats.today", "วันนี้ {n}", { n: (s.days || {})[TR.dayKey()] || 0 })) + ")</small></p>" +
       keys.map(function (k) {
-        var nm = k === "siamsee" ? "เซียมซี" : KB.topics[k].th, v = tp[k] || 0;
+        var nm = k === "siamsee" ? T("tarot.tabSiamsee", "เซียมซี") : topicName(k), v = tp[k] || 0;
         return '<div class="elbar" style="grid-template-columns:4.6em 1fr 2em"><span>' + esc(nm) + '</span><i style="--w:' + Math.round(v / s.total * 100) + '%;--c:#674ff2"></i><b>' + v + "</b></div>";
-      }).join("") + (top.length ? '<p class="stat-top">ไพ่ที่ออกบ่อย: ' + top.map(function (id) { return esc(KB.byId[id] ? KB.byId[id].th : id) + " (" + s.cards[id] + ")"; }).join(", ") + "</p>" : "");
+      }).join("") + (top.length ? '<p class="stat-top">' + esc(T("tarot.stats.top", "ไพ่ที่ออกบ่อย: ")) + top.map(function (id) { return esc(KB.byId[id] ? cName(KB.byId[id]) : id) + " (" + s.cards[id] + ")"; }).join(", ") + "</p>" : "");
   }
   $("#trStatsOn").checked = !!prefs.stats;
   $("#trStatsOn").addEventListener("change", function () { prefs.stats = this.checked; lsSet(PREF_KEY, prefs); });
-  $("#trStatsClear").addEventListener("click", function () { if (confirm("ล้างสถิติในเครื่องนี้?")) { try { localStorage.removeItem(STATS_KEY); } catch (e) { /* ไม่เป็นไร */ } renderStats(); } });
+  $("#trStatsClear").addEventListener("click", function () { if (confirm(T("tarot.stats.confirm", "ล้างสถิติในเครื่องนี้?"))) { try { localStorage.removeItem(STATS_KEY); } catch (e) { /* ไม่เป็นไร */ } renderStats(); } });
   renderStats();
 
   /* ---------- โหมดบูธ ---------- */
@@ -757,7 +851,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     resetTarot();
     $("#ssResult").hidden = true; $("#ssFall").hidden = true; $("#ssCardImg").hidden = true;
     var dc = $("#trDailyCard"); dc.classList.remove("flip");
-    $("#trDailyText").innerHTML = '<h2>ไพ่ประจำวันนี้</h2><p class="muted">แตะไพ่เพื่อเปิดดูพลังของวันนี้</p>';
+    renderDailyStatic();
     $("#trQuestion").value = "";
     window.scrollTo(0, 0);
   }
@@ -768,7 +862,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var until = Date.now() + IDLE_MS;
     idleTick = setInterval(function () {
       var left = Math.ceil((until - Date.now()) / 1000);
-      if (left <= 15) { el.hidden = false; el.textContent = "กลับหน้าเริ่มต้นใน " + left + " วินาที — แตะเพื่ออยู่ต่อ"; }
+      if (left <= 15) { el.hidden = false; el.textContent = T("tarot.idle", "กลับหน้าเริ่มต้นใน {n} วินาที — แตะเพื่ออยู่ต่อ", { n: left }); }
     }, 1000);
     idleT = setTimeout(function () { clearInterval(idleTick); el.hidden = true; resetAll(); }, IDLE_MS);
   }
@@ -789,8 +883,20 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   document.addEventListener("fullscreenchange", function () { if (!document.fullscreenElement && wasFs) { wasFs = false; setKiosk(false); } });
 
   // แหล่งอ้างอิง
-  $("#trSources").innerHTML = KB.sources.map(function (s) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.label) + "</a></li>"; }).join("");
-  $("#trCredit").textContent = KB.imageCredit + " · รายละเอียดใน vendor/tarot/CREDITS.txt";
+  function renderSources() {
+    $("#trSources").innerHTML = KB.sources.map(function (s, i) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(T("tarot.src." + i, s.label)) + "</a></li>"; }).join("");
+    $("#trCredit").textContent = T("tarot.credit", KB.imageCredit + " · รายละเอียดใน vendor/tarot/CREDITS.txt");
+  }
+  renderSources();
+
+  // เปลี่ยนภาษา (และครั้งแรกตอนโหลด): วาดข้อความไดนามิกใหม่ทั้งหมด ผลที่แสดงอยู่จะเรียบเรียงคำทำนายใหม่ในภาษานั้น
+  window.addEventListener("lq-lang", function () {
+    renderSetup(); renderSources(); renderStats(); renderShakeBtns(); renderDailyStatic();
+    if (!pickSec.hidden) { renderPickHead(); renderBoard(); if (st.phase === "pick" && st.deck) renderFan(false); }
+    if (current && current.kind === "tarot" && !$("#trResult").hidden) renderResult();
+    if (ssCurrent && !$("#ssResult").hidden) renderSiamsee();
+    if (modalArgs && modal.open) renderModal();
+  });
 
   if (location.hash === "#siamsee") selectTab("tabSiamsee"); else if (location.hash === "#daily") selectTab("tabDaily");
   window.__tr = { state: st, readings: readings, get current() { return current; }, makeCard: makeCard, resetAll: resetAll, drawSiamsee: drawSiamsee }; // ใช้ทดสอบ

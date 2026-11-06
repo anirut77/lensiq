@@ -3,6 +3,8 @@
 import { assert, assertNoWebGL, privacyScan } from "./cdp.mjs";
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+// the face-recognition mode ("จำผู้เข้าชมที่กลับมา") — count-only (no descriptors) is the default since round 4 (DPIA R2)
+const REC = `localStorage.setItem("booth-prefs", '{"v":1,"remember":false,"mode":"recognise"}')`;
 // counts getUserMedia calls (installed after fake-cams.js, wraps its fake)
 const GUM_SPY = `(() => { const md = navigator.mediaDevices; if (!md) return; window.__gum = 0; const o = md.getUserMedia.bind(md); md.getUserMedia = c => { window.__gum++; return o(c); }; })();`;
 
@@ -16,7 +18,7 @@ export default async function ({ base, launch, check, fakeCams }) {
   try {
     let page;
     await check("no getUserMedia before the เริ่มกล้อง click; no WebGL; no console errors on load", async () => {
-      page = await open(`${base}/booth.html?cpu&fakedet`);
+      page = await open(`${base}/booth.html?cpu&fakedet`, REC);
       await assertNoWebGL(page);
       await page.waitFor(`window.__booth && __booth.ready`, 5000);
       await sleep(800);
@@ -79,7 +81,7 @@ export default async function ({ base, launch, check, fakeCams }) {
     await check("legacy booth-state with desc loads; desc moved out of localStorage when the option is off", async () => {
       const today = new Date(); const dk = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
       const legacy = { event: { name: "งานเก่า", date: dk }, seq: 1, visitors: [{ id: "V001", first: Date.now() - 6e4, last: Date.now() - 6e4, dwell: 7, visits: 1, arrivals: [Date.now() - 6e4], frames: 5, att: 3, emo: [1, 0, 0, 0, 0, 0, 0], vSum: 0, acts: [] }], timeline: [], desc: { V001: Array(128).fill(0.01) }, descDay: dk };
-      const p = await open(`${base}/booth.html?cpu&fakedet`, `localStorage.setItem("booth-state", ${JSON.stringify(JSON.stringify(legacy))})`);
+      const p = await open(`${base}/booth.html?cpu&fakedet`, `${REC}; localStorage.setItem("booth-state", ${JSON.stringify(JSON.stringify(legacy))})`);
       await p.waitFor(`window.__booth && __booth.ready`, 5000);
       const r = await p.evaluate(() => ({ st: JSON.parse(localStorage.getItem("booth-state")), name: document.querySelector("#eventForm").name.value, rows: document.querySelectorAll("#visitors tbody tr").length, mem: Object.keys(__booth.S.desc) }));
       assert(r.name === "งานเก่า" && r.rows === 1 && r.st.visitors.length === 1, "loaded " + JSON.stringify({ name: r.name, rows: r.rows }));
@@ -93,7 +95,7 @@ export default async function ({ base, launch, check, fakeCams }) {
     await check("legacy plaintext desc with remember ON is migrated to the encrypted vault and survives a new tab", async () => {
       const today = new Date(); const dk = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
       const legacy = { event: { name: "งานจำ", date: dk }, seq: 1, visitors: [{ id: "V001", first: Date.now() - 6e4, last: Date.now() - 6e4, dwell: 7, visits: 1, arrivals: [Date.now() - 6e4], frames: 5, att: 3, emo: [1, 0, 0, 0, 0, 0, 0], vSum: 0, acts: [] }], timeline: [], desc: { V001: Array(128).fill(0.01) }, descDay: dk };
-      const seed = `localStorage.clear(); localStorage.setItem("booth-prefs", '{"v":1,"remember":true}'); localStorage.setItem("booth-state", ${JSON.stringify(JSON.stringify(legacy))})`;
+      const seed = `localStorage.clear(); localStorage.setItem("booth-prefs", '{"v":1,"remember":true,"mode":"recognise"}'); localStorage.setItem("booth-state", ${JSON.stringify(JSON.stringify(legacy))})`;
       const p = await open(`${base}/booth.html?cpu&fakedet`, seed);
       await p.waitFor(`window.__booth && __booth.ready && !!localStorage.getItem("lqv-booth-desc")`, 5000);
       const r = await p.evaluate(() => ({ st: JSON.parse(localStorage.getItem("booth-state")), env: JSON.parse(localStorage.getItem("lqv-booth-desc")) }));
@@ -106,6 +108,27 @@ export default async function ({ base, launch, check, fakeCams }) {
       await q.waitFor(`window.__booth && __booth.ready && Object.keys(__booth.S.desc).join() === "V001"`, 5000);
       assert(!q.consoleErrors.length, "console errors: " + JSON.stringify(q.consoleErrors.slice(0, 3)));
       await q.close();
+    });
+
+    await check("count-only is the default: no face descriptors anywhere, visitors still counted, notice says so; legacy desc purged", async () => {
+      const today = new Date(); const dk = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+      const legacy = { event: { name: "งานนับ", date: dk }, seq: 0, visitors: [], timeline: [], desc: { V009: Array(128).fill(0.02) }, descDay: dk };
+      const p = await open(`${base}/booth.html?cpu&fakedet`, `localStorage.clear(); localStorage.setItem("booth-state", ${JSON.stringify(JSON.stringify(legacy))})`);
+      await p.waitFor(`window.__booth && __booth.ready`, 5000);
+      const r0 = await p.evaluate(() => ({ mode: document.getElementById("boothMode").value, rem: document.getElementById("remember").disabled, notice: document.getElementById("notice").textContent, mem: Object.keys(__booth.S.desc).length }));
+      assert(r0.mode === "count" && r0.rem, "count-only default, remember disabled " + JSON.stringify(r0));
+      assert(/ไม่สร้างค่าลักษณะใบหน้า/.test(r0.notice), "notice: " + r0.notice);
+      assert(r0.mem === 0, "legacy desc purged in count-only mode");
+      await p.evaluate(() => document.getElementById("camStart").click());
+      await p.waitFor(`__booth.camera.active && __booth.cams.length && __booth.cams[0].video.videoWidth > 0`, 5000);
+      await p.evaluate(() => document.getElementById("toggle").click());
+      await p.waitFor(`__booth.running && __booth.lastFrame.some(r => r.id && r.confirmed)`, 6000);
+      await p.evaluate(() => __booth.persist());
+      const r = await p.evaluate(() => ({ n: __booth.S.visitors.length, desc: Object.keys(__booth.S.desc).length, ss: JSON.parse(sessionStorage.getItem("booth-desc")), cands: __booth.S.cands.length }));
+      assert(r.n >= 1, "visitor counted without descriptors");
+      assert(r.desc === 0 && Object.keys(r.ss.desc).length === 0 && r.cands === 0, "no descriptors stored " + JSON.stringify(r));
+      assert(!p.consoleErrors.length, "console errors: " + JSON.stringify(p.consoleErrors.slice(0, 3)));
+      await p.close();
     });
 
     await check("390 px wide: no horizontal overflow, no console errors (?cpu, real models + loop)", async () => {

@@ -2,21 +2,18 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="faceread.title">อ่านโหงวเฮ้ง | LENSIQ</title>
 <meta name="description" content="อ่านโหงวเฮ้งจากใบหน้าผ่านกล้อง เพื่อความบันเทิงในบูธและอีเวนต์ ประมวลผลในเบราว์เซอร์ ไม่บันทึกภาพ">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=6">
-<link rel="stylesheet" href="faceread.css?v=5">
+<link rel="stylesheet" href="styles.css?v=8">
+<link rel="stylesheet" href="faceread.css?v=6">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=11"></script>
+<script src="nav.js?v=12"></script>
 
 <main class="fr" id="frApp">
   <div class="fr-head">
@@ -25,25 +22,25 @@
     <p data-i18n="faceread.lead" class="lead">อ่านลักษณะใบหน้าตามศาสตร์โหงวเฮ้ง (面相) ด้วยจุดบนใบหน้า 68 จุด บอกธาตุประจำรูปหน้า สิบสองวัง ห้าภูเขาสี่สายน้ำ สามส่วน ห้าอวัยวะ แผนที่อายุ และเคล็ดเสริมดวง สำหรับสร้างสีสันในบูธ อีเวนต์ และแคมเปญการตลาด</p>
   </div>
 
-  <p class="fr-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span><b data-i18n="faceread.disclaimer">เพื่อความบันเทิงตามความเชื่อโหงวเฮ้ง ไม่ใช่วิทยาศาสตร์</b> ไม่ควรใช้ตัดสินใจเรื่องการจ้างงาน การเงิน ความสัมพันธ์ หรือประเมินบุคคล</span></p>
+  <p class="fr-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span data-i18n="faceread.disclaimerRest"><b data-i18n="faceread.disclaimer">เพื่อความบันเทิงตามความเชื่อโหงวเฮ้ง ไม่ใช่วิทยาศาสตร์</b> ไม่ควรใช้ตัดสินใจเรื่องการจ้างงาน การเงิน ความสัมพันธ์ หรือประเมินบุคคล</span></p>
 
-  <div class="fr-engine" id="frEngine" role="status">กำลังเตรียมระบบ...</div>
+  <div class="fr-engine" id="frEngine" role="status"></div>
 
-  <section class="fr-stage" id="frStage" aria-label="ถ่ายภาพหรืออัปโหลดรูป">
+  <section class="fr-stage" id="frStage" aria-label="ถ่ายภาพหรืออัปโหลดรูป" data-i18n-attr="aria-label:faceread.stage">
     <div class="fr-camcard">
       <div class="fr-cam" id="frCam">
         <video id="frVideo" autoplay muted playsinline></video>
         <canvas id="frOverlay" width="640" height="480"></canvas>
         <div class="fr-cam-hint" id="frCamHint">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
-          <p>กด <b>เปิดกล้อง</b> แล้วจัดใบหน้าให้อยู่ในวงรี<br>หรือ <b>อัปโหลดรูปหน้าตรง</b></p>
+          <p><span data-i18n="faceread.camHint1">กด</span> <b data-i18n="faceread.camHint2">เปิดกล้อง</b> <span data-i18n="faceread.camHint3">แล้วจัดใบหน้าให้อยู่ในวงรี</span><br><span data-i18n="faceread.camHint4">หรือ</span> <b data-i18n="faceread.camHint5">อัปโหลดรูปหน้าตรง</b></p>
         </div>
         <div class="fr-count" id="frCount" hidden aria-live="assertive"></div>
       </div>
       <div class="fr-actions">
         <button data-i18n="faceread.frStartCam" class="btn primary big" id="frStartCam" type="button">เปิดกล้อง</button>
         <button data-i18n="faceread.frRead" class="btn primary big" id="frRead" type="button" hidden disabled>อ่านโหงวเฮ้ง</button>
-        <label class="btn ghost big fr-upload">อัปโหลดรูป<input id="frFile" type="file" accept="image/*"></label>
+        <label class="btn ghost big fr-upload" data-i18n="faceread.upload">อัปโหลดรูป<input id="frFile" type="file" accept="image/*"></label>
       </div>
       <button data-i18n="faceread.frForce" class="btn ghost fr-force" id="frForce" type="button" hidden>อ่านต่อแม้ไม่ผ่านเกณฑ์ (ผลอาจคลาดเคลื่อน)</button>
     </div>
@@ -51,45 +48,43 @@
     <div class="fr-side">
       <div class="fr-panel">
         <h2 data-i18n="faceread.h21">ก่อนอ่าน ตรวจให้พร้อม</h2>
-        <ul class="fr-qc" id="frQc" aria-live="polite">
-          <li class="no"><span class="dot" aria-hidden="true">!</span><span>พบใบหน้า <small>— เปิดกล้องหรืออัปโหลดรูป</small></span></li>
-        </ul>
-        <p class="fr-small">หน้าตรง มองกล้อง แสงด้านหน้าสม่ำเสมอ เปิดหน้าผากให้เห็นแนวผม ถอดแว่นกันแดด</p>
-        <label class="fr-age">อายุ (ไม่บังคับ — ใช้ไฮไลต์ช่วงวัย)
-          <input id="frAge" type="number" inputmode="numeric" min="1" max="120" placeholder="เช่น 32">
+        <ul class="fr-qc" id="frQc" aria-live="polite"></ul>
+        <p class="fr-small" data-i18n="faceread.qcTipsStatic">หน้าตรง มองกล้อง แสงด้านหน้าสม่ำเสมอ เปิดหน้าผากให้เห็นแนวผม ถอดแว่นกันแดด</p>
+        <label class="fr-age" data-i18n="faceread.age">อายุ (ไม่บังคับ — ใช้ไฮไลต์ช่วงวัย)
+          <input id="frAge" type="number" inputmode="numeric" min="1" max="120" placeholder="เช่น 32" data-i18n-attr="placeholder:faceread.age.ph">
         </label>
-        <label class="fr-age">ชื่อเล่น (ไม่บังคับ — ใช้ในคำทำนาย ไม่บันทึก)
-          <input id="frNick" type="text" maxlength="24" autocomplete="off" placeholder="เช่น บี">
+        <label class="fr-age" data-i18n="faceread.nick">ชื่อเล่น (ไม่บังคับ — ใช้ในคำทำนาย ไม่บันทึก)
+          <input id="frNick" type="text" maxlength="24" autocomplete="off" placeholder="เช่น บี" data-i18n-attr="placeholder:faceread.nick.ph">
         </label>
         <div class="fa-topic-wrap">
-          <span class="fa-topic-l" id="frTopicL">อยากรู้เรื่องไหนเป็นพิเศษ</span>
+          <span class="fa-topic-l" id="frTopicL" data-i18n="faceread.topicL">อยากรู้เรื่องไหนเป็นพิเศษ</span>
           <div class="fa-topics" role="radiogroup" aria-labelledby="frTopicL" data-topics></div>
         </div>
         <div class="fr-opts">
           <button data-i18n="fortune.common.kiosk" class="btn ghost" id="frKiosk" type="button" aria-pressed="false">โหมดบูธ (เต็มจอ)</button>
         </div>
       </div>
-      <p class="fr-privacy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>ประมวลผลในเบราว์เซอร์ทั้งหมด ไม่ส่งและไม่บันทึกภาพ</p>
+      <p class="fr-privacy" data-i18n="faceread.privacy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>ประมวลผลในเบราว์เซอร์ทั้งหมด ไม่ส่งและไม่บันทึกภาพ</p>
     </div>
   </section>
 
   <section class="fr-result" id="frResult" hidden aria-labelledby="frResTitle">
     <h2 data-i18n="faceread.frResTitle" id="frResTitle" tabindex="-1">ผลอ่านโหงวเฮ้งของคุณ</h2>
-    <p class="fr-disc-mini">เพื่อความบันเทิงตามความเชื่อ ไม่ใช่วิทยาศาสตร์</p>
+    <p class="fr-disc-mini" data-i18n="faceread.discMini">เพื่อความบันเทิงตามความเชื่อ ไม่ใช่วิทยาศาสตร์</p>
     <div class="fr-res-top">
       <figure class="fr-photo">
-        <canvas id="frResCanvas" width="900" height="1125" aria-label="ภาพใบหน้าพร้อมเส้นแบ่งสามส่วนและจุดสำคัญ" role="img"></canvas>
-        <div class="fr-ovl" role="group" aria-label="เลือกภาพซ้อนบนใบหน้า">
+        <canvas id="frResCanvas" width="900" height="1125" aria-label="ภาพใบหน้าพร้อมเส้นแบ่งสามส่วนและจุดสำคัญ" data-i18n-attr="aria-label:faceread.resCanvas" role="img"></canvas>
+        <div class="fr-ovl" role="group" aria-label="เลือกภาพซ้อนบนใบหน้า" data-i18n-attr="aria-label:faceread.ovlGroup">
           <button data-i18n="faceread.button1" type="button" data-mode="zones" aria-pressed="true">สามส่วน</button>
           <button data-i18n="faceread.button2" type="button" data-mode="palaces" aria-pressed="false">สิบสองวัง</button>
           <button data-i18n="faceread.button3" type="button" data-mode="mountains" aria-pressed="false">ห้าภูเขา</button>
           <button data-i18n="faceread.button4" type="button" data-mode="ages" aria-pressed="false">แผนที่อายุ</button>
         </div>
-        <figcaption id="frOvlCap">แถบสี = สามส่วนของใบหน้า · เส้น = ห้าอวัยวะ · ป้าย = จุดสำคัญ</figcaption>
+        <figcaption id="frOvlCap"></figcaption>
       </figure>
       <div class="fr-element" id="frElement">
         <div class="el-head">
-          <div><span class="el-k">ธาตุประจำรูปหน้า</span><h3 id="frElName">—</h3></div>
+          <div><span class="el-k" data-i18n="faceread.elK">ธาตุประจำรูปหน้า</span><h3 id="frElName">—</h3></div>
           <span class="el-pct" id="frElPct">—</span>
         </div>
         <p class="el-shape" id="frElShape"></p>
@@ -103,14 +98,14 @@
     <section class="fr-block fa-reading" id="frReading" aria-labelledby="frReadTitle">
       <div class="fa-head">
         <h3 data-i18n="fortune.common.readingDetail" id="frReadTitle">คำทำนายโดยละเอียด</h3>
-        <span class="fa-src" id="frSrc">เรียบเรียงในเครื่อง</span>
+        <span class="fa-src" id="frSrc"></span>
       </div>
-      <div class="fa-topics" role="radiogroup" aria-label="หัวข้อที่สนใจ" data-topics></div>
+      <div class="fa-topics" role="radiogroup" aria-label="หัวข้อที่สนใจ" data-i18n-attr="aria-label:faceread.topicsAria" data-topics></div>
       <div class="fa-consent-wrap" id="frConsent"></div>
       <div class="fa-body" id="frNarr" aria-live="polite"></div>
       <div class="fa-actions">
         <button data-i18n="fortune.common.regen" class="btn ghost" id="frRegen" type="button">อ่านอีกสำนวน</button>
-        <span class="fr-small">ทุกครั้งที่กด ระบบจะเรียบเรียงใหม่จากผลวัดชุดเดิม ความหมายหลักไม่เปลี่ยน</span>
+        <span class="fr-small" data-i18n="faceread.regenNote">ทุกครั้งที่กด ระบบจะเรียบเรียงใหม่จากผลวัดชุดเดิม ความหมายหลักไม่เปลี่ยน</span>
       </div>
     </section>
 
@@ -125,12 +120,12 @@
       <h3 data-i18n="faceread.h32">ห้าภูเขา สี่สายน้ำ (五岳四渎)</h3>
       <div class="fr-mr">
         <div>
-          <div class="mr-score"><b id="frMtScore">—</b><span>ความสมดุลห้าภูเขา</span></div>
+          <div class="mr-score"><b id="frMtScore">—</b><span data-i18n="faceread.mtScoreL">ความสมดุลห้าภูเขา</span></div>
           <ul class="mr-list" id="frMountains"></ul>
           <p id="frMtText"></p>
         </div>
         <div>
-          <div class="mr-score"><b id="frRvScore">—</b><span>ความกลมกลืนสี่สายน้ำ</span></div>
+          <div class="mr-score"><b id="frRvScore">—</b><span data-i18n="faceread.rvScoreL">ความกลมกลืนสี่สายน้ำ</span></div>
           <ul class="mr-list" id="frRivers"></ul>
           <p id="frRvText"></p>
         </div>
@@ -167,18 +162,18 @@
     </section>
 
     <section class="fr-block fr-reco" id="frReco" hidden>
-      <h3 id="frRecoTitle">ของแนะนำตามธาตุ</h3>
+      <h3 id="frRecoTitle"></h3>
       <ul class="reco-list" id="frRecoList"></ul>
       <p class="reco-promo" id="frRecoPromo"></p>
       <p class="fr-small" id="frRecoNote"></p>
     </section>
 
     <section class="fr-block fr-lead" id="frLead" hidden>
-      <h3 id="frLeadTitle">รับสิทธิพิเศษ</h3>
+      <h3 id="frLeadTitle"></h3>
       <p class="fr-small" id="frLeadLead"></p>
       <form id="frLeadForm" novalidate>
-        <label><span id="frLeadNickL">ชื่อเล่น</span><input id="frLeadNick" name="nick" maxlength="40" autocomplete="nickname" required></label>
-        <label><span id="frLeadContactL">ช่องทางติดต่อ</span><input id="frLeadContact" name="contact" maxlength="80" autocomplete="off" required></label>
+        <label><span id="frLeadNickL"></span><input id="frLeadNick" name="nick" maxlength="40" autocomplete="nickname" required></label>
+        <label><span id="frLeadContactL"></span><input id="frLeadContact" name="contact" maxlength="80" autocomplete="off" required></label>
         <label class="fr-check fr-consent"><input type="checkbox" id="frLeadConsent" required> <span id="frLeadConsentT"></span></label>
         <p class="fr-lead-msg" id="frLeadMsg" role="status" aria-live="polite"></p>
         <button data-i18n="faceread.button5" class="btn primary" type="submit">ส่งข้อมูล</button>
@@ -187,10 +182,10 @@
 
     <details class="fr-how">
       <summary data-i18n="fortune.common.howCalc">ดูวิธีคำนวณ</summary>
-      <p class="fr-small">ใช้จุด 68 จุด (เฉลี่ยหลายเฟรมเมื่อใช้กล้อง) หมุนให้แนวตาอยู่แนวนอน แล้ววัดทุกระยะเป็นหน่วย IPD (ระยะระหว่างกึ่งกลางตาสองข้าง) จึงไม่ขึ้นกับขนาดภาพ ค่า z เทียบกับค่าอ้างอิงทั่วไป แล้วรวมเป็นคะแนนธาตุและแปลงเป็นร้อยละ</p>
+      <p class="fr-small" data-i18n="faceread.howP1">ใช้จุด 68 จุด (เฉลี่ยหลายเฟรมเมื่อใช้กล้อง) หมุนให้แนวตาอยู่แนวนอน แล้ววัดทุกระยะเป็นหน่วย IPD (ระยะระหว่างกึ่งกลางตาสองข้าง) จึงไม่ขึ้นกับขนาดภาพ ค่า z เทียบกับค่าอ้างอิงทั่วไป แล้วรวมเป็นคะแนนธาตุและแปลงเป็นร้อยละ</p>
       <p class="fr-small" id="frHairNote"></p>
-      <p class="fr-small"><b>สอบเทียบ:</b> ค่ากลาง (มัธยฐาน) และช่วงกระจาย (IQR) ได้จากภาพหน้าตรงทางการสาธารณสมบัติ 33 ภาพที่ผ่านเกณฑ์ (หลากหลายเชื้อสาย รวมเอเชียตะวันออก/ตะวันออกเฉียงใต้ 15 ภาพ) วัดด้วยระบบเดียวกับหน้านี้ ค่าในตารางแสดงเป็นค่า z = ห่างจากค่ากลางกี่ช่วงกระจาย ตัวอย่างยังน้อย ไม่ใช่ค่าประชากร</p>
-      <p class="fr-small"><b>สิบสองวังและชนิดอวัยวะเป็นค่าตัวแทนโดยประมาณ:</b> จุด 68 จุดบอกได้เพียงตำแหน่งและสัดส่วน จึงใช้ความกว้าง/ความยาว/ระยะของบริเวณแทน "ความอิ่มเต็ม" ตามตำรา วัดไม่ได้: ความหนาและเส้นขนคิ้ว ชั้นตา แววตา ความโด่งของจมูก (ต้องมองด้านข้าง) ผิว ไฝ และใบหู ความสว่างของแต่ละวังเทียบกับใบหน้าของคุณเอง (ไม่เทียบสีผิวกับคนอื่น) และขึ้นกับแสงขณะถ่าย</p>
+      <p class="fr-small" data-i18n="faceread.howCalib"><b data-i18n="faceread.howCalibB">สอบเทียบ:</b> ค่ากลาง (มัธยฐาน) และช่วงกระจาย (IQR) ได้จากภาพหน้าตรงทางการสาธารณสมบัติ 33 ภาพที่ผ่านเกณฑ์ (หลากหลายเชื้อสาย รวมเอเชียตะวันออก/ตะวันออกเฉียงใต้ 15 ภาพ) วัดด้วยระบบเดียวกับหน้านี้ ค่าในตารางแสดงเป็นค่า z = ห่างจากค่ากลางกี่ช่วงกระจาย ตัวอย่างยังน้อย ไม่ใช่ค่าประชากร</p>
+      <p class="fr-small" data-i18n="faceread.howProxy"><b data-i18n="faceread.howProxyB">สิบสองวังและชนิดอวัยวะเป็นค่าตัวแทนโดยประมาณ:</b> จุด 68 จุดบอกได้เพียงตำแหน่งและสัดส่วน จึงใช้ความกว้าง/ความยาว/ระยะของบริเวณแทน "ความอิ่มเต็ม" ตามตำรา วัดไม่ได้: ความหนาและเส้นขนคิ้ว ชั้นตา แววตา ความโด่งของจมูก (ต้องมองด้านข้าง) ผิว ไฝ และใบหู ความสว่างของแต่ละวังเทียบกับใบหน้าของคุณเอง (ไม่เทียบสีผิวกับคนอื่น) และขึ้นกับแสงขณะถ่าย</p>
       <ul class="fr-small" id="frTypeHow"></ul>
       <div class="table-wrap"><table class="fr-table raw"><thead><tr><th data-i18n="faceread.th5" scope="col">ค่า</th><th data-i18n="faceread.th6" scope="col">ผล</th><th data-i18n="faceread.th7" scope="col">จุดที่ใช้</th></tr></thead><tbody id="frRaw"></tbody></table></div>
       <ul class="fr-small" id="frScoreRaw"></ul>
@@ -200,36 +195,36 @@
       <button data-i18n="fortune.common.share" class="btn primary big" id="frShare" type="button">แชร์การ์ดผลลัพธ์</button>
       <button data-i18n="fortune.common.print" class="btn ghost big" id="frPrint" type="button">พิมพ์</button>
       <button data-i18n="fortune.common.nextPerson" class="btn ghost big" id="frAgain" type="button">อ่านคนถัดไป</button>
-      <label class="fr-check"><input type="checkbox" id="frPhotoCard"> ใส่รูปของฉันในการ์ด</label>
+      <label class="fr-check" data-i18n="faceread.photoCard"><input type="checkbox" id="frPhotoCard"> ใส่รูปของฉันในการ์ด</label>
     </div>
-    <img class="fr-cardimg" id="frCardImg" alt="การ์ดผลอ่านโหงวเฮ้งสำหรับแชร์" hidden>
+    <img class="fr-cardimg" id="frCardImg" alt="การ์ดผลอ่านโหงวเฮ้งสำหรับแชร์" data-i18n-attr="alt:faceread.cardAlt" hidden>
   </section>
 
   <div class="fr-foot">
     <section class="fr-block">
       <h3 data-i18n="fortune.common.stats">สถิติบูธ (ไม่ระบุตัวตน)</h3>
       <div id="frStats"></div>
-      <label class="fr-check"><input type="checkbox" id="frStatsOn"> นับจำนวนครั้งและสัดส่วนธาตุในเครื่องนี้</label>
+      <label class="fr-check" data-i18n="faceread.statsOn"><input type="checkbox" id="frStatsOn"> นับจำนวนครั้งและสัดส่วนธาตุในเครื่องนี้</label>
       <button data-i18n="fortune.common.statsClear" class="btn ghost" id="frStatsClear" type="button">ล้างสถิติ</button>
     </section>
     <section class="fr-block fr-settings-wrap">
       <details class="fr-settings" id="frSettings">
         <summary data-i18n="faceread.summary1">ตั้งค่าบูธ (สำหรับเจ้าของบูธ)</summary>
-        <label class="fr-check"><input type="checkbox" id="frSetReco"> แสดง “ของแนะนำตามธาตุ”</label>
-        <label class="fr-check"><input type="checkbox" id="frSetLeads"> เปิดฟอร์มรับข้อมูลลูกค้า (ต้องติ๊กยินยอม)</label>
+        <label class="fr-check" data-i18n="faceread.setReco"><input type="checkbox" id="frSetReco"> แสดง “ของแนะนำตามธาตุ”</label>
+        <label class="fr-check" data-i18n="faceread.setLeads"><input type="checkbox" id="frSetLeads"> เปิดฟอร์มรับข้อมูลลูกค้า (ต้องติ๊กยินยอม)</label>
         <p class="fr-small" id="frLeadCount"></p>
         <div class="fr-set-actions">
           <button data-i18n="faceread.frLeadsCsv" class="btn ghost" id="frLeadsCsv" type="button">ส่งออก CSV</button>
           <button data-i18n="faceread.frLeadsClear" class="btn ghost" id="frLeadsClear" type="button">ลบข้อมูลลูกค้าทั้งหมด</button>
         </div>
-        <p class="fr-small">ข้อมูลลูกค้าเก็บเฉพาะในเบราว์เซอร์เครื่องนี้ (localStorage “fr-leads”) ไม่มีภาพใบหน้า ควรส่งออกและลบเมื่อจบงาน และแจ้งวัตถุประสงค์ตาม PDPA</p>
+        <p class="fr-small" data-i18n="faceread.leadsNote">ข้อมูลลูกค้าเก็บเฉพาะในเบราว์เซอร์เครื่องนี้ (localStorage “fr-leads”) ไม่มีภาพใบหน้า ควรส่งออกและลบเมื่อจบงาน และแจ้งวัตถุประสงค์ตาม PDPA</p>
       </details>
     </section>
     <section class="fr-block">
       <h3 data-i18n="fortune.common.sources">แหล่งอ้างอิง</h3>
-      <p class="fr-small">เนื้อหาเรียบเรียงใหม่ในเชิงบวกจากแนวคิดโหงวเฮ้งที่สอนกันทั่วไป แต่ละสำนักอาจแบ่งรูปหน้าและช่วงวัยต่างกัน</p>
+      <p class="fr-small" data-i18n="faceread.srcNote">เนื้อหาเรียบเรียงใหม่ในเชิงบวกจากแนวคิดโหงวเฮ้งที่สอนกันทั่วไป แต่ละสำนักอาจแบ่งรูปหน้าและช่วงวัยต่างกัน</p>
       <ul class="fr-sources" id="frSources"></ul>
-      <p class="fr-small">หลักการ: เนื้อหาเป็นเชิงบวกเท่านั้น ไม่ทำนายสุขภาพ เคราะห์ร้าย หรือความสัมพันธ์ในทางลบ ไม่ให้คะแนนความสวยงาม และไม่อ้างอิงเพศหรือเชื้อชาติ</p>
+      <p class="fr-small" data-i18n="faceread.principle">หลักการ: เนื้อหาเป็นเชิงบวกเท่านั้น ไม่ทำนายสุขภาพ เคราะห์ร้าย หรือความสัมพันธ์ในทางลบ ไม่ให้คะแนนความสวยงาม และไม่อ้างอิงเพศหรือเชื้อชาติ</p>
     </section>
   </div>
 </main>
@@ -239,13 +234,15 @@
 <div class="toast" id="frToast" role="status"></div>
 
 <script src="vendor/face-api.js"></script>
-<script src="i18n/zh-fortune.js?v=2"></script>
+<script src="i18n/zh-fortune.js?v=3"></script>
+<script src="i18n/zh-fortune-faceread.js?v=1"></script>
+<script src="i18n/zh-kb-face.js?v=1"></script>
 <script src="lensiq-config.js?v=2"></script>
 <script src="lensiq-track.js?v=2"></script>
 <script src="lensiq-camera.js?v=2"></script>
 <script src="lensiq-detect.js?v=2"></script>
-<script src="fortune-ai.js?v=7"></script>
+<script src="fortune-ai.js?v=8"></script>
 <script src="faceread-kb.js?v=5"></script>
-<script src="faceread.js?v=8"></script>
+<script src="faceread.js?v=9"></script>
 </body>
 </html>

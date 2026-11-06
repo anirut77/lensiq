@@ -6,7 +6,6 @@ const I = require("../../insights.js");
 const S = require("../../store.js");
 
 const hourly = () => ({ in: Array(24).fill(0), out: Array(24).fill(0) });
-const R = (now = new Date(2026, 10, 6, 12).getTime()) => I.iqRange("all", now, {});
 const snapOf = o => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, typeof v === "string" ? v : JSON.stringify(v)]));
 const browserSnap = ls => Object.fromEntries(Object.entries(ls).filter(([k]) => I.iqIsModuleKey(k))); // = insights snapshot()
 
@@ -198,4 +197,88 @@ test("i18n: every generated text key has a Chinese entry; Thai stays the default
     const D = I.iqCollect(I.iqBuildDemo({}, NOW2, 7).set), A = I.iqAnalyze(D, I.iqRange("d30", NOW2, D), { now: NOW2 }), C = I.iqInsights(D, A);
     assert.ok(C.filter(c => /[一-鿿]/.test(c.title)).length >= C.length - 1, C.map(c => c.title).join(" | "));
   } finally { delete globalThis.LQI18N; }
+});
+
+// ---------- every card type × many scenarios: labels must agree with the numbers and the decision rule ----------
+test("card/label consistency: KPI deltas, store change, QC, goals and alerts follow their test/CI (not point estimates)", () => {
+  const NOW3 = new Date(2026, 10, 6, 15).getTime();
+  const runs = [];
+  const qcSnap = (pass, total) => { const t0 = NOW3 - 3600e3; return JSON.stringify({ start: t0, total, pass, reject: total - pass, reasons: { under: total - pass }, log: Array.from({ length: total }, (_, i) => ({ t: t0 + i * 1000, pass: i < pass, reasons: i < pass ? [] : ["under"] })) }); };
+  for (const seed of [1, 5, 7, 13, 21, 34]) {
+    const set = I.iqBuildDemo({}, NOW3, seed).set;
+    const variants = [set, { ...set, "qc-shift": qcSnap(566, 600) }, { ...set, "qc-shift": qcSnap(540, 600) }, { ...set, "qc-shift": qcSnap(588, 600) }];
+    variants.forEach((v, vi) => {
+      const D = I.iqCollect(v);
+      for (const p of vi ? ["d30"] : ["today", "d7", "d14", "d30", "d90", "all"]) for (const compare of vi ? ["prev"] : ["prev", "week"]) {
+        const goals = { storeInDay: 150 + seed * 3, convPct: 6.5, revenueDay: 2800, qcYieldPct: 95, safetyMin: 75 };
+        runs.push({ D, A: I.iqAnalyze(D, I.iqRange(p, NOW3, D, { compare }), { now: NOW3, goals, alerts: { convDropPct: 5, qcYieldMin: 95 } }) });
+      }
+    });
+  }
+  const seen = new Set(); let qcBelow = 0, qcUnclear = 0, wide = 0, flatKpi = 0;
+  for (const { D, A } of runs) {
+    const C = I.iqInsights(D, A), all = JSON.stringify(C) + JSON.stringify(A.kpis.map(k => I.iqKpiDelta(k, "x")));
+    assert.ok(!/(ลด|เพิ่ม)(ขึ้น)? 0%|ไม่ถึง 1%/.test(all), "zero change worded as a change: " + (all.match(/.{20}(ลด|เพิ่ม)(ขึ้น)? 0%.{10}/) || [""])[0]);
+    // KPI: the delta and its confidence label come from the same test; "flat" exactly when the change rounds to 0
+    for (const k of A.kpis) {
+      const d = I.iqKpiDelta(k, "x"); if (!d) continue;
+      const ch = I.iqFin(k.test.adjChange) ? k.test.adjChange : k.test.change;
+      assert.equal(k.delta, ch, k.id + ": delta comes from its own test");
+      assert.equal(d.dir === "flat", Math.abs(ch) < 0.0005, k.id + " flat");
+      if (d.dir === "flat") { flatKpi++; assert.match(d.text, /ทรงตัว/); }
+      if (d.dir === "up") assert.match(d.text, /เพิ่ม/); if (d.dir === "down") assert.match(d.text, /ลด/);
+      if (k.id === "co") assert.match(d.text, /^จำนวนบิล /, "sales KPI says the test is on bills");
+      if (k.id === "cx") assert.match(d.text, /^ลูกค้าที่จดจำต่อวัน /, "recognised-customers KPI tests customers, not bills");
+      assert.ok(!d.strong || k.test.level === "strong" || k.test.level === "moderate");
+    }
+    for (const c of C) {
+      seen.add(c.id.replace(/^(corr|goal|alert)-.*/, "$1"));
+      if (c.id === "store-change") {
+        const t = c.test, ch = I.iqFin(t.adjChange) ? t.adjChange : t.change, sig = t.level === "strong" || t.level === "moderate";
+        if (/เพิ่มขึ้น/.test(c.title)) assert.ok(sig && ch > 0, "store up needs a clear positive test: " + c.title);
+        if (/ลดลง/.test(c.title)) assert.ok(sig && ch < 0, "store down needs a clear negative test: " + c.title);
+        if (c.wide) { wide++; assert.match(c.sure, /ข้อมูลยังไม่พอจะบอกว่าเปลี่ยนจริง — (ต้องการอีกประมาณ [\d,]+ วัน|ต้องเก็บข้อมูลนานกว่า 1 ปี)/); assert.ok(!sig); }
+      }
+      if (c.id === "conv" && c.wide) assert.match(c.sure, /ข้อมูลยังไม่พอ/);
+      // the KPI tile and the card about the same test give the same verdict
+      const kid = { conv: "conv", "store-change": "store" }[c.id], kk = kid && A.kpis.find(k => k.id === kid), kd = kk && I.iqKpiDelta(kk, "x");
+      if (kd && c.test && kk.test === c.test && kd.dir !== "flat") assert.equal(kd.conf === "ข้อมูลยังไม่พอจะสรุป", !!c.wide, c.id + " KPI vs card verdict");
+      if (c.id === "qc") {
+        assert.equal(c.tone === "bad", c.ci.hi < c.target, "QC card is 'bad' only when the whole CI is below target");
+        if (c.status === "unclear") assert.match(c.title, /ยังสรุปไม่ได้/);
+        assert.equal(/หยุดไลน์/.test(c.action), c.ci.hi < c.target);
+      }
+      if (c.id === "alert-qc") {
+        const a = c.alert, below = a.ci.hi < a.target;
+        assert.equal(/หยุดไลน์เพื่อ/.test(c.action), below, "stop the line only when CI upper < target: " + c.action);
+        if (!below) { qcUnclear++; assert.match(c.title, /ยังสรุปไม่ได้/); assert.ok(a.ci.lo < a.target && a.ci.hi >= a.target); assert.equal(c.level, "insufficient"); }
+        else { qcBelow++; assert.match(c.title, /ต่ำกว่าเกณฑ์/); }
+      }
+      if (c.id === "alert-conv") assert.equal(/ยังสรุปไม่ได้/.test(c.title), !(c.alert.test.level === "strong" || c.alert.test.level === "moderate"));
+      if (c.id.startsWith("goal-")) {
+        const g = A.goals.find(x => "goal-" + x.id === c.id);
+        if (/ถึงเป้าแล้ว/.test(c.title)) assert.ok(g.lo >= g.target, c.title);
+        if (/ยังสรุปไม่ได้/.test(c.title)) assert.ok(g.lo == null || (g.lo < g.target && g.hi >= g.target));
+        if (/ของเป้า$/.test(c.title)) assert.ok(g.hi < g.target, c.title);
+      }
+    }
+  }
+  assert.ok(qcBelow > 0 && qcUnclear > 0, `QC alert both ways (below ${qcBelow}, unclear ${qcUnclear})`);
+  assert.ok(wide > 0, "a low-power store comparison was rendered");
+  for (const id of ["alert", "quality", "store-change", "anomaly", "peak", "forecast", "conv", "corr", "ab-sg", "ab-neuro", "cohort", "booth", "dr", "goal"]) assert.ok(seen.has(id), "covers " + id + " (seen " + [...seen] + ")");
+  assert.ok(runs.length >= 90, "scenarios " + runs.length);
+  void flatKpi;
+});
+
+test("QC straddling the target: 94.3% (CI ≈ 92–96%) says 'ยังสรุปไม่ได้' and does not stop the line; 90% does", () => {
+  const NOW3 = new Date(2026, 10, 6, 15).getTime(), t0 = NOW3 - 3600e3;
+  const mk = (pass, total) => I.iqCollect({ "qc-shift": JSON.stringify({ start: t0, total, pass, reject: total - pass, reasons: { capTilt: total - pass }, log: Array.from({ length: total }, (_, i) => ({ t: t0 + i * 1000, pass: i < pass, reasons: i < pass ? [] : ["capTilt"] })) }) });
+  const run = (p, n) => { const D = mk(p, n), A = I.iqAnalyze(D, I.iqRange("d7", NOW3, D), { now: NOW3 }); return { A, C: I.iqInsights(D, A) }; };
+  const u = run(566, 600), a = u.A.alerts.find(x => x.id === "qc");
+  assert.ok(a.ci.lo < 0.95 && a.ci.hi > 0.95);
+  assert.match(a.title, /ยังสรุปไม่ได้/); assert.ok(!/หยุดไลน์เพื่อ/.test(a.action)); assert.match(a.action, /ตรวจต่ออีกราว [\d,]+ ขวด/);
+  assert.equal(u.C.find(c => c.id === "alert-qc").level, "insufficient");
+  const b = run(540, 600).A.alerts.find(x => x.id === "qc");
+  assert.ok(b.ci.hi < 0.95); assert.match(b.title, /ต่ำกว่าเกณฑ์/); assert.match(b.action, /หยุดไลน์/);
+  assert.equal(run(588, 600).A.alerts.find(x => x.id === "qc"), undefined, "98% → no alert");
 });

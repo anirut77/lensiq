@@ -63,7 +63,8 @@ The site header (`nav.js`, `MENU`) and the "all systems" page (`cameras.html`) l
 | `qc.html` | Production-line QC: fill level, cap and label checks with classical CV. Multi-lane. |
 | `driver.html` | Driver drowsiness: eye closure (PERCLOS), yawns, nodding and looking away, with an audio alert. |
 | `attendance.html` | Face check-in for training or seminars. **Explicit biometric consent** is required at enrolment. Encrypted descriptors. Retention is selectable. |
-| `converter.html` | PDF to DOCX. Needs `server.py` (`/api/convert`, pdf2docx + PyMuPDF). Files are processed in a temp dir and are not kept. |
+| `about.html` | About, privacy principles and open-source licence attributions (OFL / Apache NOTICE obligations), in TH and 中文. Linked from the landing-page footer. |
+| `converter.html` | PDF to DOCX. Uses `server.py` (`/api/convert`, `pdfconvert.py`). The default engine is permissive (pdfplumber + python-docx, MIT) and keeps headings, bold, tables and page breaks. The AGPL layout-preserving engine is opt-in (`LENSIQ_CONVERT_ENGINE=pdf2docx`). Without a server, the page falls back to in-browser conversion. Files are processed in a temp dir and are not kept. |
 
 ---
 
@@ -80,7 +81,7 @@ PDPA texts) is translated in `i18n/zh-common.js`; page dictionaries live in `i18
 Browser (all inference on-device)                         Optional server.py (Flask)
 -------------------------------------------------         -------------------------------------------
 TF.js 4.7 (bundled in face-api.js 1.7.12)                  static file host (+ CSP & security headers)
-  backends: webgl -> wasm (SIMD/threads) -> cpu            /api/convert   PDF->DOCX (pdf2docx, PyMuPDF)
+  backends: webgl -> wasm (SIMD/threads) -> cpu            /api/convert   PDF->DOCX (pdfplumber+python-docx; AGPL engine opt-in)
   face-api models, COCO-SSD, MobileNetV2, TF.js hands      /api/agg*      multi-device numeric aggregates
 MediaPipe Tasks Vision (vendor/mediapipe, wasm)            /api/fortune   Claude rewrite (opt-in, consent)
   hand_landmarker.task, selfie_segmenter.tflite            /api/tryon     Replicate try-on (opt-in, consent)
@@ -91,7 +92,7 @@ localStorage / IndexedDB  (per-browser, per-origin)
 ```
 
 - **No build step.** Plain HTML, CSS and JS. Shared helpers: `lensiq-camera.js` (multi-camera hub), `lensiq-detect.js` (backend chain, COCO-SSD), `lensiq-track.js` (tracking), `lensiq-hand.js`, `lensiq-stats.js`, `lensiq-agg.js` (aggregate pack schema), `lensiq-facevault.js` (encrypted descriptors), `fortune-kit.js` / `fortune-ai.js`.
-- **Everything is vendored** under `vendor/`. There are no runtime CDN scripts. The only third-party request a page makes is the Google Fonts stylesheet (see Privacy).
+- **Everything is vendored** under `vendor/`, including the Prompt web font (`vendor/fonts/`, OFL). No page makes a request to any third-party origin: the CSP allows only `'self'`, and `node tools/check-external.mjs` checks this headless.
 - **WebGL is optional.** Pages run on WASM or CPU (`?cpu` forces it). The MediaPipe segmenter is skipped without WebGL.
 - **Service worker** (`sw.js`) caches `vendor/` models **cache-first** under a versioned cache name. Repeat visits and offline booths then do not re-download about 100 MB. Bump the version to roll out new models.
 - **Content-Security-Policy.** `server.py` sends a strict CSP header (`script-src 'self' 'wasm-unsafe-eval'`, no inline scripts). On GitHub Pages, where headers cannot be set, an equivalent `<meta http-equiv="Content-Security-Policy">` is injected by `tools/csp-meta.mjs`.
@@ -137,7 +138,8 @@ Run `python server.py` (or a WSGI server) behind TLS-terminating proxy. Environm
 | `LENSIQ_CSP_CONNECT`, `LENSIQ_CSP=off` | Extra `connect-src` origins; disable CSP (debug only) |
 | `LENSIQ_AGG_ALLOW_ANY`, `LENSIQ_AGG_ALLOW_ORIGIN`, `LENSIQ_AGG_RPM`, `LENSIQ_DATA_DIR` | `/api/agg` network scope, CORS, rate, storage dir (default `data/`) |
 | `ANTHROPIC_API_KEY`, `LENSIQ_FORTUNE_MODEL` | Enable AI fortune rewrite. See [`AI-SETUP.md`](AI-SETUP.md). |
-| `REPLICATE_API_TOKEN`, `REPLICATE_TRYON_MODEL`, `REPLICATE_TRYON_VERSION` | Enable AI try-on (`tryon.py`) |
+| `REPLICATE_API_TOKEN`, `REPLICATE_TRYON_MODEL`, `LENSIQ_TRYON_LICENSE`, `REPLICATE_TRYON_VERSION` | Enable AI try-on (`tryon.py`). All three of token, model and licence attestation are required, and there is no default model. See [`docs/TRYON-LICENSING.md`](docs/TRYON-LICENSING.md). |
+| `LENSIQ_CONVERT_ENGINE` | `permissive` (default, MIT/BSD) or `pdf2docx` (AGPL/GPL, needs `requirements-agpl.txt`) |
 
 `server.py` never serves `server.py`, `tryon.py`, `data/`, `certs/`, `logs/`, `tests/`, `.venv` or dotfiles. Every response carries CSP, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy: camera=(self)` and `X-Frame-Options`. See [`SECURITY.md`](SECURITY.md).
 
@@ -181,8 +183,8 @@ Summary only. The operator's compliance pack is in [`docs/pdpa/`](docs/pdpa/READ
   - **Retention**: selectable 30 / 90 / 180 / 365 / 730 days since last seen (default 365). Expired descriptors are deleted on load. A "delete all face data" button wipes the ciphertext **and** its key. Booth descriptors are purged at the start of each day.
 - **Multi-device `/api/agg`** accepts only a strict numeric daily schema: in/out, hourly series, zones, queue and per-camera counts, plus a device/zone name of up to 40 characters. Unknown keys, strings in numeric fields, and images are rejected. The server keeps **62 days** (`AGG_LIM.days_kept`) in `data/agg.json` (mode 0600). Device tokens are stored as SHA-256 hashes.
 - **AI fortune (Claude, Anthropic, USA)**: off unless the server has a key **and** the user ticks consent. It sends only derived facts (e.g. face-shape element, palm line categories, card names) and an optional nickname. It never sends photos, real names, birth dates or contact details. Facts are not logged on the server. This is a cross-border transfer, and the consent text says so.
-- **AI try-on (Replicate, USA)**: off unless `REPLICATE_API_TOKEN` is set **and** the user consents (`consent=yes` is checked server-side). It sends the person photo and garment image. Nothing is stored on the LENSIQ server.
-- **Google Fonts**: pages load the *Prompt* font from `fonts.googleapis.com` / `fonts.gstatic.com`, which discloses the visitor's IP address to Google. For strict deployments, self-host the font files (OFL) and remove the `<link>`s.
+- **AI try-on (Replicate, USA)**: off unless the operator configures a token, a model **and** a licence attestation (`LENSIQ_TRYON_LICENSE`), **and** the user consents (`consent=yes` is checked server-side). Known non-commercial models (IDM-VTON and similar) are refused as `commercial`. It sends the person photo and garment image. Nothing is stored on the LENSIQ server.
+- **No third-party requests**: the font is self-hosted. Nothing is fetched from Google or from any CDN.
 
 ---
 
@@ -213,7 +215,7 @@ git add .gitattributes
 Caveats:
 
 - **GitHub Pages "deploy from branch" serves the LFS *pointer* files, not their contents.** The models would then fail to load. If you adopt LFS, deploy Pages with GitHub Actions: `actions/checkout` with `lfs: true`, then `actions/upload-pages-artifact` and `actions/deploy-pages`.
-- For **this** repository the recommendation is to **keep the existing files as-is**. Do not rewrite history. Adopt LFS only together with an Actions-based Pages deployment.
+- For **this** repository, follow [`docs/LFS-MIGRATION.md`](docs/LFS-MIGRATION.md): forward-only migration with no history rewrite, together with the Actions-based Pages deployment in `.github/workflows/pages-lfs.yml`. `node tools/check-lfs.mjs` (run before e2e and in CI) fails clearly if a checkout holds LFS pointers instead of binaries.
 - `vendor/models/faceparse-*.onnx` is git-ignored on purpose (licence not cleared). Do not commit it.
 
 ---
@@ -223,7 +225,13 @@ Caveats:
 | Document | Contents |
 |---|---|
 | [`SECURITY.md`](SECURITY.md) | Threat model, server hardening, reporting vulnerabilities |
-| [`docs/pdpa/`](docs/pdpa/README.md) | PDPA pack: DPIA template, consent texts (TH/EN), retention table, data map |
+| [`docs/pdpa/`](docs/pdpa/README.md) | PDPA pack: filled DPIA (TH + EN summary, needs legal review), ROPA, consent texts (TH/EN), retention table, data map |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Modules, data flow, storage keys, i18n, security model, tooling |
+| [`docs/PILOT-PLAN.md`](docs/PILOT-PLAN.md) | How to run a store pilot: labelled footage, accuracy acceptance criteria |
+| [`docs/SUPPORT.md`](docs/SUPPORT.md) | Support and SLA template |
+| [`docs/ONE-PAGER-TH.md`](docs/ONE-PAGER-TH.md), [`docs/ONE-PAGER-ZH.md`](docs/ONE-PAGER-ZH.md) | Product one-pagers (Thai / Chinese) |
+| [`docs/TRYON-LICENSING.md`](docs/TRYON-LICENSING.md) | Commercial licensing of try-on models and the PDF engines |
+| [`docs/LFS-MIGRATION.md`](docs/LFS-MIGRATION.md) | Step-by-step move of `vendor/` binaries to Git LFS (no history rewrite) |
 | [`docs/DEPLOYMENT-CHECKLIST.md`](docs/DEPLOYMENT-CHECKLIST.md) | Operator checklist from install to decommission |
 | [`LICENSES/THIRD_PARTY.md`](LICENSES/THIRD_PARTY.md) | Third-party models, libraries and assets with commercial-use flags |
 | [`AI-SETUP.md`](AI-SETUP.md) | Enabling Claude fortune rewrite and Replicate try-on |

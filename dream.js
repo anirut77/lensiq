@@ -61,7 +61,7 @@
     opts = opts || {};
     var r = opts.rng || Math.random, pk = FK.pickR, items = [], M = KB.MOODS[mood], boost = M ? M.w : 0;
     var valid = ids.filter(function (id) { return BY[id]; }).slice(0, 8);
-    var ty = KB.TYPES[dreamType(valid, mood, time)], TI = KB.TIMES[time], omen = ty.omen !== false;
+    var tyKey = dreamType(valid, mood, time), ty = KB.TYPES[tyKey], TI = KB.TIMES[time], omen = ty.omen !== false;
     var clean = function (arr) { return arr.filter(function (t) { return t && (omen || !OMEN_WORDS.test(t)); }); };
     valid.forEach(function (id, i) {
       var s = BY[id], T = KB.THEMES[s.theme], x = s.x, R = T.r || {};
@@ -94,12 +94,12 @@
       items.push({ id: "theme." + dom, group: "ธีมเด่นของฝัน", label: "ธีม" + D.th, short: "ธีม" + D.th, strength: 0.8, tags: ["overview", "advice"], meanings: dm, focus: ["overview", "advice"].concat((KB.THEME_FOCUS && KB.THEME_FOCUS[dom]) || []), theme: dom });
     }
     // ความรู้สึกในฝันเป็นส่วนหนึ่งของการอ่านฝัน (ไม่ใช่ "บุคลิก") — วางในภาพรวม ใช้ประโยคตามคลังโดยตรง
-    if (M) items.push({ id: "mood." + mood, group: "ความรู้สึกในฝัน", label: "ความรู้สึก" + M.th, short: "ความรู้สึกในฝัน", strength: 0.62, tags: ["overview"], meanings: { overview: [M.o] }, plain: true });
+    if (M) items.push({ id: "mood." + mood, zk: "mood." + mood, group: "ความรู้สึกในฝัน", label: "ความรู้สึก" + M.th, short: "ความรู้สึกในฝัน", strength: 0.62, tags: ["overview"], meanings: { overview: [M.o] }, plain: true });
     // ประเภทฝันกำหนดวิธีอ่านทั้งหมด จึงขึ้นก่อนในภาพรวม (ความหมายของช่วงเวลาต้องเข้ากับประเภทฝัน)
     // ภาพรวมอธิบายประเภทฝัน; หัวข้อจังหวะเวลาพูดเฉพาะช่วงเวลาที่ฝัน (ไม่ทวนคำอธิบายประเภทซ้ำ)
     var tm = { overview: ["ตามตำราไทย ฝันครั้งนี้เข้าลักษณะ" + ty.th + " " + (ty.d || "")], timing: TI ? [timeMeaning(ty, time)] : [] };
     if (!TI) delete tm.timing;
-    items.push({ id: "type", group: "ประเภทฝัน", label: "ฝันแบบ" + ty.th, short: "ฝันแบบ" + ty.th, strength: 0.95, tags: Object.keys(tm), meanings: tm, plain: true, omen: omen, timingFull: [ty.o].concat(TI ? [timeMeaning(ty, time)] : []) });
+    items.push({ id: "type", zk: ["type." + tyKey].concat(TI ? ["time." + time] : []), group: "ประเภทฝัน", label: "ฝันแบบ" + ty.th, short: "ฝันแบบ" + ty.th, strength: 0.95, tags: Object.keys(tm), meanings: tm, plain: true, omen: omen, timingFull: [ty.o].concat(TI ? [timeMeaning(ty, time)] : []) });
     var names = valid.slice(0, 3).map(function (id) { return BY[id].th; });
     return { domain: "dream", topic: topic || "overall", subject: {}, headline: names.length ? "ฝันเห็น" + thaiList(names) : "", items: items,
       register: omen ? "omen" : "reflect" };
@@ -120,11 +120,70 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var DR = window.Dream, KB = window.DREAM_KB, FK = window.FortuneKit, $ = FK.$, esc = FK.esc;
   var st = { detected: [], manual: [], removed: {}, cat: "", ids: [] };
   var POPULAR = ["snake", "teeth", "elephant", "flood", "fly", "wedding", "chased", "fall", "gold", "monk", "fish", "ex"];
+  /* i18n: ภาษาไทยอยู่ในโค้ด ภาษาจีนอยู่ใน i18n/zh-fortune-dream.js (ข้อความ UI + คำค้นภาษาจีน) และ i18n/zh-kb-dream.js (ชื่อ/ความหมายสัญลักษณ์) */
+  var T = function (k, th, v) { return window.LQI18N ? window.LQI18N.tf(k, th, v) : th.replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : m; }); };
+  var isZh = function () { return !!(window.LQI18N && window.LQI18N.lang === "zh"); };
+  var zk = function (key, field, th) {
+    if (!isZh()) return th;
+    var D = window.FORTUNE_ZH && window.FORTUNE_ZH.dream, it = D && D.items[key], v = it && it[field];
+    return v == null ? th : (Array.isArray(v) ? v[0] : v);
+  };
+  var symName = function (id) { return zk("sym." + id, "n", DR.BY[id].th); };
+  var themeName = function (t) { return T("dream.theme." + t, KB.THEMES[t].th); };
+  var catName = function (c) { return T("dream.cat." + c, KB.CATS[c]); };
+  var typeName = function (k) { return zk("type." + k, "n", KB.TYPES[k].th); };
+  /* คำค้นภาษาจีน (ชื่อจากคลัง zh-kb + คำพ้องใน DREAM_ZH_AL) เรียงยาวก่อน */
+  var zhAliases = null;
+  function zhAl() {
+    if (zhAliases) return zhAliases;
+    var AL = window.DREAM_ZH_AL || {}, out = [];
+    KB.SYMBOLS.forEach(function (s) {
+      var seen = {};
+      [zk("sym." + s.id, "n", "")].concat(String(AL[s.id] || "").split("|")).forEach(function (a) { if (a && !/[฀-๿]/.test(a) && !seen[a]) { seen[a] = 1; out.push({ a: a, id: s.id }); } });
+    });
+    out.sort(function (x, y) { return y.a.length - x.a.length; });
+    if (out.length && isZh()) zhAliases = out;
+    return out;
+  }
+  /** หาสัญลักษณ์จากข้อความภาษาจีน (คู่กับ DR.detect ที่อ่านภาษาไทย) */
+  function detectZh(text) {
+    var s = String(text || "").replace(/\s+/g, "").toLowerCase().slice(0, 600);
+    if (!/[一-鿿]/.test(s)) return [];
+    var used = new Array(s.length), found = {}, out = [];
+    zhAl().forEach(function (x) {
+      var from = 0, i;
+      while ((i = s.indexOf(x.a, from)) >= 0) {
+        var free = true, k;
+        for (k = i; k < i + x.a.length; k++) if (used[k]) { free = false; break; }
+        if (free) { for (k = i; k < i + x.a.length; k++) used[k] = true; if (!found[x.id]) { found[x.id] = 1; out.push({ id: x.id, alias: x.a, at: i }); } }
+        from = i + x.a.length;
+      }
+    });
+    return out.sort(function (a, b) { return a.at - b.at; });
+  }
+  function detectAll(text) {
+    var a = DR.detect(text), seen = {};
+    a.forEach(function (d) { seen[d.id] = 1; });
+    detectZh(text).forEach(function (d) { if (!seen[d.id]) { seen[d.id] = 1; a.push(d); } });
+    return a.slice(0, 8);
+  }
+  function searchList(q, cat) {
+    var base = DR.search(q, cat), n = String(q || "").replace(/\s+/g, "").toLowerCase();
+    if (!n || !/[一-鿿]/.test(n)) return base;
+    var hit = {};
+    zhAl().forEach(function (x) { if (x.a.indexOf(n) >= 0 || n.indexOf(x.a) >= 0) hit[x.id] = 1; });
+    return KB.SYMBOLS.filter(function (s) { return (!cat || s.cat === cat) && (hit[s.id] || base.indexOf(s) >= 0); });
+  }
 
-  $("#drMoods").innerHTML = Object.keys(KB.MOODS).map(function (k) { return '<label class="fk-opt"><input type="radio" name="drMood" value="' + k + '"><b>' + esc(KB.MOODS[k].th) + "</b></label>"; }).join("");
-  $("#drTimes").innerHTML = Object.keys(KB.TIMES).map(function (k) { return '<label class="fk-opt"><input type="radio" name="drTime" value="' + k + '"><b>' + esc(KB.TIMES[k].th.split(" (")[0]) + "</b><small>" + esc((KB.TIMES[k].th.split(" (")[1] || "").replace(")", "")) + "</small></label>"; }).join("");
-  $("#drPopular").innerHTML = POPULAR.map(function (id) { var s = DR.BY[id]; return '<button type="button" class="dr-pop" data-id="' + id + '"><span aria-hidden="true">' + s.ic + "</span> " + esc(s.th) + "</button>"; }).join("");
-  $("#drCats").innerHTML = '<button type="button" class="dr-cat" data-c="" aria-pressed="true">ทั้งหมด</button>' + Object.keys(KB.CATS).map(function (k) { return '<button type="button" class="dr-cat" data-c="' + k + '" aria-pressed="false">' + esc(KB.CATS[k]) + "</button>"; }).join("");
+  function renderStatic() {
+    var mv = document.querySelector('input[name="drMood"]:checked'), tv = document.querySelector('input[name="drTime"]:checked');
+    mv = mv && mv.value; tv = tv && tv.value;
+    $("#drMoods").innerHTML = Object.keys(KB.MOODS).map(function (k) { return '<label class="fk-opt"><input type="radio" name="drMood" value="' + k + '"' + (k === mv ? " checked" : "") + "><b>" + esc(T("dream.mood." + k, KB.MOODS[k].th)) + "</b></label>"; }).join("");
+    $("#drTimes").innerHTML = Object.keys(KB.TIMES).map(function (k) { var th = KB.TIMES[k].th; return '<label class="fk-opt"><input type="radio" name="drTime" value="' + k + '"' + (k === tv ? " checked" : "") + "><b>" + esc(T("dream.time." + k, th.split(" (")[0])) + "</b><small>" + esc(T("dream.timeRange." + k, (th.split(" (")[1] || "").replace(")", ""))) + "</small></label>"; }).join("");
+    $("#drPopular").innerHTML = POPULAR.map(function (id) { var s = DR.BY[id]; return '<button type="button" class="dr-pop" data-id="' + id + '"><span aria-hidden="true">' + s.ic + "</span> " + esc(symName(id)) + "</button>"; }).join("");
+    $("#drCats").innerHTML = '<button type="button" class="dr-cat" data-c="" aria-pressed="' + String(!st.cat) + '">' + esc(T("dream.catAll", "ทั้งหมด")) + "</button>" + Object.keys(KB.CATS).map(function (k) { return '<button type="button" class="dr-cat" data-c="' + k + '" aria-pressed="' + String(st.cat === k) + '">' + esc(catName(k)) + "</button>"; }).join("");
+  }
+  renderStatic();
 
   function selected() {
     var ids = st.detected.map(function (d) { return d.id; }).filter(function (id) { return !st.removed[id]; });
@@ -133,19 +192,19 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   function renderSel() {
     var ids = st.ids = selected();
-    $("#drSel").innerHTML = ids.length ? ids.map(function (id) { var s = DR.BY[id]; return '<li><span aria-hidden="true">' + s.ic + "</span> " + esc(s.th) + ' <button type="button" class="dr-x" data-id="' + id + '" aria-label="เอา ' + esc(s.th) + ' ออก">×</button></li>'; }).join("") : '<li class="muted dr-empty">ยังไม่มีสัญลักษณ์ — พิมพ์เล่าความฝัน หรือแตะเลือกด้านล่าง</li>';
+    $("#drSel").innerHTML = ids.length ? ids.map(function (id) { var s = DR.BY[id], nm = symName(id); return '<li><span aria-hidden="true">' + s.ic + "</span> " + esc(nm) + ' <button type="button" class="dr-x" data-id="' + id + '" aria-label="' + esc(T("dream.remove", "เอา {n} ออก", { n: nm })) + '">×</button></li>'; }).join("") : '<li class="muted dr-empty">' + esc(T("dream.selEmpty", "ยังไม่มีสัญลักษณ์ — พิมพ์เล่าความฝัน หรือแตะเลือกด้านล่าง")) + "</li>";
     $("#drGo").disabled = !ids.length;
     document.querySelectorAll(".dr-sym,.dr-pop").forEach(function (b) { b.setAttribute("aria-pressed", String(ids.indexOf(b.dataset.id) >= 0)); });
   }
   function renderList() {
-    var list = DR.search($("#drSearch").value, st.cat);
-    $("#drList").innerHTML = list.length ? list.map(function (s) { return '<button type="button" class="dr-sym" data-id="' + s.id + '" aria-pressed="false"><span aria-hidden="true">' + s.ic + "</span>" + esc(s.th) + "</button>"; }).join("") : '<p class="muted">ไม่พบสัญลักษณ์ ลองคำอื่น</p>';
+    var list = searchList($("#drSearch").value, st.cat);
+    $("#drList").innerHTML = list.length ? list.map(function (s) { return '<button type="button" class="dr-sym" data-id="' + s.id + '" aria-pressed="false"><span aria-hidden="true">' + s.ic + "</span>" + esc(symName(s.id)) + "</button>"; }).join("") : '<p class="muted">' + esc(T("dream.notFound", "ไม่พบสัญลักษณ์ ลองคำอื่น")) + "</p>";
     renderSel();
   }
   var detT;
   $("#drText").addEventListener("input", function () {
     clearTimeout(detT);
-    detT = setTimeout(function () { st.detected = DR.detect($("#drText").value); renderSel(); }, 200);
+    detT = setTimeout(function () { st.detected = detectAll($("#drText").value); renderSel(); }, 200);
   });
   function toggle(id) {
     var ids = selected(), i = st.manual.indexOf(id);
@@ -163,25 +222,29 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   var stats = FK.statsPanel({
     box: "drStats", toggle: "drStatsOn", clear: "drStatsClear", key: "dm-stats", prefKey: "dm-prefs",
-    render: function (s) { return '<p class="fk-small">ฝันยอดนิยม</p>' + FK.bars(s.sym, s.total, function (k) { return DR.BY[k] ? DR.BY[k].th : k; }, 6) + '<p class="fk-small">ความรู้สึกในฝัน</p>' + FK.bars(s.mood, s.total, function (k) { return KB.MOODS[k] ? KB.MOODS[k].th : k; }, 3); }
+    render: function (s) { return '<p class="fk-small">' + esc(T("dream.statSym", "ฝันยอดนิยม")) + "</p>" + FK.bars(s.sym, s.total, function (k) { return DR.BY[k] ? symName(k) : k; }, 6) + '<p class="fk-small">' + esc(T("dream.statMood", "ความรู้สึกในฝัน")) + "</p>" + FK.bars(s.mood, s.total, function (k) { return KB.MOODS[k] ? T("dream.mood." + k, KB.MOODS[k].th) : k; }, 3); }
   });
 
   $("#drForm").addEventListener("submit", function (e) {
     e.preventDefault();
-    st.detected = DR.detect($("#drText").value);
-    var ids = selected(); if (!ids.length) { $("#drMsg").textContent = "เลือกหรือพิมพ์สิ่งที่เห็นในฝันอย่างน้อย 1 อย่าง"; return; }
+    st.detected = detectAll($("#drText").value);
+    var ids = selected(); if (!ids.length) { $("#drMsg").textContent = T("dream.errNone", "เลือกหรือพิมพ์สิ่งที่เห็นในฝันอย่างน้อย 1 อย่าง"); return; }
     $("#drMsg").textContent = "";
     var moodEl = document.querySelector('input[name="drMood"]:checked'), timeEl = document.querySelector('input[name="drTime"]:checked');
     show(ids, moodEl ? moodEl.value : "", timeEl ? timeEl.value : "");
   });
-  function show(ids, mood, time) {
+  /** quiet = วาดใหม่ตอนเปลี่ยนภาษา (ไม่นับสถิติ ไม่ย้ายโฟกัส) */
+  function show(ids, mood, time, quiet) {
     st.res = { ids: ids, mood: mood, time: time };
-    var ty = KB.TYPES[DR.dreamType(ids, mood, time)], dom = DR.dominantTheme(ids);
+    var tk = DR.dreamType(ids, mood, time), ty = KB.TYPES[tk], dom = DR.dominantTheme(ids);
     $("#drResult").hidden = false;
-    $("#drCards").innerHTML = ids.map(function (id) { var s = DR.BY[id], T = KB.THEMES[s.theme]; return '<article class="dr-card"><span class="dr-ic" aria-hidden="true">' + s.ic + "</span><div><h3>ฝันเห็น" + esc(s.th) + '</h3><p class="dr-theme">ธีม' + esc(T.th) + " · " + esc(KB.CATS[s.cat]) + "</p><p>" + esc(s.o) + "</p></div></article>"; }).join("");
-    $("#drType").innerHTML = "<b>ประเภทฝัน: " + esc(ty.th) + "</b> — " + esc(ty.o) + (dom ? '<br><b>ธีมเด่น:</b> ' + esc(KB.THEMES[dom].th) : "") + (KB.TIMES[time] ? '<br><span class="fk-small">' + esc(DR.timeMeaning(ty, time)) + "</span>" : "");
-    $("#drReadWrap").innerHTML = FK.readingBlock("drRd", "คำทำนายฝัน", true);
-    FK.bindReading("drRd", "dream", function (topic, r) { return DR.buildFacts(ids, mood, time, topic, { rng: r }); }, { withTopics: true });
+    $("#drCards").innerHTML = ids.map(function (id) { var s = DR.BY[id]; return '<article class="dr-card"><span class="dr-ic" aria-hidden="true">' + s.ic + "</span><div><h3>" + esc(T("dream.cardH", "ฝันเห็น{n}", { n: symName(id) })) + '</h3><p class="dr-theme">' + esc(T("dream.cardTheme", "ธีม{t} · {c}", { t: themeName(s.theme), c: catName(s.cat) })) + "</p><p>" + esc(zk("sym." + id, "o", s.o)) + "</p></div></article>"; }).join("");
+    var tmText = KB.TIMES[time] ? (isZh() ? zk("time." + time, "t", DR.timeMeaning(ty, time)) : DR.timeMeaning(ty, time)) : "";
+    $("#drType").innerHTML = "<b>" + esc(T("dream.typeLbl", "ประเภทฝัน: {t}", { t: typeName(tk) })) + "</b> — " + esc(zk("type." + tk, "o", ty.o)) + (dom ? "<br><b>" + esc(T("dream.domLbl", "ธีมเด่น:")) + "</b> " + esc(themeName(dom)) : "") + (tmText ? '<br><span class="fk-small">' + esc(tmText) + "</span>" : "");
+    var tp = quiet ? ((FK.readings.drRd || {}).topic || "overall") : "overall";
+    $("#drReadWrap").innerHTML = FK.readingBlock("drRd", T("dream.rdTitle", "คำทำนายฝัน"), true, tp);
+    FK.bindReading("drRd", "dream", function (topic, r) { return DR.buildFacts(ids, mood, time, topic, { rng: r }); }, { withTopics: true, topic: tp });
+    if (quiet) return;
     stats.add({ sym: ids, mood: mood, theme: dom || DR.BY[ids[0]].theme });
     $("#drResTitle").focus(); kiosk.touch();
   }
@@ -194,11 +257,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   $("#drShare").addEventListener("click", function () {
     var R = st.res; if (!R) return;
     var syms = R.ids.map(function (id) { return DR.BY[id]; }), lines = (FK.readings.drRd || {}).lines || [];
+    var s0 = syms[0];
     FK.share(this, {
-      kind: "ทำนายฝัน", glow: "rgba(139,120,255,.45)", artH: 340,
-      title: "ฝันเห็น" + syms.slice(0, 3).map(function (s) { return s.th; }).join(" · "), sub: "ประเภทฝัน: " + KB.TYPES[DR.dreamType(R.ids, R.mood, R.time)].th,
-      msgs: (lines.length >= 2 ? lines.slice(0, 2) : [syms[0].o]).concat([KB.THEMES[syms[0].theme].a[0]]).slice(0, 3),
-      foot: KB.disclaimerShort + " · ไม่มีเลขนำโชค",
+      kind: T("dream.cardKind", "ทำนายฝัน"), glow: "rgba(139,120,255,.45)", artH: 340,
+      title: T("dream.cardH", "ฝันเห็น{n}", { n: syms.slice(0, 3).map(function (s) { return symName(s.id); }).join(" · ") }), sub: T("dream.typeLbl", "ประเภทฝัน: {t}", { t: typeName(DR.dreamType(R.ids, R.mood, R.time)) }),
+      msgs: (lines.length >= 2 ? lines.slice(0, 2) : [zk("sym." + s0.id, "o", s0.o)]).concat([zk("theme." + s0.theme, "a", KB.THEMES[s0.theme].a[0])]).slice(0, 3),
+      foot: T("dream.cardFoot", KB.disclaimerShort + " · ไม่มีเลขนำโชค"),
       art: function (c, x, y, w, h) {
         c.textAlign = "center"; c.textBaseline = "middle";
         c.beginPath(); c.arc(x + w / 2, y + h / 2, h / 2 - 6, 0, Math.PI * 2); c.fillStyle = "rgba(255,255,255,.07)"; c.fill();
@@ -209,10 +273,19 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         c.font = (n > 1 ? 120 : 190) + "px 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
         em.forEach(function (e, i) { c.fillText(e, x + w / 2 + (i - (n - 1) / 2) * 170, y + h / 2 + 10); });
       }
-    }, "lensiq-dream.jpg", $("#drCardImg"), "ทำนายฝัน — LENSIQ");
+    }, "lensiq-dream.jpg", $("#drCardImg"), T("dream.shareTitle", "ทำนายฝัน — LENSIQ"));
   });
 
   var kiosk = FK.kiosk({ toggle: "drKiosk", exit: "drKioskExit", idle: "drIdle", busy: function () { return !$("#drResult").hidden || !!$("#drText").value || selected().length > 0; }, reset: reset });
-  $("#drSources").innerHTML = KB.sources.map(function (s) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.label) + "</a></li>"; }).join("");
+  function renderSources() { $("#drSources").innerHTML = KB.sources.map(function (s, i) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(T("dream.src." + i, s.label)) + "</a></li>"; }).join(""); }
+  renderSources();
+  // เปลี่ยนภาษา: วาดตัวเลือก ชิป รายการ สถิติ และผลลัพธ์ใหม่ (คำทำนายเรียบเรียงใหม่จาก facts เดิม)
+  window.addEventListener("lq-lang", function (e) {
+    if (e && e.detail && e.detail.init && !isZh()) return;
+    zhAliases = null;
+    if ($("#drText").value) st.detected = detectAll($("#drText").value);
+    renderStatic(); renderList(); renderSources(); stats.render(); $("#drMsg").textContent = "";
+    if (st.res && !$("#drResult").hidden) show(st.res.ids, st.res.mood, st.res.time, true);
+  });
   window.__dr = { state: st, show: show, reset: reset };
 })();

@@ -186,20 +186,80 @@
     const resid = y.map((v, i) => fin(v) && fin(trend[i]) ? v - trend[i] - seasonal[i] : null);
     return { trend, seasonal, resid, season };
   }
-  /** หาค่าผิดปกติ: [{ i, value, expected, z, dir: "up"|"down" }] ; minN = จำนวนจุดขั้นต่ำ
-     ต้องผ่านทั้งเกณฑ์สถิติ (|modified z| ≥ threshold) และเกณฑ์ปฏิบัติ (ต่างจากค่าที่คาด ≥ minRel) */
-  function anomalies(y, { period = 7, threshold = 3.5, minN = 10, minRel = 0.25 } = {}) {
+  /** ค่าคาดของแต่ละวันแบบไม่ใช้ค่าของวันนั้นเอง (leave-one-out) — ฤดูกาลรายสัปดาห์แบบคูณ × ค่ากลางของวันใกล้เคียง ±h วัน (ตัดผลวันในสัปดาห์แล้ว)
+     ไม่ใช้วันนั้นเอง จึงไม่ “ดูด” ค่าผิดปกติเข้าไปในค่าคาด และส่วนเหลือมีความแปรปรวนเต็ม (STL ธรรมดาหดส่วนเหลือราวครึ่งหนึ่ง → ประเมินความผันผวนต่ำไป) */
+  function looExpected(y, period = 7, h = 7) {
+    const n = y.length;
+    const t0 = y.map((_, i) => median(y.slice(Math.max(0, i - 3), Math.min(n, i + 4))));
+    const sf = Array.from({ length: period }, (_, p) => median(y.map((v, i) => i % period === p && fin(v) && t0[i] > 0 ? v / t0[i] : null)));
+    const ok = clean(y).length >= 2 * period && sf.every(v => fin(v) && v > 0);
+    const m = ok ? mean(sf) : 1, s = ok ? sf.map(v => v / m) : Array(period).fill(1);
+    const d = y.map((v, i) => (fin(v) ? v / s[i % period] : null));
+    return y.map((_, i) => { const w = []; for (let j = Math.max(0, i - h); j <= Math.min(n - 1, i + h); j++) if (j !== i && fin(d[j])) w.push(d[j]); return w.length >= 3 ? s[i % period] * median(w) : null; });
+  }
+  /** P(Y ≤ y) ของ negative binomial (ค่าเฉลี่ย mu, Var = mu + κ·mu²) ; κ = 0 → Poisson */
+  function nbCdf(y, mu, kappa) {
+    if (y < 0) return 0;
+    if (!(kappa > 1e-8)) return 1 - gammaP(y + 1, mu);
+    const r = 1 / kappa; return ibeta(r / (r + mu), r, y + 1);
+  }
+  function nbLogPmf(y, mu, kappa) {
+    if (!(kappa > 1e-8)) return y * Math.log(mu) - mu - lgamma(y + 1);
+    const r = 1 / kappa; return lgamma(y + r) - lgamma(r) - lgamma(y + 1) + r * Math.log(r / (r + mu)) + y * Math.log(mu / (r + mu));
+  }
+  /** ค่า z (ปกติมาตรฐาน) ที่ให้ p สองด้านเท่ากัน ; p เล็กมากใช้ค่าประมาณเชิงเส้นกำกับ เพดาน 40 */
+  function zOfP(p) { if (!(p > 0)) return 40; if (p > 1e-12) return normInv(1 - p / 2); const L = -2 * Math.log(p / 2); return Math.min(40, Math.sqrt(L - Math.log(L) - Math.log(2 * Math.PI))); }
+  /** p สองด้านของจำนวนนับ y เมื่อคาดไว้ mu (NB) */
+  function nbTwoSided(y, mu, kappa) { return Math.min(1, 2 * Math.min(nbCdf(y, mu, kappa), 1 - nbCdf(y - 1, mu, kappa))); }
+  /** ค่าตั้งของตัวหาค่าผิดปกติ — ปรับด้วยการจำลอง (tests/unit/stats.test.js, docs ในรายงาน):
+     ข้อมูลปกติ 60 วันแบบ Poisson / negative binomial / ระดับลอยแบบ AR(1) ต้องเตือนผิดเฉลี่ย ≤ 0.2 วันต่อ 60 วัน */
+  const ANOM = { alpha: 0.0005, kappaInflate: 1.3, trim: 0.01, robustZ: 5, h: 7, alphaGlobal: 0.01, kappaLL: 0.5 };
+  /** หาค่าผิดปกติ: [{ i, value, expected, z, p, dir: "up"|"down", method }]
+     ต้องผ่านทั้งเกณฑ์สถิติและเกณฑ์ปฏิบัติ (ต่างจากค่าที่คาด ≥ minRel)
+     - จำนวนนับ (จำนวนเต็มไม่ติดลบ เช่น คนเข้าร้าน บิล): ค่าคาดแบบ leave-one-out แล้วทดสอบด้วย negative binomial
+       κ (ความผันผวนเกิน Poisson) ประมาณด้วย maximum likelihood โดยตัดจุดที่สุดโต่งออก (วนซ้ำ 3 รอบ) แล้วเผื่อ ×1.3 เพราะ κ จากข้อมูล 60 วันคลาดเคลื่อนได้มาก
+       เตือนเมื่อ p สองด้าน < 0.0005 — ทั้งชุดราว 60 วัน จึงคาดว่าเตือนผิด ≈ 0.03–0.15 วัน แม้ข้อมูลแกว่งเกิน Poisson หรือระดับลอยต่อเนื่อง
+     - ค่าต่อเนื่อง (เช่น ยอดเงิน): modified z ของส่วนเหลือ (MAD) ≥ 5 ; z ที่คืนเป็นค่าเทียบเท่าปกติของ p ทั้งสองแบบ */
+  function anomalies(y, { period = 7, minN = 10, minRel = 0.25, alpha = ANOM.alpha } = {}) {
     const c = clean(y); if (c.length < minN) return [];
-    const D = stlLite(y, period);
-    const base = D ? D.resid : y, z = robustZ(base), med = median(c);
-    const out = [];
-    z.forEach((zi, i) => {
-      if (zi == null || Math.abs(zi) < threshold) return;
-      const exp = D ? D.trend[i] + D.seasonal[i] : med;
-      if (Math.abs(y[i] - exp) < 1e-9) return;
-      if (minRel > 0 && Math.abs(exp) > 0 && Math.abs(y[i] - exp) / Math.abs(exp) < minRel) return; // ต่างไม่ถึง minRel ของค่าที่คาด = ไม่นับว่าผิดปกติในทางปฏิบัติ
-      out.push({ i, value: y[i], expected: exp, z: zi, dir: zi > 0 ? "up" : "down" });
-    });
+    const exp = looExpected(y, period, ANOM.h);
+    const idx = y.map((v, i) => (fin(v) && fin(exp[i]) ? i : -1)).filter(i => i >= 0);
+    if (idx.length < minN) return [];
+    const isCount = c.every(v => v >= 0 && Math.abs(v - Math.round(v)) < 1e-9);
+    const out = [], push = (i, p, z, extra) => { const d = y[i] - exp[i]; out.push({ i, value: y[i], expected: exp[i], z, p, dir: d > 0 ? "up" : "down", ...extra }); };
+    const relOk = i => { const d = y[i] - exp[i]; return Math.abs(d) > 1e-9 && !(minRel > 0 && Math.abs(exp[i]) > 0 && Math.abs(d) / Math.abs(exp[i]) < minRel); };
+    if (isCount) {
+      // ค่าคาดสองแบบ: ใกล้เคียง (±h วัน) และทั้งชุด (ฤดูกาล × ค่ากลางทั้งหมด) — ต้องผิดปกติทั้งสองแบบ
+      // (กันกรณีระดับแถบใกล้เคียงต่ำหรือสูงชั่วคราวจนวันธรรมดาดูโดดเด่น และกันระดับที่ลอยช้า ๆ ทั้งชุด)
+      const eL = exp.map(v => (fin(v) ? Math.max(0.5, v) : null)), eG = looExpected(y, period, y.length).map(v => (fin(v) ? Math.max(0.5, v) : null));
+      const fitKappa = e => {
+        let use = idx, kappa = 0;
+        for (let rep = 0; rep < 3; rep++) {
+          const ll = k => use.reduce((s, i) => s + nbLogPmf(y[i], e[i], k), 0);
+          let a = 0, b = 3; const g = 0.6180339887;
+          for (let it = 0; it < 40; it++) { const c1 = b - g * (b - a), c2 = a + g * (b - a); if (ll(c1) < ll(c2)) a = c1; else b = c2; }
+          kappa = (a + b) / 2; if (ll(0) >= ll(kappa)) kappa = 0;
+          const k0 = kappa, next = idx.filter(i => nbTwoSided(y[i], e[i], k0) >= ANOM.trim);
+          if (next.length < minN) break; use = next;
+        }
+        // ขอบบนของ κ จาก profile likelihood (ลดลง ANOM.kappaLL) — เผื่อความคลาดเคลื่อนของ κ ที่ประมาณจากข้อมูลไม่กี่สิบวัน
+        const ll = k => use.reduce((s, i) => s + nbLogPmf(y[i], e[i], k), 0), top = ll(kappa);
+        let lo = kappa, hi = kappa + 0.05; while (hi < 5 && ll(hi) > top - ANOM.kappaLL) { lo = hi; hi *= 2; }
+        for (let it = 0; it < 30; it++) { const m = (lo + hi) / 2; if (ll(m) > top - ANOM.kappaLL) lo = m; else hi = m; }
+        return Math.max(kappa * ANOM.kappaInflate, lo);
+      };
+      const kL = fitKappa(eL), kG = fitKappa(eG);
+      idx.forEach(i => {
+        if (!relOk(i)) return;
+        const p = nbTwoSided(y[i], eL[i], kL); if (!(p < alpha)) return;
+        const pG = nbTwoSided(y[i], eG[i], kG); if (!(pG < ANOM.alphaGlobal) || Math.sign(y[i] - eG[i]) !== Math.sign(y[i] - eL[i])) return;
+        push(i, p, Math.sign(y[i] - eL[i]) * zOfP(p), { kappa: kL, pGlobal: pG, method: "negbin-loo" });
+      });
+    } else {
+      const res = idx.map(i => y[i] - exp[i]), m = median(res), s = 1.4826 * median(res.map(r => Math.abs(r - m)));
+      if (!(s > 0)) return [];
+      idx.forEach((i, k) => { const z = (res[k] - m) / s; if (Math.abs(z) < ANOM.robustZ || !relOk(i)) return; push(i, 2 * (1 - normCdf(Math.abs(z))), z, { method: "robust-z-loo" }); });
+    }
     return out;
   }
   /** โปรไฟล์ฤดูกาล วัน×ชั่วโมง: cells = [{ wd 0..6 (อา.=0), h 0..23, v }] → { mean[7][24], n[7][24], max } */
@@ -584,6 +644,28 @@
     return { ...t, z, p, lo: t.diff - (t.diff - t.lo) * k * sc, hi: t.diff + (t.hi - t.diff) * k * sc, phi, df, days: a.length + b.length, method: "quasi-binomial" };
   }
 
+  /* ---------- ข้อมูลพอไหม: ผลต่างที่ตรวจจับได้ (MDE) และจำนวนวันที่ต้องเก็บเพิ่ม ---------- */
+  /** จากช่วงความเชื่อมั่นของการเทียบสองช่วง (lo, hi) ที่ได้จากข้อมูลช่วงละ days วัน
+     scale = "log" (lo/hi เป็นการเปลี่ยนแบบสัดส่วน เช่น −0.1 = ลด 10% ; ใช้กับจำนวนนับ) | "lin" (ผลต่างตรง ๆ เช่น จุดเปอร์เซ็นต์)
+     se ≈ ความกว้างของช่วง ÷ (2·z) ; MDE = (z_{1−α/2} + z_power)·se = ผลต่างเล็กที่สุดที่จะเห็นชัด (p < α) ได้ราว power ของครั้ง
+     ถ้าเก็บข้อมูลต่อจนแต่ละช่วงยาว L วัน se จะหดราว √(days / L) → L = days·((z_α + z_β)·se / |target|)² ; moreDays = L − days
+     (สมมติว่าวันใหม่ผันผวนแบบเดิม — ถ้าระดับลอยต่อเนื่องหลายวัน จริง ๆ อาจต้องนานกว่านี้ ; ตรวจด้วยการจำลองใน tests/unit/stats.test.js) */
+  function planMore({ lo, hi, days, target = null, conf = 0.95, power = 0.8, scale = "log", maxDays = 365 } = {}) {
+    if (!fin(lo) || !fin(hi) || !(days > 0) || hi <= lo) return null;
+    const tf = v => (scale === "log" ? Math.log(1 + v) : v), inv = v => (scale === "log" ? Math.exp(v) - 1 : v);
+    if (scale === "log" && (lo <= -1)) return null;
+    const z = zCrit(conf), se = (tf(hi) - tf(lo)) / (2 * z), k = z + normInv(power);
+    const mde = { up: inv(k * se), down: inv(-k * se) };
+    let need = null, moreDays = null;
+    if (fin(target) && target !== 0) {
+      const eff = Math.abs(tf(target)) || Math.abs(target);
+      need = Math.ceil(days * (k * se / eff) ** 2);
+      moreDays = Math.max(0, need - days);
+      if (need > maxDays) moreDays = null; // เกินกว่าที่ควรรอ → บอกว่า "นานเกินไป" แทนตัวเลข
+    }
+    return { se, mde, mdeAbs: Math.max(Math.abs(mde.up), Math.abs(mde.down)), daysPerPeriod: need, moreDays, tooLong: fin(target) && moreDays == null, days };
+  }
+
   /* ---------- หลายการทดสอบพร้อมกัน ---------- */
   /** ปรับ p-value สำหรับการทดสอบหลายข้อ: "BH" (Benjamini–Hochberg, คุม false discovery rate) | "holm" (คุม family-wise error)
      ค่า null/NaN ไม่นับเป็นสมาชิกและคืน null */
@@ -711,7 +793,7 @@
     diff: { strong: "ต่างกันจริง หลักฐานชัด", moderate: "น่าจะต่างกันจริง", weak: "ยังไม่แน่ อาจต่างกันโดยบังเอิญ", none: "ยังไม่เห็นความต่างที่ชัด", insufficient: "ข้อมูลยังน้อย ยังสรุปไม่ได้" }
   };
   const plainConf = (level, kind = "change") => (TH_PLAIN[kind] || TH_PLAIN.change)[level] || TH_PLAIN.change.insufficient;
-  const VERSION = "3.0.0";
+  const VERSION = "3.1.0";
   /** ความแรงของสหสัมพันธ์ */
   function corrWord(r) {
     if (!fin(r)) return "ไม่ทราบ";
@@ -722,8 +804,8 @@
   return {
     fin, clean, sum, mean, median, quantile, sd, mad, describe, movingAvg,
     erf, normCdf, normInv, lgamma, ibeta, tCdf, tCrit, zCrit,
-    wilson, twoProp, binomTest, poissonTest, countCompare, arContrast, arWhiten, twoPropDaily, poissonGLM, nbGLM, solve, adjustP, meanCI, welch,
-    robustZ, stlLite, anomalies, seasonGrid, holtWinters, forecast,
+    wilson, twoProp, binomTest, poissonTest, countCompare, arContrast, arWhiten, twoPropDaily, planMore, poissonGLM, nbGLM, solve, adjustP, meanCI, welch,
+    robustZ, stlLite, looExpected, nbCdf, nbTwoSided, zOfP, ANOM, anomalies, seasonGrid, holtWinters, forecast,
     correlation, tsCorrelation, funnel, cohorts, abRates, abMeans, chiSqHomog, welchAnova, gammaP, chi2Sf, fSf, ebBinom, ebNormal, betaQuantile,
     confLevel, corrWord, pctP, pTextTH, TH_CONF, TH_CONF_SHORT, TH_PLAIN, plainConf, VERSION
   };

@@ -2,21 +2,18 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="palm.title">ดูลายมือ | LENSIQ</title>
 <meta name="description" content="อ่านลายมือจากภาพถ่ายฝ่ามือ เพื่อความบันเทิงในบูธและอีเวนต์ ประมวลผลในเบราว์เซอร์ ไม่บันทึกภาพ">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=6">
-<link rel="stylesheet" href="palm.css?v=5">
+<link rel="stylesheet" href="styles.css?v=8">
+<link rel="stylesheet" href="palm.css?v=6">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=11"></script>
+<script src="nav.js?v=12"></script>
 
 <main class="pl" id="plApp">
   <div class="pl-head">
@@ -25,51 +22,51 @@
     <p data-i18n="palm.lead" class="lead">ถ่ายรูปฝ่ามือ แล้วให้ระบบหาจุดบนมือ 21 จุดและไล่เส้นชีวิต เส้นสมอง เส้นหัวใจ เส้นวาสนา คุณปรับเส้นให้ตรงกับมือจริงได้ก่อนอ่าน เลือกอ่านมือซ้าย มือขวา หรือเทียบทั้งสองมือ ได้ธาตุประจำมือ นิ้วเด่น เนินและผังแปดทิศ บุคลิก การงาน การเงิน ความรัก และเคล็ดเสริมดวง ใช้สร้างสีสันในบูธ อีเวนต์ และแคมเปญการตลาด</p>
   </div>
 
-  <p class="pl-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span><b data-i18n="palm.disclaimer">เพื่อความบันเทิงตามความเชื่อเรื่องลายมือ ไม่ใช่วิทยาศาสตร์</b> ไม่ควรใช้ตัดสินใจเรื่องการจ้างงาน การเงิน ความสัมพันธ์ หรือประเมินบุคคล และเส้นชีวิตไม่ได้บอกว่าชีวิตจะยืนยาวแค่ไหน</span></p>
+  <p class="pl-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span><b data-i18n="palm.disclaimer">เพื่อความบันเทิงตามความเชื่อเรื่องลายมือ ไม่ใช่วิทยาศาสตร์</b> <span data-i18n="palm.disclaimerRest">ไม่ควรใช้ตัดสินใจเรื่องการจ้างงาน การเงิน ความสัมพันธ์ หรือประเมินบุคคล และเส้นชีวิตไม่ได้บอกว่าชีวิตจะยืนยาวแค่ไหน</span></span></p>
 
   <div class="pl-engine" id="plEngine" role="status">กำลังเตรียมระบบ...</div>
 
-  <ol class="pl-steps" aria-label="ขั้นตอน">
-    <li class="on" data-step="1"><b>1</b><span>ถ่ายรูปฝ่ามือ</span></li>
-    <li data-step="2"><b>2</b><span>ตรวจและปรับเส้น</span></li>
-    <li data-step="3"><b>3</b><span>อ่านลายมือ</span></li>
+  <ol class="pl-steps" aria-label="ขั้นตอน" data-i18n-attr="aria-label:palm.steps">
+    <li class="on" data-step="1"><b>1</b><span data-i18n="palm.step1">ถ่ายรูปฝ่ามือ</span></li>
+    <li data-step="2"><b>2</b><span data-i18n="palm.step2">ตรวจและปรับเส้น</span></li>
+    <li data-step="3"><b>3</b><span data-i18n="palm.step3">อ่านลายมือ</span></li>
   </ol>
 
   <!-- ขั้นที่ 1: ถ่ายภาพ / อัปโหลด -->
-  <section class="pl-stage" id="plStage" aria-label="ถ่ายภาพหรืออัปโหลดรูปฝ่ามือ">
+  <section class="pl-stage" id="plStage" aria-label="ถ่ายภาพหรืออัปโหลดรูปฝ่ามือ" data-i18n-attr="aria-label:palm.stageAria">
     <div class="pl-camcard">
       <div class="pl-cam" id="plCam">
         <video id="plVideo" autoplay muted playsinline></video>
         <canvas id="plOverlay" width="720" height="960"></canvas>
         <div class="pl-cam-hint" id="plCamHint">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12M11 11.5V4a1.5 1.5 0 0 1 3 0v7.5M14 11.5V5.5a1.5 1.5 0 0 1 3 0V13M17 10.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1.5a6 6 0 0 1-4.6-2.2L4.6 14.6a1.6 1.6 0 0 1 2.4-2.1L8 13.6"/></svg>
-          <p>กด <b>เปิดกล้อง</b> แล้ววางฝ่ามือให้อยู่ในกรอบ<br>หรือ <b>อัปโหลดรูปฝ่ามือ</b></p>
+          <p><span data-i18n="palm.hint.press">กด</span> <b data-i18n="palm.plStartCam">เปิดกล้อง</b> <span data-i18n="palm.hint.then">แล้ววางฝ่ามือให้อยู่ในกรอบ</span><br><span data-i18n="palm.hint.or">หรือ</span> <b data-i18n="palm.hint.upload">อัปโหลดรูปฝ่ามือ</b></p>
         </div>
         <div class="pl-guidebar" id="plGuideBar" hidden>
           <span class="pl-guide-side" id="plGuideSide"></span>
           <span class="pl-fit" id="plFit" role="status" aria-live="polite"></span>
         </div>
         <p class="pl-wrong" id="plWrong" role="alert" hidden></p>
-        <p class="pl-multi" id="plMulti" role="status" hidden>ใช้มือเดียวในกรอบ</p>
+        <p class="pl-multi" id="plMulti" role="status" hidden data-i18n="palm.qc.single">ใช้มือเดียวในกรอบ</p>
         <div class="pl-count" id="plCount" hidden aria-live="assertive"></div>
       </div>
       <div class="pl-actions">
         <button data-i18n="palm.plStartCam" class="btn primary big" id="plStartCam" type="button">เปิดกล้อง</button>
         <button data-i18n="palm.plSnap" class="btn primary big" id="plSnap" type="button" hidden>ถ่ายภาพฝ่ามือ</button>
-        <label class="btn ghost big pl-upload">อัปโหลดรูป<input id="plFile" type="file" accept="image/*"></label>
+        <label class="btn ghost big pl-upload" data-i18n="palm.upload">อัปโหลดรูป<input id="plFile" type="file" accept="image/*"></label>
       </div>
     </div>
 
     <div class="pl-side">
       <div class="pl-panel">
         <h2 data-i18n="palm.h21">เลือกมือที่จะอ่าน</h2>
-        <div class="seg seg4" role="radiogroup" aria-label="มือที่จะอ่าน">
+        <div class="seg seg4" role="radiogroup" aria-label="มือที่จะอ่าน" data-i18n-attr="aria-label:palm.handsAria">
           <button data-i18n="palm.button1" type="button" role="radio" aria-checked="false" data-side="left">มือซ้าย</button>
           <button data-i18n="palm.button2" type="button" role="radio" aria-checked="false" data-side="right">มือขวา</button>
           <button data-i18n="palm.button3" type="button" role="radio" aria-checked="true" data-side="auto">อัตโนมัติ</button>
           <button data-i18n="palm.button4" type="button" role="radio" aria-checked="false" data-side="both">ทั้งสองมือ</button>
         </div>
-        <p class="pl-small pl-domlabel" id="plDomL">มือข้างที่ถนัด</p>
+        <p class="pl-small pl-domlabel" id="plDomL" data-i18n="palm.domLabel">มือข้างที่ถนัด</p>
         <div class="seg" role="radiogroup" aria-labelledby="plDomL">
           <button data-i18n="palm.button5" type="button" role="radio" aria-checked="false" data-dom="left">ถนัดซ้าย</button>
           <button data-i18n="palm.button6" type="button" role="radio" aria-checked="true" data-dom="right">ถนัดขวา</button>
@@ -79,22 +76,22 @@
           <summary data-i18n="palm.summary1">อ่านมือข้างไหนดี?</summary>
           <ul id="plTradition"></ul>
         </details>
-        <label class="pl-nick">ชื่อเล่น (ไม่บังคับ — ใช้ในคำทำนาย ไม่บันทึก)
-          <input id="plNick" type="text" maxlength="24" autocomplete="off" placeholder="เช่น มิว">
+        <label class="pl-nick" data-i18n="palm.nick">ชื่อเล่น (ไม่บังคับ — ใช้ในคำทำนาย ไม่บันทึก)
+          <input id="plNick" type="text" maxlength="24" autocomplete="off" placeholder="เช่น มิว" data-i18n-attr="placeholder:palm.nickPh">
         </label>
         <div class="fa-topic-wrap">
-          <span class="fa-topic-l" id="plTopicL">อยากรู้เรื่องไหนเป็นพิเศษ</span>
+          <span class="fa-topic-l" id="plTopicL" data-i18n="palm.topicL">อยากรู้เรื่องไหนเป็นพิเศษ</span>
           <div class="fa-topics" role="radiogroup" aria-labelledby="plTopicL" data-topics></div>
         </div>
         <ul class="pl-qc" id="plQc" aria-live="polite">
-          <li class="no"><span class="dot" aria-hidden="true">!</span><span>พบมือ <small>— เปิดกล้องหรืออัปโหลดรูป</small></span></li>
+          <li class="no"><span class="dot" aria-hidden="true">!</span><span><span data-i18n="palm.qc.hand">พบมือ</span> <small data-i18n="palm.qc.start">— เปิดกล้องหรืออัปโหลดรูป</small></span></li>
         </ul>
-        <p class="pl-small">แบฝ่ามือตรงเข้าหากล้อง กางนิ้วเล็กน้อย ให้เห็นข้อมือ แสงสว่างสม่ำเสมอ (เปิดไฟฉายได้ถ้ามือถือรองรับ)</p>
+        <p class="pl-small" data-i18n="palm.howTo">แบฝ่ามือตรงเข้าหากล้อง กางนิ้วเล็กน้อย ให้เห็นข้อมือ แสงสว่างสม่ำเสมอ (เปิดไฟฉายได้ถ้ามือถือรองรับ)</p>
         <div class="pl-opts">
           <button data-i18n="fortune.common.kiosk" class="btn ghost" id="plKiosk" type="button" aria-pressed="false">โหมดบูธ (เต็มจอ)</button>
         </div>
       </div>
-      <p class="pl-privacy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>ประมวลผลในเบราว์เซอร์ทั้งหมด ไม่ส่งและไม่บันทึกภาพ</p>
+      <p class="pl-privacy" data-i18n="palm.privacy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>ประมวลผลในเบราว์เซอร์ทั้งหมด ไม่ส่งและไม่บันทึกภาพ</p>
     </div>
   </section>
 
@@ -102,36 +99,36 @@
   <section class="pl-edit" id="plEdit" hidden aria-labelledby="plEditTitle">
     <h2 data-i18n="palm.plEditTitle" id="plEditTitle" tabindex="-1">ตรวจและปรับเส้นบนฝ่ามือ</h2>
     <div class="pl-readside" id="plReadSide" aria-live="polite"><span id="plReadSideText"></span><button class="btn ghost" id="plSideSwap" type="button"></button></div>
-    <p class="pl-honest" id="plHonest">ระบบไล่เส้นให้อัตโนมัติ แต่ลายมือในภาพถ่ายมักไม่ชัด <b>ปรับเส้นให้ตรงกับมือจริงเพื่อผลที่แม่นขึ้น</b> — ลากจุดกลมบนเส้นที่เลือก</p>
+    <p class="pl-honest" id="plHonest"><span data-i18n="palm.honest1">ระบบไล่เส้นให้อัตโนมัติ แต่ลายมือในภาพถ่ายมักไม่ชัด</span> <b data-i18n="palm.honest2">ปรับเส้นให้ตรงกับมือจริงเพื่อผลที่แม่นขึ้น</b> <span data-i18n="palm.honest3">— ลากจุดกลมบนเส้นที่เลือก</span></p>
     <div class="pl-edit-grid">
       <div class="pl-editor">
         <div class="pl-tapbar" id="plTapBar" hidden aria-live="polite">
           <span id="plTapMsg"></span>
           <button data-i18n="palm.plTapUndo" class="btn ghost" id="plTapUndo" type="button">ย้อนจุด</button>
         </div>
-        <canvas id="plEditCanvas" width="600" height="800" aria-label="ภาพฝ่ามือพร้อมเส้นที่ปรับได้" role="img"></canvas>
+        <canvas id="plEditCanvas" width="600" height="800" aria-label="ภาพฝ่ามือพร้อมเส้นที่ปรับได้" role="img" data-i18n-attr="aria-label:palm.editAria"></canvas>
         <p class="pl-small pl-editcap" id="plEditCap"></p>
       </div>
       <div class="pl-tools">
         <div class="pl-panel" id="plLineTools">
           <h3 data-i18n="palm.h31">เลือกเส้นที่จะปรับ</h3>
-          <div class="pl-chips" id="plLineChips" role="radiogroup" aria-label="เส้นที่จะปรับ"></div>
-          <label class="pl-check"><input type="checkbox" id="plFateNone"> มองไม่เห็นเส้นวาสนา (ตำราถือว่าปกติ)</label>
+          <div class="pl-chips" id="plLineChips" role="radiogroup" aria-label="เส้นที่จะปรับ" data-i18n-attr="aria-label:palm.chipsAria"></div>
+          <label class="pl-check" data-i18n="palm.fateNone"><input type="checkbox" id="plFateNone"> มองไม่เห็นเส้นวาสนา (ตำราถือว่าปกติ)</label>
           <div class="pl-row">
             <button data-i18n="palm.plResetLines" class="btn ghost" id="plResetLines" type="button">คืนค่าอัตโนมัติ</button>
             <button data-i18n="palm.plTapMode" class="btn ghost" id="plTapMode" type="button">ปักจุดมือเอง</button>
           </div>
         </div>
         <div class="pl-panel">
-          <h3>เส้นรอง <small>(ไม่บังคับ — ดูจากมือจริง)</small></h3>
+          <h3 data-i18n="palm.minorH">เส้นรอง <small data-i18n="palm.minorSmall">(ไม่บังคับ — ดูจากมือจริง)</small></h3>
           <div class="pl-minor" id="plMinor"></div>
         </div>
         <div class="pl-panel">
-          <h3>เนินที่ดูอิ่มเด่น <small>(ไม่บังคับ เลือกได้หลายเนิน)</small></h3>
+          <h3 data-i18n="palm.mountsH">เนินที่ดูอิ่มเด่น <small data-i18n="palm.mountsSmall">(ไม่บังคับ เลือกได้หลายเนิน)</small></h3>
           <div class="pl-chips" id="plMounts"></div>
           <p class="pl-small" id="plMountNote"></p>
         </div>
-        <button class="btn primary big full" id="plRead" type="button">อ่านลายมือ</button>
+        <button class="btn primary big full" id="plRead" type="button" data-i18n="palm.read">อ่านลายมือ</button>
         <button data-i18n="palm.plBack" class="btn ghost full" id="plBack" type="button">ถ่ายใหม่</button>
       </div>
     </div>
@@ -140,7 +137,7 @@
   <!-- ขั้นที่ 3: ผลลัพธ์ -->
   <section class="pl-result" id="plResult" hidden aria-labelledby="plResTitle">
     <h2 data-i18n="palm.plResTitle" id="plResTitle" tabindex="-1">ผลอ่านลายมือของคุณ</h2>
-    <p class="pl-disc-mini">เพื่อความบันเทิงตามความเชื่อ ไม่ใช่วิทยาศาสตร์</p>
+    <p class="pl-disc-mini" data-i18n="palm.discMini">เพื่อความบันเทิงตามความเชื่อ ไม่ใช่วิทยาศาสตร์</p>
     <p class="pl-sidebadge" id="plSideBadge"></p>
     <div class="pl-pairnext" id="plPairNext" hidden role="status">
       <p id="plPairMsg"></p>
@@ -148,12 +145,12 @@
     </div>
     <div class="pl-res-top">
       <figure class="pl-photo">
-        <canvas id="plResCanvas" width="720" height="900" aria-label="ภาพฝ่ามือพร้อมเส้นหลักและตำแหน่งเนิน" role="img"></canvas>
-        <figcaption>สีส้ม = เส้นชีวิต · ฟ้า = เส้นสมอง · ชมพู = เส้นหัวใจ · ม่วง = เส้นวาสนา</figcaption>
+        <canvas id="plResCanvas" width="720" height="900" aria-label="ภาพฝ่ามือพร้อมเส้นหลักและตำแหน่งเนิน" role="img" data-i18n-attr="aria-label:palm.resAria"></canvas>
+        <figcaption data-i18n="palm.figcap">สีส้ม = เส้นชีวิต · ฟ้า = เส้นสมอง · ชมพู = เส้นหัวใจ · ม่วง = เส้นวาสนา</figcaption>
       </figure>
       <div class="pl-element" id="plElement">
         <div class="el-head">
-          <div><span class="el-k">ธาตุประจำมือ</span><h3 id="plElName">—</h3></div>
+          <div><span class="el-k" data-i18n="palm.elK">ธาตุประจำมือ</span><h3 id="plElName">—</h3></div>
           <span class="el-pct" id="plElPct">—</span>
         </div>
         <p class="el-shape" id="plElShape"></p>
@@ -169,12 +166,12 @@
         <h3 data-i18n="fortune.common.readingDetail" id="plReadTitle">คำทำนายโดยละเอียด</h3>
         <span class="fa-src" id="plSrc">เรียบเรียงในเครื่อง</span>
       </div>
-      <div class="fa-topics" role="radiogroup" aria-label="หัวข้อที่สนใจ" data-topics></div>
+      <div class="fa-topics" role="radiogroup" aria-label="หัวข้อที่สนใจ" data-i18n-attr="aria-label:palm.topicsAria" data-topics></div>
       <div class="fa-consent-wrap" id="plConsent"></div>
       <div class="fa-body" id="plNarr" aria-live="polite"></div>
       <div class="fa-actions">
         <button data-i18n="fortune.common.regen" class="btn ghost" id="plRegen" type="button">อ่านอีกสำนวน</button>
-        <span class="pl-small">ทุกครั้งที่กด ระบบจะเรียบเรียงใหม่จากผลวัดชุดเดิม ความหมายหลักไม่เปลี่ยน</span>
+        <span class="pl-small" data-i18n="palm.regenNote">ทุกครั้งที่กด ระบบจะเรียบเรียงใหม่จากผลวัดชุดเดิม ความหมายหลักไม่เปลี่ยน</span>
       </div>
     </section>
 
@@ -202,7 +199,7 @@
     </div>
 
     <section class="pl-block">
-      <h3>เนินและผังแปดทิศ <small>(ประเมินจากภาพ)</small></h3>
+      <h3 data-i18n="palm.mestH">เนินและผังแปดทิศ <small data-i18n="palm.mestSmall">(ประเมินจากภาพ)</small></h3>
       <div class="pl-mest" id="plMountEst"></div>
       <p class="pl-small" id="plMountEstNote"></p>
     </section>
@@ -216,7 +213,7 @@
     <details class="pl-how">
       <summary data-i18n="fortune.common.howCalc">ดูวิธีคำนวณ</summary>
       <p class="pl-small" id="plHowSrc"></p>
-      <p class="pl-small">วัดทุกระยะเทียบกับความกว้างฝ่ามือ (โคนนิ้วชี้ถึงโคนนิ้วก้อย) จึงไม่ขึ้นกับขนาดภาพ เส้นในภาพผ่านการปรับความคมชัดเฉพาะที่และตัวกรองร่อง (Hessian หลายสเกล) แล้วไล่ตามแนวที่ตำราระบุ ความลึกของเส้นเป็นค่าประมาณจากความเข้มของร่องในภาพ ขึ้นกับแสงอย่างมาก</p>
+      <p class="pl-small" data-i18n="palm.howP">วัดทุกระยะเทียบกับความกว้างฝ่ามือ (โคนนิ้วชี้ถึงโคนนิ้วก้อย) จึงไม่ขึ้นกับขนาดภาพ เส้นในภาพผ่านการปรับความคมชัดเฉพาะที่และตัวกรองร่อง (Hessian หลายสเกล) แล้วไล่ตามแนวที่ตำราระบุ ความลึกของเส้นเป็นค่าประมาณจากความเข้มของร่องในภาพ ขึ้นกับแสงอย่างมาก</p>
       <div class="table-wrap"><table class="pl-table"><thead><tr><th data-i18n="palm.th2" scope="col">ค่า</th><th data-i18n="palm.th3" scope="col">ผล</th><th data-i18n="palm.th4" scope="col">ความหมายของค่า</th></tr></thead><tbody id="plRaw"></tbody></table></div>
     </details>
 
@@ -226,22 +223,22 @@
       <button data-i18n="palm.plEditAgain" class="btn ghost big" id="plEditAgain" type="button">กลับไปปรับเส้น</button>
       <button data-i18n="fortune.common.nextPerson" class="btn ghost big" id="plAgain" type="button">อ่านคนถัดไป</button>
     </div>
-    <img class="pl-cardimg" id="plCardImg" alt="การ์ดผลอ่านลายมือสำหรับแชร์" hidden>
+    <img class="pl-cardimg" id="plCardImg" alt="การ์ดผลอ่านลายมือสำหรับแชร์" data-i18n-attr="alt:palm.cardAlt" hidden>
   </section>
 
   <div class="pl-foot">
     <section class="pl-block">
       <h3 data-i18n="fortune.common.stats">สถิติบูธ (ไม่ระบุตัวตน)</h3>
       <div id="plStats"></div>
-      <label class="pl-check"><input type="checkbox" id="plStatsOn"> นับจำนวนครั้งและสัดส่วนธาตุในเครื่องนี้</label>
+      <label class="pl-check" data-i18n="palm.statsOn"><input type="checkbox" id="plStatsOn"> นับจำนวนครั้งและสัดส่วนธาตุในเครื่องนี้</label>
       <button data-i18n="fortune.common.statsClear" class="btn ghost" id="plStatsClear" type="button">ล้างสถิติ</button>
     </section>
     <section class="pl-block">
       <h3 data-i18n="fortune.common.sources">แหล่งอ้างอิง</h3>
-      <p class="pl-small">เนื้อหาเรียบเรียงใหม่ในเชิงบวกจากแนวคิดลายมือตะวันตก จีน/ญี่ปุ่น และไทย แต่ละสำนักตีความต่างกันได้</p>
+      <p class="pl-small" data-i18n="palm.sourcesNote">เนื้อหาเรียบเรียงใหม่ในเชิงบวกจากแนวคิดลายมือตะวันตก จีน/ญี่ปุ่น และไทย แต่ละสำนักตีความต่างกันได้</p>
       <ul class="pl-sources" id="plSources"></ul>
       <p class="pl-small" id="plEthics"></p>
-      <p class="pl-small">โมเดลจุดบนมือ: MediaPipe Hands (lite) เวอร์ชัน TensorFlow.js — Apache License 2.0</p>
+      <p class="pl-small" data-i18n="palm.modelNote">โมเดลจุดบนมือ: MediaPipe Hands (lite) เวอร์ชัน TensorFlow.js — Apache License 2.0</p>
     </section>
   </div>
 </main>
@@ -251,13 +248,15 @@
 <div class="toast" id="plToast" role="status"></div>
 
 <script src="vendor/face-api.js"></script>
-<script src="i18n/zh-fortune.js?v=2"></script>
+<script src="i18n/zh-fortune.js?v=3"></script>
+<script src="i18n/zh-fortune-palm.js?v=1"></script>
+<script src="i18n/zh-kb-palm.js?v=1"></script>
 <script src="lensiq-config.js?v=2"></script>
 <script src="lensiq-track.js?v=2"></script>
 <script src="lensiq-camera.js?v=2"></script>
 <script src="lensiq-detect.js?v=2"></script>
-<script src="fortune-ai.js?v=7"></script>
-<script src="palm-kb.js?v=4"></script>
-<script src="palm.js?v=8"></script>
+<script src="fortune-ai.js?v=8"></script>
+<script src="palm-kb.js?v=5"></script>
+<script src="palm.js?v=9"></script>
 </body>
 </html>

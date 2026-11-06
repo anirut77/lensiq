@@ -2,22 +2,19 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="dream.title">ทำนายฝัน | LENSIQ</title>
 <meta name="description" content="เล่าความฝันแล้วระบบหาสัญลักษณ์ให้ ทำนายฝันตามความเชื่อไทยกว่า 100 สัญลักษณ์ พร้อมประเภทฝัน 4 แบบ ไม่มีเลขเด็ด ไม่บันทึกข้อความ เพื่อความบันเทิง">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="styles.css?v=8">
 <link rel="stylesheet" href="fortune-kit.css?v=2">
 <link rel="stylesheet" href="dream.css?v=2">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=11"></script>
+<script src="nav.js?v=12"></script>
 
 <main class="fk dr" id="drApp">
   <div class="fk-head">
@@ -25,31 +22,31 @@
     <h1 data-i18n="dream.h1">ทำนายฝัน</h1>
     <p data-i18n="dream.lead" class="lead">เล่าความฝันสั้น ๆ ระบบจะหาสัญลักษณ์ในฝันให้อัตโนมัติ หรือแตะเลือกเองจากหมวดสัตว์ ธรรมชาติ ผู้คน สิ่งของ และเหตุการณ์ แล้วอ่านความหมายตามความเชื่อไทยแบบเชิงบวก</p>
   </div>
-  <p class="fk-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span><b data-i18n="dream.disclaimer">เพื่อความบันเทิงตามความเชื่อพื้นบ้าน ไม่ใช่วิทยาศาสตร์</b> หน้านี้ไม่ให้เลขเด็ดหรือเลขนำโชคเพื่อการพนัน ข้อความความฝันประมวลผลในเครื่องและไม่ถูกบันทึก</span></p>
+  <p class="fk-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span><b data-i18n="dream.disclaimer">เพื่อความบันเทิงตามความเชื่อพื้นบ้าน ไม่ใช่วิทยาศาสตร์</b> <span data-i18n="dream.discNote">หน้านี้ไม่ให้เลขเด็ดหรือเลขนำโชคเพื่อการพนัน ข้อความความฝันประมวลผลในเครื่องและไม่ถูกบันทึก</span></span></p>
 
   <form class="fk-form fk-stack" id="drForm" novalidate>
-    <label>เล่าความฝันของคุณ (ไม่บังคับ · ไม่บันทึก ไม่ส่งออก)
-      <textarea id="drText" rows="3" maxlength="300" placeholder="เช่น ฝันว่าเห็นงูตัวใหญ่ในบ้าน แล้วได้ขึ้นเครื่องบินไปทะเล"></textarea>
+    <label data-i18n="dream.textLbl">เล่าความฝันของคุณ (ไม่บังคับ · ไม่บันทึก ไม่ส่งออก)
+      <textarea id="drText" rows="3" maxlength="300" data-i18n-attr="placeholder:dream.textPh" placeholder="เช่น ฝันว่าเห็นงูตัวใหญ่ในบ้าน แล้วได้ขึ้นเครื่องบินไปทะเล"></textarea>
     </label>
     <div>
-      <p class="dr-label">สัญลักษณ์ที่เลือก</p>
+      <p class="dr-label" data-i18n="dream.selLbl">สัญลักษณ์ที่เลือก</p>
       <ul class="fk-chips dr-sel" id="drSel" aria-live="polite"></ul>
     </div>
     <div>
-      <p class="dr-label">ฝันยอดฮิต</p>
+      <p class="dr-label" data-i18n="dream.popLbl">ฝันยอดฮิต</p>
       <div class="dr-pops" id="drPopular"></div>
     </div>
     <details class="dr-browse">
       <summary data-i18n="dream.summary1">ค้นหาหรือเลือกจากทุกหมวด</summary>
-      <div class="dr-cats" id="drCats" role="group" aria-label="หมวด"></div>
-      <label class="dr-searchlbl">ค้นหาสัญลักษณ์<input id="drSearch" type="search" placeholder="เช่น ช้าง ทอง ฝนตก" autocomplete="off"></label>
+      <div class="dr-cats" id="drCats" role="group" data-i18n-attr="aria-label:dream.catsAria" aria-label="หมวด"></div>
+      <label class="dr-searchlbl" data-i18n="dream.searchLbl">ค้นหาสัญลักษณ์<input id="drSearch" type="search" data-i18n-attr="placeholder:dream.searchPh" placeholder="เช่น ช้าง ทอง ฝนตก" autocomplete="off"></label>
       <div class="dr-list" id="drList"></div>
     </details>
     <fieldset><legend data-i18n="dream.legend1">ในฝันคุณรู้สึกอย่างไร (ไม่บังคับ)</legend><div class="fk-opts" id="drMoods"></div></fieldset>
     <fieldset><legend data-i18n="dream.legend2">ฝันช่วงเวลาไหน (ไม่บังคับ)</legend><div class="fk-opts" id="drTimes"></div></fieldset>
     <p class="fk-msg" id="drMsg" role="alert"></p>
     <div class="fk-optrow">
-      <span class="fk-small">เลือกได้สูงสุด 8 สัญลักษณ์</span>
+      <span class="fk-small" data-i18n="dream.max8">เลือกได้สูงสุด 8 สัญลักษณ์</span>
       <button data-i18n="fortune.common.kiosk" class="btn ghost fk-kbtn" id="drKiosk" type="button" aria-pressed="false">โหมดบูธ (เต็มจอ)</button>
     </div>
     <button data-i18n="dream.drGo" class="btn primary big full" id="drGo" type="submit" disabled>ทำนายฝัน</button>
@@ -67,21 +64,21 @@
       <button data-i18n="fortune.common.print" class="btn ghost big" id="drPrint" type="button">พิมพ์</button>
       <button data-i18n="dream.drAgain" class="btn ghost big" id="drAgain" type="button">ทำนายฝันใหม่</button>
     </div>
-    <img class="fk-cardimg" id="drCardImg" alt="การ์ดทำนายฝันสำหรับแชร์" hidden>
+    <img class="fk-cardimg" id="drCardImg" data-i18n-attr="alt:dream.cardAlt" alt="การ์ดทำนายฝันสำหรับแชร์" hidden>
   </section>
 
   <div class="fk-foot">
     <section class="fk-block">
       <h3 data-i18n="fortune.common.stats">สถิติบูธ (ไม่ระบุตัวตน)</h3>
       <div id="drStats"></div>
-      <label class="fk-check"><input type="checkbox" id="drStatsOn"> นับจำนวนครั้งและสัญลักษณ์ที่เลือกในเครื่องนี้ (ไม่เก็บข้อความ)</label>
+      <label class="fk-check" data-i18n="dream.statsOn"><input type="checkbox" id="drStatsOn"> นับจำนวนครั้งและสัญลักษณ์ที่เลือกในเครื่องนี้ (ไม่เก็บข้อความ)</label>
       <button data-i18n="fortune.common.statsClear" class="btn ghost" id="drStatsClear" type="button">ล้างสถิติ</button>
     </section>
     <section class="fk-block">
       <h3 data-i18n="fortune.common.sources">แหล่งอ้างอิง</h3>
-      <p class="fk-small">ความหมายสัญลักษณ์เรียบเรียงใหม่จากแก่นความเชื่อพื้นบ้านไทยและการตีความฝันทั่วไป ประเภทฝัน 4 แบบตามคติไทย (บุพนิมิต เทพสังหรณ์ จิตนิวรณ์ ธาตุกำเริบ)</p>
+      <p class="fk-small" data-i18n="dream.srcNote">ความหมายสัญลักษณ์เรียบเรียงใหม่จากแก่นความเชื่อพื้นบ้านไทยและการตีความฝันทั่วไป ประเภทฝัน 4 แบบตามคติไทย (บุพนิมิต เทพสังหรณ์ จิตนิวรณ์ ธาตุกำเริบ)</p>
       <ul class="fk-sources" id="drSources"></ul>
-      <p class="fk-small">หลักการ: ฝันที่ตำราเก่ามองว่าไม่ดี เช่น ฟันหลุด ตีความใหม่ในเชิงการเปลี่ยนผ่าน ไม่ทำนายความตาย โรคภัย อุบัติเหตุ และไม่ให้เลขเพื่อการพนัน</p>
+      <p class="fk-small" data-i18n="dream.principle">หลักการ: ฝันที่ตำราเก่ามองว่าไม่ดี เช่น ฟันหลุด ตีความใหม่ในเชิงการเปลี่ยนผ่าน ไม่ทำนายความตาย โรคภัย อุบัติเหตุ และไม่ให้เลขเพื่อการพนัน</p>
     </section>
   </div>
 </main>
@@ -89,11 +86,13 @@
 <div class="fk-idle" id="drIdle" hidden role="status"></div>
 <button data-i18n="fortune.common.kioskExit" class="btn primary fk-kiosk-exit" id="drKioskExit" type="button" hidden>ออกจากโหมดบูธ</button>
 
-<script src="i18n/zh-fortune.js?v=2"></script>
+<script src="i18n/zh-fortune.js?v=3"></script>
+<script src="i18n/zh-fortune-dream.js?v=1"></script>
+<script src="i18n/zh-kb-dream.js?v=1"></script>
 <script src="lensiq-config.js?v=2"></script>
-<script src="fortune-ai.js?v=7"></script>
-<script src="fortune-kit.js?v=1"></script>
+<script src="fortune-ai.js?v=8"></script>
+<script src="fortune-kit.js?v=2"></script>
 <script src="dream-kb.js?v=3"></script>
-<script src="dream.js?v=3"></script>
+<script src="dream.js?v=4"></script>
 </body>
 </html>

@@ -19,7 +19,8 @@ PNG = b"\x89PNG\r\n\x1a\n" + b"\0" * 64
 ENV_KEYS = ("LENSIQ_API_ALLOW_ANY", "LENSIQ_API_ALLOW_ORIGIN", "LENSIQ_ALLOW_ORIGIN", "LENSIQ_HOSTS", "LENSIQ_AGG_HOSTS",
             "LENSIQ_TRUST_PROXY", "LENSIQ_PROXY_HOPS", "LENSIQ_API_RPM", "LENSIQ_CONVERT_RPM", "LENSIQ_TRYON_RPM",
             "LENSIQ_CONVERT_MAX_MB", "LENSIQ_TRYON_MAX_MB", "LENSIQ_CSP", "LENSIQ_CSP_CONNECT", "LENSIQ_FORTUNE_RPM",
-            "ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "REPLICATE_API_TOKEN")
+            "ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "REPLICATE_API_TOKEN", "REPLICATE_TRYON_MODEL",
+            "LENSIQ_TRYON_LICENSE")
 
 
 def facts():
@@ -49,7 +50,8 @@ class GuardBase(unittest.TestCase):
                            environ_base=env, headers=headers or {}, **kw)
 
     def tryon(self, env=LAN, headers=None, human=PNG, garment=PNG):
-        os.environ["REPLICATE_API_TOKEN"] = "r8_test"
+        # try-on needs token + model + licence attestation (tests/python/test_licensing.py)
+        os.environ.update(REPLICATE_API_TOKEN="r8_test", REPLICATE_TRYON_MODEL="acme/vton-pro", LENSIQ_TRYON_LICENSE="commercial")
         data = {"human": (io.BytesIO(human), "h.png"), "garment": (io.BytesIO(garment), "g.png"),
                 "consent": "yes", "desc": "เสื้อ<script>\x00"}
         return self.c.post("/api/tryon", data=data, content_type="multipart/form-data",
@@ -62,7 +64,7 @@ class GuardBase(unittest.TestCase):
 
 
 class ConvertStub:
-    """แทน pdf2docx: เขียนไฟล์ผลลัพธ์ปลอม"""
+    """แทนตัวแปลง (pdfconvert): เขียนไฟล์ผลลัพธ์ปลอม"""
     def __call__(self, src, dst, tmp):
         with open(dst, "wb") as fh:
             fh.write(b"PK docx")
@@ -214,7 +216,10 @@ class HeadersTest(GuardBase):
             csp = r.headers["Content-Security-Policy"]
             self.assertIn("script-src 'self' 'wasm-unsafe-eval'", csp)
             self.assertNotIn("'unsafe-eval'", csp.replace("'wasm-unsafe-eval'", ""))
-            self.assertIn("https://fonts.gstatic.com", csp)
+            # fonts are self-hosted (vendor/fonts/): no third-party origin anywhere in the policy
+            self.assertNotIn("fonts.gstatic.com", csp)
+            self.assertNotIn("fonts.googleapis.com", csp)
+            self.assertIn("font-src 'self' data:", csp)
             self.assertIn("img-src 'self' data: blob:", csp)
             self.assertIn("frame-ancestors 'self'", csp)
             self.assertIn("object-src 'none'", csp)

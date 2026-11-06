@@ -6,13 +6,13 @@
 //
 // Data layout: $LQ_BENCH_DATA/mot/**/<SEQ>/{img1/*.jpg, gt/gt.txt[, seqinfo.ini]} (any subset of frames may be present;
 // tests/bench/fetch_datasets.py downloads every 3rd MOT17 frame = 10 fps, the rate the store page actually analyses).
-// Browser side (headless Chrome, TF.js WASM, no WebGL) = LQDetect.detectCoco + LQDetect.embedBox, the production code.
+// Browser side (headless Chrome, WASM, no WebGL) = LQDetect.detectPeople (YOLOX-Nano on ORT, or COCO-SSD on TF.js) + LQDetect.embedBox.
 // Node side = store.js stepCam() (LQTrack tracker, line crossing, re-ID "ลดการนับซ้ำ") on those detections, unchanged.
 // Detections are cached per sequence/detW in $LQ_BENCH_CACHE; delete the cache after changing the detector.
 import { createRequire } from "node:module";
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { basename, join, relative } from "node:path";
-import { CACHE, DATA, REPO, needData, openBench, dataUrl, pct, fx, table } from "./lib.mjs";
+import { CACHE, DATA, REPO, needData, openBench, dataUrl, pct, table } from "./lib.mjs";
 
 const require = createRequire(import.meta.url);
 const M = require("./metrics.cjs");
@@ -65,16 +65,20 @@ function seqInfo(p) {
 // ---------- detections (cached) ----------
 // --tiles 2x2 (or LQ_BENCH_TILES) = the store page's "far/small people" mode: LQDetect tiling for the main detW=416 pass
 const TILES = (() => { const t = opt("--tiles", process.env.LQ_BENCH_TILES || ""); const m = /^(\d)x(\d)$/.exec(t); return m ? { cols: +m[1], rows: +m[2], overlap: 0.2 } : null; })();
+// --model yolox_nano_416 (default = the store page's detector, vendor/models/yolox/*.onnx on ORT WASM) | coco (COCO-SSD,
+// the fallback) | yolox_tiny_416 (evaluated, not vendored: put the official yolox_tiny.onnx 0.1.1rc0 release there first)
+// --split auto: wide (16:9) frames as 2 overlapping square halves (LQDetect.detectYolox split:'auto')
+const MODEL = opt("--model", process.env.LQ_BENCH_MODEL || "yolox_nano_416"), SPLIT = opt("--split", process.env.LQ_BENCH_SPLIT || "") || null;
 async function detections(B, s, detW, embMin) {
   const tiles = detW === 416 ? TILES : null;
-  const file = join(CACHE, `people-${s.name}-w${detW}${tiles ? `-t${tiles.cols}x${tiles.rows}` : ""}${embMin ? "-emb" : ""}.json`);
+  const file = join(CACHE, `people-${s.name}-w${detW}${MODEL !== "coco" ? "-" + MODEL : ""}${SPLIT ? "-split" + SPLIT : ""}${tiles ? `-t${tiles.cols}x${tiles.rows}` : ""}${embMin ? "-emb" : ""}.json`);
   const pick = c => ({ ...c, frames: s.frames.map(f => c.frames[s.all.indexOf(f)]) });
   if (existsSync(file)) { const c = JSON.parse(readFileSync(file, "utf8")); if (c.frames.length === s.all.length) return pick(c); }
   const b = await B();
   const rows = [], t0 = Date.now();
   for (let i = 0; i < s.all.length; i += 16) {
     const urls = s.all.slice(i, i + 16).map(f => dataUrl(relative(DATA, join(s.path, "img1", String(f).padStart(6, "0") + ".jpg"))));
-    rows.push(...await b.page.evaluate(`LQB.people(${JSON.stringify(urls)}, ${JSON.stringify({ detW, minScore: 0.05, max: 100, embMin, tiles })})`));
+    rows.push(...await b.page.evaluate(`LQB.people(${JSON.stringify(urls)}, ${JSON.stringify({ detW, minScore: 0.05, max: 100, embMin, tiles, model: MODEL, split: SPLIT })})`));
     process.stderr.write(`\r  ${s.name} detW=${detW}${embMin ? " +emb" : ""}: ${rows.length}/${s.all.length} frames (${((Date.now() - t0) / 1000).toFixed(0)} s)`);
   }
   process.stderr.write("\n");
@@ -181,7 +185,7 @@ console.log(`\n## People benchmark${TILES ? ` — TILED ${TILES.cols}×${TILES.r
 console.log(table(["sequence", "frames", "res", "GT boxes"], out.seqs.map(s => [s.name, s.frames, `${s.W}×${s.H}`, s.gtBoxes])));
 const ms = [...det.get(416).values()].flatMap(c => c.frames.map(r => r.ms)).sort((a, b) => a - b);
 out.detMs416 = { median: ms[ms.length >> 1], p90: ms[Math.floor(ms.length * 0.9)] };
-console.log(`\nCOCO-SSD detect @416 px (WASM, this machine): median ${out.detMs416.median} ms, p90 ${out.detMs416.p90} ms per frame`);
+console.log(`\n${MODEL} detect${SPLIT ? " split " + SPLIT : ""} @416 px (WASM, this machine): median ${out.detMs416.median} ms, p90 ${out.detMs416.p90} ms per frame`);
 
 // detection
 const THRS = [0.2, 0.25, 0.3, 0.35, 0.4, 0.5, 0.6];
@@ -205,9 +209,11 @@ console.log(table(["sequence", "<10%", "10–20%", "20–35%", "≥35%"], seqs.m
 
 // tracking + counting
 const configs = [
-  ["store defaults (minScore 0.4, re-ID off)", { thr: 0.4 }],
-  ["previous defaults (DIST_MAX 0.12, MISS 1 s)", { thr: 0.4, tcfgBase: LQT.PRESET.person }],
-  ["store defaults + ลดการนับซ้ำ (re-ID on)", { thr: 0.4, reid: true }]
+  ["store defaults (round 4: byte + line hysteresis/confirm, dets ≥ 0.3)", { thr: ST.ST_DET_MIN }],
+  ["round-3 defaults (minScore 0.4, DIST_MAX 0.09, MISS 2 s)", { thr: 0.4, tcfgBase: ST.ST_TRACK_R3 }],
+  ["store defaults + ลดการนับซ้ำ (re-ID on)", { thr: ST.ST_DET_MIN, reid: true }],
+  ["round-2 tracker (DIST_MAX 0.12, MISS 1 s)", { thr: 0.4, tcfgBase: LQT.PRESET.person }],
+  ["round-3 defaults + re-ID", { thr: 0.4, reid: true, tcfgBase: ST.ST_TRACK_R3 }]
 ];
 if (flag("--sweep")) {
   for (const thr of [0.25, 0.3, 0.35, 0.5]) configs.push([`minScore ${thr}`, { thr }]);

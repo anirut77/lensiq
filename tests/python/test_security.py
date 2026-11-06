@@ -16,7 +16,8 @@ import tryon  # noqa: E402
 
 LAN = {"REMOTE_ADDR": "192.168.1.23"}
 ENV_KEYS = ("LENSIQ_FORTUNE_RPM", "LENSIQ_FORTUNE_DAILY_MAX", "LENSIQ_AGG_RPM", "ANTHROPIC_API_KEY",
-            "ANTHROPIC_AUTH_TOKEN", "REPLICATE_API_TOKEN", "REPLICATE_TRYON_VERSION")
+            "ANTHROPIC_AUTH_TOKEN", "REPLICATE_API_TOKEN", "REPLICATE_TRYON_VERSION", "REPLICATE_TRYON_MODEL",
+            "LENSIQ_TRYON_LICENSE")
 
 
 class Base(unittest.TestCase):
@@ -40,7 +41,7 @@ class Base(unittest.TestCase):
 
 class StaticDenyTest(Base):
     def test_sensitive_paths_not_served(self):
-        for p in ("/server.py", "/tryon.py", "/requirements.txt", "/start.sh", "/tools/csp-meta.mjs",
+        for p in ("/server.py", "/tryon.py", "/pdfconvert.py", "/requirements.txt", "/requirements-agpl.txt", "/start.sh", "/tools/csp-meta.mjs",
                   "/package.json", "/eslint.config.mjs", "/node_modules/x.js", "/tests/README.md",
                   "/.github/workflows/ci.yml", "/.git/config", "/.venv/pyvenv.cfg", "/certs/key.pem",
                   "/logs/server.log", "/data/agg.json", "/Data/agg.json", "/vendor/../server.py",
@@ -93,7 +94,7 @@ class ErrorLeakTest(Base):
 
     def test_tryon_provider_detail_not_returned(self):
         import io
-        os.environ["REPLICATE_API_TOKEN"] = "r8_test"
+        os.environ.update(REPLICATE_API_TOKEN="r8_test", REPLICATE_TRYON_MODEL="acme/vton-pro", LENSIQ_TRYON_LICENSE="commercial")
         png = b"\x89PNG\r\n\x1a\n" + b"\0" * 64
         err = tryon.TryOnError("บริการ AI ขัดข้องชั่วคราว", 502, detail="HTTP 500: internal stack r8_leak")
         with mock.patch.object(tryon, "run", side_effect=err):
@@ -113,17 +114,19 @@ class ErrorLeakTest(Base):
 
 
 class TryOnUrlTest(unittest.TestCase):
+    KEYS = ("REPLICATE_API_TOKEN", "REPLICATE_TRYON_VERSION", "REPLICATE_TRYON_MODEL", "LENSIQ_TRYON_LICENSE")
+
     def setUp(self):
-        self.saved = os.environ.get("REPLICATE_API_TOKEN")
-        os.environ["REPLICATE_API_TOKEN"] = "r8_secret"
-        os.environ["REPLICATE_TRYON_VERSION"] = "v1"
+        self.saved = {k: os.environ.get(k) for k in self.KEYS}
+        os.environ.update(REPLICATE_API_TOKEN="r8_secret", REPLICATE_TRYON_VERSION="v1",
+                          REPLICATE_TRYON_MODEL="acme/vton-pro", LENSIQ_TRYON_LICENSE="commercial")
 
     def tearDown(self):
-        os.environ.pop("REPLICATE_TRYON_VERSION", None)
-        if self.saved is None:
-            os.environ.pop("REPLICATE_API_TOKEN", None)
-        else:
-            os.environ["REPLICATE_API_TOKEN"] = self.saved
+        for k, v in self.saved.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
 
     def test_token_never_sent_to_foreign_poll_url(self):
         calls = []
@@ -165,7 +168,7 @@ class PinningTest(unittest.TestCase):
         for ln in reqs:
             self.assertRegex(ln, r"^[A-Za-z0-9_.\-]+==[0-9][0-9A-Za-z.\-]*( ; python_version [<>=]+ \"[0-9.]+\")?$", ln)
         names = {re.split("==", ln)[0].lower() for ln in reqs}
-        for direct in ("flask", "pdf2docx", "pymupdf", "anthropic", "werkzeug"):
+        for direct in ("flask", "pdfplumber", "python-docx", "anthropic", "werkzeug"):
             self.assertIn(direct, names)
 
 

@@ -19,7 +19,19 @@
  * <html lang> becomes "th" or "zh-Hans".
  * Dictionaries: i18n/zh-common.js (nav, footer, shared components) is loaded by nav.js; page dictionaries
  * i18n/zh-<page>.js may load before this file — they push into window.LQI18N_Q, drained here. See docs/I18N.md.
+ *
+ * Coverage (for translators / CI):
+ *   LQI18N.coverage(root?, {top, all}) -> {thai, cjk, pct, nodes, mixed, attrs, top:[{text, path, thai, mixed}]}
+ *                                  visible text + text attributes (placeholder/title/aria-label/alt) + <title>;
+ *                                  pct = Thai letters / (Thai + Chinese letters) * 100. Content that is meant to stay
+ *                                  Thai (sample data, Thai names) is excluded when marked lang="th" or translate="no".
+ *   ?i18n=debug (or localStorage "lq-i18n-debug" = "1") -> dev overlay in 中文 mode: Thai leftovers outlined in red,
+ *                                  a badge with the live Thai % (click it to log the list). tools/zh-coverage.mjs
+ *                                  runs the same measurement headless on every page.
  */
+/** @typedef {"th"|"zh"} LQLang */
+/** @typedef {{text: string, path: string, thai: number, mixed: boolean}} LQCoverageItem */
+/** @typedef {{thai: number, cjk: number, pct: number, nodes: number, mixed: number, attrs: number, top: LQCoverageItem[]}} LQCoverage */
 (function (root) {
   "use strict";
   if (root.LQI18N && root.LQI18N.__core) return;
@@ -28,10 +40,12 @@
   var LABEL = { th: "ไทย", zh: "中文" };
   var KEY = "lq-lang";
   var dicts = { th: {}, zh: {} };
+  /** @type {LQLang} */
   var cur = "th";
   var orig = typeof WeakMap !== "undefined" ? new WeakMap() : null; // element -> {text, attrs:{}} Thai originals
   var doc = root.document;
 
+  /** @param {*} l @returns {LQLang|null} */
   function norm(l) {
     l = String(l || "").toLowerCase();
     if (l.indexOf("zh") === 0 || l === "cn" || l === "中文") return "zh";
@@ -54,6 +68,12 @@
     return s.replace(/\{(\w+)\}/g, function (m, k) { return Object.prototype.hasOwnProperty.call(vars, k) && vars[k] != null ? String(vars[k]) : m; });
   }
   function has(key, l) { return Object.prototype.hasOwnProperty.call(dicts[norm(l) || cur], key); }
+  /**
+   * @param {string} key dictionary key (a Thai sentence can be its own key)
+   * @param {Object<string, *>} [vars] values for {name} placeholders
+   * @param {string} [l] language, default = current
+   * @returns {string}
+   */
   function t(key, vars, l) {
     l = norm(l) || cur;
     key = String(key);
@@ -132,6 +152,11 @@
     if (typeof root.dispatchEvent !== "function" || typeof root.CustomEvent !== "function") return;
     try { root.dispatchEvent(new root.CustomEvent("lq-lang", { detail: { lang: cur, prev: prev, init: !!init } })); } catch (e) { /* ignore */ }
   }
+  /**
+   * @param {*} l "th" | "zh" (also "zh-Hans", "cn", "中文")
+   * @param {{persist?: boolean, force?: boolean, init?: boolean}} [opts]
+   * @returns {LQLang}
+   */
   function setLang(l, opts) {
     l = norm(l);
     if (!l) return cur;
@@ -145,6 +170,110 @@
     return cur;
   }
 
+  // ---------- coverage measurement + dev overlay ----------
+  var TH1 = /[\u0E00-\u0E7F]/, TH_RE = /[\u0E00-\u0E7F]/g, ZH_RE = /[\u3400-\u9FFF\uF900-\uFAFF]/g;
+  var SKIP_TAGS = { SCRIPT: 1, STYLE: 1, NOSCRIPT: 1, TEMPLATE: 1, TEXTAREA: 1 };
+  var KEEP_SEL = "[lang^=th],[translate=no],#lq-i18n-debug";
+  function count(s, re) { var m = s.match(re); return m ? m.length : 0; }
+  function shortPath(el) {
+    var parts = [];
+    for (var e = el, i = 0; e && e.nodeType === 1 && i < 4; e = e.parentElement, i++) {
+      var p = e.tagName.toLowerCase();
+      if (e.id) { parts.unshift(p + "#" + e.id); break; }
+      var cls = typeof e.className === "string" ? e.className.trim().split(/\s+/).filter(function (c) { return c && c.indexOf("lq-") !== 0; })[0] : "";
+      parts.unshift(cls ? p + "." + cls : p);
+    }
+    return parts.join(">");
+  }
+  function shown(el) {
+    if (!el || !el.getClientRects || !el.getClientRects().length) return false;
+    var cs = root.getComputedStyle ? root.getComputedStyle(el) : null;
+    return !cs || (cs.visibility !== "hidden" && cs.display !== "none");
+  }
+  /** @param {Element} [scope] @param {{top?: number, all?: boolean}} [opts] all = include hidden text (closed menus, dialogs) @returns {LQCoverage} */
+  function coverage(scope, opts) {
+    var vis = opts && opts.all ? function () { return true; } : shown;
+    var res = { thai: 0, cjk: 0, pct: 0, nodes: 0, mixed: 0, attrs: 0, top: [] };
+    if (!doc || !doc.body) return res;
+    scope = scope || doc.body;
+    var byEl = typeof Map !== "undefined" ? new Map() : null, list = [];
+    function note(el, text, th, zh) {
+      res.thai += th; res.cjk += zh;
+      if (!th) return;
+      res.nodes++;
+      if (zh) res.mixed++;
+      var it = byEl && byEl.get(el);
+      if (!it) { it = { text: "", path: shortPath(el), thai: 0, mixed: false }; if (byEl) byEl.set(el, it); list.push(it); }
+      it.thai += th; it.mixed = it.mixed || !!zh;
+      if (it.text.length < 80) it.text = (it.text ? it.text + " " : "") + text.replace(/\s+/g, " ").trim().slice(0, 80 - it.text.length);
+    }
+    var walker = doc.createTreeWalker(scope, 4), n;
+    while ((n = walker.nextNode())) {
+      var el = n.parentElement, v = n.nodeValue;
+      if (!el || !v || !v.trim() || SKIP_TAGS[el.tagName] || el.closest(KEEP_SEL) || !vis(el)) continue;
+      note(el, v, count(v, TH_RE), count(v, ZH_RE));
+    }
+    var attrEls = scope.querySelectorAll("[placeholder],[title],[aria-label],img[alt],input[type=button][value],input[type=submit][value]");
+    for (var i = 0; i < attrEls.length; i++) {
+      var a = attrEls[i];
+      if (a.closest(KEEP_SEL) || !vis(a)) continue;
+      ["placeholder", "title", "aria-label", "alt", "value"].forEach(function (name) {
+        if (name === "value" && a.tagName !== "INPUT") return;
+        var val = a.getAttribute(name);
+        if (!val) return;
+        var th = count(val, TH_RE);
+        if (th) res.attrs++;
+        note(a, "[" + name + "] " + val, th, count(val, ZH_RE));
+      });
+    }
+    if (scope === doc.body && doc.title) note(doc.documentElement, "<title> " + doc.title, count(doc.title, TH_RE), count(doc.title, ZH_RE));
+    res.pct = res.thai + res.cjk ? Math.round(1000 * res.thai / (res.thai + res.cjk)) / 10 : 0;
+    res.top = list.sort(function (x, y) { return y.thai - x.thai; }).slice(0, (opts && opts.top) || 15);
+    return res;
+  }
+
+  var dbg = null;
+  function debugOn() {
+    var q = ""; try { q = new URLSearchParams(root.location && root.location.search || "").get("i18n") || ""; } catch (e) { q = ""; }
+    if (q === "debug") return true;
+    try { return !!root.localStorage && root.localStorage.getItem("lq-i18n-debug") === "1"; } catch (e) { return false; }
+  }
+  function debugOverlay() {
+    if (!doc || !doc.body || dbg) return;
+    dbg = { badge: doc.createElement("button"), marked: [], timer: 0, last: null };
+    var b = dbg.badge;
+    b.id = "lq-i18n-debug"; b.type = "button"; b.setAttribute("translate", "no");
+    b.style.cssText = "position:fixed;left:8px;bottom:8px;z-index:2147483647;padding:6px 10px;border:0;border-radius:8px;font:600 12px/1.2 system-ui,sans-serif;color:#fff;background:#be123c;box-shadow:0 2px 8px rgba(0,0,0,.3);cursor:pointer";
+    b.addEventListener("click", function () { if (root.console && dbg.last) root.console.table(dbg.last.top); });
+    doc.body.appendChild(b);
+    var run = function () {
+      dbg.timer = 0;
+      dbg.marked.forEach(function (el) { el.style.outline = el.getAttribute("data-lq-ol") || ""; el.removeAttribute("data-lq-ol"); });
+      dbg.marked = [];
+      if (cur === "th") { b.textContent = "i18n debug: switch to 中文"; b.style.background = "#334155"; return; }
+      var r = dbg.last = coverage(doc.body, { top: 500 });
+      b.textContent = "TH " + r.pct + "% · " + r.nodes + " nodes" + (r.mixed ? " · " + r.mixed + " mixed" : "");
+      b.style.background = r.pct === 0 ? "#047857" : "#be123c";
+      var all = doc.body.querySelectorAll("*");
+      for (var i = 0; i < all.length; i++) {
+        var el = /** @type {HTMLElement} */ (all[i]);
+        if (el === b || el.closest(KEEP_SEL) || SKIP_TAGS[el.tagName]) continue;
+        var own = false;
+        for (var c = el.firstChild; c; c = c.nextSibling) if (c.nodeType === 3 && TH1.test(c.nodeValue)) { own = true; break; }
+        if (!own || !shown(el)) continue;
+        el.setAttribute("data-lq-ol", el.style.outline || "");
+        el.style.outline = "2px dashed #e11d48";
+        dbg.marked.push(el);
+      }
+    };
+    var later = function () { if (!dbg.timer) dbg.timer = setTimeout(run, 400); };
+    if (typeof MutationObserver !== "undefined") new MutationObserver(function (recs) {
+      for (var i = 0; i < recs.length; i++) if (recs[i].target !== b && !(recs[i].type === "attributes")) { later(); return; }
+    }).observe(doc.body, { childList: true, subtree: true, characterData: true });
+    root.addEventListener("lq-lang", later);
+    later();
+  }
+
   var api = {
     __core: true,
     LANGS: LANGS.slice(), LABEL: LABEL, HTML_LANG: HTML_LANG,
@@ -153,6 +282,7 @@
     set lang(v) { setLang(v); },
     /** a small helper for page code: text for the current language, with a Thai fallback when the key is unknown */
     tf: function (key, thai, vars) { return has(key) || has(key, "th") ? t(key, vars) : fill(thai, vars); },
+    coverage: coverage, debugOverlay: debugOverlay,
     _dicts: dicts,
     _reset: function () { dicts.th = {}; dicts.zh = {}; cur = "th"; if (observer) { observer.disconnect(); observer = null; } }
   };
@@ -173,5 +303,6 @@
     if (doc && doc.readyState === "loading") { cur = want; doc.addEventListener("DOMContentLoaded", function () { cur = "th"; start(); }); if (doc.documentElement) doc.documentElement.lang = HTML_LANG[want]; }
     else start();
   }
+  if (doc && debugOn()) { if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", debugOverlay); else debugOverlay(); }
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -75,6 +75,12 @@
 
   /** ประโยคเด่นสั้น ๆ สำหรับการ์ดแชร์ (เหมือน tarot.js/horoscope.js) */
   function keyLines(res, facts, n) {
+    if (res && res.lang === "zh") {
+      var zl = [];
+      ((res.summary && res.summary.lines) || []).forEach(function (l) { var t = String(l.t).split(/[：:]/).pop(); if (t.length >= 8 && t.length <= 34 && zl.length < n) zl.push(t); });
+      (res.sections || []).forEach(function (s) { (s.paragraphs || []).forEach(function (p) { p.split(/(?<=。)/).forEach(function (x) { x = x.replace(/。$/, ""); var t = x.split("，").slice(-1)[0]; if (zl.length < n && t.length >= 8 && t.length <= 30 && zl.indexOf(t) < 0) zl.push(t); }); }); });
+      return zl.slice(0, n);
+    }
     var secs = (res && res.sections) || [], ov = secs.find(function (s) { return s.id === "overview"; }) || secs[0];
     var text = ov ? ov.paragraphs.join(" ") : "", all = secs.map(function (s) { return s.paragraphs.join(" "); }).join(" ");
     var cand = [];
@@ -103,6 +109,11 @@
   /* ================================ เบราว์เซอร์ ================================ */
   if (typeof document === "undefined") return;
 
+  var T = K.T = function (key, thai, vars) {
+    if (root.LQI18N && typeof root.LQI18N.tf === "function") return root.LQI18N.tf(key, thai, vars);
+    return String(thai).replace(/\{(\w+)\}/g, function (m, k) { return vars && vars[k] != null ? vars[k] : m; });
+  };
+  K.isZh = function () { return !!(root.LQI18N && root.LQI18N.lang === "zh"); };
   var esc = K.esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   K.$ = function (s) { return document.querySelector(s); };
   K.lsGet = function (k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
@@ -121,15 +132,15 @@
   K.readingBlock = function (id, title, withTopics, topic) {
     topic = topic || "overall";
     return '<section class="fk-reading" id="' + id + '" aria-labelledby="' + id + '-h"><div class="rd-head"><h3 id="' + id + '-h">' + esc(title) + '</h3><span class="rd-src" id="' + id + '-src"></span></div>' +
-      (withTopics ? '<div class="rd-topics" role="radiogroup" aria-label="หัวข้อที่สนใจ">' + TOPICS.map(function (t) { return '<button type="button" role="radio" data-topic="' + t[0] + '" aria-checked="' + (t[0] === topic) + '">' + t[1] + "</button>"; }).join("") + "</div>" : "") +
-      '<div class="rd-consent" id="' + id + '-consent"></div><div class="rd-body" id="' + id + '-body" aria-live="polite"><p class="muted">กำลังเรียบเรียงคำทำนาย…</p></div>' +
-      '<div class="rd-actions"><button type="button" class="btn ghost" id="' + id + '-again">อ่านอีกสำนวน</button></div></section>';
+      (withTopics ? '<div class="rd-topics" role="radiogroup" aria-label="' + esc(T("fk.topics", "หัวข้อที่สนใจ")) + '">' + TOPICS.map(function (t) { return '<button type="button" role="radio" data-topic="' + t[0] + '" aria-checked="' + (t[0] === topic) + '">' + esc(T("fk.topic." + t[0], t[1])) + "</button>"; }).join("") + "</div>" : "") +
+      '<div class="rd-consent" id="' + id + '-consent"></div><div class="rd-body" id="' + id + '-body" aria-live="polite"><p class="muted">' + esc(T("fk.loading", "กำลังเรียบเรียงคำทำนาย…")) + '</p></div>' +
+      '<div class="rd-actions"><button type="button" class="btn ghost" id="' + id + '-again">' + esc(T("fk.again", "อ่านอีกสำนวน")) + '</button></div></section>';
   };
   function plainRender(el, res) {
     el.innerHTML = (res.sections || []).map(function (s) { return '<section class="fa-section"><h3>' + esc(s.title || "") + "</h3>" + (s.paragraphs || []).map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("") + "</section>"; }).join("");
   }
   function localFallback(facts) {
-    var sec = { id: "overview", title: "ภาพรวม", paragraphs: [] };
+    var sec = { id: "overview", title: T("fa.sec.overview", "ภาพรวม"), paragraphs: [] };
     (facts.items || []).slice(0, 6).forEach(function (it) { var k = Object.keys(it.meanings || {})[0]; if (k) sec.paragraphs.push(it.label + " — " + it.meanings[k][0]); });
     return { source: "local", sections: [sec] };
   }
@@ -151,7 +162,7 @@
         res = relabel(res, domain, sent);
         st.result = res; st.facts = facts; st.lines = keyLines(res, facts, 3);
         if (FA && FA.renderSections) FA.renderSections(body, res, { aiBadge: false }); else plainRender(body, res);
-        src.textContent = res.source === "ai" ? "เรียบเรียงโดย AI (Claude)" : "เรียบเรียงในเครื่อง · สำนวนใหม่ทุกครั้ง";
+        src.textContent = res.source === "ai" ? T("fk.src.ai", "เรียบเรียงโดย AI (Claude)") : T("fk.src.local", "เรียบเรียงในเครื่อง · สำนวนใหม่ทุกครั้ง");
         src.className = "rd-src" + (res.source === "ai" ? " ai" : "");
         box.removeAttribute("aria-busy");
         if (opts.onDone) opts.onDone(st);
@@ -173,7 +184,8 @@
 
   /* ---------- การ์ดแชร์ 1080×1350 ---------- */
   K.wrapTh = function (c, text, maxW) {
-    var segs = (typeof Intl !== "undefined" && Intl.Segmenter) ? Array.from(new Intl.Segmenter("th", { granularity: "word" }).segment(text), function (s) { return s.segment; }) : String(text).split("");
+    var zh = /[\u4e00-\u9fff]/.test(text) && !/[\u0E00-\u0E7F]/.test(text);
+    var segs = zh ? String(text).split("") : (typeof Intl !== "undefined" && Intl.Segmenter) ? Array.from(new Intl.Segmenter("th", { granularity: "word" }).segment(text), function (s) { return s.segment; }) : String(text).split("");
     var lines = [], cur = "";
     segs.forEach(function (sg) { if (c.measureText(cur + sg).width > maxW && cur) { lines.push(cur.trim()); cur = sg.trimStart(); } else cur += sg; });
     if (cur.trim()) lines.push(cur.trim());
@@ -220,7 +232,7 @@
       ls.forEach(function (l, j) { c.fillText(l, W / 2, yy + boxH / 2 + (j - (ls.length - 1) / 2) * (fs * 1.35)); });
     });
     c.font = "400 24px " + F; c.fillStyle = "#8f9bc4";
-    K.wrapTh(c, opt.foot || "เพื่อความบันเทิงตามความเชื่อ ไม่ใช่วิทยาศาสตร์", W - 160).slice(0, 2).forEach(function (l, k) { c.fillText(l, W / 2, 1290 + k * 30); });
+    K.wrapTh(c, opt.foot || T("fk.card.foot", "เพื่อความบันเทิงตามความเชื่อ ไม่ใช่วิทยาศาสตร์"), W - 160).slice(0, 2).forEach(function (l, k) { c.fillText(l, W / 2, 1290 + k * 30); });
     return cv;
   };
   var cardUrls = {};
@@ -236,12 +248,12 @@
       var file = new File([blob], fileName, { type: "image/jpeg" });
       btn.disabled = false;
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: shareTitle || "LENSIQ", text: "เพื่อความบันเทิงตามความเชื่อ" }); return; }
+        try { await navigator.share({ files: [file], title: shareTitle || "LENSIQ", text: T("fk.share.text", "เพื่อความบันเทิงตามความเชื่อ") }); return; }
         catch (e) { if (e.name === "AbortError") return; }
       }
       var a = document.createElement("a"); a.href = url; a.download = fileName; document.body.append(a); a.click(); a.remove();
-      K.toast("บันทึกการ์ดแล้ว");
-    } catch (e) { console.warn(e); K.toast("สร้างการ์ดไม่สำเร็จ"); }
+      K.toast(T("fk.card.saved", "บันทึกการ์ดแล้ว"));
+    } catch (e) { console.warn(e); K.toast(T("fk.card.fail", "สร้างการ์ดไม่สำเร็จ")); }
     finally { btn.disabled = false; }
   };
 
@@ -257,7 +269,7 @@
       var until = Date.now() + ms;
       idleTick = setInterval(function () {
         var left = Math.ceil((until - Date.now()) / 1000);
-        if (left <= 15) { idle.hidden = false; idle.textContent = "กลับหน้าเริ่มต้นใน " + left + " วินาที — แตะเพื่ออยู่ต่อ"; }
+        if (left <= 15) { idle.hidden = false; idle.textContent = T("fk.idle", "กลับหน้าเริ่มต้นใน {n} วินาที — แตะเพื่ออยู่ต่อ", { n: left }); }
       }, 1000);
       idleT = setTimeout(function () { clearInterval(idleTick); idle.hidden = true; o.reset(); window.scrollTo(0, 0); }, ms);
     }
@@ -286,13 +298,14 @@
     var box = document.getElementById(o.box), tg = document.getElementById(o.toggle), cl = document.getElementById(o.clear);
     function render() {
       var s = K.lsGet(o.key, null);
-      if (!s || !s.total) { box.innerHTML = '<p class="muted">ยังไม่มีข้อมูลในเครื่องนี้</p>'; return; }
-      box.innerHTML = '<p class="stat-n"><b>' + s.total + "</b> ครั้ง <small>(วันนี้ " + ((s.days || {})[dayKey()] || 0) + ")</small></p>" + (o.render ? o.render(s) : "");
+      if (!s || !s.total) { box.innerHTML = '<p class="muted">' + esc(T("fk.stats.empty", "ยังไม่มีข้อมูลในเครื่องนี้")) + "</p>"; return; }
+      box.innerHTML = '<p class="stat-n"><b>' + s.total + "</b> " + esc(T("fk.stats.times", "ครั้ง")) + " <small>(" + esc(T("fk.stats.today", "วันนี้ {n}", { n: (s.days || {})[dayKey()] || 0 })) + ")</small></p>" + (o.render ? o.render(s) : "");
     }
     tg.checked = !!prefs.stats;
     tg.addEventListener("change", function () { prefs.stats = tg.checked; K.lsSet(o.prefKey, prefs); });
-    cl.addEventListener("click", function () { if (confirm("ล้างสถิติในเครื่องนี้?")) { try { localStorage.removeItem(o.key); } catch (e) { /* ไม่เป็นไร */ } render(); } });
+    cl.addEventListener("click", function () { if (confirm(T("fk.stats.clear", "ล้างสถิติในเครื่องนี้?"))) { try { localStorage.removeItem(o.key); } catch (e) { /* ไม่เป็นไร */ } render(); } });
     render();
+    if (root.addEventListener) root.addEventListener("lq-lang", render);
     return {
       add: function (dims) { if (!prefs.stats) return; K.lsSet(o.key, addStat(K.lsGet(o.key, null), dims)); render(); },
       enabled: function () { return !!prefs.stats; }, render: render

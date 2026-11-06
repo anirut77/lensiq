@@ -1,4 +1,4 @@
-"""เซิร์ฟเวอร์เว็บ + API แปลง PDF -> DOCX (คงเลย์เอาต์ด้วย pdf2docx)
+"""เซิร์ฟเวอร์เว็บ + API แปลง PDF -> DOCX (pdfconvert.py: ค่าเริ่มใช้ไลบรารี MIT/BSD ; pdf2docx/AGPL เป็น opt-in)
 
 รัน:  .venv/bin/python server.py   แล้วเปิด http://localhost:8000
 
@@ -14,57 +14,20 @@
   LENSIQ_API_ALLOW_ORIGIN                 Origin เพิ่มเติมที่เรียก /api/convert, /api/tryon ได้ (ค่าเริ่ม = ต้นทางเดียวกันเท่านั้น)
   LENSIQ_API_RPM (60), LENSIQ_CONVERT_RPM (6), LENSIQ_TRYON_RPM (4), LENSIQ_FORTUNE_RPM (10), LENSIQ_FORTUNE_DAILY_MAX (500)
   LENSIQ_CONVERT_MAX_MB (50), LENSIQ_TRYON_MAX_MB (20)
+  LENSIQ_CONVERT_ENGINE                   permissive (ค่าเริ่ม, MIT/BSD) | pdf2docx (AGPL/GPL — opt-in, ดู pdfconvert.py)
+  REPLICATE_API_TOKEN + REPLICATE_TRYON_MODEL + LENSIQ_TRYON_LICENSE   /api/tryon (ปิดเป็นค่าเริ่ม — ดู tryon.py)
   LENSIQ_CSP_CONNECT                      ต้นทางเพิ่มใน CSP connect-src (เช่น LENSIQ_API_BASE ที่โฮสต์แยก), LENSIQ_CSP=off ปิด CSP
   /api/agg: LENSIQ_AGG_ALLOW_ANY, LENSIQ_AGG_ALLOW_ORIGIN, LENSIQ_AGG_RPM, LENSIQ_DATA_DIR (ดูหัวข้อ /api/agg)
 """
-import os, re, tempfile, ipaddress, threading, time
+import logging, os, re, tempfile, ipaddress, threading, time
 from collections import deque
 from flask import Flask, request, send_file, jsonify, send_from_directory
-from pdf2docx import Converter
-
-import fitz
-from pdf2docx.font.Fonts import Fonts
-
-# PDF บางไฟล์อ้างอิงฟอนต์ที่ไม่มีอยู่จริง (เช่น "0 0 R") ทำให้ pdf2docx ล้มทั้งไฟล์
-# -> ให้ข้ามฟอนต์ที่อ่านไม่ได้ แล้วแปลงต่อ
-_orig_extract = Fonts.extract.__func__
-
-
-class _SafeDoc:
-    def __init__(self, doc): self.doc = doc
-    def __iter__(self): return iter(self.doc)
-
-    def extract_font(self, xref):
-        try:
-            return self.doc.extract_font(xref)
-        except Exception:
-            return ("", "n/a", "", b"")
-
-
-Fonts.extract = classmethod(lambda cls, doc: _orig_extract(cls, _SafeDoc(doc)))
-
-
-def run_convert(src, dst):
-    cv = Converter(src)
-    try:
-        cv.convert(dst)
-    finally:
-        cv.close()
+import pdfconvert
 
 
 def convert_with_repair(src, dst, tmp):
-    """แปลงตรง ๆ ก่อน ถ้าล้มให้ซ่อมโครงสร้าง PDF แล้วลองอีกครั้ง"""
-    try:
-        run_convert(src, dst)
-    except Exception as e:  # ไม่ log เนื้อหาไฟล์/เส้นทาง — เฉพาะชนิดข้อผิดพลาด
-        app.logger.info("convert: first pass failed (%s), repairing", type(e).__name__)
-        fixed = os.path.join(tmp, "fixed.pdf")
-        doc = fitz.open(src)
-        if doc.needs_pass:
-            raise
-        doc.save(fixed, garbage=4, clean=True, deflate=True)
-        doc.close()
-        run_convert(fixed, dst)
+    """PDF -> DOCX ด้วยเอนจินใน pdfconvert.py (ค่าเริ่ม = permissive/MIT ; pdf2docx/AGPL ต้องเปิดเอง)"""
+    pdfconvert.convert(src, dst, tmp)
 
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -82,7 +45,7 @@ def no_cache(resp):
 # หัวข้อความปลอดภัย (ทุกคำตอบ) — GitHub Pages ไม่ได้ใช้ไฟล์นี้ จึงไม่กระทบเว็บแบบไฟล์นิ่ง
 #   CSP: ทุกหน้าไม่มี <script> แบบ inline / on*="" (ตรวจแล้ว) จึงใช้ script-src 'self' ได้
 #        'wasm-unsafe-eval' สำหรับ TF.js / MediaPipe / onnxruntime (WASM), style 'unsafe-inline' เพราะมี style="" ใน HTML/JS
-#        ฟอนต์จาก fonts.googleapis.com / fonts.gstatic.com, รูป/วิดีโอจาก data: และ blob: (การ์ดแชร์, ไฟล์ที่ผู้ใช้เลือก)
+#        ฟอนต์โฮสต์เอง (vendor/fonts/ — ไม่มีคำขอไป Google), รูป/วิดีโอจาก data: และ blob: (การ์ดแชร์, ไฟล์ที่ผู้ใช้เลือก)
 #   LENSIQ_CSP_CONNECT  ต้นทางเพิ่มเติมที่หน้าเว็บเรียก fetch ได้ (คั่นด้วยจุลภาค) เช่น LENSIQ_API_BASE ที่โฮสต์แยก
 #   LENSIQ_CSP=off      ปิด CSP (ใช้แก้ปัญหาชั่วคราวเท่านั้น)
 # ---------------------------------------------------------------------------
@@ -92,8 +55,8 @@ def _csp():
     return "; ".join([
         "default-src 'self'",
         "script-src 'self' 'wasm-unsafe-eval'",
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-        "font-src 'self' https://fonts.gstatic.com data:",
+        "style-src 'self' 'unsafe-inline'",
+        "font-src 'self' data:",
         "img-src 'self' data: blob:",
         "media-src 'self' data: blob:",
         ("connect-src 'self' data: blob: " + extra).strip(),
@@ -274,7 +237,7 @@ def api_guard():
 
 
 # ไฟล์ที่ไม่ใช่หน้าเว็บ: ซอร์สเซิร์ฟเวอร์, ใบรับรอง, ข้อมูล, log, เครื่องมือพัฒนา, โฟลเดอร์ซ่อน (.git .venv .github)
-_DENY_PREFIX = (".", "server.py", "tryon.py", "logs", "certs", "requirements", "start.sh", "data", "tests", "tools",
+_DENY_PREFIX = (".", "server.py", "tryon.py", "pdfconvert.py", "logs", "certs", "requirements", "start.sh", "data", "tests", "tools",
                 "node_modules", "__pycache__", "package.json", "package-lock.json", "eslint.config")
 _DENY_SUFFIX = (".py", ".pyc", ".sh", ".pem", ".key", ".crt", ".log", ".env", ".sqlite", ".db")
 
@@ -331,7 +294,13 @@ def convert():
             convert_with_repair(src, dst, tmp)
         except Exception as e:  # ไฟล์เสีย/มีรหัสผ่าน ฯลฯ — ไม่ส่ง/ไม่ log รายละเอียดภายใน
             app.logger.warning("convert: failed (%s)", type(e).__name__)
-            msg = "ไฟล์มีรหัสผ่าน ไม่รองรับ" if "password" in str(e).lower() else "แปลงไม่สำเร็จ ไฟล์อาจเสียหายหรือมีโครงสร้างที่ไม่รองรับ"
+            kind = (type(e).__name__ + " " + str(e)).lower()
+            if isinstance(e, pdfconvert.ConvertError):
+                msg = str(e)
+            elif "password" in kind or "encrypt" in kind:
+                msg = "ไฟล์มีรหัสผ่าน ไม่รองรับ"
+            else:
+                msg = "แปลงไม่สำเร็จ ไฟล์อาจเสียหายหรือมีโครงสร้างที่ไม่รองรับ"
             return jsonify(error=msg), 422
         # อ่านเข้าหน่วยความจำก่อน เพราะโฟลเดอร์ชั่วคราวจะถูกลบเมื่อออกจาก with
         with open(dst, "rb") as fh:
@@ -346,8 +315,12 @@ import tryon
 
 @app.get("/api/tryon/status")
 def tryon_status():
-    cfg = tryon.config()
-    return jsonify(enabled=bool(cfg["token"]), model=cfg["model"], provider="Replicate")
+    return jsonify(tryon.status())
+
+
+@app.get("/api/convert/status")
+def convert_status():
+    return jsonify(pdfconvert.status())
 
 
 def _is_image(b):
@@ -357,7 +330,7 @@ def _is_image(b):
 @app.post("/api/tryon")
 def tryon_run():
     if not tryon.enabled():
-        return jsonify(error="ระบบ AI ยังไม่เปิดใช้งาน (ยังไม่ได้ตั้งค่า API key)"), 503
+        return jsonify(error=tryon.disabled_message(), reason=tryon.status()["reason"]), 503
     if request.form.get("consent") != "yes":
         return jsonify(error="ต้องได้รับความยินยอมก่อนส่งรูปไปประมวลผล"), 400
     human, garment = request.files.get("human"), request.files.get("garment")
@@ -1223,6 +1196,9 @@ def agg_delete(nid):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    pdfconvert.startup_warning()
+    tryon.startup_warning()
     if os.environ.get("LENSIQ_MOBILE") == "1":
         # โหมดมือถือ: เปิดให้เครื่องอื่นในวง LAN เข้าได้ผ่าน HTTPS (กล้องบนมือถือต้องใช้ https)
         certs = os.path.join(ROOT, "certs")

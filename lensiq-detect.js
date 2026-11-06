@@ -24,6 +24,10 @@
  *   embedBox(model, src:canvas|video|img, box{x,y,w,h normalised}, {pad=0.04, canvas?}) -> Float32Array(1280)|null
  *     crops box (+pad on each side, clipped to the image) from src, resizes to 224x224, returns the AvgPool feature
  *     (not normalised; cosine() normalises). null when the crop is smaller than 4x8 px. Used by store.js and tests/bench.
+ *   loadYolox(url=YOLOX_DEFAULT) -> Promise<{kind:'yolox', session, S:416}>  YOLOX (Apache-2.0) on ORT Web WASM (vendor/ort, needs
+ *     window.ort); detectYolox(m, src, opts) same contract as detectCoco (+ split:'auto'); detectPeople(m, src, opts) dispatches.
+ *   decodeYolox(out, A, C5, S, {classes, minScore, iou, max, scale}) -> dets in letterboxed-source px (pure)
+ *   faceSharpness(src, box px) -> Laplacian variance of the face crop (quality gate)
  *   isTest() -> boolean   location.hostname in {localhost,127.0.0.1} && URLSearchParams has 'fakedet'
  *   fake(key, now) -> dets|null   isTest() ? (window.__LQ_FAKE_DET?.(key, now) ?? null) : null
  *     Pages call fake() before the real model; with ?fakedet they skip model loading entirely.
@@ -167,6 +171,103 @@
     return mergeTiles(full.concat(all), { iou: iouThr, max });
   }
 
+  /* ---------- YOLOX (Apache-2.0, Megvii) on ONNX Runtime Web (WASM, no WebGL) ----------
+   * Official YOLOX ONNX export: input "images" [1,3,S,S] BGR 0..255, letterboxed top-left on grey 114; output [1,A,85]
+   * = raw (dx,dy,log w,log h) per grid cell + sigmoid(obj) + sigmoid(80 COCO classes); strides 8/16/32. */
+  function decodeYolox(out, A, C5, S, { classes = [0], minScore = 0.4, iou: iouThr = 0.5, max = 20, scale = 1, strides = [8, 16, 32] } = {}) {
+    const cand = [];
+    let i = 0;
+    for (const st of strides) {
+      const g = Math.floor(S / st);
+      for (let gy = 0; gy < g; gy++) for (let gx = 0; gx < g; gx++, i++) {
+        if (i >= A) break;
+        const o = i * C5, obj = out[o + 4];
+        if (!(obj >= minScore)) continue;
+        let sc = -Infinity, cls = -1;
+        for (const k of classes) { const v = obj * out[o + 5 + k]; if (v > sc) { sc = v; cls = k; } }
+        if (!(sc >= minScore)) continue;
+        const cx = (out[o] + gx) * st, cy = (out[o + 1] + gy) * st, w = Math.exp(out[o + 2]) * st, h = Math.exp(out[o + 3]) * st;
+        // back to the un-letterboxed source pixels (divide by scale), then the caller normalises
+        cand.push({ x: (cx - w / 2) / scale, y: (cy - h / 2) / scale, w: w / scale, h: h / scale, score: sc, cls });
+      }
+    }
+    return nms(cand, iouThr, max);
+  }
+  const YOLOX_DEFAULT = "vendor/models/yolox/yolox_tiny_416.onnx";
+  function ortReady() {
+    const ort = root.ort;
+    if (!ort) throw new Error("ไม่พบไลบรารี vendor/ort/ort.wasm.min.js");
+    try {
+      ort.env.wasm.wasmPaths = new URL("vendor/ort/", location.href).href;
+      ort.env.wasm.numThreads = root.crossOriginIsolated ? Math.min(4, (root.navigator && navigator.hardwareConcurrency) || 1) : 1;
+    } catch (e) { console.warn("ort env", e); }
+    return ort;
+  }
+  /* loadYolox(url) -> Promise<{kind:'yolox', session, S}> cached per URL, warmed up once */
+  function loadYolox(url = YOLOX_DEFAULT) {
+    const href = new URL(url, location.href).href;
+    if (models.has(href)) return models.get(href);
+    const p = (async () => {
+      const ort = ortReady();
+      const session = await ort.InferenceSession.create(href, { executionProviders: ["wasm"], graphOptimizationLevel: "all" });
+      const S = 416;
+      const r = await session.run({ [session.inputNames[0]]: new ort.Tensor("float32", new Float32Array(3 * S * S).fill(114), [1, 3, S, S]) });
+      Object.values(r).forEach(t => t.dispose && t.dispose());
+      return { kind: "yolox", session, S };
+    })();
+    models.set(href, p);
+    p.catch(() => models.delete(href));
+    return p;
+  }
+  let yxCanvas = null, yxBuf = null;
+  async function runYolox(m, src, rect, W, H, opts) {
+    const ort = root.ort, S = m.S;
+    const rx = rect.x * W, ry = rect.y * H, rw = rect.w * W, rh = rect.h * H;
+    const scale = Math.min(S / rw, S / rh), dw = Math.max(1, Math.round(rw * scale)), dh = Math.max(1, Math.round(rh * scale));
+    const c = yxCanvas || (yxCanvas = document.createElement("canvas"));
+    if (c.width !== S || c.height !== S) { c.width = S; c.height = S; }
+    const x = c.getContext("2d", { willReadFrequently: true });
+    x.fillStyle = "rgb(114,114,114)"; x.fillRect(0, 0, S, S);
+    x.drawImage(src, rx, ry, rw, rh, 0, 0, dw, dh);
+    const px = x.getImageData(0, 0, S, S).data, n = S * S;
+    const buf = yxBuf && yxBuf.length === 3 * n ? yxBuf : (yxBuf = new Float32Array(3 * n));
+    for (let i = 0, j = 0; i < n; i++, j += 4) { buf[i] = px[j + 2]; buf[n + i] = px[j + 1]; buf[2 * n + i] = px[j]; } // BGR planes
+    const res = await m.session.run({ [m.session.inputNames[0]]: new ort.Tensor("float32", buf, [1, 3, S, S]) });
+    const t = res[m.session.outputNames[0]];
+    try {
+      const e = 0.01;
+      return decodeYolox(t.data, t.dims[1], t.dims[2], S, { ...opts, scale })
+        .map(d => { // clip to the drawn area, normalise to the rect
+          const x1 = Math.max(0, d.x) / rw, y1 = Math.max(0, d.y) / rh, x2 = Math.min(rw, d.x + d.w) / rw, y2 = Math.min(rh, d.y + d.h) / rh;
+          return { ...d, x: x1, y: y1, w: x2 - x1, h: y2 - y1 };
+        })
+        .filter(d => d.w > 0 && d.h > 0)
+        .filter(d => !((rect.x > 0 && d.x <= e) || (rect.x + rect.w < 0.999 && d.x + d.w >= 1 - e) || (rect.y > 0 && d.y <= e) || (rect.y + rect.h < 0.999 && d.y + d.h >= 1 - e)))
+        .map(d => ({ ...d, x: rect.x + d.x * rect.w, y: rect.y + d.y * rect.h, w: d.w * rect.w, h: d.h * rect.h }));
+    } finally { Object.values(res).forEach(v => v.dispose && v.dispose()); }
+  }
+  /* detectYolox(m, src, {detW, classes, minScore, iou, max, canvas, tiles, split}) — same contract as detectCoco.
+   * The source is also drawn detW wide into `canvas` (store re-ID crops from it). split:'auto' runs 2 overlapping
+   * square-ish halves instead of one letterboxed pass when the frame is wider than 4:3 (a 16:9 frame letterboxed to 416²
+   * wastes 44% of the input), so people keep ~1.8× more pixels for the same 2 model runs as COCO-SSD 2×1 tiles. */
+  async function detectYolox(m, src, { detW = 416, classes = [0], minScore = 0.4, iou: iouThr = 0.5, max = 20, canvas, tiles = null, split = null } = {}) {
+    const W = src.videoWidth || src.naturalWidth || src.width, H = src.videoHeight || src.naturalHeight || src.height;
+    if (!W || !H) return [];
+    const c = canvas || sharedCanvas || (sharedCanvas = document.createElement("canvas"));
+    const sw = Math.max(1, Math.round(Math.min(detW, W))), sh = Math.max(1, Math.round(H * sw / W));
+    if (c.width !== sw || c.height !== sh) { c.width = sw; c.height = sh; }
+    c.getContext("2d", { willReadFrequently: true }).drawImage(src, 0, 0, W, H, 0, 0, sw, sh);
+    const opts = { classes, minScore, iou: iouThr, max: 100 };
+    let rects = [{ x: 0, y: 0, w: 1, h: 1 }];
+    if (tiles && tiles.cols * tiles.rows > 1) rects = rects.concat(tileRects(tiles.cols, tiles.rows, tiles.overlap != null ? tiles.overlap : 0.2));
+    else if (split === "auto" && W / H > 1.5) rects = tileRects(2, 1, 0.2);
+    const all = [];
+    for (const r of rects) all.push(...await runYolox(m, src, r, W, H, opts));
+    return rects.length === 1 ? all.slice(0, max) : mergeTiles(all, { iou: iouThr, max });
+  }
+  /* detectPeople(model, src, opts): COCO-SSD GraphModel or a loadYolox() handle */
+  function detectPeople(model, src, opts) { return model && model.kind === "yolox" ? detectYolox(model, src, opts) : detectCoco(model, src, opts); }
+
   const EMB_NODE = "module_apply_default/MobilenetV2/Logits/AvgPool";
   function loadEmbedder(url = "vendor/models/mobilenet/model.json") {
     const href = new URL(url, location.href).href;
@@ -197,6 +298,25 @@
     try { return Float32Array.from(out.dataSync()); } finally { out.dispose(); }
   }
 
+  /* faceSharpness(src, box{x,y,w,h px}) -> number  variance of the 4-neighbour Laplacian on a 64×64 grey crop of the face
+   * (0..~2000; < ~40 = blurred or motion-smeared). Used as a quality gate before face matching (LQTrack.faceQuality). */
+  let sharpCanvas = null;
+  function faceSharpness(src, box) {
+    if (!hasDOM || !box || !(box.w > 4 && box.h > 4)) return 0;
+    const N = 64, c = sharpCanvas || (sharpCanvas = document.createElement("canvas"));
+    if (c.width !== N) { c.width = N; c.height = N; }
+    const x = c.getContext("2d", { willReadFrequently: true });
+    try { x.drawImage(src, box.x + box.w * 0.15, box.y + box.h * 0.15, box.w * 0.7, box.h * 0.7, 0, 0, N, N); } catch { return 0; }
+    const d = x.getImageData(0, 0, N, N).data, g = new Float32Array(N * N);
+    for (let i = 0; i < N * N; i++) g[i] = 0.299 * d[4 * i] + 0.587 * d[4 * i + 1] + 0.114 * d[4 * i + 2];
+    let s = 0, s2 = 0, n = 0;
+    for (let y = 1; y < N - 1; y++) for (let xx = 1; xx < N - 1; xx++) {
+      const i = y * N + xx, l = g[i - 1] + g[i + 1] + g[i - N] + g[i + N] - 4 * g[i];
+      s += l; s2 += l * l; n++;
+    }
+    const m = s / n; return Math.round((s2 / n - m * m) * 10) / 10;
+  }
+
   function isTest() {
     try { return (location.hostname === "localhost" || location.hostname === "127.0.0.1") && params().has("fakedet"); }
     catch { return false; }
@@ -209,7 +329,7 @@
     return r == null ? null : r;
   }
 
-  const api = { tfBackend, hasWebGL, loadCoco, decodeCoco, nms, detectCoco, tileRects, mergeTiles, loadEmbedder, embedBox, EMB_NODE, isTest, fake };
+  const api = { tfBackend, hasWebGL, loadCoco, decodeCoco, nms, detectCoco, decodeYolox, loadYolox, detectYolox, detectPeople, YOLOX_DEFAULT, tileRects, mergeTiles, loadEmbedder, embedBox, EMB_NODE, faceSharpness, isTest, fake };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") root.LQDetect = api;
 })(typeof window !== "undefined" ? window : globalThis);

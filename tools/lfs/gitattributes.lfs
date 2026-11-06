@@ -1,0 +1,8 @@
+# Git LFS rules for LENSIQ — append to /.gitattributes during the migration (docs/LFS-MIGRATION.md step 3).
+# Only large binaries under vendor/. Small text (model.json, *.js, licences) and the 260 px tarot JPGs stay in git.
+vendor/models/**/*.onnx          filter=lfs diff=lfs merge=lfs -text
+vendor/models/**/*.task          filter=lfs diff=lfs merge=lfs -text
+vendor/models/**/*.tflite        filter=lfs diff=lfs merge=lfs -text
+vendor/models/**/*.bin           filter=lfs diff=lfs merge=lfs -text
+vendor/models/**/group1-shard*   filter=lfs diff=lfs merge=lfs -text
+vendor/**/*.wasm                 filter=lfs diff=lfs merge=lfs -text

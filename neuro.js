@@ -17,7 +17,7 @@ const fmtT = t => { const m = Math.floor(t / 60), s = Math.floor(t % 60); return
 const mean = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : null;
 
 const video = $("#video"), camDiv = video.parentElement, camOverlay = $("#camOverlay");
-let ready = false, busy = false;
+let ready = false;
 let sessions = [];
 try { sessions = JSON.parse(localStorage.getItem(STORE_KEY)) || []; } catch { sessions = []; }
 const mediaURLs = new Map(); // id -> objectURL (ใช้ย้อนดูสื่อได้ในรอบการใช้งานนี้)

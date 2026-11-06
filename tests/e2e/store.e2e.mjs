@@ -129,6 +129,10 @@ export default async function ({ base, launch, check, fakeCams }) {
         await page.evaluate(() => document.getElementById("startCam").click());
         await page.waitFor(`__ST.running && __ST.hub.cams.length === 2`, 60000);
         await sleep(3000);
+        // YOLOX-Nano (ONNX Runtime) is the default detector, so TF.js may be idle: initialise it to read its tensor count
+        await page.evaluate(() => LQDetect.tfBackend());
+        const eng = await page.evaluate(() => document.getElementById("engine").textContent);
+        assert(/YOLOX-Nano/.test(eng), "default detector YOLOX-Nano: " + eng);
         const n0 = await page.evaluate(() => faceapi.tf.memory().numTensors);
         await sleep(20000);
         const n1 = await page.evaluate(() => faceapi.tf.memory().numTensors);

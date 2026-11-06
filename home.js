@@ -10,7 +10,7 @@
   };
 
   /* ================= Hero canvas ================= */
-  var cv = document.getElementById("visionCanvas");
+  var cv = /** @type {HTMLCanvasElement} */ (document.getElementById("visionCanvas"));
   if (cv && cv.getContext) {
     var ctx = cv.getContext("2d");
     var W = 640, H = 480, scale = 1, dpr = 1, ls = 1;
@@ -218,7 +218,8 @@
   /* ================= Demo request form ================= */
   var form = document.getElementById("leadForm");
   if (form) {
-    var $ = function (id) { return document.getElementById(id); };
+    /** @param {string} id @returns {HTMLInputElement} form controls (input / select / textarea share .value) */
+    var $ = function (id) { return /** @type {HTMLInputElement} */ (document.getElementById(id)); };
     var msg = $("leadMsg");
     var rules = {
       lqName: function (v) { return v.trim().length >= 2 ? "" : T("home.err.name", "กรุณากรอกชื่ออย่างน้อย 2 ตัวอักษร"); },
@@ -268,7 +269,7 @@
         list.push(lead);
         localStorage.setItem("lq-leads", JSON.stringify(list));
       } catch (err) { saved = false; }
-      form.reset();
+      /** @type {HTMLFormElement} */ (form).reset();
       Object.keys(rules).forEach(function (id) { $(id).classList.remove("invalid"); $(id).removeAttribute("aria-invalid"); });
       msg.className = "form-msg ok";
       msg.textContent = saved
@@ -286,5 +287,5 @@
   });
 
   var y = document.getElementById("year");
-  if (y) y.textContent = new Date().getFullYear();
+  if (y) y.textContent = String(new Date().getFullYear());
 })();

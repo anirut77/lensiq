@@ -1,4 +1,5 @@
-# LENSIQ CI — lint + unit (Node), server tests (Python), end-to-end (headless Chrome, no WebGL).
+# LENSIQ CI — lint + typecheck + unit (Node), server tests (Python), end-to-end (headless Chrome, no WebGL),
+# privacy (no third-party requests), i18n coverage, Git LFS readiness.
 # The site itself is static (GitHub Pages); this workflow only tests it.
 name: CI
 
@@ -22,17 +23,29 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      # Git LFS (docs/LFS-MIGRATION.md): cached by object list; no-ops while vendor/ is still plain git
+      - name: LFS object list (cache key)
+        run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
+      - uses: actions/cache@v4
         with:
-          lfs: true
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.lfs-assets-id') }}
+      - run: git lfs pull
+      - name: no LFS pointer files in the working tree
+        run: node tools/check-lfs.mjs
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - run: npm run lint
+      - name: type-check shared modules (tsc --checkJs, tsconfig.typecheck.json)
+        run: npm run typecheck
       - run: npm run test:unit
       - name: CSP <meta> present and current on every page
         run: node tools/csp-meta.mjs --check
+      - name: no Google Fonts / third-party font references (fonts are self-hosted)
+        run: node tools/self-host-fonts.mjs --check
 
   python:
     name: Server tests (Python 3.11)
@@ -56,8 +69,14 @@ jobs:
       CI: "1"
     steps:
       - uses: actions/checkout@v4
+      # Git LFS (docs/LFS-MIGRATION.md): cached by object list; no-ops while vendor/ is still plain git
+      - name: LFS object list (cache key)
+        run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
+      - uses: actions/cache@v4
         with:
-          lfs: true
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.lfs-assets-id') }}
+      - run: git lfs pull
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -90,6 +109,19 @@ jobs:
         run: node tools/check-csp.mjs
         env:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
+      - name: no page requests a third-party origin (th + zh)
+        run: node tools/check-external.mjs --as-is
+        env:
+          LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
+      - name: shared components 100 % Chinese in 中文 mode
+        run: node tools/zh-coverage.mjs --shared --no-interact --max 0
+        env:
+          LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
+      - name: zh coverage report per page (after typical interactions)
+        if: always()
+        run: node tools/zh-coverage.mjs --top 10 --json zh-coverage.json
+        env:
+          LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
       - name: phone layout report (390 px)
         if: always()
         run: node tools/mobile-audit.mjs --json mobile-audit.json
@@ -100,4 +132,10 @@ jobs:
         with:
           name: mobile-audit
           path: mobile-audit.json
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zh-coverage
+          path: zh-coverage.json
           if-no-files-found: ignore

@@ -76,7 +76,7 @@ Likelihood (L) and Severity (S): 1 low, 2 medium, 3 high.
 | R8 | Hub on a shared or untrusted LAN; pairing code leaked; rogue node pushes fake numbers | multi-device hub | 2 | 1 | Low–Med |
 | R9 | Data retained longer than necessary (no automatic expiry for logs, members, leads) | most | 3 | 2 | High |
 | R10 | Backup JSON file with names/phones left on a USB drive or in email | insights | 2 | 2 | Medium |
-| R11 | Google Fonts request discloses visitor IP to a third country | all pages | 3 | 1 | Low |
+| R11 | ~~Google Fonts request discloses visitor IP to a third country~~ (resolved in v0.10: the font is self-hosted) | all pages | 1 | 1 | Low |
 | R12 | Using non-commercially licensed models in a paid deployment (legal, not privacy) | studio face-parse, try-on, face-api datasets | 2 | 2 | Medium |
 | R13 | Driver monitoring used for disciplinary action beyond the safety purpose | driver | 2 | 2 | Medium |
 
@@ -94,7 +94,7 @@ Likelihood (L) and Severity (S): 1 low, 2 medium, 3 high.
 | R8 | LAN-only by default. Host/Origin checks. Rate limit + lockout. Token hashes. Strict numeric schema. Rotate code / revoke node. | [ ] WPA2/3 private SSID · [ ] rotate the code after setup · [ ] review the device list weekly | Low |
 | R9 | Automatic face expiry. Daily booth purge. 62-day hub cap. | [ ] Monthly export-and-clear routine · [ ] calendar reminder | Medium → Low with the routine |
 | R10 | Backup excludes face data and the hub token. | [ ] Store backups encrypted · [ ] delete after restore | Low–Med |
-| R11 | | [ ] Self-host the Prompt font, or mention it in the privacy notice | Low |
+| R11 | Self-hosted font, CSP `'self'` only, `tools/check-external.mjs` | none | None |
 | R12 | Face-parse disabled and git-ignored. Try-on off by default. | [ ] Licence review per `LICENSES/THIRD_PARTY.md` before paid use | Low after review |
 | R13 | Events are local only. No video. | [ ] Written policy limiting use to safety · [ ] driver informed | Low–Med |
 

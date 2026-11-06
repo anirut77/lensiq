@@ -138,3 +138,22 @@ async function convert(file, onProgress) {
   const doc = new Document({ sections: [{ children }] });
   return Packer.toBlob(doc);
 }
+
+// เอนจินที่เซิร์ฟเวอร์ใช้ (GET /api/convert/status -> {engine, license, copyleft, available}) — ไม่มีเซิร์ฟเวอร์ = ไม่แสดง
+const ENGINE_TEXT = {
+  permissive: "เอนจินแปลงบนเซิร์ฟเวอร์: มาตรฐาน (สัญญาอนุญาต MIT/BSD ใช้เชิงพาณิชย์ได้) — คงข้อความ หัวข้อ ตัวหนา/เอียง และตาราง แต่ไม่คงตำแหน่งแบบพิกเซลและไม่ดึงรูปภาพ",
+  pdf2docx: "เอนจินแปลงบนเซิร์ฟเวอร์: pdf2docx (คงเลย์เอาต์และรูปภาพ — สัญญาอนุญาต GPL/AGPL ที่ผู้ดูแลเลือกเปิดเอง)",
+  off: "เซิร์ฟเวอร์แปลงยังไม่พร้อม (ยังไม่ได้ติดตั้งไลบรารี) — จะใช้โหมดข้อความในเบราว์เซอร์แทน"
+};
+async function showEngine() {
+  const el = $("#engine"); if (!el) return;
+  try {
+    const r = await fetch("/api/convert/status", { cache: "no-store" });
+    if (!r.ok) return;
+    const st = await r.json();
+    if (!st || typeof st.engine !== "string") return;
+    el.textContent = st.available === false ? ENGINE_TEXT.off : ENGINE_TEXT[st.engine] || ENGINE_TEXT.permissive;
+    el.hidden = false;
+  } catch { /* static hosting: no API */ }
+}
+showEngine();

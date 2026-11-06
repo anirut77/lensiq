@@ -36,7 +36,12 @@ export default async function ({ base, launch, check }) {
   let page;
   try {
     await check("demo data: every analytics section renders, no console errors, no NaN/undefined text", async () => {
-      page = await browser.newPage(url);
+      // The demo seeds "today" only up to the current hour; before opening time (e.g. 03:00) today has no
+      // traffic and the queue alert cannot fire. Pin the page clock to 15:00 local so the run is time-of-day independent.
+      const pinClock = `(() => { const R = Date, real = R.now(), t = new R(real); t.setHours(15, 0, 0, 0); const off = t.getTime() - real;
+        class D extends R { constructor(...a) { if (a.length) super(...a); else super(R.now() + off); } static now() { return R.now() + off; } }
+        window.Date = D; })();`;
+      page = await browser.newPage(url, { initScripts: [pinClock] });
       await page.evaluate(() => { localStorage.clear(); });
       await page.reload();
       await page.evaluate(() => document.getElementById("seedDemoEmpty").click());
@@ -91,7 +96,7 @@ export default async function ({ base, launch, check }) {
       }
       await page.evaluate(() => document.querySelector('.range button[data-p="custom"]').click());
       const custom = await page.evaluate(() => {
-        const f = document.getElementById("cFrom"), t = document.getElementById("cTo");
+        const f = document.getElementById("cFrom");
         f.value = __IQ.last.A.H.keys.at(-21); f.dispatchEvent(new Event("change"));
         return { hidden: document.getElementById("customRange").hidden, days: __IQ.last.r.days };
       });
@@ -178,6 +183,21 @@ export default async function ({ base, launch, check }) {
       await page.waitFor(`!!window.LQI18N`, 5000);
       const zh = await page.evaluate(async () => { LQI18N.setLang("zh"); await new Promise(r => setTimeout(r, 300)); return { h1: document.querySelector("main h1").textContent, card: document.querySelector("#insightCards h3").textContent, sure: document.querySelector("#insightCards .ins-sure").textContent, lang: document.documentElement.lang }; });
       assert(zh.h1 === "综合仪表板" && /[\u4e00-\u9fff]/.test(zh.card) && /置信度/.test(zh.sure) && zh.lang === "zh-Hans", "zh " + JSON.stringify(zh));
+      // ≥ 98% of visible letters are Chinese in 中文 mode (all sections and "details" opened, every range preset; ฿ counts as Thai)
+      const share = await page.evaluate(async () => {
+        const out = [];
+        for (const p of ["today", "d7", "d30", "d90", "all"]) {
+          document.querySelector(`.range button[data-p="${p}"]`).click(); await new Promise(r => setTimeout(r, 250));
+          document.querySelectorAll("main details").forEach(d => { d.open = true; });
+          let th = 0, zh = 0; const bad = [];
+          const w = document.createTreeWalker(document.querySelector("main"), NodeFilter.SHOW_TEXT);
+          for (let n; (n = w.nextNode());) { const el = n.parentElement; if (!el || el.closest("[hidden],script,style") || getComputedStyle(el).display === "none") continue; const t = n.textContent; const a = (t.match(/[\u0E00-\u0E7F]/g) || []).length; th += a; zh += (t.match(/[\u4e00-\u9fff]/g) || []).length; if (a) bad.push(t.trim().slice(0, 40)); }
+          document.querySelectorAll("main [aria-label], main [title]").forEach(e => { for (const v of [e.getAttribute("aria-label"), e.getAttribute("title")]) if (v && /[\u0E00-\u0E7F]/.test(v)) { th += 1; bad.push("attr:" + v.slice(0, 40)); } });
+          out.push({ p, share: zh / Math.max(1, zh + th), bad: bad.slice(0, 5) });
+        }
+        return out;
+      });
+      share.forEach(x => assert(x.share >= 0.98, `中文 share ${x.p} ${(x.share * 100).toFixed(1)}%: ${x.bad.join(" | ")}`));
       const th = await page.evaluate(async () => { LQI18N.setLang("th"); await new Promise(r => setTimeout(r, 300)); return { h1: document.querySelector("main h1").textContent, sure: document.querySelector("#insightCards .ins-sure").textContent }; });
       assert(th.h1 === "แดชบอร์ดรวม" && /ความมั่นใจ/.test(th.sure), "th " + JSON.stringify(th));
       assert(!unexpected(page).length, "console errors: " + JSON.stringify(unexpected(page).slice(0, 3)));

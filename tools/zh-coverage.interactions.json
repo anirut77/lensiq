@@ -1,0 +1,44 @@
+{
+  "//": "tools/zh-coverage.mjs: extra clicks per page after load (each entry = one step; a step is a selector or a list of selectors clicked in order). Owners: add the buttons that open your dialogs / result views. Links to other pages and file inputs are never clicked.",
+  "index.html": [
+    "#leadForm button[type=submit]"
+  ],
+  "tarot.html": [
+    "#drawBtn, .draw-btn, button.primary"
+  ],
+  "numbers.html": [
+    ".chip, .ex-chip"
+  ],
+  "insights.html": [
+    ".range button, [data-range]"
+  ],
+  "store.html": [
+    "#startCam"
+  ],
+  "booth.html": [
+    "#camStart",
+    "#toggle"
+  ],
+  "signage.html": [
+    "#startFace"
+  ],
+  "attendance.html": [
+    "#startScan"
+  ],
+  "customers.html": [
+    "#scanToggle"
+  ],
+  "checkout.html": [
+    "#camBtn"
+  ],
+  "qc.html": [
+    "#toggle",
+    "#inspectNow"
+  ],
+  "driver.html": [
+    "#driveMode"
+  ],
+  "neuro.html": [
+    "#liveToggle"
+  ]
+}

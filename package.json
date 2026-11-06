@@ -1,11 +1,13 @@
 {
   "name": "lensiq",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "private": true,
   "description": "LENSIQ — on-device computer vision for marketing, store analytics and photo booths (Thai / 中文)",
   "license": "MIT",
   "type": "commonjs",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "test": "npm run test:unit && npm run test:py",
     "test:unit": "node --test tests/unit/*.test.js",
@@ -17,11 +19,21 @@
     "csp:meta": "node tools/csp-meta.mjs",
     "csp:check": "node tools/csp-meta.mjs --check && node tools/check-csp.mjs --as-is",
     "audit:mobile": "node tools/mobile-audit.mjs",
-    "serve": ".venv/bin/python server.py"
+    "serve": ".venv/bin/python server.py",
+    "typecheck": "node tools/typecheck.mjs",
+    "typecheck:report": "node tools/typecheck.mjs --report",
+    "pretest:e2e": "node tools/check-lfs.mjs --quiet",
+    "pretest:e2e:ci": "node tools/check-lfs.mjs --quiet",
+    "check:lfs": "node tools/check-lfs.mjs",
+    "check:external": "node tools/check-external.mjs --as-is",
+    "fonts:check": "node tools/self-host-fonts.mjs --check",
+    "zh:coverage": "node tools/zh-coverage.mjs",
+    "zh:shared": "node tools/zh-coverage.mjs --shared --no-interact --max 0"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "eslint": "10.14.0",
-    "globals": "17.14.0"
+    "globals": "17.14.0",
+    "typescript": "5.9.3"
   }
 }

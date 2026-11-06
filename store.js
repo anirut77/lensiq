@@ -96,6 +96,31 @@ function checkCrossing(mem, line, p, swap = false, margin = ST_CFG.LINE_MARGIN) 
   return dir;
 }
 
+/* crossStep: checkCrossing + hysteresis band + confirmation (round 4) — mem per track, cfg = {band, bandRel, confirm}
+   - band: ต้องออกห่างเส้นอย่างน้อย max(band, bandRel × ความสูงกล่อง) จึงถือว่าอยู่ฝั่งนั้น (กล่องใหญ่ = สั่นมาก = แถบกว้าง)
+   - confirm: ต้องอยู่ฝั่งใหม่ต่อเนื่อง `confirm` เฟรมจึงนับ (ถ้าย้อนกลับก่อน = ไม่นับ) — กันการสลับรหัสระหว่างคนสองคนที่เส้น
+   คืน "in" | "out" | null (นับช้ากว่าเดิม confirm-1 เฟรม) */
+function crossStep(mem, line, p, swap, cfg, boxH = 0) {
+  const margin = Math.max(cfg.band != null ? cfg.band : ST_CFG.LINE_MARGIN, (cfg.bandRel || 0) * boxH);
+  const side = lineSide(line, p, margin);
+  if (side === 0) return null;
+  if (mem.pend) {
+    if (side === mem.pend.side) {
+      if (++mem.pend.n >= (cfg.confirm || 1)) { const d = mem.pend.dir; mem.pend = null; mem.side = side; mem.pt = { x: p.x, y: p.y }; return d; }
+      return null;
+    }
+    mem.pend = null; // กลับฝั่งเดิมก่อนยืนยัน = ไม่นับ
+  }
+  let dir = null;
+  if (mem.side && side !== mem.side && segmentsIntersect(mem.pt, p, line.a, line.b)) {
+    const d = (side === 1) !== swap ? "in" : "out";
+    if ((cfg.confirm || 1) > 1) { mem.pend = { dir: d, side, n: 1 }; return null; }
+    dir = d;
+  }
+  mem.side = side; mem.pt = { x: p.x, y: p.y };
+  return dir;
+}
+
 // ---------- ข้อมูลรายวัน ----------
 function newDay(date = dayKey()) {
   // zones: คีย์ "<slot>:<zoneId>" (zv 2) · byCam: {slot: {name, in, out}} ; in/out/peak เป็นยอดรวมทุกกล้อง
@@ -244,7 +269,16 @@ const autoDetW = n => n <= 1 ? 416 : n === 2 ? 352 : 320;
 /* ค่าตัวติดตามของหน้าร้าน (ปรับจากผลวัด tests/bench/people.bench.mjs บน MOT17 + PETS09 + TUD — ดู ACCURACY.md):
    DIST_MAX 0.12 -> 0.09 (กันรหัสสลับระหว่างคนที่เดินสวนกันซึ่งทำให้นับข้ามเส้นเกิน) · MAX_MISSED_MS 1000 -> 2000 (ถูกบังสั้น ๆ ไม่ขึ้นรหัสใหม่)
    ผลรวม 5 วิดีโอ ที่ 5 ภาพ/วินาที: ความคลาดเคลื่อนรายทิศ 39% -> 19% · ความแม่นของเหตุการณ์ข้ามเส้น 60% -> 72% */
-const ST_TRACK = Object.freeze({ ...ST_LQT.PRESET.person, DIST_MAX: 0.09, MAX_MISSED_MS: 2000 });
+/* ตัวติดตามของหน้าร้าน (round 4, tests/bench/people.bench.mjs — ปรับบน PETS09/TUD, ตรวจกับ MOT17 แยก):
+   - ASSIGN 'byte': จับคู่สองขั้น กล่องมั่นใจ (>= HIGH) ก่อน แล้วจึงกล่องคะแนนต่ำ (LOW..HIGH) ต่อ track เดิมเท่านั้น
+     (คนถูกบังครึ่งตัวไม่ทำให้ track ขาด) ; คนใหม่เกิดจากกล่องมั่นใจ >= NEW_MIN เท่านั้น
+   - CROSS: แถบกันสั่นรอบเส้น = max(1.2% ของภาพ, 8% ของความสูงคน) และต้องอยู่ฝั่งใหม่ 2 เฟรมติดจึงนับ (กันรหัสสลับที่เส้น)
+   ตัวตรวจจับต้องส่งกล่องตั้งแต่คะแนน ST_DET_MIN (= LOW) ขึ้นไป */
+const ST_DET_MIN = 0.3;
+const ST_TRACK = Object.freeze({ ...ST_LQT.PRESET.person, DIST_MAX: 0.09, MAX_MISSED_MS: 2000, ASSIGN: "byte", HIGH: 0.5, LOW: ST_DET_MIN, NEW_MIN: 0.5,
+  CROSS: Object.freeze({ band: 0.012, bandRel: 0.08, confirm: 2 }) });
+/* ค่าเดิม (round 3) — ไว้เทียบในชุดวัด */
+const ST_TRACK_R3 = Object.freeze({ ...ST_LQT.PRESET.person, DIST_MAX: 0.09, MAX_MISSED_MS: 2000 });
 function newPipe() { return { tracker: ST_LQT.newTracker(ST_TRACK), lineMem: {}, zoneLive: {}, zoneCounts: {}, lastSeen: [], boxes: new Map(), reid: null, staff: null, lastNow: 0 }; }
 
 // ---------- ลดการนับซ้ำ: re-ID ด้วยค่าลักษณะภาพ (MobileNetV2) — อยู่ในหน่วยความจำเท่านั้น ----------
@@ -422,7 +456,7 @@ function stepCam(pipe, cam, day, dets, now, tcfg, opt) {
   const active = new Set(conf.map(t => t.cid));
   if (cam.line && role !== "zone") for (const t of conf) {
     const mem = pipe.lineMem[t.cid] || (pipe.lineMem[t.cid] = {});
-    const dir = checkCrossing(mem, cam.line, center(t.box), !!cam.swap);
+    const dir = tcfg.CROSS ? crossStep(mem, cam.line, center(t.box), !!cam.swap, tcfg.CROSS, t.box.h) : checkCrossing(mem, cam.line, center(t.box), !!cam.swap);
     if (!dir || t.staff) continue;
     if (R) {
       let e = R.gal.has(t.cid) ? R.gal.get(t.cid).emb : null;
@@ -592,7 +626,7 @@ function daySummary(d, o = {}) {
   return out;
 }
 
-if (typeof module !== "undefined") module.exports = { ST_TRACK, REID_CFG, l2norm, cosine, newReid, canonOf, reidRemember, reidMatch, crossDecision, newStaff, staffStep, queueWait, slaStep, ensureDay, buildHourlyCsv, daySummary, activeHours, ST_CFG, ST_SLOTS, dayKey, iou, center, foot, normRect, pointInRect, newTracker, updateTracker, lineSide, segmentsIntersect, checkCrossing, newDay, applyCrossing, zoneStep, closeZones, avgDwellSec, queueInfo, conversion, newHeat, heatAdd, heatMax, heatColor, heatToRGBA, buildCsv, decodePersons, nms, nsZone, autoDetW, newPipe, stepCam, migrateStore, zoneLabel };
+if (typeof module !== "undefined") module.exports = { ST_TRACK, ST_TRACK_R3, ST_DET_MIN, REID_CFG, l2norm, cosine, newReid, canonOf, reidRemember, reidMatch, crossDecision, newStaff, staffStep, queueWait, slaStep, ensureDay, buildHourlyCsv, daySummary, activeHours, ST_CFG, ST_SLOTS, dayKey, iou, center, foot, normRect, pointInRect, newTracker, updateTracker, lineSide, segmentsIntersect, checkCrossing, crossStep, newDay, applyCrossing, zoneStep, closeZones, avgDwellSec, queueInfo, conversion, newHeat, heatAdd, heatMax, heatColor, heatToRGBA, buildCsv, decodePersons, nms, nsZone, autoDetW, newPipe, stepCam, migrateStore, zoneLabel };
 
 // ================= ส่วนหน้าจอ =================
 if (typeof document !== "undefined") (() => {
@@ -614,7 +648,7 @@ if (typeof document !== "undefined") (() => {
     queueSlaSec: 300, hourlyTarget: 0, reid: false, reidWindowSec: 10, staffMin: 15, staffOffset: 0, kpiScope: "all" }, load("settings", {}));
   let day = ensureDay(Object.assign(newDay(), load("day-" + dayKey(), {})));
   const pipes = new Map(), heats = new Map();
-  let model = null, delegateUsed = "", running = false, wakeLock = null, fileCam = null, fileUrl = null;
+  let model = null, detName = "", delegateUsed = "", running = false, wakeLock = null, fileCam = null, fileUrl = null;
   let lastDash = 0, lastSave = 0, tool = "none", sel = "c1";
   const detectErrors = {};
   let agg = null; // เชื่อมหลายเครื่อง (ตั้งค่าด้านล่าง)
@@ -723,15 +757,21 @@ if (typeof document !== "undefined") (() => {
   }
   document.addEventListener("visibilitychange", () => { if (!document.hidden && running) keepAwake(true); });
 
-  // ---- โหลดโมเดล (COCO-SSD ผ่าน LQDetect — WASM/CPU ได้ ไม่ต้องใช้ WebGL) ----
+  // ---- โหลดโมเดล: YOLOX-Nano (Apache-2.0, ONNX Runtime WASM) เป็นหลัก ; COCO-SSD (TF.js) สำรอง — ไม่ต้องใช้ WebGL ----
+  // ?coco = บังคับใช้ COCO-SSD (เทียบผล/เครื่องที่โหลด ONNX ไม่ได้)
   async function loadDetector() {
     if (LQDetect.isTest()) { delegateUsed = "test"; return null; }
     if (model) return model;
     engine("กำลังโหลดโมเดลตรวจจับคน...");
+    const forceCoco = new URLSearchParams(location.search).has("coco");
+    if (!forceCoco && typeof ort !== "undefined") {
+      try { model = await LQDetect.loadYolox("vendor/models/yolox/yolox_nano_416.onnx"); delegateUsed = "wasm"; detName = "YOLOX-Nano"; return model; }
+      catch (e) { console.warn("YOLOX ใช้ไม่ได้ ใช้ COCO-SSD แทน", e); }
+    }
     try {
       if (typeof faceapi === "undefined") throw new Error("ไม่พบไลบรารี vendor/face-api.js");
       delegateUsed = await LQDetect.tfBackend();
-      model = await LQDetect.loadCoco("vendor/models/cocossd/model.json");
+      model = await LQDetect.loadCoco("vendor/models/cocossd/model.json"); detName = "COCO-SSD";
       return model;
     } catch (e) { throw Object.assign(e, { model: true }); }
   }
@@ -797,8 +837,8 @@ if (typeof document !== "undefined") (() => {
     if (fk) return fk;
     if (!model) return [];
     const detW = camSet(c).detW || autoDetW(srcCams().filter(x => x.active).length);
-    const tm = /^(\d)x(\d)$/.exec(camSet(c).tiles || ""); // แบ่งภาพเพื่อเห็นคนตัวเล็ก/อยู่ไกล (COCO-SSD ย่อทุกภาพเหลือ 300×300)
-    const r = await LQDetect.detectCoco(model, c.video, { detW, canvas: c._small || (c._small = document.createElement("canvas")), tiles: tm ? { cols: +tm[1], rows: +tm[2], overlap: 0.2 } : null });
+    const tm = /^(\d)x(\d)$/.exec(camSet(c).tiles || ""); // แบ่งภาพเพื่อเห็นคนตัวเล็ก/อยู่ไกล (โมเดลย่อทุกภาพเหลือขนาดคงที่: YOLOX 416², COCO-SSD 300²)
+    const r = await LQDetect.detectPeople(model, c.video, { detW, minScore: ST_DET_MIN, canvas: c._small || (c._small = document.createElement("canvas")), tiles: tm ? { cols: +tm[1], rows: +tm[2], overlap: 0.2 } : null });
     c._detTick = c._tick;
     return r;
   }
@@ -813,7 +853,7 @@ if (typeof document !== "undefined") (() => {
     $("#engine").append(" ", b);
     if (kind === "insecure") { const a = document.createElement("a"); a.href = "cameras.html"; a.className = "engine-link"; a.textContent = "ดูวิธีเปิดผ่าน https"; $("#engine").append(" ", a); }
   }
-  const engineRunning = label => engine(`กำลังวิเคราะห์ (${label}) — ตัวประมวลผล: ${delegateUsed.toUpperCase()}${delegateUsed === "webgl" || delegateUsed === "test" ? "" : " อาจช้ากว่าปกติ"}`, "ok");
+  const engineRunning = label => engine(`กำลังวิเคราะห์ (${label}) — ${detName ? detName + " · " : ""}ตัวประมวลผล: ${delegateUsed.toUpperCase()}${delegateUsed === "webgl" || delegateUsed === "test" ? "" : " อาจช้ากว่าปกติ"}`, "ok");
 
   // ---- ตัวจัดคิวประมวลผล (หนึ่งกล้องต่อหนึ่งรอบ ไม่ซ้อนกัน) ----
   const sched = LQCam.createScheduler({ targetHz: 10 });
@@ -1356,7 +1396,7 @@ if (typeof document !== "undefined") (() => {
     cfg = Object.assign({ role: "", hub: "", name: "", code: "", node: "", token: "", pending: {}, lastOk: 0 }, cfg);
     if (!cfg.pending || typeof cfg.pending !== "object") cfg.pending = {};
     const saveCfg = () => { try { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); } catch { /* ignore */ } };
-    let server = null, pair = null, devices = [], skew = 0, backoff = 0, nextTry = 0, busy = false, pushT = 0, pollT = 0, offline = false;
+    let server = null, pair = null, devices = [], skew = 0, backoff = 0, nextTry = 0, busy = false, pollT = 0, offline = false;
     const hubBase = () => { try { return new URL(cfg.hub || location.origin).origin; } catch { return location.origin; } };
     const fmtCode = c => (A.normCode(c).match(/.{1,4}/g) || []).join("-");
     function msg(t, cls = "") { const m = $("#aggMsg"); m.hidden = !t; m.textContent = t || ""; m.className = "engine agg-msg " + cls; }

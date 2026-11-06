@@ -86,7 +86,7 @@
   /** ทิศที่กล้องหลังชี้ (ตั้งโทรศัพท์) หรือทิศขอบบนเครื่อง (วางราบ) จากมุมออยเลอร์ W3C (alpha อ้างอิงทิศเหนือจริง) */
   function headingFromEuler(alpha, beta, gamma, screenAngle) {
     var a = alpha * D2R, b = beta * D2R, g = gamma * D2R;
-    var ca = Math.cos(a), sa = Math.sin(a), cb = Math.cos(b), sb = Math.sin(b), cg = Math.cos(g), sg = Math.sin(g);
+    var ca = Math.cos(a), sa = Math.sin(a), sb = Math.sin(b), cg = Math.cos(g), sg = Math.sin(g);
     var bx = -ca * sg - sa * sb * cg, by = -sa * sg + ca * sb * cg; // เวกเตอร์กล้องหลัง (x=ตะวันออก, y=เหนือ)
     if (Math.hypot(bx, by) > 0.45) return norm(Math.atan2(bx, by) / D2R);
     return norm(360 - alpha + (screenAngle || 0)); // วางราบ: ใช้ขอบบนของเครื่อง
@@ -334,7 +334,37 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var lsSet = function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* โหมดส่วนตัว */ } };
   var prefs = Object.assign({ stats: true }, lsGet(PREF_KEY, {}));
   var TH_MONTHS = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
-  var dirTh = function (d) { return KB.dirs[d].th; };
+  /* ---------- i18n: ไทยเป็นค่าเริ่มต้น จีนจาก i18n/zh-fortune-fengshui.js (คีย์ตาม id ใน fengshui-kb.js) ---------- */
+  var T = function (k, th, v) { return window.LQI18N ? LQI18N.tf(k, th, v) : String(th).replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : m; }); };
+  var isZh = function () { return !!(window.LQI18N && LQI18N.lang === "zh"); };
+  var dirTh = function (d) { return T("fengshui.dir." + d, KB.dirs[d].th); };
+  var zoneTh = function (d) { return isZh() ? T("fengshui.zone." + d, KB.dirs[d].th) : KB.dirs[d].th; };
+  var abbrL = function (d) { return T("fengshui.abbr." + d, KB.dirs[d].abbr); };
+  var monL = function (m) { return T("fengshui.mon." + m, TH_MONTHS[m - 1]); };
+  var s8L = function (s, f) { return T("fengshui.s8." + s + "." + f, KB.stars8[s][f]); };
+  var flyL = function (n) { return T("fengshui.fly." + n, KB.flying[n].th); };
+  var flyF = function (n, f) { return T("fengshui.fly." + n + "." + f, KB.flying[n][f]); };
+  var elL = function (e) { return T("fengshui.el." + e, KB.elements[e].th); };
+  var elColors = function (e, n) { return isZh() ? T("fengshui.elc." + e, "").split("/").slice(0, n) : KB.elements[e].colors.slice(0, n); };
+  var bgL = function (d, f) { return T("fengshui.bg." + d + "." + f, KB.bagua[d][f]); };
+  var bgColor = function (d, i) { return T("fengshui.bgc." + d + "." + i, KB.bagua[d].colors[i][0]); };
+  var roomL = function (r) { return T("fengshui.room." + r, KB.rooms[r].th); };
+  var iconL = function (r) { return T("fengshui.icon." + r, KB.rooms[r].icon); };
+  var grpL = function (g) { return T("fengshui.grp." + g, KB.groups[g].th); };
+  var triL = function (k) { return isZh() ? T("fengshui.tri." + k, KB.kuaInfo[k].trigram) : KB.kuaInfo[k].trigram; };
+  var brL = function (i) { return T("fengshui.br." + i, KB.branches[i]); };
+  var mnL = function (i) { return T("fengshui.mn." + i, KB.monthNames[i]); };
+  /** ชื่อดาวแปดคฤหาสน์ + อักษรจีน (ภาษาจีนแสดงครั้งเดียว) */
+  var _s8Full = function (s) { return isZh() ? s8L(s, "th") : KB.stars8[s].th + " " + KB.stars8[s].cn; };
+  var photoText = function (a, ph) {
+    if (!isZh()) return a.t;
+    var P = KB.photo;
+    if (a.k === "dominant") return T("fengshui.photo.dominant", P.dominant, { el: elL(ph.a.dominant), colors: elColors(ph.a.dominant, 2).join("/") });
+    if (a.k === "balance") return T("fengshui.photo.balanceGood", P.balanceGood);
+    if (a.k === "balanceTip") return T("fengshui.photo.balanceTip", P.balanceTip, { el: elL(a.el), colors: elColors(a.el, 2).join("/") });
+    return T("fengshui.photo." + a.k, a.t);
+  };
+  var photoLabel = function (p) { return !isZh() || !p.rooms ? p.label : p.rooms.length ? T("fengshui.photo.zone", "", { r: p.rooms.map(roomL).join(" + "), d: p.dir === "C" ? "" : zoneTh(p.dir) }).replace("（区）", "（中宫）") : T("fengshui.photo.label", p.label); };
 
   var state = {
     kuaSet: null,      // { solar, options:[kua objects], active: index, gender }
@@ -347,18 +377,21 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function toast(msg) { var t = $("#fsToast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.h); toast.h = setTimeout(function () { t.classList.remove("show"); }, 2400); }
 
   /* ================= 1) เลขกัว ================= */
-  (function initForm() {
+  function initForm() {
     var dSel = $("#fsDay"), mSel = $("#fsMonth");
-    dSel.innerHTML = '<option value="">วัน</option>' + Array.from({ length: 31 }, function (_, i) { return '<option value="' + (i + 1) + '">' + (i + 1) + "</option>"; }).join("");
-    mSel.innerHTML = '<option value="">เดือน</option>' + TH_MONTHS.map(function (m, i) { return '<option value="' + (i + 1) + '">' + m + "</option>"; }).join("");
-  })();
+    var dv = dSel.value, mv = mSel.value;
+    dSel.innerHTML = '<option value="">' + T("fengshui.sel.day", "วัน") + '</option>' + Array.from({ length: 31 }, function (_, i) { return '<option value="' + (i + 1) + '">' + (i + 1) + "</option>"; }).join("");
+    mSel.innerHTML = '<option value="">' + T("fengshui.sel.month", "เดือน") + '</option>' + TH_MONTHS.map(function (m, i) { return '<option value="' + (i + 1) + '">' + monL(i + 1) + "</option>"; }).join("");
+    dSel.value = dv; mSel.value = mv;
+  }
+  initForm();
   $("#fsKuaForm").addEventListener("submit", function (e) {
     e.preventDefault(); touch();
     var msg = $("#fsKuaMsg"); msg.textContent = ""; msg.className = "fs-msg";
     var d = +$("#fsDay").value, m = +$("#fsMonth").value, era = $("#fsEra").value, yIn = $("#fsYear").value.trim();
     var y = FS.toCE(yIn, era);
     var g = (document.querySelector('input[name="fsGender"]:checked') || {}).value || "n";
-    var err = !d || !m ? "เลือกวันและเดือนเกิด" : !isFinite(y) ? "กรอกปีเกิด" : (y < 1900 || y > new Date().getFullYear() + 1) ? "ปีเกิดอยู่นอกช่วงที่รองรับ (ค.ศ. 1900 ขึ้นไป) — ตรวจว่าเลือก พ.ศ./ค.ศ. ถูกต้อง" : !FS.validDate(y, m, d) ? "วันที่นี้ไม่มีในปฏิทิน" : "";
+    var err = !d || !m ? T("fengshui.err.date", "เลือกวันและเดือนเกิด") : !isFinite(y) ? T("fengshui.err.year", "กรอกปีเกิด") : (y < 1900 || y > new Date().getFullYear() + 1) ? T("fengshui.err.range", "ปีเกิดอยู่นอกช่วงที่รองรับ (ค.ศ. 1900 ขึ้นไป) — ตรวจว่าเลือก พ.ศ./ค.ศ. ถูกต้อง") : !FS.validDate(y, m, d) ? T("fengshui.err.invalid", "วันที่นี้ไม่มีในปฏิทิน") : "";
     if (err) { msg.textContent = err; msg.classList.add("err"); return; }
     var sol = FS.solarYear(y, m, d);
     var forms = g === "m" ? ["yang"] : g === "f" ? ["yin"] : ["yang", "yin"];
@@ -372,20 +405,20 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var S = state.kuaSet, box = $("#fsKuaOut"); if (!S) { box.hidden = true; return; }
     box.hidden = false;
     var sol = S.solar, L = sol.lichun;
-    var note = "คำนวณจากปีสุริยคติจีน " + sol.year + " (พ.ศ. " + (sol.year + 543) + ") · ลี่ชุนปี " + S.ce + " ตรงกับ " + L.d + " " + TH_MONTHS[L.m - 1];
-    if (sol.shifted) note += " — คุณเกิดก่อนลี่ชุน จึงนับเป็นปีก่อนหน้า";
-    if (sol.boundary === "same") note += " — คุณเกิดตรงวันลี่ชุนพอดี ผลขึ้นกับเวลาเกิด (ก่อน/หลังช่วงเปลี่ยนปี) ลองดูทั้งปี " + (sol.year - 1) + " และ " + sol.year;
-    else if (sol.boundary === "near") note += " — วันเกิดใกล้ลี่ชุน ตำราบางสำนักใช้เวลาเกิดประกอบ";
+    var note = isZh() ? T("fengshui.kua.note", "", { y: sol.year, be: sol.year + 543, ce: S.ce, m: monL(L.m), d: L.d }) : "คำนวณจากปีสุริยคติจีน " + sol.year + " (พ.ศ. " + (sol.year + 543) + ") · ลี่ชุนปี " + S.ce + " ตรงกับ " + L.d + " " + TH_MONTHS[L.m - 1];
+    if (sol.shifted) note += T("fengshui.kua.shifted", " — คุณเกิดก่อนลี่ชุน จึงนับเป็นปีก่อนหน้า");
+    if (sol.boundary === "same") note += T("fengshui.kua.same", " — คุณเกิดตรงวันลี่ชุนพอดี ผลขึ้นกับเวลาเกิด (ก่อน/หลังช่วงเปลี่ยนปี) ลองดูทั้งปี {a} และ {b}", { a: sol.year - 1, b: sol.year });
+    else if (sol.boundary === "near") note += T("fengshui.kua.near", " — วันเกิดใกล้ลี่ชุน ตำราบางสำนักใช้เวลาเกิดประกอบ");
     var cards = S.options.map(function (k, i) {
-      var I = KB.kuaInfo[k.kua], G = KB.groups[k.group], E = KB.elements[I.element];
-      var fl = S.options.length > 1 ? '<span class="fs-pill">' + (k.formula === "yang" ? "สูตรหยาง (ตำราใช้กับเพศชาย)" : "สูตรหยิน (ตำราใช้กับเพศหญิง)") + "</span>" : "";
+      var I = KB.kuaInfo[k.kua], E = KB.elements[I.element];
+      var fl = S.options.length > 1 ? '<span class="fs-pill">' + (k.formula === "yang" ? T("fengshui.kua.yang", "สูตรหยาง (ตำราใช้กับเพศชาย)") : T("fengshui.kua.yin", "สูตรหยิน (ตำราใช้กับเพศหญิง)")) + "</span>" : "";
       return '<button type="button" class="fs-kcard' + (i === S.active ? " on" : "") + '" data-i="' + i + '" aria-pressed="' + (i === S.active) + '" style="--el:' + E.color + '">' +
-        fl + '<span class="fs-knum">' + k.kua + '</span><span class="fs-kmeta"><b>เลขกัว ' + k.kua + (k.raw === 5 ? " <small>(คำนวณได้ 5 ใช้ " + k.kua + ")</small>" : "") + "</b><span>" + esc(G.th) + "</span><span>" + esc(I.trigram) + " · ธาตุ" + E.th + "</span></span></button>";
+        fl + '<span class="fs-knum">' + k.kua + '</span><span class="fs-kmeta"><b>' + esc(T("fengshui.kua.title", "เลขกัว {k}", { k: k.kua })) + (k.raw === 5 ? " <small>" + esc(T("fengshui.kua.raw5", "(คำนวณได้ 5 ใช้ {k})", { k: k.kua })) + "</small>" : "") + "</b><span>" + esc(grpL(k.group)) + "</span><span>" + esc(T("fengshui.kua.elem", "{t} · ธาตุ{e}", { t: triL(k.kua), e: elL(I.element) })) + "</span></span></button>";
     }).join("");
     var groupTxt = S.options.length > 1
-      ? '<p class="fs-small">' + esc(KB.genderNote) + "</p>" + ["east", "west"].map(function (g) { return '<p class="fs-group"><b>' + KB.groups[g].th + "</b> " + esc(KB.groups[g].text) + "</p>"; }).join("")
-      : '<p class="fs-group">' + esc(KB.groups[activeKua().group].text) + "</p>";
-    box.innerHTML = '<div class="fs-kcards">' + cards + "</div>" + (S.options.length > 1 ? '<p class="fs-small">แตะการ์ดเพื่อเลือกชุดทิศที่ใช้ในเข็มทิศและผังบ้าน</p>' : "") +
+      ? '<p class="fs-small">' + esc(T("fengshui.genderNote", KB.genderNote)) + "</p>" + ["east", "west"].map(function (g) { return '<p class="fs-group"><b>' + esc(grpL(g)) + "</b> " + esc(T("fengshui.grp." + g + ".text", KB.groups[g].text)) + "</p>"; }).join("")
+      : '<p class="fs-group">' + esc(T("fengshui.grp." + activeKua().group + ".text", KB.groups[activeKua().group].text)) + "</p>";
+    box.innerHTML = '<div class="fs-kcards">' + cards + "</div>" + (S.options.length > 1 ? '<p class="fs-small">' + esc(T("fengshui.kua.tap", "แตะการ์ดเพื่อเลือกชุดทิศที่ใช้ในเข็มทิศและผังบ้าน")) + '</p>' : "") +
       '<p class="fs-note">' + esc(note) + "</p>" + groupTxt + '<div id="fsDirTable"></div>';
     box.querySelectorAll(".fs-kcard").forEach(function (b) { b.addEventListener("click", function () { S.active = +b.dataset.i; renderKua(); refreshAll(); }); });
     renderDirTable();
@@ -394,19 +427,19 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var k = activeKua(), host = $("#fsDirTable"); if (!k || !host) return;
     var rows = KB.starOrder.map(function (s) {
       var S8 = KB.stars8[s], dir = k.stars[s];
-      return '<tr class="' + (S8.good ? "good" : "quiet") + '"><th scope="row"><span class="fs-dot"></span>' + dirTh(dir) + ' <small>' + KB.dirs[dir].abbr + "</small></th><td><b>" + S8.th + "</b> <span class=\"cn\">" + S8.cn + "</span><br><small>" + esc(S8.name) + "</small></td><td>" + esc(S8.meaning) + '</td><td class="uses">' + esc(S8.uses) + "</td></tr>";
+      return '<tr class="' + (S8.good ? "good" : "quiet") + '"><th scope="row"><span class="fs-dot"></span>' + esc(dirTh(dir)) + (isZh() ? "" : ' <small>' + KB.dirs[dir].abbr + "</small>") + "</th><td><b>" + esc(s8L(s, "th")) + "</b>" + (isZh() ? "" : " <span class=\"cn\">" + S8.cn + "</span>") + "<br><small>" + esc(s8L(s, "name")) + "</small></td><td>" + esc(s8L(s, "meaning")) + '</td><td class="uses">' + esc(s8L(s, "uses")) + "</td></tr>";
     }).join("");
-    host.innerHTML = '<h3 class="fs-sub">ทิศทั้ง 8 ของเลขกัว ' + k.kua + '</h3><div class="table-wrap"><table class="fs-table"><thead><tr><th scope="col">ทิศ</th><th scope="col">ดาว</th><th scope="col">ความหมายตามตำรา</th><th scope="col">ใช้กับ</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
-      '<div class="fs-tips3">' + [["โต๊ะทำงาน", KB.tips.desk], ["หัวเตียง", KB.tips.bed], ["ประตูและหน้าบ้าน", KB.tips.door]].map(function (t) { return '<div><h4>' + t[0] + "</h4><ul>" + t[1].map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul></div>"; }).join("") + "</div>";
+    host.innerHTML = '<h3 class="fs-sub">' + esc(T("fengshui.dt.title", "ทิศทั้ง 8 ของเลขกัว {k}", { k: k.kua })) + '</h3><div class="table-wrap"><table class="fs-table"><thead><tr><th scope="col">' + esc(T("fengshui.dt.dir", "ทิศ")) + '</th><th scope="col">' + esc(T("fengshui.dt.star", "ดาว")) + '</th><th scope="col">' + esc(T("fengshui.dt.meaning", "ความหมายตามตำรา")) + '</th><th scope="col">' + esc(T("fengshui.dt.uses", "ใช้กับ")) + '</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
+      '<div class="fs-tips3">' + [["desk", "โต๊ะทำงาน"], ["bed", "หัวเตียง"], ["door", "ประตูและหน้าบ้าน"]].map(function (t) { return '<div><h4>' + esc(T("fengshui.tip." + t[0], t[1])) + "</h4><ul>" + KB.tips[t[0]].map(function (x, i) { return "<li>" + esc(T("fengshui.tips." + t[0] + "." + i, x)) + "</li>"; }).join("") + "</ul></div>"; }).join("") + "</div>";
   }
 
   /* ================= 2) เข็มทิศ AR ================= */
   var video = $("#fsVideo"), arCv = $("#fsAr"), arCtx = arCv.getContext("2d"), arBox = $("#fsArBox");
-  var heading = null, rawHeading = null, sensor = false, lastEvt = 0, accuracy = null, rafOn = false, manual = false;
+  var heading = null, rawHeading = null, sensor = false, accuracy = null, rafOn = false, manual = false;
   var slider = $("#fsHeadingSlider");
   function setHeading(h, fromSensor) {
     rawHeading = h; heading = FS.smoothHeading(heading, h, fromSensor ? 0.2 : 1);
-    if (fromSensor) { sensor = true; lastEvt = Date.now(); }
+    if (fromSensor) { sensor = true; }
     if (!rafOn) { rafOn = true; requestAnimationFrame(drawAR); }
   }
   function onOrient(e) {
@@ -431,12 +464,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       }
       if ("ondeviceorientationabsolute" in window) window.addEventListener("deviceorientationabsolute", onOrient);
       else window.addEventListener("deviceorientation", onOrient);
-      st.textContent = "กำลังรอสัญญาณเข็มทิศ...";
+      st.textContent = T("fengshui.cmp.wait", "กำลังรอสัญญาณเข็มทิศ...");
       setTimeout(function () {
-        if (!sensor) { st.textContent = "ไม่พบเข็มทิศในอุปกรณ์นี้ — ใช้แถบเลื่อนตั้งทิศเอง"; showManual(true); }
-        else st.textContent = "เข็มทิศพร้อม · " + KB.compass.calib;
+        if (!sensor) { st.textContent = T("fengshui.cmp.none", "ไม่พบเข็มทิศในอุปกรณ์นี้ — ใช้แถบเลื่อนตั้งทิศเอง"); showManual(true); }
+        else st.textContent = T("fengshui.cmp.ready", "เข็มทิศพร้อม · {c}", { c: T("fengshui.compass.calib", KB.compass.calib) });
       }, 1800);
-    } catch (e) { st.textContent = "ไม่ได้รับอนุญาตให้ใช้เข็มทิศ — ใช้แถบเลื่อนตั้งทิศเองได้"; showManual(true); }
+    } catch (e) { st.textContent = T("fengshui.cmp.denied", "ไม่ได้รับอนุญาตให้ใช้เข็มทิศ — ใช้แถบเลื่อนตั้งทิศเองได้"); showManual(true); }
     startCam();
     if (heading == null) setHeading(+slider.value, false);
   }
@@ -444,9 +477,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
      และปุ่มสลับ/เลือกกล้องบนภาพ AR (ซ่อนเมื่อมีกล้องตัวเดียว) — ไม่มีกล้องก็ยังใช้เข็มทิศได้ */
   function camNote(msg) { var n = $("#fsCamNote"); n.hidden = !msg; n.textContent = msg || ""; }
   function camErrMsg(e) {
-    if (e && e.name === "Insecure") return "เปิดกล้องได้เฉพาะ https:// หรือ localhost — เข็มทิศยังใช้ได้โดยไม่มีภาพกล้อง";
+    if (e && e.name === "Insecure") return T("fengshui.cam.insecure", "เปิดกล้องได้เฉพาะ https:// หรือ localhost — เข็มทิศยังใช้ได้โดยไม่มีภาพกล้อง");
     var t = window.LQCam && LQCam.errorText ? LQCam.errorText(e) : "";
-    return "เปิดกล้องไม่ได้" + (t ? ": " + t : " (" + ((e && e.name) || "error") + ")") + " — เข็มทิศยังใช้ได้โดยไม่มีภาพกล้อง";
+    if (isZh() && /[\u0E00-\u0E7F]/.test(t)) t = "";
+    return T("fengshui.cam.fail", "เปิดกล้องไม่ได้{t} — เข็มทิศยังใช้ได้โดยไม่มีภาพกล้อง", { t: t ? ": " + t : " (" + ((e && e.name) || "error") + ")" });
   }
   function camLive(on) { arBox.classList.toggle("live", !!on); video.style.transform = on && cam && cam.mirrored ? "scaleX(-1)" : ""; }
   var cam = window.LQCam ? LQCam.create(video, {
@@ -464,7 +498,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     try { await cam.start(); }
     catch (e) { if (e.name === "AbortError" && /superseded/.test(e.message)) return; camLive(false); camNote(camErrMsg(e)); }
   }
-  function stopCam() { if (cam) cam.stop(); camLive(false); }
+  function _stopCam() { if (cam) cam.stop(); camLive(false); }
   function showManual(on) { $("#fsManual").hidden = !on; manual = on && !sensor ? true : manual; }
   $("#fsCompassStart").addEventListener("click", startCompass);
   $("#fsManualToggle").addEventListener("click", function () { manual = !manual; this.setAttribute("aria-pressed", manual); $("#fsManual").hidden = !manual && sensor; if (manual) setHeading(+slider.value, false); });
@@ -473,7 +507,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function dirColor(dir) {
     var k = activeKua(); if (!k) return { fill: "rgba(34,211,238,.25)", stroke: "#22d3ee", label: "" };
     var s = FS.starOfDir(k.kua, dir), g = KB.stars8[s].good;
-    return g ? { fill: "rgba(34,197,94,.30)", stroke: "#4ade80", label: KB.stars8[s].th, good: true } : { fill: "rgba(245,158,11,.22)", stroke: "#fbbf24", label: "ใช้น้อย", good: false };
+    return g ? { fill: "rgba(34,197,94,.30)", stroke: "#4ade80", label: s8L(s, "th"), good: true } : { fill: "rgba(245,158,11,.22)", stroke: "#fbbf24", label: T("fengshui.ar.low", "ใช้น้อย"), good: false };
   }
   function resizeAR() {
     var r = arBox.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -503,9 +537,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       // แถบสีโซน ±22.5°
       c.fillStyle = col.fill; c.fillRect(x - 22.5 * px, tapeY + tapeH, 45 * px, 8 * dpr);
       c.fillStyle = "#fff"; c.textAlign = "center"; c.textBaseline = "middle";
-      c.font = "600 " + 18 * dpr + "px " + F; c.fillText(KB.dirs[d].abbr, x, tapeY + 20 * dpr);
+      c.font = "600 " + 18 * dpr + "px " + F; c.fillText(abbrL(d), x, tapeY + 20 * dpr);
       c.font = "400 " + 12 * dpr + "px " + F; c.fillStyle = col.stroke;
-      c.fillText((col.label ? col.label + " · " : "") + KB.bagua[d].short, x, tapeY + 42 * dpr);
+      c.fillText((col.label ? col.label + " · " : "") + bgL(d, "short"), x, tapeY + 42 * dpr);
     });
     // เส้นกลาง
     c.strokeStyle = "#facc15"; c.lineWidth = 3 * dpr; c.beginPath(); c.moveTo(W / 2, tapeY - 6 * dpr); c.lineTo(W / 2, tapeY + tapeH + 14 * dpr); c.stroke();
@@ -520,17 +554,18 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var am = (KB.dirs[d].deg - 90) * Math.PI / 180;
       c.save(); c.translate(Math.cos(am) * R * 0.7, Math.sin(am) * R * 0.7); c.rotate(h * Math.PI / 180);
       c.fillStyle = d === "N" ? "#f87171" : "#fff"; c.textAlign = "center"; c.textBaseline = "middle";
-      c.font = "600 " + Math.max(11, R * 0.13) + "px " + F; c.fillText(KB.dirs[d].abbr, 0, 0);
+      c.font = "600 " + Math.max(11, R * 0.13) + "px " + F; c.fillText(abbrL(d), 0, 0);
       c.restore();
     });
     c.restore();
     c.fillStyle = "#facc15"; c.beginPath(); c.moveTo(cx, cy - R - 12 * dpr); c.lineTo(cx - 8 * dpr, cy - R + 4 * dpr); c.lineTo(cx + 8 * dpr, cy - R + 4 * dpr); c.closePath(); c.fill();
     // ข้อความสถานะ
-    var d0 = FS.headingToDir(h), col0 = dirColor(d0), k = activeKua();
+    var d0 = FS.headingToDir(h), k = activeKua();
     $("#fsHeadingNum").textContent = Math.round(h) + "°";
     $("#fsHeadingDir").textContent = dirTh(d0);
     var s0 = k ? KB.stars8[FS.starOfDir(k.kua, d0)] : null;
-    $("#fsHeadingInfo").innerHTML = (s0 ? '<span class="fs-tag ' + (s0.good ? "good" : "quiet") + '">' + esc(s0.th + " · " + s0.name) + "</span> " : '<span class="fs-tag">คำนวณเลขกัวก่อนเพื่อดูทิศมงคลส่วนตัว</span> ') + '<span class="fs-tag">ปากั้ว: ' + esc(KB.bagua[d0].area) + "</span>";
+    var s0k = k ? FS.starOfDir(k.kua, d0) : null;
+    $("#fsHeadingInfo").innerHTML = (s0 ? '<span class="fs-tag ' + (s0.good ? "good" : "quiet") + '">' + esc(s8L(s0k, "th") + " · " + s8L(s0k, "name")) + "</span> " : '<span class="fs-tag">' + esc(T("fengshui.ar.needKua", "คำนวณเลขกัวก่อนเพื่อดูทิศมงคลส่วนตัว")) + '</span> ') + '<span class="fs-tag">' + esc(T("fengshui.ar.bagua", "ปากั้ว: {a}", { a: bgL(d0, "area") })) + "</span>";
     if (!manual) slider.value = Math.round(h);
     if (sensor && !manual && Math.abs(FS.angDiff(rawHeading, heading)) > 0.5) { rafOn = true; requestAnimationFrame(drawAR); }
   }
@@ -538,31 +573,40 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   document.querySelectorAll("[data-rec]").forEach(function (b) {
     b.addEventListener("click", function () {
       touch();
-      if (heading == null) { toast("กด เริ่มเข็มทิศ ก่อน หรือใช้แถบเลื่อน"); return; }
+      if (heading == null) { toast(T("fengshui.toast.needHeading", "กด เริ่มเข็มทิศ ก่อน หรือใช้แถบเลื่อน")); return; }
       var k = b.dataset.rec, dir = FS.headingToDir(heading);
       state.recorded[k] = dir; state.recordedDeg[k] = heading;
       if (k === "door") { state.facing = dir; $("#fsFacing").value = dir; }
-      toast("บันทึก" + b.textContent.replace("บันทึก", "") + ": " + dirTh(dir) + " (" + Math.round(heading) + "°)");
+      toast(isZh() ? T("fengshui.toast.rec", "", { w: T("fengshui.rec.what." + k, ""), d: dirTh(dir), deg: Math.round(heading) }) : "บันทึก" + b.textContent.replace("บันทึก", "") + ": " + dirTh(dir) + " (" + Math.round(heading) + "°)");
       refreshAll();
     });
   });
   function renderRecorded() {
-    var k = activeKua(), lab = { door: "ประตูหลัก (หันออก)", desk: "โต๊ะ (ทิศที่หันหน้า)", bed: "หัวเตียง" };
+    var k = activeKua(), lab = { door: T("fengshui.rec.door", "ประตูหลัก (หันออก)"), desk: T("fengshui.rec.desk", "โต๊ะ (ทิศที่หันหน้า)"), bed: T("fengshui.rec.bed", "หัวเตียง") };
     var rows = Object.keys(lab).filter(function (x) { return state.recorded[x]; }).map(function (x) {
-      var dir = state.recorded[x], s = k ? KB.stars8[FS.starOfDir(k.kua, dir)] : null;
-      return '<li class="' + (s ? (s.good ? "good" : "quiet") : "") + '"><b>' + lab[x] + "</b><span>" + dirTh(dir) + " · " + Math.round(state.recordedDeg[x] || KB.dirs[dir].deg) + "°</span>" +
-        (s ? "<small>" + esc(s.th + " — " + (s.good ? s.name : "ลองขยับมุมไปทาง" + dirTh(k.stars.shengqi) + " หรือ " + dirTh(k.stars.tianyi) + " ถ้าทำได้")) + "</small>" : "") + "</li>";
+      var dir = state.recorded[x], sk = k ? FS.starOfDir(k.kua, dir) : null, s = sk ? KB.stars8[sk] : null;
+      return '<li class="' + (s ? (s.good ? "good" : "quiet") : "") + '"><b>' + esc(lab[x]) + "</b><span>" + esc(dirTh(dir)) + " · " + Math.round(state.recordedDeg[x] || KB.dirs[dir].deg) + "°</span>" +
+        (s ? "<small>" + esc(s8L(sk, "th") + " — " + (s.good ? s8L(sk, "name") : T("fengshui.rec.move", "ลองขยับมุมไปทาง{a} หรือ {b} ถ้าทำได้", { a: dirTh(k.stars.shengqi), b: dirTh(k.stars.tianyi) }))) + "</small>" : "") + "</li>";
     });
-    $("#fsRecList").innerHTML = rows.length ? rows.join("") : '<li class="muted">ยังไม่ได้บันทึกทิศ</li>';
+    $("#fsRecList").innerHTML = rows.length ? rows.join("") : '<li class="muted">' + esc(T("fengshui.rec.none", "ยังไม่ได้บันทึกทิศ")) + '</li>';
   }
-  $("#fsHelpDoor").textContent = KB.compass.door; $("#fsHelpDesk").textContent = KB.compass.desk; $("#fsHelpBed").textContent = KB.compass.bed;
-  $("#fsCalib").textContent = KB.compass.calib; $("#fsManualHint").textContent = KB.compass.desktop;
+  function renderCompassText() {
+    $("#fsHelpDoor").textContent = T("fengshui.compass.door", KB.compass.door); $("#fsHelpDesk").textContent = T("fengshui.compass.desk", KB.compass.desk); $("#fsHelpBed").textContent = T("fengshui.compass.bed", KB.compass.bed);
+    $("#fsCalib").textContent = T("fengshui.compass.calib", KB.compass.calib); $("#fsManualHint").textContent = T("fengshui.compass.desktop", KB.compass.desktop);
+    if (heading == null) { $("#fsHeadingDir").textContent = T("fengshui.ar.notStarted", "ยังไม่เริ่ม"); $("#fsHeadingInfo").innerHTML = '<span class="fs-tag">' + esc(T("fengshui.ar.startHint", "กด เริ่มเข็มทิศ แล้วหันโทรศัพท์ไปรอบๆ")) + "</span>"; }
+  }
+  renderCompassText();
 
   /* ================= 3) ผังบ้าน ================= */
   var facingSel = $("#fsFacing");
-  facingSel.innerHTML = '<option value="">เลือกทิศหน้าบ้าน</option>' + FS.DIRS.map(function (d) { return '<option value="' + d + '">' + dirTh(d) + "</option>"; }).join("");
+  function renderPlanControls() {
+    var fv = facingSel.value;
+    facingSel.innerHTML = '<option value="">' + esc(T("fengshui.facing.ph", "เลือกทิศหน้าบ้าน")) + '</option>' + FS.DIRS.map(function (d) { return '<option value="' + d + '">' + esc(dirTh(d)) + "</option>"; }).join("");
+    facingSel.value = fv;
+    $("#fsTools").innerHTML = KB.roomOrder.map(function (r) { return '<button type="button" class="fs-tool" data-room="' + r + '" aria-pressed="' + (r === state.tool) + '">' + esc(roomL(r)) + "</button>"; }).join("") + '<button type="button" class="fs-tool" data-room="erase" aria-pressed="' + (state.tool === "erase") + '">' + esc(T("fengshui.tool.erase", "ลบห้อง")) + '</button>';
+  }
+  renderPlanControls();
   facingSel.addEventListener("change", function () { state.facing = this.value; if (this.value) { state.recorded.door = this.value; state.recordedDeg.door = KB.dirs[this.value].deg; } refreshAll(); });
-  $("#fsTools").innerHTML = KB.roomOrder.map(function (r) { return '<button type="button" class="fs-tool" data-room="' + r + '" aria-pressed="' + (r === state.tool) + '">' + KB.rooms[r].th + "</button>"; }).join("") + '<button type="button" class="fs-tool" data-room="erase" aria-pressed="false">ลบห้อง</button>';
   $("#fsTools").addEventListener("click", function (e) {
     var b = e.target.closest(".fs-tool"); if (!b) return;
     state.tool = b.dataset.room;
@@ -575,17 +619,19 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   function renderPlan() {
     var grid = $("#fsGrid"), ch = charts(), k = activeKua();
-    $("#fsYearInfo").innerHTML = "ปีฮวงจุ้ย <b>" + ch.mi.solarYear + "</b> (ปี" + KB.branches[ch.mi.branch] + ") ดาวกลางปี <b>" + ch.mi.yearCenter + " " + KB.flying[ch.mi.yearCenter].th + "</b> · เดือน" + KB.monthNames[ch.mi.k] + " ดาวกลางเดือน <b>" + ch.mi.center + " " + KB.flying[ch.mi.center].th + "</b>";
-    if (!state.facing) { grid.innerHTML = '<p class="fs-empty">เลือกทิศหน้าบ้าน หรือบันทึกทิศประตูหลักด้วยเข็มทิศ แล้วผัง 9 ช่องจะปรากฏ</p>'; grid.classList.add("empty"); $("#fsAdvice").innerHTML = ""; renderPhotoTargets(); return; }
+    $("#fsYearInfo").innerHTML = isZh() ? esc(T("fengshui.plan.year", "", { y: ch.mi.solarYear, b: brL(ch.mi.branch), yc: ch.mi.yearCenter, ys: flyL(ch.mi.yearCenter), m: mnL(ch.mi.k), mc: ch.mi.center, ms: flyL(ch.mi.center) })) : "ปีฮวงจุ้ย <b>" + ch.mi.solarYear + "</b> (ปี" + KB.branches[ch.mi.branch] + ") ดาวกลางปี <b>" + ch.mi.yearCenter + " " + KB.flying[ch.mi.yearCenter].th + "</b> · เดือน" + KB.monthNames[ch.mi.k] + " ดาวกลางเดือน <b>" + ch.mi.center + " " + KB.flying[ch.mi.center].th + "</b>";
+    if (!state.facing) { grid.innerHTML = '<p class="fs-empty">' + esc(T("fengshui.plan.empty", "เลือกทิศหน้าบ้าน หรือบันทึกทิศประตูหลักด้วยเข็มทิศ แล้วผัง 9 ช่องจะปรากฏ")) + '</p>'; grid.classList.add("empty"); $("#fsAdvice").innerHTML = ""; renderPhotoTargets(); return; }
     grid.classList.remove("empty");
     var secs = FS.planSectors(state.facing), chart = state.view === "month" ? ch.month : ch.year;
     grid.innerHTML = secs.map(function (d, i) {
       var star = chart[d], S = KB.flying[star], B = KB.bagua[d], rooms = state.cells[i];
-      var personal = k && d !== "C" ? KB.stars8[FS.starOfDir(k.kua, d)] : null;
-      return '<button type="button" class="fs-cell ' + (S.care ? (S.care >= 3 ? "high" : "mid") : "ok") + (i === 7 ? " front" : "") + '" data-i="' + i + '" aria-label="' + esc(dirTh(d) + " ดาว " + star + " " + S.th + " ปากั้ว " + B.short + (rooms.length ? " ห้อง: " + rooms.map(function (r) { return KB.rooms[r].th; }).join(", ") : "")) + '">' +
-        '<span class="c-dir">' + KB.dirs[d].abbr + '</span><span class="c-star">' + star + '</span><span class="c-name">' + S.th + '</span><span class="c-bg">' + B.short + "</span>" +
-        (personal ? '<span class="c-p ' + (personal.good ? "good" : "quiet") + '">' + personal.th + "</span>" : "") +
-        '<span class="c-rooms">' + rooms.map(function (r) { return "<i>" + KB.rooms[r].icon + "</i>"; }).join("") + "</span></button>";
+      var pk = k && d !== "C" ? FS.starOfDir(k.kua, d) : null, personal = pk ? KB.stars8[pk] : null;
+      var aria = isZh() ? T("fengshui.cell.aria", "", { d: dirTh(d), n: star, s: flyL(star), b: bgL(d, "short") }) + (rooms.length ? T("fengshui.cell.rooms", "", { r: rooms.map(roomL).join("、") }) : "")
+        : dirTh(d) + " ดาว " + star + " " + S.th + " ปากั้ว " + B.short + (rooms.length ? " ห้อง: " + rooms.map(function (r) { return KB.rooms[r].th; }).join(", ") : "");
+      return '<button type="button" class="fs-cell ' + (S.care ? (S.care >= 3 ? "high" : "mid") : "ok") + (i === 7 ? " front" : "") + '" data-i="' + i + '" aria-label="' + esc(aria) + '">' +
+        '<span class="c-dir">' + esc(abbrL(d)) + '</span><span class="c-star">' + star + '</span><span class="c-name">' + esc(flyL(star)) + '</span><span class="c-bg">' + esc(bgL(d, "short")) + "</span>" +
+        (personal ? '<span class="c-p ' + (personal.good ? "good" : "quiet") + '">' + esc(s8L(pk, "th")) + "</span>" : "") +
+        '<span class="c-rooms">' + rooms.map(function (r) { return "<i>" + esc(iconL(r)) + "</i>"; }).join("") + "</span></button>";
     }).join("");
     renderAdvice(secs, chart);
     renderPhotoTargets();
@@ -612,22 +658,28 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   function renderAdvice(secs, chart) {
     var r = adviceList(secs, chart), k = activeKua();
-    $("#fsAdvice").innerHTML = '<h3 class="fs-sub">' + (r.marked ? "ลำดับสิ่งที่ควรดูแลในห้องที่ทำเครื่องหมาย" : "ภาพรวมทุกโซน (แตะช่องเพื่อทำเครื่องหมายห้อง)") + "</h3><ol class=\"fs-adv\">" + r.list.map(function (a) {
+    var zh = isZh();
+    $("#fsAdvice").innerHTML = '<h3 class="fs-sub">' + esc(r.marked ? T("fengshui.adv.marked", "ลำดับสิ่งที่ควรดูแลในห้องที่ทำเครื่องหมาย") : T("fengshui.adv.all", "ภาพรวมทุกโซน (แตะช่องเพื่อทำเครื่องหมายห้อง)")) + "</h3><ol class=\"fs-adv\">" + r.list.map(function (a) {
       var S = a.starInfo, E = KB.elements[a.cureElement];
       var per = a.personal ? KB.stars8[a.personal] : null;
-      return '<li class="' + a.level + '"><div class="a-h"><span class="a-star">' + a.star + "</span><b>" + (a.rooms.length ? a.rooms.map(function (x) { return KB.rooms[x].th; }).join(" + ") + " · " : "") + "โซน" + dirTh(a.dir) + '</b><span class="a-lv">' + (a.level === "high" ? "ควรจัดให้สงบ (สำคัญ)" : a.level === "mid" ? "ควรจัดให้สงบ" : "เสริมได้") + "</span></div>" +
-        '<p class="a-theme">ดาว ' + a.star + " " + S.th + " (" + S.cn + ", ธาตุ" + KB.elements[S.element].th + "): " + esc(S.theme) + "</p>" +
-        "<ul>" + a.lines.map(function (l) { return "<li>" + esc(l) + "</li>"; }).join("") +
-        "<li>ปากั้ว: " + esc(a.bagua.area) + " — สี " + a.bagua.colors.map(function (c) { return '<i class="sw" style="background:' + c[1] + '"></i>' + c[0]; }).join(" ") + " · " + esc(a.bagua.items) + "</li>" +
-        '<li>ธาตุที่ช่วยปรับ: <i class="sw" style="background:' + E.color + '"></i>' + E.th + " — " + esc(E.items) + " (วัสดุ: " + esc(E.materials) + ")</li>" +
-        (per ? "<li>สำหรับเลขกัว " + k.kua + ": โซนนี้เป็นทิศ" + per.th + " (" + esc(per.name) + ")</li>" : "") + "</ul></li>";
+      // ข้อความแนะนำรายโซน (sectorAdvice) สร้างใหม่ตามภาษาจากข้อมูลเดียวกัน
+      var lines = !zh ? a.lines : [S.care ? T("fengshui.line.calm", "", { c: flyF(a.star, "cure") }) : T("fengshui.line.boost", "", { c: flyF(a.star, "cure") })]
+        .concat(a.rooms.filter(function (x) { return S.care && (x === "bath" || x === "kitchen"); }).map(function (x) { return T("fengshui.rsn." + x, KB.roomStarNote[x]); }))
+        .concat(a.rooms.indexOf("bath") >= 0 && !S.care ? [T("fengshui.line.bathGood", "")] : []);
+      var zone = zh ? (a.dir === "C" ? zoneTh("C") : T("fengshui.adv.zone", "", { d: zoneTh(a.dir) })) : "โซน" + dirTh(a.dir);
+      return '<li class="' + a.level + '"><div class="a-h"><span class="a-star">' + a.star + "</span><b>" + esc((a.rooms.length ? a.rooms.map(roomL).join(" + ") + " · " : "") + zone) + '</b><span class="a-lv">' + esc(a.level === "high" ? T("fengshui.adv.high", "ควรจัดให้สงบ (สำคัญ)") : a.level === "mid" ? T("fengshui.adv.mid", "ควรจัดให้สงบ") : T("fengshui.adv.good", "เสริมได้")) + "</span></div>" +
+        '<p class="a-theme">' + (zh ? esc(T("fengshui.adv.theme", "", { n: a.star + " " + flyL(a.star), e: elL(S.element), t: flyF(a.star, "theme") })) : 'ดาว ' + a.star + " " + S.th + " (" + S.cn + ", ธาตุ" + KB.elements[S.element].th + "): " + esc(S.theme)) + "</p>" +
+        "<ul>" + lines.map(function (l) { return "<li>" + esc(l) + "</li>"; }).join("") +
+        "<li>" + esc(T("fengshui.adv.bagua", "ปากั้ว: {a} — สี ", { a: bgL(a.dir, "area") })) + a.bagua.colors.map(function (c, ci) { return '<i class="sw" style="background:' + c[1] + '"></i>' + esc(bgColor(a.dir, ci)); }).join(" ") + " · " + esc(bgL(a.dir, "items")) + "</li>" +
+        '<li>' + esc(T("fengshui.adv.cure", "ธาตุที่ช่วยปรับ: ")) + '<i class="sw" style="background:' + E.color + '"></i>' + esc(elL(a.cureElement)) + " — " + esc(T("fengshui.eli." + a.cureElement, E.items)) + esc(T("fengshui.adv.mat", " (วัสดุ: {m})", { m: T("fengshui.elm." + a.cureElement, E.materials) })) + "</li>" +
+        (per ? "<li>" + esc(zh ? T("fengshui.adv.personal", "", { k: k.kua, s: s8L(a.personal, "th"), n: s8L(a.personal, "name") }) : "สำหรับเลขกัว " + k.kua + ": โซนนี้เป็นทิศ" + per.th + " (" + per.name + ")") + "</li>" : "") + "</ul></li>";
     }).join("") + "</ol>";
   }
 
   /* ---------- ภาพห้อง ---------- */
   function renderPhotoTargets() {
-    var sel = $("#fsPhotoFor"), secs = state.facing ? FS.planSectors(state.facing) : null, opts = ['<option value="">ภาพรวม (ไม่ระบุโซน)</option>'];
-    if (secs) secs.forEach(function (d, i) { if (state.cells[i].length) opts.push('<option value="' + i + '">' + state.cells[i].map(function (r) { return KB.rooms[r].th; }).join(" + ") + " · " + dirTh(d) + "</option>"); });
+    var sel = $("#fsPhotoFor"), secs = state.facing ? FS.planSectors(state.facing) : null, opts = ['<option value="">' + esc(T("fengshui.photo.overall", "ภาพรวม (ไม่ระบุโซน)")) + '</option>'];
+    if (secs) secs.forEach(function (d, i) { if (state.cells[i].length) opts.push('<option value="' + i + '">' + esc(state.cells[i].map(roomL).join(" + ") + " · " + dirTh(d)) + "</option>"); });
     var v = sel.value; sel.innerHTML = opts.join(""); if (Array.prototype.some.call(sel.options, function (o) { return o.value === v; })) sel.value = v;
   }
   $("#fsPhoto").addEventListener("change", async function () {
@@ -638,17 +690,19 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var cv = document.createElement("canvas"); cv.width = w; cv.height = h; var c = cv.getContext("2d", { willReadFrequently: true });
       c.drawImage(bmp, 0, 0, w, h);
       var a = FS.analyzeImage(c.getImageData(0, 0, w, h));
-      var idx = $("#fsPhotoFor").value, star = null, label = "ภาพห้อง";
+      var idx = $("#fsPhotoFor").value, star = null, label = "ภาพห้อง", proom = [], pdir = null;
       if (idx !== "" && state.facing) {
         var d = FS.planSectors(state.facing)[+idx], ch = charts();
-        star = ch.year[d]; label = state.cells[+idx].map(function (r) { return KB.rooms[r].th; }).join(" + ") + " (โซน" + dirTh(d) + ")";
+        star = ch.year[d]; label = state.cells[+idx].map(function (r) { return KB.rooms[r].th; }).join(" + ") + " (โซน" + KB.dirs[d].th + ")";
+        proom = state.cells[+idx].slice(); pdir = d;
       }
       var adv = FS.photoAdvice(a, star);
-      state.photos = state.photos.filter(function (p) { return p.idx !== idx; }).concat([{ idx: idx, label: label, a: a, advice: adv }]);
+      state.photos = state.photos.filter(function (p) { return p.idx !== idx; }).concat([{ idx: idx, label: label, a: a, advice: adv, rooms: proom, dir: pdir }]);
       var thumb = cv.toDataURL("image/jpeg", 0.7);
+      state.lastThumb = thumb;
       renderPhotos(thumb);
       if (bmp.close) bmp.close();
-    } catch (e) { console.error(e); toast("อ่านรูปไม่สำเร็จ"); }
+    } catch (e) { console.error(e); toast(T("fengshui.toast.photoFail", "อ่านรูปไม่สำเร็จ")); }
   });
   function loadImg(f) {
     if (window.createImageBitmap) return createImageBitmap(f).catch(function () { return viaImg(f); });
@@ -658,10 +712,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function renderPhotos(lastThumb) {
     var box = $("#fsPhotoOut");
     box.innerHTML = state.photos.map(function (p, i) {
-      var bars = KB.elementOrder.map(function (e) { var E = KB.elements[e], pc = Math.round(p.a.shares[e] * 100); return '<div class="elbar"><span>' + E.th + '</span><i style="--w:' + pc + "%;--c:" + E.color + '"></i><b>' + pc + "%</b></div>"; }).join("");
-      return '<article class="fs-ph">' + (i === state.photos.length - 1 && lastThumb ? '<img src="' + lastThumb + '" alt="ภาพห้องที่อัปโหลด (ย่อ)">' : "") + "<div><h4>" + esc(p.label) + '</h4><p class="fs-small">ความสว่างเฉลี่ย ' + Math.round(p.a.brightness * 100) + "% · ความหนาแน่นขอบ (ตัวแทนความรก) " + Math.round(p.a.edgeDensity * 100) + "%</p>" + bars +
-        "<ul>" + p.advice.map(function (a) { return "<li>" + esc(a.t) + "</li>"; }).join("") + "</ul></div></article>";
-    }).join("") + (state.photos.length ? '<p class="fs-small">' + esc(KB.photo.note) + "</p>" : "");
+      var bars = KB.elementOrder.map(function (e) { var E = KB.elements[e], pc = Math.round(p.a.shares[e] * 100); return '<div class="elbar"><span>' + esc(elL(e)) + '</span><i style="--w:' + pc + "%;--c:" + E.color + '"></i><b>' + pc + "%</b></div>"; }).join("");
+      return '<article class="fs-ph">' + (i === state.photos.length - 1 && lastThumb ? '<img src="' + lastThumb + '" alt="' + esc(T("fengshui.photo.alt", "ภาพห้องที่อัปโหลด (ย่อ)")) + '">' : "") + "<div><h4>" + esc(photoLabel(p)) + '</h4><p class="fs-small">' + esc(T("fengshui.photo.stats", "ความสว่างเฉลี่ย {b}% · ความหนาแน่นขอบ (ตัวแทนความรก) {e}%", { b: Math.round(p.a.brightness * 100), e: Math.round(p.a.edgeDensity * 100) })) + "</p>" + bars +
+        "<ul>" + p.advice.map(function (a) { return "<li>" + esc(photoText(a, p)) + "</li>"; }).join("") + "</ul></div></article>";
+    }).join("") + (state.photos.length ? '<p class="fs-small">' + esc(T("fengshui.photo.note", KB.photo.note)) + "</p>" : "");
   }
 
   /* ================= 4) คำทำนาย (fortune-ai) ================= */
@@ -675,7 +729,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   function refreshNarrativeHint() {
     var st = collect(), n = st.rooms.length;
-    $("#fsReadHint").textContent = (st.kua ? "เลขกัว " + st.kua.kua : "ยังไม่ได้คำนวณเลขกัว") + " · ทิศที่บันทึก " + Object.keys(st.recorded).length + " · ห้องในผัง " + n + " · ภาพห้อง " + st.photos.length;
+    $("#fsReadHint").textContent = (st.kua ? T("fengshui.hint.kua", "เลขกัว {k}", { k: st.kua.kua }) : T("fengshui.hint.noKua", "ยังไม่ได้คำนวณเลขกัว")) + T("fengshui.hint.rest", " · ทิศที่บันทึก {r} · ห้องในผัง {n} · ภาพห้อง {p}", { r: Object.keys(st.recorded).length, n: n, p: st.photos.length });
   }
   async function readFortune(again) {
     touch();
@@ -686,8 +740,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var consent = $("#fsConsent").checked, res;
     try {
       if (AI && typeof AI.interpret === "function") res = await AI.interpret(facts, { useAI: consent, seed: again ? undefined : undefined });
-      else res = { source: "local", sections: [{ id: "overview", title: "ภาพรวม", paragraphs: facts.items.map(function (it) { var m = it.meanings, k0 = Object.keys(m)[0]; return m[k0][0]; }) }] };
-    } catch (e) { console.error(e); res = { source: "local", sections: [], note: "เรียบเรียงไม่สำเร็จ" }; }
+      else res = { source: "local", sections: [{ id: "overview", title: T("fengshui.overview", "ภาพรวม"), paragraphs: facts.items.map(function (it) { var m = it.meanings, k0 = Object.keys(m)[0]; return m[k0][0]; }) }] };
+    } catch (e) { console.error(e); res = { source: "local", sections: [], note: T("fengshui.readFail", "เรียบเรียงไม่สำเร็จ") }; }
     renderReading(res, facts);
     btn.disabled = false; $("#fsAgain").disabled = false; $("#fsAgain").hidden = false;
     out.removeAttribute("aria-busy");
@@ -698,7 +752,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var host = $("#fsSections"), used = false;
     $("#fsReading").hidden = false;
     var badge = $("#fsSource");
-    badge.textContent = res.source === "ai" ? "เรียบเรียงโดย Claude AI (จากผลคำนวณเท่านั้น)" : "เรียบเรียงในเครื่อง ไม่ส่งข้อมูลออก";
+    badge.textContent = res.source === "ai" ? T("fengshui.src.ai", "เรียบเรียงโดย Claude AI (จากผลคำนวณเท่านั้น)") : T("fengshui.src.local", "เรียบเรียงในเครื่อง ไม่ส่งข้อมูลออก");
     badge.className = "fs-badge " + (res.source === "ai" ? "ai" : "local");
     if (AI && typeof AI.renderSections === "function") {
       try { host.innerHTML = ""; var r = AI.renderSections(host, res, { domain: "fengshui" }); if (typeof r === "string") host.innerHTML = r; else if (r && r.nodeType) host.append(r); used = host.childNodes.length > 0; } catch (e) { used = false; }
@@ -708,10 +762,22 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         return '<article class="fs-sec"><h3>' + esc(s.title || "") + "</h3>" + (s.paragraphs || []).map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("") + "</article>";
       }).join("") + (res.note ? '<p class="fs-small">' + esc(res.note) + "</p>" : "");
     }
-    var ex = facts.extras || {};
-    $("#fsExtras").innerHTML = (ex.luckyColors && ex.luckyColors.length ? "<div><h4>สีมงคล</h4><p>" + ex.luckyColors.map(esc).join(" · ") + "</p></div>" : "") +
-      (ex.directions && ex.directions.length ? "<div><h4>ทิศมงคล</h4><p>" + ex.directions.map(esc).join(" · ") + "</p></div>" : "") +
-      (ex.tips && ex.tips.length ? "<div><h4>เคล็ดลับ</h4><ul>" + ex.tips.slice(0, 4).map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul></div>" : "");
+    var ex = isZh() ? extrasZh(facts) : (facts.extras || {});
+    $("#fsExtras").innerHTML = (ex.luckyColors && ex.luckyColors.length ? "<div><h4>" + esc(T("fengshui.ex.colors", "สีมงคล")) + "</h4><p>" + ex.luckyColors.map(esc).join(" · ") + "</p></div>" : "") +
+      (ex.directions && ex.directions.length ? "<div><h4>" + esc(T("fengshui.ex.dirs", "ทิศมงคล")) + "</h4><p>" + ex.directions.map(esc).join(" · ") + "</p></div>" : "") +
+      (ex.tips && ex.tips.length ? "<div><h4>" + esc(T("fengshui.ex.tips", "เคล็ดลับ")) + "</h4><ul>" + ex.tips.slice(0, 4).map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul></div>" : "");
+  }
+  /** extras ภาษาจีน: สร้างจากข้อมูลเดียวกับ buildFacts (สีของธาตุเลขกัว + ธาตุที่ให้กำเนิด, ทิศมงคล 4 ทิศ, เคล็ดลับจากภาพและทั่วไป) */
+  function extrasZh(facts) {
+    var k = activeKua(), out = { luckyColors: [], directions: [], tips: [] };
+    if (k) {
+      var el = KB.kuaInfo[k.kua].element, gen = Object.keys(KB.elements).filter(function (e) { return KB.elements[e].generates === el; })[0];
+      out.luckyColors = elColors(el, 3).concat(elColors(gen, 1));
+      out.directions = ["shengqi", "tianyi", "yannian", "fuwei"].map(function (s) { return dirTh(k.stars[s]) + "（" + s8L(s, "th") + "）"; });
+    }
+    state.photos.forEach(function (ph) { ph.advice.forEach(function (a) { if (a.k === "dark" || a.k === "busy") out.tips.push(photoText(a, ph)); }); });
+    out.tips = out.tips.concat(KB.tips.general.slice(0, 2).map(function (t, i) { return T("fengshui.tips.general." + i, t); }));
+    return out;
   }
   $("#fsReadBtn").addEventListener("click", function () { readFortune(false); });
   $("#fsAgain").addEventListener("click", function () { readFortune(true); });
@@ -740,7 +806,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var rg = c.createRadialGradient(W / 2, 400, 30, W / 2, 400, 520); rg.addColorStop(0, elc + "88"); rg.addColorStop(1, "rgba(14,20,48,0)"); c.fillStyle = rg; c.fillRect(0, 0, W, H);
     c.textBaseline = "middle"; c.textAlign = "left";
     c.font = "700 40px " + F; c.fillStyle = "#fff"; c.fillText("LENS", 72, 92); var lw = c.measureText("LENS").width; c.fillStyle = "#a99bff"; c.fillText("IQ", 72 + lw, 92);
-    c.textAlign = "right"; c.font = "500 34px " + F; c.fillStyle = "#c9d0ea"; c.fillText("ฮวงจุ้ย", W - 72, 92);
+    c.textAlign = "right"; c.font = "500 34px " + F; c.fillStyle = "#c9d0ea"; c.fillText(T("fengshui.card.brand", "ฮวงจุ้ย"), W - 72, 92);
     // วงทิศ 8 ทิศ
     var cx = W / 2, cy = 400, R = 230;
     FS.DIRS.forEach(function (d) {
@@ -750,34 +816,33 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       c.fillStyle = good ? "rgba(74,222,128,.32)" : "rgba(251,191,36,.16)"; c.fill(); c.strokeStyle = "rgba(255,255,255,.25)"; c.lineWidth = 2; c.stroke();
       var am = (KB.dirs[d].deg - 90) * Math.PI / 180;
       c.textAlign = "center"; c.fillStyle = d === "N" ? "#fca5a5" : "#fff"; c.font = "600 30px " + F;
-      c.fillText(KB.dirs[d].abbr, cx + Math.cos(am) * R * 0.78, cy + Math.sin(am) * R * 0.78);
+      c.fillText(abbrL(d), cx + Math.cos(am) * R * 0.78, cy + Math.sin(am) * R * 0.78);
     });
     c.beginPath(); c.arc(cx, cy, 110, 0, Math.PI * 2); c.fillStyle = "#0e1430"; c.fill(); c.strokeStyle = elc; c.lineWidth = 8; c.stroke();
     c.fillStyle = "#fff"; c.textAlign = "center"; c.font = "700 120px " + F; c.fillText(k ? String(k.kua) : String(ch.mi.yearCenter), cx, cy + 6);
-    c.font = "400 26px " + F; c.fillStyle = "#c9d0ea"; c.fillText(k ? "เลขกัว" : "ดาวกลางปี", cx, cy + 82);
+    c.font = "400 26px " + F; c.fillStyle = "#c9d0ea"; c.fillText(k ? T("fengshui.card.kua", "เลขกัว") : T("fengshui.card.yc", "ดาวกลางปี"), cx, cy + 82);
     var y = 700;
     c.font = "700 64px " + F; c.fillStyle = "#fff";
-    c.fillText(k ? KB.groups[k.group].th.replace(/ \(.+\)/, "") : "ผังดาวปี " + ch.mi.solarYear, W / 2, y); y += 80;
+    c.fillText(k ? (isZh() ? grpL(k.group) : KB.groups[k.group].th.replace(/ \(.+\)/, "")) : T("fengshui.card.chart", "ผังดาวปี {y}", { y: ch.mi.solarYear }), W / 2, y); y += 80;
     if (k) {
-      var T = k.stars;
-      [["shengqi", "การงาน"], ["tianyi", "พักผ่อน"], ["yannian", "ความสัมพันธ์"], ["fuwei", "สมาธิ"]].forEach(function (p, i) {
+      var TS = k.stars;
+      [["shengqi", T("fengshui.card.work", "การงาน")], ["tianyi", T("fengshui.card.rest", "พักผ่อน")], ["yannian", T("fengshui.card.rel", "ความสัมพันธ์")], ["fuwei", T("fengshui.card.focus", "สมาธิ")]].forEach(function (p, i) {
         var col = i % 2, row = Math.floor(i / 2), bx = 120 + col * 430, by = y + row * 104;
         c.fillStyle = "rgba(255,255,255,.08)"; rr(c, bx, by, 410, 88, 26); c.fill();
-        c.textAlign = "left"; c.fillStyle = "#4ade80"; c.font = "600 28px " + F; c.fillText(dirTh(T[p[0]]), bx + 26, by + 28);
-        c.fillStyle = "#c9d0ea"; c.font = "400 24px " + F; c.fillText(p[1] + " · " + KB.stars8[p[0]].th, bx + 26, by + 60);
+        c.textAlign = "left"; c.fillStyle = "#4ade80"; c.font = "600 28px " + F; c.fillText(dirTh(TS[p[0]]), bx + 26, by + 28);
+        c.fillStyle = "#c9d0ea"; c.font = "400 24px " + F; c.fillText(p[1] + " · " + s8L(p[0], "th"), bx + 26, by + 60);
       });
       y += 250;
     } else y += 40;
     c.textAlign = "center"; c.font = "500 32px " + F; c.fillStyle = "#facc15";
     var five = Object.keys(ch.year).filter(function (p) { return ch.year[p] === 5; })[0];
-    wrapTh(c, "ปี " + ch.mi.solarYear + ": ดาว " + ch.mi.yearCenter + " " + KB.flying[ch.mi.yearCenter].th + " กลางบ้าน · โซน" + dirTh(five) + "ควรจัดให้สงบ", W - 160).slice(0, 2).forEach(function (l, i) { c.fillText(l, W / 2, y + i * 44); });
+    wrapTh(c, isZh() ? T("fengshui.card.year", "", { y: ch.mi.solarYear, n: ch.mi.yearCenter, s: flyL(ch.mi.yearCenter), d: zoneTh(five) }) : "ปี " + ch.mi.solarYear + ": ดาว " + ch.mi.yearCenter + " " + KB.flying[ch.mi.yearCenter].th + " กลางบ้าน · โซน" + dirTh(five) + "ควรจัดให้สงบ", W - 160).slice(0, 2).forEach(function (l, i) { c.fillText(l, W / 2, y + i * 44); });
     y += 130;
     if (k) {
-      var E = KB.elements[KB.kuaInfo[k.kua].element];
-      c.font = "400 30px " + F; c.fillStyle = "#c9d0ea"; c.fillText("สีมงคล: " + E.colors.slice(0, 3).join(" · "), W / 2, y);
+      c.font = "400 30px " + F; c.fillStyle = "#c9d0ea"; c.fillText(T("fengshui.card.colors", "สีมงคล: {c}", { c: elColors(KB.kuaInfo[k.kua].element, 3).join(" · ") }), W / 2, y);
     }
     c.font = "400 24px " + F; c.fillStyle = "#8f9bc4";
-    wrapTh(c, KB.disclaimerShort + " · คำนวณในเครื่อง ไม่บันทึกวันเกิด", W - 160).forEach(function (l, i) { c.fillText(l, W / 2, 1290 + i * 30); });
+    wrapTh(c, T("fengshui.card.foot", "{d} · คำนวณในเครื่อง ไม่บันทึกวันเกิด", { d: T("fengshui.disclaimerShort", KB.disclaimerShort) }), W - 160).forEach(function (l, i) { c.fillText(l, W / 2, 1290 + i * 30); });
     return cv;
   }
   var cardUrl = null;
@@ -790,26 +855,26 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var im = $("#fsCardImg"); im.src = cardUrl; im.hidden = false;
       var file = new File([blob], "lensiq-fengshui.png", { type: "image/png" });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: "ฮวงจุ้ย — LENSIQ", text: KB.disclaimerShort }); return; }
+        try { await navigator.share({ files: [file], title: T("fengshui.share.title", "ฮวงจุ้ย — LENSIQ"), text: T("fengshui.disclaimerShort", KB.disclaimerShort) }); return; }
         catch (e) { if (e.name === "AbortError") return; }
       }
       var a = document.createElement("a"); a.href = cardUrl; a.download = "lensiq-fengshui.png"; document.body.append(a); a.click(); a.remove();
-      toast("บันทึกการ์ดแล้ว");
-    } catch (e) { console.error(e); toast("สร้างการ์ดไม่สำเร็จ"); }
+      toast(T("fengshui.toast.saved", "บันทึกการ์ดแล้ว"));
+    } catch (e) { console.error(e); toast(T("fengshui.toast.fail", "สร้างการ์ดไม่สำเร็จ")); }
     finally { b.disabled = false; }
   });
 
   /* ---------- สถิติ ---------- */
   function renderStats() {
     var st = lsGet(STATS_KEY, null), box = $("#fsStats");
-    if (!st || !st.total) { box.innerHTML = '<p class="muted">ยังไม่มีการใช้งานในเครื่องนี้</p>'; return; }
+    if (!st || !st.total) { box.innerHTML = '<p class="muted">' + esc(T("fengshui.stats.none", "ยังไม่มีการใช้งานในเครื่องนี้")) + '</p>'; return; }
     var d = new Date(), today = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-    box.innerHTML = '<p class="stat-n"><b>' + st.total + "</b> ครั้ง <small>(วันนี้ " + (st.days && st.days[today] || 0) + ")</small></p>" +
-      [1, 2, 3, 4, 6, 7, 8, 9].map(function (n) { var v = (st.kua && st.kua[n]) || 0; return '<div class="elbar"><span>กัว ' + n + '</span><i style="--w:' + Math.round(v / st.total * 100) + "%;--c:" + (KB.groups[[1, 3, 4, 9].indexOf(n) >= 0 ? "east" : "west"] && ([1, 3, 4, 9].indexOf(n) >= 0 ? "#2f9e5b" : "#8a94a6")) + '"></i><b>' + v + "</b></div>"; }).join("");
+    box.innerHTML = '<p class="stat-n"><b>' + st.total + "</b> " + esc(T("fengshui.stats.total", "ครั้ง")) + " <small>" + esc(T("fengshui.stats.today", "(วันนี้ {n})", { n: st.days && st.days[today] || 0 })) + "</small></p>" +
+      [1, 2, 3, 4, 6, 7, 8, 9].map(function (n) { var v = (st.kua && st.kua[n]) || 0; return '<div class="elbar"><span>' + esc(T("fengshui.stats.kua", "กัว {n}", { n: n })) + '</span><i style="--w:' + Math.round(v / st.total * 100) + "%;--c:" + (KB.groups[[1, 3, 4, 9].indexOf(n) >= 0 ? "east" : "west"] && ([1, 3, 4, 9].indexOf(n) >= 0 ? "#2f9e5b" : "#8a94a6")) + '"></i><b>' + v + "</b></div>"; }).join("");
   }
   $("#fsStatsOn").checked = !!prefs.stats;
   $("#fsStatsOn").addEventListener("change", function () { prefs.stats = this.checked; lsSet(PREF_KEY, prefs); });
-  $("#fsStatsClear").addEventListener("click", function () { if (confirm("ล้างสถิติในเครื่องนี้?")) { try { localStorage.removeItem(STATS_KEY); } catch (e) { /* ไม่เป็นไร */ } renderStats(); } });
+  $("#fsStatsClear").addEventListener("click", function () { if (confirm(T("fengshui.confirmClear", "ล้างสถิติในเครื่องนี้?"))) { try { localStorage.removeItem(STATS_KEY); } catch (e) { /* ไม่เป็นไร */ } renderStats(); } });
 
   /* ---------- โหมดบูธ ---------- */
   var idleT = null, idleTick = null, wasFs = false;
@@ -819,7 +884,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var el = $("#fsIdle"); el.hidden = true;
     if (!isKiosk()) return;
     var until = Date.now() + IDLE_MS;
-    idleTick = setInterval(function () { var left = Math.ceil((until - Date.now()) / 1000); if (left <= 15) { el.hidden = false; el.textContent = "เริ่มใหม่สำหรับคนถัดไปใน " + left + " วินาที — แตะเพื่ออยู่ต่อ"; } }, 1000);
+    idleTick = setInterval(function () { var left = Math.ceil((until - Date.now()) / 1000); if (left <= 15) { el.hidden = false; el.textContent = T("fengshui.idle", "เริ่มใหม่สำหรับคนถัดไปใน {n} วินาที — แตะเพื่ออยู่ต่อ", { n: left }); } }, 1000);
     idleT = setTimeout(function () { clearInterval(idleTick); el.hidden = true; resetAll(); }, IDLE_MS);
   }
   ["pointerdown", "keydown", "touchstart"].forEach(function (ev) { document.addEventListener(ev, function () { if (isKiosk()) touch(); }, { passive: true }); });
@@ -838,7 +903,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     state.kuaSet = null; state.recorded = {}; state.recordedDeg = {}; state.facing = ""; state.cells = [[], [], [], [], [], [], [], [], []]; state.photos = []; state.counted = false;
     $("#fsKuaForm").reset(); $("#fsKuaOut").hidden = true; $("#fsFacing").value = ""; $("#fsReading").hidden = true; $("#fsShareRow").hidden = true; $("#fsAgain").hidden = true;
     $("#fsCardImg").hidden = true; if (cardUrl) { URL.revokeObjectURL(cardUrl); cardUrl = null; }
-    $("#fsPhotoOut").innerHTML = "";
+    $("#fsPhotoOut").innerHTML = ""; state.lastThumb = null;
     refreshAll(); window.scrollTo({ top: 0 });
   }
   $("#fsReset").addEventListener("click", resetAll);
@@ -849,12 +914,23 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
 
   // แหล่งอ้างอิง/ข้อความจาก KB
-  $("#fsSources").innerHTML = KB.sources.map(function (s) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.label) + "</a></li>"; }).join("");
-  $("#fsSourcesNote").textContent = KB.sourcesNote;
-  $("#fsLichunNote").textContent = KB.lichunNote;
-  $("#fsPeriodNote").textContent = KB.period.text + " · " + KB.baguaNote;
-  $("#fsElNote").textContent = KB.elementsNote;
-  $("#fsThaiTips").innerHTML = KB.tips.thai.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("");
+  function renderKbText() {
+    $("#fsSources").innerHTML = KB.sources.map(function (s, i) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(T("fengshui.srcl." + i, s.label)) + "</a></li>"; }).join("");
+    $("#fsSourcesNote").textContent = T("fengshui.sourcesNote", KB.sourcesNote);
+    $("#fsLichunNote").textContent = T("fengshui.lichunNote", KB.lichunNote);
+    $("#fsPeriodNote").textContent = T("fengshui.period", KB.period.text) + " · " + T("fengshui.baguaNote", KB.baguaNote);
+    $("#fsElNote").textContent = T("fengshui.elementsNote", KB.elementsNote);
+    $("#fsThaiTips").innerHTML = KB.tips.thai.map(function (t, i) { return "<li>" + esc(T("fengshui.tips.thai." + i, t)) + "</li>"; }).join("");
+  }
+  renderKbText();
   renderStats(); refreshAll();
+  // สลับภาษา: เรนเดอร์ข้อความไดนามิกใหม่ และเรียบเรียงคำทำนายใหม่จาก facts ชุดเดิม (fortune-ai เลือกภาษาเอง)
+  window.addEventListener("lq-lang", function () {
+    initForm(); renderPlanControls(); renderCompassText(); renderKbText(); renderStats();
+    if (state.kuaSet) renderKua();
+    refreshAll();
+    if (state.photos.length) renderPhotos(state.lastThumb);
+    if (!$("#fsReading").hidden && state.lastFacts) readFortune(true);
+  });
   window.__fs = { state: state, makeCard: makeCard, setHeading: function (h) { manual = true; heading = null; setHeading(h, false); }, buildFacts: function () { return FS.buildFacts(collect()); } }; // ใช้ทดสอบ
 })();

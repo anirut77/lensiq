@@ -5,24 +5,29 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const mk = (w, h) => Object.assign(document.createElement("canvas"), { width: w, height: h });
 const video = $("#video"), preview = $("#preview"), pctx = preview.getContext("2d");
 const out = $("#out"), octx = out.getContext("2d");
+/* i18n (TH/中文): ข้อความตามภาษาที่เลือกผ่าน LQI18N — ไม่มีคำแปลใช้ภาษาไทยเดิม; {name} เติมจาก vars */
+const tr = (k, th, vars) => window.LQI18N && LQI18N.tf ? LQI18N.tf(k, th, vars) : vars ? th.replace(/\{(\w+)\}/g, (m, n) => n in vars ? String(vars[n]) : m) : th;
 
 let camOK = false, faceOK = false, seg = null, mode = "booth", busy = false;
 const engineMsgs = {};
 function engine() {
   const e = $("#engine"), parts = Object.values(engineMsgs);
   const cls = parts.some(p => p.c === "err") ? "err" : parts.some(p => p.c === "warn") ? "warn" : parts.length >= 3 ? "ok" : "";
-  e.textContent = parts.map(p => p.t).join(" · ") || "กำลังเตรียมระบบ...";
+  e.textContent = parts.map(p => typeof p.t === "function" ? p.t() : p.t).join(" · ") || tr("photobooth.js.engine.prep", "กำลังเตรียมระบบ...");
   e.className = "engine " + cls;
 }
-const status = (k, t, c) => { engineMsgs[k] = { t, c }; engine(); };
+const status = (k, t, c) => { engineMsgs[k] = { t, c }; engine(); }; // t = ข้อความ หรือฟังก์ชันคืนข้อความ (แปลใหม่เมื่อเปลี่ยนภาษา)
+/* ข้อความใต้ปุ่มถ่าย: เก็บฟังก์ชันไว้ เพื่อแสดงใหม่เป็นภาษาที่เลือกเมื่อเปลี่ยนภาษา */
+let hintFn = null;
+const setHint = f => { hintFn = f; $("#shootHint").textContent = f(); };
 
 // ---------- กล้องบนมือถือ/แท็บเล็ต: สลับหน้า/หลัง เลือกอุปกรณ์ หยุดเมื่อซ่อนหน้า ----------
-const HTTPS_MSG = "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด";
+const HTTPS_MSG = () => tr("photobooth.js.https", "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด");
 /* ปุ่มสลับกล้อง + ตัวเลือกกล้อง (แสดงเมื่อมีกล้อง ≥ 2 ตัว) วางทับมุมขวาบนของกรอบกล้อง — กล้องเองใช้ LQCam.create (lensiq-camera.js) */
 function mountCamCtl(host, cam, onError) {
   const escA = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const box = document.createElement("div"); box.className = "cam-ctl"; box.hidden = true;
-  box.innerHTML = `<button type="button" class="cam-flip" aria-label="สลับกล้องหน้า/หลัง" title="สลับกล้องหน้า/หลัง"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h11l-3-3M20 16H9l3 3"/></svg><span>สลับกล้อง</span></button><select class="cam-pick" aria-label="เลือกกล้อง"></select>`;
+  box.innerHTML = `<button type="button" class="cam-flip" aria-label="${escA(tr("photobooth.js.cam.flipAria", "สลับกล้องหน้า/หลัง"))}" title="${escA(tr("photobooth.js.cam.flipAria", "สลับกล้องหน้า/หลัง"))}" data-i18n-attr="aria-label:photobooth.js.cam.flipAria;title:photobooth.js.cam.flipAria"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h11l-3-3M20 16H9l3 3"/></svg><span data-i18n="photobooth.js.cam.flip">${escA(tr("photobooth.js.cam.flip", "สลับกล้อง"))}</span></button><select class="cam-pick" aria-label="${escA(tr("photobooth.js.cam.pick", "เลือกกล้อง"))}" data-i18n-attr="aria-label:photobooth.js.cam.pick"></select>`;
   host.append(box);
   const flip = box.querySelector(".cam-flip"), pick = box.querySelector(".cam-pick");
   const run = p => { box.classList.add("busy"); p.catch(e => { if (e?.name !== "AbortError") onError?.(e); }).finally(() => box.classList.remove("busy")); };
@@ -31,7 +36,7 @@ function mountCamCtl(host, cam, onError) {
   return () => {
     const devs = cam.devices.filter(d => d.deviceId);
     box.hidden = devs.length < 2;
-    pick.innerHTML = devs.map((d, i) => `<option value="${escA(d.deviceId)}">${escA(d.label || "กล้อง " + (i + 1))}</option>`).join("");
+    pick.innerHTML = devs.map((d, i) => `<option value="${escA(d.deviceId)}">${escA(d.label || tr("photobooth.js.cam.n", "กล้อง {n}", { n: i + 1 }))}</option>`).join("");
     if (cam.deviceId) pick.value = cam.deviceId;
   };
 }
@@ -39,7 +44,7 @@ function mountCamCtl(host, cam, onError) {
 function showHttpsNote(before) {
   if (window.isSecureContext || document.querySelector(".https-note")) return;
   const p = document.createElement("p"); p.className = "https-note"; p.setAttribute("role", "alert");
-  p.innerHTML = `บนมือถือต้องเปิดผ่าน <b>https://</b> — ดูวิธีในหน้า <a href="cameras.html">ระบบทั้งหมด</a>`;
+  p.innerHTML = tr("photobooth.js.httpsHtml", `บนมือถือต้องเปิดผ่าน <b>https://</b> — ดูวิธีในหน้า <a href="cameras.html">ระบบทั้งหมด</a>`);
   before.before(p);
 }
 
@@ -50,23 +55,23 @@ const lin = (c, x0, y0, x1, y1, stops) => { const g = c.createLinearGradient(x0,
 
 // ---------- ฉากหลัง ----------
 const BGS = {
-  none: { name: "ต้นฉบับ" },
-  white: { name: "ขาว", draw: (c, w, h) => { c.fillStyle = "#fff"; c.fillRect(0, 0, w, h); } },
-  pink: { name: "ชมพู", draw: (c, w, h) => { c.fillStyle = "#ffd3e2"; c.fillRect(0, 0, w, h); } },
-  mint: { name: "มินต์", draw: (c, w, h) => { c.fillStyle = "#c9f0e1"; c.fillRect(0, 0, w, h); } },
-  navy: { name: "กรมท่า", draw: (c, w, h) => { c.fillStyle = "#0e1430"; c.fillRect(0, 0, w, h); } },
-  sunset: { name: "พระอาทิตย์ตก", draw: (c, w, h) => { c.fillStyle = lin(c, 0, 0, 0, h, ["#ff9a8b", "#ff6a88", "#ff99ac"]); c.fillRect(0, 0, w, h); } },
-  pastel: { name: "พาสเทล", draw: (c, w, h) => { c.fillStyle = lin(c, 0, 0, w, h, ["#a1c4fd", "#c2e9fb", "#fbc2eb"]); c.fillRect(0, 0, w, h); } },
-  studio: { name: "สตูดิโอ", draw: (c, w, h) => { const g = c.createRadialGradient(w / 2, h * 0.4, h * 0.1, w / 2, h / 2, w * 0.8); g.addColorStop(0, "#d9dde0"); g.addColorStop(1, "#6b7378"); c.fillStyle = g; c.fillRect(0, 0, w, h); } },
+  none: { get name() { return tr("photobooth.js.bg.none", "ต้นฉบับ"); } },
+  white: { get name() { return tr("photobooth.js.bg.white", "ขาว"); }, draw: (c, w, h) => { c.fillStyle = "#fff"; c.fillRect(0, 0, w, h); } },
+  pink: { get name() { return tr("photobooth.js.bg.pink", "ชมพู"); }, draw: (c, w, h) => { c.fillStyle = "#ffd3e2"; c.fillRect(0, 0, w, h); } },
+  mint: { get name() { return tr("photobooth.js.bg.mint", "มินต์"); }, draw: (c, w, h) => { c.fillStyle = "#c9f0e1"; c.fillRect(0, 0, w, h); } },
+  navy: { get name() { return tr("photobooth.js.bg.navy", "กรมท่า"); }, draw: (c, w, h) => { c.fillStyle = "#0e1430"; c.fillRect(0, 0, w, h); } },
+  sunset: { get name() { return tr("photobooth.js.bg.sunset", "พระอาทิตย์ตก"); }, draw: (c, w, h) => { c.fillStyle = lin(c, 0, 0, 0, h, ["#ff9a8b", "#ff6a88", "#ff99ac"]); c.fillRect(0, 0, w, h); } },
+  pastel: { get name() { return tr("photobooth.js.bg.pastel", "พาสเทล"); }, draw: (c, w, h) => { c.fillStyle = lin(c, 0, 0, w, h, ["#a1c4fd", "#c2e9fb", "#fbc2eb"]); c.fillRect(0, 0, w, h); } },
+  studio: { get name() { return tr("photobooth.js.bg.studio", "สตูดิโอ"); }, draw: (c, w, h) => { const g = c.createRadialGradient(w / 2, h * 0.4, h * 0.1, w / 2, h / 2, w * 0.8); g.addColorStop(0, "#d9dde0"); g.addColorStop(1, "#6b7378"); c.fillStyle = g; c.fillRect(0, 0, w, h); } },
   sky: {
-    name: "ท้องฟ้า", draw: (c, w, h) => {
+    get name() { return tr("photobooth.js.bg.sky", "ท้องฟ้า"); }, draw: (c, w, h) => {
       c.fillStyle = lin(c, 0, 0, 0, h, ["#4a9be8", "#a9d6ff", "#e8f5ff"]); c.fillRect(0, 0, w, h);
       const r = rng(7); c.fillStyle = "rgba(255,255,255,.9)";
       for (let i = 0; i < 6; i++) { const x = r() * w, y = r() * h * 0.6, s = (0.05 + r() * 0.06) * w; [[0, 0, 1], [s * .8, s * .1, .8], [-s * .8, s * .15, .75], [s * .3, -s * .4, .8]].forEach(([dx, dy, k]) => { c.beginPath(); c.arc(x + dx, y + dy, s * k, 0, 7); c.fill(); }); }
     }
   },
   beach: {
-    name: "ชายหาด", draw: (c, w, h) => {
+    get name() { return tr("photobooth.js.bg.beach", "ชายหาด"); }, draw: (c, w, h) => {
       c.fillStyle = lin(c, 0, 0, 0, h * .55, ["#5fb6f2", "#bfe6ff"]); c.fillRect(0, 0, w, h * .55);
       c.fillStyle = "#ffe08a"; c.beginPath(); c.arc(w * .8, h * .18, h * .08, 0, 7); c.fill();
       c.fillStyle = lin(c, 0, h * .5, 0, h * .75, ["#1e8fc6", "#47c1d9"]); c.fillRect(0, h * .5, w, h * .25);
@@ -75,7 +80,7 @@ const BGS = {
     }
   },
   bokeh: {
-    name: "แสงโบเก้", draw: (c, w, h) => {
+    get name() { return tr("photobooth.js.bg.bokeh", "แสงโบเก้"); }, draw: (c, w, h) => {
       c.fillStyle = lin(c, 0, 0, w, h, ["#c9bcff", "#674ff2", "#0e1430"]); c.fillRect(0, 0, w, h);
       const r = rng(11);
       for (let i = 0; i < 40; i++) { const x = r() * w, y = r() * h, s = (0.008 + r() * 0.04) * w; c.strokeStyle = "rgba(255,255,255,.75)"; c.lineWidth = Math.max(1, s * .12); c.beginPath(); c.arc(x, y, s, 0, 7); c.stroke(); c.fillStyle = "rgba(255,255,255,.18)"; c.fill(); c.fillStyle = "rgba(255,255,255,.8)"; c.beginPath(); c.arc(x - s * .35, y - s * .35, s * .18, 0, 7); c.fill(); }
@@ -102,12 +107,12 @@ const THEMES = {
     }
   },
   pastel: {
-    name: "พาสเทลน่ารัก", text: "#d14d82", sub: "#9a5b77", head: "♡ so cute ♡", headFont: '600 36px Prompt, sans-serif',
+    get name() { return tr("photobooth.js.theme.pastel", "พาสเทลน่ารัก"); }, text: "#d14d82", sub: "#9a5b77", head: "♡ so cute ♡", headFont: '600 36px Prompt, sans-serif',
     paper(c, W, H) { c.fillStyle = "#ffd6e7"; c.fillRect(0, 0, W, H); c.fillStyle = "rgba(255,255,255,.7)"; for (let y = 10; y < H; y += 36) for (let x = (y / 36 % 2) * 18 + 10; x < W; x += 36) { c.beginPath(); c.arc(x, y, 5, 0, 7); c.fill(); } },
     cell(c, x, y, w, h) { c.strokeStyle = "#fff"; c.lineWidth = 8; rrect(c, x - 4, y - 4, w + 8, h + 8, 18); c.stroke(); c.fillStyle = "#ff8fb8"; heart(c, x + w - 24, y + h - 40, 34); c.fillStyle = "#ffd36b"; star(c, x + 24, y + 24, 16); }
   },
   thai: {
-    name: "เทศกาลไทย", text: "#f2c14e", sub: "#ffe3a3", head: "สนุกสุขสันต์", headFont: '600 40px Prompt, sans-serif',
+    get name() { return tr("photobooth.js.theme.thai", "เทศกาลไทย"); }, text: "#f2c14e", sub: "#ffe3a3", get head() { return tr("photobooth.js.theme.thaiHead", "สนุกสุขสันต์"); }, headFont: '600 40px Prompt, sans-serif',
     paper(c, W, H) {
       c.fillStyle = "#8c1c13"; c.fillRect(0, 0, W, H); c.strokeStyle = "rgba(242,193,78,.22)"; c.lineWidth = 2;
       for (let i = -H; i < W + H; i += 40) { c.beginPath(); c.moveTo(i, 0); c.lineTo(i + H, H); c.stroke(); c.beginPath(); c.moveTo(i, H); c.lineTo(i + H, 0); c.stroke(); }
@@ -118,7 +123,7 @@ const THEMES = {
     cell(c, x, y, w, h) { c.strokeStyle = "#f2c14e"; c.lineWidth = 5; c.strokeRect(x - 3, y - 3, w + 6, h + 6); c.lineWidth = 1.5; c.strokeRect(x - 10, y - 10, w + 20, h + 20); }
   },
   birthday: {
-    name: "วันเกิด", text: "#e05a47", sub: "#8a6d3b", head: "Happy Birthday!", headFont: '600 38px Prompt, sans-serif',
+    get name() { return tr("photobooth.js.theme.birthday", "วันเกิด"); }, text: "#e05a47", sub: "#8a6d3b", head: "Happy Birthday!", headFont: '600 38px Prompt, sans-serif',
     paper(c, W, H) {
       c.fillStyle = "#fff7e0"; c.fillRect(0, 0, W, H); const r = rng(5), cols = ["#e05a47", "#2a78d6", "#1baf7a", "#eda100", "#e87ba4", "#6250d6"];
       for (let i = 0; i < 160; i++) { c.save(); c.translate(r() * W, r() * H); c.rotate(r() * 3); c.fillStyle = cols[i % cols.length]; c.fillRect(-5, -2, 10, 4); c.restore(); }
@@ -127,7 +132,7 @@ const THEMES = {
     cell(c, x, y, w, h) { c.strokeStyle = "#fff"; c.lineWidth = 6; c.strokeRect(x - 3, y - 3, w + 6, h + 6); }
   },
   plain: {
-    name: "เรียบ", text: "#222", sub: "#777", head: "", headFont: "",
+    get name() { return tr("photobooth.js.theme.plain", "เรียบ"); }, text: "#222", sub: "#777", head: "", headFont: "",
     paper(c, W, H) { c.fillStyle = "#fff"; c.fillRect(0, 0, W, H); },
     cell(c, x, y, w, h) { c.strokeStyle = "#e5e5e5"; c.lineWidth = 1; c.strokeRect(x - .5, y - .5, w + 1, h + 1); }
   }
@@ -170,7 +175,7 @@ function composeCell(c, shot, x, y, w, h, bgKey) {
 }
 
 async function init() {
-  status("cam", "กำลังเปิดกล้อง...", "");
+  status("cam", () => tr("photobooth.js.st.camOpening", "กำลังเปิดกล้อง..."), "");
   const camP = camera.start().catch(camErr);
 
   const face = (async () => {
@@ -178,8 +183,8 @@ async function init() {
     await LQDetect.tfBackend();
     await Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri("vendor/models/"), faceapi.nets.faceLandmark68Net.loadFromUri("vendor/models/")]);
     try { await faceapi.nets.faceExpressionNet.loadFromUri("vendor/models/"); exprOK = true; } catch (e) { console.warn("expression model", e); }
-  })().then(() => { faceOK = true; status("face", "ตรวจจับใบหน้าพร้อม", "ok"); },
-    e => { console.error(e); status("face", "ตรวจจับใบหน้าไม่ได้ (โหมดรูปติดบัตรจัดตำแหน่งอัตโนมัติไม่ได้)", "warn"); });
+  })().then(() => { faceOK = true; status("face", () => tr("photobooth.js.st.faceOk", "ตรวจจับใบหน้าพร้อม"), "ok"); },
+    e => { console.error(e); status("face", () => tr("photobooth.js.st.faceErr", "ตรวจจับใบหน้าไม่ได้ (โหมดรูปติดบัตรจัดตำแหน่งอัตโนมัติไม่ได้)"), "warn"); });
 
   const segP = (async () => {
     // กราฟ ImageSegmenter ของ MediaPipe ต้องใช้ GL แม้เลือก CPU delegate: ไม่มี WebGL (หรือ ?cpu) = ข้ามไปเลย ไม่พ่น error
@@ -197,13 +202,13 @@ async function init() {
       } catch (e) { last = e; console.warn("segmenter", delegate, e); }
     }
     throw last;
-  })().then(s => { seg = s; status("seg", "เปลี่ยนฉากหลังอัตโนมัติพร้อม", "ok"); },
-    e => { if (e.name === "NoWebGL") console.warn("segmenter skipped: no WebGL"); else console.error(e); status("seg", "เปลี่ยนฉากหลังไม่ได้ในเครื่องนี้ (ใช้ภาพต้นฉบับแทน)", "warn"); renderBgSwatches(); });
+  })().then(s => { seg = s; status("seg", () => tr("photobooth.js.st.segOk", "เปลี่ยนฉากหลังอัตโนมัติพร้อม"), "ok"); },
+    e => { if (e.name === "NoWebGL") console.warn("segmenter skipped: no WebGL"); else console.error(e); status("seg", () => tr("photobooth.js.st.segErr", "เปลี่ยนฉากหลังไม่ได้ในเครื่องนี้ (ใช้ภาพต้นฉบับแทน)"), "warn"); renderBgSwatches(); });
 
   // โหลด MODNet ล่วงหน้า (ใช้ตอนกดถ่าย เพื่อขอบผม/ขอบตัวเนียน)
-  status("hq", "กำลังโหลดโมเดลตัดพื้นหลังความละเอียดสูง...", "");
-  const hqP = PBHQ.loadMatting().then(() => status("hq", "ตัดพื้นหลังความละเอียดสูง (MODNet) พร้อม", "ok"),
-    e => { console.warn(e); status("hq", "ตัดพื้นหลังความละเอียดสูงไม่ได้ ใช้แบบมาตรฐาน + เกลาขอบแทน", "warn"); });
+  status("hq", () => tr("photobooth.js.st.hqLoading", "กำลังโหลดโมเดลตัดพื้นหลังความละเอียดสูง..."), "");
+  const hqP = PBHQ.loadMatting().then(() => status("hq", () => tr("photobooth.js.st.hqOk", "ตัดพื้นหลังความละเอียดสูง (MODNet) พร้อม"), "ok"),
+    e => { console.warn(e); status("hq", () => tr("photobooth.js.st.hqErr", "ตัดพื้นหลังความละเอียดสูงไม่ได้ ใช้แบบมาตรฐาน + เกลาขอบแทน"), "warn"); });
 
   await Promise.allSettled([camP, face, segP, hqP]);
   renderBgSwatches();
@@ -216,9 +221,10 @@ const camera = LQCam.create(video, {
   onChange: (c, ev) => {
     if (ev.type === "devices") { renderCamCtl(); return; }
     camOK = c.active && !!video.videoWidth; syncPreview();
-    if (ev.type === "ended") { status("cam", "สัญญาณกล้องหลุด — โหลดหน้าใหม่หรือเลือกกล้องอีกครั้ง", "err"); return; }
+    if (ev.type === "ended") { status("cam", () => tr("photobooth.js.st.camEnded", "สัญญาณกล้องหลุด — โหลดหน้าใหม่หรือเลือกกล้องอีกครั้ง"), "err"); return; }
     if (ev.type === "error") return;
-    status("cam", c.active ? (c.facing === "environment" ? "กล้องหลังพร้อม" : "กล้องพร้อม") : "พักกล้องไว้ขณะสลับแอป", c.active ? "ok" : "");
+    const camKey = c.active ? (c.facing === "environment" ? ["photobooth.js.st.camBack", "กล้องหลังพร้อม"] : ["photobooth.js.st.camOk", "กล้องพร้อม"]) : ["photobooth.js.st.camPaused", "พักกล้องไว้ขณะสลับแอป"];
+    status("cam", () => tr(camKey[0], camKey[1]), c.active ? "ok" : "");
   },
   onError: (c, e) => { if (e?.name !== "AbortError") camErr(e); }
 });
@@ -242,11 +248,11 @@ async function detectFaces(src, size, thr, expr) {
   }
   return list.sort((a, b) => b.detection.box.width * b.detection.box.height - a.detection.box.width * a.detection.box.height);
 }
-const MULTI_HINT = "มีบุคคลอื่นในภาพ ให้อยู่คนเดียวในกรอบ";
+const MULTI_HINT = () => tr("photobooth.js.multi", "มีบุคคลอื่นในภาพ ให้อยู่คนเดียวในกรอบ");
 function camErr(e) {
   console.warn(e); camOK = false;
   if (e.name === "Insecure") showHttpsNote($("#engine"));
-  status("cam", e.name === "Insecure" ? HTTPS_MSG : "เปิดกล้องไม่ได้: " + ({ NotAllowedError: "ไม่ได้รับอนุญาต", NotFoundError: "ไม่พบกล้อง", NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่" }[e.name] || e.message), "err");
+  status("cam", () => e.name === "Insecure" ? HTTPS_MSG() : tr("photobooth.js.camErr", "เปิดกล้องไม่ได้: ") + ({ NotAllowedError: tr("photobooth.js.camErr.denied", "ไม่ได้รับอนุญาต"), NotFoundError: tr("photobooth.js.camErr.notFound", "ไม่พบกล้อง"), NotReadableError: tr("photobooth.js.camErr.busy", "กล้องถูกโปรแกรมอื่นใช้อยู่") }[e.name] || e.message), "err");
 }
 renderCamCtl = mountCamCtl($(".preview"), camera, camErr);
 /* ขนาดพรีวิว: ตู้สติ๊กเกอร์ = 4:3 ตามช่องภาพจริง, รูปติดบัตร = ตามสัดส่วนกล้อง (แนวตั้งบนมือถือ) */
@@ -322,7 +328,7 @@ function renderBoothTo(c, Lo, themeKey, shots, caption, showDate, stickers) {
   const fy = Lo.foot.y + Lo.foot.h / 2;
   c.textAlign = "center"; c.textBaseline = "middle";
   if (caption) { c.fillStyle = th.text; c.font = `600 ${Math.round(Lo.W / 18)}px Prompt, sans-serif`; c.fillText(caption, Lo.W / 2, showDate ? fy - 18 : fy); }
-  if (showDate) { c.fillStyle = th.sub; c.font = `400 ${Math.round(Lo.W / 32)}px Prompt, sans-serif`; c.fillText(new Date().toLocaleDateString("th-TH", { dateStyle: "long" }), Lo.W / 2, caption ? fy + 26 : fy); }
+  if (showDate) { c.fillStyle = th.sub; c.font = `400 ${Math.round(Lo.W / 32)}px Prompt, sans-serif`; c.fillText(new Date().toLocaleDateString(tr("photobooth.js.dateLocale", "th-TH"), { dateStyle: "long" }), Lo.W / 2, caption ? fy + 26 : fy); }
   stickers.forEach(s => { c.font = `${s.s}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; c.fillText(s.ch, s.x, s.y); });
 }
 function boothLayoutNow() { return L.boothLayout(booth.shots.length || booth.n, (booth.shots.length || booth.n) >= 2 ? booth.layout : "strip"); }
@@ -362,7 +368,8 @@ $("#caption").oninput = renderBooth; $("#showDate").onchange = renderBooth;
 async function shootBooth() {
   booth.shots = []; booth.stickers = [];
   for (let i = 0; i < booth.n; i++) {
-    $("#shootHint").textContent = `ภาพที่ ${i + 1} / ${booth.n} — เตรียมโพสท่า!`;
+    const vi = { i: i + 1, n: booth.n };
+    setHint(() => tr("photobooth.js.hint.pose", "ภาพที่ {i} / {n} — เตรียมโพสท่า!", vi));
     busy = false; await countdown(3); busy = true;
     const img = grab(800, 600, camera.mirrored);
     booth.shots.push({ img, mask: segment(img) });
@@ -370,28 +377,29 @@ async function shootBooth() {
   }
   if (booth.bg !== "none" || seg) { // ตัดพื้นหลังคุณภาพสูงทีละภาพหลังถ่ายครบ
     for (let i = 0; i < booth.shots.length; i++) {
-      $("#shootHint").textContent = `กำลังเกลาขอบภาพที่ ${i + 1} / ${booth.shots.length}...`;
+      const vi = { i: i + 1, n: booth.shots.length };
+      setHint(() => tr("photobooth.js.hint.refine", "กำลังเกลาขอบภาพที่ {i} / {n}...", vi));
       await sleep(30);
       try { const r = await PBHQ.cutout(booth.shots[i].img, booth.shots[i].mask); if (r) booth.shots[i].person = r.canvas; } catch (e) { console.warn(e); }
     }
   }
   busy = false;
-  $("#shootHint").textContent = "ถ่ายเสร็จแล้ว เปลี่ยนธีม ฉากหลัง ข้อความ หรือเพิ่มสติ๊กเกอร์ได้ที่ผลลัพธ์";
+  setHint(() => tr("photobooth.js.hint.boothDone", "ถ่ายเสร็จแล้ว เปลี่ยนธีม ฉากหลัง ข้อความ หรือเพิ่มสติ๊กเกอร์ได้ที่ผลลัพธ์"));
   showBoothResult();
 }
-function showBoothResult() {
-  $("#result").hidden = false; $("#resultTitle").textContent = "ภาพตู้สติ๊กเกอร์";
+function showBoothResult(keep) { // keep = วาดใหม่ตอนเปลี่ยนภาษา (ไม่เลื่อนหน้าจอ)
+  $("#result").hidden = false; $("#resultTitle").textContent = tr("photobooth.js.res.booth", "ภาพตู้สติ๊กเกอร์");
   $("#resultActions").innerHTML = "";
   current = { canvas: () => out, name: "lensiq-photobooth", title: $("#caption").value.trim() || "LENSIQ Photo Booth" };
   resultActions(true);
   const side = $("#resultSide");
-  side.innerHTML = `<h3>สติ๊กเกอร์</h3><div class="stickers"></div><p>แตะเพื่อเพิ่ม ลากบนภาพเพื่อย้าย แตะสองครั้งเพื่อลบ</p><div class="row-actions"><button class="btn ghost" type="button" id="undoSt">ลบอันล่าสุด</button><button class="btn ghost" type="button" id="clearSt">ล้างทั้งหมด</button></div>`;
+  side.innerHTML = `<h3>${tr("photobooth.js.st.h", "สติ๊กเกอร์")}</h3><div class="stickers"></div><p>${tr("photobooth.js.st.help", "แตะเพื่อเพิ่ม ลากบนภาพเพื่อย้าย แตะสองครั้งเพื่อลบ")}</p><div class="row-actions"><button class="btn ghost" type="button" id="undoSt">${tr("photobooth.js.st.undo", "ลบอันล่าสุด")}</button><button class="btn ghost" type="button" id="clearSt">${tr("photobooth.js.st.clear", "ล้างทั้งหมด")}</button></div>`;
   STICKERS.forEach(ch => { const b = document.createElement("button"); b.type = "button"; b.textContent = ch; b.onclick = () => { const Lo = boothLayoutNow(); booth.stickers.push({ ch, x: Lo.W / 2 + (Math.random() - .5) * Lo.W * .4, y: Lo.H / 2 + (Math.random() - .5) * Lo.H * .3, s: Math.round(Lo.W / 7) }); renderBooth(); }; side.querySelector(".stickers").append(b); });
   $("#clearSt").onclick = () => { booth.stickers = []; renderBooth(); };
   $("#undoSt").onclick = () => { booth.stickers.pop(); renderBooth(); };
   out.classList.add("drag");
   renderBooth();
-  $("#result").scrollIntoView({ behavior: "smooth", block: "start" });
+  if (!keep) $("#result").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 // ลากสติ๊กเกอร์
 let dragging = null;
@@ -413,13 +421,13 @@ const OUTFITS = {
 };
 // เลือกวัตถุประสงค์ -> ตั้งชุด/ขนาด/ฉากหลังให้อัตโนมัติ
 const PURPOSES = {
-  gov: { label: "สอบ/สมัครราชการ", outfit: "civil", size: "1", bg: "#ffffff" },
-  govk: { label: "ราชการ (ชุดกากี)", outfit: "khaki", size: "1", bg: "#ffffff" },
-  jobm: { label: "สมัครงาน (ชาย)", outfit: "suit_navy", size: "1", bg: "#d7e7f7" },
-  jobf: { label: "สมัครงาน (หญิง)", outfit: "lady", size: "1", bg: "#d7e7f7" },
-  stm: { label: "นักศึกษาชาย", outfit: "student", size: "1", bg: "#d7e7f7" },
-  stf: { label: "นักศึกษาหญิง", outfit: "student_f", size: "1", bg: "#d7e7f7" },
-  raw: { label: "เอกสารที่ห้ามตกแต่ง", outfit: "none", size: "2", bg: "#ffffff" }
+  gov: { get label() { return tr("photobooth.js.purpose.gov", "สอบ/สมัครราชการ"); }, outfit: "civil", size: "1", bg: "#ffffff" },
+  govk: { get label() { return tr("photobooth.js.purpose.govk", "ราชการ (ชุดกากี)"); }, outfit: "khaki", size: "1", bg: "#ffffff" },
+  jobm: { get label() { return tr("photobooth.js.purpose.jobm", "สมัครงาน (ชาย)"); }, outfit: "suit_navy", size: "1", bg: "#d7e7f7" },
+  jobf: { get label() { return tr("photobooth.js.purpose.jobf", "สมัครงาน (หญิง)"); }, outfit: "lady", size: "1", bg: "#d7e7f7" },
+  stm: { get label() { return tr("photobooth.js.purpose.stm", "นักศึกษาชาย"); }, outfit: "student", size: "1", bg: "#d7e7f7" },
+  stf: { get label() { return tr("photobooth.js.purpose.stf", "นักศึกษาหญิง"); }, outfit: "student_f", size: "1", bg: "#d7e7f7" },
+  raw: { get label() { return tr("photobooth.js.purpose.raw", "เอกสารที่ห้ามตกแต่ง"); }, outfit: "none", size: "2", bg: "#ffffff" }
 };
 function renderPurposes() {
   $("#idPurpose").innerHTML = Object.entries(PURPOSES).map(([k, p]) => `<button type="button" data-k="${k}" class="${k === idState.purpose ? "on" : ""}">${p.label}</button>`).join("");
@@ -438,7 +446,6 @@ const drawOutfit = PBOutfits.draw;
 const TPL = { outfits: new Map(), items: [] };
 /** รายการชุด: ชุดจากรูปจริงขึ้นก่อน ตามด้วยชุดภาพวาด */
 function outfitList() {
-  const tr = (k, th) => window.LQI18N && LQI18N.tf ? LQI18N.tf(k, th) : th;
   return [["none", tr("pbo.none", OUTFITS.none)], ...[...TPL.outfits].map(([id, t]) => ["tpl:" + id, t.name]), ...Object.entries(OUTFITS).filter(([k]) => k !== "none").map(([k, n]) => [k, tr("pbo." + k, n) + tr("pbo.drawn", " (ภาพวาด)")])];
 }
 function registerTemplate(item, canvas) {
@@ -504,13 +511,13 @@ function renderOutfitChoices() {
     }
     b.append(c);
     const label = document.createElement("span"); label.textContent = name; b.append(label);
-    if (k.startsWith("tpl:")) { const tag = document.createElement("span"); tag.className = "tag-real"; tag.textContent = "ภาพจริง"; b.append(tag); }
+    if (k.startsWith("tpl:")) { const tag = document.createElement("span"); tag.className = "tag-real"; tag.textContent = tr("photobooth.js.real", "ภาพจริง"); b.append(tag); }
     b.onclick = () => { idState.outfit = k; renderOutfitChoices(); renderId(); };
     $("#outfits").append(b);
   });
 }
 function renderIdSizes() {
-  $("#idSize").innerHTML = Object.entries(L.ID_SIZES).map(([k, s]) => `<button type="button" data-k="${k}" class="${k === idState.size ? "on" : ""}">${s.label}</button>`).join("");
+  $("#idSize").innerHTML = Object.entries(L.ID_SIZES).map(([k, s]) => `<button type="button" data-k="${k}" class="${k === idState.size ? "on" : ""}">${tr("photobooth.js.size." + k, s.label)}</button>`).join("");
   $("#idSize").querySelectorAll("button").forEach(b => b.onclick = () => { idState.size = b.dataset.k; renderIdSizes(); syncGuide(); renderId(); });
 }
 function syncGuide() { const s = L.ID_SIZES[idState.size]; $("#idGuide").style.setProperty("--ar", s.w / s.h); }
@@ -525,7 +532,7 @@ async function autoShootTick() {
     try {
       const all = await detectFaces(video, 224, .5, false), r = all[0], n = all.length;
       let good = false;
-      if (n > 1) { $("#shootHint").textContent = MULTI_HINT; autoLast = null; } // ไม่ถ่ายอัตโนมัติเมื่อมีคนอื่นในภาพ
+      if (n > 1) { setHint(MULTI_HINT); autoLast = null; } // ไม่ถ่ายอัตโนมัติเมื่อมีคนอื่นในภาพ
       else if (r) {
         const P = r.landmarks.positions, vw = video.videoWidth, vh = video.videoHeight;
         const eyeMid = { x: (P[36].x + P[45].x) / 2, y: (P[36].y + P[45].y) / 2 }, ed = Math.hypot(P[45].x - P[36].x, P[45].y - P[36].y);
@@ -534,8 +541,9 @@ async function autoShootTick() {
         const still = autoLast ? Math.hypot(eyeMid.x - autoLast.x, eyeMid.y - autoLast.y) < ed * .08 : false;
         autoLast = eyeMid;
         good = yaw < .1 && tilt < 5 && fw > .15 && fw < .5 && centered && still;
-        $("#shootHint").textContent = good ? "ดีมาก นิ่งไว้..." : yaw >= .1 ? "มองตรงกล้อง" : tilt >= 5 ? "ตั้งศีรษะให้ตรง" : fw <= .15 ? "ขยับเข้าใกล้กล้องอีกนิด" : fw >= .5 ? "ถอยห่างจากกล้องเล็กน้อย" : !centered ? "เลื่อนใบหน้าให้อยู่กลางกรอบ" : "อยู่นิ่ง ๆ";
-      } else $("#shootHint").textContent = "ไม่พบใบหน้า มองตรงกล้อง";
+        const hk = good ? ["good", "ดีมาก นิ่งไว้..."] : yaw >= .1 ? ["yaw", "มองตรงกล้อง"] : tilt >= 5 ? ["tilt", "ตั้งศีรษะให้ตรง"] : fw <= .15 ? ["closer", "ขยับเข้าใกล้กล้องอีกนิด"] : fw >= .5 ? ["farther", "ถอยห่างจากกล้องเล็กน้อย"] : !centered ? ["center", "เลื่อนใบหน้าให้อยู่กลางกรอบ"] : ["still", "อยู่นิ่ง ๆ"];
+        setHint(() => tr("photobooth.js.auto." + hk[0], hk[1]));
+      } else setHint(() => tr("photobooth.js.auto.noFace", "ไม่พบใบหน้า มองตรงกล้อง"));
       autoStreak = good ? autoStreak + 1 : 0;
       $("#idGuide").classList.toggle("auto-ring", good);
       if (autoStreak >= 3) { autoStreak = 0; $("#idGuide").classList.remove("auto-ring"); $("#autoShoot").checked = false; $("#shoot").click(); }
@@ -564,16 +572,17 @@ async function shootId() {
   }
   busy = false;
   if (!face) {
-    $("#shootHint").textContent = faceOK ? "ไม่พบใบหน้า กรุณาหันหน้าตรง แสงพอ แล้วถ่ายใหม่ (ใช้การครอปกึ่งกลางแทน)" : "ระบบตรวจจับใบหน้าไม่พร้อม ใช้การครอปกึ่งกลางแทน";
+    const fk = faceOK ? ["photobooth.js.id.noFace", "ไม่พบใบหน้า กรุณาหันหน้าตรง แสงพอ แล้วถ่ายใหม่ (ใช้การครอปกึ่งกลางแทน)"] : ["photobooth.js.id.noDetector", "ระบบตรวจจับใบหน้าไม่พร้อม ใช้การครอปกึ่งกลางแทน"];
+    setHint(() => tr(fk[0], fk[1]));
     face = { cx: vw / 2, eyeY: vh * .4, chinY: vh * .62, angle: 0, fw: vh * .3 };
-  } else $("#shootHint").textContent = nFaces > 1 ? MULTI_HINT + " (จัดตำแหน่งจากใบหน้าที่ใหญ่ที่สุด ควรถ่ายใหม่)" : "จัดตำแหน่งอัตโนมัติแล้ว เลือกชุดและปรับตำแหน่งได้ทางซ้าย";
+  } else setHint(nFaces > 1 ? () => MULTI_HINT() + tr("photobooth.js.id.multiAligned", " (จัดตำแหน่งจากใบหน้าที่ใหญ่ที่สุด ควรถ่ายใหม่)") : () => tr("photobooth.js.id.aligned", "จัดตำแหน่งอัตโนมัติแล้ว เลือกชุดและปรับตำแหน่งได้ทางซ้าย"));
   let person = null, method = "";
-  const hint = $("#shootHint").textContent;
-  $("#shootHint").textContent = "กำลังตัดพื้นหลังและเกลาขอบความละเอียดสูง...";
+  const hint = hintFn;
+  setHint(() => tr("photobooth.js.id.cutting", "กำลังตัดพื้นหลังและเกลาขอบความละเอียดสูง..."));
   await sleep(30);
   try { const r = await PBHQ.cutout(img, mask); if (r) { person = r.canvas; method = r.method; } } catch (e) { console.warn(e); }
   if (!person && mask) { const p = personLayer({ img, mask }); person = mk(p.width, p.height); person.getContext("2d").drawImage(p, 0, 0); method = "MediaPipe"; }
-  $("#shootHint").textContent = hint + (method ? ` · ตัดพื้นหลังด้วย ${method}` : "");
+  setHint(() => hint() + (method ? tr("photobooth.js.id.method", " · ตัดพื้นหลังด้วย {method}", { method }) : ""));
   let faceLum = null; // ความสว่างผิวหน้าผู้ถ่าย ใช้จับคู่แสงกับชุดจากรูปจริง
   if (face.P) { const bx = { x: face.cx - face.fw * .2, y: face.eyeY + (face.chinY - face.eyeY) * .1, w: face.fw * .4, h: (face.chinY - face.eyeY) * .5 }; faceLum = PBTpl.meanLum(img.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, img.width, img.height).data, img.width, bx); }
   let harm = null; // สถิติแสง/สีผิว/noise ของภาพผู้ถ่าย สำหรับผสานชุดจากรูปจริงให้กลมกลืน
@@ -608,16 +617,18 @@ function qualityCheck(img, r, face, eyeL, eyeR, nFaces = 1) {
   L /= n / 2; R /= n / 2;
   const bright = (L + R) / 2, balance = Math.abs(L - R) / Math.max(1, (L + R) / 2), sharp = lap / lapN;
   const ex = r.expressions, neutral = ex ? (ex.neutral || 0) : null, smile = ex ? (ex.happy || 0) : null;
+  // ข้อความแต่ละข้อเป็นฟังก์ชัน: แปลตามภาษาที่เลือกตอนแสดงผล
+  const q = (k, th, v) => () => tr("photobooth.js.qc." + k, th, v), deg = { deg: Math.abs(tilt).toFixed(1) };
   const items = [
-    [nFaces <= 1, "มีบุคคลเดียวในภาพ", "มีบุคคลอื่นในภาพ รูปติดบัตรต้องมีผู้ถ่ายคนเดียว ควรถ่ายใหม่"],
-    [Math.abs(yaw) < .12, "หน้าตรง ไม่หันซ้าย/ขวา", "หน้าเอียงไปด้านข้าง ควรมองตรงกล้อง"],
-    [Math.abs(tilt) < 6, `ศีรษะตรง (ปรับเอียงให้แล้ว ${Math.abs(tilt).toFixed(1)}°)`, `ศีรษะเอียง ${Math.abs(tilt).toFixed(1)}° ระบบหมุนแก้ให้แล้ว แต่ควรถ่ายใหม่ให้ตรง`],
-    [eyesOpen > .2, "ลืมตาปกติ", "ตาอาจปิดหรือหรี่ ควรถ่ายใหม่"],
-    [mouthGap < .04, "ปิดปาก", "ปากเปิด ควรปิดปากสนิท"],
-    [neutral == null || neutral > .5 || smile < .5, "สีหน้าปกติ/สุภาพ", "ยิ้มกว้างเกินไปสำหรับรูปราชการ"],
-    [bright > 70 && bright < 210, "แสงพอดี", bright <= 70 ? "ภาพมืดเกินไป เพิ่มแสงด้านหน้า" : "ภาพสว่างเกินไป"],
-    [balance < .25, "แสงสม่ำเสมอทั้งสองข้างใบหน้า", "แสงไม่เท่ากัน มีเงาด้านหนึ่งของใบหน้า"],
-    [sharp > 60, "ภาพคมชัด", "ภาพอาจเบลอ ให้นิ่งขณะถ่าย"]
+    [nFaces <= 1, q("single", "มีบุคคลเดียวในภาพ"), q("singleBad", "มีบุคคลอื่นในภาพ รูปติดบัตรต้องมีผู้ถ่ายคนเดียว ควรถ่ายใหม่")],
+    [Math.abs(yaw) < .12, q("yaw", "หน้าตรง ไม่หันซ้าย/ขวา"), q("yawBad", "หน้าเอียงไปด้านข้าง ควรมองตรงกล้อง")],
+    [Math.abs(tilt) < 6, q("tilt", "ศีรษะตรง (ปรับเอียงให้แล้ว {deg}°)", deg), q("tiltBad", "ศีรษะเอียง {deg}° ระบบหมุนแก้ให้แล้ว แต่ควรถ่ายใหม่ให้ตรง", deg)],
+    [eyesOpen > .2, q("eyes", "ลืมตาปกติ"), q("eyesBad", "ตาอาจปิดหรือหรี่ ควรถ่ายใหม่")],
+    [mouthGap < .04, q("mouth", "ปิดปาก"), q("mouthBad", "ปากเปิด ควรปิดปากสนิท")],
+    [neutral == null || neutral > .5 || smile < .5, q("expr", "สีหน้าปกติ/สุภาพ"), q("exprBad", "ยิ้มกว้างเกินไปสำหรับรูปราชการ")],
+    [bright > 70 && bright < 210, q("light", "แสงพอดี"), bright <= 70 ? q("dark", "ภาพมืดเกินไป เพิ่มแสงด้านหน้า") : q("bright", "ภาพสว่างเกินไป")],
+    [balance < .25, q("even", "แสงสม่ำเสมอทั้งสองข้างใบหน้า"), q("evenBad", "แสงไม่เท่ากัน มีเงาด้านหนึ่งของใบหน้า")],
+    [sharp > 60, q("sharp", "ภาพคมชัด"), q("sharpBad", "ภาพอาจเบลอ ให้นิ่งขณะถ่าย")]
   ];
   return { items, pass: items.filter(i => i[0]).length, total: items.length };
 }
@@ -662,24 +673,32 @@ function renderSheet(photo) {
       [[q.x, q.y, -1, -1], [q.x + q.w, q.y, 1, -1], [q.x, q.y + q.h, -1, 1], [q.x + q.w, q.y + q.h, 1, 1]].forEach(([px, py, dx, dy]) => { x.beginPath(); x.moveTo(px + dx * o, py); x.lineTo(px + dx * (o + m), py); x.moveTo(px, py + dy * o); x.lineTo(px, py + dy * (o + m)); x.stroke(); }); }
   });
   x.fillStyle = "#888"; x.font = "24px Prompt, sans-serif"; x.textAlign = "center";
-  x.fillText(`${s.label} × ${t.count} รูป · 300 DPI · สั่งพิมพ์ขนาดจริง 100% (ห้ามย่อ/ขยาย)`, t.W / 2, t.H - 18);
+  x.fillText(tr("photobooth.js.sheet.foot", "{size} × {n} รูป · 300 DPI · สั่งพิมพ์ขนาดจริง 100% (ห้ามย่อ/ขยาย)", { size: tr("photobooth.js.size." + idState.size, s.label), n: t.count }), t.W / 2, t.H - 18);
   return { canvas: c, info: t };
 }
 // ---------- AI เปลี่ยนชุดให้สมจริง (ปิดไว้จนกว่าจะตั้งค่า API key ที่เซิร์ฟเวอร์) ----------
-let aiEnabled = false;
-fetch("/api/tryon/status").then(r => r.ok ? r.json() : null).then(s => { aiEnabled = !!(s && s.enabled); }).catch(() => {});
+let aiEnabled = false, aiReason = null, aiNC = false;
+fetch("/api/tryon/status").then(r => r.ok ? r.json() : null).then(s => { aiEnabled = !!(s && s.enabled); aiReason = s && s.reason || null; aiNC = !!(s && s.noncommercial); }).catch(() => {});
+/** เหตุผลที่ AI ปิดอยู่ (จาก /api/tryon/status: reason) — แสดงให้ผู้ดูแลรู้ว่าต้องตั้งค่าอะไร */
+const aiReasonText = () => ({
+  "no-token": tr("photobooth.js.ai.r.noToken", "ยังไม่ได้ตั้งค่า API key ของ Replicate ที่เซิร์ฟเวอร์"),
+  "no-model": tr("photobooth.js.ai.r.noModel", "ยังไม่ได้เลือกโมเดลที่มีสิทธิ์ใช้เชิงพาณิชย์"),
+  "license-not-attested": tr("photobooth.js.ai.r.license", "ผู้ดูแลยังไม่ยืนยันสัญญาอนุญาตของโมเดล"),
+  "model-is-noncommercial": tr("photobooth.js.ai.r.nc", "โมเดลที่ตั้งไว้ห้ามใช้เชิงพาณิชย์ จึงปิดไว้")
+}[aiReason] || tr("photobooth.js.ai.r.offline", "ไม่พบเซิร์ฟเวอร์ AI (เปิดหน้าแบบไฟล์ static)"));
 const aiKey = () => [idState.outfit, idState.size, idState.bg, ...["#oScale", "#oX", "#oY", "#oBright", "#adjBright", "#adjSmooth"].map(s => $(s).value)].join("|");
 function aiPanelHTML() {
-  if (!aiEnabled) return `<h3>✨ AI ปรับชุดให้สมจริง</h3><p class="note">ยังไม่เปิดใช้งาน — ผู้ดูแลระบบต้องตั้งค่า API key ของ Replicate ที่เซิร์ฟเวอร์ก่อน</p>`;
-  return `<h3>✨ AI ปรับชุดให้สมจริง</h3>
-    <p class="note">ใช้ได้กับชุดที่มีป้าย "ภาพจริง" รูปจะถูกส่งไปประมวลผลที่ Replicate (ต่างประเทศ) ใช้เวลา ~20-60 วินาที</p>
-    <label class="check"><input type="checkbox" id="aiConsent"><span>ผู้ถ่ายยินยอมให้ส่งรูปไปประมวลผลด้วย AI ภายนอก</span></label>
-    <button class="btn ghost full" type="button" id="aiRun">✨ สร้างภาพด้วย AI</button><p class="hint" id="aiMsg"></p>`;
+  if (!aiEnabled) return `<h3>${tr("photobooth.js.ai.h", "✨ AI ปรับชุดให้สมจริง")}</h3><p class="note">${tr("photobooth.js.ai.off2", "ยังไม่เปิดใช้งาน: {r}", { r: String(aiReasonText()).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[c])) })}</p>`;
+  return `<h3>${tr("photobooth.js.ai.h", "✨ AI ปรับชุดให้สมจริง")}</h3>
+    ${aiNC ? `<p class="note">${tr("photobooth.js.ai.ncDemo", "โหมดสาธิตเท่านั้น: โมเดลนี้ห้ามใช้เชิงพาณิชย์")}</p>` : ""}
+    <p class="note">${tr("photobooth.js.ai.note", "ใช้ได้กับชุดที่มีป้าย \"ภาพจริง\" รูปจะถูกส่งไปประมวลผลที่ Replicate (ต่างประเทศ) ใช้เวลา ~20-60 วินาที")}</p>
+    <label class="check"><input type="checkbox" id="aiConsent"><span>${tr("photobooth.js.ai.consent", "ผู้ถ่ายยินยอมให้ส่งรูปไปประมวลผลด้วย AI ภายนอก")}</span></label>
+    <button class="btn ghost full" type="button" id="aiRun">${tr("photobooth.js.ai.run", "✨ สร้างภาพด้วย AI")}</button><p class="hint" id="aiMsg"></p>`;
 }
 async function runAI() {
   const msg = t => { $("#aiMsg").textContent = t; };
-  if (!idState.outfit.startsWith("tpl:")) return msg("กรุณาเลือกชุดที่มีป้าย \"ภาพจริง\" ก่อน");
-  if (!$("#aiConsent").checked) return msg("ต้องได้รับความยินยอมจากผู้ถ่ายก่อน");
+  if (!idState.outfit.startsWith("tpl:")) return msg(tr("photobooth.js.ai.needReal", "กรุณาเลือกชุดที่มีป้าย \"ภาพจริง\" ก่อน"));
+  if (!$("#aiConsent").checked) return msg(tr("photobooth.js.ai.needConsent", "ต้องได้รับความยินยอมจากผู้ถ่ายก่อน"));
   const t = TPL.outfits.get(idState.outfit.slice(4));
   const human = renderIdPhoto({ outfit: "none" });
   const garment = mk(t.canvas.width + 40, t.canvas.height + 40), gx = garment.getContext("2d");
@@ -688,15 +707,15 @@ async function runAI() {
   fd.append("human", await PBTpl.toBlob(human), "human.png");
   fd.append("garment", await PBTpl.toBlob(garment), "garment.png");
   fd.append("desc", t.name); fd.append("consent", "yes");
-  $("#aiRun").disabled = true; msg("กำลังสร้างภาพด้วย AI...");
+  $("#aiRun").disabled = true; msg(tr("photobooth.js.ai.busy", "กำลังสร้างภาพด้วย AI..."));
   try {
     const r = await fetch("/api/tryon", { method: "POST", body: fd });
-    if (!r.ok) { let e = "ไม่สำเร็จ"; try { e = (await r.json()).error || e; } catch {} throw new Error(e); }
+    if (!r.ok) { let e = tr("photobooth.js.ai.fail", "ไม่สำเร็จ"); try { e = (await r.json()).error || e; } catch {} throw new Error(e); }
     const bmp = await createImageBitmap(await r.blob());
     const c = mk(human.width, human.height), cx = c.getContext("2d"), s = Math.max(c.width / bmp.width, c.height / bmp.height);
     cx.drawImage(bmp, (c.width - bmp.width * s) / 2, (c.height - bmp.height * s) / 2, bmp.width * s, bmp.height * s);
     idState.ai = { key: aiKey(), photo: c };
-    renderId(); msg("สร้างภาพสำเร็จ (ถ้าเปลี่ยนชุดหรือปรับค่า จะกลับไปใช้ภาพปกติ)");
+    renderId(); msg(tr("photobooth.js.ai.done", "สร้างภาพสำเร็จ (ถ้าเปลี่ยนชุดหรือปรับค่า จะกลับไปใช้ภาพปกติ)"));
   } catch (e) { msg("AI: " + e.message); }
   finally { $("#aiRun").disabled = false; }
 }
@@ -706,52 +725,52 @@ function renderId() {
   const photo = idState.ai && idState.ai.key === aiKey() ? idState.ai.photo : renderIdPhoto(), sheet = renderSheet(photo);
   out.width = sheet.canvas.width; out.height = sheet.canvas.height; octx.drawImage(sheet.canvas, 0, 0);
   idState.last = { photo, sheet: sheet.canvas };
-  const info = $("#sheetInfo"); if (info) info.textContent = `${sheet.info.count} รูป (สูงสุด ${sheet.info.capacity} รูปต่อแผ่น)`;
+  const info = $("#sheetInfo"); if (info) info.textContent = tr("photobooth.js.sheet.info", "{n} รูป (สูงสุด {max} รูปต่อแผ่น)", { n: sheet.info.count, max: sheet.info.capacity });
   clearTimeout(renderId.t); renderId.t = setTimeout(renderGallery, 120); // หน่วงเล็กน้อยเวลาลากแถบปรับ
 }
-function showIdResult() {
-  $("#result").hidden = false; $("#resultTitle").textContent = "รูปติดบัตร (แผ่นพิมพ์)";
+function showIdResult(keep) { // keep = วาดใหม่ตอนเปลี่ยนภาษา (ไม่เลื่อนหน้าจอ)
+  $("#result").hidden = false; $("#resultTitle").textContent = tr("photobooth.js.res.id", "รูปติดบัตร (แผ่นพิมพ์)");
   $("#resultActions").innerHTML = "";
-  current = { canvas: () => idState.last.photo, name: "lensiq-id-photo", title: "รูปติดบัตร" };
-  addAction("⬇ แผ่นพิมพ์ PNG", () => downloadCanvas(idState.last.sheet, "lensiq-id-sheet"), true);
-  addAction("⬇ รูปเดี่ยว PNG", () => downloadCanvas(idState.last.photo, "lensiq-id-photo"));
-  addAction("🖨 พิมพ์ขนาดจริง", printResult);
-  addAction("แชร์รูปเดี่ยว", () => shareCurrent());
-  addAction("ส่งต่อ", openHandoff);
-  addAction("ถ่ายใหม่", () => $("#shoot").click());
+  current = { canvas: () => idState.last.photo, name: "lensiq-id-photo", title: tr("photobooth.js.res.idTitle", "รูปติดบัตร") };
+  addAction(tr("photobooth.js.act.sheet", "⬇ แผ่นพิมพ์ PNG"), () => downloadCanvas(idState.last.sheet, "lensiq-id-sheet"), true);
+  addAction(tr("photobooth.js.act.single", "⬇ รูปเดี่ยว PNG"), () => downloadCanvas(idState.last.photo, "lensiq-id-photo"));
+  addAction(tr("photobooth.js.act.printReal", "🖨 พิมพ์ขนาดจริง"), printResult);
+  addAction(tr("photobooth.js.act.shareSingle", "แชร์รูปเดี่ยว"), () => shareCurrent());
+  addAction(tr("photobooth.js.act.handoff", "ส่งต่อ"), openHandoff);
+  addAction(tr("photobooth.js.act.retake", "ถ่ายใหม่"), () => $("#shoot").click());
   const qc = idState.cap.qc;
   $("#resultSide").innerHTML = `
-    <h3>เลือกชุดจากรูปของคุณ</h3><div class="choices gallery" id="outfitGallery"></div>
+    <h3>${tr("photobooth.js.res.gallery", "เลือกชุดจากรูปของคุณ")}</h3><div class="choices gallery" id="outfitGallery"></div>
     ${aiPanelHTML()}
-    <h3>ตรวจคุณภาพรูป ${qc ? `(ผ่าน ${qc.pass}/${qc.total})` : ""}</h3>
-    ${qc ? `<ul class="qc">${qc.items.map(([ok, good, bad]) => `<li class="${ok ? "ok" : "warn"}">${ok ? good : bad}</li>`).join("")}</ul>${qc.pass < qc.total ? `<p class="note">แนะนำให้ถ่ายใหม่ตามข้อที่มีเครื่องหมาย !</p>` : ""}` : `<p class="note">ตรวจคุณภาพไม่ได้ เพราะไม่พบใบหน้า</p>`}
-    <h3>กระดาษ</h3><select id="paper">${Object.entries(L.PAPERS).map(([k, p]) => `<option value="${k}" ${k === idState.paper ? "selected" : ""}>${p.label}</option>`).join("")}</select>
-    <h3>จำนวนรูป</h3><select id="copies"><option value="0">เต็มแผ่น</option>${[1, 2, 4, 6, 8, 10, 12].map(n => `<option value="${n}" ${n === idState.copies ? "selected" : ""}>${n} รูป</option>`).join("")}</select>
-    <label class="check"><input type="checkbox" id="marks" ${idState.marks ? "checked" : ""}><span>แสดงเส้นตัด</span></label>
+    <h3>${tr("photobooth.js.qc.h", "ตรวจคุณภาพรูป")} ${qc ? tr("photobooth.js.qc.pass", "(ผ่าน {pass}/{total})", { pass: qc.pass, total: qc.total }) : ""}</h3>
+    ${qc ? `<ul class="qc">${qc.items.map(([ok, good, bad]) => `<li class="${ok ? "ok" : "warn"}">${(ok ? good : bad)()}</li>`).join("")}</ul>${qc.pass < qc.total ? `<p class="note">${tr("photobooth.js.qc.retake", "แนะนำให้ถ่ายใหม่ตามข้อที่มีเครื่องหมาย !")}</p>` : ""}` : `<p class="note">${tr("photobooth.js.qc.none", "ตรวจคุณภาพไม่ได้ เพราะไม่พบใบหน้า")}</p>`}
+    <h3>${tr("photobooth.js.res.paper", "กระดาษ")}</h3><select id="paper">${Object.entries(L.PAPERS).map(([k, p]) => `<option value="${k}" ${k === idState.paper ? "selected" : ""}>${tr("photobooth.js.paper." + k, p.label)}</option>`).join("")}</select>
+    <h3>${tr("photobooth.js.res.copies", "จำนวนรูป")}</h3><select id="copies"><option value="0">${tr("photobooth.js.res.full", "เต็มแผ่น")}</option>${[1, 2, 4, 6, 8, 10, 12].map(n => `<option value="${n}" ${n === idState.copies ? "selected" : ""}>${tr("photobooth.js.res.nCopies", "{n} รูป", { n })}</option>`).join("")}</select>
+    <label class="check"><input type="checkbox" id="marks" ${idState.marks ? "checked" : ""}><span>${tr("photobooth.js.res.marks", "แสดงเส้นตัด")}</span></label>
     <p id="sheetInfo"></p>
-    <p>${seg ? "" : "เครื่องนี้เปลี่ยนสีฉากหลังอัตโนมัติไม่ได้ ควรถ่ายหน้าผนังสีขาว/ฟ้าเรียบ "}ตรวจสอบว่าหน้าตรง ไม่ใส่แว่นกันแดด และเห็นใบหูตามข้อกำหนดของหน่วยงาน</p>`;
+    <p>${seg ? "" : tr("photobooth.js.res.noSeg", "เครื่องนี้เปลี่ยนสีฉากหลังอัตโนมัติไม่ได้ ควรถ่ายหน้าผนังสีขาว/ฟ้าเรียบ ")}${tr("photobooth.js.res.rules", "ตรวจสอบว่าหน้าตรง ไม่ใส่แว่นกันแดด และเห็นใบหูตามข้อกำหนดของหน่วยงาน")}</p>`;
   $("#paper").onchange = e => { idState.paper = e.target.value; renderId(); };
   $("#copies").onchange = e => { idState.copies = +e.target.value; renderId(); };
   $("#marks").onchange = e => { idState.marks = e.target.checked; renderId(); };
   if ($("#aiRun")) $("#aiRun").onclick = runAI;
   out.classList.remove("drag");
   renderId();
-  $("#result").scrollIntoView({ behavior: "smooth", block: "start" });
+  if (!keep) $("#result").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 // ---------- ทั่วไป ----------
 function addAction(label, fn, primary) { const b = document.createElement("button"); b.type = "button"; b.className = "btn " + (primary ? "primary" : "ghost"); b.textContent = label; b.onclick = fn; $("#resultActions").append(b); return b; }
 function resultActions() { // ตู้สติ๊กเกอร์: แชร์ / ดาวน์โหลด / พิมพ์ / ส่งต่อ
   const canShare = !!navigator.share;
-  addAction(canShare ? "แชร์ภาพ" : "⬇ ดาวน์โหลด", () => canShare ? shareCurrent() : downloadCanvas(out, current.name), true);
-  if (canShare) addAction("⬇ ดาวน์โหลด", () => downloadCanvas(out, current.name));
-  addAction("🖨 พิมพ์", printResult);
-  addAction("ส่งต่อ", openHandoff);
-  addAction("ถ่ายใหม่", () => { $(".stage").scrollIntoView({ behavior: "smooth", block: "start" }); $("#shoot").click(); });
+  addAction(canShare ? tr("photobooth.js.act.share", "แชร์ภาพ") : tr("photobooth.js.act.download", "⬇ ดาวน์โหลด"), () => canShare ? shareCurrent() : downloadCanvas(out, current.name), true);
+  if (canShare) addAction(tr("photobooth.js.act.download", "⬇ ดาวน์โหลด"), () => downloadCanvas(out, current.name));
+  addAction(tr("photobooth.js.act.print", "🖨 พิมพ์"), printResult);
+  addAction(tr("photobooth.js.act.handoff", "ส่งต่อ"), openHandoff);
+  addAction(tr("photobooth.js.act.retake", "ถ่ายใหม่"), () => { $(".stage").scrollIntoView({ behavior: "smooth", block: "start" }); $("#shoot").click(); });
 }
 let current = null; // ผลลัพธ์ที่กำลังแสดง { canvas(), name, title }
 const fileStamp = () => { const d = new Date(), p = n => String(n).padStart(2, "0"); return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`; };
-const canvasBlob = c => new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error("สร้างไฟล์ภาพไม่สำเร็จ")), "image/png"));
+const canvasBlob = c => new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error(tr("photobooth.js.err.blob", "สร้างไฟล์ภาพไม่สำเร็จ"))), "image/png"));
 function saveBlob(blob, filename) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
 function downloadCanvas(c, name) { canvasBlob(c).then(b => saveBlob(b, `${name}-${fileStamp()}.png`)).catch(e => toast(e.message)); }
 function toast(t) { const el = $("#toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 2600); }
@@ -763,7 +782,7 @@ async function shareCurrent() {
     try { await navigator.share({ files: [file], title: current.title }); return; }
     catch (e) { if (e.name === "AbortError") return; console.warn("share", e); }
   }
-  saveBlob(blob, file.name); toast("อุปกรณ์นี้แชร์ไฟล์ไม่ได้ ดาวน์โหลดภาพให้แทนแล้ว");
+  saveBlob(blob, file.name); toast(tr("photobooth.js.toast.noShare", "อุปกรณ์นี้แชร์ไฟล์ไม่ได้ ดาวน์โหลดภาพให้แทนแล้ว"));
 }
 /* ส่งต่อแบบไม่ใช้ QR: แสดงภาพให้กดค้างบันทึก/AirDrop, คัดลอกภาพ, ดาวน์โหลด หรือเปิดในแท็บใหม่ */
 let handoffBlob = null, handoffURL = "";
@@ -783,8 +802,8 @@ $("#hoSave").onclick = () => handoffBlob && saveBlob(handoffBlob, `${current.nam
 $("#hoOpen").onclick = () => handoffURL && window.open(handoffURL, "_blank", "noopener");
 $("#hoShare").onclick = () => shareCurrent();
 $("#hoCopy").onclick = async () => {
-  try { await navigator.clipboard.write([new ClipboardItem({ "image/png": handoffBlob })]); toast("คัดลอกภาพแล้ว วางในแชตหรืออีเมลได้เลย"); }
-  catch (e) { console.warn(e); toast("คัดลอกไม่ได้ในเบราว์เซอร์นี้ ใช้วิธีกดค้างที่ภาพแทน"); }
+  try { await navigator.clipboard.write([new ClipboardItem({ "image/png": handoffBlob })]); toast(tr("photobooth.js.toast.copied", "คัดลอกภาพแล้ว วางในแชตหรืออีเมลได้เลย")); }
+  catch (e) { console.warn(e); toast(tr("photobooth.js.toast.copyFail", "คัดลอกไม่ได้ในเบราว์เซอร์นี้ ใช้วิธีกดค้างที่ภาพแทน")); }
 };
 /* พิมพ์เฉพาะภาพผลลัพธ์ (รูปติดบัตรพิมพ์ตามขนาดกระดาษจริง) */
 function printResult() {
@@ -797,11 +816,12 @@ addEventListener("afterprint", () => document.documentElement.classList.remove("
 
 // ---------- โหมดคีออสก์ (เต็มจอ ซ่อนเมนู) ----------
 const kioskBtn = $("#kiosk"), root = document.documentElement;
+const kioskLabel = on => on ? tr("photobooth.js.kioskExit", "ออกจากโหมดคีออสก์") : tr("pb.kiosk", "⛶ โหมดคีออสก์");
 const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
 function setKiosk(on) {
   root.classList.toggle("pb-kiosk", on);
   kioskBtn.setAttribute("aria-pressed", on ? "true" : "false");
-  kioskBtn.textContent = on ? "ออกจากโหมดคีออสก์" : "⛶ โหมดคีออสก์";
+  kioskBtn.textContent = kioskLabel(on);
   syncPreview(); scrollTo(0, 0);
 }
 kioskBtn.onclick = async () => {
@@ -814,11 +834,11 @@ kioskBtn.onclick = async () => {
 };
 ["fullscreenchange", "webkitfullscreenchange"].forEach(ev => document.addEventListener(ev, () => { if (!fsEl() && root.classList.contains("pb-kiosk")) setKiosk(false); }));
 $("#shoot").onclick = async () => {
-  if (!camOK) { $("#shootHint").textContent = "กล้องยังไม่พร้อม ดูสถานะด้านบน"; return; }
+  if (!camOK) { setHint(() => tr("photobooth.js.hint.camNotReady", "กล้องยังไม่พร้อม ดูสถานะด้านบน")); return; }
   if (busy || $("#count").textContent) return;
   $("#shoot").disabled = true;
   try { mode === "booth" ? await shootBooth() : await shootId(); }
-  catch (e) { console.error(e); $("#shootHint").textContent = "ถ่ายไม่สำเร็จ: " + e.message; }
+  catch (e) { console.error(e); setHint(() => tr("photobooth.js.hint.shootFail", "ถ่ายไม่สำเร็จ: ") + e.message); }
   finally { busy = false; $("#shoot").disabled = false; }
 };
 // ---------- หน้าจัดการเทมเพลต ----------
@@ -833,47 +853,47 @@ function showTplPreview() {
 }
 $("#tplFile").onchange = async () => {
   const f = $("#tplFile").files[0]; if (!f) return;
-  $("#tplSave").disabled = true; tplMsg("กำลังตัดพื้นหลังและหาตำแหน่งคอ... (อาจใช้เวลาสักครู่)");
+  $("#tplSave").disabled = true; tplMsg(tr("photobooth.js.tpl.busy", "กำลังตัดพื้นหลังและหาตำแหน่งคอ... (อาจใช้เวลาสักครู่)"));
   try {
     tplPrep = await PBTpl.prepareOutfit(f);
     showTplPreview(); $("#tplSave").disabled = false;
     if (!$("#tplName").value) $("#tplName").value = f.name.replace(/\.[^.]+$/, "");
-    tplMsg(tplPrep.anchor.faceLum != null ? "พบใบหน้านายแบบ ตัดศีรษะออกแล้ว ปรับ \"ระดับคอเสื้อ\" ให้พอดีคอปก (เส้นประ = ตำแหน่งคาง)" : "ไฟล์ชุดพื้นใส: ประมาณตำแหน่งคอจากรูปทรง อาจต้องปรับแถบตำแหน่งตอนใช้งาน", "ok");
-  } catch (e) { console.error(e); tplPrep = null; tplMsg(e.message || "ประมวลผลไม่สำเร็จ", "err"); }
+    tplMsg(tplPrep.anchor.faceLum != null ? tr("photobooth.js.tpl.face", "พบใบหน้านายแบบ ตัดศีรษะออกแล้ว ปรับ \"ระดับคอเสื้อ\" ให้พอดีคอปก (เส้นประ = ตำแหน่งคาง)") : tr("photobooth.js.tpl.png", "ไฟล์ชุดพื้นใส: ประมาณตำแหน่งคอจากรูปทรง อาจต้องปรับแถบตำแหน่งตอนใช้งาน"), "ok");
+  } catch (e) { console.error(e); tplPrep = null; tplMsg(e.message ? tr(e.message, e.message) : tr("photobooth.js.tpl.fail", "ประมวลผลไม่สำเร็จ"), "err"); }
 };
 $("#tplNeck").oninput = () => tplPrep && showTplPreview();
 $("#tplSave").onclick = async () => {
   if (!tplFinal) return;
-  const item = { id: crypto.randomUUID(), kind: "outfit", name: $("#tplName").value.trim() || "ชุดของฉัน", anchor: tplFinal.anchor, blob: await PBTpl.toBlob(tplFinal.canvas), created: Date.now() };
-  try { await PBTpl.put(item); } catch (e) { return tplMsg("บันทึกไม่สำเร็จ: " + e.message, "err"); }
+  const item = { id: crypto.randomUUID(), kind: "outfit", name: $("#tplName").value.trim() || tr("photobooth.js.tpl.defName", "ชุดของฉัน"), anchor: tplFinal.anchor, blob: await PBTpl.toBlob(tplFinal.canvas), created: Date.now() };
+  try { await PBTpl.put(item); } catch (e) { return tplMsg(tr("photobooth.js.saveFail", "บันทึกไม่สำเร็จ: ") + e.message, "err"); }
   TPL.items.push(item); registerTemplate(item, tplFinal.canvas);
   idState.outfit = "tpl:" + item.id;
   renderOutfitChoices(); renderTplList(); renderId();
-  tplMsg(`บันทึก "${item.name}" แล้ว เลือกใช้ได้ที่แท็บรูปติดบัตร`, "ok");
+  tplMsg(tr("photobooth.js.tpl.saved", "บันทึก \"{name}\" แล้ว เลือกใช้ได้ที่แท็บรูปติดบัตร", { name: item.name }), "ok");
   $("#tplFile").value = ""; $("#tplName").value = ""; tplPrep = tplFinal = null; $("#tplSave").disabled = true;
 };
 document.querySelectorAll("#assetKind button").forEach(b => b.onclick = () => { assetKind = b.dataset.k; document.querySelectorAll("#assetKind button").forEach(x => x.classList.toggle("on", x === b)); });
 $("#assetSave").onclick = async () => {
   const f = $("#assetFile").files[0], m = $("#assetMsg");
-  if (!f) { m.textContent = "กรุณาเลือกไฟล์"; return; }
+  if (!f) { m.textContent = tr("photobooth.js.asset.noFile", "กรุณาเลือกไฟล์"); return; }
   try {
     const c = await PBTpl.fileToCanvas(f);
     const item = { id: crypto.randomUUID(), kind: assetKind, name: $("#assetName").value.trim() || f.name.replace(/\.[^.]+$/, ""), blob: await PBTpl.toBlob(c), created: Date.now() };
     await PBTpl.put(item); TPL.items.push(item); registerTemplate(item, c);
     renderThemes(); renderBgSwatches(); renderTplList();
-    m.textContent = `บันทึก "${item.name}" แล้ว เลือกใช้ได้ที่แท็บตู้สติ๊กเกอร์`; $("#assetFile").value = ""; $("#assetName").value = "";
-  } catch (e) { console.error(e); m.textContent = "บันทึกไม่สำเร็จ: " + e.message; }
+    m.textContent = tr("photobooth.js.asset.saved", "บันทึก \"{name}\" แล้ว เลือกใช้ได้ที่แท็บตู้สติ๊กเกอร์", { name: item.name }); $("#assetFile").value = ""; $("#assetName").value = "";
+  } catch (e) { console.error(e); m.textContent = tr("photobooth.js.saveFail", "บันทึกไม่สำเร็จ: ") + e.message; }
 };
 function renderTplList() {
   const el = $("#tplList"); if (!el) return;
-  const kindTh = { outfit: "ชุด", frame: "กรอบรูป", bg: "ฉากหลัง" };
-  el.innerHTML = TPL.items.length ? "" : `<p class="hint">ยังไม่มี</p>`;
+  const kindTh = { outfit: tr("photobooth.js.kind.outfit", "ชุด"), frame: tr("photobooth.js.kind.frame", "กรอบรูป"), bg: tr("photobooth.js.kind.bg", "ฉากหลัง") };
+  el.innerHTML = TPL.items.length ? "" : `<p class="hint">${tr("pb.asset.none", "ยังไม่มี")}</p>`;
   TPL.items.forEach(it => {
     const d = document.createElement("div"); d.className = "tpl-item";
     const img = document.createElement("img"); img.alt = it.name; img.src = URL.createObjectURL(it.blob); img.onload = () => URL.revokeObjectURL(img.src);
     const name = document.createElement("div"); name.textContent = `${kindTh[it.kind]}: ${it.name}`;
-    const del = document.createElement("button"); del.type = "button"; del.textContent = "ลบ";
-    del.onclick = async () => { if (!confirm(`ลบ "${it.name}"?`)) return; await PBTpl.del(it.id); TPL.items = TPL.items.filter(x => x.id !== it.id); unregisterTemplate(it); renderOutfitChoices(); renderThemes(); renderBgSwatches(); renderTplList(); renderId(); };
+    const del = document.createElement("button"); del.type = "button"; del.textContent = tr("photobooth.js.tpl.del", "ลบ");
+    del.onclick = async () => { if (!confirm(tr("photobooth.js.tpl.delQ", "ลบ \"{name}\"?", { name: it.name }))) return; await PBTpl.del(it.id); TPL.items = TPL.items.filter(x => x.id !== it.id); unregisterTemplate(it); renderOutfitChoices(); renderThemes(); renderBgSwatches(); renderTplList(); renderId(); };
     d.append(img, name, del); el.append(d);
   });
 }
@@ -886,12 +906,17 @@ document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
   if (mode === "tpl") { $("#result").hidden = true; return; }
   $("#opts-booth").hidden = mode !== "booth"; $("#opts-id").hidden = mode !== "id"; $("#idGuide").hidden = mode !== "id";
   syncPreview();
-  $("#shootHint").textContent = mode === "id" ? "หน้าตรง มองกล้อง ให้ใบหน้าอยู่ในกรอบวงรี ไหล่ตรง" : "ยืนห่างกล้องประมาณ 1 เมตร ให้เห็นศีรษะและไหล่ แสงส่องด้านหน้า";
+  setHint(mode === "id" ? () => tr("photobooth.js.hint.id", "หน้าตรง มองกล้อง ให้ใบหน้าอยู่ในกรอบวงรี ไหล่ตรง") : () => tr("pb.shootHint", "ยืนห่างกล้องประมาณ 1 เมตร ให้เห็นศีรษะและไหล่ แสงส่องด้านหน้า"));
   if (mode === "booth" && booth.shots.length) showBoothResult(); else if (mode === "id" && idState.cap) showIdResult(); else $("#result").hidden = true;
 });
 
 renderThemes(); renderBgSwatches(); renderOutfitChoices(); renderIdSizes(); renderPurposes(); syncGuide(); syncLayoutBtns(); syncPreview(); autoShootTick(); loadTemplates();
 document.fonts?.ready.then(renderThemes);
 init();
-// เปลี่ยนภาษา (TH/中文): วาดรายการชุดใหม่ให้ชื่อชุดเป็นภาษาที่เลือก
-window.addEventListener("lq-lang", () => renderOutfitChoices());
+// เปลี่ยนภาษา (TH/中文): วาดข้อความที่สร้างจากสคริปต์ใหม่ทั้งหมดให้เป็นภาษาที่เลือก
+window.addEventListener("lq-lang", () => {
+  engine(); renderThemes(); renderBgSwatches(); renderOutfitChoices(); renderIdSizes(); renderPurposes(); renderTplList();
+  if (hintFn) $("#shootHint").textContent = hintFn();
+  kioskBtn.textContent = kioskLabel(root.classList.contains("pb-kiosk"));
+  if (!$("#result").hidden) { if (mode === "booth" && booth.shots.length) showBoothResult(true); else if (mode === "id" && idState.cap) showIdResult(true); }
+});

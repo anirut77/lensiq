@@ -72,7 +72,9 @@ window.LENSIQ_API_BASE = "https://lensiq-api.onrender.com";
 
 ค่าว่าง `""` = ใช้เซิร์ฟเวอร์เดียวกับหน้าเว็บ (เหมาะกับ localhost) — ถ้า backend ล่มหรือหลับ (แผนฟรีของ Render หลับเมื่อไม่มีคนใช้) หน้าเว็บจะใช้ตัวเรียบเรียงในเครื่องโดยอัตโนมัติ
 
-หมายเหตุ: `server.py` บน Render จะติดตั้ง `pdf2docx`/`pymupdf` ไปด้วย (ใช้กับหน้าแปลง PDF) ไม่เป็นปัญหา แต่ build จะนานขึ้นเล็กน้อย
+หมายเหตุ: ตัวแปลง PDF ค่าเริ่มต้นใช้ `pdfplumber` + `python-docx` (MIT) — ไม่มีไลบรารี AGPL ใน `requirements.txt` อีกต่อไป (เอนจิน `pdf2docx`/PyMuPDF เป็นตัวเลือก: `requirements-agpl.txt` + `LENSIQ_CONVERT_ENGINE=pdf2docx` ดู `docs/TRYON-LICENSING.md`)
+
+**AI try-on:** ไม่มีโมเดลค่าเริ่มต้นแล้ว ต้องตั้ง `REPLICATE_API_TOKEN` + `REPLICATE_TRYON_MODEL` + `LENSIQ_TRYON_LICENSE=commercial` (ยืนยันว่ามีสิทธิ์ใช้เชิงพาณิชย์) — โมเดลตระกูล IDM-VTON/OOTDiffusion/CatVTON (CC BY-NC-SA) เปิดได้เฉพาะ `LENSIQ_TRYON_LICENSE=noncommercial-demo` สำหรับเดโม/วิจัย
 
 ---
 

@@ -14,7 +14,9 @@ Follow this list top to bottom for each site. It does not depend on pricing or p
 - [ ] **Privacy notice** published (URL/QR on the signs), including the Google Fonts disclosure or a self-hosted font.
 - [ ] **Licence review before any paid use.** Do not enable, or replace, every item flagged NON-COMMERCIAL / RESTRICTED in `LICENSES/THIRD_PARTY.md`:
   - [ ] `LENSIQ_FACEPARSE` stays `false`, and `faceparse-*.onnx` is not on the device.
-  - [ ] AI try-on (`REPLICATE_API_TOKEN`) is unset, or switched to a commercially licensed model.
+  - [ ] AI try-on is off (the default), or `REPLICATE_TRYON_MODEL` is a model you hold commercial rights to, `LENSIQ_TRYON_LICENSE=commercial` is set, and the licence evidence is filed (`docs/TRYON-LICENSING.md`).
+  - [ ] `/api/convert` runs the default permissive engine (`GET /api/convert/status` → `copyleft: false`), or the AGPL obligations of `LENSIQ_CONVERT_ENGINE=pdf2docx` are accepted.
+  - [ ] DPIA ([`pdpa/DPIA.md`](pdpa/DPIA.md)) adapted, legal-review items L1–L8 closed, signed. ROPA ([`pdpa/ROPA.md`](pdpa/ROPA.md)) filed.
   - [ ] PDF converter: Artifex licence obtained, or the converter is internal only or removed.
   - [ ] Counsel's opinion on face-api.js training-data provenance (age/gender especially). Signage age/gender is left **off** unless cleared.
 - [ ] Retention periods decided ([`pdpa/retention-table.md`](pdpa/retention-table.md)), and a named owner for the export/clear routine.

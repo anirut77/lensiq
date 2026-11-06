@@ -48,7 +48,7 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
       const ears = r1.s.map(p => p.ear).filter(v => v != null);
       assert(ears.length >= 5, "enough trip frames: " + ears.length);
       assert(ears.every(v => Math.abs(v - 0.30) < 1e-6), "EAR series only from the driver: " + JSON.stringify(ears.slice(0, 8)));
-      assert(r1.cal && Math.abs(r1.thr - 0.21) < 0.002, "calibrated on the driver (thr 0.21): " + r1.thr);
+      assert(r1.cal && Math.abs(r1.thr - 0.255) < 0.002, "calibrated on the driver (thr 0.30 × earRatio 0.85 = 0.255): " + r1.thr);
       assert(r1.anchor && r1.anchor.x < 0.5, "anchor = driver box " + JSON.stringify(r1.anchor));
 
       // driver leaves the frame, passenger stays -> face_missing, never the passenger's EAR

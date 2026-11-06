@@ -9,7 +9,20 @@
        byCam?:{ "c1".."c4": {name, in, out} } }
    คีย์อื่นถูกปฏิเสธทั้ง pack (ไม่ตัดทิ้งเงียบ ๆ) เพื่อไม่ให้ข้อมูลอื่นหลุดออกจากเครื่องโดยไม่ตั้งใจ
    เบราว์เซอร์: window.LQAgg · Node: require("./lensiq-agg.js") */
-(function (root, factory) {
+/**
+ * @typedef {{name: string, visits: number, dwellSum: number, dwellN: number, peak: number}} AggZone
+ * @typedef {{name: string, in: number, out: number}} AggCam
+ * @typedef {{v: number, format?: string, node?: string, name: string, date: string, in: number, out: number,
+ *   occ: number, peak: number, peakAt: number, maxQueue: number, t: number, hourlyIn: number[], hourlyOut: number[],
+ *   zones: Object<string, AggZone>, byCam: Object<string, AggCam>}} AggPack   a validated daily summary (cleanPack)
+ * @typedef {AggPack & {src: "hub"|"import", receivedAt: number}} AggCachedPack
+ * @typedef {{ok: true, pack: AggPack} | {ok: false, error: string}} AggCleanResult
+ * @typedef {{id: string, name: string, local: boolean, src?: string, in: number, out: number, occ: number, peak: number,
+ *   maxQueue: number, t: number}} AggRow
+ * @typedef {{in: number, out: number, occ: number, peak: number, maxQueue: number, hourlyIn: number[], hourlyOut: number[],
+ *   rows: AggRow[]}} AggMerged
+ */
+(/** @param {any} root @param {() => any} factory */ function (root, factory) {
   const m = factory();
   if (typeof module !== "undefined" && module.exports) module.exports = m; else root.LQAgg = m;
 })(typeof self !== "undefined" ? self : this, function () {
@@ -43,6 +56,7 @@
   }
 
   /* ตรวจ pack ตามสัญญา -> {ok:true, pack} | {ok:false, error} */
+  /** @param {*} raw @param {{maxBytes?: number}} [opts] @returns {AggCleanResult} */
   function cleanPack(raw, { maxBytes = LIM.bytes } = {}) {
     try {
       if (!isObj(raw)) fail("ข้อมูลต้องเป็นออบเจกต์");
@@ -51,7 +65,8 @@
       if (raw.v !== 1) fail("เวอร์ชันไม่รองรับ");
       if (raw.format != null && raw.format !== "lensiq-agg") fail("format ไม่ถูกต้อง");
       if (typeof raw.date !== "string" || !DATE_RE.test(raw.date) || isNaN(Date.parse(raw.date))) fail("date ไม่ถูกต้อง");
-      const p = { v: 1, date: raw.date, name: cleanName(raw.name, "name"), in: int(raw.in, "in"), out: int(raw.out, "out") };
+      /** @type {AggPack} */
+      const p = /** @type {any} */ ({ v: 1, date: raw.date, name: cleanName(raw.name, "name"), in: int(raw.in, "in"), out: int(raw.out, "out") });
       if (raw.node != null) { if (typeof raw.node !== "string" || !NODE_RE.test(raw.node)) fail("node ไม่ถูกต้อง"); p.node = raw.node; }
       for (const k of ["occ", "peak", "maxQueue"]) p[k] = raw[k] == null ? 0 : int(raw[k], k);
       for (const k of ["peakAt", "t"]) p[k] = raw[k] == null ? 0 : int(raw[k], k, LIM.ms);
@@ -91,6 +106,7 @@
   const trunc = (s, fb) => { const v = String(s ?? "").replace(/[\u0000-\u001f\u007f-\u009f<>]/g, " ").replace(/\s+/g, " ").trim().slice(0, LIM.name); return v || fb; };
   const n0 = (v, max = LIM.int) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? Math.min(Math.round(v), max) : 0);
   /* สรุปวันของ store.js (st-day-*) -> pack (คัดเฉพาะตัวเลข ตัดชื่อให้สั้น ข้ามโซน/กล้องที่คีย์ผิดรูป) */
+  /** @param {*} day @param {string} name @param {string} [node] @param {number} [now] @returns {AggPack} */
   function packFromDay(day, name, node, now = Date.now()) {
     const h = (day && day.hourly) || {};
     const arr = a => Array.from({ length: 24 }, (_, i) => n0(Array.isArray(a) ? a[i] : 0));
@@ -126,6 +142,7 @@
      - peak (ประมาณ) = max(peak ของแต่ละเครื่อง, ยอดสะสม Σin−Σout ณ สิ้นแต่ละชั่วโมง)
      - maxQueue = ค่าสูงสุดของแต่ละเครื่อง
      คืน {in, out, occ, peak, maxQueue, hourlyIn, hourlyOut, rows:[{id, name, in, out, occ, peak, t, local, src}]} */
+  /** @param {*} local store.js day (st-day-*) or null @param {Array<AggPack & {src?: string, receivedAt?: number}>} [packs] @returns {AggMerged} */
   function mergeDay(local, packs = []) {
     const rows = [];
     if (local && (local.in || local.out || !packs.length)) {
@@ -155,7 +172,9 @@
     return c;
   }
   /* อ่านแคช -> รายการ pack ที่ผ่านการตรวจ (ข้อมูลเสีย/ถูกแก้ = ข้าม) */
+  /** @param {*} cache st-agg-YYYY-MM-DD @param {string} [date] @returns {AggCachedPack[]} */
   function cachePacks(cache, date) {
+    /** @type {AggCachedPack[]} */
     const out = [];
     if (!isObj(cache) || !isObj(cache.nodes)) return out;
     for (const [id, raw] of Object.entries(cache.nodes)) {

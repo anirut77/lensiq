@@ -50,7 +50,7 @@ function nearest(map, desc, used) {
 /* ผู้รอยืนยันที่ใกล้ที่สุด (เดิมใช้ตัวแรกที่เข้าเกณฑ์) */
 function nearestCand(cands, desc, used) {
   let best = null, bd = CFG.MATCH;
-  for (const c of cands) { if (used.has(c)) continue; const d = dist(c.desc, desc); if (d < bd) { bd = d; best = c; } }
+  for (const c of cands) { if (used.has(c) || !c.desc) continue; const d = dist(c.desc, desc); if (d < bd) { bd = d; best = c; } }
   return best;
 }
 
@@ -78,7 +78,7 @@ function promote(S, c, now) {
   const v = { id, first: c.first, last: c.first, dwell: 0, visits: 1, arrivals: [c.first], frames: 0, att: 0, emo: EMO.map(() => 0), vSum: 0, acts: [] };
   const step = (now - c.first) / Math.max(1, c.obs.length);
   c.obs.forEach((o, k) => touchVisitor(v, o.f || o, c.first + step * (k + 1), o.cam || "", o.primary !== false));
-  S.visitors.push(v); S.desc[id] = c.desc;
+  S.visitors.push(v); if (c.desc) S.desc[id] = c.desc; // โหมดนับอย่างเดียว: ไม่มีค่าลักษณะใบหน้า
   S.cands = S.cands.filter(x => x !== c);
   return id;
 }
@@ -86,7 +86,38 @@ function promote(S, c, now) {
 /* รับผลตรวจจับหนึ่งรอบ faces=[{desc,e,v,att,area,box:{x,y,w,h} 0..1,score?}]
  * คืน [{id|null, face, tid, confirmed, box}] เฉพาะใบหน้าที่วิเคราะห์ (ไม่เกิน MAX_FACES)
  * ตำแหน่ง (แทร็ก) เป็นตัวยึดตัวตน: ค้นค่าลักษณะใบหน้า (nearest) เฉพาะแทร็กใหม่ แทร็กที่ยังไม่ผูก หรือทุก RECHECK_EVERY ภาพ */
+/* โหมด "นับอย่างเดียว" (count-only, DPIA R2): ไม่ใช้ค่าลักษณะใบหน้าเลย — ตัวตน = แทร็กตำแหน่งในภาพของกล้องนี้
+ * (ตัวติดตามมีคลังแทร็กที่หายไปไม่เกิน COUNT_LOST_MS เพื่อต่อแทร็กเมื่อถูกบังชั่วครู่) ; เห็นต่อเนื่อง PROMOTE_MS = ผู้เข้าชม
+ * ข้อจำกัด: คนที่ออกไปแล้วกลับมา หรือคนเดียวกันที่กล้องสองตัวเห็น นับเป็นผู้เข้าชมใหม่ (นับเกินได้) */
+const COUNT_TRACK = Object.freeze({ ...LQT.PRESET.face, LOST_TTL_MS: 4000, REVIVE_DIST: 0.15 });
+function observeCount(S, faces, now, R, opts) {
+  const cam = opts.cam || "", primary = opts.primary !== false;
+  R.frame++;
+  const kept = faces.map((f, i) => i).sort((a, b) => faces[b].area - faces[a].area).slice(0, CFG.MAX_FACES);
+  const dets = kept.map(i => { const b = faces[i].box || { x: 0, y: 0, w: 0, h: 0 }; return { x: b.x, y: b.y, w: b.w, h: b.h, score: faces[i].score == null ? 1 : faces[i].score, fi: i }; });
+  const { seen, removed } = LQT.updateTracker(R.T, dets, now, COUNT_TRACK);
+  for (const tid of removed) { R.bind.delete(tid); R.cand.delete(tid); }
+  const hasV = id => S.visitors.some(v => v.id === id), out = [];
+  for (const t of seen) {
+    const f = faces[t.det.fi];
+    let id = R.bind.get(t.id) || null;
+    if (id && hasV(id)) touchVisitor(S.visitors.find(x => x.id === id), f, now, cam, primary);
+    else {
+      id = null;
+      let c = R.cand.get(t.id);
+      if (!c) { c = { desc: null, first: now, last: now, obs: [] }; R.cand.set(t.id, c); }
+      c.last = now;
+      if (c.obs.length < 50) c.obs.push({ f, cam, primary });
+      if (now - c.first >= CFG.PROMOTE_MS) { id = promote(S, c, now); R.bind.set(t.id, id); R.cand.delete(t.id); }
+    }
+    out.push({ id, face: f, tid: t.id, confirmed: !!t.confirmed, box: t.box });
+  }
+  if (opts.timeline !== false) noteTimeline(S, out.filter(r => r.id && r.confirmed).length, now);
+  return out;
+}
+
 function observe(S, faces, now, R = runtime(S), opts = {}) {
+  if (opts.countOnly) return observeCount(S, faces, now, R, opts);
   const cam = opts.cam || "", primary = opts.primary !== false;
   R.frame++;
   const kept = faces.map((f, i) => i).sort((a, b) => faces[b].area - faces[a].area).slice(0, CFG.MAX_FACES);
@@ -271,7 +302,7 @@ function autoPurge(S, now = Date.now()) { if (S.descDay !== dayKey(now)) { purge
  * ค่าลักษณะใบหน้าของแท็บนี้อยู่ใน sessionStorage 'booth-desc' (หายเมื่อปิดแท็บ)
  * remember=true -> เพิ่มสำเนา {day, desc} ที่เข้ารหัส (lensiq-facevault.js) ใน localStorage 'lqv-booth-desc' ภายในวัน */
 function serializeState(S, remember) {
-  const { cands, desc, ...rest } = S;
+  const { cands: _cands, desc, ...rest } = S;
   const d = { day: S.descDay, desc: desc || {} };
   return { state: JSON.stringify(rest), session: JSON.stringify(d), vault: remember ? d : null };
 }
@@ -308,17 +339,20 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   const KEY = "booth-state", DESC_KEY = "booth-desc", PREF_KEY = "booth-prefs", VAULT_KEY = "lqv-booth-desc";
   const V = typeof LQVault !== "undefined" ? LQVault : null, vaultQ = V ? V.queue() : f => f();
   const $ = s => document.querySelector(s);
-  const sleep = ms => new Promise(r => setTimeout(r, ms));
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const fmtDur = s => s < 60 ? `${Math.round(s)} วิ` : `${Math.floor(s / 60)} นาที ${Math.round(s % 60)} วิ`;
   const fmtClock = ts => new Date(ts).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
   const TEST = typeof LQDetect !== "undefined" && LQDetect.isTest();
   const ssGet = k => { try { return sessionStorage.getItem(k); } catch { return null; } };
 
-  let prefs = { v: 1, remember: false };
-  try { const p = JSON.parse(localStorage.getItem(PREF_KEY)); if (p && typeof p === "object") prefs.remember = p.remember === true; } catch {}
+  // mode: "count" = นับอย่างเดียว ไม่ใช้ค่าลักษณะใบหน้า (ค่าเริ่มต้น — DPIA R2 เมื่อไม่ได้ขอความยินยอม) | "recognise" = จำผู้เข้าชมที่กลับมา
+  let prefs = { v: 1, remember: false, mode: "count" };
+  try { const p = JSON.parse(localStorage.getItem(PREF_KEY)); if (p && typeof p === "object") { prefs.remember = p.remember === true; prefs.mode = p.mode === "recognise" ? "recognise" : "count"; } } catch {}
+  const countOnly = () => prefs.mode !== "recognise";
+  if (countOnly()) prefs.remember = false; // นับอย่างเดียว = ไม่มีค่าใบหน้าให้จำ
 
   let S = restoreState(localStorage.getItem(KEY), ssGet(DESC_KEY), prefs.remember);
+  if (countOnly() && (Object.keys(S.desc || {}).length || S.cands.length)) purgeFaces(S); // ค่าใบหน้าจากโหมดเดิม/รุ่นเก่า ลบทิ้ง
   let vaultPending = false; // มีงานเขียนสำเนาเข้ารหัสรออยู่แล้ว -> ไม่ต้องต่อคิวซ้ำ (เขียนค่าล่าสุดของ S ตอนถึงคิว)
   const persist = () => {
     const o = serializeState(S, prefs.remember);
@@ -515,7 +549,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   function fakeFaces(c, now) {
     const dets = LQDetect.fake(c.slot, now) || [];
     return dets.map((d, i) => {
-      const desc = d.desc || Array.from({ length: 128 }, (_, k) => (k === (d.person ?? i) % 128 ? 1 : 0));
+      const desc = countOnly() ? null : d.desc || Array.from({ length: 128 }, (_, k) => (k === (d.person ?? i) % 128 ? 1 : 0));
       const e = EMO.map((_, k) => (k ? 0 : 1));
       return { desc, e, v: 0, att: 1, area: d.w * d.h, box: { x: d.x, y: d.y, w: d.w, h: d.h }, score: d.score };
     });
@@ -524,7 +558,9 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   async function detect(c, now) {
     if (TEST) return fakeFaces(c, now);
     const video = c.video, W = video.videoWidth, H = video.videoHeight, primary = c === primaryCam();
-    let q = faceapi.detectAllFaces(video, detOpts).withFaceLandmarks().withFaceDescriptors();
+    const co = countOnly(); // นับอย่างเดียว: ไม่คำนวณค่าลักษณะใบหน้าเลย (ไม่มีข้อมูลชีวมิติ)
+    let q = faceapi.detectAllFaces(video, detOpts).withFaceLandmarks();
+    if (!co) q = q.withFaceDescriptors();
     if (primary) q = q.withFaceExpressions();
     const rs = await q;
     return rs.map(r => {
@@ -532,7 +568,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
       const yaw = (nose.x - (le.x + re.x) / 2) / (Math.abs(re.x - le.x) || 1);
       const e = r.expressions ? EMO.map(k => +(r.expressions[k] || 0).toFixed(3)) : EMO.map((_, k) => (k ? 0 : 1));
       const b = r.detection.box;
-      return { desc: r.descriptor, e, v: e.reduce((s, p, i) => s + p * VA[EMO[i]][0], 0), att: Math.abs(yaw) < CFG.YAW_LIMIT ? 1 : 0, area: b.width * b.height, box: LQT.toNorm(b, W, H), score: r.detection.score };
+      return { desc: co ? null : r.descriptor, e, v: e.reduce((s, p, i) => s + p * VA[EMO[i]][0], 0), att: Math.abs(yaw) < CFG.YAW_LIMIT ? 1 : 0, area: b.width * b.height, box: LQT.toNorm(b, W, H), score: r.detection.score };
     });
   }
 
@@ -568,7 +604,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     if (!running || !hub.cam(c.slot)) return;
     const now = Date.now();
     if (autoPurge(S, now)) persist();
-    const res = observe(S, faces, now, runtime(S, c.slot), { cam: c.slot, primary: c === primaryCam(), timeline: false });
+    const res = observe(S, faces, now, runtime(S, c.slot), { cam: c.slot, primary: c === primaryCam(), timeline: false, countOnly: countOnly() });
     frames.set(c.slot, res.map(r => ({ id: r.id, tid: r.tid, box: { ...r.box }, confirmed: r.confirmed, cam: c.slot })));
     draw(c, res);
     const n = inFrameNow();
@@ -734,8 +770,20 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     off: "พื้นที่นี้มีการวิเคราะห์ภาพจากกล้องแบบไม่ระบุตัวตน เพื่อนับจำนวนผู้เข้าชมและวัดความสนใจต่อบูธ ระบบไม่บันทึกภาพหรือวิดีโอ ค่าลักษณะใบหน้าใช้เพียงเพื่อไม่ให้นับคนซ้ำ อยู่ในเครื่องนี้ระหว่างเปิดหน้าเท่านั้น และถูกลบเมื่อปิดหน้าหรือขึ้นวันใหม่ หากไม่ต้องการเข้าร่วม กรุณาแจ้งเจ้าหน้าที่",
     on: "พื้นที่นี้มีการวิเคราะห์ภาพจากกล้องแบบไม่ระบุตัวตน เพื่อนับจำนวนผู้เข้าชมและวัดความสนใจต่อบูธ ระบบไม่บันทึกภาพหรือวิดีโอ ค่าลักษณะใบหน้าใช้เพียงเพื่อไม่ให้นับคนซ้ำ เก็บไว้ในเครื่องนี้ไม่เกินสิ้นวันและถูกลบอัตโนมัติเมื่อขึ้นวันใหม่ หากไม่ต้องการเข้าร่วม กรุณาแจ้งเจ้าหน้าที่"
   };
-  const remember = $("#remember");
-  const applyPrefs = () => { remember.checked = prefs.remember; $("#notice").textContent = prefs.remember ? NOTICE.on : NOTICE.off; };
+  NOTICE.count = "พื้นที่นี้มีการวิเคราะห์ภาพจากกล้องแบบไม่ระบุตัวตน เพื่อนับจำนวนผู้เข้าชมและเวลาที่อยู่หน้าบูธ ระบบติดตามเพียงตำแหน่งของใบหน้าในภาพ ไม่สร้างค่าลักษณะใบหน้า ไม่จดจำหรือระบุตัวบุคคล และไม่บันทึกภาพหรือวิดีโอ หากไม่ต้องการเข้าร่วม กรุณาแจ้งเจ้าหน้าที่";
+  const remember = $("#remember"), modeSel = $("#boothMode");
+  const applyPrefs = () => {
+    remember.checked = prefs.remember && !countOnly(); remember.disabled = countOnly(); modeSel.value = prefs.mode;
+    $("#notice").textContent = countOnly() ? NOTICE.count : prefs.remember ? NOTICE.on : NOTICE.off;
+  };
+  modeSel.onchange = () => {
+    prefs.mode = modeSel.value === "recognise" ? "recognise" : "count";
+    if (countOnly()) { prefs.remember = false; purgeFaces(S); if (V) vaultQ(() => V.wipe([VAULT_KEY])); } // เปลี่ยนเป็นนับอย่างเดียว = ลบค่าใบหน้าที่มีทันที
+    else RUNTIME.delete(S); // เริ่มแทร็กใหม่ด้วยค่าลักษณะใบหน้า
+    try { localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); } catch {}
+    persist(); applyPrefs();
+    engine(countOnly() ? "โหมดนับอย่างเดียว: ไม่ใช้ข้อมูลใบหน้า คนที่กลับมาจะนับเป็นผู้เข้าชมใหม่" : "โหมดจำผู้เข้าชมที่กลับมา: ใช้ค่าลักษณะใบหน้า ต้องติดป้ายแจ้งและขอความยินยอม", "ok");
+  };
   remember.onchange = () => {
     prefs.remember = remember.checked;
     try { localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); } catch {}

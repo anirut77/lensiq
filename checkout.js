@@ -321,7 +321,9 @@ if (typeof document !== "undefined") (() => {
   const settings = Object.assign({ minSim: CFG.MIN_SIM, minSimBy: {}, minConf: CFG.MIN_CONF, stableMs: CFG.STABLE_MS, auto: true, beep: true, mirror: false, stockAuto: true, multiCodePay: false, multiCodeStock: true }, LS.get("settings", {}));
   let payGate = gateInit(true), stockGate = gateInit(true), flash = null;
   // บาร์โค้ด: gate แยกตามแท็บ (ชำระเงิน/นับสต็อก) ตามการตั้งค่า "สแกนหลายบาร์โค้ดพร้อมกัน"
-  const mkCodeGates = t => createCodeGates({ clearMs: 1200, multi: t === "stock" ? settings.multiCodeStock : settings.multiCodePay });
+  // minFrames 2: a code must be read the same in 2 barcode ticks (~250 ms apart) before it counts — on the synthetic
+  // benchmark (tests/bench/checkout.bench.mjs) this cut wrong codes from 1.7% to 0.06% of scans for ~2 points of reads
+  const mkCodeGates = t => createCodeGates({ clearMs: 1200, minFrames: 2, multi: t === "stock" ? settings.multiCodeStock : settings.multiCodePay });
   const codeGates = { pay: mkCodeGates("pay"), stock: mkCodeGates("stock") };
 
   // ---------- สถานะระบบ ----------

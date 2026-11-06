@@ -518,14 +518,23 @@
     mw: ["{C}", "ตลอดเดือนนี้ {C}", "สำหรับเดือนนี้ {C}"],
     W: ["{C}", "ในเรื่องงาน {C}", "ด้านการงานนั้น {C}"]
   };
+  /* กรอบ "คุณ{C}" รับได้เฉพาะแก่นที่เป็นกริยาวลีของผู้ถูกทำนาย ("เป็นคน…", "มัก…", "มีเสน่ห์…")
+     แก่นที่มีประธานของตัวเอง ("การเงินเติบโต…") หรือประธานคือดาว/ธาตุ ("ช่วยให้…", "เสริม…") ใช้กรอบที่ไม่มี "คุณ" */
+  var PERSON_VP = /^(?:เป็น(?!สัญญาณ|ลาง|เวลา|ช่วง|ปี|วัน|จังหวะ|เรื่อง)|มัก|ชอบ|เก่ง|เหมาะ|รัก(?!ษา)|ใจ(?:ดี|เย็น|กว้าง|ร้อน|อ่อน|แข็ง|สู้|บุญ|ถึง)|กล้า|พร้อม|จะ|ได้รับ|ได้|มี|สามารถ|มอง|คิด|ทำงาน|พูด|ไม่|ค่อนข้าง|ช่าง|ถนัด|รู้|เข้าใจ|ดูแล|ให้ความสำคัญ|ใส่ใจ|มุ่งมั่น|อดทน|ตัดสินใจ|ขยัน|สุขุม|ซื่อ|อ่อนโยน|ร่าเริง|ทะเยอทะยาน|มั่นใจ|รับผิดชอบ|จริงจัง|ละเอียด|รอบคอบ|ยืดหยุ่น|ปรับตัว|เรียนรู้|สร้าง|หา|ใช้|ทำ|อยาก|ต้องการ|แสดง|เปิด|สื่อสาร|ให้)/;
+  function framesFor(F, c) {
+    if (PERSON_VP.test(c)) return F;
+    var g = F.filter(function (f) { return f.indexOf("คุณ{C}") < 0; });
+    return g.length ? g : ["{C}"];
+  }
   function phr(entry, key, frameKey) {
     var raw = entry && entry[key];
     if (!raw) return [];
     var cores = String(raw).split("|"), F = FRAMES[frameKey || key] || FRAMES.t, out = [];
     var per = Math.max(3, Math.ceil(6 / cores.length));
     cores.forEach(function (c, ci) {
-      for (var i = 0; i < Math.min(per, F.length); i++) {
-        var s = F[(i + ci * 2) % F.length].replace("{C}", c);
+      var FF = framesFor(F, c);
+      for (var i = 0; i < Math.min(per, FF.length); i++) {
+        var s = FF[(i + ci * 2) % FF.length].replace("{C}", c);
         if (out.indexOf(s) < 0) out.push(s);
       }
     });
@@ -548,9 +557,9 @@
     r = r || Math.random; var out = {};
     Object.keys(entry || {}).forEach(function (k) {
       var tag = TAGMAP[k]; if (!tag || !entry[k]) return;
-      var fk = (frameOverride && frameOverride[k]) || k, F = FRAMES[fk] || FRAMES.t;
+      var fk = (frameOverride && frameOverride[k]) || k, F0 = FRAMES[fk] || FRAMES.t;
       out[tag] = (out[tag] || []).concat(String(entry[k]).split("|").map(function (c) {
-        var i = Math.floor(r() * F.length);
+        var F = framesFor(F0, c), i = Math.floor(r() * F.length);
         if (used) {
           var u = used[fk] || (used[fk] = []);
           if (u.length >= F.length) u.length = 0;

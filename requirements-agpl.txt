@@ -1,0 +1,18 @@
+# OPTIONAL copyleft PDF engine for /api/convert — NOT installed by default.
+#
+#   PyMuPDF  : AGPL-3.0 (or a commercial licence from Artifex)
+#   pdf2docx : GPL-3.0
+#
+# AGPL-3.0 s.13: if you let other people use /api/convert over a network, you must offer them the complete
+# corresponding source of the whole service under AGPL-3.0. Use this only for internal tools, open-source deployments,
+# or after buying an Artifex licence. Enable with:
+#   pip install -r requirements.txt -r requirements-agpl.txt
+#   export LENSIQ_CONVERT_ENGINE=pdf2docx      (server.py logs a licence warning at start-up)
+# Default engine without this file: pdfplumber + python-docx (MIT) — see pdfconvert.py.
+pdf2docx==0.5.8
+PyMuPDF==1.24.14
+fire==0.7.1
+termcolor==3.1.0
+fonttools==4.60.2
+numpy==2.0.2
+opencv-python-headless==5.0.0.93

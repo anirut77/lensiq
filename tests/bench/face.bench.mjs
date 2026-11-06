@@ -45,11 +45,10 @@ try {
     const imgs = [...new Set(pairs.flatMap(p => [p.a, p.b]))];
     const res = await cached(`lfw-desc-${imgs.length}.json`, imgs, (page, urls) => page.evaluate(`LQB.faces(${JSON.stringify(urls.map(u => "/__data/lfw/" + u))}, { inputSize: 320, scoreThreshold: 0.5 })`));
     const byImg = new Map(imgs.map((u, i) => [u, res[i]]));
-    const same = [], diff = []; let ftd = 0, n0 = 0;
+    const same = [], diff = []; let ftd = 0;
     for (const p of pairs) {
       const a = byImg.get(p.a), b = byImg.get(p.b);
       if (!a.n || !b.n) { ftd++; (p.same ? same : diff).push(Infinity); continue; } // no face = no match, like the pages
-      n0++;
       (p.same ? same : diff).push(dist(a.desc, b.desc));
     }
     const noFaceImgs = res.filter(r => !r.n).length;
