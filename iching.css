@@ -1,0 +1,42 @@
+/* อี้จิง — ต่อยอดจาก fortune-kit.css */
+.ic{--ic-ch:#c2410c}
+.ic-stage{max-width:860px;margin:0 auto;text-align:center}
+.ic-stage h2{text-align:center}
+.ic-stage-in{display:flex;flex-wrap:wrap;gap:20px;align-items:center;justify-content:center;margin:14px 0}
+.ic-coins{display:flex;gap:12px;justify-content:center}
+.ic-coin{display:flex;flex-direction:column;align-items:center;gap:4px;width:72px;perspective:400px}
+.ic-coin-in{display:block;width:64px;height:64px;transition:transform .3s}
+.ic-coin svg{width:64px;height:64px;display:block}
+.ic-coin.spin .ic-coin-in{animation:icSpin .65s linear}
+.ic-coin.tails .ic-coin-in{filter:saturate(.35) brightness(.92)}
+.ic-coin-v{font-size:.8rem;color:var(--muted);min-height:1.3em}
+@keyframes icSpin{0%{transform:translateY(0) rotateY(0)}50%{transform:translateY(-34px) rotateY(540deg)}100%{transform:translateY(0) rotateY(1080deg)}}
+.ic-build{color:var(--navy)}
+.ic-hex{display:block;width:72px;height:auto;color:var(--navy)}
+.ic-hex.big{width:140px;margin:0 auto}
+.ic-linelist{list-style:none;padding:0;margin:6px auto;display:grid;gap:2px;font-size:.88rem;color:var(--muted);max-width:320px;text-align:left}
+.ic-result{max-width:900px;margin:0 auto}
+.ic-hexes{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px 18px;margin:12px 0}
+.ic-hexcard{flex:1 1 220px;max-width:320px;text-align:center;background:var(--alt);border-radius:14px;padding:14px;min-width:0}
+.ic-hexcard h3{margin:4px 0;text-align:center}
+.ic-hexcard .fk-chips{justify-content:center;margin-top:6px}
+.ic-role{font-size:.8rem;color:var(--gold);font-weight:600;margin-bottom:8px}
+.ic-zh{font-size:2rem;line-height:1.2;color:var(--navy);margin-top:8px}
+.ic-arrow{font-size:2rem;color:var(--muted)}
+.ic-rule{background:#fff6e0;border-radius:10px;padding:8px 12px;font-size:.9rem;color:#4d3900}
+.ic-gist{font-size:1.02rem;line-height:1.8;margin:10px 0}
+.ic-lines{padding-left:18px;margin:6px 0;display:grid;gap:6px;font-size:.92rem}
+.ic-lines li.key{font-weight:500;color:var(--navy)}
+.ic-daily{max-width:760px;margin:0 auto;text-align:center}
+.ic-daily .fk-reading{text-align:left}
+.ic-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px;margin-top:12px}
+.ic-cell{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--navy);min-width:0}
+.ic-cell .ic-hex{width:46px}
+.ic-cell b{font-size:.85rem}
+.ic-cell small{font-size:.72rem;color:var(--muted);line-height:1.3;text-align:center}
+.ic-cell:hover,.ic-cell:focus-visible{border-color:var(--gold)}
+.ic-detail{background:var(--alt);border-radius:14px;padding:14px;margin-top:10px}
+.ic-detail .ic-hexcard{max-width:none;background:none}
+.ic-dl{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:.92rem;margin:8px 0 0}
+.ic-dl dt{font-weight:600;color:var(--navy)}.ic-dl dd{margin:0}
+@media print{.ic-stage,.ic-coins{display:none!important}}

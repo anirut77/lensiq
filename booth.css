@@ -96,3 +96,28 @@ th{background:var(--alt);color:var(--navy);font-weight:500;position:sticky;top:0
 .bt label.check input{width:22px;height:22px;flex:0 0 auto;accent-color:var(--navy)}
 .cam-actions .btn:disabled{opacity:.6}
 @media(max-width:560px){.cam-ctl select{max-width:120px}}
+
+/* ---------- หลายกล้อง: กล้องหลัก + กล้องเสริม ---------- */
+.cam-grid{display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
+.cam-grid.multi{grid-template-columns:repeat(2,minmax(0,1fr))}
+.cam-grid.multi .bt-tile.primary{grid-column:1 / -1}
+.cam-grid .cam[hidden]{display:none}
+.bt-tile{min-width:0;display:grid;gap:8px}
+.bt-tile .tile-head{display:flex;gap:6px;align-items:center;flex-wrap:wrap;min-width:0}
+.bt-tile .tile-head .cam-name{flex:1 1 140px;width:auto;min-height:40px;padding:6px 10px}
+.bt-tile .tile-head .cam-role{flex:0 1 auto;width:auto;max-width:100%;min-height:40px}
+.bt-tile .tile-head .btn.sm{padding:6px 12px;font-size:.8rem;min-height:40px}
+.bt-tile .tile-head .btn[hidden]{display:none}
+.bt-tile.primary .cam{outline:3px solid var(--gold);outline-offset:-3px}
+.cam-grid.multi .bt-tile:not(.primary) .cam{max-height:40vh}
+.cam-grid.multi .cam-ctl{display:none}
+.bt-status[data-s=live]{background:#e6f6ee;color:#14653b}.bt-status[data-s=error]{background:#fdeaea;color:#a12b20}
+.funnel{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.funnel li{display:grid;grid-template-columns:minmax(0,7.5em) minmax(0,1fr) auto;gap:10px;align-items:center}
+.fn-k b{display:block;color:var(--navy);font-weight:500;font-size:.9rem}.fn-k span{font-size:.75rem;color:var(--muted)}
+.fn-bar{height:14px;border-radius:99px;background:var(--alt);overflow:hidden}
+.fn-bar i{display:block;height:100%;background:var(--series-1);border-radius:99px}
+.fn-v{text-align:right;font-variant-numeric:tabular-nums;font-weight:500;color:var(--navy);min-width:3.5em}
+.fn-v small{display:block;font-size:.72rem;color:var(--muted);font-weight:400}
+tfoot td{font-weight:500;color:var(--navy);background:var(--bg);white-space:normal}
+@media(max-width:560px){.cam-grid.multi{grid-template-columns:minmax(0,1fr)}}

@@ -64,7 +64,9 @@ function updateTracks(T, dets, now, cfg = SG, size = {}) {
     const dt = Math.min(cfg.MAX_DT_S, Math.max(0, (now - t.lastSeen) / 1000));
     t.box = d.box; t.frames++; t.lastSeen = now;
     t.lookNow = !!d.look; t.happyNow = !!d.happy;
+    t.valNow = typeof d.val === "number" && isFinite(d.val) ? d.val : 0;
     if (d.look) { t.lookFrames++; t.attnS += dt; }
+    if (typeof d.val === "number" && isFinite(d.val)) { t.valSum = (t.valSum || 0) + d.val; t.valN = (t.valN || 0) + 1; }
     if (d.happy) t.happyFrames++;
     if (typeof d.age === "number" && isFinite(d.age)) { t.ageSum += d.age; t.ageN++; }
     if (typeof d.male === "number" && isFinite(d.male)) { t.maleSum += d.male; t.maleN++; }
@@ -74,7 +76,7 @@ function updateTracks(T, dets, now, cfg = SG, size = {}) {
     const d = dets[lt.det.i];
     let t = T.byLq.get(lt.id);
     if (!t) {
-      t = { id: "T" + (++T.seq), box: d.box, first: now, lastSeen: now, frames: 0, lookFrames: 0, attnS: 0, happyFrames: 0, ageSum: 0, ageN: 0, maleSum: 0, maleN: 0, lookNow: false, happyNow: false };
+      t = { id: "T" + (++T.seq), box: d.box, first: now, lastSeen: now, frames: 0, lookFrames: 0, attnS: 0, happyFrames: 0, ageSum: 0, ageN: 0, maleSum: 0, maleN: 0, lookNow: false, happyNow: false, valNow: 0, valSum: 0, valN: 0 };
       T.byLq.set(lt.id, t); T.tracks.push(t);
     }
     apply(t, d);
@@ -115,9 +117,37 @@ function dominantSegment(tracks, useDemo = true, cfg = SG) {
   return { n, lookers: lookers.length, band, bandShare, gender, genderShare, mood: happy * 2 >= n ? "happy" : "neutral" };
 }
 
+// ---------- ตารางเวลาโฆษณาตามช่วงของวัน (daypart) ----------
+const DAYPARTS = [
+  { id: "morning", th: "เช้า", from: 6, to: 11 }, { id: "midday", th: "กลางวัน", from: 11, to: 14 },
+  { id: "afternoon", th: "บ่าย", from: 14, to: 17 }, { id: "evening", th: "เย็น", from: 17, to: 21 },
+  { id: "night", th: "กลางคืน", from: 21, to: 30 } // 21:00–05:59
+];
+const DAYPART_TH = Object.fromEntries(DAYPARTS.map(d => [d.id, `${d.th} ${String(d.from % 24).padStart(2, "0")}–${String(d.to % 24).padStart(2, "0")} น.`]));
+function daypartOf(hour) {
+  const h = ((Math.floor(hour) % 24) + 24) % 24, hh = h < 6 ? h + 24 : h;
+  return (DAYPARTS.find(d => hh >= d.from && hh < d.to) || DAYPARTS[4]).id;
+}
+const cleanDayparts = v => Array.isArray(v) ? [...new Set(v.filter(x => DAYPARTS.some(d => d.id === x)))] : [];
+// ไม่กำหนดช่วงเวลา = เล่นได้ทุกช่วง
+function inDaypart(ad, hour) { const dp = cleanDayparts(ad && ad.dayparts); return !dp.length || dp.includes(daypartOf(hour)); }
+
+// ---------- กล้องสองบทบาท: ผู้ชม (audience) / คีออสก์ (kiosk) ----------
+// cams = [{slot, role:'both'|'audience'|'kiosk'}] (กล้องที่ใช้งานได้) -> {audience, kiosk, shared}
+// กล้องตัวเดียว = ใช้ทั้งสองบทบาทร่วมกัน (shared) เหมือนเดิม ไม่ว่าตั้งบทบาทไว้อย่างไร
+function routeCams(cams) {
+  cams = (cams || []).filter(Boolean);
+  if (!cams.length) return { audience: null, kiosk: null, shared: true };
+  if (cams.length === 1) return { audience: cams[0].slot, kiosk: cams[0].slot, shared: true };
+  const aud = cams.find(c => c.role === "audience") || cams.find(c => c.role === "both") || cams.find(c => c.role !== "kiosk") || cams[0];
+  const rest = cams.filter(c => c !== aud);
+  const kio = rest.find(c => c.role === "kiosk") || rest.find(c => c.role === "both") || rest[0];
+  return { audience: aud.slot, kiosk: kio.slot, shared: false };
+}
+
 // เลือกโฆษณา: ไม่มีผู้ชม = วนตามลำดับ, มีผู้ชม = โฆษณาที่ตรงกลุ่มมากที่สุด
-function selectAd(ads, seg, { lastId = null, useDemo = true } = {}) {
-  const list = ads.filter(a => a.enabled !== false);
+function selectAd(ads, seg, { lastId = null, useDemo = true, hour = null } = {}) {
+  const list = ads.filter(a => a.enabled !== false && (typeof hour !== "number" || inDaypart(a, hour)));
   if (!list.length) return null;
   const loopNext = () => { const i = list.findIndex(a => a.id === lastId); return list[(i + 1) % list.length]; };
   if (!seg || !seg.n) return { ad: loopNext(), reason: "loop", why: "วนตามลำดับ — ยังไม่มีผู้ชมหน้าจอ" };
@@ -147,10 +177,15 @@ function newStats(now = Date.now()) {
 function adStat(S, ad) {
   const id = typeof ad === "string" ? ad : ad.id;
   if (!S.ads[id]) S.ads[id] = { title: "", plays: 0, ots: 0, viewers: 0, attn: 0, look: 0, happy: 0 };
-  if (typeof ad === "object" && ad.title) S.ads[id].title = ad.title;
-  return S.ads[id];
+  const st = S.ads[id];
+  // ฟิลด์ที่เพิ่มภายหลัง (สถิติเดิมไม่มี): valence ขณะมอง และกลุ่มอายุ/เพศ (ค่าประมาณ) ของผู้ผ่านหน้าจอระหว่างโฆษณานี้
+  if (typeof st.valSum !== "number") st.valSum = 0;
+  if (typeof st.valN !== "number") st.valN = 0;
+  if (!st.demo || typeof st.demo !== "object") st.demo = {};
+  if (typeof ad === "object" && ad.title) st.title = ad.title;
+  return st;
 }
-function newPlay(adId) { return { adId, seen: new Set(), looked: new Set() }; }
+function newPlay(adId) { return { adId, seen: new Set(), looked: new Set(), tracks: new Map() }; }
 
 // นับต่อเฟรมให้โฆษณาที่กำลังเล่น: OTS = คนที่อยู่หน้าจอ, viewers = คนที่หันมอง, attention = วินาทีที่มอง (คน·วินาที)
 function recordFrame(S, play, present, dt, cfg = SG) {
@@ -160,12 +195,31 @@ function recordFrame(S, play, present, dt, cfg = SG) {
   for (const t of present) {
     if (t.frames < cfg.MIN_FRAMES) continue;
     if (!play.seen.has(t.id)) { play.seen.add(t.id); st.ots++; }
+    if (play.tracks) play.tracks.set(t.id, t);
     if (t.lookNow) {
       if (!play.looked.has(t.id)) { play.looked.add(t.id); st.viewers++; }
       st.attn += dt; st.look++;
       if (t.happyNow) st.happy++;
+      st.valSum += t.valNow || 0; st.valN++;
     }
   }
+}
+
+// จบรอบโฆษณา: นับกลุ่มอายุ/เพศ (ค่าประมาณ เฉลี่ยทั้งแทร็ก) ของคนที่เห็นโฆษณานี้ แล้วทิ้งการอ้างอิงแทร็ก
+function finishPlay(S, play, useDemo = true, cfg = SG) {
+  if (!play || play.done) return;
+  play.done = true;
+  if (useDemo && play.tracks) {
+    const st = adStat(S, play.adId);
+    for (const t of play.tracks.values()) {
+      if (t.frames < cfg.MIN_FRAMES) continue;
+      const p = trackProfile(t, cfg);
+      if (!p.band) continue;
+      const k = `${p.band}_${p.gender}`;
+      st.demo[k] = (st.demo[k] || 0) + 1;
+    }
+  }
+  if (play.tracks) play.tracks.clear();
 }
 
 // เมื่อคนออกจากหน้าจอ: บันทึกเฉพาะสถิติรวม แล้วทิ้งข้อมูลคนนั้น
@@ -190,7 +244,9 @@ function adRows(S, ads) {
       plays: s.plays, ots: s.ots, viewers: s.viewers, attn: s.attn,
       avgAttn: s.viewers ? s.attn / s.viewers : 0,
       happyPct: s.look ? s.happy / s.look * 100 : 0,
-      viewRate: s.ots ? s.viewers / s.ots * 100 : 0
+      viewRate: s.ots ? s.viewers / s.ots * 100 : 0,
+      valence: s.valN ? s.valSum / s.valN : null,
+      demo: { ...(s.demo || {}) }
     };
   });
 }
@@ -205,6 +261,36 @@ function buildCsv(S, ads) {
   GESTURES.forEach(g => out.push(["gesture", g, GESTURE_TH[g], S.gestures[g] || 0, "", "", "", "", ""]));
   Object.entries(S.selects).forEach(([k, n]) => out.push(["kiosk_select", k, "", n, "", "", "", "", ""]));
   return "﻿" + out.map(r => r.map(csvCell).join(",")).join("\r\n");
+}
+
+// รายงานรายโฆษณา: หนึ่งแถวต่อโฆษณา (OTS, เวลามองเฉลี่ย, อัตรามอง, valence, การกระจายอายุ/เพศโดยประมาณ)
+const DEMO_KEYS = BANDS.flatMap(b => ["male", "female", "unk"].map(g => `${b}_${g}`));
+function buildAdReportCsv(S, ads) {
+  const out = [["ad_id", "title", "plays", "ots", "viewers", "gaze_rate_pct", "attention_s", "avg_attention_s", "happy_pct", "avg_valence", ...DEMO_KEYS.map(k => "est_" + k)]];
+  adRows(S, ads).forEach(r => out.push([r.id, r.title, r.plays, r.ots, r.viewers, r.viewRate.toFixed(1), r.attn.toFixed(1), r.avgAttn.toFixed(1), r.happyPct.toFixed(1),
+    r.valence == null ? "" : r.valence.toFixed(3), ...DEMO_KEYS.map(k => r.demo[k] || 0)]));
+  return "\ufeff" + out.map(r => r.map(csvCell).join(",")).join("\r\n");
+}
+
+// ---------- บันทึกการเล่นจริง (proof-of-play) — ตัวเลขรวมต่อรอบ ไม่มีข้อมูลรายคน ----------
+const POP_MAX = 1000;
+// cur = {ad, reason, at(ms epoch)} · play = newPlay() · now ms epoch · measured = วัดผู้ชมอยู่หรือไม่
+function popEntry(cur, play, now, measured) {
+  return {
+    t: cur.at, ad: cur.ad.id, title: String(cur.ad.title || "").slice(0, 40), s: Math.round(Math.max(0, now - cur.at) / 100) / 10,
+    why: cur.reason || "loop", dp: daypartOf(new Date(cur.at).getHours()), ots: play ? play.seen.size : 0, v: play ? play.looked.size : 0, m: measured ? 1 : 0
+  };
+}
+function parsePop(raw) {
+  let o = raw; if (typeof raw === "string") { try { o = JSON.parse(raw); } catch { o = null; } }
+  const log = o && o.v === 1 && Array.isArray(o.log) ? o.log.filter(e => e && Number.isFinite(e.t) && typeof e.ad === "string") : [];
+  return { v: 1, log };
+}
+function pushPop(P, e, max = POP_MAX) { P.log.push(e); if (P.log.length > max) P.log.splice(0, P.log.length - max); return P; }
+function buildPopCsv(P) {
+  const out = [["start", "ad_id", "title", "duration_s", "reason", "daypart", "measured", "ots", "viewers"]];
+  P.log.forEach(e => out.push([new Date(e.t).toISOString(), e.ad, e.title, e.s, e.why, e.dp, e.m, e.ots, e.v]));
+  return "\ufeff" + out.map(r => r.map(csvCell).join(",")).join("\r\n");
 }
 
 // ---------- ท่ามือ (MediaPipe 21 จุด, พิกัด 0..1 ของภาพกล้องที่ยังไม่กลับด้าน) ----------
@@ -319,12 +405,13 @@ const PRODUCTS = [
 
 if (typeof module !== "undefined" && module.exports) module.exports = {
   SG, BANDS, ageBand, estimateYaw, isLooking, iou, newTracker, updateTracks, trackProfile, dominantSegment, selectAd,
-  newStats, adStat, newPlay, recordFrame, finalizeTrack, adRows, buildCsv, csvCell,
+  newStats, adStat, newPlay, recordFrame, finalizeTrack, finishPlay, adRows, buildCsv, csvCell, buildAdReportCsv, DEMO_KEYS,
+  DAYPARTS, daypartOf, inDaypart, cleanDayparts, routeCams, popEntry, parsePop, pushPop, buildPopCsv, POP_MAX,
   pinchRatio, isOpenPalm, mapCursor, createGestureRecognizer, createHoldSelector, toGray, motionCentroid, createMotionSwipe, DEFAULT_ADS, PRODUCTS, DEMO_BRAND
 };
 
 // ================= ส่วนหน้าจอ =================
-if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
+if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof LQCam !== "undefined" && typeof LQHand !== "undefined") (() => {
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
   const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -333,7 +420,8 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
   const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } };
   const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { engine("พื้นที่จัดเก็บเต็ม กรุณาส่งออก CSV แล้วล้างข้อมูล", "err"); } };
 
-  const video = $("#video"), overlay = $("#overlay");
+  const overlay = $("#overlay");
+  const TEST = typeof LQDetect !== "undefined" && LQDetect.isTest(); // ?fakedet บน localhost: ตัวตรวจจับจำลอง ไม่โหลดโมเดล
   let ads = load("sg-ads", null); if (!Array.isArray(ads) || !ads.length) ads = structuredClone(DEFAULT_ADS);
   // ย้ายโฆษณาตัวอย่างชุดเก่า (ร้านน้ำดื่ม) เป็นชุดตัวอย่างใหม่ — คงรูปแบบข้อมูลและ id เดิม แก้เฉพาะข้อความ/สี
   { const OLD = /AQUALINE|น้ำแร่|น้ำดื่ม|น้ำด่าง/; let moved = false;
@@ -344,6 +432,8 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
   const persistStats = () => save("sg-stats", stats);
   const persistAds = () => save("sg-ads", ads);
   const persistSettings = () => save("sg-settings", settings);
+  let pop = parsePop(localStorage.getItem("sg-pop")); // proof-of-play: ตัวเลขรวมต่อรอบโฆษณา
+  const persistPop = () => save("sg-pop", pop);
 
   function engine(msg, cls = "", retry) {
     const e = $("#engine"); e.textContent = msg; e.className = "engine " + cls;
@@ -356,9 +446,11 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
     tab = name;
     $$(".tabs [role=tab]").forEach(b => { const on = b.dataset.tab === name; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; });
     $$("[role=tabpanel]").forEach(p => { p.hidden = p.id !== "tab-" + name; });
-    // ใช้กล้องตัวเดียว ย้ายวิดีโอไปไว้ที่แท็บที่เปิดอยู่ และหยุดงานของอีกแท็บเพื่อประหยัดการประมวลผล
-    if (name === "kiosk") { $("#kpip").prepend(video); if (faceRunning) stopFace(); }
-    else { $("#pip").prepend(video); if (handRunning) stopHand(); }
+    // กล้องตัวเดียว: ย้ายวิดีโอไปไว้ที่แท็บที่เปิดอยู่ และหยุดงานของอีกแท็บเพื่อประหยัดการประมวลผล (เหมือนเดิม)
+    // กล้องสองตัว: กล้องผู้ชมวัดผลต่อแม้เปิดคีออสก์อยู่ ส่วนการสั่งงานด้วยมือหยุดเมื่อออกจากแท็บคีออสก์
+    placeVideos();
+    if (R.shared && name === "kiosk") { if (faceRunning) stopFace(); }
+    else if (name !== "kiosk" && handRunning) stopHand();
     if (name === "report") renderReport();
     const pf = document.querySelector(".pseudo-fs"); if (pf && !pf.closest("#tab-" + name)) toggleFs();
   }
@@ -371,111 +463,161 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
     };
   });
 
-  // ---------- กล้อง (มือถือ/แท็บเล็ต): เลือกกล้องหน้า/หลัง · สะท้อนภาพเฉพาะกล้องหน้า · ปิดกล้องเมื่อสลับแอปแล้วเปิดต่อ ----------
-  const INSECURE_MSG = "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด";
-  function createCamera(video, o = {}) {
-    const opt = { facing: "user", constraints: {}, layout() {}, onError(e) { console.error(e); }, ...o };
-    const BACK = /back|rear|environment|หลัง/i;
-    let stream = null, want = { facing: opt.facing, deviceId: "" }, cur = { facing: opt.facing, deviceId: "" }, devices = [], resume = false;
-    const uis = [];
-    const gum = v => navigator.mediaDevices.getUserMedia({ video: { ...opt.constraints, ...v }, audio: false });
-    function halt() { stream?.getTracks().forEach(t => t.stop()); stream = null; if (video.srcObject) video.srcObject = null; }
-    async function start(next) {
-      if (next) want = { facing: next.facing || want.facing, deviceId: next.deviceId || "" };
-      if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) throw Object.assign(new Error("insecure context"), { name: "Insecure" });
-      halt();
-      let s;
-      try { s = await gum(want.deviceId ? { deviceId: { exact: want.deviceId } } : { facingMode: { ideal: want.facing } }); }
-      catch (e) { if (!want.deviceId || !/Overconstrained|NotFound/.test(e.name)) throw e; want.deviceId = ""; s = await gum({ facingMode: { ideal: want.facing } }); }
-      stream = s;
-      const tr = s.getVideoTracks()[0], st = tr?.getSettings?.() || {};
-      cur = { deviceId: st.deviceId || want.deviceId, facing: st.facingMode || (BACK.test(tr?.label || "") ? "environment" : "user") };
-      if (tr) tr.addEventListener("ended", () => { if (stream === s) stream = null; });
-      video.muted = true; video.playsInline = true; video.setAttribute("playsinline", ""); video.setAttribute("muted", "");
-      video.srcObject = s;
-      try { await video.play(); } catch (e) { if (e.name !== "AbortError") throw e; }
-      if (!video.videoWidth) await new Promise(r => video.addEventListener("loadedmetadata", r, { once: true }));
-      opt.layout(api); refreshDevices();
-      return s;
+  // ---------- กล้อง (LQCam hub) ----------
+  // 1 ตัว = ใช้ร่วมกันทั้งจอโฆษณาและคีออสก์ (เหมือนเดิม) · 2 ตัว = กล้องผู้ชม (วัดผล) + กล้องคีออสก์ (สั่งงานด้วยมือ) ทำงานพร้อมกัน
+  // ตำแหน่ง/บทบาทกล้องเก็บใน sg-cams (เฉพาะ deviceId/ชื่อ/บทบาท ไม่มีภาพ) · อุปกรณ์ที่เปิดได้ทีละกล้องจะได้ข้อความแจ้งและใช้กล้องเดียวต่อ
+  const ROLE_TH = { both: "ทั้งสองโหมด", audience: "วัดผู้ชม", kiosk: "คีออสก์" };
+  const CAM_ERR = { Insecure: "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด", NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง — กดอนุญาตที่แถบที่อยู่ของเบราว์เซอร์", NotFoundError: "ไม่พบกล้องในเครื่องนี้", NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่ — ปิดโปรแกรมนั้นแล้วลองใหม่", OverconstrainedError: "กล้องไม่รองรับความละเอียดที่ขอ" };
+  let R = { audience: null, kiosk: null, shared: true };
+  const audCam = () => hub.cam(R.audience), kioCam = () => hub.cam(R.kiosk);
+  const mirrored = c => !!c && c.facing !== "environment"; // สะท้อนภาพเฉพาะกล้องหน้า
+  const hub = LQCam.createHub({
+    ns: "sg", max: 2, facing: "user", idealOne: { width: 640, height: 480 }, idealMany: { width: 640, height: 480 }, frameRateMany: 15,
+    tile: c => {
+      const d = document.createElement("div"); d.className = "sg-hold"; d.hidden = true;
+      c.video.addEventListener("resize", camLayout); c.video.addEventListener("loadedmetadata", camLayout);
+      return d;
+    },
+    onChange(h, ev) {
+      if (["added", "removed", "role", "status", "started", "resumed", "stopped", "paused", "ended"].includes(ev.type)) reroute();
+      if (ev.type === "ended") engine(`${h.cam(ev.slot)?.name || "กล้อง"} หลุดการเชื่อมต่อ — ${hub.cams.some(c => c.active) ? "ใช้กล้องที่เหลือแทน" : "กดเริ่มใหม่อีกครั้ง"}`, "warn");
     }
-    async function refreshDevices() {
-      try { devices = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "videoinput"); } catch { devices = []; }
-      for (const ui of uis) {
-        ui.hidden = devices.length < 2;
-        const [flip, sel] = ui.children;
-        flip.textContent = cur.facing === "environment" ? "ใช้กล้องหน้า" : "ใช้กล้องหลัง";
-        sel.innerHTML = devices.map((d, i) => `<option value="${d.deviceId.replace(/"/g, "&quot;")}">${(d.label || "กล้อง " + (i + 1)).replace(/[<&]/g, "")}</option>`).join("");
-        if (cur.deviceId) sel.value = cur.deviceId;
-      }
-    }
-    function switchTo(n) {
-      if (!stream) { want = { facing: n.facing || want.facing, deviceId: n.deviceId || "" }; cur = { ...cur, ...want }; return refreshDevices(); }
-      start(n).catch(opt.onError);
-    }
-    const api = {
-      start, refreshDevices,
-      stop() { resume = false; halt(); },
-      get active() { return !!stream && stream.active; },
-      get mirrored() { return cur.facing !== "environment"; },
-      attach(el) {
-        uis.push(el); el.hidden = true;
-        el.innerHTML = `<button class="btn ghost" type="button">ใช้กล้องหลัง</button><select aria-label="เลือกกล้อง"></select>`;
-        el.children[0].onclick = () => switchTo({ facing: cur.facing === "environment" ? "user" : "environment" });
-        el.children[1].onchange = e => switchTo({ deviceId: e.target.value });
-        refreshDevices();
-      }
-    };
-    video.addEventListener("resize", () => { if (stream) opt.layout(api); });
-    let rt = 0; const relayout = () => { clearTimeout(rt); rt = setTimeout(() => { if (stream) opt.layout(api); }, 150); };
-    addEventListener("resize", relayout); addEventListener("orientationchange", relayout);
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) { if (stream) { resume = true; halt(); } }
-      else if (resume) { resume = false; start().catch(opt.onError); }
-    });
-    addEventListener("pagehide", halt);
-    navigator.mediaDevices?.addEventListener?.("devicechange", refreshDevices);
-    return api;
+  });
+  function reroute() {
+    const prev = R;
+    R = routeCams(hub.cams.filter(c => c.status !== "error"));
+    if (prev.audience !== R.audience) { tracker.tracks.forEach(t => finalizeTrack(stats, t, settings.useDemo)); tracker = newTracker(); seg = null; }
+    if (prev.kiosk !== R.kiosk) { lock.reset(); mPrev = null; }
+    if (R.shared && faceRunning && handRunning) { if (tab === "kiosk") stopFace(); else stopHand(); }
+    placeVideos(); camLayout(); renderCams();
   }
-
-  // ใช้กล้องตัวเดียวร่วมกันทั้งจอโฆษณาและคีออสก์ (กล้องหน้าเป็นค่าเริ่มต้น เพราะจอหันเข้าหาผู้ชม)
-  const CAM_ERR = { Insecure: INSECURE_MSG, NotAllowedError: "ไม่ได้รับอนุญาตให้ใช้กล้อง — กดอนุญาตที่แถบที่อยู่ของเบราว์เซอร์", NotFoundError: "ไม่พบกล้องในเครื่องนี้", NotReadableError: "กล้องถูกโปรแกรมอื่นใช้อยู่ — ปิดโปรแกรมนั้นแล้วลองใหม่", OverconstrainedError: "กล้องไม่รองรับความละเอียดที่ขอ" };
-  function camLayout(c) {
-    $("#pip").classList.toggle("mirror", c.mirrored); $("#kpip").classList.toggle("mirror", c.mirrored);
-    $("#pip").classList.add("on"); $("#kpip").classList.add("on");
-    const w = video.videoWidth, h = video.videoHeight; if (!w || !h) return;
-    if (overlay.width !== w || overlay.height !== h) { overlay.width = w; overlay.height = h; }
-    const hc = $("#hoverlay"); if (hc.width !== w || hc.height !== h) { hc.width = w; hc.height = h; }
-    $("#pip").style.aspectRatio = $("#kpip").style.aspectRatio = `${w} / ${h}`;
+  function placeVideos() {
+    const a = audCam(), k = kioCam();
+    if (R.shared) { if (a && !(tab === "kiosk" ? $("#kpip") : $("#pip")).contains(a.video)) (tab === "kiosk" ? $("#kpip") : $("#pip")).prepend(a.video); }
+    else {
+      if (a && !$("#pip").contains(a.video)) $("#pip").prepend(a.video);
+      if (k && !$("#kpip").contains(k.video)) $("#kpip").prepend(k.video);
+    }
+    for (const c of hub.cams) if (c !== a && c !== k && c.tile && !c.tile.contains(c.video)) c.tile.append(c.video);
+  }
+  function fitPip(box, cv, c) {
+    box.classList.toggle("on", !!(c && c.active));
+    if (!c) return;
+    box.classList.toggle("mirror", mirrored(c));
+    const w = c.video.videoWidth, h = c.video.videoHeight; if (!w || !h) return;
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    box.style.aspectRatio = `${w} / ${h}`;
+  }
+  function camLayout() {
+    fitPip($("#pip"), overlay, audCam());
+    fitPip($("#kpip"), $("#hoverlay"), kioCam());
     mPrev = null;
   }
-  const camera = createCamera(video, { constraints: { width: { ideal: 640 }, height: { ideal: 480 } }, layout: camLayout, onError: e => camError(e, "เปิดกล้อง", () => (tab === "kiosk" ? startHand : startFace)()) });
-  camera.attach($("#camSwitch")); camera.attach($("#kCamSwitch"));
-  async function ensureCamera() { if (!camera.active) await camera.start(); }
+  let rt = 0; const relayout = () => { clearTimeout(rt); rt = setTimeout(camLayout, 150); };
+  addEventListener("resize", relayout); addEventListener("orientationchange", relayout);
+
+  async function ensureCams() {
+    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) throw Object.assign(new Error("insecure context"), { name: "Insecure" });
+    if (!hub.cams.length) { await hub.restore(); if (!hub.cams.length) await hub.add({ role: "both" }); }
+    else if (hub.cams.some(c => !c.active)) await hub.startAll();
+    if (!hub.cams.some(c => c.active)) throw hub.cams.find(c => c.lastError)?.lastError || Object.assign(new Error("no camera"), { name: "NotFoundError" });
+    reroute();
+  }
   function camError(e, what, retry) {
     console.error(e);
-    const m = CAM_ERR[e.name];
+    const m = CAM_ERR[e.name] || (e.name === "CapacityError" || e.name === "NoFreeCamera" || e.name === "DuplicateCamera" ? LQCam.errorText(e) : null);
     engine(`${what}ไม่สำเร็จ: ${m || "โหลดโมเดลไม่สำเร็จ"} (${e.name}: ${e.message || "-"})`, "err", retry);
+  }
+
+  // เพิ่ม/เอาออก กล้องคีออสก์แยก
+  async function addKioskCam() {
+    const btn = $("#addKiosk"); btn.disabled = true;
+    try {
+      await ensureCams();
+      if (hub.cams.length >= 2) return;
+      engine("กำลังเพิ่มกล้องคีออสก์...");
+      const first = hub.cams[0];
+      await hub.add({ role: "kiosk", name: "กล้องคีออสก์" });
+      if (first && first.role !== "audience") hub.setRole(first.slot, "audience");
+      reroute();
+      engine("ใช้กล้อง 2 ตัว: กล้องผู้ชมวัดผลต่อเนื่อง และกล้องคีออสก์สำหรับสั่งงานด้วยมือ (ทำงานพร้อมกัน)", "ok");
+    } catch (e) {
+      if (e.name === "CapacityError") engine(`${LQCam.errorText(e)} — ใช้กล้องตัวเดียวร่วมกันทั้งจอโฆษณาและคีออสก์ต่อไป`, "warn");
+      else if (e.name === "NoFreeCamera") engine(LQCam.errorText(e), "warn");
+      else camError(e, "เพิ่มกล้องคีออสก์");
+      reroute();
+    } finally { btn.disabled = false; renderCams(); }
+  }
+  function removeKioskCam() {
+    const k = kioCam(); if (!k || R.shared) return;
+    hub.remove(k.slot);
+    hub.cams.forEach(c => hub.setRole(c.slot, "both"));
+    reroute();
+    engine("กลับไปใช้กล้องตัวเดียวร่วมกันทั้งสองโหมด", "ok");
+  }
+  function swapRoles() {
+    const a = audCam(), k = kioCam(); if (!a || !k || R.shared) return;
+    hub.setRole(a.slot, "kiosk"); hub.setRole(k.slot, "audience");
+    a.video.remove(); k.video.remove(); // ให้ placeVideos วางใหม่
+    reroute();
+  }
+  $("#addKiosk").onclick = addKioskCam;
+  function renderCams() {
+    const box = $("#camRoles"), a = audCam(), k = kioCam();
+    $("#addKiosk").hidden = !R.shared && hub.cams.length >= 2;
+    if (R.shared) box.innerHTML = a ? `<span class="pill">${esc(a.name)} · ใช้ร่วมกันทั้งจอโฆษณาและคีออสก์</span>` : "";
+    else box.innerHTML = `<span class="pill" data-role="audience">${esc(a.name)} · ${ROLE_TH.audience}</span><span class="pill" data-role="kiosk">${esc(k.name)} · ${ROLE_TH.kiosk}</span>
+      <button class="btn ghost sm" type="button" data-act="swap">สลับหน้าที่กล้อง</button><button class="btn ghost sm" type="button" data-act="single">ใช้กล้องเดียว</button>`;
+    box.querySelectorAll("[data-act]").forEach(b => { b.onclick = () => (b.dataset.act === "swap" ? swapRoles : removeKioskCam)(); });
+    renderSwitch($("#camSwitch"), a, R.shared ? null : k);
+    renderSwitch($("#kCamSwitch"), k, R.shared ? null : a);
+  }
+  // ตัวเลือกกล้อง (ซ่อนเมื่อมีกล้องให้เลือกไม่ถึง 2 ตัว) · โหมดสองกล้องไม่แสดงกล้องที่อีกบทบาทใช้อยู่
+  async function renderSwitch(el, c, other) {
+    const my = (el._gen = (el._gen || 0) + 1);
+    if (!c || !c.active) { el.hidden = true; el.innerHTML = ""; return; }
+    const list = (await LQCam.listCameras()).filter(d => d.deviceId && (!other || d.deviceId !== other.deviceId));
+    if (my !== el._gen) return;
+    el.hidden = list.length < 2;
+    // กล้องเดียว: ปุ่มสลับหน้า/หลังเหมือนเดิม · สองกล้อง: เลือกจากรายการเท่านั้น (กันเลือกซ้ำกับอีกบทบาท)
+    el.innerHTML = (other ? "" : `<button class="btn ghost" type="button">${c.facing === "environment" ? "ใช้กล้องหน้า" : "ใช้กล้องหลัง"}</button>`) +
+      `<select aria-label="เลือกกล้อง">${list.map((d, i) => `<option value="${esc(d.deviceId)}">${esc((d.label || "กล้อง " + (i + 1)).replace(/[<&]/g, ""))}</option>`).join("")}</select>`;
+    const sel = el.querySelector("select"), flip = el.querySelector("button");
+    sel.value = c.deviceId;
+    sel.onchange = () => c.start(sel.value).catch(e => { camError(e, "เปลี่ยนกล้อง"); });
+    if (flip) flip.onclick = () => c.flip().catch(e => { camError(e, "สลับกล้อง"); });
   }
 
   // ---------- โมเดลใบหน้า ----------
   let faceReady = null, backend = "";
   const initBackend = () => LQDetect.tfBackend(); // webgl → wasm → cpu (?cpu ข้าม webgl)
   function loadFace() {
-    faceReady ??= initBackend().then(async b => {
+    faceReady ??= (TEST ? Promise.resolve("test") : initBackend()).then(async b => {
       backend = b;
-      await Promise.all(["tinyFaceDetector", "faceLandmark68Net", "faceExpressionNet", "ageGenderNet"].map(n => faceapi.nets[n].loadFromUri("vendor/models/")));
+      if (!TEST) await Promise.all(["tinyFaceDetector", "faceLandmark68Net", "faceExpressionNet", "ageGenderNet"].map(n => faceapi.nets[n].loadFromUri("vendor/models/")));
     }).catch(e => { faceReady = null; throw e; });
     return faceReady;
   }
+  // valence ของสีหน้า (บวก = พอใจ, ลบ = ไม่พอใจ) จากความน่าจะเป็นของ 7 อารมณ์ — ใช้เฉพาะค่ารวมต่อโฆษณา
+  const VAL = { neutral: 0, happy: 0.8, surprised: 0.2, sad: -0.7, angry: -0.7, fearful: -0.6, disgusted: -0.7 };
   const detOpts = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
   const center = pts => ({ x: pts.reduce((s, p) => s + p.x, 0) / pts.length, y: pts.reduce((s, p) => s + p.y, 0) / pts.length });
-  async function detectFaces() {
+  async function detectFaces(video) {
+    if (TEST) { // กรอบจากสคริปต์ทดสอบ (0..1) -> พิกเซล
+      const W = video.videoWidth || 1, H = video.videoHeight || 1;
+      return (LQDetect.fake(R.audience || "c1", Date.now()) || []).map(d => {
+        const o = { box: { x: d.x * W, y: d.y * H, width: d.w * W, height: d.h * H }, look: d.look !== false, happy: !!d.happy, val: typeof d.val === "number" ? d.val : 0.2 };
+        if (settings.useDemo) { o.age = typeof d.age === "number" ? d.age : 28; o.male = typeof d.male === "number" ? d.male : 0.8; }
+        return o;
+      });
+    }
     let q = faceapi.detectAllFaces(video, detOpts).withFaceLandmarks().withFaceExpressions();
     if (settings.useDemo) q = q.withAgeAndGender();
     const rs = await q;
     return rs.map(r => {
       const lm = r.landmarks, yaw = estimateYaw(center(lm.getLeftEye()), center(lm.getRightEye()), lm.getNose()[3]);
-      const b = r.detection.box, d = { box: { x: b.x, y: b.y, width: b.width, height: b.height }, look: isLooking(yaw), happy: (r.expressions.happy || 0) >= SG.HAPPY_P };
+      const b = r.detection.box, d = { box: { x: b.x, y: b.y, width: b.width, height: b.height }, look: isLooking(yaw), happy: (r.expressions.happy || 0) >= SG.HAPPY_P,
+        val: Object.keys(VAL).reduce((s, k) => s + (r.expressions[k] || 0) * VAL[k], 0) };
       if (settings.useDemo && typeof r.age === "number") { d.age = r.age; d.male = r.gender === "male" ? r.genderProbability : 1 - r.genderProbability; }
       return d;
     });
@@ -493,9 +635,24 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
     el.innerHTML = `<div class="slide-in"><small>${DEMO_BRAND}</small><h2>${esc(ad.title)}</h2><p>${esc(ad.text || "")}</p></div>`;
     return el;
   }
+  // จบรอบที่กำลังเล่น: สรุปกลุ่มผู้ชมของโฆษณา + บันทึก proof-of-play
+  function endPlay() {
+    if (!cur || !play || play.done) return;
+    finishPlay(stats, play, settings.useDemo);
+    pushPop(pop, popEntry(cur, play, Date.now(), faceRunning));
+    persistPop();
+  }
+  let emptyAt = 0;
   function showAd(sel) {
-    if (!sel) { $("#ad").innerHTML = `<div class="slide empty"><div class="slide-in"><h2>ยังไม่มีโฆษณาที่เปิดใช้งาน</h2><p>เพิ่มหรือเปิดใช้โฆษณาในคลังโฆษณาด้านล่าง</p></div></div>`; cur = null; play = null; return; }
-    cur = { ...sel, start: performance.now() };
+    endPlay();
+    if (!sel) {
+      const any = ads.some(a => a.enabled !== false);
+      $("#ad").innerHTML = any
+        ? `<div class="slide empty"><div class="slide-in"><h2>ไม่มีโฆษณาที่ตั้งเวลาไว้สำหรับช่วงนี้</h2><p>${esc(DAYPART_TH[daypartOf(new Date().getHours())])} — ตั้งช่วงเวลาที่เล่นได้ในคลังโฆษณาด้านล่าง</p></div></div>`
+        : `<div class="slide empty"><div class="slide-in"><h2>ยังไม่มีโฆษณาที่เปิดใช้งาน</h2><p>เพิ่มหรือเปิดใช้โฆษณาในคลังโฆษณาด้านล่าง</p></div></div>`;
+      cur = null; play = null; emptyAt = Date.now(); $("#why").textContent = ""; renderNow(); return;
+    }
+    cur = { ...sel, start: performance.now(), at: Date.now() };
     play = newPlay(sel.ad.id);
     adStat(stats, sel.ad).plays++;
     const box = $("#ad"), old = [...box.children], el = renderSlide(sel.ad);
@@ -504,15 +661,16 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
     const why = $("#why"); why.textContent = sel.why; why.className = "why " + sel.reason;
     renderNow();
   }
-  const nextAd = () => showAd(selectAd(ads, seg, { lastId: cur?.ad.id, useDemo: settings.useDemo }));
+  const nowHour = () => new Date().getHours();
+  const nextAd = () => showAd(selectAd(ads, seg, { lastId: cur?.ad.id, useDemo: settings.useDemo, hour: nowHour() }));
   setInterval(() => {
-    if (!cur) return;
+    if (!cur) { if (Date.now() - emptyAt > 15000) nextAd(); return; } // ไม่มีโฆษณาในช่วงนี้: ตรวจใหม่ทุก 15 วิ
     const el = performance.now() - cur.start, dur = Math.max(3, +cur.ad.duration || 8) * 1000;
     $("#adProgress").style.width = Math.min(100, el / dur * 100) + "%";
     if (el >= dur) return nextAd();
     // มีผู้ชมเข้ามาระหว่างเล่นโฆษณาทั่วไป: เปลี่ยนไปโฆษณาที่ตรงกลุ่มเร็วขึ้น
     if (cur.reason !== "target" && seg && el > 3000) {
-      const s = selectAd(ads, seg, { lastId: cur.ad.id, useDemo: settings.useDemo });
+      const s = selectAd(ads, seg, { lastId: cur.ad.id, useDemo: settings.useDemo, hour: nowHour() });
       if (s && s.reason === "target" && s.ad.id !== cur.ad.id) showAd(s);
     }
   }, 250);
@@ -522,7 +680,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
     if (!cur) { $("#nowPlaying").innerHTML = `<p class="hint">—</p>`; return; }
     const s = stats.ads[cur.ad.id] || {};
     $("#nowPlaying").innerHTML = `<div class="now"><i style="background:${esc(cur.ad.color)}"></i><div><b>${esc(cur.ad.title)}</b><span>${esc(cur.why)}</span></div></div>
-      <div class="now-stats"><span>รอบนี้: เห็น ${play?.seen.size || 0} · มอง ${play?.looked.size || 0} คน</span><span>สะสม: เล่น ${s.plays || 0} ครั้ง · มอง ${(s.attn || 0).toFixed(0)} วิ</span></div>`;
+      <div class="now-stats"><span>รอบนี้: เห็น ${play?.seen.size || 0} · มอง ${play?.looked.size || 0} คน</span><span>สะสม: เล่น ${s.plays || 0} ครั้ง · มอง ${(s.attn || 0).toFixed(0)} วิ</span><span>ช่วงเวลา: ${esc(DAYPART_TH[daypartOf(nowHour())])}</span></div>`;
   }
   function renderLive(present) {
     const lookers = present.filter(t => t.lookNow && t.frames >= SG.MIN_FRAMES).length;
@@ -541,7 +699,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
     ctx.clearRect(0, 0, W, overlay.height);
     ctx.lineWidth = 3; ctx.font = "600 16px Prompt, sans-serif";
     present.forEach(t => {
-      const b = t.box, x = camera.mirrored ? W - b.x - b.width : b.x, p = trackProfile(t);
+      const b = t.box, x = mirrored(audCam()) ? W - b.x - b.width : b.x, p = trackProfile(t);
       ctx.strokeStyle = t.lookNow ? "#2ecc71" : "#e6a23c"; ctx.strokeRect(x, b.y, b.width, b.height);
       const label = settings.useDemo && p.band ? `${BAND_TH[p.band]} ${p.gender !== "unk" ? GENDER_TH[p.gender] : ""}` : (t.lookNow ? "มองจอ" : "ไม่ได้มอง");
       const tw = ctx.measureText(label).width + 10;
@@ -555,17 +713,19 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
     while (faceRunning) {
       const t0 = performance.now();
       try {
-        if (video.readyState >= 2) {
-          const dets = await detectFaces();
-          if (!faceRunning) break;
+        const ac = audCam(), video = ac && ac.video;
+        const dets = video && ac.active && video.readyState >= 2 ? await detectFaces(video) : null;
+        if (!faceRunning) break;
+        if (dets && audCam() === ac) { // ข้ามผลถ้าเปลี่ยนกล้องผู้ชมระหว่างประมวลผล
           const now = Date.now();
+          ac.noteInfer(t0, performance.now() - t0);
           const { present, ended } = updateTracks(tracker, dets, now, SG, { W: video.videoWidth || 1, H: video.videoHeight || 1 });
           ended.forEach(t => finalizeTrack(stats, t, settings.useDemo));
           recordFrame(stats, play, present, (now - lastT) / 1000); lastT = now;
           seg = dominantSegment(tracker.tracks.filter(t => now - t.lastSeen < 1000), settings.useDemo);
           drawFaces(present);
           fpsTimes.push(performance.now()); fpsTimes = fpsTimes.filter(x => x > performance.now() - 3000);
-          $("#fps").textContent = `${present.length} ใบหน้า · ${(fpsTimes.length / 3).toFixed(1)} fps`;
+          $("#fps").textContent = `${present.length} ใบหน้า · ${(fpsTimes.length / 3).toFixed(1)} fps${R.shared ? "" : " · " + ac.name}`;
           if (now - lastUi > 700) { renderLive(present); lastUi = now; }
           if (now - lastSave > 5000) { persistStats(); lastSave = now; }
         }
@@ -585,9 +745,9 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
     $("#startFace").disabled = true;
     engine("กำลังเปิดกล้องและโหลดโมเดลวิเคราะห์ใบหน้า...");
     try {
-      await Promise.all([ensureCamera(), loadFace()]);
-      overlay.width = video.videoWidth; overlay.height = video.videoHeight;
-      engine(`กำลังวัดผู้ชม (ตัวประมวลผล: ${backend.toUpperCase()}${backend === "webgl" ? "" : " — โหมดประหยัด ประมวลผลทุก 0.2 วินาที"})`, "ok");
+      await Promise.all([ensureCams(), loadFace()]);
+      camLayout();
+      engine(`กำลังวัดผู้ชม (ตัวประมวลผล: ${backend.toUpperCase()}${backend === "webgl" || backend === "test" ? "" : " — โหมดประหยัด ประมวลผลทุก 0.2 วินาที"}${R.shared ? "" : " · กล้องผู้ชม: " + audCam().name})`, "ok");
       faceRunning = true; $("#startFace").textContent = "หยุดวัดผู้ชม";
       faceLoop();
     } catch (e) { camError(e, "เริ่มวัดผู้ชม", startFace); }
@@ -646,7 +806,8 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
     if (a.ages?.length) r.push("อายุ " + a.ages.map(b => BAND_TH[b]).join(", "));
     if (a.gender && a.gender !== "any") r.push(GENDER_TH[a.gender]);
     if (a.mood && a.mood !== "any") r.push(MOOD_TH[a.mood]);
-    return r.length ? r.join(" · ") : "ผู้ชมทุกกลุ่ม (ใช้วนทั่วไป)";
+    const dp = cleanDayparts(a.dayparts);
+    return (r.length ? r.join(" · ") : "ผู้ชมทุกกลุ่ม (ใช้วนทั่วไป)") + (dp.length ? " · เล่น " + dp.map(d => DAYPARTS.find(x => x.id === d).th).join("/") : "");
   }
   function renderLibrary() {
     $("#adList").innerHTML = ads.map(a => `<li class="${a.enabled === false ? "off" : ""}">
@@ -674,6 +835,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
     form.elements.title.value = a?.title || ""; form.elements.text.value = a?.text || ""; form.elements.color.value = a?.color || "#2a78d6";
     form.elements.duration.value = a?.duration || 8; form.elements.gender.value = a?.gender || "any"; form.elements.mood.value = a?.mood || "any";
     $$("#adForm [name=ages]").forEach(c => { c.checked = !!a?.ages?.includes(c.value); });
+    $$("#adForm [name=dayparts]").forEach(c => { c.checked = cleanDayparts(a?.dayparts).includes(c.value); });
     form.elements.image.value = ""; form.elements.removeImage.checked = false; $("#rmImgWrap").hidden = !a?.hasImage;
     $("#formTitle").textContent = a ? `แก้ไข: ${a.title}` : "เพิ่มโฆษณาใหม่";
     $("#adMsg").textContent = ""; $("#adMsg").className = "form-msg";
@@ -691,7 +853,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
     if (file && file.size > 5 * 1024 * 1024) return msg("รูปใหญ่เกิน 5 MB", "err");
     let a = ads.find(x => x.id === editId), imgErr = false;
     if (!a) { a = { id: "ad-" + Date.now().toString(36), enabled: true, hasImage: false }; ads.push(a); }
-    Object.assign(a, { title, text: form.elements.text.value.trim(), color: form.elements.color.value, duration: dur, gender: form.elements.gender.value, mood: form.elements.mood.value, ages: $$("#adForm [name=ages]:checked").map(c => c.value) });
+    Object.assign(a, { title, text: form.elements.text.value.trim(), color: form.elements.color.value, duration: dur, gender: form.elements.gender.value, mood: form.elements.mood.value, ages: $$("#adForm [name=ages]:checked").map(c => c.value), dayparts: cleanDayparts($$("#adForm [name=dayparts]:checked").map(c => c.value)) });
     try {
       if (file) { await imgPut(a.id, file); if (imgUrls[a.id]) URL.revokeObjectURL(imgUrls[a.id]); imgUrls[a.id] = URL.createObjectURL(file); a.hasImage = true; }
       else if (form.elements.removeImage.checked && a.hasImage) { await imgDel(a.id); URL.revokeObjectURL(imgUrls[a.id]); delete imgUrls[a.id]; a.hasImage = false; }
@@ -710,6 +872,10 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
   // ---------- คีออสก์ไร้สัมผัส ----------
   let kIdx = 0, kDetail = null, landmarker = null, handLoading = null, handDelegate = "", handRunning = false;
   const recog = createGestureRecognizer(), holder = createHoldSelector(1200);
+  // ล็อกมือที่ควบคุม: ตรวจได้สูงสุด 3 มือ แต่ใช้มือที่ใกล้กล้องที่สุดมือเดียว คนข้าง ๆ แย่งเคอร์เซอร์ไม่ได้จนกว่ามือนั้นหายไป
+  const lock = LQHand.createActiveLock({ minIou: 0.2, maxDist: 0.15, lostMs: 700 });
+  const lqHand = LQHand.createDetector({ fakeKey: () => R.kiosk || "c1" });
+  let handInfo = { n: 0, held: false };
   const cursor = { x: 0.5, y: 0.5, on: false };
   const kiosk = $("#kiosk"), kc = $("#kCursor"), ring = $("#kRing");
   const RING_LEN = 2 * Math.PI * 22;
@@ -763,9 +929,12 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
     }
     return null;
   }
-  function drawHand(lm) {
+  function drawHand(lm, others = []) {
     const c = $("#hoverlay"), ctx = c.getContext("2d");
     ctx.clearRect(0, 0, c.width, c.height);
+    ctx.strokeStyle = "rgba(255,255,255,.55)"; ctx.lineWidth = 2; ctx.setLineDash([6, 4]); // มือที่ไม่ได้ควบคุม
+    others.forEach(o => ctx.strokeRect(o.box.x * c.width, o.box.y * c.height, o.box.w * c.width, o.box.h * c.height));
+    ctx.setLineDash([]);
     if (!lm) return;
     ctx.fillStyle = "#6cc4e3";
     lm.forEach((p, i) => { ctx.beginPath(); ctx.arc(p.x * c.width, p.y * c.height, i === 8 ? 6 : 3, 0, 7); ctx.fill(); });
@@ -794,56 +963,77 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
     else if (type === "palm") kAction("back", "palm");
     else if (type === "pinch") kAction(target ? target.dataset.hold : (kDetail ? "back" : "select"), "pinch");
   }
-  function processHand(lm, t) {
-    drawHand(lm);
+  function processHand(lm, t, others = [], sel = {}) {
+    drawHand(lm, others);
+    handInfo = { n: sel.n || (lm ? 1 : 0), held: !!sel.held };
+    $("#handInfo").hidden = handInfo.n < 2 && !handInfo.held;
+    $("#handInfo").textContent = handInfo.held ? "รอมือที่ควบคุมอยู่ — ไม่สลับไปมือคนอื่น" : `เห็น ${handInfo.n} มือ · ควบคุมด้วยมือที่ใกล้ที่สุด`;
     const g = recog.update(lm, t);
     if (!lm) { hideCursor(t); $("#gesture").textContent = "ไม่พบมือ — ยกมือให้กล้องเห็น"; return; }
     const { target, fired } = moveCursor(mapCursor(lm[8]), t);
     if (!fired && g) onGesture(g.type, target);
   }
+  const lmBox = lm => { let x0 = 1, y0 = 1, x1 = 0, y1 = 0; for (const p of lm) { x0 = Math.min(x0, p.x); y0 = Math.min(y0, p.y); x1 = Math.max(x1, p.x); y1 = Math.max(y1, p.y); } return { x: x0, y: y0, w: Math.max(0, x1 - x0), h: Math.max(0, y1 - y0) }; };
+  // มือทั้งหมดในภาพ -> มือที่ล็อกไว้ (หรือ null) แล้วส่งต่อให้ตัวรู้จำท่า
+  function processHands(hands, t) {
+    const sel = lock.update(hands.map(h => h.box), t);
+    processHand(sel.index >= 0 ? hands[sel.index].lm : null, t, hands.filter((_, i) => i !== sel.index), sel);
+  }
 
-  // โหมดสำรองเมื่อไม่มี WebGL (MediaPipe บนเว็บต้องใช้ WebGL รับภาพเสมอ): ตรวจจับการเคลื่อนไหวจากภาพย่อ 80×60
+  // โหมดสำรองสุดท้าย (โหลดโมเดลมือไม่ได้): ตรวจจับการเคลื่อนไหวจากภาพย่อ 80×60
+  // ใช้เฉพาะก้อนการเคลื่อนไหวขนาดเท่ามือที่เด่นที่สุด — คนเดินผ่านทั้งตัวหรือหลายคนขยับพร้อมกันไม่ขยับเคอร์เซอร์
   const MW = 80, MH = 60;
   let mCtx = null, mPrev = null, mLast = 0;
-  const mSwipe = createMotionSwipe();
-  function processMotion(t) {
+  const mSwipe = createMotionSwipe({ MIN_FRAC: LQHand.GATE.MIN_BLOB, MAX_FRAC: LQHand.GATE.MAX_BLOB });
+  function processMotion(video, t) {
     if (!mCtx) { const c = document.createElement("canvas"); c.width = MW; c.height = MH; mCtx = c.getContext("2d", { willReadFrequently: true }); }
     mCtx.drawImage(video, 0, 0, MW, MH);
-    const g = toGray(mCtx.getImageData(0, 0, MW, MH).data);
-    const m = mPrev ? motionCentroid(mPrev, g, MW, MH) : null; mPrev = g;
-    drawMotion(m);
-    const ev = mSwipe.update(m, t);
-    if (m && m.frac >= mSwipe.cfg.MIN_FRAC && m.frac <= mSwipe.cfg.MAX_FRAC) {
+    const g = LQHand.toGray(mCtx.getImageData(0, 0, MW, MH).data);
+    const m = mPrev ? LQHand.motionBlobs(mPrev, g, MW, MH) : null; mPrev = g;
+    const blob = LQHand.motionGate(m);
+    drawMotion(blob);
+    const ev = mSwipe.update(blob ? { n: blob.n, frac: blob.frac, x: blob.x, y: blob.y } : null, t);
+    if (blob) {
       mLast = t;
-      const { fired } = moveCursor({ x: 1 - m.x, y: m.y }, t, 0.7);
+      const { fired } = moveCursor({ x: 1 - blob.x, y: blob.y }, t, 0.7);
       if (!fired && ev) onGesture(ev.type, null);
-    } else if (t - mLast > 600) { hideCursor(t); $("#gesture").textContent = "โหมดสำรอง: โบกมือเบา ๆ ค้างบนปุ่ม หรือปัดมือซ้าย/ขวา"; }
+    } else if (t - mLast > 600) {
+      hideCursor(t);
+      $("#gesture").textContent = m && m.n && m.frac > LQHand.GATE.MIN_BLOB ? "โหมดสำรอง: การเคลื่อนไหวใหญ่หรือหลายจุดเกินไป — ให้ขยับมือคนเดียวใกล้กล้อง" : "โหมดสำรอง: โบกมือเบา ๆ ค้างบนปุ่ม หรือปัดมือซ้าย/ขวา";
+    }
   }
-  function drawMotion(m) {
+  function drawMotion(b) {
     const c = $("#hoverlay"), ctx = c.getContext("2d");
     ctx.clearRect(0, 0, c.width, c.height);
-    if (!m || !m.n) return;
-    ctx.fillStyle = "rgba(108,196,227,.85)"; ctx.beginPath(); ctx.arc(m.x * c.width, m.y * c.height, 10, 0, 7); ctx.fill();
+    if (!b) return;
+    ctx.strokeStyle = "rgba(108,196,227,.85)"; ctx.lineWidth = 2; ctx.strokeRect(b.bx * c.width, b.by * c.height, b.bw * c.width, b.bh * c.height);
+    ctx.fillStyle = "rgba(108,196,227,.85)"; ctx.beginPath(); ctx.arc(b.x * c.width, b.y * c.height, 10, 0, 7); ctx.fill();
   }
 
-  const hasWebGL = () => { try { const c = document.createElement("canvas"); return !!(c.getContext("webgl2") || c.getContext("webgl")); } catch { return false; } };
-  async function loadHand() {
-    if (!hasWebGL()) { handDelegate = "MOTION"; return; }
+  // ลำดับตัวตรวจจับมือ: มี WebGL = MediaPipe Tasks (GPU/CPU) · ไม่มี WebGL = โมเดล MediaPipe Hands แบบ TF.js (WASM) · โหลดไม่ได้ = ตรวจการเคลื่อนไหว
+  function loadMediaPipe() {
     handLoading ??= (async () => {
       const { FilesetResolver, HandLandmarker } = await import("./vendor/mediapipe/vision_bundle.mjs");
       const files = await FilesetResolver.forVisionTasks(new URL("vendor/mediapipe/wasm", location.href).href);
       const modelAssetPath = new URL("vendor/models/hand_landmarker.task", location.href).href;
       let err;
       for (const delegate of ["GPU", "CPU"]) {
-        try { landmarker = await HandLandmarker.createFromOptions(files, { baseOptions: { modelAssetPath, delegate }, runningMode: "VIDEO", numHands: 1 }); handDelegate = delegate; return; }
+        try { landmarker = await HandLandmarker.createFromOptions(files, { baseOptions: { modelAssetPath, delegate }, runningMode: "VIDEO", numHands: LQHand.MAX_HANDS }); return delegate; }
         catch (e) { err = e; console.warn(delegate, e); }
       }
       throw err || new Error("HandLandmarker");
     })().catch(e => { handLoading = null; throw e; });
     return handLoading;
   }
+  let motionReason = "";
+  async function loadHand() {
+    if (["GPU", "CPU", "TFJS"].includes(handDelegate)) return;
+    if (!TEST && LQDetect.hasWebGL()) { try { handDelegate = await loadMediaPipe(); return; } catch (e) { console.warn("MediaPipe", e); } }
+    try { await lqHand.load(); handDelegate = "TFJS"; }
+    catch (e) { console.warn("LQHand", e); handDelegate = "MOTION"; motionReason = "โหลดโมเดลตรวจจับมือไม่สำเร็จ"; }
+  }
   function useMotionMode(reason) {
-    handDelegate = "MOTION"; mPrev = null; hideCursor(performance.now());
+    handDelegate = "MOTION"; mPrev = null; lock.reset(); hideCursor(performance.now());
     engine(`${reason} — ใช้โหมดสำรองตรวจจับการเคลื่อนไหวแทน: ปัดมือซ้าย/ขวาเพื่อเลื่อน และโบกมือเบา ๆ ค้างบนปุ่ม 1.2 วินาทีเพื่อเลือก (จีบนิ้ว/แบมือใช้ไม่ได้ในโหมดนี้)`, "warn");
   }
   async function handLoop() {
@@ -851,30 +1041,43 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
     while (handRunning) {
       const t0 = performance.now();
       try {
-        if (video.readyState >= 2) {
+        const kc = kioCam(), video = kc && kc.video;
+        if (video && kc.active && video.readyState >= 2) {
           const ts = Math.max(lastTs + 1, performance.now()); lastTs = ts;
-          if (handDelegate === "MOTION") processMotion(ts);
-          else { const r = landmarker.detectForVideo(video, ts); fails = 0; processHand(r.landmarks?.[0] || null, ts); }
+          if (handDelegate === "MOTION") processMotion(video, ts);
+          else {
+            const W = video.videoWidth || 1, H = video.videoHeight || 1;
+            const hands = handDelegate === "TFJS"
+              ? (await lqHand.detect(video, { quick: true, max: LQHand.MAX_HANDS })).map(h => ({ lm: LQHand.toLandmarks(h.pts, W, H), box: LQT.toNorm(h.box, W, H) }))
+              : (landmarker.detectForVideo(video, ts).landmarks || []).slice(0, LQHand.MAX_HANDS).map(lm => ({ lm, box: lmBox(lm) }));
+            if (!handRunning) break;
+            fails = 0;
+            if (!R.shared) kc.noteInfer(t0, performance.now() - t0);
+            processHands(hands, ts);
+          }
         }
       } catch (e) {
-        console.error(e);
-        if (handDelegate !== "MOTION" && ++fails >= 5) useMotionMode("ตรวจจับมือด้วย MediaPipe ไม่สำเร็จต่อเนื่อง");
+        console.warn(e);
+        if (handDelegate !== "MOTION" && ++fails >= 5) useMotionMode("ตรวจจับมือไม่สำเร็จต่อเนื่อง");
       }
       await sleep(Math.max(0, 66 - (performance.now() - t0))); // ~15 fps
     }
   }
   function stopHand() {
-    handRunning = false; hideCursor(performance.now()); drawHand(null);
+    handRunning = false; hideCursor(performance.now()); drawHand(null); lock.reset();
+    $("#handInfo").hidden = true;
     $("#startHand").textContent = "เริ่มสั่งงานด้วยมือ"; $("#gesture").textContent = "หยุดแล้ว — ใช้เมาส์หรือปุ่มลูกศรได้";
   }
   async function startHand() {
     $("#startHand").disabled = true;
     engine("กำลังเปิดกล้องและโหลดโมเดลตรวจจับมือ...");
     try {
-      await Promise.all([ensureCamera(), loadHand()]);
-      const c = $("#hoverlay"); c.width = video.videoWidth; c.height = video.videoHeight;
-      if (handDelegate === "MOTION") useMotionMode("เครื่องนี้ไม่รองรับ WebGL ซึ่งจำเป็นสำหรับโมเดลตรวจจับมือ");
-      else engine(`คีออสก์พร้อม (ตรวจจับมือด้วย ${handDelegate === "GPU" ? "GPU" : "CPU — อาจช้ากว่าปกติ"})`, "ok");
+      await Promise.all([ensureCams(), loadHand()]);
+      camLayout(); mPrev = null; lock.reset();
+      const camTxt = R.shared ? "" : ` · กล้องคีออสก์: ${kioCam().name} (กล้องผู้ชมวัดผลต่อ)`;
+      if (handDelegate === "MOTION") useMotionMode(motionReason || "ตรวจจับมือไม่ได้");
+      else if (handDelegate === "TFJS") engine(`คีออสก์พร้อม (ตรวจจับมือด้วย TF.js ${lqHand.backend === "test" ? "— ตัวตรวจจับจำลอง" : lqHand.backend.toUpperCase() + (lqHand.backend === "webgl" ? "" : " ไม่ต้องใช้ WebGL")} · ล็อกมือที่ใกล้ที่สุด)${camTxt}`, "ok");
+      else engine(`คีออสก์พร้อม (ตรวจจับมือด้วย ${handDelegate === "GPU" ? "GPU" : "CPU — อาจช้ากว่าปกติ"} · ล็อกมือที่ใกล้ที่สุด)${camTxt}`, "ok");
       handRunning = true; $("#startHand").textContent = "หยุดสั่งงานด้วยมือ";
       handLoop();
     } catch (e) { camError(e, "เปิดคีออสก์", startHand); }
@@ -922,7 +1125,11 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
       ["เวลาอยู่หน้าจอเฉลี่ย", T.ots ? fmtS(T.dwell / T.ots) : "—", "ต่อคน"], ["เวลามองเฉลี่ย", T.viewers ? fmtS(T.attn / T.viewers) : "—", "ต่อผู้ชม"],
       ["รอบโฆษณาที่เล่น", rows.reduce((s, r) => s + r.plays, 0), "ครั้ง"], ["สั่งงานด้วยมือ", GESTURES.reduce((s, g) => s + (stats.gestures[g] || 0), 0), "ครั้ง"]
     ].map(([k, v, s]) => `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join("");
-    $("#adTable").innerHTML = `<thead><tr><th>โฆษณา</th><th class="n">เล่น</th><th class="n">OTS</th><th class="n">ผู้ชม</th><th class="n">อัตรามอง</th><th class="n">เวลามองเฉลี่ย</th><th class="n">ยิ้ม %</th></tr></thead><tbody>${rows.map(r => `<tr><td>${esc(r.title)}</td><td class="n">${r.plays}</td><td class="n">${r.ots}</td><td class="n">${r.viewers}</td><td class="n">${r.ots ? r.viewRate.toFixed(0) + "%" : "–"}</td><td class="n">${r.viewers ? r.avgAttn.toFixed(1) + " วิ" : "–"}</td><td class="n">${r.viewers ? r.happyPct.toFixed(0) + "%" : "–"}</td></tr>`).join("")}</tbody>`;
+    const topDemo = d => { const e = Object.entries(d).sort((a, b) => b[1] - a[1])[0]; if (!e) return "–"; const i = e[0].lastIndexOf("_"), b = e[0].slice(0, i), g = e[0].slice(i + 1); const n = Object.values(d).reduce((s, x) => s + x, 0); return `${BAND_TH[b] || b}${g !== "unk" ? " " + GENDER_TH[g] : ""} (${Math.round(e[1] / n * 100)}%)`; };
+    $("#adTable").innerHTML = `<thead><tr><th>โฆษณา</th><th class="n">เล่น</th><th class="n">OTS</th><th class="n">ผู้ชม</th><th class="n">อัตรามอง</th><th class="n">เวลามองเฉลี่ย</th><th class="n">ยิ้ม %</th><th class="n">Valence</th><th>กลุ่มหลัก (ประมาณ)</th></tr></thead><tbody>${rows.map(r => `<tr><td>${esc(r.title)}</td><td class="n">${r.plays}</td><td class="n">${r.ots}</td><td class="n">${r.viewers}</td><td class="n">${r.ots ? r.viewRate.toFixed(0) + "%" : "–"}</td><td class="n">${r.viewers ? r.avgAttn.toFixed(1) + " วิ" : "–"}</td><td class="n">${r.viewers ? r.happyPct.toFixed(0) + "%" : "–"}</td><td class="n">${r.valence == null ? "–" : (r.valence > 0 ? "+" : "") + r.valence.toFixed(2)}</td><td>${esc(topDemo(r.demo))}</td></tr>`).join("")}</tbody>`;
+    const P = pop.log, recent = P.slice(-40).reverse(), fmtT = t => new Date(t).toLocaleString("th-TH", { dateStyle: "short", timeStyle: "medium" });
+    $("#popInfo").textContent = P.length ? `ทั้งหมด ${P.length} รอบ (เก็บล่าสุด ${POP_MAX} รอบ) · ตั้งแต่ ${fmtT(P[0].t)}` : "ยังไม่มีรอบที่เล่นจบ";
+    $("#popTable").innerHTML = `<thead><tr><th>เริ่มเล่น</th><th>โฆษณา</th><th class="n">วินาที</th><th>เหตุผล</th><th>ช่วงเวลา</th><th class="n">OTS</th><th class="n">ผู้ชม</th></tr></thead><tbody>${recent.map(e => `<tr><td>${fmtT(e.t)}</td><td>${esc(e.title || e.ad)}</td><td class="n">${e.s}</td><td>${{ target: "ตรงกลุ่ม", fallback: "วนแทน", loop: "วนตามลำดับ" }[e.why] || esc(e.why)}</td><td>${esc((DAYPARTS.find(d => d.id === e.dp) || {}).th || "–")}</td><td class="n">${e.m ? e.ots : "–"}</td><td class="n">${e.m ? e.v : "–"}</td></tr>`).join("") || `<tr><td colspan="7" class="hint">—</td></tr>`}</tbody>`;
     bars($("#chAge"), BANDS.map(b => BAND_TH[b]), [{ name: "ชาย", color: C1, values: BANDS.map(b => stats.demo[b].male) }, { name: "หญิง", color: C2, values: BANDS.map(b => stats.demo[b].female) }]);
     const unk = BANDS.reduce((s, b) => s + stats.demo[b].unk, 0);
     $("#ageNote").textContent = `ค่าประมาณจากโมเดล อาจคลาดเคลื่อนและมีอคติ · ไม่แน่ใจเพศ ${unk} คน${settings.useDemo ? "" : " · ขณะนี้ปิดการเก็บอายุ/เพศ"}`;
@@ -943,27 +1150,35 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined") (() => {
     a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
-  $("#exportCsv").onclick = () => { persistStats(); download(`signage-report-${new Date().toISOString().slice(0, 10)}.csv`, buildCsv(stats, ads), "text/csv;charset=utf-8"); };
+  const today = () => new Date().toISOString().slice(0, 10);
+  $("#exportCsv").onclick = () => { persistStats(); download(`signage-report-${today()}.csv`, buildCsv(stats, ads), "text/csv;charset=utf-8"); };
+  $("#exportAdCsv").onclick = () => { persistStats(); download(`signage-ads-${today()}.csv`, buildAdReportCsv(stats, ads), "text/csv;charset=utf-8"); };
+  $("#exportPop").onclick = () => download(`signage-proof-of-play-${today()}.csv`, buildPopCsv(pop), "text/csv;charset=utf-8");
   $("#clearStats").onclick = () => {
-    if (!confirm("ล้างสถิติทั้งหมด? (ควรส่งออก CSV ก่อน) โฆษณาในคลังจะยังอยู่")) return;
-    tracker = newTracker(); stats = newStats(); if (cur) adStat(stats, cur.ad).plays++; play = cur ? newPlay(cur.ad.id) : null;
-    persistStats(); renderReport(); renderLive([]); engine("ล้างสถิติแล้ว", "ok");
+    if (!confirm("ล้างสถิติและบันทึกการเล่นทั้งหมด? (ควรส่งออก CSV ก่อน) โฆษณาในคลังจะยังอยู่")) return;
+    if (play) play.done = true;
+    tracker = newTracker(); stats = newStats(); pop = parsePop(null);
+    if (cur) { adStat(stats, cur.ad).plays++; cur.at = Date.now(); }
+    play = cur ? newPlay(cur.ad.id) : null;
+    persistStats(); persistPop(); renderReport(); renderLive([]); engine("ล้างสถิติแล้ว", "ok");
   };
   $("#wipeAll").onclick = async () => {
     if (!confirm("ลบข้อมูลทั้งหมดของหน้านี้ในเครื่องนี้? (สถิติ การตั้งค่า โฆษณา และรูปที่อัปโหลด)")) return;
     Object.keys(localStorage).filter(k => k.startsWith("sg-")).forEach(k => localStorage.removeItem(k));
     try { await new Promise(r => { const q = indexedDB.deleteDatabase(DB.name); q.onsuccess = q.onerror = q.onblocked = r; }); } catch {}
     Object.values(imgUrls).forEach(u => URL.revokeObjectURL(u)); Object.keys(imgUrls).forEach(k => delete imgUrls[k]);
-    ads = structuredClone(DEFAULT_ADS); stats = newStats(); tracker = newTracker();
+    if (play) play.done = true;
+    ads = structuredClone(DEFAULT_ADS); stats = newStats(); tracker = newTracker(); pop = parsePop(null);
     renderLibrary(); fillForm(null); nextAd(); renderReport(); renderLive([]);
     engine("ลบข้อมูลทั้งหมดแล้ว (ระบบไม่เคยบันทึกภาพจากกล้อง)", "ok");
   };
 
-  addEventListener("beforeunload", () => { tracker.tracks.forEach(t => finalizeTrack(stats, t, settings.useDemo)); persistStats(); });
+  addEventListener("beforeunload", () => { tracker.tracks.forEach(t => finalizeTrack(stats, t, settings.useDemo)); endPlay(); persistStats(); });
   document.addEventListener("visibilitychange", () => { if (document.hidden) persistStats(); });
 
   // ---------- เริ่มต้น ----------
-  applyPip(); renderKiosk(); renderLive([]); fillForm(null);
+  if (TEST) window.__sg = { hub, lock, get R() { return R; }, get stats() { return stats; }, get pop() { return pop; }, get cursor() { return cursor; }, get faceRunning() { return faceRunning; }, get handRunning() { return handRunning; }, get handDelegate() { return handDelegate; }, get handInfo() { return handInfo; }, get tracker() { return tracker; }, get tab() { return tab; }, get cur() { return cur; }, nextAd, endPlay };
+  applyPip(); renderKiosk(); renderLive([]); fillForm(null); renderCams();
   loadImages().finally(() => { renderLibrary(); nextAd(); });
   engine("พร้อมใช้งาน — กด \"เริ่มวัดผู้ชม\" เพื่อเปิดกล้อง (ยังไม่มีการวัดผล โฆษณาวนตามลำดับ)");
 })();

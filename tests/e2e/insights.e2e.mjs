@@ -1,0 +1,176 @@
+// tests/e2e/insights.e2e.mjs — insights.html analytics layer: demo data (9 weeks) -> every section renders, every range/compare
+// option re-renders without errors, small-data honesty ("ข้อมูลยังน้อย"), goals + alert rules (iq-goals / iq-alerts),
+// printable report (print media), analysis export has no personal data, no overflow at 390 / 1280 px,
+// privacy: no network except same-origin static files + Google Fonts, and /api/agg only when a hub is configured.
+import { assert } from "./cdp.mjs";
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const FONT = /fonts\.(googleapis|gstatic)\.com/;
+const unexpected = page => page.consoleErrors.filter(e => !(e.kind === "log" && (FONT.test(e.url || e.text || "") || /favicon/.test(e.url || ""))));
+
+// elements whose box sticks out of the viewport (ignores scroll containers, hidden and closed <details>)
+function overflowing() {
+  const W = document.documentElement.clientWidth, bad = [];
+  for (const n of document.querySelectorAll("main *")) {
+    if (n.closest(".tw, .sr, [hidden], details:not([open]) > :not(summary), .iq-tip")) continue;
+    const r = n.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0 && (r.right > W + 1 || r.left < -1)) bad.push(`${n.tagName.toLowerCase()}#${n.id}.${String(n.className && n.className.baseVal != null ? n.className.baseVal : n.className).slice(0, 30)} ${Math.round(r.left)}..${Math.round(r.right)}`);
+  }
+  return { W, scroll: document.documentElement.scrollWidth, bad: bad.slice(0, 8) };
+}
+function sections() {
+  const vis = s => { const e = document.querySelector(s); return !!e && !e.hidden && e.offsetParent !== null; };
+  const q = s => document.querySelectorAll(s).length;
+  return {
+    summary: vis("#summary"), ins: q("#insightCards .ins"), kpis: q("#kpis .kpi"), sparks: q("#kpis .spark"), ci: q("#kpis .ci"),
+    trend: vis("#trendChart svg"), heat: vis("#heatCard") ? q("#heatChart rect.hc") : 0, fcBand: q("#fcChart path.fc-band"), anom: q("#fcChart circle.anom"),
+    funnel: q("#storeFunnel .fn-row"), corr: q("#corrBody .corr"), ab: q("#abBody .ab-row"), cams: q("#camBody tbody tr"), cohort: q("#cohortBody tbody tr"),
+    goalForm: q("#goalForm input"), alertForm: q("#alertForm input"), drill: q("#modules details.drill"), report: vis("#reportCard"),
+    text: document.getElementById("insightCards").textContent
+  };
+}
+
+export default async function ({ base, launch, check }) {
+  const browser = await launch();
+  const url = `${base}/insights.html`;
+  let page;
+  try {
+    await check("demo data: every analytics section renders, no console errors, no NaN/undefined text", async () => {
+      page = await browser.newPage(url);
+      await page.evaluate(() => { localStorage.clear(); });
+      await page.reload();
+      await page.evaluate(() => document.getElementById("seedDemoEmpty").click());
+      await page.waitFor(`document.querySelectorAll("#insightCards .ins").length >= 4`, 8000);
+      await sleep(300);
+      const s = await page.evaluate(sections);
+      assert(s.summary && s.ins >= 6, "summary cards " + s.ins);
+      assert(s.kpis >= 6 && s.sparks >= 4 && s.ci >= 3, `kpis ${s.kpis} sparks ${s.sparks} ci ${s.ci}`);
+      assert(s.trend, "trend chart");
+      assert(s.heat >= 7 * 10, "heatmap cells " + s.heat);
+      assert(s.fcBand === 1 && s.anom >= 1, `forecast band ${s.fcBand} anomalies ${s.anom}`);
+      assert(s.funnel >= 4, "store funnel rows " + s.funnel);
+      assert(s.corr >= 2, "correlations " + s.corr);
+      assert(s.ab >= 6, "A/B rows " + s.ab);
+      assert(s.cams === 2, "camera rows " + s.cams);
+      assert(s.cohort >= 4, "cohort rows " + s.cohort);
+      assert(s.goalForm >= 5 && s.alertForm >= 5, "forms");
+      assert(s.drill >= 4, "drill-downs " + s.drill);
+      assert(s.report, "report card");
+      const body = await page.evaluate(() => document.querySelector("main").innerText);
+      assert(!/NaN|undefined|Infinity|\[object/.test(body), "bad text: " + (body.match(/.{0,40}(NaN|undefined|Infinity|\[object).{0,40}/) || [""])[0]);
+      assert(/มั่นใจ/.test(s.text) && /ควรทำ/.test(s.text), "insight cards carry confidence + action");
+      const A = await page.evaluate(() => ({ an: __IQ.last.A.forecast.anomalies.map(a => a.day), method: __IQ.last.A.forecast.fc.method, days: __IQ.last.A.H.keys.length }));
+      assert(A.method === "holt-winters", "forecast method " + A.method);
+      assert(A.an.length >= 1 && A.an.length <= 4, "anomalies " + A.an);
+      const errs = unexpected(page);
+      assert(!errs.length, "console errors: " + JSON.stringify(errs.slice(0, 3)));
+    });
+
+    await check("every range preset, custom range and compare option re-render without errors", async () => {
+      for (const p of ["today", "d7", "d30", "d90", "all", "custom", "d7"]) {
+        await page.evaluate(p => document.querySelector(`.range button[data-p="${p}"]`).click(), p);
+        await sleep(120);
+        const n = await page.evaluate(() => document.querySelectorAll("#insightCards .ins").length);
+        assert(n >= 1, `${p}: insight cards ${n}`);
+      }
+      await page.evaluate(() => document.querySelector('.range button[data-p="custom"]').click());
+      const custom = await page.evaluate(() => {
+        const f = document.getElementById("cFrom"), t = document.getElementById("cTo");
+        f.value = __IQ.last.A.H.keys.at(-21); f.dispatchEvent(new Event("change"));
+        return { hidden: document.getElementById("customRange").hidden, days: __IQ.last.r.days };
+      });
+      assert(!custom.hidden && custom.days === 21, "custom range " + JSON.stringify(custom));
+      for (const c of ["week", "none", "prev"]) {
+        await page.evaluate(c => { const s = document.getElementById("compare"); s.value = c; s.dispatchEvent(new Event("change")); }, c);
+        await sleep(100);
+        const r = await page.evaluate(() => ({ cmp: __IQ.last.r.compare, prev: __IQ.last.r.prev }));
+        assert(r.cmp === c && (c === "none" ? !r.prev : !!r.prev), `compare ${c}: ` + JSON.stringify(r));
+      }
+      await page.evaluate(() => document.querySelector('.range button[data-p="d30"]').click());
+      await page.evaluate(() => document.getElementById("insightMore").click());
+      const all = await page.evaluate(() => ({ shown: document.querySelectorAll("#insightCards .ins").length, total: __IQ.last.cards.length }));
+      assert(all.shown === all.total, "show all insights " + JSON.stringify(all));
+      assert(!unexpected(page).length, "console errors: " + JSON.stringify(unexpected(page).slice(0, 3)));
+    });
+
+    await check("goals (iq-goals) and alert rules (iq-alerts) evaluate on load with in-page notifications", async () => {
+      await page.evaluate(() => {
+        const g = document.getElementById("goalForm"); g.closest("details").open = true;
+        g.elements.storeInDay.value = "250"; g.elements.convPct.value = "5"; g.requestSubmit();
+        const a = document.getElementById("alertForm"); a.elements.queueWaitMin.value = "0.5"; a.elements.convDropPct.value = ""; a.requestSubmit();
+      });
+      await page.reload();
+      const r = await page.waitFor(`(() => { const g = document.querySelectorAll("#goalBody .goal").length, a = document.querySelectorAll("#alerts .alert").length; return g === 2 && a >= 1 && { g, a, ls: [localStorage.getItem("iq-goals"), localStorage.getItem("iq-alerts")], text: document.getElementById("alerts").textContent }; })()`, 5000);
+      assert(/คิว/.test(r.text), "queue alert text " + r.text);
+      assert(JSON.parse(r.ls[0]).storeInDay === 250 && JSON.parse(r.ls[1]).queueWaitMin === 0.5 && JSON.parse(r.ls[1]).convDropPct === null, "stored rules " + r.ls);
+      const card = await page.evaluate(() => [...document.querySelectorAll("#insightCards .ins h3")].map(h => h.textContent));
+      assert(card[0] && /คิว/.test(card[0]), "alert ranks first among insights: " + card[0]);
+    });
+
+    await check("printable weekly/daily report: print media shows only the report", async () => {
+      const r = await page.evaluate(() => { const w = __IQ.report("week"); return { title: w.title, ins: document.querySelectorAll("#report .rp-ins").length, kpi: document.querySelectorAll("#report tbody tr").length }; });
+      assert(r.title === "รายงานประจำสัปดาห์" && r.ins >= 3 && r.kpi >= 5, "weekly report " + JSON.stringify(r));
+      await page.send("Emulation.setEmulatedMedia", { media: "print" });
+      const pm = await page.evaluate(() => ({ rep: getComputedStyle(document.getElementById("report")).display, main: getComputedStyle(document.querySelector("main")).display, nav: getComputedStyle(document.getElementById("siteNav")).display }));
+      await page.send("Emulation.setEmulatedMedia", { media: "" });
+      assert(pm.rep === "block" && pm.main === "none" && pm.nav === "none", "print media " + JSON.stringify(pm));
+      const d = await page.evaluate(() => { const w = __IQ.report("day"); return { title: w.title, from: w.from, to: w.to }; });
+      assert(d.title === "รายงานประจำวัน" && d.from === d.to, "daily report " + JSON.stringify(d));
+    });
+
+    await check("analysis export (JSON/CSV) has numbers only, no member names or contacts", async () => {
+      const x = await page.evaluate(() => { const { D, A, cards } = __IQ.last; const j = JSON.stringify(iqAnalysisJson(D, A, cards)), c = iqAnalysisCsv(A); return { j, c: c.slice(0, 400), len: j.length }; });
+      assert(!/คุณ|phone|consent|iqdemo-m|data:image/.test(x.j), "analysis JSON leaks member data");
+      assert(/"format":"lensiq-analysis"/.test(x.j) && /"forecast":\{/.test(x.j), "analysis JSON shape");
+      assert(/^﻿วันที่,วัน,คนเข้าร้าน/.test(x.c), "csv header " + x.c.slice(0, 60));
+    });
+
+    for (const [w, h, mobile] of [[390, 844, true], [1280, 900, false]]) {
+      await check(`no horizontal overflow at ${w} px (sections open)`, async () => {
+        await page.send("Emulation.setDeviceMetricsOverride", { width: w, height: h, deviceScaleFactor: mobile ? 2 : 1, mobile });
+        await page.reload();
+        await page.waitFor(`document.querySelectorAll("#insightCards .ins").length >= 4`, 5000);
+        await page.evaluate(() => { document.querySelectorAll("main details").forEach(d => { d.open = true; }); });
+        await sleep(400);
+        const o = await page.evaluate(overflowing);
+        assert(o.scroll <= o.W + 1 && !o.bad.length, `overflow at ${w}: ` + JSON.stringify(o));
+      });
+    }
+    await page.send("Emulation.clearDeviceMetricsOverride");
+
+    await check("small data (< 7 days): says ข้อมูลยังน้อย, no fake confidence, no NaN", async () => {
+      await page.evaluate(() => {
+        localStorage.clear();
+        const d = new Date(), key = k => { const x = new Date(d); x.setDate(x.getDate() - k); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`; };
+        for (let k = 1; k <= 3; k++) { const h = Array(24).fill(0); h[10] = 5 + k; h[15] = 8; localStorage.setItem("st-day-" + key(k), JSON.stringify({ date: key(k), in: 13 + k, out: 12, occ: 0, peak: 4, peakAt: 0, maxQueue: 1, hourly: { in: h, out: Array(24).fill(0) }, zones: {}, byCam: {}, zv: 2 })); }
+      });
+      await page.reload();
+      const r = await page.waitFor(`(() => { const t = document.getElementById("insightCards").textContent; return t && { t, main: document.querySelector("main").innerText, strong: [...document.querySelectorAll("#insightCards .meter i.on")].length, cards: __IQ.last.cards.map(c => c.level) }; })()`, 5000);
+      assert(/ข้อมูลยังน้อย/.test(r.t), "small-data notice");
+      assert(!r.cards.includes("strong"), "no strong confidence on 3 days: " + r.cards);
+      assert(!/NaN|undefined|Infinity/.test(r.main), "bad text in small-data view");
+      assert(!unexpected(page).length, "console errors: " + JSON.stringify(unexpected(page).slice(0, 3)));
+    });
+
+    await check("privacy: only same-origin static files + Google Fonts; /api/agg only when a hub is configured", async () => {
+      const p2 = await browser.newPage(null, { isolated: true });
+      await p2.goto(url);
+      await p2.evaluate(() => { localStorage.clear(); document.getElementById("seedDemoEmpty").click(); });
+      await sleep(600);
+      const origin = new URL(base).origin;
+      const bad = p2.requests.filter(r => { if (/^(data|blob|about):/.test(r.url)) return false; const u = new URL(r.url); return !(u.origin === origin && !u.pathname.startsWith("/api/")) && !FONT.test(u.host); });
+      assert(!bad.length, "unexpected requests: " + bad.map(r => r.url).join(", "));
+      const ls = await p2.evaluate(() => Object.keys(localStorage).filter(k => /data:image/.test(localStorage.getItem(k))));
+      assert(!ls.length, "images in localStorage " + ls);
+      // hub configured -> one GET /api/agg (numbers only), nothing else to /api
+      await p2.evaluate(() => localStorage.setItem("lq-agg", JSON.stringify({ role: "hub", code: "ABCD-EFGH" })));
+      const n0 = p2.requests.length;
+      await p2.reload(); await sleep(600);
+      const api = p2.requests.slice(n0).filter(r => { try { return new URL(r.url).pathname.startsWith("/api/"); } catch { return false; } });
+      assert(api.length >= 1 && api.every(r => r.method === "GET" && /\/api\/agg\?from=/.test(r.url)), "api requests " + api.map(r => r.method + " " + r.url).join(", "));
+      const ex = p2.consoleErrors.filter(e => e.kind === "exception");
+      assert(!ex.length, "exceptions " + JSON.stringify(ex));
+      await p2.close();
+    });
+  } finally { await browser.close(); }
+}

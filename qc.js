@@ -237,6 +237,105 @@ const QC = (() => {
     return { frac: n ? hit / n : 0, cx: hit ? sx / hit / Math.max(1, r.w - 1) : 0.5, cy: hit ? sy / hit / Math.max(1, r.h - 1) : 0.5 };
   }
 
+  /* ก้อนวัตถุในพื้นที่ทริกเกอร์ (connected components 4 ทิศ บนตารางที่สุ่มทุก step พิกเซล) เทียบภาพอ้างอิง
+     คืน [{area, frac, x0, x1, y0, y1, cx}] (พิกัด 0..1 ภายใน ROI) เรียงจากใหญ่ไปเล็ก ตัดก้อนเล็กกว่า minFrac ของ ROI */
+  function blobs(img, ref, r, thr = 30, step = 2, minFrac = 0.015) {
+    const a = img.data, b = ref.data, W = img.width;
+    const gw = Math.max(1, Math.ceil(r.w / step)), gh = Math.max(1, Math.ceil(r.h / step)), n = gw * gh;
+    const m = new Uint8Array(n), lab = new Int32Array(n), stack = new Int32Array(n);
+    for (let gy = 0; gy < gh; gy++) for (let gx = 0; gx < gw; gx++) {
+      const x = Math.min(r.w - 1, gx * step), y = Math.min(r.h - 1, gy * step), i = ((r.y + y) * W + r.x + x) * 4;
+      m[gy * gw + gx] = Math.abs(lumAt(a, i) - lumAt(b, i)) > thr ? 1 : 0;
+    }
+    const out = [];
+    let id = 0;
+    for (let s0 = 0; s0 < n; s0++) {
+      if (!m[s0] || lab[s0]) continue;
+      id++; let sp = 0, area = 0, x0 = gw, x1 = -1, y0 = gh, y1 = -1, sx = 0;
+      stack[sp++] = s0; lab[s0] = id;
+      while (sp) {
+        const k = stack[--sp], x = k % gw, y = (k / gw) | 0;
+        area++; sx += x; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+        if (x > 0 && m[k - 1] && !lab[k - 1]) { lab[k - 1] = id; stack[sp++] = k - 1; }
+        if (x < gw - 1 && m[k + 1] && !lab[k + 1]) { lab[k + 1] = id; stack[sp++] = k + 1; }
+        if (y > 0 && m[k - gw] && !lab[k - gw]) { lab[k - gw] = id; stack[sp++] = k - gw; }
+        if (y < gh - 1 && m[k + gw] && !lab[k + gw]) { lab[k + gw] = id; stack[sp++] = k + gw; }
+      }
+      const frac = area / n;
+      if (frac >= minFrac) out.push({ area, frac, x0: x0 / gw, x1: (x1 + 1) / gw, y0: y0 / gh, y1: (y1 + 1) / gh, cx: (sx / area + 0.5) / gw });
+    }
+    return out.sort((p, q) => q.area - p.area);
+  }
+  /* รวมก้อนที่ซ้อนกันในแนวนอน (ฝา/คอ/ตัวขวดใบเดียวกันอาจแยกเป็นหลายก้อนในแนวตั้ง) -> ช่วง x ของแต่ละ "ขวด" */
+  function blobGroups(bl, gap = 0.02) {
+    const g = bl.map(b => ({ x0: b.x0, x1: b.x1, frac: b.frac })).sort((p, q) => p.x0 - q.x0), out = [];
+    for (const b of g) {
+      const last = out[out.length - 1];
+      if (last && b.x0 <= last.x1 + gap) { last.x1 = Math.max(last.x1, b.x1); last.frac += b.frac; }
+      else out.push({ ...b });
+    }
+    return out;
+  }
+  /* เตือน "ขวดสองใบในพื้นที่ทริกเกอร์": สองกลุ่มขึ้นไป (two) หรือกลุ่มเดียวแต่กว้างกว่าขวดตัวอย่าง wideK เท่า (ขวดชิดกัน: wide)
+     expW = ความกว้างขวดตัวอย่าง (สัดส่วนของ ROI) จากการสอบเทียบ หรือ null */
+  function multiCheck(bl, expW = null, { wideK = 1.6, minGroupFrac = 0.03 } = {}) {
+    const groups = blobGroups(bl).filter(g => g.frac >= minGroupFrac);
+    if (groups.length >= 2) return { multi: true, n: groups.length, kind: "two", groups };
+    if (groups.length === 1 && expW > 0 && groups[0].x1 - groups[0].x0 > wideK * expW && groups[0].x0 > 0.001 && groups[0].x1 < 0.999) return { multi: true, n: 2, kind: "wide", groups };
+    return { multi: false, n: groups.length, kind: null, groups };
+  }
+
+  /* p-chart (สัดส่วนของเสีย) ต่อไลน์ คำนวณในเครื่อง: แบ่งบันทึกการตรวจเป็นกลุ่มย่อยละ size ขวดตามลำดับเวลา
+     p̄ = ของเสียรวม / ตรวจรวม · UCL/LCL = p̄ ± 3·sqrt(p̄(1−p̄)/nᵢ) (ตัดที่ 0..1) · กลุ่มสุดท้ายที่ไม่ครบใช้ nᵢ ของตัวเอง
+     log: [{t, pass, lane?}] (ไม่มี lane = "L1") ; lane null = ทุกไลน์ */
+  function pChart(log, { lane = null, size = 20 } = {}) {
+    size = Math.max(2, Math.round(size) || 20);
+    const L = (log || []).filter(l => l && (lane == null || (l.lane || "L1") === lane));
+    const groups = [];
+    for (let i = 0; i < L.length; i += size) {
+      const g = L.slice(i, i + size), d = g.filter(l => !l.pass).length;
+      groups.push({ i: groups.length, n: g.length, d, p: d / g.length, t0: g[0].t, t1: g[g.length - 1].t });
+    }
+    const N = groups.reduce((s, g) => s + g.n, 0), D = groups.reduce((s, g) => s + g.d, 0), pbar = N ? D / N : 0;
+    for (const g of groups) {
+      const sd = Math.sqrt(pbar * (1 - pbar) / g.n);
+      g.ucl = Math.min(1, pbar + 3 * sd); g.lcl = Math.max(0, pbar - 3 * sd);
+      g.out = g.p > g.ucl + 1e-12 || (g.lcl > 0 && g.p < g.lcl - 1e-12);
+    }
+    return { pbar, n: N, d: D, size, groups, outCount: groups.filter(g => g.out).length };
+  }
+
+  /* ย้ายภาพ (data URL) ออกจาก localStorage ไป IndexedDB — เรียกซ้ำได้ ผลเหมือนเดิม
+     items = รายการ object · field = ชื่อฟิลด์ภาพ · keyOf(item) -> คีย์ · put(key, value) -> Promise
+     ลบภาพออกจาก item (ตั้ง "" หรือ null) เฉพาะเมื่อ put สำเร็จ และเติม item.ik = key ; คืนรายชื่อคีย์ที่ย้าย */
+  async function migrateImages(items, field, keyOf, put, empty = null) {
+    const moved = [];
+    for (const it of items || []) {
+      const v = it && it[field];
+      if (typeof v !== "string" || !v.startsWith("data:")) continue;
+      const key = keyOf(it);
+      try { await put(key, v); } catch { continue; }
+      it[field] = empty; it.ik = key; moved.push(key);
+    }
+    return moved;
+  }
+  const bgKey = (lane, recipeId) => `${lane}|${recipeId}`;
+  const thumbKey = r => `${r.lane || "L1"}|${r.t}`;
+  /* สูตรเดิมเก็บพื้นหลังว่างเป็น rec.bg (JPEG data URL) -> IndexedDB คีย์ "L1|<recipeId>" */
+  const migrateBgs = (recipes, put) => migrateImages(recipes, "bg", r => bgKey("L1", r.id), put, null);
+  const migrateThumbs = (rejects, put) => migrateImages(rejects, "img", thumbKey, put, "");
+
+  /* สถิติต่อไลน์จาก shift (shift.lanes มีเมื่อใช้รุ่นนี้ ; รุ่นเก่า = ทุกอย่างเป็น L1) */
+  function laneStats(shift, lane) {
+    const z = { total: 0, pass: 0, reject: 0, missed: 0, multi: 0, reasons: {} };
+    if (!shift) return z;
+    if (lane == null) return { total: shift.total || 0, pass: shift.pass || 0, reject: shift.reject || 0, missed: shift.missed || 0, multi: Object.values(shift.lanes || {}).reduce((s, l) => s + (l.multi || 0), 0), reasons: shift.reasons || {} };
+    const l = shift.lanes && shift.lanes[lane];
+    if (l) return { ...z, ...l, reasons: { ...(l.reasons || {}) } };
+    if (lane === "L1" && !shift.lanes) return { ...z, total: shift.total || 0, pass: shift.pass || 0, reject: shift.reject || 0, missed: shift.missed || 0, reasons: { ...(shift.reasons || {}) } };
+    return z;
+  }
+
   /* สถานะการมีขวดในพื้นที่ทริกเกอร์: empty -> present -> (ตรวจ 1 ครั้ง) done -> empty
      obs = {frac, cx, motion}  cfg = {on, off, centerTol, motionMax, requireStill, stableFrames, leaveFrames}
      event: "enter" | "inspect" | "left" | "missed" | null */
@@ -293,6 +392,11 @@ const QC = (() => {
     if (lr) {
       g.label = labelAnalyze(img, lr);
       if (g.label.edge < 0.005) throw new Error("พื้นที่ฉลากแทบไม่มีลวดลาย ตรวจฉลากไม่ได้");
+    }
+    const tr = roiPx(rec.rois.trigger, W, H);
+    if (tr && bg && bg.width === W && bg.height === H) {
+      const gr = blobGroups(blobs(img, bg, tr)).sort((p, q) => q.frac - p.frac)[0];
+      if (gr) g.trigW = +(gr.x1 - gr.x0).toFixed(4); // ความกว้างขวดตัวอย่างในพื้นที่ทริกเกอร์ (ใช้เตือนขวดชิดกัน)
     }
     return g;
   }
@@ -407,7 +511,8 @@ const QC = (() => {
   }
 
   // เฟรม ณ เวลา t (ms) สายพานแบบเดินหยุด: เข้า -> หยุดกลางภาพ -> ออก
-  function simFrame(img, type, t, period = 2400, defectRate = 0.3) {
+  /* opts.pairRate = โอกาสที่มีขวดใบที่สองชิดมาด้วย (ค่าเริ่มต้น 0 = ภาพจำลองเดิม) */
+  function simFrame(img, type, t, period = 2400, defectRate = 0.3, opts = {}) {
     const G = simGeom(type, img.width, img.height), W = img.width;
     const k = Math.floor(t / period), p = (t % period) / period;
     simBackground(img, G, Math.round(t * 0.12));
@@ -418,14 +523,17 @@ const QC = (() => {
     const r = rnd(k * 7919 + 13); r();
     const defect = r() < defectRate ? SIM_DEFECTS[Math.floor(r() * SIM_DEFECTS.length)] : null;
     simBottle(img, G, x, defect);
+    let pair = false;
+    if (opts.pairRate > 0) { const r2 = rnd(k * 104729 + 7); r2(); if (r2() < opts.pairRate) { pair = true; simBottle(img, G, x + G.bodyW + 10, null); } }
     simNoise(img, (t | 0) + 1);
-    return { index: k, defect, x };
+    return { index: k, defect, x, pair };
   }
 
   return {
     clamp, roiPx, rowProfile, smooth, gradient, findEdge, classifyFill, rgbToLab, deltaE, fgMask,
     capAnalyze, capJudge, edgeMap, colorHist, histCorrelation, bestShift, labelAnalyze, labelJudge,
     diffStats, presenceInit, presenceStep, calibrate, inspect, fillTolPx, REASONS, SHORT,
+    blobs, blobGroups, multiCheck, pChart, migrateImages, migrateBgs, migrateThumbs, bgKey, thumbKey, laneStats,
     simGeom, simBackground, simBottle, simNoise, simFrame, SIM_DEFECTS
   };
 })();
@@ -441,6 +549,7 @@ if (typeof document !== "undefined") (() => {
   const ROI_NAMES = { trigger: "ขวด/ทริกเกอร์", fill: "ระดับน้ำ", cap: "ฝา", label: "ฉลาก" };
   const ROI_COL = { trigger: "#2a78d6", fill: "#0e9fb8", cap: "#c9a45c", label: "#6250d6" };
   const FILL_TH = { ok: "ผ่าน", under: "ต่ำกว่าเกณฑ์", over: "เกินเกณฑ์", nolevel: "ไม่พบระดับน้ำ" };
+  const LANE_IDS = ["L1", "L2", "L3", "L4"];
 
   const defTol = () => ({ fill: 6, fillUnit: "px", minContrast: 12, capDE: 15, capCov: 50, capTilt: 6, capHigh: 4, labelSim: 80, labelShift: 6 });
   const defTrig = () => ({ on: 15, off: 5, requireStill: true, stableFrames: 3 });
@@ -449,45 +558,167 @@ if (typeof document !== "undefined") (() => {
   }
   let recipes = load(K.recipes, null);
   if (!Array.isArray(recipes) || !recipes.length) recipes = [simRecipe("600", "ขวดใส 600 มล. (ภาพจำลอง)"), simRecipe("1500", "ขวดใส 1.5 ลิตร (ภาพจำลอง)")];
-  let rec = recipes.find(r => r.id === load(K.active, "")) || recipes[0];
-  const settings = { beep: true, webhookOn: false, webhook: "", ...load(K.settings, {}) };
-  const newShift = () => ({ start: Date.now(), total: 0, pass: 0, reject: 0, missed: 0, reasons: {}, log: [], rejects: [] });
-  let shift = { ...newShift(), ...load(K.shift, {}) };
+  // lanes = จำนวนไลน์ (1 = เหมือนเดิม) · laneRecipes = สูตรของไลน์ 2–4 (ไลน์ 1 ใช้ qc-active) · pSize = ขนาดกลุ่มย่อย p-chart
+  const settings = { beep: true, webhookOn: false, webhook: "", lanes: 1, laneRecipes: {}, pSize: 20, ...load(K.settings, {}) };
+  if (!settings.laneRecipes || typeof settings.laneRecipes !== "object") settings.laneRecipes = {};
+  settings.lanes = Math.max(1, Math.min(4, Math.round(+settings.lanes) || 1));
+  const newShift = () => ({ start: Date.now(), total: 0, pass: 0, reject: 0, missed: 0, reasons: {}, log: [], rejects: [], lanes: {} });
+  const shiftRaw = load(K.shift, {}) || {};
+  let shift = { ...newShift(), ...shiftRaw };
+  if (!shiftRaw.lanes || typeof shiftRaw.lanes !== "object") {
+    // กะที่บันทึกด้วยรุ่นก่อน (ไลน์เดียว) = ยอดทั้งหมดเป็นของไลน์ 1
+    shift.lanes = shift.total ? { L1: { total: shift.total, pass: shift.pass, reject: shift.reject, missed: shift.missed, multi: 0, reasons: { ...shift.reasons } } } : {};
+  }
+  const laneShift = id => shift.lanes[id] || (shift.lanes[id] = { total: 0, pass: 0, reject: 0, missed: 0, multi: 0, reasons: {} });
 
-  const frame = $("#frame"), fctx = frame.getContext("2d", { willReadFrequently: true });
+  // ---------- IndexedDB: พื้นหลังว่าง (bg) และรูปย่อขวดที่คัดทิ้ง (thumbs) — ไม่ใช้ localStorage ----------
+  const IDB = (() => {
+    let dbp = null;
+    function open() {
+      if (dbp) return dbp;
+      dbp = new Promise((res, rej) => {
+        if (!window.indexedDB) return rej(new Error("no indexedDB"));
+        let r; try { r = indexedDB.open("lensiq-qc", 1); } catch (e) { return rej(e); }
+        r.onupgradeneeded = () => { const db = r.result; for (const n of ["bg", "thumbs"]) if (!db.objectStoreNames.contains(n)) db.createObjectStore(n); };
+        r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error || new Error("idb open")); r.onblocked = () => rej(new Error("idb blocked"));
+      });
+      dbp.catch(() => {});
+      return dbp;
+    }
+    const tx = (store, mode, fn) => open().then(db => new Promise((res, rej) => {
+      const t = db.transaction(store, mode), q = fn(t.objectStore(store));
+      t.oncomplete = () => res(q ? q.result : undefined); t.onerror = t.onabort = () => rej(t.error || new Error("idb tx"));
+    }));
+    return {
+      ok: () => open().then(() => true, () => false),
+      get: (st, k) => tx(st, "readonly", s => s.get(k)), put: (st, k, v) => tx(st, "readwrite", s => s.put(v, k)),
+      del: (st, k) => tx(st, "readwrite", s => s.delete(k)), keys: st => tx(st, "readonly", s => s.getAllKeys()), clear: st => tx(st, "readwrite", s => s.clear())
+    };
+  })();
+  let idbOk = null; // null = ยังไม่รู้ ; false = ใช้ localStorage แบบเดิม (สำรอง)
+
+  const disp = $("#frame"), dctx = disp.getContext("2d");
   const overlay = $("#overlay"), octx = overlay.getContext("2d");
-  const video = $("#video");
-  let W = 640, H = 480, cur = null, prev = null, bg = null, source = "sim", running = false;
-  let simBuf = [], simT0 = performance.now(), simInfo = null, stillImg = null;
-  let pst = QC.presenceInit(), last = null, lastAt = 0, trigObs = null, activeRoi = "fill", drag = null, fpsT = [];
+  const domVideo = $("#video");
+  const hubBox = $("#qcHubGrid");
+
+  /* ไลน์ = สถานี: สูตร (ROI/เกณฑ์/ขวดตัวอย่าง) พื้นหลังว่าง สถานะทริกเกอร์ และแหล่งภาพของตัวเอง
+     ตัวแปรของไลน์ที่เลือกถูก "สลับ" เข้าตัวแปรด้านล่างระหว่างประมวลผล (use(L)) — ไลน์เดียว = เหมือนรุ่นก่อนทุกอย่าง */
+  function makeLane(i) {
+    const frame = document.createElement("canvas"); frame.width = 640; frame.height = 480;
+    return { id: LANE_IDS[i], idx: i, rec: null, W: 640, H: 480, cur: null, prev: null, bg: null, pst: QC.presenceInit(), trigObs: null, last: null, lastAt: 0,
+      simBuf: [], simInfo: null, stillImg: null, frame, fctx: frame.getContext("2d", { willReadFrequently: true }), video: i === 0 ? domVideo : null, mirrorCam: false, fpsT: [], hubCam: null, multiAt: 0, lastMulti: null };
+  }
+  const lanes = LANE_IDS.map((_, i) => makeLane(i));
+  const nLanes = () => settings.lanes;
+  const activeLanes = () => lanes.slice(0, nLanes());
+  let selIdx = 0;
+  const selLane = () => lanes[selIdx];
+
+  // ตัวแปรของไลน์ปัจจุบัน
+  let W = 640, H = 480, cur = null, prev = null, bg = null, pst = QC.presenceInit(), last = null, lastAt = 0, trigObs = null;
+  let simBuf = [], simInfo = null, stillImg = null, rec = null, frame = lanes[0].frame, fctx = lanes[0].fctx, video = domVideo, mirrorCam = false, fpsT = [];
+  let curLane = lanes[0];
+  const VARS = ["W", "H", "cur", "prev", "bg", "pst", "last", "lastAt", "trigObs", "simBuf", "simInfo", "stillImg", "rec", "frame", "fctx", "video", "mirrorCam", "fpsT"];
+  function stash() {
+    const L = curLane;
+    Object.assign(L, { W, H, cur, prev, bg, pst, last, lastAt, trigObs, simBuf, simInfo, stillImg, rec, frame, fctx, video, mirrorCam, fpsT });
+  }
+  function use(L) {
+    if (L === curLane) return;
+    stash(); curLane = L;
+    ({ W, H, cur, prev, bg, pst, last, lastAt, trigObs, simBuf, simInfo, stillImg, rec, frame, fctx, video, mirrorCam, fpsT } = L);
+  }
+  const withLane = (L, fn) => { const keep = curLane; use(L); try { return fn(); } finally { use(keep); } };
+  const laneVar = (L, k) => (L === curLane ? { W, H, bg, rec }[k] : L[k]);
+  function setLaneBg(L, v) { if (L === curLane) bg = v; else L.bg = v; }
+  void VARS;
+
+  let source = "sim", running = false;
+  let simT0 = performance.now(), activeRoi = "fill", drag = null;
+
+  // สูตรของแต่ละไลน์
+  const recById = id => recipes.find(r => r.id === id);
+  function cloneRecipe(base, L) {
+    const c = JSON.parse(JSON.stringify(base));
+    c.id = `${base.id}-${L.id.toLowerCase()}-${Date.now().toString(36)}`; c.name = `${base.name.replace(/ · ไลน์ \d$/, "")} · ไลน์ ${L.idx + 1}`.slice(0, 60); c.bg = null;
+    recipes.push(c); return c;
+  }
+  /* ไลน์ 2–4: สูตรที่จำไว้ หรือคัดลอกจากสูตรของไลน์ 1 (ครั้งแรกที่เพิ่มไลน์) คืน true ถ้าสร้างสูตรใหม่ */
+  function assignRecipes() {
+    let made = false;
+    stash();
+    for (const L of lanes.slice(1)) {
+      let r = recById(settings.laneRecipes[L.id]);
+      if (!r && L.idx < nLanes()) { r = cloneRecipe(lanes[0].rec, L); settings.laneRecipes[L.id] = r.id; made = true; }
+      if (L === curLane) rec = r || recipes[0]; else L.rec = r || null;
+    }
+    return made;
+  }
+  if (lanes[0].rec == null) lanes[0].rec = recById(load(K.active, "")) || recipes[0];
+  rec = lanes[0].rec;
 
   const bgOk = () => bg && bg.width === W && bg.height === H ? bg : null;
   function engine(msg, cls = "") { const e = $("#engine"); e.textContent = msg; e.className = "engine " + cls; }
   function retryBtn(fn) { const b = document.createElement("button"); b.className = "btn ghost retry"; b.type = "button"; b.textContent = "ลองอีกครั้ง"; b.onclick = fn; $("#engine").append(" ", b); }
-  const persistRecipes = () => { save(K.recipes, recipes); save(K.active, rec.id); };
+  const laneTag = L => (nLanes() > 1 ? `ไลน์ ${L.idx + 1}: ` : "");
+  const persistRecipes = () => {
+    stash();
+    save(K.recipes, recipes); save(K.active, lanes[0].rec.id);
+    for (const L of lanes.slice(1)) if (L.rec) settings.laneRecipes[L.id] = L.rec.id;
+    save(K.settings, settings);
+  };
   let shiftTimer = 0;
   const persistShift = () => { clearTimeout(shiftTimer); shiftTimer = setTimeout(() => save(K.shift, shift), 500); };
 
   function setSize(w, h) {
     W = 640; H = Math.max(120, Math.round(640 * h / w)) & ~1;
-    if (frame.width !== W || frame.height !== H) { frame.width = overlay.width = W; frame.height = overlay.height = H; simBuf = []; prev = null; }
+    if (frame.width !== W || frame.height !== H) { frame.width = W; frame.height = H; simBuf = []; prev = null; }
+    if (curLane === selLane()) syncDisplay();
   }
+  function syncDisplay() {
+    const L = selLane(), w = laneVar(L, "W"), h = laneVar(L, "H");
+    if (disp.width !== w || disp.height !== h) { disp.width = overlay.width = w; disp.height = overlay.height = h; }
+  }
+  /* แสดงภาพของไลน์ที่เลือกบนหน้าจอ (ภาพประมวลผลอยู่ใน canvas ของแต่ละไลน์) */
+  function show() { syncDisplay(); const L = selLane(); dctx.drawImage(L === curLane ? frame : L.frame, 0, 0); }
 
   // ---------- แหล่งภาพ ----------
-  /* กล้องผ่านโมดูลกลาง LQCam: ลำดับสำรองเมื่อกล้องที่จำไว้ไม่พร้อม (Overconstrained) จำกล้องที่เลือกไว้ใน 'qc-cam'
-     และหยุด/เปิดกล้องเองเมื่อสลับแอป ล็อกจอ หรือออกจากหน้า (visibilitychange/pagehide/pageshow) */
-  const cam = LQCam.create(video, {
+  /* ไลน์เดียว: กล้องผ่าน LQCam.create (เหมือนเดิม จำกล้องใน 'qc-cam' ถอยไปกล้องอื่นเมื่อกล้องที่จำไว้ไม่พร้อม หยุด/เปิดเองเมื่อสลับแอป)
+     หลายไลน์: LQCam.createHub (ns "qc", กล้องละไลน์ c1..c4 ตามลำดับ) — ตรวจขีดจำกัดจำนวนกล้องของอุปกรณ์ให้ */
+  const cam = LQCam.create(domVideo, {
     facing: "environment", ideal: { width: 1280, height: 720 }, persistKey: "qc-cam", autoPause: true,
     onChange(c, ev) {
+      if (nLanes() > 1) return;
       if (ev.type === "devices") fillCamSel();
-      else if (ev.type === "resumed" && source === "camera") camReady();
+      else if (ev.type === "resumed" && source === "camera") withLane(lanes[0], camReady);
       else if (ev.type === "ended" && source === "camera") { engine("สัญญาณกล้องหลุด (ถอดสายหรือกล้องถูกปิด)", "err"); retryBtn(() => startCamera()); }
     },
-    onError(c, e) { if (source === "camera" && e.name !== "AbortError") camFail(e); }
+    onError(c, e) { if (nLanes() === 1 && source === "camera" && e.name !== "AbortError") camFail(e); }
   });
-  function stopStream() { cam.stop(); video.pause(); video.removeAttribute("src"); video.srcObject = null; }
+  let hub = null;
+  function makeHub() {
+    return LQCam.createHub({
+      ns: "qc", grid: hubBox, facing: "environment",
+      onChange(h, ev) {
+        if (ev.type === "started" || ev.type === "resumed") { const c = h.cam(ev.slot); const L = c && laneOfCam(c); if (L) withLane(L, () => setSize(c.video.videoWidth || 640, c.video.videoHeight || 480)); }
+        if (ev.type === "ended" && source === "camera") { const c = h.cam(ev.slot), L = c && laneOfCam(c); if (L) engine(`ไลน์ ${L.idx + 1}: สัญญาณกล้องหลุด`, "err"); }
+        renderLaneTabs();
+      }
+    });
+  }
+  const laneOfCam = c => activeLanes().find(L => L.hubCam === c) || null;
+  function stopStream() {
+    cam.stop(); domVideo.pause(); domVideo.removeAttribute("src"); domVideo.srcObject = null;
+    if (hub) { hub.destroy(); hub = null; }
+    for (const L of lanes) { L.hubCam = null; if (L.idx > 0 && L.video) { L.video.pause(); L.video.removeAttribute("src"); L.video.load(); } }
+    for (const L of lanes.slice(1)) L.video = null;
+    video = curLane.idx === 0 ? domVideo : null; lanes[0].video = domVideo;
+  }
   function showSourceUi() {
     document.querySelectorAll("[data-src]").forEach(el => { el.hidden = !el.dataset.src.split(" ").includes(source); });
+    const multi = nLanes() > 1;
+    document.querySelectorAll("[data-single]").forEach(el => { if (multi) el.hidden = true; });
   }
   function fillCamSel() {
     const sel = $("#camSel"), keep = cam.deviceId || sel.value, devs = cam.devices.filter(d => d.deviceId);
@@ -498,12 +729,11 @@ if (typeof document !== "undefined") (() => {
     try { await cam.refreshDevices(); fillCamSel(); }
     catch { $("#camSel").innerHTML = `<option value="">อ่านรายชื่อกล้องไม่ได้</option>`; }
   }
-  let mirrorCam = false; // กล้องหลังเป็นค่าเริ่มต้น กลับด้านภาพเฉพาะกล้องหน้า
   function camReady() {
     mirrorCam = cam.mirrored;
     fillCamSel();
-    setSize(video.videoWidth || 640, video.videoHeight || 480);
-    engine(`กล้องพร้อม (${video.videoWidth}×${video.videoHeight}) — ประมวลผลภาพที่ความกว้าง ${W} พิกเซล`, "ok");
+    setSize(domVideo.videoWidth || 640, domVideo.videoHeight || 480);
+    engine(`กล้องพร้อม (${domVideo.videoWidth}×${domVideo.videoHeight}) — ประมวลผลภาพที่ความกว้าง ${W} พิกเซล`, "ok");
   }
   function camFail(e) {
     const m = {
@@ -518,45 +748,79 @@ if (typeof document !== "undefined") (() => {
   /* useDevice=false: สลับกล้องหน้า/หลัง (cam.flip) แทนกล้องที่เลือกในรายการ
      ค่าว่างในรายการ = กล้องที่จำไว้ใน qc-cam ถ้ากล้องนั้นหายไป LQCam จะถอยไปใช้กล้องหลัง/กล้องใดก็ได้ */
   async function startCamera(useDevice = true) {
-    video.removeAttribute("src");
+    if (nLanes() > 1) return startHubCams();
+    domVideo.removeAttribute("src");
     engine("กำลังเปิดกล้อง...");
     try {
       if (useDevice === true) await cam.start($("#camSel").value || undefined);
       else await cam.flip();
       if (source !== "camera") { cam.stop(); return; }
-      camReady();
+      withLane(lanes[0], camReady);
     } catch (e) {
       if (e.name === "AbortError" && /superseded/.test(e.message)) return; // มีการเปิดกล้องครั้งใหม่ซ้อน
       camFail(e);
     }
   }
+  /* หลายไลน์: เปิดกล้องตามที่จำไว้ (qc-cams) แล้วเพิ่มจนครบจำนวนไลน์ ถ้าอุปกรณ์เปิดพร้อมกันไม่ได้ ไลน์ที่เหลือแสดง "ไม่มีกล้อง" */
+  async function startHubCams() {
+    cam.stop();
+    if (!hub) hub = makeHub();
+    engine(`กำลังเปิดกล้อง ${nLanes()} ไลน์...`);
+    let err = null;
+    try { await hub.restore(); } catch (e) { err = e; }
+    while (!err && hub.cams.length < nLanes()) {
+      try { await hub.add({ name: `ไลน์ ${hub.cams.length + 1}` }); } catch (e) { err = e; }
+    }
+    if (source !== "camera" || !hub) return;
+    const cams = hub.cams.slice().sort((a, b) => a.slot.localeCompare(b.slot));
+    activeLanes().forEach((L, i) => {
+      const c = cams[i] || null; L.hubCam = c;
+      const v = c ? c.video : null;
+      if (L === curLane) video = v; else L.video = v;
+      if (c && c.video.videoWidth) withLane(L, () => setSize(c.video.videoWidth, c.video.videoHeight));
+    });
+    const live = activeLanes().filter(L => L.hubCam && L.hubCam.active).length;
+    if (err && err.name !== "DuplicateCamera") engine(`เปิดกล้องได้ ${live} จาก ${nLanes()} ไลน์ — ${LQCam.errorText(err) || err.message}`, live ? "warn" : "err");
+    else engine(`กล้องพร้อม ${live} ไลน์ — ประมวลผลภาพที่ความกว้าง 640 พิกเซลต่อไลน์`, live ? "ok" : "err");
+    if (!live) retryBtn(() => startCamera());
+    renderLaneTabs();
+  }
   async function setSource(s) {
-    source = s; mirrorCam = false; showSourceUi(); stopStream(); stillImg = null; prev = null; cur = null; running = false; $("#toggle").textContent = "เริ่มตรวจต่อเนื่อง"; renderRecipe(); pst = QC.presenceInit();
-    if (s === "camera") { await listCameras(); startCamera(); }
-    else if (s === "sim") { setSize(640, 480); simT0 = performance.now(); engine("ภาพจำลองสายการผลิต: สายพานเดิน-หยุด สุ่มขวดบกพร่องประมาณ 30% ใช้สูตร “ภาพจำลอง” แล้วกด “สอบเทียบภาพจำลองอัตโนมัติ”", "ok"); }
-    else if (s === "video") engine("เลือกไฟล์วิดีโอของสายการผลิต (เล่นวนซ้ำ)");
-    else if (s === "image") engine("เลือกรูปภาพขวด — ใช้รูปสายพานว่างสำหรับ “บันทึกพื้นหลังว่าง” และรูปขวดดีสำหรับ “บันทึกขวดตัวอย่างที่ผ่าน”");
+    source = s; stopStream(); showSourceUi();
+    for (const L of activeLanes()) withLane(L, () => { mirrorCam = false; stillImg = null; prev = null; cur = null; pst = QC.presenceInit(); });
+    running = false; $("#toggle").textContent = "เริ่มตรวจต่อเนื่อง"; $("#toggle").classList.remove("on"); renderRecipe();
+    if (s === "camera") { if (nLanes() === 1) await listCameras(); startCamera(); }
+    else if (s === "sim") { for (const L of activeLanes()) withLane(L, () => setSize(640, 480)); simT0 = performance.now(); engine("ภาพจำลองสายการผลิต: สายพานเดิน-หยุด สุ่มขวดบกพร่องประมาณ 30% ใช้สูตร “ภาพจำลอง” แล้วกด “สอบเทียบภาพจำลองอัตโนมัติ”", "ok"); }
+    else if (s === "video") engine(`เลือกไฟล์วิดีโอของสายการผลิต (เล่นวนซ้ำ)${nLanes() > 1 ? " — ใช้กับไลน์ที่เลือก" : ""}`);
+    else if (s === "image") engine(`เลือกรูปภาพขวด — ใช้รูปสายพานว่างสำหรับ “บันทึกพื้นหลังว่าง” และรูปขวดดีสำหรับ “บันทึกขวดตัวอย่างที่ผ่าน”${nLanes() > 1 ? " (ใช้กับไลน์ที่เลือก)" : ""}`);
   }
   $("#srcSel").onchange = e => setSource(e.target.value);
   $("#camSel").onchange = () => source === "camera" && startCamera();
-  $("#flipCam").onclick = () => { if (source !== "camera") return; startCamera(false); };
+  $("#flipCam").onclick = () => { if (source !== "camera" || nLanes() > 1) return; startCamera(false); };
   // หมุนจอมือถือ -> ขนาดภาพจากกล้องเปลี่ยน ปรับขนาดภาพประมวลผลตาม
-  video.addEventListener("resize", () => { if (source === "camera" && video.videoWidth) setSize(video.videoWidth, video.videoHeight); });
+  domVideo.addEventListener("resize", () => { if (source === "camera" && nLanes() === 1 && domVideo.videoWidth) withLane(lanes[0], () => setSize(domVideo.videoWidth, domVideo.videoHeight)); });
   // ปิด/เปิดกล้องเมื่อสลับแอป ล็อกจอ และรายการกล้องเมื่อเสียบ/ถอด USB: LQCam จัดการให้ (autoPause, devicechange)
   $("#videoFile").onchange = e => {
     const f = e.target.files[0]; if (!f) return;
-    stopStream(); video.src = URL.createObjectURL(f); video.loop = true; video.muted = true;
-    video.onloadedmetadata = () => { setSize(video.videoWidth, video.videoHeight); video.play().catch(() => {}); engine(`เล่นวิดีโอ ${f.name} (${video.videoWidth}×${video.videoHeight}) วนซ้ำ`, "ok"); };
-    video.onerror = () => engine("เปิดไฟล์วิดีโอไม่ได้ (รูปแบบไม่รองรับ ลองใช้ MP4 H.264 หรือ WebM)", "err");
+    const L = selLane();
+    stopStream();
+    const v = L.idx === 0 ? domVideo : Object.assign(document.createElement("video"), { muted: true, playsInline: true });
+    if (L === curLane) video = v; else L.video = v;
+    v.src = URL.createObjectURL(f); v.loop = true; v.muted = true;
+    v.onloadedmetadata = () => { withLane(L, () => setSize(v.videoWidth, v.videoHeight)); v.play().catch(() => {}); engine(`${laneTag(L)}เล่นวิดีโอ ${f.name} (${v.videoWidth}×${v.videoHeight}) วนซ้ำ`, "ok"); };
+    v.onerror = () => engine("เปิดไฟล์วิดีโอไม่ได้ (รูปแบบไม่รองรับ ลองใช้ MP4 H.264 หรือ WebM)", "err");
   };
   $("#imageFile").onchange = e => {
     const f = e.target.files[0]; if (!f) return;
-    const img = new Image();
+    const L = selLane(), img = new Image();
     img.onload = () => {
-      setSize(img.naturalWidth, img.naturalHeight); stillImg = img; URL.revokeObjectURL(img.src);
-      engine(`โหลดรูป ${f.name} แล้ว`, "ok");
-      grab(performance.now());
-      if (rec.golden) runInspect("image");
+      withLane(L, () => {
+        setSize(img.naturalWidth, img.naturalHeight); stillImg = img; URL.revokeObjectURL(img.src);
+        engine(`${laneTag(L)}โหลดรูป ${f.name} แล้ว`, "ok");
+        grab(performance.now());
+        if (rec.golden) runInspect("image");
+      });
+      show();
     };
     img.onerror = () => engine("เปิดไฟล์รูปไม่ได้", "err");
     img.src = URL.createObjectURL(f);
@@ -564,11 +828,12 @@ if (typeof document !== "undefined") (() => {
   };
   $("#simSpeed").onchange = () => { simT0 = performance.now(); };
 
+  window.__QC = { simPairRate: 0 }; // เฉพาะการทดสอบ: โอกาสมีขวดสองใบชิดกันในภาพจำลอง (ค่าเริ่มต้น 0 = ภาพจำลองเดิม)
   function grab(now) {
     if (source === "sim") {
-      if (simBuf.length !== 2) simBuf = [new ImageData(W, H), new ImageData(W, H)];
-      const img = simBuf[0] === cur ? simBuf[1] : simBuf[0];
-      simInfo = QC.simFrame(img, rec.sim || "600", now - simT0, +$("#simSpeed").value);
+      if (simBuf.length !== 2 || simBuf[0].width !== W || simBuf[0].height !== H) simBuf = [new ImageData(W, H), new ImageData(W, H)];
+      const img = simBuf[0] === cur ? simBuf[1] : simBuf[0], period = +$("#simSpeed").value;
+      simInfo = QC.simFrame(img, rec.sim || "600", now - simT0 + curLane.idx * period * 0.37, period, 0.3, { pairRate: +window.__QC.simPairRate || 0 });
       fctx.putImageData(img, 0, 0); prev = cur; cur = img; return true;
     }
     const src = source === "image" ? stillImg : video;
@@ -578,27 +843,52 @@ if (typeof document !== "undefined") (() => {
     prev = cur; cur = fctx.getImageData(0, 0, W, H); return true;
   }
 
-  // ---------- พื้นหลังว่าง ----------
+  // ---------- พื้นหลังว่าง (IndexedDB ต่อไลน์+สูตร ; ไม่มี IndexedDB = localStorage แบบเดิมเฉพาะไลน์ 1) ----------
+  const bgKeyOf = L => QC.bgKey(L.id, (L === curLane ? rec : L.rec).id);
+  function storeBg(L, dataUrl) {
+    const r = L === curLane ? rec : L.rec;
+    if (idbOk) {
+      IDB.put("bg", bgKeyOf(L), { url: dataUrl, w: laneVar(L, "W"), h: laneVar(L, "H"), t: Date.now() })
+        .then(() => { if (r.bg) { r.bg = null; persistRecipes(); } })
+        .catch(e => { console.warn("bg idb", e); fallbackBg(L, r, dataUrl); });
+    } else fallbackBg(L, r, dataUrl);
+  }
+  function fallbackBg(L, r, dataUrl) {
+    if (L.idx !== 0) return; // สำรองแบบเดิม: เฉพาะไลน์ 1 ใน localStorage
+    r.bg = dataUrl; if (!save(K.recipes, recipes)) r.bg = null;
+  }
   function setBg(img, store = true) {
     bg = new ImageData(new Uint8ClampedArray(img.data), img.width, img.height);
     if (store) {
-      try { rec.bg = frame.toDataURL("image/jpeg", 0.85); } catch { rec.bg = null; }
-      if (!save(K.recipes, recipes)) rec.bg = null;
+      let url = null;
+      try { const c = document.createElement("canvas"); c.width = img.width; c.height = img.height; c.getContext("2d").putImageData(img, 0, 0); url = c.toDataURL("image/jpeg", 0.85); } catch { url = null; }
+      if (url) storeBg(curLane, url);
     }
     pst = QC.presenceInit();
     renderRecipe();
   }
-  function loadBg() {
-    bg = null; renderRecipe();
-    if (!rec.bg) return;
-    const im = new Image();
-    im.onload = () => { const c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d"); x.drawImage(im, 0, 0, W, H); bg = x.getImageData(0, 0, W, H); renderRecipe(); };
-    im.src = rec.bg;
+  function loadBg(L = curLane) {
+    const r = L === curLane ? rec : L.rec;
+    setLaneBg(L, null); renderRecipe();
+    if (!r) return;
+    const apply = url => {
+      if (!url) return;
+      const im = new Image();
+      im.onload = () => {
+        if ((L === curLane ? rec : L.rec) !== r) return; // เปลี่ยนสูตรไปแล้ว
+        const w = laneVar(L, "W"), h = laneVar(L, "H"), c = document.createElement("canvas"); c.width = w; c.height = h;
+        const x = c.getContext("2d"); x.drawImage(im, 0, 0, w, h); setLaneBg(L, x.getImageData(0, 0, w, h)); renderRecipe();
+      };
+      im.src = url;
+    };
+    const legacy = L.idx === 0 && typeof r.bg === "string" ? r.bg : null;
+    if (idbOk === false) return apply(legacy);
+    IDB.get("bg", QC.bgKey(L.id, r.id)).then(v => apply((v && v.url) || legacy), () => apply(legacy));
   }
   $("#captureBg").onclick = () => {
     if (!cur) return engine("ยังไม่มีภาพจากแหล่งภาพ", "warn");
-    if (source === "sim") { const im = new ImageData(W, H), G = QC.simGeom(rec.sim || "600", W, H); QC.simBackground(im, G); QC.simNoise(im, 99); fctx.putImageData(im, 0, 0); setBg(im); return engine("บันทึกพื้นหลังว่างของภาพจำลองแล้ว", "ok"); }
-    setBg(cur); engine("บันทึกพื้นหลังว่างแล้ว — ต้องไม่มีขวดอยู่ในภาพขณะบันทึก", "ok");
+    if (source === "sim") { const im = new ImageData(W, H), G = QC.simGeom(rec.sim || "600", W, H); QC.simBackground(im, G); QC.simNoise(im, 99); fctx.putImageData(im, 0, 0); setBg(im); show(); return engine(laneTag(curLane) + "บันทึกพื้นหลังว่างของภาพจำลองแล้ว", "ok"); }
+    setBg(cur); engine(laneTag(curLane) + "บันทึกพื้นหลังว่างแล้ว — ต้องไม่มีขวดอยู่ในภาพขณะบันทึก", "ok");
   };
 
   // ---------- สอบเทียบขวดตัวอย่าง ----------
@@ -607,22 +897,30 @@ if (typeof document !== "undefined") (() => {
       rec.golden = QC.calibrate(img, rec, bgOk());
       persistRecipes(); renderRecipe();
       const warn = rec.rois.cap && !bgOk() ? " (ยังไม่มีพื้นหลังว่าง: การแยก “ไม่มีฝา” กับ “สีฝาผิด” จะแม่นน้อยลง)" : "";
-      engine("บันทึกขวดตัวอย่างที่ผ่านแล้ว" + warn, warn ? "warn" : "ok");
-      last = QC.inspect(img, rec, bgOk()); lastAt = performance.now(); showResult(last);
-    } catch (e) { engine("บันทึกขวดตัวอย่างไม่สำเร็จ: " + e.message, "err"); }
+      engine(laneTag(curLane) + "บันทึกขวดตัวอย่างที่ผ่านแล้ว" + warn, warn ? "warn" : "ok");
+      last = QC.inspect(img, rec, bgOk()); lastAt = performance.now(); if (curLane === selLane()) showResult(last);
+      return true;
+    } catch (e) { engine(laneTag(curLane) + "บันทึกขวดตัวอย่างไม่สำเร็จ: " + e.message, "err"); return false; }
   }
   $("#captureGolden").onclick = () => {
     if (!cur) return engine("ยังไม่มีภาพจากแหล่งภาพ", "warn");
     calibrateFrom(cur);
   };
-  $("#simCalib").onclick = () => {
+  function simCalibLane() {
     const G = QC.simGeom(rec.sim || "600", W, H);
     rec.rois = JSON.parse(JSON.stringify(G.rois));
-    const e = new ImageData(W, H); QC.simBackground(e, G); QC.simNoise(e, 99); setBg(e, false);
-    try { const c = document.createElement("canvas"); c.width = W; c.height = H; c.getContext("2d").putImageData(e, 0, 0); rec.bg = c.toDataURL("image/jpeg", 0.85); } catch {}
+    const e = new ImageData(W, H); QC.simBackground(e, G); QC.simNoise(e, 99); setBg(e, true);
     const g = new ImageData(W, H); QC.simBackground(g, G); QC.simBottle(g, G, W / 2, null); QC.simNoise(g, 7);
     fctx.putImageData(g, 0, 0);
-    calibrateFrom(g);
+    return calibrateFrom(g);
+  }
+  $("#simCalib").onclick = () => {
+    // หลายไลน์: สอบเทียบทุกไลน์ที่ใช้สูตรภาพจำลอง
+    const todo = nLanes() > 1 ? activeLanes().filter(L => (L === curLane ? rec : L.rec)?.sim) : [selLane()];
+    let ok = 0;
+    for (const L of todo) if (withLane(L, simCalibLane)) ok++;
+    show();
+    if (todo.length > 1) engine(`สอบเทียบภาพจำลองแล้ว ${ok} จาก ${todo.length} ไลน์`, ok === todo.length ? "ok" : "warn");
   };
 
   // ---------- การตรวจ ----------
@@ -637,6 +935,7 @@ if (typeof document !== "undefined") (() => {
       o.connect(g).connect(actx.destination); o.start(t); o.stop(t + 0.4);
     } catch {}
   }
+  /* รูปย่อขวดที่คัดทิ้ง: ตัดเฉพาะกรอบที่ครอบพื้นที่ตรวจ (ไม่เก็บภาพเต็มเฟรม) */
   function thumb() {
     const rs = Object.values(rec.rois).filter(Boolean).map(r => QC.roiPx(r, W, H));
     if (!rs.length) rs.push({ x: 0, y: 0, w: W, h: H });
@@ -646,63 +945,102 @@ if (typeof document !== "undefined") (() => {
     c.height = 110; c.width = Math.max(30, Math.round((x1 - x0) * s));
     const x = c.getContext("2d");
     x.drawImage(frame, x0, y0, x1 - x0, y1 - y0, 0, 0, c.width, c.height);
-    x.drawImage(overlay, x0, y0, x1 - x0, y1 - y0, 0, 0, c.width, c.height);
+    const ov = document.createElement("canvas"); ov.width = W; ov.height = H; drawOverlay(ov.getContext("2d"));
+    x.drawImage(ov, x0, y0, x1 - x0, y1 - y0, 0, 0, c.width, c.height);
     try { return c.toDataURL("image/jpeg", 0.7); } catch { return ""; }
+  }
+  const thumbUrls = new Map(); // ik -> data URL (หน่วยความจำ สำหรับแสดงผล)
+  function keepThumb(entry, url) {
+    if (!url) return;
+    const key = QC.thumbKey(entry);
+    thumbUrls.set(key, url);
+    if (idbOk) { entry.ik = key; IDB.put("thumbs", key, url).catch(() => { entry.ik = ""; entry.img = url; persistShift(); }); }
+    else entry.img = url; // ไม่มี IndexedDB: แบบเดิม
+  }
+  function dropThumbs(list) {
+    for (const r of list) { if (!r || !r.ik) continue; thumbUrls.delete(r.ik); if (idbOk) IDB.del("thumbs", r.ik).catch(() => {}); }
   }
   function sendWebhook(r) {
     if (!settings.webhookOn || !settings.webhook) return;
-    const body = { event: "reject", time: new Date(r.t).toISOString(), recipe: rec.name, reasons: r.reasons, reasonsTh: r.reasons.map(k => QC.REASONS[k]),
-      fill: r.fill && { y: r.fill.y, target: r.fill.target, status: r.fill.status }, capDeltaE: r.cap?.de ?? null, capAngle: r.cap?.angle ?? null, labelSimilarity: r.label?.sim ?? null };
+    const L = curLane;
+    const body = { event: "reject", time: new Date(r.t).toISOString(), lane: L.id, laneNo: L.idx + 1, recipe: rec.name, reasons: r.reasons, reasonsTh: r.reasons.map(k => QC.REASONS[k]),
+      fill: r.fill && { y: r.fill.y, target: r.fill.target, status: r.fill.status }, capDeltaE: r.cap?.de ?? null, capAngle: r.cap?.angle ?? null, labelSimilarity: r.label?.sim ?? null,
+      warnings: r.warn || [] };
     fetch(settings.webhook, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
       .then(res => { if (!res.ok) throw new Error("HTTP " + res.status); })
       .catch(e => engine(`ส่งสัญญาณคัดทิ้งไปยังเว็บฮุกไม่สำเร็จ: ${e.message} (ตรวจ URL และการตั้งค่า CORS ของปลายทาง)`, "warn"));
   }
+  /* ขวดสองใบในพื้นที่ทริกเกอร์ (ภาพปัจจุบันเทียบพื้นหลังว่าง) */
+  function multiNow() {
+    const b = bgOk(), tr = QC.roiPx(rec.rois.trigger, W, H);
+    if (!b || !tr || !cur) return null;
+    return QC.multiCheck(QC.blobs(cur, b, tr, 30, 2), rec.golden?.trigW ?? null);
+  }
+  function noteMulti(m) {
+    const L = curLane;
+    laneShift(L.id).multi++;
+    L.multiAt = performance.now(); L.lastMulti = m;
+    engine(`${laneTag(L)}พบขวด ${m.kind === "wide" ? "ชิดกัน" : m.n + " ใบ"}ในพื้นที่ทริกเกอร์ — ตรวจระยะห่างขวดบนสายพาน (ผลตรวจขวดนี้อาจไม่ถูกต้อง)`, "warn");
+    persistShift();
+  }
   function runInspect(how) {
     if (!cur) return engine("ยังไม่มีภาพจากแหล่งภาพ", "warn");
-    if (!rec.golden) return engine("ยังไม่มีขวดตัวอย่าง: วางขวดที่ผ่านแล้วกด “บันทึกขวดตัวอย่างที่ผ่าน” ก่อน", "warn");
-    const r = QC.inspect(cur, rec, bgOk());
+    if (!rec.golden) return engine(laneTag(curLane) + "ยังไม่มีขวดตัวอย่าง: วางขวดที่ผ่านแล้วกด “บันทึกขวดตัวอย่างที่ผ่าน” ก่อน", "warn");
+    const L = curLane, r = QC.inspect(cur, rec, bgOk());
     r.how = how; r.sim = source === "sim" ? simInfo?.defect || "ok" : "";
+    const m = how === "auto" ? (pst.multi ? curLane.lastMulti : null) : multiNow();
+    if (m && m.multi) { r.warn = ["multi"]; if (how !== "auto") noteMulti(m); }
     last = r; lastAt = performance.now();
-    drawOverlay();
-    shift.total++;
-    if (r.pass) shift.pass++;
+    const ls = laneShift(L.id);
+    shift.total++; ls.total++;
+    if (r.pass) { shift.pass++; ls.pass++; }
     else {
-      shift.reject++;
-      r.reasons.forEach(k => { shift.reasons[k] = (shift.reasons[k] || 0) + 1; });
-      shift.rejects.unshift({ t: r.t, reasons: r.reasons, img: thumb() });
-      shift.rejects.length = Math.min(shift.rejects.length, 20);
+      shift.reject++; ls.reject++;
+      r.reasons.forEach(k => { shift.reasons[k] = (shift.reasons[k] || 0) + 1; ls.reasons[k] = (ls.reasons[k] || 0) + 1; });
+      const entry = { t: r.t, lane: L.id, reasons: r.reasons, img: "" };
+      keepThumb(entry, thumb());
+      shift.rejects.unshift(entry);
+      if (shift.rejects.length > 20) dropThumbs(shift.rejects.splice(20));
       beep(); sendWebhook(r);
     }
     shift.log.push({
-      t: r.t, recipe: rec.name, how, pass: r.pass, reasons: r.reasons,
+      t: r.t, lane: L.id, recipe: rec.name, how, pass: r.pass, reasons: r.reasons,
       fy: r.fill?.y == null ? null : +r.fill.y.toFixed(1), ft: r.fill ? +r.fill.target.toFixed(1) : null, fs: r.fill?.status || "",
       cc: r.cap ? +(r.cap.coverage * 100).toFixed(1) : null, cde: r.cap?.de == null ? null : +r.cap.de.toFixed(1), ca: r.cap?.angle == null ? null : +r.cap.angle.toFixed(1),
-      ls: r.label ? +r.label.sim.toFixed(1) : null, lsh: r.label ? r.label.shift : null, sim: r.sim
+      ls: r.label ? +r.label.sim.toFixed(1) : null, lsh: r.label ? r.label.shift : null, sim: r.sim, w: r.warn ? r.warn.join(";") : ""
     });
     if (shift.log.length > 5000) { shift.log.splice(0, shift.log.length - 5000); }
     persistShift();
-    showResult(r); renderStats();
+    if (L === selLane()) { drawOverlay(); showResult(r); }
+    renderStats();
   }
   $("#inspectNow").onclick = () => runInspect("manual");
   $("#toggle").onclick = () => {
     if (!running) {
       if (source === "image") return engine("โหมดตรวจต่อเนื่องใช้กับกล้อง วิดีโอ หรือภาพจำลอง — สำหรับรูปภาพให้กด “ตรวจเดี๋ยวนี้”", "warn");
-      if (!rec.rois.trigger) return engine("ยังไม่ได้ลากพื้นที่ “ขวด/ทริกเกอร์” บนภาพ", "warn");
-      if (!bg) return engine("โหมดต่อเนื่องต้องมีพื้นหลังว่าง: นำขวดออกจากภาพแล้วกด “บันทึกพื้นหลังว่าง”", "warn");
-      if (!rec.golden) return engine("ยังไม่มีขวดตัวอย่าง: กด “บันทึกขวดตัวอย่างที่ผ่าน” ก่อน", "warn");
+      const issues = [];
+      for (const L of activeLanes()) withLane(L, () => {
+        const tag = nLanes() > 1 ? `ไลน์ ${L.idx + 1}: ` : "";
+        if (!rec.rois.trigger) issues.push(tag + "ยังไม่ได้ลากพื้นที่ “ขวด/ทริกเกอร์” บนภาพ");
+        else if (!bg) issues.push(tag + "โหมดต่อเนื่องต้องมีพื้นหลังว่าง: นำขวดออกจากภาพแล้วกด “บันทึกพื้นหลังว่าง”");
+        else if (!rec.golden) issues.push(tag + "ยังไม่มีขวดตัวอย่าง: กด “บันทึกขวดตัวอย่างที่ผ่าน” ก่อน");
+      });
+      if (issues.length) return engine(issues.join(" · "), "warn");
     }
     // เริ่มในสถานะ "ตรวจแล้ว": ถ้ามีขวดค้างอยู่ครึ่ง ๆ กลาง ๆ จะไม่ถูกนับว่าผ่านไปโดยไม่ได้ตรวจ รอขวดถัดไป
-    running = !running; pst = { ...QC.presenceInit(), phase: "done" };
+    running = !running;
+    for (const L of activeLanes()) withLane(L, () => { pst = { ...QC.presenceInit(), phase: "done" }; });
     $("#toggle").textContent = running ? "หยุดตรวจต่อเนื่อง" : "เริ่มตรวจต่อเนื่อง";
     $("#toggle").classList.toggle("on", running);
-    engine(running ? "กำลังตรวจต่อเนื่อง: ตรวจขวดละ 1 ครั้งเมื่อขวดอยู่กลางพื้นที่ทริกเกอร์" : "หยุดตรวจต่อเนื่องแล้ว", "ok");
+    engine(running ? `กำลังตรวจต่อเนื่อง${nLanes() > 1 ? ` ${nLanes()} ไลน์` : ""}: ตรวจขวดละ 1 ครั้งเมื่อขวดอยู่กลางพื้นที่ทริกเกอร์` : "หยุดตรวจต่อเนื่องแล้ว", "ok");
   };
 
   function showResult(r) {
     const b = $("#banner");
+    if (!r) { b.className = "banner idle"; b.querySelector("b").textContent = "รอตรวจ"; b.querySelector("span").textContent = "ยังไม่มีผลการตรวจ"; $("#measure").innerHTML = `<tr><td>ผลการวัดแต่ละจุดจะแสดงที่นี่</td></tr>`; $("#simTruth").textContent = ""; return; }
     b.className = "banner " + (r.pass ? "pass" : "reject");
-    b.querySelector("b").textContent = r.pass ? "ผ่าน (PASS)" : "คัดทิ้ง (REJECT)";
-    b.querySelector("span").textContent = r.pass ? "ขวดนี้ผ่านทุกจุดตรวจ" : r.reasons.map(k => QC.REASONS[k]).join(" · ");
+    b.querySelector("b").textContent = (nLanes() > 1 ? `ไลน์ ${selIdx + 1} · ` : "") + (r.pass ? "ผ่าน (PASS)" : "คัดทิ้ง (REJECT)");
+    b.querySelector("span").textContent = (r.pass ? "ขวดนี้ผ่านทุกจุดตรวจ" : r.reasons.map(k => QC.REASONS[k]).join(" · ")) + (r.warn && r.warn.includes("multi") ? " · ⚠ พบขวดมากกว่า 1 ใบในพื้นที่ทริกเกอร์" : "");
     const f1 = v => v == null ? "—" : (+v).toFixed(1);
     const rows = [];
     if (r.fill) rows.push(["ระดับน้ำ", FILL_TH[r.fill.status], r.fill.y == null ? "ไม่พบขอบผิวน้ำ" : `ต่างจากเป้า ${r.fill.dy > 0 ? "+" : ""}${f1(r.fill.dy)} px (เกณฑ์ ±${f1(r.fill.tolPx)}, ค่า + = ต่ำกว่า)`, r.fill.status === "ok"]);
@@ -722,56 +1060,65 @@ if (typeof document !== "undefined") (() => {
   }
 
   // ---------- วาดซ้อนบนภาพ ----------
-  function drawOverlay() {
-    octx.clearRect(0, 0, W, H);
-    octx.lineWidth = 2; octx.font = "13px Prompt, sans-serif";
+  /* ctx = บริบทที่จะวาด (ค่าเริ่มต้น overlay บนหน้าจอ) · plain = ไม่วาดผลตรวจ/สถานะ (สำหรับรูปย่อ) */
+  function drawOverlay(ctx = octx, plain = false) {
+    ctx.clearRect(0, 0, W, H);
+    ctx.lineWidth = 2; ctx.font = "13px Prompt, sans-serif";
     for (const k of Object.keys(ROI_NAMES)) {
       const r = QC.roiPx(rec.rois[k], W, H); if (!r) continue;
-      octx.strokeStyle = ROI_COL[k]; octx.setLineDash(k === activeRoi ? [] : [6, 4]); octx.strokeRect(r.x + 0.5, r.y + 0.5, r.w, r.h);
-      octx.setLineDash([]);
-      const tw = octx.measureText(ROI_NAMES[k]).width + 8;
+      ctx.strokeStyle = ROI_COL[k]; ctx.setLineDash(k === activeRoi ? [] : [6, 4]); ctx.strokeRect(r.x + 0.5, r.y + 0.5, r.w, r.h);
+      ctx.setLineDash([]);
+      const tw = ctx.measureText(ROI_NAMES[k]).width + 8;
       const ty = k === "trigger" ? r.y + r.h - 18 : r.y - 18 < 0 ? r.y + r.h : r.y - 18;
       const tx = k === "label" ? r.x + r.w - tw : k === "fill" ? r.x + r.w + 4 : r.x;
-      octx.fillStyle = ROI_COL[k]; octx.fillRect(tx, ty, tw, 18); octx.fillStyle = "#fff"; octx.fillText(ROI_NAMES[k], tx + 4, ty + 14);
+      ctx.fillStyle = ROI_COL[k]; ctx.fillRect(tx, ty, tw, 18); ctx.fillStyle = "#fff"; ctx.fillText(ROI_NAMES[k], tx + 4, ty + 14);
     }
     const fr = QC.roiPx(rec.rois.fill, W, H);
     if (fr && rec.golden?.fillYN != null) {
       const t = rec.golden.fillYN * H, tp = QC.fillTolPx(rec, fr);
-      octx.fillStyle = "rgba(26,127,75,.22)"; octx.fillRect(fr.x - 24, t - tp, fr.w + 48, tp * 2);
-      octx.strokeStyle = "rgba(26,127,75,.8)"; octx.setLineDash([3, 3]); octx.beginPath(); octx.moveTo(fr.x - 24, t); octx.lineTo(fr.x + fr.w + 24, t); octx.stroke(); octx.setLineDash([]);
+      ctx.fillStyle = "rgba(26,127,75,.22)"; ctx.fillRect(fr.x - 24, t - tp, fr.w + 48, tp * 2);
+      ctx.strokeStyle = "rgba(26,127,75,.8)"; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(fr.x - 24, t); ctx.lineTo(fr.x + fr.w + 24, t); ctx.stroke(); ctx.setLineDash([]);
     }
+    if (plain) return;
     if (drag) {
-      octx.strokeStyle = ROI_COL[activeRoi]; octx.lineWidth = 2;
-      octx.strokeRect(Math.min(drag.x0, drag.x1) * W, Math.min(drag.y0, drag.y1) * H, Math.abs(drag.x1 - drag.x0) * W, Math.abs(drag.y1 - drag.y0) * H);
+      ctx.strokeStyle = ROI_COL[activeRoi]; ctx.lineWidth = 2;
+      ctx.strokeRect(Math.min(drag.x0, drag.x1) * W, Math.min(drag.y0, drag.y1) * H, Math.abs(drag.x1 - drag.x0) * W, Math.abs(drag.y1 - drag.y0) * H);
     }
     const fresh = last && (!running || performance.now() - lastAt < 2500);
     if (fresh) {
       const r = last;
       if (r.fill && fr && r.fill.y != null) {
-        octx.strokeStyle = r.fill.status === "ok" ? "#1a7f4b" : "#c0392b"; octx.lineWidth = 3;
-        octx.beginPath(); octx.moveTo(fr.x - 30, r.fill.y); octx.lineTo(fr.x + fr.w + 30, r.fill.y); octx.stroke();
+        ctx.strokeStyle = r.fill.status === "ok" ? "#1a7f4b" : "#c0392b"; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(fr.x - 30, r.fill.y); ctx.lineTo(fr.x + fr.w + 30, r.fill.y); ctx.stroke();
       }
       const cr = QC.roiPx(rec.rois.cap, W, H);
       if (r.cap && cr && r.cap.topL != null && r.cap.topR != null) {
-        octx.strokeStyle = r.cap.reasons.length ? "#c0392b" : "#1a7f4b"; octx.lineWidth = 2;
-        octx.beginPath(); octx.moveTo(cr.x + r.cap.xL, cr.y + r.cap.topL); octx.lineTo(cr.x + r.cap.xR, cr.y + r.cap.topR); octx.stroke();
+        ctx.strokeStyle = r.cap.reasons.length ? "#c0392b" : "#1a7f4b"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(cr.x + r.cap.xL, cr.y + r.cap.topL); ctx.lineTo(cr.x + r.cap.xR, cr.y + r.cap.topR); ctx.stroke();
       }
-      octx.font = "600 22px Prompt, sans-serif";
-      const txt = r.pass ? "ผ่าน" : "คัดทิ้ง", tw = octx.measureText(txt).width + 20;
-      octx.fillStyle = r.pass ? "rgba(26,127,75,.9)" : "rgba(192,57,43,.92)"; octx.fillRect(10, 10, tw, 34);
-      octx.fillStyle = "#fff"; octx.fillText(txt, 20, 35);
+      ctx.font = "600 22px Prompt, sans-serif";
+      const txt = r.pass ? "ผ่าน" : "คัดทิ้ง", tw = ctx.measureText(txt).width + 20;
+      ctx.fillStyle = r.pass ? "rgba(26,127,75,.9)" : "rgba(192,57,43,.92)"; ctx.fillRect(10, 10, tw, 34);
+      ctx.fillStyle = "#fff"; ctx.fillText(txt, 20, 35);
+    }
+    const tr = QC.roiPx(rec.rois.trigger, W, H);
+    if (tr && curLane.lastMulti && performance.now() - curLane.multiAt < 3000) {
+      ctx.strokeStyle = "#d79b00"; ctx.lineWidth = 3; ctx.setLineDash([8, 5]);
+      for (const g of curLane.lastMulti.groups || []) ctx.strokeRect(tr.x + g.x0 * tr.w, tr.y + 2, (g.x1 - g.x0) * tr.w, tr.h - 4);
+      ctx.setLineDash([]);
+      ctx.font = "13px Prompt, sans-serif"; const s = "ขวดมากกว่า 1 ใบ", tw = ctx.measureText(s).width + 12;
+      ctx.fillStyle = "rgba(160,110,0,.92)"; ctx.fillRect(tr.x, tr.y - 22, tw, 22); ctx.fillStyle = "#fff"; ctx.fillText(s, tr.x + 6, tr.y - 6);
     }
     if (running && trigObs) {
-      const tr = QC.roiPx(rec.rois.trigger, W, H);
       const ph = { empty: "รอขวด", present: "พบขวด รอให้อยู่กลาง/นิ่ง", done: "ตรวจแล้ว รอขวดออก" }[pst.phase];
-      octx.font = "13px Prompt, sans-serif"; octx.fillStyle = "rgba(11,42,60,.8)";
-      const s = `${ph} · ${(trigObs.frac * 100).toFixed(0)}%`, tw = octx.measureText(s).width + 12;
-      octx.fillRect(W - tw - 10, 10, tw, 22); octx.fillStyle = "#fff"; octx.fillText(s, W - tw - 4, 26);
-      if (tr && trigObs.frac > 0.02) { octx.fillStyle = "#2a78d6"; octx.beginPath(); octx.arc(tr.x + trigObs.cx * tr.w, tr.y + tr.h / 2, 5, 0, 7); octx.fill(); }
+      ctx.font = "13px Prompt, sans-serif"; ctx.fillStyle = "rgba(11,42,60,.8)";
+      const s = `${ph} · ${(trigObs.frac * 100).toFixed(0)}%`, tw = ctx.measureText(s).width + 12;
+      ctx.fillRect(W - tw - 10, 10, tw, 22); ctx.fillStyle = "#fff"; ctx.fillText(s, W - tw - 4, 26);
+      if (tr && trigObs.frac > 0.02) { ctx.fillStyle = "#2a78d6"; ctx.beginPath(); ctx.arc(tr.x + trigObs.cx * tr.w, tr.y + tr.h / 2, 5, 0, 7); ctx.fill(); }
     }
   }
 
-  // ---------- ลาก ROI ----------
+  // ---------- ลาก ROI (ไลน์ที่เลือก) ----------
   const pt = e => { const b = overlay.getBoundingClientRect(); return { x: QC.clamp((e.clientX - b.left) / b.width, 0, 1), y: QC.clamp((e.clientY - b.top) / b.height, 0, 1) }; };
   overlay.addEventListener("pointerdown", e => { const p = pt(e); drag = { x0: p.x, y0: p.y, x1: p.x, y1: p.y }; overlay.setPointerCapture(e.pointerId); });
   overlay.addEventListener("pointermove", e => { if (!drag) return; const p = pt(e); drag.x1 = p.x; drag.y1 = p.y; if (source === "image") drawOverlay(); });
@@ -781,8 +1128,8 @@ if (typeof document !== "undefined") (() => {
     drag = null;
     if (r.w * W < 6 || r.h * H < 6) { drawOverlay(); return engine("พื้นที่เล็กเกินไป ลากให้กว้างกว่านี้", "warn"); }
     rec.rois[activeRoi] = r;
-    if (activeRoi !== "trigger" && rec.golden) { rec.golden = null; engine(`เปลี่ยนพื้นที่ “${ROI_NAMES[activeRoi]}” แล้ว ต้องบันทึกขวดตัวอย่างที่ผ่านใหม่`, "warn"); }
-    else engine(`กำหนดพื้นที่ “${ROI_NAMES[activeRoi]}” แล้ว`, "ok");
+    if (activeRoi !== "trigger" && rec.golden) { rec.golden = null; engine(`${laneTag(curLane)}เปลี่ยนพื้นที่ “${ROI_NAMES[activeRoi]}” แล้ว ต้องบันทึกขวดตัวอย่างที่ผ่านใหม่`, "warn"); }
+    else engine(`${laneTag(curLane)}กำหนดพื้นที่ “${ROI_NAMES[activeRoi]}” แล้ว`, "ok");
     persistRecipes(); renderRecipe(); drawOverlay();
   });
   overlay.addEventListener("pointercancel", () => { drag = null; });
@@ -790,12 +1137,48 @@ if (typeof document !== "undefined") (() => {
     const b = e.target.closest("button[data-roi]"); if (!b) return;
     activeRoi = b.dataset.roi; renderRecipe(); drawOverlay();
   };
-  $("#clearRoi").onclick = () => { rec.rois[activeRoi] = null; if (activeRoi !== "trigger") rec.golden = null; persistRecipes(); renderRecipe(); drawOverlay(); engine(`ลบพื้นที่ “${ROI_NAMES[activeRoi]}” แล้ว (ไม่ตรวจจุดนี้)`, "ok"); };
+  $("#clearRoi").onclick = () => { rec.rois[activeRoi] = null; if (activeRoi !== "trigger") rec.golden = null; persistRecipes(); renderRecipe(); drawOverlay(); engine(`${laneTag(curLane)}ลบพื้นที่ “${ROI_NAMES[activeRoi]}” แล้ว (ไม่ตรวจจุดนี้)`, "ok"); };
 
-  // ---------- สูตรการตรวจ ----------
+  // ---------- ไลน์ ----------
+  function renderLaneTabs() {
+    const box = $("#laneTabs"), n = nLanes();
+    box.hidden = n < 2;
+    $("#laneCount").value = String(n);
+    if (n < 2) { box.innerHTML = ""; return; }
+    stash();
+    box.innerHTML = activeLanes().map(L => {
+      const s = laneShift(L.id), y = s.total ? (s.pass / s.total * 100).toFixed(0) + "%" : "—";
+      const camTxt = source === "camera" ? (L.hubCam ? (L.hubCam.active ? "" : " · กล้องหยุด") : " · ไม่มีกล้อง") : "";
+      const lr = L.last ? (L.last.pass ? "pass" : "reject") : "idle";
+      return `<button type="button" class="lane-tab" role="tab" data-lane="${L.idx}" aria-selected="${L.idx === selIdx}"><i class="dot ${lr}"></i>ไลน์ ${L.idx + 1}<small>${esc((L.rec && L.rec.name) || "")}</small><small>ตรวจ ${s.total} · ผ่าน ${y}${s.multi ? ` · ⚠ ${s.multi}` : ""}${camTxt}</small></button>`;
+    }).join("");
+  }
+  $("#laneTabs").onclick = e => { const b = e.target.closest("[data-lane]"); if (b) selectLane(+b.dataset.lane); };
+  function selectLane(i) {
+    if (i === selIdx || i >= nLanes()) return;
+    selIdx = i; use(lanes[i]);
+    syncDisplay(); renderRecipe(); renderLaneTabs(); drawOverlay(); showResult(last); show();
+    $("#statLane").value = nLanes() > 1 ? lanes[i].id : "";
+    renderStats();
+  }
+  $("#laneCount").onchange = e => setLanes(+e.target.value);
+  function setLanes(n) {
+    n = Math.max(1, Math.min(4, Math.round(n) || 1));
+    if (n === nLanes()) return;
+    if (running) $("#toggle").click();
+    use(lanes[0]); selIdx = 0;
+    settings.lanes = n; assignRecipes(); persistRecipes();
+    for (const L of activeLanes()) if (L.idx > 0) { withLane(L, () => { setSize(640, 480); }); loadBg(L); }
+    renderLaneTabs(); renderRecipe(); renderStats(); showSourceUi();
+    if (source === "camera") setSource("camera");
+    engine(n > 1 ? `ใช้ ${n} ไลน์ — แต่ละไลน์มีสูตร (พื้นที่ตรวจ เกณฑ์ ขวดตัวอย่าง) และพื้นหลังว่างของตัวเอง เลือกไลน์จากแถบด้านบนภาพเพื่อตั้งค่า` : "กลับเป็นไลน์เดียว", "ok");
+  }
+
+  // ---------- สูตรการตรวจ (ของไลน์ที่เลือก) ----------
   function renderRecipe() {
     $("#recipeSel").innerHTML = recipes.map(r => `<option value="${esc(r.id)}"${r === rec ? " selected" : ""}>${esc(r.name)}</option>`).join("");
     $("#recipeName").value = rec.name;
+    $("#recipeLane").textContent = nLanes() > 1 ? `ไลน์ ${curLane.idx + 1}` : "";
     $("#roiChips").innerHTML = Object.keys(ROI_NAMES).map(k => `<button type="button" class="chip${k === activeRoi ? " active" : ""}" data-roi="${k}" style="--c:${ROI_COL[k]}">${rec.rois[k] ? "●" : "○"} ${ROI_NAMES[k]}</button>`).join("");
     renderInfo();
     const f = $("#tolForm"), t = rec.tol;
@@ -806,6 +1189,7 @@ if (typeof document !== "undefined") (() => {
     $("#simCalib").hidden = source !== "sim";
     $("#simCalib").disabled = !rec.sim;
     $("#simCalib").title = rec.sim ? "" : "ใช้ได้กับสูตรภาพจำลองเท่านั้น";
+    $("#simCalib").textContent = nLanes() > 1 ? "สอบเทียบภาพจำลองอัตโนมัติ (ทุกไลน์)" : "สอบเทียบภาพจำลองอัตโนมัติ";
   }
   function renderInfo() {
     const g = rec.golden;
@@ -827,43 +1211,75 @@ if (typeof document !== "undefined") (() => {
     persistRecipes(); renderInfo();
   });
   $("#tolForm").addEventListener("submit", e => e.preventDefault());
-  $("#recipeSel").onchange = e => { rec = recipes.find(r => r.id === e.target.value) || recipes[0]; persistRecipes(); last = null; pst = QC.presenceInit(); loadBg(); if (source === "sim") simT0 = performance.now(); engine(`ใช้สูตร “${rec.name}”`, "ok"); };
-  $("#recipeName").onchange = e => { const n = e.target.value.trim(); if (n) { rec.name = n.slice(0, 50); persistRecipes(); renderRecipe(); } };
+  $("#recipeSel").onchange = e => { rec = recipes.find(r => r.id === e.target.value) || recipes[0]; persistRecipes(); last = null; pst = QC.presenceInit(); loadBg(); if (source === "sim") simT0 = performance.now(); engine(`${laneTag(curLane)}ใช้สูตร “${rec.name}”`, "ok"); renderLaneTabs(); };
+  $("#recipeName").onchange = e => { const n = e.target.value.trim(); if (n) { rec.name = n.slice(0, 50); persistRecipes(); renderRecipe(); renderLaneTabs(); } };
   $("#recipeNew").onclick = () => {
     const n = prompt("ชื่อสูตรใหม่ (เช่น ขวดใส 600 มล. ไลน์ 2)", rec.name + " (สำเนา)"); if (!n) return;
-    const c = JSON.parse(JSON.stringify(rec)); c.id = "r" + Date.now().toString(36); c.name = n.trim().slice(0, 50); delete c.sim;
+    const c = JSON.parse(JSON.stringify(rec)); c.id = "r" + Date.now().toString(36); c.name = n.trim().slice(0, 50); delete c.sim; c.bg = null;
     if (source === "sim") c.sim = rec.sim;
     recipes.push(c); rec = c; persistRecipes(); renderRecipe(); engine(`สร้างสูตร “${c.name}” แล้ว (คัดลอกพื้นที่ตรวจและเกณฑ์จากสูตรเดิม)`, "ok");
+    if (bg) { try { const cv = document.createElement("canvas"); cv.width = bg.width; cv.height = bg.height; cv.getContext("2d").putImageData(bg, 0, 0); storeBg(curLane, cv.toDataURL("image/jpeg", 0.85)); } catch { /* ignore */ } }
   };
   $("#recipeDel").onclick = () => {
     if (recipes.length < 2) return engine("ต้องมีอย่างน้อย 1 สูตร", "warn");
     if (!confirm(`ลบสูตร “${rec.name}”?`)) return;
-    recipes = recipes.filter(r => r !== rec); rec = recipes[0]; persistRecipes(); loadBg(); engine("ลบสูตรแล้ว", "ok");
+    const gone = rec;
+    recipes = recipes.filter(r => r !== gone);
+    stash();
+    for (const L of lanes) if (L.rec === gone) { if (L === curLane) rec = recipes[0]; L.rec = recipes[0]; }
+    if (idbOk) for (const id of LANE_IDS) IDB.del("bg", QC.bgKey(id, gone.id)).catch(() => {});
+    persistRecipes(); loadBg(); engine("ลบสูตรแล้ว", "ok");
   };
 
   // ---------- สถิติ ----------
-  function throughput(now = Date.now()) {
-    const lastMin = shift.log.filter(l => now - l.t <= 60000).length;
-    const first = shift.log[0]?.t, mins = first ? Math.max(1 / 60, (now - first) / 60000) : 0;
-    return { lastMin, avg: mins ? shift.total / mins : 0 };
+  function throughput(now = Date.now(), lane = null) {
+    const log = lane ? shift.log.filter(l => (l.lane || "L1") === lane) : shift.log, total = lane ? laneShift(lane).total : shift.total;
+    const lastMin = log.filter(l => now - l.t <= 60000).length;
+    const first = log[0]?.t, mins = first ? Math.max(1 / 60, (now - first) / 60000) : 0;
+    return { lastMin, avg: mins ? total / mins : 0 };
   }
+  const statLane = () => (nLanes() > 1 ? $("#statLane").value || null : null);
   function renderStats() {
-    const y = shift.total ? shift.pass / shift.total * 100 : 0, tp = throughput();
+    const lane = statLane(), st = QC.laneStats(shift, lane), y = st.total ? st.pass / st.total * 100 : 0, tp = throughput(Date.now(), lane);
+    const multi = nLanes() > 1;
+    $("#statLane").hidden = !multi;
+    $("#statLane").innerHTML = `<option value="">รวมทุกไลน์</option>` + activeLanes().map(L => `<option value="${L.id}"${lane === L.id ? " selected" : ""}>ไลน์ ${L.idx + 1}</option>`).join("");
     const tile = (k, v, s = "") => `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`;
-    $("#tiles").innerHTML = tile("ตรวจแล้ว", shift.total.toLocaleString("th-TH"), "ขวด") + tile("ผ่าน", shift.pass.toLocaleString("th-TH"), "ขวด") +
-      tile("คัดทิ้ง", shift.reject.toLocaleString("th-TH"), "ขวด") + tile("Yield", shift.total ? y.toFixed(1) + "%" : "—", "ผ่าน / ตรวจทั้งหมด") +
-      tile("อัตราการผลิต", tp.lastMin, `ขวด/นาที (เฉลี่ยทั้งกะ ${tp.avg.toFixed(1)})`) + tile("ผ่านไปไม่ได้ตรวจ", shift.missed, "ขวด");
+    $("#tiles").innerHTML = tile("ตรวจแล้ว", st.total.toLocaleString("th-TH"), "ขวด") + tile("ผ่าน", st.pass.toLocaleString("th-TH"), "ขวด") +
+      tile("คัดทิ้ง", st.reject.toLocaleString("th-TH"), "ขวด") + tile("Yield", st.total ? y.toFixed(1) + "%" : "—", "ผ่าน / ตรวจทั้งหมด") +
+      tile("อัตราการผลิต", tp.lastMin, `ขวด/นาที (เฉลี่ยทั้งกะ ${tp.avg.toFixed(1)})`) + tile("ผ่านไปไม่ได้ตรวจ", st.missed, "ขวด") +
+      (st.multi ? tile("เตือนขวดซ้อน", st.multi, "ครั้ง (ขวดมากกว่า 1 ใบในพื้นที่ทริกเกอร์)") : "");
     const keys = Object.keys(QC.REASONS);
-    $("#byReason").innerHTML = keys.map(k => `<li><span>${QC.REASONS[k]}</span><b>${shift.reasons[k] || 0}</b></li>`).join("");
-    $("#rejects").innerHTML = shift.rejects.length ? shift.rejects.map(r => `<figure>${r.img ? `<img src="${r.img}" alt="">` : ""}<figcaption>${new Date(r.t).toLocaleTimeString("th-TH")}<br>${esc(r.reasons.map(k => QC.SHORT[k]).join(", "))}</figcaption></figure>`).join("") : `<p class="hint">ยังไม่มีขวดที่ถูกคัดทิ้ง</p>`;
+    $("#byReason").innerHTML = keys.map(k => `<li><span>${QC.REASONS[k]}</span><b>${st.reasons[k] || 0}</b></li>`).join("");
+    const rj = lane ? shift.rejects.filter(r => (r.lane || "L1") === lane) : shift.rejects;
+    $("#rejects").innerHTML = rj.length ? rj.map(r => { const src = r.img || (r.ik && thumbUrls.get(r.ik)) || ""; return `<figure>${src ? `<img src="${src}" alt="">` : r.ik ? `<img data-ik="${esc(r.ik)}" alt="">` : ""}<figcaption>${multi ? `ไลน์ ${LANE_IDS.indexOf(r.lane || "L1") + 1} · ` : ""}${new Date(r.t).toLocaleTimeString("th-TH")}<br>${esc(r.reasons.map(k => QC.SHORT[k]).join(", "))}</figcaption></figure>`; }).join("") : `<p class="hint">ยังไม่มีขวดที่ถูกคัดทิ้ง</p>`;
+    fillThumbs();
     $("#shiftStart").textContent = new Date(shift.start).toLocaleString("th-TH");
-    drawPareto();
+    renderLaneTable();
+    drawPareto(st.reasons); drawPChart(lane);
+    renderLaneTabs();
   }
-  function drawPareto() {
+  function fillThumbs() {
+    if (!idbOk) return;
+    document.querySelectorAll("#rejects img[data-ik]").forEach(im => {
+      const k = im.dataset.ik; im.removeAttribute("data-ik");
+      IDB.get("thumbs", k).then(u => { if (u) { thumbUrls.set(k, u); im.src = u; } }).catch(() => {});
+    });
+  }
+  function renderLaneTable() {
+    const wrap = $("#laneWrap"); wrap.hidden = nLanes() < 2;
+    if (nLanes() < 2) return;
+    const rows = activeLanes().map(L => {
+      const s = laneShift(L.id), pc = QC.pChart(shift.log, { lane: L.id, size: settings.pSize });
+      return `<tr><td>ไลน์ ${L.idx + 1}</td><td class="n">${s.total}</td><td class="n">${s.pass}</td><td class="n">${s.reject}</td><td class="n">${s.total ? (s.pass / s.total * 100).toFixed(1) + "%" : "—"}</td><td class="n">${s.missed}</td><td class="n">${s.multi}</td><td>${pc.groups.length < 2 ? "ข้อมูลยังน้อย" : pc.outCount ? `<b class="ooc">หลุดเกณฑ์ ${pc.outCount} กลุ่ม</b>` : "อยู่ในเกณฑ์"}</td></tr>`;
+    });
+    $("#laneTable").innerHTML = `<thead><tr><th>ไลน์</th><th class="n">ตรวจ</th><th class="n">ผ่าน</th><th class="n">คัดทิ้ง</th><th class="n">Yield</th><th class="n">ไม่ได้ตรวจ</th><th class="n">ขวดซ้อน</th><th>p-chart</th></tr></thead><tbody>${rows.join("")}</tbody>`;
+  }
+  function drawPareto(reasons = shift.reasons) {
     const c = $("#pareto"), dpr = window.devicePixelRatio || 1, cw = c.clientWidth || 500, ch = 260;
     c.width = cw * dpr; c.height = ch * dpr; c.style.height = ch + "px";
     const x = c.getContext("2d"); x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, cw, ch);
-    const data = Object.entries(shift.reasons).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+    const data = Object.entries(reasons).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
     x.font = "12px Prompt, sans-serif"; x.fillStyle = "#5b7585";
     if (!data.length) { x.textAlign = "center"; x.fillText("ยังไม่มีข้อบกพร่อง", cw / 2, ch / 2); return; }
     const L = 34, R = 40, T = 14, B = 46, pw = cw - L - R, ph = ch - T - B, tot = data.reduce((s, d) => s + d[1], 0), max = data[0][1];
@@ -884,22 +1300,64 @@ if (typeof document !== "undefined") (() => {
     x.fillStyle = "#0b2a3c"; pts.forEach(([a, b]) => { x.beginPath(); x.arc(a, b, 3, 0, 7); x.fill(); });
     x.fillStyle = "#5b7585"; x.textAlign = "left"; x.fillText("แท่ง = จำนวนครั้ง · เส้น = สะสม %", L, ch - 6);
   }
-  window.addEventListener("resize", drawPareto);
+  /* p-chart: สัดส่วนของเสียต่อกลุ่มย่อย (size ขวด) พร้อมเส้น p̄ และขีดควบคุม UCL/LCL (ต่อไลน์ หรือรวม) */
+  function drawPChart(lane) {
+    const pc = QC.pChart(shift.log, { lane: nLanes() > 1 ? lane : null, size: settings.pSize });
+    const c = $("#pchart"), dpr = window.devicePixelRatio || 1, cw = c.clientWidth || 500, ch = 220;
+    c.width = cw * dpr; c.height = ch * dpr; c.style.height = ch + "px";
+    const x = c.getContext("2d"); x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, cw, ch);
+    x.font = "12px Prompt, sans-serif"; x.fillStyle = "#5b7585";
+    const pct = v => (v * 100).toFixed(v < 0.1 ? 1 : 0) + "%";
+    $("#pInfo").textContent = pc.groups.length
+      ? `p̄ = ${pct(pc.pbar)} จาก ${pc.n} ขวด (${pc.groups.length} กลุ่ม ละ ${pc.size} ขวด) · ${pc.outCount ? `หลุดขีดควบคุม ${pc.outCount} กลุ่ม — ตรวจหาสาเหตุพิเศษ (เปลี่ยนล็อต/เครื่องจักร/แสง)` : "ทุกกลุ่มอยู่ในขีดควบคุม"}`
+      : "ยังไม่มีข้อมูลการตรวจ";
+    c.setAttribute("aria-label", "p-chart สัดส่วนของเสีย: " + $("#pInfo").textContent);
+    if (!pc.groups.length) { x.textAlign = "center"; x.fillText("ยังไม่มีข้อมูลการตรวจ", cw / 2, ch / 2); return; }
+    const L = 42, R = 12, T = 12, B = 28, pw = cw - L - R, ph = ch - T - B;
+    const top = Math.min(1, Math.max(0.05, ...pc.groups.map(g => Math.max(g.p, g.ucl))) * 1.15);
+    const Y = v => T + ph - v / top * ph, n = pc.groups.length, X = i => L + (n === 1 ? pw / 2 : i * pw / (n - 1));
+    x.strokeStyle = "#e6edf1"; x.lineWidth = 1; x.textAlign = "right";
+    for (let i = 0; i <= 4; i++) { const v = top * i / 4, yy = Y(v); x.beginPath(); x.moveTo(L, yy); x.lineTo(L + pw, yy); x.stroke(); x.fillText(pct(v), L - 6, yy + 4); }
+    const step = (k, col, dash) => {
+      x.strokeStyle = col; x.setLineDash(dash); x.lineWidth = 1.5; x.beginPath();
+      pc.groups.forEach((g, i) => { const xa = n === 1 ? L : X(i) - (i ? pw / (n - 1) / 2 : 0), xb = n === 1 ? L + pw : X(i) + (i < n - 1 ? pw / (n - 1) / 2 : 0); x[i ? "lineTo" : "moveTo"](xa, Y(g[k])); x.lineTo(xb, Y(g[k])); });
+      x.stroke(); x.setLineDash([]);
+    };
+    step("ucl", "#c0392b", [5, 4]); if (pc.groups.some(g => g.lcl > 0)) step("lcl", "#c0392b", [5, 4]);
+    x.strokeStyle = "#1a7f4b"; x.lineWidth = 1.5; x.beginPath(); x.moveTo(L, Y(pc.pbar)); x.lineTo(L + pw, Y(pc.pbar)); x.stroke();
+    x.strokeStyle = "#0b2a3c"; x.lineWidth = 2; x.beginPath(); pc.groups.forEach((g, i) => x[i ? "lineTo" : "moveTo"](X(i), Y(g.p))); x.stroke();
+    pc.groups.forEach((g, i) => { x.fillStyle = g.out ? "#c0392b" : "#0b2a3c"; x.beginPath(); x.arc(X(i), Y(g.p), g.out ? 5 : 3, 0, 7); x.fill(); });
+    x.fillStyle = "#5b7585"; x.textAlign = "left"; x.fillText("จุด = สัดส่วนของเสียต่อกลุ่ม · เส้นเขียว = p̄ · เส้นแดงประ = UCL/LCL (±3σ)", L, ch - 8);
+  }
+  $("#statLane").onchange = () => renderStats();
+  $("#pSize").value = settings.pSize;
+  $("#pSize").onchange = e => { const v = Math.round(+e.target.value); if (v >= 5 && v <= 500) { settings.pSize = v; save(K.settings, settings); renderStats(); } else e.target.value = settings.pSize; };
+  window.addEventListener("resize", () => renderStats());
   const cell = v => { const s = v == null ? "" : String(v); return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
   function download(name, text, type) { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }
   $("#exportCsv").onclick = () => {
-    const head = ["time", "recipe", "trigger", "result", "reasons", "fill_y_px", "fill_target_px", "fill_status", "cap_coverage_pct", "cap_deltaE", "cap_angle_deg", "label_similarity_pct", "label_shift_px", "sim_truth"];
-    const rows = shift.log.map(l => [new Date(l.t).toISOString(), l.recipe, l.how, l.pass ? "PASS" : "REJECT", l.reasons.map(k => QC.REASONS[k]).join("; "), l.fy, l.ft, l.fs, l.cc, l.cde, l.ca, l.ls, l.lsh, l.sim]);
+    const head = ["time", "recipe", "trigger", "result", "reasons", "fill_y_px", "fill_target_px", "fill_status", "cap_coverage_pct", "cap_deltaE", "cap_angle_deg", "label_similarity_pct", "label_shift_px", "sim_truth", "lane", "warning"];
+    const rows = shift.log.map(l => [new Date(l.t).toISOString(), l.recipe, l.how, l.pass ? "PASS" : "REJECT", l.reasons.map(k => QC.REASONS[k]).join("; "), l.fy, l.ft, l.fs, l.cc, l.cde, l.ca, l.ls, l.lsh, l.sim, l.lane || "L1", l.w || ""]);
     const tp = throughput();
     const sum = [[], ["สรุปกะ"], ["เริ่มกะ", new Date(shift.start).toISOString()], ["ตรวจทั้งหมด", shift.total], ["ผ่าน", shift.pass], ["คัดทิ้ง", shift.reject],
       ["Yield %", shift.total ? (shift.pass / shift.total * 100).toFixed(2) : ""], ["ผ่านไปไม่ได้ตรวจ", shift.missed], ["อัตราเฉลี่ย ขวด/นาที", tp.avg.toFixed(2)],
       ...Object.keys(QC.REASONS).map(k => [QC.REASONS[k], shift.reasons[k] || 0])];
+    if (nLanes() > 1 || Object.keys(shift.lanes).length > 1) {
+      sum.push([], ["รายไลน์"], ["ไลน์", "ตรวจ", "ผ่าน", "คัดทิ้ง", "Yield %", "ไม่ได้ตรวจ", "เตือนขวดซ้อน", "p̄ %", "กลุ่มหลุดขีดควบคุม"]);
+      for (const id of Object.keys(shift.lanes).sort()) {
+        const s = shift.lanes[id], pc = QC.pChart(shift.log, { lane: id, size: settings.pSize });
+        sum.push([id, s.total, s.pass, s.reject, s.total ? (s.pass / s.total * 100).toFixed(2) : "", s.missed, s.multi || 0, (pc.pbar * 100).toFixed(2), pc.outCount]);
+      }
+    }
     const d = new Date(shift.start), stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}-${String(d.getHours()).padStart(2, "0")}${String(d.getMinutes()).padStart(2, "0")}`;
     download(`qc-shift-${stamp}.csv`, "﻿" + [head, ...rows, ...sum].map(r => r.map(cell).join(",")).join("\r\n"), "text/csv;charset=utf-8");
   };
   $("#resetShift").onclick = () => {
     if (shift.total && !confirm("รีเซ็ตตัวนับและบันทึกของกะนี้? (แนะนำให้ส่งออก CSV ก่อน)")) return;
-    shift = newShift(); save(K.shift, shift); last = null; renderStats(); engine("เริ่มกะใหม่แล้ว", "ok");
+    dropThumbs(shift.rejects); if (idbOk) IDB.clear("thumbs").catch(() => {});
+    shift = newShift(); save(K.shift, shift);
+    for (const L of activeLanes()) withLane(L, () => { last = null; });
+    renderStats(); showResult(null); engine("เริ่มกะใหม่แล้ว", "ok");
   };
 
   // ---------- การตั้งค่า ----------
@@ -908,10 +1366,8 @@ if (typeof document !== "undefined") (() => {
   ["beep", "webhookOn", "webhook"].forEach(id => $("#" + id).addEventListener("change", saveSettings));
   $("#testBeep").onclick = () => { const b = settings.beep; settings.beep = true; beep(); settings.beep = b; };
 
-  // ---------- ลูปหลัก ----------
-  function tick(now) {
-    requestAnimationFrame(tick);
-    if (source === "image") { drawOverlay(); return; }
+  // ---------- ลูปหลัก (ทุกไลน์ในหนึ่งรอบ) ----------
+  function stepLane(now) {
     if (!grab(now)) return;
     fpsT.push(now); while (fpsT.length && now - fpsT[0] > 1000) fpsT.shift();
     if (running && bg && bg.width === W && bg.height === H) {
@@ -923,16 +1379,43 @@ if (typeof document !== "undefined") (() => {
         const cfg = { on: rec.trig.on / 100, off: rec.trig.off / 100, centerTol: 0.12, motionMax: 0.01, requireStill: rec.trig.requireStill, stableFrames: Math.max(1, rec.trig.stableFrames), leaveFrames: 3 };
         const r = QC.presenceStep(pst, trigObs, now, cfg);
         pst = r.st;
+        // ขวดสองใบในพื้นที่ทริกเกอร์: ตรวจครั้งละหนึ่งการมาถึง (เตือนครั้งเดียวต่อการมาถึง)
+        if (pst.phase !== "empty" && !pst.multi && trigObs.frac >= cfg.on) { const m = multiNow(); if (m && m.multi) { pst = { ...pst, multi: true }; noteMulti(m); } }
         if (r.event === "inspect") runInspect("auto");
-        else if (r.event === "missed") { shift.missed++; persistShift(); renderStats(); }
+        else if (r.event === "missed") { shift.missed++; laneShift(curLane.id).missed++; persistShift(); renderStats(); }
       }
-    } else if (running && bg) { engine("ขนาดภาพเปลี่ยนไปจากพื้นหลังว่างที่บันทึกไว้ กรุณาบันทึกพื้นหลังว่างใหม่", "warn"); running = false; $("#toggle").textContent = "เริ่มตรวจต่อเนื่อง"; }
-    drawOverlay();
-    $("#fps").textContent = `${fpsT.length} fps · ${W}×${H}`;
+    } else if (running && bg) { engine(laneTag(curLane) + "ขนาดภาพเปลี่ยนไปจากพื้นหลังว่างที่บันทึกไว้ กรุณาบันทึกพื้นหลังว่างใหม่", "warn"); running = false; $("#toggle").textContent = "เริ่มตรวจต่อเนื่อง"; $("#toggle").classList.remove("on"); }
+  }
+  function tick(now) {
+    requestAnimationFrame(tick);
+    if (source === "image") { use(selLane()); drawOverlay(); show(); return; }
+    for (const L of activeLanes()) { use(L); stepLane(now); }
+    use(selLane());
+    drawOverlay(); show();
+    $("#fps").textContent = `${fpsT.length} fps · ${W}×${H}${nLanes() > 1 ? ` · ${nLanes()} ไลน์` : ""}`;
   }
 
   setInterval(() => { if (shift.total) renderStats(); }, 5000);
   window.addEventListener("beforeunload", () => save(K.shift, shift));
-  renderStats(); loadBg(); setSource("sim");
+  // สำหรับการทดสอบอัตโนมัติ (อ่านอย่างเดียว ไม่มีภาพ)
+  Object.defineProperties(window.__QC, Object.getOwnPropertyDescriptors({
+    get shift() { return shift; }, get lanes() { stash(); return activeLanes().map(L => ({ id: L.id, rec: L.rec && L.rec.id, bg: !!L.bg, golden: !!(L.rec && L.rec.golden), cam: L.hubCam ? L.hubCam.slot : null, live: !!(L.hubCam && L.hubCam.active), pst: L.pst.phase })); },
+    get running() { return running; }, get hub() { return hub; }, get idb() { return idbOk; }, setLanes, selectLane, pChart: QC.pChart
+  }));
+
+  // เริ่มต้น: ตรวจ IndexedDB -> ย้ายภาพเก่าออกจาก localStorage (เรียกซ้ำได้) -> โหลดพื้นหลังของทุกไลน์
+  (async () => {
+    idbOk = await IDB.ok();
+    if (idbOk) {
+      const moved = await QC.migrateBgs(recipes, (k, v) => IDB.put("bg", k, { url: v, w: 0, h: 0, t: Date.now() }));
+      if (moved.length) save(K.recipes, recipes);
+      const mt = await QC.migrateThumbs(shift.rejects, (k, v) => IDB.put("thumbs", k, v));
+      if (mt.length) save(K.shift, shift);
+    }
+    for (const L of activeLanes()) loadBg(L);
+    renderStats();
+  })();
+  if (assignRecipes()) persistRecipes();
+  renderLaneTabs(); renderStats(); renderRecipe(); setSource("sim");
   requestAnimationFrame(tick);
 })();

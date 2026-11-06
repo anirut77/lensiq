@@ -102,3 +102,24 @@ label.check input{width:18px;height:18px}
 @media(max-width:560px){fieldset,.recipe-row{grid-template-columns:1fr}.actions .pill{margin-left:0}.measure td:nth-child(2){white-space:normal}}
 fieldset input,fieldset select,.recipe-row input,.recipe-row select,.src select{width:100%;min-width:0}
 .measure td:nth-child(2){white-space:nowrap}
+.lane-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.lane-tabs[hidden]{display:none}
+.lane-tab{flex:1 1 140px;min-width:0;min-height:44px;display:grid;gap:2px;text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--navy);border-radius:12px;padding:8px 12px;font:inherit;font-size:.88rem;cursor:pointer}
+.lane-tab small{font-size:.72rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lane-tab[aria-selected="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.lane-tab[aria-selected="true"] small{color:#c9d3ea}
+.lane-tab .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:#9fb1bc}
+.lane-tab .dot.pass{background:#1a7f4b}.lane-tab .dot.reject{background:#c0392b}
+#statLane{min-height:40px;font-size:.85rem;max-width:100%}
+#statLane[hidden],#laneWrap[hidden]{display:none}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px;margin:12px 0}
+table.lanes{width:100%;border-collapse:collapse;font-size:.85rem}
+table.lanes th,table.lanes td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+table.lanes th{background:var(--alt);color:var(--navy);font-weight:500}
+table.lanes .n{text-align:right;font-variant-numeric:tabular-nums}
+table.lanes .ooc{color:#a12b20}
+.pc-head{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.psize{display:flex;align-items:center;gap:8px;font-size:.8rem}
+.psize input{width:84px;min-height:40px}
+#recipeLane{font-size:.8rem;color:var(--muted);font-weight:400}
+.qcp .hint{overflow-wrap:anywhere}

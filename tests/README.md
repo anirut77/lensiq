@@ -12,6 +12,9 @@ node --test tests/unit            # or: node --test "tests/unit/*.test.js"
 `insights.js`. Covers `lensiq-track.js` (bit-for-bit parity with `store.js` `updateTracker`, Hungarian `lsa` vs brute force,
 crossing paths, lost-track pool, `assignUnique`, `createConfirm`, `pickPrimary`, `snapshot` privacy),
 `lensiq-camera.js` pure helpers + scheduler, and `lensiq-detect.js` `decodeCoco` parity with `store.decodePersons`.
+`studio.test.js` covers `studio-core.js` (สตูดิโอแต่งชุด): guided filter vs brute force, matte refinement, foreground
+estimation, Reinhard transfer, Laplacian blend seam continuity, TPS anchors, silhouette shoulders, skin smoothing mask
+isolation, grain, composite ordering (head over collar, original clothes hidden).
 
 ## Server (Python, Flask test client)
 
@@ -44,6 +47,8 @@ LQ_CHROME=/path/to/chrome node tests/e2e/run.mjs       # other Chrome binary
   two node devices in isolated browser contexts (`newPage(url, {isolated: true})`): pairing, push, `pagehide` keepalive,
   offline queue + retry, insights totals, revoke; then the no-server fallback (export/import) under `http.server`.
   Skipped when `.venv/bin/python` is missing.
+- `studio.e2e.mjs` runs `studio.html?cpu` on a synthetic canvas portrait: MODNet matte, fit, blend, retouch, brush,
+  handle drag, PNG garment template (IndexedDB), PNG/JPEG/ID/4x6 export, fake-camera capture, overflow 390/1280, privacy.
 - `hub.e2e.mjs` builds a blank grid inside `/index.html` and drives `LQCam.createHub`: add/restore/scheduler/unplug,
   the capacity proof (`muteOthers`, `throwOthers` -> `CapacityError`, `lq-camcap.maxLive === 1`) and the privacy scan
   (no `data:image` or value over 200 KB in localStorage, no `/api/*` requests).

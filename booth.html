@@ -9,12 +9,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=5">
-<link rel="stylesheet" href="booth.css?v=3">
+<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="booth.css?v=4">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=5"></script>
+<script src="nav.js?v=8"></script>
 
 <main class="bt">
   <h1>วิเคราะห์ผู้เข้าชมบูธ</h1>
@@ -24,12 +24,14 @@
 
   <div class="grid2 top">
     <section class="card">
-      <div class="cam mirror"><video id="video" autoplay muted playsinline></video><canvas id="overlay" aria-label="ภาพกล้อง แตะกรอบใบหน้าเพื่อบันทึกผู้เข้าร่วมกิจกรรม"></canvas><p class="cam-off">กล้องยังไม่เปิด กด เริ่มกล้อง</p></div>
+      <div class="cam-grid" id="camGrid"><div class="cam" id="camPlaceholder"><p class="cam-off">กล้องยังไม่เปิด กด เริ่มกล้อง</p></div></div>
       <div class="cam-actions">
         <button class="btn primary" id="camStart" type="button">เริ่มกล้อง</button>
         <button class="btn ghost" id="toggle" type="button">เริ่มนับผู้เข้าชม</button>
+        <button class="btn ghost" id="addCam" type="button" disabled>+ เพิ่มกล้องเสริม</button>
         <span class="pill" id="fps">—</span>
       </div>
+      <p class="hint">กล้องเสริม (สูงสุดรวม 3 ตัว) เช่น ทางเข้าบูธหรือโต๊ะสาธิต ใช้คลังผู้เข้าชมชุดเดียวกับกล้องหลัก คนเดียวกันที่กล้องหลายตัวเห็นนับครั้งเดียว การมองและสีหน้าวัดจากกล้องหลักเท่านั้น</p>
       <div class="join">
         <label>กิจกรรม<input id="activity" maxlength="40" value="ทดลองสินค้า"></label>
         <button class="btn ghost" id="join" type="button">บันทึกผู้เข้าร่วมกิจกรรม<span class="kbd"> (Space)</span></button>
@@ -47,6 +49,10 @@
   </div>
 
   <div class="grid2">
+    <section class="card"><h3>กรวยความสนใจ</h3><ol class="funnel" id="funnel"></ol><p class="hint">ร้อยละเทียบกับผู้ผ่านบูธทั้งหมด (คนไม่ซ้ำจากทุกกล้อง)</p></section>
+    <section class="card"><h3>สถิติต่อกล้อง / จุด</h3><div class="table-wrap"><table id="camStats"></table></div></section>
+  </div>
+  <div class="grid2">
     <section class="card"><h3>ผู้เข้าชมใหม่รายชั่วโมง</h3><div id="hourly"></div></section>
     <section class="card"><h3>จำนวนคนในกล้องตามเวลา</h3><div id="crowd"></div></section>
   </div>
@@ -60,6 +66,7 @@
       <h2>ผู้เข้าชม (ไม่ระบุตัวตน)</h2>
       <div class="row-actions">
         <button class="btn ghost" id="exportCsv" type="button">ส่งออก CSV</button>
+        <button class="btn ghost" id="exportStats" type="button">ส่งออกสถิติรวม CSV</button>
         <button class="btn ghost" id="exportJson" type="button">ส่งออกสรุป JSON</button>
       </div>
     </div>
@@ -93,6 +100,6 @@
 <script src="lensiq-track.js?v=1"></script>
 <script src="lensiq-camera.js?v=1"></script>
 <script src="lensiq-detect.js?v=1"></script>
-<script src="booth.js?v=3"></script>
+<script src="booth.js?v=4"></script>
 </body>
 </html>

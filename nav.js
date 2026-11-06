@@ -20,13 +20,20 @@
       { href: "horoscope.html", title: "ดวงวันเดือนปีเกิด", desc: "โหราไทย ปาจื้อ เลขศาสตร์" },
       { href: "tarot.html", title: "ไพ่ทาโรต์ & เซียมซี", desc: "เปิดไพ่ เสี่ยงเซียมซี" },
       { href: "fengshui.html", title: "ฮวงจุ้ย AI", desc: "เลขกัว เข็มทิศ ผังบ้าน" },
-      { href: "numbers.html", title: "เลขมงคล AI", desc: "เบอร์โทร ทะเบียนรถ เลขบ้าน" }
+      { href: "numbers.html", title: "เลขมงคล AI", desc: "เบอร์โทร ทะเบียนรถ เลขบ้าน" },
+      { href: "iching.html", title: "อี้จิง เสี่ยงฮู่", desc: "โยนเหรียญ 64 ฉะ" },
+      { href: "zodiac.html", title: "12 นักษัตร · ปีชง", desc: "ดวงรายปี คู่มงคล" },
+      { href: "astro.html", title: "ราศีตะวันตก", desc: "ราศีอาทิตย์ จันทร์ ลัคนา" },
+      { href: "dream.html", title: "ทำนายฝัน", desc: "ความหมายสัญลักษณ์ในฝัน" }
     ] },
     { label: "วิเคราะห์", id: "ana", items: [
       { href: "store.html", title: "วิเคราะห์หน้าร้าน", desc: "นับคน แผนที่ความร้อน และคิว" },
       { href: "insights.html", title: "แดชบอร์ดรวม", desc: "สรุปผลจากทุกระบบในที่เดียว" }
     ] },
-    { label: "ตู้ถ่ายรูป", href: "photobooth.html" },
+    { label: "ตู้ถ่ายรูป", id: "photo", items: [
+      { href: "photobooth.html", title: "ตู้ถ่ายรูป", desc: "ตู้สติ๊กเกอร์และรูปติดบัตร" },
+      { href: "studio.html", title: "สตูดิโอแต่งชุด", desc: "เปลี่ยนชุดให้เหมือนใส่จริง ตัดพื้นหลัง รีทัช" }
+    ] },
     { label: "ระบบทั้งหมด", href: "cameras.html", cta: true }
   ];
 
@@ -55,7 +62,7 @@
     if (g.items) {
       var cur = g.items.some(function (i) { return isCur(i.href); });
       html += '<li class="nav-item has-sub"><button class="nav-link' + (cur ? " is-current" : "") + '" type="button" aria-expanded="false" aria-controls="navsub-' + g.id + '">' + esc(g.label) + chev + '</button>' +
-        '<ul class="nav-sub" id="navsub-' + g.id + '">';
+        '<ul class="nav-sub' + (g.items.length > 7 ? " cols-2" : "") + '" id="navsub-' + g.id + '">';
       g.items.forEach(function (i) {
         html += '<li><a href="' + i.href + '"' + (isCur(i.href) ? ' aria-current="page"' : "") + '><b>' + esc(i.title) + '</b><small>' + esc(i.desc) + '</small></a></li>';
       });

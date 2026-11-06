@@ -1,0 +1,22 @@
+/* ราศีตะวันตก — ต่อยอดจาก fortune-kit.css */
+.as-era{display:flex;gap:16px}
+.as-result{max-width:960px;margin:18px auto 0}
+.as-top{display:grid;gap:16px;align-items:center}
+@media (min-width:820px){.as-top{grid-template-columns:300px 1fr}}
+.as-wheelbox{max-width:300px;margin:0 auto;width:100%}
+.as-wheel{display:block;width:100%;height:auto;font-family:"Segoe UI Symbol","Apple Symbols","Noto Sans Symbols",Prompt,sans-serif}
+.as-bigs{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))}
+.as-big{border-radius:14px;padding:12px 14px;background:var(--alt);border-top:4px solid var(--c,#b9c1dd);min-width:0}
+.as-big h3{margin:0}
+.as-big h3 small{font-weight:400;color:var(--muted);font-size:.8rem}
+.as-role{font-size:.8rem;color:var(--gold);font-weight:600}
+.as-gl{font-size:2.2rem;line-height:1.1;color:var(--c,var(--navy));font-family:"Segoe UI Symbol","Apple Symbols","Noto Sans Symbols",serif;margin:2px 0}
+.as-sub{font-size:.88rem;margin-top:4px}
+.as-alt{font-size:.8rem;color:#9a3412;background:#fff7ed;border-radius:8px;padding:4px 8px;margin-top:4px}
+.as-daily{margin-top:16px}
+.as-signs{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:10px}
+.as-sign{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border:1.5px solid var(--line);border-radius:14px;background:var(--bg);color:var(--navy);min-width:0}
+.as-sign .as-gl{font-size:1.8rem}
+.as-sign small{font-size:.72rem;color:var(--muted);text-align:center;line-height:1.3}
+.as-sign[aria-pressed=true]{border-color:var(--gold);background:#f1edff}
+#asSignRes{margin-top:16px}

@@ -9,20 +9,31 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=5">
-<link rel="stylesheet" href="insights.css?v=1">
+<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="insights.css?v=2">
 </head>
 <body>
-<header class="nav" id="siteNav"></header><script src="nav.js?v=5"></script>
+<header class="nav" id="siteNav"></header><script src="nav.js?v=8"></script>
 
 <main class="iq">
   <h1>แดชบอร์ดรวม</h1>
-  <p class="lead">สรุปข้อมูลจากทุกระบบกล้อง AI ที่บันทึกไว้ในเบราว์เซอร์นี้ไว้ในหน้าเดียว ข้อมูลไม่ถูกส่งออกนอกเครื่อง</p>
+  <p class="lead">สรุปและแปลผลข้อมูลจากทุกระบบกล้อง AI ที่บันทึกไว้ในเบราว์เซอร์นี้ พร้อมความมั่นใจทางสถิติ คาดการณ์ และสิ่งที่ควรทำ ข้อมูลไม่ถูกส่งออกนอกเครื่อง</p>
 
-  <div class="toolbar">
+  <div class="toolbar" role="region" aria-label="ตัวกรองช่วงเวลา">
     <div class="range" role="group" aria-label="ช่วงเวลา">
-      <button type="button" data-p="today" aria-pressed="false">วันนี้</button><button type="button" data-p="d7" aria-pressed="true">7 วัน</button><button type="button" data-p="d30" aria-pressed="false">30 วัน</button><button type="button" data-p="all" aria-pressed="false">ทั้งหมด</button>
+      <button type="button" data-p="today" aria-pressed="false">วันนี้</button><button type="button" data-p="d7" aria-pressed="true">7 วัน</button><button type="button" data-p="d30" aria-pressed="false">30 วัน</button><button type="button" data-p="d90" aria-pressed="false">90 วัน</button><button type="button" data-p="all" aria-pressed="false">ทั้งหมด</button><button type="button" data-p="custom" aria-pressed="false">กำหนดเอง</button>
     </div>
+    <div class="custom" id="customRange" hidden>
+      <label>จาก <input type="date" id="cFrom"></label>
+      <label>ถึง <input type="date" id="cTo"></label>
+    </div>
+    <label class="cmp">เทียบกับ
+      <select id="compare">
+        <option value="prev">ช่วงก่อนหน้า (ยาวเท่ากัน)</option>
+        <option value="week">ช่วงเดียวกันสัปดาห์ก่อน</option>
+        <option value="none">ไม่เทียบ</option>
+      </select>
+    </label>
     <span class="range-note" id="rangeNote"></span>
   </div>
 
@@ -42,7 +53,16 @@
     <ul class="mods-list" id="emptyList"></ul>
   </section>
 
+  <div class="alerts" id="alerts" hidden></div>
+
   <div id="dash" hidden>
+    <section class="card summary" id="summary" aria-labelledby="sumTitle">
+      <div class="card-h"><h2 id="sumTitle">สรุปผลอัตโนมัติ</h2><span class="muted" id="insightSub"></span></div>
+      <div class="ins-grid" id="insightCards"></div>
+      <button type="button" class="btn-s more" id="insightMore" aria-expanded="false" aria-controls="insightCards" hidden></button>
+      <p class="note">ทุกข้อความสร้างจากตัวเลขในเบราว์เซอร์นี้ ไม่ใช้ AI และไม่ส่งข้อมูลออกนอกเครื่อง · “ความมั่นใจ” มาจากการทดสอบทางสถิติ ข้อมูลน้อยจะบอกตรง ๆ ว่ายังสรุปไม่ได้</p>
+    </section>
+
     <section aria-labelledby="kpiTitle">
       <h2 class="sr" id="kpiTitle">ตัวเลขสำคัญ</h2>
       <div class="kpis" id="kpis"></div>
@@ -59,15 +79,95 @@
       </section>
 
       <section class="card" id="funnel" aria-labelledby="funnelTitle">
-        <div class="card-h"><h2 id="funnelTitle">เส้นทางลูกค้า</h2><span class="muted">คนผ่าน → หยุดดู → มีส่วนร่วม → ซื้อ</span></div>
+        <div class="card-h"><h2 id="funnelTitle">เส้นทางลูกค้า</h2><span class="muted">จากเข้ามาจนถึงซื้อ พร้อมช่วงความเชื่อมั่น 95%</span></div>
+        <div id="storeFunnel"></div>
         <div id="funnelBody"></div>
         <p class="note" id="funnelNote"></p>
+      </section>
+    </div>
+
+    <div class="row2 even">
+      <section class="card" id="heatCard" aria-labelledby="heatTitle" hidden>
+        <div class="card-h"><h2 id="heatTitle">ช่วงเวลาที่คนเยอะ (วัน × ชั่วโมง)</h2><span class="muted" id="heatSub"></span></div>
+        <div class="chart" id="heatChart"></div>
+        <div class="heat-legend" id="heatLegend" aria-hidden="true"></div>
+        <div id="heatTable"></div>
+      </section>
+
+      <section class="card" id="fcCard" aria-labelledby="fcTitle" hidden>
+        <div class="card-h"><h2 id="fcTitle">คาดการณ์และวันผิดปกติ</h2><span class="muted" id="fcSub"></span></div>
+        <ul class="legend"><li><i class="key"></i>จริง</li><li><i class="key dash"></i>คาดการณ์</li><li><i class="key band"></i>ช่วงคาดการณ์ 80%</li><li><i class="key ring"></i>วันผิดปกติ</li></ul>
+        <div class="chart" id="fcChart"></div>
+        <p class="note" id="fcNote"></p>
+        <div id="fcTable"></div>
+      </section>
+    </div>
+
+    <div class="row2 even">
+      <section class="card" id="corrCard" aria-labelledby="corrTitle" hidden>
+        <div class="card-h"><h2 id="corrTitle">ความสัมพันธ์ระหว่างตัวชี้วัด</h2><span class="muted">รายวัน · Pearson r พร้อมช่วง 95%</span></div>
+        <div id="corrBody"></div>
+        <p class="note">สองค่าที่ขึ้นลงพร้อมกันไม่ได้แปลว่าค่าหนึ่งเป็นสาเหตุของอีกค่า ใช้เป็นจุดเริ่มต้นของการทดลอง</p>
+      </section>
+
+      <section class="card" id="abCard" aria-labelledby="abTitle" hidden>
+        <div class="card-h"><h2 id="abTitle">เปรียบเทียบ A/B</h2><span class="muted">จุด = ค่าที่วัดได้ · เส้น = ช่วงความเชื่อมั่น 95%</span></div>
+        <div id="abBody"></div>
+      </section>
+    </div>
+
+    <div class="row2 even">
+      <section class="card" id="camCard" aria-labelledby="camTitle" hidden>
+        <div class="card-h"><h2 id="camTitle">แยกตามกล้อง / เครื่อง</h2><span class="muted">คนเข้าในช่วงที่เลือก</span></div>
+        <div id="camBody"></div>
+        <p class="note" id="camNote"></p>
+      </section>
+
+      <section class="card" id="cohortCard" aria-labelledby="cohortTitle" hidden>
+        <div class="card-h"><h2 id="cohortTitle">ลูกค้ากลับมาซ้ำ</h2><span class="muted">cohort รายสัปดาห์</span></div>
+        <div id="cohortBody"></div>
+      </section>
+    </div>
+
+    <div class="row2 even">
+      <section class="card" id="goalCard" aria-labelledby="goalTitle">
+        <div class="card-h"><h2 id="goalTitle">เป้าหมาย</h2><span class="muted">เทียบกับช่วงที่เลือก</span></div>
+        <div id="goalBody"></div>
+        <details class="setup">
+          <summary>ตั้งเป้า</summary>
+          <form id="goalForm" class="rules"><div class="fields"></div><button type="submit" class="btn-p">บันทึกเป้า</button></form>
+        </details>
+        <p class="iq-msg" id="goalMsg" role="status" aria-live="polite"></p>
+        <p class="note" id="goalNote"></p>
+      </section>
+
+      <section class="card" id="alertCard" aria-labelledby="alertTitle">
+        <div class="card-h"><h2 id="alertTitle">กฎแจ้งเตือน</h2><span class="muted">ตรวจเมื่อเปิดหน้านี้</span></div>
+        <form id="alertForm" class="rules"><div class="fields"></div>
+          <div class="actions"><button type="submit" class="btn-p">บันทึกกฎ</button><button type="button" class="btn-s" id="notifyPerm" hidden>อนุญาตแจ้งเตือนเบราว์เซอร์</button></div>
+        </form>
+        <p class="iq-msg" id="alertMsg" role="status" aria-live="polite"></p>
+        <p class="note" id="alertNote"></p>
       </section>
     </div>
 
     <h2 class="sec">รายระบบ</h2>
     <div class="mods" id="modules"></div>
   </div>
+
+  <section class="card data" id="reportCard" aria-labelledby="reportTitle" hidden>
+    <h2 id="reportTitle">รายงานและส่งออก</h2>
+    <p class="muted">รายงานสรุปพร้อมพิมพ์หรือบันทึกเป็น PDF จากหน้าต่างพิมพ์ของเบราว์เซอร์</p>
+    <div class="actions">
+      <button type="button" class="btn-p" id="reportDay">รายงานประจำวัน</button>
+      <button type="button" class="btn-p" id="reportWeek">รายงานประจำสัปดาห์</button>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn-s" id="exportAnalysis">ส่งออกผลวิเคราะห์ (JSON)</button>
+      <button type="button" class="btn-s" id="exportDaily">ส่งออกรายวัน + พยากรณ์ (CSV)</button>
+    </div>
+    <p class="iq-msg" id="reportMsg" role="status" aria-live="polite"></p>
+  </section>
 
   <section class="card data" aria-labelledby="dataTitle">
     <h2 id="dataTitle">จัดการข้อมูล</h2>
@@ -86,8 +186,11 @@
   </section>
 </main>
 
+<div class="report" id="report" aria-hidden="true"></div>
+
 <div class="iq-tip" id="iqTip" role="tooltip" hidden></div>
 <script src="lensiq-agg.js?v=1"></script>
-<script src="insights.js?v=4"></script>
+<script src="lensiq-stats.js?v=1"></script>
+<script src="insights.js?v=6"></script>
 </body>
 </html>

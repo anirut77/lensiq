@@ -99,7 +99,20 @@ function checkCrossing(mem, line, p, swap = false, margin = ST_CFG.LINE_MARGIN) 
 // ---------- ข้อมูลรายวัน ----------
 function newDay(date = dayKey()) {
   // zones: คีย์ "<slot>:<zoneId>" (zv 2) · byCam: {slot: {name, in, out}} ; in/out/peak เป็นยอดรวมทุกกล้อง
-  return { date, in: 0, out: 0, occ: 0, peak: 0, peakAt: 0, maxQueue: 0, hourly: { in: Array(24).fill(0), out: Array(24).fill(0) }, zones: {}, byCam: {}, zv: 2 };
+  // ฟิลด์เสริม (ตัวเลขล้วน): hourlyOcc/hourlyQ = คนในร้าน/คิวสูงสุดรายชั่วโมง · staff = จำนวนพนักงานที่ตรวจพบ
+  // slaBreach = จำนวนครั้งที่ลูกค้ารอคิวนานเกินเป้า · dedup = {suppressed, revived} จากการลดการนับซ้ำ
+  return { date, in: 0, out: 0, occ: 0, peak: 0, peakAt: 0, maxQueue: 0, hourly: { in: Array(24).fill(0), out: Array(24).fill(0) }, zones: {}, byCam: {}, zv: 2,
+    hourlyOcc: Array(24).fill(0), hourlyQ: Array(24).fill(0), staff: 0, slaBreach: 0, dedup: { suppressed: 0, revived: 0 } };
+}
+/* เติมฟิลด์เสริมให้วันที่บันทึกด้วยรุ่นเก่า (ไม่แตะค่าที่มีอยู่) */
+function ensureDay(d) {
+  const z24 = a => Array.isArray(a) && a.length === 24 ? a : Array(24).fill(0);
+  d.hourlyOcc = z24(d.hourlyOcc); d.hourlyQ = z24(d.hourlyQ);
+  if (!(d.staff >= 0)) d.staff = 0;
+  if (!(d.slaBreach >= 0)) d.slaBreach = 0;
+  if (!d.dedup || typeof d.dedup !== "object") d.dedup = { suppressed: 0, revived: 0 };
+  if (!d.byCam) d.byCam = {};
+  return d;
 }
 /* บันทึกการข้ามเส้น คนในร้านไม่ต่ำกว่า 0 */
 function applyCrossing(day, dir, now) {
@@ -107,6 +120,7 @@ function applyCrossing(day, dir, now) {
   if (dir === "in") { day.in++; day.hourly.in[h]++; day.occ++; }
   else if (dir === "out") { day.out++; day.hourly.out[h]++; day.occ = Math.max(0, day.occ - 1); }
   if (day.occ > day.peak) { day.peak = day.occ; day.peakAt = now; }
+  if (Array.isArray(day.hourlyOcc)) day.hourlyOcc[h] = Math.max(day.hourlyOcc[h] || 0, day.occ);
   return day.occ;
 }
 
@@ -227,32 +241,220 @@ const nsZone = (slot, zid) => `${slot}:${zid}`;
 /* ความกว้างภาพที่ส่งเข้าโมเดลตามจำนวนกล้อง (ประหยัดเวลาประมวลผลรวม) */
 const autoDetW = n => n <= 1 ? 416 : n === 2 ? 352 : 320;
 /* สถานะต่อกล้อง (อยู่ในหน่วยความจำเท่านั้น) */
-function newPipe() { return { tracker: ST_LQT.newTracker(ST_LQT.PRESET.person), lineMem: {}, zoneLive: {}, zoneCounts: {}, lastSeen: [] }; }
+function newPipe() { return { tracker: ST_LQT.newTracker(ST_LQT.PRESET.person), lineMem: {}, zoneLive: {}, zoneCounts: {}, lastSeen: [], boxes: new Map(), reid: null, staff: null, lastNow: 0 }; }
+
+// ---------- ลดการนับซ้ำ: re-ID ด้วยค่าลักษณะภาพ (MobileNetV2) — อยู่ในหน่วยความจำเท่านั้น ----------
+/* ไม่บันทึกลงที่เก็บข้อมูลใด ๆ ไม่ส่งออกจากเครื่อง ล้างเมื่อหยุดกล้องหรือขึ้นวันใหม่ (pipe ถูกสร้างใหม่)
+   วัดบน M1 / WASM SIMD (ไม่มี thread): MobileNetV2 224×224 ≈ 20 ms ต่อครั้ง (p90 21 ms) ทำเป็นชุดก็ไม่เร็วขึ้น (≈18.5 ms/ภาพ)
+   COCO-SSD 416 px ≈ 48 ms → งบต่อรอบ K = 2 ครั้ง (≈ 40 ms) เฉพาะ track ใหม่ที่อาจเป็นคนเดิม การข้ามเส้น และเติมคลัง
+   SIM_MIN = ความคล้าย (cosine) ขั้นต่ำ · MARGIN = ต้องชนะอันดับสองอย่างน้อยเท่านี้ · LOST_TTL_MS = จำคนที่หายจากภาพได้นานสุด
+   REVIVE_DIST = ระยะ (สัดส่วนภาพ) สูงสุดระหว่างจุดที่หายกับจุดที่โผล่ใหม่ · CHECK_MS = ตรวจ track ใหม่ภายในกี่ ms หลังเกิด
+   CROSS_WINDOW_MS = ไม่นับคนเดิมข้ามเส้นทิศเดิมซ้ำภายในช่วงนี้ · REFRESH_MS = อัปเดตค่าลักษณะของ track ทุก ๆ */
+const REID_CFG = Object.freeze({ SIM_MIN: 0.82, MARGIN: 0.03, LOST_TTL_MS: 8000, REVIVE_DIST: 0.6, CHECK_MS: 2000, CROSS_WINDOW_MS: 10000, K: 2, REFRESH_MS: 3000, EMA: 0.3, STAFF_SIM: 0.86 });
+function l2norm(v) {
+  let s = 0; for (let i = 0; i < v.length; i++) s += v[i] * v[i];
+  const n = Math.sqrt(s) || 1, o = new Float32Array(v.length);
+  for (let i = 0; i < v.length; i++) o[i] = v[i] / n;
+  return o;
+}
+function cosine(a, b) {
+  if (!a || !b || a.length !== b.length) return 0;
+  let d = 0, na = 0, nb = 0;
+  for (let i = 0; i < a.length; i++) { d += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; }
+  return na && nb ? d / Math.sqrt(na * nb) : 0;
+}
+function newReid(cfg) {
+  return { cfg: { ...REID_CFG, ...(cfg || {}) }, alias: new Map(), gal: new Map(), lost: new Map(), lastCross: new Map(), recent: [], checked: new Map(), staffGal: [], stats: { embeds: 0, revived: 0, suppressed: 0, skipped: 0 } };
+}
+const canonOf = (R, id) => (R && R.alias.has(id) ? R.alias.get(id) : id);
+/* บันทึก/ผสมค่าลักษณะของคน canon (EMA แล้ว L2) */
+function reidRemember(R, canon, emb, now) {
+  const e = l2norm(emb), g = R.gal.get(canon);
+  if (!g) { R.gal.set(canon, { emb: e, n: 1, at: now }); return; }
+  const a = R.cfg.EMA, m = new Float32Array(e.length);
+  for (let i = 0; i < e.length; i++) m[i] = (1 - a) * g.emb[i] + a * e[i];
+  g.emb = l2norm(m); g.n++; g.at = now;
+}
+/* หาคนที่หายไปไม่นาน (R.lost) ที่คล้าย emb ที่สุด — ต้องคล้าย >= SIM_MIN ชนะอันดับสอง >= MARGIN อยู่ไม่ไกลเกิน REVIVE_DIST
+   exclude = canon ที่ยังเห็นอยู่ในภาพ (คนละคนแน่นอน) คืน {canon, sim} | null */
+function reidMatch(R, emb, now, box, exclude) {
+  const c = R.cfg, p = box ? center(box) : null;
+  let best = null, bs = -1, second = -1;
+  for (const [canon, L] of R.lost) {
+    if (exclude && exclude.has(canon)) continue;
+    if (now - L.at > c.LOST_TTL_MS) continue;
+    if (p && L.box && dist2d(p, center(L.box)) > c.REVIVE_DIST) continue;
+    const s = cosine(emb, L.emb);
+    if (s > bs) { second = bs; bs = s; best = canon; } else if (s > second) second = s;
+  }
+  if (best == null || bs < c.SIM_MIN || bs - Math.max(0, second) < c.MARGIN) return null;
+  return { canon: best, sim: bs };
+}
+/* ตัดสินว่าจะนับการข้ามเส้นนี้หรือไม่ (คนเดิมข้ามทิศเดิมซ้ำภายใน CROSS_WINDOW_MS = ไม่นับ)
+   คนเดิม = canon เดียวกัน หรือค่าลักษณะคล้ายคนที่เพิ่งข้ามทิศเดียวกันและตอนนี้ไม่อยู่ในภาพแล้ว (กันรหัสสลับ/ถูกบัง)
+   ข้ามกลับทิศตรงข้ามนับตามปกติ (เข้าแล้วออก) — คืน {count, reason:'same-id'|'re-id'|null} */
+function crossDecision(R, canon, dir, now, emb, active) {
+  const c = R.cfg;
+  R.recent = R.recent.filter(r => now - r.t <= c.CROSS_WINDOW_MS);
+  const lc = R.lastCross.get(canon);
+  if (lc && lc.dir === dir && now - lc.t <= c.CROSS_WINDOW_MS) { R.stats.suppressed++; return { count: false, reason: "same-id" }; }
+  if (emb && !(lc && now - lc.t <= c.CROSS_WINDOW_MS)) {
+    for (const r of R.recent) {
+      if (r.canon === canon || r.dir !== dir || (active && active.has(r.canon))) continue;
+      const rl = R.lastCross.get(r.canon);
+      if (rl && rl.dir !== dir) continue; // คนนั้นข้ามกลับไปแล้ว
+      if (cosine(r.emb, emb) >= c.SIM_MIN) { R.lastCross.set(canon, { dir, t: r.t }); R.stats.suppressed++; return { count: false, reason: "re-id" }; }
+    }
+  }
+  R.lastCross.set(canon, { dir, t: now });
+  if (emb) R.recent.push({ t: now, dir, canon, emb });
+  return { count: true, reason: null };
+}
+
+// ---------- ไม่นับพนักงาน: โซนพนักงาน (เช่น หลังเคาน์เตอร์) ----------
+/* S = {ms: Map<canon, ms ในโซน>, flagged: Set<canon>} ; obs = [{id(canon), foot}] ; dt = เวลาตั้งแต่เฟรมก่อน (ms)
+   ใครอยู่ในโซนพนักงานสะสมเกิน minMs (ในวันนั้น ตามรหัสที่ติดตามได้) = พนักงาน ไม่นับตั้งแต่นั้น คืนรายการที่เพิ่งถูกระบุ */
+function newStaff() { return { ms: new Map(), flagged: new Set() }; }
+function staffStep(S, zone, obs, dt, minMs) {
+  const fresh = [];
+  if (!zone || !(minMs > 0)) return fresh;
+  dt = Math.max(0, Math.min(1000, dt || 0));
+  for (const o of obs) {
+    if (S.flagged.has(o.id) || !pointInRect(o.foot, zone)) continue;
+    const v = (S.ms.get(o.id) || 0) + dt;
+    S.ms.set(o.id, v);
+    if (v >= minMs) { S.flagged.add(o.id); fresh.push(o.id); }
+  }
+  return fresh;
+}
+
 /* ประมวลผลหนึ่งเฟรมของหนึ่งกล้องลง `day` ที่ใช้ร่วมกัน
-   cam = {slot, name, role:'door'|'zone'|'both', line, swap, zones:[{id,name,x,y,w,h}]}
-   - นับข้ามเส้นเฉพาะ role door/both ; โซนเฉพาะ role zone/both
+   cam = {slot, name, role:'door'|'zone'|'both', line, swap, zones:[{id,name,x,y,w,h}], staffZone?:{x,y,w,h}}
+   opt (ไม่บังคับ — ไม่ส่ง = พฤติกรรมเดิมทุกอย่าง):
+     reid: bool · embed(box) -> Float32Array|null (เรียกได้ไม่เกิน K ครั้งต่อเฟรม) · reidCfg · staffMs: เวลาในโซนพนักงานที่ถือว่าเป็นพนักงาน
+   - นับข้ามเส้นเฉพาะ role door/both ; โซนเฉพาะ role zone/both ; พนักงานไม่ถูกนับเส้น/โซน/ฮีตแมป
    - day.in/out/peak เป็นยอดรวม ; day.byCam[slot] = {name, in, out}
-   คืน {conf, obs, crossings:[{id, dir}]} */
-function stepCam(pipe, cam, day, dets, now, tcfg) {
+   คืน {conf, obs, crossings:[{id, dir}], suppressed:[{id, dir, reason}], revived:[{id, canon, sim}], staff:[canon ใหม่]} */
+function stepCam(pipe, cam, day, dets, now, tcfg, opt) {
   tcfg = tcfg || ST_LQT.trackerCfgFor(ST_LQT.PRESET.person, 0);
+  opt = opt || {};
   const { seen, removed } = ST_LQT.updateTracker(pipe.tracker, dets, now, tcfg);
-  removed.forEach(id => delete pipe.lineMem[id]);
+  if (!pipe.boxes) pipe.boxes = new Map();
+  const R = opt.reid ? (pipe.reid || (pipe.reid = newReid(opt.reidCfg))) : null;
+  const staffOn = !!(cam.staffZone && opt.staffMs > 0);
+  const SF = staffOn ? (pipe.staff || (pipe.staff = newStaff())) : pipe.staff;
+  const dt = pipe.lastNow ? now - pipe.lastNow : 0; pipe.lastNow = now;
+  const res = { conf: [], obs: [], crossings: [], suppressed: [], revived: [], staff: [] };
+  // track ที่หายไป: ไม่มี re-ID = ลืมทันที (เดิม) ; มี re-ID และมีค่าลักษณะ = ย้ายไปคลังคนที่หายไปไม่นาน
+  for (const id of removed) {
+    const cid = canonOf(R, id), box = pipe.boxes.get(id);
+    pipe.boxes.delete(id);
+    if (R) {
+      R.alias.delete(id); R.checked.delete(id);
+      const g = R.gal.get(cid);
+      if (g) { R.lost.set(cid, { emb: g.emb, at: now, box }); continue; }
+      R.gal.delete(cid);
+    }
+    if (SF && !SF.flagged.has(cid)) SF.ms.delete(cid);
+    delete pipe.lineMem[cid];
+  }
+  if (R) for (const [cid, L] of R.lost) if (now - L.at > R.cfg.LOST_TTL_MS) { R.lost.delete(cid); R.gal.delete(cid); delete pipe.lineMem[cid]; if (SF) SF.ms.delete(cid); }
   const conf = seen.filter(t => t.hits >= (tcfg.MIN_HITS ?? ST_CFG.MIN_HITS));
+  conf.forEach(t => pipe.boxes.set(t.id, t.box));
+  // งบการคำนวณค่าลักษณะ: K ครั้งต่อเฟรม
+  let budget = R ? R.cfg.K : 0;
+  const embed = t => {
+    if (!R || typeof opt.embed !== "function") return null;
+    if (budget <= 0) { R.stats.skipped++; return null; }
+    budget--;
+    let e = null; try { e = opt.embed(t.box); } catch { e = null; }
+    if (!e || !e.length) return null;
+    R.stats.embeds++;
+    return e;
+  };
+  if (R) {
+    const active = new Set(conf.map(t => canonOf(R, t.id)));
+    // 1) track ใหม่ที่อาจเป็นคนเดิมที่ถูกบัง -> ใช้รหัสเดิม
+    for (const t of conf) {
+      if (R.checked.get(t.id) || R.alias.has(t.id)) continue;
+      if (now - t.firstSeen > R.cfg.CHECK_MS) { R.checked.set(t.id, true); continue; }
+      if (!R.lost.size && !R.staffGal.length) { R.checked.set(t.id, true); continue; }
+      const e = embed(t); if (!e) continue;
+      R.checked.set(t.id, true);
+      const m = R.lost.size ? reidMatch(R, e, now, t.box, active) : null;
+      if (m) {
+        // ใช้รหัสเดิม ; ความจำเส้นนับเริ่มใหม่จากจุดที่โผล่ (ไม่เดาการข้ามเส้นระหว่างถูกบัง) — ถ้าเดินข้ามทิศเดิมซ้ำภายในช่วงที่ตั้ง จะไม่ถูกนับ
+        R.alias.set(t.id, m.canon); R.lost.delete(m.canon);
+        delete pipe.lineMem[t.id]; delete pipe.lineMem[m.canon];
+        reidRemember(R, m.canon, e, now); active.add(m.canon); R.stats.revived++;
+        res.revived.push({ id: t.id, canon: m.canon, sim: m.sim });
+      } else reidRemember(R, t.id, e, now);
+      const cid = canonOf(R, t.id);
+      if (SF && !SF.flagged.has(cid) && R.staffGal.some(s => cosine(s, R.gal.get(cid).emb) >= R.cfg.STAFF_SIM)) { SF.flagged.add(cid); res.staff.push(cid); }
+    }
+  }
+  const cidOf = t => canonOf(R, t.id);
+  conf.forEach(t => { t.cid = cidOf(t); t.staff = !!(SF && SF.flagged.has(t.cid)); });
+  // 2) โซนพนักงาน
+  if (staffOn) {
+    const fresh = staffStep(SF, cam.staffZone, conf.map(t => ({ id: t.cid, foot: foot(t.box) })), dt, opt.staffMs);
+    for (const cid of fresh) {
+      res.staff.push(cid);
+      if (R && R.gal.has(cid)) R.staffGal.push(R.gal.get(cid).emb);
+    }
+    if (res.staff.length) conf.forEach(t => { t.staff = SF.flagged.has(t.cid); });
+  }
+  if (res.staff.length) {
+    day.staff = (day.staff || 0) + res.staff.length;
+    // ไม่นับเวลาในโซนของพนักงานตั้งแต่นี้ (ยอดเข้าโซนที่นับไปแล้วคงไว้)
+    for (const zid in pipe.zoneLive) for (const cid of res.staff) delete pipe.zoneLive[zid][cid];
+  }
   pipe.lastSeen = conf;
+  res.conf = conf;
   if (!day.byCam) day.byCam = {};
   const bc = day.byCam[cam.slot] || (day.byCam[cam.slot] = { name: cam.name || cam.slot, in: 0, out: 0 });
   if (cam.name) bc.name = cam.name;
-  const role = cam.role || "both", crossings = [];
+  const role = cam.role || "both";
+  const active = new Set(conf.map(t => t.cid));
   if (cam.line && role !== "zone") for (const t of conf) {
-    const mem = pipe.lineMem[t.id] || (pipe.lineMem[t.id] = {});
+    const mem = pipe.lineMem[t.cid] || (pipe.lineMem[t.cid] = {});
     const dir = checkCrossing(mem, cam.line, center(t.box), !!cam.swap);
-    if (dir) { applyCrossing(day, dir, now); bc[dir]++; t.flash = { dir, until: now + 800 }; crossings.push({ id: t.id, dir }); }
+    if (!dir || t.staff) continue;
+    if (R) {
+      let e = R.gal.has(t.cid) ? R.gal.get(t.cid).emb : null;
+      if (!e) { const x = embed(t); if (x) { reidRemember(R, t.cid, x, now); e = R.gal.get(t.cid).emb; } }
+      const d = crossDecision(R, t.cid, dir, now, e, active);
+      if (!d.count) { res.suppressed.push({ id: t.cid, dir, reason: d.reason }); continue; }
+    }
+    applyCrossing(day, dir, now); bc[dir]++; t.flash = { dir, until: now + 800 }; res.crossings.push({ id: t.cid, dir });
   }
-  const obs = conf.map(t => ({ id: t.id, foot: foot(t.box) }));
+  if (R) {
+    // 3) เติมคลังค่าลักษณะ (เพื่อให้กู้รหัสได้เมื่อถูกบัง) แล้ว 4) อัปเดตค่าเก่า
+    for (const t of conf) if (budget > 0 && !R.gal.has(t.cid)) { const e = embed(t); if (e) reidRemember(R, t.cid, e, now); }
+    for (const t of conf) { const g = R.gal.get(t.cid); if (budget > 0 && g && now - g.at > R.cfg.REFRESH_MS) { const e = embed(t); if (e) reidRemember(R, t.cid, e, now); } }
+    if (!day.dedup || typeof day.dedup !== "object") day.dedup = { suppressed: 0, revived: 0 };
+    day.dedup.suppressed += res.suppressed.length; day.dedup.revived += res.revived.length;
+  }
+  const people = conf.filter(t => !t.staff);
+  const obs = people.map(t => ({ id: t.cid, foot: foot(t.box) }));
   const zones = role === "door" ? [] : (cam.zones || []).map(z => ({ ...z, id: nsZone(cam.slot, z.id) }));
-  const alive = new Set(pipe.tracker.tracks.map(t => t.id));
+  const alive = new Set(pipe.tracker.tracks.map(t => canonOf(R, t.id)).filter(cid => !(SF && SF.flagged.has(cid))));
   pipe.zoneCounts = zoneStep(pipe.zoneLive, zones, obs, alive, day, now);
-  return { conf, obs, crossings };
+  res.obs = obs;
+  return res;
+}
+/* เวลารอคิวที่วัดจริง: live = pipe.zoneLive[queueZoneId] -> {n, maxWaitMs} */
+function queueWait(live, now) {
+  let n = 0, mx = 0;
+  for (const id in live || {}) { n++; mx = Math.max(mx, now - live[id].t0); }
+  return { n, maxWaitMs: mx };
+}
+/* นับครั้งที่รอเกินเป้า (ครั้งละคน) — ทำเครื่องหมาย e.sla ในรายการโซนคิว คืนจำนวนที่เพิ่ง "เกิน" */
+function slaStep(live, now, slaMs) {
+  let n = 0;
+  if (!(slaMs > 0)) return 0;
+  for (const id in live || {}) { const e = live[id]; if (!e.sla && now - e.t0 > slaMs) { e.sla = true; n++; } }
+  return n;
 }
 /* ย้ายข้อมูลรูปแบบกล้องเดียว -> หลายกล้อง (เรียกซ้ำได้ ผลเหมือนเดิม ไม่ลบข้อมูลเดิม)
    get(key) -> string|null ; set(key, string) ; keys = รายชื่อคีย์ทั้งหมด (สำหรับ st-day-*)
@@ -315,10 +517,10 @@ function csvCell(v) { const s = String(v ?? ""); return /[",\n]/.test(s) ? `"${s
 function buildCsv(days, cashierId) {
   const rows = [["รายชั่วโมง"], ["วันที่", "ชั่วโมง", "เข้า", "ออก"]];
   days.forEach(d => d.hourly.in.forEach((v, h) => { if (v || d.hourly.out[h]) rows.push([d.date, String(h).padStart(2, "0") + ":00", v, d.hourly.out[h]]); }));
-  rows.push([], ["สรุปรายวัน"], ["วันที่", "เข้า", "ออก", "คนในร้านสูงสุด", "เวลาที่สูงสุด", "คิวสูงสุด", "อัตราการซื้อโดยประมาณ (%)"]);
+  rows.push([], ["สรุปรายวัน"], ["วันที่", "เข้า", "ออก", "คนในร้านสูงสุด", "เวลาที่สูงสุด", "คิวสูงสุด", "อัตราการซื้อโดยประมาณ (%)", "พนักงานที่ไม่นับ", "รอคิวเกินเป้า (ครั้ง)", "ตัดการนับซ้ำ (ครั้ง)"]);
   days.forEach(d => {
     const c = conversion(d, cashierId);
-    rows.push([d.date, d.in, d.out, d.peak, d.peakAt ? new Date(d.peakAt).toTimeString().slice(0, 5) : "", d.maxQueue, c == null ? "" : (c * 100).toFixed(1)]);
+    rows.push([d.date, d.in, d.out, d.peak, d.peakAt ? new Date(d.peakAt).toTimeString().slice(0, 5) : "", d.maxQueue, c == null ? "" : (c * 100).toFixed(1), d.staff || 0, d.slaBreach || 0, (d.dedup && d.dedup.suppressed) || 0]);
   });
   rows.push([], ["รายกล้อง"], ["วันที่", "กล้อง", "เข้า", "ออก"]);
   days.forEach(d => Object.keys(d.byCam || {}).sort().forEach(s => { const b = d.byCam[s]; rows.push([d.date, b.name || s, b.in || 0, b.out || 0]); }));
@@ -326,8 +528,67 @@ function buildCsv(days, cashierId) {
   days.forEach(d => Object.entries(d.zones).forEach(([k, z]) => rows.push([d.date, zoneLabel(d, k, z), z.visits, avgDwellSec(z).toFixed(1), z.peak])));
   return "﻿" + rows.map(r => r.map(csvCell).join(",")).join("\n");
 }
+/* ช่วงชั่วโมงที่มีข้อมูล (อย่างน้อย 08–20) */
+function activeHours(d) {
+  const act = []; for (let h = 0; h < 24; h++) if (d.hourly.in[h] || d.hourly.out[h]) act.push(h);
+  return act.length ? [Math.min(...act), Math.max(...act)] : null;
+}
+/* CSV รายชั่วโมง: ทุกชั่วโมงตั้งแต่ชั่วโมงแรกถึงชั่วโมงสุดท้ายที่มีคนเข้า/ออกของแต่ละวัน (รวมชั่วโมงที่เป็น 0)
+   คนในร้านสิ้นชั่วโมง = ยอดสะสม เข้า−ออก (ไม่ต่ำกว่า 0) · target = เป้าคนเข้าต่อชั่วโมง (0 = ไม่มี) */
+function buildHourlyCsv(days, target = 0) {
+  const rows = [["วันที่", "ชั่วโมง", "เข้า", "ออก", "สุทธิ", "คนในร้านสิ้นชั่วโมง (ประมาณ)", "คนในร้านสูงสุด", "คิวสูงสุด", "เป้าคนเข้า", "ถึงเป้า"]];
+  for (const d of days) {
+    const r = activeHours(d); if (!r) continue;
+    let cum = 0;
+    for (let h = 0; h < r[0]; h++) cum = Math.max(0, cum + (d.hourly.in[h] || 0) - (d.hourly.out[h] || 0));
+    for (let h = r[0]; h <= r[1]; h++) {
+      const i = d.hourly.in[h] || 0, o = d.hourly.out[h] || 0;
+      cum = Math.max(0, cum + i - o);
+      rows.push([d.date, `${String(h).padStart(2, "0")}:00–${String(h).padStart(2, "0")}:59`, i, o, i - o, cum,
+        (d.hourlyOcc && d.hourlyOcc[h]) || 0, (d.hourlyQ && d.hourlyQ[h]) || 0, target > 0 ? target : "", target > 0 ? (i >= target ? "ใช่" : "ไม่") : ""]);
+    }
+  }
+  return "﻿" + rows.map(r => r.map(csvCell).join(",")).join("\n");
+}
 
-if (typeof module !== "undefined") module.exports = { ST_CFG, ST_SLOTS, dayKey, iou, center, foot, normRect, pointInRect, newTracker, updateTracker, lineSide, segmentsIntersect, checkCrossing, newDay, applyCrossing, zoneStep, closeZones, avgDwellSec, queueInfo, conversion, newHeat, heatAdd, heatMax, heatColor, heatToRGBA, buildCsv, decodePersons, nms, nsZone, autoDetW, newPipe, stepCam, migrateStore, zoneLabel };
+// ---------- สรุปวันนี้ (ข้อความสั้นภาษาไทย) ----------
+const fmtSecTh = s => s < 60 ? `${Math.round(s)} วิ` : `${Math.floor(s / 60)} นาที${Math.round(s % 60) ? ` ${Math.round(s % 60)} วิ` : ""}`;
+const hh = h => String(h).padStart(2, "0");
+/* o = {cashierId, hourlyTarget, slaSec, staffOffset, nowHour, clock(ts)->'HH:MM'} คืนรายการประโยคสั้น */
+function daySummary(d, o = {}) {
+  const out = [];
+  if (!d || !(d.in || d.out)) return ["ยังไม่มีคนเข้า–ออกวันนี้"];
+  let bh = -1, bv = 0;
+  for (let h = 0; h < 24; h++) if ((d.hourly.in[h] || 0) > bv) { bv = d.hourly.in[h]; bh = h; }
+  out.push(`เข้าร้าน ${d.in} คน${bh >= 0 ? ` · คนเข้ามากสุดช่วง ${hh(bh)}:00–${hh(bh + 1 === 24 ? 0 : bh + 1)}:00 (${bv} คน)` : ""}`);
+  if (d.peak) {
+    const t = d.peakAt ? (o.clock ? o.clock(d.peakAt) : new Date(d.peakAt).toTimeString().slice(0, 5)) : "";
+    out.push(`คนในร้านพร้อมกันสูงสุด ${d.peak} คน${t ? ` เวลา ${t}` : ""}`);
+  }
+  const c = conversion(d, o.cashierId);
+  if (c != null) {
+    const p = Math.round(c * 100);
+    out.push(`อัตราการซื้อโดยประมาณ ${p}% — ${p >= 40 ? "สูง ลูกค้าส่วนใหญ่ไปถึงแคชเชียร์" : p >= 20 ? "ปานกลาง" : "ต่ำ หลายคนเดินดูแล้วไม่ซื้อ ลองดูโซนที่คนอยู่นาน"}`);
+  }
+  let bz = null, bd = 0;
+  for (const [k, z] of Object.entries(d.zones || {})) { if (k === o.cashierId || !z.dwellN) continue; const s = avgDwellSec(z); if (s > bd) { bd = s; bz = zoneLabel(d, k, z); } }
+  if (bz) out.push(`โซนที่ลูกค้าอยู่นานสุด: ${bz} (เฉลี่ย ${fmtSecTh(bd)})`);
+  if (d.maxQueue) out.push(`คิวยาวสุด ${d.maxQueue} คน${o.slaSec > 0 ? (d.slaBreach ? ` · รอนานเกิน ${fmtSecTh(o.slaSec)} ${d.slaBreach} ครั้ง ควรเพิ่มจุดชำระเงินช่วงคนเยอะ` : ` · ไม่มีใครรอเกิน ${fmtSecTh(o.slaSec)}`) : ""}`);
+  if (o.hourlyTarget > 0) {
+    const r = activeHours(d);
+    if (r) {
+      const last = Math.min(r[1], o.nowHour != null ? o.nowHour : 23);
+      let hit = 0, n = 0;
+      for (let h = r[0]; h <= last; h++) { n++; if ((d.hourly.in[h] || 0) >= o.hourlyTarget) hit++; }
+      if (n) out.push(`ถึงเป้าคนเข้า ${o.hourlyTarget} คน/ชม. ${hit} จาก ${n} ชั่วโมง`);
+    }
+  }
+  if (d.staff || o.staffOffset) out.push(`ไม่นับพนักงาน: ${[d.staff ? `ตรวจพบจากโซนพนักงาน ${d.staff} คน` : "", o.staffOffset ? `หักจากคนในร้าน ${o.staffOffset} คน` : ""].filter(Boolean).join(" · ")}`);
+  if (d.dedup && (d.dedup.suppressed || d.dedup.revived)) out.push(`ลดการนับซ้ำ: ไม่นับข้ามเส้นซ้ำ ${d.dedup.suppressed} ครั้ง · ต่อรหัสคนเดิมหลังถูกบัง ${d.dedup.revived} ครั้ง`);
+  return out;
+}
+
+if (typeof module !== "undefined") module.exports = { REID_CFG, l2norm, cosine, newReid, canonOf, reidRemember, reidMatch, crossDecision, newStaff, staffStep, queueWait, slaStep, ensureDay, buildHourlyCsv, daySummary, activeHours, ST_CFG, ST_SLOTS, dayKey, iou, center, foot, normRect, pointInRect, newTracker, updateTracker, lineSide, segmentsIntersect, checkCrossing, newDay, applyCrossing, zoneStep, closeZones, avgDwellSec, queueInfo, conversion, newHeat, heatAdd, heatMax, heatColor, heatToRGBA, buildCsv, decodePersons, nms, nsZone, autoDetW, newPipe, stepCam, migrateStore, zoneLabel };
 
 // ================= ส่วนหน้าจอ =================
 if (typeof document !== "undefined") (() => {
@@ -345,9 +606,9 @@ if (typeof document !== "undefined") (() => {
 
   // ---- สถานะ ----
   // G = ค่าตั้งรวม (st-settings) ; ค่าต่อกล้องอยู่ใน cam.settings (st-cam-<slot>) = {line, swap, zones, detW}
-  const G = Object.assign({ maxOcc: 20, serviceSec: 60, queueAlert: 5, heatOn: false, queueZone: "", cashierZone: "" }, load("settings", {}));
-  let day = Object.assign(newDay(), load("day-" + dayKey(), {}));
-  if (!day.byCam) day.byCam = {};
+  const G = Object.assign({ maxOcc: 20, serviceSec: 60, queueAlert: 5, heatOn: false, queueZone: "", cashierZone: "",
+    queueSlaSec: 300, hourlyTarget: 0, reid: false, reidWindowSec: 10, staffMin: 15, staffOffset: 0, kpiScope: "all" }, load("settings", {}));
+  let day = ensureDay(Object.assign(newDay(), load("day-" + dayKey(), {})));
   const pipes = new Map(), heats = new Map();
   let model = null, delegateUsed = "", running = false, wakeLock = null, fileCam = null, fileUrl = null;
   let lastDash = 0, lastSave = 0, tool = "none", sel = "c1";
@@ -356,7 +617,7 @@ if (typeof document !== "undefined") (() => {
 
   const persistSettings = () => save("settings", G);
   const persistDay = () => save("day-" + day.date, day);
-  const camSet = c => (c.settings = Object.assign({ line: null, swap: false, zones: [], detW: 0 }, c.settings || {}));
+  const camSet = c => (c.settings = Object.assign({ line: null, swap: false, zones: [], detW: 0, staffZone: null }, c.settings || {}));
   const persistCam = c => { camSet(c); c.saveSettings(); };
   const pipeOf = slot => pipes.get(slot) || pipes.set(slot, newPipe()).get(slot);
   function heatOf(slot) {
@@ -367,7 +628,7 @@ if (typeof document !== "undefined") (() => {
   const persistHeat = () => heats.forEach((h, slot) => save("heat-" + slot, Array.from(h.data, v => Math.round(v * 10) / 10)));
   // กล้องที่กำลังใช้ (สด/ไฟล์) และรายการที่บันทึกไว้ (เมื่อยังไม่เปิดกล้อง)
   const srcCams = () => fileCam ? [fileCam] : hub.cams;
-  const storedCams = () => LQCam.parseCams(localStorage.getItem(P + "cams")).cams.map(e => ({ slot: e.slot, name: e.name || `กล้อง ${e.slot.slice(1)}`, role: e.role, settings: Object.assign({ line: null, swap: false, zones: [], detW: 0 }, load("cam-" + e.slot, {})) }));
+  const storedCams = () => LQCam.parseCams(localStorage.getItem(P + "cams")).cams.map(e => ({ slot: e.slot, name: e.name || `กล้อง ${e.slot.slice(1)}`, role: e.role, settings: Object.assign({ line: null, swap: false, zones: [], detW: 0, staffZone: null }, load("cam-" + e.slot, {})) }));
   const cfgList = () => { const s = srcCams(); return s.length ? s : storedCams(); };
   const selCam = () => { const s = srcCams(); return s.find(c => c.slot === sel) || s[0] || null; };
   const zoneCount = id => { let n = 0; pipes.forEach(p => { n += p.zoneCounts[id] || 0; }); return n; };
@@ -467,13 +728,80 @@ if (typeof document !== "undefined") (() => {
     } catch (e) { throw Object.assign(e, { model: true }); }
   }
 
+  // ---- ลดการนับซ้ำ: MobileNetV2 (vendor/models/mobilenet — ตัวเดียวกับหน้าสแกนสินค้า) ----
+  // ค่าลักษณะภาพอยู่ใน pipe.reid (หน่วยความจำ) เท่านั้น ; ตัด crop จากภาพย่อที่ใช้ตรวจจับคนเฟรมเดียวกัน
+  const EMB_NODE = "module_apply_default/MobilenetV2/Logits/AvgPool";
+  const RS = { model: null, loading: null, ms: 0, n: 0, err: "", t0: 0 };
+  const cropCv = document.createElement("canvas"); cropCv.width = cropCv.height = 224;
+  const cropCtx = cropCv.getContext("2d", { willReadFrequently: true });
+  const fakeEmb = () => LQDetect.isTest() && typeof window.__LQ_FAKE_EMB === "function";
+  function loadReid() {
+    if (fakeEmb()) return Promise.resolve(true);
+    if (RS.model) return Promise.resolve(true);
+    if (RS.loading) return RS.loading;
+    RS.loading = (async () => {
+      try {
+        if (typeof faceapi === "undefined" || !faceapi.tf?.loadGraphModel) throw new Error("ไม่พบ TensorFlow.js");
+        if (!delegateUsed || delegateUsed === "test") await LQDetect.tfBackend();
+        const tf = faceapi.tf, m = await tf.loadGraphModel(new URL("vendor/models/mobilenet/model.json", location.href).href);
+        tf.tidy(() => m.execute({ images: tf.zeros([1, 224, 224, 3]) }, EMB_NODE)).dispose();
+        RS.model = m; RS.err = ""; return true;
+      } catch (e) { console.warn("reid model", e); RS.err = e.message || String(e); return false; }
+      finally { RS.loading = null; renderReidInfo(); }
+    })();
+    return RS.loading;
+  }
+  /* ภาพต้นทางของเฟรมนี้: ภาพย่อที่ส่งเข้า COCO-SSD (ตรงกับกล่อง) หรือวาดจากวิดีโอ (โหมดทดสอบ) */
+  function frameSrc(c) {
+    if (c._srcTick === c._tick && c._src) return c._src;
+    let src = c._small && c._small.width > 1 && c._detTick === c._tick ? c._small : null;
+    if (!src) {
+      const v = c.video, W = v.videoWidth, H = v.videoHeight; if (!W || !H) return null;
+      const cv = c._rsrc || (c._rsrc = document.createElement("canvas")), w = Math.min(416, W), h = Math.round(H * w / W);
+      if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+      cv.getContext("2d").drawImage(v, 0, 0, w, h); src = cv;
+    }
+    c._src = src; c._srcTick = c._tick; return src;
+  }
+  function embedderFor(c, now) {
+    if (!G.reid) return null;
+    if (fakeEmb()) return box => { const e = window.__LQ_FAKE_EMB(c.slot, box, now); RS.n++; return e ? Float32Array.from(e) : null; };
+    if (!RS.model) return null;
+    const tf = faceapi.tf;
+    return box => {
+      const src = frameSrc(c); if (!src) return null;
+      const W = src.width, H = src.height, pad = 0.04;
+      const x = Math.max(0, (box.x - pad * box.w) * W), y = Math.max(0, (box.y - pad * box.h) * H);
+      const w = Math.min(W - x, box.w * (1 + 2 * pad) * W), h = Math.min(H - y, box.h * (1 + 2 * pad) * H);
+      if (w < 4 || h < 8) return null;
+      cropCtx.drawImage(src, x, y, w, h, 0, 0, 224, 224);
+      const t = performance.now();
+      const out = tf.tidy(() => RS.model.execute({ images: tf.browser.fromPixels(cropCv).toFloat().div(255).expandDims(0) }, EMB_NODE).reshape([-1]));
+      const v = out.dataSync(); out.dispose();
+      const ms = performance.now() - t; RS.ms = RS.ms ? RS.ms * 0.9 + ms * 0.1 : ms; RS.n++;
+      return Float32Array.from(v);
+    };
+  }
+  function renderReidInfo() {
+    const el = $("#reidInfo"); if (!el) return;
+    let st = { emb: 0, rev: 0, sup: 0, skip: 0 };
+    pipes.forEach(p => { if (p.reid) { st.emb += p.reid.stats.embeds; st.rev += p.reid.stats.revived; st.sup += p.reid.stats.suppressed; st.skip += p.reid.stats.skipped; } });
+    const base = "ค่าลักษณะภาพอยู่ในหน่วยความจำเท่านั้น ไม่บันทึก ไม่ส่งออก ลบทิ้งเมื่อกดหยุดหรือขึ้นวันใหม่";
+    if (!G.reid) { el.textContent = "ลดการนับซ้ำ (ปิดอยู่): ใช้ค่าลักษณะภาพของคน (MobileNetV2) ต่อรหัสเดิมเมื่อคนถูกบังชั่วคราว และไม่นับข้ามเส้นซ้ำ — " + base; return; }
+    if (RS.err) { el.textContent = `โหลดโมเดลลดการนับซ้ำไม่สำเร็จ (${RS.err}) — นับแบบปกติ`; return; }
+    if (RS.loading) { el.textContent = "กำลังโหลดโมเดลลดการนับซ้ำ (MobileNetV2 ~14 MB)..."; return; }
+    el.textContent = `ลดการนับซ้ำ: เปิด${RS.ms ? ` · ${RS.ms.toFixed(0)} ms/ครั้ง (สูงสุด 2 ครั้งต่อรอบ)` : ""} · คำนวณแล้ว ${st.emb} ครั้ง · ต่อรหัสเดิม ${st.rev} · ไม่นับซ้ำ ${st.sup} — ${base}`;
+  }
+
   /* ตรวจจับคนหนึ่งเฟรมของกล้องหนึ่งตัว (ย่อภาพเหลือกว้าง detW px — 416/352/320 ตามจำนวนกล้อง) คืนกล่องพิกัดสัดส่วน */
   async function detectPeople(c) {
     const fk = LQDetect.fake(c.slot, performance.now());
     if (fk) return fk;
     if (!model) return [];
     const detW = camSet(c).detW || autoDetW(srcCams().filter(x => x.active).length);
-    return LQDetect.detectCoco(model, c.video, { detW, canvas: c._small || (c._small = document.createElement("canvas")) });
+    const r = await LQDetect.detectCoco(model, c.video, { detW, canvas: c._small || (c._small = document.createElement("canvas")) });
+    c._detTick = c._tick;
+    return r;
   }
 
   function showError(e, retry) {
@@ -503,6 +831,7 @@ if (typeof document !== "undefined") (() => {
   async function tick(c) {
     if (!running || !c.active || c.video.readyState < 2 || c.video.paused) return;
     try {
+      c._tick = (c._tick || 0) + 1;
       const dets = await detectPeople(c);
       if (!running) return;
       detectErrors[c.slot] = 0;
@@ -601,6 +930,7 @@ if (typeof document !== "undefined") (() => {
 
   async function begin(label) {
     await loadDetector();
+    if (G.reid) loadReid();
     running = true; $("#stop").disabled = false; keepAwake(true);
     engineRunning(label);
     srcCams().forEach(c => layout(c));
@@ -608,11 +938,23 @@ if (typeof document !== "undefined") (() => {
   }
 
   function process(c, dets, now) {
-    if (dayKey(now) !== day.date) { pipes.forEach(p => closeZones(p.zoneLive, day)); persistDay(); day = newDay(dayKey(now)); }
+    if (dayKey(now) !== day.date) {
+      // วันใหม่: ปิดโซน และล้างค่าลักษณะภาพ/สถานะพนักงานของเมื่อวาน (หน่วยความจำเท่านั้น)
+      pipes.forEach(p => { closeZones(p.zoneLive, day); p.reid = null; p.staff = null; });
+      persistDay(); day = newDay(dayKey(now));
+    }
     const s = camSet(c), pipe = pipeOf(c.slot);
     const tcfg = ST_LQT.trackerCfgFor(ST_LQT.PRESET.person, c.intervalMsEma);
-    const r = stepCam(pipe, { slot: c.slot, name: c.name, role: c.role, line: s.line, swap: s.swap, zones: s.zones }, day, dets, now, tcfg);
-    if (G.queueZone) day.maxQueue = Math.max(day.maxQueue, zoneCount(G.queueZone));
+    const embed = embedderFor(c, now);
+    const opt = { reid: !!(G.reid && embed), embed, reidCfg: { CROSS_WINDOW_MS: Math.max(2, +G.reidWindowSec || 10) * 1000 }, staffMs: (+G.staffMin || 0) * 60000 };
+    if (pipe.reid) pipe.reid.cfg.CROSS_WINDOW_MS = opt.reidCfg.CROSS_WINDOW_MS;
+    if (!opt.reid && pipe.reid) pipe.reid = null; // ปิดลดการนับซ้ำ -> ลบค่าลักษณะทันที
+    const r = stepCam(pipe, { slot: c.slot, name: c.name, role: c.role, line: s.line, swap: s.swap, zones: s.zones, staffZone: s.staffZone }, day, dets, now, tcfg, opt);
+    if (G.queueZone) {
+      const qn = zoneCount(G.queueZone), h = new Date(now).getHours();
+      day.maxQueue = Math.max(day.maxQueue, qn); day.hourlyQ[h] = Math.max(day.hourlyQ[h] || 0, qn);
+      if (G.queueZone.startsWith(c.slot + ":")) day.slaBreach += slaStep(pipe.zoneLive[G.queueZone], now, (+G.queueSlaSec || 0) * 1000);
+    }
     const H = heatOf(c.slot); r.obs.forEach(o => heatAdd(H, o.foot));
     draw(c, now);
     if (now - lastDash > 1000) { lastDash = now; renderDash(); }
@@ -662,6 +1004,11 @@ if (typeof document !== "undefined") (() => {
       label(ctx, counts ? `${z.name} · ${counts[id] || 0}` : z.name, z.x * w + 2 * k, z.y * h + 2 * k, col, k);
     });
   }
+  function paintStaff(ctx, z, w, h, k) {
+    ctx.save(); ctx.fillStyle = "rgba(90,100,112,.18)"; ctx.fillRect(z.x * w, z.y * h, z.w * w, z.h * h);
+    ctx.strokeStyle = "#5b6670"; ctx.lineWidth = 2 * k; ctx.setLineDash([3 * k, 3 * k]); ctx.strokeRect(z.x * w, z.y * h, z.w * w, z.h * h); ctx.restore();
+    label(ctx, "โซนพนักงาน", z.x * w + 2 * k, z.y * h + z.h * h - 20 * k, "#5b6670", k);
+  }
   function draw(c, now = Date.now()) {
     if (!c || !c.overlay) return;
     const ctx = c.overlay.getContext("2d"), w = c.overlay.width, h = c.overlay.height, k = devicePixelRatio || 1, s = camSet(c);
@@ -670,12 +1017,13 @@ if (typeof document !== "undefined") (() => {
     if (G.heatOn) paintHeat(ctx, heatOf(c.slot), w, h);
     if (c.role !== "door") paintZones(ctx, c, w, h, k, pipe ? pipe.zoneCounts : {});
     if (s.line && c.role !== "zone") paintLine(ctx, s.line, s.swap, w, h, k);
+    if (s.staffZone) paintStaff(ctx, s.staffZone, w, h, k);
     for (const t of pipe ? pipe.lastSeen : []) {
       const b = t.box, fl = t.flash && t.flash.until > now ? t.flash.dir : null;
-      ctx.strokeStyle = fl === "in" ? "#2a78d6" : fl === "out" ? "#eb6834" : "#ffffff";
+      ctx.strokeStyle = t.staff ? "#9aa3ad" : fl === "in" ? "#2a78d6" : fl === "out" ? "#eb6834" : "#ffffff";
       ctx.lineWidth = (fl ? 4 : 2) * k;
       ctx.strokeRect(b.x * w, b.y * h, b.w * w, b.h * h);
-      label(ctx, `#${t.id}${fl ? (fl === "in" ? " เข้า" : " ออก") : ""}`, b.x * w, Math.max(0, b.y * h - 18 * k), fl === "in" ? "#2a78d6" : fl === "out" ? "#eb6834" : "#0e1430", k);
+      label(ctx, `#${t.cid ?? t.id}${t.staff ? " พนักงาน" : fl ? (fl === "in" ? " เข้า" : " ออก") : ""}`, b.x * w, Math.max(0, b.y * h - 18 * k), t.staff ? "#5b6670" : fl === "in" ? "#2a78d6" : fl === "out" ? "#eb6834" : "#0e1430", k);
       const f = foot(b); ctx.fillStyle = "#8b7bff"; ctx.beginPath(); ctx.arc(f.x * w, f.y * h, 4 * k, 0, Math.PI * 2); ctx.fill();
     }
     const drag = c._drag;
@@ -706,6 +1054,12 @@ if (typeof document !== "undefined") (() => {
       if (tool === "line" && Math.hypot(b.x - a.x, b.y - a.y) > 0.03) {
         s.line = { a, b }; if (pipes.get(c.slot)) pipes.get(c.slot).lineMem = {}; persistCam(c);
         $("#drawMsg").textContent = `บันทึกเส้นนับของ "${c.name}" แล้ว ลูกศรสีน้ำเงินคือทิศ "เข้า" กด "สลับทิศ" หากกลับด้าน`;
+      } else if (tool === "staff") {
+        const r = normRect(a, b);
+        if (r.w > 0.03 && r.h > 0.03) {
+          s.staffZone = r; persistCam(c);
+          $("#drawMsg").textContent = `บันทึกโซนพนักงานของ "${c.name}" แล้ว — คนที่อยู่ในโซนนี้เกิน ${G.staffMin} นาทีจะไม่ถูกนับ`;
+        }
       } else if (tool === "zone") {
         const r = normRect(a, b);
         if (r.w > 0.03 && r.h > 0.03) {
@@ -726,7 +1080,7 @@ if (typeof document !== "undefined") (() => {
     document.querySelectorAll("[data-tool]").forEach(x => x.setAttribute("aria-pressed", x === b));
     grid.classList.toggle("drawing", tool !== "none");
     const many = srcCams().length > 1 ? " (แตะภาพของกล้องที่ต้องการ)" : "";
-    $("#drawMsg").textContent = { line: "ลากนิ้วหรือเมาส์บนภาพเพื่อวาดเส้นนับคนเข้า/ออก (เช่น ขวางประตู)" + many, zone: "ลากนิ้วหรือเมาส์บนภาพเพื่อวาดสี่เหลี่ยมโซน" + many, none: "" }[tool];
+    $("#drawMsg").textContent = { line: "ลากนิ้วหรือเมาส์บนภาพเพื่อวาดเส้นนับคนเข้า/ออก (เช่น ขวางประตู)" + many, zone: "ลากนิ้วหรือเมาส์บนภาพเพื่อวาดสี่เหลี่ยมโซน" + many, staff: "ลากบริเวณที่มีแต่พนักงาน (เช่น หลังเคาน์เตอร์) — หนึ่งโซนต่อกล้อง" + many, none: "" }[tool];
   }));
 
   // ---- รายการโซน (ของกล้องที่เลือก) ----
@@ -765,40 +1119,66 @@ if (typeof document !== "undefined") (() => {
   });
 
   // ---- แดชบอร์ด ----
+  /* ตัวเลขที่แสดง: เครื่องนี้ หรือรวมทุกเครื่อง (เมื่อเป็นเครื่องหลักและเลือก "รวมทุกเครื่อง") */
+  function viewDay() {
+    const M = agg && agg.merged ? agg.merged() : null;
+    $("#kpiScope").hidden = !M;
+    document.querySelectorAll("#kpiScope [data-scope]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.scope === (G.kpiScope === "local" ? "local" : "all"))));
+    if (!M || G.kpiScope === "local") return { all: false, d: day, n: M ? M.rows.length : 1 };
+    const d = { ...day, in: M.in, out: M.out, occ: M.occ, peak: M.peak, peakAt: M.peak > day.peak ? 0 : day.peakAt, maxQueue: M.maxQueue, hourly: { in: M.hourlyIn, out: M.hourlyOut } };
+    return { all: true, d, n: M.rows.length };
+  }
   function renderDash() {
+    const V = viewDay(), D = V.d, now = Date.now(), hNow = new Date(now).getHours();
     const qd = G.queueZone ? zoneDef(G.queueZone) : null, cd = G.cashierZone ? zoneDef(G.cashierZone) : null;
     const qi = qd ? queueInfo(zoneCount(G.queueZone), G.serviceSec) : null;
+    let qw = { n: 0, maxWaitMs: 0 };
+    pipes.forEach(p => { const w = queueWait(p.zoneLive[G.queueZone], now); if (w.maxWaitMs > qw.maxWaitMs) qw = w; });
     const conv = conversion(day, cd ? G.cashierZone : null);
-    const occAlert = day.occ >= G.maxOcc, qAlert = qi && qi.length >= G.queueAlert;
+    const off = Math.max(0, +G.staffOffset || 0), occ = Math.max(0, D.occ - off);
+    const occAlert = occ >= G.maxOcc, occNear = !occAlert && G.maxOcc >= 5 && occ >= Math.ceil(G.maxOcc * 0.9);
+    const qAlert = qi && qi.length >= G.queueAlert, slaAlert = qi && G.queueSlaSec > 0 && qw.maxWaitMs > G.queueSlaSec * 1000;
     const tile = (k, v, s = "", cls = "") => `<div class="tile ${cls}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`;
+    const scopeTxt = V.all ? ` (รวม ${V.n} เครื่อง)` : "";
+    const hIn = D.hourly.in[hNow] || 0;
     $("#tiles").innerHTML =
-      tile("เข้าวันนี้", day.in, "คน", "in") + tile("ออกวันนี้", day.out, "คน", "out") +
-      tile("คนในร้านตอนนี้", day.occ, `สูงสุดที่ตั้งไว้ ${G.maxOcc} คน`, occAlert ? "hot" : "") +
-      tile("สูงสุดวันนี้", day.peak, day.peakAt ? "เวลา " + fmtClock(day.peakAt) : "") +
-      tile("คิวตอนนี้", qi ? `${qi.length} คน` : "—", qi ? `รอประมาณ ${fmtDur(qi.waitSec)}` : "ยังไม่กำหนดโซนคิว", qAlert ? "hot" : "") +
-      tile("อัตราการซื้อโดยประมาณ", conv == null ? "—" : (conv * 100).toFixed(0) + "%", cd ? `เข้าโซน${esc(cd.z.name)} / คนเข้าร้าน` : "ยังไม่กำหนดโซนแคชเชียร์");
+      tile("เข้าวันนี้" + scopeTxt, D.in, "คน", "in") + tile("ออกวันนี้" + scopeTxt, D.out, "คน", "out") +
+      tile("คนในร้านตอนนี้", occ, `${off ? `ไม่นับพนักงาน ${off} คน · ` : ""}สูงสุดที่ตั้งไว้ ${G.maxOcc} คน`, occAlert ? "hot" : occNear ? "warm" : "") +
+      tile("สูงสุดวันนี้", D.peak, D.peakAt ? "เวลา " + fmtClock(D.peakAt) : V.all ? "ประมาณจากรายชั่วโมง" : "") +
+      tile("คิวตอนนี้", qi ? `${qi.length} คน` : "—", qi ? `รอประมาณ ${fmtDur(qi.waitSec)}${qw.n ? ` · รอนานสุด ${fmtDur(qw.maxWaitMs / 1000)}` : ""}` : "ยังไม่กำหนดโซนคิว", qAlert || slaAlert ? "hot" : "") +
+      tile("อัตราการซื้อโดยประมาณ", conv == null ? "—" : (conv * 100).toFixed(0) + "%", cd ? `เข้าโซน${esc(cd.z.name)} / คนเข้าร้าน${V.all ? " (เครื่องนี้)" : ""}` : "ยังไม่กำหนดโซนแคชเชียร์") +
+      (G.hourlyTarget > 0 ? tile("ชั่วโมงนี้ / เป้า", `${hIn} / ${G.hourlyTarget}`, hIn >= G.hourlyTarget ? "ถึงเป้าแล้ว" : `อีก ${G.hourlyTarget - hIn} คน`, hIn >= G.hourlyTarget ? "in" : "") : "");
     const bc = Object.keys(day.byCam || {}).sort().map(s => day.byCam[s]).filter(b => b.in || b.out);
     $("#byCam").innerHTML = bc.length > 1 || cfgList().length > 1 ? bc.map(b => `<span class="pill">${esc(b.name)}: เข้า ${b.in} · ออก ${b.out}</span>`).join("") : "";
     const al = [];
-    if (occAlert) al.push(`คนในร้านถึง ${day.occ} คน (เกินหรือเท่ากับที่กำหนด ${G.maxOcc} คน)`);
-    if (qAlert) al.push(`คิวยาว ${qi.length} คน รอประมาณ ${fmtDur(qi.waitSec)} — ควรเปิดจุดชำระเงินเพิ่ม`);
-    $("#alerts").innerHTML = al.map(a => `<div class="alert">${esc(a)}</div>`).join("");
+    if (occAlert) al.push(["", `คนในร้านถึง ${occ} คน (เกินหรือเท่ากับที่กำหนด ${G.maxOcc} คน)${off ? ` · หักพนักงาน ${off} คนแล้ว` : ""}`]);
+    else if (occNear) al.push(["warn", `คนในร้าน ${occ} คน ใกล้ถึงที่กำหนด ${G.maxOcc} คน`]);
+    if (qAlert) al.push(["", `คิวยาว ${qi.length} คน รอประมาณ ${fmtDur(qi.waitSec)} — ควรเปิดจุดชำระเงินเพิ่ม`]);
+    if (slaAlert) al.push(["", `ลูกค้ารอคิวนาน ${fmtDur(qw.maxWaitMs / 1000)} เกินเป้า ${fmtDur(G.queueSlaSec)}`]);
+    $("#alerts").innerHTML = al.map(([cls, a]) => `<div class="alert ${cls}">${esc(a)}</div>`).join("");
+    $("#sumScope").textContent = V.all ? `รวม ${V.n} เครื่อง` : "";
+    $("#summary").innerHTML = daySummary(D, { cashierId: V.all ? null : (cd ? G.cashierZone : null), hourlyTarget: G.hourlyTarget, slaSec: V.all ? 0 : G.queueSlaSec, staffOffset: off, nowHour: D.date === dayKey(now) ? hNow : 23, clock: fmtClock })
+      .map(t => `<li>${esc(t)}</li>`).join("");
+    renderReidInfo();
     const many = cfgList().length > 1;
     const rows = cfgList().flatMap(c => camSet(c).zones.map(z => ({ c, z, id: nsZone(c.slot, z.id) })));
     $("#zoneTable").innerHTML = `<thead><tr><th>โซน</th><th class="n">อยู่ตอนนี้</th><th class="n">เข้าวันนี้ (ครั้ง)</th><th class="n">เวลาอยู่เฉลี่ย</th></tr></thead><tbody>` +
       (rows.length ? rows.map(({ c, z, id }) => { const zs = day.zones[id]; return `<tr><td>${many ? esc(c.name) + " · " : ""}${esc(z.name)}${id === G.queueZone ? " <span class=\"tag q\">คิว</span>" : ""}${id === G.cashierZone ? " <span class=\"tag c\">แคชเชียร์</span>" : ""}</td><td class="n">${zoneCount(id)}</td><td class="n">${zs?.visits || 0}</td><td class="n">${zs?.dwellN ? fmtDur(avgDwellSec(zs)) : "—"}</td></tr>`; }).join("")
         : `<tr><td colspan="4" class="empty">ยังไม่มีโซน</td></tr>`) + "</tbody>";
-    drawHourly(); drawHeatPreview();
+    drawHourly(D); drawHeatPreview();
     if (agg) agg.render();
   }
+  document.querySelectorAll("#kpiScope [data-scope]").forEach(b => b.addEventListener("click", () => { G.kpiScope = b.dataset.scope; persistSettings(); renderDash(); }));
 
-  function drawHourly() {
+  let hourlyDay = day;
+  function drawHourly(D = hourlyDay) {
+    const day = hourlyDay = D;
     const c = $("#hourly"), dpr = devicePixelRatio || 1, W = c.clientWidth || 500, Hh = 220;
     c.width = W * dpr; c.height = Hh * dpr; c.style.height = Hh + "px";
     const ctx = c.getContext("2d"); ctx.scale(dpr, dpr); ctx.clearRect(0, 0, W, Hh);
     const act = []; for (let h = 0; h < 24; h++) if (day.hourly.in[h] || day.hourly.out[h]) act.push(h);
     const h0 = Math.min(8, ...act), h1 = Math.max(20, ...act), n = h1 - h0 + 1;
-    let max = 1; for (let h = h0; h <= h1; h++) max = Math.max(max, day.hourly.in[h], day.hourly.out[h]);
+    let max = Math.max(1, G.hourlyTarget || 0); for (let h = h0; h <= h1; h++) max = Math.max(max, day.hourly.in[h], day.hourly.out[h]);
     const step = max <= 5 ? 1 : Math.ceil(max / 4 / 5) * 5, top = Math.ceil(max / step) * step;
     const L = 34, R = 8, T = 12, B = 26, pw = W - L - R, ph = Hh - T - B;
     ctx.font = "11px Prompt, sans-serif"; ctx.textBaseline = "middle"; ctx.textAlign = "right";
@@ -818,10 +1198,16 @@ if (typeof document !== "undefined") (() => {
       });
       if (n <= 14 || (h - h0) % 2 === 0) { ctx.fillStyle = "#52514e"; ctx.fillText(String(h).padStart(2, "0"), gx, T + ph + 6); }
     }
+    if (G.hourlyTarget > 0) {
+      const y = T + ph - G.hourlyTarget / top * ph;
+      ctx.save(); ctx.strokeStyle = "#1a7f4b"; ctx.setLineDash([5, 4]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(W - R, y); ctx.stroke(); ctx.restore();
+      ctx.fillStyle = "#1a7f4b"; ctx.textAlign = "right"; ctx.textBaseline = "bottom"; ctx.fillText(`เป้า ${G.hourlyTarget}`, W - R, y - 2);
+    }
     c.setAttribute("aria-label", "กราฟคนเข้าออกรายชั่วโมง: " + (act.map(h => `${h}:00 เข้า ${day.hourly.in[h]} ออก ${day.hourly.out[h]}`).join(", ") || "ยังไม่มีข้อมูล"));
   }
   $("#hourly").addEventListener("pointermove", e => {
     const c = $("#hourly"), r = c.getBoundingClientRect(), tip = $("#tooltip");
+    const day = hourlyDay;
     const act = []; for (let h = 0; h < 24; h++) if (day.hourly.in[h] || day.hourly.out[h]) act.push(h);
     const h0 = Math.min(8, ...act), h1 = Math.max(20, ...act), n = h1 - h0 + 1;
     const i = Math.floor((e.clientX - r.left - 34) / ((r.width - 42) / n));
@@ -884,33 +1270,56 @@ if (typeof document !== "undefined") (() => {
     const c = selCam(); if (!c) return;
     camSet(c).line = null; if (pipes.get(c.slot)) pipes.get(c.slot).lineMem = {}; persistCam(c); draw(c); drawHeatPreview();
   });
+  $("#clearStaff").addEventListener("click", () => {
+    const c = selCam(); if (!c) return;
+    camSet(c).staffZone = null; persistCam(c); draw(c); $("#drawMsg").textContent = `ลบโซนพนักงานของ "${c.name}" แล้ว`;
+  });
   $("#resetOcc").addEventListener("click", () => { day.occ = 0; persistDay(); renderDash(); });
   const sf = $("#settingsForm");
+  const af = $("#accForm");
   function syncForm() {
-    ["maxOcc", "serviceSec", "queueAlert"].forEach(k => { sf[k].value = G[k]; });
+    ["maxOcc", "serviceSec", "queueAlert", "queueSlaSec", "hourlyTarget"].forEach(k => { sf[k].value = G[k]; });
     const c = selCam(); sf.detW.value = String(c ? camSet(c).detW || 0 : 0);
+    af.reid.checked = !!G.reid; ["reidWindowSec", "staffMin", "staffOffset"].forEach(k => { af[k].value = G[k]; });
+  }
+  const ZERO_OK = new Set(["queueSlaSec", "hourlyTarget", "staffOffset"]);
+  function numInput(e, msgEl) {
+    const n = e.target.name, raw = +e.target.value, v = n === "staffMin" ? Math.round(raw * 100) / 100 : Math.round(raw);
+    const ok = e.target.value !== "" && Number.isFinite(raw) && (ZERO_OK.has(n) ? v >= 0 : v > 0);
+    if (!ok) { msgEl.textContent = ZERO_OK.has(n) ? "กรุณาใส่ตัวเลข 0 ขึ้นไป" : "กรุณาใส่ตัวเลขมากกว่า 0"; msgEl.className = "form-msg err"; return false; }
+    G[n] = v; persistSettings(); renderDash();
+    msgEl.textContent = "บันทึกแล้ว"; msgEl.className = "form-msg ok"; return true;
   }
   sf.addEventListener("input", e => {
-    const v = Math.round(+e.target.value), n = e.target.name;
-    if (n === "detW") { const c = selCam(); if (c) { camSet(c).detW = v || 0; persistCam(c); } }
-    else {
-      if (!(v > 0)) { $("#setMsg").textContent = "กรุณาใส่ตัวเลขมากกว่า 0"; $("#setMsg").className = "form-msg err"; return; }
-      G[n] = v; persistSettings(); renderDash();
-    }
-    $("#setMsg").textContent = "บันทึกแล้ว"; $("#setMsg").className = "form-msg ok";
+    const n = e.target.name;
+    if (n === "detW") { const c = selCam(); if (c) { camSet(c).detW = Math.round(+e.target.value) || 0; persistCam(c); } $("#setMsg").textContent = "บันทึกแล้ว"; $("#setMsg").className = "form-msg ok"; }
+    else numInput(e, $("#setMsg"));
   });
   sf.addEventListener("submit", e => e.preventDefault());
+  af.addEventListener("input", e => {
+    if (e.target.name !== "reid") { numInput(e, $("#accMsg")); return; }
+    G.reid = e.target.checked; persistSettings();
+    if (!G.reid) pipes.forEach(p => { p.reid = null; }); // ลบค่าลักษณะภาพทันที
+    else if (running) loadReid();
+    $("#accMsg").textContent = G.reid ? "เปิดลดการนับซ้ำแล้ว" : "ปิดลดการนับซ้ำแล้ว (ลบค่าลักษณะภาพในหน่วยความจำแล้ว)"; $("#accMsg").className = "form-msg ok";
+    renderReidInfo();
+  });
+  af.addEventListener("submit", e => e.preventDefault());
 
   const allDays = () => Object.keys(localStorage).filter(k => /^st-day-\d{4}-\d{2}-\d{2}$/.test(k)).sort()
-    .map(k => k === P + "day-" + day.date ? day : Object.assign(newDay(k.slice(P.length + 4)), load(k.slice(P.length), {})));
+    .map(k => k === P + "day-" + day.date ? day : ensureDay(Object.assign(newDay(k.slice(P.length + 4)), load(k.slice(P.length), {}))));
   $("#exportCsv").addEventListener("click", () => {
     persistDay();
     download(new Blob([buildCsv(allDays(), G.cashierZone)], { type: "text/csv;charset=utf-8" }), `store-analytics-${day.date}.csv`);
   });
+  $("#exportHourly").addEventListener("click", () => {
+    persistDay();
+    download(new Blob([buildHourlyCsv(allDays(), G.hourlyTarget)], { type: "text/csv;charset=utf-8" }), `store-hourly-${day.date}.csv`);
+  });
   $("#clearData").addEventListener("click", () => {
     if (!confirm("ลบสถิติทุกวัน ฮีตแมป และยอดจากเครื่องอื่นที่เก็บไว้ทั้งหมด? (การตั้งค่ากล้อง เส้น โซน และการจับคู่ยังอยู่)")) return;
     Object.keys(localStorage).filter(k => k.startsWith(P + "day-") || k.startsWith(P + "agg-") || k === P + "heat" || k.startsWith(P + "heat-")).forEach(k => localStorage.removeItem(k));
-    day = newDay(); heats.forEach(h => h.data.fill(0)); pipes.forEach(p => { p.zoneLive = {}; });
+    day = newDay(); heats.forEach(h => h.data.fill(0)); pipes.forEach(p => { p.zoneLive = {}; p.reid = null; p.staff = null; });
     renderDash(); drawAll(); engine("ลบข้อมูลสถิติแล้ว", "ok");
   });
   $("#printNotice").addEventListener("click", () => {
@@ -935,7 +1344,7 @@ if (typeof document !== "undefined") (() => {
   let rsT = 0; const onResize = () => { clearTimeout(rsT); rsT = setTimeout(() => { srcCams().forEach(c => sizeOverlay(c)); renderDash(); }, 120); };
   window.addEventListener("resize", onResize); window.addEventListener("orientationchange", onResize);
   window.addEventListener("beforeunload", () => { pipes.forEach(p => closeZones(p.zoneLive, day)); persistDay(); persistHeat(); });
-  setInterval(() => { if (!running && dayKey() !== day.date) { day = newDay(); renderDash(); } }, 60000);
+  setInterval(() => { if (!running && dayKey() !== day.date) { day = newDay(); pipes.forEach(p => { p.reid = null; p.staff = null; }); renderDash(); } }, 60000);
 
   // ---- เชื่อมหลายเครื่อง ("1 เครื่องต่อ 1 จุด") — ส่ง/รับเฉพาะตัวเลขสรุปรายวัน (lensiq-agg.js) ----
   // ค่าตั้ง (มี token/รหัสจับคู่) อยู่ใน lq-agg ไม่ใช่ st- จึงไม่ถูกรวมในไฟล์สำรองของหน้าแดชบอร์ดรวม
@@ -1009,7 +1418,7 @@ if (typeof document !== "undefined") (() => {
           else { mergeServer(r.j, [day.date]); if (offline) { offline = false; msg(""); } }
         } catch { offline = true; msg("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กำลังลองใหม่...", "warn"); }
       }
-      render();
+      renderDash(); // การ์ดภาพรวมใช้ยอดรวมด้วย (renderDash เรียก render ของแผงนี้)
       if (cfg.role === "hub" && server) pollT = setTimeout(poll, POLL_MS);
     }
     function hubUi() {
@@ -1028,7 +1437,7 @@ if (typeof document !== "undefined") (() => {
     async function startHub() {
       server = await probe(location.origin);
       if (cfg.role !== "hub") return;
-      if (!server) { noServer(); hubUi(); render(); return; }
+      if (!server) { noServer(); hubUi(); renderDash(); return; }
       msg("");
       if (server.local) {
         try { const r = await api("/api/agg/pair"); if (r.ok) { pair = r.j; cfg.code = r.j.code; saveCfg(); } } catch { /* ignore */ }
@@ -1106,7 +1515,7 @@ if (typeof document !== "undefined") (() => {
       if (!r.pack.node) return { ok: false, error: "ไฟล์ไม่มีรหัสเครื่อง" };
       if (r.pack.node === cfg.node) return { ok: false, error: "ไฟล์นี้ส่งออกจากเครื่องนี้เอง (จะนับซ้ำ)" };
       save("agg-" + r.pack.date, A.cacheUpsert(cacheOf(r.pack.date), r.pack, "import"));
-      render();
+      renderDash();
       return { ok: true, pack: r.pack };
     }
 
@@ -1119,7 +1528,8 @@ if (typeof document !== "undefined") (() => {
       $("#aggHub").hidden = role !== "hub"; $("#aggNode").hidden = role !== "node";
       clearTimeout(pollT); msg("");
       if (role === "") $("#aggState").textContent = "ใช้เครื่องเดียว";
-      if (role === "hub") { $("#aggState").textContent = "เครื่องหลัก"; render(); startHub(); }
+      if (role === "hub") { $("#aggState").textContent = "เครื่องหลัก"; startHub(); }
+      if (!init) renderDash();
       if (role === "node") {
         nodeUi();
         if (!cfg.token && hubBase() === location.origin) probe(location.origin).then(s => { if (!s && cfg.role === "node") noServer(); });
@@ -1150,7 +1560,7 @@ if (typeof document !== "undefined") (() => {
         try { const r = await api(`/api/agg/node/${encodeURIComponent(id)}`, { method: "DELETE", token: A.normCode(cfg.code) }); if (!r.ok) return msg(r.j.error || "ลบไม่สำเร็จ", "err"); } catch { return msg("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้", "err"); }
       }
       Object.keys(localStorage).filter(k => k.startsWith(P + "agg-")).forEach(k => { const c = load(k.slice(P.length), null); if (c && c.nodes && c.nodes[id]) { delete c.nodes[id]; save(k.slice(P.length), c); } });
-      devices = devices.filter(d => d.node !== id); render(); poll();
+      devices = devices.filter(d => d.node !== id); renderDash(); poll();
     });
     $("#aggExport").addEventListener("click", () => {
       const p = exportPack();
@@ -1184,11 +1594,13 @@ if (typeof document !== "undefined") (() => {
       if (!cfg.token) { cfg.role = "node"; $("#aggJoinForm").code.value = fmtCode(m[1]); setTimeout(() => $("#aggPanel").scrollIntoView({ block: "start" }), 300); }
     }
     setRole(cfg.role, { init: true });
-    return { render, poll, flush, pushNow, exportPack, importText, setRole, get cfg() { return cfg; }, get server() { return server; } };
+    /* ยอดรวมทุกเครื่อง (เฉพาะบทบาทเครื่องหลัก) สำหรับการ์ดภาพรวม */
+    const merged = () => cfg.role === "hub" ? A.mergeDay(day, packsOf(day.date)) : null;
+    return { render, merged, poll, flush, pushNow, exportPack, importText, setRole, get cfg() { return cfg; }, get server() { return server; } };
   })();
 
   // สำหรับการทดสอบอัตโนมัติ (อ่านอย่างเดียว ไม่มีภาพ)
-  window.__ST = { get day() { return day; }, get hub() { return hub; }, get running() { return running; }, sched, pipes, G, agg };
+  window.__ST = { get day() { return day; }, get hub() { return hub; }, get running() { return running; }, sched, pipes, G, agg, reidStats: () => ({ ms: RS.ms, n: RS.n, loaded: !!RS.model || fakeEmb(), err: RS.err }), renderDash };
 
   sel = (storedCams()[0] || {}).slot || "c1";
   tileUi(); renderZoneEditor(); syncForm(); renderDash();

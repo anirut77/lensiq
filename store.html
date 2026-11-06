@@ -9,12 +9,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=5">
-<link rel="stylesheet" href="store.css?v=4">
+<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="store.css?v=5">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=5"></script>
+<script src="nav.js?v=8"></script>
 
 <main class="st">
   <h1>วิเคราะห์หน้าร้าน</h1>
@@ -40,6 +40,8 @@
         <button class="seg" type="button" data-tool="zone" aria-pressed="false">ลากโซน</button>
         <button class="seg" type="button" id="swap">สลับทิศเข้า/ออก</button>
         <button class="seg" type="button" id="clearLine">ลบเส้นนับ</button>
+        <button class="seg" type="button" data-tool="staff" aria-pressed="false">ลากโซนพนักงาน</button>
+        <button class="seg" type="button" id="clearStaff">ลบโซนพนักงาน</button>
         <label class="chk"><input type="checkbox" id="heatOn">แสดงฮีตแมป</label>
       </div>
       <p class="hint" id="drawMsg" role="status"></p>
@@ -57,6 +59,10 @@
 
     <section class="card">
       <div class="report-head"><h2>ภาพรวมวันนี้</h2><button class="btn ghost small" id="resetOcc" type="button">ตั้งคนในร้านเป็น 0</button></div>
+      <div class="tools kpi-scope" id="kpiScope" role="radiogroup" aria-label="ขอบเขตตัวเลข" hidden>
+        <button class="seg" type="button" data-scope="local" aria-pressed="false">เฉพาะเครื่องนี้</button>
+        <button class="seg" type="button" data-scope="all" aria-pressed="true">รวมทุกเครื่อง</button>
+      </div>
       <div class="tiles" id="tiles"></div>
       <div class="bycam" id="byCam"></div>
       <h3>คนเข้า–ออกรายชั่วโมง</h3>
@@ -86,17 +92,39 @@
   </div>
 
   <div class="grid2">
+    <section class="card" aria-labelledby="h-sum">
+      <div class="report-head"><h2 id="h-sum">สรุปวันนี้</h2><span class="pill" id="sumScope"></span></div>
+      <ul class="summary" id="summary"></ul>
+    </section>
+    <section class="card" aria-labelledby="h-acc">
+      <h2 id="h-acc">นับให้แม่นขึ้น</h2>
+      <form id="accForm" novalidate>
+        <label class="chk"><input type="checkbox" name="reid">ลดการนับซ้ำ (จำลักษณะภาพคนชั่วคราว)</label>
+        <label>ไม่นับคนเดิมข้ามเส้นทิศเดิมซ้ำภายใน (วินาที)<input name="reidWindowSec" type="number" min="2" max="120" inputmode="numeric"></label>
+        <label>ถือว่าเป็นพนักงานเมื่ออยู่ในโซนพนักงานเกิน (นาที)<input name="staffMin" type="number" min="0.05" step="0.5" inputmode="decimal"></label>
+        <label>ไม่นับพนักงาน (คน) — หักจากคนในร้าน<input name="staffOffset" type="number" min="0" inputmode="numeric"></label>
+      </form>
+      <p class="form-msg" id="accMsg" role="status"></p>
+      <p class="hint" id="reidInfo">ลดการนับซ้ำ: ใช้ค่าลักษณะภาพของคน (MobileNetV2) ต่อรหัสเดิมเมื่อคนถูกบังชั่วคราว และไม่นับข้ามเส้นซ้ำ ค่าเหล่านี้อยู่ในหน่วยความจำเท่านั้น ไม่บันทึก ไม่ส่งออก ลบทิ้งเมื่อกดหยุดหรือขึ้นวันใหม่</p>
+      <p class="hint">โซนพนักงาน: กด "ลากโซนพนักงาน" แล้ววาดบริเวณที่มีแต่พนักงาน (เช่น หลังเคาน์เตอร์) ใครอยู่ในโซนนี้นานเกินเวลาที่ตั้ง จะไม่ถูกนับเข้า–ออก โซน และฮีตแมปตั้งแต่นั้น</p>
+    </section>
+  </div>
+
+  <div class="grid2">
     <section class="card">
       <h2>ตั้งค่าและข้อมูล</h2>
       <form id="settingsForm" novalidate>
         <label>แจ้งเตือนเมื่อคนในร้านถึง (คน)<input name="maxOcc" type="number" min="1" inputmode="numeric"></label>
         <label>เวลาบริการต่อคน (วินาที)<input name="serviceSec" type="number" min="1" inputmode="numeric"></label>
         <label>แจ้งเตือนเมื่อคิวยาวถึง (คน)<input name="queueAlert" type="number" min="1" inputmode="numeric"></label>
+        <label>เป้ารอคิวไม่เกิน (วินาที, 0 = ไม่ใช้)<input name="queueSlaSec" type="number" min="0" inputmode="numeric"></label>
+        <label>เป้าคนเข้าต่อชั่วโมง (คน, 0 = ไม่ใช้)<input name="hourlyTarget" type="number" min="0" inputmode="numeric"></label>
         <label>ความละเอียดการตรวจจับ (กล้องที่เลือก)<select name="detW"><option value="0">อัตโนมัติ – ตามจำนวนกล้อง</option><option value="320">320px – เร็ว (กล้องใกล้ คนตัวใหญ่)</option><option value="416">416px – สมดุล</option><option value="512">512px – แม่นยำ (กล้องไกล คนตัวเล็ก)</option></select></label>
       </form>
       <p class="form-msg" id="setMsg" role="status"></p>
       <div class="row-actions">
         <button class="btn primary" id="exportCsv" type="button">ส่งออก CSV</button>
+        <button class="btn ghost" id="exportHourly" type="button">CSV รายชั่วโมง</button>
         <button class="btn ghost danger" id="clearData" type="button">ลบข้อมูลสถิติทั้งหมด</button>
       </div>
       <p class="hint">ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้ เป็นตัวเลขสรุปรายวัน (จำนวนเข้า–ออก โซน คิว ฮีตแมป) ไม่มีภาพหรือข้อมูลระบุตัวบุคคล ถ้าเปิด "เชื่อมหลายเครื่อง" จะส่งเฉพาะตัวเลขสรุป (ไม่รวมฮีตแมป) ไปยังเครื่องหลักในร้าน</p>
@@ -163,6 +191,6 @@
 <script src="lensiq-camera.js?v=1"></script>
 <script src="lensiq-detect.js?v=1"></script>
 <script src="lensiq-agg.js?v=1"></script>
-<script src="store.js?v=6"></script>
+<script src="store.js?v=7"></script>
 </body>
 </html>

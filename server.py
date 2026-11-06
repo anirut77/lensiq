@@ -142,7 +142,7 @@ from collections import deque
 
 FORTUNE_MODEL = os.environ.get("LENSIQ_FORTUNE_MODEL", "claude-opus-5-5")
 FORTUNE_SECTION_IDS = ["overview", "personality", "work", "money", "love", "social", "timing", "advice"]
-FORTUNE_DOMAINS = {"face", "palm", "horoscope", "tarot", "siamsee", "fengshui", "numbers"}
+FORTUNE_DOMAINS = {"face", "palm", "horoscope", "tarot", "siamsee", "fengshui", "numbers", "iching", "zodiac", "astro", "dream"}
 FORTUNE_TOPICS = {"overall", "love", "work", "money"}
 FORTUNE_TONES = {"warm": "อบอุ่น เป็นกันเอง", "playful": "สนุก ขี้เล่นเล็กน้อย", "formal": "สุภาพ เป็นทางการ"}
 FORTUNE_MAX_FACTS_BYTES = 20 * 1024

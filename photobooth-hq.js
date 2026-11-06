@@ -216,6 +216,6 @@
     return c;
   }
 
-  const api = { boxFilter, guidedFilter, refineAlpha, decontaminate, skinMask, fillPoly, smoothSkin, loadMatting, cutout, retouch };
+  const api = { boxFilter, guidedFilter, refineAlpha, decontaminate, skinMask, fillPoly, smoothSkin, loadMatting, modnetAlpha, maskAlpha, cutout, retouch };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.PBHQ = api;
 })(typeof window !== "undefined" ? window : globalThis);

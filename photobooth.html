@@ -9,12 +9,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=5">
+<link rel="stylesheet" href="styles.css?v=6">
 <link rel="stylesheet" href="photobooth.css?v=8">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=5"></script>
+<script src="nav.js?v=8"></script>
 
 <main class="pb">
   <h1>ตู้ถ่ายรูป</h1>
@@ -118,6 +118,7 @@
       <label class="slider">ความสว่าง<input type="range" id="adjBright" min="80" max="130" value="100"></label>
       <label class="slider">ผิวเนียน<input type="range" id="adjSmooth" min="0" max="100" value="0"></label>
       <p class="note">หมายเหตุ: ชุดเป็นภาพกราฟิกจำลองเพื่อความสะดวก ไม่มีเครื่องหมายราชการหรือยศ บางหน่วยงานไม่รับรูปที่ผ่านการตกแต่งแบบดิจิทัล กรุณาตรวจสอบข้อกำหนดของหน่วยงานก่อนใช้งานจริง</p>
+      <p class="hint"><a href="studio.html">ต้องการให้ชุดเนียนเหมือนใส่จริง ลองสตูดิโอแต่งชุด AI →</a></p>
     </section>
   </div>
 
@@ -154,8 +155,10 @@
 <script src="lensiq-detect.js?v=1"></script>
 <script src="photobooth-layout.js"></script>
 <script src="vendor/ort/ort.wasm.min.js"></script>
-<script src="photobooth-hq.js?v=3"></script>
+<script src="photobooth-hq.js?v=4"></script>
 <script src="photobooth-templates.js?v=1"></script>
-<script src="photobooth.js?v=9"></script>
+<script src="photobooth-outfits.js?v=1"></script>
+<script src="studio-core.js?v=1"></script>
+<script src="photobooth.js?v=10"></script>
 </body>
 </html>

@@ -137,7 +137,16 @@
     };
   }
   /** ค่าเฉลี่ยทั่วไป (ปรับเทียบจากจุด MediaPipe ของมือผู้ใหญ่ทั่วไป) */
-  var NORMS = { palm: 1.62, palmSd: 0.13, finger: 0.86, fingerSd: 0.08, thumb: 0.82, thumbSd: 0.08 };
+  var NORMS = { palm: 1.62, palmSd: 0.13, finger: 0.86, fingerSd: 0.08, thumb: 0.82, thumbSd: 0.08,
+    // ความยาวแต่ละนิ้ว ÷ ความยาวฝ่ามือ, นิ้วก้อย ÷ นิ้วนาง, มุมนิ้วโป้ง–นิ้วชี้ (องศา), ช่องห่างเฉลี่ยของนิ้วที่ติดกัน (องศา)
+    fingers: { index: 0.78, middle: 0.86, ring: 0.81, pinky: 0.63 }, fingerEachSd: 0.07,
+    pinkyRing: 0.78, pinkyRingSd: 0.06, thumbAngle: 46, thumbAngleSd: 12, spread: 10, spreadSd: 4 };
+  /** มุม (องศา) ระหว่างเวกเตอร์ a0→a1 กับ b0→b1 */
+  function angleBetween(a0, a1, b0, b1) {
+    var ux = a1[0] - a0[0], uy = a1[1] - a0[1], vx = b1[0] - b0[0], vy = b1[1] - b0[1];
+    var c = (ux * vx + uy * vy) / ((Math.hypot(ux, uy) * Math.hypot(vx, vy)) || 1);
+    return Math.acos(clamp(c, -1, 1)) * 180 / Math.PI;
+  }
   function measureHand(h) {
     var palmW = dist(h.mcp.index, h.mcp.pinky), palmL = dist(h.wrist, h.mcp.middle);
     var fl = function (f) { return dist(h.mcp[f], h.tip[f]); };
@@ -147,6 +156,11 @@
       indexRing: fl("index") / fl("ring"),
       fingers: { index: fl("index") / palmL, middle: fl("middle") / palmL, ring: fl("ring") / palmL, pinky: fl("pinky") / palmL },
       thumbRatio: h.tip.thumb && h.thumbBase ? dist(h.thumbBase, h.tip.thumb) / palmL : null,
+      pinkyRing: fl("pinky") / fl("ring"),
+      // มุมกางนิ้วโป้ง (MCP→ปลายนิ้วโป้ง เทียบ MCP→ปลายนิ้วชี้) — ใช้เป็นตัวแทนความยืดหยุ่นของนิ้วโป้งตามตำรา
+      thumbAngle: h.pts ? angleBetween(h.pts[2], h.pts[4], h.mcp.index, h.tip.index) : null,
+      // ช่องห่างเฉลี่ยของนิ้วที่ติดกัน (ชี้–กลาง, กลาง–นาง, นาง–ก้อย)
+      spread: (angleBetween(h.mcp.index, h.tip.index, h.mcp.middle, h.tip.middle) + angleBetween(h.mcp.middle, h.tip.middle, h.mcp.ring, h.tip.ring) + angleBetween(h.mcp.ring, h.tip.ring, h.mcp.pinky, h.tip.pinky)) / 3,
       source: h.source
     };
     return m;
@@ -167,11 +181,53 @@
     var z = (m.thumbRatio - NORMS.thumb) / NORMS.thumbSd;
     return z > 0.6 ? "long" : z < -0.6 ? "short" : "medium";
   }
-  /** มือข้างไหน (สมมติว่าเห็นด้านฝ่ามือ ภาพไม่กลับซ้ายขวา): นิ้วชี้อยู่ขวาของนิ้วก้อยเมื่อนิ้วชี้ขึ้น = มือขวา */
-  function guessSide(h) {
+  /* ---------- ลักษณะนิ้วเพิ่มเติม (ตำราตะวันตก: นิ้วประจำดาว มุมนิ้วโป้ง ระยะห่างนิ้ว) ---------- */
+  var FINGER_PLANET = { index: "jupiter", middle: "saturn", ring: "apollo", pinky: "mercury" };
+  function fingerZ(m) {
+    var z = {};
+    Object.keys(NORMS.fingers).forEach(function (f) { z[f] = (m.fingers[f] - NORMS.fingers[f]) / NORMS.fingerEachSd; });
+    return z;
+  }
+  function thumbAngleCat(m) { return m.thumbAngle == null ? "na" : m.thumbAngle > 60 ? "wide" : m.thumbAngle < 34 ? "narrow" : "medium"; }
+  function pinkyCat(m) { var z = (m.pinkyRing - NORMS.pinkyRing) / NORMS.pinkyRingSd; return z > 0.8 ? "long" : z < -0.8 ? "short" : "medium"; }
+  function spreadCat(m) { return m.spread == null ? "na" : m.spread > 15 ? "open" : m.spread < 6 ? "close" : "medium"; }
+  /** นิ้วเด่น: นิ้วที่ยาวกว่าค่าทั่วไปมากที่สุด (z ≥ 0.7) → นิ้วประจำดาว; ไม่เช่นนั้น "balanced" */
+  function fingerDom(m) {
+    var z = fingerZ(m), best = "index";
+    Object.keys(z).forEach(function (f) { if (z[f] > z[best]) best = f; });
+    return z[best] >= 0.7 ? { id: FINGER_PLANET[best], finger: best, z: z[best] } : { id: "balanced", finger: null, z: z[best] };
+  }
+
+  /* ---------- มือซ้าย/ขวา ----------
+     ภาพทุกภาพที่ตรวจเป็นภาพดิบจากกล้อง (ไม่กลับซ้าย-ขวา แม้พรีวิวกล้องหน้าจะแสดงแบบกระจก)
+     เมื่อเห็นด้านฝ่ามือในภาพดิบ: มือขวา = ลำดับ นิ้วชี้→นิ้วก้อย หมุนตามเข็มนาฬิกาเทียบแนว ข้อมือ→โคนนิ้ว (นิ้วชี้อยู่ขวาเมื่อนิ้วชี้ขึ้น)
+     นิ้วโป้งต้องอยู่ฝั่งนิ้วชี้ของแกนฝ่ามือ ใช้ตรวจว่าจุดของโมเดลเรียงถูก */
+  function handChirality(h) {
     var U = [h.mcp.pinky[0] - h.mcp.index[0], h.mcp.pinky[1] - h.mcp.index[1]];
     var M = lerp(h.mcp.index, h.mcp.pinky, 0.5), d = [M[0] - h.wrist[0], M[1] - h.wrist[1]];
-    return U[0] * d[1] - U[1] * d[0] > 0 ? "right" : "left";
+    var cr = U[0] * d[1] - U[1] * d[0], n = cr / ((Math.hypot(U[0], U[1]) * Math.hypot(d[0], d[1])) || 1);
+    var thumbOk = null;
+    if (h.tip.thumb) { var t = [h.tip.thumb[0] - M[0], h.tip.thumb[1] - M[1]]; thumbOk = (t[0] * U[0] + t[1] * U[1]) < 0; }
+    return { side: cr > 0 ? "right" : "left", conf: round(clamp(Math.abs(n), 0, 1) * (thumbOk === false ? 0.5 : 1), 3), thumbOk: thumbOk };
+  }
+  /** มือข้างไหน (สมมติว่าเห็นด้านฝ่ามือ ภาพไม่กลับซ้ายขวา) — คงไว้เพื่อความเข้ากันได้ */
+  function guessSide(h) { return handChirality(h).side; }
+  var flipSide = function (s) { return s === "left" ? "right" : s === "right" ? "left" : s; };
+  /** ตัดสินข้างมือ: o = { hand | pts, handedness?: คะแนนดิบของโมเดล, mirrored?: พิกัดมาจากภาพที่กลับซ้าย-ขวาแล้ว }
+      เรขาคณิตของจุดเป็นหลัก (เชื่อถือได้เมื่อ conf ≥ 0.2); ป้ายของโมเดลใช้เมื่อเรขาคณิตกำกวม
+      MediaPipe Hands รายงาน handedness โดยถือว่าภาพเข้า "กลับแบบกระจกแล้ว" (กล้องหน้า/เซลฟี): คะแนน = โอกาสเป็นมือขวาในภาพกระจก
+      ภาพดิบที่ไม่กลับด้านจึงต้องกลับป้าย → คืน { side, conf, source: "geometry"|"model", agree, maybeBack } */
+  function resolveSide(o) {
+    var h = o.hand || handFromLandmarks(o.pts), g = handChirality(h), mir = !!o.mirrored;
+    var gs = mir ? flipSide(g.side) : g.side, ms = null, mc = 0;
+    if (typeof o.handedness === "number" && isFinite(o.handedness)) {
+      var asMirrored = o.handedness >= 0.5 ? "right" : "left"; // ตามแบบแผนของ MediaPipe
+      ms = mir ? asMirrored : flipSide(asMirrored);
+      mc = Math.abs(o.handedness - 0.5) * 2;
+    }
+    var agree = ms ? ms === gs : null;
+    if (g.conf >= 0.2 || !ms) return { side: gs, conf: g.conf, source: "geometry", agree: agree, maybeBack: agree === false && mc > 0.8 && g.conf >= 0.2, thumbOk: g.thumbOk };
+    return { side: ms, conf: round(mc * 0.6, 3), source: "model", agree: agree, maybeBack: false, thumbOk: g.thumbOk };
   }
 
   /* ================= กรอบฝ่ามือ + ภาพมาตรฐาน (canonical) ================= */
@@ -516,7 +572,14 @@
     if (mountRows.length) tips.push("จุดเด่นของคุณอยู่ที่" + mountRows[0].th + " — " + mountRows[0].meaning + " ลองใช้พลังด้านนี้ให้เต็มที่");
     tips.push(KB.generalTips[(o.seed || 0) % KB.generalTips.length]);
     var side = o.isDominant == null ? null : (o.isDominant ? KB.sides.dominant : KB.sides.other);
+    var ta = thumbAngleCat(o.hm), pk = pinkyCat(o.hm), fd = fingerDom(o.hm), spc = spreadCat(o.hm);
+    var est = o.est ? o.est.ranked.map(function (r) { var d = KB.mounts[r.id], bg = KB.bagua[KB.mountBagua[r.id]]; return { id: r.id, th: d.th, under: d.under, level: r.level, top: o.est.top.indexOf(r.id) >= 0, meaning: d.meaning, bagua: bg ? { id: KB.mountBagua[r.id], th: bg.th, cn: bg.cn, theme: bg.theme } : null }; }) : [];
     return {
+      thumbAngle: ta === "na" ? null : { cat: ta, label: KB.thumbAngle[ta].label, meaning: KB.thumbAngle[ta].meaning },
+      pinky: { cat: pk, label: KB.pinky[pk].label, meaning: KB.pinky[pk].meaning },
+      fingerDom: { cat: fd.id, label: KB.fingerDom[fd.id].label, planet: KB.fingerDom[fd.id].planet, meaning: KB.fingerDom[fd.id].meaning },
+      spread: spc === "na" ? null : { cat: spc, label: KB.spread[spc].label, meaning: KB.spread[spc].meaning },
+      mountsEst: est,
       element: E, second: second, elementId: o.el.top.id, lines: lineRows,
       finger: { cat: fc, label: KB.fingers[fc].label, meaning: KB.fingers[fc].meaning },
       thumb: { cat: tcat, label: KB.thumb[tcat].label, meaning: KB.thumb[tcat].meaning },
@@ -530,8 +593,9 @@
   function analyze(o) {
     var hm = measureHand(o.hand), el = handElement(hm);
     var lc = classifyLines(o.lines, o.F ? o.F.asp : hm.palmL / hm.palmW, o.R || null, o.F || null);
-    var reading = KB ? buildReading({ el: el, hm: hm, lc: lc, minor: o.minor, mounts: o.mounts, isDominant: o.isDominant, seed: o.seed }) : null;
-    return { hm: hm, el: el, lc: lc, reading: reading };
+    var est = KB ? estimateMounts(hm, lc, o.R || null, o.F || null) : null;
+    var reading = KB ? buildReading({ el: el, hm: hm, lc: lc, est: est, minor: o.minor, mounts: o.mounts, isDominant: o.isDominant, seed: o.seed }) : null;
+    return { hm: hm, el: el, lc: lc, mounts: est, side: o.side || null, reading: reading };
   }
 
   /** สถิติแบบไม่ระบุตัวตน (localStorage "palm-stats") — รับ/คืนออบเจ็กต์ ไม่แตะ storage เอง */
@@ -606,16 +670,41 @@
     var fc = fingerCat(hm), tc = thumbCat(hm);
     add("finger." + fc, "นิ้วชี้กับนิ้วนาง", KB.fingers[fc].label, tpl(EV.finger, { indexPct: fx(hm.indexRing * 100, 0) }), fc === "equal" ? 0.32 : 0.48);
     if (tc !== "na") add("thumb." + tc, "นิ้วโป้ง", KB.thumb[tc].label, tpl(EV.thumb, { thumbPct: fx(hm.thumbRatio * 100, 0) }), tc === "medium" ? 0.3 : 0.46);
+    var ta = thumbAngleCat(hm);
+    if (ta !== "na") add("thumbangle." + ta, "มุมนิ้วโป้ง", KB.thumbAngle[ta].label, tpl(EV.thumbAngle, { deg: fx(hm.thumbAngle, 0) }), ta === "medium" ? 0.3 : 0.5);
+    var pk = pinkyCat(hm);
+    add("pinky." + pk, "นิ้วก้อย", KB.pinky[pk].label, tpl(EV.pinky, { pct: fx(hm.pinkyRing * 100, 0) }), pk === "medium" ? 0.26 : 0.46);
+    var fdm = fingerDom(hm), FD = KB.fingerDom[fdm.id];
+    add("fingerdom." + fdm.id, "นิ้วเด่น", FD.label, fdm.id === "balanced" ? "นิ้วทั้งสี่ยาวใกล้ค่าทั่วไป" : tpl(EV.fingerDom, { finger: FD.finger, pct: fx(hm.fingers[fdm.finger] * 100, 0), rel: rel(fdm.z, "ยาว", "สั้น") }),
+      fdm.id === "balanced" ? 0.3 : clamp(0.36 + 0.08 * fdm.z, 0.36, 0.64));
+    var spc = spreadCat(hm);
+    if (spc !== "na") add("spread." + spc, "ระยะห่างนิ้ว", KB.spread[spc].label, tpl(EV.spread, { deg: fx(hm.spread, 0) }), spc === "medium" ? 0.24 : 0.42);
     var minor = opt.minor || {};
     Object.keys(KB.minor).forEach(function (k) {
       if (minor[k] !== true && minor[k] !== false) return;
       var d = KB.minor[k];
       add("minor." + k + "." + (minor[k] ? "yes" : "no"), "เส้นรอง", d.th.replace(/\s*\(.*\)/, "") + (minor[k] ? "ซึ่งเห็นชัด" : "ซึ่งยังไม่เด่น"), tpl(EV.minor, { th: d.th.replace(/\s*\(.*\)/, ""), seen: minor[k] ? "เห็นชัด" : "ยังไม่เห็นชัด" }), minor[k] ? 0.6 : 0.28);
     });
-    (opt.mounts || []).forEach(function (k) {
-      var d = KB.mounts[k]; if (!d) return;
-      add("mount." + k, "เนินบนฝ่ามือ", d.th + "อิ่มเด่น", tpl(EV.mount, { th: d.th, under: d.under }), 0.55);
+    // เนิน: ที่ผู้ใช้เลือก + ที่ประเมินจากภาพ (รหัสเดียวกัน รวมหลักฐาน) แล้วต่อด้วยตำแหน่งแปดทิศของเนินแรก ๆ
+    var chosen = (opt.mounts || []).filter(function (k) { return KB.mounts[k]; }), est = R.mounts ? R.mounts.top : [];
+    var mids = chosen.concat(est.filter(function (k) { return chosen.indexOf(k) < 0 && KB.mounts[k]; }));
+    mids.forEach(function (k) {
+      var d = KB.mounts[k], picked = chosen.indexOf(k) >= 0, e = est.indexOf(k) >= 0, lvl = R.mounts ? R.mounts.level[k] : null;
+      var ev = [picked ? tpl(EV.mount, { th: d.th, under: d.under }) : "", e && lvl != null ? tpl(EV.mountEst, { th: d.th, level: lvl }) : ""].filter(Boolean).join(" · ");
+      add("mount." + k, "เนินบนฝ่ามือ", d.th + (picked ? "อิ่มเด่น" : "ค่อนข้างเด่น"), ev, picked ? (e ? 0.62 : 0.55) : clamp(0.3 + (lvl || 50) / 400, 0.3, 0.52));
     });
+    var palaces = [];
+    mids.slice(0, 2).forEach(function (k) { var b = KB.mountBagua && KB.mountBagua[k]; if (b && palaces.indexOf(b) < 0 && I["bagua." + b]) palaces.push(b); });
+    palaces.forEach(function (b, i) {
+      var B = KB.bagua[b];
+      add("bagua." + b, "ผังแปดทิศ", "ตำแหน่ง" + B.th, tpl(EV.bagua, { area: B.area, th: B.th + " " + B.cn }), i ? 0.3 : 0.38);
+    });
+    // โหมดดูทั้งสองมือ: มือที่สองได้หัวข้อ "เทียบสองมือ" ให้ตัวเรียบเรียงเล่าเชื่อมกับมือแรก
+    if (opt.compare && opt.compare.first) {
+      var cm = compareHands(opt.compare.first, R), sm = cm.similar ? "same" : "shift";
+      add("compare." + sm, "เทียบสองมือ", cm.similar ? "สองมือคล้ายกัน" : "สองมือต่างกันอย่างน่าสนใจ",
+        tpl(EV.compare, { a: opt.compare.sideA || "มือแรก", b: opt.compare.sideB || "มือที่สอง" }) + " เหมือนกัน " + cm.same + " จาก " + cm.total + " หัวข้อ", 0.66);
+    }
     // short = ชื่อย่อที่ตัวเรียบเรียงใช้หลังเอ่ยชื่อเต็มครั้งแรก เช่น "เส้นหัวใจแบบค่อนข้างตรง" → "เส้นหัวใจ"
     items.forEach(function (it) {
       var sh = it.label.replace(/(แบบ|ซึ่ง|อิ่มเด่น|ค่อนข้าง|ยาวใกล้เคียง|ทรง|สั้นกระชับ|ยาวเรียว).*$/, "").trim();
@@ -646,12 +735,162 @@
     var r = LQT.pickPrimary(boxes, prevBox || null, { minIou: 0.3, prefer: GUIDE_C });
     return { index: r.index, n: r.n, continuity: r.continuity, boxN: r.index >= 0 ? boxes[r.index] : null };
   }
-  /** มือแบสมมติ 21 จุดในกรอบ box (px) — ใช้กับตัวตรวจจับจำลองในการทดสอบเท่านั้น */
-  function synthHand(box) {
+  /** มือแบสมมติ 21 จุดในกรอบ box (px) — ใช้กับตัวตรวจจับจำลองในการทดสอบเท่านั้น
+      side: "left" (ค่าเดิม — นิ้วชี้อยู่ซ้ายในภาพดิบ) หรือ "right" (กลับซ้าย-ขวาในกรอบ) */
+  function synthHand(box, side) {
     var u = [[0.5, 1], [0.3, 0.9], [0.18, 0.78], [0.1, 0.66], [0.05, 0.56], [0.32, 0.5], [0.32, 0.33], [0.32, 0.2], [0.32, 0.08],
       [0.47, 0.48], [0.47, 0.3], [0.47, 0.15], [0.47, 0], [0.62, 0.5], [0.62, 0.33], [0.62, 0.2], [0.62, 0.08], [0.76, 0.55], [0.76, 0.43], [0.76, 0.33], [0.76, 0.24]];
-    var w = box.w != null ? box.w : box.width, h = box.h != null ? box.h : box.height;
-    return u.map(function (q) { return [box.x + q[0] * w, box.y + q[1] * h]; });
+    var w = box.w != null ? box.w : box.width, h = box.h != null ? box.h : box.height, R = side === "right";
+    return u.map(function (q) { return [box.x + (R ? 1 - q[0] : q[0]) * w, box.y + q[1] * h]; });
+  }
+
+  /* ================= กรอบนำทางรูปมือ (มือซ้าย/ขวา) ================= */
+  /** แม่แบบมือซ้ายแบฝ่ามือเข้าหากล้อง ในภาพดิบ (นิ้วชี้อยู่ซ้าย) หน่วย = ความกว้างโคนนิ้วชี้→ก้อย ≈ 1, ข้อมือที่ (0,0), แกน y ชี้ลง
+      สัดส่วนตรงกับ NORMS: ฝ่ามือยาว 1.62 เท่าของความกว้าง นิ้วยาวตามค่าทั่วไป นิ้วโป้งกาง ~45° */
+  var GUIDE_HAND = (function () {
+    var p = new Array(21);
+    p[0] = [0, 0]; p[1] = [-0.36, -0.22]; p[2] = [-0.78, -0.48]; p[3] = [-1.1, -0.75]; p[4] = [-1.36, -0.98];
+    var F = [[5, [-0.5, -1.55], -10, NORMS.fingers.index], [9, [-0.16, -1.62], 0, NORMS.fingers.middle], [13, [0.18, -1.56], 8, NORMS.fingers.ring], [17, [0.5, -1.42], 18, NORMS.fingers.pinky]];
+    var palmL = Math.hypot(0.16, 1.62);
+    F.forEach(function (f) {
+      var a = f[2] * Math.PI / 180, d = [Math.sin(a), -Math.cos(a)], L = f[3] * palmL;
+      p[f[0]] = f[1];
+      [0.45, 0.75, 1].forEach(function (t, k) { p[f[0] + 1 + k] = [f[1][0] + d[0] * L * t, f[1][1] + d[1] * L * t]; });
+    });
+    return p;
+  })();
+  var GUIDE_R = { thumb: 0.17, index: 0.14, middle: 0.145, ring: 0.135, pinky: 0.12 };
+  /** เส้นรอบรูปมือ (ฝ่ามือ + นิ้วห้านิ้ว) จากจุด 21 จุดในหน่วยแม่แบบของมือซ้าย → จุดของรูปปิด */
+  function handContour(p) {
+    var out = [], sub = function (a, b) { return [a[0] - b[0], a[1] - b[1]]; }, nrm = function (v) { var l = Math.hypot(v[0], v[1]) || 1; return [v[0] / l, v[1] / l]; };
+    var add = function (a, v, k) { return [a[0] + v[0] * k, a[1] + v[1] * k]; };
+    var fing = [["pinky", 17], ["ring", 13], ["middle", 9], ["index", 5]].map(function (f) {
+      var b = p[f[1]], t = p[f[1] + 3], d = nrm(sub(t, b)), n = [-d[1], d[0]], r = GUIDE_R[f[0]];
+      return { b: b, t: t, d: d, n: n, r: r };
+    });
+    var arc = function (c, d, n, r, from) { for (var k = 0; k <= 8; k++) { var a = Math.PI * k / 8, v = [n[0] * Math.cos(a) * from + d[0] * Math.sin(a), n[1] * Math.cos(a) * from + d[1] * Math.sin(a)]; out.push([c[0] + v[0] * r, c[1] + v[1] * r]); } };
+    var web = 0.3;
+    out.push([0.42, 0.06], [0.6, -0.55], [0.64, -1.05]);
+    fing.forEach(function (f, i) {
+      // ขอบฝั่งนิ้วก้อย (+n) ขึ้นไป → โค้งปลายนิ้ว → ขอบฝั่งนิ้วชี้ (−n) ลงมาถึงง่ามนิ้ว
+      var start = i === 0 ? add(add(f.b, f.n, f.r), f.d, 0.05) : add(add(f.b, f.n, f.r), f.d, web);
+      out.push(start);
+      var c = add(f.t, f.d, -f.r * 0.5);
+      arc(c, f.d, f.n, f.r, 1);
+      if (i < fing.length - 1) {
+        var g = fing[i + 1], a = add(add(f.b, f.n, -f.r), f.d, web), b = add(add(g.b, g.n, g.r), g.d, web);
+        out.push(a, [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2 + 0.04]);
+      } else out.push(add(add(f.b, f.n, -f.r), f.d, 0.02));
+    });
+    // ง่ามนิ้วโป้ง → นิ้วโป้ง (ขอบบน → ปลาย → ขอบล่าง) → เนินฐานนิ้วโป้ง → ข้อมือ
+    var tb = p[2], tt = p[4], td = nrm(sub(tt, tb)), tn = [td[1], -td[0]], r = GUIDE_R.thumb;
+    if (tn[1] > 0) tn = [-tn[0], -tn[1]]; // ให้ tn ชี้ไปทางนิ้วชี้ (ขึ้นบน)
+    out.push([(p[5][0] + tb[0]) / 2 + 0.02, (p[5][1] + tb[1]) / 2 - 0.02], add(p[2], tn, r), add(p[3], tn, r));
+    arc(add(tt, td, -r * 0.5), td, tn, r, 1);
+    out.push(add(p[3], tn, -r), add(p[2], tn, -r * 1.15), add(p[1], tn, -r * 1.4), [-0.46, 0.06]);
+    return out;
+  }
+  var GUIDE_CONTOUR = handContour(GUIDE_HAND);
+  /** กรอบนำทางสำหรับมือ side ในภาพขนาด W×H (พิกเซลของภาพดิบ)
+      opt.mirrored = พรีวิวแสดงแบบกระจก (กล้องหน้า) → display = พิกัดที่ผู้ใช้เห็นบนจอ (raw กลับซ้าย-ขวา)
+      ผืนวาด (overlay) ถูกกลับด้านด้วย CSS พร้อมวิดีโอ จึงวาดด้วย raw เสมอ แล้วรูปที่เห็นจะตรงกับมือในพรีวิว
+      ขนาดปรับตามสัดส่วนภาพ: มือ (รวมนิ้ว) กว้างไม่เกิน 62% และสูงไม่เกิน 84% ของภาพ */
+  function guideTemplate(side, W, H, opt) {
+    opt = opt || {};
+    var sx = side === "right" ? -1 : 1, xs = GUIDE_CONTOUR.map(function (q) { return q[0] * sx; }), ys = GUIDE_CONTOUR.map(function (q) { return q[1]; });
+    var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
+    var fill = opt.fill || 1, k = Math.min(W * 0.62 / (x1 - x0), H * 0.84 / (y1 - y0)) * fill;
+    var ox = W / 2 - (x0 + x1) / 2 * k, oy = H * 0.5 - (y0 + y1) / 2 * k;
+    var T = function (q) { return [ox + q[0] * sx * k, oy + q[1] * k]; };
+    var raw = GUIDE_HAND.map(T), contour = GUIDE_CONTOUR.map(T);
+    var disp = function (pp) { return opt.mirrored ? pp.map(function (q) { return [W - q[0], q[1]]; }) : pp.map(function (q) { return [q[0], q[1]]; }); };
+    return { side: side, W: W, H: H, mirrored: !!opt.mirrored, scale: k, palmW: dist(raw[5], raw[17]), raw: raw, contour: contour, display: disp(raw), displayContour: disp(contour),
+      // มือที่ผู้ใช้เห็นบนจอ: นิ้วโป้งอยู่ฝั่งไหน (สำหรับข้อความ/ทดสอบ)
+      thumbOnScreen: (disp(raw)[4][0] < W / 2) ? "left" : "right" };
+  }
+  var FIT_IDX = [0, 1, 2, 4, 5, 8, 9, 12, 13, 16, 17, 20];
+  /** ความตรงกรอบ 0..1: ระยะเฉลี่ยของจุดสำคัญ (ข้อมือ โคนนิ้ว ปลายนิ้ว) จากแม่แบบ หารด้วยความกว้างฝ่ามือของแม่แบบ */
+  function fitScore(pts, tpl) {
+    if (!pts || !tpl) return 0;
+    var s = 0; FIT_IDX.forEach(function (i) { s += dist(pts[i], tpl.raw[i]); });
+    return round(clamp(1 - s / FIT_IDX.length / (tpl.palmW * 0.9), 0, 1), 3);
+  }
+
+  /* ================= เนิน (ประเมินจากภาพ) + ผังแปดทิศ ================= */
+  var MOUNT_IDS = ["jupiter", "saturn", "sun", "mercury", "venus", "moon", "mars"];
+  /** คะแนนความเด่นของเนินทั้งเจ็ด: นิ้วที่ตรงกับเนิน (ตำราตะวันตก: นิ้วยาว ↔ เนินใต้นิ้วเด่น), รูปเส้นรอบเนิน
+      (เส้นชีวิตโค้งกว้าง ↔ เนินศุกร์, เส้นสมองลาดลง ↔ เนินจันทร์, ช่องกลางมือกว้าง ↔ ที่ราบอังคาร) และความเรียบของผิวในภาพ (เส้นยิบน้อย = อิ่ม)
+      คืน { ranked: [{id, score, level}], level: {id: 0..100}, top: [id…] (1–2 เนิน) } */
+  function estimateMounts(hm, lc, R, F) {
+    var z = fingerZ(hm), M = (lc && lc.m) || {}, sc = {};
+    var tz = hm.thumbRatio == null ? 0 : (hm.thumbRatio - NORMS.thumb) / NORMS.thumbSd;
+    var az = hm.thumbAngle == null ? 0 : (hm.thumbAngle - NORMS.thumbAngle) / NORMS.thumbAngleSd;
+    var pz = (hm.pinkyRing - NORMS.pinkyRing) / NORMS.pinkyRingSd, zp = (hm.palmRatio - NORMS.palm) / NORMS.palmSd;
+    sc.jupiter = z.index; sc.saturn = z.middle; sc.sun = z.ring; sc.mercury = 0.6 * z.pinky + 0.4 * pz;
+    sc.venus = 0.4 * tz + (M.life ? clamp((M.life.maxU - 0.3) / 0.05, -2.5, 2.5) * 0.6 : 0);
+    sc.moon = 0.3 * zp + (M.head && M.head.angle != null ? clamp((M.head.angle - 20) / 9, -2.5, 2.5) * 0.7 : 0);
+    var gap = 0;
+    if (M.head && M.heart) {
+      var vAt = function (sp) { var b = sp[0]; sp.forEach(function (q) { if (Math.abs(q[0] - 0.5) < Math.abs(b[0] - 0.5)) b = q; }); return b[1]; };
+      gap = clamp(((vAt(M.head.sp) - vAt(M.heart.sp)) - 0.24) / 0.07, -2.5, 2.5);
+    }
+    sc.mars = 0.35 * az + 0.25 * tz + 0.4 * gap;
+    if (R && F) { // ความเรียบของผิว: ค่าตอบสนองเส้นเฉลี่ยรอบตำแหน่งเนิน (น้อย = เรียบ/อิ่ม) เทียบกับเนินอื่น
+      var tex = {}, vals = [];
+      MOUNT_IDS.forEach(function (k) {
+        var c = KB && KB.mounts[k] ? KB.mounts[k].pos : [0.5, 0.5], s = 0, n = 0;
+        for (var du = -0.08; du <= 0.081; du += 0.04) for (var dv = -0.06; dv <= 0.061; dv += 0.03) { var px = F.uvToPx([c[0] + du, c[1] + dv]); s += sample(R, px[0], px[1]); n++; }
+        tex[k] = s / n; vals.push(tex[k]);
+      });
+      var mu = vals.reduce(function (a, b) { return a + b; }, 0) / vals.length, sd = Math.sqrt(vals.reduce(function (a, b) { return a + (b - mu) * (b - mu); }, 0) / vals.length) || 1;
+      MOUNT_IDS.forEach(function (k) { sc[k] += 0.4 * clamp(-(tex[k] - mu) / sd, -2, 2); });
+    }
+    var level = {}, ranked = MOUNT_IDS.map(function (k) { var l = Math.round(100 * sigmoid(sc[k] * 0.9)); level[k] = l; return { id: k, score: round(sc[k], 3), level: l }; })
+      .sort(function (a, b) { return b.score - a.score; });
+    var top = ranked.filter(function (r) { return r.score >= 0.45; }).slice(0, 2).map(function (r) { return r.id; });
+    if (!top.length) top = [ranked[0].id];
+    return { ranked: ranked, level: level, top: top };
+  }
+
+  /* ================= เทียบสองมือ (ศักยภาพที่ติดตัว ↔ สิ่งที่สร้างขึ้นเอง) ================= */
+  /** a = ผล analyze() ของมือที่ติดตัว (ไม่ถนัด), b = ของมือที่สร้างเอง (ถนัด) → แถวเทียบ + ร้อยละที่เหมือน */
+  function compareHands(a, b) {
+    var rows = [], lab = function (id, c) { return KB.lines[id] && KB.lines[id].cats[c] ? KB.lines[id].cats[c].label : c; };
+    var push = function (key, th, va, vb, ta, tb) { rows.push({ key: key, th: th, a: ta, b: tb, same: va === vb }); };
+    var ea = a.el.top.id, eb = b.el.top.id;
+    push("element", "ธาตุประจำมือ", ea, eb, "ธาตุ" + KB.elements[ea].th, "ธาตุ" + KB.elements[eb].th);
+    LINE_IDS.forEach(function (id) {
+      var ca = (a.lc.cats[id] || [])[0], cb = (b.lc.cats[id] || [])[0];
+      if (ca && cb) push(id, KB.lines[id].th, ca, cb, lab(id, ca), lab(id, cb));
+    });
+    var fa = fingerCat(a.hm), fb = fingerCat(b.hm);
+    push("finger", "นิ้วชี้กับนิ้วนาง", fa, fb, KB.fingers[fa].label, KB.fingers[fb].label);
+    var da = fingerDom(a.hm).id, db = fingerDom(b.hm).id;
+    push("fingerDom", "นิ้วเด่น", da, db, KB.fingerDom[da].label, KB.fingerDom[db].label);
+    var ta = thumbAngleCat(a.hm), tb = thumbAngleCat(b.hm);
+    if (ta !== "na" && tb !== "na") push("thumbAngle", "มุมนิ้วโป้ง", ta, tb, KB.thumbAngle[ta].label, KB.thumbAngle[tb].label);
+    var ma = a.mounts ? a.mounts.top[0] : null, mb = b.mounts ? b.mounts.top[0] : null;
+    if (ma && mb) push("mount", "เนินที่เด่น", ma, mb, KB.mounts[ma].th, KB.mounts[mb].th);
+    var same = rows.filter(function (r) { return r.same; }).length;
+    return { rows: rows, same: same, total: rows.length, similarity: rows.length ? round(same / rows.length, 3) : 1, similar: rows.length ? same / rows.length >= 0.6 : true };
+  }
+  /** ย่อหน้าเทียบสองมือ (เชิงบวก) — opt = { sideA: "มือซ้าย", sideB: "มือขวา", seed } → { title, paragraphs, cmp } */
+  function buildComparison(a, b, opt) {
+    opt = opt || {};
+    var C = KB.compare, cmp = compareHands(a, b), seed = (opt.seed || 0) >>> 0, k = 0;
+    var pick = function (arr) { var v = arr[(seed + 7 * k++) % arr.length]; return v; };
+    var A = opt.sideA || "มือที่ติดตัว", B = opt.sideB || "มือที่สร้างเอง";
+    var V = { a: A, b: B };
+    var P = [tpl(pick(C.intro), V)], el = cmp.rows[0];
+    P.push(el.same ? tpl(pick(C.sameEl), { el: KB.elements[a.el.top.id].th }) : tpl(pick(C.diffEl), { a: A, b: B, elA: KB.elements[a.el.top.id].th, elB: KB.elements[b.el.top.id].th }));
+    var lr = cmp.rows.filter(function (r) { return LINE_IDS.indexOf(r.key) >= 0; });
+    var diff = lr.filter(function (r) { return !r.same; }).slice(0, 2), same = lr.filter(function (r) { return r.same; }).slice(0, diff.length ? 1 : 2);
+    diff.forEach(function (r) { P.push(tpl(pick(C.diffLine), { line: r.th, a: A, b: B, ca: r.a.replace(/^ปลายเส้น/, ""), cb: r.b.replace(/^ปลายเส้น/, "") })); });
+    same.forEach(function (r) { P.push(tpl(pick(C.sameLine), { line: r.th })); });
+    var mr = cmp.rows.filter(function (r) { return r.key === "mount"; })[0];
+    if (mr) P.push(mr.same ? tpl(pick(C.sameMounts), { ma: mr.a }) : tpl(pick(C.mounts), { ma: mr.a, mb: mr.b }));
+    P.push(pick(C.closing));
+    return { title: C.title, paragraphs: P, cmp: cmp };
   }
 
   var PalmCore = {
@@ -661,6 +900,10 @@
     dist: dist, lerp: lerp, round: round, ssdAnchors: ssdAnchors, decodePalms: decodePalms, nms: nms, iou: iou, letterbox: letterbox, unletterbox: unletterbox,
     palmRoi: palmRoi, landmarksRoi: landmarksRoi, roiCropMatrix: roiCropMatrix, projectLandmarks: projectLandmarks,
     handFromLandmarks: handFromLandmarks, handFromTaps: handFromTaps, measureHand: measureHand, handElement: handElement, fingerCat: fingerCat, thumbCat: thumbCat, guessSide: guessSide,
+    handChirality: handChirality, resolveSide: resolveSide, flipSide: flipSide, angleBetween: angleBetween,
+    thumbAngleCat: thumbAngleCat, pinkyCat: pinkyCat, spreadCat: spreadCat, fingerDom: fingerDom, fingerZ: fingerZ,
+    GUIDE_HAND: GUIDE_HAND, guideTemplate: guideTemplate, handContour: handContour, fitScore: fitScore,
+    MOUNT_IDS: MOUNT_IDS, estimateMounts: estimateMounts, compareHands: compareHands, buildComparison: buildComparison,
     palmFrame: palmFrame, grayFrom: grayFrom, gaussBlur: gaussBlur, localContrast: localContrast, ridgeFilter: ridgeFilter, skinMask: skinMask, sample: sample,
     spline: spline, resample: resample, traceAlong: traceAlong, analyzeStrength: analyzeStrength, detectLines: detectLines,
     measureLine: measureLine, classifyLines: classifyLines, buildReading: buildReading, analyze: analyze, addStat: addStat
@@ -684,12 +927,16 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var STATS_KEY = "palm-stats", PREF_KEY = "palm-prefs", IDLE_MS = 60000, MODEL_DIR = "vendor/models/hand/";
   var lsGet = function (k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
   var lsSet = function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* โหมดส่วนตัว */ } };
-  var prefs = Object.assign({ stats: true, dom: "right" }, lsGet(PREF_KEY, {}));
+  var prefs = Object.assign({ stats: true, dom: "right", sideMode: "auto" }, lsGet(PREF_KEY, {}));
+  if (["left", "right", "auto", "both"].indexOf(prefs.sideMode) < 0) prefs.sideMode = "auto";
 
   var video = $("#plVideo"), cam = $("#plCam"), ov = $("#plOverlay"), octx = ov.getContext("2d");
   var btnCam = $("#plStartCam"), btnSnap = $("#plSnap"), fileIn = $("#plFile"), countEl = $("#plCount");
   var editSec = $("#plEdit"), resultSec = $("#plResult"), edCv = $("#plEditCanvas"), resCanvas = $("#plResCanvas");
-  var S = { side: "right", sideAuto: false, dom: prefs.dom, src: null, hand: null, F: null, canon: null, R: null, auto: null, lines: null, active: "life", minor: {}, mounts: [], mode: "edit", taps: [], result: null, busy: false };
+  // sideMode: left | right | auto | both — side: ข้างที่อ่านในรอบนี้, sideSrc: manual | detect, liveSide: ข้างที่เห็นสด ๆ จากกล้อง
+  // pair/pairStep: โหมดทั้งสองมือ (มือที่ 1 = ศักยภาพที่ติดตัว, มือที่ 2 = สิ่งที่สร้างขึ้นเอง) · cmp: ผลเทียบสองมือ
+  var S = { sideMode: prefs.sideMode, side: "right", sideSrc: "manual", sideDet: null, sideMismatch: null, liveSide: null, liveCand: null, liveCount: 0, guide: null,
+    pair: [], pairStep: 0, cmp: null, cmpFirst: null, dom: prefs.dom, src: null, hand: null, F: null, canon: null, R: null, auto: null, lines: null, active: "life", minor: {}, mounts: [], mode: "edit", taps: [], result: null, busy: false };
   var ready = false, models = null, looping = false;
 
   function engine(msg, cls) { var e = $("#plEngine"); e.textContent = msg; e.className = "pl-engine " + (cls || ""); }
@@ -697,15 +944,70 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function toast(msg) { var t = $("#plToast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.h); toast.h = setTimeout(function () { t.classList.remove("show"); }, 2200); }
   var smooth = function () { return matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"; };
 
-  /* ---------- มือซ้าย/ขวา + มือข้างถนัด ---------- */
-  function renderSide() {
-    $$("[data-side]").forEach(function (b) { b.setAttribute("aria-checked", b.dataset.side === S.side ? "true" : "false"); });
-    $$("[data-dom]").forEach(function (b) { b.setAttribute("aria-checked", b.dataset.dom === S.dom ? "true" : "false"); });
-    var d = S.side === S.dom ? KB.sides.dominant : KB.sides.other;
-    $("#plSideNote").innerHTML = "<b>" + esc((S.side === "left" ? "มือซ้าย" : "มือขวา") + " = " + d.th) + "</b> — " + esc(d.short) + (S.sideAuto ? ' <small class="muted">(ตรวจจากภาพ เปลี่ยนได้)</small>' : "");
+  /* ---------- มือซ้าย/ขวา/อัตโนมัติ/ทั้งสองมือ + มือข้างถนัด ---------- */
+  var SIDE_TH = { left: "มือซ้าย", right: "มือขวา" };
+  var inbornSide = function () { return S.dom === "right" ? "left" : "right"; };
+  var roleOf = function (side) { return side === S.dom ? KB.sides.dominant : KB.sides.other; };
+  /** ข้างที่ต้องการในรอบนี้ (null = อัตโนมัติ ตรวจจากภาพ) */
+  function expectedSide() {
+    if (S.sideMode === "left" || S.sideMode === "right") return S.sideMode;
+    if (S.sideMode === "both") return S.pairStep === 0 ? inbornSide() : S.dom;
+    return null;
   }
-  $$("[data-side]").forEach(function (b) { b.addEventListener("click", function () { S.side = b.dataset.side; S.sideAuto = false; renderSide(); }); });
-  $$("[data-dom]").forEach(function (b) { b.addEventListener("click", function () { S.dom = b.dataset.dom; prefs.dom = S.dom; lsSet(PREF_KEY, prefs); renderSide(); }); });
+  /** ข้างของกรอบนำทาง: ข้างที่เลือก → ข้างที่ตรวจพบ (อัตโนมัติ) → ข้างที่ถนัด */
+  var guideSide = function () { return expectedSide() || S.liveSide || S.dom; };
+  function renderSide() {
+    $$("[data-side]").forEach(function (b) { b.setAttribute("aria-checked", b.dataset.side === S.sideMode ? "true" : "false"); });
+    $$("[data-dom]").forEach(function (b) { b.setAttribute("aria-checked", b.dataset.dom === S.dom ? "true" : "false"); });
+    var exp = expectedSide(), html, H = KB.hands;
+    if (S.sideMode === "both") {
+      html = "<b>ดูทั้งสองมือ</b> — มือที่ 1: " + esc(SIDE_TH[inbornSide()] + " (" + H.roles.inborn + ")") + " → มือที่ 2: " + esc(SIDE_TH[S.dom] + " (" + H.roles.made + ")") +
+        '<br><small class="muted">ตอนนี้: มือที่ ' + (S.pairStep + 1) + "/2 · " + esc(SIDE_TH[exp]) + "</small>";
+    } else if (exp) {
+      var d = roleOf(exp);
+      html = "<b>" + esc(SIDE_TH[exp] + " = " + d.th + " · " + d.short) + "</b> — " + esc(d.text);
+    } else {
+      html = "<b>อัตโนมัติ</b> — " + esc(H.modes.auto.short) + (S.liveSide ? " · ตอนนี้เห็น <b>" + esc(SIDE_TH[S.liveSide]) + "</b> (" + esc(roleOf(S.liveSide).short) + ")" : "");
+    }
+    $("#plSideNote").innerHTML = html;
+  }
+  function resetPair() { S.pair = []; S.pairStep = 0; S.cmp = null; S.cmpFirst = null; renderPair(); }
+  $$("[data-side]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      if (S.sideMode === b.dataset.side) return;
+      S.sideMode = b.dataset.side; prefs.sideMode = S.sideMode; lsSet(PREF_KEY, prefs);
+      resetPair(); renderSide(); touch();
+    });
+  });
+  $$("[data-dom]").forEach(function (b) { b.addEventListener("click", function () { if (S.dom === b.dataset.dom) return; S.dom = b.dataset.dom; prefs.dom = S.dom; lsSet(PREF_KEY, prefs); if (S.pairStep === 0) resetPair(); renderSide(); if (S.hand) renderReadSide(); }); });
+  $("#plTradition").innerHTML = KB.hands.tradition.map(function (t) { return "<li><b>" + esc(t.k) + ":</b> " + esc(t.t) + "</li>"; }).join("");
+  /** ข้างที่ตรวจได้จากภาพ → ข้างที่จะอ่าน (ข้างที่เลือกไว้มาก่อน; อัตโนมัติใช้ผลตรวจ) */
+  function applyDetectedSide(rs) {
+    S.sideDet = rs;
+    var exp = expectedSide();
+    if (exp) { S.side = exp; S.sideSrc = "manual"; S.sideMismatch = rs && rs.conf >= 0.2 && rs.side !== exp ? rs.side : null; }
+    else { S.side = rs ? rs.side : S.dom; S.sideSrc = rs ? "detect" : "manual"; S.sideMismatch = null; }
+  }
+  function renderReadSide() {
+    var box = $("#plReadSide"); box.hidden = !S.hand;
+    if (!S.hand) return;
+    var d = roleOf(S.side);
+    $("#plReadSideText").innerHTML = "กำลังอ่าน <b>" + esc(SIDE_TH[S.side]) + "</b> " + esc(d.th + " · " + d.short) + (S.sideSrc === "detect" ? ' <small class="muted">(ตรวจจากภาพ)</small>' : "") +
+      (S.sideMode === "both" ? ' <small class="muted">· มือที่ ' + (S.pairStep + 1) + "/2</small>" : "") +
+      (S.sideMismatch ? '<span class="warn">ภาพนี้ดูเหมือน' + esc(SIDE_TH[S.sideMismatch]) + " แต่เลือกอ่าน" + esc(SIDE_TH[S.side]) + "ไว้ — ถ้าถ่ายผิดข้าง กด ถ่ายใหม่ หรือสลับข้างได้</span>" : "");
+    $("#plSideSwap").textContent = "สลับเป็น" + SIDE_TH[PC.flipSide(S.side)];
+  }
+  $("#plSideSwap").addEventListener("click", function () {
+    S.side = PC.flipSide(S.side); S.sideSrc = "manual";
+    S.sideMismatch = S.sideDet && S.sideDet.conf >= 0.2 && S.sideDet.side !== S.side ? S.sideDet.side : null;
+    renderReadSide(); touch();
+  });
+  /** ผลสด ๆ จากกล้อง: ข้างที่เห็นต้องตรงกัน 2 รอบติดก่อนเปลี่ยน (กันกระพริบ) */
+  function updateLiveSide(rs) {
+    if (!rs || rs.conf < 0.2) return;
+    if (rs.side === S.liveCand) S.liveCount++; else { S.liveCand = rs.side; S.liveCount = 1; }
+    if (S.liveCount >= 2 && S.liveSide !== rs.side) { S.liveSide = rs.side; renderSide(); }
+  }
   renderSide();
 
   /* ---------- กล้อง (LQCam.create: กล้องหลัง 1920×1080 + ไฟฉาย; สำรองข้อจำกัดทีละขั้นโดยไม่ทิ้งความละเอียดที่ขอ) ---------- */
@@ -797,7 +1099,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var W = src.width || src.videoWidth, H = src.height || src.videoHeight;
     if (FAKE) {
       var fk = LQDetect.fake(camera.deviceId || "c1", performance.now()) || [];
-      return fk.map(function (d) { var box = { x: d.x * W, y: d.y * H, w: d.w * W, h: d.h * H }, pts = PC.synthHand(box); return { pts: pts, score: d.score, det: d.score, handedness: null, box: PC.handBox(pts) }; });
+      return fk.map(function (d) { var box = { x: d.x * W, y: d.y * H, w: d.w * W, h: d.h * H }, pts = PC.synthHand(box, d.side); return { pts: pts, score: d.score, det: d.score, handedness: typeof d.handedness === "number" ? d.handedness : null, box: PC.handBox(pts) }; });
     }
     var tf = models.tf;
     var lb = PC.letterbox(W, H, 192), x = c192.getContext("2d");
@@ -829,24 +1131,15 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
 
   /* ---------- กรอบนำทาง + ตรวจสดจากกล้อง ---------- */
-  function handGuidePath(c, w, h) {
-    // โครงมือแบบเรียบง่าย (ฝ่ามือ + 5 นิ้ว) กึ่งกลางภาพ
-    var s = Math.min(w / 3, h / 4) * 0.95, cx = w / 2, cy = h * 0.56;
-    c.beginPath();
-    if (c.roundRect) c.roundRect(cx - s * 0.62, cy - s * 0.35, s * 1.24, s * 1.25, s * 0.28); else c.rect(cx - s * 0.62, cy - s * 0.35, s * 1.24, s * 1.25);
-    [[-0.46, 0.95], [-0.16, 1.12], [0.16, 1.05], [0.44, 0.82]].forEach(function (f) {
-      var x = cx + f[0] * s, len = f[1] * s, r = s * 0.12;
-      if (c.roundRect) c.roundRect(x - r, cy - s * 0.35 - len, r * 2, len + r, r); else c.rect(x - r, cy - s * 0.35 - len, r * 2, len + r);
-    });
-    c.save(); c.translate(cx - s * 0.62, cy + s * 0.25); c.rotate(-0.7);
-    if (c.roundRect) c.roundRect(-s * 0.13, -s * 0.72, s * 0.26, s * 0.78, s * 0.13); else c.rect(-s * 0.13, -s * 0.72, s * 0.26, s * 0.78);
-    c.restore();
-  }
-  function drawGuide(pts, ok, others) {
+  /** กรอบนำทางรูปมือของข้างที่ต้องการ ในพิกัดภาพดิบ (ผืนวาดกลับด้านพร้อมวิดีโอด้วย CSS เมื่อเป็นกล้องหน้า) */
+  function currentGuide() { return PC.guideTemplate(guideSide(), ov.width, ov.height, { mirrored: camera.mirrored }); }
+  function drawGuide(pts, ok, others, tpl) {
     var w = ov.width, h = ov.height; octx.clearRect(0, 0, w, h);
-    octx.lineWidth = Math.max(3, w / 240); octx.setLineDash([w / 60, w / 90]);
-    octx.strokeStyle = ok ? "#22d3ee" : "rgba(255,255,255,.8)";
-    handGuidePath(octx, w, h); octx.stroke(); octx.setLineDash([]);
+    tpl = tpl || currentGuide();
+    octx.lineWidth = Math.max(3, w / 240); octx.setLineDash([w / 60, w / 90]); octx.lineJoin = "round";
+    octx.strokeStyle = ok ? "#22d3ee" : "rgba(255,255,255,.85)";
+    octx.beginPath(); tpl.contour.forEach(function (q, i) { if (i) octx.lineTo(q[0], q[1]); else octx.moveTo(q[0], q[1]); }); octx.closePath();
+    octx.fillStyle = "rgba(34,211,238,.06)"; octx.fill(); octx.stroke(); octx.setLineDash([]);
     if (pts) {
       octx.fillStyle = ok ? "rgba(34,211,238,.95)" : "rgba(255,255,255,.8)";
       var r = Math.max(3, w / 220);
@@ -886,6 +1179,17 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     return q;
   }
   var lastQ = null, prevHand = null;
+  /** ป้ายบนภาพกล้อง: ข้างของกรอบ + ความตรงกรอบ + เตือนเมื่อเห็นมือผิดข้าง */
+  function renderGuideBar(tpl, fit, seenWrong, exp) {
+    $("#plGuideBar").hidden = false;
+    $("#plGuideSide").textContent = "กรอบ" + SIDE_TH[tpl.side] + (S.sideMode === "auto" ? (S.liveSide ? " (ตรวจพบ)" : " (รอตรวจ)") : "");
+    var f = $("#plFit");
+    f.textContent = fit == null ? "" : "ตรงกรอบ " + Math.round(fit * 100) + "%";
+    f.className = "pl-fit " + (fit == null ? "" : fit >= 0.7 ? "good" : fit >= 0.4 ? "mid" : "low");
+    var wEl = $("#plWrong");
+    wEl.hidden = !seenWrong;
+    if (seenWrong) wEl.textContent = "ตอนนี้เห็น" + SIDE_TH[seenWrong] + " — " + (S.sideMode === "both" ? "รอบนี้อ่าน" : "เลือก") + SIDE_TH[exp] + "ไว้";
+  }
   /** ป้ายเตือนบนภาพกล้องเมื่อเห็นมากกว่า 1 มือ */
   function renderMulti(n) { var el = $("#plMulti"); if (el) el.hidden = !(n > 1); }
   async function startLoop() {
@@ -895,8 +1199,14 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         try {
           var W = video.videoWidth, H = video.videoHeight, ph = primaryHand(await detectHands(video, true), prevHand, W, H), r = ph.hand;
           prevHand = ph.boxN;
+          var rs = r ? PC.resolveSide({ pts: r.pts, handedness: r.handedness }) : null;
+          if (S.sideMode === "auto") updateLiveSide(rs);
           lastQ = quality(r && r.pts, W, H, video, ph.n);
-          if (!S.busy) { renderQc(lastQ); drawGuide(r && r.pts, lastQ.every(function (q) { return q.ok; }), ph.others); renderMulti(ph.n); }
+          var exp = expectedSide(), wrong = !!(exp && rs && rs.conf >= 0.2 && rs.side !== exp && ph.n <= 1);
+          if (exp && rs) lastQ.push({ id: "side", label: "เป็น" + SIDE_TH[exp] + "ตามที่เลือก", ok: !wrong, tip: "ตอนนี้เห็น" + SIDE_TH[rs.side] });
+          var tpl = currentGuide(), fit = r ? PC.fitScore(r.pts, tpl) : null;
+          S.guide = { side: tpl.side, fit: fit, wrong: wrong, seen: rs ? rs.side : null, mirrored: tpl.mirrored, thumbOnScreen: tpl.thumbOnScreen };
+          if (!S.busy) { renderQc(lastQ); drawGuide(r && r.pts, lastQ.every(function (q) { return q.ok; }), ph.others, tpl); renderMulti(ph.n); renderGuideBar(tpl, fit, wrong ? rs.side : null, exp); }
         } catch (e) { console.warn(e); }
       } else if (!ready && video.videoWidth) drawGuide(null, false);
       await sleep(400);
@@ -965,8 +1275,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     }
     var warn = q.filter(function (x) { return !x.ok; }).map(function (x) { return x.tip; });
     S.hand = PC.handFromLandmarks(det.pts);
-    S.side = PC.guessSide(S.hand); S.sideAuto = true; renderSide();
-    await buildFromHand(warn.length ? "พบมือแล้ว (" + warn.join(" · ") + " — ผลอาจคลาดเคลื่อน)" : "พบมือแล้ว ตรวจและปรับเส้นได้ด้านล่าง", warn.length ? "err" : "ok");
+    applyDetectedSide(PC.resolveSide({ pts: det.pts, handedness: det.handedness }));
+    if (S.sideMismatch) warn.push("ภาพนี้ดูเหมือน" + SIDE_TH[S.sideMismatch] + " แต่เลือกอ่าน" + SIDE_TH[S.side] + "ไว้");
+    await buildFromHand(warn.length ? "พบ" + SIDE_TH[S.side] + "แล้ว (" + warn.join(" · ") + " — ผลอาจคลาดเคลื่อน)" : "พบ" + SIDE_TH[S.side] + "แล้ว ตรวจและปรับเส้นได้ด้านล่าง", warn.length ? "err" : "ok");
   }
   async function buildFromHand(msg, cls) {
     engine("กำลังไล่เส้นบนฝ่ามือ...");
@@ -1002,7 +1313,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#plLineTools").hidden = S.mode === "tap";
     $("#plRead").disabled = S.mode === "tap";
     $("#plHonest").hidden = S.mode === "tap";
-    renderLineChips(); renderEditor();
+    renderReadSide(); renderLineChips(); renderEditor();
     editSec.scrollIntoView({ behavior: smooth(), block: "start" });
     $("#plEditTitle").focus({ preventScroll: true });
   }
@@ -1097,7 +1408,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var k = S.src.width / edCv.width; S.taps.push([p[0] * k, p[1] * k]); renderTapMsg(); renderEditor();
       if (S.taps.length === 7) {
         var t = {}; PC.TAP_ORDER.forEach(function (key, i) { t[key] = S.taps[i]; });
-        S.hand = PC.handFromTaps(t); S.side = PC.guessSide(S.hand); S.sideAuto = true; renderSide();
+        S.hand = PC.handFromTaps(t); applyDetectedSide(PC.resolveSide({ hand: S.hand })); renderReadSide();
         S.mode = "edit"; $("#plTapBar").hidden = true; $("#plLineTools").hidden = false; $("#plRead").disabled = false; $("#plHonest").hidden = false;
         buildFromHand("ปักจุดครบแล้ว ตรวจและปรับเส้นได้เลย", "ok");
       }
@@ -1149,7 +1460,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   renderMinor(); renderMounts();
   $("#plMountNote").textContent = KB.mountsNote;
-  $("#plBack").addEventListener("click", function () { reset(); });
+  // ถ่ายใหม่: ล้างเฉพาะมือปัจจุบัน (โหมดทั้งสองมือยังเก็บผลมือที่ 1 ไว้)
+  $("#plBack").addEventListener("click", function () {
+    clearReading(); renderSide(); renderPair(); setStep(1); touch();
+    $("#plStage").scrollIntoView({ block: "start" });
+    engine("ถ่าย" + SIDE_TH[guideSide()] + "ใหม่ได้เลย", "ok");
+  });
 
   /* ---------- ขั้นที่ 3: อ่านลายมือ ---------- */
   $("#plRead").addEventListener("click", function () {
@@ -1158,9 +1474,16 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var lines = {};
     PC.LINE_IDS.forEach(function (id) { lines[id] = { cp: S.lines[id].cp, present: id !== "fate" || S.lines[id].present }; });
     var seed = Math.round(S.hand.wrist[0] + S.hand.wrist[1]);
-    var R = PC.analyze({ hand: S.hand, lines: lines, R: S.R, F: S.F, minor: S.minor, mounts: S.mounts, isDominant: S.side === S.dom, seed: seed });
-    S.result = R; S.narr = null;
-    renderResult(R);
+    var R = PC.analyze({ hand: S.hand, lines: lines, R: S.R, F: S.F, minor: S.minor, mounts: S.mounts, isDominant: S.side === S.dom, side: S.side, seed: seed });
+    S.result = R; S.narr = null; S.cmp = null; S.cmpFirst = null;
+    if (S.sideMode === "both" && S.pairStep === 1 && S.pair[0]) {
+      // มือที่ติดตัว (ไม่ถนัด) อยู่ฝั่ง a เสมอ แม้ผู้ใช้จะสลับข้างเอง
+      var h1 = S.pair[0], h2 = { side: S.side, R: R }, A = h1, B = h2;
+      if (h1.side === S.dom && h2.side !== S.dom) { A = h2; B = h1; }
+      S.cmp = PC.buildComparison(A.R, B.R, { sideA: SIDE_TH[A.side], sideB: SIDE_TH[B.side], seed: seed });
+      S.cmp.A = A; S.cmp.B = B; S.cmpFirst = h1;
+    }
+    renderResult(R); renderPair();
     narrate(false);
     if (prefs.stats) { lsSet(STATS_KEY, PC.addStat(lsGet(STATS_KEY, null), R.el.top.id)); renderStats(); }
     resultSec.hidden = false; setStep(3);
@@ -1198,7 +1521,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function narrate(again) {
     if (!S.result) return;
     var my = ++narrToken, box = $("#plNarr"), btn = $("#plRegen"), R = S.result;
-    var facts = PC.buildFacts(R, { topic: topic, nickname: $("#plNick").value, minor: S.minor, mounts: S.mounts, side: S.side, isDominant: S.side === S.dom, asp: S.F ? S.F.asp : null });
+    var facts = PC.buildFacts(R, { topic: topic, nickname: $("#plNick").value, minor: S.minor, mounts: S.mounts, side: S.side, isDominant: S.side === S.dom, asp: S.F ? S.F.asp : null,
+      compare: S.cmpFirst ? { first: S.cmpFirst.R, sideA: SIDE_TH[S.cmpFirst.side], sideB: SIDE_TH[S.side] } : null });
     S.facts = facts;
     var useAI = !!(FA && FA.hasConsent && FA.hasConsent());
     box.setAttribute("aria-busy", "true"); btn.disabled = true;
@@ -1207,7 +1531,13 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     p.catch(function (e) { console.error(e); return FA && FA.compose ? FA.compose(facts) : legacyResult(R); }).then(function (res) {
       if (my !== narrToken || !S.result) return;
       S.narr = res;
-      if (FA && FA.renderSections) FA.renderSections(box, res, { aiBadge: false }); else renderPlain(box, res);
+      var shown = res;
+      if (S.cmp) { // ส่วนเทียบสองมือ ต่อจากภาพรวม
+        var secs = (res.sections || []).slice(), at = secs.length && secs[0].id === "overview" ? 1 : 0;
+        secs.splice(at, 0, { id: "compare", title: S.cmp.title, paragraphs: S.cmp.paragraphs });
+        shown = Object.assign({}, res, { sections: secs });
+      }
+      if (FA && FA.renderSections) FA.renderSections(box, shown, { aiBadge: false }); else renderPlain(box, shown);
       var src = $("#plSrc"), ai = res.source === "ai";
       src.textContent = ai ? "เรียบเรียงโดย Claude AI" : "เรียบเรียงในเครื่อง";
       src.classList.toggle("ai", ai);
@@ -1255,7 +1585,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var fs = Math.round(12 * sc);
     c.font = "500 " + fs + "px Prompt, system-ui, sans-serif"; c.textAlign = "center"; c.textBaseline = "middle";
     Object.keys(KB.mounts).forEach(function (k) {
-      var p = uvToDisp(KB.mounts[k].pos), on = S.mounts.indexOf(k) >= 0, t = KB.mounts[k].th.replace("เนิน", "");
+      // เนินที่ผู้ใช้เลือก หรือที่ประเมินจากภาพว่าเด่น = สีทอง
+      var p = uvToDisp(KB.mounts[k].pos), on = S.mounts.indexOf(k) >= 0 || !!(R.mounts && R.mounts.top.indexOf(k) >= 0), t = KB.mounts[k].th.replace("เนิน", "");
       c.beginPath(); c.arc(p[0], p[1], (on ? 6 : 3.5) * sc, 0, Math.PI * 2); c.fillStyle = on ? "#fcd34d" : "rgba(255,255,255,.75)"; c.fill();
       var tw = c.measureText(t).width + fs * 0.9, th = fs * 1.5, ty = p[1] + 14 * sc;
       c.fillStyle = on ? "rgba(252,211,77,.95)" : "rgba(14,20,48,.62)";
@@ -1277,29 +1608,38 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#plElBars").innerHTML = R.el.ranked.map(function (r) { var e = KB.elements[r.id]; return '<div class="elbar"><span>' + esc(e.th) + '</span><i style="--w:' + r.pct + "%;--c:" + e.color + '"></i><b>' + r.pct + "%</b></div>"; }).join("");
     $("#plElTraits").innerHTML = E.traits.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("");
     $("#plElNote").textContent = KB.elementsNote;
-    $("#plSideBadge").innerHTML = rd.side ? "<b>" + esc(S.side === "left" ? "มือซ้าย" : "มือขวา") + "</b>" + esc(rd.side.th + " — " + rd.side.text) : "";
+    $("#plSideBadge").innerHTML = "<b>อ่านจาก" + esc(SIDE_TH[S.side]) + "</b>" + (rd.side ? esc(rd.side.th + " · " + rd.side.short + " — " + rd.side.text) : "") +
+      (S.sideSrc === "detect" ? ' <small class="muted">(ตรวจจากภาพ)</small>' : "") + (S.sideMode === "both" ? ' <small class="muted">· มือที่ ' + (S.pairStep + 1) + "/2</small>" : "");
     $("#plLines").innerHTML = rd.lines.map(function (l) {
       return '<div class="line-card" style="--c:' + l.color + '"><h4>' + esc(l.th) + "<span>" + esc(l.cn) + '</span></h4><p class="about">' + esc(l.about) + "</p><ul>" +
         l.items.map(function (it) { return "<li><b>" + esc(it.label) + "</b>" + esc(it.meaning) + "</li>"; }).join("") + "</ul></div>";
     }).join("");
     $("#plLifeNote").textContent = KB.lifeLineNote;
     var hm = R.hm;
+    var li = function (x, pre) { return x ? "<li><b>" + esc((pre || "") + x.label) + "</b>" + esc(x.meaning) + "</li>" : ""; };
     $("#plFingers").innerHTML = [
-      "<li><b>" + esc(rd.finger.label) + "</b>" + esc(rd.finger.meaning) + "</li>",
-      "<li><b>" + esc(rd.thumb.label) + "</b>" + esc(rd.thumb.meaning) + "</li>",
+      li(rd.finger), li(rd.fingerDom, ""), li(rd.pinky), li(rd.thumb), li(rd.thumbAngle), li(rd.spread),
       "<li><b>ฝ่ามือ" + (R.el.palmShape === "long" ? "ค่อนข้างยาว" : "ค่อนข้างเหลี่ยม") + " · นิ้ว" + (R.el.fingerShape === "long" ? "ค่อนข้างยาว" : "ค่อนข้างสั้น") + "</b>" + esc(E.shape) + "</li>"
     ].join("");
     var ex = rd.minor.map(function (m) { return "<li><b>" + esc(m.th) + (m.seen ? " — เห็นชัด" : " — ไม่เห็นชัด") + "</b>" + esc(m.meaning) + "</li>"; })
       .concat(rd.mounts.map(function (m) { return "<li><b>" + esc(m.th) + " เด่น</b>" + esc(m.meaning) + "</li>"; }));
     $("#plExtras").innerHTML = ex.length ? ex.join("") : '<li class="muted">ไม่ได้เลือกเส้นรองหรือเนิน — ย้อนไปเลือกในขั้นปรับเส้นได้</li>';
+    $("#plMountEst").innerHTML = rd.mountsEst.map(function (m) {
+      return '<div class="mest' + (m.top ? " top" : "") + '"><b>' + esc(m.th) + (m.top ? " · เด่น" : "") + "</b><span>" + m.level + "%</span><i style=\"--w:" + m.level + '%"></i><small>' + esc(m.under) +
+        (m.bagua ? " · " + m.bagua.th + " " + m.bagua.cn + " (" + m.bagua.theme + ")" : "") + "</small></div>";
+    }).join("");
+    $("#plMountEstNote").textContent = KB.mountEstNote;
     $("#plColors").innerHTML = rd.colors.map(function (c) { return '<li><i style="background:' + c.hex + '"></i>' + esc(c.name) + "</li>"; }).join("");
     $("#plTips").innerHTML = rd.tips.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("");
-    $("#plHowSrc").textContent = "จุดบนมือ: " + (hm.source === "model" ? "ตรวจอัตโนมัติด้วยโมเดล MediaPipe Hands (21 จุด)" : "ผู้ใช้แตะเอง 7 จุด (โคนนิ้วกลาง/นางเป็นค่าประมาณ)") + " · ตัวประมวลผล: " + (models ? models.backend.toUpperCase() : "—");
+    $("#plHowSrc").textContent = "จุดบนมือ: " + (hm.source === "model" ? "ตรวจอัตโนมัติด้วยโมเดล MediaPipe Hands (21 จุด)" : "ผู้ใช้แตะเอง 7 จุด (โคนนิ้วกลาง/นางเป็นค่าประมาณ)") + " · ตัวประมวลผล: " + (models && models.backend ? models.backend.toUpperCase() : models && models.fake ? "ตัวตรวจจับจำลอง" : "—");
     var M = R.lc.m, rows = [
       ["ฝ่ามือยาว ÷ กว้าง", fmt(hm.palmRatio, 2), "ข้อมือ→โคนนิ้วกลาง ÷ โคนนิ้วชี้→ก้อย (ค่าทั่วไป ~" + PC.NORMS.palm + ")"],
       ["นิ้วกลาง ÷ ฝ่ามือ", fmt(hm.fingerRatio, 2), "ความยาวนิ้วกลาง ÷ ความยาวฝ่ามือ (ค่าทั่วไป ~" + PC.NORMS.finger + ")"],
       ["นิ้วชี้ ÷ นิ้วนาง", fmt(hm.indexRing, 3), "> 1.02 นิ้วชี้ยาวกว่า · < 0.965 นิ้วนางยาวกว่า"],
-      ["นิ้วโป้ง ÷ ฝ่ามือ", fmt(hm.thumbRatio, 2), "ใช้เฉพาะเมื่อโมเดลตรวจจุดนิ้วโป้งได้"]
+      ["นิ้วโป้ง ÷ ฝ่ามือ", fmt(hm.thumbRatio, 2), "ใช้เฉพาะเมื่อโมเดลตรวจจุดนิ้วโป้งได้"],
+      ["มุมนิ้วโป้ง–นิ้วชี้", fmt(hm.thumbAngle, 0) + "°", "> 60° กางกว้าง · < 34° ชิด (ค่าทั่วไป ~" + PC.NORMS.thumbAngle + "°)"],
+      ["นิ้วก้อย ÷ นิ้วนาง", fmt(hm.pinkyRing, 2), "ค่าทั่วไป ~" + PC.NORMS.pinkyRing],
+      ["ช่องห่างนิ้วเฉลี่ย", fmt(hm.spread, 0) + "°", "> 15° กางห่าง · < 6° ชิด"]
     ];
     PC.LINE_IDS.forEach(function (id) {
       var m = M[id]; if (!m || (id === "fate" && !S.lines.fate.present)) return;
@@ -1307,6 +1647,34 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     });
     $("#plRaw").innerHTML = rows.map(function (r) { return "<tr><td>" + esc(r[0]) + '</td><td class="num">' + esc(r[1]) + "</td><td>" + esc(r[2]) + "</td></tr>"; }).join("");
   }
+  /* ---------- โหมดทั้งสองมือ: ไปถ่ายมือที่ 2 / ตารางเทียบ ---------- */
+  function renderPair() {
+    var nx = $("#plPairNext"), cmpSec = $("#plCompare");
+    var showNext = S.sideMode === "both" && S.pairStep === 0 && !!S.result;
+    nx.hidden = !showNext;
+    if (showNext) {
+      var nextSide = S.side === S.dom ? inbornSide() : S.dom;
+      $("#plPairMsg").innerHTML = "อ่านมือที่ 1: <b>" + esc(SIDE_TH[S.side]) + "</b> (" + esc(roleOf(S.side).short) + ") แล้ว — ต่อไปถ่าย<b>" + esc(SIDE_TH[nextSide]) + "</b> (" + esc(roleOf(nextSide).short) + ") เพื่อเทียบกัน";
+      $("#plNextHand").textContent = "ถ่ายมือที่ 2: " + SIDE_TH[nextSide];
+    }
+    cmpSec.hidden = !S.cmp;
+    if (!S.cmp) return;
+    var c = S.cmp.cmp;
+    $("#plCmpTitle").textContent = S.cmp.title;
+    $("#plCmpA").textContent = SIDE_TH[S.cmp.A.side] + " · " + KB.hands.roles.inborn;
+    $("#plCmpB").textContent = SIDE_TH[S.cmp.B.side] + " · " + KB.hands.roles.made;
+    $("#plCmpSum").textContent = "เหมือนกัน " + c.same + " จาก " + c.total + " หัวข้อ — " + (c.similar ? "สองมือไปในทางเดียวกัน" : "สองมือต่างกันอย่างน่าสนใจ") + " (อ่านคำอธิบายในคำทำนายด้านบน)";
+    $("#plCmpRows").innerHTML = c.rows.map(function (r) { return "<tr><td>" + esc(r.th) + '</td><td class="' + (r.same ? "same" : "") + '">' + esc(r.a) + '</td><td class="' + (r.same ? "same" : "") + '">' + esc(r.b) + (r.same ? " ✓" : "") + "</td></tr>"; }).join("");
+  }
+  $("#plNextHand").addEventListener("click", function () {
+    if (!S.result) return;
+    touch();
+    S.pair = [{ side: S.side, R: S.result }]; S.pairStep = 1;
+    clearReading();
+    renderSide(); renderPair(); setStep(1);
+    $("#plStage").scrollIntoView({ behavior: smooth(), block: "start" });
+    engine("ถ่าย" + SIDE_TH[expectedSide()] + " (" + roleOf(expectedSide()).short + ") ต่อได้เลย" + (camera.active ? "" : " — เปิดกล้องหรืออัปโหลดรูป"), "ok");
+  });
   $("#plEditAgain").addEventListener("click", function () { touch(); editSec.scrollIntoView({ behavior: smooth(), block: "start" }); setStep(2); });
 
   /* ---------- การ์ดแชร์ 1080×1350 ---------- */
@@ -1345,7 +1713,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     c.textAlign = "center"; c.fillStyle = "#fff";
     c.font = "700 92px " + FF; c.fillText("มือธาตุ" + E.th, W / 2, 750);
     c.font = "400 34px " + FF; c.fillStyle = "#c9d0ea";
-    c.fillText(R.el.top.pct + "% · ธาตุรอง" + rd.second.th + " " + R.el.second.pct + "%", W / 2, 830);
+    c.fillText(SIDE_TH[S.side] + " · " + R.el.top.pct + "% · ธาตุรอง" + rd.second.th + " " + R.el.second.pct + "%", W / 2, 830);
     // 2–3 ประโยคเด่นจากคำทำนายที่เรียบเรียงแล้ว (สำรอง: จุดเด่นของธาตุ)
     var keys = keySentences(S.narr, 5, 60, S.facts), drawn = 0;
     if (!keys.length) keys = E.traits.slice(0, 3);
@@ -1407,15 +1775,24 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   $("#plPrint").addEventListener("click", function () { touch(); window.print(); });
   $("#plAgain").addEventListener("click", function () { reset(); });
 
-  function reset() {
+  /** ล้างผลของมือปัจจุบัน (คงโหมดและผลมือที่ 1 ไว้) */
+  function clearReading() {
     resultSec.hidden = true; editSec.hidden = true;
     S.src = S.hand = S.F = S.canon = S.R = S.auto = S.lines = S.result = S.narr = S.facts = null;
-    $("#plNick").value = ""; narrToken++; $("#plNarr").innerHTML = ""; // ชื่อเล่นไม่เก็บ ล้างทุกครั้งที่เริ่มคนถัดไป S.minor = {}; S.mounts = []; S.taps = []; S.mode = "edit"; S.sideAuto = false;
-    renderMinor(); renderMounts(); renderSide();
+    S.cmp = null; S.cmpFirst = null; S.sideDet = null; S.sideMismatch = null;
+    narrToken++; $("#plNarr").innerHTML = "";
+    S.minor = {}; S.mounts = []; S.taps = []; S.mode = "edit";
+    renderMinor(); renderMounts();
     resCanvas.getContext("2d").clearRect(0, 0, resCanvas.width, resCanvas.height);
     edCv.getContext("2d").clearRect(0, 0, edCv.width, edCv.height);
     $("#plCardImg").hidden = true; if (cardUrl) { URL.revokeObjectURL(cardUrl); cardUrl = null; }
     renderQc([{ label: "พบมือ", ok: false, tip: "เปิดกล้องหรืออัปโหลดรูป" }]);
+  }
+  function reset() {
+    clearReading();
+    $("#plNick").value = ""; // ชื่อเล่นไม่เก็บ ล้างทุกครั้งที่เริ่มคนถัดไป
+    S.liveSide = S.liveCand = null; S.liveCount = 0;
+    resetPair(); renderSide();
     setStep(1);
     $("#plStage").scrollIntoView({ block: "start" });
     engine(ready ? "พร้อมอ่านคนถัดไป" : "พร้อมใช้งาน", "ok");
@@ -1472,5 +1849,6 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   if (!window.isSecureContext) showHttpsNote($("#plEngine"));
   engine("กำลังโหลดโมเดลจุดบนมือ...");
   loadModels().catch(function () {});
-  window.__palm = { get S() { return S; }, makeCard: makeCard, narrate: narrate, keySentences: keySentences, reset: reset, detectHand: detectHand, detectHands: detectHands, loadModels: loadModels }; // ใช้ทดสอบ
+  renderPair();
+  window.__palm = { get S() { return S; }, get guide() { return S.guide; }, makeCard: makeCard, narrate: narrate, keySentences: keySentences, reset: reset, detectHand: detectHand, detectHands: detectHands, loadModels: loadModels }; // ใช้ทดสอบ
 })();

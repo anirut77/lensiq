@@ -9,12 +9,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=5">
-<link rel="stylesheet" href="signage.css?v=2">
+<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="signage.css?v=3">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=5"></script>
+<script src="nav.js?v=8"></script>
 
 <main class="sg">
   <h1>ป้ายโฆษณาอัจฉริยะ</h1>
@@ -37,7 +37,7 @@
           <button class="fs-exit" type="button" aria-label="ออกจากเต็มจอ">&times;</button>
           <span class="why" id="why"></span>
           <div class="adbar"><i id="adProgress"></i></div>
-          <div class="pip" id="pip"><video id="video" autoplay muted playsinline></video><canvas id="overlay"></canvas></div>
+          <div class="pip" id="pip"><canvas id="overlay"></canvas></div>
         </div>
         <div class="cam-actions">
           <button class="btn primary" id="startFace" type="button">เริ่มวัดผู้ชม</button>
@@ -83,6 +83,14 @@
             <label class="chk"><input type="checkbox" name="ages" value="35_54"> 35–54</label>
             <label class="chk"><input type="checkbox" name="ages" value="55p"> 55+</label>
           </fieldset>
+          <fieldset>
+            <legend>ช่วงเวลาที่เล่น (ไม่เลือก = ทุกช่วง)</legend>
+            <label class="chk"><input type="checkbox" name="dayparts" value="morning"> เช้า 06–11</label>
+            <label class="chk"><input type="checkbox" name="dayparts" value="midday"> กลางวัน 11–14</label>
+            <label class="chk"><input type="checkbox" name="dayparts" value="afternoon"> บ่าย 14–17</label>
+            <label class="chk"><input type="checkbox" name="dayparts" value="evening"> เย็น 17–21</label>
+            <label class="chk"><input type="checkbox" name="dayparts" value="night"> กลางคืน 21–06</label>
+          </fieldset>
           <div class="row2">
             <label>เพศ<select name="gender"><option value="any">ทุกเพศ</option><option value="male">ชาย</option><option value="female">หญิง</option></select></label>
             <label>อารมณ์ผู้ชม<select name="mood"><option value="any">ทุกอารมณ์</option><option value="happy">กำลังยิ้ม</option><option value="neutral">สีหน้าปกติ</option></select></label>
@@ -122,9 +130,13 @@
       <div class="cam-actions">
         <button class="btn primary" id="startHand" type="button">เริ่มสั่งงานด้วยมือ</button>
         <button class="btn ghost" id="kFs" type="button">เต็มจอ</button>
+        <button class="btn ghost" id="addKiosk" type="button">+ กล้องคีออสก์แยก</button>
         <div class="cam-switch" id="kCamSwitch" hidden></div>
         <span class="pill" id="gesture">แตะ ปัดจอ เมาส์ หรือปุ่มลูกศรได้ระหว่างที่ยังไม่เปิดกล้อง</span>
+        <span class="pill lock" id="handInfo" hidden></span>
       </div>
+      <div class="cam-roles" id="camRoles" aria-live="polite"></div>
+      <p class="hint">มีกล้องสองตัว: ใช้ตัวหนึ่งวัดผู้ชมหน้าจอ และอีกตัวที่คีออสก์สำหรับสั่งงานด้วยมือ ทำงานพร้อมกันได้ (มือถือส่วนใหญ่เปิดได้ทีละกล้อง ระบบจะแจ้งและใช้กล้องเดียวร่วมกัน)</p>
     </section>
     <section class="card">
       <h2>วิธีใช้ท่ามือ</h2>
@@ -145,13 +157,23 @@
         <h2>สรุปผลโฆษณา</h2>
         <div class="row-actions">
           <button class="btn ghost" id="exportCsv" type="button">ส่งออก CSV</button>
+          <button class="btn ghost" id="exportAdCsv" type="button">รายงานรายโฆษณา CSV</button>
           <button class="btn ghost danger" id="clearStats" type="button">ล้างสถิติ</button>
         </div>
       </div>
       <p class="hint" id="since"></p>
       <div class="tiles" id="repTiles"></div>
       <div class="table-wrap"><table id="adTable"></table></div>
-      <p class="hint">OTS = จำนวนคนที่อยู่หน้าจอขณะโฆษณาเล่น · ผู้ชม = คนที่หันมองจอ · เวลามอง = คน × วินาทีที่มอง · ยิ้ม % = สัดส่วนเวลาที่ผู้ชมยิ้มขณะมอง</p>
+      <p class="hint">OTS = จำนวนคนที่อยู่หน้าจอขณะโฆษณาเล่น · ผู้ชม = คนที่หันมองจอ · อัตรามอง = ผู้ชม ÷ OTS · เวลามองเฉลี่ย = วินาทีที่มองต่อผู้ชม · ยิ้ม % = สัดส่วนเวลาที่ผู้ชมยิ้มขณะมอง · Valence = สีหน้าโดยรวมขณะมอง (บวก/ลบ) · กลุ่มหลัก = อายุ/เพศโดยประมาณของผู้ผ่านหน้าจอ (ค่าประมาณ อาจคลาดเคลื่อน)</p>
+    </section>
+    <section class="card">
+      <div class="report-head">
+        <h2>บันทึกการเล่นจริง (Proof of play)</h2>
+        <div class="row-actions"><button class="btn ghost" id="exportPop" type="button">ส่งออกบันทึกการเล่น CSV</button></div>
+      </div>
+      <p class="hint" id="popInfo"></p>
+      <div class="table-wrap"><table id="popTable"></table></div>
+      <p class="hint">หนึ่งแถวต่อหนึ่งรอบที่โฆษณาเล่นจบ: เวลาเริ่ม ระยะเวลา เหตุผลที่เลือก และจำนวนคนรวม (เฉพาะขณะเปิดวัดผู้ชม) ไม่มีข้อมูลรายบุคคล</p>
     </section>
     <div class="grid2">
       <section class="card"><h3>อายุและเพศของผู้ผ่านหน้าจอ (ค่าประมาณ)</h3><canvas class="chart" id="chAge" role="img" aria-label="กราฟอายุและเพศ"></canvas><p class="hint" id="ageNote"></p></section>
@@ -173,7 +195,9 @@
 
 <script src="vendor/face-api.js"></script>
 <script src="lensiq-track.js?v=1"></script>
+<script src="lensiq-camera.js?v=1"></script>
 <script src="lensiq-detect.js?v=1"></script>
-<script src="signage.js?v=3"></script>
+<script src="lensiq-hand.js?v=1"></script>
+<script src="signage.js?v=4"></script>
 </body>
 </html>

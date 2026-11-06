@@ -55,11 +55,12 @@
     timing: "จังหวะเวลา", advice: "คำแนะนำและเคล็ดเสริมดวง",
   };
   const SECTION_IDS = ["overview", "personality", "work", "money", "love", "social", "timing", "advice"];
-  const DOMAINS = ["face", "palm", "horoscope", "tarot", "siamsee", "fengshui", "numbers"];
+  const DOMAINS = ["face", "palm", "horoscope", "tarot", "siamsee", "fengshui", "numbers", "iching", "zodiac", "astro", "dream"];
   const TOPICS = ["overall", "love", "work", "money"];
   const DOMAIN_NAMES = {
     face: "ตำราโหงวเฮ้ง", palm: "ตำราลายมือ", horoscope: "ตำราโหราศาสตร์", tarot: "ไพ่ทาโรต์",
     siamsee: "คำเซียมซี", fengshui: "ตำราฮวงจุ้ย", numbers: "ศาสตร์แห่งตัวเลข",
+    iching: "คัมภีร์อี้จิง", zodiac: "ตำรา 12 นักษัตร", astro: "โหราศาสตร์ตะวันตก", dream: "ตำราทำนายฝัน",
   };
   // คำเรียกหมวดในประโยค (ใช้ทั้งประโยคผสานและประโยคปิดท้าย)
   const TAG_WORDS = {
@@ -853,7 +854,7 @@
 
   const api = {
     compose, interpret, regenerate, status, renderSections, toHTML, consentControl, hasConsent, setConsent,
-    rng, pick, shuffle, SECTION_TITLES, SECTION_IDS, CONSENT_TEXT,
+    rng, pick, shuffle, SECTION_TITLES, SECTION_IDS, CONSENT_TEXT, DOMAIN_NAMES,
     safety: { isSafe, filterText, BANNED: BANNED_TH.slice() },
     _internal: { factsForAI, normalizeAI, normSentence, dice, bigrams, banks: { OPENERS, CONNECTORS, CLOSERS, ADVICE_FRAMES, INTROS } },
   };

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title>12 นักษัตร ปีชง คู่มงคล | LENSIQ</title>
+<meta name="description" content="ดวงรายปีตาม 12 นักษัตร เช็กปีชงเต็ม ชงร่วม ปีเสริมดวง สีและทิศเสริมดวง และคู่มงคลของสองนักษัตร เพื่อความบันเทิง">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="fortune-kit.css?v=1">
+<link rel="stylesheet" href="zodiac.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=8"></script>
+
+<main class="fk zd" id="zdApp">
+  <div class="fk-head">
+    <span class="eyebrow">Chinese Zodiac · 生肖</span>
+    <h1>12 นักษัตร · ปีชง · คู่มงคล</h1>
+    <p class="lead">ดูดวงรายปีตามปีนักษัตร เช็กว่าปีนี้ชงหรือเสริมดวง พร้อมสีและทิศเสริมดวง ตารางปีชงทั้ง 12 นักษัตร และความเข้ากันของสองนักษัตร</p>
+  </div>
+  <p class="fk-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span><b>เพื่อความบันเทิงตามความเชื่อ ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์</b> คำว่า "ปีชง" ในหน้านี้หมายถึงปีที่ควรใจเย็นและรอบคอบเท่านั้น</span></p>
+
+  <div class="fk-tabs" role="tablist" aria-label="เลือกโหมด">
+    <button class="fk-tab" role="tab" id="tabYear" aria-controls="panelYear" aria-selected="true" type="button">ดวงรายปี</button>
+    <button class="fk-tab" role="tab" id="tabChong" aria-controls="panelChong" aria-selected="false" tabindex="-1" type="button">ตารางปีชง</button>
+    <button class="fk-tab" role="tab" id="tabPair" aria-controls="panelPair" aria-selected="false" tabindex="-1" type="button">คู่มงคล</button>
+  </div>
+
+  <section id="panelYear" role="tabpanel" aria-labelledby="tabYear">
+    <form class="fk-form fk-stack" id="zdForm" novalidate>
+      <fieldset><legend>เลือกปีนักษัตรของคุณ</legend><div class="fk-opts zd-animals" id="zdAnimals"></div></fieldset>
+      <details class="zd-birth">
+        <summary>ไม่แน่ใจ? กรอกวันเกิดให้ระบบหาปีนักษัตร (คำนวณในเครื่อง ไม่บันทึก)</summary>
+        <div class="fk-row">
+          <label>วันที่<select id="zdDay"></select></label>
+          <label>เดือน<select id="zdMonth"></select></label>
+          <label>ปีเกิด<input id="zdBirthYear" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="เช่น 2533" autocomplete="off"></label>
+        </div>
+        <div class="zd-era" role="radiogroup" aria-label="ศักราช"><label class="fk-check"><input type="radio" name="zdEra" value="be" checked> พ.ศ.</label><label class="fk-check"><input type="radio" name="zdEra" value="ce"> ค.ศ.</label></div>
+        <label>เปลี่ยนปีนักษัตรเมื่อ<select id="zdBoundary"></select></label>
+      </details>
+      <label>ปีที่อยากดู<select id="zdYear"></select></label>
+      <p class="fk-msg" id="zdMsg" role="alert"></p>
+      <div class="fk-optrow">
+        <span class="fk-small">ถ้ากรอกวันเกิด ระบบจะใช้วันเกิดแทนปีที่เลือก</span>
+        <button class="btn ghost fk-kbtn" id="zdKiosk" type="button" aria-pressed="false">โหมดบูธ (เต็มจอ)</button>
+      </div>
+      <button class="btn primary big full" type="submit">ดูดวงปีนี้</button>
+    </form>
+
+    <section class="zd-result" id="zdResult" hidden aria-labelledby="zdResTitle">
+      <div class="fk-block">
+        <div class="zd-hero" id="zdHero"></div>
+        <div id="zdFacts"></div>
+      </div>
+      <div id="zdReadWrap"></div>
+      <div class="fk-res-actions">
+        <button class="btn primary big" id="zdShare" type="button">แชร์การ์ดผลลัพธ์</button>
+        <button class="btn ghost big" id="zdPrint" type="button">พิมพ์</button>
+        <button class="btn ghost big" id="zdAgain" type="button">ดูใหม่ / คนถัดไป</button>
+      </div>
+      <img class="fk-cardimg" id="zdCardImg" alt="การ์ดดวง 12 นักษัตรสำหรับแชร์" hidden>
+    </section>
+  </section>
+
+  <section id="panelChong" role="tabpanel" aria-labelledby="tabChong" hidden>
+    <div class="fk-block">
+      <label class="zd-ylabel">ปี<select id="zdChongYear"></select></label>
+      <div class="zd-chong" id="zdChongGrid"></div>
+      <p class="fk-small" id="zdChongNote"></p>
+    </div>
+  </section>
+
+  <section id="panelPair" role="tabpanel" aria-labelledby="tabPair" hidden>
+    <form class="fk-form fk-stack" id="zdPairForm" novalidate>
+      <fieldset><legend>ปีนักษัตรของคุณ</legend><div class="fk-opts zd-animals" id="zdPairA"></div></fieldset>
+      <fieldset><legend>ปีนักษัตรของอีกฝ่าย (คนรัก เพื่อน หรือหุ้นส่วน)</legend><div class="fk-opts zd-animals" id="zdPairB"></div></fieldset>
+      <p class="fk-msg" id="zdPairMsg" role="alert"></p>
+      <button class="btn primary big full" type="submit">ดูความเข้ากัน</button>
+    </form>
+    <div id="zdPairRes" hidden aria-live="polite"></div>
+  </section>
+
+  <div class="fk-foot">
+    <section class="fk-block">
+      <h3>สถิติบูธ (ไม่ระบุตัวตน)</h3>
+      <div id="zdStats"></div>
+      <label class="fk-check"><input type="checkbox" id="zdStatsOn"> นับจำนวนครั้งและปีนักษัตรในเครื่องนี้ (ไม่เก็บวันเกิด)</label>
+      <button class="btn ghost" id="zdStatsClear" type="button">ล้างสถิติ</button>
+    </section>
+    <section class="fk-block">
+      <h3>แหล่งอ้างอิง</h3>
+      <p class="fk-small">ความสัมพันธ์ของกิ่งดินตามตำราจีน คำทำนายเรียบเรียงใหม่ทั้งหมดในเชิงสร้างสรรค์ ตรุษจีนและลี่ชุนคำนวณด้วยสูตรดาราศาสตร์ (เขตเวลาปักกิ่ง)</p>
+      <ul class="fk-sources" id="zdSources"></ul>
+      <p class="fk-small">หลักการ: ไม่ทำนายโรคภัย อุบัติเหตุ หรือเหตุร้าย ปีชงใช้ถ้อยคำชวนให้ใจเย็นและวางแผนเท่านั้น</p>
+    </section>
+  </div>
+</main>
+
+<div class="fk-idle" id="zdIdle" hidden role="status"></div>
+<button class="btn primary fk-kiosk-exit" id="zdKioskExit" type="button" hidden>ออกจากโหมดบูธ</button>
+
+<script src="lensiq-config.js"></script>
+<script src="fortune-ai.js?v=5"></script>
+<script src="fortune-kit.js?v=1"></script>
+<script src="horoscope.js?v=3"></script>
+<script src="zodiac-kb.js?v=1"></script>
+<script src="zodiac.js?v=1"></script>
+</body>
+</html>

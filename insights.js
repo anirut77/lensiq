@@ -24,7 +24,7 @@ const IQ_AGG = typeof LQAgg !== "undefined" ? LQAgg : (typeof require === "funct
 /** คีย์ localStorage ที่เป็นข้อมูลของระบบในชุดเดโมนี้
    st- ครอบคลุม st-cams / st-cam-<slot> / st-heat-<slot> แล้ว ; สถิติดูดวงเป็นตัวเลขนับแบบไม่ระบุตัวตนจึงระบุชื่อคีย์ตรง ๆ
    ห้ามเพิ่ม fr-leads (ชื่อเล่น+ช่องทางติดต่อ = ข้อมูลส่วนบุคคล), fr-prefs หรือ lq-camcap */
-const IQ_FORTUNE_KEYS = ["fr-stats", "palm-stats", "fs-stats"];
+const IQ_FORTUNE_KEYS = ["fr-stats", "palm-stats", "fs-stats", "ic-stats", "zd-stats", "as-stats", "dm-stats"];
 function iqIsModuleKey(k) {
   return k === "booth-state" || k === "nm-sessions" || IQ_FORTUNE_KEYS.includes(k) || /^(cx|st|sg|co|att|qc|dr|iq)-/.test(k);
 }
@@ -147,6 +147,9 @@ function iqCollect(snap) {
   if (fr) D.fr = fr;
   if (palm) D.palm = palm;
   if (fs) D.fs = fs;
+  // ค่าตั้งหน้าร้าน (st-settings) — ใช้คำนวณเวลารอคิวและระบุโซนแคชเชียร์
+  const sts = get("st-settings", null);
+  if (sts && typeof sts === "object") D.stCfg = { serviceSec: +sts.serviceSec > 0 ? +sts.serviceSec : 60, maxOcc: +sts.maxOcc > 0 ? +sts.maxOcc : null, cashierZone: String(sts.cashierZone || ""), queueZone: String(sts.queueZone || "") };
   return D;
 }
 
@@ -166,16 +169,26 @@ function iqEarliest(D) {
   return keys.length ? keys.sort()[0] : null;
 }
 
-/** preset: today | d7 | d30 | all → { from, to, mode, keys, prev } ; keys = รายชั่วโมง (today) หรือรายวัน */
-function iqRange(preset, now, D) {
-  const to = iqDay(now);
-  const span = { today: 1, d7: 7, d30: 30 }[preset];
-  let from = span ? iqAddDays(to, -(span - 1)) : (iqEarliest(D || {}) || to);
+/** preset: today | d7 | d14 | d30 | d90 | all | custom → { from, to, mode, keys, prev, compare } ; keys = รายวัน (mode hour = รายชั่วโมงของวันเดียว)
+   opt = { from, to (custom), compare: "prev" (ช่วงก่อนหน้ายาวเท่ากัน, ค่าเริ่มต้น) | "week" (เลื่อนย้อน 7 วัน) | "none" } */
+const IQ_SPANS = { today: 1, d7: 7, d14: 14, d30: 30, d90: 90 };
+const IQ_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+function iqRange(preset, now, D, opt = {}) {
+  let to = iqDay(now), from, span = IQ_SPANS[preset];
+  if (preset === "custom" && IQ_DATE_RE.test(opt.from || "") && IQ_DATE_RE.test(opt.to || "")) {
+    from = opt.from < opt.to ? opt.from : opt.to; to = opt.from < opt.to ? opt.to : opt.from;
+    if (to > iqDay(now)) to = iqDay(now);
+    if (from > to) from = to;
+  } else if (preset === "custom") preset = "d7", span = 7;
+  if (!from) from = span ? iqAddDays(to, -(span - 1)) : (iqEarliest(D || {}) || to);
   if (from > to) from = to;
   const keys = [];
   for (let k = from; k <= to; k = iqAddDays(k, 1)) keys.push(k);
-  const prev = span ? { from: iqAddDays(from, -span), to: iqAddDays(from, -1) } : null;
-  return { preset, from, to, mode: preset === "today" ? "hour" : "day", keys, prev, days: keys.length };
+  const n = keys.length, compare = opt.compare === "week" || opt.compare === "none" ? opt.compare : "prev";
+  let prev = null;
+  if (preset !== "all" && compare === "prev") prev = { from: iqAddDays(from, -n), to: iqAddDays(from, -1) };
+  if (preset !== "all" && compare === "week") prev = { from: iqAddDays(from, -7), to: iqAddDays(to, -7) };
+  return { preset, from, to, mode: preset === "today" || (preset === "custom" && n === 1) ? "hour" : "day", keys, prev, days: n, compare: prev ? compare : "none" };
 }
 const iqIn = (day, r) => !!day && day >= r.from && day <= r.to;
 const iqInT = (t, r) => Number.isFinite(t) && iqIn(iqDay(t), r);
@@ -417,65 +430,96 @@ function iqBuildDemo(snap, now = Date.now(), seed = 20261105) {
     putNew("booth-state", S, { n: visitors.length }); man.modules.push("booth");
   }
 
-  // --- วิเคราะห์อารมณ์: 6 การทดสอบ (เพิ่มต่อท้าย)
+  // --- แผนรายวัน 9 สัปดาห์ (ใช้ร่วมกันระหว่างหน้าร้าน สแกนสินค้า และจดจำลูกค้า ให้ตัวเลขสอดคล้องกัน)
+  // ฤดูกาลรายสัปดาห์ (เสาร์–อาทิตย์สูง จันทร์ต่ำ) + แนวโน้มโตช้า ๆ + ค่าผิดปกติ 2 วัน (โปรโมชัน 12 วันก่อน / กล้องดับครึ่งวัน 26 วันก่อน)
+  // วันที่คิวยาวอัตราซื้อต่ำลงเล็กน้อย และวันที่คนอยู่ในโซนนานอัตราซื้อสูงขึ้น เพื่อให้ส่วนความสัมพันธ์มีอะไรให้ดู
+  const DEMO_DAYS = 63, WK_MULT = [1.35, 0.88, 0.95, 1, 1.02, 1.15, 1.5];
+  const SHAPE_WD = [0, 0, 0, 0, 0, 0, 0, 1, 3, 5, 6, 8, 12, 10, 6, 5, 6, 8, 11, 10, 7, 4, 1, 0];
+  const SHAPE_WE = [0, 0, 0, 0, 0, 0, 0, 0, 1, 3, 6, 8, 10, 11, 12, 12, 11, 11, 12, 11, 8, 5, 1, 0];
+  const plan = [];
+  for (let d = DEMO_DAYS - 1; d >= 0; d--) {
+    const day = iqAddDays(today, -d), wk = new Date(iqDayStart(day)).getDay(), weekend = wk === 0 || wk === 6;
+    const promo = d === 12, outage = d === 26;
+    let base = 150 * WK_MULT[wk] * (1 + 0.004 * (DEMO_DAYS - 1 - d)) * rnd(0.92, 1.08);
+    if (promo) base *= 1.9;
+    const shape = weekend ? SHAPE_WE : SHAPE_WD, tot = iqSum(shape), curH = day === today ? new Date(now).getHours() : 24;
+    const hin = Array(24).fill(0);
+    shape.forEach((w, h) => { if (h >= curH || (outage && h >= 12)) return; hin[h] = Math.round(base * w / tot * rnd(0.82, 1.18)); });
+    const tin = iqSum(hin);
+    const maxQueue = Math.max(1, Math.min(9, Math.round(tin / 48 + rnd(-1, 1.6))));
+    const dwell = rnd(22, 48);
+    const conv = Math.max(0.03, (promo ? 0.115 : 0.1) - 0.0065 * maxQueue + (dwell - 35) * 0.0012 + rnd(-0.008, 0.008));
+    plan.push({ day, d, wk, hin, tin, maxQueue, dwell, bills: Math.round(tin * conv), curH });
+  }
+  const billTimes = p => { // เวลาบิลตามรูปแบบคนเข้าร้าน (เลื่อนไป ~15 นาที)
+    const ts = [], tot = iqSum(p.hin) || 1;
+    for (let i = 0; i < p.bills; i++) {
+      let u = R() * tot, h = 0; while (h < 23 && u >= p.hin[h]) { u -= p.hin[h]; h++; }
+      const t = timeOn(p.day, h, ri(0, 59), ri(0, 59)) + 15 * 60000;
+      if (t <= now) ts.push(t);
+    }
+    return ts.sort((a, b) => a - b);
+  };
+  const share = plan.map(() => rnd(0.33, 0.45)); // สัดส่วนบิลที่เป็นลูกค้าที่จดจำได้
+
+  // --- วิเคราะห์อารมณ์: 16 การทดสอบ (ฉลากสีฟ้า vs ฉลากสีทอง คนละ 5 คน = ชุด A/B)
   const ns = get("nm-sessions", []);
   if (!Array.isArray(ns) || !ns.some(s => s.iqDemo)) {
-    const tests = [["โฆษณา Matcha Fizz 20 วิ", "video", 20, 0.35], ["โฆษณา Signature Latte", "video", 18, 0.1], ["บรรจุภัณฑ์ใหม่ ฉลากสีฟ้า", "image", 10, 0.25], ["บรรจุภัณฑ์ใหม่ ฉลากสีทอง", "image", 10, 0.05], ["โฆษณา แพ็กครอบครัว", "video", 24, 0.3], ["โฆษณา Collagen", "video", 15, -0.05]];
-    const sessions = tests.map(([name, type, dur, mood], i) => {
-      const date = new Date(now - (12 - i * 2) * IQ_DAY - ri(1, 6) * 3600000).toISOString(), samples = [];
+    const tests = [["บรรจุภัณฑ์ใหม่ ฉลากสีฟ้า", "image", 10, 0.32, 5], ["บรรจุภัณฑ์ใหม่ ฉลากสีทอง", "image", 10, 0.04, 5], ["โฆษณา Matcha Fizz 20 วิ", "video", 20, 0.3, 3], ["โฆษณา Signature Latte", "video", 18, 0.12, 3]];
+    const sessions = []; let si = 0;
+    tests.forEach(([name, type, dur, mood, reps], ti) => { for (let rep = 0; rep < reps; rep++) {
+      const i = si++, date = new Date(now - (20 - i) * IQ_DAY - ri(1, 6) * 3600000).toISOString(), samples = [], m0 = mood + rnd(-0.08, 0.08);
       for (let t = 0; t <= dur; t += 0.5) {
         const face = R() < 0.95 ? 1 : 0;
         if (!face) { samples.push({ t, face: 0, att: 0, e: null, v: null, a: null, eng: 0 }); continue; }
-        const wave = mood + 0.25 * Math.sin(t / dur * Math.PI * 2 + i) + rnd(-0.15, 0.15);
+        const wave = m0 + 0.25 * Math.sin(t / dur * Math.PI * 2 + i) + rnd(-0.15, 0.15);
         const hap = Math.max(0, Math.min(0.9, wave)), neg = Math.max(0, Math.min(0.6, -wave * 0.8)), sur = rnd(0, 0.15), neu = Math.max(0, 1 - hap - neg - sur);
         const e = [neu, hap, sur, neg * 0.5, neg * 0.2, neg * 0.15, neg * 0.15].map(x => +x.toFixed(3));
         const v = e.reduce((s, p, k) => s + p * IQ_VA[IQ_EMO[k]][0], 0), a = e.reduce((s, p, k) => s + p * IQ_VA[IQ_EMO[k]][1], 0);
         const att = R() < 0.85 ? 1 : 0;
         samples.push({ t, face: 1, att, e, v: +v.toFixed(3), a: +a.toFixed(3), eng: +(att ? 1 - e[0] : 0).toFixed(3) });
       }
-      return tag({ id: "iqdemo-ns-" + (i + 1), test: `${IQ_DEMO_TAG} ${name}`, pid: "P" + String(i % 3 + 1).padStart(2, "0"), date, media: `ตัวอย่าง-${i + 1}.${type === "video" ? "mp4" : "jpg"}`, type, duration: dur, samples });
-    });
+      sessions.push(tag({ id: "iqdemo-ns-" + (i + 1), test: `${IQ_DEMO_TAG} ${name}`, pid: "P" + String(rep + 1).padStart(2, "0"), date, media: `ตัวอย่าง-${ti + 1}.${type === "video" ? "mp4" : "jpg"}`, type, duration: dur, samples }));
+    } });
     appendArr("nm-sessions", sessions, s => Date.parse(s.date)); man.modules.push("neuro");
   }
 
-  // --- จดจำลูกค้า: สมาชิก 12 คน + ออร์เดอร์ 30 วัน (ไม่มีข้อมูลใบหน้า จึงไม่ถูกสแกนจำผิดคน)
+  // --- จดจำลูกค้า: สมาชิก 36 คนทยอยสมัคร + ออร์เดอร์ 9 สัปดาห์ (ไม่มีข้อมูลใบหน้า จึงไม่ถูกสแกนจำผิดคน)
   const cm = get("cx-members", []);
   if (!Array.isArray(cm) || !cm.some(m => m.iqDemo)) {
-    const members = IQ_NAMES.slice(0, 12).map((n, i) => tag({ id: "iqdemo-m" + (i + 1), name: `${IQ_DEMO_TAG} คุณ${n}`, phone: "", created: now - ri(31, 60) * IQ_DAY, consentAt: now - 40 * IQ_DAY }));
+    const members = Array.from({ length: 36 }, (_, i) => tag({ id: "iqdemo-m" + (i + 1), name: `${IQ_DEMO_TAG} คุณ${IQ_NAMES[i % IQ_NAMES.length]}${i >= IQ_NAMES.length ? " " + (Math.floor(i / IQ_NAMES.length) + 1) : ""}`, phone: "", created: iqDayStart(iqAddDays(today, -(DEMO_DAYS - 1 - Math.floor(i * 1.7)))) + 9 * 3600000, consentAt: iqDayStart(iqAddDays(today, -(DEMO_DAYS - 1 - Math.floor(i * 1.7)))) + 9 * 3600000 }));
+    const loyal = members.map(() => Math.pow(R(), 2.2) + 0.03);
     const orders = []; let k = 0;
-    for (let d = 29; d >= 0; d--) {
-      const day = iqAddDays(today, -d), n = ri(3, 9);
-      for (let i = 0; i < n; i++) {
-        const time = timeOn(day, ri(7, 18), ri(0, 59)); if (time > now) continue;
-        const m = members[Math.floor(Math.pow(R(), 1.6) * members.length)], dr = IQ_MENU[Math.floor(Math.pow(R(), 1.3) * IQ_MENU.length)], size = pick(["S", "M", "M", "L"]), qty = R() < 0.15 ? 2 : 1;
+    plan.forEach((p, pi) => {
+      const ts = billTimes(p), n = Math.round(ts.length * share[pi]);
+      ts.slice(0, n).forEach(time => {
+        const ok = members.map((m, i) => m.created <= time ? loyal[i] : 0), totW = iqSum(ok); if (!totW) return;
+        let u = R() * totW, mi = 0; while (mi < ok.length - 1 && u >= ok[mi]) { u -= ok[mi]; mi++; }
+        const m = members[mi], dr = IQ_MENU[Math.floor(Math.pow(R(), 1.3) * IQ_MENU.length)], size = pick(["S", "M", "M", "L"]), qty = R() < 0.15 ? 2 : 1;
         const id = "iqdemo-o" + (++k);
         orders.push(tag({ id, ticket: id, mid: m.id, drinkId: dr.id, name: dr.name, cat: dr.cat, size, sweet: pick([0, 25, 50, 50, 100]), temp: pick(["เย็น", "เย็น", "ร้อน", "ปั่น"]), qty, price: dr.price + ({ S: 0, M: 10, L: 20 })[size], time }));
-      }
-    }
-    appendArr("cx-members", members); appendArr("cx-orders", orders, o => o.time); man.modules.push("cx");
+      });
+    });
+    appendArr("cx-members", members); appendArr("cx-orders", orders.sort((a, b) => a.time - b.time), o => o.time); man.modules.push("cx");
   }
 
-  // --- หน้าร้าน: 30 วัน (เฉพาะวันที่ยังไม่มีข้อมูลจริง)
+  // --- หน้าร้าน: 9 สัปดาห์ (เฉพาะวันที่ยังไม่มีข้อมูลจริง)
   let storeDays = 0;
-  for (let d = 29; d >= 0; d--) {
-    const day = iqAddDays(today, -d), key = "st-day-" + day;
-    if (snap[key] != null) continue;
-    const wk = new Date(iqDayStart(day)).getDay(), base = (wk === 0 || wk === 6) ? ri(190, 260) : ri(120, 190);
-    const hin = Array(24).fill(0), hout = Array(24).fill(0), shape = [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 5, 7, 10, 9, 6, 6, 7, 9, 11, 10, 7, 4, 0, 0];
-    const tot = iqSum(shape), curH = day === today ? new Date(now).getHours() : 24;
-    let tin = 0;
-    shape.forEach((w, h) => { if (h >= curH) return; const n = Math.round(base * w / tot * rnd(0.8, 1.2)); hin[h] = n; tin += n; });
-    shape.forEach((w, h) => { if (h + 1 >= curH || h + 1 > 23) return; hout[h + 1] = Math.round(hin[h] * rnd(0.9, 1)); });
-    if (day === today && tin === 0) continue;
-    const tout = Math.min(tin, iqSum(hout)), peak = Math.max(...hin.map(n => Math.ceil(n / 3)), 1), peakH = hin.indexOf(Math.max(...hin));
-    const shelf = Math.round(tin * rnd(0.55, 0.75)), cash = Math.round(tin * rnd(0.3, 0.45));
+  plan.forEach((p, pi) => {
+    const { day, hin, tin } = p, key = "st-day-" + day;
+    if (snap[key] != null) return;
+    if (day === today && tin === 0) return;
+    const hout = Array(24).fill(0);
+    hin.forEach((n, h) => { if (h + 1 >= p.curH || h + 1 > 23) return; hout[h + 1] = Math.round(n * rnd(0.9, 1)); });
+    const tout = Math.min(tin, iqSum(hout)), peak = Math.max(...hin.map(n => Math.ceil(n / 2.6)), 1), peakH = hin.indexOf(Math.max(...hin));
+    const shelf = Math.round(tin * rnd(0.55, 0.75)), cash = Math.round(p.bills * rnd(1.1, 1.35));
     // กล้อง 2 ตัว: ประตูหน้า (c1) + ประตูข้าง/แคชเชียร์ (c2) ; ยอดรวม = ผลรวมของสองกล้อง
     const in1 = Math.round(tin * rnd(0.6, 0.75)), out1 = Math.min(in1, Math.round(tout * rnd(0.6, 0.75)));
-    const D0 = { date: day, in: tin, out: tout, occ: 0, peak, peakAt: timeOn(day, peakH, ri(0, 59)), maxQueue: ri(2, 7), hourly: { in: hin, out: hout },
-      zones: { "c1:iqdemo-z1": { name: `${IQ_DEMO_TAG} ชั้นวางน้ำดื่ม`, visits: shelf, dwellSum: shelf * ri(25, 60) * 1000, dwellN: shelf, peak: ri(3, 8) }, "c2:iqdemo-z2": { name: `${IQ_DEMO_TAG} แคชเชียร์`, visits: cash, dwellSum: cash * ri(40, 90) * 1000, dwellN: cash, peak: ri(2, 6) } },
+    const D0 = { date: day, in: tin, out: tout, occ: 0, peak, peakAt: timeOn(day, peakH, ri(0, 59)), maxQueue: p.maxQueue, hourly: { in: hin, out: hout },
+      zones: { "c1:iqdemo-z1": { name: `${IQ_DEMO_TAG} ชั้นวางน้ำดื่ม`, visits: shelf, dwellSum: Math.round(shelf * p.dwell * 1000), dwellN: shelf, peak: ri(3, 8) }, "c2:iqdemo-z2": { name: `${IQ_DEMO_TAG} แคชเชียร์`, visits: cash, dwellSum: cash * ri(40, 90) * 1000, dwellN: cash, peak: ri(2, 6) } },
       byCam: { c1: { name: `${IQ_DEMO_TAG} ประตูหน้า`, in: in1, out: out1 }, c2: { name: `${IQ_DEMO_TAG} ประตูข้าง`, in: tin - in1, out: tout - out1 } }, zv: 2, iqDemo: true };
     putNew(key, D0, { in: tin, out: tout }); storeDays++;
-  }
+  });
   if (storeDays) man.modules.push("store");
   if (snap["st-heat-c1"] == null) {
     const W = 64, H = 48, heat = new Array(W * H).fill(0);
@@ -485,7 +529,7 @@ function iqBuildDemo(snap, now = Date.now(), seed = 20261105) {
     putNew("st-heat-c1", heat.map(v => Math.round(v * 10) / 10), { sum: Math.round(iqSum(heat.map(v => Math.round(v * 10) / 10))) });
   }
 
-  // --- ป้ายโฆษณา: สถิติสะสม 14 วัน (ข้ามถ้ามีสถิติจริงแล้ว)
+  // --- ป้ายโฆษณา: สถิติสะสม 14 วัน (ข้ามถ้ามีสถิติจริงแล้ว) ; แต่ละโฆษณามีอัตรามองต่างกันจริงเพื่อให้เทียบ A/B ได้
   const sg = get("sg-stats", null);
   if (sg && sg.v === 1 && sg.totals && sg.totals.ots > 0 && !sg.iqDemo) skipped.push("ป้ายโฆษณา (มีสถิติจริงอยู่)");
   else if (!(sg && sg.iqDemo)) {
@@ -493,31 +537,31 @@ function iqBuildDemo(snap, now = Date.now(), seed = 20261105) {
     bands.forEach(b => { demo[b] = { male: 0, female: 0, unk: 0 }; });
     let ots = 0, viewers = 0, attn = 0, dwell = 0;
     for (let h = 8; h <= 20; h++) {
-      const o = ri(60, 160) + (h >= 11 && h <= 13 || h >= 17 && h <= 19 ? 80 : 0), v = Math.round(o * rnd(0.32, 0.5));
+      const o = Math.round((SHAPE_WD[h] * 5 + SHAPE_WE[h] * 2) / 7 * 14 * 6 * rnd(0.85, 1.15)) + ri(10, 40), v = Math.round(o * rnd(0.32, 0.5));
       hourly[String(h)] = { ots: o, viewers: v }; ots += o; viewers += v; attn += v * rnd(2.5, 5.5); dwell += o * rnd(3, 7);
       for (let i = 0; i < o; i++) { const b = bands[Math.min(3, Math.floor(Math.pow(R(), 0.9) * 4))], g = R() < 0.46 ? "male" : R() < 0.9 ? "female" : "unk"; if (R() < 0.92) demo[b][g]++; }
     }
-    IQ_ADS.forEach(([id, title]) => { const o = Math.round(ots / 6 * rnd(0.7, 1.3)), v = Math.round(o * rnd(0.28, 0.55)), look = Math.round(v * rnd(8, 20)); ads[id] = { title, plays: ri(300, 520), ots: o, viewers: v, attn: +(v * rnd(2, 6)).toFixed(1), look, happy: Math.round(look * rnd(0.1, 0.45)) }; });
+    const rates = [0.36, 0.41, 0.33, 0.39, 0.52, 0.38];
+    IQ_ADS.forEach(([id, title], i) => { const o = Math.round(ots / 6 * rnd(0.8, 1.2)), v = Math.round(o * rates[i] * rnd(0.96, 1.04)), look = Math.round(v * rnd(8, 20)); ads[id] = { title, plays: ri(300, 520), ots: o, viewers: v, attn: +(v * rnd(2, 6)).toFixed(1), look, happy: Math.round(look * rnd(0.1, 0.45)) }; });
     const gestures = { swipe_left: ri(20, 60), swipe_right: ri(20, 60), pinch: ri(10, 40), hold: ri(5, 25), palm: ri(5, 20) };
     const st = { v: 1, since: now - 14 * IQ_DAY, ads, demo, hourly, totals: { ots, viewers, dwell: +dwell.toFixed(1), attn: +attn.toFixed(1) }, gestures, selects: { "p-sport": ri(10, 30), "p-classic": ri(5, 20) }, iqDemo: true };
     putNew("sg-stats", st, { ots }); man.modules.push("sg");
   }
 
-  // --- สแกนสินค้า: ใบเสร็จ 30 วัน (เลขที่ขึ้นต้น DEMO- แยกจากเลขจริง)
+  // --- สแกนสินค้า: ใบเสร็จ 9 สัปดาห์ ตามแผนรายวัน (เลขที่ขึ้นต้น DEMO- แยกจากเลขจริง)
   const sales = get("co-sales", []);
   if (!Array.isArray(sales) || !sales.some(o => o.iqDemo)) {
     const out = [];
-    for (let d = 29; d >= 0; d--) {
-      const day = iqAddDays(today, -d), n = ri(6, 18); let seq = 0;
-      const ts = Array.from({ length: n }, () => timeOn(day, ri(8, 20), ri(0, 59), ri(0, 59))).filter(t => t <= now).sort((a, b) => a - b);
-      ts.forEach(t => {
-        const items = [], nl = ri(1, 3);
-        for (let j = 0; j < nl; j++) { const p = pick(IQ_PRODUCTS); const ex = items.find(l => l.id === p[0]); if (ex) ex.qty++; else items.push({ id: p[0], name: p[1], sku: p[2], price: p[3], qty: ri(1, 3) }); }
+    plan.forEach((p, pi) => {
+      const ts = billTimes(p), n0 = Math.round(ts.length * share[pi]); let seq = 0;
+      ts.slice(n0).forEach(t => {
+        const items = [], nl = R() < 0.7 ? 1 : 2;
+        for (let j = 0; j < nl; j++) { const pr = pick(IQ_PRODUCTS); const ex = items.find(l => l.id === pr[0]); if (ex) ex.qty++; else items.push({ id: pr[0], name: pr[1], sku: pr[2], price: pr[3], qty: ri(1, 3) }); }
         let satang = 0, qty = 0; items.forEach(l => { satang += l.price * 100 * l.qty; qty += l.qty; });
         const vat = Math.round(satang * 7 / 107);
-        out.push(tag({ no: `DEMO-${day.replace(/-/g, "")}-${String(++seq).padStart(4, "0")}`, t, qty, lines: items.length, total: satang / 100, vat: vat / 100, net: (satang - vat) / 100, items, method: pick(["เงินสด", "QR พร้อมเพย์", "QR พร้อมเพย์", "บัตรเครดิต/เดบิต"]), cash: null, change: null }));
+        out.push(tag({ no: `DEMO-${p.day.replace(/-/g, "")}-${String(++seq).padStart(4, "0")}`, t, qty, lines: items.length, total: satang / 100, vat: vat / 100, net: (satang - vat) / 100, items, method: pick(["เงินสด", "QR พร้อมเพย์", "QR พร้อมเพย์", "บัตรเครดิต/เดบิต"]), cash: null, change: null }));
       });
-    }
+    });
     appendArr("co-sales", out, o => o.t); man.modules.push("co");
   }
 
@@ -546,12 +590,12 @@ function iqBuildDemo(snap, now = Date.now(), seed = 20261105) {
     putNew("qc-shift", shift, { total: shift.total }); man.modules.push("qc");
   }
 
-  // --- คนขับ: 8 เที่ยวใน 14 วัน
+  // --- คนขับ: 20 เที่ยวใน 8 สัปดาห์
   const tr = get("dr-trips", []);
   if (!Array.isArray(tr) || !tr.some(t => t.iqDemo)) {
     const trips = [], events = [];
-    for (let i = 0; i < 8; i++) {
-      const id = "DEMO-T" + (i + 1), start = timeOn(iqAddDays(today, -(13 - i * 1.7 | 0)), ri(6, 14), ri(0, 59)); if (start > now) continue;
+    for (let i = 0; i < 20; i++) {
+      const id = "DEMO-T" + (i + 1), start = timeOn(iqAddDays(today, -(55 - i * 2.8 | 0)), ri(6, 14), ri(0, 59)); if (start > now) continue;
       const durationMs = ri(45, 180) * 60000, evs = [], ne = ri(0, 7);
       for (let j = 0; j < ne; j++) { const type = pick(["yawn", "yawn", "distraction", "distraction", "nod", "long_closure", "perclos", "microsleep"]); const level = { yawn: 1, distraction: 2, nod: 2, long_closure: 2, perclos: 2, microsleep: 3 }[type]; evs.push(tag({ t: start + Math.round(rnd(0.05, 0.95) * durationMs), type, level, dur: ri(800, 4000), detail: "", trip: id })); }
       if (evs.filter(e => e.level >= 2).length >= 3) evs.push(tag({ t: start + durationMs - 600000, type: "break", level: 2, dur: 0, detail: "", trip: id }));
@@ -633,9 +677,560 @@ function iqValidateBackup(obj) {
   return { ok: true, keys, idbStores: idb ? Object.keys(idb).filter(s => s === "products" || s === "samples") : [] };
 }
 
+/* ================= การวิเคราะห์เชิงสถิติ + แปลผลภาษาไทย (ไม่ใช้ DOM) =================
+   ใช้ lensiq-stats.js (LQStats) ; ทุกข้อความสร้างจากตัวเลขที่คำนวณได้จริงเท่านั้น ข้อมูลไม่พอ = บอกตรง ๆ ว่า "ข้อมูลยังน้อย" */
+const IQ_ST = typeof LQStats !== "undefined" ? LQStats : (typeof require === "function" ? require("./lensiq-stats.js") : null);
+const IQ_WD = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
+const IQ_MIN_DAYS = 7;
+const IQ_CASH_RE = /แคชเชียร์|cashier|ชำระ|จ่ายเงิน|เคาน์เตอร์/i;
+const iqFin = x => typeof x === "number" && Number.isFinite(x);
+const iqN = (v, d = 0) => iqFin(v) ? v.toLocaleString("th-TH", { maximumFractionDigits: d, minimumFractionDigits: 0 }) : "–";
+const iqP = (v, d = 0) => iqFin(v) ? (v * 100).toFixed(d) + "%" : "–";
+/** เปลี่ยนแปลงเป็นข้อความ เช่น "+12%" ; น้อยกว่า 1% = "ไม่ถึง 1%" */
+const iqChg = v => !iqFin(v) ? "–" : Math.abs(v) < 0.005 ? "ไม่ถึง 1%" : (v > 0 ? "+" : "−") + Math.abs(Math.round(v * 100)) + "%";
+const iqPts = v => !iqFin(v) ? "–" : (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v * 100).toFixed(1) + " จุด";
+const iqB = v => iqFin(v) ? "฿" + Math.round(v).toLocaleString("th-TH") : "–";
+const iqDL = key => new Date(iqDayStart(key)).toLocaleDateString("th-TH", { day: "numeric", month: "short" });
+const iqWdOf = key => new Date(iqDayStart(key)).getDay();
+const iqHash = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619); return h >>> 0; };
+const iqPick = (seed, list) => list[iqHash(seed) % list.length];
+
+/** ตารางรายวัน (null = วันที่ระบบนั้นไม่มีข้อมูล ไม่ใช่ศูนย์) */
+function iqDaily(D, keys) {
+  const n = keys.length, idx = new Map(keys.map((k, i) => [k, i])), arr = () => Array(n).fill(null);
+  const o = { keys, storeIn: arr(), storeOut: arr(), peak: arr(), maxQueue: arr(), zone: arr(), cashier: arr(), dwell: arr(), bills: arr(), revenue: arr(), booth: arr(), boothStop: arr(), qcTotal: arr(), qcPass: arr(), drEvents: arr(), drHours: arr(), drTrips: arr(), att: arr(), cx: arr(), cams: {}, hourly: Array(n).fill(null) };
+  const cz = D.stCfg && D.stCfg.cashierZone, qz = D.stCfg && D.stCfg.queueZone;
+  if (D.store) D.store.forEach(d => {
+    const i = idx.get(d.day); if (i == null) return;
+    o.storeIn[i] = d.in; o.storeOut[i] = d.out; o.peak[i] = d.peak; o.maxQueue[i] = d.maxQueue;
+    o.hourly[i] = d.hourlyIn && d.hourlyIn.length ? d.hourlyIn.slice(0, 24).map(v => +v || 0) : null;
+    let zv = 0, cv = 0, ds = 0, dn = 0, anyZ = false, anyC = false;
+    for (const [id, z] of Object.entries(d.zones || {})) {
+      if (!z) continue;
+      const isC = (cz && (id === cz || id.endsWith(":" + cz))) || IQ_CASH_RE.test(z.name || ""), isQ = qz && id === qz;
+      if (isC) { cv += +z.visits || 0; anyC = true; }
+      else if (!isQ) { zv += +z.visits || 0; anyZ = true; if (z.dwellN > 0) { ds += +z.dwellSum || 0; dn += z.dwellN; } }
+    }
+    if (anyZ) o.zone[i] = zv; if (anyC) o.cashier[i] = cv; if (dn) o.dwell[i] = ds / dn / 1000;
+    for (const [s, b] of Object.entries(d.byCam || {})) { const c = o.cams[s] || (o.cams[s] = { name: b.name, in: arr() }); c.name = b.name; c.in[i] = b.in; }
+  });
+  // บิลขาย (สแกนสินค้า + จดจำลูกค้า) เติมศูนย์ตั้งแต่วันแรกที่มีการขาย
+  if (D.co || D.cx) {
+    const ts = [], seen = new Set();
+    (D.co || []).forEach(x => ts.push([x.t, x.total]));
+    if (D.cx) D.cx.orders.forEach(x => { ts.push([seen.has(x.ticket) ? null : x.t, x.amount]); seen.add(x.ticket); });
+    const days = ts.filter(([t]) => iqFin(t)).map(([t]) => iqDay(t)).sort();
+    const first = days[0] || null;
+    if (first) keys.forEach((k, i) => { if (k >= first) { o.bills[i] = 0; o.revenue[i] = 0; } });
+    (D.co || []).forEach(x => { const i = iqFin(x.t) ? idx.get(iqDay(x.t)) : null; if (i != null) { o.bills[i]++; o.revenue[i] += x.total; } });
+    if (D.cx) { const s2 = new Set(); D.cx.orders.forEach(x => { const i = iqFin(x.t) ? idx.get(iqDay(x.t)) : null; if (i == null) return; o.revenue[i] += x.amount; if (!s2.has(x.ticket)) { s2.add(x.ticket); o.bills[i]++; } }); }
+  }
+  if (D.cx) { const per = keys.map(() => new Set()); D.cx.orders.forEach(x => { const i = iqFin(x.t) ? idx.get(iqDay(x.t)) : null; if (i != null) per[i].add(x.mid); }); per.forEach((s, i) => { if (o.bills[i] != null) o.cx[i] = s.size; }); }
+  const bump = (a, i, v = 1) => { a[i] = (a[i] || 0) + v; };
+  if (D.booth) D.booth.visitors.forEach(v => { const i = iqFin(v.t) ? idx.get(iqDay(v.t)) : null; if (i != null) { bump(o.booth, i); if (v.stopped) bump(o.boothStop, i); else if (o.boothStop[i] == null) o.boothStop[i] = 0; } });
+  if (D.qc) D.qc.log.forEach(l => { const i = iqFin(l.t) ? idx.get(iqDay(l.t)) : null; if (i != null) { bump(o.qcTotal, i); bump(o.qcPass, i, l.pass ? 1 : 0); } });
+  if (D.dr) {
+    D.dr.trips.forEach(t => { const i = iqFin(t.t) ? idx.get(iqDay(t.t)) : null; if (i != null) { bump(o.drTrips, i); bump(o.drHours, i, t.durationMs / 3600000); if (o.drEvents[i] == null) o.drEvents[i] = 0; } });
+    D.dr.events.forEach(e => { const i = iqFin(e.t) && e.type !== "break" ? idx.get(iqDay(e.t)) : null; if (i != null && o.drEvents[i] != null) o.drEvents[i]++; });
+  }
+  if (D.att) D.att.forEach(l => { const i = idx.get(l.day); if (i != null) bump(o.att, i); });
+  o.conv = keys.map((_, i) => o.storeIn[i] > 0 && o.bills[i] != null ? o.bills[i] / o.storeIn[i] : null);
+  return o;
+}
+
+/** ค่าในช่วง [from, to] ของอาร์เรย์รายวัน */
+function iqWin(H, arr, from, to) { const out = []; H.keys.forEach((k, i) => { if (k >= from && k <= to) out.push(arr[i]); }); return out; }
+function iqWinKeys(H, from, to) { return H.keys.filter(k => k >= from && k <= to); }
+
+/** วิเคราะห์ทั้งหมดของช่วง r ; opt = { now, goals, alerts } */
+function iqAnalyze(D, r, opt = {}) {
+  const S = IQ_ST, now = opt.now != null ? opt.now : Date.now(), today = iqDay(now);
+  const earliest = iqEarliest(D) || r.to;
+  const low = [r.from, r.prev ? r.prev.from : r.from, iqAddDays(r.to, -119)].sort()[0];
+  let h0 = earliest > low ? earliest : low; if (h0 > r.to) h0 = r.to;
+  const keys = []; for (let k = h0; k <= r.to; k = iqAddDays(k, 1)) keys.push(k);
+  const H = iqDaily(D, keys);
+  const fullEnd = r.to >= today ? iqAddDays(today, -1) : r.to;
+  const A = { r, now, today, H, fullEnd, has: {} };
+  const fullStore = iqWin(H, H.storeIn, keys[0], fullEnd).filter(iqFin);
+  const fullBills = iqWin(H, H.bills, keys[0], fullEnd).filter(iqFin);
+  A.dataDays = Math.max(fullStore.length, fullBills.length, iqWin(H, H.booth, keys[0], r.to).filter(iqFin).length, iqWin(H, H.att, keys[0], r.to).filter(iqFin).length);
+  A.storeDays = fullStore.length;
+  A.short = A.dataDays < IQ_MIN_DAYS;
+
+  // สัดส่วนของวันนี้ที่ผ่านไปแล้ว (จากรูปแบบรายชั่วโมงในอดีต) ใช้เทียบวันนี้ที่ยังไม่จบอย่างยุติธรรม
+  const curH = new Date(now).getHours() + new Date(now).getMinutes() / 60;
+  let frac = Math.min(1, Math.max(0.04, curH / 24));
+  const hh = H.hourly.filter((h, i) => h && H.keys[i] < today);
+  if (hh.length >= 3) {
+    let before = 0, tot = 0;
+    hh.forEach(h => h.forEach((v, k) => { tot += v; if (k + 1 <= curH) before += v; else if (k < curH) before += v * (curH - k); }));
+    if (tot > 0) frac = Math.min(1, Math.max(0.04, before / tot));
+  }
+  A.todayFrac = frac;
+  const expo = (arr, from, to) => { let e = 0; H.keys.forEach((k, i) => { if (k >= from && k <= to && iqFin(arr[i])) e += k === today ? frac : 1; }); return e; };
+  const tot = (arr, from, to) => iqSum(iqWin(H, arr, from, to).filter(iqFin));
+  /** เทียบจำนวนนับช่วงนี้กับช่วงเทียบ (ปรับตามจำนวนวันที่มีข้อมูล) */
+  const countTest = arr => {
+    if (!r.prev) return null;
+    const c1 = tot(arr, r.from, r.to), e1 = expo(arr, r.from, r.to), c2 = tot(arr, r.prev.from, r.prev.to), e2 = expo(arr, r.prev.from, r.prev.to);
+    if (!(e1 > 0 && e2 > 0)) return null;
+    const t = S.poissonTest(c1, e1, c2, e2); if (!t) return null;
+    const enough = !A.short && (c1 + c2) >= 10;
+    return { ...t, cur: c1, prev: c2, e1, e2, level: S.confLevel(t.p, enough), enough };
+  };
+  const rateTest = (xa, na) => {
+    if (!r.prev) return null;
+    const x1 = tot(xa, r.from, r.to), n1 = tot(na, r.from, r.to), x2 = tot(xa, r.prev.from, r.prev.to), n2 = tot(na, r.prev.from, r.prev.to);
+    if (!(n1 > 0 && n2 > 0) || x1 > n1 || x2 > n2) return null;
+    const t = S.twoProp(x1, n1, x2, n2); if (!t) return null;
+    const enough = !A.short && n1 >= 30 && n2 >= 30;
+    return { ...t, change: t.p2 > 0 ? t.diff / t.p2 : null, level: S.confLevel(t.p, enough), enough };
+  };
+  A.countTest = countTest; A.rateTest = rateTest;
+
+  // ---------- KPI พร้อม sparkline / CI / การทดสอบ ----------
+  const K = iqKpis(D, r);
+  const sparkOf = id => {
+    const m = { booth: "booth", store: "store", co: "coRevenue", cx: "cxRevenue" }[id];
+    if (m) { const v = iqSeries(D, r, m); return r.mode === "hour" ? iqTrimHours(iqBuckets(r), [v]).series[0] : v; }
+    if (id === "att") return iqWin(H, H.att, r.from, r.to).map(v => v || 0);
+    if (id === "qc") return iqWin(H, H.qcTotal, r.from, r.to).map((t, i) => t ? iqWin(H, H.qcPass, r.from, r.to)[i] / t : null);
+    return null;
+  };
+  K.forEach(k => {
+    k.spark = sparkOf(k.id);
+    if (k.id === "store") { k.test = countTest(H.storeIn); const ci = S.meanCI(iqWin(H, H.storeIn, r.from, fullEnd)); if (ci && ci.lo != null && ci.n >= 3) k.ci = { text: `เฉลี่ย ${iqN(ci.mean)}/วัน (95%: ${iqN(Math.max(0, ci.lo))}–${iqN(ci.hi)})` }; }
+    if (k.id === "booth") k.test = countTest(H.booth);
+    if (k.id === "att") k.test = countTest(H.att);
+    if (k.id === "co" || k.id === "cx") {
+      const t = countTest(H.bills); k.test = t ? { ...t, what: "จำนวนบิล" } : null;
+      const ci = S.meanCI(iqWin(H, H.revenue, r.from, fullEnd)); if (ci && ci.lo != null && ci.n >= 3 && k.id === "co") k.ci = { text: `ยอดรวมทุกช่องทางเฉลี่ย ${iqB(ci.mean)}/วัน (95%: ${iqB(Math.max(0, ci.lo))}–${iqB(ci.hi)})` };
+    }
+    if (k.id === "qc") { const M = iqMetrics(D, r).qc, w = M && M.total ? S.wilson(M.pass, M.total) : null; if (w) k.ci = { text: `95%: ${iqP(w.lo, 1)}–${iqP(w.hi, 1)}` }; }
+    if (k.id === "sg" && D.sg) { const w = S.wilson(Math.min(D.sg.totals.viewers || 0, D.sg.totals.ots || 0), D.sg.totals.ots || 0); if (w) k.ci = { text: `อัตรามอง ${iqP(w.p)} (95%: ${iqP(w.lo)}–${iqP(w.hi)})` }; }
+    if (k.id === "dr" && D.dr) { const ci = S.meanCI(D.dr.trips.filter(t => iqInT(t.t, r)).map(t => t.safety)); if (ci && ci.lo != null && ci.n >= 3) k.ci = { text: `95%: ${iqN(Math.max(0, ci.lo))}–${iqN(Math.min(100, ci.hi))}` }; }
+    if (k.id === "neuro" && D.neuro) { const ci = S.meanCI(D.neuro.filter(s => iqInT(s.t, r)).map(s => s.positive)); if (ci && ci.lo != null && ci.n >= 3) k.ci = { text: `95%: ${iqP(Math.max(0, ci.lo))}–${iqP(Math.min(1, ci.hi))}` }; }
+    // ยอดขาย: ตัวเลขเทียบเป็นยอดเงิน แต่การทดสอบนับเป็นจำนวนบิล จึงบอกชัดว่าความมั่นใจมาจากจำนวนบิล
+    if (k.test && iqFin(k.test.change) && k.id !== "co" && k.id !== "cx") k.delta = k.test.change;
+    if (k.test) k.test.short = (k.test.what ? `${k.test.what} ${iqChg(k.test.change)} ` : "") + S.TH_CONF_SHORT[k.test.level];
+  });
+  // อัตราซื้อ (บิล ÷ คนเข้าร้าน) — ต้องมีทั้งหน้าร้านและการขาย
+  if (D.store && (D.co || D.cx)) {
+    const x = tot(H.bills.map((b, i) => iqFin(H.storeIn[i]) ? b : null), r.from, r.to), n = tot(H.storeIn.map((v, i) => iqFin(H.bills[i]) ? v : null), r.from, r.to);
+    if (n > 0 && x <= n) {
+      const w = S.wilson(x, n), t = rateTest(H.bills.map((b, i) => iqFin(H.storeIn[i]) ? b : null), H.storeIn.map((v, i) => iqFin(H.bills[i]) ? v : null));
+      const k = { id: "conv", label: "อัตราซื้อ (บิล ÷ คนเข้าร้าน)", value: w.p, fmt: "pct1", delta: t && iqFin(t.change) ? t.change : null, sub: `${iqN(x)} บิล จาก ${iqN(n)} คน · ประมาณการ (คนละระบบ)`, ci: { text: `95%: ${iqP(w.lo, 1)}–${iqP(w.hi, 1)}` }, test: t, spark: iqWin(H, H.conv, r.from, r.to) };
+      if (t) t.short = S.TH_CONF_SHORT[t.level];
+      const at = K.findIndex(q => q.id === "store"); K.splice(at >= 0 ? at + 1 : K.length, 0, k);
+      A.conv = { x, n, ci: w, test: t };
+    }
+  }
+  A.kpis = K;
+
+  // ---------- ฤดูกาล วัน × ชั่วโมง ----------
+  A.heat = iqHeat(D, H, r, today);
+
+  // ---------- พยากรณ์ + ค่าผิดปกติ (ใช้วันที่จบแล้วเท่านั้น) ----------
+  const fsrc = D.store ? ["storeIn", "คนเข้าร้าน", "คน"] : (D.co || D.cx) ? ["bills", "จำนวนบิลขาย", "บิล"] : D.booth ? ["booth", "ผู้เข้าชมบูธ", "คน"] : null;
+  if (fsrc) {
+    const arr = H[fsrc[0]], fk = H.keys.filter(k => k <= fullEnd);
+    let i0 = fk.findIndex((k, i) => iqFin(arr[i])); if (i0 < 0) i0 = fk.length;
+    const ks = fk.slice(i0), y = ks.map(k => arr[H.keys.indexOf(k)]);
+    const fc = y.filter(iqFin).length ? S.forecast(y, 7, { conf: 0.8 }) : null;
+    const an = S.anomalies(y, { minN: 14 }).map(a => ({ ...a, day: ks[a.i] }));
+    const fkeys = Array.from({ length: 7 }, (_, j) => iqAddDays(fullEnd, j + 1));
+    const actualToday = today > fullEnd && H.keys.includes(today) ? arr[H.keys.indexOf(today)] : null;
+    A.forecast = { metric: fsrc[0], name: fsrc[1], unit: fsrc[2], keys: ks, y, fc, fkeys, anomalies: an, todaySoFar: actualToday, enough: !!(fc && fc.enough) && y.filter(iqFin).length >= 21 };
+    if (fc) {
+      const last7 = iqSum(y.slice(-7).filter(iqFin));
+      A.forecast.total = { mean: iqSum(fc.mean), lo: iqSum(fc.lo), hi: iqSum(fc.hi), last7, change: last7 > 0 ? iqSum(fc.mean) / last7 - 1 : null };
+    }
+  }
+
+  // ---------- ความสัมพันธ์ ----------
+  const cFrom = r.days >= 14 ? r.from : keys[0], cTo = fullEnd < cFrom ? r.to : fullEnd;
+  const W = a => iqWin(H, a, cFrom, cTo);
+  const corr = [];
+  const addC = (id, x, y, xName, yName, caution) => { const c = S.correlation(x, y); if (c.n >= 3) corr.push({ id, xName, yName, ...c, x: S.clean(x).length ? x : [], y, caution }); };
+  if (D.store && (D.co || D.cx)) {
+    addC("queue-conv", W(H.maxQueue), W(H.conv), "คิวสูงสุดของวัน (คน)", "อัตราซื้อ", "วันที่คนเยอะทั้งคิวยาวและอัตราซื้ออาจเปลี่ยนเพราะความหนาแน่นเอง ไม่ใช่เพราะคิว");
+    if (W(H.dwell).some(iqFin)) addC("dwell-conv", W(H.dwell), W(H.conv), "เวลาอยู่ในโซนสินค้าเฉลี่ย (วินาที)", "อัตราซื้อ", "คนที่ตั้งใจซื้ออยู่แล้วอาจใช้เวลานานกว่า ความสัมพันธ์จึงอาจกลับทิศ");
+    addC("in-bills", W(H.storeIn), W(H.bills), "คนเข้าร้าน", "จำนวนบิล", "ทั้งสองค่าขึ้นกับวันในสัปดาห์เหมือนกัน ความสัมพันธ์สูงเป็นเรื่องปกติ");
+  }
+  if (D.sg && D.store && D.sg.hourly) {
+    const hin = Array(24).fill(0);
+    H.keys.forEach((k, i) => { if (k >= cFrom && k <= cTo && H.hourly[i]) H.hourly[i].forEach((v, h) => { hin[h] += v; }); });
+    const xs = [], ys = [];
+    for (let h = 0; h < 24; h++) { const o = D.sg.hourly[String(h)]; if (o && o.ots > 0 && hin[h] > 0) { xs.push(o.ots); ys.push(hin[h]); } }
+    addC("ots-in", xs, ys, "คนผ่านจอโฆษณา (รายชั่วโมง สะสม)", "คนเข้าร้าน (รายชั่วโมง)", "ทั้งสองค่าขึ้นกับช่วงเวลาของวันเหมือนกัน ไม่ได้แปลว่าป้ายพาคนเข้าร้าน");
+  }
+  if (D.booth) addC("booth-stop", W(H.booth), W(H.boothStop).map((s, i) => W(H.booth)[i] ? s / W(H.booth)[i] : null), "ผู้เข้าชมบูธต่อวัน", "อัตราหยุดชม", "บูธที่คนแน่นอาจทำให้คนหยุดน้อยลงหรือมากขึ้นได้ทั้งสองทาง");
+  A.corr = corr;
+
+  // ---------- A/B ----------
+  A.ab = {};
+  if (D.sg && D.sg.ads.length >= 2) A.ab.sg = S.abRates(D.sg.ads.filter(a => a.ots > 0 && a.viewers <= a.ots).map(a => ({ id: a.id, name: a.title, x: a.viewers, n: a.ots })), { minN: 30 });
+  if (D.neuro) {
+    const g = new Map();
+    D.neuro.filter(s => iqInT(s.t, r) || r.preset === "all").forEach(s => { const k = s.test || "–"; (g.get(k) || g.set(k, []).get(k)).push(s.positive); });
+    const all = [...g.entries()].map(([name, values]) => ({ id: name, name, values }));
+    if (all.length >= 2) A.ab.neuro = S.abMeans(all, { minN: 3 });
+  }
+
+  // ---------- funnel ในร้าน ----------
+  if (D.store) {
+    const ok = H.keys.map((k, i) => k >= r.from && k <= r.to && iqFin(H.storeIn[i]));
+    const sumIf = a => iqSum(a.map((v, i) => ok[i] && iqFin(v) ? v : 0)), anyIf = a => a.some((v, i) => ok[i] && iqFin(v));
+    const steps = [{ key: "pass", label: "คนผ่านหน้าร้าน", value: null, note: "ยังไม่มีกล้องนับคนเดินผ่านด้านนอก" }, { key: "in", label: "เข้าร้าน", value: sumIf(H.storeIn), note: "นับจากเส้นประตู" }];
+    if (anyIf(H.zone)) steps.push({ key: "zone", label: "แวะโซนสินค้า", value: sumIf(H.zone), note: "ครั้งที่แวะโซน (คนเดียวแวะได้หลายโซน)" });
+    if (anyIf(H.cashier)) steps.push({ key: "cash", label: "ไปแคชเชียร์", value: sumIf(H.cashier), note: "ครั้งที่เข้าโซนแคชเชียร์" });
+    if (D.co || D.cx) steps.push({ key: "buy", label: "ซื้อ (บิล)", value: sumIf(H.bills), note: "บิลจากสแกนสินค้า/จดจำลูกค้า" });
+    const f = S.funnel(steps.slice(1));
+    A.storeFunnel = { steps: [steps[0], ...f.steps], overall: f.overall };
+  }
+
+  // ---------- ลูกค้ากลับมาซ้ำ ----------
+  if (D.cx && D.cx.orders.length) {
+    const t0 = Math.min(...D.cx.orders.map(o => o.t).filter(iqFin));
+    const wk = t => Math.floor((iqDayStart(iqDay(t)) - iqDayStart(iqDay(t0))) / (7 * IQ_DAY) + 1e-9);
+    A.cohort = { ...S.cohorts(D.cx.orders.filter(o => iqFin(o.t)).map(o => ({ id: o.mid, period: wk(o.t) })), 8), start: iqDay(t0) };
+  }
+  if (D.booth) { const V = D.booth.visitors.filter(v => iqInT(v.t, r)); A.boothReturn = S.wilson(V.filter(v => v.returning).length, V.length); A.boothStop = S.wilson(V.filter(v => v.stopped).length, V.length); }
+
+  // ---------- แยกกล้อง/เครื่อง ----------
+  A.cams = Object.entries(H.cams).map(([slot, c]) => {
+    const cur = iqSum(iqWin(H, c.in, r.from, r.to).filter(iqFin)), e1 = expo(c.in, r.from, r.to);
+    let test = null;
+    if (r.prev) { const e2 = expo(c.in, r.prev.from, r.prev.to), p = iqSum(iqWin(H, c.in, r.prev.from, r.prev.to).filter(iqFin)); if (e1 > 0 && e2 > 0) { test = S.poissonTest(cur, e1, p, e2); test.level = S.confLevel(test.p, !A.short && cur + p >= 10); } }
+    return { slot, name: c.name, in: cur, node: slot.startsWith("n:") || slot === "local", spark: iqWin(H, c.in, r.from, r.to), test };
+  }).filter(c => c.in > 0 || (c.test && c.test.n > 0)).sort((a, b) => b.in - a.in);
+  const camTot = iqSum(A.cams.map(c => c.in)); A.cams.forEach(c => { c.share = camTot ? c.in / camTot : null; });
+
+  // ---------- เจาะลึกรายระบบ ----------
+  const dr = (id, arr, name, unit) => {
+    const from = r.days >= 7 ? r.from : H.keys[0], ks = iqWinKeys(H, from, r.to), v = iqWin(H, arr, from, r.to);
+    const vals = v.filter(iqFin); if (!vals.length) return null;
+    const d = S.describe(vals), wd = Array.from({ length: 7 }, (_, w) => S.mean(v.filter((x, i) => iqWdOf(ks[i]) === w && ks[i] !== today)));
+    const at = x => ks[v.indexOf(x)];
+    const an = (A.forecast && A.forecast.metric === id ? A.forecast.anomalies : S.anomalies(v.map((x, i) => ks[i] === today ? null : x), { minN: 14 }).map(a => ({ ...a, day: ks[a.i] }))).filter(a => a.day >= from && a.day <= r.to);
+    return { id, name, unit, from, to: r.to, desc: d, minDay: at(d.min), maxDay: at(d.max), weekday: wd, anomalies: an, ma7: S.movingAvg(v, 7), keys: ks, values: v };
+  };
+  A.drill = {};
+  if (D.store) A.drill.store = dr("storeIn", H.storeIn, "คนเข้าร้านต่อวัน", "คน");
+  if (D.booth) A.drill.booth = dr("booth", H.booth, "ผู้เข้าชมบูธต่อวัน", "คน");
+  if (D.co || D.cx) { const x = dr("revenue", H.revenue, "ยอดขายรวมต่อวัน", "บาท"); A.drill.co = x; A.drill.cx = x; }
+  if (D.att) A.drill.att = dr("att", H.att, "ผู้เช็คชื่อต่อวัน", "คน");
+  if (D.qc) A.drill.qc = dr("qcTotal", H.qcTotal, "ขวดที่ตรวจต่อวัน", "ขวด");
+  if (D.dr) A.drill.dr = dr("drEvents", H.drEvents, "เหตุการณ์คนขับต่อวัน", "ครั้ง");
+  Object.keys(A.drill).forEach(k => { if (!A.drill[k]) delete A.drill[k]; });
+
+  A.goals = iqGoals(D, A, opt.goals || {});
+  A.alerts = iqEvalAlerts(D, A, opt.alerts || {});
+  return A;
+}
+
+/** ฮีตแมปวันในสัปดาห์ × ชั่วโมง (ค่าเฉลี่ยต่อวัน) — หน้าร้าน ไม่มีก็ใช้เวลาของบิลขาย */
+function iqHeat(D, H, r, today) {
+  const span = r.days >= 14 ? [r.from, r.to] : [iqAddDays(r.to, -55), r.to];
+  const cells = []; let src = null, nDays = 0;
+  if (D.store) {
+    src = "store";
+    H.keys.forEach((k, i) => { if (k < span[0] || k > span[1] || k === today || !H.hourly[i]) return; nDays++; const wd = iqWdOf(k); H.hourly[i].forEach((v, h) => cells.push({ wd, h, v })); });
+  } else if (D.co || D.cx) {
+    src = "bills";
+    const per = new Map(); H.keys.forEach((k, i) => { if (k >= span[0] && k <= span[1] && k !== today && H.bills[i] != null) per.set(k, Array(24).fill(0)); });
+    const add = t => { const k = iqFin(t) ? iqDay(t) : null; if (per.has(k)) per.get(k)[new Date(t).getHours()]++; };
+    (D.co || []).forEach(o => add(o.t)); if (D.cx) { const s = new Set(); D.cx.orders.forEach(o => { if (!s.has(o.ticket)) { s.add(o.ticket); add(o.t); } }); }
+    per.forEach((a, k) => { nDays++; const wd = iqWdOf(k); a.forEach((v, h) => cells.push({ wd, h, v })); });
+  }
+  if (!src || !nDays) return null;
+  const G = IQ_ST.seasonGrid(cells);
+  let lo = 23, hi = 0;
+  G.mean.forEach(row => row.forEach((v, h) => { if (v > 0) { lo = Math.min(lo, h); hi = Math.max(hi, h); } }));
+  if (lo > hi) return null;
+  const top = []; G.mean.forEach((row, wd) => row.forEach((v, h) => { if (v != null && h >= lo && h <= hi) top.push({ wd, h, v }); }));
+  top.sort((a, b) => b.v - a.v);
+  const open = top.filter(c => c.v >= G.max * 0.15); // ช่วงที่เปิดทำการจริง (ไม่นับชั่วโมงที่แทบไม่มีคน)
+  const byWd = G.mean.map(row => iqSum(row.map(v => v || 0)));
+  return { src, grid: G.mean, n: G.n, max: G.max, lo, hi, nDays, from: span[0], to: span[1], top: top.slice(0, 3), low: open.length > 3 ? open[open.length - 1] : null, byWd, short: nDays < 14 };
+}
+
+/* ---------- เป้าหมาย (iq-goals) ---------- */
+const IQ_GOAL_DEFS = [
+  { id: "storeInDay", label: "คนเข้าร้านต่อวัน", unit: "คน", fmt: "int" },
+  { id: "convPct", label: "อัตราซื้อ", unit: "%", fmt: "pct" },
+  { id: "revenueDay", label: "ยอดขายรวมต่อวัน", unit: "บาท", fmt: "baht" },
+  { id: "qcYieldPct", label: "อัตราผ่าน QC", unit: "%", fmt: "pct" },
+  { id: "safetyMin", label: "คะแนนความปลอดภัยคนขับเฉลี่ย", unit: "คะแนน", fmt: "int" }
+];
+function iqGoals(D, A, goals) {
+  const out = [], r = A.r, H = A.H, avg = arr => { const v = iqWin(H, arr, r.from, A.fullEnd < r.from ? r.to : A.fullEnd).filter(iqFin); return v.length ? iqSum(v) / v.length : null; };
+  IQ_GOAL_DEFS.forEach(g => {
+    const t = +goals[g.id]; if (!(t > 0)) return;
+    let actual = null, target = t;
+    if (g.id === "storeInDay" && D.store) actual = avg(H.storeIn);
+    if (g.id === "revenueDay" && (D.co || D.cx)) actual = avg(H.revenue);
+    if (g.id === "convPct" && A.conv) { actual = A.conv.ci.p; target = t / 100; }
+    if (g.id === "qcYieldPct" && D.qc) { const M = iqMetrics(D, r).qc; actual = M && M.total ? M.pass / M.total : null; target = t / 100; }
+    if (g.id === "safetyMin" && D.dr) actual = iqMean(D.dr.trips.filter(x => iqInT(x.t, r)).map(x => x.safety).filter(iqFin));
+    out.push({ ...g, target, actual, progress: actual != null ? actual / target : null, met: actual != null && actual >= target });
+  });
+  return out;
+}
+
+/* ---------- กฎแจ้งเตือน (iq-alerts) ---------- */
+const IQ_ALERT_DEFAULTS = { occMax: null, queueWaitMin: 5, convDropPct: 15, qcYieldMin: 95, notify: false };
+function iqAlertRules(raw) {
+  const o = { ...IQ_ALERT_DEFAULTS };
+  if (raw && typeof raw === "object") for (const k of Object.keys(IQ_ALERT_DEFAULTS)) if (k in raw) o[k] = k === "notify" ? !!raw[k] : (raw[k] === null || raw[k] === "" ? null : (+raw[k] >= 0 ? +raw[k] : o[k]));
+  return o;
+}
+function iqEvalAlerts(D, A, raw) {
+  const R = iqAlertRules(raw), out = [], today = A.today;
+  const day = D.store ? D.store.find(d => d.day === today) : null;
+  const occMax = R.occMax != null ? R.occMax : (D.stCfg && D.stCfg.maxOcc) || null;
+  if (day && occMax > 0 && day.peak > occMax) out.push({ id: "occ", level: "high", title: "คนในร้านเกินที่กำหนด", text: `วันนี้มีคนในร้านพร้อมกันสูงสุด ${iqN(day.peak)} คน เกินเกณฑ์ ${iqN(occMax)} คน`, action: "เปิดช่องบริการเพิ่มหรือจำกัดคนเข้าชั่วคราว" });
+  const svc = (D.stCfg && D.stCfg.serviceSec) || 60;
+  if (day && R.queueWaitMin > 0 && day.maxQueue * svc / 60 > R.queueWaitMin) out.push({ id: "queue", level: "high", title: "คิวรอนานเกินเกณฑ์", text: `วันนี้คิวยาวสุด ${iqN(day.maxQueue)} คน รอประมาณ ${iqN(day.maxQueue * svc / 60, 1)} นาที (เกณฑ์ ${iqN(R.queueWaitMin)} นาที, คิดจาก ${svc} วินาที/คน)`, action: "เพิ่มพนักงานแคชเชียร์ในช่วงคิวยาว" });
+  if (D.store && (D.co || D.cx) && R.convDropPct > 0) {
+    const H = A.H, e = A.fullEnd, a0 = iqAddDays(e, -6), b0 = iqAddDays(e, -13), b1 = iqAddDays(e, -7);
+    const bills = H.bills.map((b, i) => iqFin(H.storeIn[i]) ? b : null), ins = H.storeIn.map((v, i) => iqFin(H.bills[i]) ? v : null);
+    const s = (arr, f, t) => iqSum(iqWin(H, arr, f, t).filter(iqFin));
+    const x1 = s(bills, a0, e), n1 = s(ins, a0, e), x2 = s(bills, b0, b1), n2 = s(ins, b0, b1);
+    if (n1 > 0 && n2 > 0 && x1 <= n1 && x2 <= n2) {
+      const t = IQ_ST.twoProp(x1, n1, x2, n2), rel = t.p2 > 0 ? t.diff / t.p2 : 0;
+      if (rel < -R.convDropPct / 100) out.push({ id: "conv", level: t.p < 0.05 ? "high" : "mid", title: "อัตราซื้อลดลงจากสัปดาห์ก่อน", text: `7 วันล่าสุด ${iqP(t.p1, 1)} เทียบ ${iqP(t.p2, 1)} (${iqChg(rel)}, เกณฑ์ลด ${iqN(R.convDropPct)}%) · ${IQ_ST.TH_CONF_SHORT[IQ_ST.confLevel(t.p, n1 >= 30 && n2 >= 30)]}`, action: "ตรวจคิว ราคา และสินค้าขาดชั้นในสัปดาห์นี้" });
+    }
+  }
+  if (D.qc && R.qcYieldMin > 0) { const y = D.qc.total ? D.qc.pass / D.qc.total : null; if (y != null && y * 100 < R.qcYieldMin) out.push({ id: "qc", level: "high", title: "อัตราผ่าน QC ต่ำกว่าเกณฑ์", text: `กะล่าสุดผ่าน ${iqP(y, 1)} (เกณฑ์ ${iqN(R.qcYieldMin)}%)`, action: "หยุดตรวจสาเหตุหลักที่ไลน์ผลิต" }); }
+  return out;
+}
+
+/* ---------- แปลผล: การ์ดสรุปอัตโนมัติ ---------- */
+function iqSure(level, ciText) {
+  const base = IQ_ST.TH_CONF[level] || IQ_ST.TH_CONF.insufficient;
+  return ciText ? `${base} · ${ciText}` : base;
+}
+const IQ_LEVEL_W = { strong: 3, moderate: 2.2, weak: 1.2, none: 0.6, insufficient: 0.5 };
+
+function iqInsights(D, A) {
+  const S = IQ_ST, r = A.r, C = [], seed = r.from + r.to;
+  const add = c => { c.score = (c.score || 1); C.push(c); };
+  const vsTxt = r.compare === "week" ? "ช่วงเดียวกันของสัปดาห์ก่อน" : r.days === 1 ? "เมื่อวาน" : `${r.days} วันก่อนหน้า`;
+
+  if (A.short) add({ id: "short", tone: "info", module: "all", level: "insufficient", title: "ข้อมูลยังน้อย", body: `มีข้อมูลเพียง ${iqN(A.dataDays)} วัน ตัวเลขด้านล่างเป็นค่าที่เห็นจริง แต่การเปรียบเทียบ การหาค่าผิดปกติ และการพยากรณ์ยังเชื่อถือไม่ได้`, sure: IQ_ST.TH_CONF.insufficient, why: ["การสรุปแนวโน้มต้องมีอย่างน้อย 7 วัน และพยากรณ์ตามวันในสัปดาห์ต้องมีราว 3 สัปดาห์"], action: "เปิดระบบเก็บข้อมูลทุกวันต่อเนื่องอย่างน้อย 1–3 สัปดาห์ แล้วกลับมาดูหน้านี้", score: 2.5 });
+
+  (A.alerts || []).forEach(a => add({ id: "alert-" + a.id, tone: "bad", module: "alert", level: "strong", title: a.title, body: a.text, sure: "เกิดขึ้นจริงตามข้อมูลวันนี้ (ไม่ใช่การคาดการณ์)", why: [], action: a.action, score: a.level === "high" ? 9 : 6 }));
+
+  // คนเข้าร้าน เทียบช่วงก่อน
+  const ks = A.kpis.find(k => k.id === "store");
+  if (ks && ks.test) {
+    const t = ks.test, ch = t.change, up = ch > 0, flat = !iqFin(ch) || t.level === "none" || t.level === "insufficient";
+    const why = [];
+    const H = A.H, wkend = (f, to) => iqWinKeys(H, f, to).filter((k, i) => [0, 6].includes(iqWdOf(k)) && iqFin(iqWin(H, H.storeIn, f, to)[i])).length;
+    const w1 = wkend(r.from, r.to), w2 = wkend(r.prev.from, r.prev.to);
+    if (w1 !== w2 && r.days > 1) why.push(`ช่วงนี้มีวันเสาร์–อาทิตย์ที่มีข้อมูล ${w1} วัน เทียบกับ ${w2} วันในช่วงก่อน ซึ่งปกติวันหยุดคนมากกว่า`);
+    const anIn = A.forecast && A.forecast.metric === "storeIn" ? A.forecast.anomalies.filter(a => a.day >= r.from && a.day <= r.to) : [];
+    if (anIn.length) { const net = iqSum(anIn.map(a => a.value - a.expected)); why.push(`มีวันที่ตัวเลขผิดปกติอยู่ในช่วงนี้ ${anIn.length} วัน (${anIn.map(a => `${iqDL(a.day)} ${a.dir === "up" ? "สูง" : "ต่ำ"}`).join(", ")}) รวมแล้วทำให้ยอดช่วงนี้${net >= 0 ? "สูง" : "ต่ำ"}กว่าปกติราว ${iqN(Math.abs(net))} คน`); }
+    if (Math.abs(t.e1 - t.e2) >= 1) why.push(`จำนวนวันที่กล้องเก็บข้อมูลต่างกัน (${iqN(t.e1, 1)} เทียบ ${iqN(t.e2, 1)} วัน) จึงเทียบเป็นค่าต่อวันแทนยอดรวม`);
+    const camMove = (A.cams || []).filter(c => c.test && iqFin(c.test.change) && c.test.level !== "insufficient").sort((a, b) => Math.abs(b.test.change) - Math.abs(a.test.change))[0];
+    if (camMove && A.cams.length > 1) why.push(`จุดที่เปลี่ยนมากที่สุดคือ ${camMove.name} (${iqChg(camMove.test.change)})`);
+    if (!why.length) why.push("ไม่พบสิ่งผิดปกติในข้อมูลที่อธิบายการเปลี่ยนแปลงนี้ได้ อาจมาจากปัจจัยภายนอกที่กล้องไม่เห็น");
+    const pk = A.heat && A.heat.top[0];
+    const ci = iqFin(t.lo) ? `ช่วงที่น่าจะเป็น ${iqChg(t.lo)} ถึง ${iqChg(t.hi)}` : "";
+    add({ id: "store-change", tone: flat ? "info" : up ? "good" : "bad", module: "store", level: t.level, title: flat ? iqPick(seed + "s", ["คนเข้าร้านใกล้เคียงเดิม", "จำนวนคนเข้าร้านยังทรงตัว"]) : `คนเข้าร้าน${up ? "เพิ่มขึ้น" : "ลดลง"} ${iqChg(ch).replace(/^[+−]/, "")}`,
+      body: `เฉลี่ย ${iqN(t.rate1, 0)} คน/วัน เทียบกับ ${iqN(t.rate2, 0)} คน/วัน (${vsTxt})${r.to === A.today ? " (วันนี้คิดตามสัดส่วนเวลาที่ผ่านไป)" : ""}`,
+      sure: iqSure(t.level, ci), why,
+      action: flat ? "รักษาการจัดพนักงานแบบเดิม และดูการ์ดช่วงเวลาที่คนเยอะเพื่อปรับกะ" : up ? (pk ? `เตรียมพนักงานและสินค้าให้พอในช่วง${IQ_WD[pk.wd]} ${iqPad(pk.h)}:00 น. ซึ่งเป็นช่วงที่คนเยอะที่สุด` : "เตรียมพนักงานและสินค้าให้พอกับคนที่เพิ่มขึ้น") : "ตรวจว่ากล้องทำงานครบทุกวัน แล้วลองทำโปรโมชันหน้าร้านในช่วงที่คนน้อย",
+      score: IQ_LEVEL_W[t.level] * (1 + Math.min(1, Math.abs(ch || 0) * 3)) });
+  }
+
+  // ค่าผิดปกติล่าสุด
+  if (A.forecast && A.forecast.anomalies.length && !A.short) {
+    const a = A.forecast.anomalies.slice().sort((x, y) => (x.day < y.day ? 1 : -1))[0], F = A.forecast, H = A.H, i = H.keys.indexOf(a.day);
+    const why = [`ระบบคิดค่าที่คาดไว้จากแนวโน้มและรูปแบบวัน${IQ_WD[iqWdOf(a.day)]}ตามปกติแล้ว ค่านี้ยังห่างจากที่คาดมาก (คะแนนผิดปกติ ${iqN(Math.abs(a.z), 1)} เกณฑ์ 3.5)`];
+    if (F.metric === "storeIn" && i >= 0 && iqFin(H.bills[i])) {
+      const med = S.median(H.bills.filter(iqFin)), up = H.bills[i] > med * 1.25, dn = H.bills[i] < med * 0.75;
+      why.push(`ยอดบิลวันเดียวกัน ${iqN(H.bills[i])} บิล (ปกติราว ${iqN(med)}) ${up ? "สูงขึ้นด้วย จึงน่าจะเป็นคนจริงที่เพิ่มขึ้น" : dn ? "ต่ำลงด้วย จึงน่าจะเป็นคนจริงที่ลดลง" : "ไม่ได้เปลี่ยนตาม จึงอาจเป็นการนับคลาดเคลื่อนหรือคนเดินผ่านเข้าออกซ้ำ"}`);
+    }
+    if (i >= 0 && H.hourly[i] && a.dir === "down") { const act = H.hourly[i].filter(v => v > 0).length; if (act <= 6) why.push(`วันนั้นมีข้อมูลเพียง ${act} ชั่วโมง อาจเป็นเพราะเปิดกล้องไม่ครบวัน`); }
+    add({ id: "anomaly", tone: "warn", module: F.metric === "storeIn" ? "store" : "sales", level: Math.abs(a.z) > 6 ? "strong" : "moderate",
+      title: `${iqDL(a.day)}: ${F.name}${a.dir === "up" ? "สูง" : "ต่ำ"}ผิดปกติ`,
+      body: `${iqN(a.value)} ${F.unit} ขณะที่ค่าที่คาดไว้ประมาณ ${iqN(Math.max(0, a.expected))} ${F.unit}${A.forecast.anomalies.length > 1 ? ` · พบวันผิดปกติทั้งหมด ${A.forecast.anomalies.length} วันในประวัติ` : ""}`,
+      sure: iqPick(seed + "a", ["ค่อนข้างมั่นใจว่าผิดไปจากรูปแบบปกติ แต่ข้อมูลไม่ได้บอกสาเหตุ", "ผิดจากรูปแบบปกติชัดเจน ส่วนสาเหตุต้องตรวจสอบเพิ่ม"]), why,
+      action: a.dir === "up" ? "เทียบกับปฏิทินโปรโมชันหรือกิจกรรมของวันนั้น ถ้าเป็นโปรโมชัน ลองทำซ้ำในวันที่คนน้อย" : "ตรวจว่าวันนั้นกล้องเปิดครบเวลาทำการหรือไม่ ถ้าครบ ให้หาสาเหตุ เช่น ปิดร้านบางช่วงหรือสภาพอากาศ",
+      score: 2.6 });
+  }
+
+  // ช่วงเวลาที่คนเยอะ
+  if (A.heat && A.heat.top.length) {
+    const h = A.heat, p = h.top[0], lo = h.low, src = h.src === "store" ? "คนเข้าร้าน" : "บิลขาย";
+    const best = h.byWd.indexOf(Math.max(...h.byWd)), worst = h.byWd.indexOf(Math.min(...h.byWd.filter((v, i) => h.n[i].some(x => x > 0)).concat([Infinity])));
+    add({ id: "peak", tone: "info", module: h.src === "store" ? "store" : "sales", level: h.short ? "insufficient" : "moderate",
+      title: `ช่วงที่${src}มากที่สุด: วัน${IQ_WD[p.wd]} ${iqPad(p.h)}:00–${iqPad(p.h)}:59`,
+      body: `เฉลี่ย ${iqN(p.v, 1)} ${h.src === "store" ? "คน" : "บิล"}ต่อชั่วโมง${lo ? ` · ช่วงที่เงียบที่สุดคือวัน${IQ_WD[lo.wd]} ${iqPad(lo.h)}:00 (${iqN(lo.v, 1)})` : ""} · ทั้งวันมากสุดคือวัน${IQ_WD[best]}${worst >= 0 && worst !== best ? ` น้อยสุดคือวัน${IQ_WD[worst]}` : ""}`,
+      sure: h.short ? `ข้อมูลยังน้อย (${h.nDays} วัน) รูปแบบอาจเปลี่ยนเมื่อเก็บข้อมูลนานขึ้น` : `คิดจากข้อมูล ${h.nDays} วัน แต่ละช่องเฉลี่ยจากวันเดียวกันประมาณ ${iqN(h.nDays / 7, 0)} สัปดาห์`,
+      why: ["คำนวณจากค่าเฉลี่ยรายชั่วโมงของแต่ละวันในสัปดาห์ (ไม่รวมวันนี้ที่ยังไม่จบ)"],
+      action: `จัดกะพนักงานให้หนาแน่นในวัน${IQ_WD[p.wd]}ช่วง ${iqPad(Math.max(0, p.h - 1))}:00–${iqPad(Math.min(23, p.h + 1))}:59${lo ? ` และใช้ช่วงวัน${IQ_WD[lo.wd]} ${iqPad(lo.h)}:00 เติมสินค้าหรือทำโปรโมชันดึงคน` : ""}`,
+      score: h.short ? 0.9 : 1.6 });
+  }
+
+  // พยากรณ์
+  if (A.forecast && A.forecast.fc && A.forecast.total) {
+    const F = A.forecast, T = F.total, enough = F.enough;
+    add({ id: "forecast", tone: "info", module: F.metric === "storeIn" ? "store" : "sales", level: enough ? "moderate" : "insufficient",
+      title: `คาดการณ์ 7 วันข้างหน้า: ${F.name}ราว ${iqN(T.mean)} ${F.unit}`,
+      body: `ช่วงที่น่าจะเป็น (80%) ${iqN(T.lo)}–${iqN(T.hi)} ${F.unit} · เทียบ 7 วันล่าสุด ${iqN(T.last7)} ${F.unit} (${iqChg(T.change)})`,
+      sure: enough ? "ใช้แบบจำลอง Holt-Winters ตามรูปแบบรายสัปดาห์ ช่วงคาดการณ์กว้างเท่าที่ข้อมูลผันผวนจริง" : `ข้อมูลยังน้อย (${iqN(F.y.filter(iqFin).length)} วัน) จึงใช้${F.fc.method === "mean" ? "ค่าเฉลี่ย" : "ค่าของสัปดาห์ก่อน"}เป็นตัวคาดการณ์ ความแม่นยำต่ำ`,
+      why: enough ? [`แบบจำลองเรียนรู้จาก ${iqN(F.y.length)} วันที่ผ่านมา โดยให้น้ำหนักกับข้อมูลล่าสุด (α=${F.fc.params.alpha}) และรูปแบบวันในสัปดาห์ (γ=${F.fc.params.gamma})`] : [],
+      action: T.change > 0.05 ? "สั่งสินค้าและจัดพนักงานเผื่อไว้ใกล้ค่าบนของช่วงคาดการณ์" : T.change < -0.05 ? "ลดการสั่งสินค้าที่เน่าเสียง่าย และวางแผนกิจกรรมเรียกลูกค้า" : "วางแผนสต็อกและกะพนักงานใกล้เคียงสัปดาห์ที่ผ่านมา",
+      score: enough ? 1.5 : 0.7 });
+  }
+
+  // อัตราซื้อ
+  if (A.conv) {
+    const c = A.conv, t = c.test, flat = !t || t.level === "none" || t.level === "insufficient";
+    add({ id: "conv", tone: !t || flat ? "info" : t.diff > 0 ? "good" : "bad", module: "sales", level: t ? t.level : (c.n >= 100 && !A.short ? "moderate" : "insufficient"),
+      title: !t ? `อัตราซื้อ ${iqP(c.ci.p, 1)}` : flat ? `อัตราซื้อ ${iqP(c.ci.p, 1)} ใกล้เคียงเดิม` : `อัตราซื้อ${t.diff > 0 ? "ดีขึ้น" : "ลดลง"} ${iqPts(t.diff)}`,
+      body: `${iqN(c.x)} บิลจากคนเข้าร้าน ${iqN(c.n)} คน${t ? ` · ${vsTxt} ${iqP(t.p2, 1)}` : ""}`,
+      sure: t ? iqSure(t.level, `อัตราจริงน่าจะอยู่ระหว่าง ${iqP(c.ci.lo, 1)}–${iqP(c.ci.hi, 1)}`) : c.n >= 100 ? `อัตราจริงน่าจะอยู่ระหว่าง ${iqP(c.ci.lo, 1)}–${iqP(c.ci.hi, 1)} (ช่วงนี้ไม่มีช่วงเทียบ)` : IQ_ST.TH_CONF.insufficient,
+      why: ["บิลกับคนเข้าร้านนับจากคนละระบบ จึงเป็นค่าประมาณ (กลุ่มที่มาด้วยกันจ่ายบิลเดียว)"].concat((A.corr || []).filter(x => x.id === "queue-conv" && x.enough && x.r < -0.3).map(x => `วันที่คิวยาวมักมีอัตราซื้อต่ำกว่า (r = ${iqN(x.r, 2)})`)),
+      action: !t || flat ? "ทดลองจัดวางสินค้าใกล้แคชเชียร์หรือโปรโมชันบิลถัดไป แล้ววัดผลเทียบสัปดาห์นี้" : t.diff > 0 ? "บันทึกว่าช่วงนี้เปลี่ยนอะไร (ราคา จัดวาง โปรโมชัน) เพื่อทำซ้ำ" : "ดูคิวและสินค้าขาดชั้นในช่วงคนเยอะ เพราะเป็นสาเหตุที่พบบ่อยของการเดินออกโดยไม่ซื้อ",
+      score: IQ_LEVEL_W[t ? t.level : "insufficient"] * (1 + Math.min(1, Math.abs(t ? t.change || 0 : 0) * 3)) + 0.2 });
+  }
+
+  // ความสัมพันธ์ที่น่าสนใจ (เฉพาะที่ข้อมูลพอและไม่ใช่ค่าที่สัมพันธ์กันโดยธรรมชาติ)
+  (A.corr || []).filter(c => c.id !== "in-bills" && c.id !== "ots-in").forEach(c => {
+    const lv = !c.enough ? "insufficient" : S.confLevel(c.p, true);
+    if (lv === "none" || lv === "insufficient") return;
+    add({ id: "corr-" + c.id, tone: "info", module: "corr", level: lv, title: `${c.xName.replace(/ \(.*\)$/, "")} กับ${c.yName}: ${S.corrWord(c.r)}`,
+      body: `r = ${iqN(c.r, 2)} (95%: ${iqN(c.lo, 2)} ถึง ${iqN(c.hi, 2)}) จาก ${c.n} วัน`,
+      sure: IQ_ST.TH_CONF[lv] + " ว่ามีความสัมพันธ์ แต่ยังไม่ใช่หลักฐานว่าค่าหนึ่งทำให้อีกค่าเปลี่ยน",
+      why: [c.caution], action: c.id === "queue-conv" && c.r < 0 ? "ลองเพิ่มแคชเชียร์ในวันที่คาดว่าคนเยอะ แล้วดูว่าอัตราซื้อดีขึ้นจริงหรือไม่" : c.id === "dwell-conv" && c.r > 0 ? "ลองเพิ่มจุดชิมหรือป้ายข้อมูลสินค้าเพื่อให้คนอยู่ในโซนนานขึ้น แล้ววัดผล" : "ทดลองเปลี่ยนทีละอย่างแล้ววัดผลเพื่อยืนยันเหตุและผล",
+      score: IQ_LEVEL_W[lv] * Math.abs(c.r) * 1.2 });
+  });
+
+  // A/B ป้ายโฆษณา
+  if (A.ab.sg) {
+    const ab = A.ab.sg;
+    if (!ab.enough) add({ id: "ab-sg", tone: "info", module: "sg", level: "insufficient", title: "เทียบโฆษณา: ข้อมูลยังน้อย", body: `ต้องมีคนผ่านจออย่างน้อย 30 คนต่อโฆษณาอย่างน้อย 2 ชิ้น`, sure: IQ_ST.TH_CONF.insufficient, why: [], action: "เปิดป้ายโฆษณาต่อไปให้แต่ละชิ้นได้แสดงพอ ๆ กัน", score: 0.5 });
+    else {
+      const t = ab.spread || ab.test, lv = S.confLevel(t.p, true), b = ab.best, w = ab.worst || ab.runner;
+      add({ id: "ab-sg", tone: lv === "strong" || lv === "moderate" ? "good" : "info", module: "sg", level: lv,
+        title: lv === "none" || lv === "weak" ? "โฆษณาแต่ละชิ้นดึงสายตาได้ใกล้เคียงกัน" : `โฆษณา “${b.name}” ดึงสายตาได้ดีที่สุด`,
+        body: `อัตรามอง ${iqP(b.ci.p)} เทียบ “${w.name}” ${iqP(w.ci.p)} (ต่าง ${iqPts(t.diff)}, 95%: ${iqPts(t.lo)} ถึง ${iqPts(t.hi)})`,
+        sure: iqSure(lv, `ห่างจากอันดับสอง ${iqPts(ab.test.diff)} (${S.TH_CONF_SHORT[S.confLevel(ab.test.p, true)]})`),
+        why: ["ยอดสะสมทุกช่วงเวลา ถ้าแต่ละชิ้นเล่นคนละช่วงเวลา (เช่น ชั่วโมงเร่งด่วน) ผลอาจต่างเพราะเวลา ไม่ใช่ตัวโฆษณา"],
+        action: lv === "strong" || lv === "moderate" ? `เพิ่มรอบเล่น “${b.name}” ในช่วงคนผ่านมาก และปรับหรือลดรอบ “${w.name}”` : "ยังไม่ควรตัดสินจากตัวเลขนี้ ให้หมุนเวียนเล่นสลับกันในทุกช่วงเวลาแล้ววัดต่อ",
+        score: IQ_LEVEL_W[lv] * 0.9 });
+    }
+  }
+  if (A.ab.neuro) {
+    const ab = A.ab.neuro;
+    if (!ab.enough) add({ id: "ab-neuro", tone: "info", module: "neuro", level: "insufficient", title: "เทียบสื่อทดสอบอารมณ์: ข้อมูลยังน้อย", body: `ควรมีผู้ทดสอบอย่างน้อย 3 คนต่อสื่อ (ตอนนี้มากสุด ${Math.max(...ab.groups.map(g => g.n))} คน)`, sure: IQ_ST.TH_CONF.insufficient, why: [], action: "ให้ผู้ทดสอบเพิ่มดูทุกสื่อ แล้วเทียบอีกครั้ง", score: 0.5 });
+    else {
+      const t = ab.spread || ab.test, w = ab.worst || ab.runner, lv = S.confLevel(t.p, true), sig = lv === "strong" || lv === "moderate";
+      add({ id: "ab-neuro", tone: sig ? "good" : "info", module: "neuro", level: lv,
+        title: sig ? `“${ab.best.name}” ได้อารมณ์เชิงบวกมากกว่า “${w.name}”` : "สื่อที่ทดสอบได้อารมณ์ใกล้เคียงกัน",
+        body: `อารมณ์บวกเฉลี่ย “${ab.best.name}” ${iqP(ab.best.ci.mean)} เทียบ “${w.name}” ${iqP(w.ci.mean)} (ต่าง ${iqPts(t.diff)}, 95%: ${iqPts(t.lo)} ถึง ${iqPts(t.hi)})`,
+        sure: iqSure(lv, `ผู้ทดสอบ ${ab.best.n} และ ${w.n} ครั้ง · ห่างจากอันดับสอง${ab.runner && ab.runner !== w ? ` “${ab.runner.name}”` : ""} ${iqPts(ab.test.diff)} (${S.TH_CONF_SHORT[S.confLevel(ab.test.p, true)]})`), why: ["วัดจากสีหน้าระหว่างดูสื่อ ผู้ทดสอบกลุ่มเล็กอาจไม่เหมือนลูกค้าจริง"],
+        action: sig ? `เลือก “${ab.best.name}” แทน “${w.name}” แล้วทดสอบกับกลุ่มผู้ชมที่ใหญ่ขึ้นก่อนตัดสินใจลงทุน` : "เพิ่มผู้ทดสอบหรือปรับสื่อให้ต่างกันชัดขึ้น", score: IQ_LEVEL_W[lv] * 0.8 });
+    }
+  }
+
+  // ลูกค้ากลับมาซ้ำ
+  if (A.cohort && A.cohort.customers) {
+    const c = A.cohort, ci = c.repeatCI, enough = c.customers >= 10, r2 = c.rows.filter(x => x.retention.length > 1);
+    const w1 = r2.length ? iqMean(r2.map(x => x.retention[1])) : null;
+    add({ id: "cohort", tone: "info", module: "cx", level: enough ? "moderate" : "insufficient", title: `ลูกค้าที่กลับมาซื้อซ้ำ ${iqP(c.repeatRate)}`,
+      body: `${iqN(c.repeat)} จาก ${iqN(c.customers)} คนที่จดจำได้ซื้อมากกว่า 1 สัปดาห์${w1 != null ? ` · เฉลี่ยกลับมาในสัปดาห์ถัดไป ${iqP(w1)}` : ""}`,
+      sure: enough ? `อัตราจริงน่าจะอยู่ระหว่าง ${iqP(ci.lo)}–${iqP(ci.hi)}` : "ข้อมูลยังน้อย (ลูกค้าไม่ถึง 10 คน)", why: ["นับเฉพาะลูกค้าที่ยินยอมให้จดจำใบหน้า จึงอาจสูงกว่าลูกค้าทั้งหมด"],
+      action: c.repeatRate != null && c.repeatRate < 0.4 ? "ลองให้สิทธิพิเศษเมื่อกลับมาซื้อครั้งที่สองภายใน 7 วัน" : "รักษาฐานลูกค้าประจำด้วยเมนูหรือสิทธิพิเศษตามประวัติการสั่ง", score: enough ? 1.1 : 0.5 });
+  }
+  if (A.boothStop && A.boothStop.n) {
+    const s = A.boothStop, enough = s.n >= 30;
+    add({ id: "booth", tone: "info", module: "booth", level: enough ? "moderate" : "insufficient", title: `ผู้เข้าชมบูธหยุดชม ${iqP(s.p)}`,
+      body: `${iqN(s.x)} จาก ${iqN(s.n)} คนหยุดอย่างน้อย 5 วินาที${A.boothReturn ? ` · กลับมาซ้ำ ${iqP(A.boothReturn.p)}` : ""}`,
+      sure: enough ? `อัตราจริงน่าจะอยู่ระหว่าง ${iqP(s.lo)}–${iqP(s.hi)}` : "ข้อมูลยังน้อย (ผู้เข้าชมไม่ถึง 30 คน)", why: [],
+      action: s.p < 0.4 ? "ปรับสิ่งที่มองเห็นจากทางเดิน (ป้าย ไฟ ของตัวอย่าง) ให้ดึงคนหยุดมากขึ้น" : "บูธดึงคนหยุดได้ดี ให้เพิ่มกิจกรรมที่เปลี่ยนคนหยุดดูเป็นผู้ร่วมกิจกรรม", score: enough ? 1 : 0.5 });
+  }
+  // QC (ถ้ามีการแจ้งเตือน QC อยู่แล้ว ไม่ต้องซ้ำ)
+  const M = iqMetrics(D, r);
+  if (M.qc && M.qc.total && !(A.alerts || []).some(x => x.id === "qc")) {
+    const w = S.wilson(M.qc.pass, M.qc.total), topR = Object.entries(M.qc.reasons).sort((a, b) => b[1] - a[1])[0];
+    add({ id: "qc", tone: w.p < 0.95 ? "bad" : "good", module: "qc", level: M.qc.total >= 100 ? "moderate" : "insufficient", title: `อัตราผ่าน QC ${iqP(w.p, 1)}`,
+      body: `ตรวจ ${iqN(M.qc.total)} ขวด คัดทิ้ง ${iqN(M.qc.reject)}${topR ? ` · สาเหตุหลัก: ${IQ_QC_REASONS[topR[0]] || topR[0]} (${iqP(topR[1] / Math.max(1, M.qc.reject))} ของที่คัดทิ้ง)` : ""}`,
+      sure: M.qc.total >= 100 ? `อัตราจริงน่าจะอยู่ระหว่าง ${iqP(w.lo, 1)}–${iqP(w.hi, 1)}` : "ข้อมูลยังน้อย (ตรวจไม่ถึง 100 ขวด)", why: [],
+      action: topR ? `เริ่มแก้ที่${IQ_QC_REASONS[topR[0]] || topR[0]}ก่อน เพราะเป็นสัดส่วนใหญ่ที่สุดของของเสีย` : "รักษาการตั้งค่าเดิม", score: w.p < 0.95 ? 2 : 0.8 });
+  }
+  if (M.dr && M.dr.trips) {
+    const ev = M.dr.hours > 0 ? M.dr.events / M.dr.hours : null, topT = Object.entries(M.dr.byType).sort((a, b) => b[1] - a[1])[0];
+    add({ id: "dr", tone: M.dr.safety != null && M.dr.safety < 70 ? "bad" : "info", module: "dr", level: M.dr.trips >= 5 ? "moderate" : "insufficient", title: `คะแนนความปลอดภัยคนขับเฉลี่ย ${iqN(M.dr.safety)}/100`,
+      body: `${iqN(M.dr.trips)} เที่ยว ${iqN(M.dr.hours, 1)} ชั่วโมง · เหตุการณ์ ${iqN(ev, 1)} ครั้ง/ชั่วโมง${topT ? ` · พบบ่อยสุด: ${IQ_DR_TYPES[topT[0]] || topT[0]}` : ""}`,
+      sure: M.dr.trips >= 5 ? "คิดจากทุกเที่ยวในช่วงนี้" : "ข้อมูลยังน้อย (ไม่ถึง 5 เที่ยว)", why: [],
+      action: topT && (topT[0] === "yawn" || topT[0] === "microsleep" || topT[0] === "long_closure") ? "จัดเวลาพักทุก 2 ชั่วโมง และเลี่ยงกะขับช่วงตี 2–6" : "ทบทวนเหตุการณ์ละสายตากับคนขับ และตรวจตำแหน่งกล้อง", score: 0.9 });
+  }
+
+  // เป้าหมาย
+  (A.goals || []).forEach(g => {
+    if (g.actual == null) return;
+    const f = v => g.fmt === "pct" ? iqP(v, 1) : g.fmt === "baht" ? iqB(v) : iqN(v);
+    add({ id: "goal-" + g.id, tone: g.met ? "good" : "warn", module: "goal", level: A.short ? "insufficient" : "moderate", title: `${g.label}: ${g.met ? "ถึงเป้า" : "ยังไม่ถึงเป้า"} (${iqP(g.progress)})`,
+      body: `ได้ ${f(g.actual)} จากเป้า ${f(g.target)}`, sure: A.short ? "ข้อมูลยังน้อย ค่าเฉลี่ยอาจเปลี่ยนมาก" : "เทียบค่าเฉลี่ยของวันที่จบแล้วในช่วงที่เลือก", why: [],
+      action: g.met ? "ตั้งเป้าที่สูงขึ้นเล็กน้อยสำหรับช่วงถัดไป" : "ดูการ์ดอื่นในหน้านี้เพื่อหาจุดที่ปรับได้เร็วที่สุด", score: g.met ? 0.8 : 1.8 });
+  });
+
+  C.forEach(c => { c.why = (c.why || []).filter(Boolean); });
+  return C.sort((a, b) => b.score - a.score);
+}
+
+/** ตรวจว่าข้อความไม่มี NaN / undefined / Infinity */
+function iqTextOk(v) {
+  const bad = [];
+  const walk = x => { if (typeof x === "string") { if (/NaN|undefined|Infinity|\bnull\b|\[object/.test(x)) bad.push(x); } else if (Array.isArray(x)) x.forEach(walk); else if (x && typeof x === "object") Object.values(x).forEach(walk); };
+  walk(v); return bad;
+}
+
+/** รายงานประจำวัน/สัปดาห์ (โครงสร้างล้วน ใช้ทั้งพิมพ์และส่งออก) */
+function iqReport(D, A, cards, kind) {
+  return {
+    kind, title: kind === "day" ? "รายงานประจำวัน" : "รายงานประจำสัปดาห์", from: A.r.from, to: A.r.to, generatedAt: new Date(A.now).toISOString(),
+    kpis: A.kpis.map(k => ({ label: k.label, value: k.value, fmt: k.fmt, delta: k.delta, sure: k.test ? IQ_ST.TH_CONF_SHORT[k.test.level] : "", ci: k.ci ? k.ci.text : "" })),
+    insights: cards.slice(0, 8).map(c => ({ title: c.title, body: c.body, sure: c.sure, why: c.why, action: c.action })),
+    forecast: A.forecast && A.forecast.total ? { name: A.forecast.name, unit: A.forecast.unit, ...A.forecast.total, method: A.forecast.fc.method } : null,
+    goals: A.goals, alerts: A.alerts
+  };
+}
+
+/** ส่งออกผลวิเคราะห์เป็น JSON (ตัวเลขสรุปเท่านั้น ไม่มีชื่อลูกค้า) */
+function iqAnalysisJson(D, A, cards) {
+  const F = A.forecast;
+  return {
+    format: "lensiq-analysis", version: 1, generatedAt: new Date(A.now).toISOString(), range: { from: A.r.from, to: A.r.to, compare: A.r.compare, prev: A.r.prev },
+    dataDays: A.dataDays, short: A.short,
+    kpis: A.kpis.map(k => ({ id: k.id, label: k.label, value: k.value, delta: k.delta, ci: k.ci ? k.ci.text : null, p: k.test ? k.test.p : null, confidence: k.test ? k.test.level : null })),
+    insights: cards.map(c => ({ id: c.id, tone: c.tone, confidence: c.level, title: c.title, body: c.body, sure: c.sure, why: c.why, action: c.action })),
+    daily: A.H.keys.map((k, i) => ({ day: k, storeIn: A.H.storeIn[i], bills: A.H.bills[i], revenue: A.H.revenue[i] == null ? null : Math.round(A.H.revenue[i] * 100) / 100, conversion: A.H.conv[i], maxQueue: A.H.maxQueue[i], booth: A.H.booth[i] })),
+    forecast: F && F.fc ? { metric: F.metric, method: F.fc.method, conf: F.fc.conf, days: F.fkeys.map((k, j) => ({ day: k, mean: F.fc.mean[j], lo: F.fc.lo[j], hi: F.fc.hi[j] })), anomalies: F.anomalies.map(a => ({ day: a.day, value: a.value, expected: a.expected, z: a.z })) } : null,
+    correlations: A.corr.map(c => ({ id: c.id, x: c.xName, y: c.yName, n: c.n, r: c.r, lo: c.lo, hi: c.hi, p: c.p, rho: c.rho, caution: c.caution })),
+    heatmap: A.heat ? { source: A.heat.src, from: A.heat.from, to: A.heat.to, days: A.heat.nDays, meanByWeekdayHour: A.heat.grid } : null,
+    goals: A.goals, alerts: A.alerts
+  };
+}
+/** CSV รายวันพร้อมค่าเฉลี่ยเคลื่อนที่ ค่าผิดปกติ และพยากรณ์ */
+function iqAnalysisCsv(A) {
+  const F = A.forecast, an = new Map((F ? F.anomalies : []).map(a => [a.day, a])), ma = IQ_ST.movingAvg(A.H.storeIn, 7);
+  const rows = [["วันที่", "วัน", "คนเข้าร้าน", "ค่าเฉลี่ย 7 วัน", "บิลขาย", "อัตราซื้อ (%)", "ยอดขายรวม (บาท)", "คิวสูงสุด", "ผิดปกติ", "ค่าที่คาดไว้"]];
+  A.H.keys.forEach((k, i) => { if (k < A.r.from || k > A.r.to) return; const a = an.get(k); rows.push([k, IQ_WD[iqWdOf(k)], A.H.storeIn[i] ?? "", ma[i] == null ? "" : ma[i].toFixed(1), A.H.bills[i] ?? "", A.H.conv[i] == null ? "" : (A.H.conv[i] * 100).toFixed(2), A.H.revenue[i] == null ? "" : A.H.revenue[i].toFixed(2), A.H.maxQueue[i] ?? "", a ? (a.dir === "up" ? "สูง" : "ต่ำ") : "", a ? a.expected.toFixed(1) : ""]); });
+  if (F && F.fc) { rows.push([], ["พยากรณ์ " + F.name, "วิธี " + F.fc.method, "ช่วง " + Math.round(F.fc.conf * 100) + "%"]); F.fkeys.forEach((k, j) => rows.push([k, IQ_WD[iqWdOf(k)], F.fc.mean[j].toFixed(1), F.fc.lo[j].toFixed(1), F.fc.hi[j].toFixed(1)])); }
+  return "﻿" + rows.map(r => r.map(iqCsvCell).join(",")).join("\r\n");
+}
+
 if (typeof module !== "undefined" && module.exports) module.exports = {
   iqDay, iqAddDays, iqDayStart, iqIsModuleKey, iqCollect, iqRange, iqMetrics, iqKpis, iqSeries, iqTrimHours, iqBuckets, iqFunnel, iqModuleBars, iqCsv,
-  iqBuildDemo, iqHasDemo, iqRemoveDemo, iqBackup, iqValidateBackup, IQ_DEMO_KEY, IQ_FORTUNE_KEYS
+  iqBuildDemo, iqHasDemo, iqRemoveDemo, iqBackup, iqValidateBackup, IQ_DEMO_KEY, IQ_FORTUNE_KEYS,
+  iqDaily, iqAnalyze, iqHeat, iqInsights, iqGoals, iqEvalAlerts, iqAlertRules, iqReport, iqAnalysisJson, iqAnalysisCsv, iqTextOk, IQ_GOAL_DEFS, IQ_ALERT_DEFAULTS, IQ_WD
 };
 
 // ================= ส่วนหน้าจอ =================
@@ -649,7 +1244,8 @@ if (typeof document !== "undefined") (() => {
     parent?.append(n); return n;
   };
   const RANGE_KEY = "iq-range";
-  const PRESETS = [["today", "วันนี้"], ["d7", "7 วัน"], ["d30", "30 วัน"], ["all", "ทั้งหมด"]];
+  const PRESETS = [["today", "วันนี้"], ["d7", "7 วัน"], ["d30", "30 วัน"], ["d90", "90 วัน"], ["all", "ทั้งหมด"], ["custom", "กำหนดเอง"]];
+  const CUSTOM_KEY = "iq-range-custom", COMPARE_KEY = "iq-compare", GOALS_KEY = "iq-goals", ALERTS_KEY = "iq-alerts";
   const MODULES = [
     { id: "booth", name: "วิเคราะห์บูธ", href: "booth.html", what: "นับผู้เข้าชม เวลาหยุดชม และผู้ร่วมกิจกรรม" },
     { id: "store", name: "วิเคราะห์หน้าร้าน", href: "store.html", what: "นับคนเข้า–ออก คิว และโซนยอดนิยม" },
@@ -674,7 +1270,8 @@ if (typeof document !== "undefined") (() => {
   const fmtDate = t => new Date(t).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
 
   let preset = "d7";
-  try { const p = localStorage.getItem(RANGE_KEY); if (PRESETS.some(([k]) => k === p)) preset = p; } catch {}
+  let compare = "prev";
+  try { const p = localStorage.getItem(RANGE_KEY); if (PRESETS.some(([k]) => k === p)) preset = p; const c = localStorage.getItem(COMPARE_KEY); if (["prev", "week", "none"].includes(c)) compare = c; } catch {}
 
   const snapshot = () => { const s = {}; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (iqIsModuleKey(k)) s[k] = localStorage.getItem(k); } } catch {} return s; };
   const apply = ({ set = {}, remove = [] }) => { for (const k in set) localStorage.setItem(k, set[k]); remove.forEach(k => localStorage.removeItem(k)); };
@@ -818,29 +1415,38 @@ if (typeof document !== "undefined") (() => {
   }
 
   // ---------- เรนเดอร์ทั้งหน้า ----------
+  let last = null; // ผลวิเคราะห์ล่าสุด (ใช้ส่งออก/รายงาน/ทดสอบ)
+  const loadJson = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v && typeof v === "object" ? v : d; } catch { return d; } };
+  const saveJson = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+  const rangeOpt = () => ({ ...loadJson(CUSTOM_KEY, {}), compare });
+  function analyze(p = preset, opt = rangeOpt()) {
+    const snap = snapshot(), D = iqCollect(snap), now = Date.now(), r = iqRange(p, now, D, opt);
+    const A = iqAnalyze(D, r, { now, goals: loadJson(GOALS_KEY, {}), alerts: loadJson(ALERTS_KEY, {}) });
+    return { snap, D, r, A, cards: iqInsights(D, A) };
+  }
+
   function render() {
-    const snap = snapshot(), D = iqCollect(snap), r = iqRange(preset, Date.now(), D);
+    const { snap, D, r, A, cards } = analyze();
+    last = { D, r, A, cards };
+    window.__IQ = { last, render, report: buildReport, analyze };
     const has = id => !!D[id];
     const any = MODULES.some(m => has(m.id));
     document.querySelectorAll(".range button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.p === preset)));
-    $("#rangeNote").textContent = r.from === r.to ? `วันที่ ${dayLabel(r.from)}` : `${dayLabel(r.from)} – ${dayLabel(r.to)} (${r.days} วัน)`;
+    $("#customRange").hidden = preset !== "custom";
+    if (preset === "custom") { $("#cFrom").value = r.from; $("#cTo").value = r.to; $("#cFrom").max = $("#cTo").max = iqDay(); }
+    $("#compare").value = compare; $("#compare").disabled = preset === "all";
+    $("#rangeNote").textContent = (r.from === r.to ? `วันที่ ${dayLabel(r.from)}` : `${dayLabel(r.from)} – ${dayLabel(r.to)} (${r.days} วัน)`) + (r.prev ? ` · เทียบ ${r.prev.from === r.prev.to ? dayLabel(r.prev.from) : `${dayLabel(r.prev.from)} – ${dayLabel(r.prev.to)}`}` : "");
     const demo = iqHasDemo(snap);
     $("#demoBanner").hidden = !demo;
     $("#seedDemo").hidden = demo; $("#removeDemo").hidden = !demo;
     $("#seedDemoEmpty").hidden = demo;
-    $("#empty").hidden = any; $("#dash").hidden = !any;
+    $("#empty").hidden = any; $("#dash").hidden = !any; $("#reportCard").hidden = !any;
     renderData(snap);
-    if (!any) { renderEmptyList(); return; }
+    if (!any) { renderEmptyList(); renderAlerts([]); return; }
 
-    // KPI
-    const K = iqKpis(D, r), kp = $("#kpis"); kp.replaceChildren();
-    K.forEach(k => {
-      const a = el("a", { class: "kpi", href: MODULES.find(m => m.id === k.id).href }, kp);
-      el("div", { class: "k" }, a, k.label);
-      el("div", { class: "v" }, a, fmtVal(k.value, k.fmt));
-      if (k.delta != null) { const up = k.delta >= 0; el("div", { class: "d" }, a, `${up ? "▲" : "▼"} ${Math.abs(Math.round(k.delta * 100))}% เทียบ ${r.days} วันก่อนหน้า`); }
-      el("div", { class: "s" }, a, k.sub);
-    });
+    renderAlerts(A.alerts);
+    renderInsights(cards);
+    renderKpis(A, r);
 
     // แนวโน้มรวม
     const S0 = { booth: iqSeries(D, r, "booth"), store: iqSeries(D, r, "store"), sales: iqSeries(D, r, "sales") };
@@ -864,14 +1470,127 @@ if (typeof document !== "undefined") (() => {
       $("#trendNote").textContent = has("sg") ? "ผู้ชมโฆษณา (มองจอ) ไม่แสดงในกราฟนี้ เพราะระบบป้ายโฆษณาเก็บเป็นยอดสะสม ไม่แยกรายวัน" : "";
     }
 
-    renderFunnel(D, r);
-    renderModules(D, r);
+    renderFunnel(D, r, A);
+    renderHeat(A);
+    renderForecast(A);
+    renderCorr(A);
+    renderAB(A);
+    renderCams(A);
+    renderCohort(A);
+    renderGoals(A);
+    renderAlertRules(D);
+    renderModules(D, r, A);
   }
 
-  function renderFunnel(D, r) {
+  // ---------- แจ้งเตือน ----------
+  function renderAlerts(list) {
+    const box = $("#alerts"); box.replaceChildren(); box.hidden = !list.length;
+    list.forEach(a => {
+      const d = el("div", { class: "alert " + a.level, role: "alert" }, box);
+      el("span", { class: "a-ic", "aria-hidden": "true" }, d, "!");
+      const t = el("div", {}, d); el("b", {}, t, a.title); el("span", {}, t, " — " + a.text); if (a.action) el("div", { class: "a-act" }, t, "ควรทำ: " + a.action);
+    });
+    const R = iqAlertRules(loadJson(ALERTS_KEY, {}));
+    if (!list.length || !R.notify || typeof Notification === "undefined" || Notification.permission !== "granted") return;
+    let seen = []; try { seen = JSON.parse(sessionStorage.getItem("iq-notified") || "[]"); } catch {}
+    const day = iqDay();
+    list.filter(a => !seen.includes(day + a.id)).forEach(a => { try { new Notification("LENSIQ: " + a.title, { body: a.text, tag: "lensiq-" + a.id }); } catch {} seen.push(day + a.id); });
+    try { sessionStorage.setItem("iq-notified", JSON.stringify(seen.slice(-50))); } catch {}
+  }
+
+  // ---------- การ์ดสรุปอัตโนมัติ ----------
+  const TONE = { good: ["▲", "ดีขึ้น"], bad: ["▼", "ต้องดูแล"], warn: ["!", "ผิดปกติ"], info: ["i", "ข้อสังเกต"] };
+  const LV = { strong: 4, moderate: 3, weak: 2, none: 1, insufficient: 0 };
+  const LV_TXT = { strong: "มั่นใจสูง", moderate: "ค่อนข้างมั่นใจ", weak: "ยังไม่แน่ชัด", none: "ไม่ต่างชัด", insufficient: "ข้อมูลยังน้อย" };
+  const SEC = { store: "#heatCard", sales: "#funnel", corr: "#corrCard", sg: "#abCard", neuro: "#abCard", cx: "#cohortCard", goal: "#goalCard", alert: "#alertCard", booth: "#m-booth", qc: "#m-qc", dr: "#m-dr", all: "#modules" };
+  let showAll = false;
+  function renderInsights(cards) {
+    const box = $("#insightCards"); box.replaceChildren();
+    const N = 6, list = showAll ? cards : cards.slice(0, N);
+    $("#insightSub").textContent = cards.length ? `${cards.length} ข้อ เรียงตามความสำคัญและความมั่นใจ · คำนวณในเครื่องนี้ทั้งหมด` : "";
+    if (!cards.length) el("p", { class: "nodata" }, box, "ยังไม่มีข้อสังเกตในช่วงนี้");
+    list.forEach((c, i) => {
+      const [ic, toneTxt] = TONE[c.tone] || TONE.info;
+      const a = el("article", { class: "ins " + c.tone, "aria-labelledby": "ins-" + i }, box);
+      const h = el("div", { class: "ins-h" }, a);
+      el("span", { class: "ins-ic", "aria-hidden": "true" }, h, ic);
+      el("h3", { id: "ins-" + i }, h, c.title);
+      el("span", { class: "sr" }, h, ` (${toneTxt})`);
+      el("p", { class: "ins-b" }, a, c.body);
+      const s = el("div", { class: "ins-sure" }, a);
+      const m = el("span", { class: "meter", role: "img", "aria-label": `ความมั่นใจ ${LV_TXT[c.level] || ""} (${LV[c.level] || 0} จาก 4)` }, s);
+      for (let k = 1; k <= 4; k++) el("i", { class: k <= (LV[c.level] || 0) ? "on" : "" }, m);
+      el("span", {}, s, c.sure);
+      if (c.why && c.why.length) { const d = el("details", { class: "ins-why" }, a); el("summary", {}, d, "เหตุผลที่เป็นไปได้ (จากข้อมูล)"); const ul = el("ul", {}, d); c.why.forEach(w => el("li", {}, ul, w)); }
+      const act = el("p", { class: "ins-act" }, a); el("b", {}, act, "ควรทำ: "); act.append(c.action);
+      if (SEC[c.module]) el("a", { class: "ins-more", href: SEC[c.module] }, a, "ดูรายละเอียด →");
+    });
+    const more = $("#insightMore");
+    more.hidden = cards.length <= N;
+    more.textContent = showAll ? "แสดงเฉพาะ 6 ข้อสำคัญ" : `แสดงทั้งหมด ${cards.length} ข้อ`;
+    more.setAttribute("aria-expanded", String(showAll));
+  }
+
+  // ---------- KPI ----------
+  function sparkline(parent, values, name) {
+    const v = (values || []).map(x => iqFin(x) ? x : null), pts = v.filter(x => x != null);
+    if (pts.length < 2) return;
+    const W = 120, H = 28, max = Math.max(...pts), min = Math.min(0, ...pts), n = v.length;
+    const x = i => n === 1 ? W / 2 : 2 + (W - 4) * i / (n - 1), y = val => H - 3 - (max > min ? (val - min) / (max - min) : 0.5) * (H - 6);
+    const svg = el("svg:svg", { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: "none", class: "spark", "aria-hidden": "true", focusable: "false" }, parent);
+    let d = "", pen = false;
+    v.forEach((val, i) => { if (val == null) { pen = false; return; } d += `${pen ? "L" : "M"}${x(i).toFixed(1)},${y(val).toFixed(1)}`; pen = true; });
+    el("svg:path", { d, class: "sp-l" }, svg);
+    const li = v.map((q, i) => q == null ? -1 : i).filter(i => i >= 0).pop();
+    el("svg:circle", { cx: x(li), cy: y(v[li]), r: 2.5, class: "sp-d" }, svg);
+    parent.setAttribute("data-spark", name || "");
+  }
+  function renderKpis(A, r) {
+    const kp = $("#kpis"); kp.replaceChildren();
+    const vs = r.compare === "week" ? "สัปดาห์ก่อน" : r.days === 1 ? "เมื่อวาน" : `${r.days} วันก่อนหน้า`;
+    A.kpis.forEach(k => {
+      const mod = MODULES.find(m => m.id === k.id);
+      const a = el("a", { class: "kpi", href: mod ? mod.href : "#funnel" }, kp);
+      el("div", { class: "k" }, a, k.label);
+      const row = el("div", { class: "kv" }, a);
+      el("div", { class: "v" }, row, fmtVal(k.value, k.fmt));
+      if (k.spark) sparkline(row, k.spark, k.label);
+      if (k.delta != null && iqFin(k.delta)) {
+        const up = k.delta >= 0, sure = k.test ? k.test.short : "";
+        const d = el("div", { class: "d" + (k.test && (k.test.level === "strong" || k.test.level === "moderate") ? (up ? " up" : " dn") : "") }, a);
+        el("span", { "aria-hidden": "true" }, d, up ? "▲ " : "▼ ");
+        d.append(`${up ? "เพิ่ม" : "ลด"} ${Math.abs(Math.round(k.delta * 100))}% เทียบ ${vs}`);
+        if (sure) el("span", { class: "conf" }, d, " · " + sure);
+      } else if (k.test && k.test.level === "insufficient") el("div", { class: "d" }, a, "เทียบช่วงก่อน: ข้อมูลยังน้อย");
+      if (k.ci) el("div", { class: "ci" }, a, k.ci.text);
+      el("div", { class: "s" }, a, k.sub);
+    });
+  }
+
+  // ---------- funnel ----------
+  function renderFunnel(D, r, A) {
     const F = iqFunnel(D, r), box = $("#funnelBody"); box.replaceChildren();
-    $("#funnel").hidden = F.count === 0;
+    const SF = A.storeFunnel;
+    $("#funnel").hidden = F.count === 0 && !SF;
+    const sb = $("#storeFunnel"); sb.replaceChildren();
+    if (SF) {
+      el("h3", { class: "sub-h" }, sb, "เส้นทางในร้าน");
+      const max = Math.max(...SF.steps.map(s => s.value || 0), 1);
+      const list = el("ol", { class: "sfn" }, sb);
+      SF.steps.forEach(s => {
+        const li = el("li", { class: "fn-row" + (s.value == null ? " none" : "") }, list);
+        const head = el("div", { class: "fn-h" }, li); el("b", {}, head, s.label);
+        if (s.value == null) { el("div", { class: "fn-miss" }, li, s.note); return; }
+        const line = el("div", { class: "fn-line" }, li), tr = el("div", { class: "fn-t" }, line), bar = el("div", { class: "fn-b" }, tr);
+        bar.style.width = Math.max(1, s.value / max * 100) + "%";
+        el("div", { class: "fn-v" }, line, nf(s.value));
+        el("div", { class: "fn-s" }, li, [s.note, s.rate != null ? (s.overcount ? `${(s.rate * 100).toFixed(0)}% ของขั้นก่อน (นับซ้ำได้ จึงไม่คิดช่วงความเชื่อมั่น)` : `${(s.rate * 100).toFixed(1)}% ของขั้นก่อนหน้า${s.ci ? ` (95%: ${(s.ci.lo * 100).toFixed(1)}–${(s.ci.hi * 100).toFixed(1)}%)` : ""}`) : ""].filter(Boolean).join(" · "));
+      });
+      if (SF.overall != null) el("p", { class: "note" }, sb, `จากคนเข้าร้านถึงบิลขาย ${(SF.overall * 100).toFixed(1)}% · บิลกับคนเข้าร้านนับจากคนละระบบ จึงเป็นค่าประมาณ`);
+    }
+    $("#funnelNote").textContent = "";
     if (!F.count) return;
+    if (SF) el("h3", { class: "sub-h" }, box, "เส้นทางลูกค้า (บูธ / ป้าย / การขาย)");
     const max = Math.max(...F.steps.map(s => s.value || 0), 1);
     F.steps.forEach((s, i) => {
       const row = el("div", { class: "fn-row" + (s.src ? "" : " none") }, box);
@@ -884,12 +1603,272 @@ if (typeof document !== "undefined") (() => {
       const tr = el("div", { class: "fn-t" }, line), bar = el("div", { class: "fn-b s1" }, tr);
       bar.style.width = Math.max(1, s.value / max * 100) + "%";
       el("div", { class: "fn-v" }, line, nf(s.value));
-      el("div", { class: "fn-s" }, row, [s.src.note, s.ofPrev != null ? `${Math.round(s.ofPrev * 100)}% ของขั้นก่อนหน้า` : s.crossSource ? "คนละระบบกับขั้นก่อนหน้า จึงไม่คิดอัตรา" : ""].filter(Boolean).join(" · "));
+      const prev = F.steps[i - 1], w = s.ofPrev != null && prev && s.value <= prev.value ? LQStats.wilson(s.value, prev.value) : null;
+      el("div", { class: "fn-s" }, row, [s.src.note, s.ofPrev != null ? `${Math.round(s.ofPrev * 100)}% ของขั้นก่อนหน้า${w ? ` (95%: ${Math.round(w.lo * 100)}–${Math.round(w.hi * 100)}%)` : ""}` : s.crossSource ? "คนละระบบกับขั้นก่อนหน้า จึงไม่คิดอัตรา" : ""].filter(Boolean).join(" · "));
     });
     $("#funnelNote").textContent = F.mixed ? "ขั้นตอนมาจากคนละระบบ ใช้ดูภาพรวมเท่านั้น ไม่ได้ติดตามคนคนเดียวกันข้ามระบบ" : "ทุกขั้นมาจากระบบเดียวกัน";
   }
 
-  function renderModules(D, r) {
+  // ---------- ฮีตแมป วัน × ชั่วโมง ----------
+  const WD_ORDER = [1, 2, 3, 4, 5, 6, 0], WD_SHORT = ["อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส."];
+  function renderHeat(A) {
+    const card = $("#heatCard"), box = $("#heatChart"), H = A.heat;
+    card.hidden = !H;
+    if (!H) return;
+    $("#heatSub").textContent = `${H.src === "store" ? "คนเข้าร้าน" : "บิลขาย"}เฉลี่ยต่อชั่วโมง · ${dayLabel(H.from)} – ${dayLabel(H.to)} (${H.nDays} วัน)${H.short ? " · ข้อมูลยังน้อย" : ""}`;
+    const bins = [0, 0.15, 0.3, 0.5, 0.7, 0.85].map(f => f * H.max), bin = v => v == null ? -1 : v <= 0 ? 0 : Math.max(0, bins.filter(b => v > b).length - 1);
+    const hours = []; for (let h = H.lo; h <= H.hi; h++) hours.push(h);
+    responsive(box, W => {
+      box.replaceChildren();
+      const L = 34, T = 18, B = 4, cw = (W - L) / hours.length, ch = Math.max(20, Math.min(30, cw * 1.1)), Ht = T + ch * 7 + B;
+      const svg = el("svg:svg", { viewBox: `0 0 ${W} ${Ht}`, width: W, height: Ht, class: "iq-svg heat", role: "img", tabindex: 0, "aria-label": `ฮีตแมปวันในสัปดาห์กับชั่วโมง ค่าสูงสุดวัน${IQ_WD[H.top[0].wd]} ${iqPad(H.top[0].h)}:00 เฉลี่ย ${H.top[0].v.toFixed(1)} (ใช้ลูกศรเพื่ออ่านทีละช่อง ดูตัวเลขทั้งหมดในตาราง)` }, box);
+      const every = Math.max(1, Math.ceil(28 / cw));
+      hours.forEach((h, j) => { if (j % every === 0) el("svg:text", { x: L + cw * j + cw / 2, y: 12, "text-anchor": "middle", class: "tick" }, svg, iqPad(h)); });
+      const cells = [];
+      WD_ORDER.forEach((wd, ri) => {
+        el("svg:text", { x: L - 6, y: T + ch * ri + ch / 2 + 4, "text-anchor": "end", class: "tick" }, svg, WD_SHORT[wd]);
+        hours.forEach((h, j) => {
+          const v = H.grid[wd][h], b = bin(v);
+          const c = el("svg:rect", { x: L + cw * j + 1, y: T + ch * ri + 1, width: Math.max(1, cw - 2), height: ch - 2, rx: 3, class: "hc " + (b < 0 ? "hn" : "h" + b) }, svg);
+          cells.push({ c, wd, h, v, ri, j });
+        });
+      });
+      const ring = el("svg:rect", { class: "hring", visibility: "hidden", rx: 4, width: cw, height: ch }, svg);
+      let cur = -1;
+      const show = (k, cx, cy) => {
+        cur = k; const q = cells[k]; if (!q) return;
+        ring.setAttribute("x", L + cw * q.j); ring.setAttribute("y", T + ch * q.ri); ring.setAttribute("visibility", "visible");
+        const R = svg.getBoundingClientRect();
+        showTip(svg, `วัน${IQ_WD[q.wd]} ${iqPad(q.h)}:00–${iqPad(q.h)}:59`, [[H.src === "store" ? "คนเข้า/ชม. (เฉลี่ย)" : "บิล/ชม. (เฉลี่ย)", q.v == null ? "–" : q.v.toFixed(1), ""], [`จาก ${H.n[q.wd][q.h]} วัน`, ""]], cx ?? R.left + L + cw * q.j + cw / 2, cy ?? R.top + T + ch * q.ri);
+      };
+      const hit = e => { const R = svg.getBoundingClientRect(), x = e.clientX - R.left, y = e.clientY - R.top, j = Math.floor((x - L) / cw), ri = Math.floor((y - T) / ch); return j >= 0 && j < hours.length && ri >= 0 && ri < 7 ? ri * hours.length + j : -1; };
+      svg.addEventListener("pointermove", e => { const k = hit(e); if (k >= 0) show(k, e.clientX, e.clientY - 6); });
+      svg.addEventListener("pointerdown", e => { const k = hit(e); if (k >= 0) show(k, e.clientX, e.clientY - 6); });
+      svg.addEventListener("pointerleave", e => { if (e.pointerType === "mouse") { ring.setAttribute("visibility", "hidden"); hideTip(svg); } });
+      svg.addEventListener("keydown", e => {
+        const n = hours.length, mv = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: n, ArrowUp: -n }[e.key];
+        if (mv != null) { e.preventDefault(); show(Math.max(0, Math.min(cells.length - 1, (cur < 0 ? 0 : cur + mv)))); }
+        if (e.key === "Escape") { ring.setAttribute("visibility", "hidden"); hideTip(svg); }
+      });
+      svg.addEventListener("blur", () => { ring.setAttribute("visibility", "hidden"); hideTip(svg); });
+    });
+    const lg = $("#heatLegend"); lg.replaceChildren();
+    el("span", {}, lg, "น้อย");
+    for (let b = 0; b < 6; b++) el("i", { class: "hk h" + b, title: b === 5 ? `มากกว่า ${bins[5].toFixed(1)}` : `${bins[b].toFixed(1)}–${bins[b + 1].toFixed(1)}` }, lg);
+    el("span", {}, lg, "มาก");
+    const nl = el("span", { class: "hk-n" }, lg); el("i", { class: "hk hn" }, nl); nl.append("ไม่มีข้อมูล");
+    $("#heatTable").replaceChildren();
+    tableView($("#heatTable"), ["วัน", ...hours.map(h => iqPad(h))], WD_ORDER.map(wd => [IQ_WD[wd], ...hours.map(h => H.grid[wd][h] == null ? "–" : H.grid[wd][h].toFixed(1))]));
+  }
+
+  // ---------- พยากรณ์ + ค่าผิดปกติ ----------
+  function renderForecast(A) {
+    const card = $("#fcCard"), F = A.forecast, box = $("#fcChart");
+    card.hidden = !(F && F.fc);
+    if (card.hidden) return;
+    const hist = 28, ks = F.keys.slice(-hist), ys = F.y.slice(-hist), an = new Map(F.anomalies.map(a => [a.day, a]));
+    const labels = [...ks, ...F.fkeys].map(dayLabel), n = labels.length, h0 = ks.length;
+    $("#fcSub").textContent = `${F.name} · จริง ${ks.length} วันล่าสุด + คาดการณ์ 7 วัน · ${F.fc.method === "holt-winters" ? "Holt-Winters รายสัปดาห์" : F.fc.method === "seasonal-naive" ? "ใช้ค่าสัปดาห์ก่อน (ข้อมูลยังน้อย)" : "ค่าเฉลี่ย (ข้อมูลยังน้อย)"}`;
+    responsive(box, W => {
+      box.replaceChildren();
+      const narrow = W < 520, Hh = narrow ? 210 : 250, L = 40, R = 10, T = 12, B = 26;
+      const all = [...ys.filter(iqFin), ...F.fc.hi, ...F.fc.mean, F.todaySoFar || 0];
+      const ticks = niceTicks(Math.max(1, ...all)), max = ticks.at(-1);
+      const x = i => L + (W - L - R) * i / Math.max(1, n - 1), y = v => T + (1 - v / max) * (Hh - T - B);
+      const svg = el("svg:svg", { viewBox: `0 0 ${W} ${Hh}`, width: W, height: Hh, class: "iq-svg", role: "img", tabindex: 0, "aria-label": `${F.name} ${ks.length} วันล่าสุดและคาดการณ์ 7 วัน รวมคาดการณ์ ${nf(F.total.mean)} (${nf(F.total.lo)}–${nf(F.total.hi)}) วันผิดปกติ ${F.anomalies.length} วัน (ดูตัวเลขในตาราง)` }, box);
+      ticks.forEach(v => { el("svg:line", { x1: L, x2: W - R, y1: y(v), y2: y(v), class: v === 0 ? "base" : "grid" }, svg); el("svg:text", { x: L - 6, y: y(v) + 4, "text-anchor": "end", class: "tick" }, svg, compact(v)); });
+      const every = Math.max(1, Math.ceil(n / Math.max(2, Math.floor((W - L - R) / 58))));
+      labels.forEach((l, i) => { if ((n - 1 - i) % every === 0) el("svg:text", { x: x(i), y: Hh - 6, "text-anchor": i === n - 1 ? "end" : "middle", class: "tick" }, svg, l); });
+      // แถบพยากรณ์
+      el("svg:rect", { x: x(h0 - 1), y: T, width: x(n - 1) - x(h0 - 1), height: Hh - T - B, class: "fc-zone" }, svg);
+      const band = [...F.fc.hi.map((v, j) => `${x(h0 + j).toFixed(1)},${y(v).toFixed(1)}`), ...F.fc.lo.map((v, j) => `${x(h0 + j).toFixed(1)},${y(v).toFixed(1)}`).reverse()];
+      const lastY = ys[ys.length - 1];
+      if (iqFin(lastY)) { band.unshift(`${x(h0 - 1).toFixed(1)},${y(lastY).toFixed(1)}`); band.push(`${x(h0 - 1).toFixed(1)},${y(lastY).toFixed(1)}`); }
+      el("svg:path", { d: "M" + band.join("L") + "Z", class: "fc-band" }, svg);
+      let d = "", pen = false;
+      ys.forEach((v, i) => { if (!iqFin(v)) { pen = false; return; } d += `${pen ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`; pen = true; });
+      el("svg:path", { d, class: "line s1" }, svg);
+      const fd = (iqFin(lastY) ? `M${x(h0 - 1).toFixed(1)},${y(lastY).toFixed(1)}` : "") + F.fc.mean.map((v, j) => `${iqFin(lastY) || j ? "L" : "M"}${x(h0 + j).toFixed(1)},${y(v).toFixed(1)}`).join("");
+      el("svg:path", { d: fd, class: "line fc" }, svg);
+      if (F.todaySoFar != null) el("svg:circle", { cx: x(h0), cy: y(F.todaySoFar), r: 4, class: "dot-open" }, svg);
+      ks.forEach((k, i) => { if (an.has(k)) el("svg:circle", { cx: x(i), cy: y(ys[i]), r: 6.5, class: "anom" }, svg); });
+      const cross = el("svg:line", { y1: T, y2: Hh - B, class: "cross", visibility: "hidden" }, svg);
+      bindIndex(svg, n, x, i => {
+        cross.setAttribute("visibility", i < 0 ? "hidden" : "visible"); if (i < 0) return;
+        cross.setAttribute("x1", x(i)); cross.setAttribute("x2", x(i));
+        const rr = svg.getBoundingClientRect(), rows = [];
+        if (i < h0) { rows.push(["จริง", iqFin(ys[i]) ? nf(ys[i]) : "–", "s1"]); const a = an.get(ks[i]); if (a) rows.push([`ผิดปกติ (คาดไว้ ${nf(Math.max(0, a.expected))})`, a.dir === "up" ? "สูง" : "ต่ำ", ""]); }
+        else { const j = i - h0; rows.push(["คาดการณ์", nf(F.fc.mean[j]), "fc"], ["ช่วง 80%", `${nf(F.fc.lo[j])}–${nf(F.fc.hi[j])}`, ""]); if (j === 0 && F.todaySoFar != null) rows.push(["วันนี้ถึงตอนนี้", nf(F.todaySoFar), ""]); }
+        showTip(svg, labels[i], rows, rr.left + x(i), rr.top + T);
+      });
+    });
+    const T = F.total;
+    $("#fcNote").textContent = `รวม 7 วันข้างหน้าคาดว่า ${nf(T.mean)} ${F.unit} (ช่วง 80%: ${nf(T.lo)}–${nf(T.hi)}) · วงกลมสีส้ม = วันที่ผิดปกติ (${F.anomalies.length} วันในประวัติ)${F.enough ? "" : " · ข้อมูลยังน้อย ความแม่นยำต่ำ"}`;
+    $("#fcTable").replaceChildren();
+    tableView($("#fcTable"), ["วันที่", "จริง", "คาดการณ์", "ต่ำ (80%)", "สูง (80%)", "หมายเหตุ"], [
+      ...ks.map((k, i) => [dayLabel(k), iqFin(ys[i]) ? nf(ys[i]) : "–", "", "", "", an.has(k) ? `ผิดปกติ (คาดไว้ ${nf(Math.max(0, an.get(k).expected))})` : ""]),
+      ...F.fkeys.map((k, j) => [dayLabel(k), j === 0 && F.todaySoFar != null ? nf(F.todaySoFar) + " (ถึงตอนนี้)" : "", nf(F.fc.mean[j]), nf(F.fc.lo[j]), nf(F.fc.hi[j]), ""])]);
+  }
+
+  // ---------- ความสัมพันธ์ ----------
+  function scatter(parent, c) {
+    const [X, Y] = [[], []]; c.x.forEach((v, i) => { if (iqFin(v) && iqFin(c.y[i])) { X.push(v); Y.push(c.y[i]); } });
+    const W = 150, H = 104, L = 8, B = 8, T = 6, R = 6;
+    const x0 = Math.min(...X), x1 = Math.max(...X), y0 = Math.min(...Y), y1 = Math.max(...Y);
+    const sx = v => L + (x1 > x0 ? (v - x0) / (x1 - x0) : 0.5) * (W - L - R), sy = v => H - B - (y1 > y0 ? (v - y0) / (y1 - y0) : 0.5) * (H - T - B);
+    const svg = el("svg:svg", { viewBox: `0 0 ${W} ${H}`, class: "iq-svg sc", role: "img", "aria-label": `แผนภาพการกระจาย ${c.xName} กับ ${c.yName} ${c.n} จุด` }, parent);
+    el("svg:line", { x1: L, x2: W - R, y1: H - B, y2: H - B, class: "base" }, svg); el("svg:line", { x1: L, x2: L, y1: T, y2: H - B, class: "base" }, svg);
+    X.forEach((v, i) => el("svg:circle", { cx: sx(v), cy: sy(Y[i]), r: 3.5, class: "dot s1 sc-d" }, svg));
+    // เส้นแนวโน้ม (least squares)
+    const mx = iqMean(X), my = iqMean(Y); let sxy = 0, sxx = 0; X.forEach((v, i) => { sxy += (v - mx) * (Y[i] - my); sxx += (v - mx) ** 2; });
+    if (sxx > 0) { const b = sxy / sxx, a = my - b * mx; el("svg:line", { x1: sx(x0), x2: sx(x1), y1: sy(a + b * x0), y2: sy(a + b * x1), class: "sc-fit" }, svg); }
+  }
+  function renderCorr(A) {
+    const card = $("#corrCard"), box = $("#corrBody"); box.replaceChildren();
+    card.hidden = !A.corr.length;
+    A.corr.forEach(c => {
+      const row = el("div", { class: "corr" }, box);
+      if (c.x.length) scatter(el("div", { class: "corr-sc" }, row), c);
+      const t = el("div", { class: "corr-t" }, row);
+      el("h3", {}, t, `${c.xName} กับ ${c.yName}`);
+      const lv = c.enough ? LQStats.confLevel(c.p, true) : "insufficient";
+      el("p", { class: "corr-r" }, t, c.r == null ? "คำนวณไม่ได้ (ค่าไม่เปลี่ยนเลย)" : `${LQStats.corrWord(c.r)} · r = ${c.r.toFixed(2)}${c.lo != null ? ` (95%: ${c.lo.toFixed(2)} ถึง ${c.hi.toFixed(2)})` : ""} · ${c.n} จุด`);
+      el("p", { class: "corr-s" }, t, c.enough ? LQStats.TH_CONF[lv] : `ข้อมูลยังน้อย (${c.n} จุด ต้องมีอย่างน้อย 8)`);
+      el("p", { class: "corr-c" }, t, "ข้อควรระวัง: " + c.caution);
+    });
+  }
+
+  // ---------- A/B ----------
+  function ciRows(parent, groups, { pct = true, name }) {
+    const list = el("div", { class: "ab", role: "list", "aria-label": name }, parent);
+    const hi = Math.min(1, Math.max(...groups.map(g => (g.ci.hi ?? g.ci.mean ?? g.ci.p) || 0)) * 1.05 || 1);
+    groups.forEach(g => {
+      const m = g.ci.p ?? g.ci.mean, lo = g.ci.lo ?? m, up = g.ci.hi ?? m;
+      const row = el("div", { class: "ab-row" + (g.enough ? "" : " few"), role: "listitem", tabindex: 0 }, list);
+      el("div", { class: "ab-l" }, row, g.name);
+      const tr = el("div", { class: "ab-t" }, row);
+      const wk = el("i", { class: "ab-w" }, tr); wk.style.left = (Math.max(0, lo) / hi * 100) + "%"; wk.style.width = Math.max(0.5, (Math.min(hi, up) - Math.max(0, lo)) / hi * 100) + "%";
+      const dot = el("i", { class: "ab-d" }, tr); dot.style.left = (m / hi * 100) + "%";
+      el("div", { class: "ab-v" }, row, `${pct ? Math.round(m * 100) + "%" : m.toFixed(2)}${g.enough ? "" : " *"}`);
+      const tipRows = [[name, pct ? (m * 100).toFixed(1) + "%" : m.toFixed(2), "s1"], ["ช่วง 95%", g.ci.lo == null ? "–" : `${(lo * 100).toFixed(1)}–${(up * 100).toFixed(1)}%`, ""], [g.n != null ? `จาก ${nf(g.n)} ${g.x != null ? "คนผ่านจอ" : "ครั้ง"}` : "", ""]];
+      const show = e => { const b = row.getBoundingClientRect(); showTip(row, g.name, tipRows, e?.clientX ?? b.left + b.width / 2, b.top); };
+      row.addEventListener("pointerenter", show); row.addEventListener("pointerdown", show); row.addEventListener("focus", () => show());
+      row.addEventListener("pointerleave", e => { if (e.pointerType === "mouse") hideTip(row); }); row.addEventListener("blur", () => hideTip(row));
+    });
+  }
+  function renderAB(A) {
+    const card = $("#abCard"), box = $("#abBody"); box.replaceChildren();
+    card.hidden = !A.ab.sg && !A.ab.neuro;
+    const block = (title, ab, opts, verdict) => {
+      el("h3", { class: "sub-h" }, box, title);
+      ciRows(box, ab.groups, opts);
+      el("p", { class: "note" }, box, verdict);
+    };
+    if (A.ab.sg) {
+      const ab = A.ab.sg, t = ab.spread || ab.test;
+      block("ป้ายโฆษณา: อัตรามองจอต่อโฆษณา", ab, { pct: true, name: "อัตรามอง" }, ab.enough && t ? `ดีที่สุด “${ab.best.name}” ต่างจากต่ำสุด ${(t.diff * 100).toFixed(1)} จุด (95%: ${(t.lo * 100).toFixed(1)} ถึง ${(t.hi * 100).toFixed(1)}) · ${LQStats.TH_CONF_SHORT[LQStats.confLevel(t.p, true)]} · เส้นแนวนอน = ช่วงความเชื่อมั่น 95% (Wilson)` : "ข้อมูลยังน้อย — ต้องมีคนผ่านจออย่างน้อย 30 คนต่อโฆษณา");
+    }
+    if (A.ab.neuro) {
+      const ab = A.ab.neuro, t = ab.spread || ab.test;
+      block("วิเคราะห์อารมณ์: สัดส่วนอารมณ์บวกต่อสื่อ", ab, { pct: true, name: "อารมณ์บวกเฉลี่ย" }, ab.enough && t ? `ดีที่สุด “${ab.best.name}” ต่างจากต่ำสุด ${(t.diff * 100).toFixed(1)} จุด (95%: ${(t.lo * 100).toFixed(1)} ถึง ${(t.hi * 100).toFixed(1)}, Welch t) · ${LQStats.TH_CONF_SHORT[LQStats.confLevel(t.p, true)]} · * = ผู้ทดสอบไม่ถึง 3 คน` : "ข้อมูลยังน้อย — ควรมีผู้ทดสอบอย่างน้อย 3 คนต่อสื่อ (* = ยังไม่ถึง)");
+    }
+  }
+
+  // ---------- แยกกล้อง/เครื่อง ----------
+  function renderCams(A) {
+    const card = $("#camCard"), box = $("#camBody"); box.replaceChildren();
+    card.hidden = A.cams.length < 2;
+    if (card.hidden) return;
+    const t = el("table", { class: "cams" }, el("div", { class: "tw" }, box)), hr = el("tr", {}, el("thead", {}, t));
+    ["จุดนับ", "คนเข้า", "สัดส่วน", "เทียบช่วงก่อน", "แนวโน้ม"].forEach((h, i) => el("th", { class: i && i < 4 ? "n" : "", scope: "col" }, hr, h));
+    const tb = el("tbody", {}, t);
+    A.cams.forEach(c => {
+      const tr = el("tr", {}, tb);
+      const nm = el("th", { scope: "row" }, tr, c.name); if (c.node) el("span", { class: "tag" }, nm, "เครื่องลูก");
+      el("td", { class: "n" }, tr, nf(c.in));
+      const sh = el("td", { class: "n" }, tr); const bar = el("span", { class: "share" }, sh); el("i", {}, bar).style.width = ((c.share || 0) * 100) + "%"; sh.append(c.share == null ? "–" : Math.round(c.share * 100) + "%");
+      el("td", { class: "n" }, tr, c.test && iqFin(c.test.change) ? `${c.test.change >= 0 ? "▲" : "▼"} ${Math.abs(Math.round(c.test.change * 100))}% · ${LQStats.TH_CONF_SHORT[c.test.level]}` : "–");
+      const sp = el("td", { class: "spk" }, tr); sparkline(sp, c.spark, c.name);
+    });
+    $("#camNote").textContent = "เทียบเป็นค่าต่อวันที่มีข้อมูล (exact Poisson test) · จุดที่เป็นเครื่องลูกส่งเฉพาะตัวเลขสรุปมาที่เครื่องหลัก";
+  }
+
+  // ---------- ลูกค้ากลับมาซ้ำ ----------
+  function renderCohort(A) {
+    const card = $("#cohortCard"), box = $("#cohortBody"); box.replaceChildren();
+    const C = A.cohort;
+    card.hidden = !C && !A.boothReturn;
+    if (card.hidden) return;
+    if (C) {
+      el("p", { class: "big" }, box, `${Math.round((C.repeatRate || 0) * 100)}% ของลูกค้าที่จดจำได้กลับมาซื้อมากกว่า 1 สัปดาห์`);
+      el("p", { class: "muted" }, box, `${nf(C.repeat)} จาก ${nf(C.customers)} คน · 95%: ${C.repeatCI ? `${Math.round(C.repeatCI.lo * 100)}–${Math.round(C.repeatCI.hi * 100)}%` : "–"}${C.customers < 10 ? " · ข้อมูลยังน้อย" : ""}`);
+      const maxAge = Math.min(6, Math.max(...C.rows.map(r => r.retention.length)) - 1);
+      const t = el("table", { class: "cohort" }, el("div", { class: "tw" }, box)), hr = el("tr", {}, el("thead", {}, t));
+      el("th", { scope: "col" }, hr, "สัปดาห์ที่เริ่ม"); el("th", { scope: "col", class: "n" }, hr, "คน");
+      for (let k = 1; k <= maxAge; k++) el("th", { scope: "col", class: "n" }, hr, "+" + k);
+      const tb = el("tbody", {}, t);
+      C.rows.forEach(r => {
+        const tr = el("tr", {}, tb); el("th", { scope: "row" }, tr, dayLabel(iqAddDays(C.start, r.period * 7))); el("td", { class: "n" }, tr, nf(r.size));
+        for (let k = 1; k <= maxAge; k++) { const v = r.retention[k]; const td = el("td", { class: "n rc" + (v == null ? "" : " h" + Math.min(5, Math.floor(v * 6))) }, tr, v == null ? "" : Math.round(v * 100) + "%"); if (v != null) td.title = `${Math.round(v * r.size)} จาก ${r.size} คน`; }
+      });
+      el("p", { class: "note" }, box, "แต่ละแถว = ลูกค้าที่ซื้อครั้งแรกในสัปดาห์นั้น · +1 = สัดส่วนที่กลับมาซื้อในสัปดาห์ถัดไป · นับเฉพาะลูกค้าที่ยินยอมให้จดจำ");
+    }
+    if (A.boothReturn && A.boothReturn.n) el("p", { class: "muted" }, box, `บูธ: ผู้เข้าชมที่กลับมาซ้ำในงานเดียวกัน ${Math.round(A.boothReturn.p * 100)}% (95%: ${Math.round(A.boothReturn.lo * 100)}–${Math.round(A.boothReturn.hi * 100)}%) จาก ${nf(A.boothReturn.n)} คน`);
+  }
+
+  // ---------- เป้าหมาย ----------
+  function renderGoals(A) {
+    const box = $("#goalBody"); box.replaceChildren();
+    const G = A.goals;
+    if (!G.length) el("p", { class: "nodata" }, box, "ยังไม่ได้ตั้งเป้า — กรอกเป้าด้านล่างแล้วกดบันทึก");
+    G.forEach(g => {
+      const f = v => v == null ? "–" : g.fmt === "pct" ? (v * 100).toFixed(1) + "%" : g.fmt === "baht" ? baht(v) : nf(v);
+      const row = el("div", { class: "goal" + (g.met ? " met" : "") }, box);
+      const h = el("div", { class: "goal-h" }, row); el("b", {}, h, g.label); el("span", {}, h, `${f(g.actual)} / ${f(g.target)}`);
+      const pr = el("div", { class: "goal-t", role: "progressbar", "aria-valuemin": 0, "aria-valuemax": 100, "aria-valuenow": Math.round(Math.min(1, g.progress || 0) * 100), "aria-label": g.label }, row);
+      el("i", {}, pr).style.width = Math.min(100, (g.progress || 0) * 100) + "%";
+      el("div", { class: "goal-s" }, row, g.actual == null ? "ไม่มีข้อมูลในช่วงนี้" : g.met ? "✓ ถึงเป้าแล้ว" : `ได้ ${Math.round((g.progress || 0) * 100)}% ของเป้า`);
+    });
+    const cur = loadJson(GOALS_KEY, {}), form = $("#goalForm");
+    if (!form.dataset.built) {
+      form.dataset.built = "1";
+      IQ_GOAL_DEFS.forEach(g => { const l = el("label", {}, form.querySelector(".fields")); el("span", {}, l, `${g.label} (${g.unit})`); el("input", { type: "number", min: 0, step: "any", inputmode: "decimal", name: g.id }, l); });
+    }
+    IQ_GOAL_DEFS.forEach(g => { const i = form.elements[g.id]; if (document.activeElement !== i) i.value = cur[g.id] ?? ""; });
+    $("#goalNote").textContent = (A.r.from === A.today && A.r.to === A.today ? "ช่วง “วันนี้” เทียบยอดถึงตอนนี้ (วันยังไม่จบ)" : "ค่าต่อวันเทียบกับค่าเฉลี่ยของวันที่จบแล้วในช่วงที่เลือก") + " · เก็บในเบราว์เซอร์นี้ (iq-goals)";
+  }
+
+  // ---------- กฎแจ้งเตือน ----------
+  function renderAlertRules(D) {
+    const R = iqAlertRules(loadJson(ALERTS_KEY, {})), form = $("#alertForm");
+    const defs = [["occMax", `คนในร้านพร้อมกันเกิน (คน)${D.stCfg && D.stCfg.maxOcc ? ` · ว่าง = ใช้ค่าหน้าร้าน ${D.stCfg.maxOcc}` : ""}`], ["queueWaitMin", "เวลารอคิวเกิน (นาที)"], ["convDropPct", "อัตราซื้อลดลงจากสัปดาห์ก่อนเกิน (%)"], ["qcYieldMin", "อัตราผ่าน QC ต่ำกว่า (%)"]];
+    if (!form.dataset.built) {
+      form.dataset.built = "1";
+      const fs = form.querySelector(".fields");
+      defs.forEach(([k, label]) => { const l = el("label", {}, fs); el("span", { "data-k": k }, l, label); el("input", { type: "number", min: 0, step: "any", inputmode: "decimal", name: k, placeholder: "ปิด" }, l); });
+      const l = el("label", { class: "chk" }, fs); el("input", { type: "checkbox", name: "notify" }, l); el("span", {}, l, "แจ้งเตือนผ่านเบราว์เซอร์ด้วย (เมื่อเปิดหน้านี้)");
+    }
+    defs.forEach(([k, label]) => { form.querySelector(`[data-k="${k}"]`).textContent = label; const i = form.elements[k]; if (document.activeElement !== i) i.value = R[k] ?? ""; });
+    form.elements.notify.checked = R.notify;
+    const perm = typeof Notification === "undefined" ? "unsupported" : Notification.permission;
+    $("#notifyPerm").hidden = perm !== "default" || !R.notify;
+    $("#alertNote").textContent = perm === "unsupported" ? "เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือน จะแสดงเฉพาะบนหน้านี้" : perm === "denied" ? "เบราว์เซอร์ปิดการแจ้งเตือนของเว็บนี้ไว้ จะแสดงเฉพาะบนหน้านี้" : "ตรวจทุกครั้งที่เปิดหรือข้อมูลเปลี่ยน · ช่องว่าง = ปิดกฎนั้น";
+  }
+
+  // ---------- รายระบบ + เจาะลึก ----------
+  function drill(card, x) {
+    const d = el("details", { class: "drill" }, card);
+    el("summary", {}, d, "เจาะลึกสถิติ");
+    const s = x.desc, f = v => v == null ? "–" : x.unit === "บาท" ? baht(v) : nf(v);
+    el("p", { class: "cap" }, d, `${x.name} · ${dayLabel(x.from)} – ${dayLabel(x.to)}`);
+    const dl = el("dl", { class: "mod-s six" }, d);
+    [["วันที่มีข้อมูล", nf(s.n)], ["เฉลี่ย", f(s.mean)], ["มัธยฐาน", f(s.median)], ["ส่วนเบี่ยงเบน", f(s.sd)], [`ต่ำสุด${x.minDay ? " (" + dayLabel(x.minDay) + ")" : ""}`, f(s.min)], [`สูงสุด${x.maxDay ? " (" + dayLabel(x.maxDay) + ")" : ""}`, f(s.max)]].forEach(([k, v]) => { const q = el("div", {}, dl); el("dt", {}, q, k); el("dd", {}, q, v); });
+    if (s.cv != null) el("p", { class: "cap" }, d, `ความผันผวน (CV) ${(s.cv * 100).toFixed(0)}% — ${s.cv < 0.15 ? "ค่อนข้างคงที่" : s.cv < 0.35 ? "ผันผวนปานกลาง" : "ผันผวนมาก ควรดูเป็นค่าเฉลี่ยหลายวัน"}`);
+    const wd = WD_ORDER.map(w => ({ label: "วัน" + IQ_WD[w], value: x.weekday[w] })).filter(r => r.value != null);
+    if (wd.length >= 2) { el("p", { class: "cap" }, d, "ค่าเฉลี่ยตามวันในสัปดาห์"); hbars(el("div", { class: "mini" }, d), wd, x.unit === "บาท" ? "baht" : "int", "เฉลี่ย"); }
+    el("p", { class: "cap" }, d, x.anomalies.length ? "วันที่ผิดปกติ: " + x.anomalies.map(a => `${dayLabel(a.day)} ${f(a.value)} (คาดไว้ ${f(Math.max(0, a.expected))})`).join(" · ") : s.n >= 14 ? "ไม่พบวันที่ผิดปกติในช่วงนี้" : "ต้องมีอย่างน้อย 14 วันจึงหาค่าผิดปกติได้");
+  }
+  function renderModules(D, r, A) {
     const M = iqMetrics(D, r), grid = $("#modules"); grid.replaceChildren();
     const B = iqBuckets(r);
     const timeChart = (box, metric, name, fmt) => {
@@ -907,7 +1886,7 @@ if (typeof document !== "undefined") (() => {
     const order = MODULES.slice().sort((a, b) => (has(b) - has(a)));
     function has(m) { return m.id === "photo" ? 0 : D[m.id] ? 1 : 0; }
     order.forEach(m => {
-      const card = el("section", { class: "mod" + (has(m) ? "" : " off"), "aria-labelledby": "m-" + m.id }, grid);
+      const card = el("section", { class: "mod" + (has(m) ? "" : " off"), id: "mod-" + m.id, "aria-labelledby": "m-" + m.id }, grid);
       const head = el("div", { class: "mod-h" }, card);
       el("h3", { id: "m-" + m.id }, head, m.name);
       el("a", { class: "open", href: m.href }, head, "เปิดระบบ →");
@@ -932,7 +1911,28 @@ if (typeof document !== "undefined") (() => {
       if (m.id === "att") { const x = M.att; st("ผู้เช็คชื่อ", nf(x.checkins)); st("รอบ", nf(x.sessions)); el("p", { class: "cap" }, body, "จำนวนผู้เช็คชื่อต่อรอบ"); barChart(body, "att", "int", "ผู้เช็คชื่อ"); }
       if (m.id === "qc") { const x = M.qc; st("ตรวจ", nf(x.total)); st("ผ่าน", x.yield == null ? "–" : (x.yield * 100).toFixed(1) + "%"); st("คัดทิ้ง", nf(x.reject)); el("p", { class: "cap" }, body, "สาเหตุที่คัดทิ้ง"); barChart(body, "qc", "int", "ขวดที่คัดทิ้ง"); }
       if (m.id === "dr") { const x = M.dr; st("เที่ยววิ่ง", nf(x.trips)); st("ชั่วโมงขับ", x.hours.toFixed(1)); st("คะแนนเฉลี่ย", x.safety == null ? "–" : Math.round(x.safety) + "/100"); el("p", { class: "cap" }, body, "เหตุการณ์แยกตามประเภท"); barChart(body, "dr", "int", "เหตุการณ์"); }
+      if (A.drill[m.id]) drill(card, A.drill[m.id]);
     });
+  }
+
+  // ---------- รายงานพิมพ์ได้ ----------
+  function buildReport(kind = "week") {
+    const { D, A, cards } = analyze(kind === "day" ? "today" : "d7", { compare: kind === "day" ? "week" : "prev" });
+    const R = iqReport(D, A, cards, kind), box = $("#report"); box.replaceChildren();
+    el("h1", {}, box, `LENSIQ · ${R.title}`);
+    el("p", { class: "rp-meta" }, box, `ช่วง ${dayLabel(R.from)}${R.from !== R.to ? " – " + dayLabel(R.to) : ""} · สร้างเมื่อ ${new Date(R.generatedAt).toLocaleString("th-TH")} · ข้อมูลจากเบราว์เซอร์เครื่องนี้`);
+    el("h2", {}, box, "ตัวเลขสำคัญ");
+    const t = el("table", {}, box), hr = el("tr", {}, el("thead", {}, t));
+    ["ตัวชี้วัด", "ค่า", "เทียบช่วงก่อน", "ความมั่นใจ / ช่วง 95%"].forEach(h => el("th", {}, hr, h));
+    const tb = el("tbody", {}, t);
+    R.kpis.forEach(k => { const tr = el("tr", {}, tb); el("td", {}, tr, k.label); el("td", {}, tr, fmtVal(k.value, k.fmt)); el("td", {}, tr, iqFin(k.delta) ? `${k.delta >= 0 ? "+" : "−"}${Math.abs(Math.round(k.delta * 100))}%` : "–"); el("td", {}, tr, [k.sure, k.ci].filter(Boolean).join(" · ") || "–"); });
+    if (R.alerts.length) { el("h2", {}, box, "การแจ้งเตือน"); const ul = el("ul", {}, box); R.alerts.forEach(a => el("li", {}, ul, `${a.title}: ${a.text}`)); }
+    el("h2", {}, box, "สรุปผลอัตโนมัติ");
+    R.insights.forEach(c => { const s = el("section", { class: "rp-ins" }, box); el("h3", {}, s, c.title); el("p", {}, s, c.body); el("p", { class: "rp-sure" }, s, "ความมั่นใจ: " + c.sure); if (c.why.length) el("p", {}, s, "เหตุผลที่เป็นไปได้: " + c.why.join(" · ")); el("p", {}, s, "ควรทำ: " + c.action); });
+    if (R.forecast) { el("h2", {}, box, "คาดการณ์ 7 วันข้างหน้า"); el("p", {}, box, `${R.forecast.name} ราว ${nf(R.forecast.mean)} ${R.forecast.unit} (ช่วง 80%: ${nf(R.forecast.lo)}–${nf(R.forecast.hi)})`); }
+    if (R.goals.length) { el("h2", {}, box, "เป้าหมาย"); const ul = el("ul", {}, box); R.goals.forEach(g => el("li", {}, ul, `${g.label}: ${g.actual == null ? "ไม่มีข้อมูล" : g.met ? "ถึงเป้า" : `ได้ ${Math.round(g.progress * 100)}% ของเป้า`}`)); }
+    el("p", { class: "rp-foot" }, box, "ความมั่นใจคำนวณจากการทดสอบทางสถิติ (Poisson exact test, Wilson, Welch t) · ความสัมพันธ์ไม่ใช่หลักฐานของเหตุและผล");
+    return R;
   }
 
   function renderEmptyList() {
@@ -987,8 +1987,21 @@ if (typeof document !== "undefined") (() => {
   document.querySelector(".range").addEventListener("click", e => {
     const b = e.target.closest("button[data-p]"); if (!b) return;
     preset = b.dataset.p; try { localStorage.setItem(RANGE_KEY, preset); } catch {}
+    if (preset === "custom" && !loadJson(CUSTOM_KEY, null)) saveJson(CUSTOM_KEY, { from: iqAddDays(iqDay(), -13), to: iqDay() });
     hideTip(); render();
   });
+  $("#compare").addEventListener("change", e => { compare = e.target.value; try { localStorage.setItem(COMPARE_KEY, compare); } catch {} hideTip(); render(); });
+  const onCustom = () => { const f = $("#cFrom").value, t = $("#cTo").value; if (f && t) { saveJson(CUSTOM_KEY, { from: f, to: t }); hideTip(); render(); } };
+  $("#cFrom").addEventListener("change", onCustom); $("#cTo").addEventListener("change", onCustom);
+  $("#insightMore").onclick = () => { showAll = !showAll; renderInsights(last.cards); };
+  const numForm = (form, keys) => { const o = {}; keys.forEach(k => { const v = form.elements[k].value.trim(); o[k] = v === "" ? null : Math.max(0, +v); }); return o; };
+  $("#goalForm").addEventListener("submit", e => { e.preventDefault(); const o = numForm(e.target, IQ_GOAL_DEFS.map(g => g.id)); Object.keys(o).forEach(k => { if (o[k] == null || !(o[k] > 0)) delete o[k]; }); saveJson(GOALS_KEY, o); $("#goalMsg").textContent = Object.keys(o).length ? `บันทึกเป้าแล้ว ${Object.keys(o).length} รายการ` : "ล้างเป้าทั้งหมดแล้ว"; render(); });
+  $("#alertForm").addEventListener("submit", e => { e.preventDefault(); const o = numForm(e.target, ["occMax", "queueWaitMin", "convDropPct", "qcYieldMin"]); o.notify = e.target.elements.notify.checked; saveJson(ALERTS_KEY, o); $("#alertMsg").textContent = "บันทึกกฎแจ้งเตือนแล้ว"; render(); });
+  $("#notifyPerm").onclick = async () => { try { await Notification.requestPermission(); } catch {} render(); };
+  const doReport = kind => { buildReport(kind); document.body.classList.add("printing"); setTimeout(() => { try { print(); } finally { document.body.classList.remove("printing"); } }, 50); };
+  $("#reportDay").onclick = () => doReport("day"); $("#reportWeek").onclick = () => doReport("week");
+  $("#exportAnalysis").onclick = () => { const { D, A, cards } = last; download(`lensiq-analysis-${A.r.from}_${A.r.to}.json`, JSON.stringify(iqAnalysisJson(D, A, cards), null, 1), "application/json"); $("#reportMsg").textContent = "ส่งออกผลวิเคราะห์ (JSON) แล้ว — มีเฉพาะตัวเลขสรุป ไม่มีชื่อลูกค้า"; };
+  $("#exportDaily").onclick = () => { const { A } = last; download(`lensiq-daily-${A.r.from}_${A.r.to}.csv`, iqAnalysisCsv(A), "text/csv;charset=utf-8"); $("#reportMsg").textContent = "ส่งออกตารางรายวันพร้อมพยากรณ์ (CSV) แล้ว"; };
 
   $("#exportJson").onclick = async () => {
     let idb = {};
@@ -998,7 +2011,7 @@ if (typeof document !== "undefined") (() => {
     msg(`ส่งออกแล้ว ${Object.keys(b.localStorage).length} รายการ${idb["co-checkout"] ? " พร้อมสินค้าและตัวอย่างที่สอนของระบบสแกนสินค้า" : ""}`, "ok");
   };
   $("#exportCsv").onclick = () => {
-    const D = iqCollect(snapshot()), r = iqRange(preset, Date.now(), D);
+    const D = iqCollect(snapshot()), r = iqRange(preset, Date.now(), D, rangeOpt());
     download(`lensiq-summary-${r.from}_${r.to}.csv`, iqCsv(D, r), "text/csv;charset=utf-8");
     msg("ส่งออก CSV สรุปตามช่วงเวลาที่เลือกแล้ว", "ok");
   };

@@ -23,7 +23,7 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(await page.evaluate(() => window.__gum) === 0, "getUserMedia called before click");
       assert(await page.evaluate(() => !__booth.camera.active), "camera inactive before click");
       await page.evaluate(() => document.getElementById("camStart").click());
-      await page.waitFor(`__booth.camera.active && document.getElementById("video").videoWidth > 0`, 5000);
+      await page.waitFor(`__booth.camera.active && __booth.cams.length && __booth.cams[0].video.videoWidth > 0`, 5000);
       assert(await page.evaluate(() => window.__gum) >= 1, "getUserMedia after click");
       assert(await page.evaluate(() => document.getElementById("camStart").textContent) === "ปิดกล้อง", "button flips to ปิดกล้อง");
       assert(!page.consoleErrors.length, "console errors: " + JSON.stringify(page.consoleErrors.slice(0, 3)));
@@ -51,7 +51,7 @@ export default async function ({ base, launch, check, fakeCams }) {
     });
 
     await check("clicking a box on the overlay marks that visitor as joined", async () => {
-      await page.evaluate(() => { document.getElementById("activity").value = "ทดลองแตะ"; document.getElementById("overlay").scrollIntoView({ block: "center" }); });
+      await page.evaluate(() => { document.getElementById("activity").value = "ทดลองแตะ"; __booth.overlay.scrollIntoView({ block: "center" }); });
       let done = false;
       for (let attempt = 0; attempt < 5 && !done; attempt++) {
         const pt = await page.waitFor(`(() => { const f = __booth.lastFrame.find(r => r.id); if (!f) return null; const o = __booth.overlay.getBoundingClientRect(); let cx = f.box.x + f.box.w / 2; if (__booth.camera.mirrored) cx = 1 - cx; return { id: f.id, x: o.left + cx * o.width, y: o.top + (f.box.y + f.box.h / 2) * o.height }; })()`, 5000);
@@ -91,7 +91,7 @@ export default async function ({ base, launch, check, fakeCams }) {
       await p.goto(`${base}/booth.html?cpu`);
       await p.waitFor(`/โมเดลพร้อม|ไม่พร้อม/.test(document.getElementById("engine").textContent)`, 30000);
       await p.evaluate(() => document.getElementById("camStart").click());
-      await p.waitFor(`document.getElementById("video").videoWidth > 0`, 5000);
+      await p.waitFor(`(document.querySelector("#camGrid video") || {}).videoWidth > 0`, 5000);
       await p.evaluate(() => document.getElementById("toggle").click()); // real face-api pipeline on the fake stream
       await sleep(2500);
       const fps = await p.evaluate(() => document.getElementById("fps").textContent);

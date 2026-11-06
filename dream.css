@@ -1,0 +1,27 @@
+/* ทำนายฝัน — ต่อยอดจาก fortune-kit.css */
+.dr-label{font-weight:600;color:var(--navy);font-size:.95rem;margin-bottom:6px}
+.dr-sel li{background:#f1edff;padding-right:4px}
+.dr-sel .dr-empty{background:none;padding:0;font-size:.88rem}
+.dr-x{border:0;background:none;color:var(--muted);font-size:1.15rem;line-height:1;min-width:32px;min-height:32px;border-radius:50%}
+.dr-x:hover{background:#fff}
+.dr-pops,.dr-list{display:flex;flex-wrap:wrap;gap:6px}
+.dr-pop,.dr-sym,.dr-cat{min-height:40px;padding:4px 12px;border-radius:99px;border:1.5px solid var(--line);background:var(--bg);color:var(--navy);font-size:.9rem}
+.dr-pop[aria-pressed=true],.dr-sym[aria-pressed=true]{background:#f1edff;border-color:var(--gold)}
+.dr-cat[aria-pressed=true]{background:var(--navy);border-color:var(--navy);color:#fff}
+.dr-sym span{margin-right:4px}
+.dr-browse{background:var(--alt);border-radius:14px;padding:10px 14px}
+.dr-browse summary{cursor:pointer;font-weight:500;color:var(--navy);min-height:32px}
+.dr-browse[open] summary{margin-bottom:10px}
+.dr-cats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.dr-searchlbl{margin-bottom:10px}
+.dr-searchlbl input{min-height:44px;font-size:16px}
+.dr-list{max-height:260px;overflow-y:auto;padding:2px}
+.dr-result{max-width:900px;margin:18px auto 0}
+.dr-cards{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
+.dr-card{display:flex;gap:12px;background:var(--alt);border-radius:14px;padding:12px 14px;min-width:0}
+.dr-card h3{margin:0 0 2px}
+.dr-card p{font-size:.92rem;margin:0}
+.dr-ic{font-size:2.2rem;line-height:1;flex:none}
+.dr-theme{color:var(--gold);font-size:.8rem!important;font-weight:600;margin-bottom:4px!important}
+.dr-type{background:#f1edff;border-radius:12px;padding:10px 14px;margin-top:12px;font-size:.93rem}
+@media print{.dr-browse,.dr-pops{display:none!important}}
