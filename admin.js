@@ -34,6 +34,7 @@
   /** @param {string} path @param {{method?: string, body?: any, raw?: boolean}} [o] */
   function call(path, o) {
     var opt = o || {};
+    if (!API || !API.enabled()) return Promise.reject(new Error("API not configured"));
     /** @type {Record<string, string>} */
     var headers = {};
     if (opt.body !== undefined) headers["Content-Type"] = "application/json";
@@ -117,7 +118,7 @@
   function tab(/** @type {string} */ name) {
     document.querySelectorAll(".ad-tabs [role=tab]").forEach(function (b) { b.setAttribute("aria-selected", String(b.getAttribute("data-tab") === name)); });
     document.querySelectorAll(".ad-panel").forEach(function (p) { /** @type {HTMLElement} */ (p).hidden = p.getAttribute("data-panel") !== name; });
-    if (loaders[name]) loaders[name]();
+    if (loaders[name] && !$("adApp").hidden) loaders[name]();
   }
   document.querySelectorAll(".ad-tabs [role=tab]").forEach(function (b) { b.addEventListener("click", function () { tab(String(b.getAttribute("data-tab"))); }); });
   var fail = function (/** @type {any} */ e) { if (e && e.status === 401) { show("adLogin"); msg("เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่", true); } else msg(e.message, true); };
