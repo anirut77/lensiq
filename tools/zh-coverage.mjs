@@ -45,7 +45,9 @@ const HTML_LANG = LANG === "en" ? "en" : "zh-Hans";
 const filters = argv.filter(a => !a.startsWith("--"));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-const pages = readdirSync(repo).filter(f => f.endsWith(".html") && (!filters.length || filters.some(w => f.includes(w)))).sort();
+// internal owner pages (not linked, Thai-only by design, no shared nav/i18n) are not part of the public translation gate
+const INTERNAL = new Set(["admin.html", "pricing.html"]);
+const pages = readdirSync(repo).filter(f => f.endsWith(".html") && !INTERNAL.has(f) && (!filters.length || filters.some(w => f.includes(w)))).sort();
 const QUERY = { "insights.html": "&demo" }; // pages that need demo data to show their real UI
 const ixFile = resolve(repo, "tools/zh-coverage.interactions.json");
 const INTERACT = existsSync(ixFile) ? JSON.parse(readFileSync(ixFile, "utf8")) : {};
