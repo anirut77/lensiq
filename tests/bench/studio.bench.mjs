@@ -38,7 +38,7 @@ const QUERY = opt("--query", "");
 export const GARMENTS = ["civil", "khaki", "suit_navy", "lady"];
 const VARIANTS = opt("--variants") ? opt("--variants").split(",") : null;
 
-const hash = createHash("sha1"); for (const f of ["studio.js", "studio-core.js", "studio-qa.js", "photobooth-outfits.js", "photobooth-hq.js"]) hash.update(readFileSync(join(REPO, f))); hash.update(QUERY);
+const hash = createHash("sha1"); for (const f of ["studio.js", "studio-core.js", "studio-qa.js", "photobooth-outfits.js", "photobooth-hq.js"]) hash.update(readFileSync(join(REPO, f))); hash.update(QUERY); if (has("--only")) hash.update("only:" + opt("--only"));
 // --dir reuses a cache made by another code version (stage 2 only; the report prints which directory it read)
 const DIR = opt("--dir") || join(CACHE, "studio-" + hash.digest("hex").slice(0, 10)); mkdirSync(DIR, { recursive: true });
 
@@ -59,8 +59,11 @@ if (has("--render")) {
     }, dataUrl(join("portraits", it.f)));
     const st = await page.waitFor(`(window.__studio.state.phase === "done" || window.__studio.state.phase === "error") && { ph: window.__studio.state.phase, err: window.__studio.state.err, t: window.__studio.state.timings, face: !!(window.__studio.state.face && window.__studio.state.face.detected), W: window.__studio.state.W, H: window.__studio.state.H }`, 600000);
     const R = { id: it.id, split: it.split, wall: Date.now() - t0, first: Math.round(st.t.firstResult || 0), face: st.face, err: st.err, W: st.W, H: st.H, g: {} };
+    // round 11: photo-suitability pre-flight (studio-qa.js photoSuitability) and the no-outfit clean-up counters (studio-core.js cleanLeftovers)
+    Object.assign(R, await page.evaluate(() => { const S = window.__studio.state; return { pre: S.pre ? { ok: S.pre.ok, m: S.pre.m, fails: S.pre.items.filter(i => i.ok === false).map(i => i.k) } : null }; }));
     // --variants plain,cover: each garment rendered with the high-collar cover off and on (results g and g+cover); default = the page's own policy
-    const runs = ["none", ...GARMENTS.flatMap(g => VARIANTS ? VARIANTS.map(v => v === "plain" ? g : g + "+" + v) : [g])];
+    // --only none: the no-outfit render only (round 11: no-outfit clean-up + pre-flight measurements; outfit renders are unchanged)
+    const runs = has("--only") && opt("--only") === "none" ? ["none"] : ["none", ...GARMENTS.flatMap(g => VARIANTS ? VARIANTS.map(v => v === "plain" ? g : g + "+" + v) : [g])];
     for (const gv of runs) {
       const [g, v] = gv.split("+"), key = g === "none" ? "none" : "v:" + g, t1 = Date.now();
       if (VARIANTS) await page.evaluate(m => { window.__studio.state.coverMode = m; }, v === "cover" ? "on" : "off");
@@ -83,7 +86,7 @@ if (has("--render")) {
           let bin = ""; for (let i = 0; i < all.length; i += 8192) bin += String.fromCharCode.apply(null, all.subarray(i, i + 8192));
           crop = { w: C.w, h: C.h, names, jaw: C.jaw, chin: C.chin, eyeY: C.eyeY, b64: btoa(bin) };
         }
-        return { shown: S.shown, pass: q ? q.pass : null, fails: q ? q.fails : [], m: q ? q.m : null, jf, conf: S.conf != null ? S.conf : null, variant: S.variant || null, crop, qaMs: Math.round(S.timings.qa || 0), renderMs: Math.round(S.timings.render || 0) };
+        return { clean: g === "none" && S.cleanInfo ? { ...S.cleanInfo, fail: !!S.matteFail } : undefined, shown: S.shown, pass: q ? q.pass : null, fails: q ? q.fails : [], m: q ? q.m : null, jf, conf: S.conf != null ? S.conf : null, variant: S.variant || null, crop, qaMs: Math.round(S.timings.qa || 0), renderMs: Math.round(S.timings.render || 0) };
       }, g);
       if (R.g[gv].crop) { const c = R.g[gv].crop; writeFileSync(join(DIR, `${it.id}_${gv}.crop.bin`), Buffer.from(c.b64, "base64")); delete c.b64; }
       R.g[gv].selMs = Date.now() - t1;
@@ -150,7 +153,7 @@ for (const sp of [...new Set(res.map(r => r.split))].sort()) {
   const med = a => { const b = [...a].sort((x, y) => x - y); return b.length ? b[b.length >> 1] : NaN; };
   report[sp] = { persons: R.length, renders: n, unlabelled: unl, fallback: fb, shownBad, rawBad, tp, fp, fn, tn, safeBad, safeN, qaMedianMs: med(qaMs), firstMedianMs: med(first) };
   console.log(`\n== ${sp}: ${R.length} people × ${GARMENTS.length} garments (${n} labelled renders${unl ? `, ${unl} unlabelled` : ""})`);
-  console.log(table(["metric", "value [Wilson 95 %]"], [
+  console.log(table(["metric", "value [Wilson 95 % per render — too narrow, see the person-cluster block]"], [
     ["visible defect in what is SHOWN (gate on)", ci(shownBad, n)],
     ["visible defect without the gate (garment always shown)", ci(rawBad, n)],
     ["garment withheld → safe composition (fallback rate)", ci(fb, n)],
@@ -187,7 +190,7 @@ if (hasCover) {
       oldShow += p.pass ? p.y : p.none; if (p.pass) { oShownN++; oShownBad += p.y; }
       const v = p.jf.open >= .5 ? c : p; newShow += v.pass ? v.y : p.none; if (v.pass) { shownN++; shownBad += v.y; } }
     console.log(`\n== round 10, ${sp}: ${n} person × garment pairs (plain and high-collar renders)`);
-    console.log(table(["metric", "value [Wilson 95 %]"], [
+    console.log(table(["metric", "value [Wilson 95 % per render — too narrow, see the person-cluster block]"], [
       ["outfit render with a visible defect, as before (plain)", ci(pRaw, n)],
       ["same with the high-collar cover", ci(cRaw, n)],
       ["defect fixed / introduced by the cover", `${fixed} / ${broke}`],
@@ -200,4 +203,28 @@ if (hasCover) {
   }
 }
 if (opt("--json")) writeFileSync(opt("--json"), JSON.stringify({ dir: DIR, garments: GARMENTS, report }, null, 1));
+// --log tests/bench/studio-gate-log-r10.json: the per-render gate results WITHOUT any image data (id, garment, variant, what the
+// page showed, gate pass, fail reasons, QA measurements m, jaw-strip features jf, calibrated confidence, timings) — committed next to
+// the label files so that tests/bench/studio-tables.mjs can recompute every ACCURACY.md §11 table without the portraits.
+if (opt("--log")) writeFileSync(opt("--log"), gateLog(res, { query: QUERY, variants: VARIANTS, code: opt("--code", "") }));
+export function gateLog(results, { query = "", variants = null, code = "" } = {}) {
+  const people = {}, renders = [];
+  for (const r of [...results].sort((a, b) => a.id.localeCompare(b.id))) {
+    people[r.id] = { split: r.split, face: !!r.face, W: r.W, H: r.H, firstMs: r.first, wallMs: r.wall, err: r.err || null, ...(r.pre ? { pre: r.pre } : {}) };
+    for (const [gv, v] of Object.entries(r.g)) {
+      const [g, variant] = gv.split("+");
+      renders.push({ id: r.id, g, v: g === "none" ? null : variant || "plain", ...(v.clean ? { clean: v.clean } : {}), shown: v.shown, pass: v.pass, fails: v.fails || [], variant: v.variant || null, conf: v.conf, qaMs: v.qaMs, renderMs: v.renderMs, selMs: v.selMs, jf: v.jf || null, m: v.m || null });
+    }
+  }
+  const head = { about: "Per-render gate results of tests/bench/studio.bench.mjs (no images, no crops): one row per person x garment x variant. v = plain (cover off) | cover (cover on) | null (no outfit). shown = what studio.html put on screen; pass/fails = studio-qa.js verdict at render time; m = QA measurements; jf = jawFeatures of the garment render; conf = calibrated confidence; *Ms = timings in ms (headless Chrome, no WebGL).", code: code || "see git log for this file", query, variants, garments: GARMENTS };
+  // one person / one render per line keeps the diff readable
+  return JSON.stringify(head, null, 1).replace(/\n}$/, ",\n \"people\": {\n" + Object.entries(people).map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)}`).join(",\n") + "\n },\n \"renders\": [\n" + renders.map(x => "  " + JSON.stringify(x)).join(",\n") + "\n ]\n}\n");
+}
+// round 11 (stats): person-cluster 95 % intervals are the default report. The per-render Wilson tables above treat the renders of
+// one person as independent (they are not: design effect 2–4) and are kept only for comparison. The block below recomputes every
+// §11 / §11b rate from the committed labels + per-render logs (tests/bench/studio-intervals.mjs); --no-cluster skips it.
+if (!has("--no-cluster")) {
+  const SI = await import("./studio-intervals.mjs");
+  console.log("\n== person-cluster 95 % intervals (default; from the committed labels and per-render logs) + plain vs cover paired tests\n" + SI.markdown(SI.intervals(), SI.paired()));
+}
 export { QA };

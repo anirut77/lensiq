@@ -11,7 +11,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <meta name="description" data-i18n-attr="content:pr.doc.desc" content="แพ็กเกจสมาชิกและรายงานดวงแบบซื้อครั้งเดียวของ LENSIQ ราคารวมภาษีมูลค่าเพิ่ม ชำระด้วยพร้อมเพย์">
 <link rel="stylesheet" href="styles.css?v=8">
-<link rel="stylesheet" href="pricing.css?v=2">
+<link rel="stylesheet" href="pricing.css?v=3">
 </head>
 <body>
 <!-- Pricing page (not linked from the menu). Plans come from the API Worker (GET /v1/billing/plans) and are shown only
@@ -28,7 +28,49 @@
   <p class="pr-free" id="prFree" data-i18n="pr.free">ขณะนี้ LENSIQ ใช้งานฟรีทุกฟีเจอร์ ไม่ต้องชำระเงิน</p>
   <section id="prHidden" class="pr-note">
     <p data-i18n="pr.hidden">หน้าราคายังไม่เปิดให้บริการ</p>
+    <p class="pr-small" data-i18n="pr.off.lead">ระหว่างนี้ทุกอย่างใช้ได้ฟรี และยังไม่มีบริการใดที่ต้องชำระเงิน ด้านล่างคือสิ่งที่ใช้ได้วันนี้และสิ่งที่กำลังจะมา</p>
   </section>
+  <div id="prOff" class="pr-off">
+    <section class="pr-card" aria-labelledby="prFreeNowH">
+      <h2 class="pr-h3" id="prFreeNowH" data-i18n="pr.off.freeH">ใช้ได้ฟรีวันนี้</h2>
+      <ul class="pr-perks">
+        <li data-i18n="pr.off.f1">เครื่องมือกล้องทุกระบบที่ประมวลผลในเครื่อง (หน้าร้าน บูธ ป้ายโฆษณา ตู้ถ่ายรูป เช็คชื่อ ตรวจคุณภาพ)</li>
+        <li data-i18n="pr.off.f2">ดูดวงฉบับเต็มทุกศาสตร์ 3 ภาษา (ไทย / English / 中文) พิมพ์หรือบันทึกเป็น PDF ได้</li>
+        <li data-i18n="pr.off.f3">ชุดสัมภาษณ์ HR และ Creative Lab ตรวจชิ้นงาน</li>
+        <li><span data-i18n="pr.off.f4">ตัวอย่างรายงานดวงฉบับยาว (พื้นฐาน ดวงคู่ รายปี) สร้างในเครื่อง</span> <a href="report.html" data-i18n="pr.off.f4a">ลองสร้างรายงาน</a></li>
+      </ul>
+    </section>
+    <section class="pr-card" aria-labelledby="prSoonH">
+      <h2 class="pr-h3" id="prSoonH" data-i18n="pr.off.soonH">กำลังจะมา (ยังไม่เปิดขาย)</h2>
+      <ul class="pr-perks">
+        <li class="soon"><b data-i18n="pr.off.s1b">พลัส (Plus)</b> <span data-i18n="pr.off.s1">สมาชิกรายเดือน/รายปีสำหรับผู้ใช้ดูดวง ผู้ช่วยเขียนคำทำนายมากขึ้น</span> <span class="pr-soon" data-i18n="pr.soon">เร็ว ๆ นี้</span></li>
+        <li class="soon"><b data-i18n="pr.off.s2b">รายงานแบบซื้อครั้งเดียว</b> <span data-i18n="pr.off.s2">รายงานพื้นฐาน รายงานดวงคู่ และรายงานรายปี บันทึกในบัญชี</span> <span class="pr-soon" data-i18n="pr.soon">เร็ว ๆ นี้</span></li>
+        <li class="soon"><b data-i18n="pr.off.s3b">ครีเอเตอร์ (Creator) / ธุรกิจ (Business)</b> <span data-i18n="pr.off.s3">แพ็กเกจสำหรับร้านค้า สตูดิโอ ทีม HR และเอเจนซี ขายผ่านใบเสนอราคาและโครงการนำร่องก่อน</span> <span class="pr-soon" data-i18n="pr.soon">เร็ว ๆ นี้</span></li>
+      </ul>
+      <p class="pr-small"><a href="pricing.html?preview=1" data-i18n="pr.off.preview">ดูราคาฉบับร่าง (ยังไม่ใช่ข้อเสนอขาย)</a></p>
+    </section>
+    <section class="pr-card" aria-labelledby="prNotifyH">
+      <h2 class="pr-h3" id="prNotifyH" data-i18n="pr.off.notifyH">แจ้งฉันเมื่อเปิดขาย</h2>
+      <form id="prNotify" class="pr-form" novalidate>
+        <label><span data-i18n="pr.off.email">อีเมล</span> <input name="email" type="email" maxlength="254" autocomplete="email" required></label>
+        <label><span data-i18n="pr.off.want">สนใจ</span>
+          <select name="interest">
+            <option value="fortune" data-i18n="pr.off.wantF">พลัสและรายงานดวง</option>
+            <option value="business" data-i18n="pr.off.wantB">แพ็กเกจธุรกิจ (Retail / HR / Creative)</option>
+          </select></label>
+        <label class="pr-check"><input type="checkbox" name="consent" required> <span data-i18n="pr.off.consent">ยินยอมให้ LENSIQ ส่งอีเมลแจ้งเมื่อเปิดขายเท่านั้น (ยกเลิกได้ทุกเมื่อ)</span></label>
+        <button class="pr-btn" type="submit" data-i18n="pr.off.submit">แจ้งฉัน</button>
+        <p class="pr-small" id="prNotifyMsg" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+    <nav class="pr-card pr-products" aria-labelledby="prProductsH">
+      <h2 class="pr-h3" id="prProductsH" data-i18n="pr.off.productsH">ผลิตภัณฑ์ของ LENSIQ</h2>
+      <a href="fortune.html"><span aria-hidden="true">🔮</span> <span data-i18n="pr.off.p1">LENSIQ ดูดวง</span></a>
+      <a href="retail.html"><span aria-hidden="true">🏪</span> <span data-i18n="pr.off.p2">LENSIQ Retail กล้องหน้าร้าน</span></a>
+      <a href="hr.html"><span aria-hidden="true">🧑‍💼</span> <span data-i18n="pr.off.p3">LENSIQ HR ชุดสัมภาษณ์</span></a>
+      <a href="creative-suite.html"><span aria-hidden="true">🎨</span> <span data-i18n="pr.off.p4">LENSIQ Creative ชุดงานสร้างสรรค์</span></a>
+    </nav>
+  </div>
   <section id="prPlans" hidden>
     <p class="pr-draft" id="prDraft" role="note" hidden><strong data-i18n="pr.draft.tag">ร่าง</strong> <span data-i18n="pr.draft.text">โหมดดูตัวอย่าง: ราคาและเงื่อนไขในหน้านี้เป็นฉบับร่างเพื่อการวางแผนเท่านั้น ยังไม่ใช่ข้อเสนอขาย</span></p>
     <h2 class="pr-h2" id="prSubsH" data-i18n="pr.subs.title">สมาชิกรายเดือน / รายปี</h2>
@@ -57,6 +99,7 @@
         <label><span data-i18n="pr.f.branch">สาขา</span> <input name="branch" maxlength="60" placeholder="สำนักงานใหญ่" data-i18n-attr="placeholder:pr.f.branchPh"></label>
         <div class="pr-accept">
           <label class="pr-check"><input type="checkbox" name="accept" required> <span data-i18n="pr.f.accept">ฉันยอมรับข้อกำหนดการใช้บริการ เงื่อนไขการชำระเงิน และนโยบายการยกเลิกและคืนเงิน</span></label>
+          <label class="pr-check"><input type="checkbox" name="age" required> <span data-i18n="pr.f.age">ฉันมีอายุ 20 ปีบริบูรณ์ขึ้นไป หรือได้รับความยินยอมจากผู้ปกครองให้ซื้อแล้ว</span></label>
           <p class="pr-terms"><a href="terms.html#t8" target="_blank" rel="noopener" data-i18n="pr.link.t8">แพ็กเกจและการชำระเงิน</a> <a href="terms.html#t9" target="_blank" rel="noopener" data-i18n="pr.link.t9">การยกเลิกและการคืนเงิน</a></p>
         </div>
         <button class="pr-btn" type="submit" data-i18n="pr.f.submit">สร้าง QR พร้อมเพย์</button>
@@ -67,6 +110,7 @@
 </main>
 <script src="lensiq-api.js?v=1"></script>
 <script src="lensiq-config.js?v=3"></script>
-<script src="pricing.js?v=2"></script>
+<script src="lensiq-leads.js?v=1"></script>
+<script src="pricing.js?v=3"></script>
 </body>
 </html>

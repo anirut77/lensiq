@@ -43,12 +43,18 @@ interface Window {
   LENSIQ_FACEPARSE?: boolean;
   /** lensiq-config.js: false = hide the signage age/gender option and never load ageGenderNet (research-licence model) */
   LENSIQ_AGE_GENDER?: boolean;
+  /** lensiq-config.js: "commercial" forces LENSIQ_AGE_GENDER and LENSIQ_FACEPARSE off; anything else = "demo" */
+  LENSIQ_PROFILE?: string;
   /** lensiq-config.js: false = never load lensiq-analytics.js */
   LENSIQ_ANALYTICS?: boolean;
   /** lensiq-config.js: Cloudflare Turnstile site key for the AI writing assistant on the Worker ("" = off) */
   LENSIQ_TURNSTILE_SITEKEY?: string;
   /** lensiq-config.js: public OAuth Client ID for "Sign in with Google" ("" = no member sign-in) */
   LENSIQ_GOOGLE_CLIENT_ID?: string;
+  /** lensiq-config.js: seller / support details shown by legal.js, lensiq-leads.js, pricing ("" = not announced yet) */
+  LENSIQ_SELLER?: Record<string, any>;
+  /** lensiq-leads.js: contact / demo / notify-me form transport (POST /v1/leads, else mailto / LINE fallback) */
+  LQLeads?: any;
   /** lensiq-member.js: member sign-in, account chip, light-reading gate (inert without API + membership) */
   LQMember?: any;
   /** lensiq-api.js: optional Cloudflare Worker backend client (null results when LENSIQ_API_BASE is empty) */

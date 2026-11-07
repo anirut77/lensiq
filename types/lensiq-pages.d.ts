@@ -26,4 +26,12 @@ interface Window {
   __QC?: any;
   /** booth.js test hook */
   __booth?: any;
+  /** fortune pages (palm.js …): knowledge bases, composer and EN/ZH KB dictionaries (i18n/*-kb-*.js) */
+  PalmCore?: any;
+  PALM_KB?: any;
+  FortuneAI?: any;
+  FORTUNE_EN?: any;
+  FORTUNE_ZH?: any;
+  /** palm.js test hook */
+  __palm?: any;
 }

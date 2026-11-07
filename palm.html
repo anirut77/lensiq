@@ -17,7 +17,7 @@
 
 <main class="pl" id="plApp">
   <div class="pl-head">
-    <span class="eyebrow">Engagement · Booth</span>
+    <span class="eyebrow" data-i18n="palm.eyebrow">Palm reading · ดูลายมือ</span>
     <h1 data-i18n="palm.h1">ดูลายมือ</h1>
     <p data-i18n="palm.lead" class="lead">ถ่ายรูปฝ่ามือ แล้วให้ระบบหาจุดบนมือ 21 จุดและไล่เส้นชีวิต เส้นสมอง เส้นหัวใจ เส้นวาสนา คุณปรับเส้นให้ตรงกับมือจริงได้ก่อนอ่าน เลือกอ่านมือซ้าย มือขวา หรือเทียบทั้งสองมือ ได้ธาตุประจำมือ นิ้วเด่น เนินและผังแปดทิศ บุคลิก การงาน การเงิน ความรัก และเคล็ดเสริมดวง ใช้สร้างสีสันในบูธ อีเวนต์ และแคมเปญการตลาด</p>
   </div>
@@ -98,7 +98,7 @@
   <!-- ขั้นที่ 2: ปักจุดเอง (สำรอง) / ปรับเส้น -->
   <section class="pl-edit" id="plEdit" hidden aria-labelledby="plEditTitle">
     <h2 data-i18n="palm.plEditTitle" id="plEditTitle" tabindex="-1">ตรวจและปรับเส้นบนฝ่ามือ</h2>
-    <div class="pl-readside" id="plReadSide" aria-live="polite"><span id="plReadSideText"></span><button class="btn ghost" id="plSideSwap" type="button"></button></div>
+    <div class="pl-readside" id="plReadSide" aria-live="polite" hidden><span id="plReadSideText"></span><button class="btn ghost" id="plSideSwap" type="button" aria-label="สลับข้างมือที่อ่าน" data-i18n-attr="aria-label:palm.rs.swapAria"></button></div>
     <p class="pl-honest" id="plHonest"><span data-i18n="palm.honest1">ระบบไล่เส้นให้อัตโนมัติ แต่ลายมือในภาพถ่ายมักไม่ชัด</span> <b data-i18n="palm.honest2">ปรับเส้นให้ตรงกับมือจริงเพื่อผลที่แม่นขึ้น</b> <span data-i18n="palm.honest3">— ลากจุดกลมบนเส้นที่เลือก</span></p>
     <div class="pl-edit-grid">
       <div class="pl-editor">

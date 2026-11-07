@@ -2,11 +2,16 @@
  * data-i18n / data-i18n-attr values on attendance.html. Text set at run time by attendance.js stays Thai for now.
  * Queue pattern: works before or after lensiq-i18n.js (see i18n/zh-common.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
+  "attendance.wipeall": "删除本设备上的全部生物特征数据（所有系统）",
+  "attendance.live2": "可在一定程度上阻止拿静态照片对着摄像头签到，但无法阻止视频、屏幕上的图片或面具，且准确度尚未测量。签到点应始终有工作人员看守",
+  "attendance.live1": "签到前确认是真人：请对方稍微向左或向右转头（默认关闭）",
+  "attendance.licb": "研究许可模型",
+  "attendance.lic": "人脸由 face-api.js 模型分析（代码为 MIT），其训练数据仅许可用于研究。商业使用尚未经律师确认——商业使用前请核实许可",
   "attendance.s1": "人脸签到培训 | LENSIQ",
   "attendance.s2": "刷脸培训签到",
   "attendance.s3": "无需签名，人脸只需登记一次，之后扫描即可记录出勤",
   "attendance.s4": "实测准确率",
-  "attendance.s5": "在公开人脸数据集 LFW（新闻图片，非现场摄像头）上以默认值 0.55 测试：单次扫描约 89% 能识别已登记人员 · 登记 100 人时，约 0.2% 会匹配到错误的人，未登记者约 6% 可能被匹配到某位已登记者（登记 20 人时约 2%）。系统需连续 2 次结果一致才会记录，建议由工作人员核对名单",
+  "attendance.s5": "在公开人脸照片上测试（LFW 新闻照片和 CASIA-FaceV5 亚洲人脸，并非现场摄像头），采用当前规则，注册 100 人：约 85% 的扫描能识别出注册者，但亚洲人脸仅约 66–76% · 未注册者被提示姓名约 0.4%（亚洲人脸 0.2%，置信区间上限 1.15%），被自动签到不到 0.05%。系统需要 2 次一致的扫描才会记录，约 25–35% 被识别的人需要点击确认。启用自动签到前请至少注册 5 人，并由工作人员核对名单",
   "attendance.s6": "测量方法与局限",
   "attendance.s7": "培训主题/场次",
   "attendance.s8": "例如：安全培训 第 1 场",
@@ -20,7 +25,7 @@
   "attendance.s15": "每张人脸的扫描结果",
   "attendance.s16": "识别严格度",
   "attendance.s17": "最大差异值",
-  "attendance.s18": "值越低越严格（误识更少，但可能偶尔识别不出），默认 0.55",
+  "attendance.s18": "值越低越严格（误识更少，但可能偶尔识别不出），默认 0.50",
   "attendance.s19": "今日已签到 (",
   "attendance.s20": "姓名",
   "attendance.s21": "员工/学员编号",
@@ -42,5 +47,5 @@
   "attendance.s37": "姓名",
   "attendance.s38": "编号",
   "attendance.s39": "培训主题",
-  "attendance.s40": "演示网站：数据仅保存在本设备的浏览器中，人脸特征值使用保存在此浏览器中的密钥加密。不具备照片防伪检测（活体检测）。正式使用时应配备服务器端数据库，并制定符合泰国个人数据保护法（PDPA）的政策"
+  "attendance.s40": "演示网站：数据仅保存在本设备的浏览器中，人脸特征值使用保存在此浏览器中的密钥加密。可选择开启转头检查以确认是真人（默认关闭，尚未测量），但没有经过测试的照片防伪功能。正式使用时应配备服务器端数据库，并制定符合泰国个人数据保护法（PDPA）的政策"
 } });

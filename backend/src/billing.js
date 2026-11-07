@@ -16,13 +16,15 @@
 //   * plans with status 'draft' / 'retired' cannot be bought
 import { PERKS } from "./constants.js";
 import { createPromptPayCharge, fetchQr, opnKey, qrUriOf, retrieveCharge, verifyWebhookSignature } from "./opn.js";
-import { activeSub, consumeCredit, consumeUse, creditBalance, grantCredits, periodKey, usedOf } from "./quota.js";
+import { CREDIT_DAYS, activeSub, consumeCredit, consumeUse, creditBalance, periodKey, usedOf } from "./quota.js";
+import { pushAlert } from "./alerts.js";
 import { getBillingSettings } from "./settings.js";
 import { audit, callerHash, hit } from "./store.js";
 import { verifyTurnstile } from "./turnstile.js";
 import { HttpError, bkkDay, flag, intVar, log, now } from "./util.js";
 import { randomId, randomToken, sha256Hex, timingSafeEqual } from "./crypto.js";
 import { ledger, membership, optionalMember, requireMember } from "./members.js";
+import { assertGoLive } from "./golive.js";
 
 /** FREE_MODE defaults to true: a missing/garbled variable never starts charging or limiting anybody. */
 export const freeMode = env => String(env.FREE_MODE ?? "true").toLowerCase() !== "false";
@@ -147,12 +149,13 @@ class IdempotencyConflict extends Error {}
 /** @typedef {{name?: string|null, email?: string|null, tax_id?: string|null, address?: string|null, branch?: string|null}} Buyer */
 /**
  * @param {Env} env
- * @param {{kind: string, planId?: string|null, period?: string|null, amount: number, buyer?: Buyer, customerId?: string|null, userId?: string|null, idem?: {scope: string, key: string}|null}} o
+ * @param {{kind: string, planId?: string|null, period?: string|null, amount: number, buyer?: Buyer, customerId?: string|null, userId?: string|null, idem?: {scope: string, key: string}|null, ageConfirm?: string|null}} o
  * @param {{fetch?: typeof fetch}} deps
  */
 
-async function createPayment(env, { kind, planId = null, period = null, amount, buyer = {}, customerId = null, userId = null, idem = null }, deps) {
+async function createPayment(env, { kind, planId = null, period = null, amount, buyer = {}, customerId = null, userId = null, idem = null, ageConfirm = null }, deps) {
   const { live } = opnKey(env);
+  if (live) await assertGoLive(env, "live_money"); // round 11: no live charge while seller / legal / owner TOTP are not ready
   const t = now(), id = randomId(16);
   const v = splitVat(amount, flag(env.VAT_REGISTERED));
   const s = sellerOf(env);
@@ -160,11 +163,11 @@ async function createPayment(env, { kind, planId = null, period = null, amount, 
   try {
     await env.DB.prepare(
       "INSERT INTO payments (id, customer_id, plan_id, period, kind, livemode, amount_satang, subtotal_satang, vat_satang, vat_rate_bp, status, expires_at, " +
-      "buyer_name, buyer_tax_id, buyer_address, buyer_branch, buyer_email, seller_name, seller_tax_id, seller_address, seller_branch, created_at, updated_at, user_id, idem_scope, idem_key) " +
-      "VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, 'pending', ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?21, ?22, ?23, ?24)"
+      "buyer_name, buyer_tax_id, buyer_address, buyer_branch, buyer_email, seller_name, seller_tax_id, seller_address, seller_branch, created_at, updated_at, user_id, idem_scope, idem_key, age_confirm) " +
+      "VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, 'pending', ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?21, ?22, ?23, ?24, ?25)"
     ).bind(id, customerId, planId, period, kind, live ? 1 : 0, v.total, v.subtotal, v.vat, v.rate_bp, expires,
       buyer.name || null, buyer.tax_id || null, buyer.address || null, buyer.branch || null, buyer.email || null,
-      s.seller_name, s.seller_tax_id, s.seller_address, s.seller_branch, t, userId, idem ? idem.scope : null, idem ? idem.key : null).run();
+      s.seller_name, s.seller_tax_id, s.seller_address, s.seller_branch, t, userId, idem ? idem.scope : null, idem ? idem.key : null, ageConfirm).run();
   } catch (e) {
     if (idem && /UNIQUE/i.test(String(e && e.message))) throw new IdempotencyConflict(); // a parallel retry won the race
     throw e;
@@ -204,6 +207,30 @@ function replayOf(p, planId, period) {
   };
 }
 
+/** Thai age of majority (Civil and Commercial Code s.19: 20 years; s.21: a minor needs the legal representative's consent). */
+export const AGE_OF_MAJORITY = 20;
+/**
+ * Age-of-majority confirmation REQUIRED at checkout (round 11). Body:
+ *   age_confirm: "adult" (I am 20 or older) | "guardian" (I am under 20 and my parent / guardian agreed) | true (the
+ *                single checkbox "I am 20+ or have guardian consent" → stored as "adult_or_guardian")
+ *   birth_year?: optional Gregorian year — when it shows the buyer is (or may be) under 20, only "guardian" is accepted
+ * Returns the value stored on the payment (payments.age_confirm); throws 400 age_confirmation_required / 403
+ * guardian_consent_required. Nothing else about the buyer's age is stored.
+ */
+export function ageConfirmOf(body, t = now()) {
+  const v = body && body.age_confirm;
+  const val = v === true ? "adult_or_guardian" : v === "adult" || v === "guardian" ? v : null;
+  if (!val) throw new HttpError(400, "please confirm you are 20 or older, or have your parent's / guardian's consent (age_confirmation_required)", { code: "age_confirmation_required" });
+  if (body.birth_year != null) {
+    const y = body.birth_year;
+    const cur = Number(bkkDay(t).slice(0, 4));
+    if (!Number.isInteger(y) || y < cur - 120 || y > cur) throw new HttpError(400, "birth_year must be a Gregorian year", { code: "age_confirmation_required" });
+    // born in or after (current year - 20): may still be 19 → needs the guardian's consent
+    if (cur - y <= AGE_OF_MAJORITY && val !== "guardian") throw new HttpError(403, "buyers under 20 need a parent's / guardian's consent (guardian_consent_required)", { code: "guardian_consent_required" });
+  }
+  return val;
+}
+
 /** Guest checkout is a legacy opt-in (ALLOW_GUEST_CHECKOUT=true and membership not required). */
 export const guestCheckoutAllowed = async env => flag(env.ALLOW_GUEST_CHECKOUT) && !(await membership(env)).required;
 
@@ -215,6 +242,7 @@ export const guestCheckoutAllowed = async env => flag(env.ALLOW_GUEST_CHECKOUT) 
  *  Guest (opt-in only): returns customer_id + order_token ONCE — POST /v1/billing/claim links the purchase later. */
 export async function checkout(env, request, body, deps = {}) {
   if (!billingEnabled(env)) throw new HttpError(409, freeMode(env) ? "LENSIQ is free right now — no payment needed" : "billing is not enabled");
+  await assertGoLive(env, "checkout");
   if (!body || typeof body !== "object") throw new HttpError(400, "invalid request");
   const member = await optionalMember(env, request);
   if (!member && !(await guestCheckoutAllowed(env))) throw new HttpError(401, "please sign in before buying (member_required)", { code: "member_required" });
@@ -243,8 +271,9 @@ export async function checkout(env, request, body, deps = {}) {
   if (!Number.isInteger(amount) || amount <= 0) throw new HttpError(400, "this plan is sold by quotation");
   const buyer = cleanBuyer(body.buyer || {});
   if (body.accept_terms !== true) throw new HttpError(400, "terms must be accepted");
+  const ageConfirm = ageConfirmOf(body);
   const pay = async args => {
-    try { return await createPayment(env, { kind: "checkout", planId: plan.id, period, amount, buyer, idem, ...args }, deps); } catch (e) {
+    try { return await createPayment(env, { kind: "checkout", planId: plan.id, period, amount, buyer, idem, ageConfirm, ...args }, deps); } catch (e) {
       if (!(e instanceof IdempotencyConflict)) throw e;
       return replayOf(await env.DB.prepare("SELECT * FROM payments WHERE idem_scope = ?1 AND idem_key = ?2").bind(idem.scope, idem.key).first(), plan.id, period);
     }
@@ -315,40 +344,100 @@ export async function adminTestCharge(env, body, deps = {}) {
   return createPayment(env, { kind: "admin_test", amount }, deps);
 }
 
-async function activate(env, p, t) {
-  if (!p.customer_id || !p.plan_id || p.kind !== "checkout") return null;
-  const plan = await env.DB.prepare("SELECT kind FROM plans WHERE id = ?1").bind(p.plan_id).first();
+// ---- fulfilment (round 11: atomic + self-healing) -------------------------------------------------------------------
+
+/** SQL guard: only the transaction holding the claim token of payment ?i runs the statement. */
+const guard = (i, j) => `EXISTS (SELECT 1 FROM payments WHERE id = ?${i} AND fulfil_token = ?${j})`;
+
+/**
+ * Statements that grant what payment `p` bought, ALL guarded by `fulfil_token = tok` (only the transaction that claimed
+ * the payment runs them) and ending with the fulfilled_at marker. Executed inside the same db.batch as the claim, so
+ * either the claim AND the plan / credits commit together or nothing does — there is no "paid but nothing granted"
+ * state left behind by a failing statement. Reads (plan kind, entitlements, current subscription) happen before.
+ * @returns {Promise<{stmts: D1PreparedStatement[], subscriptionId: string|null}>}
+ */
+export async function fulfilStatements(env, p, t, tok) {
+  const db = env.DB;
+  const mark = (sid = null, ext = null) => db.prepare("UPDATE payments SET fulfilled_at = ?1, subscription_id = COALESCE(?2, subscription_id), ext_seconds = COALESCE(?3, ext_seconds) " +
+    "WHERE id = ?4 AND fulfil_token = ?5 AND fulfilled_at IS NULL").bind(t, sid, ext, p.id, tok);
+  if (!p.customer_id || !p.plan_id || p.kind !== "checkout") return { stmts: [mark()], subscriptionId: null };
+  const plan = await db.prepare("SELECT kind FROM plans WHERE id = ?1").bind(p.plan_id).first();
   if (p.period === "once" || (plan && plan.kind === "one_time")) {
     // one-time purchase: the plan's 'once' entitlements become credits of the buyer (member, or customer until claimed)
-    const ents = (await env.DB.prepare("SELECT feature, quota FROM entitlements WHERE plan_id = ?1 AND period = 'once'").bind(p.plan_id).all()).results || [];
-    for (const e of ents) if (Number.isInteger(e.quota) && e.quota > 0) await grantCredits(env.DB, { userId: p.user_id || null, customerId: p.customer_id, paymentId: p.id, feature: e.feature, n: e.quota, t });
-    return null;
+    const ents = (await db.prepare("SELECT feature, quota FROM entitlements WHERE plan_id = ?1 AND period = 'once'").bind(p.plan_id).all()).results || [];
+    const stmts = ents.filter(e => Number.isInteger(e.quota) && e.quota > 0).map(e => db.prepare(
+      "INSERT INTO credits (id, user_id, customer_id, feature, granted, remaining, payment_id, source, created_at, expires_at) " +
+      `SELECT ?1, ?2, ?3, ?4, ?5, ?5, ?8, 'purchase', ?6, ?7 WHERE ${guard(8, 9)} AND NOT EXISTS (SELECT 1 FROM credits WHERE payment_id = ?8 AND feature = ?4)`
+    ).bind(randomId(12), p.user_id || null, p.customer_id, e.feature, e.quota, t, t + CREDIT_DAYS * 86400, p.id, tok));
+    return { stmts: [...stmts, mark()], subscriptionId: null };
   }
   const len = p.period === "year" ? 365 * 86400 : 30 * 86400;
-  const cur = await env.DB.prepare("SELECT * FROM subscriptions WHERE (customer_id = ?1 OR (?3 IS NOT NULL AND user_id = ?3)) AND plan_id = ?2 AND status = 'active' ORDER BY current_period_end DESC LIMIT 1")
+  const cur = await db.prepare("SELECT * FROM subscriptions WHERE (customer_id = ?1 OR (?3 IS NOT NULL AND user_id = ?3)) AND plan_id = ?2 AND status = 'active' ORDER BY current_period_end DESC LIMIT 1")
     .bind(p.customer_id, p.plan_id, p.user_id || null).first();
   if (cur) {
-    const end = Math.max(cur.current_period_end, t) + len;
-    await env.DB.prepare("UPDATE subscriptions SET current_period_end = ?1, updated_at = ?2, user_id = COALESCE(user_id, ?4) WHERE id = ?3").bind(end, t, cur.id, p.user_id || null).run();
-    return cur.id;
+    return {
+      stmts: [db.prepare(`UPDATE subscriptions SET current_period_end = MAX(current_period_end, ?1) + ?2, updated_at = ?1, user_id = COALESCE(user_id, ?3) WHERE id = ?4 AND ${guard(5, 6)}`)
+        .bind(t, len, p.user_id || null, cur.id, p.id, tok), mark(cur.id, len)],
+      subscriptionId: cur.id
+    };
   }
   const id = randomId(12);
-  await env.DB.prepare("INSERT INTO subscriptions (id, customer_id, plan_id, status, period, current_period_start, current_period_end, created_at, updated_at, user_id) VALUES (?1, ?2, ?3, 'active', ?4, ?5, ?6, ?5, ?5, ?7)")
-    .bind(id, p.customer_id, p.plan_id, p.period, t, t + len, p.user_id || null).run();
-  return id;
+  return {
+    stmts: [db.prepare("INSERT INTO subscriptions (id, customer_id, plan_id, status, period, current_period_start, current_period_end, created_at, updated_at, user_id) " +
+      `SELECT ?1, ?2, ?3, 'active', ?4, ?5, ?6, ?5, ?5, ?7 WHERE ${guard(8, 9)}`).bind(id, p.customer_id, p.plan_id, p.period, t, t + len, p.user_id || null, p.id, tok), mark(id, len)],
+    subscriptionId: id
+  };
+}
+
+/** Admin alert (best effort: an alert must never turn a handled case into a 5xx). kind: payment_mismatch |
+ *  fulfilment_failed | fulfilment_repaired. Pushed to ALERT_WEBHOOK_URL as well when that secret is set (alerts.js). */
+async function raiseAlert(env, kind, ref, detail, fetchImpl) {
+  try {
+    await env.DB.prepare("INSERT INTO alerts (ts, kind, ref, detail) VALUES (?1, ?2, ?3, ?4)").bind(now(), kind, ref, JSON.stringify(detail || {})).run();
+  } catch { /* D1 down: the log line below is the alert */ }
+  log("alert." + kind, { ref: String(ref || "").slice(0, 32) });
+  try { await pushAlert(env, kind, ref, detail, fetchImpl); } catch { /* never fails the caller */ }
+}
+
+/**
+ * Repair pass: a payment that is 'successful' (or partially refunded) but has fulfilled_at IS NULL — a payment that
+ * succeeded before migration 0008 without its grant, or any future path that flips status without fulfilling — is
+ * claimed with a fresh token and fulfilled in ONE transaction. Idempotent and race-safe: the claim only succeeds while
+ * fulfilled_at IS NULL (D1 runs a batch as one serialised transaction), so two repairs never grant twice.
+ * Returns true when this call repaired it (an admin alert 'fulfilment_repaired' is raised).
+ */
+export async function repairFulfilment(env, p, via = "repair", fetchImpl) {
+  if (!p || !["successful", "partially_refunded"].includes(p.status) || p.fulfilled_at) return false;
+  const db = env.DB, t = now(), tok = randomToken(16);
+  const f = await fulfilStatements(env, p, t, tok);
+  const res = await db.batch([
+    db.prepare("UPDATE payments SET fulfil_token = ?1, updated_at = ?2 WHERE id = ?3 AND status IN ('successful', 'partially_refunded') AND fulfilled_at IS NULL").bind(tok, t, p.id),
+    ...f.stmts
+  ]);
+  if (!res[0].meta || !res[0].meta.changes) return false;
+  await audit(env, "system", "payment.fulfilment_repaired", { payment: p.id, via, subscription: f.subscriptionId });
+  await raiseAlert(env, "fulfilment_repaired", p.id, { via, plan: p.plan_id, kind: p.kind }, fetchImpl);
+  return true;
 }
 
 /**
  * Applies the provider's charge state to our payment (idempotent; only pending -> final transitions).
- * Success is claimed and numbered in ONE transaction (db.batch): the conditional UPDATE … WHERE status='pending'
- * lets exactly one of several racing callers (webhook, poll, reconcile cron) win; the receipt counter is incremented
- * only when that UPDATE changed a row (changes() = 1), and the number is written in the same transaction — so receipt
- * numbers are gap-free and never assigned twice.
+ * Success is claimed, numbered AND fulfilled in ONE transaction (db.batch): the conditional UPDATE … WHERE
+ * status='pending' lets exactly one of several racing callers (webhook, poll, reconcile cron) win and writes its random
+ * fulfil_token; the receipt counter is incremented only when that UPDATE changed a row (changes() = 1), the number is
+ * written in the same transaction (gap-free, never assigned twice), and the plan / credit grants run only for the
+ * winner's token (fulfilStatements). If any statement fails, the whole transaction rolls back: the payment stays
+ * 'pending', the webhook answers 503 and Opn's retry / the reconcile cron apply it again. A payment that is already
+ * successful but not fulfilled (fulfilled_at IS NULL) is repaired here too (repairFulfilment).
  */
-export async function applyCharge(env, p, charge) {
+export async function applyCharge(env, p, charge, fetchImpl) {
   const t = now();
   const st = String(charge.status || "");
-  if (p.status !== "pending" || !["successful", "failed", "expired"].includes(st)) return p.status;
+  if (p.status !== "pending") {
+    if (!p.fulfilled_at && ["successful", "partially_refunded"].includes(p.status)) await repairFulfilment(env, p, "apply", fetchImpl);
+    return p.status;
+  }
+  if (!["successful", "failed", "expired"].includes(st)) return p.status;
   if (Number(charge.amount) !== p.amount_satang || String(charge.currency || "").toLowerCase() !== "thb") {
     // FINAL state (round 10): never retried forever, never activates anything; the owner resolves it by hand
     const detail = { expected: p.amount_satang, amount: Number(charge.amount) || 0, currency: String(charge.currency || "").slice(0, 8), provider_status: st };
@@ -356,7 +445,7 @@ export async function applyCharge(env, p, charge) {
       .bind(JSON.stringify(detail), t, p.id).run();
     if (r.meta && r.meta.changes) {
       await audit(env, "system", "payment.mismatch", { payment: p.id, ...detail });
-      await env.DB.prepare("INSERT INTO alerts (ts, kind, ref, detail) VALUES (?1, 'payment_mismatch', ?2, ?3)").bind(t, p.id, JSON.stringify(detail)).run();
+      await raiseAlert(env, "payment_mismatch", p.id, detail, fetchImpl);
       log("payment.mismatch", { expected: detail.expected, amount: detail.amount });
     }
     return "mismatch";
@@ -366,17 +455,25 @@ export async function applyCharge(env, p, charge) {
     const name = "receipt:" + ym;
     const docType = p.vat_rate_bp > 0 && p.seller_tax_id ? "tax_invoice_receipt" : "receipt";
     const db = env.DB;
-    const res = await db.batch([
-      db.prepare("UPDATE payments SET status = 'successful', paid_at = ?1, doc_type = ?2, updated_at = ?1 WHERE id = ?3 AND status = 'pending'").bind(t, docType, p.id),
-      db.prepare("INSERT INTO counters (name, value) SELECT ?1, 1 WHERE changes() = 1 ON CONFLICT (name) DO UPDATE SET value = value + 1").bind(name),
-      db.prepare("UPDATE payments SET receipt_no = 'LQ-' || ?1 || '-' || printf('%06d', (SELECT value FROM counters WHERE name = ?2)) " +
-        "WHERE id = ?3 AND status = 'successful' AND receipt_no IS NULL AND paid_at = ?4").bind(ym, name, p.id, t)
-    ]);
+    const tok = randomToken(16);
+    let res, f;
+    try {
+      f = await fulfilStatements(env, p, t, tok);
+      res = await db.batch([
+        db.prepare("UPDATE payments SET status = 'successful', paid_at = ?1, doc_type = ?2, updated_at = ?1, fulfil_token = ?4 WHERE id = ?3 AND status = 'pending'").bind(t, docType, p.id, tok),
+        db.prepare("INSERT INTO counters (name, value) SELECT ?1, 1 WHERE changes() = 1 ON CONFLICT (name) DO UPDATE SET value = value + 1").bind(name),
+        db.prepare("UPDATE payments SET receipt_no = 'LQ-' || ?1 || '-' || printf('%06d', (SELECT value FROM counters WHERE name = ?2)) " +
+          "WHERE id = ?3 AND status = 'successful' AND receipt_no IS NULL AND paid_at = ?4 AND fulfil_token = ?5").bind(ym, name, p.id, t, tok),
+        ...f.stmts
+      ]);
+    } catch (e) {
+      // rolled back: still 'pending' — the caller answers 5xx (webhook) and the retry / reconcile cron try again
+      await raiseAlert(env, "fulfilment_failed", p.id, { plan: p.plan_id, error: String((e && e.name) || "Error").slice(0, 40) }, fetchImpl);
+      throw e;
+    }
     if (res[0].meta && res[0].meta.changes) {
-      const sub = await activate(env, p, t);
-      if (sub) await db.prepare("UPDATE payments SET subscription_id = ?1 WHERE id = ?2").bind(sub, p.id).run();
       const row = await db.prepare("SELECT receipt_no FROM payments WHERE id = ?1").bind(p.id).first();
-      await audit(env, "system", "payment.successful", { payment: p.id, receipt: row && row.receipt_no, amount: p.amount_satang });
+      await audit(env, "system", "payment.successful", { payment: p.id, receipt: row && row.receipt_no, amount: p.amount_satang, subscription: f.subscriptionId });
       if (p.user_id) await ledger(env, p.user_id, "payment", { ref: p.id, amount: p.amount_satang }, t);
     }
   } else {
@@ -397,11 +494,12 @@ async function paymentById(db, id) {
 /** Polling endpoint: refreshes a pending payment from Opn (rate limited per payment) and returns public fields. */
 export async function paymentStatus(env, id, deps = {}) {
   let p = await paymentById(env.DB, id);
+  if (!p.fulfilled_at && ["successful", "partially_refunded"].includes(p.status)) { await repairFulfilment(env, p, "poll", deps.fetch); p = await paymentById(env.DB, id); }
   if (p.status === "pending" && p.provider_charge_id) {
     const rl = await hit(env.DB, `poll:${p.id}`, 20, 60);
     if (rl.ok) {
       const charge = await retrieveCharge(env, p.provider_charge_id, deps.fetch);
-      await applyCharge(env, p, charge);
+      await applyCharge(env, p, charge, deps.fetch);
       p = await paymentById(env.DB, id);
     }
   }
@@ -443,7 +541,7 @@ export async function handleWebhook(env, request, rawBody, deps = {}) {
     if (p) {
       try {
         const charge = await retrieveCharge(env, chargeId, deps.fetch); // confirm with the API
-        result = await applyCharge(env, p, charge);
+        result = await applyCharge(env, p, charge, deps.fetch);
       } catch (e) {
         await env.DB.prepare("UPDATE webhooks SET result = ?1 WHERE provider = 'opn' AND event_id = ?2").bind("retry:" + String((e && e.status) || "error"), eventId).run();
         log("webhook.retry", { status: (e && e.status) || 0 });
@@ -455,20 +553,32 @@ export async function handleWebhook(env, request, rawBody, deps = {}) {
   return { ok: true, result };
 }
 
-/** Cron: re-checks recent pending payments with Opn (covers lost/failed webhooks). At most `limit` per run.
- *  Only status 'pending' is looked at — 'mismatch' and every other final state are skipped.
+/** Default reconcile batch per run (override with the RECONCILE_BATCH var, 1–500). */
+export const RECONCILE_BATCH = 25;
+/**
+ * Cron: (1) repairs successful payments that were never fulfilled (fulfilled_at IS NULL — alert raised), then
+ * (2) re-checks pending payments of the last 3 days with Opn (covers lost / failed webhooks). At most `limit` of each
+ * per run (RECONCILE_BATCH). Least-recently-checked first: every checked pending row gets updated_at = now, so a
+ * backlog larger than one batch rotates instead of starving the newest payments. Only status 'pending' is re-fetched —
+ * 'mismatch' and every other final state are skipped.
  * @param {Env} env @param {{limit?: number, t?: number, fetchImpl?: typeof fetch}} [o] */
-export async function reconcilePending(env, { limit = 25, t = now(), fetchImpl } = {}) {
-  if (!env.OPN_SECRET_KEY) return { checked: 0, skipped: "no Opn key" };
-  const rows = (await env.DB.prepare("SELECT * FROM payments WHERE status = 'pending' AND provider_charge_id IS NOT NULL AND created_at > ?1 ORDER BY created_at LIMIT ?2")
-    .bind(t - 3 * 86400, limit).all()).results || [];
-  const out = { checked: 0, changed: 0, errors: 0 };
+export async function reconcilePending(env, { limit, t = now(), fetchImpl } = {}) {
+  const n = limit ?? intVar(env.RECONCILE_BATCH, RECONCILE_BATCH, 1, 500);
+  const out = { checked: 0, changed: 0, errors: 0, repaired: 0, repair_errors: 0 };
+  const broken = (await env.DB.prepare("SELECT * FROM payments WHERE status IN ('successful', 'partially_refunded') AND fulfilled_at IS NULL ORDER BY paid_at LIMIT ?1").bind(n).all()).results || [];
+  for (const p of broken) {
+    try { if (await repairFulfilment(env, p, "reconcile", fetchImpl)) out.repaired++; } catch { out.repair_errors++; }
+  }
+  if (!env.OPN_SECRET_KEY) return { ...out, skipped: "no Opn key" };
+  const rows = (await env.DB.prepare("SELECT * FROM payments WHERE status = 'pending' AND provider_charge_id IS NOT NULL AND created_at > ?1 ORDER BY updated_at, created_at LIMIT ?2")
+    .bind(t - 3 * 86400, n).all()).results || [];
   for (const p of rows) {
     out.checked++;
     try {
       const charge = await retrieveCharge(env, p.provider_charge_id, fetchImpl);
-      const st = await applyCharge(env, p, charge);
+      const st = await applyCharge(env, p, charge, fetchImpl);
       if (st !== "pending") out.changed++;
+      else await env.DB.prepare("UPDATE payments SET updated_at = ?1 WHERE id = ?2 AND status = 'pending'").bind(now(), p.id).run();
     } catch { out.errors++; }
   }
   return out;
@@ -490,13 +600,14 @@ export async function publicBillingInfo(env) {
 
 export async function adminPayments(db, q = {}) {
   const limit = intVar(q.limit, 50, 1, 200), offset = intVar(q.offset, 0, 0, 1e6);
-  const st = ["pending", "successful", "failed", "expired", "mismatch", "refunded"].includes(q.status) ? q.status : null;
+  const st = ["pending", "successful", "failed", "expired", "mismatch", "partially_refunded", "refunded"].includes(q.status) ? q.status : null;
   const rows = (await db.prepare("SELECT id, kind, plan_id, period, status, livemode, amount_satang, subtotal_satang, vat_satang, vat_rate_bp, receipt_no, doc_type, " +
-    "buyer_name, buyer_tax_id, buyer_email, provider_charge_id, failure_code, mismatch_detail, refund_satang, refund_ref, refunded_at, user_id, subscription_id, created_at, paid_at " +
+    "buyer_name, buyer_tax_id, buyer_email, provider_charge_id, failure_code, mismatch_detail, refund_satang, refund_ref, refunded_at, user_id, subscription_id, created_at, paid_at, fulfilled_at, age_confirm " +
     "FROM payments WHERE (?3 IS NULL OR status = ?3) ORDER BY created_at DESC LIMIT ?1 OFFSET ?2").bind(limit, offset, st).all()).results || [];
-  const tot = await db.prepare("SELECT COUNT(*) AS n, COALESCE(SUM(CASE WHEN status = 'successful' AND livemode = 1 THEN amount_satang END), 0) AS live_revenue, " +
-    "COALESCE(SUM(CASE WHEN status = 'refunded' AND livemode = 1 THEN refund_satang END), 0) AS live_refunds, COALESCE(SUM(status = 'mismatch'), 0) AS mismatches FROM payments").first();
-  return { payments: rows, total: tot.n, live_revenue_satang: tot.live_revenue, live_refunds_satang: tot.live_refunds, mismatches: Number(tot.mismatches) };
+  const tot = await db.prepare("SELECT COUNT(*) AS n, COALESCE(SUM(CASE WHEN status IN ('successful', 'partially_refunded') AND livemode = 1 THEN amount_satang END), 0) AS live_revenue, " +
+    "COALESCE(SUM(CASE WHEN status IN ('refunded', 'partially_refunded') AND livemode = 1 THEN refund_satang END), 0) AS live_refunds, COALESCE(SUM(status = 'mismatch'), 0) AS mismatches, " +
+    "COALESCE(SUM(status IN ('successful', 'partially_refunded') AND fulfilled_at IS NULL), 0) AS unfulfilled FROM payments").first();
+  return { payments: rows, total: tot.n, live_revenue_satang: tot.live_revenue, live_refunds_satang: tot.live_refunds, mismatches: Number(tot.mismatches), unfulfilled: Number(tot.unfulfilled) };
 }
 
 export async function adminWebhooks(db) {

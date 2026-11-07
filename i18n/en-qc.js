@@ -4,7 +4,7 @@
   "qc.s2": "Production Line QC",
   "qc.s3": "Example: beverage bottles",
   "qc.s4": "Inspects items on the conveyor on-device with image processing, compares them with a good sample, counts pass/reject and exports a shift report — this demo uses beverage bottles, checking fill level, cap and label",
-  "qc.s5": "Measured on simulated bottle images: with fixed lighting and camera it catches almost every defect without rejecting good bottles, but a lighting change of just ±10% after calibration fails every bottle. Turn off camera auto-exposure and recalibrate when lighting changes. Label skew and scratches are not detected. Compare with manual inspection before enabling automatic rejection",
+  "qc.s5": "Measured on simulated bottle images only, not yet on a real line: with a fixed camera and light it catches almost every simulated defect without rejecting good bottles; brightness changes of up to ±20% after calibration no longer reject good bottles (lighting is normalised every frame), and skewed labels are checked: 5° and 10° are rejected, 2° passes · with belt-stop jitter a 6 px cap lift is caught about 80% of the time. Scratches and dents are not inspected. Recalibrate when the light changes shape (a new shadow or reflection), and compare with manual inspection before enabling automatic rejection",
   "qc.s6": "Method and limitations",
   "qc.s7": "Image source",
   "qc.s8": "Simulated line",

@@ -11,10 +11,12 @@
 //   audit log                   AUDIT_DAYS (400)
 //   member sessions             at expiry (30 days absolute / 14 days idle); sign-in nonces after 10 min
 //   member ledger (usage rows)  MEMBER_LEDGER_DAYS (400); payment + refund rows kept with the payment; accounts until deletion
+//   B2B demo requests (leads)   LEADS_DAYS (180) after they were received (round 11)
+//   quota tombstones            the Bangkok day they were written for (usage_counters subject 'x:…', round 11)
 //   payments / receipts         kept (Thai Revenue Code: accounting & tax documents >= 5 years) — never purged here
 import { aggregatePending } from "./analytics.js";
 import { audit } from "./store.js";
-import { addDays, dayOf, intVar, now } from "./util.js";
+import { addDays, bkkDay, dayOf, intVar, now } from "./util.js";
 
 export function retentionConfig(env) {
   return {
@@ -22,7 +24,8 @@ export function retentionConfig(env) {
     auditDays: intVar(env.AUDIT_DAYS, 400, 30, 3650),
     webhookPayloadDays: intVar(env.WEBHOOK_PAYLOAD_DAYS, 90, 1, 3650),
     usageDays: 35,
-    memberLedgerDays: intVar(env.MEMBER_LEDGER_DAYS, 400, 30, 3650)
+    memberLedgerDays: intVar(env.MEMBER_LEDGER_DAYS, 400, 30, 3650),
+    leadsDays: intVar(env.LEADS_DAYS, 180, 7, 3650)
   };
 }
 
@@ -43,7 +46,10 @@ export async function purge(env, t = now()) {
     audit: await run("DELETE FROM audit_log WHERE ts < ?1", t - c.auditDays * 86400),
     member_sessions: await run("DELETE FROM member_sessions WHERE expires_at < ?1 OR last_seen < ?2", t, t - 14 * 86400),
     auth_nonces: await run("DELETE FROM auth_nonces WHERE expires_at < ?1", t),
-    member_ledger: await run("DELETE FROM member_ledger WHERE kind NOT IN ('payment', 'refund') AND ts < ?1", t - c.memberLedgerDays * 86400)
+    member_ledger: await run("DELETE FROM member_ledger WHERE kind NOT IN ('payment', 'refund') AND ts < ?1", t - c.memberLedgerDays * 86400),
+    leads: await run("DELETE FROM leads WHERE created_at < ?1", t - c.leadsDays * 86400),
+    // tombstones (members.js deleteAccount) live only for the Bangkok day they were written for
+    quota_tombstones: await run("DELETE FROM usage_counters WHERE subject LIKE 'x:%' AND day < ?1", bkkDay(t))
   };
   return out;
 }

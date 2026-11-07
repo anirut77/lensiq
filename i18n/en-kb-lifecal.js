@@ -61,7 +61,7 @@
     { n: "the self house (tanu)", f: "p", m: "your sense of self, your confidence and how others see you" }, { n: "the wealth house (kadumpha)", f: "m", m: "earning and saving money" }, { n: "the siblings and friends house (sahatcha)", f: "c", m: "friends, siblings and short trips" },
     { n: "the family house (phanthu)", f: "c", m: "family, home and relatives" }, { n: "the joy and romance house (putta)", f: "l", m: "love, joy and creative work" }, { n: "the challenges house (ari)", f: "w", m: "handling competition and work that takes real effort" }, { n: "the partner house (patni)", f: "l", m: "partners and close collaborators" },
   ];
-  var L7_X = "in Lek Jet Tua Kao Than, the Thai seven digits and nine bases chart, digits from your birth weekday, month and year add up into houses like this one";
+  var L7_X = "in Lek 7 Tua 9 Than, the Thai seven digits and nine bases chart, digits from your birth weekday, month and year add up into houses like this one";
   var DOM = { work: { n: "work", f: "w" }, money: { n: "finances", f: "m" }, love: { n: "love life", f: "l" }, care: { n: "self-care", f: "a" } };
   var DOM_LINE = {
     work: { favourable: "your work has a good tailwind, which makes this a fine time to take on a new role or grow your results", neutral: "your work moves along at its usual pace, a good time for you to build experience", caution: "your work may ask a little more effort of you during this time" },

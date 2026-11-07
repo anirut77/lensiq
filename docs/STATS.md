@@ -1,8 +1,10 @@
-# LENSIQ statistics: calibration notes (round 10)
+# LENSIQ statistics: calibration notes (rounds 10 and 11)
 
-This page records the simulations behind the statistical choices in `lensiq-stats.js` (version 3.3.0), the insights
+This page records the simulations behind the statistical choices in `lensiq-stats.js` (version 3.4.0), the insights
 dashboard, and the benchmark intervals in `ACCURACY.md`. Every number below can be reproduced from a seeded simulation.
-The regression tests are `tests/unit/stats-r10.test.js`, `tests/unit/stats.test.js` and `tests/unit/bench-metrics.test.js`.
+The regression tests are `tests/unit/stats-r11.test.js`, `tests/unit/stats-r10.test.js`, `tests/unit/stats.test.js` and
+`tests/unit/bench-metrics.test.js`. Round-11 type-I pins use at least 1,000 seeded replications with the bound 5% + 2 Monte-Carlo
+SE (6.4% at 1,000); `LQ_STATS_LONG=1 node --test tests/unit/stats-r11.test.js` runs longer cells.
 
 ## 1. Comparing daily counts between two periods (`countCompare`): type I error and power
 
@@ -117,3 +119,115 @@ binomial, the robust-z anomaly p and the correlation p now use `normSf`. The old
   highest-IoU free ground truth, and detections on ignore regions skipped. The previous value, which swept the
   operating-point Hungarian assignment, is still returned as `apAssign`. The AP figures in `ACCURACY.md` §1 and §4 were
   computed before round 10 (the `apAssign` method). The next benchmark run reports both.
+- **Person-cluster intervals for the studio and photo booth tables (round 11).** `personClusterCI(rows)` resamples people
+  (4 outfit renders per portrait); `mcnemar(b, c)` is the exact McNemar test; `pairedCluster(pairs)` compares two variants of the
+  same person × garment with a person-cluster bootstrap CI and a sign-flip test on per-person sums. `tests/bench/studio-intervals.mjs`
+  prints every `ACCURACY.md` §11 / §11b rate with both methods. The design effect is 2.3–3.9 on the outfit rows (first row: 72.9%,
+  Wilson [65.0–79.5] → cluster [56.7–87.1]). Plain vs cover on test: McNemar p = 3.6 × 10⁻⁸ (pairs treated as independent),
+  person-clustered p = 0.003, change −23.6 points [−37.9, −10.0]; on dev the clustered p is 0.31. `studio.bench.mjs` and
+  `photobooth.bench.mjs` now print the cluster block by default (`--no-cluster` skips it).
+
+## 6. Quasi-likelihood tests when there is no overdispersion (round 11, `quasiRef`)
+
+**Problem.** `twoPropDaily` and `quasiBinomCI` floored φ at 1 and still used t(days − 1). Without day-to-day overdispersion this
+is needlessly conservative: type I 1.9–2.1% at 7 vs 7 days and 0.5% at 3 vs 3; the 95% interval covered 99.2% (7 days) and
+99.9% (3 days).
+
+**Fix.** φ̂ = Pearson χ²/df. When φ̂ ≤ 1 the test uses z with φ = 1; when φ̂ > 1 it uses √φ̂ with t(df) as before. Variants tried
+(3,000 replications, 7 vs 7 days × 150 people/day, rate 25%, day logit SD 0–0.5): floor + t (old) 2.0–5.6%; **z when φ̂ ≤ 1:
+3.2–5.6%**; Satterthwaite df = df·(φ̂/(φ̂ − 1))²: 3.6–6.5%; subtracting 0.5–1 SE of φ̂ before flooring: 3.8–9.6% (too liberal).
+
+**Shipped, type I of `twoPropDaily`** (2,000 replications per cell; MC SE ≈ 0.5 points):
+
+| periods | day SD 0 | 0.1 | 0.2 | 0.3 | 0.5 |
+| --- | --- | --- | --- | --- | --- |
+| 3 vs 3 days, 150/day | 2.8% (was 0.5%) | 4.0% | 5.5% | 6.1% | 5.6% |
+| 7 vs 7 days, 150/day | 3.5% (was 2.0%) | 3.8% | 4.5% | 5.7% | 5.0% |
+| 14 vs 14 days, 100/day | 4.5% (was 3.9%) | 4.7% | 5.0% | 4.7% | 4.9% |
+
+The worst cell is 6.1% (3 vs 3 days, SD 0.3): with only 4 df, φ̂ falls below 1 by chance fairly often. **`quasiBinomCI`
+coverage** (2,000 replications): 3 days 97.5% (was 99.9%) / 92.7% with day SD 0.3; 7 days 97.0% (was 99.2%) / 95.6%; 14 days
+96.4% / 94.0%.
+
+**p and interval agree.** `twoProp` and `twoPropDaily` now invert their own interval for p (`pFromCI`): p < 0.05 exactly when the
+95% interval excludes 0. The pooled z-test is still returned as `pPooled` / `pZ` (it differed from the Newcombe interval near
+α = 0.05). `correlation` uses the exact t p-value (Fisher z kept as `pFisher`): 1.25 × 10⁻¹⁰ instead of 2 × 10⁻¹³ at r = 0.92,
+n = 25. `tCrit` now uses Newton steps from a Cornish–Fisher start (same values, about 5× faster).
+
+## 7. Repeated looks (round 11, `mixtureP` / `seqP`)
+
+The dashboard and its alerts are re-computed every day. A test that is fine for one look is not fine for 22: the purchase-rate
+alert (last 7 days vs the 7 before, "clear drop" = drop > 15% and p < 0.05) raised at least one false "clear drop" in 16–29% of
+22-day null runs. **Fix:** the alert's "clear" level now also needs the always-valid p of a mixture SPRT (normal mixture
+τ = 15% of the earlier rate; the one-look p is converted to an equivalent z, so the same evidence is used). When only the one-look
+test is clear, the alert still appears at the "may have dropped, not conclusive" level, with a note that it is re-checked daily.
+
+| 22 daily looks, 1,000 runs | one-look p < 0.05 | **always-valid p < 0.05** |
+| --- | --- | --- |
+| no day effect, 150 people/day | 15.8% | **0.5%** |
+| day SD 0.2, 150/day | 29.3% | **3.0%** |
+| day SD 0.3, 300/day | 29.1% | **1.3%** |
+| real −30% in the last week (power) | 92.9% | 27.8% |
+
+The price is power. On accumulating data (period A growing from 7 to 28 days against a fixed B) the one-look rule gives ≈ 10%
+family-wise and `seqP` stays under 5% (`stats-r11.test.js`). KPI cards keep their one-look label, but when it is "clear" and the
+always-valid p is not, the card says so ("if you check this every day …"), and the "days needed" hint now asks for a decision
+date fixed in advance. Not done: a stored per-user decision date that freezes a comparison (needs UI state in `insights-ui.js`).
+
+## 8. Signage A/B on time strata (round 11, `abRatesStrata`)
+
+Cumulative per-ad totals mix the ad with **when** it played. **Data:** per-ad totals per day × daypart come from the proof-of-play
+log `sg-pop` that `signage.js` already keeps (last 1,000 plays; only plays with the audience measured), or from per-day totals
+`sg-stats.ads[id].days` if `signage.js` stores them (`LQInsightsData.iqSgBumpDay` is the helper; not wired yet). **Test:** pairwise
+Mantel–Haenszel risk difference over the strata both ads played in, φ̂ from Cochran's Q across strata (`quasiRef` rule), omnibus
+generalized Cochran–Mantel–Haenszel, protected Holm as before. **Label cap:** if the two ads share less than 50% of their audience
+in common strata, fewer than 3 common strata, or there is no per-stratum data at all, the label is capped at "weak" and the card
+shows the overlap.
+
+| any pair "different" (pAdj < 0.05), no true difference, day logit SD 0.4, 1,000 runs | cumulative totals | **day strata** |
+| --- | --- | --- |
+| 3 ads × 14 days, each ad mostly on its own days | 35.8% | **≤ 1%** |
+| 4 ads × 14 days, two ads per day in rotation | 42.2% | **1.2%** |
+| 2 ads × 7 days, mostly own days | 25.2% | **4.2%** |
+| 3 ads, all every day (balanced) | 6.8% | **2.2%** |
+| 3 ads, disjoint days | 50.6% | **0%** (no common strata) |
+
+Power for +0.3 logit on one ad, balanced, 14 days: 89–91% (totals: 97–98%, but those are not valid under day effects). The
+demo data has no `sg-pop`, so the demo's signage card is capped at "weak" and says why.
+
+## 9. Daily means for goals and KPIs (round 11, `dailyMeanCI`)
+
+`meanCI` on daily values ignores the weekday pattern (a partial week skews the mean) and autocorrelation. `dailyMeanCI`: with
+≥ 14 days and every weekday at least twice, the weekday-balanced mean (mean of weekday means); otherwise the plain mean. SE from
+the residuals × (1 + ρ)/(1 − ρ), ρ = bias-corrected lag-1 autocorrelation of the residuals in [0, 0.9], df = (n − p)(1 − ρ)/(1 + ρ).
+Coverage of the long-run mean (2,000 series per cell, weak weekday pattern):
+
+| AR(1) of daily noise | 7 days | 10 | 14 | 21 | 30 |
+| --- | --- | --- | --- | --- | --- |
+| 0 | 95.5% → 97.3% | 95.3% → 96.8% | 95.8% → 97.8% | 94.8% → 96.7% | 95.7% → 96.9% |
+| 0.3 | 88.5% → 92.9% | 87.8% → 93.8% | 86.3% → 94.3% | 85.5% → 95.0% | 86.3% → 94.8% |
+| 0.5 | 77.2% → 87.5% | 76.3% → 89.0% | 76.7% → 93.5% | 77.5% → 93.8% | 76.5% → 94.3% |
+| 0.7 | 63.6% → 82.6% | 59.4% → 84.3% | 59.6% → 92.1% | 57.1% → 92.6% | 59.1% → 93.9% |
+
+(old `meanCI` → `dailyMeanCI`). Short windows with strong autocorrelation still under-cover (83–89% at 7–10 days). Used by the
+visitors/day and revenue/day goals and the KPI "mean per day" lines.
+
+**QC yield.** The yield goal, KPI, card and alert use `iqQcCI`: when the per-bottle log covers ≥ 90% of the shift (and ≥ 40
+bottles), the shift is cut into ~12 consecutive stretches and `quasiBinomCI` runs on them, so a bad stretch (a jam, a new lot)
+widens the interval; otherwise Wilson as before. Evenly spread rejects give the Wilson interval.
+
+## 10. Empirical-Bayes A/B intervals (round 11, `ebBinom`)
+
+When τ² ≤ 0 the prior weight was 10⁶ and every arm got a near-zero-width "posterior 95%" interval (24/80, 26/80, 25/80 →
+[0.3116, 0.3134]). They are not shown in the UI today but are exported. Now: τ² not identified (≤ 0, or fewer than 3 groups) →
+the arm's own Wilson interval (`ciMethod: "wilson"`); τ² > 0 → posterior with the prior weight capped at the largest arm's n and
+the width at least 80% of Wilson. The shrunk point estimate used for ranking is unchanged. Coverage of the true arm rates (4 arms
+× 80, 2,000 runs): τ = 0: 35.2% → 97.4%; τ = 0.03: 46.5% → 96.7%; τ = 0.08: 71.8% → 93.0%.
+
+## Still open (needs outside resources)
+
+- Validate the dashboard tests on real store data (A/A splits of historical weeks to measure the empirical false-alarm rate)
+  once a pilot site exists.
+- An independent statistician's review of `countCompare`, `arContrast`, the site-check verdicts and the round-11 rules above.
+- Human, blinded raters for the studio / photo booth labels (the intervals now honestly reflect 35 people, not more raters).
+

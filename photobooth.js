@@ -587,7 +587,13 @@ async function processId(img) {
   await sleep(30);
   try { const r = await PBHQ.cutout(img, mask); if (r) { person = r.canvas; method = r.method; } } catch (e) { console.warn(e); }
   if (!person && mask) { const p = personLayer({ img, mask }); person = mk(p.width, p.height); person.getContext("2d").drawImage(p, 0, 0); method = "MediaPipe"; }
-  setHint(() => hint() + (method ? tr("photobooth.js.id.method", " · ตัดพื้นหลังด้วย {method}", { method }) : ""));
+  // เศษที่ไม่ต่อกับตัว/เส้นจาง และกันกรณีตัดพื้นหลังล้มเหลวจนตัวคนหาย: ใช้ภาพเดิมแทน (ไม่ใช้ตัวเลือก pp ของ cleanLeftovers: ตัดสูทสีเข้มเป็นรูในชุดวัดผล)
+  let cleaned = null;
+  if (person) try {
+    cleaned = cleanCutout(person, face, null);
+    if (cleaned.mainFrac < .05) { person = null; cleaned.failed = true; }
+  } catch (e) { console.warn("clean", e); }
+  setHint(() => hint() + (method ? tr("photobooth.js.id.method", " · ตัดพื้นหลังด้วย {method}", { method }) : "") + (cleaned && cleaned.failed ? " · " + tr("photobooth.js.id.matteFail", "ตัดพื้นหลังไม่สำเร็จ ใช้ภาพเดิมแทน ควรถ่ายใหม่หน้าผนังเรียบ แสงพอ") : ""));
   let faceLum = null; // ความสว่างผิวหน้าผู้ถ่าย ใช้จับคู่แสงกับชุดจากรูปจริง
   if (face.P) { const bx = { x: face.cx - face.fw * .2, y: face.eyeY + (face.chinY - face.eyeY) * .1, w: face.fw * .4, h: (face.chinY - face.eyeY) * .5 }; faceLum = PBTpl.meanLum(img.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, img.width, img.height).data, img.width, bx); }
   let harm = null; // สถิติแสง/สีผิว/noise ของภาพผู้ถ่าย สำหรับผสานชุดจากรูปจริงให้กลมกลืน
@@ -600,7 +606,7 @@ async function processId(img) {
       if (!harm.lr[0] || !harm.lr[1]) harm.lr = null;
     } catch (e) { console.warn("harm", e); }
   }
-  idState.cap = { img, mask, person, face, qc, method, rt: {}, faceLum, harm };
+  idState.cap = { img, mask, person, face, qc, method, rt: {}, faceLum, harm, cleaned };
   showIdResult();
 }
 
@@ -637,6 +643,23 @@ function qualityCheck(img, r, face, eyeL, eyeR, nFaces = 1) {
   ];
   return { items, pass: items.filter(i => i[0]).length, total: items.length };
 }
+/** วาดภาพตัวคน (พิกัดภาพต้นฉบับ) แล้วต่อขอบล่างลงไปไม่เกิน 0.35 หน้า: ปิดช่องเล็กใต้ลำตัวเมื่อภาพต้นฉบับสั้นกว่ากรอบเล็กน้อย
+ *  ช่องที่ใหญ่กว่านั้นไม่ยืด (ในชุดวัดผล การยืดไกล/ยืดด้านข้างทำให้เกิดลายเส้นและแถบ) — ขั้นตรวจก่อนพิมพ์ชี้รอยตัดให้ผู้ใช้เห็นแทน */
+function idExtendDraw(x, img, face) {
+  const w = img.width, h = img.height, k = Math.max(2, Math.round(h * .004));
+  x.drawImage(img, 0, 0);
+  x.drawImage(img, 0, h - k, w, k, 0, h - 1, w, face.fw * .35);
+}
+/** เก็บกวาดภาพตัดพื้นหลัง (StudioCore.cleanLeftovers): ก้อนแยกเล็ก (เศษธง/เก้าอี้ที่ไม่ต่อกับตัว), เส้นจางลอย ๆ
+ *  คืน { removed, mainFrac } — mainFrac < 5% = ตัดพื้นหลังล้มเหลว (ผู้เรียกใช้ภาพเดิมแทน) */
+function cleanCutout(person, face, pp) {
+  if (!window.StudioCore || !StudioCore.cleanLeftovers) return { removed: 0, mainFrac: 1 };
+  const W = person.width, H = person.height, x = person.getContext("2d", { willReadFrequently: true }), d = x.getImageData(0, 0, W, H), n = W * H, k = new Float32Array(n);
+  for (let i = 0; i < n; i++) k[i] = d.data[i * 4 + 3] / 255;
+  const info = StudioCore.cleanLeftovers(k, W, H, face, { pp }), removed = info.parse + info.islands + info.faint;
+  if (removed && info.mainFrac >= .05) { for (let i = 0; i < n; i++) if (k[i] === 0) d.data[i * 4 + 3] = 0; x.putImageData(d, 0, 0); }
+  return { removed, mainFrac: info.mainFrac, parse: info.parse, islands: info.islands, faint: info.faint };
+}
 function renderIdPhoto({ outfit = idState.outfit, res = 1 } = {}) { // คืน canvas รูปติดบัตร 300 DPI (res<1 = ภาพตัวอย่าง)
   const s = L.ID_SIZES[idState.size], W = Math.round(L.cmToPx(s.w) * res), H = Math.round(L.cmToPx(s.h) * res), c = mk(W, H), x = c.getContext("2d");
   const { img, person, face } = idState.cap;
@@ -647,7 +670,8 @@ function renderIdPhoto({ outfit = idState.outfit, res = 1 } = {}) { // คืน
   // ผิวเนียนแบบรักษาขอบ เฉพาะบริเวณผิวหน้า (ตา คิ้ว ปาก ผม คมเหมือนเดิม) — แคชตามระดับ
   let base = person || img;
   if (smooth > 0 && face.P) { const key = smooth.toFixed(2); base = idState.cap.rt[key] ||= PBHQ.retouch(base, face.P, smooth); }
-  const drawPerson = () => { x.filter = `brightness(${bright}) contrast(1.03)`; x.save(); x.translate(ex, ey); x.rotate(-face.angle); x.scale(sc, sc); x.translate(-face.cx, -face.eyeY); x.drawImage(base, 0, 0); x.restore(); x.filter = "none"; };
+  // แบบไม่ใส่ชุด: ต่อขอบล่าง/ข้างของตัวคนเมื่อภาพต้นฉบับสั้นหรือแคบกว่ากรอบรูปติดบัตร (ไม่ให้ลำตัวจบเป็นเส้นตรงกลางรูป)
+  const drawPerson = () => { x.filter = `brightness(${bright}) contrast(1.03)`; x.save(); x.translate(ex, ey); x.rotate(-face.angle); x.scale(sc, sc); x.translate(-face.cx, -face.eyeY); if (outfit === "none") idExtendDraw(x, base, face); else x.drawImage(base, 0, 0); x.restore(); x.filter = "none"; };
   drawPerson();
   if (outfit === "none") return c;
   const k = +$("#oScale").value / 100, u = face.fw * sc * k;
@@ -757,10 +781,12 @@ const outfitShown = () => mode === "id" && (idState.shownOutfit === "preview" ||
 const sfx = () => outfitShown() ? "-outfit-preview" : "";
 function syncOutfitNote() {
   const el = $("#pbOutfitNote"), btn = $("#pbOutfitDraft"); if (!el) return;
-  const st = idState.shownOutfit, show = st === "preview" || st === "draft" || st === "safe";
+  const st = idState.shownOutfit, show = st === "preview" || st === "draft" || st === "safe" || st === "ai";
   el.hidden = !show; btn.hidden = !(st === "safe" || st === "draft"); if (!show) return;
   el.dataset.shown = st;
-  $("#pbOutfitMsg").textContent = st === "preview" ? tr("photobooth.js.of.preview", "ชุดเป็นชุดตัวอย่าง (พรีวิว) ที่โปรแกรมวาดขึ้น ไม่ใช่ภาพสวมจริง รูปมีป้าย \"ภาพจำลองชุด\" ที่มุม หลายหน่วยงานไม่รับรูปที่แต่งชุดด้วยดิจิทัล ใช้แบบไม่ใส่ชุดหรือถ่ายด้วยชุดจริงสำหรับการสมัครจริง")
+  // "ai" = ภาพจากบริการสร้างภาพภายนอก (runAI): ยังเป็นภาพสังเคราะห์ มีป้ายมุมภาพ และหลายหน่วยงานไม่รับ
+  $("#pbOutfitMsg").textContent = st === "ai" ? tr("photobooth.js.of.ai", "ชุดในรูปนี้สร้างโดยบริการสร้างภาพภายนอก (Replicate) เป็นภาพสังเคราะห์ ไม่ใช่ภาพถ่ายขณะสวมจริง รูปมีป้าย \"ภาพจำลองชุด\" ที่มุม หลายหน่วยงานไม่รับรูปที่แต่งชุดหรือสร้างด้วยดิจิทัล ตรวจคอ ปกเสื้อ และใบหน้าก่อนใช้")
+    : st === "preview" ? tr("photobooth.js.of.preview", "ชุดเป็นชุดตัวอย่าง (พรีวิว) ที่โปรแกรมวาดขึ้น ไม่ใช่ภาพสวมจริง รูปมีป้าย \"ภาพจำลองชุด\" ที่มุม หลายหน่วยงานไม่รับรูปที่แต่งชุดด้วยดิจิทัล ใช้แบบไม่ใส่ชุดหรือถ่ายด้วยชุดจริงสำหรับการสมัครจริง")
     : st === "draft" ? tr("photobooth.js.of.draft", "กำลังแสดงชุดแบบร่าง (ภาพจำลองชุด) อาจเห็นเสื้อเดิมโผล่ รอยต่อที่คอ หรือผมถูกตัด หลายหน่วยงานไม่รับรูปที่แต่งชุดด้วยดิจิทัล")
     : tr("photobooth.js.of.safe", "แสดงรูปแบบไม่ใส่ชุดก่อน: ในชุดวัดผลของเรา ชุดภาพวาดบนรูปติดบัตรมีรอยให้เห็นทุกภาพ (124 จาก 124 ภาพ ส่วนใหญ่เสื้อเดิมโผล่รอบชุด) สำหรับการสมัครจริงให้ถ่ายด้วยชุดจริง ดูชุดเป็นแบบร่างได้ด้วยปุ่มด้านล่าง") +
       (idState.boothQA && idState.boothQA.fails.length ? " " + tr("photobooth.js.of.found", "ตรวจพบบนรูปนี้: {f}", { f: idState.boothQA.fails.map(k => tr("photobooth.js.of.f." + k, { "hair-cut": "ผมถูกตัดตรง", "neck-gap": "ช่องที่คอ", leftover: "เสื้อเดิมโผล่", "no-matte": "ตัดพื้นหลังไม่ได้", "qa-error": "ตรวจไม่ได้" }[k] || k)).join(", ") }) : "");
@@ -770,7 +796,11 @@ function syncOutfitNote() {
 function outfitConfirm() {
   if (!outfitShown()) return Promise.resolve(true);
   const d = $("#pbConfirm"); if (!d || !d.showModal) return Promise.resolve(true);
-  $("#pbConfirmMsg").textContent = idState.shownOutfit === "draft" ? tr("photobooth.js.cf.draft", "รูปนี้มีชุดจำลองแบบร่างที่ไม่ผ่านการตรวจ อาจเห็นรอยต่อ และหลายหน่วยงานไม่รับรูปที่แต่งชุดด้วยดิจิทัล รูปจะมีป้าย \"ภาพจำลองชุด\" ทำต่อหรือไม่")
+  // แบบร่าง: ข้อความตามผลตรวจของรูปนี้ (StudioQA.boothCheck) — ไม่ผ่าน / ผ่าน (แต่ในชุดวัดผลทุกภาพยังมีรอย) / ตรวจไม่ได้
+  const q = idState.boothQA;
+  $("#pbConfirmMsg").textContent = idState.shownOutfit === "draft" ? (q && !q.pass ? tr("photobooth.js.cf.draft", "รูปนี้มีชุดจำลองแบบร่างที่ไม่ผ่านการตรวจ อาจเห็นรอยต่อ และหลายหน่วยงานไม่รับรูปที่แต่งชุดด้วยดิจิทัล รูปจะมีป้าย \"ภาพจำลองชุด\" ทำต่อหรือไม่")
+      : q ? tr("photobooth.js.cf.draftPass", "รูปนี้มีชุดจำลองแบบร่าง การตรวจอัตโนมัติไม่พบปัญหาบนรูปนี้ แต่ในชุดวัดผลของเรา ชุดภาพวาดบนรูปติดบัตรที่ผ่านการตรวจก็ยังมีรอยให้เห็นทุกภาพ และหลายหน่วยงานไม่รับรูปที่แต่งชุดด้วยดิจิทัล รูปจะมีป้าย \"ภาพจำลองชุด\" ทำต่อหรือไม่")
+      : tr("photobooth.js.cf.draftNoQa", "รูปนี้มีชุดจำลองแบบร่างที่ยังไม่ได้ตรวจ อาจเห็นรอยต่อ และหลายหน่วยงานไม่รับรูปที่แต่งชุดด้วยดิจิทัล รูปจะมีป้าย \"ภาพจำลองชุด\" ทำต่อหรือไม่"))
     : tr("photobooth.js.cf.id", "รูปติดบัตรนี้มีชุดจำลอง หลายหน่วยงานไม่รับรูปที่แต่งชุดหรือเปลี่ยนฉากหลังด้วยดิจิทัล รูปจะมีป้าย \"ภาพจำลองชุด\" ที่มุมเสมอ ทำต่อหรือไม่");
   return new Promise(res => {
     const done = v => { $("#pbConfirmOk").onclick = $("#pbConfirmNo").onclick = d.oncancel = null; if (d.open) d.close(); res(v); };
@@ -778,7 +808,76 @@ function outfitConfirm() {
     d.showModal();
   });
 }
-const guarded = fn => async () => { if (await outfitConfirm()) fn(); };
+/* ---------- ตรวจก่อนพิมพ์ (บังคับในโหมดรูปติดบัตร) ----------
+ * ในชุดวัดผล รูปติดบัตรแบบไม่ใส่ชุดมีรอยใน 13 จาก 35 คน (ACCURACY.md §11b: เศษธง/ฉาก ลำตัวถูกตัดตรง) จึงให้ผู้ใช้ดูรูปก่อนทุกครั้งที่รูปเปลี่ยน:
+ * กรอบสีแดงตรงเศษที่ไม่ต่อกับตัวคนและรอยตัดตรงของลำตัว (StudioQA.idLeftovers) + ข้อกำหนดรูปติดบัตร (StudioQA.idSpecCheck)
+ * ผลตรวจถูกบันทึกในไฟล์ PNG (tEXt "LENSIQ-ID-Check") — ไม่มีข้อมูลภาพหรือข้อมูลส่วนตัว */
+/** alpha ของตัวคนในพิกัดรูปติดบัตร (การแปลงเดียวกับ renderIdPhoto) */
+function idPersonAlpha(W, H) {
+  const { person, face } = idState.cap, a = new Float32Array(W * H); if (!person) return null;
+  const cr = L.idCrop(face, { w: W, h: H }), sc = cr.scale, ex = (face.cx - cr.sx) * sc, ey = (face.eyeY - cr.sy) * sc;
+  const c = mk(W, H), x = c.getContext("2d", { willReadFrequently: true }); x.save(); x.translate(ex, ey); x.rotate(-face.angle); x.scale(sc, sc); x.translate(-face.cx, -face.eyeY); if (outfitShown()) x.drawImage(person, 0, 0); else idExtendDraw(x, person, face); x.restore();
+  const d = x.getImageData(0, 0, W, H).data; for (let i = 0; i < a.length; i++) a[i] = d[i * 4 + 3] / 255;
+  return { a, face: { cx: ex, eyeY: ey, chinY: ey + (face.chinY - face.eyeY) * sc, fw: face.fw * sc } };
+}
+function idReview(photo = idState.last && idState.last.photo) {
+  if (!photo || !idState.cap || !window.StudioQA) return null;
+  const W = photo.width, H = photo.height, pa = idPersonAlpha(W, H), s = L.ID_SIZES[idState.size];
+  const px = photo.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, W, H).data;
+  const lo = pa ? window.StudioQA.idLeftovers({ pa: pa.a, W, H, face: pa.face }) : { islands: [], cuts: [], ok: false, noMatte: true };
+  const spec = pa ? window.StudioQA.idSpecCheck({ px, alpha: pa.a, W, H, face: pa.face, size: s, dpi: L.DPI, outfit: outfitShown() }) : null;
+  const findings = [...lo.islands.map(b => ({ k: "island", ...b })), ...lo.cuts.map(c => ({ k: "cut-" + c.k, ...c })), ...(lo.noMatte ? [{ k: "no-matte" }] : [])];
+  return { findings, spec, ok: !findings.length && (!spec || spec.pass) };
+}
+/** สำเนารูปพร้อมกรอบ/เส้นสีแดงตรงจุดที่ควรตรวจ */
+function reviewOverlay(photo, r) {
+  const c = mk(photo.width, photo.height), x = c.getContext("2d"); x.drawImage(photo, 0, 0);
+  x.strokeStyle = "#e11d48"; x.lineWidth = Math.max(3, photo.width / 120); x.setLineDash([x.lineWidth * 3, x.lineWidth * 2]);
+  for (const f of r.findings) { if (f.k === "island") x.strokeRect(f.x - 4, f.y - 4, f.w + 8, f.h + 8); else if (f.k.startsWith("cut-")) { x.beginPath(); x.moveTo(f.x0, f.y0); x.lineTo(f.x1, f.y1); x.stroke(); } }
+  return c;
+}
+const reviewKey = () => [aiKey(), idState.shownOutfit, idState.draftFor || "", idState.paper, idState.copies].join("#");
+const REVIEW_TXT = () => ({
+  island: tr("photobooth.js.rv.island", "มีเศษที่ไม่ต่อกับตัวคน (เช่น ธง เก้าอี้ ฉาก) ในกรอบสีแดง ถ่ายใหม่หน้าผนังเรียบ"),
+  "cut-bottom": tr("photobooth.js.rv.cutBottom", "ลำตัวจบเหนือขอบล่างของรูปเป็นเส้นตรง (ภาพต้นฉบับสั้นเกินไป) ถ่ายใหม่ให้เห็นถึงกลางอก"),
+  "cut-left": tr("photobooth.js.rv.cutSide", "ขอบตัวคนถูกตัดเป็นเส้นตรงด้านข้าง (ขอบภาพต้นฉบับ) ถ่ายใหม่โดยถอยห่างกล้องเล็กน้อย"),
+  "cut-right": tr("photobooth.js.rv.cutSide", "ขอบตัวคนถูกตัดเป็นเส้นตรงด้านข้าง (ขอบภาพต้นฉบับ) ถ่ายใหม่โดยถอยห่างกล้องเล็กน้อย"),
+  "cut-empty": tr("photobooth.js.rv.empty", "ไม่พบตัวคนในรูป ถ่ายใหม่"),
+  "no-matte": tr("photobooth.js.rv.noMatte", "ตัดพื้นหลังไม่ได้ ตรวจขอบตัวคนด้วยตาเอง"),
+  none: tr("photobooth.js.rv.none", "ไม่พบเศษฉากหลังหรือรอยตัดตรงโดยอัตโนมัติ (ยังควรตรวจด้วยตาเอง)")
+});
+const SPEC_TXT = (i) => tr("photobooth.js.rv.spec." + i.k + (i.ok ? "" : "Bad"), {
+  size: "ขนาดพิกเซลตรงกับ 300 DPI", sizeBad: "ขนาดพิกเซลไม่ตรงกับ 300 DPI", head: "สัดส่วนศีรษะ {p}% อยู่ในช่วงทั่วไป", headBad: "สัดส่วนศีรษะ {p}% นอกช่วงทั่วไป 50–75%",
+  top: "เว้นที่เหนือศีรษะพอดี", topBad: "ที่เหนือศีรษะไม่พอดี ศีรษะอาจถูกตัด", center: "ใบหน้าอยู่กึ่งกลาง", centerBad: "ใบหน้าไม่อยู่กึ่งกลาง",
+  bg: "ฉากหลังเรียบ", bgBad: "ฉากหลังไม่เรียบหรือมีเศษ", exposure: "ความสว่างใบหน้าพอดี", exposureBad: "ความสว่างใบหน้าไม่พอดี",
+  outfit: "ไม่มีชุดจำลอง", outfitBad: "มีชุดจำลอง หลายหน่วยงานไม่รับ"
+}[i.k + (i.ok ? "" : "Bad")] || i.k, i.v || {});
+/** ขั้นบังคับ: แสดงรูปพร้อมจุดที่ควรตรวจ ผู้ใช้ต้องติ๊ก "ตรวจแล้ว" ก่อนส่งออก (ครั้งเดียวต่อรูป — เปลี่ยนรูป/ค่า ต้องตรวจใหม่) */
+function reviewGate() {
+  if (mode !== "id" || !idState.last) return Promise.resolve(true);
+  const key = reviewKey();
+  if (idState.reviewed && idState.reviewed.cap === idState.cap && idState.reviewed.key === key) return Promise.resolve(true);
+  const d = $("#pbReview"), r = idReview(idState.last.photo) || { findings: [], spec: null, ok: false };
+  idState.review = { ...r, key, at: null };
+  if (!d || !d.showModal) { idState.reviewed = { cap: idState.cap, key }; idState.review.at = new Date().toISOString(); return Promise.resolve(true); }
+  const txt = REVIEW_TXT(), esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[c]));
+  $("#pbReviewImg").src = reviewOverlay(idState.last.photo, r).toDataURL("image/png");
+  $("#pbReviewList").innerHTML = (r.findings.length ? [...new Set(r.findings.map(f => f.k))].map(k => `<li class="warn" data-k="${k}">${esc(txt[k] || k)}</li>`).join("") : `<li class="ok" data-k="none">${esc(txt.none)}</li>`) +
+    (r.spec ? r.spec.items.map(i => `<li class="${i.ok ? "ok" : "warn"}" data-k="spec-${i.k}">${esc(SPEC_TXT(i))}</li>`).join("") : "");
+  const ok = $("#pbReviewOk"), go = $("#pbReviewGo"); ok.checked = false; go.disabled = true; ok.onchange = () => { go.disabled = !ok.checked; };
+  return new Promise(res => {
+    const done = v => { go.onclick = $("#pbReviewNo").onclick = d.oncancel = null; if (d.open) d.close(); if (v) { idState.reviewed = { cap: idState.cap, key }; idState.review.at = new Date().toISOString(); } res(v); };
+    go.onclick = () => done(ok.checked); $("#pbReviewNo").onclick = () => done(false); d.oncancel = () => done(false);
+    d.showModal();
+  });
+}
+/** ข้อความผลตรวจสำหรับใส่ในไฟล์ (ASCII ล้วน ไม่มีข้อมูลภาพ/ข้อมูลส่วนตัว) */
+function idCheckMeta() {
+  const r = idState.review; if (!r || mode !== "id") return null;
+  const s = L.ID_SIZES[idState.size], spec = r.spec ? r.spec.items.map(i => `${i.k}=${i.ok ? "ok" : "fail"}${i.k === "head" && i.v ? "(" + i.v.p + "%)" : ""}`).join(" ") : "spec=not-checked";
+  return `LENSIQ ID-photo check (estimate, not an agency approval): size=${s.w}x${s.h}cm@${L.DPI}dpi ${spec} leftovers=${r.findings.filter(f => f.k === "island").length} torso-cut=${r.findings.filter(f => f.k.startsWith("cut-")).map(f => f.k.slice(4)).join(",") || "none"} outfit=${idState.shownOutfit || "none"} reviewed-by-user=${r.at ? "yes " + r.at : "no"}`;
+}
+const guarded = fn => async () => { if (!(await reviewGate())) return; if (await outfitConfirm()) fn(); };
 function renderId() {
   if (mode !== "id" || !idState.cap) return;
   const photo = idPhotoNow(), sheet = renderSheet(photo);
@@ -834,9 +933,14 @@ let current = null; // ผลลัพธ์ที่กำลังแสดง
 const fileStamp = () => { const d = new Date(), p = n => String(n).padStart(2, "0"); return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`; };
 const canvasBlob = c => new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error(tr("photobooth.js.err.blob", "สร้างไฟล์ภาพไม่สำเร็จ"))), "image/png")).then(async b => {
   // รูปที่มีชุดจำลอง: ข้อความกำกับใน PNG (tEXt/iTXt) — ชุดเป็นภาพที่โปรแกรมวาด ไม่ใช่ภาพถ่ายขณะสวมจริง
-  if (!outfitShown() || !window.StudioCore || !StudioCore.pngWithText) return b;
+  // รูปติดบัตร: ผลตรวจก่อนพิมพ์ (idCheckMeta) ใส่ทุกไฟล์ ไม่ว่ามีชุดหรือไม่
+  const idm = idCheckMeta();
+  if ((!outfitShown() && !idm) || !window.StudioCore || !StudioCore.pngWithText) return b;
   const u = new Uint8Array(await b.arrayBuffer());
-  return new Blob([StudioCore.pngWithText(u, [["Description", "LENSIQ photo booth outfit preview: the garment is synthetic (drawn by software), not a photo of this person wearing it."], ["Comment", "LENSIQ: ภาพจำลองชุด (outfit preview)"], ["Software", "LENSIQ Photo Booth"]])], { type: "image/png" });
+  const kv = outfitShown() ? [["Description", "LENSIQ photo booth outfit preview: the garment is synthetic (drawn by software), not a photo of this person wearing it."], ["Comment", "LENSIQ: ภาพจำลองชุด (outfit preview)"]] : [];
+  if (idm) kv.push(["LENSIQ-ID-Check", idm]);
+  kv.push(["Software", "LENSIQ Photo Booth"]);
+  return new Blob([StudioCore.pngWithText(u, kv)], { type: "image/png" });
 });
 function saveBlob(blob, filename) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
 function downloadCanvas(c, name) { canvasBlob(c).then(b => saveBlob(b, `${name}-${fileStamp()}.png`)).catch(e => toast(e.message)); }
@@ -988,4 +1092,4 @@ window.addEventListener("lq-lang", () => {
   if (!$("#result").hidden) { if (mode === "booth" && booth.shots.length) showBoothResult(true); else if (mode === "id" && idState.cap) showIdResult(true); }
 });
 // ---------- test hook (tests/bench/photobooth.bench.mjs, tests/e2e/studio.e2e.mjs) — ไม่เก็บหรือส่งข้อมูล ----------
-window.__pb = { idFromImage: c => { mode = "id"; return processId(c); }, idState, renderIdPhoto, selectOutfit: k => { idState.outfit = k; idState.draftFor = null; renderOutfitChoices(); renderId(); return idState.shownOutfit; }, idPhotoNow, outfitConfirm };
+window.__pb = { idFromImage: c => { mode = "id"; return processId(c); }, idState, renderIdPhoto, idReview, reviewGate, idCheckMeta, canvasBlob, syncOutfitNote, selectOutfit: k => { idState.outfit = k; idState.draftFor = null; renderOutfitChoices(); renderId(); return idState.shownOutfit; }, idPhotoNow, outfitConfirm };

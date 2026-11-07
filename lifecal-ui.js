@@ -89,6 +89,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     return h;
   }
   /* ---------- เลข 7 ตัว ---------- */
+  var ANIMALS_TH = ["ชวด", "ฉลู", "ขาล", "เถาะ", "มะโรง", "มะเส็ง", "มะเมีย", "มะแม", "วอก", "ระกา", "จอ", "กุน"];
   function renderLek7(L) {
     var hi = L.sum.indexOf(Math.max.apply(null, L.sum)), lo = L.sum.indexOf(Math.min.apply(null, L.sum));
     var rows = [["lc.r1", "ฐาน 1 วันเกิด"], ["lc.r2", "ฐาน 2 เดือน (จันทรคติ เดือน {m})"], ["lc.r3", "ฐาน 3 ปีนักษัตร"]];
@@ -96,6 +97,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       L.rows.map(function (r, i) { return '<tr><th scope="row">' + esc(T(rows[i][0], rows[i][1], { m: L.lunarMonth + (L.secondEight ? T("lc.second8", " หลัง") : "") })) + "</th>" + r.map(function (v) { return "<td>" + v + "</td>"; }).join("") + "</tr>"; }).join("") +
       '<tr class="lc-sum"><th scope="row">' + esc(T("lc.r4", "ฐาน 4 ฐานรวม")) + "</th>" + L.sum.map(function (v, i) { return "<td" + (i === hi ? ' class="lc-hi"' : i === lo ? ' class="lc-lo"' : "") + ">" + v + "</td>"; }).join("") + "</tr></tbody></table>";
     h += '<p class="fk-small">' + esc(T("lc.l7Note", "ช่องที่สูงสุดคือจุดแข็ง ช่องที่ต่ำสุดคือด้านที่ควรค่อย ๆ เติม (เดือนจันทรคติเป็นค่าประมาณ)")) + "</p>";
+    // ปีนักษัตรใช้กฎเดียวกับหน้าดวงชะตา (ขึ้น 1 ค่ำ เดือน 5); ถ้านับแบบวันสงกรานต์แล้วต่างกัน บอกให้รู้
+    var an = function (i) { return T("lc.animal." + i, ANIMALS_TH[i]); };
+    h += '<p class="fk-small" id="lcL7Year">' + esc(T("lc.l7Year", "ฐาน 3 ใช้ปีนักษัตร{a} — เปลี่ยนปีวันขึ้น 1 ค่ำ เดือน 5 ตามตำราไทย (กฎเดียวกับหน้าดวงชะตา)", { a: an(L.zodiac) })) + "</p>";
+    if (L.zodiacRuleDiffers) h += '<p class="note" id="lcL7YearDiff">' + esc(T("lc.l7YearDiff", "คุณเกิดช่วงรอยต่อปีนักษัตร: บางตำรานับเปลี่ยนปีวันสงกรานต์ (13 เมษายน) ถ้านับแบบนั้น ฐาน 3 จะเป็นปี{b} แทนปี{a}", { a: an(L.zodiac), b: an(L.zodiacSongkran) })) + "</p>";
     return h;
   }
   /* ---------- กราฟชีวิต (SVG) ---------- */

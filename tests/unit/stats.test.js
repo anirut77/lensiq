@@ -425,7 +425,8 @@ test("insights: confidence labels come from BH q-values across all tests in the 
     for (const t of tests) {
       if (t.level === "insufficient") continue;
       assert.ok(Number.isFinite(t.q) && t.q >= t.p - 1e-12, `${p}: q ${t.q} ≥ p ${t.p}`);
-      assert.equal(t.level, S.confLevel(t.q, true), `${p}: level from q`);
+      // round 11: a signage A/B pair whose ads shared few time slots (or had no per-slot data) is capped at "weak"
+      assert.equal(t.level, I.iqCapLevel(S.confLevel(t.q, true), t.cap), `${p}: level from q (capped by ${t.cap})`);
       assert.equal(t.m, A.multi.m);
     }
     const text = JSON.stringify(C);

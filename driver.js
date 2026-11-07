@@ -623,12 +623,21 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     monitor = createMonitor(c, { marYawn: settings.marYawn, breakWarnings: settings.breakN });
     $("#thr").value = c.thr.toFixed(3);
     $("#baseInfo").textContent = c.ok ? `ค่า EAR ปกติ ${c.ear.toFixed(3)} × ${settings.ratio} (จาก ${c.n} เฟรม)${c.eyeThr != null ? ` · ตรวจหลับตาด้วยภาพดวงตา (ค่าปกติ ${c.eyeBase.toFixed(2)}, ปิดเมื่อ > ${c.eyeThr.toFixed(2)}) และใช้ EAR เมื่อตัดภาพตาไม่ได้` : " · ใช้ EAR อย่างเดียว"}` : `ปรับเทียบไม่สำเร็จ (พบใบหน้า ${c.n} เฟรม) — ใช้ค่าเริ่มต้น 0.25 และปิดการตรวจศีรษะตก`;
+    setCalWarn(!c.ok ? "fail" : c.eyeThr == null ? "ear" : "");
     if (!c.ok) engine("ปรับเทียบไม่สำเร็จ: ไม่พบใบหน้าชัดเจนพอ ใช้เกณฑ์ค่าเริ่มต้น 0.25 — ปรับมุมกล้องแล้วกด \"ปรับเทียบใหม่\" ได้", "warn");
     else engine(`ปรับเทียบแล้ว เกณฑ์หลับตา EAR < ${c.thr.toFixed(3)}`, "ok");
     phase = "trip";
     persist();
   }
 
+  // คำเตือนที่ปิดไม่ได้ (ไม่มีปุ่มปิด): ปรับเทียบไม่สำเร็จ หรือใช้ EAR อย่างเดียว — หายเมื่อปรับเทียบใหม่สำเร็จด้วยภาพดวงตา หรือจบเที่ยว
+  function setCalWarn(kind) {
+    const box = $("#calWarn");
+    if (!box) return;
+    box.hidden = !kind; box.dataset.kind = kind || "";
+    $("#calWarnFail").hidden = kind !== "fail"; $("#calWarnEar").hidden = kind !== "ear";
+    document.body.classList.toggle("cal-degraded", !!kind);
+  }
   const peak = () => ({ maxFatigue: Math.max(trip.maxFatigue || 0, monitor?.maxFatigue || 0), maxPerclos: Math.max(trip.maxPerclos || 0, monitor?.maxPerclos || 0) });
   $("#recal").onclick = () => { if (trip && phase === "trip") { if (monitor) { monitor.finish(Date.now()); Object.assign(trip, peak()); } startCalibration(); } };
   $("#thr").addEventListener("change", e => {
@@ -755,7 +764,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     trip = null; monitor = null; phase = "idle"; clearLock();
     document.body.classList.remove("on-trip");
     exitDriving();
-    setLevel(0); $("#breakBanner").hidden = true; $("#calib").hidden = true;
+    setLevel(0); $("#breakBanner").hidden = true; $("#calib").hidden = true; setCalWarn("");
     drawFace(null);
     $("#stateText").textContent = "จบเที่ยวแล้ว";
     showSummary(s); renderHistory();
@@ -917,10 +926,10 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
       conditions: { health: [...run.health] }, prompts: prompts.map(p => ({ atSec: p.at / 1000, closeSec: p.closeMs / 1000, skipped: !!p.skip })),
       events: run.events.map(e => ({ tSec: +((e.t - run.t0) / 1000).toFixed(2), raisedSec: +((e.at - run.t0) / 1000).toFixed(2), type: e.type, level: e.level })),
       distinctPeople: 1, framesIndependent: false,
-      report: { verdict: rep.verdict, provisional: rep.provisional, need: rep.need, n: rep.n, sensitivity: rep.sensitivity, openFrameClosedBlock: rep.openFrameClosedBlock, closedFrameClosedBlock: rep.closedFrameClosedBlock, latencyMs: rep.latencyMs, falsePerHour: rep.falsePerHour, openFrameClosed: rep.openFrameClosed, closedFrameClosed: rep.closedFrameClosed, recs: rep.recs }
+      report: { verdict: rep.verdict, provisional: rep.provisional, pilot: rep.pilot ? rep.pilot.verdict : null, need: rep.need, n: rep.n, sensitivity: rep.sensitivity, openFrameClosedBlock: rep.openFrameClosedBlock, closedFrameClosedBlock: rep.closedFrameClosedBlock, latencyMs: rep.latencyMs, falsePerHour: rep.falsePerHour, openFrameClosed: rep.openFrameClosed, closedFrameClosed: rep.closedFrameClosed, recs: rep.recs }
     });
     scdPanel.exp.hidden = false; scdPanel.exp.onclick = () => SITE.download(`lensiq-driver-check-${stamp()}.json`, doc);
-    scdHist.add({ at: run.t0, verdict: rep.verdict, provisional: rep.provisional, need: rep.need, cam: cam.label || "กล้องในรถ", summary: SITE.fmt("เตือนครบ {a}/{b} · เตือนผิด {c}", { a: rep.n.hits, b: rep.n.prompts, c: rep.n.falseAlarms }) });
+    scdHist.add({ at: run.t0, verdict: rep.verdict, provisional: rep.provisional, pilot: rep.pilot ? rep.pilot.verdict : null, need: rep.need, cam: cam.label || "กล้องในรถ", summary: SITE.fmt("เตือนครบ {a}/{b} · เตือนผิด {c}", { a: rep.n.hits, b: rep.n.prompts, c: rep.n.falseAlarms }) });
     scdHist.render(scdPanel.hist);
     SCD_LAST = { rep, doc };
   }

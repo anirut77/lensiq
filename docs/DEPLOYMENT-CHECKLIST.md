@@ -30,9 +30,11 @@ node tools/check-site.mjs        # forbidden files + static references + headles
        longer triggers the legacy "pages build and deployment" run that republishes the whole repository.
 2. [ ] **Settings → Environments → github-pages → Deployment branches and tags**: make sure `main` is allowed
        (default rule "Protected branches only" works when `main` is protected; otherwise add a rule for `main`).
-3. [ ] Push the commit containing `.github/workflows/pages-lfs.yml` (name: **Pages**, trigger `push` on `main`),
+3. [ ] Push the commit containing `.github/workflows/pages-lfs.yml` (name: **Pages**, trigger `workflow_run`: it runs only
+       after the **CI** workflow succeeds for a push to `main`, and builds the exact commit CI tested),
        `tools/build-site.mjs` and `tools/check-site.mjs` to `main`.
-4. [ ] The push starts the **Pages** run (or use **Actions → Pages → Run workflow** on `main`). Wait for both jobs,
+4. [ ] The push starts **CI**; when CI is green it starts the **Pages** run (or use **Actions → Pages → Run workflow** on
+       `main`, which refuses unless CI already succeeded for that commit). Wait for both jobs,
        **Build + verify _site** and **Deploy to GitHub Pages**, to be green. The deploy job prints the page URL.
 5. [ ] Verify on the live site (a 404 is the correct answer for every internal file):
 

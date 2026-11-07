@@ -46,9 +46,9 @@ sign-in and one back office, so one account can hold a consumer plan and a busin
 
 | Report (plan id, `0006_consumer_pricing.sql`) | Price | Contents (ร่าง) | AI credits granted | Model cost (≈ 3 THB / AI reading) |
 |---|---|---|---|---|
-| **Basic reading report / รายงานดวงพื้นฐาน** (`report_basic`) | **49 THB** | one AI-written full reading for one domain (e.g. tarot spread, face reading, numbers), saved to the account, print/PDF | 1 | ≈ 3 THB |
-| **Compatibility report / รายงานดวงคู่** (`report_compat`) | **99 THB** | two people's charts compared (zodiac, BaZi, numbers), long form + 3-point plan | 2 | ≈ 6 THB |
-| **Annual forecast report / รายงานดวงรายปี** (`report_annual`) | **199 THB** | yearly report combining several domains, month-by-month outlook, PDF; TH, EN or 中文 | 3 | ≈ 9–10 THB |
+| **Basic reading report / รายงานดวงพื้นฐาน** (`report_basic`) | **49 THB** | one full multi-section reading (BaZi + Taksa + Lek 7 Tua 9 Than, composed on the device), saved to the account, print/PDF; the AI credit is usable on any fortune page | 1 | ≈ 3 THB |
+| **Compatibility report / รายงานดวงคู่** (`report_compat`) | **99 THB** | two people's charts compared (12-animal pair + BaZi Day-Master element relation), long form + 3-point plan | 2 | ≈ 6 THB |
+| **Annual forecast report / รายงานดวงรายปี** (`report_annual`) | **199 THB** | yearly report: the year by the 12 animals, the BaZi luck period and a 12-month outlook (month pillar vs Day Master), print/PDF; TH, EN or 中文 | 3 | ≈ 9–10 THB |
 
 **Membership (fortune consumers)**
 
@@ -80,6 +80,8 @@ sign-in and one back office, so one account can hold a consumer plan and a busin
   no specific competitor figures are claimed here.*
 * **Cost cover.** At ≈ 3 THB per AI reading, 30 AI readings/month cost ≈ 90–105 THB at 100 % use against ≈ 139 THB net
   of VAT — thin at the cap, so watch real use in `usage_counters`; typical use is far lower. Reports keep > 85 % margin.
+
+**Delivery (round 11):** reports are redeemed on `report.html` (`report.js`): the page builds the report on the device, takes one credit with `POST /api/me/entitlements/use {feature: "report_*"}` BEFORE showing it, saves it with `POST /api/me/saved` (domain `bazi` / `zodiac` / `lifegraph`, trimmed to the 16 KB limit, print/PDF always full) and offers a retry that never takes a second credit. Without the API the page shows a full sample labelled "demo, not charged, not stored"; with `FREE_MODE` on no credit is taken. Refunds: terms §9 (full refund within 14 days if unopened). Renewal of Plus / Creator / Business: no automatic renewal; `account.html` shows a reminder banner and the account menu a reminder from 7 days before `current_period_end` (no e-mail sender yet — terms §8 says so). Checkout requires the age-of-majority box (`age_confirm`, 20 or older or guardian consent).
 
 Plan ids: consumer `plus`, `report_basic`, `report_compat`, `report_annual` (`backend/migrations/0006_consumer_pricing.sql`,
 one-time purchases become `credits`); business `pro` (shown as Creator) and `business` keep their ids and prices from

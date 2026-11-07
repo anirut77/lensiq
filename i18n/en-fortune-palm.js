@@ -117,6 +117,7 @@
     "palm.rs.reading": "Reading",
     "palm.fromImage": "(detected from the photo)",
     "palm.rs.mismatch": "This photo looks like the {seen}, but you chose to read the {side} — if you captured the wrong hand, tap \"Retake\" or switch hands",
+    "palm.rs.swapAria": "Switch which hand is read",
     "palm.rs.swap": "Switch to {side}",
     "palm.guide.side": "{side} frame",
     "palm.guide.found": "(recognized)",

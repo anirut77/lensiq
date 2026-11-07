@@ -6,20 +6,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
-<title data-i18n="studio.title">สตูดิโอแต่งชุด | LENSIQ</title>
+<title data-i18n="studio.title">สตูดิโอภาพโปรไฟล์และรูปติดบัตร | LENSIQ</title>
 <meta name="description" data-i18n-attr="content:studio.desc" content="เปลี่ยนฉากหลัง ปรับแสง รีทัชผิวแบบเป็นธรรมชาติ ทำรูปโปรไฟล์และรูปติดบัตรพร้อมตรวจขนาด สัดส่วนศีรษะ ฉากหลัง และความสว่าง ประมวลผลบนเครื่องทั้งหมด มีชุดตัวอย่าง (พรีวิว) ให้ลองดู ไม่ใช่ภาพสวมชุดจริง">
 <link rel="stylesheet" href="styles.css?v=8">
-<link rel="stylesheet" href="studio.css?v=4">
+<link rel="stylesheet" href="studio.css?v=5">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=12"></script>
 
 <main class="st">
-  <h1 data-i18n="studio.h1">สตูดิโอแต่งชุด</h1>
-  <p class="lead" data-i18n="studio.lead">อัปโหลดรูปหรือถ่ายจากกล้อง ระบบตัดพื้นหลังและเกลาขอบผม เปลี่ยนฉากหลัง ปรับแสง และรีทัชผิวแบบเป็นธรรมชาติ สำหรับรูปโปรไฟล์งานและรูปติดบัตร พร้อมตรวจขนาดรูป สัดส่วนศีรษะ ฉากหลังเรียบ และความสว่าง ส่วนชุดสำเร็จรูปเป็นชุดตัวอย่าง (พรีวิว) ไว้ดูแนวทางเท่านั้น ไม่ใช่ภาพสวมชุดจริง</p>
-  <p class="hint st-expect" data-i18n="studio.expect">ได้ผลดีที่สุดกับรูปหน้าตรง เห็นคอและไหล่ชัด ผมไม่บังคอ แสงสม่ำเสมอ ทุกครั้งที่แต่งชุด ระบบตรวจรอยต่อคอและกรามอัตโนมัติ ถ้าไม่ผ่านจะแสดงเฉพาะฉากหลังใหม่และรีทัชกับเสื้อเดิมของคุณแทน (ยังเลือกดูแบบร่างได้) การตรวจอัตโนมัติพลาดรอยต่อได้มาก ให้ถือว่าภาพชุดทุกภาพเป็นตัวอย่าง และตรวจบริเวณคอก่อนใช้ ชุดเป็นภาพจำลอง ไม่ใช่การลองชุดจริง</p>
-  <div class="engine" id="stEngine" role="status">กำลังเตรียมระบบ...</div>
+  <h1 data-i18n="studio.h1">สตูดิโอภาพโปรไฟล์และรูปติดบัตร</h1>
+  <p class="lead" data-i18n="studio.lead1">เปลี่ยนฉากหลัง ปรับแสง รีทัชผิว และทำรูปติดบัตรพร้อมตรวจข้อกำหนด ประมวลผลบนเครื่องนี้ทั้งหมด</p>
+  <div class="st-disc">
+    <p class="hint"><span data-i18n="studio.disc1">ชุดตัวอย่างเป็นภาพจำลองแบบทดลอง ไม่ใช่ภาพสวมจริง</span></p>
+    <details class="st-more">
+      <summary data-i18n="studio.more">อ่านเพิ่มเติม</summary>
+      <p class="hint" data-i18n="studio.lead">อัปโหลดรูปหรือถ่ายจากกล้อง ระบบตัดพื้นหลังและเกลาขอบผม เปลี่ยนฉากหลัง ปรับแสง และรีทัชผิวแบบเป็นธรรมชาติ สำหรับรูปโปรไฟล์งานและรูปติดบัตร พร้อมตรวจขนาดรูป สัดส่วนศีรษะ ฉากหลังเรียบ และความสว่าง ส่วนชุดสำเร็จรูปเป็นชุดตัวอย่าง (พรีวิว) ไว้ดูแนวทางเท่านั้น ไม่ใช่ภาพสวมชุดจริง</p>
+      <p class="hint st-expect" data-i18n="studio.expect">ได้ผลดีที่สุดกับรูปหน้าตรง เห็นคอและไหล่ชัด ผมไม่บังคอ แสงสม่ำเสมอ ทุกครั้งที่แต่งชุด ระบบตรวจรอยต่อคอและกรามอัตโนมัติ ถ้าไม่ผ่านจะแสดงเฉพาะฉากหลังใหม่และรีทัชกับเสื้อเดิมของคุณแทน (ยังเลือกดูแบบร่างได้) การตรวจอัตโนมัติพลาดรอยต่อได้มาก ให้ถือว่าภาพชุดทุกภาพเป็นตัวอย่าง และตรวจบริเวณคอก่อนใช้ ชุดเป็นภาพจำลอง ไม่ใช่การลองชุดจริง</p>
+    </details>
+  </div>
+  <div class="engine" id="stReady" role="status" aria-live="polite">กำลังเตรียมระบบ...</div>
+  <details class="st-techline">
+    <summary data-i18n="studio.techLine">รายละเอียดทางเทคนิค</summary>
+    <div class="engine" id="stEngine">กำลังเตรียมระบบ...</div>
+  </details>
 
   <div class="st-layout">
     <section class="card st-stage" aria-label="ภาพ" data-i18n-attr="aria-label:studio.a.stage">
@@ -52,7 +63,7 @@
           <div class="st-split-line" id="stSplitLine" aria-hidden="true"></div>
           <div class="st-busy" id="stBusy" hidden data-i18n="studio.busy">กำลังประมวลผล...</div>
         </div>
-        <div class="st-qa" id="stQa" role="status" aria-live="polite" hidden><span id="stQaMsg"></span> <button type="button" class="btn ghost sm" id="stQaDraft"></button></div>
+        <div class="st-qa" id="stQa" role="status" aria-live="polite" hidden><span id="stQaMsg"></span> <button type="button" class="btn ghost sm" id="stQaDraft" aria-label="สลับการแสดงชุด" data-i18n-attr="aria-label:studio.a.qaDraft"></button></div>
         <label class="slider st-split" data-i18n="studio.split">ก่อน | หลัง<input type="range" id="stSplit" min="0" max="100" value="0" aria-label="เลื่อนเทียบภาพก่อนและหลัง" data-i18n-attr="aria-label:studio.a.split"></label>
         <div class="seg" id="stMode" role="group" aria-label="เครื่องมือ" data-i18n-attr="aria-label:studio.a.tools">
           <button type="button" data-m="view" class="on" data-i18n="studio.mode.view">ดูภาพ</button>
@@ -70,35 +81,6 @@
     </section>
 
     <aside class="card st-panel" aria-label="ตัวเลือก" data-i18n-attr="aria-label:studio.a.panel">
-      <details open>
-        <summary data-i18n="studio.sec.outfit">ชุดตัวอย่าง (พรีวิว)</summary>
-        <p class="hint st-tip" data-i18n="studio.photoTip">ชุดเป็นภาพจำลองสำหรับดูแนวทาง ถ้าชุดหนึ่งดูไม่เนียน ชุดอื่นบนรูปเดียวกันมักไม่เนียนเช่นกัน รูปใหม่ (หน้าตรง เห็นคอชัด ผมไม่บังคอ) ช่วยได้มากกว่าการเปลี่ยนชุด</p>
-        <div class="choices" id="stOutfits"></div>
-        <label class="slider" data-i18n="studio.cover">แบบคอสูงปิดรอยต่อคอ<select id="stCover"><option value="auto" data-i18n="studio.cover.auto">อัตโนมัติ (เมื่อชุดไม่ผ่านและข้างกรามเปิด)</option><option value="on" data-i18n="studio.cover.on">ใช้ทุกครั้ง</option><option value="off" data-i18n="studio.cover.off">ไม่ใช้</option></select></label>
-        <div class="st-row">
-          <label class="btn ghost st-file sm"><input type="file" id="stGarmentFile" accept="image/*"><span data-i18n="studio.addOutfit">เพิ่มชุด (PNG พื้นใส / รูปคนใส่ชุด)</span></label>
-          <button class="btn ghost sm" id="stAnchorBtn" type="button" data-i18n="studio.anchorBtn">ตั้งจุดคอ/ไหล่ของชุด</button>
-        </div>
-        <p class="hint" data-i18n="studio.tplTip">เคล็ดลับ: ชุดตัวอย่างที่ดูดีที่สุดมาจากการถ่ายรูปชุดจริงของร้าน (วางราบหรือใส่หุ่น บนพื้นเรียบ แสงสม่ำเสมอ เห็นทั้งตัวเสื้อตั้งแต่คอถึงชายเสื้อ) แล้วกด "เพิ่มชุด" — ระบบตัดพื้นหลังและหาจุดคอ/ไหล่ให้อัตโนมัติ ชุดสำเร็จรูปด้านบนเป็นชุดตัวอย่าง</p>
-        <p class="hint" data-i18n="studio.garmentGuide">ถ่ายชุดของคุณเอง: วางราบบนพื้นเรียบสีตัดกับชุด แสงนุ่มสม่ำเสมอ ติดกระดุมและจัดผ้าให้เรียบ ไหล่สองข้างระดับเดียวกัน ถ่ายตรงจากด้านบนและเว้นที่ว่างรอบชุด ระบบตรวจรูปก่อนนำไปใช้</p>
-        <p class="hint" id="stGarmentMsg"><span data-i18n="studio.outfitNote">ชุดที่เพิ่มจะเก็บไว้ในเบราว์เซอร์นี้ (ใช้ร่วมกับหน้า ตู้ถ่ายรูป) ไม่ถูกส่งออกนอกเครื่อง</span></p>
-      </details>
-      <details open>
-        <summary data-i18n="studio.sec.adjust">ปรับชุด</summary>
-        <label class="slider" data-i18n="studio.adj.scale">ขนาด<input type="range" id="aScale" min="80" max="125" value="100"></label>
-        <label class="slider" data-i18n="studio.adj.rot">หมุน<input type="range" id="aRot" min="-15" max="15" value="0"></label>
-        <label class="slider" data-i18n="studio.adj.x">ซ้าย–ขวา<input type="range" id="aX" min="-30" max="30" value="0"></label>
-        <label class="slider" data-i18n="studio.adj.y">ขึ้น–ลง<input type="range" id="aY" min="-30" max="30" value="0"></label>
-        <label class="slider" data-i18n="studio.adj.bright">ความสว่างชุด<input type="range" id="aBright" min="75" max="125" value="100"></label>
-        <label class="check"><input type="checkbox" id="oHide" checked><span data-i18n="studio.adj.hide">ซ่อนเสื้อเดิมที่ไม่ถูกชุดคลุม</span></label>
-        <button class="btn ghost sm" id="stAutoFit" type="button" data-i18n="studio.autoFit">จัดชุดอัตโนมัติอีกครั้ง</button>
-      </details>
-      <details>
-        <summary data-i18n="studio.sec.blend">ผสานภาพ</summary>
-        <label class="slider" data-i18n="studio.blend.harm">กลมกลืนแสงสี<input type="range" id="oHarm" min="0" max="100" value="100"></label>
-        <label class="slider" data-i18n="studio.blend.shadow">เงาคอเสื้อ<input type="range" id="oShadow" min="0" max="100" value="60"></label>
-        <label class="slider" data-i18n="studio.blend.wrap">แสงขอบ<input type="range" id="oWrap" min="0" max="100" value="30"></label>
-      </details>
       <details open>
         <summary data-i18n="studio.sec.bg">ฉากหลัง</summary>
         <div class="seg wrap" id="stBg"></div>
@@ -134,6 +116,40 @@
         <div id="stIdSpec" role="status" aria-live="polite"></div>
         <p class="note" data-i18n="studio.idNote">ชุดเป็นภาพจำลอง ไม่มีตราหรือเครื่องหมายยศ บางหน่วยงานไม่รับรูปที่ผ่านการตกแต่ง กรุณาตรวจข้อกำหนดก่อนใช้งานจริง</p>
       </details>
+      <section class="st-exp" aria-labelledby="stExpTitle">
+        <h2 class="st-exp-h" id="stExpTitle" data-i18n="studio.exp.title">ชุดตัวอย่าง (ทดลอง)</h2>
+        <p class="hint st-exp-note" data-i18n="studio.exp.note">ส่วนทดลอง: ชุดเป็นภาพที่โปรแกรมวาดบนรูปของคุณ มักเห็นรอยที่คอหรือกราม ใช้ดูแนวทางเท่านั้น ไม่เหมาะกับรูปทางการ</p>
+        <details open>
+          <summary data-i18n="studio.sec.outfitPick">เลือกชุด</summary>
+          <div class="st-pre" id="stPre" role="status" aria-live="polite" hidden></div>
+          <p class="hint st-tip" data-i18n="studio.photoTip">ชุดเป็นภาพจำลองสำหรับดูแนวทาง ถ้าชุดหนึ่งดูไม่เนียน ชุดอื่นบนรูปเดียวกันมักไม่เนียนเช่นกัน รูปใหม่ (หน้าตรง เห็นคอชัด ผมไม่บังคอ) ช่วยได้มากกว่าการเปลี่ยนชุด</p>
+          <div class="choices" id="stOutfits"></div>
+          <label class="slider" data-i18n="studio.cover">แบบคอสูงปิดรอยต่อคอ<select id="stCover"><option value="auto" data-i18n="studio.cover.auto">อัตโนมัติ (เมื่อข้างกรามไม่มีผมบัง)</option><option value="on" data-i18n="studio.cover.on">ใช้ทุกครั้ง</option><option value="off" data-i18n="studio.cover.off">ไม่ใช้</option></select></label>
+          <div class="st-row">
+            <label class="btn ghost st-file sm"><input type="file" id="stGarmentFile" accept="image/*"><span data-i18n="studio.addOutfit">เพิ่มชุด (PNG พื้นใส / รูปคนใส่ชุด)</span></label>
+            <button class="btn ghost sm" id="stAnchorBtn" type="button" data-i18n="studio.anchorBtn">ตั้งจุดคอ/ไหล่ของชุด</button>
+          </div>
+          <p class="hint" data-i18n="studio.tplTip">เคล็ดลับ: ชุดตัวอย่างที่ดูดีที่สุดมาจากการถ่ายรูปชุดจริงของร้าน (วางราบหรือใส่หุ่น บนพื้นเรียบ แสงสม่ำเสมอ เห็นทั้งตัวเสื้อตั้งแต่คอถึงชายเสื้อ) แล้วกด "เพิ่มชุด" — ระบบตัดพื้นหลังและหาจุดคอ/ไหล่ให้อัตโนมัติ ชุดสำเร็จรูปด้านบนเป็นชุดตัวอย่าง</p>
+          <p class="hint" data-i18n="studio.garmentGuide">ถ่ายชุดของคุณเอง: วางราบบนพื้นเรียบสีตัดกับชุด แสงนุ่มสม่ำเสมอ ติดกระดุมและจัดผ้าให้เรียบ ไหล่สองข้างระดับเดียวกัน ถ่ายตรงจากด้านบนและเว้นที่ว่างรอบชุด ระบบตรวจรูปก่อนนำไปใช้</p>
+          <p class="hint" id="stGarmentMsg"><span data-i18n="studio.outfitNote">ชุดที่เพิ่มจะเก็บไว้ในเบราว์เซอร์นี้ (ใช้ร่วมกับหน้า ตู้ถ่ายรูป) ไม่ถูกส่งออกนอกเครื่อง</span></p>
+        </details>
+        <details>
+          <summary data-i18n="studio.sec.adjust">ปรับชุด</summary>
+          <label class="slider" data-i18n="studio.adj.scale">ขนาด<input type="range" id="aScale" min="80" max="125" value="100"></label>
+          <label class="slider" data-i18n="studio.adj.rot">หมุน<input type="range" id="aRot" min="-15" max="15" value="0"></label>
+          <label class="slider" data-i18n="studio.adj.x">ซ้าย–ขวา<input type="range" id="aX" min="-30" max="30" value="0"></label>
+          <label class="slider" data-i18n="studio.adj.y">ขึ้น–ลง<input type="range" id="aY" min="-30" max="30" value="0"></label>
+          <label class="slider" data-i18n="studio.adj.bright">ความสว่างชุด<input type="range" id="aBright" min="75" max="125" value="100"></label>
+          <label class="check"><input type="checkbox" id="oHide" checked><span data-i18n="studio.adj.hide">ซ่อนเสื้อเดิมที่ไม่ถูกชุดคลุม</span></label>
+          <button class="btn ghost sm" id="stAutoFit" type="button" data-i18n="studio.autoFit">จัดชุดอัตโนมัติอีกครั้ง</button>
+        </details>
+        <details>
+          <summary data-i18n="studio.sec.blend">ผสานภาพ</summary>
+          <label class="slider" data-i18n="studio.blend.harm">กลมกลืนแสงสี<input type="range" id="oHarm" min="0" max="100" value="100"></label>
+          <label class="slider" data-i18n="studio.blend.shadow">เงาคอเสื้อ<input type="range" id="oShadow" min="0" max="100" value="60"></label>
+          <label class="slider" data-i18n="studio.blend.wrap">แสงขอบ<input type="range" id="oWrap" min="0" max="100" value="30"></label>
+        </details>
+      </section>
     </aside>
   </div>
 
@@ -186,8 +202,8 @@
 <script src="photobooth-outfits.js?v=3"></script>
 <script src="lensiq-i18n-rt.js?v=1"></script>
 <script src="i18n/zh-studio.js?v=3"></script>
-<script src="studio-core.js?v=5"></script>
-<script src="studio-qa.js?v=2"></script>
-<script src="studio.js?v=5"></script>
+<script src="studio-core.js?v=6"></script>
+<script src="studio-qa.js?v=3"></script>
+<script src="studio.js?v=6"></script>
 </body>
 </html>

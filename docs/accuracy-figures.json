@@ -1,0 +1,183 @@
+{
+  "$comment": "Single source of truth for every customer-facing accuracy figure on the camera pages (cameras.html#accuracy and the per-page acc-note banners). Edit the numbers here, then run `node tools/accuracy-sync.mjs` to rewrite the Thai markup and the en/zh dictionaries; `node tools/accuracy-sync.mjs --check` (and tests/unit/accuracy-figures.test.js) fails when a page or dictionary disagrees with this file, when a figure's `md` evidence is no longer in ACCURACY.md, or when `value` is not `raw` rounded. `{name}` in a text is replaced by figures[name].value.",
+  "round": 11,
+  "source": "ACCURACY.md",
+  "figures": {
+    "storeNet5": { "value": "−0.4", "raw": -0.4, "md": "**272 / 273** | **−0.4%**", "what": "store, pooled 5 fps, round 5: net count error" },
+    "storeP5": { "value": "79", "raw": 79.0, "md": "**−0.4%** | 17.2% | 79.0%", "what": "store, pooled 5 fps: event precision" },
+    "storeNet10": { "value": "−13", "raw": -13.1, "md": "**239 / 275** | **−13.1%**", "what": "store, pooled 10 fps: net count error" },
+    "storeP10": { "value": "90", "raw": 90.4, "md": "**−13.1%** | 16.0% | 90.4%", "what": "store, pooled 10 fps: event precision" },
+    "storeDoorNet": { "value": "+3", "raw": 3.2, "md": "+2.4% → +3.2%", "what": "store, PETS09 door-like scene: net error" },
+    "storeDoorP": { "value": "93", "raw": 93.1, "md": "93.8% → 93.1%", "what": "store, PETS09: event precision" },
+    "storeCrowdLo": { "value": "−28", "raw": -28, "md": "net error is −28% to +19%", "what": "store, MOT17 crowds: lowest net error" },
+    "storeCrowdHi": { "value": "+19", "raw": 19, "md": "net error is −28% to +19%", "what": "store, MOT17 crowds: highest net error" },
+    "storeWrong5": { "value": "5", "md": "About 1 in 5 counted events is still wrong pooled at 5 fps", "what": "store: 1 in N counted crossings is wrong" },
+    "lfwRec100": { "value": "85", "raw": 85.0, "md": "| 100 | 84.9% → 85.0% |", "what": "faces, LFW, 100 enrolled, round 5: member recognised" },
+    "casiaRecLo": { "value": "66", "raw": 66.4, "md": "| 200 | 52.0% → **66.4%**", "what": "faces, CASIA (Asian), 200 enrolled: member recognised" },
+    "casiaRecHi": { "value": "76", "raw": 75.6, "md": "| 5 | 57.4% → **75.6%**", "what": "faces, CASIA (Asian), 5 enrolled: member recognised" },
+    "lfwStr100": { "value": "0.4", "raw": 0.42, "md": "0.89% → **0.42%**", "what": "faces, LFW, 100 enrolled: stranger offered a name" },
+    "casiaStr100": { "value": "0.2", "raw": 0.18, "md": "3.13% → **0.18%**", "what": "faces, CASIA, 100 enrolled: stranger offered a name" },
+    "strangerCiHi": { "value": "1.15", "raw": 1.15, "md": "(1.15% for both)", "what": "faces, CASIA: upper end of the 95% interval at 5 and 200 enrolled" },
+    "autoStr": { "value": "0.05", "raw": 0.05, "md": "Fewer than 0.05% of strangers are accepted *without*", "what": "faces: strangers accepted without a person confirming" },
+    "confirmShare": { "value": "25–35", "md": "About 25–35% of recognised members on LFW", "what": "faces: share of recognised members asked to confirm" },
+    "minEnrol": { "value": "5", "raw": 5, "md": "Enrol at least 5 people before relying on automatic check-in.", "what": "faces: minimum group for automatic check-in" },
+    "boothTar": { "value": "73", "raw": 72.6, "md": "**72.6% [69.7–75.3%]**", "what": "faces 1:1 at 0.50 (booth returning-visitor option): same person accepted" },
+    "agMae": { "value": "5", "raw": 5.0, "md": "| all | 2000 | 78.9% | 5.0 y | 78.6% | 96.0%", "what": "signage age MAE (years)" },
+    "agBand": { "value": "79", "raw": 78.6, "md": "| all | 2000 | 78.9% | 5.0 y | 78.6% | 96.0%", "what": "signage age band correct" },
+    "agGender": { "value": "96", "raw": 96.0, "md": "| all | 2000 | 78.9% | 5.0 y | 78.6% | 96.0%", "what": "signage gender correct (when decided)" },
+    "agAsian": { "value": "92", "raw": 92.2, "md": "| Asian | 319 | 72.4% | 4.9 y | 81.4% | 92.2% |", "what": "signage gender correct, Asian faces" },
+    "handRec": { "value": "88", "raw": 88.2, "md": "| 88.2% / 98.6% |", "what": "kiosk raised-hand recall, IoU 0.3" },
+    "handPrec": { "value": "99", "raw": 98.6, "md": "| 88.2% / 98.6% |", "what": "kiosk raised-hand precision, IoU 0.3" },
+    "handPalm": { "value": "95", "raw": 95, "md": "95% for open palm", "what": "kiosk open-palm recall" },
+    "drFrameCatch": { "value": "84", "raw": 84.4, "md": "25.7% → **84.4%**", "what": "driver, CEW held out: closed-eye frames caught (own-photo calibration)" },
+    "drEarCatch": { "value": "18–26", "md": "closed eyes caught rose from about **18–26% to 84%**", "what": "driver, EAR only (classifier off): closed-eye frames caught" },
+    "drFallbackCatch": { "value": "18", "raw": 17.8, "md": "| fallback 0.25 (calibration failed) | 9.6% / 17.8%", "what": "driver, calibration failed (0.25), CEW: closed-eye frames caught" },
+    "drFaPerHour": { "value": "1.4", "raw": 1.4, "md": "(7.4 → about 1.4 per hour)", "what": "driver, round 6 adaptive: false alarms per hour when the drive does not match calibration" },
+    "dr2s": { "value": "25", "raw": 25, "md": "2-s closures alerted fell from 32% to 25%", "what": "driver, simulated drowsy drive: 2-s closures alerted" },
+    "drDrives": { "value": "6", "md": "About 1 in 6 simulated 10-minute drives had at least one false alarm", "what": "driver: 1 in N simulated 10-min drives had a false alarm" },
+    "qcLight": { "value": "20", "raw": 20, "md": "±10%, ±20%, +25% / −30% brightness and ±10% contrast give 0% false rejects", "what": "qc: brightness change after calibration with 0% false rejects" },
+    "qcAngleA": { "value": "5", "raw": 5, "md": "5° and 10° are rejected in every condition, 2° passes", "what": "qc: label skew rejected (smaller)" },
+    "qcAngleB": { "value": "10", "raw": 10, "md": "5° and 10° are rejected in every condition, 2° passes", "what": "qc: label skew rejected (larger)" },
+    "qcLift": { "value": "80", "raw": 80, "md": "(about 80% caught)", "what": "qc: 6 px cap lift caught with belt-stop jitter" },
+    "bcWrong": { "value": "0.06", "raw": 0.06, "md": "1.69% with 1 read and 0.06% with 2", "what": "checkout: wrong code put through with 2 agreeing reads" },
+    "neuroLo": { "value": "52", "raw": 52.0, "md": "| page pipeline (face found 49%) | 346 | 52.0%", "what": "neuro: FER-2013 accuracy, page pipeline" },
+    "neuroHi": { "value": "59", "raw": 59.1, "md": "| classifier alone on the face crop | 700 | 59.1%", "what": "neuro: FER-2013 accuracy, classifier alone" }
+  },
+  "banned": [
+    { "text": "54%", "files": ["cameras.html", "i18n/en-cameras.js", "i18n/zh-cameras.js"], "why": "round-4 Asian-face recognition (current: 66–76%)" },
+    { "text": "3.4%", "files": ["cameras.html", "i18n/en-cameras.js", "i18n/zh-cameras.js"], "why": "round-4 Asian stranger rate" },
+    { "text": "ราว 50 คน", "files": ["cameras.html"], "why": "withdrawn 50-enrolled advice (ACCURACY.md §2 correction)" },
+    { "text": "about 50 enrollees", "files": ["i18n/en-cameras.js"], "why": "withdrawn 50-enrolled advice" },
+    { "text": "约 50 人", "files": ["i18n/zh-cameras.js"], "why": "withdrawn 50-enrolled advice" },
+    { "text": "ไม่ตรวจฉลากเอียง", "files": ["cameras.html", "qc.html"], "why": "the label-angle check exists since round 5" },
+    { "text": "label skew is not checked", "files": ["i18n/en-cameras.js"], "why": "the label-angle check exists since round 5" },
+    { "text": "Label skew and scratches are not detected", "files": ["i18n/en-qc.js"], "why": "the label-angle check exists since round 5" },
+    { "text": "18–43%", "files": ["cameras.html", "driver.html", "i18n/en-cameras.js", "i18n/zh-cameras.js", "i18n/en-driver.js", "i18n/zh-driver.js"], "why": "round-3/4 driver figure; understates false alarms" },
+    { "text": "≤0.1%", "files": ["cameras.html", "i18n/en-cameras.js", "i18n/zh-cameras.js"], "why": "round-4 driver false-alarm figure (round 6: ~1.4/hour)" },
+    { "text": "ไม่เกิน 0.1%", "files": ["driver.html"], "why": "round-4 driver false-alarm figure" },
+    { "text": "ราว 6%", "files": ["attendance.html"], "why": "round-3 attendance stranger rate" },
+    { "text": "±10% หลังสอบเทียบจะปัดตกทุกขวด", "files": ["qc.html"], "why": "fixed in round 5 (photometric normalisation)" }
+  ],
+  "texts": [
+    {
+      "key": "store.s5",
+      "th": "วัดกับวิดีโอสาธารณะ 5 ชุด (ถนนและสถานี ไม่ใช่หน้าร้าน): ฉากแบบประตูยอดข้ามเส้นคลาดเคลื่อนราว {storeDoorNet}% แต่ในฝูงชนคลาดเคลื่อน {storeCrowdLo}% ถึง {storeCrowdHi}% · ราว 1 ใน {storeWrong5} ของครั้งที่นับเป็นการนับผิด (5 ภาพ/วินาที) คนที่ตัวเล็กในภาพ (อยู่ไกล) และที่คนแน่นจะแม่นยำน้อยลง ติดกล้องสูงเหนือประตูให้คนเดินตัดเส้น แล้วใช้ “ตรวจความแม่นยำหน้างาน” ด้านล่างเทียบกับการนับด้วยคนก่อนใช้ตัวเลข",
+      "en": "Measured on 5 public videos (streets and stations, not shop doors): on the door-like scene the line-crossing total was off by about {storeDoorNet}%, but in crowds by {storeCrowdLo}% to {storeCrowdHi}% · about 1 in {storeWrong5} counted crossings is a miscount (5 fps). People who look small (far away) and crowded scenes are less accurate. Mount the camera high above the door so people cross the line, and run the on-site accuracy check below against a manual count before relying on the figures",
+      "zh": "在 5 段公开视频上测量（街道和车站，并非店门口）：类似门口的场景越线总数误差约 {storeDoorNet}%，人群中为 {storeCrowdLo}% 至 {storeCrowdHi}% · 约每 {storeWrong5} 次计数中有 1 次是误计（5 帧/秒）。画面中较小（较远）的人和人多拥挤时准确度较低。请将摄像头装在门上方高处，让人横穿计数线，并在使用数字前用下方的“现场准确度检查”与人工计数对比"
+    },
+    {
+      "key": "customers.s5",
+      "th": "ทดสอบกับภาพใบหน้าสาธารณะ (ภาพข่าว LFW และใบหน้าเอเชีย CASIA-FaceV5 ไม่ใช่กล้องหน้าร้าน) ด้วยกฎปัจจุบัน (ลงทะเบียน 3 ท่า เกณฑ์ปรับตามกลุ่มสมาชิก ยืนยัน 2 เฟรม) มีสมาชิก 100 คน: จำสมาชิกได้ราว {lfwRec100}% ต่อการมา แต่ใบหน้าเอเชียเพียงราว {casiaRecLo}–{casiaRecHi}% · เสนอชื่อสมาชิกให้คนที่ไม่ใช่สมาชิกราว {lfwStr100}% (ขอบบนของช่วงความเชื่อมั่นถึงราว {strangerCiHi}%) และเลือกให้อัตโนมัติไม่ถึง {autoStr}% ควรให้พนักงานยืนยันชื่อก่อนเปิดประวัติการสั่ง และตรวจความแม่นยำที่ร้านของคุณเองด้านล่าง",
+      "en": "Tested on public face photos (LFW news photos and CASIA-FaceV5 Asian faces, not shop cameras) with the current rules (3-pose enrolment, limits calibrated to the member group, 2-frame confirmation) and 100 members: about {lfwRec100}% of member visits are recognised, but only about {casiaRecLo}–{casiaRecHi}% for Asian faces · about {lfwStr100}% of non-members are offered a member's name (the upper end of the confidence interval reaches about {strangerCiHi}%) and fewer than {autoStr}% are selected automatically. Staff should confirm the name before opening the order history, and run the on-site accuracy check below at your own shop",
+      "zh": "在公开人脸照片上测试（LFW 新闻照片和 CASIA-FaceV5 亚洲人脸，并非店内摄像头），采用当前规则（3 个角度注册、按会员群体校准阈值、2 帧确认），会员 100 人：约 {lfwRec100}% 的会员到店可被识别，但亚洲人脸仅约 {casiaRecLo}–{casiaRecHi}% · 约 {lfwStr100}% 的非会员会被提示为某位会员（置信区间上限约 {strangerCiHi}%），自动选中的不到 {autoStr}%。打开点单记录前应由店员确认姓名，并在下方用您自己的门店做现场准确度检查"
+    },
+    {
+      "key": "attendance.s5",
+      "th": "ทดสอบกับภาพใบหน้าสาธารณะ (ภาพข่าว LFW และใบหน้าเอเชีย CASIA-FaceV5 ไม่ใช่กล้องหน้างาน) ด้วยกฎปัจจุบัน ผู้ลงทะเบียน 100 คน: จำผู้ลงทะเบียนได้ราว {lfwRec100}% ต่อการสแกน แต่ใบหน้าเอเชียเพียงราว {casiaRecLo}–{casiaRecHi}% · คนที่ไม่ได้ลงทะเบียนถูกเสนอชื่อราว {lfwStr100}% (ใบหน้าเอเชีย {casiaStr100}% ขอบบนของช่วงความเชื่อมั่นถึง {strangerCiHi}%) และถูกเช็คชื่ออัตโนมัติไม่ถึง {autoStr}% ระบบต้องเห็นตรงกัน 2 ครั้งก่อนบันทึก และราว {confirmShare}% ของคนที่จำได้จะถูกขอให้กดยืนยัน ลงทะเบียนอย่างน้อย {minEnrol} คนก่อนใช้เช็คชื่ออัตโนมัติ และควรให้เจ้าหน้าที่ตรวจรายชื่อ",
+      "en": "Tested on public face photos (LFW news photos and CASIA-FaceV5 Asian faces, not on-site cameras) with the current rules and 100 registered people: about {lfwRec100}% of scans recognise the registered person, but only about {casiaRecLo}–{casiaRecHi}% for Asian faces · an unregistered person is offered a name about {lfwStr100}% of the time (Asian faces {casiaStr100}%, with the upper end of the confidence interval at {strangerCiHi}%) and checked in automatically less than {autoStr}% of the time. The system needs 2 matching scans before recording, and about {confirmShare}% of recognised people are asked to confirm. Register at least {minEnrol} people before relying on automatic check-in, and have staff review the list",
+      "zh": "在公开人脸照片上测试（LFW 新闻照片和 CASIA-FaceV5 亚洲人脸，并非现场摄像头），采用当前规则，注册 100 人：约 {lfwRec100}% 的扫描能识别出注册者，但亚洲人脸仅约 {casiaRecLo}–{casiaRecHi}% · 未注册者被提示姓名约 {lfwStr100}%（亚洲人脸 {casiaStr100}%，置信区间上限 {strangerCiHi}%），被自动签到不到 {autoStr}%。系统需要 2 次一致的扫描才会记录，约 {confirmShare}% 被识别的人需要点击确认。启用自动签到前请至少注册 {minEnrol} 人，并由工作人员核对名单"
+    },
+    {
+      "key": "booth.s4",
+      "th": "นับผู้เข้าชมจากใบหน้าที่หันมาทางกล้อง คนที่ไม่หันหน้ามาจะไม่ถูกนับ · ตัวเลือกจำคนเดิม (ปิดไว้เป็นค่าเริ่มต้น) ใช้เกณฑ์ 0.50 ซึ่งทดสอบกับ LFW จำคนเดิมได้ราว {boothTar}% ต่อคู่ภาพ จึงอาจนับคนเดิมซ้ำได้บ้าง ยังไม่ได้วัดกับวิดีโอบูธจริง ใช้ดูแนวโน้มมากกว่ายอดที่แม่นทุกคน และใช้ “ตรวจความแม่นยำหน้างาน” ด้านล่างนับเทียบที่บูธของคุณ",
+      "en": "Only faces turned toward the camera are counted; people not facing it are not · The optional returning-visitor mode (off by default) uses a 0.50 threshold, which on LFW recognises the same person in about {boothTar}% of image pairs, so some visitors may be counted twice. Not yet measured on real booth video; use it for trends rather than exact per-person totals, and run the on-site accuracy check below at your own booth",
+      "zh": "只统计面向摄像头的人脸，没有面向摄像头的人不会被计入 · 可选的“识别回访者”模式（默认关闭）使用 0.50 阈值，在 LFW 上同一人的图像对约 {boothTar}% 能被识别，因此部分访客可能被重复计数。尚未在真实展位视频上测量；适合看趋势而非精确的逐人总数，并请在下方用您自己的展位做现场准确度检查"
+    },
+    {
+      "key": "driver.s4",
+      "th": "เครื่องช่วยเตือนการหลับตา ไม่ใช่อุปกรณ์ความปลอดภัย · วัดบนภาพถ่ายจริงที่ไม่ได้ใช้ฝึก (CEW/LFW ไม่ใช่วิดีโอคนขับที่ง่วงจริง): จับตาปิดได้ราว {drFrameCatch}% ต่อเฟรม แต่ในการขับจำลองเตือนการหลับตา 2 วินาทีได้เพียงราว {dr2s}% และเตือนผิดราว {drFaPerHour} ครั้งต่อชั่วโมง (ขับจำลอง 10 นาที 1 ใน {drDrives} ครั้งมีเตือนผิด) แว่นกันแดด แสงย้อน และกล้องที่ไม่ใช่อินฟราเรดตอนกลางคืนทำให้แม่นยำน้อยลง",
+      "en": "An eyes-closed awareness aid, not a safety device · Measured on real photos not used for training (CEW/LFW, not video of drowsy drivers): about {drFrameCatch}% of closed-eye frames are caught, but in simulated drives only about {dr2s}% of 2-second eye closures raised an alert, with about {drFaPerHour} false alarms per hour (1 in {drDrives} simulated 10-minute drives had a false alarm). Sunglasses, backlight and non-infrared cameras at night reduce accuracy",
+      "zh": "闭眼提醒辅助工具，并非安全设备 · 在未用于训练的真实照片上测量（CEW/LFW，并非困倦司机的视频）：每帧约能检出 {drFrameCatch}% 的闭眼，但在模拟驾驶中，2 秒闭眼只有约 {dr2s}% 触发提醒，误报约每小时 {drFaPerHour} 次（每 {drDrives} 次 10 分钟模拟驾驶中有 1 次误报）。墨镜、逆光以及夜间使用非红外相机会降低准确度"
+    },
+    {
+      "key": "driver.accstart",
+      "th": "ก่อนเริ่ม: ผลวัดล่าสุด (การขับจำลอง ไม่ใช่คนขับที่ง่วงจริง) ระบบเตือนการหลับตา 2 วินาทีได้ราว {dr2s}% และเตือนผิดราว {drFaPerHour} ครั้งต่อชั่วโมง จึงพลาดการหลับตาได้มาก ห้ามใช้แทนการพักผ่อน และห้ามมองจอขณะขับ",
+      "en": "Before you start: in the latest measurement (simulated drives, not real drowsy drivers) the system alerted on about {dr2s}% of 2-second eye closures, with about {drFaPerHour} false alarms per hour, so it misses many closures. Do not use it instead of rest, and do not look at the screen while driving",
+      "zh": "开始前请注意：最新测量（模拟驾驶，并非真实困倦司机）中，系统对约 {dr2s}% 的 2 秒闭眼发出提醒，误报约每小时 {drFaPerHour} 次，因此会漏掉很多闭眼。不能代替休息，驾驶时请勿看屏幕"
+    },
+    {
+      "key": "driver.calwarn.fail",
+      "th": "ปรับเทียบไม่สำเร็จ — ระบบใช้เกณฑ์ค่าเริ่มต้น ซึ่งบนภาพจริงจับตาปิดได้เพียงราว {drFallbackCatch}% ต่อเฟรม และปิดการตรวจศีรษะตก ให้ถือว่าระบบไม่ได้เฝ้าระวังคุณ: จอดรถในที่ปลอดภัย ปรับมุมกล้องและแสงให้เห็นใบหน้าชัด แล้วกด “ปรับเทียบใหม่”",
+      "en": "Calibration failed — the system is using the default threshold, which caught only about {drFallbackCatch}% of closed-eye frames on real photos, and head-drop detection is off. Treat yourself as unmonitored: park safely, adjust the camera and light so your face is clear, then press “Recalibrate”",
+      "zh": "校准失败 — 系统正在使用默认阈值，在真实照片上每帧只能检出约 {drFallbackCatch}% 的闭眼，且已关闭低头检测。请视为未被监测：在安全处停车，调整摄像头和光线让脸部清晰，然后按“重新校准”"
+    },
+    {
+      "key": "driver.calwarn.ear",
+      "th": "ใช้ภาพดวงตาไม่ได้ (เช่น แว่นดำ แสงย้อน หรือตาดูเหมือนปิดตอนปรับเทียบ) — ระบบใช้ EAR อย่างเดียว ซึ่งบนภาพจริงจับตาปิดได้เพียงราว {drEarCatch}% ต่อเฟรม และจะพลาดการหลับตาส่วนใหญ่: ถอดแว่นดำ ลดแสงย้อน แล้วกด “ปรับเทียบใหม่”",
+      "en": "Eye images cannot be used (for example dark glasses, backlight, or eyes that looked closed during calibration) — the system is using EAR only, which caught only about {drEarCatch}% of closed-eye frames on real photos and will miss most closures. Remove dark glasses, reduce backlight, then press “Recalibrate”",
+      "zh": "无法使用眼部图像（例如墨镜、逆光，或校准时眼睛看起来像闭着）— 系统只使用 EAR，在真实照片上每帧只能检出约 {drEarCatch}% 的闭眼，会漏掉大部分闭眼。请摘下墨镜、减少逆光，然后按“重新校准”"
+    },
+    {
+      "key": "qc.s5",
+      "th": "วัดด้วยภาพขวดจำลองเท่านั้น ยังไม่ได้วัดกับไลน์ผลิตจริง: กล้องและไฟคงที่ตรวจข้อบกพร่องที่จำลองได้เกือบทั้งหมดและไม่ปัดตกขวดดี ความสว่างเปลี่ยนถึง ±{qcLight}% หลังสอบเทียบไม่ทำให้ปัดตกขวดดี (ปรับแสงทุกเฟรม) และตรวจฉลากเอียงได้: เอียง {qcAngleA}° และ {qcAngleB}° ถูกปัดตก 2° ผ่าน · ขวดหยุดไม่ตรงที่ทำให้จับฝายกขึ้น 6 px ได้ราว {qcLift}% ไม่ตรวจรอยขีดข่วนหรือรอยบุบ ถ้าแสงเปลี่ยนรูปแบบ (เงาใหม่ แสงสะท้อน) ต้องสอบเทียบใหม่ ควรเทียบกับการตรวจด้วยคนก่อนให้คัดทิ้งอัตโนมัติ",
+      "en": "Measured on simulated bottle images only, not yet on a real line: with a fixed camera and light it catches almost every simulated defect without rejecting good bottles; brightness changes of up to ±{qcLight}% after calibration no longer reject good bottles (lighting is normalised every frame), and skewed labels are checked: {qcAngleA}° and {qcAngleB}° are rejected, 2° passes · with belt-stop jitter a 6 px cap lift is caught about {qcLift}% of the time. Scratches and dents are not inspected. Recalibrate when the light changes shape (a new shadow or reflection), and compare with manual inspection before enabling automatic rejection",
+      "zh": "仅在模拟瓶子图像上测量，尚未在真实产线上测量：摄像头和光照固定时，几乎能检出所有模拟缺陷且不误判合格瓶；校准后亮度变化最多 ±{qcLight}% 不再误判合格瓶（每帧做光照归一化），并会检查标签歪斜：歪 {qcAngleA}° 和 {qcAngleB}° 判为不合格，2° 通过 · 停位抖动时 6 px 的瓶盖抬高约 {qcLift}% 能被检出。不检查划痕和凹痕。光照形态改变（新阴影、反光）时需重新校准，启用自动剔除前请与人工检验对比"
+    },
+    {
+      "key": "signage.s5",
+      "th": "ทดสอบอายุ/เพศกับภาพ UTKFace: อายุคลาดเคลื่อนเฉลี่ย {agMae} ปี จัดช่วงอายุถูก {agBand}% เพศถูก {agGender}% (ใบหน้าเอเชีย {agAsian}%) และหาใบหน้าไม่เจอราว 1 ใน 5 ภาพ — เป็นค่าที่ดีเกินจริง เพราะโมเดลเคยเรียนจากชุดนี้บางส่วน · คีออสก์: เจอมือที่ยกขึ้น {handRec}% ของภาพชุด HaGRID (ท่าแบมือ {handPalm}%) ใช้ดูภาพรวมกลุ่มผู้ชม ไม่ใช่ข้อมูลรายบุคคล",
+      "en": "Age/gender tested on UTKFace images: mean age error {agMae} years, age-band accuracy {agBand}%, gender accuracy {agGender}% (Asian faces {agAsian}%); about 1 in 5 images has no face detected — these figures are optimistic because the model was partly trained on this set · Kiosk: raised hands detected in {handRec}% of HaGRID images (open-palm gesture {handPalm}%). For understanding the audience as a whole, not individuals",
+      "zh": "在 UTKFace 图像上测试年龄/性别：年龄平均误差 {agMae} 岁，年龄段正确 {agBand}%，性别正确 {agGender}%（亚洲人脸 {agAsian}%），约每 5 张图像有 1 张未检测到人脸——这些数字偏乐观，因为模型的部分训练数据来自该数据集 · 自助终端：在 HaGRID 图像中检出举起的手 {handRec}%（张开手掌 {handPalm}%）。用于了解观众整体，而非个人数据"
+    },
+    {
+      "key": "cameras.s187",
+      "th": "YOLOX-Nano + ตัวติดตามรอบ 5: 5 ภาพ/วินาที ยอดรวม {storeNet5}% นับแล้วถูกจริง {storeP5}% · 10 ภาพ/วินาที {storeNet10}% / ถูกจริง {storeP10}% · ฉากประตูแบบ PETS {storeDoorNet}% / {storeDoorP}% แต่ฝูงชน MOT17 ยังคลาด {storeCrowdLo}% ถึง {storeCrowdHi}% (เป้า ±10% และถูกจริง ≥ 85% ยังไม่ถึงในฝูงชน)",
+      "en": "YOLOX-Nano + round-5 tracker: at 5 fps the total is off by {storeNet5}% and {storeP5}% of counts are real crossings · 10 fps {storeNet10}% / {storeP10}% · PETS-style door scene {storeDoorNet}% / {storeDoorP}%, but MOT17 crowds still range from {storeCrowdLo}% to {storeCrowdHi}% (the ±10% and ≥ 85% targets are not met in crowds)",
+      "zh": "YOLOX-Nano + 第 5 轮跟踪器：5 帧/秒总数误差 {storeNet5}%，计数中 {storeP5}% 为真实越线 · 10 帧/秒 {storeNet10}% / {storeP10}% · PETS 类门口场景 {storeDoorNet}% / {storeDoorP}%，但 MOT17 人群仍有 {storeCrowdLo}% 至 {storeCrowdHi}% 误差（人群中未达到 ±10% 和 ≥ 85% 的目标）"
+    },
+    {
+      "key": "cameras.s195",
+      "th": "กฎรอบ 5 (เกณฑ์ปรับตามกลุ่ม ลงทะเบียน 3 ท่า ยืนยัน 2 เฟรม ขอให้กดยืนยันเมื่อไม่แน่ใจ) 100 คน: LFW จำได้ {lfwRec100}% คนนอกถูกเสนอชื่อ {lfwStr100}% · ใบหน้าเอเชีย (CASIA ทดสอบแยก) 5–200 คน จำได้ {casiaRecLo}–{casiaRecHi}% คนนอกถูกเสนอชื่อ {casiaStr100}% ที่ 100 คน (ขอบบนช่วงความเชื่อมั่นถึง {strangerCiHi}%) เช็คชื่ออัตโนมัติไม่ถึง {autoStr}% — การจำใบหน้าเอเชียยังต่ำ",
+      "en": "Round-5 rules (group-calibrated limits, 3-pose enrolment, 2-frame confirmation, ask to confirm when unsure), 100 people: LFW {lfwRec100}% recognised, outsiders offered a name {lfwStr100}% · Asian faces (CASIA, held out), 5–200 people: {casiaRecLo}–{casiaRecHi}% recognised, outsiders offered a name {casiaStr100}% at 100 people (upper end of the confidence interval up to {strangerCiHi}%), checked in automatically under {autoStr}% — recognition of Asian faces is still low",
+      "zh": "第 5 轮规则（按群体校准阈值、3 个角度注册、2 帧确认、不确定时请求确认），100 人：LFW 识别 {lfwRec100}%，外部人员被提示姓名 {lfwStr100}% · 亚洲人脸（CASIA，独立测试）5–200 人：识别 {casiaRecLo}–{casiaRecHi}%，100 人时外部人员被提示姓名 {casiaStr100}%（置信区间上限最高 {strangerCiHi}%），自动签到不到 {autoStr}% — 亚洲人脸识别率仍偏低"
+    },
+    {
+      "key": "cameras.s198",
+      "th": "ใช้กฎเดียวกับเช็คชื่อ: LFW 100 คน จำได้ {lfwRec100}% คนนอกถูกเสนอชื่อ {lfwStr100}% (เลือกให้อัตโนมัติไม่ถึง {autoStr}%) · ใบหน้าเอเชีย จำได้ {casiaRecLo}–{casiaRecHi}%",
+      "en": "Same rules as check-in: LFW with 100 people {lfwRec100}% recognised, outsiders offered a name {lfwStr100}% (selected automatically under {autoStr}%) · Asian faces {casiaRecLo}–{casiaRecHi}% recognised",
+      "zh": "与签到规则相同：LFW 100 人识别 {lfwRec100}%，外部人员被提示姓名 {lfwStr100}%（自动选中不到 {autoStr}%）· 亚洲人脸识别 {casiaRecLo}–{casiaRecHi}%"
+    },
+    {
+      "key": "cameras.s202",
+      "th": "±{agMae} ปี · ช่วงอายุถูก {agBand}% · เพศถูก {agGender}% (เอเชีย {agAsian}%) — ค่าที่ดีเกินจริง เพราะโมเดลเคยเรียนจากชุดนี้บางส่วน",
+      "en": "±{agMae} years · age band {agBand}% correct · gender {agGender}% correct (Asian {agAsian}%) — optimistic, because the model was partly trained on this set",
+      "zh": "±{agMae} 岁 · 年龄段正确 {agBand}% · 性别正确 {agGender}%（亚洲 {agAsian}%）— 结果偏乐观，因为模型曾用该数据集的一部分训练"
+    },
+    {
+      "key": "cameras.s206",
+      "th": "{handRec}% / {handPrec}% · ท่าแบมือ {handPalm}%",
+      "en": "{handRec}% / {handPrec}% · open palm {handPalm}%",
+      "zh": "{handRec}% / {handPrec}% · 张开手掌 {handPalm}%"
+    },
+    {
+      "key": "cameras.s208",
+      "th": "บาร์โค้ดจำลอง: อ่านถูก ~100% เมื่อโค้ดกว้าง ≥1/5 ภาพ ชัด ไม่ถูกบัง รหัสผิด {bcWrong}% · ขวดจำลอง: ความสว่างเปลี่ยนถึง ±{qcLight}% ไม่ปัดตกขวดดี ตรวจฉลากเอียง {qcAngleA}° และ {qcAngleB}° ได้ทุกครั้ง ไม่ตรวจรอยขีดข่วน ยังไม่เคยวัดกับไลน์จริง · ตาปิด (ภาพจริง CEW): จับได้ {drFrameCatch}% ต่อเฟรม แต่ขับจำลองเตือนการหลับตา 2 วินาทีได้ {dr2s}% และเตือนผิดราว {drFaPerHour} ครั้ง/ชั่วโมง · สีหน้า FER-2013: ถูก {neuroLo}–{neuroHi}% (สุ่ม 14%) · บูธยังไม่ได้วัด",
+      "en": "Simulated barcodes: ~100% read correctly when the code is ≥1/5 of the frame wide, sharp and unobstructed; {bcWrong}% wrong codes · Simulated bottles: brightness changes up to ±{qcLight}% reject no good bottles, labels skewed {qcAngleA}° and {qcAngleB}° are always caught, scratches are not inspected, never measured on a real line · Closed eyes (real CEW photos): {drFrameCatch}% caught per frame, but in simulated drives only {dr2s}% of 2-second closures alerted, with about {drFaPerHour} false alarms per hour · Expressions FER-2013: {neuroLo}–{neuroHi}% correct (chance 14%) · Booth not yet measured",
+      "zh": "模拟条码：条码宽度 ≥ 画面 1/5、清晰且无遮挡时识读约 100%，误码 {bcWrong}% · 模拟瓶子：亮度变化最多 ±{qcLight}% 不误判合格瓶，标签歪 {qcAngleA}° 和 {qcAngleB}° 每次都能检出，不检查划痕，从未在真实产线上测量 · 闭眼（真实 CEW 照片）：每帧检出 {drFrameCatch}%，但模拟驾驶中 2 秒闭眼只有 {dr2s}% 触发提醒，误报约每小时 {drFaPerHour} 次 · 表情 FER-2013：正确 {neuroLo}–{neuroHi}%（随机 14%）· 展位尚未测量"
+    },
+    {
+      "key": "cameras.s217",
+      "th": "กฎรอบ 5: เกณฑ์ปรับตามระยะห่างของใบหน้าในกลุ่มที่ลงทะเบียน (ใบหน้าเอเชียได้เกณฑ์เข้มขึ้นเอง) ตรวจคุณภาพภาพ ยืนยัน 2 เฟรม ลงทะเบียน 3 ท่า และขอให้กดยืนยันเมื่อไม่แน่ใจ คนนอกถูกเสนอชื่อราว 1% หรือน้อยกว่าทุกขนาดกลุ่ม 5–200 คน แต่ใบหน้าเอเชียจำได้เพียง {casiaRecLo}–{casiaRecHi}% · คำแนะนำเดิมเรื่องจำนวนผู้ลงทะเบียนสูงสุดถูกยกเลิกแล้ว เพราะกลุ่มเล็กต่างหากที่เสี่ยงกว่า: ลงทะเบียนอย่างน้อย {minEnrol} คนก่อนใช้เช็คชื่ออัตโนมัติ คงการกดยืนยันไว้ และลงทะเบียนคนเดิมใหม่ด้วย 3 ท่า",
+      "en": "Round-5 rules: limits scaled to how close the enrolled faces are to each other (Asian faces automatically get stricter limits), image quality checks, 2-frame confirmation, 3-pose enrolment, and a confirmation prompt when unsure. Outsiders are offered a name about 1% of the time or less at every group size from 5 to 200, but Asian faces are recognised only {casiaRecLo}–{casiaRecHi}% of the time · The earlier advice about a maximum number of enrollees is withdrawn, because small groups were the riskier case: register at least {minEnrol} people before relying on automatic check-in, keep the confirmation step, and re-enrol existing people with 3 poses",
+      "zh": "第 5 轮规则：按已注册人脸之间的距离调整阈值（亚洲人脸会自动采用更严格的阈值）、图像质量检查、2 帧确认、3 个角度注册，不确定时请求确认。在 5–200 人的各种群体规模下，外部人员被提示姓名约 1% 或更低，但亚洲人脸识别率只有 {casiaRecLo}–{casiaRecHi}% · 之前关于注册人数上限的建议已撤回，因为小群体才是风险更高的情况：启用自动签到前请至少注册 {minEnrol} 人，保留确认步骤，并让老用户用 3 个角度重新注册"
+    },
+    {
+      "key": "cameras.accpilot",
+      "th": "ตรวจความแม่นยำหน้างานให้ผล 2 ระดับ: “ผ่านระดับนำร่อง” ใช้เป้าที่ผ่อนลงและช่วงความเชื่อมั่น 90% ซึ่งเก็บข้อมูลได้ครบในวันเดียว (เช่น คนผ่านเส้น 50–100 ครั้ง หรือขวดดี 30 + ขวดเสีย 25 ขวด) ใช้ตัดสินว่าทดลองต่อได้ ส่วน “ผ่าน (ยืนยันแล้ว)” ใช้เป้าเต็มและช่วงความเชื่อมั่น 95% ต้องเก็บข้อมูลมากกว่ามาก ผลนำร่องไม่ใช่การรับรองความแม่นยำ",
+      "en": "The on-site accuracy check gives two levels: “pilot grade” uses relaxed targets with a 90% confidence interval and can be completed in one day (for example 50–100 line crossings, or 30 good + 25 bad bottles), to decide whether to continue the trial; “pass (confirmed)” uses the full targets with a 95% interval and needs far more data. A pilot-grade result is not an accuracy certification",
+      "zh": "现场准确度检查给出两个等级：“试点级”采用放宽的目标和 90% 置信区间，一天内即可完成（例如越线 50–100 次，或合格瓶 30 个 + 不合格瓶 25 个），用于决定是否继续试用；“通过（已确认）”采用完整目标和 95% 置信区间，需要多得多的数据。试点级结果不是准确度认证"
+    },
+    {
+      "keys": ["attendance.lic", "customers.lic", "booth.lic", "driver.lic", "signage.lic"],
+      "th": "ใบหน้าวิเคราะห์ด้วยโมเดล face-api.js (โค้ด MIT) ที่ฝึกจากชุดข้อมูลซึ่งอนุญาตเฉพาะงานวิจัย สิทธิ์ใช้เชิงพาณิชย์ยังไม่ได้รับการยืนยันจากนักกฎหมาย — ตรวจสิทธิ์ก่อนใช้งานเชิงพาณิชย์",
+      "en": "Faces are analysed with face-api.js models (MIT code) trained on datasets licensed for research only. Commercial use has not been cleared by a lawyer — check the licence before commercial use",
+      "zh": "人脸由 face-api.js 模型分析（代码为 MIT），其训练数据仅许可用于研究。商业使用尚未经律师确认——商业使用前请核实许可"
+    },
+    {
+      "keys": ["attendance.licb", "customers.licb", "booth.licb", "driver.licb", "signage.licb"],
+      "th": "โมเดลใบอนุญาตวิจัย",
+      "en": "Research-licence models",
+      "zh": "研究许可模型"
+    }
+  ]
+}

@@ -33,7 +33,7 @@
   var baht = function (/** @type {number|null} */ s) { return s == null ? "—" : (s / 100).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
   var when = function (/** @type {number|null} */ t) { return t ? new Date(t * 1000).toLocaleString("th-TH") : "—"; };
 
-  /** @param {string} path @param {{method?: string, body?: any, raw?: boolean}} [o] */
+  /** @param {string} path @param {{method?: string, body?: any, raw?: boolean, noReauth?: boolean}} [o] */
   function call(path, o) {
     var opt = o || {};
     if (!API || !API.enabled()) return Promise.reject(new Error("API not configured"));
@@ -49,9 +49,51 @@
     }).then(function (r) {
       if (opt.raw && r.ok) return r;
       return r.json().catch(function () { return {}; }).then(function (j) {
-        if (!r.ok) { var e = /** @type {any} */ (new Error(j.error || ("HTTP " + r.status))); e.status = r.status; throw e; }
+        if (!r.ok) {
+          var e = /** @type {any} */ (new Error(j.error || ("HTTP " + r.status))); e.status = r.status; e.code = j.code;
+          // round 11: sensitive edits need a recent re-auth — ask once, open the 5-min window (POST /reauth), retry once
+          if (j.code === "reauth_required" && !opt.noReauth && path !== "/reauth") {
+            return askReauth().then(function (/** @type {any} */ cred) {
+              if (!cred) throw e;
+              return call("/reauth", { method: "POST", body: cred, noReauth: true }).then(function () {
+                return call(path, Object.assign({}, opt, { noReauth: true }));
+              });
+            });
+          }
+          throw e;
+        }
         return j;
       });
+    });
+  }
+
+  /** Password (+ TOTP when on) dialog for re-auth; resolves null when cancelled. Built in JS (no inline handlers). */
+  function askReauth() {
+    return new Promise(function (resolve) {
+      var d = document.createElement("dialog");
+      d.className = "ad-reauth";
+      var f = document.createElement("form");
+      f.method = "dialog";
+      var p = document.createElement("p");
+      p.textContent = "ยืนยันรหัสผ่านอีกครั้งก่อนแก้ไขรายการสำคัญ (มีผล 5 นาที)";
+      var pw = document.createElement("input");
+      pw.type = "password"; pw.autocomplete = "current-password"; pw.required = true; pw.placeholder = "รหัสผ่าน";
+      pw.setAttribute("aria-label", "รหัสผ่าน");
+      var tp = document.createElement("input");
+      tp.inputMode = "numeric"; tp.autocomplete = "one-time-code"; tp.placeholder = "รหัส TOTP 6 หลัก"; tp.setAttribute("aria-label", "รหัส TOTP");
+      tp.hidden = !(state.me && state.me.totp_enabled);
+      var ok = document.createElement("button"); ok.type = "submit"; ok.value = "ok"; ok.textContent = "ยืนยัน";
+      var no = document.createElement("button"); no.type = "submit"; no.value = "cancel"; no.formNoValidate = true; no.textContent = "ยกเลิก";
+      f.append(p, pw, tp, ok, no);
+      d.appendChild(f);
+      document.body.appendChild(d);
+      d.addEventListener("close", function () {
+        var v = d.returnValue === "ok" && pw.value ? { password: pw.value, totp: tp.value || undefined } : null;
+        d.remove();
+        resolve(v);
+      });
+      if (typeof d.showModal === "function") d.showModal(); else resolve(null);
+      pw.focus();
     });
   }
 

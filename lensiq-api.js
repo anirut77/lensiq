@@ -9,6 +9,9 @@
  *   LQApi.url(path)                      -> absolute URL on the API ("" when disabled)
  *   LQApi.getJSON(path, opts?)           -> Promise<object|null>   (null: disabled / network error / non-2xx)
  *   LQApi.postJSON(path, body, opts?)    -> Promise<object|null>
+ *   LQApi.call(path, opts?)              -> Promise<{ok, status, j}>  like request() but keeps the HTTP status and the
+ *                                           error body (codes such as "saved_full"); status 0 = disabled / network /
+ *                                           timeout (opts.timeoutMs, default 15 s). Used by lensiq-member.js.
  *   LQApi.beacon(path, body)             -> boolean   (navigator.sendBeacon, text/plain = no CORS preflight)
  *   LQApi.config()                       -> Promise<{analytics, free_mode, pricing_enabled}|null>  (cached)
  *   LQApi.turnstile(action)              -> Promise<string>  fresh Cloudflare Turnstile token ("" when no site key /
@@ -48,6 +51,29 @@
   function getJSON(path, opts) { return request(path, opts); }
   /** @param {string} path @param {any} body @param {any} [opts] */
   function postJSON(path, body, opts) { return request(path, Object.assign({}, opts || {}, { method: "POST", body: body })); }
+
+  /**
+   * Same transport as request() (timeout, credentials "omit") but resolves {ok, status, j} — never rejects.
+   * @param {string} path
+   * @param {{method?: string, body?: any, timeoutMs?: number, headers?: Record<string, string>, cache?: RequestCache, referrerPolicy?: ReferrerPolicy}} [opts]
+   * @returns {Promise<{ok: boolean, status: number, j: any}>}
+   */
+  function call(path, opts) {
+    var o = opts || {};
+    if (!enabled() || typeof fetch !== "function") return Promise.resolve({ ok: false, status: 0, j: null });
+    var ac = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timer = ac ? setTimeout(function () { ac.abort(); }, o.timeoutMs || 15000) : null;
+    /** @type {Record<string, string>} */
+    var h = Object.assign({}, o.headers || {});
+    if (o.body !== undefined) h["Content-Type"] = "application/json";
+    /** @type {RequestInit} */
+    var init = { method: o.method || "GET", headers: h, credentials: "omit", cache: o.cache || "no-store", referrerPolicy: o.referrerPolicy || "no-referrer", signal: ac ? ac.signal : undefined };
+    if (o.body !== undefined) init.body = JSON.stringify(o.body);
+    return fetch(url(path), init)
+      .then(function (r) { return r.json().catch(function () { return null; }).then(function (j) { return { ok: r.ok, status: r.status, j: j }; }); })
+      .catch(function () { return { ok: false, status: 0, j: null }; })
+      .finally(function () { if (timer) clearTimeout(timer); });
+  }
 
   /** @param {string} path @param {any} body */
   function beacon(path, body) {
@@ -120,7 +146,7 @@
     });
   }
 
-  var api = { enabled: enabled, base: base, url: url, getJSON: getJSON, postJSON: postJSON, beacon: beacon, config: config, turnstile: turnstile };
+  var api = { enabled: enabled, base: base, url: url, getJSON: getJSON, postJSON: postJSON, call: call, beacon: beacon, config: config, turnstile: turnstile };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.LQApi = api;
 })(typeof window !== "undefined" ? window : /** @type {any} */ (globalThis));

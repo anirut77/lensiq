@@ -200,10 +200,13 @@ test("i18n: every generated text key has a Chinese entry; Thai stays the default
 });
 
 // ---------- every card type × many scenarios: labels must agree with the numbers and the decision rule ----------
+// rejects spread evenly through the shift (round 11: the QC interval is clustered by stretches of the shift, so a fixture with every reject
+// at the end of the log would — correctly — read as a drifting line, not as the iid rate these tests are about)
+const qcRej = (i, rej, total) => Math.floor((i + 1) * rej / total) > Math.floor(i * rej / total);
 test("card/label consistency: KPI deltas, store change, QC, goals and alerts follow their test/CI (not point estimates)", () => {
   const NOW3 = new Date(2026, 10, 6, 15).getTime();
   const runs = [];
-  const qcSnap = (pass, total) => { const t0 = NOW3 - 3600e3; return JSON.stringify({ start: t0, total, pass, reject: total - pass, reasons: { under: total - pass }, log: Array.from({ length: total }, (_, i) => ({ t: t0 + i * 1000, pass: i < pass, reasons: i < pass ? [] : ["under"] })) }); };
+  const qcSnap = (pass, total) => { const t0 = NOW3 - 3600e3; return JSON.stringify({ start: t0, total, pass, reject: total - pass, reasons: { under: total - pass }, log: Array.from({ length: total }, (_, i) => { const ok = !qcRej(i, total - pass, total); return { t: t0 + i * 1000, pass: ok, reasons: ok ? [] : ["under"] }; }) }); };
   for (const seed of [1, 5, 7, 13, 21, 34]) {
     const set = I.iqBuildDemo({}, NOW3, seed).set;
     const variants = [set, { ...set, "qc-shift": qcSnap(566, 600) }, { ...set, "qc-shift": qcSnap(540, 600) }, { ...set, "qc-shift": qcSnap(588, 600) }];
@@ -272,7 +275,7 @@ test("card/label consistency: KPI deltas, store change, QC, goals and alerts fol
 
 test("QC straddling the target: 94.3% (CI ≈ 92–96%) says 'ยังสรุปไม่ได้' and does not stop the line; 90% does", () => {
   const NOW3 = new Date(2026, 10, 6, 15).getTime(), t0 = NOW3 - 3600e3;
-  const mk = (pass, total) => I.iqCollect({ "qc-shift": JSON.stringify({ start: t0, total, pass, reject: total - pass, reasons: { capTilt: total - pass }, log: Array.from({ length: total }, (_, i) => ({ t: t0 + i * 1000, pass: i < pass, reasons: i < pass ? [] : ["capTilt"] })) }) });
+  const mk = (pass, total) => I.iqCollect({ "qc-shift": JSON.stringify({ start: t0, total, pass, reject: total - pass, reasons: { capTilt: total - pass }, log: Array.from({ length: total }, (_, i) => { const ok = !qcRej(i, total - pass, total); return { t: t0 + i * 1000, pass: ok, reasons: ok ? [] : ["capTilt"] }; }) }) });
   const run = (p, n) => { const D = mk(p, n), A = I.iqAnalyze(D, I.iqRange("d7", NOW3, D), { now: NOW3 }); return { A, C: I.iqInsights(D, A) }; };
   const u = run(566, 600), a = u.A.alerts.find(x => x.id === "qc");
   assert.ok(a.ci.lo < 0.95 && a.ci.hi > 0.95);

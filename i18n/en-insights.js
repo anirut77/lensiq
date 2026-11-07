@@ -888,7 +888,15 @@
     "อบรมพนักงานขายหน้าร้าน": "Store sales staff training",
     "ประชุมประจำเดือน": "Monthly meeting",
     "ขวดเครื่องดื่ม 600 มล.": "Beverage bottle 600 ml",
-    "ตารางเวลา": "Schedule"
+    "ตารางเวลา": "Schedule",
+    // ---- round 11: repeated looks, signage A/B by time slot, QC by stretch of shift ----
+    "iq.need.fix": " · Fix a decision date in advance and judge on that day; checking every day and stopping as soon as a difference shows makes false differences far more common",
+    "iq.seq.why": "If you check this number every day: the repeated-check-safe test does not call it clear yet (value {p}); judging on a date fixed in advance is more reliable",
+    "iq.absg.why.nostrata": "There are no per-day and per-time-slot totals for each ad yet, so the effect of when they played cannot be separated; confidence is capped at “not yet clear”",
+    "iq.absg.why.cap": "These two ads played on the same days and time slots for only {ov} of the people passing the screen (at least {min} needed), so confidence is capped at “not yet clear”",
+    "iq.absg.why.ov": "Compared only on the days and time slots both ads played ({n} slots · {ov} of the people passing the screen), so the effect of when they played is taken out",
+    "iq.kpi.ci.qcb": " (includes variation between stretches of the shift)",
+    "iq.al.conv.seq": "This condition is re-checked every day, so a stricter rule than a one-off look is used (to avoid false alarms from repeated checks); one-off p {p}"
   };
   var dict = { en: en };
   if (root.LQI18N && typeof root.LQI18N.add === "function") root.LQI18N.add(dict);

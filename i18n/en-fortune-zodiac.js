@@ -24,7 +24,7 @@
   "zodiac.monthPh": "Month",
   "zodiac.month": "Month {m}",
   "zodiac.bd.chinese": "Chinese New Year (most common)",
-  "zodiac.bd.lichun": "Lichun, about Feb 4 (Ba Zi)",
+  "zodiac.bd.lichun": "Lichun, about Feb 4 (BaZi)",
   "zodiac.bd.thai": "1st of the 5th Thai lunar month (old Thai method)",
   "zodiac.yearName": "{gz} year (Year of the {zan}, {zel})",
   "zodiac.yearOpt": "{name} · {y} CE",

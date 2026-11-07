@@ -5,6 +5,7 @@
  *    A link such as privacy.html#p3 therefore always lands on section 3 of the version that is showing, and the
  *    hash is kept stable across languages (other pages and the sign-in/checkout copy can link to it).
  * 2) camera-notice.html: the sign chooser (show one sign or all) and the print button.
+ * 3) Seller / support details from window.LENSIQ_SELLER (lensiq-config.js) — see seller() below.
  * No network, no storage except reading the language from <html lang>. */
 (function () {
   "use strict";
@@ -63,4 +64,38 @@
     });
   }
   if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", signs); else signs();
+
+  // ---------- seller / support details (terms.html, privacy.html, help.html) ----------
+  // Every not-yet-announced detail is a <span class="ph pend" data-seller="key"> whose markup already carries the
+  // neutral per-language wording ("announced before sales open · use the contact form"). window.LENSIQ_SELLER
+  // (lensiq-config.js) is the single source: a filled key replaces the wording on every page at once. The demo notice
+  // ([data-seller-demo]) stays until sales_open is true AND the required keys are filled (tools/check-legal.mjs
+  // enforces the same rule before a deploy).
+  var REQUIRED = ["name", "tax_id", "address", "email", "effective_date", "dpo_email"];
+  /** @param {any} v */
+  var has = function (v) { var t = typeof v === "string" ? v.trim() : ""; return !!t && !/^\[.*\]$/.test(t); };
+  function seller() {
+    var c = /** @type {any} */ (window).LENSIQ_SELLER;
+    var s = c && typeof c === "object" ? c : {};
+    doc.querySelectorAll("[data-seller]").forEach(function (node) {
+      var el = /** @type {HTMLElement} */ (node), k = el.getAttribute("data-seller") || "", v = s[k];
+      if (k === "draft") { el.title = (prefix() === "zh-" ? "草案数值，待律师确认" : prefix() === "en-" ? "draft value, to be confirmed by counsel" : "ค่าร่าง รอทนายความยืนยัน"); return; }
+      if (k === "counsel") { if (s.counsel_confirmed === true) el.hidden = true; return; }
+      if (!has(v)) return;
+      var t = String(v).trim();
+      el.textContent = "";
+      el.classList.remove("pend");
+      el.setAttribute("data-filled", "");
+      var a = doc.createElement("a");
+      if ((k === "email" || k === "dpo_email") && /^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]{2,}$/.test(t)) a.href = "mailto:" + t;
+      else if (k === "status_url" && /^https:\/\//.test(t)) a.href = t;
+      else if (k === "line" && /^@?[A-Za-z0-9._-]{2,40}$/.test(t)) { a.href = "https://line.me/R/ti/p/" + encodeURIComponent(t.charAt(0) === "@" ? t : "@" + t); a.target = "_blank"; a.rel = "noopener"; }
+      if (a.href) { a.textContent = t; el.appendChild(a); } else el.textContent = t;
+    });
+    var ready = s.sales_open === true && REQUIRED.every(function (k) { return has(s[k]); });
+    doc.querySelectorAll("[data-seller-demo]").forEach(function (n) { /** @type {HTMLElement} */ (n).hidden = ready; });
+  }
+  // lensiq-config.js comes after this file: fill once the document (and every sync script) has run
+  if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", seller); else seller();
+  window.addEventListener("lq-lang", function () { seller(); });
 })();

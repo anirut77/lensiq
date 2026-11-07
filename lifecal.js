@@ -218,15 +218,27 @@
      ฐาน 4 (ฐานรวม) = ผลรวมของสามแถวในแต่ละช่อง ช่องที่ 1–7 อ่านเป็นภพ ตนุ กดุมภะ สหัชชะ พันธุ ปุตตะ อริ ปัตนิ */
   var wrap7 = function (n) { return mod(n - 1, 7) + 1; };
   var row7 = function (start) { var r = []; for (var i = 0; i < 7; i++) r.push(wrap7(start + i)); return r; };
-  function zodiacYearThai(b) { // ปีนักษัตรเปลี่ยนวันสงกรานต์/เดือน 5 ตามตำราไทย — ใช้ 13 เมษายนเป็นเส้นแบ่งโดยประมาณ
+  /* รอบ 11: กฎเดียวทั้งเว็บ — ปีนักษัตรไทยเปลี่ยนวันขึ้น 1 ค่ำ เดือน 5 (คำนวณโดย HSCore.zodiacYears ตัวเดียวกับหน้าดวงชะตา)
+     กฎเดิม (สงกรานต์ 13 เมษายน) ยังมีให้ใช้เป็น zodiacYearSongkran และแสดงเป็นหมายเหตุเมื่อสองแบบให้ปีต่างกัน */
+  function zodiacYearSongkran(b) { // เส้นแบ่งโดยประมาณ: 13 เมษายน
     var y = b.y; if (b.m < 4 || (b.m === 4 && b.d < 13)) y -= 1;
     return mod(y - 4, 12); // 0 = ชวด
   }
+  function zodiacYearThai(b) {
+    var H = HS || root.HSCore;
+    if (H && typeof H.zodiacYears === "function") {
+      try {
+        var tz = b.tz == null ? 7 : b.tz, z = H.zodiacYears(b.y, b.m, b.d, jd(b.y, b.m, b.d, b.noTime ? 12 : b.h || 0, b.noTime ? 0 : b.mi || 0, tz), tz);
+        if (z && z.thai && isFinite(z.thai.year)) return mod(z.thai.year - 4, 12);
+      } catch (e) { /* ใช้เส้นแบ่งโดยประมาณ */ }
+    }
+    return zodiacYearSongkran(b);
+  }
   function lek7(b) {
-    var bp = birthPlanet(b), lm = thaiLunarMonth(b), za = zodiacYearThai(b);
+    var bp = birthPlanet(b), lm = thaiLunarMonth(b), za = zodiacYearThai(b), zs = zodiacYearSongkran(b);
     var r1 = row7(bp.weekday + 1), r2 = row7(lm.month), r3 = row7(za + 1);
     var sum = r1.map(function (v, i) { return v + r2[i] + r3[i]; });
-    return { rows: [r1, r2, r3], sum: sum, weekday: bp.weekday, unsure: bp.unsure, lunarMonth: lm.month, secondEight: lm.secondEight, zodiac: za, total: sum.reduce(function (a, x) { return a + x; }, 0) };
+    return { rows: [r1, r2, r3], sum: sum, weekday: bp.weekday, unsure: bp.unsure, lunarMonth: lm.month, secondEight: lm.secondEight, zodiac: za, zodiacSongkran: zs, zodiacRuleDiffers: zs !== za, total: sum.reduce(function (a, x) { return a + x; }, 0) };
   }
 
   /* ---------- ตะวันตก ---------- */
@@ -248,7 +260,7 @@
     jdn: jdn, jd: jd, fromJD: fromJD, sunLongitude: sunLongitude, sunAt: sunAt, solarTermJD: solarTermJD, jieAround: jieAround, newMoonJD: newMoonJD, newMoonBefore: newMoonBefore,
     STEMS: STEMS, BRANCHES: BRANCHES, JIE: JIE, jieLon: jieLon, STEM_EL: STEM_EL, BRANCH_EL: BRANCH_EL, HIDDEN: HIDDEN, EL_KEYS: EL_KEYS, JIE_ZH: JIE_ZH, tenGod: tenGod, bazi: bazi, pillarUnsure: pillarUnsure, luckAt: luckAt, pillar: pillar,
     TAKSA_ORDER: TAKSA_ORDER, BHUMI: BHUMI, MAHA_YEARS: MAHA_YEARS, weekday: weekday, birthPlanet: birthPlanet, taksa: taksa, mahaAt: mahaAt,
-    thaiLunarMonth: thaiLunarMonth, zodiacYearThai: zodiacYearThai, lek7: lek7, progressedSunChanges: progressedSunChanges, SATURN_RETURNS: SATURN_RETURNS,
+    thaiLunarMonth: thaiLunarMonth, zodiacYearThai: zodiacYearThai, zodiacYearSongkran: zodiacYearSongkran, lek7: lek7, progressedSunChanges: progressedSunChanges, SATURN_RETURNS: SATURN_RETURNS,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   root.LifeCal = api;

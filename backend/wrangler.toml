@@ -4,10 +4,12 @@
 #   SECRETS_KEK            base64 of 32 random bytes — AES-GCM key-encryption key (TOTP secret, admin-set API key)
 #   ANTHROPIC_API_KEY      preferred way to give the fortune writing assistant its key
 #   OPN_SECRET_KEY / OPN_PUBLIC_KEY / OPN_WEBHOOK_SECRET   Opn (Omise) TEST keys until go-live
-#   TURNSTILE_SECRET       Cloudflare Turnstile secret for /api/fortune + checkout (REQUIRED: both refuse without it;
-#                          site key goes in lensiq-config.js window.LENSIQ_TURNSTILE_SITEKEY)
+#   TURNSTILE_SECRET       Cloudflare Turnstile secret for /api/fortune + checkout + sign-in + leads (REQUIRED: all
+#                          refuse without it; site key goes in lensiq-config.js window.LENSIQ_TURNSTILE_SITEKEY)
+#   ALERT_WEBHOOK_URL      optional https incoming-webhook URL (Slack / Discord / ntfy …) for owner alerts — no PII sent
+#   HEALTH_TOKEN           optional bearer token that protects GET /health/deep
 name = "lensiq-api"
-main = "src/index.js"
+main = "src/worker.js"
 compatibility_date = "2026-10-01"
 compatibility_flags = ["nodejs_compat"]
 workers_dev = true
@@ -47,6 +49,21 @@ SELLER_NAME = ""
 SELLER_TAX_ID = ""
 SELLER_ADDRESS = ""
 SELLER_BRANCH = "สำนักงานใหญ่"
+# Go-live gate (src/golive.js). "enforce": checkout and NEW Google sign-ins are refused (503 go_live_blocked) while
+# SELLER_NAME / SELLER_TAX_ID / SELLER_ADDRESS are empty, a LEGAL_*_READY flag is not "true", ALLOWED_ORIGINS contains
+# localhost with the Turnstile dev bypass on, or (billing / live keys on) the owner has no TOTP. "report" = only shown
+# in admin (staging / test-mode runs). Live Opn money is ALWAYS refused while any of these is open.
+GO_LIVE_GATE = "enforce"
+# Set to "true" only after counsel signed off terms.html / privacy.html (no [placeholders], no "ฉบับร่าง" banner).
+LEGAL_TERMS_READY = "false"
+LEGAL_PRIVACY_READY = "false"
+# Owner TOTP is required for money ops while billing / live keys are on; "true" requires it always.
+REQUIRE_OWNER_TOTP = "false"
+# Pending payments re-checked with Opn per 15-min cron run (unfulfilled successful payments repaired: same batch size)
+RECONCILE_BATCH = "25"
+# B2B demo requests (POST /v1/leads): kept this many days; global cap per Bangkok day
+LEADS_DAYS = "180"
+LEADS_GLOBAL_DAY = "200"
 # Retention (days). Raw analytics events are purged after RAW_EVENT_DAYS; daily aggregates are kept.
 RAW_EVENT_DAYS = "90"
 AUDIT_DAYS = "400"

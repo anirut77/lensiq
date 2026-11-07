@@ -3,7 +3,8 @@
 // Money ops need re-authentication in the request body ({password, totp}; auth.reauthOwner, checked by the router).
 //
 //   refundPayment        manual refund (PromptPay cannot be refunded through Opn: bank transfer, reference recorded);
-//                        payment -> 'refunded', optional cancel of the subscription / zeroing of purchased credits,
+//                        round 11: partial refunds ('partially_refunded'), only what THIS payment bought is revoked
+//                        (pro rata credits / subscription days), credit-note numbers for VAT tax invoices,
 //                        ledger row kind 'refund' (shown in the member's history)
 //   cancelSubscription   status 'cancelled' (quota back to the member tier at once)
 //   extendSubscription   + N days (from max(now, current end)), re-activates an expired / cancelled one
@@ -13,7 +14,7 @@ import { PERKS } from "./constants.js";
 import { randomId } from "./crypto.js";
 import { grantCredits } from "./quota.js";
 import { ledger } from "./members.js";
-import { HttpError, intVar, now } from "./util.js";
+import { HttpError, bkkDay, intVar, now } from "./util.js";
 
 const ID_RE = /^[a-f0-9]{32}$/;
 const SUB_RE = /^[A-Za-z0-9_-]{1,40}$/;
@@ -38,35 +39,105 @@ export async function adminPayment(env, id) {
   const p = await paymentRow(env.DB, id);
   const credits = (await env.DB.prepare("SELECT id, feature, granted, remaining, expires_at FROM credits WHERE payment_id = ?1").bind(p.id).all()).results || [];
   const sub = p.subscription_id ? await env.DB.prepare("SELECT * FROM subscriptions WHERE id = ?1").bind(p.subscription_id).first() : null;
-  const { idem_scope: _s, ...rest } = p;
-  return { payment: rest, subscription: sub, credits, receipt_path: p.receipt_no ? `/admin/api/billing/payments/${p.id}/receipt` : null };
+  const { idem_scope: _s, fulfil_token: _f, refund_token: _r, ...rest } = p;
+  const refunds = (await refundsOf(env.DB, p.id)).map(r => ({ ...r, credit_note_path: r.credit_note_no ? `/admin/api/billing/payments/${p.id}/refunds/${r.id}/credit-note` : null }));
+  return { payment: rest, subscription: sub, credits, refunds, receipt_path: p.receipt_no ? `/admin/api/billing/payments/${p.id}/receipt` : null };
 }
 
-/** body {reference (bank-transfer ref, required), amount_satang? (default: full), note?, cancel_subscription? = true,
- *  revoke_credits? = true}. Refundable: 'successful' and 'mismatch' payments. */
+const PERIOD_SECONDS = { month: 30 * 86400, year: 365 * 86400 };
+export const REFUNDABLE = ["successful", "partially_refunded", "mismatch"];
+
+/**
+ * Manual refund (round 11: partial refunds). body {reference (bank-transfer ref, required), amount_satang? (default:
+ * everything not refunded yet), note?, cancel_subscription?, revoke_credits? = true}. Refundable: 'successful',
+ * 'partially_refunded' and 'mismatch' payments; several partial refunds may follow each other up to the amount paid.
+ *
+ *   status          'partially_refunded' while the refunded total < amount, 'refunded' once everything was refunded
+ *   credits         only the credits THIS payment granted, pro rata: floor(granted × refund / amount) per refund (the
+ *                   rest on the refund that completes it) — 1 THB back on a 199 THB report revokes nothing
+ *   subscription    only the time THIS payment added (payments.ext_seconds), pro rata — refunding a 149 THB renewal of a
+ *                   990 THB yearly plan removes that renewal's 30 days and keeps the paid year. The subscription is
+ *                   cancelled only when no paid time is left. cancel_subscription: true = old behaviour (cancel it all),
+ *                   false = leave the subscription untouched
+ *   credit note     when the payment was a VAT tax invoice (doc_type tax_invoice_receipt, VAT_REGISTERED at checkout) every
+ *                   refund gets a gap-free credit-note number CN-YYYYMM-000001 (ใบลดหนี้, Revenue Code s.86/10),
+ *                   printable at …/refunds/:n/credit-note
+ * Everything (status, refund row, numbering, revocations) commits in ONE transaction, claimed with a random token.
+ */
 export async function refundPayment(env, id, body) {
   const db = env.DB, t = now();
   const p = await paymentRow(db, id);
-  if (!["successful", "mismatch"].includes(p.status)) throw new HttpError(409, `a ${p.status} payment cannot be refunded`, { code: "not_refundable" });
+  if (!REFUNDABLE.includes(p.status)) throw new HttpError(409, `a ${p.status} payment cannot be refunded`, { code: "not_refundable" });
   const reference = text(body.reference, 80, "reference", true);
   const note = text(body.note, 300, "note");
-  const amount = body.amount_satang == null ? p.amount_satang : body.amount_satang;
-  if (!Number.isInteger(amount) || amount <= 0 || amount > p.amount_satang) throw new HttpError(400, `amount_satang must be an integer 1–${p.amount_satang}`);
-  const r = await db.prepare("UPDATE payments SET status = 'refunded', refund_ref = ?1, refund_satang = ?2, refund_note = ?3, refunded_at = ?4, updated_at = ?4 WHERE id = ?5 AND status IN ('successful', 'mismatch')")
-    .bind(reference, amount, note, t, p.id).run();
-  if (!r.meta || !r.meta.changes) throw new HttpError(409, "payment changed meanwhile — reload", { code: "not_refundable" });
-  let cancelled = 0, revoked = 0;
-  if (body.cancel_subscription !== false && p.subscription_id) {
-    const c = await db.prepare("UPDATE subscriptions SET status = 'cancelled', cancelled_at = ?1, updated_at = ?1, note = 'refund' WHERE id = ?2 AND status = 'active'").bind(t, p.subscription_id).run();
-    cancelled = (c.meta && c.meta.changes) || 0;
+  const prev = p.refund_satang || 0;
+  const left = p.amount_satang - prev;
+  if (left <= 0) throw new HttpError(409, "already fully refunded", { code: "not_refundable" });
+  const amount = body.amount_satang == null ? left : body.amount_satang;
+  if (!Number.isInteger(amount) || amount <= 0 || amount > left) throw new HttpError(400, `amount_satang must be an integer 1–${left}`);
+  const total = prev + amount;
+  const full = total >= p.amount_satang;
+  const status = full ? "refunded" : "partially_refunded";
+  const tok = randomId(16);
+  const g = "EXISTS (SELECT 1 FROM payments WHERE id = ?9 AND refund_token = ?10)"; // ?9 payment id, ?10 token
+  const stmts = [
+    db.prepare("UPDATE payments SET status = ?1, refund_ref = ?2, refund_satang = ?3, refund_note = ?4, refunded_at = ?5, updated_at = ?5, refund_token = ?6 " +
+      "WHERE id = ?7 AND status = ?8 AND COALESCE(refund_satang, 0) = ?9").bind(status, reference, total, note, t, tok, p.id, p.status, prev)
+  ];
+  // credit note (ใบลดหนี้) for a VAT tax invoice: counter moves only when the claim above changed the row
+  const vatDoc = p.vat_rate_bp > 0 && p.doc_type === "tax_invoice_receipt";
+  const ym = bkkDay(t).slice(0, 7).replace("-", "");
+  const cnName = "credit_note:" + ym;
+  if (vatDoc) stmts.push(db.prepare("INSERT INTO counters (name, value) SELECT ?1, 1 WHERE changes() = 1 ON CONFLICT (name) DO UPDATE SET value = value + 1").bind(cnName));
+  // what to take back (computed from the rows now; applied with MAX(0, …) so a credit used meanwhile is never negative)
+  let creditsRevoked = 0, secondsRemoved = 0, cancel = false;
+  if (body.revoke_credits !== false && p.status !== "mismatch") {
+    const rows = (await db.prepare("SELECT id, granted, remaining FROM credits WHERE payment_id = ?1 AND remaining > 0").bind(p.id).all()).results || [];
+    for (const c of rows) {
+      const n = full ? c.remaining : Math.min(c.remaining, Math.floor(c.granted * amount / p.amount_satang));
+      if (n <= 0) continue;
+      creditsRevoked += n;
+      stmts.push(db.prepare(`UPDATE credits SET remaining = MAX(0, remaining - ?1) WHERE id = ?2 AND ${g.replace("?9", "?3").replace("?10", "?4")}`).bind(n, c.id, p.id, tok));
+    }
   }
-  if (body.revoke_credits !== false) {
-    const c = await db.prepare("UPDATE credits SET remaining = 0 WHERE payment_id = ?1 AND remaining > 0").bind(p.id).run();
-    revoked = (c.meta && c.meta.changes) || 0;
+  const sub = p.subscription_id ? await db.prepare("SELECT * FROM subscriptions WHERE id = ?1").bind(p.subscription_id).first() : null;
+  if (sub && body.cancel_subscription !== false && sub.status === "active") {
+    if (body.cancel_subscription === true) cancel = true;
+    else {
+      const paid = Number.isInteger(p.ext_seconds) ? p.ext_seconds : PERIOD_SECONDS[p.period] || 0;
+      const done = await db.prepare("SELECT COALESCE(SUM(seconds_removed), 0) AS s FROM refunds WHERE payment_id = ?1").bind(p.id).first();
+      secondsRemoved = full ? Math.max(0, paid - Number(done.s)) : Math.min(Math.max(0, paid - Number(done.s)), Math.round(paid * amount / p.amount_satang));
+      cancel = sub.current_period_end - secondsRemoved <= t;
+    }
+    const why = "refund " + p.id.slice(0, 8);
+    if (secondsRemoved && !cancel) {
+      stmts.push(db.prepare(`UPDATE subscriptions SET current_period_end = current_period_end - ?1, updated_at = ?2, note = ?3 WHERE id = ?4 AND status = 'active' AND ${g.replace("?9", "?5").replace("?10", "?6")}`)
+        .bind(secondsRemoved, t, why, sub.id, p.id, tok));
+    }
+    if (cancel) {
+      stmts.push(db.prepare(`UPDATE subscriptions SET status = 'cancelled', cancelled_at = ?1, updated_at = ?1, current_period_end = MAX(current_period_start, current_period_end - ?2), note = ?3 WHERE id = ?4 AND status = 'active' AND ${g.replace("?9", "?5").replace("?10", "?6")}`)
+        .bind(t, secondsRemoved, why, sub.id, p.id, tok));
+    }
   }
-  await db.prepare("UPDATE alerts SET acknowledged_at = ?1 WHERE ref = ?2 AND acknowledged_at IS NULL").bind(t, p.id).run();
+  stmts.push(db.prepare("INSERT INTO refunds (payment_id, ts, amount_satang, reference, note, credit_note_no, seconds_removed, credits_revoked, subscription_cancelled) " +
+    `SELECT ?1, ?2, ?3, ?4, ?5, CASE WHEN ?6 = 1 THEN 'CN-' || ?7 || '-' || printf('%06d', (SELECT value FROM counters WHERE name = ?8)) END, ?11, ?12, ?13 WHERE ${g}`)
+    .bind(p.id, t, amount, reference, note, vatDoc ? 1 : 0, ym, cnName, p.id, tok, secondsRemoved, creditsRevoked, cancel ? 1 : 0));
+  if (full) stmts.push(db.prepare(`UPDATE alerts SET acknowledged_at = ?1 WHERE ref = ?2 AND acknowledged_at IS NULL AND ${g.replace("?9", "?3").replace("?10", "?4")}`).bind(t, p.id, p.id, tok));
+  const res = await db.batch(stmts);
+  if (!res[0].meta || !res[0].meta.changes) throw new HttpError(409, "payment changed meanwhile — reload", { code: "not_refundable" });
+  const row = await db.prepare("SELECT id, credit_note_no FROM refunds WHERE payment_id = ?1 ORDER BY id DESC LIMIT 1").bind(p.id).first();
   if (p.user_id) await ledger(env, p.user_id, "refund", { ref: p.id, amount }, t);
-  return { ok: true, payment_id: p.id, status: "refunded", refund_satang: amount, subscription_cancelled: !!cancelled, credits_revoked: revoked, receipt_no: p.receipt_no };
+  return {
+    ok: true, payment_id: p.id, status, refund_satang: amount, refunded_total_satang: total, remaining_refundable_satang: p.amount_satang - total,
+    subscription_cancelled: cancel, subscription_seconds_removed: secondsRemoved, credits_revoked: creditsRevoked,
+    receipt_no: p.receipt_no, refund_id: row ? row.id : null, credit_note_no: row ? row.credit_note_no : null,
+    credit_note_path: row && row.credit_note_no ? `/admin/api/billing/payments/${p.id}/refunds/${row.id}/credit-note` : null
+  };
+}
+
+/** Refund rows of a payment (admin detail, member history, credit notes). */
+export async function refundsOf(db, paymentId) {
+  return (await db.prepare("SELECT id, ts, amount_satang, reference, note, credit_note_no, seconds_removed, credits_revoked, subscription_cancelled FROM refunds WHERE payment_id = ?1 ORDER BY id").bind(paymentId).all()).results || [];
 }
 
 async function subRow(db, id) {

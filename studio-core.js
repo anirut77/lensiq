@@ -2162,7 +2162,64 @@
     }
   }
 
+  /**
+   * เก็บกวาดเศษที่ matte ติดมาสำหรับภาพแบบไม่ใส่ชุด / รูปติดบัตร (round 11) — แก้ keep (0..1) ในตัว คืน { parse, islands, faint, mainFrac }
+   *  1) parse (เฉพาะเมื่อส่ง pp — หน้าเว็บไม่ส่ง: บนภาพจริง 62 คน โมเดล 6 คลาสให้สูท/เสื้อสีเข้มเป็นฉาก ทำให้ลำตัวเป็นรู):
+   *     ส่วนที่ matte ว่าเป็นคน แต่โมเดลแยกส่วน (pp = ความน่าจะเป็นว่าเป็นคน จาก parsePersonProb) มั่นใจว่าเป็นฉาก (< 0.12)
+   *     นอกวงศีรษะและไม่ใช่ผม — ธง เก้าอี้ ฉากที่ต่อกับตัว — เฉพาะก้อนที่หนา (หดขอบ r แล้วยังเหลือ ≥ 0.03 หน้า²) ไม่แตะขอบตัวคนบาง ๆ
+   *  2) islands: ก้อนที่ไม่ต่อกับตัวหลัก เล็กกว่า 35% ของตัวหลัก (เดิม: < 0.15 หน้า²)
+   *  3) faint: เส้น/เงาจาง (keep < 0.5) ที่อยู่ห่างจากตัวหลักเกิน r — เส้นขอบลอย ๆ ที่ removeStrayIslands ไม่เห็น
+   *  mainFrac = พื้นที่ตัวหลัก / ภาพ (ต่ำมาก = ตัดพื้นหลังล้มเหลว ผู้เรียกตัดสินใจเอง)
+   */
+  /** ติดป้ายก้อน 4 ทิศของมาสก์ 0/1 (เร็ว: สแต็ก Int32Array ไม่สร้างอาร์เรย์ต่อพิกเซล) -> { lab, sizes } */
+  function labelComps(on, W, H) {
+    const n = W * H, lab = new Int32Array(n).fill(-1), sizes = [], st = new Int32Array(n);
+    for (let s0 = 0; s0 < n; s0++) {
+      if (!on[s0] || lab[s0] >= 0) continue;
+      const id = sizes.length; let sp = 0, c = 0; st[sp++] = s0; lab[s0] = id;
+      while (sp) {
+        const i = st[--sp], x = i % W; c++;
+        if (x > 0 && on[i - 1] && lab[i - 1] < 0) { lab[i - 1] = id; st[sp++] = i - 1; }
+        if (x < W - 1 && on[i + 1] && lab[i + 1] < 0) { lab[i + 1] = id; st[sp++] = i + 1; }
+        if (i >= W && on[i - W] && lab[i - W] < 0) { lab[i - W] = id; st[sp++] = i - W; }
+        if (i + W < n && on[i + W] && lab[i + W] < 0) { lab[i + W] = id; st[sp++] = i + W; }
+      }
+      sizes.push(c);
+    }
+    return { lab, sizes };
+  }
+  function cleanLeftovers(keep, W, H, face, { pp = null, hair = null, ppMax = .12 } = {}) {
+    // ตัดสินบนกริดหยาบ (ด้านยาว ≤ 400 ช่อง) แล้วใช้กับทุกพิกเซล — เร็วพอสำหรับภาพทำงาน ~1.2 MP (แคชใน studio.js safeKeep)
+    const f = Math.max(1, Math.ceil(Math.max(W, H) / 400)), w = Math.ceil(W / f), h = Math.ceil(H / f), m = w * h;
+    const fw = face.fw / f, r = Math.max(2, Math.round(Math.max(w, h) / 256 * 1.5)), info = { parse: 0, islands: 0, faint: 0, mainFrac: 0 };
+    const hcx = face.cx / f, hcy = ((face.eyeY + face.chinY) / 2 - face.fw * .1) / f, rx = fw * .75, ry = fw * 1.15;
+    const kMax = new Float32Array(m), ppL = pp ? new Float32Array(m) : null, hL = hair ? new Float32Array(m) : null, cnt = new Float32Array(m);
+    for (let y = 0; y < H; y++) { const cy = (y / f) | 0; for (let x = 0; x < W; x++) { const i = y * W + x, c = cy * w + ((x / f) | 0); if (keep[i] > kMax[c]) kMax[c] = keep[i]; if (ppL) ppL[c] += pp[i]; if (hL && hair[i] > hL[c]) hL[c] = hair[i]; cnt[c]++; } }
+    if (ppL) for (let c = 0; c < m; c++) ppL[c] /= cnt[c] || 1;
+    let rm = null;
+    if (ppL) {
+      const cand = new Uint8Array(m);
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const c = y * w + x; if (kMax[c] > .5 && ppL[c] < ppMax && !(hL && hL[c] > .3) && ((x - hcx) / rx) ** 2 + ((y - hcy) / ry) ** 2 > 1) cand[c] = 1; }
+      const core = erodeR(cand, w, h, r), { lab, sizes } = labelComps(core, w, h), minA = fw * fw * .03, sel = new Uint8Array(m); let any = false;
+      for (let c = 0; c < m; c++) if (lab[c] >= 0 && sizes[lab[c]] >= minA) { sel[c] = 1; any = true; }
+      if (any) rm = dilateR(sel, w, h, r + 1.5);
+    }
+    // ก้อนหลัก (มีใบหน้า) + ก้อนใหญ่ ≥ 35% ของก้อนหลัก; ที่เหลือที่อยู่ห่างก้อนเหล่านี้เกิน 2r ช่อง = เศษ/เส้นจาง
+    const on = new Uint8Array(m); for (let c = 0; c < m; c++) on[c] = kMax[c] > .5 && !(rm && rm[c] && ppL[c] < .25) ? 1 : 0;
+    const { lab, sizes } = labelComps(on, w, h);
+    if (!sizes.length) return info;
+    const fc = Math.round(clamp(hcy, 0, h - 1)) * w + Math.round(clamp(hcx, 0, w - 1));
+    let main = lab[fc] >= 0 ? lab[fc] : 0; if (lab[fc] < 0) for (let k = 1; k < sizes.length; k++) if (sizes[k] > sizes[main]) main = k;
+    info.mainFrac = +(sizes[main] / m).toFixed(4);
+    const keepSet = new Uint8Array(m); for (let c = 0; c < m; c++) { const l = lab[c]; if (l >= 0 && (l === main || sizes[l] >= sizes[main] * .35)) keepSet[c] = 1; }
+    const near = dilateR(keepSet, w, h, r * 2);
+    for (let y = 0; y < H; y++) { const cy = (y / f) | 0; for (let x = 0; x < W; x++) { const i = y * W + x; if (!(keep[i] > 0)) continue; const c = cy * w + ((x / f) | 0);
+      if (rm && rm[c] && pp[i] < .25 && !(hair && hair[i] > .3)) { keep[i] = 0; info.parse++; }
+      else if (!near[c]) { if (keep[i] > .5) info.islands++; else info.faint++; keep[i] = 0; } } }
+    return info;
+  }
   const api = {
+    cleanLeftovers, labelComps,
     clamp01, clamp, smooth, boxFilter, blur3, guidedFilter, luma,
     refineMatte, estimateForeground, borderKeyAlpha,
     rgbToLab, labToRgb, labStats, reinhardTransfer, grayWorld, applyGains,

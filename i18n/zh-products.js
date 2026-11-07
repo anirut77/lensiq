@@ -8,6 +8,7 @@
   "pd.fun": "仅供娱乐 · 不是评估",
   "pd.next.h": "如何开始",
   "pd.demo": "申请演示",
+  "pd.pricing": "套餐与价格",
   "pd.allSystems": "全部系统",
   "pd.help": "帮助",
   "pd.terms": "服务条款",

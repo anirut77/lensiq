@@ -119,6 +119,17 @@ export default async function ({ base, launch, check }) {
       assert(r.st && r.st.total === 1 && r.st.sym.snake === 1 && r.st.sym.gold === 1, "dm-stats written");
       await noOverflow(page, 390); await noOverflow(page, 1280); noErrors(page, base);
     });
+    await check("dream: self-harm words show the support card (1323 / 1669 / 191) instead of a reading; nothing stored", async () => {
+      await page.evaluate(() => { document.getElementById("drAgain").click(); localStorage.clear(); const t = document.getElementById("drText"); t.value = "ฝันว่าฆ่าตัวตาย อยากตายจริงๆ"; t.dispatchEvent(new Event("input")); });
+      // the card appears while typing (the read button stays off without a symbol), and again on submit
+      await page.waitFor(() => !!document.querySelector("#drSupport .fa-support"), 4000);
+      await page.evaluate(() => document.getElementById("drForm").requestSubmit());
+      const r = await page.evaluate(() => ({ tel: Array.from(document.querySelectorAll("#drSupport a.fa-tel")).map(a => a.getAttribute("href")), result: document.getElementById("drResult").hidden, ls: JSON.stringify(Object.assign({}, localStorage)) }));
+      for (const n of ["tel:1323", "tel:1669", "tel:191"]) assert(r.tel.includes(n), "support card has " + n + ": " + r.tel.join(","));
+      assert(r.result === true, "no reading is shown");
+      assert(!/ฆ่าตัว|อยากตาย/.test(r.ls) && !/dm-stats/.test(r.ls), "nothing about the text is stored");
+      await noOverflow(page, 390); noErrors(page, base);
+    });
     await page.close();
   } finally { await browser.close(); }
 }

@@ -89,9 +89,15 @@ async function setup(vars = {}) {
   let subN = 2000;
   const signIn = async (o = {}) => {
     const n = await call("/api/auth/nonce", { method: "POST", body: {}, ip: o.ip });
-    const r = await call("/api/auth/google", { method: "POST", ip: o.ip, headers: { "X-Turnstile-Token": "good:signin" }, body: { credential: jwt(claims({ nonce: n.j.nonce, sub: o.sub || String(++subN), email: o.email || `m${subN}@example.test` })), nonce: n.j.nonce, accept_terms: true, consent_version: "m1" } });
+    const sub = o.sub || String(++subN);
+    const r = await call("/api/auth/google", { method: "POST", ip: o.ip, headers: { "X-Turnstile-Token": "good:signin" }, body: { credential: jwt(claims({ nonce: n.j.nonce, sub, email: o.email || `m${subN}@example.test` })), nonce: n.j.nonce, accept_terms: true, consent_version: "m1" } });
     assert.equal(r.status, 200, JSON.stringify(r.j));
-    return r.j;
+    return { ...r.j, sub };
+  };
+  /** Fresh Google confirmation {credential, nonce} for member `s` (DELETE /api/me, export). */
+  const fresh = async (s, extra = {}) => {
+    const n = await call("/api/auth/nonce", { method: "POST", body: {} });
+    return { credential: jwt(claims({ nonce: n.j.nonce, sub: s.sub, ...extra })), nonce: n.j.nonce };
   };
   let adminTok = null;
   const A = async (path, o = {}) => {
@@ -101,8 +107,20 @@ async function setup(vars = {}) {
     }
     return call("/admin/api" + path, { ...o, headers: { Authorization: "Bearer " + adminTok, ...(o.headers || {}) } });
   };
+  /** Owner TOTP on (needed for money ops while billing is on) + an open 5-min re-auth ("sudo") window. */
+  const sudo = async () => {
+    await A("/me");
+    const { base32Decode, totpAt } = await import(B + "crypto.js");
+    const st = await A("/totp/setup", { method: "POST", body: { password: ADMIN_PW } });
+    const secret = base32Decode(st.j.secret);
+    const step = Math.floor(nowS() / 30);
+    assert.equal((await A("/totp/enable", { method: "POST", body: { code: await totpAt(secret, step - 1) } })).status, 200);
+    const r = await A("/reauth", { method: "POST", body: { password: ADMIN_PW, totp: await totpAt(secret, step) } });
+    assert.equal(r.status, 200, JSON.stringify(r.j));
+    return { secret, step };
+  };
   const ai = (o = {}) => call("/api/fortune", { method: "POST", headers: { "X-Turnstile-Token": "good:fortune" }, body: { facts: FACTS, consent: true }, deps: { loadSdk: fakeSdk(o.sdk) }, ...o });
-  const co = (body, { headers, ...o } = {}) => call("/v1/billing/checkout", { ...o, method: "POST", headers: { "X-Turnstile-Token": "good:checkout", ...(headers || {}) }, body: { period: "month", accept_terms: true, ...body } });
+  const co = (body, { headers, ...o } = {}) => call("/v1/billing/checkout", { ...o, method: "POST", headers: { "X-Turnstile-Token": "good:checkout", ...(headers || {}) }, body: { period: "month", accept_terms: true, age_confirm: true, ...body } });
   const webhook = async (chargeId, id) => {
     const body = JSON.stringify({ object: "event", id, key: "charge.complete", data: { object: "charge", id: chargeId } });
     const ts = String(nowS());
@@ -116,7 +134,7 @@ async function setup(vars = {}) {
     net.charges.get(p.provider_charge_id).status = "successful";
     return webhook(p.provider_charge_id, "evnt_test_pay" + String(++ev).padStart(6, "0"));
   };
-  return { env, net, call, signIn, A, ai, co, webhook, pay };
+  return { env, net, call, signIn, A, ai, co, webhook, pay, sudo, fresh };
 }
 
 // ------------------------------------------------------------------------------------------------ P0 1
@@ -260,20 +278,24 @@ test("P1-3: receipt / tax invoice HTML (TH + EN/ZH labels), VAT lines only when 
 
 // ------------------------------------------------------------------------------------------------ P1 4
 
-test("P1-4: admin money ops need re-auth and are audited; refund ledger row shows in member history", async () => {
-  const { co, signIn, pay, call, A, env } = await setup(BILLING);
+test("P1-4: admin money ops need re-auth (+ owner TOTP while billing is on) and are audited; refund ledger row in history", async () => {
+  const { co, signIn, pay, call, A, env, sudo } = await setup(BILLING);
   const s = await signIn();
   const c = await co({ plan_id: "plus", period: "year" }, { token: s.token });
   assert.equal(c.j.amount_satang, 99000);
   await pay(c.j.payment_id);
   assert.equal((await call("/api/me", { token: s.token })).j.tier, "plus");
   const no = await A(`/billing/payments/${c.j.payment_id}/refund`, { method: "POST", body: { reference: "KBANK-123456" } });
-  assert.equal(no.status, 403, "re-auth required");
-  assert.equal((await A(`/billing/payments/${c.j.payment_id}/refund`, { method: "POST", body: { password: ADMIN_PW } })).status, 400, "reference required");
-  const ok = await A(`/billing/payments/${c.j.payment_id}/refund`, { method: "POST", body: { password: ADMIN_PW, reference: "KBANK-123456", note: "customer request" } });
+  assert.equal(no.status, 403, "re-auth required"); assert.equal(no.j.code, "reauth_required");
+  const noTotp = await A(`/billing/payments/${c.j.payment_id}/refund`, { method: "POST", body: { password: ADMIN_PW, reference: "KBANK-123456" } });
+  assert.equal(noTotp.status, 403, "owner TOTP required while billing is on"); assert.equal(noTotp.j.code, "owner_totp_required");
+  assert.equal((await A(`/members/${s.user.id}/grant`, { method: "POST", body: { plan_id: "pro", days: 30 } })).status, 403);
+  await sudo(); // TOTP on + 5-min re-auth window: the money ops below need no password in the body
+  assert.equal((await A(`/billing/payments/${c.j.payment_id}/refund`, { method: "POST", body: {} })).status, 400, "reference required");
+  const ok = await A(`/billing/payments/${c.j.payment_id}/refund`, { method: "POST", body: { reference: "KBANK-123456", note: "customer request" } });
   assert.equal(ok.status, 200, JSON.stringify(ok.j));
-  assert.equal(ok.j.refund_satang, 99000); assert.equal(ok.j.subscription_cancelled, true);
-  assert.equal((await A(`/billing/payments/${c.j.payment_id}/refund`, { method: "POST", body: { password: ADMIN_PW, reference: "again" } })).status, 409, "only once");
+  assert.equal(ok.j.refund_satang, 99000); assert.equal(ok.j.subscription_cancelled, true); assert.equal(ok.j.status, "refunded");
+  assert.equal((await A(`/billing/payments/${c.j.payment_id}/refund`, { method: "POST", body: { reference: "again" } })).status, 409, "only once");
   assert.equal((await call("/api/me", { token: s.token })).j.tier, "member", "refund cancelled the plan");
   const h = await call("/api/me/history", { token: s.token });
   const refund = h.j.ledger.find(x => x.kind === "refund");
@@ -282,28 +304,26 @@ test("P1-4: admin money ops need re-auth and are audited; refund ledger row show
   assert.match(await (await call(`/api/me/payments/${c.j.payment_id}/receipt`, { token: s.token })).r.text(), /คืนเงินแล้ว/);
 
   // complimentary plan, extend, cancel
-  assert.equal((await A(`/members/${s.user.id}/grant`, { method: "POST", body: { plan_id: "pro", days: 30 } })).status, 403);
-  const g = await A(`/members/${s.user.id}/grant`, { method: "POST", body: { password: ADMIN_PW, plan_id: "pro", days: 30, reason: "partner" } });
+  const g = await A(`/members/${s.user.id}/grant`, { method: "POST", body: { plan_id: "pro", days: 30, reason: "partner" } });
   assert.equal(g.status, 201, JSON.stringify(g.j));
   assert.equal(g.j.subscription.source, "comp");
   const me = await call("/api/me", { token: s.token });
   assert.equal(me.j.tier, "pro"); assert.equal(me.j.plan.source, "comp");
   const subId = g.j.subscription.id;
   const end0 = g.j.subscription.current_period_end;
-  const ex = await A(`/billing/subscriptions/${subId}/extend`, { method: "POST", body: { password: ADMIN_PW, days: 10 } });
+  const ex = await A(`/billing/subscriptions/${subId}/extend`, { method: "POST", body: { days: 10 } });
   assert.equal(ex.status, 200); assert.equal(ex.j.subscription.current_period_end, end0 + 10 * 86400);
-  assert.equal((await A(`/billing/subscriptions/${subId}/extend`, { method: "POST", body: { password: ADMIN_PW, days: 0 } })).status, 400);
-  assert.equal((await A(`/billing/subscriptions/${subId}/cancel`, { method: "POST", body: {} })).status, 403);
-  assert.equal((await A(`/billing/subscriptions/${subId}/cancel`, { method: "POST", body: { password: ADMIN_PW } })).j.subscription.status, "cancelled");
+  assert.equal((await A(`/billing/subscriptions/${subId}/extend`, { method: "POST", body: { days: 0 } })).status, 400);
+  assert.equal((await A(`/billing/subscriptions/${subId}/cancel`, { method: "POST", body: {} })).j.subscription.status, "cancelled");
   assert.equal((await call("/api/me", { token: s.token })).j.tier, "member");
-  const cr = await A(`/members/${s.user.id}/grant`, { method: "POST", body: { password: ADMIN_PW, feature: "report_annual", credits: 2 } });
+  const cr = await A(`/members/${s.user.id}/grant`, { method: "POST", body: { feature: "report_annual", credits: 2 } });
   assert.equal(cr.status, 201);
   assert.equal((await call("/api/me", { token: s.token })).j.credits.report_annual, 2);
   const det = await A(`/members/${s.user.id}`);
   assert.equal(det.j.subscriptions.length, 2); assert.equal(det.j.credits.length, 1);
   assert.equal((await A(`/billing/subscriptions?user_id=${s.user.id}`)).j.subscriptions.length, 2);
   const acts = (await env.DB.prepare("SELECT action FROM audit_log").all()).results.map(r => r.action);
-  for (const a of ["billing.refund", "billing.grant", "billing.subscription.extend", "billing.subscription.cancel", "reauth.failed"]) assert.ok(acts.includes(a), a);
+  for (const a of ["billing.refund", "billing.grant", "billing.subscription.extend", "billing.subscription.cancel", "reauth.failed", "reauth.ok"]) assert.ok(acts.includes(a), a);
 });
 
 // ------------------------------------------------------------------------------------------------ P1 5
@@ -416,11 +436,14 @@ test("P1-8: consumer pricing seeded; one-time reports grant credits; draft plans
   for (let i = 0; i < 6; i++) assert.equal((await ai({ token: s.token })).status, 200, "use " + (i + 1));
   assert.equal((await ai({ token: s.token })).status, 429);
   assert.equal((await call("/api/me", { token: s.token })).j.credits.ai_reading, undefined, "all 3 AI credits used");
-  // prices editable via the admin API; checkout uses the new price; draft blocks buying
-  const put = await A("/billing/plans/report_basic", { method: "PUT", body: { price_once_satang: 5900, name_zh: "基础报告" } });
+  // prices editable via the admin API (re-auth: body password or the sudo window); checkout uses the new price
+  const noAuth = await A("/billing/plans/report_basic", { method: "PUT", body: { price_once_satang: 5900 } });
+  assert.equal(noAuth.status, 403, "price edit needs re-auth"); assert.equal(noAuth.j.code, "reauth_required");
+  const put = await A("/billing/plans/report_basic", { method: "PUT", body: { password: ADMIN_PW, price_once_satang: 5900, name_zh: "基础报告" } });
   assert.equal(put.status, 200, JSON.stringify(put.j));
   assert.equal(put.j.prices.from.once, 4900); assert.equal(put.j.prices.to.once, 5900);
   assert.equal((await co({ plan_id: "report_basic" }, { token: s.token })).j.amount_satang, 5900);
+  assert.equal((await A("/reauth", { method: "POST", body: { password: ADMIN_PW } })).status, 200, "sudo window for the edits below");
   assert.equal((await A("/billing/plans/report_basic", { method: "PUT", body: { price_once_satang: 100 } })).status, 400, "below Opn minimum");
   assert.equal((await A("/billing/plans/report_basic", { method: "PUT", body: { entitlements: { ai_reading: { quota: 2, period: "month" } } } })).status, 400, "one-time = 'once' credits");
   assert.equal((await A("/billing/plans/plus", { method: "PUT", body: { entitlements: { bogus: { quota: 1 } } } })).status, 400);
@@ -438,7 +461,7 @@ test("P1-8: consumer pricing seeded; one-time reports grant credits; draft plans
 // ------------------------------------------------------------------------------------------------ P1 9
 
 test("P1-9: perk registry served with the plans (active | coming_soon); csv_export server check", async () => {
-  const { call, signIn, env, A } = await setup(BILLING);
+  const { call, signIn, env, A, sudo } = await setup(BILLING);
   await (await import(B + "settings.js")).putBillingSettings(env.DB, { pricing_page_enabled: true });
   const pl = await call("/v1/billing/plans");
   assert.equal(pl.j.perks.csv_export.status, "active");
@@ -455,7 +478,8 @@ test("P1-9: perk registry served with the plans (active | coming_soon); csv_expo
   assert.equal(ck.j.allowed, false, "free tier: not included");
   assert.equal((await call("/api/me/entitlements/use", { method: "POST", token: s.token, body: { feature: "hub_nodes" } })).status, 400, "coming-soon perks are not checkable");
   assert.equal((await call("/api/me/entitlements/use", { method: "POST", body: { feature: "csv_export" } })).status, 401);
-  await A(`/members/${s.user.id}/grant`, { method: "POST", body: { password: ADMIN_PW, plan_id: "pro", days: 30 } });
+  await sudo();
+  assert.equal((await A(`/members/${s.user.id}/grant`, { method: "POST", body: { plan_id: "pro", days: 30 } })).status, 201);
   assert.equal((await call("/api/me/entitlements/use", { method: "POST", token: s.token, body: { feature: "csv_export" } })).j.allowed, true, "pro includes csv export");
   const all = await call("/api/me/entitlements", { token: s.token });
   assert.equal(all.j.plan, "pro"); assert.equal(all.j.perks.csv_export.quota, null); assert.equal(all.j.perks.analytics_days.status, "coming_soon");
@@ -517,11 +541,11 @@ test("P2-10: TOTP disable revokes other sessions + devices; devices list/revoke;
 });
 
 test("P2-10: after erasure the audit log keeps no raw member id (one-way pseudonym)", async () => {
-  const { signIn, call, env } = await setup();
+  const { signIn, call, env, fresh } = await setup();
   const s = await signIn();
   await call("/api/me/preferences", { method: "POST", token: s.token, body: { marketing_opt_in: true } });
   assert.ok((await env.DB.prepare("SELECT COUNT(*) AS n FROM audit_log WHERE detail LIKE ?1").bind("%" + s.user.id + "%").first()).n >= 2);
-  assert.equal((await call("/api/me", { method: "DELETE", token: s.token, body: { confirm: "DELETE" } })).status, 200);
+  assert.equal((await call("/api/me", { method: "DELETE", token: s.token, body: { confirm: "DELETE", ...(await fresh(s)) } })).status, 200);
   assert.equal((await env.DB.prepare("SELECT COUNT(*) AS n FROM audit_log WHERE detail LIKE ?1").bind("%" + s.user.id + "%").first()).n, 0);
   const del = await env.DB.prepare("SELECT detail FROM audit_log WHERE action = 'member.deleted'").first();
   assert.match(del.detail, /"user_hash":"erased:[a-f0-9]{16}"/);

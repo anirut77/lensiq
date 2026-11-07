@@ -407,6 +407,7 @@
       // ลงโทษการเบี่ยงจากแม่แบบเล็กน้อย
       return { v: r * (0.35 + 0.65 * ca * ca) - 0.0025 * Math.abs(offs[j]) / K, p: p };
     };
+    /** @type {any[][]} */
     var U = [];
     for (var i = 0; i < N; i++) { U.push([]); for (var j = 0; j < S; j++) U[i].push(unary(i, j)); }
     score.push(U[0].map(function (u) { return u.v; })); back.push(new Int16Array(S));
@@ -739,7 +740,7 @@
   function pickHand(hands, prevBox, W, H) {
     hands = hands || [];
     var boxes = hands.map(function (h) { return LQT.toNorm(h.box, W, H); });
-    var r = LQT.pickPrimary(boxes, prevBox || null, { minIou: 0.3, prefer: GUIDE_C });
+    var r = LQT.pickPrimary(boxes, prevBox || null, { minIou: 0.3, prefer: /** @type {any} */ (GUIDE_C) });
     return { index: r.index, n: r.n, continuity: r.continuity, boxN: r.index >= 0 ? boxes[r.index] : null };
   }
   /** มือแบสมมติ 21 จุดในกรอบ box (px) — ใช้กับตัวตรวจจับจำลองในการทดสอบเท่านั้น
@@ -757,6 +758,7 @@
   var GUIDE_HAND = (function () {
     var p = new Array(21);
     p[0] = [0, 0]; p[1] = [-0.36, -0.22]; p[2] = [-0.78, -0.48]; p[3] = [-1.1, -0.75]; p[4] = [-1.36, -0.98];
+    /** @type {any[]} */
     var F = [[5, [-0.5, -1.55], -10, NORMS.fingers.index], [9, [-0.16, -1.62], 0, NORMS.fingers.middle], [13, [0.18, -1.56], 8, NORMS.fingers.ring], [17, [0.5, -1.42], 18, NORMS.fingers.pinky]];
     var palmL = Math.hypot(0.16, 1.62);
     F.forEach(function (f) {
@@ -771,7 +773,7 @@
   function handContour(p) {
     var out = [], sub = function (a, b) { return [a[0] - b[0], a[1] - b[1]]; }, nrm = function (v) { var l = Math.hypot(v[0], v[1]) || 1; return [v[0] / l, v[1] / l]; };
     var add = function (a, v, k) { return [a[0] + v[0] * k, a[1] + v[1] * k]; };
-    var fing = [["pinky", 17], ["ring", 13], ["middle", 9], ["index", 5]].map(function (f) {
+    var fing = /** @type {any[]} */ ([["pinky", 17], ["ring", 13], ["middle", 9], ["index", 5]]).map(function (f) {
       var b = p[f[1]], t = p[f[1] + 3], d = nrm(sub(t, b)), n = [-d[1], d[0]], r = GUIDE_R[f[0]];
       return { b: b, t: t, d: d, n: n, r: r };
     });
@@ -931,11 +933,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
   var frame2 = function () { return new Promise(function (r) { requestAnimationFrame(function () { setTimeout(r, 0); }); }); };
   /* ---------- ภาษา (TH ค่าเริ่มต้น | 中文): ข้อความไทยอยู่ในโค้ด/KB, ภาษาจีนจาก i18n/zh-fortune-palm.js และ i18n/zh-kb-palm.js ---------- */
-  var T = function (k, th, v) { return window.LQI18N ? LQI18N.tf(k, th, v) : th.replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : m; }); };
-  var isZh = function () { return !!(window.LQI18N && LQI18N.lang === "zh"); };
+  /** @param {string} k @param {string} th @param {Record<string, any>} [v] */
+  var T = function (k, th, v) { return window.LQI18N ? window.LQI18N.tf(k, th, v) : th.replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : m; }); };
+  var isZh = function () { return !!(window.LQI18N && window.LQI18N.lang === "zh"); };
   /** ข้อความจาก KB (palm-kb.js) → คีย์ palm.kb.<path> ในพจนานุกรมภาษาจีน */
   var KT = function (path, th) { return T("palm.kb." + path, th); };
-  var isEn = function () { return !!(window.LQI18N && LQI18N.lang === "en"); };
+  var isEn = function () { return !!(window.LQI18N && /** @type {string} */ (window.LQI18N.lang) === "en"); };
   /** โหมดแปล (จีน/อังกฤษ): คลัง zh-kb-palm.js / en-kb-palm.js มีคีย์และช่องเดียวกัน */
   var trL = function () { return isZh() || isEn(); };
   var ZI = function (key) { var z = isEn() ? window.FORTUNE_EN && window.FORTUNE_EN.palm : window.FORTUNE_ZH && window.FORTUNE_ZH.palm; return (z && z.items && z.items[key]) || null; };
@@ -971,7 +974,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var e = $("#plEngine"); e.textContent = typeof msg === "function" ? msg() : msg; e.className = "pl-engine " + (cls || "");
   }
   function setStep(n) { $$(".pl-steps li").forEach(function (li) { var k = +li.dataset.step; li.classList.toggle("on", k === n); li.classList.toggle("done", k < n); }); }
-  function toast(msg) { var t = $("#plToast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.h); toast.h = setTimeout(function () { t.classList.remove("show"); }, 2200); }
+  var toastTimer = 0;
+  function toast(msg) { var t = $("#plToast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove("show"); }, 2200); }
   var smooth = function () { return matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"; };
 
   /* ---------- มือซ้าย/ขวา/อัตโนมัติ/ทั้งสองมือ + มือข้างถนัด ---------- */
@@ -1032,7 +1036,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#plReadSideText").innerHTML = esc(T("palm.rs.reading", "กำลังอ่าน")) + " <b>" + esc(sideTh(S.side)) + "</b> " + esc(d.th + " · " + d.short) + (S.sideSrc === "detect" ? ' <small class="muted">' + esc(T("palm.fromImage", "(ตรวจจากภาพ)")) + "</small>" : "") +
       (S.sideMode === "both" ? ' <small class="muted">· ' + esc(T("palm.handNof2", "มือที่ {n}/2", { n: S.pairStep + 1 })) + "</small>" : "") +
       (S.sideMismatch ? '<span class="warn">' + esc(T("palm.rs.mismatch", "ภาพนี้ดูเหมือน{seen} แต่เลือกอ่าน{side}ไว้ — ถ้าถ่ายผิดข้าง กด ถ่ายใหม่ หรือสลับข้างได้", { seen: sideTh(S.sideMismatch), side: sideTh(S.side) })) + "</span>" : "");
-    $("#plSideSwap").textContent = T("palm.rs.swap", "สลับเป็น{side}", { side: sideTh(PC.flipSide(S.side)) });
+    var swap = $("#plSideSwap");
+    swap.textContent = T("palm.rs.swap", "สลับเป็น{side}", { side: sideTh(PC.flipSide(S.side)) });
+    // the visible text is now the accessible name (WCAG 2.5.3); the static aria-label only covers the empty button at load
+    swap.removeAttribute("aria-label"); swap.removeAttribute("data-i18n-attr");
   }
   $("#plSideSwap").addEventListener("click", function () {
     S.side = PC.flipSide(S.side); S.sideSrc = "manual";
@@ -1054,7 +1061,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     box.innerHTML = '<button type="button" class="cam-torch" aria-pressed="false" aria-label="เปิด/ปิดไฟฉาย" data-i18n-attr="aria-label:palm.cam.torchAria" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10l-2 6H9zM9 9v12h6V9M12 13v3"/></svg><span data-i18n="palm.cam.torch">ไฟฉาย</span></button>' +
       '<button type="button" class="cam-flip" aria-label="สลับกล้องหน้า/หลัง" title="สลับกล้องหน้า/หลัง" data-i18n-attr="aria-label:palm.cam.flipAria;title:palm.cam.flipAria"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h11l-3-3M20 16H9l3 3"/></svg><span data-i18n="palm.cam.flip">สลับกล้อง</span></button><select class="cam-pick" aria-label="เลือกกล้อง" data-i18n-attr="aria-label:palm.cam.pick"></select>';
     host.append(box);
-    var torch = box.querySelector(".cam-torch"), flip = box.querySelector(".cam-flip"), pickEl = box.querySelector(".cam-pick");
+    var torch = /** @type {HTMLButtonElement} */ (box.querySelector(".cam-torch")), flip = /** @type {HTMLButtonElement} */ (box.querySelector(".cam-flip")), pickEl = /** @type {HTMLSelectElement} */ (box.querySelector(".cam-pick"));
     var render = function () {
       var devs = c.devices.filter(function (d) { return d.deviceId; }), multi = devs.length >= 2, tc = c.active && c.torchSupported;
       flip.hidden = !multi; pickEl.hidden = !multi; torch.hidden = !tc;
@@ -1203,6 +1210,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   var probe = document.createElement("canvas");
   function quality(pts, W, H, src, n) {
+    /** @type {any[]} */
     var q = [{ id: "hand", label: ["palm.qc.hand", "พบมือ"], ok: !!pts, tip: ["palm.qc.hand.tip", "แบฝ่ามือเข้าหากล้องให้เห็นทั้งมือ"] }];
     if (!pts) return q;
     if (n != null) q.push({ id: "single", label: ["palm.qc.single", "ใช้มือเดียวในกรอบ"], ok: n <= 1, tip: ["palm.qc.single.tip", "พบ {n} มือ ใช้มือที่จะอ่านเพียงข้างเดียว (อ่านมือที่อยู่กลางกรอบ)", { n: n }] });
@@ -1386,7 +1394,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     }).join("");
     $$("#plLineChips [data-line]").forEach(function (b) { b.addEventListener("click", function () { S.active = b.dataset.line; renderLineChips(); renderEditor(); }); });
   }
-  $("#plFateNone").addEventListener("change", function () { if (S.lines) { S.lines.fate.present = !this.checked; if (!this.checked) S.active = "fate"; renderLineChips(); renderEditor(); } });
+  $("#plFateNone").addEventListener("change", /** @this {HTMLInputElement} */ function () { if (S.lines) { S.lines.fate.present = !this.checked; if (!this.checked) S.active = "fate"; renderLineChips(); renderEditor(); } });
   $("#plResetLines").addEventListener("click", function () { if (S.auto) { S.lines = JSON.parse(JSON.stringify(S.auto)); $("#plFateNone").checked = !S.lines.fate.present; renderLineChips(); renderEditor(); toast(T("palm.toast.reset", "คืนค่าเส้นอัตโนมัติแล้ว")); } });
 
   // แสดงผลภาพมาตรฐาน: กลับซ้าย-ขวาเมื่อกรอบถูกสะท้อน (มือขวา) เพื่อให้ภาพตรงกับมือจริง
@@ -1462,6 +1470,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       return;
     }
     if (!S.lines) return;
+    /** @type {any} */
     var best = null, bd = 30 * cssScale();
     var order = [S.active].concat(PC.LINE_IDS.filter(function (id) { return id !== S.active; }));
     order.forEach(function (id) {
@@ -1550,7 +1559,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     });
   }
   document.addEventListener("click", function (e) {
-    var b = e.target.closest && e.target.closest("[data-topic]"); if (!b) return;
+    var tg = /** @type {any} */ (e.target), b = tg && tg.closest && tg.closest("[data-topic]"); if (!b) return;
     if (b.dataset.topic === topic) return;
     topic = b.dataset.topic; renderTopics(); touch();
     if (S.result) narrate(false);
@@ -1924,7 +1933,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       PC.ELEMENTS.map(function (k) { var n = (st.types || {})[k] || 0, e = KB.elements[k]; return '<div class="elbar"><span>' + esc(elTh(k)) + '</span><i style="--w:' + Math.round(n / st.total * 100) + "%;--c:" + e.color + '"></i><b>' + n + "</b></div>"; }).join("");
   }
   $("#plStatsOn").checked = !!prefs.stats;
-  $("#plStatsOn").addEventListener("change", function () { prefs.stats = this.checked; lsSet(PREF_KEY, prefs); });
+  $("#plStatsOn").addEventListener("change", /** @this {HTMLInputElement} */ function () { prefs.stats = this.checked; lsSet(PREF_KEY, prefs); });
   $("#plStatsClear").addEventListener("click", function () { if (confirm(T("palm.stats.confirm", "ล้างสถิติการอ่านในเครื่องนี้?"))) { try { localStorage.removeItem(STATS_KEY); } catch (e) { /* ไม่เป็นไร */ } renderStats(); } });
   renderStats();
 

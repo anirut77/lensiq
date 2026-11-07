@@ -23,7 +23,10 @@
 //             conditional UPDATE, so one code cannot be used twice even by parallel requests
 //  re-auth    password change needs the current password (+ TOTP when on); TOTP setup needs the password; money ops
 //             (refund, cancel / extend subscription, complimentary grant), retention/run and member status changes need
-//             {password, totp} in the body (reauthOwner)
+//             {password, totp} in the body (reauthOwner). Round 11: rate limited per session (5 wrong / 15 min -> 429,
+//             10 wrong -> session revoked), every failure audited; price / plan / settings / membership / AI-key edits
+//             need re-auth too — body {password, totp} or the 5-min "sudo" window opened by POST /admin/api/reauth;
+//             owner TOTP is mandatory for money ops while billing / live keys are on (requireOwnerTotpFor)
 //  devices    GET /admin/api/devices lists trusted devices (id = first 16 hex of the stored hash), DELETE revokes;
 //             disabling TOTP signs out every other session and forgets every trusted device
 import {
@@ -196,7 +199,7 @@ export async function requireAdmin(env, request) {
     if (!csrf || !timingSafeEqual(await sha256Hex(csrf), s.csrf_hash)) throw new HttpError(403, "CSRF token missing or invalid");
   }
   await env.DB.prepare("UPDATE admin_sessions SET last_seen = ?1 WHERE id_hash = ?2").bind(t, idHash).run();
-  return { idHash, viaCookie: !bearer };
+  return { idHash, viaCookie: !bearer, reauthAt: Number(s.reauth_at) || 0 };
 }
 
 /** Fresh CSRF token for the current session (e.g. after a page reload). Readable only by allowlisted origins (CORS). */
@@ -211,26 +214,94 @@ export async function logout(env, sess) {
   await audit(env, "owner", "logout");
 }
 
-/** Re-authentication for sensitive changes: password, plus a fresh TOTP code when TOTP is on. */
-async function reauth(env, owner, password, code) {
-  if (!(await verifyPassword(String(password || ""), owner.password_hash))) throw new HttpError(403, "password is wrong");
-  if (owner.totp_enabled) {
-    const secret = await totpSecret(env, owner);
-    const step = secret ? await verifyTotp(secret, code, now(), owner.totp_last_step) : -1;
-    if (!(await claimTotpStep(env.DB, step))) throw new HttpError(403, "valid TOTP code required");
+/** Re-auth limits (round 11): per admin session, REAUTH_FAILURES wrong answers per WINDOW -> 429; after
+ *  REAUTH_REVOKE_AFTER wrong answers in one session the session is revoked (401) — a stolen bearer / cookie cannot be
+ *  used to guess the password. Every failure is audited (reauth.failed); the revocation too (reauth.session_revoked). */
+export const REAUTH_FAILURES = 5;
+export const REAUTH_REVOKE_AFTER = 10;
+/** "sudo" window: after POST /admin/api/reauth, config edits (prices, plans, settings, membership, AI key) and the other
+ *  re-auth routes are accepted without a password in the body for this long. */
+export const REAUTH_WINDOW = 300;
+
+const sessKey = sess => "reauth:" + (sess && sess.idHash ? String(sess.idHash).slice(0, 24) : "nosession");
+
+/** Re-authentication for sensitive changes: password, plus a fresh TOTP code when TOTP is on. Rate limited per session. */
+async function reauth(env, owner, password, code, sess = null, t = now()) {
+  const key = sessKey(sess);
+  if ((await peek(env.DB, key, WINDOW, t)) >= REAUTH_FAILURES) {
+    throw new HttpError(429, "too many wrong re-authentications — try again later", { retryAfter: WINDOW - (t % WINDOW), code: "reauth_rate_limited" });
   }
+  let why = null;
+  if (!(await verifyPassword(String(password || ""), owner.password_hash))) why = "password";
+  else if (owner.totp_enabled) {
+    const secret = await totpSecret(env, owner);
+    const step = secret ? await verifyTotp(secret, code, t, owner.totp_last_step) : -1;
+    if (!(await claimTotpStep(env.DB, step))) why = "totp";
+  }
+  if (!why) {
+    if (sess && sess.idHash) await env.DB.prepare("UPDATE admin_sessions SET reauth_fails = 0 WHERE id_hash = ?1").bind(sess.idHash).run();
+    return;
+  }
+  await hit(env.DB, key, REAUTH_FAILURES, WINDOW, t);
+  let fails = 0;
+  if (sess && sess.idHash) {
+    const r = await env.DB.prepare("UPDATE admin_sessions SET reauth_fails = reauth_fails + 1 WHERE id_hash = ?1 RETURNING reauth_fails").bind(sess.idHash).first();
+    fails = r ? Number(r.reauth_fails) : 0;
+  }
+  await audit(env, "owner", "reauth.failed", { what: why, fails });
+  if (fails >= REAUTH_REVOKE_AFTER) {
+    await env.DB.prepare("DELETE FROM admin_sessions WHERE id_hash = ?1").bind(sess.idHash).run();
+    await audit(env, "owner", "reauth.session_revoked", { fails });
+    throw new HttpError(401, "signed out after too many wrong re-authentications", { code: "reauth_revoked" });
+  }
+  throw new HttpError(403, why === "password" ? "password is wrong" : "valid TOTP code required", { code: "reauth_failed" });
 }
 
 /** Re-authentication gate for sensitive admin actions: body {password, totp}. Throws 403 when wrong. */
-export async function reauthOwner(env, body) {
+export async function reauthOwner(env, body, sess = null) {
   const owner = await getOwner(env.DB);
   if (!owner) throw new HttpError(401, "not signed in");
-  await reauth(env, owner, body && body.password, body && body.totp);
+  await reauth(env, owner, body && body.password, body && body.totp, sess);
+}
+
+/** POST /admin/api/reauth {password, totp} — opens the REAUTH_WINDOW "sudo" window for this session. */
+export async function reauthSession(env, sess, body) {
+  await reauthOwner(env, body, sess);
+  const t = now();
+  await env.DB.prepare("UPDATE admin_sessions SET reauth_at = ?1 WHERE id_hash = ?2").bind(t, sess.idHash).run();
+  await audit(env, "owner", "reauth.ok");
+  return { ok: true, valid_until: t + REAUTH_WINDOW, valid_for: REAUTH_WINDOW };
+}
+
+/** True while the session's sudo window (POST /admin/api/reauth) is open. */
+export const reauthFresh = (sess, t = now()) => !!(sess && sess.reauthAt && t - sess.reauthAt <= REAUTH_WINDOW);
+
+/**
+ * Sensitive admin action: either body {password, totp?} (checked now, rate limited) or an open sudo window.
+ * Otherwise 403 {code:"reauth_required"} (admin.js then asks for the password and calls POST /reauth).
+ * Returns the body WITHOUT password / totp (so strict validators never see them).
+ */
+export async function requireReauth(env, sess, body) {
+  const b = body && typeof body === "object" ? body : {};
+  const { password, totp, ...rest } = b;
+  if (password != null && password !== "") { await reauthOwner(env, { password, totp }, sess); return rest; }
+  if (reauthFresh(sess)) return rest;
+  throw new HttpError(403, "please confirm your password first (reauth_required)", { code: "reauth_required" });
+}
+
+/** Owner TOTP is mandatory for money operations while billing or live keys are on (or REQUIRE_OWNER_TOTP=true):
+ *  PBKDF2 is capped at 100k iterations on Workers, so the second factor protects refunds and grants. */
+export async function requireOwnerTotpFor(env, what) {
+  const on = (String(env.BILLING_ENABLED || "") === "true" && String(env.FREE_MODE ?? "true").toLowerCase() === "false") ||
+    String(env.OPN_ALLOW_LIVE || "") === "true" || String(env.REQUIRE_OWNER_TOTP || "") === "true";
+  if (!on) return;
+  const owner = await getOwner(env.DB);
+  if (!owner || !owner.totp_enabled) throw new HttpError(403, `turn on TOTP (admin → Security) before ${what} (owner_totp_required)`, { code: "owner_totp_required" });
 }
 
 export async function changePassword(env, sess, body) {
   const owner = await getOwner(env.DB);
-  await reauth(env, owner, body.current, body.totp);
+  await reauth(env, owner, body.current, body.totp, sess);
   const problem = passwordProblem(body.next);
   if (problem) throw new HttpError(400, problem);
   const t = now();
@@ -256,10 +327,10 @@ async function totpSecret(env, owner) {
   try { return base32Decode(await decryptString(kek, JSON.parse(owner.totp_secret_enc), "totp:owner")); } catch { return null; }
 }
 
-export async function totpSetup(env, body = {}) {
+export async function totpSetup(env, body = {}, sess = null) {
   const owner = await getOwner(env.DB);
   if (owner.totp_enabled) throw new HttpError(409, "TOTP already enabled — disable it first");
-  if (!(await verifyPassword(String(body.password || ""), owner.password_hash))) throw new HttpError(403, "password is wrong");
+  await reauth(env, owner, body.password, null, sess); // TOTP is off here: password only, rate limited per session
   const kek = await kekOrFail(env);
   const secret = base32Encode(randomBytes(20));
   const e = await encryptString(kek, secret, "totp:owner");
@@ -282,7 +353,7 @@ export async function totpEnable(env, body) {
 
 export async function totpDisable(env, body, sess = null) {
   const owner = await getOwner(env.DB);
-  await reauth(env, owner, body.password, body.code);
+  await reauth(env, owner, body.password, body.code, sess);
   await env.DB.prepare("UPDATE admin_users SET totp_enabled = 0, totp_secret_enc = NULL, updated_at = ?1 WHERE id = 1").bind(now()).run();
   // weaker login from now on: sign out every other session and forget trusted devices (they must log in again)
   const others = await env.DB.prepare("DELETE FROM admin_sessions WHERE id_hash != ?1").bind(sess ? sess.idHash : "").run();

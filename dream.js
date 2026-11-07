@@ -57,6 +57,8 @@
      ความหมายที่มีคำว่า ลาง/สัญญาณ/นิมิต/จะมี…เข้ามา ถูกแทนด้วยความหมายแบบ "ภาพสะท้อนใจ" ของธีมเดียวกัน */
   var OMEN_WORDS = /ลาง|สัญญาณ|นิมิต|บอกเหตุ|เห็นผล|โชคลาภ|โชคดี|ไหลมา|เข้ามา|เนื้อคู่|จะได้|จะมี|จะงอกเงย|กำลังจะ|อาจมี|มีโอกาส|มีแนวโน้ม|บารมี|ข่าวดี|อุปถัมภ์|คุ้มครอง/;
   function thaiList(a) { return a.length <= 1 ? (a[0] || "") : a.slice(0, -1).join(" ") + " และ" + a[a.length - 1]; }
+  /** ประโยคกลางของธีม → กรอบระดับธีม: "ภาพฝันในธีมอิสระและความหวัง มักอ่านว่า…" */
+  function themeLine(T, t) { return "ภาพฝันในธีม" + T.th + " มักอ่านว่า" + String(t).replace(/^ตามความเชื่อ\s*/, ""); }
   function buildFacts(ids, mood, time, topic, opts) {
     opts = opts || {};
     var r = opts.rng || Math.random, pk = FK.pickR, items = [], M = KB.MOODS[mood], boost = M ? M.w : 0;
@@ -67,11 +69,13 @@
       var s = BY[id], T = KB.THEMES[s.theme], x = s.x, R = T.r || {};
       var m;
       if (omen) {
+        // รอบ 11: สัญลักษณ์ที่ยังไม่มีความหมายเฉพาะ ใช้ประโยคของธีมโดยบอกชัดว่าเป็นความหมายระดับธีม (ไม่ใช่ของสัญลักษณ์นี้โดยตรง)
+        var th = function (arr) { return arr.map(function (t) { return themeLine(T, t); }); };
         m = {
           overview: [s.o, pk(r, T.o)],
-          love: x.l ? [x.l, pk(r, T.l)] : T.l.slice(),
-          work: x.w ? [x.w, pk(r, T.w)] : T.w.slice(),
-          money: x.m ? [x.m, pk(r, T.m)] : T.m.slice(),
+          love: x.l ? [x.l, themeLine(T, pk(r, T.l))] : th(T.l),
+          work: x.w ? [x.w, themeLine(T, pk(r, T.w))] : th(T.w),
+          money: x.m ? [x.m, themeLine(T, pk(r, T.m))] : th(T.m),
           advice: x.a ? [x.a].concat(T.a) : T.a.slice()
         };
       } else {
@@ -109,7 +113,7 @@
     var n = normalize(q);
     return KB.SYMBOLS.filter(function (s) { return (!cat || s.cat === cat) && (!n || s.al.some(function (a) { return a.indexOf(n) >= 0 || n.indexOf(a) >= 0; }) || s.th.indexOf(n) >= 0); });
   }
-  var DR = { normalize: normalize, detect: detect, dreamType: dreamType, timeMeaning: timeMeaning, dominantTheme: dominantTheme, buildFacts: buildFacts, search: search, BY: BY };
+  var DR = { normalize: normalize, detect: detect, dreamType: dreamType, timeMeaning: timeMeaning, dominantTheme: dominantTheme, buildFacts: buildFacts, themeLine: themeLine, search: search, BY: BY };
   if (typeof module !== "undefined" && module.exports) module.exports = DR;
   root.Dream = DR;
 })(typeof window !== "undefined" ? window : globalThis);
@@ -209,7 +213,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var detT;
   $("#drText").addEventListener("input", function () {
     clearTimeout(detT);
-    detT = setTimeout(function () { st.detected = detectAll($("#drText").value); renderSel(); }, 200);
+    // ตาข่ายความปลอดภัยทำงานตั้งแต่ตอนพิมพ์ (ปุ่มทำนายปิดอยู่ถ้ายังไม่พบสัญลักษณ์ จึงรอกดปุ่มไม่ได้)
+    detT = setTimeout(function () { st.detected = detectAll($("#drText").value); renderSel(); supportFor($("#drText").value, true); }, 200);
   });
   function toggle(id) {
     var ids = selected(), i = st.manual.indexOf(id);
@@ -232,12 +237,27 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   $("#drForm").addEventListener("submit", function (e) {
     e.preventDefault();
+    // ตาข่ายความปลอดภัย: ข้อความเรื่องทำร้ายตัวเอง/ถูกทำร้าย → การ์ดช่วยเหลือ (1323, 1669, 191) แทนคำทำนาย
+    if (supportFor($("#drText").value)) return;
     st.detected = detectAll($("#drText").value);
     var ids = selected(); if (!ids.length) { $("#drMsg").textContent = T("dream.errNone", "เลือกหรือพิมพ์สิ่งที่เห็นในฝันอย่างน้อย 1 อย่าง"); return; }
     $("#drMsg").textContent = "";
     var moodEl = document.querySelector('input[name="drMood"]:checked'), timeEl = document.querySelector('input[name="drTime"]:checked');
     show(ids, moodEl ? moodEl.value : "", timeEl ? timeEl.value : "");
   });
+  var FA = window.FortuneAI || null;
+  /** text มีสัญญาณวิกฤต → แสดงการ์ดช่วยเหลือ ซ่อนคำทำนาย และคืน true (ไม่เก็บข้อความ ไม่นับสถิติ)
+      typing = เรียกระหว่างพิมพ์: แสดงการ์ดโดยไม่ย้ายโฟกัสออกจากช่องพิมพ์ */
+  function supportFor(text, typing) {
+    var box = document.getElementById("drSupport");
+    if (!FA || !FA.crisis || !FA.crisis.check(text)) { st.support = false; if (box) { box.hidden = true; box.textContent = ""; } return false; }
+    if (typing && st.support && box && !box.hidden) return true;
+    if (!box) { box = document.createElement("div"); box.id = "drSupport"; box.tabIndex = -1; $("#drForm").insertAdjacentElement("afterend", box); }
+    st.res = null; st.support = true; $("#drResult").hidden = true; $("#drMsg").textContent = "";
+    box.hidden = false; FA.crisis.render(box, FA.crisis.result({ lang: isZh() ? "zh" : isEn() ? "en" : "th" }));
+    if (!typing) box.focus();
+    return true;
+  }
   /** quiet = วาดใหม่ตอนเปลี่ยนภาษา (ไม่นับสถิติ ไม่ย้ายโฟกัส) */
   function show(ids, mood, time, quiet) {
     st.res = { ids: ids, mood: mood, time: time };
@@ -254,7 +274,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#drResTitle").focus(); kiosk.touch();
   }
   function reset() {
-    st.detected = []; st.manual = []; st.removed = {}; st.res = null;
+    st.detected = []; st.manual = []; st.removed = {}; st.res = null; st.support = false;
+    var sb = document.getElementById("drSupport"); if (sb) { sb.hidden = true; sb.textContent = ""; }
     $("#drText").value = ""; $("#drForm").reset(); $("#drResult").hidden = true; $("#drCardImg").hidden = true; renderList();
   }
   $("#drAgain").addEventListener("click", function () { reset(); $("#drForm").scrollIntoView({ block: "start" }); });
@@ -291,6 +312,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     if ($("#drText").value) st.detected = detectAll($("#drText").value);
     renderStatic(); renderList(); renderSources(); stats.render(); $("#drMsg").textContent = "";
     if (st.res && !$("#drResult").hidden) show(st.res.ids, st.res.mood, st.res.time, true);
+    if (st.support) supportFor($("#drText").value);
   });
-  window.__dr = { state: st, show: show, reset: reset };
+  window.__dr = { state: st, show: show, reset: reset, supportFor: supportFor };
 })();

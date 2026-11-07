@@ -31,9 +31,11 @@
     kids.forEach(function (c) { if (c != null) e.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
     return e;
   }
-  function msg(/** @type {string} */ t, /** @type {boolean} */ bad) { var m = $("acMsg"); m.textContent = t || ""; m.classList.toggle("bad", !!bad); }
-  /** Feedback beside the control (`where` = id of an .acct-inline line), mirrored in #acMsg (aria-live) and the toast. */
-  function say(/** @type {string} */ where, /** @type {string} */ t, /** @type {boolean} [bad] */ bad) {
+  /** @param {string} t @param {boolean} [bad] */
+  function msg(t, bad) { var m = $("acMsg"); m.textContent = t || ""; m.classList.toggle("bad", !!bad); }
+  /** Feedback beside the control (`where` = id of an .acct-inline line), mirrored in #acMsg (aria-live) and the toast.
+   *  @param {string} where @param {string} t @param {boolean} [bad] */
+  function say(where, t, bad) {
     var el = $(where);
     if (el) { el.textContent = t || ""; el.classList.toggle("bad", !!bad); }
     msg(t, !!bad);
@@ -47,8 +49,8 @@
     box.appendChild(w);
     box.appendChild(h("span", { class: "acct-sr", text: T("acct.loading", "กำลังโหลด…") }));
   }
-  /** empty state: a short line + optional link */
-  function empty(/** @type {string} */ text, /** @type {string} [href] */ href, /** @type {string} [label] */ label) {
+  /** empty state: a short line + optional link @param {string} text @param {string} [href] @param {string} [label] */
+  function empty(text, href, label) {
     var p = h("p", { class: "acct-empty" }, text);
     if (href) { p.appendChild(document.createTextNode(" ")); p.appendChild(h("a", { href: href, text: label })); }
     return p;
@@ -65,7 +67,7 @@
   var dname = function (/** @type {string} */ d) { return d ? T("acct.dom." + d, DOMAIN[d] || d) : "—"; };
   var KIND = /** @type {Record<string, string[]>} */ ({ signup: ["acct.k.signup", "สมัครสมาชิก"], reading: ["acct.k.reading", "อ่านคำทำนาย"], ai: ["acct.k.ai", "ผู้ช่วยเขียน AI"], payment: ["acct.k.payment", "ชำระเงิน"] });
   var kname = function (/** @type {string} */ k) { var x = KIND[k]; return x ? T(x[0], x[1]) : k; };
-  var TIER = /** @type {Record<string, string[]>} */ ({ member: ["acct.tier.member", "สมาชิก (ฟรี)"], free: ["acct.tier.member", "สมาชิก (ฟรี)"], plus: ["acct.tier.plus", "สมาชิกพลัส"], pro: ["acct.tier.pro", "โปร"], business: ["acct.tier.business", "ธุรกิจ"], enterprise: ["acct.tier.enterprise", "องค์กร"],
+  var TIER = /** @type {Record<string, string[]>} */ ({ member: ["acct.tier.member", "สมาชิก (ฟรี)"], free: ["acct.tier.member", "สมาชิก (ฟรี)"], plus: ["acct.tier.plus", "สมาชิกพลัส"], pro: ["acct.tier.pro", "ครีเอเตอร์ (Creator)"], business: ["acct.tier.business", "ธุรกิจ"], enterprise: ["acct.tier.enterprise", "องค์กร"],
     report_basic: ["acct.tier.report_basic", "รายงานดวงพื้นฐาน"], report_compat: ["acct.tier.report_compat", "รายงานดวงคู่"], report_annual: ["acct.tier.report_annual", "รายงานดวงรายปี"] });
   var STATUS = /** @type {Record<string, string[]>} */ ({ pending: ["acct.st.pending", "รอชำระ"], successful: ["acct.st.successful", "ชำระแล้ว"], failed: ["acct.st.failed", "ไม่สำเร็จ"], expired: ["acct.st.expired", "หมดอายุ"],
     refunded: ["acct.st.refunded", "คืนเงินแล้ว"], mismatch: ["acct.st.mismatch", "กำลังตรวจสอบ"], cancelled: ["acct.st.cancelled", "ยกเลิก"] });
@@ -97,7 +99,7 @@
     var u = me.user, dl = $("acProfile");
     dl.textContent = "";
     [[T("acct.p.email", "อีเมล"), u.email], [T("acct.p.name", "ชื่อ"), u.display_name || "—"], [T("acct.p.since", "เป็นสมาชิกตั้งแต่"), day(u.created_at)],
-      [T("acct.p.last", "เข้าสู่ระบบล่าสุด"), when(u.last_login_at)], [T("acct.p.consent", "ยอมรับข้อกำหนด"), u.consent_version + " · " + day(u.consent_at)]]
+      [T("acct.p.last", "เข้าสู่ระบบล่าสุด"), when(u.last_login_at)], [T("acct.p.consentOn", "ยอมรับข้อกำหนดเมื่อ"), day(u.consent_at)]]
       .forEach(function (x) { dl.appendChild(h("dt", { text: x[0] })); dl.appendChild(h("dd", { text: x[1] })); });
     $("acMarketing").checked = !!u.marketing_opt_in;
     var k = $("acKpis"); k.textContent = "";
@@ -116,8 +118,20 @@
     var cr = me.credits;
     var crList = Array.isArray(cr) ? cr : cr && typeof cr === "object" ? Object.keys(cr).map(function (f) { return { feature: f, remaining: cr[f] && typeof cr[f] === "object" ? cr[f].remaining : cr[f] }; }) : [];
     crList.filter(function (c) { return c && c.feature && c.remaining != null; }).forEach(function (c) {
-      k.appendChild(kpi(String(c.remaining), T("acct.credit." + c.feature, c.feature === "ai_reading" ? "คำทำนาย AI ที่ซื้อไว้คงเหลือ" : TIER[c.feature] ? T(TIER[c.feature][0], TIER[c.feature][1]) + " " + T("acct.credit.left", "คงเหลือ") : c.feature), null));
+      var box = kpi(String(c.remaining), T("acct.credit." + c.feature, c.feature === "ai_reading" ? "คำทำนาย AI ที่ซื้อไว้คงเหลือ" : TIER[c.feature] ? T(TIER[c.feature][0], TIER[c.feature][1]) + " " + T("acct.credit.left", "คงเหลือ") : c.feature), null);
+      // a one-time report credit is redeemed on report.html (the server takes the credit there)
+      if (/^report_/.test(c.feature) && Number(c.remaining) > 0) box.appendChild(h("a", { href: "report.html?type=" + encodeURIComponent(c.feature), "data-ac-redeem": c.feature, text: T("acct.credit.redeem", "เปิดรายงาน") }));
+      k.appendChild(box);
     });
+    // renewal reminder (no automatic renewal — terms section 8): from 7 days before the end of the period
+    var rn = typeof M().renewalDue === "function" ? M().renewalDue(typeof M().planForRenewal === "function" ? M().planForRenewal(me) : me.plan) : { due: false };
+    $("acRenew").hidden = !rn.due;
+    if (rn.due) {
+      $("acRenewText").textContent = T("acct.renew.text", "แพ็กเกจ {plan} จะหมดรอบในอีก {n} วัน ({d}) ไม่มีการตัดเงินอัตโนมัติ หากต้องการใช้ต่อ ให้ชำระรอบใหม่ด้วย QR พร้อมเพย์ ถ้าไม่ต่อ บัญชีจะกลับเป็นสมาชิกฟรีโดยข้อมูลไม่ถูกลบ",
+        { plan: tname(me.tier), n: rn.days, d: day(rn.ends) });
+      var rp = me.renewal && typeof me.renewal.renew_path === "string" && /^\/pricing\.html(\?[\w=&%.-]*)?$/.test(me.renewal.renew_path) ? me.renewal.renew_path.slice(1) : "pricing.html" + (me.plan && me.plan.id ? "?plan=" + encodeURIComponent(me.plan.id) : "");
+      $("acRenewCta").setAttribute("href", rp);
+    }
     var cfg = M().config() || {};
     $("acPricing").hidden = !cfg.pricing_enabled && cfg.free_mode !== false;
     $("acPlanNote").textContent = cfg.free_mode !== false ? T("acct.plan.freeNote", "ขณะนี้ LENSIQ ใช้งานฟรี ไม่มีการเรียกเก็บเงิน") : T("acct.plan.paidNote", "แพ็กเกจแบบชำระเงินจะแสดงที่นี่หลังชำระผ่าน PromptPay");
@@ -164,7 +178,7 @@
 
   /** receipt button: GET /api/me/payments/:id/receipt (bearer) -> opens the document (HTML / PDF) or shows its fields */
   function receiptBtn(/** @type {any} */ p) {
-    var b = h("button", { type: "button", class: "acct-mini", text: T("acct.receipt.open", "เปิดใบเสร็จ"), "aria-label": T("acct.receipt.open", "เปิดใบเสร็จ") + " " + p.receipt_no });
+    var b = /** @type {HTMLButtonElement} */ (h("button", { type: "button", class: "acct-mini", text: T("acct.receipt.open", "เปิดใบเสร็จ"), "aria-label": T("acct.receipt.open", "เปิดใบเสร็จ") + " " + p.receipt_no }));
     b.addEventListener("click", function () {
       b.disabled = true;
       M().receipt(p.id).then(function (/** @type {any} */ r) {
@@ -231,7 +245,7 @@
     var ul = h("ul", { class: "acct-saved" });
     list.forEach(function (/** @type {any} */ s) {
       var view = h("button", { type: "button", text: T("acct.saved.view", "เปิดอ่าน") });
-      var del = h("button", { type: "button", text: T("acct.saved.del", "ลบ"), "aria-label": T("acct.saved.del", "ลบ") + " " + (s.title || dname(s.domain)) });
+      var del = /** @type {HTMLButtonElement} */ (h("button", { type: "button", text: T("acct.saved.del", "ลบ"), "aria-label": T("acct.saved.del", "ลบ") + " " + (s.title || dname(s.domain)) }));
       view.addEventListener("click", function () { openSaved(s.id); });
       del.addEventListener("click", function () {
         if (!confirm(T("acct.saved.delq", "ลบคำทำนายที่บันทึกนี้?"))) return;
@@ -322,6 +336,7 @@
     say("acExportMsg", T("acct.loading", "กำลังโหลด…"));
     M().exportData().then(function (/** @type {any} */ r) {
       b.disabled = false;
+      if (r && r.cancelled) { say("acExportMsg", T("acct.re.cancel", "ยกเลิกการยืนยันตัวตน ยังไม่ได้ทำรายการ"), true); return; }
       if (!r.ok || !r.j) { say("acExportMsg", T("acct.err.generic", "ทำรายการไม่สำเร็จ"), true); return; }
       var url = URL.createObjectURL(new Blob([JSON.stringify(r.j, null, 2)], { type: "application/json" }));
       var a = h("a", { href: url, download: "lensiq-my-data.json" });
@@ -341,6 +356,7 @@
     say("acDelMsg", T("acct.del.busy", "กำลังลบบัญชี…"));
     M().deleteAccount().then(function (/** @type {any} */ r) {
       if (r.ok) { say("acDelMsg", ""); msg(T("acct.del.done", "ลบบัญชีแล้ว ขอบคุณที่ใช้ LENSIQ")); if (M().toast) M().toast(T("acct.del.done", "ลบบัญชีแล้ว ขอบคุณที่ใช้ LENSIQ")); show("acOffline"); state(); }
+      else if (r && r.cancelled) { syncDel(); say("acDelMsg", T("acct.re.cancel", "ยกเลิกการยืนยันตัวตน ยังไม่ได้ทำรายการ"), true); }
       else { syncDel(); say("acDelMsg", T("acct.err.generic", "ทำรายการไม่สำเร็จ"), true); }
     });
   });

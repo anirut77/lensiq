@@ -4,7 +4,7 @@
   "store.s2": "Store Analytics",
   "store.s3": "Counts entries and exits, current occupancy, popular zones, queue length and a heatmap of where customers stop. Processed in the browser; no images are stored, only aggregate figures",
   "store.s4": "Estimate (Beta)",
-  "store.s5": "Measured on 5 public videos: daily line-crossing totals are off by about ±10–30%, and roughly 1 in 4 counts is a miscount. Accuracy drops for people who appear small (far away) and in crowds. Mount the camera high above the door so people cross the line, and compare against a manual count for about 30 minutes before relying on the figures",
+  "store.s5": "Measured on 5 public videos (streets and stations, not shop doors): on the door-like scene the line-crossing total was off by about +3%, but in crowds by −28% to +19% · about 1 in 5 counted crossings is a miscount (5 fps). People who look small (far away) and crowded scenes are less accurate. Mount the camera high above the door so people cross the line, and run the on-site accuracy check below against a manual count before relying on the figures",
   "store.s6": "Methodology and limitations",
   "store.s7": "Press \"Start camera\" to begin · up to 4 cameras (each with its own counting lines and zones)",
   "store.s8": "Start camera",

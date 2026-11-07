@@ -144,6 +144,26 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(!errs.length, "console errors: " + JSON.stringify(errs.slice(0, 3)));
     });
 
+    await check("round 11: liveness (off by default) holds a check-in until a head turn; expiry banner shown", async () => {
+      await stopScan(); await clearFaces();
+      assert(await page.evaluate(() => !document.querySelector("#liveness").checked && settings.liveness === false), "off by default");
+      const banner = await page.evaluate(() => { const b = document.querySelector("#expiryBanner"); return { hidden: b.hidden, text: b.textContent }; });
+      assert(!banner.hidden && /365 วัน/.test(banner.text), "expiry banner: " + JSON.stringify(banner));
+      await page.evaluate(() => { const c = document.querySelector("#liveness"); c.checked = true; c.dispatchEvent(new Event("change")); });
+      await setSession("รอบ live");
+      await page.evaluate(f => { window.__faces = f; window.__calls = []; }, [FACE(0.3, "pA")]); // a still photo: no cues
+      await startScan();
+      await page.waitFor("window.__calls.length >= 6", 8000);
+      assert(!(await logs()).some(l => l.session === "รอบ live"), "no check-in without a head turn");
+      const txt = await page.evaluate(() => document.querySelector("#faceResults").textContent);
+      assert(/หันหน้า/.test(txt), "asks for a head turn: " + txt);
+      await page.evaluate(() => { let i = 0; const y = [-0.2, -0.1, 0.05, 0.15]; const f0 = window.__faces[0]; window.__LQ_FAKE_DET = () => [{ score: 0.95, ...f0, cues: { ear: 0.3, yaw: y[Math.min(i++, y.length - 1)] } }]; });
+      await page.waitFor(() => JSON.parse(localStorage.getItem("att-logs") || "[]").some(l => l.session === "รอบ live" && l.pid === "pA"), 8000);
+      await stopScan();
+      await page.evaluate(() => { const c = document.querySelector("#liveness"); c.checked = false; c.dispatchEvent(new Event("change")); });
+      assert(JSON.parse(await page.evaluate(() => localStorage.getItem("att-settings"))).liveness === false, "setting saved");
+    });
+
     await check("retention removes enrolments unused > N days; wipe removes all faces, keeps logs", async () => {
       await page.evaluate(() => { const p = JSON.parse(localStorage.getItem("att-people")); p.find(x => x.id === "pB").lastSeen = Date.now() - 100 * 864e5; p.find(x => x.id === "pB").created = 1; localStorage.setItem("att-people", JSON.stringify(p)); });
       await page.reload();
@@ -157,6 +177,10 @@ export default async function ({ base, launch, check, fakeCams }) {
       await page.evaluate(() => { window.confirm = () => true; document.querySelector("#wipeFaces").click(); });
       await page.waitFor(() => !localStorage.getItem("lqv-att-faces") && people.length === 0, 5000);
       assert((await logs()).length === nLogs, "logs kept");
+      // round 11: the device-wide wipe removes every lqv-* envelope (also the customers page's), keeps the logs
+      await page.evaluate(() => { localStorage.setItem("lqv-cx-faces", "{}"); localStorage.setItem("lqv-zz", "{}"); document.querySelector("#wipeAllBio").click(); });
+      await page.waitFor(() => !localStorage.getItem("lqv-cx-faces") && !localStorage.getItem("lqv-zz"), 5000);
+      assert((await logs()).length === nLogs, "logs kept after the device-wide wipe");
       const errs = page.consoleErrors.filter(e => e.kind !== "log");
       assert(!errs.length, "console errors: " + JSON.stringify(errs.slice(0, 3)));
     });

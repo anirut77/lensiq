@@ -24,7 +24,6 @@
   "พอใจ": "Content",
   "ตื่นตัว": "Aroused",
   "เริ่มวิเคราะห์สด": "Start live analysis",
-  "หยุดวิเคราะห์สด": "Stop live analysis",
   "ระดับตื่นตัว": "Arousal level",
   "วิล่าสุด": "s (latest)",
   "ยังไม่มีผลการทดสอบ เริ่มจากแท็บ": "No test results yet. Start from the tab",

@@ -146,7 +146,9 @@ test("remedies: every reading has a 3-point plan specific to its findings (TH/ZH
   const pf = FA.compose(face, { seed: 1 }).plan.items;
   assert.ok(pf.every(p => ["grooming", "expression", "skincare", "posture", "habit", "element"].includes(p.cat)), JSON.stringify(pf));
   const bz = FA.compose(K.baziFacts(B, "overall", { age: 36 }), { seed: 1 }).plan.items.find(p => p.item === "el.lo." + K.EL[B.weakest].key);
-  assert.ok(bz && new RegExp(K.EL[B.weakest].color.split("และ")[0]).test(bz.t), "weak element remedy names its colour: " + (bz && bz.t));
+  // round 11: the weakest element is boosted only when the chart needs it (B.favour); otherwise the plan boosts the first helpful element
+  const boostEl = B.favour.indexOf(B.weakest) >= 0 ? B.weakest : B.favour[0];
+  assert.ok(bz && new RegExp(K.EL[boostEl].color.split("และ")[0]).test(bz.t), "weak element remedy names the colour of a helpful element: " + (bz && bz.t));
   // lint: unsafe or mismatched remedies are flagged
   const L = r => FA.lint(r).concat(FA.lintSemantic(all[1], r)).map(x => x.rule);
   const base = FA.compose(all[1], { seed: 1 });

@@ -68,6 +68,23 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(await page.evaluate(() => document.querySelector('#navsub-photo a[href="studio.html"]').getAttribute("aria-current") === "page"), "studio is current");
       await page.waitFor(`document.querySelectorAll("#stOutfits .choice").length >= 10`, 10000);
       await page.waitFor(`/MODNet/.test(document.getElementById("stEngine").textContent) && !/กำลังโหลด/.test(document.getElementById("stEngine").textContent)`, 30000);
+      // round 11: repositioned as a portrait & ID photo studio; model names only behind "technical details"; one-line disclaimer + read more
+      const r11 = await page.evaluate(() => ({
+        h1: document.querySelector("h1").textContent, title: document.title,
+        nav: document.querySelector('#navsub-photo a[href="studio.html"]').textContent,
+        first: [...document.querySelectorAll(".st-panel > details > summary")].map(s => s.textContent),
+        exp: document.querySelector(".st-exp") && document.querySelector(".st-exp #stOutfits") !== null && document.getElementById("stExpTitle").textContent,
+        ready: document.getElementById("stReady").textContent, techClosed: !document.querySelector(".st-techline").open, engineInTech: !!document.querySelector(".st-techline #stEngine"),
+        more: !!document.querySelector(".st-more #stEngine") || !!document.querySelector(".st-more [data-i18n='studio.expect']"),
+        aria: document.getElementById("stQaDraft").getAttribute("aria-label"),
+        cover: document.querySelector('#stCover option[value="auto"]').textContent
+      }));
+      assert(/รูปติดบัตร/.test(r11.h1) && /รูปติดบัตร/.test(r11.title) && /รูปติดบัตร/.test(r11.nav), "renamed " + JSON.stringify(r11));
+      assert(r11.first[0] === "ฉากหลัง" && r11.first.includes("รีทัช") && r11.first.includes("บันทึกภาพ"), "background/retouch/ID first " + r11.first);
+      assert(/ทดลอง/.test(r11.exp), "outfits under the experimental section " + r11.exp);
+      assert(!/MODNet|MediaPipe/.test(r11.ready) && r11.techClosed && r11.engineInTech && r11.more, "plain status line, model names in technical details " + JSON.stringify(r11));
+      assert(r11.aria && r11.aria.length > 2, "#stQaDraft has an accessible name at load");
+      assert(/ผมบัง/.test(r11.cover) && !/ไม่ผ่าน/.test(r11.cover), "cover 'auto' text matches the code (jaw strip open, regardless of the plain result): " + r11.cover);
     });
 
     await check("studio: full pipeline on a synthetic portrait (matte -> fit -> blend -> retouch) under 3 s of processing", async () => {
@@ -75,6 +92,10 @@ export default async function ({ base, launch, check, fakeCams }) {
       const st0 = await page.waitFor(`window.__studio.state.phase === "done" && { g: window.__studio.state.gKey, shown: window.__studio.state.shown }`, 60000);
       // round 10: the dependable output (new background + retouch, no outfit) is the default; an outfit only when the user picks one
       assert(st0.g === "none" && st0.shown === "none", "default is no outfit " + JSON.stringify(st0));
+      // round 11: pre-flight photo check in the outfit section; plain "done" status line
+      const pre = await page.evaluate(() => { const el = document.getElementById("stPre"), S = window.__studio.state; return { vis: !el.hidden, items: [...el.querySelectorAll("li")].map(li => li.dataset.k), ok: S.pre && S.pre.ok, ready: document.getElementById("stReady").textContent }; });
+      assert(pre.vis && ["frontal", "neck", "hair", "clothes", "framing"].every(k => pre.items.includes(k)), "pre-flight list " + JSON.stringify(pre));
+      assert(/เสร็จ/.test(pre.ready) && !/MODNet/.test(pre.ready), "plain done line " + pre.ready);
       await page.evaluate(() => window.__studio.select("v:suit_navy"));
       const st = await page.evaluate(() => ({ t: window.__studio.state.timings, W: window.__studio.state.W, H: window.__studio.state.H, m: window.__studio.state.method, face: !!window.__studio.state.face, g: window.__studio.state.gKey }));
       console.log("       timings ms: " + Object.entries(st.t).map(([k, v]) => `${k}=${Math.round(v)}`).join(" ") + ` · ${st.W}x${st.H} · ${st.m} · garment ${st.g}`);
@@ -119,6 +140,9 @@ export default async function ({ base, launch, check, fakeCams }) {
       if (q.pass) {
         const p = await page.evaluate(() => document.getElementById("stQa").textContent);
         assert(/ตัวอย่าง/.test(p) && /ในชุดทดสอบ/.test(p) && /ไม่ใส่ชุด/.test(p), "preview notice: " + p);
+        // round 11: the calibrated-confidence line fires on a shown outfit below the bar, and names the dev photos (not "test")
+        const cf = await page.evaluate(() => window.__studio.state.qa.conf);
+        if (cf && !cf.show) assert(/ชุดพัฒนา/.test(p) && new RegExp(Math.round(100 * cf.p) + "%").test(p), "low-confidence line on a shown outfit: " + p);
         await page.evaluate(() => document.getElementById("stQaDraft").click());
         await page.waitFor(`window.__studio.state.shown === "plain" && document.getElementById("stQa").dataset.shown === "plain"`, 5000);
         await page.evaluate(() => document.getElementById("stQaDraft").click());
@@ -327,6 +351,31 @@ export default async function ({ base, launch, check, fakeCams }) {
       await p.waitFor(`document.getElementById("pbConfirm").open`, 5000);
       await p.evaluate(() => document.getElementById("pbConfirmNo").click());
       assert((await conf) === false, "cancel");
+      // round 11: the draft confirmation follows this photo's check result (failed / passed / not checked)
+      const msgs = [];
+      for (const qa of [{ pass: false, fails: ["leftover"], m: {} }, { pass: true, fails: [], m: {} }, null]) {
+        const c2 = p.evaluate(q => { window.__pb.idState.boothQA = q; return window.__pb.outfitConfirm(); }, qa);
+        await p.waitFor(`document.getElementById("pbConfirm").open`, 5000);
+        msgs.push(await p.evaluate(() => document.getElementById("pbConfirmMsg").textContent));
+        await p.evaluate(() => document.getElementById("pbConfirmNo").click()); await c2;
+      }
+      assert(/ไม่ผ่าน/.test(msgs[0]) && /ไม่พบปัญหา/.test(msgs[1]) && !/ไม่ผ่านการตรวจ/.test(msgs[1]) && /ยังไม่ได้ตรวจ/.test(msgs[2]), "draft confirm depends on boothQA " + JSON.stringify(msgs));
+      // the "ai" (external service) state shows its own outfit note
+      const ai = await p.evaluate(() => { window.__pb.idState.shownOutfit = "ai"; window.__pb.syncOutfitNote(); const el = document.getElementById("pbOutfitNote"); return { vis: !el.hidden, t: el.textContent, btn: document.getElementById("pbOutfitDraft").hidden }; });
+      assert(ai.vis && /Replicate/.test(ai.t) && ai.btn, "ai outfit note " + JSON.stringify(ai));
+      // mandatory review before print/download in ID mode: dialog, continue only after ticking, once per photo; result goes into the PNG
+      await p.evaluate(() => document.querySelector('#idPurpose button[data-k="gov"]').click()); // back to a normal render
+      await p.evaluate(() => { const b = document.getElementById("pbOutfitDraft"); if (window.__pb.idState.shownOutfit === "draft" && b) b.click(); });
+      const rv = p.evaluate(() => window.__pb.reviewGate());
+      await p.waitFor(`document.getElementById("pbReview").open`, 5000);
+      const r0 = await p.evaluate(() => ({ dis: document.getElementById("pbReviewGo").disabled, items: [...document.querySelectorAll("#pbReviewList li")].map(li => li.dataset.k), img: (document.getElementById("pbReviewImg").src || "").slice(0, 22) }));
+      assert(r0.dis && r0.items.length >= 2 && r0.items.some(k => k.startsWith("spec-")) && r0.img === "data:image/png;base64,", "review dialog " + JSON.stringify(r0));
+      await p.evaluate(() => { const c = document.getElementById("pbReviewOk"); c.checked = true; c.dispatchEvent(new Event("change")); document.getElementById("pbReviewGo").click(); });
+      assert((await rv) === true, "continue after ticking");
+      assert(await p.evaluate(() => window.__pb.reviewGate()), "not asked again for the same photo");
+      const meta = await p.evaluate(async () => { const b = await window.__pb.canvasBlob(window.__pb.idState.last.photo), u = new Uint8Array(await b.arrayBuffer()); return StudioCore.pngTexts ? StudioCore.pngTexts(u) : null; });
+      const idm = meta && (meta["LENSIQ-ID-Check"] || (Array.isArray(meta) && (meta.find(x => x[0] === "LENSIQ-ID-Check") || [])[1]));
+      assert(idm && /head=/.test(idm) && /reviewed-by-user=yes/.test(idm), "ID check recorded in the PNG: " + JSON.stringify(meta));
       const uncaught = p.consoleErrors.filter(e => e.kind === "exception");
       assert(!uncaught.length, "uncaught: " + JSON.stringify(uncaught.slice(0, 2)));
       await p.close();

@@ -11,6 +11,7 @@ Needs Node 22+, `python3` and Google Chrome. `npm ci` is only needed for `npm ru
 | `node tools/csp-meta.mjs [--check]` | insert/update the CSP `<meta>` in every page (idempotent) / verify |
 | `node tools/check-csp.mjs [--as-is]` | every page in headless Chrome under the Pages `<meta>` policy (injects it on the fly unless `--as-is`) |
 | `node tools/mobile-audit.mjs [--lang zh] [--json f] [--selftest]` | 390 px phone audit per page: overflow, targets < 44 px, text < 12 px, mid-word Thai breaks |
+| `node tools/check-legal.mjs [--billing] [--dir _site]` | legal guard: fails on raw `[placeholder]` text in help / terms / privacy, and when billing is on (`LENSIQ_SELLER.sales_open`, `BILLING_ENABLED`, `FREE_MODE=false` or `--billing`) while seller details are missing |
 
 CI (`.github/workflows/ci.yml`) runs lint, unit, csp-meta `--check`, Python (3.11, pinned `requirements.txt`),
 the mobile-audit self-test, e2e with one retry, check-csp and a mobile-audit JSON artifact. Chrome comes from
@@ -18,6 +19,17 @@ the mobile-audit self-test, e2e with one retry, check-csp and a mobile-audit JSO
 `--no-sandbox` when `CI` is set.
 
 ## Unit tests (pure JS, no browser)
+
+**Naming:** a test file is named after the feature it covers (`fortune-safety-lint.test.js`, `camera-accuracy.test.js`),
+never after the agent round that added it; round history goes in `CHANGELOG.md`. `unit-index.test.js` fails on a new
+`*-rN.test.js` file (the few round-named files still pending a feature name are listed there and may only shrink).
+Round 11 renamed 7 files with every test kept (49 tests before = 49 after): face-r5 → face-gallery-calibration,
+camera-r4 → camera-accuracy, fortune-r5 → fortune-safety-lint, fortune-r6 → fortune-topic-grounding, fortune-r10 →
+fortune-facts-grounding, lifecal-r10 → lifecal-solar-terms, studio-r10 → studio-idphoto-outfit.
+
+`i18n-integrity.test.js` (no Chrome, ~4 s): en/zh dictionaries have identical key sets, every `data-i18n` key has an
+English and a Chinese entry, no stale Thai run-time key (its Thai text no longer occurs in any root *.js / *.html — a
+Thai copy edit that orphans a translation fails here), template placeholders survive, no Thai left in en/zh values.
 
 ```sh
 node --test tests/unit            # or: node --test "tests/unit/*.test.js"
@@ -120,12 +132,25 @@ LQ_BENCH_DATA=~/lq-bench-data node tests/bench/driver-session.bench.mjs [--minut
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/neuro.bench.mjs  [--json out.json]   # expressions: FER-2013 sample (eval only)
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/creative.bench.mjs [--fit] [--limit N] [--json out.json]   # creative attention map: MIT1003 eye fixations, 300 tuning / 703 held out (eval only)
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/studio.bench.mjs --render --sheets [--split dev|test] [--ids d01,t05] [--query wear=0.42,0.7]   # studio outfit renders on 62 public-domain portraits; review sheets stay in the cache (photos of people); stage 2 joins tests/bench/studio-labels.json (ACCURACY.md §11)
+LQ_BENCH_DATA=~/lq-bench-data node tests/bench/studio.bench.mjs --variants plain,cover --log tests/bench/studio-gate-log-r10.json   # write the per-render gate log (no images); --only none renders just the no-outfit version (round 11)
+LQ_BENCH_DATA=~/lq-bench-data node tests/bench/photobooth.bench.mjs --render --log tests/bench/photobooth-gate-log-r11.json            # photo booth ID photo: outfit check + review-step findings per portrait (no images)
+node tests/bench/studio-tables.mjs [--check] [--json f]   # recompute every ACCURACY.md §11/§11b table from the committed labels + gate logs (no data, no browser; CI via tests/unit/studio-tables.test.js)
 node tests/bench/qc.bench.mjs       [--cond light] [--json out.json]   # synthetic bottles vs qc.js inspect (no data, ~15 min)
 node tests/bench/checkout.bench.mjs [--n 60] [--json out.json]         # synthetic EAN-13/UPC-A/Code 128 vs BarcodeDetector
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/people.bench.mjs --seq PETS09,TUD --degrade dark:0.1 [--health] [--frame-drop 0.3] [--quick]   # robustness: camera-like degradation before detection + replay of the camera-health monitor (lensiq-sitecheck.js)
 LQ_SOAK_VIDEO=/path/clip.mp4 node tests/bench/soak.mjs [--minutes 60] [--json out.json]   # long-run stability of store.html on WASM: retained heap, DOM nodes, listeners, rate (clip with people, never committed)
 ```
 
+- **Committed result summaries (round 11):** `tests/bench/results/*.json` hold numbers only (never images or dataset
+  files), the dataset fingerprints and the reproduce command. After a run: `node tests/bench/results.mjs record <bench>
+  out.json` (fingerprints every dataset folder the bench reads: sorted path + size + sha256 of each file). Compare your
+  copy with `node tests/bench/results.mjs hash`. `headlines.json` lists what the pages quote (from
+  `docs/accuracy-figures.json`); its fingerprints are `null` with a note until the benches are re-run with `record`.
+  `tests/unit/bench-results.test.js` validates the folder.
+- **Customer-facing accuracy text** comes from `docs/accuracy-figures.json` only: edit it, run `node tools/accuracy-sync.mjs`
+  (rewrites the Thai markup and the en/zh entries of cameras.html#accuracy and every acc-note banner); `--check` and
+  `tests/unit/accuracy-figures.test.js` fail when a page disagrees, when a figure's evidence line has left ACCURACY.md, or
+  when a known stale phrase comes back.
 - Every script exits 0 with `skip …` when `LQ_BENCH_DATA` (or the dataset inside it) is missing.
 - `lib.mjs` serves the repo plus the dataset folder (read-only, `/__data/`) and opens `tests/bench/bench.html` in headless
   Chrome without WebGL. `bench-page.js` calls the production code: `LQDetect.detectPeople` (YOLOX-Nano on ORT WASM, or COCO-SSD) / `LQDetect.embedBox` (store
@@ -135,3 +160,8 @@ LQ_SOAK_VIDEO=/path/clip.mp4 node tests/bench/soak.mjs [--minutes 60] [--json ou
 - `metrics.cjs` (precision/recall/AP, CLEAR-MOT, IDF1, crossing events, TAR/FAR, 1:N) is unit-tested in
   `tests/unit/bench-metrics.test.js`. Detections are cached in `$LQ_BENCH_CACHE` (default `<data>/.lq-cache`).
 - Licences: MOTChallenge CC BY-NC-SA 3.0 · LFW research use · UTKFace non-commercial research only · HaGRID CC BY-SA 4.0 · Open/Closed Eyes (AI-generated) ODC-BY 1.0 · CEW research use only, no redistribution · FER-2013 research use only (evaluation only).
+
+`tests/unit/commercial-r11.test.js` + `tests/e2e/commercial.e2e.mjs` (round 11): report deliverables (`report.js` builders,
+saved copy accepted by the Worker's `cleanSaved`, redeem = `entitlements/use` before the report, then `saved`), `lensiq-leads.js`
+(`/v1/leads`, mailto / LINE fallback), the `LENSIQ_SELLER` config + `check-legal`, member `CAUTION_RE` kept in sync with
+`fortune-ai.js`, renewal reminder, quota upsell card, sign-in dialog focus / footer, SLA cards at 360 px.

@@ -1,6 +1,11 @@
 /* i18n/en-rt-attendance.js — run-time English for text written by attendance.js (mirrors zh-rt-attendance.js). */
 (window.LQI18N_RT = window.LQI18N_RT || []).push({
   "@lang": "en",
+  "ลบข้อมูลชีวมิติทั้งหมดในเครื่องนี้แล้ว": "All biometric data on this device has been deleted",
+  "ลบข้อมูลชีวมิติ (ค่าใบหน้า) ทั้งหมดในเบราว์เซอร์เครื่องนี้ ทั้งระบบเช็คชื่อและจดจำลูกค้า พร้อมกุญแจเข้ารหัส? ทุกคนต้องลงทะเบียนใบหน้าใหม่ บันทึกการเข้าเรียนและประวัติการสั่งยังอยู่ ย้อนกลับไม่ได้": "Delete all biometric data (face values) in this browser, for both check-in and customer recognition, together with the encryption keys? Everyone will have to register their face again. Attendance records and order history are kept. This cannot be undone",
+  "{a} คนจะถูกลบภายใน 30 วัน (เร็วสุดอีก {b} วัน)": "{a} will be deleted within 30 days (the first in {b} days)",
+  "ข้อมูลใบหน้า {a} คนในเครื่องนี้จะถูกลบอัตโนมัติเมื่อไม่ได้ใช้เกิน {b} วัน": "Face data of {a} people on this device is deleted automatically when unused for more than {b} days",
+  "กรุณาหันหน้าไปทางซ้ายหรือขวาเล็กน้อย แล้วหันกลับ (ตรวจว่าเป็นคนจริง)": "Please turn your head slightly left or right, then back (checking that you are really here)",
   "กำลังสแกน": "Scanning",
   "มองตรงที่กล้อง": "Look straight at the camera",
   "หันหน้าไปทางซ้ายเล็กน้อย": "Turn your face slightly to the left",

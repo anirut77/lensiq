@@ -6,7 +6,7 @@
 })(typeof self !== "undefined" ? self : this, function (M_data, M_analysis, LQStats) {
 "use strict";
   const { iqT, IQ_QC_REASONS, IQ_DR_TYPES, iqPad, iqMean, iqSum, iqMetrics, iqCsvCell, iqAddDays } = M_data;
-  const { IQ_ST, IQ_WD, iqFin, iqN, iqP, iqChg, iqChgAbs, iqIsFlat, iqPts, iqB, iqDL, iqWdOf, iqPick, iqWin, iqWinKeys, iqVsTarget } = M_analysis;
+  const { IQ_ST, IQ_WD, iqFin, iqN, iqP, iqChg, iqChgAbs, iqIsFlat, iqPts, iqB, iqDL, iqWdOf, iqPick, iqWin, iqWinKeys, iqVsTarget, iqQcCI } = M_analysis;
 
 /* ---------- ข้อความ: ไทยเป็นค่าเริ่มต้น ; มี LQI18N (lensiq-i18n.js) = แปลตามภาษาที่เลือก ----------
    T(key, thai, vars): {name} ในข้อความถูกแทนด้วย vars ; TN(thai) = ใช้ข้อความไทยเป็นคีย์ (ชื่อตัวชี้วัด วัน เหตุผล QC) */
@@ -41,6 +41,7 @@ function iqNeedMore(t, unit = "pct") {
   return {
     sure: P.moreDays != null ? T("iq.need.sure", "ข้อมูลยังไม่พอจะบอกว่าเปลี่ยนจริง — ต้องการอีกประมาณ {n} วัน", { n: iqN(P.moreDays) }) : T("iq.need.sure.long", "ข้อมูลยังไม่พอจะบอกว่าเปลี่ยนจริง — ต้องเก็บข้อมูลนานกว่า 1 ปีจึงจะบอกได้"),
     why: T("iq.need.why", "ตอนนี้จะเห็นชัดก็ต่อเมื่อเปลี่ยนเกินราว {mde} · ถ้าจะจับการเปลี่ยนราว {tgt} ได้ 8 ใน 10 ครั้ง ต้องมีข้อมูลช่วงละราว {d} วัน (ตอนนี้ {now} วัน)", { mde, tgt, d: iqN(P.daysPerPeriod), now: iqN(P.days) })
+      + T("iq.need.fix", " · กำหนดวันตัดสินไว้ล่วงหน้าแล้วดูผลวันนั้น การเปิดดูทุกวันแล้วหยุดเมื่อเห็นว่าต่างทำให้เจอความต่างปลอมบ่อยขึ้นมาก")
   };
 }
 /** บรรทัดเทียบช่วงก่อนของ KPI: ตัวเลขและป้ายความมั่นใจมาจากการทดสอบเดียวกันเสมอ
@@ -53,6 +54,11 @@ function iqKpiDelta(k, vs) {
   const text = what + (dir === "flat" ? T("iq.kpi.flat", "ทรงตัว เทียบ{vs}", { vs }) : dir === "up" ? T("iq.kpi.up2", "เพิ่ม {p} เทียบ{vs}", { p: iqChgAbs(k.delta), vs }) : T("iq.kpi.dn2", "ลด {p} เทียบ{vs}", { p: iqChgAbs(k.delta), vs }));
   const conf = !t ? "" : !strong && lv !== "insufficient" && iqWide(t, t.kind === "rate" ? 0.1 * (t.p2 || 0) : 0.1) ? T("iq.kpi.notenough", "ข้อมูลยังไม่พอจะสรุป") : confShort(lv);
   return { dir, text, conf, strong: strong && dir !== "flat" };
+}
+/** round 11: ผลที่ “ชัด” จากการดูครั้งเดียว แต่ยังไม่ชัดตามเกณฑ์ที่เผื่อการเปิดดูซ้ำทุกวัน (always-valid p) → บอกไว้ในเหตุผล */
+function iqSeqWhy(t) {
+  if (!t || !sig(t.level) || !t.levelSeq || sig(t.levelSeq)) return "";
+  return T("iq.seq.why", "ถ้าเปิดดูตัวเลขนี้ทุกวัน: เกณฑ์ที่เผื่อการดูซ้ำยังไม่ถือว่าชัด (ค่า {p}) — ตัดสินในวันที่กำหนดไว้ล่วงหน้าจะเชื่อถือได้กว่า", { p: pctTxt(t.pSeq) });
 }
 /** ข้อความความมั่นใจตามชนิดคำถาม: change | corr | diff — “น่าจะเปลี่ยนจริง” / “อาจเป็นแค่ความผันผวนรายวัน” ฯลฯ */
 function iqSure(level, ciText, kind = "change") {
@@ -104,7 +110,7 @@ function iqInsights(D, A) {
     scope: { kind: "history", days: A.dataDays, text: T("iq.scope.all", "ข้อมูลทั้งหมดที่มี ({n} วัน)", { n: iqN(A.dataDays) }) } });
 
   // แจ้งเตือน: ความมั่นใจและคำแนะนำมาจากตัวแจ้งเตือนเอง (QC/อัตราซื้อตัดสินจากช่วง 95% หรือการทดสอบ ไม่ใช่ค่าที่เห็นตัวเดียว)
-  (A.alerts || []).forEach(a => add({ id: "alert-" + a.id, kind: "info", tone: a.level === "high" ? "bad" : "warn", module: a.id === "qc" ? "qc" : "alert", level: a.cardLevel || "strong", title: TN(a.title), body: a.text, sure: a.sure || T("iq.alert.sure", "เกิดขึ้นจริงตามข้อมูลวันนี้ ไม่ใช่การคาดการณ์"), why: [], action: TN(a.action), alert: a, score: a.level === "high" ? 9 : 4,
+  (A.alerts || []).forEach(a => add({ id: "alert-" + a.id, kind: "info", tone: a.level === "high" ? "bad" : "warn", module: a.id === "qc" ? "qc" : "alert", level: a.cardLevel || "strong", title: TN(a.title), body: a.text, sure: a.sure || T("iq.alert.sure", "เกิดขึ้นจริงตามข้อมูลวันนี้ ไม่ใช่การคาดการณ์"), why: a.seqNote ? [a.seqNote] : [], action: TN(a.action), alert: a, score: a.level === "high" ? 9 : 4,
     scope: a.id === "conv" ? { kind: "live", from: iqAddDays(A.fullEnd, -6), to: A.fullEnd, text: T("iq.scope.last7", "7 วันล่าสุด ({a}) เทียบ 7 วันก่อนหน้า — ไม่ขึ้นกับช่วงที่เลือก", { a: span(iqAddDays(A.fullEnd, -6), A.fullEnd) }) }
       : { kind: "live", from: A.today, to: A.today, text: T("iq.scope.live", "วันนี้ ตามเวลาจริง — ไม่ขึ้นกับช่วงที่เลือก") } }));
 
@@ -143,6 +149,7 @@ function iqInsights(D, A) {
     if (out.length) why.push(T("iq.store.why.out", "กล้องดับบางชั่วโมงในช่วงนี้ {n} วัน ยอดจริงอาจสูงกว่าที่เห็น", { n: out.length }));
     const pct = iqChgAbs(ch);
     if (need) why.unshift(need.why);
+    const sw = iqSeqWhy(t); if (sw) why.push(sw);
     add({ id: "store-change", kind: "change", tone: flat ? "info" : up ? "good" : "bad", module: "store", level: t.level, test: t, wide, scope: scCmp(),
       title: wide ? T("iq.store.wide", "คนเข้าร้าน: ยังบอกไม่ได้ว่าเปลี่ยนจริง") : flat ? iqPick(seed + "s", [T("iq.store.flat1", "คนเข้าร้านใกล้เคียงเดิม"), T("iq.store.flat2", "คนเข้าร้านยังทรงตัว")]) : up ? T("iq.store.up", "คนเข้าร้านเพิ่มขึ้น {pct}", { pct }) : T("iq.store.down", "คนเข้าร้านลดลง {pct}", { pct }),
       body: T("iq.store.body", "เฉลี่ยวันละ {a} คน เทียบกับ {b} คน ({vs})", { a: iqRound(t.rate1), b: iqRound(t.rate2), vs: vsTxt }) + (r.to === A.today ? T("iq.store.today", " · วันนี้คิดตามเวลาที่ผ่านไป") : ""),
@@ -216,7 +223,7 @@ function iqInsights(D, A) {
       body: T("iq.conv.body", "{x} บิลจากคนเข้าร้าน {n} คน", { x: iqRound(c.x), n: iqRound(c.n) }) + (t ? T("iq.conv.vs", " · {vs} {p}", { vs: vsTxt, p: iqP(t.p2, 1) }) : ""),
       stat: iqStat(t, "change", T("iq.conv.stat", "คิดความผันผวนรายวัน (quasi-binomial) เพราะคนในวันเดียวกันไม่ได้ตัดสินใจอิสระต่อกัน")),
       test: t, wide, sure: need ? need.sure : t ? iqSure(t.level, T("iq.conv.ci", "อัตราจริงน่าจะอยู่ระหว่าง {lo}–{hi}", { lo: iqP(c.ci.lo, 1), hi: iqP(c.ci.hi, 1) })) : c.n >= 100 ? T("iq.conv.ci", "อัตราจริงน่าจะอยู่ระหว่าง {lo}–{hi}", { lo: iqP(c.ci.lo, 1), hi: iqP(c.ci.hi, 1) }) : iqSure("insufficient"),
-      why: (need ? [need.why] : []).concat([T("iq.conv.why", "บิลกับคนเข้าร้านนับจากคนละระบบ จึงเป็นค่าประมาณ")]).concat((A.corr || []).filter(x => x.id === "queue-conv" && x.enough && x.r < -0.3 && sig(x.level)).map(x => T("iq.conv.why.q", "วันที่คิวยาวมักซื้อน้อยลง (r ≈ {r})", { r: iqN(x.r, 1) }))),
+      why: (need ? [need.why] : []).concat([T("iq.conv.why", "บิลกับคนเข้าร้านนับจากคนละระบบ จึงเป็นค่าประมาณ")], iqSeqWhy(t) ? [iqSeqWhy(t)] : []).concat((A.corr || []).filter(x => x.id === "queue-conv" && x.enough && x.r < -0.3 && sig(x.level)).map(x => T("iq.conv.why.q", "วันที่คิวยาวมักซื้อน้อยลง (r ≈ {r})", { r: iqN(x.r, 1) }))),
       action: lostWk ? T("iq.conv.act.dn", "ดูคิวและของขาดชั้นช่วงคนเยอะก่อน ถ้าอัตรากลับไปที่ {p} จะได้บิลคืนราว {n} บิล/สัปดาห์{b}", { p: iqP(t.p2, 1), n: iqRound(lostWk), b: perBill ? T("iq.conv.baht", " (≈ {v})", { v: iqB(Math.round(lostWk * perBill / 10) * 10) }) : "" })
         : t && !flat ? T("iq.conv.act.up", "จดไว้ว่าช่วงนี้เปลี่ยนอะไร (ราคา จัดวาง โปรโมชัน) เพื่อทำซ้ำ")
         : wide ? T("iq.conv.act.wide", "ยังไม่ต้องเปลี่ยนอะไรจากตัวเลขนี้ ถ้าจะทดลองปรับร้าน ให้ทำครั้งละอย่างและวัดผลให้นานพอ")
@@ -245,14 +252,20 @@ function iqInsights(D, A) {
     if (!ab.enough) add({ id: "ab-sg", kind: "diff", tone: "info", module: "sg", level: "insufficient", scope: { kind: "cumulative", text: T("iq.scope.cum", "ยอดสะสมตั้งแต่เริ่มใช้ — ไม่ขึ้นกับช่วงที่เลือก") }, title: T("iq.absg.few.t", "เทียบโฆษณา: ข้อมูลยังน้อย"), body: T("iq.absg.few.b", "ต้องมีคนผ่านจออย่างน้อย {n} คนต่อชิ้น อย่างน้อย 2 ชิ้น", { n: ab.minN }), sure: iqSure("insufficient", "", "diff"), why: [], action: T("iq.absg.few.a", "เปิดป้ายต่อไปให้ทุกชิ้นได้แสดงพอ ๆ กัน"), score: 0.5 });
     else {
       const t = ab.spread || ab.test, lv = t.level || "insufficient", b = ab.best, w = ab.worst || ab.runner, few = ab.groups.filter(g => !g.enough), yes = sig(lv);
+      // round 11: ทดสอบเฉพาะวัน × ช่วงเวลาที่เล่นร่วมกัน (Mantel–Haenszel) ; ส่วนที่เล่นร่วมกันน้อย หรือไม่มียอดแยกช่วงเวลา → ป้ายไม่เกิน “ยังไม่แน่”
+      const ov = iqFin(t.overlap) ? iqP(t.overlap) : null, capped = t.cap === "weak";
+      const ovWhy = !ab.strata ? T("iq.absg.why.nostrata", "ยังไม่มียอดแยกตามวันและช่วงเวลาของแต่ละชิ้น จึงแยกผลของเวลาที่เล่นออกไม่ได้ ความมั่นใจไม่เกิน “ยังไม่แน่”")
+        : capped ? T("iq.absg.why.cap", "สองชิ้นนี้เล่นในวันและช่วงเวลาเดียวกันเพียง {ov} ของคนที่ผ่านจอ (ต้องการอย่างน้อย {min}) จึงให้ความมั่นใจไม่เกิน “ยังไม่แน่”", { ov: ov || "0%", min: iqP(ab.minOverlap) })
+        : T("iq.absg.why.ov", "เทียบเฉพาะวันและช่วงเวลาที่เล่นร่วมกัน ({n} ช่วง · {ov} ของคนที่ผ่านจอ) ผลของเวลาที่เล่นจึงถูกแยกออกแล้ว", { n: iqN(t.shared || 0), ov: ov || "–" });
       const gLo = Math.max(0, t.lo) * 1000, gHi = Math.max(0, t.hi) * 1000;
       add({ id: "ab-sg", kind: "diff", tone: yes ? "good" : "info", module: "sg", level: lv,
         title: yes ? T("iq.absg.t", "“{b}” ดึงสายตาได้ดีที่สุด", { b: nameT(b.name) }) : T("iq.absg.t0", "โฆษณาแต่ละชิ้นดึงสายตาได้ใกล้เคียงกัน"),
         body: T("iq.absg.b2", "คนหันมอง {pb} เทียบ “{w}” {pw} · เทียบโฆษณา {k} ชิ้น จากคนผ่านจอรวม {n} คน", { pb: iqP(b.ci.p), w: nameT(w.name), pw: iqP(w.ci.p), k: ab.groups.filter(g => g.enough).length, n: iqN(iqSum(ab.groups.filter(g => g.enough).map(g => g.n))) }),
         sure: iqSure(lv, yes ? T("iq.absg.ci", "ต่างกันราว {lo} ถึง {hi} จุด", { lo: iqN(t.lo * 100, 0), hi: iqN(t.hi * 100, 0) }) : "", "diff"),
-        stat: iqStat(t, "diff", T("iq.absg.stat", "ทดสอบรวมทุกชิ้นก่อน ({m}) แล้วเทียบครบทุกคู่ ({k} คู่) ปรับด้วย Holm · อันดับใช้ค่าหลังปรับตามขนาดข้อมูล ({pb} และ {pw})", { m: ab.omnibus && ab.omnibus.method === "permutation" ? "permutation" : "chi-square", k: t.pairs || 1, pb: iqP(b.eb.p), pw: iqP(w.eb.p) })),
+        stat: iqStat(t, "diff", T("iq.absg.stat", "ทดสอบรวมทุกชิ้นก่อน ({m}) แล้วเทียบครบทุกคู่ ({k} คู่) ปรับด้วย Holm · อันดับใช้ค่าหลังปรับตามขนาดข้อมูล ({pb} และ {pw})", { m: ab.strata ? "Cochran–Mantel–Haenszel" : ab.omnibus && ab.omnibus.method === "permutation" ? "permutation" : "chi-square", k: t.pairs || 1, pb: iqP(b.eb.p), pw: iqP(w.eb.p) })),
         scope: { kind: "cumulative", text: T("iq.scope.cum", "ยอดสะสมตั้งแต่เริ่มใช้ — ไม่ขึ้นกับช่วงที่เลือก") },
-        why: [T("iq.absg.why", "เป็นยอดสะสม ถ้าแต่ละชิ้นเล่นคนละช่วงเวลา ผลอาจต่างเพราะเวลา ไม่ใช่ตัวโฆษณา"),
+        overlap: iqFin(t.overlap) ? t.overlap : null, capped,
+        why: [T("iq.absg.why", "เป็นยอดสะสม ถ้าแต่ละชิ้นเล่นคนละช่วงเวลา ผลอาจต่างเพราะเวลา ไม่ใช่ตัวโฆษณา"), ovWhy,
           few.length ? T("iq.absg.why.few", "{n} ชิ้นมีคนผ่านจอไม่ถึง {m} คน ยังไม่นำมาจัดอันดับ", { n: few.length, m: ab.minN }) : ""],
         action: yes ? T("iq.absg.act3", "ลองย้ายรอบเล่นของ “{w}” ไปให้ “{b}” · ค่าประมาณ (ไม่ใช่ผลที่รับประกัน): คนมองเพิ่มราว {lo}–{hi} คนต่อทุก 1,000 คนที่ผ่าน ถ้าคนที่ผ่านจอยังคล้ายเดิมและความต่างมาจากตัวโฆษณาจริง ไม่ใช่ช่วงเวลาที่เล่น", { w: nameT(w.name), b: nameT(b.name), lo: iqRound(gLo), hi: iqRound(gHi) }) : T("iq.absg.act0", "อย่าเพิ่งตัดชิ้นไหน เล่นสลับให้ครบทุกช่วงเวลาอีก 1–2 สัปดาห์แล้วดูใหม่"),
         score: IQ_LEVEL_W[lv] * 0.9 });
@@ -292,7 +305,8 @@ function iqInsights(D, A) {
   // QC (ถ้ามีการแจ้งเตือน QC อยู่แล้ว ไม่ต้องซ้ำ)
   const M = iqMetrics(D, r);
   if (M.qc && M.qc.total && !(A.alerts || []).some(x => x.id === "qc")) {
-    const w = S.wilson(M.qc.pass, M.qc.total), topR = Object.entries(M.qc.reasons).sort((a, b) => b[1] - a[1])[0], rn = topR ? TN(IQ_QC_REASONS[topR[0]] || topR[0]) : "";
+    // round 11: ช่วง 95% เผื่อขวดในช่วงเดียวกันของกะไม่อิสระต่อกัน (iqQcCI: quasi-binomial บนช่วงติดกันของกะ ; บันทึกไม่ครบ = Wilson)
+    const w = (iqQcCI && iqQcCI(D, r)) || S.wilson(M.qc.pass, M.qc.total), topR = Object.entries(M.qc.reasons).sort((a, b) => b[1] - a[1])[0], rn = topR ? TN(IQ_QC_REASONS[topR[0]] || topR[0]) : "";
     // เทียบเกณฑ์ด้วยช่วง 95% (ไม่ใช่ค่าที่เห็นตัวเดียว) ; เกณฑ์ = ค่าในกฎแจ้งเตือน (ค่าเริ่มต้น 95%)
     const T0 = (A.alertRules && A.alertRules.qcYieldMin > 0 ? A.alertRules.qcYieldMin : 95) / 100, st = iqVsTarget(w.p, w.lo, w.hi, T0), tt = iqN(T0 * 100);
     add({ id: "qc", kind: "info", tone: st === "below" ? "bad" : st === "above" ? "good" : "warn", module: "qc", level: M.qc.total >= 100 && st !== "unclear" ? "moderate" : "insufficient", status: st, target: T0, ci: w,
@@ -378,7 +392,7 @@ function iqAnalysisJson(D, A, cards) {
     correlations: A.corr.map(c => ({ id: c.id, x: c.xName, y: c.yName, n: c.n, nEff: c.nEff, adjusted: c.adjusted, r: c.r, rRaw: c.rRaw, lo: c.lo, hi: c.hi, p: c.p, q: iqFin(c.q) ? c.q : null, confidence: c.level, rho: c.rho, caution: c.caution })),
     heatmap: A.heat ? { source: A.heat.src, from: A.heat.from, to: A.heat.to, days: A.heat.nDays, meanByWeekdayHour: A.heat.grid } : null,
     quality: A.quality || null,
-    abTests: Object.fromEntries(Object.entries(A.ab || {}).map(([id, ab]) => [id, ab ? { enough: ab.enough, minN: ab.minN, omnibus: ab.omnibus, pairs: (ab.pairs || []).map(p => ({ a: p.a, b: p.b, diff: p.diff, lo: p.lo, hi: p.hi, ciConf: p.ciConf, pRaw: p.pRaw, pHolm: p.pHolm, pAdj: p.pAdj })), groups: ab.groups.map(g => ({ id: g.id, name: g.name, n: g.n, enough: g.enough, raw: g.ci.p ?? g.ci.mean, shrunk: g.eb.p ?? g.eb.mean })) } : null])),
+    abTests: Object.fromEntries(Object.entries(A.ab || {}).map(([id, ab]) => [id, ab ? { enough: ab.enough, minN: ab.minN, omnibus: ab.omnibus, pairs: (ab.pairs || []).map(p => ({ a: p.a, b: p.b, diff: p.diff, lo: p.lo, hi: p.hi, ciConf: p.ciConf, pRaw: p.pRaw, pHolm: p.pHolm, pAdj: p.pAdj, overlap: p.overlap ?? null, shared: p.shared ?? null, cap: p.cap || null, method: p.method || null })), strata: ab.strata ?? null, groups: ab.groups.map(g => ({ id: g.id, name: g.name, n: g.n, enough: g.enough, raw: g.ci.p ?? g.ci.mean, shrunk: g.eb.p ?? g.eb.mean })) } : null])),
     goals: A.goals, alerts: A.alerts
   };
 }

@@ -485,7 +485,22 @@ if (typeof document !== "undefined") (() => {
     el.className = "bars";
     el.innerHTML = rows.length ? rows.map(([k, v]) => `<div class="row"><span>${esc(k)}</span><div class="track"><div class="fill" style="width:${(v / max * 100).toFixed(1)}%"></div></div><span class="num">${fmt(v)}</span></div>`).join("") : `<p class="empty">ยังไม่มีข้อมูล</p>`;
   }
+  // round 11: ป้ายแจ้งการลบอัตโนมัติ (วันใช้ล่าสุด = มาร้าน/สั่งล่าสุด เหมือน applyRetention)
+  function renderExpiry() {
+    const el = $("#expiryBanner"); if (!el) return;
+    const last = new Map();
+    orders.forEach(o => { if (o.time > (last.get(o.mid) || 0)) last.set(o.mid, o.time); });
+    const withFace = members.filter(m => Array.isArray(m.descriptor)).map(m => ({ ...m, lastSeen: Math.max(m.lastSeen || 0, last.get(m.id) || 0) || undefined }));
+    if (!withFace.length) { el.hidden = true; el.textContent = ""; return; }
+    const soon = LQVault.expiringSoon(withFace, priv.retentionDays, 30);
+    el.replaceChildren(); const sp = t => { const x = document.createElement("span"); x.textContent = t; el.append(x); };
+    const F = (t, o) => t.replace(/\{(\w+)\}/g, (m, k) => (k in o ? String(o[k]) : m));
+    sp(F("ข้อมูลใบหน้าของสมาชิก {a} คนในเครื่องนี้จะถูกลบอัตโนมัติเมื่อไม่ได้มาเกิน {b} วัน", { a: withFace.length, b: priv.retentionDays }));
+    if (soon.length) { el.append(" · "); sp(F("{a} คนจะถูกลบภายใน 30 วัน (เร็วสุดอีก {b} วัน)", { a: soon.length, b: soon[0].daysLeft })); }
+    el.hidden = false;
+  }
   function renderAnalytics() {
+    renderExpiry();
     const s = storeStats(members, orders);
     $("#aTiles").innerHTML = [
       ["สมาชิก", members.length, `${s.segs.regular} ประจำ`],
@@ -599,6 +614,7 @@ if (typeof document !== "undefined") (() => {
       priv.retentionDays = +sel.value || 365; store(PRIV_KEY, priv);
       const n = applyRetention();
       if (n) { rebuildMatcher(); renderAnalytics(); }
+      renderExpiry();
       $("#privMsg").textContent = n ? `ลบข้อมูลใบหน้าของสมาชิกที่ไม่ได้มาเกิน ${priv.retentionDays} วันแล้ว ${n} คน` : `ตั้งค่าแล้ว: ${priv.retentionDays} วัน`;
     });
   }
@@ -612,6 +628,17 @@ if (typeof document !== "undefined") (() => {
     showFaceState(LQVault.supported() ? "enc" : LQVault.enrollBlockReason() ? "insecure" : "plain");
     rebuildMatcher(); renderAnalytics();
     $("#privMsg").textContent = "ลบข้อมูลใบหน้าทั้งหมดแล้ว";
+  };
+  // round 11: ลบข้อมูลชีวมิติทั้งหมดในเครื่องนี้ (ทุกหน้า: จดจำลูกค้า + เช็คชื่อ) และกุญแจทั้งหมดใน IndexedDB — สำหรับผู้ดูแล
+  if ($("#wipeAllBio")) $("#wipeAllBio").onclick = async () => {
+    if (!confirm("ลบข้อมูลชีวมิติ (ค่าใบหน้า) ทั้งหมดในเบราว์เซอร์เครื่องนี้ ทั้งระบบจดจำลูกค้าและเช็คชื่อ พร้อมกุญแจเข้ารหัส? สมาชิกและประวัติการสั่งยังอยู่ (ค้นหาด้วยชื่อได้) บันทึกการเข้าเรียนยังอยู่ ย้อนกลับไม่ได้")) return;
+    stopScan();
+    const now = Date.now();
+    members.forEach(m => { if (m.descriptor) m.faceDeletedAt = now; delete m.descriptor; });
+    await saveQ(async () => { await LQVault.wipeAll(); store(K.members, members); });
+    showFaceState(LQVault.supported() ? "enc" : LQVault.enrollBlockReason() ? "insecure" : "plain");
+    rebuildMatcher(); renderAnalytics();
+    $("#privMsg").textContent = "ลบข้อมูลชีวมิติทั้งหมดในเครื่องนี้แล้ว";
   };
 
   // ---------- สุขภาพภาพ + ตรวจความแม่นยำหน้างาน (lensiq-sitecheck.js) ----------
@@ -712,10 +739,10 @@ if (typeof document !== "undefined") (() => {
       settings: { faceRules: { ...FACE_RULES }, confirmFrames: 2, confidentFrames: 2, windowMs: 6000, calibrated: run.n >= FACE_RULES.minCal },
       conditions: { health: [...run.health] },
       trials: run.trials.map(t => ({ truth: anon(t.truth), stranger: t.truth === "stranger" ? anonS(t.sid) : null, outcome: t.outcome, label: anon(t.label), ms: t.ms })),
-      report: { verdict: rep.verdict, provisional: rep.provisional, need: rep.need, n: rep.n, recognised: rep.recognised, recognisedCluster: rep.recognisedCluster, auto: rep.auto, wrong: rep.wrong, strangerAuto: rep.strangerAuto, strangerAsk: rep.strangerAsk, recs: rep.recs }
+      report: { verdict: rep.verdict, provisional: rep.provisional, pilot: rep.pilot ? rep.pilot.verdict : null, need: rep.need, n: rep.n, recognised: rep.recognised, recognisedCluster: rep.recognisedCluster, auto: rep.auto, wrong: rep.wrong, strangerAuto: rep.strangerAuto, strangerAsk: rep.strangerAsk, recs: rep.recs }
     });
     scPanel.exp.hidden = false; scPanel.exp.onclick = () => SITE.download(`lensiq-customers-check-${dayKey(run.startedAt)}.json`, doc);
-    scHist.add({ at: run.startedAt, verdict: rep.verdict, provisional: rep.provisional, need: rep.need, cam, summary: SITE.fmt("สมาชิก {a} รอบ จำได้ {b} · คนที่ไม่ใช่สมาชิก {c} รอบ ถูกเลือกผิด {d}", { a: rep.n.members, b: rep.recognised.p == null ? "—" : (rep.recognised.p * 100).toFixed(0) + "%", c: rep.n.strangers, d: rep.n.strangerAuto }) });
+    scHist.add({ at: run.startedAt, verdict: rep.verdict, provisional: rep.provisional, pilot: rep.pilot ? rep.pilot.verdict : null, need: rep.need, cam, summary: SITE.fmt("สมาชิก {a} รอบ จำได้ {b} · คนที่ไม่ใช่สมาชิก {c} รอบ ถูกเลือกผิด {d}", { a: rep.n.members, b: rep.recognised.p == null ? "—" : (rep.recognised.p * 100).toFixed(0) + "%", c: rep.n.strangers, d: rep.n.strangerAuto }) });
     scHist.render(scPanel.hist);
     SC_LAST = { rep, doc };
   }

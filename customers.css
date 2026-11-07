@@ -90,3 +90,7 @@ tr.click{cursor:pointer}tr.click:hover td{background:var(--bg)}
 .cx .cam .lq-offline[data-s="back"]{background:#e6f6ee;color:#14653b}
 .cx .cam .lq-offline[hidden]{display:none}
 .cx .sc-docs a{white-space:nowrap}
+/* round 11: auto-expiry banner for face data on this device */
+.expiry-banner{margin:-6px 0 14px;padding:8px 14px;border-radius:10px;background:#eef4ff;border:1px solid #c9d6f2;color:#1d3f75;font-size:.85rem;line-height:1.55}
+.expiry-banner[hidden]{display:none}
+.acc-note{overflow-wrap:anywhere}

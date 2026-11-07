@@ -1,6 +1,11 @@
 /* i18n/en-rt-sitecheck.js — run-time English for the on-site accuracy check and camera health (mirrors zh-rt-sitecheck.js). */
 (window.LQI18N_RT = window.LQI18N_RT || []).push({
   "@lang": "en",
+  "ไม่ผ่านระดับนำร่อง — แก้ตามคำแนะนำแล้วตรวจใหม่": "Pilot grade not met — follow the recommendations and check again",
+  "ยังไม่ถึงเป้านำร่อง — เก็บข้อมูลเพิ่ม": "Below the pilot targets — collect more",
+  "ตามเป้านำร่องจนถึงตอนนี้ — เก็บข้อมูลเพิ่ม": "On the pilot targets so far — collect more",
+  "ผ่านระดับนำร่อง — ทดลองใช้ต่อได้ (ยังไม่ใช่การยืนยันความแม่นยำ)": "Pilot grade passed — fine to continue the trial (not an accuracy confirmation)",
+  "ระดับนำร่อง (เป้าผ่อนปรน ช่วงความเชื่อมั่น 90% เก็บได้ในวันเดียว):": "Pilot grade (relaxed targets, 90% confidence interval, reachable in one day):",
   "ตรวจความแม่นยำหน้างาน": "On-site accuracy check",
   "ยังไม่เริ่ม": "Not started",
   "ขั้นตอนการตรวจ": "How to run the check",

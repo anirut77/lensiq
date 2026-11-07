@@ -1,4 +1,4 @@
-// Round-4 camera accuracy helpers: YOLOX decoding, ByteTrack-style association, line-crossing hysteresis/confirmation,
+// Camera accuracy helpers (added in round 4): YOLOX decoding, ByteTrack-style association, line-crossing hysteresis/confirmation,
 // face quality gate, per-person enrolment thresholds, multi-frame consensus, booth count-only mode.
 const test = require("node:test");
 const assert = require("node:assert/strict");

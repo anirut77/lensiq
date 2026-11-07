@@ -28,6 +28,12 @@ html[lang=en] .lg-en,html[lang^=zh] .lg-zh{display:block}
 .doc li+li{margin-top:4px}
 .doc a:not(.btn){color:#3b2fc0;text-decoration:underline;text-underline-offset:3px}
 .doc .ph{background:#eef0fb;border-radius:4px;padding:0 4px;font-family:inherit;color:#2b2f6b;white-space:normal}
+.doc .ph.pend{background:none;padding:0;color:#4a5470;font-style:italic;border-bottom:1px dotted #9aa3c0;border-radius:0}
+.doc .ph.num{background:none;padding:0;border-bottom:1px dotted #9aa3c0;border-radius:0;cursor:help}
+.doc .ph[data-filled]{background:none;padding:0;font-style:normal}
+.draft.demo{border-color:#a9b8f5;border-left-color:#5b47e0;background:#f2f0ff;color:#2b2f6b}
+.draft.demo b{color:#1d1f4d}
+.draft[hidden]{display:none}
 .doc .note{margin:12px 0;padding:12px 14px;background:var(--alt);border-radius:12px;font-size:.93rem}
 .doc .tbl{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px;background:#fff;margin:10px 0}
 .doc table{width:100%;border-collapse:collapse;font-size:.88rem;min-width:560px}
@@ -61,6 +67,18 @@ html[lang=en] .lg-en,html[lang^=zh] .lg-zh{display:block}
 .sign .sign-alt{margin-top:10px;font-size:.9rem;color:#33405f}
 .sign[hidden]{display:none}
 
+/* help.html SLA table: stacked cards on phones (no sideways scroll); each cell shows its column name */
+@media(max-width:479.98px){
+  .doc .tbl.tbl-cards{overflow:visible;border:0;background:none}
+  .doc .tbl-cards table{min-width:0}
+  .doc .tbl-cards thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .doc .tbl-cards table,.doc .tbl-cards tbody,.doc .tbl-cards tr,.doc .tbl-cards td{display:block;width:100%}
+  .doc .tbl-cards tr{background:#fff;border:1px solid var(--line);border-radius:12px;margin:0 0 10px;padding:6px 0}
+  .doc .tbl-cards td{border:0;padding:5px 14px}
+  .doc .tbl-cards td::before{content:attr(data-label);display:block;font-size:.76rem;font-weight:600;color:var(--muted)}
+  .doc .tbl-cards td:first-child{font-weight:600;color:var(--navy)}
+  .doc .tbl-cards td:first-child::before{display:none}
+}
 @media (pointer:coarse){.toc a{min-height:44px}}
 @media(max-width:600px){.doc{padding:28px 16px 48px}.toc ol{columns:1}.sign{padding:18px 16px}}
 @media print{

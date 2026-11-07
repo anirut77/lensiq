@@ -245,6 +245,34 @@
     document.querySelectorAll("[data-plan]").forEach(function (a) {
       a.addEventListener("click", function () { $("lqPlan").value = a.getAttribute("data-plan"); });
     });
+    // product pages link here as index.html?interest=store#contact (retail / hr / creative / fortune)
+    try {
+      var want = new URLSearchParams(location.search).get("interest");
+      if (want && /^[a-z]{2,20}$/.test(want) && $("lqInterest").querySelector('option[value="' + want + '"]')) $("lqInterest").value = want;
+    } catch (e) { /* old browser */ }
+
+    // how the form is delivered (lensiq-leads.js): API -> sent to the team; mailto / LINE -> the visitor sends it;
+    // neither -> not sent (honest wording, stored in this browser only as before)
+    var note = document.getElementById("leadNote");
+    var mode = function () {
+      var L = /** @type {any} */ (window).LQLeads, A = /** @type {any} */ (window).LQApi;
+      if (A && A.enabled && A.enabled()) return "api";
+      var f = L ? L.fallback() : { any: false };
+      return f.any ? "fallback" : "none";
+    };
+    var showMode = function () {
+      if (!note) return;
+      var m = mode();
+      note.setAttribute("data-mode", m);
+      var b = note.querySelector("b"), sp = note.querySelector("span");
+      if (!b || !sp) return;
+      b.textContent = m === "api" ? T("home.form.mode.apiB", "ส่งถึงทีมงาน:") : T("home.form.demo.b", "โหมดเดโม:");
+      sp.textContent = m === "api" ? T("home.form.mode.api", "คำขอจะส่งถึงทีมงาน LENSIQ โดยตรง (ป้องกันบอทด้วย Cloudflare Turnstile) ใช้เพื่อติดต่อกลับเท่านั้น")
+        : m === "fallback" ? T("home.form.mode.fallback", "ระบบรับคำขอออนไลน์ยังไม่เปิด หลังกดส่ง เราจะเตรียมอีเมลหรือ LINE ให้คุณส่งถึงทีมงานเอง")
+        : T("home.form.mode.none", "ระบบรับคำขอออนไลน์ยังไม่เปิด และช่องทางติดต่อของผู้ให้บริการจะประกาศก่อนเปิดขาย แบบฟอร์มนี้จึงยังไม่ส่งข้อมูลไปที่ใด (เก็บไว้ในเบราว์เซอร์นี้เท่านั้น)");
+    };
+    window.addEventListener("load", showMode);
+    window.addEventListener("lq-lang", showMode);
 
     form.addEventListener("submit", function (e) {
       e.preventDefault();
@@ -262,19 +290,48 @@
         phone: $("lqPhone").value.trim(), interest: $("lqInterest").value, plan: $("lqPlan").value,
         message: $("lqMsg").value.trim()
       };
-      var saved = true;
-      try {
-        var list = JSON.parse(localStorage.getItem("lq-leads") || "[]");
-        if (!Array.isArray(list)) list = [];
-        list.push(lead);
-        localStorage.setItem("lq-leads", JSON.stringify(list));
-      } catch (err) { saved = false; }
-      /** @type {HTMLFormElement} */ (form).reset();
-      Object.keys(rules).forEach(function (id) { $(id).classList.remove("invalid"); $(id).removeAttribute("aria-invalid"); });
-      msg.className = "form-msg ok";
-      msg.textContent = saved
-        ? T("home.ok.saved", "ขอบคุณคุณ{name} ได้รับคำขอเดโมแล้ว (โหมดเดโม: บันทึกไว้ในเบราว์เซอร์เครื่องนี้ ไม่ได้ส่งออกไปที่ใด)", { name: lead.name })
-        : T("home.ok.unsaved", "ขอบคุณคุณ{name} ได้รับคำขอเดโมแล้ว (โหมดเดโม: เบราว์เซอร์ไม่อนุญาตให้บันทึกข้อมูล จึงไม่ได้เก็บไว้)", { name: lead.name });
+      var keepLocal = function () {
+        try {
+          var list = JSON.parse(localStorage.getItem("lq-leads") || "[]");
+          if (!Array.isArray(list)) list = [];
+          list.push(lead);
+          localStorage.setItem("lq-leads", JSON.stringify(list));
+          return true;
+        } catch (err) { return false; }
+      };
+      var done = function () {
+        /** @type {HTMLFormElement} */ (form).reset();
+        Object.keys(rules).forEach(function (id) { $(id).classList.remove("invalid"); $(id).removeAttribute("aria-invalid"); });
+      };
+      var L = /** @type {any} */ (window).LQLeads;
+      var btn = /** @type {HTMLButtonElement|null} */ (form.querySelector("button[type=submit]"));
+      if (btn) btn.disabled = true;
+      msg.textContent = T("home.form.sending", "กำลังส่ง…");
+      var sent = L ? L.submit(Object.assign({}, lead, { source: "index", lang: window.LQI18N ? window.LQI18N.lang : "th" }), { subject: "LENSIQ demo request" }) : Promise.resolve({ via: "none", ok: false });
+      sent.then(function (/** @type {any} */ r) {
+        if (btn) btn.disabled = false;
+        msg.textContent = "";
+        if (r && r.ok) {
+          done();
+          msg.className = "form-msg ok";
+          msg.textContent = T("home.ok.sent", "ขอบคุณคุณ{name} ส่งคำขอเดโมถึงทีมงานแล้ว ทีมงานจะติดต่อกลับทางอีเมลที่ให้ไว้", { name: lead.name });
+          return;
+        }
+        var saved = keepLocal();
+        if (r && (r.href || r.line)) {
+          // not sent yet: the visitor's own mail app / LINE sends it — say so plainly
+          msg.className = "form-msg";
+          msg.appendChild(document.createTextNode(T("home.ok.fallback", "ยังไม่ได้ส่ง: ระบบรับคำขอออนไลน์ยังไม่เปิด กดส่งต่อทางอีเมลหรือ LINE ด้านล่างเพื่อให้ถึงทีมงาน", { name: lead.name }) + " "));
+          if (r.href) { var a = document.createElement("a"); a.href = r.href; a.className = "btn ghost"; a.textContent = T("home.ok.mailto", "ส่งทางอีเมล"); msg.appendChild(a); msg.appendChild(document.createTextNode(" ")); }
+          if (r.line) { var b2 = document.createElement("a"); b2.href = r.line; b2.target = "_blank"; b2.rel = "noopener"; b2.className = "btn ghost"; b2.textContent = T("home.ok.line", "แชตทาง LINE {id}", { id: r.lineId || "" }); msg.appendChild(b2); }
+          return;
+        }
+        done();
+        msg.className = "form-msg ok";
+        msg.textContent = saved
+          ? T("home.ok.notSent", "ขอบคุณคุณ{name} — ยังไม่ได้ส่งคำขอนี้: ระบบรับคำขอออนไลน์และช่องทางติดต่อของผู้ให้บริการจะประกาศก่อนเปิดขาย (บันทึกไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น)", { name: lead.name })
+          : T("home.ok.unsaved", "ขอบคุณคุณ{name} ได้รับคำขอเดโมแล้ว (โหมดเดโม: เบราว์เซอร์ไม่อนุญาตให้บันทึกข้อมูล จึงไม่ได้เก็บไว้)", { name: lead.name });
+      });
     });
   }
 

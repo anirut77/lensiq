@@ -1,10 +1,12 @@
 /* i18n/en-signage.js — English for signage.html (mirrors zh-signage.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
+  "signage.licb": "Research-licence models",
+  "signage.lic": "Faces are analysed with face-api.js models (MIT code) trained on datasets licensed for research only. Commercial use has not been cleared by a lawyer — check the licence before commercial use",
   "signage.s1": "Digital Signage | LENSIQ",
   "signage.s2": "Digital Signage",
   "signage.s3": "Signage that picks content for the audience in front of the screen, measures attention and viewing anonymously, and offers a touch-free gesture kiosk. Processed on-device; no images are stored.",
   "signage.s4": "Estimate",
-  "signage.s5": "Age/gender tested on UTKFace images: mean age error 5 years, age-band accuracy 79%, gender accuracy 96% (Asian faces 92%); about 1 in 5 images has no face detected · Kiosk: raised hands detected in 88% of HaGRID images (open-palm gesture 95%). For understanding the audience as a whole, not individuals",
+  "signage.s5": "Age/gender tested on UTKFace images: mean age error 5 years, age-band accuracy 79%, gender accuracy 96% (Asian faces 92%); about 1 in 5 images has no face detected — these figures are optimistic because the model was partly trained on this set · Kiosk: raised hands detected in 88% of HaGRID images (open-palm gesture 95%). For understanding the audience as a whole, not individuals",
   "signage.s6": "Method and limitations",
   "signage.s7": "Mode",
   "signage.s8": "Signage",

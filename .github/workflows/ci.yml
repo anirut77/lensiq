@@ -1,6 +1,7 @@
 # LENSIQ CI — lint + typecheck + unit (Node), server tests (Python), end-to-end (headless Chrome, no WebGL),
 # privacy (no third-party requests), i18n coverage, Git LFS readiness.
-# The site itself is static (GitHub Pages); this workflow only tests it.
+# The site itself is static (GitHub Pages); this workflow only tests it. pages-lfs.yml deploys ONLY after this workflow
+# succeeds for a push to main (workflow_run gate). Actions are pinned to commit SHAs (Dependabot: .github/dependabot.yml).
 name: CI
 
 on:
@@ -22,18 +23,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # Git LFS (docs/LFS-MIGRATION.md): cached by object list; no-ops while vendor/ is still plain git
       - name: LFS object list (cache key)
         run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
-      - uses: actions/cache@v4
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .git/lfs
           key: lfs-${{ hashFiles('.lfs-assets-id') }}
       - run: git lfs pull
       - name: no LFS pointer files in the working tree
         run: node tools/check-lfs.mjs
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
@@ -44,10 +45,11 @@ jobs:
       - name: unit tests (includes backend/ Worker — auth, analytics validation, retention, entitlements, Opn webhook, AI proxy — on an in-memory D1 shim)
         run: npm run test:unit
       # Ratchet: type errors across ALL root *.js (npm run typecheck:report) may only go down. When you fix files, lower
-      # TYPECHECK_MAX to the new total in the same commit; never raise it.
+      # TYPECHECK_MAX to the new total in the same commit; never raise it. Lower it at the end of EVERY round:
+      #   round 10: 800 (measured 790)   round 11: 714 (palm.js 46 -> 0 and gated; pricing/account/report/legal/leads gated)
       - name: typecheck ratchet — total errors in the full report must not rise
         env:
-          TYPECHECK_MAX: "800"
+          TYPECHECK_MAX: "714"
         run: |
           npm run --silent typecheck:report | tee typecheck-report.txt
           total=$(sed -nE 's/^([0-9]+) error\(s\) in .*/\1/p' typecheck-report.txt | tail -1)
@@ -63,21 +65,27 @@ jobs:
           npm ci --no-audit --no-fund
           node scripts/build-admin.mjs
           npx wrangler deploy --dry-run --outdir "$RUNNER_TEMP/worker-dist"
-          test -s "$RUNNER_TEMP/worker-dist/index.js"
+          test -s "$RUNNER_TEMP/worker-dist/worker.js"
+      # Round 11: the Worker in the REAL runtime (workerd via Miniflare from backend/node_modules) with a real local D1,
+      # the real migrations and a faked Opn / Google / Turnstile — checkout -> webhook -> receipt -> refund -> credit note.
+      - name: API Worker integration (workerd + local D1)
+        run: npm run test:integration
       - name: CSP <meta> present and current on every page
         run: node tools/csp-meta.mjs --check
       - name: no Google Fonts / third-party font references (fonts are self-hosted)
         run: node tools/self-host-fonts.mjs --check
       - name: published site contains no server code / tests / tools / docs / package.json / *.py (allowlist build)
         run: node tools/build-site.mjs && node tools/check-site.mjs --static
+      - name: legal pages have no raw [placeholders]; seller details complete whenever billing is on
+        run: node tools/check-legal.mjs
 
   python:
     name: Server tests (Python 3.11)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.11"
           cache: pip
@@ -92,20 +100,20 @@ jobs:
     env:
       CI: "1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # Git LFS (docs/LFS-MIGRATION.md): cached by object list; no-ops while vendor/ is still plain git
       - name: LFS object list (cache key)
         run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
-      - uses: actions/cache@v4
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .git/lfs
           key: lfs-${{ hashFiles('.lfs-assets-id') }}
       - run: git lfs pull
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.11"
           cache: pip
@@ -115,7 +123,7 @@ jobs:
           python -m venv .venv
           .venv/bin/pip install -r requirements.txt
       - id: chrome
-        uses: browser-actions/setup-chrome@v1
+        uses: browser-actions/setup-chrome@48ad923757ca74d66703209fe939badbdf80f2f4 # v2.2.0
         with:
           chrome-version: stable
       - run: npm ci
@@ -130,6 +138,16 @@ jobs:
           for w in 320 360 390; do
             node tools/mobile-audit.mjs --width $w --strict --checks overflow,contrast,unlabeled,errors --details || exit 1
           done
+        env:
+          LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
+      # English and Chinese strings are longer / wider than Thai: the same page can overflow at 360 px only in EN
+      # (driver.html, round 10). Touch targets (>= 44 x 44 CSS px, WCAG 2.5.5) are gated here too.
+      - name: phone gate — 360 px in TH / EN / 中文 and 390 px TH (overflow, touch targets >= 44 px, contrast)
+        run: |
+          for lang in th en zh; do
+            node tools/mobile-audit.mjs --width 360 --lang $lang --strict --checks overflow,targets,contrast --details || exit 1
+          done
+          node tools/mobile-audit.mjs --width 390 --lang th --strict --checks overflow,targets,contrast --details
         env:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
       - name: e2e (one retry per failing file)
@@ -161,20 +179,30 @@ jobs:
         run: node tools/zh-coverage.mjs --top 10 --json zh-coverage.json
         env:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
+      - name: Latin-only leftovers on Thai and 中文 pages (report only — untranslated English / technical wording)
+        if: always()
+        run: |
+          node tools/zh-coverage.mjs --latin --lang th --no-interact --json latin-th.json
+          node tools/zh-coverage.mjs --latin --lang zh --no-interact --json latin-zh.json
+        env:
+          LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
       - name: phone layout report (390 px)
         if: always()
         run: node tools/mobile-audit.mjs --json mobile-audit.json
         env:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: mobile-audit
           path: mobile-audit.json
           if-no-files-found: ignore
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: zh-coverage
-          path: zh-coverage.json
+          path: |
+            zh-coverage.json
+            latin-th.json
+            latin-zh.json
           if-no-files-found: ignore

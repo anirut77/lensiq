@@ -315,6 +315,24 @@ test("export (portability) and deletion (erasure): payments kept but unlinked fo
   const t = nowS();
   await env.DB.prepare("INSERT INTO customers (id, email, created_at, user_id) VALUES ('c1', ?1, ?2, ?3)").bind(EMAIL, t, s.user.id).run();
   await env.DB.prepare("INSERT INTO payments (id, customer_id, kind, livemode, amount_satang, subtotal_satang, vat_satang, vat_rate_bp, status, receipt_no, buyer_name, buyer_email, created_at, updated_at, user_id) VALUES ('p'||hex(randomblob(15)),'c1','checkout',0,99000,99000,0,0,'successful','LQ-202611-000001','ร้าน', ?1, ?2, ?2, ?3)").bind(EMAIL, t, s.user.id).run();
+  // round 11: export + erasure need a FRESH Google confirmation of the same account (a bearer token alone is not enough)
+  const noFresh = await call("/api/me/export", { token });
+  assert.equal(noFresh.status, 401); assert.equal(noFresh.j.code, "reauth_required");
+  assert.equal((await call("/api/me", { method: "DELETE", token, body: { confirm: "DELETE" } })).status, 401, "erasure needs a fresh confirmation");
+  const cred = async over => {
+    const n = await call("/api/auth/nonce", { method: "POST", body: {} });
+    return { credential: jwt(claims({ nonce: n.j.nonce, ...over }), K1), nonce: n.j.nonce };
+  };
+  const wrong = await call("/api/auth/reauth", { method: "POST", token, body: await cred({ sub: "999" }) });
+  assert.equal(wrong.status, 403); assert.equal(wrong.j.code, "reauth_wrong_account");
+  const stale = await call("/api/auth/reauth", { method: "POST", token, body: await cred({ iat: nowS() - 900, auth_time: nowS() - 900 }) });
+  assert.equal(stale.status, 401); assert.equal(stale.j.code, "reauth_stale");
+  const reused = await cred({});
+  const inline = await call("/api/me/export", { method: "POST", token, body: reused });
+  assert.equal(inline.status, 200, "POST export with an inline fresh confirmation");
+  assert.equal((await call("/api/me/export", { method: "POST", token, body: reused })).status, 401, "nonce is single use");
+  const ok = await call("/api/auth/reauth", { method: "POST", token, body: await cred({}) });
+  assert.equal(ok.status, 200, JSON.stringify(ok.j)); assert.equal(ok.j.valid_for, 300);
   const ex = await call("/api/me/export", { token });
   assert.equal(ex.status, 200);
   assert.match(ex.r.headers.get("Content-Disposition"), /attachment/);
@@ -342,7 +360,7 @@ test("export (portability) and deletion (erasure): payments kept but unlinked fo
 test("checkout: membership on -> sign-in required; payment, customer and subscription linked to user_id", async () => {
   const { signIn, call, env, requireMembership } = await setup({ FREE_MODE: "false", BILLING_ENABLED: "true", OPN_SECRET_KEY: TEST_KEY });
   await env.DB.prepare("UPDATE plans SET status = 'active' WHERE id = 'pro'").run();
-  const body = { plan_id: "pro", period: "month", accept_terms: true, buyer: { name: "ร้าน" } };
+  const body = { plan_id: "pro", period: "month", accept_terms: true, age_confirm: "adult", buyer: { name: "ร้าน" } };
   const hdr = { "X-Turnstile-Token": "good:checkout" };
   const forced = await call("/v1/billing/checkout", { method: "POST", headers: hdr, body });
   assert.equal(forced.status, 401, "round 10: billing on -> a member is required even with membership off");
@@ -395,6 +413,9 @@ test("admin: members list/search, disable revokes sessions, membership settings 
   const info = await A("/membership");
   assert.equal(info.j.settings.membership_required, false);
   assert.equal(info.j.google_client_id_set, true);
+  const na = await A("/membership", { method: "PUT", body: { settings: { member_ai_daily: 5 } } });
+  assert.equal(na.status, 403, "round 11: membership edits need re-auth"); assert.equal(na.j.code, "reauth_required");
+  assert.equal((await A("/reauth", { method: "POST", body: { password: ADMIN_PW } })).status, 200);
   assert.equal((await A("/membership", { method: "PUT", body: { settings: { member_ai_daily: -1 } } })).status, 400);
   assert.equal((await A("/membership", { method: "PUT", body: { settings: { bogus: 1 } } })).status, 400);
   assert.equal((await A("/membership", { method: "PUT", body: { plan_ai_quotas: { free: 9 } } })).status, 400);

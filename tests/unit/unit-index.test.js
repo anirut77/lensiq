@@ -18,3 +18,16 @@ test("tests/unit/index.js discovers every *.test.js (none can be forgotten)", ()
   assert.ok(loaded.includes("unit-index.test.js") && loaded.includes("interview.test.js") && loaded.includes("teamface.test.js"));
   assert.ok(!/require\("\.\/[\w-]+\.test\.js"\)/.test(src), "no hand-maintained list");
 });
+
+// Test files are named after the feature they cover, not the agent round that added them (round history lives in
+// CHANGELOG.md). Round-named files still waiting to be folded into a feature suite are listed here; the list may only
+// shrink — rename a file (keeping every test) and delete its entry.
+const ROUND_NAMED_PENDING = new Set([
+  "backend-billing-r10.test.js", "backend-r11.test.js", "camera-r11.test.js", "commercial-r11.test.js",
+  "stats-r10.test.js", "stats-r11.test.js", "studio-r11.test.js"
+]);
+test("unit test files are feature-named: no new *-rN.test.js / round-N file", () => {
+  const files = fs.readdirSync(__dirname).filter(f => f.endsWith(".test.js"));
+  const round = files.filter(f => /(?:^|-)r\d+(?:-|\.test\.js$)|round-?\d/i.test(f));
+  assert.deepEqual(round.filter(f => !ROUND_NAMED_PENDING.has(f)), [], "name the file after its feature (e.g. fortune-grounding.test.js)");
+});

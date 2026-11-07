@@ -1776,11 +1776,11 @@ if (typeof document !== "undefined") (() => {
       camera: run.name, source: run.file ? "video file" : "live camera", startedAt: new Date(run.startedAt).toISOString(), durationSec: Math.round(Math.max(0, ...T.map(e => e.t), ...Sy.map(e => e.t)) / 1000),
       settings: { line: run.line, swap: run.swap, tiles: run.tiles, reid: !!G.reid, detector: detName || "", backend: delegateUsed || "" },
       conditions: stats, truth: T, system: Sy, distinctPeople: null, distinctPeopleNote: "door crossings by unidentified people (a person may cross more than once)",
-      report: { verdict: rep.verdict, provisional: rep.provisional, need: rep.need, n: rep.n, lagMs: rep.lagMs, net: rep.net, netCI: rep.netCI, precision: rep.precision, recall: rep.recall, dirAcc: rep.dirAcc, byDir: rep.byDir, recs: rep.recs }
+      report: { verdict: rep.verdict, provisional: rep.provisional, pilot: rep.pilot ? rep.pilot.verdict : null, need: rep.need, n: rep.n, lagMs: rep.lagMs, net: rep.net, netCI: rep.netCI, precision: rep.precision, recall: rep.recall, dirAcc: rep.dirAcc, byDir: rep.byDir, recs: rep.recs }
     });
     scPanel.exp.hidden = false;
     scPanel.exp.onclick = () => SITE.download(`lensiq-store-check-${dayKey(run.startedAt)}.json`, doc);
-    scHist.add({ at: run.startedAt, verdict: rep.verdict, provisional: rep.provisional, need: rep.need, cam: run.name, summary: SITE.fmt("{a}: ระบบ {b} / คนนับ {c} · แม่นยำ {d}", { a: run.name, b: rep.n.sys, c: rep.n.truth, d: rep.precision.p == null ? "—" : (rep.precision.p * 100).toFixed(0) + "%" }) });
+    scHist.add({ at: run.startedAt, verdict: rep.verdict, provisional: rep.provisional, pilot: rep.pilot ? rep.pilot.verdict : null, need: rep.need, cam: run.name, summary: SITE.fmt("{a}: ระบบ {b} / คนนับ {c} · แม่นยำ {d}", { a: run.name, b: rep.n.sys, c: rep.n.truth, d: rep.precision.p == null ? "—" : (rep.precision.p * 100).toFixed(0) + "%" }) });
     scHist.render(scPanel.hist);
     SCLAST = { rep, doc };
   }

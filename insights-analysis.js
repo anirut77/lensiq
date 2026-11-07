@@ -5,7 +5,7 @@
   else root.LQInsightsAnalysis = factory(root.LQInsightsData, root.LQStats);
 })(typeof self !== "undefined" ? self : this, function (M_data, LQStats) {
 "use strict";
-  const { iqT, IQ_DAY, iqDay, iqDayStart, iqAddDays, iqSum, iqEarliest, iqInT, iqMetrics, iqKpis, iqBuckets, iqSeries, iqTrimHours } = M_data;
+  const { iqT, IQ_DAY, iqDay, iqDayStart, iqAddDays, iqSum, iqEarliest, iqInT, iqKpis, iqBuckets, iqSeries, iqTrimHours } = M_data;
 
 /* ================= การวิเคราะห์เชิงสถิติ + แปลผลภาษาไทย (ไม่ใช้ DOM) =================
    ใช้ lensiq-stats.js (LQStats) ; ทุกข้อความสร้างจากตัวเลขที่คำนวณได้จริงเท่านั้น ข้อมูลไม่พอ = บอกตรง ๆ ว่า "ข้อมูลยังน้อย" */
@@ -126,7 +126,9 @@ function iqAnalyze(D, r, opt = {}) {
     const ch = iqFin(t.adjChange) ? t.adjChange : t.change;
     // ข้อมูลพอไหม: ผลต่างที่ตรวจจับได้ตอนนี้ และต้องเก็บอีกกี่วันถึงจะจับการเปลี่ยนขนาด max(10%, ที่เห็น) ได้ราว 80% ของครั้ง
     const plan = S.planMore({ lo: t.lo, hi: t.hi, days: Math.max(1, Math.round(t.e1)), target: Math.max(0.1, Math.abs(ch || 0)), scale: "log" });
-    return { ...t, cur: t.c1, prev: t.c2, level: S.confLevel(t.p, enough), enough, plan, kind: "count" };
+    // ดูซ้ำทุกวัน (round 11): always-valid p (mixture SPRT, τ = 15% บน log scale) — ใช้กับข้อความ “ถ้าเปิดดูทุกวัน” และการแจ้งเตือน
+    const pSeq = iqFin(t.lo) && iqFin(t.hi) && t.adjRatio > 0 ? S.seqP(Math.log(t.adjRatio), t.p, S.SEQ.tauLog) : 1;
+    return { ...t, cur: t.c1, prev: t.c2, level: S.confLevel(t.p, enough), enough, plan, kind: "count", pSeq, levelSeq: S.confLevel(pSeq, enough) };
   };
   const rateTest = (xa, na) => {
     if (!r.prev) return null;
@@ -137,7 +139,8 @@ function iqAnalyze(D, r, opt = {}) {
     const dA = daily(r.from, r.to), t = S.twoPropDaily(dA, daily(r.prev.from, r.prev.to)); if (!t) return null;
     const enough = !A.short && n1 >= 30 && n2 >= 30;
     const plan = S.planMore({ lo: t.lo, hi: t.hi, days: Math.max(1, dA.length), target: Math.max(Math.abs(t.diff), 0.1 * t.p2), scale: "lin" });
-    return { ...t, change: t.p2 > 0 ? t.diff / t.p2 : null, level: S.confLevel(t.p, enough), enough, plan, kind: "rate" };
+    const pSeq = t.p2 > 0 ? S.seqP(t.diff, t.p, S.SEQ.tauRel * t.p2) : 1;
+    return { ...t, change: t.p2 > 0 ? t.diff / t.p2 : null, level: S.confLevel(t.p, enough), enough, plan, kind: "rate", pSeq, levelSeq: S.confLevel(pSeq, enough) };
   };
   A.countTest = countTest; A.rateTest = rateTest;
 
@@ -152,15 +155,15 @@ function iqAnalyze(D, r, opt = {}) {
   };
   K.forEach(k => {
     k.spark = sparkOf(k.id);
-    if (k.id === "store") { k.test = countTest(H.storeIn); const ci = S.meanCI(iqWin(H, H.storeIn, r.from, fullEnd)); if (ci && ci.lo != null && ci.n >= 3) k.ci = { text: iqT("iq.kpi.ci.store", "เฉลี่ย {m}/วัน (95%: {lo}–{hi})", { m: iqN(ci.mean), lo: iqN(Math.max(0, ci.lo)), hi: iqN(ci.hi) }) }; }
+    if (k.id === "store") { k.test = countTest(H.storeIn); const ci = iqDailyCI(H, H.storeIn, r.from, fullEnd); if (ci && ci.lo != null && ci.n >= 3) k.ci = { text: iqT("iq.kpi.ci.store", "เฉลี่ย {m}/วัน (95%: {lo}–{hi})", { m: iqN(ci.mean), lo: iqN(Math.max(0, ci.lo)), hi: iqN(ci.hi) }) }; }
     if (k.id === "booth") k.test = countTest(H.booth);
     if (k.id === "att") k.test = countTest(H.att);
     if (k.id === "cx") { const t = countTest(H.cx); k.test = t ? { ...t, what: "ลูกค้าที่จดจำต่อวัน" } : null; }
     if (k.id === "co") { const t = countTest(H.bills); k.test = t ? { ...t, what: "จำนวนบิล" } : null; }
     if (k.id === "co" || k.id === "cx") {
-      const ci = S.meanCI(iqWin(H, H.revenue, r.from, fullEnd)); if (ci && ci.lo != null && ci.n >= 3 && k.id === "co") k.ci = { text: iqT("iq.kpi.ci.co", "ยอดรวมทุกช่องทางเฉลี่ย {m}/วัน (95%: {lo}–{hi})", { m: iqB(ci.mean), lo: iqB(Math.max(0, ci.lo)), hi: iqB(ci.hi) }) };
+      const ci = iqDailyCI(H, H.revenue, r.from, fullEnd); if (ci && ci.lo != null && ci.n >= 3 && k.id === "co") k.ci = { text: iqT("iq.kpi.ci.co", "ยอดรวมทุกช่องทางเฉลี่ย {m}/วัน (95%: {lo}–{hi})", { m: iqB(ci.mean), lo: iqB(Math.max(0, ci.lo)), hi: iqB(ci.hi) }) };
     }
-    if (k.id === "qc") { const M = iqMetrics(D, r).qc, w = M && M.total ? S.wilson(M.pass, M.total) : null; if (w) k.ci = { text: `95%: ${iqP(w.lo, 1)}–${iqP(w.hi, 1)}` }; }
+    if (k.id === "qc") { const w = iqQcCI(D, r); if (w) k.ci = { text: `95%: ${iqP(w.lo, 1)}–${iqP(w.hi, 1)}` + (w.method === "quasi-binomial" ? iqT("iq.kpi.ci.qcb", " (รวมความผันผวนระหว่างช่วงในกะ)") : "") }; }
     if (k.id === "sg" && D.sg) { const w = S.wilson(Math.min(D.sg.totals.viewers || 0, D.sg.totals.ots || 0), D.sg.totals.ots || 0); if (w) k.ci = { text: iqT("iq.kpi.ci.sg", "อัตรามอง {p} (95%: {lo}–{hi})", { p: iqP(w.p), lo: iqP(w.lo), hi: iqP(w.hi) }) }; }
     if (k.id === "dr" && D.dr) { const ci = S.meanCI(D.dr.trips.filter(t => iqInT(t.t, r)).map(t => t.safety)); if (ci && ci.lo != null && ci.n >= 3) k.ci = { text: `95%: ${iqN(Math.max(0, ci.lo))}–${iqN(Math.min(100, ci.hi))}` }; }
     if (k.id === "neuro" && D.neuro) { const ci = S.meanCI(D.neuro.filter(s => iqInT(s.t, r)).map(s => s.positive)); if (ci && ci.lo != null && ci.n >= 3) k.ci = { text: `95%: ${iqP(Math.max(0, ci.lo))}–${iqP(Math.min(1, ci.hi))}` }; }
@@ -233,7 +236,11 @@ function iqAnalyze(D, r, opt = {}) {
 
   // ---------- A/B ----------
   A.ab = {};
-  if (D.sg && D.sg.ads.length >= 2) A.ab.sg = S.abRates(D.sg.ads.filter(a => a.ots > 0 && a.viewers <= a.ots).map(a => ({ id: a.id, name: a.title, x: a.viewers, n: a.ots })), { minN: 30 });
+  // round 11: ทดสอบบนยอดแยก วัน × ช่วงเวลา (abRatesStrata) — ไม่ให้ “เล่นคนละช่วงเวลา” กลายเป็น “โฆษณาต่างกัน” ; ไม่มีข้อมูลแยก/เล่นร่วมช่วงกันน้อย = ป้ายไม่เกิน “ยังไม่แน่”
+  if (D.sg && D.sg.ads.length >= 2) {
+    A.ab.sg = S.abRatesStrata(D.sg.ads.filter(a => a.ots > 0 && a.viewers <= a.ots).map(a => ({ id: a.id, name: a.title, x: a.viewers, n: a.ots, strata: a.strata || null })), { minN: 30 });
+    A.ab.sg.strataInfo = D.sg.strataInfo || null;
+  }
   if (D.neuro) {
     const g = new Map();
     D.neuro.filter(s => iqInT(s.t, r) || r.preset === "all").forEach(s => { const k = s.test || "–"; (g.get(k) || g.set(k, []).get(k)).push(s.positive); });
@@ -299,6 +306,32 @@ function iqAnalyze(D, r, opt = {}) {
   return A;
 }
 
+const IQ_LV_ORDER = ["insufficient", "none", "weak", "moderate", "strong"];
+/** ป้ายความมั่นใจไม่เกิน cap (เช่น A/B ป้ายโฆษณาที่เล่นร่วมช่วงเวลากันน้อย → ไม่เกิน "weak") */
+const iqCapLevel = (lv, cap) => (cap && IQ_LV_ORDER.indexOf(lv) > IQ_LV_ORDER.indexOf(cap) ? cap : lv);
+/** ค่าเฉลี่ยต่อวันของช่วง [from, to] ปรับวันในสัปดาห์ + เผื่อวันที่ติดกันคล้ายกัน (LQStats.dailyMeanCI ; round 11 — เดิม meanCI ธรรมดา) */
+function iqDailyCI(H, arr, from, to) {
+  const ks = iqWinKeys(H, from, to), v = iqWin(H, arr, from, to);
+  return IQ_ST.dailyMeanCI ? IQ_ST.dailyMeanCI(v, ks.map(iqWdOf)) : IQ_ST.meanCI(v.filter(iqFin));
+}
+/** อัตราผ่าน QC พร้อมช่วง 95% ที่เผื่อขวดในช่วงเดียวกันของกะไม่อิสระต่อกัน (round 11)
+    บันทึกรายขวดครบ (≥ 90% ของยอด และ ≥ 40 ขวด) → แบ่งเป็นช่วงติดกัน ~12 ช่วง (อย่างน้อย 20 ขวด/ช่วง) แล้วใช้ quasiBinomCI บนช่วง
+    (เครื่องจักร/ล็อตวัตถุดิบเปลี่ยนระหว่างกะ → ช่วงต่อช่วงต่างกันเกิน binomial) ; บันทึกไม่ครบ = Wilson บนยอดรวม (method "wilson")
+    r = ช่วงที่เลือก (null = ทั้งกะ) ; คืน { p, lo, hi, x, n, method, blocks, phi } */
+function iqQcCI(D, r) {
+  if (!D.qc) return null;
+  const all = !r || r.preset === "all", L = (D.qc.log || []).filter(l => l && iqFin(l.t) && (all || iqInT(l.t, r))).sort((a, b) => a.t - b.t);
+  const M = all ? { pass: D.qc.pass, total: D.qc.total } : { pass: L.filter(l => l.pass).length, total: L.length };
+  if (!(M.total > 0)) return null;
+  if (L.length >= 40 && L.length >= 0.9 * M.total) {
+    const B = Math.max(20, Math.ceil(L.length / 12)), blocks = [];
+    for (let i = 0; i < L.length; i += B) { const b = L.slice(i, i + B); blocks.push({ x: b.filter(l => l.pass).length, n: b.length }); }
+    const q = IQ_ST.quasiBinomCI(blocks);
+    if (q && q.method === "quasi-binomial") return { ...q, blocks: blocks.length };
+  }
+  const w = IQ_ST.wilson(M.pass, M.total);
+  return w && { ...w, method: "wilson", blocks: 0, phi: 1 };
+}
 /** ทุกการทดสอบที่หน้านี้แสดงป้ายความมั่นใจ (KPI เทียบช่วงก่อน, อัตราซื้อ, แยกกล้อง, ความสัมพันธ์, A/B) ถือเป็นชุดเดียวกัน
     ปรับด้วย Benjamini–Hochberg (คุมสัดส่วนข้อสรุปผิดในบรรดาข้อที่บอกว่า “ต่างชัด” ไม่ให้เกินราว 5%) แล้วตั้งระดับจาก q
     การทดสอบเดียวกันที่แสดงหลายที่ (เช่น จำนวนบิลใน KPI สองใบ) นับครั้งเดียว ; ข้อที่ข้อมูลยังน้อยไม่นับและเป็น "insufficient" */
@@ -317,7 +350,7 @@ function iqAdjustTests(A) {
   const q = S.adjustP(keys.map(k => fam.get(k)[0].p), "BH"), m = keys.length;
   fam.forEach((ts, key) => {
     const i = keys.indexOf(key);
-    ts.forEach(t => { t.q = i >= 0 ? q[i] : null; t.m = m; t.level = i >= 0 ? S.confLevel(q[i], true) : "insufficient"; });
+    ts.forEach(t => { t.q = i >= 0 ? q[i] : null; t.m = m; t.level = i >= 0 ? iqCapLevel(S.confLevel(q[i], true), t.cap) : "insufficient"; t.capped = !!(t.cap && i >= 0 && t.level !== S.confLevel(q[i], true)); });
   });
   A.multi = { m, method: "BH" };
   return A.multi;
@@ -421,18 +454,20 @@ function iqMoreForRate(p, n, target, conf = 0.95, max = 1e6) {
   return need > max ? null : Math.max(0, need - n);
 }
 function iqGoals(D, A, goals) {
-  const S = IQ_ST, out = [], r = A.r, H = A.H, win = arr => iqWin(H, arr, r.from, A.fullEnd < r.from ? r.to : A.fullEnd).filter(iqFin);
+  const S = IQ_ST, out = [], r = A.r, H = A.H;
   const avgCI = v => { const c = S.meanCI(v); return c ? { est: c.mean, lo: c.lo, hi: c.hi, n: c.n } : null; };
+  // ต่อวัน (round 11): ปรับวันในสัปดาห์ + เผื่อวันที่ติดกันคล้ายกัน — เดิม meanCI ธรรมดา (สัปดาห์ไม่ครบเอียง, วันที่ติดกันคล้ายกัน → มั่นใจเกิน)
+  const dayCI = arr => { const c = iqDailyCI(H, arr, r.from, A.fullEnd < r.from ? r.to : A.fullEnd); return c ? { est: c.mean, lo: c.lo, hi: c.hi, n: c.n, method: c.method, weekdayAdj: c.weekdayAdj } : null; };
   IQ_GOAL_DEFS.forEach(g => {
     const t = +goals[g.id]; if (!(t > 0)) return;
     let ci = null, target = t;
-    if (g.id === "storeInDay" && D.store) ci = avgCI(win(H.storeIn));
-    if (g.id === "revenueDay" && (D.co || D.cx)) ci = avgCI(win(H.revenue));
+    if (g.id === "storeInDay" && D.store) ci = dayCI(H.storeIn);
+    if (g.id === "revenueDay" && (D.co || D.cx)) ci = dayCI(H.revenue);
     if (g.id === "convPct" && A.conv) { ci = { est: A.conv.ci.p, lo: A.conv.ci.lo, hi: A.conv.ci.hi, n: A.conv.n }; target = t / 100; }
-    if (g.id === "qcYieldPct" && D.qc) { const M = iqMetrics(D, r).qc, w = M && M.total ? S.wilson(M.pass, M.total) : null; ci = w ? { est: w.p, lo: w.lo, hi: w.hi, n: M.total } : null; target = t / 100; }
+    if (g.id === "qcYieldPct" && D.qc) { const w = iqQcCI(D, r); ci = w ? { est: w.p, lo: w.lo, hi: w.hi, n: w.n, method: w.method } : null; target = t / 100; }
     if (g.id === "safetyMin" && D.dr) ci = avgCI(D.dr.trips.filter(x => iqInT(x.t, r)).map(x => x.safety).filter(iqFin));
     const actual = ci ? ci.est : null, status = ci ? iqVsTarget(ci.est, ci.lo, ci.hi, target) : null;
-    out.push({ ...g, target, actual, lo: ci ? ci.lo : null, hi: ci ? ci.hi : null, n: ci ? ci.n : 0, progress: actual != null ? actual / target : null, status, met: status === "above" });
+    out.push({ ...g, target, actual, lo: ci ? ci.lo : null, hi: ci ? ci.hi : null, n: ci ? ci.n : 0, method: ci ? ci.method || "t" : null, progress: actual != null ? actual / target : null, status, met: status === "above" });
   });
   return out;
 }
@@ -443,6 +478,13 @@ function iqAlertRules(raw) {
   const o = { ...IQ_ALERT_DEFAULTS };
   if (raw && typeof raw === "object") for (const k of Object.keys(IQ_ALERT_DEFAULTS)) if (k in raw) o[k] = k === "notify" ? !!raw[k] : (raw[k] === null || raw[k] === "" ? null : (+raw[k] >= 0 ? +raw[k] : o[k]));
   return o;
+}
+/** ระดับความมั่นใจของการทดสอบที่ระบบประเมินซ้ำทุกวัน (round 11): ระดับที่ใช้ = ต่ำกว่าระหว่าง p ครั้งเดียว กับ always-valid p (mixture SPRT)
+    t = ผลของ twoPropDaily ; คืน { level, fixed (ระดับจาก p ครั้งเดียว), pSeq } */
+function iqSeqClear(t, enough = true) {
+  const S = IQ_ST, fixed = S.confLevel(t.p, enough), pSeq = t.p2 > 0 ? S.seqP(t.diff, t.p, S.SEQ.tauRel * t.p2) : 1;
+  const seq = S.confLevel(pSeq, enough);
+  return { level: IQ_LV_ORDER.indexOf(seq) < IQ_LV_ORDER.indexOf(fixed) ? seq : fixed, fixed, pSeq };
 }
 function iqEvalAlerts(D, A, raw) {
   const R = iqAlertRules(raw), out = [], today = A.today;
@@ -460,22 +502,27 @@ function iqEvalAlerts(D, A, raw) {
       // รายวัน → quasi-binomial (คนในวันเดียวกันไม่เป็นอิสระต่อกัน) แทนการนับทีละคน
       const daily = (f, to) => H.keys.map((k, i) => (k >= f && k <= to && iqFin(bills[i]) && iqFin(ins[i]) && ins[i] > 0 && bills[i] <= ins[i] ? { x: bills[i], n: ins[i] } : null)).filter(Boolean);
       const t = IQ_ST.twoPropDaily(daily(a0, e), daily(b0, b1));
-      const rel = t && t.p2 > 0 ? t.diff / t.p2 : 0, lv = t ? IQ_ST.confLevel(t.p, n1 >= 30 && n2 >= 30 && t.days >= 8) : "insufficient";
+      const rel = t && t.p2 > 0 ? t.diff / t.p2 : 0, okN = n1 >= 30 && n2 >= 30 && !!t && t.days >= 8;
+      // การแจ้งเตือนนี้ประเมินใหม่ทุกวัน (7 วันล่าสุดเทียบ 7 วันก่อน) — ถ้าตัดสินด้วย p < 0.05 ทุกวัน 22 วันจะเตือนผิดอย่างน้อยครั้งหนึ่งราว 30%
+      // round 11: “ลดชัด” ต้องผ่าน always-valid p (iqSeqClear) ด้วย → เตือนผิด ≤ 5% ตลอด 22 วัน ; ถ้ายังไม่ผ่านยังแจ้งเตือนระดับ “ยังสรุปไม่ได้” เหมือนเดิม
+      const sq = t ? iqSeqClear(t, okN) : { level: "insufficient", fixed: "insufficient", pSeq: 1 }, lv = sq.level;
       const clear = lv === "strong" || lv === "moderate";
       if (t && rel < -R.convDropPct / 100) {
         // ตัดสินจากการทดสอบ ไม่ใช่ค่าที่เห็นอย่างเดียว: ลดชัด = แจ้งเตือนจริง ; ยังไม่ชัด = บอกว่ายังสรุปไม่ได้ และต้องดูต่ออีกกี่วัน
         const plan = IQ_ST.planMore({ lo: t.lo, hi: t.hi, days: Math.max(1, daily(a0, e).length), target: Math.abs(t.diff), scale: "lin" });
         const v = { a: iqP(t.p1, 1), b: iqP(t.p2, 1), c: iqChg(rel), t: iqN(R.convDropPct) };
         out.push(clear
-          ? { id: "conv", level: "high", cardLevel: lv, title: iqT("iq.al.conv.t", "อัตราซื้อลดลงจากสัปดาห์ก่อน"), text: iqT("iq.al.conv", "7 วันล่าสุด {a} เทียบ {b} ({c} เกณฑ์ลด {t}%)", v), sure: iqT("iq.conf.change." + lv, IQ_ST.plainConf(lv, "change")), action: iqT("iq.al.conv.a", "ตรวจคิว ราคา และสินค้าขาดชั้นในสัปดาห์นี้"), test: { p: t.p, level: lv, method: t.method } }
+          ? { id: "conv", level: "high", cardLevel: lv, title: iqT("iq.al.conv.t", "อัตราซื้อลดลงจากสัปดาห์ก่อน"), text: iqT("iq.al.conv", "7 วันล่าสุด {a} เทียบ {b} ({c} เกณฑ์ลด {t}%)", v), sure: iqT("iq.conf.change." + lv, IQ_ST.plainConf(lv, "change")), action: iqT("iq.al.conv.a", "ตรวจคิว ราคา และสินค้าขาดชั้นในสัปดาห์นี้"), test: { p: t.p, pSeq: sq.pSeq, level: lv, levelFixed: sq.fixed, method: t.method } }
           : { id: "conv", level: "mid", cardLevel: lv, title: iqT("iq.al.conv.t0", "อัตราซื้ออาจลดลง ยังสรุปไม่ได้"), text: iqT("iq.al.conv", "7 วันล่าสุด {a} เทียบ {b} ({c} เกณฑ์ลด {t}%)", v), sure: iqT("iq.al.conv.s0", "ยังสรุปไม่ได้ ความต่างขนาดนี้เกิดจากความผันผวนรายวันได้"),
-            action: plan && plan.moreDays ? iqT("iq.al.conv.a0", "ยังไม่ต้องเปลี่ยนแผน ดูต่ออีกประมาณ {n} วัน ถ้ายังต่ำอยู่ค่อยตรวจคิวและสินค้าขาดชั้น", { n: iqN(plan.moreDays) }) : iqT("iq.al.conv.a1", "ยังไม่ต้องเปลี่ยนแผน ดูต่ออีก 1–2 สัปดาห์ ถ้ายังต่ำอยู่ค่อยตรวจคิวและสินค้าขาดชั้น"), test: { p: t.p, level: lv, method: t.method } });
+            action: plan && plan.moreDays ? iqT("iq.al.conv.a0", "ยังไม่ต้องเปลี่ยนแผน ดูต่ออีกประมาณ {n} วัน ถ้ายังต่ำอยู่ค่อยตรวจคิวและสินค้าขาดชั้น", { n: iqN(plan.moreDays) }) : iqT("iq.al.conv.a1", "ยังไม่ต้องเปลี่ยนแผน ดูต่ออีก 1–2 สัปดาห์ ถ้ายังต่ำอยู่ค่อยตรวจคิวและสินค้าขาดชั้น"), test: { p: t.p, pSeq: sq.pSeq, level: lv, levelFixed: sq.fixed, method: t.method },
+            seqNote: sq.fixed !== lv ? iqT("iq.al.conv.seq", "ระบบตรวจเงื่อนไขนี้ใหม่ทุกวัน จึงใช้เกณฑ์ที่เข้มกว่าการดูครั้งเดียว (กันการเตือนผิดจากการดูซ้ำ) — ค่า p ครั้งเดียว {p}", { p: iqP(t.p, 1) }) : "" });
       }
     }
   }
   if (D.qc && R.qcYieldMin > 0 && D.qc.total > 0) {
     // ตัดสินจากช่วง 95% (Wilson) เทียบเกณฑ์ ไม่ใช่ค่าที่เห็นตัวเดียว: แนะนำหยุดไลน์เฉพาะเมื่อทั้งช่วงต่ำกว่าเกณฑ์
-    const w = IQ_ST.wilson(D.qc.pass, D.qc.total), T0 = R.qcYieldMin / 100, st = iqVsTarget(w.p, w.lo, w.hi, T0);
+    // round 11: ช่วงที่เผื่อขวดในช่วงเดียวกันของกะไม่อิสระต่อกัน (iqQcCI) ; บันทึกรายขวดไม่ครบ = Wilson เหมือนเดิม
+    const w = iqQcCI(D, null), T0 = R.qcYieldMin / 100, st = iqVsTarget(w.p, w.lo, w.hi, T0);
     const v = { p: iqP(w.p, Math.abs(w.p - T0) < 0.001 ? 2 : 1), lo: iqP(w.lo, 1), hi: iqP(w.hi, 1), t: iqN(R.qcYieldMin), n: iqN(D.qc.total) };
     if (st === "below") out.push({ id: "qc", level: "high", cardLevel: "strong", status: st, ci: w, target: T0, title: iqT("iq.al.qc.t", "อัตราผ่าน QC ต่ำกว่าเกณฑ์"), text: iqT("iq.al.qc", "กะล่าสุดผ่าน {p} จาก {n} ขวด (เกณฑ์ {t}%)", v), sure: iqT("iq.al.qc.s", "ต่ำกว่าเกณฑ์จริง อัตราจริงน่าจะอยู่ระหว่าง {lo}–{hi} ต่ำกว่า {t}% ทั้งช่วง", v), action: iqT("iq.al.qc.a", "หยุดไลน์เพื่อหาสาเหตุหลักก่อนผลิตต่อ") });
     else if (st === "unclear" && w.p < T0) {
@@ -487,5 +534,5 @@ function iqEvalAlerts(D, A, raw) {
   return out;
 }
 
-return { iqLang, iqLoc, iqChgAbs, iqIsFlat, iqVsTarget, iqMoreForRate, iqQuality, IQ_ST, IQ_WD, IQ_MIN_DAYS, IQ_CASH_RE, iqFin, iqN, iqP, iqChg, iqPts, iqB, iqDL, iqWdOf, iqHash, iqPick, iqDaily, iqWin, iqWinKeys, iqAnalyze, iqAdjustTests, iqHeat, IQ_GOAL_DEFS, iqGoals, IQ_ALERT_DEFAULTS, iqAlertRules, iqEvalAlerts };
+return { iqCapLevel, iqDailyCI, iqQcCI, iqSeqClear, IQ_LV_ORDER, iqLang, iqLoc, iqChgAbs, iqIsFlat, iqVsTarget, iqMoreForRate, iqQuality, IQ_ST, IQ_WD, IQ_MIN_DAYS, IQ_CASH_RE, iqFin, iqN, iqP, iqChg, iqPts, iqB, iqDL, iqWdOf, iqHash, iqPick, iqDaily, iqWin, iqWinKeys, iqAnalyze, iqAdjustTests, iqHeat, IQ_GOAL_DEFS, iqGoals, IQ_ALERT_DEFAULTS, iqAlertRules, iqEvalAlerts };
 });

@@ -50,6 +50,10 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
       assert(ears.every(v => Math.abs(v - 0.30) < 1e-6), "EAR series only from the driver: " + JSON.stringify(ears.slice(0, 8)));
       assert(r1.cal && Math.abs(r1.thr - 0.255) < 0.002, "calibrated on the driver (thr 0.30 × earRatio 0.85 = 0.255): " + r1.thr);
       assert(r1.anchor && r1.anchor.x < 0.5, "anchor = driver box " + JSON.stringify(r1.anchor));
+      // round 11: no eye crops in ?fakedet -> EAR only -> the non-dismissable warning is shown (no close button)
+      const w1 = await page.evaluate(() => { const b = document.querySelector("#calWarn"); return { hidden: b.hidden, kind: b.dataset.kind, btn: b.querySelectorAll("button").length, ear: !document.querySelector("#calWarnEar").hidden, fail: !document.querySelector("#calWarnFail").hidden, text: b.textContent, start: document.querySelector("#accStart").textContent }; });
+      assert(!w1.hidden && w1.kind === "ear" && w1.ear && !w1.fail && w1.btn === 0, "EAR-only warning: " + JSON.stringify(w1));
+      assert(/18–26%/.test(w1.text) && /25%/.test(w1.start) && /1\.4/.test(w1.start), "measured figures in the warning and before the trip");
 
       // driver leaves the frame, passenger stays -> face_missing, never the passenger's EAR
       await page.evaluate(p => { window.__dets = [p]; }, PASSENGER);
@@ -68,6 +72,13 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
       await page.evaluate(() => document.querySelector("#stop").click());
       const trip = await page.evaluate(() => JSON.parse(localStorage.getItem("dr-trips"))[0]);
       assert(trip.occupantsMax === 2, "occupantsMax aggregate = 2: " + trip.occupantsMax);
+      assert(await page.evaluate(() => document.querySelector("#calWarn").hidden), "warning cleared when the trip ends");
+      // calibration with no face at all -> "calibration failed" warning
+      await page.evaluate(() => { window.__dets = []; const f = document.querySelector("#tripForm"); f.requestSubmit(); });
+      await page.waitFor(`window.__LQ_DR.phase === "trip"`, 9000);
+      const w2 = await page.evaluate(() => ({ kind: document.querySelector("#calWarn").dataset.kind, hidden: document.querySelector("#calWarn").hidden, fail: !document.querySelector("#calWarnFail").hidden }));
+      assert(!w2.hidden && w2.kind === "fail" && w2.fail, "calibration-failed warning: " + JSON.stringify(w2));
+      await page.evaluate(() => document.querySelector("#stop").click());
       await privacyScan(page);
       await noOverflowAt390(page);
       const errs = hardErrors(page, base);

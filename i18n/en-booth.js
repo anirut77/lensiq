@@ -1,9 +1,11 @@
 /* i18n/en-booth.js — English for booth.html (mirrors zh-booth.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
+  "booth.licb": "Research-licence models",
+  "booth.lic": "Faces are analysed with face-api.js models (MIT code) trained on datasets licensed for research only. Commercial use has not been cleared by a lawyer — check the licence before commercial use",
   "booth.s1": "Booth Analytics | LENSIQ",
   "booth.s2": "Booth visitor analytics",
   "booth.s3": "Count booth visitors at events and trade shows, anonymously recognize returning visitors, and measure dwell time, expressions and activity participation. Processed on-device; no images are stored.",
-  "booth.s4": "Only faces turned toward the camera are counted; people not facing it are not · Same-person matching uses a 0.50 threshold, which on LFW recognizes the same person in about 73% of image pairs, so some visitors may be counted twice. Not yet measured on real booth video; use it for trends rather than exact per-person totals",
+  "booth.s4": "Only faces turned toward the camera are counted; people not facing it are not · The optional returning-visitor mode (off by default) uses a 0.50 threshold, which on LFW recognises the same person in about 73% of image pairs, so some visitors may be counted twice. Not yet measured on real booth video; use it for trends rather than exact per-person totals, and run the on-site accuracy check below at your own booth",
   "booth.s5": "Method and limitations",
   "booth.s6": "Camera is off. Click \"Start camera\"",
   "booth.s7": "Start camera",

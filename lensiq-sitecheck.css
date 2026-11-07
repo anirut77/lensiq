@@ -47,3 +47,8 @@
 .lq-offline[data-s="back"]{background:#e6f6ee;color:#14653b}.lq-offline[hidden]{display:none}
 /* hours flagged by the camera-health monitor (store / booth / insights) */
 .q-note{color:#8a5a00}.q-note[hidden]{display:none}.q-flag{color:#ffd58a}
+/* round 11: pilot grade (relaxed targets, 90% interval) — shown under the strict verdict, never instead of it */
+.sc-pilot{font-size:.86rem;margin:4px 0;padding:6px 10px;border-radius:8px;background:#eef4ff;color:#1d3f75}
+.sc-pilot[data-v=pass]{background:#e6f6ee;color:#14653b}.sc-pilot[data-v=fail]{background:#fdeaea;color:#a12b20}
+.sc-pilot .sc-need-i{display:inline-block;margin-right:10px;font-weight:500}
+.sc-pilot-b{font-weight:500;color:#14653b}

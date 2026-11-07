@@ -435,10 +435,50 @@
     return { nextId: T.nextId, tracks: (T.tracks || []).map(one), lost: (T.lost || []).map(one) };
   }
 
+  /* Round 11 — optional liveness challenge for check-in (attendance "ตรวจว่าเป็นคนจริง", off by default).
+   * NOT a tested anti-spoofing system: it stops a still photo held in front of the camera, not a video, a screen or a mask,
+   * and its accuracy has not been measured.
+   * liveCues(landmarks68) -> {ear, yaw} | null : mean eye aspect ratio of both eyes (points 36–47) and SIGNED yaw
+   *   (nose tip between the outer eye corners: −1 … +1, 0 = frontal).
+   * createLiveness({windowMs, turn, blinkDrop, minSamples}) -> {step(id, cues, now) -> "wait" | "live", isLive(id),
+   *   reset(id), prune(now) -> ids dropped}. A person is "live" once, within windowMs, the signed yaw has spanned ≥ turn
+   *   (a small head turn left or right) or the EAR has dipped by ≥ blinkDrop of the window's maximum (a slow blink; the
+   *   68-point model closes the eyelids only partly, so the head turn is the reliable cue). It stays live until reset. */
+  function liveCues(lm) {
+    if (!lm || lm.length < 48) return null;
+    const P = i => { const p = lm[i]; return Array.isArray(p) ? { x: p[0], y: p[1] } : p; };
+    const d = (a, b) => Math.hypot(P(a).x - P(b).x, P(a).y - P(b).y);
+    const eye = o => { const w = d(o, o + 3); return w > 0 ? (d(o + 1, o + 5) + d(o + 2, o + 4)) / (2 * w) : NaN; };
+    const l = P(36), r = P(45), n = P(30), span = r.x - l.x;
+    const ear = (eye(36) + eye(42)) / 2, yaw = span > 0 ? Math.max(-1, Math.min(1, ((n.x - l.x) / span - 0.5) * 2)) : NaN;
+    return Number.isFinite(ear) && Number.isFinite(yaw) ? { ear, yaw } : null;
+  }
+  function createLiveness({ windowMs = 8000, turn = 0.3, blinkDrop = 0.18, minSamples = 3 } = {}) {
+    const S = new Map(); // id -> {samples: [{t, ear, yaw}], live, last}
+    const get = id => { let s = S.get(id); if (!s) { s = { samples: [], live: false, last: 0 }; S.set(id, s); } return s; };
+    return {
+      step(id, cues, now) {
+        const s = get(id); s.last = now;
+        if (s.live) return "live";
+        if (cues && Number.isFinite(cues.ear) && Number.isFinite(cues.yaw)) s.samples.push({ t: now, ear: cues.ear, yaw: cues.yaw });
+        s.samples = s.samples.filter(x => now - x.t <= windowMs);
+        if (s.samples.length >= minSamples) {
+          let yMin = Infinity, yMax = -Infinity, eMax = 0, eMin = Infinity;
+          for (const x of s.samples) { yMin = Math.min(yMin, x.yaw); yMax = Math.max(yMax, x.yaw); eMax = Math.max(eMax, x.ear); eMin = Math.min(eMin, x.ear); }
+          if (yMax - yMin >= turn || (eMax > 0 && (eMax - eMin) / eMax >= blinkDrop)) s.live = true;
+        }
+        return s.live ? "live" : "wait";
+      },
+      isLive: id => !!(S.get(id) && S.get(id).live),
+      reset(id) { S.delete(id); },
+      prune(now, idleMs = 3000) { const out = []; for (const [id, s] of S) if (now - s.last > idleMs) { S.delete(id); out.push(id); } return out; }
+    };
+  }
+
   const api = {
     iou, center, foot, dist2d, toNorm, DEFAULTS, PRESET, newTracker, updateTracker, lsa,
     trackerCfgFor, assignUnique, createConfirm, pickPrimary, matchFace, snapshot,
-    QUALITY, faceQuality, qualityOk, enrolGallery, createConsensus, gallerySpread, FACE_RULES, FACE_REF_SPREAD
+    QUALITY, faceQuality, qualityOk, enrolGallery, createConsensus, gallerySpread, FACE_RULES, FACE_REF_SPREAD, liveCues, createLiveness
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") root.LQTrack = api;

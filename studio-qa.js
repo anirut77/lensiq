@@ -617,7 +617,98 @@
     return { ok: !issues.some(i => i.level === "fail"), issues, m };
   }
 
-  const api = { garmentPhotoCheck, revealed, jawCover, jawCrop, jawCropOf, jawFeatures, JC, idSpecCheck, boothCheck, boothVerdict, BOOTH_LIMITS, GATE_FEATS, gateScore, confidence, defaultOutfitAllowed, get GATE() { return GATE; }, set GATE(g) { GATE = g; }, hairCut, neckNotch, faceIsland, neckRel, jawBlob, neckCheck, bgChunk, hemCheck, shoulderCheck, accessory, skinIsland, handsCheck, floatingHand, neckJoin, neckFlat, strayParts, leftover, verdict, evaluate, LIMITS };
+  /**
+   * ตรวจความเหมาะสมของรูปก่อนเสนอชุดตัวอย่าง (pre-flight) — ฟังก์ชันล้วน ทดสอบใน Node
+   *  px = RGBA, alpha = matte ตัวคน, hair/neck/body = ชั้นจาก StudioCore.personLayers (0..1), face = { cx, chinX?, eyeY, chinY, fw, angle?, P? (68 จุด) }
+   * ข้อที่ตรวจ (ค่าวัดใน m):
+   *  frontal  : หน้าตรง — yaw = ระยะปลายจมูกจากกึ่งกลางตา / ระยะห่างตา, tilt = มุมเอียงศีรษะ (องศา); ไม่มี landmark = ตรวจไม่ได้ (ok = null)
+   *  neck     : เห็นคอ — สัดส่วนแถบใต้คาง (คาง → 0.35 หน้า, |dx| < 0.3 หน้า) ที่เป็นคอ/ผิว
+   *  hair     : ผมไม่คลุมไหล่ — พื้นที่ผมใต้คาง 0.2 หน้า นอกแถบคอ (|dx| > 0.45 หน้า) / หน้า² และผมข้างกราม (แถบ 0.35–0.6 หน้า) สัดส่วน
+   *  clothes  : เสื้อเรียบ — ความแปรปรวนความสว่างเฉพาะที่ (ลาย/เครื่องประดับ) บนเสื้อ ช่วง 0.5–1.6 หน้าใต้คาง
+   *  framing  : เห็นไหล่ในภาพ — ภาพยาวลงไปถึง 1 หน้าใต้คาง
+   * เกณฑ์ PRE_LIMITS ตั้งจากชุด dev (27 คน) แล้วประเมินบน test ครั้งเดียว (tests/bench/studio-tables.mjs, ACCURACY.md §11 รอบ 11):
+   *  บน dev แยกได้ (คนที่ไม่ผ่าน: ภาพชุด 52/56 มีรอย, ผ่าน: 18/52) แต่บน test แยกไม่ได้ (37/76 เทียบ 31/64) — จึงเป็น "คำแนะนำ" เท่านั้น ไม่ใช้กันชุด
+   *  jawHair (ผมข้างกราม) วัดและรายงาน แต่ไม่ใช้ตัดสิน (บน dev ไม่แยก) คืน { ok, items: [{ k, ok, v }], m }
+   */
+  const PRE_LIMITS = { yaw: .12, tilt: 6, neck: .25, hairSh: .1, clothTex: 20, framing: 1 };
+  function photoSuitability({ px, alpha, hair, neck, W, H, face, L = PRE_LIMITS }) {
+    const fw = face.fw, cx = face.chinX != null ? face.chinX : face.cx, cy = face.chinY, m = {}, items = [], add = (k, ok, v) => items.push({ k, ok, v });
+    const A = i => alpha[i] > .5, at = (x, y) => Math.round(y) * W + Math.round(x);
+    // frontal
+    if (face.P && face.P.length >= 68) {
+      const P = face.P, c = a => ({ x: a.reduce((s, p) => s + p.x, 0) / a.length, y: a.reduce((s, p) => s + p.y, 0) / a.length }), e1 = c(P.slice(36, 42)), e2 = c(P.slice(42, 48)), ed = Math.hypot(e2.x - e1.x, e2.y - e1.y) || 1;
+      m.yaw = +((P[30].x - (e1.x + e2.x) / 2) / ed).toFixed(3); m.tilt = +(Math.abs((face.angle || 0) * 180 / Math.PI)).toFixed(1);
+      add("frontal", Math.abs(m.yaw) <= L.yaw && m.tilt <= L.tilt, { yaw: m.yaw, tilt: m.tilt });
+    } else add("frontal", null, {});
+    // neck visible
+    let nk = 0, nt = 0;
+    for (let y = Math.round(cy + fw * .03); y < Math.min(H, cy + fw * .35); y++) for (let x = Math.max(0, Math.round(cx - fw * .3)); x <= Math.min(W - 1, cx + fw * .3); x++) { const i = y * W + x; nt++; if (A(i) && neck[i] > .5 && hair[i] < .5) nk++; }
+    m.neck = nt ? +(nk / nt).toFixed(3) : 0;
+    add("neck", m.neck >= L.neck, { p: Math.round(100 * m.neck) });
+    // hair on the shoulders / beside the jaw
+    let hs = 0; for (let y = Math.max(0, Math.round(cy + fw * .2)); y < H; y++) for (let x = 0; x < W; x++) { if (Math.abs(x - cx) <= fw * .45) continue; const i = y * W + x; if (A(i) && hair[i] > .5) hs++; }
+    m.hairSh = +(hs / (fw * fw)).toFixed(3);
+    let jh = [0, 0], jt = [0, 0];
+    for (let y = Math.max(0, Math.round(cy - fw * .25)); y < Math.min(H, cy + fw * .2); y++) for (const s of [0, 1]) for (let d = Math.round(fw * .35); d <= fw * .6; d++) { const x = Math.round(cx + (s ? d : -d)); if (x < 0 || x >= W) continue; const i = y * W + x; jt[s]++; if (A(i) && hair[i] > .5) jh[s]++; }
+    m.jawHair = +Math.min(jt[0] ? jh[0] / jt[0] : 1, jt[1] ? jh[1] / jt[1] : 1).toFixed(3); // ด้านที่เปิดกว่า
+    add("hair", m.hairSh <= L.hairSh, { a: m.hairSh, j: Math.round(100 * m.jawHair) });
+    // plain clothes: ค่าเฉลี่ย |ความสว่าง − ค่าเฉลี่ยบล็อก 3×3| บนเสื้อ (ไม่ใช่ผม/คอ)
+    const lum = i => .299 * px[i * 4] + .587 * px[i * 4 + 1] + .114 * px[i * 4 + 2], st = Math.max(1, Math.round(fw / 60));
+    let tex = 0, tn = 0;
+    for (let y = Math.round(cy + fw * .5); y < Math.min(H - st, cy + fw * 1.6); y += st) for (let x = Math.max(st, Math.round(cx - fw * 1.3)); x < Math.min(W - st, cx + fw * 1.3); x += st) {
+      const i = y * W + x; if (!(alpha[i] > .9) || hair[i] > .3 || neck[i] > .3) continue;
+      let s = 0; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) s += lum(at(x + dx * st, y + dy * st));
+      tex += Math.abs(lum(i) - s / 9); tn++;
+    }
+    m.clothTex = tn > 30 ? +(tex / tn).toFixed(2) : 0;
+    add("clothes", m.clothTex <= L.clothTex, { t: m.clothTex });
+    m.framing = +((H - cy) / fw).toFixed(2);
+    add("framing", m.framing >= L.framing, { r: m.framing });
+    return { ok: items.every(i => i.ok !== false), items, m };
+  }
+
+  /**
+   * ตรวจรูปติดบัตรแบบไม่ใส่ชุดก่อนพิมพ์ (ขั้น "ตรวจก่อนพิมพ์" ของตู้ถ่ายรูป และ studio) — ฟังก์ชันล้วน ทดสอบใน Node
+   *  pa = alpha ของตัวคนในพิกัดรูปติดบัตร W×H, face = { cx, chinY, fw } ในพิกัดรูป
+   * หา: islands = เศษที่ไม่ต่อกับตัวคน (ธง เก้าอี้ ฉากที่ matte ติดมา) ≥ 0.15% ของรูป
+   *     cuts    = ลำตัวถูกตัดเป็นเส้นตรง: bottom = ลำตัวจบเหนือขอบล่างของรูป (ภาพต้นฉบับสั้นกว่ากรอบ หรือ matte ตัดตรง),
+   *               left/right = ขอบตัวคนเป็นเส้นตั้งตรงยาวที่ไม่ใช่ขอบรูป (ขอบภาพต้นฉบับอยู่ในกรอบ)
+   * คืน { islands: [{ x, y, w, h, area }], cuts: [{ k, x0, y0, x1, y1 }], ok }
+   */
+  function idLeftovers({ pa, W, H, face }) {
+    const n = W * H, on = new Uint8Array(n); for (let i = 0; i < n; i++) on[i] = pa[i] > .5 ? 1 : 0;
+    const lab = new Int32Array(n).fill(-1), comps = [];
+    for (let s0 = 0; s0 < n; s0++) {
+      if (!on[s0] || lab[s0] >= 0) continue;
+      const id = comps.length, st = [s0], c = { area: 0, x0: W, y0: H, x1: -1, y1: -1 }; lab[s0] = id;
+      while (st.length) { const i = st.pop(), x = i % W, y = (i - x) / W; c.area++; if (x < c.x0) c.x0 = x; if (x > c.x1) c.x1 = x; if (y < c.y0) c.y0 = y; if (y > c.y1) c.y1 = y;
+        for (const j of [x > 0 ? i - 1 : -1, x < W - 1 ? i + 1 : -1, i - W, i + W]) if (j >= 0 && j < n && on[j] && lab[j] < 0) { lab[j] = id; st.push(j); } }
+      comps.push(c);
+    }
+    const islands = [], cuts = [];
+    if (!comps.length) return { islands, cuts: [{ k: "empty", x0: 0, y0: 0, x1: W, y1: H }], ok: false };
+    let main = 0; for (let k = 1; k < comps.length; k++) if (comps[k].area > comps[main].area) main = k;
+    comps.forEach((c, k) => { if (k !== main && c.area >= n * .0015) islands.push({ x: c.x0, y: c.y0, w: c.x1 - c.x0 + 1, h: c.y1 - c.y0 + 1, area: c.area }); });
+    const M = i => lab[i] === main, fw = face.fw, yT = Math.round(Math.min(H - 1, face.chinY + fw * .3));
+    // ลำตัวจบเหนือขอบล่าง: ความกว้างตัวคนแถวล่างสุดเทียบกับแถวที่กว้างที่สุดใต้คาง
+    const rowW = y => { let c = 0; for (let x = 0; x < W; x++) if (M(y * W + x)) c++; return c; };
+    let wMax = 0, yMax = yT; for (let y = yT; y < H; y++) { const w = rowW(y); if (w > wMax) { wMax = w; yMax = y; } }
+    if (wMax > fw * .8 && rowW(H - 1) < wMax * .5) { let y = H - 1; while (y > yMax && rowW(y) < wMax * .5) y--; cuts.push({ k: "bottom", x0: 0, y0: y + 1, x1: W - 1, y1: y + 1 }); }
+    // ขอบตั้งตรงยาว (≥ 0.4 หน้า) ที่ไม่ใช่ขอบรูป ใต้คาง: คอลัมน์แรก/สุดท้ายของตัวคนคงที่ ±1 พิกเซลหลายแถวติดกัน
+    for (const side of ["left", "right"]) {
+      let run = 0, best = 0, prev = null, y0 = 0, bestY = 0, bestX = 0;
+      for (let y = yT; y < H; y++) {
+        let e = -1; if (side === "left") { for (let x = 0; x < W; x++) if (M(y * W + x)) { e = x; break; } } else { for (let x = W - 1; x >= 0; x--) if (M(y * W + x)) { e = x; break; } }
+        const inner = e > 1 && e < W - 2;
+        // ทั้งช่วงต้องอยู่ห่างจากคอลัมน์แรกของช่วงไม่เกิน 1 พิกเซล (ขอบแขนจริงเอียงทีละน้อย ไม่ตรงเป๊ะ)
+        if (inner && prev != null && Math.abs(e - prev) <= 1) { run++; if (run > best) { best = run; bestY = y0; bestX = prev; } } else { run = 0; y0 = y; prev = inner ? e : null; }
+      }
+      if (best >= fw * .4) cuts.push({ k: side, x0: bestX, y0: bestY, x1: bestX, y1: bestY + best });
+    }
+    return { islands, cuts, ok: !islands.length && !cuts.length };
+  }
+
+  const api = { idLeftovers, photoSuitability, PRE_LIMITS, garmentPhotoCheck, revealed, jawCover, jawCrop, jawCropOf, jawFeatures, JC, idSpecCheck, boothCheck, boothVerdict, BOOTH_LIMITS, GATE_FEATS, gateScore, confidence, defaultOutfitAllowed, get GATE() { return GATE; }, set GATE(g) { GATE = g; }, hairCut, neckNotch, faceIsland, neckRel, jawBlob, neckCheck, bgChunk, hemCheck, shoulderCheck, accessory, skinIsland, handsCheck, floatingHand, neckJoin, neckFlat, strayParts, leftover, verdict, evaluate, LIMITS };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") root.StudioQA = api;
 })(typeof window !== "undefined" ? window : globalThis);

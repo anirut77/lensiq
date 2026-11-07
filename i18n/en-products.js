@@ -7,6 +7,7 @@
   "pd.fun": "For fun · not an assessment",
   "pd.next.h": "How to start",
   "pd.demo": "Request a demo",
+  "pd.pricing": "Plans and pricing",
   "pd.allSystems": "All systems",
   "pd.help": "Help",
   "pd.terms": "Terms of service",

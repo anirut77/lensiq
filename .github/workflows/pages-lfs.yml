@@ -13,12 +13,24 @@ name: Pages
 
 on:
   # Settings → Pages → Source = "GitHub Actions" (switched 2026-11-07; docs/DEPLOYMENT-CHECKLIST.md §0)
-  push:
+  # Deploy is GATED ON CI: it runs only after the "CI" workflow (ci.yml: lint, typecheck, unit, Python, e2e, phone and
+  # i18n gates) has COMPLETED SUCCESSFULLY for a push to main, and it builds exactly the commit CI tested (head_sha).
+  # A failed or cancelled CI run (e.g. superseded by a newer push) never deploys.
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
+  # Manual re-deploy: refuses unless CI already succeeded for that commit (set skip_ci_check only in an emergency).
   workflow_dispatch:
+    inputs:
+      skip_ci_check:
+        description: "Deploy even if CI has not succeeded for this commit (emergency only)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: pages
@@ -29,12 +41,26 @@ jobs:
     name: Build + verify _site
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main')
     steps:
-      - uses: actions/checkout@v4
+      - name: CI must have succeeded for this commit (manual runs)
+        if: github.event_name == 'workflow_dispatch' && !inputs.skip_ci_check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ok=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow CI --commit "$GITHUB_SHA" --status success --json databaseId --jq 'length')
+          if [ "${ok:-0}" -lt 1 ]; then echo "::error::CI has not succeeded for $GITHUB_SHA — refusing to deploy"; exit 1; fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # the exact commit CI tested (workflow_run), not whatever main points at now
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       # Git LFS: cache keyed by the LFS object list (empty before the migration -> every step below is a no-op)
       - name: LFS object list (cache key)
         run: (git lfs ls-files -l 2>/dev/null || true) | cut -d' ' -f1 | sort > .lfs-assets-id
-      - uses: actions/cache@v4
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .git/lfs
           key: lfs-${{ hashFiles('.lfs-assets-id') }}
@@ -43,28 +69,31 @@ jobs:
           if [ -s .lfs-assets-id ]; then git lfs pull; else echo "no LFS objects tracked — nothing to pull"; fi
       - name: refuse to publish LFS pointer files
         run: node tools/check-lfs.mjs
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
       - name: assemble _site from the allowlist (fails on server.py / tests / tools / docs / package.json / *.py)
         run: node tools/build-site.mjs
+      - name: legal guard (no raw [placeholders]; refuses to deploy with billing on and seller details missing)
+        run: node tools/check-legal.mjs --dir _site
       - id: chrome
-        uses: browser-actions/setup-chrome@v1
+        uses: browser-actions/setup-chrome@48ad923757ca74d66703209fe939badbdf80f2f4 # v2.2.0
         with:
           chrome-version: stable
       - name: verify _site (forbidden files, references, crawl of every page in TH + 中文, no 404)
         run: node tools/check-site.mjs
         env:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: _site
+          include-hidden-files: true # keep _site/.nojekyll (v4+ drops dotfiles by default)
 
   deploy:
     name: Deploy to GitHub Pages
     needs: build
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && needs.build.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -75,4 +104,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

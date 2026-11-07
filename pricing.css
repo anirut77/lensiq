@@ -41,4 +41,11 @@
 .pr-qr code{overflow-wrap:anywhere;word-break:break-all}
 #prCheckout{margin-top:16px}
 #prCheckout:focus{outline:none}
+.pr-off{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;margin-top:16px}
+.pr-h3{font-size:1.1rem;color:var(--navy);margin:0 0 6px}
+.pr-perks li a{color:#3b2fc0;text-decoration:underline;text-underline-offset:3px}
+.pr-off>*{min-width:0}.pr-off .pr-form,.pr-off .pr-form label{min-width:0;max-width:100%}
+.pr-off .pr-small a{display:inline-flex;align-items:center;min-height:44px}
+.pr-off select{width:100%;max-width:100%;box-sizing:border-box;min-height:44px;padding:6px 10px;border:1px solid #9aa3bd;border-radius:10px;background:#fff;color:var(--pr-ink);font:inherit}
+.pr-products a{display:flex;align-items:center;gap:8px;min-height:44px;color:#3b2fc0;text-decoration:underline;text-underline-offset:3px}
 [hidden]{display:none!important}

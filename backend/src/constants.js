@@ -8,7 +8,7 @@ export const FORTUNE_DOMAINS = ["face", "palm", "horoscope", "tarot", "siamsee",
 export const ANALYTICS_PAGES = [
   "about", "account", "astro", "attendance", "bazi", "booth", "camera-notice", "cameras", "checkout", "converter", "creative", "creative-suite", "customers", "dream",
   "driver", "faceread", "fengshui", "fortune", "help", "horoscope", "hr", "iching", "index", "insights", "interview", "lek7", "lifegraph",
-  "neuro", "numbers", "palm", "photobooth", "pricing", "privacy", "qc", "retail", "signage", "store", "studio", "taksa", "tarot", "teamface", "terms", "zodiac",
+  "neuro", "numbers", "palm", "photobooth", "pricing", "privacy", "qc", "report", "retail", "signage", "store", "studio", "taksa", "tarot", "teamface", "terms", "zodiac",
   "other"
 ];
 
@@ -42,13 +42,18 @@ export const CONSENT_VERSIONS = ["a1"];
  * enforcement: "quota" (counted per period), "credit" (one-time purchase credits), "server_check" (the page asks the
  * server before it runs the feature — csv_export: POST /api/me/entitlements/use {feature:"csv_export"}).
  * Only features listed here can be put on a plan through the admin API.
+ * consumer (round 11): the page script that DELIVERS the perk (null = none yet). A unit test
+ * (tests/unit/backend-r11.test.js "perk consumers") fails when an active credit perk — something sold as a one-time
+ * purchase — has no consumer that calls POST /api/me/entitlements/use with that feature, so nothing is sold that the
+ * site cannot hand over. report_* are delivered by report.js (redeem flow: generate, save to the account, print / PDF).
+ * csv_export: the server check exists but no page calls it yet (CSV export is free on-device) — consumer null.
  */
 export const PERKS = Object.freeze({
-  ai_reading:     { status: "active", enforcement: "quota", unit: "uses", th: "ผู้ช่วยเขียนคำทำนายด้วย AI", en: "AI writing assistant", zh: "AI 写作助手" },
-  report_basic:   { status: "active", enforcement: "credit", unit: "reports", th: "รายงานดวงพื้นฐาน", en: "Basic reading report", zh: "基础运势报告" },
-  report_compat:  { status: "active", enforcement: "credit", unit: "reports", th: "รายงานดวงคู่", en: "Compatibility report", zh: "合盘报告" },
-  report_annual:  { status: "active", enforcement: "credit", unit: "reports", th: "รายงานดวงรายปี", en: "Annual forecast report", zh: "年度运势报告" },
-  csv_export:     { status: "active", enforcement: "server_check", unit: "exports", th: "ส่งออก CSV", en: "CSV export", zh: "CSV 导出" },
-  analytics_days: { status: "coming_soon", enforcement: "none", unit: "days", th: "ประวัติสถิติบนคลาวด์", en: "Cloud analytics history", zh: "云端统计历史" },
-  hub_nodes:      { status: "coming_soon", enforcement: "none", unit: "nodes", th: "เชื่อมหลายสาขา (hub)", en: "Multi-site hub nodes", zh: "多站点节点" }
+  ai_reading:     { status: "active", enforcement: "quota", consumer: "fortune-ai.js", unit: "uses", th: "ผู้ช่วยเขียนคำทำนายด้วย AI", en: "AI writing assistant", zh: "AI 写作助手" },
+  report_basic:   { status: "active", enforcement: "credit", consumer: "report.js", unit: "reports", th: "รายงานดวงพื้นฐาน", en: "Basic reading report", zh: "基础运势报告" },
+  report_compat:  { status: "active", enforcement: "credit", consumer: "report.js", unit: "reports", th: "รายงานดวงคู่", en: "Compatibility report", zh: "合盘报告" },
+  report_annual:  { status: "active", enforcement: "credit", consumer: "report.js", unit: "reports", th: "รายงานดวงรายปี", en: "Annual forecast report", zh: "年度运势报告" },
+  csv_export:     { status: "active", enforcement: "server_check", consumer: null, unit: "exports", th: "ส่งออก CSV", en: "CSV export", zh: "CSV 导出" },
+  analytics_days: { status: "coming_soon", enforcement: "none", consumer: null, unit: "days", th: "ประวัติสถิติบนคลาวด์", en: "Cloud analytics history", zh: "云端统计历史" },
+  hub_nodes:      { status: "coming_soon", enforcement: "none", consumer: null, unit: "nodes", th: "เชื่อมหลายสาขา (hub)", en: "Multi-site hub nodes", zh: "多站点节点" }
 });

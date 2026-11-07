@@ -1,23 +1,24 @@
 # Support, service levels and incident handling
 
-Two layers. **Self-serve tiers** (Guest, Member, Pro, Business — §0) get the published response targets shown on
+Two layers. **Self-serve tiers** (Guest, Member, Plus / one-time report buyers, Creator, Business — §0; Creator was called Pro before round 10) get the published response targets shown on
 `help.html#h-support`. **Contracted customers** (Enterprise, on-prem, pilots) sign the SLA template in §1–§9 with the
 Basic / Standard / Premium plan. Response templates in Thai are in §10, the status page and incident routine in §11.
-Values in [brackets] are negotiable defaults. **This is not legal advice** (see `docs/LEGAL-REVIEW-PACK.md`).
+Values in [brackets] are negotiable defaults. Support e-mail, LINE OA and status page are one config: `window.LENSIQ_SELLER` in `lensiq-config.js` (help / terms / privacy show "announced before sales open" until it is filled; `node tools/check-legal.mjs` blocks a deploy with billing on and gaps). **This is not legal advice** (see `docs/LEGAL-REVIEW-PACK.md`).
 
 ## 0. Self-serve tiers (draft — effective when paid plans go on sale)
 
-| | Guest | Member | Pro | Business |
+| | Guest | Member · Plus · report buyers | Creator (formerly Pro) | Business |
 |---|---|---|---|---|
-| Who | Anyone, no sign-in | Free Google sign-in | Paid (`docs/BILLING-PLAN.md` §3) | Paid |
-| Channels | Help/FAQ page, e-mail | E-mail | E-mail | E-mail + LINE Official |
+| Who | Anyone, no sign-in | Free Google sign-in; Plus (`plus`) and one-time reports (`report_basic` / `report_compat` / `report_annual`) are paid consumer purchases (`docs/BILLING-PLAN.md` §3.0) | Paid (`pro`, §3.1) | Paid (`business`, §3.1) |
+| Channels | Help/FAQ page, contact form (`index.html#contact`), e-mail | E-mail | E-mail | E-mail + LINE Official |
 | Hours (Asia/Bangkok) | Mon–Fri 09:00–18:00 | Mon–Fri 09:00–18:00 | Mon–Fri 09:00–18:00 | Mon–Sat 09:00–18:00 |
 | First response | Best effort, no commitment | ≤ 3 business days | ≤ 2 business days | Next business day |
-| Billing / refund questions | n/a | ≤ 3 business days | ≤ 1 business day | ≤ 1 business day |
+| Billing / refund questions | n/a | ≤ 3 business days (Plus / report buyers: ≤ 1 business day) | ≤ 1 business day | ≤ 1 business day |
 | Privacy or security report (any tier) | ≤ 1 business day; suspected breach handled as S1 (§3) | same | same | same |
-| Languages | Thai, English, 中文 (best effort) | Thai, English | Thai, English, 中文 | Thai, English, 中文 |
+| Languages | Thai, English, 中文 (best effort) | Thai, English, 中文 | Thai, English, 中文 | Thai, English, 中文 |
 | Onboarding | — | — | — | 1 × 30-min call |
-| Service credit | — | — | Pro-rata refund if online service unavailable > 24 h in a month (terms §9) | same |
+| Service credit | — | Plus: pro-rata refund if online service unavailable > 24 h in a month; reports: full refund within 14 days if not opened, credit restored / refund if a report failed to generate (terms §9) | Pro-rata refund if online service unavailable > 24 h in a month (terms §9) | same |
+| Renewal reminder | — | Plus: in-account banner and account-menu reminder from 7 days before the period ends (no e-mail yet, terms §8) | same | same |
 
 On-device tools have no availability target (they run offline). The online features (sign-in, writing assistant,
 payments, statistics) target [99.5 %] monthly once paid plans exist; when they fail, fortune pages fall back to the

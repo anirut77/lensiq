@@ -316,7 +316,7 @@
         </ul>
       </div>
       <form id="leadForm" novalidate>
-        <p class="demo-note" role="note"><b data-i18n="home.form.demo.b">โหมดเดโม:</b> <span data-i18n="home.form.demo">แบบฟอร์มนี้ไม่ได้ส่งข้อมูลไปที่ใด ข้อมูลจะถูกเก็บไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น</span></p>
+        <p class="demo-note" id="leadNote" role="note"><b>โหมดเดโม:</b> <span>แบบฟอร์มนี้ไม่ได้ส่งข้อมูลไปที่ใด ข้อมูลจะถูกเก็บไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น</span></p>
         <div class="f2">
           <div class="field">
             <label for="lqName"><span data-i18n="home.form.name">ชื่อ–นามสกุล</span> <span class="req" aria-hidden="true">*</span></label>
@@ -348,6 +348,9 @@
             <option value="store" data-i18n="home.form.i2">การวิเคราะห์หน้าร้าน</option>
             <option value="photobooth" data-i18n="home.form.i3">ตู้ถ่ายรูป</option>
             <option value="addons" data-i18n="home.form.i4">ระบบเสริม (QC / คนขับ / เช็คชื่อ)</option>
+            <option value="hr" data-i18n="home.form.i6">LENSIQ HR ชุดสัมภาษณ์</option>
+            <option value="creative" data-i18n="home.form.i7">LENSIQ Creative ชุดงานสร้างสรรค์</option>
+            <option value="fortune" data-i18n="home.form.i8">LENSIQ ดูดวง (รายงาน / แพ็กเกจ)</option>
             <option value="unsure" data-i18n="home.form.i5">ยังไม่แน่ใจ อยากปรึกษา</option>
           </select>
           <p class="err" id="lqInterestErr" aria-live="polite"></p>
@@ -392,7 +395,8 @@
 </footer>
 
 
-<script src="home.js?v=2"></script>
+<script src="lensiq-leads.js?v=1"></script>
+<script src="home.js?v=3"></script>
 <script src="lensiq-config.js?v=3"></script>
 </body>
 </html>

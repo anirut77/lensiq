@@ -17,17 +17,21 @@
 //   GET    /api/me/history        ledger + saved readings (titles) + own payments
 //   POST   /api/me/saved          {domain, title, data}                   save a derived reading (opt-in, <= 16 KB)
 //   GET    /api/me/saved/:id      DELETE /api/me/saved/:id
-//   GET    /api/me/export         data portability JSON (PDPA s.31)
-//   DELETE /api/me                {confirm:"DELETE"} erasure (PDPA s.33); payments kept unlinked for tax retention
+//   GET    /api/me/export         data portability JSON (PDPA s.31)   } round 11: both need a FRESH Google confirmation —
+//   POST   /api/me/export         {credential, nonce} inline            } POST /api/auth/reauth {credential, nonce} opens a
+//   DELETE /api/me                {confirm:"DELETE", credential?, nonce?}  5-min window; erasure (PDPA s.33), payments kept
+//                                 unlinked for tax retention; today's used quota kept as a day-only HMAC tombstone
+//   POST   /api/auth/reauth       {credential, nonce} fresh Google confirmation (same account, auth_time/iat <= 5 min)
 // Sessions: 256-bit random token returned once, only SHA-256 stored; 30 days absolute, 14 days idle; the site is on
 // another origin than the API, so the token travels as `Authorization: Bearer` (no third-party cookies).
 import { FORTUNE_DOMAINS } from "./constants.js";
-import { randomId, randomToken, sha256Hex } from "./crypto.js";
+import { hmacHex, randomId, randomToken, sha256Hex } from "./crypto.js";
 import { GoogleTokenError, verifyGoogleIdToken } from "./google.js";
 import { activeSub, consumeCredit, consumeUse, creditBalance, isPaying, periodKey, usedOf } from "./quota.js";
-import { audit, callerHash, getSetting, hit, putSetting } from "./store.js";
+import { audit, callerHash, dailySalt, getSetting, hit, putSetting } from "./store.js";
+import { assertGoLive } from "./golive.js";
 import { verifyTurnstile } from "./turnstile.js";
-import { HttpError, bkkDayStart, intVar, log, now } from "./util.js";
+import { HttpError, bkkDay, bkkDayStart, intVar, log, now } from "./util.js";
 
 export const MEMBER_CONSENT_VERSION = "m1";
 /** Versions of the member terms + privacy notice (lensiq-member.js CONSENT_VERSION). Bump both when the text changes. */
@@ -129,6 +133,7 @@ export async function signInGoogle(env, request, body, deps = {}) {
   const t = deps.nowSec ?? now();
   const clientId = googleClientId(env);
   if (!clientId) throw new HttpError(503, "Google sign-in is not configured (google_not_configured)", { code: "google_not_configured" });
+  await assertGoLive(env, "google_signin"); // round 11: no new sign-ins while terms / privacy / seller are not ready (GO_LIVE_GATE=enforce)
   const who = await callerHash(env, request, "signin");
   const rl = await hit(env.DB, `signin:${who}`, 10, 900, t);
   if (!rl.ok) throw new HttpError(429, "too many sign-in attempts — try again later", { retryAfter: rl.retryAfter });
@@ -172,7 +177,10 @@ export async function signInGoogle(env, request, body, deps = {}) {
     const r = await env.DB.prepare("INSERT OR IGNORE INTO users (id, google_sub, email, email_verified, display_name, status, consent_version, consent_at, marketing_opt_in, marketing_opt_in_at, created_at, last_login_at) " +
       "VALUES (?1, ?2, ?3, 1, ?4, 'active', ?5, ?6, ?7, ?8, ?6, ?6)").bind(id, c.sub, email, name, MEMBER_CONSENT_VERSION, t, mk, mk ? t : null).run();
     created = !!(r.meta && r.meta.changes);
-    if (created) await ledger(env, id, "signup", {}, t);
+    if (created) {
+      await ledger(env, id, "signup", {}, t);
+      await restoreTombstone(env, c.sub, id, t); // delete-and-re-join on the same day keeps today's used quota
+    }
   }
   u = await env.DB.prepare("SELECT * FROM users WHERE google_sub = ?1").bind(c.sub).first();
   const s = await newSession(env.DB, u.id, t, request);
@@ -192,15 +200,15 @@ export async function optionalMember(env, request, t = now()) {
   const token = bearerOf(request);
   if (!token) return null;
   const idHash = await sha256Hex(token);
-  const row = await env.DB.prepare("SELECT s.id_hash, s.last_seen, s.expires_at, u.* FROM member_sessions s JOIN users u ON u.id = s.user_id WHERE s.id_hash = ?1").bind(idHash).first();
+  const row = await env.DB.prepare("SELECT s.id_hash, s.last_seen, s.expires_at, s.reauth_at AS s_reauth_at, u.* FROM member_sessions s JOIN users u ON u.id = s.user_id WHERE s.id_hash = ?1").bind(idHash).first();
   if (!row) return null;
   if (row.expires_at <= t || t - row.last_seen > SESSION_IDLE || row.status !== "active") {
     await env.DB.prepare("DELETE FROM member_sessions WHERE id_hash = ?1").bind(idHash).run();
     return null;
   }
   if (t - row.last_seen > 300) await env.DB.prepare("UPDATE member_sessions SET last_seen = ?1 WHERE id_hash = ?2").bind(t, idHash).run();
-  const { id_hash: _h, last_seen: _l, expires_at: _e, ...user } = row;
-  return { user, idHash };
+  const { id_hash: _h, last_seen: _l, expires_at: _e, s_reauth_at: ra, ...user } = row;
+  return { user, idHash, reauthAt: Number(ra) || 0 };
 }
 
 export async function requireMember(env, request) {
@@ -321,10 +329,25 @@ export async function me(env, m) {
   return {
     user: publicUser(m.user), tier: ai.tier,
     plan: sub ? { id: sub.plan_id, name_th: sub.name_th, name_en: sub.name_en, name_zh: sub.name_zh || null, period: sub.period, source: sub.source || "purchase", subscription_id: sub.id, current_period_end: sub.current_period_end } : null,
+    ...renewalOf(sub, t),
     paying: await isPaying(env.DB, { userId: m.user.id }, t),
     credits: await creditBalance(env.DB, { userId: m.user.id }, t),
     quotas: { ai: { used: ai.used, quota: ai.quota, remaining: ai.remaining, period: ai.period, enforced: ai.enforced, credits: ai.credits, timezone: "Asia/Bangkok" }, saved: { used: saved.n, max: ms.member_saved_max }, readings_today: readsToday.n },
     membership: { required: ms.required, consent_version: MEMBER_CONSENT_VERSION }
+  };
+}
+
+/** Renewal reminder data (round 11; terms §8 "in-account reminder"): PromptPay plans do not renew by themselves, so
+ *  GET /api/me says when the paid period ends within RENEWAL_NOTICE_DAYS — account.js / the nav show a banner with a
+ *  link to buy the next period (new QR). No e-mail is sent (no mail provider yet). */
+export const RENEWAL_NOTICE_DAYS = 7;
+export function renewalOf(sub, t = now()) {
+  if (!sub || !sub.current_period_end) return { renewal_due: false, renewal: null };
+  const left = sub.current_period_end - t;
+  const due = left > 0 && left <= RENEWAL_NOTICE_DAYS * 86400;
+  return {
+    renewal_due: due,
+    renewal: due ? { plan_id: sub.plan_id, period: sub.period, current_period_end: sub.current_period_end, days_left: Math.max(0, Math.ceil(left / 86400)), source: sub.source || "purchase", renew_path: `/pricing.html?plan=${encodeURIComponent(sub.plan_id)}${sub.period === "year" ? "&period=year" : ""}` } : null
   };
 }
 
@@ -397,7 +420,67 @@ export async function deleteSaved(env, m, id) {
 
 // ---- PDPA: export (portability) and erasure --------------------------------------------------------------------------
 
-export async function exportData(env, m) {
+// ---- fresh Google re-auth for erasure / export (round 11) --------------------------------------------------------------
+/** A bearer token readable by page JS (sessionStorage / "remember me" localStorage) must not be enough to erase or export
+ *  an account: DELETE /api/me and the export need a NEW Google ID token (fresh nonce from POST /api/auth/nonce) of the
+ *  same Google account, signed in within REAUTH_MAX_AGE (auth_time, or iat when Google omits auth_time). Either
+ *  inline ({credential, nonce} in the DELETE / POST export body) or via POST /api/auth/reauth, which opens a
+ *  REAUTH_MAX_AGE window on this session. */
+export const REAUTH_MAX_AGE = 300;
+
+async function verifyFresh(env, m, body, deps = {}) {
+  const t = deps.nowSec ?? now();
+  const clientId = googleClientId(env);
+  if (!clientId) throw new HttpError(503, "Google sign-in is not configured (google_not_configured)", { code: "google_not_configured" });
+  const rl = await hit(env.DB, `mreauth:${m.user.id}`, 10, 900, t);
+  if (!rl.ok) throw new HttpError(429, "too many attempts — try again later", { retryAfter: rl.retryAfter });
+  if (!body || !(await claimNonce(env.DB, body.nonce, t))) throw new HttpError(401, "confirmation expired — please sign in with Google again (nonce)", { code: "nonce" });
+  let c;
+  try {
+    c = await verifyGoogleIdToken(String(body.credential || ""), { clientId, nonce: body.nonce, fetchImpl: deps.fetch, now: t });
+  } catch (e) {
+    if (e instanceof GoogleTokenError) throw new HttpError(e.code === "jwks_unavailable" || e.code === "jwks_empty" ? 503 : 401, "Google sign-in could not be verified", { code: e.code });
+    throw e;
+  }
+  if (c.sub !== m.user.google_sub) {
+    await audit(env, "member", "member.reauth.wrong_account", { user: m.user.id });
+    throw new HttpError(403, "please confirm with the same Google account (reauth_wrong_account)", { code: "reauth_wrong_account" });
+  }
+  const at = typeof c.auth_time === "number" ? c.auth_time : c.iat;
+  if (typeof at !== "number" || t - at > REAUTH_MAX_AGE) throw new HttpError(401, "please sign in with Google again — the confirmation must be recent (reauth_stale)", { code: "reauth_stale" });
+  return t;
+}
+
+/** POST /api/auth/reauth {credential, nonce} — opens the REAUTH_MAX_AGE window for erasure / export on this session. */
+export async function reauthMember(env, m, body, deps = {}) {
+  const t = await verifyFresh(env, m, body, deps);
+  await env.DB.prepare("UPDATE member_sessions SET reauth_at = ?1 WHERE id_hash = ?2").bind(t, m.idHash).run();
+  return { ok: true, valid_until: t + REAUTH_MAX_AGE, valid_for: REAUTH_MAX_AGE };
+}
+
+/** Throws 401 {code:"reauth_required"} unless the body carries a fresh Google confirmation or the window is open. */
+export async function requireFreshMember(env, m, body, deps = {}) {
+  if (body && body.credential && body.nonce) { await verifyFresh(env, m, body, deps); return; }
+  if (m.reauthAt && (deps.nowSec ?? now()) - m.reauthAt <= REAUTH_MAX_AGE) return;
+  throw new HttpError(401, "please confirm with Google first (reauth_required)", { code: "reauth_required" });
+}
+
+// ---- quota tombstone across erasure (round 11) --------------------------------------------------------------------------
+/** Pseudonym of a Google account for TODAY only: HMAC(daily salt of the Bangkok day, "quota-tomb|" + sub). The salt is
+ *  deleted by the daily cron, after which the tombstone links to nobody. */
+async function tombstoneSubject(db, googleSub, t) {
+  return "x:" + (await hmacHex(await dailySalt(db, bkkDay(t)), "quota-tomb|" + googleSub)).slice(0, 32);
+}
+
+/** On sign-up: a tombstone written today for this Google account seeds the new account's counters (MAX, never less). */
+async function restoreTombstone(env, googleSub, userId, t) {
+  const tomb = await tombstoneSubject(env.DB, googleSub, t);
+  await env.DB.prepare("INSERT INTO usage_counters (day, subject, feature, n) SELECT day, ?1, feature, n FROM usage_counters WHERE subject = ?2 AND day = ?3 " +
+    "ON CONFLICT (day, subject, feature) DO UPDATE SET n = MAX(n, excluded.n)").bind(userSubject(userId), tomb, bkkDay(t)).run();
+}
+
+export async function exportData(env, m, body = null, deps = {}) {
+  await requireFreshMember(env, m, body, deps);
   const db = env.DB, id = m.user.id;
   const u = await db.prepare("SELECT id, email, email_verified, display_name, status, consent_version, consent_at, marketing_opt_in, marketing_opt_in_at, created_at, last_login_at FROM users WHERE id = ?1").bind(id).first();
   const all = async sql => (await db.prepare(sql).bind(id).all()).results || [];
@@ -417,10 +500,16 @@ export async function exportData(env, m) {
 
 /** Right to erasure. Payments / receipts are accounting records (Revenue Code, >= 5 years): they are kept but
  *  UNLINKED from the person (user_id cleared, e-mail removed); tax-invoice buyer fields stay as the law requires. */
-export async function deleteAccount(env, m, body) {
+export async function deleteAccount(env, m, body, deps = {}) {
   if (!body || body.confirm !== "DELETE") throw new HttpError(400, "confirm must be \"DELETE\"");
-  const db = env.DB, id = m.user.id;
+  await requireFreshMember(env, m, body, deps);
+  const db = env.DB, id = m.user.id, t = now();
+  // today's used quota survives as a day-only tombstone (HMAC of the Google sub with the day salt) so delete + re-join
+  // cannot reset limits; nothing else about the person is kept
+  const tomb = m.user.google_sub ? await tombstoneSubject(db, m.user.google_sub, t) : null;
   await db.batch([
+    ...(tomb ? [db.prepare("INSERT INTO usage_counters (day, subject, feature, n) SELECT day, ?1, feature, n FROM usage_counters WHERE subject = ?2 AND day = ?3 " +
+      "ON CONFLICT (day, subject, feature) DO UPDATE SET n = MAX(n, excluded.n)").bind(tomb, userSubject(id), bkkDay(t))] : []),
     db.prepare("DELETE FROM member_sessions WHERE user_id = ?1").bind(id),
     db.prepare("DELETE FROM saved_readings WHERE user_id = ?1").bind(id),
     db.prepare("DELETE FROM member_ledger WHERE user_id = ?1").bind(id),

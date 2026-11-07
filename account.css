@@ -51,3 +51,9 @@
 .acct ~ .site-foot{background:var(--navy);color:#c9d0e6;padding:16px;text-align:center;font-size:.9rem}
 .acct ~ .site-foot a{color:#fff;text-decoration:underline;text-underline-offset:3px;display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:0 6px}
 .acct ~ .site-foot .foot-docs{display:flex;flex-wrap:wrap;justify-content:center;gap:0 12px}
+.acct-list{margin:6px 0 10px;padding-left:1.3em;line-height:1.65}
+.acct-list a,.acct-products a,.acct-kpi a{color:#3b2fc0;text-decoration:underline;text-underline-offset:3px}
+.acct-products{display:flex;flex-wrap:wrap;gap:4px 18px;margin-top:6px}
+.acct-products a{display:inline-flex;align-items:center;min-height:44px}
+.acct-renew{border-color:#f0c36b;border-left:5px solid #d39400;background:#fff8e6}
+.acct-kpi a{display:inline-flex;align-items:center;min-height:44px;font-size:.88rem}

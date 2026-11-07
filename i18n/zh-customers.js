@@ -2,11 +2,14 @@
  * data-i18n / data-i18n-attr values on customers.html. Text set at run time by customers.js stays Thai for now.
  * Queue pattern: works before or after lensiq-i18n.js (see i18n/zh-common.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
+  "customers.wipeall": "删除本设备上的全部生物特征数据（所有系统）",
+  "customers.licb": "研究许可模型",
+  "customers.lic": "人脸由 face-api.js 模型分析（代码为 MIT），其训练数据仅许可用于研究。商业使用尚未经律师确认——商业使用前请核实许可",
   "customers.s1": "顾客识别 | LENSIQ",
   "customers.s2": "顾客识别与饮品记录",
   "customers.s3": "对同意刷脸的会员，系统会打招呼、展示常点菜单、最近订单并推荐饮品，实现基于顾客行为记忆的营销",
   "customers.s4": "实测准确率",
-  "customers.s5": "在公开人脸数据集 LFW 上以阈值 0.50 测试：单张图像约 78% 能识别会员 · 按当前规则（三个角度登记、阈值按会员群体校准、连续 2 帧确认），有 100 名会员时：约 85% 的会员到店能被识别（亚洲人脸约 69%），约 0.4% 的非会员会被提示为某位会员（自动选中约 0.05%）。建议店员先确认姓名再打开点单记录，并在您自己的店里做下方的现场准确度检查",
+  "customers.s5": "在公开人脸照片上测试（LFW 新闻照片和 CASIA-FaceV5 亚洲人脸，并非店内摄像头），采用当前规则（3 个角度注册、按会员群体校准阈值、2 帧确认），会员 100 人：约 85% 的会员到店可被识别，但亚洲人脸仅约 66–76% · 约 0.4% 的非会员会被提示为某位会员（置信区间上限约 1.15%），自动选中的不到 0.05%。打开点单记录前应由店员确认姓名，并在下方用您自己的门店做现场准确度检查",
   "customers.s6": "测量方法与局限",
   "customers.s7": "门店",
   "customers.s8": "会员注册",

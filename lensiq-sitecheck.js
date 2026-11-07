@@ -72,22 +72,22 @@
    * approximation), then the exact Wilson bound is searched. null = the observed rate itself does not meet the target
    * (more data cannot confirm it). deff (≥ 1) inflates the answer for clustered data (same people tested repeatedly).
    */
-  function needMoreProp(x, n, target, side = ">=", deff = 1) {
+  function needMoreProp(x, n, target, side = ">=", deff = 1, z = Z) {
     if (!(n > 0)) return null;
-    const p = x / n, okAt = m => { const w = wilson(p * m, m); return side === ">=" ? w.lo >= target : w.hi <= target; };
+    const p = x / n, okAt = m => { const w = wilson(p * m, m, z); return side === ">=" ? w.lo >= target : w.hi <= target; };
     if (side === ">=" ? p <= target : p >= target) return null;
     if (okAt(n)) return 0;
-    let a = n, b = Math.max(n + 1, needN(p, Math.abs(p - target)));
+    let a = n, b = Math.max(n + 1, Math.ceil(needN(p, Math.abs(p - target)) * (z / Z) * (z / Z)));
     while (!okAt(b) && b < 5e6) { a = b; b *= 2; }
     if (!okAt(b)) return null;
     while (b - a > 1) { const m = (a + b) >> 1; if (okAt(m)) b = m; else a = m; }
     return Math.ceil((b - n) * Math.max(1, deff || 1));
   }
   /** more exposure time (same unit as `t`) until the exact Poisson upper bound of k events in t is ≤ target per unit */
-  function needMoreRate(k, t, target) {
+  function needMoreRate(k, t, target, alpha = 0.05) {
     if (!(t > 0)) return null;
     const r = k / t; if (r >= target) return null;
-    const okAt = T => poissonCI(Math.round(r * T)).hi / T <= target;
+    const okAt = T => poissonCI(Math.round(r * T), alpha).hi / T <= target;
     if (okAt(t)) return 0;
     let a = t, b = t * 2; while (!okAt(b) && b < t * 1e4) { a = b; b *= 2; }
     if (!okAt(b)) return null;
@@ -154,6 +154,42 @@
     signage: { gender: 0.90, band: 0.70, minRows: 50 }
   });
   /**
+   * Round 11 — "pilot grade" (ระดับนำร่อง): relaxed targets judged on a 90% interval (one-sided 95%), with sample sizes a
+   * shop can collect in one day, so a one-day pilot ends with an actionable answer. Shown next to the strict verdict,
+   * never instead of it: rep.verdict is unchanged; rep.pilot = {verdict, need, targets, level: 0.90}. Same rules as the
+   * strict verdict ("pass" = minimum sample + every 90% interval clears its relaxed target; "ontrack" / "more" / "fail"),
+   * and any serious error (an automatic wrong check-in) is a pilot fail too. Net count errors use the 95% block
+   * bootstrap (conservative). Not an accuracy certification.
+   */
+  const Z90 = 1.644854;
+  const PILOT = Object.freeze({
+    store: { netErr: 0.20, precision: 0.75, dirAcc: 0.80, minTruth: 50 },
+    attendance: { memberRecognised: 0.75, strangerAutoMax: 0.10, minMembers: 20, minStrangers: 30 },
+    customers: { memberRecognised: 0.75, strangerAutoMax: 0.10, minMembers: 20, minStrangers: 30 },
+    driver: { sensitivity: 0.70, falsePerHour: 3, minPrompts: 8 },
+    qc: { falseReject: 0.10, miss: 0.10, minGood: 30, minBad: 25 },
+    booth: { netErr: 0.25, precision: 0.70, recall: 0.65, minTruth: 30 },
+    signage: { gender: 0.80, band: 0.55, minRows: 50 }
+  });
+  /** a pilot proportion check on the 90% Wilson interval of the effective sample (n / design effect) */
+  function pilotProp(w, target, side, group, deff = 1) {
+    const d = Math.max(1, deff || 1), c = wilson(w.x / d, w.n / d, Z90);
+    return side === ">="
+      ? { v: w.p, lo: c.lo, hi: c.hi, ok: v => v >= target, bad: (lo, hi) => hi < target, sure: lo => lo >= target, need: () => ({ group, more: needMoreProp(w.x, w.n, target, ">=", d, Z90) }) }
+      : { v: w.p, lo: c.lo, hi: c.hi, ok: v => v <= target, bad: lo => lo > target, sure: (lo, hi) => hi <= target, need: () => ({ group, more: needMoreProp(w.x, w.n, target, "<=", d, Z90) }) };
+  }
+  /** false alarms per hour: exact Poisson 80% two-sided = 90% one-sided upper bound; need in minutes of open-eye time */
+  function pilotRate(k, hours, target, group) {
+    const ci = poissonCI(k, 0.2), v = hours > 0 ? k / hours : null;
+    return { v, lo: hours > 0 ? ci.lo / hours : null, hi: hours > 0 ? ci.hi / hours : null, ok: x => x <= target, bad: lo => lo > target, sure: (lo, hi) => hi <= target,
+      need: () => { const m = needMoreRate(k, hours, target, 0.2); return { group, more: m == null ? null : m * 60 }; } };
+  }
+  function pilotJudge(rep, enough, checks, mins, hardFail = false) {
+    const j = judge(enough, checks, mins);
+    rep.pilot = { verdict: hardFail ? "fail" : j.verdict, need: hardFail ? [] : j.need, targets: PILOT[rep.kind] || null, level: 0.90 };
+    return rep.pilot;
+  }
+  /**
    * opts.stats (optional, from the page during the check): {hz: analysis rate, personH: median person height ÷ frame,
    * health: [issue codes seen], tiles: current tiling, swap}
    */
@@ -189,6 +225,9 @@
       propCheck(prec, tg.precision, ">=", "crossings"),
       propCheck(dir, tg.dirAcc, ">=", "crossings")
     ], [{ group: "crossings", have: nT, min: tg.minTruth }]);
+    { const pg = { ...PILOT.store, ...(opts.pilot || {}) };
+      pilotJudge(rep, nT >= pg.minTruth, [netCheck(net, netCI, nT, pg.netErr, "crossings"), pilotProp(prec, pg.precision, ">=", "crossings"), pilotProp(dir, pg.dirAcc, ">=", "crossings")],
+        [{ group: "crossings", have: nT, min: pg.minTruth }]); }
     if (nT < tg.minTruth) R.push(fmt("ต้องมีคนผ่านอย่างน้อย {a} ครั้ง (ตอนนี้ {b}) ช่วงความเชื่อมั่นจึงจะแคบพอ (ที่ {d} ครั้ง กว้างราว ±{c}%)", { a: tg.minTruth, b: nT, c: (Z * Math.sqrt(0.85 * 0.15 / Math.max(1, nT)) * 100).toFixed(0), d: nT }));
     return rep;
   }
@@ -309,6 +348,11 @@
       propCheck(recog, tg.memberRecognised, ">=", gM, deffOf(recog, recogCl), { ...recog, ...recogCI }),
       propCheck(fa, tg.strangerAutoMax, "<=", gS, deffOf(fa, faCl), { ...fa, ...faCI })
     ], [{ group: gM, have: mem.length, min: tg.minMembers }, { group: gS, have: str.length, min: tg.minStrangers }]);
+    { const pg = { ...PILOT[cx ? "customers" : "attendance"], ...(opts.pilot || {}) };
+      pilotJudge(rep, mem.length >= pg.minMembers && str.length >= pg.minStrangers, [
+        pilotProp(recog, pg.memberRecognised, ">=", gM, deffOf(recog, recogCl)),
+        pilotProp(fa, pg.strangerAutoMax, "<=", gS, deffOf(fa, faCl))
+      ], [{ group: gM, have: mem.length, min: pg.minMembers }, { group: gS, have: str.length, min: pg.minStrangers }], mWrongAuto + sAuto > 0); }
     if (mWrongAuto + sAuto > 0) { rep.verdict = "fail"; rep.provisional = "fail"; rep.need = []; }
     else if (str.length && !(faCI.hi <= tg.strangerAutoMax)) {
       const nS = (rep.need.find(x => x.group === gS) || {}).more;
@@ -376,6 +420,9 @@
       { v: fph.v, lo: fph.lo, hi: fph.hi, ok: v => v <= tg.falsePerHour, bad: lo => lo > tg.falsePerHour, sure: (lo, hi) => hi <= tg.falsePerHour,
         need: () => { const m = needMoreRate(alarms.length, openMin / 60, tg.falsePerHour); return { group: "openMin", more: m == null ? null : m * 60 }; } }
     ], [{ group: "prompts", have: P.length, min: tg.minPrompts }]);
+    { const pg = { ...PILOT.driver, ...(opts.pilot || {}) };
+      pilotJudge(rep, P.length >= pg.minPrompts, [pilotProp(sens, pg.sensitivity, ">=", "prompts"), pilotRate(alarms.length, openMin / 60, pg.falsePerHour, "openMin")],
+        [{ group: "prompts", have: P.length, min: pg.minPrompts }]); }
     if (P.length < tg.minPrompts) R.push(fmt("ต้องทำตามคำสั่งหลับตาอย่างน้อย {a} ครั้ง (ตอนนี้ {b})", { a: tg.minPrompts, b: P.length }));
     R.push("ผลนี้เป็นการหลับตาโดยตั้งใจขณะจอดรถ ไม่ใช่อาการง่วงจริงระหว่างขับ — ใช้ตรวจว่ากล้อง มุม และแสงในรถคันนี้ใช้งานได้ ไม่ใช่การรับรองความปลอดภัย");
     return rep;
@@ -438,6 +485,9 @@
       propCheck(frr, tg.falseReject, "<=", "good"),
       propCheck(mr, tg.miss, "<=", "bad")
     ], [{ group: "good", have: good.length, min: tg.minGood }, { group: "bad", have: bad.length, min: tg.minBad }]);
+    { const pg = { ...PILOT.qc, ...(opts.pilot || {}) };
+      pilotJudge(rep, good.length >= pg.minGood && bad.length >= pg.minBad, [pilotProp(frr, pg.falseReject, "<=", "good"), pilotProp(mr, pg.miss, "<=", "bad")],
+        [{ group: "good", have: good.length, min: pg.minGood }, { group: "bad", have: bad.length, min: pg.minBad }]); }
     if (good.length < tg.minGood || bad.length < tg.minBad) rep.recs.push(fmt("ควรตรวจขวดดีอย่างน้อย {a} ขวด และขวดเสียที่รู้ข้อบกพร่องอย่างน้อย {b} ขวด (ตอนนี้ {c} / {d})", { a: tg.minGood, b: tg.minBad, c: good.length, d: bad.length }));
     return rep;
   }
@@ -467,6 +517,9 @@
     (st.health || []).forEach(c => { if (HEALTH_TH[c]) R.push("สภาพภาพระหว่างตรวจ: " + HEALTH_TH[c]); });
     applyJudge(rep, nT >= tg.minTruth, [netCheck(net, netCI, nT, tg.netErr, "visitors"), propCheck(prec, tg.precision, ">=", "visitors"), propCheck(rec, tg.recall, ">=", "visitors")],
       [{ group: "visitors", have: nT, min: tg.minTruth }]);
+    { const pg = { ...PILOT.booth, ...(opts.pilot || {}) };
+      pilotJudge(rep, nT >= pg.minTruth, [netCheck(net, netCI, nT, pg.netErr, "visitors"), pilotProp(prec, pg.precision, ">=", "visitors"), pilotProp(rec, pg.recall, ">=", "visitors")],
+        [{ group: "visitors", have: nT, min: pg.minTruth }]); }
     if (nT < tg.minTruth) R.push(fmt("ต้องมีผู้มาบูธอย่างน้อย {a} คน (ตอนนี้ {b}) ช่วงความเชื่อมั่นจึงจะแคบพอ", { a: tg.minTruth, b: nT }));
     return rep;
   }
@@ -509,6 +562,8 @@
     if (gOk.p != null && gOk.p < tg.gender) R.push("เพศคลาดบ่อยที่จุดนี้ — ตรวจแสงและมุมกล้อง อย่าใช้เพศเลือกโฆษณาจนกว่าจะตรวจผ่าน");
     (opts.health || []).forEach(c => { if (HEALTH_TH[c]) R.push("สภาพภาพระหว่างตรวจ: " + HEALTH_TH[c]); });
     applyJudge(rep, L.length >= tg.minRows, [propCheck(gOk, tg.gender, ">=", "passers"), propCheck(bOk, tg.band, ">=", "passers")], [{ group: "passers", have: L.length, min: tg.minRows }]);
+    { const pg = { ...PILOT.signage, ...(opts.pilot || {}) };
+      pilotJudge(rep, L.length >= pg.minRows, [pilotProp(gOk, pg.gender, ">=", "passers"), pilotProp(bOk, pg.band, ">=", "passers")], [{ group: "passers", have: L.length, min: pg.minRows }]); }
     if (L.length < tg.minRows) R.push(fmt("ควรระบุผู้ผ่านอย่างน้อย {a} คน (ตอนนี้ {b}) หลายช่วงอายุและทั้งสองเพศ", { a: tg.minRows, b: L.length }));
     R.push("อายุและเพศที่เจ้าหน้าที่ระบุก็เป็นการประมาณด้วยสายตา — ถ้าไม่แน่ใจช่วงอายุของใคร ให้ข้ามคนนั้น");
     return rep;
@@ -741,6 +796,8 @@
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const VERDICT_TH = { pass: "ผ่าน (ยืนยันแล้ว) — ทั้งช่วงความเชื่อมั่นผ่านเกณฑ์ที่หน้างานนี้", ontrack: "ตามเป้าจนถึงตอนนี้ — ยังยืนยันไม่ได้ เก็บข้อมูลเพิ่ม", fail: "ไม่ผ่านเกณฑ์ — แก้ตามคำแนะนำแล้วตรวจใหม่", more: "ยังสรุปไม่ได้ — เก็บข้อมูลเพิ่ม" };
   /** the round-9 point verdict, shown under the CI-aware one as "provisional" */
+  /** round 11: the pilot-grade line (relaxed targets, 90% interval) shown under the strict verdict */
+  const PILOT_TH = { pass: "ผ่านระดับนำร่อง — ทดลองใช้ต่อได้ (ยังไม่ใช่การยืนยันความแม่นยำ)", ontrack: "ตามเป้านำร่องจนถึงตอนนี้ — เก็บข้อมูลเพิ่ม", more: "ยังไม่ถึงเป้านำร่อง — เก็บข้อมูลเพิ่ม", fail: "ไม่ผ่านระดับนำร่อง — แก้ตามคำแนะนำแล้วตรวจใหม่" };
   const PROV_TH = { pass: "ค่าที่วัดได้ถึงเป้าทุกข้อ", more: "ค่าที่วัดได้ยังไม่ถึงเป้าบางข้อ หรือข้อมูลยังไม่พอ", fail: "ไม่ผ่านเกณฑ์" };
   /** "collect N more …" — one whole phrase per group (dictionary templates in i18n/*-rt-sitecheck.js) */
   const NEED_TH = {
@@ -756,10 +813,12 @@
     if (!rep) { el.innerHTML = ""; return; }
     const need = needList(rep);
     const needH = need.length && rep.verdict !== "pass" && rep.verdict !== "fail" ? `<p class="sc-need"><span>ต้องเก็บเพิ่ม:</span> ${need.map(x => `<span class="sc-need-i">${esc(x)}</span>`).join(" ")}</p>` : "";
+    const pl = rep.pilot, pNeed = pl && pl.verdict !== "pass" && pl.verdict !== "fail" ? needList(pl) : [];
+    const pilotH = pl ? `<p class="sc-pilot" data-v="${esc(pl.verdict)}"><span>ระดับนำร่อง (เป้าผ่อนปรน ช่วงความเชื่อมั่น 90% เก็บได้ในวันเดียว):</span> <b>${esc(PILOT_TH[pl.verdict] || pl.verdict)}</b>${pNeed.length ? ` <span>ต้องเก็บเพิ่ม:</span> ${pNeed.map(x => `<span class="sc-need-i">${esc(x)}</span>`).join(" ")}` : ""}</p>` : "";
     const provH = rep.provisional ? `<p class="sc-prov" data-v="${esc(rep.provisional)}"><span>ผลชั่วคราว (เทียบค่าที่วัดได้กับเป้า ไม่นับช่วงความเชื่อมั่น):</span> <b>${esc(PROV_TH[rep.provisional] || rep.provisional)}</b></p>` : "";
     const rowCls = m => m.ok === false ? "bad" : m.ok ? (m.sure === false ? "prov" : "ok") : "";
     const tables = (rep.tables || []).map(t => `<h4>${esc(t.title)}</h4><div class="table-wrap"><table class="sc-table sc-conf"><thead><tr><th></th>${t.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>${t.rows.map(r => `<tr><th>${esc(r[0])}</th>${r.slice(1).map(v => `<td>${esc(v)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`).join("");
-    el.innerHTML = fmt("<p class=\"sc-verdict\" data-v=\"{a}\"><b>{b}</b></p>{n}{p}\n      <div class=\"table-wrap\"><table class=\"sc-table\"><thead><tr><th>ตัวชี้วัด</th><th>ผลที่หน้างาน</th><th>ช่วงความเชื่อมั่น 95%</th><th>เป้า</th></tr></thead><tbody>{c}</tbody></table></div>{t}\n      {d}", { a: rep.verdict, b: esc(VERDICT_TH[rep.verdict]), n: needH, p: provH, t: tables, c:
+    el.innerHTML = fmt("<p class=\"sc-verdict\" data-v=\"{a}\"><b>{b}</b></p>{n}{q}{p}\n      <div class=\"table-wrap\"><table class=\"sc-table\"><thead><tr><th>ตัวชี้วัด</th><th>ผลที่หน้างาน</th><th>ช่วงความเชื่อมั่น 95%</th><th>เป้า</th></tr></thead><tbody>{c}</tbody></table></div>{t}\n      {d}", { a: rep.verdict, b: esc(VERDICT_TH[rep.verdict]), n: needH, q: pilotH, p: provH, t: tables, c:
       rep.metrics.map(m => `<tr class="${rowCls(m)}"><th>${esc(m.k)}${m.note ? `<small class="sc-note">${esc(m.note)}</small>` : ""}</th><td>${esc(m.v)}</td><td>${esc(m.ci)}</td><td>${esc(m.target)}</td></tr>`).join(""), d: rep.recs.length ? fmt("<h4>คำแนะนำ</h4><ul class=\"sc-recs\">{a}</ul>", { a: rep.recs.map(r => `<li>${esc(r)}</li>`).join("") }) : "" });
   }
   /** short status text for the panel pill / history: the CI-aware verdict (+ "collect N more" when on target so far) */
@@ -782,7 +841,7 @@
     return {
       list: get,
       add(item) { const a = get(); a.unshift({ v: 2, ...item }); try { localStorage.setItem(key, JSON.stringify(a.slice(0, 20))); } catch { /* ignore */ } },
-      render(ul) { if (!ul) return; const a = get(); ul.innerHTML = a.length ? a.map(h => `<li><span>${esc(new Date(h.at).toLocaleString("th-TH", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }))}</span> <b data-v="${esc(h.verdict)}">${esc(VERDICT_TH[h.verdict] || h.verdict)}</b> <small>${esc(h.summary || "")}</small></li>`).join("") : "<li class=\"empty\">ยังไม่มีผลตรวจ</li>"; }
+      render(ul) { if (!ul) return; const a = get(); ul.innerHTML = a.length ? a.map(h => `<li><span>${esc(new Date(h.at).toLocaleString("th-TH", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }))}</span> <b data-v="${esc(h.verdict)}">${esc(VERDICT_TH[h.verdict] || h.verdict)}</b>${h.pilot === "pass" && h.verdict !== "pass" ? ` <b class="sc-pilot-b" data-v="pass">${esc(PILOT_TH.pass)}</b>` : ""} <small>${esc(h.summary || "")}</small></li>`).join("") : "<li class=\"empty\">ยังไม่มีผลตรวจ</li>"; }
     };
   }
   /** the history keys of the camera pages (page -> localStorage key) — read-only use by insights.html */
@@ -804,7 +863,7 @@
         const cam = typeof h.cam === "string" ? h.cam.slice(0, 60) : "";
         if (seen.has(cam)) continue; seen.add(cam);
         const old = h.v !== 2;
-        out.push({ page, cam, at: h.at, verdict: old ? (h.verdict === "fail" ? "fail" : "more") : String(h.verdict || "more"), provisional: old ? h.verdict : h.provisional || null, summary: String(h.summary || "").slice(0, 200), need: Array.isArray(h.need) ? h.need : [], legacy: old });
+        out.push({ page, cam, at: h.at, verdict: old ? (h.verdict === "fail" ? "fail" : "more") : String(h.verdict || "more"), provisional: old ? h.verdict : h.provisional || null, pilot: old ? null : h.pilot || null, summary: String(h.summary || "").slice(0, 200), need: Array.isArray(h.need) ? h.need : [], legacy: old });
       }
     }
     return out.sort((x, y) => y.at - x.at);
@@ -837,5 +896,5 @@
 
   return { TARGETS, HEALTH, HEALTH_TH, QC_METRICS, wilson, poissonCI, needN, needMoreProp, needMoreRate, clusterCI, blockPropCI, median, matchCrossings, netErrorCI, countReport, createFaceTrial, attendanceReport,
     closureSchedule, driverReport, qcValues, qcReport, visitorReport, demoReport, judge, frameStats, thumbShift, createHealth, createStall, videoClock, stallStep, sampleElement,
-    noteQuality, flaggedHours, qualityText, QUALITY_KEYS, QUALITY_TH, renderReport, renderHealth, renderHealthLine, mountPanel, history, HISTORY_KEYS, latestByCamera, needList, verdictText, exportDoc, download, rng, fmt, VERDICT_TH, PROV_TH, NEED_TH, BANDS, BAND_LBL, GENDER_LBL };
+    noteQuality, flaggedHours, qualityText, QUALITY_KEYS, QUALITY_TH, renderReport, renderHealth, renderHealthLine, mountPanel, history, HISTORY_KEYS, latestByCamera, needList, verdictText, exportDoc, PILOT, PILOT_TH, pilotProp, pilotRate, download, rng, fmt, VERDICT_TH, PROV_TH, NEED_TH, BANDS, BAND_LBL, GENDER_LBL };
 });

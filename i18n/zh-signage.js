@@ -2,11 +2,13 @@
  * data-i18n / data-i18n-attr values on signage.html. Text set at run time by signage.js stays Thai for now.
  * Queue pattern: works before or after lensiq-i18n.js (see i18n/zh-common.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
+  "signage.licb": "研究许可模型",
+  "signage.lic": "人脸由 face-api.js 模型分析（代码为 MIT），其训练数据仅许可用于研究。商业使用尚未经律师确认——商业使用前请核实许可",
   "signage.s1": "数字广告屏 | LENSIQ",
   "signage.s2": "数字广告屏",
   "signage.s3": "根据屏前观众群体选择播放内容的广告屏，匿名测量注视与关注度，并提供无需触屏的手势交互自助终端。本地处理，不保存图像。",
   "signage.s4": "估算值",
-  "signage.s5": "年龄/性别在 UTKFace 图像上测试：年龄平均误差 5 岁，年龄段判断准确率 79%，性别准确率 96%（亚洲人脸 92%），约每 5 张图像中有 1 张未检测到人脸 · 自助终端：在 HaGRID 数据集中检测到举起的手 88%（张开手掌手势 95%）。用于了解观众群体整体情况，而非个人数据",
+  "signage.s5": "在 UTKFace 图像上测试年龄/性别：年龄平均误差 5 岁，年龄段正确 79%，性别正确 96%（亚洲人脸 92%），约每 5 张图像有 1 张未检测到人脸——这些数字偏乐观，因为模型的部分训练数据来自该数据集 · 自助终端：在 HaGRID 图像中检出举起的手 88%（张开手掌 95%）。用于了解观众整体，而非个人数据",
   "signage.s6": "测量方法与局限",
   "signage.s7": "使用模式",
   "signage.s8": "广告屏",

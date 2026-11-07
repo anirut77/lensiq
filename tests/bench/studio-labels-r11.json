@@ -1,0 +1,280 @@
+{
+ "about": "Round-11 labels for the NO-OUTFIT outputs only (ids from tests/bench/studio-portraits.json): none = studio.html no-outfit render after the clean-up (studio-core.js cleanLeftovers, matte-failure fallback); pbNone = photobooth.html no-outfit 1-inch ID photo after the clean-up and the small bottom fill (idExtendDraw). 1 = visible defect, 0 = clean. Outfit renders did not change in round 11; their labels stay in studio-labels-r10.json.",
+ "labeller": "NOT independent: renders whose pixels did not change versus round 10 (more than 0.2 % of pixels differing by > 40 grey levels) keep the round-10 second-rater label; the changed renders (studio: d05, t07; photo booth: d12, d16, d18, d19, t07, t09, t14, t15, t22, t26, t33, t35) were judged by the AI coding agent that wrote the round-11 change, side by side with the round-10 render, not blind. t07 (matte failure) now shows the unchanged original photo and is still counted as defective. No human raters.",
+ "criteria": [
+  "neck/jaw join: hole, notch or step, straight cut line beside the jaw or under the ear, sliver or blob along the jaw, flat or wrong-coloured pasted neck, background gap between hair and neck",
+  "garment geometry clearly wrong at normal viewing: balloon/sack body, shoulder raised over the hair, sleeves crossing as tubes, hands pasted or spotted",
+  "leftovers: fragments of the original clothes, jewellery or background (flag, chair) left on or beside the person; missing parts or holes from the matte",
+  "NOT counted: the procedural/CG look of the garment itself, soft hair edges, small colour differences"
+ ],
+ "changed": {
+  "studio": [
+   "d05",
+   "t07"
+  ],
+  "photobooth": [
+   "d12",
+   "d16",
+   "d18",
+   "d19",
+   "t07",
+   "t09",
+   "t14",
+   "t15",
+   "t22",
+   "t26",
+   "t33",
+   "t35"
+  ]
+ },
+ "labels": {
+  "d01": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "d02": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "d03": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "d04": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "d05": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "d06": {
+   "none": 1,
+   "pbNone": 0
+  },
+  "d07": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "d08": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "d09": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "d10": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "d11": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "d12": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "d13": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "d14": {
+   "none": 1,
+   "pbNone": 1
+  },
+  "d15": {
+   "none": 1,
+   "pbNone": 0
+  },
+  "d16": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "d17": {
+   "none": 1,
+   "pbNone": 0
+  },
+  "d18": {
+   "none": 0,
+   "pbNone": 1
+  },
+  "d19": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "d20": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "d21": {
+   "none": 1,
+   "pbNone": 0
+  },
+  "d22": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "d23": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "d24": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "d25": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "d26": {
+   "none": 0,
+   "pbNone": 1
+  },
+  "d27": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t01": {
+   "none": 1,
+   "pbNone": 1
+  },
+  "t02": {
+   "none": 1,
+   "pbNone": 1
+  },
+  "t03": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t04": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t05": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t06": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t07": {
+   "none": 1,
+   "pbNone": 1
+  },
+  "t08": {
+   "none": 1,
+   "pbNone": 1
+  },
+  "t09": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t10": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t11": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t12": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t13": {
+   "none": 1,
+   "pbNone": 0
+  },
+  "t14": {
+   "none": 0,
+   "pbNone": 1
+  },
+  "t15": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t16": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t17": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t18": {
+   "none": 0,
+   "pbNone": 1
+  },
+  "t19": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t20": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t21": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t22": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t23": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t24": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t25": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t26": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t27": {
+   "none": 0,
+   "pbNone": 1
+  },
+  "t28": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t29": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t30": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t31": {
+   "none": 0,
+   "pbNone": 1
+  },
+  "t32": {
+   "none": 0,
+   "pbNone": 0
+  },
+  "t33": {
+   "none": 0,
+   "pbNone": 1
+  },
+  "t34": {
+   "none": 1,
+   "pbNone": 1
+  },
+  "t35": {
+   "none": 1,
+   "pbNone": 1
+  }
+ }
+}

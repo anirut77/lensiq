@@ -43,15 +43,18 @@
   function baziFacts(B, topic, opts) {
     opts = opts || {};
     var dm = B.dayMaster, S = STEM[dm.stem], hi = EL[B.strongest], lo = EL[B.weakest], st = STRENGTH[B.strength];
+    // รอบ 11: แผนเสริมธาตุต้องเสริมเฉพาะ "ธาตุที่ผังนี้ต้องการ" (B.favour) — ธาตุเด่น/ธาตุน้อยที่ไม่ใช่ธาตุที่ต้องการ ใช้วิธีของเจ้าชะตาแทน
+    var helpful = B.favour.map(function (e) { return EL[e].key; }), dmRemedy = "el." + EL[B.favour[0]].key;
+    var boost = function (e) { return B.favour.indexOf(e) >= 0 ? "el." + EL[e].key : dmRemedy; };
     var P = B.pillars, pz = [P.year.zh, P.month.zh, P.day.zh].concat(P.hour ? [P.hour.zh] : []).join(" ");
     var items = [
-      { id: "dm." + dm.stem, group: "เจ้าชะตา (日主)", label: S.th, short: "เจ้าชะตา" + EL[dm.el].th, evidence: "เสาวัน " + P.day.zh, strength: 0.96, tone: "favourable", remedy: "el." + EL[B.favour[0]].key, tags: ["personality", "work", "love", "money"],
+      { id: "dm." + dm.stem, group: "เจ้าชะตา (日主)", label: S.th, short: "เจ้าชะตา" + EL[dm.el].th, evidence: "เสาวัน " + P.day.zh, strength: 0.96, tone: "favourable", remedy: dmRemedy, tags: ["personality", "work", "love", "money"],
         meanings: { overview: [S.p], personality: [S.p], work: [S.w], love: [S.l], money: [S.m] } },
       { id: "str." + B.strength, group: "กำลังเจ้าชะตา", label: st.th, short: st.th, evidence: "ธาตุเดียวกับเจ้าชะตา " + B.elementShare[dm.el] + "% ของผัง + ธาตุที่ให้กำเนิด + ฤดูเกิด", strength: 0.8, tone: st.tone, tags: ["personality", "advice"],
         meanings: { personality: [st.p], advice: [st.a] } },
-      { id: "el.hi." + hi.key, group: "ห้าธาตุ", label: "ธาตุ" + hi.th + "เด่นที่สุด", short: "ธาตุ" + hi.th, evidence: "สัดส่วน " + B.elementShare[B.strongest] + "% ของแปดอักษร", strength: 0.7, tone: "favourable", tags: ["personality"],
+      { id: "el.hi." + hi.key, group: "ห้าธาตุ", label: "ธาตุ" + hi.th + "เด่นที่สุด", short: "ธาตุ" + hi.th, evidence: "สัดส่วน " + B.elementShare[B.strongest] + "% ของแปดอักษร", strength: 0.7, tone: "favourable", remedy: boost(B.strongest), tags: ["personality"],
         meanings: { personality: [hi.hi] } },
-      { id: "el.lo." + lo.key, group: "ห้าธาตุ", label: "ธาตุ" + lo.th + "น้อยที่สุด", short: "ธาตุ" + lo.th + "ที่น้อย", evidence: "สัดส่วน " + B.elementShare[B.weakest] + "% ของแปดอักษร", strength: 0.62, tone: "caution", remedy: "el." + lo.key, tags: ["personality", "advice"],
+      { id: "el.lo." + lo.key, group: "ห้าธาตุ", label: "ธาตุ" + lo.th + "น้อยที่สุด", short: "ธาตุ" + lo.th + "ที่น้อย", evidence: "สัดส่วน " + B.elementShare[B.weakest] + "% ของแปดอักษร", strength: 0.62, tone: "caution", remedy: boost(B.weakest), tags: ["personality", "advice"],
         meanings: { personality: [lo.lo], advice: [lo.act] } },
     ];
     var age = opts.age != null ? opts.age : (new Date().getFullYear()) - B.input.y, L = LC.luckAt(B, age);
@@ -62,7 +65,7 @@
       items.push({ id: "luck." + L.stemGod, group: "วัยจร 10 ปี (大运)", label: "วัยจร " + L.pillar.zh + " · " + G.th, short: "วัยจรช่วงนี้", evidence: "อายุราว " + Math.round(L.from) + "–" + Math.round(L.to) + " ปี",
         strength: 0.85, tone: L.fav === 0 && G.tone !== "favourable" ? "caution" : G.tone, tags: Object.keys(m), meanings: m });
     }
-    return { domain: "bazi", topic: topic || "overall", subject: {}, headline: "แปดอักษร " + pz + " · เจ้าชะตา" + EL[dm.el].th, items: items, extras: { luckyColors: B.favour.slice(0, 2).map(function (e) { return EL[e].color; }) } };
+    return { domain: "bazi", topic: topic || "overall", subject: {}, helpful: helpful, headline: "แปดอักษร " + pz + " · เจ้าชะตา" + EL[dm.el].th, items: items, extras: { luckyColors: B.favour.slice(0, 2).map(function (e) { return EL[e].color; }) } };
   }
 
   /* ---------- ทักษา ---------- */

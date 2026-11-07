@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0e1430">
+<title data-i18n="rp.doc.title">รายงานดวงของฉัน | LENSIQ</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<meta name="description" data-i18n-attr="content:rp.doc.desc" content="รายงานดวงฉบับยาวของ LENSIQ: รายงานพื้นฐานหลายศาสตร์ รายงานดวงคู่ และรายงานรายปีรายเดือน คำนวณในเครื่อง บันทึกในบัญชี และพิมพ์หรือบันทึกเป็น PDF">
+<link rel="stylesheet" href="styles.css?v=8">
+<link rel="stylesheet" href="report.css?v=1">
+</head>
+<body>
+<!-- report.html — redeem a one-time report (report_basic / report_compat / report_annual): report.js. Without the API
+     the page builds a full sample report on the device (labelled as a free demo sample); with billing on it takes one
+     report credit through POST /api/me/entitlements/use before the report is shown and saves it to the history. -->
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=12"></script>
+<script src="i18n/zh-report.js?v=1"></script>
+
+<main id="main" class="rp">
+  <section class="rp-hero" aria-labelledby="rpH">
+    <p class="eyebrow" data-i18n="rp.eyebrow">LENSIQ ดูดวง · รายงาน</p>
+    <h1 id="rpH" data-i18n="rp.h1">รายงานดวงของฉัน</h1>
+    <p class="lead" data-i18n="rp.lead">รายงานฉบับยาวหลายศาสตร์ คำนวณในเครื่องของคุณ วันเกิดไม่ถูกส่งออกไปที่ใด พิมพ์หรือบันทึกเป็น PDF ได้ทุกฉบับ</p>
+    <p class="rp-mode" id="rpMode" role="note"></p>
+  </section>
+
+  <section class="rp-types" aria-labelledby="rpTypesH">
+    <h2 id="rpTypesH" class="rp-h2" data-i18n="rp.types">เลือกรายงาน</h2>
+    <div class="rp-tgrid" role="group" aria-labelledby="rpTypesH">
+      <button type="button" class="rp-type" data-rp-type="report_basic" aria-pressed="true"><b data-i18n="rp.basic.title">รายงานดวงพื้นฐาน</b><span data-i18n="rp.basic.desc">คำอ่านฉบับเต็มหลายหัวข้อจาก 3 ศาสตร์: แปดอักษร ทักษา และเลข 7 ตัว 9 ฐาน พร้อมแผนปรับ 3 ข้อ</span><small data-rp-credit="report_basic"></small></button>
+      <button type="button" class="rp-type" data-rp-type="report_compat" aria-pressed="false"><b data-i18n="rp.compat.title">รายงานดวงคู่</b><span data-i18n="rp.compat.desc">เทียบดวงสองคน: ความเข้ากันตาม 12 นักษัตร และพลังห้าธาตุของเจ้าชะตาทั้งสอง ฉบับยาวพร้อมแผน 3 ข้อ</span><small data-rp-credit="report_compat"></small></button>
+      <button type="button" class="rp-type" data-rp-type="report_annual" aria-pressed="false"><b data-i18n="rp.annualCard">รายงานดวงรายปี</b><span data-i18n="rp.annual.desc">ภาพรวมของปีตาม 12 นักษัตร วัยจร 10 ปี และแนวโน้มรายเดือนครบ 12 เดือน</span><small data-rp-credit="report_annual"></small></button>
+    </div>
+  </section>
+
+  <form class="rp-form" id="rpForm" novalidate>
+    <fieldset class="rp-person">
+      <legend id="rpLegendA">วันเกิด</legend>
+      <div class="rp-row">
+        <label><span data-i18n="rp.f.day">วันที่</span><select id="rpADay"></select></label>
+        <label><span data-i18n="rp.f.month">เดือน</span><select id="rpAMonth"></select></label>
+        <label><span data-i18n="rp.f.year">ปีเกิด</span><input id="rpAYear" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="เช่น 2533" data-i18n-attr="placeholder:rp.f.yearPh" autocomplete="off"></label>
+      </div>
+      <div class="rp-row rp-radios" role="radiogroup" aria-label="ศักราช" data-i18n-attr="aria-label:rp.f.era">
+        <label class="rp-check"><input type="radio" name="rpAEra" value="be" checked> <span data-i18n="rp.f.be">พ.ศ.</span></label>
+        <label class="rp-check"><input type="radio" name="rpAEra" value="ce"> <span data-i18n="rp.f.ce">ค.ศ.</span></label>
+      </div>
+      <div class="rp-row">
+        <label><span data-i18n="rp.f.time">เวลาเกิด</span><input id="rpATime" type="time" value="08:00"></label>
+        <label class="rp-check"><input type="checkbox" id="rpANoTime"> <span data-i18n="rp.f.noTime">ไม่ทราบเวลาเกิด</span></label>
+      </div>
+      <div class="rp-row rp-radios" role="radiogroup" aria-label="เพศ (ใช้กำหนดทิศของวัยจร 10 ปี)" data-i18n-attr="aria-label:rp.f.gender">
+        <label class="rp-check"><input type="radio" name="rpAGender" value="female" checked> <span data-i18n="rp.f.female">หญิง</span></label>
+        <label class="rp-check"><input type="radio" name="rpAGender" value="male"> <span data-i18n="rp.f.male">ชาย</span></label>
+      </div>
+    </fieldset>
+    <fieldset class="rp-person" id="rpPersonB" hidden>
+      <legend data-i18n="rp.f.personB">อีกฝ่าย</legend>
+      <div class="rp-row">
+        <label><span data-i18n="rp.f.day">วันที่</span><select id="rpBDay"></select></label>
+        <label><span data-i18n="rp.f.month">เดือน</span><select id="rpBMonth"></select></label>
+        <label><span data-i18n="rp.f.year">ปีเกิด</span><input id="rpBYear" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="เช่น 2533" data-i18n-attr="placeholder:rp.f.yearPh" autocomplete="off"></label>
+      </div>
+      <div class="rp-row rp-radios" role="radiogroup" aria-label="ศักราช" data-i18n-attr="aria-label:rp.f.era">
+        <label class="rp-check"><input type="radio" name="rpBEra" value="be" checked> <span data-i18n="rp.f.be">พ.ศ.</span></label>
+        <label class="rp-check"><input type="radio" name="rpBEra" value="ce"> <span data-i18n="rp.f.ce">ค.ศ.</span></label>
+      </div>
+      <div class="rp-row">
+        <label><span data-i18n="rp.f.time">เวลาเกิด</span><input id="rpBTime" type="time" value="12:00" disabled></label>
+        <label class="rp-check"><input type="checkbox" id="rpBNoTime" checked> <span data-i18n="rp.f.noTime">ไม่ทราบเวลาเกิด</span></label>
+      </div>
+      <div class="rp-row rp-radios" role="radiogroup" aria-label="เพศ (ใช้กำหนดทิศของวัยจร 10 ปี)" data-i18n-attr="aria-label:rp.f.gender">
+        <label class="rp-check"><input type="radio" name="rpBGender" value="female"> <span data-i18n="rp.f.female">หญิง</span></label>
+        <label class="rp-check"><input type="radio" name="rpBGender" value="male" checked> <span data-i18n="rp.f.male">ชาย</span></label>
+      </div>
+    </fieldset>
+    <div class="rp-row" id="rpYearRow" hidden>
+      <label><span data-i18n="rp.f.outlookYear">ปีที่ต้องการดู</span><select id="rpYear"></select></label>
+    </div>
+    <p class="rp-privacy" data-i18n="rp.privacy">วันเกิดใช้คำนวณในเครื่องนี้เท่านั้น ไม่ส่งและไม่บันทึก รายงานที่บันทึกในบัญชีมีเฉพาะข้อความคำอ่าน</p>
+    <div id="rpGate" class="rp-gate"></div>
+    <p class="rp-msg" id="rpMsg" role="alert"></p>
+    <button class="btn primary big" id="rpGo" type="submit" data-i18n="rp.go">สร้างรายงาน</button>
+  </form>
+
+  <article class="rp-out" id="rpOut" hidden aria-labelledby="rpOutH"></article>
+
+  <p class="rp-foot no-print"><a href="fortune.html" data-i18n="rp.toFortune">รวมศาสตร์ดูดวง</a> · <a href="pricing.html" data-i18n="rp.toPricing">แพ็กเกจและราคา</a> · <a href="terms.html#t9" data-i18n="rp.toRefund">การคืนเงินของรายงาน</a></p>
+</main>
+
+<script src="i18n/zh-kb-lifecal.js?v=2"></script>
+<script src="i18n/zh-kb-zodiac.js?v=1"></script>
+<script src="lensiq-config.js?v=3"></script>
+<script src="fortune-ai.js?v=9"></script>
+<script src="fortune-kit.js?v=2"></script>
+<script src="horoscope.js?v=6"></script>
+<script src="lifecal.js?v=2"></script>
+<script src="lifecal-kb.js?v=2"></script>
+<script src="zodiac-kb.js?v=1"></script>
+<script src="zodiac.js?v=3"></script>
+<script src="report.js?v=1"></script>
+</body>
+</html>

@@ -3,8 +3,8 @@
 (function (root) {
   "use strict";
   var dict = { zh: {
-    "studio.title": "换装影棚 | LENSIQ",
-    "studio.h1": "换装影棚",
+    "studio.title": "形象照与证件照影棚 | LENSIQ",
+    "studio.h1": "形象照与证件照影棚",
     "studio.lead": "上传照片或用相机拍摄，系统会抠除背景、细化发丝边缘，然后更换背景、校正光线并自然修饰皮肤，用于职业形象照和证件照，并检查照片尺寸、头部比例、纯色背景和曝光。预设服装只是服装预览（示例），用于展示效果，并非您真实穿着的照片。",
     "studio.step1": "1 · 选择人物照片",
     "studio.step1hint": "正脸，画面包含头部到胸口，光线均匀。照片只在本设备上处理。",
@@ -218,7 +218,37 @@
     "studio.idOutfit": "在证件照中使用示例服装（不推荐；默认使用您自己的衣服）",
     "studio.idCheck": "检查证件照要求",
     "studio.cf.ok": "仍然导出",
-    "studio.cf.no": "取消"
+    "studio.cf.no": "取消",
+    // round 11
+    "studio.lead1": "更换背景、校正光线、修饰皮肤，并制作带要求检查的证件照，全部在本设备上处理。",
+    "studio.disc1": "示例服装是实验性的模拟图像，并非您真实穿着的照片。",
+    "studio.more": "了解更多",
+    "studio.techLine": "技术细节",
+    "studio.a.qaDraft": "切换服装显示方式",
+    "studio.exp.title": "示例服装（实验）",
+    "studio.exp.note": "实验功能：服装由软件绘制在您的照片上，颈部或下颌处常可见接缝。仅用于预览效果，不适用于正式照片。",
+    "studio.sec.outfitPick": "选择服装",
+    "studio.js.ready.done": "完成（{s} 秒）",
+    "studio.js.ready.doneWarn": "完成（{s} 秒）· 未找到面部特征点，可手动调整颈部和肩部点",
+    "studio.js.ready.loading": "正在准备...",
+    "studio.js.ready.fallback": "已就绪（部分步骤使用备用方法，见技术细节）",
+    "studio.js.ready.ok": "已就绪",
+    "studio.js.qa.lowConf2": "在我们的开发照片中，通过检查的此类服装图像只有 {p}% 没有缺陷（低于系统自动选择服装所需的 {t}%）。",
+    "studio.js.qa.preBad": "这张照片不符合示例服装的建议（见示例服装部分的列表）。",
+    "studio.js.qa.matteFail": "这张照片无法抠除背景，因此显示原照片。请尝试面部清晰、光线充足、背景简洁的照片。",
+    "studio.js.pre.frontal": "正脸",
+    "studio.js.pre.frontalBad": "脸部转向或倾斜，服装难以贴合",
+    "studio.js.pre.frontalNA": "无法检查脸部朝向（未找到面部特征点）",
+    "studio.js.pre.neck": "颈部清晰可见",
+    "studio.js.pre.neckBad": "颈部可见部分很少（被衣领、头发或阴影遮挡）",
+    "studio.js.pre.hair": "头发未遮住肩部和下颌两侧",
+    "studio.js.pre.hairBad": "头发遮住肩部或下颌两侧",
+    "studio.js.pre.clothes": "上衣素净，无图案",
+    "studio.js.pre.clothesBad": "上衣有图案、衣领或较多饰品，常会在服装周围露出",
+    "studio.js.pre.framing": "肩部在画面内",
+    "studio.js.pre.framingBad": "照片在下巴下方被裁切，看不到肩部",
+    "studio.js.pre.ok": "换装前照片检查：这张照片符合建议（服装图像仍约有一半会出现接缝）",
+    "studio.js.pre.bad": "换装前照片检查：这张照片在标有 ! 的项目上不符合建议。仍可试穿服装（这只是建议，并非保证：无论照片是否通过，服装图像约有一半会出现接缝）"
   } };
   // ID-photo size buttons: studio.js writes the Thai labels of photobooth-layout.js ID_SIZES; lensiq-i18n-rt.js
   // translates them while 中文 is active (same wording as photobooth.js.size.* in i18n/zh-photobooth.js)

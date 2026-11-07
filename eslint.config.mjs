@@ -1,5 +1,7 @@
-// eslint.config.mjs — lenient flat config: catches real bugs (undefined names, duplicate keys, unreachable code,
-// bad regexes) without style rules. Pages are classic browser scripts sharing a few globals; tools/tests are Node.
+// eslint.config.mjs — flat config: catches real bugs (undefined names, duplicate keys, unreachable code, bad regexes),
+// requires === / !== (eqeqeq "smart": `x == null` stays allowed), and WARNS when a file grows past a size budget
+// (max-lines; existing monoliths are capped at their current size so they cannot grow — lower a cap when you split one).
+// Pages are classic browser scripts sharing a few globals; tools/tests are Node.
 import js from "@eslint/js";
 import globals from "globals";
 
@@ -9,7 +11,7 @@ const LENSIQ = Object.fromEntries([
   "LQCam", "LQDetect", "LQTrack", "LQHand", "LQStats", "LQAgg", "LQSite", "LENSIQ_AGE_GENDER", "LQVault", "LQI18N", "LQI18N_Q", "LQModels", "LQFortune",
   "LQStudio", "LQKit", "LENSIQ_API_BASE", "LENSIQ_FACEPARSE", "LENSIQ_BRAND", "LENSIQ_ANALYTICS", "LENSIQ_TURNSTILE_SITEKEY", "LQApi", "LQAnalytics",
   "LQInsightsAnalysis", "LQInsightsCards", "LQInsightsCharts", "LQInsightsData", "LQInsightsDemo", "LQInsightsUI",
-  "PBHQ", "PBOutfits", "PBTpl", "StudioCore", "NMCore", "FR_KB"
+  "PBHQ", "PBOutfits", "PBTpl", "StudioCore", "StudioQA", "NMCore", "FR_KB"
 ].map(k => [k, "writable"]));
 
 const RULES = {
@@ -30,7 +32,23 @@ const RULES = {
   "no-sparse-arrays": "warn",
   "no-unused-private-class-members": "warn",
   "no-useless-assignment": "off",
-  "preserve-caught-error": "off"
+  "preserve-caught-error": "off",
+  // === / !== everywhere except `== null` and typeof / literal comparisons (round 11: 0 violations when switched on)
+  "eqeqeq": ["error", "smart"],
+  // size budget (code lines, blank lines and comments not counted). Warning only: `npm run lint` stays green, the
+  // report shows which file outgrew its budget. Split pure logic into a module behind the existing global instead.
+  "max-lines": ["warn", { max: 1500, skipBlankLines: true, skipComments: true }]
+};
+
+// Files already over the budget (code lines measured 2026-11-08, round 11). Each cap = today's size + ~3 % headroom:
+// the file may not grow beyond it. Lower the number whenever a file shrinks; never raise it.
+const SIZE_CAPS = {
+  "fortune-ai.js": 3460,
+  "palm.js": 1830,
+  "studio-core.js": 1800,
+  "store.js": 1650,
+  "faceread.js": 1550,
+  "qc.js": 1550
 };
 
 export default [
@@ -45,6 +63,9 @@ export default [
     },
     linterOptions: { reportUnusedDisableDirectives: "off" }
   },
+  ...Object.entries(SIZE_CAPS).map(([file, max]) => ({ files: [file], rules: { "max-lines": ["warn", { max, skipBlankLines: true, skipComments: true }] } })),
+  // dictionaries are data, not code: no size budget
+  { files: ["i18n/**"], rules: { "max-lines": "off" } },
   { files: ["sw.js"], languageOptions: { globals: { ...globals.serviceworker } } },
   // API Worker (Cloudflare Workers runtime: ES modules, fetch/Request/Response/crypto/btoa globals)
   { files: ["backend/**/*.js"], languageOptions: { ecmaVersion: 2024, sourceType: "module", globals: { ...globals.serviceworker, console: "readonly" } } },

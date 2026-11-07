@@ -1,5 +1,5 @@
 "use strict";
-// node --test tests/unit — round-5 evaluator findings, as regression tests.
+// Fortune safety filter + lint regression suite (from the round-5 evaluator findings).
 //  * AI-path safety filter: ≥60 adversarial Thai/Chinese lines (infidelity, breakup, health decline, death euphemisms,
 //    medical orders, gambling/luck-chasing, reckless orders, certainty promises, paid remedies) must be blocked,
 //    and benign everyday lines must pass; no knowledge-base string may be blocked (no false positives).

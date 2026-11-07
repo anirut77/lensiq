@@ -119,6 +119,7 @@
     "palm.rs.reading": "正在看",
     "palm.fromImage": "（根据照片判断）",
     "palm.rs.mismatch": "这张照片看起来是{seen}，但你选择看{side} — 如果拍错了手，可以点“重新拍摄”或切换左右手",
+    "palm.rs.swapAria": "切换要看的那只手",
     "palm.rs.swap": "切换为{side}",
     "palm.guide.side": "{side}框",
     "palm.guide.found": "（已识别）",

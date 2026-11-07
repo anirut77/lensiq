@@ -1,0 +1,63 @@
+/* report.css — รายงานดวงของฉัน (report.html). Shared header / fonts / tokens come from styles.css. */
+.rp{--rp-ink:#141a33;--rp-muted:#4a5470;--rp-line:#dde1ee;--rp-accent:#5b46e0;--rp-good:#0f7a4a;--rp-care:#9a5b00;
+  max-width:920px;margin:0 auto;padding:20px 16px 48px;color:var(--rp-ink)}
+.rp h1{font-size:clamp(1.6rem,4.5vw,2.2rem);line-height:1.25;color:var(--navy);margin:4px 0 10px}
+.rp .lead{max-width:62ch}
+.rp-h2{font-size:clamp(1.1rem,3vw,1.35rem);color:var(--navy);margin:22px 0 10px}
+.rp-mode{margin:12px 0 0;padding:10px 14px;border-radius:12px;background:#f2f0ff;border:1px solid #d9d3ff;color:#2b2f6b;font-size:.92rem;line-height:1.6}
+.rp-tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.rp-type{display:flex;flex-direction:column;gap:6px;text-align:left;min-height:44px;padding:14px 16px;border:1px solid var(--rp-line);border-radius:14px;background:#fff;color:inherit;font:inherit;cursor:pointer}
+.rp-type b{font-size:1.05rem;color:var(--navy)}
+.rp-type span{font-size:.9rem;line-height:1.55;color:var(--rp-muted)}
+.rp-type small{font-size:.8rem;font-weight:600;color:var(--rp-accent)}
+.rp-type[aria-pressed=true]{border-color:var(--rp-accent);box-shadow:0 0 0 2px var(--rp-accent) inset;background:#faf9ff}
+.rp-type:focus-visible{outline:3px solid #22d3ee;outline-offset:2px}
+.rp-form{margin-top:18px;display:grid;gap:12px}
+.rp-person{border:1px solid var(--rp-line);border-radius:14px;padding:12px 14px 14px;margin:0;background:#fff;min-width:0}
+.rp-person legend{padding:0 6px;font-weight:600;color:var(--navy)}
+.rp-row{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;margin-top:8px}
+.rp-row>label:not(.rp-check){display:flex;flex-direction:column;gap:4px;font-size:.88rem;color:var(--rp-muted);min-width:0;flex:1 1 110px}
+.rp-row select,.rp-row input[type=text],.rp-row input[type=time]{min-height:44px;border:1px solid var(--rp-line);border-radius:10px;padding:6px 10px;font:inherit;color:var(--rp-ink);background:#fff;width:100%;max-width:100%;box-sizing:border-box}
+.rp-check{display:inline-flex;align-items:center;gap:8px;min-height:44px;font-size:.92rem;cursor:pointer}
+.rp-check input{width:18px;height:18px}
+.rp-privacy{margin:0;font-size:.85rem;color:var(--rp-muted)}
+.rp-gate:empty{display:none}
+.rp-gate{padding:12px 14px;border:1px dashed var(--rp-accent);border-radius:12px;background:#faf9ff}
+.rp-gate p{margin:0 0 8px}
+.rp-msg{min-height:1.2em;margin:0;color:#b42318;font-size:.92rem}
+.rp-out{margin-top:26px;padding:20px 18px;border:1px solid var(--rp-line);border-radius:16px;background:#fff}
+.rp-head h2{margin:2px 0 6px;font-size:clamp(1.3rem,4vw,1.8rem);color:var(--navy)}
+.rp-meta,.rp-small{font-size:.84rem;color:var(--rp-muted);margin:4px 0}
+.rp-sample{display:inline-block;margin:6px 0 0;padding:4px 10px;border-radius:999px;background:#fff4d6;color:#5c3f00;font-size:.84rem;font-weight:600}
+.rp-summary{margin:16px 0;padding:12px 14px;border-radius:12px;background:rgba(103,79,242,.06);border:1px solid rgba(103,79,242,.25)}
+.rp-summary h3,.rp-plan h3{margin:0 0 6px;font-size:1rem}
+.rp-summary ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.rp-summary b,.rp-plan b{color:#4b36c9}
+.rp-part{margin-top:22px;padding-top:14px;border-top:1px solid var(--rp-line)}
+.rp-part h3{margin:0 0 4px;font-size:1.15rem;color:var(--navy)}
+.rp-headline{margin:0 0 8px;font-size:.9rem;color:var(--rp-muted)}
+.rp-sec h4{margin:12px 0 4px;font-size:1rem;color:var(--navy)}
+.rp-sec p{margin:0 0 8px;line-height:1.7;max-width:70ch}
+.rp-mgrid{list-style:none;margin:10px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.rp-month{padding:10px 12px;border:1px solid var(--rp-line);border-left:4px solid #9aa3c0;border-radius:12px;break-inside:avoid}
+.rp-month.favourable{border-left-color:var(--rp-good)}.rp-month.caution{border-left-color:var(--rp-care)}
+.rp-month p{margin:0 0 4px;line-height:1.55;font-size:.9rem}
+.rp-mlabel{font-size:.95rem!important}.rp-mlabel span{color:var(--rp-muted)}
+.rp-mtitle{font-weight:600;color:var(--navy)}
+.rp-tip{color:#3b2fc0}.rp-fav{color:var(--rp-good)}
+.rp-plan{margin-top:22px;padding:12px 14px;border-radius:12px;background:#f6f7fb}
+.rp-plan ol{margin:0;padding-left:1.3em;line-height:1.65}
+.rp-reminder{margin:16px 0 4px;padding:10px 12px;border-left:4px solid #22d3ee;background:#f3fbfd;border-radius:8px;font-size:.92rem;line-height:1.6}
+.rp-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.rp-foot{margin-top:28px;font-size:.9rem}
+.rp-foot a{display:inline-flex;align-items:center;min-height:44px;color:#3b2fc0;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:480px){.rp-out{padding:16px 14px}.rp-mgrid{grid-template-columns:1fr}}
+@media print{
+  .nav,.lq-crumbs,.lq-legal-foot,.site-foot,.rp-hero,.rp-types,.rp-form,.rp-foot,.no-print,.lq-toast{display:none!important}
+  body{background:#fff}
+  .rp{max-width:none;padding:0}
+  .rp-out{border:0;padding:0;margin:0}
+  .rp-part{break-inside:auto}.rp-sec{break-inside:avoid}
+  .rp-mgrid{grid-template-columns:1fr 1fr}
+}
+@page{size:A4;margin:14mm}

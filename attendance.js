@@ -2,7 +2,8 @@ const MODEL_URL = "vendor/models/";
 // ค่าความต่างใบหน้าสูงสุดที่ยอมรับ (ยิ่งต่ำยิ่งเข้มงวด) — ตั้งค่าได้ เก็บใน att-settings
 // retentionDays: ลบการลงทะเบียนใบหน้าที่ไม่ได้ใช้เกินกี่วัน (ค่าเริ่ม 365)
 // round 5: 0.50 (ACCURACY.md §2) — the page scales it to the enrolled group (LQTrack.FACE_RULES / gallerySpread)
-const settings = Object.assign({ matchDistance: 0.50, retentionDays: 365 }, (() => { try { return JSON.parse(localStorage.getItem("att-settings")) || {}; } catch { return {}; } })());
+// liveness (round 11): ให้หันหน้าซ้าย–ขวาเล็กน้อยก่อนเช็คชื่อ — ปิดไว้เป็นค่าเริ่มต้น (LQTrack.createLiveness, ยังไม่ได้วัดผล)
+const settings = Object.assign({ matchDistance: 0.50, retentionDays: 365, liveness: false }, (() => { try { return JSON.parse(localStorage.getItem("att-settings")) || {}; } catch { return {}; } })());
 const MAX_FACES = 5;
 const TEST = !!(window.LQDetect && LQDetect.isTest()); // localhost + ?fakedet เท่านั้น
 const $ = s => document.querySelector(s);
@@ -56,6 +57,9 @@ const declined = new Set(); // pid ที่ถูกกด "ไม่ใช่"
 const lastSaid = new Map();   // pid -> เวลาแจ้งล่าสุด (กันข้อความซ้ำรายคน)
 const lastResult = new Map(); // pid -> {kind, text} ผลเช็คชื่อล่าสุดของคนนั้น
 const confirm2 = LQTrack.createConfirm({ need: 2, windowMs: 1500 }); // ต้องเห็นตรงกัน 2 เฟรมก่อนบันทึก
+const liveGate = LQTrack.createLiveness({ windowMs: 8000, turn: 0.3 }); // ใช้เฉพาะเมื่อเปิด settings.liveness
+const waitLive = new Set(); // pid ที่ยืนยันใบหน้าแล้ว รอหันหน้า
+const LIVE_TXT = "กรุณาหันหน้าไปทางซ้ายหรือขวาเล็กน้อย แล้วหันกลับ (ตรวจว่าเป็นคนจริง)";
 
 $("#date").value = new Date().toISOString().slice(0, 10);
 const session = () => $("#session").value.trim();
@@ -156,11 +160,11 @@ async function detectFaces(max = MAX_FACES) {
   const fk = TEST ? LQDetect.fake("att", performance.now()) : null;
   if (fk) {
     const W = video.videoWidth || overlay.width || 1, H = video.videoHeight || overlay.height || 1;
-    faces = fk.map(d => ({ box: { x: d.x * W, y: d.y * H, width: d.w * W, height: d.h * H }, descriptor: d.descriptor ? Float32Array.from(d.descriptor) : null, fake: d }));
+    faces = fk.map(d => ({ box: { x: d.x * W, y: d.y * H, width: d.w * W, height: d.h * H }, descriptor: d.descriptor ? Float32Array.from(d.descriptor) : null, fake: d, cues: d.cues || null }));
   } else {
     const r = await detectReal();
     // q = คุณภาพภาพใบหน้า (ขนาด คะแนน หันข้าง) — เฟรมที่ไม่ผ่าน LQTrack.qualityOk ไม่ถูกนำไปจับคู่
-    faces = r.map(x => { const b = x.detection.box; return { box: { x: b.x, y: b.y, width: b.width, height: b.height }, descriptor: x.descriptor, q: LQTrack.faceQuality({ box: b, score: x.detection.score, landmarks: x.landmarks.positions }) }; });
+    faces = r.map(x => { const b = x.detection.box; return { box: { x: b.x, y: b.y, width: b.width, height: b.height }, descriptor: x.descriptor, q: LQTrack.faceQuality({ box: b, score: x.detection.score, landmarks: x.landmarks.positions }), cues: LQTrack.liveCues(x.landmarks.positions) }; });
   }
   return faces.sort((a, b) => b.box.width * b.box.height - a.box.width * a.box.height).slice(0, max);
 }
@@ -251,7 +255,9 @@ async function loop() {
     const rows = faces.map((f, i) => {
       const a = got.get(i), p = a && people.find(x => x.id === a.key);
       if (!p) return { f, kind: "unknown", name: "ไม่รู้จัก", text: "ไม่พบในระบบ กรุณาลงทะเบียน" };
-      const st = confirm2.hit(p.id, now);
+      // รอหันหน้า (liveness): คนที่ยืนยัน 2 เฟรมแล้วแต่ยังไม่ผ่าน นับเป็น "confirmed" ต่อไปจนกว่าจะผ่านหรือหายจากกล้อง
+      const st0 = confirm2.hit(p.id, now), st = st0 === "already" && waitLive.has(p.id) ? "confirmed" : st0;
+      const live = !settings.liveness || liveGate.step(p.id, f.cues, now) === "live";
       if (declined.has(p.id)) return { f, kind: "unknown", name: "ไม่รู้จัก", text: "ไม่พบในระบบ กรุณาลงทะเบียน" };
       if (conf.get(i)) { const s = sure.get(p.id); sure.set(p.id, { n: (s && now - s.last <= 1500 ? s.n : 0) + 1, last: now }); }
       const isSure = (sure.get(p.id) || { n: 0 }).n >= 2;
@@ -261,8 +267,9 @@ async function loop() {
         if (!asks.has(p.id)) asks.set(p.id, now);
         return { f, kind: "ask", name: p.name, pid: p.id, text: "ไม่แน่ใจ — กรุณากดยืนยันตัวตน" };
       }
+      if ((st === "confirmed" || asks.has(p.id)) && !live) { waitLive.add(p.id); return { f, kind: "pending", name: p.name, text: LIVE_TXT }; }
       if (st === "confirmed" || asks.has(p.id)) {
-        asks.delete(p.id);
+        asks.delete(p.id); waitLive.delete(p.id);
         if (Date.now() - (p.lastSeen || 0) > 3600000) { p.lastSeen = Date.now(); savePeople({ faces: false }); } // นับวันเก็บข้อมูลจากการใช้ล่าสุด
         const r = checkIn(p);
         if (r.kind === "err") confirm2.reset(p.id); // เช่น ยังไม่กรอกหัวข้อ ให้ลองใหม่เฟรมถัดไป
@@ -272,7 +279,7 @@ async function loop() {
       }
       return { f, name: p.name, ...(lastResult.get(p.id) || { kind: "dup", text: "เช็คชื่อแล้ว" }) };
     });
-    for (const k of confirm2.prune(now)) { asks.delete(k); declined.delete(k); sure.delete(k); }
+    for (const k of confirm2.prune(now)) { asks.delete(k); declined.delete(k); sure.delete(k); liveGate.reset(k); waitLive.delete(k); }
     draw(ctx, rows);
     renderFaceResults(rows);
     const unk = rows.filter(r => r.kind === "unknown").length;
@@ -317,6 +324,7 @@ $("#faceResults").addEventListener("click", e => {
   asks.delete(id);
   noteField(!no);
   if (no) { declined.add(id); say(`ไม่บันทึก ${p.name}`, ""); return; }
+  if (settings.liveness && !liveGate.isLive(id)) { asks.set(id, Date.now()); say(LIVE_TXT, "warn"); return; }
   const r = checkIn(p);
   if (r.kind !== "err") lastResult.set(p.id, r);
   notify(p, r);
@@ -365,7 +373,20 @@ function renderLogs() {
     `<tr><td>${esc(l.date)} ${esc(l.time)}</td><td>${esc(l.name)}</td><td>${esc(l.code)}</td><td>${esc(l.session)}</td></tr>`).join("")
     || `<tr><td colspan="4">ยังไม่มีบันทึก</td></tr>`;
 }
+// round 11: ป้ายแจ้งการลบอัตโนมัติ (ข้อมูลใบหน้าในเครื่องนี้ + คนที่จะหมดอายุภายใน 30 วัน)
+function renderExpiry() {
+  const el = $("#expiryBanner"); if (!el) return;
+  const withFace = people.filter(p => Array.isArray(p.descriptor));
+  if (!withFace.length) { el.hidden = true; el.textContent = ""; return; }
+  const soon = LQVault.expiringSoon(withFace, settings.retentionDays, 30);
+  el.replaceChildren(); const sp = t => { const x = document.createElement("span"); x.textContent = t; el.append(x); };
+  const F = (t, o) => t.replace(/\{(\w+)\}/g, (m, k) => (k in o ? String(o[k]) : m));
+  sp(F("ข้อมูลใบหน้า {a} คนในเครื่องนี้จะถูกลบอัตโนมัติเมื่อไม่ได้ใช้เกิน {b} วัน", { a: withFace.length, b: settings.retentionDays }));
+  if (soon.length) { el.append(" · "); sp(F("{a} คนจะถูกลบภายใน 30 วัน (เร็วสุดอีก {b} วัน)", { a: soon.length, b: soon[0].daysLeft })); }
+  el.hidden = false;
+}
 function renderPeople() {
+  renderExpiry();
   $("#peopleCount").textContent = people.length;
   $("#people").innerHTML = people.map(p => `<li><span>${esc(p.name)} <small>${esc(p.code)}</small>${Array.isArray(p.descriptor) ? "" : ' <small class="hint">(อ่านข้อมูลใบหน้าไม่ได้)</small>'}</span><button type="button" data-id="${p.id}" aria-label="ลบข้อมูลใบหน้าของ ${esc(p.name)}">ลบข้อมูล</button></li>`).join("");
 }
@@ -387,6 +408,15 @@ $("#wipeFaces").onclick = async () => {
   showFaceState(LQVault.supported() ? "enc" : LQVault.enrollBlockReason() ? "insecure" : "plain");
   rebuildMatcher(); renderPeople(); say("ลบข้อมูลใบหน้าทั้งหมดแล้ว", "ok");
 };
+// round 11: ลบข้อมูลชีวมิติทั้งหมดในเครื่องนี้ (ทุกหน้า: เช็คชื่อ + จดจำลูกค้า) และกุญแจทั้งหมดใน IndexedDB — สำหรับผู้ดูแล
+if ($("#wipeAllBio")) $("#wipeAllBio").onclick = async () => {
+  if (!confirm("ลบข้อมูลชีวมิติ (ค่าใบหน้า) ทั้งหมดในเบราว์เซอร์เครื่องนี้ ทั้งระบบเช็คชื่อและจดจำลูกค้า พร้อมกุญแจเข้ารหัส? ทุกคนต้องลงทะเบียนใบหน้าใหม่ บันทึกการเข้าเรียนและประวัติการสั่งยังอยู่ ย้อนกลับไม่ได้")) return;
+  if (scanning) $("#startScan").click();
+  people = [];
+  await saveQ(() => LQVault.wipeAll());
+  showFaceState(LQVault.supported() ? "enc" : LQVault.enrollBlockReason() ? "insecure" : "plain");
+  rebuildMatcher(); renderPeople(); say("ลบข้อมูลชีวมิติทั้งหมดในเครื่องนี้แล้ว", "ok");
+};
 {
   const sel = $("#retention");
   sel.value = String(settings.retentionDays);
@@ -396,6 +426,7 @@ $("#wipeFaces").onclick = async () => {
     store("att-settings", settings);
     const n = applyRetention();
     if (n) { rebuildMatcher(); renderPeople(); say(`ลบข้อมูลใบหน้าที่ไม่ได้ใช้เกิน ${settings.retentionDays} วันแล้ว ${n} คน`, "warn"); }
+    else renderExpiry();
   });
 }
 ["#session", "#date"].forEach(s => $(s).addEventListener("input", () => { $(s).classList.remove("invalid"); renderLogs(); }));
@@ -433,6 +464,11 @@ document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
     out.textContent = settings.matchDistance.toFixed(2);
     store("att-settings", settings); rebuildMatcher();
   });
+  const lv = $("#liveness");
+  if (lv) {
+    lv.checked = !!settings.liveness;
+    lv.addEventListener("change", () => { settings.liveness = lv.checked; store("att-settings", settings); });
+  }
 }
 
 // ---------- สุขภาพภาพ + ตรวจความแม่นยำหน้างาน (lensiq-sitecheck.js) ----------
@@ -524,10 +560,10 @@ function scaFinish() {
     startedAt: new Date(run.startedAt).toISOString(), enrolled: run.n, settings: { matchDistance: settings.matchDistance, confirmFrames: 2, confidentFrames: 2, windowMs: 6000 },
     conditions: { health: [...run.health] }, trials: run.trials.map(t => ({ truth: anon(t.truth), outcome: t.outcome, label: anon(t.label), ms: t.ms, ...(t.sid != null ? { sid: "s" + t.sid } : {}) })),
     distinctPeople: { members: rep.n.distinctMembers, strangers: rep.n.distinctStrangers },
-    fieldConfirmations: { ...fieldStats }, report: { verdict: rep.verdict, provisional: rep.provisional, need: rep.need, n: rep.n, recognised: rep.recognised, recognisedCluster: rep.recognisedCluster, strangerAutoCluster: rep.strangerAutoCluster, auto: rep.auto, wrong: rep.wrong, strangerAuto: rep.strangerAuto, strangerAsk: rep.strangerAsk, recs: rep.recs }
+    fieldConfirmations: { ...fieldStats }, report: { verdict: rep.verdict, provisional: rep.provisional, pilot: rep.pilot ? rep.pilot.verdict : null, need: rep.need, n: rep.n, recognised: rep.recognised, recognisedCluster: rep.recognisedCluster, strangerAutoCluster: rep.strangerAutoCluster, auto: rep.auto, wrong: rep.wrong, strangerAuto: rep.strangerAuto, strangerAsk: rep.strangerAsk, recs: rep.recs }
   });
   scaPanel.exp.hidden = false; scaPanel.exp.onclick = () => SITE.download(`lensiq-attendance-check-${day()}.json`, doc);
-  scaHist.add({ at: run.startedAt, verdict: rep.verdict, provisional: rep.provisional, need: rep.need, cam: camera.label || "จุดเช็คชื่อ", summary: SITE.fmt("ผู้ลงทะเบียน {a} รอบ จำได้ {b} · คนนอก {c} รอบ เช็คชื่อผิด {d}", { a: rep.n.members, b: rep.recognised.p == null ? "—" : (rep.recognised.p * 100).toFixed(0) + "%", c: rep.n.strangers, d: rep.n.strangerAuto }) });
+  scaHist.add({ at: run.startedAt, verdict: rep.verdict, provisional: rep.provisional, pilot: rep.pilot ? rep.pilot.verdict : null, need: rep.need, cam: camera.label || "จุดเช็คชื่อ", summary: SITE.fmt("ผู้ลงทะเบียน {a} รอบ จำได้ {b} · คนนอก {c} รอบ เช็คชื่อผิด {d}", { a: rep.n.members, b: rep.recognised.p == null ? "—" : (rep.recognised.p * 100).toFixed(0) + "%", c: rep.n.strangers, d: rep.n.strangerAuto }) });
   scaHist.render(scaPanel.hist);
   SCA_LAST = { rep, doc };
 }

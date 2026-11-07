@@ -4,7 +4,7 @@
    For entertainment, based on traditional beliefs. */
 (function (root) {
   "use strict";
-  var X = "siam si is the Thai practice of fortune sticks: you shake a cup of numbered sticks until one falls out, then read the slip with the same number";
+  var X = "Siam Si is the Thai practice of fortune sticks: you shake a cup of numbered sticks until one falls out, then read the slip with the same number";
   var D = {
     domain: "siamsee",
     items: {

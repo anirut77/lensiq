@@ -57,7 +57,8 @@
     get: id => idbTx("readonly", (st, set) => { const r = st.get(id); r.onsuccess = () => set(r.result || null); }),
     // add = ไม่เขียนทับกุญแจที่อีกแท็บสร้างไว้ก่อน (ConstraintError -> อ่านของเดิม)
     add: (id, key) => idbTx("readwrite", st => { st.add(key, id); }),
-    del: id => idbTx("readwrite", st => { st.delete(id); })
+    del: id => idbTx("readwrite", st => { st.delete(id); }),
+    clear: () => idbTx("readwrite", st => { st.clear(); })
   };
   let keyStore = null;
   const getKeyStore = () => keyStore || (root.indexedDB ? idbStore : null);
@@ -236,6 +237,30 @@
     return records.filter(r => r && Array.isArray(r[field]) && (now - (r.lastSeen || r.created || now)) > days * DAY).map(r => r.id);
   }
 
+  /** round 11: ระเบียนที่จะหมดอายุภายใน withinDays วัน (ยังไม่หมด) -> [{id, daysLeft}] เรียงจากใกล้หมดก่อน — สำหรับป้ายแจ้งเตือน */
+  function expiringSoon(records, days, withinDays = 30, now = Date.now(), field = "descriptor") {
+    if (!(days > 0)) return [];
+    return records.filter(r => r && Array.isArray(r[field])).map(r => ({ id: r.id, daysLeft: days - (now - (r.lastSeen || r.created || now)) / DAY }))
+      .filter(x => x.daysLeft > 0 && x.daysLeft <= withinDays).map(x => ({ id: x.id, daysLeft: Math.ceil(x.daysLeft) })).sort((a, b) => a.daysLeft - b.daysLeft);
+  }
+  /** คีย์ข้อมูลชีวมิติที่รู้จักบนอุปกรณ์นี้: ค่าใบหน้าเข้ารหัส -> ระเบียนที่ใช้ไม่ได้อีกเมื่อไม่มีค่าใบหน้า (null = เก็บระเบียนไว้) */
+  const BIOMETRIC_KEYS = Object.freeze({ "lqv-att-faces": "att-people", "lqv-cx-faces": null });
+  /**
+   * round 11 — "ลบข้อมูลชีวมิติทั้งหมดในเครื่องนี้" (admin): ลบค่าใบหน้าเข้ารหัสทุกคีย์ lqv-* ใน localStorage, ระเบียนผู้ลงทะเบียน
+   * เช็คชื่อ (ไม่มีประโยชน์เมื่อไม่มีใบหน้า) และกุญแจทุกดอกใน IndexedDB (สำเนาซองที่ค้างอยู่ที่ใดก็ถอดไม่ได้อีก)
+   * สมาชิกร้านและประวัติการสั่งยังอยู่ (ค้นหาด้วยชื่อได้) ; บันทึกการเข้าเรียนยังอยู่ -> คืนรายชื่อคีย์ที่ลบ
+   */
+  async function wipeAll(ls = storage()) {
+    const names = new Set(Object.keys(BIOMETRIC_KEYS));
+    try { if (ls) for (let i = 0; i < ls.length; i++) { const k = ls.key(i); if (k && /^lqv-/.test(k)) names.add(k); } } catch {}
+    await wipe([...names], ls);
+    for (const meta of Object.values(BIOMETRIC_KEYS)) if (meta) { try { ls && ls.removeItem(meta); } catch {} }
+    const ks = getKeyStore();
+    if (ks && typeof ks.clear === "function") { try { await ks.clear(); } catch {} }
+    keyP.clear(); locked.clear();
+    return [...names];
+  }
+
   const RETENTION_CHOICES = [30, 90, 180, 365, 730];
   const STATE_TH = {
     enc: "ข้อมูลใบหน้าเข้ารหัส (AES-GCM) ด้วยกุญแจที่อยู่ในเบราว์เซอร์นี้เท่านั้น",
@@ -244,7 +269,7 @@
     locked: "ข้อมูลใบหน้าเดิมถอดรหัสไม่ได้ (กุญแจในเบราว์เซอร์นี้หายไป) — กด \"ลบข้อมูลใบหน้าทั้งหมด\" เพื่อเริ่มใหม่"
   };
 
-  const api = { supported, insecureReason, enrollBlockReason, configure, read, write, wipe, splitLoad, splitSave, queue, expired, isEnvelope,
+  const api = { supported, insecureReason, enrollBlockReason, configure, read, write, wipe, wipeAll, splitLoad, splitSave, queue, expired, expiringSoon, isEnvelope, BIOMETRIC_KEYS,
     VaultLockedError, VaultInsecureError, RETENTION_CHOICES, STATE_TH, DAY,
     _setKeyStore(ks) { keyStore = ks; keyP.clear(); }, _reset() { keyP.clear(); locked.clear(); cfg.allowPlaintext = false; } };
   root.LQVault = api;

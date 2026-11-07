@@ -2,10 +2,12 @@
  * data-i18n / data-i18n-attr values on booth.html. Text set at run time by booth.js stays Thai for now.
  * Queue pattern: works before or after lensiq-i18n.js (see i18n/zh-common.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
+  "booth.licb": "研究许可模型",
+  "booth.lic": "人脸由 face-api.js 模型分析（代码为 MIT），其训练数据仅许可用于研究。商业使用尚未经律师确认——商业使用前请核实许可",
   "booth.s1": "展台分析 | LENSIQ",
   "booth.s2": "展台访客分析",
   "booth.s3": "统计活动和展会中的展台访客，匿名识别回访访客，测量停留观看时长、表情和活动参与情况。本地处理，不保存图像。",
-  "booth.s4": "仅统计面向摄像头的人脸，未面向摄像头的人不会被计入 · 同一人识别使用 0.50 阈值，在 LFW 上测试时每对图像约 73% 能识别为同一人，因此可能会重复计数部分访客。尚未在真实展台视频中测量，更适合查看趋势，而非精确到每个人的总数",
+  "booth.s4": "只统计面向摄像头的人脸，没有面向摄像头的人不会被计入 · 可选的“识别回访者”模式（默认关闭）使用 0.50 阈值，在 LFW 上同一人的图像对约 73% 能被识别，因此部分访客可能被重复计数。尚未在真实展位视频上测量；适合看趋势而非精确的逐人总数，并请在下方用您自己的展位做现场准确度检查",
   "booth.s5": "测量方法与局限",
   "booth.s6": "摄像头未开启，请点击“启动摄像头”",
   "booth.s7": "启动摄像头",

@@ -39,8 +39,16 @@
   var GSI_SRC = "https://accounts.google.com/gsi/client";
 
   /* ============================ pure helpers (unit-tested in Node) ============================ */
-  // gentle-caution sentences (same markers as fortune-ai.js CAUTION_MARK_TH / _ZH, plus English wording)
-  var CAUTION_RE = /ควรระวัง|ตึงมือ|ระมัดระวัง|ต้องใช้แรงมากกว่าปกติ|ต้องการความเข้าใจมากขึ้น|ควรใจเย็นกับกันและกัน|เดินอย่างรอบคอบ|จุดที่ควรใส่ใจ|紧一些|多留意|多留心|多花些力气|多一些体谅|多一点耐心|宜稳|\b(?:be careful|take care|caution|go carefully|watch your spending|tight)\b/i;
+  // gentle-caution sentences: the markers of fortune-ai.js CAUTION_MARK_TH / _ZH / _EN (kept in sync by
+  // tests/unit/member-caution-sync.test.js, which reads fortune-ai.js) plus a few extra English words
+  var CAUTION_MARKS = {
+    th: ["ควรระวัง", "ตึงมือ", "ระมัดระวัง", "ต้องใช้แรงมากกว่าปกติ", "ต้องการความเข้าใจมากขึ้น", "ควรใจเย็นกับกันและกัน", "เดินอย่างรอบคอบ", "จุดที่ควรใส่ใจ"],
+    zh: ["紧一些", "多留意", "多留心", "多花些力气", "多一些体谅", "多一点耐心", "宜稳"],
+    en: ["a little tight", "keep a closer eye", "a bit more effort", "move steadily rather than rush", "a little extra understanding", "patience with each other", "a little extra care", "move thoughtfully"],
+    enExtra: ["be careful", "take care", "caution", "go carefully", "watch your spending", "tight"]
+  };
+  var reEsc = function (/** @type {string} */ x) { return x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); };
+  var CAUTION_RE = new RegExp(CAUTION_MARKS.th.concat(CAUTION_MARKS.zh, CAUTION_MARKS.en).map(reEsc).join("|") + "|\\b(?:" + CAUTION_MARKS.enExtra.map(reEsc).join("|") + ")\\b", "i");
 
   /** Paragraphs of `sections` that carry a gentle caution (shown to guests too — safety is never gated). */
   function cautionParagraphs(sections, max) {
@@ -114,7 +122,37 @@
     return [{ customer_id: String(c.customer_id), order_token: String(c.order_token), payment_id: c.payment_id ? String(c.payment_id) : null, plan_id: c.plan_id ? String(c.plan_id) : null, at: nowSec == null ? Math.floor(Date.now() / 1000) : nowSec }].concat(rest).slice(0, 5);
   }
 
-  var pure = { pickSession: pickSession, claimOutcome: claimOutcome, addClaim: addClaim, lightResult: lightResult, cautionParagraphs: cautionParagraphs, countGuest: countGuest, gateOn: gateOn, signInPossible: signInPossible, CONSENT_VERSION: CONSENT_VERSION };
+  /** Upgrade / report card decision for a rendered reading: "light" (guest light reading), "quota" (the writing
+   *  assistant refused with code "quota" today and this reading was composed on the device) or null.
+   *  @param {any} res @param {any} gated @param {string|null} quotaDay @param {string} day */
+  function upsell(res, gated, quotaDay, day) {
+    if (gated && gated.light) return "light";
+    if (res && res.source !== "ai" && quotaDay && quotaDay === day) return "quota";
+    return null;
+  }
+
+  /** Renewal reminder for a paid plan with no automatic renewal (terms section 8): due from `days` (7) before
+   *  current_period_end until it ends. The Worker's own plan.renewal_due wins when it sends one.
+   *  -> {due, days, ends} | {due: false}  @param {any} plan @param {number} [nowSec] @param {number} [days] */
+  function renewalDue(plan, nowSec, days) {
+    if (!plan || !plan.current_period_end || plan.source === "grant") return { due: false };
+    var t = nowSec == null ? Math.floor(Date.now() / 1000) : nowSec, left = plan.current_period_end - t;
+    var win = (days == null ? 7 : days) * 86400;
+    var due = typeof plan.renewal_due === "boolean" ? plan.renewal_due : left > 0 && left <= win;
+    return due ? { due: true, days: Math.max(0, Math.ceil(left / 86400)), ends: plan.current_period_end } : { due: false };
+  }
+
+  /** /api/me -> the plan shape renewalDue() reads: the Worker's top-level renewal_due / renewal (round 11) win over
+   *  the client-side 7-day window. @param {any} me */
+  function planForRenewal(me) {
+    if (!me || !me.plan) return null;
+    var p = Object.assign({}, me.plan);
+    if (typeof me.renewal_due === "boolean") p.renewal_due = me.renewal_due;
+    if (me.renewal && me.renewal.current_period_end) p.current_period_end = me.renewal.current_period_end;
+    return p;
+  }
+
+  var pure = { planForRenewal: planForRenewal, renewalDue: renewalDue, pickSession: pickSession, claimOutcome: claimOutcome, addClaim: addClaim, lightResult: lightResult, cautionParagraphs: cautionParagraphs, countGuest: countGuest, gateOn: gateOn, signInPossible: signInPossible, upsell: upsell, CONSENT_VERSION: CONSENT_VERSION, CAUTION_RE: CAUTION_RE, CAUTION_MARKS: CAUTION_MARKS };
   if (typeof module !== "undefined" && module.exports) { module.exports = pure; return; }
 
   /* ============================ browser ============================ */
@@ -155,15 +193,18 @@
   function possible() { return signInPossible(st.cfg, clientId()); }
   function ms() { return (st.cfg && st.cfg.membership) || {}; }
 
-  /** fetch helper that keeps the error code ({ok, status, j}); bearer auth when signed in. */
+  /** fetch helper that keeps the error code ({ok, status, j}); bearer auth when signed in. Goes through LQApi.call
+   *  (15 s timeout, credentials "omit", no-store, no-referrer); the plain fetch below is only for an older cached
+   *  lensiq-api.js without call(). */
   function call(/** @type {string} */ path, /** @type {any} */ o) {
     o = o || {};
     var a = API();
     if (!a || !a.enabled()) return Promise.resolve({ ok: false, status: 0, j: null });
     /** @type {Record<string, string>} */
     var h = Object.assign({}, o.headers || {});
-    if (o.body !== undefined) h["Content-Type"] = "application/json";
     if (token() && o.auth !== false) h.Authorization = "Bearer " + token();
+    if (typeof a.call === "function") return a.call(path, { method: o.method || "GET", headers: h, body: o.body, timeoutMs: o.timeoutMs || 15000 });
+    if (o.body !== undefined) h["Content-Type"] = "application/json";
     return fetch(a.url(path), { method: o.method || "GET", headers: h, body: o.body !== undefined ? JSON.stringify(o.body) : undefined, credentials: "omit", cache: "no-store", referrerPolicy: "no-referrer" })
       .then(function (r) { return r.json().catch(function () { return null; }).then(function (j) { return { ok: r.ok, status: r.status, j: j }; }); })
       .catch(function () { return { ok: false, status: 0, j: null }; });
@@ -187,15 +228,19 @@
   function init() {
     var a = API();
     if (!a || !a.enabled()) return;
-    Promise.resolve(a.config()).then(function (/** @type {any} */ cfg) {
-      if (cfg) { st.cfg = cfg; ss.set(CFG_KEY, { membership: cfg.membership || null }); }
-      return possible() || token() ? refresh() : null;
-    }).then(function () {
-      if (st.me) claimPending();
+    var done = function () {
+      if (st.ready) return;
       st.ready = true;
       emit();
       try { root.dispatchEvent(new CustomEvent("lq-member-ready")); } catch (e) { /* ignore */ }
-    });
+    };
+    Promise.resolve(a.config()).then(function (/** @type {any} */ cfg) {
+      if (cfg) { st.cfg = cfg; ss.set(CFG_KEY, { membership: cfg.membership || null, pricing_enabled: !!cfg.pricing_enabled, billing_enabled: !!cfg.billing_enabled, free_mode: cfg.free_mode }); }
+      return possible() || token() ? refresh() : null;
+    }).then(function () {
+      if (st.me) claimPending();
+      done();
+    }).catch(function () { done(); }); // a failed probe must not leave pages waiting for "lq-member-ready"
   }
 
   /* ---------------- styles (injected; style-src 'unsafe-inline' is allowed by the site CSP) ---------------- */
@@ -227,6 +272,12 @@
     ".lq-dlg .lq-notice summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600}" +
     ".lq-dlg label.ck{display:flex;gap:.6em;align-items:flex-start;margin:.55em 0;font-size:.9rem;line-height:1.5;cursor:pointer}.lq-dlg label.ck input{margin-top:.25em;width:18px;height:18px;flex:none}" +
     ".lq-dlg .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}.lq-gsi{min-height:0}.lq-gsi:not(:empty){min-height:44px;margin-top:8px}.lq-dlg .st{min-height:1.4em;margin:.5em 0 0;font-size:.88rem;color:#4a5470}.lq-dlg .st.bad{color:#b42318}" +
+    ".lq-dlg .row .lq-gsi:not(:empty){margin-top:0;min-height:44px}.lq-dlg .lq-keepnote{margin:.2em 0 .4em;font-size:.82rem;color:#4a5470}" +
+    ".lq-up{margin:.9em 0 .4em;padding:.9em 1.1em;border:1px dashed rgba(103,79,242,.45);border-radius:14px;background:rgba(103,79,242,.04)}.lq-up h3{margin:0 0 .3em;font-size:1rem}.lq-up p{margin:.2em 0 .6em;line-height:1.6;font-size:.92rem}" +
+    ".lq-gate .lq-gate-alt{margin:.7em 0 0;font-size:.88rem}.lq-gate .lq-gate-alt a,.lq-up a.lnk{color:#4b36c9;font-weight:600}" +
+    ".lq-toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2147483000;padding:10px 16px;border-radius:999px;background:#0e1430;color:#fff;font-size:.9rem;max-width:calc(100vw - 32px - env(safe-area-inset-left) - env(safe-area-inset-right));pointer-events:none;box-shadow:0 8px 24px rgba(14,20,48,.25);text-align:center}" +
+    "@media print{.lq-up,.lq-gate .lq-gate-alt,.lq-toast{display:none}}" +
+    ".lq-acct-btn{position:relative}.lq-dot{position:absolute;top:2px;right:2px;width:10px;height:10px;border-radius:50%;background:#d39400;border:2px solid #fff}.lq-acct-menu a.lq-renew{color:#7a4d00;font-weight:600}" +
     "@media (prefers-color-scheme:dark){.lq-gate{border-color:rgba(169,155,255,.4)}}";
   function ensureStyle() {
     if (doc.getElementById("lq-member-style") || !doc.head) return;
@@ -282,6 +333,24 @@
     var b = el("button", { type: "button", class: "lq-btn", "data-lq-signin": "", text: T("mem.signin.free", "เข้าสู่ระบบฟรีด้วย Google") });
     b.addEventListener("click", function () { openSignIn(); });
     box.appendChild(b);
+    // a one-time full report as the paid alternative — only while the owner has the pricing page on
+    if (pricingOn()) box.appendChild(el("p", { class: "lq-gate-alt", "data-lq-upsell": "report" }, T("mem.up.reportLead", "อยากได้รายงานฉบับยาวหลายศาสตร์?") + " ",
+      el("a", { href: "report.html", text: T("mem.up.reportCta", "ดูรายงานดวงแบบซื้อครั้งเดียว") })));
+    return box;
+  }
+  function pricingOn() { return !!(st.cfg && st.cfg.pricing_enabled); }
+
+  /** Card after a reading composed on the device because the writing assistant's quota is used up today. */
+  function quotaCard() {
+    var on = pricingOn();
+    var box = el("section", { class: "lq-up", "data-lq-upsell": "quota", "aria-labelledby": "lqUpH" },
+      el("h3", { id: "lqUpH", text: T("mem.up.quotaTitle", "วันนี้ใช้ผู้ช่วยเขียนครบโควตาแล้ว") }),
+      el("p", { text: on ? T("mem.up.quotaLead", "คำทำนายนี้เรียบเรียงในเครื่องแทน (ความหมายจากตำราเดียวกัน) โควตาจะกลับมาพรุ่งนี้ หรือดูแพ็กเกจพลัสและรายงานฉบับยาวได้")
+        : T("mem.up.quotaSoon", "คำทำนายนี้เรียบเรียงในเครื่องแทน (ความหมายจากตำราเดียวกัน) โควตาจะกลับมาพรุ่งนี้ แพ็กเกจเพิ่มเติมยังไม่เปิดขาย") }));
+    var row = el("div", { class: "lq-mem-actions" });
+    row.appendChild(el("a", { class: "lq-btn ghost", href: "pricing.html", text: on ? T("mem.up.plans", "ดูแพ็กเกจและรายงาน") : T("mem.up.whatsFree", "ดูสิ่งที่ใช้ได้ฟรีและที่กำลังจะมา") }));
+    if (on) row.appendChild(el("a", { class: "lq-btn ghost", href: "report.html", text: T("mem.up.redeem", "รายงานของฉัน") }));
+    box.appendChild(row);
     return box;
   }
 
@@ -306,8 +375,10 @@
 
   function decorate(container, res, gated) {
     if (!container || !container.appendChild) return;
-    if (gated && gated.light) container.appendChild(gateCard(gated.light));
-    else if (st.me && active()) {
+    var up = upsell(res, gated, st.aiQuotaDay || null, today());
+    if (gated && gated.light) { container.appendChild(gateCard(gated.light)); return; }
+    if (up === "quota") { ensureStyle(); container.appendChild(quotaCard()); }
+    if (st.me && active()) {
       container.appendChild(memberActions(res));
       if (domain && logged && !logged.has(res)) { logged.add(res); call("/api/me/usage", { method: "POST", body: { kind: "reading", domain: domain } }); }
     }
@@ -340,6 +411,30 @@
     wrapped.__lqMember = true;
     FA.renderSections = wrapped;
   }
+  /** Notices a writing-assistant refusal for quota (POST /api/fortune -> 429 {code:"quota"}): the next reading composed
+   *  on the device gets the upgrade card. Read-only: the response itself is passed on untouched (a clone is read). */
+  function watchQuota() {
+    if (typeof W.fetch !== "function" || W.fetch.__lqQuota) return;
+    var orig = W.fetch;
+    var wrapped = function (/** @type {any} */ input, /** @type {any} */ init) {
+      var p = orig.apply(W, arguments);
+      try {
+        var u = typeof input === "string" ? input : input && input.url;
+        var m = String((init && init.method) || (input && input.method) || "GET").toUpperCase();
+        var a = API();
+        if (m === "POST" && a && a.enabled() && u === a.url("/api/fortune")) {
+          p.then(function (/** @type {Response} */ r) {
+            if (r && r.status === 429) r.clone().json().then(function (/** @type {any} */ j) { if (j && j.code === "quota") { var first = st.aiQuotaDay !== today(); st.aiQuotaDay = today(); if (first) setTimeout(rerender, 0); } }).catch(function () { /* not JSON */ });
+          }, function () { /* network: the page falls back on its own */ });
+        }
+      } catch (e) { /* never break a request */ }
+      return p;
+    };
+    wrapped.__lqQuota = true;
+    wrapped.__lqTurnstile = orig.__lqTurnstile; // keep the fortune hook's idempotency flag visible
+    W.fetch = wrapped;
+  }
+
   /** For pages without FortuneAI.renderSections (fortune-kit.js plain fallback): the gated result + card. */
   function gate(res) { return gateResult(res); }
 
@@ -375,12 +470,12 @@
     ensureStyle();
     if (dlg && dlg.isConnected) { showDlg(); return Promise.resolve(true); }
     var q = ms();
-    var terms = el("input", { type: "checkbox", name: "terms", required: true });
+    var terms = el("input", { type: "checkbox", name: "terms", required: true, autofocus: true, "data-lq-terms": "" });
     var mkt = el("input", { type: "checkbox", name: "marketing" });
     var keep = el("input", { type: "checkbox", name: "remember" });
     var go = el("button", { type: "button", class: "lq-btn", disabled: true, "data-lq-continue": "", text: T("mem.dlg.continue", "ดำเนินการต่อด้วย Google") });
     var cancel = el("button", { type: "button", class: "lq-btn ghost", text: T("mem.dlg.cancel", "ยกเลิก") });
-    var slot = el("div", { class: "lq-gsi", "data-lq-gsi": "" });
+    var slot = el("div", { class: "lq-gsi", "data-lq-gsi": "", hidden: true });
     var stEl = el("p", { class: "st", role: "status", "aria-live": "polite" });
     var link = function (/** @type {string} */ href, /** @type {string} */ k, /** @type {string} */ th) { return el("a", { href: href, target: "_blank", rel: "noopener", text: T(k, th) }); };
     // "what we keep" is a <details>: open on larger screens, one tap away on phones so the actions stay in view
@@ -400,31 +495,43 @@
         el("label", { class: "ck" }, mkt, el("span", { text: T("mem.dlg.marketing", "รับข่าวสารและข้อเสนอจาก LENSIQ ทางอีเมล (ไม่บังคับ ยกเลิกได้ทุกเมื่อ)") })),
         el("label", { class: "ck" }, keep, el("span", { text: T("mem.dlg.remember", "จดจำการเข้าสู่ระบบบนอุปกรณ์นี้ (ไม่ติ๊ก = ออกจากระบบเมื่อปิดแท็บ · อย่าติ๊กบนเครื่องสาธารณะ)") }))),
       // sticky action footer: Continue / the Google button + Cancel are always visible, even on a 360×640 phone
+      // the Google button is drawn in the same row, in place of Continue, as soon as consent is ticked
       el("div", { class: "lq-dlg-foot", "data-lq-dlg-foot": "" },
-        el("div", { class: "row" }, go, cancel),
-        slot, stEl));
+        el("div", { class: "row" }, go, slot, cancel),
+        stEl));
     doc.body.appendChild(dlg);
-    terms.addEventListener("change", function () { go.disabled = !terms.checked; });
+    terms.addEventListener("change", function () {
+      go.disabled = !terms.checked;
+      if (!terms.checked) { slot.hidden = true; if (go.hidden) { go.hidden = false; go.disabled = true; } say(""); return; }
+      if (prepared) { slot.hidden = false; go.hidden = true; say(T("mem.dlg.choose", "เลือกบัญชี Google ของคุณ")); return; }
+      prepare();
+    });
     cancel.addEventListener("click", function () { closeDlg(); });
     /** @param {string} t @param {boolean} [bad] */
     var say = function (t, bad) { stEl.textContent = t; stEl.classList.toggle("bad", !!bad); };
-    var nonce = "";
-    go.addEventListener("click", function () {
-      if (!terms.checked) return;
+    var nonce = "", prepared = false, preparing = false;
+    go.addEventListener("click", function () { if (terms.checked) prepare(); });
+    function prepare() {
+      if (!terms.checked || preparing) return;
+      preparing = true;
       go.disabled = true;
       say(T("mem.dlg.loading", "กำลังเปิดหน้าต่าง Google…"));
       Promise.all([loadGsi(), call("/api/auth/nonce", { method: "POST", body: {}, auth: false })]).then(function (x) {
         var gid = x[0], n = x[1];
-        if (!gid || !n.ok || !n.j || !n.j.nonce) { go.disabled = false; say(T("mem.err.load", "เปิดหน้าต่างเข้าสู่ระบบของ Google ไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่"), true); return; }
+        preparing = false;
+        if (!gid || !n.ok || !n.j || !n.j.nonce) { go.disabled = !terms.checked; go.hidden = false; say(T("mem.err.load", "เปิดหน้าต่างเข้าสู่ระบบของ Google ไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่"), true); return; }
+        if (!terms.checked) { go.disabled = true; return; } // consent was unticked while loading
         nonce = n.j.nonce;
         gid.initialize({ client_id: clientId(), nonce: nonce, callback: onCredential, auto_select: false, cancel_on_tap_outside: true, context: "signin", ux_mode: "popup", itp_support: true, use_fedcm_for_prompt: true });
         slot.textContent = "";
         var lang = W.LQI18N ? W.LQI18N.lang : "th";
         gid.renderButton(slot, { type: "standard", theme: "outline", size: "large", text: "continue_with", shape: "pill", locale: lang === "zh" ? "zh_CN" : lang });
+        slot.hidden = false;
         go.hidden = true;
+        prepared = true;
         say(T("mem.dlg.choose", "เลือกบัญชี Google ของคุณ"));
       });
-    });
+    }
     function onCredential(/** @type {any} */ resp) {
       say(T("mem.dlg.signing", "กำลังเข้าสู่ระบบ…"));
       var a = API();
@@ -434,7 +541,7 @@
       }).then(function (r) {
         if (!r.ok || !r.j || !r.j.token) {
           var e = ERR[r.j && r.j.code] || ["mem.err.generic", "เข้าสู่ระบบไม่สำเร็จ กรุณาลองใหม่"];
-          say(T(e[0], e[1]), true); go.hidden = false; go.disabled = !terms.checked; slot.textContent = "";
+          say(T(e[0], e[1]), true); go.hidden = false; go.disabled = !terms.checked; slot.textContent = ""; slot.hidden = true; prepared = false;
           return;
         }
         saveSession({ t: r.j.token, exp: r.j.expires_at }, !!keep.checked);
@@ -444,12 +551,21 @@
     showDlg();
     return Promise.resolve(true);
   }
-  function showDlg() { try { if (typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", ""); } catch (e) { dlg.setAttribute("open", ""); } }
+  function showDlg() {
+    try { if (typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", ""); } catch (e) { dlg.setAttribute("open", ""); }
+    // first focus on the consent checkbox (not the "what we keep" summary): it is the one required step
+    var ck = dlg.querySelector("[data-lq-terms]");
+    if (ck) try { ck.focus({ preventScroll: false }); } catch (e) { /* old browser */ }
+  }
   function closeDlg() { if (!dlg) return; try { dlg.close(); } catch (e) { dlg.removeAttribute("open"); } dlg.remove(); dlg = null; }
 
+  /** Short status toast pinned to the bottom safe area (never over the notch / home indicator); one at a time, no
+   *  pointer events so it never blocks a tap on the content under it. */
   function toast(msg) {
+    ensureStyle();
+    var old = doc.querySelectorAll(".lq-toast");
+    for (var i = 0; i < old.length; i++) old[i].remove();
     var t = el("div", { class: "lq-toast", role: "status", text: msg });
-    t.style.cssText = "position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:2147483000;padding:10px 16px;border-radius:999px;background:#0e1430;color:#fff;font-size:.9rem;max-width:calc(100vw - 32px)";
     doc.body.appendChild(t);
     setTimeout(function () { t.remove(); }, 2600);
   }
@@ -531,8 +647,17 @@
         el("li", { class: "who", role: "presentation", text: st.me.user.email }),
         el("li", { role: "presentation" }, el("a", { role: "menuitem", href: "account.html#history", text: T("mem.menu.history", "ประวัติการดูดวงของฉัน") })),
         el("li", { role: "presentation" }, el("a", { role: "menuitem", href: "account.html#plan", text: T("mem.menu.plan", "แพ็กเกจและโควตา") })),
+        el("li", { role: "presentation" }, el("a", { role: "menuitem", href: "report.html", text: T("mem.menu.reports", "รายงานดวงของฉัน") })),
+        pricingOn() ? el("li", { role: "presentation" }, el("a", { role: "menuitem", href: "pricing.html", text: T("mem.menu.pricing", "แพ็กเกจและราคา") })) : null,
         el("li", { role: "presentation" }, el("button", { type: "button", role: "menuitem", "data-lq-signout": "", text: T("mem.menu.signout", "ออกจากระบบ") })),
         el("li", { role: "presentation" }, el("a", { role: "menuitem", class: "danger", href: "account.html#delete", text: T("mem.menu.delete", "ลบบัญชี") })));
+      var rn = renewalDue(planForRenewal(st.me));
+      if (rn.due) {
+        // no automatic renewal: the account menu carries the reminder (and a dot on the avatar) from 7 days before
+        menu.insertBefore(el("li", { role: "presentation" }, el("a", { role: "menuitem", class: "lq-renew", href: "account.html#plan", "data-lq-renew": "", text: T("mem.menu.renew", "ต่ออายุแพ็กเกจ (เหลือ {n} วัน)", { n: rn.days }) })), menu.children[1] || null);
+        btn.appendChild(el("span", { class: "lq-dot", "aria-hidden": "true" }));
+        btn.setAttribute("aria-label", btn.getAttribute("aria-label") + " · " + T("mem.menu.renew", "ต่ออายุแพ็กเกจ (เหลือ {n} วัน)", { n: rn.days }));
+      }
       var setOpen = function (/** @type {boolean} */ o) { menu.hidden = !o; btn.setAttribute("aria-expanded", o ? "true" : "false"); if (o) { var f = menu.querySelector("a,button"); if (f) f.focus(); } };
       btn.addEventListener("click", function () { setOpen(menu.hidden); });
       box.addEventListener("keydown", function (e) { if (e.key === "Escape" && !menu.hidden) { setOpen(false); btn.focus(); } });
@@ -548,16 +673,71 @@
     compact(true);
   }
 
+  /* ---------------- fresh Google confirmation before erasure / export (POST /api/auth/reauth) ---------------- */
+  /** Opens a small dialog with the Google button; resolves true once the Worker accepted a fresh confirmation of the
+   *  same account (opens its 5-minute window), false when cancelled or failed. */
+  function confirmWithGoogle() {
+    ensureStyle();
+    return new Promise(function (resolve) {
+      var slot = el("div", { class: "lq-gsi", "data-lq-gsi": "" });
+      var stEl = el("p", { class: "st", role: "status", "aria-live": "polite", text: T("mem.dlg.loading", "กำลังเปิดหน้าต่าง Google…") });
+      var cancel = el("button", { type: "button", class: "lq-btn ghost", text: T("mem.dlg.cancel", "ยกเลิก") });
+      var box = el("dialog", { class: "lq-dlg", "aria-labelledby": "lqReH", "data-lq-reauth": "" },
+        el("div", { class: "lq-dlg-in" },
+          el("h2", { id: "lqReH", text: T("mem.re.title", "ยืนยันตัวตนอีกครั้ง") }),
+          el("p", { text: T("mem.re.lead", "เพื่อความปลอดภัย การดาวน์โหลดหรือลบข้อมูลต้องยืนยันด้วยบัญชี Google เดิมอีกครั้ง") })),
+        el("div", { class: "lq-dlg-foot" }, el("div", { class: "row" }, slot, cancel), stEl));
+      doc.body.appendChild(box);
+      var done = false;
+      var finish = function (/** @type {boolean} */ ok) { if (done) return; done = true; try { box.close(); } catch (e) { /* old browser */ } box.remove(); resolve(ok); };
+      var say = function (/** @type {string} */ t, /** @type {boolean} [bad] */ bad) { stEl.textContent = t; stEl.classList.toggle("bad", !!bad); };
+      cancel.addEventListener("click", function () { finish(false); });
+      box.addEventListener("cancel", function () { finish(false); });
+      try { if (typeof box.showModal === "function") box.showModal(); else box.setAttribute("open", ""); } catch (e) { box.setAttribute("open", ""); }
+      Promise.all([loadGsi(), call("/api/auth/nonce", { method: "POST", body: {}, auth: false })]).then(function (x) {
+        var gid = x[0], n = x[1];
+        if (!gid || !n.ok || !n.j || !n.j.nonce) { say(T("mem.err.load", "เปิดหน้าต่างเข้าสู่ระบบของ Google ไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่"), true); return; }
+        var nonce = n.j.nonce;
+        gid.initialize({ client_id: clientId(), nonce: nonce, auto_select: false, context: "use", ux_mode: "popup", itp_support: true,
+          callback: function (/** @type {any} */ resp) {
+            say(T("mem.re.checking", "กำลังยืนยัน…"), false);
+            call("/api/auth/reauth", { method: "POST", body: { credential: resp && resp.credential, nonce: nonce } }).then(function (r) {
+              if (r.ok) { finish(true); return; }
+              var c = r.j && r.j.code;
+              say(c === "reauth_wrong_account" ? T("mem.re.wrong", "กรุณาเลือกบัญชี Google เดียวกับที่ใช้สมัคร") : T("mem.re.fail", "ยืนยันไม่สำเร็จ กรุณาลองใหม่"), true);
+            });
+          } });
+        var lang = W.LQI18N ? W.LQI18N.lang : "th";
+        gid.renderButton(slot, { type: "standard", theme: "outline", size: "large", text: "continue_with", shape: "pill", locale: lang === "zh" ? "zh_CN" : lang });
+        say(T("mem.dlg.choose", "เลือกบัญชี Google ของคุณ"), false);
+      });
+    });
+  }
+  /** Runs fn(); when the Worker answers reauth_required, asks for a fresh Google confirmation once and retries. */
+  function withFresh(/** @type {() => Promise<any>} */ fn) {
+    return fn().then(function (r) {
+      if (!r || r.ok || r.status !== 401 || !r.j || r.j.code !== "reauth_required") return r;
+      return confirmWithGoogle().then(function (ok) { return ok ? fn() : Object.assign({ cancelled: true }, r); });
+    });
+  }
+
   /* ---------------- account page helpers ---------------- */
   var api = {
-    lightResult: lightResult, cautionParagraphs: cautionParagraphs, countGuest: countGuest, gateOn: gateOn, signInPossible: signInPossible, CONSENT_VERSION: CONSENT_VERSION,
+    lightResult: lightResult, cautionParagraphs: cautionParagraphs, countGuest: countGuest, gateOn: gateOn, signInPossible: signInPossible, CONSENT_VERSION: CONSENT_VERSION, renewalDue: renewalDue, planForRenewal: planForRenewal, upsell: upsell,
     active: active, possible: possible, ready: function () { return !!st.ready; }, config: function () { return st.cfg; },
     signedIn: function () { return !!st.me; }, me: function () { return st.me; }, token: token,
     signIn: openSignIn, signOut: signOut, refresh: function () { return refresh().then(function (m) { emit(); return m; }); },
     history: function (/** @type {any} */ q) { return call("/api/me/history" + (q ? "?" + new URLSearchParams(q).toString() : "")); },
-    exportData: function () { return call("/api/me/export"); },
+    exportData: function () { return withFresh(function () { return call("/api/me/export"); }); },
+    confirmWithGoogle: confirmWithGoogle,
     getSaved: function (/** @type {string} */ id) { return call("/api/me/saved/" + encodeURIComponent(id)); },
     deleteSaved: function (/** @type {string} */ id) { return call("/api/me/saved/" + encodeURIComponent(id), { method: "DELETE" }); },
+    /** save a derived reading / report to the member's history (POST /api/me/saved {domain, title, data}) */
+    save: function (/** @type {string} */ dom, /** @type {string} */ title, /** @type {any} */ data) { return call("/api/me/saved", { method: "POST", body: { domain: dom, title: String(title || "").slice(0, 120), data: data } }); },
+    /** perk balances (GET /api/me/entitlements) */
+    entitlements: function () { return call("/api/me/entitlements"); },
+    /** server check that takes one credit / counts one use (POST /api/me/entitlements/use {feature}) -> {allowed, via, credits, ...} */
+    useEntitlement: function (/** @type {string} */ feature) { return call("/api/me/entitlements/use", { method: "POST", body: { feature: feature } }); },
     setMarketing: function (/** @type {boolean} */ on) { return call("/api/me/preferences", { method: "POST", body: { marketing_opt_in: !!on } }); },
     claimPending: claimPending, pendingClaims: pendingClaims, addPendingClaim: addPendingClaim, claim: claim,
     remembered: function () { return sessWhere === "local"; },
@@ -582,7 +762,7 @@
     /** revoke every other session of this account (POST /api/me/sessions/revoke {scope:"others"}) */
     signOutEverywhere: function () { return call("/api/me/sessions/revoke", { method: "POST", body: { scope: "others" } }); },
     deleteAccount: function () {
-      return call("/api/me", { method: "DELETE", body: { confirm: "DELETE" } }).then(function (r) {
+      return withFresh(function () { return call("/api/me", { method: "DELETE", body: { confirm: "DELETE" } }); }).then(function (r) {
         if (r.ok) { saveSession(null); st.me = null; emit(); }
         return r;
       });
@@ -601,6 +781,7 @@
   });
   root.addEventListener("lq-lang", function () { renderChip(); rerender(); });
   wrapFA();
+  watchQuota();
   if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", function () { renderChip(); init(); });
   else { renderChip(); init(); }
 })(typeof window !== "undefined" ? window : /** @type {any} */ (globalThis));

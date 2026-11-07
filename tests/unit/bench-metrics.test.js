@@ -116,3 +116,27 @@ test("bench metrics (round 10): cluster CI never collapses to [0, 0] with no eve
   const one = M.clusterBootstrap(Array.from({ length: 1100 }, (_, i) => ({ k: i === 5 ? 1 : 0, n: 1, ids: [i] }))), [, wh] = M.wilson(1, 1100);
   assert.ok(one.hi >= wh - 1e-5 && one.lo >= 0, JSON.stringify(one));
 });
+
+// ---------- round 11: person-cluster intervals for the studio / photo booth tables, McNemar and the person-clustered paired test ----------
+test("personClusterCI / mcnemar / pairedCluster: hand values and the re-published ACCURACY.md §11 intervals", async () => {
+  // 4 renders per person, labels identical within a person → design effect ≈ 4, interval ≈ Wilson on 35 people, not 140 renders
+  const rows = []; for (let p = 0; p < 35; p++) for (let g = 0; g < 4; g++) rows.push({ id: "p" + p, y: p < 25 ? 1 : 0 });
+  const c = M.personClusterCI(rows), [wl, wh] = M.wilson(100, 140);
+  assert.ok(c.deff > 3.5 && c.deff < 4.5, "deff " + c.deff); assert.ok(c[1] - c[0] > 1.7 * (wh - wl), `cluster ${c} vs Wilson ${wl}–${wh}`);
+  const ind = Array.from({ length: 140 }, (_, i) => ({ id: "q" + i, y: i < 100 ? 1 : 0 })), ci = M.personClusterCI(ind);
+  assert.ok(Math.abs(ci[1] - ci[0] - (wh - wl)) < 0.03, "independent rows ≈ Wilson");
+  // McNemar exact: 36 vs 3 discordant pairs; 5 vs 5 → 1
+  assert.ok(Math.abs(M.mcnemar(36, 3).p - 3.6089e-8) < 1e-11); assert.equal(M.mcnemar(5, 5).p, 1); assert.equal(M.mcnemar(0, 0).p, 1);
+  // paired, clustered: one person flips all four garments → only one informative cluster → p = 1 (exact sign flip: 2/2)
+  const one = M.pairedCluster(Array.from({ length: 4 }, () => ({ id: "x", a: 1, b: 0 })).concat(Array.from({ length: 36 }, (_, i) => ({ id: "y" + (i >> 2), a: 0, b: 0 }))));
+  assert.equal(one.informative, 1); assert.equal(one.p, 1); assert.ok(Math.abs(one.diff - 0.1) < 1e-12);
+  // the committed labels + logs reproduce the intervals now printed in ACCURACY.md §11
+  const SI = await import("../bench/studio-intervals.mjs"), I = SI.intervals(), r9 = I.find(x => x.split === "test" && x.key === "r9.raw");
+  assert.equal(`${r9.k}/${r9.n}`, "102/140"); assert.ok(Math.abs(r9.cluster[0] - 0.567) < 0.006 && Math.abs(r9.cluster[1] - 0.871) < 0.006, String(r9.cluster)); assert.ok(r9.deff > 3);
+  const md = require("node:fs").readFileSync(require("node:path").join(__dirname, "../../ACCURACY.md"), "utf8").replace(/\*\*/g, "");
+  for (const key of ["r9.raw", "r10.plainRaw", "r10.coverRaw", "r10.newShown", "r10.newPage"]) {
+    const m = I.find(x => x.split === "test" && x.key === key), cell = `[${(100 * m.cluster[0]).toFixed(1)}–${(100 * m.cluster[1]).toFixed(1)}] (${m.k}/${m.n})`;
+    assert.ok(md.includes(cell), `ACCURACY.md shows the person-cluster interval ${cell} for ${key}`);
+  }
+  const P = SI.paired().find(x => x.split === "test"); assert.equal(P.fixed, 36); assert.equal(P.broke, 3); assert.ok(P.cluster.p < 0.01 && P.cluster.p > P.mcnemar.p, "clustering costs evidence but the test effect stays");
+});

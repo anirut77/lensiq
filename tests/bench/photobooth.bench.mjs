@@ -59,6 +59,9 @@ if (has("--render")) {
       }, g);
       R.g[g] = r; cells.push(g);
     }
+    // round 11: what the mandatory "review before print" step finds on the no-outfit photo (StudioQA.idLeftovers + idSpecCheck), and the cut-out clean-up
+    R.review = await page.evaluate(() => { window.__pb.selectOutfit("none"); const r = window.__pb.idReview(window.__pb.renderIdPhoto({ outfit: "none" })), cap = window.__pb.idState.cap;
+      return r ? { findings: r.findings.map(f => f.k), spec: r.spec ? r.spec.items.filter(i => !i.ok).map(i => i.k) : null, cleaned: cap.cleaned ? { removed: cap.cleaned.removed, mainFrac: cap.cleaned.mainFrac, failed: !!cap.cleaned.failed } : null } : null; });
     if (has("--sheets")) {
       const key = await page.evaluate(async name => {
         const order = ["none", "civil", "khaki"], codes = ["A", "B", "C"]; let sd = [...name].reduce((a, c) => a * 31 + c.charCodeAt(0), 11) >>> 0;
@@ -103,7 +106,7 @@ for (const sp of [...new Set(res.map(r => r.split))].sort()) {
   }
   report[sp] = { persons: R.length, renders: n, fallback: fb, rawBad, shownBad, tp, fp, fn, tn, safeBad, safeN };
   console.log(`\n== ${sp}: ${R.length} people × ${OUTFITS.length} outfits (${n} labelled renders)`);
-  console.log(table(["metric", "value [Wilson 95 %]"], [
+  console.log(table(["metric", "value [Wilson 95 % per render — too narrow, see the person-cluster block]"], [
     ["outfit render with a visible defect (no check)", ci(rawBad, n)],
     ["if the check alone decided: what is shown with a defect", ci(shownBad, n)],
     ["as shipped (no-outfit photo first, outfit only as a draft on request): shown with a defect", ci(safeShown, n)],
@@ -115,3 +118,22 @@ for (const sp of [...new Set(res.map(r => r.split))].sort()) {
   ]));
 }
 if (opt("--json")) writeFileSync(opt("--json"), JSON.stringify({ dir: DIR, outfits: OUTFITS, report }, null, 1));
+// --log tests/bench/photobooth-gate-log-r10.json: per-render check results WITHOUT image data (id, outfit, what the page showed,
+// boothCheck pass / fails / measurements, timings) — read by tests/bench/studio-tables.mjs (ACCURACY.md §11b)
+if (opt("--log")) {
+  const people = {}, renders = [];
+  for (const r of [...res].sort((a, b) => a.id.localeCompare(b.id))) {
+    people[r.id] = { split: r.split, face: !!r.face, wallMs: r.wall, ...(r.review ? { review: r.review } : {}) };
+    for (const [g, v] of Object.entries(r.g)) renders.push({ id: r.id, g, shown: v.shown, pass: v.qa ? v.qa.pass : null, fails: v.qa ? v.qa.fails : [], m: v.qa ? v.qa.m : null });
+  }
+  const head = { about: "Per-render results of tests/bench/photobooth.bench.mjs (no images): one row per person x outfit. shown = what photobooth.html showed by default; pass/fails/m = studio-qa.js boothCheck at render time.", code: opt("--code", "see git log for this file"), outfits: OUTFITS };
+  writeFileSync(opt("--log"), JSON.stringify(head, null, 1).replace(/\n}$/, ",\n \"people\": {\n" + Object.entries(people).map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)}`).join(",\n") + "\n },\n \"renders\": [\n" + renders.map(x => "  " + JSON.stringify(x)).join(",\n") + "\n ]\n}\n"));
+}
+
+// round 11 (stats): person-cluster 95 % intervals are the default report. The per-render Wilson tables above treat the renders of
+// one person as independent (they are not: design effect 2–4) and are kept only for comparison. The block below recomputes every
+// §11 / §11b rate from the committed labels + per-render logs (tests/bench/studio-intervals.mjs); --no-cluster skips it.
+if (!has("--no-cluster")) {
+  const SI = await import("./studio-intervals.mjs");
+  console.log("\n== person-cluster 95 % intervals (default; from the committed labels and per-render logs) + plain vs cover paired tests\n" + SI.markdown(SI.intervals(), SI.paired()));
+}

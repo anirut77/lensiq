@@ -1292,11 +1292,11 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
       settings: { useDemo: settings.useDemo, ageGenderModel: "face-api.js ageGenderNet (research-licence training data)", bands: SITE.BANDS, genderCall: "male > 0.6, female < 0.4" },
       conditions: { health: [...run.health] }, passes: run.rows.length, distinctPeople: null, distinctNote: "one row per pass in front of the screen; the same person may pass more than once",
       passers: run.rows.map(r => ({ truthBand: r.truthBand, truthGender: r.truthGender, band: r.band, gender: r.gender, skipped: r.skip })),
-      report: { verdict: rep.verdict, provisional: rep.provisional, need: rep.need, n: rep.n, gender: rep.gender, genderCalled: rep.genderCalled, band: rep.band, bandWithin1: rep.bandWithin1, coverage: rep.coverage, confusion: rep.confusion, recs: rep.recs }
+      report: { verdict: rep.verdict, provisional: rep.provisional, pilot: rep.pilot ? rep.pilot.verdict : null, need: rep.need, n: rep.n, gender: rep.gender, genderCalled: rep.genderCalled, band: rep.band, bandWithin1: rep.bandWithin1, coverage: rep.coverage, confusion: rep.confusion, recs: rep.recs }
     });
     sgPanel.exp.hidden = false; sgPanel.exp.onclick = () => SITE.download(`lensiq-signage-check-${today()}.json`, doc);
     const pc = w => w.p == null ? "—" : (w.p * 100).toFixed(0) + "%";
-    sgHist.add({ at: run.startedAt, verdict: rep.verdict, provisional: rep.provisional, need: rep.need, cam: run.cam, summary: SITE.fmt("ผู้ผ่าน {a} คน · เพศถูก {b} · ช่วงอายุถูก {c}", { a: rep.n.labelled, b: pc(rep.gender), c: pc(rep.band) }) });
+    sgHist.add({ at: run.startedAt, verdict: rep.verdict, provisional: rep.provisional, pilot: rep.pilot ? rep.pilot.verdict : null, need: rep.need, cam: run.cam, summary: SITE.fmt("ผู้ผ่าน {a} คน · เพศถูก {b} · ช่วงอายุถูก {c}", { a: rep.n.labelled, b: pc(rep.gender), c: pc(rep.band) }) });
     sgHist.render(sgPanel.hist);
     SGC_LAST = { rep, doc };
   }

@@ -1,5 +1,5 @@
 "use strict";
-// node --test tests/unit — round-6 evaluator findings, as regression tests.
+// Fortune topic-following advice + AI grounding gate regression suite (from the round-6 evaluator findings).
 //  * numbers: every number pattern has its own meaning (no shared generic sentence), the digit-sum is not introduced twice
 //  * advice follows the asked topic in every domain (composer) and the lint rule "advice-topic" catches the old output
 //  * label-echo / report-chain catch "ผลรวม 44 (…) แสดงว่าตามแนวที่อ่านผลรวมเป็นคู่เลข ผลรวม 44 ให้ข้อคิดว่า"
@@ -69,7 +69,7 @@ test("advice follows the asked topic (phone 0812345678 / money and a corpus over
   }
 });
 
-test("lint: advice-topic, label-echo and report-chain catch the round-5 numbers output", () => {
+test("lint: advice-topic, label-echo and report-chain catch the old echoed numbers output", () => {
   const rules = r => FA.lint(r).map(x => x.rule);
   const money = p => ({ lang: "th", topic: "money", sections: [{ id: "money", title: "x", paragraphs: [p] }] });
   assert.ok(rules(money("ส่วนเรื่องการเงินที่อยากรู้ มีจุดที่บอกได้ชัดคือคู่ 56 กับคู่ 78 คู่ 56 บ่งบอกว่าผสมปัญญากับความสุข ทำให้ชีวิตลงตัวทั้งงานและเงิน ก้าวแรกในเรื่องการเงินที่ทำได้เลยคือใส่ใจการสื่อสารในความสัมพันธ์และการติดตามเงินที่ให้ยืม")).includes("advice-topic"));
@@ -81,7 +81,7 @@ test("lint: advice-topic, label-echo and report-chain catch the round-5 numbers 
   assert.ok(rules({ lang: "zh", topic: "money", sections: [{ id: "money", title: "财运", paragraphs: ["你问的财运，可以从数对 56 来看。建议你多和伴侣沟通，把心里话说出来。"] }] }).includes("advice-topic"));
 });
 
-test("safety: category filter catches the round-6 probe categories without blocking negations or card names", () => {
+test("safety: category filter catches every probe category without blocking negations or card names", () => {
   for (const t of ["เดือนหน้าอาจมีเรื่องเสียใจเกี่ยวกับคนในบ้าน", "ช่วงนี้อย่าขึ้นเครื่องบิน", "คนรักของคุณกำลังมีความลับกับคนอื่น", "เขาไม่ได้รักคุณจริง",
     "เปลี่ยนชื่อแล้วจะรวยทันที", "เล่นหุ้นปั่นช่วงนี้กำไรงาม", "กู้นอกระบบมาขยายกิจการได้เลย", "ลาออกพรุ่งนี้เลย ไม่ต้องคิดมาก", "งดไปหาหมอฟันไปก่อน ดวงไม่ดี",
     "ดวงบอกว่าลูกในท้องจะเป็นผู้ชาย", "เลขมงคลของคุณคือ 15 และ 51 ลองเอาไปเสี่ยงดู", "ห้ามแต่งงานปีนี้เด็ดขาด", "明年你会生个儿子", "这个月别坐飞机", "改名以后就会发财"]) {

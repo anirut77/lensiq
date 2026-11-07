@@ -1,5 +1,5 @@
 "use strict";
-// node --test tests/unit — round 10: solar-term accuracy (VSOP87 abridged + nutation + aberration, shared by
+// Life-calendar solar-term accuracy (added in round 10) (VSOP87 abridged + nutation + aberration, shared by
 // horoscope.js and lifecal.js) against published times, and the "no birth time" uncertainty flags/notes used by
 // bazi / taksa / lek7 / lifegraph (Lichun / jie day → pillar note, Wednesday → possible Rahu, before 06:00 → previous day).
 const test = require("node:test");

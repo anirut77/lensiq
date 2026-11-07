@@ -1,10 +1,15 @@
 /* i18n/en-attendance.js — English for attendance.html (mirrors zh-attendance.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
+  "attendance.wipeall": "Delete all biometric data on this device (all systems)",
+  "attendance.live2": "Stops a still photo held up to the camera to some extent, but not a video, a picture on a screen or a mask, and its accuracy has not been measured. Always have staff watching the check-in point",
+  "attendance.live1": "Check that a real person is present before check-in: ask them to turn their head slightly left or right (off by default)",
+  "attendance.licb": "Research-licence models",
+  "attendance.lic": "Faces are analysed with face-api.js models (MIT code) trained on datasets licensed for research only. Commercial use has not been cleared by a lawyer — check the licence before commercial use",
   "attendance.s1": "Face Check-in | LENSIQ",
   "attendance.s2": "Training attendance by face scan",
   "attendance.s3": "No signatures needed. Register a face once, then scan to record attendance",
   "attendance.s4": "Measured accuracy",
-  "attendance.s5": "Tested on the public LFW face dataset (news photos, not on-site cameras) at the default 0.55: a single scan recognizes a registered person about 89% of the time · With 100 registered people, about 0.2% of matches are to the wrong person, and an unregistered person may be matched to someone about 6% of the time (about 2% with 20 people). The system requires 2 matching scans before recording, and staff should review the list",
+  "attendance.s5": "Tested on public face photos (LFW news photos and CASIA-FaceV5 Asian faces, not on-site cameras) with the current rules and 100 registered people: about 85% of scans recognise the registered person, but only about 66–76% for Asian faces · an unregistered person is offered a name about 0.4% of the time (Asian faces 0.2%, with the upper end of the confidence interval at 1.15%) and checked in automatically less than 0.05% of the time. The system needs 2 matching scans before recording, and about 25–35% of recognised people are asked to confirm. Register at least 5 people before relying on automatic check-in, and have staff review the list",
   "attendance.s6": "Method and limitations",
   "attendance.s7": "Training topic/session",
   "attendance.s8": "e.g. Safety training, session 1",
@@ -18,7 +23,7 @@
   "attendance.s15": "Scan result for each face",
   "attendance.s16": "Recognition strictness",
   "attendance.s17": "Maximum distance",
-  "attendance.s18": "Lower = stricter (fewer false matches, but may miss some people). Default 0.55",
+  "attendance.s18": "Lower = stricter (fewer false matches, but may miss some people). Default 0.50",
   "attendance.s19": "Checked in today (",
   "attendance.s20": "Full name",
   "attendance.s21": "Employee/trainee ID",
@@ -40,5 +45,5 @@
   "attendance.s37": "Name",
   "attendance.s38": "ID",
   "attendance.s39": "Training topic",
-  "attendance.s40": "Demo site: data is stored only in this device's browser, and face feature values are encrypted with a key kept in this browser. There is no photo spoofing detection (liveness). Production use should have a server-side database and a policy that complies with Thailand's Personal Data Protection Act (PDPA)"
+  "attendance.s40": "Demo site: data is stored only in this device's browser, and face feature values are encrypted with a key kept in this browser. There is an optional head-turn check that the person is really present (off by default, not yet measured), but no tested photo-spoofing protection. Production use should have a server-side database and a policy that complies with Thailand's Personal Data Protection Act (PDPA)"
 } });

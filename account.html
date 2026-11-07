@@ -11,7 +11,7 @@
 <title data-i18n="acct.doc.title">บัญชีของฉัน | LENSIQ</title>
 <meta name="description" data-i18n-attr="content:acct.doc.desc" content="บัญชีสมาชิก LENSIQ: แพ็กเกจ โควตา ประวัติการใช้งาน ดาวน์โหลดข้อมูล และลบบัญชี">
 <link rel="stylesheet" href="styles.css?v=8">
-<link rel="stylesheet" href="account.css?v=2">
+<link rel="stylesheet" href="account.css?v=3">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -29,6 +29,21 @@
     <h2 id="acOfflineH" data-i18n="acct.off.title">ยังไม่เปิดระบบสมาชิก</h2>
     <p data-i18n="acct.off.text">ขณะนี้ไม่ต้องสมัครสมาชิก ทุกระบบที่ประมวลผลบนเครื่องและคำทำนายฉบับเต็มใช้งานได้ตามปกติ</p>
     <p><a class="btn ghost" href="fortune.html" data-i18n="acct.off.cta">ไปที่รวมศาสตร์ดูดวง</a></p>
+    <h3 data-i18n="acct.off.freeH">ใช้ได้ฟรีวันนี้ โดยไม่ต้องมีบัญชี</h3>
+    <ul class="acct-list">
+      <li data-i18n="acct.off.f1">ดูดวงฉบับเต็มทุกศาสตร์ 3 ภาษา พิมพ์หรือบันทึกเป็น PDF</li>
+      <li><span data-i18n="acct.off.f2">ตัวอย่างรายงานดวงฉบับยาว (พื้นฐาน ดวงคู่ รายปี)</span> <a href="report.html" data-i18n="acct.off.f2a">ลองสร้างรายงาน</a></li>
+      <li data-i18n="acct.off.f3">เครื่องมือกล้อง ชุดสัมภาษณ์ และ Creative Lab ที่ประมวลผลในเครื่อง</li>
+    </ul>
+    <h3 data-i18n="acct.off.soonH">เมื่อเปิดระบบสมาชิก (ยังไม่เปิด)</h3>
+    <ul class="acct-list">
+      <li data-i18n="acct.off.s1">เข้าสู่ระบบฟรีด้วย Google เก็บประวัติคำทำนายและรายงานไว้ในบัญชี</li>
+      <li data-i18n="acct.off.s2">พลัส (Plus) รายงานแบบซื้อครั้งเดียว และแพ็กเกจครีเอเตอร์ / ธุรกิจ — ยังไม่เปิดขาย</li>
+    </ul>
+    <p class="acct-row"><a class="btn ghost" href="pricing.html" data-i18n="acct.off.notify">ดูสิ่งที่กำลังจะมา / แจ้งฉันเมื่อเปิด</a></p>
+    <nav class="acct-products" aria-label="ผลิตภัณฑ์ของ LENSIQ" data-i18n-attr="aria-label:acct.off.products">
+      <a href="fortune.html" data-i18n="acct.off.p1">LENSIQ ดูดวง</a><a href="retail.html" data-i18n="acct.off.p2">LENSIQ Retail</a><a href="hr.html" data-i18n="acct.off.p3">LENSIQ HR</a><a href="creative-suite.html" data-i18n="acct.off.p4">LENSIQ Creative</a>
+    </nav>
   </section>
 
   <section class="section acct-card" id="acOut" aria-labelledby="acOutH" hidden>
@@ -38,6 +53,11 @@
   </section>
 
   <div id="acApp" hidden>
+    <section class="section acct-card acct-renew" id="acRenew" role="status" hidden aria-labelledby="acRenewH">
+      <h2 id="acRenewH" data-i18n="acct.renew.title">ถึงเวลาต่ออายุแพ็กเกจ</h2>
+      <p id="acRenewText"></p>
+      <p class="acct-row"><a class="btn primary" href="pricing.html" id="acRenewCta" data-i18n="acct.renew.cta">ต่ออายุด้วย QR พร้อมเพย์</a></p>
+    </section>
     <section class="section acct-card" aria-labelledby="acProfileH">
       <h2 id="acProfileH" data-i18n="acct.profile.title">โปรไฟล์</h2>
       <dl class="acct-dl" id="acProfile"></dl>
@@ -58,7 +78,7 @@
       <h2 id="acPlanH" data-i18n="acct.plan.title">แพ็กเกจและโควตา</h2>
       <div class="acct-kpis" id="acKpis"></div>
       <p class="acct-muted" id="acPlanNote"></p>
-      <p class="acct-row"><a class="btn ghost" href="pricing.html" id="acPricing" hidden data-i18n="acct.plan.see">ดูแพ็กเกจและรายงาน</a></p>
+      <p class="acct-row"><a class="btn ghost" href="pricing.html" id="acPricing" hidden data-i18n="acct.plan.see">ดูแพ็กเกจและรายงาน</a> <a class="btn ghost" href="report.html" id="acReports" data-i18n="acct.plan.reports">รายงานดวงของฉัน</a></p>
     </section>
 
     <section class="section acct-card" id="claim" aria-labelledby="acClaimH">
@@ -116,6 +136,6 @@
   <p class="foot-legal foot-docs"><a href="terms.html" data-i18n="foot.terms">ข้อกำหนดการใช้บริการ</a> <a href="terms.html#t9" data-i18n="acct.foot.refund">การยกเลิกและคืนเงิน</a> <a href="privacy.html" data-i18n="foot.privacy">ความเป็นส่วนตัว</a> <a href="help.html" data-i18n="foot.help">ช่วยเหลือ</a></p>
 </footer>
 <script src="lensiq-config.js?v=3"></script>
-<script src="account.js?v=2"></script>
+<script src="account.js?v=3"></script>
 </body>
 </html>

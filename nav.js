@@ -40,7 +40,7 @@
       { href: "creative-suite.html", title: "LENSIQ Creative ภาพรวม", desc: "Creative Lab สตูดิโอ และตู้ถ่ายรูปในชุดเดียว" }, // product landing (Round 10 product split)
       { href: "booth.html", title: "วิเคราะห์บูธ", desc: "นับผู้เข้าชมและเวลาหยุดชม" },
       { href: "photobooth.html", title: "ตู้ถ่ายรูป", desc: "ตู้สติ๊กเกอร์และรูปติดบัตร" },
-      { href: "studio.html", title: "สตูดิโอแต่งชุด", desc: "เปลี่ยนฉากหลัง รีทัช รูปโปรไฟล์ ตรวจขนาดรูปติดบัตร · ชุดตัวอย่าง (พรีวิว)" }
+      { href: "studio.html", title: "สตูดิโอภาพโปรไฟล์และรูปติดบัตร", desc: "เปลี่ยนฉากหลัง รีทัช รูปโปรไฟล์ ตรวจขนาดรูปติดบัตร · ชุดตัวอย่าง (พรีวิว)" }
     ] },
     { label: "องค์กรและความปลอดภัย", id: "work", intro: "เช็คชื่อ สัมภาษณ์งาน กิจกรรมทีม เฝ้าระวังความง่วง และตรวจคุณภาพบนสายการผลิต", items: [
       { href: "hr.html", title: "LENSIQ HR ภาพรวม", desc: "ชุดสัมภาษณ์ โหมดฝึกซ้อมผู้สมัคร และกิจกรรมทีม" }, // product landing (Round 10 product split)
@@ -80,7 +80,7 @@
   // Account, pricing / checkout and every camera page refuse to run inside a frame (a hidden page cannot be clicked
   // through): the page stays blank and we try to break out. Server headers (frame-ancestors / X-Frame-Options) do the
   // same where the host can send them; GitHub Pages cannot, and a <meta> CSP cannot carry frame-ancestors.
-  var NOFRAME = /^(account|pricing|checkout|attendance|booth|customers|driver|faceread|fengshui|interview|neuro|palm|photobooth|qc|signage|store|studio|teamface)\.html$/;
+  var NOFRAME = /^(account|pricing|report|checkout|attendance|booth|customers|driver|faceread|fengshui|interview|neuro|palm|photobooth|qc|signage|store|studio|teamface)\.html$/;
   var framed = false;
   try { framed = window.top !== window.self; } catch (e) { framed = true; }
   if (framed && NOFRAME.test((location.pathname.split("/").pop() || "").toLowerCase())) {

@@ -2,8 +2,8 @@
 (function (root) {
   "use strict";
   var dict = { en: {
-    "studio.title": "Outfit Studio | LENSIQ",
-    "studio.h1": "Outfit Studio",
+    "studio.title": "Portrait & ID Photo Studio | LENSIQ",
+    "studio.h1": "Portrait & ID Photo Studio",
     "studio.lead": "Upload a photo or take one with the camera. The studio removes the background and refines hair edges, then changes the background, corrects the light and retouches skin naturally, for professional profile photos and ID photos, with a check of the photo size, head ratio, plain background and exposure. The ready-made outfits are an outfit preview to show the idea, not a photo of you wearing them.",
     "studio.step1": "1 · Choose a portrait",
     "studio.step1hint": "Face forward, head to chest in frame, even lighting. The photo is processed only on this device.",
@@ -217,7 +217,37 @@
     "studio.idOutfit": "Use the sample outfit in the ID photo (not recommended; default is your own clothes)",
     "studio.idCheck": "Check ID-photo requirements",
     "studio.cf.ok": "Export anyway",
-    "studio.cf.no": "Cancel"
+    "studio.cf.no": "Cancel",
+    // round 11
+    "studio.lead1": "Change the background, correct the light, retouch skin and make ID photos with a requirements check, all on this device.",
+    "studio.disc1": "Sample outfits are experimental simulations, not photos of you wearing them.",
+    "studio.more": "Read more",
+    "studio.techLine": "Technical details",
+    "studio.a.qaDraft": "Switch how the outfit is shown",
+    "studio.exp.title": "Sample outfits (experimental)",
+    "studio.exp.note": "Experimental: the outfit is drawn by software onto your photo and often shows a seam at the neck or jaw. Use it to preview a look only, not for official photos.",
+    "studio.sec.outfitPick": "Choose an outfit",
+    "studio.js.ready.done": "Done ({s} s)",
+    "studio.js.ready.doneWarn": "Done ({s} s) · no facial landmarks found; you can adjust the neck and shoulder points",
+    "studio.js.ready.loading": "Getting ready...",
+    "studio.js.ready.fallback": "Ready (some steps use a fallback method; see technical details)",
+    "studio.js.ready.ok": "Ready",
+    "studio.js.qa.lowConf2": "On our development photos, only {p}% of outfit images like this one that passed the check were clean (below the {t}% bar at which the studio would pick an outfit for you).",
+    "studio.js.qa.preBad": "This photo does not follow the advice for sample outfits (see the list in the sample outfits section).",
+    "studio.js.qa.matteFail": "The background could not be removed on this photo, so the original photo is shown instead. Try a photo with a clear face, enough light and a plain background.",
+    "studio.js.pre.frontal": "Facing the camera",
+    "studio.js.pre.frontalBad": "Face turned or tilted; outfits rarely fit",
+    "studio.js.pre.frontalNA": "Face direction could not be checked (no facial landmarks found)",
+    "studio.js.pre.neck": "Neck clearly visible",
+    "studio.js.pre.neckBad": "Little of the neck is visible (a collar, hair or shadow covers it)",
+    "studio.js.pre.hair": "Hair off the shoulders and the sides of the jaw",
+    "studio.js.pre.hairBad": "Hair covers the shoulders or the sides of the jaw",
+    "studio.js.pre.clothes": "Plain top, no pattern",
+    "studio.js.pre.clothesBad": "Patterned top, collar or a lot of jewellery; it often shows around the outfit",
+    "studio.js.pre.framing": "Shoulders in the frame",
+    "studio.js.pre.framingBad": "Photo cropped just below the chin; shoulders not visible",
+    "studio.js.pre.ok": "Photo check before outfits: this photo follows the advice (outfit images can still show seams about half the time)",
+    "studio.js.pre.bad": "Photo check before outfits: this photo does not follow the advice on the items marked !. You can still try outfits (this is advice, not a guarantee: outfit images show seams about half the time whether or not the photo passes)"
   } };
   // ID-photo size buttons: studio.js writes the Thai labels of photobooth-layout.js ID_SIZES; lensiq-i18n-rt.js
   // translates them while English is active

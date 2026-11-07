@@ -140,6 +140,17 @@
     <button class="btn ghost" id="pbConfirmNo" type="button" data-i18n="pb.cf.no">ยกเลิก</button>
   </div>
 </dialog>
+<dialog class="handoff pb-review" id="pbReview" aria-labelledby="pbReviewTitle">
+  <h2 id="pbReviewTitle" data-i18n="pb.rv.title">ตรวจรูปก่อนพิมพ์</h2>
+  <p class="hint" data-i18n="pb.rv.hint">ดูรูปให้ทั่วก่อนดาวน์โหลด พิมพ์ หรือส่งต่อ โดยเฉพาะจุดในกรอบสีแดง: เศษฉากหลัง (ธง เก้าอี้) ที่ติดมากับตัว ลำตัวที่ถูกตัดเป็นเส้นตรง และศีรษะหรือผมที่ถูกตัด</p>
+  <img id="pbReviewImg" alt="รูปติดบัตรที่จะใช้ พร้อมกรอบสีแดงตรงจุดที่ควรตรวจ" data-i18n-attr="alt:pb.rv.alt">
+  <ul class="qc" id="pbReviewList"></ul>
+  <label class="check"><input type="checkbox" id="pbReviewOk"><span data-i18n="pb.rv.ok">ฉันตรวจรูปนี้แล้ว: ตัวคนครบ ไม่มีเศษฉากหลัง และตรงตามข้อกำหนดของหน่วยงาน</span></label>
+  <div class="row-actions">
+    <button class="btn primary" id="pbReviewGo" type="button" disabled data-i18n="pb.rv.go">ตรวจแล้ว ทำต่อ</button>
+    <button class="btn ghost" id="pbReviewNo" type="button" data-i18n="pb.rv.no">กลับไปแก้</button>
+  </div>
+</dialog>
 <dialog class="handoff" id="handoff" aria-labelledby="handoffTitle">
   <h2 id="handoffTitle" data-i18n="pb.ho.title">ส่งต่อภาพ</h2>
   <p class="hint" data-i18n="pb.ho.hint">กดค้างที่ภาพเพื่อบันทึกลงเครื่อง หรือส่งต่อผ่าน AirDrop / Nearby Share / LINE ได้ทันที ไม่ต้องสแกน QR</p>
@@ -163,10 +174,10 @@
 <script src="photobooth-hq.js?v=7"></script>
 <script src="photobooth-templates.js?v=1"></script>
 <script src="photobooth-outfits.js?v=3"></script>
-<script src="studio-core.js?v=5"></script>
-<script src="studio-qa.js?v=2"></script>
+<script src="studio-core.js?v=6"></script>
+<script src="studio-qa.js?v=3"></script>
 <script src="i18n/zh-photobooth.js?v=2"></script>
-<script src="photobooth.js?v=12"></script>
+<script src="photobooth.js?v=13"></script>
 <script src="lensiq-config.js?v=3"></script>
 </body>
 </html>

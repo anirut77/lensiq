@@ -5,7 +5,7 @@
   "description": "LENSIQ Cloudflare Worker + D1: admin back office, privacy-first analytics, AI fortune proxy, billing scaffold (FREE_MODE)",
   "license": "MIT",
   "type": "module",
-  "main": "src/index.js",
+  "main": "src/worker.js",
   "scripts": {
     "build:admin": "node scripts/build-admin.mjs",
     "predev": "node scripts/build-admin.mjs",

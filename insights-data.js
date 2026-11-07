@@ -129,6 +129,9 @@ function iqCollect(snap) {
       since: sg.since || 0, totals: sg.totals, demo: !!sg.iqDemo,
       ads: Object.entries(sg.ads || {}).map(([id, a]) => ({ id, title: a.title || id, viewers: a.viewers || 0, ots: a.ots || 0, plays: a.plays || 0 }))
     };
+    // round 11: ยอดแยกตามวัน × ช่วงเวลาต่อโฆษณา (strata) สำหรับ A/B ที่ไม่ปนผลของเวลาที่เล่น — ดู iqSgStrata
+    const st = iqSgStrata(sg, get("sg-pop", null));
+    if (st) { D.sg.strata = st.byAd; D.sg.strataInfo = st.info; D.sg.ads.forEach((/** @type {any} */ a) => { a.strata = st.byAd[a.id] || null; }); }
   }
 
   // สแกนสินค้า (checkout.js: co-sales)
@@ -168,6 +171,38 @@ function iqCollect(snap) {
   const sts = get("st-settings", null);
   if (sts && typeof sts === "object") D.stCfg = { serviceSec: +sts.serviceSec > 0 ? +sts.serviceSec : 60, maxOcc: +sts.maxOcc > 0 ? +sts.maxOcc : null, cashierZone: String(sts.cashierZone || ""), queueZone: String(sts.queueZone || "") };
   return D;
+}
+
+/* ---------- ป้ายโฆษณา: ยอดแยกช่วงเวลาต่อโฆษณา (round 11) ----------
+   แหล่ง (ใช้ตัวแรกที่มี):
+   1) sg-stats.ads[id].days = { "YYYY-MM-DD": { ots, viewers } } — ถ้า signage.js เก็บรายวัน (เรียก iqSgBumpDay ตอนนับ) ; strata = วัน
+   2) sg-pop (proof-of-play ที่ signage.js เก็บอยู่แล้ว ล่าสุด 1,000 รอบ): แต่ละรอบมี เวลาเริ่ม ช่วงเวลา (dp) คนผ่าน (ots) คนมอง (v)
+      และ m = วัดผู้ชมอยู่หรือไม่ → รวมรอบที่วัดผล (m = 1) เป็น วัน|ช่วงเวลา ต่อโฆษณา
+   คืน { byAd: { id: { key: { x: viewers, n: ots } } }, info: { source, keys, plays, ots, coverage (ots ในชั้น ÷ ots สะสม) } } หรือ null */
+function iqSgStrata(sg, pop) {
+  if (!sg || typeof sg !== "object") return null;
+  const byAd = {}, add = (id, key, ots, v) => { if (!(ots > 0)) return; const c = (byAd[id] || (byAd[id] = {}))[key] || (byAd[id][key] = { x: 0, n: 0 }); c.n += ots; c.x += Math.min(ots, Math.max(0, v || 0)); };
+  let source = null, plays = 0;
+  for (const [id, a] of Object.entries(sg.ads || {})) if (a && a.days && typeof a.days === "object") for (const [d, c] of Object.entries(a.days)) if (IQ_DATE_RE.test(d) && c) { add(id, d, +c.ots || 0, +c.viewers || 0); source = "days"; }
+  if (!source && pop && pop.v === 1 && Array.isArray(pop.log)) {
+    for (const e of pop.log) if (e && e.m && Number.isFinite(e.t) && typeof e.ad === "string" && e.ots > 0) { add(e.ad, iqDay(e.t) + "|" + (e.dp || ""), +e.ots, +e.v || 0); plays++; }
+    if (plays) source = "pop";
+  }
+  if (!source) return null;
+  const keys = new Set(), ots = iqSum(Object.values(byAd).map(m => iqSum(Object.values(m).map(c => c.n))));
+  Object.values(byAd).forEach(m => Object.keys(m).forEach(k => keys.add(k)));
+  const tot = sg.totals && sg.totals.ots > 0 ? iqSum(Object.values(sg.ads || {}).map(a => +(a && a.ots) || 0)) : 0;
+  return { byAd, info: { source, keys: keys.size, plays, ots, coverage: tot > 0 ? Math.min(1, ots / tot) : null } };
+}
+/** ตัวช่วยสำหรับ signage.js (ยังไม่ได้เรียก — เจ้าของ signage.js เรียกได้ตอนนับคนผ่าน/คนมองของโฆษณา): เพิ่มยอดรายวันใน stats.ads[id].days
+    ไม่เก็บข้อมูลรายคน มีแค่ตัวเลขรวมต่อวัน ; เก็บไม่เกิน maxDays วันล่าสุด */
+function iqSgBumpDay(stats, adId, t, ots = 0, viewers = 0, maxDays = 120) {
+  if (!stats || !stats.ads || !adId || !Number.isFinite(t)) return stats;
+  const a = stats.ads[adId] || (stats.ads[adId] = { title: "", plays: 0, ots: 0, viewers: 0, attn: 0, look: 0, happy: 0 });
+  const days = a.days && typeof a.days === "object" ? a.days : (a.days = {}), k = iqDay(t), c = days[k] || (days[k] = { ots: 0, viewers: 0 });
+  c.ots += Math.max(0, +ots || 0); c.viewers += Math.max(0, +viewers || 0);
+  const ks = Object.keys(days).sort(); if (ks.length > maxDays) ks.slice(0, ks.length - maxDays).forEach(x => { delete days[x]; });
+  return stats;
 }
 
 /* ---------- ช่วงเวลา ---------- */
@@ -484,5 +519,5 @@ function iqValidateBackup(obj) {
   return { ok: true, keys, idbStores: idb ? Object.keys(idb).filter(s => s === "products" || s === "samples") : [] };
 }
 
-return { iqT, TN, IQ_DAY, IQ_DEMO_KEY, IQ_EMO, IQ_VA, IQ_QC_REASONS, IQ_DR_TYPES, iqPad, iqDay, iqDayStart, iqAddDays, iqMean, iqSum, iqParse, IQ_AGG, IQ_FORTUNE_KEYS, iqIsModuleKey, IQ_EL, IQ_PALM, iqCollect, iqEarliest, IQ_SPANS, IQ_DATE_RE, iqRange, iqIn, iqInT, iqMetrics, iqKpis, iqBuckets, iqBucketOf, iqSeries, iqTrimHours, iqFunnel, iqTopBars, iqModuleBars, iqCsvCell, iqCsv, iqHasDemo, IQ_HEAT_RE, iqRemoveDemo, iqBackup, iqValidateBackup, iqFlagged, iqExcludeFlagged, iqAccuracy };
+return { iqT, TN, IQ_DAY, IQ_DEMO_KEY, IQ_EMO, IQ_VA, IQ_QC_REASONS, IQ_DR_TYPES, iqPad, iqDay, iqDayStart, iqAddDays, iqMean, iqSum, iqParse, IQ_AGG, IQ_FORTUNE_KEYS, iqIsModuleKey, IQ_EL, IQ_PALM, iqCollect, iqEarliest, IQ_SPANS, IQ_DATE_RE, iqRange, iqIn, iqInT, iqMetrics, iqKpis, iqBuckets, iqBucketOf, iqSeries, iqTrimHours, iqFunnel, iqTopBars, iqModuleBars, iqCsvCell, iqCsv, iqHasDemo, IQ_HEAT_RE, iqRemoveDemo, iqBackup, iqValidateBackup, iqFlagged, iqExcludeFlagged, iqAccuracy, iqSgStrata, iqSgBumpDay };
 });

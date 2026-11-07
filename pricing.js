@@ -25,7 +25,8 @@
       perks: [{ id: "full_readings", status: "active" }, { id: "history", status: "active" }, { id: "print_pdf", status: "active" }] },
     { id: "plus", kind: "subscription", status: "draft", name_th: "สมาชิกพลัส", name_en: "Member Plus", name_zh: "加强会员", price_month_satang: 14900, price_year_satang: 99000,
       entitlements: { ai_reading: { quota: 30, period: "month" } },
-      perks: [{ id: "full_readings", status: "active" }, { id: "history", status: "active" }, { id: "english_readings", status: "active" }, { id: "annual_discount", status: "coming_soon" }, { id: "saved_200", status: "coming_soon" }] },
+      // = docs/BILLING-PLAN.md 3.0: 50 saved readings (owner setting); a member discount on reports is an owner option
+      perks: [{ id: "full_readings", status: "active" }, { id: "history", status: "active" }, { id: "english_readings", status: "active" }, { id: "saved_50", status: "active" }, { id: "member_discount", status: "coming_soon" }] },
     { id: "pro", kind: "subscription", status: "draft", name_th: "ครีเอเตอร์", name_en: "Creator", name_zh: "创作者", price_month_satang: 99000, price_year_satang: 990000,
       entitlements: { ai_reading: { quota: 100, period: "month" }, analytics_days: { quota: 90, period: "day" }, csv_export: { quota: null, period: "month" }, hub_nodes: { quota: 3, period: "month" } } },
     { id: "business", kind: "subscription", status: "draft", name_th: "ธุรกิจ", name_en: "Business", name_zh: "商业版", price_month_satang: 390000, price_year_satang: 3900000,
@@ -34,10 +35,10 @@
     { id: "enterprise", kind: "subscription", status: "draft", name_th: "องค์กร", name_en: "Enterprise", name_zh: "企业版", price_month_satang: null, price_year_satang: null,
       entitlements: { ai_reading: { quota: null, period: "day" } }, perks: [{ id: "onprem", status: "active" }, { id: "dpa", status: "active" }] },
     { id: "report_basic", kind: "one_time", status: "draft", name_th: "รายงานดวงพื้นฐาน", name_en: "Basic reading report", name_zh: "基础运势报告", price_once_satang: 4900,
-      entitlements: { report_basic: { quota: 1, period: "once" }, ai_reading: { quota: 1, period: "once" } } },
+      entitlements: { report_basic: { quota: 1, period: "once" }, ai_reading: { quota: 1, period: "once" } }, perks: [{ id: "report_saved", status: "active" }, { id: "print_pdf", status: "active" }] },
     { id: "report_compat", kind: "one_time", status: "draft", name_th: "รายงานดวงคู่", name_en: "Compatibility report", name_zh: "合盘报告", price_once_satang: 9900,
-      entitlements: { report_compat: { quota: 1, period: "once" }, ai_reading: { quota: 2, period: "once" } } },
-    { id: "report_annual", kind: "one_time", status: "draft", perks: [{ id: "pdf_report", status: "coming_soon" }], name_th: "รายงานดวงรายปี", name_en: "Annual forecast report", name_zh: "年度运势报告", price_once_satang: 19900,
+      entitlements: { report_compat: { quota: 1, period: "once" }, ai_reading: { quota: 2, period: "once" } }, perks: [{ id: "report_saved", status: "active" }, { id: "print_pdf", status: "active" }] },
+    { id: "report_annual", kind: "one_time", status: "draft", perks: [{ id: "report_saved", status: "active" }, { id: "pdf_report", status: "active" }], name_th: "รายงานดวงรายปี", name_en: "Annual forecast report", name_zh: "年度运势报告", price_once_satang: 19900,
       entitlements: { report_annual: { quota: 1, period: "once" }, ai_reading: { quota: 3, period: "once" } } }
   ];
   // Built-in perk labels (the Worker's registry may add its own labels; it always wins).
@@ -48,10 +49,13 @@
     english_readings: ["pr.perk.english_readings", "คำทำนายภาษาอังกฤษ"],
     annual_discount: ["pr.perk.annual_discount", "รายงานรายปีราคาพิเศษปีละครั้ง"],
     saved_200: ["pr.perk.saved_200", "บันทึกคำทำนายได้ 200 รายการ"],
+    saved_50: ["pr.perk.saved_50", "บันทึกคำทำนายได้ 50 รายการ"],
+    member_discount: ["pr.perk.member_discount", "ส่วนลดรายงานสำหรับสมาชิก"],
+    report_saved: ["pr.perk.report_saved", "รายงานบันทึกไว้ในประวัติของบัญชี (หน้ารายงานของฉัน)"],
     tax_invoice: ["pr.perk.tax_invoice", "ใบกำกับภาษีเต็มรูป"],
     onprem: ["pr.perk.onprem", "ติดตั้งในเครือข่ายองค์กร / SLA"],
     dpa: ["pr.perk.dpa", "DPA และเอกสาร PDPA"],
-    pdf_report: ["pr.perk.pdf_report", "รายงานฉบับ PDF"]
+    pdf_report: ["pr.perk.pdf_report", "รายงานฉบับ PDF (พิมพ์ / บันทึกเป็น PDF)"]
   });
   var FEATURES = /** @type {Record<string, string[]>} */ ({
     ai_reading: ["pr.q.ai", "คำทำนายเรียบเรียงด้วย AI {n} ครั้ง{per}", "คำทำนายเรียบเรียงด้วย AI ไม่จำกัด (ใช้อย่างเหมาะสม)"],
@@ -296,6 +300,7 @@
     if (!chosen) return;
     if (needSignIn()) { summary(); box.textContent = T("pr.co.signin", "กรุณาเข้าสู่ระบบ (ฟรี) ก่อนซื้อ เพื่อผูกการชำระเงินและใบเสร็จกับบัญชีของคุณ"); MEM().signIn(); return; }
     if (!f.accept.checked) { box.textContent = T("pr.co.accept", "กรุณายอมรับข้อกำหนดและนโยบายการคืนเงินก่อน"); return; }
+    if (f.age && !f.age.checked) { box.textContent = T("pr.co.age", "กรุณายืนยันว่ามีอายุ 20 ปีบริบูรณ์ขึ้นไป หรือได้รับความยินยอมจากผู้ปกครองแล้ว"); f.age.focus(); return; }
     box.textContent = T("pr.co.creating", "กำลังสร้าง QR…");
     var submit = f.querySelector("button[type=submit]"); submit.disabled = true;
     // one Idempotency-Key per attempt: a double tap / retry does not create a second payment
@@ -308,7 +313,7 @@
       if (tok) hd["X-Turnstile-Token"] = tok;
       if (m && m.token()) hd.Authorization = "Bearer " + m.token();
       return call("/v1/billing/checkout", {
-        plan_id: chosen.id, period: isOnce(chosen) ? "once" : period, accept_terms: !!f.accept.checked,
+        plan_id: chosen.id, period: isOnce(chosen) ? "once" : period, accept_terms: !!f.accept.checked, age_confirm: !!(f.age && f.age.checked),
         buyer: { name: f.name.value, email: f.email.value, tax_id: f.tax_id.value, address: f.address.value, branch: f.branch.value }
       }, hd);
     }).then(function (/** @type {any} */ res) {
@@ -317,6 +322,7 @@
       if (!r) {
         var code = res && res.j && res.j.code;
         box.textContent = code === "member_required" ? T("pr.co.signin", "กรุณาเข้าสู่ระบบ (ฟรี) ก่อนซื้อ เพื่อผูกการชำระเงินและใบเสร็จกับบัญชีของคุณ")
+          : code === "age_confirmation_required" || code === "guardian_consent_required" ? T("pr.co.age", "กรุณายืนยันว่ามีอายุ 20 ปีบริบูรณ์ขึ้นไป หรือได้รับความยินยอมจากผู้ปกครองแล้ว")
           : res && res.status === 429 ? T("pr.co.busy", "มีการสร้างรายการมากเกินไป กรุณารอสักครู่แล้วลองใหม่")
           : T("pr.co.fail", "สร้างรายการชำระเงินไม่สำเร็จ กรุณาตรวจข้อมูลแล้วลองใหม่");
         if (code === "member_required" && m) m.signIn();
@@ -342,11 +348,44 @@
           if (!s || s.status === "pending") return;
           clearInterval(t);
           stl.textContent = s.status === "successful" ? T("pr.co.paid", "ชำระเงินสำเร็จ · เลขที่เอกสาร {no}", { no: s.receipt_no || "—" }) : T("pr.co.failed", "การชำระเงินไม่สำเร็จ ({st})", { st: s.status });
-          if (s.status === "successful") { img.remove(); if (m && m.signedIn()) { m.refresh(); keep.appendChild(doc.createTextNode(" ")); keep.appendChild(h("a", { href: "account.html#history", text: T("pr.co.account", "ดูใบเสร็จที่ บัญชีของฉัน") })); } }
+          if (s.status === "successful") {
+            img.remove();
+            if (m && m.signedIn()) { m.refresh(); keep.appendChild(doc.createTextNode(" ")); keep.appendChild(h("a", { href: "account.html#history", text: T("pr.co.account", "ดูใบเสร็จที่ บัญชีของฉัน") })); }
+            if (chosen && /^report_/.test(chosen.id)) { keep.appendChild(doc.createTextNode(" · ")); keep.appendChild(h("a", { href: "report.html?type=" + encodeURIComponent(chosen.id), text: T("pr.co.openReport", "เปิดรายงานที่ซื้อ") })); }
+          }
         });
       }, 5000);
     });
   });
+
+  /* ---- "notify me when sales open" (pricing not open): lensiq-leads.js — API -> /v1/leads, else mailto / LINE ---- */
+  (function () {
+    var f = /** @type {any} */ ($("prNotify"));
+    if (!f) return;
+    f.addEventListener("submit", function (/** @type {Event} */ ev) {
+      ev.preventDefault();
+      var out = $("prNotifyMsg"); out.textContent = "";
+      var email = String(f.email.value || "").trim();
+      var L = W.LQLeads;
+      if (!(L ? L.isEmail(email) : /@/.test(email))) { out.textContent = T("pr.off.badEmail", "กรุณากรอกอีเมลให้ถูกต้อง"); f.email.focus(); return; }
+      if (!f.consent.checked) { out.textContent = T("pr.off.needConsent", "กรุณาติ๊กยินยอมก่อน"); return; }
+      if (!L) { out.textContent = T("pr.off.none", "ยังไม่ได้ส่ง: ระบบรับคำขอออนไลน์และช่องทางติดต่อจะประกาศก่อนเปิดขาย"); return; }
+      var btn = f.querySelector("button[type=submit]"); btn.disabled = true;
+      out.textContent = T("pr.off.sending", "กำลังส่ง…");
+      L.submit({ name: "notify-me", email: email, interest: "notify-" + f.interest.value, source: "pricing", lang: lang(), message: "notify me when sales open" }, { subject: "LENSIQ — notify me when sales open" }).then(function (/** @type {any} */ r) {
+        btn.disabled = false; out.textContent = "";
+        if (r.ok) { f.reset(); out.textContent = T("pr.off.sent", "บันทึกแล้ว เราจะแจ้งทางอีเมลเมื่อเปิดขาย"); return; }
+        if (r.href || r.line) {
+          out.appendChild(doc.createTextNode(T("pr.off.fallback", "ยังไม่ได้ส่ง: ระบบรับคำขอออนไลน์ยังไม่เปิด ส่งต่อทางอีเมลหรือ LINE ได้ที่นี่") + " "));
+          if (r.href) out.appendChild(h("a", { href: r.href, text: T("home.ok.mailto", "ส่งทางอีเมล") }));
+          if (r.href && r.line) out.appendChild(doc.createTextNode(" · "));
+          if (r.line) out.appendChild(h("a", { href: r.line, target: "_blank", rel: "noopener", text: T("home.ok.line", "แชตทาง LINE {id}", { id: r.lineId || "" }) }));
+          return;
+        }
+        out.textContent = T("pr.off.none", "ยังไม่ได้ส่ง: ระบบรับคำขอออนไลน์และช่องทางติดต่อจะประกาศก่อนเปิดขาย");
+      });
+    });
+  })();
 
   // back link: return to the previous LENSIQ page when there is one
   (function () {
@@ -359,8 +398,16 @@
     var on = !!(info.pricing_enabled && visiblePlans(info, false).length) || preview;
     $("prPlans").hidden = !on;
     $("prHidden").hidden = on;
+    if ($("prOff")) $("prOff").hidden = on;
     $("prDraft").hidden = !preview;
     if (on) render();
+    // renewal link from account.html / the account menu (pricing.html?plan=plus&period=year): open that plan's checkout
+    var q = new URLSearchParams(location.search), want = q.get("plan") || q.get("renew");
+    if (on && want && !chosen) {
+      if (q.get("period") === "year") { period = "year"; doc.querySelectorAll(".pr-toggle button").forEach(function (x) { x.setAttribute("aria-pressed", String(x.getAttribute("data-period") === "year")); }); render(); }
+      var p = visiblePlans(info, preview).filter(function (x) { return x.id === want; })[0];
+      if (p && buyable(p, info, period)) choose(p);
+    }
   }
   W.addEventListener("lq-lang", function () { if (!$("prPlans").hidden) render(); });
   W.addEventListener("lq-member", function () { if (chosen) summary(); });

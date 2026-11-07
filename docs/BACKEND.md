@@ -21,14 +21,18 @@
 
 | Module | File | What |
 |---|---|---|
+| Entry | `backend/src/worker.js` | wrangler `main`: exports ONLY the default handler (workerd refuses non-handler named exports of the main module) |
 | Router | `backend/src/index.js` | public + admin routes, security headers, CORS, error mapping, `scheduled()` |
+| Go-live gate | `backend/src/golive.js` | refuses billing / live keys / new Google sign-ins while seller, legal or owner TOTP are not ready |
+| Leads | `backend/src/leads.js` | `POST /v1/leads` B2B demo requests (Turnstile), admin inbox |
+| Alerts / health | `backend/src/alerts.js`, `health.js` | optional push of owner alerts (`ALERT_WEBHOOK_URL`); `GET /health/deep` |
 | Auth | `backend/src/auth.js` | single owner: bootstrap → PBKDF2 password → optional TOTP; sessions, CSRF, lockout |
 | Crypto | `backend/src/crypto.js` | WebCrypto PBKDF2-SHA256 (100 000 it. = Workers maximum), TOTP RFC 6238, AES-GCM envelope |
 | Store | `backend/src/store.js` | daily salts, day-salted caller hashes, fixed-window rate limits, audit log, settings |
 | Analytics | `backend/src/analytics.js` | strict event allowlist, ingest, daily aggregation, dashboard, CSV |
 | Retention | `backend/src/retention.js` | cron: aggregate first, then purge (table in §6) |
 | AI | `backend/src/fortune.js`, `settings.js`, `fortune-prompt.js` | port of `server.py` `/api/fortune`; admin AI settings; API key storage |
-| Billing | `backend/src/billing.js`, `opn.js` | plans/entitlements, FREE_MODE, PromptPay charge, polling, webhook, receipts / VAT |
+| Billing | `backend/src/billing.js`, `billing-admin.js`, `receipt.js`, `opn.js` | plans/entitlements, FREE_MODE, PromptPay charge, polling, webhook, atomic fulfilment + repair, refunds, receipts / tax invoices / credit notes |
 | Members | `backend/src/members.js`, `google.js` | Sign in with Google (ID token verified with WebCrypto RS256 + JWKS), member sessions, tiers/quotas, ledger, saved readings, export/erasure, admin Members tab |
 
 ### Security design (summary)
@@ -242,6 +246,80 @@ Admin (re-auth = body also carries `{password, totp}`; `403` when wrong, audited
 | `POST /admin/api/retention/run` | **re-auth** | (round 10: re-auth now required) |
 | `PUT /admin/api/ai` | adds `paid_per_user_daily` (1–1000, default 100), `paid_daily_max` (1–100000, default 2000) | separate AI buckets for paying members |
 
+### Round 11 — money safety, re-auth, refunds, erasure, go-live gate
+
+* **Atomic, self-healing fulfilment.** A successful charge is claimed (`status 'pending' -> 'successful'` with a random
+  `fulfil_token`), numbered (receipt counter, `changes() = 1`) **and fulfilled** (subscription insert / extension or
+  credit rows, each `… WHERE EXISTS (payment with that token)`, then `fulfilled_at`) in **one** `db.batch`. Any failing
+  statement rolls the whole success back: the payment stays `pending`, the webhook answers 503 (Opn retries), the
+  reconcile cron re-applies it, and an alert `fulfilment_failed` is raised. A payment that is `successful` with
+  `fulfilled_at IS NULL` (from before migration 0008, or any future path) is repaired by the webhook retry, the payment
+  poll and the cron (`repairFulfilment`, alert `fulfilment_repaired`), never twice (the repair claim only succeeds while
+  `fulfilled_at IS NULL`). Migration 0008 marks existing payments with evidence of fulfilment (subscription id /
+  credits) as fulfilled. Regression tests inject a D1 failure into the grant statements
+  (`tests/unit/backend-r11.test.js`). `GET /admin/api/billing/payments` reports `unfulfilled`.
+* **Alerts** are stored (`alerts`), logged as `alert.<kind>` (make a Workers Logs alert on that event) and, when the
+  secret `ALERT_WEBHOOK_URL` (https incoming webhook: Slack / Discord / Google Chat / ntfy …) is set, pushed with the
+  kind and a reference only — no personal data. Kinds: `payment_mismatch`, `fulfilment_failed`, `fulfilment_repaired`,
+  `lead_new`.
+* **Admin re-auth is rate limited** per session: 5 wrong answers per 15 min -> 429 `reauth_rate_limited`; 10 wrong in
+  one session -> the session is revoked (401 `reauth_revoked`). Applies to every re-auth (money ops, retention/run,
+  member status, password change, TOTP setup / disable); every failure is audited (`reauth.failed`).
+* **Re-auth for config edits**: `POST|PUT /billing/plans…`, `PUT /billing/settings`, `PUT /membership`,
+  `PUT|DELETE /ai/key` need `{password, totp}` in the body or the 5-min **sudo window** opened by
+  `POST /admin/api/reauth {password, totp}` (403 `reauth_required` otherwise; admin.js asks for the password and
+  retries). Password / TOTP are stripped before the strict validators see the body.
+* **Owner TOTP is mandatory for money ops** (refund, grant, cancel, extend) while billing or live keys are on
+  (`REQUIRE_OWNER_TOTP=true` makes it always): 403 `owner_totp_required`.
+* **Refunds** (`POST /admin/api/billing/payments/:id/refund {reference, amount_satang?, note?, cancel_subscription?,
+  revoke_credits?}`): several partial refunds up to the amount paid; status `partially_refunded` until the total is
+  refunded, then `refunded`. Only what **this** payment bought is taken back, pro rata: its credits
+  (`floor(granted × refund / amount)`, the rest on the completing refund) and the subscription time it added
+  (`payments.ext_seconds`; a renewal refund removes only that renewal's days). The subscription is cancelled only when
+  no paid time is left (`cancel_subscription: true` = cancel it all, `false` = leave it). Each refund is a row in
+  `refunds`; for a VAT tax invoice it gets a gap-free credit-note number `CN-YYYYMM-000001` and a printable
+  **ใบลดหนี้** (TH/EN/ZH): `GET /admin/api/billing/payments/:id/refunds/:n/credit-note[?format=json]` and the member's
+  `GET /api/me/payments/:id/refunds/:n/credit-note`. All of it commits in one transaction.
+* **Age of majority at checkout**: `age_confirm: "adult" | "guardian" | true` is required (400
+  `age_confirmation_required`); an optional `birth_year` that shows the buyer may be under 20 needs `"guardian"`
+  (403 `guardian_consent_required`). Stored as `payments.age_confirm`; nothing else about age is kept.
+* **Renewal reminder data**: `GET /api/me` returns `renewal_due` and `renewal {plan_id, period, current_period_end,
+  days_left, renew_path}` when the paid period ends within 7 days (PromptPay does not renew by itself; the account page
+  / nav show the banner — no e-mail sender yet).
+* **Erasure / export need a fresh Google confirmation**: `DELETE /api/me` and the export need a NEW Google ID token
+  (fresh nonce, same `sub`, `auth_time` — or `iat` when Google omits it — within 5 min), inline
+  (`{confirm:"DELETE", credential, nonce}`, `POST /api/me/export {credential, nonce}`) or via
+  `POST /api/auth/reauth {credential, nonce}` which opens a 5-min window (401 `reauth_required` / `reauth_stale`,
+  403 `reauth_wrong_account`). A stolen bearer token alone can no longer erase or export an account.
+* **Quota tombstone across erasure**: on `DELETE /api/me` today's used counters are kept under
+  `x:` + HMAC(daily salt, `quota-tomb|` + Google sub) and seed a re-created account of the same Google account the
+  same Bangkok day (so delete + re-join does not reset limits). The tombstone is purged the next day and the salt is
+  deleted, so it links to nobody.
+* **Go-live gate** (`golive.js`): with `GO_LIVE_GATE=enforce` (wrangler.toml) checkout and NEW Google sign-ins answer
+  503 `go_live_blocked` while `SELLER_NAME/TAX_ID/ADDRESS` are empty, `LEGAL_TERMS_READY` / `LEGAL_PRIVACY_READY` are not
+  `true`, `ALLOWED_ORIGINS` contains localhost while `TURNSTILE_DISABLED_FOR_LOCAL_DEV=true`, or (billing / live keys on)
+  the owner has no TOTP. A live Opn charge is **always** refused while any of these is open. `GO_LIVE_GATE=report`
+  (default when the var is missing: tests, `wrangler dev`, staging test-mode runs) only reports. The signed-in owner sees
+  it in `GET /admin/api/state` (`go_live`), `GET /admin/api/go-live` and `GET /admin/api/billing`. The site-side twin
+  is `tools/check-legal.mjs`.
+* **B2B leads**: `POST /v1/leads {name, org?, email?, phone?, interest, plan?, message?, source?, lang?, consent: true}`
+  with `X-Turnstile-Token` (action `lead`, fail closed), 5 per caller per hour, `LEADS_GLOBAL_DAY` per day; stored in
+  `leads` without IP / user agent, purged after `LEADS_DAYS` (180). Admin: `GET /admin/api/leads?status=new|acked|all`,
+  `POST /admin/api/leads/:id/ack`, `DELETE /admin/api/leads/:id`. Front end: `lensiq-leads.js`.
+* **Reconcile**: `RECONCILE_BATCH` (25) per run for both the repair pass and pending re-checks; least-recently-checked
+  first (`updated_at` is touched on every check) so a backlog rotates instead of starving.
+* **`GET /health/deep`**: D1 reachable + migrations current (wrangler's `d1_migrations` table, or a schema probe);
+  503 otherwise; protect with the `HEALTH_TOKEN` secret if wanted.
+* **`scheduled()`** catches every job failure and logs `cron.failed` with the error name only (never the message).
+* **Perk consumers**: `PERKS[*].consumer` names the page that delivers a perk; a unit test fails when an active perk sold
+  as credits (`report_*`) has no page that redeems it through `POST /api/me/entitlements/use` (today: `report.js`).
+* **Real runtime**: `npm run test:integration` runs the bundled Worker in **workerd** (Miniflare from
+  `backend/node_modules`) with a real local D1, the real migrations and a faked Opn / Google / Turnstile: health,
+  sign-in, checkout + idempotent replay, three racing signed webhooks (one receipt number, one subscription), receipt,
+  TOTP + sudo window, two partial refunds with credit-note numbers. It found that the old entry module exported
+  non-handler constants, which workerd refuses at start-up (`Incorrect type for map entry 'RECONCILE_CRON'`) — fixed with
+  `src/worker.js`. CI runs it after the wrangler dry-run.
+
 ### Member sign-in (Google) and tiers (ready, OFF by default)
 
 Owner's goal: free use gets a light version; signing up with Google (free) unlocks the full reading and keeps the
@@ -312,7 +390,9 @@ npx wrangler dev                  # http://localhost:8787 (local D1 + local cron
 ```
 
 Tests run without wrangler or network, on an in-memory D1 shim over Node's built-in `node:sqlite`:
-`npm run test:backend` (also part of `npm run test:unit` and CI).
+`npm run test:backend` (also part of `npm run test:unit` and CI). With `npm ci` done in `backend/`,
+`npm run test:integration` (repo root) runs the Worker in real workerd with a local D1 (still offline).
+Local dev with the Turnstile bypass: put `GO_LIVE_GATE=report` in `.dev.vars` (the gate reports localhost + bypass).
 
 ## 3. Deploy steps (owner — not done by CI)
 
@@ -331,10 +411,13 @@ Tests run without wrangler or network, on an in-memory D1 shim over Node's built
    npx wrangler secret put OPN_PUBLIC_KEY           # pkey_test_…
    npx wrangler secret put OPN_WEBHOOK_SECRET       # from Opn dashboard → Webhooks
    npx wrangler secret put TURNSTILE_SECRET         # REQUIRED before opening the AI writing assistant to the public
+   npx wrangler secret put ALERT_WEBHOOK_URL        # optional: push owner alerts (payment mismatch, fulfilment, leads)
    ```
 6. Edit `[vars]` in `wrangler.toml`: `ALLOWED_ORIGINS` = the exact Pages origin(s), e.g.
    `https://<user>.github.io` (no path) and/or your custom domain; `ADMIN_ORIGINS` if the admin page is served elsewhere.
-7. `npx wrangler deploy`
+7. `npx wrangler deploy` — `GO_LIVE_GATE = "enforce"` keeps checkout and Google sign-in closed until `SELLER_*`,
+   `LEGAL_TERMS_READY` / `LEGAL_PRIVACY_READY` and owner TOTP are done (see admin → state / `GET /admin/api/go-live`);
+   for a staging test-mode run set `GO_LIVE_GATE = "report"` there (live keys stay refused anyway).
 8. **Custom domain** (recommended, enables the cookie session): Cloudflare dashboard → Workers → `lensiq-api` →
    Settings → Domains & Routes → add `api.<your-domain>` (the zone must be on Cloudflare). Put the Pages site on
    `www.<your-domain>` (GitHub Pages custom domain + HTTPS) so both are the same site.
@@ -382,6 +465,13 @@ Rollback: `npx wrangler rollback`; disable everything client-side by setting `LE
 | `OPN_ALLOW_LIVE` | var | `false` | accept a live `skey_…` |
 | `VAT_REGISTERED`, `SELLER_*` | var | `false`, empty | VAT 7 % + tax-invoice seller fields |
 | `RAW_EVENT_DAYS`, `AUDIT_DAYS`, `WEBHOOK_PAYLOAD_DAYS` | var | 90, 400, 90 | retention |
+| `GO_LIVE_GATE` | var | `report` (wrangler.toml: `enforce`) | `enforce` refuses checkout + new sign-ins while the go-live checks fail; live money always refused |
+| `LEGAL_TERMS_READY`, `LEGAL_PRIVACY_READY` | var | `false` | set `true` only after counsel signed off terms / privacy |
+| `REQUIRE_OWNER_TOTP` | var | `false` | owner TOTP for money ops always (it is required anyway while billing / live keys are on) |
+| `RECONCILE_BATCH` | var | 25 | payments repaired / re-checked per 15-min cron run (1–500) |
+| `LEADS_DAYS`, `LEADS_GLOBAL_DAY` | var | 180, 200 | B2B demo-request retention / daily cap |
+| `ALERT_WEBHOOK_URL` | secret | — | optional https incoming webhook for owner alerts (no PII sent) |
+| `HEALTH_TOKEN` | secret | — | optional bearer for `GET /health/deep` |
 | `ADMIN_BOOTSTRAP_TOKEN` | secret | — | one-time owner bootstrap (delete afterwards) |
 | `SECRETS_KEK` | secret | — | base64 32 bytes; encrypts TOTP secret + admin-set API key |
 | `ANTHROPIC_API_KEY` | secret | — | AI writing assistant |
@@ -389,18 +479,19 @@ Rollback: `npx wrangler rollback`; disable everything client-side by setting `LE
 
 ## 5. API
 
-Public: `GET /health`, `GET /v1/config` (incl. `membership`), `POST /v1/events`, `GET /api/fortune/status`, `POST /api/fortune`,
+Public: `GET /health`, `GET /health/deep`, `GET /v1/config` (incl. `membership`), `POST /v1/events`, `GET /api/fortune/status`, `POST /api/fortune`,
 `GET /v1/billing/plans`, `POST /v1/billing/checkout`, `POST /v1/billing/claim`, `GET /v1/billing/payments/:id[/qr]`,
-`POST /v1/billing/webhook/opn`.
-Members (bearer): `POST /api/auth/nonce|google|logout`, `GET|DELETE /api/me`, `POST /api/me/preferences|usage|saved`,
+`POST /v1/billing/webhook/opn`, `POST /v1/leads`.
+Members (bearer): `POST /api/auth/nonce|google|logout|reauth`, `GET|DELETE /api/me`, `POST /api/me/preferences|usage|saved|export`,
 `GET /api/me/history|export|entitlements|sessions`, `POST /api/me/entitlements/use|sessions/revoke`, `GET /api/me/payments/:id/receipt`,
-`GET|DELETE /api/me/saved/:id`.
-Admin (`/admin/api`): `GET state`, `POST bootstrap|login|logout|password|totp/setup|totp/enable|totp/disable`,
-`GET me|analytics/summary|analytics/csv|ai|billing|billing/payments|billing/payments/:id[/receipt]|billing/subscriptions|billing/webhooks|members|members/:id|membership|alerts|devices|audit|retention`,
-`PUT ai|ai/key|billing/settings|billing/plans/:id|membership`, `DELETE ai/key|devices|devices/:id`,
-`POST billing/test-charge|billing/plans|billing/payments/:id/refund|billing/subscriptions/:id/cancel|billing/subscriptions/:id/extend|members/:id/grant|members/:id/status|alerts/:id/ack|retention/run`
-(re-auth `{password, totp}` in the body: refund, cancel, extend, grant, member status, retention/run). Details: §1
-"Round-10 API for the pricing / account / admin UI".
+`GET /api/me/payments/:id/refunds/:n/credit-note`, `GET|DELETE /api/me/saved/:id` (erasure + export: fresh Google confirmation).
+Admin (`/admin/api`): `GET state`, `POST bootstrap|login|logout|password|reauth|totp/setup|totp/enable|totp/disable`,
+`GET me|go-live|leads|analytics/summary|analytics/csv|ai|billing|billing/payments|billing/payments/:id[/receipt]|billing/payments/:id/refunds/:n/credit-note|billing/subscriptions|billing/webhooks|members|members/:id|membership|alerts|devices|audit|retention`,
+`PUT ai|ai/key|billing/settings|billing/plans/:id|membership`, `DELETE ai/key|devices|devices/:id|leads/:id`,
+`POST billing/test-charge|billing/plans|billing/payments/:id/refund|billing/subscriptions/:id/cancel|billing/subscriptions/:id/extend|members/:id/grant|members/:id/status|alerts/:id/ack|leads/:id/ack|retention/run`
+(re-auth — `{password, totp}` in the body or the 5-min window of `POST reauth` — for refund, cancel, extend, grant,
+member status, retention/run, plan / price / billing-settings / membership edits and the AI key; owner TOTP on for the
+money ops while billing is on). Details: §1 "Round-10 API …" and "Round 11".
 
 Type checking: `npm run typecheck` also runs `tsc -p backend/tsconfig.json` (every `backend/src` file is
 `// @ts-check`; minimal ambient Workers / D1 / SDK types in `backend/types/worker.d.ts`, so no network install is
@@ -425,6 +516,9 @@ needed). CI additionally runs `npm ci` in `backend/` (pinned by `backend/package
 | member usage ledger | 400 days (`MEMBER_LEDGER_DAYS`) | payment and refund rows kept |
 | credits (one-time purchases / grants) | until used, expired (365 days) or the account is deleted | |
 | admin alerts | kept (small) | acknowledged in the admin |
+| B2B demo requests (`leads`) | 180 days (`LEADS_DAYS`) | no IP / user agent; deletable one by one in the admin |
+| quota tombstones (`usage_counters` subject `x:…`) | the Bangkok day they were written for | HMAC with the day salt (deleted next day) |
+| refunds / credit notes | with the payment (≥ 5 years) | accounting records |
 | saved readings | until the member deletes them / the account | |
 | payments, receipts, tax-invoice fields | ≥ 5 years (Thai Revenue Code) | never purged automatically; unlinked from a deleted account |
 

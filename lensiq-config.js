@@ -37,6 +37,39 @@ window.LENSIQ_FACEPARSE = window.LENSIQ_FACEPARSE === true;
  *   true (ค่าเริ่มต้น สำหรับเดโม) = แสดงตัวเลือก · false = ซ่อนตัวเลือกและไม่โหลดโมเดลเลย (ใช้งานเชิงพาณิชย์จนกว่าทนายความจะยืนยันสิทธิ์) */
 window.LENSIQ_AGE_GENDER = window.LENSIQ_AGE_GENDER !== false;
 
+/* LENSIQ_PROFILE: ชุดค่าการติดตั้ง — "demo" (ค่าเริ่มต้น) | "commercial"
+ *   "commercial" = ติดตั้งให้ลูกค้าที่จ่ายเงิน: บังคับ LENSIQ_AGE_GENDER = false (ไม่โหลด/ไม่แสดงอายุ/เพศที่ฝึกจาก UTKFace)
+ *   และ LENSIQ_FACEPARSE = false (BiSeNet ไม่ใช่เชิงพาณิชย์) แม้จะตั้งค่าอื่นไว้ก่อนหน้า — ตั้งก่อนโหลดไฟล์นี้ เช่น
+ *   <script>window.LENSIQ_PROFILE = "commercial"</script> ; ป้าย "โมเดลใบอนุญาตวิจัย" บนหน้ากล้องยังแสดงอยู่
+ *   เพราะโมเดลตรวจจับ/จดจำใบหน้าของ face-api.js ยังรอความเห็นทนายความ (LICENSES/THIRD_PARTY.md F5/F6) */
+window.LENSIQ_PROFILE = window.LENSIQ_PROFILE === "commercial" ? "commercial" : "demo";
+if (window.LENSIQ_PROFILE === "commercial") { window.LENSIQ_AGE_GENDER = false; window.LENSIQ_FACEPARSE = false; }
+
+/* LENSIQ_SELLER: ข้อมูลผู้ให้บริการ/ผู้ขาย — แหล่งเดียวที่หน้า ช่วยเหลือ ข้อกำหนด ความเป็นส่วนตัว (legal.js) แบบฟอร์มติดต่อ
+ *   (lensiq-leads.js) และหน้าราคาอ่านไปแสดง กรอกที่นี่ที่เดียวแล้วทุกหน้าเปลี่ยนตาม ช่องที่ว่างจะแสดงข้อความกลาง
+ *   "รายละเอียดผู้ให้บริการจะประกาศก่อนเปิดขาย / ติดต่อผ่านแบบฟอร์ม" แทนวงเล็บ [..]
+ *   sales_open: true เฉพาะเมื่อเปิดขายจริงแล้ว — node tools/check-legal.mjs จะล้มเหลวถ้า sales_open (หรือ BILLING_ENABLED/
+ *   FREE_MODE=false ใน backend/wrangler.toml) แต่ช่องที่จำเป็นยังว่าง (ต้องตรงกับ SELLER_* ใน wrangler.toml)
+ *   ค่าที่เป็นตัวเลขร่าง (retention_*) ใช้แสดงในนโยบายความเป็นส่วนตัวพร้อมป้าย "ร่าง" จนกว่าทนายความยืนยัน */
+window.LENSIQ_SELLER = window.LENSIQ_SELLER || {
+  sales_open: false,     // เปิดขายบริการแบบชำระเงินแล้วหรือยัง
+  name: "",              // ชื่อนิติบุคคล/บุคคลผู้ให้บริการ (= SELLER_NAME)
+  tax_id: "",            // เลขประจำตัวผู้เสียภาษี 13 หลัก (= SELLER_TAX_ID)
+  address: "",           // ที่อยู่ (= SELLER_ADDRESS)
+  email: "",             // อีเมลฝ่ายช่วยเหลือ
+  line: "",              // LINE Official Account เช่น "@lensiq"
+  dpo_name: "",          // ชื่อ / ตำแหน่ง DPO หรือผู้ติดต่อด้านข้อมูลส่วนบุคคล
+  dpo_email: "",         // อีเมล DPO
+  status_url: "",        // หน้าสถานะระบบ (https://…)
+  effective_date: "",    // วันที่มีผลของข้อกำหนด/นโยบาย เช่น "1 ธันวาคม 2569"
+  email_provider: "",    // ผู้ให้บริการอีเมลฝ่ายช่วยเหลือ (นโยบายความเป็นส่วนตัว ข้อผู้รับข้อมูล)
+  email_provider_location: "",
+  cookie_name: "",       // คุกกี้เซสชันสมาชิก (ปัจจุบันไม่มี: ใช้ Bearer token ใน sessionStorage)
+  cookie_duration: "",
+  anthropic_retention: "",
+  counsel_confirmed: false // ทนายความยืนยันเกณฑ์อายุ ฐานการส่งข้อมูลต่างประเทศ และระยะเวลาเก็บแล้ว
+};
+
 /* ตัวโหลด: เฉพาะเมื่อมี LENSIQ_API_BASE — ไฟล์มาจากต้นทางเดียวกับหน้าเว็บ (CSP script-src 'self') */
 (function () {
   "use strict";

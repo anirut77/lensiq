@@ -17,7 +17,9 @@
      ช่วงพยากรณ์ตาม Hyndman et al. (2008) ; ข้อมูลไม่ถึง 3 สัปดาห์ใช้ seasonal naive ; ไม่ถึง 1 สัปดาห์ใช้ค่าเฉลี่ย
    - สหสัมพันธ์: Pearson + CI/p-value จาก Fisher z ; Spearman (อันดับ)
      อนุกรมเวลา (tsCorrelation): ตัดผลวันในสัปดาห์ + แนวโน้มก่อน แล้วใช้ n_eff แบบ Bartlett/AR(1) ใน CI และ p
-   - A/B: empirical Bayes (beta-binomial / normal–normal) ดึงค่าของกลุ่มที่ข้อมูลน้อยเข้าหาค่ากลาง ใช้จัดอันดับแทนค่าดิบ */
+   - A/B: empirical Bayes (beta-binomial / normal–normal) ดึงค่าของกลุ่มที่ข้อมูลน้อยเข้าหาค่ากลาง ใช้จัดอันดับแทนค่าดิบ
+   round 11 (3.4.0): quasiRef (φ̂ ≤ 1 → z) · p ของ twoProp/twoPropDaily กลับด้านจากช่วงเดียวกัน · correlation p แบบ exact t ·
+     ebBinom ช่วงที่ซื่อตรงเมื่อ tau2 = 0 · mixtureP/seqP (ดูซ้ำทุกวัน) · dailyMeanCI (ปรับวันในสัปดาห์ + AR) · abRatesStrata (A/B แยกช่วงเวลา) */
 (/** @param {any} root */ function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory();
   else root.LQStats = factory();
@@ -141,11 +143,47 @@
   /** ค่าวิกฤต t สองด้าน (conf = 0.95 → t_{0.975,df}) ด้วยการแบ่งครึ่งช่วง */
   function tCrit(df, conf = 0.95) {
     if (!(df > 0)) return null;
-    const target = 1 - (1 - conf) / 2; let lo = 0, hi = 1000;
+    const target = 1 - (1 - conf) / 2;
+    // round 11: Newton จากค่าเริ่มต้น Cornish–Fisher (ใช้ tCdf 3–6 ครั้ง แทน 100) ; ไม่ลู่เข้า → แบ่งครึ่งช่วงแบบเดิม
+    if (df !== Infinity) {
+      const z = normInv(target), lc = lgamma((df + 1) / 2) - lgamma(df / 2) - 0.5 * Math.log(df * Math.PI);
+      let t = z + (z ** 3 + z) / (4 * df) + (5 * z ** 5 + 16 * z ** 3 + 3 * z) / (96 * df * df);
+      if (!(t > 0) || !fin(t) || df < 1) t = Math.max(z, 1);
+      for (let i = 0; i < 30 && fin(t) && t > 0; i++) {
+        const f = tCdf(t, df) - target, d = Math.exp(lc - (df + 1) / 2 * Math.log1p(t * t / df)), s = f / d;
+        if (!fin(s)) break; t -= Math.max(-t / 2, Math.min(t, s));
+        if (Math.abs(s) < 1e-12 * Math.max(1, t)) return t;
+      }
+    }
+    let lo = 0, hi = 1000;
     for (let i = 0; i < 100; i++) { const m = (lo + hi) / 2; if (tCdf(m, df) < target) lo = m; else hi = m; }
     return (lo + hi) / 2;
   }
   const zCrit = (conf = 0.95) => normInv(1 - (1 - conf) / 2);
+  /** quasi-likelihood reference (round 11): φ̂ = Pearson χ²/df จากความต่างรายวัน
+     φ̂ ≤ 1 (ไม่เห็นความผันผวนเกิน binomial) → ใช้ z และ φ = 1 ; φ̂ > 1 → ใช้ φ̂ กับ t(df)
+     (เดิมตัด φ ที่ 1 แล้วยังใช้ t(df) เสมอ → ระมัดระวังเกิน: type I 2% ที่ 7 vs 7 วัน, 0.5% ที่ 3 vs 3 วัน ; แบบนี้ 3–5.6% ทุกระดับความผันผวน — docs/STATS.md §6)
+     คืน { phi, phiRaw, df (Infinity = z), crit(conf), sf2(|stat|) = ค่า p สองด้าน } */
+  function quasiRef(phiRaw, df) {
+    const useZ = !(df >= 1) || !(phiRaw > 1), phi = useZ ? 1 : phiRaw, d = useZ ? Infinity : df;
+    return { phi, phiRaw: fin(phiRaw) ? phiRaw : null, df: d, ref: useZ ? "z" : "t", crit: conf => (useZ ? zCrit(conf) : tCrit(d, conf)), sf2: s => (useZ ? 2 * normSf(Math.abs(s)) : 2 * (1 - tCdf(Math.abs(s), d))) };
+  }
+  /** หา p จากช่วงความเชื่อมั่น: ระดับ conf ที่ช่วง ciAt(conf) = [lo, hi] แตะศูนย์พอดี → p = 1 − conf (ให้ p < α ⇔ ช่วง (1 − α) ไม่คร่อม 0 เสมอ)
+     ค้นหาแบบแบ่งครึ่งบน log(α) ระหว่าง 1e-15 ถึง 1 ; ช่วงที่ α = 1e-15 ยังไม่คร่อม 0 → คืน fallback (ค่า p เล็กมากจาก z) */
+  function pFromCI(ciAt, est, fallback) {
+    if (!fin(est) || est === 0) return 1;
+    const away = a => { const c = ciAt(1 - a); return c && (est > 0 ? c[0] > 0 : c[1] < 0); };
+    const L0 = Math.log(1e-15), H0 = Math.log(1 - 1e-12);
+    let lo = L0, hi = H0;
+    // fallback (p ของ z/t เดิม) มักใกล้คำตอบ → เริ่มจากช่วง ×/÷ 10 รอบค่านั้น (ประหยัดการคำนวณ) ; ไม่คร่อม = ใช้ช่วงเต็ม
+    if (fin(fallback) && fallback > 1e-14 && fallback < 0.9) {
+      const a = Math.max(L0, Math.log(fallback) - 2.3), b = Math.min(H0, Math.log(fallback) + 2.3);
+      if (!away(Math.exp(a)) && away(Math.exp(b))) { lo = a; hi = b; }
+    }
+    if (lo === L0 && hi === H0) { if (away(1e-15)) return Math.min(1e-15, fin(fallback) ? fallback : 1e-15); if (!away(1 - 1e-12)) return 1; }
+    for (let i = 0; i < 36 && hi - lo > 1e-9; i++) { const m = (lo + hi) / 2; if (away(Math.exp(m))) hi = m; else lo = m; }
+    return Math.min(1, Math.exp((lo + hi) / 2));
+  }
 
   /* ---------- สัดส่วนและอัตรา ---------- */
   /** Wilson score interval ของ x/n */
@@ -167,19 +205,28 @@
     let chi2 = 0; if (p > 0 && p < 1) D.forEach(d => { chi2 += (d.x - d.n * p) ** 2 / (d.n * p * (1 - p)); });
     const df = days - 1;
     if (df < 1) { const w = wilson(x, n, conf); return w && { ...w, phi: 1, df: 0, nEff: n, days, method: "wilson" }; }
-    const phi = Math.max(1, chi2 / df), nEff = n / phi, c = tCrit(df, conf), c2 = c * c, den = 1 + c2 / nEff;
+    // round 11: φ̂ ≤ 1 → z กับ n เต็ม (เดิม t(วัน − 1) เสมอ: ครอบคลุม 99.2% ที่ 7 วัน, 99.9% ที่ 3 วัน แทน 95%) ; φ̂ > 1 → √φ̂ และ t(วัน − 1) เหมือนเดิม
+    const Q = quasiRef(p > 0 && p < 1 ? chi2 / df : 0, df), phi = Q.phi, nEff = n / phi, c = Q.crit(conf), c2 = c * c, den = 1 + c2 / nEff;
     const mid = (p + c2 / (2 * nEff)) / den, hw = c * Math.sqrt(p * (1 - p) / nEff + c2 / (4 * nEff * nEff)) / den;
-    return { p, lo: Math.max(0, mid - hw), hi: Math.min(1, mid + hw), phi, df, nEff, days, x, n, method: "quasi-binomial" };
+    return { p, lo: Math.max(0, mid - hw), hi: Math.min(1, mid + hw), phi, phiRaw: Q.phiRaw, ref: Q.ref, df, nEff, days, x, n, method: "quasi-binomial" };
   }
-  /** ผลต่างสองสัดส่วน p1 − p2 : CI แบบ Newcombe (hybrid score) + p-value z-test แบบ pooled */
-  function twoProp(x1, n1, x2, n2, conf = 0.95) {
-    const a = wilson(x1, n1, conf), b = wilson(x2, n2, conf);
-    if (!a || !b) return null;
+  /** ผลต่างสองสัดส่วน p1 − p2 : CI แบบ Newcombe (hybrid score)
+     p (round 11) = กลับด้านจากช่วง Newcombe เอง → p < 0.05 ⇔ ช่วง 95% ไม่คร่อม 0 เสมอ (เดิม z แบบ pooled ซึ่งอาจขัดกับช่วงเมื่อใกล้ 0.05)
+     z-test แบบ pooled ยังคืนไว้เป็น z / pPooled */
+  /** @returns {any[] | null} [lo, hi, wilson1, wilson2] */
+  function newcombe(x1, n1, x2, n2, conf) {
+    const a = wilson(x1, n1, conf), b = wilson(x2, n2, conf); if (!a || !b) return null;
     const d = a.p - b.p;
-    const lo = d - Math.sqrt((a.p - a.lo) ** 2 + (b.hi - b.p) ** 2), hi = d + Math.sqrt((a.hi - a.p) ** 2 + (b.p - b.lo) ** 2);
+    return [d - Math.sqrt((a.p - a.lo) ** 2 + (b.hi - b.p) ** 2), d + Math.sqrt((a.hi - a.p) ** 2 + (b.p - b.lo) ** 2), a, b];
+  }
+  function twoProp(x1, n1, x2, n2, conf = 0.95) {
+    const N = newcombe(x1, n1, x2, n2, conf);
+    if (!N) return null;
+    const [lo, hi, a, b] = N, d = a.p - b.p;
     const pp = (x1 + x2) / (n1 + n2), se = Math.sqrt(pp * (1 - pp) * (1 / n1 + 1 / n2));
-    const z = se > 0 ? d / se : 0, p = se > 0 ? 2 * normSf(Math.abs(z)) : 1;
-    return { p1: a.p, p2: b.p, diff: d, lo, hi, z, p, rel: b.p > 0 ? d / b.p : null };
+    const z = se > 0 ? d / se : 0, pPooled = se > 0 ? 2 * normSf(Math.abs(z)) : 1;
+    const p = se > 0 ? pFromCI(c => newcombe(x1, n1, x2, n2, c), d, pPooled) : 1;
+    return { p1: a.p, p2: b.p, diff: d, lo, hi, z, p, pPooled, rel: b.p > 0 ? d / b.p : null };
   }
   function logBinom(n, k) { return lgamma(n + 1) - lgamma(k + 1) - lgamma(n - k + 1); }
   /** binomial test สองด้าน (รวมความน่าจะเป็นของผลที่สุดโต่งเท่าหรือมากกว่าค่าที่เห็น) */
@@ -423,11 +470,14 @@
     const r = pearsonRaw(X, Y), rho = pearsonRaw(ranks(X), ranks(Y));
     if (r == null) return { n, r: null, enough: false };
     let lo = null, hi = null, p = null;
+    let pFisher = null;
     if (n > 3) {
       const rr = Math.max(-0.999999, Math.min(0.999999, r)), zf = Math.atanh(rr), se = 1 / Math.sqrt(n - 3), zc = zCrit(conf);
-      lo = Math.tanh(zf - zc * se); hi = Math.tanh(zf + zc * se); p = 2 * normSf(Math.abs(zf) / se);
+      lo = Math.tanh(zf - zc * se); hi = Math.tanh(zf + zc * se); pFisher = 2 * normSf(Math.abs(zf) / se);
+      // round 11: p แบบ exact (t = r√((n−2)/(1−r²)), df = n − 2) แทน Fisher z (ต่างกันมากที่ |r| สูง: 2e-13 vs 1.25e-10 ที่ r = 0.92, n = 25)
+      p = Math.abs(r) >= 1 ? 0 : (() => { const tt = Math.abs(r) * Math.sqrt((n - 2) / (1 - r * r)), x = (n - 2) / (n - 2 + tt * tt); return Math.min(1, ibeta(x, (n - 2) / 2, 0.5)); })();
     }
-    return { n, r, rho, lo, hi, p, enough: n >= minN };
+    return { n, r, rho, lo, hi, p, pFisher, enough: n >= minN };
   }
 
   /* ---------- funnel / cohort / A-B ---------- */
@@ -748,10 +798,127 @@
     const t = twoProp(x1, n1, x2, n2, conf); if (!t) return null;
     let chi2 = 0, cnt = 0;
     [[a, x1 / n1], [b, x2 / n2]].forEach(([D, p]) => { if (p > 0 && p < 1) D.forEach(d => { chi2 += (d.x - d.n * p) ** 2 / (d.n * p * (1 - p)); cnt++; }); });
-    const df = cnt - 2, phi = df > 0 ? Math.max(1, chi2 / df) : 1, k = Math.sqrt(phi);
-    const z = t.z / k, p = df >= 1 ? 2 * (1 - tCdf(Math.abs(z), df)) : t.p;
-    const sc = df >= 1 ? tCrit(df, conf) / zCrit(conf) : 1;
-    return { ...t, z, p, lo: t.diff - (t.diff - t.lo) * k * sc, hi: t.diff + (t.hi - t.diff) * k * sc, phi, df, days: a.length + b.length, method: "quasi-binomial" };
+    const df = cnt - 2, Q = quasiRef(df > 0 ? chi2 / df : null, df), phi = Q.phi, k = Math.sqrt(phi);
+    // round 11: φ̂ ≤ 1 → z (ไม่ขยาย) ; φ̂ > 1 → √φ̂ กับ t(df) — ดู quasiRef ; p กลับด้านจากช่วงเดียวกัน (p กับช่วงไม่ขัดกัน)
+    const ciAt = c => { const N = newcombe(x1, n1, x2, n2, c); if (!N) return null; const sc = Q.crit(c) / zCrit(c); return [t.diff - (t.diff - N[0]) * k * sc, t.diff + (N[1] - t.diff) * k * sc]; };
+    const z = t.z / k, pZ = Q.sf2(z), p = t.diff === 0 ? 1 : pFromCI(ciAt, t.diff, pZ), ci = ciAt(conf);
+    return { ...t, z, p, pZ, lo: ci[0], hi: ci[1], phi, phiRaw: Q.phiRaw, ref: Q.ref, df, days: a.length + b.length, method: "quasi-binomial" };
+  }
+
+  /* ---------- ดูซ้ำทุกวัน (round 11): always-valid p แบบ mixture SPRT ----------
+     แดชบอร์ดและการแจ้งเตือนคำนวณการทดสอบใหม่ทุกวัน ถ้าใช้ p < 0.05 ทุกครั้ง โอกาส “เตือนผิดอย่างน้อยหนึ่งครั้ง” ใน 22 วันสูงถึง 24–45%
+     mixtureP: mSPRT (Robbins 1970 ; Johari et al. 2017) — ค่าประมาณ est ~ N(θ, V) ; prior ผสม θ ~ N(0, τ²)
+       Λ = √(V/(V+τ²))·exp(est²τ² / (2V(V+τ²))) ; p = min(1, 1/Λ) — P(Λ ≥ 1/α ณ เวลาใดก็ได้) ≤ α เมื่อข้อมูลสะสมต่อเนื่อง (Ville)
+     seqP(est, p, tau): แปลง p ของการทดสอบเดิม (t หรือ z) เป็น z เทียบเท่า แล้ว V = (est/z)² — ใช้หลักฐานชุดเดียวกับการทดสอบเดิม
+     τ = ขนาดผลที่สนใจ (เช่น 0.15 = 15% บน log scale) ; การจำลองใน tests/unit/stats-r11.test.js: แจ้งเตือนอัตราซื้อที่ดูทุกวัน 22 วัน
+     ผิดอย่างน้อยหนึ่งครั้ง 30% (p < 0.05) → ≤ 5% (mixture p < 0.05) ; ราคา = ต้องเห็นผลชัดกว่า (docs/STATS.md §7) */
+  function mixtureP(est, se, tau) {
+    if (!fin(est) || !(se > 0) || !(tau > 0)) return 1;
+    const V = se * se, T2 = tau * tau, L = 0.5 * Math.log(V / (V + T2)) + est * est * T2 / (2 * V * (V + T2));
+    return L <= 0 ? 1 : Math.min(1, Math.exp(-L));
+  }
+  function seqP(est, p, tau) {
+    if (!fin(est) || !fin(p) || est === 0 || !(p < 1)) return 1;
+    const z = zOfP(Math.max(1e-300, p)); if (!(z > 0)) return 1;
+    return mixtureP(est, Math.abs(est) / z, tau);
+  }
+  const SEQ = { tauLog: 0.15, tauRel: 0.15 };
+
+  /* ---------- ค่าเฉลี่ยต่อวัน (round 11): ปรับวันในสัปดาห์ + เผื่อสหสัมพันธ์ต่อเนื่อง ----------
+     meanCI ธรรมดาบนค่ารายวัน: ช่วงที่มีสัปดาห์ไม่ครบเอียงตามวันที่มี และวันที่ติดกันคล้ายกัน (AR) → ช่วงแคบเกิน
+     (AR(0.5) ครอบคลุม 77% แทน 95%) ; dailyMeanCI:
+     - ≥ 14 วันและมีทุกวันในสัปดาห์อย่างน้อย 2 ครั้ง: ค่าเฉลี่ยแบบสมดุล = เฉลี่ยของค่าเฉลี่ยแต่ละวันในสัปดาห์ (ค่าเฉลี่ยระยะยาวของสัปดาห์เต็ม)
+       ไม่งั้น: ค่าเฉลี่ยธรรมดา (เศษเหลือรวมผลของวันในสัปดาห์ไว้ → ระมัดระวังกว่า)
+     - se จากเศษเหลือ × (1 + ρ)/(1 − ρ) ; ρ = สหสัมพันธ์ lag-1 ของเศษเหลือ (วันที่ติดกันจริง) แก้ bias ตัวอย่างเล็ก ρ + (1 + 3ρ)/n จำกัด [0, 0.9]
+     - df = (n − p)·(1 − ρ)/(1 + ρ) ; ครอบคลุม 92–97% ที่ ≥ 14 วัน, AR 0–0.7 ; 83–100% ที่ 7–10 วัน
+     values = ค่ารายวัน (null = ไม่มีข้อมูล) ; wds = วันในสัปดาห์ (0–6) ของแต่ละตำแหน่ง ; คืน { mean, lo, hi, n, se, rho, df, weekdayAdj, method } */
+  function dailyMeanCI(values, wds, conf = 0.95) {
+    const v = values || [], I = []; v.forEach((y, i) => { if (fin(y)) I.push(i); });
+    const n = I.length; if (!n) return null;
+    if (n < 2) return { mean: v[I[0]], lo: null, hi: null, n, se: null, rho: null, df: 0, weekdayAdj: false, method: "daily-ar" };
+    const W = i => (wds && fin(wds[i]) ? wds[i] : null), cnt = new Map();
+    I.forEach(i => { const w = W(i); if (w != null) cnt.set(w, (cnt.get(w) || 0) + 1); });
+    const bal = n >= 14 && cnt.size === 7 && [...cnt.values()].every(c => c >= 2) && I.every(i => W(i) != null);
+    const a = new Map(), e = new Map(); let est, p;
+    if (bal) {
+      const m = new Map(); I.forEach(i => m.set(W(i), (m.get(W(i)) || 0) + v[i])); m.forEach((s, w) => m.set(w, s / cnt.get(w)));
+      est = sum([...m.values()]) / 7; p = 7;
+      I.forEach(i => { const c = cnt.get(W(i)); a.set(i, 1 / (7 * c)); e.set(i, (v[i] - m.get(W(i))) * Math.sqrt(c / (c - 1))); });
+    } else {
+      est = mean(I.map(i => v[i])); p = 1;
+      I.forEach(i => { a.set(i, 1 / n); e.set(i, (v[i] - est) * Math.sqrt(n / (n - 1))); });
+    }
+    let v0 = 0, num = 0, den = 0;
+    I.forEach(i => { v0 += a.get(i) ** 2 * e.get(i) ** 2; den += e.get(i) ** 2; if (e.has(i - 1)) num += e.get(i) * e.get(i - 1); });
+    const r0 = den > 0 ? num / den : 0, rho = Math.max(0, Math.min(0.9, r0 + (1 + 3 * r0) / n));
+    const se = Math.sqrt(v0 * (1 + rho) / (1 - rho)), df = Math.max(1, (n - p) * (1 - rho) / (1 + rho)), c = tCrit(df, conf);
+    return { mean: est, lo: est - c * se, hi: est + c * se, n, se, rho, df, weekdayAdj: bal, method: "daily-ar" };
+  }
+
+  /* ---------- A/B ของอัตราที่แยกตามช่วงเวลา (round 11 — ป้ายโฆษณา) ----------
+     ยอดสะสมต่อชิ้นปนผลของ “เวลาที่เล่น”: ชิ้นที่เล่นวันคนมองเยอะดูดีเพราะวัน ไม่ใช่เพราะตัวโฆษณา
+     (จำลอง: ตารางเล่นต่างวัน + ความต่างรายวัน logit SD 0.3–0.5 → เจอ “ต่างชัด” ผิด 20–51% ; สลับเท่ากัน ≈ 5%)
+     abRatesStrata(groups) ; groups = [{ id, name, x, n, strata: { key: { x, n } } }] — key = วัน หรือ วัน|ช่วงเวลา
+     - รายคู่: Mantel–Haenszel risk difference เฉพาะช่วงที่ทั้งสองชิ้นเล่น (น้ำหนัก n_a·n_b/(n_a + n_b)) ;
+       ความแปรปรวนจาก p รวมของแต่ละช่วง ; φ̂ = Cochran Q ของผลต่างรายช่วง/(ช่วง − 1) → quasiRef (z หรือ √φ̂ กับ t)
+     - omnibus: generalized Cochran–Mantel–Haenszel (k − 1 df) ÷ φ̂ รวม → protected Holm เหมือน abRates
+     - overlap ของคู่ = min(ส่วนของคนผ่านจอของแต่ละชิ้นที่อยู่ในช่วงที่เล่นร่วมกัน) ; overlap < minOverlap หรือช่วงร่วม < minShared
+       → cap = "weak" (ป้ายความมั่นใจไม่เกิน “ยังไม่แน่”) ; ไม่มีข้อมูลรายช่วงเลย → ผลเดิมของ abRates และ cap = "weak" ทุกคู่
+     ค่าแสดงผล (อัตรา ค่าหลัง shrinkage อันดับ) มาจาก abRates ของยอดสะสมเหมือนเดิม */
+  function mhPair(A, B, conf) {
+    const S0 = Object.keys(A || {}).filter(k => A[k] && A[k].n > 0 && B && B[k] && B[k].n > 0);
+    const tot = M => sum(Object.values(M || {}).map(c => (c && c.n > 0 ? c.n : 0)));
+    const ta = tot(A), tb = tot(B), sa = sum(S0.map(k => A[k].n)), sb = sum(S0.map(k => B[k].n));
+    const overlap = ta > 0 && tb > 0 ? Math.min(sa / ta, sb / tb) : 0;
+    if (!S0.length) return { diff: null, lo: null, hi: null, p: 1, shared: 0, overlap, phi: null, df: 0, method: "mh-strata" };
+    let W = 0, num = 0, V = 0; const cells = [];
+    S0.forEach(k => {
+      const a = A[k], b = B[k], w = a.n * b.n / (a.n + b.n), d = a.x / a.n - b.x / b.n, pb = (a.x + b.x) / (a.n + b.n), v = pb * (1 - pb) * (1 / a.n + 1 / b.n);
+      W += w; num += w * d; V += w * w * v; cells.push({ d, v });
+    });
+    const rd = num / W; V /= W * W;
+    let Q = 0, m = 0; cells.forEach(c => { if (c.v > 0) { Q += (c.d - rd) ** 2 / c.v; m++; } });
+    const df = m - 1, R = quasiRef(df >= 1 ? Q / df : null, df), se = Math.sqrt(R.phi * V);
+    if (!(se > 0)) return { diff: rd, lo: rd, hi: rd, p: rd === 0 ? 1 : 0, shared: S0.length, overlap, phi: R.phi, df, method: "mh-strata" };
+    const c = R.crit(conf);
+    return { diff: rd, lo: rd - c * se, hi: rd + c * se, p: Math.min(1, R.sf2(rd / se)), se, shared: S0.length, overlap, phi: R.phi, phiRaw: R.phiRaw, ref: R.ref, Q, df, method: "mh-strata" };
+  }
+  function cmhOmnibus(ok, phiPool, dfPool) {
+    const k = ok.length, keys = [...new Set(ok.flatMap(g => Object.keys(g.strata || {})))];
+    const O = Array(k - 1).fill(0), E = Array(k - 1).fill(0), V = Array.from({ length: k - 1 }, () => Array(k - 1).fill(0));
+    let used = 0;
+    keys.forEach(s => {
+      const c = ok.map(g => (g.strata && g.strata[s] && g.strata[s].n > 0 ? g.strata[s] : { x: 0, n: 0 }));
+      const N = sum(c.map(q => q.n)), X = sum(c.map(q => q.x));
+      if (c.filter(q => q.n > 0).length < 2 || N < 2 || !(X > 0 && X < N)) return;
+      used++; const f = X * (N - X) / (N * N * (N - 1));
+      for (let j = 0; j < k - 1; j++) { O[j] += c[j].x; E[j] += c[j].n * X / N; for (let l = 0; l < k - 1; l++) V[j][l] += f * c[j].n * ((j === l ? N : 0) - c[l].n); }
+    });
+    if (!used) return null;
+    const d = O.map((o, j) => o - E[j]), u = solve(V, d); if (!u) return null;
+    const stat = Math.max(0, d.reduce((s, x, j) => s + x * u[j], 0)), R = quasiRef(phiPool, dfPool);
+    const p = R.ref === "z" ? chi2Sf(stat, k - 1) : fSf(stat / ((k - 1) * R.phi), k - 1, R.df);
+    return { stat, df: k - 1, p: Math.min(1, p), phi: R.phi, strata: used, method: "cmh" };
+  }
+  function abRatesStrata(groups, { minN = 30, minOverlap = 0.5, minShared = 3 } = {}) {
+    const base = abRates(groups, { minN });
+    const okIds = new Set((base.pairs.length ? base.groups.filter(g => g.enough) : []).map(g => g.id));
+    const ok = base.groups.filter(g => okIds.has(g.id)).sort((a, b) => b.eb.p - a.eb.p || b.ci.p - a.ci.p);
+    const hasStrata = ok.length >= 2 && ok.filter(g => g.strata && Object.keys(g.strata).length).length >= 2;
+    if (!hasStrata) {
+      base.pairs.forEach(t => { t.cap = "weak"; t.overlap = null; });
+      return { ...base, strata: false, overlapMin: null, minOverlap, minShared };
+    }
+    const pairsRaw = []; for (let i = 0; i < ok.length; i++) for (let j = i + 1; j < ok.length; j++) pairsRaw.push(mhPair(ok[i].strata, ok[j].strata, 0.95));
+    const dfs = pairsRaw.filter(t => t.df >= 1), dfPool = sum(dfs.map(t => t.df)), phiPool = dfPool > 0 ? sum(dfs.map(t => t.Q)) / dfPool : null;
+    let omni = /** @type {any} */ (cmhOmnibus(ok, phiPool, dfPool));
+    const P = abPairs(ok, omni || { p: 0 }, (a, b, c) => { const t = mhPair(a.strata, b.strata, c); return t.diff == null ? { ...t, diff: a.ci.p - b.ci.p, lo: -1, hi: 1, p: 1 } : t; });
+    if (!omni) { const hm = Math.min(1, ...P.map(t => t.pHolm)); omni = { p: hm, method: "holm-min" }; P.forEach(t => { t.pAdj = Math.min(1, Math.max(t.pHolm, hm)); t.p = t.pAdj; }); }
+    P.forEach(t => { t.cap = !(t.overlap >= minOverlap) || !(t.shared >= minShared) ? "weak" : null; });
+    const res = { ...base, omnibus: omni, omnibusTotals: base.omnibus, pairsTotals: base.pairs, pairs: P, strata: true, minOverlap, minShared, overlapMin: /** @type {number | null} */ (null) };
+    res.test = findPair(P, res.best, res.runner); res.spread = findPair(P, res.best, res.worst);
+    res.overlapMin = P.length ? Math.min(...P.map(t => t.overlap)) : null;
+    return res;
   }
 
   /* ---------- ข้อมูลพอไหม: ผลต่างที่ตรวจจับได้ (MDE) และจำนวนวันที่ต้องเก็บเพิ่ม ---------- */
@@ -849,12 +1016,23 @@
     const N = sum(G.map(g => g.n)), pbar = sum(G.map(g => g.x)) / N;
     const S = sum(G.map(g => g.n * (g.x / g.n - pbar) ** 2)), den = N - sum(G.map(g => g.n * g.n)) / N;
     const tau2 = k > 1 && den > 0 ? (S - pbar * (1 - pbar) * (k - 1)) / den : 0;
-    // tau2 ≤ 0 → รวมเป็นกลุ่มเดียว (prior แคบมาก) ; จำกัด M ไม่ให้เกิน 1e6
+    // tau2 ≤ 0 → รวมเป็นกลุ่มเดียว (prior แคบมาก) ; จำกัด M ไม่ให้เกิน 1e6 — ใช้กับค่าหลัง shrinkage (จัดอันดับ) เท่านั้น
     const M = tau2 > 0 && pbar > 0 && pbar < 1 ? Math.min(1e6, Math.max(1e-6, pbar * (1 - pbar) / tau2 - 1)) : 1e6;
     const a = Math.max(1e-6, pbar * M), b = Math.max(1e-6, (1 - pbar) * M), lq = (1 - conf) / 2;
+    // ช่วง 95% (round 11): เดิมใช้ posterior ของ M ข้างบนตรง ๆ → เมื่อ tau2 ≤ 0 ช่วงแคบเกือบศูนย์ (24/80, 26/80, 25/80 → [0.3116, 0.3134])
+    // ครอบคลุมค่าจริงเพียง ~55% ; ตอนนี้: tau2 ประมาณไม่ได้ (≤ 0 หรือกลุ่มเดียว) → Wilson ของกลุ่มนั้นเอง (ciMethod "wilson")
+    // tau2 > 0 → posterior แต่จำกัดน้ำหนักของ prior ไม่เกินขนาดกลุ่มที่ใหญ่สุด (M_ci ≤ max n — prior จากข้อมูล k กลุ่มไม่ควรมีค่าเท่าข้อมูลมากกว่ากลุ่มใดกลุ่มหนึ่ง)
+    // และไม่แคบกว่า 80% ของ Wilson (ยังไม่ได้นับความไม่แน่นอนของ tau2 เอง) — ทดสอบการครอบคลุมใน tests/unit/stats-r11.test.js
+    const identified = tau2 > 0 && k >= 3 && pbar > 0 && pbar < 1, Mci = identified ? Math.min(M, Math.max(...G.map(g => g.n))) : 0;
+    const ac = Math.max(1e-6, pbar * Mci), bc = Math.max(1e-6, (1 - pbar) * Mci);
+    const ciOf = g => {
+      const w = wilson(g.x, g.n, conf); if (!identified) return [w.lo, w.hi];
+      const lo = betaQuantile(lq, g.x + ac, g.n - g.x + bc), hi = betaQuantile(1 - lq, g.x + ac, g.n - g.x + bc), c = (lo + hi) / 2, hw = Math.max((hi - lo) / 2, 0.4 * (w.hi - w.lo));
+      return [Math.max(0, Math.min(lo, c - hw)), Math.min(1, Math.max(hi, c + hw))];
+    };
     return {
-      alpha: a, beta: b, M, mean: pbar, tau2: Math.max(0, tau2),
-      groups: G.map(g => ({ ...g, shrunk: (g.x + a) / (g.n + a + b), weight: g.n / (g.n + a + b), lo: betaQuantile(lq, g.x + a, g.n - g.x + b), hi: betaQuantile(1 - lq, g.x + a, g.n - g.x + b) }))
+      alpha: a, beta: b, M, mean: pbar, tau2: Math.max(0, tau2), ciMethod: identified ? "posterior" : "wilson", Mci,
+      groups: G.map(g => { const [lo, hi] = ciOf(g); return { ...g, shrunk: (g.x + a) / (g.n + a + b), weight: g.n / (g.n + a + b), lo, hi }; })
     };
   }
   /** normal–normal empirical Bayes ของค่าเฉลี่ยกลุ่ม: groups = [{ mean, se }] → τ² แบบ DerSimonian–Laird
@@ -904,7 +1082,7 @@
     diff: { strong: "ต่างกันจริง หลักฐานชัด", moderate: "น่าจะต่างกันจริง", weak: "ยังไม่แน่ อาจต่างกันโดยบังเอิญ", none: "ยังไม่เห็นความต่างที่ชัด", insufficient: "ข้อมูลยังน้อย ยังสรุปไม่ได้" }
   };
   const plainConf = (level, kind = "change") => (TH_PLAIN[kind] || TH_PLAIN.change)[level] || TH_PLAIN.change.insufficient;
-  const VERSION = "3.3.0";
+  const VERSION = "3.4.0";
   /** ความแรงของสหสัมพันธ์ */
   function corrWord(r) {
     if (!fin(r)) return "ไม่ทราบ";
@@ -915,7 +1093,7 @@
   return {
     fin, clean, sum, mean, median, quantile, sd, mad, describe, movingAvg,
     erf, erfc, erfAS, normCdf, normSf, normInv, lgamma, ibeta, tCdf, tCrit, zCrit,
-    wilson, quasiBinomCI, twoProp, binomTest, poissonTest, countCompare, arContrast, arWhiten, twoPropDaily, planMore, poissonGLM, nbGLM, solve, adjustP, meanCI, welch,
+    wilson, quasiBinomCI, quasiRef, pFromCI, twoProp, binomTest, mixtureP, seqP, SEQ, dailyMeanCI, abRatesStrata, mhPair, cmhOmnibus, poissonTest, countCompare, arContrast, arWhiten, twoPropDaily, planMore, poissonGLM, nbGLM, solve, adjustP, meanCI, welch,
     robustZ, stlLite, looExpected, nbCdf, nbTwoSided, zOfP, ANOM, anomalies, seasonGrid, holtWinters, forecast,
     correlation, tsCorrelation, funnel, cohorts, abRates, abMeans, chiSqHomog, welchAnova, gammaP, chi2Sf, fSf, ebBinom, ebNormal, betaQuantile,
     confLevel, corrWord, pctP, pTextTH, TH_CONF, TH_CONF_SHORT, TH_PLAIN, plainConf, VERSION

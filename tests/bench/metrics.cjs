@@ -298,4 +298,38 @@ function identityComponents(items) {
 }
 const wilsonClusters = (rate, nClusters, z = 1.96) => wilson(rate * nClusters, nClusters, z);
 
-module.exports = { iou, hungarianMin, hungarianMax, matchFrame, dropIgnored, detEval, clearMot, idf1, crossingsFromTracks, projectOnLine, matchEvents, countError, verification, eer, oneToN, wilson, clusterBootstrap, wilsonClusters, identityComponents, apFromFlags };
+/* ---------- round 11: person-cluster intervals and paired tests for the studio / photo booth tables ----------
+   rows = [{ id, y }] with y = 0/1 and several rows per person (4 outfits per portrait): the renders of one person are not
+   independent (labels follow the photo far more than the outfit), so a per-render Wilson interval is about half as wide as it
+   should be. personClusterCI resamples people (clusterBootstrap) and returns [lo, hi] with .deff (design effect = cluster
+   variance / binomial variance) and .clusters attached, so it can be passed as `tables({ interval })` in studio-tables.mjs. */
+function personClusterCI(rows, { B = 4000, conf = 0.95, seed = 12345 } = {}) {
+  if (!rows || !rows.length) return Object.assign([NaN, NaN], { deff: null, clusters: 0 });
+  const r = clusterBootstrap(rows.map(x => ({ k: x.y ? 1 : 0, n: 1, ids: [String(x.id)] })), { B, conf, seed });
+  return Object.assign([r.lo, r.hi], { deff: r.deff, clusters: r.clusters, nEff: r.nEff });
+}
+/* exact McNemar test on discordant pairs: b = (A defective, B clean), c = (A clean, B defective); two-sided exact binomial */
+function mcnemar(b, c) {
+  const n = b + c; if (!n) return { b, c, n, p: 1 };
+  const lc = (m, k) => { let s = 0; for (let i = 1; i <= k; i++) s += Math.log(m - k + i) - Math.log(i); return s; };
+  const k = Math.min(b, c); let tail = 0; for (let i = 0; i <= k; i++) tail += Math.exp(lc(n, i) - n * Math.LN2);
+  return { b, c, n, p: Math.min(1, 2 * tail) };
+}
+/* paired comparison clustered by person: pairs = [{ id, a, b }] (0/1 outcomes of the same person × garment under two variants).
+   diff = mean(a) − mean(b) over pairs ; CI = person-cluster bootstrap (percentile) ; p = sign-flip randomisation test on the
+   per-person sums of (a − b) (exact enumeration up to 20 people with a non-zero sum, else 20,000 seeded flips). Unlike McNemar
+   it does not treat the 4 garments of one person as independent pairs. */
+function pairedCluster(pairs, { B = 4000, conf = 0.95, seed = 777 } = {}) {
+  const by = new Map(); for (const q of pairs) { const o = by.get(q.id) || { s: 0, n: 0 }; o.s += q.a - q.b; o.n++; by.set(q.id, o); }
+  const P = [...by.values()], N = pairs.length, diff = N ? P.reduce((t, o) => t + o.s, 0) / N : 0;
+  let st = seed % 2147483647 || 1; const rnd = () => (st = (st * 16807) % 2147483647) / 2147483647;
+  const reps = []; for (let b = 0; b < B; b++) { let s = 0, n = 0; for (let i = 0; i < P.length; i++) { const o = P[Math.floor(rnd() * P.length)]; s += o.s; n += o.n; } reps.push(n ? s / n : 0); }
+  reps.sort((x, y) => x - y); const q = p => reps[Math.min(reps.length - 1, Math.max(0, Math.round(p * (reps.length - 1))))];
+  const nz = P.map(o => o.s).filter(v => v !== 0), obs = Math.abs(nz.reduce((t, v) => t + v, 0));
+  let ge = 0, tot = 0;
+  if (nz.length <= 20) { for (let m = 0; m < 1 << nz.length; m++) { let s = 0; for (let i = 0; i < nz.length; i++) s += m & (1 << i) ? -nz[i] : nz[i]; tot++; if (Math.abs(s) >= obs - 1e-9) ge++; } }
+  else { for (let r = 0; r < 20000; r++) { let s = 0; for (const v of nz) s += rnd() < 0.5 ? -v : v; tot++; if (Math.abs(s) >= obs - 1e-9) ge++; } ge++; tot++; }
+  return { diff, lo: q((1 - conf) / 2), hi: q(1 - (1 - conf) / 2), p: nz.length ? ge / tot : 1, people: P.length, pairs: N, informative: nz.length };
+}
+
+module.exports = { iou, hungarianMin, hungarianMax, matchFrame, dropIgnored, detEval, clearMot, idf1, crossingsFromTracks, projectOnLine, matchEvents, countError, verification, eer, oneToN, wilson, clusterBootstrap, wilsonClusters, identityComponents, apFromFlags, personClusterCI, mcnemar, pairedCluster };

@@ -1,5 +1,5 @@
 "use strict";
-// tests/unit/studio-r10.test.js — round 10 studio / photo booth additions: ID-photo spec checker, photo booth outfit check,
+// tests/unit/studio-idphoto-outfit.test.js — studio / photo booth (added in round 10): ID-photo spec checker, photo booth outfit check,
 // jaw/ear crop features, calibrated confidence, high-collar cover layer, PNG/JPEG "outfit preview" metadata
 const test = require("node:test");
 const assert = require("node:assert/strict");

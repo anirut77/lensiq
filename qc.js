@@ -1627,10 +1627,10 @@ if (typeof document !== "undefined") (() => {
       startedAt: new Date(run.startedAt).toISOString(), source: run.source, recipe: R0 ? { name: R0.name, tol: { ...R0.tol }, photoNorm: R0.photoNorm !== false } : null,
       conditions: { health: [...run.health] }, rows: run.rows.map(x => ({ tSec: +((x.t - run.startedAt) / 1000).toFixed(1), lane: x.lane, trigger: x.how, pass: x.pass, reasons: x.reasons, truth: x.truth, values: x.v, lightGain: x.gain })),
       distinctItems: null, distinctItemsNote: "the same labelled bottle may pass the camera more than once",
-      report: { verdict: rep.verdict, provisional: rep.provisional, need: rep.need, n: rep.n, falseReject: rep.falseReject, miss: rep.miss, tolSuggest: rep.tolSuggest, recs: rep.recs }
+      report: { verdict: rep.verdict, provisional: rep.provisional, pilot: rep.pilot ? rep.pilot.verdict : null, need: rep.need, n: rep.n, falseReject: rep.falseReject, miss: rep.miss, tolSuggest: rep.tolSuggest, recs: rep.recs }
     });
     scqPanel.exp.hidden = false; scqPanel.exp.onclick = () => SITE.download(`lensiq-qc-check-${new Date(run.startedAt).toISOString().slice(0, 10)}.json`, doc);
-    scqHist.add({ at: run.startedAt, verdict: rep.verdict, provisional: rep.provisional, need: rep.need, cam: run.source === "sim" ? "ภาพจำลอง" : (nLanes() > 1 ? "หลายไลน์" : cam.label || "กล้อง QC"), summary: SITE.fmt("ขวดดี {a} (คัดทิ้งผิด {b}) · ขวดเสีย {c} (หลุด {d})", { a: rep.n.good, b: rep.n.falseReject, c: rep.n.bad, d: rep.n.missed }) });
+    scqHist.add({ at: run.startedAt, verdict: rep.verdict, provisional: rep.provisional, pilot: rep.pilot ? rep.pilot.verdict : null, need: rep.need, cam: run.source === "sim" ? "ภาพจำลอง" : (nLanes() > 1 ? "หลายไลน์" : cam.label || "กล้อง QC"), summary: SITE.fmt("ขวดดี {a} (คัดทิ้งผิด {b}) · ขวดเสีย {c} (หลุด {d})", { a: rep.n.good, b: rep.n.falseReject, c: rep.n.bad, d: rep.n.missed }) });
     scqHist.render(scqPanel.hist);
     SCQ_LAST = { rep, doc };
   }

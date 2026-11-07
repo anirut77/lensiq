@@ -18,6 +18,11 @@
 //   node tools/zh-coverage.mjs --desktop             1280 px viewport
 //   node tools/zh-coverage.mjs --json out.json       machine-readable result
 //   node tools/zh-coverage.mjs --lang en --max 0     English chrome gate (npm run en:coverage)
+//   node tools/zh-coverage.mjs --latin --lang th     REPORT-ONLY: visible text that is Latin-only (untranslated English /
+//   node tools/zh-coverage.mjs --latin --lang zh     technical wording such as "Engagement · Booth" or model names) on a
+//                                                    Thai or Chinese page. Brand / unit / format tokens (LENSIQ, AI, PDF,
+//                                                    QR, px …), URLs, e-mails, numbers, code and lang="en" /
+//                                                    translate="no" content are ignored. Never fails (exit 0); --json.
 //   LQ_CHROME=/path/to/chrome
 //
 // Typical interactions (generic, safe: fake camera, no file dialogs, no navigation away):
@@ -40,8 +45,11 @@ const jsonOut = opt("--json", null);
 const shared = flag("--shared");
 const noInteract = flag("--no-interact");
 const desktop = flag("--desktop");
-const LANG = opt("--lang", "zh") === "en" ? "en" : "zh";
-const HTML_LANG = LANG === "en" ? "en" : "zh-Hans";
+const latin = flag("--latin");
+const LANG_RAW = opt("--lang", "zh");
+const LANG = LANG_RAW === "en" ? "en" : latin && LANG_RAW === "th" ? "th" : "zh";
+if (latin && LANG === "en") { console.error("--latin checks Thai or Chinese pages: use --lang th or --lang zh"); process.exit(2); }
+const HTML_LANG = LANG === "en" ? "en" : LANG === "th" ? "th" : "zh-Hans";
 const filters = argv.filter(a => !a.startsWith("--"));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -79,6 +87,31 @@ async function measure(page) {
   }, shared ? SHARED_SEL : null, Math.max(top, 1), LANG);
 }
 
+// --latin: visible text whose element holds Latin letters only (no Thai, no CJK) after removing tokens that are fine in any
+// language. Grouped by text; each entry = { text, path, n }.
+async function measureLatin(page) {
+  return page.evaluate(() => {
+    const OK = /\b(?:LENSIQ|LINE|Google|Apple|Android|iOS|Safari|Chrome|Firefox|Edge|Windows|macOS|PromptPay|Opn|Omise|Claude|Anthropic|Cloudflare|GitHub|AI|API|PDF|CSV|JSON|PNG|JPE?G|WebP|SVG|HTML|QR|OK|ID|URL|HTTPS?|Wi-?Fi|USB|GPU|CPU|RAM|PDPA|GDPR|VAT|FPS|px|cm|mm|kg|km|MB|GB|KB|ms|Hz|DPI|ISO|WCAG|BaZi|I\s?Ching|Rider[–-]Waite(?:[–-]Smith)?|LFW|CASIA(?:-FaceV5)?|vs|etc|e\.g|i\.e|Fortune|FORTUNE|N\/A|TH|EN|ZH)\b/g;
+    const SKIP = "script,style,noscript,code,pre,kbd,samp,svg,canvas,textarea,select,option,[translate=no],[data-i18n-skip],[lang^=en],.lq-brand";
+    const vis = el => { for (let p = el; p && p !== document.documentElement; p = p.parentElement) { const s = getComputedStyle(p); if (s.display === "none" || s.visibility === "hidden") return false; } const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
+    const path = el => { const out = []; for (let p = el; p && p !== document.body && out.length < 4; p = p.parentElement) out.unshift(p.tagName.toLowerCase() + (p.id ? "#" + p.id : typeof p.className === "string" && p.className.trim() ? "." + p.className.trim().split(/\s+/)[0] : "")); return out.join(">"); };
+    const seen = new Map();
+    const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) {
+      const el = n.parentElement;
+      if (!el || !/[A-Za-z]{2}/.test(n.nodeValue) || el.closest(SKIP) || !vis(el)) continue;
+      const own = el.textContent.replace(/\s+/g, " ").trim();
+      if (/[\u0E00-\u0E7F\u3400-\u9FFF\uF900-\uFAFF]/.test(own) || own.length > 240) continue;
+      const rest = own.replace(/https?:\/\/\S+|[\w.+-]+@[\w-]+\.[\w.]+|\S+\.(?:html|js|json|csv|pdf|png)\b/g, " ").replace(OK, " ");
+      if ((rest.match(/[A-Za-z]/g) || []).length < 4 || !/[A-Za-z]{3}/.test(rest)) continue;
+      const k = own.slice(0, 120);
+      const e = seen.get(k) || { text: k, path: path(el), n: 0 };
+      e.n++; seen.set(k, e);
+    }
+    return { latinOnly: [...seen.values()].sort((a, b) => b.text.length - a.text.length) };
+  });
+}
+
 async function clickAll(page, selectors) {
   return page.evaluate(async sels => {
     const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -110,24 +143,25 @@ try {
       await page.goto(`${srv.base}/${f}?cpu&nosw&lang=${LANG}${QUERY[f] || ""}`);
       await page.waitFor(`window.LQI18N && document.documentElement.lang === ${JSON.stringify(HTML_LANG)}`, 8000).catch(() => null);
       await sleep(1200);
-      row.states.push({ state: "load", ...(await measure(page)) });
+      const M = latin ? measureLatin : measure;
+      row.states.push({ state: "load", ...(await M(page)) });
       if (!noInteract) {
         await page.evaluate(() => { document.querySelectorAll("details").forEach(d => { d.open = true; }); });
         const generic = ["[role=tab]", ".tab", "[data-tab]", ".tabs button", ".seg button"];
         const n = await clickAll(page, generic);
         await sleep(500);
-        row.states.push({ state: `tabs/details (${n} clicks)`, ...(await measure(page)) });
+        row.states.push({ state: `tabs/details (${n} clicks)`, ...(await M(page)) });
         const own = INTERACT[f] || [];
         for (const step of own) {
           const sels = Array.isArray(step) ? step : [step];
           const k = await clickAll(page, sels);
           await sleep(700);
-          row.states.push({ state: `${sels.join(" + ")} (${k})`, ...(await measure(page)) });
+          row.states.push({ state: `${sels.join(" + ")} (${k})`, ...(await M(page)) });
         }
         if (!desktop) {
           await page.evaluate(() => document.querySelector(".nav-toggle")?.click());
           await sleep(300);
-          row.states.push({ state: "mobile menu", ...(await measure(page)) });
+          row.states.push({ state: "mobile menu", ...(await M(page)) });
         }
       }
       row.worst = row.states.filter(s => !s.error).sort((a, b) => b.pct - a.pct)[0] || row.states[0];
@@ -137,6 +171,15 @@ try {
       row.error = e.message;
     } finally { await page.close(); }
     results.push(row);
+    if (latin) {
+      const all = new Map();
+      for (const st of row.states) for (const it of st.latinOnly || []) if (!all.has(it.text)) all.set(it.text, it);
+      row.latinOnly = [...all.values()];
+      delete row.worst;
+      console.log(`${f.padEnd(17)} ${row.error ? "err " + row.error : `latin-only ${String(row.latinOnly.length).padStart(3)}`}`);
+      for (const it of row.latinOnly.slice(0, top || 5)) console.log(`      ${it.path.padEnd(42).slice(0, 42)} ${it.text}`);
+      continue;
+    }
     const w = row.worst || {};
     const pct = w.error || row.error ? "  err" : String(w.pct.toFixed(1)).padStart(5) + "%";
     console.log(`${f.padEnd(17)} ${pct}  thai ${String(w.thai ?? "-").padStart(5)}  ${LANG} ${String((LANG === "en" ? w.latin : w.cjk) ?? "-").padStart(5)}  nodes ${String(w.nodes ?? "-").padStart(4)}${w.kept ? `  kept-th ${w.kept}` : ""}  mixed ${String(w.mixed ?? "-").padStart(3)}  worst@ ${w.state || row.error || w.error}`);
@@ -147,6 +190,12 @@ try {
   await srv.close();
 }
 
+if (latin) {
+  const n = results.reduce((a, r) => a + (r.latinOnly ? r.latinOnly.length : 0), 0);
+  console.log(`\n${results.length} page(s) [${LANG}] Latin-only text: ${n} distinct string(s) on ${results.filter(r => r.latinOnly && r.latinOnly.length).length} page(s) — report only`);
+  if (jsonOut) { writeFileSync(jsonOut, JSON.stringify({ latin: true, lang: LANG, results }, null, 2)); console.log("wrote " + jsonOut); }
+  process.exit(0);
+}
 const valid = results.filter(r => r.worst && !r.worst.error && !r.error);
 const tot = valid.reduce((a, r) => ({ thai: a.thai + r.worst.thai, cjk: a.cjk + (LANG === "en" ? r.worst.latin : r.worst.cjk) }), { thai: 0, cjk: 0 });
 console.log(`\n${results.length} page(s)${shared ? " [shared components only]" : ""} [${LANG}], overall Thai ${tot.thai + tot.cjk ? (100 * tot.thai / (tot.thai + tot.cjk)).toFixed(1) : 0}%` +

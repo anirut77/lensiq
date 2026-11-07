@@ -32,6 +32,17 @@ the repository and are never committed.
   with 7 false counts, or 0 errors in 30 good + 10 bad bottles, is not a pass. The round-9 point verdict is still shown,
   labelled "provisional". Frozen and disconnected cameras are now detected, and the affected hours are flagged next to
   the counts (§12).
+- **Round 11 measures nothing new either.** It makes the pages say what this file says. Every customer-facing figure
+  (cameras.html#accuracy and the accuracy note on store, customers, attendance, booth, driver, qc and signage) now comes
+  from one file, `docs/accuracy-figures.json`. Each figure there names the line of this file it comes from.
+  `tools/accuracy-sync.mjs` writes the Thai, English and Chinese text from it, and `tests/unit/accuracy-figures.test.js`
+  fails when a page disagrees, when the evidence line changes here, or when one of the stale phrases below comes back.
+  Run on the round-10 pages, the check found all 7 banners and 7 table cells out of line with this file, and 25 stale
+  phrases in 9 files: Asian faces "54% / 3.4%", the withdrawn
+  "about 50 enrolled" advice, "label skew not checked", driver "18–43% per frame, false alarms ≤ 0.1%", and attendance
+  "strangers 6%". The driver page is now labelled an eyes-closed awareness aid, not a safety device (§5). The on-site
+  check adds a pilot grade (§12), and IP cameras are described as working through a virtual-webcam tool, with a guide on
+  cameras.html#ipcam.
 - Pages whose accuracy is modest or not yet measured show a **Beta** or accuracy note at the top (Thai). Thai summary:
   [cameras.html#accuracy](cameras.html#accuracy).
 
@@ -550,6 +561,14 @@ personal baseline, a fixed score cut-off does not transfer from the AI-generated
 - CEW photos are 100 px faces upscaled; video crops of a driver close to the camera are sharper.
 - The page is a driver-assistance demo, not a safety device.
 
+**Round 11 (what the page says).** The page is relabelled "เครื่องช่วยเตือนการหลับตา (ไม่ใช่อุปกรณ์ความปลอดภัย)" / "eyes-closed
+awareness aid (not a safety device)". The round-6 figures below are shown before the trip starts, above the start button:
+about 25% of 2-s closures alerted and about 1.4 false alarms per hour. The old "18–43% per frame, ≤ 0.1% false" text is
+gone. When calibration fails, or the eye-patch classifier cannot be used (`eyeThr` null: dark glasses, backlight, eyes
+that look closed during calibration), the live panel shows a warning with no close button. It quotes the per-frame catch
+rate of that mode (fallback 0.25: about 18% on CEW; EAR only: about 18–26%) and stays until a recalibration succeeds with
+the classifier, or the trip ends. Nothing in the detection changed.
+
 ### Round 6: honest false-alarm benchmark and an adaptive baseline
 
 **Why the round-5 headline was optimistic.** "0 of 682" calibrated each person on 8 jittered copies of one open-eye
@@ -836,15 +855,22 @@ defective for any of these:
 
 The CG look of the garment itself is not counted. Treat the numbers as an honest estimate, not a calibrated measurement.
 
-| 35 test people (140 outfit renders) | result [Wilson 95 %] |
+| 35 test people (140 outfit renders) | result [person-cluster 95 %] |
 | --- | --- |
-| outfit renders with a visible defect, before the check | **72.9 % [65.0–79.5]** (102/140) |
-| defects the automatic check catches (outfit withheld) | 36.3 % [27.6–45.9] (37/102) |
-| clean outfit renders the check withholds anyway | 21.1 % [11.1–36.3] (8/38) |
-| outfit renders shown after the check that still have a defect | **68.4 %** (65/95) |
-| what the page shows (outfit, or the no-outfit version when withheld) with a visible defect | 56.4 % [48.2–64.4] (79/140) |
-| no-outfit version (new background + retouch) with a defect | 22.9 % [12.1–39.0] (8/35) |
+| outfit renders with a visible defect, before the check | **72.9 % [56.7–87.1]** (102/140) |
+| defects the automatic check catches (outfit withheld) | 36.3 % [21.2–52.9] (37/102) |
+| clean outfit renders the check withholds anyway | 21.1 % [5.3–44.8] (8/38) |
+| outfit renders shown after the check that still have a defect | **68.4 % [49.0–85.4]** (65/95) |
+| what the page shows (outfit, or the no-outfit version when withheld) with a visible defect | 56.4 % [41.4–71.4] (79/140) |
+| no-outfit version (new background + retouch) with a defect | 22.9 % [11.4–39.0] (8/35) |
 | people with all four outfits clean | 9/35 |
+
+**Intervals (round 11).** The brackets are person-cluster bootstrap intervals (4,000 resamples of people,
+`tests/bench/metrics.cjs` `personClusterCI`; reproduce with `node tests/bench/studio-intervals.mjs`). Each person gives 4
+outfit renders and the labels follow the photo far more than the outfit, so the 140 renders are not 140 independent draws: the
+design effect is 2.3–3.9 (3.87 for the first row), and the per-render Wilson intervals published before round 11 (for example
+[65.0–79.5] for the first row) were about half the honest width. Rows with one render per person (the no-outfit version) are
+unchanged.
 
 On the dev people the figures are similar: 64.8 % (70/108) of outfit renders are defective, the check catches
 37.1 % (26/70), and 59.5 % (44/74) of the outfit renders it lets through still have a defect.
@@ -913,13 +939,21 @@ codes and no QA output, and used the same criteria. There are still no human rat
 criterion more strictly than the round-9 rater (sack bodies, tube sleeves and pasted hands count). On the 248 plain renders, the
 two raters agree on 87/108 (dev) and 117/140 (test).
 
-| test: 35 people, 140 person × garment pairs (second rater) | round 9 page | round 10 page |
+| test: 35 people, 140 person × garment pairs (second rater) [person-cluster 95 %] | round 9 page | round 10 page |
 | --- | --- | --- |
-| outfit render with a visible defect | 69.3 % [61.2–76.3] (97/140) plain | **45.7 % [37.7–54.0] (64/140)** with the cover |
-| outfit renders the page shows (gate passed) that are defective | 61.1 % [51.0–70.2] (58/95) | **36.2 % [27.2–46.2] (34/94)** |
-| what the page shows once an outfit is picked, with a defect | 51.4 % [43.2–59.6] (72/140) | **34.3 % [26.9–42.5] (48/140)** |
+| outfit render with a visible defect | 69.3 % [53.4–83.6] (97/140) plain | **45.7 % [30.7–61.4] (64/140)** with the cover |
+| outfit renders the page shows (gate passed) that are defective | 61.1 % [42.7–79.4] (58/95) | **36.2 % [20.6–52.9] (34/94)** |
+| what the page shows once an outfit is picked, with a defect | 51.4 % [36.4–66.4] (72/140) | **34.3 % [21.4–48.6] (48/140)** |
 | defects the gate withholds (recall) / withheld renders that were defective (precision) | 40.2 % (39/97) / 86.7 % (39/45) | 46.9 % (30/64) / 65.2 % (30/46) |
-| what the page shows on opening a photo (no outfit), with a defect | — | 20.0 % [10.0–35.9] (7/35) |
+| what the page shows on opening a photo (no outfit), with a defect | — | 20.0 % [8.6–35.9] (7/35) |
+
+**Intervals and the paired test (round 11).** Brackets are person-cluster bootstrap intervals (design effect 2.6–3.7 on the
+outfit rows; per-render Wilson intervals, such as [61.2–76.3] for the plain row, were about half as wide). Plain and cover are
+the same person × garment, so they are compared as pairs. On test the cover fixed 36 pairs and broke 3: McNemar exact
+p = 3.6 × 10⁻⁸ if the 140 pairs were independent; clustered by person (sign-flip test on the 14 of 35 people whose result
+changed) p = 0.003, and the defect rate falls by 23.6 points [10.0–37.9, person-cluster]. On dev (13 fixed, 4 broke) the
+clustered test gives p = 0.31 (McNemar 0.049), a fall of 8.3 points [−5.6–21.3]: not distinguishable from no effect.
+`node tests/bench/studio-intervals.mjs` prints every row with both interval methods.
 
 On test, the cover fixed 36 of the person × garment pairs and introduced a defect in 3. On dev, where it was designed (6 people
 looked at while tuning its width and height), the gain is smaller. Plain outfits had a defect in 83/108, outfits with the cover
@@ -951,12 +985,15 @@ then made with no outfit, and with the two outfits that the civil-service preset
 "ราชการ (ชุดกากี)" picks khaki. Labels (`tests/bench/photobooth-labels.json`) come from fresh AI agent instances working on blind
 sheets, with the same criteria. There are no human raters.
 
-| ID photo | dev (27 people) | test (35 people) |
+| ID photo [person-cluster 95 %] | dev (27 people) | test (35 people) |
 | --- | --- | --- |
-| drawn outfit with a visible defect | **100 % (54/54)** | **100 % (70/70)** |
-| the new outfit check (`boothCheck`: original clothes showing, straight hair cut, gap at the neck) withholds | 41/54, all defective | 43/70, all defective |
-| outfit renders the check lets through that are still defective | 13/13 | 27/27 |
-| no-outfit ID photo with a defect | 14.8 % (4/27) | 37.1 % (13/35) |
+| drawn outfit with a visible defect | **100 % [87.5–100] (54/54)** | **100 % [90.1–100] (70/70)** |
+| the new outfit check (`boothCheck`: original clothes showing, straight hair cut, gap at the neck) withholds | 41/54 (75.9 % [57.7–90.7]), all defective | 43/70 (61.4 % [45.6–77.1]), all defective |
+| outfit renders the check lets through that are still defective | 13/13 [64.6–100] | 27/27 [78.5–100] |
+| no-outfit ID photo with a defect | 14.8 % [3.7–32.9] (4/27) | 37.1 % [22.9–54.3] (13/35) |
+
+Brackets (round 11): person-cluster bootstrap 95 % intervals (2 outfit renders per person; design effect ≈ 1.9 for the
+withheld row). `node tests/bench/studio-intervals.mjs` reproduces them.
 
 The drawn outfit is placed under the chin and the head is redrawn over it. On these head-and-shoulders portraits, the person's own
 jacket, collar or necklace almost always shows above or around it. The check's limits were set before labelling and were not
@@ -966,6 +1003,49 @@ The draft carries the corner label "ภาพจำลองชุด / outfit p
 `-outfit-preview` filename). Download, print, share and hand-off ask for confirmation while an outfit is shown. In the test
 split, the no-outfit photo itself is defective in 13 of 35 people, mostly from leftover flags or background and from torsos cut
 by a straight line; one photo lost the person completely (t07). Treat it as a draft too, and check it before printing.
+
+### Round 11: reproducible tables, a no-outfit clean-up, a photo pre-check and a review step before printing
+
+**Reproducible from the repo.** The per-render gate results are now committed next to the labels, with no image data:
+`tests/bench/studio-gate-log-r10.json` (person, garment, plain/cover, what the page showed, gate pass, fail reasons, QA
+measurements, jaw-strip features, timings; written by `studio.bench.mjs --log`) and `tests/bench/photobooth-gate-log-r10.json`.
+They were re-rendered from commit b8956a6 on this machine and reproduce every §11 / §11b count above exactly.
+`node tests/bench/studio-tables.mjs --check` recomputes every table from labels + logs (no portraits, no browser) and fails when a
+count is missing from this section; it runs in CI through `tests/unit/studio-tables.test.js`. The learned-gate AUCs come out at
+0.473 (dev CV) and 0.684 (test). Median first result after load in that run: 2.6 s (dev) and 2.4 s (test), p95 3.0–3.1 s
+(900–1200 px portraits, CPU only).
+
+**No-outfit clean-up** (`studio-core.js` `cleanLeftovers`, used by studio and the photo booth). It removes pieces not
+connected to the person (anything smaller than 35 % of the main body) and faint lines far from the body. When the person
+matte covers less than 5 % of the photo, the page shows the original photo with a note instead of an image with the person
+missing (t07). The photo booth also fills a small gap under the torso (at most 0.35 face widths) when the original photo is a
+little shorter than the ID frame. Tried and **not shipped**: removing matte regions that the 6-class parser calls background
+(it cut holes in dark suits in 9+ of 62 people), and stretching the photo's edges further (stripes and bars in d18, t33, t35).
+Attached flags and chairs (t01, t34, t35) are still there.
+
+Labels for the changed renders (`tests/bench/studio-labels-r11.json`) are **not independent**: renders whose pixels did not
+change keep their round-10 label, and the 14 changed renders were judged by the coding agent that made the change, side by side
+and not blind.
+
+| no-outfit output with a visible defect | dev round 10 → 11 | test round 10 → 11 |
+| --- | --- | --- |
+| studio (new background + retouch) | 6/27 → 5/27 | 7/35 → 7/35 |
+| photo booth 1-inch ID photo | 4/27 → 3/27 | 13/35 → 11/35 |
+
+On test, t07 now shows the original photo and is still counted as a defect. No-outfit output is still far from the 5 % target.
+
+**Photo pre-check before outfits** (`studio-qa.js` `photoSuitability`: frontal, neck visible, hair off the shoulders, plain top,
+shoulders in frame; measurements in `tests/bench/studio-gate-log-r11.json`). The limits were set on dev, where they separated
+well: on flagged photos 52/56 outfit renders (auto mode) were defective, on passed photos 18/52. On test they do **not**
+separate: 33/76 defective on flagged photos against 31/64 on passed ones. The page therefore shows the pre-check as advice in
+the outfit section and never hides or withholds an outfit because of it.
+
+**Review before printing** (photo booth ID mode, mandatory once per photo). Before download, print, share or hand-off, the
+page shows the ID photo with red frames on detached pieces and straight torso cuts (`studio-qa.js` `idLeftovers`) plus the
+ID-photo requirements (`idSpecCheck`). The user must tick "checked" to continue. The result is written into the PNG as a
+`LENSIQ-ID-Check` text chunk. The automatic marks are a weak aid: they show a finding on 4/11 of the defective round-11 test
+photos, and mark a leftover or cut on 2/24 clean ones. The point of the step is that a person looks at the photo.
+`photobooth-gate-log-r11.json` records what the step found for every portrait.
 
 ## 12. On-site accuracy check, camera health and long-run stability (round 9, extended in round 10)
 
@@ -1018,6 +1098,25 @@ How the numbers are computed:
     check-in.
   - **"Not conclusive yet"** covers the rest.
 
+- **Pilot grade (round 11).** A strict "pass (confirmed)" needs hundreds of trials, so a one-day pilot used to end at
+  "on target so far". Every report now also has `rep.pilot`. It uses relaxed targets with a 90% interval (one-sided
+  95%) and minimum samples a shop can collect in one day, and the page shows it under the strict verdict, never instead
+  of it:
+
+  | page | pilot targets (90% interval must clear them) | minimum sample |
+  | --- | --- | --- |
+  | store | net error within ±20% (95% block bootstrap), precision ≥ 75%, direction ≥ 80% | 50 crossings |
+  | attendance, customers | members ≥ 75% recognised, strangers checked in automatically ≤ 10%; any automatic wrong check-in fails | 20 member + 30 stranger trials |
+  | driver | prompted closures alerted ≥ 70%, false alarms ≤ 3 per hour (exact Poisson) | 8 prompts (about 45 min of open-eye time for the false-alarm bound with no alarm) |
+  | qc | good bottles rejected ≤ 10%, bad bottles passed ≤ 10% | 30 good + 25 bad |
+  | booth | net error within ±25%, precision ≥ 70%, recall ≥ 65% | 30 arrivals |
+  | signage | gender ≥ 80%, exact age band ≥ 55% | 50 passers |
+
+  With these targets the evaluator's cases resolve in one day. 50 crossings with 44 matched and 7 false counts give a
+  pilot pass (strict: on target so far). QC with 0 errors in 30 good + 25 bad bottles is a pilot pass, and 30 + 10 asks
+  for about 15 more bad bottles. Attendance with 0 of 30 strangers checked in is a pilot pass (90% upper bound 8.3%).
+  A pilot pass means "fine to continue the trial". It is not an accuracy certification. The relaxed targets are a
+  judgement, not a measurement. Tests: `tests/unit/sitecheck-pilot.test.js`.
   The round-9 point verdict (point estimates vs targets) is still computed and shown as "provisional". Examples from
   `tests/unit/sitecheck.test.js`:
   - 50 crossings, 44 matched, 7 false counts: precision 86%, Wilson 74–93%, so "on target so far", about 3,000 more
@@ -1164,6 +1263,28 @@ garbage collection. The machine was running other benchmarks at the same time, s
 - **Not covered:** runs of 8 hours or more, several cameras at once, tabs left in the background, and mobile browsers.
   The tool takes `--minutes 480` for an overnight run.
 
+### Round 11: optional liveness, biometric wipe, commercial profile, bench summaries
+
+- **Liveness (attendance, off by default).** "ตรวจว่าเป็นคนจริงก่อนเช็คชื่อ" asks the person to turn their head slightly
+  left or right. `LQTrack.createLiveness` passes a person once the signed yaw (nose between the outer eye corners) has
+  spanned ≥ 0.3 within 8 s, or the eye aspect ratio has dropped by ≥ 18% (a slow blink; the 68-point model closes the
+  eyelids only partly, §5). Both automatic and button-confirmed check-ins wait for it. **It is not measured.** It stops a
+  still photo held up to the camera. It does not stop a video, a picture on a screen or a mask. The page says so.
+- **Biometric data per device.** customers and attendance show when their face data expires ("deleted automatically
+  when unused for more than N days · K people within 30 days"). They also have an admin action, "ลบข้อมูลชีวมิติทั้งหมดในเครื่องนี้",
+  that deletes every encrypted face envelope (`lqv-*`), the attendance enrolments and every key in IndexedDB
+  (`LQVault.wipeAll`). Attendance logs, members and order history stay. The per-page "ลบข้อมูลใบหน้าทั้งหมด" is unchanged.
+- **Commercial profile.** `window.LENSIQ_PROFILE = "commercial"` (set before `lensiq-config.js`) forces
+  `LENSIQ_AGE_GENDER = false` and `LENSIQ_FACEPARSE = false`. The pages that run face-api.js models (attendance,
+  customers, booth, driver, signage) show a "โมเดลใบอนุญาตวิจัย / research-licence models" badge in their accuracy note in
+  both profiles, because the detector, landmark and recognition weights still await a legal opinion
+  (LICENSES/THIRD_PARTY.md F5/F6).
+- **Bench summaries.** `tests/bench/results/` holds committed summaries: numbers only, the reproduce command, and a
+  sha256 fingerprint of every dataset folder the bench read (`node tests/bench/results.mjs record`). `headlines.json`
+  mirrors `docs/accuracy-figures.json`. Its dataset fingerprints are `null` with a note, because the round 3–6 runs that
+  produced the published figures were not fingerprinted and the datasets are not on this machine. They are filled the
+  next time each bench is re-run.
+
 ### What is still missing
 
 - **No field data.** Nothing here was measured at a real customer site. The on-site check makes that measurement
@@ -1178,6 +1299,9 @@ garbage collection. The machine was running other benchmarks at the same time, s
   above are the protocol for collecting them.
 - The driver check uses deliberate closures while parked, not real drowsiness. It shows that the camera, angle and
   light in that vehicle work. It does not certify safety.
+- Round 11 still has no held-out degradation run (MOT17) for the health thresholds, no dataset fingerprints for the
+  published runs, and no measurement of the liveness option or of IP cameras through a virtual webcam (added latency,
+  compression).
 
 ## Datasets and licences
 

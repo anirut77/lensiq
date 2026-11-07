@@ -1,10 +1,13 @@
 /* i18n/en-customers.js — English for customers.html (mirrors zh-customers.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
+  "customers.wipeall": "Delete all biometric data on this device (all systems)",
+  "customers.licb": "Research-licence models",
+  "customers.lic": "Faces are analysed with face-api.js models (MIT code) trained on datasets licensed for research only. Commercial use has not been cleared by a lawyer — check the licence before commercial use",
   "customers.s1": "Customer Recognition | LENSIQ",
   "customers.s2": "Customer recognition and drink history",
   "customers.s3": "For members who consent to face recognition, the system greets them, shows their usual order and recent orders, and recommends drinks — marketing based on remembered customer behavior",
   "customers.s4": "Measured accuracy",
-  "customers.s5": "Tested on the public LFW face dataset at a 0.50 threshold: a single image recognizes a member about 78% of the time · With the current rules (3-pose enrolment, limits calibrated to the member group, 2-frame confirmation) and 100 members: about 85% of member visits are recognised (Asian faces about 69%), and about 0.4% of non-members are offered a member's name (selected automatically about 0.05%). Staff should confirm the name before opening the order history, and run the on-site accuracy check below at your own shop",
+  "customers.s5": "Tested on public face photos (LFW news photos and CASIA-FaceV5 Asian faces, not shop cameras) with the current rules (3-pose enrolment, limits calibrated to the member group, 2-frame confirmation) and 100 members: about 85% of member visits are recognised, but only about 66–76% for Asian faces · about 0.4% of non-members are offered a member's name (the upper end of the confidence interval reaches about 1.15%) and fewer than 0.05% are selected automatically. Staff should confirm the name before opening the order history, and run the on-site accuracy check below at your own shop",
   "customers.s6": "Method and limitations",
   "customers.s7": "Store",
   "customers.s8": "Member sign-up",

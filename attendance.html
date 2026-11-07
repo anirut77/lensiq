@@ -23,7 +23,8 @@
 <main class="att">
   <h1 data-i18n="attendance.s2">เช็คชื่อเข้าอบรมด้วยการสแกนใบหน้า</h1>
   <p class="lead" data-i18n="attendance.s3">ไม่ต้องเซ็นชื่อ ลงทะเบียนใบหน้าครั้งเดียว แล้วสแกนเพื่อบันทึกการเข้าเรียน</p>
-  <p class="acc-note" role="note"><b class="beta" data-i18n="attendance.s4">ความแม่นยำที่วัดได้</b> <span data-i18n="attendance.s5">ทดสอบกับภาพใบหน้าสาธารณะ LFW (ภาพข่าว ไม่ใช่กล้องหน้างาน) ที่ค่าเริ่มต้น 0.55: สแกนครั้งเดียวจำผู้ลงทะเบียนได้ราว 89% · มีผู้ลงทะเบียน 100 คน จะจับคู่ผิดคนราว 0.2% และคนที่ไม่ได้ลงทะเบียนอาจถูกจับคู่กับใครสักคนราว 6% (ถ้ามี 20 คน ราว 2%) ระบบต้องเห็นตรงกัน 2 ครั้งก่อนบันทึก และควรให้เจ้าหน้าที่ตรวจรายชื่อ</span> <a href="cameras.html#accuracy" data-i18n="attendance.s6">วิธีวัดและข้อจำกัด</a></p>
+  <p class="acc-note" role="note"><b class="beta" data-i18n="attendance.s4">ความแม่นยำที่วัดได้</b> <span data-i18n="attendance.s5">ทดสอบกับภาพใบหน้าสาธารณะ (ภาพข่าว LFW และใบหน้าเอเชีย CASIA-FaceV5 ไม่ใช่กล้องหน้างาน) ด้วยกฎปัจจุบัน ผู้ลงทะเบียน 100 คน: จำผู้ลงทะเบียนได้ราว 85% ต่อการสแกน แต่ใบหน้าเอเชียเพียงราว 66–76% · คนที่ไม่ได้ลงทะเบียนถูกเสนอชื่อราว 0.4% (ใบหน้าเอเชีย 0.2% ขอบบนของช่วงความเชื่อมั่นถึง 1.15%) และถูกเช็คชื่ออัตโนมัติไม่ถึง 0.05% ระบบต้องเห็นตรงกัน 2 ครั้งก่อนบันทึก และราว 25–35% ของคนที่จำได้จะถูกขอให้กดยืนยัน ลงทะเบียนอย่างน้อย 5 คนก่อนใช้เช็คชื่ออัตโนมัติ และควรให้เจ้าหน้าที่ตรวจรายชื่อ</span> <a href="cameras.html#accuracy" data-i18n="attendance.s6">วิธีวัดและข้อจำกัด</a><br><b class="beta lic-b" data-i18n="attendance.licb">โมเดลใบอนุญาตวิจัย</b> <span data-i18n="attendance.lic">ใบหน้าวิเคราะห์ด้วยโมเดล face-api.js (โค้ด MIT) ที่ฝึกจากชุดข้อมูลซึ่งอนุญาตเฉพาะงานวิจัย สิทธิ์ใช้เชิงพาณิชย์ยังไม่ได้รับการยืนยันจากนักกฎหมาย — ตรวจสิทธิ์ก่อนใช้งานเชิงพาณิชย์</span></p>
+  <p class="expiry-banner" id="expiryBanner" role="status" hidden></p>
 
   <div class="session">
     <label><span data-i18n="attendance.s7">หัวข้อ/รอบการอบรม</span><input id="session" placeholder="เช่น อบรมความปลอดภัย รอบ 1" maxlength="80" data-i18n-attr="placeholder:attendance.s8"></label>
@@ -61,7 +62,9 @@
           <summary data-i18n="attendance.s16">ความเข้มงวดในการจดจำ</summary>
           <label><span id="matchDistLbl" data-i18n="attendance.s17">ค่าความต่างสูงสุด</span> <output id="matchDistVal">0.50</output>
             <input id="matchDist" aria-labelledby="matchDistLbl" type="range" min="0.3" max="0.7" step="0.01" value="0.50"></label>
-          <small data-i18n="attendance.s18">ค่าต่ำ = เข้มงวดขึ้น (จำผิดน้อยลง แต่อาจจำไม่ได้บ้าง) ค่าเริ่มต้น 0.55</small>
+          <small data-i18n="attendance.s18">ค่าต่ำ = เข้มงวดขึ้น (จำผิดน้อยลง แต่อาจจำไม่ได้บ้าง) ค่าเริ่มต้น 0.50</small>
+          <label class="check live-opt"><input type="checkbox" id="liveness"> <span data-i18n="attendance.live1">ตรวจว่าเป็นคนจริงก่อนเช็คชื่อ: ให้หันหน้าซ้าย–ขวาเล็กน้อย (ปิดไว้เป็นค่าเริ่มต้น)</span></label>
+          <small data-i18n="attendance.live2">กันการยกภาพถ่ายนิ่งมาสแกนได้ระดับหนึ่ง แต่ไม่กันวิดีโอ ภาพบนจอ หรือหน้ากาก และยังไม่ได้วัดความแม่นยำ ควรมีเจ้าหน้าที่ดูแลจุดเช็คชื่อเสมอ</small>
         </details>
         <h3><span data-i18n="attendance.s19">เช็คชื่อแล้ววันนี้ (</span><span id="todayCount">0</span>)</h3>
         <ul class="recent" id="recent"></ul>
@@ -88,6 +91,7 @@
             </select></label>
           <small data-i18n="attendance.s32">นับจากการเช็คชื่อครั้งล่าสุด (หรือวันลงทะเบียน) ระบบลบให้อัตโนมัติเมื่อเปิดหน้านี้</small>
           <button class="btn ghost danger full" id="wipeFaces" type="button" data-i18n="attendance.s33">ลบข้อมูลใบหน้าทั้งหมด</button>
+          <button class="btn ghost danger full" id="wipeAllBio" type="button" data-i18n="attendance.wipeall">ลบข้อมูลชีวมิติทั้งหมดในเครื่องนี้ (ทุกระบบ)</button>
           <p class="hint sc-docs"><span>เอกสารสำหรับติดตั้ง:</span> <a href="camera-notice.html">ป้ายแจ้งการใช้กล้องสำหรับพิมพ์</a> · <a href="camera-notice.html#sign-g">แบบฟอร์มขอความยินยอม (แม่แบบ)</a></p>
         </details>
       </div>
@@ -109,7 +113,7 @@
     </section>
   </div>
 
-  <p class="note" data-i18n="attendance.s40">เว็บตัวอย่าง: ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้เท่านั้น ค่าลักษณะใบหน้าเข้ารหัสด้วยกุญแจที่อยู่ในเบราว์เซอร์นี้ ไม่มีระบบตรวจจับภาพถ่ายปลอม (liveness) หากใช้งานจริงควรมีฐานข้อมูลฝั่งเซิร์ฟเวอร์ และนโยบายตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล (PDPA)</p>
+  <p class="note" data-i18n="attendance.s40">เว็บตัวอย่าง: ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้เท่านั้น ค่าลักษณะใบหน้าเข้ารหัสด้วยกุญแจที่อยู่ในเบราว์เซอร์นี้ มีตัวเลือกให้หันหน้าเพื่อตรวจว่าเป็นคนจริง (ปิดไว้เป็นค่าเริ่มต้น ยังไม่ได้วัดผล) แต่ยังไม่มีระบบกันภาพปลอมที่ผ่านการทดสอบ หากใช้งานจริงควรมีฐานข้อมูลฝั่งเซิร์ฟเวอร์ และนโยบายตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล (PDPA)</p>
 </main>
 
 <script src="vendor/face-api.js"></script>

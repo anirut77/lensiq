@@ -1,9 +1,15 @@
 /* i18n/en-driver.js — English for driver.html (mirrors zh-driver.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
+  "driver.licb": "Research-licence models",
+  "driver.lic": "Faces are analysed with face-api.js models (MIT code) trained on datasets licensed for research only. Commercial use has not been cleared by a lawyer — check the licence before commercial use",
+  "driver.calwarn.ear": "Eye images cannot be used (for example dark glasses, backlight, or eyes that looked closed during calibration) — the system is using EAR only, which caught only about 18–26% of closed-eye frames on real photos and will miss most closures. Remove dark glasses, reduce backlight, then press “Recalibrate”",
+  "driver.calwarn.fail": "Calibration failed — the system is using the default threshold, which caught only about 18% of closed-eye frames on real photos, and head-drop detection is off. Treat yourself as unmonitored: park safely, adjust the camera and light so your face is clear, then press “Recalibrate”",
+  "driver.accstart": "Before you start: in the latest measurement (simulated drives, not real drowsy drivers) the system alerted on about 25% of 2-second eye closures, with about 1.4 false alarms per hour, so it misses many closures. Do not use it instead of rest, and do not look at the screen while driving",
+  "driver.calwarn.t": "Not fully monitoring",
   "driver.s1": "Driver Drowsiness Monitoring | LENSIQ",
-  "driver.s2": "Driver Drowsiness Monitoring",
+  "driver.s2": "Eyes-closed awareness aid (not a safety device)",
   "driver.s3": "Real-time detection of drowsiness and distraction for fleet and delivery drivers, based on eye closure (EAR), yawning (MAR), PERCLOS and head pose. Processed on-device; no images are stored",
-  "driver.s4": "This is an assistive alert tool, not a certified safety device. Measured on public open/closed-eye images: it detects about 18–43% of closed eyes per frame (open eyes misread as closed no more than 0.1%), so many eye closures may be missed. Sunglasses, backlighting and non-infrared cameras at night reduce accuracy",
+  "driver.s4": "An eyes-closed awareness aid, not a safety device · Measured on real photos not used for training (CEW/LFW, not video of drowsy drivers): about 84% of closed-eye frames are caught, but in simulated drives only about 25% of 2-second eye closures raised an alert, with about 1.4 false alarms per hour (1 in 6 simulated 10-minute drives had a false alarm). Sunglasses, backlight and non-infrared cameras at night reduce accuracy",
   "driver.s5": "Method and limitations",
   "driver.s6": "Note:",
   "driver.s7": "This system is an assistive alert demo only, not a certified safety device. It does not replace adequate rest, driving-hours regulations or the driver's own judgment",

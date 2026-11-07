@@ -24,9 +24,10 @@ test("erfc (Cody): ~1e-15 relative accuracy into the far tail; erf / normCdf / n
 });
 
 test("quasiBinomCI: hand values; day-level noise widens the interval by ≈ √φ; Wilson per person kept", () => {
-  // 4 days, identical daily rates -> φ = 1 -> Wilson on n with t(3) instead of z
+  // 4 days, identical daily rates -> φ̂ = 0 ≤ 1 -> plain Wilson on n with z (round 11; was t(3), which over-covered: 99.9% at 3 days)
   const flat = [{ x: 20, n: 100 }, { x: 20, n: 100 }, { x: 20, n: 100 }, { x: 20, n: 100 }];
-  const q = S.quasiBinomCI(flat), t3 = S.tCrit(3), n = 400, p = 0.2;
+  const q = S.quasiBinomCI(flat), t3 = S.zCrit(), n = 400, p = 0.2;
+  assert.equal(q.ref, "z");
   const den = 1 + t3 * t3 / n, mid = (p + t3 * t3 / (2 * n)) / den, hw = t3 * Math.sqrt(p * (1 - p) / n + t3 * t3 / (4 * n * n)) / den;
   assert.equal(q.phi, 1); assert.equal(q.df, 3); assert.ok(Math.abs(q.lo - (mid - hw)) < 1e-12 && Math.abs(q.hi - (mid + hw)) < 1e-12);
   // swinging days: φ = Pearson χ² / (days − 1)

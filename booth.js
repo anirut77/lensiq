@@ -730,11 +730,11 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
       camera: run.cam, startedAt: new Date(run.startedAt).toISOString(), durationSec: Math.round((Date.now() - run.t0) / 1000),
       settings: { mode: run.mode, cameras: run.cams, match: CFG.MATCH, margin: CFG.MARGIN, promoteMs: CFG.PROMOTE_MS, backend: backendName },
       conditions: stats, truth: T, system: Sy,
-      report: { verdict: rep.verdict, provisional: rep.provisional, need: rep.need, n: rep.n, lagMs: rep.lagMs, net: rep.net, netCI: rep.netCI, precision: rep.precision, recall: rep.recall, recs: rep.recs }
+      report: { verdict: rep.verdict, provisional: rep.provisional, pilot: rep.pilot ? rep.pilot.verdict : null, need: rep.need, n: rep.n, lagMs: rep.lagMs, net: rep.net, netCI: rep.netCI, precision: rep.precision, recall: rep.recall, recs: rep.recs }
     });
     scbPanel.exp.hidden = false;
     scbPanel.exp.onclick = () => SITE.download(`lensiq-booth-check-${dayKey(run.startedAt)}.json`, doc);
-    scbHist.add({ at: run.startedAt, verdict: rep.verdict, provisional: rep.provisional, need: rep.need, cam: run.cam, summary: SITE.fmt("{a}: ระบบ {b} / คนนับ {c} · แม่นยำ {d}", { a: run.cam, b: rep.n.sys, c: rep.n.truth, d: rep.precision.p == null ? "—" : (rep.precision.p * 100).toFixed(0) + "%" }) });
+    scbHist.add({ at: run.startedAt, verdict: rep.verdict, provisional: rep.provisional, pilot: rep.pilot ? rep.pilot.verdict : null, need: rep.need, cam: run.cam, summary: SITE.fmt("{a}: ระบบ {b} / คนนับ {c} · แม่นยำ {d}", { a: run.cam, b: rep.n.sys, c: rep.n.truth, d: rep.precision.p == null ? "—" : (rep.precision.p * 100).toFixed(0) + "%" }) });
     scbHist.render(scbPanel.hist);
     SCB_LAST = { rep, doc };
   }

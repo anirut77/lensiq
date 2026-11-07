@@ -84,3 +84,22 @@ label.check input{width:22px;height:22px;flex:none}
 .st-spec li.warn::before{content:"!";color:#b45309}
 .st-panel select{max-width:100%}
 .st-tip{margin-top:0}
+/* round 11: ส่วนหลักก่อน (ฉากหลัง/รีทัช/รูปติดบัตร) ชุดตัวอย่างอยู่ในส่วนทดลอง; สถานะแบบง่าย + รายละเอียดทางเทคนิค */
+.st-disc{max-width:780px;margin:-12px auto 14px;text-align:center}
+.st-disc .hint{margin-top:0}
+.st-more,.st-techline{font-size:.85rem}
+.st-more summary,.st-techline summary{cursor:pointer;color:var(--navy);min-height:44px;display:inline-flex;align-items:center}
+.st-more{text-align:left}
+.st-techline{margin:-10px 0 14px}
+.st-techline .engine{margin:4px 0 0}
+.st-exp{border:1px dashed var(--line);border-radius:12px;padding:6px 12px 2px;margin-top:8px;background:var(--bg)}
+.st-exp-h{font-size:.95rem;color:var(--navy);font-weight:500;margin:6px 0 0}
+.st-exp-note{margin-top:2px}
+.st-exp details:last-child{border-bottom:0}
+.st-pre{margin:4px 0 8px;padding:8px 12px;border-radius:10px;background:#fff;border:1px solid var(--line);font-size:.82rem;line-height:1.5}
+.st-pre[hidden]{display:none}
+.st-pre[data-ok="0"]{background:#fff6e0;border-color:#f3d99a;color:#7a5a05}
+.st-pre ul{list-style:none;padding:0;margin:4px 0 0}
+.st-pre li{padding-left:1.3em;position:relative;margin:2px 0}
+.st-pre li::before{position:absolute;left:0;content:"✓";color:#15803d;font-weight:700}
+.st-pre li.warn::before{content:"!";color:#b45309}

@@ -19,12 +19,20 @@
 //   GET  /api/me/payments/:id/receipt[?format=json]   printable receipt / tax invoice (receipt.js)
 //   GET  /api/me/entitlements, POST /api/me/entitlements/use {feature}   perk balances / server check (csv_export, report_*)
 //   GET  /api/me/sessions, POST /api/me/sessions/revoke {id} | {all:true, keep_current:true}   signed-in devices
+//   POST /api/auth/reauth {credential, nonce}   fresh Google confirmation (needed by DELETE /api/me and the export)
+//   POST /api/me/export {credential, nonce}     export with an inline fresh confirmation
+//   GET  /api/me/payments/:id/refunds/:n/credit-note[?format=json]   credit note (ใบลดหนี้) of a refunded tax invoice
+//   POST /v1/leads                       B2B demo / quotation request (Turnstile action "lead"; leads.js)
+//   GET  /health/deep                    D1 reachable + migrations current (HEALTH_TOKEN bearer when set)
 // Admin (ADMIN_ORIGINS, credentials; see auth.js): /admin/api/*
 import * as analytics from "./analytics.js";
 import * as auth from "./auth.js";
 import * as billing from "./billing.js";
 import * as billingAdmin from "./billing-admin.js";
-import { RECEIPT_HEADERS, receiptFor } from "./receipt.js";
+import { RECEIPT_HEADERS, creditNoteFor, receiptFor } from "./receipt.js";
+import { goLiveStatus } from "./golive.js";
+import * as leads from "./leads.js";
+import { deepHealth } from "./health.js";
 import { fortuneRun, fortuneStatus } from "./fortune.js";
 import { reconcilePending } from "./billing.js";
 import { turnstileStatus } from "./turnstile.js";
@@ -33,7 +41,7 @@ import * as members from "./members.js";
 import * as settings from "./settings.js";
 import { audit, callerHash } from "./store.js";
 import {
-  HttpError, adminOrigins, corsHeaders, json, log, originAllowed, publicOrigins, readJson, readText, withHeaders
+  HttpError, adminOrigins, corsHeaders, flag, json, log, originAllowed, publicOrigins, readJson, readText, withHeaders
 } from "./util.js";
 
 const ADMIN_MAX_BODY = 16 * 1024;
@@ -48,6 +56,16 @@ async function publicRoute(request, env, url, deps) {
   const reply = (body, status = 200) => json(body, status, cors);
 
   if (p === "/health" && m === "GET") return reply({ ok: true });
+  if (p === "/health/deep" && m === "GET") {
+    const tok = String(env.HEALTH_TOKEN || "");
+    if (tok && request.headers.get("Authorization") !== "Bearer " + tok) return reply({ error: "unauthorized" }, 401);
+    const h = await deepHealth(env);
+    return reply(h, h.ok ? 200 : 503);
+  }
+  if (p === "/v1/leads" && m === "POST") {
+    if (!originAllowed(request, allow, { required: true })) return reply({ error: "origin not allowed" }, 403);
+    return reply(await leads.submitLead(env, request, await readJson(request, 8192), deps), 201);
+  }
   if (p === "/v1/config" && m === "GET") {
     const b = await billing.publicBillingInfo(env);
     return reply({ analytics: true, free_mode: b.free_mode, pricing_enabled: b.pricing_enabled, membership: await members.publicMembership(env) });
@@ -60,12 +78,14 @@ async function publicRoute(request, env, url, deps) {
     const mem = await members.requireMember(env, request);
     if (p === "/api/auth/logout" && m === "POST") return reply(await members.logout(env, mem));
     if (p === "/api/me" && m === "GET") return reply(await members.me(env, mem));
-    if (p === "/api/me" && m === "DELETE") return reply(await members.deleteAccount(env, mem, await body()));
+    if (p === "/api/auth/reauth" && m === "POST") return reply(await members.reauthMember(env, mem, await body(), deps));
+    if (p === "/api/me" && m === "DELETE") return reply(await members.deleteAccount(env, mem, await body(), deps));
     if (p === "/api/me/preferences" && m === "POST") return reply(await members.setPreferences(env, mem, await body()));
     if (p === "/api/me/usage" && m === "POST") return reply(await members.recordUsage(env, mem, await body()));
     if (p === "/api/me/history" && m === "GET") return reply(await members.history(env, mem, Object.fromEntries(url.searchParams)));
-    if (p === "/api/me/export" && m === "GET") {
-      return json(await members.exportData(env, mem), 200, { ...cors, "Content-Disposition": 'attachment; filename="lensiq-my-data.json"' });
+    if (p === "/api/me/export" && (m === "GET" || m === "POST")) {
+      const b = m === "POST" ? await body() : null;
+      return json(await members.exportData(env, mem, b, deps), 200, { ...cors, "Content-Disposition": 'attachment; filename="lensiq-my-data.json"' });
     }
     if (p === "/api/me/saved" && m === "POST") return reply(await members.saveReading(env, mem, await body()), 201);
     if (p === "/api/me/sessions" && m === "GET") return reply(await members.listSessions(env, mem));
@@ -77,6 +97,13 @@ async function publicRoute(request, env, url, deps) {
       const pay = await env.DB.prepare("SELECT * FROM payments WHERE id = ?1 AND user_id = ?2").bind(rm[1], mem.user.id).first();
       if (!pay) return reply({ error: "not found" }, 404);
       const r = await receiptFor(env, pay, url.searchParams.get("format"));
+      return r.html ? new Response(r.html, { headers: { ...cors, ...RECEIPT_HEADERS } }) : reply(r.data);
+    }
+    const cn = /^\/api\/me\/payments\/([a-f0-9]{32})\/refunds\/(\d{1,12})\/credit-note$/.exec(p);
+    if (cn && m === "GET") {
+      const pay = await env.DB.prepare("SELECT * FROM payments WHERE id = ?1 AND user_id = ?2").bind(cn[1], mem.user.id).first();
+      if (!pay) return reply({ error: "not found" }, 404);
+      const r = await creditNoteFor(env, pay, cn[2], url.searchParams.get("format"));
       return r.html ? new Response(r.html, { headers: { ...cors, ...RECEIPT_HEADERS } }) : reply(r.data);
     }
     const sm = /^\/api\/me\/saved\/([a-f0-9]{32})$/.exec(p);
@@ -135,8 +162,12 @@ async function adminRoute(request, env, url, deps) {
 
   // unauthenticated
   if (route === "/state" && m === "GET") {
-    // minimum: only whether the one-time setup has been done (no configuration hints)
-    return reply({ bootstrapped: !!(await auth.getOwner(env.DB)) });
+    // anonymous: only whether the one-time setup has been done (no configuration hints); signed in: + the go-live gate
+    const out = { bootstrapped: !!(await auth.getOwner(env.DB)) };
+    let signedIn = null;
+    try { signedIn = await auth.requireAdmin(env, request); } catch { /* anonymous */ }
+    if (signedIn) out.go_live = await goLiveStatus(env);
+    return reply(out);
   }
   if (route === "/bootstrap" && m === "POST") return reply(await auth.bootstrap(env, request, await body()), 201);
   if (route === "/login" && m === "POST") {
@@ -149,12 +180,17 @@ async function adminRoute(request, env, url, deps) {
   const sess = await auth.requireAdmin(env, request);
   const ipHash = await callerHash(env, request, "admin");
   const act = (action, detail) => audit(env, "owner", action, detail, ipHash);
-  /** Sensitive action: body must carry {password, totp} (auth.reauthOwner); a wrong one is audited. */
+  /** Sensitive action: body {password, totp} (auth.reauthOwner — rate limited per session, failures audited there) or
+   *  the 5-min sudo window of POST /reauth. Returns the body without password / totp. A missing re-auth is audited. */
   const reauthed = async () => {
     const b = await body();
-    try { await auth.reauthOwner(env, b); } catch (e) { await act("reauth.failed", { route }); throw e; }
-    return b;
+    try { return await auth.requireReauth(env, sess, b); } catch (e) {
+      if (e && e.extra && e.extra.code === "reauth_required") await act("reauth.failed", { route, missing: true });
+      throw e;
+    }
   };
+  /** Money operation: re-auth + owner TOTP while billing / live keys are on (auth.requireOwnerTotpFor). */
+  const moneyOp = async () => { const b = await reauthed(); await auth.requireOwnerTotpFor(env, "money operations"); return b; };
 
   switch (`${m} ${route}`) {
     case "GET /me": {
@@ -163,7 +199,10 @@ async function adminRoute(request, env, url, deps) {
     }
     case "POST /logout": await auth.logout(env, sess); return reply({ ok: true }, 200, { "Set-Cookie": auth.clearCookie() });
     case "POST /password": return reply(await auth.changePassword(env, sess, await body()));
-    case "POST /totp/setup": return reply(await auth.totpSetup(env, await body()));
+    case "POST /reauth": return reply(await auth.reauthSession(env, sess, await body()));
+    case "GET /go-live": return reply(await goLiveStatus(env));
+    case "GET /leads": return reply(await leads.adminLeads(env.DB, Object.fromEntries(url.searchParams)));
+    case "POST /totp/setup": return reply(await auth.totpSetup(env, await body(), sess));
     case "POST /totp/enable": return reply(await auth.totpEnable(env, await body()));
     case "POST /totp/disable": return reply(await auth.totpDisable(env, await body(), sess));
     case "GET /devices": return reply(await auth.listDevices(env, request));
@@ -184,16 +223,16 @@ async function adminRoute(request, env, url, deps) {
       return reply({ settings: s });
     }
     case "PUT /ai/key": {
-      const b = await body();
+      const b = await reauthed();
       await settings.setApiKey(env, b.key);
       await act("ai.key.set"); // never the key
       return reply({ key: await settings.apiKeyStatus(env) });
     }
-    case "DELETE /ai/key": await settings.deleteApiKey(env); await act("ai.key.deleted"); return reply({ key: await settings.apiKeyStatus(env) });
+    case "DELETE /ai/key": await reauthed(); await settings.deleteApiKey(env); await act("ai.key.deleted"); return reply({ key: await settings.apiKeyStatus(env) });
 
-    case "GET /billing": return reply({ ...(await billing.publicBillingInfo(env)), plans: await billing.listPlans(env.DB), open_alerts: (await billingAdmin.listAlerts(env.DB)).open, guest_checkout: await billing.guestCheckoutAllowed(env), settings: await settings.getBillingSettings(env.DB), turnstile: turnstileStatus(env), opn: { secret_key: !!env.OPN_SECRET_KEY, test_key: String(env.OPN_SECRET_KEY || "").startsWith("skey_test_"), public_key: !!env.OPN_PUBLIC_KEY, webhook_secret: !!env.OPN_WEBHOOK_SECRET } });
+    case "GET /billing": return reply({ ...(await billing.publicBillingInfo(env)), go_live: await goLiveStatus(env), plans: await billing.listPlans(env.DB), open_alerts: (await billingAdmin.listAlerts(env.DB)).open, guest_checkout: await billing.guestCheckoutAllowed(env), settings: await settings.getBillingSettings(env.DB), turnstile: turnstileStatus(env), opn: { secret_key: !!env.OPN_SECRET_KEY, test_key: String(env.OPN_SECRET_KEY || "").startsWith("skey_test_"), public_key: !!env.OPN_PUBLIC_KEY, webhook_secret: !!env.OPN_WEBHOOK_SECRET } });
     case "PUT /billing/settings": {
-      const input = await body();
+      const input = await reauthed();
       const s = await settings.putBillingSettings(env.DB, input);
       await act("billing.settings", s);
       return reply({ settings: s });
@@ -201,7 +240,7 @@ async function adminRoute(request, env, url, deps) {
     case "GET /billing/payments": return reply(await billing.adminPayments(env.DB, Object.fromEntries(url.searchParams)));
     case "GET /billing/webhooks": return reply(await billing.adminWebhooks(env.DB));
     case "POST /billing/plans": {
-      const b = await body();
+      const b = await reauthed();
       const r = await billingAdmin.upsertPlan(env, b && b.id, b, { create: true });
       await act("billing.plan.created", { plan: r.plan.id, prices: r.prices.to, status: r.plan.status });
       return reply(r, 201);
@@ -209,7 +248,9 @@ async function adminRoute(request, env, url, deps) {
     case "GET /billing/subscriptions": return reply(await billingAdmin.adminSubscriptions(env.DB, Object.fromEntries(url.searchParams)));
     case "GET /alerts": return reply(await billingAdmin.listAlerts(env.DB, Object.fromEntries(url.searchParams)));
     case "POST /billing/test-charge": {
-      const r = await billing.adminTestCharge(env, await body(), deps);
+      const b = await body();
+      if (flag(env.OPN_ALLOW_LIVE)) await auth.requireOwnerTotpFor(env, "charges with live keys");
+      const r = await billing.adminTestCharge(env, b, deps);
       await act("billing.test_charge", { payment: r.payment_id, amount: r.amount_satang });
       return reply(r, 201);
     }
@@ -221,7 +262,7 @@ async function adminRoute(request, env, url, deps) {
     case "GET /members": return reply(await members.adminMembers(env, Object.fromEntries(url.searchParams)));
     case "GET /membership": return reply({ ...(await members.adminMembershipInfo(env)), turnstile: turnstileStatus(env) });
     case "PUT /membership": {
-      const input = await body();
+      const input = await reauthed();
       const r = await members.adminPutMembership(env, input);
       await act("membership.settings", { settings: r.settings, plan_ai_quotas: input.plan_ai_quotas || null });
       return reply({ ...r, turnstile: turnstileStatus(env) });
@@ -245,10 +286,17 @@ async function adminRoute(request, env, url, deps) {
   if (md && m === "GET") return reply(await billingAdmin.adminMemberDetail(env, md[1]));
   const mg = /^\/members\/([a-f0-9]{32})\/grant$/.exec(route);
   if (mg && m === "POST") {
-    const b = await reauthed();
+    const b = await moneyOp();
     const r = await billingAdmin.grantComplimentary(env, mg[1], b);
     await act("billing.grant", { user: mg[1], plan: b.plan_id || null, feature: b.feature || null, days: b.days || null, credits: b.credits || null });
     return reply(r, 201);
+  }
+  const cnr = /^\/billing\/payments\/([a-f0-9]{32})\/refunds\/(\d{1,12})\/credit-note$/.exec(route);
+  if (cnr && m === "GET") {
+    const pay = await env.DB.prepare("SELECT * FROM payments WHERE id = ?1").bind(cnr[1]).first();
+    if (!pay) return reply({ error: "not found" }, 404);
+    const r = await creditNoteFor(env, pay, cnr[2], url.searchParams.get("format"));
+    return r.html ? new Response(r.html, { headers: { ...cors, ...RECEIPT_HEADERS } }) : reply(r.data);
   }
   const pp = /^\/billing\/payments\/([a-f0-9]{32})(\/receipt|\/refund)?$/.exec(route);
   if (pp && m === "GET" && !pp[2]) return reply(await billingAdmin.adminPayment(env, pp[1]));
@@ -259,25 +307,28 @@ async function adminRoute(request, env, url, deps) {
     return r.html ? new Response(r.html, { headers: { ...cors, ...RECEIPT_HEADERS } }) : reply(r.data);
   }
   if (pp && m === "POST" && pp[2] === "/refund") {
-    const r = await billingAdmin.refundPayment(env, pp[1], await reauthed());
-    await act("billing.refund", { payment: pp[1], amount: r.refund_satang, receipt: r.receipt_no, subscription_cancelled: r.subscription_cancelled });
+    const r = await billingAdmin.refundPayment(env, pp[1], await moneyOp());
+    await act("billing.refund", { payment: pp[1], amount: r.refund_satang, status: r.status, receipt: r.receipt_no, credit_note: r.credit_note_no, subscription_cancelled: r.subscription_cancelled, seconds_removed: r.subscription_seconds_removed, credits_revoked: r.credits_revoked });
     return reply(r);
   }
   const sp = /^\/billing\/subscriptions\/([A-Za-z0-9_-]{1,40})\/(cancel|extend)$/.exec(route);
   if (sp && m === "POST") {
-    const b = await reauthed();
+    const b = await moneyOp();
     const r = sp[2] === "cancel" ? await billingAdmin.cancelSubscription(env, sp[1], b) : await billingAdmin.extendSubscription(env, sp[1], b);
     await act("billing.subscription." + sp[2], { subscription: sp[1], days: b.days || null, end: r.subscription.current_period_end });
     return reply(r);
   }
   const pl = /^\/billing\/plans\/([a-z][a-z0-9_]{1,31})$/.exec(route);
   if (pl && m === "PUT") {
-    const r = await billingAdmin.upsertPlan(env, pl[1], await body());
+    const r = await billingAdmin.upsertPlan(env, pl[1], await reauthed());
     await act("billing.plan.updated", { plan: pl[1], changed: r.changed, prices: r.prices, status: r.plan.status });
     return reply(r);
   }
   const al = /^\/alerts\/(\d{1,12})\/ack$/.exec(route);
   if (al && m === "POST") { const r = await billingAdmin.ackAlert(env.DB, al[1]); await act("alert.ack", { alert: Number(al[1]) }); return reply(r); }
+  const ld = /^\/leads\/([a-f0-9]{24})(\/ack)?$/.exec(route);
+  if (ld && m === "POST" && ld[2]) { const r = await leads.ackLead(env.DB, ld[1]); await act("lead.ack", { lead: ld[1] }); return reply(r); }
+  if (ld && m === "DELETE" && !ld[2]) { const r = await leads.deleteLead(env.DB, ld[1]); await act("lead.deleted", { lead: ld[1] }); return reply(r); }
   const dv = /^\/devices\/([a-f0-9]{16})$/.exec(route);
   if (dv && m === "DELETE") { const r = await auth.revokeDevice(env, dv[1]); await act("device.revoked", { device: dv[1] }); return reply(r); }
   return reply({ error: "not found" }, 404);
@@ -332,10 +383,14 @@ export default {
   },
   /** "17 3 * * *" daily maintenance; "*\/15 * * * *" payment reconcile (pending charges re-checked with Opn). */
   async scheduled(event, env, ctx) {
+    // round 11: a failing job never becomes an unhandled rejection; only the error NAME is logged (scrubbed — no message,
+    // which could carry SQL or values)
+    const failed = job => e => log("cron.failed", { job, name: String((e && e.name) || "Error").slice(0, 40), status: Number((e && e.status) || 0) });
     if (event && event.cron === RECONCILE_CRON) {
-      ctx.waitUntil(reconcilePending(env).then(r => log("reconcile", { checked: r.checked || 0, changed: r.changed || 0, errors: r.errors || 0 })));
+      ctx.waitUntil(reconcilePending(env).then(r => log("reconcile", { checked: r.checked || 0, changed: r.changed || 0, errors: r.errors || 0, repaired: r.repaired || 0, repair_errors: r.repair_errors || 0 }))
+        .catch(failed("reconcile")));
       return;
     }
-    ctx.waitUntil(runMaintenance(env).then(r => log("maintenance", { aggregated: r.aggregated, events: r.purged.events })));
+    ctx.waitUntil(runMaintenance(env).then(r => log("maintenance", { aggregated: r.aggregated, events: r.purged.events })).catch(failed("maintenance")));
   }
 };

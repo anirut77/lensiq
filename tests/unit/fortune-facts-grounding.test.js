@@ -1,4 +1,4 @@
-// Round 10 (fortune): the asked topic always has its own section, a fact-aware AI grounding gate (swapped values,
+// Fortune fact-aware grounding, topic sections, safety categories and review export (added in round 10): the asked topic always has its own section, a fact-aware AI grounding gate (swapped values,
 // names, topics and directions are rejected), new safety categories (TH/EN/ZH), wording fixes, Kalama Sutta in every
 // reminder, and the native-review export (English + caution probes).
 const test = require("node:test");
@@ -76,7 +76,7 @@ function mutate(u, lang, r) {
   return out;
 }
 
-test("grounding (round 10): value/topic/direction mutations of grounded claims are < 5 % accepted; benign rewording keeps ≥ 98.5 %", async () => {
+test("grounding: value/topic/direction mutations of grounded claims are < 5 % accepted; benign rewording keeps ≥ 98.5 %", async () => {
   const X = await exportTool();
   let keep = 0, all = 0, acc = 0, mut = 0;
   for (const lang of ["th", "zh"]) for (const d of X.DOMAINS) {
@@ -102,7 +102,7 @@ test("grounding (round 10): value/topic/direction mutations of grounded claims a
   assert.ok(acc / mut < 0.05, `accepted mutations ${acc}/${mut}`);
 });
 
-test("grounding (round 10): the evaluator's swaps are rejected and the originals kept", () => {
+test("grounding: the evaluator's swaps are rejected and the originals kept", () => {
   const facts = {
     domain: "taksa", topic: "money", items: [
       { id: "tk.sri.5", label: "ภูมิศรี (ดาวพฤหัสบดี)", short: "ภูมิศรี", strength: 0.9, tags: ["money"], meanings: { money: ["โชคและความเป็นสิริมงคลด้านทรัพย์มาจากดาวพฤหัสบดี"] } },
@@ -132,7 +132,7 @@ test("grounding (round 10): the evaluator's swaps are rejected and the originals
 });
 
 /* ---------- safety ---------- */
-test("safety (round 10): breakup/fatal/jail predictions, cosmetic surgery for luck, all-in investing, scam fear and zodiac/birth-year discrimination are blocked (TH/EN/ZH)", () => {
+test("safety: breakup/fatal/jail predictions, cosmetic surgery for luck, all-in investing, scam fear and zodiac/birth-year discrimination are blocked (TH/EN/ZH)", () => {
   const bad = [
     "ปีนี้จะเลิกกับแฟน", "ควรไปทำศัลยกรรมจมูกเพื่อเสริมดวง", "ระวังถูกโกงเงิน", "ห้ามแต่งงานกับคนเกิดปีขาล", "คนปีชงไม่ควรจ้างงาน", "คนเกิดปีมะเส็งนิสัยไม่ดี", "ปีนี้เป็นปีอันตรายของคุณ", "ควรเอาเงินทั้งหมดไปลงทุนหุ้น",
     "a fatal year", "This is a fatal year for you", "your marriage will end this year", "You will go to jail", "you should get a nose job to improve your luck",
@@ -149,7 +149,7 @@ test("safety (round 10): breakup/fatal/jail predictions, cosmetic surgery for lu
 });
 
 /* ---------- wording ---------- */
-test("wording (round 10): no 'ดูที่X เป็น', no doubled และ in colour lists, formula evidence on a 'why' line, EN life graph and ZH horoscope labels not repeated", async () => {
+test("wording: no 'ดูที่X เป็น', no doubled และ in colour lists, formula evidence on a 'why' line, EN life graph and ZH horoscope labels not repeated", async () => {
   const X = await exportTool();
   let why = 0;
   for (const d of ["face", "tarot", "bazi", "lifegraph", "horoscope"]) {
@@ -170,7 +170,7 @@ test("wording (round 10): no 'ดูที่X เป็น', no doubled แล�
   assert.ok(why > 0, "the bazi strength formula is shown on the why line");
 });
 
-test("reminder (round 10): every reminder variant names the Kalama Sutta (กาลามสูตร / Kalama Sutta / 《卡拉玛经》)", () => {
+test("reminder: every reminder variant names the Kalama Sutta (กาลามสูตร / Kalama Sutta / 《卡拉玛经》)", () => {
   const f = { domain: "tarot", topic: "overall", items: [{ id: "a", label: "ไพ่ดวงดาว", strength: 0.8, tags: ["overview"], meanings: { overview: ["ความหวังกลับมา"] } }] };
   const RE = { th: /กาลามสูตร/, zh: /《卡拉玛经》/, en: /Kalama Sutta/ };
   for (const lang of ["th", "zh", "en"]) {
@@ -182,7 +182,7 @@ test("reminder (round 10): every reminder variant names the Kalama Sutta (กา
 });
 
 /* ---------- native review export ---------- */
-test("review export (round 10): English readings included; domains without engine cautions get labelled caution probes; no empty caution cell", async () => {
+test("review export: English readings included; domains without engine cautions get labelled caution probes; no empty caution cell", async () => {
   const X = await exportTool();
   const { rows, gaps } = X.sample({ per: 1, domains: ["face", "dream", "tarot"], pool: 24 });
   assert.equal(rows.length, 3 * 3 * 3, "3 domains × 3 languages × 3 tones");

@@ -1,4 +1,4 @@
-// Round-5 face identification: gallery-size/population calibration (gallerySpread + enrolGallery(FACE_RULES)),
+// Face identification (calibration suite; added in round 5): gallery-size/population calibration (gallerySpread + enrolGallery(FACE_RULES)),
 // the confident / please-confirm split (matchFace.confident) and the detector cascade (LQDetect.detectFacesCascade).
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -12,7 +12,7 @@ const ring = (n, r, dim = 8) => Array.from({ length: n }, (_, i) => {
 });
 const near = (d, dx) => { const x = Float32Array.from(d); x[0] += dx; return x; };
 
-test("FACE_RULES: round-5 constants are frozen and exported", () => {
+test("FACE_RULES: calibration constants are frozen and exported", () => {
   assert.ok(Object.isFrozen(T.FACE_RULES));
   assert.equal(T.FACE_RULES.maxDist, 0.50); assert.equal(T.FACE_RULES.floor, 0.44); assert.equal(T.FACE_RULES.margin, 0.09);
   assert.equal(T.FACE_RULES.minCal, 5); assert.equal(T.FACE_REF_SPREAD, 0.736);
@@ -34,7 +34,7 @@ test("gallerySpread: median pairwise centroid distance, scale <= 1, calibrated f
   assert.deepEqual({ ...T.gallerySpread([]), median: 0 }, { n: 0, pairs: 0, median: 0, scale: 1, calibrated: false });
 });
 
-test("enrolGallery(FACE_RULES): limits and margin shrink with a compressed population; round-4 output unchanged without it", () => {
+test("enrolGallery(FACE_RULES): limits and margin shrink with a compressed population; uncalibrated output unchanged without it", () => {
   const people = ring(8, 0.3);
   const cal = T.gallerySpread(people);
   assert.ok(cal.scale < 1);
