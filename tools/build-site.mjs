@@ -3,7 +3,7 @@
 //
 // Only what the browser needs is published: the *.html pages, the root page scripts/styles they load (*.js, *.css,
 // including sw.js), i18n/*.js, vendor/** (models, WASM runtimes, self-hosted fonts), .nojekyll and the licence notices.
-// Server code (server.py, tryon.py, pdfconvert.py), tests/, tools/, docs/, types/, package*.json, configs, certs/,
+// Server code (server.py, tryon.py, pdfconvert.py, the API Worker in backend/), tests/, tools/, docs/, types/, package*.json, configs, certs/,
 // logs/ and data/ are never copied. Files come from `git ls-files` (tracked files only, so git-ignored local files such
 // as the non-commercial vendor/models/faceparse-*.onnx are never published), read from the working tree.
 // Outside a git checkout the build fails unless --allow-no-git is given (see below).
@@ -43,7 +43,9 @@ export const FORBIDDEN = [
   [/(^|\/)node_modules(\/|$)/, "node_modules"], [/(^|\/)\.venv(\/|$)/, "virtualenv"],
   [/^(certs|logs|data)(\/|$)/, "runtime data / certificates"], [/\.(pem|key|crt|env)$/, "secrets / certificates"],
   [/(^|\/)(eslint\.config\.mjs|tsconfig[^/]*\.json|start\.sh)$/, "dev config"],
-  [/(^|\/)faceparse-[^/]*\.onnx$/, "non-commercial face-parsing weights (licence not cleared)"]
+  [/(^|\/)faceparse-[^/]*\.onnx$/, "non-commercial face-parsing weights (licence not cleared)"],
+  [/^backend(\/|$)/, "API Worker source (backend/)"], [/(^|\/)wrangler[^/]*\.(toml|json|jsonc)$/, "Worker config"],
+  [/(^|\/)\.dev\.vars/, "Worker local secrets"], [/(^|\/)\.wrangler(\/|$)/, "wrangler state"], [/(^|\/)migrations\/[^/]*\.sql$/, "database migrations"]
 ];
 
 export function forbiddenReason(rel) {

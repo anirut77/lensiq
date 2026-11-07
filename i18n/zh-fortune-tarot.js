@@ -2,7 +2,9 @@
    泰文默认值保留在 tarot.html / tarot.js；本文件只放中文。tarot.kw.<id> = 牌的关键词（| 分隔），tarot.ss.verse.N = 签诗两句（| 分隔）。 */
 (function (root) {
   "use strict";
-  var dict = { zh: {
+  // th: Thai label override for a string whose Thai default lives in page JS owned by the fortune team
+  // (no bare "AI" wording; the optional writing assistant is named with its provider for PDPA transparency)
+  var dict = { th: { "tarot.srcAI": "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)" }, zh: {
     "tarot.metaDesc": "完整 78 张 Rider–Waite–Smith 塔罗牌、每日一牌与 28 支求签，为展位和活动增添乐趣。在浏览器中运行，不保存你的问题",
     "tarot.disc2": " 请勿用于健康、财务、法律或重要感情方面的决定。",
     "tarot.tabsAria": "选择模式",
@@ -113,7 +115,7 @@
     "tarot.tapFull": "点按牌面查看完整牌义",
     "tarot.composing": "正在整理解读…",
     "tarot.regen": "换一种说法",
-    "tarot.srcAI": "由 AI（Claude）整理",
+    "tarot.srcAI": "由写作助手（Anthropic 的 Claude）整理",
     "tarot.srcLocal": "本机生成 · 每次说法不同",
     "tarot.readingTitle": "详细解读",
     "tarot.metaTopic": "主题",

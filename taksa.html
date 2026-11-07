@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="taksa.title">ทักษา · ดาวประจำวันเกิด ภูมิทั้งแปด มหาทักษา | LENSIQ</title>
+<meta name="description" content="ทักษาตามโหราศาสตร์ไทย ดาวประจำวันเกิด ภูมิบริวาร อายุ เดช ศรี มูละ อุตสาหะ มนตรี กาลกิณี และมหาทักษา 108 ปี เพื่อความบันเทิง">
+<link rel="stylesheet" href="styles.css?v=8">
+<link rel="stylesheet" href="fortune-kit.css?v=2">
+<link rel="stylesheet" href="lifecal.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=12"></script>
+
+<main class="fk lc" id="lcApp" data-page="taksa">
+  <div class="fk-head">
+    <span class="eyebrow">Thai Taksa · ทักษา</span>
+    <h1 data-i18n="taksa.h1">ทักษา · ภูมิทั้งแปด · มหาทักษา</h1>
+    <p data-i18n="taksa.lead" class="lead">นับภูมิทั้งแปดจากดาวประจำวันเกิดตามวงทักษา (อาทิตย์ จันทร์ อังคาร พุธ เสาร์ พฤหัสบดี ราหู ศุกร์) และดูว่าช่วงอายุใดอยู่ในมหาทักษาของดาวใด</p>
+  </div>
+  <p class="fk-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span><b data-i18n="fortune.common.disclaimerBelief">เพื่อความบันเทิงตามความเชื่อ ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์</b> <span data-i18n="lc.disclaimerRest">คำนวณในเครื่อง ไม่บันทึกวันเกิด บอกทั้งด้านที่ส่งเสริมและด้านที่ควรระวังอย่างนุ่มนวล</span></span></p>
+
+  <form class="fk-form fk-stack" id="lcForm" novalidate>
+    <fieldset><legend data-i18n="lc.legendBirth">วันเกิด</legend>
+      <div class="fk-row">
+        <label><span data-i18n="lc.day">วันที่</span><select id="lcDay"></select></label>
+        <label><span data-i18n="lc.month">เดือน</span><select id="lcMonth"></select></label>
+        <label><span data-i18n="lc.year">ปีเกิด</span><input id="lcYear" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="เช่น 2533" data-i18n-attr="placeholder:lc.yearPh" autocomplete="off"></label>
+      </div>
+      <div class="lc-era" role="radiogroup" aria-label="ศักราช" data-i18n-attr="aria-label:lc.era"><label class="fk-check"><input type="radio" name="lcEra" value="be" checked> <span data-i18n="lc.eraBE">พ.ศ.</span></label><label class="fk-check"><input type="radio" name="lcEra" value="ce"> <span data-i18n="lc.eraCE">ค.ศ.</span></label></div>
+    </fieldset>
+    <fieldset><legend data-i18n="lc.legendTime">เวลาเกิด</legend>
+      <div class="fk-row">
+        <label><span data-i18n="lc.time">เวลา (ชั่วโมง:นาที)</span><input id="lcTime" type="time" value="08:00"></label>
+        
+      </div>
+      <label class="fk-check"><input type="checkbox" id="lcNoTime"> <span data-i18n="lc.noTime">ไม่ทราบเวลาเกิด</span></label>
+    </fieldset>
+    
+    <p class="fk-msg" id="lcMsg" role="alert"></p>
+    <button data-i18n="taksa.button" class="btn primary big full" type="submit">ดูผัง</button>
+  </form>
+
+  <section class="lc-result" id="lcResult" hidden aria-labelledby="lcResTitle">
+    <div class="fk-block">
+      <h2 id="lcResTitle" tabindex="-1"></h2>
+      <div id="lcChart"></div>
+    </div>
+    <div id="lcReadWrap"></div>
+    <div class="fk-res-actions">
+      <button data-i18n="fortune.common.print" class="btn ghost big" id="lcPrint" type="button">พิมพ์</button>
+      <button data-i18n="fortune.common.again" class="btn ghost big" id="lcAgain" type="button">ดูใหม่ / คนถัดไป</button>
+    </div>
+  </section>
+
+  <div class="fk-foot">
+    <section class="fk-block">
+      <h3 data-i18n="fortune.common.sources">แหล่งอ้างอิง</h3>
+      <p class="fk-small" data-i18n="taksa.src">วันไทยเปลี่ยนตอนรุ่งเช้า (06:00) เกิดวันพุธหลัง 18:00 นับเป็นราหู มหาทักษาใช้อายุดาว อาทิตย์ 6 จันทร์ 15 อังคาร 8 พุธ 17 เสาร์ 10 พฤหัสบดี 19 ราหู 12 ศุกร์ 21 ปี (รวม 108 ปี)</p>
+      <p class="fk-small" data-i18n="lc.principle">หลักการ: ไม่ทำนายความตาย โรคภัย อุบัติเหตุ การนอกใจ การหย่าร้าง หรือภัยพิบัติ ไม่ให้เลขเสี่ยงโชค ไม่มีการเสียเงินแก้ดวง ด้านที่ควรระวังบอกตรง ๆ อย่างนุ่มนวลพร้อมสิ่งที่ทำได้</p>
+    </section>
+  </div>
+</main>
+
+<script src="i18n/zh-fortune.js?v=3"></script>
+<script src="i18n/zh-fortune-lifecal.js?v=1"></script>
+<script src="i18n/zh-kb-lifecal.js?v=1"></script>
+<script src="lensiq-config.js?v=3"></script>
+<script src="fortune-ai.js?v=8"></script>
+<script src="fortune-kit.js?v=2"></script>
+<script src="horoscope.js?v=4"></script>
+<script src="lifecal.js?v=1"></script>
+<script src="lifecal-kb.js?v=1"></script>
+<script src="lifecal-ui.js?v=1"></script>
+</body>
+</html>

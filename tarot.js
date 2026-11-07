@@ -41,6 +41,8 @@
   }
 
   /* ---------- ตีความ ---------- */
+  // ไพ่ที่ตำราอ่านว่าเป็นช่วงที่ควรระวัง (ตั้งตรง) — คำทำนายบอกตรง ๆ อย่างนุ่มนวล พร้อมสิ่งที่ทำได้ (ดู fortune-ai.js: tone)
+  var TONE_CAUTION = /^(?:m16|m15|swords0?(?:3|5|8|9|10)|pentacles05|cups05|wands10)$/;
   function meaning(card, rev, topic) { return (rev ? card.reversed : card.upright)[topic || "general"]; }
   function interpret(card, rev, topic, pos) {
     var m = meaning(card, rev, topic);
@@ -158,7 +160,7 @@
       var w = (POS_W[pos.key] || 0.6) + (c.arcana === "major" ? 0.04 : 0);
       var posName = pos.th.replace(/^\d+ · /, "");
       items.push({ id: "card." + pos.key + "." + c.id + (p.rev ? ".r" : ""), group: posName, label: KB.readName(c) + " (" + KB.readEn(c) + ")" + (p.rev ? " กลับหัว" : ""), short: "ไพ่" + KB.readName(c) + (p.rev ? "กลับหัว" : ""),
-        evidence: "ตำแหน่งที่ " + (i + 1) + " (" + posName + "): " + KB.readEn(c) + (p.rev ? " (กลับหัว)" : ""), strength: Math.min(1, w), tags: Object.keys(m), meanings: m });
+        evidence: "ตำแหน่งที่ " + (i + 1) + " (" + posName + "): " + KB.readEn(c) + (p.rev ? " (กลับหัว)" : ""), strength: Math.min(1, w), tags: Object.keys(m), meanings: m, tone: TONE_CAUTION.test(c.id) && !p.rev ? "caution" : p.rev ? "neutral" : "favourable" });
     });
     // 3) คู่ไพ่ที่น่าสนใจ (สูงสุด 3 คู่)
     var pairs = [];

@@ -1,7 +1,9 @@
 /* i18n/zh-fortune-numbers.js — Simplified Chinese for numbers.html (Thai lives in the markup / numbers.js / numbers-kb.js).
    KB texts (grades, digits, weekdays, goals, tips, daily words, sources) are keyed by id or index. */
 (function (root) {
-  var dict = { zh: {
+  // th: Thai label override for a string whose Thai default lives in page JS owned by the fortune team
+  // (no bare "AI" wording; the optional writing assistant is named with its provider for PDPA transparency)
+  var dict = { th: { "numbers.src.ai": "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)" }, zh: {
     /* ---------- static markup ---------- */
     "numbers.disclaimer2": "不用于赌博或博取运气，也不应作为重要决定的依据。各流派的解释各不相同。",
     "numbers.tabs.aria": "选择要分析的内容",
@@ -28,7 +30,7 @@
     "numbers.privacy": "在浏览器中计算，不会发送或保存你的号码和姓名",
     "numbers.discMini": "仅供娱乐，依据传统信仰，并非科学",
     "numbers.ring.aria": "分数",
-    "numbers.consent": "让 Claude AI 协助润色（只发送计算出的数字组合与总和，不发送完整号码或姓名）",
+    "numbers.consent": "让写作助手（Anthropic 的 Claude，美国）协助润色（只发送计算出的数字组合与总和，不发送完整号码或姓名）",
     "numbers.words.small": "把这个号码最突出的能量浓缩成几个词，给你加油打气",
     "numbers.cardNote": "分享卡片会自动隐藏部分号码，例如 08x-xxx-4589",
     "numbers.card.alt": "可分享的吉祥数字结果卡片",
@@ -114,7 +116,7 @@
     "numbers.noReading": "暂无解读",
     "numbers.noComposer": "未找到解读生成器（fortune-ai.js）",
     "numbers.loading": "正在整理解读...",
-    "numbers.src.ai": "由 Claude AI 润色",
+    "numbers.src.ai": "由写作助手（Anthropic 的 Claude）润色",
     "numbers.src.local": "本机生成",
     "numbers.card.brand": "LENSIQ · 吉祥数字",
     "numbers.card.score": "分数 / 100",

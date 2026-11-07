@@ -101,6 +101,24 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(ly.ratio >= 2.5 && ly.ratio <= 3.3, "shoulder width prior " + ly.ratio);
     });
 
+    await check("studio: in-page QA (studio-qa.js fast checks) runs after each render; a failing check shows a gentle notice and keeps the result usable", async () => {
+      await page.evaluate(() => window.__studio.render());
+      const q = await page.waitFor(`window.__studio.state.qa && { pass: window.__studio.state.qa.pass, keys: Object.keys(window.__studio.state.qa.m), t: window.__studio.state.timings.qa, hidden: document.getElementById("stQa").hidden }`, 5000);
+      assert(q.keys.includes("neckNotch") && q.keys.includes("faceIsland") && q.keys.includes("neckRel") && !q.keys.includes("hairCut"), "fast subset only: " + q.keys);
+      assert(q.t < 600, "QA time " + q.t);
+      assert(q.hidden === q.pass, "notice visible only on failure " + JSON.stringify(q));
+      // force a failure: the notice appears (Thai by default), the result stays on screen and can still be saved
+      const saved = await page.evaluate(() => window.StudioQA.LIMITS.neckBgPct);
+      await page.evaluate(() => { window.StudioQA.LIMITS.neckBgPct = -1; window.__studio.state.qa = null; return window.__studio.render(); });
+      const f = await page.waitFor(`window.__studio.state.qa && !window.__studio.state.qa.pass && !document.getElementById("stQa").hidden && { text: document.getElementById("stQa").textContent, out: !!window.__studio.state.out, dl: !document.getElementById("stPng").disabled }`, 5000);
+      assert(/ไม่เนียน/.test(f.text) && /หน้าตรง/.test(f.text), "Thai notice: " + f.text);
+      assert(f.out && f.dl, "result still usable " + JSON.stringify(f));
+      const fsm = await import("node:fs");
+      assert(/"studio\.qaWarn": "这张图可能不够自然/.test(fsm.readFileSync(new URL("../../i18n/zh-studio.js", import.meta.url), "utf8")), "中文 notice in i18n/zh-studio.js");
+      await page.evaluate(v => { window.StudioQA.LIMITS.neckBgPct = v; window.__studio.state.qa = null; return window.__studio.render(); }, saved);
+      await page.waitFor(`window.__studio.state.qa`, 5000);
+    });
+
     await check("studio: every garment renders; retouch / background / brush / handles update the result", async () => {
       const keys = await page.evaluate(() => window.__studio.garments());
       for (const k of keys.filter(k => k.startsWith("v:"))) {

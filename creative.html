@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="cr.s.pagetitle">Creative Lab ตรวจชิ้นงานโฆษณา | LENSIQ</title>
+<link rel="stylesheet" href="styles.css?v=8">
+<link rel="stylesheet" href="creative.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=12"></script>
+<script src="i18n/zh-creative.js?v=1"></script>
+
+<main class="cr" id="main">
+  <h1 data-i18n="cr.s.h1">Creative Lab — ตรวจชิ้นงานโฆษณาก่อนใช้จริง</h1>
+  <p class="lead" data-i18n="cr.s.lead">ดูว่าสายตาน่าจะไปที่ไหนก่อนบนโฆษณา บรรจุภัณฑ์ ชั้นวาง หรือโปสเตอร์ ตรวจความรก ความชัดของตัวอักษร สี และใบหน้า แล้วเทียบหลายแบบก่อนนำไปทดสอบจริง</p>
+  <p class="acc-note" role="note"><b class="beta">Beta</b> <span data-i18n="cr.s.acc">แผนที่ความสนใจเป็นค่าคาดการณ์จากแบบจำลองการมองเห็นแบบคลาสสิก ไม่ใช่การติดตามสายตาจริง วัดบน MIT1003 (703 ภาพที่ไม่ได้ใช้ปรับค่า): AUC-Judd 0.83, NSS 1.59, CC 0.47 — ดีกว่าการทายตรงกลางภาพ (NSS 1.25) แต่ต่ำกว่าแบบจำลองเชิงลึกรุ่นใหม่</span> <a href="#pane-about" class="tab-link" data-goto="about" data-i18n="cr.s.accl">วิธีวัดและข้อจำกัด</a></p>
+  <p class="cr-privacy" role="note"><b data-i18n="cr.s.priv1">ภาพไม่ออกจากเครื่องนี้:</b> <span data-i18n="cr.s.priv2">ประมวลผลในเบราว์เซอร์ทั้งหมด ไม่อัปโหลด ไม่บันทึกภาพ ปิดหน้าแล้วภาพหายไป</span></p>
+
+  <div class="tabs" role="tablist" aria-label="ส่วนของหน้า" data-i18n-attr="aria-label:cr.s.tabs">
+    <button class="tab active" type="button" data-t="analyze" role="tab" aria-selected="true" aria-controls="pane-analyze" id="tab-analyze" data-i18n="cr.s.t1">วิเคราะห์ชิ้นงาน</button>
+    <button class="tab" type="button" data-t="compare" role="tab" aria-selected="false" aria-controls="pane-compare" id="tab-compare" data-i18n="cr.s.t2">เปรียบเทียบ A/B</button>
+    <button class="tab" type="button" data-t="guide" role="tab" aria-selected="false" aria-controls="pane-guide" id="tab-guide" data-i18n="cr.s.t3">จิตวิทยาการตลาด</button>
+    <button class="tab" type="button" data-t="about" role="tab" aria-selected="false" aria-controls="pane-about" id="tab-about" data-i18n="cr.s.t4">วิธีการและข้อจำกัด</button>
+  </div>
+
+  <div class="engine" id="engine" role="status" data-i18n="cr.s.engine0">เลือกภาพเพื่อเริ่ม</div>
+
+  <!-- ===== วิเคราะห์ ===== -->
+  <section class="pane" id="pane-analyze" role="tabpanel" aria-labelledby="tab-analyze">
+    <div class="card">
+      <h2 data-i18n="cr.s.up.h">1. เลือกชิ้นงาน (สูงสุด 4 ภาพ)</h2>
+      <label class="drop" id="drop">
+        <input id="file" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp" multiple>
+        <span class="drop-t" data-i18n="cr.s.up.t">แตะเพื่อเลือกภาพ หรือวางไฟล์ที่นี่</span>
+        <span class="drop-s" data-i18n="cr.s.up.s">PNG, JPG หรือ WebP — ภาพโฆษณา บรรจุภัณฑ์ ชั้นวาง โปสเตอร์ แบนเนอร์</span>
+      </label>
+      <ul class="items" id="items" aria-label="ชิ้นงานที่เลือก" data-i18n-attr="aria-label:cr.s.items"></ul>
+      <p class="form-msg" id="upMsg" role="status"></p>
+    </div>
+
+    <div class="cr-empty" id="emptyState"><p data-i18n="cr.s.empty">ยังไม่มีชิ้นงาน เลือกภาพด้านบนเพื่อดูแผนที่ความสนใจ</p></div>
+
+    <div class="grid2 work" id="work" hidden>
+      <div class="card viewer-card">
+        <h2 data-i18n="cr.s.view.h">2. แผนที่ความสนใจที่คาดการณ์</h2>
+        <div class="seg" role="group" aria-label="มุมมอง" data-i18n-attr="aria-label:cr.s.view.g" id="viewSeg">
+          <button type="button" data-v="heat" aria-pressed="true" data-i18n="cr.s.view.heat">แผนที่ความร้อน</button>
+          <button type="button" data-v="fog" aria-pressed="false" data-i18n="cr.s.view.fog">ส่วนที่เด่น</button>
+          <button type="button" data-v="orig" aria-pressed="false" data-i18n="cr.s.view.orig">ภาพจริง</button>
+        </div>
+        <div class="opts">
+          <label class="check"><input type="checkbox" id="showOrder" checked> <span data-i18n="cr.s.view.order">ลำดับการมอง</span></label>
+          <label class="check"><input type="checkbox" id="showDet"> <span data-i18n="cr.s.view.det">กรอบข้อความ/ใบหน้า</span></label>
+        </div>
+        <div class="stage" id="stage"><canvas id="view" aria-label="ภาพชิ้นงานพร้อมแผนที่ความสนใจ" role="img" data-i18n-attr="aria-label:cr.s.view.alt"></canvas></div>
+        <p class="hint" data-i18n="cr.s.view.hint">สีแดง = คาดว่าได้ความสนใจมาก สีน้ำเงิน = น้อย ตัวเลข 1–5 = ลำดับที่คาดว่าสายตาจะไปถึง (ไม่ใช่การวัดสายตาจริง)</p>
+
+        <h3 data-i18n="cr.s.reg.h">ทำเครื่องหมายพื้นที่สำคัญ</h3>
+        <p class="hint" data-i18n="cr.s.reg.hint">เลือกประเภท แล้วลากบนภาพเพื่อวัดว่าพื้นที่นั้นได้ความสนใจกี่เปอร์เซ็นต์</p>
+        <div class="seg types" role="group" aria-label="ประเภทพื้นที่" data-i18n-attr="aria-label:cr.s.reg.g" id="typeSeg">
+          <button type="button" data-type="brand" aria-pressed="true"><i class="sw t-brand"></i><span data-i18n="cr.s.type.brand">แบรนด์/โลโก้</span></button>
+          <button type="button" data-type="product" aria-pressed="false"><i class="sw t-product"></i><span data-i18n="cr.s.type.product">สินค้า</span></button>
+          <button type="button" data-type="cta" aria-pressed="false"><i class="sw t-cta"></i><span data-i18n="cr.s.type.cta">ปุ่ม/CTA</span></button>
+          <button type="button" data-type="price" aria-pressed="false"><i class="sw t-price"></i><span data-i18n="cr.s.type.price">ราคา/โปรโมชั่น</span></button>
+          <button type="button" data-type="message" aria-pressed="false"><i class="sw t-message"></i><span data-i18n="cr.s.type.message">ข้อความหลัก</span></button>
+        </div>
+        <div class="row-actions">
+          <button class="btn ghost" type="button" id="addCenter" data-i18n="cr.s.reg.add">เพิ่มกรอบกลางภาพ</button>
+          <button class="btn ghost" type="button" id="useText" data-i18n="cr.s.reg.text">ใช้กรอบข้อความที่ตรวจพบ</button>
+          <button class="btn ghost danger" type="button" id="clearRegions" data-i18n="cr.s.reg.clear">ล้างพื้นที่</button>
+        </div>
+        <ul class="regions" id="regionList"></ul>
+      </div>
+
+      <div class="card results-card">
+        <h2 data-i18n="cr.s.res.h">3. ผลการตรวจ</h2>
+        <div class="tiles" id="tiles"></div>
+        <h3 data-i18n="cr.s.res.order">ลำดับที่คาดว่าสายตาจะไปถึง</h3>
+        <ol class="order" id="orderList"></ol>
+        <h3 data-i18n="cr.s.res.regions">ความสนใจต่อพื้นที่ที่ทำเครื่องหมาย</h3>
+        <div class="table-wrap"><table id="regionTable"></table></div>
+        <h3 data-i18n="cr.s.res.text">ความต่างของสีตัวอักษร (WCAG)</h3>
+        <div class="table-wrap"><table id="textTable"></table></div>
+        <p class="hint" data-i18n="cr.s.res.textnote">ตรวจหากรอบข้อความด้วยวิธีวิเคราะห์ขอบภาพ (ไม่ได้อ่านตัวอักษร) อาจพลาดตัวอักษรเล็ก บาง หรือโค้ง และอาจจับลวดลายถี่ ๆ เป็นข้อความ</p>
+        <h3 data-i18n="cr.s.res.faces">ใบหน้าและทิศทางศีรษะ</h3>
+        <div id="faceList"></div>
+        <h3 data-i18n="cr.s.res.palette">ชุดสีหลักและความหมายของสี</h3>
+        <div id="palette"></div>
+        <p class="hint" data-i18n="cr.s.res.palnote">ความหมายของสีขึ้นกับบริบท สินค้า และกลุ่มเป้าหมาย งานวิจัยพบผลไม่สม่ำเสมอ ใช้เป็นแนวทาง ไม่ใช่กฎ</p>
+      </div>
+    </div>
+
+    <div class="card" id="findCard" hidden>
+      <h2 data-i18n="cr.s.find.h">4. ข้อสังเกตจากหลักจิตวิทยาการตลาด</h2>
+      <p class="hint" data-i18n="cr.s.find.hint">เชื่อมจากสิ่งที่ตรวจพบในภาพนี้ ข้อแนะนำเป็นแนวทาง ควรยืนยันด้วยการทดสอบกับคนจริง</p>
+      <div class="gcards" id="findings"></div>
+    </div>
+  </section>
+
+  <!-- ===== เปรียบเทียบ ===== -->
+  <section class="pane" id="pane-compare" role="tabpanel" aria-labelledby="tab-compare" hidden>
+    <div class="card">
+      <h2 data-i18n="cr.s.cmp.h">เปรียบเทียบชิ้นงาน (คาดการณ์)</h2>
+      <p class="hint" data-i18n="cr.s.cmp.hint">เลือก 2–4 ภาพในแท็บ "วิเคราะห์ชิ้นงาน" และทำเครื่องหมายพื้นที่ประเภทเดียวกันในทุกภาพ เพื่อให้เทียบกันได้ยุติธรรม</p>
+      <div id="cmpBody"><p class="empty" data-i18n="cr.s.cmp.empty">ต้องมีอย่างน้อย 2 ภาพ</p></div>
+      <p class="disclaimer" id="cmpCaveat"><b data-i18n="cr.s.cmp.cav1">ผลนี้เป็นการคาดการณ์:</b> <span data-i18n="cr.s.cmp.cav2">คะแนนมาจากแบบจำลองและกฎการออกแบบ ไม่ได้วัดยอดขายหรือการคลิก ใช้คัดตัวเลือกก่อน แล้วทดสอบ A/B จริงกับผู้ชม เช่น สลับแสดงบน</span> <a href="signage.html" data-i18n="cr.s.cmp.cav3">ป้ายโฆษณาดิจิทัล</a> <span data-i18n="cr.s.cmp.cav4">หรือวัดปฏิกิริยาใน</span> <a href="neuro.html" data-i18n="cr.s.cmp.cav5">วิเคราะห์อารมณ์</a></p>
+    </div>
+  </section>
+
+  <!-- ===== คู่มือจิตวิทยา ===== -->
+  <section class="pane" id="pane-guide" role="tabpanel" aria-labelledby="tab-guide" hidden>
+    <div class="card">
+      <h2 data-i18n="cr.s.guide.h">หลักจิตวิทยาการตลาดที่ใช้บ่อย</h2>
+      <p class="hint" data-i18n="cr.s.guide.hint">อธิบายแบบสั้น พร้อมระดับหลักฐานและแหล่งอ้างอิง ผลของแต่ละหลักขึ้นกับบริบท และไม่ควรใช้ในทางหลอกลวง</p>
+      <div class="gcards" id="guideCards"></div>
+      <h3 data-i18n="cr.s.guide.colh">แหล่งอ้างอิงเรื่องสีและวัฒนธรรม</h3>
+      <ul class="refs" id="colourRefs"></ul>
+    </div>
+  </section>
+
+  <!-- ===== วิธีการ ===== -->
+  <section class="pane about" id="pane-about" role="tabpanel" aria-labelledby="tab-about" hidden>
+    <div class="card">
+      <h2 data-i18n="cr.s.m.h">วิธีคำนวณ</h2>
+      <dl>
+        <dt data-i18n="cr.s.m.sal">แผนที่ความสนใจที่คาดการณ์</dt>
+        <dd data-i18n="cr.s.m.sal.d">รวมสองแบบจำลองคลาสสิกที่ไม่ต้องใช้ข้อมูลฝึก: Spectral Residual (Hou &amp; Zhang 2007) และความต่างระหว่างจุดกลางกับรอบข้างของความสว่าง สี และทิศทางขอบ ตามแนวคิด Itti, Koch &amp; Niebur (1998) เพิ่มน้ำหนักให้ใบหน้าและข้อความที่ตรวจพบ (คนมักมองสองสิ่งนี้) และแนวโน้มที่คนมองกลางภาพ น้ำหนักปรับจาก 300 ภาพของ MIT1003 แล้ววัดผลบนอีก 703 ภาพ</dd>
+        <dt data-i18n="cr.s.m.ord">ลำดับการมอง</dt>
+        <dd data-i18n="cr.s.m.ord.d">เลือกจุดที่เด่นที่สุด แล้วกดจุดนั้นลงก่อนหาจุดถัดไป (winner-take-all + inhibition of return) เป็นลำดับที่คาดการณ์ ไม่ใช่ลำดับการมองที่วัดได้จริง</dd>
+        <dt data-i18n="cr.s.m.share">ความสนใจต่อพื้นที่ (%)</dt>
+        <dd data-i18n="cr.s.m.share.d">สัดส่วนของแผนที่ความสนใจที่อยู่ในกรอบ ค่าความหนาแน่น 1.0 เท่า = เท่ากับถ้าความสนใจกระจายเท่ากันทั้งภาพ</dd>
+        <dt data-i18n="cr.s.m.cx">ความซับซ้อน (0–100)</dt>
+        <dd data-i18n="cr.s.m.cx.d">70% จากสัดส่วนพิกเซลที่เป็นขอบ (Sobel) และ 30% จากจำนวนสีที่ใช้ เป็นค่าแนวทางที่ไม่ได้เทียบกับคะแนนจากคนจริง แสดงขนาดไฟล์ JPEG ต่อพิกเซลประกอบ ซึ่ง Pieters, Wedel &amp; Batra (2010) ใช้วัดความซับซ้อนเชิงรายละเอียด</dd>
+        <dt data-i18n="cr.s.m.cf">ความสดของสี</dt>
+        <dd data-i18n="cr.s.m.cf.d">ค่า colourfulness ของ Hasler &amp; Süsstrunk (2003) ประมาณ 33 = ปานกลาง 59 = ค่อนข้างสด 82 ขึ้นไป = สดมาก</dd>
+        <dt data-i18n="cr.s.m.txt">ข้อความและความต่างของสี</dt>
+        <dd data-i18n="cr.s.m.txt.d">หากรอบที่มีขอบเข้ม-อ่อนสลับถี่เป็นแถว (ลักษณะของตัวอักษร) แล้วแบ่งสีในกรอบเป็นสองกลุ่ม (ตัวอักษร/พื้น) คำนวณอัตราส่วนความต่างตาม WCAG 2.x ถือว่าเป็น "ตัวใหญ่" เมื่อความสูงของแถวเกิน 4% ของภาพ</dd>
+        <dt data-i18n="cr.s.m.face">ใบหน้าและทิศทางศีรษะ</dt>
+        <dd data-i18n="cr.s.m.face.d">ใช้ TinyFaceDetector และจุดบนใบหน้า 68 จุดของ face-api (ตัวเดียวกับหน้าอื่นของ LENSIQ) ประมาณการหันศีรษะจากตำแหน่งปลายจมูกเทียบกับกึ่งกลางดวงตา แล้วดูว่าหันไปทางพื้นที่ที่ทำเครื่องหมายไว้หรือไม่ ไม่ได้วัดทิศของลูกตา</dd>
+        <dt data-i18n="cr.s.m.pal">ชุดสีหลัก</dt>
+        <dd data-i18n="cr.s.m.pal.d">จัดกลุ่มสี (k-means ในปริภูมิสี CIELAB) แล้วรวมกลุ่มที่ใกล้กัน จัดเข้าหมวดสีจากความสว่าง ความอิ่ม และเฉดสี</dd>
+        <dt data-i18n="cr.s.m.cmp">คะแนนเปรียบเทียบ</dt>
+        <dd data-i18n="cr.s.m.cmp.d">ถ่วงน้ำหนัก: ความสนใจตกที่พื้นที่สำคัญเทียบกับขนาดพื้นที่ 35% พื้นที่สำคัญอยู่ใน 2 ลำดับแรก 20% ข้อความผ่านเกณฑ์ 20% ความไม่รก 15% ปริมาณข้อความ 10% ต่างกันไม่ถึง 6 คะแนนถือว่าสูสี</dd>
+      </dl>
+    </div>
+    <div class="card">
+      <h2 data-i18n="cr.s.acc.h">ผลวัดความแม่นยำ (MIT1003)</h2>
+      <p data-i18n="cr.s.acc.p">MIT1003 (Judd et al. 2009): 1,003 ภาพ ผู้ชม 15 คนต่อภาพ ดูภาพละ 3 วินาที ใช้เพื่อวัดผลเท่านั้น ไม่ได้รวมไว้ในระบบ ปรับน้ำหนักจาก 300 ภาพ วัดผลจากอีก 703 ภาพ ที่ความละเอียดแผนที่ด้านยาว 128 พิกเซล</p>
+      <div class="table-wrap"><table class="acc-table">
+        <thead><tr><th data-i18n="cr.s.acc.m">แบบจำลอง</th><th class="n">AUC-Judd</th><th class="n">AUC-Borji</th><th class="n">NSS</th><th class="n">CC</th></tr></thead>
+        <tbody>
+          <tr><td data-i18n="cr.s.acc.r1">หน้านี้ (รวมทุกส่วน)</td><td class="n">0.83</td><td class="n">0.81</td><td class="n">1.59</td><td class="n">0.47</td></tr>
+          <tr><td data-i18n="cr.s.acc.r2">ทายตรงกลางภาพอย่างเดียว</td><td class="n">0.82</td><td class="n">0.81</td><td class="n">1.25</td><td class="n">0.40</td></tr>
+          <tr><td data-i18n="cr.s.acc.r3">ไม่ใช้แนวโน้มมองกลางภาพ</td><td class="n">0.72</td><td class="n">0.71</td><td class="n">0.94</td><td class="n">0.26</td></tr>
+          <tr><td data-i18n="cr.s.acc.r4">เฉพาะภาพที่มีใบหน้า (74 ภาพ)</td><td class="n">0.88</td><td class="n">0.86</td><td class="n">2.25</td><td class="n">0.59</td></tr>
+          <tr><td data-i18n="cr.s.acc.r5">ภาพเดียวกัน ไม่เพิ่มน้ำหนักใบหน้า</td><td class="n">0.83</td><td class="n">0.82</td><td class="n">1.41</td><td class="n">0.39</td></tr>
+        </tbody>
+      </table></div>
+      <p class="hint" data-i18n="cr.s.acc.note">AUC 0.5 = สุ่ม 1.0 = สมบูรณ์ NSS 0 = สุ่ม รายละเอียดและผลแยกส่วนอยู่ใน ACCURACY.md §10 ภาพโฆษณาและบรรจุภัณฑ์ต่างจากภาพทั่วไปใน MIT1003 ผลจริงกับงานของคุณอาจต่างไป</p>
+    </div>
+    <div class="card">
+      <h2 data-i18n="cr.s.lim.h">ข้อจำกัดที่ต้องรู้</h2>
+      <ul>
+        <li data-i18n="cr.s.lim.1">เป็นการคาดการณ์จากลักษณะของภาพ (สี ความต่าง ขอบ ใบหน้า ข้อความ) ไม่รู้ความหมาย ไม่รู้จักแบรนด์ และไม่รู้ว่าผู้ชมกำลังหาอะไร ความสนใจจริงขึ้นกับเป้าหมายของผู้ชมมาก</li>
+        <li data-i18n="cr.s.lim.2">ใช้เทียบชิ้นงานในเงื่อนไขเดียวกันได้ดีกว่าการดูค่าสัมบูรณ์ ภาพที่ต่างขนาดหรือต่างสัดส่วนมากเทียบกันได้ไม่ตรงนัก</li>
+        <li data-i18n="cr.s.lim.3">ชั้นวางสินค้าจริงมีสินค้าคู่แข่งและสภาพแสงที่ภาพถ่ายอาจไม่ได้สะท้อน</li>
+        <li data-i18n="cr.s.lim.4">ความหมายของสีและหลักจิตวิทยาเป็นแนวทางทั่วไป ผลต่างกันตามบุคคล วัฒนธรรม และหมวดสินค้า</li>
+        <li data-i18n="cr.s.lim.5">ตัดสินใจครั้งสำคัญควรทดสอบกับผู้ชมจริง (A/B test, แบบสอบถาม, eye-tracking)</li>
+      </ul>
+      <h2 data-i18n="cr.s.ref.h">แหล่งอ้างอิงวิธีการ</h2>
+      <ul class="refs">
+        <li><a href="https://doi.org/10.1109/CVPR.2007.383267" target="_blank" rel="noopener">Hou &amp; Zhang (2007)</a> — Saliency Detection: A Spectral Residual Approach, CVPR</li>
+        <li><a href="https://doi.org/10.1109/34.730558" target="_blank" rel="noopener">Itti, Koch &amp; Niebur (1998)</a> — A Model of Saliency-Based Visual Attention for Rapid Scene Analysis, IEEE PAMI 20(11)</li>
+        <li><a href="https://doi.org/10.1109/ICCV.2009.5459462" target="_blank" rel="noopener">Judd, Ehinger, Durand &amp; Torralba (2009)</a> — Learning to Predict Where Humans Look, ICCV (MIT1003)</li>
+        <li><a href="https://doi.org/10.1109/TPAMI.2018.2815601" target="_blank" rel="noopener">Bylinskii et al. (2019)</a> — What Do Different Evaluation Metrics Tell Us About Saliency Models? IEEE PAMI 41(3)</li>
+        <li><a href="https://doi.org/10.1167/7.14.4" target="_blank" rel="noopener">Tatler (2007)</a> — The central fixation bias in scene viewing, J. Vision 7(14)</li>
+        <li><a href="https://doi.org/10.1167/12.6.26" target="_blank" rel="noopener">Wang &amp; Pomplun (2012)</a> — The attraction of visual attention to texts in real-world scenes, J. Vision 12(6)</li>
+        <li><a href="https://doi.org/10.1509/jmkg.68.2.36.27794" target="_blank" rel="noopener">Pieters &amp; Wedel (2004)</a> — Attention Capture and Transfer in Advertising: Brand, Pictorial, and Text-Size Effects, J. Marketing 68(2)</li>
+        <li><a href="https://doi.org/10.1117/12.477378" target="_blank" rel="noopener">Hasler &amp; Süsstrunk (2003)</a> — Measuring colourfulness in natural images, Proc. SPIE 5007</li>
+        <li><a href="https://www.w3.org/TR/WCAG21/#contrast-minimum" target="_blank" rel="noopener">WCAG 2.1</a> — 1.4.3 Contrast (Minimum)</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<script src="vendor/face-api.js"></script>
+<script src="lensiq-detect.js?v=2"></script>
+<script src="creative-core.js?v=1"></script>
+<script src="creative-guide.js?v=1"></script>
+<script src="creative.js?v=1"></script>
+<script src="lensiq-config.js?v=3"></script>
+</body>
+</html>

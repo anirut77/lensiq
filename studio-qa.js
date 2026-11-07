@@ -1,4 +1,4 @@
-/* studio-qa.js — ตัวตรวจคุณภาพอัตโนมัติของผลแต่งชุด (studio.html) สำหรับชุดทดสอบภาพถดถอย (ไม่ได้โหลดในหน้าเว็บ ไม่มีผลต่อความเร็ว)
+/* studio-qa.js — ตัวตรวจคุณภาพอัตโนมัติของผลแต่งชุด (studio.html) สำหรับชุดทดสอบภาพถดถอย และโหลดในหน้า studio.html (ชุดตรวจเร็ว evaluate(S, SC, { fast: true }) หลังรวมภาพ เพื่อแจ้งผู้ใช้อย่างสุภาพ)
  * Browser: window.StudioQA · Node: module.exports (ทดสอบใน tests/unit/studio-qa.test.js)
  *
  * แต่ละตัวชี้วัดตรวจความผิดพลาดหนึ่งประเภทที่ผู้ประเมินพบ (คืนค่าตัวเลข + ผ่าน/ไม่ผ่านตามเกณฑ์ที่ปรับเทียบกับการดูภาพด้วยตา):
@@ -224,7 +224,7 @@
   /** บากเป็นขั้น: ขอบซ้าย/ขวาของแถบผิว (หน้า+คอที่มองเห็น) ที่กึ่งกลางคาง กระโดด > 0.06 หน้าในแถวเดียว โดยก่อนและหลังเป็นแนวตั้งตรง
    *  (มุมฉากแบบ "ขั้นบันได" ที่ปลายกราม/บนคอ — กรามโค้งจริงเปลี่ยนต่อเนื่อง ไม่นับ) — คืน { steps, maxJump (fw) } */
   function neckNotch({ keepA, neckA, frontA, W, H, face, collarY, hair = null }) {
-    const fw = face.fw, cx = Math.round(face.chinX != null ? face.chinX : face.cx), y0 = Math.max(0, Math.round(face.chinY - fw * .25)), y1 = Math.min(H - 1, Math.round(collarY));
+    const fw = face.fw, cx = Math.round(face.chinX != null ? face.chinX : face.cx), y0 = Math.max(0, Math.round(face.P && face.P.length >= 17 ? Math.min(face.P[4].y, face.P[12].y) : face.chinY - fw * .25)), y1 = Math.min(H - 1, Math.round(collarY));
     const vis = i => (!hair || hair[i] < .4) && Math.max(keepA[i], neckA[i] * (1 - frontA[i])) > .5, BL = [], BR = []; // ไม่นับผม (ปลายผมตัดตรงเป็นธรรมชาติได้)
     for (let y = y0; y <= y1; y++) {
       if (!vis(y * W + cx)) { BL.push(null); BR.push(null); continue; }
@@ -239,62 +239,96 @@
     }
     return { steps, maxJump: +maxJ.toFixed(3) };
   }
+  /** เศษติดขอบหน้า: ส่วนของ keep (ไม่ใช่ผม) ใต้ระดับตา ใกล้แนวกราม (< 0.15 หน้า) ที่หายไปเมื่อ opening รัศมี 2.5% หน้า
+   *  (เส้นบาง/เศษสว่างข้างกราม-ข้างหู) — คืนพื้นที่ / fw² */
+  function faceIsland({ keepA, hair, W, H, face, SC }) {
+    const fw = face.fw; if (!SC || !SC.erodeR) return 0;
+    const x0 = Math.max(0, Math.floor(face.cx - fw * 1.3)), x1 = Math.min(W, Math.ceil(face.cx + fw * 1.3)), y0 = Math.max(0, Math.floor(face.eyeY)), y1 = Math.min(H, Math.ceil(face.chinY + fw * .9)), bw = x1 - x0, bh = y1 - y0;
+    if (bw < 4 || bh < 4) return 0;
+    const on = new Uint8Array(bw * bh); for (let y = 0; y < bh; y++) for (let x = 0; x < bw; x++) on[y * bw + x] = keepA[(y + y0) * W + x + x0] > .5 ? 1 : 0;
+    const r = Math.max(1, Math.round(fw * .025)), op = SC.dilateR(SC.erodeR(on, bw, bh, r), bw, bh, r + 1);
+    const jaw = face.P && face.P.length >= 17 ? face.P.slice(0, 17) : null;
+    const nearJaw = (x, y) => { if (!jaw) return Math.abs(x - face.cx) > fw * .3 && y > face.eyeY + fw * .2; let d = 1e9; for (const p of jaw) d = Math.min(d, Math.hypot(p.x - x, p.y - y)); return d < fw * .15; };
+    let c = 0;
+    for (let y = 0; y < bh; y += 1) for (let x = 0; x < bw; x++) { const k = y * bw + x, i = (y + y0) * W + x + x0; if (!on[k] || op[k] || (hair && hair[i] > .4)) continue; if (nearJaw(x + x0, y + y0)) c++; }
+    return +(c / (fw * fw)).toFixed(4);
+  }
+  /** คอเรียบ/มืดเมื่อเทียบกับหน้า: ความสว่างเฉลี่ยของคอที่มองเห็น / ผิวหน้าส่วนล่าง และลายผิวความถี่สูง (|L - เฉลี่ย 5×5|) คอ / หน้า
+   *  แผ่นคอสีเข้มเรียบ = lRel ต่ำ และ texRel ต่ำ — คืน { lRel, texRel, area (fw²) } */
+  function neckRel({ out, neckA, frontA, keepA, W, H, face, mono = false }) {
+    const fw = face.fw, cx = face.chinX != null ? face.chinX : face.cx;
+    const hp = i => { const x = i % W, y = (i / W) | 0; if (x < 2 || y < 2 || x >= W - 2 || y >= H - 2) return 0; let s = 0; for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) s += lum(out, i + dy * W + dx); return Math.abs(lum(out, i) - s / 25); };
+    let nL = 0, nT = 0, nc = 0, fL = 0, fT = 0, fc = 0;
+    for (let y = Math.max(2, Math.round(face.chinY + fw * .08)); y < Math.min(H - 2, face.chinY + fw * 1.2); y += 2) for (let x = Math.max(2, Math.round(cx - fw * .5)); x < Math.min(W - 2, cx + fw * .5); x += 2) {
+      const i = y * W + x; if (neckA[i] * (1 - frontA[i]) * (1 - keepA[i]) < .9 || neckA[i - 3] < .9 || neckA[i + 3] < .9 || frontA[i + 3 * W] > .1 || keepA[i - 3 * W] > .1) continue; /* ไม่นับขอบคอ (ขอบตัดกับฉาก/ชุด/คาง) */ nL += lum(out, i); nT += hp(i); nc++;
+    }
+    for (let y = Math.max(2, Math.round(face.chinY - fw * .42)); y < Math.round(face.chinY - fw * .1); y += 2) for (let x = Math.max(2, Math.round(cx - fw * .3)); x < Math.min(W - 2, cx + fw * .3); x += 2) {
+      const i = y * W + x; if (keepA[i] < .9) continue; const l = lum(out, i); if (!mono && (l < 25 || l > 240)) continue; fL += l; fT += hp(i); fc++;
+    }
+    if (nc < 20 || fc < 20) return { lRel: 1, texRel: 1, area: +(nc * 4 / (fw * fw)).toFixed(3) };
+    return { lRel: +((nL / nc) / Math.max(1, fL / fc)).toFixed(3), texRel: +((nT / nc) / Math.max(.1, fT / fc)).toFixed(3), area: +(nc * 4 / (fw * fw)).toFixed(3) };
+  }
   /** เกณฑ์ผ่าน (ปรับเทียบกับการดูภาพ) */
-  const LIMITS = { hairCutRows: 3, neckBgPct: 1.2, neckDE: 16, neckL: [.2, 1.2], neckWide: .75, neckLen: .75, bgChunk: .03, hemRough: .045, bodyWide: 3.75, hemHolePct: .3, shoulderDy: .2, shoulderRaised: .25, accessory: .012, skinIsland: .012, handsOrphan: 0, floatingHand: .02, neckJoinGap: 2.5, neckJoinFringe: 2, neckFlatArea: .06, neckFlatCv: .045, stray: .01, leftover: .12, neckNotch: .25 };
+  const LIMITS = { hairCutRows: 3, neckBgPct: 1.2, neckDE: 16, neckL: [.2, 1.2], neckWide: .75, neckLen: .75, bgChunk: .03, hemRough: .045, bodyWide: 3.75, hemHolePct: .3, shoulderDy: .2, shoulderRaised: .25, accessory: .012, skinIsland: .012, handsOrphan: 0, floatingHand: .02, neckJoinGap: 2.5, neckJoinFringe: 2, neckFlatArea: .06, neckFlatCv: .045, stray: .01, leftover: .12, neckNotch: .25, faceIsland: .004, neckRelArea: .05, neckRelL: .45, neckRelTex: .45 };
   function verdict(m, L = LIMITS) {
     const f = [];
-    if (m.hairCut.rows > L.hairCutRows) f.push("hair-cut");
-    if (m.neck.bgPct > L.neckBgPct) f.push("neck-hole");
-    if (m.neck.visible > 10 && (m.neck.dE > L.neckDE || m.neck.lRatio < L.neckL[0] || m.neck.lRatio > L.neckL[1])) f.push("neck-colour");
-    if (m.neck.wide > L.neckWide) f.push("neck-box");
-    if (m.neck.len > L.neckLen) f.push("neck-long");
+    if (m.hairCut && m.hairCut.rows > L.hairCutRows) f.push("hair-cut");
+    if (m.neck && m.neck.bgPct > L.neckBgPct) f.push("neck-hole");
+    if (m.neck && m.neck.visible > 10 && (m.neck.dE > L.neckDE || m.neck.lRatio < L.neckL[0] || m.neck.lRatio > L.neckL[1])) f.push("neck-colour");
+    if (m.neck && m.neck.wide > L.neckWide) f.push("neck-box");
+    if (m.neck && m.neck.len > L.neckLen) f.push("neck-long");
     if (m.bgChunk > L.bgChunk) f.push("bg-chunk");
-    if (m.hem.rough > L.hemRough || m.hem.holePct > L.hemHolePct) f.push("hem");
-    if (m.hem.wide > L.bodyWide) f.push("balloon");
-    if (m.shoulder.n >= 2 && m.shoulder.dy > L.shoulderDy) f.push("shoulder-line");
-    if (m.shoulder.raised > L.shoulderRaised) f.push("shoulder-raised");
+    if (m.hem && (m.hem.rough > L.hemRough || m.hem.holePct > L.hemHolePct)) f.push("hem");
+    if (m.hem && m.hem.wide > L.bodyWide) f.push("balloon");
+    if (m.shoulder && m.shoulder.n >= 2 && m.shoulder.dy > L.shoulderDy) f.push("shoulder-line");
+    if (m.shoulder && m.shoulder.raised > L.shoulderRaised) f.push("shoulder-raised");
     if (m.accessory > L.accessory) f.push("accessory");
     if (m.skinIsland > L.skinIsland) f.push("skin-island");
-    if (m.hands.orphan > L.handsOrphan) f.push("hand-no-sleeve");
+    if (m.hands && m.hands.orphan > L.handsOrphan) f.push("hand-no-sleeve");
     if (m.floatingHand > L.floatingHand) f.push("floating-hand");
     if (m.neckJoin && (m.neckJoin.gapPct > L.neckJoinGap || m.neckJoin.fringePct > L.neckJoinFringe)) f.push("neck-join");
     if (m.neckFlat && m.neckFlat.area > L.neckFlatArea && m.neckFlat.cv < L.neckFlatCv) f.push("neck-flat");
     if (m.neckNotch && m.neckNotch.maxJump > L.neckNotch) f.push("neck-notch");
+    if (m.faceIsland > L.faceIsland) f.push("face-island");
+    if (m.neckRel && m.neckRel.area > L.neckRelArea && m.neckRel.lRel < L.neckRelL && m.neckRel.texRel < L.neckRelTex) f.push("neck-flat-rel");
     if (m.stray > L.stray) f.push("stray");
     if (m.leftover > L.leftover) f.push("leftover");
     return f;
   }
 
   /** ประเมินสถานะของ studio.js (window.__studio.state) หลังรวมภาพ — ต้องมี StudioCore */
-  function evaluate(S, SC = root.StudioCore) {
+  /** ชุดตรวจเร็วสำหรับหน้าเว็บ (หลังรวมภาพทุกครั้ง): รอยต่อคอ/กราม เศษขอบหน้า คอเรียบ/มืด เกาะหลุด รูในคอ — ไม่รวมตัวตรวจที่ช้า (ผม ชายชุด ไหล่ มือ) */
+  const FAST = new Set(["neck", "neckJoin", "neckNotch", "faceIsland", "neckRel", "stray"]);
+  function evaluate(S, SC = root.StudioCore, { fast = false } = {}) {
     const W = S.W, H = S.H, n = W * H, f = S.face, L = S.layers, fit = S.cache.fit, front = S.cache.front, neck = S.cache.neck;
     const frontA = new Float32Array(n); if (front) for (let i = 0; i < n; i++) frontA[i] = front[i * 4 + 3] / 255;
     const neckA = neck ? neck.alpha : new Float32Array(n), keepA = S.keepA, fg = S.fgAlpha, src = S.px, out = S.out, labOf = SC.rgbToLab;
-    const hw = S.headwear || null, hairK = new Float32Array(n); for (let i = 0; i < n; i++) hairK[i] = L.hair[i] * S.alpha[i];
-    let hairLab = null; { let a = 0, b = 0, c = 0, k = 0; for (let y = 0; y < Math.round(f.eyeY - f.fw * .4); y += 2) for (let x = 0; x < W; x += 2) { const i = y * W + x; if (L.hair[i] > .6 && S.alpha[i] > .8) { const q = labOf(src[i * 4], src[i * 4 + 1], src[i * 4 + 2]); a += q[0]; b += q[1]; c += q[2]; k++; } } if (k > 20) hairLab = [a / k, b / k, c / k]; }
+    const hw = S.headwear || null, hairK = fast ? null : new Float32Array(n); if (hairK) for (let i = 0; i < n; i++) hairK[i] = L.hair[i] * S.alpha[i];
+    let hairLab = null; if (!fast) { let a = 0, b = 0, c = 0, k = 0; for (let y = 0; y < Math.round(f.eyeY - f.fw * .4); y += 2) for (let x = 0; x < W; x += 2) { const i = y * W + x; if (L.hair[i] > .6 && S.alpha[i] > .8) { const q = labOf(src[i * 4], src[i * 4 + 1], src[i * 4 + 2]); a += q[0]; b += q[1]; c += q[2]; k++; } } if (k > 20) hairLab = [a / k, b / k, c / k]; }
     const skinLab = S.harm && S.harm.skin ? S.harm.skin.mean : null, mono = !!(S.harm && S.harm.mono);
     const collarY = neck && neck.yCollar != null ? neck.yCollar : f.chinY + f.fw * .4;
-    const m = {
-      hairCut: hairCut(keepA, src, S.alpha, W, H, f),
-      neck: neckCheck({ out, fg, neckA, frontA, keepA, W, H, face: f, collarY, skinLab, mono, labOf }),
-      bgChunk: bgChunk({ keepA, src, W, H, face: f, hairLab, labOf, hw }),
-      hem: hemCheck({ frontA, fg, W, H, fit }),
-      shoulder: shoulderCheck({ frontA, W, H, fit, samples: S.fitAuto && !S.manual ? S.fitAuto.samples : null, hair: hairK }),
-      accessory: accessory({ keepA, src, W, H, face: f, jaw: SC.jawCurve(f), hw, mono, skinY: S.harm && S.harm.faceLum || 140, hair: L.hair }),
-      skinIsland: skinIsland({ keepA, frontA, hands: S.handsUsed || S.hands, hair: L.hair, W, H, face: f, hw }),
-      hands: handsCheck({ hands: S.handsUsed || null, W, H, fit, arms: S.cache.clip && S.cache.clip.arms }),
-      floatingHand: floatingHand({ keepA, frontA, W, H, face: f, hands: S.hands }),
-      neckJoin: neckJoin({ fg, frontA, keepA, W, H, face: f, fit, neckA, hair: L.hair }),
-      neckFlat: neckFlat({ out, neckA, frontA, keepA, W, H, face: f }),
-      neckNotch: hw ? { steps: 0, maxJump: 0 } : neckNotch({ keepA, neckA, frontA, W, H, face: f, collarY, hair: L.hair }), // ผ้าคลุมศีรษะ: ขอบผ้าไม่ใช่รอยบาก
-      stray: strayParts({ fg, W, H, face: f }),
-      leftover: leftover({ keepA, src, W, H, face: f, hands: S.handsUsed || S.hands, hair: L.hair })
-    };
+    const m = {}, want = k => !fast || FAST.has(k);
+    if (want("hairCut")) m.hairCut = hairCut(keepA, src, S.alpha, W, H, f);
+    if (want("neck")) m.neck = neckCheck({ out, fg, neckA, frontA, keepA, W, H, face: f, collarY, skinLab, mono, labOf });
+    if (want("bgChunk")) m.bgChunk = bgChunk({ keepA, src, W, H, face: f, hairLab, labOf, hw });
+    if (want("hem")) m.hem = hemCheck({ frontA, fg, W, H, fit });
+    if (want("shoulder")) m.shoulder = shoulderCheck({ frontA, W, H, fit, samples: S.fitAuto && !S.manual ? S.fitAuto.samples : null, hair: hairK });
+    if (want("accessory")) m.accessory = accessory({ keepA, src, W, H, face: f, jaw: SC.jawCurve(f), hw, mono, skinY: S.harm && S.harm.faceLum || 140, hair: L.hair });
+    if (want("skinIsland")) m.skinIsland = skinIsland({ keepA, frontA, hands: S.handsUsed || S.hands, hair: L.hair, W, H, face: f, hw });
+    if (want("hands")) m.hands = handsCheck({ hands: S.handsUsed || null, W, H, fit, arms: S.cache.clip && S.cache.clip.arms });
+    if (want("floatingHand")) m.floatingHand = floatingHand({ keepA, frontA, W, H, face: f, hands: S.hands });
+    if (want("neckJoin")) m.neckJoin = neckJoin({ fg, frontA, keepA, W, H, face: f, fit, neckA, hair: L.hair });
+    if (want("neckFlat")) m.neckFlat = neckFlat({ out, neckA, frontA, keepA, W, H, face: f });
+    if (want("faceIsland")) m.faceIsland = faceIsland({ keepA, hair: L.hair, W, H, face: f, SC });
+    if (want("neckRel")) m.neckRel = neckRel({ out, neckA, frontA, keepA, W, H, face: f, mono });
+    if (want("neckNotch")) m.neckNotch = hw ? { steps: 0, maxJump: 0 } : neckNotch({ keepA, neckA, frontA, W, H, face: f, collarY, hair: L.hair });
+    if (want("stray")) m.stray = strayParts({ fg, W, H, face: f });
+    if (want("leftover")) m.leftover = leftover({ keepA, src, W, H, face: f, hands: S.handsUsed || S.hands, hair: L.hair });
     const fails = verdict(m);
     return { pass: !fails.length, fails, m };
   }
 
-  const api = { hairCut, neckNotch, neckCheck, bgChunk, hemCheck, shoulderCheck, accessory, skinIsland, handsCheck, floatingHand, neckJoin, neckFlat, strayParts, leftover, verdict, evaluate, LIMITS };
+  const api = { hairCut, neckNotch, faceIsland, neckRel, neckCheck, bgChunk, hemCheck, shoulderCheck, accessory, skinIsland, handsCheck, floatingHand, neckJoin, neckFlat, strayParts, leftover, verdict, evaluate, LIMITS };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") root.StudioQA = api;
 })(typeof window !== "undefined" ? window : globalThis);

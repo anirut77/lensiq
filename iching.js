@@ -80,9 +80,11 @@
         advice: [h.advice]
       };
     };
+    // กว้าที่ตำราอ่านว่าเป็นช่วงติดขัด (屯 訟 否 剝 坎 明夷 蹇 困) — บอกตรง ๆ อย่างนุ่มนวล พร้อมสิ่งที่ทำได้
+    var CAUTION_HEX = [3, 6, 12, 23, 29, 36, 39, 47];
     var pm = hexM(P);
     items.push({ id: "hex." + c.primary, group: "กว้าหลัก", label: proseLabel(c.primary), short: "กว้า" + P.th, evidence: imageOf(c.lower, c.upper) + " · " + fo.rule,
-      strength: fo.hex === "relating" ? 0.86 : 0.97, tags: Object.keys(pm), meanings: pm });
+      strength: fo.hex === "relating" ? 0.86 : 0.97, tags: Object.keys(pm), meanings: pm, tone: CAUTION_HEX.indexOf(c.primary) >= 0 ? "caution" : "favourable" });
     var lo = KB.TRIGRAMS[c.lower], up = KB.TRIGRAMS[c.upper];
     items.push({ id: "tri.lower." + c.lower, group: "ตัวตนภายใน", label: "ตรีแกรมล่าง" + lo.th + " (" + lo.zh + ")", short: "ตรีแกรม" + lo.th, evidence: lo.q,
       strength: 0.72, tags: ["personality"], meanings: { personality: lo.inner.slice() } });

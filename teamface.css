@@ -1,0 +1,70 @@
+/* teamface.css — โหงวเฮ้งทีม (teamface.html). Page-scoped under .tf; shared tokens come from styles.css. */
+.tf-body{padding-bottom:84px}
+.tf-banner{position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;gap:10px;align-items:center;justify-content:center;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:#7a1f12;color:#fff;font-size:.9rem;font-weight:500;line-height:1.45;text-align:center;box-shadow:0 -6px 20px rgba(0,0,0,.18)}
+.tf-banner svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.tf{max-width:1100px;margin:auto;padding:36px 5vw 40px}
+.tf [hidden]{display:none!important}
+.tf h1{font-size:clamp(1.6rem,3.5vw,2.3rem);text-align:center;color:var(--navy);font-weight:500;margin:6px 0 8px}
+.tf .lead{text-align:center;margin:0 auto 14px;color:var(--muted);max-width:720px}
+.tf h2{font-size:1.1rem;color:var(--navy);font-weight:500;text-align:left;margin-bottom:10px}
+.tf h3{font-size:.95rem;color:var(--navy);font-weight:500;margin:14px 0 6px}
+.tf-rules{max-width:760px;margin:0 auto 18px;padding:10px 14px 10px 32px;border-radius:12px;background:#fff7ec;border:1px solid #f1d7b0;font-size:.86rem;color:#5c3d10;display:grid;gap:4px}
+.tf .card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:var(--shadow);margin-bottom:18px;min-width:0}
+.tf-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:20px;align-items:start}
+.tf .cam{position:relative;background:#1b2140;border-radius:12px;overflow:hidden;aspect-ratio:4/3}
+.tf .cam.mirror video,.tf .cam.mirror canvas{transform:scaleX(-1)}
+.tf .cam video,.tf .cam canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.tf .count{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:3rem;color:#fff;background:rgba(14,20,48,.35);font-weight:600}
+.tf .row-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0 4px}
+.tf .upload{position:relative;overflow:hidden;cursor:pointer}
+.tf .upload input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.tf .status{font-size:.85rem;color:var(--muted);min-height:1.2em}
+.tf .status.ok{color:#14653b}.tf .status.err{color:#a12b20}
+.tf .field{display:flex;flex-direction:column;gap:4px;font-size:.88rem;margin:0 0 12px}
+.tf .field input{font:inherit;min-height:44px;padding:8px 12px;border:1.5px solid var(--line);border-radius:10px;width:100%;min-width:0}
+.tf label.check{display:flex;gap:10px;align-items:flex-start;font-size:.9rem;min-height:44px;padding:10px 0}
+.tf label.check input{width:22px;height:22px;flex:none;margin-top:1px}
+.tf .consent{background:#f4f1ff;border-radius:12px;padding:10px 12px!important;margin-bottom:12px}
+.tf .btn.big{width:100%;min-height:52px;font-size:1.05rem}
+.tf .btn:disabled{opacity:.45;cursor:not-allowed}
+.tf .btn.danger{color:#c0392b;border-color:#c0392b}.tf .btn.danger:hover{background:#c0392b;color:#fff}
+.tf .hint{font-size:.84rem;color:var(--muted);margin-top:8px}
+
+.tf-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:18px}
+.tcard{background:#fff;border:1px solid var(--line);border-top:5px solid var(--c);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);font-size:.88rem;min-width:0}
+.tcard .th{display:flex;gap:10px;align-items:center}
+.tcard .th>div{flex:1;min-width:0}
+.tcard .ic{width:42px;height:42px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;background:var(--c);color:#fff;flex:none}
+.tcard .ic svg{width:24px;height:24px}
+.tcard .who{font-size:.78rem;color:var(--muted);overflow-wrap:anywhere}
+.tcard h3{margin:0;font-size:1.1rem;color:var(--navy)}
+.tcard .del{border:0;background:none;min-width:44px;min-height:44px;font-size:1.3rem;color:var(--muted)}
+.tcard .tag{font-weight:500;margin:10px 0 6px}
+.tcard .str{padding-left:18px;margin-bottom:6px}
+.tcard p{margin:4px 0}
+.tcard .sec,.tcard .el{color:var(--muted);font-size:.82rem}
+.tcard .ice{background:var(--bg);border-radius:10px;padding:8px 10px;margin-top:8px}
+
+.tf-sum h2{font-size:1.3rem}
+.tf .eyebrow{margin-bottom:4px}
+.tf .bars{list-style:none;padding:0;display:grid;gap:8px;margin:12px 0}
+.tf .bars li{display:grid;grid-template-columns:minmax(0,9em) minmax(0,1fr) 2em;gap:10px;align-items:center;font-size:.86rem}
+.tf .bl{display:flex;gap:6px;align-items:center;color:var(--c);font-weight:500;min-width:0}
+.tf .bl svg{width:18px;height:18px;flex:none}
+.tf .bar{height:12px;border-radius:99px;background:var(--alt);overflow:hidden}
+.tf .bar i{display:block;height:100%;background:var(--c);border-radius:99px}
+.tf .bn{text-align:right;font-variant-numeric:tabular-nums}
+.tf-sum ul:not(.bars){padding-left:18px;font-size:.88rem;display:grid;gap:4px}
+.tf-how summary{cursor:pointer;font-weight:500;color:var(--navy);min-height:44px;display:flex;align-items:center}
+.tf-how p{font-size:.86rem;color:var(--muted);margin-top:8px}
+
+@media (max-width:760px){
+  .tf{padding:24px 16px 32px}
+  .tf-grid{grid-template-columns:minmax(0,1fr)}
+  .tf-banner{font-size:.82rem;justify-content:flex-start;text-align:left}
+}
+@media print{
+  .nav,#siteNav,.tf-stage,.tf .row-actions,.tf-how,.tcard .del,.lq-crumbs,footer{display:none!important}
+  .tf-banner{position:static;box-shadow:none}
+  .tf-body{padding-bottom:0;background:#fff}
+}

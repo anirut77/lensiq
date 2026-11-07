@@ -6,17 +6,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
-<title data-i18n="studio.title">สตูดิโอแต่งชุด AI | LENSIQ</title>
+<title data-i18n="studio.title">สตูดิโอแต่งชุด | LENSIQ</title>
 <meta name="description" data-i18n-attr="content:studio.desc" content="แต่งชุดจากเทมเพลตให้เหมือนใส่จริง ตัดพื้นหลัง เกลาขอบผม ผสานแสงสี รีทัชผิว และทำรูปติดบัตร ประมวลผลบนเครื่องทั้งหมด">
 <link rel="stylesheet" href="styles.css?v=8">
-<link rel="stylesheet" href="studio.css?v=2">
+<link rel="stylesheet" href="studio.css?v=3">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=12"></script>
 
 <main class="st">
-  <h1 data-i18n="studio.h1">สตูดิโอแต่งชุด AI</h1>
+  <h1 data-i18n="studio.h1">สตูดิโอแต่งชุด</h1>
   <p class="lead" data-i18n="studio.lead">อัปโหลดรูปหรือถ่ายจากกล้อง ระบบตัดพื้นหลัง เกลาขอบผม แล้วสวมชุดจากเทมเพลตให้เข้ากับไหล่และคอ ปรับแสงสีให้กลมกลืนเหมือนใส่ถ่ายจริง พร้อมรีทัชแบบเป็นธรรมชาติ</p>
   <div class="engine" id="stEngine" role="status">กำลังเตรียมระบบ...</div>
 
@@ -51,6 +51,7 @@
           <div class="st-split-line" id="stSplitLine" aria-hidden="true"></div>
           <div class="st-busy" id="stBusy" hidden data-i18n="studio.busy">กำลังประมวลผล...</div>
         </div>
+        <p class="st-qa" id="stQa" role="status" aria-live="polite" hidden data-i18n="studio.qaWarn">ภาพนี้อาจดูไม่เนียน — ลองถ่ายใหม่หน้าตรง แสงสม่ำเสมอ หรือเลือกชุดอื่น</p>
         <label class="slider st-split" data-i18n="studio.split">ก่อน | หลัง<input type="range" id="stSplit" min="0" max="100" value="0" aria-label="เลื่อนเทียบภาพก่อนและหลัง" data-i18n-attr="aria-label:studio.a.split"></label>
         <div class="seg" id="stMode" role="group" aria-label="เครื่องมือ" data-i18n-attr="aria-label:studio.a.tools">
           <button type="button" data-m="view" class="on" data-i18n="studio.mode.view">ดูภาพ</button>
@@ -163,13 +164,14 @@
 <script src="lensiq-detect.js?v=2"></script>
 <script src="photobooth-layout.js"></script>
 <script src="vendor/ort/ort.wasm.min.js"></script>
-<script src="lensiq-config.js?v=2"></script>
+<script src="lensiq-config.js?v=3"></script>
 <script src="photobooth-hq.js?v=7"></script>
 <script src="photobooth-templates.js?v=1"></script>
 <script src="photobooth-outfits.js?v=3"></script>
 <script src="lensiq-i18n-rt.js?v=1"></script>
 <script src="i18n/zh-studio.js?v=2"></script>
-<script src="studio-core.js?v=3"></script>
-<script src="studio.js?v=3"></script>
+<script src="studio-core.js?v=4"></script>
+<script src="studio-qa.js?v=1"></script>
+<script src="studio.js?v=4"></script>
 </body>
 </html>

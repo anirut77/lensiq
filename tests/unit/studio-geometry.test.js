@@ -188,3 +188,32 @@ test("templateWarp: anchors land on the person's shoulder line; a tilted / asymm
   assert.ok(t.targets[4].y > t.targets[3].y, "tilted: right shoulder lower");
   assert.ok(sd.targets[3].y > w.targets[3].y + 5 && Math.abs(sd.targets[4].y - w.targets[4].y) < 1e-6, "left shoulder lowered only");
 });
+
+test("fillNeckGaps: a small hole enclosed by neck skin is filled; a hole between long hair and the neck takes the real (shadowed) neck pixels from the photo", () => {
+  const W = 200, H = 200, face = { cx: 100, chinX: 100, chinY: 60, eyeY: 30, fw: 80 };
+  const keepA = fill(W, H, (x, y) => (y < 60 && Math.abs(x - 100) < 40 ? 1 : 0)), frontA = fill(W, H, (x, y) => (y > 110 ? 1 : 0));
+  const hair = fill(W, H, (x, y) => (Math.abs(x - 100) > 33 && Math.abs(x - 100) < 60 && y < 112 ? 1 : 0));
+  const mk = () => { const a = fill(W, H, (x, y) => (Math.abs(x - 100) < 22 && y >= 50 && y <= 115 && !(Math.abs(x - 100) < 3 && y > 80 && y < 84) ? 1 : 0)), rgba = new Uint8ClampedArray(W * H * 4); for (let i = 0; i < W * H; i++) { rgba[i * 4] = 180; rgba[i * 4 + 1] = 130; rgba[i * 4 + 2] = 110; rgba[i * 4 + 3] = a[i] * 255; } return { alpha: a, rgba }; };
+  const hairAll = hair;
+  const keepH = new Float32Array(W * H); for (let i = 0; i < W * H; i++) keepH[i] = Math.max(keepA[i], hair[i]);
+  const src = rgbaFill(W, H, () => [90, 60, 50]);
+  const nk = mk(); S.fillNeckGaps(nk, keepH, frontA, W, H, face, 112, [180, 130, 110], hairAll, src);
+  assert.equal(nk.alpha[82 * W + 100], 1, "small notch inside the neck filled");
+  assert.equal(nk.alpha[90 * W + 130], 1, "hair-bounded hole beside the neck filled");
+  assert.deepEqual([...nk.rgba.slice((90 * W + 130) * 4, (90 * W + 130) * 4 + 3)], [90, 60, 50], "with the photo's real neck shadow");
+  const nk2 = mk(); S.fillNeckGaps(nk2, keepH, frontA, W, H, face, 112, [180, 130, 110], null, null);
+  assert.equal(nk2.alpha[82 * W + 100], 1);
+});
+
+test("personLayers: skin under the jaw (side of the neck) is not kept as face, so the face edge follows the jaw instead of a flat cut", () => {
+  const W = 200, H = 220, P = [];
+  for (let k = 0; k < 17; k++) { const a = Math.PI * (k / 16); P.push({ x: 100 - 50 * Math.cos(a), y: 60 + 60 * Math.sin(a) }); }
+  for (let k = 17; k < 68; k++) P.push({ x: 100 + ((k * 7) % 30) - 15, y: 50 + (k % 5) });
+  P[36] = { x: 80, y: 60 }; P[45] = { x: 120, y: 60 };
+  const face = { P, cx: 100, chinX: 100, chinY: 120, eyeY: 60, fw: 100 };
+  const n = W * H, rgba = rgbaFill(W, H, () => [200, 150, 120]), alpha = new Float32Array(n).fill(1);
+  const Pp = { head: fill(W, H, (x, y) => (y < 150 && Math.abs(x - 100) < 55 ? 1 : 0)), hair: new Float32Array(n), neck: new Float32Array(n), cloth: fill(W, H, (x, y) => (y >= 150 ? 1 : 0)) };
+  const L = S.personLayers(rgba, alpha, W, H, face, Pp);
+  assert.ok(L.keep[100 * W + 100] > .9, "face centre kept");
+  assert.ok(L.keep[135 * W + 52] < .1, "skin below the jaw at the side is not face: " + L.keep[135 * W + 52]);
+});

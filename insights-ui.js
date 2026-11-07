@@ -18,7 +18,7 @@ if (typeof document !== "undefined") (() => {
   const MODULES = [
     { id: "booth", name: "วิเคราะห์บูธ", href: "booth.html", what: "นับผู้เข้าชม เวลาหยุดชม และผู้ร่วมกิจกรรม" },
     { id: "store", name: "วิเคราะห์หน้าร้าน", href: "store.html", what: "นับคนเข้า–ออก คิว และโซนยอดนิยม" },
-    { id: "sg", name: "ป้ายโฆษณาอัจฉริยะ", href: "signage.html", what: "วัดคนผ่านจอและคนที่หันมอง" },
+    { id: "sg", name: "ป้ายโฆษณาดิจิทัล", href: "signage.html", what: "วัดคนผ่านจอและคนที่หันมอง" },
     { id: "co", name: "สแกนสินค้าด้วยกล้อง", href: "checkout.html", what: "คิดเงินแบบบริการตนเองและรายงานยอดขาย" },
     { id: "cx", name: "จดจำลูกค้า", href: "customers.html", what: "จำลูกค้าที่ยินยอมและประวัติการสั่ง" },
     { id: "neuro", name: "วิเคราะห์อารมณ์", href: "neuro.html", what: "ทดสอบโฆษณาและบรรจุภัณฑ์จากสีหน้า" },

@@ -1,0 +1,49 @@
+# backend/wrangler.toml — LENSIQ API Worker (Cloudflare Workers + D1). See docs/BACKEND.md for the deploy steps.
+# Secrets are NEVER written here. Set them with `wrangler secret put <NAME>` (list in docs/BACKEND.md):
+#   ADMIN_BOOTSTRAP_TOKEN  one-time owner bootstrap token (>= 32 chars; delete after the owner account exists)
+#   SECRETS_KEK            base64 of 32 random bytes — AES-GCM key-encryption key (TOTP secret, admin-set API key)
+#   ANTHROPIC_API_KEY      preferred way to give the fortune writing assistant its key
+#   OPN_SECRET_KEY / OPN_PUBLIC_KEY / OPN_WEBHOOK_SECRET   Opn (Omise) TEST keys until go-live
+name = "lensiq-api"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+[vars]
+# Origins (scheme://host[:port]) allowed to call the public API (fortune, analytics, billing). Comma separated.
+ALLOWED_ORIGINS = "https://example.github.io"
+# Origins allowed to use the admin API (cookie / bearer). Defaults to ALLOWED_ORIGINS when empty.
+ADMIN_ORIGINS = ""
+# FREE service today: every feature unlocked, quotas counted but not enforced.
+FREE_MODE = "true"
+# Public PromptPay checkout. Keep "false" until pricing, terms and VAT registration are final.
+BILLING_ENABLED = "false"
+# Refuse non-test Opn keys unless this is "true" (go-live switch).
+OPN_ALLOW_LIVE = "false"
+# Thai VAT: only a VAT-registered seller (turnover > 1.8 M THB/yr or voluntary) may charge VAT / issue a tax invoice.
+VAT_REGISTERED = "false"
+SELLER_NAME = ""
+SELLER_TAX_ID = ""
+SELLER_ADDRESS = ""
+SELLER_BRANCH = "สำนักงานใหญ่"
+# Retention (days). Raw analytics events are purged after RAW_EVENT_DAYS; daily aggregates are kept.
+RAW_EVENT_DAYS = "90"
+AUDIT_DAYS = "400"
+WEBHOOK_PAYLOAD_DAYS = "90"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "lensiq"
+# Replace with the id printed by `wrangler d1 create lensiq` (not a secret).
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+[triggers]
+# Daily maintenance at 03:17 UTC (10:17 Asia/Bangkok): aggregate analytics, purge expired raw data, rotate salts.
+crons = ["17 3 * * *"]
+
+[observability]
+enabled = true
+# Logs never contain facts, events, keys, passwords or IPs (see src/util.js log()).
+head_sampling_rate = 1

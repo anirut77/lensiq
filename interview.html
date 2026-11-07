@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="iv.s.pagetitle">ชุดสัมภาษณ์แบบมีโครงสร้าง | LENSIQ</title>
+<meta name="description" content="ชุดเครื่องมือสัมภาษณ์งานแบบมีโครงสร้าง: คำถาม STAR และสถานการณ์ เกณฑ์ให้คะแนน BARS ผู้สัมภาษณ์หลายคนให้คะแนนอิสระ สรุปความสอดคล้อง และโหมดฝึกซ้อม ประมวลผลในเบราว์เซอร์">
+<link rel="stylesheet" href="styles.css?v=8">
+<link rel="stylesheet" href="interview.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=12"></script>
+<script src="i18n/zh-interview.js?v=1"></script>
+
+<main class="iv" id="ivApp">
+  <h1 data-i18n="iv.s.h1">ชุดสัมภาษณ์แบบมีโครงสร้าง</h1>
+  <p class="lead" data-i18n="iv.s.lead">คำถามเดียวกันสำหรับผู้สมัครทุกคน เกณฑ์ให้คะแนนที่บรรยายพฤติกรรม ผู้สัมภาษณ์ให้คะแนนแยกกันก่อนหารือ แล้วดูว่าความเห็นตรงกันแค่ไหน</p>
+  <p class="iv-principle" role="note"><b data-i18n="iv.s.prin1">เครื่องมือนี้ไม่ตัดสินใครและไม่ตัดสินใจแทนใคร:</b> <span data-i18n="iv.s.prin2">ทำหน้าที่จัดคำถาม รวบรวมคะแนนและหลักฐานที่ผู้สัมภาษณ์บันทึกเอง และแสดงข้อสังเกตเท่านั้น ผู้สัมภาษณ์เป็นผู้พิจารณาและตัดสินใจทั้งหมด</span></p>
+  <p class="iv-privacy" role="note"><b data-i18n="iv.s.priv1">ข้อมูลอยู่ในหน้านี้เท่านั้น:</b> <span data-i18n="iv.s.priv2">ไม่อัปโหลด ไม่บันทึกลงเครื่อง ไม่บันทึกภาพหรือเสียง ปิดหน้าแล้วข้อมูลหายไป — พิมพ์หรือบันทึกสรุปเป็น PDF ก่อนปิด</span></p>
+
+  <div class="tabs" role="tablist" aria-label="ส่วนของหน้า" data-i18n-attr="aria-label:iv.s.tabs">
+    <button class="tab active" type="button" role="tab" aria-selected="true" aria-controls="pane-setup" id="tab-setup" data-t="setup" data-i18n="iv.s.t1">1. ตั้งค่า</button>
+    <button class="tab" type="button" role="tab" aria-selected="false" aria-controls="pane-questions" id="tab-questions" data-t="questions" data-i18n="iv.s.t2">2. คำถาม</button>
+    <button class="tab" type="button" role="tab" aria-selected="false" aria-controls="pane-score" id="tab-score" data-t="score" data-i18n="iv.s.t3">3. ให้คะแนน</button>
+    <button class="tab" type="button" role="tab" aria-selected="false" aria-controls="pane-summary" id="tab-summary" data-t="summary" data-i18n="iv.s.t4">4. สรุป</button>
+    <button class="tab" type="button" role="tab" aria-selected="false" aria-controls="pane-delivery" id="tab-delivery" data-t="delivery" data-i18n="iv.s.t5">ข้อสังเกตการนำเสนอ</button>
+    <button class="tab" type="button" role="tab" aria-selected="false" aria-controls="pane-practice" id="tab-practice" data-t="practice" data-i18n="iv.s.t6">โหมดฝึกซ้อม</button>
+    <button class="tab" type="button" role="tab" aria-selected="false" aria-controls="pane-about" id="tab-about" data-t="about" data-i18n="iv.s.t7">หลักการ</button>
+  </div>
+
+  <!-- ===== 1. setup ===== -->
+  <section class="pane" id="pane-setup" role="tabpanel" aria-labelledby="tab-setup">
+    <div class="grid2">
+      <div class="card">
+        <h2 data-i18n="iv.s.role.h">ตำแหน่งงานและสมรรถนะ</h2>
+        <label class="field"><span data-i18n="iv.s.role.l">แม่แบบตำแหน่งงาน</span>
+          <select id="ivRole">
+            <option value="sales" data-i18n="iv.r.sales">งานขาย</option>
+            <option value="service" data-i18n="iv.r.service">งานบริการลูกค้า</option>
+            <option value="admin" data-i18n="iv.r.admin">งานธุรการ/สนับสนุน</option>
+            <option value="tech" data-i18n="iv.r.tech">งานเทคนิค/ไอที</option>
+            <option value="manager" data-i18n="iv.r.manager">หัวหน้างาน/ผู้จัดการ</option>
+            <option value="custom" data-i18n="iv.r.custom">กำหนดเอง</option>
+          </select>
+        </label>
+        <p class="hint" data-i18n="iv.s.comps.hint">เลือกสมรรถนะที่จำเป็นต่องานนี้จริง (แนะนำ 4–6 ข้อ) ผู้สมัครทุกคนในตำแหน่งเดียวกันควรได้ชุดเดียวกัน</p>
+        <div class="comps" id="ivComps" role="group" aria-label="สมรรถนะที่ใช้" data-i18n-attr="aria-label:iv.s.comps.g"></div>
+        <label class="field"><span data-i18n="iv.s.cand.l">รหัสผู้สมัคร (ไม่ต้องใส่ชื่อ)</span>
+          <input id="ivCand" type="text" maxlength="24" autocomplete="off" placeholder="เช่น C-014" data-i18n-attr="placeholder:iv.s.cand.ph">
+        </label>
+      </div>
+      <div class="card">
+        <h2 data-i18n="iv.s.who.h">ผู้สัมภาษณ์</h2>
+        <p class="hint" data-i18n="iv.s.who.hint">แนะนำ 2–3 คน แต่ละคนให้คะแนนแยกกันโดยไม่เห็นคะแนนของคนอื่น ใช้ชื่อย่อได้</p>
+        <form class="row" id="ivWhoForm">
+          <input id="ivWho" type="text" maxlength="40" autocomplete="off" placeholder="ชื่อหรืออักษรย่อ" data-i18n-attr="placeholder:iv.s.who.ph;aria-label:iv.s.who.ph" aria-label="ชื่อหรืออักษรย่อ">
+          <button class="btn primary" type="submit" id="ivAddWho" data-i18n="iv.s.who.add">เพิ่ม</button>
+        </form>
+        <ul class="who-list" id="ivWhoList"></ul>
+        <h3 data-i18n="iv.s.bias.h">เตือนความลำเอียงก่อนเริ่ม</h3>
+        <ul class="bias" id="ivBias"></ul>
+      </div>
+    </div>
+    <div class="card">
+      <h2 data-i18n="iv.s.law.h">ตรวจคำถามที่ไม่ควรถาม (ประเทศไทย)</h2>
+      <p class="hint" data-i18n="iv.s.law.hint">หลีกเลี่ยงคำถามที่ไม่เกี่ยวกับความสามารถในการทำงานและอาจนำไปสู่การเลือกปฏิบัติ ติ๊กเมื่อผู้สัมภาษณ์ทุกคนทบทวนแล้ว — ไม่ใช่คำแนะนำทางกฎหมาย ควรให้ฝ่ายบุคคล/กฎหมายของท่านยืนยัน</p>
+      <p class="law-count" id="ivLawCount" role="status"></p>
+      <ul class="law" id="ivLaw"></ul>
+    </div>
+    <div class="next-row"><button class="btn primary" type="button" data-goto="questions" data-i18n="iv.s.toQ">ไปที่คำถาม</button></div>
+  </section>
+
+  <!-- ===== 2. questions ===== -->
+  <section class="pane" id="pane-questions" role="tabpanel" aria-labelledby="tab-questions" hidden>
+    <div class="card star">
+      <h2 data-i18n="iv.s.star.h">ถามเจาะแบบ STAR (ใช้กับคำถามเชิงพฤติกรรม)</h2>
+      <ul id="ivStar"></ul>
+      <p class="hint" data-i18n="iv.s.star.hint">ถามทุกคนด้วยคำถามหลักเดียวกัน ถามเจาะเพื่อให้ได้ตัวอย่างจริง จดสิ่งที่ผู้สมัครพูดและทำ ไม่ใช่ความรู้สึกของผู้สัมภาษณ์</p>
+    </div>
+    <div id="ivQList"></div>
+  </section>
+
+  <!-- ===== 3. scoring ===== -->
+  <section class="pane" id="pane-score" role="tabpanel" aria-labelledby="tab-score" hidden>
+    <div class="card">
+      <h2 data-i18n="iv.s.sc.h">ให้คะแนนแยกกัน</h2>
+      <p class="hint" data-i18n="iv.s.sc.hint">เลือกชื่อของคุณ ให้คะแนนทีละสมรรถนะตามเกณฑ์ BARS และจดหลักฐาน (สิ่งที่ผู้สมัครเล่าว่าทำ) คะแนนของคนอื่นจะถูกซ่อนจนกว่าทุกคนส่ง</p>
+      <div class="seg" id="ivWhoSeg" role="group" aria-label="ผู้สัมภาษณ์" data-i18n-attr="aria-label:iv.s.who.h"></div>
+      <p class="empty" id="ivScEmpty" data-i18n="iv.s.sc.empty">เพิ่มผู้สัมภาษณ์ในขั้นตั้งค่าก่อน</p>
+      <div id="ivSheet"></div>
+      <div class="row-actions" id="ivSheetActions" hidden>
+        <button class="btn primary" type="button" id="ivSubmit" data-i18n="iv.s.sc.submit">ส่งคะแนนของฉัน</button>
+        <button class="btn ghost" type="button" id="ivUnlock" hidden data-i18n="iv.s.sc.unlock">แก้ไขคะแนนของฉัน</button>
+      </div>
+      <p class="form-msg" id="ivScMsg" role="status"></p>
+    </div>
+    <details class="card exch">
+      <summary data-i18n="iv.s.ex.h">ผู้สัมภาษณ์ใช้คนละเครื่อง: ส่งต่อคะแนนเป็นข้อความ</summary>
+      <p class="hint" data-i18n="iv.s.ex.hint">ข้อความมีเฉพาะชื่อผู้สัมภาษณ์ คะแนน และหลักฐานที่จด ไม่มีชื่อผู้สมัคร ส่งผ่านช่องทางขององค์กรเท่านั้น</p>
+      <div class="row-actions"><button class="btn ghost" type="button" id="ivExport" data-i18n="iv.s.ex.out">สร้างข้อความคะแนนของฉัน</button></div>
+      <textarea id="ivExportOut" rows="3" readonly aria-label="ข้อความคะแนน" data-i18n-attr="aria-label:iv.s.ex.outL"></textarea>
+      <label class="field"><span data-i18n="iv.s.ex.inL">วางข้อความคะแนนจากผู้สัมภาษณ์อีกคน</span><textarea id="ivImportIn" rows="3"></textarea></label>
+      <div class="row-actions"><button class="btn ghost" type="button" id="ivImport" data-i18n="iv.s.ex.in">นำเข้าคะแนน</button></div>
+      <p class="form-msg" id="ivExMsg" role="status"></p>
+    </details>
+  </section>
+
+  <!-- ===== 4. summary ===== -->
+  <section class="pane" id="pane-summary" role="tabpanel" aria-labelledby="tab-summary" hidden>
+    <div class="card print-area" id="ivSummary">
+      <h2 data-i18n="iv.s.sum.h">สรุปสำหรับการหารือของผู้สัมภาษณ์</h2>
+      <p class="sum-meta" id="ivSumMeta"></p>
+      <p class="iv-principle small" data-i18n="iv.s.sum.prin">สรุปนี้ไม่ใช่ผลการตัดสิน ไม่มีเกณฑ์ผ่าน/ไม่ผ่าน ใช้เพื่อเริ่มหารือจากหลักฐาน ผู้สัมภาษณ์เป็นผู้ตัดสินใจ</p>
+      <div id="ivSumWait" class="wait" hidden>
+        <p id="ivSumWaitT"></p>
+        <button class="btn ghost" type="button" id="ivReveal" data-i18n="iv.s.sum.reveal">แสดงสรุปตอนนี้</button>
+      </div>
+      <div id="ivSumBody" hidden>
+        <div class="tiles" id="ivSumTiles"></div>
+        <div class="table-wrap"><table class="sum-table" id="ivSumTable"></table></div>
+        <p class="hint" data-i18n="iv.s.sum.agreeHint">ความสอดคล้อง: ห่างกันไม่เกิน 1 คะแนน = สอดคล้อง · 2 คะแนน = ต่างกันบ้าง · 3 คะแนนขึ้นไป = ควรหารือ (ให้แต่ละคนเล่าหลักฐานที่ใช้ก่อนปรับคะแนน)</p>
+        <div class="sum-lists">
+          <section><h3 data-i18n="iv.s.sum.str">จุดแข็งที่มีหลักฐาน</h3><ul id="ivStr"></ul></section>
+          <section><h3 data-i18n="iv.s.sum.dev">ด้านที่ควรพัฒนา</h3><ul id="ivDev"></ul></section>
+          <section><h3 data-i18n="iv.s.sum.dis">ควรหารือ (คะแนนต่างกันมาก)</h3><ul id="ivDis"></ul></section>
+        </div>
+        <div id="ivSumDelivery" hidden></div>
+      </div>
+    </div>
+    <div class="row-actions no-print">
+      <label class="check"><input type="checkbox" id="ivIncDelivery"> <span data-i18n="iv.s.sum.incD">แนบข้อสังเกตการนำเสนอ (ไม่ใช่คะแนน)</span></label>
+      <button class="btn primary" type="button" id="ivPrint" data-i18n="iv.s.sum.print">พิมพ์ / บันทึกเป็น PDF</button>
+      <button class="btn ghost danger" type="button" id="ivClear" data-i18n="iv.s.sum.clear">ล้างข้อมูลการสัมภาษณ์นี้</button>
+    </div>
+  </section>
+
+  <!-- ===== delivery observation (optional camera) ===== -->
+  <section class="pane" id="pane-delivery" role="tabpanel" aria-labelledby="tab-delivery" hidden>
+    <div class="card consent" id="ivConsent">
+      <h2 data-i18n="iv.s.d.h">ข้อสังเกตการนำเสนอ (ไม่บังคับ — ต้องได้รับความยินยอมจากผู้สมัคร)</h2>
+      <p data-i18n="iv.s.d.what">ถ้าผู้สมัครยินยอม กล้องและไมโครโฟนของเครื่องนี้จะวัดเฉพาะสิ่งที่สังเกตได้: สัดส่วนเวลาที่เห็นใบหน้า สัดส่วนเวลาที่หันหน้าเข้าหากล้อง ปริมาณการขยับศีรษะ สัดส่วนเวลาที่มีเสียงพูด ช่วงหยุด และจังหวะเสียงโดยประมาณ</p>
+      <ul class="dl">
+        <li data-i18n="iv.s.d.l1">ประมวลผลในเบราว์เซอร์นี้เท่านั้น ไม่ส่ง ไม่บันทึกภาพ เสียง หรือคำพูด (เก็บเพียงตัวเลขระหว่างเปิดหน้า)</li>
+        <li data-i18n="iv.s.d.l2">ไม่วัดอารมณ์ ความซื่อสัตย์ การโกหก หรือบุคลิกภาพ และไม่ให้คะแนนผู้สมัคร</li>
+        <li data-i18n="iv.s.d.l3">การปฏิเสธไม่มีผลต่อการพิจารณา ผู้สมัครขอหยุดได้ทุกเมื่อ</li>
+      </ul>
+      <label class="check"><input type="checkbox" id="ivCOk1"> <span data-i18n="iv.s.d.c1">ผู้สมัคร: ฉันเข้าใจและยินยอมให้ใช้กล้องและไมโครโฟนเพื่อข้อสังเกตนี้ (ผู้สมัครติ๊กเอง)</span></label>
+      <label class="check"><input type="checkbox" id="ivCOk2"> <span data-i18n="iv.s.d.c2">ผู้สัมภาษณ์: ได้อธิบายแล้วว่าการปฏิเสธไม่มีผล และจะไม่ใช้ข้อสังเกตนี้ให้คะแนนสมรรถนะ</span></label>
+      <div class="row-actions">
+        <button class="btn primary" type="button" id="ivDStart" disabled data-i18n="iv.s.d.start">เริ่มสังเกต</button>
+        <button class="btn ghost" type="button" id="ivDDecline" data-i18n="iv.s.d.decline">ผู้สมัครไม่ยินยอม — ไม่ใช้กล้อง</button>
+      </div>
+      <p class="form-msg" id="ivDMsg" role="status"></p>
+    </div>
+    <div class="card" id="ivDLive" hidden>
+      <h2 data-i18n="iv.s.d.liveH">ข้อสังเกตสำหรับผู้สัมภาษณ์ — ไม่ใช่การประเมินตัวบุคคล</h2>
+      <div class="live-grid">
+        <div class="cam"><video id="ivDVideo" autoplay muted playsinline></video><canvas id="ivDOverlay" width="640" height="480" aria-hidden="true"></canvas></div>
+        <div><div class="tiles" id="ivDTiles"></div><p class="engine" id="ivDEngine" role="status"></p></div>
+      </div>
+      <div class="row-actions">
+        <button class="btn primary" type="button" id="ivDStop" data-i18n="iv.s.d.stop">หยุดและปิดกล้อง</button>
+      </div>
+      <ul class="caveats">
+        <li data-i18n="iv.s.d.cv1">"หันหน้าเข้าหากล้อง" ประมาณจากทิศทางศีรษะ ไม่ใช่การติดตามสายตา คนที่มองหน้าจอใต้กล้องอาจถูกนับว่าไม่ได้หันเข้ากล้อง</li>
+        <li data-i18n="iv.s.d.cv2">ผลขึ้นกับกล้อง แสง ตำแหน่งนั่ง เสียงรบกวน และอาจนับเสียงผู้สัมภาษณ์ที่อยู่ห้องเดียวกันรวมด้วย</li>
+        <li data-i18n="iv.s.d.cv3">การสบตา การขยับตัว และจังหวะการพูดต่างกันตามวัฒนธรรม ภาษา ความพิการ และความถนัด ไม่ได้บอกความสามารถในการทำงาน</li>
+        <li data-i18n="iv.s.d.cv4">ไม่นับคำเติม เช่น "เอ่อ" "อืม" เพราะจากระดับเสียงอย่างเดียวนับได้ไม่น่าเชื่อถือ</li>
+      </ul>
+    </div>
+    <div class="card" id="ivDResult" hidden>
+      <h2 data-i18n="iv.s.d.resH">ข้อสังเกตรอบล่าสุด</h2>
+      <div class="tiles" id="ivDResTiles"></div>
+      <p class="hint" data-i18n="iv.s.d.resNote">ตัวเลขนี้อยู่ในหน้านี้เท่านั้น และแนบในสรุปเฉพาะเมื่อเลือก "แนบข้อสังเกตการนำเสนอ"</p>
+      <button class="btn ghost" type="button" id="ivDDiscard" data-i18n="iv.s.d.discard">ลบข้อสังเกตนี้</button>
+    </div>
+    <details class="card why" open>
+      <summary data-i18n="iv.s.why.h">ทำไมไม่มีการวัดอารมณ์ การโกหก หรือบุคลิกภาพ</summary>
+      <ul>
+        <li data-i18n="iv.s.why.1">งานวิจัยรวม 206 การศึกษาพบว่าคนจับโกหกได้ถูกเพียงราว 54% ใกล้เคียงการเดาสุ่ม และไม่มีสัญญาณบนใบหน้าหรือน้ำเสียงที่บอกการโกหกได้อย่างน่าเชื่อถือ (Bond &amp; DePaulo, 2006)</li>
+        <li data-i18n="iv.s.why.2">การแสดงออกทางใบหน้าไม่ได้บอกอารมณ์ภายในอย่างน่าเชื่อถือ และต่างกันตามบุคคลและวัฒนธรรม (Barrett และคณะ, 2019)</li>
+        <li data-i18n="iv.s.why.3">กฎหมายปัญญาประดิษฐ์ของสหภาพยุโรป (EU AI Act มาตรา 5(1)(f)) ห้ามระบบรู้จำอารมณ์ในที่ทำงานและสถานศึกษาตั้งแต่ 2 ก.พ. 2025 และจัดระบบคัดเลือกบุคลากรเป็นความเสี่ยงสูง</li>
+        <li data-i18n="iv.s.why.4">ข้อมูลชีวภาพ (เช่น ข้อมูลจำลองใบหน้า) และข้อมูลสุขภาพ/ความพิการเป็นข้อมูลอ่อนไหวตาม PDPA มาตรา 26 หน้านี้จึงไม่สร้างหรือเก็บข้อมูลจำลองใบหน้า</li>
+        <li data-i18n="iv.s.why.5">การอนุมานบุคลิกภาพจากใบหน้าไม่มีหลักฐานทางวิทยาศาสตร์รองรับ และเสี่ยงต่อการเลือกปฏิบัติ</li>
+      </ul>
+    </details>
+  </section>
+
+  <!-- ===== practice mode (for candidates) ===== -->
+  <section class="pane" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" hidden>
+    <div class="card" id="ivPSetup">
+      <h2 data-i18n="iv.s.p.h">ฝึกตอบคำถามสัมภาษณ์ด้วยตัวเอง</h2>
+      <p class="hint" data-i18n="iv.s.p.hint">สำหรับผู้สมัครฝึกเอง: สุ่มคำถามตามตำแหน่ง จับเวลาเตรียมและตอบ แล้วตรวจคำตอบด้วยหลัก STAR ถ้าเปิดกล้อง จะได้คำแนะนำเรื่องจังหวะการพูด ช่วงหยุด และการหันเข้ากล้อง — ทั้งหมดอยู่ในเครื่องนี้</p>
+      <div class="row">
+        <label class="field"><span data-i18n="iv.s.role.l">แม่แบบตำแหน่งงาน</span>
+          <select id="ivPRole">
+            <option value="sales" data-i18n="iv.r.sales">งานขาย</option>
+            <option value="service" data-i18n="iv.r.service">งานบริการลูกค้า</option>
+            <option value="admin" data-i18n="iv.r.admin">งานธุรการ/สนับสนุน</option>
+            <option value="tech" data-i18n="iv.r.tech">งานเทคนิค/ไอที</option>
+            <option value="manager" data-i18n="iv.r.manager">หัวหน้างาน/ผู้จัดการ</option>
+          </select>
+        </label>
+        <label class="field"><span data-i18n="iv.s.p.time">เวลาตอบต่อข้อ</span>
+          <select id="ivPTime">
+            <option value="60" data-i18n="iv.s.p.t60">1 นาที</option>
+            <option value="120" selected data-i18n="iv.s.p.t120">2 นาที</option>
+            <option value="180" data-i18n="iv.s.p.t180">3 นาที</option>
+          </select>
+        </label>
+      </div>
+      <label class="check"><input type="checkbox" id="ivPCam"> <span data-i18n="iv.s.p.cam">ใช้กล้องและไมโครโฟนเพื่อรับคำแนะนำ (ประมวลผลในเครื่อง ไม่บันทึก)</span></label>
+      <div class="row-actions"><button class="btn primary" type="button" id="ivPStart" data-i18n="iv.s.p.start">เริ่มฝึก</button></div>
+      <p class="form-msg" id="ivPMsg" role="status"></p>
+    </div>
+    <div class="card" id="ivPRun" hidden>
+      <div class="p-head"><span class="p-count" id="ivPCount"></span><span class="p-phase" id="ivPPhase"></span><span class="p-timer" id="ivPTimer" aria-live="off">0:00</span></div>
+      <p class="p-comp" id="ivPComp"></p>
+      <p class="p-q" id="ivPQ" aria-live="polite"></p>
+      <div class="cam small" id="ivPCamBox" hidden><video id="ivPVideo" autoplay muted playsinline></video><canvas id="ivPOverlay" width="640" height="480" aria-hidden="true"></canvas></div>
+      <div class="row-actions">
+        <button class="btn primary" type="button" id="ivPNext" data-i18n="iv.s.p.done">ตอบเสร็จแล้ว</button>
+        <button class="btn ghost" type="button" id="ivPEnd" data-i18n="iv.s.p.end">จบการฝึก</button>
+      </div>
+      <div id="ivPFeedback" hidden>
+        <h3 data-i18n="iv.s.p.selfH">ตรวจคำตอบของตัวเองด้วย STAR</h3>
+        <div class="selfcheck" id="ivPSelf"></div>
+        <h3 data-i18n="iv.s.p.tipsH">คำแนะนำสำหรับข้อนี้</h3>
+        <ul class="tips" id="ivPTips"></ul>
+        <div class="row-actions"><button class="btn primary" type="button" id="ivPGo" data-i18n="iv.s.p.next">ข้อต่อไป</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== about ===== -->
+  <section class="pane" id="pane-about" role="tabpanel" aria-labelledby="tab-about" hidden>
+    <div class="card">
+      <h2 data-i18n="iv.s.a.h">ทำไมต้องสัมภาษณ์แบบมีโครงสร้าง</h2>
+      <ul class="about">
+        <li data-i18n="iv.s.a.1">การสัมภาษณ์แบบมีโครงสร้าง (คำถามเดียวกัน เกณฑ์เดียวกัน) ทำนายผลการทำงานได้ดีกว่าการสัมภาษณ์แบบคุยทั่วไปอย่างชัดเจน และอยู่ในกลุ่มวิธีคัดเลือกที่ทำนายได้ดีที่สุด (Sackett และคณะ, 2022; Schmidt &amp; Hunter, 1998)</li>
+        <li data-i18n="iv.s.a.2">คำถามเชิงพฤติกรรม (STAR) ถามถึงสิ่งที่เคยทำจริง คำถามเชิงสถานการณ์ถามว่าจะทำอย่างไร ใช้ทั้งสองแบบช่วยให้เห็นภาพครบขึ้น (Levashina และคณะ, 2014)</li>
+        <li data-i18n="iv.s.a.3">เกณฑ์ BARS บรรยายพฤติกรรมในแต่ละระดับ ช่วยให้ผู้สัมภาษณ์ใช้มาตรฐานเดียวกัน</li>
+        <li data-i18n="iv.s.a.4">ให้คะแนนแยกกันก่อนหารือ ลดการคล้อยตามคนแรกที่พูด แล้วใช้ความต่างของคะแนนเป็นจุดเริ่มการหารือจากหลักฐาน</li>
+      </ul>
+      <h3 data-i18n="iv.s.a.refs">แหล่งอ้างอิง</h3>
+      <ul class="refs">
+        <li>Sackett, P. R., Zhang, C., Berry, C. M., &amp; Lievens, F. (2022). Revisiting meta-analytic estimates of validity in personnel selection. <i>Journal of Applied Psychology, 107</i>(11), 2040–2068.</li>
+        <li>Schmidt, F. L., &amp; Hunter, J. E. (1998). The validity and utility of selection methods in personnel psychology. <i>Psychological Bulletin, 124</i>(2), 262–274.</li>
+        <li>Levashina, J., Hartwell, C. J., Morgeson, F. P., &amp; Campion, M. A. (2014). The structured employment interview. <i>Personnel Psychology, 67</i>(1), 241–293.</li>
+        <li>Bond, C. F., &amp; DePaulo, B. M. (2006). Accuracy of deception judgments. <i>Personality and Social Psychology Review, 10</i>(3), 214–234.</li>
+        <li>Barrett, L. F., Adolphs, R., Marsella, S., Martinez, A. M., &amp; Pollak, S. D. (2019). Emotional expressions reconsidered. <i>Psychological Science in the Public Interest, 20</i>(1), 1–68.</li>
+        <li>Regulation (EU) 2024/1689 (AI Act), Art. 5(1)(f) and Annex III(4).</li>
+        <li data-i18n="iv.s.a.law">พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 มาตรา 26 · พระราชบัญญัติคุ้มครองแรงงาน พ.ศ. 2541 มาตรา 15, 43 · พระราชบัญญัติความเท่าเทียมระหว่างเพศ พ.ศ. 2558</li>
+      </ul>
+    </div>
+  </section>
+</main>
+<div class="toast" id="ivToast" role="status"></div>
+
+<script src="vendor/face-api.js"></script>
+<script src="lensiq-config.js?v=3"></script>
+<script src="lensiq-camera.js?v=2"></script>
+<script src="lensiq-detect.js?v=2"></script>
+<script src="interview-core.js?v=1"></script>
+<script src="interview.js?v=1"></script>
+</body>
+</html>

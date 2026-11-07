@@ -27,6 +27,7 @@
     "dream.title": "解梦 | LENSIQ",
     "fa.disclaimer": "仅供娱乐参考",
     "fa.more": "阅读更多",
+    "fa.plan.title": "三步开运计划",
     "fa.sec.advice": "建议与开运小贴士",
     "fa.sec.brief": "其他方面简述",
     "fa.sec.love": "爱情与感情",
@@ -53,7 +54,7 @@
     "fk.topic.money": "财运",
     "fk.loading": "正在撰写解读…",
     "fk.again": "换一种说法",
-    "fk.src.ai": "由 AI（Claude）撰写",
+    "fk.src.ai": "由写作助手（Anthropic 的 Claude）撰写",
     "fk.src.local": "在本机撰写 · 每次说法都不同",
     "fk.card.foot": "仅供娱乐参考，并非科学结论",
     "fk.share.text": "仅供娱乐参考",
@@ -64,7 +65,6 @@
     "fk.stats.times": "次",
     "fk.stats.today": "今天 {n} 次",
     "fk.stats.clear": "要清除本机的统计吗？",
-    "nav.about.title": "关于与许可证",
     "faceread.button1": "三停",
     "faceread.button2": "十二宫",
     "faceread.button3": "五岳",
@@ -158,8 +158,8 @@
     "fortune.hub.card.zodiac.org": "中国 · 泰国",
     "fortune.hub.eyebrow": "FORTUNE · 占卜",
     "fortune.hub.ftGuideH": "按想了解的问题选择占卜方式",
-    "fortune.hub.h1": "智能占卜",
-    "fortune.hub.title": "智能占卜 | LENSIQ",
+    "fortune.hub.h1": "占卜",
+    "fortune.hub.title": "占卜 | LENSIQ",
     "horoscope.button1": "查看配对",
     "horoscope.h1": "生辰八字与泰国占星",
     "horoscope.h21": "填写出生日期",
@@ -284,7 +284,8 @@
     "fortune.hub.noteLabel": "仅供娱乐：",
     "horoscope.disclaimer": "仅供娱乐，依据占星信仰，并非科学",
     "numbers.disclaimer": "仅供娱乐，依据数字信仰，并非科学",
-    "palm.disclaimer": "仅供娱乐，依据手相传统信仰，并非科学"
+    "palm.disclaimer": "仅供娱乐，依据手相传统信仰，并非科学",
+    "fortune.en.note": "本页的解读与参考资料为泰文或中文。"
   } };
   // lensiq-i18n.js: ถ้าโหลดแล้วใช้ LQI18N.add ทันที ถ้ายังไม่โหลด push เข้าคิว LQI18N_Q (ไฟล์หลักจะดึงไปเองตอนโหลด)
   if (root.LQI18N && typeof root.LQI18N.add === "function") root.LQI18N.add(dict);

@@ -74,3 +74,4 @@ label.check input{width:22px;height:22px;flex:none}
   .seg button{min-height:44px}
   label.slider{min-height:44px}
 }
+.st-qa{margin:8px 0 0;padding:8px 12px;border-radius:10px;background:#fff6e0;color:#7a5a05;font-size:.85rem;line-height:1.5;overflow-wrap:anywhere}

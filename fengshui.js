@@ -753,7 +753,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var host = $("#fsSections"), used = false;
     $("#fsReading").hidden = false;
     var badge = $("#fsSource");
-    badge.textContent = res.source === "ai" ? T("fengshui.src.ai", "เรียบเรียงโดย Claude AI (จากผลคำนวณเท่านั้น)") : T("fengshui.src.local", "เรียบเรียงในเครื่อง ไม่ส่งข้อมูลออก");
+    badge.textContent = res.source === "ai" ? T("fengshui.src.ai", "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic) จากผลคำนวณเท่านั้น") : T("fengshui.src.local", "เรียบเรียงในเครื่อง ไม่ส่งข้อมูลออก");
     badge.className = "fs-badge " + (res.source === "ai" ? "ai" : "local");
     if (AI && typeof AI.renderSections === "function") {
       try { host.innerHTML = ""; var r = AI.renderSections(host, res, { domain: "fengshui" }); if (typeof r === "string") host.innerHTML = r; else if (r && r.nodeType) host.append(r); used = host.childNodes.length > 0; } catch (e) { used = false; }

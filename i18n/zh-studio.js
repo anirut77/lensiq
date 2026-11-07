@@ -1,10 +1,10 @@
-/* i18n/zh-studio.js — คำแปลภาษาจีน (简体中文) ของหน้า studio.html (สตูดิโอแต่งชุด AI) และข้อความที่ studio.js สร้างเอง (studio.js.*)
+/* i18n/zh-studio.js — คำแปลภาษาจีน (简体中文) ของหน้า studio.html (สตูดิโอแต่งชุด) และข้อความที่ studio.js สร้างเอง (studio.js.*)
    รวมชื่อชุดสำเร็จรูป (pbo.*) ที่ใช้ร่วมกับ photobooth ภาษาไทยเป็นค่าเริ่มต้นใน HTML/JS เสมอ ไฟล์นี้มีเฉพาะภาษาจีน */
 (function (root) {
   "use strict";
   var dict = { zh: {
-    "studio.title": "AI 换装照相馆 | LENSIQ",
-    "studio.h1": "AI 换装照相馆",
+    "studio.title": "换装影棚 | LENSIQ",
+    "studio.h1": "换装影棚",
     "studio.lead": "上传照片或用相机拍摄，系统会抠除背景、细化发丝边缘，再按肩膀和脖子穿上模板服装，并协调光线色彩，效果如同真实穿着拍摄，同时提供自然的修图。",
     "studio.step1": "1 · 选择人物照片",
     "studio.step1hint": "正脸，画面包含头部到胸口，光线均匀。照片只在本设备上处理。",
@@ -13,6 +13,7 @@
     "studio.shoot": "拍照",
     "studio.camClose": "关闭相机",
     "studio.busy": "处理中...",
+    "studio.qaWarn": "这张图可能不够自然 — 可以重新拍一张正脸、光线均匀的照片，或换一套服装试试。",
     "studio.split": "前 | 后",
     "studio.mode.view": "查看",
     "studio.mode.fit": "颈部与肩点",

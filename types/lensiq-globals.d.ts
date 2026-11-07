@@ -41,6 +41,24 @@ interface Window {
   LENSIQ_API_BASE?: string;
   /** lensiq-config.js: opt-in to the non-commercial BiSeNet face parser */
   LENSIQ_FACEPARSE?: boolean;
+  /** lensiq-config.js: false = never load lensiq-analytics.js */
+  LENSIQ_ANALYTICS?: boolean;
+  /** lensiq-api.js: optional Cloudflare Worker backend client (null results when LENSIQ_API_BASE is empty) */
+  LQApi?: typeof import("../lensiq-api.js");
+  /** lensiq-analytics.js: opt-in, privacy-first usage analytics */
+  LQAnalytics?: {
+    track(name: string, fields?: Record<string, any>): boolean;
+    feature(name: string, step?: "start" | "complete"): boolean;
+    domain(d: string): boolean;
+    renderDone(): boolean;
+    error(err: any): boolean;
+    consent(): "yes" | "no" | null;
+    setConsent(on: boolean): void;
+    showBanner(): HTMLElement | null;
+    active(): boolean;
+    flush(useBeacon?: boolean): void;
+    _internal: { durBucket(ms: number): string; page(): string; dnt(): boolean };
+  };
   LQStats?: typeof import("../lensiq-stats.js");
   LQInsightsData?: typeof import("../insights-data.js");
   LQInsightsAnalysis?: typeof import("../insights-analysis.js");

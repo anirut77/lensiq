@@ -685,15 +685,15 @@ const aiReasonText = () => ({
   "no-model": tr("photobooth.js.ai.r.noModel", "ยังไม่ได้เลือกโมเดลที่มีสิทธิ์ใช้เชิงพาณิชย์"),
   "license-not-attested": tr("photobooth.js.ai.r.license", "ผู้ดูแลยังไม่ยืนยันสัญญาอนุญาตของโมเดล"),
   "model-is-noncommercial": tr("photobooth.js.ai.r.nc", "โมเดลที่ตั้งไว้ห้ามใช้เชิงพาณิชย์ จึงปิดไว้")
-}[aiReason] || tr("photobooth.js.ai.r.offline", "ไม่พบเซิร์ฟเวอร์ AI (เปิดหน้าแบบไฟล์ static)"));
+}[aiReason] || tr("photobooth.js.ai.r.offline", "ไม่พบเซิร์ฟเวอร์ประมวลผลภาพ (เปิดหน้าแบบไฟล์ static)"));
 const aiKey = () => [idState.outfit, idState.size, idState.bg, ...["#oScale", "#oX", "#oY", "#oBright", "#adjBright", "#adjSmooth"].map(s => $(s).value)].join("|");
 function aiPanelHTML() {
-  if (!aiEnabled) return `<h3>${tr("photobooth.js.ai.h", "✨ AI ปรับชุดให้สมจริง")}</h3><p class="note">${tr("photobooth.js.ai.off2", "ยังไม่เปิดใช้งาน: {r}", { r: String(aiReasonText()).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[c])) })}</p>`;
-  return `<h3>${tr("photobooth.js.ai.h", "✨ AI ปรับชุดให้สมจริง")}</h3>
+  if (!aiEnabled) return `<h3>${tr("photobooth.js.ai.h", "✨ ปรับชุดให้สมจริง (บริการภายนอก)")}</h3><p class="note">${tr("photobooth.js.ai.off2", "ยังไม่เปิดใช้งาน: {r}", { r: String(aiReasonText()).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[c])) })}</p>`;
+  return `<h3>${tr("photobooth.js.ai.h", "✨ ปรับชุดให้สมจริง (บริการภายนอก)")}</h3>
     ${aiNC ? `<p class="note">${tr("photobooth.js.ai.ncDemo", "โหมดสาธิตเท่านั้น: โมเดลนี้ห้ามใช้เชิงพาณิชย์")}</p>` : ""}
     <p class="note">${tr("photobooth.js.ai.note", "ใช้ได้กับชุดที่มีป้าย \"ภาพจริง\" รูปจะถูกส่งไปประมวลผลที่ Replicate (ต่างประเทศ) ใช้เวลา ~20-60 วินาที")}</p>
-    <label class="check"><input type="checkbox" id="aiConsent"><span>${tr("photobooth.js.ai.consent", "ผู้ถ่ายยินยอมให้ส่งรูปไปประมวลผลด้วย AI ภายนอก")}</span></label>
-    <button class="btn ghost full" type="button" id="aiRun">${tr("photobooth.js.ai.run", "✨ สร้างภาพด้วย AI")}</button><p class="hint" id="aiMsg"></p>`;
+    <label class="check"><input type="checkbox" id="aiConsent"><span>${tr("photobooth.js.ai.consent", "ผู้ถ่ายยินยอมให้ส่งรูปไปประมวลผลที่บริการสร้างภาพภายนอก (Replicate ต่างประเทศ)")}</span></label>
+    <button class="btn ghost full" type="button" id="aiRun">${tr("photobooth.js.ai.run", "✨ สร้างภาพให้สมจริง")}</button><p class="hint" id="aiMsg"></p>`;
 }
 async function runAI() {
   const msg = t => { $("#aiMsg").textContent = t; };
@@ -707,7 +707,7 @@ async function runAI() {
   fd.append("human", await PBTpl.toBlob(human), "human.png");
   fd.append("garment", await PBTpl.toBlob(garment), "garment.png");
   fd.append("desc", t.name); fd.append("consent", "yes");
-  $("#aiRun").disabled = true; msg(tr("photobooth.js.ai.busy", "กำลังสร้างภาพด้วย AI..."));
+  $("#aiRun").disabled = true; msg(tr("photobooth.js.ai.busy", "กำลังสร้างภาพ..."));
   try {
     const r = await fetch("/api/tryon", { method: "POST", body: fd });
     if (!r.ok) { let e = tr("photobooth.js.ai.fail", "ไม่สำเร็จ"); try { e = (await r.json()).error || e; } catch {} throw new Error(e); }
@@ -716,7 +716,7 @@ async function runAI() {
     cx.drawImage(bmp, (c.width - bmp.width * s) / 2, (c.height - bmp.height * s) / 2, bmp.width * s, bmp.height * s);
     idState.ai = { key: aiKey(), photo: c };
     renderId(); msg(tr("photobooth.js.ai.done", "สร้างภาพสำเร็จ (ถ้าเปลี่ยนชุดหรือปรับค่า จะกลับไปใช้ภาพปกติ)"));
-  } catch (e) { msg("AI: " + e.message); }
+  } catch (e) { msg(tr("photobooth.js.ai.errPrefix", "สร้างภาพไม่สำเร็จ: ") + e.message); }
   finally { $("#aiRun").disabled = false; }
 }
 

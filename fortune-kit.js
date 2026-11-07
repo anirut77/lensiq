@@ -162,7 +162,7 @@
         res = relabel(res, domain, sent);
         st.result = res; st.facts = facts; st.lines = keyLines(res, facts, 3);
         if (FA && FA.renderSections) FA.renderSections(body, res, { aiBadge: false }); else plainRender(body, res);
-        src.textContent = res.source === "ai" ? T("fk.src.ai", "เรียบเรียงโดย AI (Claude)") : T("fk.src.local", "เรียบเรียงในเครื่อง · สำนวนใหม่ทุกครั้ง");
+        src.textContent = res.source === "ai" ? T("fk.src.ai", "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)") : T("fk.src.local", "เรียบเรียงในเครื่อง · สำนวนใหม่ทุกครั้ง");
         src.className = "rd-src" + (res.source === "ai" ? " ai" : "");
         box.removeAttribute("aria-busy");
         if (opts.onDone) opts.onDone(st);

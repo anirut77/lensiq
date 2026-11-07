@@ -2,8 +2,11 @@
    Usage in every page:  <header class="nav" id="siteNav"></header><script src="nav.js?v=2"></script>
    Plain script, no dependencies. Change the brand in BRAND below.
    Also provides, for every page (no extra <script> tag needed):
-   - i18n: injects lensiq-i18n.js + i18n/zh-common.js (TH | 中文 switch in the header). Menu strings carry
-     data-i18n keys "nav.<page>.title|desc", "nav.group.<id>", "nav.cta" — Thai text here is the default.
+   - i18n: injects lensiq-i18n.js + i18n/zh-common.js (TH | EN | 中文 switch in the header; English dictionaries are
+     loaded on demand by lensiq-i18n.js). Menu strings carry data-i18n keys "nav.<page>.title|desc", "nav.group.<id>",
+     "nav.groupd.<id>", "nav.cta" — Thai text here is the default.
+   - Header: utility strip (tagline + language, scrolls away) over the sticky main bar (logo, mega-menu groups, CTA);
+     a drawer below 1100 px; a breadcrumb section header (.lq-crumbs) under the bar on every page but the home page.
    - Thai line breaking: in headings/labels/buttons each Thai word (Intl.Segmenter + loanword list) becomes a
      nowrap <span class="lq-w"> with <wbr> between words; elsewhere only known loanwords ("แดชบอร์ด") are wrapped.
      Each rewritten text node becomes one <span class="lq-run">, so textContent and flex/grid layout are unchanged.
@@ -12,20 +15,42 @@
 (function () {
   "use strict";
 
-  var BRAND = { name: "LENS", accent: "IQ", full: "LENSIQ", tagline: "Computer Vision เพื่อการตลาดและการวิเคราะห์" };
+  var BRAND = { name: "LENS", accent: "IQ", full: "LENSIQ", tagline: "Computer Vision ประมวลผลบนเครื่อง เพื่อการตลาดและการวิเคราะห์" };
 
+  // Information architecture: id -> menu group (mega-menu panel on desktop, accordion in the mobile drawer).
+  // Strings here are the Thai defaults; English/Chinese come from i18n/en-common.js / zh-common.js via data-i18n keys
+  // "nav.group.<id>", "nav.groupd.<id>" (panel intro), "nav.<page>.title|desc".
   var MENU = [
-    { label: "การตลาด", id: "mkt", items: [
-      { href: "neuro.html", title: "วิเคราะห์อารมณ์ (Neuromarketing)", desc: "ทดสอบโฆษณาและบรรจุภัณฑ์จากสีหน้า" },
-      { href: "signage.html", title: "ป้ายโฆษณาอัจฉริยะ", desc: "Smart signage และคีออสก์ไร้สัมผัส" },
+    { label: "วิเคราะห์ค้าปลีก", id: "ana", intro: "วัดผลหน้าร้าน ป้ายโฆษณา และการตอบสนองของลูกค้า แบบไม่ระบุตัวตน ประมวลผลบนเครื่อง", items: [
+      { href: "store.html", title: "วิเคราะห์หน้าร้าน", desc: "นับคน แผนที่ความร้อน และคิว" },
+      { href: "insights.html", title: "แดชบอร์ดรวม", desc: "สรุปผลจากทุกระบบในที่เดียว" },
       { href: "customers.html", title: "จดจำลูกค้า", desc: "ประวัติการสั่งและเมนูแนะนำ" },
-      { href: "booth.html", title: "วิเคราะห์บูธ", desc: "นับผู้เข้าชมและเวลาหยุดชม" }
+      { href: "checkout.html", title: "สแกนสินค้าด้วยกล้อง", desc: "คิดเงินแบบบริการตนเองและรายงานยอดขาย" },
+      { href: "neuro.html", title: "วิเคราะห์อารมณ์ (Neuromarketing)", desc: "ทดสอบโฆษณาและบรรจุภัณฑ์จากสีหน้า" },
+      { href: "creative.html", title: "Creative Lab ตรวจชิ้นงาน", desc: "แผนที่ความสนใจ ความชัด สี เทียบ A/B" },
+      { href: "signage.html", title: "ป้ายโฆษณาดิจิทัล", desc: "เลือกคอนเทนต์ตามผู้ชม และคีออสก์ไร้สัมผัส" }
     ] },
-    { label: "ดูดวงอัจฉริยะ", id: "fortune", items: [
-      { href: "fortune.html", title: "รวมระบบดูดวง", desc: "เลือกศาสตร์ที่ต้องการ" },
+    { label: "บูธและสตูดิโอ", id: "photo", intro: "นับผู้เข้าชมบูธ ตู้ถ่ายรูป และสตูดิโอแต่งชุด สำหรับงานอีเวนต์และกิจกรรมแบรนด์", items: [
+      { href: "booth.html", title: "วิเคราะห์บูธ", desc: "นับผู้เข้าชมและเวลาหยุดชม" },
+      { href: "photobooth.html", title: "ตู้ถ่ายรูป", desc: "ตู้สติ๊กเกอร์และรูปติดบัตร" },
+      { href: "studio.html", title: "สตูดิโอแต่งชุด", desc: "เปลี่ยนชุดให้เหมือนใส่จริง ตัดพื้นหลัง รีทัช" }
+    ] },
+    { label: "องค์กรและความปลอดภัย", id: "work", intro: "เช็คชื่อ สัมภาษณ์งาน กิจกรรมทีม เฝ้าระวังความง่วง และตรวจคุณภาพบนสายการผลิต", items: [
+      { href: "attendance.html", title: "เช็คชื่อด้วยใบหน้า", desc: "ลงชื่อเข้าอบรมและสัมมนา" },
+      { href: "driver.html", title: "เฝ้าระวังความง่วงคนขับ", desc: "แจ้งเตือนเมื่อหลับตานานหรือหาว" },
+      { href: "qc.html", title: "ตรวจคุณภาพสินค้า", desc: "ตรวจชิ้นงานบนสายการผลิต" },
+      { href: "interview.html", title: "ชุดสัมภาษณ์แบบมีโครงสร้าง", desc: "คำถาม STAR + เกณฑ์ BARS ให้คะแนนอิสระ สรุปความสอดคล้อง โหมดฝึกซ้อม" },
+      { href: "teamface.html", title: "โหงวเฮ้งทีม", desc: "กิจกรรมละลายพฤติกรรม การ์ดบทบาทในทีม เพื่อความบันเทิงเท่านั้น" }
+    ] },
+    { label: "ดูดวงและวัฒนธรรม", id: "fortune", intro: "กิจกรรมดึงคนเข้าบูธจากศาสตร์ไทยและจีน เพื่อความบันเทิงเท่านั้น", items: [
+      { href: "fortune.html", title: "รวมศาสตร์ดูดวง", desc: "เลือกศาสตร์ที่ต้องการ" },
       { href: "faceread.html", title: "อ่านโหงวเฮ้ง", desc: "อ่านโหงวเฮ้งจากใบหน้า" },
       { href: "palm.html", title: "ดูลายมือ", desc: "ถ่ายฝ่ามือ อ่านเส้นหลัก" },
       { href: "horoscope.html", title: "ดวงวันเดือนปีเกิด", desc: "โหราไทย ปาจื้อ เลขศาสตร์" },
+      { href: "bazi.html", title: "แปดอักษร 八字", desc: "เจ้าชะตา ห้าธาตุ วัยจร" },
+      { href: "taksa.html", title: "ทักษา", desc: "ภูมิทั้งแปด มหาทักษา" },
+      { href: "lek7.html", title: "เลข 7 ตัว 9 ฐาน", desc: "ผังเลขวันเดือนปีเกิด" },
+      { href: "lifegraph.html", title: "กราฟชีวิต", desc: "เส้นพลังตามช่วงอายุ" },
       { href: "tarot.html", title: "ไพ่ทาโรต์ & เซียมซี", desc: "เปิดไพ่ เสี่ยงเซียมซี" },
       { href: "fengshui.html", title: "ฮวงจุ้ย", desc: "เลขกัว เข็มทิศ ผังบ้าน" },
       { href: "numbers.html", title: "เลขมงคล", desc: "เบอร์โทร ทะเบียนรถ เลขบ้าน" },
@@ -34,17 +59,14 @@
       { href: "astro.html", title: "ราศีตะวันตก", desc: "ราศีอาทิตย์ จันทร์ ลัคนา" },
       { href: "dream.html", title: "ทำนายฝัน", desc: "ความหมายสัญลักษณ์ในฝัน" }
     ] },
-    { label: "วิเคราะห์", id: "ana", items: [
-      { href: "store.html", title: "วิเคราะห์หน้าร้าน", desc: "นับคน แผนที่ความร้อน และคิว" },
-      { href: "insights.html", title: "แดชบอร์ดรวม", desc: "สรุปผลจากทุกระบบในที่เดียว" }
+    { label: "เครื่องมือ", id: "tools", intro: "เครื่องมือเสริมและรายการระบบทั้งหมด", items: [
+      { href: "cameras.html", title: "ระบบทั้งหมด", desc: "รายการระบบและการใช้งานทั้งหมด" },
+      { href: "converter.html", title: "แปลง PDF เป็น Word", desc: "แปลงในเบราว์เซอร์ ไม่อัปโหลดไฟล์" }
     ] },
-    { label: "ตู้ถ่ายรูป", id: "photo", items: [
-      { href: "photobooth.html", title: "ตู้ถ่ายรูป", desc: "ตู้สติ๊กเกอร์และรูปติดบัตร" },
-      { href: "studio.html", title: "สตูดิโอแต่งชุด", desc: "เปลี่ยนชุดให้เหมือนใส่จริง ตัดพื้นหลัง รีทัช" }
-    ] },
-    { label: "เกี่ยวกับและสัญญาอนุญาต", href: "about.html" },
+    { label: "เกี่ยวกับ", href: "about.html" },
     { label: "ระบบทั้งหมด", href: "cameras.html", cta: true }
   ];
+  var LANG_BTNS = [["th", "th", "TH", "ภาษาไทย"], ["en", "en", "EN", "English"], ["zh", "zh-Hans", "中文", "简体中文"]];
 
   // ---------- i18n loader (lensiq-i18n.js + common Chinese dictionary) ----------
   var T = function (key, thai, vars) { return window.LQI18N ? window.LQI18N.tf(key, thai, vars) : thai; };
@@ -73,15 +95,16 @@
   var isCur = function (href) { return href.toLowerCase() === page; };
   var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
 
-  var chev = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
-  var mark = '<svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="9" fill="#0e1430"/><path d="M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4" stroke="#22d3ee" stroke-width="2.2" fill="none" stroke-linecap="round"/><circle cx="16" cy="16" r="4.2" fill="#674ff2"/></svg>';
+  var chev = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+  var arrow = '<svg class="arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+  var mark = '<svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="7" fill="#0e1430"/><path d="M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="16" cy="16" r="3.6" fill="#7c6cf5"/></svg>';
 
   var key = function (href) { return "nav." + href.replace(/\.html$/, ""); };
   var html = '<a class="skip-link" href="#main" data-i18n="nav.skip">ข้ามไปยังเนื้อหา</a>' +
-    '<a class="logo" href="index.html" aria-label="' + esc(BRAND.full) + ' หน้าแรก" data-i18n-attr="aria-label:nav.home">' + mark + esc(BRAND.name) + '<span>' + esc(BRAND.accent) + '</span></a>' +
+    '<div class="nav-util" aria-hidden="true"><span data-i18n="nav.util">' + esc(BRAND.tagline) + '</span></div>' +
+    '<a class="logo" href="index.html" aria-label="' + esc(BRAND.full) + ' หน้าแรก" data-i18n-attr="aria-label:nav.home">' + mark + '<span class="logo-word">' + esc(BRAND.name) + '<span>' + esc(BRAND.accent) + '</span></span></a>' +
     '<div class="lang-switch" role="group" aria-label="ภาษา" data-i18n-attr="aria-label:nav.lang">' +
-      '<button type="button" data-lang="th" lang="th" aria-pressed="true">TH</button>' +
-      '<button type="button" data-lang="zh" lang="zh-Hans" aria-pressed="false">中文</button>' +
+      LANG_BTNS.map(function (b) { return '<button type="button" data-lang="' + b[0] + '" lang="' + b[1] + '" title="' + b[3] + '" aria-pressed="' + (b[0] === "th") + '">' + b[2] + '</button>'; }).join("") +
     '</div>' +
     '<button class="nav-toggle" type="button" aria-expanded="false" aria-controls="siteMenu" aria-label="เปิดเมนู">' +
       '<svg class="i-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>' +
@@ -90,24 +113,50 @@
     '<div class="nav-scrim" aria-hidden="true"></div>' +
     '<nav class="site-menu" id="siteMenu" aria-label="เมนูหลัก" data-i18n-attr="aria-label:nav.menu"><ul class="nav-list">';
 
+  /** @type {any} */
+  var curGroup = null;
+  /** @type {any} */
+  var curItem = null;
   MENU.forEach(function (g) {
     if (g.items) {
-      var cur = g.items.some(function (i) { return isCur(i.href); });
+      var cur = g.items.filter(function (i) { return isCur(i.href); })[0];
+      if (cur && !curGroup) { curGroup = g; curItem = cur; }
+      // mega-menu panel: intro column (group name, one-line scope, link to the directory) + link grid
       html += '<li class="nav-item has-sub"><button class="nav-link' + (cur ? " is-current" : "") + '" type="button" aria-expanded="false" aria-controls="navsub-' + g.id + '"><span data-i18n="nav.group.' + g.id + '">' + esc(g.label) + '</span>' + chev + '</button>' +
-        '<ul class="nav-sub' + (g.items.length > 7 ? " cols-2" : "") + '" id="navsub-' + g.id + '">';
+        '<div class="nav-sub" id="navsub-' + g.id + '"><div class="mega">' +
+          '<div class="mega-intro"><p class="mega-k" data-i18n="nav.group.' + g.id + '">' + esc(g.label) + '</p><p class="mega-d" data-i18n="nav.groupd.' + g.id + '">' + esc(g.intro) + '</p>' +
+          '<a class="mega-all" href="cameras.html"><span data-i18n="nav.viewall">ดูระบบทั้งหมด</span>' + arrow + '</a></div>' +
+          '<ul class="mega-links' + (g.items.length > 6 ? " cols-3" : g.items.length > 3 ? " cols-2" : "") + '">';
       g.items.forEach(function (i) {
         html += '<li><a href="' + i.href + '"' + (isCur(i.href) ? ' aria-current="page"' : "") + '><b data-i18n="' + key(i.href) + '.title">' + esc(i.title) + '</b><small data-i18n="' + key(i.href) + '.desc">' + esc(i.desc) + '</small></a></li>';
       });
-      html += '</ul></li>';
+      html += '</ul></div></div></li>';
     } else {
       var c = isCur(g.href) ? ' aria-current="page"' : "";
-      html += '<li class="nav-item">' + (g.cta
+      html += '<li class="nav-item' + (g.cta ? " nav-item-cta" : "") + '">' + (g.cta
         ? '<a class="nav-cta" href="' + g.href + '"' + c + ' data-i18n="nav.cta">' + esc(g.label) + '</a>'
         : '<a class="nav-link' + (c ? " is-current" : "") + '" href="' + g.href + '"' + c + ' data-i18n="' + key(g.href) + '.title">' + esc(g.label) + '</a>') + '</li>';
     }
   });
   html += '</ul></nav>';
   header.innerHTML = html;
+
+  // Section header (breadcrumb) under the bar on every page except the home page: Home / group / page.
+  // Replaces app-style tab strips as the "where am I" cue; hidden in kiosk and print modes (styles.css).
+  if (page !== "index.html" && !document.querySelector(".lq-crumbs")) {
+    var crumbs = document.createElement("nav");
+    crumbs.className = "lq-crumbs";
+    crumbs.setAttribute("aria-label", "เส้นทาง"); crumbs.setAttribute("data-i18n-attr", "aria-label:nav.crumbs");
+    var ch = '<ol><li><a href="index.html" data-i18n="nav.home.short">หน้าแรก</a></li>';
+    if (curGroup) ch += '<li><span data-i18n="nav.group.' + curGroup.id + '">' + esc(curGroup.label) + '</span></li>' +
+      '<li><a href="' + curItem.href + '" aria-current="page" data-i18n="' + key(curItem.href) + '.title">' + esc(curItem.title) + '</a></li>';
+    else {
+      var top = MENU.filter(function (g) { return g.href && !g.cta && isCur(g.href); })[0];
+      if (top) ch += '<li><a href="' + top.href + '" aria-current="page" data-i18n="' + key(top.href) + '.title">' + esc(top.label) + '</a></li>';
+    }
+    crumbs.innerHTML = ch + '</ol>';
+    header.insertAdjacentElement("afterend", crumbs);
+  }
 
   // Skip link target: first <main>, else hide the link.
   var main = document.querySelector("main");
@@ -123,10 +172,17 @@
   var scrim = /** @type {HTMLElement} */ (header.querySelector(".nav-scrim"));
   /** @type {HTMLElement[]} */
   var subBtns = Array.prototype.slice.call(header.querySelectorAll(".has-sub > .nav-link"));
-  var mq = window.matchMedia("(max-width: 859.98px), (pointer: coarse) and (max-height: 600px)");
+  // drawer below 1100 px (six menu groups need the width) and on short touch screens (landscape phones)
+  var mq = window.matchMedia("(max-width: 1099.98px), (pointer: coarse) and (max-height: 600px)");
   var hoverMq = window.matchMedia("(hover: hover) and (pointer: fine)");
 
-  function setNavH() { document.documentElement.style.setProperty("--nav-h", header.offsetHeight + "px"); }
+  // --nav-h = height of the sticky part of the header (the utility strip above it scrolls away: top:-<util>px)
+  var util = /** @type {HTMLElement} */ (header.querySelector(".nav-util"));
+  function setNavH() {
+    var u = util && util.offsetHeight || 0;
+    document.documentElement.style.setProperty("--nav-util", u + "px");
+    document.documentElement.style.setProperty("--nav-h", (header.offsetHeight - u) + "px");
+  }
 
   function setSub(btn, open) {
     btn.setAttribute("aria-expanded", open ? "true" : "false");
@@ -162,7 +218,7 @@
     btn.addEventListener("keydown", function (e) {
       if (e.key === "ArrowDown") {
         e.preventDefault(); setSub(btn, true);
-        var a = /** @type {HTMLElement|null} */ (item.querySelector(".nav-sub a")); if (a) a.focus();
+        var a = /** @type {HTMLElement|null} */ (item.querySelector(".nav-sub .mega-links a")); if (a) a.focus();
       }
     });
     item.addEventListener("keydown", function (e) {
@@ -232,7 +288,7 @@
     });
   });
   window.addEventListener("lq-lang", syncLang);
-  if (window.LQI18N) { window.LQI18N.apply(header); syncLang(); }
+  if (window.LQI18N) { window.LQI18N.apply(header); var cb = document.querySelector(".lq-crumbs"); if (cb) window.LQI18N.apply(cb); syncLang(); }
 
   window.LENSIQ_BRAND = BRAND;
   thaiBreaks();
@@ -250,7 +306,7 @@
     var JOIN = ["แดชบอร์ด", "สติ๊กเกอร์", "โหงวเฮ้ง", "ฮวงจุ้ย", "อัจฉริยะ", "คีออสก์", "เซียมซี", "ทาโรต์", "นักษัตร", "อี้จิง", "เว็บแคม", "แท็บเล็ต", "ดาวน์โหลด", "ออฟไลน์", "ออนไลน์", "เบราว์เซอร์", "แพ็กเกจ", "แบรนด์", "โปรโมชัน", "คอนเทนต์", "อีเวนต์", "สตูดิโอ", "ฟีเจอร์", "เซิร์ฟเวอร์", "ฮาร์ดแวร์", "ซอฟต์แวร์", "แอปพลิเคชัน"];
     var LOAN = new RegExp(JOIN.join("|"), "g");
     // short UI text: full word segmentation ; everything else: only the loanwords above (cheap)
-    var SEL = "h1,h2,h3,h4,h5,.nav-sub b,.nav-sub small,.nav-link,.nav-cta,.btn,button,label,.chip,.tag,.kicker,.eyebrow,.pill,summary,th,legend,.lead,.sub,.hint,figcaption,.lq-wb";
+    var SEL = "h1,h2,h3,h4,h5,.nav-sub b,.nav-sub small,.mega-k,.mega-d,.lq-crumbs li,.nav-link,.nav-cta,.btn,button,label,.chip,.tag,.kicker,.eyebrow,.pill,summary,th,legend,.lead,.sub,.hint,figcaption,.lq-wb";
     var SKIP = "svg,canvas,script,style,textarea,select,option,pre,code,[contenteditable],.lq-run";
     function words(text) {
       var parts = [];

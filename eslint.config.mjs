@@ -7,7 +7,7 @@ import globals from "globals";
 const LENSIQ = Object.fromEntries([
   "faceapi", "tf", "ort", "pdfjsLib", "docx", "cocoSsd", "handPoseDetection", "mobilenet",
   "LQCam", "LQDetect", "LQTrack", "LQHand", "LQStats", "LQAgg", "LQVault", "LQI18N", "LQI18N_Q", "LQModels", "LQFortune",
-  "LQStudio", "LQKit", "LENSIQ_API_BASE", "LENSIQ_FACEPARSE", "LENSIQ_BRAND",
+  "LQStudio", "LQKit", "LENSIQ_API_BASE", "LENSIQ_FACEPARSE", "LENSIQ_BRAND", "LENSIQ_ANALYTICS", "LQApi", "LQAnalytics",
   "LQInsightsAnalysis", "LQInsightsCards", "LQInsightsCharts", "LQInsightsData", "LQInsightsDemo", "LQInsightsUI",
   "PBHQ", "PBOutfits", "PBTpl", "StudioCore", "NMCore", "FR_KB"
 ].map(k => [k, "writable"]));
@@ -46,6 +46,8 @@ export default [
     linterOptions: { reportUnusedDisableDirectives: "off" }
   },
   { files: ["sw.js"], languageOptions: { globals: { ...globals.serviceworker } } },
+  // API Worker (Cloudflare Workers runtime: ES modules, fetch/Request/Response/crypto/btoa globals)
+  { files: ["backend/**/*.js"], languageOptions: { ecmaVersion: 2024, sourceType: "module", globals: { ...globals.serviceworker, console: "readonly" } } },
   {
     files: ["**/*.mjs", "tools/**", "tests/**", "eslint.config.mjs"],
     languageOptions: { ecmaVersion: 2024, sourceType: "module", globals: { ...globals.node, ...globals.browser, WebSocket: "readonly" } }

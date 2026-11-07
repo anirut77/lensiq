@@ -39,7 +39,17 @@ test("CRLF pages keep CRLF", async () => {
 
 test("styles.css self-hosts Prompt: woff2 + font-display:swap + unicode-range, files and licence present", () => {
   const css = readFileSync(join(ROOT, "styles.css"), "utf8");
-  const faces = css.match(/@font-face\{[^}]*\}/g) || [];
+  const all = css.match(/@font-face\{[^}]*\}/g) || [];
+  // Inter (SIL OFL, latin subset) is the Latin companion for the header / English pages
+  const inter = all.filter(f => /font-family:Inter/.test(f));
+  for (const f of inter) {
+    assert.match(f, /font-display:swap/); assert.match(f, /unicode-range:/);
+    const url = /url\(([^)]+)\)/.exec(f)[1];
+    assert.match(url, /^vendor\/fonts\/inter\/inter-latin-wght-normal\.woff2$/);
+    assert.equal(readFileSync(join(ROOT, url)).subarray(0, 4).toString("latin1"), "wOF2", url + " is woff2");
+    assert.match(readFileSync(join(ROOT, "vendor/fonts/inter/OFL.txt"), "utf8"), /SIL Open Font License/i);
+  }
+  const faces = all.filter(f => !inter.includes(f));
   assert.ok(faces.length >= 15, "faces: " + faces.length);
   for (const f of faces) {
     assert.match(f, /font-family:Prompt/);

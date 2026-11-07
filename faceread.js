@@ -1126,14 +1126,14 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     current.facts = facts;
     var useAI = !!(FA && FA.hasConsent && FA.hasConsent());
     box.setAttribute("aria-busy", "true"); btn.disabled = true;
-    if (!box.firstChild || useAI) box.innerHTML = '<p class="fa-loading">' + esc(useAI ? T("faceread.narr.ai", "กำลังให้ AI เรียบเรียงคำทำนาย...") : T("faceread.narr.local", "กำลังเรียบเรียงคำทำนาย...")) + "</p>";
+    if (!box.firstChild || useAI) box.innerHTML = '<p class="fa-loading">' + esc(useAI ? T("faceread.narr.ai", "กำลังให้ผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic) เรียบเรียง...") : T("faceread.narr.local", "กำลังเรียบเรียงคำทำนาย...")) + "</p>";
     var p = !FA ? Promise.resolve(legacyResult(R)) : again && FA.regenerate ? FA.regenerate(facts, { useAI: useAI }) : FA.interpret(facts, { useAI: useAI });
     p.catch(function (e) { console.error(e); return FA && FA.compose ? FA.compose(facts) : legacyResult(R); }).then(function (res) {
       if (my !== narrToken || !current) return;
       current.narr = res;
       if (FA && FA.renderSections) FA.renderSections(box, res, { aiBadge: false }); else renderPlain(box, res);
       var src = $("#frSrc"), ai = res.source === "ai";
-      src.textContent = ai ? T("faceread.src.ai", "เรียบเรียงโดย Claude AI") : T("faceread.src.local", "เรียบเรียงในเครื่อง");
+      src.textContent = ai ? T("faceread.src.ai", "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)") : T("faceread.src.local", "เรียบเรียงในเครื่อง");
       src.classList.toggle("ai", ai);
       box.removeAttribute("aria-busy"); btn.disabled = false;
     });

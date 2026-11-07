@@ -108,9 +108,9 @@
     "faceread.legacy.work": "事业",
     "faceread.legacy.money": "财运",
     "faceread.legacy.love": "爱情与友情",
-    "faceread.narr.ai": "正在请 AI 组织解读文字...",
+    "faceread.narr.ai": "正在请写作助手（Anthropic 的 Claude）组织解读文字...",
     "faceread.narr.local": "正在组织解读文字...",
-    "faceread.src.ai": "由 Claude AI 撰写",
+    "faceread.src.ai": "由写作助手（Anthropic 的 Claude）撰写",
     "faceread.src.local": "本机生成",
 
     /* ---------- 叠加图 ---------- */

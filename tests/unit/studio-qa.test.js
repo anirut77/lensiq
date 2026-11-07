@@ -107,3 +107,21 @@ test("neckNotch: a face cut flat and wide above a narrow neck column is a steppe
   const round = fill(W, H, (x, y) => (y < 80 && Math.abs(x - 100) < 12 + 18 * Math.sqrt(Math.max(0, 1 - ((y - 50) / 30) ** 2)) ? 1 : 0));
   assert.equal(Q.neckNotch({ keepA: round, neckA, frontA: zero, W, H, face, collarY: 105 }).maxJump, 0);
 });
+
+test("faceIsland: a thin sliver hanging off the jaw is measured; a clean rounded face edge is not", () => {
+  const P = []; for (let k = 0; k < 17; k++) { const a = Math.PI * (k / 16); P.push({ x: 100 - 30 * Math.cos(a), y: 50 + 30 * Math.sin(a) }); }
+  const f2 = { ...face, P };
+  const clean = fill(W, H, (x, y) => ((x - 100) ** 2 / 900 + (y - 50) ** 2 / 900 < 1 ? 1 : 0));
+  assert.ok(Q.faceIsland({ keepA: clean, hair: null, W, H, face: f2, SC }) <= Q.LIMITS.faceIsland, "clean edge");
+  const sliver = fill(W, H, (x, y) => (clean[y * W + x] || (x >= 128 && x <= 129 && y > 55 && y < 95) ? 1 : 0));
+  assert.ok(Q.faceIsland({ keepA: sliver, hair: null, W, H, face: f2, SC }) > Q.LIMITS.faceIsland, "sliver");
+});
+
+test("neckRel: a dark flat neck block (vs the lower face) is flagged; a neck with the face's tone and skin texture is not", () => {
+  const zero = new Float32Array(W * H), neckA = fill(W, H, (x, y) => (Math.abs(x - 100) < 15 && y >= 80 && y < 130 ? 1 : 0)), keepA = fill(W, H, (x, y) => (y < 80 && Math.abs(x - 100) < 30 ? 1 : 0));
+  const tex = (x, y) => ((x * 13 + y * 7) % 21) - 10;
+  const bad = Q.neckRel({ out: rgbaFill(W, H, (x, y) => (y < 80 ? [180 + tex(x, y), 140, 120] : [70, 50, 40])), neckA, frontA: zero, keepA, W, H, face });
+  assert.ok(bad.lRel < Q.LIMITS.neckRelL && bad.texRel < Q.LIMITS.neckRelTex, JSON.stringify(bad));
+  const good = Q.neckRel({ out: rgbaFill(W, H, (x, y) => [165 + tex(x, y), 125, 105]), neckA, frontA: zero, keepA, W, H, face });
+  assert.ok(good.lRel > Q.LIMITS.neckRelL && good.texRel > Q.LIMITS.neckRelTex, JSON.stringify(good));
+});

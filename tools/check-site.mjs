@@ -5,7 +5,7 @@
 //  2. static references: every local src/href in every page, and every vendor/… / models/… path named in the
 //     published scripts, exists in the site (catches a page script or model left out of the allowlist)
 //  3. crawl (skipped with --static): serves the site under /lensiq/ like the GitHub Pages project site, opens every
-//     page in headless Chrome in TH and 中文 (?cpu, fake camera), opens the menu, <details> and tabs, and fails on any
+//     page in headless Chrome in TH, EN and 中文 (?cpu, fake camera), opens the menu, <details> and tabs, and fails on any
 //     same-origin 4xx/5xx response (except /api/*, which needs server.py and is expected to be absent on Pages) or an
 //     uncaught exception while loading
 //
@@ -81,7 +81,7 @@ if (!args.includes("--static")) {
   const crawl = pages.filter(f => !filters.length || filters.some(w => f.includes(w)));
   let n = 0;
   try {
-    for (const lang of ["th", "zh"]) {
+    for (const lang of ["th", "en", "zh"]) {
       for (const f of crawl) {
         current = `${f} [${lang}]`;
         const before = errors.length;
@@ -113,7 +113,7 @@ if (!args.includes("--static")) {
     await browser.close();
     await srv.close();
   }
-  console.log(`check-site: crawled ${n} page load(s) (${crawl.length} page(s) x th, zh) under /lensiq/`);
+  console.log(`check-site: crawled ${n} page load(s) (${crawl.length} page(s) x th, en, zh) under /lensiq/`);
 }
 
 console.log(failures ? `check-site: FAILED (${failures} problem(s))` : "check-site: OK");

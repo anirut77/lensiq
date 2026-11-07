@@ -1,9 +1,9 @@
-/* i18n/zh-signage.js — 简体中文 for signage.html (ป้ายโฆษณาอัจฉริยะ). Thai stays the default in the markup; keys are the
+/* i18n/zh-signage.js — 简体中文 for signage.html (ป้ายโฆษณาดิจิทัล). Thai stays the default in the markup; keys are the
  * data-i18n / data-i18n-attr values on signage.html. Text set at run time by signage.js stays Thai for now.
  * Queue pattern: works before or after lensiq-i18n.js (see i18n/zh-common.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
-  "signage.s1": "智能广告屏 | LENSIQ",
-  "signage.s2": "智能广告屏",
+  "signage.s1": "数字广告屏 | LENSIQ",
+  "signage.s2": "数字广告屏",
   "signage.s3": "根据屏前观众群体选择播放内容的广告屏，匿名测量注视与关注度，并提供无需触屏的手势交互自助终端。本地处理，不保存图像。",
   "signage.s4": "估算值",
   "signage.s5": "年龄/性别在 UTKFace 图像上测试：年龄平均误差 5 岁，年龄段判断准确率 79%，性别准确率 96%（亚洲人脸 92%），约每 5 张图像中有 1 张未检测到人脸 · 自助终端：在 HaGRID 数据集中检测到举起的手 88%（张开手掌手势 95%）。用于了解观众群体整体情况，而非个人数据",
@@ -15,7 +15,7 @@
   "signage.s11": "退出全屏",
   "signage.s12": "跳过广告",
   "signage.s13": "使用年龄/性别（估算值）选择广告并统计",
-  "signage.s14": "年龄和性别为 AI 模型的估算值，可能存在误差，并对某些群体存在偏差（如肤色、光线、摄像头角度）。仅用于选择内容和查看整体趋势，不用于评判或识别个人。可通过上方开关关闭",
+  "signage.s14": "年龄和性别为模型的估算值，可能存在误差，并对某些群体存在偏差（如肤色、光线、摄像头角度）。仅用于选择内容和查看整体趋势，不用于评判或识别个人。可通过上方开关关闭",
   "signage.s15": "当前观众",
   "signage.s16": "正在播放的广告",
   "signage.s17": "绿框 = 正在看屏幕 · 橙框 = 在屏幕前但未注视。仅统计摄像头连续看到至少 3 帧的人",

@@ -41,7 +41,8 @@ jobs:
       - run: npm run lint
       - name: type-check shared modules (tsc --checkJs, tsconfig.typecheck.json)
         run: npm run typecheck
-      - run: npm run test:unit
+      - name: unit tests (includes backend/ Worker — auth, analytics validation, retention, entitlements, Opn webhook, AI proxy — on an in-memory D1 shim)
+        run: npm run test:unit
       - name: CSP <meta> present and current on every page
         run: node tools/csp-meta.mjs --check
       - name: no Google Fonts / third-party font references (fonts are self-hosted)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """tests/bench/fetch_datasets.py — download the public benchmark data into a directory OUTSIDE the repo.
 
-    python3 -I tests/bench/fetch_datasets.py /path/to/bench-data [mot] [lfw] [lfwfull] [casia5] [utk] [hagrid] [oceyes] [cew] [fer]
+    python3 -I tests/bench/fetch_datasets.py /path/to/bench-data [mot] [lfw] [lfwfull] [casia5] [utk] [hagrid] [oceyes] [cew] [fer] [mit1003]
 
 Nothing here is committed or redistributed. You are responsible for accepting each dataset's terms:
   mot  MOTChallenge MOT17 train (02, 04, 09; every 3rd frame = 10 fps) + 2DMOT2015 train (PETS09-S2L1, TUD-Stadtmitte)
@@ -20,12 +20,16 @@ Nothing here is committed or redistributed. You are responsible for accepting ea
        fetched from the authors' Google Drive link; needs `bsdtar` (libarchive) to unpack the RAR.
   fer  FER-2013 (Goodfellow et al., ICML 2013 challenge) PrivateTest sample, 100 images per class from the HF mirror
        3una/Fer2013 — research use only (no licence granted); used for evaluation only, never for training/shipping.
+  mit1003  MIT1003 eye-tracking data (Judd, Ehinger, Durand & Torralba, ICCV 2009), 1,003 images, 15 viewers each, from
+       the authors' page people.csail.mit.edu/tjudd/WherePeopleLook — no licence is stated: research evaluation only, never
+       bundled or used for shipping. ALLSTIMULI.zip (235 MB) + ALLFIXATIONMAPS.zip (10 MB). (creative.html attention map)
 Layout produced (what the *.bench.mjs scripts read via LQ_BENCH_DATA):
   mot/MOT17/train/MOT17-0X-FRCNN/{img1,gt,seqinfo.ini}  mot/2DMOT2015/train/<SEQ>/{img1,gt}
   lfw/pairs.json + lfw/img/*.jpg                         utk/index.json + utk/img/*.jpg
   hagrid/index.json + hagrid/hagrid-sample-30k-384p/...
   oceyes/index.json + oceyes/img/*.jpg                   cew/index.json + cew/w/dataset_B_FacialImages/...
   fer/index.json + fer/test/<class>/*.jpg
+  mit1003/ALLSTIMULI/*.jpeg + mit1003/ALLFIXATIONMAPS/*_fixPts.jpg, *_fixMap.jpg
 """
 import io, json, os, pickle, random, re, struct, sys, tarfile, urllib.request, zipfile, zlib
 from concurrent.futures import ThreadPoolExecutor
@@ -178,9 +182,18 @@ def fer(root):
     with ThreadPoolExecutor(12) as ex: list(ex.map(one, files))
     json.dump([{"f": f, "label": f.split("/")[1]} for f in sorted(files)], open(os.path.join(out, "index.json"), "w"))
 
+def mit1003(root):
+    out = os.path.join(root, "mit1003"); os.makedirs(out, exist_ok=True)
+    for z in ("ALLSTIMULI", "ALLFIXATIONMAPS"):
+        if os.path.isdir(os.path.join(out, z)): continue
+        data = http("https://people.csail.mit.edu/tjudd/WherePeopleLook/%s.zip" % z, timeout=1800)
+        with zipfile.ZipFile(io.BytesIO(data)) as zf:
+            for m in zf.namelist():
+                if m.startswith(z + "/") and not m.endswith("/") and re.match(r"^[\w./-]+$", m) and ".." not in m: zf.extract(m, out)
+
 if __name__ == "__main__":
     if len(sys.argv) < 2: print(__doc__); sys.exit(1)
     root = os.path.abspath(sys.argv[1]); want = sys.argv[2:] or ["mot", "lfw", "utk", "hagrid"]
     repo = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
     if root == repo or root.startswith(repo + os.sep): sys.exit("refusing to download datasets inside the repository")
-    for w in want: print("==", w); {"mot": mot, "lfw": lfw, "lfwfull": lfwfull, "casia5": casia5, "utk": utk, "hagrid": hagrid, "oceyes": oceyes, "cew": cew, "fer": fer}[w](root)
+    for w in want: print("==", w); {"mot": mot, "lfw": lfw, "lfwfull": lfwfull, "casia5": casia5, "utk": utk, "hagrid": hagrid, "oceyes": oceyes, "cew": cew, "fer": fer, "mit1003": mit1003}[w](root)

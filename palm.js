@@ -1571,7 +1571,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     S.facts = facts;
     var useAI = !!(FA && FA.hasConsent && FA.hasConsent());
     box.setAttribute("aria-busy", "true"); btn.disabled = true;
-    if (!box.firstChild || useAI) box.innerHTML = '<p class="fa-loading">' + esc(useAI ? T("palm.narr.loadingAI", "กำลังให้ AI เรียบเรียงคำทำนาย...") : T("palm.narr.loading", "กำลังเรียบเรียงคำทำนาย...")) + "</p>";
+    if (!box.firstChild || useAI) box.innerHTML = '<p class="fa-loading">' + esc(useAI ? T("palm.narr.loadingAI", "กำลังให้ผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic) เรียบเรียง...") : T("palm.narr.loading", "กำลังเรียบเรียงคำทำนาย...")) + "</p>";
     var p = !FA ? Promise.resolve(legacyResult(R)) : again && FA.regenerate ? FA.regenerate(facts, { useAI: useAI }) : FA.interpret(facts, { useAI: useAI });
     p.catch(function (e) { console.error(e); return FA && FA.compose ? FA.compose(facts) : legacyResult(R); }).then(function (res) {
       if (my !== narrToken || !S.result) return;
@@ -1585,7 +1585,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       }
       if (FA && FA.renderSections) FA.renderSections(box, shown, { aiBadge: false }); else renderPlain(box, shown);
       var src = $("#plSrc"), ai = res.source === "ai";
-      src.textContent = ai ? T("palm.src.ai", "เรียบเรียงโดย Claude AI") : T("palm.src.local", "เรียบเรียงในเครื่อง");
+      src.textContent = ai ? T("palm.src.ai", "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)") : T("palm.src.local", "เรียบเรียงในเครื่อง");
       src.classList.toggle("ai", ai);
       box.removeAttribute("aria-busy"); btn.disabled = false;
     });

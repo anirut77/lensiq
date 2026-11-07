@@ -1,10 +1,12 @@
 #!/usr/bin/env node
-// tools/zh-coverage.mjs — how much Thai is still visible in 中文 mode, per page, in headless Chrome.
+// tools/zh-coverage.mjs — how much Thai is still visible in 中文 (or English: --lang en) mode, per page, in headless Chrome.
 //
 // For every ./*.html (390 px phone viewport by default) it loads ?lang=zh, measures with LQI18N.coverage() (visible text,
 // placeholder/title/aria-label/alt, <title>; content marked lang="th" or translate="no" is excluded), then performs the
 // "typical interactions" (below) and measures again. The page's score is the worst state seen.
 //   Thai % = Thai letters / (Thai + Chinese letters). 0 % = fully Chinese.  "mixed" = text nodes holding both scripts.
+//   --lang en: same run in English mode; Thai % = Thai letters / (Thai + Latin letters); content marked lang="th"
+//   (e.g. fortune readings, which are written in Thai or Chinese only) is excluded like in 中文 mode.
 //
 //   node tools/zh-coverage.mjs                       all pages, summary table
 //   node tools/zh-coverage.mjs tarot numbers         only pages whose name contains a word
@@ -15,6 +17,7 @@
 //   node tools/zh-coverage.mjs --no-interact         only the freshly loaded page
 //   node tools/zh-coverage.mjs --desktop             1280 px viewport
 //   node tools/zh-coverage.mjs --json out.json       machine-readable result
+//   node tools/zh-coverage.mjs --lang en --max 0     English chrome gate (npm run en:coverage)
 //   LQ_CHROME=/path/to/chrome
 //
 // Typical interactions (generic, safe: fake camera, no file dialogs, no navigation away):
@@ -37,6 +40,8 @@ const jsonOut = opt("--json", null);
 const shared = flag("--shared");
 const noInteract = flag("--no-interact");
 const desktop = flag("--desktop");
+const LANG = opt("--lang", "zh") === "en" ? "en" : "zh";
+const HTML_LANG = LANG === "en" ? "en" : "zh-Hans";
 const filters = argv.filter(a => !a.startsWith("--"));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -53,21 +58,22 @@ try { init.push(readFileSync(resolve(repo, "tests/e2e/fake-cams.js"), "utf8"), "
 init.push("window.alert=()=>{};window.confirm=()=>false;window.prompt=()=>null;HTMLInputElement.prototype.showPicker=function(){};");
 
 async function measure(page) {
-  return page.evaluate((sharedSel, topN) => {
+  return page.evaluate((sharedSel, topN, lang) => {
     if (!window.LQI18N || !window.LQI18N.coverage) return { error: "LQI18N.coverage missing" };
-    if (!sharedSel) return window.LQI18N.coverage(document.body, { top: topN || 1 });
+    if (!sharedSel) return window.LQI18N.coverage(document.body, { top: topN || 1, lang });
     // shared components: hidden parts count too (closed dropdowns, the drawer, notices) — they must be 100 % Chinese
     const parts = [...document.querySelectorAll(sharedSel)].filter((el, i, a) => !a.some(o => o !== el && o.contains(el)));
     const sum = { thai: 0, cjk: 0, pct: 0, nodes: 0, mixed: 0, attrs: 0, top: [] };
     for (const el of parts) {
-      const r = window.LQI18N.coverage(el, { top: topN || 1, all: true });
-      for (const k of ["thai", "cjk", "nodes", "mixed", "attrs"]) sum[k] += r[k];
+      const r = window.LQI18N.coverage(el, { top: topN || 1, all: true, lang });
+      for (const k of ["thai", "cjk", "latin", "kept", "nodes", "mixed", "attrs"]) sum[k] = (sum[k] || 0) + r[k];
       sum.top.push(...r.top);
     }
-    sum.pct = sum.thai + sum.cjk ? Math.round(1000 * sum.thai / (sum.thai + sum.cjk)) / 10 : 0;
+    const other = lang === "en" ? sum.latin : sum.cjk;
+    sum.pct = sum.thai + other ? Math.round(1000 * sum.thai / (sum.thai + other)) / 10 : 0;
     sum.top.sort((a, b) => b.thai - a.thai); sum.top = sum.top.slice(0, topN || 1);
     return sum;
-  }, shared ? SHARED_SEL : null, Math.max(top, 1));
+  }, shared ? SHARED_SEL : null, Math.max(top, 1), LANG);
 }
 
 async function clickAll(page, selectors) {
@@ -98,8 +104,8 @@ try {
       await page.send("Emulation.setDeviceMetricsOverride", desktop
         ? { width: 1280, height: 800, deviceScaleFactor: 1, mobile: false }
         : { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
-      await page.goto(`${srv.base}/${f}?cpu&nosw&lang=zh${QUERY[f] || ""}`);
-      await page.waitFor(() => window.LQI18N && document.documentElement.lang === "zh-Hans", 8000).catch(() => null);
+      await page.goto(`${srv.base}/${f}?cpu&nosw&lang=${LANG}${QUERY[f] || ""}`);
+      await page.waitFor(`window.LQI18N && document.documentElement.lang === ${JSON.stringify(HTML_LANG)}`, 8000).catch(() => null);
       await sleep(1200);
       row.states.push({ state: "load", ...(await measure(page)) });
       if (!noInteract) {
@@ -130,7 +136,7 @@ try {
     results.push(row);
     const w = row.worst || {};
     const pct = w.error || row.error ? "  err" : String(w.pct.toFixed(1)).padStart(5) + "%";
-    console.log(`${f.padEnd(17)} ${pct}  thai ${String(w.thai ?? "-").padStart(5)}  zh ${String(w.cjk ?? "-").padStart(5)}  nodes ${String(w.nodes ?? "-").padStart(4)}  mixed ${String(w.mixed ?? "-").padStart(3)}  worst@ ${w.state || row.error || w.error}`);
+    console.log(`${f.padEnd(17)} ${pct}  thai ${String(w.thai ?? "-").padStart(5)}  ${LANG} ${String((LANG === "en" ? w.latin : w.cjk) ?? "-").padStart(5)}  nodes ${String(w.nodes ?? "-").padStart(4)}${w.kept ? `  kept-th ${w.kept}` : ""}  mixed ${String(w.mixed ?? "-").padStart(3)}  worst@ ${w.state || row.error || w.error}`);
     if (top && w.top) for (const it of w.top) console.log(`      ${String(it.thai).padStart(4)} ${it.mixed ? "MIX " : "    "}${it.path.padEnd(42).slice(0, 42)} ${it.text}`);
   }
 } finally {
@@ -139,9 +145,9 @@ try {
 }
 
 const valid = results.filter(r => r.worst && !r.worst.error && !r.error);
-const tot = valid.reduce((a, r) => ({ thai: a.thai + r.worst.thai, cjk: a.cjk + r.worst.cjk }), { thai: 0, cjk: 0 });
-console.log(`\n${results.length} page(s)${shared ? " [shared components only]" : ""}, overall Thai ${tot.thai + tot.cjk ? (100 * tot.thai / (tot.thai + tot.cjk)).toFixed(1) : 0}%` +
-  `, fully Chinese: ${valid.filter(r => r.worst.pct === 0).length}/${results.length}`);
+const tot = valid.reduce((a, r) => ({ thai: a.thai + r.worst.thai, cjk: a.cjk + (LANG === "en" ? r.worst.latin : r.worst.cjk) }), { thai: 0, cjk: 0 });
+console.log(`\n${results.length} page(s)${shared ? " [shared components only]" : ""} [${LANG}], overall Thai ${tot.thai + tot.cjk ? (100 * tot.thai / (tot.thai + tot.cjk)).toFixed(1) : 0}%` +
+  `, fully ${LANG === "en" ? "English" : "Chinese"}: ${valid.filter(r => r.worst.pct === 0).length}/${results.length}`);
 if (jsonOut) { writeFileSync(jsonOut, JSON.stringify({ shared, desktop, results }, null, 2)); console.log("wrote " + jsonOut); }
 if (max != null) {
   const over = results.filter(r => r.error || !r.worst || r.worst.error || r.worst.pct > +max);

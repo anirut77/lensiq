@@ -285,7 +285,7 @@
   }
 
   async function load(canvas) {
-    ST.phase = "analyzing"; ST.err = null; ST.cache = {}; ST.manual = null; ST.timings = {};
+    ST.phase = "analyzing"; ST.err = null; ST.cache = {}; ST.manual = null; ST.timings = {}; ST.qa = null; clearTimeout(qaT); $("#stQa").hidden = true;
     const T0 = now();
     ST.src = canvas; ST.W = canvas.width; ST.H = canvas.height;
     ST.px = ctx2(canvas).getImageData(0, 0, ST.W, ST.H).data;
@@ -552,7 +552,7 @@
         const fA = new Float32Array(n); for (let i = 0; i < n; i++) fA[i] = front[i * 4 + 3] / 255;
         // เศษที่หลุดจากตัว (ถุงมือ/วัตถุ/สีชุดเดิม) และช่องฉากหลังระหว่างกราม-คอเสื้อ
         { const cover = new Float32Array(n); for (let i = 0; i < n; i++) cover[i] = Math.max(fA[i], neck ? neck.alpha[i] : 0); SC.removeStrayIslands(keepA, cover, W, H, Math.round(f.fw * f.fw * .15)); }
-        if (neck) { neck = { ...neck, rgba: new Uint8ClampedArray(neck.rgba), alpha: new Float32Array(neck.alpha) }; SC.fillNeckGaps(neck, keepA, fA, W, H, f, (neck.yCollar || f.chinY + f.fw * .4) + f.fw * .15, ST.harm.skinRGB, ST.layers.hair); }
+        if (neck) { neck = { ...neck, rgba: new Uint8ClampedArray(neck.rgba), alpha: new Float32Array(neck.alpha) }; SC.fillNeckGaps(neck, keepA, fA, W, H, f, (neck.yCollar || f.chinY + f.fw * .4) + f.fw * .15, ST.harm.skinRGB, ST.layers.hair, person); }
         neckShade = SC.contactShadow(fA, W, H, f, { chin: .3 * sv, collar: .38 * sv });
         const hairA = new Float32Array(n); for (let i = 0; i < n; i++) hairA[i] = keepA[i] * Ly.hair[i];
         gShade = sv > 0 ? SC.hairShadow(hairA, W, H, f.fw, { amount: .32 * sv }) : null;
@@ -568,11 +568,25 @@
       ST.out = r.rgba; ST.fgAlpha = r.fgAlpha; ST.keepA = keepA;
       $("#stOut").getContext("2d").putImageData(new ImageData(r.rgba, W, H), 0, 0);
       drawOverlay();
+      scheduleQA();
     } catch (e) { console.error(e); toast(T("studio.js.composeFail", "รวมภาพไม่สำเร็จ: {e}", { e: e.message })); }
     finally {
       running = false; busy(false);
       if (pending) schedule(pending);
     }
+  }
+
+  // ---------- ตรวจคุณภาพอัตโนมัติ (studio-qa.js ชุดเร็ว) — แจ้งอย่างสุภาพ ผลลัพธ์ยังใช้/ดาวน์โหลดได้ตามปกติ ----------
+  let qaT = 0;
+  function scheduleQA() { clearTimeout(qaT); qaT = setTimeout(runQA, 80); }
+  function runQA() {
+    const el = $("#stQa"); if (!el) return;
+    if (running || !window.StudioQA || !ST.out || !ST.cache.fit || !ST.cache.front || !ST.face) { el.hidden = true; ST.qa = null; return; }
+    const t = now(); let r;
+    try { r = window.StudioQA.evaluate(ST, SC, { fast: true }); } catch (e) { console.warn("qa", e); el.hidden = true; return; }
+    ST.qa = r; ST.timings.qa = now() - t;
+    el.hidden = r.pass; el.dataset.fails = r.fails.join(" ");
+    if (!r.pass) el.textContent = T("studio.qaWarn", "ภาพนี้อาจดูไม่เนียน — ลองถ่ายใหม่หน้าตรง แสงสม่ำเสมอ หรือเลือกชุดอื่น");
   }
 
   // ---------- มุมมอง / เทียบ / เครื่องมือ ----------

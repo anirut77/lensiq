@@ -7,6 +7,9 @@
 //   node tools/csp-meta.mjs a.html b.html   only these files
 //   node tools/csp-meta.mjs --connect https://lensiq-api.onrender.com   extra connect-src origin(s) (also LENSIQ_CSP_CONNECT)
 //
+// The API Worker origin (window.LENSIQ_API_BASE in lensiq-config.js, docs/BACKEND.md) is added to connect-src
+// automatically — but ONLY when it is configured (non-empty). Default "" keeps connect-src 'self' data: blob:.
+//
 // Differences from the HTTP header sent by server.py (a <meta> policy cannot carry them):
 //   frame-ancestors, report-uri/report-to and sandbox are ignored in <meta> by the CSP spec -> omitted.
 //   Clickjacking protection on GitHub Pages therefore relies on the page not being sensitive; server.py adds
@@ -36,6 +39,17 @@ export function policy({ connect = [] } = {}) {
     "base-uri 'self'",
     "form-action 'self'"
   ].join("; ");
+}
+
+/** Origin of window.LENSIQ_API_BASE in lensiq-config.js source, or null when empty / not a plain http(s) origin. */
+export function configuredApiOrigin(configSrc) {
+  const m = /^[ \t]*window\.LENSIQ_API_BASE\s*=\s*(?:window\.LENSIQ_API_BASE\s*\|\|\s*)?(["'])([^"']*)\1/m.exec(String(configSrc || ""));
+  if (!m || !m[2].trim()) return null;
+  try {
+    const u = new URL(m[2].trim());
+    if (!/^https?:$/.test(u.protocol) || u.username || u.password) return null;
+    return u.origin;
+  } catch { return null; }
 }
 
 const escAttr = s => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
@@ -81,6 +95,10 @@ function main(argv) {
   const args = argv.slice(2);
   const check = args.includes("--check");
   const connect = (process.env.LENSIQ_CSP_CONNECT || "").split(",").filter(Boolean);
+  let cfg = "";
+  try { cfg = readFileSync(join(repo, "lensiq-config.js"), "utf8"); } catch { /* no config file */ }
+  const apiOrigin = configuredApiOrigin(cfg);
+  if (apiOrigin) connect.push(apiOrigin);
   const files = [];
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--check") continue;

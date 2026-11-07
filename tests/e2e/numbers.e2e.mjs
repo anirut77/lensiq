@@ -33,7 +33,7 @@ export default async function ({ base, launch, check }) {
       assert(r.words.length > 0 && r.words.every(w => !/\d/.test(w)), "strength words, no digits: " + r.words);
       assert(!/เลขนำโชค/.test(r.page), "no lucky-number feature on the page");
       assert(!/234|345|456|567|678|789|0823456789/.test(r.ai) && !/ตำแหน่ง/.test(r.ai), "AI facts leak digits: " + r.ai.slice(0, 300));
-      assert(r.h1 === "เลขมงคล" && /ดูดวงอัจฉริยะ/.test(r.nav) && !/เลขมงคล AI/.test(r.nav), "titles: " + r.h1);
+      assert(r.h1 === "เลขมงคล" && /ดูดวงและวัฒนธรรม/.test(r.nav) && !/\bAI\b/.test(r.nav), "titles: " + r.h1);
 
       await page.evaluate(() => { document.querySelector('.nm-tab[data-tab="daily"]').click(); document.getElementById("nmWd").value = "tue"; document.getElementById("nmGo").click(); });
       await page.waitFor(() => !document.getElementById("nmDaily").hidden, 3000);

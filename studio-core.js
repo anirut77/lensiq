@@ -1566,8 +1566,51 @@
    *  keepS = ศีรษะ+ผม (วางหน้าชุด), neckS = คอ (วางหลังชุด), hairS = ผม, bodyS = ส่วนที่เหลือ (เสื้อเดิม/แขน — ถูกชุดใหม่แทนที่)
    *  เกลาขอบ keep ด้วย guided filter ตามภาพ (รอยต่อผม/เสื้อเดิม คมตามขอบจริง)
    */
+  function contourSlivers(keep, neck, hair, body, Fo, W, H, face, hwx = null) {
+    const fw = face.fw, x0 = Math.max(0, Math.floor(face.cx - fw * 1.3)), x1 = Math.min(W, Math.ceil(face.cx + fw * 1.3)), y0 = Math.max(0, Math.floor(face.eyeY)), y1 = Math.min(H, Math.ceil(face.chinY + fw * .9));
+    const bw = x1 - x0, bh = y1 - y0; if (bw < 4 || bh < 4) return 0;
+    const on = new Uint8Array(bw * bh), fo = new Uint8Array(bw * bh);
+    for (let y = 0; y < bh; y++) for (let x = 0; x < bw; x++) { const i = (y + y0) * W + x + x0; on[y * bw + x] = keep[i] > .5 ? 1 : 0; fo[y * bw + x] = Fo[i] ? 1 : 0; }
+    const r = Math.max(1, Math.round(fw * .015)), op = dilateR(erodeR(on, bw, bh, r, { l: false, r: false, t: false, b: false }), bw, bh, r + 1), near = dilateR(fo, bw, bh, Math.round(fw * .12));
+    const kill = new Uint8Array(bw * bh);
+    for (let k = 0; k < bw * bh; k++) if (on[k] && !op[k] && !fo[k] && near[k]) kill[k] = 1;
+    // ก้อนเล็กที่อยู่นอกโครงหน้า (หลัง opening แล้ว) — เศษข้างหู/ขอบกราม
+    const rest = new Uint8Array(bw * bh); for (let k = 0; k < bw * bh; k++) rest[k] = on[k] && !kill[k] && !fo[k] ? 1 : 0;
+    const seen = new Uint8Array(bw * bh), lim = fw * fw * .01;
+    for (let s0 = 0; s0 < bw * bh; s0++) {
+      if (!rest[s0] || seen[s0]) continue; const st = [s0], comp = []; seen[s0] = 1; let touchFace = false;
+      while (st.length) { const k = st.pop(), x = k % bw; comp.push(k); for (const j of [x > 0 ? k - 1 : -1, x < bw - 1 ? k + 1 : -1, k - bw, k + bw]) { if (j < 0 || j >= bw * bh) continue; if (fo[j] && on[j]) touchFace = true; if (rest[j] && !seen[j]) { seen[j] = 1; st.push(j); } } }
+      // ต่อกับหน้าเพียงเล็กน้อย/ไม่ต่อ และเล็ก = เศษ (ผมก้อนใหญ่/หู ต่อกับผมด้านบน จึงใหญ่กว่าเกณฑ์)
+      if (comp.length < lim && comp.some(k => near[k])) for (const k of comp) kill[k] = 1;
+      else if (!touchFace && comp.length < lim * 2 && comp.every(k => near[k])) for (const k of comp) kill[k] = 1;
+    }
+    let c = 0;
+    for (let y = 0; y < bh; y++) for (let x = 0; x < bw; x++) {
+      const k = y * bw + x; if (!kill[k]) continue; const i = (y + y0) * W + x + x0; if (hwx && hwx[i] > .1) continue; // ผ้าคลุมศีรษะ: ชายผ้าบางไม่ใช่เศษ
+      body[i] = Math.min(1, body[i] + keep[i]); keep[i] = 0; hair[i] = 0; c++;
+    }
+    // ขอบจาง ๆ รอบส่วนที่ตัด (keep < .5) ไม่ทิ้งเป็นเส้นบาง
+    for (let y = 1; y < bh - 1; y++) for (let x = 1; x < bw - 1; x++) {
+      const k = y * bw + x, i = (y + y0) * W + x + x0; if (on[k] || fo[k] || keep[i] <= 0) continue;
+      if (kill[k - 1] || kill[k + 1] || kill[k - bw] || kill[k + bw]) { body[i] = Math.min(1, body[i] + keep[i]); keep[i] = 0; hair[i] = 0; }
+    }
+    return c;
+  }
   function personLayers(rgba, alpha, W, H, face, P, crop = null) {
     const n = W * H, jy = jawCurve(face), keep = new Float32Array(n), neck = new Float32Array(n), hair = new Float32Array(n), body = new Float32Array(n);
+    // โครงหน้าตาม landmark (กราม + คิ้วยกขึ้น) ขยาย 3% — ผิวนอกโครงนี้ที่ต่ำกว่าระดับติ่งหู = ด้านข้างคอในเงา ไม่ใช่ใบหน้า
+    let Fo = null; const cxF = face.chinX != null ? face.chinX : face.cx;
+    if (face.P && face.P.length >= 68) {
+      const Pp = face.P, eyeMid = { x: (Pp[36].x + Pp[45].x) / 2, y: (Pp[36].y + Pp[45].y) / 2 }, fh = Math.hypot(Pp[8].x - eyeMid.x, Pp[8].y - eyeMid.y);
+      Fo = new Float32Array(n); fillPoly(Fo, W, H, grow([...Pp.slice(0, 17), ...Pp.slice(17, 27).reverse().map(p => ({ x: p.x, y: p.y - fh * .3 }))], 1.03), 1);
+    }
+    // แนวกรามต่อออกนอกปลายกราม: ลาดลงชัน (ไม่ใช่เส้นระดับ) — ตัดผิวใต้กรามโดยไม่เกิดขั้นแนวนอน/แนวตั้งที่ปลายกราม
+    const jx0 = face.P ? Math.min(...face.P.slice(0, 17).map(p => p.x)) : 0, jx1 = face.P ? Math.max(...face.P.slice(0, 17).map(p => p.x)) : W;
+    // ผิวใต้กราม: กลางคางต้องเป็นสีผิว (เคราคงไว้); ข้างกรามรวมผิวในเงา (มืด อิ่มตัวต่ำ) — ผ้า/ลายสีอื่น (ผ้าคลุม) ไม่ตัด
+    // มีผ้าคลุมศีรษะ (ฮิญาบ) คลุมข้างกราม: ไม่ใช้กฎตัดใต้กราม (ชายผ้าสีเข้ม/ลายสีผิวถูกตัดเป็นรูขาว)
+    let hasHw = false; if (P.hwx) { let c = 0; for (let i = 0; i < n; i += 3) if (P.hwx[i] > .5) c += 3; hasHw = c > face.fw * face.fw * .05; }
+    const jawSkin = (i, side) => { const r = rgba[i * 4], g = rgba[i * 4 + 1], b = rgba[i * 4 + 2], sl = skinLikelihood(r, g, b); if (sl > .4) return true; if (!side) return false; const mx = Math.max(r, g, b), mn = Math.min(r, g, b); return mx < 90 && mx - mn < 40 && r >= b - 6; };
+    const jyX = x => x < jx0 ? jy(jx0) + (jx0 - x) * 4 : x > jx1 ? jy(jx1) + (x - jx1) * 4 : jy(x);
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
       const i = y * W + x;
       let h, hr, nk;
@@ -1580,7 +1623,7 @@
       // เฉพาะแนวคอ (|dx| < ~0.37 หน้า ไล่นุ่ม): ข้างกราม/ใต้หูคงเป็นศีรษะ — ไม่มีขอบตัดตรงแนวตั้งบนผม/แก้มที่ปลายกราม
       else if (face.P && x > face.P[2].x && x < face.P[14].x && y > jy(x) + face.fw * .1 && !(P.acc && P.acc[i] > .3) && !(P.hwx && P.hwx[i] > .5)) { const wN = 1 - smooth((Math.abs(x - (face.chinX != null ? face.chinX : face.cx)) - face.fw * .32) / (face.fw * .1)); nk = Math.max(nk, h * wN * (P.cloth && P.cloth[i] > h ? 0 : 1)); h *= 1 - wN; }
       // ผิวข้างกรามใต้แนว landmark (นอกแถบคอ) = ด้านข้างคอในเงา ไม่ใช่ใบหน้า — ตัดออก ให้ขอบหน้าโค้งตามกราม (ไม่ใช่ขอบล่างแบนกว้าง + บากเป็นขั้นที่ปลายกราม)
-      if (face.P && h > 0 && x > face.P[2].x && x < face.P[14].x && y > jy(x) + face.fw * .06 && hr < .15 && !(P.acc && P.acc[i] > .3) && !(P.hwx && P.hwx[i] > .5) && skinLikelihood(rgba[i * 4], rgba[i * 4 + 1], rgba[i * 4 + 2]) > .4) h = 0;
+      if (Fo && !hasHw && h > 0 && y > jyX(x) + face.fw * .06 && y < face.chinY + face.fw * .6 && Math.abs(x - cxF) < face.fw * .8 && hr < .15 && !(P.acc && P.acc[i] > .3) && !(P.hwx && P.hwx[i] > .1) && jawSkin(i, Math.abs(x - cxF) > face.fw * .42)) h = 0; // ข้างกราม: ตัดทั้งผิวในเงา; กลางคาง: เฉพาะผิว (เคราคงไว้)
       const k = smooth((h + hr - .3) / .4), nn = smooth((nk - .3) / .4) * (1 - k);
       keep[i] = k; neck[i] = nn; hair[i] = smooth((hr - .3) / .4); body[i] = Math.max(0, 1 - k - nn);
     }
@@ -1603,6 +1646,8 @@
       fillPoly(Fm, W, H, g, 1);
       for (let i = 0; i < n; i++) if (Fm[i] > keep[i]) { keep[i] = Fm[i]; neck[i] = Math.min(neck[i], 1 - keep[i]); body[i] = Math.max(0, 1 - keep[i] - neck[i]); }
     }
+    // เศษบาง/เกาะเล็กติดขอบหน้า (เส้นขาวข้างกราม เศษข้างหู): นอกโครงหน้า ต่ำกว่าระดับตา — ตัดส่วนที่หายไปเมื่อ opening รัศมี 1.5% หน้า และก้อนเล็ก < 0.01 fw²
+    if (Fo) contourSlivers(keep, neck, hair, body, Fo, W, H, face, P.hwx || null);
     // guided filter บนกรอบรอบศีรษะ (ขอบผม/เสื้อเดิมตามขอบภาพ) — นอกกรอบคงเดิม
     const fw = face.fw, bx = { x0: Math.max(0, Math.floor(face.cx - fw * 2)), x1: Math.min(W, Math.ceil(face.cx + fw * 2)), y0: Math.max(0, Math.floor(face.eyeY - fw * 1.4)), y1: Math.min(H, Math.ceil(face.chinY + fw * 2.4)) };
     const cw = bx.x1 - bx.x0, ch = bx.y1 - bx.y0;
@@ -1825,16 +1870,28 @@
     }
     let lastJ = -1; for (let j = 0; j < rows; j++) if (wr[j]) lastJ = j;
     let firstJ = -1; for (let j = 0; j < rows; j++) if (wr[j]) { firstJ = j; break; }
-    const base = skinRGB ? skinRGB.map(v => v * .9) : [170, 130, 110];
-    for (let j = 0; j < rows; j++) if (!wr[j]) { const k = j > lastJ && lastJ >= 0 ? lastJ : j < firstJ && firstJ >= 0 ? firstJ : -1; for (let c = 0; c < 3; c++) ref[c][j] = k >= 0 ? ref[c][k] : base[c]; }
+    // ไม่เห็นคอจริงเลย (คอเสื้อสูง/เทอร์เทิลเน็ก): ใช้สีผิวหน้าส่วนล่าง (แก้มล่าง/คาง) ของคนนั้นเอง — ไม่ใช่ค่าเฉลี่ยทั้งหน้าคูณมืด
+    let low = null; {
+      const cxl = face.chinX != null ? face.chinX : face.cx; let a0 = 0, a1 = 0, a2 = 0, c = 0;
+      for (let y = Math.max(0, Math.round(face.chinY - fw * .42)); y < Math.min(H, Math.round(face.chinY - fw * .1)); y += 2) for (let x = Math.max(0, Math.round(cxl - fw * .3)); x < Math.min(W, Math.round(cxl + fw * .3)); x += 2) {
+        const i = y * W + x; if (keepS[i] < .8 || alpha[i] < .8 || (!mono && skinLikelihood(person[i * 4], person[i * 4 + 1], person[i * 4 + 2]) < .5)) continue;
+        const l = .299 * person[i * 4] + .587 * person[i * 4 + 1] + .114 * person[i * 4 + 2]; if (mono && (l < 40 || l > 235)) continue;
+        a0 += person[i * 4]; a1 += person[i * 4 + 1]; a2 += person[i * 4 + 2]; c++;
+      }
+      if (c > 30) low = [a0 / c, a1 / c, a2 / c];
+    }
+    const base = low ? low.map(v => v * .95) : skinRGB ? skinRGB.map(v => v * .9) : [170, 130, 110];
+    // แถวที่ไม่เห็นคอ: ใกล้แถวที่เห็น ใช้สีแถวนั้น; ห่างออกไป (> 0.1 หน้า) ไล่เข้าหาสีผิวหน้าส่วนล่าง — คอจริงที่เห็นเพียงแถบเล็กในเงา ไม่ลามเป็นทั้งแท่งคอสีเข้ม
+    for (let j = 0; j < rows; j++) if (!wr[j]) { const k = j > lastJ && lastJ >= 0 ? lastJ : j < firstJ && firstJ >= 0 ? firstJ : -1; const wb = k >= 0 ? smooth((Math.abs(j - k) - fw * .1) / (fw * .25)) : 1; for (let c = 0; c < 3; c++) ref[c][j] = k >= 0 ? ref[c][k] * (1 - wb) + base[c] * wb : base[c]; wr[j] = -wb; }
     for (let c = 0; c < 3; c++) ref[c] = boxFilter(ref[c], 1, rows, Math.max(1, Math.round(fw * .08)));
     // สีอ้างอิงต้องเป็นผิว: ดึง a*b* เข้าหาผิวหน้า, ความสว่างอยู่ในช่วง 0.55–1.02 เท่าผิวหน้า (กันคอเทา/ม่วง/ดำ)
     for (let j = 0; j < rows; j++) {
-      const L = rgbToLab(ref[0][j], ref[1][j], ref[2][j]), Lv = clamp(L[0], sk[0] * .55, sk[0] * 1.02), k = wr[j] ? .5 : .85;
+      const L = rgbToLab(ref[0][j], ref[1][j], ref[2][j]), Lv = clamp(L[0], sk[0] * (wr[j] > 0 ? .55 : .55 + .25 * Math.min(1, -wr[j] || (firstJ < 0 ? 1 : 0))), sk[0] * 1.02), k = wr[j] > 0 ? .5 : .85;
       const q = labToRgb(Lv, mono ? L[1] : L[1] + (sk[1] - L[1]) * k, mono ? L[2] : L[2] + (sk[2] - L[2]) * k);
       for (let c = 0; c < 3; c++) ref[c][j] = q[c];
     }
-    const seeAny = firstJ >= 0;
+    let seenRows = 0; for (let j = 0; j < rows; j++) if (wr[j] > 0) seenRows++;
+    const seeAny = seenRows > fw * .3; // เห็นคอจริงเพียงไม่กี่แถว = ถือว่าไม่เห็น (ใช้เงาแบบอ่อน)
     // ลายผิวจริง (ไม่ใช่สีเรียบ): รายละเอียดความถี่สูงของผิวช่วงคาง/แก้มล่าง (luma - ค่าเฉลี่ยเฉพาะที่) นำมาวางบนคอที่สร้าง
     const cx = face.chinX != null ? face.chinX : face.cx, dx0 = Math.max(0, Math.round(cx - fw * .4)), dx1 = Math.min(W - 1, Math.round(cx + fw * .4)), dy0 = Math.max(0, Math.round(face.chinY - fw * .26)), dy1 = Math.max(dy0 + 2, Math.min(H - 1, Math.round(face.chinY - fw * .06)));
     const dw = dx1 - dx0 + 1, dh = dy1 - dy0 + 1, DL = new Float32Array(dw * dh), DK = new Float32Array(dw * dh);
@@ -1848,7 +1905,9 @@
         const edge = smooth(Math.min((g.h - Math.abs(x - g.c)) / fe + .5, (y - top) / fe + .5)); if (edge <= 0) continue;
         // ทรงกระบอก: ข้างคอมืดลง; ใต้คางอยู่ในเงา (มากขึ้นเมื่อไม่เห็นคอจริงเลย)
         // ทรงกระบอก (ข้างคอมืดชัด) + เงาใต้กรามไล่ยาว + ลายผิวจริง — คอไม่เป็นแผ่นสีเรียบ
-        const cyl = .6 + .4 * Math.pow(Math.max(0, 1 - u * u), .45), dy = y - jy(x), chinSh = dy > 0 ? 1 - (seeAny ? .12 : .3) * Math.exp(-dy / (fw * .2)) : 1;
+        // ไม่เห็นคอจริง: เงาข้างคอเบากว่า + ไล่ความสว่างตามแนวตั้ง (ใต้คางมืดกว่าเล็กน้อย สว่างขึ้นสู่คอเสื้อ) — ไม่เป็นแผ่นสีเข้มเรียบ
+        const cyl = seeAny ? .6 + .4 * Math.pow(Math.max(0, 1 - u * u), .45) : .74 + .26 * Math.pow(Math.max(0, 1 - u * u), .6), dy = y - jy(x);
+        const chinSh = dy > 0 ? (seeAny ? 1 - .12 * Math.exp(-dy / (fw * .2)) : .84 + .16 * smooth(dy / (fw * .6))) : 1;
         const gr = noise > 0 ? Math.sqrt(-2 * Math.log(R() + 1e-9)) * Math.cos(6.2832 * R()) * noise : 0, wR = Math.min(1, realB[i] * 1.2) * (real[i] > 0 ? 1 : .6), det = detAt(x, y) * .8;
         for (let c = 0; c < 3; c++) { const syn = ref[c][j] * cyl * chinSh + gr + det; rgba[i * 4 + c] = syn + (person[i * 4 + c] - syn) * wR; }
         A[i] = edge;
@@ -1882,7 +1941,7 @@
    * ปิดช่องฉากหลังระหว่างกราม/ผมกับคอเสื้อ: ในแถบจากคางถึงขอบบนชุด (|dx| < 0.65 หน้า) พิกเซลที่ไม่มีอะไรคลุม แต่มีสิ่งคลุมทั้งซ้ายและขวา
    * -> เติมเป็นคอ (สีเฉลี่ยของคอในแถวนั้น หรือผิวมืดลง = เงาในร่องคอเสื้อ) แก้ neck.rgba/alpha ในตัว คืนจำนวนพิกเซลที่เติม
    */
-  function fillNeckGaps(neck, keepA, frontA, W, H, face, yEnd, skinRGB = null, hairA = null) {
+  function fillNeckGaps(neck, keepA, frontA, W, H, face, yEnd, skinRGB = null, hairA = null, src = null) {
     // เติมเฉพาะ "รู" 2 มิติที่ปิดล้อมในช่วงคอ (ฉากโผล่เป็นรอยบาก/ช่องเล็กระหว่างคอ-คาง-ปกเสื้อ) ที่ขอบส่วนใหญ่เป็นผิวคอ/หน้า
     // ช่องที่มีผมเป็นขอบ (ฉากจริงระหว่างผมยาวกับคอ) หรือเปิดออกด้านข้าง ไม่เติม — เดิมเติมทีละแถวทำให้เกิดแถบน้ำตาลเป็นเส้น ๆ
     const fw = face.fw, cx = Math.round(face.chinX != null ? face.chinX : face.cx), y0 = Math.max(0, Math.round(face.chinY - fw * .15)), y1 = Math.min(H - 1, Math.round(yEnd));
@@ -1903,12 +1962,25 @@
         }
       }
       id++;
-      if (open || comp.length > fw * fw * .04 || !eAll || eHair > eAll * .25 || eSkin < eAll * .3) continue;
+      // รูที่ผมยาวเป็นขอบด้านหนึ่ง (ระหว่างผมกับคอ ปิดด้วยชุดด้านล่าง): ในภาพจริงเป็นเงาคอ/ไหล่ ไม่ใช่ฉากสว่าง — เติมเป็นเงา
+      const hairHole = eHair > eAll * .25;
+      if (open || comp.length > fw * fw * (hairHole ? .12 : .04) || !eAll || eSkin < eAll * (hairHole ? .1 : .3)) continue;
       // สีเงา: ผิวคอเฉลี่ยรอบรู มืดลงเล็กน้อย
       let sr = 0, sg = 0, sb = 0, sn = 0;
       for (const k of comp) { const x = k % bw + xa, y = ((k / bw) | 0) + y0; for (const j of [y * W + x - 2, y * W + x + 2, (y - 2) * W + x]) if (j >= 0 && j < W * H && neck.alpha[j] > .9) { sr += neck.rgba[j * 4]; sg += neck.rgba[j * 4 + 1]; sb += neck.rgba[j * 4 + 2]; sn++; } }
-      const col = (sn ? [sr / sn, sg / sn, sb / sn] : base).map(v => v * .8);
-      for (const k of comp) { const i = (((k / bw) | 0) + y0) * W + k % bw + xa, kk = 1 - cov(i); for (let q = 0; q < 3; q++) neck.rgba[i * 4 + q] = neck.rgba[i * 4 + q] * (1 - kk) + col[q] * kk; neck.alpha[i] = 1; neck.rgba[i * 4 + 3] = 255; filled++; }
+      const col = (sn ? [sr / sn, sg / sn, sb / sn] : base).map(v => v * (hairHole ? .5 : .8));
+      // รูข้างผม: ใช้พิกเซลจริงของภาพเดิม (คอ/ไหล่ในเงาจริง) ถ้าเป็นผิวหรือเงามืด — ไม่เป็นแผ่นสีเรียบ
+      for (const k of comp) {
+        const i = (((k / bw) | 0) + y0) * W + k % bw + xa, kk = 1 - cov(i); let c = col;
+        if (hairHole && src) { const r = src[i * 4], g = src[i * 4 + 1], b = src[i * 4 + 2]; if (skinLikelihood(r, g, b) > .3 || Math.max(r, g, b) < 70) c = [r, g, b]; }
+        for (let q = 0; q < 3; q++) neck.rgba[i * 4 + q] = neck.rgba[i * 4 + q] * (1 - kk) + c[q] * kk; neck.alpha[i] = 1; neck.rgba[i * 4 + 3] = 255; filled++;
+      }
+      // ขอบรู 2 พิกเซล (ขอบจางของผม/คอ) เติมด้วย — ไม่เหลือเส้นฉากบาง ๆ รอบส่วนที่เติม
+      if (hairHole && src) for (const k of comp) { const cx0 = k % bw + xa, cy0 = ((k / bw) | 0) + y0; for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+        const x = cx0 + dx, y = cy0 + dy; if (x < 0 || y < 0 || x >= W || y >= H) continue; const i = y * W + x, cv = cov(i); if (cv >= .98 || neck.alpha[i] >= 1) continue;
+        const r = src[i * 4], g = src[i * 4 + 1], b = src[i * 4 + 2]; if (!(skinLikelihood(r, g, b) > .3 || Math.max(r, g, b) < 70)) continue;
+        for (let q = 0; q < 3; q++) neck.rgba[i * 4 + q] = src[i * 4 + q]; neck.alpha[i] = 1; neck.rgba[i * 4 + 3] = 255;
+      } }
     }
     return filled;
   }

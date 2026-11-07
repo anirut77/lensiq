@@ -363,7 +363,7 @@ from collections import deque
 
 FORTUNE_MODEL = os.environ.get("LENSIQ_FORTUNE_MODEL", "claude-opus-5-5")
 FORTUNE_SECTION_IDS = ["overview", "personality", "work", "money", "love", "social", "timing", "advice"]
-FORTUNE_DOMAINS = {"face", "palm", "horoscope", "tarot", "siamsee", "fengshui", "numbers", "iching", "zodiac", "astro", "dream"}
+FORTUNE_DOMAINS = {"face", "palm", "horoscope", "tarot", "siamsee", "fengshui", "numbers", "iching", "zodiac", "astro", "dream", "bazi", "taksa", "lek7", "lifegraph"}
 FORTUNE_TOPICS = {"overall", "love", "work", "money"}
 FORTUNE_TONES = {"warm": "อบอุ่น เป็นกันเอง", "playful": "สนุก ขี้เล่นเล็กน้อย", "formal": "สุภาพ เป็นทางการ"}
 FORTUNE_MAX_FACTS_BYTES = 20 * 1024
@@ -382,7 +382,7 @@ You are an experienced, kind Thai fortune reader writing an entertainment-only r
 หลักการเขียน (How to write):
 1. อ้างอิงทุกคำทำนายกับ items/evidence ที่ให้มาเท่านั้น เล่าถึงสิ่งที่พบอย่างเป็นธรรมชาติ เช่น "จากคิ้วที่ยาวโค้งรับกับดวงตา…" ห้ามแต่งค่าการวัด ตัวเลข ไพ่ หรือลักษณะที่ไม่มีในข้อมูล
    Ground every claim in the given items; never invent measurements, numbers, cards or features.
-2. ให้น้ำหนักตาม strength: สิ่งที่เด่นที่สุด 3–5 อย่างเป็นแกนของภาพรวม และผสานสิ่งที่เสริมกัน ("ทั้ง…และ…ช่วยเสริมกันในเรื่อง…") ส่วนสิ่งที่ขัดกันหรือ polarity = "challenge" ให้เล่าแบบสมดุล ("แม้…แต่…") และเชิงสร้างสรรค์
+2. ให้น้ำหนักตาม strength: สิ่งที่เด่นที่สุด 3–5 อย่างเป็นแกนของภาพรวม และผสานสิ่งที่เสริมกัน ("ทั้ง…และ…ช่วยเสริมกันในเรื่อง…") ส่วนสิ่งที่ขัดกันหรือ polarity = "challenge" / tone = "caution" ให้บอกตรง ๆ แต่นุ่มนวล ("ช่วงนี้ตำราชี้ว่า…อาจตึงมือ") แล้วตามด้วยสิ่งที่ทำได้เสมอ ไม่เล่าว่าทุกอย่างดีไปหมด
 3. หัวข้อที่ผู้ใช้เลือก (topic) ต้องละเอียดที่สุด ยาวที่สุด และวางเป็นหัวข้อแรกถัดจาก overview
 4. ใช้ความหมายในตำรา (meanings/extras) เป็นวัตถุดิบเพียงอย่างเดียว เรียบเรียงใหม่ด้วยภาษาไทยที่ลื่นไหล หลากหลาย ไม่คัดลอกเป็นรายการ ไม่ขึ้นต้นประโยคซ้ำ ๆ ใช้คำบ่งความไม่แน่นอนอย่างพอดี ("มีแนวโน้ม", "ตามตำราเชื่อว่า")
    ทุกประโยคต้องเป็นการเล่าความหมายข้อใดข้อหนึ่งใน facts ซ้ำด้วยคำเชื่อม/ลำดับใหม่เท่านั้น ห้ามเพิ่มข้อกล่าวอ้าง คำแนะนำ ตัวเลข หรือคำปฏิเสธที่ไม่มีใน facts
@@ -493,6 +493,8 @@ def clean_facts(raw):
             o["strength"] = round(max(0.0, min(1.0, float(st))), 3)
         if it.get("polarity") == "challenge":
             o["polarity"] = "challenge"
+        if it.get("tone") in ("favourable", "neutral", "caution"):
+            o["tone"] = it["tone"]
         o["tags"] = _str_list(it.get("tags"), "tags", 12)
         meanings = {}
         m = it.get("meanings") or {}

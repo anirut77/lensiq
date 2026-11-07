@@ -1,4 +1,4 @@
-/* lensiq-i18n-rt.js — run-time Chinese for text that page scripts write in Thai (status lines, toasts, tables,
+/* lensiq-i18n-rt.js — run-time Chinese / English for text that page scripts write in Thai (status lines, toasts, tables,
  * dialogs, canvas labels). Companion of lensiq-i18n.js; used by the camera pages and converter.html.
  *
  * Why: the camera pages build most of their live text in JS (≈1,500 Thai literals). Rather than threading t() through
@@ -15,8 +15,10 @@
  * Not translated: <textarea>, <input> values, contenteditable, [translate=no], [data-i18n-skip] (user data), CSV/JSON
  * exports (files keep Thai headers so existing spreadsheets do not break).
  *
- * Dictionaries: (window.LQI18N_RT = window.LQI18N_RT || []).push({ "ไทย": "中文", "มี {n} คน": "{n} 人" })
- * API: LQI18N_RTX.tr(thai) -> current-language text; .active; .stats().
+ * Dictionaries: (window.LQI18N_RT = window.LQI18N_RT || []).push({ "ไทย": "中文", "มี {n} คน": "{n} 人" })   (Chinese)
+ *               (window.LQI18N_RT = window.LQI18N_RT || []).push({ "@lang": "en", "ไทย": "Thai" })       (English,
+ *               i18n/en-rt-<page>.js — loaded on demand by lensiq-i18n.js when English is chosen)
+ * API: LQI18N_RTX.tr(thai, lang?) -> text in lang (default: the active language, else Chinese); .active; .lang; .stats().
  */
 (function (root) {
   "use strict";
@@ -25,18 +27,32 @@
   var TH = /[฀-๿]/;
   var SEG = /[฀-๿]+(?:[  ]+[฀-๿]+)*/g;
   var ATTRS = ["title", "placeholder", "aria-label", "alt", "aria-valuetext", "data-tip"];
-  var dict = Object.create(null), tmpls = [], maxKey = 0;
-  var cache = new Map();
+  var LANGS = { zh: 1, en: 1 };
+  var D = { zh: { dict: Object.create(null), tmpls: [], maxKey: 0, cache: new Map() }, en: { dict: Object.create(null), tmpls: [], maxKey: 0, cache: new Map() } };
+  var L = "zh"; // language used by tr() when none is given (= the active language while active)
   var active = false, observer = null, busy = false;
-  var texts = typeof WeakMap !== "undefined" ? new WeakMap() : null; // Text node -> {th, zh}
+  // options (window.LQI18N_RT_CFG before load, or LQI18N_RTX.config()): langs = languages to run in (default zh + en);
+  // exactOnly = translate whole strings / templates / dates only, never word runs (pages whose free text is user- or
+  // knowledge-base prose, e.g. fortune readings); skip = CSS selector of subtrees left untouched
+  var CFG = { langs: { zh: 1, en: 1 }, exactOnly: false, skip: "" };
+  function config(o) {
+    if (!o || typeof o !== "object") return;
+    if (Array.isArray(o.langs)) { CFG.langs = /** @type {any} */ ({}); o.langs.forEach(function (l) { if (LANGS[l]) CFG.langs[l] = 1; }); }
+    if ("exactOnly" in o) CFG.exactOnly = !!o.exactOnly;
+    if (typeof o.skip === "string") CFG.skip = o.skip;
+  }
+  config(root.LQI18N_RT_CFG);
+  var texts = typeof WeakMap !== "undefined" ? new WeakMap() : null; // Text node -> {th, zh} (zh = translated text, any language)
   var attrs = typeof WeakMap !== "undefined" ? new WeakMap() : null; // Element -> {attr: {th, zh}}
   var nTr = 0;
 
   function esc(s) { return s.replace(/[.*+?^$()|[\]\\]/g, "\\$&"); }
   function add(d) {
     if (!d || typeof d !== "object") return;
+    var lg = typeof d["@lang"] === "string" && LANGS[d["@lang"]] ? d["@lang"] : "zh", S = D[lg];
+    var dict = S.dict, tmpls = S.tmpls;
     for (var k in d) {
-      if (!Object.prototype.hasOwnProperty.call(d, k) || typeof d[k] !== "string") continue;
+      if (k === "@lang" || !Object.prototype.hasOwnProperty.call(d, k) || typeof d[k] !== "string") continue;
       var key = String(k).replace(/\s+/g, " ").trim();
       if (/\{\w+\}/.test(key)) {
         var names = [];
@@ -44,28 +60,30 @@
         tmpls.push({ re: new RegExp("^" + src + "$"), names: names, out: d[k] });
       } else {
         dict[key] = d[k];
-        if (key.length > maxKey) maxKey = key.length;
+        if (key.length > S.maxKey) S.maxKey = key.length;
       }
     }
-    cache.clear();
-    if (active) scan(doc && doc.documentElement);
+    S.cache.clear();
+    if (active && lg === L) scan(doc && doc.documentElement);
   }
 
   function fill(out, names, m) {
     return out.replace(/\{(\w+)\}/g, function (all, n) { var i = names.indexOf(n); return i >= 0 ? tr(m[i + 1]) : all; });
   }
   function tmpl(s) {
+    var tmpls = D[L].tmpls;
     for (var i = 0; i < tmpls.length; i++) { var m = tmpls[i].re.exec(s); if (m) return fill(tmpls[i].out, tmpls[i].names, m); }
     return null;
   }
   // greedy longest match of known phrases (≥ 3 chars) covering a whole run that has no dictionary entry
   function greedy(run) {
+    var dict = D[L].dict, maxKey = D[L].maxKey, sp = L === "en" ? " " : "";
     var out = "", i = 0, hit = false;
     while (i < run.length) {
       var found = 0;
-      for (var L = Math.min(maxKey, run.length - i); L >= 3; L--) {
-        var piece = run.substr(i, L);
-        if (dict[piece] !== undefined) { found = L; out += dict[piece]; break; }
+      for (var n = Math.min(maxKey, run.length - i); n >= 3; n--) {
+        var piece = run.substr(i, n);
+        if (dict[piece] !== undefined) { found = n; out += (out && dict[piece] ? sp : "") + dict[piece]; break; }
       }
       if (!found) return run; // only when the whole run is made of known phrases (keeps names such as สมชาย intact)
       i += found; hit = true;
@@ -73,6 +91,7 @@
     return hit ? out : run;
   }
   function seg(run) {
+    var dict = D[L].dict;
     if (dict[run] !== undefined) return dict[run];
     var t = tmpl(run); if (t != null) return t;
     if (/\s/.test(run)) return run.split(/([  ]+)/).map(function (p) { return TH.test(p) ? seg(p) : p; }).join("");
@@ -82,26 +101,33 @@
   var MON = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
   var MONF = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
   var DATE_RE = new RegExp("(\\d{1,2})\\s*(" + MONF.concat(MON).map(esc).join("|") + ")(?:\\s*(\\d{4}|\\d{2})(?!\\d|:))?", "g");
+  var MON_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   function dates(s) {
-    if (s.indexOf("฿") >= 0) s = s.replace(/฿\s?(-?[\d,]+(?:\.\d+)?)/g, "$1 泰铢"); // prices: ฿60 -> 60 泰铢
+    var en = L === "en";
+    if (!en && s.indexOf("฿") >= 0) s = s.replace(/฿\s?(-?[\d,]+(?:\.\d+)?)/g, "$1 泰铢"); // prices: ฿60 -> 60 泰铢 (English keeps ฿)
     if (!/[ก-ฮ]\.|คม|ยน|พันธ์|น\./.test(s)) return s;
     return s.replace(DATE_RE, function (all, d, m, y) {
       var mi = MON.indexOf(m); if (mi < 0) mi = MONF.indexOf(m);
+      var Y = y ? +y : 0; if (y && y.length === 2) Y += 2500; if (Y > 2400) Y -= 543;
+      if (en) return (+d) + " " + MON_EN[mi] + (y ? " " + Y : "");
       var out = (mi + 1) + "月" + (+d) + "日";
-      if (y) { var Y = +y; if (y.length === 2) Y += 2500; if (Y > 2400) Y -= 543; out = Y + "年" + out; }
+      if (y) out = Y + "年" + out;
       return out;
     }).replace(/(\d{1,2}[:.]\d{2}(?::\d{2})?)\s*น\./g, "$1");
   }
-  /** Thai -> Chinese (current dictionaries). Strings without Thai are returned unchanged. */
-  function tr(s) {
+  /** Thai -> Chinese / English (current dictionaries). Strings without Thai are returned unchanged.
+   * @param {*} s @param {string} [lang] "zh" | "en" (default: the active language, else Chinese) */
+  function tr(s, lang) {
     if (s == null) return s;
     s = String(s);
     if (!TH.test(s)) return s;
+    if (lang && LANGS[lang] && lang !== L) { var keep = L; L = lang; try { return tr(s); } finally { L = keep; } }
+    var dict = D[L].dict, cache = D[L].cache;
     var c = cache.get(s); if (c !== undefined) return c;
     var lead = s.match(/^\s*/)[0], trail = s.slice(lead.length).match(/\s*$/)[0], core = s.slice(lead.length, s.length - trail.length);
     var norm = core.replace(/\s+/g, " "), out;
     if (dict[norm] !== undefined) out = dict[norm];
-    else { out = tmpl(norm); if (out == null) { core = dates(core); out = TH.test(core) ? core.replace(SEG, seg) : core; } }
+    else { out = tmpl(norm); if (out == null) { core = dates(core); out = TH.test(core) && !CFG.exactOnly ? core.replace(SEG, seg) : core; } }
     out = lead + out + trail;
     if (cache.size > 4000) cache.clear();
     cache.set(s, out);
@@ -115,6 +141,7 @@
       var tg = e.tagName;
       if (tg === "SCRIPT" || tg === "STYLE" || tg === "TEXTAREA" || tg === "NOSCRIPT" || tg === "CODE" || tg === "PRE") return true;
       if (e.isContentEditable || e.getAttribute("translate") === "no" || e.hasAttribute("data-i18n-skip")) return true;
+      if (CFG.skip && e.matches && e.matches(CFG.skip)) return true;
       if (tg === "BODY" || tg === "HTML") return false;
     }
     return false;
@@ -123,8 +150,13 @@
     var v = n.nodeValue;
     if (!v || !TH.test(v)) return;
     var r = texts && texts.get(n);
-    if (r && v === r.zh) return;
     var p = n.parentElement; if (!p || skipEl(p)) return;
+    if (r && v === r.zh) {
+      // already translated: re-translate the Thai original when a dictionary that arrived later knows more
+      var z2 = tr(r.th);
+      if (z2 !== v) { r.zh = z2; n.nodeValue = z2; }
+      return;
+    }
     var z = tr(v);
     if (z !== v) { if (texts) texts.set(n, { th: v, zh: z }); n.nodeValue = z; }
   }
@@ -216,15 +248,16 @@
     var S = root.speechSynthesis; if (!S || typeof S.speak !== "function" || /** @type {any} */ (S.speak).__lqrt) return;
     var f = S.speak;
     var w = function (u) {
-      if (active && u && typeof u.text === "string" && TH.test(u.text)) { try { u.text = tr(u.text); u.lang = "zh-CN"; } catch (e) { /* read-only in some engines */ } }
+      if (active && u && typeof u.text === "string" && TH.test(u.text)) { try { u.text = tr(u.text); u.lang = L === "en" ? "en-US" : "zh-CN"; } catch (e) { /* read-only in some engines */ } }
       return f.call(S, u);
     };
     w.__lqrt = true;
     try { S.speak = w; } catch (e) { /* ignore */ }
   }
 
-  function start() {
+  function start(lang) {
     if (active || !doc || !doc.documentElement) return;
+    L = LANGS[lang] ? lang : "zh";
     active = true;
     busy = true; try { unwrapRuns(doc.documentElement); scan(doc.documentElement); } finally { busy = false; }
     if (typeof MutationObserver !== "undefined") {
@@ -238,17 +271,20 @@
     if (observer) { observer.disconnect(); observer = null; }
     restore(doc.documentElement);
   }
-  function sync(lang) { if (lang === "zh") start(); else stop(); }
+  function sync(lang) {
+    if (LANGS[lang] && CFG.langs[lang]) { if (active && lang !== L) stop(); start(lang); } else stop();
+  }
 
   var q = root.LQI18N_RT;
   if (q && q.length) for (var i = 0; i < q.length; i++) add(q[i]);
   root.LQI18N_RT = { push: function (d) { add(d); return 0; }, length: 0 };
-  root.LQI18N_RTX = { tr: tr, add: add, get active() { return active; }, stats: function () { return { phrases: Object.keys(dict).length, templates: tmpls.length, translated: nTr }; } };
+  root.LQI18N_RTX = { tr: tr, add: add, config: config, get active() { return active; }, get lang() { return active ? L : null; },
+    stats: function (lang) { var S = D[LANGS[lang] ? lang : L]; return { phrases: Object.keys(S.dict).length, templates: S.tmpls.length, translated: nTr }; } };
   wrapDialogs();
   wrapCanvas();
   wrapSpeech();
   if (typeof root.addEventListener === "function") root.addEventListener("lq-lang", function (/** @type {CustomEvent} */ e) { sync(e && e.detail && e.detail.lang); });
-  // the core fires "lq-lang" once after its first apply when the stored language is Chinese; if it already ran
+  // the core fires "lq-lang" once after its first apply when the stored language is not Thai; if it already ran
   // (this file loaded late), start now.
-  if (doc && root.LQI18N && root.LQI18N.lang === "zh" && doc.readyState !== "loading") start();
+  if (doc && root.LQI18N && LANGS[root.LQI18N.lang] && CFG.langs[root.LQI18N.lang] && doc.readyState !== "loading") start(root.LQI18N.lang);
 })(typeof window !== "undefined" ? window : globalThis);

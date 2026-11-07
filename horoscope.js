@@ -846,7 +846,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         if (!body.isConnected) return; // แท็บถูกสร้างใหม่ (เช่นสลับภาษา) ระหว่างรอ
         st.result = res; st.lines = isZh() ? [] : keyLines(res, facts, 3);
         if (FA && FA.renderSections) FA.renderSections(body, res, { aiBadge: false }); else plainRender(body, res);
-        src.textContent = res.source === "ai" ? T("horoscope.x.srcAI", "เรียบเรียงโดย AI (Claude)") : T("horoscope.x.srcLocal", "เรียบเรียงในเครื่อง · สำนวนใหม่ทุกครั้ง");
+        src.textContent = res.source === "ai" ? T("horoscope.x.srcAI", "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)") : T("horoscope.x.srcLocal", "เรียบเรียงในเครื่อง · สำนวนใหม่ทุกครั้ง");
         src.className = "rd-src" + (res.source === "ai" ? " ai" : "");
         root.removeAttribute("aria-busy");
       });
@@ -1196,10 +1196,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   renderSources();
 
   /* ---------- สลับภาษา: วาดข้อความที่ JS สร้างใหม่ทั้งหมด (คำทำนายจะเรียบเรียงใหม่ในภาษานั้น) ---------- */
-  window.addEventListener("lq-lang", function () {
-    var was = K;
+  var lastLang = "th";
+  window.addEventListener("lq-lang", function (e) {
+    var was = K, lang = e && e.detail && e.detail.lang || "th", same = lang === lastLang;
+    lastLang = lang;
     syncKB();
-    if (was === K && current == null) return;
+    if (was === K && current == null && same) return;
     fillForm(); renderStats(); renderSources(); eraHint();
     if (!current) return;
     var sel = tabs.find(function (t) { return t.getAttribute("aria-selected") === "true"; }) || tabs[0];

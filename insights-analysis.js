@@ -14,9 +14,9 @@ const IQ_WD = ["อาทิตย์", "จันทร์", "อังคา�
 const IQ_MIN_DAYS = 7;
 const IQ_CASH_RE = /แคชเชียร์|cashier|ชำระ|จ่ายเงิน|เคาน์เตอร์/i;
 const iqFin = x => typeof x === "number" && Number.isFinite(x);
-/** ภาษาที่แสดงอยู่ (ไทยเป็นค่าเริ่มต้น ; LQI18N.lang = "zh" → จีน) และ locale สำหรับวันที่/ตัวเลข */
-const iqLang = () => { const L = (typeof self !== "undefined" && self.LQI18N) || (typeof globalThis !== "undefined" && globalThis.LQI18N) || null; return L && L.lang === "zh" ? "zh" : "th"; };
-const iqLoc = () => (iqLang() === "zh" ? "zh-CN" : "th-TH");
+/** ภาษาที่แสดงอยู่ (ไทยเป็นค่าเริ่มต้น ; LQI18N.lang = "zh" → จีน, "en" → อังกฤษ) และ locale สำหรับวันที่/ตัวเลข */
+const iqLang = () => { const L = (typeof self !== "undefined" && self.LQI18N) || (typeof globalThis !== "undefined" && globalThis.LQI18N) || null; return L && (L.lang === "zh" || L.lang === "en") ? L.lang : "th"; };
+const iqLoc = () => ({ zh: "zh-CN", en: "en-GB" }[iqLang()] || "th-TH");
 const iqN = (v, d = 0) => iqFin(v) ? v.toLocaleString(iqLoc(), { maximumFractionDigits: d, minimumFractionDigits: 0 }) : "–";
 const iqP = (v, d = 0) => iqFin(v) ? (v * 100).toFixed(d) + "%" : "–";
 /** เปลี่ยนแปลงเป็นตัวเลขมีเครื่องหมาย เช่น "+12%" "−0.4%" "0%" (ใช้ในช่วงและตาราง) — ต่ำกว่า 1% แสดงทศนิยม 1 ตำแหน่ง ไม่ปัดเป็น 0 */

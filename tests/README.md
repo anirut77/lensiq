@@ -30,6 +30,19 @@ crossing paths, lost-track pool, `assignUnique`, `createConfirm`, `pickPrimary`,
 `studio.test.js` covers `studio-core.js` (สตูดิโอแต่งชุด): guided filter vs brute force, matte refinement, foreground
 estimation, Reinhard transfer, Laplacian blend seam continuity, TPS anchors, silhouette shoulders, skin smoothing mask
 isolation, grain, composite ordering (head over collar, original clothes hidden).
+`creative.test.js` covers `creative-core.js` (Creative Lab): WCAG contrast, CIELAB + colour families, FFT vs naive DFT,
+pop-out saliency (spectral residual, Itti-lite), priors, winner-take-all order, NSS/CC/AUC-Judd/AUC-Borji on hand-checked
+maps, edge density/colourfulness/complexity, text-line detection + contrast grading, k-means palette, gaze targets,
+findings/compare rules, and that every Thai string key has a 中文 entry (`i18n/zh-creative.js`).
+
+`backend-*.test.js` cover the Cloudflare Worker in `backend/` (docs/BACKEND.md) on an in-memory D1 shim over Node's
+built-in `node:sqlite` (`backend-d1-shim.js`, all migrations applied; no wrangler, no network, fake Anthropic SDK and fake
+Opn API): admin auth (PBKDF2, TOTP RFC 6238 vectors, sessions, CSRF, Origin allowlist, lockout, rate limit, audit),
+analytics validation (rejects PII-ish fields/values, consent, DNT/GPC), aggregation + CSV, retention purge + cron,
+entitlements / FREE_MODE, VAT split, PromptPay checkout → webhook (signature, replay, re-fetch), AI proxy guards (consent,
+size, allowlist, rate limits, per-domain switch, typed SDK error mapping, key never returned, prompt == server.py), and the
+site integration (backend/ never published, CSP connect-src only when `LENSIQ_API_BASE` is set, opt-in client).
+Run only these: `npm run test:backend`.
 
 ## Server (Python, Flask test client)
 
@@ -97,7 +110,7 @@ Not part of the normal test run: they need public datasets that are **never** co
 10–40 minutes on WASM. Results and the method are published in [ACCURACY.md](../ACCURACY.md).
 
 ```sh
-python3 -I tests/bench/fetch_datasets.py ~/lq-bench-data          # mot lfw utk hagrid oceyes cew fer (pyarrow for lfw/oceyes, bsdtar for cew); outside the repo only
+python3 -I tests/bench/fetch_datasets.py ~/lq-bench-data          # mot lfw utk hagrid oceyes cew fer mit1003 (pyarrow for lfw/oceyes, bsdtar for cew); outside the repo only
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/people.bench.mjs [--model yolox_nano_416|coco] [--split auto] [--fps 5] [--sweep] [--seq PETS] [--json out.json]
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/face.bench.mjs   [--json out.json]   # LFW pairs + 1:N, UTKFace age/gender
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/face1n.bench.mjs [--json out.json]   # 1:N round 4: full LFW (tuning) + CASIA-FaceV5 (Asian, held out)
@@ -105,6 +118,7 @@ LQ_BENCH_DATA=~/lq-bench-data node tests/bench/hand.bench.mjs   [--json out.json
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/driver.bench.mjs [--json out.json]   # eye closure (EAR): oceyes (ODC-BY) + CEW
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/driver-session.bench.mjs [--minutes 10] [--json out.json]   # eye closure: calibrate on one LFW photo, drive on another (needs lfwfull + cew); alarms/min on simulated drives
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/neuro.bench.mjs  [--json out.json]   # expressions: FER-2013 sample (eval only)
+LQ_BENCH_DATA=~/lq-bench-data node tests/bench/creative.bench.mjs [--fit] [--limit N] [--json out.json]   # creative attention map: MIT1003 eye fixations, 300 tuning / 703 held out (eval only)
 node tests/bench/qc.bench.mjs       [--cond light] [--json out.json]   # synthetic bottles vs qc.js inspect (no data, ~15 min)
 node tests/bench/checkout.bench.mjs [--n 60] [--json out.json]         # synthetic EAN-13/UPC-A/Code 128 vs BarcodeDetector
 ```

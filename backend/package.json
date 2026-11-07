@@ -1,0 +1,22 @@
+{
+  "name": "lensiq-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LENSIQ Cloudflare Worker + D1: admin back office, privacy-first analytics, AI fortune proxy, billing scaffold (FREE_MODE)",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "db:migrate:local": "wrangler d1 migrations apply lensiq --local",
+    "db:migrate:remote": "wrangler d1 migrations apply lensiq --remote",
+    "deploy": "wrangler deploy",
+    "test": "cd .. && node --test tests/unit/backend-*.test.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

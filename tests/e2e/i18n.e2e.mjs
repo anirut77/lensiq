@@ -1,4 +1,4 @@
-// tests/e2e/i18n.e2e.mjs — TH | 中文 switch (nav.js + lensiq-i18n.js + i18n/zh-common.js) on index.html and a fortune
+// tests/e2e/i18n.e2e.mjs — TH | EN | 中文 switch (nav.js + lensiq-i18n.js + i18n/zh-common.js) on index.html and a fortune
 // page: Chinese applied to nav/hero/form, <html lang>, persisted across reload, switching back restores the Thai markup
 // exactly, no horizontal overflow at 390 and 1280 px, no uncaught exceptions; Thai <wbr> breaks applied in Thai only;
 // LQI18N.coverage() / ?i18n=debug overlay: index + about fully Chinese (header incl. closed menu).
@@ -91,6 +91,36 @@ export default async function ({ base, launch, check }) {
         await page.close();
       });
     }
+
+    await check("English: TH -> EN -> TH on index (header + body), fortune page note, breadcrumb, no overflow", async () => {
+      const page = await browser.newPage(null);
+      await viewport(page, 390, 844, true);
+      await page.goto(`${base}/index.html?nosw`);
+      await page.waitFor(() => window.LQI18N && document.querySelector(".lang-switch button[data-lang=en]"), 8000);
+      await sleep(300);
+      const thai = await mainText(page);
+      await page.evaluate(() => document.querySelector(".lang-switch button[data-lang=en]").click());
+      await page.waitFor(() => document.documentElement.lang === "en" && document.querySelector(".nav-cta").textContent === "All solutions", 8000);
+      await sleep(400);
+      const r = await page.evaluate(() => ({ body: LQI18N.coverage(), header: LQI18N.coverage(document.getElementById("siteNav"), { all: true }), stored: localStorage.getItem("lq-lang"), h1: document.querySelector("h1").textContent }));
+      assert(r.header.pct === 0 && r.header.latin > 200, "header " + JSON.stringify(r.header.top.slice(0, 3)));
+      assert(r.body.pct === 0 && /cameras/i.test(r.h1) && r.stored === "en", JSON.stringify({ top: r.body.top.slice(0, 3), h1: r.h1, stored: r.stored }));
+      assert(!/\bAI\b/.test(await page.evaluate(() => document.getElementById("siteNav").textContent)), "no AI wording in the menu");
+      assert((await overflow(page)) <= 0, "en overflow");
+      await page.evaluate(() => document.querySelector(".lang-switch button[data-lang=th]").click());
+      await sleep(500);
+      assert((await mainText(page)) === thai, "Thai restored exactly after English");
+      // fortune page in English: breadcrumb + "readings are in Thai / Chinese" note
+      await page.goto(`${base}/tarot.html?nosw&lang=en`);
+      await page.waitFor(() => document.documentElement.lang === "en" && document.querySelector(".lq-lang-note:not([hidden])"), 8000);
+      const f = await page.evaluate(() => ({ crumbs: [...document.querySelectorAll(".lq-crumbs li")].map(li => li.textContent.trim()), cov: LQI18N.coverage() }));
+      assert(f.crumbs.join(" / ") === "Home / Fortune & Culture / Tarot & Siam Si", f.crumbs.join(" / "));
+      assert(f.cov.pct === 0, "tarot en " + JSON.stringify(f.cov.top.slice(0, 3)));
+      const ex = page.consoleErrors.filter(e => e.kind === "exception");
+      assert(!ex.length, ex.map(e => e.text).join(" | "));
+      await page.evaluate(() => localStorage.removeItem("lq-lang"));
+      await page.close();
+    });
 
     await check("LQI18N.coverage(): index/about 0 % Thai in 中文 (shared header incl. hidden menu), > 90 % in Thai; ?i18n=debug overlay", async () => {
       for (const f of ["index.html", "about.html"]) {
