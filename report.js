@@ -190,7 +190,7 @@
     return { data: data, trimmed: trimmed };
   }
   /** What the page may do in a mode: "sample" (no API) | "free" (API, FREE_MODE) | "paid". @param {any} cfg @param {boolean} api */
-  function modeOf(cfg, api) { if (!api) return "sample"; return cfg && cfg.free_mode === false ? "paid" : "free"; }
+  function modeOf(cfg, api) { if (!api) return "sample"; return cfg && cfg.free_mode === true ? "free" : "paid"; } // fail closed: no config -> the server decides
   /** Report credits from GET /api/me/entitlements perks or /api/me credits ({feature: n} | [{feature, remaining}]). @param {any} ents @param {any} credits */
   function creditsOf(ents, credits) {
     var out = /** @type {Record<string, number>} */ ({});
@@ -407,6 +407,7 @@
     st.saveable = signed && st.mode !== "sample";
     if (st.mode !== "paid") { st.last = r.rep; renderReport(r.rep); if (st.saveable) save(r.rep); return; }
     // paid: the server takes one credit first; the report is shown only when it says allowed
+    if (!m || !signed || typeof m.useEntitlement !== "function") { msg.textContent = T("rp.gate.signin", "เข้าสู่ระบบเพื่อใช้สิทธิ์รายงานที่ซื้อไว้"); if (m && typeof m.signIn === "function") m.signIn(); return; }
     var go = $("rpGo"); go.disabled = true;
     msg.textContent = T("rp.checking", "กำลังตรวจสิทธิ์…");
     m.useEntitlement(st.type).then(function (/** @type {any} */ x) {

@@ -4,6 +4,9 @@
    --navy  deep ink (primary buttons, headings)   --navy2 hover ink
    --aqua  electric cyan (focus rings, bars)      --gold  electric violet accent (text/borders on light, AA on #fff)
 */
+/* the HTML hidden attribute always wins over component display rules (.btn{display:inline-flex} etc.) */
+[hidden]{display:none!important}
+
 /* ---------- Self-hosted web font (no request to Google: PDPA / privacy) ----------
    Prompt (Cadson Demak, SIL OFL 1.1 — vendor/fonts/prompt/OFL.txt), woff2 subsets thai / latin-ext / latin, 300–700.
    unicode-range means a page only downloads the subsets it renders (~7–11 KB each).

@@ -312,7 +312,16 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     // หัวข้อความรัก → แนะนำรูปแบบความรัก 5 ใบ (ถ้ายังเป็นค่าเริ่มต้น)
   });
   $("#trSpreads").addEventListener("change", function (e) { st.spread = e.target.value; });
-  $("#trSetup").addEventListener("submit", function (e) { e.preventDefault(); startShuffle(); });
+  /** รอบ 11: คำถามที่พิมพ์เองมีสัญญาณวิกฤต → แสดงการ์ดช่วยเหลือแทนการทำนาย (ไม่เก็บ/ไม่ส่งข้อความ) — คืน true เมื่อหยุด */
+  function crisisStop(q) {
+    var FAx = window.FortuneAI, box = document.getElementById("trSupport");
+    if (!FAx || !FAx.crisis || !FAx.crisis.check(q)) { if (box) { box.hidden = true; box.textContent = ""; } return false; }
+    if (!box) { box = document.createElement("div"); box.id = "trSupport"; box.tabIndex = -1; $("#trSetup").insertAdjacentElement("afterend", box); }
+    box.hidden = false; FAx.crisis.render(box, FAx.crisis.result({ lang: (window.LQI18N && window.LQI18N.lang) || "th" }));
+    box.focus();
+    return true;
+  }
+  $("#trSetup").addEventListener("submit", function (e) { e.preventDefault(); if (crisisStop($("#trQuestion").value)) return; startShuffle(); });
 
   function setStep(n) { document.querySelectorAll(".tr-steps span").forEach(function (s) { s.classList.toggle("on", +s.dataset.s === n); }); }
 

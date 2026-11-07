@@ -203,7 +203,17 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#icTossCount").textContent = n < 6 ? T("iching.tossCount", "โยนครั้งที่ {n} จาก 6 (สร้างเส้นจากล่างขึ้นบน)", { n: n + 1 }) : T("iching.tossDone", "ครบ 6 เส้นแล้ว");
     $("#icToss").textContent = n < 6 ? T("iching.tossBtn", "โยนเหรียญ ({n}/6)", { n: n + 1 }) : T("iching.seeResult", "ดูผล");
   }
+  /** รอบ 11: คำถามที่พิมพ์เองมีสัญญาณวิกฤต → แสดงการ์ดช่วยเหลือแทนการทำนาย (ไม่เก็บ/ไม่ส่งข้อความ) — คืน true เมื่อหยุด */
+  function crisisStop(q) {
+    var FAx = window.FortuneAI, box = document.getElementById("icSupport");
+    if (!FAx || !FAx.crisis || !FAx.crisis.check(q)) { if (box) { box.hidden = true; box.textContent = ""; } return false; }
+    if (!box) { box = document.createElement("div"); box.id = "icSupport"; box.tabIndex = -1; $("#icSetup").insertAdjacentElement("afterend", box); }
+    box.hidden = false; FAx.crisis.render(box, FAx.crisis.result({ lang: (window.LQI18N && window.LQI18N.lang) || "th" }));
+    box.focus();
+    return true;
+  }
   $("#icStart").addEventListener("click", function () {
+    if (crisisStop($("#icQuestion").value)) return;
     st.values = []; st.cast = null; st.coins = null;
     $("#icSetup").hidden = true; $("#icStage").hidden = false; $("#icResult").hidden = true;
     renderBuild(); $("#icToss").focus();

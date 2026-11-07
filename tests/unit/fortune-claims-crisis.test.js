@@ -220,3 +220,20 @@ test("romanisation: one spelling per tradition in the English fortune files (BaZ
     assert.ok(!/Ba Zi|Thaksa|Lek Jet Tua/.test(t), path.basename(f));
   }
 });
+
+test("crisis net R11-eval: indirect phrasings in TH/EN/ZH, violent-dream parity, breakup wording is not a crisis", () => {
+  const yes = ["ไม่อยากตื่นมาเจอวันพรุ่งนี้", "ชีวิตไม่มีความหมาย", "ฉันควรจบทุกอย่างไหม", "ควรฆ่าตัวตายดีไหม",
+    "I can't go on anymore", "I want to disappear", "should I just end it", "should I just end it all?", "I dreamt I was attacked",
+    "活着好累", "我不想再醒来", "梦见被人打"];
+  const no = ["งานใหม่จะดีไหม", "Will I get the job?", "今年财运如何", "Should I end it with my boyfriend?", "ความรักปีนี้เป็นอย่างไร"];
+  for (const t of yes) assert.ok(FA.crisis.check(t), t);
+  for (const t of no) assert.equal(FA.crisis.check(t), false, t);
+});
+
+test("crisis net is wired into the Tarot and I Ching question boxes", () => {
+  for (const [f, q] of [["tarot.js", "#trQuestion"], ["iching.js", "#icQuestion"]]) {
+    const src = fs.readFileSync(path.join(repo, f), "utf8");
+    assert.match(src, /function crisisStop\(q\)/, f);
+    assert.ok(src.includes('crisisStop($("' + q + '").value)'), f + " checks " + q + " before the reading");
+  }
+});

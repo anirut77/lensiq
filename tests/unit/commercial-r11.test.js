@@ -134,6 +134,8 @@ test("report helpers: validBirth, modeOf, creditsOf", () => {
   assert.equal(R.modeOf(null, false), "sample");
   assert.equal(R.modeOf({ free_mode: true }, true), "free");
   assert.equal(R.modeOf({ free_mode: false }, true), "paid");
+  assert.equal(R.modeOf(null, true), "paid"); // config call failed -> fail closed, never a free paid report
+  assert.equal(R.modeOf({}, true), "paid");
   assert.deepEqual(R.creditsOf({ perks: { report_basic: { credits: 2 } } }, { report_annual: 1 }), { report_basic: 2, report_compat: 0, report_annual: 0 }, "entitlements win over a stale /api/me");
   assert.deepEqual(R.creditsOf(null, { report_annual: 1 }), { report_basic: 0, report_compat: 0, report_annual: 1 });
   assert.deepEqual(R.creditsOf(null, [{ feature: "report_compat", remaining: 1 }]).report_compat, 1);
