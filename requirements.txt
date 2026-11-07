@@ -29,7 +29,7 @@ Pillow==11.3.0
 charset-normalizer==3.5.2
 cryptography==50.0.2
 cffi==2.0.0
-pycparser==2.23
+pycparser==3.12
 
 # --- python-docx (MIT) ---
 lxml==6.1.3
