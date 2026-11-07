@@ -106,6 +106,8 @@
     "converter.js",
     "checkout.js",
     "qc.js",
-    "booth.js"
+    "booth.js",
+    "interview-core.js",
+    "teamface.js"
   ]
 }

@@ -2,9 +2,9 @@
 // PromptPay checkout via Opn, payment polling, Opn webhook, receipt / tax-invoice fields (Thai VAT 7 %).
 import { createPromptPayCharge, fetchQr, opnKey, qrUriOf, retrieveCharge, verifyWebhookSignature } from "./opn.js";
 import { getBillingSettings } from "./settings.js";
-import { audit, hit } from "./store.js";
+import { audit, callerHash, hit } from "./store.js";
 import { HttpError, dayOf, flag, intVar, log, now } from "./util.js";
-import { randomId } from "./crypto.js";
+import { randomId, randomToken, sha256Hex } from "./crypto.js";
 
 /** FREE_MODE defaults to true: a missing/garbled variable never starts charging or limiting anybody. */
 export const freeMode = env => String(env.FREE_MODE ?? "true").toLowerCase() !== "false";
@@ -61,12 +61,6 @@ export async function checkEntitlement(env, subject, feature, { customerId = nul
 }
 
 // ---- receipts ------------------------------------------------------------------------------------------------------
-async function nextReceiptNo(db, t) {
-  const ym = dayOf(t).slice(0, 7).replace("-", "");
-  const r = await db.prepare("INSERT INTO counters (name, value) VALUES (?1, 1) ON CONFLICT (name) DO UPDATE SET value = value + 1 RETURNING value")
-    .bind("receipt:" + ym).first();
-  return `LQ-${ym}-${String(r.value).padStart(6, "0")}`;
-}
 
 const sellerOf = env => ({ seller_name: env.SELLER_NAME || null, seller_tax_id: env.SELLER_TAX_ID || null, seller_address: env.SELLER_ADDRESS || null, seller_branch: env.SELLER_BRANCH || null });
 
@@ -109,8 +103,19 @@ async function createPayment(env, { kind, planId = null, period = null, amount, 
 }
 
 /** Public checkout (only when BILLING_ENABLED=true and FREE_MODE=false). */
-export async function checkout(env, body, deps = {}) {
+export const CHECKOUT_PER_CALLER_HOUR = 5;
+export const CHECKOUT_GLOBAL_HOUR = 200;
+
+/** Public checkout (only when BILLING_ENABLED=true and FREE_MODE=false). Rate limited per caller and globally.
+ *  Returns customer_id + order_token ONCE: the buyer keeps them to link the paid plan to themselves (only the token's
+ *  hash is stored). */
+export async function checkout(env, request, body, deps = {}) {
   if (!billingEnabled(env)) throw new HttpError(409, freeMode(env) ? "LENSIQ is free right now — no payment needed" : "billing is not enabled");
+  const who = await callerHash(env, request, "checkout");
+  const a = await hit(env.DB, `co:${who}`, CHECKOUT_PER_CALLER_HOUR, 3600);
+  if (!a.ok) throw new HttpError(429, "too many checkouts — try again later", { retryAfter: a.retryAfter });
+  const g = await hit(env.DB, "co:global", CHECKOUT_GLOBAL_HOUR, 3600);
+  if (!g.ok) throw new HttpError(429, "checkout temporarily busy", { retryAfter: g.retryAfter });
   const plan = await env.DB.prepare("SELECT * FROM plans WHERE id = ?1 AND status = 'active'").bind(String(body.plan_id || "")).first();
   if (!plan || plan.id === "free") throw new HttpError(400, "unknown or unavailable plan");
   const period = body.period === "year" ? "year" : "month";
@@ -119,9 +124,11 @@ export async function checkout(env, body, deps = {}) {
   const buyer = cleanBuyer(body.buyer || {});
   if (body.accept_terms !== true) throw new HttpError(400, "terms must be accepted");
   const customerId = randomId(12);
-  await env.DB.prepare("INSERT INTO customers (id, email, name, tax_id, address, branch, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)")
-    .bind(customerId, buyer.email, buyer.name, buyer.tax_id, buyer.address, buyer.branch, now()).run();
-  return createPayment(env, { kind: "checkout", planId: plan.id, period, amount, buyer, customerId }, deps);
+  const orderToken = randomToken(24);
+  await env.DB.prepare("INSERT INTO customers (id, email, name, tax_id, address, branch, created_at, order_token_hash) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)")
+    .bind(customerId, buyer.email, buyer.name, buyer.tax_id, buyer.address, buyer.branch, now(), await sha256Hex(orderToken)).run();
+  const r = await createPayment(env, { kind: "checkout", planId: plan.id, period, amount, buyer, customerId }, deps);
+  return { ...r, customer_id: customerId, order_token: orderToken };
 }
 
 /** Admin-only test charge — refuses live keys unless OPN_ALLOW_LIVE (opnKey). */
@@ -146,7 +153,13 @@ async function activate(env, p, t) {
   return id;
 }
 
-/** Applies the provider's charge state to our payment (idempotent; only pending -> final transitions). */
+/**
+ * Applies the provider's charge state to our payment (idempotent; only pending -> final transitions).
+ * Success is claimed and numbered in ONE transaction (db.batch): the conditional UPDATE … WHERE status='pending'
+ * lets exactly one of several racing callers (webhook, poll, reconcile cron) win; the receipt counter is incremented
+ * only when that UPDATE changed a row (changes() = 1), and the number is written in the same transaction — so receipt
+ * numbers are gap-free and never assigned twice.
+ */
 export async function applyCharge(env, p, charge) {
   const t = now();
   const st = String(charge.status || "");
@@ -156,14 +169,21 @@ export async function applyCharge(env, p, charge) {
     throw new HttpError(409, "charge does not match the payment");
   }
   if (st === "successful") {
-    const receipt = await nextReceiptNo(env.DB, t);
+    const ym = dayOf(t).slice(0, 7).replace("-", "");
+    const name = "receipt:" + ym;
     const docType = p.vat_rate_bp > 0 && p.seller_tax_id ? "tax_invoice_receipt" : "receipt";
-    const r = await env.DB.prepare("UPDATE payments SET status = 'successful', paid_at = ?1, receipt_no = ?2, doc_type = ?3, updated_at = ?1 WHERE id = ?4 AND status = 'pending'")
-      .bind(t, receipt, docType, p.id).run();
-    if (r.meta && r.meta.changes) {
+    const db = env.DB;
+    const res = await db.batch([
+      db.prepare("UPDATE payments SET status = 'successful', paid_at = ?1, doc_type = ?2, updated_at = ?1 WHERE id = ?3 AND status = 'pending'").bind(t, docType, p.id),
+      db.prepare("INSERT INTO counters (name, value) SELECT ?1, 1 WHERE changes() = 1 ON CONFLICT (name) DO UPDATE SET value = value + 1").bind(name),
+      db.prepare("UPDATE payments SET receipt_no = 'LQ-' || ?1 || '-' || printf('%06d', (SELECT value FROM counters WHERE name = ?2)) " +
+        "WHERE id = ?3 AND status = 'successful' AND receipt_no IS NULL AND paid_at = ?4").bind(ym, name, p.id, t)
+    ]);
+    if (res[0].meta && res[0].meta.changes) {
       const sub = await activate(env, p, t);
-      if (sub) await env.DB.prepare("UPDATE payments SET subscription_id = ?1 WHERE id = ?2").bind(sub, p.id).run();
-      await audit(env, "system", "payment.successful", { payment: p.id, receipt, amount: p.amount_satang });
+      if (sub) await db.prepare("UPDATE payments SET subscription_id = ?1 WHERE id = ?2").bind(sub, p.id).run();
+      const row = await db.prepare("SELECT receipt_no FROM payments WHERE id = ?1").bind(p.id).first();
+      await audit(env, "system", "payment.successful", { payment: p.id, receipt: row && row.receipt_no, amount: p.amount_satang });
     }
   } else {
     await env.DB.prepare("UPDATE payments SET status = ?1, failure_code = ?2, updated_at = ?3 WHERE id = ?4 AND status = 'pending'")
@@ -201,8 +221,10 @@ export async function paymentQr(env, id, deps = {}) {
 }
 
 /**
- * POST /v1/billing/webhook/opn. Signature verified over the RAW body; events deduplicated; the charge is then
- * re-fetched from the Opn API — the webhook payload itself is never trusted for the payment state.
+ * POST /v1/billing/webhook/opn. Signature verified over the RAW body; the charge is then re-fetched from the Opn API —
+ * the webhook payload itself is never trusted for the payment state. An event counts as a duplicate only once it was
+ * PROCESSED (processed_at set): if processing fails (e.g. Opn API 503) the row stays unprocessed, we answer 5xx and
+ * Opn's retry is processed normally. The reconcile cron (reconcilePending) catches anything that is still pending.
  */
 export async function handleWebhook(env, request, rawBody, deps = {}) {
   if (!env.OPN_WEBHOOK_SECRET) throw new HttpError(503, "webhook secret not configured");
@@ -217,19 +239,43 @@ export async function handleWebhook(env, request, rawBody, deps = {}) {
   if (!/^evnt_(test_)?[0-9a-z]{6,40}$/.test(eventId)) throw new HttpError(400, "invalid event id");
   const key = String(ev.key || "").slice(0, 60);
   const chargeId = ev.data && ev.data.object === "charge" ? String(ev.data.id || "") : null;
-  const ins = await env.DB.prepare("INSERT OR IGNORE INTO webhooks (provider, event_id, event_key, charge_id, signature_ok, payload, received_at) VALUES ('opn', ?1, ?2, ?3, 1, ?4, ?5)")
+  await env.DB.prepare("INSERT OR IGNORE INTO webhooks (provider, event_id, event_key, charge_id, signature_ok, payload, received_at) VALUES ('opn', ?1, ?2, ?3, 1, ?4, ?5)")
     .bind(eventId, key, chargeId, rawBody.slice(0, 16000), now()).run();
-  if (!ins.meta || !ins.meta.changes) return { ok: true, duplicate: true };
+  const row = await env.DB.prepare("SELECT processed_at FROM webhooks WHERE provider = 'opn' AND event_id = ?1").bind(eventId).first();
+  if (row && row.processed_at) return { ok: true, duplicate: true };
   let result = "ignored";
   if (chargeId && /^charge\./.test(key)) {
     const p = await env.DB.prepare("SELECT * FROM payments WHERE provider_charge_id = ?1").bind(chargeId).first();
     if (p) {
-      const charge = await retrieveCharge(env, chargeId, deps.fetch); // confirm with the API
-      result = await applyCharge(env, p, charge);
+      try {
+        const charge = await retrieveCharge(env, chargeId, deps.fetch); // confirm with the API
+        result = await applyCharge(env, p, charge);
+      } catch (e) {
+        await env.DB.prepare("UPDATE webhooks SET result = ?1 WHERE provider = 'opn' AND event_id = ?2").bind("retry:" + String((e && e.status) || "error"), eventId).run();
+        log("webhook.retry", { status: (e && e.status) || 0 });
+        throw new HttpError(503, "processing failed — please retry");
+      }
     } else result = "unknown_charge";
   }
   await env.DB.prepare("UPDATE webhooks SET result = ?1, processed_at = ?2 WHERE provider = 'opn' AND event_id = ?3").bind(result, now(), eventId).run();
   return { ok: true, result };
+}
+
+/** Cron: re-checks recent pending payments with Opn (covers lost/failed webhooks). At most `limit` per run. */
+export async function reconcilePending(env, { limit = 25, t = now(), fetchImpl } = {}) {
+  if (!env.OPN_SECRET_KEY) return { checked: 0, skipped: "no Opn key" };
+  const rows = (await env.DB.prepare("SELECT * FROM payments WHERE status = 'pending' AND provider_charge_id IS NOT NULL AND created_at > ?1 ORDER BY created_at LIMIT ?2")
+    .bind(t - 3 * 86400, limit).all()).results || [];
+  const out = { checked: 0, changed: 0, errors: 0 };
+  for (const p of rows) {
+    out.checked++;
+    try {
+      const charge = await retrieveCharge(env, p.provider_charge_id, fetchImpl);
+      const st = await applyCharge(env, p, charge);
+      if (st !== "pending") out.changed++;
+    } catch { out.errors++; }
+  }
+  return out;
 }
 
 export async function publicBillingInfo(env) {

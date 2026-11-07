@@ -41,7 +41,13 @@ export function parseOrigins(s) {
   return String(s || "").split(",").map(o => o.trim().replace(/\/+$/, "")).filter(o => /^https?:\/\/[A-Za-z0-9.\-:[\]]+$/.test(o));
 }
 export const publicOrigins = env => parseOrigins(env.ALLOWED_ORIGINS);
-export const adminOrigins = env => { const a = parseOrigins(env.ADMIN_ORIGINS); return a.length ? a : publicOrigins(env); };
+/** Admin API origins: ADMIN_ORIGINS plus the Worker's own origin (admin.html served by the Worker itself, the
+ *  recommended setup). Deliberately NO fallback to ALLOWED_ORIGINS: the public site's origin never gets admin access. */
+export const adminOrigins = (env, request) => {
+  const a = parseOrigins(env.ADMIN_ORIGINS);
+  if (request) { try { a.push(new URL(request.url).origin); } catch { /* ignore */ } }
+  return a;
+};
 
 /** Origin header check. "null" is always refused. `required`: a missing Origin is refused too. */
 export function originAllowed(request, allow, { required = false } = {}) {

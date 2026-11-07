@@ -6,9 +6,9 @@ const assert = require("node:assert/strict");
 const { createEnv, req } = require("./backend-d1-shim.js");
 
 const B = "../../backend/src/";
-const SID = "0123456789abcdef";
+const SID = "0123456789abcdef0123456789abcdef";
 const ev = (o = {}) => ({ n: "page_view", sid: SID, page: "fortune", lang: "th", device: "mobile", ...o });
-const batch = (...events) => ({ v: 1, consent: true, events });
+const batch = (...events) => ({ v: 1, consent: true, cv: "a1", events });
 
 test("validateBatch: accepts the coarse schema", async () => {
   const { validateBatch } = await import(B + "analytics.js");
@@ -42,9 +42,11 @@ test("validateBatch: rejects PII-ish fields, values and free text — the whole 
     [{ n: "feature_used", sid: SID }, /needs feature/]
   ];
   for (const [e, re] of bad) assert.throws(() => validateBatch(batch(ev(), e)), re, JSON.stringify(e));
-  assert.throws(() => validateBatch({ v: 1, events: [ev()] }), /consent/);
-  assert.throws(() => validateBatch({ v: 1, consent: true, events: [ev()], ip: "x" }), /unknown top-level/);
-  assert.throws(() => validateBatch({ v: 2, consent: true, events: [ev()] }), /version/);
+  assert.throws(() => validateBatch({ v: 1, cv: "a1", events: [ev()] }), /consent/);
+  assert.throws(() => validateBatch({ v: 1, consent: true, events: [ev()] }), /consent version/);
+  assert.throws(() => validateBatch({ v: 1, consent: true, cv: "zz", events: [ev()] }), /consent version/);
+  assert.throws(() => validateBatch({ v: 1, consent: true, cv: "a1", events: [ev()], ip: "x" }), /unknown top-level/);
+  assert.throws(() => validateBatch({ v: 2, consent: true, cv: "a1", events: [ev()] }), /version/);
   assert.throws(() => validateBatch(batch(...Array.from({ length: 51 }, () => ev()))), /at most 50/);
 });
 
@@ -52,6 +54,35 @@ async function post(env, body, opts = {}) {
   const { handle } = await import(B + "index.js");
   return handle(req("/v1/events", { method: "POST", body, headers: { "Content-Type": "text/plain", ...(opts.headers || {}) }, origin: opts.origin === undefined ? "https://site.example" : opts.origin, ip: opts.ip }), env);
 }
+
+test("review probe (round 8): separators, dotted IDs, _gmail.com and IDs hidden in sid are rejected", async () => {
+  const { validateBatch } = await import(B + "analytics.js");
+  const tryv = e => { try { validateBatch(batch({ n: "feature_used", sid: SID, ...e })); return "ACCEPTED"; } catch (x) { return "rejected: " + x.message; } };
+  assert.match(tryv({ feature: "p081-234-5678" }), /6\+ digits/);
+  assert.match(tryv({ feature: "id1.2345.67890.12.3" }), /6\+ digits/);
+  assert.match(tryv({ feature: "somchai.k_gmail.com" }), /e-mail/);
+  assert.match(tryv({ feature: "somchai_k-hotmail" }), /e-mail/);
+  assert.match(tryv({ feature: "shop.co.th" }), /e-mail/);
+  assert.match(tryv({ feature: "x", sid: "1103700123456aaa" }), /invalid sid/, "sid must be exactly 32 hex");
+  assert.match(tryv({ n: "error", err: "Somchai_Jaidee_0812345" }), /rejected/);
+  assert.equal(tryv({ feature: "fortune.reading" }), "ACCEPTED");
+});
+
+test("server allowlists: unknown page / feature / error class are stored as 'other', never as sent", async () => {
+  const { validateBatch } = await import(B + "analytics.js");
+  const [a, b, c, d] = validateBatch(batch(ev({ page: "somchai-profile" }), ev({ n: "feature_used", feature: "somchai.jaidee" }),
+    ev({ n: "error", err: "SomchaiError" }), ev({ n: "feature_used", feature: "fortune.ai" })));
+  assert.equal(a.page, "other");
+  assert.equal(b.feature, "other");
+  assert.equal(c.err, "other");
+  assert.equal(d.feature, "fortune.ai");
+  const [e] = validateBatch(batch(ev({ n: "feature_used", feature: "newpage.thing" })), { ANALYTICS_FEATURES: "newpage.thing" });
+  assert.equal(e.feature, "newpage.thing", "ANALYTICS_FEATURES extends the allowlist");
+  const { ANALYTICS_PAGES } = await import(B + "constants.js");
+  const { readdirSync } = require("node:fs");
+  const pages = readdirSync(require("node:path").join(__dirname, "..", "..")).filter(f => f.endsWith(".html") && f !== "admin.html").map(f => f.slice(0, -5));
+  for (const p of pages) assert.ok(ANALYTICS_PAGES.includes(p), `add "${p}" to ANALYTICS_PAGES in backend/src/constants.js`);
+});
 
 test("ingest: text/plain (sendBeacon) accepted; no IP/UA stored; visitor hash is day-salted", async () => {
   const env = createEnv();
@@ -62,6 +93,7 @@ test("ingest: text/plain (sendBeacon) accepted; no IP/UA stored; visitor hash is
   const dump = JSON.stringify(row);
   assert.ok(!dump.includes("203.0.113.50") && !dump.includes("Mozilla"));
   assert.match(row.vh, /^[a-f0-9]{16}$/);
+  assert.equal(row.cv, "a1", "consent-text version logged with the event");
   const cols = Object.keys(row);
   for (const c of ["ip", "ua", "user_agent", "email", "text"]) assert.ok(!cols.includes(c), c);
 });
@@ -71,7 +103,7 @@ test("ingest: refused without allowlisted Origin, with PII, oversized, or withou
   assert.equal((await post(env, batch(ev()), { origin: "https://evil.example" })).status, 403);
   assert.equal((await post(env, batch(ev()), { origin: null })).status, 403);
   assert.equal((await post(env, batch(ev({ email: "x@y.z" })))).status, 400);
-  assert.equal((await post(env, { v: 1, events: [ev()] })).status, 400);
+  assert.equal((await post(env, { v: 1, cv: "a1", events: [ev()] })).status, 400);
   assert.equal((await post(env, JSON.stringify(batch(ev())) + " ".repeat(17000))).status, 413);
   assert.equal((await post(env, batch(ev()), { headers: { DNT: "1" } })).status, 204);
   assert.equal((await post(env, batch(ev()), { headers: { "Sec-GPC": "1" } })).status, 204);
@@ -80,7 +112,7 @@ test("ingest: refused without allowlisted Origin, with PII, oversized, or withou
 
 test("dashboard: sessions, pages, funnel, languages, errors, retention buckets, CSV export", async () => {
   const env = createEnv();
-  const s1 = "a".repeat(16), s2 = "b".repeat(16), s3 = "c".repeat(16);
+  const s1 = "a".repeat(32), s2 = "b".repeat(32), s3 = "c".repeat(32);
   const e1 = o => ev({ sid: s1, ...o }), e2 = o => ev({ sid: s2, lang: "zh", device: "desktop", ...o }), e3 = o => ev({ sid: s3, page: "studio", lang: "en", ...o });
   await post(env, batch(
     e1({ ret: "new" }), e1({ n: "feature_used", feature: "palm", step: "start" }), e1({ n: "feature_used", feature: "palm", step: "complete" }),

@@ -22,6 +22,8 @@
   "use strict";
   var doc = root.document;
   var KEY = "lq-analytics", LAST = "lq-a-last", SID = "lq-a-sid", RET = "lq-a-ret";
+  // version of the consent text below; sent with every batch and logged by the Worker (backend constants.js CONSENT_VERSIONS)
+  var CONSENT_VERSION = "a1";
   var FIELDS = {
     page: /^[a-z][a-z0-9-]{0,31}$/, feature: /^[a-z][a-z0-9_.-]{0,47}$/, err: /^[A-Za-z][A-Za-z0-9_.-]{0,39}$/,
     domain: /^(face|palm|horoscope|tarot|siamsee|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph)$/,
@@ -50,7 +52,7 @@
   /** @returns {"yes"|"no"|null} */
   function consent() {
     var raw = sget(LS, KEY);
-    try { var o = raw ? JSON.parse(raw) : null; return o && o.v === 1 && (o.choice === "yes" || o.choice === "no") ? o.choice : null; } catch (e) { return null; }
+    try { var o = raw ? JSON.parse(raw) : null; return o && o.v === 1 && (o.cv || CONSENT_VERSION) === CONSENT_VERSION && (o.choice === "yes" || o.choice === "no") ? o.choice : null; } catch (e) { return null; }
   }
   function active() { return !!api() && !dnt() && consent() === "yes"; }
 
@@ -74,7 +76,7 @@
   }
   function sid() {
     var s = sget(SS, SID);
-    if (!s || !/^[a-f0-9]{16,32}$/.test(s)) { s = randHex(8); sset(SS, SID, s); }
+    if (!s || !/^[a-f0-9]{32}$/.test(s)) { s = randHex(16); sset(SS, SID, s); }
     return s;
   }
   var today = function () { return new Date().toISOString().slice(0, 10); };
@@ -105,7 +107,7 @@
     var a = api();
     if (!queue.length || !a || !active()) { queue = []; return; }
     var events = queue.splice(0, 50);
-    var body = { v: 1, consent: true, events: events };
+    var body = { v: 1, consent: true, cv: CONSENT_VERSION, events: events };
     if (useBeacon) a.beacon("/v1/events", body);
     else a.postJSON("/v1/events", body, { timeoutMs: 8000 });
     if (queue.length) flush(useBeacon);
@@ -139,7 +141,7 @@
 
   /** @param {boolean} on */
   function setConsent(on) {
-    sset(LS, KEY, JSON.stringify({ v: 1, choice: on ? "yes" : "no", at: today() }));
+    sset(LS, KEY, JSON.stringify({ v: 1, cv: CONSENT_VERSION, choice: on ? "yes" : "no", at: today() }));
     if (!on) { queue = []; sset(LS, LAST, null); sset(SS, RET, null); sset(SS, SID, null); }
     hideBanner();
     if (on) { started = Date.now(); pageView(); }

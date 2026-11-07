@@ -160,7 +160,50 @@ test("closing reminder states: nothing is certain, analysis from texts and tradi
   const f = NM.buildFacts(NM.analyzePhone("0899998877"), "overall", {});
   for (let s = 0; s < 24; s++) {
     const th = FA.compose(f, { seed: s }).reminder, zh = FA.compose(f, { seed: s, lang: "zh" }).reminder;
-    assert.match(th, /ไม่มีอะไรแน่นอน/); assert.match(th, /ตำรา/); assert.match(th, /สถิติ/);
-    assert.match(zh, /保证/); assert.match(zh, /判断|理智|思量/); assert.match(zh, /行动|所作所为|善行/);
+    assert.match(th, /ไม่มีอะไรแน่นอน/); assert.match(th, /ตำรา/); assert.match(th, /ความเชื่อดั้งเดิม/); assert.doesNotMatch(th + zh, /สถิติ|统计/);
+    assert.match(zh, /保证/); assert.match(zh, /信仰/); assert.match(zh, /判断|理智|思量/); assert.match(zh, /行动|所作所为|善行/);
   }
+});
+
+test("Thai lunar month (shared by horoscope.js and lifecal.js): Buddhist holy days 2020–2030 and อธิกมาส as 8-8", () => {
+  const HSC = require("../../horoscope.js");
+  // [วิสาขบูชา, อาสาฬหบูชา, ออกพรรษา, ลอยกระทง] — in อธิกมาส years วิสาขบูชา moves to month 7 and อาสาฬหบูชา is in the second month 8
+  const D = { 2020: [[5, 6], [7, 5], [10, 2], [10, 31]], 2021: [[5, 26], [7, 24], [10, 21], [11, 19]], 2022: [[5, 15], [7, 13], [10, 10], [11, 8]], 2023: [[6, 3], [8, 1], [10, 29], [11, 27]],
+    2024: [[5, 22], [7, 20], [10, 17], [11, 15]], 2025: [[5, 11], [7, 10], [10, 7], [11, 5]], 2026: [[5, 31], [7, 29], [10, 26], [11, 24]], 2027: [[5, 20], [7, 18], [10, 15], [11, 14]],
+    2028: [[5, 9], [7, 7], [10, 3], [11, 2]], 2029: [[5, 27], [7, 25], [10, 22], [11, 21]], 2030: [[5, 17], [7, 15], [10, 11], [11, 10]] };
+  const ADHIKAMAS = new Set([2021, 2023, 2026, 2029]);
+  for (const y of Object.keys(D).map(Number)) {
+    const [vi, as, ok, lk] = D[y].map(([m, d]) => LC.thaiLunarMonth({ y, m, d }));
+    const leap = ADHIKAMAS.has(y);
+    assert.equal(vi.month, leap ? 7 : 6, y + " วิสาขบูชา");
+    assert.equal(as.month, 8, y + " อาสาฬหบูชา"); assert.equal(as.secondEight, leap, y + " 8 หลัง");
+    assert.equal(ok.month, 11, y + " ออกพรรษา"); assert.equal(lk.month, 12, y + " ลอยกระทง");
+    // horoscope.js gives the same month (one shared routine)
+    for (const [m, d] of D[y]) assert.equal(HSC.thaiLunarMonth(HSC.julianDay(y, m, d, 5)).month, LC.thaiLunarMonth({ y, m, d }).month, `${y}-${m}-${d}`);
+  }
+  // the evaluator's 2025 cases: Chinese leap 6 is not a Thai 8-8
+  assert.deepEqual([LC.thaiLunarMonth({ y: 2025, m: 8, d: 9 }).month, LC.thaiLunarMonth({ y: 2025, m: 8, d: 9 }).secondEight], [9, false]);
+  // อธิกมาส years follow the 19-year cycle (7 in 19)
+  const ad = []; for (let y = 2001; y <= 2019; y++) if (LC.thaiLunarMonth({ y, m: 8, d: 15 }).adhikamas) ad.push(y);
+  assert.equal(ad.length, 7, ad.join(","));
+});
+
+test("grounding (round 8): polarity reversal, exclusivity and fate-over-people are rejected; compound/segmentation variants are kept", () => {
+  const ZD = require("../../zodiac.js");
+  const f = ZD.buildFacts(ZD.annual(4, 2026, 1988), "work", { rng: () => 0.3 });
+  const c = FA.safety.groundCorpus(f, [FA.compose(f, { seed: 5 }), FA.compose(f, { seed: 5 + 7919 })]);
+  for (const t of ["ฟังเสียงคนรอบข้างน้อยลง เชื่อดวงอย่างเดียวพอ", "ฟังเสียงคนรอบข้างให้น้อยลง", "ไม่ต้องฟังคนรอบข้าง ดวงรู้ดีกว่า", "เชื่อดวงมากกว่าหมอ"]) {
+    assert.equal(FA.safety.sentences(t).every(u => FA.safety.groundUnit(u, c).ok), false, t);
+  }
+  for (const t of ["เชื่อไพ่อย่างเดียวพอ ไม่ต้องปรึกษาใคร", "ดวงสำคัญกว่าคำแนะนำของแพทย์", "只信命就够了，不用听别人", "命运比医生更可靠"]) assert.equal(FA.safety.isSafe(t), false, t);
+  for (const t of ["คุณมีบารมีและความมั่นใจที่ทำให้คนรอบข้างเชื่อถือ", "ลองรับฟังความเห็นของคนรอบตัวให้มากขึ้น", "เพื่อน ๆ มักพึ่งพาคุณและให้ความเคารพคุณ", "ปีนี้เหมาะกับการเรียนเพิ่มเติม เข้าคอร์สอบรม หรือหาเมนเทอร์"]) {
+    assert.ok(FA.safety.sentences(t).every(u => FA.safety.groundUnit(u, c).ok), t);
+  }
+});
+test("grounding (round 8): direction words must not be flipped against the source", () => {
+  const f = NM.buildFacts(NM.analyzePhone("0812345678"), "money", {});
+  const c = FA.safety.groundCorpus(f, [{ sections: [{ id: "money", paragraphs: ["ลองเก็บออมให้มากขึ้นทีละน้อยทุกเดือน", "ควรเพิ่มเวลาพักผ่อนในวันหยุด"] }] }]);
+  assert.ok(FA.safety.groundUnit("ลองเก็บออมให้มากขึ้นทีละน้อยทุกเดือน", c).ok);
+  assert.equal(FA.safety.groundUnit("ลองเก็บออมให้น้อยลงทีละน้อยทุกเดือน", c).ok, false);
+  assert.equal(FA.safety.groundUnit("ควรลดเวลาพักผ่อนในวันหยุด", c).ok, false);
 });

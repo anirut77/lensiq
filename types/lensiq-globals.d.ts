@@ -43,6 +43,8 @@ interface Window {
   LENSIQ_FACEPARSE?: boolean;
   /** lensiq-config.js: false = never load lensiq-analytics.js */
   LENSIQ_ANALYTICS?: boolean;
+  /** lensiq-config.js: Cloudflare Turnstile site key for the AI writing assistant on the Worker ("" = off) */
+  LENSIQ_TURNSTILE_SITEKEY?: string;
   /** lensiq-api.js: optional Cloudflare Worker backend client (null results when LENSIQ_API_BASE is empty) */
   LQApi?: typeof import("../lensiq-api.js");
   /** lensiq-analytics.js: opt-in, privacy-first usage analytics */

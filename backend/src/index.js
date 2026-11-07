@@ -16,6 +16,7 @@ import * as analytics from "./analytics.js";
 import * as auth from "./auth.js";
 import * as billing from "./billing.js";
 import { fortuneRun, fortuneStatus } from "./fortune.js";
+import { reconcilePending } from "./billing.js";
 import { runMaintenance, retentionConfig } from "./retention.js";
 import * as settings from "./settings.js";
 import { audit, callerHash } from "./store.js";
@@ -24,10 +25,11 @@ import {
 } from "./util.js";
 
 const ADMIN_MAX_BODY = 16 * 1024;
+export const RECONCILE_CRON = "*/15 * * * *";
 
 async function publicRoute(request, env, url, deps) {
   const allow = publicOrigins(env);
-  const cors = corsHeaders(request, allow);
+  const cors = corsHeaders(request, allow, { headers: "Content-Type, X-Turnstile-Token" });
   const p = url.pathname;
   const m = request.method;
   if (m === "OPTIONS") return json(null, originAllowed(request, allow, { required: true }) ? 204 : 403, cors);
@@ -53,7 +55,7 @@ async function publicRoute(request, env, url, deps) {
   if (p === "/v1/billing/plans" && m === "GET") return reply(await billing.publicBillingInfo(env));
   if (p === "/v1/billing/checkout" && m === "POST") {
     if (!originAllowed(request, allow, { required: true })) return reply({ error: "origin not allowed" }, 403);
-    return reply(await billing.checkout(env, await readJson(request, 8192), deps), 201);
+    return reply(await billing.checkout(env, request, await readJson(request, 8192), deps), 201);
   }
   const pm = /^\/v1\/billing\/payments\/([a-f0-9]{32})(\/qr)?$/.exec(p);
   if (pm && m === "GET") {
@@ -71,8 +73,8 @@ async function publicRoute(request, env, url, deps) {
 }
 
 async function adminRoute(request, env, url, deps) {
-  const allow = adminOrigins(env);
-  const cors = corsHeaders(request, allow, { credentials: true, methods: "GET, POST, PUT, DELETE, OPTIONS", headers: "Content-Type, X-CSRF-Token, Authorization" });
+  const allow = adminOrigins(env, request);
+  const cors = corsHeaders(request, allow, { credentials: true, methods: "GET, POST, PUT, DELETE, OPTIONS", headers: "Content-Type, X-CSRF-Token, Authorization, X-LQ-Device" });
   const m = request.method;
   const route = url.pathname.slice("/admin/api".length) || "/";
   // Every admin request must come from an allowlisted Origin; unsafe ones must send it explicitly.
@@ -84,13 +86,15 @@ async function adminRoute(request, env, url, deps) {
 
   // unauthenticated
   if (route === "/state" && m === "GET") {
-    const owner = await auth.getOwner(env.DB);
-    return reply({ bootstrapped: !!owner, bootstrap_secret_set: String(env.ADMIN_BOOTSTRAP_TOKEN || "").length >= 32, free_mode: billing.freeMode(env) });
+    // minimum: only whether the one-time setup has been done (no configuration hints)
+    return reply({ bootstrapped: !!(await auth.getOwner(env.DB)) });
   }
   if (route === "/bootstrap" && m === "POST") return reply(await auth.bootstrap(env, request, await body()), 201);
   if (route === "/login" && m === "POST") {
     const r = await auth.login(env, request, await body());
-    return reply(r.body, 200, { "Set-Cookie": r.cookie });
+    const resp = reply(r.body, 200);
+    for (const c of r.cookies) resp.headers.append("Set-Cookie", c);
+    return resp;
   }
 
   const sess = await auth.requireAdmin(env, request);
@@ -104,7 +108,7 @@ async function adminRoute(request, env, url, deps) {
     }
     case "POST /logout": await auth.logout(env, sess); return reply({ ok: true }, 200, { "Set-Cookie": auth.clearCookie() });
     case "POST /password": return reply(await auth.changePassword(env, sess, await body()));
-    case "POST /totp/setup": return reply(await auth.totpSetup(env));
+    case "POST /totp/setup": return reply(await auth.totpSetup(env, await body()));
     case "POST /totp/enable": return reply(await auth.totpEnable(env, await body()));
     case "POST /totp/disable": return reply(await auth.totpDisable(env, await body()));
 
@@ -158,13 +162,38 @@ async function adminRoute(request, env, url, deps) {
   return reply({ error: "not found" }, 404);
 }
 
+/** Static admin shell served from the Worker's own origin (Workers Static Assets binding ASSETS, built by
+ *  backend/scripts/build-admin.mjs). HTTP headers a <meta> cannot carry: frame-ancestors 'none' + X-Frame-Options. */
+export const ADMIN_ASSETS = new Set(["/admin", "/admin/", "/admin.html", "/admin.js", "/admin.css", "/lensiq-api.js", "/lensiq-config.js"]);
+export const ADMIN_PAGE_HEADERS = {
+  "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; " +
+    "font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'",
+  "X-Frame-Options": "DENY",
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "no-referrer",
+  "Cache-Control": "no-store",
+  "Cross-Origin-Opener-Policy": "same-origin",
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=()"
+};
+async function adminAsset(request, env, url) {
+  if (!env.ASSETS || !["GET", "HEAD"].includes(request.method)) return null;
+  const path = url.pathname === "/admin" || url.pathname === "/admin/" ? "/admin.html" : url.pathname;
+  const r = await env.ASSETS.fetch(new Request(new URL(path, url.origin).toString(), { method: request.method }));
+  if (!r.ok) return null;
+  const h = new Headers(r.headers);
+  for (const [k, v] of Object.entries(ADMIN_PAGE_HEADERS)) h.set(k, v);
+  return new Response(r.body, { status: r.status, headers: h });
+}
+
 export async function handle(request, env, deps = {}) {
   const url = new URL(request.url);
   try {
+    if (ADMIN_ASSETS.has(url.pathname)) { const a = await adminAsset(request, env, url); if (a) return a; }
     if (url.pathname.startsWith("/admin/api/") || url.pathname === "/admin/api") return await adminRoute(request, env, url, deps);
     return await publicRoute(request, env, url, deps);
   } catch (e) {
-    const allow = url.pathname.startsWith("/admin/") ? adminOrigins(env) : publicOrigins(env);
+    const allow = url.pathname.startsWith("/admin/") ? adminOrigins(env, request) : publicOrigins(env);
     const cors = corsHeaders(request, allow, { credentials: url.pathname.startsWith("/admin/") });
     if (e instanceof HttpError) {
       const extra = e.extra && e.extra.retryAfter ? { "Retry-After": String(e.extra.retryAfter) } : {};
@@ -177,9 +206,15 @@ export async function handle(request, env, deps = {}) {
 
 export default {
   async fetch(request, env, ctx) {
-    return withHeaders(await handle(request, env), {});
+    const r = await handle(request, env);
+    return ADMIN_ASSETS.has(new URL(request.url).pathname) && r.headers.get("X-Frame-Options") ? r : withHeaders(r, {});
   },
+  /** "17 3 * * *" daily maintenance; "*\/15 * * * *" payment reconcile (pending charges re-checked with Opn). */
   async scheduled(event, env, ctx) {
+    if (event && event.cron === RECONCILE_CRON) {
+      ctx.waitUntil(reconcilePending(env).then(r => log("reconcile", { checked: r.checked || 0, changed: r.changed || 0, errors: r.errors || 0 })));
+      return;
+    }
     ctx.waitUntil(runMaintenance(env).then(r => log("maintenance", { aggregated: r.aggregated, events: r.purged.events })));
   }
 };

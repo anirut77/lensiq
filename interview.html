@@ -131,8 +131,9 @@
         <div id="ivSumDelivery" hidden></div>
       </div>
     </div>
+    <p class="hint no-print" id="ivSumDNote" hidden data-i18n="iv.s.sum.dPending">องค์กรเปิดให้ดูข้อสังเกตการนำเสนอ แต่จะแสดงได้หลังผู้สัมภาษณ์ทุกคนส่งคะแนนแล้วเท่านั้น เพื่อไม่ให้ตัวเลขมีผลต่อคะแนน</p>
     <div class="row-actions no-print">
-      <label class="check"><input type="checkbox" id="ivIncDelivery"> <span data-i18n="iv.s.sum.incD">แนบข้อสังเกตการนำเสนอ (ไม่ใช่คะแนน)</span></label>
+      <label class="check" id="ivIncWrap" hidden><input type="checkbox" id="ivIncDelivery"> <span data-i18n="iv.s.sum.incD">แสดงข้อสังเกตการนำเสนอ (ไม่ใช่คะแนน ไม่ใช้ตัดสินใจ)</span></label>
       <button class="btn primary" type="button" id="ivPrint" data-i18n="iv.s.sum.print">พิมพ์ / บันทึกเป็น PDF</button>
       <button class="btn ghost danger" type="button" id="ivClear" data-i18n="iv.s.sum.clear">ล้างข้อมูลการสัมภาษณ์นี้</button>
     </div>
@@ -140,27 +141,47 @@
 
   <!-- ===== delivery observation (optional camera) ===== -->
   <section class="pane" id="pane-delivery" role="tabpanel" aria-labelledby="tab-delivery" hidden>
+    <p class="iv-principle small" role="note"><b data-i18n="iv.s.d.cf1">ผู้สมัครมาก่อน:</b> <span data-i18n="iv.s.d.cf2">ปิดเป็นค่าเริ่มต้น ตัวเลขแสดงให้ผู้สมัครเท่านั้น (มุมมองผู้สมัคร หรือการ์ด "ผลของฉัน" หลังสัมภาษณ์ที่ผู้สมัครเลือกเก็บหรือทิ้ง) ผู้สัมภาษณ์ไม่เห็นตัวเลข เว้นแต่องค์กรเปิดการตั้งค่าด้านล่าง</span></p>
+    <details class="card org" id="ivOrgBox">
+      <summary data-i18n="iv.s.org.h">การตั้งค่าองค์กร: อนุญาตให้ผู้สัมภาษณ์ดูข้อสังเกตการนำเสนอ (ปิดอยู่)</summary>
+      <p class="hint" data-i18n="iv.s.org.hint">ผู้สมัครอยู่ในฐานะที่ต่อรองได้น้อย ความยินยอมจึงอาจไม่อิสระจริง และตัวเลขการหันเข้ากล้องหรือช่วงหยุดเสี่ยงทำให้เกิดอคติต่อผู้พิการ ผู้มีความหลากหลายทางระบบประสาท และต่างวัฒนธรรม เปิดได้เฉพาะเมื่อยืนยันครบทั้งสามข้อ และแม้เปิดแล้ว ผู้สัมภาษณ์จะเห็นได้หลังทุกคนส่งคะแนนแล้วเท่านั้น</p>
+      <label class="check"><input type="checkbox" id="ivAck1"> <span data-i18n="iv.s.org.a1">องค์กรได้ทำการประเมินผลกระทบด้านข้อมูลส่วนบุคคล (DPIA) สำหรับการให้ผู้สัมภาษณ์ดูข้อสังเกตนี้แล้ว</span></label>
+      <label class="check"><input type="checkbox" id="ivAck2"> <span data-i18n="iv.s.org.a2">ผู้สมัครปฏิเสธได้โดยไม่มีผลใด ๆ และได้รับข้อเสนอรูปแบบอื่น (เช่น สัมภาษณ์โดยไม่เปิดกล้อง ทางโทรศัพท์ หรือตอบเป็นลายลักษณ์อักษร)</span></label>
+      <label class="check"><input type="checkbox" id="ivAck3"> <span data-i18n="iv.s.org.a3">ข้อสังเกตนี้จะไม่ถูกใช้ให้คะแนน จัดอันดับ หรือตัดสินใจเรื่องผู้สมัครไม่ว่ากรณีใด</span></label>
+      <label class="check allow"><input type="checkbox" id="ivOrgAllow" disabled> <span data-i18n="iv.s.org.allow">อนุญาตให้ผู้สัมภาษณ์ดูข้อสังเกตการนำเสนอ (หลังส่งคะแนนครบแล้วเท่านั้น)</span></label>
+      <p class="form-msg" id="ivOrgState" role="status"></p>
+      <p class="acc" data-i18n="iv.s.acc">การปรับให้เหมาะสม: ผู้สมัครที่มีความพิการ มีความหลากหลายทางระบบประสาท (เช่น ออทิสติก สมาธิสั้น) ใช้ภาษาที่สอง หรือมาจากวัฒนธรรมที่ไม่นิยมสบตา อาจได้ตัวเลขต่างไป กล้อง แสง และอุปกรณ์ก็มีผล — เสนอรูปแบบอื่นและปรับวิธีสัมภาษณ์ตามที่ผู้สมัครขอ และอย่าตีความตัวเลขเป็นความสามารถ</p>
+    </details>
     <div class="card consent" id="ivConsent">
-      <h2 data-i18n="iv.s.d.h">ข้อสังเกตการนำเสนอ (ไม่บังคับ — ต้องได้รับความยินยอมจากผู้สมัคร)</h2>
+      <h2 data-i18n="iv.s.d.h">ข้อสังเกตการนำเสนอสำหรับผู้สมัคร (ไม่บังคับ — ต้องได้รับความยินยอมจากผู้สมัคร)</h2>
       <p data-i18n="iv.s.d.what">ถ้าผู้สมัครยินยอม กล้องและไมโครโฟนของเครื่องนี้จะวัดเฉพาะสิ่งที่สังเกตได้: สัดส่วนเวลาที่เห็นใบหน้า สัดส่วนเวลาที่หันหน้าเข้าหากล้อง ปริมาณการขยับศีรษะ สัดส่วนเวลาที่มีเสียงพูด ช่วงหยุด และจังหวะเสียงโดยประมาณ</p>
       <ul class="dl">
         <li data-i18n="iv.s.d.l1">ประมวลผลในเบราว์เซอร์นี้เท่านั้น ไม่ส่ง ไม่บันทึกภาพ เสียง หรือคำพูด (เก็บเพียงตัวเลขระหว่างเปิดหน้า)</li>
         <li data-i18n="iv.s.d.l2">ไม่วัดอารมณ์ ความซื่อสัตย์ การโกหก หรือบุคลิกภาพ และไม่ให้คะแนนผู้สมัคร</li>
-        <li data-i18n="iv.s.d.l3">การปฏิเสธไม่มีผลต่อการพิจารณา ผู้สมัครขอหยุดได้ทุกเมื่อ</li>
+        <li data-i18n="iv.s.d.l3">การปฏิเสธไม่มีผลต่อการพิจารณา ขอรูปแบบสัมภาษณ์อื่นได้ และขอหยุดได้ทุกเมื่อ</li>
+        <li data-i18n="iv.s.d.l4">ตัวเลขเป็นของผู้สมัคร: แสดงให้ผู้สมัครเท่านั้น หลังสัมภาษณ์ผู้สมัครเลือกเก็บ (พิมพ์/บันทึก PDF) หรือทิ้งได้</li>
+        <li id="ivDOrgNote" hidden data-i18n="iv.s.d.l5">องค์กรนี้เปิดให้ผู้สัมภาษณ์ดูตัวเลขได้หลังส่งคะแนนครบแล้ว (ไม่ใช้ให้คะแนน) — ถ้าผู้สมัครเลือก "ทิ้ง" ผู้สัมภาษณ์จะไม่เห็น</li>
       </ul>
       <label class="check"><input type="checkbox" id="ivCOk1"> <span data-i18n="iv.s.d.c1">ผู้สมัคร: ฉันเข้าใจและยินยอมให้ใช้กล้องและไมโครโฟนเพื่อข้อสังเกตนี้ (ผู้สมัครติ๊กเอง)</span></label>
-      <label class="check"><input type="checkbox" id="ivCOk2"> <span data-i18n="iv.s.d.c2">ผู้สัมภาษณ์: ได้อธิบายแล้วว่าการปฏิเสธไม่มีผล และจะไม่ใช้ข้อสังเกตนี้ให้คะแนนสมรรถนะ</span></label>
+      <label class="check"><input type="checkbox" id="ivCOk2"> <span data-i18n="iv.s.d.c2">ผู้สัมภาษณ์: ได้อธิบายแล้วว่าการปฏิเสธไม่มีผล ได้เสนอรูปแบบสัมภาษณ์อื่น และจะไม่ใช้ข้อสังเกตนี้ให้คะแนนสมรรถนะ</span></label>
       <div class="row-actions">
-        <button class="btn primary" type="button" id="ivDStart" disabled data-i18n="iv.s.d.start">เริ่มสังเกต</button>
+        <button class="btn primary" type="button" id="ivDStart" disabled data-i18n="iv.s.d.start">เริ่มวัด (แสดงให้ผู้สมัครเท่านั้น)</button>
         <button class="btn ghost" type="button" id="ivDDecline" data-i18n="iv.s.d.decline">ผู้สมัครไม่ยินยอม — ไม่ใช้กล้อง</button>
       </div>
       <p class="form-msg" id="ivDMsg" role="status"></p>
     </div>
     <div class="card" id="ivDLive" hidden>
-      <h2 data-i18n="iv.s.d.liveH">ข้อสังเกตสำหรับผู้สัมภาษณ์ — ไม่ใช่การประเมินตัวบุคคล</h2>
+      <h2 data-i18n="iv.s.d.liveH">กำลังวัด — ตัวเลขซ่อนจากผู้สัมภาษณ์</h2>
       <div class="live-grid">
         <div class="cam"><video id="ivDVideo" autoplay muted playsinline></video><canvas id="ivDOverlay" width="640" height="480" aria-hidden="true"></canvas></div>
-        <div><div class="tiles" id="ivDTiles"></div><p class="engine" id="ivDEngine" role="status"></p></div>
+        <div>
+          <p class="engine" id="ivDEngine" role="status"></p>
+          <button class="btn ghost" type="button" id="ivDCandBtn" aria-pressed="false" data-i18n="iv.s.d.candBtn">มุมมองผู้สมัคร: แสดงตัวเลขสด</button>
+          <div class="cand-view" id="ivDCandView" hidden>
+            <h3 data-i18n="iv.s.d.candH">สำหรับผู้สมัคร — ข้อสังเกตของคุณ (ไม่ใช่การประเมินตัวบุคคล)</h3>
+            <div class="tiles" id="ivDTiles"></div>
+          </div>
+        </div>
       </div>
       <div class="row-actions">
         <button class="btn primary" type="button" id="ivDStop" data-i18n="iv.s.d.stop">หยุดและปิดกล้อง</button>
@@ -172,11 +193,20 @@
         <li data-i18n="iv.s.d.cv4">ไม่นับคำเติม เช่น "เอ่อ" "อืม" เพราะจากระดับเสียงอย่างเดียวนับได้ไม่น่าเชื่อถือ</li>
       </ul>
     </div>
-    <div class="card" id="ivDResult" hidden>
-      <h2 data-i18n="iv.s.d.resH">ข้อสังเกตรอบล่าสุด</h2>
-      <div class="tiles" id="ivDResTiles"></div>
-      <p class="hint" data-i18n="iv.s.d.resNote">ตัวเลขนี้อยู่ในหน้านี้เท่านั้น และแนบในสรุปเฉพาะเมื่อเลือก "แนบข้อสังเกตการนำเสนอ"</p>
-      <button class="btn ghost" type="button" id="ivDDiscard" data-i18n="iv.s.d.discard">ลบข้อสังเกตนี้</button>
+    <div class="card fb" id="ivDResult" hidden>
+      <h2 data-i18n="iv.s.d.resH">ผลของฉัน — สำหรับผู้สมัคร</h2>
+      <p class="hint" data-i18n="iv.s.d.resNote">หันหน้าจอให้ผู้สมัคร ผู้สมัครเปิดดู แล้วเลือกเก็บ (พิมพ์/บันทึก PDF) หรือทิ้ง</p>
+      <button class="btn primary" type="button" id="ivDOpen" data-i18n="iv.s.d.open">ผู้สมัคร: เปิดดูผลของฉัน</button>
+      <div id="ivDResBody" hidden>
+        <div class="tiles" id="ivDResTiles"></div>
+        <ul class="tips" id="ivDResTips"></ul>
+        <p class="acc" data-i18n="iv.s.acc">การปรับให้เหมาะสม: ผู้สมัครที่มีความพิการ มีความหลากหลายทางระบบประสาท (เช่น ออทิสติก สมาธิสั้น) ใช้ภาษาที่สอง หรือมาจากวัฒนธรรมที่ไม่นิยมสบตา อาจได้ตัวเลขต่างไป กล้อง แสง และอุปกรณ์ก็มีผล — เสนอรูปแบบอื่นและปรับวิธีสัมภาษณ์ตามที่ผู้สมัครขอ และอย่าตีความตัวเลขเป็นความสามารถ</p>
+        <div class="row-actions no-print">
+          <button class="btn primary" type="button" id="ivDKeep" data-i18n="iv.s.d.keep">เก็บผลของฉัน (พิมพ์/บันทึก PDF)</button>
+          <button class="btn ghost danger" type="button" id="ivDDiscard" data-i18n="iv.s.d.discard">ทิ้งผลนี้</button>
+        </div>
+      </div>
+      <p class="form-msg" id="ivDResState" role="status"></p>
     </div>
     <details class="card why" open>
       <summary data-i18n="iv.s.why.h">ทำไมไม่มีการวัดอารมณ์ การโกหก หรือบุคลิกภาพ</summary>
@@ -186,6 +216,7 @@
         <li data-i18n="iv.s.why.3">กฎหมายปัญญาประดิษฐ์ของสหภาพยุโรป (EU AI Act มาตรา 5(1)(f)) ห้ามระบบรู้จำอารมณ์ในที่ทำงานและสถานศึกษาตั้งแต่ 2 ก.พ. 2025 และจัดระบบคัดเลือกบุคลากรเป็นความเสี่ยงสูง</li>
         <li data-i18n="iv.s.why.4">ข้อมูลชีวภาพ (เช่น ข้อมูลจำลองใบหน้า) และข้อมูลสุขภาพ/ความพิการเป็นข้อมูลอ่อนไหวตาม PDPA มาตรา 26 หน้านี้จึงไม่สร้างหรือเก็บข้อมูลจำลองใบหน้า</li>
         <li data-i18n="iv.s.why.5">การอนุมานบุคลิกภาพจากใบหน้าไม่มีหลักฐานทางวิทยาศาสตร์รองรับ และเสี่ยงต่อการเลือกปฏิบัติ</li>
+        <li data-i18n="iv.s.why.6">ในการสมัครงาน ผู้สมัครต่อรองได้น้อย ความยินยอมจึงอาจไม่อิสระจริง (PDPA ม.19, GDPR ข้อ 7(4) และแนวทาง EDPB 05/2020) ตัวเลขจึงเป็นของผู้สมัครเป็นค่าเริ่มต้น</li>
       </ul>
     </details>
   </section>
@@ -245,6 +276,14 @@
         <li data-i18n="iv.s.a.2">คำถามเชิงพฤติกรรม (STAR) ถามถึงสิ่งที่เคยทำจริง คำถามเชิงสถานการณ์ถามว่าจะทำอย่างไร ใช้ทั้งสองแบบช่วยให้เห็นภาพครบขึ้น (Levashina และคณะ, 2014)</li>
         <li data-i18n="iv.s.a.3">เกณฑ์ BARS บรรยายพฤติกรรมในแต่ละระดับ ช่วยให้ผู้สัมภาษณ์ใช้มาตรฐานเดียวกัน</li>
         <li data-i18n="iv.s.a.4">ให้คะแนนแยกกันก่อนหารือ ลดการคล้อยตามคนแรกที่พูด แล้วใช้ความต่างของคะแนนเป็นจุดเริ่มการหารือจากหลักฐาน</li>
+      </ul>
+      <h3 data-i18n="iv.s.a.dH">ข้อสังเกตการนำเสนอ: ผู้สมัครมาก่อน</h3>
+      <ul class="about">
+        <li data-i18n="iv.s.a.d1">ปิดเป็นค่าเริ่มต้นในการสัมภาษณ์จริง และเปิดได้เฉพาะเมื่อผู้สมัครติ๊กยินยอมเอง การปฏิเสธไม่มีผลและต้องมีรูปแบบอื่นให้เลือก</li>
+        <li data-i18n="iv.s.a.d2">ตัวเลขแสดงให้ผู้สมัครเท่านั้น: ระหว่างสัมภาษณ์ผ่าน "มุมมองผู้สมัคร" และหลังสัมภาษณ์ผ่านการ์ด "ผลของฉัน" ที่ผู้สมัครเลือกเก็บหรือทิ้ง</li>
+        <li data-i18n="iv.s.a.d3">ผู้สัมภาษณ์เห็นตัวเลขได้เฉพาะเมื่อองค์กรเปิดการตั้งค่าพร้อมยืนยันว่าทำ DPIA แล้ว ผู้สมัครปฏิเสธได้และได้รับรูปแบบอื่น และไม่ใช้ให้คะแนน — แม้เปิดแล้วก็แสดงหลังทุกคนส่งคะแนนเท่านั้น เพื่อไม่ให้ตัวเลขเป็นตัวยึดคะแนน</li>
+        <li data-i18n="iv.s.a.d4">เหตุผล: ความยินยอมของผู้สมัครงานอาจไม่อิสระเพราะอำนาจต่อรองไม่เท่ากัน และตัวเลขการสบตา/ช่วงหยุดต่างกันตามความพิการ ความหลากหลายทางระบบประสาท วัฒนธรรม และอุปกรณ์ จึงเสี่ยงต่อการเลือกปฏิบัติ</li>
+        <li data-i18n="iv.s.a.d5">โหมดฝึกซ้อมเป็นของผู้ใช้เองทั้งหมด: ผู้สมัครฝึกและดูคำแนะนำของตนเองได้ตามปกติ</li>
       </ul>
       <h3 data-i18n="iv.s.a.refs">แหล่งอ้างอิง</h3>
       <ul class="refs">

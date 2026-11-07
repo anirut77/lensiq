@@ -1,6 +1,7 @@
 /* i18n/zh-fortune-lifecal.js — 简体中文：bazi.html · taksa.html · lek7.html · lifegraph.html 的界面文字
    （泰文保留在页面与 lifecal-ui.js 中；解读正文来自 i18n/zh-kb-lifecal.js）。英文可另加 i18n/en-*.js，键相同。 */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
+  "bazi.eyebrow": "BaZi · 八字", "taksa.eyebrow": "泰国塔克萨命理", "lek7.eyebrow": "泰式七数九基", "lifegraph.eyebrow": "人生曲线",
   "bazi.title": "八字 · 日主 五行 大运 | LENSIQ", "bazi.h1": "八字 · 四柱命盘",
   "bazi.lead": "年、月、日、时四柱，加上日主、五行平衡和十年大运；月份按太阳位置算出的二十四节气来分",
   "bazi.button": "排盘",

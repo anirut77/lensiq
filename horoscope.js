@@ -220,14 +220,42 @@
   function sunRasi(jdUT) { var s = sidereal(sunLongitude(ttFromUT(jdUT)), jdUT); return { index: Math.floor(s / RASI_BOUND), lon: s, deg: s % 30 }; }
   function lagna(jdUT, lat, lon) { var a = ascendant(jdUT, lat, lon), s = sidereal(a, jdUT); return { index: Math.floor(s / 30), lon: s, deg: s % 30, tropical: a }; }
 
-  /** เดือนจันทรคติไทยโดยประมาณ: ราศี (นิรายนะ) ของอาทิตย์ ณ จันทร์ดับต้นเดือน → มีน = เดือน 5, เมษ = 6 ... (ระบบอมานตะ)
-      คืน {month 1–12, startJD (UT, วันขึ้น 1 ค่ำ โดยประมาณ), leap} */
+  /** เดือนจันทรคติไทย (ใช้ร่วมกันทุกหน้า: horoscope, taksa, lek7, lifegraph ผ่าน lifecal.js)
+      ปฏิทินไทยวางอธิกมาสเป็น "เดือน 8 สองหน" เสมอ (ไม่ใช่ตามเดือนอธิกของจีนหรืออินเดีย) — จับหลักด้วยวันอาสาฬหบูชา:
+        เดือน 8 (หรือ 8 หลังในปีอธิกมาส) = เดือนจันทร์ที่จันทร์เพ็ญแรกตกตั้งแต่ 00:00 ของ 5 ก.ค. (เวลาไทย) ของปีนั้นเป็นต้นไป
+        ปีอธิกมาส = ปีที่ช่วงระหว่างเดือน 8 ของปีก่อนกับปีนั้นมี 13 เดือนจันทร์ (เดือนที่เพิ่มคือ 8 แรก)
+      ตรวจกับวันวิสาขบูชา อาสาฬหบูชา ออกพรรษา และลอยกระทงที่ประกาศจริงปี 2012–2030 (tests/unit/lifecal.test.js)
+      เป็นการคำนวณทางดาราศาสตร์ อาจต่างจากปฏิทินหลวง (สุริยยาตร) ได้หนึ่งวันในบางปี แต่เลขเดือนตรงกัน
+      คืน {month 1–12, startJD (UT, จันทร์ดับต้นเดือน), leap (true = เดือน 8 หลังของปีอธิกมาส), firstEight, adhikamas} */
+  /** จันทร์เพ็ญหลังจันทร์ดับลำดับ k (Meeus บทที่ 49 เฟส 0.5 พจน์หลัก) → JD (UT) */
+  function fullMoonOf(k) {
+    var kk = k + 0.5, T = kk / 1236.85, T2 = T * T, E = 1 - 0.002516 * T - 0.0000074 * T2;
+    var M = 2.5534 + 29.1053567 * kk, Mp = 201.5643 + 385.81693528 * kk + 0.0107582 * T2, F = 160.7108 + 390.67050284 * kk - 0.0016118 * T2, Om = 124.7746 - 1.56375588 * kk;
+    var jde = 2451550.09766 + 29.530588861 * kk + 0.00015437 * T2;
+    jde += -0.40614 * sin(Mp) + 0.17302 * E * sin(M) + 0.01614 * sin(2 * Mp) + 0.01043 * sin(2 * F) + 0.00734 * E * sin(Mp - M) - 0.00515 * E * sin(Mp + M)
+      + 0.00209 * E * E * sin(2 * M) - 0.00111 * sin(Mp - 2 * F) - 0.00057 * sin(Mp + 2 * F) + 0.00056 * E * sin(2 * Mp + M) - 0.00042 * sin(3 * Mp)
+      + 0.00042 * E * sin(M + 2 * F) + 0.00038 * E * sin(M - 2 * F) - 0.00024 * E * sin(2 * Mp - M) - 0.00017 * sin(Om);
+    return utFromTT(jde);
+  }
+  var asalhaCache = {};
+  /** ดัชนี k ของจันทร์ดับที่เริ่มเดือน 8 (ที่มีอาสาฬหบูชา) ของปี ค.ศ. y */
+  function asalhaK(y) {
+    if (asalhaCache[y] != null) return asalhaCache[y];
+    var lim = julianDay(y, 7, 5, 0) - 7 / 24; // 00:00 ของ 5 ก.ค. เวลาไทย (UT)
+    var k = newMoonBefore(lim).k - 1;
+    while (fullMoonOf(k) < lim) k++;
+    return (asalhaCache[y] = k);
+  }
   function thaiLunarMonth(jdUT) {
-    var nm = newMoonBefore(jdUT);
-    var sgn = function (k) { var j = nmByK(k); return Math.floor(sidereal(sunLongitude(ttFromUT(j)), j) / 30); };
-    var s = sgn(nm.k), sPrev = sgn(nm.k - 1);
-    var month = mod(s + 6, 12) || 12; // มีน(11) → 5, เมษ(0) → 6, ... พิจิก(7) → 1 (อ้าย)
-    return { month: month, startJD: nm.jd, leap: s === sPrev };
+    var nm = newMoonBefore(jdUT), k = nm.k, y = fromJD(jdUT + 7 / 24).y;
+    var kA = asalhaK(y); if (k < kA) { y -= 1; kA = asalhaK(y); }
+    var kN = asalhaK(y + 1), n = k - kA, leapThis = kA - asalhaK(y - 1) === 13, leapNext = kN - kA === 13;
+    var month, leap = false, first = false;
+    if (n === 0) { month = 8; leap = leapThis; }
+    else if (n <= 4) month = 8 + n;
+    else if (leapNext && n === 12) { month = 8; first = true; }
+    else month = n - 4; // n=5 → เดือนอ้าย (1) … n=11 → 7
+    return { month: month, startJD: nm.jd, leap: leap, firstEight: first, adhikamas: n <= 4 ? leapThis : leapNext };
   }
   /** วันขึ้น 1 ค่ำ เดือน 5 (โดยประมาณ) ของปี ค.ศ. year → JD (UT) ของจันทร์ดับต้นเดือน */
   function thaiMonth5Start(year) {

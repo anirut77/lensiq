@@ -22,17 +22,22 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const ORIGIN_RE = /^https?:\/\/[A-Za-z0-9.\-:[\]]+\/?$/;
 
-/** The policy (same directives and order as server.py _csp(), minus frame-ancestors). */
-export function policy({ connect = [] } = {}) {
+export const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
+
+/** The policy (same directives and order as server.py _csp(), minus frame-ancestors). `turnstile: true` (only when
+ *  lensiq-config.js sets LENSIQ_TURNSTILE_SITEKEY) allows Cloudflare Turnstile's script + iframe. */
+export function policy({ connect = [], turnstile = false } = {}) {
   const extra = connect.map(o => String(o).trim()).filter(o => ORIGIN_RE.test(o)).map(o => o.replace(/\/$/, ""));
+  if (turnstile) extra.push(TURNSTILE_ORIGIN);
   return [
     "default-src 'self'",
-    "script-src 'self' 'wasm-unsafe-eval'",
+    turnstile ? "script-src 'self' 'wasm-unsafe-eval' " + TURNSTILE_ORIGIN : "script-src 'self' 'wasm-unsafe-eval'",
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self' data:",
     "img-src 'self' data: blob:",
     "media-src 'self' data: blob:",
     ("connect-src 'self' data: blob: " + extra.join(" ")).trim(),
+    ...(turnstile ? ["frame-src " + TURNSTILE_ORIGIN] : []),
     "worker-src 'self' blob:",
     "manifest-src 'self'",
     "object-src 'none'",
@@ -50,6 +55,12 @@ export function configuredApiOrigin(configSrc) {
     if (!/^https?:$/.test(u.protocol) || u.username || u.password) return null;
     return u.origin;
   } catch { return null; }
+}
+
+/** True when lensiq-config.js sets a non-empty LENSIQ_TURNSTILE_SITEKEY (statement, not the comment). */
+export function configuredTurnstile(configSrc) {
+  const m = /^[ \t]*window\.LENSIQ_TURNSTILE_SITEKEY\s*=\s*(?:window\.LENSIQ_TURNSTILE_SITEKEY\s*\|\|\s*)?(["'])([^"']*)\1/m.exec(String(configSrc || ""));
+  return !!(m && /^[0-9A-Za-z_-]{8,}$/.test(m[2].trim()));
 }
 
 const escAttr = s => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
@@ -106,7 +117,7 @@ function main(argv) {
     files.push(resolve(args[i]));
   }
   if (!files.length) for (const f of readdirSync(repo).filter(f => f.endsWith(".html")).sort()) files.push(join(repo, f));
-  const pol = policy({ connect });
+  const pol = policy({ connect, turnstile: configuredTurnstile(cfg) });
   let changed = 0, bad = 0;
   for (const f of files) {
     const html = readFileSync(f, "utf8");

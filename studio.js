@@ -552,7 +552,7 @@
         const fA = new Float32Array(n); for (let i = 0; i < n; i++) fA[i] = front[i * 4 + 3] / 255;
         // เศษที่หลุดจากตัว (ถุงมือ/วัตถุ/สีชุดเดิม) และช่องฉากหลังระหว่างกราม-คอเสื้อ
         { const cover = new Float32Array(n); for (let i = 0; i < n; i++) cover[i] = Math.max(fA[i], neck ? neck.alpha[i] : 0); SC.removeStrayIslands(keepA, cover, W, H, Math.round(f.fw * f.fw * .15)); }
-        if (neck) { neck = { ...neck, rgba: new Uint8ClampedArray(neck.rgba), alpha: new Float32Array(neck.alpha) }; SC.fillNeckGaps(neck, keepA, fA, W, H, f, (neck.yCollar || f.chinY + f.fw * .4) + f.fw * .15, ST.harm.skinRGB, ST.layers.hair, person); }
+        if (neck) { neck = { ...neck, rgba: new Uint8ClampedArray(neck.rgba), alpha: new Float32Array(neck.alpha) }; SC.restoreNeckSides(neck, keepA, fA, person, pA, W, H, f, neck.yCollar || f.chinY + f.fw * .4, ST.layers.hair); SC.fillNeckGaps(neck, keepA, fA, W, H, f, (neck.yCollar || f.chinY + f.fw * .4) + f.fw * .15, ST.harm.skinRGB, ST.layers.hair, person); }
         neckShade = SC.contactShadow(fA, W, H, f, { chin: .3 * sv, collar: .38 * sv });
         const hairA = new Float32Array(n); for (let i = 0; i < n; i++) hairA[i] = keepA[i] * Ly.hair[i];
         gShade = sv > 0 ? SC.hairShadow(hairA, W, H, f.fw, { amount: .32 * sv }) : null;

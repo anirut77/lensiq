@@ -1,8 +1,10 @@
 /* admin.js — LENSIQ back office (admin.html) talking to the API Worker (backend/src/index.js, /admin/api/*).
  *
- * Session: cookie mode (httpOnly __Host- cookie, credentials:"include", X-CSRF-Token on writes) when the page and the
- * API are on the same site; bearer mode (token kept in memory only — gone on reload) otherwise. Nothing is stored in
- * localStorage. All server data is rendered with textContent (no innerHTML of server strings).
+ * Session: cookie mode (httpOnly __Host- cookie, credentials:"include", X-CSRF-Token on writes) when the page is served
+ * from the API's own ORIGIN (recommended: the Worker serves admin.html at https://admin.<domain>, docs/BACKEND.md);
+ * bearer mode (token kept in memory only — gone on reload) for any other origin. The only thing kept in localStorage is
+ * the trusted-device token (it exempts this browser from the login slow-down but never replaces the password/TOTP).
+ * All server data is rendered with textContent (no innerHTML of server strings).
  */
 (function () {
   "use strict";
@@ -40,6 +42,7 @@
     if (opt.body !== undefined) headers["Content-Type"] = "application/json";
     if (state.mode === "bearer" && state.token) headers.Authorization = "Bearer " + state.token;
     if (state.mode === "cookie" && state.csrf && opt.method && opt.method !== "GET") headers["X-CSRF-Token"] = state.csrf;
+    if (path === "/login" && device.get()) headers["X-LQ-Device"] = device.get();
     return fetch(API.url("/admin/api" + path), {
       method: opt.method || "GET", headers: headers, credentials: state.mode === "cookie" ? "include" : "omit",
       body: opt.body !== undefined ? JSON.stringify(opt.body) : undefined, cache: "no-store", referrerPolicy: "no-referrer"
@@ -52,12 +55,15 @@
     });
   }
 
-  function sameSite() {
-    try {
-      var a = new URL(API.base()).hostname.split("."), b = location.hostname.split(".");
-      return a.slice(-2).join(".") === b.slice(-2).join(".") && !/github\.io$/.test(location.hostname);
-    } catch (e) { return false; }
+  /** Cookie mode only when the API is exactly this page's origin (no public-suffix guessing such as "co.th"). */
+  function sameOrigin() {
+    try { return new URL(API.base()).origin === location.origin; } catch (e) { return false; }
   }
+  var DEV_KEY = "lq-admin-device";
+  var device = {
+    get: function () { try { return localStorage.getItem(DEV_KEY) || ""; } catch (e) { return ""; } },
+    set: function (/** @type {string} */ v) { try { localStorage.setItem(DEV_KEY, v); } catch (e) { /* private mode */ } }
+  };
 
   function show(/** @type {string} */ which) {
     ["adOffline", "adBoot", "adLogin", "adApp"].forEach(function (id) { $(id).hidden = id !== which; });
@@ -68,9 +74,9 @@
   function start() {
     if (!API || !API.enabled()) { $("adConn").textContent = "ออฟไลน์"; show("adOffline"); return; }
     $("adConn").textContent = API.base().replace(/^https?:\/\//, "");
-    state.mode = sameSite() ? "cookie" : "bearer";
+    state.mode = sameOrigin() ? "cookie" : "bearer";
     call("/state").then(function (st) {
-      if (!st.bootstrapped) { show("adBoot"); if (!st.bootstrap_secret_set) msg("ยังไม่ได้ตั้ง ADMIN_BOOTSTRAP_TOKEN บน Worker", true); return; }
+      if (!st.bootstrapped) { show("adBoot"); return; }
       // cookie mode: maybe still signed in (GET /me also rotates the CSRF token)
       if (state.mode === "cookie") return call("/me").then(enter, function () { show("adLogin"); });
       show("adLogin");
@@ -103,6 +109,7 @@
       f.reset();
       state.csrf = r.csrf || "";
       state.token = r.token || "";
+      if (r.device) device.set(r.device);
       return call("/me").then(enter);
     }).catch(function (/** @type {any} */ e) { msg(e.message, true); });
   });
@@ -233,7 +240,7 @@
       f.effort.textContent = "";
       r.efforts.forEach(function (/** @type {string} */ e) { f.effort.appendChild(h("option", { value: e, text: e, selected: e === s.effort })); });
       f.max_tokens.value = s.max_tokens; f.temperature.value = s.temperature == null ? "" : s.temperature;
-      f.rpm.value = s.rpm; f.daily_max.value = s.daily_max;
+      f.rpm.value = s.rpm; f.daily_max.value = s.daily_max; f.per_caller_daily.value = s.per_caller_daily; f.global_rpm.value = s.global_rpm;
       var box = $("adDomains"); box.textContent = "";
       Object.keys(s.domains).forEach(function (d) { box.appendChild(h("label", null, h("input", { type: "checkbox", name: "d_" + d, checked: !!s.domains[d] }), " " + d)); });
       var k = r.key;
@@ -251,7 +258,8 @@
     var body = {
       enabled: f.enabled.checked, provider: f.provider.value, model: f.model.value.trim(), effort: f.effort.value,
       max_tokens: parseInt(f.max_tokens.value, 10), temperature: f.temperature.value === "" ? null : Number(f.temperature.value),
-      rpm: parseInt(f.rpm.value, 10), daily_max: parseInt(f.daily_max.value, 10), domains: domains
+      rpm: parseInt(f.rpm.value, 10), daily_max: parseInt(f.daily_max.value, 10),
+      per_caller_daily: parseInt(f.per_caller_daily.value, 10), global_rpm: parseInt(f.global_rpm.value, 10), domains: domains
     };
     call("/ai", { method: "PUT", body: body }).then(function () { msg("บันทึกการตั้งค่า AI แล้ว"); }, fail);
   });
@@ -340,7 +348,9 @@
     }, fail);
   };
   $("adTotpSetup").addEventListener("click", function () {
-    call("/totp/setup", { method: "POST", body: {} }).then(function (/** @type {any} */ r) {
+    var pw = /** @type {HTMLInputElement} */ ($("adTotpPw")).value;
+    /** @type {HTMLInputElement} */ ($("adTotpPw")).value = "";
+    call("/totp/setup", { method: "POST", body: { password: pw } }).then(function (/** @type {any} */ r) {
       $("adTotpSecret").textContent = r.secret; $("adTotpUri").textContent = r.uri; $("adTotpBox").hidden = false;
     }, fail);
   });
@@ -357,7 +367,7 @@
   $("adPw").addEventListener("submit", function (/** @type {Event} */ ev) {
     ev.preventDefault();
     var f = /** @type {any} */ (ev.target);
-    call("/password", { method: "POST", body: { current: f.current.value, next: f.next.value } }).then(function () { f.reset(); msg("เปลี่ยนรหัสผ่านแล้ว"); }, fail);
+    call("/password", { method: "POST", body: { current: f.current.value, next: f.next.value, totp: f.totp.value || undefined } }).then(function () { f.reset(); msg("เปลี่ยนรหัสผ่านแล้ว"); }, fail);
   });
 
   /* ---------------- retention ---------------- */

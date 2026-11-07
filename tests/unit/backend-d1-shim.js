@@ -34,12 +34,13 @@ class Stmt {
     return col ? o[col] ?? null : o;
   }
   async all() { return { success: true, results: this._s().all(...this.args).map(r => ({ ...r })), meta: {} }; }
-  async run() {
+  _runSync() {
     const s = this._s();
     if (/\bRETURNING\b/i.test(this.sql)) { const rows = s.all(...this.args); return { success: true, results: rows, meta: { changes: rows.length } }; }
     const r = s.run(...this.args);
     return { success: true, meta: { changes: Number(r.changes), last_row_id: Number(r.lastInsertRowid) } };
   }
+  async run() { return this._runSync(); }
 }
 
 function createD1() {
@@ -49,9 +50,10 @@ function createD1() {
     _raw: db,
     prepare: sql => new Stmt(db, sql),
     exec: async sql => { db.exec(sql); return { count: 1 }; },
+    // like D1: the whole batch is one transaction; synchronous here, so concurrent batches never interleave
     batch: async stmts => {
       db.exec("BEGIN");
-      try { const out = []; for (const s of stmts) out.push(await s.run()); db.exec("COMMIT"); return out; }
+      try { const out = stmts.map(s => s._runSync()); db.exec("COMMIT"); return out; }
       catch (e) { db.exec("ROLLBACK"); throw e; }
     }
   };
@@ -62,7 +64,7 @@ function createEnv(vars = {}) {
   return {
     DB: createD1(),
     ALLOWED_ORIGINS: "https://site.example",
-    ADMIN_ORIGINS: "",
+    ADMIN_ORIGINS: "https://site.example",
     FREE_MODE: "true",
     BILLING_ENABLED: "false",
     RAW_EVENT_DAYS: "90",

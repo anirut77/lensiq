@@ -1,5 +1,6 @@
 /* i18n/en-fortune-lifecal.js — English for bazi.html · taksa.html · lek7.html · lifegraph.html (mirrors zh-fortune-lifecal.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
+  "bazi.eyebrow": "BaZi · Four Pillars", "taksa.eyebrow": "Thai Taksa", "lek7.eyebrow": "Thai 7-number chart", "lifegraph.eyebrow": "Life graph",
   "bazi.title": "Four Pillars (BaZi) · Day Master, Five Elements, Luck Pillars | LENSIQ", "bazi.h1": "Four Pillars (BaZi)",
   "bazi.lead": "The year, month, day and hour pillars, with the Day Master, Five Element balance and 10-year luck pillars; months follow the 24 solar terms computed from the Sun's position",
   "bazi.button": "Show chart",

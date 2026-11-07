@@ -35,42 +35,78 @@
 * **Admin auth** — one owner account (`admin_users.id = 1`). First run: `POST /admin/api/bootstrap` with the Worker
   secret `ADMIN_BOOTSTRAP_TOKEN` (≥ 32 chars, constant-time compare, 5 tries/h). Password ≥ 12 chars, PBKDF2-SHA256
   100 000 iterations + 16-byte salt (Argon2 is not available in WebCrypto; Workers cap PBKDF2 at 100 000 — the gap is
-  covered by rate limits, lockout and TOTP). Optional TOTP (secret AES-GCM-encrypted with `SECRETS_KEK`, ±30 s window,
-  replay-protected).
+  covered by rate limits, the progressive delay and TOTP). Optional TOTP (secret AES-GCM-encrypted with `SECRETS_KEK`,
+  ±30 s window); the used time step is claimed with one conditional `UPDATE … WHERE totp_last_step < ?`, so a code
+  cannot be used twice even by parallel requests. **Re-authentication:** TOTP setup needs the password; password change
+  and TOTP disable need the password **and** a fresh TOTP code when TOTP is on.
+* **Serve the admin from its own origin (recommended).** `npm run build:admin` (also `predev`/`predeploy`) copies the
+  admin shell into `backend/admin-dist/`, served by the Worker through the Static Assets binding `ASSETS`
+  (`run_worker_first`). Add a custom domain such as `admin.<domain>` to the Worker (Workers → Settings → Domains &
+  Routes). The Worker adds real HTTP headers a `<meta>` cannot carry: `Content-Security-Policy: … frame-ancestors 'none'`,
+  `X-Frame-Options: DENY`, `no-store`, `no-referrer`, COOP. The page and the API are then the **same origin**, so the
+  cookie session works and nothing needs CORS. The copy of admin.html on GitHub Pages remains a fallback (bearer mode,
+  framing protection there is only what the Pages host sends).
 * **Sessions** — 256-bit random token; only its SHA-256 is stored. 30 min idle / 12 h absolute. Two modes:
-  * *cookie* — `__Host-lq_admin`, `HttpOnly; Secure; SameSite=Strict; Path=/`. Works when admin.html and the API are on
-    the **same site** (e.g. `www.example.co.th` + `api.example.co.th`). Unsafe requests need `X-CSRF-Token`
-    (synchronizer token, hashed per session, rotated by `GET /admin/api/me`) **and** an allowlisted `Origin`.
-  * *bearer* — for an admin page on another site (e.g. `*.github.io`, where a SameSite=Strict cookie is never sent):
-    the token is returned once and kept **in memory only** by admin.js (reload = sign in again). No CSRF exposure because
-    nothing is ambient.
-* **Lockout / rate limits** — login 10 per 15 min per caller; account locked after every 5th failure (15 min, doubling,
-  max 24 h). Rate-limit keys are day-salted HMACs, never IPs.
-* **Audit log** — bootstrap, logins (ok/failed/locked), logout, password/TOTP changes, AI settings/key changes (never the
-  key), billing settings, test charges, payments, CSV exports, retention runs. Secret-looking fields are redacted.
-* **Origin allowlist** — `ALLOWED_ORIGINS` (public API) and `ADMIN_ORIGINS` (admin API; defaults to the former). `null`
-  origin always refused; unsafe requests must carry an allowlisted `Origin`.
+  * *cookie* — `__Host-lq_admin`, `HttpOnly; Secure; SameSite=Strict; Path=/`, used when admin.html is served from the
+    API's own origin. Unsafe requests need `X-CSRF-Token` (synchronizer token, hashed per session, rotated by
+    `GET /admin/api/me`) **and** an allowed `Origin`. admin.js picks cookie mode only when `origin(API) === location.origin`
+    (no guessing of "same site" from domain labels, which fails for public suffixes such as `co.th`).
+  * *bearer* — any other origin: the token is returned once and kept **in memory only** (reload = sign in again).
+* **Brute force without lockout DoS** —
+  * per caller (day-salted IP hash): 10 attempts and 5 failures per 15 min → 429 for that caller only;
+  * global: 100 attempts per 15 min from callers without a trusted device → 429;
+  * account: only failures whose **username matched** count; the counter is incremented atomically
+    (`UPDATE … RETURNING`), **decays** (a failure > 1 h after the previous one restarts it) and causes a **progressive
+    delay** from the 10th failure (30 s, doubling every 5 failures, max 15 min) — never a hard lock;
+  * **trusted device:** a successful login issues a device token (`__Host-lq_dev` cookie + `device` in the JSON, kept in
+    the browser's localStorage and sent as `X-LQ-Device`; only its hash is stored, 90 days, all revoked on password
+    change). A trusted device skips the global limit and the account delay, so an attacker cannot keep the owner out; it
+    never replaces the password or TOTP.
+* **Audit log** — bootstrap, logins (ok/failed/delayed, with "owner"/"other" username and the failure count), logout,
+  password/TOTP changes, AI settings/key changes (never the key), billing settings, test charges, payments, CSV exports,
+  retention runs. Secret-looking fields are redacted.
+* **Origin allowlist** — `ALLOWED_ORIGINS` (public API). Admin API: the Worker's own origin plus `ADMIN_ORIGINS` —
+  **no fallback** to `ALLOWED_ORIGINS` (the public site never gets admin access). `null` origin always refused; unsafe
+  requests must carry an allowed `Origin`. `GET /admin/api/state` returns only `{bootstrapped}`.
 * **Responses** — `Cache-Control: no-store`, `nosniff`, `Referrer-Policy: no-referrer`, `CSP: default-src 'none';
-  frame-ancestors 'none'; sandbox`, HSTS.
+  frame-ancestors 'none'; sandbox`, HSTS (API); admin shell headers as above.
 * **Logs** — `log()` drops any field named like key/secret/token/password/facts/body/ip/email; fortune facts and event
   payloads are never logged.
 
 ### AI writing assistant (`/api/fortune`)
 
-Same contract and safety design as `server.py`, so `fortune-ai.js` needs **no change**: it already calls
-`LENSIQ_API_BASE + "/api/fortune"`. Consent (`consent: true`) required · derived facts only (strict allowlist —
-birth dates, phone numbers, images, descriptors are dropped) · server-side prompt rules (`fortune-prompt.js` is
-generated from `server.py` `FORTUNE_SYSTEM`; a unit test fails if they drift) · 80 KB body / 20 KB facts / 80 items /
-600 chars · Origin allowlist · per-caller RPM + global daily cap (admin-configurable) · per-domain on/off · plan quota
-(counted always, enforced only when `FREE_MODE=false`) · every failure returns `fallback: true` so the page uses its
-local composer.
+Same contract as `server.py`, so `fortune-ai.js` needs **no change**: it already calls `LENSIQ_API_BASE + "/api/fortune"`.
+
+* **Not an open LLM proxy.** The model's reply goes through the **same grounding gate and safety filter as the browser**
+  — the Worker imports `fortune-ai.js` itself (`safety.groundAI`, `safety.filterText`, `compose`; one module, so no
+  drift; a test asserts it is the same instance). Every sentence must restate a curated meaning of the facts or the
+  local composer's own wording; ungrounded/unsafe sentences are dropped and a mostly-ungrounded reply is refused
+  (502 + `fallback`). Prompt-injected or arbitrary output therefore never reaches the caller.
+* **Inputs:** consent (`consent: true`) required · strict key allowlist with the same per-field clips as
+  `fortune-ai.js compactFacts` (label 160, evidence/headline/extras 200, meaning 300, tag 24 chars; no `<>`/backticks/
+  control chars) · ≤ 60 items · request facts ≤ 20 KB (what the browser sends) then **compacted server-side to ≤ 6 KB**
+  for the model (strongest items first) · `extras` keys `luckyColors, energyWords, directions, tips` (same names as
+  the client; `luckyNumbers` is never accepted).
+* **Output size / cost:** `max_tokens` hard-capped at **2048** (admin range 512–2048), effort default **`low`** so adaptive
+  thinking stays short. If a reading is cut off (`stop_reason: max_tokens`) the page falls back to the local composer —
+  watch the `fortune.error kind=parse` log rate after go-live and lower the target length if needed.
+* **Cloudflare Turnstile — required for production.** Set the secret with `wrangler secret put TURNSTILE_SECRET` and the
+  site key in `lensiq-config.js` (`window.LENSIQ_TURNSTILE_SITEKEY`), then `node tools/csp-meta.mjs` (adds
+  `https://challenges.cloudflare.com` to `script-src`/`frame-src`/`connect-src` only when a site key is set). The
+  fortune hook (`lensiq-fortune-hook.js`) renders an invisible widget and adds a fresh `X-Turnstile-Token` to the
+  `/api/fortune` POST only; the Worker verifies it with siteverify (action `fortune`, optional `TURNSTILE_HOSTNAMES`).
+  Without the secret, verification is skipped — acceptable only for development: without it the daily AI budget can be
+  exhausted by a distributed caller (the limits below then only bound the cost).
+* **Limits (admin-configurable):** per caller per minute (10) and per day (20), all callers per minute (60) and per day
+  (500), plan quota (counted always, enforced only when `FREE_MODE=false`), per-domain on/off, Origin allowlist.
+* Every failure returns `fallback: true` so the page uses its local composer.
 
 Calls Claude via the official SDK `@anthropic-ai/sdk` (`client.beta.messages.create`) with model `claude-opus-5-5`
 (admin-configurable), `output_config: {effort, format: json_schema}`, prompt caching on the system prompt, and the
 server-side refusal fallback (`betas: ["server-side-fallback-2026-07-01"]`, `fallbacks: "default"`). Errors are mapped by
 typed SDK classes (`RateLimitError` → 429, `APIConnectionError` → 504, `APIError` → 502). **Temperature** is stored in
 the settings for reference but never sent: Claude Opus 5.5 (and every model from API version 2026-10-21, which the SDK
-sends) rejects `temperature`/`top_p`/`top_k`; use **effort** (`low`…`max`, default `medium`) to trade depth for cost.
+sends) rejects `temperature`/`top_p`/`top_k`; use **effort** to trade depth for cost.
 
 To regenerate the prompt after editing `server.py`:
 
@@ -87,11 +123,22 @@ never in the audit log.
 
 See `lensiq-analytics.js` header and §6. Opt-in banner (equal-prominence Accept / Decline), Do-Not-Track and Global
 Privacy Control respected in the browser **and** on the Worker, batching (10 s / 20 events), `sendBeacon` with
-`text/plain` (no preflight). Events: `page_view, feature_used, reading_domain, studio_render_done, error, session_end`;
-fields are enums/slugs only; the Worker rejects the whole batch on any unknown or PII-looking key/value (e-mail,
-6+ digit runs, URLs, whitespace/non-ASCII free text). No IP or user agent is stored: a day-salted HMAC of (IP, UA) gives
-same-day unique visitors; the salt is deleted the next day. Retention is approximated from a coarse "days since last
-visit" bucket the consenting browser computes locally.
+`text/plain` (no preflight). Events: `page_view, feature_used, reading_domain, studio_render_done, error, session_end`.
+
+* **Validation:** every field is an enum or a slug; `sid` must be exactly 32 hex (128-bit random per tab). The whole
+  batch is rejected on any unknown or PII-looking key/value: `@`, **6 or more digits anywhere** (separators such as
+  `-` `.` `_` are ignored, so `081-234-5678` and `1.2345.67890.12.3` are caught), URLs, e-mail-like slugs
+  (`_gmail.com`, `-hotmail`, `.co.th` endings …), whitespace / non-ASCII free text.
+* **Server allowlists** (`backend/src/constants.js`): page slugs (every public page — a test fails when a page is
+  missing), feature slugs (`ANALYTICS_FEATURES`, extendable with the `ANALYTICS_FEATURES` var) and error classes. A
+  value that passes the PII checks but is not allowlisted is stored as `"other"` — never as sent.
+* **Consent is claimed by the client.** The Worker cannot verify that a person clicked "Accept"; it requires
+  `consent: true` plus the consent-text version `cv` (currently `a1`, `CONSENT_VERSIONS`), refuses unknown versions and
+  **stores `cv` with every event**, so the data can be tied to the text that was shown. When the banner text changes,
+  bump `CONSENT_VERSION` in `lensiq-analytics.js` and add the new value to `CONSENT_VERSIONS` — stored choices for the
+  old text are then treated as undecided and the banner is shown again.
+* No IP or user agent is stored: a day-salted HMAC of (IP, UA) gives same-day unique visitors; the salt is deleted the
+  next day. Retention is approximated from a coarse "days since last visit" bucket the consenting browser computes.
 
 Hooks for page teams (no edits needed in shared files):
 `LQAnalytics.feature("studio.render", "start"|"complete")`, `LQAnalytics.renderDone()`, `LQAnalytics.domain("palm")`,
@@ -103,13 +150,21 @@ transparently to record the domain + start/complete).
 
 Tables `plans, entitlements, customers, subscriptions, payments, webhooks, counters`. `checkEntitlement()` is the
 single server-side gate; with `FREE_MODE=true` it always allows but still counts usage (so we learn real demand).
-Checkout (`BILLING_ENABLED=true` **and** `FREE_MODE=false` only): PromptPay charge (`POST /charges`,
-`source[type]=promptpay`), QR proxied through the Worker as SVG (page CSP allows `img-src blob:` only), status polling
-(`GET /charges/:id`), webhook `POST /v1/billing/webhook/opn` verified with `Omise-Signature` (hex HMAC-SHA256 over
-`<Omise-Signature-Timestamp>.<raw body>`, base64-decoded secret, comma-separated signatures during rotation, 5-minute
-tolerance), deduplicated by event id, then the charge is **re-fetched from the Opn API** (the payload is never trusted).
-Live keys are refused unless `OPN_ALLOW_LIVE=true`. Receipt numbers `LQ-YYYYMM-000001`; VAT 7 % (inclusive) only when
-`VAT_REGISTERED=true`; buyer/seller tax-invoice fields stored per payment.
+
+* **Checkout** (`BILLING_ENABLED=true` **and** `FREE_MODE=false` only), rate limited (5 per caller per hour, 200 per hour
+  overall): PromptPay charge (`POST /charges`, `source[type]=promptpay`), QR proxied through the Worker as SVG (page CSP
+  allows `img-src blob:` only), status polling (`GET /charges/:id`). The response includes `customer_id` and a secret
+  `order_token` shown once to the buyer (only its hash is stored) — the handle that links the paid plan to the buyer.
+* **Webhook** `POST /v1/billing/webhook/opn` verified with `Omise-Signature` (hex HMAC-SHA256 over
+  `<Omise-Signature-Timestamp>.<raw body>`, base64-decoded secret, comma-separated signatures during rotation, 5-minute
+  tolerance); the charge is then **re-fetched from the Opn API** (the payload is never trusted). An event is a
+  duplicate only once it was **processed**: if the Opn API fails (e.g. 503) the Worker answers 503, the row stays
+  unprocessed and Opn's retry is handled normally.
+* **Reconcile cron** (`*/15 * * * *`): pending payments from the last 3 days are re-checked with Opn (lost webhooks).
+* **Receipts:** success is claimed and numbered in **one transaction** (`UPDATE … WHERE status='pending'`, counter
+  incremented only when that update changed a row, number written in the same batch) — gap-free and assigned once even
+  when webhook, poll and cron race. Numbers `LQ-YYYYMM-000001`; VAT 7 % (inclusive) only when `VAT_REGISTERED=true`;
+  buyer/seller tax-invoice fields stored per payment. Live keys are refused unless `OPN_ALLOW_LIVE=true`.
 
 ## 2. Local development (no Cloudflare account needed)
 
@@ -140,6 +195,7 @@ Tests run without wrangler or network, on an in-memory D1 shim over Node's built
    npx wrangler secret put OPN_SECRET_KEY           # TEST key skey_test_… only, until go-live
    npx wrangler secret put OPN_PUBLIC_KEY           # pkey_test_…
    npx wrangler secret put OPN_WEBHOOK_SECRET       # from Opn dashboard → Webhooks
+   npx wrangler secret put TURNSTILE_SECRET         # REQUIRED before opening the AI writing assistant to the public
    ```
 6. Edit `[vars]` in `wrangler.toml`: `ALLOWED_ORIGINS` = the exact Pages origin(s), e.g.
    `https://<user>.github.io` (no path) and/or your custom domain; `ADMIN_ORIGINS` if the admin page is served elsewhere.
@@ -150,7 +206,9 @@ Tests run without wrangler or network, on an in-memory D1 shim over Node's built
 9. **Front end**: in `lensiq-config.js` set
    `window.LENSIQ_API_BASE = window.LENSIQ_API_BASE || "https://api.<your-domain>";`, then
    `node tools/csp-meta.mjs` (adds that origin to `connect-src` of every page — only when set) and commit.
-10. Open `https://<site>/admin.html`, bootstrap the owner, enable TOTP, then `npx wrangler secret delete ADMIN_BOOTSTRAP_TOKEN`.
+10. Add the custom domain `admin.<your-domain>` to the same Worker, open `https://admin.<your-domain>/admin` (served by the
+    Worker with frame-ancestors/X-Frame-Options headers; cookie session), bootstrap the owner, enable TOTP, then
+    `npx wrangler secret delete ADMIN_BOOTSTRAP_TOKEN`.
 11. Opn dashboard → Webhooks → endpoint `https://api.<your-domain>/v1/billing/webhook/opn`.
 12. Cloudflare dashboard: enable a WAF rate-limiting rule on `/admin/api/login` and `/api/fortune` as a second layer.
 
@@ -161,7 +219,10 @@ Rollback: `npx wrangler rollback`; disable everything client-side by setting `LE
 | Name | Kind | Default | Meaning |
 |---|---|---|---|
 | `ALLOWED_ORIGINS` | var | example | public API origin allowlist (comma separated) |
-| `ADMIN_ORIGINS` | var | = ALLOWED_ORIGINS | admin API origin allowlist |
+| `ADMIN_ORIGINS` | var | empty | extra admin API origins (the Worker's own origin is always allowed; no fallback) |
+| `TURNSTILE_SECRET` | secret | — | Cloudflare Turnstile for `/api/fortune` (**required in production**) |
+| `TURNSTILE_HOSTNAMES` | var | empty | optional hostnames the Turnstile token must come from |
+| `ANALYTICS_FEATURES` | var | empty | extra allowlisted analytics feature slugs |
 | `FREE_MODE` | var | `true` | all features unlocked; anything but `false` counts as true |
 | `BILLING_ENABLED` | var | `false` | public checkout (also needs FREE_MODE=false) |
 | `OPN_ALLOW_LIVE` | var | `false` | accept a live `skey_…` |
@@ -180,7 +241,7 @@ Admin (`/admin/api`): `GET state`, `POST bootstrap|login|logout|password|totp/se
 `GET me|analytics/summary|analytics/csv|ai|billing|billing/payments|billing/webhooks|audit|retention`,
 `PUT ai|ai/key|billing/settings`, `DELETE ai/key`, `POST billing/test-charge|retention/run`.
 
-## 6. Data retention (cron `17 3 * * *`)
+## 6. Data retention (cron `17 3 * * *`; payment reconcile `*/15 * * * *`)
 
 | Data | Kept | Notes |
 |---|---|---|
@@ -189,6 +250,7 @@ Admin (`/admin/api`): `GET state`, `POST bootstrap|login|logout|password|totp/se
 | daily salt | until the next day | visitor hashes become unlinkable |
 | rate-limit windows | 1 day | |
 | admin sessions | until expiry (≤ 12 h) | |
+| trusted admin devices | 90 days | all revoked on password change |
 | usage counters (quotas) | 35 days | |
 | webhook raw payloads | 90 days | event id / result kept with the payment |
 | audit log | 400 days (`AUDIT_DAYS`) | |

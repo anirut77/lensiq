@@ -28,6 +28,12 @@ export async function hit(db, key, limit, windowSec, t = now()) {
   return { ok: count <= limit, count, retryAfter: ws + windowSec - t };
 }
 
+/** Current count of a fixed window without incrementing it. */
+export async function peek(db, key, windowSec, t = now()) {
+  const row = await db.prepare("SELECT count FROM rate_limits WHERE key = ?1 AND window_start = ?2").bind(key, t - (t % windowSec)).first();
+  return row ? Number(row.count) : 0;
+}
+
 const SECRETISH = /pass|secret|token|key|totp|code|csrf|cookie|authorization/i;
 function scrub(v, depth = 0) {
   if (depth > 3) return "…";

@@ -14,15 +14,17 @@ export const EFFORTS = ["low", "medium", "high", "xhigh", "max"];
 export const DEFAULT_AI = Object.freeze({
   provider: "anthropic",
   model: "claude-opus-5-5",
-  effort: "medium",
-  max_tokens: 16000,
+  effort: "low",          // low keeps adaptive thinking short so the reading fits the 2048-token cap
+  max_tokens: 2048,       // hard cap MAX_TOKENS_CAP (fortune.js) — limits cost and abuse per request
   // Stored for reference only — NOT sent: Claude Opus 5.5 (and every model from API version 2026-10-21) rejects
   // temperature/top_p/top_k with a 400. Use `effort` to trade depth for cost.
   temperature: null,
   enabled: true,
   domains: Object.fromEntries(FORTUNE_DOMAINS.map(d => [d, true])),
-  rpm: 10,
-  daily_max: 500
+  rpm: 10,                // per caller per minute
+  per_caller_daily: 20,   // per caller per day
+  global_rpm: 60,         // all callers per minute
+  daily_max: 500          // all callers per day
 });
 
 export async function getAiSettings(db) {
@@ -44,11 +46,13 @@ export function validateAi(input, current = DEFAULT_AI) {
       case "provider": if (!PROVIDERS.includes(v)) throw new HttpError(400, "unsupported provider"); out.provider = v; break;
       case "model": if (typeof v !== "string" || !/^claude-[a-z0-9-]{2,60}$/.test(v)) throw new HttpError(400, "model must be a Claude model id (claude-…)"); out.model = v; break;
       case "effort": if (!EFFORTS.includes(v)) throw new HttpError(400, "effort must be one of " + EFFORTS.join(", ")); out.effort = v; break;
-      case "max_tokens": out.max_tokens = intIn(v, 1024, 64000, "max_tokens"); break;
+      case "max_tokens": out.max_tokens = intIn(v, 512, 2048, "max_tokens"); break;
       case "temperature": if (v !== null && !(typeof v === "number" && v >= 0 && v <= 1)) throw new HttpError(400, "temperature must be null or 0–1"); out.temperature = v; break;
       case "enabled": if (typeof v !== "boolean") throw new HttpError(400, "enabled must be boolean"); out.enabled = v; break;
       case "rpm": out.rpm = intIn(v, 1, 120, "rpm"); break;
       case "daily_max": out.daily_max = intIn(v, 1, 100000, "daily_max"); break;
+      case "per_caller_daily": out.per_caller_daily = intIn(v, 1, 1000, "per_caller_daily"); break;
+      case "global_rpm": out.global_rpm = intIn(v, 1, 1000, "global_rpm"); break;
       case "domains":
         if (!v || typeof v !== "object") throw new HttpError(400, "domains must be an object");
         for (const [d, on] of Object.entries(v)) {

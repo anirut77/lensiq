@@ -4,6 +4,8 @@
 #   SECRETS_KEK            base64 of 32 random bytes — AES-GCM key-encryption key (TOTP secret, admin-set API key)
 #   ANTHROPIC_API_KEY      preferred way to give the fortune writing assistant its key
 #   OPN_SECRET_KEY / OPN_PUBLIC_KEY / OPN_WEBHOOK_SECRET   Opn (Omise) TEST keys until go-live
+#   TURNSTILE_SECRET       Cloudflare Turnstile secret for /api/fortune (REQUIRED in production; site key goes in
+#                          lensiq-config.js window.LENSIQ_TURNSTILE_SITEKEY)
 name = "lensiq-api"
 main = "src/index.js"
 compatibility_date = "2026-10-01"
@@ -13,8 +15,13 @@ workers_dev = true
 [vars]
 # Origins (scheme://host[:port]) allowed to call the public API (fortune, analytics, billing). Comma separated.
 ALLOWED_ORIGINS = "https://example.github.io"
-# Origins allowed to use the admin API (cookie / bearer). Defaults to ALLOWED_ORIGINS when empty.
+# Extra origins allowed to use the admin API. The Worker's own origin (admin served by this Worker, recommended:
+# https://admin.<domain>) is always allowed; there is NO fallback to ALLOWED_ORIGINS.
 ADMIN_ORIGINS = ""
+# Optional: hostnames Turnstile tokens must have been issued on (comma separated), e.g. "www.example.co.th"
+TURNSTILE_HOSTNAMES = ""
+# Extra analytics feature slugs accepted besides backend/src/constants.js ANALYTICS_FEATURES (comma separated)
+ANALYTICS_FEATURES = ""
 # FREE service today: every feature unlocked, quotas counted but not enforced.
 FREE_MODE = "true"
 # Public PromptPay checkout. Keep "false" until pricing, terms and VAT registration are final.
@@ -40,8 +47,16 @@ database_id = "00000000-0000-0000-0000-000000000000"
 migrations_dir = "migrations"
 
 [triggers]
-# Daily maintenance at 03:17 UTC (10:17 Asia/Bangkok): aggregate analytics, purge expired raw data, rotate salts.
-crons = ["17 3 * * *"]
+# 03:17 UTC daily: aggregate analytics, purge expired raw data, rotate salts.
+# every 15 min: reconcile pending PromptPay payments with Opn (lost / failed webhooks).
+crons = ["17 3 * * *", "*/15 * * * *"]
+
+# Admin back office served from the Worker's own origin (built by `npm run build:admin` into ./admin-dist).
+# The Worker runs first and adds frame-ancestors 'none' / X-Frame-Options DENY / strict CSP as HTTP headers.
+[assets]
+directory = "./admin-dist"
+binding = "ASSETS"
+run_worker_first = true
 
 [observability]
 enabled = true

@@ -7,11 +7,15 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var app = $("#lcApp"), page = app.getAttribute("data-page");
   var T = function (k, th, v) { return window.LQI18N ? window.LQI18N.tf(k, th, v) : String(th).replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : m; }); };
   var isZh = function () { return !!(window.LQI18N && window.LQI18N.lang === "zh"); };
+  var isEn = function () { return !!(window.LQI18N && window.LQI18N.lang === "en"); };
+  // ปี: ไทย = พ.ศ., อังกฤษ/จีน = ค.ศ.
+  var yearOut = function (y) { return isZh() || isEn() ? y : y + 543; };
   var months = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
   var st = { b: null, res: null, msg: null };
   var EL_COL = ["#2f9e44", "#e8590c", "#b08900", "#868e96", "#1c7ed6"];
   var EL_ZH = "木火土金水";
-  var elName = function (e) { return isZh() ? EL_ZH[e] : KB.EL[e].th; };
+  var EL_EN = ["Wood", "Fire", "Earth", "Metal", "Water"];
+  var elName = function (e) { return isZh() ? EL_ZH[e] : isEn() ? EL_EN[e] : KB.EL[e].th; };
   var planetName = function (p) { return T("lc.planet." + p, KB.PLANET[p].th); };
   var bhumiName = function (b) { return T("lc.bhumi." + b, KB.BHUMI_TH[b].th); };
   var godName = function (g) { return T("lc.god." + g, KB.GOD[g].th); };
@@ -19,7 +23,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var sysName = function (s) { return T("lc.sys." + s, { taksa: "ทักษา", bazi: "八字", west: "ตะวันตก" }[s]); };
   var SIGN_TH = ["เมษ", "พฤษภ", "เมถุน", "กรกฎ", "สิงห์", "กันย์", "ตุลย์", "พิจิก", "ธนู", "มังกร", "กุมภ์", "มีน"];
   var SIGN_ZH = ["白羊座", "金牛座", "双子座", "巨蟹座", "狮子座", "处女座", "天秤座", "天蝎座", "射手座", "摩羯座", "水瓶座", "双鱼座"];
-  var signName = function (i) { return isZh() ? SIGN_ZH[i] : "ราศี" + SIGN_TH[i]; };
+  var SIGN_EN = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
+  var signName = function (i) { return isZh() ? SIGN_ZH[i] : isEn() ? SIGN_EN[i] : "ราศี" + SIGN_TH[i]; };
 
   /* ---------- ฟอร์ม ---------- */
   function keep(sel, fn) { var el = $(sel); if (!el) return; var v = el.value; fn(el); if (v) el.value = v; }
@@ -140,7 +145,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function render(focus) {
     var R = st.res, b = st.b; if (!R) return;
     $("#lcResult").hidden = false;
-    $("#lcResTitle").textContent = T("lc.resTitle." + page, { bazi: "ผังแปดอักษร", taksa: "ผังทักษา", lek7: "ผังเลข 7 ตัว", lifegraph: "กราฟชีวิต" }[page]) + " · " + T("lc.bornOn", "เกิด {d}/{m}/{y}", { d: b.d, m: b.m, y: isZh() ? b.y : b.y + 543 });
+    $("#lcResTitle").textContent = T("lc.resTitle." + page, { bazi: "ผังแปดอักษร", taksa: "ผังทักษา", lek7: "ผังเลข 7 ตัว", lifegraph: "กราฟชีวิต" }[page]) + " · " + T("lc.bornOn", "เกิด {d}/{m}/{y}", { d: b.d, m: b.m, y: yearOut(b.y) });
     $("#lcChart").innerHTML = page === "bazi" ? renderBazi(R.bazi) : page === "taksa" ? renderTaksa(R.taksa) : page === "lek7" ? renderLek7(R.lek7) : renderLife(R);
     $("#lcReadWrap").innerHTML = FK.readingBlock("lcRd", T("lc.rdTitle", "คำอ่านตามตำรา"), true);
     FK.bindReading("lcRd", DOMAIN[page], function (topic) { return factsFor(topic); }, { withTopics: true });

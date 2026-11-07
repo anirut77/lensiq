@@ -23,6 +23,7 @@
  *     samples = [{t, face:boolean, yaw?, pitch?, cx?, cy?, ipd?}]; toward = |yaw| ≤ yawT and |pitch − median| ≤ pitchT
  *   practiceTips(delivery, gaze) -> [{id, level:'good'|'tip', vars}]   self-coaching tips (key iv.tip.<id>)
  *   synthPts(box, yaw=0) -> 68 landmark points (test seam for ?fakedet)
+ *   orgAllowed(org) / deliveryView({org, delivery, submitted}) -> "none"|"candidate"|"pending"|"interviewer" (see below)
  */
 (function (root) {
   "use strict";
@@ -296,6 +297,22 @@
     return out;
   }
 
+  /* ---------- who may see delivery numbers (candidate-first) ----------
+     orgAllowed(org): the organisation setting counts only with all three acknowledgements (DPIA done; candidates can
+       decline without consequence and get another format; never used for scoring) AND the switch itself.
+     deliveryView({org, delivery, submitted}) ->
+       'none'        no numbers (never measured, or the candidate discarded them)
+       'candidate'   default: only the candidate sees them (candidate view / "my feedback" card)
+       'pending'     the organisation allows interviewer viewing, but not every interviewer has submitted scores yet
+       'interviewer' allowed, every sheet submitted (a "show summary now" override does NOT count) */
+  function orgAllowed(org) { return !!(org && org.allow === true && org.ack1 === true && org.ack2 === true && org.ack3 === true); }
+  function deliveryView(o) {
+    o = o || {};
+    if (!o.delivery || o.delivery.discarded) return "none";
+    if (!orgAllowed(o.org)) return "candidate";
+    return o.submitted === true ? "interviewer" : "pending";
+  }
+
   /* ---------- test seam: 68 frontal-ish landmarks inside a box, nose shifted for yaw ---------- */
   function synthPts(box, yaw) {
     var w = box.w != null ? box.w : box.width, h = box.h != null ? box.h : box.height, y = yaw || 0, u = [], i;
@@ -312,6 +329,7 @@
     COMPETENCIES: COMPETENCIES, COMP_IDS: COMP_IDS, ROLES: ROLES, STAR_PROBES: STAR_PROBES, BIASES: BIASES, LAW: LAW,
     aggregate: aggregate, exportSheet: exportSheet, importSheet: importSheet, validScore: validScore,
     rmsDb: rmsDb, createVad: createVad, poseOf: poseOf, gazeMetrics: gazeMetrics, practiceTips: practiceTips, synthPts: synthPts,
+    orgAllowed: orgAllowed, deliveryView: deliveryView,
     median: median, mean: mean, sd: sd
   };
   if (typeof module !== "undefined" && module.exports) module.exports = IVCore;

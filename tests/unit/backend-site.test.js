@@ -60,6 +60,8 @@ test("no secrets committed under backend/ (only placeholders)", () => {
   assert.match(toml, /FREE_MODE = "true"/);
   assert.match(toml, /BILLING_ENABLED = "false"/);
   assert.match(toml, /binding = "DB"/);
+  assert.match(toml, /crons = \["17 3 \* \* \*", "\*\/15 \* \* \* \*"\]/, "daily maintenance + 15-min payment reconcile");
+  assert.match(toml, /binding = "ASSETS"/, "admin shell served by the Worker");
   assert.ok(!/^\s*(ANTHROPIC_API_KEY|OPN_SECRET_KEY|SECRETS_KEK|ADMIN_BOOTSTRAP_TOKEN)\s*=/m.test(toml), "secrets never in [vars]");
 });
 
@@ -138,4 +140,48 @@ test("client and Worker agree on the allowed event fields", async () => {
   const src = readFileSync(join(ROOT, "lensiq-analytics.js"), "utf8");
   for (const k of Object.keys(FIELDS)) if (!["n", "sid"].includes(k)) assert.match(src, new RegExp("\\b" + k + ": /"), k);
   for (const n of EVENT_NAMES) assert.ok(src.includes(n), n);
+});
+
+test("csp-meta: Turnstile origin only when LENSIQ_TURNSTILE_SITEKEY is configured", async () => {
+  const { configuredTurnstile, policy, TURNSTILE_ORIGIN } = await import(join(ROOT, "tools", "csp-meta.mjs"));
+  assert.equal(configuredTurnstile(readFileSync(join(ROOT, "lensiq-config.js"), "utf8")), false, "off by default");
+  assert.equal(configuredTurnstile('window.LENSIQ_TURNSTILE_SITEKEY = window.LENSIQ_TURNSTILE_SITEKEY || "0x4AAAAAAAabcdef";'), true);
+  const p = policy({ turnstile: true });
+  assert.match(p, new RegExp("script-src 'self' 'wasm-unsafe-eval' " + TURNSTILE_ORIGIN.replace(/\./g, "\\.")));
+  assert.match(p, /frame-src https:\/\/challenges\.cloudflare\.com/);
+  assert.ok(!/challenges/.test(policy()), "default policy has no third-party origin");
+});
+
+test("lensiq-fortune-hook.js: adds X-Turnstile-Token only to the POST /api/fortune request", async () => {
+  const seen = [];
+  const listeners = {};
+  const body = { appendChild() {} };
+  const win = {
+    LENSIQ_API_BASE: "https://api.x.dev", LENSIQ_TURNSTILE_SITEKEY: "0x4AAAAAAAabcdef", Headers, Promise, Object, String, setTimeout,
+    document: { readyState: "complete", head: { appendChild() {} }, body, createElement: () => ({ style: {}, setAttribute() {} }), addEventListener: (t, f) => { listeners[t] = f; } },
+    fetch: (input, init) => { seen.push({ input, init }); return Promise.resolve({ ok: true }); },
+    turnstile: { render: (el, o) => { win._cb = o.callback; return "w1"; }, reset() {}, execute: () => setTimeout(() => win._cb("tok-123"), 0) }
+  };
+  win.window = win;
+  vm.runInContext(readFileSync(join(ROOT, "lensiq-fortune-hook.js"), "utf8"), vm.createContext(win));
+  await win.fetch("https://api.x.dev/api/fortune", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+  await win.fetch("https://api.x.dev/api/fortune/status");
+  await win.fetch("https://other.example/api/fortune", { method: "POST" });
+  assert.equal(seen[0].init.headers.get("X-Turnstile-Token"), "tok-123");
+  assert.equal(seen[0].init.headers.get("Content-Type"), "application/json");
+  assert.equal(seen[1].init, undefined, "status request untouched");
+  assert.ok(!seen[2].init.headers || !(seen[2].init.headers instanceof Headers), "other origins untouched");
+});
+
+test("backend/scripts/build-admin.mjs: admin shell for the Worker's own origin (same-origin API, no analytics)", () => {
+  const { execFileSync } = require("node:child_process");
+  const { rmSync, existsSync } = require("node:fs");
+  const out = join(ROOT, "backend", "admin-dist");
+  execFileSync(process.execPath, [join(ROOT, "backend", "scripts", "build-admin.mjs")], { stdio: "ignore" });
+  try {
+    for (const f of ["admin.html", "admin.js", "admin.css", "lensiq-api.js", "lensiq-config.js"]) assert.ok(existsSync(join(out, f)), f);
+    assert.match(readFileSync(join(out, "lensiq-config.js"), "utf8"), /LENSIQ_API_BASE = location\.origin/);
+    assert.match(readFileSync(join(out, "admin.html"), "utf8"), /connect-src 'self';/);
+    assert.match(readFileSync(join(ROOT, "backend", ".gitignore"), "utf8"), /admin-dist\//);
+  } finally { rmSync(out, { recursive: true, force: true }); }
 });

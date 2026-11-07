@@ -64,6 +64,10 @@
       box.textContent = "";
       var img = document.createElement("img"); img.alt = "QR PromptPay"; img.width = 240; img.height = 240; box.appendChild(img);
       var st = document.createElement("p"); st.textContent = "สแกนด้วยแอปธนาคาร · ยอด " + baht(r.amount_satang); box.appendChild(st);
+      // the buyer keeps these to link the paid plan to themselves (the server stores only a hash of the token)
+      var keep = document.createElement("p"); keep.className = "pr-small";
+      keep.textContent = "เก็บรหัสคำสั่งซื้อนี้ไว้ (ใช้ยืนยันสิทธิ์แพ็กเกจ แสดงเพียงครั้งเดียว): " + r.customer_id + " / " + r.order_token;
+      box.appendChild(keep);
       fetch(API.url(r.qr_path), { credentials: "omit" }).then(function (x) { return x.ok ? x.blob() : null; }).then(function (b) { if (b) img.src = URL.createObjectURL(b); });
       var n = 0;
       var t = setInterval(function () {

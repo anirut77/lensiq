@@ -7,6 +7,9 @@
   "type": "module",
   "main": "src/index.js",
   "scripts": {
+    "build:admin": "node scripts/build-admin.mjs",
+    "predev": "node scripts/build-admin.mjs",
+    "predeploy": "node scripts/build-admin.mjs",
     "dev": "wrangler dev",
     "db:migrate:local": "wrangler d1 migrations apply lensiq --local",
     "db:migrate:remote": "wrangler d1 migrations apply lensiq --remote",

@@ -107,6 +107,14 @@
 .tips li{padding:8px 12px;border-radius:10px;font-size:.88rem}
 .tips li.good{background:var(--okbg);color:var(--ok)}.tips li.tip{background:#f4f1ff;color:#2c2560}.tips li.raw{padding:0}
 
+.iv .acc{font-size:.84rem;padding:10px 12px;border-radius:10px;background:var(--warnbg);color:var(--warn);margin:10px 0}
+.iv .org summary{cursor:pointer;font-weight:500;color:var(--navy);min-height:44px;display:flex;align-items:center}
+.iv .org label.allow{border-top:1px solid var(--line);margin-top:6px}
+.iv .cand-view{margin-top:12px;padding:12px;border:2px solid var(--gold);border-radius:12px;background:#f4f1ff}
+.iv .cand-view h3{margin-top:0}
+.iv #ivDCandBtn{margin-top:10px}
+.iv .fb #ivDResBody{margin-top:10px}
+
 @media (max-width:760px){
   .iv{padding:24px 16px 80px}
   .iv .grid2,.live-grid{grid-template-columns:minmax(0,1fr)}
@@ -119,4 +127,8 @@
   .iv #pane-summary{display:block!important}
   .iv .card{box-shadow:none;border:0;padding:0}
   body{background:#fff}
+  /* "keep my feedback": print only the candidate's own card */
+  html.iv-print-fb .iv #pane-summary{display:none!important}
+  html.iv-print-fb .iv #pane-delivery{display:block!important}
+  html.iv-print-fb .iv #pane-delivery>*:not(#ivDResult){display:none!important}
 }

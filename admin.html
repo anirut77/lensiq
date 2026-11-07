@@ -47,8 +47,8 @@
       <label>โหมดเซสชัน
         <select name="mode">
           <option value="auto">อัตโนมัติ</option>
-          <option value="cookie">คุกกี้ httpOnly (หน้า admin กับ API อยู่โดเมนเดียวกัน)</option>
-          <option value="bearer">Bearer token ในหน่วยความจำ (คนละโดเมน เช่น github.io)</option>
+          <option value="cookie">คุกกี้ httpOnly (หน้า admin เปิดจาก Worker เอง — origin เดียวกับ API)</option>
+          <option value="bearer">Bearer token ในหน่วยความจำ (หน้า admin อยู่คนละ origin เช่น github.io)</option>
         </select>
       </label>
       <button class="ad-btn" type="submit">เข้าสู่ระบบ</button>
@@ -88,9 +88,11 @@
           <label>ผู้ให้บริการ <select name="provider"><option value="anthropic">Anthropic (Claude)</option></select></label>
           <label>โมเดล <input name="model" required pattern="claude-[a-z0-9-]{2,60}"></label>
           <label>Effort <select name="effort"></select></label>
-          <label>Max tokens <input name="max_tokens" type="number" min="1024" max="64000" step="1"></label>
+          <label>Max tokens (สูงสุด 2048) <input name="max_tokens" type="number" min="512" max="2048" step="1"></label>
           <label>Temperature (เก็บไว้เท่านั้น — โมเดลปัจจุบันไม่รับค่านี้ ใช้ Effort แทน) <input name="temperature" type="number" min="0" max="1" step="0.05" placeholder="ไม่ใช้"></label>
           <label>คำขอต่อนาทีต่อผู้ใช้ <input name="rpm" type="number" min="1" max="120"></label>
+          <label>คำขอต่อวันต่อผู้ใช้ <input name="per_caller_daily" type="number" min="1" max="1000"></label>
+          <label>คำขอรวมต่อนาที <input name="global_rpm" type="number" min="1" max="1000"></label>
           <label>โควตารวมต่อวัน <input name="daily_max" type="number" min="1" max="100000"></label>
           <fieldset><legend>เปิดตามศาสตร์</legend><div id="adDomains" class="ad-checks"></div></fieldset>
           <button class="ad-btn" type="submit">บันทึก</button>
@@ -131,7 +133,7 @@
       <div class="ad-card">
         <h2>ยืนยันตัวตนสองชั้น (TOTP)</h2>
         <p id="adTotpState" class="ad-muted"></p>
-        <div class="ad-row"><button class="ad-btn" type="button" id="adTotpSetup">ตั้งค่า TOTP</button></div>
+        <div class="ad-row"><label>รหัสผ่าน (ยืนยันตัวตนอีกครั้ง) <input id="adTotpPw" type="password" autocomplete="current-password"></label><button class="ad-btn" type="button" id="adTotpSetup">ตั้งค่า TOTP</button></div>
         <div id="adTotpBox" hidden>
           <p>เพิ่มรหัสนี้ในแอป Authenticator แล้วกรอกรหัส 6 หลักเพื่อยืนยัน</p>
           <p><code id="adTotpSecret" class="ad-break"></code></p>
@@ -149,6 +151,7 @@
         <form id="adPw" class="ad-form">
           <label>รหัสผ่านปัจจุบัน <input name="current" type="password" required autocomplete="current-password"></label>
           <label>รหัสผ่านใหม่ (อย่างน้อย 12 ตัวอักษร) <input name="next" type="password" required minlength="12" autocomplete="new-password"></label>
+          <label>รหัส TOTP (ถ้าเปิดใช้) <input name="totp" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="one-time-code"></label>
           <button class="ad-btn" type="submit">เปลี่ยนรหัสผ่าน (ออกจากระบบอุปกรณ์อื่น)</button>
         </form>
       </div>

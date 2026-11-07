@@ -61,20 +61,24 @@
 /* ================================ UI ================================ */
 if (typeof window !== "undefined" && typeof document !== "undefined" && document.getElementById("tfApp")) (function () {
   "use strict";
-  var TF = window.TFCore, FR = window.FRCore, KB = window.FR_KB;
+  /* page globals (faceread-kb.js FR_KB, faceread.js FRCore, i18n/zh-fortune-faceread.js FR_KB_ZH) read through an untyped
+     alias so lint and `tsc --checkJs` need no extra global declarations; the face-reading KB is only read, never written */
+  var W = /** @type {any} */ (window);
+  var TF = W.TFCore, FR = W.FRCore, KB = W.FR_KB;
+  var kbZh = function () { return W.FR_KB_ZH || null; };
   var $ = function (s, r) { return (r || document).querySelector(s); };
-  var T = function (k, th, v) { return window.LQI18N ? LQI18N.tf(k, th, v) : th.replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : m; }); };
-  var isZh = function () { return !!(window.LQI18N && LQI18N.lang === "zh"); };
+  var T = function (k, th, v) { return W.LQI18N ? W.LQI18N.tf(k, th, v) : th.replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : m; }); };
+  var isZh = function () { return !!(W.LQI18N && W.LQI18N.lang === "zh"); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   var sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
   var R = function (id, f) { return T("tf.role." + id + "." + f, TF.ROLES[id][f]); };
   var RS = function (id, i) { return T("tf.role." + id + ".str" + i, TF.ROLES[id].str[i]); };
   var elName = function (id) {
-    var zh = isZh() && window.FR_KB_ZH && window.FR_KB_ZH.elements && window.FR_KB_ZH.elements[id];
+    var Z = kbZh(), zh = isZh() && Z && Z.elements && Z.elements[id];
     return zh ? zh.th : KB && KB.elements[id] ? KB.elements[id].th : id;
   };
   var elTrait = function (id) {
-    var zh = isZh() && window.FR_KB_ZH && window.FR_KB_ZH.elements && window.FR_KB_ZH.elements[id];
+    var Z = kbZh(), zh = isZh() && Z && Z.elements && Z.elements[id];
     var t = zh && zh.traits ? zh.traits : KB && KB.elements[id] ? KB.elements[id].traits : [];
     return t && t.length ? t[0] : "";
   };
@@ -91,7 +95,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var members = [], seq = 0, busy = false, ready = false, looping = false, lastDet = null;
   var video = $("#tfVideo"), ov = $("#tfOverlay"), octx = ov.getContext("2d");
   var FAKE = !!(window.LQDetect && LQDetect.isTest());
-  function status(k, th, v, cls) { var e = $("#tfStatus"); e.textContent = T(k, th, v); e.className = "status " + (cls || ""); status.last = [k, th, v, cls]; }
+  var lastStatus = null;
+  function status(k, th, v, cls) { var e = $("#tfStatus"); e.textContent = T(k, th, v); e.className = "status " + (cls || ""); lastStatus = [k, th, v, cls]; }
 
   var camera = LQCam.create(video, {
     facing: "user", ideal: { width: 1280, height: 720 },
@@ -178,7 +183,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   });
 
   $("#tfFile").addEventListener("change", async function () {
-    var f = this.files && this.files[0]; this.value = "";
+    var inp = /** @type {HTMLInputElement} */ ($("#tfFile")), f = inp.files && inp.files[0]; inp.value = "";
     if (!f) return;
     if (!$("#tfConsent").checked) { status("tf.js.needConsent", "ติ๊กยินยอมของสมาชิกคนนี้ก่อน", null, "err"); return; }
     status("tf.js.uploading", "กำลังอ่านรูป (รูปไม่ถูกบันทึก)...");
@@ -238,7 +243,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#tfIce").hidden = s.n < 2;
     $("#tfIceList").innerHTML = s.present.map(function (id) { return "<li>" + esc(R(id, "ice")) + "</li>"; }).join("");
     $("#tfReset").disabled = !s.n;
-    window.__LQ_TF.summary = s;
+    W.__LQ_TF.summary = s;
   }
   $("#tfTeam").addEventListener("input", renderSummary);
   $("#tfCards").addEventListener("click", function (e) {
@@ -251,8 +256,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   });
   $("#tfPrint").addEventListener("click", function () { window.print(); });
   window.addEventListener("pagehide", function () { try { camera.stop(); } catch (e) { /* ignore */ } });
-  window.addEventListener("lq-lang", function () { renderCards(); renderSummary(); syncRead(); if (status.last) status.apply(null, status.last); });
+  window.addEventListener("lq-lang", function () { renderCards(); renderSummary(); syncRead(); if (lastStatus) status(lastStatus[0], lastStatus[1], lastStatus[2], lastStatus[3]); });
 
-  window.__LQ_TF = { get members() { return members; }, addFromPts: function (pts) { addMember(analyse(pts)); }, summary: null };
+  W.__LQ_TF = { get members() { return members; }, addFromPts: function (pts) { addMember(analyse(pts)); }, summary: null };
   renderCards(); renderSummary(); syncRead();
 })();

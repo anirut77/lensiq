@@ -1,13 +1,17 @@
 // backend/src/analytics.js — privacy-first usage analytics (PDPA).
 //
-// Accepted: POST /v1/events  {v:1, consent:true, events:[{n, sid, page?, feature?, domain?, step?, err?, lang?, device?,
-// dur?, ret?}]}. Every field is an enum or a short slug; any other key — and anything that looks like personal data
-// (e-mail, phone/ID-card digits, URLs, free text) — rejects the WHOLE batch, nothing is stored.
+// Accepted: POST /v1/events  {v:1, consent:true, cv:"a1", events:[{n, sid, page?, feature?, domain?, step?, err?, lang?,
+// device?, dur?, ret?}]}. Every field is an enum or an allowlisted slug; any other key — and anything that looks like
+// personal data (e-mail incl. "_gmail.com"-style, >= 6 digits anywhere after removing separators, URLs, free text) —
+// rejects the WHOLE batch, nothing is stored. page / feature / err values that pass those checks but are not on the
+// server allowlists (constants.js) are stored as "other", so a page bug can never smuggle an identifier in.
+// Consent is CLAIMED by the client (consent:true + the consent-text version cv); the server cannot verify it — it logs
+// the version with every event and refuses unknown versions (docs/BACKEND.md).
 // Never stored: images, face data, free text, IP addresses, user agents. A day-salted HMAC of (IP, UA) gives same-day
 // unique counts only; the salt is deleted the next day (retention.js), so visitors cannot be linked across days.
 // Do-Not-Track / Global Privacy Control headers are honoured server-side too (204, nothing stored).
 import { callerHash, hit } from "./store.js";
-import { FORTUNE_DOMAINS } from "./constants.js";
+import { ANALYTICS_ERRORS, ANALYTICS_FEATURES, ANALYTICS_PAGES, CONSENT_VERSIONS, FORTUNE_DOMAINS } from "./constants.js";
 import { HttpError, addDays, dayOf, now } from "./util.js";
 
 export const MAX_BODY = 16 * 1024;
@@ -15,14 +19,15 @@ export const MAX_EVENTS = 50;
 
 const enumOf = (...xs) => ({ enum: new Set(xs) });
 export const EVENT_NAMES = new Set(["page_view", "feature_used", "reading_domain", "studio_render_done", "error", "session_end"]);
+const PAGES = new Set(ANALYTICS_PAGES), ERRORS = new Set(ANALYTICS_ERRORS);
 export const FIELDS = {
   n: { enum: EVENT_NAMES },
-  sid: { re: /^[a-f0-9]{16,32}$/ },
-  page: { re: /^[a-z][a-z0-9-]{0,31}$/ },
-  feature: { re: /^[a-z][a-z0-9_.-]{0,47}$/ },
+  sid: { re: /^[a-f0-9]{32}$/ },                                     // 128-bit random per tab, nothing else fits
+  page: { re: /^[a-z][a-z0-9-]{0,31}$/, allow: () => PAGES },
+  feature: { re: /^[a-z][a-z0-9_.-]{0,47}$/, allow: env => featureSet(env) },
   domain: { enum: new Set(FORTUNE_DOMAINS) },
   step: enumOf("start", "complete"),
-  err: { re: /^[A-Za-z][A-Za-z0-9_.-]{0,39}$/ },
+  err: { re: /^[A-Za-z][A-Za-z0-9_.-]{0,39}$/, allow: () => ERRORS },
   lang: enumOf("th", "en", "zh"),
   device: enumOf("mobile", "tablet", "desktop"),
   dur: enumOf("lt10s", "10-30s", "30s-2m", "2-10m", "10m+"),
@@ -30,19 +35,37 @@ export const FIELDS = {
 };
 const REQUIRED_BY_NAME = { page_view: ["page"], feature_used: ["feature"], reading_domain: ["domain"], error: ["err"], session_end: ["dur"] };
 
+let featCache = null, featKey = null;
+function featureSet(env) {
+  const extra = String((env && env.ANALYTICS_FEATURES) || "");
+  if (featCache && featKey === extra) return featCache;
+  featKey = extra;
+  featCache = new Set(ANALYTICS_FEATURES.concat(extra.split(",").map(x => x.trim()).filter(x => FIELDS.feature.re.test(x))));
+  return featCache;
+}
+
 // keys a client might mistakenly send — named in the error so the bug is easy to find
 const PII_KEY = /mail|phone|tel|name|ip|addr|user|uid|email|face|image|img|photo|descriptor|text|msg|message|birth|dob|card|id_?card|token|lat|lon|geo|ua|agent|url|ref/i;
-const PII_VALUE = [
-  [/@/, "e-mail-like value"], [/\d{6,}/, "long digit run (phone / ID / card)"], [/https?:|www\./i, "URL"],
-  [/\s/, "free text (whitespace)"], [/[^\x20-\x7e]/, "non-ASCII free text"]
-];
+const EMAIL_PROVIDERS = /(^|[._-])(gmail|googlemail|hotmail|outlook|live|yahoo|ymail|icloud|proton|protonmail|aol|msn|gmx|zoho|yandex|qq|naver|kakao|csloxinfo|loxinfo)([._-]|$)/i;
+const EMAIL_TLD = /[._-](com|net|org|edu|gov|mil|info|biz|io|me|th|cn|jp|kr|uk|de|ru|sg|my|vn)$|[._-](com|net|org|co|ac|go|or|in)[._-]/i;
+/** @returns {string|null} reason when the value looks like personal data */
+export function piiReason(v) {
+  if (/@/.test(v)) return "e-mail-like value";
+  if ((v.match(/\d/g) || []).length >= 6) return "6+ digits (phone / ID / card, separators ignored)";
+  if (/https?:|www\./i.test(v)) return "URL";
+  if (EMAIL_PROVIDERS.test(v) || EMAIL_TLD.test(v)) return "e-mail-like value";
+  if (/\s/.test(v)) return "free text (whitespace)";
+  if (/[^\x20-\x7e]/.test(v)) return "non-ASCII free text";
+  return null;
+}
 
-/** Validates a batch. Returns {events} or throws HttpError(400, reason). */
-export function validateBatch(body) {
+/** Validates a batch. Returns the events or throws HttpError(400, reason). */
+export function validateBatch(body, env = {}) {
   if (!body || typeof body !== "object" || Array.isArray(body)) throw new HttpError(400, "body must be an object");
-  for (const k of Object.keys(body)) if (!["v", "consent", "events"].includes(k)) throw new HttpError(400, `unknown top-level field: ${k.slice(0, 32)}`);
+  for (const k of Object.keys(body)) if (!["v", "consent", "cv", "events"].includes(k)) throw new HttpError(400, `unknown top-level field: ${k.slice(0, 32)}`);
   if (body.v !== 1) throw new HttpError(400, "unsupported version");
   if (body.consent !== true) throw new HttpError(400, "analytics consent required");
+  if (!CONSENT_VERSIONS.includes(body.cv)) throw new HttpError(400, "unknown consent version");
   if (!Array.isArray(body.events) || !body.events.length) throw new HttpError(400, "events must be a non-empty array");
   if (body.events.length > MAX_EVENTS) throw new HttpError(400, `at most ${MAX_EVENTS} events per batch`);
   const out = [];
@@ -53,9 +76,9 @@ export function validateBatch(body) {
       const spec = FIELDS[k];
       if (!spec) throw new HttpError(400, PII_KEY.test(k) ? `event ${i}: field "${k.slice(0, 32)}" looks like personal data — not accepted` : `event ${i}: unknown field "${k.slice(0, 32)}"`);
       if (typeof v !== "string") throw new HttpError(400, `event ${i}: ${k} must be a string`);
-      if (k !== "sid") for (const [re, why] of PII_VALUE) if (re.test(v)) throw new HttpError(400, `event ${i}: ${k} rejected (${why})`);
+      if (k !== "sid") { const why = piiReason(v); if (why) throw new HttpError(400, `event ${i}: ${k} rejected (${why})`); }
       if (spec.enum ? !spec.enum.has(v) : !spec.re.test(v)) throw new HttpError(400, `event ${i}: invalid ${k}`);
-      ev[k] = v;
+      ev[k] = spec.allow && !spec.allow(env).has(v) ? "other" : v;
     }
     if (!ev.n || !ev.sid) throw new HttpError(400, `event ${i}: n and sid are required`);
     for (const f of REQUIRED_BY_NAME[ev.n] || []) if (!ev[f]) throw new HttpError(400, `event ${i}: ${ev.n} needs ${f}`);
@@ -67,16 +90,16 @@ export function validateBatch(body) {
 export const doNotTrack = request => request.headers.get("DNT") === "1" || request.headers.get("Sec-GPC") === "1";
 
 export async function ingest(env, request, body) {
-  const events = validateBatch(body);
+  const events = validateBatch(body, env);
   const rk = await callerHash(env, request, "events");
   const rl = await hit(env.DB, `ev:${rk}`, 60, 60);
   if (!rl.ok) throw new HttpError(429, "too many event batches", { retryAfter: rl.retryAfter });
   const vh = (await callerHash(env, request, "visitor", request.headers.get("User-Agent") || "")).slice(0, 16);
   const t = now(), day = dayOf(t);
-  const stmt = env.DB.prepare("INSERT INTO events (day, ts, name, sid, vh, page, feature, domain, step, err, lang, device, dur, ret) " +
-    "VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)");
+  const stmt = env.DB.prepare("INSERT INTO events (day, ts, name, sid, vh, page, feature, domain, step, err, lang, device, dur, ret, cv) " +
+    "VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)");
   await env.DB.batch(events.map(e => stmt.bind(day, t, e.n, e.sid, vh, e.page ?? null, e.feature ?? null, e.domain ?? null,
-    e.step ?? null, e.err ?? null, e.lang ?? null, e.device ?? null, e.dur ?? null, e.ret ?? null)));
+    e.step ?? null, e.err ?? null, e.lang ?? null, e.device ?? null, e.dur ?? null, e.ret ?? null, body.cv)));
   return { accepted: events.length };
 }
 

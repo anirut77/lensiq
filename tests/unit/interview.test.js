@@ -174,3 +174,26 @@ test("中文: every key used by interview.html / interview.js / content has a Ch
   const outputs = js + JSON.stringify(IV.practiceTips({ ms: 60000, share: 0.1, pauses: 0, longPauses: 5, meanRunMs: 30000, peakRate: 9 }, { n: 99, facePct: 10, towardPct: 10, movementBand: "high" }));
   for (const w of ["ประหม่า", "โกรธ", "โกหก", "ซื่อสัตย์", "nervous", "honest", "deceptive", "angry"]) assert.ok(!outputs.includes(w), "label " + w);
 });
+
+test("candidate-first delivery notes: org setting needs all three acknowledgements; interviewers see notes only after scoring", () => {
+  const acks = { ack1: true, ack2: true, ack3: true };
+  assert.equal(IV.orgAllowed(null), false);
+  assert.equal(IV.orgAllowed({ allow: false, ...acks }), false, "default off");
+  for (const miss of ["ack1", "ack2", "ack3"]) assert.equal(IV.orgAllowed({ allow: true, ...acks, [miss]: false }), false, "missing " + miss);
+  assert.equal(IV.orgAllowed({ allow: "yes", ...acks }), false, "only a real true counts");
+  assert.equal(IV.orgAllowed({ allow: true, ...acks }), true);
+  const d = { d: {}, g: {} };
+  assert.equal(IV.deliveryView({}), "none");
+  assert.equal(IV.deliveryView({ delivery: d, submitted: true }), "candidate", "no org setting -> candidate only, even after scoring");
+  assert.equal(IV.deliveryView({ delivery: d, org: { allow: true, ack1: true, ack2: true }, submitted: true }), "candidate");
+  assert.equal(IV.deliveryView({ delivery: d, org: { allow: true, ...acks }, submitted: false }), "pending", "allowed but scores not all in");
+  assert.equal(IV.deliveryView({ delivery: d, org: { allow: true, ...acks }, submitted: true }), "interviewer");
+  assert.equal(IV.deliveryView({ delivery: { ...d, discarded: true }, org: { allow: true, ...acks }, submitted: true }), "none", "candidate discarded");
+  // the page wires the gate: summary uses deliveryView with allSubmitted() (the reveal override does not count)
+  const js = fs.readFileSync(path.join(ROOT, "interview.js"), "utf8");
+  assert.match(js, /IV\.deliveryView\(\{ org: S\.org, delivery: S\.delivery, submitted: allSubmitted\(\) \}\)/);
+  assert.match(js, /org: \{ ack1: false, ack2: false, ack3: false, allow: false \}/, "organisation setting defaults to off");
+  const html = fs.readFileSync(path.join(ROOT, "interview.html"), "utf8");
+  assert.match(html, /id="ivOrgAllow" disabled/);
+  assert.match(html, /id="ivDCandView" hidden/);
+});

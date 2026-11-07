@@ -17,7 +17,8 @@
   var cTxt = function (id, f) { return T("iv.c." + id + "." + f, C[id][f]); };
   function toast(msg) { var t = $("#ivToast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.h); toast.h = setTimeout(function () { t.classList.remove("show"); }, 2200); }
 
-  var S = { role: "sales", comps: IV.ROLES.sales.comps.slice(), cand: "", sheets: [], cur: -1, reveal: false, law: {}, delivery: null };
+  var S = { role: "sales", comps: IV.ROLES.sales.comps.slice(), cand: "", sheets: [], cur: -1, reveal: false, law: {}, delivery: null,
+    org: { ack1: false, ack2: false, ack3: false, allow: false } }; // organisation setting: interviewer viewing of delivery notes (off)
 
   /* ---------- tabs ---------- */
   function go(t) {
@@ -196,19 +197,27 @@
     $("#ivDis").innerHTML = li(A.discuss, T("iv.js.noDis", "ไม่มี — คะแนนของทุกสมรรถนะห่างกันไม่เกิน 2"));
     renderSumDelivery();
   }
+  /* interviewer-side delivery notes: only with the organisation setting (3 acknowledgements) AND after every
+     interviewer has submitted (IVCore.deliveryView) — never before scoring, so the numbers cannot anchor the scores */
+  var dView = function () { return IV.deliveryView({ org: S.org, delivery: S.delivery, submitted: allSubmitted() }); };
   function renderSumDelivery() {
-    var box = $("#ivSumDelivery"), on = $("#ivIncDelivery").checked && S.delivery;
+    var v = dView(), box = $("#ivSumDelivery");
+    $("#ivSumDNote").hidden = v !== "pending";
+    $("#ivIncWrap").hidden = v !== "interviewer";
+    if (v !== "interviewer") $("#ivIncDelivery").checked = false;
+    var on = v === "interviewer" && $("#ivIncDelivery").checked;
     box.hidden = !on;
     box.innerHTML = on ? "<h3>" + esc(T("iv.js.sumDH", "ข้อสังเกตการนำเสนอ (ไม่ใช่การประเมินตัวบุคคล และไม่ใช้ให้คะแนน)")) + "</h3>" + tilesHtml(S.delivery.d, S.delivery.g) +
-      '<p class="hint">' + esc(T("iv.s.d.cv3", "การสบตา การขยับตัว และจังหวะการพูดต่างกันตามวัฒนธรรม ภาษา ความพิการ และความถนัด ไม่ได้บอกความสามารถในการทำงาน")) + "</p>" : "";
+      '<p class="acc">' + esc(T("iv.s.acc", ACC_TH)) + "</p>" : "";
   }
+  var ACC_TH = "การปรับให้เหมาะสม: ผู้สมัครที่มีความพิการ มีความหลากหลายทางระบบประสาท (เช่น ออทิสติก สมาธิสั้น) ใช้ภาษาที่สอง หรือมาจากวัฒนธรรมที่ไม่นิยมสบตา อาจได้ตัวเลขต่างไป กล้อง แสง และอุปกรณ์ก็มีผล — เสนอรูปแบบอื่นและปรับวิธีสัมภาษณ์ตามที่ผู้สมัครขอ และอย่าตีความตัวเลขเป็นความสามารถ";
   $("#ivReveal").addEventListener("click", function () { S.reveal = true; renderSummary(); });
   $("#ivIncDelivery").addEventListener("change", renderSumDelivery);
   $("#ivPrint").addEventListener("click", function () { go("summary"); window.print(); });
   $("#ivClear").addEventListener("click", function () {
     if (!confirm(T("iv.js.clearQ", "ลบคะแนน หลักฐาน และข้อสังเกตทั้งหมดของการสัมภาษณ์นี้หรือไม่"))) return;
     S.sheets = []; S.cur = -1; S.reveal = false; S.cand = ""; S.delivery = null; $("#ivCand").value = "";
-    $("#ivDResult").hidden = true; renderWho(); renderSummary(); toast(T("iv.js.cleared", "ล้างข้อมูลแล้ว"));
+    resetResultCard(); renderWho(); renderSummary(); toast(T("iv.js.cleared", "ล้างข้อมูลแล้ว"));
   });
 
   /* ---------- delivery meter (camera + mic; numbers only) ---------- */
@@ -239,17 +248,24 @@
     m.snapshot = function () { return { d: m.hasMic ? m.vad.result() : null, g: m.hasCam ? IV.gazeMetrics(m.samples) : null }; };
     m.start = async function () {
       m.reset(); m.running = true;
-      var errs = [];
-      try { await Promise.all([cam.start(), loadModels()]); m.hasCam = true; } catch (e) { errs.push(e); }
-      try {
-        m.mic = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false }, video: false });
+      var errs = [], gen = (m.gen = (m.gen || 0) + 1);
+      // camera and microphone open independently: a microphone that is slow to answer (permission prompt, busy audio
+      // device) never blocks the camera; it attaches whenever it arrives — or is released if the session already ended
+      var attachMic = async function (stream) {
+        if (!m.running || gen !== m.gen) { stream.getTracks().forEach(function (t) { t.stop(); }); return; }
+        m.mic = stream;
         var AC = window.AudioContext || window.webkitAudioContext;
-        m.audio = new AC(); if (m.audio.state === "suspended") await m.audio.resume();
-        var src = m.audio.createMediaStreamSource(m.mic), an = m.audio.createAnalyser(); an.fftSize = 1024; src.connect(an);
+        m.audio = new AC();
+        if (m.audio.state === "suspended") await Promise.race([m.audio.resume(), sleep(2000)]);
+        var src = m.audio.createMediaStreamSource(stream), an = m.audio.createAnalyser(); an.fftSize = 1024; src.connect(an);
         var buf = new Float32Array(an.fftSize);
         m.timer = setInterval(function () { an.getFloatTimeDomainData(buf); m.vad.push(IV.rmsDb(buf), performance.now()); }, 20);
         m.hasMic = true;
-      } catch (e) { errs.push(e); }
+      };
+      var micP = navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false }, video: false })
+        .then(attachMic).catch(function (e) { errs.push(e); });
+      try { await Promise.all([cam.start(), loadModels()]); m.hasCam = true; } catch (e) { errs.push(e); }
+      await Promise.race([micP, sleep(m.hasCam ? 8000 : 20000)]);
       if (!m.hasCam && !m.hasMic) { m.running = false; throw errs[0] || new Error("no media"); }
       if (m.hasCam) loop();
       return errs;
@@ -275,7 +291,7 @@
     }
     m.stop = function () {
       var snap = m.snapshot();
-      m.running = false; clearInterval(m.timer); m.timer = null;
+      m.running = false; m.gen = (m.gen || 0) + 1; clearInterval(m.timer); m.timer = null;
       try { cam.stop(); } catch (e) { /* ignore */ }
       if (m.mic) m.mic.getTracks().forEach(function (t) { t.stop(); });
       if (m.audio) m.audio.close().catch(function () {});
@@ -308,8 +324,32 @@
       k === "notfound" ? T("iv.js.eNone", "ไม่พบกล้องหรือไมโครโฟน") : T("iv.js.eFail", "เปิดกล้อง/ไมโครโฟนไม่ได้: {m}", { m: (e && (e.message || e.name)) || "" });
   }
 
-  /* delivery observation (interview) */
+  /* organisation setting: interviewer viewing stays OFF unless all three acknowledgements are ticked */
+  function syncOrg() {
+    S.org.ack1 = $("#ivAck1").checked; S.org.ack2 = $("#ivAck2").checked; S.org.ack3 = $("#ivAck3").checked;
+    var acks = S.org.ack1 && S.org.ack2 && S.org.ack3;
+    $("#ivOrgAllow").disabled = !acks;
+    if (!acks) $("#ivOrgAllow").checked = false;
+    S.org.allow = $("#ivOrgAllow").checked;
+    var on = IV.orgAllowed(S.org);
+    $("#ivOrgState").textContent = on ? T("iv.js.orgOn", "เปิดอยู่: ผู้สัมภาษณ์จะเห็นข้อสังเกตหลังทุกคนส่งคะแนนแล้วเท่านั้น และผู้สมัครได้รับแจ้งในหน้ายินยอม")
+      : acks ? T("iv.js.orgReady", "ปิดอยู่ (ค่าเริ่มต้น) — ยืนยันครบแล้ว เปิดได้ถ้าจำเป็น") : T("iv.js.orgOff", "ปิดอยู่ (ค่าเริ่มต้น) — ต้องยืนยันครบทั้งสามข้อก่อนจึงจะเปิดได้");
+    $("#ivDOrgNote").hidden = !on;
+    renderSumDelivery();
+  }
+  ["#ivAck1", "#ivAck2", "#ivAck3", "#ivOrgAllow"].forEach(function (s) { $(s).addEventListener("change", syncOrg); });
+
+  /* delivery observation (interview): numbers are the candidate's */
   var dMeter = null;
+  function resetResultCard() {
+    $("#ivDResult").hidden = !S.delivery; $("#ivDResBody").hidden = true; $("#ivDOpen").hidden = !S.delivery;
+    $("#ivDResTiles").innerHTML = ""; $("#ivDResTips").innerHTML = "";
+  }
+  function renderResultBody() {
+    var d = S.delivery; if (!d) return;
+    $("#ivDResTiles").innerHTML = tilesHtml(d.d, d.g);
+    $("#ivDResTips").innerHTML = IV.practiceTips(d.d, d.g).map(function (t) { return '<li class="' + t.level + '" data-tip="' + t.id + '">' + esc(T("iv.tip." + t.id, TIPS[t.id], t.vars)) + "</li>"; }).join("");
+  }
   var syncConsent = function () { $("#ivDStart").disabled = !($("#ivCOk1").checked && $("#ivCOk2").checked); };
   $("#ivCOk1").addEventListener("change", syncConsent); $("#ivCOk2").addEventListener("change", syncConsent);
   $("#ivDDecline").addEventListener("click", function () {
@@ -324,21 +364,51 @@
       var errs = await dMeter.start();
       $("#ivDMsg").textContent = errs.length ? mediaErr(errs[0]) : "";
       $("#ivConsent").hidden = true; $("#ivDLive").hidden = false;
-      $("#ivDEngine").textContent = T("iv.js.live", "กำลังสังเกต — ไม่มีการบันทึกภาพหรือเสียง");
-      dMeter.onTick = liveTiles; liveTiles();
+      $("#ivDEngine").textContent = T("iv.js.live", "กำลังวัด — ตัวเลขซ่อนจากผู้สัมภาษณ์ ไม่มีการบันทึกภาพหรือเสียง");
+      setCandView(false);
+      dMeter.onTick = liveTiles;
       clearInterval(dMeter.ui); dMeter.ui = setInterval(liveTiles, 1000);
     } catch (e) { $("#ivDMsg").textContent = mediaErr(e); syncConsent(); }
   });
-  function liveTiles() { if (dMeter) { var s = dMeter.snapshot(); $("#ivDTiles").innerHTML = tilesHtml(s.d, s.g); } }
+  /* live numbers are rendered ONLY while the candidate view is open (otherwise not even in the DOM) */
+  function setCandView(on) {
+    $("#ivDCandView").hidden = !on; $("#ivDCandBtn").setAttribute("aria-pressed", on ? "true" : "false");
+    $("#ivDCandBtn").textContent = on ? T("iv.js.candHide", "ซ่อนตัวเลข (หันจอกลับ)") : T("iv.s.d.candBtn", "มุมมองผู้สมัคร: แสดงตัวเลขสด");
+    liveTiles();
+  }
+  function liveTiles() {
+    if (!dMeter || $("#ivDCandView").hidden) { $("#ivDTiles").innerHTML = ""; return; }
+    var s = dMeter.snapshot(); $("#ivDTiles").innerHTML = tilesHtml(s.d, s.g);
+  }
+  $("#ivDCandBtn").addEventListener("click", function () { setCandView($("#ivDCandView").hidden); });
   $("#ivDStop").addEventListener("click", function () {
     if (!dMeter) return;
     clearInterval(dMeter.ui); dMeter.onTick = null;
-    S.delivery = dMeter.stop();
-    $("#ivDLive").hidden = true; $("#ivConsent").hidden = false; $("#ivDResult").hidden = false;
+    S.delivery = dMeter.stop(); S.delivery.kept = false;
+    setCandView(false);
+    $("#ivDLive").hidden = true; $("#ivConsent").hidden = false;
     $("#ivCOk1").checked = $("#ivCOk2").checked = false; syncConsent();
-    $("#ivDResTiles").innerHTML = tilesHtml(S.delivery.d, S.delivery.g);
+    resetResultCard(); $("#ivDResState").textContent = "";
+    renderSumDelivery();
   });
-  $("#ivDDiscard").addEventListener("click", function () { S.delivery = null; $("#ivDResult").hidden = true; $("#ivDResTiles").innerHTML = ""; renderSumDelivery(); });
+  $("#ivDOpen").addEventListener("click", function () { $("#ivDOpen").hidden = true; renderResultBody(); $("#ivDResBody").hidden = false; });
+  $("#ivDKeep").addEventListener("click", function () {
+    if (!S.delivery) return;
+    S.delivery.kept = true;
+    document.documentElement.classList.add("iv-print-fb");
+    try { window.print(); } finally { document.documentElement.classList.remove("iv-print-fb"); }
+    var keepForTeam = IV.orgAllowed(S.org);
+    if (!keepForTeam) S.delivery = null; // the candidate has their copy; nothing stays for the interviewers
+    resetResultCard(); $("#ivDResult").hidden = false; $("#ivDOpen").hidden = true;
+    $("#ivDResState").textContent = keepForTeam ? T("iv.js.keptOrg", "ผู้สมัครเก็บผลแล้ว — ตามการตั้งค่าองค์กร ผู้สัมภาษณ์จะดูได้หลังส่งคะแนนครบ (ไม่ใช้ให้คะแนน)")
+      : T("iv.js.kept", "ผู้สมัครเก็บผลแล้ว — ลบตัวเลขออกจากหน้านี้แล้ว ผู้สัมภาษณ์ไม่เห็นข้อมูลนี้");
+    renderSumDelivery();
+  });
+  $("#ivDDiscard").addEventListener("click", function () {
+    S.delivery = null; resetResultCard(); $("#ivDResult").hidden = false; $("#ivDOpen").hidden = true;
+    $("#ivDResState").textContent = T("iv.js.discarded", "ทิ้งผลแล้ว — ไม่มีใครเห็นตัวเลขนี้อีก");
+    renderSumDelivery();
+  });
 
   /* ---------- practice mode ---------- */
   var P = { qs: [], i: 0, phase: "idle", t0: 0, limit: 120, timer: null, meter: null, results: [] };
@@ -417,7 +487,8 @@
   function renderAll() {
     renderComps(); renderBias(); renderLaw(); renderQuestions(); renderWho(); renderScore();
     if (!$("#pane-summary").hidden) renderSummary();
-    if (S.delivery) $("#ivDResTiles").innerHTML = tilesHtml(S.delivery.d, S.delivery.g);
+    if (S.delivery && !$("#ivDResBody").hidden) renderResultBody();
+    syncOrg(); if (dMeter && dMeter.running) setCandView(!$("#ivDCandView").hidden);
     if (P.phase !== "idle") pRender();
   }
   window.addEventListener("lq-lang", renderAll);

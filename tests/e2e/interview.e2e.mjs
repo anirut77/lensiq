@@ -2,7 +2,7 @@
 // (--use-fake-device-for-media-stream: test pattern video, periodic beep audio) and ?fakedet scripted faces.
 // Checks: role template -> questions with BARS, three interviewers scoring independently (hidden until all submit),
 // agreement/strengths/discussion summary with evidence notes, sheet export/import, print area without images,
-// consent-gated delivery observation (descriptive numbers only, camera+mic released on stop), practice mode with timer
+// candidate-first delivery notes (opt-in, hidden from interviewers, candidate keeps/discards; org setting with 3 acknowledgements, shown only after all scores are in), practice mode with timer
 // and self-coaching tips, 中文, 390 px layout / 44 px targets, privacy (no storage, no /api, no third-party requests).
 import { assert, assertNoWebGL, privacyScan } from "./cdp.mjs";
 
@@ -112,44 +112,101 @@ export default async function ({ base, launch, check }) {
       await page.close();
     });
 
-    await check("interview: delivery observation needs explicit opt-in, shows descriptive signals only, releases camera + mic", async () => {
+    await check("interview: delivery numbers are candidate-first — opt-in, hidden from interviewers, candidate keeps or discards", async () => {
       const page = await browser.newPage(null, { initScripts: [INIT, FAKE_MIC, FAKE_FACE] });
-      await page.goto(`${base}/interview.html?cpu&fakedet`);
+      await page.goto(`${base}/interview.html?cpu&fakedet&lang=th`);
       await page.evaluate(() => document.querySelector("#tab-delivery").click());
-      const g0 = await page.evaluate(() => ({ dis: document.querySelector("#ivDStart").disabled, why: document.querySelectorAll("#pane-delivery .why li").length }));
-      assert(g0.dis && g0.why >= 4, "start disabled before consent; research explanation shown");
+      const g0 = await page.evaluate(() => ({ dis: document.querySelector("#ivDStart").disabled, why: document.querySelectorAll("#pane-delivery .why li").length,
+        allow: document.querySelector("#ivOrgAllow").disabled, orgNote: document.querySelector("#ivDOrgNote").hidden, meter: window.__LQ_IV.dMeter }));
+      assert(g0.dis && g0.why >= 6 && g0.allow && g0.orgNote && !g0.meter, "meter off by default, org setting locked: " + JSON.stringify(g0));
       await page.evaluate(() => document.querySelector("#ivCOk1").click());
       assert(await page.evaluate(() => document.querySelector("#ivDStart").disabled), "one tick is not enough");
       await page.evaluate(() => document.querySelector("#ivDDecline").click());
-      const dec = await page.evaluate(() => ({ c1: document.querySelector("#ivCOk1").checked, msg: document.querySelector("#ivDMsg").textContent, gum: 0 }));
+      const dec = await page.evaluate(() => ({ c1: document.querySelector("#ivCOk1").checked, msg: document.querySelector("#ivDMsg").textContent }));
       assert(!dec.c1 && /ไม่มีผลต่อการพิจารณา/.test(dec.msg), "decline path " + JSON.stringify(dec));
       await page.evaluate(() => { document.querySelector("#ivCOk1").click(); document.querySelector("#ivCOk2").click(); document.querySelector("#ivDStart").click(); });
       await page.waitFor(`!document.querySelector("#ivDLive").hidden`, 15000);
       await sleep(8500);
-      const live = await page.evaluate(() => { const s = window.__LQ_IV.dMeter.snapshot(); return { s, mic: window.__LQ_IV.dMeter.hasMic, cam: window.__LQ_IV.dMeter.hasCam, tiles: document.querySelectorAll("#ivDTiles .tile").length,
-        live: document.querySelector("#ivDLive").innerText, heading: document.querySelector("#ivDLive h2").textContent }; });
-      assert(live.cam && live.mic, "camera + mic open " + JSON.stringify([live.cam, live.mic]));
+      // interviewer side: no numbers anywhere in the DOM while the candidate view is closed
+      const hid = await page.evaluate(() => ({ tiles: document.querySelectorAll("#pane-delivery .tile").length, view: document.querySelector("#ivDCandView").hidden, h: document.querySelector("#ivDLive h2").textContent }));
+      assert(hid.tiles === 0 && hid.view && /ซ่อนจากผู้สัมภาษณ์/.test(hid.h), "numbers hidden from interviewer: " + JSON.stringify(hid));
+      await page.evaluate(() => document.querySelector("#ivDCandBtn").click());
+      await sleep(1200);
+      const live = await page.evaluate(() => { const s = window.__LQ_IV.dMeter.snapshot(); return { s, mic: window.__LQ_IV.dMeter.hasMic, cam: window.__LQ_IV.dMeter.hasCam, tiles: document.querySelectorAll("#ivDCandView .tile").length,
+        text: document.querySelector("#ivDLive").innerText, h: document.querySelector("#ivDCandView h3").textContent, pressed: document.querySelector("#ivDCandBtn").getAttribute("aria-pressed") }; });
+      assert(live.cam && live.mic && live.pressed === "true", "camera + mic open, candidate view on " + JSON.stringify([live.cam, live.mic, live.pressed]));
       const g = live.s.g, d = live.s.d;
       assert(g.n >= 20 && g.facePct >= 60 && g.facePct <= 85, "face visible ≈ 75%: " + JSON.stringify(g));
       assert(g.towardPct >= 50 && g.towardPct <= 80, "toward camera ≈ 67% of face frames: " + JSON.stringify(g));
-      assert(d && d.ms > 6000 && d.share > 0.5 && d.share < 0.8, "speaking share ≈ 1.5/2.3 on the scripted mic: " + JSON.stringify(d));
+      assert(d && d.ms > 6000 && d.share > 0.35 && d.share < 0.8, "speaking share ≈ 1.5/2.3 (minus the lead-in) on the scripted mic: " + JSON.stringify(d));
       assert(d.pauses >= 2 && d.longPauses === 0 && d.peakRate > 3 && d.peakRate < 5, "pauses + ≈4 bursts/s: " + JSON.stringify(d));
-      assert(live.tiles === 7, "7 descriptive tiles");
-      assert(/ไม่ใช่การประเมินตัวบุคคล/.test(live.heading), "framing heading");
-      for (const wd of ["ประหม่า", "โกรธ", "โกหก", "ความซื่อสัตย์:", "บุคลิกภาพ:", "อารมณ์:"]) assert(!live.live.includes(wd), "label " + wd);
+      assert(live.tiles === 7 && /สำหรับผู้สมัคร/.test(live.h) && /ไม่ใช่การประเมินตัวบุคคล/.test(live.h), "candidate view: 7 tiles " + live.tiles);
+      for (const wd of ["ประหม่า", "โกรธ", "โกหก", "ความซื่อสัตย์:", "บุคลิกภาพ:", "อารมณ์:"]) assert(!live.text.includes(wd), "label " + wd);
+      await page.evaluate(() => document.querySelector("#ivDCandBtn").click());
+      assert(await page.evaluate(() => document.querySelectorAll("#ivDTiles .tile").length === 0), "hiding the candidate view removes the numbers");
       await page.evaluate(() => document.querySelector("#ivDStop").click());
       await sleep(300);
-      const after = await page.evaluate(() => ({ res: !document.querySelector("#ivDResult").hidden, tiles: document.querySelectorAll("#ivDResTiles .tile").length,
+      const after = await page.evaluate(() => ({ card: !document.querySelector("#ivDResult").hidden, body: document.querySelector("#ivDResBody").hidden, tiles: document.querySelectorAll("#pane-delivery .tile").length,
         vs: document.querySelector("#ivDVideo").srcObject, c1: document.querySelector("#ivCOk1").checked, running: window.__LQ_IV.dMeter.running, mic: window.__LQ_IV.dMeter.mic }));
-      assert(after.res && after.tiles === 7 && !after.vs && !after.running && !after.mic && !after.c1, "stopped + released + consent reset: " + JSON.stringify(after));
-      // optional attachment to the summary (off by default)
-      await page.evaluate(() => { document.querySelector("#ivWho").value = "A"; document.querySelector("#ivWhoForm").requestSubmit(); document.querySelector("#tab-summary").click(); document.querySelector("#ivReveal").click(); });
-      assert(await page.evaluate(() => document.querySelector("#ivSumDelivery").hidden), "delivery not in summary by default");
-      await page.evaluate(() => document.querySelector("#ivIncDelivery").click());
-      assert(await page.evaluate(() => !document.querySelector("#ivSumDelivery").hidden && document.querySelectorAll("#ivSumDelivery .tile").length === 7), "delivery attached on request");
-      await page.evaluate(() => { document.querySelector("#tab-delivery").click(); document.querySelector("#ivDDiscard").click(); });
-      assert(await page.evaluate(() => window.__LQ_IV.S.delivery === null), "discarded");
+      assert(after.card && after.body && after.tiles === 0 && !after.vs && !after.running && !after.mic && !after.c1, "stopped, released, feedback card closed until the candidate opens it: " + JSON.stringify(after));
+      // interviewers: nothing in the summary (org setting off), even after everyone submitted
+      await page.evaluate(() => { document.querySelector("#ivWho").value = "A"; document.querySelector("#ivWhoForm").requestSubmit(); document.querySelector("#tab-score").click(); document.querySelector("#ivSubmit").click(); document.querySelector("#tab-summary").click(); });
+      const s0 = await page.evaluate(() => ({ inc: document.querySelector("#ivIncWrap").hidden, box: document.querySelector("#ivSumDelivery").hidden, pend: document.querySelector("#ivSumDNote").hidden, tiles: document.querySelectorAll("#ivSumDelivery .tile").length }));
+      assert(s0.inc && s0.box && s0.pend && !s0.tiles, "no interviewer view by default: " + JSON.stringify(s0));
+      // the candidate opens "my feedback" and keeps it -> printed, then removed from the page
+      await page.evaluate(() => { document.querySelector("#tab-delivery").click(); document.querySelector("#ivDOpen").click(); });
+      const fb = await page.evaluate(() => ({ tiles: document.querySelectorAll("#ivDResTiles .tile").length, tips: document.querySelectorAll("#ivDResTips li[data-tip]").length, acc: document.querySelector("#ivDResBody .acc").textContent }));
+      assert(fb.tiles === 7 && fb.tips >= 1 && /ความหลากหลายทางระบบประสาท/.test(fb.acc), "feedback card: " + JSON.stringify(fb));
+      await page.evaluate(() => document.querySelector("#ivDKeep").click());
+      const kept = await page.evaluate(() => ({ printed: window.__printed, del: window.__LQ_IV.S.delivery, st: document.querySelector("#ivDResState").textContent, cls: document.documentElement.className }));
+      assert(kept.printed === 1 && kept.del === null && /ผู้สัมภาษณ์ไม่เห็น/.test(kept.st) && !/iv-print-fb/.test(kept.cls), "kept -> printed, cleared: " + JSON.stringify(kept));
+      const printFb = await page.evaluate(() => [...document.styleSheets].some(ss => { try { return [...ss.cssRules].some(r => r.media && /print/.test(r.media.mediaText) && /iv-print-fb/.test(r.cssText)); } catch { return false; } }));
+      assert(printFb, "print stylesheet for the candidate's card");
       await privacyScan(page);
+      const errs = hardErrors(page, base);
+      assert(!errs.length, "console errors: " + JSON.stringify(errs.slice(0, 3)));
+      await page.close();
+    });
+
+    await check("interview: organisation setting — three acknowledgements, notes only after all scores are submitted, discard wins", async () => {
+      const page = await browser.newPage(null, { initScripts: [INIT, FAKE_MIC, FAKE_FACE] });
+      await page.goto(`${base}/interview.html?cpu&fakedet&lang=th`);
+      await page.evaluate(() => { document.querySelector("#tab-delivery").click(); document.querySelector("#ivOrgBox").open = true; document.querySelector("#ivAck1").click(); document.querySelector("#ivAck2").click(); });
+      assert(await page.evaluate(() => document.querySelector("#ivOrgAllow").disabled), "two acknowledgements are not enough");
+      await page.evaluate(() => { document.querySelector("#ivAck3").click(); document.querySelector("#ivOrgAllow").click(); });
+      const o = await page.evaluate(() => ({ org: window.__LQ_IV.S.org, note: document.querySelector("#ivDOrgNote").hidden, st: document.querySelector("#ivOrgState").textContent }));
+      assert(o.org.allow && !o.note && /หลังทุกคนส่งคะแนน/.test(o.st), "allowed + candidate informed on the consent screen: " + JSON.stringify(o));
+      // un-ticking an acknowledgement switches it off again
+      await page.evaluate(() => document.querySelector("#ivAck2").click());
+      assert(await page.evaluate(() => !window.__LQ_IV.S.org.allow && document.querySelector("#ivOrgAllow").disabled && !document.querySelector("#ivOrgAllow").checked), "ack removed -> off");
+      await page.evaluate(() => { document.querySelector("#ivAck2").click(); document.querySelector("#ivOrgAllow").click(); });
+      await page.evaluate(() => { document.querySelector("#ivCOk1").click(); document.querySelector("#ivCOk2").click(); document.querySelector("#ivDStart").click(); });
+      await page.waitFor(`!document.querySelector("#ivDLive").hidden`, 15000);
+      await sleep(3000);
+      await page.evaluate(() => document.querySelector("#ivDStop").click());
+      await page.evaluate(() => { document.querySelector("#ivDOpen").click(); document.querySelector("#ivDKeep").click(); });
+      assert(await page.evaluate(() => !!window.__LQ_IV.S.delivery && /ผู้สัมภาษณ์จะดูได้หลังส่งคะแนนครบ/.test(document.querySelector("#ivDResState").textContent)), "kept for the team per org setting");
+      // two interviewers; only A submitted -> pending, and the reveal override does not unlock the notes
+      await page.evaluate(() => { for (const n of ["A", "B"]) { document.querySelector("#ivWho").value = n; document.querySelector("#ivWhoForm").requestSubmit(); }
+        document.querySelector("#tab-score").click(); document.querySelector("#ivSubmit").click(); document.querySelector("#tab-summary").click(); document.querySelector("#ivReveal").click(); });
+      const p1 = await page.evaluate(() => ({ pend: !document.querySelector("#ivSumDNote").hidden, inc: document.querySelector("#ivIncWrap").hidden, tiles: document.querySelectorAll("#ivSumDelivery .tile").length }));
+      assert(p1.pend && p1.inc && !p1.tiles, "pending until every sheet is submitted: " + JSON.stringify(p1));
+      await page.evaluate(() => { document.querySelector("#tab-score").click(); document.querySelector('#ivWhoSeg button[data-i="1"]').click(); document.querySelector("#ivSubmit").click(); document.querySelector("#tab-summary").click(); });
+      const p2 = await page.evaluate(() => ({ inc: !document.querySelector("#ivIncWrap").hidden, box: document.querySelector("#ivSumDelivery").hidden }));
+      assert(p2.inc && p2.box, "after all submitted: opt-in checkbox shown, notes still collapsed " + JSON.stringify(p2));
+      await page.evaluate(() => document.querySelector("#ivIncDelivery").click());
+      const p3 = await page.evaluate(() => ({ tiles: document.querySelectorAll("#ivSumDelivery .tile").length, acc: document.querySelector("#ivSumDelivery .acc")?.textContent || "" }));
+      assert(p3.tiles === 7 && /การปรับให้เหมาะสม/.test(p3.acc), "notes + accommodation reminder: " + JSON.stringify(p3));
+      // editing a score again hides the notes (they never sit next to an open score sheet)
+      await page.evaluate(() => { document.querySelector("#tab-score").click(); document.querySelector("#ivUnlock").click(); document.querySelector("#tab-summary").click(); });
+      assert(await page.evaluate(() => document.querySelector("#ivSumDelivery").hidden && document.querySelector("#ivIncWrap").hidden), "unlocked sheet -> notes hidden");
+      // a second session where the candidate discards: interviewers never see it
+      await page.evaluate(() => { document.querySelector("#tab-delivery").click(); document.querySelector("#ivCOk1").click(); document.querySelector("#ivCOk2").click(); document.querySelector("#ivDStart").click(); });
+      await page.waitFor(`!document.querySelector("#ivDLive").hidden`, 15000);
+      await sleep(1500);
+      await page.evaluate(() => { document.querySelector("#ivDStop").click(); document.querySelector("#ivDOpen").click(); document.querySelector("#ivDDiscard").click(); });
+      const disc = await page.evaluate(() => ({ del: window.__LQ_IV.S.delivery, st: document.querySelector("#ivDResState").textContent }));
+      assert(disc.del === null && /ไม่มีใครเห็น/.test(disc.st), "discarded " + JSON.stringify(disc));
       const errs = hardErrors(page, base);
       assert(!errs.length, "console errors: " + JSON.stringify(errs.slice(0, 3)));
       await page.close();
@@ -195,7 +252,7 @@ export default async function ({ base, launch, check }) {
       await sleep(400);
       const cjk = s => /[一-鿿]/.test(s);
       for (const t of ["setup", "questions", "score", "summary", "delivery", "practice", "about"]) {
-        await page.evaluate(t => { document.querySelector("#tab-" + t).click(); if (t === "summary") document.querySelector("#ivReveal").click(); }, t);
+        await page.evaluate(t => { document.querySelector("#tab-" + t).click(); if (t === "summary") document.querySelector("#ivReveal").click(); if (t === "delivery") document.querySelector("#ivOrgBox").open = true; }, t);
         await sleep(250);
         const m = await page.evaluate(() => {
           const sw = document.documentElement.scrollWidth, cw = document.documentElement.clientWidth;
@@ -214,6 +271,26 @@ export default async function ({ base, launch, check }) {
       }
       await page.send("Emulation.clearDeviceMetricsOverride");
       await page.evaluate(() => LQI18N.setLang("th"));
+      const errs = hardErrors(page, base);
+      assert(!errs.length, "console errors: " + JSON.stringify(errs.slice(0, 3)));
+      await page.close();
+    });
+
+    await check("interview: a microphone that never answers does not block the camera; a late microphone is released", async () => {
+      const HUNG_MIC = `(() => { const md = navigator.mediaDevices, orig = md.getUserMedia.bind(md);
+        md.getUserMedia = c => (c && c.audio && !c.video) ? new Promise(res => { window.__lateMic = () => { const ac = new AudioContext(), d = ac.createMediaStreamDestination(); window.__lateStream = d.stream; res(d.stream); }; }) : orig(c); })();`;
+      const page = await browser.newPage(null, { initScripts: [INIT, HUNG_MIC, FAKE_FACE] });
+      await page.goto(`${base}/interview.html?cpu&fakedet&lang=th`);
+      await page.evaluate(() => { document.querySelector("#tab-delivery").click(); document.querySelector("#ivCOk1").click(); document.querySelector("#ivCOk2").click(); document.querySelector("#ivDStart").click(); });
+      await page.waitFor(`!document.querySelector("#ivDLive").hidden`, 15000);
+      await sleep(1000);
+      const r = await page.evaluate(() => ({ cam: window.__LQ_IV.dMeter.hasCam, mic: window.__LQ_IV.dMeter.hasMic, n: window.__LQ_IV.dMeter.samples.length }));
+      assert(r.cam && !r.mic && r.n >= 2, "camera running without the microphone: " + JSON.stringify(r));
+      await page.evaluate(() => document.querySelector("#ivDStop").click());
+      await page.evaluate(() => window.__lateMic());   // the microphone finally answers after the session ended
+      await sleep(300);
+      const late = await page.evaluate(() => ({ live: window.__lateStream.getTracks().filter(t => t.readyState === "live").length, mic: window.__LQ_IV.dMeter.mic }));
+      assert(late.live === 0 && !late.mic, "late microphone released: " + JSON.stringify(late));
       const errs = hardErrors(page, base);
       assert(!errs.length, "console errors: " + JSON.stringify(errs.slice(0, 3)));
       await page.close();

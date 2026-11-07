@@ -123,6 +123,10 @@ test("PromptPay checkout -> QR -> webhook (verified, re-fetched, idempotent) -> 
   assert.equal(co.vat_satang, 6477); // 99000 * 7 / 107 = 6476.6
   assert.equal(co.test_mode, true);
   assert.match(co.payment_id, /^[a-f0-9]{32}$/);
+  assert.match(co.customer_id, /^[a-f0-9]{24}$/, "M2: buyer gets the customer id");
+  assert.match(co.order_token, /^[A-Za-z0-9_-]{32}$/, "M2: and a secret order token to link the plan");
+  const cust = await env.DB.prepare("SELECT order_token_hash FROM customers WHERE id = ?1").bind(co.customer_id).first();
+  assert.ok(cust.order_token_hash && cust.order_token_hash !== co.order_token, "only the hash is stored");
 
   const qr = await handle(req(co.qr_path), env, deps);
   assert.equal(qr.status, 200);
@@ -188,4 +192,72 @@ test("pricing info hidden until the admin enables the pricing page", async () =>
   const b = await publicBillingInfo(env);
   assert.deepEqual(b.plans.map(p => p.id), ["free", "pro", "business", "enterprise"]);
   assert.equal(b.plans[1].status, "draft");
+});
+
+test("M2 probe: public checkout is rate limited per caller and globally", async () => {
+  const { handle } = await import(B + "index.js");
+  const opn = fakeOpn();
+  const env = createEnv({ FREE_MODE: "false", BILLING_ENABLED: "true", OPN_SECRET_KEY: TEST_KEY });
+  await env.DB.prepare("UPDATE plans SET status = 'active' WHERE id != 'free'").run();
+  const co = ip => handle(req("/v1/billing/checkout", { method: "POST", ip, body: { plan_id: "pro", period: "month", accept_terms: true, buyer: { name: "x" } } }), env, { fetch: opn.fetch });
+  const st = [];
+  for (let i = 0; i < 8; i++) st.push((await co("203.0.113.5")).status);
+  assert.deepEqual(st, [201, 201, 201, 201, 201, 429, 429, 429]);
+  assert.equal((await env.DB.prepare("SELECT COUNT(*) AS n FROM customers").first()).n, 5);
+  assert.equal((await co("203.0.113.6")).status, 201, "other callers still served");
+});
+
+test("H3 probe: webhook during an Opn 503 is NOT marked seen — Opn's retry is processed", async () => {
+  const { handle } = await import(B + "index.js");
+  const { hmacHex, fromB64 } = await import(B + "crypto.js");
+  const SEC = Buffer.alloc(32, 3).toString("base64");
+  const env = createEnv({ OPN_WEBHOOK_SECRET: SEC, OPN_SECRET_KEY: "skey_test_abcdefghijkl" });
+  await env.DB.prepare("INSERT INTO payments (id, kind, livemode, amount_satang, subtotal_satang, vat_satang, vat_rate_bp, status, expires_at, provider_charge_id, created_at, updated_at) VALUES ('p1','checkout',0,2000,2000,0,0,'pending',0,'chrg_test_abcdefghij',0,0)").run();
+  const body = JSON.stringify({ id: "evnt_test_abcdef1", key: "charge.complete", data: { object: "charge", id: "chrg_test_abcdefghij" } });
+  const ts = String(Math.floor(Date.now() / 1000));
+  const sig = await hmacHex(fromB64(SEC), ts + "." + body);
+  const wh = f => handle(new Request("https://api.example/v1/billing/webhook/opn", { method: "POST", headers: { "Omise-Signature": sig, "Omise-Signature-Timestamp": ts }, body }), env, { fetch: f });
+  const a = await wh(async () => new Response("oops", { status: 503 }));
+  assert.equal(a.status, 503, "tell Opn to retry");
+  const b = await wh(async () => new Response(JSON.stringify({ object: "charge", id: "chrg_test_abcdefghij", status: "successful", amount: 2000, currency: "thb" })));
+  assert.equal(b.status, 200);
+  assert.equal((await b.json()).result, "successful");
+  assert.equal((await env.DB.prepare("SELECT status FROM payments WHERE id = 'p1'").first()).status, "successful");
+  const c = await wh(async () => { throw new Error("must not be called"); });
+  assert.equal((await c.json()).duplicate, true, "duplicate only after it was processed");
+});
+
+test("H3: reconcile cron settles pending payments from Opn (lost webhooks)", async () => {
+  const { reconcilePending } = await import(B + "billing.js");
+  const opn = fakeOpn();
+  const { handle } = await import(B + "index.js");
+  const env = createEnv({ FREE_MODE: "false", BILLING_ENABLED: "true", OPN_SECRET_KEY: TEST_KEY });
+  await env.DB.prepare("UPDATE plans SET status = 'active' WHERE id = 'pro'").run();
+  const co = await (await handle(req("/v1/billing/checkout", { method: "POST", body: { plan_id: "pro", accept_terms: true } }), env, { fetch: opn.fetch })).json();
+  const pay = await env.DB.prepare("SELECT provider_charge_id FROM payments WHERE id = ?1").bind(co.payment_id).first();
+  assert.deepEqual(await reconcilePending(env, { fetchImpl: opn.fetch }), { checked: 1, changed: 0, errors: 0 });
+  opn.charges.get(pay.provider_charge_id).status = "successful";
+  assert.deepEqual(await reconcilePending(env, { fetchImpl: opn.fetch }), { checked: 1, changed: 1, errors: 0 });
+  assert.equal((await env.DB.prepare("SELECT status FROM payments WHERE id = ?1").bind(co.payment_id).first()).status, "successful");
+  const worker = (await import(B + "index.js")).default;
+  const waits = [];
+  await worker.scheduled({ cron: "*/15 * * * *" }, createEnv(), { waitUntil: p => waits.push(p) });
+  await Promise.all(waits);
+});
+
+test("receipts are gap-free and assigned once when webhook, poll and cron race", async () => {
+  const { applyCharge } = await import(B + "billing.js");
+  const env = createEnv();
+  const t = Math.floor(Date.now() / 1000);
+  for (const id of ["a", "b", "c"]) {
+    await env.DB.prepare("INSERT INTO payments (id, kind, livemode, amount_satang, subtotal_satang, vat_satang, vat_rate_bp, status, provider_charge_id, created_at, updated_at) VALUES (?1,'admin_test',0,2000,2000,0,0,'pending',?2,?3,?3)")
+      .bind(id.repeat(32), "chrg_test_" + id.repeat(12), t).run();
+  }
+  const rows = (await env.DB.prepare("SELECT * FROM payments").all()).results;
+  const charge = p => ({ status: "successful", amount: p.amount_satang, currency: "thb" });
+  await Promise.all(rows.flatMap(p => [applyCharge(env, p, charge(p)), applyCharge(env, p, charge(p)), applyCharge(env, p, charge(p))]));
+  const nums = (await env.DB.prepare("SELECT receipt_no FROM payments ORDER BY receipt_no").all()).results.map(r => r.receipt_no.slice(-6));
+  assert.deepEqual(nums, ["000001", "000002", "000003"]);
+  const ym = new Date(t * 1000).toISOString().slice(0, 7).replace("-", "");
+  assert.equal((await env.DB.prepare("SELECT value FROM counters WHERE name = ?1").bind("receipt:" + ym).first()).value, 3, "counter not advanced by the losers");
 });

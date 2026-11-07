@@ -125,3 +125,20 @@ test("neckRel: a dark flat neck block (vs the lower face) is flagged; a neck wit
   const good = Q.neckRel({ out: rgbaFill(W, H, (x, y) => [165 + tex(x, y), 125, 105]), neckA, frontA: zero, keepA, W, H, face });
   assert.ok(good.lRel > Q.LIMITS.neckRelL && good.texRel > Q.LIMITS.neckRelTex, JSON.stringify(good));
 });
+
+test("jawBlob: a solid dark flap or a background gap next to the jaw (vs the original photo) is flagged; a clean jaw is not", () => {
+  const P = []; for (let k = 0; k < 17; k++) { const a = Math.PI * (k / 16); P.push({ x: 100 - 40 * Math.cos(a), y: 50 + 40 * Math.sin(a) }); }
+  for (let k = 17; k < 68; k++) P.push({ x: 100, y: 60 }); P[36] = { x: 85, y: 45 }; P[45] = { x: 115, y: 45 }; P[57] = { x: 100, y: 78 };
+  const f2 = { ...face, P, fw: 80, chinY: 90 }, zero = new Float32Array(W * H), one = new Float32Array(W * H).fill(1);
+  const inFace = (x, y) => (x - 100) ** 2 + (y - 50) ** 2 < 1600;
+  const skin = (x, y) => [190 + ((x * 7 + y * 3) % 9) - 4, 140, 115];
+  const src = rgbaFill(W, H, skin), clean = rgbaFill(W, H, (x, y) => (inFace(x, y) ? skin(x, y) : [215, 231, 247]));
+  const fgClean = fill(W, H, (x, y) => (inFace(x, y) || y > 95 ? 1 : 0)), frontA = fill(W, H, (x, y) => (y > 95 ? 1 : 0));
+  assert.equal(Q.jawBlob({ out: clean, src, srcA: zero, fg: fgClean, frontA, hair: null, W, H, face: f2 }).area, 0, "clean jaw");
+  const flap = rgbaFill(W, H, (x, y) => (x >= 140 && x < 152 && y >= 60 && y < 85 ? [40, 30, 25] : inFace(x, y) ? skin(x, y) : [215, 231, 247]));
+  const fgFlap = fill(W, H, (x, y) => (fgClean[y * W + x] || (x >= 140 && x < 152 && y >= 60 && y < 85) ? 1 : 0));
+  const r = Q.jawBlob({ out: flap, src, srcA: zero, fg: fgFlap, frontA, hair: null, W, H, face: f2 });
+  assert.ok(r.area > Q.LIMITS.jawBlob && r.kind === "dark", JSON.stringify(r));
+  const gap = Q.jawBlob({ out: clean, src, srcA: one, fg: fill(W, H, (x, y) => (inFace(x, y) || y > 95 || (Math.abs(x - 100) < 25 && y < 96) ? 1 : 0)), frontA, hair: null, W, H, face: f2 });
+  assert.ok(gap.area > Q.LIMITS.jawBlob && gap.kind === "gap", JSON.stringify(gap));
+});

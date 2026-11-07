@@ -189,20 +189,14 @@
   }
   function mahaAt(T, age) { for (var i = 0; i < T.maha.length; i++) if (age >= T.maha[i].from && age < T.maha[i].to) return T.maha[i]; return T.maha[T.maha.length - 1]; }
 
-  /* ---------- เดือนจันทรคติไทย (โดยประมาณ) ----------
-     เดือนอ้าย (1) = เดือนจันทร์ที่มีวันเหมายัน (ดวงอาทิตย์ 270°) แบบเดียวกับเดือน 11 ของปฏิทินจีน แล้วนับต่อทีละจันทร์ดับ
-     ปีที่มี 13 เดือน: เดือนหลังเดือน 8 นับเป็น "เดือน 8 หลัง" (อธิกมาสแบบไทย) — ปฏิทินหลวงอาจวางอธิกมาสต่างไปได้ จึงเป็นค่าประมาณ */
+  /* ---------- เดือนจันทรคติไทย ----------
+     ใช้ฟังก์ชันเดียวกับ horoscope.js (HSCore.thaiLunarMonth) เพื่อให้ทุกหน้าได้เดือนเดียวกัน — อธิกมาสวางเป็นเดือน 8 สองหนแบบไทย */
+  var HS = root.HSCore || (typeof require === "function" ? (function () { try { return require("./horoscope.js"); } catch (e) { return null; } })() : null);
   function thaiLunarMonth(b) {
     var tz = b.tz == null ? 7 : b.tz, J = jd(b.y, b.m, b.d, 12, 0, tz);
-    var ws = function (y) { return solarTermJD(y, 270); };
-    var wsPrev = ws(b.y); if (wsPrev > J) wsPrev = ws(b.y - 1);
-    var nm0 = newMoonBefore(wsPrev), nm1 = newMoonBefore(ws(fromJD(wsPrev, 0).y + 1));
-    var n = newMoonBefore(J).k - nm0.k; // 0 = เดือนอ้าย
-    var len = nm1.k - nm0.k; // 12 หรือ 13
-    var month = n + 1, leap = false;
-    if (len === 13 && n >= 8) { if (n === 8) { month = 8; leap = true; } else month = n; }
-    if (month > 12) month = 12;
-    return { month: month, secondEight: leap };
+    var H = HS || root.HSCore;
+    var t = H.thaiLunarMonth(J);
+    return { month: t.month, secondEight: !!t.leap, firstEight: !!t.firstEight, adhikamas: !!t.adhikamas };
   }
   /* ---------- เลข 7 ตัว 9 ฐาน (ฐาน 1–4) ----------
      ฐาน 1 วันเกิด (อาทิตย์ = 1) ฐาน 2 เดือนจันทรคติ ฐาน 3 ปีนักษัตร (ชวด = 1) — แต่ละแถว 7 ช่องนับเพิ่มทีละ 1 วนใน 1–7

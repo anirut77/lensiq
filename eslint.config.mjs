@@ -7,7 +7,7 @@ import globals from "globals";
 const LENSIQ = Object.fromEntries([
   "faceapi", "tf", "ort", "pdfjsLib", "docx", "cocoSsd", "handPoseDetection", "mobilenet",
   "LQCam", "LQDetect", "LQTrack", "LQHand", "LQStats", "LQAgg", "LQVault", "LQI18N", "LQI18N_Q", "LQModels", "LQFortune",
-  "LQStudio", "LQKit", "LENSIQ_API_BASE", "LENSIQ_FACEPARSE", "LENSIQ_BRAND", "LENSIQ_ANALYTICS", "LQApi", "LQAnalytics",
+  "LQStudio", "LQKit", "LENSIQ_API_BASE", "LENSIQ_FACEPARSE", "LENSIQ_BRAND", "LENSIQ_ANALYTICS", "LENSIQ_TURNSTILE_SITEKEY", "LQApi", "LQAnalytics",
   "LQInsightsAnalysis", "LQInsightsCards", "LQInsightsCharts", "LQInsightsData", "LQInsightsDemo", "LQInsightsUI",
   "PBHQ", "PBOutfits", "PBTpl", "StudioCore", "NMCore", "FR_KB"
 ].map(k => [k, "writable"]));
