@@ -4,7 +4,7 @@
 //   * every .fa-section has no Thai and no Chinese characters, and the reading is a real one (> 600 Latin letters, ≥ 2 sections)
 //   * the three-step plan (.fa-plan, 3 items per reading; astro/horoscope show two readings) and the Kalama-sutta reminder (.fa-reminder) are shown in English
 //   * the old "readings are written in Thai or Chinese" note is not shown
-// Prints a table per page (Thai share of all visible text is reported, not asserted: page fact cards are covered by en:coverage).
+// Prints a table per page; the Thai share of all visible text (page fact cards and extras included) must stay ≤ 3 %.
 import { assert } from "./cdp.mjs";
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -90,6 +90,8 @@ export default async function ({ base, launch, check, fakeCams }) {
           assert(m.plan.length >= 3 && m.plan.length % 3 === 0 && m.plan.every(t => !/[\u0E00-\u0E7F]/.test(t)), `${P.page}: plan ${JSON.stringify(m.plan)}`);
           assert(/judgement/.test(m.reminder) && !/[\u0E00-\u0E7F]/.test(m.reminder), `${P.page}: reminder "${m.reminder.slice(0, 80)}"`);
           assert(!m.noteShown, `${P.page}: the Thai/Chinese-only note is still shown`);
+          // page extras (fact cards, side notes, lucky box, siam si verse) come from the en-kb / FR_KB_EN data, so the page itself stays English
+          assert(m.share <= 0.03, `${P.page}: ${(m.share * 100).toFixed(1)} % of the visible text is Thai`);
         } finally { await page.close(); }
       });
     }

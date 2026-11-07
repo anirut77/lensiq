@@ -1,3 +1,4 @@
+// @ts-check
 // backend/src/fortune.js — port of server.py /api/fortune (same contract as fortune-ai.js expects).
 //
 //   GET  /api/fortune/status -> {enabled, model, turnstile}
@@ -18,16 +19,22 @@
 //     admin on/off per domain; Origin allowlist (router); never logs facts
 //   * membership (members.js): when the owner requires sign-in, guests are refused (401 member_required, fallback) and
 //     members get their tier's AI quota (member_ai_daily / plan entitlement); each AI use is a ledger row (domain only)
+//   * round 10: daily windows and quota days follow Asia/Bangkok; a refused call costs nothing (every bucket counted for
+//     it is given back, quotas never move past the limit); when the PROVIDER call fails (rate limit, connection, API
+//     error) the quota use / credit and the daily buckets are given back. PAYING members (active paid plan or purchased
+//     credits) use SEPARATE buckets (fortune:gmin:paid, fortune:pd:<user>, fortune:daily:paid — settings
+//     paid_per_user_daily / paid_daily_max), so free traffic cannot use up the shared guest caps paying customers need
 // Calls Claude through the official Anthropic SDK (@anthropic-ai/sdk).
 import FortuneAIModule from "../../fortune-ai.js";
 import { FORTUNE_DOMAINS } from "./constants.js";
 import { FORTUNE_SYSTEM } from "./fortune-prompt.js";
 import { checkEntitlement, freeMode } from "./billing.js";
 import { aiQuota, ledger, membership, optionalMember } from "./members.js";
+import { giveBack, isPaying } from "./quota.js";
 import { getAiSettings, getApiKey } from "./settings.js";
-import { callerHash, hit } from "./store.js";
+import { callerHash, hitAll } from "./store.js";
 import { turnstileReady, verifyTurnstile } from "./turnstile.js";
-import { HttpError, log, readJson } from "./util.js";
+import { BKK_OFFSET, HttpError, log, readJson } from "./util.js";
 
 /** The browser module, shared as-is (grounding gate + safety filter). */
 export const FortuneAI = /** @type {any} */ (FortuneAIModule);
@@ -265,22 +272,32 @@ export async function fortuneRun(env, request, deps = {}) {
   }
 
   const who = await callerHash(env, request, "fortune");
-  const limits = [
-    [`fortune:${who}`, settings.rpm, 60, "ส่งคำขอถี่เกินไป กรุณารอสักครู่"],
-    [`fortune:d:${who}`, settings.per_caller_daily, 86400, "วันนี้ใช้ AI ครบจำนวนต่อเครื่องแล้ว ระบบจะใช้ตัวเรียบเรียงในเครื่องแทน"],
-    ["fortune:gmin", settings.global_rpm, 60, "AI มีผู้ใช้งานมาก กรุณาลองใหม่ภายหลัง"],
-    ["fortune:daily", settings.daily_max, 86400, "วันนี้ใช้ AI ครบโควตาแล้ว ระบบจะใช้ตัวเรียบเรียงในเครื่องแทน"]
+  const paying = !!member && (await isPaying(env.DB, { userId: member.user.id }));
+  const DAY = { win: 86400, offset: BKK_OFFSET, daily: true };
+  const BUSY = "AI มีผู้ใช้งานมาก กรุณาลองใหม่ภายหลัง", FAST = "ส่งคำขอถี่เกินไป กรุณารอสักครู่";
+  const specs = paying ? [
+    { key: `fortune:${who}`, limit: settings.rpm, win: 60, msg: FAST },
+    { key: "fortune:gmin:paid", limit: settings.global_rpm, win: 60, msg: BUSY },
+    { key: `fortune:pd:${member.user.id}`, limit: settings.paid_per_user_daily, ...DAY, msg: "วันนี้ใช้ผู้ช่วยเขียน AI ครบจำนวนต่อวันของบัญชีแล้ว ระบบจะใช้ตัวเรียบเรียงในเครื่องแทน" },
+    { key: "fortune:daily:paid", limit: settings.paid_daily_max, ...DAY, msg: BUSY }
+  ] : [
+    { key: `fortune:${who}`, limit: settings.rpm, win: 60, msg: FAST },
+    { key: `fortune:d:${who}`, limit: settings.per_caller_daily, ...DAY, msg: "วันนี้ใช้ AI ครบจำนวนต่อเครื่องแล้ว ระบบจะใช้ตัวเรียบเรียงในเครื่องแทน" },
+    { key: "fortune:gmin", limit: settings.global_rpm, win: 60, msg: BUSY },
+    { key: "fortune:daily", limit: settings.daily_max, ...DAY, msg: "วันนี้ใช้ AI ครบโควตาแล้ว ระบบจะใช้ตัวเรียบเรียงในเครื่องแทน" }
   ];
-  for (const [k, limit, win, msg] of limits) {
-    const r = await hit(env.DB, k, limit, win);
-    if (!r.ok) return [{ error: msg, fallback: true }, 429];
-  }
+  const lim = await hitAll(env.DB, specs);
+  if (!lim.ok) return [{ error: lim.denied.msg, fallback: true }, 429];
+  const releaseDaily = () => lim.release(x => !!x.daily); // per-minute buckets stay counted (anti-abuse)
+  let refund = null;
   if (member) {
     const q = await aiQuota(env, member.user, { consume: true, ms, freeMode: freeMode(env) });
-    if (!q.allowed) return [{ error: "วันนี้ใช้ผู้ช่วยเขียน AI ครบโควตาของบัญชีแล้ว ระบบจะใช้ตัวเรียบเรียงในเครื่องแทน", code: "quota", fallback: true }, 429];
+    if (!q.allowed) { await releaseDaily(); return [{ error: "วันนี้ใช้ผู้ช่วยเขียน AI ครบโควตาของบัญชีแล้ว ระบบจะใช้ตัวเรียบเรียงในเครื่องแทน", code: "quota", fallback: true }, 429]; }
+    refund = q.refund;
   } else {
     const ent = await checkEntitlement(env, who, "ai_reading");
-    if (!ent.allowed) return [{ error: "ใช้ AI ครบโควตาของแพ็กเกจแล้ว ระบบจะใช้ตัวเรียบเรียงในเครื่องแทน", fallback: true }, 429];
+    if (!ent.allowed) { await releaseDaily(); return [{ error: "ใช้ AI ครบโควตาของแพ็กเกจแล้ว ระบบจะใช้ตัวเรียบเรียงในเครื่องแทน", code: "quota", fallback: true }, 429]; }
+    refund = ent.refund;
   }
 
   let Anthropic;
@@ -295,6 +312,9 @@ export async function fortuneRun(env, request, deps = {}) {
   } catch (e) {
     const c = classifyError(e, Anthropic);
     log("fortune.error", { kind: c.kind, code: c.code || 0, request_id: (e && e.requestID) || "" }); // never the facts
+    // the provider call failed (no reading was produced by the model): give the use back. A reply that arrived but
+    // failed parsing / grounding ("parse") did cost model tokens and stays counted.
+    if (c.kind !== "parse") { await giveBack(env.DB, refund); await releaseDaily(); }
     return [{ error: c.error, fallback: true }, c.status];
   }
 }

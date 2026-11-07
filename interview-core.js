@@ -24,6 +24,8 @@
  *   practiceTips(delivery, gaze) -> [{id, level:'good'|'tip', vars}]   self-coaching tips (key iv.tip.<id>)
  *   synthPts(box, yaw=0) -> 68 landmark points (test seam for ?fakedet)
  *   orgAllowed(org) / deliveryView({org, delivery, submitted}) -> "none"|"candidate"|"pending"|"interviewer" (see below)
+ *   Round 10 (softened observation layer): excitementSignals, signalsAllowed (EU/EEA mode), CONSIST + consistency,
+ *   raterSpread, checkQuestion, practiceSummary — documented next to the code below.
  */
 (function (root) {
   "use strict";
@@ -176,6 +178,8 @@
     var out = { kind: "lensiq-interview-sheet", v: 1, who: String(sheet.who || "").slice(0, 40), role: meta && meta.role || null, scores: {}, notes: {} };
     Object.keys(sheet.scores || {}).forEach(function (k) { if (validScore(sheet.scores[k])) out.scores[k] = sheet.scores[k]; });
     Object.keys(sheet.notes || {}).forEach(function (k) { var t = String(sheet.notes[k] || "").trim(); if (t) out.notes[k] = t.slice(0, 2000); });
+    var cs = {}; CONSIST_IDS.forEach(function (k) { if (sheet.consist && validConsist(sheet.consist[k])) cs[k] = sheet.consist[k]; });
+    if (Object.keys(cs).length) out.consist = cs; // optional (Round 10); older importers ignore it
     return JSON.stringify(out);
   }
   function importSheet(text, compIds) {
@@ -188,6 +192,9 @@
       if (o.scores && validScore(o.scores[k])) s.scores[k] = o.scores[k];
       if (o.notes && typeof o.notes[k] === "string" && o.notes[k].trim()) s.notes[k] = o.notes[k].trim().slice(0, 2000);
     });
+    var cs = {};
+    CONSIST_IDS.forEach(function (k) { if (o.consist && validConsist(o.consist[k])) cs[k] = o.consist[k]; });
+    if (Object.keys(cs).length) s.consist = cs; // optional (Round 10)
     return s;
   }
 
@@ -313,6 +320,120 @@
     return o.submitted === true ? "interviewer" : "pending";
   }
 
+  /* ---------- Round 10: softened observation layer ----------
+     Everything below is DESCRIPTIVE. Nothing infers an inner emotion, decides whether an answer is true, or scores a
+     person. Labels are observable behaviour ("observable signs of excitement", "answer consistency — an observation,
+     not a judgement"). Scientific caveats shown with them: people tell truth from lies at ~54% (Bond & DePaulo, 2006);
+     facial movements do not reliably reveal inner emotions (Barrett et al., 2019).
+
+     excitementSignals(d, g) -> {available, items:[{id, seen, vars}], seen, total}   key iv.sig.<id>
+       observable cues only: much head movement · frequent short pauses · fast voice rhythm · speech in short bursts ·
+       often turned away from the camera. Never a verdict; excitement in an interview is normal.
+     REGIONS ['th','eu'] · signalsAllowed(region, flow) — flow 'practice' (candidate alone, own device) always true;
+       flow 'employer' false in 'eu' mode (EU/EEA or regulated use: EU AI Act Art. 5(1)(f) bans emotion recognition
+       in the workplace, recruitment included), true otherwise.
+     CONSIST [{id, th}] · consistency(sheets) -> {items:[{id, yes, ask, n}], followUp:[ids], observed}
+       interviewers' own observations of answer consistency ('yes' = clear, 'ask' = ask more / verify, null = not seen)
+     raterSpread(sheets, compIds) -> [{who, n, dev, flag}]   flag 'lenient' (dev ≥ +1 vs the others' mean),
+       'severe' (dev ≤ −1), 'narrow' (≥ 3 ratings, all the same value) or null — a calibration prompt, not a fault
+     checkQuestion(text) -> [LAW ids]   'questions you may not ask' guard for typed questions and evidence notes
+     practiceSummary(results) -> {answers, ms, talkPct, pausesPerMin, pace, towardPct, facePct, signals:{id: count}} */
+  function excitementSignals(d, g) {
+    var hasG = !!(g && g.n >= 5), hasD = !!(d && d.ms >= 10000);
+    var items = [];
+    if (hasG) {
+      items.push({ id: "move", seen: g.movementBand === "high", vars: {} });
+      items.push({ id: "away", seen: g.facePct >= 70 && g.towardPct < 40, vars: { p: g.towardPct } });
+    }
+    if (hasD) {
+      items.push({ id: "pauses", seen: d.pausesPerMin >= 12, vars: { n: d.pausesPerMin } });
+      items.push({ id: "pace", seen: d.peakRate != null && d.peakRate > 6.5, vars: { r: d.peakRate == null ? "—" : d.peakRate } });
+      items.push({ id: "bursts", seen: d.segments >= 6 && d.meanRunMs > 0 && d.meanRunMs < 1500, vars: { s: (d.meanRunMs / 1000).toFixed(1) } });
+    }
+    return { available: hasG || hasD, items: items, seen: items.filter(function (x) { return x.seen; }).length, total: items.length };
+  }
+  var SIGNALS = {
+    move: "ศีรษะขยับค่อนข้างมาก",
+    away: "หันออกจากกล้องบ่อย (หันเข้ากล้อง {p}% ของเวลา)",
+    pauses: "หยุดสั้น ๆ บ่อย (ประมาณ {n} ครั้ง/นาที)",
+    pace: "จังหวะเสียงเร็ว (ประมาณ {r} ครั้ง/วินาที)",
+    bursts: "พูดเป็นช่วงสั้น ๆ ต่อกัน (เฉลี่ย {s} วินาทีต่อช่วง)"
+  };
+  var REGIONS = ["th", "eu"];
+  function signalsAllowed(region, flow) { return flow === "practice" || region !== "eu"; }
+
+  var CONSIST = [
+    { id: "specific", th: "ยกตัวอย่างที่เฉพาะเจาะจง (ใคร เมื่อไร ตัวเลข)" },
+    { id: "probe", th: "รายละเอียดยังสอดคล้องกันเมื่อถามเจาะ" },
+    { id: "own", th: "แยกได้ชัดว่าตนเองทำอะไร (\"ฉัน\" ไม่ใช่ \"เรา\")" },
+    { id: "verify", th: "ผลลัพธ์ตรวจสอบได้ (เช่น ผลงาน ตัวเลข บุคคลอ้างอิง)" }
+  ];
+  var CONSIST_IDS = CONSIST.map(function (c) { return c.id; });
+  var validConsist = function (v) { return v === "yes" || v === "ask"; };
+  function consistency(sheets) {
+    sheets = (sheets || []).filter(Boolean);
+    var items = CONSIST_IDS.map(function (id) {
+      var yes = 0, ask = 0;
+      sheets.forEach(function (s) { var v = s.consist ? s.consist[id] : null; if (v === "yes") yes++; else if (v === "ask") ask++; });
+      return { id: id, yes: yes, ask: ask, n: yes + ask };
+    });
+    return { items: items, followUp: items.filter(function (i) { return i.ask > 0; }).map(function (i) { return i.id; }), observed: items.reduce(function (t, i) { return t + i.n; }, 0) };
+  }
+
+  function raterSpread(sheets, compIds) {
+    sheets = (sheets || []).filter(Boolean);
+    return sheets.map(function (s, si) {
+      var own = (compIds || []).filter(function (id) { return validScore(s.scores && s.scores[id]); });
+      var devs = [];
+      own.forEach(function (id) {
+        var others = sheets.filter(function (o, oi) { return oi !== si && validScore(o.scores && o.scores[id]); }).map(function (o) { return o.scores[id]; });
+        if (others.length) devs.push(s.scores[id] - mean(others));
+      });
+      var dev = devs.length >= 2 ? r2(mean(devs)) : null;
+      var vals = own.map(function (id) { return s.scores[id]; });
+      var narrow = vals.length >= 3 && vals.every(function (v) { return v === vals[0]; });
+      var flag = dev != null && dev >= 1 ? "lenient" : dev != null && dev <= -1 ? "severe" : narrow ? "narrow" : null;
+      return { who: String(s.who || ""), n: vals.length, dev: dev, flag: flag };
+    });
+  }
+
+  /* keyword guard — lower-cased text; Thai, English and Chinese cues for each LAW topic (prompts a re-check, never blocks) */
+  var LAW_CUES = {
+    religion: /ศาสนา|นับถือ|religio|church|mosque|temple|宗教|信仰/,
+    marital: /แต่งงาน|สมรส|คู่ครอง|มีลูก|มีบุตร|วางแผนมีบุตร|marri|marital|spouse|husband|wife|children|kids|婚|配偶|孩子|子女/,
+    pregnancy: /ตั้งครรภ์|ตั้งท้อง|pregnan|怀孕|孕/,
+    age: /อายุ(?!งาน)|ปีเกิด|เกิดปี|ปีที่จบ|\bage\b|how old|year of birth|born in|年龄|多大|出生/,
+    gender: /เพศ|lgbt|gender|sexual orientation|性别|性取向/,
+    origin: /เชื้อชาติ|สัญชาติ|ชาติพันธุ์|ภูมิลำเนา|บ้านเกิด|\brace\b|ethnic|nationality|where are you from|民族|国籍|籍贯/,
+    health: /โรคประจำตัว|สุขภาพ|พิการ|เจ็บป่วย|health|disab|illness|medical|健康|疾病|残疾/,
+    politics: /การเมือง|พรรค|สหภาพแรงงาน|politic|trade union|labou?r union|政治|工会/,
+    criminal: /อาชญากรรม|ติดคุก|ต้องโทษ|criminal|arrest|convict|犯罪|坐牢/,
+    appearance: /น้ำหนัก|ส่วนสูง|หน้าตา|รูปร่าง|weight|height|good-looking|体重|身高|长相/,
+    family: /พ่อแม่|บิดามารดา|ฐานะทางบ้าน|ภาระครอบครัว|parents|family background|父母|家庭/
+  };
+  function checkQuestion(text) {
+    var t = String(text || "").toLowerCase();
+    if (!t.trim()) return [];
+    return LAW.filter(function (l) { return LAW_CUES[l.id] && LAW_CUES[l.id].test(t); }).map(function (l) { return l.id; });
+  }
+
+  function practiceSummary(results) {
+    var rs = (results || []).filter(function (r) { return r && (r.d || r.g); });
+    var ms = 0, sp = 0, pauses = 0, paces = [], toward = [], face = [], signals = {};
+    rs.forEach(function (r) {
+      if (r.d && r.d.ms > 0) { ms += r.d.ms; sp += r.d.speechMs || 0; pauses += r.d.pauses || 0; if (r.d.peakRate != null) paces.push(r.d.peakRate); }
+      if (r.g && r.g.n >= 5) { toward.push(r.g.towardPct); face.push(r.g.facePct); }
+      excitementSignals(r.d, r.g).items.forEach(function (x) { if (x.seen) signals[x.id] = (signals[x.id] || 0) + 1; });
+    });
+    return {
+      answers: rs.length, ms: ms, talkPct: ms > 0 ? Math.round(sp / ms * 100) : null,
+      pausesPerMin: ms > 0 ? Math.round(pauses / (ms / 60000) * 10) / 10 : null,
+      pace: paces.length ? r2(mean(paces)) : null,
+      towardPct: toward.length ? Math.round(mean(toward)) : null, facePct: face.length ? Math.round(mean(face)) : null,
+      signals: signals
+    };
+  }
+
   /* ---------- test seam: 68 frontal-ish landmarks inside a box, nose shifted for yaw ---------- */
   function synthPts(box, yaw) {
     var w = box.w != null ? box.w : box.width, h = box.h != null ? box.h : box.height, y = yaw || 0, u = [], i;
@@ -330,6 +451,9 @@
     aggregate: aggregate, exportSheet: exportSheet, importSheet: importSheet, validScore: validScore,
     rmsDb: rmsDb, createVad: createVad, poseOf: poseOf, gazeMetrics: gazeMetrics, practiceTips: practiceTips, synthPts: synthPts,
     orgAllowed: orgAllowed, deliveryView: deliveryView,
+    excitementSignals: excitementSignals, SIGNALS: SIGNALS, REGIONS: REGIONS, signalsAllowed: signalsAllowed,
+    CONSIST: CONSIST, CONSIST_IDS: CONSIST_IDS, consistency: consistency, raterSpread: raterSpread,
+    LAW_CUES: LAW_CUES, checkQuestion: checkQuestion, practiceSummary: practiceSummary,
     median: median, mean: mean, sd: sd
   };
   if (typeof module !== "undefined" && module.exports) module.exports = IVCore;

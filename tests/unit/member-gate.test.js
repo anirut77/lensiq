@@ -121,3 +121,30 @@ test("lensiq-fortune-hook.js: member token added to /api/fortune POST and status
   assert.equal(seen[2].init.headers.get("Authorization"), "Bearer tok_" + "a".repeat(40));
   assert.ok(!seen[3].init.headers || !(seen[3].init.headers instanceof Headers), "other origins never get the token");
 });
+
+test("pickSession: sessionStorage first (default), localStorage only for 'remember me'; expired dropped", () => {
+  const now = 1_700_000_000_000, ok = { t: "x".repeat(43), exp: now / 1000 + 60 }, old = { t: "y".repeat(43), exp: now / 1000 - 1 };
+  assert.deepEqual(M.pickSession(ok, null, now), { sess: ok, where: "session" });
+  assert.deepEqual(M.pickSession(null, ok, now), { sess: ok, where: "local" });
+  assert.deepEqual(M.pickSession(old, ok, now), { sess: ok, where: "local" });
+  assert.deepEqual(M.pickSession(old, old, now), { sess: null, where: null });
+  assert.deepEqual(M.pickSession({ t: "" }, "junk", now), { sess: null, where: null });
+});
+
+test("claimOutcome / addClaim: guest purchase kept until linked; invalid / claimed dropped; endpoint missing kept", () => {
+  assert.equal(M.claimOutcome({ ok: true, status: 200, j: {} }), "done");
+  assert.equal(M.claimOutcome({ ok: false, status: 409, j: { code: "already_claimed" } }), "drop");
+  assert.equal(M.claimOutcome({ ok: false, status: 400, j: null }), "drop");
+  assert.equal(M.claimOutcome({ ok: false, status: 404, j: { error: "not found" } }), "keep", "Worker without the endpoint yet");
+  assert.equal(M.claimOutcome({ ok: false, status: 0, j: null }), "keep", "offline");
+  assert.equal(M.claimOutcome({ ok: false, status: 503, j: null }, 100 * 86400), "drop", "too old");
+  const c = { customer_id: "c".repeat(24), order_token: "t".repeat(32) };
+  let l = M.addClaim([], c, 10);
+  assert.equal(l.length, 1);
+  l = M.addClaim(l, { ...c, order_token: "u".repeat(32) }, 11);
+  assert.equal(l.length, 1, "deduplicated by customer id");
+  assert.equal(l[0].order_token, "u".repeat(32));
+  for (let i = 0; i < 8; i++) l = M.addClaim(l, { customer_id: "id" + String(i).padStart(6, "0"), order_token: "t".repeat(32) }, 20 + i);
+  assert.equal(l.length, 5, "at most 5 kept");
+  assert.deepEqual(M.addClaim([], { customer_id: "<script>", order_token: "x" }), [], "malformed ignored");
+});

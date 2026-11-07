@@ -42,13 +42,16 @@ test("matchCrossings: removes the tapping lag, matches one to one, flags directi
   assert.equal(S.matchCrossings(late.sys, late.truth).pairs.length, 30);
 });
 
-test("countReport: pass with enough clean data, 'more' when short, swap recommendation, fail on heavy overcount", () => {
+test("countReport: pass with enough clean data, 'ontrack' when short, swap recommendation, fail on heavy overcount", () => {
   const good = door(80, { miss: [3, 40], extra: [500000] });
   const r = S.countReport(good.sys, good.truth, { stats: { hz: 8, personH: 0.3 } });
   assert.equal(r.verdict, "pass", JSON.stringify(r.metrics));
   near(r.net, -1 / 80, 1e-9); assert.ok(r.netCI.lo <= r.net && r.net <= r.netCI.hi);
   const short = door(20);
-  assert.equal(S.countReport(short.sys, short.truth).verdict, "more");
+  const rsh = S.countReport(short.sys, short.truth);
+  assert.equal(rsh.verdict, "ontrack"); assert.equal(rsh.provisional, "more", "round-9 point verdict kept as provisional");
+  assert.ok(rsh.need.find(x => x.group === "crossings").more >= 30, JSON.stringify(rsh.need));
+  assert.equal(r.provisional, "pass");
   const sw = door(60, { flip: Array.from({ length: 60 }, (_, i) => i) });
   const rs = S.countReport(sw.sys, sw.truth);
   assert.ok(rs.recs.some(x => x.includes("สลับทิศ")), rs.recs.join("|"));
@@ -73,7 +76,12 @@ test("attendanceReport: any automatic wrong check-in fails; zero in 20 strangers
   const mem = Array.from({ length: 25 }, (_, i) => ({ truth: "p" + (i % 5), outcome: i < 22 ? "auto" : i < 24 ? "ask" : "none", label: i < 24 ? "p" + (i % 5) : null }));
   const str = Array.from({ length: 20 }, (_, i) => ({ truth: "stranger", outcome: i < 2 ? "ask" : "none", label: i < 2 ? "p1" : null }));
   const r = S.attendanceReport([...mem, ...str]);
-  assert.equal(r.verdict, "pass", JSON.stringify(r.metrics));
+  // round 10: 0 of 20 strangers is "no automatic errors so far", not a confirmed pass (upper bound ~16% > 1%)
+  assert.equal(r.provisional, "pass", JSON.stringify(r.metrics)); assert.equal(r.verdict, "ontrack");
+  const needS = r.need.find(x => x.group === "strangers").more;
+  assert.ok(needS >= 340 && needS <= 420, "0/n strangers needs n ≈ 380 for an upper bound ≤ 1%: more " + needS);
+  assert.ok(r.recs.some(x => x.includes("ยังไม่มีการเช็คชื่อผิดอัตโนมัติ")), r.recs.join("|"));
+  assert.equal(r.n.distinctMembers, 5);
   near(r.recognised.p, 24 / 25, 1e-9); assert.equal(r.n.strangerAuto, 0);
   assert.ok(r.strangerAuto.hi > 0.15 && r.strangerAuto.hi < 0.2, "0/20 -> upper bound about 16%");
   const bad = S.attendanceReport([...mem, { truth: "stranger", outcome: "auto", label: "p2" }, ...str]);
@@ -94,8 +102,11 @@ test("driver protocol: schedule fits the test, real monitor on scripted frames g
   const rep = S.driverReport({ t0, durationMs: 300000, prompts: P, events, frames });
   assert.equal(rep.n.hits, 8); assert.equal(rep.n.falseAlarms, 0);
   assert.ok(rep.latencyMs >= 1800 && rep.latencyMs <= 2100, "1.5-s long-closure rule + 0.4 s reaction: " + rep.latencyMs);
-  assert.equal(rep.verdict, "pass", JSON.stringify(rep.metrics));
+  assert.equal(rep.provisional, "pass", JSON.stringify(rep.metrics));
+  assert.equal(rep.verdict, "ontrack", "8/8 hits: Wilson lower bound 68% < 90%, and 0 alarms in 4 min is not ≤ 1/h yet");
+  assert.ok(rep.need.find(x => x.group === "prompts").more >= 20 && rep.need.find(x => x.group === "openMin").more > 200, JSON.stringify(rep.need));
   assert.ok(rep.falsePerHour.hi > 10, "0 alarms in a 4-min open period is still a wide interval");
+  assert.equal(rep.framesIndependent, false); assert.ok(rep.openFrameClosedBlock && rep.openFrameClosedBlock.groups >= 10, "frame rates use a block bootstrap");
   // an alarm outside every prompt counts as false
   const rep2 = S.driverReport({ t0, durationMs: 300000, prompts: P, events: [...events, { t: t0 + 5000, type: "long_closure", level: 2 }], frames });
   assert.equal(rep2.n.falseAlarms, 1);
@@ -166,4 +177,110 @@ test("thumbShift recovers a global translation; exportDoc carries no image data"
   assert.ok(Math.abs(s.dx) >= 1 / 32 && Math.abs(s.dx) <= 3 / 32, JSON.stringify(s)); assert.equal(s.dy, 0);
   const d = S.exportDoc("store", { truth: [{ t: 1, dir: "in" }] });
   assert.equal(d.format, "lensiq-sitecheck"); assert.ok(!/data:image|base64/.test(JSON.stringify(d)));
+});
+
+// ---------- round 10: CI-aware verdicts (the evaluator's cases) ----------
+test("evaluator case: 50 crossings, 44 matched, 7 false counts -> on target so far, NOT a confirmed pass", () => {
+  const truth = [], sys = [];
+  for (let i = 0; i < 50; i++) { const t = 10000 + i * 20000; truth.push({ t, dir: "in" }); if (i < 44) sys.push({ t: t - 500, dir: "in" }); }
+  for (let i = 0; i < 7; i++) sys.push({ t: 24000 + i * 130000, dir: "in" });
+  const r = S.countReport(sys, truth);
+  assert.equal(r.n.matched, 44); assert.equal(r.n.falseCount, 7); assert.equal(r.n.truth, 50);
+  assert.equal(r.provisional, "pass", "point estimates: precision 86% ≥ 85%, net +2% within ±10%");
+  assert.notEqual(r.verdict, "pass"); assert.equal(r.verdict, "ontrack");
+  assert.ok(r.precision.lo < 0.85, "Wilson lower bound of 44/51 is below the 85% target: " + r.precision.lo);
+  assert.ok(r.need.find(x => x.group === "crossings").more > 1000, JSON.stringify(r.need));
+  assert.ok(S.needList(r).length >= 1 && /คนผ่านเส้นนับ \(อีกราว/.test(S.needList(r)[0]));
+});
+test("evaluator case: QC 0/30 false rejects + 0/10 misses -> not confirmed (upper bounds 11% and 28% > 2%)", () => {
+  const rows = [];
+  for (let i = 0; i < 30; i++) rows.push({ truth: "good", pass: true, reasons: [], v: {} });
+  for (let i = 0; i < 10; i++) rows.push({ truth: "bad", pass: false, reasons: ["capColor"], v: {} });
+  const r = S.qcReport(rows, {});
+  assert.equal(r.provisional, "pass"); assert.equal(r.verdict, "ontrack");
+  assert.ok(r.falseReject.hi > 0.1 && r.miss.hi > 0.25);
+  const g = r.need.find(x => x.group === "good").more, b = r.need.find(x => x.group === "bad").more;
+  assert.ok(g >= 150 && g <= 170 && b >= 170 && b <= 185, "0/n needs n ≈ 189 for an upper bound ≤ 2%: " + g + " / " + b);
+  // a confirmed pass needs ~190 of each with no errors
+  const big = [];
+  for (let i = 0; i < 200; i++) big.push({ truth: "good", pass: true, reasons: [], v: {} }, { truth: "bad", pass: false, reasons: ["capColor"], v: {} });
+  assert.equal(S.qcReport(big, {}).verdict, "pass");
+});
+test("needMoreProp: exact Wilson search from the needN() guess; null when the rate itself misses the target", () => {
+  const w = n => S.wilson(n, n);
+  const m = S.needMoreProp(10, 10, 0.9, ">=");
+  assert.ok(w(10 + m).lo >= 0.9 && w(10 + m - 1).lo < 0.9, "smallest n with lower bound ≥ 90%: " + (10 + m));
+  assert.equal(S.needMoreProp(8, 10, 0.9, ">="), null);
+  const z = S.needMoreProp(0, 20, 0.01, "<=");
+  assert.ok(S.wilson(0, 20 + z).hi <= 0.01 && S.wilson(0, 20 + z - 1).hi > 0.01);
+  assert.equal(S.needMoreProp(95, 100, 0.9, ">=", 2), 2 * S.needMoreProp(95, 100, 0.9, ">="), "design effect scales the answer");
+  const h = S.needMoreRate(0, 0.07, 1); // 0 false alarms in 4 min: need ~3.7 h at ≤ 1/h
+  assert.ok(h > 3.5 && h < 3.7, String(h));
+});
+test("attendance: person-cluster bootstrap widens the interval when the same people are tested repeatedly; confirmed pass needs enough strangers", () => {
+  // 3 people × 10 trials: two always recognised, one only 5/10 -> pooled 83%, but only 3 independent people
+  const T = [];
+  for (let k = 0; k < 10; k++) { T.push({ truth: "a", outcome: "auto", label: "a" }, { truth: "b", outcome: "auto", label: "b" }, { truth: "c", outcome: k < 5 ? "auto" : "none", label: k < 5 ? "c" : null }); }
+  for (let i = 0; i < 400; i++) T.push({ truth: "stranger", outcome: "none", label: null, sid: "s" + (i % 80) });
+  const r = S.attendanceReport(T);
+  assert.equal(r.n.distinctMembers, 3); assert.equal(r.n.distinctStrangers, 80);
+  assert.ok(r.recognisedCluster && r.recognisedCluster.hi - r.recognisedCluster.lo > r.recognised.hi - r.recognised.lo, "cluster interval wider than Wilson");
+  assert.ok(r.recs.some(x => x.includes("ทดสอบผู้ลงทะเบียนเพียง 3 คน")));
+  // 25 people × 1 trial all recognised + 400 strangers (none auto) -> confirmed: stranger upper bound < 1%, recognition lower bound ≥ 90%
+  const ok = Array.from({ length: 40 }, (_, i) => ({ truth: "p" + i, outcome: "auto", label: "p" + i })).concat(Array.from({ length: 400 }, () => ({ truth: "stranger", outcome: "none", label: null })));
+  const rp = S.attendanceReport(ok);
+  assert.equal(rp.verdict, "pass", JSON.stringify(rp.need)); assert.ok(rp.strangerAuto.hi <= 0.01);
+});
+test("visitorReport (booth) and demoReport (signage): counts, confusion tables, CI-aware verdicts", () => {
+  const truth = [], sys = [];
+  for (let i = 0; i < 40; i++) { truth.push({ t: 5000 + i * 15000 }); if (i % 10) sys.push({ t: 5000 + i * 15000 + 1500 }); }
+  sys.push({ t: 700000 }, { t: 760000 });
+  const b = S.visitorReport(sys, truth);
+  assert.equal(b.kind, "booth"); assert.equal(b.n.matched, 36); assert.equal(b.n.missed, 4); assert.equal(b.n.falseCount, 2);
+  assert.ok(Math.abs(b.lagMs - 1500) < 300, "arrival-to-visitor lag removed: " + b.lagMs);
+  assert.ok(["ontrack", "more"].includes(b.verdict));
+  const rows = [];
+  const bands = S.BANDS;
+  for (let i = 0; i < 60; i++) rows.push({ truthBand: bands[i % 4], truthGender: i % 2 ? "male" : "female", band: i % 7 === 0 ? bands[(i + 1) % 4] : bands[i % 4], gender: i % 13 === 0 ? "unk" : i % 2 ? "male" : "female" });
+  const d = S.demoReport(rows);
+  assert.equal(d.kind, "signage"); assert.equal(d.n.labelled, 60);
+  assert.equal(d.gender.x, d.gender.n, "every called gender correct");
+  assert.equal(d.confusion.band.length, 4); assert.equal(d.confusion.gender[0].reduce((a, v) => a + v, 0), 30);
+  assert.equal(d.tables.length, 2);
+  assert.ok(d.band.p > 0.8 && d.verdict !== "fail");
+});
+test("stall detector: a frozen stream (no new frames, identical thumbnail) is stalled; a live one and a paused file are not", () => {
+  const th = v => ({ thumb: Float32Array.from({ length: 576 }, (_, i) => (i * 7 + v) % 255) });
+  const live = S.createStall({ ms: 3000 });
+  let t = 0, frames = 1, st = false;
+  for (; t <= 10000; t += 1000) { frames += 15; st = live.note(t, { frames, time: t / 1000, paused: false }, th(t)); }
+  assert.equal(st, false, "frames arriving");
+  for (let k = 0; k < 4; k++, t += 1000) st = live.note(t, { frames, time: t / 1000, paused: false }, th(0)); // rVFC stopped, currentTime still runs
+  assert.equal(st, true, "no new frame for 3 s -> stalled");
+  // no rVFC: currentTime frozen
+  const old = S.createStall({ ms: 3000 }); let s2 = false;
+  for (let k = 0; k < 6; k++) s2 = old.note(k * 1000, { frames: null, time: 5, paused: false }, th(k));
+  assert.equal(s2, true);
+  // a paused video file is not a stalled camera
+  const file = S.createStall({ ms: 3000 }); let s3 = false;
+  for (let k = 0; k < 8; k++) s3 = file.note(k * 1000, { frames: 40, time: 5, paused: true }, th(0), { live: false });
+  assert.equal(s3, false);
+  // frames keep coming but the picture is bit-identical (frozen USB driver): stalled after 3 × ms on a live camera
+  const usb = S.createStall({ ms: 1000 }); let s4 = false;
+  for (let k = 0; k < 5; k++) s4 = usb.note(k * 1000, { frames: 10 + k * 15, time: k, paused: false }, th(1));
+  assert.equal(s4, true);
+  // health: extra.stalled -> level 2
+  const h = S.createHealth(); h.push(null, { stalled: true });
+  assert.ok(h.state().codes.includes("stalled") && h.state().level === 2);
+});
+test("latestByCamera: newest result per page and camera; round-9 items become provisional", () => {
+  const ls = {
+    "st-sitecheck": JSON.stringify([{ v: 2, at: 3, verdict: "ontrack", provisional: "pass", cam: "ประตูหน้า", summary: "x", need: [{ group: "crossings", more: 40 }] }, { v: 2, at: 2, verdict: "pass", cam: "ประตูหน้า" }, { at: 1, verdict: "pass", cam: "ประตูหลัง" }]),
+    "qc-sitecheck": "not json", "att-sitecheck": JSON.stringify([{ at: 5, verdict: "pass" }])
+  };
+  const L = S.latestByCamera(ls);
+  assert.equal(L.length, 3);
+  assert.deepEqual(L.map(x => x.page + ":" + x.cam), ["attendance:", "store:ประตูหน้า", "store:ประตูหลัง"]);
+  assert.equal(L[1].verdict, "ontrack");
+  assert.equal(L[0].verdict, "more", "an old point 'pass' is not shown as confirmed"); assert.equal(L[0].provisional, "pass"); assert.equal(L[0].legacy, true);
 });

@@ -64,7 +64,7 @@
     "pb.id.bright": "亮度",
     "pb.id.smooth": "磨皮",
     "pb.id.note": "注意：服装为方便使用的模拟图形，不含任何官方标志或军衔。部分机构不接受经过数字修饰的照片，正式使用前请确认机构要求。",
-    "pb.id.studio": "想让服装像真实穿着一样自然？试试换装影棚 →",
+    "pb.id.studio": "需要更换背景、修图或检查证件照尺寸？试试影棚 →（影棚中的服装仅为服装预览）",
     "pb.result": "结果",
     "pb.ho.title": "分享图片",
     "pb.ho.hint": "长按图片保存到设备，或立即通过 AirDrop / Nearby Share / LINE 分享，无需扫描二维码",
@@ -253,7 +253,24 @@
     "photobooth.js.kind.bg": "背景",
     // photobooth-templates.js 的错误信息（以泰文原句为键）
     "ตัดพื้นหลังไม่ได้ (โมเดล MODNet ยังไม่พร้อม) — ใช้ไฟล์ PNG พื้นใสแทน หรือรอโหลดโมเดลแล้วลองใหม่": "无法去除背景（MODNet 模型尚未就绪）— 请改用透明背景 PNG，或等待模型加载后重试",
-    "ไม่พบชุดในภาพ": "图片中未找到服装"
+    "ไม่พบชุดในภาพ": "图片中未找到服装",
+    // round 10
+    "photobooth.js.of.preview": "服装是软件绘制的示例（预览），并非您真实穿着的照片，照片角落带有“服装预览”标记。许多机构不接受数字添加的服装；正式申请请使用不换装的版本或穿真实服装拍摄。",
+    "photobooth.js.of.draft": "正在以草稿显示服装（模拟服装）。可能露出原来的衣服、颈部接缝或被直线切断的头发。许多机构不接受数字添加的服装。",
+    "photobooth.js.of.safe": "先显示不换装的照片：在我们的测试中，证件照上的绘制服装全部有可见缺陷（124 张中 124 张，多数是服装周围露出原来的衣服）。正式申请请穿真实服装拍摄。您仍可用下方按钮查看服装草稿。",
+    "photobooth.js.of.found": "此照片检测到：{f}",
+    "photobooth.js.of.f.hair-cut": "头发被直线切断",
+    "photobooth.js.of.f.neck-gap": "颈部有空隙",
+    "photobooth.js.of.f.leftover": "露出原来的衣服",
+    "photobooth.js.of.f.no-matte": "无法去除背景",
+    "photobooth.js.of.f.qa-error": "检查失败",
+    "photobooth.js.of.showDraft": "查看服装草稿（可能有缺陷）",
+    "photobooth.js.of.showSafe": "返回不换装的照片",
+    "photobooth.js.cf.draft": "这张照片含有未通过检查的模拟服装草稿，可能有缺陷，且许多机构不接受数字添加的服装。照片带有“服装预览”标记。是否继续？",
+    "photobooth.js.cf.id": "这张证件照含有模拟服装。许多机构不接受数字添加服装或更换背景的照片。照片角落始终带有“服装预览”标记。是否继续？",
+    "photobooth.js.res.galleryNote": "所有服装都是软件绘制的示例（预览）；先显示不换装的照片。",
+    "pb.cf.ok": "继续",
+    "pb.cf.no": "取消"
   } };
   if (root.LQI18N && typeof root.LQI18N.add === "function") root.LQI18N.add(dict);
   else (root.LQI18N_Q = root.LQI18N_Q || []).push(dict);

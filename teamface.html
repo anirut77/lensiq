@@ -17,19 +17,23 @@
 <script src="i18n/zh-fortune-faceread.js?v=1"></script>
 <script src="i18n/zh-teamface.js?v=1"></script>
 
-<div class="tf-banner" id="tfBanner" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span data-i18n="tf.s.banner">เพื่อความบันเทิง/สันทนาการเท่านั้น — ห้ามใช้ประกอบการจ้างงาน ประเมินผล หรือตัดสินบุคคล</span></div>
+<div class="tf-banner" id="tfBanner" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span data-i18n="tf.s.banner">เพื่อความบันเทิง/กิจกรรมละลายพฤติกรรม ไม่ใช่การประเมิน — ห้ามใช้ประกอบการจ้างงาน ประเมินผล หรือตัดสินบุคคล</span></div>
 
-<main class="tf" id="tfApp">
+<main class="tf" id="tfApp" data-not-assessment>
+  <p class="tf-na" data-i18n="tf.s.na">เพื่อความบันเทิง/กิจกรรมละลายพฤติกรรม ไม่ใช่การประเมิน</p>
   <h1 data-i18n="tf.s.h1">โหงวเฮ้งทีม</h1>
+  <p class="tf-guard" id="tfGuard" role="alert" hidden data-i18n="tf.s.guard">หน้านี้ไม่รับข้อมูลผู้สมัครหรือรหัสบันทึกใด ๆ ที่ส่งมาทางลิงก์ — ข้อมูลนั้นถูกละไว้ ผลของกิจกรรมนี้แนบกับการสรรหาหรือการประเมินไม่ได้</p>
   <p class="lead" data-i18n="tf.s.lead">กิจกรรมละลายพฤติกรรม: สมาชิกที่ยินยอมรับการ์ด "บทบาทในทีม" แบบขำ ๆ จากรูปหน้าตามตำราโหงวเฮ้ง แล้วดูกันว่าทีมเราผสมกันแบบไหน</p>
   <ul class="tf-rules" role="note">
     <li data-i18n="tf.s.r1">ความเชื่อโหงวเฮ้ง ไม่ใช่วิทยาศาสตร์ — การ์ดทุกใบเป็นเชิงบวก ไม่มีบทบาทไหนดีกว่ากัน</li>
     <li data-i18n="tf.s.r2">ร่วมเฉพาะคนที่ยินยอม ไม่ร่วมก็ได้ ไม่ต้องใส่ชื่อ</li>
     <li data-i18n="tf.s.r3">ประมวลผลในเบราว์เซอร์ ไม่ส่งและไม่บันทึกภาพ ปิดหน้าแล้วการ์ดหายไป</li>
+    <li data-i18n="tf.s.r4">แนบผลกับประวัติผู้สมัครหรือแฟ้มพนักงานไม่ได้: ไม่มีการส่งออก ไม่มีรหัส และชื่อเล่นหรือชื่อทีมที่ดูเหมือนรหัสผู้สมัครหรือการสรรหาจะไม่ถูกใช้</li>
   </ul>
 
   <section class="card tf-stage" aria-labelledby="tfStageH">
     <h2 id="tfStageH" data-i18n="tf.s.stageH">อ่านบทบาททีละคน</h2>
+    <p class="tf-na" data-i18n="tf.s.na">เพื่อความบันเทิง/กิจกรรมละลายพฤติกรรม ไม่ใช่การประเมิน</p>
     <div class="tf-grid">
       <div>
         <div class="cam" id="tfCam">
@@ -45,6 +49,7 @@
       </div>
       <div>
         <label class="field"><span data-i18n="tf.s.team">ชื่อทีม (ไม่บังคับ)</span><input id="tfTeam" type="text" maxlength="40" autocomplete="off" placeholder="เช่น ทีมการตลาด" data-i18n-attr="placeholder:tf.s.team.ph"></label>
+        <p class="tf-warn" id="tfTeamWarn" role="status"></p>
         <label class="field"><span data-i18n="tf.s.nick">ชื่อเล่นบนการ์ด (ไม่บังคับ ไม่บันทึก)</span><input id="tfNick" type="text" maxlength="24" autocomplete="off" placeholder="เว้นว่างได้" data-i18n-attr="placeholder:tf.s.nick.ph"></label>
         <label class="check consent"><input type="checkbox" id="tfConsent"> <span data-i18n="tf.s.consent">สมาชิกคนนี้ยินยอมร่วมกิจกรรม และรู้ว่าเป็นเพื่อความสนุกเท่านั้น</span></label>
         <button class="btn primary big" type="button" id="tfRead" disabled data-i18n="tf.s.read">อ่านบทบาท</button>
@@ -55,10 +60,12 @@
 
   <section class="tf-cards-wrap" id="tfCardsWrap" hidden aria-labelledby="tfCardsH">
     <h2 id="tfCardsH" data-i18n="tf.s.cardsH">การ์ดบทบาทของทีม</h2>
+    <p class="tf-na" data-i18n="tf.s.na">เพื่อความบันเทิง/กิจกรรมละลายพฤติกรรม ไม่ใช่การประเมิน</p>
     <div class="tf-cards" id="tfCards"></div>
   </section>
 
   <section class="card tf-sum" id="tfSummary" aria-labelledby="tfSumTitle">
+    <p class="tf-na" data-i18n="tf.s.na">เพื่อความบันเทิง/กิจกรรมละลายพฤติกรรม ไม่ใช่การประเมิน</p>
     <p class="eyebrow" data-i18n="tf.s.sumK">ทีมเราสมดุลแบบไหน</p>
     <h2 id="tfSumTitle"></h2>
     <p id="tfSumText"></p>
@@ -79,6 +86,7 @@
 
   <details class="card tf-how">
     <summary data-i18n="tf.s.howH">ทำงานอย่างไร</summary>
+    <p class="tf-na" data-i18n="tf.s.na">เพื่อความบันเทิง/กิจกรรมละลายพฤติกรรม ไม่ใช่การประเมิน</p>
     <p data-i18n="tf.s.how1">ใช้จุดบนใบหน้า 68 จุดวัดสัดส่วนรูปหน้า แล้วจัดเป็นรูปหน้าห้าธาตุตามตำราโหงวเฮ้ง (ชุดเดียวกับหน้า อ่านโหงวเฮ้ง) จากนั้นจับคู่ธาตุกับบทบาทในทีมแบบสนุก ๆ: ไม้ = นักริเริ่ม, ไฟ = ผู้จุดประกาย, ดิน = ผู้ประสาน, ทอง = ผู้วางระบบ, น้ำ = นักเชื่อมโยง</p>
     <p data-i18n="tf.s.how2">รูปหน้าไม่ได้บอกนิสัย ความสามารถ หรือผลงานของใคร การ์ดนี้จึงใช้เป็นเพียงจุดเริ่มบทสนทนา ห้ามนำไปใช้คัดเลือก ประเมินผล เลื่อนตำแหน่ง หรือมอบหมายงาน</p>
   </details>

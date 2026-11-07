@@ -63,7 +63,7 @@
     "pb.id.bright": "Brightness",
     "pb.id.smooth": "Skin smoothing",
     "pb.id.note": "Note: outfits are simulated graphics for convenience and contain no official insignia or rank. Some organizations do not accept digitally retouched photos; check their requirements before official use.",
-    "pb.id.studio": "Want the outfit to look truly worn? Try Outfit Studio →",
+    "pb.id.studio": "Need a background change, retouching or an ID-photo size check? Try the Studio → (its outfits are an outfit preview)",
     "pb.result": "Result",
     "pb.ho.title": "Share image",
     "pb.ho.hint": "Long-press the image to save it, or share instantly via AirDrop / Nearby Share / LINE — no QR code needed",
@@ -252,7 +252,24 @@
     "photobooth.js.kind.bg": "Background",
     // photobooth-templates.js error messages (Thai source text as keys)
     "ตัดพื้นหลังไม่ได้ (โมเดล MODNet ยังไม่พร้อม) — ใช้ไฟล์ PNG พื้นใสแทน หรือรอโหลดโมเดลแล้วลองใหม่": "Cannot remove the background (MODNet model not ready) — use a transparent PNG instead, or wait for the model to load and try again",
-    "ไม่พบชุดในภาพ": "No outfit found in the image"
+    "ไม่พบชุดในภาพ": "No outfit found in the image",
+    // round 10
+    "photobooth.js.of.preview": "The outfit is a software-drawn sample (preview), not a photo of you wearing it, and the photo carries an \"outfit preview\" label in the corner. Many agencies reject digitally added outfits; for a real application use the version without the outfit or wear the real clothes.",
+    "photobooth.js.of.draft": "Showing the outfit as a draft (simulated outfit). The original clothes, a join at the neck or a straight hair cut may show. Many agencies reject digitally added outfits.",
+    "photobooth.js.of.safe": "Showing the photo without the outfit first: in our benchmark every drawn outfit on an ID photo had a visible defect (124 of 124 images, mostly the original clothes showing around the outfit). For a real application wear the real clothes. You can still view the outfit as a draft with the button below.",
+    "photobooth.js.of.found": "Found on this photo: {f}",
+    "photobooth.js.of.f.hair-cut": "hair cut straight",
+    "photobooth.js.of.f.neck-gap": "gap at the neck",
+    "photobooth.js.of.f.leftover": "original clothes showing",
+    "photobooth.js.of.f.no-matte": "background could not be removed",
+    "photobooth.js.of.f.qa-error": "check failed",
+    "photobooth.js.of.showDraft": "View the outfit draft (may show defects)",
+    "photobooth.js.of.showSafe": "Back to the photo without the outfit",
+    "photobooth.js.cf.draft": "This photo has a simulated outfit draft that failed the check; defects may show, and many agencies reject digitally added outfits. The photo carries the \"outfit preview\" label. Continue?",
+    "photobooth.js.cf.id": "This ID photo contains a simulated outfit. Many agencies reject photos with digitally added outfits or replaced backgrounds. The photo always carries the \"outfit preview\" label in the corner. Continue?",
+    "photobooth.js.res.galleryNote": "All outfits are software-drawn samples (previews); the photo without an outfit is shown first.",
+    "pb.cf.ok": "Continue",
+    "pb.cf.no": "Cancel"
   } };
   if (root.LQI18N && typeof root.LQI18N.add === "function") root.LQI18N.add(dict);
   else (root.LQI18N_Q = root.LQI18N_Q || []).push(dict);

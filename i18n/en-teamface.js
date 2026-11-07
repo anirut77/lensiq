@@ -1,7 +1,7 @@
 /* i18n/en-teamface.js — English for teamface.html (Team Face Reading · icebreaker; mirrors zh-teamface.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
   "tf.s.pagetitle": "Team Face Reading — Icebreaker | LENSIQ",
-  "tf.s.banner": "For entertainment and team building only — never use for hiring, performance reviews or judging anyone",
+  "tf.s.banner": "For fun / team icebreaker, not an assessment — never use for hiring, performance reviews or judging anyone",
   "tf.s.h1": "Team Face Reading",
   "tf.s.lead": "An icebreaker: members who agree to take part get a light-hearted \"team role\" card based on face shape in face-reading tradition, then see together how the team fits",
   "tf.s.r1": "Face reading is folk belief, not science — every card is positive and no role is better than another",
@@ -63,4 +63,12 @@
   "tf.js.member": "Member {n}", "tf.js.remove": "Delete {n}'s card", "tf.js.power": "Superpower:", "tf.js.work": "Working well together:",
   "tf.js.second": "Also brings a {r} perspective", "tf.js.el": "{e} face shape in face-reading tradition: {t}", "tf.js.ice": "Icebreaker:",
   "tf.js.resetQ": "Delete all cards and start over?"
+} });
+// Round 10: 'for fun / icebreaker, not an assessment' on every screen; results cannot be attached to candidate records
+(window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
+  "tf.s.na": "For fun / team icebreaker — not an assessment",
+  "tf.s.r4": "Results cannot be attached to candidate or employee records: there is no export, no ID, and nicknames or team names that look like candidate IDs or recruitment are not used",
+  "tf.s.guard": "This page does not accept candidate data or record IDs sent in a link — they were ignored. Results of this activity cannot be attached to recruitment or assessment",
+  "tf.js.nickDrop": "Card added — a nickname that looks like a candidate ID, e-mail or phone number was not used, because these results cannot be attached to candidate data",
+  "tf.js.teamDrop": "Team name not used: this activity cannot be used for recruitment, interviews or assessment"
 } });

@@ -73,6 +73,26 @@ export default async function ({ base, launch, check }) {
       await page.close();
     });
 
+    await check("teamface R10: 'not an assessment' label on every screen and card; record ids in nicknames, team names and links are dropped", async () => {
+      const page = await browser.newPage(null, { initScripts: [INIT] });
+      await page.goto(`${base}/teamface.html?cpu&fakedet&lang=th&cand=C-014`);
+      const g = await page.evaluate(() => ({ guard: !document.querySelector("#tfGuard").hidden, url: location.search, na: [...document.querySelectorAll(".tf-na")].map(e => e.closest("section,details,main")?.id || e.parentElement.className) }));
+      assert(g.guard && !/cand=/.test(g.url) && g.na.length >= 5, "link guard + labels: " + JSON.stringify(g));
+      await page.evaluate(() => document.querySelector("#tfCamBtn").click());
+      await page.waitFor(`document.querySelector("#tfCamBtn").hidden`, 20000);
+      await readOne(page, 1.0, "C-014");
+      const c = await page.evaluate(() => ({ nick: window.__LQ_TF.members[0].nick, who: document.querySelector(".tcard .who").textContent, na: document.querySelectorAll(".tcard .tf-na").length, st: document.querySelector("#tfStatus").textContent }));
+      assert(c.nick === "" && !/C-014/.test(c.who) && c.na === 1 && /แนบกับข้อมูลผู้สมัครไม่ได้/.test(c.st), "record-like nickname dropped: " + JSON.stringify(c));
+      await readOne(page, 1.3, "นิด");
+      assert(await page.evaluate(() => document.querySelectorAll(".tcard .tf-na").length === 2 && window.__LQ_TF.members[1].nick === "นิด"), "label on every card; normal nickname kept");
+      await page.evaluate(() => { const t = document.querySelector("#tfTeam"); t.value = "ทีมสัมภาษณ์ผู้สมัคร"; t.dispatchEvent(new Event("input")); });
+      const t = await page.evaluate(() => ({ title: document.querySelector("#tfSumTitle").textContent, warn: document.querySelector("#tfTeamWarn").textContent }));
+      assert(!/สัมภาษณ์/.test(t.title) && /ใช้กับการสรรหา/.test(t.warn), "recruitment team name dropped: " + JSON.stringify(t));
+      const st = await page.evaluate(() => Object.keys(localStorage).filter(k => k !== "lq-lang" && k !== "lq-i18n-debug").concat(Object.keys(sessionStorage)));
+      assert(!st.length, "page wrote storage: " + st);
+      await page.close();
+    });
+
     await check("teamface: 中文 banner + cards + summary; 390 px no overflow, 44 px targets, banner does not hide content", async () => {
       const page = await browser.newPage(null, { initScripts: [INIT] });
       await page.goto(`${base}/teamface.html?cpu&fakedet&lang=zh`);

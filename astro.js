@@ -117,10 +117,16 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var T = function (k, th, v) { return window.LQI18N ? window.LQI18N.tf(k, th, v) : th.replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : m; }); };
   var isZh = function () { return !!(window.LQI18N && window.LQI18N.lang === "zh"); };
   /** ข้อความจากคลังภาษาจีน (zh-kb-astro) เมื่ออยู่ในโหมดจีน ไม่เช่นนั้นใช้ภาษาไทย */
+  var isEn = function () { return !!(window.LQI18N && window.LQI18N.lang === "en"); };
+  // อังกฤษ: คลัง i18n/en-kb-astro.js (โครงสร้างเดียวกับ zh-kb-astro.js) แทนข้อความไทยในการ์ด
   var zk = function (key, field, th) {
-    if (!isZh()) return th;
-    var D = window.FORTUNE_ZH && window.FORTUNE_ZH.astro, it = D && D.items[key], v = it && it[field];
-    return v == null ? th : (Array.isArray(v) ? v[0] : v);
+    if (!isZh() && !isEn()) return th;
+    var D = isEn() ? window.FORTUNE_EN && window.FORTUNE_EN.astro : window.FORTUNE_ZH && window.FORTUNE_ZH.astro, it = D && D.items[key], v = it && it[field];
+    if (v == null) return th;
+    v = Array.isArray(v) ? v[0] : v;
+    if (!isEn()) return v;
+    // ชื่อ (n) ใช้กลางประโยค "passing through your sixth house" จึงตัด "the " นำหน้า ไม่ขึ้นต้นตัวใหญ่
+    return field === "n" ? String(v).replace(/^the /i, "") : String(v).charAt(0).toUpperCase() + String(v).slice(1);
   };
   var sn = function (i) { return T("astro.sign." + i, KB.SIGNS[i].th); };              // ชื่อราศีสั้น
   var sName = function (i) { return T("astro.signName", "ราศี{s}", { s: sn(i) }); };     // "ราศีเมษ" / "白羊座"

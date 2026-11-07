@@ -106,6 +106,7 @@
 .fs-seg input{position:absolute;opacity:0;pointer-events:none}
 .fs-seg span{white-space:nowrap;display:flex;align-items:center;min-height:44px;padding:0 16px;font-size:.9rem;color:var(--muted)}
 .fs-seg input:checked+span{background:var(--navy);color:#fff}
+.fs-seg span span{display:inline;min-height:0;padding:0;background:none;color:inherit;font-size:inherit} /* nav.js Thai word wrappers inherit the segment colours */
 .fs-seg input:focus-visible+span{outline:2px solid var(--aqua);outline-offset:-2px}
 .fs-tools{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 12px}
 .fs-tool{min-height:44px;padding:6px 14px;border-radius:99px;border:1px solid var(--line);background:#fff;color:var(--navy);font-size:.9rem}

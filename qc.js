@@ -842,9 +842,11 @@ if (typeof document !== "undefined") (() => {
       if (ev.type === "devices") fillCamSel();
       else if (ev.type === "resumed" && source === "camera") withLane(lanes[0], camReady);
       else if (ev.type === "ended" && source === "camera") { engine("สัญญาณกล้องหลุด (ถอดสายหรือกล้องถูกปิด)", "err"); retryBtn(() => startCamera()); }
+      else if (ev.type === "reconnected" && source === "camera") { withLane(lanes[0], camReady); engine("กล้องกลับมาเชื่อมต่อแล้ว", "ok"); }
     },
     onError(c, e) { if (nLanes() === 1 && source === "camera" && e.name !== "AbortError") camFail(e); }
   });
+  if (LQCam.offlineBadge && $("#camHealthMsg")) LQCam.offlineBadge(cam, $("#camHealthMsg").parentElement);
   let hub = null;
   function makeHub() {
     return LQCam.createHub({
@@ -1554,7 +1556,7 @@ if (typeof document !== "undefined") (() => {
     if (!HL || now - HL.at < 1000 || source === "image") return;
     HL.at = now;
     let st = null; try { st = SITE.sampleElement(disp, HL.cv); } catch { /* ignore */ }
-    HL.state = HL.mon.push(st, {});
+    HL.state = HL.mon.push(st, { stalled: source === "camera" && nLanes() === 1 ? SITE.stallStep(domVideo, st, now) : false });
     if (SCQ) HL.state.codes.forEach(k => SCQ.health.add(k));
     const pill = $("#camHealth"), msg = $("#camHealthMsg");
     if (!pill) return;
@@ -1613,7 +1615,7 @@ if (typeof document !== "undefined") (() => {
     rep.recs.push(...[...run.health].map(c => "สภาพภาพระหว่างตรวจ: " + SITE.HEALTH_TH[c]).filter(Boolean));
     SITE.renderReport(scqPanel.report, rep);
     scqPanel.q(".sc-q").hidden = true; scqPanel.start.disabled = false; scqPanel.stop.disabled = true;
-    scqPanel.state.textContent = SITE.VERDICT_TH[rep.verdict]; scqPanel.state.dataset.s = rep.verdict;
+    scqPanel.state.textContent = SITE.verdictText(rep); scqPanel.state.dataset.s = rep.verdict;
     const sug = rep.tolSuggest.filter(x => x.separable);
     const ap = scqPanel.q(".sc-apply"); ap.hidden = !(sug.length && R0);
     ap.onclick = () => {
@@ -1624,10 +1626,11 @@ if (typeof document !== "undefined") (() => {
     const doc = SITE.exportDoc("qc", {
       startedAt: new Date(run.startedAt).toISOString(), source: run.source, recipe: R0 ? { name: R0.name, tol: { ...R0.tol }, photoNorm: R0.photoNorm !== false } : null,
       conditions: { health: [...run.health] }, rows: run.rows.map(x => ({ tSec: +((x.t - run.startedAt) / 1000).toFixed(1), lane: x.lane, trigger: x.how, pass: x.pass, reasons: x.reasons, truth: x.truth, values: x.v, lightGain: x.gain })),
-      report: { verdict: rep.verdict, n: rep.n, falseReject: rep.falseReject, miss: rep.miss, tolSuggest: rep.tolSuggest, recs: rep.recs }
+      distinctItems: null, distinctItemsNote: "the same labelled bottle may pass the camera more than once",
+      report: { verdict: rep.verdict, provisional: rep.provisional, need: rep.need, n: rep.n, falseReject: rep.falseReject, miss: rep.miss, tolSuggest: rep.tolSuggest, recs: rep.recs }
     });
     scqPanel.exp.hidden = false; scqPanel.exp.onclick = () => SITE.download(`lensiq-qc-check-${new Date(run.startedAt).toISOString().slice(0, 10)}.json`, doc);
-    scqHist.add({ at: run.startedAt, verdict: rep.verdict, summary: SITE.fmt("ขวดดี {a} (คัดทิ้งผิด {b}) · ขวดเสีย {c} (หลุด {d})", { a: rep.n.good, b: rep.n.falseReject, c: rep.n.bad, d: rep.n.missed }) });
+    scqHist.add({ at: run.startedAt, verdict: rep.verdict, provisional: rep.provisional, need: rep.need, cam: run.source === "sim" ? "ภาพจำลอง" : (nLanes() > 1 ? "หลายไลน์" : cam.label || "กล้อง QC"), summary: SITE.fmt("ขวดดี {a} (คัดทิ้งผิด {b}) · ขวดเสีย {c} (หลุด {d})", { a: rep.n.good, b: rep.n.falseReject, c: rep.n.bad, d: rep.n.missed }) });
     scqHist.render(scqPanel.hist);
     SCQ_LAST = { rep, doc };
   }

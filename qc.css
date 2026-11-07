@@ -46,6 +46,8 @@
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
 .chips .chip{border-color:var(--c);color:var(--c)}
 .chips .chip.active{background:var(--c);color:#fff;border-color:var(--c)}
+/* text contrast >= 4.5:1: the region colour stays on the border / tint, the label uses ink */
+.chips .chip{color:var(--navy);border-width:2px}.chips .chip.active{background:color-mix(in srgb,var(--c) 20%,#fff);color:var(--navy);font-weight:600}
 .golden{list-style:none;padding:0;font-size:.86rem;display:grid;gap:4px}
 .golden li{background:var(--bg);border-radius:8px;padding:6px 10px}
 form.tol{background:none;border:0;box-shadow:none;padding:0;display:grid;gap:12px}

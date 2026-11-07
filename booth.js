@@ -4,8 +4,14 @@
 const EMO = ["neutral", "happy", "surprised", "sad", "angry", "fearful", "disgusted"];
 const EMO_TH = { neutral: "เฉย ๆ", happy: "มีความสุข", surprised: "ประหลาดใจ", sad: "เศร้า", angry: "โกรธ", fearful: "กลัว", disgusted: "รังเกียจ" };
 const VA = { neutral: [0, 0], happy: [0.8, 0.5], surprised: [0.2, 0.85], sad: [-0.7, -0.4], angry: [-0.7, 0.6], fearful: [-0.6, 0.7], disgusted: [-0.7, 0.3] };
+const LQT = typeof LQTrack !== "undefined" ? LQTrack : typeof require === "function" ? require("./lensiq-track.js") : null;
+/* โหมดจำผู้เข้าชม (round 10): ใช้กฎเดียวกับหน้าจดจำลูกค้า LQTrack.FACE_RULES — ระยะสูงสุด maxDist (0.50) และ margin (0.09):
+   ใบหน้าที่ใกล้ผู้เข้าชมสองคนพอ ๆ กัน (อันดับ 1 กับ 2 ห่างกันน้อยกว่า MARGIN) ถือว่ากำกวม ไม่รวมเข้ากับใคร (นับเป็นคนใหม่ดีกว่ารวมคนสองคน)
+   โหมดนับอย่างเดียวไม่ใช้ค่าลักษณะใบหน้าจึงไม่ได้รับผล */
+const FACE_RULES = (LQT && LQT.FACE_RULES) || { maxDist: 0.5, margin: 0.09 };
 const CFG = {
-  MATCH: 0.5,          // ระยะห่างค่าลักษณะใบหน้าที่ถือว่าเป็นคนเดิม
+  MATCH: FACE_RULES.maxDist, // ระยะห่างค่าลักษณะใบหน้าที่ถือว่าเป็นคนเดิม (LQTrack.FACE_RULES.maxDist)
+  MARGIN: FACE_RULES.margin, // อันดับ 2 ต้องไกลกว่าอันดับ 1 อย่างน้อยเท่านี้ (LQTrack.FACE_RULES.margin)
   PROMOTE_MS: 1000,    // เห็นต่อเนื่องอย่างน้อย 1 วิ จึงนับเป็นผู้เข้าชม
   CAND_TTL_MS: 3000,   // ใบหน้าที่ยังไม่ยืนยัน หายไปเกินนี้ทิ้ง
   RETURN_GAP_MS: 60000,// หายไปเกิน 60 วิแล้วกลับมา = กลับมาเยี่ยมซ้ำ
@@ -19,7 +25,15 @@ const CFG = {
   TRACK_EMA: 0.3       // ค่าเฉลี่ยค่าลักษณะใบหน้าต่อแทร็ก (เก็บในหน่วยความจำเท่านั้น)
 };
 const DWELL_BUCKETS = [[0, 5, "< 5 วิ"], [5, 15, "5–15 วิ"], [15, 30, "15–30 วิ"], [30, 60, "30–60 วิ"], [60, 180, "1–3 นาที"], [180, Infinity, "> 3 นาที"]];
-const LQT = typeof LQTrack !== "undefined" ? LQTrack : typeof require === "function" ? require("./lensiq-track.js") : null;
+/* lensiq-sitecheck.js: สุขภาพภาพ/ธงคุณภาพรายชั่วโมง (เบราว์เซอร์: window.LQSite · Node: require ; ไม่มีไฟล์ = ข้ามส่วนนี้) */
+const SITECHK = typeof window !== "undefined" && /** @type {any} */ (window).LQSite ? /** @type {any} */ (window).LQSite : typeof require === "function" ? (() => { try { return require("./lensiq-sitecheck.js"); } catch { return null; } })() : null;
+/* ชั่วโมงที่สุขภาพภาพมีปัญหารวม ≥ 5 นาที (S.quality = {[ชั่วโมง]: {n, shake, dark, backlight, slow, offline, image}} หน่วยวินาที) -> {h: ข้อความ} */
+function qualityFlags(S) {
+  const out = {};
+  if (!SITECHK || !S || !S.quality) return out;
+  for (const f of SITECHK.flaggedHours(S.quality)) out[f.h] = SITECHK.qualityText(f) || SITECHK.fmt("มีปัญหาภาพ {a} นาที", { a: f.min });
+  return out;
+}
 
 const dayKey = (ts = Date.now()) => { const d = new Date(ts); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
 
@@ -27,7 +41,7 @@ function dist(a, b) { let s = 0; for (let i = 0; i < a.length; i++) { const d = 
 function blend(a, b, w) { return Array.from(a, (x, i) => +(x * (1 - w) + b[i] * w).toFixed(4)); }
 
 function newState(name = "", date = dayKey()) {
-  return { event: { name, date }, seq: 0, visitors: [], timeline: [], desc: {}, descDay: dayKey(), cands: [] };
+  return { event: { name, date }, seq: 0, visitors: [], timeline: [], desc: {}, descDay: dayKey(), cands: [], quality: {} };
 }
 
 /* สถานะระหว่างทำงาน (ไม่บันทึกลงที่เก็บข้อมูล): ตัวติดตามตำแหน่งใบหน้า + แทร็ก -> ผู้เข้าชม + ค่าเฉลี่ยค่าลักษณะใบหน้าต่อแทร็ก
@@ -42,16 +56,17 @@ function runtime(S, cam = "") {
 }
 function dropRuntime(S, cam = "") { const M = RUNTIME.get(S); if (M) M.delete(cam); }
 
+/* ใกล้สุดภายใน MATCH และอันดับสองห่างออกไปอย่างน้อย MARGIN — ไม่เช่นนั้นถือว่ากำกวม (null) */
 function nearest(map, desc, used) {
-  let best = null, bd = Infinity;
-  for (const id in map) { if (used.has(id)) continue; const d = dist(map[id], desc); if (d < bd) { bd = d; best = id; } }
-  return bd < CFG.MATCH ? best : null;
+  let best = null, bd = Infinity, sd = Infinity;
+  for (const id in map) { if (used.has(id)) continue; const d = dist(map[id], desc); if (d < bd) { sd = bd; bd = d; best = id; } else if (d < sd) sd = d; }
+  return bd < CFG.MATCH && sd - bd >= CFG.MARGIN ? best : null;
 }
-/* ผู้รอยืนยันที่ใกล้ที่สุด (เดิมใช้ตัวแรกที่เข้าเกณฑ์) */
+/* ผู้รอยืนยันที่ใกล้ที่สุด (เดิมใช้ตัวแรกที่เข้าเกณฑ์) — กำกวม (สองรายใกล้พอ ๆ กัน) = ไม่รวม */
 function nearestCand(cands, desc, used) {
-  let best = null, bd = CFG.MATCH;
-  for (const c of cands) { if (used.has(c) || !c.desc) continue; const d = dist(c.desc, desc); if (d < bd) { bd = d; best = c; } }
-  return best;
+  let best = null, bd = Infinity, sd = Infinity;
+  for (const c of cands) { if (used.has(c) || !c.desc) continue; const d = dist(c.desc, desc); if (d < bd) { sd = bd; bd = d; best = c; } else if (d < sd) sd = d; }
+  return bd < CFG.MATCH && sd - bd >= CFG.MARGIN ? best : null;
 }
 
 /* cam: ช่องกล้อง ('c1'..) -> v.cams[cam] = {f: เห็นครั้งแรก, l: ล่าสุด, d: วินาทีที่กล้องนี้เห็น} (ตัวเลขเท่านั้น)
@@ -140,8 +155,10 @@ function observe(S, faces, now, R = runtime(S), opts = {}) {
   // 2) ที่เหลือจับคู่กับผู้เข้าชมที่รู้จักแบบไม่ซ้ำกัน ระยะใกล้สุดก่อน
   const pairs = [];
   need.forEach((t, k) => {
-    const d = R.desc.get(t.id);
-    for (const id in S.desc) { if (usedV.has(id)) continue; const dd = dist(S.desc[id], d); if (dd < CFG.MATCH) pairs.push({ i: k, key: id, dist: dd }); }
+    const d = R.desc.get(t.id), mine = [];
+    let b1 = Infinity, b2 = Infinity;
+    for (const id in S.desc) { if (usedV.has(id)) continue; const dd = dist(S.desc[id], d); if (dd < b1) { b2 = b1; b1 = dd; } else if (dd < b2) b2 = dd; if (dd < CFG.MATCH) mine.push({ i: k, key: id, dist: dd }); }
+    if (b2 - b1 >= CFG.MARGIN) pairs.push(...mine); // กำกวม: ไม่จับคู่กับผู้เข้าชมคนใดเลย
   });
   const got = LQT.assignUnique(pairs, CFG.MATCH);
   for (const g of got.values()) usedV.add(g.key);
@@ -239,7 +256,8 @@ function aggregate(S, now = Date.now(), currentInFrame = 0) {
   V.forEach(v => { const h = new Date(v.first).getHours(); hours[h] = (hours[h] || 0) + 1; });
   const hs = Object.keys(hours).map(Number);
   const h0 = hs.length ? Math.min(...hs, 9) : 9, h1 = hs.length ? Math.max(...hs, 18) : 18;
-  const hourly = []; for (let h = h0; h <= h1; h++) hourly.push({ label: String(h).padStart(2, "0") + ":00", value: hours[h] || 0 });
+  const qf = qualityFlags(S);
+  const hourly = []; for (let h = h0; h <= h1; h++) hourly.push({ label: String(h).padStart(2, "0") + ":00", value: hours[h] || 0, flag: qf[h] || null });
   const emoCount = EMO.map(k => ({ label: EMO_TH[k], value: st.filter(s => s.dom === k).length }));
   const dwellHist = DWELL_BUCKETS.map(([a, b, label]) => ({ label, value: V.filter(v => v.dwell >= a && v.dwell < b).length }));
   const acts = {};
@@ -271,7 +289,8 @@ function markActivity(S, id, activity) {
 /* ส่งออกสถิติรวมเท่านั้น (ไม่มีรหัสผู้เข้าชม ไม่มีข้อมูลรายคน ไม่เก็บข้อมูลติดต่อ) */
 function buildStatsCsv(S, cams = [], now = Date.now()) {
   const m = aggregate(S, now, 0), cs = camStats(S, cams), f = m.funnel, pct = n => f.passed ? (n / f.passed * 100).toFixed(1) : "0.0";
-  const out = [["section", "key", "label", "value", "pct_of_passed"]];
+  // quality_flag (round 10): ปัญหาภาพของชั่วโมงนั้น (≥ 5 นาที) — ยอดไม่ถูกแก้ ใช้ประกอบการอ่านตัวเลขเท่านั้น
+  const out = [["section", "key", "label", "value", "pct_of_passed", "quality_flag"]], qf = qualityFlags(S);
   const row = (...r) => out.push(r);
   row("event", "name", S.event.name || "", S.event.date || "", "");
   row("summary", "unique", "ผู้เข้าชมไม่ซ้ำ (ทุกกล้อง)", m.unique, "");
@@ -280,19 +299,20 @@ function buildStatsCsv(S, cams = [], now = Date.now()) {
   row("summary", "avg_valence", "Valence เฉลี่ย", m.valence.toFixed(3), "");
   row("summary", "seen_by_2plus_cams", "เห็นมากกว่า 1 กล้อง (นับครั้งเดียว)", cs.multi, "");
   [["passed", "ผ่าน"], ["stopped", "หยุดชม ≥ 5 วิ"], ["engaged", "อยู่ ≥ 30 วิ"], ["joined", "ร่วมกิจกรรม"]].forEach(([k, l]) => row("funnel", k, l, f[k], pct(f[k])));
-  m.hourly.forEach(h => row("hourly", h.label, "ผู้เข้าชมใหม่", h.value, ""));
+  m.hourly.forEach(h => row("hourly", h.label, "ผู้เข้าชมใหม่", h.value, "", h.flag || ""));
   const hb = hourlyByCam(S, cams.map(c => c.slot));
   cs.rows.forEach(r => {
     row("camera", r.slot, r.name, r.unique, pct(r.unique));
     row("camera_avg_dwell_s", r.slot, r.name, r.avgDwell.toFixed(1), "");
     row("camera_stopped", r.slot, r.name, r.stopped, "");
-    hb[r.slot].forEach((n, h) => { if (n) row("camera_hourly", `${r.slot}@${String(h).padStart(2, "0")}:00`, r.name, n, ""); });
+    hb[r.slot].forEach((n, h) => { if (n) row("camera_hourly", `${r.slot}@${String(h).padStart(2, "0")}:00`, r.name, n, "", qf[h] || ""); });
   });
   m.dwellHist.forEach(d => row("dwell", d.label, "คน", d.value, ""));
   m.emoCount.forEach(e => row("expression", e.label, "คน", e.value, ""));
   Object.entries(m.acts).forEach(([a, n]) => row("activity", a, "คน", n, pct(n)));
+  if (SITECHK) for (const f of SITECHK.flaggedHours(S.quality)) row("quality_hour", String(f.h).padStart(2, "0") + ":00", "ชั่วโมงที่ภาพจากกล้องมีปัญหา ≥ 5 นาที (ยอดอาจคลาดเคลื่อน ข้อมูลยังเก็บครบ)", f.min, "", qf[f.h]);
   const cell = v => { v = v == null ? "" : String(v); if (/^[=+\-@]/.test(v) && isNaN(+v)) v = "'" + v; return `"${v.replace(/"/g, '""')}"`; };
-  return "\ufeff" + out.map(r => r.map(cell).join(",")).join("\r\n");
+  return "\ufeff" + out.map(r => r.concat(Array(Math.max(0, 6 - r.length)).fill("")).map(cell).join(",")).join("\r\n");
 }
 
 function purgeFaces(S) { S.desc = {}; S.cands = []; S.descDay = dayKey(); RUNTIME.delete(S); }
@@ -315,6 +335,7 @@ function restoreState(lsRaw, ssRaw, remember, now = Date.now(), vault = null) {
   if (!Array.isArray(S.visitors)) S.visitors = [];
   if (!Array.isArray(S.timeline)) S.timeline = [];
   if (!Number.isFinite(S.seq)) S.seq = S.visitors.length;
+  if (!S.quality || typeof S.quality !== "object" || Array.isArray(S.quality)) S.quality = {};
   const legacy = S.desc && typeof S.desc === "object" ? S.desc : null;
   const sess = ss && ss.desc && typeof ss.desc === "object" && ss.day === S.descDay ? ss.desc : null;
   const enc = remember && vault && vault.desc && typeof vault.desc === "object" && vault.day === S.descDay ? vault.desc : null;
@@ -407,9 +428,11 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
         <input class="cam-name" maxlength="40" aria-label="ชื่อจุด/โซนของกล้อง">
         <select class="cam-role" aria-label="หน้าที่ของกล้อง"><option value="primary">${ROLE_TH.primary}</option><option value="aux">${ROLE_TH.aux}</option></select>
         <span class="pill bt-status"></span>
+        <span class="pill lq-health" hidden></span>
         <button class="btn ghost sm cam-del" type="button">ลบกล้อง</button>
       </div>
-      <div class="cam"><p class="cam-off">กำลังเปิดกล้อง...</p><div class="cam-ctl"></div></div>`;
+      <div class="cam"><p class="cam-off">กำลังเปิดกล้อง...</p><div class="cam-ctl"></div></div>
+      <p class="cam-health" hidden></p>`;
     const box = t.querySelector(".cam");
     box.prepend(c.video, c.overlay);
     c.overlay.setAttribute("aria-label", "ภาพกล้อง แตะกรอบใบหน้าเพื่อบันทึกผู้เข้าร่วมกิจกรรม");
@@ -461,6 +484,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
       if (c && (ev.type === "started" || ev.type === "resumed")) { setTimeout(() => layoutCam(c), 0); if (c.tile && !c.tile.querySelector(".cam-ctl").childElementCount && h.cams.length === 1) c.attach(c.tile.querySelector(".cam-ctl")); }
       if (ev.type === "paused" && ready) engine("พักกล้องไว้ขณะสลับแอป จะเปิดใหม่อัตโนมัติเมื่อกลับมา");
       else if (ev.type === "resumed" && ready) engine("กล้องพร้อม" + (running ? "" : " — กด เริ่มนับผู้เข้าชม"), "ok");
+      else if (ev.type === "reconnected") engine("กล้องกลับมาเชื่อมต่อแล้ว", "ok"); // LQCam reconnects an ended track by itself (round 10)
       else if (ev.type === "ended") { frames.delete(ev.slot); engine(`${c ? c.name : "กล้อง"} หลุดการเชื่อมต่อ${anyActive() ? " — กล้องที่เหลือยังนับต่อ" : " กด เริ่มกล้อง อีกครั้ง"}`, "err"); }
       camState();
     }
@@ -604,7 +628,10 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     if (!running || !hub.cam(c.slot)) return;
     const now = Date.now();
     if (autoPurge(S, now)) persist();
+    const nV0 = S.visitors.length;
     const res = observe(S, faces, now, runtime(S, c.slot), { cam: c.slot, primary: c === primaryCam(), timeline: false, countOnly: countOnly() });
+    if (SCB && S.visitors.length > nV0) { for (let k = nV0; k < S.visitors.length; k++) SCB.sys.push({ t: now }); scbLive(); }
+    healthStep(c, faces, now);
     frames.set(c.slot, res.map(r => ({ id: r.id, tid: r.tid, box: { ...r.box }, confirmed: r.confirmed, cam: c.slot })));
     draw(c, res);
     const n = inFrameNow();
@@ -625,12 +652,106 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     $("#toggle").textContent = running ? "หยุดนับ" : "เริ่มนับผู้เข้าชม";
     if (running) { syncSched(); sched.start(); }
     else {
+      if (SCB) scbFinish();
       sched.stop(); frames.clear();
       hub.cams.forEach(c => c.overlay.getContext("2d").clearRect(0, 0, c.overlay.width, c.overlay.height));
       persist(); render(0); $("#fps").textContent = "หยุดแล้ว";
     }
   }
   $("#toggle").onclick = toggleCount;
+
+  // ---------- สุขภาพภาพต่อกล้อง + ธงคุณภาพรายชั่วโมง + ตรวจความแม่นยำหน้างาน (lensiq-sitecheck.js) ----------
+  // ทุก ~1 วินาทีต่อกล้อง: ความสว่าง ย้อนแสง ความคม กล้องสั่น ภาพค้าง อัตราประมวลผล และขนาดใบหน้า (ตัวเลขเท่านั้น ไม่เก็บภาพ)
+  const SITE = /** @type {any} */ (window).LQSite || null;
+  function healthStep(c, faces, now) {
+    if (!SITE) return;
+    const H = c._hl || (c._hl = { mon: SITE.createHealth({ kind: "booth" }), at: 0, fw: [], cv: document.createElement("canvas"), state: null, stateAt: 0 });
+    for (const f of faces) if (f.box && H.fw.length < 200) H.fw.push(f.box.w);
+    if (now - H.at < 1000) return;
+    H.at = now;
+    let st = null; try { st = SITE.sampleElement(c.video, H.cv); } catch { /* ภาพอ่านไม่ได้ */ }
+    const hz = c.intervalMsEma ? 1000 / c.intervalMsEma : null, faceW = H.fw.length >= 2 ? SITE.median(H.fw) : null;
+    H.state = H.mon.push(st, { hz, faceW, stalled: SITE.stallStep(c.video, st, performance.now()) }); H.stateAt = now;
+    if (SCB && c === primaryCam()) { H.state.codes.forEach(k => SCB.health.add(k)); if (faceW != null) SCB.fw.push(faceW); }
+    H.fw = [];
+    if (!c.tile) return;
+    const pill = c.tile.querySelector(".lq-health"), line = c.tile.querySelector(".cam-health");
+    SITE.renderHealth(pill, H.state); pill.hidden = false;
+    SITE.renderHealthLine(line, H.state);
+  }
+  // ธงคุณภาพรายชั่วโมง: ระหว่างนับ ทุก 1 วินาที บันทึกวินาทีที่กล้องหลักมีปัญหาภาพ และวินาทีที่กล้องใดหลุด/ออฟไลน์ ลง S.quality (ตัวเลขเท่านั้น)
+  setInterval(() => {
+    if (!SITE || !running) return;
+    const now = Date.now(), p = primaryCam(), H = p && p._hl;
+    const codes = H && H.state && now - H.stateAt < 2500 ? H.state.codes : [];
+    const offline = hub.cams.some(c => c.offlineSince || c.status === "error");
+    SITE.noteQuality(S.quality || (S.quality = {}), now, codes, { offline });
+  }, 1000);
+
+  // ตรวจความแม่นยำหน้างาน: เจ้าหน้าที่กด "+1 ผู้มาบูธ" ทุกครั้งที่มีคนมาที่บูธจริง แล้วเทียบกับเวลาที่ระบบสร้างผู้เข้าชมใหม่ (V###)
+  let SCB = null, SCB_LAST = null;
+  const scbHist = SITE ? SITE.history("booth-sitecheck") : null;
+  const scbPanel = SITE && $("#scPanel") ? SITE.mountPanel($("#scPanel"), {
+    title: "ตรวจความแม่นยำหน้างาน",
+    intro: "ทดสอบการนับผู้เข้าชมที่บูธของคุณเอง: ระหว่างที่ระบบนับ ให้เจ้าหน้าที่หนึ่งคนดูหน้าบูธแล้วกดปุ่มทุกครั้งที่มีคนมาที่บูธจริง ระบบจะเทียบกับยอดที่นับได้ พร้อมช่วงความเชื่อมั่นและคำแนะนำ",
+    steps: [
+      "เปิดกล้องและกด \"เริ่มนับผู้เข้าชม\" ให้ระบบนับตามปกติ (ใช้โหมดการนับที่จะใช้จริง)",
+      "กด \"เริ่มตรวจ\" แล้วกด \"+1 ผู้มาบูธ\" ทุกครั้งที่มีคนเดินเข้ามาที่บูธและหันมาทางกล้อง (คีย์บอร์ด: ลูกศรขึ้น) กดผิดให้กด \"ลบครั้งล่าสุด\"",
+      "คนเดิมที่กลับมาภายใน 1 นาทีไม่ต้องกดซ้ำ — กดเฉพาะคนที่มาใหม่",
+      "เก็บอย่างน้อย 30 คน ในช่วงที่มีคนมาบูธตามปกติ แล้วกด \"จบและคำนวณ\"",
+      "ทำซ้ำเมื่อย้ายกล้อง เปลี่ยนแสง หรือเปลี่ยนโหมดการนับ เก็บไฟล์ผลตรวจไว้"
+    ],
+    body: `<div class="sc-taps" hidden><button class="btn primary sc-in" type="button">${"+1 ผู้มาบูธ"}</button><button class="btn ghost small sc-undo" type="button">${"ลบครั้งล่าสุด"}</button></div>`
+  }) : null;
+  function scbLive() {
+    if (!scbPanel || !SCB) return;
+    scbPanel.live.textContent = SITE.fmt("เจ้าหน้าที่กด {a} คน · ระบบนับผู้เข้าชมใหม่ {b} คน | เวลา {c}", { a: SCB.truth.length, b: SCB.sys.length, c: fmtDur((Date.now() - SCB.t0) / 1000) });
+  }
+  function scbTap() { if (!SCB) return; SCB.truth.push({ t: Date.now() }); scbLive(); }
+  function scbStart() {
+    if (!SITE || SCB) return;
+    if (!running || !anyActive()) return engine("เริ่มกล้องและเริ่มนับผู้เข้าชมก่อน แล้วจึงเริ่มตรวจ", "err");
+    const p = primaryCam();
+    SCB = { t0: Date.now(), startedAt: Date.now(), truth: [], sys: [], health: new Set(), fw: [], cam: p ? p.name : "", mode: prefs.mode, cams: hub.cams.filter(c => c.active).length };
+    scbPanel.start.disabled = true; scbPanel.stop.disabled = false; scbPanel.q(".sc-taps").hidden = false; scbPanel.exp.hidden = true;
+    scbPanel.state.textContent = "กำลังตรวจ"; scbPanel.state.dataset.s = "live"; SITE.renderReport(scbPanel.report, null);
+    scbLive(); scbPanel.q(".sc-in").focus();
+  }
+  function scbFinish() {
+    if (!SCB) return;
+    const run = SCB; SCB = null;
+    const T = run.truth.map(e => ({ t: e.t - run.t0 })), Sy = run.sys.map(e => ({ t: e.t - run.t0 }));
+    const stats = { faceW: run.fw.length ? SITE.median(run.fw) : null, health: [...run.health] };
+    const rep = SITE.visitorReport(Sy, T, { stats, countOnly: run.mode !== "recognise" });
+    SITE.renderReport(scbPanel.report, rep);
+    scbPanel.start.disabled = false; scbPanel.stop.disabled = true; scbPanel.q(".sc-taps").hidden = true;
+    scbPanel.state.textContent = SITE.verdictText(rep); scbPanel.state.dataset.s = rep.verdict;
+    const doc = SITE.exportDoc("booth", {
+      camera: run.cam, startedAt: new Date(run.startedAt).toISOString(), durationSec: Math.round((Date.now() - run.t0) / 1000),
+      settings: { mode: run.mode, cameras: run.cams, match: CFG.MATCH, margin: CFG.MARGIN, promoteMs: CFG.PROMOTE_MS, backend: backendName },
+      conditions: stats, truth: T, system: Sy,
+      report: { verdict: rep.verdict, provisional: rep.provisional, need: rep.need, n: rep.n, lagMs: rep.lagMs, net: rep.net, netCI: rep.netCI, precision: rep.precision, recall: rep.recall, recs: rep.recs }
+    });
+    scbPanel.exp.hidden = false;
+    scbPanel.exp.onclick = () => SITE.download(`lensiq-booth-check-${dayKey(run.startedAt)}.json`, doc);
+    scbHist.add({ at: run.startedAt, verdict: rep.verdict, provisional: rep.provisional, need: rep.need, cam: run.cam, summary: SITE.fmt("{a}: ระบบ {b} / คนนับ {c} · แม่นยำ {d}", { a: run.cam, b: rep.n.sys, c: rep.n.truth, d: rep.precision.p == null ? "—" : (rep.precision.p * 100).toFixed(0) + "%" }) });
+    scbHist.render(scbPanel.hist);
+    SCB_LAST = { rep, doc };
+  }
+  if (scbPanel) {
+    scbPanel.el.classList.add("sc-panel");
+    scbPanel.start.addEventListener("click", scbStart);
+    scbPanel.stop.addEventListener("click", scbFinish);
+    scbPanel.q(".sc-in").addEventListener("click", scbTap);
+    scbPanel.q(".sc-undo").addEventListener("click", () => { if (SCB && SCB.truth.length) { SCB.truth.pop(); scbLive(); } });
+    document.addEventListener("keydown", e => {
+      if (!SCB || e.altKey || e.ctrlKey || e.metaKey || /^(INPUT|SELECT|TEXTAREA)$/.test((e.target && /** @type {HTMLElement} */ (e.target).tagName) || "")) return;
+      if (e.key === "ArrowUp") { e.preventDefault(); scbTap(); }
+    });
+    setInterval(() => { if (SCB) scbLive(); }, 1000);
+    scbHist.render(scbPanel.hist);
+  }
+  /** @type {any} */ (window).__BT_SC = { get active() { return SCB; }, get last() { return SCB_LAST; }, tap: () => scbTap(), finish: () => scbFinish() };
 
   // ---------- กิจกรรม: แตะกรอบใบหน้าบนภาพเพื่อเลือกผู้เข้าร่วม ----------
   const joinMsg = (t, c) => { const msg = $("#joinMsg"); msg.textContent = t; msg.className = "form-msg " + c; };
@@ -681,10 +802,11 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     const every = Math.ceil(items.length / Math.max(3, Math.floor((W - L - R) / 52)));
     items.forEach((it, i) => {
       const x = L + i * bw, h = Math.max(0, H - B - y(it.value)), w = Math.max(2, bw - 4);
-      if (it.value > 0) svgEl("path", { class: "bar", d: `M${x + 2},${H - B}V${H - B - h + Math.min(4, h)}q0,-${Math.min(4, h)} ${Math.min(4, w / 2)},-${Math.min(4, h)}H${x + 2 + w - Math.min(4, w / 2)}q${Math.min(4, w / 2)},0 ${Math.min(4, w / 2)},${Math.min(4, h)}V${H - B}Z` }, svg);
+      if (it.flag) svgEl("rect", { x: x + 1, y: T, width: Math.max(2, bw - 2), height: H - T - B, class: "q-flag" }, svg);
+      if (it.value > 0) svgEl("path", { class: it.flag ? "bar flagged" : "bar", d: `M${x + 2},${H - B}V${H - B - h + Math.min(4, h)}q0,-${Math.min(4, h)} ${Math.min(4, w / 2)},-${Math.min(4, h)}H${x + 2 + w - Math.min(4, w / 2)}q${Math.min(4, w / 2)},0 ${Math.min(4, w / 2)},${Math.min(4, h)}V${H - B}Z` }, svg);
       if (i % every === 0) svgEl("text", { x: x + bw / 2, y: H - 8, "text-anchor": "middle" }, svg).textContent = it.label;
       const hit = svgEl("rect", { x, y: T, width: bw, height: H - T - B, fill: "transparent" }, svg);
-      const tipFn = ev => showTip(`<b>${esc(it.label)}</b><br>${it.value} ${unit}`, ev.clientX, ev.clientY);
+      const tipFn = ev => showTip(`<b>${esc(it.label)}</b><br>${it.value} ${unit}${it.flag ? `<br><span class="q-tip"><span>${"ภาพจากกล้องมีปัญหาในชั่วโมงนี้:"}</span> <span>${esc(it.flag)}</span></span>` : ""}`, ev.clientX, ev.clientY);
       hit.addEventListener("pointermove", tipFn); hit.addEventListener("pointerdown", tipFn);
       hit.addEventListener("pointerleave", hideTip);
     });
@@ -741,6 +863,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     const acts = Object.entries(m.acts);
     $("#acts").innerHTML = acts.length ? acts.map(([a, n]) => `<li><span>${esc(a)}</span><b>${n} คน</b></li>`).join("") : `<li class="empty">ยังไม่มีผู้เข้าร่วม</li>`;
     barChart($("#hourly"), m.hourly);
+    const qn = $("#qualityNote"); if (qn) { const fl = m.hourly.filter(h => h.flag); qn.hidden = !fl.length; qn.innerHTML = fl.length ? `<span>${"ชั่วโมงที่แรเงา: ภาพจากกล้องมีปัญหา ≥ 5 นาที ยอดอาจคลาดเคลื่อน (ข้อมูลยังเก็บครบ)"}</span> ${fl.map(h => `<span class="q-item"><b>${esc(h.label)}</b> <span>${esc(h.flag)}</span></span>`).join(" ")}` : ""; }
     lineChart($("#crowd"), m.timeline.filter(p => p.t > Date.now() - 12 * 3600e3));
     barChart($("#dwell"), m.dwellHist);
     barChart($("#emo"), m.emoCount);
@@ -828,4 +951,4 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   render(0); init();
 })();
 
-if (typeof module !== "undefined" && module.exports) module.exports = { CFG, EMO, dayKey, dist, blend, newState, newRuntime, runtime, dropRuntime, nearest, nearestCand, observe, noteTimeline, inFrameCount, inFrameUnion, normalizeRoles, camStats, hourlyByCam, buildStatsCsv, touchVisitor, hitBox, visitorStats, aggregate, markActivity, purgeFaces, autoPurge, serializeState, restoreState };
+if (typeof module !== "undefined" && module.exports) module.exports = { CFG, EMO, qualityFlags, dayKey, dist, blend, newState, newRuntime, runtime, dropRuntime, nearest, nearestCand, observe, noteTimeline, inFrameCount, inFrameUnion, normalizeRoles, camStats, hourlyByCam, buildStatsCsv, touchVisitor, hitBox, visitorStats, aggregate, markActivity, purgeFaces, autoPurge, serializeState, restoreState };

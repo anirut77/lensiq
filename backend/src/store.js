@@ -1,3 +1,4 @@
+// @ts-check
 // backend/src/store.js — small D1 helpers: daily salts + day-salted hashes, fixed-window rate limits, audit log,
 // JSON settings.
 import { hmacHex, randomToken } from "./crypto.js";
@@ -17,15 +18,41 @@ export async function callerHash(env, request, purpose, extra = "") {
   return (await hmacHex(salt, `${purpose}|${clientIp(request)}|${extra}`)).slice(0, 24);
 }
 
+/** Start of the fixed window containing t. `offset` shifts the window boundary (BKK_OFFSET: daily windows start at
+ *  00:00 Asia/Bangkok instead of 00:00 UTC). */
+export const windowStart = (t, windowSec, offset = 0) => t - ((t + offset) % windowSec);
+
 /** Fixed-window counter. Returns {ok, count, retryAfter}. */
-export async function hit(db, key, limit, windowSec, t = now()) {
-  const ws = t - (t % windowSec);
+export async function hit(db, key, limit, windowSec, t = now(), offset = 0) {
+  const ws = windowStart(t, windowSec, offset);
   const row = await db.prepare(
     "INSERT INTO rate_limits (key, window_start, count) VALUES (?1, ?2, 1) " +
     "ON CONFLICT (key, window_start) DO UPDATE SET count = count + 1 RETURNING count"
   ).bind(key, ws).first();
   const count = row ? Number(row.count) : 1;
   return { ok: count <= limit, count, retryAfter: ws + windowSec - t };
+}
+
+/** Gives one use back (a call that was denied later or failed upstream). Never below 0. */
+export async function unhit(db, key, windowSec, t = now(), offset = 0) {
+  await db.prepare("UPDATE rate_limits SET count = count - 1 WHERE key = ?1 AND window_start = ?2 AND count > 0").bind(key, windowStart(t, windowSec, offset)).run();
+}
+
+/**
+ * Several limits for ONE call. specs: [{key, limit, win, offset?, msg?}]. All are counted; when one is over its limit the
+ * call is denied and every bucket counted for it (including the one that denied) is given back — a denied call costs
+ * nothing. Returns {ok, denied?: spec, retryAfter?, release(filter?)} — release() gives back the buckets of an allowed
+ * call that later did not happen (e.g. quota denied, provider failed).
+ */
+export async function hitAll(db, specs, t = now()) {
+  const done = [];
+  const release = async (filter = () => true) => { for (const s of done.filter(filter)) await unhit(db, s.key, s.win, t, s.offset || 0); };
+  for (const s of specs) {
+    const r = await hit(db, s.key, s.limit, s.win, t, s.offset || 0);
+    done.push(s);
+    if (!r.ok) { await release(); return { ok: false, denied: s, retryAfter: r.retryAfter, release: async () => {} }; }
+  }
+  return { ok: true, release };
 }
 
 /** Current count of a fixed window without incrementing it. */

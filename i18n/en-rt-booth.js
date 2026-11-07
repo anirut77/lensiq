@@ -94,5 +94,19 @@
   "ลบข้อมูลใบหน้าของเมื่อวานแล้ว": "Yesterday's face data deleted",
   "ป้ายแจ้ง": "Notice sign",
   "แจ้งการใช้กล้องวิเคราะห์": "Camera analysis notice",
-  "เริ่มนับ": "Start counting"
+  "เริ่มนับ": "Start counting",
+  /* round 10: health flags per hour + on-site check panel */
+  "มีปัญหาภาพ {a} นาที": "image problems {a} min",
+  "ภาพจากกล้องมีปัญหาในชั่วโมงนี้:": "Camera image problems in this hour:",
+  "ชั่วโมงที่แรเงา: ภาพจากกล้องมีปัญหา ≥ 5 นาที ยอดอาจคลาดเคลื่อน (ข้อมูลยังเก็บครบ)": "Shaded hours: camera image problems for ≥ 5 min, counts may be off (all data kept)",
+  "ชั่วโมงที่ภาพจากกล้องมีปัญหา ≥ 5 นาที (ยอดอาจคลาดเคลื่อน ข้อมูลยังเก็บครบ)": "Hour with camera image problems for ≥ 5 min (counts may be off, all data kept)",
+  "ทดสอบการนับผู้เข้าชมที่บูธของคุณเอง: ระหว่างที่ระบบนับ ให้เจ้าหน้าที่หนึ่งคนดูหน้าบูธแล้วกดปุ่มทุกครั้งที่มีคนมาที่บูธจริง ระบบจะเทียบกับยอดที่นับได้ พร้อมช่วงความเชื่อมั่นและคำแนะนำ": "Test the visitor count at your own booth: while the system counts, one staff member watches the booth and presses the button each time a real person arrives. The system compares this with its count and gives confidence intervals and advice",
+  "เปิดกล้องและกด \"เริ่มนับผู้เข้าชม\" ให้ระบบนับตามปกติ (ใช้โหมดการนับที่จะใช้จริง)": "Open the camera and press \"Start counting visitors\" so the system counts as usual (use the counting mode you will really use)",
+  "กด \"เริ่มตรวจ\" แล้วกด \"+1 ผู้มาบูธ\" ทุกครั้งที่มีคนเดินเข้ามาที่บูธและหันมาทางกล้อง (คีย์บอร์ด: ลูกศรขึ้น) กดผิดให้กด \"ลบครั้งล่าสุด\"": "Press \"Start check\", then press \"+1 visitor\" each time someone walks up to the booth and faces the camera (keyboard: Up arrow). If you press by mistake, press \"Undo last\"",
+  "คนเดิมที่กลับมาภายใน 1 นาทีไม่ต้องกดซ้ำ — กดเฉพาะคนที่มาใหม่": "Do not press again for someone returning within 1 minute — only for new arrivals",
+  "เก็บอย่างน้อย 30 คน ในช่วงที่มีคนมาบูธตามปกติ แล้วกด \"จบและคำนวณ\"": "Collect at least 30 people during normal booth traffic, then press \"Finish and calculate\"",
+  "ทำซ้ำเมื่อย้ายกล้อง เปลี่ยนแสง หรือเปลี่ยนโหมดการนับ เก็บไฟล์ผลตรวจไว้": "Repeat after moving the camera, a lighting change or a change of counting mode; keep the result files",
+  "+1 ผู้มาบูธ": "+1 visitor",
+  "เจ้าหน้าที่กด {a} คน · ระบบนับผู้เข้าชมใหม่ {b} คน | เวลา {c}": "Staff tapped {a} · system new visitors {b} | time {c}",
+  "เริ่มกล้องและเริ่มนับผู้เข้าชมก่อน แล้วจึงเริ่มตรวจ": "Start the camera and visitor counting first, then start the check"
 });

@@ -5,6 +5,9 @@
 //   targets    visible controls smaller than 44×44 CSS px (inline text links inside sentences are exempt, WCAG 2.5.8)
 //   tinyText   visible text rendered below 12px
 //   thaiBreaks Thai words split across lines at a non-word boundary (Intl.Segmenter), e.g. "แด|ชบอร์ด"
+//   contrast   visible text below WCAG 1.4.3 contrast (4.5:1, large text 3:1) against its painted background
+//              (solid backgrounds only — text over images / gradients / video is skipped; disabled controls exempt)
+//   unlabeled  form controls without an accessible name (label, aria-label(ledby), title)
 //   errors     uncaught exceptions while loading
 //
 //   node tools/mobile-audit.mjs                     all ./*.html, table on stdout
@@ -13,6 +16,7 @@
 //   node tools/mobile-audit.mjs --width 360 --lang zh   other width / language (lq-lang)
 //   node tools/mobile-audit.mjs --selftest         verify the detectors on synthetic markup first
 //   node tools/mobile-audit.mjs --strict            exit 1 when any page has findings (CI gate)
+//   node tools/mobile-audit.mjs --strict --checks overflow,contrast   only these categories count for --strict
 import { readdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,7 +28,9 @@ const argv = process.argv.slice(2);
 const opt = (name, def) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : def; };
 const width = +opt("--width", 390), height = +opt("--height", 844), lang = opt("--lang", "th"), jsonOut = opt("--json", null);
 const strict = argv.includes("--strict");
-const skipNext = new Set(["--width", "--height", "--lang", "--json"]);
+const CHECKS = ["overflow", "targets", "tinyText", "thaiBreaks", "contrast", "unlabeled", "errors"];
+const checks = new Set(String(opt("--checks", CHECKS.join(","))).split(",").map(x => x.trim()).filter(Boolean));
+const skipNext = new Set(["--width", "--height", "--lang", "--json", "--checks"]);
 const words = argv.filter((a, i) => !a.startsWith("--") && !skipNext.has(argv[i - 1]));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -41,7 +47,7 @@ function audit(W) {
     const t = (el.getAttribute("aria-label") || el.textContent || el.value || el.name || "").trim().replace(/\s+/g, " ").slice(0, 28);
     return `${el.tagName.toLowerCase()}${el.id ? "#" + el.id : ""}${typeof el.className === "string" && el.className.trim() ? "." + el.className.trim().split(/\s+/).slice(0, 2).join(".") : ""}${t ? ` "${t}"` : ""}`;
   };
-  const out = { scrollW: document.documentElement.scrollWidth, height: document.documentElement.scrollHeight, overflow: [], targets: [], tinyText: [], thaiBreaks: [] };
+  const out = { scrollW: document.documentElement.scrollWidth, height: document.documentElement.scrollHeight, overflow: [], targets: [], tinyText: [], thaiBreaks: [], contrast: [], unlabeled: [] };
 
   // overflow: elements sticking out of the viewport that are not inside a horizontal scroller
   if (out.scrollW > W + 1) {
@@ -84,7 +90,7 @@ function audit(W) {
 
   // Thai words broken across lines at a non-boundary
   const Seg = Intl.Segmenter ? new Intl.Segmenter("th", { granularity: "word" }) : null;
-  const JOIN = ["แดชบอร์ด", "สติ๊กเกอร์", "โหงวเฮ้ง", "ฮวงจุ้ย", "อัจฉริยะ", "คีออสก์", "เซียมซี", "ทาโรต์", "นักษัตร", "อี้จิง", "เว็บแคม", "แท็บเล็ต", "ดาวน์โหลด", "ออฟไลน์", "ออนไลน์", "เบราว์เซอร์", "แพ็กเกจ", "แบรนด์", "โปรโมชัน", "คอนเทนต์", "อีเวนต์", "สตูดิโอ", "ฟีเจอร์", "เซิร์ฟเวอร์", "ฮาร์ดแวร์", "ซอฟต์แวร์", "แอปพลิเคชัน"]; // keep in sync with nav.js
+  const JOIN = ["แดชบอร์ด", "สติ๊กเกอร์", "โหงวเฮ้ง", "ฮวงจุ้ย", "อัจฉริยะ", "คีออสก์", "เซียมซี", "ทาโรต์", "นักษัตร", "อี้จิง", "เว็บแคม", "แท็บเล็ต", "ดาวน์โหลด", "ออฟไลน์", "ออนไลน์", "เบราว์เซอร์", "แพ็กเกจ", "แบรนด์", "โปรโมชัน", "คอนเทนต์", "อีเวนต์", "สตูดิโอ", "ฟีเจอร์", "เซิร์ฟเวอร์", "ฮาร์ดแวร์", "ซอฟต์แวร์", "แอปพลิเคชัน", "โซเชียล", "หน้าตา"]; // keep in sync with nav.js
   const THAI = /[฀-๿]/, MARK = /[ัิ-ฺ็-๎]/;
   if (Seg) {
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
@@ -123,6 +129,50 @@ function audit(W) {
       }
     }
   }
+  // contrast (WCAG 1.4.3): text colour vs the first painted ancestor background; unknown (image / gradient) -> skipped
+  const rgba = c => { const m = String(c).match(/rgba?\(([^)]+)\)/); if (!m) return null; const p = m[1].split(/[\s,/]+/).filter(Boolean).map(Number); return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 }; };
+  const over = (f, b) => ({ r: f.r * f.a + b.r * (1 - f.a), g: f.g * f.a + b.g * (1 - f.a), b: f.b * f.a + b.b * (1 - f.a), a: 1 });
+  const lum = c => { const ch = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * ch(c.r) + 0.7152 * ch(c.g) + 0.0722 * ch(c.b); };
+  const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  const bgOf = el => {
+    const layers = [];
+    for (let p = el; p; p = p.parentElement) {
+      const s = getComputedStyle(p);
+      if (s.backgroundImage && s.backgroundImage !== "none") return null;
+      if (/^(VIDEO|CANVAS|IMG)$/.test(p.tagName)) return null;
+      const c = rgba(s.backgroundColor);
+      if (c && c.a > 0) { layers.push(c); if (c.a >= 1) break; }
+      if (+s.opacity < 1 && p !== el) return null; // translucent ancestor: painted colour unknown
+    }
+    let bg = { r: 255, g: 255, b: 255, a: 1 };
+    for (let i = layers.length - 1; i >= 0; i--) bg = over(layers[i], bg);
+    return bg;
+  };
+  const seenC = new Set();
+  for (const el of document.body.querySelectorAll("*")) {
+    if (/^(SCRIPT|STYLE|SVG|CANVAS|NOSCRIPT|OPTION|TEMPLATE|VIDEO|IMG)$/i.test(el.tagName) || el.closest("svg")) continue;
+    const direct = [...el.childNodes].some(n => n.nodeType === 3 && /[\p{L}\p{N}]/u.test(n.nodeValue));
+    if (!direct || !vis(el)) continue;
+    if (el.closest("[disabled],[aria-disabled=true],.lq-sr,.sr-only,.acct-sr")) continue;
+    const s = getComputedStyle(el);
+    if (+s.opacity < 1 || s.textShadow && s.textShadow !== "none" && /px [1-9]/.test(s.textShadow)) continue;
+    const fg = rgba(s.color); const bg = bgOf(el);
+    if (!fg || !bg) continue;
+    const fs = parseFloat(s.fontSize), bold = +s.fontWeight >= 700 || s.fontWeight === "bold";
+    const need = fs >= 24 || (bold && fs >= 18.66) ? 3 : 4.5;
+    const r = ratio(over(fg, bg), bg);
+    if (r + 0.005 < need) { const k = `${name(el)} ${r.toFixed(2)}:1`; if (!seenC.has(k)) { seenC.add(k); out.contrast.push(k); } }
+  }
+  out.contrast = out.contrast.slice(0, 200);
+
+  // form controls without an accessible name
+  for (const el of document.querySelectorAll("input,select,textarea")) {
+    if (/^(hidden|submit|button|reset|image)$/.test(el.type) || !vis(el)) continue;
+    const named = (el.getAttribute("aria-label") || "").trim() || (el.getAttribute("aria-labelledby") || "").split(/\s+/).some(id => id && document.getElementById(id) && document.getElementById(id).textContent.trim())
+      || (el.labels && [...el.labels].some(l => l.textContent.trim())) || (el.getAttribute("title") || "").trim();
+    if (!named) out.unlabeled.push(name(el) + (el.name ? `[name=${el.name}]` : ""));
+  }
+
   out.targets = out.targets.slice(0, 400);
   return out;
 }
@@ -138,7 +188,9 @@ if (argv.includes("--selftest")) {
       document.body.innerHTML = '<div id="bad" contenteditable="false" style="width:3.2em;font-size:16px;word-break:break-all">แดชบอร์ดรวม</div>' +
         '<div id="ok" style="width:70px;font-size:16px">แดชบอร์ดรวมสรุปผลจากทุกระบบ</div>' +
         '<p style="font-size:10px">ตัวเล็กเกินไป</p><button style="width:30px;height:30px;min-height:0;min-width:0;padding:0">x</button>' +
-        '<div style="width:600px">กว้างเกินจอ</div>';
+        '<div style="width:600px">กว้างเกินจอ</div>' +
+        '<p id="lowc" style="color:#aaa;background:#fff">จางเกินไป</p><p id="okc" style="color:#111;background:#fff">ชัดเจน</p>' +
+        '<input id="nolab" type="text"><label>ชื่อ <input id="haslab" type="text"></label>';
     });
     const r = await page.evaluate(audit, width);
     const fails = [];
@@ -147,6 +199,10 @@ if (argv.includes("--selftest")) {
     if (!r.tinyText.some(x => /10\.0px/.test(x))) fails.push("missed 10px text");
     if (!r.targets.some(x => /30x30/.test(x))) fails.push("missed 30x30 button");
     if (!(r.scrollW > width) || !r.overflow.length) fails.push("missed overflow");
+    if (!r.contrast.some(x => x.includes("p#lowc"))) fails.push("missed low contrast: " + JSON.stringify(r.contrast));
+    if (r.contrast.some(x => x.includes("p#okc"))) fails.push("false positive contrast");
+    if (!r.unlabeled.some(x => x.includes("input#nolab"))) fails.push("missed unlabeled input");
+    if (r.unlabeled.some(x => x.includes("input#haslab"))) fails.push("false positive unlabeled input");
     console.log(fails.length ? "SELFTEST FAIL\n  " + fails.join("\n  ") : "selftest ok: " + JSON.stringify({ thaiBreaks: r.thaiBreaks, tiny: r.tinyText, targets: r.targets, overflow: r.overflow }));
     process.exitCode = fails.length ? 1 : 0;
   } finally { await b0.close(); await srv0.close(); }
@@ -174,12 +230,15 @@ try {
     await Promise.race([page.close(), sleep(5000)]);
     results[f] = r;
     const c = k => (r[k] ? r[k].length : 0);
-    console.log(`${f.padEnd(18)} ${r.failed ? "FAILED " + r.failed : `h=${String(r.height).padStart(5)} overflow=${r.scrollW > width + 1 ? "YES" : "no "} targets<44=${String(c("targets")).padStart(3)} text<12=${String(c("tinyText")).padStart(3)} thaiBreaks=${String(c("thaiBreaks")).padStart(3)} errors=${c("errors")}`}`);
+    console.log(`${f.padEnd(18)} ${r.failed ? "FAILED " + r.failed : `h=${String(r.height).padStart(5)} overflow=${r.scrollW > width + 1 ? "YES" : "no "} targets<44=${String(c("targets")).padStart(3)} text<12=${String(c("tinyText")).padStart(3)} thaiBreaks=${String(c("thaiBreaks")).padStart(3)} contrast=${String(c("contrast")).padStart(3)} unlabeled=${String(c("unlabeled")).padStart(2)} errors=${c("errors")}`}`);
+    if (argv.includes("--details") && !r.failed) for (const k of CHECKS) if (k !== "overflow" && (r[k] || []).length) console.log(`    ${k}: ${r[k].slice(0, 8).join(" | ")}`);
+    if (argv.includes("--details") && !r.failed && r.overflow.length) console.log(`    overflow: ${r.overflow.join(" | ")}`);
   }
 } finally {
   await browser.close();
   await srv.close();
 }
 if (jsonOut) { writeFileSync(jsonOut, JSON.stringify({ width, height, lang, results }, null, 2)); console.log("JSON written to " + jsonOut); }
-const anyBad = Object.values(results).some(r => r.failed || r.scrollW > width + 1 || (r.targets || []).length || (r.tinyText || []).length || (r.thaiBreaks || []).length || (r.errors || []).length);
+const anyBad = Object.values(results).some(r => r.failed || (checks.has("overflow") && r.scrollW > width + 1) ||
+  ["targets", "tinyText", "thaiBreaks", "contrast", "unlabeled", "errors"].some(k => checks.has(k) && (r[k] || []).length));
 process.exit(strict && anyBad ? 1 : 0);

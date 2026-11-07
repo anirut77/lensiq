@@ -1,3 +1,4 @@
+// @ts-check
 // backend/src/util.js — HTTP helpers shared by every route: JSON responses, security headers, CORS / Origin allowlist,
 // size-capped body reading, safe logging.
 
@@ -5,6 +6,12 @@ export const now = () => Math.floor(Date.now() / 1000);
 /** UTC day 'YYYY-MM-DD' for a unix-seconds timestamp. */
 export const dayOf = (t = now()) => new Date(t * 1000).toISOString().slice(0, 10);
 export const addDays = (day, n) => dayOf(Math.floor(Date.parse(day + "T00:00:00Z") / 1000) + n * 86400);
+/** Asia/Bangkok is UTC+7 all year (no DST). Member-facing quota days / months and "today" use Bangkok time. */
+export const BKK_OFFSET = 7 * 3600;
+/** Bangkok calendar day 'YYYY-MM-DD' for a unix-seconds timestamp. */
+export const bkkDay = (t = now()) => dayOf(t + BKK_OFFSET);
+/** Unix seconds of 00:00 Bangkok time of the day containing t. */
+export const bkkDayStart = (t = now()) => Math.floor(Date.parse(bkkDay(t) + "T00:00:00Z") / 1000) - BKK_OFFSET;
 
 export class HttpError extends Error {
   /** @param {number} status @param {string} message @param {Record<string, unknown>} [extra] */

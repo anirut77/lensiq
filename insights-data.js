@@ -33,6 +33,8 @@ const iqParse = (raw, d = null) => { if (raw == null) return d; try { const v = 
 
 /* รวมยอดหลายเครื่อง (lensiq-agg.js) — เบราว์เซอร์: window.LQAgg · Node: require ; ไม่มีไฟล์ = ข้ามส่วนนี้ */
 const IQ_AGG = typeof LQAgg !== "undefined" ? LQAgg : (typeof require === "function" ? (() => { try { return require("./lensiq-agg.js"); } catch { return null; } })() : null);
+/* ตรวจความแม่นยำหน้างาน + คุณภาพภาพรายชั่วโมง (lensiq-sitecheck.js) — เบราว์เซอร์: window.LQSite · Node: require ; ไม่มี = ข้าม */
+const IQ_SITE = () => typeof LQSite !== "undefined" ? LQSite : (typeof require === "function" ? (() => { try { return require("./lensiq-sitecheck.js"); } catch { return null; } })() : null);
 
 /** คีย์ localStorage ที่เป็นข้อมูลของระบบในชุดเดโมนี้
    st- ครอบคลุม st-cams / st-cam-<slot> / st-heat-<slot> แล้ว ; สถิติดูดวงเป็นตัวเลขนับแบบไม่ระบุตัวตนจึงระบุชื่อคีย์ตรง ๆ
@@ -55,6 +57,7 @@ function iqCollect(snap) {
   if (bs && Array.isArray(bs.visitors) && bs.visitors.length) {
     D.booth = {
       event: bs.event || {}, demo: !!bs.iqDemo,
+      quality: bs.quality && typeof bs.quality === "object" ? bs.quality : null, qualityDay: (bs.event && bs.event.date) || (bs.visitors[0] ? iqDay(bs.visitors[0].first) : ""),
       visitors: bs.visitors.map(v => {
         const frames = v.frames || 0, attRate = frames ? (v.att || 0) / frames : 0, dwell = v.dwell || 0;
         const stopped = dwell >= 5;
@@ -97,7 +100,8 @@ function iqCollect(snap) {
       const i = id.indexOf(":"), cam = i > 0 ? byCam[id.slice(0, i)] : null;
       zones[id] = { ...z, name: i > 0 && cam && Object.keys(byCam).length > 1 ? `${cam.name} · ${z.name}` : z.name };
     }
-    return { day: k.slice(7), in: d.in || 0, out: d.out || 0, peak: d.peak || 0, maxQueue: d.maxQueue || 0, hourlyIn: (d.hourly && d.hourly.in) || [], hourlyOut: (d.hourly && d.hourly.out) || [], zones, byCam, demo: !!d.iqDemo };
+    return { day: k.slice(7), in: d.in || 0, out: d.out || 0, peak: d.peak || 0, maxQueue: d.maxQueue || 0, hourlyIn: (d.hourly && d.hourly.in) || [], hourlyOut: (d.hourly && d.hourly.out) || [], zones, byCam, demo: !!d.iqDemo,
+      quality: d.quality && typeof d.quality === "object" ? d.quality : null };
   });
   // เชื่อมหลายเครื่อง: st-agg-YYYY-MM-DD = ตัวเลขสรุปจากเครื่องลูก (แคชจากเครื่องหลักหรือไฟล์ที่นำเข้า)
   // รวมเข้ายอดของวันนั้น และเพิ่มเป็นแถวแยก byCam["n:<node>"] ; ไม่มีคีย์นี้ = ยอดเดิมทุกอย่าง
@@ -106,7 +110,7 @@ function iqCollect(snap) {
     const date = k.slice(7), packs = IQ_AGG.cachePacks(get(k, null), date);
     if (!packs.length) continue;
     let d = days.find(x => x.day === date);
-    if (!d) { d = { day: date, in: 0, out: 0, peak: 0, maxQueue: 0, hourlyIn: [], hourlyOut: [], zones: {}, byCam: {}, demo: false }; days.push(d); }
+    if (!d) { d = { day: date, in: 0, out: 0, peak: 0, maxQueue: 0, hourlyIn: [], hourlyOut: [], zones: {}, byCam: {}, demo: false, quality: null }; days.push(d); }
     if (!Object.keys(d.byCam).length && (d.in || d.out)) d.byCam.local = { name: TN("เครื่องหลัก"), in: d.in, out: d.out };
     const M = IQ_AGG.mergeDay({ in: d.in, out: d.out, peak: d.peak, maxQueue: d.maxQueue, hourly: { in: d.hourlyIn, out: d.hourlyOut } }, packs);
     Object.assign(d, { in: M.in, out: M.out, peak: M.peak, maxQueue: M.maxQueue, hourlyIn: M.hourlyIn, hourlyOut: M.hourlyOut, nodes: packs.length });
@@ -368,7 +372,8 @@ function iqModuleBars(D, r, id) {
 /* ---------- CSV สรุปรวม ---------- */
 function iqCsvCell(v) { v = v == null ? "" : String(v); if (/^[=+\-@]/.test(v) && isNaN(+v)) v = "'" + v; return /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v; }
 function iqCsv(D, r) {
-  const rows = [[TN("วันที่"), TN("ผู้เข้าชมบูธ"), TN("หยุดชมบูธ"), TN("มีส่วนร่วมบูธ"), TN("คนเข้าร้าน"), TN("ใบเสร็จสแกน"), TN("ยอดขายสแกน (บาท)"), TN("บิลลูกค้าที่จดจำ"), TN("ยอดขายลูกค้าที่จดจำ (บาท)"), TN("ลูกค้าที่จดจำมาซื้อ"), TN("การทดสอบอารมณ์"), TN("อารมณ์เชิงบวกเฉลี่ย (%)"), TN("ผู้เช็คชื่อ"), TN("QC ตรวจ"), TN("QC ผ่าน"), TN("เที่ยววิ่ง"), TN("เหตุการณ์คนขับ")]];
+  const rows = [[TN("วันที่"), TN("ผู้เข้าชมบูธ"), TN("หยุดชมบูธ"), TN("มีส่วนร่วมบูธ"), TN("คนเข้าร้าน"), TN("ใบเสร็จสแกน"), TN("ยอดขายสแกน (บาท)"), TN("บิลลูกค้าที่จดจำ"), TN("ยอดขายลูกค้าที่จดจำ (บาท)"), TN("ลูกค้าที่จดจำมาซื้อ"), TN("การทดสอบอารมณ์"), TN("อารมณ์เชิงบวกเฉลี่ย (%)"), TN("ผู้เช็คชื่อ"), TN("QC ตรวจ"), TN("QC ผ่าน"), TN("เที่ยววิ่ง"), TN("เหตุการณ์คนขับ"), TN("ชั่วโมงที่ภาพมีปัญหา (ยอดอาจคลาดเคลื่อน)")]];
+  const F = iqFlagged(D, r);
   const val = (x, f = v => v) => x == null ? "" : f(x);
   r.keys.forEach(day => {
     const M = iqMetrics(D, { ...r, preset: "day", from: day, to: day });
@@ -376,7 +381,8 @@ function iqCsv(D, r) {
     if (!hasAny) return;
     rows.push([day, val(M.booth?.visitors), val(M.booth?.stopped), val(M.booth?.engaged), val(M.store?.in), val(M.co?.receipts), val(M.co?.revenue, v => v.toFixed(2)),
       val(M.cx?.tickets), val(M.cx?.revenue, v => v.toFixed(2)), val(M.cx?.customers), val(M.neuro?.sessions), M.neuro?.sessions ? (M.neuro.positive * 100).toFixed(1) : "",
-      val(M.att?.checkins), val(M.qc?.total), val(M.qc?.pass), val(M.dr?.trips), val(M.dr?.events)]);
+      val(M.att?.checkins), val(M.qc?.total), val(M.qc?.pass), val(M.dr?.trips), val(M.dr?.events),
+      F.filter(f => f.day === day).map(f => (f.src === "booth" ? TN("บูธ") + " " : "") + iqPad(f.h) + ":00").join(" ")]);
   });
   const T = iqMetrics(D, r);
   rows.push([], [TN("รวมช่วงที่เลือก"), iqT("iq.csv.span", "{a} ถึง {b}", { a: r.from, b: r.to })]);
@@ -426,6 +432,43 @@ function iqRemoveDemo(snap) {
   return { set, remove, kept };
 }
 
+/* ---------- คุณภาพภาพรายชั่วโมง (round 10): ชั่วโมงที่กล้องมีปัญหา ≥ 5 นาที ---------- */
+/** -> [{src: "store"|"booth", day, h, sec: {shake, dark, …}, min}] ในช่วง r (ไม่มีข้อมูลคุณภาพ = []) */
+function iqFlagged(D, r) {
+  const S = IQ_SITE(), out = [];
+  if (!S) return out;
+  if (D.store) D.store.forEach(d => { if (d.quality && iqIn(d.day, r)) S.flaggedHours(d.quality).forEach(f => out.push({ src: "store", day: d.day, ...f })); });
+  if (D.booth && D.booth.quality && D.booth.qualityDay && iqIn(D.booth.qualityDay, r)) S.flaggedHours(D.booth.quality).forEach(f => out.push({ src: "booth", day: D.booth.qualityDay, ...f }));
+  return out.sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : a.h - b.h));
+}
+/**
+ * มุมมองที่ "ไม่นับชั่วโมงที่ภาพมีปัญหา": คืนสำเนาของ D ที่ตัดยอดหน้าร้านในชั่วโมงนั้น (hourly + ยอดรวมวัน) และผู้เข้าชมบูธที่มาถึง
+ * ในชั่วโมงนั้นออก — ข้อมูลที่เก็บไว้ไม่ถูกแก้ (สำเนาเท่านั้น) · คืน {D, removed: {store, booth}}
+ */
+function iqExcludeFlagged(D, r) {
+  const F = iqFlagged(D, { ...r, preset: "all", from: "0000-00-00", to: "9999-99-99" });
+  const out = { ...D }, removed = { store: 0, booth: 0 };
+  if (D.store) out.store = D.store.map(d => {
+    const hs = F.filter(f => f.src === "store" && f.day === d.day).map(f => f.h);
+    if (!hs.length) return d;
+    const hin = d.hourlyIn.slice(), hout = d.hourlyOut.slice(); let din = 0, dout = 0;
+    hs.forEach(h => { din += hin[h] || 0; dout += hout[h] || 0; hin[h] = 0; hout[h] = 0; });
+    removed.store += din;
+    return { ...d, in: Math.max(0, d.in - din), out: Math.max(0, d.out - dout), hourlyIn: hin, hourlyOut: hout, excludedHours: hs };
+  });
+  if (D.booth) {
+    const hs = new Set(F.filter(f => f.src === "booth").map(f => f.day + "|" + f.h));
+    if (hs.size) {
+      const V = D.booth.visitors.filter(v => !hs.has(iqDay(v.t) + "|" + new Date(v.t).getHours()));
+      removed.booth = D.booth.visitors.length - V.length;
+      out.booth = { ...D.booth, visitors: V };
+    }
+  }
+  return { D: out, removed };
+}
+/** ผลตรวจความแม่นยำหน้างานล่าสุดต่อกล้อง (อ่านอย่างเดียว) จาก localStorage หรือ snapshot — ดู LQSite.latestByCamera */
+function iqAccuracy(src) { const S = IQ_SITE(); return S ? S.latestByCamera(src) : []; }
+
 /* ---------- สำรอง/กู้คืน ---------- */
 function iqBackup(snap, idb = {}, now = Date.now()) {
   const ls = {};
@@ -441,5 +484,5 @@ function iqValidateBackup(obj) {
   return { ok: true, keys, idbStores: idb ? Object.keys(idb).filter(s => s === "products" || s === "samples") : [] };
 }
 
-return { iqT, TN, IQ_DAY, IQ_DEMO_KEY, IQ_EMO, IQ_VA, IQ_QC_REASONS, IQ_DR_TYPES, iqPad, iqDay, iqDayStart, iqAddDays, iqMean, iqSum, iqParse, IQ_AGG, IQ_FORTUNE_KEYS, iqIsModuleKey, IQ_EL, IQ_PALM, iqCollect, iqEarliest, IQ_SPANS, IQ_DATE_RE, iqRange, iqIn, iqInT, iqMetrics, iqKpis, iqBuckets, iqBucketOf, iqSeries, iqTrimHours, iqFunnel, iqTopBars, iqModuleBars, iqCsvCell, iqCsv, iqHasDemo, IQ_HEAT_RE, iqRemoveDemo, iqBackup, iqValidateBackup };
+return { iqT, TN, IQ_DAY, IQ_DEMO_KEY, IQ_EMO, IQ_VA, IQ_QC_REASONS, IQ_DR_TYPES, iqPad, iqDay, iqDayStart, iqAddDays, iqMean, iqSum, iqParse, IQ_AGG, IQ_FORTUNE_KEYS, iqIsModuleKey, IQ_EL, IQ_PALM, iqCollect, iqEarliest, IQ_SPANS, IQ_DATE_RE, iqRange, iqIn, iqInT, iqMetrics, iqKpis, iqBuckets, iqBucketOf, iqSeries, iqTrimHours, iqFunnel, iqTopBars, iqModuleBars, iqCsvCell, iqCsv, iqHasDemo, IQ_HEAT_RE, iqRemoveDemo, iqBackup, iqValidateBackup, iqFlagged, iqExcludeFlagged, iqAccuracy };
 });

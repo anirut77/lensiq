@@ -134,6 +134,22 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     return h;
   }
 
+  /* ---------- ข้อควรรู้เมื่อไม่ทราบเวลาเกิด (เหมือน horoscope.js: พุธกลางคืน / วันเปลี่ยนสารท) ---------- */
+  var hm = function (t) { return String(t.h).padStart(2, "0") + ":" + String(t.mi).padStart(2, "0"); };
+  function unsureNotes(R) {
+    var n = [], bz = R.bazi, bp = R.taksa ? R.taksa.birth : R.lek7 ? { unsure: R.lek7.unsure } : null;
+    if (bz && bz.unsure) {
+      var u = bz.unsure, v = { n: u.term, t: hm(u.at) };
+      n.push(u.year ? T("lc.uYear", "วันเกิดตรงกับวันลี่ชุน (立春 วันเปลี่ยนปีจีน) ซึ่งเปลี่ยนเวลา {t} น. — ถ้าไม่ทราบเวลาเกิด เสาปีและเสาเดือนขึ้นกับว่าเกิดก่อนหรือหลังเวลานั้น (ผังนี้คิดที่เวลาเที่ยงวัน) ใส่เวลาเกิดเพื่อความแม่นยำ", v)
+        : T("lc.uMonth", "วันเกิดตรงกับวันเปลี่ยนเดือนตามสารท {n} ซึ่งเปลี่ยนเวลา {t} น. — ถ้าไม่ทราบเวลาเกิด เสาเดือนอาจเป็นเดือนข้างเคียง (ผังนี้คิดที่เวลาเที่ยงวัน) ใส่เวลาเกิดเพื่อความแม่นยำ", v));
+    }
+    if (bp && bp.unsure && page !== "bazi") {
+      if (bp.unsure.maybeRahu && page !== "lek7") n.push(T("lc.uRahu", "เกิดวันพุธแต่ไม่ทราบเวลา — ถ้าเกิดหลัง 18:00 น. ตำราไทยนับเป็น \"พุธกลางคืน\" ดาวประจำวันคือพระราหู ผังทักษาจะต่างไป ใส่เวลาเกิดเพื่อความแม่นยำ"));
+      n.push(T("lc.uDawn", "ไม่ทราบเวลาเกิด — ตำราไทยเปลี่ยนวันตอน 06:00 น. ถ้าเกิดก่อนรุ่งเช้าจะนับเป็นวันก่อนหน้า (ดาว{p}) ผลจะต่างไป", { p: planetName(bp.unsure.preDawnPlanet) }));
+    }
+    return n.length ? '<div class="lc-notes" role="note">' + n.map(function (x) { return '<p class="lc-note">' + esc(x) + "</p>"; }).join("") + "</div>" : "";
+  }
+
   var DOMAIN = { bazi: "bazi", taksa: "taksa", lek7: "lek7", lifegraph: "lifegraph" };
   function factsFor(topic) {
     var R = st.res;
@@ -146,7 +162,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var R = st.res, b = st.b; if (!R) return;
     $("#lcResult").hidden = false;
     $("#lcResTitle").textContent = T("lc.resTitle." + page, { bazi: "ผังแปดอักษร", taksa: "ผังทักษา", lek7: "ผังเลข 7 ตัว", lifegraph: "กราฟชีวิต" }[page]) + " · " + T("lc.bornOn", "เกิด {d}/{m}/{y}", { d: b.d, m: b.m, y: yearOut(b.y) });
-    $("#lcChart").innerHTML = page === "bazi" ? renderBazi(R.bazi) : page === "taksa" ? renderTaksa(R.taksa) : page === "lek7" ? renderLek7(R.lek7) : renderLife(R);
+    $("#lcChart").innerHTML = unsureNotes(R) + (page === "bazi" ? renderBazi(R.bazi) : page === "taksa" ? renderTaksa(R.taksa) : page === "lek7" ? renderLek7(R.lek7) : renderLife(R));
     $("#lcReadWrap").innerHTML = FK.readingBlock("lcRd", T("lc.rdTitle", "คำอ่านตามตำรา"), true);
     FK.bindReading("lcRd", DOMAIN[page], function (topic) { return factsFor(topic); }, { withTopics: true });
     if (focus) $("#lcResTitle").focus();

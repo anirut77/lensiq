@@ -115,6 +115,25 @@
 .iv #ivDCandBtn{margin-top:10px}
 .iv .fb #ivDResBody{margin-top:10px}
 
+/* Round 10: candidate practice mode, EU/EEA switch, observation layer (signals, consistency, rater spread), question guard */
+.iv-modebar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:center;max-width:900px;margin:0 auto 12px}
+.iv-modebar .hint{margin:0}
+.iv.iv-cand .tab:not([data-t=practice]):not([data-t=about]){display:none}
+.iv.iv-cand .iv-principle:not(.small){display:none}
+.law-warn{font-size:.84rem;color:var(--bad);margin:4px 0 0;min-height:1px}
+.law-warn:empty{display:none}
+.rate.consist .field{margin:6px 0}
+.sum-obs{margin-top:14px}
+.sum-obs ul{padding-left:18px;display:grid;gap:6px;font-size:.88rem}
+.iv .early{padding:8px 12px;border-radius:10px;background:var(--warnbg);color:var(--warn)}
+.iv .sig{margin:12px 0;padding:10px 12px;border:1px dashed var(--line);border-radius:12px;background:#fff}
+.iv .sig h4{font-size:.9rem;color:var(--navy);font-weight:500;margin:0 0 6px}
+.iv .sig ul{list-style:none;padding:0;margin:0;display:grid;gap:4px;font-size:.86rem}
+.iv .sig li{padding:4px 10px;border-radius:8px;background:var(--bg)}
+.iv .sig li.seen{background:var(--warnbg);color:var(--warn)}
+.iv .sci{font-size:.78rem;color:var(--muted);margin:6px 0 0}
+.iv .sig-off{padding:8px 12px;border-radius:10px;background:var(--alt)}
+
 @media (max-width:760px){
   .iv{padding:24px 16px 80px}
   .iv .grid2,.live-grid{grid-template-columns:minmax(0,1fr)}
@@ -131,4 +150,8 @@
   html.iv-print-fb .iv #pane-summary{display:none!important}
   html.iv-print-fb .iv #pane-delivery{display:block!important}
   html.iv-print-fb .iv #pane-delivery>*:not(#ivDResult){display:none!important}
+  /* candidate practice summary: print only the candidate's own summary */
+  html.iv-print-ps .iv #pane-summary{display:none!important}
+  html.iv-print-ps .iv #pane-practice{display:block!important}
+  html.iv-print-ps .iv #pane-practice>*:not(#ivPSum){display:none!important}
 }

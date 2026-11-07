@@ -46,5 +46,7 @@
   "mem.saveFail": "Could not save",
   "mem.saveFull": "History is full — delete old items on My account",
   "mem.print": "Print / save as PDF",
-  "mem.welcome": "Signed in. Welcome!"
+  "mem.welcome": "Signed in. Welcome!",
+  "mem.dlg.remember": "Remember me on this device (unticked = signed out when you close the tab · do not tick on a shared computer)",
+  "mem.claim.done": "{n} earlier purchase(s) linked to your account"
 } });

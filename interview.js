@@ -5,20 +5,25 @@
  * boxes may carry `yaw` (−1..1) to turn the synthetic head. */
 (function () {
   "use strict";
-  var IV = window.IVCore;
+  var W = /** @type {any} */ (window);
+  var IV = W.IVCore;
   if (!IV || !document.getElementById("ivApp")) return;
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
-  var T = function (k, th, v) { return window.LQI18N ? LQI18N.tf(k, th, v) : th.replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : m; }); };
+  var T = function (k, th, v) { return window.LQI18N ? window.LQI18N.tf(k, th, v) : th.replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : m; }); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   var sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
   var C = IV.COMPETENCIES;
   var cName = function (id) { return T("iv.c." + id + ".name", C[id].name); };
   var cTxt = function (id, f) { return T("iv.c." + id + "." + f, C[id][f]); };
-  function toast(msg) { var t = $("#ivToast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.h); toast.h = setTimeout(function () { t.classList.remove("show"); }, 2200); }
+  var toastH = null;
+  function toast(msg) { var t = $("#ivToast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastH); toastH = setTimeout(function () { t.classList.remove("show"); }, 2200); }
 
+  var QS = new URLSearchParams(location.search);
   var S = { role: "sales", comps: IV.ROLES.sales.comps.slice(), cand: "", sheets: [], cur: -1, reveal: false, law: {}, delivery: null,
-    org: { ack1: false, ack2: false, ack3: false, allow: false } }; // organisation setting: interviewer viewing of delivery notes (off)
+    org: { ack1: false, ack2: false, ack3: false, allow: false }, // organisation setting: interviewer viewing of delivery notes (off)
+    region: QS.get("region") === "eu" ? "eu" : "th", // 'eu' = EU/EEA or regulated use: no emotion-like signals in employer flows
+    candMode: QS.get("mode") === "practice" }; // candidate practice mode: candidate alone on own device, nothing to the employer
 
   /* ---------- tabs ---------- */
   function go(t) {
@@ -29,6 +34,29 @@
   }
   $$(".iv .tab").forEach(function (b) { b.addEventListener("click", function () { go(b.dataset.t); }); });
   $$("[data-goto]").forEach(function (b) { b.addEventListener("click", function () { go(b.dataset.goto); window.scrollTo(0, 0); }); });
+
+  /* ---------- candidate practice mode (own device; employer tabs hidden; nothing leaves this page) ---------- */
+  function setCandMode(on) {
+    S.candMode = !!on;
+    $("#ivApp").classList.toggle("iv-cand", S.candMode);
+    $("#ivModeBtn").setAttribute("aria-pressed", S.candMode ? "true" : "false");
+    $("#ivModeBtn").textContent = S.candMode ? T("iv.js.modeBack", "กลับไปโหมดผู้สัมภาษณ์") : T("iv.s.mode.cand", "โหมดฝึกซ้อมของผู้สมัคร (ใช้คนเดียว)");
+    if (S.candMode) go("practice");
+    else if (!$("#pane-practice").hidden) go("setup");
+  }
+  $("#ivModeBtn").addEventListener("click", function () { setCandMode(!S.candMode); window.scrollTo(0, 0); });
+
+  /* ---------- jurisdiction: EU/EEA or regulated use hides emotion-like signals in employer flows ---------- */
+  function syncRegion() {
+    $("#ivRegion").value = S.region;
+    $("#ivRegionState").textContent = S.region === "eu" ? T("iv.js.regEu", "โหมด EU/EEA เปิดอยู่: ไม่แสดงสัญญาณความตื่นเต้นที่สังเกตได้ในขั้นตอนของนายจ้าง ผู้สมัครยังดูได้ในโหมดฝึกซ้อมของตัวเอง")
+      : T("iv.js.regTh", "โหมดทั่วไป: สัญญาณความตื่นเต้นที่สังเกตได้แสดงเป็นข้อสังเกตพร้อมข้อจำกัดทางวิทยาศาสตร์ เฉพาะเมื่อผู้สมัครยินยอม");
+    $("#ivDRegionNote").hidden = S.region !== "eu";
+  }
+  $("#ivRegion").addEventListener("change", function () {
+    S.region = $("#ivRegion").value === "eu" ? "eu" : "th"; syncRegion();
+    liveTiles(); if (S.delivery && !$("#ivDResBody").hidden) renderResultBody(); renderSumDelivery();
+  });
 
   /* ---------- setup ---------- */
   function renderComps() {
@@ -43,11 +71,11 @@
     renderQuestions();
   });
   $("#ivRole").addEventListener("change", function () {
-    S.role = this.value;
+    S.role = $("#ivRole").value;
     if (S.role !== "custom") S.comps = IV.ROLES[S.role].comps.slice();
     renderComps(); renderQuestions();
   });
-  $("#ivCand").addEventListener("input", function () { S.cand = this.value.replace(/[<>]/g, "").trim(); });
+  $("#ivCand").addEventListener("input", function () { S.cand = $("#ivCand").value.replace(/[<>]/g, "").trim(); });
   function renderWho() {
     $("#ivWhoList").innerHTML = S.sheets.map(function (s, i) {
       return '<li><span class="who-n">' + esc(s.who) + '</span><span class="who-s">' + esc(s.submitted ? T("iv.js.submitted", "ส่งแล้ว") : T("iv.js.pending", "ยังไม่ส่ง")) +
@@ -59,7 +87,7 @@
     var n = $("#ivWho").value.replace(/[<>]/g, "").trim().slice(0, 40);
     if (!n) return;
     if (S.sheets.some(function (s) { return s.who === n; })) { toast(T("iv.js.dupWho", "มีชื่อนี้แล้ว")); return; }
-    S.sheets.push({ who: n, scores: {}, notes: {}, submitted: false });
+    S.sheets.push({ who: n, scores: {}, notes: {}, consist: {}, submitted: false });
     if (S.cur < 0) S.cur = 0;
     $("#ivWho").value = ""; renderWho();
   });
@@ -84,6 +112,18 @@
     $("#ivLawCount").textContent = T("iv.js.lawCount", "ทบทวนแล้ว {n}/{t} หัวข้อ", { n: n, t: IV.LAW.length });
   }
   $("#ivLaw").addEventListener("change", function (e) { var i = e.target.closest("[data-law]"); if (i) { S.law[i.dataset.law] = i.checked; lawCount(); } });
+  /* 'questions you may not ask' guard: prompts a re-check (never blocks); also runs on evidence notes */
+  function lawWarn(text) {
+    var ids = IV.checkQuestion(text);
+    if (!ids.length) return "";
+    var names = ids.map(function (id) { var l = IV.LAW.filter(function (x) { return x.id === id; })[0]; return T("iv.law." + id + ".topic", l.topic); }).join(" · ");
+    return T("iv.js.lawWarn", "อาจเกี่ยวกับหัวข้อที่ไม่ควรถามหรือใช้พิจารณา: {t} — ตัดออก หรือถามแทนด้วยคำถามที่เกี่ยวกับงาน (ดูรายการด้านบน)", { t: names });
+  }
+  function qCheck() {
+    var v = $("#ivQCheck").value, w = lawWarn(v);
+    $("#ivQCheckOut").textContent = w || (v.trim() ? T("iv.js.qcOk", "ไม่พบหัวข้อต้องห้ามจากคำสำคัญ — ยังควรตรวจว่าคำถามเกี่ยวกับงานจริง") : "");
+  }
+  $("#ivQCheck").addEventListener("input", qCheck);
 
   /* ---------- questions ---------- */
   function barsTable(id) {
@@ -116,8 +156,9 @@
         '<div class="nums" role="radiogroup" aria-label="' + esc(T("iv.js.rateAria", "คะแนน {c}", { c: cName(id) })) + '">' +
         [1, 2, 3, 4, 5].map(function (n) { return '<button type="button" role="radio" data-v="' + n + '" aria-checked="' + (v === n) + '" title="' + esc(n === 1 ? cTxt(id, "a1") : n === 3 ? cTxt(id, "a3") : n === 5 ? cTxt(id, "a5") : "") + '">' + n + "</button>"; }).join("") +
         '</div><p class="anchor">' + esc(v === 1 ? cTxt(id, "a1") : v === 3 ? cTxt(id, "a3") : v === 5 ? cTxt(id, "a5") : v ? T("iv.js.betweenShort", "อยู่ระหว่างระดับที่บรรยายไว้") : "") + "</p>" +
-        '<label class="field"><span>' + esc(T("iv.js.evidence", "หลักฐาน: ผู้สมัครเล่าว่าทำอะไร ผลเป็นอย่างไร")) + '</span><textarea rows="2" maxlength="2000" data-note="' + id + '">' + esc(sh.notes[id] || "") + "</textarea></label></fieldset>";
-    }).join("");
+        '<label class="field"><span>' + esc(T("iv.js.evidence", "หลักฐาน: ผู้สมัครเล่าว่าทำอะไร ผลเป็นอย่างไร")) + '</span><textarea rows="2" maxlength="2000" data-note="' + id + '">' + esc(sh.notes[id] || "") + "</textarea></label>" +
+        '<p class="law-warn" data-warn="' + id + '" role="status">' + esc(lawWarn(sh.notes[id])) + "</p></fieldset>";
+    }).join("") + consistHtml(sh, lock);
     $("#ivSubmit").hidden = lock; $("#ivUnlock").hidden = !lock;
     $("#ivScMsg").textContent = lock ? T("iv.js.locked", "{n} ส่งคะแนนแล้ว", { n: sh.who }) : "";
   }
@@ -129,7 +170,27 @@
     sh.scores[id] = sh.scores[id] === v ? null : v;
     renderScore();
   });
-  $("#ivSheet").addEventListener("input", function (e) { var t = e.target.closest("[data-note]"); if (t && S.sheets[S.cur]) S.sheets[S.cur].notes[t.dataset.note] = t.value; });
+  $("#ivSheet").addEventListener("input", function (e) {
+    var t = e.target.closest("[data-note]"); if (!t || !S.sheets[S.cur]) return;
+    S.sheets[S.cur].notes[t.dataset.note] = t.value;
+    var w = $('#ivSheet [data-warn="' + t.dataset.note + '"]'); if (w) w.textContent = lawWarn(t.value);
+  });
+  /* answer consistency — the interviewer's own observation, NOT a judgement and never a true/false score */
+  var CS_OPTS = [["", "iv.js.csNone", "ไม่ได้สังเกต"], ["yes", "iv.js.csYes", "เห็นชัด"], ["ask", "iv.js.csAsk", "ควรถามเพิ่ม / ตรวจสอบ"]];
+  function consistHtml(sh, lock) {
+    var cs = sh.consist || {};
+    return '<fieldset class="rate consist"' + (lock ? " disabled" : "") + "><legend>" + esc(T("iv.js.csH", "ความสอดคล้องของคำตอบ (ข้อสังเกต ไม่ใช่การตัดสิน)")) + "</legend>" +
+      '<p class="hint">' + esc(T("iv.js.csHint", "บันทึกสิ่งที่คุณสังเกตเอง ไม่มีคะแนนจริง/เท็จ และไม่รวมในคะแนนสมรรถนะ — \"ควรถามเพิ่ม\" หมายถึงถามเจาะหรือตรวจสอบบุคคลอ้างอิง ไม่ใช่ข้อสรุปว่าผู้สมัครพูดไม่จริง")) + "</p>" +
+      IV.CONSIST.map(function (c) {
+        return '<label class="field"><span>' + esc(T("iv.cs." + c.id, c.th)) + '</span><select data-consist="' + c.id + '">' +
+          CS_OPTS.map(function (o) { return '<option value="' + o[0] + '"' + ((cs[c.id] || "") === o[0] ? " selected" : "") + ">" + esc(T(o[1], o[2])) + "</option>"; }).join("") + "</select></label>";
+      }).join("") + "</fieldset>";
+  }
+  $("#ivSheet").addEventListener("change", function (e) {
+    var t = e.target.closest("[data-consist]"), sh = S.sheets[S.cur]; if (!t || !sh || sh.submitted) return;
+    sh.consist = sh.consist || {};
+    if (t.value === "yes" || t.value === "ask") sh.consist[t.dataset.consist] = t.value; else delete sh.consist[t.dataset.consist];
+  });
   $("#ivSubmit").addEventListener("click", function () {
     var sh = S.sheets[S.cur]; if (!sh) return;
     var missing = S.comps.filter(function (id) { return !IV.validScore(sh.scores[id]); });
@@ -165,7 +226,7 @@
   function renderSummary() {
     var ready = allSubmitted() || S.reveal;
     $("#ivSumMeta").textContent = T("iv.js.meta", "ตำแหน่ง: {r} · ผู้สมัคร: {c} · ผู้สัมภาษณ์ {n} คน · {d}",
-      { r: T("iv.r." + S.role, IV.ROLES[S.role].name), c: S.cand || "—", n: S.sheets.length, d: new Date().toLocaleDateString(window.LQI18N && LQI18N.lang === "zh" ? "zh-CN" : "th-TH") });
+      { r: T("iv.r." + S.role, IV.ROLES[S.role].name), c: S.cand || "—", n: S.sheets.length, d: new Date().toLocaleDateString(({ zh: "zh-CN", en: "en-GB" })[String(window.LQI18N && window.LQI18N.lang)] || "th-TH") });
     $("#ivSumWait").hidden = ready; $("#ivSumBody").hidden = !ready;
     if (!ready) {
       var left = S.sheets.filter(function (s) { return !s.submitted; }).map(function (s) { return s.who; });
@@ -195,7 +256,28 @@
     $("#ivStr").innerHTML = li(A.strengths, T("iv.js.noStr", "ไม่มีสมรรถนะที่เฉลี่ยตั้งแต่ 4 และความเห็นสอดคล้อง"));
     $("#ivDev").innerHTML = li(A.develop, T("iv.js.noDev", "ไม่มีสมรรถนะที่เฉลี่ยไม่เกิน 2.5"));
     $("#ivDis").innerHTML = li(A.discuss, T("iv.js.noDis", "ไม่มี — คะแนนของทุกสมรรถนะห่างกันไม่เกิน 2"));
+    $("#ivSumEarly").hidden = allSubmitted();
+    renderSpread(); renderConsist();
     renderSumDelivery();
+  }
+  /* interviewer score-spread flag: a calibration prompt before discussion, not a fault-finding tool */
+  var SPREAD = { lenient: ["iv.js.spLen", "ให้คะแนนสูงกว่าผู้สัมภาษณ์คนอื่นเฉลี่ย {d} คะแนน"], severe: ["iv.js.spSev", "ให้คะแนนต่ำกว่าผู้สัมภาษณ์คนอื่นเฉลี่ย {d} คะแนน"],
+    narrow: ["iv.js.spNar", "ให้คะแนนเท่ากันทุกสมรรถนะ ({n} ข้อ) — ลองเทียบกับคำบรรยายพฤติกรรมแต่ละระดับอีกครั้ง"] };
+  function renderSpread() {
+    var rows = IV.raterSpread(S.sheets, S.comps).filter(function (r) { return r.flag; });
+    $("#ivSumSpread").innerHTML = "<h3>" + esc(T("iv.js.spH", "การกระจายของคะแนนรายผู้สัมภาษณ์")) + '</h3><p class="hint">' + esc(T("iv.js.spHint", "ใช้ปรับมาตรฐานร่วมกันก่อนหารือ ให้แต่ละคนเล่าหลักฐานที่ใช้ ไม่ใช่การจับผิดผู้สัมภาษณ์")) + "</p>" +
+      (S.sheets.length < 2 ? '<p class="hint">' + esc(T("iv.js.spNeed", "ต้องมีผู้สัมภาษณ์อย่างน้อย 2 คน")) + "</p>" :
+        rows.length ? '<ul>' + rows.map(function (r) { return '<li data-spread="' + r.flag + '"><b>' + esc(r.who) + ":</b> " + esc(T(SPREAD[r.flag][0], SPREAD[r.flag][1], { d: r.dev == null ? "—" : Math.abs(r.dev).toFixed(1), n: r.n })) + "</li>"; }).join("") + "</ul>"
+          : '<p class="hint">' + esc(T("iv.js.spNone", "ไม่พบผู้สัมภาษณ์ที่ให้คะแนนต่างจากคนอื่นอย่างเด่นชัด")) + "</p>");
+  }
+  function renderConsist() {
+    var C = IV.consistency(S.sheets);
+    var name = function (id) { var c = IV.CONSIST.filter(function (x) { return x.id === id; })[0]; return T("iv.cs." + id, c.th); };
+    $("#ivSumConsist").innerHTML = "<h3>" + esc(T("iv.js.csH", "ความสอดคล้องของคำตอบ (ข้อสังเกต ไม่ใช่การตัดสิน)")) + "</h3>" +
+      (C.observed ? "<ul>" + C.items.filter(function (i) { return i.n; }).map(function (i) { return '<li data-cs="' + i.id + '"><b>' + esc(name(i.id)) + ":</b> " + esc(T("iv.js.csCount", "เห็นชัด {y} · ควรถามเพิ่ม {a}", { y: i.yes, a: i.ask })) + "</li>"; }).join("") + "</ul>" +
+        (C.followUp.length ? '<p class="hint">' + esc(T("iv.js.csFollow", "หัวข้อที่ควรถามเพิ่มหรือตรวจสอบ (เช่น บุคคลอ้างอิง): {t}", { t: C.followUp.map(name).join(" · ") })) + "</p>" : "")
+        : '<p class="hint">' + esc(T("iv.js.csEmpty", "ยังไม่มีผู้สัมภาษณ์บันทึกข้อสังเกตนี้")) + "</p>") +
+      '<p class="sci">' + esc(T("iv.js.sci", SCI_TH)) + "</p>";
   }
   /* interviewer-side delivery notes: only with the organisation setting (3 acknowledgements) AND after every
      interviewer has submitted (IVCore.deliveryView) — never before scoring, so the numbers cannot anchor the scores */
@@ -207,7 +289,7 @@
     if (v !== "interviewer") $("#ivIncDelivery").checked = false;
     var on = v === "interviewer" && $("#ivIncDelivery").checked;
     box.hidden = !on;
-    box.innerHTML = on ? "<h3>" + esc(T("iv.js.sumDH", "ข้อสังเกตการนำเสนอ (ไม่ใช่การประเมินตัวบุคคล และไม่ใช้ให้คะแนน)")) + "</h3>" + tilesHtml(S.delivery.d, S.delivery.g) +
+    box.innerHTML = on ? "<h3>" + esc(T("iv.js.sumDH", "ข้อสังเกตการนำเสนอ (ไม่ใช่การประเมินตัวบุคคล และไม่ใช้ให้คะแนน)")) + "</h3>" + tilesHtml(S.delivery.d, S.delivery.g) + signalsHtml(S.delivery.d, S.delivery.g, "employer") +
       '<p class="acc">' + esc(T("iv.s.acc", ACC_TH)) + "</p>" : "";
   }
   var ACC_TH = "การปรับให้เหมาะสม: ผู้สมัครที่มีความพิการ มีความหลากหลายทางระบบประสาท (เช่น ออทิสติก สมาธิสั้น) ใช้ภาษาที่สอง หรือมาจากวัฒนธรรมที่ไม่นิยมสบตา อาจได้ตัวเลขต่างไป กล้อง แสง และอุปกรณ์ก็มีผล — เสนอรูปแบบอื่นและปรับวิธีสัมภาษณ์ตามที่ผู้สมัครขอ และอย่าตีความตัวเลขเป็นความสามารถ";
@@ -302,6 +384,15 @@
     return m;
   }
   var BAND = { low: ["iv.js.bLow", "น้อย"], mid: ["iv.js.bMid", "ปานกลาง"], high: ["iv.js.bHigh", "มาก"] };
+  /* observable signs of excitement — descriptive behaviour with the scientific caveat; flow 'employer' | 'practice' */
+  var SCI_TH = "ข้อจำกัดทางวิทยาศาสตร์: ท่าทางและสีหน้าไม่ได้บอกอารมณ์ภายในอย่างน่าเชื่อถือ และต่างกันตามบุคคลและวัฒนธรรม (Barrett และคณะ, 2019) ส่วนคนทั่วไปแยกคำพูดจริงกับไม่จริงได้ถูกเพียงราว 54% ใกล้เคียงการเดา (Bond & DePaulo, 2006)";
+  function signalsHtml(d, g, flow) {
+    if (!IV.signalsAllowed(S.region, flow)) return '<p class="hint sig-off">' + esc(T("iv.js.sigOff", "โหมด EU/EEA: ไม่แสดงสัญญาณความตื่นเต้นที่สังเกตได้ในขั้นตอนของนายจ้าง (EU AI Act มาตรา 5(1)(f)) — ผู้สมัครดูได้ในโหมดฝึกซ้อมของตัวเอง")) + "</p>";
+    var x = IV.excitementSignals(d, g); if (!x.available) return "";
+    return '<div class="sig" data-seen="' + x.seen + '"><h4>' + esc(T("iv.js.sigH", "สัญญาณความตื่นเต้นที่สังเกตได้ (ข้อสังเกต ไม่ใช่การอ่านอารมณ์)")) + "</h4><ul>" +
+      x.items.map(function (i) { return '<li class="' + (i.seen ? "seen" : "no") + '" data-sig="' + i.id + '">' + esc(T("iv.sig." + i.id, IV.SIGNALS[i.id], i.vars)) + " — " + esc(i.seen ? T("iv.js.sigSeen", "สังเกตเห็น") : T("iv.js.sigNot", "ไม่เด่น")) + "</li>"; }).join("") +
+      '</ul><p class="hint">' + esc(T("iv.js.sigNote", "ความตื่นเต้นเป็นเรื่องปกติในการสัมภาษณ์ ไม่ได้บอกความสามารถ ความตั้งใจ หรือว่าคำตอบจริงหรือไม่ และห้ามใช้ให้คะแนน")) + '</p><p class="sci">' + esc(T("iv.js.sci", SCI_TH)) + "</p></div>";
+  }
   function tilesHtml(d, g) {
     var t = [];
     if (g) {
@@ -347,7 +438,7 @@
   }
   function renderResultBody() {
     var d = S.delivery; if (!d) return;
-    $("#ivDResTiles").innerHTML = tilesHtml(d.d, d.g);
+    $("#ivDResTiles").innerHTML = tilesHtml(d.d, d.g) + signalsHtml(d.d, d.g, "employer");
     $("#ivDResTips").innerHTML = IV.practiceTips(d.d, d.g).map(function (t) { return '<li class="' + t.level + '" data-tip="' + t.id + '">' + esc(T("iv.tip." + t.id, TIPS[t.id], t.vars)) + "</li>"; }).join("");
   }
   var syncConsent = function () { $("#ivDStart").disabled = !($("#ivCOk1").checked && $("#ivCOk2").checked); };
@@ -378,7 +469,7 @@
   }
   function liveTiles() {
     if (!dMeter || $("#ivDCandView").hidden) { $("#ivDTiles").innerHTML = ""; return; }
-    var s = dMeter.snapshot(); $("#ivDTiles").innerHTML = tilesHtml(s.d, s.g);
+    var s = dMeter.snapshot(); $("#ivDTiles").innerHTML = tilesHtml(s.d, s.g) + signalsHtml(s.d, s.g, "employer");
   }
   $("#ivDCandBtn").addEventListener("click", function () { setCandView($("#ivDCandView").hidden); });
   $("#ivDStop").addEventListener("click", function () {
@@ -439,7 +530,7 @@
     var tips = P.meter ? IV.practiceTips(snap.d, snap.g) : [];
     $("#ivPTips").innerHTML = (P.meter ? tips.map(function (t) { return '<li class="' + t.level + '" data-tip="' + t.id + '">' + esc(T("iv.tip." + t.id, TIPS[t.id], t.vars)) + "</li>"; }).join("") :
       '<li class="tip">' + esc(T("iv.js.pNoCam", "เปิดกล้องและไมโครโฟนในขั้นเริ่มฝึกเพื่อรับคำแนะนำเรื่องจังหวะการพูด หรือใช้รายการ STAR ด้านบนตรวจตัวเอง")) + "</li>") +
-      (snap.d || snap.g ? '<li class="raw">' + tilesHtml(snap.d, snap.g) + "</li>" : "");
+      (snap.d || snap.g ? '<li class="raw">' + tilesHtml(snap.d, snap.g) + signalsHtml(snap.d, snap.g, "practice") + "</li>" : "");
     $("#ivPFeedback").hidden = false;
     $("#ivPGo").textContent = P.i + 1 < P.qs.length ? T("iv.s.p.next", "ข้อต่อไป") : T("iv.js.pFinish", "จบการฝึก");
   }
@@ -475,7 +566,34 @@
     if (P.meter && P.meter.running) P.meter.stop();
     $("#ivPRun").hidden = true; $("#ivPSetup").hidden = false; $("#ivPCamBox").hidden = true;
     $("#ivPMsg").textContent = T("iv.js.pDone", "จบการฝึกแล้ว ปิดกล้องและไมโครโฟนเรียบร้อย ไม่มีข้อมูลถูกบันทึก");
+    renderPSum();
   }
+  /* candidate's own practice summary: pace, pauses, talk time, eye-contact share (head-orientation proxy) + signals */
+  function renderPSum() {
+    var X = IV.practiceSummary(P.results);
+    $("#ivPSum").hidden = !X.answers;
+    if (!X.answers) { $("#ivPSumBody").innerHTML = ""; return; }
+    var dash = function (v, suf) { return v == null ? "—" : v + (suf || ""); };
+    var tiles = [
+      [String(X.answers), T("iv.js.psAns", "คำตอบที่วัด")],
+      [dash(X.talkPct, "%"), T("iv.js.psTalk", "เวลาที่พูด (สัดส่วนของเวลาตอบ)")],
+      [dash(X.pausesPerMin), T("iv.js.psPause", "ช่วงหยุดต่อนาที")],
+      [X.pace == null ? "—" : X.pace.toFixed(1) + "/s", T("iv.js.psPace", "จังหวะการพูด (ยอดพลังงานเสียงต่อวินาที)")],
+      [dash(X.towardPct, "%"), T("iv.js.psEye", "สัดส่วนการมองกล้อง (ประมาณจากทิศทางศีรษะ)")]
+    ];
+    var sig = Object.keys(X.signals);
+    $("#ivPSumBody").innerHTML = '<div class="tiles">' + tiles.map(function (x) { return '<div class="tile"><b>' + esc(x[0]) + '</b><span class="k">' + esc(x[1]) + "</span></div>"; }).join("") + "</div>" +
+      '<div class="sig"><h4>' + esc(T("iv.js.sigH", "สัญญาณความตื่นเต้นที่สังเกตได้ (ข้อสังเกต ไม่ใช่การอ่านอารมณ์)")) + "</h4>" +
+      (sig.length ? "<ul>" + sig.map(function (id) { return '<li class="seen" data-sig="' + id + '">' + esc(T("iv.sig." + id + ".short", SIG_SHORT[id])) + " — " + esc(T("iv.js.psSigN", "พบใน {k}/{n} คำตอบ", { k: X.signals[id], n: X.answers })) + "</li>"; }).join("") + "</ul>"
+        : '<p class="hint">' + esc(T("iv.js.psSigNone", "ไม่พบสัญญาณที่เด่นในคำตอบที่วัด")) + "</p>") +
+      '<p class="hint">' + esc(T("iv.js.psSigTip", "ความตื่นเต้นเป็นเรื่องปกติ ลองหายใจช้า ๆ ระหว่างเตรียมตัว และใช้โครง STAR ช่วยเรียงเรื่อง")) + '</p><p class="sci">' + esc(T("iv.js.sci", SCI_TH)) + "</p></div>";
+  }
+  var SIG_SHORT = { move: "ศีรษะขยับค่อนข้างมาก", away: "หันออกจากกล้องบ่อย", pauses: "หยุดสั้น ๆ บ่อย", pace: "จังหวะเสียงเร็ว", bursts: "พูดเป็นช่วงสั้น ๆ ต่อกัน" };
+  $("#ivPSumPrint").addEventListener("click", function () {
+    document.documentElement.classList.add("iv-print-ps");
+    try { window.print(); } finally { document.documentElement.classList.remove("iv-print-ps"); }
+  });
+  $("#ivPSumClear").addEventListener("click", function () { P.results = []; renderPSum(); $("#ivPMsg").textContent = T("iv.js.psCleared", "ลบผลการฝึกแล้ว"); });
   $("#ivPStart").addEventListener("click", pStart);
   $("#ivPNext").addEventListener("click", function () { if (P.phase === "prep") pAnswer(); else if (P.phase === "answer") pReview(); });
   $("#ivPGo").addEventListener("click", function () { if (P.i + 1 < P.qs.length) { P.i++; pPrep(); } else pEnd(); });
@@ -490,9 +608,12 @@
     if (S.delivery && !$("#ivDResBody").hidden) renderResultBody();
     syncOrg(); if (dMeter && dMeter.running) setCandView(!$("#ivDCandView").hidden);
     if (P.phase !== "idle") pRender();
+    syncRegion(); setCandModeLabel(); if (!$("#ivPSum").hidden) renderPSum(); qCheck();
   }
+  function setCandModeLabel() { $("#ivModeBtn").textContent = S.candMode ? T("iv.js.modeBack", "กลับไปโหมดผู้สัมภาษณ์") : T("iv.s.mode.cand", "โหมดฝึกซ้อมของผู้สมัคร (ใช้คนเดียว)"); }
   window.addEventListener("lq-lang", renderAll);
   renderAll();
+  if (S.candMode) setCandMode(true);
 
-  window.__LQ_IV = { S: S, P: P, go: go, get dMeter() { return dMeter; }, renderSummary: renderSummary, pReview: pReview, TIPS: TIPS };
+  W.__LQ_IV = { S: S, P: P, go: go, setCandMode: setCandMode, renderPSum: renderPSum, get dMeter() { return dMeter; }, renderSummary: renderSummary, pReview: pReview, TIPS: TIPS };
 })();

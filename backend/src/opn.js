@@ -1,3 +1,4 @@
+// @ts-check
 // backend/src/opn.js — Opn Payments (Omise) client: PromptPay charge, charge retrieval, webhook signature check.
 //
 // Docs followed (docs.omise.co): PromptPay = POST /charges with amount (satang), currency=thb, source[type]=promptpay

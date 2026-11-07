@@ -78,7 +78,8 @@
   ];
   RASI.forEach(function (r, i) {
     r.n = SIGNS[i] + "（泰式恒星黄道）"; r.s = SIGNS[i];
-    r.o = "按泰式恒星黄道计算，你出生时太阳位于" + SIGNS[i];
+    // 名称里已注明"泰式恒星黄道"，正文不再重复
+    r.o = "你出生时太阳位于" + SIGNS[i];
     I["thai.rasi." + i] = r;
   });
   var LAGNA = [

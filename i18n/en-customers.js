@@ -4,7 +4,7 @@
   "customers.s2": "Customer recognition and drink history",
   "customers.s3": "For members who consent to face recognition, the system greets them, shows their usual order and recent orders, and recommends drinks — marketing based on remembered customer behavior",
   "customers.s4": "Measured accuracy",
-  "customers.s5": "Tested on the public LFW face dataset at a 0.50 threshold: a single image recognizes a member about 78% of the time (higher in practice, as customers stay in front of the camera for several frames) · With 100 members, about 0.1% are mistaken for another member and about 1.5% of non-members are mistaken for members. Staff should confirm the name before opening the order history",
+  "customers.s5": "Tested on the public LFW face dataset at a 0.50 threshold: a single image recognizes a member about 78% of the time · With the current rules (3-pose enrolment, limits calibrated to the member group, 2-frame confirmation) and 100 members: about 85% of member visits are recognised (Asian faces about 69%), and about 0.4% of non-members are offered a member's name (selected automatically about 0.05%). Staff should confirm the name before opening the order history, and run the on-site accuracy check below at your own shop",
   "customers.s6": "Method and limitations",
   "customers.s7": "Store",
   "customers.s8": "Member sign-up",

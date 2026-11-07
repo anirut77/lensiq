@@ -36,6 +36,7 @@ const items = index.filter(it => (split === "all" || it.split === split) && (!id
 // --query "close=0": extra studio.html query (an ablation); it is part of the cache key
 const QUERY = opt("--query", "");
 export const GARMENTS = ["civil", "khaki", "suit_navy", "lady"];
+const VARIANTS = opt("--variants") ? opt("--variants").split(",") : null;
 
 const hash = createHash("sha1"); for (const f of ["studio.js", "studio-core.js", "studio-qa.js", "photobooth-outfits.js", "photobooth-hq.js"]) hash.update(readFileSync(join(REPO, f))); hash.update(QUERY);
 // --dir reuses a cache made by another code version (stage 2 only; the report prints which directory it read)
@@ -58,23 +59,52 @@ if (has("--render")) {
     }, dataUrl(join("portraits", it.f)));
     const st = await page.waitFor(`(window.__studio.state.phase === "done" || window.__studio.state.phase === "error") && { ph: window.__studio.state.phase, err: window.__studio.state.err, t: window.__studio.state.timings, face: !!(window.__studio.state.face && window.__studio.state.face.detected), W: window.__studio.state.W, H: window.__studio.state.H }`, 600000);
     const R = { id: it.id, split: it.split, wall: Date.now() - t0, first: Math.round(st.t.firstResult || 0), face: st.face, err: st.err, W: st.W, H: st.H, g: {} };
-    for (const g of ["none", ...GARMENTS]) {
-      const key = g === "none" ? "none" : "v:" + g, t1 = Date.now();
+    // --variants plain,cover: each garment rendered with the high-collar cover off and on (results g and g+cover); default = the page's own policy
+    const runs = ["none", ...GARMENTS.flatMap(g => VARIANTS ? VARIANTS.map(v => v === "plain" ? g : g + "+" + v) : [g])];
+    for (const gv of runs) {
+      const [g, v] = gv.split("+"), key = g === "none" ? "none" : "v:" + g, t1 = Date.now();
+      if (VARIANTS) await page.evaluate(m => { window.__studio.state.coverMode = m; }, v === "cover" ? "on" : "off");
       await page.evaluate(k => window.__studio.select(k), key);
-      R.g[g] = await page.evaluate(g => {
+      R.g[gv] = await page.evaluate(g => {
         const S = window.__studio.state, W = S.W, H = S.H, f = S.face;
         // the garment render (on screen when it passed, kept as S.draft when it was withheld)
         const rgba = S.draft ? S.draft.rgba : S.out, c = document.createElement("canvas"); c.width = W; c.height = H; c.getContext("2d").putImageData(new ImageData(rgba, W, H), 0, 0);
         const h = 360, cell = document.createElement("canvas"); cell.width = Math.round(W * h / H); cell.height = h; cell.getContext("2d").drawImage(c, 0, 0, cell.width, h);
         const nx = Math.max(0, Math.round(f.cx - f.fw * 1.15)), ny = Math.max(0, Math.round(f.eyeY - f.fw * .2)), nw = Math.min(W - nx, Math.round(f.fw * 2.3)), nh = Math.min(H - ny, Math.round(f.fw * 1.9));
         const nc = document.createElement("canvas"); nc.width = 300; nc.height = Math.round(300 * nh / nw); nc.getContext("2d").drawImage(c, nx, ny, nw, nh, 0, 0, nc.width, nc.height);
-        window.__bq.cells.push([g, cell, nc]);
+        window.__bq.cells.push([g + (S.variant ? "+" + S.variant : ""), cell, nc]);
         const q = S.qa;
-        return { shown: S.shown, pass: q ? q.pass : null, fails: q ? q.fails : [], m: q ? q.m : null, qaMs: Math.round(S.timings.qa || 0), renderMs: Math.round(S.timings.render || 0) };
+        // jaw/ear crop at the standard scale (studio-qa.js jawCrop) of the garment render itself — the learned gate's input
+        let crop = null, jf = null;
+        if (g !== "none" && window.StudioQA.jawCrop) {
+          const d = S.draft || { rgba: S.out, fgAlpha: S.fgAlpha }, C = window.StudioQA.jawCropOf({ ...S, out: d.rgba, fgAlpha: d.fgAlpha });
+          jf = window.StudioQA.jawFeatures(C);
+          const names = Object.keys(C.ch), all = new Uint8Array(C.w * C.h * names.length); names.forEach((k, i) => all.set(C.ch[k], i * C.w * C.h));
+          let bin = ""; for (let i = 0; i < all.length; i += 8192) bin += String.fromCharCode.apply(null, all.subarray(i, i + 8192));
+          crop = { w: C.w, h: C.h, names, jaw: C.jaw, chin: C.chin, eyeY: C.eyeY, b64: btoa(bin) };
+        }
+        return { shown: S.shown, pass: q ? q.pass : null, fails: q ? q.fails : [], m: q ? q.m : null, jf, conf: S.conf != null ? S.conf : null, variant: S.variant || null, crop, qaMs: Math.round(S.timings.qa || 0), renderMs: Math.round(S.timings.render || 0) };
       }, g);
-      R.g[g].selMs = Date.now() - t1;
+      if (R.g[gv].crop) { const c = R.g[gv].crop; writeFileSync(join(DIR, `${it.id}_${gv}.crop.bin`), Buffer.from(c.b64, "base64")); delete c.b64; }
+      R.g[gv].selMs = Date.now() - t1;
     }
-    if (has("--sheets")) {
+    if (has("--sheets") && VARIANTS) {
+      // blind review sheet: cells in a per-person random order under neutral codes (A, B, ...); the key stays in the cache directory
+      const key = await page.evaluate(name => {
+        const B = window.__bq, cells = B.cells.slice(), codes = "ABCDEFGHJKLMNP".split(""); let sd = [...name].reduce((a, c) => a * 31 + c.charCodeAt(0), 7) >>> 0;
+        const rnd = () => (sd = (sd * 1103515245 + 12345) >>> 0) / 4294967296; for (let i = cells.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [cells[i], cells[j]] = [cells[j], cells[i]]; }
+        const h = 300, o = B.orig, oc = document.createElement("canvas"); oc.width = Math.round(o.width * h / o.height); oc.height = h; oc.getContext("2d").drawImage(o, 0, 0, oc.width, h);
+        const all = [["original", oc, null, "original"], ...cells.map((c, i) => [codes[i], c[1], c[2], c[0]])], cols = 4, cw = 300, ch = 20 + h + 4 + 260;
+        const s = document.createElement("canvas"); s.width = cols * (cw + 8); s.height = Math.ceil(all.length / cols) * (ch + 8); const x = s.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, s.width, s.height);
+        all.forEach(([k, c, n], i) => { const X = (i % cols) * (cw + 8), Y = Math.floor(i / cols) * (ch + 8); x.fillStyle = "#000"; x.font = "bold 16px sans-serif"; x.fillText(name + "  " + k, X + 4, Y + 16);
+          const k2 = Math.min(cw / c.width, h / c.height); x.drawImage(c, X, Y + 20, c.width * k2, c.height * k2); if (n) { const k3 = Math.min(cw / n.width, 260 / n.height); x.drawImage(n, X, Y + 24 + h, n.width * k3, n.height * k3); } });
+        window.__bq.sheet = s.toDataURL("image/jpeg", .85);
+        return Object.fromEntries(all.slice(1).map(a => [a[0], a[3]]));
+      }, it.id);
+      const url = await page.evaluate(() => window.__bq.sheet);
+      writeFileSync(join(DIR, "sheet_" + it.id + ".jpg"), Buffer.from(url.split(",")[1], "base64"));
+      writeFileSync(join(DIR, "sheetkey_" + it.id + ".json"), JSON.stringify(key));
+    } else if (has("--sheets")) {
       const url = await page.evaluate(name => {
         const B = window.__bq, h = 360, o = B.orig, oc = document.createElement("canvas"); oc.width = Math.round(o.width * h / o.height); oc.height = h; oc.getContext("2d").drawImage(o, 0, 0, oc.width, h);
         const cells = [["original", oc, null], ...B.cells], cw = Math.max(...cells.map(c => c[1].width)), nh = Math.max(...cells.map(c => c[2] ? c[2].height : 0));
@@ -133,6 +163,41 @@ for (const sp of [...new Set(res.map(r => r.split))].sort()) {
     ["median QA time per render (ms)", String(report[sp].qaMedianMs)],
     ["median first result after load (ms)", String(report[sp].firstMedianMs)]
   ]));
+}
+// ---------------------------------------------------------------- stage 2b: round 10 (renders made with --variants plain,cover)
+// policy of the page when the user picks an outfit: high-collar cover when the jaw strip is open (plain render's jawFeatures.open
+// ≥ 0.5, studio.js COVER_OPEN), then the rule gate (studio-qa.js verdict); plus the learned-gate experiment (logistic regression on
+// GATE_FEATS, trained on dev, person-grouped 5-fold CV on dev, then scored once on test). Labels: --labels tests/bench/studio-labels-r10.json
+const hasCover = res.some(r => r.g[GARMENTS[0] + "+cover"]);
+if (hasCover) {
+  const rows = [];
+  for (const r of res) { const L = labels[r.id] || {}; for (const g of GARMENTS) for (const v of ["", "+cover"]) { const x = r.g[g + v]; if (x && x.m && x.jf && L[g + v] != null) rows.push({ id: r.id, sp: r.split, g, cover: !!v, y: L[g + v], none: L.none, m: x.m, jf: x.jf, pass: !QA.verdict(x.m).length }); } }
+  const X = r => QA.GATE_FEATS ? Object.keys(QA.GATE_FEATS).map(k => QA.GATE_FEATS[k](r.m, r.jf, r.cover)) : [];
+  const fitLR = R => { const F = R.map(X), d = F[0].length, mu = Array(d).fill(0).map((_, j) => F.reduce((t, f) => t + f[j], 0) / F.length), sd = mu.map((m, j) => Math.sqrt(F.reduce((t, f) => t + (f[j] - m) ** 2, 0) / F.length) || 1), Z = F.map(f => f.map((v, j) => (v - mu[j]) / sd[j]));
+    const w = Array(d).fill(0); let b = 0; for (let it = 0; it < 3000; it++) { const gw = Array(d).fill(0); let gb = 0; Z.forEach((z, i) => { const e = 1 / (1 + Math.exp(-(b + z.reduce((t, v, j) => t + v * w[j], 0)))) - R[i].y; gb += e; z.forEach((v, j) => { gw[j] += e * v; }); }); for (let j = 0; j < d; j++) w[j] -= .1 * (gw[j] + w[j]) / Z.length; b -= .1 * gb / Z.length; }
+    return r => 1 / (1 + Math.exp(-(b + X(r).reduce((t, v, j) => t + (v - mu[j]) / sd[j] * w[j], 0)))); };
+  const aucOf = (R, p) => { const pos = R.filter(r => r.y).map(p), neg = R.filter(r => !r.y).map(p); let a = 0; for (const u of pos) for (const v of neg) a += u > v ? 1 : u === v ? .5 : 0; return a / pos.length / neg.length; };
+  const dev = rows.filter(r => r.sp === "dev"), ids = [...new Set(dev.map(r => r.id))].sort(), cvP = new Map();
+  for (let k = 0; k < 5; k++) { const te = new Set(ids.filter((_, i) => i % 5 === k)), f = fitLR(dev.filter(r => !te.has(r.id))); for (const r of dev.filter(r => te.has(r.id))) cvP.set(r, f(r)); }
+  const full = dev.length ? fitLR(dev) : null;
+  for (const sp of [...new Set(rows.map(r => r.sp))].sort()) {
+    const R = rows.filter(r => r.sp === sp), by = {}; for (const r of R) (by[r.id + "|" + r.g] = by[r.id + "|" + r.g] || {})[r.cover ? "c" : "p"] = r;
+    let n = 0, pRaw = 0, cRaw = 0, fixed = 0, broke = 0, oldShow = 0, newShow = 0, shownN = 0, shownBad = 0, oShownN = 0, oShownBad = 0;
+    for (const k in by) { const { p, c } = by[k]; if (!p || !c) continue; n++; pRaw += p.y; cRaw += c.y; if (p.y && !c.y) fixed++; if (!p.y && c.y) broke++;
+      oldShow += p.pass ? p.y : p.none; if (p.pass) { oShownN++; oShownBad += p.y; }
+      const v = p.jf.open >= .5 ? c : p; newShow += v.pass ? v.y : p.none; if (v.pass) { shownN++; shownBad += v.y; } }
+    console.log(`\n== round 10, ${sp}: ${n} person × garment pairs (plain and high-collar renders)`);
+    console.log(table(["metric", "value [Wilson 95 %]"], [
+      ["outfit render with a visible defect, as before (plain)", ci(pRaw, n)],
+      ["same with the high-collar cover", ci(cRaw, n)],
+      ["defect fixed / introduced by the cover", `${fixed} / ${broke}`],
+      ["round 9 page (plain + gate): what is shown is defective", ci(oldShow, n)],
+      ["round 9: outfit renders shown that are defective", ci(oShownBad, oShownN)],
+      ["round 10 page (auto cover + gate), outfit picked: what is shown is defective", ci(newShow, n)],
+      ["round 10: outfit renders shown that are defective", ci(shownBad, shownN)],
+      ["learned gate (LR) AUC — dev: 5-fold CV by person; test: model trained on all dev", sp === "dev" ? (cvP.size ? aucOf(R.filter(r => cvP.has(r)), r => cvP.get(r)).toFixed(3) : "—") : full ? aucOf(R, full).toFixed(3) : "—"]
+    ]));
+  }
 }
 if (opt("--json")) writeFileSync(opt("--json"), JSON.stringify({ dir: DIR, garments: GARMENTS, report }, null, 1));
 export { QA };

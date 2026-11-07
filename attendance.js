@@ -84,6 +84,8 @@ const camera = LQCam.create(video, {
 });
 video.addEventListener("resize", () => { if (camera.active) layout(); });
 camera.attach($("#camSwitch"));
+// กล้องหลุด: LQCam เชื่อมต่อใหม่เอง (1, 2, 4 … 30 วินาที) และแสดง "กล้องออฟไลน์ตั้งแต่ HH:MM" ใต้ภาพ
+if (LQCam.offlineBadge) LQCam.offlineBadge(camera, $("#camHealth") ? $("#camHealth").parentElement : video.parentElement);
 function showCamError(text) {
   camMsg.classList.remove("hide");
   camMsg.innerHTML = "";
@@ -443,7 +445,7 @@ function healthStep(faces) {
   if (faces.length) HL.fw.push(faces[0].box.width / W);
   const t = performance.now(); if (t - HL.at < 1000) return; HL.at = t;
   let st = null; try { st = SITE.sampleElement(video, HL.cv); } catch { /* ignore */ }
-  HL.state = HL.mon.push(st, { faceW: HL.fw.length ? SITE.median(HL.fw) : null }); HL.fw = [];
+  HL.state = HL.mon.push(st, { faceW: HL.fw.length ? SITE.median(HL.fw) : null, stalled: SITE.stallStep(video, st, t) }); HL.fw = [];
   if (SCA) HL.state.codes.forEach(k => SCA.health.add(k));
   const pill = $("#camHealth"), msg = $("#camHealthMsg");
   if (!pill) return;
@@ -471,7 +473,7 @@ const scaPanel = SITE && $("#scPanel") ? SITE.mountPanel($("#scPanel"), {
     "ทดสอบผู้ลงทะเบียนอย่างน้อย 20 รอบ (หลายคน หลายช่วงเวลา) และคนนอกอย่างน้อย 20 รอบ — คนนอกคือการทดสอบที่สำคัญที่สุด",
     "กด \"จบและคำนวณ\" แล้วเก็บไฟล์ผลตรวจไว้ ทำซ้ำเมื่อย้ายกล้อง เปลี่ยนแสง หรือมีผู้ลงทะเบียนเพิ่มมาก"
   ],
-  body: `<div class="sc-trial" hidden><div class="sc-row"><label><span>ใครยืนหน้ากล้องรอบนี้</span><select class="sc-who" data-i18n-skip></select></label><button class="btn primary sc-go" type="button">เริ่มรอบนี้</button><button class="btn ghost small sc-undo" type="button">ลบรอบล่าสุด</button></div><p class="sc-now" role="status"></p><ul class="sc-list"></ul></div><p class="hint" id="scField"></p>`
+  body: `<div class="sc-trial" hidden><div class="sc-row"><label><span>ใครยืนหน้ากล้องรอบนี้</span><select class="sc-who" data-i18n-skip></select></label><label class="sc-sidl" hidden><span>คนนอกคนที่ (คนเดิม = เลขเดิม)</span><input class="sc-sid" type="number" min="1" max="999" value="1" inputmode="numeric"></label><button class="btn primary sc-go" type="button">เริ่มรอบนี้</button><button class="btn ghost small sc-undo" type="button">ลบรอบล่าสุด</button></div><p class="sc-now" role="status"></p><ul class="sc-list"></ul></div><p class="hint" id="scField"></p>`
 }) : null;
 const OUT_TH = { auto: "จำได้เอง", ask: "เสนอชื่อให้กดยืนยัน", none: "ไม่รู้จัก", noface: "ไม่พบใบหน้า" };
 function scaWho() {
@@ -496,14 +498,14 @@ function attCheckStep(faces, now, ctx) {
   if (!cur) return;
   const r = cur.trial.step(obs, now);
   scaPanel.q(".sc-now").textContent = r ? SITE.fmt("ผล: {a}", { a: OUT_TH[r.outcome] }) : obs.face ? "กำลังดูใบหน้า..." : "รอให้ผู้ทดสอบมายืนหน้ากล้อง...";
-  if (r) { SCA.trials.push({ truth: cur.truth, outcome: r.outcome, label: r.label, ms: Math.round(r.ms) }); SCA.cur = null; scaPanel.q(".sc-go").disabled = false; scaRender(); }
+  if (r) { SCA.trials.push({ truth: cur.truth, outcome: r.outcome, label: r.label, ms: Math.round(r.ms), ...(cur.truth === "stranger" ? { sid: cur.sid } : {}) }); SCA.cur = null; scaPanel.q(".sc-go").disabled = false; scaRender(); }
 }
 function scaStart() {
   if (SCA) return;
   if (!ready) return say("กล้องยังไม่พร้อม", "err");
   if (!people.length) return say("ยังไม่มีผู้ลงทะเบียน กรุณาลงทะเบียนใบหน้าก่อน", "warn");
   SCA = { trials: [], cur: null, startedAt: Date.now(), health: new Set(), ownScan: !scanning, n: people.length };
-  scaWho(); scaPanel.q(".sc-trial").hidden = false; scaPanel.start.disabled = true; scaPanel.stop.disabled = false; scaPanel.exp.hidden = true;
+  scaWho(); scaPanel.q(".sc-sidl").hidden = scaPanel.q(".sc-who").value !== "stranger"; scaPanel.q(".sc-trial").hidden = false; scaPanel.start.disabled = true; scaPanel.stop.disabled = false; scaPanel.exp.hidden = true;
   scaPanel.state.textContent = "กำลังตรวจ"; scaPanel.state.dataset.s = "live"; SITE.renderReport(scaPanel.report, null);
   if (!scanning) { scanning = true; $("#startScan").textContent = "หยุดสแกน"; loop(); }
   scaRender();
@@ -516,15 +518,16 @@ function scaFinish() {
   rep.recs.push(...[...run.health].map(c => "สภาพภาพระหว่างตรวจ: " + SITE.HEALTH_TH[c]).filter(Boolean));
   SITE.renderReport(scaPanel.report, rep);
   scaPanel.q(".sc-trial").hidden = true; scaPanel.start.disabled = false; scaPanel.stop.disabled = true;
-  scaPanel.state.textContent = SITE.VERDICT_TH[rep.verdict]; scaPanel.state.dataset.s = rep.verdict;
+  scaPanel.state.textContent = SITE.verdictText(rep); scaPanel.state.dataset.s = rep.verdict;
   const ids = new Map(); const anon = id => id == null ? null : id === "stranger" ? "stranger" : (ids.has(id) ? ids.get(id) : ids.set(id, "m" + (ids.size + 1)).get(id));
   const doc = SITE.exportDoc("attendance", {
     startedAt: new Date(run.startedAt).toISOString(), enrolled: run.n, settings: { matchDistance: settings.matchDistance, confirmFrames: 2, confidentFrames: 2, windowMs: 6000 },
-    conditions: { health: [...run.health] }, trials: run.trials.map(t => ({ truth: anon(t.truth), outcome: t.outcome, label: anon(t.label), ms: t.ms })),
-    fieldConfirmations: { ...fieldStats }, report: { verdict: rep.verdict, n: rep.n, recognised: rep.recognised, auto: rep.auto, wrong: rep.wrong, strangerAuto: rep.strangerAuto, strangerAsk: rep.strangerAsk, recs: rep.recs }
+    conditions: { health: [...run.health] }, trials: run.trials.map(t => ({ truth: anon(t.truth), outcome: t.outcome, label: anon(t.label), ms: t.ms, ...(t.sid != null ? { sid: "s" + t.sid } : {}) })),
+    distinctPeople: { members: rep.n.distinctMembers, strangers: rep.n.distinctStrangers },
+    fieldConfirmations: { ...fieldStats }, report: { verdict: rep.verdict, provisional: rep.provisional, need: rep.need, n: rep.n, recognised: rep.recognised, recognisedCluster: rep.recognisedCluster, strangerAutoCluster: rep.strangerAutoCluster, auto: rep.auto, wrong: rep.wrong, strangerAuto: rep.strangerAuto, strangerAsk: rep.strangerAsk, recs: rep.recs }
   });
   scaPanel.exp.hidden = false; scaPanel.exp.onclick = () => SITE.download(`lensiq-attendance-check-${day()}.json`, doc);
-  scaHist.add({ at: run.startedAt, verdict: rep.verdict, summary: SITE.fmt("ผู้ลงทะเบียน {a} รอบ จำได้ {b} · คนนอก {c} รอบ เช็คชื่อผิด {d}", { a: rep.n.members, b: rep.recognised.p == null ? "—" : (rep.recognised.p * 100).toFixed(0) + "%", c: rep.n.strangers, d: rep.n.strangerAuto }) });
+  scaHist.add({ at: run.startedAt, verdict: rep.verdict, provisional: rep.provisional, need: rep.need, cam: camera.label || "จุดเช็คชื่อ", summary: SITE.fmt("ผู้ลงทะเบียน {a} รอบ จำได้ {b} · คนนอก {c} รอบ เช็คชื่อผิด {d}", { a: rep.n.members, b: rep.recognised.p == null ? "—" : (rep.recognised.p * 100).toFixed(0) + "%", c: rep.n.strangers, d: rep.n.strangerAuto }) });
   scaHist.render(scaPanel.hist);
   SCA_LAST = { rep, doc };
 }
@@ -533,10 +536,13 @@ if (scaPanel) {
   scaPanel.stop.addEventListener("click", scaFinish);
   scaPanel.q(".sc-go").addEventListener("click", () => {
     if (!SCA || SCA.cur) return;
-    SCA.cur = { truth: scaPanel.q(".sc-who").value, trial: SITE.createFaceTrial() };
+    const who = scaPanel.q(".sc-who").value;
+    SCA.cur = { truth: who, sid: who === "stranger" ? Math.max(1, Math.min(999, +scaPanel.q(".sc-sid").value || 1)) : null, trial: SITE.createFaceTrial() };
     scaPanel.q(".sc-go").disabled = true; scaPanel.q(".sc-now").textContent = "รอให้ผู้ทดสอบมายืนหน้ากล้อง...";
   });
   scaPanel.q(".sc-undo").addEventListener("click", () => { if (SCA && SCA.trials.length) { SCA.trials.pop(); scaRender(); } });
+  // คนนอก: ใส่หมายเลขเพื่อให้ระบบรู้ว่าทดสอบคนนอกกี่คน (คนเดิมทดสอบซ้ำไม่นับเป็นหลักฐานอิสระ — cluster bootstrap)
+  scaPanel.q(".sc-who").addEventListener("change", () => { scaPanel.q(".sc-sidl").hidden = scaPanel.q(".sc-who").value !== "stranger"; });
   scaHist.render(scaPanel.hist); renderField();
 }
 window.__ATT_SC = { get active() { return SCA; }, get last() { return SCA_LAST; }, get field() { return { ...fieldStats }; } };

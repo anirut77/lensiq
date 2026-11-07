@@ -334,14 +334,14 @@ const IQ_APP_VERSION = "insights 9 (2026-11)";
 function iqMethods() {
   return {
     app: IQ_APP_VERSION, statsVersion: IQ_ST.VERSION || null,
-    periodCounts: "negative binomial GLM (weekday-adjusted) + AR(1)+noise error on the working variate; (φ, q) by REML via Kalman filter, likelihood-weighted model averaging, df = (n−p)(1−φ)/(1+φ); variance floor = Poisson; small-sample correction for strong overdispersion: variance × a·ψ′(a) (a = effective sample size of each period) and df × 2/(2 + γ₂), γ₂ = 2κ + 1/(μ(1+κμ))",
-    rates: "Wilson score CI; period comparison quasi-binomial on daily rates (twoPropDaily)",
+    periodCounts: "negative binomial GLM (weekday-adjusted) + AR(1)+noise error on the working variate; (φ, q) by REML via Kalman filter, likelihood-weighted model averaging (prior 0.2 on the no-drift model, recalibrated in round 10 — see docs/STATS.md), df = (n−p)(1−φ)/(1+φ); variance floor = Poisson; small-sample correction for strong overdispersion: variance × a·ψ′(a) (a = effective sample size of each period) and df × 2/(2 + γ₂), γ₂ = 2κ + 1/(μ(1+κμ))",
+    rates: "Wilson score CI (per person); purchase rate KPI: quasi-binomial CI on daily bills/visitors (√φ-inflated, φ = Pearson χ²/(days − 1), t on days − 1 df; quasiBinomCI) with the per-visitor Wilson shown next to it; period comparison quasi-binomial on daily rates (twoPropDaily)",
     multipleTesting: "Benjamini–Hochberg q across all tests on the page; confidence label from q (strong < 1%, moderate < 5%, weak < 20%)",
     abTests: "omnibus first (chi-square / Monte Carlo permutation for small expected counts; Welch ANOVA for means), then all pairs with Holm; decision p = max(Holm p, omnibus p); Bonferroni-adjusted pairwise CIs; ranking by empirical-Bayes shrunk values; min 30 exposures (rates) / 10 testers (means) per arm",
     correlation: "Pearson r on residuals after weekday + linear trend removal; Fisher z CI with Bartlett AR(1) effective n",
     anomalies: "counts: leave-one-out expected (multiplicative weekday factor × median of ±7 neighbouring days), negative-binomial two-sided p < 0.0005 with κ by trimmed ML (upper bound, ×1.3) and confirmed against the whole-series expectation (p < 0.01), ≥ 25% from expected; calibrated so clean Poisson/NB/AR(1) series give ≤ 0.15 false days per 60; non-counts (revenue): robust z ≥ 5 on leave-one-out residuals",
     power: "when a comparison is not clear: minimum detectable effect (80% power, α = 5%) from the CI width and days needed per period for max(10%, observed) assuming se ∝ 1/√days",
-    forecast: "additive Holt-Winters (weekly), 80% prediction interval (Hyndman et al. 2008); seasonal naive / mean when short",
+    forecast: "additive Holt-Winters (weekly), 80% prediction interval (Hyndman et al. 2008), σ from measured days only (filled-in missing days excluded); under 3 weeks: seasonal naive with σ from measured week-apart pairs and a t(k − 1) multiplier (k = pairs), or mean ± t(n − 1)·sd·√(1 + 1/n) — shown as a rough, dashed band; simulated 80% coverage 81–85% at 5–20 days (was 72–78%)",
     dataQuality: "coverage = days with data ÷ expected days since the source started; outage = ≥ 2 consecutive zero hours where the weekday median is ≥ 3/hour"
   };
 }
@@ -374,7 +374,7 @@ function iqAnalysisJson(D, A, cards) {
     multipleTesting: A.multi ? { method: "Benjamini-Hochberg", tests: A.multi.m } : null,
     insights: cards.map(c => ({ id: c.id, tone: c.tone, confidence: c.level, title: c.title, body: c.body, sure: c.sure, stat: c.stat || null, why: c.why, action: c.action })),
     daily: A.H.keys.map((k, i) => ({ day: k, storeIn: A.H.storeIn[i], bills: A.H.bills[i], revenue: A.H.revenue[i] == null ? null : Math.round(A.H.revenue[i] * 100) / 100, conversion: A.H.conv[i], maxQueue: A.H.maxQueue[i], booth: A.H.booth[i] })),
-    forecast: F && F.fc ? { metric: F.metric, method: F.fc.method, conf: F.fc.conf, days: F.fkeys.map((k, j) => ({ day: k, mean: F.fc.mean[j], lo: F.fc.lo[j], hi: F.fc.hi[j] })), anomalies: F.anomalies.map(a => ({ day: a.day, value: a.value, expected: a.expected, z: a.z })) } : null,
+    forecast: F && F.fc ? { metric: F.metric, method: F.fc.method, conf: F.fc.conf, rough: !!F.rough, days: F.fkeys.map((k, j) => ({ day: k, mean: F.fc.mean[j], lo: F.fc.lo[j], hi: F.fc.hi[j] })), anomalies: F.anomalies.map(a => ({ day: a.day, value: a.value, expected: a.expected, z: a.z })) } : null,
     correlations: A.corr.map(c => ({ id: c.id, x: c.xName, y: c.yName, n: c.n, nEff: c.nEff, adjusted: c.adjusted, r: c.r, rRaw: c.rRaw, lo: c.lo, hi: c.hi, p: c.p, q: iqFin(c.q) ? c.q : null, confidence: c.level, rho: c.rho, caution: c.caution })),
     heatmap: A.heat ? { source: A.heat.src, from: A.heat.from, to: A.heat.to, days: A.heat.nDays, meanByWeekdayHour: A.heat.grid } : null,
     quality: A.quality || null,

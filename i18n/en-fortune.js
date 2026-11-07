@@ -25,6 +25,7 @@
     "dream.title": "Dream Interpretation | LENSIQ",
     "fa.disclaimer": "For entertainment only",
     "fa.more": "Read more",
+    "fa.why": "Why this reading",
     "fa.sec.advice": "Advice and luck tips",
     "fa.sec.brief": "Other areas in brief",
     "fa.sec.love": "Love and relationships",

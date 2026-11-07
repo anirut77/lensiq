@@ -252,5 +252,41 @@ export default async function ({ base, launch, check }) {
       assert(!ex.length, "exceptions " + JSON.stringify(ex));
       await p2.close();
     });
+
+    await check("round 10: accuracy-status card (latest site check per camera) and flagged hours with an 'exclude flagged hours' toggle (data kept)", async () => {
+      const p3 = await browser.newPage();
+      await p3.goto(url);
+      const day = await p3.evaluate(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; });
+      await p3.evaluate(d => {
+        localStorage.clear();
+        const hourly = { in: Array(24).fill(0), out: Array(24).fill(0) };
+        const h = Math.max(1, new Date().getHours()); hourly.in[h - 1] = 20; hourly.in[h] = 9; hourly.out[h] = 4;
+        localStorage.setItem("st-day-" + d, JSON.stringify({ date: d, in: 29, out: 4, hourly, quality: { [h]: { n: 3600, offline: 900, shake: 400 } } }));
+        localStorage.setItem("st-sitecheck", JSON.stringify([{ v: 2, at: Date.now() - 5000, verdict: "ontrack", provisional: "pass", cam: "ประตูหน้า", summary: "x", need: [{ group: "crossings", more: 140 }] }]));
+        localStorage.setItem("qc-sitecheck", JSON.stringify([{ at: Date.now() - 9000, verdict: "pass", summary: "old" }]));
+        localStorage.setItem("iq-range", "today");
+      }, day);
+      await p3.reload();
+      await p3.waitFor("window.__IQ && !document.getElementById('accCard').hidden && !document.getElementById('flagCard').hidden", 8000);
+      const acc = await p3.evaluate(() => [...document.querySelectorAll("#accBody tbody tr")].map(tr => tr.dataset.v + "|" + tr.textContent));
+      assert(acc.length === 2 && acc.some(x => /^ontrack\|.*ประตูหน้า.*140/.test(x)) && acc.some(x => /^more\|.*ผลรุ่นเก่า/.test(x)), "accuracy rows: " + JSON.stringify(acc));
+      const before = await p3.evaluate(() => __IQ.last.D.store[0].in);
+      const flags = await p3.evaluate(() => document.querySelectorAll("#flagBody tbody tr").length);
+      assert(before === 29 && flags === 1, "flagged hour listed, counts unchanged: " + before + " / " + flags);
+      assert(await p3.evaluate(() => document.querySelectorAll("#trendChart rect.flagband").length >= 1 || document.getElementById("trendChart").hidden), "grey band on the trend chart");
+      await p3.evaluate(() => document.getElementById("excludeFlagged").click());
+      await p3.waitFor("__IQ.last.excluded && __IQ.last.D.store[0].in === 20", 4000);
+      const kept = await p3.evaluate(d => JSON.parse(localStorage.getItem("st-day-" + d)).in, day);
+      assert(kept === 29, "stored data is not changed by the toggle");
+      assert(/ไม่นับตามที่เลือก: คนเข้าร้าน 9 คน/.test(await p3.evaluate(() => document.getElementById("flagBody").textContent)), "removed counts explained");
+      await p3.evaluate(() => document.getElementById("excludeFlagged").click());
+      await p3.waitFor("!__IQ.last.excluded && __IQ.last.D.store[0].in === 29", 4000);
+      const zh = await p3.evaluate(async () => { LQI18N.setLang("zh"); await new Promise(r => setTimeout(r, 500)); const c = LQI18N.coverage(document.getElementById("accCard"), { top: 3 }), f = LQI18N.coverage(document.getElementById("flagCard"), { top: 3 }); LQI18N.setLang("th"); return [c.pct, f.pct, c.top.concat(f.top).map(x => x.text).join(" | ")]; });
+      assert(zh[0] < 5 && zh[1] < 5, "中文 accuracy / flag cards: " + JSON.stringify(zh));
+      const ex = p3.consoleErrors.filter(e => e.kind === "exception");
+      assert(!ex.length, "exceptions " + JSON.stringify(ex));
+      await p3.evaluate(() => localStorage.clear());
+      await p3.close();
+    });
   } finally { await browser.close(); }
 }

@@ -72,7 +72,11 @@ export default async function ({ base, launch, check, fakeCams }) {
 
     await check("studio: full pipeline on a synthetic portrait (matte -> fit -> blend -> retouch) under 3 s of processing", async () => {
       await page.evaluate(`window.__studio.load(${PORTRAIT})`);
-      const st = await page.waitFor(`window.__studio.state.phase === "done" && { t: window.__studio.state.timings, W: window.__studio.state.W, H: window.__studio.state.H, m: window.__studio.state.method, face: !!window.__studio.state.face, g: window.__studio.state.gKey }`, 60000);
+      const st0 = await page.waitFor(`window.__studio.state.phase === "done" && { g: window.__studio.state.gKey, shown: window.__studio.state.shown }`, 60000);
+      // round 10: the dependable output (new background + retouch, no outfit) is the default; an outfit only when the user picks one
+      assert(st0.g === "none" && st0.shown === "none", "default is no outfit " + JSON.stringify(st0));
+      await page.evaluate(() => window.__studio.select("v:suit_navy"));
+      const st = await page.evaluate(() => ({ t: window.__studio.state.timings, W: window.__studio.state.W, H: window.__studio.state.H, m: window.__studio.state.method, face: !!window.__studio.state.face, g: window.__studio.state.gKey }));
       console.log("       timings ms: " + Object.entries(st.t).map(([k, v]) => `${k}=${Math.round(v)}`).join(" ") + ` · ${st.W}x${st.H} · ${st.m} · garment ${st.g}`);
       assert(st.W === 900 && st.H === 1100, "working size");
       assert(st.m === "MODNet", "matte method " + st.m);
@@ -114,7 +118,7 @@ export default async function ({ base, launch, check, fakeCams }) {
       // passing outfit = preview with the measured miss rate and a switch to the version without the outfit
       if (q.pass) {
         const p = await page.evaluate(() => document.getElementById("stQa").textContent);
-        assert(/ตัวอย่าง/.test(p) && /2 ใน 3/.test(p) && /ไม่ใส่ชุด/.test(p), "preview notice: " + p);
+        assert(/ตัวอย่าง/.test(p) && /ในชุดทดสอบ/.test(p) && /ไม่ใส่ชุด/.test(p), "preview notice: " + p);
         await page.evaluate(() => document.getElementById("stQaDraft").click());
         await page.waitFor(`window.__studio.state.shown === "plain" && document.getElementById("stQa").dataset.shown === "plain"`, 5000);
         await page.evaluate(() => document.getElementById("stQaDraft").click());
@@ -214,6 +218,59 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(sheet.w === 1200 && sheet.h === 1800, "4x6 sheet " + JSON.stringify(sheet));
     });
 
+    await check("studio: outfit exports carry the corner mark, filename suffix and PNG note; draft and ID-with-outfit need confirmation; ID defaults to no outfit; ID spec check", async () => {
+      await page.evaluate(() => window.__studio.select("v:suit_navy"));
+      if (await page.evaluate(() => window.__studio.state.shown === "safe")) { await page.evaluate(() => document.getElementById("stQaDraft").click()); await page.waitFor(`window.__studio.state.shown === "draft"`, 8000); }
+      const shown = await page.evaluate(() => window.__studio.state.shown);
+      assert(shown === "garment" || shown === "draft", "outfit on screen " + shown);
+      const click = sel => page.evaluate(s => { window.__studio.lastExport = null; document.querySelector(s).click(); }, sel);
+      if (shown === "draft") { // a QA-failed draft: confirm first; cancel = no file
+        await click("#stPng"); await page.waitFor(`document.getElementById("stConfirm").open`, 5000);
+        await page.evaluate(() => document.getElementById("stConfirmNo").click()); await sleep(300);
+        assert(await page.evaluate(() => window.__studio.lastExport === null && !document.getElementById("stConfirm").open), "cancelled export writes nothing");
+        await click("#stPng"); await page.waitFor(`document.getElementById("stConfirm").open`, 5000); await page.evaluate(() => document.getElementById("stConfirmOk").click());
+      } else await click("#stPng");
+      await page.waitFor(`window.__studio.lastExport`, 15000);
+      const png = await page.evaluate(async () => { const e = window.__studio.lastExport, t = StudioCore.pngTexts(new Uint8Array(await e.blob.arrayBuffer())); return { name: e.name, synth: e.synthetic, mark: e.mark, t }; });
+      assert(png.synth && png.mark && /-outfit-preview-/.test(png.name) && /outfit preview/.test(png.t.Description || "") && /ภาพจำลองชุด/.test(png.t.Comment || ""), "png note " + JSON.stringify(png));
+      // corner mark can be switched off for ordinary exports (not for ID photos)
+      await page.evaluate(() => { document.getElementById("stMark").checked = false; });
+      await click("#stJpg"); if (shown === "draft") { await page.waitFor(`document.getElementById("stConfirm").open`, 5000); await page.evaluate(() => document.getElementById("stConfirmOk").click()); }
+      const jpg = await page.waitFor(`window.__studio.lastExport && { s: window.__studio.lastExport.synthetic, m: window.__studio.lastExport.mark, n: window.__studio.lastExport.name }`, 15000);
+      assert(jpg.s && !jpg.m && /-outfit-preview-/.test(jpg.n), "jpeg without corner mark still carries the suffix " + JSON.stringify(jpg));
+      await page.evaluate(() => { document.getElementById("stMark").checked = true; });
+      // ID photo: default = the no-outfit composition, no dialog
+      await click("#stIdOne");
+      const id0 = await page.waitFor(`window.__studio.lastExport && { s: window.__studio.lastExport.synthetic, w: window.__studio.lastExport.w, n: window.__studio.lastExport.name }`, 15000);
+      assert(!id0.s && id0.w === 295 && !/outfit-preview/.test(id0.n), "ID defaults to no outfit " + JSON.stringify(id0));
+      // with the outfit (user opt-in): confirm, always marked
+      await page.evaluate(() => { document.getElementById("stIdOutfit").checked = true; });
+      await click("#stIdOne"); await page.waitFor(`document.getElementById("stConfirm").open`, 5000); await page.evaluate(() => document.getElementById("stConfirmOk").click());
+      const id1 = await page.waitFor(`window.__studio.lastExport && { s: window.__studio.lastExport.synthetic, m: window.__studio.lastExport.mark }`, 15000);
+      assert(id1.s && id1.m, "ID with outfit is marked " + JSON.stringify(id1));
+      await page.evaluate(() => { document.getElementById("stIdOutfit").checked = false; });
+      // ID-photo spec checker (size, head ratio, top margin, centring, plain background, exposure, outfit) + the edited-photo rules note
+      await page.evaluate(() => document.getElementById("stIdCheck").click());
+      const spec = await page.waitFor(`document.querySelectorAll("#stIdSpec li").length === 7 && { k: [...document.querySelectorAll("#stIdSpec li")].map(l => l.dataset.k + ":" + l.className), note: document.querySelector("#stIdSpec .note").textContent }`, 8000);
+      assert(spec.k.includes("size:ok") && spec.k.includes("outfit:ok") && /ออสเตรเลีย/.test(spec.note) && /เกาหลี/.test(spec.note), "spec " + JSON.stringify(spec));
+    });
+
+    await check("studio: high-collar cover variant on request, progress text, 2400-px export of the no-outfit version", async () => {
+      await page.evaluate(() => { const s = document.getElementById("stCover"); s.value = "on"; s.dispatchEvent(new Event("change")); });
+      await sleep(200); await page.evaluate(() => window.__studio.render());
+      const v = await page.evaluate(() => ({ variant: window.__studio.state.variant, cover: !!window.__studio.state.cache.cover || !!(window.__studio.state.draft && window.__studio.state.variant) }));
+      assert(v.variant === "cover", "cover variant " + JSON.stringify(v));
+      await page.evaluate(() => { const s = document.getElementById("stCover"); s.value = "auto"; s.dispatchEvent(new Event("change")); });
+      // a photo larger than the 1200-px working size keeps a ≤ 2400-px original for the high-resolution export
+      await page.evaluate(`(() => { const p = ${PORTRAIT}, c = document.createElement("canvas"); c.width = 1800; c.height = 2200; c.getContext("2d").drawImage(p, 0, 0, 1800, 2200); window.__studio.load(c); })()`);
+      const busyTxt = await page.waitFor(`!document.getElementById("stBusy").hidden && /[0-9][/]5/.test(document.getElementById("stBusy").textContent) && document.getElementById("stBusy").textContent`, 20000);
+      assert(/วินาที/.test(busyTxt), "progress + ETA: " + busyTxt);
+      await page.waitFor(`window.__studio.state.phase === "done" && !document.getElementById("stHiRes").disabled`, 90000);
+      await page.evaluate(() => { window.__studio.lastExport = null; document.getElementById("stHiRes").click(); });
+      const hi = await page.waitFor(`window.__studio.lastExport && { w: window.__studio.lastExport.w, h: window.__studio.lastExport.h, s: window.__studio.lastExport.synthetic }`, 60000);
+      assert(hi.w === 1800 && hi.h === 2200 && !hi.s, "hi-res no-outfit export " + JSON.stringify(hi));
+    });
+
     await check("studio: camera capture through LQCam (fake camera) runs the pipeline", async () => {
       await page.evaluate(() => { document.getElementById("stNew").click(); document.getElementById("stCamBtn").click(); });
       await page.waitFor(`document.getElementById("stVideo").videoWidth > 0`, 8000);
@@ -254,6 +311,22 @@ export default async function ({ base, launch, check, fakeCams }) {
       await p.evaluate(() => document.querySelector('.tab[data-t="id"]').click());
       const n = await p.waitFor(`document.querySelectorAll("#outfits .choice").length >= 10 && typeof PBOutfits.draw === "function" && typeof StudioCore.harmonizeGarment === "function" && document.querySelectorAll("#outfits .choice").length`, 8000);
       assert(n >= 10, "choices " + n);
+      // round 10: the civil-service preset picks an outfit, but the ID photo shows the no-outfit version first (outfit only as a marked draft)
+      await p.waitFor(`typeof window.__pb === "object" && typeof StudioQA.boothCheck === "function"`, 8000);
+      await p.waitFor(`/MODNet/.test(document.getElementById("engine").textContent) && !/กำลังโหลด/.test(document.getElementById("engine").textContent)`, 60000);
+      await p.evaluate(`window.__pb.idFromImage(${PORTRAIT})`);
+      await p.waitFor(`window.__pb.idState.cap && document.getElementById("pbOutfitDraft") !== null`, 30000);
+      await p.evaluate(() => document.querySelector('#idPurpose button[data-k="gov"]').click());
+      const st = await p.waitFor(`window.__pb.idState.shownOutfit && { o: window.__pb.idState.outfit, s: window.__pb.idState.shownOutfit, note: !document.getElementById("pbOutfitNote").hidden }`, 8000);
+      assert(st.o === "civil" && st.s === "safe" && st.note, "preset -> safe first " + JSON.stringify(st));
+      await p.evaluate(() => document.getElementById("pbOutfitDraft").click());
+      const d = await p.waitFor(`window.__pb.idState.shownOutfit === "draft" && (() => { const c = window.__pb.idState.last.photo, d = c.getContext("2d").getImageData(c.width - 40, c.height - 18, 36, 14).data; let m = 255; for (let i = 0; i < d.length; i += 4) m = Math.min(m, d[i]); return [m]; })()`, 8000);
+      assert(d[0] < 120, "corner mark on the draft ID photo (darkest red in the corner) " + d);
+      // exporting a photo with a drawn outfit asks first
+      const conf = p.evaluate(() => window.__pb.outfitConfirm());
+      await p.waitFor(`document.getElementById("pbConfirm").open`, 5000);
+      await p.evaluate(() => document.getElementById("pbConfirmNo").click());
+      assert((await conf) === false, "cancel");
       const uncaught = p.consoleErrors.filter(e => e.kind === "exception");
       assert(!uncaught.length, "uncaught: " + JSON.stringify(uncaught.slice(0, 2)));
       await p.close();

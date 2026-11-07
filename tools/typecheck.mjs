@@ -2,7 +2,8 @@
 // tools/typecheck.mjs — TypeScript checking of plain JS (JSDoc types, no build step, nothing emitted).
 //
 //   node tools/typecheck.mjs            strict gate: tsc -p tsconfig.typecheck.json (the shared platform modules listed in
-//                                       its "files"); exit 1 on any error. Wired into CI and `npm run typecheck`.
+//                                       its "files") AND tsc -p backend/tsconfig.json (the API Worker); exit 1 on any
+//                                       error. Wired into CI and `npm run typecheck`.
 //   node tools/typecheck.mjs --report   informational: type-check EVERY root *.js with the same options and print the
 //                                       error count per file (teams use it to pick files to add to the gate). Exit 0.
 //   node tools/typecheck.mjs --report --errors palm   also print the errors of files whose name contains "palm"
@@ -28,10 +29,14 @@ function run(project) {
 }
 
 if (!args.includes("--report")) {
-  const out = run("tsconfig.typecheck.json");
+  // 1. shared site modules; 2. the API Worker (backend/tsconfig.json: every backend/src file is // @ts-check, minimal
+  // ambient Workers / D1 types in backend/types/worker.d.ts — no network install needed)
+  const out = run("tsconfig.typecheck.json") + run(join("backend", "tsconfig.json"));
   const files = JSON.parse(readFileSync(join(repo, "tsconfig.typecheck.json"), "utf8")).files;
   if (out.trim()) { console.log(out.trim()); console.log(`\ntypecheck: FAILED (${(out.match(/error TS/g) || []).length} error(s))`); process.exit(1); }
+  const backendFiles = readdirSync(join(repo, "backend", "src")).filter(f => f.endsWith(".js"));
   console.log(`typecheck: ${files.length} file(s) OK — ${files.join(", ")}`);
+  console.log(`typecheck: backend Worker OK — ${backendFiles.length} file(s) in backend/src (backend/tsconfig.json)`);
   process.exit(0);
 }
 

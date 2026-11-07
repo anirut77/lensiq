@@ -45,26 +45,39 @@ try {
     const imgs = [...new Set(pairs.flatMap(p => [p.a, p.b]))];
     const res = await cached(`lfw-desc-${imgs.length}.json`, imgs, (page, urls) => page.evaluate(`LQB.faces(${JSON.stringify(urls.map(u => "/__data/lfw/" + u))}, { inputSize: 320, scoreThreshold: 0.5 })`));
     const byImg = new Map(imgs.map((u, i) => [u, res[i]]));
-    const same = [], diff = []; let ftd = 0;
+    const same = [], diff = [], sameIds = [], diffIds = []; let ftd = 0;
+    const who = f => f.replace(/_\d+\.jpg$/, "");
     for (const p of pairs) {
       const a = byImg.get(p.a), b = byImg.get(p.b);
+      (p.same ? sameIds : diffIds).push(p.same ? [who(p.pa)] : [who(p.pa), who(p.pb)]);
       if (!a.n || !b.n) { ftd++; (p.same ? same : diff).push(Infinity); continue; } // no face = no match, like the pages
       (p.same ? same : diff).push(dist(a.desc, b.desc));
     }
+    const nIds = l => new Set(l.flat()).size;
     const noFaceImgs = res.filter(r => !r.n).length;
     const THR = [0.4, 0.45, 0.5, 0.55, 0.6, 0.65];
     const v = M.verification(same, diff, THR);
     const fin = a => a.filter(Number.isFinite);
     const e = M.eer(fin(same), fin(diff));
-    out.lfw = { pairs: pairs.length, same: same.length, diff: diff.length, pairsWithoutFace: ftd, imagesWithoutFace: noFaceImgs, images: imgs.length, eer: e, rows: v };
+    // round 10: FAR/TAR CIs by an identity-cluster bootstrap — different-person pairs share people, so they are not
+    // independent. Clusters = connected components of the "shares a person" graph (pairs in different components share
+    // nobody). The per-pair Wilson interval is kept as farCiPair for comparison.
+    const comp = M.identityComponents(diffIds), nComp = new Set(comp).size;
+    v.forEach((r, k) => {
+      const cf = M.clusterBootstrap(diff.map((d, i) => ({ k: d < r.thr ? 1 : 0, n: 1, ids: [comp[i]] })), { B: 2000, seed: 300 + k });
+      const ct = M.clusterBootstrap(same.map((d, i) => ({ k: d < r.thr ? 1 : 0, n: 1, ids: sameIds[i] })), { B: 2000, seed: 400 + k });
+      r.farCi = [cf.lo, cf.hi]; r.tarCi = [ct.lo, ct.hi]; r.farCiPair = M.wilson(Math.round(r.far * diff.length), diff.length);
+    });
+    out.lfw = { pairs: pairs.length, same: same.length, diff: diff.length, sameIdentities: nIds(sameIds), diffIdentities: nIds(diffIds), diffComponents: nComp, pairsWithoutFace: ftd, imagesWithoutFace: noFaceImgs, images: imgs.length, eer: e, rows: v };
     console.log(`\n## Face verification — LFW View-1 pairs (${pairs.length} pairs: ${same.length} same / ${diff.length} different people), TinyFaceDetector 320\n`);
     console.log(`images with no face found: ${noFaceImgs}/${imgs.length} (${pct(noFaceImgs / imgs.length)}) — such pairs count as "not matched"`);
     console.log(`EER (pairs where both faces were found): ${pct(e.eer)} at distance ${fx(e.thr, 3)}\n`);
-    console.log(table(["distance thr", "used by", "TAR (same person accepted)", "FAR (different person accepted)", "accuracy", "1:N false accept, 20 enrolled", "1:N, 100 enrolled"],
+    console.log(`identities: ${out.lfw.sameIdentities} in the same-person pairs, ${out.lfw.diffIdentities} in the different-person pairs (${nComp} groups of pairs that share nobody); CIs = identity-cluster bootstrap (2,000 resamples) ∪ design-effect Wilson\n`);
+    console.log(table(["distance thr", "used by", "TAR (same person accepted) [95% CI]", "FAR (different person accepted) [95% CI]", "old per-pair Wilson", "accuracy", "1:N false accept, 20 enrolled", "1:N, 100 enrolled"],
       v.map(r => {
         const used = r.thr === 0.55 ? "attendance (default)" : r.thr === 0.5 ? "customers, booth" : "";
-        const [lo, hi] = M.wilson(Math.round(r.far * diff.length), diff.length);
-        return [fx(r.thr, 2), used, pct(r.tar), `${pct(r.far, 2)} [${pct(lo, 1)}–${pct(hi, 1)}]`, pct(r.acc), pct(M.oneToN(r.far, 20)), pct(M.oneToN(r.far, 100))];
+        const [lo, hi] = r.farCiPair;
+        return [fx(r.thr, 2), used, `${pct(r.tar)} [${pct(r.tarCi[0])}–${pct(r.tarCi[1])}]`, `${pct(r.far, 2)} [${pct(r.farCi[0], 2)}–${pct(r.farCi[1], 2)}]`, `[${pct(lo, 2)}–${pct(hi, 2)}]`, pct(r.acc), pct(M.oneToN(r.far, 20)), pct(M.oneToN(r.far, 100))];
       })));
     // ---- 1:N identification (what the pages actually do: nearest enrolled face, accepted when distance < thr) ----
     // identities from LFW file names; gallery = 1 image per identity, genuine probes = that identity's other images,

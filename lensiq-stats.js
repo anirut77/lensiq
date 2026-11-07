@@ -3,7 +3,7 @@
    ทุกฟังก์ชันรับอาร์เรย์ตัวเลข ค่า null/NaN ถูกข้าม และคืน null เมื่อข้อมูลไม่พอ (ไม่สร้างความมั่นใจปลอม)
 
    วิธีที่ใช้
-   - ช่วงความเชื่อมั่นของสัดส่วน: Wilson score ; ผลต่างสองสัดส่วน: Newcombe hybrid score (วิธีที่ 10) + z-test แบบ pooled
+   - ช่วงความเชื่อมั่นของสัดส่วน: Wilson score (นับต่อคน) ; อัตรารวมจากข้อมูลรายวัน: quasi-binomial (quasiBinomCI, √φ จากความต่างรายวัน) ; ผลต่างสองสัดส่วน: Newcombe hybrid score (วิธีที่ 10) + z-test แบบ pooled
    - เทียบจำนวนนับรายวันสองช่วง (countCompare): negative binomial log-linear model ปรับวันในสัปดาห์ ความผันผวน (κ) ประมาณจาก
      เศษเหลือรายวันของประวัติ (ก้อนละ 14 วัน) → t-test ของ log อัตราส่วน (ยอดรายวันผันผวนเกิน Poisson เสมอ การใช้ exact Poisson
      ตรง ๆ ทำให้ “เจอความต่าง” ปลอมราว 40–50% ของครั้งเมื่อยอดแกว่ง ±20–30%) ; poissonTest (exact) เก็บไว้สำหรับจำนวนนับที่เป็นอิสระจริงเท่านั้น
@@ -54,13 +54,50 @@
   }
 
   /* ---------- การแจกแจง ---------- */
-  function erf(x) { // Abramowitz–Stegun 7.1.26 (|error| < 1.5e-7)
+  /** erf แบบเดิม Abramowitz–Stegun 7.1.26 (|error| < 1.5e-7 แบบสัมบูรณ์ ; p สองด้านที่หางคลาดสัมพัทธ์ 0.05% ที่ z=3, 0.4% ที่ z=6, 7% ที่ z=8) เก็บไว้เทียบเท่านั้น */
+  function erfAS(x) {
     const s = x < 0 ? -1 : 1; x = Math.abs(x);
     const t = 1 / (1 + 0.3275911 * x);
     const y = 1 - ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
     return s * y;
   }
-  const normCdf = z => 0.5 * (1 + erf(z / Math.SQRT2));
+  /** erfc — W. J. Cody (1969) rational Chebyshev approximations (CALERF) ; ความคลาดเคลื่อนสัมพัทธ์ ~1e-15 ทั้งช่วง รวมหางไกล
+     (erfc(10) ≈ 2.09e-45) จึงใช้คิด p-value ที่เล็กมากได้ถูก ; x < 0 → 2 − erfc(|x|) */
+  const CODY = {
+    A: [3.1611237438705655, 113.86415415105016, 377.485237685302, 3209.3775891384694, 0.18577770618460315],
+    B: [23.601290952344122, 244.02463793444417, 1282.6165260773723, 2844.236833439171],
+    C: [0.5641884969886701, 8.883149794388377, 66.11919063714163, 298.6351381974001, 881.952221241769, 1712.0476126340707, 2051.0783778260716, 1230.3393547979972, 2.1531153547440383e-8],
+    D: [15.744926110709835, 117.6939508913125, 537.1811018620099, 1621.3895745666903, 3290.7992357334597, 4362.619090143247, 3439.3676741437216, 1230.3393548037495],
+    P: [0.30532663496123236, 0.36034489994980445, 0.12578172611122926, 0.016083785148742275, 0.0006587491615298378, 0.016315387137302097],
+    Q: [2.568520192289822, 1.8729528499234673, 0.5279051029514285, 0.06051834131244132, 0.0023352049762686918]
+  };
+  /** @param {number} x */
+  function erfc(x) {
+    if (Number.isNaN(x)) return NaN;
+    const { A, B, C, D, P, Q } = CODY, y = Math.abs(x); let r;
+    if (y <= 0.46875) {
+      const ysq = y > 1.11e-16 ? y * y : 0; let xn = A[4] * ysq, xd = ysq;
+      for (let i = 0; i < 3; i++) { xn = (xn + A[i]) * ysq; xd = (xd + B[i]) * ysq; }
+      return 1 - x * (xn + A[3]) / (xd + B[3]);
+    }
+    if (y <= 4) {
+      let xn = C[8] * y, xd = y;
+      for (let i = 0; i < 7; i++) { xn = (xn + C[i]) * y; xd = (xd + D[i]) * y; }
+      r = (xn + C[7]) / (xd + D[7]);
+    } else if (y >= 26.543) r = 0;
+    else {
+      const ysq = 1 / (y * y); let xn = P[5] * ysq, xd = ysq;
+      for (let i = 0; i < 4; i++) { xn = (xn + P[i]) * ysq; xd = (xd + Q[i]) * ysq; }
+      r = (0.5641895835477563 - ysq * (xn + P[4]) / (xd + Q[4])) / y;
+    }
+    if (r) { const ys = Math.trunc(y * 16) / 16, del = (y - ys) * (y + ys); r = Math.exp(-ys * ys) * Math.exp(-del) * r; }
+    return x < 0 ? 2 - r : r;
+  }
+  /** @param {number} x */
+  const erf = x => (Math.abs(x) <= 0.46875 ? 1 - erfc(x) : x < 0 ? erfc(-x) - 1 : 1 - erfc(x));
+  const normCdf = z => 0.5 * erfc(-z / Math.SQRT2);
+  /** หางขวา P(Z > z) = 1 − Φ(z) โดยไม่ลบเลขใกล้ 1 (แม่นถึงหางไกล) */
+  const normSf = z => 0.5 * erfc(z / Math.SQRT2);
   function normInv(p) { // Acklam
     if (!(p > 0 && p < 1)) return p <= 0 ? -Infinity : Infinity;
     const a = [-39.69683028665376, 220.9460984245205, -275.9285104469687, 138.357751867269, -30.66479806614716, 2.506628277459239];
@@ -118,6 +155,22 @@
     const c = (p + z2 / (2 * n)) / den, h = z * Math.sqrt(p * (1 - p) / n + z2 / (4 * n * n)) / den;
     return { p, lo: Math.max(0, c - h), hi: Math.min(1, c + h), n, x };
   }
+  /** ช่วงความเชื่อมั่นของอัตรารวม Σx/Σn จากข้อมูลรายวัน — quasi-binomial (round 10)
+     คนในวันเดียวกันไม่เป็นอิสระต่อกัน (วันคิวยาวทุกคนซื้อน้อยลงพร้อมกัน) → Wilson ต่อคนแคบเกิน
+     φ = max(1, Pearson χ² รายวันรอบอัตรารวม ÷ (วัน − 1)) ; n_eff = n/φ ; Wilson บน n_eff ที่ใช้ t_{วัน−1} แทน z (ขยาย √φ)
+     daily = [{ x, n }] ; คืน { p, lo, hi, phi, df, nEff, days, x, n, method } ; ไม่ถึง 2 วัน = Wilson ธรรมดา (method "wilson") */
+  function quasiBinomCI(daily, conf = 0.95) {
+    const D = (daily || []).filter(d => d && fin(d.x) && fin(d.n) && d.n > 0 && d.x >= 0);
+    const x = sum(D.map(d => d.x)), n = sum(D.map(d => d.n));
+    if (!(n > 0) || x > n) return null;
+    const p = x / n, days = D.length;
+    let chi2 = 0; if (p > 0 && p < 1) D.forEach(d => { chi2 += (d.x - d.n * p) ** 2 / (d.n * p * (1 - p)); });
+    const df = days - 1;
+    if (df < 1) { const w = wilson(x, n, conf); return w && { ...w, phi: 1, df: 0, nEff: n, days, method: "wilson" }; }
+    const phi = Math.max(1, chi2 / df), nEff = n / phi, c = tCrit(df, conf), c2 = c * c, den = 1 + c2 / nEff;
+    const mid = (p + c2 / (2 * nEff)) / den, hw = c * Math.sqrt(p * (1 - p) / nEff + c2 / (4 * nEff * nEff)) / den;
+    return { p, lo: Math.max(0, mid - hw), hi: Math.min(1, mid + hw), phi, df, nEff, days, x, n, method: "quasi-binomial" };
+  }
   /** ผลต่างสองสัดส่วน p1 − p2 : CI แบบ Newcombe (hybrid score) + p-value z-test แบบ pooled */
   function twoProp(x1, n1, x2, n2, conf = 0.95) {
     const a = wilson(x1, n1, conf), b = wilson(x2, n2, conf);
@@ -125,7 +178,7 @@
     const d = a.p - b.p;
     const lo = d - Math.sqrt((a.p - a.lo) ** 2 + (b.hi - b.p) ** 2), hi = d + Math.sqrt((a.hi - a.p) ** 2 + (b.p - b.lo) ** 2);
     const pp = (x1 + x2) / (n1 + n2), se = Math.sqrt(pp * (1 - pp) * (1 / n1 + 1 / n2));
-    const z = se > 0 ? d / se : 0, p = se > 0 ? 2 * (1 - normCdf(Math.abs(z))) : 1;
+    const z = se > 0 ? d / se : 0, p = se > 0 ? 2 * normSf(Math.abs(z)) : 1;
     return { p1: a.p, p2: b.p, diff: d, lo, hi, z, p, rel: b.p > 0 ? d / b.p : null };
   }
   function logBinom(n, k) { return lgamma(n + 1) - lgamma(k + 1) - lgamma(n - k + 1); }
@@ -134,7 +187,7 @@
     if (!(n > 0)) return 1;
     if (p0 <= 0) return k === 0 ? 1 : 0; if (p0 >= 1) return k === n ? 1 : 0;
     const lp = i => logBinom(n, i) + i * Math.log(p0) + (n - i) * Math.log(1 - p0);
-    if (n > 5000) { const m = n * p0, s = Math.sqrt(n * p0 * (1 - p0)); return Math.min(1, 2 * (1 - normCdf((Math.abs(k - m) - 0.5) / s))); }
+    if (n > 5000) { const m = n * p0, s = Math.sqrt(n * p0 * (1 - p0)); return Math.min(1, 2 * normSf((Math.abs(k - m) - 0.5) / s)); }
     const obs = lp(k); let tot = 0;
     for (let i = 0; i <= n; i++) { const l = lp(i); if (l <= obs + 1e-7) tot += Math.exp(l); }
     return Math.min(1, tot);
@@ -265,7 +318,7 @@
     } else {
       const res = idx.map(i => y[i] - exp[i]), m = median(res), s = 1.4826 * median(res.map(r => Math.abs(r - m)));
       if (!(s > 0)) return [];
-      idx.forEach((i, k) => { const z = (res[k] - m) / s; if (Math.abs(z) < ANOM.robustZ || !relOk(i)) return; push(i, 2 * (1 - normCdf(Math.abs(z))), z, { method: "robust-z-loo" }); });
+      idx.forEach((i, k) => { const z = (res[k] - m) / s; if (Math.abs(z) < ANOM.robustZ || !relOk(i)) return; push(i, 2 * normSf(Math.abs(z)), z, { method: "robust-z-loo" }); });
     }
     return out;
   }
@@ -279,14 +332,15 @@
   }
 
   /* ---------- พยากรณ์ ---------- */
-  function hwRun(y, m, a, b, g) {
+  /** @param {number[]} y @param {number} m @param {number} a @param {number} b @param {number} g @param {boolean[] | null} [obs] วันที่สังเกตจริง (null = ทุกวัน) */
+  function hwRun(y, m, a, b, g, obs = null) {
     const s1 = y.slice(0, m), s2 = y.slice(m, 2 * m), m1 = mean(s1), m2 = mean(s2);
     let T = (m2 - m1) / m, L = m1 + T * (m - 1) / 2;
     const S = s1.map((v, i) => v - (m1 + T * (i - (m - 1) / 2)));
     let sse = 0, cnt = 0; const fitted = Array(y.length).fill(null);
     for (let t = m; t < y.length; t++) {
       const f = L + T + S[t - m]; fitted[t] = f;
-      const e = y[t] - f; sse += e * e; cnt++;
+      const e = y[t] - f; if (!obs || obs[t]) { sse += e * e; cnt++; } // วันที่เติมค่าแทน (ไม่ได้วัด) ไม่นับใน SSE / σ
       const Ln = a * (y[t] - S[t - m]) + (1 - a) * (L + T);
       T = b * (Ln - L) + (1 - b) * T;
       S[t] = g * (y[t] - Ln) + (1 - g) * S[t - m];
@@ -295,11 +349,12 @@
     return { L, T, S, sse, cnt, fitted };
   }
   /** Holt-Winters แบบบวก — y ต้องไม่มี null และยาว ≥ 2m */
-  function holtWinters(y, m = 7, h = 7, { conf = 0.8, nonneg = true } = {}) {
+  /** @param {number[]} y @param {number} [m] @param {number} [h] @param {{ conf?: number, nonneg?: boolean, obs?: boolean[] | null }} [o] */
+  function holtWinters(y, m = 7, h = 7, { conf = 0.8, nonneg = true, obs = null } = {}) {
     if (!Array.isArray(y) || y.length < 2 * m || y.some(v => !fin(v))) return null;
     let best = null;
     for (const a of [0.05, 0.1, 0.2, 0.3, 0.5, 0.7, 0.9]) for (const b of [0, 0.02, 0.05, 0.1, 0.2]) for (const g of [0.05, 0.1, 0.2, 0.4, 0.6]) {
-      const r = hwRun(y, m, a, b, g);
+      const r = hwRun(y, m, a, b, g, obs);
       if (!best || r.sse < best.sse - 1e-9) best = { ...r, a, b, g };
     }
     const n = y.length, k = Math.max(1, best.cnt - 3), sigma = Math.sqrt(best.sse / k), z = zCrit(conf);
@@ -313,20 +368,40 @@
     }
     return { method: "holt-winters", mean: mean_, lo, hi, sigma, params: { alpha: best.a, beta: best.b, gamma: best.g }, fitted: best.fitted, conf };
   }
-  /** พยากรณ์ h ช่วงข้างหน้า เลือกวิธีตามความยาวข้อมูล ; ไม่มีข้อมูล = null */
+  /** พยากรณ์ h ช่วงข้างหน้า เลือกวิธีตามความยาวข้อมูล ; ไม่มีข้อมูล = null
+     ข้อมูลสั้น (< 3 สัปดาห์) ช่วงพยากรณ์เดิมแคบเกิน: ช่วง 80% ครอบค่าจริงเพียง ~72% ที่ 10 วัน ~77% ที่ 14 วัน และแย่ลงเมื่อมีวันขาด
+     (วันที่ขาดถูกเติมด้วย median → ส่วนต่างรายสัปดาห์เล็กลงหลอก ๆ → σ ต่ำไป) ; รุ่น 3.3 (round 10):
+       - seasonal naive: σ จากคู่ (วันนี้, 7 วันก่อน) ที่วัดจริงทั้งคู่เท่านั้น (k คู่) และใช้ t_{k−1} แทน z (k < 3 → ใช้วิธีค่าเฉลี่ย) ;
+         ค่าที่ใช้คาดเป็นของวันในสัปดาห์เดียวกันล่าสุดที่วัดจริง (ย้อนไปกี่สัปดาห์ ความกว้าง × √จำนวนสัปดาห์นั้น)
+       - ค่าเฉลี่ย (< 9 วัน): t_{n−1} · sd · √(1 + 1/n) จากวันที่วัดจริง
+       - Holt-Winters: SSE / σ นับเฉพาะวันที่วัดจริง
+     ช่วงของข้อมูลสั้นยังเป็น “ค่าคร่าว ๆ” (rough: true → กราฟวาดเส้นประ) ; ตรวจ coverage ด้วยการจำลองใน tests/unit/stats.test.js
+     ผลเดิม (ช่วงแบบ z) เก็บไว้ใน loNaive / hiNaive */
   function forecast(y, h = 7, { period = 7, conf = 0.8, nonneg = true } = {}) {
     const c = clean(y); if (!c.length) return null;
-    const yy = y.map(v => fin(v) ? v : (median(c) || 0));
-    if (yy.length >= 3 * period) { const r = holtWinters(yy, period, h, { conf, nonneg }); if (r) return { ...r, enough: true, n: yy.length }; }
-    const z = zCrit(conf), clip = v => nonneg ? Math.max(0, v) : v;
-    if (yy.length >= period + 2) { // seasonal naive
-      const e = yy.slice(period).map((v, i) => v - yy[i]), s = Math.sqrt(mean(e.map(x => x * x)) || 0);
-      const mean_ = [], lo = [], hi = [];
-      for (let j = 1; j <= h; j++) { const f = yy[yy.length - period + ((j - 1) % period)], w = z * s * Math.sqrt(Math.ceil(j / period)); mean_.push(clip(f)); lo.push(clip(f - w)); hi.push(f + w); }
-      return { method: "seasonal-naive", mean: mean_, lo, hi, sigma: s, enough: false, n: yy.length, conf };
+    const obs = y.map(fin), med = median(c) || 0, yy = y.map(v => fin(v) ? v : med);
+    if (yy.length >= 3 * period) { const r = holtWinters(yy, period, h, { conf, nonneg, obs: obs.every(Boolean) ? null : obs }); if (r) return { ...r, enough: true, rough: false, n: yy.length, observed: c.length }; }
+    const z = zCrit(conf), clip = v => nonneg ? Math.max(0, v) : v, n = yy.length;
+    if (n >= period + 2) { // seasonal naive
+      const e = []; for (let i = period; i < n; i++) if (obs[i] && obs[i - period]) e.push(yy[i] - yy[i - period]);
+      const k = e.length, s0 = Math.sqrt(mean(yy.slice(period).map((v, i) => (v - yy[i]) ** 2)) || 0);
+      if (k >= 3) {
+        // t_{k−1}: one df is lost because consecutive weekly differences share a day (corr −½). The extra ×√(k/(k−1)) was tried
+        // too and over-covers (89% at 10 days for an 80% band) — see the coverage table in docs/STATS.md
+        const s = Math.sqrt(mean(e.map(x => x * x)) || 0), sAdj = s, t = tCrit(k - 1, conf);
+        const mean_ = [], lo = [], hi = [], loN = [], hiN = [];
+        for (let j = 1; j <= h; j++) {
+          let src = n - period + ((j - 1) % period), back = Math.ceil(j / period);
+          while (src >= 0 && !obs[src]) { src -= period; back++; }
+          const f = src >= 0 ? yy[src] : med, w = (src >= 0 ? t * sAdj * Math.sqrt(back) : t * (sd(c) || sAdj) * Math.sqrt(1 + 1 / c.length));
+          const fN = yy[n - period + ((j - 1) % period)], wN = z * s0 * Math.sqrt(Math.ceil(j / period));
+          mean_.push(clip(f)); lo.push(clip(f - w)); hi.push(f + w); loN.push(clip(fN - wN)); hiN.push(fN + wN);
+        }
+        return { method: "seasonal-naive", mean: mean_, lo, hi, loNaive: loN, hiNaive: hiN, sigma: sAdj, sigmaNaive: s0, df: k - 1, enough: false, rough: true, n, observed: c.length, conf };
+      }
     }
-    const m = mean(yy), s = sd(yy) || 0;
-    return { method: "mean", mean: Array(h).fill(clip(m)), lo: Array(h).fill(clip(m - z * s)), hi: Array(h).fill(m + z * s), sigma: s, enough: false, n: yy.length, conf };
+    const m = mean(c), s = sd(c) || 0, w = c.length >= 2 ? tCrit(c.length - 1, conf) * s * Math.sqrt(1 + 1 / c.length) : 0, w0 = z * (sd(yy) || 0);
+    return { method: "mean", mean: Array(h).fill(clip(m)), lo: Array(h).fill(clip(m - w)), hi: Array(h).fill(m + w), loNaive: Array(h).fill(clip(mean(yy) - w0)), hiNaive: Array(h).fill(mean(yy) + w0), sigma: s, df: c.length - 1, enough: false, rough: true, n, observed: c.length, conf };
   }
 
   /* ---------- ความสัมพันธ์ ---------- */
@@ -350,7 +425,7 @@
     let lo = null, hi = null, p = null;
     if (n > 3) {
       const rr = Math.max(-0.999999, Math.min(0.999999, r)), zf = Math.atanh(rr), se = 1 / Math.sqrt(n - 3), zc = zCrit(conf);
-      lo = Math.tanh(zf - zc * se); hi = Math.tanh(zf + zc * se); p = 2 * (1 - normCdf(Math.abs(zf) / se));
+      lo = Math.tanh(zf - zc * se); hi = Math.tanh(zf + zc * se); p = 2 * normSf(Math.abs(zf) / se);
     }
     return { n, r, rho, lo, hi, p, enough: n >= minN };
   }
@@ -556,27 +631,41 @@
     return { beta, rss, M, logdet };
   }
   const KURT_SHARE = 1 / 3;
+  /* ค่าตั้งของ AR model averaging — ปรับเทียบรอบ 10 (docs/STATS.md ตาราง type I / power): P0 = น้ำหนัก prior ของแบบไม่มีส่วนลอย,
+     AR_DF = กฎ df ("step" = df0(1−φ)/(1+φ) เมื่อส่วนลอย ≥ 10% ; "satt" Satterthwaite ; "rho" φ·share) — ทางเลือกที่ให้ power สูงกว่า
+     ทุกแบบทำให้ผลบวกลวงเมื่อระดับลอยจริงสูงขึ้น (6–10%) จึงคงค่าเดิมเป็นค่าเริ่มต้น ; ส่งผ่าน options ของ countCompare ได้ */
+  const AR_P0 = 0.2, AR_DF = "step";
   const AR_PHI = [0, 0.2, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95, 0.98], AR_Q = [0, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.4, 0.8, 1.5, 3];
   /** contrast c'β ของ regression ที่ความคลาดเคลื่อนเป็น AR(1) + noise — REML บน grid ของ (φ, q) แล้วเฉลี่ยแบบถ่วงด้วย likelihood
      (model averaging เผื่อความไม่แน่นอนของ φ ซึ่งประมาณได้ไม่แม่นจากข้อมูลไม่กี่สิบวัน)
      แต่ละแบบใช้ df = (n − p)(1 − φ)/(1 + φ) เมื่อส่วนที่ลอยต่อเนื่องมีน้ำหนัก ≥ 10% (ข้อมูลอิสระมีน้อยกว่าจำนวนวัน)
      q = 0 คือไม่มีส่วนต่อเนื่อง → เท่ากับ weighted least squares ธรรมดา ; floorVar = ความแปรปรวนต่ำสุดที่ยอม (เช่น Poisson)
      คืน { est, se, df, p, phi (ถ่วงน้ำหนัก), share (สัดส่วนความแปรปรวนจากส่วนต่อเนื่อง), weights } */
-  function arContrast(z, X, t, h, cvec, { floorVar = 0, phis = AR_PHI, qs = AR_Q, conf = 0.95, vMult = 1, dfMult = 1 } = {}) {
+  function arContrast(z, X, t, h, cvec, { floorVar = 0, phis = AR_PHI, qs = AR_Q, conf = 0.95, vMult = 1, dfMult = 1, p0 = AR_P0, dfRule = AR_DF } = {}) {
     const n = z.length, p = X[0].length, df0 = n - p; if (df0 < 2) return null;
     /** @type {Array<{ ll: number, q: number, ph: number, share: number, est: number, v: number, df: number, w?: number }>} */
     const fits = [];
+    // c'(X'H⁻¹X)⁻¹c ของแบบไม่มีส่วนต่อเนื่อง (noise ล้วน) — ใช้แยกความแปรปรวนของ contrast เป็นส่วน noise กับส่วนที่ลอย (dfRule "satt")
+    let cu0 = null;
+    if (dfRule === "satt") { const W0 = arWhiten(z, X, t, h, 0, 0), o0 = olsFit(W0.Xt, W0.zt), u0 = o0 && solve(o0.M, cvec); if (u0) cu0 = cvec.reduce((s, c, k) => s + c * u0[k], 0); }
     for (const q of qs) for (const ph of (q === 0 ? [0] : phis)) {
       const W = arWhiten(z, X, t, h, ph, q), o = olsFit(W.Xt, W.zt); if (!o || !(o.rss > 0)) continue;
       const u = solve(o.M, cvec); if (!u) continue;
-      const v = Math.max(floorVar, o.rss / df0 * cvec.reduce((s, c, k) => s + c * u[k], 0)) * vMult;
-      const share = q > 0 ? (q / (1 - ph * ph)) / (q / (1 - ph * ph) + 1) : 0, r1 = share >= 0.1 ? ph : 0;
-      fits.push({ ll: -0.5 * (df0 * Math.log(o.rss) + W.logF + o.logdet), q, ph, share, est: cvec.reduce((s, c, k) => s + c * o.beta[k], 0), v, df: Math.max(3, Math.max(4, df0 * (1 - r1) / (1 + r1)) * dfMult) });
+      const s2 = o.rss / df0, cu = cvec.reduce((s, c, k) => s + c * u[k], 0), v = Math.max(floorVar, s2 * cu) * vMult;
+      const share = q > 0 ? (q / (1 - ph * ph)) / (q / (1 - ph * ph) + 1) : 0;
+      const dfAr = Math.max(4, df0 * (1 - ph) / (1 + ph));
+      let dfm;
+      if (dfRule === "satt" && cu0 != null && q > 0) {
+        // Satterthwaite: ส่วน noise (df0) + ส่วนที่ลอย (df น้อยตามความต่อเนื่อง) ; ส่วนที่ลอยน้อย → df ≈ df0 , ส่วนที่ลอยครอบงำ → df ≈ แบบเดิม
+        const vt = s2 * cu, vn = Math.min(vt, s2 * cu0), va = vt - vn;
+        dfm = vt > 0 ? (vt * vt) / (va * va / dfAr + vn * vn / df0) : df0;
+      } else { const r1 = dfRule === "rho" ? ph * share : (share >= 0.1 ? ph : 0); dfm = Math.max(4, df0 * (1 - r1) / (1 + r1)); }
+      fits.push({ ll: -0.5 * (df0 * Math.log(o.rss) + W.logF + o.logdet), q, ph, share, est: cvec.reduce((s, c, k) => s + c * o.beta[k], 0), v, df: Math.max(3, Math.max(4, dfm) * dfMult) });
     }
     if (!fits.length) return null;
     const top = Math.max(...fits.map(f => f.ll)); let ws = 0;
     // prior: ครึ่งหนึ่งให้แบบไม่มีส่วนต่อเนื่อง (q = 0) อีกครึ่งกระจายเท่ากันในแบบที่มี (φ, q) — ไม่ให้จำนวนช่องใน grid ตัดสินแทนข้อมูล
-    const nAr = fits.filter(f => f.q > 0).length || 1, P0 = 0.2;
+    const nAr = fits.filter(f => f.q > 0).length || 1, P0 = p0;
     fits.forEach(f => { f.w = Math.exp(f.ll - top) * (f.q > 0 ? (1 - P0) / nAr : P0); ws += f.w; });
     fits.forEach(f => { f.w /= ws; });
     // p = ค่าเฉลี่ยถ่วงน้ำหนักของ p ของแต่ละแบบ ; ช่วงความเชื่อมั่น = ค่า δ ที่ p เฉลี่ยของ H0: c'β = δ เท่ากับ 1 − conf (สอดคล้องกับ p เสมอ)
@@ -598,7 +687,7 @@
        - ความแปรปรวนต่ำสุด = ของ Poisson (ไม่ให้มั่นใจเกินการนับแบบสุ่มล้วน) ; t-test ที่ df ปรับตามข้อมูลอิสระ
      คืน { rate1, rate2 (ดิบ ต่อวัน), ratio, change (ดิบ), adjRatio, adjChange (ปรับวันในสัปดาห์), lo, hi (ช่วง 95% ของ adjChange),
            p, phi (quasi scale), kappa, df, ar: { phi, share }, wdAdj, n (= c1 + c2), c1, c2, e1, e2, method, enough } */
-  function countCompare(days, { conf = 0.95, minDf = 4 } = {}) {
+  function countCompare(days, { conf = 0.95, minDf = 4, arP0 = AR_P0, iid = false, dfRule = AR_DF, arPhis = null } = {}) {
     const D = (days || []).map((d, i) => d && { ...d, t: fin(d.t) ? d.t : i }).filter(d => d && fin(d.y) && d.y >= 0 && fin(d.e) && d.e > 0);
     const A = D.filter(d => d.g === "A"), B = D.filter(d => d.g === "B");
     if (!A.length || !B.length) return null;
@@ -643,7 +732,7 @@
     const vMult = (cf(aA) / aA + cf(aB) / aB) / (1 / aA + 1 / aB);
     let gw = 0, gs = 0; fit.mu.forEach(m => { const w = m / (1 + kap * m); gw += w; gs += w * (KURT_SHARE * 6 * kap + 1 / (m * (1 + kap * m))); });
     const g2 = gw > 0 ? gs / gw : 0, dfMult = 2 / (2 + g2);
-    const R = arContrast(z, X, all.map(d => d.t), h, cvec, { floorVar: vPois, conf, vMult, dfMult });
+    const R = arContrast(z, X, all.map(d => d.t), h, cvec, { floorVar: vPois, conf, vMult, dfMult, p0: arP0, dfRule, ...(arPhis ? { phis: arPhis } : {}), ...(iid ? { qs: [0] } : {}) });
     if (!R) return null;
     const d = R.est;
     return { ...base, adjRatio: Math.exp(d), adjChange: Math.exp(d) - 1, lo: Math.exp(R.lo) - 1, hi: Math.exp(R.hi) - 1, se: R.se, p: R.p, phi, phiRaw, kappa: fit.kappa, df: R.df, dfModel: df, ar: { phi: R.phi, share: R.share }, small: { vMult, dfMult, aA, aB }, days: all.length, wdAdj, enough: df >= minDf };
@@ -744,7 +833,7 @@
     let lo = null, hi = null, p = null;
     if (nEff > 3) {
       const rr = Math.max(-0.999999, Math.min(0.999999, r)), zf = Math.atanh(rr), se = 1 / Math.sqrt(nEff - 3), zc = zCrit(conf);
-      lo = Math.tanh(zf - zc * se); hi = Math.tanh(zf + zc * se); p = 2 * (1 - normCdf(Math.abs(zf) / se));
+      lo = Math.tanh(zf - zc * se); hi = Math.tanh(zf + zc * se); p = 2 * normSf(Math.abs(zf) / se);
     }
     return { n, nEff, r, rRaw, rho, lo, hi, p, adjusted, ac: [ax, ay], enough: n >= minN && nEff >= minEff };
   }
@@ -815,7 +904,7 @@
     diff: { strong: "ต่างกันจริง หลักฐานชัด", moderate: "น่าจะต่างกันจริง", weak: "ยังไม่แน่ อาจต่างกันโดยบังเอิญ", none: "ยังไม่เห็นความต่างที่ชัด", insufficient: "ข้อมูลยังน้อย ยังสรุปไม่ได้" }
   };
   const plainConf = (level, kind = "change") => (TH_PLAIN[kind] || TH_PLAIN.change)[level] || TH_PLAIN.change.insufficient;
-  const VERSION = "3.2.0";
+  const VERSION = "3.3.0";
   /** ความแรงของสหสัมพันธ์ */
   function corrWord(r) {
     if (!fin(r)) return "ไม่ทราบ";
@@ -825,8 +914,8 @@
 
   return {
     fin, clean, sum, mean, median, quantile, sd, mad, describe, movingAvg,
-    erf, normCdf, normInv, lgamma, ibeta, tCdf, tCrit, zCrit,
-    wilson, twoProp, binomTest, poissonTest, countCompare, arContrast, arWhiten, twoPropDaily, planMore, poissonGLM, nbGLM, solve, adjustP, meanCI, welch,
+    erf, erfc, erfAS, normCdf, normSf, normInv, lgamma, ibeta, tCdf, tCrit, zCrit,
+    wilson, quasiBinomCI, twoProp, binomTest, poissonTest, countCompare, arContrast, arWhiten, twoPropDaily, planMore, poissonGLM, nbGLM, solve, adjustP, meanCI, welch,
     robustZ, stlLite, looExpected, nbCdf, nbTwoSided, zOfP, ANOM, anomalies, seasonGrid, holtWinters, forecast,
     correlation, tsCorrelation, funnel, cohorts, abRates, abMeans, chiSqHomog, welchAnova, gammaP, chi2Sf, fSf, ebBinom, ebNormal, betaQuantile,
     confLevel, corrWord, pctP, pTextTH, TH_CONF, TH_CONF_SHORT, TH_PLAIN, plainConf, VERSION

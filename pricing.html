@@ -5,47 +5,68 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0e1430">
-<title>แพ็กเกจและราคา (ร่าง) | LENSIQ</title>
+<title data-i18n="pr.doc.title">แพ็กเกจและราคา | LENSIQ</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
-<meta name="description" content="ร่างแพ็กเกจและราคา LENSIQ — ขณะนี้ใช้งานฟรีทุกฟีเจอร์">
-<link rel="stylesheet" href="pricing.css?v=1">
+<meta name="description" data-i18n-attr="content:pr.doc.desc" content="แพ็กเกจสมาชิกและรายงานดวงแบบซื้อครั้งเดียวของ LENSIQ ราคารวมภาษีมูลค่าเพิ่ม ชำระด้วยพร้อมเพย์">
+<link rel="stylesheet" href="styles.css?v=8">
+<link rel="stylesheet" href="pricing.css?v=2">
 </head>
 <body>
-<!-- Draft pricing page. Not linked from any page. Plans stay hidden unless the API Worker reports
-     pricing_enabled (admin toggle) or the URL has ?preview=1. Prices are placeholders ("ร่าง"). -->
-<header class="pr-top"><a class="pr-brand" href="index.html">LENS<b>IQ</b></a></header>
-<main class="pr-main">
-  <h1>แพ็กเกจและราคา</h1>
-  <p class="pr-free" id="prFree">ขณะนี้ LENSIQ <strong>ใช้งานฟรีทุกฟีเจอร์</strong> ไม่ต้องชำระเงิน</p>
+<!-- Pricing page (not linked from the menu). Plans come from the API Worker (GET /v1/billing/plans) and are shown only
+     when it reports pricing_enabled (admin toggle). ?preview=1 shows every plan with a "draft" tag — from the API, or
+     from the built-in DRAFT copy when there is no API — and is never an offer. Buy buttons only for plans whose
+     status is 'active' while the Worker reports billing_enabled. -->
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=12"></script>
+<script src="i18n/zh-pricing.js?v=1"></script>
+
+<main id="main" class="pr-main">
+  <p class="pr-backrow"><a class="pr-back" id="prBack" href="index.html"><span aria-hidden="true">←</span> <span data-i18n="pr.back">กลับ</span></a></p>
+  <h1 data-i18n="pr.title">แพ็กเกจและราคา</h1>
+  <p class="pr-free" id="prFree" data-i18n="pr.free">ขณะนี้ LENSIQ ใช้งานฟรีทุกฟีเจอร์ ไม่ต้องชำระเงิน</p>
   <section id="prHidden" class="pr-note">
-    <p>หน้าราคายังไม่เปิดให้บริการ</p>
+    <p data-i18n="pr.hidden">หน้าราคายังไม่เปิดให้บริการ</p>
   </section>
   <section id="prPlans" hidden>
-    <p class="pr-draft" role="note"><strong>ร่าง</strong> — ราคาและเงื่อนไขทั้งหมดในหน้านี้เป็นตัวอย่างเพื่อการวางแผนเท่านั้น ยังไม่ใช่ข้อเสนอขาย</p>
-    <div class="pr-toggle" role="group" aria-label="รอบการชำระ">
-      <button type="button" data-period="month" aria-pressed="true">รายเดือน</button>
-      <button type="button" data-period="year" aria-pressed="false">รายปี</button>
+    <p class="pr-draft" id="prDraft" role="note" hidden><strong data-i18n="pr.draft.tag">ร่าง</strong> <span data-i18n="pr.draft.text">โหมดดูตัวอย่าง: ราคาและเงื่อนไขในหน้านี้เป็นฉบับร่างเพื่อการวางแผนเท่านั้น ยังไม่ใช่ข้อเสนอขาย</span></p>
+    <h2 class="pr-h2" id="prSubsH" data-i18n="pr.subs.title">สมาชิกรายเดือน / รายปี</h2>
+    <div class="pr-toggle" role="group" aria-labelledby="prSubsH">
+      <button type="button" data-period="month" aria-pressed="true" data-i18n="pr.per.month">รายเดือน</button>
+      <button type="button" data-period="year" aria-pressed="false" data-i18n="pr.per.year">รายปี</button>
     </div>
     <div class="pr-grid" id="prGrid"></div>
+    <h2 class="pr-h2" id="prOnceH" data-i18n="pr.once.title">รายงานดวงแบบซื้อครั้งเดียว</h2>
+    <p class="pr-small" id="prOnceLead" data-i18n="pr.once.lead">จ่ายครั้งเดียว ไม่ต่ออายุอัตโนมัติ รายงานบันทึกไว้ในบัญชีของคุณ</p>
+    <div class="pr-grid" id="prOnce"></div>
     <p class="pr-small" id="prVat"></p>
-    <section id="prCheckout" class="pr-card" hidden>
-      <h2>ชำระด้วย PromptPay</h2>
+    <p class="pr-small"><span data-i18n="pr.policy">ไม่มีการตัดเงินต่ออายุอัตโนมัติ · ดูเงื่อนไขได้ที่</span> <a href="terms.html#t8" data-i18n="pr.link.t8">แพ็กเกจและการชำระเงิน</a> · <a href="terms.html#t9" data-i18n="pr.link.t9">การยกเลิกและการคืนเงิน</a></p>
+    <section id="prCheckout" class="pr-card" hidden aria-labelledby="prCoH" tabindex="-1">
+      <h2 id="prCoH" data-i18n="pr.co.title">ชำระด้วยพร้อมเพย์</h2>
+      <p class="pr-sum" id="prSum"></p>
+      <div id="prSignIn" class="pr-signin" hidden>
+        <p data-i18n="pr.co.signin">กรุณาเข้าสู่ระบบ (ฟรี) ก่อนซื้อ เพื่อผูกการชำระเงินและใบเสร็จกับบัญชีของคุณ</p>
+        <button type="button" class="pr-btn" id="prSignInBtn" data-i18n="pr.co.signinCta">เข้าสู่ระบบฟรีด้วย Google</button>
+      </div>
       <form id="prForm" class="pr-form">
-        <label>ชื่อ / ชื่อบริษัท (สำหรับใบเสร็จ) <input name="name" maxlength="200" autocomplete="organization"></label>
-        <label>อีเมลรับใบเสร็จ <input name="email" type="email" maxlength="254" autocomplete="email"></label>
-        <label>เลขประจำตัวผู้เสียภาษี 13 หลัก (ถ้าต้องการใบกำกับภาษี) <input name="tax_id" inputmode="numeric" pattern="\d{13}" maxlength="13"></label>
-        <label>ที่อยู่ตามใบกำกับภาษี <input name="address" maxlength="500" autocomplete="street-address"></label>
-        <label>สาขา <input name="branch" maxlength="60" placeholder="สำนักงานใหญ่"></label>
-        <label class="pr-check"><input type="checkbox" name="accept" required> ยอมรับเงื่อนไขการให้บริการและนโยบายการคืนเงิน</label>
-        <button class="pr-btn" type="submit">สร้าง QR PromptPay</button>
+        <label><span data-i18n="pr.f.name">ชื่อ / ชื่อบริษัท (สำหรับใบเสร็จ)</span> <input name="name" maxlength="200" autocomplete="organization"></label>
+        <label><span data-i18n="pr.f.email">อีเมลรับใบเสร็จ</span> <input name="email" type="email" maxlength="254" autocomplete="email"></label>
+        <label><span data-i18n="pr.f.tax">เลขประจำตัวผู้เสียภาษี 13 หลัก (ถ้าต้องการใบกำกับภาษี)</span> <input name="tax_id" inputmode="numeric" pattern="\d{13}" maxlength="13"></label>
+        <label><span data-i18n="pr.f.addr">ที่อยู่ตามใบกำกับภาษี</span> <input name="address" maxlength="500" autocomplete="street-address"></label>
+        <label><span data-i18n="pr.f.branch">สาขา</span> <input name="branch" maxlength="60" placeholder="สำนักงานใหญ่" data-i18n-attr="placeholder:pr.f.branchPh"></label>
+        <div class="pr-accept">
+          <label class="pr-check"><input type="checkbox" name="accept" required> <span data-i18n="pr.f.accept">ฉันยอมรับข้อกำหนดการใช้บริการ เงื่อนไขการชำระเงิน และนโยบายการยกเลิกและคืนเงิน</span></label>
+          <p class="pr-terms"><a href="terms.html#t8" target="_blank" rel="noopener" data-i18n="pr.link.t8">แพ็กเกจและการชำระเงิน</a> <a href="terms.html#t9" target="_blank" rel="noopener" data-i18n="pr.link.t9">การยกเลิกและการคืนเงิน</a></p>
+        </div>
+        <button class="pr-btn" type="submit" data-i18n="pr.f.submit">สร้าง QR พร้อมเพย์</button>
       </form>
-      <div id="prQr" class="pr-qr"></div>
+      <div id="prQr" class="pr-qr" role="status" aria-live="polite"></div>
     </section>
   </section>
 </main>
 <script src="lensiq-api.js?v=1"></script>
 <script src="lensiq-config.js?v=3"></script>
-<script src="pricing.js?v=1"></script>
+<script src="pricing.js?v=2"></script>
 </body>
 </html>

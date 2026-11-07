@@ -2066,6 +2066,86 @@
     return { rgba: wrap > 0 ? lightWrap(out, bg, fg, w, h, { radius: wrapR, amount: wrap }) : out, fgAlpha: fg };
   }
 
+  /**
+   * ชั้น "คอสูง" (แบบปิดรอยต่อคอ): ผ้าถักคอเต่าวางระหว่างคอกับตัวชุด (ทับคอที่สร้าง อยู่ใต้ตัวชุดและศีรษะ)
+   * ขอบบนซ่อนอยู่ใต้แนวกราม 0.06 หน้า (ศีรษะวางทับ) กว้างถึงมุมกราม/ใต้หู แล้วเรียวลงสู่ช่องคอเสื้อ — ช่อง/บาก/เส้นตัดข้างกรามและใต้หู
+   * กลายเป็นผ้าแทนฉากหรือคอที่สร้าง  (รอบ 10: ACCURACY.md §11 วัดผลแยก)
+   *  color = [r,g,b] ของผ้า, light.x = ทิศแสงจากใบหน้า (-1..1), noise = grain เท่าภาพจริง
+   * คืน { rgba, alpha } ขนาด W×H (ฟังก์ชันล้วน)
+   */
+  function coverLayer(W, H, face, fit, { color = [43, 45, 51], light = { x: -.2 }, noise = 1.5, collarY = -.22, nw = .33, half = null, seed = 11 } = {}) {
+    const n = W * H, rgba = new Uint8ClampedArray(n * 4), A = new Float32Array(n), fw = face.fw, P = face.P, jy = jawCurve(face), R = rng(seed);
+    const s = fit.s, drop = fit.drop || 0, cs = Math.cos(fit.theta || 0);
+    const cx = P && P.length >= 17 ? ((P[3].x + P[13].x) / 2 + P[8].x) / 2 : (face.chinX != null ? face.chinX : face.cx);
+    // กว้างเท่าคอ (ไม่ใช่เท่ากราม — ผ้ากว้างถึงกรามดูเป็นเฝือกคอ) ขอบบนไม่สูงกว่ามุมกราม (ไม่โผล่ข้างแก้ม/หู)
+    const hwTop = clamp((half || fw * .29) * 1.12, fw * .28, fw * .36);
+    const yTopSide = P && P.length >= 17 ? (P[4].y + P[12].y) / 2 : face.chinY - fw * .2;
+    const yCol = fit.N.y + s * (collarY + drop) * cs, yEnd = Math.min(H - 1, Math.ceil(yCol + s * .35));
+    const hwCol = Math.max(fw * .36, Math.min(fw * .5, nw * s * 1.15)), fold = face.chinY + fw * .17, fe = Math.max(1.2, fw * .012);
+    const y0 = Math.max(0, Math.floor(Math.min(yTopSide, face.chinY - fw * .3)));
+    for (let y = y0; y <= yEnd; y++) {
+      const t = clamp01((y - face.chinY) / Math.max(1, yCol - face.chinY)), hw = hwTop + (hwCol - hwTop) * smooth(t);
+      const c = cx + (fit.N.x - cx) * smooth(t);
+      for (let x = Math.max(0, Math.floor(c - hw - 2)); x <= Math.min(W - 1, Math.ceil(c + hw + 2)); x++) {
+        const dx = x - c, top = Math.max(Math.min(jy(x), face.chinY) - fw * .06, yTopSide);
+        const a = clamp01((y - top) / fe) * clamp01((hw - Math.abs(dx)) / fe); if (a <= 0) continue;
+        const u = clamp(dx / hw, -1, 1), cyl = 1 - .3 * u * u + .12 * light.x * u;
+        const rib = 1 + .045 * Math.sin(x / Math.max(1.5, fw * .02) * Math.PI);
+        // ขอบพับของคอเต่า: เส้นเงาใต้รอยพับ และขอบพับสว่างกว่าเล็กน้อย
+        const dF = (y - fold) / (fw * .03), crease = dF > 0 && dF < 2.5 ? 1 - .18 * Math.exp(-dF * 1.2) : dF <= 0 && dF > -3 ? 1 + .05 : 1;
+        const k = cyl * rib * crease, i = y * W + x, gn = (R() - .5) * 2 * noise;
+        rgba[i * 4] = clamp(color[0] * k + gn, 0, 255); rgba[i * 4 + 1] = clamp(color[1] * k + gn, 0, 255); rgba[i * 4 + 2] = clamp(color[2] * k + gn, 0, 255); rgba[i * 4 + 3] = 255 * a; A[i] = a;
+      }
+    }
+    return { rgba, alpha: A, yTop: y0, yEnd };
+  }
+  /** วางชั้น cover ทับชั้นคอ (คอที่สร้าง + ผ้า) — แก้ neck ในที่ (rgba/alpha) */
+  function mergeCover(neck, cover, n) {
+    for (let i = 0; i < n; i++) { const a = cover.alpha[i]; if (a <= 0) continue; const b = neck.alpha[i], o = a + b * (1 - a); for (let c = 0; c < 3; c++) neck.rgba[i * 4 + c] = (cover.rgba[i * 4 + c] * a + neck.rgba[i * 4 + c] * b * (1 - a)) / Math.max(1e-6, o); neck.alpha[i] = o; }
+    return neck;
+  }
+  // ---------- ข้อมูลกำกับไฟล์ส่งออก (ป้าย "ภาพจำลองชุด") ----------
+  let CRC_T = null;
+  function crc32(b, a = 0, e = b.length) {
+    if (!CRC_T) { CRC_T = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; CRC_T[n] = c >>> 0; } }
+    let c = 0xffffffff; for (let i = a; i < e; i++) c = CRC_T[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0;
+  }
+  const utf8 = t => typeof TextEncoder !== "undefined" ? new TextEncoder().encode(t) : Uint8Array.from(Buffer.from(t, "utf8"));
+  /**
+   * แทรกข้อความลงไฟล์ PNG หลัง IHDR: entries = [[keyword, text], ...] — ข้อความ ASCII ใช้ tEXt, ข้อความอื่น (ไทย/จีน) ใช้ iTXt (UTF-8)
+   * คืน Uint8Array ใหม่ (ไฟล์ที่ไม่ใช่ PNG คืนค่าเดิม)
+   */
+  function pngWithText(bytes, entries) {
+    const sig = [137, 80, 78, 71, 13, 10, 26, 10]; if (bytes.length < 33 || sig.some((v, i) => bytes[i] !== v)) return bytes;
+    const ihdrEnd = 8 + 12 + ((bytes[8] << 24 | bytes[9] << 16 | bytes[10] << 8 | bytes[11]) >>> 0), chunks = [];
+    for (const [k, t] of entries) {
+      const ascii = /^[\x20-\x7e]*$/.test(t), kw = utf8(k.slice(0, 79)), tx = utf8(t);
+      const data = ascii ? new Uint8Array([...kw, 0, ...tx]) : new Uint8Array([...kw, 0, 0, 0, 0, 0, ...tx]); // iTXt: ไม่บีบอัด ไม่ระบุภาษา
+      const type = utf8(ascii ? "tEXt" : "iTXt"), c = new Uint8Array(12 + data.length), L = data.length;
+      c.set([L >>> 24 & 255, L >>> 16 & 255, L >>> 8 & 255, L & 255], 0); c.set(type, 4); c.set(data, 8);
+      const crc = crc32(c, 4, 8 + L); c.set([crc >>> 24 & 255, crc >>> 16 & 255, crc >>> 8 & 255, crc & 255], 8 + L); chunks.push(c);
+    }
+    const add = chunks.reduce((t, c) => t + c.length, 0), out = new Uint8Array(bytes.length + add);
+    out.set(bytes.subarray(0, ihdrEnd), 0); let o = ihdrEnd; for (const c of chunks) { out.set(c, o); o += c.length; } out.set(bytes.subarray(ihdrEnd), o);
+    return out;
+  }
+  /** อ่านข้อความ tEXt/iTXt จาก PNG: คืน { keyword: text } */
+  function pngTexts(bytes) {
+    const r = {}; let o = 8; const dec = b => typeof TextDecoder !== "undefined" ? new TextDecoder().decode(b) : Buffer.from(b).toString("utf8");
+    while (o + 12 <= bytes.length) {
+      const L = (bytes[o] << 24 | bytes[o + 1] << 16 | bytes[o + 2] << 8 | bytes[o + 3]) >>> 0, type = String.fromCharCode(...bytes.subarray(o + 4, o + 8)), d = bytes.subarray(o + 8, o + 8 + L);
+      if (type === "tEXt" || type === "iTXt") { const z = d.indexOf(0), k = dec(d.subarray(0, z)); if (type === "tEXt") r[k] = dec(d.subarray(z + 1)); else { let q = z + 3; q = d.indexOf(0, q) + 1; q = d.indexOf(0, q) + 1; r[k] = dec(d.subarray(q)); } }
+      if (type === "IEND") break; o += 12 + L;
+    }
+    return r;
+  }
+  /** แทรกส่วน COM (ข้อความ ASCII) หลัง SOI ของไฟล์ JPEG */
+  function jpegWithComment(bytes, text) {
+    if (bytes[0] !== 0xff || bytes[1] !== 0xd8) return bytes;
+    const t = utf8(text.slice(0, 60000)), L = t.length + 2, out = new Uint8Array(bytes.length + 2 + L);
+    out.set([0xff, 0xd8, 0xff, 0xfe, L >> 8 & 255, L & 255], 0); out.set(t, 6); out.set(bytes.subarray(2), 6 + t.length);
+    return out;
+  }
   /** แก้ alpha ด้วยแปรง: edit > 0 = คืนตัวคน, < 0 = ลบ (ค่า -1..1) */
   function applyMatteEdits(alpha, edit) {
     if (!edit) return alpha;
@@ -2092,7 +2172,7 @@
     fillPoly, skinLikelihood, skinKeepMask, faceMasks, smoothSkin, adjustRegion, sharpen,
     estimateNoise, rng, addGrain, harmonizeGarment, contactShadow, lightWrap, blurredBackground,
     PARSE_LABELS, PARSE_GROUPS, parseCrop, parseGroups, cropToImage, multiclassGroups, headwearExtend, hairCleanup, parsePersonProb, fillMatteFromParse, minFilter, dilate01, blur3Rows, clothShading, faceFromParse, fillFaceMatte, distanceInside, canonShoulder, garmentClip, edt, dilateR, erodeR, closeR, openR, fillHoles, componentFrom, shoulderTop, neckMeasure, handsMask, handsNearGarment, armModel, heuristicParse, personLayers,
-    SHOULDER_PRIOR, measureShoulders, sideOffsets, removeStrayIslands, fillNeckGaps, restoreNeckSides, WEAR, templateAnchors, templateWarp, fitFromTargets, synthNeck, hairShadow, composeLayers,
+    SHOULDER_PRIOR, measureShoulders, sideOffsets, removeStrayIslands, fillNeckGaps, restoreNeckSides, WEAR, templateAnchors, templateWarp, fitFromTargets, synthNeck, hairShadow, composeLayers, coverLayer, mergeCover, crc32, pngWithText, pngTexts, jpegWithComment,
     applyMatteEdits, brush
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

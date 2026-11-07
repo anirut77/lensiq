@@ -149,6 +149,68 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(!errs.length, "console errors: " + JSON.stringify(errs.slice(0, 3)));
       await page.close();
     });
+    await check("round 10: on-site age/gender check — passers listed as tracks end, staff labels, confusion table, export, history, health pill, zh/en", async () => {
+      const page = await open({ n: 1, mode: "ok" });
+      await page.waitFor("window.__SG_SC && document.querySelector('#scPanel .sc-start')", 8000);
+      await page.evaluate(() => { window.__face = null; window.__LQ_FAKE_DET = () => window.__face ? [window.__face] : []; document.querySelector("#scPanel .sc-start").click(); });
+      await page.waitFor("__SG_SC.active && __sg.faceRunning", 8000);
+      const people = [{ age: 26, male: 0.9 }, { age: 62, male: 0.1 }, { age: 12, male: 0.85 }];
+      for (let i = 0; i < people.length; i++) {
+        await page.evaluate(p => { window.__face = Object.assign({ x: 0.35, y: 0.2, w: 0.2, h: 0.3, score: 0.95 }, p); }, people[i]);
+        await sleep(1600);
+        await page.evaluate(() => { window.__face = null; });
+        await page.waitFor(`__SG_SC.active.rows.length >= ${i + 1}`, 9000);
+      }
+      const est = await page.evaluate(() => __SG_SC.active.rows.map(r => r.band + "/" + r.gender));
+      assert(est.join() === "18_34/male,55p/female,u18/male", "system estimates " + est);
+      await page.evaluate(() => { __SG_SC.label(0, "18_34", "male"); __SG_SC.label(1, "55p", "female"); __SG_SC.label(2, "35_54", "male"); });
+      assert(await page.evaluate(() => document.querySelectorAll("#scPanel .sg-passers li").length === 3), "passer rows rendered");
+      const pill = await page.waitFor(`(() => { const p = document.getElementById("camHealth"); return p && !p.hidden && p.dataset.level != null && p.textContent; })()`, 5000);
+      assert(/ภาพ/.test(pill), "health pill " + pill);
+      // zh / en coverage of the panel while rows are listed
+      const zh = await page.evaluate(async () => { LQI18N.setLang("zh"); await new Promise(r => setTimeout(r, 500)); return LQI18N.coverage(document.getElementById("scPanel"), { top: 3 }); });
+      assert(zh.pct < 5, `zh panel ${zh.pct}% Thai — ${zh.top.map(x => x.text).join(" | ")}`);
+      const en = await page.evaluate(async () => { LQI18N.setLang("en"); await new Promise(r => setTimeout(r, 1500)); return LQI18N.coverage(document.getElementById("scPanel"), { top: 3 }); });
+      assert(en.pct < 5, `en panel ${en.pct}% Thai — ${en.top.map(x => x.text).join(" | ")}`);
+      await page.evaluate(() => { LQI18N.setLang("th"); __SG_SC.finish(); });
+      const last = await page.evaluate(() => JSON.parse(JSON.stringify(__SG_SC.last)));
+      const r = last.rep;
+      assert(r.n.labelled === 3 && r.gender.x === 3 && r.gender.n === 3 && r.band.x === 2 && r.band.n === 3, "report " + JSON.stringify(r.n));
+      assert(r.confusion.band[2][0] === 1 && r.confusion.band[1][1] === 1 && r.confusion.band[3][3] === 1, "confusion " + JSON.stringify(r.confusion.band));
+      assert(["more", "ontrack"].includes(r.verdict) && r.provisional, "verdict " + r.verdict);
+      assert(await page.evaluate(() => document.querySelectorAll("#scPanel .sc-conf").length === 2), "confusion tables rendered");
+      const doc = JSON.stringify(last.doc);
+      assert(last.doc.format === "lensiq-sitecheck" && last.doc.passers.length === 3 && !/data:image|base64|blob:|descriptor/.test(doc), "export labels + numbers only");
+      const hist = await page.evaluate(() => JSON.parse(localStorage.getItem("sg-sitecheck") || "[]"));
+      assert(hist.length === 1 && hist[0].cam && hist[0].verdict === r.verdict && !("passers" in hist[0]), "history " + JSON.stringify(hist));
+      const errs = errorsOf(page);
+      assert(!errs.length, "console errors: " + JSON.stringify(errs.slice(0, 3)));
+      await page.close();
+    });
+
+    await check("round 10: LENSIQ_AGE_GENDER=false hides the option, never requests ageGenderNet, check unavailable; option off = lazy", async () => {
+      const page = await browser.newPage(null, { initScripts: [fakeCams, "window.__LQ_FAKE_CAMS={n:1,mode:'ok'}", "window.LENSIQ_AGE_GENDER=false", "try{localStorage.clear()}catch(e){}"] });
+      await page.goto(url);
+      await page.waitFor("window.__SG_SC && document.querySelector('#scPanel .sc-start')", 8000);
+      assert(await page.evaluate(() => document.getElementById("demoOpt").hidden && document.getElementById("demoOpt").getClientRects().length === 0), "age/gender option hidden");
+      await page.evaluate(() => document.getElementById("startFace").click());
+      await page.waitFor("__sg.faceRunning", 8000);
+      assert(await page.evaluate(() => !__SG_SC.nets.includes("ageGenderNet") && __SG_SC.nets.includes("faceExpressionNet")), "nets " + await page.evaluate(() => __SG_SC.nets.join()));
+      await page.evaluate(() => document.querySelector("#scPanel .sc-start").click());
+      assert(await page.evaluate(() => !__SG_SC.active && /LENSIQ_AGE_GENDER/.test(document.querySelector("#scPanel .sc-live").textContent)), "check not available");
+      await page.close();
+      // allowed but switched off: not requested until switched on
+      const p2 = await browser.newPage(null, { initScripts: [fakeCams, "window.__LQ_FAKE_CAMS={n:1,mode:'ok'}", "try{localStorage.clear();localStorage.setItem('sg-settings',JSON.stringify({useDemo:false}))}catch(e){}"] });
+      await p2.goto(url);
+      await p2.evaluate(() => document.getElementById("startFace").click());
+      await p2.waitFor("__sg.faceRunning", 8000);
+      assert(await p2.evaluate(() => !__SG_SC.nets.includes("ageGenderNet") && !document.getElementById("demoOpt").hidden), "option off: not loaded");
+      await p2.evaluate(() => { const t = document.getElementById("demoToggle"); t.checked = true; t.dispatchEvent(new Event("change")); });
+      await p2.waitFor("__SG_SC.nets.includes('ageGenderNet')", 4000);
+      assert(await p2.evaluate(() => /สัญญาอนุญาตเพื่อการวิจัย/.test(document.getElementById("ageLicence").textContent) && document.querySelectorAll(".sg-licence[data-lic=expr]").length >= 3), "licence labels");
+      await p2.close();
+    });
+
     await check("real models, no WebGL (?cpu): kiosk runs the TF.js hand pipeline on WASM (not MediaPipe/motion), tensors stable", async () => {
       const page = await browser.newPage(null, { initScripts: [fakeCams, "window.__LQ_FAKE_CAMS={n:1,mode:'ok'}"] });
       await page.goto(`${base}/signage.html?cpu`);

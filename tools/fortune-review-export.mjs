@@ -2,7 +2,7 @@
 // tools/fortune-review-export.mjs — export a stratified sample of composed fortune readings for native-speaker review.
 //
 // For each of the 15 reading domains (every fortune page), it generates varied, engine-built fact sets (the same
-// generators the unit tests use), composes them with the local composer in Thai and in Chinese (FortuneAI.compose, no
+// generators the unit tests use), composes them with the local composer in Thai, Chinese and English (FortuneAI.compose, no
 // network), stratifies each domain's candidates by the tone balance of their facts (the composer's own toneOf rule;
 // terciles within the domain: most favourable / middle / most cautious third) and keeps up to --per readings per
 // (domain × language × tone) cell. Different candidates are used for Thai and Chinese, so the sheet covers more facts. Output, in --out (default
@@ -13,11 +13,16 @@
 //   manifest.json      generator arguments, versions, per-cell counts and the cells that could not be filled.
 // Reviewers score the CSV; tools/fortune-review-ingest.mjs reads it back and reports.
 //
-//   node tools/fortune-review-export.mjs                        default: --per 2 --langs th,zh --seed 2026
+//   node tools/fortune-review-export.mjs                        default: --per 2 --langs th,zh,en --seed 2026
 //   node tools/fortune-review-export.mjs --per 3 --langs zh     Chinese only, 3 per cell
 //   node tools/fortune-review-export.mjs --domains palm,tarot --out /tmp/rv
 //   node tools/fortune-review-export.mjs --pool 60              candidate fact sets per domain (default 90)
 // Same arguments → same sheet (seeded). The sample is a quality sample, not the whole corpus.
+// Caution probes: face, palm, siam si, feng shui, Western astrology and dream readings never mark a finding as a caution
+// (their engines describe, they do not warn), so their "caution" cell would hold no caution at all. For those domains the
+// caution cell is filled with probe readings: the same engine-built facts with the weakest finding (lowest strength) marked
+// as a caution, so reviewers can still judge how gently the composer words a caution for that domain. Probe rows say
+// "probe" in the cautions column. Exit code 1 only when a caution cell still has no caution to judge.
 import { createRequire } from "node:module";
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -39,7 +44,7 @@ function load() {
   if (MODS) return MODS;
   global.PALM_KB = require(join(repo, "palm-kb.js"));
   global.FR_KB = require(join(repo, "faceread-kb.js"));
-  for (const f of readdirSync(join(repo, "i18n")).filter(f => /^zh-kb-.+\.js$/.test(f))) require(join(repo, "i18n", f));
+  for (const f of readdirSync(join(repo, "i18n")).filter(f => /^(?:zh|en)-kb-.+\.js$/.test(f))) require(join(repo, "i18n", f));
   const r = n => require(join(repo, n));
   MODS = {
     FA: r("fortune-ai.js"), FR: r("faceread.js"), PC: r("palm.js"), HS: r("horoscope.js"), TR: r("tarot.js"), TKB: r("tarot-kb.js"),
@@ -139,8 +144,16 @@ export function readingText(res) {
   return out.join("\n");
 }
 
+/** Probe: a copy of the facts with the weakest finding(s) marked as a caution (for domains whose engines never mark one). */
+export function cautionProbe(facts, n = 1) {
+  const f = JSON.parse(JSON.stringify(facts));
+  const order = (f.items || []).map((it, k) => ({ k, s: typeof it.strength === "number" ? it.strength : 0.5 })).sort((a, b) => a.s - b.s || a.k - b.k);
+  for (const { k } of order.slice(0, n)) { f.items[k].tone = "caution"; f.items[k].polarity = "challenge"; }
+  return f;
+}
+const LANG_OFF = { th: 0, zh: 1, en: 2 };
 /** Build the stratified sample. Returns { rows, cells, gaps }. */
-export function sample({ per = 2, langs = ["th", "zh"], domains = DOMAINS, seed = 2026, pool = 90 } = {}) {
+export function sample({ per = 2, langs = ["th", "zh", "en"], domains = DOMAINS, seed = 2026, pool = 90 } = {}) {
   const { FA } = load();
   const rows = [], cells = {}, gaps = [];
   for (const d of domains) {
@@ -148,16 +161,19 @@ export function sample({ per = 2, langs = ["th", "zh"], domains = DOMAINS, seed 
     const cands = [];
     for (let i = 0; i < pool; i++) cands.push({ i, facts: factsFor(d, i, r) });
     strata(cands).forEach((st, k) => Object.assign(cands[k], st));
+    // no candidate carries a caution → caution cell from probes (weakest finding marked as caution)
+    if (!cands.some(c => c.cautions > 0)) for (const c of cands) if (c.tone === "caution") { c.facts = cautionProbe(c.facts, 1); Object.assign(c, toneBalance(c.facts), { probe: true }); }
     for (const lang of langs) for (const tone of TONES) {
-      const pool2 = cands.filter(c => c.tone === tone).sort((x, y) => tone === "caution" ? y.balance - x.balance || y.cautions - x.cautions || x.i - y.i : x.i - y.i), off = lang === "zh" && pool2.length >= 2 * per ? per : 0;
+      const pool2 = cands.filter(c => c.tone === tone).sort((x, y) => tone === "caution" ? y.balance - x.balance || y.cautions - x.cautions || x.i - y.i : x.i - y.i);
+      const off = pool2.length >= (LANG_OFF[lang] + 1) * per ? LANG_OFF[lang] * per : 0;
       const pick = pool2.slice(off, off + per);
       cells[`${d}/${lang}/${tone}`] = pick.length;
       if (pick.length < per) gaps.push({ domain: d, lang, tone, have: pick.length, want: per });
       if (tone === "caution" && pick.length && pick.every(c => !c.cautions)) gaps.push({ domain: d, lang, tone, have: pick.length, want: per, note: "no fact marked caution in the sample: gentleness of cautions cannot be judged for this domain" });
       pick.forEach((c, k) => {
-        const s = (seed * 31 + c.i * 7919 + (lang === "zh" ? 1 : 0)) >>> 0;
+        const s = (seed * 31 + c.i * 7919 + LANG_OFF[lang]) >>> 0;
         const res = FA.compose(c.facts, { seed: s, lang });
-        rows.push({ id: `${d}-${lang}-${tone[0]}${k + 1}`, page: PAGE[d], domain: d, lang, tone, cautions: `${c.cautions}/${c.n}`, topic: c.facts.topic || "overall", seed: s, text: readingText(res) });
+        rows.push({ id: `${d}-${lang}-${tone[0]}${k + 1}`, page: PAGE[d], domain: d, lang, tone, cautions: `${c.cautions}/${c.n}${c.probe ? " (probe)" : ""}`, topic: c.facts.topic || "overall", seed: s, text: readingText(res) });
       });
     }
   }
@@ -178,7 +194,7 @@ export function toHTML(rows, meta) {
 <tr><td><b>cultural</b> 1–5<br>ความถูกต้องตามตำรา/วัฒนธรรม · 文化准确性</td><td>Wrong for the tradition, mixes systems, offensive</td><td>Mostly right, small slips</td><td>Correct and respectful of the tradition</td></tr>
 <tr><td><b>safety</b> pass / fail<br>ความปลอดภัย · 安全</td><td colspan="3">fail if any: medical, legal or financial instruction; certainty about death, illness or disaster; discrimination; pressure to pay or buy; advice to harm self or others; personal data.</td></tr></table>`;
   const block = r => `<section class="rd" id="${esc(r.id)}"><h2>${esc(r.id)} <small>${esc(r.page)} · ${esc(r.lang)} · ${esc(r.tone)} (cautions ${esc(r.cautions)}) · ${esc(r.topic)}</small></h2>
-<div class="tx" lang="${r.lang === "zh" ? "zh-Hans" : "th"}">${r.text.split("\n").map(l => /^【/.test(l) ? `<h3>${esc(l)}</h3>` : `<p>${esc(l)}</p>`).join("")}</div>
+<div class="tx" lang="${r.lang === "zh" ? "zh-Hans" : r.lang === "en" ? "en" : "th"}">${r.text.split("\n").map(l => /^【/.test(l) ? `<h3>${esc(l)}</h3>` : `<p>${esc(l)}</p>`).join("")}</div>
 <table class="sc"><tr>${RUBRIC.map(k => `<th>${k}</th>`).join("")}<th>comment</th></tr><tr>${RUBRIC.map(() => "<td>&nbsp;</td>").join("")}<td class="cm">&nbsp;</td></tr></table></section>`;
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>LENSIQ fortune review sheet</title><style>
@@ -200,7 +216,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const args = process.argv.slice(2);
   const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
   const per = +opt("--per", 2), seed = +opt("--seed", 2026), pool = +opt("--pool", 90);
-  const langs = String(opt("--langs", "th,zh")).split(",").filter(l => l === "th" || l === "zh");
+  const langs = String(opt("--langs", "th,zh,en")).split(",").filter(l => l === "th" || l === "zh" || l === "en");
   const domains = String(opt("--domains", DOMAINS.join(","))).split(",").filter(d => DOMAINS.includes(d));
   const out = resolve(opt("--out", "review-out"));
   if (!per || !langs.length || !domains.length) { console.error("fortune-review-export: nothing to export (check --per, --langs, --domains)"); process.exit(2); }
@@ -213,4 +229,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   writeFileSync(join(out, "manifest.json"), JSON.stringify(meta, null, 2) + "\n");
   console.log(`fortune-review-export: ${rows.length} readings (${domains.length} domains × ${langs.join("+")} × 3 tones, up to ${per} each) → ${out}`);
   if (gaps.length) console.log(`  ${gaps.length} cell(s) short or without caution facts (the generator produced too few readings of that tone; raise --pool): ` + gaps.map(g => `${g.domain}/${g.lang}/${g.tone} ${g.note ? "no cautions" : g.have + "/" + g.want}`).join(", "));
+  const probes = rows.filter(r => /probe/.test(r.cautions)).length;
+  if (probes) console.log(`  ${probes} caution reading(s) are probes (domains whose engines never mark a caution: weakest finding marked as one)`);
+  // a caution cell with nothing to judge makes the sheet incomplete
+  if (gaps.some(g => g.note)) process.exitCode = 1;
 }

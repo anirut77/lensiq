@@ -32,3 +32,18 @@
 .cam-health[data-level="2"]{background:#fdeaea;color:#a12b20}.cam-health[hidden]{display:none}
 .cam-health-row{margin:8px 0 0;min-height:0}
 .cam-health .hl-issue{display:block}
+/* round 10: CI-aware verdicts ("on target so far — collect N more"), provisional point verdict, notes, confusion tables */
+.sc-panel .sc-state[data-s="ontrack"]{background:#e8f0fb;color:#1d4f91}
+.sc-verdict[data-v="ontrack"]{background:#e8f0fb;color:#1d4f91}
+.sc-hist b[data-v="ontrack"]{color:#1d4f91}
+.sc-need{font-size:.86rem;margin:4px 0;color:#1d4f91}.sc-need .sc-need-i{display:inline-block;margin-right:10px;font-weight:500}
+.sc-prov{font-size:.8rem;color:var(--muted);margin:2px 0 8px}
+.sc-table tr.prov td:nth-child(2){color:#1d4f91}
+.sc-note{display:block;font-weight:400;font-size:.76rem;color:var(--muted);margin-top:2px}
+.sc-conf td{text-align:center}.sc-conf th{white-space:nowrap}
+.sc-docs{margin-top:8px}.sc-docs a{white-space:nowrap}
+/* lensiq-camera.js offlineBadge: "camera offline since HH:MM" / "back online" */
+.lq-offline{margin:6px 0 0;padding:6px 10px;border-radius:8px;font-size:.82rem;background:#fdeaea;color:#a12b20}
+.lq-offline[data-s="back"]{background:#e6f6ee;color:#14653b}.lq-offline[hidden]{display:none}
+/* hours flagged by the camera-health monitor (store / booth / insights) */
+.q-note{color:#8a5a00}.q-note[hidden]{display:none}.q-flag{color:#ffd58a}

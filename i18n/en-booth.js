@@ -38,5 +38,6 @@
   "booth.s37": "Count only — no face data (recommended without consent)",
   "booth.s38": "Recognize returning visitors — uses face feature values (notice and consent required)",
   "booth.s39": "Count only: tracks face positions in the frame to count people and booth dwell time; no face feature values are created and no one is identified — people who leave and come back, or who are seen by two cameras, are counted as new visitors (totals may run high)",
+  "booth.s40": "On-site accuracy check",
   "booth.s35": "Print sign"
 } });

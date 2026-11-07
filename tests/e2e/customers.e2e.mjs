@@ -79,6 +79,43 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(n === 2, "nobody enrolled: " + n);
     });
 
+    await check("round 10: on-site accuracy check — trials decide auto / ask / none, nothing selected or ordered, pseudonymous export, health pill", async () => {
+      await page.evaluate(() => { window.__faces = []; document.querySelector('.tab[data-t="pos"]').click(); });
+      const orders0 = await page.evaluate(() => localStorage.getItem("cx-orders"));
+      const seen0 = await page.evaluate(() => JSON.stringify(JSON.parse(localStorage.getItem("cx-members")).map(m => m.lastSeen || 0)));
+      await page.evaluate(() => { document.querySelector("#nextCustomer").click(); document.querySelector("#scanToggle").click(); }); // make sure nothing scans
+      await page.evaluate(() => document.querySelector("#scPanel .sc-start").click());
+      assert(await page.evaluate(() => !!__CX_SC.active && !document.querySelector("#scPanel .sc-trial").hidden), "check active, trial controls shown");
+      const trial = async (truth, face, outcome, sid) => {
+        await page.evaluate(([t, f, s]) => { window.__faces = f ? [f] : []; const w = document.querySelector("#scPanel .sc-who"); w.value = t; w.dispatchEvent(new Event("change"));
+          if (s) document.querySelector("#scPanel .sc-sid").value = String(s); document.querySelector("#scPanel .sc-go").click(); }, [truth, face, sid]);
+        const n0 = await page.evaluate(() => __CX_SC.active.trials.length);
+        await page.waitFor(`__CX_SC.active.trials.length > ${n0}`, 12000);
+        const got = await page.evaluate(() => __CX_SC.active.trials.at(-1));
+        assert(got.outcome === outcome, `${truth}: expected ${outcome}, got ${JSON.stringify(got)}`);
+        await page.evaluate(() => { window.__faces = []; }); await new Promise(r => setTimeout(r, 400));
+      };
+      await trial("mA", FACE(0.3, 0.3, "mA"), "auto");
+      await trial("mB", FACE(0.3, 0.3, "mB", true), "ask");
+      await trial("stranger", FACE(0.3, 0.3, null), "none", 1);
+      await trial("stranger", FACE(0.3, 0.3, "mA"), "auto", 2);
+      assert(!(await card()).includes("สวัสดีคุณ"), "no customer selected during the check");
+      assert(await page.evaluate(() => !document.querySelectorAll("#scanStatus button.chip").length), "no chips during the check");
+      const pill = await page.evaluate(() => { const p = document.getElementById("camHealth"); return p && !p.hidden ? p.textContent : null; });
+      assert(pill && /ภาพ/.test(pill), "health pill shown: " + pill);
+      await page.evaluate(() => document.querySelector("#scPanel .sc-stop").click());
+      const last = await page.evaluate(() => JSON.parse(JSON.stringify(__CX_SC.last)));
+      assert(last.rep.kind === "customers" && last.rep.verdict === "fail" && last.rep.n.strangerAuto === 1 && last.rep.n.memberAuto === 1 && last.rep.n.memberAsk === 1, "report " + JSON.stringify(last.rep.n));
+      assert(last.doc.distinctMembers === 2 && last.doc.distinctStrangers === 2, "distinct people in export: " + last.doc.distinctMembers + "/" + last.doc.distinctStrangers);
+      const doc = JSON.stringify(last.doc);
+      assert(!/แอน|บอส|0811111111|"mA"|"mB"|descriptor|data:image|base64/.test(doc) && last.doc.trials[0].truth === "m1" && last.doc.trials[2].stranger === "s1", "pseudonyms only: " + doc.slice(0, 300));
+      assert(await page.evaluate(() => localStorage.getItem("cx-orders")) === orders0, "no order written");
+      assert(await page.evaluate(() => JSON.stringify(JSON.parse(localStorage.getItem("cx-members")).map(m => m.lastSeen || 0))) === seen0, "lastSeen untouched");
+      const hist = await page.evaluate(() => JSON.parse(localStorage.getItem("cx-sitecheck") || "[]"));
+      assert(hist.length === 1 && hist[0].verdict === "fail" && typeof hist[0].cam === "string" && hist[0].cam && !("trials" in hist[0]), "history summary: " + JSON.stringify(hist));
+      assert(await page.evaluate(() => document.querySelector("#scPanel .sc-state").dataset.s === "fail"), "panel pill state");
+    });
+
     await check("privacy: no images, no /api, unknown faces never stored, no console errors", async () => {
       await privacyScan(page);
       const ms = await page.evaluate(() => JSON.parse(localStorage.getItem("cx-members")));
@@ -117,6 +154,20 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(!errs.length, "console errors: " + JSON.stringify(errs.slice(0, 3)));
     });
     await page.close();
+
+    await check("round 10: the check panel is translated in 中文 and English (< 5% Thai)", async () => {
+      const p = await browser.newPage(null, { initScripts: [fakeCams, HOOKS] });
+      await p.goto(`${base}/customers.html?cpu&fakedet&lang=zh`);
+      await p.waitFor("window.LQI18N && LQI18N.lang === 'zh' && document.querySelector('#scPanel .sc-start')", 10000);
+      await new Promise(r => setTimeout(r, 900));
+      const zh = await p.evaluate(() => LQI18N.coverage(document.getElementById("scPanel"), { top: 3 }));
+      assert(zh.pct < 5, `zh: ${zh.pct}% Thai — ${zh.top.map(x => x.text).join(" | ")}`);
+      const en = await p.evaluate(async () => { LQI18N.setLang("en"); await new Promise(r => setTimeout(r, 1200)); return LQI18N.coverage(document.getElementById("scPanel"), { top: 3 }); });
+      assert(en.pct < 5, `en: ${en.pct}% Thai — ${en.top.map(x => x.text).join(" | ")}`);
+      console.log(`       scPanel zh ${zh.pct}%, en ${en.pct}%`);
+      await p.evaluate(() => LQI18N.setLang("th")); // the language choice is persisted: later pages expect Thai
+      await p.close();
+    });
 
     await check("customers.html?cpu (real models, WASM): no console errors, no horizontal overflow at 390px", async () => {
       const p = await browser.newPage(null, { initScripts: [fakeCams] });

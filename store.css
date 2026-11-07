@@ -19,6 +19,7 @@
 .cam-grid:empty{display:none}
 .grid-empty{display:flex;align-items:center;justify-content:center;text-align:center;padding:16px;color:#c9d3ea;font-size:.88rem}
 .grid-empty[hidden]{display:none}
+.card .grid-empty p{color:#c9d3ea} /* beats .card p (muted): readable on the navy box */
 .st-tile{min-width:0;border-radius:14px;padding:6px;border:2px solid transparent;background:var(--bg)}
 .st-tile.sel{border-color:var(--navy)}
 .tile-head{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px}
@@ -52,7 +53,7 @@
 .tile .k{font-size:.78rem;color:var(--muted)}
 .tile .v{font-size:1.5rem;font-weight:500;color:var(--navy);font-variant-numeric:tabular-nums}
 .tile .s{font-size:.75rem;color:var(--muted)}
-.tile.in .v{color:var(--in)}.tile.out .v{color:var(--out)}
+.tile.in .v{color:#1d5fae}.tile.out .v{color:#b3441c} /* text tones of --in / --out with >= 4.5:1 on white */
 .tile.hot{background:#fdeaea;border-color:#c0392b}
 .tile.hot .v{color:#a12b20}
 .legend{display:flex;gap:16px;font-size:.8rem;color:var(--muted);margin-bottom:4px}

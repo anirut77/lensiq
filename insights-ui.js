@@ -1,7 +1,7 @@
 /* insights-ui.js — หน้าจอแดชบอร์ดรวม (insights.html): เรนเดอร์ทุกส่วน ปุ่ม ส่งออก สำรอง/กู้คืน ข้อมูลตัวอย่าง
    ใช้ส่วนคำนวณจาก insights-data / -demo / -analysis / -cards และกราฟจาก insights-charts (โหลดก่อนไฟล์นี้) */
 if (typeof document !== "undefined") (() => {
-  const { iqPad, iqDay, iqDayStart, iqAddDays, iqParse, IQ_AGG, iqIsModuleKey, iqCollect, iqRange, iqMetrics, iqBuckets, iqSeries, iqTrimHours, iqFunnel, iqModuleBars, iqCsv, iqHasDemo, iqRemoveDemo, iqBackup, iqValidateBackup } = LQInsightsData;
+  const { iqPad, iqDay, iqDayStart, iqAddDays, iqParse, IQ_AGG, iqIsModuleKey, iqCollect, iqRange, iqMetrics, iqBuckets, iqSeries, iqTrimHours, iqFunnel, iqModuleBars, iqCsv, iqHasDemo, iqRemoveDemo, iqBackup, iqValidateBackup, iqFlagged, iqExcludeFlagged, iqAccuracy } = LQInsightsData;
   const { IQ_DEMO_TAG, iqBuildDemo } = LQInsightsDemo;
   const { IQ_WD, iqFin, iqAnalyze, IQ_GOAL_DEFS, iqAlertRules, iqLoc } = LQInsightsAnalysis;
   const { T, IQ_EXPLAIN, iqInsights, iqReport, iqAnalysisJson, iqAnalysisCsv, iqMethods, iqKpiDelta, pText, nameT } = LQInsightsCards;
@@ -14,7 +14,10 @@ if (typeof document !== "undefined") (() => {
   const $ = s => document.querySelector(s);
   const RANGE_KEY = "iq-range";
   const PRESETS = [["today", "วันนี้"], ["d7", "7 วัน"], ["d30", "30 วัน"], ["d90", "90 วัน"], ["all", "ทั้งหมด"], ["custom", "กำหนดเอง"]];
-  const CUSTOM_KEY = "iq-range-custom", COMPARE_KEY = "iq-compare", GOALS_KEY = "iq-goals", ALERTS_KEY = "iq-alerts";
+  const CUSTOM_KEY = "iq-range-custom", COMPARE_KEY = "iq-compare", GOALS_KEY = "iq-goals", ALERTS_KEY = "iq-alerts", EXCL_KEY = "iq-exclude-flagged";
+  // ไม่นับชั่วโมงที่ภาพจากกล้องมีปัญหา (round 10): ตัวเลือกของผู้ดูเท่านั้น ข้อมูลที่เก็บไว้ไม่ถูกแก้
+  let excludeFlagged = false;
+  try { excludeFlagged = localStorage.getItem(EXCL_KEY) === "1"; } catch {}
   const MODULES = [
     { id: "booth", name: "วิเคราะห์บูธ", href: "booth.html", what: "นับผู้เข้าชม เวลาหยุดชม และผู้ร่วมกิจกรรม" },
     { id: "store", name: "วิเคราะห์หน้าร้าน", href: "store.html", what: "นับคนเข้า–ออก คิว และโซนยอดนิยม" },
@@ -49,14 +52,15 @@ if (typeof document !== "undefined") (() => {
   const saveJson = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
   const rangeOpt = () => ({ ...loadJson(CUSTOM_KEY, {}), compare });
   function analyze(p = preset, opt = rangeOpt()) {
-    const snap = snapshot(), D = iqCollect(snap), now = Date.now(), r = iqRange(p, now, D, opt);
+    const snap = snapshot(), D0 = iqCollect(snap), now = Date.now(), r = iqRange(p, now, D0, opt);
+    const flags = iqFlagged(D0, r), ex = excludeFlagged ? iqExcludeFlagged(D0, r) : null, D = ex ? ex.D : D0;
     const A = iqAnalyze(D, r, { now, goals: loadJson(GOALS_KEY, {}), alerts: loadJson(ALERTS_KEY, {}) });
-    return { snap, D, r, A, cards: iqInsights(D, A) };
+    return { snap, D, D0, r, A, flags, excluded: ex ? ex.removed : null, cards: iqInsights(D, A) };
   }
 
   function render() {
-    const { snap, D, r, A, cards } = analyze();
-    last = { D, r, A, cards };
+    const { snap, D, r, A, cards, flags, excluded } = analyze();
+    last = { D, r, A, cards, flags, excluded };
     window.__IQ = { last, render, report: buildReport, analyze };
     const has = id => !!D[id];
     const any = MODULES.some(m => has(m.id));
@@ -89,14 +93,18 @@ if (typeof document !== "undefined") (() => {
     if (defs.length) {
       leg.replaceChildren();
       defs.forEach(([, name, , cls]) => { const li = el("li", {}, leg); el("i", { class: "key " + cls }, li); li.append(name); });
-      const labels = buckets.map(b => bucketLabel(b, r)), series = defs.map(([, name, short, cls], i) => ({ name, short, cls, values: vals[i] }));
+      // ชั่วโมง/วันที่ภาพจากกล้องมีปัญหา: แถบสีเทาในกราฟ และเครื่องหมาย ⚠ ในตาราง
+      const flagAt = b => r.mode === "hour" ? flags.some(f => f.day === r.from && f.h === b) : flags.some(f => f.day === b);
+      const flagIdx = buckets.map((b, i) => (flagAt(b) ? i : -1)).filter(i => i >= 0);
+      const labels = buckets.map(b => bucketLabel(b, r) + (flagAt(b) ? " ⚠" : "")), series = defs.map(([, name, short, cls], i) => ({ name, short, cls, values: vals[i] }));
       $("#trendSub").textContent = r.mode === "hour" ? TN("รายชั่วโมงของวันนี้") : TN("รายวัน · หน่วยเป็นจำนวนคน/บิล");
       const hasVals = series.some(s => s.values.some(v => v > 0));
       tbox.hidden = !hasVals; $("#trendEmpty").hidden = hasVals;
-      if (hasVals) lineChart(tbox, { labels, series });
+      if (hasVals) lineChart(tbox, { labels, series, flags: flagIdx });
       $("#trendTable").replaceChildren();
       tableView($("#trendTable"), [TN("ช่วงเวลา"), ...series.map(s => s.name)], labels.map((l, i) => [l, ...series.map(s => nf(s.values[i]))]));
-      $("#trendNote").textContent = has("sg") ? TN("ผู้ชมโฆษณา (มองจอ) ไม่แสดงในกราฟนี้ เพราะระบบป้ายโฆษณาเก็บเป็นยอดสะสม ไม่แยกรายวัน") : "";
+      $("#trendNote").textContent = [has("sg") ? TN("ผู้ชมโฆษณา (มองจอ) ไม่แสดงในกราฟนี้ เพราะระบบป้ายโฆษณาเก็บเป็นยอดสะสม ไม่แยกรายวัน") : "",
+        flagIdx.length ? (excludeFlagged ? T("iq.flag.noteEx", "⚠ = ช่วงที่ภาพจากกล้องมีปัญหา — ไม่นับยอดของชั่วโมงเหล่านั้นตามที่เลือกไว้") : T("iq.flag.note", "⚠ / แถบสีเทา = ช่วงที่ภาพจากกล้องมีปัญหา ยอดอาจคลาดเคลื่อน")) : ""].filter(Boolean).join(" · ");
     }
 
     renderFunnel(D, r, A);
@@ -110,6 +118,59 @@ if (typeof document !== "undefined") (() => {
     renderAlertRules(D);
     renderModules(D, r, A);
     renderQuality(A);
+    renderFlags(flags, excluded);
+    renderAccuracy();
+  }
+
+  // ---------- ชั่วโมงที่ภาพจากกล้องมีปัญหา (round 10) ----------
+  const QK = { shake: "กล้องสั่น", dark: "ภาพมืด", backlight: "ย้อนแสง", slow: "ประมวลผลช้า", offline: "กล้องออฟไลน์/ภาพค้าง", image: "ภาพไม่ชัด" };
+  function renderFlags(flags, excluded) {
+    const card = $("#flagCard"), box = $("#flagBody");
+    if (!card) return;
+    card.hidden = !flags.length && !excludeFlagged; if (card.hidden) return;
+    $("#excludeFlagged").checked = excludeFlagged;
+    box.replaceChildren();
+    if (!flags.length) { el("p", { class: "muted" }, box, T("iq.flag.none", "ไม่มีชั่วโมงที่ภาพจากกล้องมีปัญหาในช่วงที่เลือก")); return; }
+    const t = el("table", { class: "cams" }, el("div", { class: "tw" }, box)), hr = el("tr", {}, el("thead", {}, t));
+    [T("iq.flag.h.when", "วันและชั่วโมง"), T("iq.flag.h.src", "ระบบ"), T("iq.flag.h.what", "ปัญหาที่พบ (นาที)")].forEach(h => el("th", { scope: "col" }, hr, h));
+    const tb = el("tbody", {}, t);
+    flags.slice(0, 48).forEach(f => {
+      const tr = el("tr", {}, tb);
+      el("th", { scope: "row" }, tr, `${dayLabel(f.day)} ${iqPad(f.h)}:00–${iqPad(f.h)}:59`);
+      el("td", {}, tr, f.src === "store" ? TN("วิเคราะห์หน้าร้าน") : TN("วิเคราะห์บูธ"));
+      el("td", {}, tr, Object.entries(f.sec).filter(([, v]) => v >= 60).sort((a, b) => b[1] - a[1]).map(([k, v]) => T("iq.flag.item", "{a} {b} นาที", { a: T("iq.flag.k." + k, QK[k] || k), b: Math.round(v / 60) })).join(" · "));
+    });
+    if (excluded) el("p", { class: "note" }, box, T("iq.flag.removed", "ไม่นับตามที่เลือก: คนเข้าร้าน {s} คน · ผู้เข้าชมบูธ {b} คน (ข้อมูลยังเก็บไว้ครบ ยกเลิกได้ทุกเมื่อ)", { s: nf(excluded.store), b: nf(excluded.booth) }));
+    el("p", { class: "note" }, box, T("iq.flag.how", "ทำเครื่องหมายเมื่อตัวตรวจสุขภาพภาพของหน้ากล้องพบปัญหารวม ≥ 5 นาทีในชั่วโมงนั้น (บันทึกพร้อมยอดนับรายชั่วโมง) ยอดของชั่วโมงนั้นอาจต่ำหรือสูงกว่าจริง"));
+  }
+  const exBox = $("#excludeFlagged");
+  if (exBox) exBox.addEventListener("change", () => { excludeFlagged = exBox.checked; try { localStorage.setItem(EXCL_KEY, excludeFlagged ? "1" : "0"); } catch {} render(); });
+
+  // ---------- สถานะความแม่นยำหน้างาน: ผลตรวจล่าสุดต่อกล้อง (อ่านอย่างเดียว จาก *-sitecheck ในเครื่องนี้) ----------
+  const ACC_PAGE = { store: ["วิเคราะห์หน้าร้าน", "store.html"], customers: ["จดจำลูกค้า", "customers.html"], attendance: ["เช็คชื่อด้วยใบหน้า", "attendance.html"], driver: ["เฝ้าระวังความง่วงคนขับ", "driver.html"], qc: ["ตรวจคุณภาพขวดน้ำ", "qc.html"], booth: ["วิเคราะห์บูธ", "booth.html"], signage: ["ป้ายโฆษณาดิจิทัล", "signage.html"] };
+  const ACC_V = { pass: "ผ่าน (ยืนยันแล้ว)", ontrack: "ตามเป้าจนถึงตอนนี้ — ยังยืนยันไม่ได้", more: "ยังสรุปไม่ได้", fail: "ไม่ผ่านเกณฑ์" };
+  const ACC_NEED = { crossings: "คนผ่านเส้นนับ (อีกราว {n} ครั้ง)", members: "ผู้ลงทะเบียน (อีกราว {n} รอบ)", strangers: "คนนอก (อีกราว {n} รอบ)", cxMembers: "สมาชิก (อีกราว {n} รอบ)", cxStrangers: "คนที่ไม่ใช่สมาชิก (อีกราว {n} รอบ)", prompts: "คำสั่งหลับตา (อีกราว {n} ครั้ง)", openMin: "เวลาลืมตาปกติ (อีกราว {n} นาที)", good: "ขวดดี (อีกราว {n} ขวด)", bad: "ขวดเสีย (อีกราว {n} ขวด)", visitors: "ผู้มาบูธ (อีกราว {n} คน)", passers: "ผู้ผ่านหน้าจอ (อีกราว {n} คน)" };
+  function renderAccuracy() {
+    const card = $("#accCard"), box = $("#accBody");
+    if (!card) return;
+    let L = [];
+    try { L = iqAccuracy(localStorage); } catch { L = []; }
+    card.hidden = !L.length; if (card.hidden) return;
+    box.replaceChildren();
+    const t = el("table", { class: "cams acc" }, el("div", { class: "tw" }, box)), hr = el("tr", {}, el("thead", {}, t));
+    [T("iq.acc.h.cam", "ระบบ · กล้อง"), T("iq.acc.h.when", "ตรวจล่าสุด"), T("iq.acc.h.v", "ผล"), T("iq.acc.h.need", "ต้องเก็บเพิ่ม")].forEach(h => el("th", { scope: "col" }, hr, h));
+    const tb = el("tbody", {}, t);
+    L.forEach(x => {
+      const [pn, href] = ACC_PAGE[x.page] || [x.page, "#"];
+      const tr = el("tr", { "data-v": x.verdict }, tb), th = el("th", { scope: "row" }, tr);
+      el("a", { href: href + "#scPanel" }, th, TN(pn));
+      if (x.cam) { th.append(" · "); el("span", { "data-i18n-skip": "", translate: "no" }, th, x.cam); }
+      el("td", {}, tr, fmtDate(x.at));
+      const v = el("td", { class: "acc-v" }, tr); el("b", {}, v, T("iq.acc.v." + x.verdict, ACC_V[x.verdict] || x.verdict));
+      if (x.legacy) el("small", { class: "muted" }, v, " " + T("iq.acc.legacy", "(ผลรุ่นเก่า: เทียบค่าที่วัดได้เท่านั้น ตรวจใหม่เพื่อยืนยัน)"));
+      el("td", {}, tr, (x.verdict === "pass" || x.verdict === "fail") ? "–" : x.need.filter(n => ACC_NEED[n.group] && n.more > 0).map(n => T("iq.acc.need." + n.group, ACC_NEED[n.group], { n: n.more >= 10000 ? "10000+" : Math.ceil(n.more) })).join(" · ") || "–");
+    });
+    el("p", { class: "note" }, box, T("iq.acc.note", "\"ผ่าน (ยืนยันแล้ว)\" = ทั้งช่วงความเชื่อมั่น 95% ผ่านเป้าที่หน้างานนั้น · ผลตรวจเก็บในเบราว์เซอร์ของแต่ละเครื่อง หน้านี้แสดงเฉพาะเครื่องนี้ · ตรวจใหม่ที่หน้ากล้องนั้นเมื่อย้ายกล้องหรือเปลี่ยนแสง"));
   }
 
   // ---------- แจ้งเตือน ----------
@@ -308,7 +369,10 @@ if (typeof document !== "undefined") (() => {
       const band = [...F.fc.hi.map((v, j) => `${x(h0 + j).toFixed(1)},${y(v).toFixed(1)}`), ...F.fc.lo.map((v, j) => `${x(h0 + j).toFixed(1)},${y(v).toFixed(1)}`).reverse()];
       const lastY = ys[ys.length - 1];
       if (iqFin(lastY)) { band.unshift(`${x(h0 - 1).toFixed(1)},${y(lastY).toFixed(1)}`); band.push(`${x(h0 - 1).toFixed(1)},${y(lastY).toFixed(1)}`); }
-      el("svg:path", { d: "M" + band.join("L") + "Z", class: "fc-band" }, svg);
+      const rough = !!(F.fc.rough || !F.enough);
+      el("svg:path", { d: "M" + band.join("L") + "Z", class: "fc-band" + (rough ? " rough" : ""), "data-rough": rough ? "1" : "0" }, svg);
+      // ข้อมูลสั้น: ขอบช่วงเป็นเส้นประ = ช่วงคร่าว ๆ (round 10)
+      if (rough) ["hi", "lo"].forEach(s => el("svg:path", { d: "M" + F.fc[s].map((v, j) => `${x(h0 + j).toFixed(1)},${y(v).toFixed(1)}`).join("L"), class: "fc-band-edge" }, svg));
       let d = "", pen = false;
       ys.forEach((v, i) => { if (!iqFin(v)) { pen = false; return; } d += `${pen ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`; pen = true; });
       el("svg:path", { d, class: "line s1" }, svg);

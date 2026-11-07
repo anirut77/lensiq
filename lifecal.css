@@ -29,3 +29,5 @@
 @media (max-width:560px){.lc-table{font-size:.82rem}.lc-table th,.lc-table td{padding:6px 3px}.lc-gz{font-size:1.2rem}.lc-bands td:last-child{font-size:.75rem;text-align:left}}
 @media (prefers-color-scheme:dark){.lc-ax{fill:#aab3d6}.lc-now{stroke:#e9ecff}.lc-nowt{fill:#e9ecff}.lc-grid{stroke:rgba(255,255,255,.12)}}
 .lc-scroll{overflow-x:auto;max-width:100%}
+.lc-notes{margin:10px 0 4px}
+.lc-note{margin:6px 0;padding:8px 12px;border-left:3px solid #e8590c;background:#fff7ed;border-radius:8px;font-size:.9rem;color:#5b3a1a}

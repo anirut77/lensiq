@@ -131,6 +131,51 @@ export default async function ({ base, launch, check, fakeCams }) {
       await p.close();
     });
 
+    await check("on-site check (round 10): tapped arrivals vs visitors created -> report, export without images, history; health pill; quality flags stored", async () => {
+      // a person walks up every 5 s at one of three spots (far apart: a new count-only track each time), stays 2.5 s
+      const HOOKS = `window.__sc0 = 0; window.__LQ_FAKE_DET = (key, now) => { if (!window.__sc0 || key !== "c1") return []; const k = Math.floor((now - __sc0) / 5000), ph = (now - __sc0) % 5000;
+        return ph < 2500 ? [{ x: [0.05, 0.4, 0.75][k % 3], y: 0.3, w: 0.18, h: 0.3, score: 0.95, person: k }] : []; };`;
+      const p = await browser.newPage(null, { initScripts: [fakeCams, "localStorage.clear()", HOOKS] });
+      await p.goto(`${base}/booth.html?cpu&fakedet`);
+      await p.waitFor(`window.__booth && __booth.ready && document.querySelector("#scPanel .sc-start")`, 8000);
+      await p.evaluate(() => document.getElementById("camStart").click());
+      await p.waitFor(`__booth.camera.active && __booth.cams.length && __booth.cams[0].video.videoWidth > 0`, 5000);
+      await p.evaluate(() => document.getElementById("toggle").click());
+      await p.waitFor(`__booth.running`, 3000);
+      await p.evaluate(() => document.querySelector("#scPanel .sc-start").click());
+      assert(await p.evaluate(() => !!__BT_SC.active && !document.querySelector("#scPanel .sc-taps").hidden), "check started, tap button shown");
+      // staff tap 0.3 s after each arrival, 5 arrivals; the 6th period is not tapped (finish before it)
+      await p.evaluate(() => { window.__sc0 = Date.now() + 500; for (let k = 0; k < 5; k++) setTimeout(() => __BT_SC.tap(), 500 + k * 5000 + 300); });
+      await p.waitFor(`__BT_SC.active && __BT_SC.active.truth.length >= 5 && __BT_SC.active.sys.length >= 5`, 40000);
+      await sleep(2000);
+      const pill = await p.waitFor(`(() => { const e = document.querySelector("#camGrid .lq-health"); return e && !e.hidden && e.dataset.level != null && e.textContent; })()`, 5000);
+      assert(/ภาพ/.test(pill), "health pill: " + pill);
+      await p.evaluate(() => { window.__sc0 = 0; document.querySelector("#scPanel .sc-stop").click(); });
+      const last = await p.evaluate(() => JSON.parse(JSON.stringify(__BT_SC.last)));
+      const n = last.rep.n;
+      assert(n.truth === 5 && n.matched >= 4 && n.matched + n.missed === 5 && n.falseCount === n.sys - n.matched, "counts " + JSON.stringify(n));
+      assert(["ontrack", "more", "fail"].includes(last.rep.verdict) && last.rep.provisional, "30+ arrivals needed before a confirmed verdict: " + last.rep.verdict);
+      const doc = JSON.stringify(last.doc);
+      assert(last.doc.format === "lensiq-sitecheck" && last.doc.kind === "booth" && last.doc.truth.length === 5 && !/data:image|base64|blob:|desc/.test(doc), "export: labels + numbers only");
+      assert(/ช่วงความเชื่อมั่น/.test(await p.evaluate(() => document.querySelector("#scPanel .sc-report").innerText)), "report rendered");
+      const hist = await p.evaluate(() => JSON.parse(localStorage.getItem("booth-sitecheck") || "[]"));
+      assert(hist.length === 1 && hist[0].cam === "หน้าบูธ" && hist[0].verdict === last.rep.verdict && !("truth" in hist[0]), "history summary " + JSON.stringify(hist[0]));
+      await p.evaluate(() => __booth.persist());
+      const q = await p.evaluate(() => JSON.parse(localStorage.getItem("booth-state")).quality);
+      const h = Object.values(q || {})[0];
+      assert(h && h.n >= 5 && Object.values(h).every(v => typeof v === "number"), "per-hour quality seconds stored with the state: " + JSON.stringify(q));
+      const stall = await p.evaluate(() => __booth.cams[0]._hl.state.codes.includes("stalled"));
+      assert(!stall, "a live fake camera is not stalled");
+      assert(!p.consoleErrors.length, "console errors: " + JSON.stringify(p.consoleErrors.slice(0, 3)));
+      // 中文 / English: the check panel is translated
+      try {
+        for (const lang of ["zh", "en"]) {
+          const c = await p.evaluate(async l => { LQI18N.setLang(l); await new Promise(r => setTimeout(r, 1500)); return LQI18N.coverage(document.getElementById("scPanel"), { top: 3 }); }, lang);
+          assert(c.pct < 5, `${lang} #scPanel ${c.pct}% Thai — ${c.top.map(x => x.text).join(" | ")}`);
+        }
+      } finally { await p.evaluate(() => LQI18N.setLang("th")); await p.close(); } // the language choice persists: later checks expect Thai
+    });
+
     await check("390 px wide: no horizontal overflow, no console errors (?cpu, real models + loop)", async () => {
       const p = await browser.newPage(null, { initScripts: [fakeCams, GUM_SPY] });
       await p.send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });

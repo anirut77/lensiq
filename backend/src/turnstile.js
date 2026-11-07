@@ -1,3 +1,4 @@
+// @ts-check
 // backend/src/turnstile.js — Cloudflare Turnstile, FAIL CLOSED.
 //
 // Required for /api/fortune (when the AI writing assistant is on) and /v1/billing/checkout (when billing is on):

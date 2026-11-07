@@ -123,10 +123,15 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /* i18n: ภาษาไทยอยู่ในโค้ด ภาษาจีนอยู่ใน i18n/zh-fortune-dream.js (ข้อความ UI + คำค้นภาษาจีน) และ i18n/zh-kb-dream.js (ชื่อ/ความหมายสัญลักษณ์) */
   var T = function (k, th, v) { return window.LQI18N ? window.LQI18N.tf(k, th, v) : th.replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : m; }); };
   var isZh = function () { return !!(window.LQI18N && window.LQI18N.lang === "zh"); };
+  var isEn = function () { return !!(window.LQI18N && window.LQI18N.lang === "en"); };
+  // อังกฤษ: ความหมาย (o/t/a) จาก i18n/en-kb-dream.js; ชื่อ (n) ยังผ่านตัวแปลชื่อของ en-rt-fortune.js เหมือนเดิม
   var zk = function (key, field, th) {
-    if (!isZh()) return th;
-    var D = window.FORTUNE_ZH && window.FORTUNE_ZH.dream, it = D && D.items[key], v = it && it[field];
-    return v == null ? th : (Array.isArray(v) ? v[0] : v);
+    var en = isEn() && field !== "n";
+    if (!isZh() && !en) return th;
+    var D = en ? window.FORTUNE_EN && window.FORTUNE_EN.dream : window.FORTUNE_ZH && window.FORTUNE_ZH.dream, it = D && D.items[key], v = it && it[field];
+    if (v == null) return th;
+    v = Array.isArray(v) ? v[0] : v;
+    return en ? String(v).charAt(0).toUpperCase() + String(v).slice(1) : v;
   };
   var symName = function (id) { return zk("sym." + id, "n", DR.BY[id].th); };
   var themeName = function (t) { return T("dream.theme." + t, KB.THEMES[t].th); };
@@ -239,7 +244,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var tk = DR.dreamType(ids, mood, time), ty = KB.TYPES[tk], dom = DR.dominantTheme(ids);
     $("#drResult").hidden = false;
     $("#drCards").innerHTML = ids.map(function (id) { var s = DR.BY[id]; return '<article class="dr-card"><span class="dr-ic" aria-hidden="true">' + s.ic + "</span><div><h3>" + esc(T("dream.cardH", "ฝันเห็น{n}", { n: symName(id) })) + '</h3><p class="dr-theme">' + esc(T("dream.cardTheme", "ธีม{t} · {c}", { t: themeName(s.theme), c: catName(s.cat) })) + "</p><p>" + esc(zk("sym." + id, "o", s.o)) + "</p></div></article>"; }).join("");
-    var tmText = KB.TIMES[time] ? (isZh() ? zk("time." + time, "t", DR.timeMeaning(ty, time)) : DR.timeMeaning(ty, time)) : "";
+    var tmText = KB.TIMES[time] ? (isZh() || isEn() ? zk("time." + time, "t", DR.timeMeaning(ty, time)) : DR.timeMeaning(ty, time)) : "";
     $("#drType").innerHTML = "<b>" + esc(T("dream.typeLbl", "ประเภทฝัน: {t}", { t: typeName(tk) })) + "</b> — " + esc(zk("type." + tk, "o", ty.o)) + (dom ? "<br><b>" + esc(T("dream.domLbl", "ธีมเด่น:")) + "</b> " + esc(themeName(dom)) : "") + (tmText ? '<br><span class="fk-small">' + esc(tmText) + "</span>" : "");
     var tp = quiet ? ((FK.readings.drRd || {}).topic || "overall") : "overall";
     $("#drReadWrap").innerHTML = FK.readingBlock("drRd", T("dream.rdTitle", "คำทำนายฝัน"), true, tp);

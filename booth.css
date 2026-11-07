@@ -89,6 +89,7 @@ th{background:var(--alt);color:var(--navy);font-weight:500;position:sticky;top:0
 /* ---------- กล้องเปิดด้วยปุ่ม / แตะกรอบใบหน้า / ตัวเลือกความเป็นส่วนตัว ---------- */
 .cam-off{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;margin:0;padding:16px;text-align:center;color:#cfd8e3;font-size:.95rem;pointer-events:none}
 .cam.on .cam-off{display:none}
+.card .cam-off{color:#cfd8e3} /* beats .card p (muted) — 12:1 on the navy camera box */
 .cam canvas{cursor:pointer;touch-action:manipulation}
 .cam-ctl .btn{min-height:44px;padding:0 14px;border:0;border-radius:99px;background:rgba(14,20,48,.72);color:#fff;font-size:.85rem;white-space:nowrap}
 .cam-ctl select{min-height:44px;max-width:160px;width:auto;padding:0 10px;border:0;border-radius:99px;background:rgba(14,20,48,.72);color:#fff;font-size:16px}
@@ -126,3 +127,11 @@ tfoot td{font-weight:500;color:var(--navy);background:var(--bg);white-space:norm
 .acc-note{margin:6px 0 14px;padding:10px 14px;border:1px solid var(--line,#e3e6ef);border-left:4px solid #c9a45c;border-radius:10px;background:#fffdf7;font-size:.86rem;line-height:1.6;color:#4a5068}
 .acc-note .beta{display:inline-block;margin-right:6px;padding:0 8px;border-radius:6px;background:#0e1430;color:#fff;font-size:.75rem;font-weight:500}
 .acc-note a{display:inline;color:inherit;text-decoration:underline} /* ลิงก์ในประโยค (ข้อยกเว้น WCAG 2.5.8) */
+/* round 10: camera health pill per tile, flagged (poor image) hours on the hourly chart, on-site check panel */
+.bt-tile .lq-health{font-size:.75rem}
+.bt-tile .cam-health{margin:6px 0 0}
+svg.chart .q-flag{fill:rgba(138,90,0,.10)}
+svg.chart .bar.flagged{fill:#9aa6b2}
+.q-note{margin-top:6px}.q-note .q-item{display:inline-block;margin-right:8px}
+.q-tip{color:#8a5a00}
+.sc-docs a{white-space:nowrap}

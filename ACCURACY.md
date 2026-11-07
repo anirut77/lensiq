@@ -20,10 +20,18 @@ the repository and are never committed.
   - door counting: crossings by tracks lost mid-confirmation now count (§1).
 
   Each section shows before → after.
-- **Round 9 measures nothing new at a customer site, because there is none yet.** It adds the means to do so. Each camera
-  page has an on-site accuracy check that the shop runs on its own premises. It gives the result with confidence
-  intervals and keeps a JSON record. Each camera also shows a health indicator, checked against a robustness
-  benchmark, and a soak test covers long runs (§12).
+- **Round 9 measures nothing new at a customer site, because there is none yet.** It adds the means to do so. The
+  seven analytics camera pages (store, customers, attendance, driver, qc, booth and signage; booth, customers and
+  signage since round 10) have an on-site accuracy check that the shop runs on its own premises. Checkout, neuro and the
+  photo / fortune pages do not. The check gives the result with confidence intervals and keeps a JSON record. Each of
+  those cameras also shows a health indicator, checked against a robustness benchmark, and a soak test covers long runs
+  (§12).
+- **Round 10: a site check passes only when its confidence interval clears the target.** "Pass (confirmed)" needs the
+  whole 95% interval on the right side of every target. A result whose measured values meet the targets while the
+  interval still crosses one is reported as "on target so far — collect N more", with N. So 44 of 50 crossings matched
+  with 7 false counts, or 0 errors in 30 good + 10 bad bottles, is not a pass. The round-9 point verdict is still shown,
+  labelled "provisional". Frozen and disconnected cameras are now detected, and the affected hours are flagged next to
+  the counts (§12).
 - Pages whose accuracy is modest or not yet measured show a **Beta** or accuracy note at the top (Thai). Thai summary:
   [cameras.html#accuracy](cameras.html#accuracy).
 
@@ -210,15 +218,25 @@ missing face counts as "not matched", as it would on the page.
 
 ### 1:1 verification
 
-| distance threshold | used by | same person accepted (TAR) | different person accepted (FAR) [95% CI] |
-| --- | --- | --- | --- |
-| 0.45 | | 50.7% | 0.00% [0.0–0.3%] |
-| **0.50** | **customers, booth** | **72.6%** | **0.00% [0.0–0.3%]** |
-| **0.55** | **attendance (default)** | **86.5%** | **0.09% [0.0–0.5%]** |
-| 0.60 | | 91.0% | 0.55% [0.3–1.2%] |
-| 0.65 | | 91.9% | 2.45% [1.7–3.5%] |
+| distance threshold | used by | same person accepted (TAR) [95% CI] | different person accepted (FAR) [95% CI] | FAR CI as published before round 10 (per pair) |
+| --- | --- | --- | --- | --- |
+| 0.45 | | 50.7% [47.6–53.9%] | 0.00% [0.00–0.64%] | [0.0–0.3%] |
+| **0.50** | **customers, booth** | **72.6% [69.7–75.3%]** | **0.00% [0.00–0.64%]** | [0.0–0.3%] |
+| **0.55** | **attendance (default)** | **86.5% [84.3–88.6%]** | **0.09% [0.00–0.53%]** | [0.0–0.5%] |
+| 0.60 | | 91.0% [89.1–92.7%] | 0.55% [0.18–1.18%] | [0.3–1.2%] |
+| 0.65 | | 91.9% [90.1–93.6%] | 2.45% [1.54–3.55%] | [1.7–3.5%] |
 
-The equal error rate on pairs where both faces were found is 1.4% (at distance 0.627). face-api's descriptor is a port of
+**How the intervals are computed (round 10).** The 1,100 different-person pairs involve 1,695 people, and many people
+appear in more than one pair, so the pairs are not independent. The intervals are an **identity-cluster bootstrap**
+(2,000 resamples). The clusters are the 595 groups of pairs that share nobody, even indirectly. The same-person pairs are
+clustered by person (788 people). Where the bootstrap is too short (no or very few accepted pairs), a Wilson interval on the
+effective sample size is used instead (n / design effect; with no accepted pairs, n = the 595 groups). The reported
+interval is the wider of the two (`tests/bench/metrics.cjs` `clusterBootstrap`, `identityComponents`). The old per-pair
+Wilson intervals are kept in the last column. They were too narrow: for example, 0 of 1,100 was reported as "≤ 0.3%",
+but the data support only "≤ 0.6%". Method notes and the unit tests behind them: `docs/STATS.md` §5.
+
+The equal error rate on pairs where both faces were found is 1.4% (at distance 0.627). From round 10 the EER uses the same
+acceptance rule as the table (distance < threshold, swept over midpoints between observed distances). The value is unchanged. face-api's descriptor is a port of
 dlib's ResNet model, and LFW was not in its training set as far as published.
 
 ### 1:N identification (what the pages actually do), round 4
@@ -232,7 +250,14 @@ measured this on LFW View-1 with one photo per person. Round 4 uses a larger, ha
   250 people are members and 250 are strangers.
 - **A "visit"** is 3 video frames of one photo: the photo plus 2 seeded jitters (±6% scale, ±3% shift, ±15% exposure,
   slight defocus). That is what a page sees while someone stands still for under a second. Each row averages 200
-  random galleries; about 12,000 stranger visits per row.
+  random galleries; about 12,000 stranger visits per row. **Those visits come from far fewer people**: about 1,800
+  distinct strangers on LFW and 500 on CASIA, each re-used in many galleries.
+
+**Note on the intervals in the two round-4 tables below.** They are per-visit Wilson intervals. They treat the ~12,000
+visits as independent, but the visits are not independent, so **the true intervals are wider**. These tables come from
+the round-4 run, which cannot be reproduced exactly, so they are left as published. The round-5 tables further down were
+re-run in round 10 with identity-cluster intervals. On the same rows, those intervals are 1.1–7× wider than the per-visit
+ones.
 
 **What changed** (`lensiq-track.js`, `attendance.js`, `customers.js`):
 
@@ -249,7 +274,7 @@ measured this on LFW View-1 with one photo per person. Round 4 uses a larger, ha
 
 **LFW (tuning set)**:
 
-| enrolled | rule | member recognised per visit | member shown as someone else | stranger accepted [95% CI] |
+| enrolled | rule | member recognised per visit | member shown as someone else | stranger accepted [95% CI per visit, not independent — true interval wider] |
 | --- | --- | --- | --- | --- |
 | 100 | round 3 attendance: 1 photo, 0.55 + margin, 1 frame | 89.0% | 0.36% | 8.72% [8.2–9.2%] |
 | 100 | round 3 customers: 1 photo, 0.50 + margin, 1 frame | 80.5% | 0.09% | 1.88% [1.6–2.1%] |
@@ -269,7 +294,7 @@ only 74% of the time, so re-enrol them.
 
 **CASIA-FaceV5, Asian faces (held out)**, round 4 as published:
 
-| enrolled | rule | face found per frame | member recognised per visit | member shown as someone else | stranger accepted [95% CI] |
+| enrolled | rule | face found per frame | member recognised per visit | member shown as someone else | stranger accepted [95% CI per visit, not independent — true interval wider] |
 | --- | --- | --- | --- | --- | --- |
 | 20 | round 4 default | 59.6% | 55.7% | 0.00% | **6.49% [6.1–6.9%]** |
 | 100 | round 3 attendance | 59.6% | 69.0% | 0.18% | 7.96% [7.5–8.5%] |
@@ -314,7 +339,13 @@ members are a sample of it.
 **How the values were chosen.** All values were tuned on **LFW only**: 24 settings of limit, margin, k and floor. The
 rule was the highest mean LFW recognition among the settings that kept LFW stranger acceptance ≤ 0.5% at every group
 size from 5 to 200. The 0.85 "confident" fraction was also chosen on LFW. CASIA-FaceV5 was then run as the held-out check.
-Each row is 200 random groups, about 12,000 stranger visits.
+Each row is 200 random groups, about 12,000 stranger visits from 500 (CASIA) or about 1,800 (LFW) distinct strangers.
+
+**Intervals (round 10 re-run, same random groups, so the same point estimates).** "[95% CI]" is an identity-cluster
+bootstrap over the stranger identities (2,000 resamples), with the design-effect Wilson guard described under 1:1
+verification. "Strangers ever accepted" is the number of distinct people behind the accepted visits. When it is in single
+digits, as for CASIA at 50–200 enrolled, the rate rests on a handful of look-alikes and the interval is wide. The last
+column is the per-visit Wilson interval published in round 5. It was too narrow.
 
 Disclosure: CASIA was not completely untouched. While exploring the idea, a few early settings were also scored on CASIA
 from cached descriptors. The chosen values follow the LFW-only rule above, but the CASIA check is not perfectly blind.
@@ -322,28 +353,28 @@ from cached descriptors. The chosen values follow the LFW-only rule above, but t
 **CASIA-FaceV5 (held out), round 4 → round 5** ("without confirmation" = recognised automatically; the rest are
 recognised as a suggestion that a person confirms):
 
-| enrolled | member recognised R4 → R5 | of which without confirmation (R5) | member shown as someone else R5 | stranger accepted R4 → **R5** [95% CI] | stranger accepted without confirmation (R5) |
-| --- | --- | --- | --- | --- | --- |
-| 5 | 57.4% → **75.6%** | 56.2% | 0.00% | 10.97% → **0.89%** [0.7–1.1%] | 0.03% |
-| 10 | 55.2% → **75.0%** | 56.1% | 0.00% | 8.83% → **0.56%** [0.4–0.7%] | 0.02% |
-| 20 | 55.8% → **73.8%** | 54.7% | 0.00% | 6.34% → **0.33%** [0.2–0.5%] | 0.00% |
-| 50 | 55.1% → **71.3%** | 50.6% | 0.00% | 4.23% → **0.18%** [0.1–0.3%] | 0.00% |
-| 100 | 53.5% → **68.7%** | 47.4% | 0.00% | 3.13% → **0.18%** [0.1–0.3%] | 0.00% |
-| 200 | 52.0% → **66.4%** | 44.5% | 0.00% | 2.25% → **0.22%** [0.1–0.3%] | 0.00% |
+| enrolled | member recognised R4 → R5 | of which without confirmation (R5) | member shown as someone else R5 | stranger accepted R4 → **R5** [95% CI] | distinct strangers (ever accepted, R5) | stranger accepted without confirmation (R5) [95% CI] | R5 CI as published in round 5 (per visit) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 5 | 57.4% → **75.6%** | 56.2% | 0.00% | 10.97% → **0.89%** [0.67–1.15%] | 500 (69) | 0.03% [0.00–0.07%] | [0.7–1.1%] |
+| 10 | 55.2% → **75.0%** | 56.1% | 0.00% | 8.83% → **0.56%** [0.41–0.74%] | 500 (52) | 0.02% [0.00–0.06%] | [0.4–0.7%] |
+| 20 | 55.8% → **73.8%** | 54.7% | 0.00% | 6.34% → **0.33%** [0.20–0.51%] | 500 (27) | 0.00% [0.00–0.76%] | [0.2–0.5%] |
+| 50 | 55.1% → **71.3%** | 50.6% | 0.00% | 4.23% → **0.18%** [0.05–0.44%] | 500 (7) | 0.00% [0.00–0.76%] | [0.1–0.3%] |
+| 100 | 53.5% → **68.7%** | 47.4% | 0.00% | 3.13% → **0.18%** [0.04–0.45%] | 500 (8) | 0.00% [0.00–0.76%] | [0.1–0.3%] |
+| 200 | 52.0% → **66.4%** | 44.5% | 0.00% | 2.25% → **0.22%** [0.00–1.15%] | 499 (2) | 0.00% [0.00–0.76%] | [0.1–0.3%] |
 
 The round-4 numbers in this table come from the round-5 benchmark run, which uses different random groups from the
 round-4 run (6.34% vs 6.49% at 20 enrolled).
 
 **LFW (tuning set), round 4 → round 5:**
 
-| enrolled | member recognised R4 → R5 | of which without confirmation (R5) | stranger accepted R4 → **R5** [95% CI] | stranger accepted without confirmation (R5) |
-| --- | --- | --- | --- | --- |
-| 5 | 90.9% → 91.7% | 68.6% | 1.27% → **0.27%** [0.2–0.4%] | 0.03% |
-| 10 | 89.8% → 90.4% | 69.2% | 1.38% → **0.39%** [0.3–0.5%] | 0.03% |
-| 20 | 88.7% → 89.6% | 66.1% | 1.10% → **0.46%** [0.4–0.6%] | 0.03% |
-| 50 | 86.2% → 87.1% | 61.2% | 1.04% → **0.43%** [0.3–0.6%] | 0.01% |
-| 100 | 84.9% → 85.0% | 57.3% | 0.89% → **0.42%** [0.3–0.5%] | 0.05% |
-| 200 | 84.2% → 82.9% | 53.9% | 1.00% → **0.36%** [0.3–0.5%] | 0.07% |
+| enrolled | member recognised R4 → R5 | of which without confirmation (R5) | stranger accepted R4 → **R5** [95% CI] | distinct strangers (ever accepted, R5) | stranger accepted without confirmation (R5) [95% CI] | R5 CI as published in round 5 (per visit) |
+| --- | --- | --- | --- | --- | --- | --- |
+| 5 | 90.9% → 91.7% | 68.6% | 1.27% → **0.27%** [0.17–0.39%] | 1,807 (29) | 0.03% [0.00–0.07%] | [0.2–0.4%] |
+| 10 | 89.8% → 90.4% | 69.2% | 1.38% → **0.39%** [0.27–0.54%] | 1,805 (38) | 0.03% [0.00–0.10%] | [0.3–0.5%] |
+| 20 | 88.7% → 89.6% | 66.1% | 1.10% → **0.46%** [0.32–0.62%] | 1,807 (46) | 0.03% [0.00–0.07%] | [0.4–0.6%] |
+| 50 | 86.2% → 87.1% | 61.2% | 1.04% → **0.43%** [0.30–0.60%] | 1,809 (41) | 0.01% [0.00–0.05%] | [0.3–0.6%] |
+| 100 | 84.9% → 85.0% | 57.3% | 0.89% → **0.42%** [0.27–0.60%] | 1,809 (36) | 0.05% [0.01–0.12%] | [0.3–0.5%] |
+| 200 | 84.2% → 82.9% | 53.9% | 1.00% → **0.36%** [0.20–0.56%] | 1,807 (27) | 0.07% [0.00–0.22%] | [0.3–0.5%] |
 
 **What each part contributes** (CASIA, held out; 5 / 20 / 200 enrolled; stranger accepted, then member recognised):
 
@@ -357,10 +388,16 @@ round-4 run (6.34% vs 6.49% at 20 enrolled).
 
 **Findings.**
 
-- **Target met on the held-out set.** Stranger acceptance on CASIA is ≤ 1% at every group size from 5 to 200, down from
-  2.3–11%. Fewer than 0.05% of strangers are accepted *without* a person confirming.
-- **5 enrolled is closest to the limit.** The point estimate is 0.89%, and the upper end of the 95% interval is 1.1%.
-  Groups this small also have the noisiest calibration, which is why the pages ask for confirmation below 5 people.
+- **Point estimates meet the target on the held-out set; the intervals do not fully.** Stranger acceptance on CASIA is
+  ≤ 1% at every group size from 5 to 200, down from 2.3–11%. The upper end of the identity-cluster 95% interval is still
+  above 1% at 5 enrolled and at 200 enrolled (1.15% for both). Fewer than 0.05% of strangers are accepted *without* a
+  person confirming. With no such events at 20–200 enrolled, the data rule out only rates above 0.76%.
+- **5 enrolled is closest to the limit.** The point estimate is 0.89%, and the upper end of the 95% interval is 1.15%
+  (1.1% before round 10, when visits were wrongly treated as independent). Groups this small also have the noisiest
+  calibration, which is why the pages ask for confirmation below 5 people.
+- **Large CASIA groups rest on very few people.** At 50–200 enrolled, every accepted stranger visit came from 2–8
+  distinct people. The 0.18–0.22% rates are therefore a few look-alikes repeated across galleries, not a stable rate.
+  A larger held-out set is needed before quoting them to one decimal.
 - **The group scale is what fixes small groups.** Without it, the same values still accept 4.6% of strangers at 5
   enrolled.
 - **The cascade pays for the stricter limits.** Calibration alone would cut CASIA recognition to 43–52%. With the
@@ -848,7 +885,89 @@ Two other ideas were tried and **not shipped**:
 - A reliable outfit change on arbitrary portraits would need a generative inpainting model for the neck and jaw. This
   page does not use one: everything runs in the browser.
 
-## 12. On-site accuracy check, camera health and long-run stability (round 9)
+### Round 10: a high-collar cover, a second rater, and the outfit off by default
+
+**What changed on the page.**
+
+- The page now opens on the version **without an outfit** (new background, lighting, retouch). That is the dependable output. An outfit
+  appears only when the user picks one, and it is labelled "ชุดตัวอย่าง (พรีวิว) / outfit preview".
+- **High-collar cover** (`studio-core.js` `coverLayer`). A knit turtleneck is drawn from just under the jaw (hidden behind the chin)
+  down into the collar, as wide as the neck. The synthetic neck is not drawn in this version. In the default mode ("auto"), the page
+  uses it when the strip beside the lower jaw is not covered by hair (`jawFeatures.open ≥ 0.5` on the plain render). The plain
+  version stays available ("ไม่ใช้" / never).
+- Exports that contain a synthetic garment carry a corner label "ภาพจำลองชุด / outfit preview" (it can be switched off only for
+  ordinary PNG/JPEG files, never for ID photos), the filename suffix `-outfit-preview`, and a PNG `tEXt`/`iTXt` note (a JPEG `COM`
+  note for JPEG files). Exporting a draft that failed the check, or making an ID photo with an outfit, asks for confirmation first.
+  ID photos use the no-outfit composition unless the user ticks "ใส่ชุดตัวอย่างในรูปติดบัตร".
+- An **ID-photo checker** (`studio-qa.js` `idSpecCheck`) checks the pixel size at 300 DPI, the head height (crown to chin, 50–75 %
+  of the photo; ICAO passport photos need 71–80 %), the space above the head, centring, a plain background (RGB deviation < 10),
+  face exposure, and whether a synthetic outfit is present. It also says that many agencies reject edited photos: for example,
+  Australian passport photo guidance (Australian Embassy Thailand) asks for photos that are not digitally altered, and South
+  Korea does not accept AI-generated or AI-edited ID photos.
+
+**Data and labels.** The same 62 portraits and the same person split. The round-9 renders were reproduced exactly: all 248
+garment renders gave the same gate result as in round 9, logged per render. Each person × garment was rendered twice: as before
+("plain") and with the cover. The new labels (`tests/bench/studio-labels-r10.json`) come from a **second rater**: fresh AI agent
+instances that did not write the code. They saw blind review sheets, with the 9 cells per person in random order under neutral
+codes and no QA output, and used the same criteria. There are still no human raters. The second rater applied the garment-shape
+criterion more strictly than the round-9 rater (sack bodies, tube sleeves and pasted hands count). On the 248 plain renders, the
+two raters agree on 87/108 (dev) and 117/140 (test).
+
+| test: 35 people, 140 person × garment pairs (second rater) | round 9 page | round 10 page |
+| --- | --- | --- |
+| outfit render with a visible defect | 69.3 % [61.2–76.3] (97/140) plain | **45.7 % [37.7–54.0] (64/140)** with the cover |
+| outfit renders the page shows (gate passed) that are defective | 61.1 % [51.0–70.2] (58/95) | **36.2 % [27.2–46.2] (34/94)** |
+| what the page shows once an outfit is picked, with a defect | 51.4 % [43.2–59.6] (72/140) | **34.3 % [26.9–42.5] (48/140)** |
+| defects the gate withholds (recall) / withheld renders that were defective (precision) | 40.2 % (39/97) / 86.7 % (39/45) | 46.9 % (30/64) / 65.2 % (30/46) |
+| what the page shows on opening a photo (no outfit), with a defect | — | 20.0 % [10.0–35.9] (7/35) |
+
+On test, the cover fixed 36 of the person × garment pairs and introduced a defect in 3. On dev, where it was designed (6 people
+looked at while tuning its width and height), the gain is smaller. Plain outfits had a defect in 83/108, outfits with the cover
+in 74/108, and the auto mode in 70/108. The cover fixed 13 pairs and broke 4. What the page shows was defective in 64/108 in
+round 9 and 53/108 in round 10. The cover does not touch defects above the jaw angle: ears cut by a straight line, leftover
+flags and chairs, holes in hats, and sack-shaped bodies on crossed arms. These remain.
+
+**Learned gate: tried, not shipped.** A logistic regression was trained on dev (plain and cover renders, 216 rows, 27 people).
+Its inputs were the QA measurements (number of failed rules, `revealed`, body width, `jawCover`, neck lightness) and new
+measurements on a standard-scale jaw/ear crop (`jawCrop` / `jawFeatures`: gap under the jaw, open jaw strip, straight ear cut,
+cut pixels, edge jumps, straight edges) plus a cover flag. With person-grouped 5-fold CV on dev, its AUC was **0.40–0.47**: no
+better than chance. Labels follow the person far more than the outfit (in 26 of 27 dev people, all four plain outfits got the
+same label), so 27 people are too few to learn from. The model trained on all of dev scored AUC 0.68 on test, once. Since dev
+gave no reason to trust it, it does not decide anything on the page. What the page uses instead is a **calibrated confidence by
+group**: the share of rule-passing renders that were clean on dev. It was 45 % with the cover (24/53) and 41 % without (7/17).
+The stated bar for showing an outfit without being asked is 50 %. No group reaches it, so the page never picks an outfit by
+itself (`StudioQA.defaultOutfitAllowed()` is false). On test, the same groups came out at 69 % (50/72) with the cover and 45 %
+(10/22) without. The bar was fixed on dev and was not moved after seeing test. More labelled people are needed before the
+default changes.
+
+**What this means.** With the cover, about 1 in 3 of the outfit images the page shows still has a visible defect on unseen people
+(36 %), down from about 3 in 5. The page says so on every outfit. The outfit remains a preview, not a photo.
+
+## 11b. Photo booth ID photo with an outfit (photobooth, round 10)
+
+**What is measured.** The ID-photo mode of `photobooth.html`. Script: `tests/bench/photobooth.bench.mjs`. Each of the same 62 portraits
+goes through the same processing as a camera capture (face landmarks, MODNet cut-out, quality check). The 1-inch ID photo is
+then made with no outfit, and with the two outfits that the civil-service presets choose: "สอบ/สมัครราชการ" picks civil and
+"ราชการ (ชุดกากี)" picks khaki. Labels (`tests/bench/photobooth-labels.json`) come from fresh AI agent instances working on blind
+sheets, with the same criteria. There are no human raters.
+
+| ID photo | dev (27 people) | test (35 people) |
+| --- | --- | --- |
+| drawn outfit with a visible defect | **100 % (54/54)** | **100 % (70/70)** |
+| the new outfit check (`boothCheck`: original clothes showing, straight hair cut, gap at the neck) withholds | 41/54, all defective | 43/70, all defective |
+| outfit renders the check lets through that are still defective | 13/13 | 27/27 |
+| no-outfit ID photo with a defect | 14.8 % (4/27) | 37.1 % (13/35) |
+
+The drawn outfit is placed under the chin and the head is redrawn over it. On these head-and-shoulders portraits, the person's own
+jacket, collar or necklace almost always shows above or around it. The check's limits were set before labelling and were not
+tuned; nothing could have been tuned, because every dev render was defective. **What ships:** the presets still pick their outfit,
+but the page shows the no-outfit photo first, with a note giving these numbers and a button to view the outfit as a draft.
+The draft carries the corner label "ภาพจำลองชุด / outfit preview" on screen, in the 4×6 sheet and in the file (PNG note,
+`-outfit-preview` filename). Download, print, share and hand-off ask for confirmation while an outfit is shown. In the test
+split, the no-outfit photo itself is defective in 13 of 35 people, mostly from leftover flags or background and from torsos cut
+by a straight line; one photo lost the person completely (t07). Treat it as a draft too, and check it before printing.
+
+## 12. On-site accuracy check, camera health and long-run stability (round 9, extended in round 10)
 
 **Why.** Every number above comes from public footage: streets, news photos, studio faces, synthetic bottles. None of it
 is a Thai shop door, a consented staff group, a real cab or a real bottling line, and there is no pilot site yet. Round 9
@@ -857,7 +976,9 @@ the customer's premises on day 1, and each camera shows when its image is too po
 
 ### On-site accuracy check ("ตรวจความแม่นยำหน้างาน")
 
-`lensiq-sitecheck.js`, wired into `store.html`, `attendance.html` (tab "ตรวจความแม่นยำ"), `driver.html` and `qc.html`.
+`lensiq-sitecheck.js`, wired into `store.html`, `attendance.html` (tab "ตรวจความแม่นยำ"), `driver.html` and `qc.html`,
+and since round 10 also `customers.html`, `booth.html` and `signage.html` (rows below). Pages that use a camera but have
+no on-site check: `checkout.html`, `neuro.html` and the photo / fortune pages.
 A person labels what really happened while the page runs as usual. The page then compares its own output with those
 labels and reports the result with 95% confidence intervals, a verdict against fixed targets, and recommended settings.
 Everything is computed on the device. No images are stored. The JSON export holds only tap times, labels, the system's
@@ -869,6 +990,9 @@ own events and the computed numbers. Attendance exports use pseudonyms (m1, m2 �
 | attendance | per trial, picks who stands at the camera (an enrolled person or "not enrolled") | recognised (auto + confirm prompt), automatic recognition, wrong person, strangers checked in automatically (Wilson upper bound), strangers offered a name | members ≥ 90% recognised, **no** automatic wrong check-in | 20 member + 20 stranger trials |
 | driver | parked only: follows a randomised voice prompt "close your eyes" for 3 s, 5–14 times | prompted closures alerted, alert latency, false alarms per hour with eyes open (exact Poisson CI), per-frame open/closed rates | ≥ 90% alerted, ≤ 1 false alarm per hour | 8 prompts |
 | qc | marks each inspected bottle "good" or "bad" (the simulator labels itself) | good bottles rejected and bad bottles passed (Wilson CI); per check, the limit that would pass every good bottle while still rejecting every labelled bad one | ≤ 2% each | 30 good + 10 bad |
+| customers (round 10) | per trial, picks which member stands at the counter, or "not a member" with a number per outsider | same report as attendance, on the cashier's scan rules; no customer is selected and nothing is written during the test | members ≥ 90% recognised, **no** automatic wrong selection | 20 member + 20 non-member trials |
+| booth (round 10) | taps "+1 ผู้มาบูธ" (or ↑) for every real arrival | visitors the system created vs taps: net error (block-bootstrap CI), precision and recall (Wilson CI); tap lag removed, match window 4 s | net error within ±15%, precision ≥ 85%, recall ≥ 80% | 30 arrivals |
+| signage (round 10) | for each passer the page lists, picks the real age band and gender (or skips) | gender correct where a gender was called, age band exact and within one band (Wilson CI), share estimated, two confusion tables | gender ≥ 90%, exact age band ≥ 70% | 50 passers |
 
 How the numbers are computed:
 
@@ -881,10 +1005,32 @@ How the numbers are computed:
 - **Driver prompts** are scheduled at random, at least 9 s apart, after a 15-s settling time. A hit is a long-closure
   alert starting within the closure + 2 s. A false alarm is a long-closure or PERCLOS alert outside every prompt window
   (−1 s / +5 s). Prompts the driver did not follow can be skipped.
-- **Verdict.** "Pass" needs the minimum sample and every point estimate on target. "Fail" is given as soon as an interval
-  lies entirely on the wrong side of a target, or for any automatic wrong check-in. Otherwise the verdict is "not
-  conclusive yet — collect more data", with the sample size still needed. With 0 strangers accepted in 20 trials, the page
-  still says the rate is only known to be below about 16%.
+- **Verdict (round 10, CI-aware).** There are four outcomes:
+  - **"Pass (confirmed)"** needs the minimum sample and the whole 95% interval on the right side of every target. For
+    precision, recall, sensitivity and recognition the Wilson lower bound must be at or above the target. For strangers
+    checked in automatically, QC misses and false rejects the Wilson upper bound must be at or below the target. For
+    false alarms per hour the exact Poisson upper bound must be at or below it. The block-bootstrap interval of the net
+    count error must lie inside ±target.
+  - **"On target so far — collect N more"** means every measured value meets its target but an interval still crosses
+    it. N comes from `needN()` and is then refined against the bound actually used (Wilson, Poisson or bootstrap width
+    ∝ 1/√n). For attendance and customers it is inflated by the cluster design effect.
+  - **"Fail"** is given as soon as an interval lies entirely on the wrong side of a target, or for any automatic wrong
+    check-in.
+  - **"Not conclusive yet"** covers the rest.
+
+  The round-9 point verdict (point estimates vs targets) is still computed and shown as "provisional". Examples from
+  `tests/unit/sitecheck.test.js`:
+  - 50 crossings, 44 matched, 7 false counts: precision 86%, Wilson 74–93%, so "on target so far", about 3,000 more
+    crossings.
+  - QC 0/30 false rejects and 0/10 misses: upper bounds 11% and 28% against 2%, so "on target so far", about 160 more
+    good and 180 more bad bottles.
+  - Attendance with 0 strangers checked in out of 20: the upper bound is about 16%. The page says "no automatic errors so
+    far — about 360 more stranger trials needed" to show ≤ 1%.
+- **Repeated people and neighbouring frames are not independent.** Attendance and customer trials of the same people are
+  resampled per person (cluster bootstrap), and the wider of that interval and the Wilson interval is used. Outsiders
+  carry a number, so "the same outsider again" counts once. Exports record the number of distinct people. The driver's
+  per-frame open/closed rates use a 10-s (3-s for closed frames) block bootstrap and are labelled "frames not
+  independent". The driver test is one person, and its export says so.
 - **Recommendations** are rules on the measured numbers. Examples: in/out almost always reversed → "swap direction";
   median person height < 12% of the frame → move the camera closer or use tiling; analysis rate < 4 Hz → fewer cameras;
   overcounting with high recall → reduce double counting and move the line; automatic wrong check-in → lower the face
@@ -900,6 +1046,12 @@ the export; QC on the simulator (simulated truth applied, 0 false rejects / 0 mi
 3 closures on the real `createMonitor` (3/3 alerted); and the panels in 中文 and English (< 5% Thai left).
 `tests/unit/sitecheck.test.js` checks the statistics against published values (Wilson 81/263 → 0.255–0.366; Garwood
 Poisson 0 → 3.689, 5 → 1.62–11.67) and every report on scripted data.
+
+Round 10 adds three checks to `sitecheck.e2e.mjs`. A frozen fake camera (canvas no longer painted) is flagged
+"stalled". An unplugged one shows "offline since HH:MM", reconnects by itself once it is back, and its offline seconds
+are stored with that hour's counts. A seeded store check, an old-format QC result and a flagged hour appear in the
+insights accuracy and flagged-hour cards. Excluding flagged hours there leaves the stored data unchanged
+(`insights.e2e.mjs`). The customers, booth and signage checks are covered in their own e2e files.
 
 **Pilot protocol (no pilot site yet).** Run each check on day 1 at the customer's site, then again in different light
 (day / evening / night for the driver) and after any camera move. Keep the exported JSON files as the acceptance record.
@@ -969,6 +1121,29 @@ people.
   was full. Clean, dark ×0.1, both blur levels and frame drops raised no false backlight, blur or shake flag, but that
   is in-sample too.
 
+**Round 10: frozen and disconnected cameras, and health stored with the counts.**
+- **Stalled.** `createStall()` treats a camera as stalled after 3 s without a new frame. New frames are counted with
+  `requestVideoFrameCallback`; without it, `video.currentTime` stops advancing. A live camera whose 32×18 thumbnail is
+  bit-identical for 9 s also counts, because real sensors always add noise. A paused video file does not. The flag sets
+  the pill to "ภาพไม่พร้อม" (level 2) on every page with a health pill. The test freezes the fake camera's canvas: the
+  track stays "live", requestVideoFrameCallback stops, and the flag appears.
+- **Auto-reconnect.** A track that ends by itself (unplugged, driver crash) is reopened by `LQCam` with exponential
+  backoff (1, 2, 4 … 30 s) until it works or the page stops the camera. While it is down, the camera shows "กล้องออฟไลน์
+  ตั้งแต่ HH:MM — กำลังเชื่อมต่อใหม่", and the outage is logged (numbers only). The hub does not reconnect a track that
+  ends during its capacity probe. The store keeps running while a camera reconnects instead of stopping; "หยุด" still
+  stops it.
+- **Per-hour quality flags.** Each 1-s health sample adds to the hour's seconds of shake, dark, backlight, slow,
+  offline/stalled and unclear image. These are stored next to the hourly counts (`st-day-*.quality`,
+  `booth-state.quality`). An hour with ≥ 5 minutes of any problem is:
+  - greyed in the store's hourly chart and the insights trend;
+  - annotated in the store CSVs, the booth CSV and the insights CSV;
+  - listed in an insights card, which has an optional "exclude flagged hours" view. The stored counts never change.
+  The 5-minute threshold is a judgement, not a measurement. Its effect on counting accuracy is not measured, because the
+  robustness table above degrades whole runs, not single hours.
+- **Insights accuracy status.** A read-only card lists the latest on-site check per page and camera. It reads the
+  pages' local histories, so it shows this device only. Round-9 results, which had only the point verdict, are shown as
+  "older result — re-run to confirm", never as a confirmed pass.
+
 ### Long-run stability (soak test)
 
 `tests/bench/soak.mjs` runs `store.html` exactly as a shop would: YOLOX-Nano on ORT WASM, no WebGL, headless Chrome on
@@ -992,7 +1167,9 @@ garbage collection. The machine was running other benchmarks at the same time, s
 ### What is still missing
 
 - **No field data.** Nothing here was measured at a real customer site. The on-site check makes that measurement
-  possible and repeatable, but someone still has to run it.
+  possible and repeatable, but someone still has to run it. With the round-10 verdict, a confirmed pass needs large
+  samples. To show ≤ 1% strangers checked in, about 380 stranger trials without an error are needed; for ≤ 2% QC errors,
+  about 190 good and 190 bad bottles. A one-day check usually ends "on target so far", and that is the honest result.
 - MOT17 (crowds, held out) could not be re-downloaded for the robustness run because the disk was full, so the robustness
   table uses only PETS09-S2L1 and TUD-Stadtmitte. These are the tuning sequences, and TUD has only 9 crossings.
 - The degradations are synthetic. Real low light also brings motion blur and compression noise. Real backlight depends

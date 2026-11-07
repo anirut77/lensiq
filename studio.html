@@ -7,9 +7,9 @@
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="studio.title">สตูดิโอแต่งชุด | LENSIQ</title>
-<meta name="description" data-i18n-attr="content:studio.desc" content="แต่งชุดจากเทมเพลตให้เหมือนใส่จริง ตัดพื้นหลัง เกลาขอบผม ผสานแสงสี รีทัชผิว และทำรูปติดบัตร ประมวลผลบนเครื่องทั้งหมด">
+<meta name="description" data-i18n-attr="content:studio.desc" content="เปลี่ยนฉากหลัง ปรับแสง รีทัชผิวแบบเป็นธรรมชาติ ทำรูปโปรไฟล์และรูปติดบัตรพร้อมตรวจขนาด สัดส่วนศีรษะ ฉากหลัง และความสว่าง ประมวลผลบนเครื่องทั้งหมด มีชุดตัวอย่าง (พรีวิว) ให้ลองดู ไม่ใช่ภาพสวมชุดจริง">
 <link rel="stylesheet" href="styles.css?v=8">
-<link rel="stylesheet" href="studio.css?v=3">
+<link rel="stylesheet" href="studio.css?v=4">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -17,7 +17,7 @@
 
 <main class="st">
   <h1 data-i18n="studio.h1">สตูดิโอแต่งชุด</h1>
-  <p class="lead" data-i18n="studio.lead">อัปโหลดรูปหรือถ่ายจากกล้อง ระบบตัดพื้นหลัง เกลาขอบผม แล้วสวมชุดจากเทมเพลตให้เข้ากับไหล่และคอ ปรับแสงสีให้กลมกลืนเหมือนใส่ถ่ายจริง พร้อมรีทัชแบบเป็นธรรมชาติ</p>
+  <p class="lead" data-i18n="studio.lead">อัปโหลดรูปหรือถ่ายจากกล้อง ระบบตัดพื้นหลังและเกลาขอบผม เปลี่ยนฉากหลัง ปรับแสง และรีทัชผิวแบบเป็นธรรมชาติ สำหรับรูปโปรไฟล์งานและรูปติดบัตร พร้อมตรวจขนาดรูป สัดส่วนศีรษะ ฉากหลังเรียบ และความสว่าง ส่วนชุดสำเร็จรูปเป็นชุดตัวอย่าง (พรีวิว) ไว้ดูแนวทางเท่านั้น ไม่ใช่ภาพสวมชุดจริง</p>
   <p class="hint st-expect" data-i18n="studio.expect">ได้ผลดีที่สุดกับรูปหน้าตรง เห็นคอและไหล่ชัด ผมไม่บังคอ แสงสม่ำเสมอ ทุกครั้งที่แต่งชุด ระบบตรวจรอยต่อคอและกรามอัตโนมัติ ถ้าไม่ผ่านจะแสดงเฉพาะฉากหลังใหม่และรีทัชกับเสื้อเดิมของคุณแทน (ยังเลือกดูแบบร่างได้) การตรวจอัตโนมัติพลาดรอยต่อได้มาก ให้ถือว่าภาพชุดทุกภาพเป็นตัวอย่าง และตรวจบริเวณคอก่อนใช้ ชุดเป็นภาพจำลอง ไม่ใช่การลองชุดจริง</p>
   <div class="engine" id="stEngine" role="status">กำลังเตรียมระบบ...</div>
 
@@ -71,13 +71,15 @@
 
     <aside class="card st-panel" aria-label="ตัวเลือก" data-i18n-attr="aria-label:studio.a.panel">
       <details open>
-        <summary data-i18n="studio.sec.outfit">ชุด</summary>
+        <summary data-i18n="studio.sec.outfit">ชุดตัวอย่าง (พรีวิว)</summary>
+        <p class="hint st-tip" data-i18n="studio.photoTip">ชุดเป็นภาพจำลองสำหรับดูแนวทาง ถ้าชุดหนึ่งดูไม่เนียน ชุดอื่นบนรูปเดียวกันมักไม่เนียนเช่นกัน รูปใหม่ (หน้าตรง เห็นคอชัด ผมไม่บังคอ) ช่วยได้มากกว่าการเปลี่ยนชุด</p>
         <div class="choices" id="stOutfits"></div>
+        <label class="slider" data-i18n="studio.cover">แบบคอสูงปิดรอยต่อคอ<select id="stCover"><option value="auto" data-i18n="studio.cover.auto">อัตโนมัติ (เมื่อชุดไม่ผ่านและข้างกรามเปิด)</option><option value="on" data-i18n="studio.cover.on">ใช้ทุกครั้ง</option><option value="off" data-i18n="studio.cover.off">ไม่ใช้</option></select></label>
         <div class="st-row">
           <label class="btn ghost st-file sm"><input type="file" id="stGarmentFile" accept="image/*"><span data-i18n="studio.addOutfit">เพิ่มชุด (PNG พื้นใส / รูปคนใส่ชุด)</span></label>
           <button class="btn ghost sm" id="stAnchorBtn" type="button" data-i18n="studio.anchorBtn">ตั้งจุดคอ/ไหล่ของชุด</button>
         </div>
-        <p class="hint" data-i18n="studio.tplTip">เคล็ดลับ: ผลที่สมจริงที่สุดมาจากการถ่ายรูปชุดจริงของร้าน (วางราบหรือใส่หุ่น บนพื้นเรียบ แสงสม่ำเสมอ เห็นทั้งตัวเสื้อตั้งแต่คอถึงชายเสื้อ) แล้วกด "เพิ่มชุด" — ระบบตัดพื้นหลังและหาจุดคอ/ไหล่ให้อัตโนมัติ ชุดสำเร็จรูปด้านบนเป็นชุดตัวอย่าง</p>
+        <p class="hint" data-i18n="studio.tplTip">เคล็ดลับ: ชุดตัวอย่างที่ดูดีที่สุดมาจากการถ่ายรูปชุดจริงของร้าน (วางราบหรือใส่หุ่น บนพื้นเรียบ แสงสม่ำเสมอ เห็นทั้งตัวเสื้อตั้งแต่คอถึงชายเสื้อ) แล้วกด "เพิ่มชุด" — ระบบตัดพื้นหลังและหาจุดคอ/ไหล่ให้อัตโนมัติ ชุดสำเร็จรูปด้านบนเป็นชุดตัวอย่าง</p>
         <p class="hint" data-i18n="studio.garmentGuide">ถ่ายชุดของคุณเอง: วางราบบนพื้นเรียบสีตัดกับชุด แสงนุ่มสม่ำเสมอ ติดกระดุมและจัดผ้าให้เรียบ ไหล่สองข้างระดับเดียวกัน ถ่ายตรงจากด้านบนและเว้นที่ว่างรอบชุด ระบบตรวจรูปก่อนนำไปใช้</p>
         <p class="hint" id="stGarmentMsg"><span data-i18n="studio.outfitNote">ชุดที่เพิ่มจะเก็บไว้ในเบราว์เซอร์นี้ (ใช้ร่วมกับหน้า ตู้ถ่ายรูป) ไม่ถูกส่งออกนอกเครื่อง</span></p>
       </details>
@@ -118,13 +120,18 @@
         <div class="st-row">
           <button class="btn primary sm" id="stPng" type="button" disabled data-i18n="studio.png">ดาวน์โหลด PNG</button>
           <button class="btn ghost sm" id="stJpg" type="button" disabled>JPEG</button>
+          <button class="btn ghost sm" id="stHiRes" type="button" disabled data-i18n="studio.hires">PNG ความละเอียดสูง (≤ 2400 px, ไม่ใส่ชุด)</button>
         </div>
+        <label class="check"><input type="checkbox" id="stMark" checked><span data-i18n="studio.mark">ใส่ป้าย "ภาพจำลองชุด / outfit preview" ที่มุมภาพเมื่อมีชุดจำลอง (รูปติดบัตรใส่เสมอ)</span></label>
         <h3 data-i18n="studio.idTitle">รูปติดบัตร (300 DPI)</h3>
         <div class="seg" id="stIdSize"></div>
+        <label class="check"><input type="checkbox" id="stIdOutfit"><span data-i18n="studio.idOutfit">ใส่ชุดตัวอย่างในรูปติดบัตร (ไม่แนะนำ ค่าเริ่มต้นใช้เสื้อของคุณเอง)</span></label>
         <div class="st-row">
           <button class="btn ghost sm" id="stIdOne" type="button" disabled data-i18n="studio.idOne">รูปเดี่ยว</button>
           <button class="btn ghost sm" id="stIdSheet" type="button" disabled data-i18n="studio.idSheet">แผ่นพิมพ์ 4×6 นิ้ว</button>
+          <button class="btn ghost sm" id="stIdCheck" type="button" disabled data-i18n="studio.idCheck">ตรวจข้อกำหนดรูปติดบัตร</button>
         </div>
+        <div id="stIdSpec" role="status" aria-live="polite"></div>
         <p class="note" data-i18n="studio.idNote">ชุดเป็นภาพจำลอง ไม่มีตราหรือเครื่องหมายยศ บางหน่วยงานไม่รับรูปที่ผ่านการตกแต่ง กรุณาตรวจข้อกำหนดก่อนใช้งานจริง</p>
       </details>
     </aside>
@@ -158,22 +165,29 @@
     <button class="btn ghost sm" id="stAnchorClose" type="button" data-i18n="studio.anchor.close">ปิด</button>
   </div>
 </dialog>
+<dialog class="st-dlg" id="stConfirm" aria-labelledby="stConfirmMsg">
+  <p id="stConfirmMsg"></p>
+  <div class="st-row">
+    <button class="btn primary sm" id="stConfirmOk" type="button" data-i18n="studio.cf.ok">ส่งออกต่อ</button>
+    <button class="btn ghost sm" id="stConfirmNo" type="button" data-i18n="studio.cf.no">ยกเลิก</button>
+  </div>
+</dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="vendor/face-api.js"></script>
 <script src="lensiq-track.js?v=2"></script>
 <script src="lensiq-camera.js?v=2"></script>
 <script src="lensiq-detect.js?v=2"></script>
-<script src="photobooth-layout.js"></script>
+<script src="photobooth-layout.js?v=2"></script>
 <script src="vendor/ort/ort.wasm.min.js"></script>
 <script src="lensiq-config.js?v=3"></script>
 <script src="photobooth-hq.js?v=7"></script>
 <script src="photobooth-templates.js?v=1"></script>
 <script src="photobooth-outfits.js?v=3"></script>
 <script src="lensiq-i18n-rt.js?v=1"></script>
-<script src="i18n/zh-studio.js?v=2"></script>
-<script src="studio-core.js?v=4"></script>
-<script src="studio-qa.js?v=1"></script>
-<script src="studio.js?v=4"></script>
+<script src="i18n/zh-studio.js?v=3"></script>
+<script src="studio-core.js?v=5"></script>
+<script src="studio-qa.js?v=2"></script>
+<script src="studio.js?v=5"></script>
 </body>
 </html>

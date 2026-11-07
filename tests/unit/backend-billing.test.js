@@ -9,8 +9,10 @@ const { createEnv, req } = require("./backend-d1-shim.js");
 const B = "../../backend/src/";
 const WH_SECRET = Buffer.from("webhook-secret-for-tests-0123456789").toString("base64");
 const TEST_KEY = "skey_test_5xyzabcdefghijklmnop";
-// Turnstile is fail-closed on checkout: configured in these envs, siteverify answered by fakeOpn()
-const TSV = { TURNSTILE_SECRET: "ts-secret", TURNSTILE_HOSTNAMES: "site.example" };
+// Turnstile is fail-closed on checkout: configured in these envs, siteverify answered by fakeOpn().
+// Round 10: checkout needs a signed-in member by default; these legacy-flow tests opt into guest checkout
+// (ALLOW_GUEST_CHECKOUT=true). The member-required default is tested in backend-billing-r10.test.js.
+const TSV = { TURNSTILE_SECRET: "ts-secret", TURNSTILE_HOSTNAMES: "site.example", ALLOW_GUEST_CHECKOUT: "true" };
 const TS = { "X-Turnstile-Token": "good" };
 
 const sign = (secretB64, ts, body) => createHmac("sha256", Buffer.from(secretB64, "base64")).update(`${ts}.${body}`).digest("hex");
@@ -197,8 +199,9 @@ test("pricing info hidden until the admin enables the pricing page", async () =>
   assert.equal(a.plans, undefined);
   await putBillingSettings(env.DB, { pricing_page_enabled: true });
   const b = await publicBillingInfo(env);
-  assert.deepEqual(b.plans.map(p => p.id), ["free", "pro", "business", "enterprise"]);
-  assert.equal(b.plans[1].status, "draft");
+  assert.deepEqual(b.plans.map(p => p.id), ["free", "plus", "report_basic", "report_compat", "report_annual", "pro", "business", "enterprise"]);
+  assert.equal(b.plans.find(p => p.id === "pro").status, "draft");
+  assert.equal(b.plans.find(p => p.id === "pro").purchasable, false, "draft plans are not purchasable");
 });
 
 test("M2 probe: public checkout is rate limited per caller and globally", async () => {
@@ -265,7 +268,7 @@ test("receipts are gap-free and assigned once when webhook, poll and cron race",
   await Promise.all(rows.flatMap(p => [applyCharge(env, p, charge(p)), applyCharge(env, p, charge(p)), applyCharge(env, p, charge(p))]));
   const nums = (await env.DB.prepare("SELECT receipt_no FROM payments ORDER BY receipt_no").all()).results.map(r => r.receipt_no.slice(-6));
   assert.deepEqual(nums, ["000001", "000002", "000003"]);
-  const ym = new Date(t * 1000).toISOString().slice(0, 7).replace("-", "");
+  const ym = new Date((t + 7 * 3600) * 1000).toISOString().slice(0, 7).replace("-", ""); // Bangkok month
   assert.equal((await env.DB.prepare("SELECT value FROM counters WHERE name = ?1").bind("receipt:" + ym).first()).value, 3, "counter not advanced by the losers");
 });
 
@@ -292,7 +295,7 @@ test("Turnstile fails CLOSED on checkout: not configured -> 503; bad token -> 40
   const { handle } = await import(B + "index.js");
   const opn = fakeOpn();
   for (const vars of [{}, { TURNSTILE_SECRET: "ts-secret" }]) {
-    const env = createEnv({ FREE_MODE: "false", BILLING_ENABLED: "true", OPN_SECRET_KEY: TEST_KEY, ...vars });
+    const env = createEnv({ FREE_MODE: "false", BILLING_ENABLED: "true", OPN_SECRET_KEY: TEST_KEY, ALLOW_GUEST_CHECKOUT: "true", ...vars });
     await env.DB.prepare("UPDATE plans SET status = 'active' WHERE id = 'pro'").run();
     const r = await handle(req("/v1/billing/checkout", { headers: TS, method: "POST", body: { plan_id: "pro", accept_terms: true } }), env, { fetch: opn.fetch });
     assert.equal(r.status, 503);

@@ -21,6 +21,9 @@ const MOOD_TH = { any: "ทุกอารมณ์", happy: "กำลังย
 const GESTURES = ["swipe_left", "swipe_right", "pinch", "hold", "palm"];
 const GESTURE_TH = { swipe_left: "ปัดซ้าย", swipe_right: "ปัดขวา", pinch: "จีบนิ้วเลือก", hold: "ชี้ค้างเลือก", palm: "แบมือย้อนกลับ" };
 
+/* face-api models this page loads: detector + landmarks + expressions always (expression features are labelled
+   "research-licence model" in the UI), age/gender only when the option is on and allowed (LENSIQ_AGE_GENDER !== false) */
+function netsFor(ageGender) { return ["tinyFaceDetector", "faceLandmark68Net", "faceExpressionNet"].concat(ageGender ? ["ageGenderNet"] : []); }
 function ageBand(age) { return age < 18 ? "u18" : age < 35 ? "18_34" : age < 55 ? "35_54" : "55p"; }
 
 // yaw จากจุดกลางตาสองข้างกับปลายจมูก: 0 = หน้าตรง, บวก/ลบ = หันข้าง
@@ -404,7 +407,7 @@ const PRODUCTS = [
 ];
 
 if (typeof module !== "undefined" && module.exports) module.exports = {
-  SG, BANDS, ageBand, estimateYaw, isLooking, iou, newTracker, updateTracks, trackProfile, dominantSegment, selectAd,
+  SG, BANDS, ageBand, netsFor, estimateYaw, isLooking, iou, newTracker, updateTracks, trackProfile, dominantSegment, selectAd,
   newStats, adStat, newPlay, recordFrame, finalizeTrack, finishPlay, adRows, buildCsv, csvCell, buildAdReportCsv, DEMO_KEYS,
   DAYPARTS, daypartOf, inDaypart, cleanDayparts, routeCams, popEntry, parsePop, pushPop, buildPopCsv, POP_MAX,
   pinchRatio, isOpenPalm, mapCursor, createGestureRecognizer, createHoldSelector, toGray, motionCentroid, createMotionSwipe, DEFAULT_ADS, PRODUCTS, DEMO_BRAND
@@ -429,6 +432,10 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     if (moved) try { localStorage.setItem("sg-ads", JSON.stringify(ads)); } catch {} }
   let stats = load("sg-stats", null); if (!stats || stats.v !== 1) stats = newStats();
   const settings = { useDemo: true, pip: true, ...load("sg-settings", {}) };
+  // window.LENSIQ_AGE_GENDER (lensiq-config.js, loaded after this file — read at use time): false = commercial deployment
+  // without a licence opinion: the age/gender option is hidden and the model is never loaded (the saved setting is kept)
+  const AGE_OK = () => window.LENSIQ_AGE_GENDER !== false;
+  const demoOn = () => !!settings.useDemo && AGE_OK();
   const persistStats = () => save("sg-stats", stats);
   const persistAds = () => save("sg-ads", ads);
   const persistSettings = () => save("sg-settings", settings);
@@ -480,13 +487,14 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     },
     onChange(h, ev) {
       if (["added", "removed", "role", "status", "started", "resumed", "stopped", "paused", "ended"].includes(ev.type)) reroute();
+      if (ev.type === "reconnected") engine("กล้องกลับมาเชื่อมต่อแล้ว", "ok"); // LQCam reconnects an ended track by itself (round 10)
       if (ev.type === "ended") engine(`${h.cam(ev.slot)?.name || "กล้อง"} หลุดการเชื่อมต่อ — ${hub.cams.some(c => c.active) ? "ใช้กล้องที่เหลือแทน" : "กดเริ่มใหม่อีกครั้ง"}`, "warn");
     }
   });
   function reroute() {
     const prev = R;
     R = routeCams(hub.cams.filter(c => c.status !== "error"));
-    if (prev.audience !== R.audience) { tracker.tracks.forEach(t => finalizeTrack(stats, t, settings.useDemo)); tracker = newTracker(); seg = null; }
+    if (prev.audience !== R.audience) { tracker.tracks.forEach(endTrack); tracker = newTracker(); seg = null; }
     if (prev.kiosk !== R.kiosk) { lock.reset(); mPrev = null; }
     if (R.shared && faceRunning && handRunning) { if (tab === "kiosk") stopFace(); else stopHand(); }
     placeVideos(); camLayout(); renderCams();
@@ -591,12 +599,27 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   // ---------- โมเดลใบหน้า ----------
   let faceReady = null, backend = "";
   const initBackend = () => LQDetect.tfBackend(); // webgl → wasm → cpu (?cpu ข้าม webgl)
+  // round 10: ageGenderNet (UTKFace-trained, research-licence data — LICENSES/THIRD_PARTY.md F5) is loaded only when the
+  // age/gender option is on, and never when window.LENSIQ_AGE_GENDER === false (lensiq-config.js). netsFor() lists what loads.
+  let agReady = null, agLoaded = false;
+  const netsRequested = []; // test hook: model names this page asked for (in ?fakedet mode nothing is fetched)
+  function loadAgeGender() {
+    if (!demoOn()) return Promise.resolve(false);
+    agReady ??= (async () => {
+      netsRequested.push("ageGenderNet");
+      if (!TEST) await faceapi.nets.ageGenderNet.loadFromUri("vendor/models/");
+      agLoaded = true; return true;
+    })().catch(e => { agReady = null; throw e; });
+    return agReady;
+  }
   function loadFace() {
     faceReady ??= (TEST ? Promise.resolve("test") : initBackend()).then(async b => {
       backend = b;
-      if (!TEST) await Promise.all(["tinyFaceDetector", "faceLandmark68Net", "faceExpressionNet", "ageGenderNet"].map(n => faceapi.nets[n].loadFromUri("vendor/models/")));
+      const nets = netsFor(false);
+      netsRequested.push(...nets);
+      if (!TEST) await Promise.all(nets.map(n => faceapi.nets[n].loadFromUri("vendor/models/")));
     }).catch(e => { faceReady = null; throw e; });
-    return faceReady;
+    return faceReady.then(() => loadAgeGender()).then(() => faceReady);
   }
   // valence ของสีหน้า (บวก = พอใจ, ลบ = ไม่พอใจ) จากความน่าจะเป็นของ 7 อารมณ์ — ใช้เฉพาะค่ารวมต่อโฆษณา
   const VAL = { neutral: 0, happy: 0.8, surprised: 0.2, sad: -0.7, angry: -0.7, fearful: -0.6, disgusted: -0.7 };
@@ -607,18 +630,18 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
       const W = video.videoWidth || 1, H = video.videoHeight || 1;
       return (LQDetect.fake(R.audience || "c1", Date.now()) || []).map(d => {
         const o = { box: { x: d.x * W, y: d.y * H, width: d.w * W, height: d.h * H }, look: d.look !== false, happy: !!d.happy, val: typeof d.val === "number" ? d.val : 0.2 };
-        if (settings.useDemo) { o.age = typeof d.age === "number" ? d.age : 28; o.male = typeof d.male === "number" ? d.male : 0.8; }
+        if (demoOn()) { o.age = typeof d.age === "number" ? d.age : 28; o.male = typeof d.male === "number" ? d.male : 0.8; }
         return o;
       });
     }
     let q = faceapi.detectAllFaces(video, detOpts).withFaceLandmarks().withFaceExpressions();
-    if (settings.useDemo) q = q.withAgeAndGender();
+    if (demoOn() && agLoaded) q = q.withAgeAndGender();
     const rs = await q;
     return rs.map(r => {
       const lm = r.landmarks, yaw = estimateYaw(center(lm.getLeftEye()), center(lm.getRightEye()), lm.getNose()[3]);
       const b = r.detection.box, d = { box: { x: b.x, y: b.y, width: b.width, height: b.height }, look: isLooking(yaw), happy: (r.expressions.happy || 0) >= SG.HAPPY_P,
         val: Object.keys(VAL).reduce((s, k) => s + (r.expressions[k] || 0) * VAL[k], 0) };
-      if (settings.useDemo && typeof r.age === "number") { d.age = r.age; d.male = r.gender === "male" ? r.genderProbability : 1 - r.genderProbability; }
+      if (demoOn() && typeof r.age === "number") { d.age = r.age; d.male = r.gender === "male" ? r.genderProbability : 1 - r.genderProbability; }
       return d;
     });
   }
@@ -638,7 +661,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   // จบรอบที่กำลังเล่น: สรุปกลุ่มผู้ชมของโฆษณา + บันทึก proof-of-play
   function endPlay() {
     if (!cur || !play || play.done) return;
-    finishPlay(stats, play, settings.useDemo);
+    finishPlay(stats, play, demoOn());
     pushPop(pop, popEntry(cur, play, Date.now(), faceRunning));
     persistPop();
   }
@@ -662,7 +685,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     renderNow();
   }
   const nowHour = () => new Date().getHours();
-  const nextAd = () => showAd(selectAd(ads, seg, { lastId: cur?.ad.id, useDemo: settings.useDemo, hour: nowHour() }));
+  const nextAd = () => showAd(selectAd(ads, seg, { lastId: cur?.ad.id, useDemo: demoOn(), hour: nowHour() }));
   setInterval(() => {
     if (!cur) { if (Date.now() - emptyAt > 15000) nextAd(); return; } // ไม่มีโฆษณาในช่วงนี้: ตรวจใหม่ทุก 15 วิ
     const el = performance.now() - cur.start, dur = Math.max(3, +cur.ad.duration || 8) * 1000;
@@ -670,7 +693,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     if (el >= dur) return nextAd();
     // มีผู้ชมเข้ามาระหว่างเล่นโฆษณาทั่วไป: เปลี่ยนไปโฆษณาที่ตรงกลุ่มเร็วขึ้น
     if (cur.reason !== "target" && seg && el > 3000) {
-      const s = selectAd(ads, seg, { lastId: cur.ad.id, useDemo: settings.useDemo, hour: nowHour() });
+      const s = selectAd(ads, seg, { lastId: cur.ad.id, useDemo: demoOn(), hour: nowHour() });
       if (s && s.reason === "target" && s.ad.id !== cur.ad.id) showAd(s);
     }
   }, 250);
@@ -688,7 +711,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     $("#liveTiles").innerHTML = [
       ["หน้าจอตอนนี้ (OTS)", present.filter(t => t.frames >= SG.MIN_FRAMES).length, "คนที่กล้องเห็น"],
       ["กำลังมองจอ", lookers, "หันหน้าตรงเข้าจอ"],
-      ["กลุ่มผู้ชมหลัก", segTxt, settings.useDemo ? "ค่าประมาณ อาจคลาดเคลื่อน" : "ปิดการใช้อายุ/เพศ"],
+      ["กลุ่มผู้ชมหลัก", segTxt, demoOn() ? "ค่าประมาณ อาจคลาดเคลื่อน" : "ปิดการใช้อายุ/เพศ"],
       ["ผู้ชมสะสม", stats.totals.viewers, `ผ่านหน้าจอ ${stats.totals.ots} คน`]
     ].map(([k, v, s]) => `<div class="tile"><div class="k">${k}</div><div class="v${typeof v === "string" && v.length > 6 ? " sm" : ""}">${esc(v)}</div><div class="s">${s}</div></div>`).join("");
     renderNow();
@@ -701,7 +724,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     present.forEach(t => {
       const b = t.box, x = mirrored(audCam()) ? W - b.x - b.width : b.x, p = trackProfile(t);
       ctx.strokeStyle = t.lookNow ? "#2ecc71" : "#e6a23c"; ctx.strokeRect(x, b.y, b.width, b.height);
-      const label = settings.useDemo && p.band ? `${BAND_TH[p.band]} ${p.gender !== "unk" ? GENDER_TH[p.gender] : ""}` : (t.lookNow ? "มองจอ" : "ไม่ได้มอง");
+      const label = demoOn() && p.band ? `${BAND_TH[p.band]} ${p.gender !== "unk" ? GENDER_TH[p.gender] : ""}` : (t.lookNow ? "มองจอ" : "ไม่ได้มอง");
       const tw = ctx.measureText(label).width + 10;
       ctx.fillStyle = "rgba(11,42,60,.85)"; ctx.fillRect(x, b.y - 24, tw, 22);
       ctx.fillStyle = "#fff"; ctx.fillText(label, x + 5, b.y - 7);
@@ -720,9 +743,10 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
           const now = Date.now();
           ac.noteInfer(t0, performance.now() - t0);
           const { present, ended } = updateTracks(tracker, dets, now, SG, { W: video.videoWidth || 1, H: video.videoHeight || 1 });
-          ended.forEach(t => finalizeTrack(stats, t, settings.useDemo));
+          ended.forEach(endTrack);
+          healthStep(ac, dets);
           recordFrame(stats, play, present, (now - lastT) / 1000); lastT = now;
-          seg = dominantSegment(tracker.tracks.filter(t => now - t.lastSeen < 1000), settings.useDemo);
+          seg = dominantSegment(tracker.tracks.filter(t => now - t.lastSeen < 1000), demoOn());
           drawFaces(present);
           fpsTimes.push(performance.now()); fpsTimes = fpsTimes.filter(x => x > performance.now() - 3000);
           $("#fps").textContent = `${present.length} ใบหน้า · ${(fpsTimes.length / 3).toFixed(1)} fps${R.shared ? "" : " · " + ac.name}`;
@@ -735,7 +759,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   }
   function stopFace() {
     faceRunning = false;
-    tracker.tracks.forEach(t => finalizeTrack(stats, t, settings.useDemo));
+    tracker.tracks.forEach(endTrack);
     tracker = newTracker(); seg = null;
     overlay.getContext("2d").clearRect(0, 0, overlay.width, overlay.height);
     $("#startFace").textContent = "เริ่มวัดผู้ชม"; $("#fps").textContent = "หยุดแล้ว";
@@ -760,6 +784,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   $("#demoToggle").checked = settings.useDemo;
   $("#demoToggle").onchange = e => {
     settings.useDemo = e.target.checked; persistSettings();
+    if (demoOn() && faceReady) loadAgeGender().catch(err => engine("โหลดโมเดลอายุ/เพศไม่สำเร็จ: " + (err && err.message || err), "err")); // เปิดภายหลัง: โหลดตอนนี้
     engine(settings.useDemo ? "เปิดการเลือกโฆษณาตามอายุ/เพศ (ค่าประมาณ)" : "ปิดการใช้อายุ/เพศแล้ว — เลือกโฆษณาจากอารมณ์และการมองเท่านั้น และไม่เก็บสถิติอายุ/เพศ", "ok");
   };
   // เต็มจอ: ใช้ Fullscreen API ถ้ามี (รวม iPad แบบ webkit) ไม่งั้นขยายเต็มหน้าต่างด้วย CSS (iPhone)
@@ -1132,7 +1157,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     $("#popTable").innerHTML = `<thead><tr><th>เริ่มเล่น</th><th>โฆษณา</th><th class="n">วินาที</th><th>เหตุผล</th><th>ช่วงเวลา</th><th class="n">OTS</th><th class="n">ผู้ชม</th></tr></thead><tbody>${recent.map(e => `<tr><td>${fmtT(e.t)}</td><td>${esc(e.title || e.ad)}</td><td class="n">${e.s}</td><td>${{ target: "ตรงกลุ่ม", fallback: "วนแทน", loop: "วนตามลำดับ" }[e.why] || esc(e.why)}</td><td>${esc((DAYPARTS.find(d => d.id === e.dp) || {}).th || "–")}</td><td class="n">${e.m ? e.ots : "–"}</td><td class="n">${e.m ? e.v : "–"}</td></tr>`).join("") || `<tr><td colspan="7" class="hint">—</td></tr>`}</tbody>`;
     bars($("#chAge"), BANDS.map(b => BAND_TH[b]), [{ name: "ชาย", color: C1, values: BANDS.map(b => stats.demo[b].male) }, { name: "หญิง", color: C2, values: BANDS.map(b => stats.demo[b].female) }]);
     const unk = BANDS.reduce((s, b) => s + stats.demo[b].unk, 0);
-    $("#ageNote").textContent = `ค่าประมาณจากโมเดล อาจคลาดเคลื่อนและมีอคติ · ไม่แน่ใจเพศ ${unk} คน${settings.useDemo ? "" : " · ขณะนี้ปิดการเก็บอายุ/เพศ"}`;
+    $("#ageNote").textContent = `ค่าประมาณจากโมเดล อาจคลาดเคลื่อนและมีอคติ · ไม่แน่ใจเพศ ${unk} คน${demoOn() ? "" : " · ขณะนี้ปิดการเก็บอายุ/เพศ"}`;
     const hs = Object.keys(stats.hourly).map(Number), h0 = Math.min(8, ...hs), h1 = Math.max(20, ...hs), H = [];
     for (let h = h0; h <= h1; h++) H.push(h);
     bars($("#chHour"), H.map(h => String(h).padStart(2, "0")), [{ name: "ผู้ชม (มองจอ)", color: C1, values: H.map(h => stats.hourly[h]?.viewers || 0) }, { name: "ผ่านแต่ไม่มอง", color: C2, values: H.map(h => Math.max(0, (stats.hourly[h]?.ots || 0) - (stats.hourly[h]?.viewers || 0))) }], { stacked: true });
@@ -1173,8 +1198,124 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     engine("ลบข้อมูลทั้งหมดแล้ว (ระบบไม่เคยบันทึกภาพจากกล้อง)", "ok");
   };
 
-  addEventListener("beforeunload", () => { tracker.tracks.forEach(t => finalizeTrack(stats, t, settings.useDemo)); endPlay(); persistStats(); });
+  addEventListener("beforeunload", () => { tracker.tracks.forEach(t => finalizeTrack(stats, t, demoOn())); endPlay(); persistStats(); });
   document.addEventListener("visibilitychange", () => { if (document.hidden) persistStats(); });
+
+
+  // ---------- สุขภาพภาพกล้องผู้ชม + ตรวจความแม่นยำอายุ/เพศหน้างาน (lensiq-sitecheck.js) ----------
+  // สุขภาพภาพ: ทุก ~1 วินาทีระหว่างวัดผู้ชม — ความสว่าง ย้อนแสง ความคม ขนาดใบหน้า อัตราประมวลผล และภาพค้าง (ตัวเลขเท่านั้น)
+  const SITE = /** @type {any} */ (window).LQSite || null;
+  const HL = SITE ? { mon: SITE.createHealth({ kind: "signage" }), at: 0, fw: [], cv: document.createElement("canvas"), state: null, slot: null } : null;
+  function healthStep(c, dets) {
+    if (!HL || !c) return;
+    const video = c.video, W = (video && video.videoWidth) || 1;
+    if (HL.slot !== c.slot) { HL.mon.reset(); HL.slot = c.slot; }
+    if (dets && dets.length) HL.fw.push(Math.max(...dets.map(d => d.box.width)) / W);
+    const t = performance.now(); if (t - HL.at < 1000) return; HL.at = t;
+    let st = null; try { st = SITE.sampleElement(video, HL.cv); } catch { /* ignore */ }
+    const hz = fpsTimes.length / 3;
+    HL.state = HL.mon.push(st, { faceW: HL.fw.length ? SITE.median(HL.fw) : null, hz: fpsTimes.length >= 6 ? hz : null, stalled: SITE.stallStep(video, st, t) }); HL.fw = [];
+    if (SGC) HL.state.codes.forEach(k => SGC.health.add(k));
+    const pill = $("#camHealth"), msg = $("#camHealthMsg");
+    if (!pill) return;
+    SITE.renderHealth(pill, HL.state); pill.hidden = false;
+    SITE.renderHealthLine(msg, HL.state);
+  }
+  // คนออกจากหน้าจอ: สถิติรวมเหมือนเดิม + (ระหว่างตรวจ) เพิ่มเป็นผู้ผ่านหนึ่งแถวให้เจ้าหน้าที่ระบุช่วงอายุ/เพศจริง
+  function endTrack(t) {
+    const counted = finalizeTrack(stats, t, demoOn());
+    if (counted && SGC) scNote(t);
+  }
+  // ตรวจความแม่นยำ: เจ้าหน้าที่ดูผู้ผ่านหน้าจอ แล้วเลือกช่วงอายุและเพศจริงของแต่ละคน (ข้ามได้) เทียบกับค่าประมาณของระบบ
+  // ไฟล์ที่ส่งออกมีเฉพาะป้ายกำกับ ค่าประมาณ และตัวเลขที่คำนวณได้ — ไม่มีภาพหรือค่าใบหน้า
+  let SGC = null, SGC_LAST = null;
+  const sgHist = SITE ? SITE.history("sg-sitecheck") : null;
+  const sgPanel = SITE && $("#scPanel") ? SITE.mountPanel($("#scPanel"), {
+    title: "ตรวจความแม่นยำอายุ/เพศหน้างาน",
+    intro: "ทดสอบการประมาณช่วงอายุและเพศที่จอของคุณเอง: ระหว่างที่ระบบวัดผู้ชม เจ้าหน้าที่ดูคนที่เดินผ่านจอ แล้วเลือกช่วงอายุและเพศจริงของแต่ละคนที่ระบบบันทึก ระบบคำนวณความถูกต้องพร้อมช่วงความเชื่อมั่นและตารางเทียบ",
+    steps: [
+      "เปิด \"ใช้อายุ/เพศ\" แล้วกด \"เริ่มตรวจ\" (ระบบจะเริ่มวัดผู้ชมให้ถ้ายังไม่ได้เริ่ม)",
+      "ทุกครั้งที่มีคนเดินออกจากหน้าจอ จะมีแถวใหม่พร้อมค่าที่ระบบประมาณ เลือกช่วงอายุและเพศที่เห็นจริง ถ้าไม่แน่ใจให้กด \"ข้าม\"",
+      "เก็บอย่างน้อย 50 คน หลายช่วงอายุและทั้งสองเพศ แล้วกด \"จบและคำนวณ\"",
+      "ทำซ้ำเมื่อย้ายจอ เปลี่ยนแสง หรือมุมกล้อง เก็บไฟล์ผลตรวจไว้"
+    ],
+    body: `<p class="sc-now" role="status"></p><ul class="sc-list sg-passers"></ul>`
+  }) : null;
+  const scBandOpts = sel => `<option value="">— ช่วงอายุจริง —</option>` + SITE.BANDS.map(b => `<option value="${b}"${sel === b ? " selected" : ""}>${esc(SITE.BAND_LBL[b])}</option>`).join("");
+  const scGenOpts = sel => `<option value="">— เพศจริง —</option>` + ["male", "female"].map(g => `<option value="${g}"${sel === g ? " selected" : ""}>${esc(SITE.GENDER_LBL[g])}</option>`).join("");
+  const estText = r => r.band ? SITE.fmt("ระบบประมาณ: {a} · {b}", { a: SITE.BAND_LBL[r.band], b: SITE.GENDER_LBL[r.gender || "unk"] }) : "ระบบประมาณอายุ/เพศไม่ได้";
+  function scNote(t) {
+    const p = trackProfile(t);
+    SGC.rows.push({ i: SGC.rows.length, at: t.first, band: p.band, gender: p.band || p.gender !== "unk" ? p.gender : "unk", truthBand: null, truthGender: null, skip: false });
+    scRender();
+  }
+  function scRender() {
+    if (!sgPanel) return;
+    const R2 = SGC ? SGC.rows : [];
+    sgPanel.q(".sg-passers").innerHTML = R2.slice().reverse().slice(0, 200).map(r => `<li data-i="${r.i}" data-truth="${r.skip ? "" : r.truthBand && r.truthGender ? "good" : ""}"><span>${esc(SITE.fmt("ผู้ผ่าน {a}", { a: r.i + 1 }))} <small>${esc(estText(r))}</small></span>
+      <select class="sc-tb" aria-label="ช่วงอายุจริง"${r.skip ? " disabled" : ""}>${scBandOpts(r.truthBand)}</select><select class="sc-tg" aria-label="เพศจริง"${r.skip ? " disabled" : ""}>${scGenOpts(r.truthGender)}</select>
+      <button class="btn ghost small sc-skip" type="button" aria-pressed="${r.skip}">ข้าม</button></li>`).join("");
+    const lab = R2.filter(r => !r.skip && (r.truthBand || r.truthGender)).length;
+    sgPanel.live.textContent = SGC ? SITE.fmt("ผู้ผ่านที่ระบบบันทึก {a} คน · ระบุแล้ว {b} · ข้าม {c}", { a: R2.length, b: lab, c: R2.filter(r => r.skip).length }) : "";
+  }
+  function scLabel(i, band, gender) {
+    const r = SGC && SGC.rows[i]; if (!r) return false;
+    if (band !== undefined) r.truthBand = SITE.BANDS.includes(band) ? band : null;
+    if (gender !== undefined) r.truthGender = gender === "male" || gender === "female" ? gender : null;
+    if (band === "skip") { r.skip = true; r.truthBand = r.truthGender = null; }
+    scRender(); return true;
+  }
+  async function scStart() {
+    if (!sgPanel || SGC) return;
+    if (!AGE_OK()) { sgPanel.live.textContent = "การตรวจนี้ใช้ไม่ได้ในเครื่องนี้ — ปิดโมเดลอายุ/เพศไว้ในการตั้งค่าระบบ (LENSIQ_AGE_GENDER = false)"; return; }
+    if (!settings.useDemo) { sgPanel.live.textContent = "เปิด \"ใช้อายุ/เพศ\" ก่อน จึงจะตรวจความแม่นยำอายุ/เพศได้"; return; }
+    SGC = { rows: [], startedAt: Date.now(), health: new Set(), ownFace: !faceRunning, cam: "" };
+    sgPanel.start.disabled = true; sgPanel.stop.disabled = false; sgPanel.exp.hidden = true;
+    sgPanel.state.textContent = "กำลังตรวจ"; sgPanel.state.dataset.s = "live"; SITE.renderReport(sgPanel.report, null);
+    sgPanel.q(".sc-now").textContent = "รอผู้ผ่านหน้าจอ... แถวใหม่จะขึ้นเมื่อมีคนเดินออกจากภาพ";
+    scRender();
+    if (!faceRunning) await startFace();
+    if (SGC) SGC.cam = (audCam() || {}).name || "";
+  }
+  function scFinish() {
+    if (!SGC) return;
+    tracker.tracks.forEach(t => { if (t.frames >= SG.MIN_FRAMES && SGC && !SGC.rows.some(r => r.at === t.first)) scNote(t); }); // คนที่ยังอยู่หน้าจอ
+    const run = SGC; SGC = null;
+    if (run.ownFace && faceRunning) stopFace();
+    const rows = run.rows.filter(r => !r.skip && (r.truthBand || r.truthGender)).map(r => ({ truthBand: r.truthBand, truthGender: r.truthGender, band: r.band, gender: r.gender }));
+    const rep = SITE.demoReport(rows, { health: [...run.health] });
+    SITE.renderReport(sgPanel.report, rep);
+    sgPanel.start.disabled = false; sgPanel.stop.disabled = true; sgPanel.q(".sc-now").textContent = "";
+    sgPanel.state.textContent = SITE.verdictText(rep); sgPanel.state.dataset.s = rep.verdict;
+    const doc = SITE.exportDoc("signage", {
+      camera: run.cam, startedAt: new Date(run.startedAt).toISOString(), durationSec: Math.round((Date.now() - run.startedAt) / 1000),
+      settings: { useDemo: settings.useDemo, ageGenderModel: "face-api.js ageGenderNet (research-licence training data)", bands: SITE.BANDS, genderCall: "male > 0.6, female < 0.4" },
+      conditions: { health: [...run.health] }, passes: run.rows.length, distinctPeople: null, distinctNote: "one row per pass in front of the screen; the same person may pass more than once",
+      passers: run.rows.map(r => ({ truthBand: r.truthBand, truthGender: r.truthGender, band: r.band, gender: r.gender, skipped: r.skip })),
+      report: { verdict: rep.verdict, provisional: rep.provisional, need: rep.need, n: rep.n, gender: rep.gender, genderCalled: rep.genderCalled, band: rep.band, bandWithin1: rep.bandWithin1, coverage: rep.coverage, confusion: rep.confusion, recs: rep.recs }
+    });
+    sgPanel.exp.hidden = false; sgPanel.exp.onclick = () => SITE.download(`lensiq-signage-check-${today()}.json`, doc);
+    const pc = w => w.p == null ? "—" : (w.p * 100).toFixed(0) + "%";
+    sgHist.add({ at: run.startedAt, verdict: rep.verdict, provisional: rep.provisional, need: rep.need, cam: run.cam, summary: SITE.fmt("ผู้ผ่าน {a} คน · เพศถูก {b} · ช่วงอายุถูก {c}", { a: rep.n.labelled, b: pc(rep.gender), c: pc(rep.band) }) });
+    sgHist.render(sgPanel.hist);
+    SGC_LAST = { rep, doc };
+  }
+  if (sgPanel) {
+    sgPanel.start.addEventListener("click", () => { scStart().catch(e => console.error(e)); });
+    sgPanel.stop.addEventListener("click", scFinish);
+    const list = sgPanel.q(".sg-passers");
+    list.addEventListener("change", e => { const li = e.target.closest("li[data-i]"); if (!li) return; const i = +li.dataset.i; if (e.target.classList.contains("sc-tb")) scLabel(i, e.target.value || null); else if (e.target.classList.contains("sc-tg")) scLabel(i, undefined, e.target.value || null); });
+    list.addEventListener("click", e => { const b = e.target.closest(".sc-skip"); if (!b || !SGC) return; const r = SGC.rows[+b.closest("li").dataset.i]; if (r) { r.skip = !r.skip; if (r.skip) r.truthBand = r.truthGender = null; scRender(); } });
+    sgHist.render(sgPanel.hist);
+  }
+  window.__SG_SC = { get active() { return SGC; }, get last() { return SGC_LAST; }, label: scLabel, finish: () => scFinish(), get nets() { return netsRequested.slice(); } };
+  // ซ่อนตัวเลือกอายุ/เพศเมื่อ LENSIQ_AGE_GENDER === false (อ่านหลังโหลด lensiq-config.js)
+  function applyAgeSwitch() {
+    const off = !AGE_OK();
+    const box = $("#demoOpt"); if (box) box.hidden = off;
+    if (off && sgPanel && !SGC) sgPanel.live.textContent = "การตรวจนี้ใช้ไม่ได้ในเครื่องนี้ — ปิดโมเดลอายุ/เพศไว้ในการตั้งค่าระบบ (LENSIQ_AGE_GENDER = false)";
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", applyAgeSwitch, { once: true }); else applyAgeSwitch();
 
   // ---------- เริ่มต้น ----------
   if (TEST) window.__sg = { hub, lock, get R() { return R; }, get stats() { return stats; }, get pop() { return pop; }, get cursor() { return cursor; }, get faceRunning() { return faceRunning; }, get handRunning() { return handRunning; }, get handDelegate() { return handDelegate; }, get handInfo() { return handInfo; }, get tracker() { return tracker; }, get tab() { return tab; }, get cur() { return cur; }, nextAd, endPlay };

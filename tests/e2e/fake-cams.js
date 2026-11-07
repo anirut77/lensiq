@@ -7,7 +7,9 @@
  *     throwOthers opening a device ends every OTHER live fake track (stop + 'ended' event)
  * Each deviceId ('fake-cam-1'..) streams canvas.captureStream(15) from its own 640x480 canvas: a solid device colour
  * (window.__LQ_FAKE.colors[i]) with one white rectangle at the scripted box, so a page can read pixels back.
- * window.__LQ_FAKE = {devices(), boxes(deviceId|slot, now), unplug(deviceId), replug(deviceId), live(), colors}
+ * window.__LQ_FAKE = {devices(), boxes(deviceId|slot, now), unplug(deviceId), replug(deviceId), freeze(deviceId, on), live(), colors}
+ *   freeze(id, true): the device stops painting its canvas -> captureStream delivers no new frames (a frozen camera /
+ *   USB driver: the track stays "live", requestVideoFrameCallback stops firing) — used by the "stalled" health tests
  * window.__LQ_FAKE_DET(key, now) -> [{x,y,w,h,score:0.95}] scripted boxes (key = deviceId or slot 'c1'..'c4').
  * Test-only: nothing here is loaded by production pages.
  */
@@ -19,7 +21,7 @@
   const cfg = () => Object.assign({ n: 3, mode: "ok" }, window.__LQ_FAKE_CAMS || {});
   const COLORS = [[220, 40, 40], [40, 160, 60], [40, 80, 220], [200, 160, 20]];
   const W = 640, H = 480;
-  const unplugged = new Set();
+  const unplugged = new Set(), frozen = new Set();
   const dev = new Map(); // id -> {canvas, ctx, idx, tracks:Set}
   const ids = () => Array.from({ length: Math.max(0, Math.min(4, cfg().n | 0)) }, (_, i) => "fake-cam-" + (i + 1));
   const idxOf = key => {
@@ -44,7 +46,7 @@
   function draw() {
     const now = performance.now();
     for (const [id, d] of dev) {
-      if (![...d.tracks].some(t => t.readyState === "live")) continue;
+      if (![...d.tracks].some(t => t.readyState === "live") || frozen.has(id)) continue;
       const [r, g, b] = COLORS[d.idx % COLORS.length];
       d.ctx.fillStyle = `rgb(${r},${g},${b})`; d.ctx.fillRect(0, 0, W, H);
       d.ctx.fillStyle = "#fff";
@@ -124,7 +126,8 @@
       if (d) for (const t of d.tracks) endTrack(t);
       md.dispatchEvent(new Event("devicechange"));
     },
-    replug(id) { unplugged.delete(id); md.dispatchEvent(new Event("devicechange")); }
+    replug(id) { unplugged.delete(id); md.dispatchEvent(new Event("devicechange")); },
+    freeze(id, on = true) { if (on) frozen.add(id); else frozen.delete(id); }
   };
   window.__LQ_FAKE_DET = (key, now) => boxes(key, now);
 })();

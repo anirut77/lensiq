@@ -1,31 +1,44 @@
-/* pricing.css — draft pricing page (pricing.html). Self-contained. */
-:root { --pr-bg: #f5f6fb; --pr-surface: #ffffff; --pr-ink: #141a33; --pr-muted: #5a6280; --pr-line: #dde1ee; --pr-accent: #5b46e0; --pr-accent-ink: #fff; --pr-warn-bg: #fff4d6; --pr-warn-ink: #6b4a00; color-scheme: light dark; }
-@media (prefers-color-scheme: dark) { :root { --pr-bg: #0b1024; --pr-surface: #141a33; --pr-ink: #eef0fb; --pr-muted: #a6acc7; --pr-line: #2a3256; --pr-accent: #8b7cf6; --pr-accent-ink: #0b1024; --pr-warn-bg: #3a2e0a; --pr-warn-ink: #ffe3a3; } }
-* { box-sizing: border-box; }
-body { margin: 0; background: var(--pr-bg); color: var(--pr-ink); font: 16px/1.6 "Noto Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif; }
-.pr-top { background: #0e1430; padding: 12px 16px; }
-.pr-brand { color: #f4f6ff; font-weight: 700; font-size: 20px; text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
-.pr-brand b { color: #22d3ee; }
-.pr-main { max-width: 1100px; margin: 0 auto; padding: 16px; }
-h1 { font-size: 28px; margin: 8px 0 12px; }
-.pr-free { font-size: 17px; }
-.pr-note, .pr-card { background: var(--pr-surface); border: 1px solid var(--pr-line); border-radius: 14px; padding: 16px; }
-.pr-draft { background: var(--pr-warn-bg); color: var(--pr-warn-ink); border-radius: 10px; padding: 10px 14px; }
-.pr-toggle { display: inline-flex; gap: 6px; margin: 8px 0 16px; }
-.pr-toggle button { min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--pr-line); background: var(--pr-surface); color: var(--pr-ink); font: inherit; font-size: 15px; cursor: pointer; }
-.pr-toggle button[aria-pressed=true] { background: var(--pr-accent); color: var(--pr-accent-ink); border-color: var(--pr-accent); }
-.pr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
-.pr-card h2 { margin: 0 0 6px; font-size: 20px; }
-.pr-price { font-size: 22px; font-weight: 700; margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.pr-tag { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--pr-warn-bg); color: var(--pr-warn-ink); }
-.pr-card ul { padding-left: 20px; margin: 0 0 12px; }
-.pr-small { font-size: 14px; color: var(--pr-muted); }
-.pr-btn { min-height: 44px; padding: 0 16px; border-radius: 10px; border: 0; background: var(--pr-accent); color: var(--pr-accent-ink); font: 600 15px inherit; font-family: inherit; cursor: pointer; }
-.pr-form { display: grid; gap: 12px; max-width: 520px; }
-.pr-form label { display: grid; gap: 4px; font-size: 15px; }
-.pr-form input:not([type=checkbox]) { min-height: 44px; padding: 8px 10px; border: 1px solid var(--pr-line); border-radius: 10px; background: var(--pr-bg); color: var(--pr-ink); font: inherit; }
-.pr-form .pr-check { display: flex; gap: 8px; align-items: center; min-height: 44px; }
-.pr-check input { width: 20px; height: 20px; }
-.pr-qr img { background: #fff; border-radius: 10px; padding: 8px; max-width: 100%; height: auto; margin-top: 12px; }
-#prCheckout { margin-top: 16px; }
-[hidden] { display: none !important; }
+/* pricing.css — pricing page (pricing.html). Shared header / fonts / tokens come from styles.css. */
+.pr-main{--pr-surface:#fff;--pr-ink:#141a33;--pr-muted:#4a5470;--pr-line:#dde1ee;--pr-accent:#5b46e0;--pr-accent-ink:#fff;--pr-warn-bg:#fff4d6;--pr-warn-ink:#5c3f00;--pr-soon-bg:#eef0fb;--pr-soon-ink:#3b2fc0;
+  max-width:1100px;margin:0 auto;padding:16px 16px 40px;color:var(--pr-ink)}
+.pr-main h1{font-size:clamp(1.6rem,4.5vw,2.2rem);line-height:1.25;color:var(--navy);margin:4px 0 12px}
+.pr-h2{font-size:clamp(1.15rem,3vw,1.4rem);color:var(--navy);margin:24px 0 8px}
+.pr-backrow{margin:0}
+.pr-back{display:inline-flex;align-items:center;gap:6px;min-height:44px;color:#3b2fc0;text-decoration:underline;text-underline-offset:3px}
+.pr-free{font-size:1.05rem}
+.pr-note,.pr-card{background:var(--pr-surface);border:1px solid var(--pr-line);border-radius:14px;padding:16px}
+.pr-card{display:flex;flex-direction:column;gap:4px}
+.pr-card.pr-feature{border-color:var(--pr-accent);box-shadow:0 0 0 1px var(--pr-accent) inset}
+.pr-card h3{margin:0 0 4px;font-size:1.15rem;color:var(--navy)}
+.pr-draft{background:var(--pr-warn-bg);color:var(--pr-warn-ink);border-radius:10px;padding:10px 14px;margin:0 0 8px}
+.pr-toggle{display:inline-flex;gap:6px;margin:4px 0 14px}
+.pr-toggle button{min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--pr-line);background:var(--pr-surface);color:var(--pr-ink);font:inherit;font-size:.95rem;cursor:pointer}
+.pr-toggle button[aria-pressed=true]{background:var(--pr-accent);color:var(--pr-accent-ink);border-color:var(--pr-accent)}
+.pr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:16px}
+.pr-price{font-size:1.4rem;font-weight:700;margin:0;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline}
+.pr-per{font-size:.95rem;font-weight:500;color:var(--pr-muted)}
+.pr-tag{font-size:.78rem;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--pr-warn-bg);color:var(--pr-warn-ink);align-self:center}
+.pr-vat,.pr-meta{margin:0;font-size:.88rem;color:var(--pr-muted)}
+.pr-save{margin:0;font-size:.88rem;font-weight:600;color:#1d6b3a}
+.pr-perks{padding-left:20px;margin:8px 0 12px;line-height:1.55}
+.pr-perks li.soon{color:var(--pr-muted)}
+.pr-soon{display:inline-block;margin-left:6px;padding:0 8px;border-radius:999px;background:var(--pr-soon-bg);color:var(--pr-soon-ink);font-size:.78rem;font-weight:600;line-height:1.7}
+.pr-small{font-size:.9rem;color:var(--pr-muted)}
+.pr-small a,.pr-terms a{color:#3b2fc0;text-decoration:underline;text-underline-offset:3px}
+.pr-btn{margin-top:auto;align-self:flex-start;min-height:44px;padding:0 18px;border-radius:10px;border:0;background:var(--pr-accent);color:var(--pr-accent-ink);font:inherit;font-weight:600;font-size:.95rem;cursor:pointer}
+.pr-btn:disabled{opacity:.5;cursor:progress}
+.pr-form{display:grid;gap:12px;max-width:520px}
+.pr-form label{display:grid;gap:4px;font-size:.95rem}
+.pr-form input:not([type=checkbox]){min-height:44px;padding:8px 10px;border:1px solid #9aa3bd;border-radius:10px;background:#fff;color:var(--pr-ink);font:inherit}
+.pr-accept{display:grid;gap:2px}
+.pr-form .pr-check{display:flex;gap:8px;align-items:flex-start;min-height:44px}
+.pr-check input{width:20px;height:20px;flex:none;margin-top:3px}
+.pr-terms{display:flex;flex-wrap:wrap;gap:0 16px;margin:0 0 0 28px;font-size:.9rem}
+.pr-terms a{display:inline-flex;align-items:center;min-height:44px}
+.pr-sum{font-weight:600}
+.pr-signin{display:grid;gap:8px;justify-items:start}
+.pr-qr img{background:#fff;border-radius:10px;padding:8px;max-width:100%;height:auto;margin-top:12px}
+.pr-qr code{overflow-wrap:anywhere;word-break:break-all}
+#prCheckout{margin-top:16px}
+#prCheckout:focus{outline:none}
+[hidden]{display:none!important}

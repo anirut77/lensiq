@@ -58,6 +58,14 @@
 .tf-how summary{cursor:pointer;font-weight:500;color:var(--navy);min-height:44px;display:flex;align-items:center}
 .tf-how p{font-size:.86rem;color:var(--muted);margin-top:8px}
 
+/* Round 10: "for fun / icebreaker, not an assessment" on every screen + no-attach guard */
+.tf-na{display:inline-block;margin:0 0 8px;padding:3px 10px;border-radius:99px;background:#fff1e6;color:#7a1f12;font-size:.78rem;font-weight:500}
+.tf>.tf-na{display:block;width:max-content;max-width:100%;margin:0 auto 6px;text-align:center}
+.tcard .tf-na{margin:10px 0 0}
+.tf-guard{max-width:760px;margin:0 auto 14px;padding:10px 14px;border-radius:12px;background:#fdeaea;color:#a12b20;font-size:.86rem}
+.tf-warn{font-size:.82rem;color:#a12b20;margin:-6px 0 10px}
+.tf-warn:empty{display:none}
+
 @media (max-width:760px){
   .tf{padding:24px 16px 32px}
   .tf-grid{grid-template-columns:minmax(0,1fr)}

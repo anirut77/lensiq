@@ -47,8 +47,8 @@
     "faceread.eng.prep": "Preparing the system...",
     "faceread.eng.loading": "Loading the face analysis model...",
     "faceread.eng.fake": "Ready (mock detector for testing)",
-    "faceread.eng.ready": "Ready (processor: {b})",
-    "faceread.eng.readySlow": "Ready (processor: {b} — may be slower)",
+    "faceread.eng.ready": "Ready",
+    "faceread.eng.readySlow": "Ready (this device may take a little longer)",
     "faceread.eng.modelFail": "Model failed to load: {msg}",
     "faceread.eng.https": "On mobile, open via https:// — see the All Solutions page for how",
     "faceread.httpsA": "On mobile, open via",
@@ -254,4 +254,247 @@
   } };
   if (root.LQI18N && typeof root.LQI18N.add === "function") root.LQI18N.add(dict);
   else (root.LQI18N_Q = root.LQI18N_Q || []).push(dict);
+
+  /* ---------- English version of faceread-kb.js (only the fields shown on the page); faceread.js overlays it on the KB in
+     English mode, same as FR_KB_ZH in zh-fortune-faceread.js (same structure as FR_KB, translated fields only) ---------- */
+  root.FR_KB_EN = {
+    disclaimer: "For entertainment only, based on traditional face-reading beliefs, not science. Not for hiring, financial or relationship decisions, or for judging others",
+    disclaimerShort: "For entertainment only, based on traditional face-reading beliefs, not science",
+    sources: [
+      { label: "Wikipedia — Mien Shiang" },
+      { label: "Chinese Wikipedia — 面相 (twelve palaces, five mountains, four rivers, three zones)" },
+      { label: "Your Chinese Astrology — 12 Houses of Face Reading (palace positions)" },
+      { label: "Thairath (Thai) — folk beliefs about positions on the face" },
+      { label: "KTC (Thai) — face reading" },
+      { label: "KTC (Thai) — key points of the face and age periods" },
+      { label: "Manager Online (Thai) — face reading and personal image" },
+      { label: "TVBS Health 2.0 — five-element personalities (face shape and character)" },
+      { label: "All About — face shapes and character by the five elements (Japanese)" },
+      { label: "Sohu — thirteen face positions: yintang, philtrum, chin" },
+      { label: "Bella — brow shapes, personality and love (Chinese)" },
+      { label: "Sohu — illustrated brow reading (long / short brows)" },
+      { label: "Feng Shui Ed — The Basics of Chinese Face Reading (features, twelve palaces)" },
+      { label: "Advances in Psychological Science — research: links between traditional face reading and personality are not confirmed by experiments" }
+    ],
+    elementsNote: "Face-reading schools define the five-element face shapes a little differently; this result is a rough grouping from your facial proportions",
+    elements: {
+      wood: { th: "Wood", shape: "a long, oval face with a high forehead and straight outline",
+        traits: ["far-sighted and idealistic", "eager to learn new things", "kind-hearted and happy to help others grow"],
+        colors: [{ name: "green" }, { name: "blue / navy (water feeds wood)" }],
+        tip: "keep a small plant on your desk and learn one new thing each month to fuel your growth" },
+      fire: { th: "Fire", shape: "a broad forehead and clear cheekbones, narrowing to a pointed chin",
+        traits: ["warm, upbeat and full of energy", "full of creative ideas", "charismatic and engaging"],
+        colors: [{ name: "red / pink / orange" }, { name: "green (wood feeds fire)" }],
+        tip: "leave a little time to unwind during the day, and carry something red or pink for extra confidence" },
+      earth: { th: "Earth", shape: "a full face with a broad lower half and a wide, steady jaw and chin",
+        traits: ["steady and down to earth", "trustworthy and responsible", "patient and even-tempered"],
+        colors: [{ name: "yellow / brown / beige" }, { name: "red (fire feeds earth)" }],
+        tip: "try one new experience each week, and use yellow or beige items for a sense of stability" },
+      metal: { th: "Metal", shape: "a squarish face with a defined jaw, forehead and jaw about equally wide",
+        traits: ["principled and decisive", "a natural leader", "good at organising and creating order"],
+        colors: [{ name: "white / gold / silver" }, { name: "yellow (earth feeds metal)" }],
+        tip: "keep your desk tidy, and listen to new opinions before deciding to stay flexible" },
+      water: { th: "Water", shape: "a round, full face with soft lines and full cheeks",
+        traits: ["adaptable and flexible", "well liked and understanding", "observant and quick to respond"],
+        colors: [{ name: "blue / navy / black" }, { name: "white (metal feeds water)" }],
+        tip: "drink plenty of water, keep a quiet corner at home to sort your thoughts, and use blue items to help you focus" }
+    },
+    zones: {
+      upper: { th: "Upper zone (hairline–brows)", age: "about 15–30", theme: "youth, intellect and learning",
+        dominant: "Your upper zone stands out; tradition reads this as a thoughtful planner who loves learning and finds support early on" },
+      middle: { th: "Middle zone (brows–nose base)", age: "about 31–50", theme: "midlife, drive and building a career",
+        dominant: "Your middle zone stands out; tradition reads this as strong drive and hard work, with clear growth in your working years" },
+      lower: { th: "Lower zone (nose base–chin)", age: "about 51 and up", theme: "later life, stability, family and the people around you",
+        dominant: "Your lower zone stands out; tradition reads this as patience and steadiness, with plenty of support and a warm later life" },
+      balanced: "Your three zones are close in size, which tradition sees as harmony, with an even pace through every stage of life",
+      tip: "Every zone can be strengthened by what you do: keep learning (upper), act steadily (middle), and look after your relationships (lower)"
+    },
+    features: {
+      brow: { th: "Brows", cats: {
+        crescent: { label: "Crescent brows", how: "a clearly arched brow", meaning: "tradition sees a gentle nature, a way with words and many friends" },
+        sword:    { label: "Sword brows", how: "a fairly straight brow line with a rising tail", meaning: "tradition sees the brow of a decisive person, with drive and leadership" },
+        willow:   { label: "Willow-leaf brows", how: "long brows, past the eyes, with a soft curve", meaning: "tradition sees good taste, a calm temper and a gift for harmony and friendship" },
+        straight: { label: "Straight brows", how: "a brow line with almost no arch", meaning: "tradition sees someone direct, sincere, principled and steady" },
+        gentle:   { label: "Kindly brows (soft, lowered tails)", how: "brow tails clearly lower than the heads", meaning: "tradition sees a kind, approachable person and a trusted listener" },
+        long:     { label: "Long brows (past the eyes)", how: "brows clearly longer than the eyes", meaning: "tradition sees support from siblings and friends and a wide circle" },
+        short:    { label: "Compact brows", how: "brows shorter than the median", meaning: "tradition sees quick decisions, fast action and strong self-reliance" },
+        balanced: { label: "Balanced brows", how: "length, arch and tail all close to the median", meaning: "tradition sees a balance between working alone and working in a team" }
+      }, notes: {
+        high: "Wide gap between brows and eyes (a broad Property palace): tradition sees a generous, easy-going nature that sees the big picture",
+        low: "Close gap between brows and eyes: tradition sees warmth, commitment and a conscientious way of working"
+      }, tip: "keeping your brows neat and tidy is said to add trust and friendship" },
+      eye: { th: "Eyes", cats: {
+        phoenix:  { label: "Phoenix eyes", how: "long, narrow eyes with rising outer corners", meaning: "tradition sees bright, graceful eyes that learn quickly and move ahead in work" },
+        dragon:   { label: "Dragon eyes", how: "well-proportioned eyes on a level line", meaning: "tradition sees calm presence, long-range vision and trustworthiness" },
+        elephant: { label: "Elephant eyes", how: "long eyes with softly lowered outer corners", meaning: "tradition sees kindness, patience, goodwill and lasting good fortune" },
+        tiger:    { label: "Tiger eyes", how: "large, round eyes on a level line", meaning: "tradition sees courage, decisiveness and strong drive" },
+        deer:     { label: "Deer eyes", how: "round eyes with slightly rising corners", meaning: "tradition sees sincerity, liveliness and friendliness" },
+        soft:     { label: "Gentle eyes", how: "roundish eyes with softly lowered corners", meaning: "tradition sees warmth, consideration and a calming listener" },
+        balanced: { label: "Balanced eyes", how: "shape and corners close to the median", meaning: "tradition sees care and attention with just the right warmth" }
+      }, notes: {
+        wide: "Eyes set wide apart: tradition sees an open mind that welcomes new ideas and sees the whole picture",
+        close: "Eyes set close together: tradition sees focus, attention to detail and careful work",
+        normal: "Eyes set a medium distance apart: tradition sees someone who balances the big picture and the details"
+      }, tip: "rest your eyes often and smile with your eyes; tradition says this invites good chances" },
+      nose: { th: "Nose", cats: {
+        gall:     { label: "Hanging-gallbladder nose", how: "full nostril wings and a longer bridge", meaning: "tradition sees a 'treasury' nose: good at saving, with steady wealth" },
+        lion:     { label: "Lion nose", how: "broad, prominent nostril wings", meaning: "tradition sees a strong drive to earn, the nerve to seize chances and generosity" },
+        tube:     { label: "Straight-tube nose", how: "a long, straight bridge", meaning: "tradition sees principles, long-term planning and steady standards at work" },
+        refined:  { label: "Refined nose", how: "nostril wings narrower than the median", meaning: "tradition sees care, thoughtful spending and selective investing" },
+        compact:  { label: "Compact nose", how: "a nose shorter than the median", meaning: "tradition sees agility, an eye for opportunity and a knack for making contacts" },
+        balanced: { label: "Balanced nose", how: "length and wings close to the median", meaning: "tradition sees stable finances with income and spending in balance" }
+      }, tip: "tradition says keeping the nose tip fresh and your wallet tidy helps your money luck" },
+      mouth: { th: "Mouth", cats: {
+        moon:     { label: "Upturned-moon mouth", how: "clearly rising mouth corners", meaning: "tradition sees a happy mouth: optimistic, cheerful and pleasant to listen to" },
+        square:   { label: "Square mouth", how: "a wide mouth with full lips", meaning: "tradition sees good food luck, popularity and weighty words" },
+        wide:     { label: "Wide mouth", how: "mouth wider than the median", meaning: "tradition sees someone who speaks up, communicates well and leads" },
+        cherry:   { label: "Cherry mouth", how: "a small mouth with full lips", meaning: "tradition sees charm, a sweet way of speaking and well-chosen words" },
+        small:    { label: "Small mouth", how: "mouth narrower than the median", meaning: "tradition sees someone who thinks before speaking, careful and true to their word" },
+        full:     { label: "Full lips", how: "lips fuller than the median", meaning: "tradition sees generosity and care for the people around you" },
+        balanced: { label: "Balanced mouth", how: "width, fullness and corners close to the median", meaning: "tradition sees tactful speech and trustworthiness" }
+      }, notes: {
+        up: "Rising mouth corners: tradition sees optimism and a charming way of speaking",
+        level: "Level mouth corners: tradition sees calm, serious and weighty speech (smiling more adds charm)"
+      }, lipNotes: {
+        upperFull: "Fuller upper lip: tradition sees someone who cares for others and shows affection",
+        lowerFull: "Lower lip clearly fuller than the upper: tradition sees a love of life and of sharing joy",
+        even: ""
+      }, tip: "smile often and say thank you every day; tradition says this adds charm and good luck" },
+      ear: { th: "Ears", cats: {
+        na: { label: "Not analysed (the ears must be visible)", meaning: "a front-facing photo does not show the shape of the ears, so this part is not read" }
+      } }
+    },
+    points: {
+      yintang: { th: "Yintang (between the brows)", cats: {
+        wide:     { label: "Open yintang", meaning: "tradition sees a generous, optimistic person who forgives easily" },
+        balanced: { label: "Medium yintang", meaning: "tradition sees a good balance between relaxing and focusing" },
+        narrow:   { label: "Compact yintang", meaning: "tradition sees clear goals, focus and seriousness" }
+      }, tip: "relax the space between your brows and frown less; tradition says this keeps the yintang bright and your mind clear" },
+      philtrum: { th: "Philtrum", cats: {
+        long:     { label: "Longer philtrum", meaning: "tradition sees stamina and the ability to keep going for a long time" },
+        balanced: { label: "Medium philtrum", meaning: "tradition sees a balanced pace of life" },
+        short:    { label: "Shorter philtrum", meaning: "tradition sees someone brisk and quick to respond" }
+      } },
+      chin: { th: "Chin", cats: {
+        broad:    { label: "Broad, round chin", meaning: "tradition sees steadiness, with team and family support in later life" },
+        balanced: { label: "Balanced chin", meaning: "tradition sees steadiness with flexibility" },
+        pointed:  { label: "Fine, pointed chin", meaning: "tradition sees wit, creativity and quick adaptation" }
+      }, tip: "keep investing in your team and family; tradition says this strengthens the chin's foundation" }
+    },
+    palaces: {
+      ming: { th: "Life palace", where: "Between the brows (yintang) and just above", proxy: "brow gap ÷ eye length",
+        levels: { high: "An open yintang, which tradition reads as an open heart with good chances coming often", mid: "A medium yintang, which tradition reads as a balanced pace of life and level-headed decisions", low: "A compact yintang, which tradition reads as focus and determination that see things through" },
+        tip: "relax between your brows and smile often; tradition says this brightens the Life palace" },
+      caibo: { th: "Wealth palace", where: "Nose tip and nostril wings", proxy: "nostril width ÷ inner-eye gap, with nose length",
+        levels: { high: "A prominent nose tip and wings, which tradition reads as a full treasury: good at earning and at keeping", mid: "A steady nose, which tradition reads as stable cash flow with income and spending in balance", low: "A refined nose, which tradition reads as careful spending and goal-driven investing" },
+        tip: "keep your wallet tidy and set some savings aside as soon as income arrives" },
+      xiongdi: { th: "Siblings palace", where: "Both brows", proxy: "brow length ÷ eye length",
+        levels: { high: "Long, prominent brows, which tradition reads as plenty of help from siblings and friends", mid: "Balanced brows, which tradition reads as warm ties with friends and siblings", low: "Compact brows, which tradition reads as strong self-reliance and a few true friends" },
+        tip: "say hello to an old friend or a sibling this week" },
+      fuqi: { th: "Spouse palace", where: "Outer eye corners to the temples", proxy: "outer eye corner → face edge (IPD units)",
+        levels: { high: "A wide, full area at the eye corners, which tradition reads as charm, care for your partner and a steady relationship", mid: "A calm area at the eye corners, which tradition reads as understanding and giving each other space in love", low: "A compact area at the eye corners, which tradition reads as attention to the small things that touch your partner" },
+        tip: "spend quality time with the people who matter and say what you appreciate often" },
+      zinv: { th: "Children palace", where: "Under the eyes", proxy: "under-eye → nostril distance (IPD units)",
+        levels: { high: "Full under-eye areas, which tradition reads as a love of children and being someone the young can lean on", mid: "Calm under-eye areas, which tradition reads as just the right care for those close to you and the younger generation", low: "Compact under-eye areas, which tradition reads as passing on knowledge seriously and in depth" },
+        tip: "sleep well so the area under your eyes looks fresh, and share what you know with younger people" },
+      jie: { th: "Energy palace", where: "The upper nose bridge between the eyes (shan gen)", proxy: "bridge length 27→30 ÷ middle zone",
+        levels: { high: "A prominent shan gen, which tradition reads as plenty of energy and vitality", mid: "A medium shan gen, which tradition reads as a good rhythm of work and rest", low: "A fine shan gen, which tradition reads as agility and quick recovery of energy" },
+        tip: "move a little every day, drink water and get enough sleep to keep your energy up" },
+      qianyi: { th: "Travel palace", where: "The upper sides of the forehead (yi ma)", proxy: "brow span (for forehead width) ÷ jaw",
+        levels: { high: "Broad forehead corners, which tradition reads as luck from travel, moves and opportunities far from home", mid: "Medium forehead corners, which tradition reads as feeling at home both where you are and somewhere new", low: "Compact forehead corners, which tradition reads as steady success in familiar places" },
+        tip: "visit a new place or take a new route this month to open up fresh inspiration" },
+      nupu: { th: "Friends palace", where: "Both sides of the chin", proxy: "chin-side width 5–11 ÷ cheekbones",
+        levels: { high: "Broad, full chin sides, which tradition reads as plenty of support from your team and partners", mid: "Balanced chin sides, which tradition reads as smooth cooperation with others", low: "Fine chin sides, which tradition reads as choosing partners well, with a small but strong team" },
+        tip: "thank your teammates regularly, with a few words or a small gift" },
+      guanlu: { th: "Career palace", where: "The centre of the forehead", proxy: "forehead height ÷ middle zone (needs the hairline)",
+        levels: { high: "A high, open mid-forehead, which tradition reads as career progress with helpful mentors", mid: "A balanced forehead, which tradition reads as a stable career with steady growth", low: "A compact forehead, which tradition reads as practical hard work that earns results" },
+        tip: "set one clear work goal this week and finish it" },
+      tianzhai: { th: "Property palace", where: "Upper eyelids / the gap between brows and eyes", proxy: "brow → upper eyelid distance (IPD units)",
+        levels: { high: "A wide brow–eye gap, which tradition reads as a generous heart, a warm home and luck with property", mid: "A medium brow–eye gap, which tradition reads as a home that is a comfortable place to rest", low: "A compact brow–eye gap, which tradition reads as drive to build a home through your own effort" },
+        tip: "clear and clean your favourite corner at home and let in natural light" },
+      fude: { th: "Fortune palace", where: "Above the outer ends of both brows", proxy: "brow span ÷ face width (side forehead width)",
+        levels: { high: "Broad, full areas above the brow tails, which tradition reads as a cheerful heart with good things coming often", mid: "Calm areas above the brow tails, which tradition reads as inner peace and contentment", low: "Compact areas above the brow tails, which tradition reads as happiness you create with your own hands" },
+        tip: "spend at least fifteen minutes a day on something you love to recharge your heart" },
+      fumu: { th: "Parents palace", where: "The forehead above both brow heads (sun and moon corners)", proxy: "left–right brow height balance (the smaller the difference, the more prominent)",
+        levels: { high: "Very even left and right, which tradition reads as warmth and good advice from elders", mid: "Well balanced left and right, which tradition reads as getting on well with elders", low: "Slightly different left and right, which tradition reads as learning from many elders and growing independently" },
+        tip: "call or visit an elder you respect and listen to their stories" }
+    },
+    palaceLevels: { high: "Prominent", mid: "Balanced", low: "Refined" },
+    lightLabels: { bright: "Bright", even: "Soft", depth: "Layered" },
+    lightNote: "Compared with the brightness of your own whole face (standing in for the traditional 'complexion'); affected by the lighting of the photo",
+    mountains: {
+      items: {
+        south:  { th: "South mountain · forehead", meaning: "thinking, knowledge and support from elders" },
+        center: { th: "Central mountain · nose", meaning: "self, confidence and building your life" },
+        east:   { th: "East mountain · cheekbone (image left)", meaning: "drive and your role in society" },
+        west:   { th: "West mountain · cheekbone (image right)", meaning: "steadiness and recognition from others" },
+        north:  { th: "North mountain · chin", meaning: "stability, family and later life" }
+      },
+      lead: {
+        south: "The south mountain (forehead) stands out most; tradition sees thinking and learning as your strengths.",
+        center: "The central mountain (nose) stands out most; tradition sees confidence and the energy to build your life.",
+        east: "The east mountain (cheekbone) stands out; tradition sees drive and the nerve to take the lead.",
+        west: "The west mountain (cheekbone) stands out; tradition sees someone the people around them trust.",
+        north: "The north mountain (chin) stands out most; tradition sees a steady, grounded person with strong long-term foundations."
+      },
+      levels: {
+        high: "The five mountains of your face echo each other in harmony, which tradition sees as a balanced bone structure and a solid footing in life.",
+        mid: "The five mountains are well balanced, each with a strength of its own to build on.",
+        low: "One of the five mountains stands out clearly, giving your life a distinct direction of strength."
+      }
+    },
+    rivers: {
+      items: {
+        eye:   { th: "Eyes", meaning: "thinking and outlook" },
+        nose:  { th: "Nose", meaning: "wealth and vitality" },
+        mouth: { th: "Mouth", meaning: "communication and joy" },
+        ear:   { th: "Ears", meaning: "not analysed (a front-facing photo does not show the ears)" }
+      },
+      levels: {
+        high: "The three 'rivers' flow in harmony, which tradition reads as thinking, money and communication working together.",
+        mid: "The four rivers are well balanced, with communication and decisions heading the same way.",
+        low: "Each 'river' has its own character, giving you a more varied point of view."
+      },
+      how: "Harmony score (45–99) from how symmetrical the eyes, nose and mouth are left to right and how close they are to the median"
+    },
+    ageMap: [
+      { th: "Both ears", pos: "1–7 left ear · 8–14 right ear", msg: "childhood maps to the ears, a time of gathering learning and family warmth" },
+      { th: "Hairline – upper forehead", pos: "15 Fire Star · 16 Heaven's Centre · 17–18 Sun/Moon corners · 19 Heavenly Court", msg: "the upper forehead is in focus for this period, good for learning, finding yourself and support from elders" },
+      { th: "Sides of the forehead", pos: "20–21 side corners · 22 Si Kong · 23–24 border towns", msg: "the forehead corners are in focus for this period, good for venturing out, trying new work and widening your network" },
+      { th: "Mid-forehead – yintang", pos: "25 Zhong Zheng · 26–27 hills/tombs · 28 yintang · 29–30 mountain forests", msg: "the mid-forehead and yintang are in focus for this period, good for laying career foundations and making important decisions" },
+      { th: "Both brows", pos: "31 Ling Yun · 32 Zi Qi · 33 Fan Xia · 34 Cai Xia", msg: "the brows are the key feature for this period, and friendships and connections can carry you a long way" },
+      { th: "Both eyes", pos: "35–36 Tai Yang/Tai Yin · 37–38 Zhong Yang/Zhong Yin · 39–40 Shao Yang/Shao Yin", msg: "the eyes are the key feature for this period, good for looking for new chances and deciding with foresight" },
+      { th: "Shan gen (bridge between the eyes)", pos: "41 Shan Gen · 42 Jing She · 43 Guang Dian", msg: "the shan gen is in focus for this period, good for restoring energy, rebalancing life and starting long-term plans" },
+      { th: "Nose bridge and cheekbones", pos: "44 Nian Shang · 45 Shou Shang · 46–47 left/right cheekbones", msg: "the nose bridge and cheekbones are in focus for this period, a good time to build your household and earn recognition" },
+      { th: "Nose tip and wings", pos: "48 Zhun Tou · 49 Lan Tai · 50 Ting Wei", msg: "the nose tip is in focus for this period, traditionally a golden time to manage wealth and reap results" },
+      { th: "Philtrum", pos: "51 Ren Zhong · 52–53 Xian Ku · 54 Shi Cang · 55 Lu Cang", msg: "the philtrum is in focus for this period, a time of plenty and of sharing experience" },
+      { th: "Smile lines and mouth", pos: "56–57 Fa Ling · 58–59 Hu Er · 60 Water Star (mouth)", msg: "the mouth and smile lines are in focus for this period, and communicating and passing on experience bring joy" },
+      { th: "Chin and jaw", pos: "61 Cheng Jiang · 62–63 Di Ku · 64–69 Bei Chi/E Ya/Jin Lü/Gui Lai · 70 Song Tang · 71 Di Ge · 72–75 jaw bones", msg: "the chin is the key feature for this period, a time of stability and enjoying the warmth of family and those around you" },
+      { th: "Outer edge of the face", pos: "76–99 around the edge of the face by the twelve earthly branches · 100 back to the ears", msg: "the positions circle the outer edge of the face in this period, a time of passing wisdom and warmth on to the next generation" }
+    ],
+    recommend: {
+      title: "Picks for your element",
+      note: "Demo example — edit the items, colours and promotion in faceread-kb.js",
+      promo: "Show this screen at the counter for 10% off your element's drink (example)",
+      items: {
+        wood:  [{ name: "Matcha latte", tag: "Drink", desc: "green, the colour of wood, fresh as a new shoot" }, { name: "Green reusable bottle", tag: "Souvenir", desc: "grow a good habit every day" }],
+        fire:  [{ name: "Strawberry soda", tag: "Drink", desc: "bright red to top up your warm energy" }, { name: "Orange scented candle", tag: "Souvenir", desc: "light up creative ideas" }],
+        earth: [{ name: "Caramel macchiato", tag: "Drink", desc: "warm brown tones, steady like earth" }, { name: "Beige ceramic mug", tag: "Souvenir", desc: "warm and long-lasting" }],
+        metal: [{ name: "Iced honey milk", tag: "Drink", desc: "white-gold tones, clear and bright like metal" }, { name: "Silver-cover notebook", tag: "Souvenir", desc: "write your goals down neatly" }],
+        water: [{ name: "Blue lemon soda", tag: "Drink", desc: "a cool blue, flowing like water" }, { name: "Wave keyring", tag: "Souvenir", desc: "adds flexibility and quick wit" }]
+      }
+    },
+    leads: {
+      title: "Get your element offer",
+      lead: "Leave a nickname and contact to receive offers from this booth (optional)",
+      nick: "Nickname", contact: "Contact (LINE ID / phone / email)",
+      consent: "I agree that the shop may keep this nickname and contact only to send news and offers; no face photos are stored, and I can ask for deletion at any time",
+      thanks: "Thank you! Saved"
+    },
+    generalTips: [
+      "smile at yourself in the mirror every morning; a bright face is the best face reading",
+      "get enough sleep, as a fresh complexion and clear eyes add to your glow",
+      "do good deeds and encourage others often; tradition says 'the face follows the heart'"
+    ]
+  };
 })(typeof window !== "undefined" ? window : globalThis);

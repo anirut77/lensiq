@@ -32,6 +32,11 @@ window.LENSIQ_ANALYTICS = window.LENSIQ_ANALYTICS !== false;
  *          เปิดเฉพาะเมื่อมีไฟล์โมเดลและสิทธิ์การใช้งานแล้ว (ดู vendor/models/FACEPARSE-LICENSE.txt) หรือทดสอบด้วย ?faceparse=1 */
 window.LENSIQ_FACEPARSE = window.LENSIQ_FACEPARSE === true;
 
+/* LENSIQ_AGE_GENDER: ตัวเลือก "ใช้อายุ/เพศ" ของป้ายโฆษณา (signage.html) — โมเดล face-api.js ageGenderNet ฝึกจาก UTKFace
+ *   (ข้อมูลอนุญาตเฉพาะงานวิจัย ไม่ใช่เชิงพาณิชย์ — LICENSES/THIRD_PARTY.md F5) โหลดเฉพาะเมื่อเปิดตัวเลือกนี้เท่านั้น
+ *   true (ค่าเริ่มต้น สำหรับเดโม) = แสดงตัวเลือก · false = ซ่อนตัวเลือกและไม่โหลดโมเดลเลย (ใช้งานเชิงพาณิชย์จนกว่าทนายความจะยืนยันสิทธิ์) */
+window.LENSIQ_AGE_GENDER = window.LENSIQ_AGE_GENDER !== false;
+
 /* ตัวโหลด: เฉพาะเมื่อมี LENSIQ_API_BASE — ไฟล์มาจากต้นทางเดียวกับหน้าเว็บ (CSP script-src 'self') */
 (function () {
   "use strict";

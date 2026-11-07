@@ -32,7 +32,7 @@
 .st-compare[data-mode=fit] #stOverlay,.st-compare[data-mode=restore] #stOverlay,.st-compare[data-mode=erase] #stOverlay{touch-action:none;cursor:crosshair}
 .st-split-line{position:absolute;top:0;bottom:0;left:var(--split);width:2px;background:#fff;box-shadow:0 0 0 1px rgba(14,20,48,.35);pointer-events:none}
 .st-split-line[hidden]{display:none}
-.st-busy{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:rgba(14,20,48,.82);color:#fff;font-size:.85rem;padding:6px 14px;border-radius:99px;pointer-events:none;white-space:nowrap}
+.st-busy{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:rgba(14,20,48,.82);color:#fff;font-size:.85rem;padding:6px 14px;border-radius:99px;pointer-events:none;max-width:calc(100% - 24px);text-align:center;overflow-wrap:anywhere}
 .st-busy[hidden]{display:none}
 
 .seg{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
@@ -78,3 +78,9 @@ label.check input{width:22px;height:22px;flex:none}
 #stGarmentMsg{white-space:pre-line}
 .st-qa .btn{margin-top:6px}
 .st-qa[data-shown="draft"]{background:#fde8e8;color:#8a1c1c}
+.st-spec{list-style:none;padding:0;margin:8px 0 0;font-size:.82rem;line-height:1.5}
+.st-spec li{padding-left:1.3em;position:relative;margin:2px 0}
+.st-spec li::before{position:absolute;left:0;content:"✓";color:#15803d;font-weight:700}
+.st-spec li.warn::before{content:"!";color:#b45309}
+.st-panel select{max-width:100%}
+.st-tip{margin-top:0}

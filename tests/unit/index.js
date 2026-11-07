@@ -1,31 +1,10 @@
 "use strict";
 // Lets `node --test tests/unit` work on Node 22 (a directory argument resolves to this index).
-// `node --test "tests/unit/*.test.js"` runs the same files directly.
-require("./lensiq-track.test.js");
-require("./lensiq-camera.test.js");
-require("./lensiq-detect.test.js");
-require("./signage.test.js");
-require("./checkout.test.js");
-require("./driver.test.js");
-require("./booth.test.js");
-require("./single-subject.test.js");
-require("./store.test.js");
-require("./insights.test.js");
-require("./agg.test.js");
-require("./palm-hands.test.js");
-require("./hand.test.js");
-require("./signage-multicam.test.js");
-require("./booth-multicam.test.js");
-require("./store-reid.test.js");
-require("./qc.test.js");
-require("./sitecheck.test.js");
-require("./stats.test.js");
-require("./studio.test.js");
-require("./fortune-new.test.js");
-require("./numbers.test.js");
-require("./fortune-consistency.test.js");
-require("./fortune-composer.test.js");
-require("./fortune-engines.test.js");
-require("./bench-metrics.test.js");
-require("./fortune-semantic.test.js");
-require("./member-gate.test.js");
+// `npm run test:unit` (node --test "tests/unit/*.test.js") runs the same files, each in its own process.
+// Every *.test.js in this folder is discovered automatically — there is no hand-maintained list to forget.
+const fs = require("node:fs");
+const path = require("node:path");
+
+const files = fs.readdirSync(__dirname).filter(f => f.endsWith(".test.js")).sort();
+if (!files.length) throw new Error("tests/unit: no *.test.js files found");
+for (const f of files) require(path.join(__dirname, f));

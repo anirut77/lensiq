@@ -212,6 +212,20 @@ footer{text-align:center;padding:28px;background:var(--navy);color:#b3bcd9;font-
   .lang-switch button[aria-pressed=true]{background:#0e1430;color:#fff;border-radius:6px;text-decoration:none}
 }
 @media(max-width:374px){.lang-switch button{min-width:40px;padding:0 4px}.logo{gap:8px;letter-spacing:.08em}}
+/* Compact language switch (nav.js): on very narrow phones (< 341 px, e.g. 320 px iPhone SE 1st gen) — or < 401 px when
+   the member account icon also sits in the bar (.nav.has-acct) — only the current language is shown; tapping it opens
+   the other two below it (.lang-switch.open; Escape / outside tap closes). Every language stays one tap away. */
+@media(max-width:340.98px){
+  .nav{padding:0 12px;column-gap:6px}
+  .lang-switch:not(.open) button[aria-pressed=false]{display:none}
+}
+@media(max-width:400.98px){
+  .nav.has-acct{padding:0 12px;column-gap:6px}
+  .nav.has-acct .lang-switch:not(.open) button[aria-pressed=false]{display:none}
+}
+.lang-switch.open{z-index:75}
+.lang-switch.open button[aria-pressed=false]{position:absolute;right:-1px;width:calc(100% + 2px);min-width:44px;min-height:44px;background:#fff;border:1px solid #e3e7f0;border-radius:8px;box-shadow:0 8px 20px rgba(14,20,48,.14);color:var(--ink,#0e1430)}
+.lang-switch.open button[aria-pressed=true]::after,.lang-switch button[aria-expanded]::after{content:"";display:inline-block;width:6px;height:6px;margin-left:5px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-2px) rotate(45deg)}
 
 /* ---------- English ---------- */
 html[lang=en] body{font-family:Inter,Prompt,system-ui,-apple-system,"Segoe UI",sans-serif}
@@ -280,6 +294,8 @@ small,.small{--fs:.85em}
 .lq-legal-foot a:hover{color:#0e1430;text-decoration-color:#0e1430}
 body[class*="-kiosk"] .lq-legal-foot{display:none}
 @media print{.lq-legal-foot{display:none!important}}
+.lq-foot-docs{display:flex;flex-wrap:wrap;gap:0 18px;justify-content:center;margin:4px 0 0;font-size:.85rem}
+.lq-foot-docs a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;text-decoration:underline;text-underline-offset:3px}
 .site-foot .foot-legal.foot-docs{margin-top:2px;padding-top:0;border-top:0}
 .site-foot .foot-docs a{color:#dfe4f5;text-decoration:underline;text-underline-offset:3px;display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px}
 .about-foot .foot-legal a{min-width:44px;justify-content:center}

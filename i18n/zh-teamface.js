@@ -4,7 +4,7 @@
  * dictionary only needs the same keys. Queue pattern: works before or after lensiq-i18n.js. */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
   "tf.s.pagetitle": "团队面相 — 破冰活动 | LENSIQ",
-  "tf.s.banner": "仅供娱乐/团建 — 禁止用于招聘、绩效评估或评判任何人",
+  "tf.s.banner": "仅供娱乐/团建破冰，不是评估 — 禁止用于招聘、绩效评估或评判任何人",
   "tf.s.h1": "团队面相",
   "tf.s.lead": "破冰活动：同意参加的成员会根据面相书中的脸型获得一张轻松有趣的“团队角色”卡片，再一起看看我们团队是怎样组合的",
   "tf.s.r1": "面相属于民间信仰，不是科学 — 每张卡片都是正面的，没有哪个角色更好",
@@ -66,4 +66,12 @@
   "tf.js.member": "成员 {n}", "tf.js.remove": "删除 {n} 的卡片", "tf.js.power": "超能力：", "tf.js.work": "一起愉快合作：",
   "tf.js.second": "兼具{r}的视角", "tf.js.el": "按面相书属于{e}形脸：{t}", "tf.js.ice": "破冰问题：",
   "tf.js.resetQ": "要删除所有卡片并重新开始吗？"
+} });
+// Round 10: 'for fun / icebreaker, not an assessment' on every screen; results cannot be attached to candidate records
+(window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
+  "tf.s.na": "仅供娱乐/团建破冰 — 不是评估",
+  "tf.s.r4": "结果无法附加到候选人或员工档案：没有导出，没有编号，看起来像候选人编号或招聘用途的昵称或团队名称不会被使用",
+  "tf.s.guard": "本页不接受通过链接传来的候选人数据或记录编号 — 已被忽略。本活动的结果不能附加到招聘或评估中",
+  "tf.js.nickDrop": "卡片已添加 — 看起来像候选人编号、电子邮件或电话号码的昵称未被使用，因为这些结果不能附加到候选人数据",
+  "tf.js.teamDrop": "未使用此团队名称：本活动不能用于招聘、面试或评估"
 } });

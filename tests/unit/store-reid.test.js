@@ -166,9 +166,15 @@ test("buildHourlyCsv lists every hour between first and last activity with targe
   d.hourly.in[9] = 4; d.hourly.out[9] = 1; d.hourly.in[11] = 6; d.hourly.out[11] = 5; d.hourlyQ[11] = 3; d.hourlyOcc[11] = 7;
   const csv = S.buildHourlyCsv([d], 5).replace(/^﻿/, "").split("\n");
   assert.equal(csv.length, 1 + 3, "09, 10 (zero) and 11");
-  assert.match(csv[1], /^2026-11-06,09:00–09:59,4,1,3,3,0,0,5,ไม่$/);
-  assert.match(csv[2], /^2026-11-06,10:00–10:59,0,0,0,3,0,0,5,ไม่$/);
-  assert.match(csv[3], /^2026-11-06,11:00–11:59,6,5,1,4,7,3,5,ใช่$/);
+  assert.match(csv[1], /^2026-11-06,09:00–09:59,4,1,3,3,0,0,5,ไม่,$/);
+  assert.match(csv[2], /^2026-11-06,10:00–10:59,0,0,0,3,0,0,5,ไม่,$/);
+  assert.match(csv[3], /^2026-11-06,11:00–11:59,6,5,1,4,7,3,5,ใช่,$/);
+  // round 10: hours whose camera health was bad for ≥ 5 min are annotated in the last column (counts unchanged)
+  d.quality = { 11: { n: 3600, dark: 900, shake: 120 } };
+  const q = S.buildHourlyCsv([d], 5).replace(/^﻿/, "").split("\n");
+  assert.match(q[3], /^2026-11-06,11:00–11:59,6,5,1,4,7,3,5,ใช่,ภาพมืด 15 นาที · กล้องสั่น 2 นาที$/);
+  assert.match(q[1], /,ไม่,$/, "hour 09 not flagged");
+  assert.match(S.buildCsv([d], ""), /2026-11-06,11:00,6,5,ภาพมืด 15 นาที/);
   assert.ok(!/ใช่|ไม่/.test(S.buildHourlyCsv([d], 0).split("\n")[1]), "no target -> empty target columns");
   // the main CSV keeps its old columns (new ones appended at the end)
   assert.match(S.buildCsv([d], ""), /สรุปรายวัน\n.*อัตราการซื้อโดยประมาณ \(%\),พนักงานที่ไม่นับ/);

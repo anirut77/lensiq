@@ -208,3 +208,10 @@ th{background:var(--alt);color:var(--navy);font-weight:500;position:sticky;top:0
 .acc-note{margin:6px 0 14px;padding:10px 14px;border:1px solid var(--line,#e3e6ef);border-left:4px solid #c9a45c;border-radius:10px;background:#fffdf7;font-size:.86rem;line-height:1.6;color:#4a5068}
 .acc-note .beta{display:inline-block;margin-right:6px;padding:0 8px;border-radius:6px;background:#0e1430;color:#fff;font-size:.75rem;font-weight:500}
 .acc-note a{display:inline;color:inherit;text-decoration:underline} /* ลิงก์ในประโยค (ข้อยกเว้น WCAG 2.5.8) */
+/* round 10: licence labels (age/gender + expression models), docs links, on-site check passer rows */
+.sg-licence{font-size:.8rem;color:#8a5a00;margin:4px 0}.sg-licence b{font-weight:500}
+small.sg-licence{display:inline;margin:0 0 0 4px}
+#demoOpt[hidden]{display:none}
+.sc-docs a{white-space:nowrap}
+.sg-passers li small{display:block;color:var(--muted)}
+.sg-passers select{min-height:36px;max-width:9.5rem}

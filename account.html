@@ -11,7 +11,7 @@
 <title data-i18n="acct.doc.title">บัญชีของฉัน | LENSIQ</title>
 <meta name="description" data-i18n-attr="content:acct.doc.desc" content="บัญชีสมาชิก LENSIQ: แพ็กเกจ โควตา ประวัติการใช้งาน ดาวน์โหลดข้อมูล และลบบัญชี">
 <link rel="stylesheet" href="styles.css?v=8">
-<link rel="stylesheet" href="account.css?v=1">
+<link rel="stylesheet" href="account.css?v=2">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -42,31 +42,59 @@
       <h2 id="acProfileH" data-i18n="acct.profile.title">โปรไฟล์</h2>
       <dl class="acct-dl" id="acProfile"></dl>
       <label class="acct-check"><input type="checkbox" id="acMarketing"> <span data-i18n="acct.profile.marketing">รับข่าวสารและข้อเสนอจาก LENSIQ ทางอีเมล (ไม่บังคับ)</span></label>
+      <p class="acct-inline" id="acMarketingMsg" role="status" aria-live="polite"></p>
       <p class="acct-row"><button type="button" class="btn ghost" id="acSignOut" data-i18n="acct.signout">ออกจากระบบ</button></p>
+    </section>
+
+    <section class="section acct-card" id="sessions" aria-labelledby="acSessH">
+      <h2 id="acSessH" data-i18n="acct.sess.title">อุปกรณ์ที่เข้าสู่ระบบ</h2>
+      <p class="acct-muted" id="acSessHere"></p>
+      <div id="acSessions"></div>
+      <p class="acct-row"><button type="button" class="btn ghost" id="acSignOutAll" hidden data-i18n="acct.sess.all">ออกจากระบบทุกอุปกรณ์อื่น</button></p>
+      <p class="acct-inline" id="acSessMsg" role="status" aria-live="polite"></p>
     </section>
 
     <section class="section acct-card" id="plan" aria-labelledby="acPlanH">
       <h2 id="acPlanH" data-i18n="acct.plan.title">แพ็กเกจและโควตา</h2>
       <div class="acct-kpis" id="acKpis"></div>
       <p class="acct-muted" id="acPlanNote"></p>
+      <p class="acct-row"><a class="btn ghost" href="pricing.html" id="acPricing" hidden data-i18n="acct.plan.see">ดูแพ็กเกจและรายงาน</a></p>
+    </section>
+
+    <section class="section acct-card" id="claim" aria-labelledby="acClaimH">
+      <h2 id="acClaimH" data-i18n="acct.claim.title">ผูกการซื้อก่อนหน้ากับบัญชี</h2>
+      <p data-i18n="acct.claim.text">ถ้าคุณเคยซื้อแพ็กเกจหรือรายงานโดยยังไม่ได้เข้าสู่ระบบ ใช้รหัสคำสั่งซื้อและรหัสยืนยันที่ได้หลังชำระเงินเพื่อผูกสิทธิ์กับบัญชีนี้</p>
+      <ul class="acct-claims" id="acClaims"></ul>
+      <details class="acct-more">
+        <summary data-i18n="acct.claim.manual">กรอกรหัสคำสั่งซื้อเอง</summary>
+        <form id="acClaimForm" class="acct-form">
+          <label><span data-i18n="acct.claim.cid">รหัสคำสั่งซื้อ (customer id)</span> <input name="customer_id" autocomplete="off" spellcheck="false" maxlength="64" required></label>
+          <label><span data-i18n="acct.claim.tok">รหัสยืนยัน (order token)</span> <input name="order_token" autocomplete="off" spellcheck="false" maxlength="128" required></label>
+          <p class="acct-row"><button type="submit" class="btn ghost" data-i18n="acct.claim.cta">ผูกกับบัญชีนี้</button></p>
+        </form>
+      </details>
+      <p class="acct-inline" id="acClaimMsg" role="status" aria-live="polite"></p>
     </section>
 
     <section class="section acct-card" id="history" aria-labelledby="acHistH">
       <h2 id="acHistH" data-i18n="acct.hist.title">ประวัติของฉัน</h2>
       <h3 data-i18n="acct.saved.title">คำทำนายที่บันทึกไว้</h3>
-      <div id="acSaved"></div>
+      <div id="acSaved" aria-busy="true"></div>
       <div id="acSavedView" class="acct-view" hidden></div>
       <h3 data-i18n="acct.ledger.title">การใช้งาน</h3>
-      <div id="acLedger"></div>
+      <div id="acLedger" aria-busy="true"></div>
       <p class="acct-row"><button type="button" class="btn ghost" id="acMore" hidden data-i18n="acct.more">โหลดเพิ่ม</button></p>
-      <h3 data-i18n="acct.pay.title">การชำระเงิน</h3>
-      <div id="acPayments"></div>
+      <h3 data-i18n="acct.pay.title">การชำระเงินและใบเสร็จ</h3>
+      <div id="acPayments" aria-busy="true"></div>
+      <p class="acct-inline" id="acHistMsg" role="status" aria-live="polite"></p>
+      <p class="acct-row"><button type="button" class="btn ghost" id="acRetry" hidden data-i18n="acct.retry">ลองโหลดอีกครั้ง</button></p>
     </section>
 
     <section class="section acct-card" id="data" aria-labelledby="acDataH">
       <h2 id="acDataH" data-i18n="acct.data.title">ข้อมูลของฉัน</h2>
       <p data-i18n="acct.data.text">ดาวน์โหลดข้อมูลทั้งหมดที่เราเก็บเกี่ยวกับบัญชีนี้เป็นไฟล์ JSON (สิทธิขอรับข้อมูลตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล)</p>
       <p class="acct-row"><button type="button" class="btn ghost" id="acExport" data-i18n="acct.data.export">ดาวน์โหลดข้อมูลของฉัน (JSON)</button></p>
+      <p class="acct-inline" id="acExportMsg" role="status" aria-live="polite"></p>
     </section>
 
     <section class="section acct-card acct-danger" id="delete" aria-labelledby="acDelH">
@@ -74,7 +102,10 @@
       <p data-i18n="acct.del.text">ลบบัญชี เซสชัน ประวัติการใช้งาน และคำทำนายที่บันทึกไว้ทั้งหมดทันที ย้อนกลับไม่ได้</p>
       <p class="acct-muted" data-i18n="acct.del.tax">รายการชำระเงินและใบเสร็จต้องเก็บไว้อย่างน้อย 5 ปีตามกฎหมายภาษี จึงเก็บต่อแบบไม่ผูกกับบัญชีและลบอีเมลออก</p>
       <label class="acct-check"><input type="checkbox" id="acDelOk"> <span data-i18n="acct.del.confirm">ฉันเข้าใจว่าการลบบัญชีย้อนกลับไม่ได้</span></label>
+      <label class="acct-type" for="acDelWord"><span data-i18n="acct.del.type">พิมพ์คำว่า DELETE (ตัวพิมพ์ใหญ่) เพื่อยืนยัน</span></label>
+      <input class="acct-input" id="acDelWord" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="10" aria-describedby="acDelMsg">
       <p class="acct-row"><button type="button" class="btn acct-btn-danger" id="acDelete" disabled data-i18n="acct.del.cta">ลบบัญชีของฉัน</button></p>
+      <p class="acct-inline" id="acDelMsg" role="status" aria-live="polite"></p>
     </section>
   </div>
   <p class="acct-msg" id="acMsg" role="status" aria-live="polite"></p>
@@ -82,8 +113,9 @@
 
 <footer class="site-foot">
   <p class="foot-legal">© 2026 LENSIQ · <a href="index.html" data-i18n="acct.home">กลับหน้าแรก</a></p>
+  <p class="foot-legal foot-docs"><a href="terms.html" data-i18n="foot.terms">ข้อกำหนดการใช้บริการ</a> <a href="terms.html#t9" data-i18n="acct.foot.refund">การยกเลิกและคืนเงิน</a> <a href="privacy.html" data-i18n="foot.privacy">ความเป็นส่วนตัว</a> <a href="help.html" data-i18n="foot.help">ช่วยเหลือ</a></p>
 </footer>
 <script src="lensiq-config.js?v=3"></script>
-<script src="account.js?v=1"></script>
+<script src="account.js?v=2"></script>
 </body>
 </html>

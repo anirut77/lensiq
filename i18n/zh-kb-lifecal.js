@@ -75,7 +75,7 @@
 
   Object.keys(PLANET).forEach(function (p) {
     var P = PLANET[p];
-    taksa["tk.boriwan." + p] = { n: P.n + "（出生日守护星）", s: P.n, o: "你的出生日守护星是" + P.n + "，代表" + P.q, p: "你天生带着" + P.q + "的力量", c: BH.boriwan.m };
+    taksa["tk.boriwan." + p] = { n: P.n + "（出生日守护星）", s: P.n, o: "你的出生日守护星是" + P.n + "，代表" + P.q, p: "你天生带着" + P.q + "的力量", c: BH.boriwan.m, l: "在塔克萨命理里，随从宫也包括伴侣和家人，用心照顾身边的人，亲密关系也会更稳" };
     Object.keys(BH).forEach(function (b) {
       if (b === "boriwan") return;
       var B = BH[b], it = { n: B.n + "（" + P.n + "）", s: B.n };

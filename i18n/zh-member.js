@@ -46,5 +46,7 @@
   "mem.saveFail": "保存失败",
   "mem.saveFull": "记录已满，请在“我的账户”删除旧记录",
   "mem.print": "打印 / 存为 PDF",
-  "mem.welcome": "已登录，欢迎！"
+  "mem.welcome": "已登录，欢迎！",
+  "mem.dlg.remember": "在此设备上记住我（不勾选 = 关闭标签页后退出 · 公用电脑请勿勾选）",
+  "mem.claim.done": "已将 {n} 笔之前的购买关联到您的账户"
 } });

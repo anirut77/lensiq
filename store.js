@@ -566,11 +566,22 @@ function zoneLabel(day, key, z) {
   return bc ? `${bc.name} · ${z.name}` : z.name;
 }
 
+// ---------- คุณภาพภาพรายชั่วโมง (round 10) ----------
+// day.quality = {[ชั่วโมง]: {n, shake, dark, backlight, slow, offline, image}} = วินาทีที่ตัวตรวจสุขภาพภาพพบปัญหา (รวมทุกกล้อง)
+// เก็บคู่กับยอดรายชั่วโมงเพื่อให้รายงาน/insights ทำเครื่องหมายหรือไม่นับชั่วโมงที่ภาพมีปัญหา — ไม่แก้ยอดนับเลย
+const stSite = () => typeof LQSite !== "undefined" ? LQSite : (typeof require === "function" ? (() => { try { return require("./lensiq-sitecheck.js"); } catch { return null; } })() : null);
+/** ข้อความปัญหาภาพของชั่วโมง h ("" = ไม่มีปัญหาหรือไม่มีข้อมูล) — เกณฑ์ ≥ 5 นาที */
+function hourQuality(d, h) {
+  const S = stSite(); if (!S || !d || !d.quality || !d.quality[h]) return "";
+  const f = S.flaggedHours({ [h]: d.quality[h] })[0];
+  return f ? (S.qualityText(f) || "มีปัญหาภาพ") : "";
+}
+
 // ---------- CSV ----------
 function csvCell(v) { const s = String(v ?? ""); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }
 function buildCsv(days, cashierId) {
-  const rows = [["รายชั่วโมง"], ["วันที่", "ชั่วโมง", "เข้า", "ออก"]];
-  days.forEach(d => d.hourly.in.forEach((v, h) => { if (v || d.hourly.out[h]) rows.push([d.date, String(h).padStart(2, "0") + ":00", v, d.hourly.out[h]]); }));
+  const rows = [["รายชั่วโมง"], ["วันที่", "ชั่วโมง", "เข้า", "ออก", "คุณภาพภาพ (ชั่วโมงที่มีปัญหา ยอดอาจคลาดเคลื่อน)"]];
+  days.forEach(d => d.hourly.in.forEach((v, h) => { if (v || d.hourly.out[h]) rows.push([d.date, String(h).padStart(2, "0") + ":00", v, d.hourly.out[h], hourQuality(d, h)]); }));
   rows.push([], ["สรุปรายวัน"], ["วันที่", "เข้า", "ออก", "คนในร้านสูงสุด", "เวลาที่สูงสุด", "คิวสูงสุด", "อัตราการซื้อโดยประมาณ (%)", "พนักงานที่ไม่นับ", "รอคิวเกินเป้า (ครั้ง)", "ตัดการนับซ้ำ (ครั้ง)"]);
   days.forEach(d => {
     const c = conversion(d, cashierId);
@@ -590,7 +601,7 @@ function activeHours(d) {
 /* CSV รายชั่วโมง: ทุกชั่วโมงตั้งแต่ชั่วโมงแรกถึงชั่วโมงสุดท้ายที่มีคนเข้า/ออกของแต่ละวัน (รวมชั่วโมงที่เป็น 0)
    คนในร้านสิ้นชั่วโมง = ยอดสะสม เข้า−ออก (ไม่ต่ำกว่า 0) · target = เป้าคนเข้าต่อชั่วโมง (0 = ไม่มี) */
 function buildHourlyCsv(days, target = 0) {
-  const rows = [["วันที่", "ชั่วโมง", "เข้า", "ออก", "สุทธิ", "คนในร้านสิ้นชั่วโมง (ประมาณ)", "คนในร้านสูงสุด", "คิวสูงสุด", "เป้าคนเข้า", "ถึงเป้า"]];
+  const rows = [["วันที่", "ชั่วโมง", "เข้า", "ออก", "สุทธิ", "คนในร้านสิ้นชั่วโมง (ประมาณ)", "คนในร้านสูงสุด", "คิวสูงสุด", "เป้าคนเข้า", "ถึงเป้า", "คุณภาพภาพ (ชั่วโมงที่มีปัญหา ยอดอาจคลาดเคลื่อน)"]];
   for (const d of days) {
     const r = activeHours(d); if (!r) continue;
     let cum = 0;
@@ -599,7 +610,7 @@ function buildHourlyCsv(days, target = 0) {
       const i = d.hourly.in[h] || 0, o = d.hourly.out[h] || 0;
       cum = Math.max(0, cum + i - o);
       rows.push([d.date, `${String(h).padStart(2, "0")}:00–${String(h).padStart(2, "0")}:59`, i, o, i - o, cum,
-        (d.hourlyOcc && d.hourlyOcc[h]) || 0, (d.hourlyQ && d.hourlyQ[h]) || 0, target > 0 ? target : "", target > 0 ? (i >= target ? "ใช่" : "ไม่") : ""]);
+        (d.hourlyOcc && d.hourlyOcc[h]) || 0, (d.hourlyQ && d.hourlyQ[h]) || 0, target > 0 ? target : "", target > 0 ? (i >= target ? "ใช่" : "ไม่") : "", hourQuality(d, h)]);
     }
   }
   return "﻿" + rows.map(r => r.map(csvCell).join(",")).join("\n");
@@ -642,7 +653,7 @@ function daySummary(d, o = {}) {
   return out;
 }
 
-if (typeof module !== "undefined") module.exports = { ST_TRACK, ST_TRACK_R3, ST_TRACK_R4, ST_DET_MIN, REID_CFG, l2norm, cosine, newReid, canonOf, reidRemember, reidMatch, crossDecision, newStaff, staffStep, queueWait, slaStep, ensureDay, buildHourlyCsv, daySummary, activeHours, ST_CFG, ST_SLOTS, dayKey, iou, center, foot, normRect, pointInRect, newTracker, updateTracker, lineSide, segmentsIntersect, checkCrossing, crossStep, newDay, applyCrossing, zoneStep, closeZones, avgDwellSec, queueInfo, conversion, newHeat, heatAdd, heatMax, heatColor, heatToRGBA, buildCsv, decodePersons, nms, nsZone, autoDetW, newPipe, stepCam, migrateStore, zoneLabel };
+if (typeof module !== "undefined") module.exports = { ST_TRACK, ST_TRACK_R3, ST_TRACK_R4, ST_DET_MIN, REID_CFG, l2norm, cosine, newReid, canonOf, reidRemember, reidMatch, crossDecision, newStaff, staffStep, queueWait, slaStep, ensureDay, buildHourlyCsv, hourQuality, daySummary, activeHours, ST_CFG, ST_SLOTS, dayKey, iou, center, foot, normRect, pointInRect, newTracker, updateTracker, lineSide, segmentsIntersect, checkCrossing, crossStep, newDay, applyCrossing, zoneStep, closeZones, avgDwellSec, queueInfo, conversion, newHeat, heatAdd, heatMax, heatColor, heatToRGBA, buildCsv, decodePersons, nms, nsZone, autoDetW, newPipe, stepCam, migrateStore, zoneLabel };
 
 // ================= ส่วนหน้าจอ =================
 if (typeof document !== "undefined") (() => {
@@ -752,7 +763,11 @@ if (typeof document !== "undefined") (() => {
         if (ev.type === "added" || ev.type === "removed") { syncSched(); renderZoneEditor(); renderDash(); }
         if (ev.type === "started" || ev.type === "resumed") { const c = h.cam(ev.slot); if (c) setTimeout(() => layout(c), 0); }
         // ถอดกล้องทุกตัว/กล้องหยุดทำงานระหว่างวิเคราะห์: หยุดอย่างเป็นระบบ (บันทึกยอด) และแสดงปุ่มลองใหม่ แทนการค้างว่า "กำลังวิเคราะห์"
-        if (running && !fileCam && h === hub && h.cams.length && h.cams.every(c => !c.active && c.status === "error")) {
+        if (ev.type === "reconnected" && running) engine("กล้องกลับมาเชื่อมต่อแล้ว — นับต่อ", "ok");
+        // round 10: กล้องหลุดแต่ LQCam กำลังเชื่อมต่อใหม่เอง (offlineSince) -> วิเคราะห์ต่อ บันทึกยอด และแจ้งสถานะ ; ปุ่ม "หยุด" ยังใช้ได้ตามเดิม
+        if (running && !fileCam && h === hub && h.cams.length && h.cams.every(c => !c.active && c.status === "error") && h.cams.some(c => c.offlineSince)) {
+          if (ev.type === "ended") { persistDay(); engine("กล้องหลุด — กำลังเชื่อมต่อใหม่อัตโนมัติ (ยอดที่นับแล้วบันทึกไว้แล้ว กด \"หยุด\" ถ้าต้องการหยุดนับ)", "warn"); }
+        } else if (running && !fileCam && h === hub && h.cams.length && h.cams.every(c => !c.active && c.status === "error")) {
           setTimeout(() => { if (running && !fileCam && hub.cams.every(c => !c.active)) { stopSource(); showError(Object.assign(new Error("กล้องถูกถอดหรือหยุดทำงาน"), { name: "Ended" }), startCamera); } }, 0);
         }
         tileUi();
@@ -1228,6 +1243,9 @@ if (typeof document !== "undefined") (() => {
   document.querySelectorAll("#kpiScope [data-scope]").forEach(b => b.addEventListener("click", () => { G.kpiScope = b.dataset.scope; persistSettings(); renderDash(); }));
 
   let hourlyDay = day;
+  const escHtml = x => String(x).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+  /** ใต้กราฟรายชั่วโมง: แต่ละชั่วโมงที่ถูกทำเครื่องหมายเป็นข้อความแยก (แปลได้ทีละวลี) */
+  const fmtQualityNote = list => "ชั่วโมงที่ภาพจากกล้องมีปัญหา (แถบสีเทา ยอดอาจคลาดเคลื่อน): " + list.map(([h, t]) => `${String(h).padStart(2, "0")}:00 ${t}`).join(" · ");
   function drawHourly(D = hourlyDay) {
     const day = hourlyDay = D;
     const c = $("#hourly"), dpr = devicePixelRatio || 1, W = c.clientWidth || 500, Hh = 220;
@@ -1245,16 +1263,26 @@ if (typeof document !== "undefined") (() => {
       ctx.fillStyle = "#52514e"; ctx.fillText(v, L - 6, y);
     }
     const gw = pw / n, bw = Math.max(2, Math.min(14, gw * 0.36));
+    // ชั่วโมงที่ภาพจากกล้องมีปัญหา ≥ 5 นาที (day.quality): พื้นหลังสีเทาลาย — ยอดยังอยู่ครบ แต่อาจคลาดเคลื่อน
+    const flagged = new Set();
+    for (let h = h0; h <= h1; h++) if (hourQuality(day, h)) {
+      flagged.add(h);
+      ctx.fillStyle = "rgba(120,130,140,.16)"; ctx.fillRect(L + (h - h0) * gw + 1, T, gw - 2, ph);
+    }
     ctx.textAlign = "center"; ctx.textBaseline = "top";
     for (let h = h0; h <= h1; h++) {
       const gx = L + (h - h0) * gw + gw / 2;
+      ctx.globalAlpha = flagged.has(h) ? 0.45 : 1;
       [["in", "#2a78d6", -1], ["out", "#eb6834", 1]].forEach(([k, col, side]) => {
         const v = day.hourly[k][h], bh = v / top * ph;
         if (!v) return;
         ctx.fillStyle = col; ctx.fillRect(gx + (side < 0 ? -bw - 1 : 1), T + ph - bh, bw, bh);
       });
-      if (n <= 14 || (h - h0) % 2 === 0) { ctx.fillStyle = "#52514e"; ctx.fillText(String(h).padStart(2, "0"), gx, T + ph + 6); }
+      ctx.globalAlpha = 1;
+      if (n <= 14 || (h - h0) % 2 === 0) { ctx.fillStyle = flagged.has(h) ? "#8a5a00" : "#52514e"; ctx.fillText(String(h).padStart(2, "0") + (flagged.has(h) ? "!" : ""), gx, T + ph + 6); }
     }
+    const qn = $("#hourlyQuality");
+    if (qn) { qn.hidden = !flagged.size; qn.textContent = flagged.size ? fmtQualityNote([...flagged].map(h => [h, hourQuality(day, h)])) : ""; }
     if (G.hourlyTarget > 0) {
       const y = T + ph - G.hourlyTarget / top * ph;
       ctx.save(); ctx.strokeStyle = "#1a7f4b"; ctx.setLineDash([5, 4]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(W - R, y); ctx.stroke(); ctx.restore();
@@ -1270,7 +1298,8 @@ if (typeof document !== "undefined") (() => {
     const i = Math.floor((e.clientX - r.left - 34) / ((r.width - 42) / n));
     if (i < 0 || i >= n) { tip.hidden = true; return; }
     const h = h0 + i;
-    tip.innerHTML = `<b>${String(h).padStart(2, "0")}:00–${String(h).padStart(2, "0")}:59</b><br>เข้า ${day.hourly.in[h]} · ออก ${day.hourly.out[h]}`;
+    const qh = hourQuality(day, h);
+    tip.innerHTML = `<b>${String(h).padStart(2, "0")}:00–${String(h).padStart(2, "0")}:59</b><br>เข้า ${day.hourly.in[h]} · ออก ${day.hourly.out[h]}` + (qh ? `<br><span class="q-flag">ภาพมีปัญหา: ${escHtml(qh)}</span>` : "");
     tip.hidden = false; tip.style.left = e.clientX + 14 + "px"; tip.style.top = e.clientY + 14 + "px";
   });
   $("#hourly").addEventListener("pointerleave", () => { $("#tooltip").hidden = true; });
@@ -1667,14 +1696,23 @@ if (typeof document !== "undefined") (() => {
     H.at = now;
     let st = null; try { st = SITE.sampleElement(c.video, H.cv); } catch { /* ภาพจากแหล่งอื่น (cross-origin) อ่านไม่ได้ */ }
     const hz = c.intervalMsEma ? 1000 / c.intervalMsEma : null;
-    H.state = H.mon.push(st, { hz, personH: H.ph.length >= 2 ? SITE.median(H.ph) : null });
+    const stalled = SITE.stallStep(c.video, st, now, { live: c !== fileCam });
+    H.state = H.mon.push(st, { hz, personH: H.ph.length >= 2 ? SITE.median(H.ph) : null, stalled });
     H.ph = [];
+    // เก็บวินาทีที่ภาพมีปัญหาไว้กับยอดรายชั่วโมงของวันนี้ (ตัวเลขเท่านั้น)
+    SITE.noteQuality(day.quality || (day.quality = {}), Date.now(), H.state.codes);
     if (SC && SC.slot === c.slot) { H.state.codes.forEach(k => SC.health.add(k)); if (Number.isFinite(hz)) SC.hz.push(hz); }
     if (!c.tile) return;
     const pill = c.tile.querySelector(".st-health"), line = c.tile.querySelector(".cam-health");
     SITE.renderHealth(pill, H.state); pill.hidden = false;
     SITE.renderHealthLine(line, H.state);
   }
+
+  // กล้องหลุด (track ended — LQCam เชื่อมต่อใหม่เอง): ทุก 1 วินาทีที่กล้องออฟไลน์นับเป็นเวลา offline ของชั่วโมงนั้น
+  if (SITE) setInterval(() => {
+    if (!running) return;
+    for (const c of srcCams()) if (c !== fileCam && (c.offlineSince || c.status === "error")) SITE.noteQuality(day.quality || (day.quality = {}), Date.now(), [], { offline: true });
+  }, 1000);
 
   // ตรวจความแม่นยำหน้างาน: คนกด "+ เข้า"/"+ ออก" ทุกครั้งที่มีคนข้ามเส้นจริง แล้วเทียบกับยอดของระบบ (เวลา ± 2 วินาที หลังหักความช้าของการกด)
   // กับไฟล์วิดีโอ: เวลา = ตำแหน่งในวิดีโอ (หยุดวิดีโอแล้วกดได้) และจบเองเมื่อวิดีโอจบ
@@ -1733,15 +1771,16 @@ if (typeof document !== "undefined") (() => {
     const rep = SITE.countReport(Sy, T, { stats });
     SITE.renderReport(scPanel.report, rep);
     scPanel.start.disabled = false; scPanel.stop.disabled = true; scPanel.q(".sc-taps").hidden = true;
-    scPanel.state.textContent = SITE.VERDICT_TH[rep.verdict]; scPanel.state.dataset.s = rep.verdict;
+    scPanel.state.textContent = SITE.verdictText(rep); scPanel.state.dataset.s = rep.verdict;
     const doc = SITE.exportDoc("store", {
       camera: run.name, source: run.file ? "video file" : "live camera", startedAt: new Date(run.startedAt).toISOString(), durationSec: Math.round(Math.max(0, ...T.map(e => e.t), ...Sy.map(e => e.t)) / 1000),
       settings: { line: run.line, swap: run.swap, tiles: run.tiles, reid: !!G.reid, detector: detName || "", backend: delegateUsed || "" },
-      conditions: stats, truth: T, system: Sy, report: { verdict: rep.verdict, n: rep.n, lagMs: rep.lagMs, net: rep.net, netCI: rep.netCI, precision: rep.precision, recall: rep.recall, dirAcc: rep.dirAcc, byDir: rep.byDir, recs: rep.recs }
+      conditions: stats, truth: T, system: Sy, distinctPeople: null, distinctPeopleNote: "door crossings by unidentified people (a person may cross more than once)",
+      report: { verdict: rep.verdict, provisional: rep.provisional, need: rep.need, n: rep.n, lagMs: rep.lagMs, net: rep.net, netCI: rep.netCI, precision: rep.precision, recall: rep.recall, dirAcc: rep.dirAcc, byDir: rep.byDir, recs: rep.recs }
     });
     scPanel.exp.hidden = false;
     scPanel.exp.onclick = () => SITE.download(`lensiq-store-check-${dayKey(run.startedAt)}.json`, doc);
-    scHist.add({ at: run.startedAt, verdict: rep.verdict, summary: SITE.fmt("{a}: ระบบ {b} / คนนับ {c} · แม่นยำ {d}", { a: run.name, b: rep.n.sys, c: rep.n.truth, d: rep.precision.p == null ? "—" : (rep.precision.p * 100).toFixed(0) + "%" }) });
+    scHist.add({ at: run.startedAt, verdict: rep.verdict, provisional: rep.provisional, need: rep.need, cam: run.name, summary: SITE.fmt("{a}: ระบบ {b} / คนนับ {c} · แม่นยำ {d}", { a: run.name, b: rep.n.sys, c: rep.n.truth, d: rep.precision.p == null ? "—" : (rep.precision.p * 100).toFixed(0) + "%" }) });
     scHist.render(scPanel.hist);
     SCLAST = { rep, doc };
   }

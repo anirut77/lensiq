@@ -111,6 +111,12 @@
     "qc.js",
     "booth.js",
     "interview-core.js",
-    "teamface.js"
+    "teamface.js",
+    "lensiq-report.js",
+    "interview.js",
+    "i18n/en-interview.js",
+    "i18n/zh-interview.js",
+    "i18n/en-teamface.js",
+    "i18n/zh-teamface.js"
   ]
 }

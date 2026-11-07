@@ -1,7 +1,7 @@
 /* lifecal.js — ปฏิทินและการคำนวณดวงชะตาของ LENSIQ (ทำงานในเครื่องล้วน ทดสอบได้ใน Node)
  *
  *  ดาราศาสตร์ (Meeus, Astronomical Algorithms ฉบับย่อ):
- *    sunLongitude(jd)        ลองจิจูดปรากฏของดวงอาทิตย์ (องศา) ความคลาดเคลื่อนราว 0.01° (≈ 15 นาทีของเวลาสารท)
+ *    sunLongitude(jd)        ลองจิจูดปรากฏของดวงอาทิตย์ (องศา) จาก HSCore (VSOP87 แบบย่อ) เวลาสารทคลาดไม่เกินราว 1 นาที
  *    solarTermJD(year, lon)  เวลาที่ดวงอาทิตย์อยู่ที่ลองจิจูด lon ในปีนั้น (สารท 24 ฤดู / 二十四节气)
  *    newMoonJD(k)            จันทร์ดับลำดับที่ k (นับจาก 6 ม.ค. 2000) ความคลาดเคลื่อนไม่กี่ชั่วโมง
  *  八字 Four Pillars:  bazi({y,m,d,h,mi,tz,gender})  ปีเปลี่ยนที่ลี่ชุน (立春 ลองจิจูด 315°) เดือนเปลี่ยนที่ "เจี๋ย" 12 สารท
@@ -31,11 +31,15 @@
     var mins = Math.round(F * 1440); if (mins >= 1440) { mins -= 1440; var t = fromJD(J + 1 / 1440, tz); return t; }
     return { y: y, m: m, d: day, h: Math.floor(mins / 60), mi: mins % 60 };
   }
-  var DT = 69 / 86400; // ΔT ≈ 69 วินาที (ช่วงปี 2000–2030; ผลต่อเวลาสารทไม่ถึง 1 นาที)
+  var DT = 69 / 86400; // ΔT สำรอง ≈ 69 วินาที (ใช้เมื่อไม่มี horoscope.js)
+  // ใช้ตำแหน่งดวงอาทิตย์ชุดเดียวกับ horoscope.js (VSOP87 แบบย่อ + นิวเทชัน + ความคลาดของแสง, ΔT ตามปี) ให้ทุกหน้าได้เวลาสารทตรงกัน
+  var HSC = root.HSCore || (typeof require === "function" ? (function () { try { return require("./horoscope.js"); } catch (e) { return null; } })() : null);
 
   /* ---------- ดวงอาทิตย์ ---------- */
-  function sunLongitude(J) {
-    var T = (J + DT - 2451545) / 36525;
+  function sunLongitude(J) { // J = JD (UT)
+    var H = HSC || root.HSCore;
+    if (H && H.ttFromUT && H.sunLongitude) return H.sunLongitude(H.ttFromUT(J));
+    var T = (J + DT - 2451545) / 36525; // สำรอง: Meeus บทที่ 25 แบบความแม่นยำต่ำ
     var L0 = 280.46646 + 36000.76983 * T + 0.0003032 * T * T;
     var M = (357.52911 + 35999.05029 * T - 0.0001537 * T * T) * D2R;
     var C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * Math.sin(M) + (0.019993 - 0.000101 * T) * Math.sin(2 * M) + 0.000289 * Math.sin(3 * M);
@@ -105,6 +109,15 @@
     if (ctl(e) === dmEl) return "officer"; // 官杀
     return "resource";                     // 印
   }
+  /** ถ้าไม่ทราบเวลาเกิด: วันนั้นมีลี่ชุน/เจี๋ยตกอยู่ระหว่างวันหรือไม่ (เสาปี/เสาเดือนจึงขึ้นกับเวลาเกิด)
+      → null หรือ { year: bool (ลี่ชุน), month: bool, term: ชื่อจีนของสารท, idx, at: {y,m,d,h,mi} เวลาท้องถิ่น } */
+  function pillarUnsure(y, m, d, tz) {
+    var J0 = jd(y, m, d, 0, 0, tz), J1 = jd(y, m, d, 23, 59, tz);
+    var a = jieAround(J0), b1 = jieAround(J1);
+    if (a.prev.idx === b1.prev.idx) return null;
+    var idx = b1.prev.idx, at = b1.prev.jd;
+    return { year: idx === 0, month: true, term: JIE_ZH[idx], idx: idx, at: fromJD(at, tz) };
+  }
   /** b = { y, m, d, h, mi, tz (ชั่วโมง, ค่าเริ่ม 7), gender: "male"|"female", noTime } */
   function bazi(b) {
     var tz = b.tz == null ? 7 : b.tz, h = b.noTime ? 12 : b.h || 0, mi = b.noTime ? 0 : b.mi || 0;
@@ -153,7 +166,7 @@
       strongest: order[0][1], weakest: order[4][1], strength: strength, favour: favour,
       luck: { forward: forward, startAge: startAge, pillars: luck },
       jie: { prev: { name: JIE_ZH[ja.prev.idx], at: fromJD(ja.prev.jd, tz) }, next: { name: JIE_ZH[ja.next.idx], at: fromJD(ja.next.jd, tz) } },
-      lichun: fromJD(lichun, tz), cycleYear: yy,
+      lichun: fromJD(lichun, tz), cycleYear: yy, unsure: b.noTime ? pillarUnsure(b.y, b.m, b.d, tz) : null,
     };
   }
   /** วัยจรที่ครอบคลุมอายุ age */
@@ -173,7 +186,9 @@
     if (!b.noTime && h < 6) wd = mod(wd - 1, 7);
     var planet = wd + 1; // อาทิตย์=1 … เสาร์=7
     if (wd === 3 && !b.noTime && (h >= 18 || h < 6)) planet = 8;
-    return { weekday: wd, planet: planet, rahuNight: planet === 8 };
+    // ไม่ทราบเวลา: วันพุธอาจเป็นพุธกลางคืน (ราหู) ถ้าเกิดหลัง 18:00 · ทุกวันอาจนับเป็นวันก่อนหน้าถ้าเกิดก่อน 06:00
+    var unsure = b.noTime ? { maybeRahu: wd === 3, preDawnWeekday: mod(wd - 1, 7), preDawnPlanet: mod(wd - 1, 7) === 3 ? 8 : mod(wd - 1, 7) + 1 } : null;
+    return { weekday: wd, planet: planet, rahuNight: planet === 8, unsure: unsure };
   }
   function taksa(b) {
     var bp = birthPlanet(b), start = TAKSA_ORDER.indexOf(bp.planet);
@@ -211,7 +226,7 @@
     var bp = birthPlanet(b), lm = thaiLunarMonth(b), za = zodiacYearThai(b);
     var r1 = row7(bp.weekday + 1), r2 = row7(lm.month), r3 = row7(za + 1);
     var sum = r1.map(function (v, i) { return v + r2[i] + r3[i]; });
-    return { rows: [r1, r2, r3], sum: sum, weekday: bp.weekday, lunarMonth: lm.month, secondEight: lm.secondEight, zodiac: za, total: sum.reduce(function (a, x) { return a + x; }, 0) };
+    return { rows: [r1, r2, r3], sum: sum, weekday: bp.weekday, unsure: bp.unsure, lunarMonth: lm.month, secondEight: lm.secondEight, zodiac: za, total: sum.reduce(function (a, x) { return a + x; }, 0) };
   }
 
   /* ---------- ตะวันตก ---------- */
@@ -231,7 +246,7 @@
 
   var api = {
     jdn: jdn, jd: jd, fromJD: fromJD, sunLongitude: sunLongitude, sunAt: sunAt, solarTermJD: solarTermJD, jieAround: jieAround, newMoonJD: newMoonJD, newMoonBefore: newMoonBefore,
-    STEMS: STEMS, BRANCHES: BRANCHES, JIE: JIE, jieLon: jieLon, STEM_EL: STEM_EL, BRANCH_EL: BRANCH_EL, HIDDEN: HIDDEN, EL_KEYS: EL_KEYS, JIE_ZH: JIE_ZH, tenGod: tenGod, bazi: bazi, luckAt: luckAt, pillar: pillar,
+    STEMS: STEMS, BRANCHES: BRANCHES, JIE: JIE, jieLon: jieLon, STEM_EL: STEM_EL, BRANCH_EL: BRANCH_EL, HIDDEN: HIDDEN, EL_KEYS: EL_KEYS, JIE_ZH: JIE_ZH, tenGod: tenGod, bazi: bazi, pillarUnsure: pillarUnsure, luckAt: luckAt, pillar: pillar,
     TAKSA_ORDER: TAKSA_ORDER, BHUMI: BHUMI, MAHA_YEARS: MAHA_YEARS, weekday: weekday, birthPlanet: birthPlanet, taksa: taksa, mahaAt: mahaAt,
     thaiLunarMonth: thaiLunarMonth, zodiacYearThai: zodiacYearThai, lek7: lek7, progressedSunChanges: progressedSunChanges, SATURN_RETURNS: SATURN_RETURNS,
   };

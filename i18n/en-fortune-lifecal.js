@@ -4,7 +4,7 @@
   "bazi.title": "Four Pillars (BaZi) · Day Master, Five Elements, Luck Pillars | LENSIQ", "bazi.h1": "Four Pillars (BaZi)",
   "bazi.lead": "The year, month, day and hour pillars, with the Day Master, Five Element balance and 10-year luck pillars; months follow the 24 solar terms computed from the Sun's position",
   "bazi.button": "Show chart",
-  "bazi.src": "The year changes at Li Chun, months change at the 12 \"Jie\" solar terms, days follow the 60-day cycle, and the Zi hour (23:00) counts as the next day; local standard time is used (not true solar time); solar-term times are accurate to about 15 minutes",
+  "bazi.src": "The year changes at Li Chun, months change at the 12 \"Jie\" solar terms, days follow the 60-day cycle, and the Zi hour (23:00) counts as the next day; local standard time is used (not true solar time); solar-term times are accurate to within about 1 minute",
   "taksa.title": "Thai Taksa · Birth Planet, Eight Bhumi, Maha Taksa | LENSIQ", "taksa.h1": "Thai Taksa · Eight Bhumi · Maha Taksa",
   "taksa.lead": "Count the eight bhumi (houses) from your birth-day planet around the Taksa ring (Sun, Moon, Mars, Mercury, Saturn, Jupiter, Rahu, Venus), and see which planet's Maha Taksa period governs each age range",
   "taksa.button": "Show chart",
@@ -45,4 +45,8 @@
   "lc.peaksH": "Peaks and periods to take steadily", "lc.peakLine": "Peaks around age {a} · take care around age {b}",
   "lc.turnsH": "Turning points (with source system)", "lc.ageN": "Age {a}", "lc.tTaksa": "Enters {p} Maha Taksa ({b})", "lc.tBazi": "Enters luck pillar {z} · {g}", "lc.tSaturn": "Saturn return", "lc.tProg": "Progressed Sun enters {s}",
   "lc.bandsCap": "Average energy per 6 years (0–100)", "lc.from": "Source", "lc.bandFrom": "{p} Maha Taksa", "lc.bandLuck": "Luck pillar {z}", "lc.bandSat": "Saturn return",
+  "lc.uYear": "This birth date is the day of Li Chun (立春, the Chinese solar new year), which falls at {t} — without a birth time, the year and month pillars depend on whether you were born before or after that time (this chart assumes noon); add your birth time for accuracy",
+  "lc.uMonth": "This birth date is the day the solar term {n} begins a new month, at {t} — without a birth time, the month pillar may be the neighbouring month (this chart assumes noon); add your birth time for accuracy",
+  "lc.uRahu": "Born on a Wednesday with no birth time — if you were born after 18:00, Thai tradition counts it as \"Wednesday night\" and the day planet is Rahu, which changes the Taksa chart; add your birth time for accuracy",
+  "lc.uDawn": "No birth time given — the Thai day changes at 06:00, so a birth before dawn counts as the previous day ({p}) and the result would differ",
 } });

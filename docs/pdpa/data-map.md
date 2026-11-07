@@ -44,6 +44,19 @@ How personal data flows through each LENSIQ module: **source → processing → 
 | Rate-limit counters (client IP) | Memory | Rolling one minute / daily, lost on restart |
 | Access logs | Flask/WSGI or proxy logs (operator-configured) | Set by the operator. Logs contain IP addresses. |
 
+## Cloud backend — members (`backend/`, Cloudflare Worker + D1, when deployed)
+
+Source → processing → storage → transfer for the optional "Sign in with Google" membership (ROPA M22a–h, retention in `retention-table.md`).
+
+| Flow | Source | Processing | Stored (D1) | Leaves / shared with |
+|---|---|---|---|---|
+| Sign-in | Google ID token after the member clicks the button (Google script loads only on click) | Worker verifies RS256 signature (JWKS), iss/aud/exp/iat, single-use nonce, `email_verified` | `users`: random id, Google `sub`, e-mail, optional given name, consent version/time, marketing opt-in. **No avatar, no access token.** `auth_nonces`: nonce hash (10 min). | Google (identity provider the member chose); Cloudflare (processor) |
+| Session | Worker issues a random 256-bit bearer token | Hash compared on each request | `member_sessions`: token hash, times (30 days / 14 days idle) | Token held in the member's browser only |
+| Readings and AI usage | Page reports "a reading of domain X happened" | Quota counting | `member_ledger` (kind, domain, time — no reading text; 400 days), `usage_counters` (35 days) | No |
+| Saved readings | Member taps "save" | Size/field clipping (≤ 16 KB) | `saved_readings` until deleted | No |
+| Payment | Opn checkout (PromptPay) and signed webhook | Signature check + status confirmation with the Opn API | `payments`/`subscriptions`/`customers` (≥ 5 years), `webhooks.payload` (90 days) | Opn Payments (processor) |
+| Erasure | Member: `DELETE /api/me` on `account.html` | Batch delete + unlink | Deletes `users`, sessions, ledger, saved readings, usage counters; unlinks payments (user id and e-mail cleared). `audit_log` keeps `member.deleted` with the random id for 400 days; webhook payloads age out at 90 days. | No |
+
 ## Third parties and cross-border transfers
 
 | Recipient | Country | Trigger | Data | Safeguard to document |
@@ -51,3 +64,6 @@ How personal data flows through each LENSIQ module: **source → processing → 
 | Anthropic (Claude API) | USA | AI fortune enabled + per-user consent | Derived facts, optional nickname | Explicit consent naming the country (s.28–29). Anthropic commercial terms / DPA. |
 | Replicate | USA | Try-on enabled (token + model + `LENSIQ_TRYON_LICENSE`) + per-user consent | Person photo, garment image | Explicit consent. Replicate terms. Model licence (see THIRD_PARTY F2, `docs/TRYON-LICENSING.md`). |
 | Your hosting provider (e.g. Render) | Provider region | Option D deployment | Request logs, API payloads in transit | Processor agreement |
+| Cloudflare (Workers + D1) | Global network; D1 in the chosen region (APAC hint recommended) | Backend deployed (`LENSIQ_API_BASE`) | Member, billing, analytics and audit tables above | Cloudflare DPA (s.40); transfer basis s.28/29 (DPIA §11, L9) |
+| Google (Sign in with Google) | USA | Member clicks the sign-in button | ID token exchange (Google already holds the account) | Privacy notice names Google; data minimised (no avatar, no access token) |
+| Opn Payments | Thailand / Japan group | Paid checkout | Amount, charge id, buyer e-mail / tax-invoice fields | Processor agreement; no card or bank data stored by LENSIQ |

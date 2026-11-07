@@ -314,3 +314,21 @@ test("card time scope: anomalies only inside the selection; longer windows are l
   for (const k of ["iq.scope.sel", "iq.scope.cmp", "iq.scope.hist", "iq.scope.anom", "iq.scope.fc", "iq.scope.cum", "iq.scope.since", "iq.scope.live", "iq.scope.last7", "iq.scope.all", "iq.absg.b2", "iq.absg.act3", "iq.ui.scope"]) assert.ok(zh[k], k);
   assert.match(zh["iq.absg.act3"], /估算/); assert.ok(!/（共 \{k\} 个）/.test(zh["iq.absg.b2"]));
 });
+
+// round 10: per-hour camera-health flags stored with the counts, "exclude flagged hours" view, accuracy status per camera
+test("flagged hours: annotated from st-day quality, excluded only in the view, latest site check per camera", () => {
+  const I = require("../../insights-data.js");
+  const day = I.iqDay();
+  const hourly = { in: Array(24).fill(0), out: Array(24).fill(0) };
+  hourly.in[10] = 30; hourly.in[11] = 12; hourly.out[11] = 10;
+  const snap = { ["st-day-" + day]: JSON.stringify({ date: day, in: 42, out: 10, hourly, quality: { 11: { n: 3600, offline: 1500, shake: 200 }, 10: { n: 3600, dark: 120 } } }) };
+  const D = I.iqCollect(snap), r = I.iqRange("today", Date.now(), D, {});
+  const F = I.iqFlagged(D, r);
+  assert.equal(F.length, 1); assert.equal(F[0].h, 11); assert.equal(F[0].src, "store"); assert.equal(F[0].min, 25);
+  const ex = I.iqExcludeFlagged(D, r);
+  assert.equal(ex.removed.store, 12); assert.equal(ex.D.store[0].in, 30); assert.equal(ex.D.store[0].hourlyIn[11], 0);
+  assert.equal(D.store[0].in, 42, "the collected data itself is unchanged");
+  assert.ok(/11:00/.test(I.iqCsv(D, { ...r, keys: [day] }).split("\r\n")[1]), "CSV day row lists the flagged hour");
+  const L = I.iqAccuracy({ "st-sitecheck": JSON.stringify([{ v: 2, at: 2, verdict: "ontrack", provisional: "pass", cam: "ประตูหน้า", need: [{ group: "crossings", more: 120 }] }]), "booth-sitecheck": JSON.stringify([{ v: 2, at: 3, verdict: "pass", cam: "หน้าบูธ" }]) });
+  assert.deepEqual(L.map(x => x.page + "/" + x.verdict), ["booth/pass", "store/ontrack"]);
+});

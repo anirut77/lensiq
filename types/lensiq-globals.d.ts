@@ -41,6 +41,8 @@ interface Window {
   LENSIQ_API_BASE?: string;
   /** lensiq-config.js: opt-in to the non-commercial BiSeNet face parser */
   LENSIQ_FACEPARSE?: boolean;
+  /** lensiq-config.js: false = hide the signage age/gender option and never load ageGenderNet (research-licence model) */
+  LENSIQ_AGE_GENDER?: boolean;
   /** lensiq-config.js: false = never load lensiq-analytics.js */
   LENSIQ_ANALYTICS?: boolean;
   /** lensiq-config.js: Cloudflare Turnstile site key for the AI writing assistant on the Worker ("" = off) */
@@ -76,6 +78,8 @@ interface Window {
 
 /** insights-data.js reads the multi-device aggregate as a bare global when lensiq-agg.js is loaded with <script> */
 declare var LQAgg: typeof import("../lensiq-agg.js") | undefined;
+/** insights-data.js / store.js read the on-site check + quality helpers as a bare global when lensiq-sitecheck.js is loaded */
+declare var LQSite: typeof import("../lensiq-sitecheck.js") | undefined;
 /** UMD modules call require() only under Node (guarded by typeof checks); no @types/node in the browser typecheck */
 declare var require: ((id: string) => any) | undefined;
 
@@ -88,7 +92,7 @@ interface CanvasRenderingContext2D { __lqrt?: boolean }
 /** lensiq-camera.js LQCam.create(video, opts) */
 interface LQCamOptions {
   facing?: string; ideal?: { width?: number; height?: number } | null; frameRate?: number; mirror?: string | boolean;
-  torch?: boolean; persistKey?: string | null; autoPause?: boolean; strictDevice?: boolean;
+  torch?: boolean; persistKey?: string | null; autoPause?: boolean; strictDevice?: boolean; reconnect?: boolean | (() => boolean);
   onChange?: (cam: any, ev: { type: string; [k: string]: unknown }) => void;
   onError?: (cam: any, err: any) => void;
 }

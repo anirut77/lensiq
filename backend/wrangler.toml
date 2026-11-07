@@ -34,7 +34,11 @@ MEMBER_LEDGER_DAYS = "400"
 # FREE service today: every feature unlocked, quotas counted but not enforced.
 FREE_MODE = "true"
 # Public PromptPay checkout. Keep "false" until pricing, terms and VAT registration are final.
+# With billing on, checkout REQUIRES a signed-in member (the purchase raises that account's quota).
 BILLING_ENABLED = "false"
+# Legacy opt-in: let guests buy without signing in (they get customer_id + order_token once and link the purchase
+# later with POST /v1/billing/claim). Ignored while the owner requires membership. Keep "false".
+ALLOW_GUEST_CHECKOUT = "false"
 # Refuse non-test Opn keys unless this is "true" (go-live switch).
 OPN_ALLOW_LIVE = "false"
 # Thai VAT: only a VAT-registered seller (turnover > 1.8 M THB/yr or voluntary) may charge VAT / issue a tax invoice.

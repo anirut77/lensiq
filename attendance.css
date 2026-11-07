@@ -45,7 +45,7 @@ th{position:sticky;top:0;background:var(--alt);color:var(--navy)}
 .cam-switch[hidden]{display:none}
 .cam-switch select{flex:1;min-width:0;min-height:44px;font-size:.88rem}
 th{white-space:nowrap}
-@media(max-width:820px){.layout,.session{grid-template-columns:1fr}}
+@media(max-width:820px){.layout,.session{grid-template-columns:minmax(0,1fr)}.layout>*,.session>*{min-width:0}}
 @media(max-width:640px){
   .att{padding:24px 16px 70px}
   .att input,.att select,.att textarea{font-size:16px} /* กัน iOS ซูม */

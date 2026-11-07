@@ -61,6 +61,16 @@
     return { scale, sx, sy, sw: out.w / scale, sh: out.h / scale };
   }
 
-  const api = { DPI, cmToPx, ID_SIZES, PAPERS, tileSheet, boothLayout, idCrop };
+  /* ป้าย "ภาพจำลองชุด" มุมขวาล่างของภาพที่มีชุดจำลอง (ctx = CanvasRenderingContext2D) — ใช้ร่วมกับ studio.js */
+  function previewMark(x, W, H, text) {
+    const fs = Math.max(9, Math.round(Math.min(W, H) * .034)), pad = Math.round(fs * .45);
+    x.save(); x.font = `600 ${fs}px Prompt, "Noto Sans Thai", sans-serif`; x.textBaseline = "middle";
+    const tw = x.measureText(text).width, bw = Math.min(W - 2 * pad, tw + 2 * pad), bh = fs + pad, bx = W - bw - pad, by = H - bh - pad;
+    x.fillStyle = "rgba(14,20,48,.62)"; x.beginPath(); if (x.roundRect) x.roundRect(bx, by, bw, bh, bh / 2); else x.rect(bx, by, bw, bh); x.fill();
+    x.fillStyle = "#fff"; x.fillText(text, bx + pad, by + bh / 2, bw - 2 * pad); x.restore();
+    return { x: bx, y: by, w: bw, h: bh };
+  }
+
+  const api = { DPI, cmToPx, ID_SIZES, PAPERS, tileSheet, boothLayout, idCrop, previewMark };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.PBLayout = api;
 })(typeof window !== "undefined" ? window : globalThis);

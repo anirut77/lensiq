@@ -935,13 +935,17 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var isZh = function () { return !!(window.LQI18N && LQI18N.lang === "zh"); };
   /** ข้อความจาก KB (palm-kb.js) → คีย์ palm.kb.<path> ในพจนานุกรมภาษาจีน */
   var KT = function (path, th) { return T("palm.kb." + path, th); };
-  var ZI = function (key) { var z = window.FORTUNE_ZH && window.FORTUNE_ZH.palm; return (z && z.items && z.items[key]) || null; };
+  var isEn = function () { return !!(window.LQI18N && LQI18N.lang === "en"); };
+  /** โหมดแปล (จีน/อังกฤษ): คลัง zh-kb-palm.js / en-kb-palm.js มีคีย์และช่องเดียวกัน */
+  var trL = function () { return isZh() || isEn(); };
+  var ZI = function (key) { var z = isEn() ? window.FORTUNE_EN && window.FORTUNE_EN.palm : window.FORTUNE_ZH && window.FORTUNE_ZH.palm; return (z && z.items && z.items[key]) || null; };
+  var capL = function (t) { return isEn() && typeof t === "string" ? t.charAt(0).toUpperCase() + t.slice(1) : t; };
   /** ความหมายภาษาจีนจาก zh-kb (ช่องแรกที่มีตามลำดับ order) — โหมดไทยคืนข้อความเดิม */
   var ZM = function (key, th, order) {
-    if (!isZh()) return th;
+    if (!trL()) return th;
     var it = ZI(key); if (!it) return th;
     var o = (order || "opwlmcta").split("");
-    for (var i = 0; i < o.length; i++) if (it[o[i]]) return [].concat(it[o[i]])[0];
+    for (var i = 0; i < o.length; i++) if (it[o[i]]) return capL([].concat(it[o[i]])[0]);
     return th;
   };
   var HTTPS_MSG = "บนมือถือต้องเปิดผ่าน https:// — ดูวิธีในหน้า ระบบทั้งหมด";
@@ -1107,7 +1111,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       return Promise.all([tf.loadGraphModel(MODEL_DIR + "detector/model.json"), tf.loadGraphModel(MODEL_DIR + "landmark/model.json")]).then(function (m) {
         models = { tf: tf, det: m[0], lm: m[1], anchors: PC.ssdAnchors(), backend: b };
         ready = true;
-        engine(function () { return T("palm.eng.ready", "พร้อมใช้งาน (ตัวประมวลผล: {b}{slow})", { b: b.toUpperCase(), slow: b === "webgl" ? "" : T("palm.eng.slow", " — อาจช้ากว่าปกติเล็กน้อย") }); }, "ok");
+        engine(function () { return T("palm.eng.ready", "พร้อมใช้งาน{slow}", { b: b.toUpperCase(), slow: b === "webgl" ? "" : T("palm.eng.slow", " (เครื่องนี้อาจอ่านผลช้ากว่าปกติเล็กน้อย)") }); }, "ok");
         return models;
       });
     }).catch(function (e) { console.error(e); engine(function () { return T("palm.eng.modelFail", "โหลดโมเดลจุดบนมือไม่สำเร็จ — ยังใช้งานได้โดยแตะจุดบนมือเอง"); }, "err"); modelsP = null; throw e; });
@@ -1702,13 +1706,13 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#plExtras").innerHTML = ex.length ? ex.join("") : '<li class="muted">' + esc(T("palm.extras.none", "ไม่ได้เลือกเส้นรองหรือเนิน — ย้อนไปเลือกในขั้นปรับเส้นได้")) + "</li>";
     $("#plMountEst").innerHTML = rd.mountsEst.map(function (m) {
       var bg = "";
-      if (m.bagua) bg = " · " + (isZh() ? KT("bagua." + m.bagua.id + ".th", m.bagua.th) + "（" + KT("bagua." + m.bagua.id + ".theme", m.bagua.theme) + "）" : m.bagua.th + " " + m.bagua.cn + " (" + m.bagua.theme + ")");
+      if (m.bagua) bg = " · " + (trL() ? KT("bagua." + m.bagua.id + ".th", m.bagua.th) + (isEn() ? " (" : "（") + KT("bagua." + m.bagua.id + ".theme", m.bagua.theme) + (isEn() ? ")" : "）") : m.bagua.th + " " + m.bagua.cn + " (" + m.bagua.theme + ")");
       return '<div class="mest' + (m.top ? " top" : "") + '"><b>' + esc(KT("mounts." + m.id + ".th", m.th) + (m.top ? T("palm.mest.top", " · เด่น") : "")) + "</b><span>" + m.level + "%</span><i style=\"--w:" + m.level + '%"></i><small>' + esc(KT("mounts." + m.id + ".under", m.under) + bg) + "</small></div>";
     }).join("");
     $("#plMountEstNote").textContent = KT("mountEstNote", KB.mountEstNote);
     $("#plColors").innerHTML = rd.colors.map(function (c, i) { return '<li><i style="background:' + c.hex + '"></i>' + esc(KT("elements." + eid + ".colors." + i, c.name)) + "</li>"; }).join("");
     $("#plTips").innerHTML = rd.tips.map(function (t) {
-      if (!isZh()) return "<li>" + esc(t) + "</li>";
+      if (!trL()) return "<li>" + esc(t) + "</li>";
       var gi = KB.generalTips.indexOf(t), z = t === E.tip ? KT("elements." + eid + ".tip", t) : gi >= 0 ? KT("generalTips." + gi, t) :
         rd.mounts.length ? T("palm.tip.mount", "จุดเด่นของคุณอยู่ที่{mount}", { mount: KT("mounts." + rd.mounts[0].id + ".th", rd.mounts[0].th) }) : t;
       return "<li>" + esc(z) + "</li>";

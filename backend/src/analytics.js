@@ -1,3 +1,4 @@
+// @ts-check
 // backend/src/analytics.js — privacy-first usage analytics (PDPA).
 //
 // Accepted: POST /v1/events  {v:1, consent:true, cv:"a1", events:[{n, sid, page?, feature?, domain?, step?, err?, lang?,

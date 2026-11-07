@@ -111,6 +111,8 @@ test("index.html: every data-i18n key has a Chinese entry; home.js keys too", ()
   const { I, ctx } = sandbox();
   vm.runInContext(COMMON, ctx);
   const html = readFileSync(join(ROOT, "index.html"), "utf8");
+  // page dictionaries index.html loads itself (e.g. i18n/zh-products.js for the 4-product chooser)
+  for (const m of html.matchAll(/<script src="(i18n\/zh-[\w-]+\.js)/g)) vm.runInContext(readFileSync(join(ROOT, m[1]), "utf8"), ctx);
   const keys = new Set([...html.matchAll(/data-i18n="([^"]+)"/g)].map(m => m[1]));
   for (const m of html.matchAll(/data-i18n-attr="([^"]+)"/g)) for (const p of m[1].split(";")) keys.add(p.split(":")[1]);
   const js = readFileSync(join(ROOT, "home.js"), "utf8");

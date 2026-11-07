@@ -43,6 +43,27 @@ jobs:
         run: npm run typecheck
       - name: unit tests (includes backend/ Worker — auth, analytics validation, retention, entitlements, Opn webhook, AI proxy — on an in-memory D1 shim)
         run: npm run test:unit
+      # Ratchet: type errors across ALL root *.js (npm run typecheck:report) may only go down. When you fix files, lower
+      # TYPECHECK_MAX to the new total in the same commit; never raise it.
+      - name: typecheck ratchet — total errors in the full report must not rise
+        env:
+          TYPECHECK_MAX: "800"
+        run: |
+          npm run --silent typecheck:report | tee typecheck-report.txt
+          total=$(sed -nE 's/^([0-9]+) error\(s\) in .*/\1/p' typecheck-report.txt | tail -1)
+          test -n "$total" || { echo "could not read the error total"; exit 1; }
+          echo "typecheck report: $total error(s), ratchet max $TYPECHECK_MAX"
+          if [ "$total" -gt "$TYPECHECK_MAX" ]; then echo "::error::type errors rose to $total (max $TYPECHECK_MAX)"; exit 1; fi
+      # The API Worker really bundles (wrangler's esbuild, pinned by backend/package-lock.json). --dry-run needs no
+      # Cloudflare account or secrets and deploys nothing. Runs after typecheck: backend/node_modules would otherwise
+      # replace the minimal ambient SDK types of backend/types/worker.d.ts.
+      - name: API Worker bundles (wrangler deploy --dry-run)
+        working-directory: backend
+        run: |
+          npm ci --no-audit --no-fund
+          node scripts/build-admin.mjs
+          npx wrangler deploy --dry-run --outdir "$RUNNER_TEMP/worker-dist"
+          test -s "$RUNNER_TEMP/worker-dist/index.js"
       - name: CSP <meta> present and current on every page
         run: node tools/csp-meta.mjs --check
       - name: no Google Fonts / third-party font references (fonts are self-hosted)
@@ -104,6 +125,13 @@ jobs:
         run: node tools/mobile-audit.mjs --selftest
         env:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
+      - name: phone gate — no horizontal overflow, text contrast >= 4.5:1, every form control labelled (320 / 360 / 390 px)
+        run: |
+          for w in 320 360 390; do
+            node tools/mobile-audit.mjs --width $w --strict --checks overflow,contrast,unlabeled,errors --details || exit 1
+          done
+        env:
+          LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
       - name: e2e (one retry per failing file)
         run: npm run test:e2e:ci
         env:
@@ -122,6 +150,10 @@ jobs:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
       - name: shared components 100 % Chinese in 中文 mode
         run: node tools/zh-coverage.mjs --shared --no-interact --max 0
+        env:
+          LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
+      - name: shared components 100 % English in English mode
+        run: node tools/zh-coverage.mjs --lang en --shared --no-interact --max 0
         env:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
       - name: zh coverage report per page (after typical interactions)

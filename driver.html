@@ -9,7 +9,7 @@
 <title data-i18n="driver.s1">เฝ้าระวังความง่วงคนขับ | LENSIQ</title>
 <link rel="stylesheet" href="styles.css?v=8">
 <link rel="stylesheet" href="driver.css?v=4">
-<link rel="stylesheet" href="lensiq-sitecheck.css?v=1">
+<link rel="stylesheet" href="lensiq-sitecheck.css?v=2">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -18,7 +18,7 @@
 <script src="lensiq-i18n-rt.js?v=1"></script>
 <script src="i18n/zh-rt-common.js?v=1"></script>
 <script src="i18n/zh-rt-driver.js?v=1"></script>
-<script src="i18n/zh-rt-sitecheck.js?v=1"></script>
+<script src="i18n/zh-rt-sitecheck.js?v=2"></script>
 
 <main class="dr">
   <h1 data-i18n="driver.s2">เฝ้าระวังความง่วงคนขับ</h1>
@@ -50,6 +50,7 @@
         <label><span data-i18n="driver.s23">ที่นั่งคนขับ (ใช้เลือกใบหน้าเมื่อมีหลายคนในภาพ)</span><select name="seatSide"><option value="right" data-i18n="driver.s24">ขวา (รถพวงมาลัยขวา แบบไทย)</option><option value="left" data-i18n="driver.s25">ซ้าย (รถพวงมาลัยซ้าย)</option><option value="auto" data-i18n="driver.s26">อัตโนมัติ (ใบหน้าใหญ่สุด)</option></select></label>
         <label class="check"><input name="speech" type="checkbox"> <span data-i18n="driver.s27">พูดเตือนเป็นเสียงภาษาไทย</span></label>
         <button class="btn ghost" id="testSound" type="button" data-i18n="driver.s28">ทดสอบเสียงเตือน</button>
+        <p class="hint sc-docs"><span>เอกสารสำหรับติดตั้ง:</span> <a href="camera-notice.html">ป้ายแจ้งการใช้กล้องสำหรับพิมพ์</a> · <a href="camera-notice.html#sign-h">แบบฟอร์มขอความยินยอม (แม่แบบ)</a></p>
       </form>
     </div>
     <p class="hint" data-i18n="driver.s29">ขั้นตอนปรับเทียบ: ลืมตาตามปกติและมองไปที่ถนน 5 วินาที ระบบจะหาค่า EAR ปกติของคุณ แล้วตั้งเกณฑ์หลับตา = ค่าปกติ × สัดส่วน (ถ้าไม่พบใบหน้าจะใช้ 0.25)</p>
@@ -162,10 +163,10 @@
 
 <script src="vendor/face-api.js"></script>
 <script src="lensiq-track.js?v=2"></script>
-<script src="lensiq-camera.js?v=2"></script>
+<script src="lensiq-camera.js?v=3"></script>
 <script src="lensiq-detect.js?v=2"></script>
-<script src="lensiq-sitecheck.js?v=1"></script>
-<script src="driver.js?v=4"></script>
+<script src="lensiq-sitecheck.js?v=2"></script>
+<script src="driver.js?v=5"></script>
 <script src="lensiq-config.js?v=3"></script>
 </body>
 </html>

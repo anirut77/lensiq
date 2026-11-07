@@ -47,7 +47,7 @@
     var items = [
       { id: "dm." + dm.stem, group: "เจ้าชะตา (日主)", label: S.th, short: "เจ้าชะตา" + EL[dm.el].th, evidence: "เสาวัน " + P.day.zh, strength: 0.96, tone: "favourable", remedy: "el." + EL[B.favour[0]].key, tags: ["personality", "work", "love", "money"],
         meanings: { overview: [S.p], personality: [S.p], work: [S.w], love: [S.l], money: [S.m] } },
-      { id: "str." + B.strength, group: "กำลังเจ้าชะตา", label: st.th, short: st.th, evidence: "ธาตุหนุนเจ้าชะตา " + B.elementShare[dm.el] + "% + ธาตุให้กำเนิด", strength: 0.8, tone: st.tone, tags: ["personality", "advice"],
+      { id: "str." + B.strength, group: "กำลังเจ้าชะตา", label: st.th, short: st.th, evidence: "ธาตุเดียวกับเจ้าชะตา " + B.elementShare[dm.el] + "% ของผัง + ธาตุที่ให้กำเนิด + ฤดูเกิด", strength: 0.8, tone: st.tone, tags: ["personality", "advice"],
         meanings: { personality: [st.p], advice: [st.a] } },
       { id: "el.hi." + hi.key, group: "ห้าธาตุ", label: "ธาตุ" + hi.th + "เด่นที่สุด", short: "ธาตุ" + hi.th, evidence: "สัดส่วน " + B.elementShare[B.strongest] + "% ของแปดอักษร", strength: 0.7, tone: "favourable", tags: ["personality"],
         meanings: { personality: [hi.hi] } },
@@ -91,7 +91,9 @@
     var bp = T.birth.planet, items = [];
     var P0 = PLANET[bp];
     items.push({ id: "tk.boriwan." + bp, group: "ดาวประจำวันเกิด", label: "ดาว" + P0.th + " (" + P0.day + ")", short: "ดาว" + P0.th, evidence: "ภูมิบริวาร", strength: 0.95, tone: "favourable", tags: ["personality", "social"],
-      meanings: { overview: ["ดาวประจำวันเกิดของคุณคือดาว" + P0.th + " ซึ่งตำราให้ความหมายเรื่อง" + P0.q], personality: ["คุณมีพลังของ" + P0.q + "เป็นพื้นฐาน"], social: [BHUMI_TH.boriwan.m] } });
+      meanings: { overview: ["ดาวประจำวันเกิดของคุณคือดาว" + P0.th + " ซึ่งตำราให้ความหมายเรื่อง" + P0.q], personality: ["คุณมีพลังของ" + P0.q + "เป็นพื้นฐาน"], social: [BHUMI_TH.boriwan.m],
+        // ภูมิบริวารในตำราทักษารวมถึงคู่ครองและคนในครอบครัว → ใช้ตอบเรื่องความรักได้ตรงตำรา
+        love: ["ในตำราทักษา ภูมิบริวารยังหมายถึงคู่ครองและคนในครอบครัว ความสัมพันธ์ใกล้ชิดจึงเติบโตได้ดีเมื่อคุณดูแลคนรอบตัวอย่างใส่ใจ"] } });
     ["sri", "det", "montri", "utsaha", "ayu", "kalakini"].forEach(function (b, i) {
       var p = T.bhumi[b], B = BHUMI_TH[b], P = PLANET[p], m = {};
       m[B.tag] = [B.m.replace("ดาวนี้", "ดาว" + P.th) + " สีประจำดาวคือสี" + P.color];

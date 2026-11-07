@@ -1,3 +1,4 @@
+// @ts-check
 // backend/src/constants.js — shared enums (same lists as fortune-ai.js / server.py) and the analytics allowlists.
 export const FORTUNE_DOMAINS = ["face", "palm", "horoscope", "tarot", "siamsee", "fengshui", "numbers", "iching", "zodiac", "astro", "dream", "bazi", "taksa", "lek7", "lifegraph"];
 
@@ -5,9 +6,9 @@ export const FORTUNE_DOMAINS = ["face", "palm", "horoscope", "tarot", "siamsee",
  *  Anything else is rejected (the client sends "other" instead). A unit test fails when a page is missing here;
  *  lensiq-analytics.js carries the same lists (drift test in tests/unit/backend-site.test.js). */
 export const ANALYTICS_PAGES = [
-  "about", "account", "astro", "attendance", "bazi", "booth", "camera-notice", "cameras", "checkout", "converter", "creative", "customers", "dream",
-  "driver", "faceread", "fengshui", "fortune", "help", "horoscope", "iching", "index", "insights", "interview", "lek7", "lifegraph",
-  "neuro", "numbers", "palm", "photobooth", "pricing", "privacy", "qc", "signage", "store", "studio", "taksa", "tarot", "teamface", "terms", "zodiac",
+  "about", "account", "astro", "attendance", "bazi", "booth", "camera-notice", "cameras", "checkout", "converter", "creative", "creative-suite", "customers", "dream",
+  "driver", "faceread", "fengshui", "fortune", "help", "horoscope", "hr", "iching", "index", "insights", "interview", "lek7", "lifegraph",
+  "neuro", "numbers", "palm", "photobooth", "pricing", "privacy", "qc", "retail", "signage", "store", "studio", "taksa", "tarot", "teamface", "terms", "zodiac",
   "other"
 ];
 
@@ -32,3 +33,22 @@ export const ANALYTICS_ERRORS = [
 
 /** Versions of the analytics consent text (lensiq-analytics.js CONSENT_VERSION). Bump both when the text changes. */
 export const CONSENT_VERSIONS = ["a1"];
+
+/**
+ * Paid-perk registry (served by GET /v1/billing/plans as `perks`). status:
+ *   active       enforced by the server (checkEntitlement / POST /api/me/entitlements/use) — the pricing page may sell it
+ *   coming_soon  listed in a plan's entitlements but NOT enforced or delivered yet — the pricing page must label it
+ *                "เร็ว ๆ นี้ / coming soon" and must not present it as part of the offer
+ * enforcement: "quota" (counted per period), "credit" (one-time purchase credits), "server_check" (the page asks the
+ * server before it runs the feature — csv_export: POST /api/me/entitlements/use {feature:"csv_export"}).
+ * Only features listed here can be put on a plan through the admin API.
+ */
+export const PERKS = Object.freeze({
+  ai_reading:     { status: "active", enforcement: "quota", unit: "uses", th: "ผู้ช่วยเขียนคำทำนายด้วย AI", en: "AI writing assistant", zh: "AI 写作助手" },
+  report_basic:   { status: "active", enforcement: "credit", unit: "reports", th: "รายงานดวงพื้นฐาน", en: "Basic reading report", zh: "基础运势报告" },
+  report_compat:  { status: "active", enforcement: "credit", unit: "reports", th: "รายงานดวงคู่", en: "Compatibility report", zh: "合盘报告" },
+  report_annual:  { status: "active", enforcement: "credit", unit: "reports", th: "รายงานดวงรายปี", en: "Annual forecast report", zh: "年度运势报告" },
+  csv_export:     { status: "active", enforcement: "server_check", unit: "exports", th: "ส่งออก CSV", en: "CSV export", zh: "CSV 导出" },
+  analytics_days: { status: "coming_soon", enforcement: "none", unit: "days", th: "ประวัติสถิติบนคลาวด์", en: "Cloud analytics history", zh: "云端统计历史" },
+  hub_nodes:      { status: "coming_soon", enforcement: "none", unit: "nodes", th: "เชื่อมหลายสาขา (hub)", en: "Multi-site hub nodes", zh: "多站点节点" }
+});

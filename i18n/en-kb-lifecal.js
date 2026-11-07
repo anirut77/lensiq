@@ -95,7 +95,7 @@
 
   Object.keys(PLANET).forEach(function (p) {
     var P = PLANET[p];
-    taksa["tk.boriwan." + p] = { n: P.n + " (your birth-day planet)", s: P.n, o: "your birth-day planet is " + P.n + ", which stands for " + P.q, p: "you are born with a natural strength for " + P.q, c: BH.boriwan.m, x: TK_X };
+    taksa["tk.boriwan." + p] = { n: P.n + " (your birth-day planet)", s: P.n, o: "your birth-day planet is " + P.n + ", which stands for " + P.q, p: "you are born with a natural strength for " + P.q, c: BH.boriwan.m, l: "in Taksa the companions area covers your partner and family too, so close relationships grow well when you look after the people around you", x: TK_X };
     Object.keys(BH).forEach(function (b) {
       if (b === "boriwan") return;
       var B = BH[b], it = { n: B.n + ", held by " + P.n, s: B.n.replace(/ \(\w+\)$/, "") };
@@ -117,7 +117,9 @@
   });
   Object.keys(DOM).forEach(function (d) {
     ["favourable", "neutral", "caution"].forEach(function (t) {
-      var it = { n: "your " + DOM[d].n + " (from age {d})", s: "your " + DOM[d].n, x: LG_X }; it[DOM[d].f] = DOM_LINE[d][t]; if (t === "caution") it.a = DOM_ACT[d]; if (d === "work") it.o = DOM_LINE[d][t];
+      // name the curve, not the topic again ("Start with your love life (from age 18): your love life …" read twice)
+      var g = { work: "work", money: "money", love: "love", care: "self-care" }[d] || DOM[d].n;
+      var it = { n: "the " + g + " curve of your life graph (from age {d})", s: "the " + g + " curve", x: LG_X }; it[DOM[d].f] = DOM_LINE[d][t]; if (t === "caution") it.a = DOM_ACT[d]; if (d === "work") it.o = DOM_LINE[d][t];
       life["lg.now." + d + "." + t] = it;
     });
     life["lg.next." + d] = { n: "the next stage for your " + DOM[d].n, s: "the next stage", t: "in the next age period, your " + DOM[d].n + " shows signs of improving" };

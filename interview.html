@@ -22,13 +22,17 @@
   <p class="iv-principle" role="note"><b data-i18n="iv.s.prin1">เครื่องมือนี้ไม่ตัดสินใครและไม่ตัดสินใจแทนใคร:</b> <span data-i18n="iv.s.prin2">ทำหน้าที่จัดคำถาม รวบรวมคะแนนและหลักฐานที่ผู้สัมภาษณ์บันทึกเอง และแสดงข้อสังเกตเท่านั้น ผู้สัมภาษณ์เป็นผู้พิจารณาและตัดสินใจทั้งหมด</span></p>
   <p class="iv-privacy" role="note"><b data-i18n="iv.s.priv1">ข้อมูลอยู่ในหน้านี้เท่านั้น:</b> <span data-i18n="iv.s.priv2">ไม่อัปโหลด ไม่บันทึกลงเครื่อง ไม่บันทึกภาพหรือเสียง ปิดหน้าแล้วข้อมูลหายไป — พิมพ์หรือบันทึกสรุปเป็น PDF ก่อนปิด</span></p>
 
+  <div class="iv-modebar" id="ivModeBar">
+    <p class="hint" id="ivModeHint" data-i18n="iv.s.mode.hint">ผู้สมัครที่อยากฝึกเอง: ใช้คนเดียวบนเครื่องของคุณ ไม่มีอะไรส่งถึงนายจ้าง</p>
+    <button class="btn ghost" type="button" id="ivModeBtn" aria-pressed="false">โหมดฝึกซ้อมของผู้สมัคร (ใช้คนเดียว)</button>
+  </div>
   <div class="tabs" role="tablist" aria-label="ส่วนของหน้า" data-i18n-attr="aria-label:iv.s.tabs">
     <button class="tab active" type="button" role="tab" aria-selected="true" aria-controls="pane-setup" id="tab-setup" data-t="setup" data-i18n="iv.s.t1">1. ตั้งค่า</button>
     <button class="tab" type="button" role="tab" aria-selected="false" aria-controls="pane-questions" id="tab-questions" data-t="questions" data-i18n="iv.s.t2">2. คำถาม</button>
     <button class="tab" type="button" role="tab" aria-selected="false" aria-controls="pane-score" id="tab-score" data-t="score" data-i18n="iv.s.t3">3. ให้คะแนน</button>
     <button class="tab" type="button" role="tab" aria-selected="false" aria-controls="pane-summary" id="tab-summary" data-t="summary" data-i18n="iv.s.t4">4. สรุป</button>
     <button class="tab" type="button" role="tab" aria-selected="false" aria-controls="pane-delivery" id="tab-delivery" data-t="delivery" data-i18n="iv.s.t5">ข้อสังเกตการนำเสนอ</button>
-    <button class="tab" type="button" role="tab" aria-selected="false" aria-controls="pane-practice" id="tab-practice" data-t="practice" data-i18n="iv.s.t6">โหมดฝึกซ้อม</button>
+    <button class="tab" type="button" role="tab" aria-selected="false" aria-controls="pane-practice" id="tab-practice" data-t="practice" data-i18n="iv.s.t6">โหมดฝึกซ้อมของผู้สมัคร</button>
     <button class="tab" type="button" role="tab" aria-selected="false" aria-controls="pane-about" id="tab-about" data-t="about" data-i18n="iv.s.t7">หลักการ</button>
   </div>
 
@@ -65,11 +69,26 @@
         <ul class="bias" id="ivBias"></ul>
       </div>
     </div>
+    <div class="card region" id="ivRegionCard">
+      <h2 data-i18n="iv.s.reg.h">เขตการใช้งาน</h2>
+      <label class="field"><span data-i18n="iv.s.reg.l">ใช้ที่ไหน / ภายใต้กฎเกณฑ์ใด</span>
+        <select id="ivRegion">
+          <option value="th" data-i18n="iv.s.reg.th">ประเทศไทย / ทั่วไป</option>
+          <option value="eu" data-i18n="iv.s.reg.eu">EU/EEA หรือการใช้งานที่มีการกำกับ</option>
+        </select>
+      </label>
+      <p class="hint" data-i18n="iv.s.reg.hint">โหมด EU/EEA ซ่อน "สัญญาณความตื่นเต้นที่สังเกตได้" และข้อสังเกตที่คล้ายการอ่านอารมณ์ทั้งหมดในขั้นตอนของนายจ้าง เพราะกฎหมาย EU AI Act มาตรา 5(1)(f) ห้ามระบบรู้จำอารมณ์ในที่ทำงาน รวมถึงการสรรหา — ผู้สมัครยังดูได้ในโหมดฝึกซ้อมของตัวเอง ตัวเลขพื้นฐาน (เห็นใบหน้า หันเข้ากล้อง เวลาพูด ช่วงหยุด) ยังใช้ได้ตามความยินยอม</p>
+      <p class="form-msg" id="ivRegionState" role="status"></p>
+    </div>
     <div class="card">
       <h2 data-i18n="iv.s.law.h">ตรวจคำถามที่ไม่ควรถาม (ประเทศไทย)</h2>
       <p class="hint" data-i18n="iv.s.law.hint">หลีกเลี่ยงคำถามที่ไม่เกี่ยวกับความสามารถในการทำงานและอาจนำไปสู่การเลือกปฏิบัติ ติ๊กเมื่อผู้สัมภาษณ์ทุกคนทบทวนแล้ว — ไม่ใช่คำแนะนำทางกฎหมาย ควรให้ฝ่ายบุคคล/กฎหมายของท่านยืนยัน</p>
       <p class="law-count" id="ivLawCount" role="status"></p>
       <ul class="law" id="ivLaw"></ul>
+      <label class="field qcheck"><span data-i18n="iv.s.qc.l">ตรวจคำถามที่คุณจะถามเพิ่ม (พิมพ์ก่อนถาม)</span>
+        <textarea id="ivQCheck" rows="2" maxlength="500" placeholder="เช่น คุณมีแผนจะมีบุตรไหม" data-i18n-attr="placeholder:iv.s.qc.ph"></textarea>
+      </label>
+      <p class="law-warn" id="ivQCheckOut" role="status" aria-live="polite"></p>
     </div>
     <div class="next-row"><button class="btn primary" type="button" data-goto="questions" data-i18n="iv.s.toQ">ไปที่คำถาม</button></div>
   </section>
@@ -114,6 +133,7 @@
     <div class="card print-area" id="ivSummary">
       <h2 data-i18n="iv.s.sum.h">สรุปสำหรับการหารือของผู้สัมภาษณ์</h2>
       <p class="sum-meta" id="ivSumMeta"></p>
+      <p class="hint early" id="ivSumEarly" hidden data-i18n="iv.s.sum.early">เปิดสรุปก่อนผู้สัมภาษณ์ทุกคนส่งคะแนน — คะแนนที่ส่งหลังจากนี้อาจไม่ได้ให้อย่างอิสระ ควรบันทึกไว้ในการหารือ</p>
       <p class="iv-principle small" data-i18n="iv.s.sum.prin">สรุปนี้ไม่ใช่ผลการตัดสิน ไม่มีเกณฑ์ผ่าน/ไม่ผ่าน ใช้เพื่อเริ่มหารือจากหลักฐาน ผู้สัมภาษณ์เป็นผู้ตัดสินใจ</p>
       <div id="ivSumWait" class="wait" hidden>
         <p id="ivSumWaitT"></p>
@@ -128,6 +148,8 @@
           <section><h3 data-i18n="iv.s.sum.dev">ด้านที่ควรพัฒนา</h3><ul id="ivDev"></ul></section>
           <section><h3 data-i18n="iv.s.sum.dis">ควรหารือ (คะแนนต่างกันมาก)</h3><ul id="ivDis"></ul></section>
         </div>
+        <section class="sum-obs" id="ivSumSpread"></section>
+        <section class="sum-obs" id="ivSumConsist"></section>
         <div id="ivSumDelivery" hidden></div>
       </div>
     </div>
@@ -157,7 +179,7 @@
       <p data-i18n="iv.s.d.what">ถ้าผู้สมัครยินยอม กล้องและไมโครโฟนของเครื่องนี้จะวัดเฉพาะสิ่งที่สังเกตได้: สัดส่วนเวลาที่เห็นใบหน้า สัดส่วนเวลาที่หันหน้าเข้าหากล้อง ปริมาณการขยับศีรษะ สัดส่วนเวลาที่มีเสียงพูด ช่วงหยุด และจังหวะเสียงโดยประมาณ</p>
       <ul class="dl">
         <li data-i18n="iv.s.d.l1">ประมวลผลในเบราว์เซอร์นี้เท่านั้น ไม่ส่ง ไม่บันทึกภาพ เสียง หรือคำพูด (เก็บเพียงตัวเลขระหว่างเปิดหน้า)</li>
-        <li data-i18n="iv.s.d.l2">ไม่วัดอารมณ์ ความซื่อสัตย์ การโกหก หรือบุคลิกภาพ และไม่ให้คะแนนผู้สมัคร</li>
+        <li data-i18n="iv.s.d.l2">ไม่อ่านอารมณ์ภายใน ไม่ตัดสินว่าคำตอบจริงหรือเท็จ ไม่ประเมินบุคลิกภาพ และไม่ให้คะแนนผู้สมัคร — แสดงเฉพาะพฤติกรรมที่สังเกตได้ รวมถึง "สัญญาณความตื่นเต้นที่สังเกตได้" ซึ่งเป็นเรื่องปกติในการสัมภาษณ์</li>
         <li data-i18n="iv.s.d.l3">การปฏิเสธไม่มีผลต่อการพิจารณา ขอรูปแบบสัมภาษณ์อื่นได้ และขอหยุดได้ทุกเมื่อ</li>
         <li data-i18n="iv.s.d.l4">ตัวเลขเป็นของผู้สมัคร: แสดงให้ผู้สมัครเท่านั้น หลังสัมภาษณ์ผู้สมัครเลือกเก็บ (พิมพ์/บันทึก PDF) หรือทิ้งได้</li>
         <li id="ivDOrgNote" hidden data-i18n="iv.s.d.l5">องค์กรนี้เปิดให้ผู้สัมภาษณ์ดูตัวเลขได้หลังส่งคะแนนครบแล้ว (ไม่ใช้ให้คะแนน) — ถ้าผู้สมัครเลือก "ทิ้ง" ผู้สัมภาษณ์จะไม่เห็น</li>
@@ -172,6 +194,7 @@
     </div>
     <div class="card" id="ivDLive" hidden>
       <h2 data-i18n="iv.s.d.liveH">กำลังวัด — ตัวเลขซ่อนจากผู้สัมภาษณ์</h2>
+      <p class="hint" id="ivDRegionNote" hidden data-i18n="iv.s.d.euNote">โหมด EU/EEA: ไม่แสดงสัญญาณความตื่นเต้นที่สังเกตได้ในการสัมภาษณ์ของนายจ้าง (EU AI Act มาตรา 5(1)(f)) — ผู้สมัครดูได้ในโหมดฝึกซ้อมของตัวเอง</p>
       <div class="live-grid">
         <div class="cam"><video id="ivDVideo" autoplay muted playsinline></video><canvas id="ivDOverlay" width="640" height="480" aria-hidden="true"></canvas></div>
         <div>
@@ -209,13 +232,14 @@
       <p class="form-msg" id="ivDResState" role="status"></p>
     </div>
     <details class="card why" open>
-      <summary data-i18n="iv.s.why.h">ทำไมไม่มีการวัดอารมณ์ การโกหก หรือบุคลิกภาพ</summary>
+      <summary data-i18n="iv.s.why.h">ข้อจำกัดทางวิทยาศาสตร์: ทำไมแสดงเพียงพฤติกรรมที่สังเกตได้ ไม่ใช่การอ่านอารมณ์หรือการจับเท็จ</summary>
       <ul>
         <li data-i18n="iv.s.why.1">งานวิจัยรวม 206 การศึกษาพบว่าคนจับโกหกได้ถูกเพียงราว 54% ใกล้เคียงการเดาสุ่ม และไม่มีสัญญาณบนใบหน้าหรือน้ำเสียงที่บอกการโกหกได้อย่างน่าเชื่อถือ (Bond &amp; DePaulo, 2006)</li>
         <li data-i18n="iv.s.why.2">การแสดงออกทางใบหน้าไม่ได้บอกอารมณ์ภายในอย่างน่าเชื่อถือ และต่างกันตามบุคคลและวัฒนธรรม (Barrett และคณะ, 2019)</li>
         <li data-i18n="iv.s.why.3">กฎหมายปัญญาประดิษฐ์ของสหภาพยุโรป (EU AI Act มาตรา 5(1)(f)) ห้ามระบบรู้จำอารมณ์ในที่ทำงานและสถานศึกษาตั้งแต่ 2 ก.พ. 2025 และจัดระบบคัดเลือกบุคลากรเป็นความเสี่ยงสูง</li>
         <li data-i18n="iv.s.why.4">ข้อมูลชีวภาพ (เช่น ข้อมูลจำลองใบหน้า) และข้อมูลสุขภาพ/ความพิการเป็นข้อมูลอ่อนไหวตาม PDPA มาตรา 26 หน้านี้จึงไม่สร้างหรือเก็บข้อมูลจำลองใบหน้า</li>
         <li data-i18n="iv.s.why.5">การอนุมานบุคลิกภาพจากใบหน้าไม่มีหลักฐานทางวิทยาศาสตร์รองรับ และเสี่ยงต่อการเลือกปฏิบัติ</li>
+        <li data-i18n="iv.s.why.7">"สัญญาณความตื่นเต้นที่สังเกตได้" และ "ความสอดคล้องของคำตอบ" เป็นข้อสังเกต ไม่ใช่การตัดสิน: ความตื่นเต้นพบได้ทั่วไปในคนที่พูดจริง และคำตอบที่ไม่สอดคล้องควรนำไปสู่การถามเพิ่มหรือตรวจสอบบุคคลอ้างอิง ไม่ใช่ข้อสรุปว่าใครพูดไม่จริง</li>
         <li data-i18n="iv.s.why.6">ในการสมัครงาน ผู้สมัครต่อรองได้น้อย ความยินยอมจึงอาจไม่อิสระจริง (PDPA ม.19, GDPR ข้อ 7(4) และแนวทาง EDPB 05/2020) ตัวเลขจึงเป็นของผู้สมัครเป็นค่าเริ่มต้น</li>
       </ul>
     </details>
@@ -225,6 +249,7 @@
   <section class="pane" id="pane-practice" role="tabpanel" aria-labelledby="tab-practice" hidden>
     <div class="card" id="ivPSetup">
       <h2 data-i18n="iv.s.p.h">ฝึกตอบคำถามสัมภาษณ์ด้วยตัวเอง</h2>
+      <p class="iv-principle small" role="note"><b data-i18n="iv.s.p.own1">โหมดฝึกซ้อมของผู้สมัคร:</b> <span data-i18n="iv.s.p.own2">ใช้คนเดียวบนเครื่องของคุณเอง ผลทั้งหมดเป็นของคุณ ไม่มีอะไรส่งถึงนายจ้างหรือผู้สัมภาษณ์ ไม่อัปโหลด ไม่บันทึกภาพหรือเสียง ปิดหน้าแล้วหายไป</span></p>
       <p class="hint" data-i18n="iv.s.p.hint">สำหรับผู้สมัครฝึกเอง: สุ่มคำถามตามตำแหน่ง จับเวลาเตรียมและตอบ แล้วตรวจคำตอบด้วยหลัก STAR ถ้าเปิดกล้อง จะได้คำแนะนำเรื่องจังหวะการพูด ช่วงหยุด และการหันเข้ากล้อง — ทั้งหมดอยู่ในเครื่องนี้</p>
       <div class="row">
         <label class="field"><span data-i18n="iv.s.role.l">แม่แบบตำแหน่งงาน</span>
@@ -247,6 +272,15 @@
       <label class="check"><input type="checkbox" id="ivPCam"> <span data-i18n="iv.s.p.cam">ใช้กล้องและไมโครโฟนเพื่อรับคำแนะนำ (ประมวลผลในเครื่อง ไม่บันทึก)</span></label>
       <div class="row-actions"><button class="btn primary" type="button" id="ivPStart" data-i18n="iv.s.p.start">เริ่มฝึก</button></div>
       <p class="form-msg" id="ivPMsg" role="status"></p>
+    </div>
+    <div class="card fb" id="ivPSum" hidden>
+      <h2 data-i18n="iv.s.ps.h">สรุปการฝึกของฉัน (เห็นเฉพาะคุณ)</h2>
+      <p class="hint" data-i18n="iv.s.ps.hint">จังหวะการพูด ช่วงหยุด เวลาที่พูด และสัดส่วนการมองกล้อง จากคำตอบที่เปิดกล้อง/ไมโครโฟน ไม่มีอะไรส่งถึงนายจ้าง</p>
+      <div id="ivPSumBody"></div>
+      <div class="row-actions no-print">
+        <button class="btn ghost" type="button" id="ivPSumPrint" data-i18n="iv.s.ps.print">พิมพ์ / บันทึกเป็น PDF ของฉัน</button>
+        <button class="btn ghost danger" type="button" id="ivPSumClear" data-i18n="iv.s.ps.clear">ลบผลการฝึก</button>
+      </div>
     </div>
     <div class="card" id="ivPRun" hidden>
       <div class="p-head"><span class="p-count" id="ivPCount"></span><span class="p-phase" id="ivPPhase"></span><span class="p-timer" id="ivPTimer" aria-live="off">0:00</span></div>
@@ -283,6 +317,8 @@
         <li data-i18n="iv.s.a.d2">ตัวเลขแสดงให้ผู้สมัครเท่านั้น: ระหว่างสัมภาษณ์ผ่าน "มุมมองผู้สมัคร" และหลังสัมภาษณ์ผ่านการ์ด "ผลของฉัน" ที่ผู้สมัครเลือกเก็บหรือทิ้ง</li>
         <li data-i18n="iv.s.a.d3">ผู้สัมภาษณ์เห็นตัวเลขได้เฉพาะเมื่อองค์กรเปิดการตั้งค่าพร้อมยืนยันว่าทำ DPIA แล้ว ผู้สมัครปฏิเสธได้และได้รับรูปแบบอื่น และไม่ใช้ให้คะแนน — แม้เปิดแล้วก็แสดงหลังทุกคนส่งคะแนนเท่านั้น เพื่อไม่ให้ตัวเลขเป็นตัวยึดคะแนน</li>
         <li data-i18n="iv.s.a.d4">เหตุผล: ความยินยอมของผู้สมัครงานอาจไม่อิสระเพราะอำนาจต่อรองไม่เท่ากัน และตัวเลขการสบตา/ช่วงหยุดต่างกันตามความพิการ ความหลากหลายทางระบบประสาท วัฒนธรรม และอุปกรณ์ จึงเสี่ยงต่อการเลือกปฏิบัติ</li>
+        <li data-i18n="iv.s.a.d6">ข้อสังเกตที่คล้ายอารมณ์ ("สัญญาณความตื่นเต้นที่สังเกตได้") ใช้คำบรรยายพฤติกรรม แสดงพร้อมข้อจำกัดทางวิทยาศาสตร์ และถูกซ่อนในขั้นตอนของนายจ้างเมื่อเลือกโหมด EU/EEA หรือการใช้งานที่มีการกำกับ</li>
+        <li data-i18n="iv.s.a.d7">"ความสอดคล้องของคำตอบ (ข้อสังเกต ไม่ใช่การตัดสิน)" มาจากสิ่งที่ผู้สัมภาษณ์สังเกตเอง ไม่ใช่การวัดจากกล้องหรือเสียง และไม่มีคะแนน "จริง/เท็จ"</li>
         <li data-i18n="iv.s.a.d5">โหมดฝึกซ้อมเป็นของผู้ใช้เองทั้งหมด: ผู้สมัครฝึกและดูคำแนะนำของตนเองได้ตามปกติ</li>
       </ul>
       <h3 data-i18n="iv.s.a.refs">แหล่งอ้างอิง</h3>

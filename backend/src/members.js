@@ -1,3 +1,4 @@
+// @ts-check
 // backend/src/members.js — member accounts: "Sign in with Google" (ID token verified in google.js), member bearer
 // sessions, tiers + quotas, usage / transaction ledger, saved readings, PDPA rights (access/export, erasure), and the
 // admin "Members" back office.
@@ -23,9 +24,10 @@
 import { FORTUNE_DOMAINS } from "./constants.js";
 import { randomId, randomToken, sha256Hex } from "./crypto.js";
 import { GoogleTokenError, verifyGoogleIdToken } from "./google.js";
+import { activeSub, consumeCredit, consumeUse, creditBalance, isPaying, periodKey, usedOf } from "./quota.js";
 import { audit, callerHash, getSetting, hit, putSetting } from "./store.js";
 import { verifyTurnstile } from "./turnstile.js";
-import { HttpError, dayOf, intVar, log, now } from "./util.js";
+import { HttpError, bkkDayStart, intVar, log, now } from "./util.js";
 
 export const MEMBER_CONSENT_VERSION = "m1";
 /** Versions of the member terms + privacy notice (lensiq-member.js CONSENT_VERSION). Bump both when the text changes. */
@@ -53,6 +55,7 @@ export async function getMembershipSettings(db) {
 
 export function validateMembership(input, cur = DEFAULT_MEMBERSHIP) {
   if (!input || typeof input !== "object") throw new HttpError(400, "settings must be an object");
+  /** @type {Record<string, any>} */
   const out = { ...cur };
   for (const [k, v] of Object.entries(input)) {
     if (k === "membership_required") { if (typeof v !== "boolean") throw new HttpError(400, "membership_required must be boolean"); out[k] = v; continue; }
@@ -105,10 +108,20 @@ const publicUser = u => ({
   marketing_opt_in: !!u.marketing_opt_in, consent_version: u.consent_version, consent_at: u.consent_at, status: u.status
 });
 
-async function newSession(db, userId, t) {
+/** Coarse "browser · OS" label from a User-Agent (only this label is stored, never the raw string). */
+export function uaLabel(ua) {
+  const s = String(ua || "");
+  const browser = /Edg\//.test(s) ? "Edge" : /OPR\/|Opera/.test(s) ? "Opera" : /SamsungBrowser/.test(s) ? "Samsung Internet" : /Line\//.test(s) ? "LINE" :
+    /FBAN|FBAV/.test(s) ? "Facebook" : /Firefox\//.test(s) ? "Firefox" : /Chrome\/|CriOS/.test(s) ? "Chrome" : /Safari\//.test(s) ? "Safari" : "Browser";
+  const os = /iPhone|iPad|iPod/.test(s) ? "iOS" : /Android/.test(s) ? "Android" : /Windows/.test(s) ? "Windows" : /Mac OS X|Macintosh/.test(s) ? "macOS" :
+    /CrOS/.test(s) ? "ChromeOS" : /Linux/.test(s) ? "Linux" : "other";
+  return `${browser} · ${os}`;
+}
+
+async function newSession(db, userId, t, request = null) {
   const token = randomToken(32);
-  await db.prepare("INSERT INTO member_sessions (id_hash, user_id, created_at, last_seen, expires_at) VALUES (?1, ?2, ?3, ?3, ?4)")
-    .bind(await sha256Hex(token), userId, t, t + SESSION_TTL).run();
+  await db.prepare("INSERT INTO member_sessions (id_hash, user_id, created_at, last_seen, expires_at, ua_label) VALUES (?1, ?2, ?3, ?3, ?4, ?5)")
+    .bind(await sha256Hex(token), userId, t, t + SESSION_TTL, request ? uaLabel(request.headers.get("User-Agent")) : null).run();
   return { token, expires_at: t + SESSION_TTL };
 }
 
@@ -119,12 +132,14 @@ export async function signInGoogle(env, request, body, deps = {}) {
   const who = await callerHash(env, request, "signin");
   const rl = await hit(env.DB, `signin:${who}`, 10, 900, t);
   if (!rl.ok) throw new HttpError(429, "too many sign-in attempts — try again later", { retryAfter: rl.retryAfter });
-  const g = await hit(env.DB, "signin:global", intVar(env.SIGNIN_GLOBAL_15MIN, 300, 1, 100000), 900, t);
-  if (!g.ok) throw new HttpError(429, "sign-in temporarily busy", { retryAfter: g.retryAfter });
   const ts = await verifyTurnstile(env, request, "signin", deps.fetch);
   if (!ts.ok) throw ts.code === "turnstile_not_configured"
     ? new HttpError(503, "sign-in unavailable: Turnstile is not configured on the server (turnstile_not_configured)", { code: "turnstile_not_configured" })
     : new HttpError(403, "bot check failed (turnstile_failed)", { code: "turnstile_failed" });
+  // global cap counted only AFTER the bot check passed (round 10): junk requests without a valid Turnstile token can no
+  // longer use up the shared budget and lock real members out
+  const g = await hit(env.DB, "signin:global", intVar(env.SIGNIN_GLOBAL_15MIN, 300, 1, 100000), 900, t);
+  if (!g.ok) throw new HttpError(429, "sign-in temporarily busy", { retryAfter: g.retryAfter });
   if (!body || typeof body !== "object") throw new HttpError(400, "invalid request");
   if (!(await claimNonce(env.DB, body.nonce, t))) throw new HttpError(401, "sign-in expired — please try again (nonce)", { code: "nonce" });
   let c;
@@ -133,7 +148,7 @@ export async function signInGoogle(env, request, body, deps = {}) {
   } catch (e) {
     if (e instanceof GoogleTokenError) {
       log("member.signin.rejected", { reason: e.code });
-      throw new HttpError(e.code === "jwks_unavailable" ? 503 : 401, e.code === "email_unverified" ? "this Google account has no verified e-mail" : "Google sign-in could not be verified", { code: e.code });
+      throw new HttpError(e.code === "jwks_unavailable" || e.code === "jwks_empty" ? 503 : 401, e.code === "email_unverified" ? "this Google account has no verified e-mail" : "Google sign-in could not be verified", { code: e.code });
     }
     throw e;
   }
@@ -160,7 +175,7 @@ export async function signInGoogle(env, request, body, deps = {}) {
     if (created) await ledger(env, id, "signup", {}, t);
   }
   u = await env.DB.prepare("SELECT * FROM users WHERE google_sub = ?1").bind(c.sub).first();
-  const s = await newSession(env.DB, u.id, t);
+  const s = await newSession(env.DB, u.id, t, request);
   await audit(env, "member", created ? "member.signup" : "member.login", { user: u.id }, who);
   return { token: s.token, expires_at: s.expires_at, created, user: publicUser(u) };
 }
@@ -194,6 +209,39 @@ export async function requireMember(env, request) {
   return m;
 }
 
+// ---- "my signed-in devices" -------------------------------------------------------------------------------------------
+const SESSION_ID_RE = /^[a-f0-9]{16}$/;
+/** Opaque session id = first 16 hex of the stored SHA-256 of the token (never the token itself). */
+const sessionId = idHash => String(idHash).slice(0, 16);
+
+/** GET /api/me/sessions — this member's active sessions (expired / idle ones are not listed). */
+export async function listSessions(env, m, t = now()) {
+  const rows = (await env.DB.prepare("SELECT id_hash, created_at, last_seen, expires_at, ua_label FROM member_sessions WHERE user_id = ?1 AND expires_at > ?2 AND last_seen > ?3 ORDER BY last_seen DESC LIMIT 100")
+    .bind(m.user.id, t, t - SESSION_IDLE).all()).results || [];
+  return {
+    sessions: rows.map(r => ({ id: sessionId(r.id_hash), created_at: r.created_at, last_seen_at: r.last_seen, expires_at: r.expires_at, label: r.ua_label || "Browser · other", current: r.id_hash === m.idHash }))
+  };
+}
+
+/** POST /api/me/sessions/revoke {id} | {all: true, keep_current?: true} ("sign out everywhere"). */
+export async function revokeSessions(env, m, body) {
+  if (!body || typeof body !== "object") throw new HttpError(400, "invalid request");
+  let r, current = false;
+  if (body.all === true) {
+    const keep = body.keep_current !== false;
+    r = await env.DB.prepare("DELETE FROM member_sessions WHERE user_id = ?1 AND (?2 = 0 OR id_hash != ?3)").bind(m.user.id, keep ? 1 : 0, m.idHash).run();
+    current = !keep;
+  } else {
+    if (!SESSION_ID_RE.test(String(body.id || ""))) throw new HttpError(400, "id (16 hex) or all:true required");
+    r = await env.DB.prepare("DELETE FROM member_sessions WHERE user_id = ?1 AND substr(id_hash, 1, 16) = ?2").bind(m.user.id, body.id).run();
+    if (!r.meta || !r.meta.changes) throw new HttpError(404, "session not found");
+    current = body.id === sessionId(m.idHash);
+  }
+  const n = (r.meta && r.meta.changes) || 0;
+  await audit(env, "member", "member.sessions.revoked", { user: m.user.id, n, all: body.all === true });
+  return { ok: true, revoked: n, current_revoked: current };
+}
+
 export async function logout(env, m) {
   await env.DB.prepare("DELETE FROM member_sessions WHERE id_hash = ?1").bind(m.idHash).run();
   return { ok: true };
@@ -201,42 +249,50 @@ export async function logout(env, m) {
 
 // ---- tiers, quotas, ledger -------------------------------------------------------------------------------------------
 
-/** Active paid subscription of the user, or null. */
+/** Active paid subscription of the user (purchased, complimentary or claimed), or null. */
 export async function activeSubscription(db, userId, t = now()) {
-  return db.prepare("SELECT s.plan_id, s.period, s.current_period_end, p.name_th, p.name_en FROM subscriptions s JOIN plans p ON p.id = s.plan_id " +
-    "WHERE s.user_id = ?1 AND s.status = 'active' AND s.current_period_end > ?2 ORDER BY s.current_period_end DESC LIMIT 1").bind(userId, t).first();
+  return activeSub(db, { userId }, t);
 }
 
 export const userSubject = id => "u:" + id;
-const periodKey = (period, t) => (period === "month" ? dayOf(t).slice(0, 7) + "-01" : dayOf(t));
 
-/** AI quota of a member: member tier = member_ai_daily per day (enforced while membership is required);
- *  paid tier = the plan's `ai_reading` entitlement (enforced only when FREE_MODE=false, as before). */
+/**
+ * AI quota of a member. Member tier = member_ai_daily per Bangkok day, enforced while membership is required OR
+ * FREE_MODE=false (round 10: a signed-in member no longer escapes the limits a guest has); paid tier = the plan's
+ * `ai_reading` entitlement (enforced when FREE_MODE=false). When the period quota is used up, purchased / granted
+ * `ai_reading` credits are used next. consume=true counts atomically and never counts a refused use; the returned
+ * `refund` handle gives the use back when the provider call fails (fortune.js).
+ */
 export async function aiQuota(env, user, { consume = false, t = now(), ms = null, freeMode = true } = {}) {
+  const db = env.DB;
   const m = ms || (await membership(env));
-  const sub = await activeSubscription(env.DB, user.id, t);
-  let tier = "member", quota = m.member_ai_daily, period = "day", enforce = m.required;
+  const owner = { userId: user.id };
+  const sub = await activeSub(db, owner, t);
+  let tier = "member", quota = m.member_ai_daily, period = "day", enforce = m.required || !freeMode;
   if (sub) {
     tier = sub.plan_id;
-    const ent = await env.DB.prepare("SELECT quota, period FROM entitlements WHERE plan_id = ?1 AND feature = 'ai_reading'").bind(sub.plan_id).first();
-    quota = ent ? ent.quota : 0; period = ent ? ent.period : "month"; enforce = !freeMode;
+    const ent = await db.prepare("SELECT quota, period FROM entitlements WHERE plan_id = ?1 AND feature = 'ai_reading'").bind(sub.plan_id).first();
+    quota = ent ? ent.quota : 0; period = ent && ent.period !== "once" ? ent.period : "month"; enforce = !freeMode;
   }
   const day = periodKey(period, t), subj = userSubject(user.id);
-  let used;
+  let used, ok = true, via = "quota", creditId = null;
   if (consume) {
-    const r = await env.DB.prepare("INSERT INTO usage_counters (day, subject, feature, n) VALUES (?1, ?2, 'ai_reading', 1) " +
-      "ON CONFLICT (day, subject, feature) DO UPDATE SET n = n + 1 RETURNING n").bind(day, subj).first();
-    used = r ? Number(r.n) : 1;
-  } else {
-    const r = await env.DB.prepare("SELECT n FROM usage_counters WHERE day = ?1 AND subject = ?2 AND feature = 'ai_reading'").bind(day, subj).first();
-    used = r ? Number(r.n) : 0;
-  }
-  const within = quota == null || used <= quota;
+    const r = await consumeUse(db, day, subj, "ai_reading", quota, enforce);
+    used = r.used; ok = r.ok || !enforce;
+    if (!ok) { creditId = await consumeCredit(db, owner, "ai_reading", t); if (creditId) { ok = true; via = "credit"; } }
+  } else used = await usedOf(db, day, subj, "ai_reading");
+  const credits = (await creditBalance(db, owner, t)).ai_reading || 0;
   const remaining = quota == null ? null : Math.max(0, quota - used);
-  return { tier, quota, used, period, remaining, enforced: enforce, allowed: !enforce || within };
+  const allowed = consume ? ok : !enforce || quota == null || used < quota || credits > 0;
+  return {
+    tier, quota, used, period, remaining, credits, enforced: enforce, allowed, via,
+    refund: consume && ok ? { day, subject: subj, feature: "ai_reading", counted: via === "quota", creditId } : null
+  };
 }
 
-export const LEDGER_KINDS = ["signup", "reading", "ai", "payment"];
+/** signup | reading | ai | payment | refund (manual bank-transfer refund) | grant (complimentary plan / credits) |
+ *  claim (a guest purchase linked to the account) | credit (a purchased credit was used, e.g. a report) */
+export const LEDGER_KINDS = ["signup", "reading", "ai", "payment", "refund", "grant", "claim", "credit"];
 export async function ledger(env, userId, kind, { domain = null, ref = null, amount = null } = {}, t = now()) {
   if (!LEDGER_KINDS.includes(kind)) throw new Error("unknown ledger kind");
   await env.DB.prepare("INSERT INTO member_ledger (user_id, ts, kind, domain, ref, amount_satang) VALUES (?1, ?2, ?3, ?4, ?5, ?6)")
@@ -255,15 +311,19 @@ export async function recordUsage(env, m, body) {
 
 export async function me(env, m) {
   const ms = await membership(env);
-  const sub = await activeSubscription(env.DB, m.user.id);
-  const ai = await aiQuota(env, m.user, { ms, freeMode: String(env.FREE_MODE ?? "true").toLowerCase() !== "false" });
+  const t = now();
+  const sub = await activeSubscription(env.DB, m.user.id, t);
+  const ai = await aiQuota(env, m.user, { ms, t, freeMode: String(env.FREE_MODE ?? "true").toLowerCase() !== "false" });
   const saved = await env.DB.prepare("SELECT COUNT(*) AS n FROM saved_readings WHERE user_id = ?1").bind(m.user.id).first();
+  // "today" = the Bangkok calendar day (UTC+7)
   const readsToday = await env.DB.prepare("SELECT COUNT(*) AS n FROM member_ledger WHERE user_id = ?1 AND kind = 'reading' AND ts >= ?2")
-    .bind(m.user.id, Math.floor(Date.parse(dayOf() + "T00:00:00Z") / 1000)).first();
+    .bind(m.user.id, bkkDayStart(t)).first();
   return {
     user: publicUser(m.user), tier: ai.tier,
-    plan: sub ? { id: sub.plan_id, name_th: sub.name_th, name_en: sub.name_en, period: sub.period, current_period_end: sub.current_period_end } : null,
-    quotas: { ai: { used: ai.used, quota: ai.quota, remaining: ai.remaining, period: ai.period, enforced: ai.enforced }, saved: { used: saved.n, max: ms.member_saved_max }, readings_today: readsToday.n },
+    plan: sub ? { id: sub.plan_id, name_th: sub.name_th, name_en: sub.name_en, name_zh: sub.name_zh || null, period: sub.period, source: sub.source || "purchase", subscription_id: sub.id, current_period_end: sub.current_period_end } : null,
+    paying: await isPaying(env.DB, { userId: m.user.id }, t),
+    credits: await creditBalance(env.DB, { userId: m.user.id }, t),
+    quotas: { ai: { used: ai.used, quota: ai.quota, remaining: ai.remaining, period: ai.period, enforced: ai.enforced, credits: ai.credits, timezone: "Asia/Bangkok" }, saved: { used: saved.n, max: ms.member_saved_max }, readings_today: readsToday.n },
     membership: { required: ms.required, consent_version: MEMBER_CONSENT_VERSION }
   };
 }
@@ -276,7 +336,8 @@ export async function setPreferences(env, m, body) {
   return { ok: true, marketing_opt_in: !!v };
 }
 
-const paymentsOf = (db, userId) => db.prepare("SELECT id, kind, plan_id, period, status, amount_satang, vat_satang, receipt_no, doc_type, created_at, paid_at FROM payments WHERE user_id = ?1 ORDER BY created_at DESC LIMIT 200").bind(userId).all();
+const paymentsOf = (db, userId) => db.prepare("SELECT id, kind, plan_id, period, status, amount_satang, vat_satang, receipt_no, doc_type, created_at, paid_at, refund_satang, refunded_at, " +
+  "CASE WHEN receipt_no IS NOT NULL THEN '/api/me/payments/' || id || '/receipt' END AS receipt_path FROM payments WHERE user_id = ?1 ORDER BY created_at DESC LIMIT 200").bind(userId).all();
 
 export async function history(env, m, q = {}) {
   const limit = intVar(q.limit, 50, 1, 200);
@@ -345,11 +406,12 @@ export async function exportData(env, m) {
     format: "lensiq-member-export", version: 1, exported_at: now(),
     note: "Google account id (sub) is kept only to recognise your sign-in and is not included; no photo, password or reading content is stored unless you saved it.",
     profile: u,
-    sessions: await all("SELECT created_at, last_seen, expires_at FROM member_sessions WHERE user_id = ?1"),
+    sessions: await all("SELECT created_at, last_seen, expires_at, ua_label FROM member_sessions WHERE user_id = ?1"),
     ledger: await all("SELECT ts, kind, domain, ref, amount_satang FROM member_ledger WHERE user_id = ?1 ORDER BY id"),
     saved_readings: saved,
     payments: await all("SELECT id, kind, plan_id, period, status, amount_satang, vat_satang, receipt_no, doc_type, buyer_name, buyer_tax_id, buyer_address, buyer_branch, buyer_email, created_at, paid_at FROM payments WHERE user_id = ?1 ORDER BY created_at"),
-    subscriptions: await all("SELECT plan_id, status, period, current_period_start, current_period_end FROM subscriptions WHERE user_id = ?1")
+    subscriptions: await all("SELECT plan_id, status, period, source, current_period_start, current_period_end, cancelled_at FROM subscriptions WHERE user_id = ?1"),
+    credits: await all("SELECT feature, granted, remaining, source, created_at, expires_at FROM credits WHERE user_id = ?1 ORDER BY created_at")
   };
 }
 
@@ -366,9 +428,14 @@ export async function deleteAccount(env, m, body) {
     db.prepare("UPDATE payments SET user_id = NULL, buyer_email = NULL WHERE user_id = ?1").bind(id),
     db.prepare("UPDATE subscriptions SET user_id = NULL, status = CASE WHEN status = 'active' THEN 'cancelled' ELSE status END, updated_at = ?2 WHERE user_id = ?1").bind(id, now()),
     db.prepare("UPDATE customers SET user_id = NULL, email = NULL WHERE user_id = ?1").bind(id),
+    db.prepare("DELETE FROM credits WHERE user_id = ?1").bind(id),
     db.prepare("DELETE FROM users WHERE id = ?1").bind(id)
   ]);
-  await audit(env, "member", "member.deleted", { user: id });
+  // the audit log must not keep the erased member's id: earlier rows are rewritten to a one-way pseudonym and the
+  // erasure itself is logged with that pseudonym only (lets the owner prove the erasure happened, links to nobody)
+  const pseud = "erased:" + (await sha256Hex("member-erasure|" + id)).slice(0, 16);
+  await db.prepare("UPDATE audit_log SET detail = REPLACE(detail, ?1, ?2) WHERE detail LIKE '%' || ?1 || '%'").bind(id, pseud).run();
+  await audit(env, "member", "member.deleted", { user_hash: pseud });
   return { ok: true, deleted: true };
 }
 
@@ -408,7 +475,7 @@ export async function adminSetStatus(env, id, body) {
   return { ok: true, status: st };
 }
 
-export const PAID_PLANS = ["pro", "business", "enterprise"];
+export const PAID_PLANS = ["plus", "pro", "business", "enterprise"];
 export async function adminMembershipInfo(env) {
   const plans = (await env.DB.prepare("SELECT plan_id, quota, period FROM entitlements WHERE feature = 'ai_reading' ORDER BY plan_id").all()).results || [];
   return { settings: await getMembershipSettings(env.DB), effective_required: (await membership(env)).required, google_client_id_set: !!googleClientId(env), plan_ai_quotas: plans, limits: LIMITS };

@@ -35,10 +35,63 @@ in the admin AI tab if needed; every failure falls back to the free local compos
 
 ## 3. Tiers (placeholders — "ร่าง")
 
-| | **Guest / ผู้เยี่ยมชม** | **Member / สมาชิกฟรี** | **Pro / โปร** | **Business / ธุรกิจ** | **Enterprise / องค์กร** |
+### 3.0 Thai consumer pricing (owner decision, Round 10 — supersedes the "Pro" consumer price below)
+
+The fortune brand sells to individuals, so it gets small-ticket consumer prices. The former 990 / 3,900 THB monthly
+tiers stay, renamed **Creator** and **Business** (section 3.1) for studios, shops and event users of the other
+three products (Retail cameras, HR Interview Kit, Creative Suite). All four products share one engine, one Google
+sign-in and one back office, so one account can hold a consumer plan and a business plan.
+
+**One-off reports (pay once, no subscription; VAT incl.)**
+
+| Report (plan id, `0006_consumer_pricing.sql`) | Price | Contents (ร่าง) | AI credits granted | Model cost (≈ 3 THB / AI reading) |
+|---|---|---|---|---|
+| **Basic reading report / รายงานดวงพื้นฐาน** (`report_basic`) | **49 THB** | one AI-written full reading for one domain (e.g. tarot spread, face reading, numbers), saved to the account, print/PDF | 1 | ≈ 3 THB |
+| **Compatibility report / รายงานดวงคู่** (`report_compat`) | **99 THB** | two people's charts compared (zodiac, BaZi, numbers), long form + 3-point plan | 2 | ≈ 6 THB |
+| **Annual forecast report / รายงานดวงรายปี** (`report_annual`) | **199 THB** | yearly report combining several domains, month-by-month outlook, PDF; TH, EN or 中文 | 3 | ≈ 9–10 THB |
+
+**Membership (fortune consumers)**
+
+| | **Guest** | **Member (free)** | **Plus / พลัส** (plan id `plus`) |
+|---|---|---|---|
+| Price (VAT incl.) | 0 | 0 | **149 THB / month** or **990 THB / year** (≈ 82.5 THB / month, −45 %) |
+| Fortune readings | light (see 3.1) | full on-device readings, history, saved readings | full on-device readings in every domain + **30 AI readings / month** (entitlement `ai_reading` 30, ร่าง) |
+| One-off reports | buy at list price | buy at list price | buy at list price (a member discount is an owner option, ร่าง) |
+| Languages | TH / EN / 中文 | TH / EN / 中文 | TH / EN / 中文 (English readings included) |
+| Saved readings | – | 50 (`member_saved_max`) | 50 (owner setting) |
+
+**Why these numbers (research rationale, ร่าง)**
+
+* **Charm prices at Thai small-ticket anchors.** 49 / 99 / 149 / 199 sit just under round 50 / 100 / 150 / 200 THB,
+  the price points Thai consumers already see for app stickers, in-app items, streaming "mobile" plans and paid
+  horoscope or tarot readings on LINE and social media. Left-digit pricing reliably lifts conversion on impulse
+  purchases (Thomas & Morwitz 2005; Anderson & Simester 2003).
+* **PromptPay-friendly tickets.** A 49–199 THB QR payment is a sub-minute decision with no card needed; Opn's PromptPay
+  minimum is 20 THB (section 2), so even the smallest report clears it. Fee per charge is a few baht, keeping margin
+  above 80 % after model cost.
+* **199 as the anchor / decoy.** Showing the 199 annual report next to 99 makes 99 the "sensible" choice (compromise
+  effect; Simonson 1989) and makes 149/month look cheap against one 199 report; the yearly 990 is shown as "less than
+  one 199 report every 2 months".
+* **Annual ≈ 45 % off.** 990 vs 12 × 149 = 1,788 THB. A deep annual discount suits a once-a-year ritual (New Year,
+  birthday, Songkran) and front-loads cash; churn on 149/month is expected to be high for entertainment products.
+* **Market range.** Thai horoscope / tarot apps and LINE OA fortune services commonly price single paid readings from
+  a few tens to a few hundred baht and subscriptions in the low hundreds per month; we sit at the low-middle of that
+  range and compete on privacy (on-device) and three languages. *Verify current competitor prices before launch —
+  no specific competitor figures are claimed here.*
+* **Cost cover.** At ≈ 3 THB per AI reading, 30 AI readings/month cost ≈ 90–105 THB at 100 % use against ≈ 139 THB net
+  of VAT — thin at the cap, so watch real use in `usage_counters`; typical use is far lower. Reports keep > 85 % margin.
+
+Plan ids: consumer `plus`, `report_basic`, `report_compat`, `report_annual` (`backend/migrations/0006_consumer_pricing.sql`,
+one-time purchases become `credits`); business `pro` (shown as Creator) and `business` keep their ids and prices from
+`0003_seed_plans.sql`. Every price stays editable by the owner in the admin.
+
+### 3.1 Business tiers (Creator / Business — formerly Pro / Business)
+
+| | **Guest / ผู้เยี่ยมชม** | **Member / สมาชิกฟรี** | **Creator / ครีเอเตอร์** (formerly Pro / โปร; plan id `pro`) | **Business / ธุรกิจ** | **Enterprise / องค์กร** |
 |---|---|---|---|---|---|
 | Sign-in | none | Google (free) | Google + plan | Google + plan | contract |
 | Price (VAT incl.) | 0 | 0 | **990 THB / month** · 9,900 / year (ร่าง) | **3,900 THB / month** · 39,000 / year (ร่าง) | quotation |
+| For | everyone | everyone | creators, studios, single shops, small events (Creative Suite, Retail starter) | multi-branch retail, agencies, HR teams | chains, mall operators |
 | On-device features | all | all | all | all | all + on-premise install |
 | Fortune readings | light: summary + 2 sections + cautions + reminder, 3 / day / device (soft) | full + 3-point plan, save history, print/PDF | full | full | full |
 | AI writing assistant | – (when membership is on) | 3 / day (server-enforced) | 100 / month | 600 / month | unlimited (fair use) / own API key |
@@ -49,14 +102,19 @@ in the admin AI tab if needed; every failure falls back to the free local compos
 | Tax invoice (ใบกำกับภาษีเต็มรูป) | – | – | on request | ✓ | ✓ |
 | Support | community | community | e-mail 2 business days | e-mail + LINE, next business day | SLA, DPA, PDPA pack |
 
-Model cost at 100 % quota use: Pro ≈ 350 THB (≈ 35 % of price), Business ≈ 2,100 THB (≈ 54 %). Typical use is far
+Model cost at 100 % quota use: Creator (Pro) ≈ 350 THB (≈ 35 % of price), Business ≈ 2,100 THB (≈ 54 %). Typical use is far
 below the cap, so gross margin after Opn fees should be 60–80 %. Add-on: **AI top-up 100 readings = 490 THB (ร่าง)**.
 
 Guest/Member limits are owner settings (admin → Members, D1 `settings.membership`) and apply only when
 `membership_required` is on and Google sign-in is configured (docs/BACKEND.md "Member sign-in"); with it off every visitor
 keeps today's full readings. Paid tiers are
-enforced by `entitlements` rows (`backend/migrations/0003_seed_plans.sql`) through `checkEntitlement()` — only when
-`FREE_MODE=false`. Until then usage is counted (`usage_counters`, 35 days) so real demand can size the quotas.
+enforced by `entitlements` rows (`backend/migrations/0003_seed_plans.sql`, `0006_consumer_pricing.sql`) through
+`checkEntitlement()` — only when `FREE_MODE=false`. Until then usage is counted (`usage_counters`, 35 days) so real
+demand can size the quotas. Round 10: quota days / months are Bangkok time; a refused or provider-failed AI call is not
+counted; one-time report purchases become credits used after the period quota; paying members have their own AI
+buckets (admin AI settings `paid_per_user_daily`, `paid_daily_max`). Perk status (`active` / `coming_soon`) is served
+with the plans so the pricing page can label honestly: `analytics_days` and `hub_nodes` are **coming soon** (not
+enforced or delivered); `csv_export` is checked by the server (`POST /api/me/entitlements/use`).
 
 ## 4. B2B packages (ร่าง)
 
@@ -79,8 +137,12 @@ month; an event activation agency budgets per booth-day, so a day pass priced be
   subtotal/VAT/total per payment (`splitVat`, rounding to the satang).
 * **Tax invoice (ใบกำกับภาษีเต็มรูป, Revenue Code s.86/4)** fields stored per payment: seller name, tax ID, address,
   branch (`SELLER_*` vars); buyer name, tax ID (13 digits), address, branch; document number (`LQ-YYYYMM-000001`,
-  gap-free counter), date, description, subtotal, VAT, total. A PDF/e-Tax Invoice renderer is **not built yet** — issue
-  documents from the accounting system using these fields, or add e-Tax Invoice by Email later.
+  gap-free counter), date, description, subtotal, VAT, total. **Printable receipt / tax invoice (round 10):** the Worker
+  renders an HTML document from these stored fields (Thai with EN / ZH labels) for the member (`GET
+  /api/me/payments/:id/receipt`) and the owner (`GET /admin/api/billing/payments/:id/receipt`); print to PDF from the
+  browser. VAT lines appear only when the payment carried VAT; the document says **ฉบับร่าง / DRAFT** until
+  `SELLER_NAME`, `SELLER_TAX_ID` and `SELLER_ADDRESS` are set. e-Tax Invoice by Email is still **not built** — an
+  accountant should confirm the layout before the first real tax invoice is issued.
 * **Withholding tax:** Thai juristic customers paying for services usually withhold 3 % and send a 50 ทวิ certificate.
   PromptPay QR is for the full amount → B2B packages should be invoiced (bank transfer of 97 % + certificate) rather than
   self-serve QR. Self-serve PromptPay targets individuals/sole proprietors.
@@ -96,6 +158,13 @@ month; an event activation agency budgets per booth-day, so a day pass priced be
 * Event passes: full refund up to 7 days before the event date; 50 % up to 48 h; none afterwards (the slot is reserved).
 * **Mechanics:** PromptPay charges cannot be refunded through Opn → refunds are bank transfers to the payer's account
   (ask for a bank book copy), within 14 days, recorded against the payment (credit note if a tax invoice was issued).
+  Round 10: the owner records it in admin (`POST /admin/api/billing/payments/:id/refund`, password + TOTP re-auth,
+  bank-transfer reference required): payment → `refunded`, subscription cancelled and unused report credits removed
+  (both optional), a `refund` row in the member's history, the receipt is stamped "คืนเงินแล้ว". Cancel / extend a
+  subscription and complimentary plans or credits are admin actions with the same re-auth. A credit-note document is
+  not generated yet.
+* **Amount mismatch:** if Opn reports a different amount / currency than the order, the payment is set to
+  `mismatch` (final; nothing activated), the owner gets an admin alert, and resolves it by hand (refund or manual grant).
 * Duplicate/erroneous payments are always refunded in full.
 
 ## 7. Consumer protection & PDPA **[ตรวจทานกฎหมาย]**
@@ -118,7 +187,12 @@ month; an event activation agency budgets per booth-day, so a day pass priced be
 2. Opn: complete KYC, enable PromptPay, test in test mode end-to-end (admin → Billing → test QR → mark successful in the
    Opn dashboard → status updates, webhook row appears, receipt number assigned).
 3. Set `SELLER_*`, `VAT_REGISTERED`; set live keys with `wrangler secret put`, then `OPN_ALLOW_LIVE=true`.
-4. Admin → Billing → enable the pricing page; set plan `status='active'` for sold plans
-   (`npx wrangler d1 execute lensiq --remote --command "UPDATE plans SET status='active' WHERE id IN ('pro','business')"`).
+4. Admin → Billing → enable the pricing page; set plan `status='active'` for sold plans — via the admin API
+   (`PUT /admin/api/billing/plans/:id {"status":"active"}`, audited) or
+   `npx wrangler d1 execute lensiq --remote --command "UPDATE plans SET status='active' WHERE id IN ('pro','business')"`.
+   The consumer plans of migration 0006 (`plus`, `report_*`) are seeded `active`; draft / retired plans cannot be
+   bought. With `BILLING_ENABLED=true` checkout requires Google sign-in (`ALLOW_GUEST_CHECKOUT` stays `false`).
+   Perks with status `coming_soon` (cloud analytics history, hub nodes) must be labelled "เร็ว ๆ นี้" on the pricing
+   page — they are listed but not delivered yet.
 5. `FREE_MODE=false`, `BILLING_ENABLED=true`, deploy; announce ≥ 30 days ahead to existing users (grandfather period).
 6. Monitor: payments tab, webhook results, refund requests, AI cost vs. quota usage weekly for the first 3 months.

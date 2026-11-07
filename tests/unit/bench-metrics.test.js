@@ -69,3 +69,50 @@ test("bench metrics: verification TAR/FAR, EER, 1:N and Wilson interval", () => 
   const [lo, hi] = M.wilson(5, 100);
   assert.ok(lo > 0.02 && lo < 0.05 && hi > 0.05 && hi < 0.12, `${lo} ${hi}`);
 });
+
+test("bench metrics (round 10): AP is VOC greedy per rank; apAssign keeps the old operating-point value", () => {
+  // one person; the higher-score box overlaps IoU ≈ 0.6, a lower-score box IoU ≈ 0.9. Greedy (VOC/COCO): the first is the TP.
+  // The max-IoU assignment gives the gt to the low-score box, so the old sweep ranked an FP first (AP 0.5).
+  const g = B(0, 0, 0.2, 0.2), hi = { x: 0.05, y: 0, w: 0.2, h: 0.2, score: 0.9 }, lo = { x: 0.01, y: 0, w: 0.2, h: 0.2, score: 0.3 };
+  const r = M.detEval([{ gt: [g], det: [hi, lo] }], 0.5);
+  assert.strictEqual(r.ap, 1);
+  assert.strictEqual(r.apAssign, 0.5);
+  // ignore boxes: an unmatched detection on an ignore region is neither TP nor FP for AP either
+  const ig = M.detEval([{ gt: [B(0, 0)], ign: [B(0.6, 0.6)], det: [{ ...B(0.6, 0.6), score: 0.95 }, { ...B(0, 0), score: 0.5 }] }], 0.5);
+  assert.strictEqual(ig.ap, 1);
+  // a hand-checked sweep: TP, FP, TP over 2 gt -> P/R (1,.5) (.5,.5) (.67,1) -> AP = .5·1 + .5·.667
+  const s = M.detEval([{ gt: [B(0, 0), B(0.5, 0.5)], det: [{ ...B(0, 0), score: 0.9 }, { ...B(0.3, 0), score: 0.8 }, { ...B(0.5, 0.5), score: 0.7 }] }], 0.5);
+  assert.ok(Math.abs(s.ap - (0.5 + 0.5 * 2 / 3)) < 1e-12, String(s.ap));
+});
+
+test("bench metrics (round 10): EER uses the same 'accept when d < thr' rule as verification()", () => {
+  const R = (() => { let a = 99; return () => (a = (a * 16807) % 2147483647) / 2147483647; })();
+  const same = Array.from({ length: 300 }, () => +(0.3 + 0.25 * R()).toFixed(2)), diff = Array.from({ length: 300 }, () => +(0.5 + 0.3 * R()).toFixed(2));
+  const e = M.eer(same, diff), [v] = M.verification(same, diff, [e.thr]);
+  // at the EER threshold the verification table must give the same FRR/FAR (ties at rounded distances are frequent here)
+  assert.ok(Math.abs((1 - v.tar + v.far) / 2 - e.eer) < 1e-12, JSON.stringify({ e, v }));
+  assert.ok(e.eer > 0 && e.eer < 0.3);
+});
+
+test("bench metrics (round 10): identity-cluster bootstrap is wider than per-visit Wilson when visits repeat identities", () => {
+  // 40 identities, each seen in 300 visits; 3 identities are 'look-alikes' accepted 20% of the time, the rest never.
+  const items = Array.from({ length: 40 }, (_, i) => ({ k: i < 3 ? 60 : 0, n: 300, ids: ["p" + i] }));
+  const cb = M.clusterBootstrap(items, { B: 2000 }), K = 180, N = 12000, [wl, wh] = M.wilson(K, N);
+  assert.ok(Math.abs(cb.est - K / N) < 1e-12 && cb.clusters === 40);
+  assert.ok(cb.hi - cb.lo > 3 * (wh - wl), `cluster ${cb.lo}–${cb.hi} vs per-visit Wilson ${wl}–${wh}`);
+  const [cl, ch] = M.wilsonClusters(K / N, 40);
+  assert.ok(ch - cl > wh - wl && cl >= 0 && ch < 0.2, `${cl} ${ch}`);
+  // independent items (one visit per identity) — the bootstrap agrees with Wilson to within a few tenths of a point
+  const ind = Array.from({ length: 2000 }, (_, i) => ({ k: i % 20 === 0 ? 1 : 0, n: 1, ids: [i] })), ci = M.clusterBootstrap(ind), [a, b] = M.wilson(100, 2000);
+  assert.ok(Math.abs(ci.lo - a) < 0.004 && Math.abs(ci.hi - b) < 0.004, JSON.stringify({ ci, a, b }));
+  // pairs of two identities (pigeonhole): reproducible and contains the estimate
+  const pr = Array.from({ length: 500 }, (_, i) => ({ k: i % 50 === 0 ? 1 : 0, n: 1, ids: ["a" + (i % 25), "b" + (i % 37)] })), p1 = M.clusterBootstrap(pr), p2 = M.clusterBootstrap(pr);
+  assert.deepStrictEqual(p1, p2); assert.ok(p1.lo <= p1.est && p1.est <= p1.hi && p1.clusters === 62);
+});
+
+test("bench metrics (round 10): cluster CI never collapses to [0, 0] with no events, and widens with few", () => {
+  const z = M.clusterBootstrap(Array.from({ length: 1100 }, (_, i) => ({ k: 0, n: 1, ids: ["a" + (i % 900), "b" + (i % 800)] })));
+  assert.strictEqual(z.lo, 0); assert.ok(z.hi > 0.002 && z.hi < 0.01, String(z.hi)); assert.strictEqual(z.bootHi, 0);
+  const one = M.clusterBootstrap(Array.from({ length: 1100 }, (_, i) => ({ k: i === 5 ? 1 : 0, n: 1, ids: [i] }))), [, wh] = M.wilson(1, 1100);
+  assert.ok(one.hi >= wh - 1e-5 && one.lo >= 0, JSON.stringify(one));
+});

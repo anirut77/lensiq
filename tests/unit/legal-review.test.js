@@ -91,7 +91,7 @@ test("lensiq-report: report text round-trips through the review ingest parser", 
 test("review export → scored CSV → ingest: stratified, reproducible, gate computed", async () => {
   const X = await import("../../tools/fortune-review-export.mjs");
   const G = await import("../../tools/fortune-review-ingest.mjs");
-  const a = X.sample({ per: 1, domains: ["tarot", "bazi"], pool: 24 }), b = X.sample({ per: 1, domains: ["tarot", "bazi"], pool: 24 });
+  const a = X.sample({ per: 1, domains: ["tarot", "bazi"], pool: 24, langs: ["th", "zh"] }), b = X.sample({ per: 1, domains: ["tarot", "bazi"], pool: 24, langs: ["th", "zh"] });
   assert.equal(a.rows.length, 2 * 2 * 3, "2 domains × 2 languages × 3 tones");
   assert.deepEqual(a.rows.map(r => r.text), b.rows.map(r => r.text), "same arguments → same sheet");
   for (const r of a.rows) {

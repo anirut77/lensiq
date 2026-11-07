@@ -9,20 +9,22 @@
 <title data-i18n="customers.s1">จดจำลูกค้า | LENSIQ</title>
 <link rel="stylesheet" href="styles.css?v=8">
 <link rel="stylesheet" href="neuro.css?v=2">
-<link rel="stylesheet" href="customers.css?v=5">
+<link rel="stylesheet" href="customers.css?v=6">
+<link rel="stylesheet" href="lensiq-sitecheck.css?v=2">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=12"></script>
-<script src="i18n/zh-customers.js?v=1"></script>
+<script src="i18n/zh-customers.js?v=2"></script>
 <script src="lensiq-i18n-rt.js?v=1"></script>
 <script src="i18n/zh-rt-common.js?v=1"></script>
-<script src="i18n/zh-rt-customers.js?v=1"></script>
+<script src="i18n/zh-rt-customers.js?v=2"></script>
+<script src="i18n/zh-rt-sitecheck.js?v=2"></script>
 
 <main class="nm cx">
   <h1 data-i18n="customers.s2">จดจำลูกค้าและประวัติเครื่องดื่ม</h1>
   <p class="lead" data-i18n="customers.s3">สมาชิกที่ยินยอมสแกนใบหน้า ระบบจะทักทาย แสดงเมนูที่สั่งบ่อย ออเดอร์ล่าสุด และแนะนำเครื่องดื่ม เพื่อการตลาดแบบจดจำพฤติกรรมลูกค้า</p>
-  <p class="acc-note" role="note"><b class="beta" data-i18n="customers.s4">ความแม่นยำที่วัดได้</b> <span data-i18n="customers.s5">ทดสอบกับภาพใบหน้าสาธารณะ LFW ที่เกณฑ์ 0.50: ภาพเดียวจำสมาชิกได้ราว 78% (ลูกค้ายืนหน้ากล้องหลายเฟรม โอกาสจำได้จึงสูงกว่านี้) · มีสมาชิก 100 คน จะทักผิดเป็นสมาชิกคนอื่นราว 0.1% และทักคนที่ไม่ใช่สมาชิกผิดราว 1.5% ควรให้พนักงานยืนยันชื่อก่อนเปิดประวัติการสั่ง</span> <a href="cameras.html#accuracy" data-i18n="customers.s6">วิธีวัดและข้อจำกัด</a></p>
+  <p class="acc-note" role="note"><b class="beta" data-i18n="customers.s4">ความแม่นยำที่วัดได้</b> <span data-i18n="customers.s5">ทดสอบกับภาพใบหน้าสาธารณะ LFW ที่เกณฑ์ 0.50: ภาพเดียวจำสมาชิกได้ราว 78% · กฎปัจจุบัน (ลงทะเบียน 3 ท่า เกณฑ์ปรับตามกลุ่มสมาชิก ยืนยัน 2 เฟรม) มีสมาชิก 100 คน: จำสมาชิกได้ราว 85% ต่อการมา (ใบหน้าเอเชียราว 69%) และเสนอชื่อสมาชิกให้คนที่ไม่ใช่สมาชิกราว 0.4% (เลือกให้อัตโนมัติราว 0.05%) ควรให้พนักงานยืนยันชื่อก่อนเปิดประวัติการสั่ง และตรวจความแม่นยำที่ร้านของคุณเองด้านล่าง</span> <a href="cameras.html#accuracy" data-i18n="customers.s6">วิธีวัดและข้อจำกัด</a></p>
 
   <div class="tabs" role="tablist">
     <button class="tab active" data-t="pos" role="tab" data-i18n="customers.s7">หน้าร้าน</button>
@@ -43,6 +45,8 @@
           <button class="btn ghost" id="nextCustomer" type="button" data-i18n="customers.s11">ลูกค้าคนถัดไป</button>
           <div class="cam-switch" id="camSwitch" hidden></div>
         </div>
+        <p class="cam-health-row"><span class="pill lq-health" id="camHealth" hidden></span></p>
+        <p class="cam-health" id="camHealthMsg" role="status" hidden></p>
         <p class="hint" id="scanStatus" role="status" aria-live="polite">ลูกค้ามองกล้อง ระบบจะจดจำอัตโนมัติ</p>
         <h3 data-i18n="customers.s12">ค้นหาสมาชิกด้วยชื่อ / เบอร์โทร</h3>
         <input id="search" type="search" placeholder="พิมพ์ชื่อหรือเบอร์โทร" autocomplete="off" aria-label="ค้นหาสมาชิกด้วยชื่อหรือเบอร์โทร" data-i18n-attr="placeholder:customers.s13;aria-label:customers.s14">
@@ -66,6 +70,7 @@
         </form>
       </div>
     </div>
+    <div class="card sc-panel" id="scPanel"></div>
   </section>
 
   <!-- ===== สมัครสมาชิก ===== -->
@@ -118,6 +123,7 @@
       </div>
       <p class="hint" data-i18n="customers.s47">นับจากการมาร้านครั้งล่าสุด ระบบลบให้อัตโนมัติเมื่อเปิดหน้านี้ (ประวัติการสั่งยังอยู่ ค้นหาด้วยชื่อได้)</p>
       <p class="form-msg" id="privMsg" role="status"></p>
+      <p class="hint sc-docs"><span>เอกสารสำหรับติดตั้ง:</span> <a href="camera-notice.html">ป้ายแจ้งการใช้กล้องสำหรับพิมพ์</a> · <a href="camera-notice.html#sign-f">แบบฟอร์มขอความยินยอม (แม่แบบ)</a></p>
     </div>
   </section>
 
@@ -145,10 +151,11 @@
 
 <script src="vendor/face-api.js"></script>
 <script src="lensiq-track.js?v=3"></script>
-<script src="lensiq-camera.js?v=2"></script>
+<script src="lensiq-camera.js?v=3"></script>
 <script src="lensiq-detect.js?v=3"></script>
 <script src="lensiq-facevault.js?v=1"></script>
-<script src="customers.js?v=6"></script>
+<script src="lensiq-sitecheck.js?v=2"></script>
+<script src="customers.js?v=7"></script>
 <script src="lensiq-config.js?v=3"></script>
 </body>
 </html>

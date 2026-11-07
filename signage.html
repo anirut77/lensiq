@@ -8,7 +8,8 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="signage.s1">ป้ายโฆษณาดิจิทัล | LENSIQ</title>
 <link rel="stylesheet" href="styles.css?v=8">
-<link rel="stylesheet" href="signage.css?v=4">
+<link rel="stylesheet" href="signage.css?v=5">
+<link rel="stylesheet" href="lensiq-sitecheck.css?v=2">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -16,7 +17,8 @@
 <script src="i18n/zh-signage.js?v=1"></script>
 <script src="lensiq-i18n-rt.js?v=1"></script>
 <script src="i18n/zh-rt-common.js?v=1"></script>
-<script src="i18n/zh-rt-signage.js?v=1"></script>
+<script src="i18n/zh-rt-signage.js?v=2"></script>
+<script src="i18n/zh-rt-sitecheck.js?v=2"></script>
 
 <main class="sg">
   <h1 data-i18n="signage.s2">ป้ายโฆษณาดิจิทัล</h1>
@@ -48,10 +50,17 @@
           <button class="btn ghost" id="fs" type="button">เต็มจอ</button>
           <button class="btn ghost" id="skip" type="button" data-i18n="signage.s12">ข้ามโฆษณา</button>
           <span class="pill" id="fps">—</span>
+          <span class="pill lq-health" id="camHealth" hidden></span>
           <div class="cam-switch" id="camSwitch" hidden></div>
         </div>
+        <p class="cam-health cam-health-row" id="camHealthMsg" hidden></p>
+        <div id="demoOpt">
         <label class="switch"><input type="checkbox" id="demoToggle" checked> <span data-i18n="signage.s13">ใช้อายุ/เพศ (ค่าประมาณ) ในการเลือกโฆษณาและเก็บสถิติ</span></label>
+        <p class="sg-licence" id="ageLicence"><b data-i18n="signage.s83">โมเดลสัญญาอนุญาตเพื่อการวิจัย — ตรวจสอบสิทธิ์ก่อนใช้เชิงพาณิชย์</b> <span data-i18n="signage.s84">(โมเดลอายุ/เพศฝึกจากชุดข้อมูลที่อนุญาตเฉพาะงานวิจัย โหลดเฉพาะเมื่อเปิดตัวเลือกนี้)</span></p>
         <p class="disclaimer" data-i18n="signage.s14">อายุและเพศเป็นค่าประมาณจากโมเดล อาจคลาดเคลื่อนและมีอคติต่อบางกลุ่ม (เช่น สีผิว แสง มุมกล้อง) ใช้เพื่อเลือกคอนเทนต์และดูแนวโน้มรวมเท่านั้น ไม่ใช้ตัดสินหรือระบุตัวบุคคล ปิดได้ด้วยสวิตช์ด้านบน</p>
+        </div>
+        <p class="sg-licence" data-lic="expr"><b data-i18n="signage.s85">สีหน้า (ยิ้ม · Valence · อารมณ์): โมเดลสัญญาอนุญาตเพื่อการวิจัย — ตรวจสอบสิทธิ์ก่อนใช้เชิงพาณิชย์</b></p>
+        <p class="hint sc-docs"><span>เอกสารสำหรับติดตั้ง:</span> <a href="camera-notice.html">ป้ายแจ้งการใช้กล้องสำหรับพิมพ์</a> · <a href="camera-notice.html#sign-f">แบบฟอร์มขอความยินยอม (แม่แบบ)</a></p>
       </section>
       <section class="card">
         <h2 data-i18n="signage.s15">ผู้ชมตอนนี้</h2>
@@ -96,13 +105,15 @@
           </fieldset>
           <div class="row2">
             <label><span data-i18n="signage.s36">เพศ</span><select name="gender"><option value="any" data-i18n="signage.s37">ทุกเพศ</option><option value="male" data-i18n="signage.s38">ชาย</option><option value="female" data-i18n="signage.s39">หญิง</option></select></label>
-            <label><span data-i18n="signage.s40">อารมณ์ผู้ชม</span><select name="mood"><option value="any" data-i18n="signage.s41">ทุกอารมณ์</option><option value="happy" data-i18n="signage.s42">กำลังยิ้ม</option><option value="neutral" data-i18n="signage.s43">สีหน้าปกติ</option></select></label>
+            <label><span data-i18n="signage.s40">อารมณ์ผู้ชม</span> <small class="sg-licence" data-lic="expr" data-i18n="signage.s86">โมเดลสัญญาอนุญาตเพื่อการวิจัย</small><select name="mood"><option value="any" data-i18n="signage.s41">ทุกอารมณ์</option><option value="happy" data-i18n="signage.s42">กำลังยิ้ม</option><option value="neutral" data-i18n="signage.s43">สีหน้าปกติ</option></select></label>
           </div>
           <button class="btn primary" type="submit" data-i18n="signage.s44">บันทึกโฆษณา</button>
           <p class="form-msg" id="adMsg" role="status"></p>
         </form>
       </section>
     </div>
+    <!-- ===== ตรวจความแม่นยำอายุ/เพศหน้างาน (lensiq-sitecheck.js) ===== -->
+    <section class="card sc-panel" id="scPanel"></section>
   </section>
 
   <!-- ===== คีออสก์ไร้สัมผัส ===== -->
@@ -168,6 +179,7 @@
       <div class="tiles" id="repTiles"></div>
       <div class="table-wrap"><table id="adTable"></table></div>
       <p class="hint" data-i18n="signage.s67">OTS = จำนวนคนที่อยู่หน้าจอขณะโฆษณาเล่น · ผู้ชม = คนที่หันมองจอ · อัตรามอง = ผู้ชม ÷ OTS · เวลามองเฉลี่ย = วินาทีที่มองต่อผู้ชม · ยิ้ม % = สัดส่วนเวลาที่ผู้ชมยิ้มขณะมอง · Valence = สีหน้าโดยรวมขณะมอง (บวก/ลบ) · กลุ่มหลัก = อายุ/เพศโดยประมาณของผู้ผ่านหน้าจอ (ค่าประมาณ อาจคลาดเคลื่อน)</p>
+      <p class="sg-licence" data-lic="expr" data-i18n="signage.s87">ยิ้ม % · Valence · กลุ่มอายุ/เพศ มาจากโมเดลสัญญาอนุญาตเพื่อการวิจัย — ตรวจสอบสิทธิ์ก่อนใช้เชิงพาณิชย์</p>
     </section>
     <section class="card">
       <div class="report-head">
@@ -198,10 +210,11 @@
 
 <script src="vendor/face-api.js"></script>
 <script src="lensiq-track.js?v=2"></script>
-<script src="lensiq-camera.js?v=2"></script>
+<script src="lensiq-camera.js?v=3"></script>
 <script src="lensiq-detect.js?v=2"></script>
 <script src="lensiq-hand.js?v=1"></script>
-<script src="signage.js?v=4"></script>
+<script src="lensiq-sitecheck.js?v=2"></script>
+<script src="signage.js?v=5"></script>
 <script src="lensiq-config.js?v=3"></script>
 </body>
 </html>

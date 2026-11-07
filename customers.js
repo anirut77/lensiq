@@ -93,7 +93,9 @@ if (typeof document !== "undefined") (() => {
   // round 4 (tests/bench/face1n.bench.mjs): 0.55 + เกณฑ์รายคน 0.85 × ระยะถึงสมาชิกที่ใกล้ที่สุด (ไม่ต่ำกว่า 0.45) + คุณภาพภาพ
   //   + ลงทะเบียน 3 ท่า + ยืนยัน 2 เฟรม: LFW 100 คน จำได้ ~85–88% คนนอกถูกทัก < 1% (เดิม 0.50: 80% / 1.75%)
   // round 5 (LQTrack.FACE_RULES): 0.50 / 0.85 × nn (>= 0.44) / margin 0.09, all scaled to the enrolled group (gallerySpread),
-  //   so a small or Asian-only member list is not looser than a large one (CASIA-FaceV5 20 members: strangers 6.5% -> < 1%).
+  //   so a small or Asian-only member list is not looser than a large one (CASIA-FaceV5 20 members: strangers 6.5% -> 0.3%).
+  //   Measured with 100 members (ACCURACY.md §2 round 5): LFW member recognised 85%, non-member offered a name ~0.4%
+  //   (selected automatically ~0.05%); CASIA 69% / 0.2% — the same figures as the note in customers.html.
   //   A match that is not "confident" (or < 5 members enrolled) is never auto-selected: the cashier taps the name chip.
   const FACE_RULES = LQTrack.FACE_RULES, MATCH_DISTANCE = FACE_RULES.maxDist, MATCH_MARGIN = FACE_RULES.margin;
   const K = { members: "cx-members", orders: "cx-orders", menu: "cx-menu" };
@@ -179,6 +181,7 @@ if (typeof document !== "undefined") (() => {
   });
   video.addEventListener("resize", () => { if (camera.active) layout(); });
   camera.attach(camSwitch);
+  if (LQCam.offlineBadge) LQCam.offlineBadge(camera, camBox); // "กล้องออฟไลน์ตั้งแต่ HH:MM" + เชื่อมต่อใหม่อัตโนมัติ
 
   // ---------- เริ่มระบบ ----------
   async function init() {
@@ -277,6 +280,7 @@ if (typeof document !== "undefined") (() => {
       try {
         if (video.readyState < 2) { await sleep(300); continue; } // กล้องถูกพักขณะสลับแอป/สลับกล้อง
         const res = await detectAll();
+        healthStep(res);
         if (!scanning) break;
         const seen = new Set(res.map(r => r.label));
         for (const k of [...streak.keys()]) if (!seen.has(k)) streak.delete(k);
@@ -314,6 +318,7 @@ if (typeof document !== "undefined") (() => {
   $("#scanStatus").addEventListener("click", e => { const b = e.target.closest("button.chip[data-id]"); if (b) { clearChips(); selectCustomer(b.dataset.id, "สแกนใบหน้า"); } });
   function stopScan(clear = true) { scanning = false; $("#scanToggle").textContent = "เริ่มสแกนลูกค้า"; if (clear) overlay.getContext("2d").clearRect(0, 0, overlay.width, overlay.height); }
   $("#scanToggle").onclick = () => {
+    if (SC) return ($("#scanStatus").textContent = "กำลังตรวจความแม่นยำ — กด \"จบและคำนวณ\" ก่อนสแกนลูกค้า");
     if (!ready) return ($("#scanStatus").textContent = "กล้องยังไม่พร้อม — ใช้ค้นหาด้วยชื่อแทนได้");
     if (scanning) return stopScan();
     if (!members.some(m => m.descriptor)) $("#scanStatus").textContent = "ยังไม่มีสมาชิกที่ลงทะเบียนใบหน้า";
@@ -608,6 +613,126 @@ if (typeof document !== "undefined") (() => {
     rebuildMatcher(); renderAnalytics();
     $("#privMsg").textContent = "ลบข้อมูลใบหน้าทั้งหมดแล้ว";
   };
+
+  // ---------- สุขภาพภาพ + ตรวจความแม่นยำหน้างาน (lensiq-sitecheck.js) ----------
+  // สุขภาพภาพ: ความสว่าง ย้อนแสง ความคม ขนาดใบหน้า และภาพค้าง ทุก ~1 วินาทีระหว่างสแกน (ตัวเลขเท่านั้น ไม่เก็บภาพ)
+  const SITE = /** @type {any} */ (window).LQSite || null;
+  const HL = SITE ? { mon: SITE.createHealth({ kind: "customers" }), at: 0, fw: [], cv: document.createElement("canvas"), state: null } : null;
+  function healthStep(res) {
+    if (!HL) return;
+    const W = video.videoWidth || 1;
+    if (res && res.length) HL.fw.push(res[0].box.width / W);
+    const t = performance.now(); if (t - HL.at < 1000) return; HL.at = t;
+    let st = null; try { st = SITE.sampleElement(video, HL.cv); } catch { /* ignore */ }
+    HL.state = HL.mon.push(st, { faceW: HL.fw.length ? SITE.median(HL.fw) : null, stalled: SITE.stallStep(video, st, t) }); HL.fw = [];
+    if (SC) HL.state.codes.forEach(k => SC.health.add(k));
+    const pill = $("#camHealth"), msg = $("#camHealthMsg");
+    if (!pill) return;
+    SITE.renderHealth(pill, HL.state); pill.hidden = false;
+    SITE.renderHealthLine(msg, HL.state);
+  }
+  // ตรวจความแม่นยำ: ทีละรอบ — ผู้ทดสอบเลือกว่าใครยืนหน้ากล้อง (สมาชิก หรือ คนที่ไม่ใช่สมาชิก + หมายเลข) ระบบใช้กฎเดียวกับการสแกนหน้าร้าน
+  // (2 เฟรมติดกัน + 2 เฟรมมั่นใจ = เลือกเอง · ไม่มั่นใจ = เสนอชื่อให้แตะ) แต่ไม่เลือกลูกค้า ไม่แก้ lastSeen และไม่บันทึกออเดอร์
+  // ผลที่ส่งออกใช้รหัสแทนชื่อ (m1.. / s1..) ไม่มีชื่อ เบอร์ ภาพ หรือค่าใบหน้า
+  let SC = null, SC_LAST = null;
+  const scHist = SITE ? SITE.history("cx-sitecheck") : null;
+  const scPanel = SITE && $("#scPanel") ? SITE.mountPanel($("#scPanel"), {
+    title: "ตรวจความแม่นยำหน้างาน",
+    intro: "ทดสอบการจำใบหน้าที่เคาน์เตอร์จริงของร้าน: ให้สมาชิกที่ลงทะเบียนแล้วและคนที่ไม่ใช่สมาชิกมายืนหน้ากล้องทีละคน ระบบใช้กฎเดียวกับการสแกนลูกค้า แต่ไม่เลือกลูกค้าและไม่บันทึกออเดอร์ระหว่างทดสอบ",
+    steps: [
+      "ลงทะเบียนสมาชิกทดสอบที่เคาน์เตอร์จริงก่อน (แนะนำอย่างน้อย 5 คน ระบบจึงปรับเกณฑ์ตามกลุ่มได้) และขอความยินยอมจากทุกคน รวมถึงคนที่มาช่วยทดสอบในฐานะคนที่ไม่ใช่สมาชิก",
+      "กด \"เริ่มตรวจ\" แล้วในแต่ละรอบ เลือกว่าใครยืนหน้ากล้อง (คนที่ไม่ใช่สมาชิก: ใส่หมายเลขประจำคน คนเดิมใช้เลขเดิม) กด \"เริ่มรอบนี้\" ให้คนนั้นเดินมาที่เคาน์เตอร์ตามปกติ ระบบสรุปผลเองภายใน 6 วินาที",
+      "ทดสอบสมาชิกอย่างน้อย 20 รอบ (หลายคน หลายช่วงเวลา) และคนที่ไม่ใช่สมาชิกอย่างน้อย 20 รอบจากหลายคน — การเลือกคนที่ไม่ใช่สมาชิกเป็นสมาชิกคือความผิดพลาดที่สำคัญที่สุด",
+      "กด \"จบและคำนวณ\" แล้วเก็บไฟล์ผลตรวจไว้ ทำซ้ำเมื่อย้ายกล้อง เปลี่ยนแสง หรือมีสมาชิกเพิ่มมาก"
+    ],
+    body: `<div class="sc-trial" hidden><div class="sc-row"><label><span>ใครยืนหน้ากล้องรอบนี้</span><select class="sc-who" data-i18n-skip></select></label><label class="sc-sidbox" hidden><span>หมายเลขคนที่ไม่ใช่สมาชิก (คนเดิม = เลขเดิม)</span><input class="sc-sid" type="number" min="1" max="999" value="1"></label><button class="btn primary sc-go" type="button">เริ่มรอบนี้</button><button class="btn ghost small sc-undo" type="button">ลบรอบล่าสุด</button></div><p class="sc-now" role="status"></p><ul class="sc-list"></ul></div>`
+  }) : null;
+  const OUT_TH = { auto: "เลือกลูกค้าเอง", ask: "เสนอชื่อให้แตะยืนยัน", none: "ไม่รู้จัก (ลูกค้าใหม่)", noface: "ไม่พบใบหน้า" };
+  const faceMembers = () => members.filter(m => m.descriptor);
+  function scWho() {
+    const sel = scPanel.q(".sc-who"), keep = sel.value;
+    sel.innerHTML = faceMembers().map(m => `<option value="${esc(m.id)}">${esc(m.name)}</option>`).join("") + `<option value="stranger">คนที่ไม่ใช่สมาชิก</option>`;
+    if ([...sel.options].some(o => o.value === keep)) sel.value = keep;
+    scPanel.q(".sc-sidbox").hidden = sel.value !== "stranger";
+  }
+  function scRender() {
+    const T = SC ? SC.trials : [], nm = id => id === "stranger" ? "คนที่ไม่ใช่สมาชิก" : (members.find(m => m.id === id) || { name: "?" }).name;
+    scPanel.q(".sc-list").innerHTML = T.slice().reverse().map((t, i) => {
+      const ok = t.truth === "stranger" ? t.outcome !== "auto" : t.label === t.truth && t.outcome !== "none";
+      return SITE.fmt("<li data-truth=\"{a}\"><span>รอบ {b}: <b data-i18n-skip>{c}</b></span><small>{d}{e}</small></li>", { a: ok ? "good" : "bad", b: T.length - i, c: esc(nm(t.truth) + (t.truth === "stranger" ? " #" + t.sid : "")), d: esc(OUT_TH[t.outcome]), e: t.label ? `: <span data-i18n-skip>${esc(nm(t.label))}</span>` : "" });
+    }).join("");
+    const mem = T.filter(t => t.truth !== "stranger").length;
+    scPanel.live.textContent = SC ? SITE.fmt("ทดสอบแล้ว {a} รอบ: สมาชิก {b} · คนที่ไม่ใช่สมาชิก {c}", { a: T.length, b: mem, c: T.length - mem }) : "";
+  }
+  async function scLoop() {
+    while (SC) {
+      const t0 = performance.now();
+      try {
+        if (video.readyState >= 2 && SC.cur) {
+          const res = await detectAll();
+          healthStep(res);
+          const cur = SC && SC.cur;
+          if (cur) {
+            const f = res[0];
+            const obs = { face: !!f, label: f && f.label !== "unknown" ? f.label : null, confident: !!(f && f.confident) };
+            const r = cur.trial.step(obs, performance.now());
+            scPanel.q(".sc-now").textContent = r ? SITE.fmt("ผล: {a}", { a: OUT_TH[r.outcome] }) : obs.face ? "กำลังดูใบหน้า..." : "รอให้ผู้ทดสอบมายืนหน้ากล้อง...";
+            if (r) { SC.trials.push({ truth: cur.truth, sid: cur.sid, outcome: r.outcome, label: r.label, ms: Math.round(r.ms) }); SC.cur = null; scPanel.q(".sc-go").disabled = false; scRender(); }
+          }
+        } else if (video.readyState >= 2) healthStep([]);
+      } catch (e) { console.error(e); }
+      await sleep(Math.max(0, 300 - (performance.now() - t0)));
+    }
+    overlay.getContext("2d").clearRect(0, 0, overlay.width, overlay.height);
+  }
+  function scStart() {
+    if (SC) return;
+    if (!ready) return engine("กล้องยังไม่พร้อม", "err");
+    if (!faceMembers().length) return engine("ยังไม่มีสมาชิกที่ลงทะเบียนใบหน้า กรุณาสมัครสมาชิกก่อน", "warn");
+    stopScan(); clearChips();
+    SC = { trials: [], cur: null, startedAt: Date.now(), health: new Set(), n: faceMembers().length };
+    scWho(); scPanel.q(".sc-trial").hidden = false; scPanel.start.disabled = true; scPanel.stop.disabled = false; scPanel.exp.hidden = true;
+    scPanel.state.textContent = "กำลังตรวจ"; scPanel.state.dataset.s = "live"; SITE.renderReport(scPanel.report, null);
+    scRender(); scLoop();
+  }
+  function scFinish() {
+    if (!SC) return;
+    const run = SC; SC = null;
+    const rep = SITE.attendanceReport(run.trials.map(t => t.truth === "stranger" ? t : { truth: t.truth, outcome: t.outcome, label: t.label, ms: t.ms }), { kind: "customers" });
+    rep.recs.push(...[...run.health].map(c => "สภาพภาพระหว่างตรวจ: " + SITE.HEALTH_TH[c]).filter(Boolean));
+    SITE.renderReport(scPanel.report, rep);
+    scPanel.q(".sc-trial").hidden = true; scPanel.start.disabled = false; scPanel.stop.disabled = true;
+    scPanel.state.textContent = SITE.verdictText(rep); scPanel.state.dataset.s = rep.verdict;
+    const ids = new Map(); const anon = id => id == null ? null : id === "stranger" ? "stranger" : (ids.has(id) ? ids.get(id) : ids.set(id, "m" + (ids.size + 1)).get(id));
+    const sids = new Map(); const anonS = s => s == null ? null : (sids.has(s) ? sids.get(s) : sids.set(s, "s" + (sids.size + 1)).get(s));
+    const cam = camera.label || "เคาน์เตอร์";
+    const doc = SITE.exportDoc("customers", {
+      startedAt: new Date(run.startedAt).toISOString(), enrolledWithFace: run.n,
+      distinctMembers: rep.n.distinctMembers, distinctStrangers: rep.n.distinctStrangers,
+      settings: { faceRules: { ...FACE_RULES }, confirmFrames: 2, confidentFrames: 2, windowMs: 6000, calibrated: run.n >= FACE_RULES.minCal },
+      conditions: { health: [...run.health] },
+      trials: run.trials.map(t => ({ truth: anon(t.truth), stranger: t.truth === "stranger" ? anonS(t.sid) : null, outcome: t.outcome, label: anon(t.label), ms: t.ms })),
+      report: { verdict: rep.verdict, provisional: rep.provisional, need: rep.need, n: rep.n, recognised: rep.recognised, recognisedCluster: rep.recognisedCluster, auto: rep.auto, wrong: rep.wrong, strangerAuto: rep.strangerAuto, strangerAsk: rep.strangerAsk, recs: rep.recs }
+    });
+    scPanel.exp.hidden = false; scPanel.exp.onclick = () => SITE.download(`lensiq-customers-check-${dayKey(run.startedAt)}.json`, doc);
+    scHist.add({ at: run.startedAt, verdict: rep.verdict, provisional: rep.provisional, need: rep.need, cam, summary: SITE.fmt("สมาชิก {a} รอบ จำได้ {b} · คนที่ไม่ใช่สมาชิก {c} รอบ ถูกเลือกผิด {d}", { a: rep.n.members, b: rep.recognised.p == null ? "—" : (rep.recognised.p * 100).toFixed(0) + "%", c: rep.n.strangers, d: rep.n.strangerAuto }) });
+    scHist.render(scPanel.hist);
+    SC_LAST = { rep, doc };
+  }
+  if (scPanel) {
+    scPanel.start.addEventListener("click", scStart);
+    scPanel.stop.addEventListener("click", scFinish);
+    scPanel.q(".sc-who").addEventListener("change", () => { scPanel.q(".sc-sidbox").hidden = scPanel.q(".sc-who").value !== "stranger"; });
+    scPanel.q(".sc-go").addEventListener("click", () => {
+      if (!SC || SC.cur) return;
+      const truth = scPanel.q(".sc-who").value, sid = truth === "stranger" ? Math.max(1, Math.round(+scPanel.q(".sc-sid").value || 1)) : undefined;
+      SC.cur = { truth, sid, trial: SITE.createFaceTrial() };
+      scPanel.q(".sc-go").disabled = true; scPanel.q(".sc-now").textContent = "รอให้ผู้ทดสอบมายืนหน้ากล้อง...";
+    });
+    scPanel.q(".sc-undo").addEventListener("click", () => { if (SC && SC.trials.length) { SC.trials.pop(); scRender(); } });
+    scHist.render(scPanel.hist);
+  }
+  window.__CX_SC = { get active() { return SC; }, get last() { return SC_LAST; } };
 
   renderDrinkSel(); renderSeg(); renderCustomer(); renderMenu(); renderAnalytics(); init();
 })();

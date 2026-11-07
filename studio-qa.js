@@ -1,4 +1,5 @@
-/* studio-qa.js — ตัวตรวจคุณภาพอัตโนมัติของผลแต่งชุด (studio.html) สำหรับชุดทดสอบภาพถดถอย และโหลดในหน้า studio.html (ชุดตรวจเร็ว evaluate(S, SC, { fast: true }) หลังรวมภาพ เพื่อแจ้งผู้ใช้อย่างสุภาพ)
+/* studio-qa.js — ตัวตรวจคุณภาพอัตโนมัติของผลแต่งชุด: studio.js เรียก evaluate(S, SC, { gate: true }) (ชุดตรวจเต็ม) หลังรวมภาพทุกครั้ง ผลที่ไม่ผ่านไม่ถูกแสดงเป็นผลหลัก (แสดงแบบไม่ใส่ชุดแทน);
+ *  ตรวจรอยต่อกราม/หูบนครอปมาตรฐาน (jawCrop/jawFeatures), ความมั่นใจที่ปรับเทียบ (confidence), ตรวจรูปติดบัตร (idSpecCheck) และชุดในรูปติดบัตรของตู้ถ่ายรูป (boothCheck) — ผลวัดใน ACCURACY.md §11
  * Browser: window.StudioQA · Node: module.exports (ทดสอบใน tests/unit/studio-qa.test.js)
  *
  * แต่ละตัวชี้วัดตรวจความผิดพลาดหนึ่งประเภทที่ผู้ประเมินพบ (คืนค่าตัวเลข + ผ่าน/ไม่ผ่านตามเกณฑ์ที่ปรับเทียบกับการดูภาพด้วยตา):
@@ -321,6 +322,154 @@
     const side = sd => { let c = 0, t = 0; for (let y = Math.max(0, yA); y < Math.min(H, yB); y += 2) for (let d = fw * .3; d < fw * .7; d += 2) { const x = Math.round(cx + sd * d); if (x < 0 || x >= W) continue; const i = y * W + x; t++; if (keepA[i] > .5 && hair[i] > .5) c++; } return t ? c / t : 0; };
     return +Math.min(side(-1), side(1)).toFixed(3);
   }
+  /**
+   * ครอปบริเวณกราม/หู/คอ ที่สเกลมาตรฐาน (ความกว้างหน้า = JC.fw พิกเซล) สำหรับตัวชี้วัดรอยต่อ (jawFeatures) และประตูที่เรียนรู้ (learnedGate)
+   * ช่องข้อมูล (Uint8 0–255): out RGB, fgAlpha, keep, srcAlpha, hair, neck, front, src RGB — ฟังก์ชันล้วน ใช้ได้ทั้งในหน้าเว็บและ Node
+   * คืน { w, h, ch: {name: Uint8Array}, jaw: [{x,y}] (จุดกราม 17 จุดในพิกัดครอป หรือ null), chin: {x,y}, eyeY }
+   */
+  const JC = { fw: 64, x0: -1.15, x1: 1.15, y0: -.2, y1: 1.7 };
+  function jawCrop({ out, fg, keepA, srcA, hair, neckA, frontA, src, W, H, face }) {
+    const k = face.fw / JC.fw, cx = face.chinX != null ? face.chinX : face.cx, w = Math.round((JC.x1 - JC.x0) * JC.fw), h = Math.round((JC.y1 - JC.y0) * JC.fw);
+    const ox = cx + JC.x0 * face.fw, oy = face.eyeY + JC.y0 * face.fw, n = w * h;
+    const names = ["r", "g", "b", "fg", "keep", "srcA", "hair", "neck", "front", "sr", "sg", "sb"], ch = {}; for (const q of names) ch[q] = new Uint8Array(n);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const X = Math.round(ox + (x + .5) * k - .5), Y = Math.round(oy + (y + .5) * k - .5), j = y * w + x;
+      if (X < 0 || Y < 0 || X >= W || Y >= H) continue;
+      const i = Y * W + X;
+      ch.r[j] = out[i * 4]; ch.g[j] = out[i * 4 + 1]; ch.b[j] = out[i * 4 + 2];
+      ch.fg[j] = fg[i] * 255; ch.keep[j] = keepA[i] * 255; ch.srcA[j] = srcA[i] * 255; ch.hair[j] = hair ? hair[i] * 255 : 0;
+      ch.neck[j] = neckA ? neckA[i] * 255 : 0; ch.front[j] = frontA[i] * 255; ch.sr[j] = src[i * 4]; ch.sg[j] = src[i * 4 + 1]; ch.sb[j] = src[i * 4 + 2];
+    }
+    const map = p => ({ x: (p.x - ox) / k, y: (p.y - oy) / k });
+    return { w, h, ch, jaw: face.P && face.P.length >= 17 ? face.P.slice(0, 17).map(map) : null, chin: map({ x: cx, y: face.chinY }), eyeY: (face.eyeY - oy) / k };
+  }
+  /**
+   * ตัวชี้วัดรอยต่อกราม/ใต้หูบนครอปมาตรฐาน (หน่วยพิกเซลครอป, fw = 64) — ค่ามาก = แย่ ทุกค่าคิดแยกซ้าย/ขวาแล้วเอาด้านที่แย่กว่า
+   *  seam    = ความต่างสีเฉลี่ย (RGB) ข้ามขอบของชั้นศีรษะ (keep) ใต้แนวกราม ที่อีกด้านไม่ใช่ฉาก — รอยต่อสีระหว่างหน้า/คอจริงกับคอที่สร้าง
+   *  gapEdge = สัดส่วนขอบล่างของศีรษะ (ช่วงติ่งหู → คาง) ที่ติดฉากหลังโดยตรง ในภาพเดิมเป็นตัวคน (ช่องขาวใต้หู)
+   *  straight= ความยาวขอบแนวตั้ง/แนวนอนที่ตรงผิดธรรมชาติของเงาตัวคนในแถบข้างกราม (เส้นตัดตรง) / fw
+   *  jump    = การกระโดดของขอบนอกเงาตัวคนรายแถว (ระดับติ่งหู → คอเสื้อ) สูงสุด / fw (บาก/ขั้น)
+   *  lumStep = ความต่างความสว่างระหว่างผิวใต้กราม (ชั้นศีรษะ) กับคอที่สร้างใต้ลงไป / 255
+   *  open    = สัดส่วนแถบข้างกรามล่างที่ไม่มีผมบัง (1 = เปิดทั้งแถบ)
+   *  exposed = พื้นที่คอที่สร้าง (neck ไม่ถูกชุดบัง ไม่ใช่ศีรษะ) / fw²
+   */
+  function jawFeatures(C) {
+    const { w, h, ch } = C, F = JC.fw, A = q => ch[q], at = (q, x, y) => x < 0 || y < 0 || x >= w || y >= h ? 0 : A(q)[y * w + x];
+    const jawY = (() => {
+      if (C.jaw) { const J = C.jaw.slice().sort((a, b) => a.x - b.x); return x => { if (x <= J[0].x) return J[0].y; if (x >= J[16].x) return J[16].y; let i = 0; while (i < 15 && J[i + 1].x < x) i++; const a = J[i], b = J[i + 1], t = (x - a.x) / Math.max(1e-6, b.x - a.x); return a.y + (b.y - a.y) * t; }; }
+      const hw = F / 2, top = C.eyeY; return x => { const t = (x - C.chin.x) / hw; return Math.abs(t) >= 1 ? top : top + (C.chin.y - top) * Math.sqrt(1 - t * t); };
+    })();
+    const cx = C.chin.x, earY = C.jaw ? (C.jaw[2].y + C.jaw[14].y) / 2 : C.chin.y - F * .45, rgbD = (i, j) => Math.hypot(A("r")[i] - A("r")[j], A("g")[i] - A("g")[j], A("b")[i] - A("b")[j]);
+    const res = { seam: 0, gapEdge: 0, straight: 0, jump: 0, lumStep: 0, open: 0, exposed: 0 };
+    let expo = 0; for (let i = 0; i < w * h; i++) if (A("neck")[i] > 128 && A("front")[i] < 128 && A("keep")[i] < 128 && A("fg")[i] > 128) expo++;
+    res.exposed = +(expo / (F * F)).toFixed(3);
+    for (const sd of [-1, 1]) {
+      // ขอบล่างของชั้นศีรษะ: แต่ละคอลัมน์จากแนวกลางคอออกไปถึงหู (0.15–0.62 fw) ไล่ลงจากแนวกรามหา keep → ไม่ keep
+      let sN = 0, sT = 0, gN = 0, gT = 0, lN = 0, lT = 0, oN = 0, oT = 0;
+      for (let d = Math.round(F * .15); d <= Math.round(F * .62); d++) {
+        const x = Math.round(cx + sd * d); if (x < 1 || x >= w - 1) continue;
+        const y0 = Math.max(0, Math.round(jawY(x) - F * .12)), yMax = Math.min(h - 3, Math.round(jawY(x) + F * .35));
+        let y = y0; while (y < yMax && at("keep", x, y) > 128) y++;
+        if (y >= yMax || y <= y0) continue;
+        const i = (y - 2) * w + x, j = (y + 2) * w + x; // ศีรษะด้านบน ↔ ด้านล่าง
+        if (at("hair", x, y - 2) > 100) continue; // ปลายผม: ตัดตรงได้ตามธรรมชาติ
+        gT++; if (A("fg")[j] < 128 && A("srcA")[j] > 200) gN++;
+        if (A("fg")[j] >= 128 && A("front")[j] < 128) { sT++; sN += rgbD(i, j); }
+        // ผิวใต้กราม vs คอที่สร้าง
+        const k2 = Math.min(h - 1, y + Math.round(F * .1)) * w + x;
+        if (A("neck")[k2] > 128 && A("front")[k2] < 128 && A("keep")[k2] < 128) { const L = q => .299 * A("r")[q] + .587 * A("g")[q] + .114 * A("b")[q]; lT++; lN += Math.abs(L(i) - L(k2)); }
+      }
+      // แถบข้างกรามล่างที่ผมบัง
+      for (let y = Math.round(earY); y < Math.round(C.chin.y); y++) for (let d = Math.round(F * .3); d < Math.round(F * .7); d++) { const x = Math.round(cx + sd * d); if (x < 0 || x >= w) continue; oT++; if (at("keep", x, y) > 128 && at("hair", x, y) > 128) oN++; }
+      res.seam = Math.max(res.seam, sT ? sN / sT : 0); res.gapEdge = Math.max(res.gapEdge, gT ? gN / gT : 0); res.lumStep = Math.max(res.lumStep, lT ? lN / lT / 255 : 0);
+      res.open = Math.max(res.open, oT ? 1 - oN / oT : 1);
+      // ขอบนอกของเงาตัวคน (fg) ต่อแถว จากติ่งหูถึง 0.9 fw ใต้คาง: ขั้น/เส้นตรง
+      const B = []; for (let y = Math.round(earY); y < Math.min(h, Math.round(C.chin.y + F * .9)); y++) { let x = Math.round(cx), lim = Math.round(F * 1.1); let e = -1; for (let d = 0; d < lim; d++) { const X = x + sd * d; if (X < 0 || X >= w) break; if (at("fg", X, y) > 128 && at("hair", X, y) < 100) e = d; else if (e >= 0 && d - e > 2) break; } B.push(e); }
+      let run = 0, best = 0; for (let k = 1; k < B.length; k++) { if (B[k] < 0 || B[k - 1] < 0) { run = 0; continue; } const dj = Math.abs(B[k] - B[k - 1]); res.jump = Math.max(res.jump, dj / F); if (dj === 0) { run++; best = Math.max(best, run); } else run = 0; }
+      res.straight = Math.max(res.straight, best / F);
+    }
+    // หูถูกตัดเป็นเส้นตรง: ขอบนอกของชั้นศีรษะ (keep, ไม่ใช่ผม) ระดับตาถึงมุมกราม ที่ตรงแนวตั้ง (±0.5 px) ต่อเนื่อง
+    // และนอกเส้นนั้นภาพเดิมเป็นตัวคน แต่ผลลัพธ์เป็นฉาก — earCut = ความยาวสูงสุด / fw, cutPx = พิกเซลที่ถูกตัด / fw²
+    res.earCut = 0; res.cutPx = 0;
+    { let cut = 0; const yA = Math.max(0, Math.round(C.eyeY)), yB = Math.min(h, Math.round(C.chin.y - F * .1));
+      for (const sd of [-1, 1]) { let run = 0, best = 0, prev = null;
+        for (let y = yA; y < yB; y++) {
+          let e = -1; for (let d = Math.round(F * .3); d < Math.round(F * .9); d++) { const X = Math.round(cx + sd * d); if (X < 0 || X >= w) break; if (at("keep", X, y) > 128) e = X; }
+          if (e < 0 || at("hair", e, y) > 100) { run = 0; prev = null; continue; }
+          let c = 0; for (let k = 1; k <= 3; k++) { const X = e + sd * k; if (at("srcA", X, y) > 128 && at("fg", X, y) < 128 && at("hair", X, y) < 100) c++; }
+          cut += c;
+          if (c >= 2 && prev != null && Math.abs(e - prev) <= .5) { run++; best = Math.max(best, run); } else if (c < 2) run = 0;
+          prev = e;
+        }
+        res.earCut = Math.max(res.earCut, best / F);
+      }
+      res.cutPx = cut / (F * F);
+    }
+    for (const q of Object.keys(res)) res[q] = +(+res[q]).toFixed(4);
+    return res;
+  }
+  /** ครอป + ตัวชี้วัดจากสถานะของ studio.js หลังรวมภาพ (ใช้ร่วมกับ evaluate) */
+  function jawCropOf(S) {
+    const n = S.W * S.H, frontA = new Float32Array(n), front = S.cache.front, cov = S.cache.cover; if (front) for (let i = 0; i < n; i++) frontA[i] = front[i * 4 + 3] / 255;
+    let neckA = S.cache.neck ? S.cache.neck.alpha : null;
+    if (cov) { neckA = null; for (let i = 0; i < n; i++) { const a = cov.alpha[i]; if (a > 0) frontA[i] = Math.max(frontA[i], a); } }
+    return jawCrop({ out: S.out, fg: S.fgAlpha, keepA: S.keepA, srcA: S.alpha, hair: S.layers.hair, neckA, frontA, src: S.px, W: S.W, H: S.H, face: S.face });
+  }
+  /**
+   * ตรวจรูปติดบัตรตามข้อกำหนดทั่วไป (ค่าประมาณ ไม่ใช่การรับรองของหน่วยงาน) — ฟังก์ชันล้วน ทดสอบใน Node
+   *  px/alpha = รูปติดบัตร RGBA และ alpha ของตัวคน (พิกัดเดียวกัน W×H), face = { cx, eyeY, chinY, fw } ในพิกัดรูป, size = { w, h } ซม.
+   * ข้อที่ตรวจ: size (พิกเซลตรงขนาดที่ dpi), head (กระหม่อมถึงคาง 50–75% ของความสูง), top (ที่เหนือศีรษะ 3–20%), center,
+   *  bg (ฉากหลังเรียบ: ส่วนเบี่ยงเบน RGB < 10 และเห็นฉาก ≥ 5%), exposure (ความสว่างผิวหน้า 95–215, สว่าง/มืดจนสุด < 3%), outfit (ไม่มีชุดจำลอง)
+   * คืน { items: [{ k, ok, v }], pass, icao } — icao = ขนาด 3.5×4.5 ซม. (หนังสือเดินทางใช้ศีรษะ 71–80%)
+   */
+  function idSpecCheck({ px, alpha, W, H, face, size, dpi = 300, outfit = false }) {
+    const items = [], add = (k, ok, v) => items.push({ k, ok: !!ok, v });
+    const ew = Math.round(size.w / 2.54 * dpi), eh = Math.round(size.h / 2.54 * dpi);
+    add("size", Math.abs(W - ew) <= 1 && Math.abs(H - eh) <= 1, { w: W, h: H, cw: size.w.toFixed(1), ch: size.h.toFixed(1) });
+    const cx = Math.round(face.cx), band = Math.max(2, Math.round(face.fw * .2)); let crown = -1;
+    for (let y = 0; y < H && crown < 0; y++) { let c = 0, t = 0; for (let x = Math.max(0, cx - band); x <= Math.min(W - 1, cx + band); x++) { t++; if (alpha[y * W + x] > .5) c++; } if (t && c / t > .3) crown = y; }
+    const headP = crown >= 0 ? (face.chinY - crown) / H : NaN, topP = crown >= 0 ? crown / H : NaN;
+    add("head", headP >= .5 && headP <= .75, { p: Number.isFinite(headP) ? Math.round(headP * 100) : "?", lo: 50, hi: 75 });
+    add("top", topP >= .03 && topP <= .2, { p: Number.isFinite(topP) ? Math.round(topP * 100) : 0 });
+    add("center", Math.abs(face.cx - W / 2) / W < .05);
+    let n = 0; const s = [0, 0, 0], s2 = [0, 0, 0];
+    for (let i = 0; i < W * H; i++) { if (alpha[i] >= .02) continue; n++; for (let c = 0; c < 3; c++) { const v = px[i * 4 + c]; s[c] += v; s2[c] += v * v; } }
+    const sd = n ? Math.sqrt([0, 1, 2].reduce((t, c) => t + Math.max(0, s2[c] / n - (s[c] / n) ** 2), 0) / 3) : NaN;
+    add("bg", n >= W * H * .05 && sd < 10, { sd: Number.isFinite(sd) ? sd.toFixed(1) : "?" });
+    let fl = 0, fn = 0, clip = 0; const x0 = Math.max(0, Math.round(face.cx - face.fw * .3)), x1 = Math.min(W, Math.round(face.cx + face.fw * .3)), y0 = Math.max(0, Math.round(face.eyeY)), y1 = Math.min(H, Math.round(face.eyeY + (face.chinY - face.eyeY) * .7));
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const i = y * W + x, l = lum(px, i); fl += l; fn++; if (l >= 250 || l <= 8) clip++; }
+    const fL = fn ? fl / fn : NaN, cp = fn ? 100 * clip / fn : 0;
+    add("exposure", fL >= 95 && fL <= 215 && cp < 3, { l: Number.isFinite(fL) ? Math.round(fL) : "?", c: cp.toFixed(1) });
+    add("outfit", !outfit);
+    return { items, pass: items.every(i => i.ok), icao: size.w === 3.5 && size.h === 4.5 };
+  }
+  /**
+   * ตรวจชุดบนรูปติดบัตรของตู้ถ่ายรูป (photobooth.js renderIdPhoto: วางชุดภาพวาดใต้คาง แล้ววาดศีรษะทับเหนือเส้น clipY)
+   *  pa = alpha ของตัวคน, oa = alpha ของชุด (พิกัดรูปติดบัตร W×H), face = { cx, eyeY, chinY, fw } ในพิกัดรูป, clipY = เส้นที่ศีรษะถูกวาดทับ
+   *  hairCut = ความยาวที่ตัวคน (ผม/บ่า) นอกช่วงกรามถูกชุดตัดเป็นเส้นตรงที่ clipY / fw
+   *  hole    = % ช่องฉากหลังที่ถูกล้อมด้วยตัวคน/ชุด ในแถบคอ (คาง → 0.8 หน้าใต้คาง, |dx| < 0.6 หน้า) — ช่องขาว/บากระหว่างคอกับคอเสื้อ
+   *  leftover= เสื้อเดิมที่โผล่นอกชุด (ตัวคนแต่ไม่ใช่ชุด ใต้คาง 0.3 หน้า นอกแถบคอ) / fw²
+   * คืน { pass, fails, m } — เกณฑ์ BOOTH_LIMITS ตั้งจากชุด dev (ACCURACY.md §11b)
+   */
+  const BOOTH_LIMITS = { hairCut: .12, hole: 1.5, leftover: .05 };
+  function boothCheck({ pa, oa, W, H, face, clipY, L = BOOTH_LIMITS }) {
+    const fw = face.fw, cx = face.cx, y = Math.round(clipY);
+    let cut = 0;
+    if (y > 2 && y < H - 3) for (let x = 0; x < W; x++) { if (Math.abs(x - cx) < fw * .45) continue; if (pa[(y - 2) * W + x] > .5 && oa[(y + 2) * W + x] > .5) cut++; }
+    let hole = 0, band = 0;
+    for (let yy = Math.max(0, Math.round(face.chinY)); yy < Math.min(H, Math.round(face.chinY + fw * .8)); yy++) {
+      const xa = Math.max(0, Math.round(cx - fw * .6)), xb = Math.min(W - 1, Math.round(cx + fw * .6)); let l = -1, r = -1;
+      for (let x = xa; x <= xb; x++) if (pa[yy * W + x] > .5 || oa[yy * W + x] > .5) { if (l < 0) l = x; r = x; }
+      band += xb - xa + 1; if (l < 0) continue;
+      for (let x = l; x <= r; x++) if (pa[yy * W + x] <= .5 && oa[yy * W + x] <= .5) hole++;
+    }
+    let left = 0;
+    for (let yy = Math.max(0, Math.round(face.chinY + fw * .3)); yy < H; yy++) for (let x = 0; x < W; x++) { if (Math.abs(x - cx) < fw * .35) continue; const i = yy * W + x; if (pa[i] > .5 && oa[i] < .3) left++; }
+    const m = { hairCut: +(cut / fw).toFixed(3), hole: band ? +(100 * hole / band).toFixed(2) : 0, leftover: +(left / (fw * fw)).toFixed(3) };
+    const fails = boothVerdict(m, L);
+    return { pass: !fails.length, fails, m };
+  }
+  function boothVerdict(m, L = BOOTH_LIMITS) { const f = []; if (m.hairCut > L.hairCut) f.push("hair-cut"); if (m.hole > L.hole) f.push("neck-gap"); if (m.leftover > L.leftover) f.push("leftover"); return f; }
   /** เกณฑ์ผ่าน (ปรับเทียบกับการดูภาพ) */
   const LIMITS = { hairCutRows: 3, neckBgPct: 1.2, neckDE: 16, neckL: [.2, 1.2], neckWide: .75, neckLen: .75, bgChunk: .03, hemRough: .045, bodyWide: 3.75, hemHolePct: .3, shoulderDy: .2, shoulderRaised: .25, accessory: .012, skinIsland: .012, handsOrphan: 0, floatingHand: .02, neckJoinGap: 2.5, neckJoinFringe: 2, neckFlatArea: .06, neckFlatCv: .045, stray: .01, leftover: .12, neckNotch: .25, faceIsland: .004, neckRelArea: .05, neckRelL: .45, neckRelTex: .45, jawBlob: .015 }; // jawBlob: ตั้งไว้ล่วงหน้า (ก้อนทึบ ≥ 1.5% ของพื้นที่หน้า²) ไม่ได้ปรับตามชุดภาพ
   function verdict(m, L = LIMITS) {
@@ -350,6 +499,31 @@
     return f;
   }
 
+  /**
+   * ประตูที่เรียนรู้ (learned gate): logistic regression ขนาดเล็กบนตัวชี้วัด QA + ตัวชี้วัดรอยต่อกราม/หู (jawFeatures)
+   * ฝึกบนชุด dev (คนละคนกับชุด test) ประเมินบนชุด test ครั้งเดียว — วิธีฝึกและผลอยู่ใน ACCURACY.md §11 และ tests/bench/studio.bench.mjs (stage 2b)
+   * confidence(m, jf, { cover }) -> { p: ความน่าจะเป็นที่ "ไม่มีรอยให้เห็น", t: เกณฑ์, show: p ≥ t }
+   */
+  const GATE_FEATS = {
+    nFails: (m) => verdict(m).length, revealed: (m) => m.revealed || 0, bodyWide: (m) => m.hem ? m.hem.wide : 0, jawCover: (m) => m.jawCover || 0,
+    neckL: (m) => m.neck ? Math.abs(Math.log(m.neck.lRatio || 1)) : 0, open: (m, j) => j.open, gapEdge: (m, j) => j.gapEdge, earCut: (m, j) => j.earCut,
+    cutPx: (m, j) => j.cutPx, jump: (m, j) => j.jump, straight: (m, j) => j.straight, cover: (m, j, c) => c ? 1 : 0
+  };
+  // ตัวจำแนก LR บนคุณลักษณะข้างบน (ฝึกบน dev, ตรวจไขว้แยกตามบุคคล) ได้ AUC 0.40–0.47 = แยกไม่ได้ จึงไม่ใช้ตัดสินรายภาพ
+  // สิ่งที่ใช้ = ความน่าจะเป็นที่ปรับเทียบแล้วตามกลุ่ม (ผ่านประตูกฎ × แบบคอสูง/แบบเดิม) วัดบนชุด dev ด้วยผู้ประเมินคนที่สอง
+  // เกณฑ์แสดงชุดเองโดยไม่ต้องกด (t) = 0.5: ทุกกลุ่มต่ำกว่าเกณฑ์ หน้าเว็บจึงเริ่มที่แบบไม่ใส่ชุดเสมอ
+  let GATE = { kind: "calibrated", t: .5, clean: { cover: .45, plain: .41 }, n: { cover: 53, plain: 17 }, source: "dev split, second rater, round 10" };
+  function gateScore(m, jf, { cover = false } = {}, G = GATE) {
+    let z = G.b; G.feats.forEach((k, i) => { z += G.w[i] * ((GATE_FEATS[k](m, jf || {}, cover) - G.mu[i]) / G.sd[i]); });
+    return 1 / (1 + Math.exp(-z)); // ความน่าจะเป็นที่มีรอย (defect)
+  }
+  function confidence(m, jf, opt = {}, G = GATE) {
+    if (!G || !m) return null;
+    const p = G.kind === "calibrated" ? (verdict(m).length ? null : G.clean[opt.cover ? "cover" : "plain"]) : 1 - gateScore(m, jf, opt, G);
+    return p == null ? null : { p: +p.toFixed(3), t: G.t, show: p >= G.t };
+  }
+  /** เลือกชุดให้เองตอนเปิดรูปได้หรือไม่: เฉพาะเมื่อมีกลุ่มที่ความน่าจะเป็น "ไม่มีรอย" ถึงเกณฑ์ */
+  const defaultOutfitAllowed = (G = GATE) => !!G && (G.kind !== "calibrated" || Math.max(...Object.values(G.clean)) >= G.t);
   /** ประเมินสถานะของ studio.js (window.__studio.state) หลังรวมภาพ — ต้องมี StudioCore */
   /** ชุดตรวจเร็วสำหรับหน้าเว็บ (หลังรวมภาพทุกครั้ง): รอยต่อคอ/กราม เศษขอบหน้า คอเรียบ/มืด เกาะหลุด รูในคอ — ไม่รวมตัวตรวจที่ช้า (ผม ชายชุด ไหล่ มือ) */
   // jawBlob ไม่อยู่ในชุดเร็วของหน้าเว็บ: เตือนผิดบ่อย (ผมสีเข้ม/เงาใกล้กราม) — ใช้ในชุดทดสอบ/โหมดรายงานเท่านั้น
@@ -358,7 +532,9 @@
     if (gate) fast = false;
     const W = S.W, H = S.H, n = W * H, f = S.face, L = S.layers, fit = S.cache.fit, front = S.cache.front, neck = S.cache.neck;
     const frontA = new Float32Array(n); if (front) for (let i = 0; i < n; i++) frontA[i] = front[i * 4 + 3] / 255;
-    const neckA = neck ? neck.alpha : new Float32Array(n), keepA = S.keepA, fg = S.fgAlpha, src = S.px, out = S.out, labOf = SC.rgbToLab;
+    let neckA = neck ? neck.alpha : new Float32Array(n); const keepA = S.keepA, fg = S.fgAlpha, src = S.px, out = S.out, labOf = SC.rgbToLab;
+    // แบบคอสูง: ผ้าคอเต่า (S.cache.cover) เป็นส่วนของชุด และไม่มีคอที่สร้างแสดง (studio.js วางเฉพาะผ้า)
+    const cov = S.cache.cover; if (cov) { neckA = new Float32Array(n); for (let i = 0; i < n; i++) { const a = cov.alpha[i]; if (a > 0) frontA[i] = Math.max(frontA[i], a); } }
     const hw = S.headwear || null, hairK = fast ? null : new Float32Array(n); if (hairK) for (let i = 0; i < n; i++) hairK[i] = L.hair[i] * S.alpha[i];
     let hairLab = null; if (!fast) { let a = 0, b = 0, c = 0, k = 0; for (let y = 0; y < Math.round(f.eyeY - f.fw * .4); y += 2) for (let x = 0; x < W; x += 2) { const i = y * W + x; if (L.hair[i] > .6 && S.alpha[i] > .8) { const q = labOf(src[i * 4], src[i * 4 + 1], src[i * 4 + 2]); a += q[0]; b += q[1]; c += q[2]; k++; } } if (k > 20) hairLab = [a / k, b / k, c / k]; }
     const skinLab = S.harm && S.harm.skin ? S.harm.skin.mean : null, mono = !!(S.harm && S.harm.mono);
@@ -441,7 +617,7 @@
     return { ok: !issues.some(i => i.level === "fail"), issues, m };
   }
 
-  const api = { garmentPhotoCheck, revealed, jawCover, hairCut, neckNotch, faceIsland, neckRel, jawBlob, neckCheck, bgChunk, hemCheck, shoulderCheck, accessory, skinIsland, handsCheck, floatingHand, neckJoin, neckFlat, strayParts, leftover, verdict, evaluate, LIMITS };
+  const api = { garmentPhotoCheck, revealed, jawCover, jawCrop, jawCropOf, jawFeatures, JC, idSpecCheck, boothCheck, boothVerdict, BOOTH_LIMITS, GATE_FEATS, gateScore, confidence, defaultOutfitAllowed, get GATE() { return GATE; }, set GATE(g) { GATE = g; }, hairCut, neckNotch, faceIsland, neckRel, jawBlob, neckCheck, bgChunk, hemCheck, shoulderCheck, accessory, skinIsland, handsCheck, floatingHand, neckJoin, neckFlat, strayParts, leftover, verdict, evaluate, LIMITS };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") root.StudioQA = api;
 })(typeof window !== "undefined" ? window : globalThis);

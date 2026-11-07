@@ -95,7 +95,7 @@
   }
 
   /* กราฟเส้นหลายชุด (แกน Y เดียว หน่วยเดียวกัน) + crosshair + ป้ายปลายเส้น */
-  function lineChart(box, { labels, series }) {
+  function lineChart(box, { labels, series, flags = [] }) {
     responsive(box, W => {
       box.replaceChildren();
       const narrow = W < 520, H = narrow ? 210 : 260, L = 40, R = narrow ? 12 : 92, T = 12, B = 26, n = labels.length;
@@ -103,6 +103,9 @@
       const x = i => n === 1 ? (L + W - R) / 2 : L + (W - L - R) * i / (n - 1), y = v => T + (1 - v / max) * (H - T - B);
       const svg = el("svg:svg", { viewBox: `0 0 ${W} ${H}`, width: W, height: H, class: "iq-svg", role: "img", tabindex: 0, "aria-label": TT("iq.ch.trend", "แนวโน้มรวม {s} (ดูตัวเลขทั้งหมดในตารางด้านล่าง)", { s: series.map(s => TT("iq.ch.sum", "{n} รวม {v}", { n: s.name, v: nf(iqSum(s.values)) })).join(", ") }) }, box);
       ticks.forEach(v => { el("svg:line", { x1: L, x2: W - R, y1: y(v), y2: y(v), class: v === 0 ? "base" : "grid" }, svg); el("svg:text", { x: L - 6, y: y(v) + 4, "text-anchor": "end", class: "tick" }, svg, compact(v)); });
+      // ช่วงที่ภาพจากกล้องมีปัญหา (round 10): แถบสีเทาหลังเส้น
+      const half = n > 1 ? (W - L - R) / (n - 1) / 2 : (W - L - R) / 2;
+      flags.forEach(i => { if (i >= 0 && i < n) el("svg:rect", { x: Math.max(L, x(i) - half), y: T, width: Math.min(W - R, x(i) + half) - Math.max(L, x(i) - half), height: H - T - B, class: "flagband" }, svg); });
       const every = Math.max(1, Math.ceil(n / Math.max(2, Math.floor((W - L - R) / 58))));
       labels.forEach((l, i) => { if ((n - 1 - i) % every === 0) el("svg:text", { x: x(i), y: H - 6, "text-anchor": n > 1 && i === n - 1 && x(i) + 24 > W ? "end" : "middle", class: "tick" }, svg, l); });
       series.forEach(s => {

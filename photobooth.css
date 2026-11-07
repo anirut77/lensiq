@@ -160,3 +160,7 @@ label.slider input{padding:0}
   .print-id #out{width:var(--print-w,10.16cm);max-width:none;max-height:none;margin:0}
 }
 .handoff [hidden]{display:none!important}
+.pb-outfit-note{margin:0 0 10px;overflow-wrap:anywhere}
+.pb-outfit-note[data-shown="draft"]{background:#fde8e8;color:#8a1c1c}
+.pb-outfit-note[data-shown="safe"]{background:#fff6e0;color:#7a5a05}
+.pb-outfit-note .btn{margin-top:6px}

@@ -157,14 +157,29 @@ transparently to record the domain + start/complete).
 
 ### Billing (scaffold — see docs/BILLING-PLAN.md)
 
-Tables `plans, entitlements, customers, subscriptions, payments, webhooks, counters`. `checkEntitlement()` is the
+Tables `plans, entitlements, customers, subscriptions, payments, webhooks, counters` (+ `credits, alerts`, migration
+`0006_consumer_pricing.sql`: owner-decided consumer prices, one-time purchases, refunds, idempotency, alerts). `checkEntitlement()` is the
 single server-side gate; with `FREE_MODE=true` it always allows but still counts usage (so we learn real demand).
 
-* **Checkout** (`BILLING_ENABLED=true` **and** `FREE_MODE=false` only): Turnstile required (fail closed, action
-  `checkout`; `503 turnstile_not_configured` without it), then 5 per caller per hour **and a global cap of 30 per hour**
-  (`CHECKOUT_GLOBAL_HOUR` var): PromptPay charge (`POST /charges`, `source[type]=promptpay`), QR proxied through the Worker as SVG (page CSP
-  allows `img-src blob:` only), status polling (`GET /charges/:id`). The response includes `customer_id` and a secret
-  `order_token` shown once to the buyer (only its hash is stored) — the handle that links the paid plan to the buyer.
+* **Checkout** (`BILLING_ENABLED=true` **and** `FREE_MODE=false` only): **a signed-in member is required**
+  (`401 member_required`; round 10 — a purchase always raises the quota of the account that bought it). Then
+  `Idempotency-Key` replay check, Turnstile (fail closed, action `checkout`; `503 turnstile_not_configured` without
+  it), 5 per caller per hour **and a global cap of 30 per hour** (`CHECKOUT_GLOBAL_HOUR` var): PromptPay charge
+  (`POST /charges`, `source[type]=promptpay`), QR proxied through the Worker as SVG (page CSP allows `img-src blob:`
+  only), status polling (`GET /charges/:id`). Only plans with `status='active'` can be bought (draft / retired → `400
+  plan_unavailable`). **Legacy guest checkout** only with the opt-in var `ALLOW_GUEST_CHECKOUT=true` (and membership
+  not required): the response then includes `customer_id` and a secret `order_token` shown once (only its hash is
+  stored); the buyer links the purchase to an account with `POST /v1/billing/claim`.
+* **One-time purchases** (`plans.kind='one_time'`, e.g. `report_annual`): on success the plan's `period='once'`
+  entitlements become **credits** (`credits` table, 365 days) instead of a subscription. `checkEntitlement()` and the
+  member AI quota use the period quota first, then a credit.
+* **Mismatch is final.** If the provider's amount / currency differs from the payment, the payment becomes
+  `status='mismatch'` (`mismatch_detail` JSON), nothing is activated, the webhook is marked processed and answered
+  `200 {result:"mismatch"}` (no endless 503 retries), an audit row `payment.mismatch` and an admin alert
+  (`alerts`, `GET /admin/api/alerts`) are written; the reconcile cron skips it (it only reads `pending`).
+* **Refunds** are manual bank transfers (Opn cannot refund PromptPay): admin `POST
+  /admin/api/billing/payments/:id/refund` (re-auth) sets `status='refunded'`, records the reference / amount, cancels
+  the subscription and zeroes the payment's credits (both optional), writes a `refund` ledger row for the member.
 * **Webhook** `POST /v1/billing/webhook/opn` verified with `Omise-Signature` (hex HMAC-SHA256 over
   `<Omise-Signature-Timestamp>.<raw body>`, base64-decoded secret, comma-separated signatures during rotation, 5-minute
   tolerance); the charge is then **re-fetched from the Opn API** (the payload is never trusted). An event is a
@@ -173,8 +188,59 @@ single server-side gate; with `FREE_MODE=true` it always allows but still counts
 * **Reconcile cron** (`*/15 * * * *`): pending payments from the last 3 days are re-checked with Opn (lost webhooks).
 * **Receipts:** success is claimed and numbered in **one transaction** (`UPDATE … WHERE status='pending'`, counter
   incremented only when that update changed a row, number written in the same batch) — gap-free and assigned once even
-  when webhook, poll and cron race. Numbers `LQ-YYYYMM-000001`; VAT 7 % (inclusive) only when `VAT_REGISTERED=true`;
-  buyer/seller tax-invoice fields stored per payment. Live keys are refused unless `OPN_ALLOW_LIVE=true`.
+  when webhook, poll and cron race. Numbers `LQ-YYYYMM-000001` (Bangkok month); VAT 7 % (inclusive) only when
+  `VAT_REGISTERED=true`; buyer/seller tax-invoice fields stored per payment. Live keys are refused unless
+  `OPN_ALLOW_LIVE=true`. **Printable receipt / tax invoice** (`backend/src/receipt.js`): `GET
+  /api/me/payments/:id/receipt` (the payer) and `GET /admin/api/billing/payments/:id/receipt` return self-contained
+  HTML (Thai, with EN / ZH labels, no script, CSP `default-src 'none'`), or JSON with `?format=json`. Title
+  "ใบเสร็จรับเงิน / ใบกำกับภาษี" only for a VAT payment with a seller tax ID; VAT lines only when the payment carried VAT;
+  stamped **ฉบับร่าง / DRAFT** while seller name, tax ID or address is missing (stored fields, falling back to the
+  current `SELLER_*` vars); refunded payments carry a "คืนเงินแล้ว" stamp; test-mode payments a "TEST MODE" stamp.
+* **Perks registry** (`constants.js PERKS`, served as `perks` by `GET /v1/billing/plans`; each plan entitlement also
+  carries `status`): `active` = enforced by the server (`ai_reading`, `report_*`, `csv_export` via the server check
+  `POST /api/me/entitlements/use`); `coming_soon` = listed but not delivered (`analytics_days`, `hub_nodes`) — the
+  pricing page must label these "เร็ว ๆ นี้" and not sell them.
+
+#### Round-10 API for the pricing / account / admin UI
+
+All amounts are integers in satang (÷ 100 = THB, VAT-inclusive when `vat_registered`). Member calls send
+`Authorization: Bearer <member token>`; admin calls are the usual admin session (+ `X-CSRF-Token` with cookies).
+
+| Call | Request | Response / notes |
+|---|---|---|
+| `GET /v1/billing/plans` | — | `{free_mode, billing_enabled, pricing_enabled, vat_registered, member_required_for_checkout, perks:{feature:{status, enforcement, unit, th, en, zh}}, plans?:[{id, name_th, name_en, name_zh, kind:"subscription"\|"one_time", audience:"consumer"\|"business", price_month_satang, price_year_satang, price_once_satang, status, purchasable, sort, entitlements:{feature:{quota, period, status}}}]}` — `plans` only when the pricing page is enabled. Show a plan's Buy button only when `purchasable`; label entitlements whose `status` is `coming_soon` |
+| `POST /v1/billing/checkout` | headers `Authorization` (member), `X-Turnstile-Token`, optional `Idempotency-Key` (8–64 `[A-Za-z0-9_-]`; reuse it when retrying the same purchase); body `{plan_id, period:"month"\|"year" (ignored for one-time), accept_terms:true, buyer?:{name, email, tax_id (13 digits), address, branch}}` | `201 {payment_id, plan_id, period:"month"\|"year"\|"once", amount_satang, vat_satang, expires_at, qr_path, status_path, test_mode, customer_id, linked_to_account:true}`; a replay with the same key → `200 {…, status, idempotent_replay:true}`; `401 member_required`, `400 plan_unavailable`, `422 idempotency_mismatch`, `403/503` Turnstile, `429` |
+| `GET /v1/billing/payments/:id` | — | `{status: pending\|successful\|failed\|expired\|mismatch\|refunded, plan_id, period, amount_satang, vat_satang, receipt_no, doc_type, expires_at, paid_at}`. `mismatch` = final ("we are checking your payment — contact support") |
+| `POST /v1/billing/claim` | member bearer; `{customer_id, order_token}` (from a legacy guest checkout) | `200 {ok, linked:{subscriptions, payments, credits}, plan:{id, current_period_end}\|null, credits:{feature:n}}`; `403 claim_invalid`, `409 claim_taken`, `400 claim_invalid` (format), `429` |
+| `GET /api/me` | member | adds `paying` (bool), `credits:{feature:n}`, `plan.{source:"purchase"\|"comp", subscription_id, name_zh}`, `quotas.ai.{credits, timezone:"Asia/Bangkok"}`; `readings_today` counts from 00:00 Bangkok |
+| `GET /api/me/history` | member | `payments[]` gain `refund_satang, refunded_at, receipt_path` (null until a receipt exists); `ledger[].kind` ∈ signup, reading, ai, payment, **refund**, **grant**, **claim**, **credit** |
+| `GET /api/me/payments/:id/receipt[?format=json]` | member (own payment, status successful / refunded) | `text/html` printable receipt (open the fetched HTML in a new window / blob URL — the bearer token cannot ride on a plain link) or JSON `{receipt_no, doc_type, draft, missing_seller_fields, title_th/en/zh, date:{th, iso}, seller, buyer, item, vat\|null, total_satang, refund\|null, livemode}`; 404 otherwise |
+| `GET /api/me/entitlements` | member | `{plan, free_mode, timezone, perks:{feature:{status, enforcement, quota, period, used, remaining, credits, allowed}}}` (nothing consumed) |
+| `GET /api/me/sessions` | member | `{sessions:[{id (16 hex, opaque — first 16 hex of the stored token hash, never the token), created_at, last_seen_at, expires_at, label ("Chrome · Android"; coarse browser · OS derived at sign-in, raw User-Agent never stored — migration 0007), current}]}` — active sessions only (not expired, not idle > 14 days), newest first |
+| `POST /api/me/sessions/revoke` | member; `{id}` or `{all:true, keep_current:true}` ("sign out everywhere"; `keep_current:false` also signs out this device) | `200 {ok, revoked, current_revoked}`; `404` unknown id (scoped to the caller), `400` bad body; audit `member.sessions.revoked`. After `current_revoked:true` drop the stored token |
+| `POST /api/me/entitlements/use` | member; `{feature}` ∈ `csv_export`, `report_basic`, `report_compat`, `report_annual` | counts one use / takes one credit: `200 {feature, allowed, via:"quota"\|"credit"\|null, plan, quota, used, remaining, credits, period, free_mode}` (`allowed:false` = not included — show the upgrade card); `400 unknown_feature` for coming-soon / unknown perks |
+
+Admin (re-auth = body also carries `{password, totp}`; `403` when wrong, audited as `reauth.failed`):
+
+| Call | Body | Notes |
+|---|---|---|
+| `GET /admin/api/billing` | — | adds `open_alerts`, `guest_checkout`, plans with `kind, audience, price_once_satang, name_zh, purchasable`, entitlement `status` |
+| `GET /admin/api/billing/payments?status=` | status ∈ pending, successful, failed, expired, mismatch, refunded | rows add `mismatch_detail, refund_satang, refund_ref, refunded_at, user_id, subscription_id`; totals add `live_refunds_satang, mismatches` |
+| `GET /admin/api/billing/payments/:id` | — | `{payment, subscription, credits, receipt_path}` |
+| `GET /admin/api/billing/payments/:id/receipt[?format=json]` | — | same document as the member's |
+| `POST /admin/api/billing/payments/:id/refund` | **re-auth** + `{reference (required, ≤ 80), amount_satang? (default full), note?, cancel_subscription? = true, revoke_credits? = true}` | successful / mismatch payments only (`409 not_refundable`); audit `billing.refund` |
+| `GET /admin/api/billing/subscriptions?user_id=&status=` | — | subscriptions with the member e-mail |
+| `POST /admin/api/billing/subscriptions/:id/cancel` | **re-auth** + `{reason?}` | audit `billing.subscription.cancel` |
+| `POST /admin/api/billing/subscriptions/:id/extend` | **re-auth** + `{days: 1–3650, reason?}` | from max(now, end); re-activates; audit |
+| `POST /admin/api/members/:id/grant` | **re-auth** + `{plan_id, days, reason?}` (complimentary subscription, `source:"comp"`) or `{feature, credits: 1–1000, days? = 365}` | `201`; ledger `grant`; audit `billing.grant` |
+| `GET /admin/api/members/:id` | — | `{user, subscriptions, payments, credits, ledger}` |
+| `POST /admin/api/members/:id/status` | **re-auth** + `{status}` | (round 10: re-auth now required) |
+| `PUT /admin/api/billing/plans/:id` | any of `{name_th, name_en, name_zh, price_month_satang, price_year_satang, price_once_satang (null or 0 / 2000–15,000,000), status: draft\|active\|retired, sort, notes, kind, audience, entitlements:{feature:{quota:null\|int, period:"day"\|"month" (subscriptions) \| "once" (one-time)} \| null}}` | features must be in `perks`; an active plan needs a price for its kind; the free plan stays active at 0; audit `billing.plan.updated` with old → new prices |
+| `POST /admin/api/billing/plans` | same + `id` (`[a-z][a-z0-9_]{1,31}`) | `201`; audit `billing.plan.created` |
+| `GET /admin/api/alerts[?all=1]`, `POST /admin/api/alerts/:id/ack` | — | `{alerts:[{id, ts, kind:"payment_mismatch", ref, detail, acknowledged_at}], open}` |
+| `GET /admin/api/devices`, `DELETE /admin/api/devices/:id`, `DELETE /admin/api/devices` | — | trusted login devices `{id (16 hex), created_at, last_used, expires_at, current}`; revoke one / all |
+| `POST /admin/api/retention/run` | **re-auth** | (round 10: re-auth now required) |
+| `PUT /admin/api/ai` | adds `paid_per_user_daily` (1–1000, default 100), `paid_daily_max` (1–100000, default 2000) | separate AI buckets for paying members |
 
 ### Member sign-in (Google) and tiers (ready, OFF by default)
 
@@ -188,7 +254,14 @@ transaction history, so charging later is easy. **Nothing changes until the owne
 |---|---|---|---|---|
 | guest | not signed in | **light reading**: summary + first `guest_light_sections` (2) sections + every gentle caution from the hidden sections + the Kalama reminder + notes; the rest (and the 3-point plan) is replaced by a "sign in free with Google" card. Soft per-device counter `guest_daily_readings` (3/day, localStorage) — after that only summary + cautions + reminder | refused by the Worker (`401 member_required`, page falls back to the local composer; status reports `enabled:false`) | every on-device tool unchanged |
 | member | Google sign-in, free | full reading, "save to my history", print / PDF | `member_ai_daily` (3/day), **server-enforced** | `account.html`: plan, quota, history, export, delete |
-| paid | active subscription linked to `user_id` | full | plan entitlement `ai_reading` (pro 100/month, business 600/month; enforced when `FREE_MODE=false`) | checkout requires a member when membership is on |
+| paid | active subscription linked to `user_id` (purchased, claimed or complimentary), or purchased credits | full | plan entitlement `ai_reading` (plus 30/month, pro 100/month, business 600/month; enforced when `FREE_MODE=false`), then `ai_reading` credits; **own AI buckets** (`fortune:pd:<user>` = `paid_per_user_daily`, `fortune:daily:paid` = `paid_daily_max`) — free traffic cannot use them up | checkout always requires a member while billing is on |
+
+Round 10 quota rules: quota days / months and `readings_today` follow **Asia/Bangkok** (UTC+7; daily rate-limit
+windows start 00:00 Bangkok); a refused call is **not counted** (atomic `… WHERE n < quota`, every rate-limit bucket
+counted for it is given back); when the **provider** call fails (rate limit, connection, API error) the quota use /
+credit and the daily buckets are given back (a reply that arrived but failed grounding stays counted — it cost
+tokens). With `FREE_MODE=false` the member tier (`member_ai_daily`) is enforced even when membership is not required,
+so signing in never escapes the guest limits.
 
 Safety and consent texts (Kalama reminder, gentle cautions, AI consent text) are **never gated**. Limits are editable
 in admin → Members (D1 `settings.membership`; paid-plan AI quotas update `entitlements`).
@@ -198,11 +271,13 @@ in admin → Members (D1 `settings.membership`; paid-plan AI quotas update `enti
   checkbox separate and unticked). Only after "Continue with Google" is `https://accounts.google.com/gsi/client`
   loaded (no third-party request on page load — e2e-tested). `POST /api/auth/nonce` issues a one-time nonce (hash
   stored, 10 min); GIS returns an ID token; `POST /api/auth/google` (Turnstile action `signin`, fail closed; 10 per caller
-  and `SIGNIN_GLOBAL_15MIN` (300) per 15 min) consumes the nonce atomically and verifies the token itself
+  and `SIGNIN_GLOBAL_15MIN` (300) per 15 min — the global cap is counted only **after** the Turnstile check passed,
+  so junk requests cannot exhaust it) consumes the nonce atomically and verifies the token itself
   (`google.js`): RS256 with WebCrypto against `https://www.googleapis.com/oauth2/v3/certs` (cached per Cache-Control
   max-age, clamped 60 s–24 h; an unknown `kid` forces one refetch, throttled to one per 30 s), `iss` ∈
   {`accounts.google.com`, `https://accounts.google.com`}, `aud == GOOGLE_CLIENT_ID` (`azp` with multi-audience), `exp`
   / `iat` with 60 s skew, `email_verified`, `nonce`. No client secret, no Google SDK, no Google API call with user data.
+  A network error or empty key set while fetching the JWKS is `503 jwks_unavailable` (retry later), never a 500.
 * **Session.** 256-bit random member token returned once, only its SHA-256 stored (`member_sessions`), 30 days
   absolute / 14 days idle; revoked by `POST /api/auth/logout`, account deletion, or the admin disabling the account.
   The site (github.io) and the API are different origins, so the token is kept in localStorage (try/catch) and sent as
@@ -216,8 +291,10 @@ in admin → Members (D1 `settings.membership`; paid-plan AI quotas update `enti
   token).
 * **PDPA rights.** `GET /api/me/export` (JSON, portability), `DELETE /api/me {"confirm":"DELETE"}` (erasure): user,
   sessions, ledger, saved readings and quota counters deleted in one batch; payments/receipts are kept ≥ 5 years for
-  tax but unlinked (`user_id` NULL, e-mail removed; tax-invoice buyer fields stay). Audit log rows carry the user id
-  only, never the e-mail. See `docs/pdpa/ROPA.md` M22 and `docs/pdpa/DPIA.md` §13.
+  tax but unlinked (`user_id` NULL, e-mail removed; tax-invoice buyer fields stay); credits deleted. Audit log rows
+  carry the user id only, never the e-mail — and on erasure every earlier audit row's user id is rewritten to a one-way
+  pseudonym (`erased:<16 hex>`), the `member.deleted` row carries only that pseudonym. See `docs/pdpa/ROPA.md` M22 and
+  `docs/pdpa/DPIA.md` §13.
 * **Known limits.** The guest counter is client-side (soft by design — it only shapes the free experience; AI cost is
   enforced server-side). Guests already get the light version; a determined visitor could clear storage. The AI
   status probe is cached per page load by `fortune-ai.js`, so after signing in the AI consent box appears on the next
@@ -300,7 +377,8 @@ Rollback: `npx wrangler rollback`; disable everything client-side by setting `LE
 | `SIGNIN_GLOBAL_15MIN` | var | 300 | global cap on Google sign-ins per 15 min (10 per caller) |
 | `MEMBER_LEDGER_DAYS` | var | 400 | member usage rows kept (payment rows are kept with the payment) |
 | `FREE_MODE` | var | `true` | all features unlocked; anything but `false` counts as true |
-| `BILLING_ENABLED` | var | `false` | public checkout (also needs FREE_MODE=false) |
+| `BILLING_ENABLED` | var | `false` | public checkout (also needs FREE_MODE=false); a signed-in member is required |
+| `ALLOW_GUEST_CHECKOUT` | var | `false` | legacy opt-in: guests may buy (order token + `POST /v1/billing/claim`); ignored while membership is required |
 | `OPN_ALLOW_LIVE` | var | `false` | accept a live `skey_…` |
 | `VAT_REGISTERED`, `SELLER_*` | var | `false`, empty | VAT 7 % + tax-invoice seller fields |
 | `RAW_EVENT_DAYS`, `AUDIT_DAYS`, `WEBHOOK_PAYLOAD_DAYS` | var | 90, 400, 90 | retention |
@@ -312,12 +390,22 @@ Rollback: `npx wrangler rollback`; disable everything client-side by setting `LE
 ## 5. API
 
 Public: `GET /health`, `GET /v1/config` (incl. `membership`), `POST /v1/events`, `GET /api/fortune/status`, `POST /api/fortune`,
-`GET /v1/billing/plans`, `POST /v1/billing/checkout`, `GET /v1/billing/payments/:id[/qr]`, `POST /v1/billing/webhook/opn`.
+`GET /v1/billing/plans`, `POST /v1/billing/checkout`, `POST /v1/billing/claim`, `GET /v1/billing/payments/:id[/qr]`,
+`POST /v1/billing/webhook/opn`.
 Members (bearer): `POST /api/auth/nonce|google|logout`, `GET|DELETE /api/me`, `POST /api/me/preferences|usage|saved`,
-`GET /api/me/history|export`, `GET|DELETE /api/me/saved/:id`.
+`GET /api/me/history|export|entitlements|sessions`, `POST /api/me/entitlements/use|sessions/revoke`, `GET /api/me/payments/:id/receipt`,
+`GET|DELETE /api/me/saved/:id`.
 Admin (`/admin/api`): `GET state`, `POST bootstrap|login|logout|password|totp/setup|totp/enable|totp/disable`,
-`GET me|analytics/summary|analytics/csv|ai|billing|billing/payments|billing/webhooks|members|membership|audit|retention`,
-`PUT ai|ai/key|billing/settings|membership`, `DELETE ai/key`, `POST billing/test-charge|retention/run|members/:id/status`.
+`GET me|analytics/summary|analytics/csv|ai|billing|billing/payments|billing/payments/:id[/receipt]|billing/subscriptions|billing/webhooks|members|members/:id|membership|alerts|devices|audit|retention`,
+`PUT ai|ai/key|billing/settings|billing/plans/:id|membership`, `DELETE ai/key|devices|devices/:id`,
+`POST billing/test-charge|billing/plans|billing/payments/:id/refund|billing/subscriptions/:id/cancel|billing/subscriptions/:id/extend|members/:id/grant|members/:id/status|alerts/:id/ack|retention/run`
+(re-auth `{password, totp}` in the body: refund, cancel, extend, grant, member status, retention/run). Details: §1
+"Round-10 API for the pricing / account / admin UI".
+
+Type checking: `npm run typecheck` also runs `tsc -p backend/tsconfig.json` (every `backend/src` file is
+`// @ts-check`; minimal ambient Workers / D1 / SDK types in `backend/types/worker.d.ts`, so no network install is
+needed). CI additionally runs `npm ci` in `backend/` (pinned by `backend/package-lock.json`) and
+`wrangler deploy --dry-run --outdir …` to prove the Worker bundles (nothing is deployed, no account needed).
 
 ## 6. Data retention (cron `17 3 * * *`; payment reconcile `*/15 * * * *`)
 
@@ -334,7 +422,9 @@ Admin (`/admin/api`): `GET state`, `POST bootstrap|login|logout|password|totp/se
 | audit log | 400 days (`AUDIT_DAYS`) | |
 | member accounts | until the member deletes the account (or the owner on request) | `DELETE /api/me` |
 | member sessions / sign-in nonces | 30 days (14 idle) / 10 min | |
-| member usage ledger | 400 days (`MEMBER_LEDGER_DAYS`) | payment rows kept |
+| member usage ledger | 400 days (`MEMBER_LEDGER_DAYS`) | payment and refund rows kept |
+| credits (one-time purchases / grants) | until used, expired (365 days) or the account is deleted | |
+| admin alerts | kept (small) | acknowledged in the admin |
 | saved readings | until the member deletes them / the account | |
 | payments, receipts, tax-invoice fields | ≥ 5 years (Thai Revenue Code) | never purged automatically; unlinked from a deleted account |
 

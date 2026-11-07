@@ -196,5 +196,26 @@
   "ยังไม่มีการวัดผล โฆษณาวนตามลำดับ": "not measuring yet; ads loop in order",
   "ค่าประมาณจากโมเดล อาจคลาดเคลื่อนและมีอคติ · ไม่แน่ใจเพศ {n} คน": "Model estimate, may be wrong or biased · gender uncertain for {n} people",
   "กล้อง {n} · ใช้ร่วมกันทั้งจอโฆษณาและคีออสก์": "Camera {n} · shared by signage and kiosk",
-  "คีออสก์พร้อม (ตรวจจับมือด้วย TF.js — ตัวตรวจจับจำลอง · ล็อกมือที่ใกล้ที่สุด)": "Kiosk ready (hand detection via TF.js — simulated detector · locks onto the nearest hand)"
+  "คีออสก์พร้อม (ตรวจจับมือด้วย TF.js — ตัวตรวจจับจำลอง · ล็อกมือที่ใกล้ที่สุด)": "Kiosk ready (hand detection via TF.js — simulated detector · locks onto the nearest hand)",
+  // round 10: on-site age/gender check panel
+  "ตรวจความแม่นยำอายุ/เพศหน้างาน": "On-site age/gender accuracy check",
+  "ทดสอบการประมาณช่วงอายุและเพศที่จอของคุณเอง: ระหว่างที่ระบบวัดผู้ชม เจ้าหน้าที่ดูคนที่เดินผ่านจอ แล้วเลือกช่วงอายุและเพศจริงของแต่ละคนที่ระบบบันทึก ระบบคำนวณความถูกต้องพร้อมช่วงความเชื่อมั่นและตารางเทียบ": "Test the age-band and gender estimates at your own screen: while the system measures the audience, a staff member watches the people passing the screen and picks each recorded person's real age band and gender. The system computes the accuracy with confidence intervals and confusion tables",
+  "เปิด \"ใช้อายุ/เพศ\" แล้วกด \"เริ่มตรวจ\" (ระบบจะเริ่มวัดผู้ชมให้ถ้ายังไม่ได้เริ่ม)": "Turn on \"Use age/gender\", then press \"Start check\" (audience measuring starts automatically if it is not running)",
+  "ทุกครั้งที่มีคนเดินออกจากหน้าจอ จะมีแถวใหม่พร้อมค่าที่ระบบประมาณ เลือกช่วงอายุและเพศที่เห็นจริง ถ้าไม่แน่ใจให้กด \"ข้าม\"": "Each time someone leaves the screen a new row appears with the system's estimate. Pick the age band and gender you actually see; if unsure, press \"Skip\"",
+  "เก็บอย่างน้อย 50 คน หลายช่วงอายุและทั้งสองเพศ แล้วกด \"จบและคำนวณ\"": "Collect at least 50 people across several age bands and both genders, then press \"Finish and calculate\"",
+  "ทำซ้ำเมื่อย้ายจอ เปลี่ยนแสง หรือมุมกล้อง เก็บไฟล์ผลตรวจไว้": "Repeat after moving the screen or changing the lighting or camera angle, and keep the result files",
+  "— ช่วงอายุจริง —": "— real age band —",
+  "— เพศจริง —": "— real gender —",
+  "ช่วงอายุจริง": "Real age band",
+  "เพศจริง": "Real gender",
+  "ต่ำกว่า 18": "Under 18",
+  "ระบบประมาณ: {a} · {b}": "System estimate: {a} · {b}",
+  "ระบบประมาณอายุ/เพศไม่ได้": "No age/gender estimate",
+  "ผู้ผ่าน {a}": "Passer {a}",
+  "ข้าม": "Skip",
+  "ผู้ผ่านที่ระบบบันทึก {a} คน · ระบุแล้ว {b} · ข้าม {c}": "Passers recorded {a} · labelled {b} · skipped {c}",
+  "การตรวจนี้ใช้ไม่ได้ในเครื่องนี้ — ปิดโมเดลอายุ/เพศไว้ในการตั้งค่าระบบ (LENSIQ_AGE_GENDER = false)": "This check is not available on this device — the age/gender model is switched off in the system settings (LENSIQ_AGE_GENDER = false)",
+  "เปิด \"ใช้อายุ/เพศ\" ก่อน จึงจะตรวจความแม่นยำอายุ/เพศได้": "Turn on \"Use age/gender\" first to check age/gender accuracy",
+  "รอผู้ผ่านหน้าจอ... แถวใหม่จะขึ้นเมื่อมีคนเดินออกจากภาพ": "Waiting for passers… a new row appears when someone leaves the picture",
+  "ผู้ผ่าน {a} คน · เพศถูก {b} · ช่วงอายุถูก {c}": "{a} passers · gender correct {b} · age band correct {c}"
 });

@@ -1,7 +1,7 @@
 // tests/e2e/fortune-lifecal.e2e.mjs — bazi / taksa / lek7 / lifegraph pages (Thai and 中文).
 // Each page: fill the birth form → chart/tables render → a full local reading renders with the closing reminder,
 // lifegraph draws an accessible SVG (title + desc + data table), no console errors, no horizontal overflow at 390/1280 px;
-// in 中文 mode the reading contains no Thai.
+// in 中文 mode the reading contains no Thai; with no birth time the Lichun / Wednesday-night uncertainty notes show in TH / EN / ZH.
 import { assert } from "./cdp.mjs";
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -52,6 +52,25 @@ export default async function ({ base, launch, check }) {
         const t = await page.evaluate(() => document.getElementById("lcRd-body").textContent);
         assert(!/[฀-๿]/.test(t), "Thai in zh reading: " + (t.match(/.{0,20}[฀-๿]+.{0,20}/) || [""])[0]);
         assert(/卡拉玛经|判断|行动|理智|思量|所作所为/.test(t), "zh reminder present");
+        noErrors(page, base);
+      });
+      await page.close();
+    }
+    // round 10: no birth time → uncertainty notes (Lichun day → pillar note on bazi; Wednesday → possible Rahu on taksa), in TH / EN / ZH
+    for (const [lang, chk] of [["th", /[฀-๿]/], ["en", /^[^฀-๿]*$/], ["zh", /^[^฀-๿]*$/]]) {
+      const page = await browser.newPage(null, { initScripts: [`try { localStorage.setItem("lq-lang", "${lang}"); } catch (e) {}`] });
+      await check(`${lang}: no birth time → Lichun pillar note (bazi) and possible-Rahu note (taksa)`, async () => {
+        for (const [p, d, m, y, want] of [["bazi", "4", "2", "2024", /15:27/], ["taksa", "6", "11", "2024", lang === "zh" ? /罗睺/ : lang === "en" ? /Rahu/ : /ราหู/]]) {
+          await page.goto(`${base}/${p}.html`);
+          await page.waitFor(lang === "th" ? `document.documentElement.lang === "th"` : `document.documentElement.lang !== "th"`, 8000);
+          await page.evaluate(`(() => { document.getElementById("lcDay").value = "${d}"; document.getElementById("lcMonth").value = "${m}"; document.getElementById("lcYear").value = "${y}";
+            document.querySelector('input[name="lcEra"][value="ce"]').checked = true; const n = document.getElementById("lcNoTime"); if (!n.checked) n.click();
+            document.querySelector("#lcForm button[type=submit]").click(); })()`);
+          await page.waitFor(() => !document.getElementById("lcResult").hidden, 8000);
+          const t = await page.evaluate(() => Array.from(document.querySelectorAll("#lcChart .lc-note")).map(n => n.textContent).join(" | "));
+          assert(want.test(t), `${p} note missing (${lang}): ${t}`);
+          assert(chk.test(t), `${p} note language (${lang}): ${t}`);
+        }
         noErrors(page, base);
       });
       await page.close();

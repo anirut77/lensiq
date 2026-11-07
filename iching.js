@@ -130,14 +130,16 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /* ---------- ภาษา (ไทยเป็นค่าเริ่มต้น · จีนจาก i18n/zh-fortune-iching.js และ i18n/zh-kb-iching.js) ---------- */
   var T = function (k, th, v) { return window.LQI18N ? window.LQI18N.tf(k, th, v) : th.replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : m; }); };
   var isZh = function () { return !!(window.LQI18N && window.LQI18N.lang === "zh"); };
-  var ZK = function (k) { var D = isZh() && window.FORTUNE_ZH && window.FORTUNE_ZH.iching; return (D && D.items && D.items[k]) || null; };
-  var one = function (v, i) { return Array.isArray(v) ? v[Math.min(i || 0, v.length - 1)] : v; };
+  var isEn = function () { return !!(window.LQI18N && window.LQI18N.lang === "en"); };
+  // อังกฤษ: ความหมายกว้า/เส้นจาก i18n/en-kb-iching.js (โครงสร้างเดียวกับ zh-kb-iching.js)
+  var ZK = function (k) { var D = isEn() ? window.FORTUNE_EN && window.FORTUNE_EN.iching : isZh() && window.FORTUNE_ZH && window.FORTUNE_ZH.iching; return (D && D.items && D.items[k]) || null; };
+  var one = function (v, i) { var x = Array.isArray(v) ? v[Math.min(i || 0, v.length - 1)] : v; return isEn() && typeof x === "string" ? x.charAt(0).toUpperCase() + x.slice(1) : x; };
   /** ข้อความความหมายของกว้า: f = gist|love|work|money|advice */
   var ZF = { gist: "o", love: "l", work: "w", money: "m", advice: "a" };
   function hx(n, f) { var z = ZK("hex." + n); return z && z[ZF[f]] ? one(z[ZF[f]]) : KB.HEX[n][f]; }
   function hName(n) { return T("iching.hn." + n, KB.HEX[n].th); }
-  function hChar(n) { var z = ZK("hex." + n); return z ? z.n.split("· ").pop() : KB.HEX[n].zh; }
-  function hKw(n) { var s = isZh() ? T("iching.kw." + n, "") : ""; return s ? s.split("|") : KB.HEX[n].kw; }
+  function hChar(n) { var z = isZh() ? ZK("hex." + n) : null; return z ? z.n.split("· ").pop() : KB.HEX[n].zh; }
+  function hKw(n) { var s = isZh() || isEn() ? T("iching.kw." + n, "") : ""; return s ? s.split("|") : KB.HEX[n].kw; }
   function triName(k) { return T("iching.tri." + k, KB.TRIGRAMS[k].th); }
   function image(lo, up) { return T("iching.image", "{up}อยู่เหนือ{lo}", { up: triName(up), lo: triName(lo) }); }
   function hexLabel(n) { return T("iching.hexLabel", "กว้าที่ {n} {zh} ({py}) · {th}", { n: n, zh: hChar(n), py: KB.HEX[n].py, th: hName(n) }); }
@@ -290,7 +292,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function renderDaily() {
     if (dailyDone) return; dailyDone = true;
     var c = st.daily = st.daily || IC.dailyCast(), P = c.primary;
-    var date = (function () { try { return new Date().toLocaleDateString(isZh() ? "zh-CN" : "th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" }); } catch (e) { return FK.dayKey(); } })();
+    var date = (function () { try { return new Date().toLocaleDateString(isZh() ? "zh-CN" : isEn() ? "en-GB" : "th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" }); } catch (e) { return FK.dayKey(); } })();
     $("#icDaily").innerHTML = '<p class="fk-small">' + esc(date) + "</p>" + hexCard(P, c.bits, c.changing, T("iching.roleDaily", "กว้าประจำวันนี้")) +
       '<p class="ic-gist">' + esc(hx(P, "gist")) + '</p><p class="fk-small">' + esc(T("iching.dailyNote", KB.DAILY_NOTE)) + "</p>" + FK.readingBlock("icDayRd", T("iching.dayRdTitle", "คำทำนายประจำวัน"), true) +
       '<div class="fk-res-actions"><button class="btn primary big" id="icDayShare" type="button">' + esc(T("iching.dayShare", "แชร์การ์ดประจำวัน")) + '</button></div><img class="fk-cardimg" id="icDayImg" alt="' + esc(T("iching.dayImgAlt", "การ์ดกว้าประจำวันสำหรับแชร์")) + '" hidden>';

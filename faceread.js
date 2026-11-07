@@ -839,8 +839,13 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     }
     return typeof over === typeof base || base == null ? over : base;
   };
-  var kbZh = null;
-  function kbFor() { if (!isZh() || !window.FR_KB_ZH) return KB0; return kbZh || (kbZh = overlay(KB0, window.FR_KB_ZH)); }
+  var kbZh = null, kbEn = null;
+  var isEnL = function () { return !!(window.LQI18N && LQI18N.lang === "en"); };
+  // English: FR_KB_EN from i18n/en-fortune-faceread.js (same shape as FR_KB_ZH), so page extras are not left in Thai
+  function kbFor() {
+    if (isEnL() && window.FR_KB_EN) return kbEn || (kbEn = overlay(KB0, window.FR_KB_EN));
+    if (!isZh() || !window.FR_KB_ZH) return KB0; return kbZh || (kbZh = overlay(KB0, window.FR_KB_ZH));
+  }
   var $ = function (s) { return document.querySelector(s); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   var sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
@@ -922,8 +927,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       return Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri("vendor/models/"), faceapi.nets.faceLandmark68Net.loadFromUri("vendor/models/")]).then(function () { return b; });
     }).then(function (b) {
       ready = true;
-      if (b === "webgl") engineT("faceread.eng.ready", "พร้อมใช้งาน (ตัวประมวลผล: {b})", { b: b.toUpperCase() }, "ok");
-      else engineT("faceread.eng.readySlow", "พร้อมใช้งาน (ตัวประมวลผล: {b} — อาจช้ากว่าปกติเล็กน้อย)", { b: b.toUpperCase() }, "ok");
+      if (b === "webgl") engineT("faceread.eng.ready", "พร้อมใช้งาน", { b: b.toUpperCase() }, "ok");
+      else engineT("faceread.eng.readySlow", "พร้อมใช้งาน (เครื่องนี้อาจอ่านผลช้ากว่าปกติเล็กน้อย)", { b: b.toUpperCase() }, "ok");
       return b;
     }).catch(function (e) { console.error(e); engineT("faceread.eng.modelFail", "โหลดโมเดลไม่สำเร็จ: {msg}", { msg: e.message || e }, "err"); modelsP = null; throw e; });
     return modelsP;

@@ -225,6 +225,9 @@
 /* ---------- พยากรณ์ ---------- */
 .iq-svg .fc-zone{fill:var(--alt);opacity:.55}
 .iq-svg .fc-band{fill:var(--s1);opacity:.16}
+/* round 10: short history (forecast.rough) — the band is a rough guide: lighter fill, dashed outline */
+.iq-svg .fc-band.rough{opacity:.1}
+.iq-svg .fc-band-edge{fill:none;stroke:var(--s1);stroke-width:1.2;stroke-dasharray:3 4;opacity:.7}
 .iq-svg .line.fc{stroke:var(--s1);stroke-dasharray:5 4}
 .iq-svg .dot-open{fill:var(--iq-surface);stroke:var(--s1);stroke-width:2}
 .iq-svg .anom{fill:none;stroke:var(--s2);stroke-width:2.2}
@@ -364,3 +367,8 @@
   .iq .chk input{width:22px;height:22px}
   .kpi-main{min-height:44px}
 }
+/* round 10: hours flagged by the camera-health monitor + on-site accuracy status */
+.iq-svg .flagband{fill:rgba(120,130,140,.16)}
+.iq-excl{display:flex;gap:8px;align-items:center;margin:4px 0 10px;font-size:.9rem}
+.cams.acc tr[data-v="pass"] .acc-v b{color:#14653b}.cams.acc tr[data-v="fail"] .acc-v b{color:#a12b20}
+.cams.acc tr[data-v="ontrack"] .acc-v b{color:#1d4f91}.cams.acc tr[data-v="more"] .acc-v b{color:#8a5a00}

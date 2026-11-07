@@ -338,6 +338,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /* ---------- i18n: ไทยเป็นค่าเริ่มต้น จีนจาก i18n/zh-fortune-fengshui.js (คีย์ตาม id ใน fengshui-kb.js) ---------- */
   var T = function (k, th, v) { return window.LQI18N ? LQI18N.tf(k, th, v) : String(th).replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : m; }); };
   var isZh = function () { return !!(window.LQI18N && LQI18N.lang === "zh"); };
+  var isEn = function () { return !!(window.LQI18N && LQI18N.lang === "en"); };
   var dirTh = function (d) { return T("fengshui.dir." + d, KB.dirs[d].th); };
   var zoneTh = function (d) { return isZh() ? T("fengshui.zone." + d, KB.dirs[d].th) : KB.dirs[d].th; };
   var abbrL = function (d) { return T("fengshui.abbr." + d, KB.dirs[d].abbr); };
@@ -346,7 +347,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   var flyL = function (n) { return T("fengshui.fly." + n, KB.flying[n].th); };
   var flyF = function (n, f) { return T("fengshui.fly." + n + "." + f, KB.flying[n][f]); };
   var elL = function (e) { return T("fengshui.el." + e, KB.elements[e].th); };
-  var elColors = function (e, n) { return isZh() ? T("fengshui.elc." + e, "").split("/").slice(0, n) : KB.elements[e].colors.slice(0, n); };
+  var elColors = function (e, n) { return isZh() || isEn() ? T("fengshui.elc." + e, "").split("/").slice(0, n) : KB.elements[e].colors.slice(0, n); };
   var bgL = function (d, f) { return T("fengshui.bg." + d + "." + f, KB.bagua[d][f]); };
   var bgColor = function (d, i) { return T("fengshui.bgc." + d + "." + i, KB.bagua[d].colors[i][0]); };
   var roomL = function (r) { return T("fengshui.room." + r, KB.rooms[r].th); };
@@ -358,7 +359,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /** ชื่อดาวแปดคฤหาสน์ + อักษรจีน (ภาษาจีนแสดงครั้งเดียว) */
   var _s8Full = function (s) { return isZh() ? s8L(s, "th") : KB.stars8[s].th + " " + KB.stars8[s].cn; };
   var photoText = function (a, ph) {
-    if (!isZh()) return a.t;
+    if (!isZh() && !isEn()) return a.t;
     var P = KB.photo;
     if (a.k === "dominant") return T("fengshui.photo.dominant", P.dominant, { el: elL(ph.a.dominant), colors: elColors(ph.a.dominant, 2).join("/") });
     if (a.k === "balance") return T("fengshui.photo.balanceGood", P.balanceGood);
@@ -765,18 +766,18 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         return '<article class="fs-sec"><h3>' + esc(s.title || "") + "</h3>" + (s.paragraphs || []).map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("") + "</article>";
       }).join("") + (res.note ? '<p class="fs-small">' + esc(res.note) + "</p>" : "");
     }
-    var ex = isZh() ? extrasZh(facts) : (facts.extras || {});
+    var ex = isZh() || isEn() ? extrasZh(facts) : (facts.extras || {});
     $("#fsExtras").innerHTML = (ex.luckyColors && ex.luckyColors.length ? "<div><h4>" + esc(T("fengshui.ex.colors", "สีมงคล")) + "</h4><p>" + ex.luckyColors.map(esc).join(" · ") + "</p></div>" : "") +
       (ex.directions && ex.directions.length ? "<div><h4>" + esc(T("fengshui.ex.dirs", "ทิศมงคล")) + "</h4><p>" + ex.directions.map(esc).join(" · ") + "</p></div>" : "") +
       (ex.tips && ex.tips.length ? "<div><h4>" + esc(T("fengshui.ex.tips", "เคล็ดลับ")) + "</h4><ul>" + ex.tips.slice(0, 4).map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul></div>" : "");
   }
-  /** extras ภาษาจีน: สร้างจากข้อมูลเดียวกับ buildFacts (สีของธาตุเลขกัว + ธาตุที่ให้กำเนิด, ทิศมงคล 4 ทิศ, เคล็ดลับจากภาพและทั่วไป) */
+  /** extras ภาษาจีน/อังกฤษ (ใช้คีย์ T() เดียวกัน): สร้างจากข้อมูลเดียวกับ buildFacts (สีของธาตุเลขกัว + ธาตุที่ให้กำเนิด, ทิศมงคล 4 ทิศ, เคล็ดลับจากภาพและทั่วไป) */
   function extrasZh(facts) {
     var k = activeKua(), out = { luckyColors: [], directions: [], tips: [] };
     if (k) {
       var el = KB.kuaInfo[k.kua].element, gen = Object.keys(KB.elements).filter(function (e) { return KB.elements[e].generates === el; })[0];
       out.luckyColors = elColors(el, 3).concat(elColors(gen, 1));
-      out.directions = ["shengqi", "tianyi", "yannian", "fuwei"].map(function (s) { return dirTh(k.stars[s]) + "（" + s8L(s, "th") + "）"; });
+      out.directions = ["shengqi", "tianyi", "yannian", "fuwei"].map(function (s) { return dirTh(k.stars[s]) + (isEn() ? " (" : "（") + s8L(s, "th") + (isEn() ? ")" : "）"); });
     }
     state.photos.forEach(function (ph) { ph.advice.forEach(function (a) { if (a.k === "dark" || a.k === "busy") out.tips.push(photoText(a, ph)); }); });
     out.tips = out.tips.concat(KB.tips.general.slice(0, 2).map(function (t, i) { return T("fengshui.tips.general." + i, t); }));

@@ -262,7 +262,7 @@ test("fortune: membership off = unchanged for guests; on = guests refused (fallb
   const over = await ai({ token });
   assert.equal(over.status, 429); assert.equal(over.j.code, "quota"); assert.equal(over.j.fallback, true);
   const me = await call("/api/me", { token });
-  assert.deepEqual({ used: me.j.quotas.ai.used, quota: me.j.quotas.ai.quota, remaining: me.j.quotas.ai.remaining }, { used: 4, quota: 3, remaining: 0 });
+  assert.deepEqual({ used: me.j.quotas.ai.used, quota: me.j.quotas.ai.quota, remaining: me.j.quotas.ai.remaining }, { used: 3, quota: 3, remaining: 0 }, "round 10: the refused 4th use is not counted");
   const h = await call("/api/me/history", { token });
   assert.equal(h.j.ledger.filter(x => x.kind === "ai").length, 3, "only successful AI uses are ledger rows");
   assert.ok(h.j.ledger.every(x => !("facts" in x)), "no reading content");
@@ -344,8 +344,12 @@ test("checkout: membership on -> sign-in required; payment, customer and subscri
   await env.DB.prepare("UPDATE plans SET status = 'active' WHERE id = 'pro'").run();
   const body = { plan_id: "pro", period: "month", accept_terms: true, buyer: { name: "ร้าน" } };
   const hdr = { "X-Turnstile-Token": "good:checkout" };
+  const forced = await call("/v1/billing/checkout", { method: "POST", headers: hdr, body });
+  assert.equal(forced.status, 401, "round 10: billing on -> a member is required even with membership off");
+  assert.equal(forced.j.code, "member_required");
+  env.ALLOW_GUEST_CHECKOUT = "true";
   const legacy = await call("/v1/billing/checkout", { method: "POST", headers: hdr, body });
-  assert.equal(legacy.status, 201, "membership off: legacy order-token checkout unchanged");
+  assert.equal(legacy.status, 201, "explicit opt-in: legacy order-token checkout unchanged");
   assert.ok(legacy.j.order_token);
   await requireMembership(true);
   const anon = await call("/v1/billing/checkout", { method: "POST", headers: hdr, body });
@@ -384,7 +388,9 @@ test("admin: members list/search, disable revokes sessions, membership settings 
   assert.equal((await A("/members?q=nobody@")).j.users.length, 0);
   assert.equal((await A("/members?q=%25%25%25")).j.users.length, 0, "LIKE wildcards escaped");
   assert.equal((await A("/members?q=ab")).status, 400);
-  assert.equal((await A(`/members/${s.user.id}/status`, { method: "POST", body: { status: "disabled" } })).status, 200);
+  assert.equal((await A(`/members/${s.user.id}/status`, { method: "POST", body: { status: "disabled" } })).status, 403, "round 10: re-auth required");
+  assert.equal((await A(`/members/${s.user.id}/status`, { method: "POST", body: { status: "disabled", password: "wrong password here" } })).status, 403);
+  assert.equal((await A(`/members/${s.user.id}/status`, { method: "POST", body: { status: "disabled", password: ADMIN_PW } })).status, 200);
   assert.equal((await call("/api/me", { token: s.token })).status, 401, "disabled -> sessions revoked");
   const info = await A("/membership");
   assert.equal(info.j.settings.membership_required, false);

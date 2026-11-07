@@ -9,6 +9,10 @@
  *   roleFor(elementScores) -> {role, second}      element ids from FRCore.elementScores(m).ranked
  *   teamSummary(members:[{role}]) -> {n, counts, present, missing, dominant, pattern}
  *     pattern: 'empty' | 'solo' | 'same' (everyone shares one role) | 'balanced' (≥ 4 roles, n ≥ 4) | 'dominant' (one role ≥ 50%, n ≥ 3) | 'duo' (2 roles) | 'mixed'
+ *   NOT_ASSESSMENT (label on every screen and every card) · recordLike(text) -> true when a nickname looks like a
+ *     candidate / employee record id, an e-mail or a phone number · recruitLike(text) -> true for recruitment words
+ *     (interview, candidate, applicant …). Results can never be attached to candidate records: there is no export, no
+ *     id, record-like nicknames / recruitment team names are dropped, and record parameters in the URL are ignored.
  * Test hooks: window.__LQ_TF. ?fakedet: scripted face boxes via LQDetect.fake("c1") -> FRCore.synthFace(box).
  */
 (function (root) {
@@ -53,7 +57,16 @@
     var pattern = !n ? "empty" : n === 1 ? "solo" : present.length === 1 ? "same" : present.length >= 4 && n >= 4 ? "balanced" : dom ? "dominant" : present.length === 2 ? "duo" : "mixed";
     return { n: n, counts: counts, present: present, missing: missing, dominant: dom, pattern: pattern };
   }
-  var TFCore = { IDS: IDS, ROLES: ROLES, roleFor: roleFor, teamSummary: teamSummary };
+  var NOT_ASSESSMENT = "เพื่อความบันเทิง/กิจกรรมละลายพฤติกรรม ไม่ใช่การประเมิน";
+  function recordLike(t) {
+    t = String(t || "").trim().toLowerCase();
+    if (!t) return false;
+    return /[a-z]{1,4}[-_ ]?\d{2,}/.test(t) || /\d{3,}/.test(t) || /@/.test(t) || recruitLike(t);
+  }
+  function recruitLike(t) {
+    return /ผู้สมัคร|สัมภาษณ์|สรรหา|คัดเลือก|ประเมินผล|candidate|applicant|interview|recruit|hiring|appraisal|候选|应聘|面试|招聘|考核/.test(String(t || "").toLowerCase());
+  }
+  var TFCore = { IDS: IDS, ROLES: ROLES, roleFor: roleFor, teamSummary: teamSummary, NOT_ASSESSMENT: NOT_ASSESSMENT, recordLike: recordLike, recruitLike: recruitLike };
   if (typeof module !== "undefined" && module.exports) module.exports = TFCore;
   root.TFCore = TFCore;
 })(typeof window !== "undefined" ? window : globalThis);
@@ -155,6 +168,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var r = TF.roleFor(el);
     seq++;
     var nick = $("#tfNick").value.replace(/[<>{}]/g, "").trim().slice(0, 24);
+    if (TF.recordLike(nick)) { nick = ""; noAttach = true; } // never a candidate / employee record id on a fun card
     members.push({ id: seq, nick: nick, role: r.role, second: r.second, el: el.top.id });
     $("#tfNick").value = ""; $("#tfConsent").checked = false; // every member opts in for themselves
     renderCards(); renderSummary(); syncRead();
@@ -177,7 +191,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       cv.width = cv.height = 0; // drop the frame
       if (capt.frames.length < 3) { status("tf.js.unstable", "ยังจับใบหน้าได้ไม่นิ่งพอ ลองหน้าตรงและอยู่นิ่ง ๆ อีกครั้ง", null, "err"); return; }
       addMember(analyse(capt.average()));
-      status("tf.js.added", "เพิ่มการ์ดแล้ว — สมาชิกคนต่อไปติ๊กยินยอมแล้วกดอ่านได้เลย", null, "ok");
+      addedStatus();
     } catch (e) { console.error(e); status("tf.js.fail", "อ่านไม่สำเร็จ ลองอีกครั้ง", null, "err"); }
     finally { $("#tfCount").hidden = true; busy = false; syncRead(); }
   });
@@ -198,11 +212,16 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       cv.width = cv.height = 0;
       if (pk.index < 0) { status("tf.js.noFace", "ไม่พบใบหน้าในรูปนี้ ลองรูปหน้าตรงที่ชัดกว่านี้", null, "err"); return; }
       addMember(analyse(list[pk.index].pts));
-      status("tf.js.added", "เพิ่มการ์ดแล้ว — สมาชิกคนต่อไปติ๊กยินยอมแล้วกดอ่านได้เลย", null, "ok");
+      addedStatus();
     } catch (e) { console.error(e); status("tf.js.fail", "อ่านไม่สำเร็จ ลองอีกครั้ง", null, "err"); }
     finally { URL.revokeObjectURL(url); }
   });
 
+  var noAttach = false;
+  function addedStatus() {
+    if (noAttach) { noAttach = false; status("tf.js.nickDrop", "เพิ่มการ์ดแล้ว — ชื่อเล่นที่ดูเหมือนรหัสผู้สมัคร อีเมล หรือเบอร์โทรไม่ถูกใช้ เพราะผลนี้แนบกับข้อมูลผู้สมัครไม่ได้", null, "err"); }
+    else status("tf.js.added", "เพิ่มการ์ดแล้ว — สมาชิกคนต่อไปติ๊กยินยอมแล้วกดอ่านได้เลย", null, "ok");
+  }
   function label(m, i) { return m.nick || T("tf.js.member", "สมาชิก {n}", { n: i + 1 }); }
   function renderCards() {
     $("#tfCardsWrap").hidden = !members.length;
@@ -216,7 +235,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         '<p><b>' + esc(T("tf.js.work", "ทำงานด้วยกันให้สนุก:")) + "</b> " + esc(R(m.role, "work")) + "</p>" +
         (m.second ? '<p class="sec">' + esc(T("tf.js.second", "เสริมด้วยมุม{r}", { r: R(m.second, "name") })) + "</p>" : "") +
         '<p class="el">' + esc(T("tf.js.el", "รูปหน้าธาตุ{e} ตามตำราโหงวเฮ้ง: {t}", { e: elName(m.el), t: elTrait(m.el) })) + "</p>" +
-        '<p class="ice"><b>' + esc(T("tf.js.ice", "คำถามละลายพฤติกรรม:")) + "</b> " + esc(R(m.role, "ice")) + "</p></article>";
+        '<p class="ice"><b>' + esc(T("tf.js.ice", "คำถามละลายพฤติกรรม:")) + "</b> " + esc(R(m.role, "ice")) + "</p>" +
+        '<p class="tf-na">' + esc(T("tf.s.na", TF.NOT_ASSESSMENT)) + "</p></article>";
     }).join("");
   }
   var PAT = {
@@ -231,6 +251,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function renderSummary() {
     var s = TF.teamSummary(members), p = PAT[s.pattern];
     var team = $("#tfTeam").value.replace(/[<>{}]/g, "").trim().slice(0, 40);
+    var dropTeam = TF.recruitLike(team);
+    $("#tfTeamWarn").textContent = dropTeam ? T("tf.js.teamDrop", "ไม่ใช้ชื่อทีมนี้: กิจกรรมนี้ใช้กับการสรรหา การสัมภาษณ์ หรือการประเมินไม่ได้") : "";
+    if (dropTeam) team = "";
     var vars = { r: s.dominant ? R(s.dominant, "name") : s.pattern === "same" ? R(s.present[0], "name") : "", a: s.present[0] ? R(s.present[0], "name") : "", b: s.present[1] ? R(s.present[1], "name") : "" };
     $("#tfSumTitle").textContent = (team ? team + " · " : "") + T("tf.pat." + s.pattern + ".t", p[0], vars);
     $("#tfSumText").textContent = T("tf.pat." + s.pattern + ".x", p[1], vars);
@@ -258,6 +281,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   window.addEventListener("pagehide", function () { try { camera.stop(); } catch (e) { /* ignore */ } });
   window.addEventListener("lq-lang", function () { renderCards(); renderSummary(); syncRead(); if (lastStatus) status(lastStatus[0], lastStatus[1], lastStatus[2], lastStatus[3]); });
 
-  W.__LQ_TF = { get members() { return members; }, addFromPts: function (pts) { addMember(analyse(pts)); }, summary: null };
+  /* record parameters in the link (e.g. ?cand=C-014) are ignored and removed from the address bar */
+  (function () {
+    var q = new URLSearchParams(location.search), hit = false;
+    ["cand", "candidate", "applicant", "record", "employee", "emp", "id"].forEach(function (k) { if (q.has(k)) { q.delete(k); hit = true; } });
+    if (hit) { $("#tfGuard").hidden = false; try { history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash); } catch (e) { /* ignore */ } }
+  })();
+  W.__LQ_TF = { get members() { return members; }, addFromPts: function (pts) { addMember(analyse(pts)); addedStatus(); }, summary: null };
   renderCards(); renderSummary(); syncRead();
 })();

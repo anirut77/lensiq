@@ -1,3 +1,4 @@
+// @ts-check
 // backend/src/crypto.js — WebCrypto only (works in Workers and Node 22): random tokens, SHA-256/HMAC, constant-time
 // compare, PBKDF2 password hashing, TOTP (RFC 6238), AES-GCM envelope encryption with a KEK from a Worker secret.
 

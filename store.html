@@ -9,7 +9,7 @@
 <title data-i18n="store.s1">วิเคราะห์หน้าร้าน | LENSIQ</title>
 <link rel="stylesheet" href="styles.css?v=8">
 <link rel="stylesheet" href="store.css?v=6">
-<link rel="stylesheet" href="lensiq-sitecheck.css?v=1">
+<link rel="stylesheet" href="lensiq-sitecheck.css?v=2">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -18,7 +18,7 @@
 <script src="lensiq-i18n-rt.js?v=1"></script>
 <script src="i18n/zh-rt-common.js?v=1"></script>
 <script src="i18n/zh-rt-store.js?v=1"></script>
-<script src="i18n/zh-rt-sitecheck.js?v=1"></script>
+<script src="i18n/zh-rt-sitecheck.js?v=2"></script>
 
 <main class="st">
   <h1 data-i18n="store.s2">วิเคราะห์หน้าร้าน</h1>
@@ -73,6 +73,7 @@
       <h3 data-i18n="store.s33">คนเข้า–ออกรายชั่วโมง</h3>
       <div class="legend"><span><i class="sw in"></i><span data-i18n="store.s34">เข้า</span></span><span><i class="sw out"></i><span data-i18n="store.s35">ออก</span></span></div>
       <canvas id="hourly" role="img" aria-label="กราฟคนเข้าออกรายชั่วโมง" data-i18n-attr="aria-label:store.s36"></canvas>
+      <p class="hint q-note" id="hourlyQuality" hidden></p>
     </section>
   </div>
 
@@ -129,6 +130,7 @@
         <label><span data-i18n="store.s58">คนตัวเล็ก/อยู่ไกล (กล้องที่เลือก)</span><select name="tiles"><option value="" data-i18n="store.s59">ปกติ – ตรวจทั้งภาพ (เร็วที่สุด)</option><option value="2x1" data-i18n="store.s60">แบ่งภาพซ้าย–ขวา – เห็นคนไกลขึ้น ช้าลงราว 3 เท่า</option><option value="2x2" data-i18n="store.s61">แบ่งภาพ 4 ส่วน – เห็นคนไกลที่สุด ช้าลงราว 5 เท่า (เหมาะกับกล้องตัวเดียว)</option></select></label>
         <p class="hint"><span data-i18n="store.s62">ตัวตรวจจับคน YOLOX-Nano (ค่าเริ่มต้น) ย่อภาพเหลือ 416×416 จุด คนที่สูงไม่ถึงราว 1 ใน 10 ของภาพจึงยังหลุดบ่อย การแบ่งภาพช่วยให้เห็นคนไกลขึ้นแต่ประมวลผลช้าลง (ใช้ ?coco เพื่อใช้ COCO-SSD ตัวเดิม) ดูผลวัดได้ที่</span> <a href="cameras.html#accuracy" data-i18n="store.s63">ความแม่นยำที่วัดได้</a></p>
       </form>
+      <p class="hint sc-docs"><span>เอกสารสำหรับติดตั้ง:</span> <a href="camera-notice.html">ป้ายแจ้งการใช้กล้องสำหรับพิมพ์</a> · <a href="camera-notice.html#sign-f">แบบฟอร์มขอความยินยอม (แม่แบบ)</a></p>
       <p class="form-msg" id="setMsg" role="status"></p>
       <div class="row-actions">
         <button class="btn primary" id="exportCsv" type="button" data-i18n="store.s64">ส่งออก CSV</button>
@@ -196,12 +198,12 @@
 
 <script src="vendor/face-api.js"></script>
 <script src="lensiq-track.js?v=3"></script>
-<script src="lensiq-camera.js?v=2"></script>
+<script src="lensiq-camera.js?v=3"></script>
 <script src="vendor/ort/ort.wasm.min.js"></script>
 <script src="lensiq-detect.js?v=3"></script>
 <script src="lensiq-agg.js?v=1"></script>
-<script src="lensiq-sitecheck.js?v=1"></script>
-<script src="store.js?v=10"></script>
+<script src="lensiq-sitecheck.js?v=2"></script>
+<script src="store.js?v=11"></script>
 <script src="lensiq-config.js?v=3"></script>
 </body>
 </html>

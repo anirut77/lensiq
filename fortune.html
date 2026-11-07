@@ -9,6 +9,7 @@
 <title data-i18n="fortune.hub.title">ศาสตร์ดูดวง | LENSIQ</title>
 <meta name="description" content="รวมระบบดูดวง โหงวเฮ้งและลายมืออ่านจากกล้อง ส่วนวันเดือนปีเกิด ไพ่ทาโรต์ เซียมซี อี้จิง 12 นักษัตร ราศีตะวันตก ทำนายฝัน ฮวงจุ้ย และเลขมงคล คำนวณตามหลักตำรา สำหรับสร้างสีสันในบูธและอีเวนต์">
 <link rel="stylesheet" href="styles.css?v=8">
+<link rel="stylesheet" href="products.css?v=1">
 <style>
 .ft{padding:0 0 80px}
 .ft-hero{background:radial-gradient(circle at 20% 20%,rgba(103,79,242,.45),transparent 50%),radial-gradient(circle at 85% 70%,rgba(34,211,238,.25),transparent 55%),#0e1430;color:#fff;padding:56px 5vw 64px;text-align:center;position:relative;overflow:hidden}
@@ -47,8 +48,9 @@
 <body>
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=12"></script>
-<script src="i18n/zh-fortune.js?v=3"></script>
+<script src="i18n/zh-fortune.js?v=4"></script>
 <script src="i18n/zh-fortune-hub.js?v=1"></script>
+<script src="i18n/zh-products.js?v=1"></script>
 <main class="ft">
   <section class="ft-hero">
     <div class="stars" aria-hidden="true"></div>
@@ -57,6 +59,18 @@
     <p data-i18n="fortune.hub.lead">รวมศาสตร์ดูดวงยอดนิยมทั้งไทย จีน และตะวันตก — โหงวเฮ้ง ลายมือ วันเดือนปีเกิด ไพ่ทาโรต์ เซียมซี อี้จิง 12 นักษัตร ราศีตะวันตก ทำนายฝัน ฮวงจุ้ย และเลขมงคล ผลลัพธ์สร้างเป็นการ์ดแชร์ลงโซเชียลได้ทันที ช่วยดึงคนเข้าบูธและสร้างการพูดถึงแบรนด์</p>
   </section>
   <div class="ft-body">
+    <!-- product split (LENSIQ Fortune): lead readings first; every reading stays in "all readings" below -->
+    <section class="pd-lead" aria-labelledby="pdLeadH">
+      <h2 id="pdLeadH" data-i18n="pd.f.leadH">เริ่มที่ 5 ศาสตร์ยอดนิยม</h2>
+      <p data-i18n="pd.f.leadP">เล่นได้ในไม่กี่นาที มีคำทำนายภาษาไทย อังกฤษ และจีน — ทุกศาสตร์ยังอยู่ครบในหัวข้อ "ทุกศาสตร์" ด้านล่าง</p>
+      <div class="pd-grid">
+        <a class="pd-card" href="faceread.html"><span class="pd-ic" aria-hidden="true">👁️</span><h3 data-i18n="pd.f.face.h">อ่านโหงวเฮ้ง</h3><p data-i18n="pd.f.face.p">อ่านใบหน้าด้วยกล้อง ไม่เก็บภาพ</p><span class="pd-go" data-i18n="pd.f.go">เริ่มดู →</span></a>
+        <a class="pd-card" href="palm.html"><span class="pd-ic" aria-hidden="true">✋</span><h3 data-i18n="pd.f.palm.h">ดูลายมือ</h3><p data-i18n="pd.f.palm.p">ถ่ายฝ่ามือ ระบบหาเส้นหลักให้</p><span class="pd-go" data-i18n="pd.f.go">เริ่มดู →</span></a>
+        <a class="pd-card" href="tarot.html"><span class="pd-ic" aria-hidden="true">🃏</span><h3 data-i18n="pd.f.tarot.h">ไพ่ทาโรต์ &amp; เซียมซี</h3><p data-i18n="pd.f.tarot.p">เลือกไพ่เอง หรือเขย่ามือถือเสี่ยงเซียมซี</p><span class="pd-go" data-i18n="pd.f.go">เริ่มดู →</span></a>
+        <a class="pd-card" href="horoscope.html"><span class="pd-ic" aria-hidden="true">🌙</span><h3 data-i18n="pd.f.horo.h">ดวงวันเดือนปีเกิด</h3><p data-i18n="pd.f.horo.p">โหราไทย ปาจื้อ และเลขศาสตร์</p><span class="pd-go" data-i18n="pd.f.go">เริ่มดู →</span></a>
+        <a class="pd-card" href="zodiac.html"><span class="pd-ic" aria-hidden="true">🐉</span><h3 data-i18n="pd.f.zodiac.h">12 นักษัตร · ปีชง</h3><p data-i18n="pd.f.zodiac.p">ดวงรายปี ไม่ต้องกรอกวันเกิด</p><span class="pd-go" data-i18n="pd.f.go">เริ่มดู →</span></a>
+      </div>
+    </section>
     <section class="ft-guide" aria-labelledby="ftGuideH">
       <h2 data-i18n="fortune.hub.ftGuideH" id="ftGuideH">เลือกศาสตร์ตามเรื่องที่อยากรู้</h2>
       <p data-i18n="fortune.hub.guideLead">ไม่รู้จะเริ่มตรงไหน? เลือกตามเป้าหมาย แต่ละศาสตร์เลือกหัวข้อ ความรัก การงาน การเงิน ในคำทำนายได้อีกครั้ง</p>
@@ -67,6 +81,7 @@
         <div class="ft-goal"><b data-i18n="fortune.hub.goal.daily">☀️ รายวัน / เล่นเร็ว</b><ul><li><a href="tarot.html#daily" data-i18n="fortune.hub.g.tarotDaily">ไพ่ประจำวัน</a> · <a href="iching.html#daily" data-i18n="fortune.hub.g.ichingDaily">กว้าประจำวัน</a></li><li><a href="astro.html#signs" data-i18n="fortune.hub.g.astroDaily">ดวงวันนี้ตาม 12 ราศี</a></li><li><a href="dream.html" data-i18n="fortune.hub.g.dream">ทำนายฝันเมื่อคืน</a> · <a href="tarot.html#siamsee" data-i18n="fortune.hub.g.siamsee">เซียมซี</a></li></ul></div>
       </div>
     </section>
+    <h2 class="pd-allh" id="pdAllH" data-i18n="pd.f.allH">ทุกศาสตร์</h2>
     <div class="ft-grid">
       <a class="ft-card" href="faceread.html"><span class="ft-ic" aria-hidden="true">👁️</span><span data-i18n="fortune.hub.card.faceread.org" class="ft-org">จีน · โหงวเฮ้ง</span><h2 data-i18n="fortune.hub.card.faceread.name">อ่านโหงวเฮ้ง</h2><p data-i18n="fortune.hub.card.faceread.desc">อ่านใบหน้าด้วยกล้อง ตามหลักโหงวเฮ้ง</p><ul><li data-i18n="fortune.hub.card.faceread.li1">ธาตุรูปหน้า 5 ธาตุ สามส่วนของใบหน้า</li><li data-i18n="fortune.hub.card.faceread.li2">ห้าอวัยวะ สิบสองวัง ช่วงวัย</li></ul><span data-i18n="fortune.hub.card.faceread.go" class="ft-go">เริ่มอ่านใบหน้า →</span></a>
       <a class="ft-card" href="palm.html"><span class="ft-ic" aria-hidden="true">✋</span><span data-i18n="fortune.hub.card.palm.org" class="ft-org">สากล · หัตถศาสตร์</span><h2 data-i18n="fortune.hub.card.palm.name">ดูลายมือ</h2><p data-i18n="fortune.hub.card.palm.desc">ถ่ายฝ่ามือ ระบบหาเส้นหลักให้ ปรับแก้เส้นเองได้</p><ul><li data-i18n="fortune.hub.card.palm.li1">เส้นชีวิต สมอง หัวใจ วาสนา</li><li data-i18n="fortune.hub.card.palm.li2">รูปทรงมือตามธาตุ สัดส่วนนิ้ว</li></ul><span data-i18n="fortune.hub.card.palm.go" class="ft-go">เริ่มดูลายมือ →</span></a>
@@ -88,6 +103,7 @@
       <div data-i18n="fortune.hub.use2"><b data-i18n="fortune.hub.use2H">แคมเปญการตลาด</b>เชื่อมผลดวงกับสินค้าหรือโปรโมชันที่แนะนำ และเก็บรายชื่อผู้สนใจเมื่อได้รับความยินยอม</div>
       <div data-i18n="fortune.hub.use3"><b data-i18n="fortune.hub.use3H">สถิติผู้เล่น</b>นับจำนวนผู้เล่นและผลยอดนิยมแบบไม่ระบุตัวตน ไม่บันทึกภาพใบหน้าหรือฝ่ามือ</div>
     </div>
+    <p class="pd-note pd-team"><span class="pd-tag fun" data-i18n="pd.fun">เพื่อความบันเทิง · ไม่ใช่การประเมิน</span> <span data-i18n="pd.f.team">กิจกรรมทีม: โหงวเฮ้งทีม การ์ดบทบาทสำหรับละลายพฤติกรรม ห้ามใช้คัดเลือกหรือประเมินคน</span> <a href="teamface.html" data-i18n="pd.f.teamA">เปิดโหงวเฮ้งทีม</a></p>
     <p class="ft-note" data-i18n="fortune.hub.note"><b data-i18n="fortune.hub.noteLabel">เพื่อความบันเทิง:</b> ผลการดูดวงทุกระบบอ้างอิงตามความเชื่อและศาสตร์ดั้งเดิม ไม่ใช่ข้อเท็จจริงทางวิทยาศาสตร์ ไม่ควรใช้ตัดสินใจเรื่องสำคัญ เช่น การจ้างงาน การเงิน สุขภาพ หรือความสัมพันธ์</p>
   </div>
 </main>

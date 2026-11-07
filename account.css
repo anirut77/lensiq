@@ -31,3 +31,23 @@
 .acct-msg{max-width:960px;margin:0 auto 24px;padding:0 16px;min-height:1.5em}
 .acct-msg.bad{color:#b42318}
 @media(max-width:600px){.acct-dl{grid-template-columns:1fr}.acct-dl dd{margin-bottom:6px}.acct-table{font-size:.85rem}}
+/* round 10: inline feedback, skeletons, empty states, claim form, typed DELETE, footer links */
+.acct-inline{min-height:1.4em;margin:6px 0 0;font-size:.9rem;color:#1d6b3a}.acct-inline:empty{min-height:0;margin:0}
+.acct-inline.bad{color:#b42318}
+.acct-skel{display:grid;gap:8px}.acct-skel i{display:block;height:44px;border-radius:12px;background:linear-gradient(90deg,#eceffa 0%,#f6f7fb 50%,#eceffa 100%);background-size:200% 100%;animation:acctSkel 1.2s ease-in-out infinite}
+@keyframes acctSkel{to{background-position:-200% 0}}
+@media(prefers-reduced-motion:reduce){.acct-skel i{animation:none}}
+.acct-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.acct-empty{margin:4px 0;padding:12px 14px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:.92rem}
+.acct-empty a{color:#3b2fc0;text-decoration:underline;text-underline-offset:3px}
+.acct-mini{min-height:44px;min-width:44px;padding:0 12px;border-radius:99px;border:1px solid var(--line);background:#fff;color:var(--navy);font:inherit;font-size:.86rem;cursor:pointer}
+.acct-claims{list-style:none;margin:8px 0;padding:0;display:grid;gap:8px}
+.acct-claims li{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}.acct-claims li .t{flex:1 1 200px;min-width:0;overflow-wrap:anywhere}
+.acct-more{margin:8px 0}.acct-more summary{min-height:44px;display:flex;align-items:center;cursor:pointer;color:var(--navy);font-weight:600}
+.acct-form{display:grid;gap:10px;max-width:520px}.acct-form label{display:grid;gap:4px;font-size:.92rem}
+.acct-form input,.acct-input{box-sizing:border-box;min-height:44px;padding:8px 12px;border:1px solid #9aa3bd;border-radius:10px;background:#fff;color:var(--text);font:inherit;width:100%;max-width:320px}
+.acct-type{display:block;margin:8px 0 4px;font-size:.92rem}
+.acct-scroll:focus-visible{outline:2px solid var(--aqua);outline-offset:2px}
+.acct ~ .site-foot{background:var(--navy);color:#c9d0e6;padding:16px;text-align:center;font-size:.9rem}
+.acct ~ .site-foot a{color:#fff;text-decoration:underline;text-underline-offset:3px;display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:0 6px}
+.acct ~ .site-foot .foot-docs{display:flex;flex-wrap:wrap;justify-content:center;gap:0 12px}

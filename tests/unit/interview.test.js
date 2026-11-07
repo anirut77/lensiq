@@ -197,3 +197,105 @@ test("candidate-first delivery notes: org setting needs all three acknowledgemen
   assert.match(html, /id="ivOrgAllow" disabled/);
   assert.match(html, /id="ivDCandView" hidden/);
 });
+
+/* ---------- Round 10: softened observation layer ---------- */
+test("excitementSignals: observable cues only, nothing without enough data, never an emotion/deception label", () => {
+  assert.equal(IV.excitementSignals(null, null).available, false);
+  assert.equal(IV.excitementSignals({ ms: 5000 }, { n: 2 }).available, false, "too little data");
+  const calm = IV.excitementSignals({ ms: 60000, pausesPerMin: 4, peakRate: 4, segments: 8, meanRunMs: 5000 }, { n: 40, movementBand: "low", facePct: 95, towardPct: 80 });
+  assert.equal(calm.available, true); assert.equal(calm.seen, 0); assert.equal(calm.total, 5);
+  const busy = IV.excitementSignals({ ms: 60000, pausesPerMin: 15, peakRate: 7.2, segments: 30, meanRunMs: 1100 }, { n: 40, movementBand: "high", facePct: 90, towardPct: 30 });
+  assert.deepEqual(busy.items.filter(i => i.seen).map(i => i.id).sort(), ["away", "bursts", "move", "pace", "pauses"]);
+  for (const id of Object.keys(IV.SIGNALS)) assert.ok(IV.SIGNALS[id].length > 5, id);
+  const words = JSON.stringify(IV.SIGNALS) + JSON.stringify(busy);
+  for (const w of ["ประหม่า", "โกรธ", "โกหก", "ซื่อสัตย์", "nervous", "honest", "deceptive", "angry", "lie"]) assert.ok(!words.includes(w), "label " + w);
+});
+
+test("EU/EEA or regulated use hides emotion-like signals in employer flows; candidate self-practice keeps them", () => {
+  assert.deepEqual(IV.REGIONS, ["th", "eu"]);
+  assert.equal(IV.signalsAllowed("th", "employer"), true);
+  assert.equal(IV.signalsAllowed("eu", "employer"), false);
+  assert.equal(IV.signalsAllowed("eu", "practice"), true);
+  assert.equal(IV.signalsAllowed("th", "practice"), true);
+  const js = fs.readFileSync(path.join(ROOT, "interview.js"), "utf8");
+  assert.match(js, /signalsHtml\(s\.d, s\.g, "employer"\)/, "live candidate view inside an employer interview is an employer flow");
+  assert.match(js, /signalsHtml\(S\.delivery\.d, S\.delivery\.g, "employer"\)/);
+  assert.match(js, /signalsHtml\(snap\.d, snap\.g, "practice"\)/);
+  assert.match(js, /QS\.get\("region"\) === "eu"/);
+  const html = fs.readFileSync(path.join(ROOT, "interview.html"), "utf8");
+  assert.match(html, /<option value="eu"[^>]*>EU\/EEA/);
+  assert.match(html, /5\(1\)\(f\)/);
+});
+
+test("answer consistency: interviewer observations only, no true/false score; survives export/import", () => {
+  assert.deepEqual(IV.CONSIST_IDS, ["specific", "probe", "own", "verify"]);
+  const C = IV.consistency([{ who: "A", consist: { specific: "yes", probe: "ask" } }, { who: "B", consist: { probe: "ask", own: "bogus" } }, null]);
+  assert.deepEqual(C.items.find(i => i.id === "probe"), { id: "probe", yes: 0, ask: 2, n: 2 });
+  assert.deepEqual(C.followUp, ["probe"]); assert.equal(C.observed, 3);
+  assert.equal(IV.consistency([]).observed, 0);
+  const back = IV.importSheet(IV.exportSheet({ who: "A", scores: { comm: 3 }, notes: {}, consist: { verify: "ask", own: "maybe" } }), ["comm"]);
+  assert.deepEqual(back.consist, { verify: "ask" }, "only 'yes'/'ask' survive");
+  assert.equal(JSON.parse(IV.exportSheet({ who: "A", scores: {}, notes: {} })).consist, undefined, "older format unchanged");
+  // a team-icebreaker (teamface) card can never be imported as an interview sheet
+  assert.throws(() => IV.importSheet(JSON.stringify({ kind: "lensiq-teamface", v: 1, who: "A", role: "fire" })), /bad-kind/);
+  const html = fs.readFileSync(path.join(ROOT, "interview.html"), "utf8") + fs.readFileSync(path.join(ROOT, "interview.js"), "utf8");
+  assert.ok(html.includes("ความสอดคล้องของคำตอบ (ข้อสังเกต ไม่ใช่การตัดสิน)"));
+  assert.ok(html.includes("สัญญาณความตื่นเต้นที่สังเกตได้"));
+});
+
+test("raterSpread: lenient / severe / narrow interviewer flags (calibration prompt)", () => {
+  const comps = ["a", "b", "c"];
+  const rs = IV.raterSpread([
+    { who: "A", scores: { a: 5, b: 5, c: 5 } }, { who: "B", scores: { a: 4, b: 4, c: 3 } }, { who: "C", scores: { a: 4, b: 4, c: 4 } }
+  ], comps);
+  assert.deepEqual(rs.map(r => r.flag), ["lenient", null, "narrow"]);
+  assert.equal(rs[0].dev, 1.17, "lenient wins over narrow");
+  assert.equal(IV.raterSpread([{ who: "A", scores: { a: 1, b: 1 } }, { who: "B", scores: { a: 4, b: 5 } }], comps)[0].flag, "severe");
+  assert.deepEqual(IV.raterSpread([{ who: "Solo", scores: { a: 2 } }], comps)[0], { who: "Solo", n: 1, dev: null, flag: null });
+});
+
+test("checkQuestion: 'questions you may not ask' guard in Thai, English and Chinese without obvious false positives", () => {
+  const ids = q => IV.checkQuestion(q).sort().join();
+  assert.equal(ids("คุณแต่งงานหรือยัง และอายุเท่าไร"), "age,marital");
+  assert.equal(ids("มีแผนจะตั้งครรภ์ไหม"), "pregnancy");
+  assert.equal(ids("นับถือศาสนาอะไร"), "religion");
+  assert.equal(ids("Are you married? Do you have kids?"), "marital");
+  assert.equal(ids("How old are you?"), "age");
+  assert.equal(ids("你多大了？结婚了吗？"), "age,marital");
+  assert.equal(ids("Do you have any health problems or disabilities?"), "health");
+  for (const ok of ["อายุงานกี่ปี", "How do you manage a team?", "เล่าถึงลูกค้าที่ไม่พอใจ", "", "  "]) assert.equal(ids(ok), "", ok);
+  for (const l of IV.LAW) assert.ok(IV.LAW_CUES[l.id] instanceof RegExp, "cue for " + l.id);
+});
+
+test("practiceSummary: pace, pauses, talk time and eye-contact share across answers (candidate-only)", () => {
+  const X = IV.practiceSummary([
+    { d: { ms: 60000, speechMs: 30000, pauses: 6, peakRate: 4, pausesPerMin: 6, segments: 7, meanRunMs: 4000 }, g: { n: 50, facePct: 90, towardPct: 60, movementBand: "low" } },
+    { d: { ms: 60000, speechMs: 42000, pauses: 18, peakRate: 7, pausesPerMin: 18, segments: 20, meanRunMs: 1200 }, g: { n: 50, facePct: 80, towardPct: 40, movementBand: "high" } },
+    { d: null, g: null }, undefined
+  ]);
+  assert.deepEqual([X.answers, X.talkPct, X.pausesPerMin, X.pace, X.towardPct, X.facePct], [2, 60, 12, 5.5, 50, 85]);
+  assert.deepEqual(X.signals, { move: 1, pauses: 1, pace: 1, bursts: 1 });
+  assert.equal(IV.practiceSummary([]).answers, 0);
+  const html = fs.readFileSync(path.join(ROOT, "interview.html"), "utf8");
+  assert.match(html, /id="ivModeBtn"/); assert.match(html, /id="ivPSum" hidden/);
+  assert.match(fs.readFileSync(path.join(ROOT, "interview.js"), "utf8"), /QS\.get\("mode"\) === "practice"/);
+});
+
+test("Round 10 keys: every new interview key has English and Chinese; placeholders match; no Thai left", () => {
+  const load = f => { const ctx = { window: {} }; vm.createContext(ctx); vm.runInContext(fs.readFileSync(path.join(ROOT, f), "utf8"), ctx); return ctx.window.LQI18N_Q; };
+  const zh = Object.assign({}, ...load("i18n/zh-interview.js").map(e => e.zh || {}));
+  const en = Object.assign({}, ...load("i18n/en-interview.js").map(e => e.en || {}));
+  const keys = [];
+  for (const id of Object.keys(IV.SIGNALS)) keys.push("iv.sig." + id, "iv.sig." + id + ".short");
+  for (const id of IV.CONSIST_IDS) keys.push("iv.cs." + id);
+  const html = fs.readFileSync(path.join(ROOT, "interview.html"), "utf8"), js = fs.readFileSync(path.join(ROOT, "interview.js"), "utf8");
+  for (const m of html.matchAll(/data-i18n="([^"]+)"/g)) keys.push(m[1]);
+  for (const m of html.matchAll(/data-i18n-attr="([^"]+)"/g)) for (const p of m[1].split(";")) keys.push(p.split(":")[1]);
+  for (const m of js.matchAll(/\bT\("([a-z][\w.]+)"/g)) if (!m[1].endsWith(".")) keys.push(m[1]);
+  assert.deepEqual(keys.filter(k => !(k in zh)), [], "zh");
+  assert.deepEqual(keys.filter(k => !(k in en)), [], "en");
+  for (const [k, v] of Object.entries(en)) assert.ok(!/[฀-๿]/.test(v), "Thai left in en " + k);
+  const ph = s => [...String(s).matchAll(/\{(\w+)\}/g)].map(x => x[1]).sort().join();
+  for (const id of Object.keys(IV.SIGNALS)) { assert.equal(ph(zh["iv.sig." + id]), ph(IV.SIGNALS[id]), id); assert.equal(ph(en["iv.sig." + id]), ph(IV.SIGNALS[id]), id); }
+  for (const m of js.matchAll(/\bT\("([a-z][\w.]+)", "([^"]*)"/g)) assert.equal(ph(en[m[1]] || ""), ph(m[2]), "en placeholders " + m[1]);
+});

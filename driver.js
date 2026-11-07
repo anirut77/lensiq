@@ -440,6 +440,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
       } else if (ev.type === "devices") listCameras();
       else if (ev.type === "resumed") { if (trip) engine("กลับมาเฝ้าระวังต่อแล้ว", "ok"); }
       else if (ev.type === "ended") { if (trip) engine("สัญญาณกล้องหลุด กรุณาตรวจสอบสายกล้องแล้วกดลองใหม่", "err"); addRetry(); }
+      else if (ev.type === "reconnected") { if (trip) engine("กล้องกลับมาเชื่อมต่อแล้ว — เฝ้าระวังต่อ", "ok"); }
     },
     onError: (c, err) => { if (err.name !== "AbortError") { engine(`เปิดกล้องไม่สำเร็จ: ${cameraError(err) || err.message}`, "err"); addRetry(); } }
   });
@@ -840,6 +841,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
 
   // ---------- สุขภาพภาพ + ตรวจความแม่นยำหน้างาน (lensiq-sitecheck.js) ----------
   const SITE = /** @type {any} */ (window).LQSite || null;
+  if (LQCam.offlineBadge && $("#cam")) LQCam.offlineBadge(cam, $("#cam").parentElement); // "กล้องออฟไลน์ตั้งแต่ HH:MM" ระหว่างเชื่อมต่อใหม่
   const HL = SITE ? { mon: SITE.createHealth({ kind: "driver" }), at: 0, fw: [], cv: document.createElement("canvas"), state: null } : null;
   function healthStep(f) {
     if (!HL) return;
@@ -847,7 +849,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     const t = performance.now(); if (t - HL.at < 1000) return; HL.at = t;
     let st = null; try { st = SITE.sampleElement(video, HL.cv); } catch { /* ignore */ }
     const hz = fpsTimes.length / 3;
-    HL.state = HL.mon.push(st, { faceW: HL.fw.length ? SITE.median(HL.fw) : null, hz: fpsTimes.length >= 6 ? hz : null }); HL.fw = [];
+    HL.state = HL.mon.push(st, { faceW: HL.fw.length ? SITE.median(HL.fw) : null, hz: fpsTimes.length >= 6 ? hz : null, stalled: SITE.stallStep(video, st, t) }); HL.fw = [];
     if (SCD) HL.state.codes.forEach(k => SCD.health.add(k));
     const pill = $("#camHealth"), msg = $("#camHealthMsg");
     if (!pill) return;
@@ -908,16 +910,17 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     SITE.renderReport(scdPanel.report, rep);
     const box = scdPanel.q(".sc-prompt"); box.hidden = true;
     scdPanel.start.disabled = false; scdPanel.stop.disabled = true; scdPanel.q(".sc-skip").hidden = true;
-    scdPanel.state.textContent = SITE.VERDICT_TH[rep.verdict]; scdPanel.state.dataset.s = rep.verdict;
+    scdPanel.state.textContent = SITE.verdictText(rep); scdPanel.state.dataset.s = rep.verdict;
     const doc = SITE.exportDoc("driver", {
       startedAt: new Date(run.t0).toISOString(), durationSec: Math.round(el / 1000),
       settings: { ratio: settings.ratio, inputSize: settings.inputSize, eyeClassifier: run.eyeMode, calibrated: run.calibrated, adaptive: DR_DEFAULTS.eyeAdaptive },
       conditions: { health: [...run.health] }, prompts: prompts.map(p => ({ atSec: p.at / 1000, closeSec: p.closeMs / 1000, skipped: !!p.skip })),
       events: run.events.map(e => ({ tSec: +((e.t - run.t0) / 1000).toFixed(2), raisedSec: +((e.at - run.t0) / 1000).toFixed(2), type: e.type, level: e.level })),
-      report: { verdict: rep.verdict, n: rep.n, sensitivity: rep.sensitivity, latencyMs: rep.latencyMs, falsePerHour: rep.falsePerHour, openFrameClosed: rep.openFrameClosed, closedFrameClosed: rep.closedFrameClosed, recs: rep.recs }
+      distinctPeople: 1, framesIndependent: false,
+      report: { verdict: rep.verdict, provisional: rep.provisional, need: rep.need, n: rep.n, sensitivity: rep.sensitivity, openFrameClosedBlock: rep.openFrameClosedBlock, closedFrameClosedBlock: rep.closedFrameClosedBlock, latencyMs: rep.latencyMs, falsePerHour: rep.falsePerHour, openFrameClosed: rep.openFrameClosed, closedFrameClosed: rep.closedFrameClosed, recs: rep.recs }
     });
     scdPanel.exp.hidden = false; scdPanel.exp.onclick = () => SITE.download(`lensiq-driver-check-${stamp()}.json`, doc);
-    scdHist.add({ at: run.t0, verdict: rep.verdict, summary: SITE.fmt("เตือนครบ {a}/{b} · เตือนผิด {c}", { a: rep.n.hits, b: rep.n.prompts, c: rep.n.falseAlarms }) });
+    scdHist.add({ at: run.t0, verdict: rep.verdict, provisional: rep.provisional, need: rep.need, cam: cam.label || "กล้องในรถ", summary: SITE.fmt("เตือนครบ {a}/{b} · เตือนผิด {c}", { a: rep.n.hits, b: rep.n.prompts, c: rep.n.falseAlarms }) });
     scdHist.render(scdPanel.hist);
     SCD_LAST = { rep, doc };
   }

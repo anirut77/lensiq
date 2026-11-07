@@ -176,7 +176,7 @@
     "horoscope.x.how2": "Month pillar: solar longitude at birth {l}° → month {n} counting from Yin month (changes every 30°: 315°, 345°, 15° …)",
     "horoscope.x.how3": "Day pillar: from the Julian day number (Jan 1, 2000 = Wu Wu), in a 60-day cycle",
     "horoscope.x.how4": "Hour pillar: two clock hours per double-hour (not corrected to true solar time); the hour stem follows the Five Rats rule",
-    "horoscope.x.how5": "Sun position uses the Meeus formulas, accurate to about ±15 minutes, checked against the National Astronomical Observatory of Japan solar-term tables for 2024–2025",
+    "horoscope.x.how5": "Sun position uses an abridged VSOP87 series (Meeus) with nutation and aberration; solar-term times are within about 1 minute, checked against published observatory solar-term tables for 2023–2026",
     "horoscope.x.lpK": "Life Path number",
     "horoscope.x.lpHow": "Method: month {m} → {a} · day {d} → {b} · CE year {y} → {c} · total {t}{r} (master numbers 11, 22, 33 are kept, not reduced)",
     "horoscope.x.bdK": "Birthday number",

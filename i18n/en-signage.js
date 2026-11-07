@@ -81,5 +81,10 @@
   "signage.s79": "Items selected",
   "signage.s80": "Privacy (PDPA)",
   "signage.s81": "This area uses a camera for anonymous image analysis to count the audience, measure screen attention and summarize estimated age band/gender/expression, in order to select ads and measure their performance. Processing happens on this device: no images or video are recorded, no face recognition is performed, and no data leaves this device. Personal data is discarded as soon as a person leaves the screen; only aggregate statistics are kept. If you prefer not to take part, please tell a staff member",
-  "signage.s82": "Delete all data on this device"
+  "signage.s82": "Delete all data on this device",
+  "signage.s83": "Research-licence model — check licence before commercial use",
+  "signage.s84": "(the age/gender model was trained on a research-only dataset; it is loaded only when this option is on)",
+  "signage.s85": "Expression (smile · valence · mood): research-licence model — check licence before commercial use",
+  "signage.s86": "research-licence model",
+  "signage.s87": "Smile % · valence · age/gender groups come from research-licence models — check licence before commercial use"
 } });

@@ -331,7 +331,13 @@
   /* ---------- i18n (ไทยเป็นค่าเริ่มต้น จีนมาจาก i18n/zh-fortune-numbers.js และ i18n/zh-kb-numbers.js) ---------- */
   const T = (k, th, v) => root.LQI18N ? root.LQI18N.tf(k, th, v) : String(th).replace(/\{(\w+)\}/g, (m, x) => v && v[x] != null ? v[x] : m);
   const isZh = () => !!(root.LQI18N && root.LQI18N.lang === "zh");
-  const zkItem = id => { const D = root.FORTUNE_ZH && root.FORTUNE_ZH.numbers; return isZh() && D && D.items ? D.items[id] || null : null; };
+  const isEn = () => !!(root.LQI18N && root.LQI18N.lang === "en");
+  /** โหมดแปล (จีนหรืออังกฤษ): ใช้คีย์ T() และคลัง zh-kb / en-kb แทนข้อความไทยที่ประกอบในเครื่อง */
+  const trL = () => isZh() || isEn();
+  const zkItem = id => { const D = isEn() ? root.FORTUNE_EN && root.FORTUNE_EN.numbers : isZh() ? root.FORTUNE_ZH && root.FORTUNE_ZH.numbers : null; return D && D.items ? D.items[id] || null : null; };
+  /** ชื่อจากคลัง: zh "24 · 魅力沟通" → "魅力沟通"; en "pair 24 (the charming communicator)" → "The charming communicator" */
+  const kbName = n => { n = String(n); if (!isEn()) return n.split(" · ").slice(1).join(" · "); const m = /\(([^()]+)\)\s*$/.exec(n); const t = m ? m[1] : n; return t.charAt(0).toUpperCase() + t.slice(1); };
+  const cap = t => { t = String(t || ""); return isEn() ? t.charAt(0).toUpperCase() + t.slice(1) : t; };
   const first = v => Array.isArray(v) ? v[0] : v;
   const kindName = k => T("numbers.kind." + k, KIND_TH[k]);
   const gradeName = g => T("numbers.grade." + g, KB.grades[g].th);
@@ -340,33 +346,33 @@
   const wdName = w => T("numbers.wd." + w.id, w.th);
   const wdColor = w => T("numbers.wdc." + w.id, w.color);
   /** ชื่อคู่เลข (ไม่มีตัวเลข) เช่น "คู่เสน่ห์เจรจา" / "魅力沟通" */
-  const pairNameL = pair => { const z = zkItem("pair." + pair); return z ? String(z.n).split(" · ").slice(1).join(" · ") : KB.pairs[pairKey(pair)][2]; };
+  const pairNameL = pair => { const z = zkItem("pair." + pair); return z ? kbName(z.n) : KB.pairs[pairKey(pair)][2]; };
   /** สำนวนที่แสดงในการ์ดคู่เลข */
-  const pairTextL = p => { const z = zkItem("pair." + p.pair); if (!z) return p.phrases[p.care ? 1 : 0]; return p.care && z.a ? T("numbers.care", "{a}", { a: first(z.a) }) : first(z.o); };
-  const pairOrderL = p => !isZh() ? p.order : p.pair[0] === p.pair[1] ? T("numbers.order.double", "", { q: digitQ(+p.pair[0]) }) : T("numbers.order.lead", "", { d: p.pair[0], a: digitQ(+p.pair[0]), b: digitQ(+p.pair[1]) });
-  const sumNameL = s => !isZh() ? s.name : s.sum < 10 ? T("numbers.digitName", "", { n: s.sum, p: planetName(s.sum) }) : pairNameL(String(s.sum));
+  const pairTextL = p => { const z = zkItem("pair." + p.pair); if (!z) return p.phrases[p.care ? 1 : 0]; return p.care && z.a ? T("numbers.care", "{a}", { a: first(z.a) }) : cap(first(z.o)); };
+  const pairOrderL = p => !trL() ? p.order : p.pair[0] === p.pair[1] ? T("numbers.order.double", "", { q: digitQ(+p.pair[0]) }) : T("numbers.order.lead", "", { d: p.pair[0], a: digitQ(+p.pair[0]), b: digitQ(+p.pair[1]) });
+  const sumNameL = s => !trL() ? s.name : s.sum < 10 ? T("numbers.digitName", "", { n: s.sum, p: planetName(s.sum) }) : pairNameL(String(s.sum));
   const sumTextL = s => {
-    if (!isZh()) return s.phrases[0];
-    if (s.sum < 10) { const z = zkItem("sum." + s.sum); return z ? first(z.o) : s.phrases[0]; }
+    if (!trL()) return s.phrases[0];
+    if (s.sum < 10) { const z = zkItem("sum." + s.sum); return z ? cap(first(z.o)) : s.phrases[0]; }
     const z = zkItem("pair." + s.sum); return z ? T("numbers.sum.intro", "", { s: s.sum, t: first(z.o) }) : s.phrases[0];
   };
-  const sumRootL = s => !isZh() ? s.rootLine : T("numbers.sum.root", "", { r: s.root, p: planetName(s.root), q: digitQ(s.root) });
+  const sumRootL = s => !trL() ? s.rootLine : T("numbers.sum.root", "", { r: s.root, p: planetName(s.root), q: digitQ(s.root) });
   const sumExtraL = s => !s.extra ? "" : T("numbers.sum.plateCare", s.extra);
   const emphL = e => e === "คู่ท้ายสุด" ? T("numbers.emph.last", e) : e === "คู่รองท้าย" ? T("numbers.emph.second", e) : e;
   function patLabelL(p) {
-    if (!isZh()) return p.label;
+    if (!trL()) return p.label;
     const ds = (String(p.label).match(/\d+/g) || []);
     if (p.id === "run") { const d = (String(p.label).match(/\((\d+)\)/) || [])[1] || ds[ds.length - 1] || ""; return T("numbers.pat.run", "", { d, n: d.length }); }
     if (p.id === "nozero") return T("numbers.pat.nozero", p.label);
     return T("numbers.pat." + p.id, p.label, { d: ds[ds.length - 1] || "" });
   }
   function patEvidenceL(p) {
-    if (!isZh()) return p.evidence;
+    if (!trL()) return p.evidence;
     if (p.id === "nozero") return T("numbers.pat.nozeroEv", p.evidence);
     const m = /(\d+)–(\d+)/.exec(p.evidence || ""); return m ? T("numbers.pat.posRange", "", { a: m[1], b: m[2] }) : p.evidence;
   }
   function breakdownL(r, b) {
-    if (!isZh()) return b.th;
+    if (!trL()) return b.th;
     const g = b.id === "sum" ? gradeName(r.sum.grade) : "";
     if (b.id === "pairs") return r.kind === "plate" ? T("numbers.bd.platePairs", b.th, { n: r.pairs.length }) : T("numbers.bd.pairs", b.th, { n: r.pairs.length });
     if (b.id === "sum") {
@@ -381,7 +387,7 @@
   }
   /** คำพลังจากผล (ตามภาษาปัจจุบัน) — ตรรกะเดียวกับ strengthWords */
   function strengthWordsL(r) {
-    if (!isZh()) return strengthWords(r);
+    if (!trL()) return strengthWords(r);
     const out = [];
     (r.pairs || []).filter(p => p.grade === "G" || p.grade === "g").forEach(p => { const n = pairNameL(p.pair); if (out.indexOf(n) < 0 && out.length < 4) out.push(n); });
     const sn = r.sum ? sumNameL(r.sum) : "";
@@ -470,7 +476,7 @@
     const kb = $("#nmKala");
     if (r.kind === "plate" || r.kind === "name") {
       kb.hidden = false;
-      const zh = isZh();
+      const zh = trL();
       kb.innerHTML = !r.weekday ? '<p class="nm-small">' + esc(T("numbers.kala.pick", "เลือกวันเกิดด้านบน (ไม่บังคับ) เพื่อดูอักษรที่บางตำราแนะให้ใส่ใจ")) + '</p>' :
         r.kala.length ? (zh ? "<p>" + esc(T("numbers.kala.yes", "", { k: r.kala.join(" "), wd: wdName(r.weekday) })) + "</p>" : "<p>ตามบางตำรา อักษร <b>" + esc(r.kala.join(" ")) + "</b> เป็นอักษรที่คน" + esc(r.weekday.th) + "ให้ใส่ใจ (กาลกิณี) — เป็นเพียงความเชื่อ ไม่ได้มีผลร้ายใด ๆ หากชอบความสบายใจ ครั้งหน้าจะเลือกเลี่ยงก็ได้</p>") + (r.weekday.kalaNote ? '<p class="nm-small">' + esc(T("numbers.kalaNote." + r.weekday.id, r.weekday.kalaNote)) + "</p>" : "") :
         "<p>" + esc(T("numbers.kala.no", "ไม่พบอักษรกาลกิณีของ{wd} ({k}) — สบายใจได้", { wd: zh ? wdName(r.weekday) : r.weekday.th, k: r.weekday.kala.split("").join(" ") })) + "</p>";
@@ -490,7 +496,7 @@
 
   function renderDaily(L, quiet) {
     const box = $("#nmDaily"); box.hidden = false; lastDaily = L;
-    const zh = isZh(), wi = KB.dailyWords.indexOf(L.word), di = KB.dailyDirections.indexOf(L.direction);
+    const zh = trL(), wi = KB.dailyWords.indexOf(L.word), di = KB.dailyDirections.indexOf(L.direction);
     const word = zh ? { w: T("numbers.dw." + wi + ".w", L.word.w), p: T("numbers.dw." + wi + ".p", L.word.p) } : L.word;
     const same = L.today.id === L.weekday.id || (L.today.id === "wed" && L.weekday.id === "wedn");
     const notes = zh ? [T("numbers.daily.n1", "", { c: wdColor(L.today), wd: wdName(L.today) }),
@@ -585,7 +591,7 @@
     c.globalAlpha = 0.08; c.fillStyle = "#fff"; c.font = "700 420px Prompt, sans-serif"; c.textAlign = "right"; c.fillText(String(r.sum.sum), W - 30, 520); c.globalAlpha = 1;
     c.textAlign = "left"; c.fillStyle = "#22d3ee"; c.font = "600 34px Prompt, sans-serif"; c.fillText(T("numbers.card.brand", "LENSIQ · เลขมงคล"), 80, 120);
     c.fillStyle = "#c9d0ea"; c.font = "400 36px Prompt, sans-serif"; c.fillText(kindName(r.kind), 80, 200);
-    c.fillStyle = "#fff"; c.font = "600 88px Prompt, sans-serif"; c.fillText(r.kind === "house" && isZh() ? String(r.masked).replace(/^เลขที่ /, "门牌 ") : r.kind === "name" && isZh() ? T("numbers.kind.name", "ชื่อ") + " · " + r.chars.length : r.masked, 80, 300);
+    c.fillStyle = "#fff"; c.font = "600 88px Prompt, sans-serif"; c.fillText(r.kind === "house" && trL() ? String(r.masked).replace(/^เลขที่ /, isEn() ? "No. " : "门牌 ") : r.kind === "name" && trL() ? T("numbers.kind.name", "ชื่อ") + " · " + r.chars.length : r.masked, 80, 300);
     // วงคะแนน
     const cx = 220, cy = 520, R = 130;
     c.lineWidth = 26; c.strokeStyle = "rgba(255,255,255,.12)"; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.stroke();
@@ -603,7 +609,7 @@
       y += 24; c.fillStyle = "rgba(255,255,255,.08)"; c.beginPath(); c.roundRect ? c.roundRect(80, y, W - 160, 130, 22) : c.rect(80, y, W - 160, 130); c.fill();
       c.fillStyle = "#facc15"; c.font = "700 64px Prompt, sans-serif"; c.fillText(p.pair, 110, y + 88);
       c.fillStyle = "#fff"; c.font = "600 32px Prompt, sans-serif"; c.fillText(pairNameL(p.pair), 250, y + 52);
-      c.fillStyle = "#c9d0ea"; c.font = "400 26px Prompt, sans-serif"; wrapText(c, isZh() ? first((zkItem("pair." + p.pair) || {}).o || p.phrases[0]) : p.phrases[0], 250, y + 94, W - 360, 34, 1);
+      c.fillStyle = "#c9d0ea"; c.font = "400 26px Prompt, sans-serif"; wrapText(c, trL() ? cap(first((zkItem("pair." + p.pair) || {}).o || p.phrases[0])) : p.phrases[0], 250, y + 94, W - 360, 34, 1);
       y += 130;
     });
     else { c.fillStyle = "#fff"; c.font = "400 32px Prompt, sans-serif"; wrapText(c, sumTextL(r.sum), 80, y + 50, W - 160, 46, 5); }

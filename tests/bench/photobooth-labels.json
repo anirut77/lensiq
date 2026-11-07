@@ -1,0 +1,322 @@
+{
+ "about": "Visible-defect labels for tests/bench/photobooth.bench.mjs (photo booth ID photo, ids from tests/bench/studio-portraits.json): none = no outfit, civil / khaki = the outfits chosen by the civil-service presets. 1 = visible defect, 0 = clean.",
+ "labeller": "Fresh AI agent instances (Claude) that did not write the code, 3 raters x 20-21 people, blind sheets (cells in random order under codes A-C, no check output). Not human raters.",
+ "criteria": [
+  "neck/jaw join: hole, notch or step, straight cut line beside the jaw or under the ear, sliver or blob along the jaw, flat or wrong-coloured pasted neck, background gap between hair and neck",
+  "garment geometry clearly wrong at normal viewing: balloon/sack body, shoulder raised over the hair, sleeves crossing as tubes, hands pasted or spotted",
+  "leftovers: fragments of the original clothes, jewellery or background (flag, chair) left on or beside the person; missing parts or holes from the matte",
+  "NOT counted: the procedural/CG look of the garment itself, soft hair edges, small colour differences"
+ ],
+ "labels": {
+  "d01": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d02": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d03": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d04": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d05": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d06": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d07": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d08": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d09": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d10": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d11": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d12": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d13": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d14": {
+   "none": 1,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d15": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d16": {
+   "none": 1,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d17": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d18": {
+   "none": 1,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d19": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d20": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d21": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d22": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d23": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d24": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d25": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d26": {
+   "none": 1,
+   "civil": 1,
+   "khaki": 1
+  },
+  "d27": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t01": {
+   "none": 1,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t02": {
+   "none": 1,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t03": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t04": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t05": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t06": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t07": {
+   "none": 1,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t08": {
+   "none": 1,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t09": {
+   "none": 1,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t10": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t11": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t12": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t13": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t14": {
+   "none": 1,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t15": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t16": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t17": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t18": {
+   "none": 1,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t19": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t20": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t21": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t22": {
+   "none": 1,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t23": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t24": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t25": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t26": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t27": {
+   "none": 1,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t28": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t29": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t30": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t31": {
+   "none": 1,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t32": {
+   "none": 0,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t33": {
+   "none": 1,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t34": {
+   "none": 1,
+   "civil": 1,
+   "khaki": 1
+  },
+  "t35": {
+   "none": 1,
+   "civil": 1,
+   "khaki": 1
+  }
+ }
+}

@@ -175,9 +175,14 @@ function iqAnalyze(D, r, opt = {}) {
     const x = tot(H.bills.map((b, i) => iqFin(H.storeIn[i]) ? b : null), r.from, r.to), n = tot(H.storeIn.map((v, i) => iqFin(H.bills[i]) ? v : null), r.from, r.to);
     if (n > 0 && x <= n) {
       const w = S.wilson(x, n), t = rateTest(H.bills.map((b, i) => iqFin(H.storeIn[i]) ? b : null), H.storeIn.map((v, i) => iqFin(H.bills[i]) ? v : null));
-      const k = { id: "conv", label: "อัตราซื้อ (บิล ÷ คนเข้าร้าน)", value: w.p, fmt: "pct1", delta: t && iqFin(t.change) ? t.change : null, sub: iqT("iq.kpi.sub.conv", "{x} บิล จาก {n} คน · ประมาณการ (คนละระบบ)", { x: iqN(x), n: iqN(n) }), ci: { text: `95%: ${iqP(w.lo, 1)}–${iqP(w.hi, 1)}` }, test: t, spark: iqWin(H, H.conv, r.from, r.to) };
+      // ช่วงหลัก = quasi-binomial (√φ จากความต่างรายวัน — คนในวันเดียวกันไม่อิสระต่อกัน) ; Wilson เดิมยังแสดงไว้คู่กันในชื่อ “นับต่อคน”
+      const dd = H.keys.map((kk, i) => (kk >= r.from && kk <= r.to && iqFin(H.bills[i]) && iqFin(H.storeIn[i]) && H.storeIn[i] > 0 ? { x: H.bills[i], n: H.storeIn[i] } : null)).filter(Boolean);
+      const qb = S.quasiBinomCI ? S.quasiBinomCI(dd) : null, main = qb && qb.method === "quasi-binomial" ? qb : null;
+      const ciText = main ? iqT("iq.kpi.ci.conv", "95%: {lo}–{hi} (รวมความผันผวนรายวัน) · นับต่อคน: {wlo}–{whi}", { lo: iqP(main.lo, 1), hi: iqP(main.hi, 1), wlo: iqP(w.lo, 1), whi: iqP(w.hi, 1) })
+        : iqT("iq.kpi.ci.conv1", "95% นับต่อคน: {wlo}–{whi}", { wlo: iqP(w.lo, 1), whi: iqP(w.hi, 1) });
+      const k = { id: "conv", label: "อัตราซื้อ (บิล ÷ คนเข้าร้าน)", value: w.p, fmt: "pct1", delta: t && iqFin(t.change) ? t.change : null, sub: iqT("iq.kpi.sub.conv", "{x} บิล จาก {n} คน · ประมาณการ (คนละระบบ)", { x: iqN(x), n: iqN(n) }), ci: { text: ciText }, test: t, spark: iqWin(H, H.conv, r.from, r.to) };
       const at = K.findIndex(q => q.id === "store"); K.splice(at >= 0 ? at + 1 : K.length, 0, k);
-      A.conv = { x, n, ci: w, test: t };
+      A.conv = { x, n, ci: main || w, ciVisitor: w, ciDaily: qb, test: t };
     }
   }
   A.kpis = K;
@@ -196,6 +201,7 @@ function iqAnalyze(D, r, opt = {}) {
     const fkeys = Array.from({ length: 7 }, (_, j) => iqAddDays(fullEnd, j + 1));
     const actualToday = today > fullEnd && H.keys.includes(today) ? arr[H.keys.indexOf(today)] : null;
     A.forecast = { metric: fsrc[0], name: fsrc[1], unit: fsrc[2], keys: ks, y, fc, fkeys, anomalies: an, todaySoFar: actualToday, enough: !!(fc && fc.enough) && y.filter(iqFin).length >= 21 };
+    A.forecast.rough = !A.forecast.enough; // ช่วงพยากรณ์ของข้อมูลสั้น = ค่าคร่าว ๆ (กราฟวาดเส้นประ)
     if (fc) {
       const last7 = iqSum(y.slice(-7).filter(iqFin));
       A.forecast.total = { mean: iqSum(fc.mean), lo: iqSum(fc.lo), hi: iqSum(fc.hi), last7, change: last7 > 0 ? iqSum(fc.mean) / last7 - 1 : null };

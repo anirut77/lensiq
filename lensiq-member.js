@@ -11,14 +11,19 @@
  *        Safety texts (Kalama reminder, gentle cautions, notes) and consent texts are NEVER gated.
  * Google's script (https://accounts.google.com/gsi/client) is loaded only after the visitor clicks "continue with
  * Google" in our own dialog — no third-party request on page load. The ID token is verified by the Worker
- * (POST /api/auth/google, nonce from POST /api/auth/nonce); we keep only the Worker's member token, in localStorage
- * (try/catch), sent as `Authorization: Bearer` (the API is another origin — no third-party cookies).
+ * (POST /api/auth/google, nonce from POST /api/auth/nonce); we keep only the Worker's member token — in sessionStorage
+ * by default (gone when the tab closes), in localStorage only when the member ticks "remember me on this device"
+ * (try/catch) — sent as `Authorization: Bearer` (the API is another origin — no third-party cookies).
+ * Guest purchases (pricing.js, before sign-in was required): the one-time customer_id + order_token are kept locally
+ * (PENDING_KEY) and linked to the account with POST /v1/billing/claim right after the next sign-in.
  *
  *   LQMember.active()            gate on (membership required + sign-in possible)
  *   LQMember.signedIn() / me()   current member ({user, tier, plan, quotas}) or null
  *   LQMember.token()             bearer token or "" (lensiq-fortune-hook.js adds it to /api/fortune)
  *   LQMember.signIn() / signOut() / refresh() / history() / exportData() / deleteAccount() / getSaved(id) / deleteSaved(id)
- *   LQMember.mountNav(header)    account chip (called by nav.js; idempotent)
+ *   LQMember.mountNav(header)    account chip (called by nav.js; idempotent); a 44 px avatar / sign-in icon on phones
+ *   LQMember.claimPending() / pendingClaims() / addPendingClaim(c) / claim(c)   guest purchase -> account
+ *   LQMember.receipt(paymentId) / sessions() / signOutEverywhere()             account page helpers (feature-detected)
  *   LQMember.lightResult(res, {sections, over})  pure: the guest version of a FortuneAI result
  * Events on window: "lq-member" (state changed), "lq-member-ready" (first state known).
  */
@@ -30,6 +35,7 @@
   var TOKEN_KEY = "lq-member-session";
   var COUNT_KEY = "lq-guest-reads";
   var CFG_KEY = "lq-member-cfg";
+  var PENDING_KEY = "lq-pending-claims";
   var GSI_SRC = "https://accounts.google.com/gsi/client";
 
   /* ============================ pure helpers (unit-tested in Node) ============================ */
@@ -82,7 +88,33 @@
   function gateOn(cfg, clientId) { return !!(cfg && cfg.membership && cfg.membership.required && clientId); }
   function signInPossible(cfg, clientId) { return !!(cfg && cfg.membership && cfg.membership.google_client_id && clientId); }
 
-  var pure = { lightResult: lightResult, cautionParagraphs: cautionParagraphs, countGuest: countGuest, gateOn: gateOn, signInPossible: signInPossible, CONSENT_VERSION: CONSENT_VERSION };
+  /** Stored member session: sessionStorage first (default), then localStorage ("remember me"). Expired / malformed
+   *  entries are dropped. Returns {sess, where: "session"|"local"|null}. */
+  function pickSession(sessionVal, localVal, nowMs) {
+    var t = nowMs == null ? Date.now() : nowMs;
+    var ok = function (/** @type {any} */ v) { return !!(v && v.t && v.exp && v.exp * 1000 > t); };
+    if (ok(sessionVal)) return { sess: sessionVal, where: "session" };
+    if (ok(localVal)) return { sess: localVal, where: "local" };
+    return { sess: null, where: null };
+  }
+  /** What to do with a stored guest purchase after POST /v1/billing/claim: "done" (linked: forget it), "drop" (invalid,
+   *  already claimed or too old: forget it), "keep" (network / server / endpoint not deployed yet: try again later). */
+  function claimOutcome(r, ageSec) {
+    if (r && r.ok) return "done";
+    var code = r && r.j && r.j.code;
+    if (code === "already_claimed" || code === "claim_taken" || code === "invalid_claim" || code === "claim_invalid" || code === "not_found" || code === "invalid_token") return "drop";
+    if (r && (r.status === 400 || r.status === 403 || r.status === 409 || r.status === 410)) return "drop";
+    if (ageSec != null && ageSec > 90 * 86400) return "drop";
+    return "keep";
+  }
+  /** Adds a guest purchase to the pending list (deduplicated by customer id, newest first, at most 5). */
+  function addClaim(list, c, nowSec) {
+    if (!c || !/^[A-Za-z0-9_-]{6,64}$/.test(String(c.customer_id || "")) || !/^[A-Za-z0-9_-]{16,128}$/.test(String(c.order_token || ""))) return Array.isArray(list) ? list : [];
+    var rest = (Array.isArray(list) ? list : []).filter(function (x) { return x && x.customer_id !== c.customer_id; });
+    return [{ customer_id: String(c.customer_id), order_token: String(c.order_token), payment_id: c.payment_id ? String(c.payment_id) : null, plan_id: c.plan_id ? String(c.plan_id) : null, at: nowSec == null ? Math.floor(Date.now() / 1000) : nowSec }].concat(rest).slice(0, 5);
+  }
+
+  var pure = { pickSession: pickSession, claimOutcome: claimOutcome, addClaim: addClaim, lightResult: lightResult, cautionParagraphs: cautionParagraphs, countGuest: countGuest, gateOn: gateOn, signInPossible: signInPossible, CONSENT_VERSION: CONSENT_VERSION };
   if (typeof module !== "undefined" && module.exports) { module.exports = pure; return; }
 
   /* ============================ browser ============================ */
@@ -103,13 +135,21 @@
   };
   var ss = {
     get: function (/** @type {string} */ k) { try { var v = root.sessionStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } },
-    set: function (/** @type {string} */ k, /** @type {any} */ v) { try { root.sessionStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* blocked */ } }
+    set: function (/** @type {string} */ k, /** @type {any} */ v) { try { if (v == null) root.sessionStorage.removeItem(k); else root.sessionStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* blocked */ } }
   };
   var today = function () { var d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); };
 
   var st = /** @type {any} */ ({ cfg: ss.get(CFG_KEY), me: null, ready: false });
-  var sess = ls.get(TOKEN_KEY);
-  if (sess && (!sess.t || !sess.exp || sess.exp * 1000 < Date.now())) { sess = null; ls.set(TOKEN_KEY, null); }
+  var picked = pickSession(ss.get(TOKEN_KEY), ls.get(TOKEN_KEY));
+  var sess = picked.sess, sessWhere = picked.where;
+  if (sessWhere !== "local") ls.set(TOKEN_KEY, null);
+  if (sessWhere !== "session") ss.set(TOKEN_KEY, null);
+  /** @param {any} s @param {boolean} [remember] keep in localStorage (survives closing the browser) */
+  function saveSession(s, remember) {
+    sess = s; sessWhere = s ? (remember ? "local" : "session") : null;
+    ls.set(TOKEN_KEY, s && remember ? s : null);
+    ss.set(TOKEN_KEY, s && !remember ? s : null);
+  }
   function token() { return sess && sess.t ? String(sess.t) : ""; }
   function active() { return gateOn(st.cfg, clientId()); }
   function possible() { return signInPossible(st.cfg, clientId()); }
@@ -139,7 +179,7 @@
     if (!token()) { st.me = null; return Promise.resolve(null); }
     return call("/api/me").then(function (r) {
       if (r.ok && r.j) st.me = r.j;
-      else if (r.status === 401) { st.me = null; sess = null; ls.set(TOKEN_KEY, null); }
+      else if (r.status === 401) { st.me = null; saveSession(null); }
       return st.me;
     });
   }
@@ -151,6 +191,7 @@
       if (cfg) { st.cfg = cfg; ss.set(CFG_KEY, { membership: cfg.membership || null }); }
       return possible() || token() ? refresh() : null;
     }).then(function () {
+      if (st.me) claimPending();
       st.ready = true;
       emit();
       try { root.dispatchEvent(new CustomEvent("lq-member-ready")); } catch (e) { /* ignore */ }
@@ -166,18 +207,26 @@
     ".lq-mem-actions{display:flex;flex-wrap:wrap;gap:8px;margin:.8em 0 .2em}" +
     ".nav-end{grid-area:lang;justify-self:end;display:flex;align-items:center;gap:10px;min-width:0}.nav-end .lang-switch{grid-area:auto}" +
     ".lq-acct{position:relative;flex:none}.lq-acct-btn{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:0 10px 0 4px;border:1px solid #e3e7f0;border-radius:999px;background:#fff;color:#0e1430;font:inherit;font-size:.8rem;cursor:pointer;max-width:220px}" +
-    ".lq-acct-btn.signin{padding:0 12px}.lq-av{flex:none;display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#5b47e0;color:#fff;font-weight:700;font-size:.8rem}" +
+    ".lq-acct-btn.signin{padding:0 12px}.lq-acct-btn .ic{display:none;width:22px;height:22px}.lq-av{flex:none;display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#5b47e0;color:#fff;font-weight:700;font-size:.8rem}" +
     ".lq-acct-btn span.lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
     ".lq-acct-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:80;min-width:230px;margin:0;padding:6px;list-style:none;background:#fff;border:1px solid #e3e7f0;border-radius:12px;box-shadow:0 12px 32px rgba(14,20,48,.14)}" +
     ".lq-acct-menu a,.lq-acct-menu button{display:flex;width:100%;min-height:40px;align-items:center;padding:0 12px;border:0;border-radius:8px;background:none;color:#0e1430;font:inherit;font-size:.88rem;text-align:left;text-decoration:none;cursor:pointer}" +
     ".lq-acct-menu a:hover,.lq-acct-menu button:hover,.lq-acct-menu a:focus-visible,.lq-acct-menu button:focus-visible{background:#f2f0ff}.lq-acct-menu .who{padding:8px 12px 6px;font-size:.78rem;color:#4a5470;overflow-wrap:anywhere}" +
     ".lq-acct-menu .danger{color:#b42318}.lq-acct-item{display:none}" +
-    "@media(max-width:1099.98px),(pointer:coarse) and (max-height:600px){.lq-acct{display:none}.lq-acct-item{display:block}.lq-acct-item>.nav-link{width:100%}}" +
-    ".lq-dlg{margin:auto;width:min(520px,calc(100vw - 24px));max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);padding:0;border:0;border-radius:18px;box-shadow:0 24px 64px rgba(14,20,48,.3);color:#0e1430;background:#fff}" +
-    ".lq-dlg::backdrop{background:rgba(14,20,48,.55)}.lq-dlg-in{padding:20px 20px 18px;overflow:auto}.lq-dlg h2{margin:0 0 .4em;font-size:1.2rem}" +
-    ".lq-dlg p,.lq-dlg li{line-height:1.6;font-size:.92rem}.lq-dlg .lq-notice{margin:.6em 0;padding:.7em .9em;border-radius:12px;background:#f6f7fb;font-size:.85rem}.lq-dlg .lq-notice ul{margin:.3em 0 0;padding-left:1.1em}" +
+    // phones / the drawer layout: the chip becomes a 44 px avatar (or a sign-in icon) beside the menu button; the drawer
+    // keeps its own "My account" / sign-in row as well
+    "@media(max-width:1099.98px),(pointer:coarse) and (max-height:600px){.nav-end{gap:6px}.lq-acct{order:2}" +
+    ".lq-acct-btn,.lq-acct-btn.signin{width:44px;height:44px;min-height:44px;min-width:44px;padding:0;justify-content:center;border-radius:50%;max-width:none}" +
+    ".lq-acct-btn .lbl{display:none}.lq-acct-btn .ic{display:block}.lq-av{width:34px;height:34px;font-size:.9rem}" +
+    ".lq-acct-menu{right:-50px;max-width:calc(100vw - 24px)}.lq-acct-item{display:block}.lq-acct-item>.nav-link{width:100%}}" +
+    ".lq-dlg{margin:auto;width:min(520px,calc(100vw - 24px));max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);padding:0;border:0;border-radius:18px;box-shadow:0 24px 64px rgba(14,20,48,.3);color:#0e1430;background:#fff;overflow:hidden}" +
+    ".lq-dlg[open]{display:flex;flex-direction:column}" +
+    ".lq-dlg::backdrop{background:rgba(14,20,48,.55)}.lq-dlg-in{padding:20px 20px 12px;overflow:auto;flex:1 1 auto;min-height:0;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}.lq-dlg h2{margin:0 0 .4em;font-size:1.2rem}" +
+    ".lq-dlg-foot{flex:none;padding:12px 20px calc(12px + env(safe-area-inset-bottom));border-top:1px solid #e3e7f0;background:#fff}.lq-dlg-foot .row{margin-top:0}" +
+    ".lq-dlg p,.lq-dlg li{line-height:1.6;font-size:.92rem}.lq-dlg .lq-notice{margin:.6em 0;padding:.2em .9em;border-radius:12px;background:#f6f7fb;font-size:.85rem}.lq-dlg .lq-notice ul{margin:0 0 .6em;padding-left:1.1em}" +
+    ".lq-dlg .lq-notice summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600}" +
     ".lq-dlg label.ck{display:flex;gap:.6em;align-items:flex-start;margin:.55em 0;font-size:.9rem;line-height:1.5;cursor:pointer}.lq-dlg label.ck input{margin-top:.25em;width:18px;height:18px;flex:none}" +
-    ".lq-dlg .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}.lq-gsi{min-height:44px;margin-top:10px}.lq-dlg .st{min-height:1.4em;margin:.5em 0 0;font-size:.88rem;color:#4a5470}.lq-dlg .st.bad{color:#b42318}" +
+    ".lq-dlg .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}.lq-gsi{min-height:0}.lq-gsi:not(:empty){min-height:44px;margin-top:8px}.lq-dlg .st{min-height:1.4em;margin:.5em 0 0;font-size:.88rem;color:#4a5470}.lq-dlg .st.bad{color:#b42318}" +
     "@media (prefers-color-scheme:dark){.lq-gate{border-color:rgba(169,155,255,.4)}}";
   function ensureStyle() {
     if (doc.getElementById("lq-member-style") || !doc.head) return;
@@ -328,17 +377,20 @@
     var q = ms();
     var terms = el("input", { type: "checkbox", name: "terms", required: true });
     var mkt = el("input", { type: "checkbox", name: "marketing" });
+    var keep = el("input", { type: "checkbox", name: "remember" });
     var go = el("button", { type: "button", class: "lq-btn", disabled: true, "data-lq-continue": "", text: T("mem.dlg.continue", "ดำเนินการต่อด้วย Google") });
     var cancel = el("button", { type: "button", class: "lq-btn ghost", text: T("mem.dlg.cancel", "ยกเลิก") });
     var slot = el("div", { class: "lq-gsi", "data-lq-gsi": "" });
     var stEl = el("p", { class: "st", role: "status", "aria-live": "polite" });
     var link = function (/** @type {string} */ href, /** @type {string} */ k, /** @type {string} */ th) { return el("a", { href: href, target: "_blank", rel: "noopener", text: T(k, th) }); };
+    // "what we keep" is a <details>: open on larger screens, one tap away on phones so the actions stay in view
+    var roomy = !!(root.matchMedia && root.matchMedia("(min-width: 700px) and (min-height: 700px)").matches);
     dlg = el("dialog", { class: "lq-dlg", "aria-labelledby": "lqDlgH", "data-lq-shared": "" },
       el("div", { class: "lq-dlg-in" },
         el("h2", { id: "lqDlgH", text: T("mem.dlg.title", "เข้าสู่ระบบด้วย Google") }),
         el("p", { text: T("mem.dlg.lead", "สมัครสมาชิกฟรี: อ่านคำทำนายฉบับเต็ม แผนปรับ 3 ข้อ ผู้ช่วยเขียน AI วันละ {n} ครั้ง และเก็บประวัติของคุณไว้ในบัญชี", { n: q.member_ai_daily == null ? 3 : q.member_ai_daily }) }),
-        el("div", { class: "lq-notice", role: "note" },
-          el("strong", { text: T("mem.dlg.privacy", "ข้อมูลที่เราเก็บและเหตุผล") }),
+        el("details", { class: "lq-notice", open: roomy, "data-lq-keep": "" },
+          el("summary", { text: T("mem.dlg.privacy", "ข้อมูลที่เราเก็บและเหตุผล") }),
           el("ul", null,
             el("li", { text: T("mem.dlg.p1", "อีเมลที่ Google ยืนยันแล้ว รหัสบัญชี Google และชื่อเล่น (ถ้ามี) — ไม่เก็บรูปโปรไฟล์ ไม่เก็บรูปถ่ายหรือข้อมูลใบหน้า") }),
             el("li", { text: T("mem.dlg.p2", "ใช้เพื่อให้บริการบัญชีสมาชิก นับโควตาการใช้งาน และเก็บประวัติการใช้งาน/การชำระเงิน (ฐานสัญญา ม.24(3) พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล)") }),
@@ -346,6 +398,9 @@
             el("li", { text: T("mem.dlg.p4", "จัดเก็บบน Cloudflare (อาจอยู่นอกประเทศไทย) · ดาวน์โหลดหรือลบข้อมูลและบัญชีได้ทุกเมื่อที่หน้า บัญชีของฉัน") }))),
         el("label", { class: "ck" }, terms, el("span", null, T("mem.dlg.accept", "ฉันยอมรับ") + " ", link("terms.html", "mem.dlg.terms", "ข้อกำหนดการใช้บริการ"), " " + T("mem.dlg.and", "และ") + " ", link("privacy.html", "mem.dlg.policy", "นโยบายความเป็นส่วนตัว"))),
         el("label", { class: "ck" }, mkt, el("span", { text: T("mem.dlg.marketing", "รับข่าวสารและข้อเสนอจาก LENSIQ ทางอีเมล (ไม่บังคับ ยกเลิกได้ทุกเมื่อ)") })),
+        el("label", { class: "ck" }, keep, el("span", { text: T("mem.dlg.remember", "จดจำการเข้าสู่ระบบบนอุปกรณ์นี้ (ไม่ติ๊ก = ออกจากระบบเมื่อปิดแท็บ · อย่าติ๊กบนเครื่องสาธารณะ)") }))),
+      // sticky action footer: Continue / the Google button + Cancel are always visible, even on a 360×640 phone
+      el("div", { class: "lq-dlg-foot", "data-lq-dlg-foot": "" },
         el("div", { class: "row" }, go, cancel),
         slot, stEl));
     doc.body.appendChild(dlg);
@@ -382,9 +437,8 @@
           say(T(e[0], e[1]), true); go.hidden = false; go.disabled = !terms.checked; slot.textContent = "";
           return;
         }
-        sess = { t: r.j.token, exp: r.j.expires_at };
-        ls.set(TOKEN_KEY, sess);
-        return refresh().then(function () { closeDlg(); emit(); toast(T("mem.welcome", "เข้าสู่ระบบแล้ว ยินดีต้อนรับ")); });
+        saveSession({ t: r.j.token, exp: r.j.expires_at }, !!keep.checked);
+        return refresh().then(function () { closeDlg(); emit(); toast(T("mem.welcome", "เข้าสู่ระบบแล้ว ยินดีต้อนรับ")); claimPending(); });
       });
     }
     showDlg();
@@ -402,7 +456,34 @@
 
   function signOut() {
     var p = token() ? call("/api/auth/logout", { method: "POST", body: {} }) : Promise.resolve(null);
-    return p.then(function () { sess = null; st.me = null; ls.set(TOKEN_KEY, null); emit(); return true; });
+    return p.then(function () { saveSession(null); st.me = null; emit(); return true; });
+  }
+
+  /* ---------------- guest purchases -> account (POST /v1/billing/claim) ---------------- */
+  function pendingClaims() { var l = ls.get(PENDING_KEY); return Array.isArray(l) ? l : []; }
+  function addPendingClaim(/** @type {any} */ c) { ls.set(PENDING_KEY, addClaim(pendingClaims(), c)); }
+  /** Links one guest purchase to the signed-in account. Resolves {ok, status, j, outcome}. */
+  function claim(/** @type {any} */ c) {
+    if (!token()) return Promise.resolve({ ok: false, status: 401, j: null, outcome: "keep" });
+    return call("/v1/billing/claim", { method: "POST", body: { customer_id: c.customer_id, order_token: c.order_token } }).then(function (r) {
+      var out = claimOutcome(r, c.at ? Math.floor(Date.now() / 1000) - c.at : null);
+      if (out !== "keep") ls.set(PENDING_KEY, pendingClaims().filter(function (x) { return x.customer_id !== c.customer_id; }));
+      return Object.assign({ outcome: out }, r);
+    });
+  }
+  var claiming = false;
+  /** After sign-in: links every stored guest purchase; a toast when something was linked. */
+  function claimPending() {
+    var list = pendingClaims();
+    if (!list.length || !token() || claiming) return Promise.resolve(0);
+    claiming = true;
+    var n = 0;
+    return list.reduce(function (p, c) { return p.then(function () { return claim(c).then(function (r) { if (r.outcome === "done") n++; }); }); }, Promise.resolve())
+      .then(function () {
+        claiming = false;
+        if (n) { toast(T("mem.claim.done", "ผูกการซื้อก่อนหน้า {n} รายการกับบัญชีของคุณแล้ว", { n: n })); return refresh().then(function () { emit(); return n; }); }
+        return n;
+      }, function () { claiming = false; return n; });
   }
 
   /* ---------------- header account chip (nav.js calls mountNav) ---------------- */
@@ -422,7 +503,8 @@
     var old = h.querySelector(".lq-acct"), oldItem = h.querySelector(".lq-acct-item");
     if (old) old.remove();
     if (oldItem) oldItem.remove();
-    if (!possible() && !st.me) return;
+    var compact = function (/** @type {boolean} */ on) { h.classList.toggle("has-acct", on); if (typeof W.LQNavCompact === "function") W.LQNavCompact(); };
+    if (!possible() && !st.me) { compact(false); return; }
     ensureStyle();
     var lang = h.querySelector(".lang-switch");
     var end = h.querySelector(".nav-end");
@@ -430,7 +512,10 @@
     var box = el("div", { class: "lq-acct" });
     var list = h.querySelector(".nav-list");
     if (!st.me) {
-      var b = el("button", { type: "button", class: "lq-acct-btn signin", "data-lq-signin": "", text: T("mem.chip.signin", "เข้าสู่ระบบด้วย Google") });
+      // label text on desktop; a person icon (44 px) on phones — the aria-label keeps the name in both
+      var b = el("button", { type: "button", class: "lq-acct-btn signin", "data-lq-signin": "", "aria-label": T("mem.chip.signin", "เข้าสู่ระบบด้วย Google") });
+      b.innerHTML = '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>';
+      b.appendChild(el("span", { class: "lbl", text: T("mem.chip.signin", "เข้าสู่ระบบด้วย Google") }));
       b.addEventListener("click", function () { openSignIn(); });
       box.appendChild(b);
       if (list) {
@@ -460,6 +545,7 @@
       }
     }
     if (end) end.insertBefore(box, end.firstChild); else h.appendChild(box);
+    compact(true);
   }
 
   /* ---------------- account page helpers ---------------- */
@@ -473,13 +559,35 @@
     getSaved: function (/** @type {string} */ id) { return call("/api/me/saved/" + encodeURIComponent(id)); },
     deleteSaved: function (/** @type {string} */ id) { return call("/api/me/saved/" + encodeURIComponent(id), { method: "DELETE" }); },
     setMarketing: function (/** @type {boolean} */ on) { return call("/api/me/preferences", { method: "POST", body: { marketing_opt_in: !!on } }); },
+    claimPending: claimPending, pendingClaims: pendingClaims, addPendingClaim: addPendingClaim, claim: claim,
+    remembered: function () { return sessWhere === "local"; },
+    /** receipt / tax invoice of one of the member's own payments (GET /api/me/payments/:id/receipt?format=json) ->
+     *  {ok, status, j, type} — rendered by account.js with textContent (the Worker's HTML version is never opened in our
+     *  origin); a non-JSON answer comes back as {blob}. */
+    receipt: function (/** @type {string} */ id) {
+      var a = API();
+      if (!a || !a.enabled() || !token()) return Promise.resolve({ ok: false, status: 0 });
+      return fetch(a.url("/api/me/payments/" + encodeURIComponent(id) + "/receipt?format=json"), { headers: { Authorization: "Bearer " + token() }, credentials: "omit", cache: "no-store", referrerPolicy: "no-referrer" })
+        .then(function (/** @type {Response} */ r) {
+          var type = String(r.headers.get("Content-Type") || "");
+          /** @type {Promise<any>} */
+          var out;
+          if (/json/.test(type)) out = r.json().catch(function () { return null; }).then(function (j) { return { ok: r.ok, status: r.status, j: j, type: type }; });
+          else out = r.blob().then(function (b) { return { ok: r.ok, status: r.status, blob: b, type: type }; });
+          return out;
+        }).catch(function () { return { ok: false, status: 0 }; });
+    },
+    /** active sessions (GET /api/me/sessions) — {ok:false, status:404} while the Worker does not offer it */
+    sessions: function () { return call("/api/me/sessions"); },
+    /** revoke every other session of this account (POST /api/me/sessions/revoke {scope:"others"}) */
+    signOutEverywhere: function () { return call("/api/me/sessions/revoke", { method: "POST", body: { scope: "others" } }); },
     deleteAccount: function () {
       return call("/api/me", { method: "DELETE", body: { confirm: "DELETE" } }).then(function (r) {
-        if (r.ok) { sess = null; st.me = null; ls.set(TOKEN_KEY, null); emit(); }
+        if (r.ok) { saveSession(null); st.me = null; emit(); }
         return r;
       });
     },
-    gate: gate, mountNav: mountNav
+    gate: gate, mountNav: mountNav, toast: toast
   };
   W.LQMember = api;
   // UI strings for 中文 / English (Thai is the default in this file); loaded here because this module itself is

@@ -52,7 +52,9 @@ export default async function ({ base, launch, check, fakeCams }) {
       // under heavy CPU load the 10 Hz fake loop can occasionally miss one crossing: allow one, the arithmetic must still hold
       assert(n.truth === 5 && n.matched >= 4 && n.matched + n.missed === 5 && n.falseCount === n.sys - n.matched, "counts " + JSON.stringify(n) + " truth " + JSON.stringify(last.doc.truth.map(e => Math.round(e.t))) + " sys " + JSON.stringify(last.doc.system.map(e => Math.round(e.t))));
       assert(last.rep.dirAcc.p === 1, "directions all correct");
-      assert(last.rep.verdict === "more", "50+ crossings needed before a verdict: " + last.rep.verdict);
+      // round 10: never a confirmed pass on 5 crossings — "more" or "on target so far — collect N more"
+      assert(["more", "ontrack"].includes(last.rep.verdict) && last.rep.provisional === "more", "50+ crossings needed before a verdict: " + last.rep.verdict + " / " + last.rep.provisional);
+      assert(last.rep.need.some(x => x.group === "crossings" && x.more >= 45), "collect N more: " + JSON.stringify(last.rep.need));
       assert(Math.abs(last.rep.lagMs) <= 1500, "tap lag estimated " + last.rep.lagMs);
       const html = await page.evaluate(() => document.querySelector("#scPanel .sc-report").innerText);
       assert(/ช่วงความเชื่อมั่น/.test(html) && /คำแนะนำ/.test(html), "report table + recommendations rendered");
@@ -60,7 +62,49 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(last.doc.format === "lensiq-sitecheck" && last.doc.truth.length === 5 && !/data:image|base64|blob:/.test(doc), "export: labels + numbers only");
       assert(await page.evaluate(() => !document.querySelector("#scPanel .sc-export").hidden), "export button shown");
       const hist = await page.evaluate(() => JSON.parse(localStorage.getItem("st-sitecheck") || "[]"));
-      assert(hist.length === 1 && hist[0].verdict === "more" && !("truth" in hist[0]), "history keeps a summary only");
+      assert(hist.length === 1 && hist[0].verdict === last.rep.verdict && hist[0].cam === "ประตูหน้า" && hist[0].v === 2 && !("truth" in hist[0]), "history keeps a summary only (+ camera name for insights)");
+      await page.evaluate(() => document.getElementById("stop").click());
+      assert(!exceptions(page).length, "exceptions: " + JSON.stringify(exceptions(page).slice(0, 2)));
+      await page.close();
+    });
+
+    await check("store: a frozen camera is flagged 'stalled', an unplugged one shows 'offline since HH:MM', reconnects by itself and the offline time is stored with the hourly counts", async () => {
+      const page = await browser.newPage(null, { initScripts: [fakeCams, "window.__LQ_FAKE_CAMS={n:1,mode:'ok'}", STORE_HOOKS] });
+      await page.goto(`${base}/store.html?cpu&fakedet&nosw`);
+      await page.evaluate(() => {
+        localStorage.clear();
+        localStorage.setItem("st-cams", JSON.stringify({ v: 1, cams: [{ slot: "c1", deviceId: "fake-cam-1", label: "Fake Camera 1", name: "ประตูหน้า", role: "door" }] }));
+        localStorage.setItem("st-cam-c1", JSON.stringify({ line: { a: { x: 0.5, y: 0 }, b: { x: 0.5, y: 1 } }, swap: false, zones: [], detW: 0 }));
+      });
+      await page.reload();
+      await page.waitFor("document.getElementById('startCam')", 8000);
+      await page.evaluate(() => document.getElementById("startCam").click());
+      await page.waitFor("__ST.running && __ST.hub.cams.length === 1 && __ST.hub.cams[0].status === 'live'", 8000);
+      const codes = () => page.evaluate(() => { const c = __ST.hub.cams[0]; return c._hl && c._hl.state ? c._hl.state.codes : null; });
+      await page.waitFor("(() => { const c = __ST.hub.cams[0]; return c._hl && c._hl.state && c._hl.state.n >= 3; })()", 8000);
+      assert(!(await codes()).includes("stalled"), "live camera is not stalled: " + JSON.stringify(await codes()));
+      // freeze: the track stays live but no new frames arrive (requestVideoFrameCallback stops)
+      await page.evaluate(() => __LQ_FAKE.freeze("fake-cam-1", true));
+      await page.waitFor("(() => { const c = __ST.hub.cams[0]; return c._hl.state.codes.includes('stalled') && c._hl.state.level === 2; })()", 12000);
+      const pill = await page.evaluate(() => { const p = document.querySelector("#camGrid .st-health"); return { lvl: p.dataset.level, line: document.querySelector("#camGrid .cam-health").textContent }; });
+      assert(pill.lvl === "2" && /ไม่ได้รับภาพใหม่/.test(pill.line), "pill shows the stalled camera: " + JSON.stringify(pill));
+      await page.evaluate(() => __LQ_FAKE.freeze("fake-cam-1", false));
+      await page.waitFor("!__ST.hub.cams[0]._hl.state.codes.includes('stalled')", 12000);
+      const q1 = await page.evaluate(() => JSON.parse(JSON.stringify(__ST.day.quality || {})));
+      const h = new Date().getHours();
+      assert(q1[h] && q1[h].offline >= 1 && q1[h].n >= 3, "stalled seconds stored with the hourly bucket: " + JSON.stringify(q1));
+      // unplug: track ended -> offline badge with the time, automatic reconnect with backoff once the device is back
+      await page.evaluate(() => __LQ_FAKE.unplug("fake-cam-1"));
+      await page.waitFor("__ST.hub.cams[0].status === 'error' && !!__ST.hub.cams[0].offlineSince", 5000);
+      const badge = await page.waitFor(`(() => { const b = document.querySelector("#camGrid .lq-offline"); return b && !b.hidden && b.textContent; })()`, 5000);
+      assert(/กล้องออฟไลน์ตั้งแต่ \d\d:\d\d/.test(badge), "offline badge: " + badge);
+      await sleep(2500);
+      const off = await page.evaluate(() => (__ST.day.quality[new Date().getHours()] || {}).offline || 0);
+      assert(off > q1[h].offline, "offline seconds keep counting while the camera is down");
+      await page.evaluate(() => __LQ_FAKE.replug("fake-cam-1"));
+      await page.waitFor("__ST.hub.cams[0].status === 'live' && !__ST.hub.cams[0].offlineSince && __ST.hub.cams[0].offlineLog.length === 1", 20000);
+      const back = await page.evaluate(() => { const b = document.querySelector("#camGrid .lq-offline"); return b.dataset.s + " " + b.textContent; });
+      assert(/^back กล้องกลับมาออนไลน์/.test(back), "badge after reconnect: " + back);
       await page.evaluate(() => document.getElementById("stop").click());
       assert(!exceptions(page).length, "exceptions: " + JSON.stringify(exceptions(page).slice(0, 2)));
       await page.close();
@@ -94,6 +138,7 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert((await page.evaluate(() => JSON.parse(localStorage.getItem("att-logs") || "[]"))).length === 0, "no attendance written during the check");
       await page.evaluate(() => document.querySelector("#scPanel .sc-stop").click());
       const last = await page.evaluate(() => JSON.parse(JSON.stringify(__ATT_SC.last)));
+      assert(last.doc.trials.filter(t => t.truth === "stranger").every(t => t.sid === "s1") && last.doc.distinctPeople && last.doc.distinctPeople.members === 2, "stranger numbers + distinct people in the export");
       assert(last.rep.verdict === "fail" && last.rep.n.strangerAuto === 1 && last.rep.n.memberAuto === 1 && last.rep.n.memberAsk === 1, "report " + JSON.stringify(last.rep.n));
       const doc = JSON.stringify(last.doc);
       assert(!/สมชาย|สมหญิง|pA|pB|descriptor/.test(doc) && last.doc.trials[0].truth === "m1", "export has pseudonyms only: " + doc.slice(0, 300));

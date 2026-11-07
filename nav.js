@@ -27,6 +27,7 @@
   // "nav.group.<id>", "nav.groupd.<id>" (panel intro), "nav.<page>.title|desc".
   var MENU = [
     { label: "วิเคราะห์ค้าปลีก", id: "ana", intro: "วัดผลหน้าร้าน ป้ายโฆษณา และการตอบสนองของลูกค้า แบบไม่ระบุตัวตน ประมวลผลบนเครื่อง", items: [
+      { href: "retail.html", title: "LENSIQ Retail ภาพรวม", desc: "กล้องหน้าร้านสำหรับ SME: นับคน อัตราการซื้อ หลายสาขา" }, // product landing (Round 10 product split)
       { href: "store.html", title: "วิเคราะห์หน้าร้าน", desc: "นับคน แผนที่ความร้อน และคิว" },
       { href: "insights.html", title: "แดชบอร์ดรวม", desc: "สรุปผลจากทุกระบบในที่เดียว" },
       { href: "customers.html", title: "จดจำลูกค้า", desc: "ประวัติการสั่งและเมนูแนะนำ" },
@@ -36,11 +37,13 @@
       { href: "signage.html", title: "ป้ายโฆษณาดิจิทัล", desc: "เลือกคอนเทนต์ตามผู้ชม และคีออสก์ไร้สัมผัส" }
     ] },
     { label: "บูธและสตูดิโอ", id: "photo", intro: "นับผู้เข้าชมบูธ ตู้ถ่ายรูป และสตูดิโอแต่งชุด สำหรับงานอีเวนต์และกิจกรรมแบรนด์", items: [
+      { href: "creative-suite.html", title: "LENSIQ Creative ภาพรวม", desc: "Creative Lab สตูดิโอ และตู้ถ่ายรูปในชุดเดียว" }, // product landing (Round 10 product split)
       { href: "booth.html", title: "วิเคราะห์บูธ", desc: "นับผู้เข้าชมและเวลาหยุดชม" },
       { href: "photobooth.html", title: "ตู้ถ่ายรูป", desc: "ตู้สติ๊กเกอร์และรูปติดบัตร" },
-      { href: "studio.html", title: "สตูดิโอแต่งชุด", desc: "เปลี่ยนชุดให้เหมือนใส่จริง ตัดพื้นหลัง รีทัช" }
+      { href: "studio.html", title: "สตูดิโอแต่งชุด", desc: "เปลี่ยนฉากหลัง รีทัช รูปโปรไฟล์ ตรวจขนาดรูปติดบัตร · ชุดตัวอย่าง (พรีวิว)" }
     ] },
     { label: "องค์กรและความปลอดภัย", id: "work", intro: "เช็คชื่อ สัมภาษณ์งาน กิจกรรมทีม เฝ้าระวังความง่วง และตรวจคุณภาพบนสายการผลิต", items: [
+      { href: "hr.html", title: "LENSIQ HR ภาพรวม", desc: "ชุดสัมภาษณ์ โหมดฝึกซ้อมผู้สมัคร และกิจกรรมทีม" }, // product landing (Round 10 product split)
       { href: "attendance.html", title: "เช็คชื่อด้วยใบหน้า", desc: "ลงชื่อเข้าอบรมและสัมมนา" },
       { href: "driver.html", title: "เฝ้าระวังความง่วงคนขับ", desc: "แจ้งเตือนเมื่อหลับตานานหรือหาว" },
       { href: "qc.html", title: "ตรวจคุณภาพสินค้า", desc: "ตรวจชิ้นงานบนสายการผลิต" },
@@ -72,6 +75,22 @@
     { label: "ระบบทั้งหมด", href: "cameras.html", cta: true }
   ];
   var LANG_BTNS = [["th", "th", "TH", "ภาษาไทย"], ["en", "en", "EN", "English"], ["zh", "zh-Hans", "中文", "简体中文"]];
+
+  // ---------- frame buster (clickjacking) ----------
+  // Account, pricing / checkout and every camera page refuse to run inside a frame (a hidden page cannot be clicked
+  // through): the page stays blank and we try to break out. Server headers (frame-ancestors / X-Frame-Options) do the
+  // same where the host can send them; GitHub Pages cannot, and a <meta> CSP cannot carry frame-ancestors.
+  var NOFRAME = /^(account|pricing|checkout|attendance|booth|customers|driver|faceread|fengshui|interview|neuro|palm|photobooth|qc|signage|store|studio|teamface)\.html$/;
+  var framed = false;
+  try { framed = window.top !== window.self; } catch (e) { framed = true; }
+  if (framed && NOFRAME.test((location.pathname.split("/").pop() || "").toLowerCase())) {
+    var fb = document.createElement("style");
+    fb.textContent = "html{display:none!important}";
+    (document.head || document.documentElement).appendChild(fb);
+    /** @type {any} */ (window).LQ_FRAMED = true;
+    try { /** @type {any} */ (window.top).location = window.self.location.href; } catch (e) { /* sandboxed frame: stay blank */ }
+    return;
+  }
 
   // ---------- i18n loader (lensiq-i18n.js + common Chinese dictionary) ----------
   var T = function (key, thai, vars) { return window.LQI18N ? window.LQI18N.tf(key, thai, vars) : thai; };
@@ -283,10 +302,35 @@
     var l = window.LQI18N ? window.LQI18N.lang : "th";
     langBtns.forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-lang") === l ? "true" : "false"); });
     toggle.setAttribute("aria-label", header.classList.contains("menu-open") ? T("nav.close", "ปิดเมนู") : T("nav.open", "เปิดเมนู"));
+    if (typeof syncCompact === "function" && langBox) { langBox.classList.remove("open"); syncCompact(); }
     setNavH();
   }
+  // Compact switch (styles.css: < 341 px, or < 401 px with the member account icon): only the current language is
+  // visible; it opens the other two as a small drop-down. Compact = a non-current button is hidden by the CSS.
+  var langBox = /** @type {HTMLElement} */ (header.querySelector(".lang-switch"));
+  function langCompact() {
+    var other = langBtns.filter(function (b) { return b.getAttribute("aria-pressed") !== "true"; })[0];
+    return !!other && !langBox.classList.contains("open") && getComputedStyle(other).display === "none";
+  }
+  function setLangOpen(open) {
+    langBox.classList.toggle("open", open);
+    var k = 0;
+    langBtns.forEach(function (b) {
+      var cur = b.getAttribute("aria-pressed") === "true";
+      if (cur) { if (open || langCompact()) b.setAttribute("aria-expanded", open ? "true" : "false"); else b.removeAttribute("aria-expanded"); }
+      b.style.top = open && !cur ? (langBox.offsetHeight + 4 + 48 * k++) + "px" : "";
+    });
+  }
+  function syncCompact() { if (!langBox.classList.contains("open")) setLangOpen(false); }
+  window.addEventListener("resize", syncCompact);
+  document.addEventListener("click", function (e) { if (langBox.classList.contains("open") && !langBox.contains(/** @type {Node} */ (e.target))) setLangOpen(false); });
+  langBox.addEventListener("keydown", function (e) { if (e.key === "Escape" && langBox.classList.contains("open")) { e.stopPropagation(); setLangOpen(false); var c = langBtns.filter(function (b) { return b.getAttribute("aria-pressed") === "true"; })[0]; if (c) c.focus(); } });
+  langBox.addEventListener("focusout", function (e) { if (langBox.classList.contains("open") && !langBox.contains(/** @type {Node} */ (e.relatedTarget))) setLangOpen(false); });
+  /** @type {any} */ (window).LQNavCompact = syncCompact; // lensiq-member.js calls it after adding / removing the account icon
   langBtns.forEach(function (b) {
     b.addEventListener("click", function () {
+      if (b.getAttribute("aria-pressed") === "true" && (langCompact() || langBox.classList.contains("open"))) { setLangOpen(!langBox.classList.contains("open")); return; }
+      if (langBox.classList.contains("open")) setLangOpen(false);
       var l = b.getAttribute("data-lang");
       if (window.LQI18N) window.LQI18N.setLang(l);
       else { try { localStorage.setItem("lq-lang", l); } catch (e) { /* storage blocked */ } location.reload(); }
@@ -317,7 +361,7 @@
     try { seg = new Intl.Segmenter("th", { granularity: "word" }); } catch (e) { return; }
     var THAI = /[฀-๿]/;
     // loanwords / names the browser's Thai dictionary (and Intl.Segmenter) split wrongly: keep as one unit
-    var JOIN = ["แดชบอร์ด", "สติ๊กเกอร์", "โหงวเฮ้ง", "ฮวงจุ้ย", "อัจฉริยะ", "คีออสก์", "เซียมซี", "ทาโรต์", "นักษัตร", "อี้จิง", "เว็บแคม", "แท็บเล็ต", "ดาวน์โหลด", "ออฟไลน์", "ออนไลน์", "เบราว์เซอร์", "แพ็กเกจ", "แบรนด์", "โปรโมชัน", "คอนเทนต์", "อีเวนต์", "สตูดิโอ", "ฟีเจอร์", "เซิร์ฟเวอร์", "ฮาร์ดแวร์", "ซอฟต์แวร์", "แอปพลิเคชัน"];
+    var JOIN = ["แดชบอร์ด", "สติ๊กเกอร์", "โหงวเฮ้ง", "ฮวงจุ้ย", "อัจฉริยะ", "คีออสก์", "เซียมซี", "ทาโรต์", "นักษัตร", "อี้จิง", "เว็บแคม", "แท็บเล็ต", "ดาวน์โหลด", "ออฟไลน์", "ออนไลน์", "เบราว์เซอร์", "แพ็กเกจ", "แบรนด์", "โปรโมชัน", "คอนเทนต์", "อีเวนต์", "สตูดิโอ", "ฟีเจอร์", "เซิร์ฟเวอร์", "ฮาร์ดแวร์", "ซอฟต์แวร์", "แอปพลิเคชัน", "โซเชียล", "หน้าตา"];
     var LOAN = new RegExp(JOIN.join("|"), "g");
     // short UI text: full word segmentation ; everything else: only the loanwords above (cheap)
     var SEL = "h1,h2,h3,h4,h5,.nav-sub b,.nav-sub small,.mega-k,.mega-d,.lq-crumbs li,.nav-link,.nav-cta,.btn,button,label,.chip,.tag,.kicker,.eyebrow,.pill,summary,th,legend,.lead,.sub,.hint,figcaption,.lq-wb";
@@ -499,8 +543,22 @@
 
   // ---------- legal footer (terms / privacy / help) on pages without their own <footer> ----------
   function legalFoot() {
+    var DOCS = [["terms.html", "foot.terms", "ข้อกำหนดการใช้บริการ"], ["privacy.html", "foot.privacy", "ความเป็นส่วนตัว"], ["help.html", "foot.help", "ช่วยเหลือ"]];
     var add = function () {
-      if (!document.body || document.querySelector("footer, .lq-legal-foot")) return;
+      if (!document.body) return;
+      // a page with its own <footer>: add whichever of terms / privacy / help it does not link yet
+      var own = document.querySelector("footer:not(.lq-legal-foot)");
+      if (own) {
+        var miss = DOCS.filter(function (d) { return !document.querySelector('a[href^="' + d[0] + '"]'); });
+        if (!miss.length || own.querySelector(".lq-foot-docs")) return;
+        var p = document.createElement("p");
+        p.className = "lq-foot-docs";
+        p.innerHTML = miss.map(function (d) { return '<a href="' + d[0] + '" data-i18n="' + d[1] + '">' + d[2] + '</a>'; }).join("");
+        own.appendChild(p);
+        if (window.LQI18N) window.LQI18N.apply(p);
+        return;
+      }
+      if (document.querySelector(".lq-legal-foot")) return;
       var f = document.createElement("footer");
       f.className = "lq-legal-foot";
       f.setAttribute("aria-label", "ข้อมูลทางกฎหมาย"); f.setAttribute("data-i18n-attr", "aria-label:foot.legalnav");

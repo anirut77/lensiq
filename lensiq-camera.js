@@ -25,6 +25,12 @@
  *     strictDevice: when a deviceId is requested only that device is tried (ideal, then 640x480@15) — used by the hub so a
  *       missing device is never silently replaced by another (duplicate) camera.
  *     ev.type in 'started'|'stopped'|'paused'|'resumed'|'devices'|'ended'|'muted'|'unmuted'|'error'
+ *       |'offline' {since} |'retry' {n, delayMs} |'reconnected' {since, ms}   (round 10, see reconnect below)
+ *     opts.reconnect (default true, or a function -> bool asked each time): a track that ENDS by itself (unplugged,
+ *       driver crash, OS took the camera) is reopened with exponential backoff 1 s, 2 s, 4 s … capped at 30 s, until it
+ *       works or the page stops/destroys the camera. cam.offlineSince (ms) while it is down; cam.offlineLog = last 50
+ *       [{from, to}] outages (numbers only). offlineBadge(cam, container) shows "camera offline since HH:MM" in the page.
+ *     cam.listen(fn(cam, ev)) -> unsubscribe: extra listeners besides opts.onChange.
  *     Cam = {video, start(deviceId?) -> Promise<MediaStream>, stop(), pause(), resume(), flip(), setTorch(on) -> Promise<boolean>,
  *            attach(container) (flip button + <select>, hidden when <2 devices), refreshDevices(), destroy(),
  *            get active, paused, deviceId, label, facing, mirrored, torchSupported, stream, devices; lastError}
@@ -258,8 +264,41 @@
     const opt = { facing: "user", ideal: null, frameRate: undefined, mirror: "auto", torch: false, persistKey: null, autoPause: true, strictDevice: false, ...o };
     let stream = null, deviceId = "", label = "", facing = opt.facing, devices = [], paused = false, autoResume = false;
     let torchSupported = false, torchOn = false, destroyed = false, gen = 0;
-    const uis = [], offs = [];
-    const emit = (type, extra) => { try { opt.onChange && opt.onChange(api, { type, ...(extra || {}) }); } catch (e) { console.error(e); } };
+    const uis = [], offs = [], listeners = new Set();
+    let offlineSince = null, retryTimer = 0, retryN = 0;
+    const offlineLog = [];
+    const emit = (type, extra) => {
+      const ev = { type, ...(extra || {}) };
+      try { opt.onChange && opt.onChange(api, ev); } catch (e) { console.error(e); }
+      for (const fn of [...listeners]) { try { fn(api, ev); } catch (e) { console.error(e); } }
+    };
+    const wantReconnect = () => !destroyed && opt.reconnect !== false && (typeof opt.reconnect !== "function" || !!opt.reconnect());
+    function clearRetry() { if (retryTimer) clearTimeout(retryTimer); retryTimer = 0; }
+    function scheduleReconnect() {
+      clearRetry();
+      if (!wantReconnect() || offlineSince == null) return;
+      const delayMs = Math.min(30000, 1000 * Math.pow(2, Math.min(5, retryN)));
+      emit("retry", { n: retryN + 1, delayMs, since: offlineSince });
+      retryTimer = setTimeout(async () => {
+        retryTimer = 0; retryN++;
+        if (!wantReconnect() || offlineSince == null || stream) return;
+        try { await start(deviceId || ""); }
+        catch { /* still down: try again later */ }
+        if (offlineSince != null && !stream) scheduleReconnect();
+      }, delayMs);
+    }
+    function wentOffline() {
+      if (offlineSince == null) { offlineSince = Date.now(); retryN = 0; }
+      emit("offline", { since: offlineSince });
+      scheduleReconnect();
+    }
+    function backOnline() {
+      if (offlineSince == null) return;
+      const since = offlineSince, now = Date.now();
+      offlineLog.push({ from: since, to: now }); if (offlineLog.length > 50) offlineLog.shift();
+      offlineSince = null; retryN = 0; clearRetry();
+      emit("reconnected", { since, ms: now - since });
+    }
     const fail = err => { api.lastError = err; emit("error", { error: err }); try { opt.onError && opt.onError(api, err); } catch (e) { console.error(e); } };
     const on = (t, ev, fn, o2) => { t.addEventListener(ev, fn, o2); offs.push(() => t.removeEventListener(ev, fn, o2)); };
 
@@ -320,7 +359,14 @@
       label = (tr && tr.label) || "";
       facing = st.facingMode || facingOf(label) || face || (id ? opt.facing : facing || opt.facing);
       if (tr) {
-        const onEnd = () => { if (stream === s) { stream = null; const e = named("Ended", "track ended"); api.lastError = e; emit("ended", { error: e }); } };
+        const onEnd = () => {
+          if (stream !== s) return;
+          stream = null; const e = named("Ended", "track ended"); api.lastError = e;
+          // offlineSince is set before "ended" is emitted, so listeners can tell "reconnecting" from "gone for good"
+          const rc = wantReconnect(); if (rc && offlineSince == null) { offlineSince = Date.now(); retryN = 0; }
+          emit("ended", { error: e, reconnecting: rc });
+          if (rc) wentOffline();
+        };
         tr.addEventListener("ended", onEnd);
         tr.addEventListener("mute", () => { if (stream === s) emit("muted"); });
         tr.addEventListener("unmute", () => { if (stream === s) emit("unmuted"); });
@@ -338,6 +384,7 @@
       if (opt.persistKey && deviceId) lsSet(opt.persistKey, JSON.stringify({ deviceId, label }));
       if (opt.torch && torchSupported) { torchOn = false; await setTorch(true); }
       emit("started", { deviceId, label });
+      backOnline();
       refreshDevices();
       return s;
     }
@@ -383,7 +430,7 @@
       emit("resumed");
       return s;
     }
-    function stop() { autoResume = false; const was = !!stream || paused; halt(); paused = false; if (was) emit("stopped"); }
+    function stop() { autoResume = false; const was = !!stream || paused; halt(); paused = false; clearRetry(); offlineSince = null; if (was) emit("stopped"); }
 
     if (hasDOM && opt.autoPause) {
       on(document, "visibilitychange", () => {
@@ -406,8 +453,11 @@
         el.children[1].onchange = e => start(e.target.value).catch(fail);
         refreshDevices();
       },
+      listen(fn) { listeners.add(fn); return () => listeners.delete(fn); },
+      get offlineSince() { return offlineSince; },
+      get offlineLog() { return offlineLog.slice(); },
       destroy() {
-        stop(); destroyed = true;
+        stop(); destroyed = true; clearRetry(); listeners.clear();
         offs.splice(0).forEach(f => f());
         uis.splice(0).forEach(el => { el.innerHTML = ""; el.hidden = true; });
       },
@@ -424,6 +474,31 @@
       lastError: null
     };
     return api;
+  }
+
+  /**
+   * offlineBadge(cam, container) — a status line inside container: "กล้องออฟไลน์ตั้งแต่ HH:MM — กำลังเชื่อมต่อใหม่"
+   * while the camera is down, then "กล้องกลับมาออนไลน์ HH:MM (ออฟไลน์ N นาที)" for a minute. Thai text (translated by
+   * lensiq-i18n-rt, dictionary in i18n/*-rt-sitecheck.js / *-rt-common.js). Returns the element.
+   */
+  function offlineBadge(cam, container) {
+    if (!hasDOM || !cam || !container || typeof cam.listen !== "function") return null;
+    let el = container.querySelector(":scope > .lq-offline");
+    if (!el) { el = document.createElement("p"); el.className = "lq-offline"; el.setAttribute("role", "status"); el.hidden = true; container.appendChild(el); }
+    const hm = t => { const d = new Date(t); return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); };
+    const fill = (t, vars) => t.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m));
+    let hideT = 0;
+    cam.listen((_, ev) => {
+      if (ev.type === "offline" || ev.type === "retry") {
+        clearTimeout(hideT); el.hidden = false; el.dataset.s = "offline";
+        el.textContent = fill("กล้องออฟไลน์ตั้งแต่ {t} — กำลังเชื่อมต่อใหม่", { t: hm(ev.since || cam.offlineSince || Date.now()) });
+      } else if (ev.type === "reconnected") {
+        el.hidden = false; el.dataset.s = "back";
+        el.textContent = fill("กล้องกลับมาออนไลน์ {t} (ออฟไลน์ {m} นาที)", { t: hm(Date.now()), m: Math.max(1, Math.round(ev.ms / 60000)) });
+        clearTimeout(hideT); hideT = setTimeout(() => { el.hidden = true; }, 60000);
+      } else if (ev.type === "stopped") { clearTimeout(hideT); el.hidden = true; }
+    });
+    return el;
   }
 
   // ================= DOM: hub (1..max cameras) =================
@@ -468,6 +543,8 @@
       let c;
       const cam = create(video, {
         facing: opt.facing, mirror: false, strictDevice: true, autoPause: true,
+        // a track that ends while the hub probes capacity proves a device limit: the hub restarts it itself
+        reconnect: () => !destroyed && !(c && c._probing),
         ideal: many ? opt.idealMany : opt.idealOne, frameRate: many ? opt.frameRateMany : undefined,
         onChange(_, ev) {
           if (!c) return;
@@ -494,6 +571,7 @@
       });
       c.tile = buildTile(c);
       c.tile.dataset.status = "idle";
+      offlineBadge(c, c.tile);
       return c;
     }
     function save() {
@@ -642,7 +720,7 @@
 
   const api = {
     fallbackChain, errorKind, errorText, parseCams, serializeCams, nextSlot, pickNext, mapSeatToImage,
-    readCapacity, writeCapacity, createScheduler, listCameras, create, createHub, SLOTS, CAP_KEY
+    readCapacity, writeCapacity, createScheduler, listCameras, create, createHub, offlineBadge, SLOTS, CAP_KEY
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") root.LQCam = api;

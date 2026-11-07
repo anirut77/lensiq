@@ -20,18 +20,22 @@ generated from synthetic inputs).
 ## 2. Export the sample
 
 ```bash
-node tools/fortune-review-export.mjs --out review-out            # 180 readings: 15 domains × TH/ZH × 3 tones × 2
+node tools/fortune-review-export.mjs --out review-out            # 270 readings: 15 domains × TH/ZH/EN × 3 tones × 2
 node tools/fortune-review-export.mjs --per 3 --langs zh --out review-zh
 ```
 
-- **Stratified:** every reading domain (all 15 fortune pages, siamsee inside tarot.html), both languages, and three
+- **Stratified:** every reading domain (all 15 fortune pages, siamsee inside tarot.html), all three languages, and three
   tone strata per domain — the most favourable third, the middle third and the most cautious third of generated fact
   sets (by the composer's own favourable / neutral / caution rule). The `cautions` column shows how many facts in the
   reading are cautions (e.g. `2/7`).
 - **Reproducible:** same arguments → same sheet (seeded); `manifest.json` records the arguments and app version.
-- **Gaps are reported**, e.g. "face/th/caution no cautions": the generator produced no caution facts for that domain,
-  so gentleness of cautions cannot be judged there. As of 2026-11-07 this is the case for face, palm, siamsee,
-  fengshui, astro and dream with synthetic inputs — tell the fortune team; they can add caution-producing test inputs.
+- **Caution probes:** the face, palm, siam si, feng shui, Western astrology and dream engines describe and never mark a
+  finding as a caution, so their caution cell would have nothing to judge. For those domains the caution cell holds
+  probe readings: the same engine-built facts with the weakest finding marked as a caution. The `cautions` column then
+  reads e.g. `1/28 (probe)`. Score gentleness on these as usual: they show how the composer words a caution for that
+  domain's content.
+- **Gaps are reported** (a cell with fewer readings than `--per`; raise `--pool`). The export exits 1 only when a
+  caution cell still has no caution to judge.
 - Output: `review-sheet.csv` (score here), `review-sheet.html` (read here; printable), `manifest.json`.
 
 Give each reviewer the CSV and the HTML of their language. Give 10–15 % of rows to **both** reviewers of a language

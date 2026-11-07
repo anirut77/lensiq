@@ -1,3 +1,4 @@
+// @ts-check
 // backend/src/google.js — verifies a "Sign in with Google" ID token ourselves (no client secret, no Google SDK):
 // WebCrypto RS256 against Google's JWKS.
 //
@@ -43,7 +44,9 @@ export function maxAgeOf(cc) {
 }
 
 async function fetchJwks(fetchImpl, t) {
-  const r = await (fetchImpl || fetch)(GOOGLE_JWKS_URL, { headers: { Accept: "application/json" } });
+  let r;
+  // a network error (DNS, reset, timeout) is "Google keys unavailable" (503 for the caller), not an unhandled 500
+  try { r = await (fetchImpl || fetch)(GOOGLE_JWKS_URL, { headers: { Accept: "application/json" } }); } catch { throw new GoogleTokenError("jwks_unavailable"); }
   if (!r || !r.ok) throw new GoogleTokenError("jwks_unavailable");
   let j;
   try { j = await r.json(); } catch { throw new GoogleTokenError("jwks_unavailable"); }

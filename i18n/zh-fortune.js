@@ -27,6 +27,7 @@
     "dream.title": "解梦 | LENSIQ",
     "fa.disclaimer": "仅供娱乐参考",
     "fa.more": "阅读更多",
+    "fa.why": "结果依据",
     "fa.plan.title": "三步开运计划",
     "fa.sec.advice": "建议与开运小贴士",
     "fa.sec.brief": "其他方面简述",

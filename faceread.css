@@ -264,3 +264,5 @@ body.fr-kiosk .fr-card p,body.fr-kiosk .fr-table{font-size:1rem}
 .fa-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:8px}
 body.fr-kiosk .fa-body p{font-size:1.05rem}
 @media print{.fa-actions,.fa-consent-wrap,.fa-reading .fa-topics{display:none}}
+/* disclaimer: the gap after the bold lead is CSS, so the English / Chinese rest (", and…" / "，不应…") has no stray space */
+html[lang=th] .fr-dlead{margin-right:.3em}

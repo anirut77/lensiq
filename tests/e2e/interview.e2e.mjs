@@ -276,6 +276,109 @@ export default async function ({ base, launch, check }) {
       await page.close();
     });
 
+    await check("interview R10: question guard, answer-consistency observations, rater spread, early-reveal flag", async () => {
+      const page = await browser.newPage(null, { initScripts: [INIT] });
+      await page.goto(`${base}/interview.html?cpu&lang=th`);
+      await page.evaluate(() => { const q = document.querySelector("#ivQCheck"); q.value = "คุณแต่งงานหรือยัง มีแผนมีบุตรไหม"; q.dispatchEvent(new Event("input")); });
+      const qc = await page.evaluate(() => document.querySelector("#ivQCheckOut").textContent);
+      assert(/สถานภาพสมรส/.test(qc), "question guard warns: " + qc);
+      await page.evaluate(() => { for (const n of ["A", "B", "C"]) { document.querySelector("#ivWho").value = n; document.querySelector("#ivWhoForm").requestSubmit(); } });
+      const rate = (i, vals, cs, note) => page.evaluate((i, vals, cs, note) => {
+        document.querySelector("#tab-score").click(); document.querySelector(`#ivWhoSeg button[data-i="${i}"]`).click();
+        for (const [c, v] of Object.entries(vals)) document.querySelector(`#ivSheet [data-comp="${c}"] .nums button[data-v="${v}"]`).click();
+        for (const [k, v] of Object.entries(cs)) { const s = document.querySelector(`#ivSheet select[data-consist="${k}"]`); s.value = v; s.dispatchEvent(new Event("change", { bubbles: true })); }
+        if (note) { const ta = document.querySelector('#ivSheet textarea[data-note="comm"]'); ta.value = note; ta.dispatchEvent(new Event("input", { bubbles: true })); }
+        const warn = document.querySelector('#ivSheet [data-warn="comm"]').textContent;
+        document.querySelector("#ivSubmit").click(); return warn;
+      }, i, vals, cs, note);
+      const all5 = { persuade: 5, customer: 5, drive: 5, comm: 5, adapt: 5 };
+      const w = await rate(0, all5, { specific: "yes", probe: "ask" }, "ผู้สมัครบอกว่าเพิ่งแต่งงาน");
+      assert(/สถานภาพสมรส/.test(w), "evidence note guard: " + w);
+      // the summary is opened early (before B and C) -> flagged as not independent
+      await page.evaluate(() => { document.querySelector("#tab-summary").click(); document.querySelector("#ivReveal").click(); });
+      assert(await page.evaluate(() => !document.querySelector("#ivSumEarly").hidden), "early reveal flagged");
+      await rate(1, { persuade: 3, customer: 3, drive: 3, comm: 3, adapt: 2 }, { probe: "ask" });
+      await rate(2, { persuade: 3, customer: 4, drive: 3, comm: 3, adapt: 3 }, {});
+      await page.evaluate(() => document.querySelector("#tab-summary").click());
+      const s = await page.evaluate(() => ({ early: document.querySelector("#ivSumEarly").hidden, spread: [...document.querySelectorAll("#ivSumSpread li[data-spread]")].map(l => l.dataset.spread + ":" + l.textContent),
+        cs: document.querySelector("#ivSumConsist").innerText, probe: document.querySelector('#ivSumConsist [data-cs="probe"]')?.textContent || "" }));
+      assert(s.early, "all submitted -> early flag gone");
+      assert(s.spread.some(x => /^lenient:A/.test(x)), "rater spread flags A: " + JSON.stringify(s.spread));
+      assert(/ความสอดคล้องของคำตอบ \(ข้อสังเกต ไม่ใช่การตัดสิน\)/.test(s.cs) && /ควรถามเพิ่ม 2/.test(s.probe) && /Bond & DePaulo, 2006/.test(s.cs) && /54%/.test(s.cs), "consistency summary: " + s.cs);
+      for (const wd of ["โกหก", "จริง/เท็จ:", "คะแนนความจริง"]) assert(!s.cs.includes(wd), "verdict word " + wd);
+      // the consistency choice travels with the exported sheet
+      const ex = await page.evaluate(() => { document.querySelector("#tab-score").click(); document.querySelector('#ivWhoSeg button[data-i="0"]').click(); document.querySelector("#ivExport").click(); return JSON.parse(document.querySelector("#ivExportOut").value); });
+      assert(ex.consist && ex.consist.probe === "ask" && ex.consist.specific === "yes", "export carries consist: " + JSON.stringify(ex));
+      const errs = hardErrors(page, base);
+      assert(!errs.length, "console errors: " + JSON.stringify(errs.slice(0, 3)));
+      await page.close();
+    });
+
+    await check("interview R10: observable signs of excitement with caveats; EU/EEA mode hides them in employer flows but not in candidate practice", async () => {
+      const page = await browser.newPage(null, { initScripts: [INIT, FAKE_MIC, FAKE_FACE] });
+      await page.goto(`${base}/interview.html?cpu&fakedet&lang=th`);
+      await page.evaluate(() => { document.querySelector("#tab-delivery").click(); document.querySelector("#ivCOk1").click(); document.querySelector("#ivCOk2").click(); document.querySelector("#ivDStart").click(); });
+      await page.waitFor(`!document.querySelector("#ivDLive").hidden`, 15000);
+      await sleep(11000);
+      await page.evaluate(() => document.querySelector("#ivDCandBtn").click());
+      await sleep(1200);
+      const th = await page.evaluate(() => ({ sig: document.querySelectorAll("#ivDCandView .sig li[data-sig]").length, h: document.querySelector("#ivDCandView .sig h4")?.textContent || "", sci: document.querySelector("#ivDCandView .sig .sci")?.textContent || "", tiles: document.querySelectorAll("#ivDCandView .tile").length }));
+      assert(th.sig >= 2 && /สัญญาณความตื่นเต้นที่สังเกตได้/.test(th.h) && /Barrett/.test(th.sci) && /Bond & DePaulo/.test(th.sci) && th.tiles === 7, "signals in general mode: " + JSON.stringify(th));
+      // switch to EU/EEA or regulated use -> hidden in the employer interview, the basic tiles remain
+      await page.evaluate(() => { const r = document.querySelector("#ivRegion"); r.value = "eu"; r.dispatchEvent(new Event("change")); });
+      await sleep(1200);
+      const eu = await page.evaluate(() => ({ sig: document.querySelectorAll("#pane-delivery .sig").length, off: document.querySelector("#ivDCandView .sig-off")?.textContent || "", note: document.querySelector("#ivDRegionNote").hidden, tiles: document.querySelectorAll("#ivDCandView .tile").length, st: document.querySelector("#ivRegionState").textContent }));
+      assert(eu.sig === 0 && /5\(1\)\(f\)/.test(eu.off) && !eu.note && eu.tiles === 7 && /EU\/EEA/.test(eu.st), "EU mode hides signals: " + JSON.stringify(eu));
+      await page.evaluate(() => document.querySelector("#ivDStop").click());
+      await page.evaluate(() => document.querySelector("#ivDOpen").click());
+      assert(await page.evaluate(() => document.querySelectorAll("#ivDResBody .sig").length === 0 && !!document.querySelector("#ivDResBody .sig-off")), "EU mode: not in the result card either");
+      await page.evaluate(() => document.querySelector("#ivDDiscard").click());
+      // candidate practice mode (?mode=practice style toggle): employer tabs hidden, signals kept, own summary at the end
+      await page.evaluate(() => document.querySelector("#ivModeBtn").click());
+      const cm = await page.evaluate(() => ({ vis: [...document.querySelectorAll(".iv .tab")].filter(b => b.offsetParent).map(b => b.dataset.t), pane: !document.querySelector("#pane-practice").hidden, own: document.querySelector("#pane-practice .iv-principle").textContent }));
+      assert(cm.vis.join() === "practice,about" && cm.pane && /ไม่มีอะไรส่งถึงนายจ้าง/.test(cm.own), "candidate practice mode: " + JSON.stringify(cm));
+      await page.evaluate(() => { document.querySelector("#ivPTime").value = "60"; document.querySelector("#ivPCam").click(); document.querySelector("#ivPStart").click(); });
+      await page.waitFor(`!document.querySelector("#ivPRun").hidden`, 15000);
+      await page.evaluate(() => document.querySelector("#ivPNext").click());
+      await sleep(11500);
+      await page.evaluate(() => document.querySelector("#ivPNext").click());
+      const rv = await page.evaluate(() => ({ sig: document.querySelectorAll("#ivPTips .sig li[data-sig]").length, off: document.querySelectorAll("#ivPTips .sig-off").length }));
+      assert(rv.sig >= 2 && rv.off === 0, "practice keeps signals in EU mode: " + JSON.stringify(rv));
+      await page.evaluate(() => document.querySelector("#ivPEnd").click());
+      const ps = await page.evaluate(() => ({ shown: !document.querySelector("#ivPSum").hidden, tiles: [...document.querySelectorAll("#ivPSum .tile")].map(t => t.innerText.replace(/\s+/g, " ")), h: document.querySelector("#ivPSum h2").textContent }));
+      assert(ps.shown && ps.tiles.length === 5 && /เห็นเฉพาะคุณ/.test(ps.h) && /สัดส่วนการมองกล้อง/.test(ps.tiles.join("|")), "practice summary: " + JSON.stringify(ps));
+      await page.evaluate(() => document.querySelector("#ivPSumPrint").click());
+      assert(await page.evaluate(() => window.__printed === 1 && !document.documentElement.classList.contains("iv-print-ps")), "own summary printed");
+      await page.evaluate(() => document.querySelector("#ivPSumClear").click());
+      assert(await page.evaluate(() => document.querySelector("#ivPSum").hidden && window.__LQ_IV.P.results.length === 0), "practice results deleted");
+      await privacyScan(page);
+      const st = await page.evaluate(() => Object.keys(localStorage).filter(k => k !== "lq-lang" && k !== "lq-i18n-debug").concat(Object.keys(sessionStorage)));
+      assert(!st.length, "page wrote storage: " + st);
+      const errs = hardErrors(page, base);
+      assert(!errs.length, "console errors: " + JSON.stringify(errs.slice(0, 3)));
+      await page.close();
+    });
+
+    await check("interview R10: ?mode=practice&region=eu deep link; English at 390 px", async () => {
+      const page = await browser.newPage(null, { initScripts: [INIT] });
+      await page.goto(`${base}/interview.html?cpu&mode=practice&region=eu&lang=en`);
+      await page.waitFor(`window.LQI18N && LQI18N.lang === "en"`, 8000);
+      await page.send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
+      await sleep(400);
+      const m = await page.evaluate(() => ({ vis: [...document.querySelectorAll(".iv .tab")].filter(b => b.offsetParent).map(b => b.dataset.t), region: document.querySelector("#ivRegion").value,
+        btn: document.querySelector("#ivModeBtn").textContent, sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth,
+        thai: (document.querySelector("main").innerText.match(/[฀-๿]+/g) || []).slice(0, 5) }));
+      assert(m.vis.join() === "practice,about" && m.region === "eu" && /interviewer mode/i.test(m.btn), "deep link: " + JSON.stringify(m));
+      assert(m.sw <= m.cw && !m.thai.length, "en 390 px: " + JSON.stringify(m));
+      await page.evaluate(() => document.querySelector("#ivModeBtn").click());
+      assert(await page.evaluate(() => !document.querySelector("#pane-setup").hidden && [...document.querySelectorAll(".iv .tab")].filter(b => b.offsetParent).length === 7), "back to interviewer mode");
+      await page.send("Emulation.clearDeviceMetricsOverride");
+      await page.evaluate(() => LQI18N.setLang("th"));
+      const errs = hardErrors(page, base);
+      assert(!errs.length, "console errors: " + JSON.stringify(errs.slice(0, 3)));
+      await page.close();
+    });
+
     await check("interview: a microphone that never answers does not block the camera; a late microphone is released", async () => {
       const HUNG_MIC = `(() => { const md = navigator.mediaDevices, orig = md.getUserMedia.bind(md);
         md.getUserMedia = c => (c && c.audio && !c.video) ? new Promise(res => { window.__lateMic = () => { const ac = new AudioContext(), d = ac.createMediaStreamDestination(); window.__lateStream = d.stream; res(d.stream); }; }) : orig(c); })();`;

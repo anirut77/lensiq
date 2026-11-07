@@ -163,7 +163,7 @@
   "cameras.s141": "Webcam, phone or tablet",
   "cameras.s142": "Outfit Studio",
   "cameras.s143": "New",
-  "cameras.s144": "Fits template outfits to the neck and shoulders, removes the background, refines hair edges and blends light and color for a true-to-life result; natural skin retouching and ID photos",
+  "cameras.s144": "Background change, lighting, natural skin retouching, profile photos and ID photos with a size check; ready-made outfits are an outfit preview, not a photo of the outfit being worn",
   "cameras.s145": "Use cases",
   "cameras.s146": "Photo studios, job and school application photos",
   "cameras.s147": "Camera",

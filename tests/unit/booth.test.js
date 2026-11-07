@@ -125,3 +125,39 @@ test("legacy booth-state (desc in localStorage, no prefs) still loads", () => {
   assert.equal(B.aggregate(S2, T0).unique, 1);
   assert.deepEqual(B.restoreState("{garbage", null, false, T0).visitors, []);
 });
+
+// ---------- round 10: recognise mode on LQTrack.FACE_RULES (maxDist + margin) ----------
+test("FACE_RULES: CFG.MATCH / CFG.MARGIN come from LQTrack.FACE_RULES", () => {
+  const LQT = require("../../lensiq-track.js");
+  assert.equal(B.CFG.MATCH, LQT.FACE_RULES.maxDist); assert.equal(B.CFG.MARGIN, LQT.FACE_RULES.margin);
+});
+const off = (base, k, v) => base.map((x, i) => (i === k ? x + v : x));
+test("margin: a face about equally close to two known visitors is ambiguous and not merged into either", () => {
+  const S = B.newState("t"); S.descDay = B.dayKey(T0);
+  const d = unit(0);
+  const mk = id => ({ id, first: T0 - 9e4, last: T0 - 9e4, dwell: 0, visits: 1, arrivals: [T0 - 9e4], frames: 0, att: 0, emo: [0, 0, 0, 0, 0, 0, 0], vSum: 0, acts: [] });
+  S.visitors.push(mk("V001"), mk("V002")); S.seq = 2;
+  S.desc.V001 = off(d, 2, 0.30); S.desc.V002 = off(d, 3, 0.35); // 0.30 vs 0.35: within the 0.09 margin
+  assert.equal(B.nearest(S.desc, d, new Set()), null, "nearest(): ambiguous");
+  let now = T0, res;
+  for (let k = 0; k < 6; k++) { now += 250; res = B.observe(S, [face(d, box(0.4))], now); }
+  assert.ok(!["V001", "V002"].includes(res[0].id), "not merged: " + res[0].id);
+  assert.equal(S.visitors.length, 3, "a new visitor instead");
+  assert.equal(S.visitors[0].visits, 1); assert.equal(S.visitors[1].visits, 1);
+  // nearestCand: two pending candidates equally close -> no join
+  const c1 = { desc: off(d, 2, 0.2), obs: [] }, c2 = { desc: off(d, 3, 0.22), obs: [] };
+  assert.equal(B.nearestCand([c1, c2], d, new Set()), null);
+  assert.equal(B.nearestCand([c1, { desc: off(d, 3, 0.45), obs: [] }], d, new Set()), c1);
+});
+test("margin: a clear match (second visitor far away) is still merged into the known visitor", () => {
+  const S = B.newState("t"); S.descDay = B.dayKey(T0);
+  const d = unit(0);
+  const mk = id => ({ id, first: T0 - 9e4, last: T0 - 9e4, dwell: 0, visits: 1, arrivals: [T0 - 9e4], frames: 0, att: 0, emo: [0, 0, 0, 0, 0, 0, 0], vSum: 0, acts: [] });
+  S.visitors.push(mk("V001"), mk("V002")); S.seq = 2;
+  S.desc.V001 = off(d, 2, 0.30); S.desc.V002 = off(d, 3, 0.70);
+  assert.equal(B.nearest(S.desc, d, new Set()), "V001");
+  let now = T0, res;
+  for (let k = 0; k < 4; k++) { now += 250; res = B.observe(S, [face(d, box(0.4))], now); }
+  assert.equal(res[0].id, "V001"); assert.equal(S.visitors.length, 2);
+  assert.equal(S.visitors[0].visits, 2, "returning visit counted");
+});

@@ -1,3 +1,4 @@
+// @ts-check
 // backend/src/retention.js — daily maintenance (cron "17 3 * * *"): aggregate first, then purge.
 //
 //   raw analytics events        RAW_EVENT_DAYS (90)   — only days already aggregated are deleted
@@ -9,7 +10,7 @@
 //   webhook raw payloads        WEBHOOK_PAYLOAD_DAYS (90); the event row (id, status) is kept with the payment
 //   audit log                   AUDIT_DAYS (400)
 //   member sessions             at expiry (30 days absolute / 14 days idle); sign-in nonces after 10 min
-//   member ledger (usage rows)  MEMBER_LEDGER_DAYS (400); payment rows kept with the payment; accounts until deletion
+//   member ledger (usage rows)  MEMBER_LEDGER_DAYS (400); payment + refund rows kept with the payment; accounts until deletion
 //   payments / receipts         kept (Thai Revenue Code: accounting & tax documents >= 5 years) — never purged here
 import { aggregatePending } from "./analytics.js";
 import { audit } from "./store.js";
@@ -42,7 +43,7 @@ export async function purge(env, t = now()) {
     audit: await run("DELETE FROM audit_log WHERE ts < ?1", t - c.auditDays * 86400),
     member_sessions: await run("DELETE FROM member_sessions WHERE expires_at < ?1 OR last_seen < ?2", t, t - 14 * 86400),
     auth_nonces: await run("DELETE FROM auth_nonces WHERE expires_at < ?1", t),
-    member_ledger: await run("DELETE FROM member_ledger WHERE kind != 'payment' AND ts < ?1", t - c.memberLedgerDays * 86400)
+    member_ledger: await run("DELETE FROM member_ledger WHERE kind NOT IN ('payment', 'refund') AND ts < ?1", t - c.memberLedgerDays * 86400)
   };
   return out;
 }

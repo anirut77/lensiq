@@ -119,3 +119,9 @@ test("dominantSegment / recordFrame still work on tracker output", () => {
   assert.equal(seg.n, 1); assert.equal(seg.band, "18_34"); assert.equal(seg.gender, "male"); assert.equal(seg.mood, "happy");
   assert.equal(stats.ads.x.ots, 1); assert.equal(stats.ads.x.viewers, 1);
 });
+
+test("round 10: age/gender model loads only when the option is on (netsFor); expression nets always (labelled)", () => {
+  assert.deepEqual(S.netsFor(false), ["tinyFaceDetector", "faceLandmark68Net", "faceExpressionNet"]);
+  assert.ok(S.netsFor(true).includes("ageGenderNet"));
+  assert.ok(!S.netsFor(false).includes("ageGenderNet"));
+});

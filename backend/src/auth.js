@@ -1,3 +1,4 @@
+// @ts-check
 // backend/src/auth.js — single owner account for the admin back office.
 //
 //  bootstrap  POST /admin/api/bootstrap {token, username, password}   only while no owner exists; token = Worker secret
@@ -20,7 +21,11 @@
 //     required on every login
 //  TOTP       optional, RFC 6238, secret AES-GCM encrypted with SECRETS_KEK; the used time step is claimed with an atomic
 //             conditional UPDATE, so one code cannot be used twice even by parallel requests
-//  re-auth    password change needs the current password (+ TOTP when on); TOTP setup needs the password
+//  re-auth    password change needs the current password (+ TOTP when on); TOTP setup needs the password; money ops
+//             (refund, cancel / extend subscription, complimentary grant), retention/run and member status changes need
+//             {password, totp} in the body (reauthOwner)
+//  devices    GET /admin/api/devices lists trusted devices (id = first 16 hex of the stored hash), DELETE revokes;
+//             disabling TOTP signs out every other session and forgets every trusted device
 import {
   base32Decode, base32Encode, decryptString, encryptString, hashPassword, importKek, passwordProblem, randomBytes,
   randomToken, sha256Hex, timingSafeEqual, totpUri, verifyPassword, verifyTotp
@@ -216,6 +221,13 @@ async function reauth(env, owner, password, code) {
   }
 }
 
+/** Re-authentication gate for sensitive admin actions: body {password, totp}. Throws 403 when wrong. */
+export async function reauthOwner(env, body) {
+  const owner = await getOwner(env.DB);
+  if (!owner) throw new HttpError(401, "not signed in");
+  await reauth(env, owner, body && body.password, body && body.totp);
+}
+
 export async function changePassword(env, sess, body) {
   const owner = await getOwner(env.DB);
   await reauth(env, owner, body.current, body.totp);
@@ -268,10 +280,35 @@ export async function totpEnable(env, body) {
   return { ok: true };
 }
 
-export async function totpDisable(env, body) {
+export async function totpDisable(env, body, sess = null) {
   const owner = await getOwner(env.DB);
   await reauth(env, owner, body.password, body.code);
   await env.DB.prepare("UPDATE admin_users SET totp_enabled = 0, totp_secret_enc = NULL, updated_at = ?1 WHERE id = 1").bind(now()).run();
-  await audit(env, "owner", "totp.disabled");
+  // weaker login from now on: sign out every other session and forget trusted devices (they must log in again)
+  const others = await env.DB.prepare("DELETE FROM admin_sessions WHERE id_hash != ?1").bind(sess ? sess.idHash : "").run();
+  const devs = await env.DB.prepare("DELETE FROM admin_devices").run();
+  await audit(env, "owner", "totp.disabled", { sessions_revoked: (others.meta && others.meta.changes) || 0, devices_revoked: (devs.meta && devs.meta.changes) || 0 });
   return { ok: true };
+}
+
+// ---- trusted devices -------------------------------------------------------------------------------------------------
+const DEVICE_ID_RE = /^[a-f0-9]{16}$/;
+
+export async function listDevices(env, request) {
+  const t = now();
+  const cur = await trustedDevice(env, request, t);
+  const rows = (await env.DB.prepare("SELECT hash, created_at, last_used FROM admin_devices ORDER BY last_used DESC LIMIT 100").all()).results || [];
+  return { devices: rows.map(r => ({ id: r.hash.slice(0, 16), created_at: r.created_at, last_used: r.last_used, expires_at: r.created_at + DEVICE_TTL, current: r.hash === cur })) };
+}
+
+/** id = 16-hex device id from listDevices, or "all". */
+export async function revokeDevice(env, id) {
+  if (id === "all") {
+    const r = await env.DB.prepare("DELETE FROM admin_devices").run();
+    return { ok: true, revoked: (r.meta && r.meta.changes) || 0 };
+  }
+  if (!DEVICE_ID_RE.test(String(id || ""))) throw new HttpError(404, "device not found");
+  const r = await env.DB.prepare("DELETE FROM admin_devices WHERE substr(hash, 1, 16) = ?1").bind(id).run();
+  if (!r.meta || !r.meta.changes) throw new HttpError(404, "device not found");
+  return { ok: true, revoked: r.meta.changes };
 }

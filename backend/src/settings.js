@@ -1,3 +1,4 @@
+// @ts-check
 // backend/src/settings.js — AI writing-assistant settings + API key storage.
 //
 // API key, in order of preference:
@@ -24,7 +25,10 @@ export const DEFAULT_AI = Object.freeze({
   rpm: 10,                // per caller per minute
   per_caller_daily: 20,   // per caller per day
   global_rpm: 60,         // all callers per minute
-  daily_max: 500          // all callers per day
+  daily_max: 500,         // all callers per day (guests + free members; Bangkok day)
+  // paying members (active paid plan or purchased credits) use separate buckets, so free traffic cannot starve them
+  paid_per_user_daily: 100, // per paying member per day
+  paid_daily_max: 2000      // all paying members per day
 });
 
 export async function getAiSettings(db) {
@@ -40,6 +44,7 @@ const intIn = (v, min, max, field) => {
 /** Validates a partial update; unknown keys are refused. */
 export function validateAi(input, current = DEFAULT_AI) {
   if (!input || typeof input !== "object") throw new HttpError(400, "settings must be an object");
+  /** @type {Record<string, any>} */
   const out = { ...current, domains: { ...current.domains } };
   for (const [k, v] of Object.entries(input)) {
     switch (k) {
@@ -53,6 +58,8 @@ export function validateAi(input, current = DEFAULT_AI) {
       case "daily_max": out.daily_max = intIn(v, 1, 100000, "daily_max"); break;
       case "per_caller_daily": out.per_caller_daily = intIn(v, 1, 1000, "per_caller_daily"); break;
       case "global_rpm": out.global_rpm = intIn(v, 1, 1000, "global_rpm"); break;
+      case "paid_per_user_daily": out.paid_per_user_daily = intIn(v, 1, 1000, "paid_per_user_daily"); break;
+      case "paid_daily_max": out.paid_daily_max = intIn(v, 1, 100000, "paid_daily_max"); break;
       case "domains":
         if (!v || typeof v !== "object") throw new HttpError(400, "domains must be an object");
         for (const [d, on] of Object.entries(v)) {

@@ -9,7 +9,7 @@
 <title data-i18n="attendance.s1">เช็คชื่ออบรมด้วยใบหน้า | LENSIQ</title>
 <link rel="stylesheet" href="styles.css?v=8">
 <link rel="stylesheet" href="attendance.css?v=6">
-<link rel="stylesheet" href="lensiq-sitecheck.css?v=1">
+<link rel="stylesheet" href="lensiq-sitecheck.css?v=2">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -18,7 +18,7 @@
 <script src="lensiq-i18n-rt.js?v=1"></script>
 <script src="i18n/zh-rt-common.js?v=1"></script>
 <script src="i18n/zh-rt-attendance.js?v=1"></script>
-<script src="i18n/zh-rt-sitecheck.js?v=1"></script>
+<script src="i18n/zh-rt-sitecheck.js?v=2"></script>
 
 <main class="att">
   <h1 data-i18n="attendance.s2">เช็คชื่อเข้าอบรมด้วยการสแกนใบหน้า</h1>
@@ -59,8 +59,8 @@
         <p class="unknown-note" id="unknownNote" hidden></p>
         <details class="tune">
           <summary data-i18n="attendance.s16">ความเข้มงวดในการจดจำ</summary>
-          <label><span data-i18n="attendance.s17">ค่าความต่างสูงสุด</span> <output id="matchDistVal">0.50</output>
-            <input id="matchDist" type="range" min="0.3" max="0.7" step="0.01" value="0.50"></label>
+          <label><span id="matchDistLbl" data-i18n="attendance.s17">ค่าความต่างสูงสุด</span> <output id="matchDistVal">0.50</output>
+            <input id="matchDist" aria-labelledby="matchDistLbl" type="range" min="0.3" max="0.7" step="0.01" value="0.50"></label>
           <small data-i18n="attendance.s18">ค่าต่ำ = เข้มงวดขึ้น (จำผิดน้อยลง แต่อาจจำไม่ได้บ้าง) ค่าเริ่มต้น 0.55</small>
         </details>
         <h3><span data-i18n="attendance.s19">เช็คชื่อแล้ววันนี้ (</span><span id="todayCount">0</span>)</h3>
@@ -88,6 +88,7 @@
             </select></label>
           <small data-i18n="attendance.s32">นับจากการเช็คชื่อครั้งล่าสุด (หรือวันลงทะเบียน) ระบบลบให้อัตโนมัติเมื่อเปิดหน้านี้</small>
           <button class="btn ghost danger full" id="wipeFaces" type="button" data-i18n="attendance.s33">ลบข้อมูลใบหน้าทั้งหมด</button>
+          <p class="hint sc-docs"><span>เอกสารสำหรับติดตั้ง:</span> <a href="camera-notice.html">ป้ายแจ้งการใช้กล้องสำหรับพิมพ์</a> · <a href="camera-notice.html#sign-g">แบบฟอร์มขอความยินยอม (แม่แบบ)</a></p>
         </details>
       </div>
 
@@ -113,11 +114,11 @@
 
 <script src="vendor/face-api.js"></script>
 <script src="lensiq-track.js?v=3"></script>
-<script src="lensiq-camera.js?v=2"></script>
+<script src="lensiq-camera.js?v=3"></script>
 <script src="lensiq-detect.js?v=3"></script>
 <script src="lensiq-facevault.js?v=1"></script>
-<script src="lensiq-sitecheck.js?v=1"></script>
-<script src="attendance.js?v=12"></script>
+<script src="lensiq-sitecheck.js?v=2"></script>
+<script src="attendance.js?v=13"></script>
 <script src="lensiq-config.js?v=3"></script>
 </body>
 </html>

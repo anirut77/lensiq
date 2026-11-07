@@ -15,6 +15,8 @@
 // defocus), because the pages see a few consecutive frames of one pose, never independent photos.
 // Members: people with ≥ 4 photos (LFW) / all 500 (CASIA): photos 1–3 = enrolment, the last photo = probe "visit".
 // Strangers: people never enrolled (one photo, one visit each). 200 random galleries of N members per row.
+// Round 10: the stranger-accepted CI is an identity-cluster bootstrap (the ~12,000 visits per row come from a few hundred
+// distinct strangers, each re-used in many galleries); the old per-visit Wilson interval is still printed for comparison.
 import { createRequire } from "node:module";
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -133,7 +135,9 @@ function visitLabel(frames, P, nnOf) {
   return { label: "unknown", auto: false };
 }
 function evalAll(ds, N) {
-  const acc = POLICIES.map(() => ({ gen: 0, ok: 0, okAuto: 0, mis: 0, str: 0, fa: 0, faAuto: 0 }));
+  // byId: stranger identity -> [visits, accepted, accepted without confirmation] — the same few hundred strangers are drawn
+  // into all 200 galleries, so the ~12,000 visits per row are NOT independent; the CI is bootstrapped over identities (round 10)
+  const acc = POLICIES.map(() => ({ gen: 0, ok: 0, okAuto: 0, mis: 0, str: 0, fa: 0, faAuto: 0, byId: new Map() }));
   const groups = new Map(); // "photos|q|centroid|cascade|rules" -> policy indexes
   POLICIES.forEach((P, k) => { const key = [P.photos, P.q ? JSON.stringify(P.q) : "", P.centroid ? "c" : "", P.cascade ? "5" : "", P.rules ? JSON.stringify(P.rules) : ""].join("|"); if (!groups.has(key)) groups.set(key, []); groups.get(key).push(k); });
   for (let trial = 0; trial < TRIALS; trial++) {
@@ -163,15 +167,20 @@ function evalAll(ds, N) {
         frameInfo = p => p.map(f => okF(f) ? { ok: true, ...nearest2(f.desc, entries) } : { ok: false });
       }
       const gen = gal.filter(m => enrolled.has(m.id)).map(m => { const p = ph(m); return [m.id, frameInfo(p[p.length - 1])]; });
-      const str = strangers.map(x => frameInfo(ph(x)[0]));
+      const str = strangers.map(x => [x.id, frameInfo(ph(x)[0])]);
       for (const k of idx) {
         const P = POLICIES[k], a = acc[k];
         for (const [id, fr] of gen) { a.gen++; const r = visitLabel(fr, P, nnOf); if (r.label === id) { a.ok++; if (r.auto) a.okAuto++; } else if (r.label !== "unknown") a.mis++; }
-        for (const fr of str) { a.str++; const r = visitLabel(fr, P, nnOf); if (r.label !== "unknown") { a.fa++; if (r.auto) a.faAuto++; } }
+        for (const [sid, fr] of str) {
+          a.str++; const r = visitLabel(fr, P, nnOf), c = a.byId.get(sid) || [0, 0, 0]; c[0]++;
+          if (r.label !== "unknown") { a.fa++; c[1]++; if (r.auto) { a.faAuto++; c[2]++; } }
+          a.byId.set(sid, c);
+        }
       }
     }
   }
-  return acc.map(a => ({ gen: a.gen, ok: a.ok / a.gen, okAuto: a.okAuto / a.gen, mis: a.mis / a.gen, str: a.str, fa: a.fa / a.str, faN: a.fa, faAuto: a.faAuto / a.str }));
+  return acc.map(a => ({ gen: a.gen, ok: a.ok / a.gen, okAuto: a.okAuto / a.gen, mis: a.mis / a.gen, str: a.str, fa: a.fa / a.str, faN: a.fa, faAuto: a.faAuto / a.str, faAutoN: a.faAuto,
+    strIds: a.byId.size, strAccIds: [...a.byId.values()].filter(c => c[1] > 0).length, byId: [...a.byId].map(([id, c]) => ({ id, n: c[0], k: c[1], kAuto: c[2] })) }));
 }
 
 const out = { date: new Date().toISOString(), trials: TRIALS, sets: [] };
@@ -186,11 +195,18 @@ try {
     const rows = [], res = { name: ds.name, members: ds.members.length, strangers: ds.strangers.length, faceFound: found / allF.length, faceFoundCascade: found5 / allF5.length, qualityPass: qok / Math.max(1, found), rows: [] };
     for (const N of (process.env.LQ_BENCH_N ? process.env.LQ_BENCH_N.split(",").map(Number) : [5, 10, 20, 50, 100, 200]).filter(n => n <= ds.members.length)) evalAll(ds, N).forEach((r, k) => {
       const P = POLICIES[k];
+      // ciVisit = Wilson over visits (pre-round-10 output, kept): treats ~12,000 visits as independent, so it is too narrow.
+      // ci = identity-cluster bootstrap (2,000 resamples of the stranger identities); ciIds = Wilson with n = distinct identities.
       const [lo, hi] = M.wilson(r.faN, r.str);
-      res.rows.push({ N, policy: P.label, recognised: r.ok, recognisedAuto: r.okAuto, misidentified: r.mis, strangerAccepted: r.fa, strangerAuto: r.faAuto, ci: [lo, hi], probes: r.gen, strangers: r.str });
-      rows.push([N, P.label, pct(r.ok), pct(r.okAuto), pct(r.mis, 2), `${pct(r.fa, 2)} [${pct(lo, 1)}–${pct(hi, 1)}]`, pct(r.faAuto, 2)]);
+      const cb = M.clusterBootstrap(r.byId.map(c => ({ k: c.k, n: c.n, ids: [c.id] })), { B: 2000, seed: 1000 + N });
+      const cbA = M.clusterBootstrap(r.byId.map(c => ({ k: c.kAuto, n: c.n, ids: [c.id] })), { B: 2000, seed: 2000 + N });
+      const ciIds = M.wilsonClusters(r.fa, r.strIds);
+      res.rows.push({ N, policy: P.label, recognised: r.ok, recognisedAuto: r.okAuto, misidentified: r.mis, strangerAccepted: r.fa, strangerAuto: r.faAuto,
+        ci: [cb.lo, cb.hi], ciMethod: "identity-cluster bootstrap", ciIds, ciVisit: [lo, hi], ciAuto: [cbA.lo, cbA.hi],
+        strangerIds: r.strIds, strangerIdsEverAccepted: r.strAccIds, probes: r.gen, strangers: r.str });
+      rows.push([N, P.label, pct(r.ok), pct(r.okAuto), pct(r.mis, 2), `${pct(r.fa, 2)} [${pct(cb.lo, 2)}–${pct(cb.hi, 2)}]`, `${r.strIds} (${r.strAccIds} ever accepted)`, `[${pct(lo, 2)}–${pct(hi, 2)}]`, `${pct(r.faAuto, 2)} [${pct(cbA.lo, 2)}–${pct(cbA.hi, 2)}]`]);
     });
-    console.log(table(["enrolled", "policy", "member recognised", "of which without confirmation", "member shown as someone else", "stranger accepted [95% CI]", "stranger accepted without confirmation"], rows));
+    console.log(table(["enrolled", "policy", "member recognised", "of which without confirmation", "member shown as someone else", "stranger accepted [95% CI, identity bootstrap]", "distinct strangers", "old per-visit Wilson (too narrow)", "stranger accepted without confirmation [95% CI]"], rows));
     out.sets.push(res);
   }
 } finally { if (bench) await bench.done(); }

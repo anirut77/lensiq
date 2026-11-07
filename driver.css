@@ -144,7 +144,8 @@ th{background:var(--alt);color:var(--navy);font-weight:500;position:sticky;top:0
 .notes b{color:var(--navy);font-weight:500}
 
 @media(max-width:900px){
-  .grid2,.setup-grid,.live-grid,body.driving .live-grid{grid-template-columns:1fr}
+  .grid2,.setup-grid,.live-grid,body.driving .live-grid{grid-template-columns:minmax(0,1fr)}
+  .setup-grid>*,#tripForm>*{min-width:0}#tripForm input,#tripForm select{max-width:100%;min-width:0}
   .metrics{grid-template-columns:repeat(2,1fr)}
   .m.wide{grid-column:span 2}
 }

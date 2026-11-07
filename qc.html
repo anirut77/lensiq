@@ -9,7 +9,7 @@
 <title data-i18n="qc.s1">ตรวจคุณภาพสินค้าบนสายการผลิต | LENSIQ</title>
 <link rel="stylesheet" href="styles.css?v=8">
 <link rel="stylesheet" href="qc.css?v=4">
-<link rel="stylesheet" href="lensiq-sitecheck.css?v=1">
+<link rel="stylesheet" href="lensiq-sitecheck.css?v=2">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -18,7 +18,7 @@
 <script src="lensiq-i18n-rt.js?v=1"></script>
 <script src="i18n/zh-rt-common.js?v=1"></script>
 <script src="i18n/zh-rt-qc.js?v=1"></script>
-<script src="i18n/zh-rt-sitecheck.js?v=1"></script>
+<script src="i18n/zh-rt-sitecheck.js?v=2"></script>
 
 <main class="qcp">
   <h1><span data-i18n="qc.s2">ตรวจคุณภาพสินค้าบนสายการผลิต</span> <small class="h1-sub" data-i18n="qc.s3">ตัวอย่าง: ขวดเครื่องดื่ม</small></h1>
@@ -114,7 +114,7 @@
           <label><span data-i18n="qc.s58">ลักษณะภาพน้ำ</span>
             <select name="mode"><option value="dark" data-i18n="qc.s59">น้ำมืดกว่าอากาศ (ทั่วไป)</option><option value="bright" data-i18n="qc.s60">น้ำสว่างกว่า / ไฟส่องหลัง</option></select>
           </label>
-          <label><span data-i18n="qc.s61">ยอมให้คลาด ±</span><span class="pair"><input name="fill" type="number" min="0" step="0.5"><select name="fillUnit"><option value="px" data-i18n="qc.s62">พิกเซล</option><option value="%" data-i18n="qc.s63">% ของพื้นที่</option></select></span></label>
+          <label><span id="qcFillLbl" data-i18n="qc.s61">ยอมให้คลาด ±</span><span class="pair"><input name="fill" type="number" min="0" step="0.5"><select name="fillUnit" aria-labelledby="qcFillLbl"><option value="px" data-i18n="qc.s62">พิกเซล</option><option value="%" data-i18n="qc.s63">% ของพื้นที่</option></select></span></label>
           <label><span data-i18n="qc.s64">คอนทราสต์ขั้นต่ำของผิวน้ำ</span><input name="minContrast" type="number" min="1" max="200"></label>
         </fieldset>
         <fieldset>
@@ -163,6 +163,7 @@
   </section>
 
   <section class="card sc-panel" id="scPanel"></section>
+  <p class="hint sc-docs"><span>เอกสารสำหรับติดตั้ง:</span> <a href="camera-notice.html">ป้ายแจ้งการใช้กล้องสำหรับพิมพ์</a> · <a href="camera-notice.html#sign-h">แบบฟอร์มขอความยินยอม (แม่แบบ)</a></p>
 
   <div class="grid2">
     <section class="card">
@@ -187,9 +188,9 @@
   </div>
 </main>
 
-<script src="lensiq-camera.js?v=2"></script>
-<script src="lensiq-sitecheck.js?v=1"></script>
-<script src="qc.js?v=6"></script>
+<script src="lensiq-camera.js?v=3"></script>
+<script src="lensiq-sitecheck.js?v=2"></script>
+<script src="qc.js?v=7"></script>
 <script src="lensiq-config.js?v=3"></script>
 </body>
 </html>

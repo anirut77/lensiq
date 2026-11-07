@@ -57,6 +57,24 @@ Every place LENSIQ stores data, per module, with default retention and the delet
 | Web server / proxy access logs | Operator-configured | Operator policy (recommend ≤ 90 days) | Log rotation |
 | `certs/` (self-signed key) | Hub machine | 825-day certificate | Delete `certs/` to regenerate |
 
+## Cloud backend — members and billing (`backend/`, Cloudflare Worker + D1)
+
+Only when the controller deploys the Worker and sets `LENSIQ_API_BASE` (ROPA M16–M18, M22a–h). Automatic purges run in the daily cron (`backend/src/retention.js`, "17 3 * * *"). Account erasure is `DELETE /api/me` (`backend/src/members.js` `deleteAccount`) from `account.html`.
+
+| Data | Table | Default retention | On account deletion |
+|---|---|---|---|
+| Member profile: random account id, Google `sub`, verified e-mail, optional given name (≤ 40 chars), status, accepted terms version + time, marketing opt-in + time, created / last login. **No avatar/profile photo, no Google access token.** | `users` | Until the member deletes the account (or the admin deletes it on request). No inactivity expiry yet: **[controller to confirm a review period, e.g. 24 months without login]** | Row deleted |
+| Member sessions (SHA-256 of the token only) | `member_sessions` | 30 days absolute, 14 days idle; deleted at logout | All deleted |
+| Sign-in nonces (hash only, not linked to a person) | `auth_nonces` | 10 minutes; single use | n/a |
+| Usage / transaction ledger (kind, fortune domain, time, payment ref, amount — no reading text) | `member_ledger` | Usage rows 400 days (`MEMBER_LEDGER_DAYS`); `payment` and `refund` rows until account deletion | All deleted |
+| Saved readings (derived result the member chose to save, ≤ 16 KB, max 50 per member) | `saved_readings` | Until the member deletes the item or the account | All deleted |
+| One-time purchase credits / complimentary grants (feature, granted/remaining, payment id, expiry) | `credits` (`0006_consumer_pricing.sql`) | Until used up or `expires_at` (NULL = no expiry). [controller to confirm a purge of spent credits] | All deleted |
+| Usage counters (quota) | `usage_counters` | 35 days | Member's counters deleted |
+| Payments, subscriptions, receipt / tax-invoice party | `payments`, `subscriptions`, `customers` | **≥ 5 years** (Revenue Code accounting records) — never purged by the cron | Kept but unlinked: `user_id` → NULL, `payments.buyer_email` and `customers.email` → NULL, active subscription → cancelled. Tax-invoice buyer fields stay as the law requires. |
+| Payment webhook raw payloads (Opn; may contain buyer e-mail) | `webhooks.payload` | Payload set to NULL after 90 days (`WEBHOOK_PAYLOAD_DAYS`); the event row (id, status, signature result) stays with the payment | **Not cleared early** — the payload ages out at 90 days. [controller to confirm, or add an early wipe] |
+| Audit log (action, random account id, day-salted IP hash, secrets scrubbed; no e-mail or token) | `audit_log` | 400 days (`AUDIT_DAYS`) | Kept, including the `member.deleted` entry as proof of erasure. After deletion the random id no longer links to an e-mail or Google account; daily salts are deleted, so IP hashes cannot be linked across days. |
+| Raw analytics events / aggregates | `events` / `daily_agg` | 90 days raw (`RAW_EVENT_DAYS`), aggregates kept (not personal) | Not linked to members |
+
 ## Recommended operator settings
 
 | Data | Suggested retention |
