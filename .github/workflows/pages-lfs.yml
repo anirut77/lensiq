@@ -12,10 +12,9 @@
 name: Pages
 
 on:
-  # push trigger is enabled once Settings → Pages → Source = "GitHub Actions" (docs/DEPLOYMENT-CHECKLIST.md §0).
-  # Until then run it manually (Actions → Pages → Run workflow) right after switching the source.
-  # push:
-  #   branches: [main]
+  # Settings → Pages → Source = "GitHub Actions" (switched 2026-11-07; docs/DEPLOYMENT-CHECKLIST.md §0)
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
