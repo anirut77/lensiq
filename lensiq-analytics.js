@@ -31,6 +31,13 @@
     dur: /^(lt10s|10-30s|30s-2m|2-10m|10m\+)$/, ret: /^(new|d1|d2-7|d8-30|d30\+)$/
   };
   var NAMES = /^(page_view|feature_used|reading_domain|studio_render_done|error|session_end)$/;
+  // Same allowlists as the Worker (backend/src/constants.js — drift test in tests/unit/backend-site.test.js).
+  // A value that is not listed is sent as "other": the Worker rejects unlisted values.
+  var ALLOW = {
+    page: ["about", "astro", "attendance", "bazi", "booth", "cameras", "checkout", "converter", "creative", "customers", "dream", "driver", "faceread", "fengshui", "fortune", "horoscope", "iching", "index", "insights", "interview", "lek7", "lifegraph", "neuro", "numbers", "palm", "photobooth", "pricing", "qc", "signage", "store", "studio", "taksa", "tarot", "teamface", "zodiac", "other"],
+    feature: ["fortune.reading", "fortune.ai", "fortune.local", "studio.render", "photobooth.capture", "photobooth.print", "booth.count", "store.count", "signage.play", "camera.start", "camera.denied", "attendance.checkin", "customers.lookup", "checkout.scan", "qc.inspect", "driver.alert", "neuro.session", "insights.view", "insights.export", "converter.convert", "creative.analyse", "creative.compare", "interview.session", "teamface.card", "pricing.view", "palm", "faceread", "tarot", "horoscope", "other"],
+    err: ["Error", "TypeError", "RangeError", "ReferenceError", "SyntaxError", "URIError", "EvalError", "AggregateError", "UnhandledRejection", "AbortError", "NotAllowedError", "NotFoundError", "NotReadableError", "OverconstrainedError", "SecurityError", "QuotaExceededError", "NetworkError", "TimeoutError", "InvalidStateError", "DataError", "OperationError", "UnknownError", "EncodingError", "NotSupportedError", "WebGLContextLost", "ModelLoadError", "CameraError", "other"]
+  };
   var TEXT = {
     th: { msg: "ขอเก็บสถิติการใช้งานแบบไม่ระบุตัวตน (หน้าที่เปิด ฟีเจอร์ที่ใช้ ภาษา ชนิดอุปกรณ์) เพื่อปรับปรุงบริการ ไม่เก็บรูป ใบหน้า ข้อความ หรือที่อยู่ IP ข้อมูลประมวลผลบน Cloudflare (ต่างประเทศ) ลบข้อมูลดิบภายใน 90 วัน เปลี่ยนใจได้ทุกเมื่อ", yes: "ยอมรับ", no: "ไม่ยอมรับ", label: "การเก็บสถิติการใช้งาน" },
     en: { msg: "May we collect anonymous usage statistics (pages, features, language, device type) to improve the service? No photos, faces, text or IP addresses are stored. Processed on Cloudflare (outside Thailand); raw data deleted within 90 days. You can change your mind at any time.", yes: "Accept", no: "Decline", label: "Usage statistics" },
@@ -67,7 +74,7 @@
   function page() {
     var p = String((root.location && root.location.pathname) || "").split("/").pop() || "index";
     p = p.replace(/\.html?$/i, "").toLowerCase();
-    return FIELDS.page.test(p) ? p : "other";
+    return ALLOW.page.indexOf(p) >= 0 ? p : "other";
   }
   function randHex(n) {
     var a = new Uint8Array(n);
@@ -76,7 +83,12 @@
   }
   function sid() {
     var s = sget(SS, SID);
-    if (!s || !/^[a-f0-9]{32}$/.test(s)) { s = randHex(16); sset(SS, SID, s); }
+    if (!s || !/^[a-f0-9]{32}$/.test(s) || /\d{5,}/.test(s)) {
+      // the Worker rejects sids with a 6+ digit run: retry a few times, then break any run deterministically
+      for (var tries = 0; tries < 8 && (!s || /\d{5,}/.test(s)); tries++) s = randHex(16);
+      s = s.replace(/\d{5,}/g, function (r) { return r.replace(/(\d{4})(\d)/g, function (_, a, d) { return a + "abcdef".charAt(+d % 6); }); });
+      sset(SS, SID, s);
+    }
     return s;
   }
   var today = function () { return new Date().toISOString().slice(0, 10); };
@@ -122,7 +134,8 @@
     for (var k in f) {
       if (!Object.prototype.hasOwnProperty.call(FIELDS, k)) continue; // unknown keys are dropped, never sent
       var v = String(f[k]);
-      if (FIELDS[k].test(v)) e[k] = v;
+      if (!FIELDS[k].test(v)) continue;
+      e[k] = /** @type {any} */ (ALLOW)[k] && /** @type {any} */ (ALLOW)[k].indexOf(v) < 0 ? "other" : v;
     }
     if (name === "page_view" && !e.page) e.page = page();
     queue.push(e);

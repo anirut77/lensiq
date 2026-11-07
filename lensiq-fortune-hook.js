@@ -44,50 +44,10 @@
     FA.interpret = hooked;
   }
 
-  /* ---------------- Turnstile ---------------- */
+  /* ---------------- Turnstile (token from lensiq-api.js LQApi.turnstile) ---------------- */
   var siteKey = String(W.LENSIQ_TURNSTILE_SITEKEY || "").trim();
-  var widgetId = /** @type {any} */ (null);
-  var pending = /** @type {Array<(t: string) => void>} */ ([]);
-  var loadP = /** @type {Promise<any>|null} */ (null);
-  function loadTurnstile() {
-    if (loadP) return loadP;
-    loadP = new Promise(function (resolve) {
-      if (W.turnstile) { resolve(W.turnstile); return; }
-      var s = document.createElement("script");
-      s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-      s.async = true;
-      s.onload = function () { resolve(W.turnstile || null); };
-      s.onerror = function () { resolve(null); };
-      document.head.appendChild(s);
-    });
-    return loadP;
-  }
-  /** A fresh single-use token (or "" when Turnstile is unavailable — the Worker then refuses and the page falls back). */
-  function token() {
-    return loadTurnstile().then(function (ts) {
-      if (!ts) return "";
-      return new Promise(function (resolve) {
-        var done = false;
-        var finish = function (/** @type {string} */ t) { if (!done) { done = true; resolve(t || ""); } };
-        setTimeout(function () { finish(""); }, 15000);
-        pending.push(finish);
-        try {
-          if (widgetId == null) {
-            var box = document.createElement("div");
-            box.setAttribute("data-lq-turnstile", "");
-            box.style.cssText = "position:fixed;right:12px;bottom:12px;z-index:2147483000";
-            document.body.appendChild(box);
-            widgetId = ts.render(box, {
-              sitekey: siteKey, action: "fortune", execution: "execute", appearance: "interaction-only",
-              callback: function (/** @type {string} */ t) { var q = pending.splice(0); q.forEach(function (f) { f(t); }); },
-              "error-callback": function () { var q = pending.splice(0); q.forEach(function (f) { f(""); }); }
-            });
-          } else ts.reset(widgetId);
-          ts.execute(widgetId);
-        } catch (e) { finish(""); }
-      });
-    });
-  }
+  /** A fresh single-use token, or "" (the Worker then refuses — Turnstile is fail-closed — and the page falls back). */
+  function token() { return W.LQApi && W.LQApi.turnstile ? W.LQApi.turnstile("fortune") : Promise.resolve(""); }
   function hookFetch() {
     if (!siteKey || typeof W.fetch !== "function" || W.fetch.__lqTurnstile) return;
     var orig = W.fetch;

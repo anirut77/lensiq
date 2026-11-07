@@ -17,6 +17,7 @@ import * as auth from "./auth.js";
 import * as billing from "./billing.js";
 import { fortuneRun, fortuneStatus } from "./fortune.js";
 import { reconcilePending } from "./billing.js";
+import { turnstileStatus } from "./turnstile.js";
 import { runMaintenance, retentionConfig } from "./retention.js";
 import * as settings from "./settings.js";
 import { audit, callerHash } from "./store.js";
@@ -40,7 +41,7 @@ async function publicRoute(request, env, url, deps) {
     const b = await billing.publicBillingInfo(env);
     return reply({ analytics: true, free_mode: b.free_mode, pricing_enabled: b.pricing_enabled });
   }
-  if (p === "/api/fortune/status" && m === "GET") return reply(await fortuneStatus(env));
+  if (p === "/api/fortune/status" && m === "GET") return reply(await fortuneStatus(env, request));
   if (p === "/api/fortune" && m === "POST") {
     if (!originAllowed(request, allow, { required: true })) return reply({ error: "Origin ไม่ได้รับอนุญาต", fallback: true }, 403);
     const [body, status] = await fortuneRun(env, request, deps);
@@ -119,7 +120,7 @@ async function adminRoute(request, env, url, deps) {
       return new Response(r.csv, { headers: { ...cors, "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="lensiq-analytics-${r.from}_${r.to}.csv"`, "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } });
     }
 
-    case "GET /ai": return reply({ settings: await settings.getAiSettings(env.DB), key: await settings.apiKeyStatus(env), efforts: settings.EFFORTS, providers: settings.PROVIDERS });
+    case "GET /ai": return reply({ settings: await settings.getAiSettings(env.DB), key: await settings.apiKeyStatus(env), turnstile: turnstileStatus(env), efforts: settings.EFFORTS, providers: settings.PROVIDERS });
     case "PUT /ai": {
       const input = await body();
       const s = await settings.putAiSettings(env.DB, input);
@@ -134,7 +135,7 @@ async function adminRoute(request, env, url, deps) {
     }
     case "DELETE /ai/key": await settings.deleteApiKey(env); await act("ai.key.deleted"); return reply({ key: await settings.apiKeyStatus(env) });
 
-    case "GET /billing": return reply({ ...(await billing.publicBillingInfo(env)), plans: await billing.listPlans(env.DB), settings: await settings.getBillingSettings(env.DB), opn: { secret_key: !!env.OPN_SECRET_KEY, test_key: String(env.OPN_SECRET_KEY || "").startsWith("skey_test_"), public_key: !!env.OPN_PUBLIC_KEY, webhook_secret: !!env.OPN_WEBHOOK_SECRET } });
+    case "GET /billing": return reply({ ...(await billing.publicBillingInfo(env)), plans: await billing.listPlans(env.DB), settings: await settings.getBillingSettings(env.DB), turnstile: turnstileStatus(env), opn: { secret_key: !!env.OPN_SECRET_KEY, test_key: String(env.OPN_SECRET_KEY || "").startsWith("skey_test_"), public_key: !!env.OPN_PUBLIC_KEY, webhook_secret: !!env.OPN_WEBHOOK_SECRET } });
     case "PUT /billing/settings": {
       const input = await body();
       const s = await settings.putBillingSettings(env.DB, input);

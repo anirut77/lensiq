@@ -135,6 +135,25 @@ test("lensiq-analytics.js: after opt-in sends only allowlisted coarse fields via
   for (const e of payload.events) for (const k of Object.keys(e)) assert.ok(allowed.has(k), k);
 });
 
+test("client and Worker carry the same page / feature / error allowlists; client sends unlisted values as 'other'", async () => {
+  const C = await import(join(ROOT, "backend", "src", "constants.js"));
+  const src = readFileSync(join(ROOT, "lensiq-analytics.js"), "utf8");
+  const m = /var ALLOW = \{\s*page: (\[[^\]]*\]),\s*feature: (\[[^\]]*\]),\s*err: (\[[^\]]*\])/.exec(src);
+  assert.ok(m, "ALLOW block in lensiq-analytics.js");
+  assert.deepEqual(JSON.parse(m[1]), C.ANALYTICS_PAGES);
+  assert.deepEqual(JSON.parse(m[2]), C.ANALYTICS_FEATURES);
+  assert.deepEqual(JSON.parse(m[3]), C.ANALYTICS_ERRORS);
+  const b = browser({ base: "https://api.x.dev", consent: "yes", path: "/lensiq/unknownpage.html" });
+  b.win.LQAnalytics.feature("somchai-jaidee", "start");
+  b.win.LQAnalytics.error({ name: "SomchaiError" });
+  b.fire("pagehide");
+  const p = JSON.parse(b.beacons[0].blob.text);
+  assert.equal(p.events[0].page, "other");
+  assert.equal(p.events[1].feature, "other");
+  assert.equal(p.events[2].err, "other");
+  for (const e of p.events) assert.ok(!/\d{6,}/.test(e.sid), "client sid has no 6+ digit run");
+});
+
 test("client and Worker agree on the allowed event fields", async () => {
   const { FIELDS, EVENT_NAMES } = await import(join(ROOT, "backend", "src", "analytics.js"));
   const src = readFileSync(join(ROOT, "lensiq-analytics.js"), "utf8");
@@ -159,11 +178,14 @@ test("lensiq-fortune-hook.js: adds X-Turnstile-Token only to the POST /api/fortu
   const win = {
     LENSIQ_API_BASE: "https://api.x.dev", LENSIQ_TURNSTILE_SITEKEY: "0x4AAAAAAAabcdef", Headers, Promise, Object, String, setTimeout,
     document: { readyState: "complete", head: { appendChild() {} }, body, createElement: () => ({ style: {}, setAttribute() {} }), addEventListener: (t, f) => { listeners[t] = f; } },
+    clearTimeout,
     fetch: (input, init) => { seen.push({ input, init }); return Promise.resolve({ ok: true }); },
     turnstile: { render: (el, o) => { win._cb = o.callback; return "w1"; }, reset() {}, execute: () => setTimeout(() => win._cb("tok-123"), 0) }
   };
   win.window = win;
-  vm.runInContext(readFileSync(join(ROOT, "lensiq-fortune-hook.js"), "utf8"), vm.createContext(win));
+  const ctx = vm.createContext(win);
+  vm.runInContext(readFileSync(join(ROOT, "lensiq-api.js"), "utf8"), ctx); // LQApi.turnstile provides the token
+  vm.runInContext(readFileSync(join(ROOT, "lensiq-fortune-hook.js"), "utf8"), ctx);
   await win.fetch("https://api.x.dev/api/fortune", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
   await win.fetch("https://api.x.dev/api/fortune/status");
   await win.fetch("https://other.example/api/fortune", { method: "POST" });

@@ -3,6 +3,7 @@
 import { createPromptPayCharge, fetchQr, opnKey, qrUriOf, retrieveCharge, verifyWebhookSignature } from "./opn.js";
 import { getBillingSettings } from "./settings.js";
 import { audit, callerHash, hit } from "./store.js";
+import { verifyTurnstile } from "./turnstile.js";
 import { HttpError, dayOf, flag, intVar, log, now } from "./util.js";
 import { randomId, randomToken, sha256Hex } from "./crypto.js";
 
@@ -104,17 +105,23 @@ async function createPayment(env, { kind, planId = null, period = null, amount, 
 
 /** Public checkout (only when BILLING_ENABLED=true and FREE_MODE=false). */
 export const CHECKOUT_PER_CALLER_HOUR = 5;
-export const CHECKOUT_GLOBAL_HOUR = 200;
+/** Global hourly cap on checkouts (all callers). Override with the CHECKOUT_GLOBAL_HOUR var. */
+export const CHECKOUT_GLOBAL_HOUR = 30;
 
-/** Public checkout (only when BILLING_ENABLED=true and FREE_MODE=false). Rate limited per caller and globally.
+/** Public checkout (only when BILLING_ENABLED=true and FREE_MODE=false). Turnstile (fail closed, action "checkout"),
+ *  then rate limited per caller and globally per hour.
  *  Returns customer_id + order_token ONCE: the buyer keeps them to link the paid plan to themselves (only the token's
  *  hash is stored). */
 export async function checkout(env, request, body, deps = {}) {
   if (!billingEnabled(env)) throw new HttpError(409, freeMode(env) ? "LENSIQ is free right now — no payment needed" : "billing is not enabled");
+  const ts = await verifyTurnstile(env, request, "checkout", deps.fetch);
+  if (!ts.ok) throw ts.code === "turnstile_not_configured"
+    ? new HttpError(503, "checkout unavailable: Turnstile is not configured on the server (turnstile_not_configured)")
+    : new HttpError(403, "bot check failed (turnstile_failed)");
   const who = await callerHash(env, request, "checkout");
   const a = await hit(env.DB, `co:${who}`, CHECKOUT_PER_CALLER_HOUR, 3600);
   if (!a.ok) throw new HttpError(429, "too many checkouts — try again later", { retryAfter: a.retryAfter });
-  const g = await hit(env.DB, "co:global", CHECKOUT_GLOBAL_HOUR, 3600);
+  const g = await hit(env.DB, "co:global", intVar(env.CHECKOUT_GLOBAL_HOUR, CHECKOUT_GLOBAL_HOUR, 1, 100000), 3600);
   if (!g.ok) throw new HttpError(429, "checkout temporarily busy", { retryAfter: g.retryAfter });
   const plan = await env.DB.prepare("SELECT * FROM plans WHERE id = ?1 AND status = 'active'").bind(String(body.plan_id || "")).first();
   if (!plan || plan.id === "free") throw new HttpError(400, "unknown or unavailable plan");

@@ -9,6 +9,9 @@ const { createEnv, req } = require("./backend-d1-shim.js");
 const B = "../../backend/src/";
 const WH_SECRET = Buffer.from("webhook-secret-for-tests-0123456789").toString("base64");
 const TEST_KEY = "skey_test_5xyzabcdefghijklmnop";
+// Turnstile is fail-closed on checkout: configured in these envs, siteverify answered by fakeOpn()
+const TSV = { TURNSTILE_SECRET: "ts-secret", TURNSTILE_HOSTNAMES: "site.example" };
+const TS = { "X-Turnstile-Token": "good" };
 
 const sign = (secretB64, ts, body) => createHmac("sha256", Buffer.from(secretB64, "base64")).update(`${ts}.${body}`).digest("hex");
 
@@ -80,6 +83,10 @@ function fakeOpn() {
   const calls = [];
   let n = 0;
   const fetch = async (url, init = {}) => {
+    if (/challenges\.cloudflare\.com\/turnstile\/v0\/siteverify$/.test(url)) {
+      const p = new URLSearchParams(String(init.body));
+      return new Response(JSON.stringify({ success: p.get("response") === "good", action: "checkout", hostname: "site.example" }));
+    }
     calls.push({ url, method: init.method || "GET", headers: init.headers, body: init.body });
     assert.match(init.headers.Authorization, /^Basic /);
     assert.equal(Buffer.from(init.headers.Authorization.slice(6), "base64").toString(), TEST_KEY + ":");
@@ -104,8 +111,8 @@ function fakeOpn() {
 
 test("checkout refused in FREE_MODE / when billing disabled", async () => {
   const { handle } = await import(B + "index.js");
-  const env = createEnv({ FREE_MODE: "true", BILLING_ENABLED: "true", OPN_SECRET_KEY: TEST_KEY });
-  const r = await handle(req("/v1/billing/checkout", { method: "POST", body: { plan_id: "pro" } }), env, { fetch: fakeOpn().fetch });
+  const env = createEnv({ FREE_MODE: "true", BILLING_ENABLED: "true", ...TSV, OPN_SECRET_KEY: TEST_KEY });
+  const r = await handle(req("/v1/billing/checkout", { headers: TS, method: "POST", body: { plan_id: "pro" } }), env, { fetch: fakeOpn().fetch });
   assert.equal(r.status, 409);
   assert.match((await r.json()).error, /free/i);
 });
@@ -113,10 +120,10 @@ test("checkout refused in FREE_MODE / when billing disabled", async () => {
 test("PromptPay checkout -> QR -> webhook (verified, re-fetched, idempotent) -> receipt + subscription", async () => {
   const { handle } = await import(B + "index.js");
   const opn = fakeOpn();
-  const env = createEnv({ FREE_MODE: "false", BILLING_ENABLED: "true", OPN_SECRET_KEY: TEST_KEY, OPN_WEBHOOK_SECRET: WH_SECRET, VAT_REGISTERED: "true", SELLER_NAME: "LENSIQ Co., Ltd.", SELLER_TAX_ID: "0105500000000" });
+  const env = createEnv({ FREE_MODE: "false", BILLING_ENABLED: "true", ...TSV, OPN_SECRET_KEY: TEST_KEY, OPN_WEBHOOK_SECRET: WH_SECRET, VAT_REGISTERED: "true", SELLER_NAME: "LENSIQ Co., Ltd.", SELLER_TAX_ID: "0105500000000" });
   await env.DB.prepare("UPDATE plans SET status = 'active' WHERE id = 'pro'").run();
   const deps = { fetch: opn.fetch };
-  const c = await handle(req("/v1/billing/checkout", { method: "POST", body: { plan_id: "pro", period: "month", accept_terms: true, buyer: { name: "ร้านตัวอย่าง", email: "shop@example.com", tax_id: "1234567890123" } } }), env, deps);
+  const c = await handle(req("/v1/billing/checkout", { headers: TS, method: "POST", body: { plan_id: "pro", period: "month", accept_terms: true, buyer: { name: "ร้านตัวอย่าง", email: "shop@example.com", tax_id: "1234567890123" } } }), env, deps);
   assert.equal(c.status, 201);
   const co = await c.json();
   assert.equal(co.amount_satang, 99000);
@@ -173,11 +180,11 @@ test("PromptPay checkout -> QR -> webhook (verified, re-fetched, idempotent) -> 
 
 test("webhook without configured secret -> 503; invalid buyer tax id -> 400", async () => {
   const { handle } = await import(B + "index.js");
-  const env = createEnv({ FREE_MODE: "false", BILLING_ENABLED: "true", OPN_SECRET_KEY: TEST_KEY });
+  const env = createEnv({ FREE_MODE: "false", BILLING_ENABLED: "true", ...TSV, OPN_SECRET_KEY: TEST_KEY });
   const r = await handle(req("/v1/billing/webhook/opn", { method: "POST", body: "{}", origin: null }), env);
   assert.equal(r.status, 503);
   await env.DB.prepare("UPDATE plans SET status = 'active' WHERE id = 'pro'").run();
-  const c = await handle(req("/v1/billing/checkout", { method: "POST", body: { plan_id: "pro", accept_terms: true, buyer: { tax_id: "123" } } }), env, { fetch: fakeOpn().fetch });
+  const c = await handle(req("/v1/billing/checkout", { headers: TS, method: "POST", body: { plan_id: "pro", accept_terms: true, buyer: { tax_id: "123" } } }), env, { fetch: fakeOpn().fetch });
   assert.equal(c.status, 400);
 });
 
@@ -197,9 +204,9 @@ test("pricing info hidden until the admin enables the pricing page", async () =>
 test("M2 probe: public checkout is rate limited per caller and globally", async () => {
   const { handle } = await import(B + "index.js");
   const opn = fakeOpn();
-  const env = createEnv({ FREE_MODE: "false", BILLING_ENABLED: "true", OPN_SECRET_KEY: TEST_KEY });
+  const env = createEnv({ FREE_MODE: "false", BILLING_ENABLED: "true", ...TSV, OPN_SECRET_KEY: TEST_KEY });
   await env.DB.prepare("UPDATE plans SET status = 'active' WHERE id != 'free'").run();
-  const co = ip => handle(req("/v1/billing/checkout", { method: "POST", ip, body: { plan_id: "pro", period: "month", accept_terms: true, buyer: { name: "x" } } }), env, { fetch: opn.fetch });
+  const co = ip => handle(req("/v1/billing/checkout", { headers: TS, method: "POST", ip, body: { plan_id: "pro", period: "month", accept_terms: true, buyer: { name: "x" } } }), env, { fetch: opn.fetch });
   const st = [];
   for (let i = 0; i < 8; i++) st.push((await co("203.0.113.5")).status);
   assert.deepEqual(st, [201, 201, 201, 201, 201, 429, 429, 429]);
@@ -231,9 +238,9 @@ test("H3: reconcile cron settles pending payments from Opn (lost webhooks)", asy
   const { reconcilePending } = await import(B + "billing.js");
   const opn = fakeOpn();
   const { handle } = await import(B + "index.js");
-  const env = createEnv({ FREE_MODE: "false", BILLING_ENABLED: "true", OPN_SECRET_KEY: TEST_KEY });
+  const env = createEnv({ FREE_MODE: "false", BILLING_ENABLED: "true", ...TSV, OPN_SECRET_KEY: TEST_KEY });
   await env.DB.prepare("UPDATE plans SET status = 'active' WHERE id = 'pro'").run();
-  const co = await (await handle(req("/v1/billing/checkout", { method: "POST", body: { plan_id: "pro", accept_terms: true } }), env, { fetch: opn.fetch })).json();
+  const co = await (await handle(req("/v1/billing/checkout", { headers: TS, method: "POST", body: { plan_id: "pro", accept_terms: true } }), env, { fetch: opn.fetch })).json();
   const pay = await env.DB.prepare("SELECT provider_charge_id FROM payments WHERE id = ?1").bind(co.payment_id).first();
   assert.deepEqual(await reconcilePending(env, { fetchImpl: opn.fetch }), { checked: 1, changed: 0, errors: 0 });
   opn.charges.get(pay.provider_charge_id).status = "successful";
@@ -260,4 +267,41 @@ test("receipts are gap-free and assigned once when webhook, poll and cron race",
   assert.deepEqual(nums, ["000001", "000002", "000003"]);
   const ym = new Date(t * 1000).toISOString().slice(0, 7).replace("-", "");
   assert.equal((await env.DB.prepare("SELECT value FROM counters WHERE name = ?1").bind("receipt:" + ym).first()).value, 3, "counter not advanced by the losers");
+});
+
+test("eval8 probe2: checkout from 200 different IPs is capped globally per hour", async () => {
+  const { handle } = await import(B + "index.js");
+  const { CHECKOUT_GLOBAL_HOUR } = await import(B + "billing.js");
+  const opn = fakeOpn();
+  const env = createEnv({ FREE_MODE: "false", BILLING_ENABLED: "true", ...TSV, OPN_SECRET_KEY: TEST_KEY });
+  await env.DB.prepare("UPDATE plans SET status = 'active' WHERE id != 'free'").run();
+  let n = 0;
+  for (let i = 0; i < 200; i++) {
+    const x = await handle(req("/v1/billing/checkout", { headers: TS, method: "POST", ip: "10.1." + i + ".1", body: { plan_id: "pro", period: "month", accept_terms: true, buyer: { name: "x" } } }), env, { fetch: opn.fetch });
+    if (x.status === 201) n++; else assert.equal(x.status, 429);
+  }
+  assert.equal(n, CHECKOUT_GLOBAL_HOUR);
+  const env2 = createEnv({ FREE_MODE: "false", BILLING_ENABLED: "true", ...TSV, OPN_SECRET_KEY: TEST_KEY, CHECKOUT_GLOBAL_HOUR: "3" });
+  await env2.DB.prepare("UPDATE plans SET status = 'active' WHERE id != 'free'").run();
+  const s2 = [];
+  for (let i = 0; i < 5; i++) s2.push((await handle(req("/v1/billing/checkout", { headers: TS, method: "POST", ip: "10.2." + i + ".1", body: { plan_id: "pro", accept_terms: true } }), env2, { fetch: opn.fetch })).status);
+  assert.deepEqual(s2, [201, 201, 201, 429, 429], "CHECKOUT_GLOBAL_HOUR var overrides the cap");
+});
+
+test("Turnstile fails CLOSED on checkout: not configured -> 503; bad token -> 403; nothing created", async () => {
+  const { handle } = await import(B + "index.js");
+  const opn = fakeOpn();
+  for (const vars of [{}, { TURNSTILE_SECRET: "ts-secret" }]) {
+    const env = createEnv({ FREE_MODE: "false", BILLING_ENABLED: "true", OPN_SECRET_KEY: TEST_KEY, ...vars });
+    await env.DB.prepare("UPDATE plans SET status = 'active' WHERE id = 'pro'").run();
+    const r = await handle(req("/v1/billing/checkout", { headers: TS, method: "POST", body: { plan_id: "pro", accept_terms: true } }), env, { fetch: opn.fetch });
+    assert.equal(r.status, 503);
+    assert.match((await r.json()).error, /turnstile_not_configured/);
+    assert.equal((await env.DB.prepare("SELECT COUNT(*) AS n FROM customers").first()).n, 0);
+  }
+  const env = createEnv({ FREE_MODE: "false", BILLING_ENABLED: "true", ...TSV, OPN_SECRET_KEY: TEST_KEY });
+  await env.DB.prepare("UPDATE plans SET status = 'active' WHERE id = 'pro'").run();
+  const bad = await handle(req("/v1/billing/checkout", { headers: { "X-Turnstile-Token": "bad" }, method: "POST", body: { plan_id: "pro", accept_terms: true } }), env, { fetch: opn.fetch });
+  assert.equal(bad.status, 403);
+  assert.equal(opn.calls.length, 0, "Opn never called");
 });

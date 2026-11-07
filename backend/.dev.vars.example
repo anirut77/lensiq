@@ -7,3 +7,5 @@ SECRETS_KEK=replace-with-base64-of-32-random-bytes
 # OPN_PUBLIC_KEY=pkey_test_...
 # OPN_WEBHOOK_SECRET=
 ALLOWED_ORIGINS=http://localhost:8000
+# Local development only: skip Turnstile for http://localhost origins (refused for any other origin)
+TURNSTILE_DISABLED_FOR_LOCAL_DEV=true

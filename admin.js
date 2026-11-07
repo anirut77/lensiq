@@ -243,6 +243,10 @@
       f.rpm.value = s.rpm; f.daily_max.value = s.daily_max; f.per_caller_daily.value = s.per_caller_daily; f.global_rpm.value = s.global_rpm;
       var box = $("adDomains"); box.textContent = "";
       Object.keys(s.domains).forEach(function (d) { box.appendChild(h("label", null, h("input", { type: "checkbox", name: "d_" + d, checked: !!s.domains[d] }), " " + d)); });
+      var tsn = $("adTsNotice"), t = r.turnstile || {};
+      tsn.hidden = !!t.configured;
+      tsn.textContent = t.configured ? "" : "⚠ Turnstile ยังไม่ได้ตั้งค่า — ผู้ช่วยเขียน AI ถูกปฏิเสธทุกคำขอ (fail closed) จนกว่าจะตั้ง TURNSTILE_SECRET (wrangler secret put) และ TURNSTILE_HOSTNAMES" +
+        (t.local_dev_bypass ? " · TURNSTILE_DISABLED_FOR_LOCAL_DEV เปิดอยู่: ยกเว้นเฉพาะคำขอจาก localhost" : "");
       var k = r.key;
       $("adKeyStatus").textContent = "ที่มาของคีย์: " + ({ worker_secret: "Worker secret (แนะนำ)", admin_encrypted: "เก็บแบบเข้ารหัสจากหน้านี้", none: "ยังไม่มีคีย์ — AI ปิดอยู่" }[/** @type {"worker_secret"|"admin_encrypted"|"none"} */ (k.source)] || k.source) +
         (k.stored_encrypted ? " · คีย์เข้ารหัสอัปเดต " + when(k.stored_updated_at) + (k.stored_readable ? "" : " (ถอดรหัสไม่ได้ — KEK เปลี่ยน?)") : "") +
@@ -286,6 +290,9 @@
         ["Opn public key", b.opn.public_key ? "ตั้งแล้ว" : "ยังไม่ตั้ง"], ["Opn webhook secret", b.opn.webhook_secret ? "ตั้งแล้ว" : "ยังไม่ตั้ง"]
       ]));
       $("adPricingOn").checked = !!b.settings.pricing_page_enabled;
+      var bn = $("adBillTs"), bt = b.turnstile || {};
+      bn.hidden = !!bt.configured;
+      bn.textContent = bt.configured ? "" : "⚠ Turnstile ยังไม่ได้ตั้งค่า — การชำระเงินผ่านหน้าราคาจะถูกปฏิเสธ (fail closed) จนกว่าจะตั้ง TURNSTILE_SECRET และ TURNSTILE_HOSTNAMES";
       var pl = $("adPlans"); pl.textContent = "";
       pl.appendChild(table(["แพ็กเกจ", "สถานะ", "รายเดือน (บาท)", "รายปี (บาท)", "AI/วัน"], b.plans.map(function (/** @type {any} */ p) {
         var ai = p.entitlements.ai_reading;

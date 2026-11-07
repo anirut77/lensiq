@@ -12,8 +12,8 @@
 //   * NOT an open LLM proxy: every sentence the model returns must pass the SAME grounding gate and safety filter as the
 //     browser (fortune-ai.js safety.groundAI / filterText, imported — no copy, no drift): ungrounded or unsafe text is
 //     dropped and a reply that is mostly ungrounded is refused (502 + fallback)
-//   * Cloudflare Turnstile (TURNSTILE_SECRET Worker secret; site key in lensiq-config.js) — skipped when not configured,
-//     REQUIRED for production (docs/BACKEND.md)
+//   * Cloudflare Turnstile, FAIL CLOSED (turnstile.js): with AI enabled but TURNSTILE_SECRET / TURNSTILE_HOSTNAMES
+//     unset, every call is refused (503 turnstile_not_configured); local-dev escape only for localhost origins
 //   * limits: per caller (day-salted IP hash) per minute + per day, global per minute + per day, plan quota,
 //     admin on/off per domain; Origin allowlist (router); never logs facts
 // Calls Claude through the official Anthropic SDK (@anthropic-ai/sdk).
@@ -23,7 +23,8 @@ import { FORTUNE_SYSTEM } from "./fortune-prompt.js";
 import { checkEntitlement } from "./billing.js";
 import { getAiSettings, getApiKey } from "./settings.js";
 import { callerHash, hit } from "./store.js";
-import { HttpError, clientIp, log, readJson } from "./util.js";
+import { turnstileReady, verifyTurnstile } from "./turnstile.js";
+import { HttpError, log, readJson } from "./util.js";
 
 /** The browser module, shared as-is (grounding gate + safety filter). */
 export const FortuneAI = /** @type {any} */ (FortuneAIModule);
@@ -205,24 +206,6 @@ export function groundSections(sections, facts) {
   return { sections: out, log: { kept: g.log.kept, dropped: g.log.dropped, toppedUp: g.log.toppedUp } };
 }
 
-/** Cloudflare Turnstile. Skipped (ok) when TURNSTILE_SECRET is not configured — required for production. */
-export async function verifyTurnstile(env, request, fetchImpl) {
-  if (!env.TURNSTILE_SECRET) return { ok: true, skipped: true };
-  const token = request.headers.get("X-Turnstile-Token") || "";
-  if (!token || token.length > 2048) return { ok: false, reason: "missing token" };
-  const form = new URLSearchParams({ secret: env.TURNSTILE_SECRET, response: token, remoteip: clientIp(request) });
-  let j = null;
-  try {
-    const r = await (fetchImpl || fetch)("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body: form });
-    j = await r.json();
-  } catch { return { ok: false, reason: "verify unavailable" }; }
-  if (!j || j.success !== true) return { ok: false, reason: "rejected" };
-  if (j.action && j.action !== "fortune") return { ok: false, reason: "wrong action" };
-  const hosts = String(env.TURNSTILE_HOSTNAMES || "").split(",").map(h => h.trim()).filter(Boolean);
-  if (hosts.length && !hosts.includes(String(j.hostname || ""))) return { ok: false, reason: "wrong hostname" };
-  return { ok: true };
-}
-
 /** Default SDK loader (bundled by wrangler from backend/node_modules). Tests inject a fake. */
 async function defaultSdk() {
   const mod = await import("@anthropic-ai/sdk");
@@ -238,10 +221,11 @@ export function classifyError(err, Anthropic) {
   return { status: 500, error: "เกิดข้อผิดพลาด", kind: "unexpected" };
 }
 
-export async function fortuneStatus(env) {
+export async function fortuneStatus(env, request) {
   const s = await getAiSettings(env.DB);
   const key = await getApiKey(env);
-  return { enabled: !!(key && s.enabled), model: s.model, turnstile: !!env.TURNSTILE_SECRET };
+  const ready = turnstileReady(env, request);
+  return { enabled: !!(key && s.enabled && ready), model: s.model, turnstile: true, ...(key && s.enabled && !ready ? { reason: "turnstile_not_configured" } : {}) };
 }
 
 /** POST /api/fortune. Origin/CORS are checked by the router. Returns [body, status]. Never throws for the client:
@@ -262,8 +246,13 @@ export async function fortuneRun(env, request, deps = {}) {
   let modelFacts;
   try { modelFacts = compactForModel(facts); } catch (e) { return [{ error: e.message, fallback: true }, e.status || 413]; }
 
-  const ts = await verifyTurnstile(env, request, deps.fetch);
-  if (!ts.ok) { log("fortune.turnstile", { reason: ts.reason }); return [{ error: "ยืนยันว่าไม่ใช่บอทไม่สำเร็จ", fallback: true }, 403]; }
+  const ts = await verifyTurnstile(env, request, "fortune", deps.fetch);
+  if (!ts.ok) {
+    log("fortune.turnstile", { reason: ts.reason, code: ts.code });
+    return ts.code === "turnstile_not_configured"
+      ? [{ error: "ผู้ช่วยเขียน AI ปิดอยู่: ยังไม่ได้ตั้งค่า Turnstile บนเซิร์ฟเวอร์", code: ts.code, fallback: true }, 503]
+      : [{ error: "ยืนยันว่าไม่ใช่บอทไม่สำเร็จ", code: ts.code, fallback: true }, 403];
+  }
 
   const who = await callerHash(env, request, "fortune");
   const limits = [

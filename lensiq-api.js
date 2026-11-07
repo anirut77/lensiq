@@ -11,6 +11,8 @@
  *   LQApi.postJSON(path, body, opts?)    -> Promise<object|null>
  *   LQApi.beacon(path, body)             -> boolean   (navigator.sendBeacon, text/plain = no CORS preflight)
  *   LQApi.config()                       -> Promise<{analytics, free_mode, pricing_enabled}|null>  (cached)
+ *   LQApi.turnstile(action)              -> Promise<string>  fresh Cloudflare Turnstile token ("" when no site key /
+ *                                           unavailable — the Worker then refuses: Turnstile is fail-closed there)
  */
 (function (root) {
   "use strict";
@@ -70,7 +72,55 @@
     return cfgP;
   }
 
-  var api = { enabled: enabled, base: base, url: url, getJSON: getJSON, postJSON: postJSON, beacon: beacon, config: config };
+  /* ---- Cloudflare Turnstile (window.LENSIQ_TURNSTILE_SITEKEY; CSP gets challenges.cloudflare.com only when set) ---- */
+  /** @type {Promise<any>|null} */
+  var tsLoad = null;
+  /** @type {Record<string, any>} */
+  var tsWidgets = {};
+  function turnstileLib() {
+    if (tsLoad) return tsLoad;
+    tsLoad = new Promise(function (resolve) {
+      var W = /** @type {any} */ (root);
+      if (W.turnstile) { resolve(W.turnstile); return; }
+      var d = root.document;
+      if (!d) { resolve(null); return; }
+      var s = d.createElement("script");
+      s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+      s.async = true;
+      s.onload = function () { resolve(W.turnstile || null); };
+      s.onerror = function () { resolve(null); };
+      d.head.appendChild(s);
+    });
+    return tsLoad;
+  }
+  /** @param {string} action */
+  function turnstile(action) {
+    var key = String(/** @type {any} */ (root).LENSIQ_TURNSTILE_SITEKEY || "").trim();
+    if (!key) return Promise.resolve("");
+    return turnstileLib().then(function (ts) {
+      if (!ts) return "";
+      return new Promise(function (resolve) {
+        var w = tsWidgets[action] || (tsWidgets[action] = { id: null, q: [] });
+        var done = false;
+        var finish = function (/** @type {string} */ t) { if (!done) { done = true; resolve(t || ""); } };
+        setTimeout(function () { finish(""); }, 15000);
+        w.q.push(finish);
+        var flush = function (/** @type {string} */ t) { var q = w.q.splice(0); q.forEach(function (/** @type {any} */ f) { f(t); }); };
+        try {
+          if (w.id == null) {
+            var box = root.document.createElement("div");
+            box.setAttribute("data-lq-turnstile", action);
+            box.style.cssText = "position:fixed;right:12px;bottom:12px;z-index:2147483000";
+            root.document.body.appendChild(box);
+            w.id = ts.render(box, { sitekey: key, action: action, execution: "execute", appearance: "interaction-only", callback: flush, "error-callback": function () { flush(""); } });
+          } else ts.reset(w.id);
+          ts.execute(w.id);
+        } catch (e) { finish(""); }
+      });
+    });
+  }
+
+  var api = { enabled: enabled, base: base, url: url, getJSON: getJSON, postJSON: postJSON, beacon: beacon, config: config, turnstile: turnstile };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.LQApi = api;
 })(typeof window !== "undefined" ? window : /** @type {any} */ (globalThis));

@@ -3,14 +3,17 @@
 // Accepted: POST /v1/events  {v:1, consent:true, cv:"a1", events:[{n, sid, page?, feature?, domain?, step?, err?, lang?,
 // device?, dur?, ret?}]}. Every field is an enum or an allowlisted slug; any other key — and anything that looks like
 // personal data (e-mail incl. "_gmail.com"-style, >= 6 digits anywhere after removing separators, URLs, free text) —
-// rejects the WHOLE batch, nothing is stored. page / feature / err values that pass those checks but are not on the
-// server allowlists (constants.js) are stored as "other", so a page bug can never smuggle an identifier in.
+// rejects the WHOLE batch, nothing is stored. page / feature / err must be on the server allowlists (constants.js
+// ANALYTICS_PAGES / ANALYTICS_FEATURES (+ ANALYTICS_FEATURES var) / ANALYTICS_ERRORS): anything else rejects the batch
+// too, so a free-text slug such as "somchai-jaidee" can never be stored. The client maps unknown values to "other".
+// sid: 32 hex, no run of 6+ digits; it is stored only as a day-salted HMAC, so even a crafted sid cannot carry data.
 // Consent is CLAIMED by the client (consent:true + the consent-text version cv); the server cannot verify it — it logs
 // the version with every event and refuses unknown versions (docs/BACKEND.md).
 // Never stored: images, face data, free text, IP addresses, user agents. A day-salted HMAC of (IP, UA) gives same-day
 // unique counts only; the salt is deleted the next day (retention.js), so visitors cannot be linked across days.
 // Do-Not-Track / Global Privacy Control headers are honoured server-side too (204, nothing stored).
-import { callerHash, hit } from "./store.js";
+import { callerHash, dailySalt, hit } from "./store.js";
+import { hmacHex } from "./crypto.js";
 import { ANALYTICS_ERRORS, ANALYTICS_FEATURES, ANALYTICS_PAGES, CONSENT_VERSIONS, FORTUNE_DOMAINS } from "./constants.js";
 import { HttpError, addDays, dayOf, now } from "./util.js";
 
@@ -78,7 +81,9 @@ export function validateBatch(body, env = {}) {
       if (typeof v !== "string") throw new HttpError(400, `event ${i}: ${k} must be a string`);
       if (k !== "sid") { const why = piiReason(v); if (why) throw new HttpError(400, `event ${i}: ${k} rejected (${why})`); }
       if (spec.enum ? !spec.enum.has(v) : !spec.re.test(v)) throw new HttpError(400, `event ${i}: invalid ${k}`);
-      ev[k] = spec.allow && !spec.allow(env).has(v) ? "other" : v;
+      if (spec.allow && !spec.allow(env).has(v)) throw new HttpError(400, `event ${i}: ${k} "${v.slice(0, 40)}" is not on the server allowlist`);
+      if (k === "sid" && /\d{6,}/.test(v)) throw new HttpError(400, `event ${i}: invalid sid (digit run)`);
+      ev[k] = v;
     }
     if (!ev.n || !ev.sid) throw new HttpError(400, `event ${i}: n and sid are required`);
     for (const f of REQUIRED_BY_NAME[ev.n] || []) if (!ev[f]) throw new HttpError(400, `event ${i}: ${ev.n} needs ${f}`);
@@ -95,6 +100,9 @@ export async function ingest(env, request, body) {
   const rl = await hit(env.DB, `ev:${rk}`, 60, 60);
   if (!rl.ok) throw new HttpError(429, "too many event batches", { retryAfter: rl.retryAfter });
   const vh = (await callerHash(env, request, "visitor", request.headers.get("User-Agent") || "")).slice(0, 16);
+  // the client's sid is never stored as sent: day-salted HMAC (distinct counts per day still work)
+  const salt = await dailySalt(env.DB);
+  for (const e of events) e.sid = (await hmacHex(salt, "sid|" + e.sid)).slice(0, 32);
   const t = now(), day = dayOf(t);
   const stmt = env.DB.prepare("INSERT INTO events (day, ts, name, sid, vh, page, feature, domain, step, err, lang, device, dur, ret, cv) " +
     "VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)");

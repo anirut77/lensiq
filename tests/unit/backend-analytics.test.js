@@ -6,7 +6,7 @@ const assert = require("node:assert/strict");
 const { createEnv, req } = require("./backend-d1-shim.js");
 
 const B = "../../backend/src/";
-const SID = "0123456789abcdef0123456789abcdef";
+const SID = "0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d";
 const ev = (o = {}) => ({ n: "page_view", sid: SID, page: "fortune", lang: "th", device: "mobile", ...o });
 const batch = (...events) => ({ v: 1, consent: true, cv: "a1", events });
 
@@ -68,20 +68,32 @@ test("review probe (round 8): separators, dotted IDs, _gmail.com and IDs hidden 
   assert.equal(tryv({ feature: "fortune.reading" }), "ACCEPTED");
 });
 
-test("server allowlists: unknown page / feature / error class are stored as 'other', never as sent", async () => {
+test("eval8 probe3: server allowlists are enforced — free slugs are rejected, not stored", async () => {
   const { validateBatch } = await import(B + "analytics.js");
-  const [a, b, c, d] = validateBatch(batch(ev({ page: "somchai-profile" }), ev({ n: "feature_used", feature: "somchai.jaidee" }),
-    ev({ n: "error", err: "SomchaiError" }), ev({ n: "feature_used", feature: "fortune.ai" })));
-  assert.equal(a.page, "other");
-  assert.equal(b.feature, "other");
-  assert.equal(c.err, "other");
-  assert.equal(d.feature, "fortune.ai");
-  const [e] = validateBatch(batch(ev({ n: "feature_used", feature: "newpage.thing" })), { ANALYTICS_FEATURES: "newpage.thing" });
-  assert.equal(e.feature, "newpage.thing", "ANALYTICS_FEATURES extends the allowlist");
+  const tryv = e => { try { validateBatch(batch({ n: "feature_used", sid: SID, feature: "fortune.reading", ...e })); return "ACCEPTED"; } catch (x) { return "rejected: " + x.message; } };
+  assert.match(tryv({ feature: "somchai-jaidee" }), /not on the server allowlist/);
+  assert.match(tryv({ page: "somchai-jaidee" }), /not on the server allowlist/);
+  assert.match(tryv({ n: "error", err: "SomchaiError" }), /not on the server allowlist/);
+  assert.match(tryv({ sid: "1103700123456aaa1103700123456aaa" }), /invalid sid/, "13-digit ID inside a sid");
+  assert.equal(tryv({ feature: "other", page: "other" }), "ACCEPTED", "'other' is the client's catch-all");
+  assert.equal(tryv({ page: "palm" }), "ACCEPTED");
+  const ok = validateBatch(batch(ev({ n: "feature_used", feature: "newpage.thing" })), { ANALYTICS_FEATURES: "newpage.thing" });
+  assert.equal(ok[0].feature, "newpage.thing", "ANALYTICS_FEATURES var extends the allowlist");
   const { ANALYTICS_PAGES } = await import(B + "constants.js");
   const { readdirSync } = require("node:fs");
   const pages = readdirSync(require("node:path").join(__dirname, "..", "..")).filter(f => f.endsWith(".html") && f !== "admin.html").map(f => f.slice(0, -5));
-  for (const p of pages) assert.ok(ANALYTICS_PAGES.includes(p), `add "${p}" to ANALYTICS_PAGES in backend/src/constants.js`);
+  for (const p of pages) assert.ok(ANALYTICS_PAGES.includes(p), `add "${p}" to ANALYTICS_PAGES in backend/src/constants.js and lensiq-analytics.js`);
+});
+
+test("sid is stored only as a day-salted HMAC (a crafted sid cannot carry data)", async () => {
+  const env = createEnv();
+  const crafted = "deadbeefcafe0babe0deadbeefcafe0b";
+  assert.equal((await post(env, batch(ev({ sid: crafted })))).status, 202);
+  const row = await env.DB.prepare("SELECT sid FROM events").first();
+  assert.notEqual(row.sid, crafted);
+  assert.match(row.sid, /^[a-f0-9]{32}$/);
+  await post(env, batch(ev({ sid: crafted })));
+  assert.equal((await env.DB.prepare("SELECT COUNT(DISTINCT sid) AS n FROM events").first()).n, 1, "same session -> same hash within the day");
 });
 
 test("ingest: text/plain (sendBeacon) accepted; no IP/UA stored; visitor hash is day-salted", async () => {

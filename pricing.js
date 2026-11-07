@@ -56,9 +56,12 @@
     ev.preventDefault();
     var f = /** @type {any} */ (ev.target);
     var box = $("prQr"); box.textContent = "กำลังสร้าง QR…";
-    API.postJSON("/v1/billing/checkout", {
-      plan_id: chosen, period: period, accept_terms: !!f.accept.checked,
-      buyer: { name: f.name.value, email: f.email.value, tax_id: f.tax_id.value, address: f.address.value, branch: f.branch.value }
+    // Turnstile is required by the Worker for checkout (fail closed)
+    API.turnstile("checkout").then(function (/** @type {string} */ tok) {
+      return API.postJSON("/v1/billing/checkout", {
+        plan_id: chosen, period: period, accept_terms: !!f.accept.checked,
+        buyer: { name: f.name.value, email: f.email.value, tax_id: f.tax_id.value, address: f.address.value, branch: f.branch.value }
+      }, { headers: tok ? { "X-Turnstile-Token": tok } : {} });
     }).then(function (/** @type {any} */ r) {
       if (!r) { box.textContent = "สร้างรายการชำระเงินไม่สำเร็จ กรุณาตรวจข้อมูลแล้วลองใหม่"; return; }
       box.textContent = "";

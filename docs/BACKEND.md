@@ -90,13 +90,17 @@ Same contract as `server.py`, so `fortune-ai.js` needs **no change**: it already
 * **Output size / cost:** `max_tokens` hard-capped at **2048** (admin range 512–2048), effort default **`low`** so adaptive
   thinking stays short. If a reading is cut off (`stop_reason: max_tokens`) the page falls back to the local composer —
   watch the `fortune.error kind=parse` log rate after go-live and lower the target length if needed.
-* **Cloudflare Turnstile — required for production.** Set the secret with `wrangler secret put TURNSTILE_SECRET` and the
-  site key in `lensiq-config.js` (`window.LENSIQ_TURNSTILE_SITEKEY`), then `node tools/csp-meta.mjs` (adds
-  `https://challenges.cloudflare.com` to `script-src`/`frame-src`/`connect-src` only when a site key is set). The
-  fortune hook (`lensiq-fortune-hook.js`) renders an invisible widget and adds a fresh `X-Turnstile-Token` to the
-  `/api/fortune` POST only; the Worker verifies it with siteverify (action `fortune`, optional `TURNSTILE_HOSTNAMES`).
-  Without the secret, verification is skipped — acceptable only for development: without it the daily AI budget can be
-  exhausted by a distributed caller (the limits below then only bound the cost).
+* **Cloudflare Turnstile — fail closed** (`backend/src/turnstile.js`). With the AI writing assistant enabled, every
+  `/api/fortune` call is refused (`503`, `code: "turnstile_not_configured"`, `fallback: true`) and
+  `/api/fortune/status` reports `enabled: false` until **both** `TURNSTILE_SECRET` (`wrangler secret put
+  TURNSTILE_SECRET`) and `TURNSTILE_HOSTNAMES` (var, comma-separated) are set. The admin AI and Billing tabs show a
+  warning while it is missing. The siteverify response must have `success: true`, the expected `action`
+  (`fortune` / `checkout`) and a `hostname` listed in `TURNSTILE_HOSTNAMES`. Site key: `window.LENSIQ_TURNSTILE_SITEKEY`
+  in `lensiq-config.js`, then `node tools/csp-meta.mjs` (adds `https://challenges.cloudflare.com` to
+  `script-src`/`frame-src`/`connect-src` only when a site key is set). Tokens come from `LQApi.turnstile(action)`
+  (lensiq-api.js); the fortune hook adds `X-Turnstile-Token` to the `/api/fortune` POST only, pricing.js to checkout.
+  **Local development:** `TURNSTILE_DISABLED_FOR_LOCAL_DEV=true` (e.g. in `.dev.vars`) skips verification **only** for
+  requests whose `Origin` is `http(s)://localhost`, `127.0.0.1` or `[::1]`; any other origin is still refused.
 * **Limits (admin-configurable):** per caller per minute (10) and per day (20), all callers per minute (60) and per day
   (500), plan quota (counted always, enforced only when `FREE_MODE=false`), per-domain on/off, Origin allowlist.
 * Every failure returns `fallback: true` so the page uses its local composer.
@@ -129,9 +133,13 @@ Privacy Control respected in the browser **and** on the Worker, batching (10 s /
   batch is rejected on any unknown or PII-looking key/value: `@`, **6 or more digits anywhere** (separators such as
   `-` `.` `_` are ignored, so `081-234-5678` and `1.2345.67890.12.3` are caught), URLs, e-mail-like slugs
   (`_gmail.com`, `-hotmail`, `.co.th` endings …), whitespace / non-ASCII free text.
-* **Server allowlists** (`backend/src/constants.js`): page slugs (every public page — a test fails when a page is
-  missing), feature slugs (`ANALYTICS_FEATURES`, extendable with the `ANALYTICS_FEATURES` var) and error classes. A
-  value that passes the PII checks but is not allowlisted is stored as `"other"` — never as sent.
+* **Server allowlists, enforced** (`backend/src/constants.js`): `ANALYTICS_PAGES` (every public page — a test fails when
+  a page is missing), `ANALYTICS_FEATURES` (extendable with the `ANALYTICS_FEATURES` var) and `ANALYTICS_ERRORS`. A
+  value that is not listed **rejects the batch** (`"somchai-jaidee"` is never stored). `lensiq-analytics.js` carries the
+  same lists (a drift test compares them) and sends anything unlisted as `"other"`. To add a feature: add it to both
+  lists (or the var) before the page sends it.
+* **sid:** exactly 32 hex with no run of 6+ digits (the client avoids such runs); the Worker stores only a day-salted
+  HMAC of it, so a crafted sid cannot carry data into the database.
 * **Consent is claimed by the client.** The Worker cannot verify that a person clicked "Accept"; it requires
   `consent: true` plus the consent-text version `cv` (currently `a1`, `CONSENT_VERSIONS`), refuses unknown versions and
   **stores `cv` with every event**, so the data can be tied to the text that was shown. When the banner text changes,
@@ -151,8 +159,9 @@ transparently to record the domain + start/complete).
 Tables `plans, entitlements, customers, subscriptions, payments, webhooks, counters`. `checkEntitlement()` is the
 single server-side gate; with `FREE_MODE=true` it always allows but still counts usage (so we learn real demand).
 
-* **Checkout** (`BILLING_ENABLED=true` **and** `FREE_MODE=false` only), rate limited (5 per caller per hour, 200 per hour
-  overall): PromptPay charge (`POST /charges`, `source[type]=promptpay`), QR proxied through the Worker as SVG (page CSP
+* **Checkout** (`BILLING_ENABLED=true` **and** `FREE_MODE=false` only): Turnstile required (fail closed, action
+  `checkout`; `503 turnstile_not_configured` without it), then 5 per caller per hour **and a global cap of 30 per hour**
+  (`CHECKOUT_GLOBAL_HOUR` var): PromptPay charge (`POST /charges`, `source[type]=promptpay`), QR proxied through the Worker as SVG (page CSP
   allows `img-src blob:` only), status polling (`GET /charges/:id`). The response includes `customer_id` and a secret
   `order_token` shown once to the buyer (only its hash is stored) — the handle that links the paid plan to the buyer.
 * **Webhook** `POST /v1/billing/webhook/opn` verified with `Omise-Signature` (hex HMAC-SHA256 over
@@ -220,8 +229,10 @@ Rollback: `npx wrangler rollback`; disable everything client-side by setting `LE
 |---|---|---|---|
 | `ALLOWED_ORIGINS` | var | example | public API origin allowlist (comma separated) |
 | `ADMIN_ORIGINS` | var | empty | extra admin API origins (the Worker's own origin is always allowed; no fallback) |
-| `TURNSTILE_SECRET` | secret | — | Cloudflare Turnstile for `/api/fortune` (**required in production**) |
-| `TURNSTILE_HOSTNAMES` | var | empty | optional hostnames the Turnstile token must come from |
+| `TURNSTILE_SECRET` | secret | — | Cloudflare Turnstile for `/api/fortune` and checkout — **required** (fail closed) |
+| `TURNSTILE_HOSTNAMES` | var | empty | **required** with the secret: hostnames the siteverify `hostname` must match |
+| `TURNSTILE_DISABLED_FOR_LOCAL_DEV` | var | — | `true` = skip Turnstile for `localhost` origins only (development) |
+| `CHECKOUT_GLOBAL_HOUR` | var | 30 | global hourly checkout cap |
 | `ANALYTICS_FEATURES` | var | empty | extra allowlisted analytics feature slugs |
 | `FREE_MODE` | var | `true` | all features unlocked; anything but `false` counts as true |
 | `BILLING_ENABLED` | var | `false` | public checkout (also needs FREE_MODE=false) |

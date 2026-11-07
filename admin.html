@@ -83,6 +83,7 @@
     <div class="ad-panel" data-panel="ai" role="tabpanel" hidden>
       <div class="ad-card">
         <h2>ผู้ช่วยเขียนคำทำนาย</h2>
+        <p id="adTsNotice" class="ad-warn" role="alert" hidden></p>
         <form id="adAiForm" class="ad-form">
           <label><input type="checkbox" name="enabled"> เปิดใช้งาน</label>
           <label>ผู้ให้บริการ <select name="provider"><option value="anthropic">Anthropic (Claude)</option></select></label>
@@ -113,6 +114,7 @@
     <div class="ad-panel" data-panel="billing" role="tabpanel" hidden>
       <div class="ad-card">
         <h2>สถานะ</h2>
+        <p id="adBillTs" class="ad-warn" role="alert" hidden></p>
         <div id="adBillStatus"></div>
         <label class="ad-inline"><input type="checkbox" id="adPricingOn"> แสดงหน้าราคา (pricing.html) ฉบับร่าง</label>
       </div>

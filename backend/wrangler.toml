@@ -4,8 +4,8 @@
 #   SECRETS_KEK            base64 of 32 random bytes — AES-GCM key-encryption key (TOTP secret, admin-set API key)
 #   ANTHROPIC_API_KEY      preferred way to give the fortune writing assistant its key
 #   OPN_SECRET_KEY / OPN_PUBLIC_KEY / OPN_WEBHOOK_SECRET   Opn (Omise) TEST keys until go-live
-#   TURNSTILE_SECRET       Cloudflare Turnstile secret for /api/fortune (REQUIRED in production; site key goes in
-#                          lensiq-config.js window.LENSIQ_TURNSTILE_SITEKEY)
+#   TURNSTILE_SECRET       Cloudflare Turnstile secret for /api/fortune + checkout (REQUIRED: both refuse without it;
+#                          site key goes in lensiq-config.js window.LENSIQ_TURNSTILE_SITEKEY)
 name = "lensiq-api"
 main = "src/index.js"
 compatibility_date = "2026-10-01"
@@ -18,8 +18,10 @@ ALLOWED_ORIGINS = "https://example.github.io"
 # Extra origins allowed to use the admin API. The Worker's own origin (admin served by this Worker, recommended:
 # https://admin.<domain>) is always allowed; there is NO fallback to ALLOWED_ORIGINS.
 ADMIN_ORIGINS = ""
-# Optional: hostnames Turnstile tokens must have been issued on (comma separated), e.g. "www.example.co.th"
+# REQUIRED with TURNSTILE_SECRET (fail closed): hostnames Turnstile tokens must have been issued on, e.g. "www.example.co.th"
 TURNSTILE_HOSTNAMES = ""
+# Global hourly cap on public checkouts (on top of 5 per caller per hour)
+CHECKOUT_GLOBAL_HOUR = "30"
 # Extra analytics feature slugs accepted besides backend/src/constants.js ANALYTICS_FEATURES (comma separated)
 ANALYTICS_FEATURES = ""
 # FREE service today: every feature unlocked, quotas counted but not enforced.
