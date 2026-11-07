@@ -9,6 +9,8 @@
 //
 // The API Worker origin (window.LENSIQ_API_BASE in lensiq-config.js, docs/BACKEND.md) is added to connect-src
 // automatically — but ONLY when it is configured (non-empty). Default "" keeps connect-src 'self' data: blob:.
+// Likewise Turnstile (LENSIQ_TURNSTILE_SITEKEY) and Google sign-in (LENSIQ_GOOGLE_CLIENT_ID): third-party origins appear
+// in the policy only when the owner configured them.
 //
 // Differences from the HTTP header sent by server.py (a <meta> policy cannot carry them):
 //   frame-ancestors, report-uri/report-to and sandbox are ignored in <meta> by the CSP spec -> omitted.
@@ -24,26 +26,53 @@ const ORIGIN_RE = /^https?:\/\/[A-Za-z0-9.\-:[\]]+\/?$/;
 
 export const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
 
+/** Google Identity Services ("Sign in with Google") — the exact paths Google documents for a CSP, nothing broader. */
+export const GSI = {
+  script: "https://accounts.google.com/gsi/client",
+  style: "https://accounts.google.com/gsi/style",
+  frame: "https://accounts.google.com/gsi/",
+  connect: "https://accounts.google.com/gsi/"
+};
+
 /** The policy (same directives and order as server.py _csp(), minus frame-ancestors). `turnstile: true` (only when
- *  lensiq-config.js sets LENSIQ_TURNSTILE_SITEKEY) allows Cloudflare Turnstile's script + iframe. */
-export function policy({ connect = [], turnstile = false } = {}) {
+ *  lensiq-config.js sets LENSIQ_TURNSTILE_SITEKEY) allows Cloudflare Turnstile's script + iframe. `google: true` (only
+ *  when lensiq-config.js sets LENSIQ_GOOGLE_CLIENT_ID) allows Google Identity Services — lensiq-member.js loads that
+ *  script only after the visitor clicks "continue with Google", so no request is made on page load. */
+export function policy({ connect = [], turnstile = false, google = false } = {}) {
   const extra = connect.map(o => String(o).trim()).filter(o => ORIGIN_RE.test(o)).map(o => o.replace(/\/$/, ""));
   if (turnstile) extra.push(TURNSTILE_ORIGIN);
+  if (google) extra.push(GSI.connect);
+  const scripts = ["'self' 'wasm-unsafe-eval'", turnstile ? TURNSTILE_ORIGIN : "", google ? GSI.script : ""].filter(Boolean).join(" ");
+  const frames = [turnstile ? TURNSTILE_ORIGIN : "", google ? GSI.frame : ""].filter(Boolean);
   return [
     "default-src 'self'",
-    turnstile ? "script-src 'self' 'wasm-unsafe-eval' " + TURNSTILE_ORIGIN : "script-src 'self' 'wasm-unsafe-eval'",
-    "style-src 'self' 'unsafe-inline'",
+    "script-src " + scripts,
+    "style-src 'self' 'unsafe-inline'" + (google ? " " + GSI.style : ""),
     "font-src 'self' data:",
     "img-src 'self' data: blob:",
     "media-src 'self' data: blob:",
     ("connect-src 'self' data: blob: " + extra.join(" ")).trim(),
-    ...(turnstile ? ["frame-src " + TURNSTILE_ORIGIN] : []),
+    ...(frames.length ? ["frame-src " + frames.join(" ")] : []),
     "worker-src 'self' blob:",
     "manifest-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'"
   ].join("; ");
+}
+
+/** True when lensiq-config.js sets a non-empty LENSIQ_GOOGLE_CLIENT_ID (statement, not the comment). */
+export function configuredGoogle(configSrc) {
+  const m = /^[ \t]*window\.LENSIQ_GOOGLE_CLIENT_ID\s*=\s*(?:window\.LENSIQ_GOOGLE_CLIENT_ID\s*\|\|\s*)?(["'])([^"']*)\1/m.exec(String(configSrc || ""));
+  return !!(m && /^[0-9A-Za-z._-]{8,200}$/.test(m[2].trim()));
+}
+
+/** The policy for the repo's current lensiq-config.js (+ extra connect-src origins). Used by check-csp.mjs too. */
+export function configuredPolicy(configSrc, connect = []) {
+  const c = connect.slice();
+  const apiOrigin = configuredApiOrigin(configSrc);
+  if (apiOrigin) c.push(apiOrigin);
+  return policy({ connect: c, turnstile: configuredTurnstile(configSrc), google: configuredGoogle(configSrc) });
 }
 
 /** Origin of window.LENSIQ_API_BASE in lensiq-config.js source, or null when empty / not a plain http(s) origin. */
@@ -108,8 +137,6 @@ function main(argv) {
   const connect = (process.env.LENSIQ_CSP_CONNECT || "").split(",").filter(Boolean);
   let cfg = "";
   try { cfg = readFileSync(join(repo, "lensiq-config.js"), "utf8"); } catch { /* no config file */ }
-  const apiOrigin = configuredApiOrigin(cfg);
-  if (apiOrigin) connect.push(apiOrigin);
   const files = [];
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--check") continue;
@@ -117,7 +144,7 @@ function main(argv) {
     files.push(resolve(args[i]));
   }
   if (!files.length) for (const f of readdirSync(repo).filter(f => f.endsWith(".html")).sort()) files.push(join(repo, f));
-  const pol = policy({ connect, turnstile: configuredTurnstile(cfg) });
+  const pol = configuredPolicy(cfg, connect);
   let changed = 0, bad = 0;
   for (const f of files) {
     const html = readFileSync(f, "utf8");

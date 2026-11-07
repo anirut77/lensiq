@@ -18,6 +18,7 @@
 <main class="st">
   <h1 data-i18n="studio.h1">สตูดิโอแต่งชุด</h1>
   <p class="lead" data-i18n="studio.lead">อัปโหลดรูปหรือถ่ายจากกล้อง ระบบตัดพื้นหลัง เกลาขอบผม แล้วสวมชุดจากเทมเพลตให้เข้ากับไหล่และคอ ปรับแสงสีให้กลมกลืนเหมือนใส่ถ่ายจริง พร้อมรีทัชแบบเป็นธรรมชาติ</p>
+  <p class="hint st-expect" data-i18n="studio.expect">ได้ผลดีที่สุดกับรูปหน้าตรง เห็นคอและไหล่ชัด ผมไม่บังคอ แสงสม่ำเสมอ ทุกครั้งที่แต่งชุด ระบบตรวจรอยต่อคอและกรามอัตโนมัติ ถ้าไม่ผ่านจะแสดงเฉพาะฉากหลังใหม่และรีทัชกับเสื้อเดิมของคุณแทน (ยังเลือกดูแบบร่างได้) การตรวจอัตโนมัติพลาดรอยต่อได้มาก ให้ถือว่าภาพชุดทุกภาพเป็นตัวอย่าง และตรวจบริเวณคอก่อนใช้ ชุดเป็นภาพจำลอง ไม่ใช่การลองชุดจริง</p>
   <div class="engine" id="stEngine" role="status">กำลังเตรียมระบบ...</div>
 
   <div class="st-layout">
@@ -51,7 +52,7 @@
           <div class="st-split-line" id="stSplitLine" aria-hidden="true"></div>
           <div class="st-busy" id="stBusy" hidden data-i18n="studio.busy">กำลังประมวลผล...</div>
         </div>
-        <p class="st-qa" id="stQa" role="status" aria-live="polite" hidden data-i18n="studio.qaWarn">ภาพนี้อาจดูไม่เนียน — ลองถ่ายใหม่หน้าตรง แสงสม่ำเสมอ หรือเลือกชุดอื่น</p>
+        <div class="st-qa" id="stQa" role="status" aria-live="polite" hidden><span id="stQaMsg"></span> <button type="button" class="btn ghost sm" id="stQaDraft"></button></div>
         <label class="slider st-split" data-i18n="studio.split">ก่อน | หลัง<input type="range" id="stSplit" min="0" max="100" value="0" aria-label="เลื่อนเทียบภาพก่อนและหลัง" data-i18n-attr="aria-label:studio.a.split"></label>
         <div class="seg" id="stMode" role="group" aria-label="เครื่องมือ" data-i18n-attr="aria-label:studio.a.tools">
           <button type="button" data-m="view" class="on" data-i18n="studio.mode.view">ดูภาพ</button>
@@ -77,6 +78,7 @@
           <button class="btn ghost sm" id="stAnchorBtn" type="button" data-i18n="studio.anchorBtn">ตั้งจุดคอ/ไหล่ของชุด</button>
         </div>
         <p class="hint" data-i18n="studio.tplTip">เคล็ดลับ: ผลที่สมจริงที่สุดมาจากการถ่ายรูปชุดจริงของร้าน (วางราบหรือใส่หุ่น บนพื้นเรียบ แสงสม่ำเสมอ เห็นทั้งตัวเสื้อตั้งแต่คอถึงชายเสื้อ) แล้วกด "เพิ่มชุด" — ระบบตัดพื้นหลังและหาจุดคอ/ไหล่ให้อัตโนมัติ ชุดสำเร็จรูปด้านบนเป็นชุดตัวอย่าง</p>
+        <p class="hint" data-i18n="studio.garmentGuide">ถ่ายชุดของคุณเอง: วางราบบนพื้นเรียบสีตัดกับชุด แสงนุ่มสม่ำเสมอ ติดกระดุมและจัดผ้าให้เรียบ ไหล่สองข้างระดับเดียวกัน ถ่ายตรงจากด้านบนและเว้นที่ว่างรอบชุด ระบบตรวจรูปก่อนนำไปใช้</p>
         <p class="hint" id="stGarmentMsg"><span data-i18n="studio.outfitNote">ชุดที่เพิ่มจะเก็บไว้ในเบราว์เซอร์นี้ (ใช้ร่วมกับหน้า ตู้ถ่ายรูป) ไม่ถูกส่งออกนอกเครื่อง</span></p>
       </details>
       <details open>

@@ -24,6 +24,13 @@ TURNSTILE_HOSTNAMES = ""
 CHECKOUT_GLOBAL_HOUR = "30"
 # Extra analytics feature slugs accepted besides backend/src/constants.js ANALYTICS_FEATURES (comma separated)
 ANALYTICS_FEATURES = ""
+# "Sign in with Google" OAuth 2.0 Client ID (Web application) from Google Cloud Console — PUBLIC, not a secret.
+# Empty = member sign-in off (no gating anywhere). Same value as window.LENSIQ_GOOGLE_CLIENT_ID in lensiq-config.js.
+GOOGLE_CLIENT_ID = ""
+# Global cap on Google sign-ins per 15 min (on top of 10 per caller)
+SIGNIN_GLOBAL_15MIN = "300"
+# Member usage ledger rows (readings / AI uses) are kept this many days; payment rows are kept with the payment
+MEMBER_LEDGER_DAYS = "400"
 # FREE service today: every feature unlocked, quotas counted but not enforced.
 FREE_MODE = "true"
 # Public PromptPay checkout. Keep "false" until pricing, terms and VAT registration are final.

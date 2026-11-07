@@ -1,0 +1,33 @@
+/* account.css — บัญชีของฉัน (account.html) — member account: plan, quotas, history, data export, deletion */
+.acct .section{padding-top:28px;padding-bottom:28px}
+.acct-head{padding-top:56px;max-width:960px;padding-left:16px;padding-right:16px}
+.acct-head h1{font-size:clamp(1.6rem,4.5vw,2.4rem);line-height:1.25;color:var(--navy);margin:6px 0 10px}
+.acct h2{font-size:clamp(1.15rem,3vw,1.45rem);color:var(--navy);margin:0 0 12px}
+.acct h3{font-size:1rem;color:var(--navy);margin:18px 0 8px}
+.acct-card{box-sizing:border-box;background:#fff;border:1px solid var(--line);border-radius:var(--r,16px);margin:0 auto 16px;width:calc(100% - 32px);max-width:960px;padding:22px clamp(16px,4vw,28px)}
+.acct-dl{display:grid;grid-template-columns:minmax(0,max-content) minmax(0,1fr);gap:6px 18px;margin:0 0 12px}
+.acct-dl dt{color:var(--muted);font-size:.9rem}.acct-dl dd{margin:0;overflow-wrap:anywhere}
+.acct-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:10px}
+.acct-kpi{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--alt,#f6f7fb)}
+.acct-kpi b{display:block;font-size:1.35rem;color:var(--navy)}.acct-kpi span{color:var(--muted);font-size:.86rem}
+.acct-bar{height:6px;border-radius:99px;background:#e3e7f0;margin-top:8px;overflow:hidden}.acct-bar i{display:block;height:100%;background:#5b47e0;border-radius:99px}
+.acct-muted{color:var(--muted);font-size:.9rem}
+.acct-row{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 0}
+.acct-check{display:flex;gap:.6em;align-items:flex-start;margin:10px 0;line-height:1.5;cursor:pointer}
+.acct-check input{width:18px;height:18px;margin-top:.2em;flex:none}
+.acct-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px}
+.acct-table{width:100%;border-collapse:collapse;font-size:.9rem}
+.acct-table th,.acct-table td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top;white-space:nowrap}
+.acct-table th{background:var(--alt,#f6f7fb);color:var(--navy);font-weight:600}
+.acct-table tr:last-child td{border-bottom:0}
+.acct-saved{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.acct-saved li{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.acct-saved li .t{flex:1 1 200px;min-width:0;overflow-wrap:anywhere}.acct-saved li small{color:var(--muted)}
+.acct-saved button{min-height:40px;padding:0 14px;border-radius:99px;border:1px solid var(--line);background:#fff;font:inherit;font-size:.86rem;cursor:pointer}
+.acct-view{margin:12px 0;padding:14px 16px;border-radius:12px;background:var(--alt,#f6f7fb);line-height:1.65}
+.acct-view h4{margin:12px 0 4px;color:var(--navy)}
+.acct-danger{border-color:#f3c4bf}
+.acct-btn-danger{background:#b42318;border-color:#b42318;color:#fff}.acct-btn-danger:disabled{opacity:.45;cursor:not-allowed}
+.acct-msg{max-width:960px;margin:0 auto 24px;padding:0 16px;min-height:1.5em}
+.acct-msg.bad{color:#b42318}
+@media(max-width:600px){.acct-dl{grid-template-columns:1fr}.acct-dl dd{margin-bottom:6px}.acct-table{font-size:.85rem}}

@@ -11,22 +11,66 @@
   const small = document.createElement("canvas"), cropCv = document.createElement("canvas");
   const b64 = f32 => { const u = new Uint8Array(f32.buffer, f32.byteOffset, f32.byteLength); let s = ""; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); };
 
+  const hcv = document.createElement("canvas");
+  const rng = seed => { let a = (seed * 2654435761) >>> 0 || 1; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
+  const gauss = r => Math.sqrt(-2 * Math.log(r() + 1e-12)) * Math.cos(2 * Math.PI * r());
+  const L2S = new Uint8ClampedArray(4096); for (let i = 0; i < 4096; i++) L2S[i] = Math.round(255 * Math.pow(i / 4095, 1 / 2.2));
+  const S2L = new Float32Array(256); for (let i = 0; i < 256; i++) S2L[i] = Math.pow(i / 255, 2.2);
+  /* camera-like degradations, applied before detection (robustness benchmark, ACCURACY.md §12 "Camera health indicator"):
+     dark:K   exposure × K in linear light + shot noise (∝ √signal) + read noise, as a sensor at higher gain
+     night:K  dark:K plus a 2.5 px blur (the longer shutter of a camera in low light)
+     back:K   backlit door: bright opening (top 25% clipped white) + veiling glare, subjects at exposure × K
+     blur:R   defocus / motion blur, Gaussian R px at 640 px width
+     shake:S  per-frame random translation up to S × width (camera on a loose mount), plus 1 px blur */
+  function degrade(im, spec, seed) {
+    const [kind, kv] = spec.split(":"), k = +kv, W = im.naturalWidth || im.width, H = im.naturalHeight || im.height;
+    const c = document.createElement("canvas"); c.width = W; c.height = H;
+    const x = c.getContext("2d", { willReadFrequently: true }), r = rng(seed + 1);
+    if (kind === "blur") { x.filter = `blur(${(k * W / 640).toFixed(2)}px)`; x.drawImage(im, 0, 0); x.filter = "none"; return c; }
+    if (kind === "shake") {
+      const dx = (r() * 2 - 1) * k * W, dy = (r() * 2 - 1) * k * W * 0.5;
+      x.fillStyle = "#000"; x.fillRect(0, 0, W, H); x.filter = `blur(${(W / 640).toFixed(2)}px)`; x.drawImage(im, dx, dy); x.filter = "none"; return c;
+    }
+    if (kind === "night") x.filter = `blur(${(2.5 * W / 640).toFixed(2)}px)`; // long exposure: motion blur as well as noise
+    x.drawImage(im, 0, 0); x.filter = "none";
+    const d = x.getImageData(0, 0, W, H), p = d.data;
+    for (let i = 0, j = 0; i < p.length; i += 4, j++) {
+      const yy = Math.floor(j / W);
+      for (let ch = 0; ch < 3; ch++) {
+        let v = S2L[p[i + ch]];
+        if (kind === "dark" || kind === "night") {
+          v *= k; const e = v * 255 * 12; // photo-electrons at full scale ≈ 3000
+          v = (e + Math.sqrt(Math.max(e, 0)) * gauss(r) + 3 * gauss(r)) / (255 * 12);
+        } else if (kind === "back") {
+          v = yy < H * 0.25 ? 1 : v * k + 0.06 + 0.10 * (1 - yy / H);
+        }
+        p[i + ch] = L2S[Math.max(0, Math.min(4095, Math.round(v * 4095)))];
+      }
+    }
+    x.putImageData(d, 0, 0);
+    return c;
+  }
   const LQB = {
     ready: false,
+    degrade, healthAlways: false,
     backend: () => LQDetect.tfBackend(),
     /* people: detections for a list of frame URLs. minScore low (0.05) so thresholds can be swept offline:
        greedy NMS keeps exactly the same boxes above any higher threshold. embMin>0 -> MobileNetV2 embedding (base64
        Float32) for each det >= embMin, cropped from the detW canvas exactly like store.js frameSrc()+embedBox. */
-    async people(urls, { detW = 416, minScore = 0.05, max = 100, embMin = 0, tiles = null, model = "coco", split = null } = {}) {
+    async people(urls, { detW = 416, minScore = 0.05, max = 100, embMin = 0, tiles = null, model = "coco", split = null, degrade = null, seeds = null } = {}) {
       const det = model === "coco" ? (coco = coco || await LQDetect.loadCoco(MODEL + "cocossd/model.json")) : await LQDetect.loadYolox(MODEL + "yolox/" + model + ".onnx");
       if (embMin > 0) emb = emb || await LQDetect.loadEmbedder(MODEL + "mobilenet/model.json");
       const out = [];
-      for (const u of urls) {
-        const im = await img(u);
+      for (let ui = 0; ui < urls.length; ui++) {
+        const u = urls[ui];
+        let im = await img(u), hs = null;
+        if (degrade) { im = LQB.degrade(im, degrade, seeds ? seeds[ui] : ui); }
+        if (degrade || LQB.healthAlways) { const s = LQSite.sampleElement(im, hcv); hs = { p50: s.p50, clip: +s.clip.toFixed(4), cellMax: Math.round(s.cellMax), contrast: s.contrast, sharp: +s.sharp.toFixed(2), dark: +s.dark.toFixed(3), thumb: Array.from(s.thumb, v => Math.round(v)) }; }
         const t0 = performance.now();
         const dets = await LQDetect.detectPeople(det, im, { detW, minScore, max, canvas: small, tiles, split });
         const ms = performance.now() - t0;
         const row = { d: dets.map(d => [r4(d.x), r4(d.y), r4(d.w), r4(d.h), r4(d.score)]), ms: Math.round(ms) };
+        if (hs) row.hs = hs;
         if (embMin > 0) {
           let embMs = 0, n = 0;
           row.e = dets.map(d => {

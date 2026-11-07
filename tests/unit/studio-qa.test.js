@@ -142,3 +142,14 @@ test("jawBlob: a solid dark flap or a background gap next to the jaw (vs the ori
   const gap = Q.jawBlob({ out: clean, src, srcA: one, fg: fill(W, H, (x, y) => (inFace(x, y) || y > 95 || (Math.abs(x - 100) < 25 && y < 96) ? 1 : 0)), frontA, hair: null, W, H, face: f2 });
   assert.ok(gap.area > Q.LIMITS.jawBlob && gap.kind === "gap", JSON.stringify(gap));
 });
+
+test("revealed: background that replaces the original person right beside the shown head is measured; a fully covered join is 0", () => {
+  const head = fill(W, H, (x, y) => (Math.hypot(x - 100, y - 55) < 30 ? 1 : 0));
+  const srcA = fill(W, H, (x, y) => (Math.hypot(x - 100, y - 55) < 30 || (Math.abs(x - 100) < 45 && y > 55) ? 1 : 0));
+  const covered = fill(W, H, (x, y) => (head[y * W + x] || (Math.abs(x - 100) < 45 && y > 55) ? 1 : 0));
+  assert.equal(Q.revealed({ fg: covered, srcA, keepA: head, W, H, face, SC }), 0);
+  const cut = fill(W, H, (x, y) => (covered[y * W + x] && !(x > 118 && x < 145 && y > 70 && y < 100) ? 1 : 0));
+  assert.ok(Q.revealed({ fg: cut, srcA, keepA: head, W, H, face, SC }) > .02, "cut beside the jaw");
+  // background that was background in the original photo is not counted
+  assert.equal(Q.revealed({ fg: cut, srcA: covered.map((v, i) => v * cut[i]), keepA: head, W, H, face, SC }), 0);
+});

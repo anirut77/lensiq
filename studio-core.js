@@ -1823,6 +1823,8 @@
    *  - ผิวที่สร้าง: สีอ้างอิงรายแถวจากผิวคอจริง (หรือผิวหน้ามืดลงเมื่อไม่เห็นคอ) × เงาทรงกระบอก × เงาใต้คาง + grain
    * คืน { rgba, alpha, yb, lb, rb, yCollar }
    */
+  // คอใต้หู (กล้ามเนื้อข้างคอ): ครึ่งความกว้าง = k × ระยะ P1–P15 (ระดับติ่งหู) เรียวลงสู่ขนาดคอปกติภายใน t × หน้า
+  const WEAR = { k: .42, t: .7 };
   function synthNeck(person, alpha, neckS, keepS, W, H, face, fit, { skinRGB = null, noise = 1.5, seed = 5, hair = null, collarY = -.22, half = null, mono = false } = {}) {
     const n = W * H, fw = face.fw, P = face.P, jy = jawCurve(face), R = rng(seed);
     const rgba = new Uint8ClampedArray(n * 4), A = new Float32Array(n);
@@ -1838,7 +1840,10 @@
     const yEnd = Math.min(H - 1, Math.ceil(fit.N.y + s * (collarY + drop + .75) + Math.abs(sn) * fw * .8));
     const hTop = clamp(half || fw * .29, fw * .25, fw * .31), yS = Math.max(0, Math.floor(face.chinY - fw * .45)), fe = Math.max(1.5, fw * .02);
     const sk = skinRGB ? rgbToLab(skinRGB[0], skinRGB[1], skinRGB[2]) : [62, 14, 18];
-    const yAng = P && P.length >= 17 ? (P[4].y + P[12].y) / 2 : face.chinY - fw * .2, wEar = P && P.length >= 17 ? Math.abs(P[13].x - P[3].x) * .42 : 0;
+    const yAng = P && P.length >= 17 ? (P[4].y + P[12].y) / 2 : face.chinY - fw * .2, wEar = P && P.length >= 17 ? Math.abs(P[15].x - P[1].x) * WEAR.k : 0, wEar0 = P && P.length >= 17 ? Math.abs(P[13].x - P[3].x) * .42 : 0;
+    // ข้างที่ผมยาวบังข้างกราม: คอกว้างแบบเดิม (คอกว้างถึงใต้หูจะโผล่เป็นแผ่นเงาเข้มระหว่างปลายผมกับบ่า)
+    const hairSide = sd => { if (!hair || !P || P.length < 17) return false; let c = 0, t = 0; const cxc = face.chinX != null ? face.chinX : face.cx; for (let y = Math.max(0, Math.round(yAng)); y < Math.min(H, Math.round(face.chinY)); y += 2) for (let d = fw * .3; d < fw * .7; d += 2) { const x = Math.round(cxc + sd * d); if (x < 0 || x >= W) continue; const i = y * W + x; t++; if (keepS[i] > .5 && hair[i] > .5) c++; } return t > 0 && c / t > .3; };
+    const hairL = hairSide(-1), hairR = hairSide(1);
     const geom = y => {
       const t = clamp01((y - face.chinY) / Math.max(1, yEnd - face.chinY));
       // คอตั้งตรงเป็นหลัก: เลื่อนไปทางกลางคอเสื้อได้ไม่เกิน 0.12 หน้า (ไม่เป็นแถบคอเฉียงยาวเมื่อหน้าหันข้าง)
@@ -1846,8 +1851,9 @@
       const c = cxJaw + clamp(fit.N.x - cxJaw, -fw * .12, fw * .12) * smooth(t);
       let h = hTop * (.9 + .15 * smooth(t)) + fw * .06 * smooth((y - (yCollar - fw * .25)) / (fw * .4));
       // ช่วงบนใต้มุมกราม คอกว้างถึงใต้หู (กล้ามเนื้อข้างคอ) แล้วเรียวลงสู่ขนาดปกติภายใน 0.4 หน้า
-      if (wEar > h) h += (wEar - h) * (1 - smooth((y - yAng) / (fw * .4)));
-      return { c, h };
+      let h0 = h; if (wEar0 > h0) h0 += (wEar0 - h0) * (1 - smooth((y - yAng) / (fw * .4)));
+      if (wEar > h) h += (wEar - h) * (1 - smooth((y - yAng) / (fw * WEAR.t)));
+      return { c, h, h0 };
     };
     // ผิวคอจริงที่เชื่อได้: parser = คอ, สีใกล้ผิวหน้า, ไม่ใช่ผม
     const real = new Float32Array(n);
@@ -1908,9 +1914,9 @@
     for (let y = yS; y <= yEnd; y++) {
       const g = geom(y), j = y - yS;
       for (let x = Math.max(0, Math.floor(g.c - g.h - fe)); x <= Math.min(W - 1, Math.ceil(g.c + g.h + fe)); x++) {
-        const i = y * W + x, u = (x - g.c) / g.h, top = topAt(x);
+        const hh = (x < g.c ? hairL : hairR) ? g.h0 : g.h, i = y * W + x, u = (x - g.c) / hh, top = topAt(x);
         if (y < top) continue;
-        const edge = smooth(Math.min((g.h - Math.abs(x - g.c)) / fe + .5, (y - top) / fe + .5)); if (edge <= 0) continue;
+        const edge = smooth(Math.min((hh - Math.abs(x - g.c)) / fe + .5, (y - top) / fe + .5)); if (edge <= 0) continue;
         // ทรงกระบอก: ข้างคอมืดลง; ใต้คางอยู่ในเงา (มากขึ้นเมื่อไม่เห็นคอจริงเลย)
         // ทรงกระบอก (ข้างคอมืดชัด) + เงาใต้กรามไล่ยาว + ลายผิวจริง — คอไม่เป็นแผ่นสีเรียบ
         // ไม่เห็นคอจริง: เงาข้างคอเบากว่า + ไล่ความสว่างตามแนวตั้ง (ใต้คางมืดกว่าเล็กน้อย สว่างขึ้นสู่คอเสื้อ) — ไม่เป็นแผ่นสีเข้มเรียบ
@@ -2086,7 +2092,7 @@
     fillPoly, skinLikelihood, skinKeepMask, faceMasks, smoothSkin, adjustRegion, sharpen,
     estimateNoise, rng, addGrain, harmonizeGarment, contactShadow, lightWrap, blurredBackground,
     PARSE_LABELS, PARSE_GROUPS, parseCrop, parseGroups, cropToImage, multiclassGroups, headwearExtend, hairCleanup, parsePersonProb, fillMatteFromParse, minFilter, dilate01, blur3Rows, clothShading, faceFromParse, fillFaceMatte, distanceInside, canonShoulder, garmentClip, edt, dilateR, erodeR, closeR, openR, fillHoles, componentFrom, shoulderTop, neckMeasure, handsMask, handsNearGarment, armModel, heuristicParse, personLayers,
-    SHOULDER_PRIOR, measureShoulders, sideOffsets, removeStrayIslands, fillNeckGaps, restoreNeckSides, templateAnchors, templateWarp, fitFromTargets, synthNeck, hairShadow, composeLayers,
+    SHOULDER_PRIOR, measureShoulders, sideOffsets, removeStrayIslands, fillNeckGaps, restoreNeckSides, WEAR, templateAnchors, templateWarp, fitFromTargets, synthNeck, hairShadow, composeLayers,
     applyMatteEdits, brush
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

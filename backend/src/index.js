@@ -11,6 +11,8 @@
 //   GET  /v1/billing/payments/:id        poll status (id is a 128-bit random handle)
 //   GET  /v1/billing/payments/:id/qr     QR SVG proxied from Opn (page CSP allows only blob:/self images)
 //   POST /v1/billing/webhook/opn         Opn webhook (signature verified; no CORS)
+//   POST /api/auth/nonce | /api/auth/google | /api/auth/logout      member sign-in (members.js)
+//   GET|DELETE /api/me, POST /api/me/preferences|usage|saved, GET /api/me/history|export|saved/:id, DELETE /api/me/saved/:id
 // Admin (ADMIN_ORIGINS, credentials; see auth.js): /admin/api/*
 import * as analytics from "./analytics.js";
 import * as auth from "./auth.js";
@@ -19,6 +21,7 @@ import { fortuneRun, fortuneStatus } from "./fortune.js";
 import { reconcilePending } from "./billing.js";
 import { turnstileStatus } from "./turnstile.js";
 import { runMaintenance, retentionConfig } from "./retention.js";
+import * as members from "./members.js";
 import * as settings from "./settings.js";
 import { audit, callerHash } from "./store.js";
 import {
@@ -30,7 +33,7 @@ export const RECONCILE_CRON = "*/15 * * * *";
 
 async function publicRoute(request, env, url, deps) {
   const allow = publicOrigins(env);
-  const cors = corsHeaders(request, allow, { headers: "Content-Type, X-Turnstile-Token" });
+  const cors = corsHeaders(request, allow, { methods: "GET, POST, DELETE, OPTIONS", headers: "Content-Type, X-Turnstile-Token, Authorization" });
   const p = url.pathname;
   const m = request.method;
   if (m === "OPTIONS") return json(null, originAllowed(request, allow, { required: true }) ? 204 : 403, cors);
@@ -39,7 +42,28 @@ async function publicRoute(request, env, url, deps) {
   if (p === "/health" && m === "GET") return reply({ ok: true });
   if (p === "/v1/config" && m === "GET") {
     const b = await billing.publicBillingInfo(env);
-    return reply({ analytics: true, free_mode: b.free_mode, pricing_enabled: b.pricing_enabled });
+    return reply({ analytics: true, free_mode: b.free_mode, pricing_enabled: b.pricing_enabled, membership: await members.publicMembership(env) });
+  }
+  if (p.startsWith("/api/auth/") || p === "/api/me" || p.startsWith("/api/me/")) {
+    if (!originAllowed(request, allow, { required: true })) return reply({ error: "origin not allowed" }, 403);
+    const body = async () => readJson(request, 8192);
+    if (p === "/api/auth/nonce" && m === "POST") return reply(await members.issueNonce(env, request), 201);
+    if (p === "/api/auth/google" && m === "POST") return reply(await members.signInGoogle(env, request, await readJson(request, 8192), deps));
+    const mem = await members.requireMember(env, request);
+    if (p === "/api/auth/logout" && m === "POST") return reply(await members.logout(env, mem));
+    if (p === "/api/me" && m === "GET") return reply(await members.me(env, mem));
+    if (p === "/api/me" && m === "DELETE") return reply(await members.deleteAccount(env, mem, await body()));
+    if (p === "/api/me/preferences" && m === "POST") return reply(await members.setPreferences(env, mem, await body()));
+    if (p === "/api/me/usage" && m === "POST") return reply(await members.recordUsage(env, mem, await body()));
+    if (p === "/api/me/history" && m === "GET") return reply(await members.history(env, mem, Object.fromEntries(url.searchParams)));
+    if (p === "/api/me/export" && m === "GET") {
+      return json(await members.exportData(env, mem), 200, { ...cors, "Content-Disposition": 'attachment; filename="lensiq-my-data.json"' });
+    }
+    if (p === "/api/me/saved" && m === "POST") return reply(await members.saveReading(env, mem, await body()), 201);
+    const sm = /^\/api\/me\/saved\/([a-f0-9]{32})$/.exec(p);
+    if (sm && m === "GET") return reply(await members.getSaved(env, mem, sm[1]));
+    if (sm && m === "DELETE") return reply(await members.deleteSaved(env, mem, sm[1]));
+    return reply({ error: "not found" }, 404);
   }
   if (p === "/api/fortune/status" && m === "GET") return reply(await fortuneStatus(env, request));
   if (p === "/api/fortune" && m === "POST") {
@@ -154,11 +178,26 @@ async function adminRoute(request, env, url, deps) {
       const rows = (await env.DB.prepare("SELECT id, ts, actor, action, detail FROM audit_log ORDER BY id DESC LIMIT 200").all()).results || [];
       return reply({ audit: rows });
     }
+    case "GET /members": return reply(await members.adminMembers(env, Object.fromEntries(url.searchParams)));
+    case "GET /membership": return reply({ ...(await members.adminMembershipInfo(env)), turnstile: turnstileStatus(env) });
+    case "PUT /membership": {
+      const input = await body();
+      const r = await members.adminPutMembership(env, input);
+      await act("membership.settings", { settings: r.settings, plan_ai_quotas: input.plan_ai_quotas || null });
+      return reply({ ...r, turnstile: turnstileStatus(env) });
+    }
+
     case "GET /retention": return reply({ config: retentionConfig(env) });
     case "POST /retention/run": {
       const r = await runMaintenance(env);
       return reply(r);
     }
+  }
+  const ms = /^\/members\/([a-f0-9]{32})\/status$/.exec(route);
+  if (ms && m === "POST") {
+    const r = await members.adminSetStatus(env, ms[1], await body());
+    await act("member.status", { user: ms[1], status: r.status });
+    return reply(r);
   }
   return reply({ error: "not found" }, 404);
 }
@@ -198,7 +237,7 @@ export async function handle(request, env, deps = {}) {
     const cors = corsHeaders(request, allow, { credentials: url.pathname.startsWith("/admin/") });
     if (e instanceof HttpError) {
       const extra = e.extra && e.extra.retryAfter ? { "Retry-After": String(e.extra.retryAfter) } : {};
-      return json({ error: e.message }, e.status, { ...cors, ...extra });
+      return json(e.extra && e.extra.code ? { error: e.message, code: e.extra.code } : { error: e.message }, e.status, { ...cors, ...extra });
     }
     log("unhandled", { name: (e && e.name) || "Error", path: url.pathname.slice(0, 60) });
     return json({ error: "internal error" }, 500, cors);

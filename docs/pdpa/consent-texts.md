@@ -134,3 +134,21 @@ Print this on the privacy notice and the counter card.
 - Attendance: delete the person.
 - AI fortune: the guest unticks the consent box.
 - Record the request date and completion date.
+
+## 8. Member sign-in with Google (`lensiq-member.js`, version `m1`)
+
+Shown in the sign-in dialog **before** Google's script is loaded. The terms box is required; the marketing box is
+separate, unticked, and optional. The Worker stores the accepted version (`users.consent_version`, `consent_at`) and the
+marketing choice with its time. Change the text → bump `MEMBER_CONSENT_VERSIONS` (backend/src/members.js) and
+`CONSENT_VERSION` (lensiq-member.js); members are asked again at their next sign-in.
+
+> **What we keep and why** · Your Google-verified e-mail, Google account ID and first name (if any) — no profile photo,
+> no photos or face data · Used to run your member account, count your quota and keep your usage and payment records
+> (contract basis, PDPA s.24(3)) · Reading content is not stored unless you save it · your e-mail is never used for
+> marketing unless you opt in below · Stored on Cloudflare (may be outside Thailand) · download or delete your data and
+> account at any time on My account.
+>
+> ☐ I accept the Terms of Service and the Privacy Policy (required)
+> ☐ Send me news and offers from LENSIQ by e-mail (optional, unsubscribe any time)
+
+Thai and Chinese wording: `lensiq-member.js` (Thai default), `i18n/zh-member.js`, `i18n/en-member.js`.

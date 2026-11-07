@@ -75,6 +75,13 @@
 
   /** ประโยคเด่นสั้น ๆ สำหรับการ์ดแชร์ (เหมือน tarot.js/horoscope.js) */
   function keyLines(res, facts, n) {
+    // English: short lines from the English summary and sentences (facts carry Thai meanings)
+    if (res && res.lang === "en") {
+      var el = [], addE = function (t) { t = String(t).trim().replace(/\.$/, ""); if (el.length < n && t.length >= 14 && t.length <= 90 && el.indexOf(t) < 0) el.push(t.charAt(0).toUpperCase() + t.slice(1)); };
+      ((res.summary && res.summary.lines) || []).forEach(function (l) { addE(String(l.t).split(": ").pop()); });
+      (res.sections || []).forEach(function (s) { (s.paragraphs || []).forEach(function (p) { p.split(/(?<=\.)\s+/).forEach(function (x) { addE(x.split(/[,:]\s+/).pop()); }); }); });
+      return el.slice(0, n);
+    }
     if (res && res.lang === "zh") {
       var zl = [];
       ((res.summary && res.summary.lines) || []).forEach(function (l) { var t = String(l.t).split(/[：:]/).pop(); if (t.length >= 8 && t.length <= 34 && zl.length < n) zl.push(t); });
@@ -161,7 +168,10 @@
       return p.catch(function () { return localFallback(facts); }).then(function (res) {
         res = relabel(res, domain, sent);
         st.result = res; st.facts = facts; st.lines = keyLines(res, facts, 3);
-        if (FA && FA.renderSections) FA.renderSections(body, res, { aiBadge: false }); else plainRender(body, res);
+        // lensiq-member.js gates FA.renderSections itself (light reading for guests when the owner requires sign-in);
+        // the plain fallback asks it for the same light result
+        if (FA && FA.renderSections) FA.renderSections(body, res, { aiBadge: false });
+        else plainRender(body, root.LQMember && root.LQMember.gate ? root.LQMember.gate(res) : res);
         src.textContent = res.source === "ai" ? T("fk.src.ai", "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic)") : T("fk.src.local", "เรียบเรียงในเครื่อง · สำนวนใหม่ทุกครั้ง");
         src.className = "rd-src" + (res.source === "ai" ? " ai" : "");
         box.removeAttribute("aria-busy");

@@ -301,6 +301,26 @@
     }
     return { area: +best.toFixed(4), kind };
   }
+  /** ฉากโผล่ใหม่ข้างศีรษะ (เทียบกับภาพเดิม — ไม่ขึ้นกับชนิดความผิดพลาด): พิกเซลที่ภาพเดิมเป็นตัวคน (alpha > .8)
+   *  แต่ผลลัพธ์เป็นฉาก (fg < .3) ห่างจากศีรษะ/ผมที่แสดง (keep) ไม่เกิน 0.12 หน้า ในแถบระดับตาถึงใต้คาง 0.6 หน้า (|dx| < 1.1 หน้า)
+   *  = รอยตัดข้างกราม/ใต้หู ช่องขาวระหว่างผมกับคอ เศษที่หายจากขอบหน้า — คืนพื้นที่ / fw² */
+  function revealed({ fg, srcA, keepA, W, H, face, SC }) {
+    const fw = face.fw; if (!SC || !SC.dilateR) return 0;
+    const x0 = Math.max(0, Math.floor(face.cx - fw * 1.1)), x1 = Math.min(W, Math.ceil(face.cx + fw * 1.1)), y0 = Math.max(0, Math.floor(face.eyeY)), y1 = Math.min(H, Math.ceil(face.chinY + fw * .6)), bw = x1 - x0, bh = y1 - y0;
+    if (bw < 4 || bh < 4) return 0;
+    const on = new Uint8Array(bw * bh); for (let y = 0; y < bh; y++) for (let x = 0; x < bw; x++) on[y * bw + x] = keepA[(y + y0) * W + x + x0] > .5 ? 1 : 0;
+    const near = SC.dilateR(on, bw, bh, Math.max(1, Math.round(fw * .12)));
+    let c = 0; for (let y = 0; y < bh; y++) for (let x = 0; x < bw; x++) { const k = y * bw + x, i = (y + y0) * W + x + x0; if (near[k] && !on[k] && srcA[i] > .8 && fg[i] < .3) c++; }
+    return +(c / (fw * fw)).toFixed(4);
+  }
+  /** ข้างกรามที่ผมบัง: สัดส่วนของแถบข้างกรามล่าง (ระดับติ่งหู → คาง, |dx| 0.3–0.7 หน้า) ที่ผลลัพธ์แสดงผมของผู้ถ่าย
+   *  คืนค่าด้านที่น้อยกว่า (0 = ข้างกรามเปิดทั้งแถบ) — รอยต่อกราม/ใต้หูเป็นจุดที่ผลแต่งชุดพลาดบ่อยที่สุด เมื่อผมบังจะไม่เห็น */
+  function jawCover({ keepA, hair, W, H, face }) {
+    const fw = face.fw, P = face.P, cx = face.chinX != null ? face.chinX : face.cx; if (!hair) return 0;
+    const yA = Math.round(P && P.length >= 17 ? (P[3].y + P[13].y) / 2 : face.chinY - fw * .3), yB = Math.round(face.chinY);
+    const side = sd => { let c = 0, t = 0; for (let y = Math.max(0, yA); y < Math.min(H, yB); y += 2) for (let d = fw * .3; d < fw * .7; d += 2) { const x = Math.round(cx + sd * d); if (x < 0 || x >= W) continue; const i = y * W + x; t++; if (keepA[i] > .5 && hair[i] > .5) c++; } return t ? c / t : 0; };
+    return +Math.min(side(-1), side(1)).toFixed(3);
+  }
   /** เกณฑ์ผ่าน (ปรับเทียบกับการดูภาพ) */
   const LIMITS = { hairCutRows: 3, neckBgPct: 1.2, neckDE: 16, neckL: [.2, 1.2], neckWide: .75, neckLen: .75, bgChunk: .03, hemRough: .045, bodyWide: 3.75, hemHolePct: .3, shoulderDy: .2, shoulderRaised: .25, accessory: .012, skinIsland: .012, handsOrphan: 0, floatingHand: .02, neckJoinGap: 2.5, neckJoinFringe: 2, neckFlatArea: .06, neckFlatCv: .045, stray: .01, leftover: .12, neckNotch: .25, faceIsland: .004, neckRelArea: .05, neckRelL: .45, neckRelTex: .45, jawBlob: .015 }; // jawBlob: ตั้งไว้ล่วงหน้า (ก้อนทึบ ≥ 1.5% ของพื้นที่หน้า²) ไม่ได้ปรับตามชุดภาพ
   function verdict(m, L = LIMITS) {
@@ -334,7 +354,8 @@
   /** ชุดตรวจเร็วสำหรับหน้าเว็บ (หลังรวมภาพทุกครั้ง): รอยต่อคอ/กราม เศษขอบหน้า คอเรียบ/มืด เกาะหลุด รูในคอ — ไม่รวมตัวตรวจที่ช้า (ผม ชายชุด ไหล่ มือ) */
   // jawBlob ไม่อยู่ในชุดเร็วของหน้าเว็บ: เตือนผิดบ่อย (ผมสีเข้ม/เงาใกล้กราม) — ใช้ในชุดทดสอบ/โหมดรายงานเท่านั้น
   const FAST = new Set(["neck", "neckJoin", "neckNotch", "faceIsland", "neckRel", "stray"]);
-  function evaluate(S, SC = root.StudioCore, { fast = false } = {}) {
+  function evaluate(S, SC = root.StudioCore, { fast = false, gate = false } = {}) {
+    if (gate) fast = false;
     const W = S.W, H = S.H, n = W * H, f = S.face, L = S.layers, fit = S.cache.fit, front = S.cache.front, neck = S.cache.neck;
     const frontA = new Float32Array(n); if (front) for (let i = 0; i < n; i++) frontA[i] = front[i * 4 + 3] / 255;
     const neckA = neck ? neck.alpha : new Float32Array(n), keepA = S.keepA, fg = S.fgAlpha, src = S.px, out = S.out, labOf = SC.rgbToLab;
@@ -359,12 +380,68 @@
     if (want("neckNotch")) m.neckNotch = hw ? { steps: 0, maxJump: 0 } : neckNotch({ keepA, neckA, frontA, W, H, face: f, collarY, hair: L.hair });
     if (want("jawBlob")) m.jawBlob = jawBlob({ out, src, srcA: S.alpha, fg, frontA, hair: L.hair, W, H, face: f, mono });
     if (want("stray")) m.stray = strayParts({ fg, W, H, face: f });
+    if (want("jawCover")) m.jawCover = jawCover({ keepA, hair: L.hair, W, H, face: f });
+    if (want("revealed")) m.revealed = revealed({ fg, srcA: S.alpha, keepA, W, H, face: f, SC });
     if (want("leftover")) m.leftover = leftover({ keepA, src, W, H, face: f, hands: S.handsUsed || S.hands, hair: L.hair });
     const fails = verdict(m);
     return { pass: !fails.length, fails, m };
   }
 
-  const api = { hairCut, neckNotch, faceIsland, neckRel, jawBlob, neckCheck, bgChunk, hemCheck, shoulderCheck, accessory, skinIsland, handsCheck, floatingHand, neckJoin, neckFlat, strayParts, leftover, verdict, evaluate, LIMITS };
+  /**
+   * ตรวจรูปชุดที่ผู้ใช้ถ่ายเอง (วางราบบนพื้นเรียบ) ก่อนใช้เป็นเทมเพลต — ฟังก์ชันล้วน ทดสอบได้ใน Node
+   *  px/alpha = ภาพเดิม RGBA และ matte ของชุด (ขนาด W×H), anchors = SC.templateAnchors(...) หรือ null, labOf = rgbToLab
+   *  hasBg = false เมื่อเป็น PNG พื้นใส (ข้ามการตรวจฉาก/คอนทราสต์)
+   * คืน { ok, issues: [{ k, level: "fail"|"warn" }], m } — k: notFound, tooSmall, fillsFrame, cutOff, lowContrast, unevenBg,
+   *  busyBg, exposure, pieces, tilted, folds (คำแนะนำต่อ k อยู่ใน studio.js)
+   */
+  function garmentPhotoCheck({ px, alpha, W, H, anchors, labOf, hasBg = true }) {
+    const n = W * H, m = {}, issues = [], add = (k, level) => issues.push({ k, level });
+    let cov = 0; for (let i = 0; i < n; i++) if (alpha[i] > .5) cov++;
+    m.coverage = +(cov / n).toFixed(3);
+    if (!anchors || cov < 50) { add("notFound", "fail"); return { ok: false, issues, m }; }
+    if (m.coverage < .08) add("tooSmall", "warn");
+    if (hasBg && m.coverage > .88) add("fillsFrame", "fail");
+    // ชุดชนขอบภาพ (ถูกตัด): สัดส่วนพิกเซลชุดบนแถบขอบ 1% ด้านบน/ซ้าย/ขวา (ล่าง = ชายเสื้อ เตือนอย่างเดียว)
+    const b = Math.max(1, Math.round(Math.min(W, H) * .01)), edge = side => { let c = 0, t = 0; const L = side === "t" || side === "b" ? W : H;
+      for (let k = 0; k < L; k++) for (let d = 0; d < b; d++) { const x = side === "l" ? d : side === "r" ? W - 1 - d : k, y = side === "t" ? d : side === "b" ? H - 1 - d : k; t++; if (alpha[y * W + x] > .5) c++; } return c / t; };
+    if (hasBg) { // PNG พื้นใสถูกครอปชิดตัวชุดแล้ว: ไม่ตรวจขอบ
+      m.edge = { t: +edge("t").toFixed(3), l: +edge("l").toFixed(3), r: +edge("r").toFixed(3), b: +edge("b").toFixed(3) };
+      if (m.edge.t > .02 || m.edge.l > .02 || m.edge.r > .02) add("cutOff", "fail"); else if (m.edge.b > .05) add("cutOff", "warn");
+    }
+    // สถิติ L*a*b* ของชุด (alpha > .9) และฉาก (alpha < .1) จากกริดหยาบ
+    const step = Math.max(1, Math.round(Math.sqrt(n / 40000))), G = [0, 0, 0, 0], B = [0, 0, 0, 0], gl = [], quad = [[0, 0], [0, 0], [0, 0], [0, 0]];
+    let clip = 0;
+    for (let y = 0; y < H; y += step) for (let x = 0; x < W; x += step) {
+      const i = y * W + x, a = alpha[i], q = labOf(px[i * 4], px[i * 4 + 1], px[i * 4 + 2]);
+      if (a > .9) { G[0] += q[0]; G[1] += q[1]; G[2] += q[2]; G[3]++; gl.push(q[0]); if (q[0] > 97 || q[0] < 3) clip++; }
+      else if (a < .1) { B[0] += q[0]; B[1] += q[1]; B[2] += q[2]; B[3]++; const k = (y < H / 2 ? 0 : 2) + (x < W / 2 ? 0 : 1); quad[k][0] += q[0]; quad[k][1]++; }
+    }
+    if (G[3]) { m.clipped = +(clip / G[3]).toFixed(3); if (m.clipped > .15) add("exposure", "warn"); }
+    if (hasBg && G[3] && B[3] > 50) {
+      const g = G.slice(0, 3).map(v => v / G[3]), bg = B.slice(0, 3).map(v => v / B[3]);
+      m.contrast = +Math.hypot(g[0] - bg[0], g[1] - bg[1], g[2] - bg[2]).toFixed(1);
+      if (m.contrast < 12) add("lowContrast", "fail"); else if (m.contrast < 20) add("lowContrast", "warn");
+      const qm = quad.filter(q => q[1] > 20).map(q => q[0] / q[1]);
+      m.bgRange = qm.length >= 2 ? +(Math.max(...qm) - Math.min(...qm)).toFixed(1) : 0;
+      if (m.bgRange > 18) add("unevenBg", "warn");
+      // ฉากลาย/ไม่เรียบ: ส่วนเบี่ยงเบน L ของฉาก รอบค่าเฉลี่ยของแต่ละแถว (ไม่นับการไล่แสงช้า ๆ)
+      let s2 = 0, c2 = 0; for (let y = 0; y < H; y += step) { let s = 0, c = 0; const row = []; for (let x = 0; x < W; x += step) { const i = y * W + x; if (alpha[i] < .1) { const l = labOf(px[i * 4], px[i * 4 + 1], px[i * 4 + 2])[0]; row.push(l); s += l; c++; } } if (c < 5) continue; const mu = s / c; for (const l of row) { s2 += (l - mu) ** 2; c2++; } }
+      m.bgStd = c2 ? +Math.sqrt(s2 / c2).toFixed(1) : 0;
+      if (m.bgStd > 5) add("busyBg", "warn");
+    }
+    // ชิ้นส่วนแยก: ก้อน alpha > .5 นอกก้อนใหญ่สุด ที่ใหญ่กว่า 0.5% ของชุด (ฉากลาย/เงาที่ถูกตัดเป็นชุด)
+    { const lab = new Int32Array(n).fill(-1), sizes = []; for (let s0 = 0; s0 < n; s0++) { if (alpha[s0] <= .5 || lab[s0] >= 0) continue; const st = [s0], id = sizes.length; lab[s0] = id; let c = 0; while (st.length) { const i = st.pop(), x = i % W; c++; for (const j of [x > 0 ? i - 1 : -1, x < W - 1 ? i + 1 : -1, i - W, i + W]) if (j >= 0 && j < n && alpha[j] > .5 && lab[j] < 0) { lab[j] = id; st.push(j); } } sizes.push(c); }
+      const big = Math.max(...sizes); m.pieces = sizes.filter(v => v !== big && v > cov * .005).length; if (m.pieces > 0) add("pieces", "warn"); }
+    // วางเอียง: ไหล่สองข้างต่างระดับ หรือช่องคอไม่อยู่กลางไหล่ (หน่วยความกว้างไหล่)
+    const A = k => anchors.find(p => p.k === k), l = A("l"), r = A("r"), nk = A("neck");
+    if (l && r && nk) { const sw = Math.max(1, r.x - l.x); m.tilt = +(Math.abs(l.y - r.y) / sw).toFixed(3); m.offCentre = +(Math.abs(nk.x - (l.x + r.x) / 2) / sw).toFixed(3); if (m.tilt > .08 || m.offCentre > .08) add("tilted", m.tilt > .15 || m.offCentre > .15 ? "fail" : "warn"); }
+    // รอยพับ/เงาแรง: ความแปรปรวนของความสว่างเฉลี่ยเฉพาะที่ (ไม่ใช่ลายผ้าละเอียด) — CV ของ L ในชุดหลังเฉลี่ยบล็อก
+    if (gl.length > 100) { const bs = Math.max(4, Math.round(Math.min(W, H) / 24)), blk = new Map(); for (let y = 0; y < H; y += step) for (let x = 0; x < W; x += step) { const i = y * W + x; if (alpha[i] <= .9) continue; const k = ((y / bs) | 0) * 9999 + ((x / bs) | 0), v = blk.get(k) || [0, 0]; v[0] += labOf(px[i * 4], px[i * 4 + 1], px[i * 4 + 2])[0]; v[1]++; blk.set(k, v); }
+      const mv = [...blk.values()].filter(v => v[1] >= 4).map(v => v[0] / v[1]); if (mv.length > 8) { const mu = mv.reduce((a, b) => a + b, 0) / mv.length, sd = Math.sqrt(mv.reduce((a, b) => a + (b - mu) ** 2, 0) / mv.length); m.shadeCv = +(sd / Math.max(5, mu)).toFixed(3); if (m.shadeCv > .2) add("folds", "warn"); } }
+    return { ok: !issues.some(i => i.level === "fail"), issues, m };
+  }
+
+  const api = { garmentPhotoCheck, revealed, jawCover, hairCut, neckNotch, faceIsland, neckRel, jawBlob, neckCheck, bgChunk, hemCheck, shoulderCheck, accessory, skinIsland, handsCheck, floatingHand, neckJoin, neckFlat, strayParts, leftover, verdict, evaluate, LIMITS };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") root.StudioQA = api;
 })(typeof window !== "undefined" ? window : globalThis);

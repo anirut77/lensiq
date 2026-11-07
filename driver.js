@@ -649,6 +649,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
         const now = Date.now();
         const m = f ? faceMetrics(f.pts) : null;
         if (m) m.eyeScore = eyeScoreOf(f, m);
+        healthStep(f);
         fpsTimes.push(performance.now()); fpsTimes = fpsTimes.filter(t => t > performance.now() - 3000);
         const fps = fpsTimes.length / 3;
         $("#fps").textContent = `${fps.toFixed(1)} fps · ${Math.round(performance.now() - t0)} ms/เฟรม`;
@@ -662,6 +663,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
           series.push({ t: now, ear: r.metrics.ear, closed: r.metrics.closed });
           while (series.length && series[0].t < now - 60000) series.shift();
           r.events.forEach(ev => { ev.trip = trip.id; allEvents.push(ev); onEvent(ev); });
+          scdFrame(now, r, m);
           setLevel(r.level, r.reasons);
           if (now - lastUi > 200) { renderLive(r.metrics, now); lastUi = now; }
           if (r.events.length || now - lastSave > 5000) { persist(); lastSave = now; }
@@ -740,6 +742,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   $("#stop").onclick = stopTrip;
   function stopTrip() {
     if (!trip) return;
+    if (SCD) scdFinish();
     running = false;
     const end = Date.now();
     let evs = [];
@@ -834,6 +837,97 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement) exitDriving(); });
   document.addEventListener("visibilitychange", async () => { if (document.visibilityState === "visible" && document.body.classList.contains("driving") && !wakeLock) { try { wakeLock = await navigator.wakeLock?.request("screen"); } catch {} } });
   window.addEventListener("beforeunload", persist);
+
+  // ---------- สุขภาพภาพ + ตรวจความแม่นยำหน้างาน (lensiq-sitecheck.js) ----------
+  const SITE = /** @type {any} */ (window).LQSite || null;
+  const HL = SITE ? { mon: SITE.createHealth({ kind: "driver" }), at: 0, fw: [], cv: document.createElement("canvas"), state: null } : null;
+  function healthStep(f) {
+    if (!HL) return;
+    if (f && f.box && video.videoWidth) HL.fw.push(f.box.width / video.videoWidth);
+    const t = performance.now(); if (t - HL.at < 1000) return; HL.at = t;
+    let st = null; try { st = SITE.sampleElement(video, HL.cv); } catch { /* ignore */ }
+    const hz = fpsTimes.length / 3;
+    HL.state = HL.mon.push(st, { faceW: HL.fw.length ? SITE.median(HL.fw) : null, hz: fpsTimes.length >= 6 ? hz : null }); HL.fw = [];
+    if (SCD) HL.state.codes.forEach(k => SCD.health.add(k));
+    const pill = $("#camHealth"), msg = $("#camHealthMsg");
+    if (!pill) return;
+    SITE.renderHealth(pill, HL.state); pill.hidden = false;
+    SITE.renderHealthLine(msg, HL.state);
+  }
+  // ตรวจความแม่นยำ (จอดรถเท่านั้น): ระบบสั่ง "หลับตา 3 วินาที" เป็นระยะแบบสุ่ม คนขับทำตาม ระบบวัดว่าเตือนครบทุกครั้งไหม
+  // และเตือนผิดขณะลืมตากี่ครั้ง — ใช้กล้อง มุม แสง และคนขับจริงของรถคันนี้ (ไม่ใช่อาการง่วงจริง)
+  let SCD = null, SCD_LAST = null;
+  const scdHist = SITE ? SITE.history("dr-sitecheck") : null;
+  const scdPanel = SITE && $("#scPanel") ? SITE.mountPanel($("#scPanel"), {
+    title: "ตรวจความแม่นยำในรถคันนี้ (จอดรถเท่านั้น)",
+    intro: "ทดสอบกล้อง มุมกล้อง แสง และคนขับจริงของรถคันนี้: ระบบจะสั่งให้หลับตา 3 วินาทีเป็นระยะแบบสุ่ม แล้ววัดว่าเตือนได้ครบไหม และเตือนผิดขณะลืมตากี่ครั้ง ห้ามทำขณะรถเคลื่อนที่",
+    steps: [
+      "จอดรถในที่ปลอดภัย ดับเครื่องหรือเข้าเกียร์จอด นั่งตำแหน่งคนขับตามปกติ",
+      "เริ่มเที่ยวและปรับเทียบตามปกติ แล้วเลือกระยะเวลาและกด \"เริ่มตรวจ\"",
+      "มองตรงไปข้างหน้าตามปกติ (กะพริบตาได้) เมื่อได้ยินเสียงและเห็นคำว่า \"หลับตา\" ให้หลับตาค้างไว้จนได้ยินเสียงสัญญาณลืมตา",
+      "ถ้าไม่ได้ทำตามในรอบใด กด \"ข้ามรอบล่าสุด\" รอบนั้นจะไม่ถูกนับ",
+      "ทำซ้ำในแสงกลางวัน กลางคืน และเมื่อใส่แว่น เก็บไฟล์ผลตรวจไว้ ผลนี้ไม่ใช่การรับรองความปลอดภัย"
+    ],
+    body: `<div class="sc-row"><label><span>ระยะเวลาทดสอบ</span><select class="sc-dur"><option value="3">3 นาที (หลับตา 5 ครั้ง)</option><option value="5" selected>5 นาที (หลับตา 8 ครั้ง)</option><option value="10">10 นาที (หลับตา 14 ครั้ง)</option></select></label><button class="btn ghost small sc-skip" type="button" hidden>ข้ามรอบล่าสุด</button></div><p class="sc-prompt" hidden></p>`
+  }) : null;
+  function scdTick() {
+    if (!SCD) return;
+    const el = Date.now() - SCD.t0, box = scdPanel.q(".sc-prompt");
+    if (el >= SCD.durationMs) return scdFinish();
+    const cur = SCD.prompts.find(p => el >= p.at && el < p.at + p.closeMs), next = SCD.prompts.find(p => p.at > el);
+    if (cur && SCD.on !== cur) { SCD.on = cur; alarm.ensure(); alarm.beep(520, 250, 0.2); speak("หลับตา", true); }
+    if (!cur && SCD.on) { SCD.on = null; alarm.beep(980, 120, 0.2); setTimeout(() => alarm.beep(980, 120, 0.2), 180); }
+    box.hidden = false; box.dataset.on = cur ? "1" : "0";
+    box.textContent = cur ? SITE.fmt("หลับตาค้างไว้ {a}", { a: Math.ceil((cur.at + cur.closeMs - el) / 1000) }) : next ? SITE.fmt("ลืมตาตามปกติ มองตรงไปข้างหน้า (คำสั่งถัดไปในราว {a} วินาที)", { a: Math.max(1, Math.round((next.at - el) / 1000)) }) : "ลืมตาตามปกติ · ใกล้จบการทดสอบ";
+    const done = SCD.prompts.filter(p => p.at + p.closeMs <= el).length;
+    scdPanel.live.textContent = SITE.fmt("หลับตาแล้ว {a}/{b} ครั้ง · เตือนทั้งหมด {c} ครั้ง · เหลือเวลา {d}", { a: done, b: SCD.prompts.length, c: SCD.events.filter(e => e.type === "long_closure").length, d: fmtDur(SCD.durationMs - el) });
+  }
+  function scdStart() {
+    if (!SITE || SCD) return;
+    if (phase !== "trip" || !monitor) return engine("เริ่มเที่ยวและปรับเทียบให้เสร็จก่อน แล้วจึงเริ่มตรวจ (จอดรถเท่านั้น)", "warn");
+    const min = +scdPanel.q(".sc-dur").value || 5, n = min <= 3 ? 5 : min >= 10 ? 14 : 8;
+    SCD = { t0: Date.now(), durationMs: min * 60000, prompts: SITE.closureSchedule({ durationMs: min * 60000, n, closeMs: 3000, startMs: 15000, seed: Date.now() }), events: [], frames: [], health: new Set(), on: null, timer: 0, calibrated: !!trip.calibrated, eyeMode: trip.eyeThr != null };
+    SCD.timer = setInterval(scdTick, 100);
+    scdPanel.start.disabled = true; scdPanel.stop.disabled = false; scdPanel.exp.hidden = true; scdPanel.q(".sc-skip").hidden = false;
+    scdPanel.state.textContent = "กำลังตรวจ"; scdPanel.state.dataset.s = "live"; SITE.renderReport(scdPanel.report, null);
+    scdTick();
+  }
+  function scdFrame(now, r, m) {
+    if (!SCD) return;
+    if (SCD.frames.length < 40000) SCD.frames.push({ t: now, face: !!m, closed: !!r.metrics.closed });
+    for (const ev of r.events) SCD.events.push({ t: ev.t, at: now, type: ev.type, level: ev.level });
+  }
+  function scdFinish() {
+    if (!SCD) return;
+    const run = SCD; SCD = null; clearInterval(run.timer);
+    const el = Math.min(run.durationMs, Date.now() - run.t0);
+    const prompts = run.prompts.filter(p => p.at + p.closeMs + 2000 <= el); // รอบที่ยังไม่ครบเวลาไม่นับ
+    const rep = SITE.driverReport({ t0: run.t0, durationMs: el, prompts, events: run.events, frames: run.frames });
+    rep.recs.push(...[...run.health].map(c => "สภาพภาพระหว่างตรวจ: " + SITE.HEALTH_TH[c]).filter(Boolean));
+    if (!run.calibrated) rep.recs.unshift("การปรับเทียบไม่สำเร็จ ผลนี้ใช้เกณฑ์ค่าเริ่มต้น — ปรับมุมกล้องแล้วปรับเทียบใหม่ก่อนตรวจอีกครั้ง");
+    SITE.renderReport(scdPanel.report, rep);
+    const box = scdPanel.q(".sc-prompt"); box.hidden = true;
+    scdPanel.start.disabled = false; scdPanel.stop.disabled = true; scdPanel.q(".sc-skip").hidden = true;
+    scdPanel.state.textContent = SITE.VERDICT_TH[rep.verdict]; scdPanel.state.dataset.s = rep.verdict;
+    const doc = SITE.exportDoc("driver", {
+      startedAt: new Date(run.t0).toISOString(), durationSec: Math.round(el / 1000),
+      settings: { ratio: settings.ratio, inputSize: settings.inputSize, eyeClassifier: run.eyeMode, calibrated: run.calibrated, adaptive: DR_DEFAULTS.eyeAdaptive },
+      conditions: { health: [...run.health] }, prompts: prompts.map(p => ({ atSec: p.at / 1000, closeSec: p.closeMs / 1000, skipped: !!p.skip })),
+      events: run.events.map(e => ({ tSec: +((e.t - run.t0) / 1000).toFixed(2), raisedSec: +((e.at - run.t0) / 1000).toFixed(2), type: e.type, level: e.level })),
+      report: { verdict: rep.verdict, n: rep.n, sensitivity: rep.sensitivity, latencyMs: rep.latencyMs, falsePerHour: rep.falsePerHour, openFrameClosed: rep.openFrameClosed, closedFrameClosed: rep.closedFrameClosed, recs: rep.recs }
+    });
+    scdPanel.exp.hidden = false; scdPanel.exp.onclick = () => SITE.download(`lensiq-driver-check-${stamp()}.json`, doc);
+    scdHist.add({ at: run.t0, verdict: rep.verdict, summary: SITE.fmt("เตือนครบ {a}/{b} · เตือนผิด {c}", { a: rep.n.hits, b: rep.n.prompts, c: rep.n.falseAlarms }) });
+    scdHist.render(scdPanel.hist);
+    SCD_LAST = { rep, doc };
+  }
+  if (scdPanel) {
+    scdPanel.start.addEventListener("click", scdStart);
+    scdPanel.stop.addEventListener("click", scdFinish);
+    scdPanel.q(".sc-skip").addEventListener("click", () => { if (!SCD) return; const el = Date.now() - SCD.t0; const p = SCD.prompts.filter(x => x.at <= el).pop(); if (p) { p.skip = true; engine("ข้ามรอบล่าสุดแล้ว — รอบนั้นไม่ถูกนับ", "ok"); } });
+    scdHist.render(scdPanel.hist);
+  }
+  window.__DR_SC = { get active() { return SCD; }, get last() { return SCD_LAST; }, finish: () => scdFinish() };
 
   if (TEST) window.__LQ_DR = { get series() { return series.slice(); }, get phase() { return phase; }, get locked() { return !!prevBox; }, get anchor() { return anchor; }, get trip() { return trip; }, get camId() { return cam.deviceId; } };
   renderHistory(); gauge(0);

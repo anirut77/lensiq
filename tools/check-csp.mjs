@@ -11,7 +11,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { launch } from "../tests/e2e/cdp.mjs";
-import { apply, policy } from "./csp-meta.mjs";
+import { apply, configuredPolicy } from "./csp-meta.mjs";
 import { serve } from "./static-server.mjs";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -24,7 +24,11 @@ const RECORDER = `window.__csp = []; document.addEventListener("securitypolicyvi
 
 const pages = readdirSync(repo).filter(f => f.endsWith(".html") && (!filters.length || filters.some(w => f.includes(w)))).sort();
 const missing = [];
-const pol = policy();
+// the same policy csp-meta.mjs writes for the current lensiq-config.js (API origin / Turnstile / Google sign-in only
+// when configured), so a configured site is checked with the policy it will actually ship
+let cfgSrc = "";
+try { cfgSrc = readFileSync(resolve(repo, "lensiq-config.js"), "utf8"); } catch { /* no config */ }
+const pol = configuredPolicy(cfgSrc);
 const srv = await serve(repo, {
   transformHtml: (html, p) => {
     if (HAS_META.test(html)) return html;

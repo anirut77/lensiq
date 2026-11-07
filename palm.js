@@ -1619,6 +1619,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     return out;
   }
   function keySentences(res, n, max, facts) {
+    if (res && res.lang === "en" && window.FortuneAI && window.FortuneAI.en) return window.FortuneAI.en.keyLines(res, n, max); // English result
     if (isZh()) return keySentencesZh(res, n, max, facts);
     var secs = (res && res.sections) || [], out = [];
     var text = secs.filter(function (x) { return x.id !== "advice"; }).slice(0, 4).map(function (x) { return (x.paragraphs || []).join(" "); }).join(" ");

@@ -9,6 +9,7 @@
 <title data-i18n="qc.s1">ตรวจคุณภาพสินค้าบนสายการผลิต | LENSIQ</title>
 <link rel="stylesheet" href="styles.css?v=8">
 <link rel="stylesheet" href="qc.css?v=4">
+<link rel="stylesheet" href="lensiq-sitecheck.css?v=1">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -17,6 +18,7 @@
 <script src="lensiq-i18n-rt.js?v=1"></script>
 <script src="i18n/zh-rt-common.js?v=1"></script>
 <script src="i18n/zh-rt-qc.js?v=1"></script>
+<script src="i18n/zh-rt-sitecheck.js?v=1"></script>
 
 <main class="qcp">
   <h1><span data-i18n="qc.s2">ตรวจคุณภาพสินค้าบนสายการผลิต</span> <small class="h1-sub" data-i18n="qc.s3">ตัวอย่าง: ขวดเครื่องดื่ม</small></h1>
@@ -60,7 +62,9 @@
         <button class="btn primary" id="toggle" type="button">เริ่มตรวจต่อเนื่อง</button>
         <button class="btn ghost" id="inspectNow" type="button" data-i18n="qc.s28">ตรวจเดี๋ยวนี้</button>
         <span class="pill" id="fps">—</span>
+        <span class="pill lq-health" id="camHealth" hidden></span>
       </div>
+      <p class="cam-health" id="camHealthMsg" role="status" hidden></p>
       <div class="actions small">
         <button class="btn ghost" id="captureBg" type="button" data-i18n="qc.s29">1. บันทึกพื้นหลังว่าง</button>
         <button class="btn ghost" id="captureGolden" type="button" data-i18n="qc.s30">2. บันทึกขวดตัวอย่างที่ผ่าน</button>
@@ -158,6 +162,8 @@
     <div class="rejects" id="rejects"></div>
   </section>
 
+  <section class="card sc-panel" id="scPanel"></section>
+
   <div class="grid2">
     <section class="card">
       <h2 data-i18n="qc.s90">อุปกรณ์ที่แนะนำสำหรับสายการผลิตจริง</h2>
@@ -182,7 +188,8 @@
 </main>
 
 <script src="lensiq-camera.js?v=2"></script>
-<script src="qc.js?v=5"></script>
+<script src="lensiq-sitecheck.js?v=1"></script>
+<script src="qc.js?v=6"></script>
 <script src="lensiq-config.js?v=3"></script>
 </body>
 </html>

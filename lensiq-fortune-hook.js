@@ -12,6 +12,10 @@
  *    makes to <LENSIQ_API_BASE>/api/fortune — no other request is touched. Without a token the Worker refuses the AI
  *    call and the page falls back to the local composer, exactly as when AI is off.
  *
+ * 3) Member sign-in (lensiq-member.js, only when the owner turned membership on): adds `Authorization: Bearer <member
+ *    token>` to the same POST and to the GET /api/fortune/status probe, so the Worker applies the member's AI quota.
+ *    Guests' requests are unchanged.
+ *
  * Fortune team: the cleaner long-term version is an `opts.headers` / `getAIHeaders()` hook in fortune-ai.js; then the
  * fetch wrapper here can go. Analytics can likewise be called directly (guarded by `root.LQAnalytics &&`).
  */
@@ -44,22 +48,29 @@
     FA.interpret = hooked;
   }
 
-  /* ---------------- Turnstile (token from lensiq-api.js LQApi.turnstile) ---------------- */
+  /* ---------------- Turnstile (token from lensiq-api.js LQApi.turnstile) + member session ---------------- */
   var siteKey = String(W.LENSIQ_TURNSTILE_SITEKEY || "").trim();
   /** A fresh single-use token, or "" (the Worker then refuses — Turnstile is fail-closed — and the page falls back). */
-  function token() { return W.LQApi && W.LQApi.turnstile ? W.LQApi.turnstile("fortune") : Promise.resolve(""); }
+  function token() { return siteKey && W.LQApi && W.LQApi.turnstile ? W.LQApi.turnstile("fortune") : Promise.resolve(""); }
+  /** Member bearer token from lensiq-member.js (signed-in members get their AI quota; "" for guests). */
+  function memberToken() { try { return W.LQMember && W.LQMember.token ? String(W.LQMember.token() || "") : ""; } catch (e) { return ""; } }
   function hookFetch() {
-    if (!siteKey || typeof W.fetch !== "function" || W.fetch.__lqTurnstile) return;
+    if (typeof W.fetch !== "function" || W.fetch.__lqTurnstile) return;
     var orig = W.fetch;
-    var target = function () { return String(W.LENSIQ_API_BASE || "").replace(/\/+$/, "") + "/api/fortune"; };
+    var api = function () { return String(W.LENSIQ_API_BASE || "").replace(/\/+$/, ""); };
     var wrapped = function (/** @type {any} */ input, /** @type {any} */ init) {
       var url = typeof input === "string" ? input : input && input.url;
       var method = String((init && init.method) || (input && input.method) || "GET").toUpperCase();
-      if (method !== "POST" || url !== target()) return orig.apply(W, arguments);
-      return token().then(function (t) {
+      var post = method === "POST" && url === api() + "/api/fortune";
+      var status = method === "GET" && url === api() + "/api/fortune/status";
+      var mt = post || status ? memberToken() : "";
+      // only the AI writing-assistant requests are touched; the status probe only when a member is signed in
+      if (!(post && (siteKey || mt)) && !(status && mt)) return orig.apply(W, arguments);
+      return (post ? token() : Promise.resolve("")).then(function (t) {
         var i2 = Object.assign({}, init || {});
         var h = new Headers((init && init.headers) || {});
         if (t) h.set("X-Turnstile-Token", t);
+        if (mt) h.set("Authorization", "Bearer " + mt);
         i2.headers = h;
         return orig.call(W, input, i2);
       });

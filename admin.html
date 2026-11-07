@@ -60,6 +60,7 @@
       <button type="button" role="tab" data-tab="analytics" aria-selected="true">สถิติการใช้งาน</button>
       <button type="button" role="tab" data-tab="ai" aria-selected="false">ตั้งค่า AI</button>
       <button type="button" role="tab" data-tab="billing" aria-selected="false">การชำระเงิน</button>
+      <button type="button" role="tab" data-tab="members" aria-selected="false">สมาชิก</button>
       <button type="button" role="tab" data-tab="security" aria-selected="false">ความปลอดภัย</button>
       <button type="button" role="tab" data-tab="retention" aria-selected="false">การเก็บรักษาข้อมูล</button>
     </nav>
@@ -129,6 +130,34 @@
       <div class="ad-card"><h2>รายการชำระเงิน</h2><div id="adPayments"></div></div>
       <div class="ad-card"><h2>Webhooks</h2><div id="adWebhooks"></div></div>
       <div class="ad-card"><h2>แพ็กเกจ (ร่าง)</h2><div id="adPlans"></div></div>
+    </div>
+
+    <div class="ad-panel" data-panel="members" role="tabpanel" hidden>
+      <div class="ad-card">
+        <h2>ระบบสมาชิก (เข้าสู่ระบบด้วย Google)</h2>
+        <p id="adMemWarn" class="ad-warn" role="alert" hidden></p>
+        <form id="adMemForm" class="ad-form">
+          <label><input type="checkbox" name="membership_required"> บังคับเข้าสู่ระบบ: ผู้ที่ไม่ได้เข้าสู่ระบบเห็นคำทำนายแบบย่อ และใช้ผู้ช่วยเขียน AI ไม่ได้ (ค่าเริ่มต้น: ปิด)</label>
+          <label>ผู้เยี่ยมชม: จำนวนคำทำนายแบบย่อต่อวันต่ออุปกรณ์ (นับในเบราว์เซอร์) <input name="guest_daily_readings" type="number" min="0" max="100" step="1"></label>
+          <label>ผู้เยี่ยมชม: จำนวนหัวข้อที่แสดงในฉบับย่อ <input name="guest_light_sections" type="number" min="1" max="8" step="1"></label>
+          <label>สมาชิกฟรี: ผู้ช่วยเขียน AI ต่อวัน (บังคับที่เซิร์ฟเวอร์) <input name="member_ai_daily" type="number" min="0" max="100" step="1"></label>
+          <label>สมาชิก: จำนวนคำทำนายที่บันทึกได้ <input name="member_saved_max" type="number" min="0" max="500" step="1"></label>
+          <fieldset><legend>โควตา AI ของแพ็กเกจแบบชำระเงิน (ว่าง = ไม่จำกัด)</legend><div id="adMemPlans" class="ad-checks"></div></fieldset>
+          <p class="ad-muted">ข้อความความปลอดภัย (ข้อเตือนใจกาลามสูตร จุดที่ควรใส่ใจ) และข้อความขอความยินยอมแสดงเสมอ ไม่ถูกจำกัด</p>
+          <button class="ad-btn" type="submit">บันทึก</button>
+        </form>
+      </div>
+      <div class="ad-card">
+        <h2>สมาชิก</h2>
+        <div id="adMemKpis" class="ad-kpis"></div>
+        <div id="adMemSignups"></div>
+        <form id="adMemSearch" class="ad-row">
+          <label>ค้นหาด้วยอีเมล (เพื่อช่วยเหลือผู้ใช้) <input name="q" type="search" minlength="3" maxlength="254" autocomplete="off"></label>
+          <button class="ad-btn" type="submit">ค้นหา</button>
+        </form>
+        <div id="adMemList"></div>
+        <p class="ad-muted">อีเมลใช้เพื่อการช่วยเหลือและใบเสร็จเท่านั้น ไม่ส่งออก ไม่ใช้ทำการตลาดกับผู้ที่ไม่ได้เลือกรับ การระงับบัญชีจะออกจากระบบทุกอุปกรณ์ทันที</p>
+      </div>
     </div>
 
     <div class="ad-panel" data-panel="security" role="tabpanel" hidden>

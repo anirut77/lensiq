@@ -1141,6 +1141,7 @@ if (typeof document !== "undefined") (() => {
     const m = how === "auto" ? (pst.multi ? curLane.lastMulti : null) : multiNow();
     if (m && m.multi) { r.warn = ["multi"]; if (how !== "auto") noteMulti(m); }
     last = r; lastAt = performance.now();
+    scqObserve(r, L, how);
     const ls = laneShift(L.id);
     shift.total++; ls.total++;
     if (r.pass) { shift.pass++; ls.pass++; }
@@ -1542,8 +1543,103 @@ if (typeof document !== "undefined") (() => {
     if (source === "sim") { simClock += simLastNow ? Math.max(0, Math.min(now - simLastNow, SIM_MAX_DT)) : 0; simLastNow = now; }
     for (const L of activeLanes()) { use(L); stepLane(now); }
     use(selLane());
-    drawOverlay(); show();
+    drawOverlay(); show(); healthStep(now);
     $("#fps").textContent = `${fpsT.length} fps · ${W}×${H}${nLanes() > 1 ? ` · ${nLanes()} ไลน์` : ""}`;
+  }
+
+  // ---------- สุขภาพภาพ + ตรวจความแม่นยำหน้างาน (lensiq-sitecheck.js) ----------
+  const SITE = /** @type {any} */ (window).LQSite || null;
+  const HL = SITE ? { mon: SITE.createHealth({ kind: "qc" }), at: 0, cv: document.createElement("canvas"), state: null } : null;
+  function healthStep(now) {
+    if (!HL || now - HL.at < 1000 || source === "image") return;
+    HL.at = now;
+    let st = null; try { st = SITE.sampleElement(disp, HL.cv); } catch { /* ignore */ }
+    HL.state = HL.mon.push(st, {});
+    if (SCQ) HL.state.codes.forEach(k => SCQ.health.add(k));
+    const pill = $("#camHealth"), msg = $("#camHealthMsg");
+    if (!pill) return;
+    SITE.renderHealth(pill, HL.state); pill.hidden = false;
+    SITE.renderHealthLine(msg, HL.state);
+  }
+  // ตรวจความแม่นยำ: ระหว่างตรวจ ทุกขวดที่ตรวจจะขึ้นในรายการให้ผู้ควบคุมกด "ขวดดี" หรือ "ขวดเสีย" ตามที่รู้จริง
+  // (ภาพจำลอง: ใช้ข้อบกพร่องที่จำลองเป็นคำตอบ) แล้วคำนวณอัตราคัดทิ้งผิดและหลุดผ่าน พร้อมเสนอเกณฑ์ที่ปรับได้
+  let SCQ = null, SCQ_LAST = null;
+  const scqHist = SITE ? SITE.history("qc-sitecheck") : null;
+  const scqPanel = SITE && $("#scPanel") ? SITE.mountPanel($("#scPanel"), {
+    title: "ตรวจความแม่นยำหน้างาน",
+    intro: "ทดสอบกับขวดจริงบนสายการผลิตของคุณ: เตรียมขวดดีและขวดเสียที่รู้ข้อบกพร่อง ปล่อยผ่านกล้องตามปกติ แล้วติดป้ายว่าแต่ละขวดดีหรือเสีย ระบบคำนวณอัตราคัดทิ้งผิดและหลุดผ่านที่หน้างานนี้ และเสนอเกณฑ์ที่ควรปรับ",
+    steps: [
+      "สอบเทียบสูตรและบันทึกพื้นหลังว่างตามปกติก่อน",
+      "เตรียมขวดดีอย่างน้อย 30 ขวด และขวดเสียที่รู้ข้อบกพร่องอย่างน้อย 10 ขวด (น้ำขาด/เกิน ไม่มีฝา ฝาผิดสี ฝาเอียง ฉลากเลื่อน/เอียง) ติดหมายเลขไว้ที่ก้นขวด",
+      "กด \"เริ่มตรวจ\" แล้วปล่อยขวดผ่านทีละใบ (ตรวจต่อเนื่องหรือกด \"ตรวจเดี๋ยวนี้\") ตั้ง \"ป้ายของขวดถัดไป\" ไว้ล่วงหน้าได้ หรือกดแก้ในรายการทีหลัง",
+      "กด \"จบและคำนวณ\" ถ้าระบบเสนอเกณฑ์ใหม่ ตรวจดูแล้วกด \"ใช้เกณฑ์ที่แนะนำ\" และตรวจซ้ำด้วยขวดชุดเดิม",
+      "ทำซ้ำเมื่อเปลี่ยนไฟ ย้ายกล้อง หรือเปลี่ยนรุ่นขวด เก็บไฟล์ผลตรวจไว้เป็นหลักฐาน"
+    ],
+    body: `<div class="sc-q" hidden><div class="sc-row"><label><span>ป้ายของขวดถัดไป</span><select class="sc-next"><option value="">ไม่ระบุ (กดในรายการ)</option><option value="good">ขวดดี</option><option value="bad">ขวดเสีย</option></select></label></div><ul class="sc-list"></ul></div><div class="row-actions"><button class="btn ghost small sc-apply" type="button" hidden>ใช้เกณฑ์ที่แนะนำ</button></div>`
+  }) : null;
+  function scqObserve(r, L, how) {
+    if (!SCQ) return;
+    const sim = source === "sim" && r.sim ? (r.sim === "ok" ? "good" : "bad") : "";
+    SCQ.rows.push({ t: r.t, lane: L.id, recipe: L.rec ? L.rec.id : "", how, pass: r.pass, reasons: r.reasons.slice(), v: SITE.qcValues(r), truth: sim || scqPanel.q(".sc-next").value || null, sim: !!sim, gain: r.photo ? r.photo.gain : null });
+    scqRender();
+  }
+  function scqRender() {
+    if (!SCQ) return;
+    const R = SCQ.rows, ul = scqPanel.q(".sc-list");
+    ul.innerHTML = R.slice().reverse().slice(0, 60).map((x, j) => {
+      const i = R.length - 1 - j;
+      return SITE.fmt("<li data-truth=\"{a}\"><span>ขวด {b}: <b>{c}</b>{d}</span>", { a: x.truth || "", b: i + 1, c: x.pass ? "ระบบให้ผ่าน" : "ระบบคัดทิ้ง", d: x.reasons.length ? ` <small>(${esc(x.reasons.map(k => QC.REASONS[k]).join(", "))})</small>` : "" })
+        + SITE.fmt("<span><button type=\"button\" class=\"btn ghost\" data-i=\"{a}\" data-t=\"good\" aria-pressed=\"{b}\">ขวดดี</button><button type=\"button\" class=\"btn ghost\" data-i=\"{c}\" data-t=\"bad\" aria-pressed=\"{d}\">ขวดเสีย</button>{e}</span></li>", { a: i, b: x.truth === "good", c: i, d: x.truth === "bad", e: x.sim ? " <small>(จากภาพจำลอง)</small>" : "" });
+    }).join("");
+    const n = t => R.filter(x => x.truth === t).length;
+    scqPanel.live.textContent = SITE.fmt("ตรวจแล้ว {a} ขวด · ติดป้ายขวดดี {b} · ขวดเสีย {c} · ยังไม่ระบุ {d}", { a: R.length, b: n("good"), c: n("bad"), d: R.length - n("good") - n("bad") });
+  }
+  function scqStart() {
+    if (!SITE || SCQ) return;
+    if (!rec.golden) return engine("ยังไม่มีขวดตัวอย่าง: สอบเทียบก่อนเริ่มตรวจความแม่นยำ", "warn");
+    SCQ = { rows: [], startedAt: Date.now(), health: new Set(), source };
+    scqPanel.q(".sc-q").hidden = false; scqPanel.start.disabled = true; scqPanel.stop.disabled = false; scqPanel.exp.hidden = true; scqPanel.q(".sc-apply").hidden = true;
+    scqPanel.state.textContent = "กำลังตรวจ"; scqPanel.state.dataset.s = "live"; SITE.renderReport(scqPanel.report, null);
+    scqRender();
+  }
+  function scqFinish() {
+    if (!SCQ) return;
+    const run = SCQ; SCQ = null;
+    const counts = {}; run.rows.forEach(x => { counts[x.recipe] = (counts[x.recipe] || 0) + 1; });
+    const rid = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0], R0 = recipes.find(x => x.id === rid);
+    const rep = SITE.qcReport(run.rows, R0 ? R0.tol : {});
+    if (Object.keys(counts).length > 1) rep.recs.push("ผลนี้รวมหลายสูตร เกณฑ์ที่แนะนำคิดจากสูตรที่ตรวจมากที่สุด — ตรวจแยกทีละสูตรจะแม่นกว่า");
+    if (run.source === "sim") rep.recs.push("นี่คือผลกับภาพจำลอง ไม่ใช่ขวดจริง — ใช้ฝึกขั้นตอน แล้วตรวจซ้ำกับกล้องจริง");
+    rep.recs.push(...[...run.health].map(c => "สภาพภาพระหว่างตรวจ: " + SITE.HEALTH_TH[c]).filter(Boolean));
+    SITE.renderReport(scqPanel.report, rep);
+    scqPanel.q(".sc-q").hidden = true; scqPanel.start.disabled = false; scqPanel.stop.disabled = true;
+    scqPanel.state.textContent = SITE.VERDICT_TH[rep.verdict]; scqPanel.state.dataset.s = rep.verdict;
+    const sug = rep.tolSuggest.filter(x => x.separable);
+    const ap = scqPanel.q(".sc-apply"); ap.hidden = !(sug.length && R0);
+    ap.onclick = () => {
+      if (!R0 || !confirm(SITE.fmt("ปรับเกณฑ์ของสูตร \"{a}\": {b} ?", { a: R0.name, b: sug.map(x => `${x.label} ${x.current} → ${x.suggest}`).join(", ") }))) return;
+      sug.forEach(x => { R0.tol[x.tol] = x.suggest; });
+      persistRecipes(); renderRecipe(); ap.hidden = true; engine("ปรับเกณฑ์ตามผลตรวจแล้ว — ตรวจซ้ำด้วยขวดชุดเดิมเพื่อยืนยัน", "ok");
+    };
+    const doc = SITE.exportDoc("qc", {
+      startedAt: new Date(run.startedAt).toISOString(), source: run.source, recipe: R0 ? { name: R0.name, tol: { ...R0.tol }, photoNorm: R0.photoNorm !== false } : null,
+      conditions: { health: [...run.health] }, rows: run.rows.map(x => ({ tSec: +((x.t - run.startedAt) / 1000).toFixed(1), lane: x.lane, trigger: x.how, pass: x.pass, reasons: x.reasons, truth: x.truth, values: x.v, lightGain: x.gain })),
+      report: { verdict: rep.verdict, n: rep.n, falseReject: rep.falseReject, miss: rep.miss, tolSuggest: rep.tolSuggest, recs: rep.recs }
+    });
+    scqPanel.exp.hidden = false; scqPanel.exp.onclick = () => SITE.download(`lensiq-qc-check-${new Date(run.startedAt).toISOString().slice(0, 10)}.json`, doc);
+    scqHist.add({ at: run.startedAt, verdict: rep.verdict, summary: SITE.fmt("ขวดดี {a} (คัดทิ้งผิด {b}) · ขวดเสีย {c} (หลุด {d})", { a: rep.n.good, b: rep.n.falseReject, c: rep.n.bad, d: rep.n.missed }) });
+    scqHist.render(scqPanel.hist);
+    SCQ_LAST = { rep, doc };
+  }
+  if (scqPanel) {
+    scqPanel.start.addEventListener("click", scqStart);
+    scqPanel.stop.addEventListener("click", scqFinish);
+    scqPanel.q(".sc-list").addEventListener("click", e => {
+      const b = e.target.closest("[data-t]"); if (!b || !SCQ) return;
+      const x = SCQ.rows[+b.dataset.i]; if (!x) return;
+      x.truth = x.truth === b.dataset.t ? null : b.dataset.t; x.sim = false; scqRender();
+    });
+    scqHist.render(scqPanel.hist);
   }
 
   setInterval(() => { if (shift.total) renderStats(); }, 5000);
@@ -1551,7 +1647,7 @@ if (typeof document !== "undefined") (() => {
   // สำหรับการทดสอบอัตโนมัติ (อ่านอย่างเดียว ไม่มีภาพ)
   Object.defineProperties(window.__QC, Object.getOwnPropertyDescriptors({
     get shift() { return shift; }, get lanes() { stash(); return activeLanes().map(L => ({ id: L.id, rec: L.rec && L.rec.id, bg: !!L.bg, golden: !!(L.rec && L.rec.golden), cam: L.hubCam ? L.hubCam.slot : null, live: !!(L.hubCam && L.hubCam.active), pst: L.pst.phase })); },
-    get running() { return running; }, get hub() { return hub; }, get idb() { return idbOk; }, setLanes, selectLane, pChart: QC.pChart
+    get running() { return running; }, get hub() { return hub; }, get sitecheck() { return SCQ; }, get sitecheckLast() { return SCQ_LAST; }, scFinish: () => scqFinish(), get idb() { return idbOk; }, setLanes, selectLane, pChart: QC.pChart
   }));
 
   // เริ่มต้น: ตรวจ IndexedDB -> ย้ายภาพเก่าออกจาก localStorage (เรียกซ้ำได้) -> โหลดพื้นหลังของทุกไลน์

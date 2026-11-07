@@ -5,9 +5,9 @@ export const FORTUNE_DOMAINS = ["face", "palm", "horoscope", "tarot", "siamsee",
  *  Anything else is rejected (the client sends "other" instead). A unit test fails when a page is missing here;
  *  lensiq-analytics.js carries the same lists (drift test in tests/unit/backend-site.test.js). */
 export const ANALYTICS_PAGES = [
-  "about", "astro", "attendance", "bazi", "booth", "cameras", "checkout", "converter", "creative", "customers", "dream",
-  "driver", "faceread", "fengshui", "fortune", "horoscope", "iching", "index", "insights", "interview", "lek7", "lifegraph",
-  "neuro", "numbers", "palm", "photobooth", "pricing", "qc", "signage", "store", "studio", "taksa", "tarot", "teamface", "zodiac",
+  "about", "account", "astro", "attendance", "bazi", "booth", "camera-notice", "cameras", "checkout", "converter", "creative", "customers", "dream",
+  "driver", "faceread", "fengshui", "fortune", "help", "horoscope", "iching", "index", "insights", "interview", "lek7", "lifegraph",
+  "neuro", "numbers", "palm", "photobooth", "pricing", "privacy", "qc", "signage", "store", "studio", "taksa", "tarot", "teamface", "terms", "zodiac",
   "other"
 ];
 

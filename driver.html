@@ -9,6 +9,7 @@
 <title data-i18n="driver.s1">เฝ้าระวังความง่วงคนขับ | LENSIQ</title>
 <link rel="stylesheet" href="styles.css?v=8">
 <link rel="stylesheet" href="driver.css?v=4">
+<link rel="stylesheet" href="lensiq-sitecheck.css?v=1">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -17,6 +18,7 @@
 <script src="lensiq-i18n-rt.js?v=1"></script>
 <script src="i18n/zh-rt-common.js?v=1"></script>
 <script src="i18n/zh-rt-driver.js?v=1"></script>
+<script src="i18n/zh-rt-sitecheck.js?v=1"></script>
 
 <main class="dr">
   <h1 data-i18n="driver.s2">เฝ้าระวังความง่วงคนขับ</h1>
@@ -72,10 +74,12 @@
         </div>
         <div class="cam-meta">
           <span class="pill" id="fps">—</span>
+          <span class="pill lq-health" id="camHealth" hidden></span>
           <label class="thr"><span data-i18n="driver.s35">เกณฑ์ EAR</span><input id="thr" type="number" step="0.005" min="0.08" max="0.4" value="0.250"></label>
           <button class="btn dark sm" id="recal" type="button" data-i18n="driver.s36">ปรับเทียบใหม่</button>
         </div>
         <p class="base-info" id="baseInfo"></p>
+        <p class="cam-health" id="camHealthMsg" role="status" hidden></p>
       </div>
 
       <div class="meter-col">
@@ -105,6 +109,8 @@
     <ul class="alerts" id="alerts" aria-label="การแจ้งเตือนล่าสุด" data-i18n-attr="aria-label:driver.s49"><li class="empty" data-i18n="driver.s50">ยังไม่มีการแจ้งเตือน</li></ul>
     <p class="live-note" data-i18n="driver.s51">* PERCLOS จะนับเป็นทางการเมื่อมีข้อมูลอย่างน้อย 20 วินาที</p>
   </section>
+
+  <section class="card sc-panel" id="scPanel"></section>
 
   <section class="card" id="summary" hidden></section>
 
@@ -158,7 +164,8 @@
 <script src="lensiq-track.js?v=2"></script>
 <script src="lensiq-camera.js?v=2"></script>
 <script src="lensiq-detect.js?v=2"></script>
-<script src="driver.js?v=3"></script>
+<script src="lensiq-sitecheck.js?v=1"></script>
+<script src="driver.js?v=4"></script>
 <script src="lensiq-config.js?v=3"></script>
 </body>
 </html>

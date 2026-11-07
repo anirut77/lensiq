@@ -32,10 +32,13 @@ const PORTRAIT = `(() => {
 
 /** Garment PNG with transparency (a plain jacket shape, no insignia) as a File for the "เพิ่มชุด" input. */
 const GARMENT_FILE = `(async () => {
-  const W = 600, H = 520, c = document.createElement("canvas"); c.width = W; c.height = H;
-  const x = c.getContext("2d"), cx = 300;
-  x.fillStyle = "#24314d"; x.beginPath(); x.moveTo(cx - 70, 40); x.bezierCurveTo(cx - 160, 55, cx - 250, 70, cx - 270, 150); x.lineTo(cx - 300, H); x.lineTo(cx + 300, H); x.lineTo(cx + 270, 150); x.bezierCurveTo(cx + 250, 70, cx + 160, 55, cx + 70, 40); x.closePath(); x.fill();
+  // a whole garment with a transparent margin (garmentPhotoCheck refuses one cut off at the frame edge)
+  const W = 700, H = 600, c = document.createElement("canvas"); c.width = W; c.height = H;
+  const x = c.getContext("2d"), cx = 350, yb = H - 60;
+  x.fillStyle = "#24314d"; x.beginPath(); x.moveTo(cx - 70, 40); x.bezierCurveTo(cx - 160, 55, cx - 250, 70, cx - 270, 150); x.lineTo(cx - 300, yb); x.lineTo(cx + 300, yb); x.lineTo(cx + 270, 150); x.bezierCurveTo(cx + 250, 70, cx + 160, 55, cx + 70, 40); x.closePath(); x.fill();
   x.fillStyle = "#f4f4f2"; x.beginPath(); x.moveTo(cx - 70, 40); x.lineTo(cx, 220); x.lineTo(cx + 70, 40); x.closePath(); x.fill();
+  // an open neckline, as on a real garment (with a flat closed top the neck anchor is ambiguous and the photo check says "tilted")
+  x.globalCompositeOperation = "destination-out"; x.beginPath(); x.ellipse(cx, 40, 60, 45, 0, 0, 7); x.fill(); x.globalCompositeOperation = "source-over";
   const b = await new Promise(r => c.toBlob(r, "image/png"));
   return new File([b], "jacket-test.png", { type: "image/png" });
 })()`;
@@ -76,7 +79,8 @@ export default async function ({ base, launch, check, fakeCams }) {
       const proc = st.t.matte + st.t.refine + st.t.foreground + st.t.render;
       assert(proc < 6000, "processing time " + proc); // budget 3 s on M1; headless CI machines are slower
       const px = await page.evaluate(() => {
-        const S = window.__studio.state, o = document.getElementById("stOut"), x = o.getContext("2d"), at = (X, Y) => [...x.getImageData(X, Y, 1, 1).data];
+        // the garment render itself (on screen, or kept as S.draft when the quality gate withheld it)
+        const S = window.__studio.state, o = document.getElementById("stOut"), g = S.draft ? S.draft.rgba : S.out, at = (X, Y) => [...g.slice((Y * S.W + X) * 4, (Y * S.W + X) * 4 + 4)];
         return { size: [o.width, o.height], alpha: S.alpha.reduce((a, b) => a + b, 0) / S.alpha.length, corner: at(10, 10), shirt: at(150, 1050), face: at(450, 430), chest: at(450, 900), targets: S.targets, body: S.body };
       });
       assert(px.size[0] === 900 && px.size[1] === 1100, "out size");
@@ -101,22 +105,37 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(ly.ratio >= 2.5 && ly.ratio <= 3.3, "shoulder width prior " + ly.ratio);
     });
 
-    await check("studio: in-page QA (studio-qa.js fast checks) runs after each render; a failing check shows a gentle notice and keeps the result usable", async () => {
+    await check("studio: quality gate (studio-qa.js, all checks) runs inside every garment render; a failing render is withheld and the safe composition is shown, the draft only on request", async () => {
       await page.evaluate(() => window.__studio.render());
-      const q = await page.waitFor(`window.__studio.state.qa && { pass: window.__studio.state.qa.pass, keys: Object.keys(window.__studio.state.qa.m), t: window.__studio.state.timings.qa, hidden: document.getElementById("stQa").hidden }`, 5000);
-      assert(q.keys.includes("neckNotch") && q.keys.includes("faceIsland") && q.keys.includes("neckRel") && !q.keys.includes("hairCut"), "fast subset only: " + q.keys);
-      assert(q.t < 600, "QA time " + q.t);
-      assert(q.hidden === q.pass, "notice visible only on failure " + JSON.stringify(q));
-      // force a failure: the notice appears (Thai by default), the result stays on screen and can still be saved
+      const q = await page.evaluate(() => { const S = window.__studio.state; return { pass: S.qa && S.qa.pass, keys: S.qa ? Object.keys(S.qa.m) : [], t: S.timings.qa, shown: S.shown, hidden: document.getElementById("stQa").hidden }; });
+      for (const k of ["neckJoin", "neckNotch", "faceIsland", "neckRel", "jawBlob", "hairCut", "hem", "shoulder", "stray"]) assert(q.keys.includes(k), "gate runs " + k + ": " + q.keys);
+      assert(q.t < 1500, "QA time " + q.t);
+      assert(q.shown === (q.pass ? "garment" : "safe") && !q.hidden, "shown follows the gate; a notice is always visible with an outfit " + JSON.stringify(q));
+      // passing outfit = preview with the measured miss rate and a switch to the version without the outfit
+      if (q.pass) {
+        const p = await page.evaluate(() => document.getElementById("stQa").textContent);
+        assert(/ตัวอย่าง/.test(p) && /2 ใน 3/.test(p) && /ไม่ใส่ชุด/.test(p), "preview notice: " + p);
+        await page.evaluate(() => document.getElementById("stQaDraft").click());
+        await page.waitFor(`window.__studio.state.shown === "plain" && document.getElementById("stQa").dataset.shown === "plain"`, 5000);
+        await page.evaluate(() => document.getElementById("stQaDraft").click());
+        await page.waitFor(`window.__studio.state.shown === "garment"`, 5000);
+      }
+      // force a failure: the garment render is withheld, the safe composition (own clothes + new background) is on screen
       const saved = await page.evaluate(() => window.StudioQA.LIMITS.neckBgPct);
-      await page.evaluate(() => { window.StudioQA.LIMITS.neckBgPct = -1; window.__studio.state.qa = null; return window.__studio.render(); });
-      const f = await page.waitFor(`window.__studio.state.qa && !window.__studio.state.qa.pass && !document.getElementById("stQa").hidden && { text: document.getElementById("stQa").textContent, out: !!window.__studio.state.out, dl: !document.getElementById("stPng").disabled }`, 5000);
-      assert(/ไม่เนียน/.test(f.text) && /หน้าตรง/.test(f.text), "Thai notice: " + f.text);
-      assert(f.out && f.dl, "result still usable " + JSON.stringify(f));
+      await page.evaluate(() => { window.StudioQA.LIMITS.neckBgPct = -1; return window.__studio.render(); });
+      const red = () => page.evaluate(() => { const d = document.getElementById("stOut").getContext("2d").getImageData(450, 900, 1, 1).data; return d[0] > 150 && d[1] < 90; });
+      const f = await page.evaluate(() => { const S = window.__studio.state, el = document.getElementById("stQa"); return { shown: S.shown, draft: !!S.draft, vis: !el.hidden, text: el.textContent, dl: !document.getElementById("stPng").disabled }; });
+      assert(f.shown === "safe" && f.draft && f.vis && f.dl, "withheld " + JSON.stringify(f));
+      assert(/ไม่เนียน/.test(f.text) && /เสื้อเดิม/.test(f.text) && /แบบร่าง/.test(f.text), "Thai notice + draft button: " + f.text);
+      assert(await red(), "safe composition keeps the person's own (red) shirt");
+      await page.evaluate(() => document.getElementById("stQaDraft").click());
+      const d = await page.waitFor(`window.__studio.state.shown === "draft" && document.getElementById("stQa").dataset.shown === "draft" && document.getElementById("stQa").textContent`, 5000);
+      assert(/แบบร่าง/.test(d) && !(await red()), "draft on request shows the garment with a warning: " + d);
+      await page.evaluate(() => document.getElementById("stQaDraft").click());
+      await page.waitFor(`window.__studio.state.shown === "safe"`, 5000);
       const fsm = await import("node:fs");
-      assert(/"studio\.qaWarn": "这张图可能不够自然/.test(fsm.readFileSync(new URL("../../i18n/zh-studio.js", import.meta.url), "utf8")), "中文 notice in i18n/zh-studio.js");
-      await page.evaluate(v => { window.StudioQA.LIMITS.neckBgPct = v; window.__studio.state.qa = null; return window.__studio.render(); }, saved);
-      await page.waitFor(`window.__studio.state.qa`, 5000);
+      for (const lang of ["zh", "en"]) { const t = fsm.readFileSync(new URL(`../../i18n/${lang}-studio.js`, import.meta.url), "utf8"); for (const k of ["safe", "showDraft", "preview", "plain", "showPlain", "showPreview"]) assert(t.includes(`"studio.js.qa.${k}"`), lang + " gate string " + k); }
+      await page.evaluate(v => { window.StudioQA.LIMITS.neckBgPct = v; return window.__studio.render(); }, saved);
     });
 
     await check("studio: every garment renders; retouch / background / brush / handles update the result", async () => {
@@ -168,7 +187,8 @@ export default async function ({ base, launch, check, fakeCams }) {
 
     await check("studio: add a garment PNG (IndexedDB template), anchor editor saves fit", async () => {
       await page.evaluate(`(async () => { const f = await ${GARMENT_FILE}; const dt = new DataTransfer(); dt.items.add(f); const i = document.getElementById("stGarmentFile"); i.files = dt.files; i.dispatchEvent(new Event("change")); })()`);
-      await page.waitFor(`window.__studio.state.gKey.startsWith("tpl:") && /เพิ่มชุด/.test(document.getElementById("stGarmentMsg").textContent)`, 20000);
+      const gm = await page.waitFor(`!/กำลังเตรียม/.test(document.getElementById("stGarmentMsg").textContent) && document.getElementById("stGarmentMsg").textContent`, 20000);
+      assert(/เพิ่มชุด/.test(gm) && await page.evaluate(() => window.__studio.state.gKey.startsWith("tpl:")), "garment added: " + gm);
       await sleep(300); await page.evaluate(() => window.__studio.render());
       const stored = await page.evaluate(() => PBTpl.all().then(a => a.filter(i => i.kind === "outfit").map(i => i.name)));
       assert(stored.includes("jacket-test"), "stored template " + stored);
@@ -180,7 +200,8 @@ export default async function ({ base, launch, check, fakeCams }) {
       const ok = (it.anchors && it.anchors.length >= 5 && it.anchors.every(p => Number.isFinite(p.x) && Number.isFinite(p.y) && Number.isFinite(p.u))) || (it.fit && it.fit.chin && it.fit.l && it.fit.r);
       assert(ok, "anchors saved " + JSON.stringify(it.anchors || it.fit));
       await sleep(300); await page.evaluate(() => window.__studio.render());
-      const chest = await page.evaluate(() => [...document.getElementById("stOut").getContext("2d").getImageData(450, 950, 1, 1).data]);
+      // the garment render itself (the gate may withhold it on this synthetic portrait and keep it as S.draft)
+      const chest = await page.evaluate(() => { const S = window.__studio.state, g = S.draft ? S.draft.rgba : S.out, i = (950 * S.W + 450) * 4; return [...g.slice(i, i + 4)]; });
       assert(chest[2] > chest[0], "navy jacket on chest " + chest);
     });
 

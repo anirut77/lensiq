@@ -1,0 +1,374 @@
+[
+{
+"id": "d01",
+"split": "dev",
+"title": "File:President Barack Obama.jpg",
+"note": "dark-skinned man"
+},
+{
+"id": "d02",
+"split": "dev",
+"title": "File:Michelle Obama 2013 official portrait.jpg",
+"note": "dark-skinned woman"
+},
+{
+"id": "d03",
+"split": "dev",
+"title": "File:Ayanna Pressley Portrait.jpg",
+"note": "dark-skinned woman"
+},
+{
+"id": "d04",
+"split": "dev",
+"title": "File:Lauren Underwood official portrait.jpg",
+"note": "dark-skinned woman"
+},
+{
+"id": "d05",
+"split": "dev",
+"title": "File:Jim Clyburn official portrait 116th Congress.jpg",
+"note": "dark-skinned older man"
+},
+{
+"id": "d06",
+"split": "dev",
+"title": "File:Gen Charles Q. Brown Jr. (2).jpg",
+"note": "dark-skinned man (military)"
+},
+{
+"id": "d07",
+"split": "dev",
+"title": "File:Secretary of Defense Lloyd Austin, official portrait, 2023.jpg",
+"note": "dark-skinned man"
+},
+{
+"id": "d08",
+"split": "dev",
+"title": "File:Jessica Watkins official portrait.jpg",
+"note": "dark-skinned woman (NASA)"
+},
+{
+"id": "d09",
+"split": "dev",
+"title": "File:Jeanette J. Epps.jpg",
+"note": "dark-skinned woman (NASA)"
+},
+{
+"id": "d10",
+"split": "dev",
+"title": "File:Mae Carol Jemison.jpg",
+"note": "dark-skinned woman (NASA)"
+},
+{
+"id": "d11",
+"split": "dev",
+"title": "File:Frederick Douglass (circa 1879).jpg",
+"note": "dark-skinned man, historic"
+},
+{
+"id": "d12",
+"split": "dev",
+"title": "File:Booker T Washington retouched flattened-crop.jpg",
+"note": "dark-skinned man, historic"
+},
+{
+"id": "d13",
+"split": "dev",
+"title": "File:Katherine Johnson 1983.jpg",
+"note": "dark-skinned woman, historic"
+},
+{
+"id": "d14",
+"split": "dev",
+"title": "File:Hurston, Zora Neale 2.jpg",
+"note": "dark-skinned woman, historic colour"
+},
+{
+"id": "d15",
+"split": "dev",
+"title": "File:Zora Neale Hurston (1938).jpg",
+"note": "dark-skinned woman, historic"
+},
+{
+"id": "d16",
+"split": "dev",
+"title": "File:Cory Booker, official portrait, 114th Congress.jpg",
+"note": "light-brown-skinned man"
+},
+{
+"id": "d17",
+"split": "dev",
+"title": "File:Abraham Lincoln O-77 matte collodion print.jpg",
+"note": "white man, historic"
+},
+{
+"id": "d18",
+"split": "dev",
+"title": "File:Ellison Onizuka.jpg",
+"note": "East Asian man (NASA)"
+},
+{
+"id": "d19",
+"split": "dev",
+"title": "File:Judy Chu official portrait.jpg",
+"note": "East Asian woman"
+},
+{
+"id": "d20",
+"split": "dev",
+"title": "File:Mazie Hirono, official portrait, 113th Congress.jpg",
+"note": "East Asian woman"
+},
+{
+"id": "d21",
+"split": "dev",
+"title": "File:Elaine Chao official portrait.jpg",
+"note": "East Asian woman"
+},
+{
+"id": "d22",
+"split": "dev",
+"title": "File:Tammy Duckworth, official portrait, 115th Congress.jpg",
+"note": "Southeast Asian (Thai-American) woman"
+},
+{
+"id": "d23",
+"split": "dev",
+"title": "File:Andy Kim, official portrait, 116th Congress.jpg",
+"note": "East Asian man"
+},
+{
+"id": "d24",
+"split": "dev",
+"title": "File:Kamala Harris Vice Presidential Portrait.jpg",
+"note": "mixed South Asian/Black woman"
+},
+{
+"id": "d25",
+"split": "dev",
+"title": "File:Kalpana Chawla, NASA photo portrait in orange suit.jpg",
+"note": "South Asian woman (NASA)"
+},
+{
+"id": "d26",
+"split": "dev",
+"title": "File:Sunita Williams.jpg",
+"note": "South Asian woman (NASA)"
+},
+{
+"id": "d27",
+"split": "dev",
+"title": "File:Ilhan Omar, official portrait, 116th Congress.jpg",
+"note": "East African woman"
+},
+{
+"id": "t01",
+"split": "test",
+"title": "File:Grace Meng Official Congressional Photo.jpg",
+"note": "East Asian woman"
+},
+{
+"id": "t02",
+"split": "test",
+"title": "File:Dorothy Vaughan.jpg",
+"note": "dark-skinned woman, historic"
+},
+{
+"id": "t03",
+"split": "test",
+"title": "File:Congressman Ted W. Lieu Official Photo.jpg",
+"note": "East Asian man"
+},
+{
+"id": "t04",
+"split": "test",
+"title": "File:Jerry Nadler 116th Congress official portrait.jpg",
+"note": "white man"
+},
+{
+"id": "t05",
+"split": "test",
+"title": "File:Mark Takano 118th Congress.jpeg",
+"note": "East Asian man"
+},
+{
+"id": "t06",
+"split": "test",
+"title": "File:Harriet Tubman 1895.jpg",
+"note": "dark-skinned woman, historic"
+},
+{
+"id": "t07",
+"split": "test",
+"title": "File:Portrait of Paul Robeson LCCN2004663510.jpg",
+"note": "dark-skinned man, historic"
+},
+{
+"id": "t08",
+"split": "test",
+"title": "File:Doris Matsui Official Photo.JPG",
+"note": "East Asian woman"
+},
+{
+"id": "t09",
+"split": "test",
+"title": "File:Ami Bera, Official Portrait, 115th Congress (cropped).jpg",
+"note": "South Asian man"
+},
+{
+"id": "t10",
+"split": "test",
+"title": "File:Pramila Jayapal, official portrait, 115th Congress (cropped).jpg",
+"note": "South Asian woman"
+},
+{
+"id": "t11",
+"split": "test",
+"title": "File:Ro Khanna, official portrait, 115th Congress (3x4).jpg",
+"note": "South Asian man"
+},
+{
+"id": "t12",
+"split": "test",
+"title": "File:Young Kim 117th U.S Congress.jpg",
+"note": "East Asian woman"
+},
+{
+"id": "t13",
+"split": "test",
+"title": "File:MichelleSteel.jpg",
+"note": "East Asian woman"
+},
+{
+"id": "t14",
+"split": "test",
+"title": "File:Marilyn Strickland 117th U.S Congress (cropped).jpg",
+"note": "East Asian/Black woman"
+},
+{
+"id": "t15",
+"split": "test",
+"title": "File:Raja Krishnamoorthi, official photo, 115th Congress (cropped).jpg",
+"note": "South Asian man"
+},
+{
+"id": "t16",
+"split": "test",
+"title": "File:Shri Thanedar, official portrait (119th Congress).jpg",
+"note": "South Asian man"
+},
+{
+"id": "t17",
+"split": "test",
+"title": "File:Rep. Jill Tokuda official photo, 118th Congress.jpg",
+"note": "East Asian woman"
+},
+{
+"id": "t18",
+"split": "test",
+"title": "File:Lucy McBath, official portrait, 116th Congress.jpg",
+"note": "dark-skinned woman"
+},
+{
+"id": "t19",
+"split": "test",
+"title": "File:Rep-Hakeem-Jeffries-Official-Portrait (cropped).jpg",
+"note": "dark-skinned man"
+},
+{
+"id": "t20",
+"split": "test",
+"title": "File:Chuck Schumer official photo.jpg",
+"note": "white man"
+},
+{
+"id": "t21",
+"split": "test",
+"title": "File:Elizabeth Warren, official portrait, 114th Congress.jpg",
+"note": "white woman"
+},
+{
+"id": "t22",
+"split": "test",
+"title": "File:Sanders portrait square.jpg",
+"note": "white man, older"
+},
+{
+"id": "t23",
+"split": "test",
+"title": "File:Maxine Waters, Official Portrait, 113th Congress (cropped).jpg",
+"note": "dark-skinned woman, older"
+},
+{
+"id": "t24",
+"split": "test",
+"title": "File:Kai Kahele 117th U.S Congress.jpg",
+"note": "Pacific Islander man"
+},
+{
+"id": "t25",
+"split": "test",
+"title": "File:Ed Case, official portrait, 116th Congress.jpg",
+"note": "white man"
+},
+{
+"id": "t26",
+"split": "test",
+"title": "File:Mike Honda, Official Portrait, 113th Congress (cropped).jpg",
+"note": "East Asian man"
+},
+{
+"id": "t27",
+"split": "test",
+"title": "File:Stephanie Murphy, official portrait, 115th Congress (congress).jpg",
+"note": "Southeast Asian (Vietnamese-American) woman"
+},
+{
+"id": "t28",
+"split": "test",
+"title": "File:Gregorio Kilili Camacho Sablan.jpg",
+"note": "Pacific Islander man"
+},
+{
+"id": "t29",
+"split": "test",
+"title": "File:Michael San Nicolas official portrait, 116th Congress.jpg",
+"note": "Pacific Islander man"
+},
+{
+"id": "t30",
+"split": "test",
+"title": "File:Colleen Hanabusa Official Photo.jpg",
+"note": "East Asian woman"
+},
+{
+"id": "t31",
+"split": "test",
+"title": "File:Director Tulsi Gabbard Official Portrait (cropped).jpg",
+"note": "Pacific Islander/white woman"
+},
+{
+"id": "t32",
+"split": "test",
+"title": "File:TJ Cox, official portrait, 116th Congress2.jpg",
+"note": "Southeast Asian (Filipino-American) man"
+},
+{
+"id": "t33",
+"split": "test",
+"title": "File:Daniel Inouye official portrait 2.jpg",
+"note": "East Asian man, older"
+},
+{
+"id": "t34",
+"split": "test",
+"title": "File:Steven Chu official DOE portrait.jpg",
+"note": "East Asian man"
+},
+{
+"id": "t35",
+"split": "test",
+"title": "File:Gary Locke official portrait (cropped).jpg",
+"note": "East Asian man"
+}
+]

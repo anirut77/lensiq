@@ -6,6 +6,7 @@ import { audit, callerHash, hit } from "./store.js";
 import { verifyTurnstile } from "./turnstile.js";
 import { HttpError, dayOf, flag, intVar, log, now } from "./util.js";
 import { randomId, randomToken, sha256Hex } from "./crypto.js";
+import { ledger, membership, optionalMember } from "./members.js";
 
 /** FREE_MODE defaults to true: a missing/garbled variable never starts charging or limiting anybody. */
 export const freeMode = env => String(env.FREE_MODE ?? "true").toLowerCase() !== "false";
@@ -78,7 +79,7 @@ export function cleanBuyer(b) {
   return out;
 }
 
-async function createPayment(env, { kind, planId = null, period = null, amount, buyer = {}, customerId = null }, deps) {
+async function createPayment(env, { kind, planId = null, period = null, amount, buyer = {}, customerId = null, userId = null }, deps) {
   const { live } = opnKey(env);
   const t = now(), id = randomId(16);
   const v = splitVat(amount, flag(env.VAT_REGISTERED));
@@ -86,11 +87,11 @@ async function createPayment(env, { kind, planId = null, period = null, amount, 
   const expires = t + 30 * 60; // QR valid 30 min (Opn allows up to 24 h)
   await env.DB.prepare(
     "INSERT INTO payments (id, customer_id, plan_id, period, kind, livemode, amount_satang, subtotal_satang, vat_satang, vat_rate_bp, status, expires_at, " +
-    "buyer_name, buyer_tax_id, buyer_address, buyer_branch, buyer_email, seller_name, seller_tax_id, seller_address, seller_branch, created_at, updated_at) " +
-    "VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, 'pending', ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?21)"
+    "buyer_name, buyer_tax_id, buyer_address, buyer_branch, buyer_email, seller_name, seller_tax_id, seller_address, seller_branch, created_at, updated_at, user_id) " +
+    "VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, 'pending', ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?21, ?22)"
   ).bind(id, customerId, planId, period, kind, live ? 1 : 0, v.total, v.subtotal, v.vat, v.rate_bp, expires,
     buyer.name || null, buyer.tax_id || null, buyer.address || null, buyer.branch || null, buyer.email || null,
-    s.seller_name, s.seller_tax_id, s.seller_address, s.seller_branch, t).run();
+    s.seller_name, s.seller_tax_id, s.seller_address, s.seller_branch, t, userId).run();
   let charge;
   try {
     charge = await createPromptPayCharge(env, { amount, description: kind === "admin_test" ? "LENSIQ test charge" : `LENSIQ ${planId} (${period})`, paymentId: id, expiresAt: expires }, deps.fetch);
@@ -110,10 +111,14 @@ export const CHECKOUT_GLOBAL_HOUR = 30;
 
 /** Public checkout (only when BILLING_ENABLED=true and FREE_MODE=false). Turnstile (fail closed, action "checkout"),
  *  then rate limited per caller and globally per hour.
- *  Returns customer_id + order_token ONCE: the buyer keeps them to link the paid plan to themselves (only the token's
- *  hash is stored). */
+ *  Membership (members.js): when the owner requires sign-in, checkout needs a signed-in member (401 member_required)
+ *  and the payment, customer and subscription are linked to that user_id. A signed-in member is linked even when it is
+ *  not required. Without a member (legacy): returns customer_id + order_token ONCE — the buyer keeps them to link the
+ *  paid plan to themselves (only the token's hash is stored). */
 export async function checkout(env, request, body, deps = {}) {
   if (!billingEnabled(env)) throw new HttpError(409, freeMode(env) ? "LENSIQ is free right now — no payment needed" : "billing is not enabled");
+  const member = await optionalMember(env, request);
+  if (!member && (await membership(env)).required) throw new HttpError(401, "please sign in before buying a plan (member_required)", { code: "member_required" });
   const ts = await verifyTurnstile(env, request, "checkout", deps.fetch);
   if (!ts.ok) throw ts.code === "turnstile_not_configured"
     ? new HttpError(503, "checkout unavailable: Turnstile is not configured on the server (turnstile_not_configured)")
@@ -130,6 +135,17 @@ export async function checkout(env, request, body, deps = {}) {
   if (!Number.isInteger(amount) || amount <= 0) throw new HttpError(400, "this plan is sold by quotation");
   const buyer = cleanBuyer(body.buyer || {});
   if (body.accept_terms !== true) throw new HttpError(400, "terms must be accepted");
+  if (member) {
+    const userId = member.user.id;
+    if (!buyer.email) buyer.email = member.user.email; // receipt e-mail defaults to the signed-in account
+    const cur = await env.DB.prepare("SELECT id FROM customers WHERE user_id = ?1 ORDER BY created_at DESC LIMIT 1").bind(userId).first();
+    const customerId = cur ? cur.id : randomId(12);
+    if (cur) await env.DB.prepare("UPDATE customers SET email = ?1, name = ?2, tax_id = ?3, address = ?4, branch = ?5 WHERE id = ?6").bind(buyer.email, buyer.name, buyer.tax_id, buyer.address, buyer.branch, customerId).run();
+    else await env.DB.prepare("INSERT INTO customers (id, email, name, tax_id, address, branch, created_at, user_id) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)")
+      .bind(customerId, buyer.email, buyer.name, buyer.tax_id, buyer.address, buyer.branch, now(), userId).run();
+    const r = await createPayment(env, { kind: "checkout", planId: plan.id, period, amount, buyer, customerId, userId }, deps);
+    return { ...r, customer_id: customerId, linked_to_account: true };
+  }
   const customerId = randomId(12);
   const orderToken = randomToken(24);
   await env.DB.prepare("INSERT INTO customers (id, email, name, tax_id, address, branch, created_at, order_token_hash) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)")
@@ -151,12 +167,12 @@ async function activate(env, p, t) {
     .bind(p.customer_id, p.plan_id).first();
   if (cur) {
     const end = Math.max(cur.current_period_end, t) + len;
-    await env.DB.prepare("UPDATE subscriptions SET current_period_end = ?1, updated_at = ?2 WHERE id = ?3").bind(end, t, cur.id).run();
+    await env.DB.prepare("UPDATE subscriptions SET current_period_end = ?1, updated_at = ?2, user_id = COALESCE(user_id, ?4) WHERE id = ?3").bind(end, t, cur.id, p.user_id || null).run();
     return cur.id;
   }
   const id = randomId(12);
-  await env.DB.prepare("INSERT INTO subscriptions (id, customer_id, plan_id, status, period, current_period_start, current_period_end, created_at, updated_at) VALUES (?1, ?2, ?3, 'active', ?4, ?5, ?6, ?5, ?5)")
-    .bind(id, p.customer_id, p.plan_id, p.period, t, t + len).run();
+  await env.DB.prepare("INSERT INTO subscriptions (id, customer_id, plan_id, status, period, current_period_start, current_period_end, created_at, updated_at, user_id) VALUES (?1, ?2, ?3, 'active', ?4, ?5, ?6, ?5, ?5, ?7)")
+    .bind(id, p.customer_id, p.plan_id, p.period, t, t + len, p.user_id || null).run();
   return id;
 }
 
@@ -191,6 +207,7 @@ export async function applyCharge(env, p, charge) {
       if (sub) await db.prepare("UPDATE payments SET subscription_id = ?1 WHERE id = ?2").bind(sub, p.id).run();
       const row = await db.prepare("SELECT receipt_no FROM payments WHERE id = ?1").bind(p.id).first();
       await audit(env, "system", "payment.successful", { payment: p.id, receipt: row && row.receipt_no, amount: p.amount_satang });
+      if (p.user_id) await ledger(env, p.user_id, "payment", { ref: p.id, amount: p.amount_satang }, t);
     }
   } else {
     await env.DB.prepare("UPDATE payments SET status = ?1, failure_code = ?2, updated_at = ?3 WHERE id = ?4 AND status = 'pending'")

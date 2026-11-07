@@ -29,6 +29,7 @@
 | Retention | `backend/src/retention.js` | cron: aggregate first, then purge (table in §6) |
 | AI | `backend/src/fortune.js`, `settings.js`, `fortune-prompt.js` | port of `server.py` `/api/fortune`; admin AI settings; API key storage |
 | Billing | `backend/src/billing.js`, `opn.js` | plans/entitlements, FREE_MODE, PromptPay charge, polling, webhook, receipts / VAT |
+| Members | `backend/src/members.js`, `google.js` | Sign in with Google (ID token verified with WebCrypto RS256 + JWKS), member sessions, tiers/quotas, ledger, saved readings, export/erasure, admin Members tab |
 
 ### Security design (summary)
 
@@ -175,6 +176,54 @@ single server-side gate; with `FREE_MODE=true` it always allows but still counts
   when webhook, poll and cron race. Numbers `LQ-YYYYMM-000001`; VAT 7 % (inclusive) only when `VAT_REGISTERED=true`;
   buyer/seller tax-invoice fields stored per payment. Live keys are refused unless `OPN_ALLOW_LIVE=true`.
 
+### Member sign-in (Google) and tiers (ready, OFF by default)
+
+Owner's goal: free use gets a light version; signing up with Google (free) unlocks the full reading and keeps the
+transaction history, so charging later is easy. **Nothing changes until the owner turns it on**: with no backend
+(GitHub Pages today) `lensiq-member.js` is never loaded; with a backend it stays inert unless **all** of
+`GOOGLE_CLIENT_ID` (Worker var), `window.LENSIQ_GOOGLE_CLIENT_ID` (lensiq-config.js) and the admin switch
+**Members → membership_required** (D1 setting, default `false`) are set.
+
+| Tier | Who | Fortune pages | AI writing assistant | Other |
+|---|---|---|---|---|
+| guest | not signed in | **light reading**: summary + first `guest_light_sections` (2) sections + every gentle caution from the hidden sections + the Kalama reminder + notes; the rest (and the 3-point plan) is replaced by a "sign in free with Google" card. Soft per-device counter `guest_daily_readings` (3/day, localStorage) — after that only summary + cautions + reminder | refused by the Worker (`401 member_required`, page falls back to the local composer; status reports `enabled:false`) | every on-device tool unchanged |
+| member | Google sign-in, free | full reading, "save to my history", print / PDF | `member_ai_daily` (3/day), **server-enforced** | `account.html`: plan, quota, history, export, delete |
+| paid | active subscription linked to `user_id` | full | plan entitlement `ai_reading` (pro 100/month, business 600/month; enforced when `FREE_MODE=false`) | checkout requires a member when membership is on |
+
+Safety and consent texts (Kalama reminder, gentle cautions, AI consent text) are **never gated**. Limits are editable
+in admin → Members (D1 `settings.membership`; paid-plan AI quotas update `entitlements`).
+
+* **Sign-in flow.** The header chip / gate card opens our own dialog (purpose, lawful basis s.24(3), no marketing
+  without the separate opt-in, Cloudflare outside Thailand, links to terms/privacy; terms checkbox required, marketing
+  checkbox separate and unticked). Only after "Continue with Google" is `https://accounts.google.com/gsi/client`
+  loaded (no third-party request on page load — e2e-tested). `POST /api/auth/nonce` issues a one-time nonce (hash
+  stored, 10 min); GIS returns an ID token; `POST /api/auth/google` (Turnstile action `signin`, fail closed; 10 per caller
+  and `SIGNIN_GLOBAL_15MIN` (300) per 15 min) consumes the nonce atomically and verifies the token itself
+  (`google.js`): RS256 with WebCrypto against `https://www.googleapis.com/oauth2/v3/certs` (cached per Cache-Control
+  max-age, clamped 60 s–24 h; an unknown `kid` forces one refetch, throttled to one per 30 s), `iss` ∈
+  {`accounts.google.com`, `https://accounts.google.com`}, `aud == GOOGLE_CLIENT_ID` (`azp` with multi-audience), `exp`
+  / `iat` with 60 s skew, `email_verified`, `nonce`. No client secret, no Google SDK, no Google API call with user data.
+* **Session.** 256-bit random member token returned once, only its SHA-256 stored (`member_sessions`), 30 days
+  absolute / 14 days idle; revoked by `POST /api/auth/logout`, account deletion, or the admin disabling the account.
+  The site (github.io) and the API are different origins, so the token is kept in localStorage (try/catch) and sent as
+  `Authorization: Bearer` — no third-party cookies. `lensiq-fortune-hook.js` adds it to `/api/fortune` and its status
+  probe only when a member is signed in.
+* **Data (migration 0005).** `users` (google_sub unique, verified e-mail, optional first name ≤ 40 chars — **no photo**,
+  consent version + time, `marketing_opt_in` default 0, status), `member_ledger` (signup / reading / ai / payment rows:
+  kind, domain slug, payment id, amount — never reading content), `saved_readings` (only the derived result the member
+  chose to save, ≤ 16 KB, deletable), `auth_nonces`, and `user_id` on `customers`, `subscriptions`, `payments`
+  (legacy order-token checkouts keep `user_id` NULL; a member's checkout reuses their customer row and gets no order
+  token).
+* **PDPA rights.** `GET /api/me/export` (JSON, portability), `DELETE /api/me {"confirm":"DELETE"}` (erasure): user,
+  sessions, ledger, saved readings and quota counters deleted in one batch; payments/receipts are kept ≥ 5 years for
+  tax but unlinked (`user_id` NULL, e-mail removed; tax-invoice buyer fields stay). Audit log rows carry the user id
+  only, never the e-mail. See `docs/pdpa/ROPA.md` M22 and `docs/pdpa/DPIA.md` §13.
+* **Known limits.** The guest counter is client-side (soft by design — it only shapes the free experience; AI cost is
+  enforced server-side). Guests already get the light version; a determined visitor could clear storage. The AI
+  status probe is cached per page load by `fortune-ai.js`, so after signing in the AI consent box appears on the next
+  page load. On the very first visit the reading can render before `/v1/config` arrives; it is re-rendered (light)
+  within the round-trip, later visits use the cached config.
+
 ## 2. Local development (no Cloudflare account needed)
 
 ```sh
@@ -220,6 +269,19 @@ Tests run without wrangler or network, on an in-memory D1 shim over Node's built
     `npx wrangler secret delete ADMIN_BOOTSTRAP_TOKEN`.
 11. Opn dashboard → Webhooks → endpoint `https://api.<your-domain>/v1/billing/webhook/opn`.
 12. Cloudflare dashboard: enable a WAF rate-limiting rule on `/admin/api/login` and `/api/fortune` as a second layer.
+13. **Member sign-in (optional, when you want the light/full split):**
+    1. Google Cloud Console → APIs & Services → **OAuth consent screen**: External, app name "LENSIQ", support e-mail,
+       app home page, privacy policy (`https://anirut77.github.io/<repo>/privacy.html`) and terms links; scopes: the
+       defaults only (`openid`, `email`, `profile`); publish the app.
+    2. **Credentials → Create credentials → OAuth client ID → Web application.** Authorised JavaScript origins:
+       `https://anirut77.github.io` (and your custom domain if any) plus `http://localhost` and
+       `http://localhost:8000` for development. No redirect URI is needed (popup / FedCM flow). No client secret is used.
+    3. Copy the **Client ID** (public, `…apps.googleusercontent.com`): set `GOOGLE_CLIENT_ID` in `backend/wrangler.toml`
+       `[vars]` and `window.LENSIQ_GOOGLE_CLIENT_ID` in `lensiq-config.js`, then `node tools/csp-meta.mjs` (adds
+       `https://accounts.google.com/gsi/client` to script-src, `/gsi/style` to style-src, `/gsi/` to frame-src and
+       connect-src — only when set), `npx wrangler d1 migrations apply lensiq --remote` (0005), deploy, commit.
+    4. Turnstile must be configured (sign-in is fail closed like the AI and checkout).
+    5. Admin → **Members**: set the limits, then tick **membership_required**. Untick to return to full readings for all.
 
 Rollback: `npx wrangler rollback`; disable everything client-side by setting `LENSIQ_API_BASE` back to `""`.
 
@@ -234,6 +296,9 @@ Rollback: `npx wrangler rollback`; disable everything client-side by setting `LE
 | `TURNSTILE_DISABLED_FOR_LOCAL_DEV` | var | — | `true` = skip Turnstile for `localhost` origins only (development) |
 | `CHECKOUT_GLOBAL_HOUR` | var | 30 | global hourly checkout cap |
 | `ANALYTICS_FEATURES` | var | empty | extra allowlisted analytics feature slugs |
+| `GOOGLE_CLIENT_ID` | var | empty | public OAuth Web client id for member sign-in (empty = members off); same value as `LENSIQ_GOOGLE_CLIENT_ID` |
+| `SIGNIN_GLOBAL_15MIN` | var | 300 | global cap on Google sign-ins per 15 min (10 per caller) |
+| `MEMBER_LEDGER_DAYS` | var | 400 | member usage rows kept (payment rows are kept with the payment) |
 | `FREE_MODE` | var | `true` | all features unlocked; anything but `false` counts as true |
 | `BILLING_ENABLED` | var | `false` | public checkout (also needs FREE_MODE=false) |
 | `OPN_ALLOW_LIVE` | var | `false` | accept a live `skey_…` |
@@ -246,11 +311,13 @@ Rollback: `npx wrangler rollback`; disable everything client-side by setting `LE
 
 ## 5. API
 
-Public: `GET /health`, `GET /v1/config`, `POST /v1/events`, `GET /api/fortune/status`, `POST /api/fortune`,
+Public: `GET /health`, `GET /v1/config` (incl. `membership`), `POST /v1/events`, `GET /api/fortune/status`, `POST /api/fortune`,
 `GET /v1/billing/plans`, `POST /v1/billing/checkout`, `GET /v1/billing/payments/:id[/qr]`, `POST /v1/billing/webhook/opn`.
+Members (bearer): `POST /api/auth/nonce|google|logout`, `GET|DELETE /api/me`, `POST /api/me/preferences|usage|saved`,
+`GET /api/me/history|export`, `GET|DELETE /api/me/saved/:id`.
 Admin (`/admin/api`): `GET state`, `POST bootstrap|login|logout|password|totp/setup|totp/enable|totp/disable`,
-`GET me|analytics/summary|analytics/csv|ai|billing|billing/payments|billing/webhooks|audit|retention`,
-`PUT ai|ai/key|billing/settings`, `DELETE ai/key`, `POST billing/test-charge|retention/run`.
+`GET me|analytics/summary|analytics/csv|ai|billing|billing/payments|billing/webhooks|members|membership|audit|retention`,
+`PUT ai|ai/key|billing/settings|membership`, `DELETE ai/key`, `POST billing/test-charge|retention/run|members/:id/status`.
 
 ## 6. Data retention (cron `17 3 * * *`; payment reconcile `*/15 * * * *`)
 
@@ -265,7 +332,11 @@ Admin (`/admin/api`): `GET state`, `POST bootstrap|login|logout|password|totp/se
 | usage counters (quotas) | 35 days | |
 | webhook raw payloads | 90 days | event id / result kept with the payment |
 | audit log | 400 days (`AUDIT_DAYS`) | |
-| payments, receipts, tax-invoice fields | ≥ 5 years (Thai Revenue Code) | never purged automatically |
+| member accounts | until the member deletes the account (or the owner on request) | `DELETE /api/me` |
+| member sessions / sign-in nonces | 30 days (14 idle) / 10 min | |
+| member usage ledger | 400 days (`MEMBER_LEDGER_DAYS`) | payment rows kept |
+| saved readings | until the member deletes them / the account | |
+| payments, receipts, tax-invoice fields | ≥ 5 years (Thai Revenue Code) | never purged automatically; unlinked from a deleted account |
 
 ## 7. Publishing safety
 

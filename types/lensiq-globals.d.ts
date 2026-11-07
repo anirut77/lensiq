@@ -45,6 +45,10 @@ interface Window {
   LENSIQ_ANALYTICS?: boolean;
   /** lensiq-config.js: Cloudflare Turnstile site key for the AI writing assistant on the Worker ("" = off) */
   LENSIQ_TURNSTILE_SITEKEY?: string;
+  /** lensiq-config.js: public OAuth Client ID for "Sign in with Google" ("" = no member sign-in) */
+  LENSIQ_GOOGLE_CLIENT_ID?: string;
+  /** lensiq-member.js: member sign-in, account chip, light-reading gate (inert without API + membership) */
+  LQMember?: any;
   /** lensiq-api.js: optional Cloudflare Worker backend client (null results when LENSIQ_API_BASE is empty) */
   LQApi?: typeof import("../lensiq-api.js");
   /** lensiq-analytics.js: opt-in, privacy-first usage analytics */

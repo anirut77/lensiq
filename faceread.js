@@ -1549,7 +1549,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     c.font = "400 34px " + F; c.fillStyle = "#c9d0ea";
     c.fillText(T("faceread.card.sub", "{pct}% · ธาตุรอง{el} {pct2}%", { pct: R.el.top.pct, el: E2.th, pct2: R.el.second.pct }), W / 2, 850);
     // 2–3 ประโยคเด่นจากคำทำนายที่เรียบเรียงแล้ว (สำรอง: จุดเด่นของธาตุ)
-    var keys = isZh() ? zhKeySentences(current.facts, 3) : keySentences(current.narr, 5, 60, current.facts), drawn = 0;
+    var en = current.narr && current.narr.lang === "en" && window.FortuneAI && window.FortuneAI.en; // English result: lines from the English text
+    var keys = en ? window.FortuneAI.en.keyLines(current.narr, 3, 60) : isZh() ? zhKeySentences(current.facts, 3) : keySentences(current.narr, 5, 60, current.facts), drawn = 0;
     if (!keys.length) keys = E.traits.slice(0, 3);
     c.font = "400 33px " + F;
     var y = 912;

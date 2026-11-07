@@ -119,8 +119,11 @@ LQ_BENCH_DATA=~/lq-bench-data node tests/bench/driver.bench.mjs [--json out.json
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/driver-session.bench.mjs [--minutes 10] [--json out.json]   # eye closure: calibrate on one LFW photo, drive on another (needs lfwfull + cew); alarms/min on simulated drives
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/neuro.bench.mjs  [--json out.json]   # expressions: FER-2013 sample (eval only)
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/creative.bench.mjs [--fit] [--limit N] [--json out.json]   # creative attention map: MIT1003 eye fixations, 300 tuning / 703 held out (eval only)
+LQ_BENCH_DATA=~/lq-bench-data node tests/bench/studio.bench.mjs --render --sheets [--split dev|test] [--ids d01,t05] [--query wear=0.42,0.7]   # studio outfit renders on 62 public-domain portraits; review sheets stay in the cache (photos of people); stage 2 joins tests/bench/studio-labels.json (ACCURACY.md §11)
 node tests/bench/qc.bench.mjs       [--cond light] [--json out.json]   # synthetic bottles vs qc.js inspect (no data, ~15 min)
 node tests/bench/checkout.bench.mjs [--n 60] [--json out.json]         # synthetic EAN-13/UPC-A/Code 128 vs BarcodeDetector
+LQ_BENCH_DATA=~/lq-bench-data node tests/bench/people.bench.mjs --seq PETS09,TUD --degrade dark:0.1 [--health] [--frame-drop 0.3] [--quick]   # robustness: camera-like degradation before detection + replay of the camera-health monitor (lensiq-sitecheck.js)
+LQ_SOAK_VIDEO=/path/clip.mp4 node tests/bench/soak.mjs [--minutes 60] [--json out.json]   # long-run stability of store.html on WASM: retained heap, DOM nodes, listeners, rate (clip with people, never committed)
 ```
 
 - Every script exits 0 with `skip …` when `LQ_BENCH_DATA` (or the dataset inside it) is missing.

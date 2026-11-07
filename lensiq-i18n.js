@@ -18,7 +18,7 @@
  * Persistence: localStorage "lq-lang" (ignored if storage is blocked). ?lang=th|en|zh in the URL overrides and persists.
  * <html lang> becomes "th", "en" or "zh-Hans".
  * English dictionaries are loaded on demand (same origin): when English is chosen, every <script src="i18n/zh-X.js">
- * on the page (except zh-kb-*: Chinese reading data) gets its sibling i18n/en-X.js injected; the language is applied
+ * on the page gets its sibling i18n/en-X.js injected (zh-kb-* → en-kb-*: the English reading data for fortune-ai.js); the language is applied
  * (and "lq-lang" fired) once they have loaded, so page code re-renders with English already available.
  * Dictionaries: i18n/zh-common.js (nav, footer, shared components) is loaded by nav.js; page dictionaries
  * i18n/zh-<page>.js may load before this file — they push into window.LQI18N_Q, drained here. See docs/I18N.md.
@@ -193,7 +193,8 @@
     var tags = doc.querySelectorAll('script[src*="i18n/zh-"]'), jobs = [];
     for (var i = 0; i < tags.length; i++) {
       var src = tags[i].getAttribute("src") || "", m = /^(.*?i18n\/)zh-([\w-]+\.js)(\?.*)?$/.exec(src);
-      if (!m || /^kb-/.test(m[2])) continue;
+      // zh-kb-* is Chinese reading data: its English sibling (en-kb-*) is the English reading data, other languages skip it
+      if (!m || (/^kb-/.test(m[2]) && l !== "en")) continue;
       var url = m[1] + l + "-" + m[2] + (m[3] || "");
       if (!loading[url]) loading[url] = new Promise(function (res) {
         var sc = doc.createElement("script"); sc.src = url; sc.async = false;

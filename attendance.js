@@ -239,6 +239,8 @@ async function loop() {
     const faces = await detectFaces();
     if (!scanning) return;
     const now = performance.now();
+    healthStep(faces);
+    if (SCA) { attCheckStep(faces, now, ctx); setTimeout(loop, 300); return; } // ตรวจความแม่นยำ: ไม่บันทึกการเข้าเรียน
     // จับคู่แบบไม่ซ้ำ: แต่ละคนถูกใช้ได้ครั้งเดียวต่อเฟรม ใบหน้าที่ใกล้ที่สุดได้ไป ที่เหลือถือว่าไม่รู้จัก
     const cands = [];
     const conf = new Map();
@@ -311,6 +313,7 @@ $("#faceResults").addEventListener("click", e => {
   const id = yes ? yes.dataset.yes : no ? no.dataset.no : null, p = id && people.find(x => x.id === id);
   if (!p || !asks.has(id)) return;
   asks.delete(id);
+  noteField(!no);
   if (no) { declined.add(id); say(`ไม่บันทึก ${p.name}`, ""); return; }
   const r = checkIn(p);
   if (r.kind !== "err") lastResult.set(p.id, r);
@@ -412,9 +415,11 @@ $("#clearLogs").onclick = () => {
 // ---------- แท็บ ----------
 document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
   document.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", x === t));
-  ["checkin", "register", "records"].forEach(n => $("#pane-" + n).hidden = n !== t.dataset.t);
+  ["checkin", "register", "records", "check"].forEach(n => { const el = $("#pane-" + n); if (el) el.hidden = n !== t.dataset.t; });
   mode = t.dataset.t;
-  if (mode !== "checkin" && scanning) $("#startScan").click();
+  if (mode !== "check" && SCA) scaFinish();
+  if (mode !== "checkin" && mode !== "check" && scanning) $("#startScan").click();
+  if (mode === "check" && SCA) scaWho();
 });
 
 // ---------- ตั้งค่าความเข้มงวด ----------
@@ -427,5 +432,113 @@ document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
     store("att-settings", settings); rebuildMatcher();
   });
 }
+
+// ---------- สุขภาพภาพ + ตรวจความแม่นยำหน้างาน (lensiq-sitecheck.js) ----------
+// สุขภาพภาพ: ความสว่าง ย้อนแสง ความคม และขนาดใบหน้า ทุก ~1 วินาทีระหว่างสแกน (ตัวเลขเท่านั้น)
+const SITE = /** @type {any} */ (window).LQSite || null;
+const HL = SITE ? { mon: SITE.createHealth({ kind: "attendance" }), at: 0, fw: [], cv: document.createElement("canvas"), state: null } : null;
+function healthStep(faces) {
+  if (!HL) return;
+  const W = video.videoWidth || 1;
+  if (faces.length) HL.fw.push(faces[0].box.width / W);
+  const t = performance.now(); if (t - HL.at < 1000) return; HL.at = t;
+  let st = null; try { st = SITE.sampleElement(video, HL.cv); } catch { /* ignore */ }
+  HL.state = HL.mon.push(st, { faceW: HL.fw.length ? SITE.median(HL.fw) : null }); HL.fw = [];
+  if (SCA) HL.state.codes.forEach(k => SCA.health.add(k));
+  const pill = $("#camHealth"), msg = $("#camHealthMsg");
+  if (!pill) return;
+  SITE.renderHealth(pill, HL.state); pill.hidden = false;
+  SITE.renderHealthLine(msg, HL.state);
+}
+// การยืนยันด้วยคนระหว่างใช้งานจริง (นับครั้งเท่านั้น): ระบบเสนอชื่อแล้วคนกด "ยืนยัน" หรือ "ไม่ใช่"
+const fieldStats = Object.assign({ yes: 0, no: 0, since: Date.now() }, load("att-fieldcheck", {}));
+function noteField(ok) { fieldStats[ok ? "yes" : "no"]++; store("att-fieldcheck", fieldStats); renderField(); }
+function renderField() {
+  const el = $("#scField"); if (!el) return;
+  const n = fieldStats.yes + fieldStats.no;
+  el.textContent = n ? SITE.fmt("ระหว่างใช้งานจริง ระบบเสนอชื่อให้ยืนยัน {a} ครั้ง: ถูกคน {b} · ไม่ใช่ {c}{d}", { a: n, b: fieldStats.yes, c: fieldStats.no, d: SITE ? SITE.fmt(" (เสนอชื่อถูก {a}%, ช่วงความเชื่อมั่น {b}–{c}%)", { a: (SITE.wilson(fieldStats.yes, n).p * 100).toFixed(0), b: (SITE.wilson(fieldStats.yes, n).lo * 100).toFixed(0), c: (SITE.wilson(fieldStats.yes, n).hi * 100).toFixed(0) }) : "" }) : "ระหว่างใช้งานจริง: ยังไม่มีการกดยืนยันหรือปฏิเสธชื่อที่ระบบเสนอ";
+}
+// ตรวจความแม่นยำ: ทีละรอบ — ผู้ทดสอบเลือกว่าใครยืนหน้ากล้อง (ผู้ลงทะเบียน หรือ คนนอก) แล้วกดเริ่มรอบ ระบบดูใบหน้าไม่เกิน 6 วินาที
+// ด้วยกฎเดียวกับการเช็คชื่อจริง แต่ไม่บันทึกการเข้าเรียน · ผลที่ส่งออกใช้รหัสแทนชื่อ (m1, m2, ...) ไม่มีชื่อ ภาพ หรือค่าใบหน้า
+let SCA = null, SCA_LAST = null;
+const scaHist = SITE ? SITE.history("att-sitecheck") : null;
+const scaPanel = SITE && $("#scPanel") ? SITE.mountPanel($("#scPanel"), {
+  title: "ตรวจความแม่นยำหน้างาน",
+  intro: "ทดสอบการจำใบหน้าที่จุดเช็คชื่อจริงของคุณ: ให้ผู้ลงทะเบียนและคนที่ไม่ได้ลงทะเบียนมายืนหน้ากล้องทีละคน ระบบใช้กฎเดียวกับการเช็คชื่อ แต่ไม่บันทึกการเข้าเรียนระหว่างทดสอบ",
+  steps: [
+    "ลงทะเบียนผู้ทดสอบที่จุดใช้งานจริงก่อน (แนะนำอย่างน้อย 5 คน ระบบจึงปรับเกณฑ์ตามกลุ่มได้) และขอความยินยอมจากทุกคน รวมถึงคนนอกที่มาช่วยทดสอบ",
+    "กด \"เริ่มตรวจ\" แล้วในแต่ละรอบ เลือกว่าใครยืนหน้ากล้อง กด \"เริ่มรอบนี้\" ให้คนนั้นเดินเข้ามายืนตามปกติ ระบบจะสรุปผลเองภายใน 6 วินาที",
+    "ทดสอบผู้ลงทะเบียนอย่างน้อย 20 รอบ (หลายคน หลายช่วงเวลา) และคนนอกอย่างน้อย 20 รอบ — คนนอกคือการทดสอบที่สำคัญที่สุด",
+    "กด \"จบและคำนวณ\" แล้วเก็บไฟล์ผลตรวจไว้ ทำซ้ำเมื่อย้ายกล้อง เปลี่ยนแสง หรือมีผู้ลงทะเบียนเพิ่มมาก"
+  ],
+  body: `<div class="sc-trial" hidden><div class="sc-row"><label><span>ใครยืนหน้ากล้องรอบนี้</span><select class="sc-who" data-i18n-skip></select></label><button class="btn primary sc-go" type="button">เริ่มรอบนี้</button><button class="btn ghost small sc-undo" type="button">ลบรอบล่าสุด</button></div><p class="sc-now" role="status"></p><ul class="sc-list"></ul></div><p class="hint" id="scField"></p>`
+}) : null;
+const OUT_TH = { auto: "จำได้เอง", ask: "เสนอชื่อให้กดยืนยัน", none: "ไม่รู้จัก", noface: "ไม่พบใบหน้า" };
+function scaWho() {
+  const sel = scaPanel.q(".sc-who"), keep = sel.value;
+  sel.innerHTML = people.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join("") + `<option value="stranger">คนที่ไม่ได้ลงทะเบียน (คนนอก)</option>`;
+  if ([...sel.options].some(o => o.value === keep)) sel.value = keep;
+}
+function scaRender() {
+  const T = SCA ? SCA.trials : [], nm = id => id === "stranger" ? "คนนอก" : (people.find(p => p.id === id) || { name: "?" }).name;
+  scaPanel.q(".sc-list").innerHTML = T.slice().reverse().map((t, i) => {
+    const ok = t.truth === "stranger" ? t.outcome !== "auto" : t.label === t.truth && t.outcome !== "none";
+    return SITE.fmt("<li data-truth=\"{a}\"><span>รอบ {b}: <b data-i18n-skip>{c}</b></span><small>{d}{e}</small></li>", { a: ok ? "good" : "bad", b: T.length - i, c: esc(nm(t.truth)), d: esc(OUT_TH[t.outcome]), e: t.label ? `: <span data-i18n-skip>${esc(nm(t.label))}</span>` : "" });
+  }).join("");
+  const mem = T.filter(t => t.truth !== "stranger").length;
+  scaPanel.live.textContent = SCA ? SITE.fmt("ทดสอบแล้ว {a} รอบ: ผู้ลงทะเบียน {b} · คนนอก {c}", { a: T.length, b: mem, c: T.length - mem }) : "";
+}
+function attCheckStep(faces, now, ctx) {
+  const f = faces[0], m = f ? bestMatch(f, 0) : null;
+  const obs = { face: !!f, label: m && m.label !== "unknown" && people.some(p => p.id === m.label) ? m.label : null, confident: !!(m && m.confident !== false) };
+  draw(ctx, faces.map((x, i) => ({ f: x, kind: i === 0 && obs.label ? (obs.confident ? "pending" : "ask") : "unknown", name: "ทดสอบ" })));
+  const cur = SCA.cur;
+  if (!cur) return;
+  const r = cur.trial.step(obs, now);
+  scaPanel.q(".sc-now").textContent = r ? SITE.fmt("ผล: {a}", { a: OUT_TH[r.outcome] }) : obs.face ? "กำลังดูใบหน้า..." : "รอให้ผู้ทดสอบมายืนหน้ากล้อง...";
+  if (r) { SCA.trials.push({ truth: cur.truth, outcome: r.outcome, label: r.label, ms: Math.round(r.ms) }); SCA.cur = null; scaPanel.q(".sc-go").disabled = false; scaRender(); }
+}
+function scaStart() {
+  if (SCA) return;
+  if (!ready) return say("กล้องยังไม่พร้อม", "err");
+  if (!people.length) return say("ยังไม่มีผู้ลงทะเบียน กรุณาลงทะเบียนใบหน้าก่อน", "warn");
+  SCA = { trials: [], cur: null, startedAt: Date.now(), health: new Set(), ownScan: !scanning, n: people.length };
+  scaWho(); scaPanel.q(".sc-trial").hidden = false; scaPanel.start.disabled = true; scaPanel.stop.disabled = false; scaPanel.exp.hidden = true;
+  scaPanel.state.textContent = "กำลังตรวจ"; scaPanel.state.dataset.s = "live"; SITE.renderReport(scaPanel.report, null);
+  if (!scanning) { scanning = true; $("#startScan").textContent = "หยุดสแกน"; loop(); }
+  scaRender();
+}
+function scaFinish() {
+  if (!SCA) return;
+  const run = SCA; SCA = null;
+  if (run.ownScan && scanning) { scanning = false; $("#startScan").textContent = "เริ่มสแกน"; overlay.getContext("2d").clearRect(0, 0, overlay.width, overlay.height); }
+  const rep = SITE.attendanceReport(run.trials);
+  rep.recs.push(...[...run.health].map(c => "สภาพภาพระหว่างตรวจ: " + SITE.HEALTH_TH[c]).filter(Boolean));
+  SITE.renderReport(scaPanel.report, rep);
+  scaPanel.q(".sc-trial").hidden = true; scaPanel.start.disabled = false; scaPanel.stop.disabled = true;
+  scaPanel.state.textContent = SITE.VERDICT_TH[rep.verdict]; scaPanel.state.dataset.s = rep.verdict;
+  const ids = new Map(); const anon = id => id == null ? null : id === "stranger" ? "stranger" : (ids.has(id) ? ids.get(id) : ids.set(id, "m" + (ids.size + 1)).get(id));
+  const doc = SITE.exportDoc("attendance", {
+    startedAt: new Date(run.startedAt).toISOString(), enrolled: run.n, settings: { matchDistance: settings.matchDistance, confirmFrames: 2, confidentFrames: 2, windowMs: 6000 },
+    conditions: { health: [...run.health] }, trials: run.trials.map(t => ({ truth: anon(t.truth), outcome: t.outcome, label: anon(t.label), ms: t.ms })),
+    fieldConfirmations: { ...fieldStats }, report: { verdict: rep.verdict, n: rep.n, recognised: rep.recognised, auto: rep.auto, wrong: rep.wrong, strangerAuto: rep.strangerAuto, strangerAsk: rep.strangerAsk, recs: rep.recs }
+  });
+  scaPanel.exp.hidden = false; scaPanel.exp.onclick = () => SITE.download(`lensiq-attendance-check-${day()}.json`, doc);
+  scaHist.add({ at: run.startedAt, verdict: rep.verdict, summary: SITE.fmt("ผู้ลงทะเบียน {a} รอบ จำได้ {b} · คนนอก {c} รอบ เช็คชื่อผิด {d}", { a: rep.n.members, b: rep.recognised.p == null ? "—" : (rep.recognised.p * 100).toFixed(0) + "%", c: rep.n.strangers, d: rep.n.strangerAuto }) });
+  scaHist.render(scaPanel.hist);
+  SCA_LAST = { rep, doc };
+}
+if (scaPanel) {
+  scaPanel.start.addEventListener("click", scaStart);
+  scaPanel.stop.addEventListener("click", scaFinish);
+  scaPanel.q(".sc-go").addEventListener("click", () => {
+    if (!SCA || SCA.cur) return;
+    SCA.cur = { truth: scaPanel.q(".sc-who").value, trial: SITE.createFaceTrial() };
+    scaPanel.q(".sc-go").disabled = true; scaPanel.q(".sc-now").textContent = "รอให้ผู้ทดสอบมายืนหน้ากล้อง...";
+  });
+  scaPanel.q(".sc-undo").addEventListener("click", () => { if (SCA && SCA.trials.length) { SCA.trials.pop(); scaRender(); } });
+  scaHist.render(scaPanel.hist); renderField();
+}
+window.__ATT_SC = { get active() { return SCA; }, get last() { return SCA_LAST; }, get field() { return { ...fieldStats }; } };
 
 renderPeople(); renderLogs(); init();

@@ -110,9 +110,9 @@ export default async function ({ base, launch, check }) {
       await page.evaluate(() => document.querySelector(".lang-switch button[data-lang=th]").click());
       await sleep(500);
       assert((await mainText(page)) === thai, "Thai restored exactly after English");
-      // fortune page in English: breadcrumb + "readings are in Thai / Chinese" note
+      // fortune page in English: breadcrumb; English reading data (en-kb-*) is loaded, so no "readings are in Thai / Chinese" note
       await page.goto(`${base}/tarot.html?nosw&lang=en`);
-      await page.waitFor(() => document.documentElement.lang === "en" && document.querySelector(".lq-lang-note:not([hidden])"), 8000);
+      await page.waitFor(() => document.documentElement.lang === "en" && !!(window.FORTUNE_EN && window.FORTUNE_EN.tarot && window.FORTUNE_EN.siamsee) && !document.querySelector(".lq-lang-note:not([hidden])"), 8000);
       const f = await page.evaluate(() => ({ crumbs: [...document.querySelectorAll(".lq-crumbs li")].map(li => li.textContent.trim()), cov: LQI18N.coverage() }));
       assert(f.crumbs.join(" / ") === "Home / Fortune & Culture / Tarot & Siam Si", f.crumbs.join(" / "));
       assert(f.cov.pct === 0, "tarot en " + JSON.stringify(f.cov.top.slice(0, 3)));

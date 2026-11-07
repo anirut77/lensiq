@@ -20,6 +20,10 @@ the repository and are never committed.
   - door counting: crossings by tracks lost mid-confirmation now count (§1).
 
   Each section shows before → after.
+- **Round 9 measures nothing new at a customer site, because there is none yet.** It adds the means to do so. Each camera
+  page has an on-site accuracy check that the shop runs on its own premises. It gives the result with confidence
+  intervals and keeps a JSON record. Each camera also shows a health indicator, checked against a robustness
+  benchmark, and a soak test covers long runs (§12).
 - Pages whose accuracy is modest or not yet measured show a **Beta** or accuracy note at the top (Thai). Thai summary:
   [cameras.html#accuracy](cameras.html#accuracy).
 
@@ -771,6 +775,233 @@ NSS, CC. Script: `tests/bench/creative.bench.mjs`.
   heuristic; text boxes come from an edge-morphology heuristic (no OCR), checked only on synthetic text in the unit/e2e
   tests; WCAG contrast is computed exactly on the two colour clusters of each box.
 
+## 11. Studio: outfit change on a portrait (studio)
+
+**What is measured.** Whether the picture the page shows has a defect a person would notice. Script:
+`tests/bench/studio.bench.mjs`; it renders `studio.html?cpu` in headless Chrome without WebGL, the way the page runs.
+Each portrait is rendered with no outfit (new background and retouch only) and with each of the four built-in outfits
+(civil, khaki, suit_navy, lady).
+
+**Data.** 62 public-domain Wikimedia portraits, mostly official and press photos: front-facing, one person, head and
+shoulders. The pinned list is `tests/bench/studio-portraits.json`. The portraits are split **by person**:
+
+- 27 "dev" people, used while building the fix and the checks;
+- 35 "test" people, rendered only once the code was frozen.
+
+**Labels** (`tests/bench/studio-labels.json`). One rater, the AI coding agent that also wrote the code, judged every
+render from a review sheet (the full image plus a neck crop), without seeing any QA output. There were **no human
+raters**, the rater was not independent, and the rater knew which code version was rendered. A render counts as
+defective for any of these:
+
+- a visible join at the neck or jaw (notch, straight cut, white gap, pasted or wrong-coloured neck);
+- clearly wrong garment geometry;
+- leftovers of the original clothes or background.
+
+The CG look of the garment itself is not counted. Treat the numbers as an honest estimate, not a calibrated measurement.
+
+| 35 test people (140 outfit renders) | result [Wilson 95 %] |
+| --- | --- |
+| outfit renders with a visible defect, before the check | **72.9 % [65.0–79.5]** (102/140) |
+| defects the automatic check catches (outfit withheld) | 36.3 % [27.6–45.9] (37/102) |
+| clean outfit renders the check withholds anyway | 21.1 % [11.1–36.3] (8/38) |
+| outfit renders shown after the check that still have a defect | **68.4 %** (65/95) |
+| what the page shows (outfit, or the no-outfit version when withheld) with a visible defect | 56.4 % [48.2–64.4] (79/140) |
+| no-outfit version (new background + retouch) with a defect | 22.9 % [12.1–39.0] (8/35) |
+| people with all four outfits clean | 9/35 |
+
+On the dev people the figures are similar: 64.8 % (70/108) of outfit renders are defective, the check catches
+37.1 % (26/70), and 59.5 % (44/74) of the outfit renders it lets through still have a defect.
+
+**Round 9 change: a wider neck under the ears.** The synthetic neck is now as wide as the face at earlobe level and
+tapers to the collar. On sides covered by long hair, it keeps the old, narrower width. Effect on the same people,
+with old and new renders labelled the same way:
+
+- dev: 77 → 70 of 108 renders defective;
+- the 19 test people labelled in both rounds: 57 → 56 of 76.
+
+So it is a small, real gain on ear-exposed men whose neck used to look pinched, and almost nothing on unseen people. It
+also has a known side effect: beside a hijab the wider neck can show as a skin-coloured band (one dev person).
+
+Two other ideas were tried and **not shipped**:
+
+- Closing the outline under the head (a morphological fill of the gaps between jaw, hair and shoulder). It filled
+  real gaps between bob hair and shoulders with dark blocks.
+- A "jaw covered by hair" rule (`jawCover`). On dev it made the shown set worse: 12 of the 19 renders it kept were
+  defective (63 %), against 44 of 74 (59 %) without it.
+
+**What this means.**
+
+- **The outfit change is a preview, not a finished photo.** About 7 in 10 outfit renders on clean, front-facing
+  official portraits have a visible defect. The most common one is a straight cut, notch or white gap beside the jaw
+  or under the ear, usually on one side. Next come gaps between long hair and the shoulder, leftovers of flags,
+  necklaces and chairs, and balloon-shaped jackets on crossed arms or leaning poses.
+- **It depends on the photo, not on the outfit.** Of 35 test people, 9 got four clean outfits, 25 got four defective
+  ones and 1 got a mix. Trying another outfit rarely helps; trying another photo might.
+- **The automatic check works as a filter, not as a guarantee.** When it withholds an outfit, it is usually right
+  (82 % of withheld renders were defective). But it misses about two thirds of the defects. None of its
+  measurements separates good from bad renders well (AUC 0.41–0.65 on dev).
+- The page therefore says so every time it shows an outfit: the outfit is labelled a preview, with the measured miss
+  rate, and a one-tap switch to the version without the outfit. When the check fails, the page shows the no-outfit
+  version by default, and the outfit only as a draft on request.
+- The version without the outfit (new background + retouch) is the dependable output, though not flawless: 23 % have
+  a leftover, usually a piece of flag or chair that the person matte kept.
+- A reliable outfit change on arbitrary portraits would need a generative inpainting model for the neck and jaw. This
+  page does not use one: everything runs in the browser.
+
+## 12. On-site accuracy check, camera health and long-run stability (round 9)
+
+**Why.** Every number above comes from public footage: streets, news photos, studio faces, synthetic bottles. None of it
+is a Thai shop door, a consented staff group, a real cab or a real bottling line, and there is no pilot site yet. Round 9
+does not claim field accuracy. It adds the tools that produce it: each camera page can now measure its own accuracy on
+the customer's premises on day 1, and each camera shows when its image is too poor for the numbers to be trusted.
+
+### On-site accuracy check ("ตรวจความแม่นยำหน้างาน")
+
+`lensiq-sitecheck.js`, wired into `store.html`, `attendance.html` (tab "ตรวจความแม่นยำ"), `driver.html` and `qc.html`.
+A person labels what really happened while the page runs as usual. The page then compares its own output with those
+labels and reports the result with 95% confidence intervals, a verdict against fixed targets, and recommended settings.
+Everything is computed on the device. No images are stored. The JSON export holds only tap times, labels, the system's
+own events and the computed numbers. Attendance exports use pseudonyms (m1, m2 …), never names or face data.
+
+| page | what the person does | what is measured | targets for "pass" | minimum sample |
+| --- | --- | --- | --- | --- |
+| store | taps "+ เข้า" / "+ ออก" (or ↑/↓) each time someone really crosses the line, live or on a video file filmed at the door | count vs. taps (net error, block-bootstrap CI), event precision and recall (Wilson CI), direction accuracy | net error within ±10%, precision ≥ 85%, direction ≥ 90% | 50 crossings |
+| attendance | per trial, picks who stands at the camera (an enrolled person or "not enrolled") | recognised (auto + confirm prompt), automatic recognition, wrong person, strangers checked in automatically (Wilson upper bound), strangers offered a name | members ≥ 90% recognised, **no** automatic wrong check-in | 20 member + 20 stranger trials |
+| driver | parked only: follows a randomised voice prompt "close your eyes" for 3 s, 5–14 times | prompted closures alerted, alert latency, false alarms per hour with eyes open (exact Poisson CI), per-frame open/closed rates | ≥ 90% alerted, ≤ 1 false alarm per hour | 8 prompts |
+| qc | marks each inspected bottle "good" or "bad" (the simulator labels itself) | good bottles rejected and bad bottles passed (Wilson CI); per check, the limit that would pass every good bottle while still rejecting every labelled bad one | ≤ 2% each | 30 good + 10 bad |
+
+How the numbers are computed:
+
+- **Door taps.** People tap a little late or early, so the median offset between mutual-nearest system/tap pairs (within
+  4 s, at least 5 pairs) is removed first. Then pairs within 2 s are matched one to one, closest first. Direction is not
+  required for a match; a matched pair with the wrong direction is a direction error. The net-error interval is a block
+  bootstrap over 60-s blocks, so bursts of people are not treated as independent events.
+- **Attendance trials** use the same rules as check-in: 2 matching frames within 1.5 s, and 2 "confident" frames for an
+  automatic check-in. The result is decided within 6 s of the first face. No attendance is written during the test.
+- **Driver prompts** are scheduled at random, at least 9 s apart, after a 15-s settling time. A hit is a long-closure
+  alert starting within the closure + 2 s. A false alarm is a long-closure or PERCLOS alert outside every prompt window
+  (−1 s / +5 s). Prompts the driver did not follow can be skipped.
+- **Verdict.** "Pass" needs the minimum sample and every point estimate on target. "Fail" is given as soon as an interval
+  lies entirely on the wrong side of a target, or for any automatic wrong check-in. Otherwise the verdict is "not
+  conclusive yet — collect more data", with the sample size still needed. With 0 strangers accepted in 20 trials, the page
+  still says the rate is only known to be below about 16%.
+- **Recommendations** are rules on the measured numbers. Examples: in/out almost always reversed → "swap direction";
+  median person height < 12% of the frame → move the camera closer or use tiling; analysis rate < 4 Hz → fewer cameras;
+  overcounting with high recall → reduce double counting and move the line; automatic wrong check-in → lower the face
+  distance limit by 0.03; QC false rejects from one check → suggested limit, only if good and bad bottles stay separable,
+  applied with one tap ("ใช้เกณฑ์ที่แนะนำ") after confirmation.
+- In normal attendance use, the existing "ยืนยัน / ไม่ใช่" buttons are now also counted (numbers only), so the share of
+  offered names that were right is visible with its confidence interval.
+
+**Verified wiring.** `tests/e2e/sitecheck.e2e.mjs` drives the shipped pages: store taps against the real counter
+(direction, lag, matched/missed arithmetic, history, export without image data); attendance trials giving auto / ask /
+none and a stranger checked in automatically → "fail", with nothing written to the attendance log and names absent from
+the export; QC on the simulator (simulated truth applied, 0 false rejects / 0 misses); driver prompts compressed to
+3 closures on the real `createMonitor` (3/3 alerted); and the panels in 中文 and English (< 5% Thai left).
+`tests/unit/sitecheck.test.js` checks the statistics against published values (Wilson 81/263 → 0.255–0.366; Garwood
+Poisson 0 → 3.689, 5 → 1.62–11.67) and every report on scripted data.
+
+**Pilot protocol (no pilot site yet).** Run each check on day 1 at the customer's site, then again in different light
+(day / evening / night for the driver) and after any camera move. Keep the exported JSON files as the acceptance record.
+Until those files exist, the numbers in sections 1–7 are the only evidence, and they are not from the customer's site.
+
+### Camera health indicator
+
+Each camera tile (store), and the camera on attendance, driver and qc, shows a health pill ("ภาพปกติ / ภาพมีปัญหา /
+ภาพไม่พร้อม") with the reason and what to do. About once per second the page downsizes the frame to 160 px and measures
+median brightness, clipped and dark pixels, the brightest 4×3 cell, contrast (p95 − p5), sharpness (mean |Laplacian| relative
+to contrast), and a global shift between thumbnails (camera shake). It adds the analysis rate and the median
+person height (store) or face width (attendance, driver). Each flag uses the median of the last 8 samples with separate
+enter and leave thresholds, so it does not flicker. Cost: well under 1 ms per sample. Only numbers are kept, and only in
+memory.
+
+**Does it fire when accuracy drops, and stay quiet when it does not?** `people.bench.mjs --degrade` degrades each frame
+in the browser before detection (`tests/bench/bench-page.js`). Under-exposure (`dark`) is exposure × K in linear light
+with shot and read noise. `night` adds a 2.5 px blur for the longer shutter. `back` clips the top quarter white,
+adds veiling glare, and leaves the subjects at exposure × K. `blur` is a Gaussian blur at 640 px. `shake` is a random
+translation of up to ±S of the frame width on every frame. `--frame-drop` skips analysed frames. Counting runs through
+`store.stepCam` as in §1. The health monitor is replayed on the same per-frame statistics at about 1 sample per second.
+Data: PETS09-S2L1 (795 frames, 7 fps, 126 crossings on 5 lines) and TUD-Stadtmitte (179 frames, 9 crossings). One run per
+condition.
+
+| condition | detection AP@0.5 PETS / TUD | PETS09 counted / true | net error | event P / R | median luma | health flag shown (share of 1-s samples, PETS / TUD) |
+| --- | --- | --- | --- | --- | --- | --- |
+| clean | 88.6 / 85.9% | 130 / 126 | +3.2% | 93.1 / 96.0% | 110 | none / none |
+| dark ×0.25 (−2 stops) | 88.9 / 86.0% | 129 / 126 | +2.4% | 93.0 / 95.2% | 58 | none / none |
+| dark ×0.1 (−3.3 stops) | 88.6 / 86.2% | 128 / 126 | +1.6% | 95.3 / 96.8% | 38 | none / none |
+| dark ×0.04 (−4.6 stops) | 88.4 / 84.8% | 126 / 126 | 0.0% | 96.0 / 96.0% | 24 | dark 100 / 100% |
+| dark ×0.015 (−6 stops) | 88.6 / 78.9% | 126 / 126 | 0.0% | 96.0 / 96.0% | 15 | dark 100 / 100% |
+| night ×0.1 (dark + blur) | 86.2 / 84.1% | 129 / 126 | +2.4% | 89.9 / 92.1% | 38 | none / none |
+| night ×0.04 | 85.4 / 81.6% | 133 / 126 | +5.6% | 91.0 / 96.0% | 25 | dark 100 / 100% |
+| backlight ×0.5 | 81.0 / 59.3% | 125 / 126 | −0.8% | 92.0 / 91.3% | 137 | backlight 100 / 100% |
+| backlight ×0.25 | 79.2 / 48.7% | 122 / 126 | −3.2% | 95.1 / 92.1% | 118 | backlight 100 / 100% |
+| blur 2 px | 87.0 / 84.6% | 134 / 126 | +6.3% | 91.8 / 97.6% | 110 | none / none |
+| blur 4 px | 78.6 / 82.2% | 136 / 126 | +7.9% | 86.8 / 93.7% | 111 | blur 100 / 0% |
+| **shake ±2%** | 37.9 / 79.8%\* | **154 / 126** | **+22.2%** | **79.2** / 96.8% | 108 | shake 92 / 50% |
+| **shake ±5%** | 5.7 / 30.5%\* | **272 / 126** | **+115.9%** | **44.5** / 96.0% | 107 | shake 99 / 83% |
+| 30% of frames dropped (4.9 Hz) | 88.1 / 88.4% | 129 / 126 | +2.4% | 93.8 / 96.0% | 110 | none / none |
+| 60% of frames dropped (2.8 Hz) | 87.9 / 92.6% | 126 / 126 | 0.0% | 90.5 / 90.5% | 110 | slow 100% / — |
+
+\* AP under shake is measured against the unshifted ground truth, so it mostly shows the misalignment, not missed
+people.
+
+**Findings.**
+
+- **Camera shake is the dangerous one.** A camera that jitters by ±2% of the frame overcounts PETS09 by 22%, and ±5%
+  more than doubles the count. Each jump moves people across the fixed line, and the hysteresis band (1.2% / 8% of
+  person height) is smaller than the jitter. The health flag catches ±2% in 92% of samples on PETS09 (50% on TUD, from
+  only 6 samples). Mount the camera rigidly and treat a shake warning as "do not use these counts".
+- **Darkness alone did not hurt counting here.** Even at −6 stops with sensor noise, PETS09 counted 126/126, and
+  dark + blur ("night") stayed within +5.6%. The synthetic noise is milder than a real cheap camera at night, which also
+  adds compression and motion smear. So the dark flag is advisory: it starts at median luma < 30 and asks for an on-site
+  check in that light. The first version flagged at < 45 and called the numbers "far off". That was not supported by the
+  data, so it was changed.
+- **Backlight costs detection more than counting.** AP fell 8–37 points, worst on TUD's close-up people, while PETS09
+  line counts moved only −1 to −3%. Zones, occupancy and the heat map rely on every detection, so they are hit harder.
+  The flag fires on both backlight levels.
+- **Blur:** 2 px is not flagged (+6.3%); 4 px is flagged on PETS09 (+7.9%, precision 86.8%) but not on TUD, whose large
+  close-up people keep the frame looking sharp.
+- **Slow devices:** dropping 60% of frames (2.8 Hz) did not hurt PETS09's slow walkers, but the 4 Hz "slow" warning still
+  fires there. Faster walkers, closer to the camera, need more frames. §1 measured 5 and 10 fps only.
+- **Disclosure: these thresholds were tuned on these same runs.** That covers the dark threshold, the second backlight
+  rule (a large clipped region beside unclipped cells) and the sub-cell shake estimate (1.2% threshold, robust median
+  match), all set after seeing this table. There is no held-out set: MOT17 could not be downloaded again because the disk
+  was full. Clean, dark ×0.1, both blur levels and frame drops raised no false backlight, blur or shake flag, but that
+  is in-sample too.
+
+### Long-run stability (soak test)
+
+`tests/bench/soak.mjs` runs `store.html` exactly as a shop would: YOLOX-Nano on ORT WASM, no WebGL, headless Chrome on
+the Apple-silicon Mac. The source is a video file (PETS09-S2L1, 795 real frames encoded locally and looped about every
+2 minutes), with one counting line, one zone and the health monitor on. Samples are taken every minute after a forced
+garbage collection. The machine was running other benchmarks at the same time, so the rate is pessimistic.
+
+| run | duration | retained JS heap start → end (max) | heap slope (last ⅔) | DOM nodes start → end (max) | listeners | Chrome process-tree RSS | rate | counted | exceptions |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 30 min | 4.2 → 4.8 MB (6.0) | +0.19 MB/hour | 4,448 → 4,455 (4,530) | 115 → 115 | not sampled | 3.4–4.6 Hz | 274 in / 219 out | 0 |
+| 2 | 30 min | 4.3 → 4.8 MB (4.8) | +0.24 MB/hour | 4,451 → 4,457 (4,465) | 115 → 115 | 1,279 → 690 MB (median 895, range 599–1,279) | 4.0–6.9 Hz | 268 in / 218 out | 0 |
+
+- **No leak in page code.** The retained heap settles within the first few minutes and then grows by about 0.2 MB per
+  hour, which would be about 5 MB in a 24-hour day. DOM nodes and event listeners stay flat.
+- **RSS is noisy, not growing.** The process-tree RSS includes the ONNX Runtime WASM heap and every Chrome helper
+  process. It moved between 0.6 and 1.3 GB and fell over the run. The disk was nearly full, so macOS was compressing
+  memory, and the slope (−1,058 MB/hour) is not meaningful as a leak measure. Nothing grew without bound.
+- **Not covered:** runs of 8 hours or more, several cameras at once, tabs left in the background, and mobile browsers.
+  The tool takes `--minutes 480` for an overnight run.
+
+### What is still missing
+
+- **No field data.** Nothing here was measured at a real customer site. The on-site check makes that measurement
+  possible and repeatable, but someone still has to run it.
+- MOT17 (crowds, held out) could not be re-downloaded for the robustness run because the disk was full, so the robustness
+  table uses only PETS09-S2L1 and TUD-Stadtmitte. These are the tuning sequences, and TUD has only 9 crossings.
+- The degradations are synthetic. Real low light also brings motion blur and compression noise. Real backlight depends
+  on the door. Real shake is not a random jump per frame.
+- Face recognition with consented Thai faces, real drowsy-driver video and real bottles remain untested. The checks
+  above are the protocol for collecting them.
+- The driver check uses deliberate closures while parked, not real drowsiness. It shows that the camera, angle and
+  light in that vehicle work. It does not certify safety.
+
 ## Datasets and licences
 
 | dataset | used for | source | licence / terms |
@@ -785,6 +1016,7 @@ NSS, CC. Script: `tests/bench/creative.bench.mjs`.
 | CEW, Closed Eyes in the Wild | driver eye closure | NUAA (Song et al. 2014) | research only, no redistribution — evaluation only |
 | FER-2013 PrivateTest (700) | neuro expressions | HF `3una/Fer2013` | research only — evaluation only |
 | MIT1003 (1,003 images, 15 viewers) | creative attention map (300 tuning, 703 test) | people.csail.mit.edu/tjudd/WherePeopleLook | no licence stated — evaluation and choice of 7 weights only, nothing shipped |
+| 62 Wikimedia Commons portraits (`tests/bench/studio-portraits.json`) | studio outfit renders (27 dev / 35 test people) | commons.wikimedia.org | public domain (checked per file at download) — evaluation only, never committed |
 | synthetic bottles and barcodes | qc, checkout | generated by `tests/bench` | ours |
 
 All datasets were used only for evaluation. No data or derived model was shipped or committed. The shipped YOLOX-Nano

@@ -24,6 +24,9 @@ const args = process.argv.slice(2);
 const flag = n => args.includes(n);
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
 const root = needData("mot", "people benchmark");
+// --frame-drop P: each analysed frame is skipped with probability P (seeded) — a slow device / busy tab; time stays real
+// --health: record the page's camera-health statistics per frame and report which health flags would have been shown
+const FDROP = +opt("--frame-drop", 0) || 0, HEALTH = flag("--health") || !!opt("--degrade", "");
 
 // ---------- sequences ----------
 const KNOWN = { "PETS09-S2L1": { fps: 7, W: 768, H: 576 }, "TUD-Stadtmitte": { fps: 25, W: 640, H: 480 }, "TUD-Campus": { fps: 25, W: 640, H: 480 } };
@@ -48,7 +51,7 @@ function seqInfo(p) {
   const all = readdirSync(join(p, "img1")).filter(f => /^\d+\.jpg$/.test(f)).map(f => +f.slice(0, -4)).filter(f => (f - 1) % step0 === 0).sort((a, b) => a - b);
   // --fps N: analyse fewer frames per second (e.g. tiling is slower on WASM) — every k-th of the 10 fps frames
   const k = Math.max(1, Math.round(info.fps / step0 / (+opt("--fps", 0) || info.fps / step0)));
-  const step = step0 * k, frames = all.filter((_, i) => i % k === 0);
+  const step = step0 * k, gtFrames = all.filter((_, i) => i % k === 0), frames = gtFrames.filter(f => !FDROP || hash01(f, 4242) >= FDROP);
   // ground truth: MOT16/17/20 = frame,id,x,y,w,h,consider,class,visibility ; 2DMOT2015 = frame,id,x,y,w,h,consider,wx,wy,wz
   const gt = new Map(), ign = new Map(), mot16 = /^MOT(16|17|20)-/.test(basename(p));
   for (const line of readFileSync(join(p, "gt", "gt.txt"), "utf8").split(/\r?\n/)) {
@@ -60,7 +63,7 @@ function seqInfo(p) {
     const m = target ? gt : ignore ? ign : null; if (!m) continue;
     if (!m.has(f)) m.set(f, []); m.get(f).push(box);
   }
-  return { ...info, path: p, step, all, frames, gt, ign, dt: 1000 * step / info.fps };
+  return { ...info, path: p, step, all, frames, gtFrames, gt, ign, dt: 1000 * step / info.fps };
 }
 
 // ---------- detections (cached) ----------
@@ -70,16 +73,19 @@ const TILES = (() => { const t = opt("--tiles", process.env.LQ_BENCH_TILES || ""
 // the fallback) | yolox_tiny_416 (evaluated, not vendored: put the official yolox_tiny.onnx 0.1.1rc0 release there first)
 // --split auto: wide (16:9) frames as 2 overlapping square halves (LQDetect.detectYolox split:'auto')
 const MODEL = opt("--model", process.env.LQ_BENCH_MODEL || "yolox_nano_416"), SPLIT = opt("--split", process.env.LQ_BENCH_SPLIT || "") || null;
+// --degrade dark:0.1 | back:0.5 | blur:3 | shake:0.03 (robustness, lensiq-sitecheck camera health): the frame is degraded in
+// the browser before detection (tests/bench/bench-page.js degrade()), and the page's health statistics are recorded per frame
+const DEGRADE = opt("--degrade", "") || null;
 async function detections(B, s, detW, embMin) {
   const tiles = detW === 416 ? TILES : null;
-  const file = join(CACHE, `people-${s.name}-w${detW}${MODEL !== "coco" ? "-" + MODEL : ""}${SPLIT ? "-split" + SPLIT : ""}${tiles ? `-t${tiles.cols}x${tiles.rows}` : ""}${embMin ? "-emb" : ""}.json`);
+  const file = join(CACHE, `people-${s.name}-w${detW}${MODEL !== "coco" ? "-" + MODEL : ""}${SPLIT ? "-split" + SPLIT : ""}${tiles ? `-t${tiles.cols}x${tiles.rows}` : ""}${embMin ? "-emb" : ""}${DEGRADE ? "-deg-" + DEGRADE.replace(/[^\w.]/g, "_") : ""}.json`);
   const pick = c => ({ ...c, frames: s.frames.map(f => c.frames[s.all.indexOf(f)]) });
   if (existsSync(file)) { const c = JSON.parse(readFileSync(file, "utf8")); if (c.frames.length === s.all.length) return pick(c); }
   const b = await B();
   const rows = [], t0 = Date.now();
   for (let i = 0; i < s.all.length; i += 16) {
     const urls = s.all.slice(i, i + 16).map(f => dataUrl(relative(DATA, join(s.path, "img1", String(f).padStart(6, "0") + ".jpg"))));
-    rows.push(...await b.page.evaluate(`LQB.people(${JSON.stringify(urls)}, ${JSON.stringify({ detW, minScore: 0.05, max: 100, embMin, tiles, model: MODEL, split: SPLIT })})`));
+    rows.push(...await b.page.evaluate(`LQB.healthAlways = ${!!HEALTH}; LQB.people(${JSON.stringify(urls)}, ${JSON.stringify({ detW, minScore: 0.05, max: 100, embMin, tiles, model: MODEL, split: SPLIT, degrade: DEGRADE, seeds: s.all.slice(i, i + 16) })})`));
     process.stderr.write(`\r  ${s.name} detW=${detW}${embMin ? " +emb" : ""}: ${rows.length}/${s.all.length} frames (${((Date.now() - t0) / 1000).toFixed(0)} s)`);
   }
   process.stderr.write("\n");
@@ -130,7 +136,7 @@ function runPipeline(s, cache, { thr, tcfgBase = ST.ST_TRACK || LQT.PRESET.perso
   const cam = { slot: "c1", name: "bench", role: "door", line, swap: false, zones: [] };
   const frames = [], ev = [];
   s.frames.forEach((f, i) => {
-    const now = 1e9 + i * s.dt, row = cache.frames[i];
+    const now = 1e9 + (f - s.frames[0]) / s.step * s.dt, row = cache.frames[i];
     const dets = stress(s, f, now, toDets(row.d && SCORE_K !== 1 ? { ...row, d: row.d.map(d => [d[0], d[1], d[2], d[3], d[4] * SCORE_K]) } : row, thr, f));
     let embed;
     if (reid) {
@@ -149,8 +155,8 @@ function runPipeline(s, cache, { thr, tcfgBase = ST.ST_TRACK || LQT.PRESET.perso
 }
 function gtEvents(s, line) {
   const tracks = new Map();
-  s.frames.forEach((f, i) => {
-    for (const g of s.gt.get(f) || []) { if (!tracks.has(g.id)) tracks.set(g.id, []); tracks.get(g.id).push({ t: 1e9 + i * s.dt, p: LQT.center(g) }); }
+  s.gtFrames.forEach(f => { // ground truth from every analysed frame, also when --frame-drop skips some
+    for (const g of s.gt.get(f) || []) { if (!tracks.has(g.id)) tracks.set(g.id, []); tracks.get(g.id).push({ t: 1e9 + (f - s.gtFrames[0]) / s.step * s.dt, p: LQT.center(g) }); }
   });
   return M.crossingsFromTracks(tracks, line, (mem, ln, p, sw) => ST.checkCrossing(mem, ln, p, sw));
 }
@@ -217,7 +223,7 @@ const det = new Map(); // detW -> Map(seq -> cache)
 try {
   for (const w of DETWS) {
     const m = new Map();
-    for (const s of seqs) m.set(s.name, await detections(B, s, w, w === 416 && !TILES ? 0.2 : 0)); // tiled: no re-ID embeddings (time)
+    for (const s of seqs) m.set(s.name, await detections(B, s, w, w === 416 && !TILES && !DEGRADE ? 0.2 : 0)); // tiled or degraded: no re-ID embeddings (time)
     det.set(w, m);
   }
 } finally { if (bench) await bench.done(); }
@@ -279,6 +285,7 @@ if (process.env.LQ_BENCH_EXTRA) for (const [label, c] of JSON.parse(process.env.
   const base = c.store ? ST.ST_TRACK : LQT.PRESET.person, tb = c.tcfgBase || {};
   configs.push([label, { thr: c.store ? ST.ST_DET_MIN : 0.4, ...c, tcfgBase: { ...base, ...tb, ...(tb.CROSS || base.CROSS ? { CROSS: { ...(base.CROSS || {}), ...(tb.CROSS || {}) } } : {}) } }]);
 }
+if (DEGRADE || flag("--quick")) configs.splice(1); // robustness runs: the shipped store configuration only
 const cm = det.get(416);
 out.tracking = [];
 const trows = [];
@@ -293,4 +300,32 @@ console.log(table(["config", "MOTA", "IDF1", "ID sw", "counted/GT", "net count e
 console.log("\nper sequence (first three configs):");
 for (const t of out.tracking.slice(0, 3)) console.log(table(["config", "sequence", "MOTA", "IDF1", "ID sw", "counted/GT crossings", "net err", "event P", "event R"],
   t.per.map(p => [t.label.slice(0, 22), p.seq, pct(p.mota), pct(p.idf1), p.idsw, `${p.prCross}/${p.gtCross}`, pct(p.countErr), pct(p.evP), pct(p.evR)])));
+// --health / --degrade: replay the shipped camera-health monitor (lensiq-sitecheck.js createHealth) at about 1 sample per
+// second, exactly as store.js feeds it (frame statistics + analysis rate + median person height of that second)
+if (HEALTH) {
+  const SITE = require(join(REPO, "lensiq-sitecheck.js"));
+  out.health = {};
+  const hrows = [];
+  for (const s of seqs) {
+    const c = cm.get(s.name), mon = SITE.createHealth({ kind: "store" }), on = {}, per = Math.max(1, Math.round(1000 / s.dt));
+    let n = 0, warn = 0, ph = [], lastI = -1;
+    s.frames.forEach((f, i) => {
+      const row = c.frames[i]; if (!row) return;
+      for (const d of row.d) if (d[4] >= 0.5) ph.push(d[3]);
+      const t = (f - s.frames[0]) / s.step;
+      if (Math.floor(t / per) === lastI || !row.hs) return; lastI = Math.floor(t / per);
+      const hs = { ...row.hs, thumb: Float32Array.from(row.hs.thumb), tw: 32, th: 18 };
+      const hz = 1000 / s.dt * s.frames.length / s.gtFrames.length;
+      const st = mon.push(hs, { hz, personH: ph.length >= 2 ? SITE.median(ph) : null }); ph = [];
+      if (++n <= 2) return; // the monitor needs 2 samples
+      st.codes.forEach(k => { on[k] = (on[k] || 0) + 1; }); if (st.level) warn++;
+    });
+    const m = Math.max(1, n - 2);
+    out.health[s.name] = { samples: m, anyWarn: warn / m, flags: Object.fromEntries(Object.entries(on).map(([k, v]) => [k, v / m])) };
+    hrows.push([s.name, m, pct(warn / m, 0), Object.entries(on).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${pct(v / m, 0)}`).join(", ") || "—"]);
+  }
+  console.log(`\n### Camera health (lensiq-sitecheck) — degrade ${DEGRADE || "none"}${FDROP ? `, frame drop ${FDROP}` : ""}\n`);
+  console.log(table(["sequence", "1-s samples", "any warning", "flags (share of samples)"], hrows));
+  out.degrade = DEGRADE; out.frameDrop = FDROP;
+}
 if (opt("--json")) { writeFileSync(opt("--json"), JSON.stringify(out, null, 1)); console.log("\nwrote " + opt("--json")); }

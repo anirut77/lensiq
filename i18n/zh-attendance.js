@@ -15,6 +15,7 @@
   "attendance.s11": "签到",
   "attendance.s12": "登记人脸",
   "attendance.s13": "报告",
+  "attendance.sc1": "准确度检查",
   "attendance.s14": "站在摄像头前，确保人脸清晰可见。支持多人同时签到，系统会自动记录",
   "attendance.s15": "每张人脸的扫描结果",
   "attendance.s16": "识别严格度",

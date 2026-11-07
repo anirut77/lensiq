@@ -272,3 +272,15 @@ small,.small{--fs:.85em}
 .lq-spin{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:lqspin .8s linear infinite;flex:none}
 .lq-model-note.err .lq-spin{display:none}
 @keyframes lqspin{to{transform:rotate(360deg)}}
+
+/* ---------- Legal footer (nav.js legalFoot: pages without their own <footer>) ---------- */
+.lq-legal-foot{background:#f6f7fb;border-top:1px solid #e3e7f0;margin-top:48px;font-family:Inter,Prompt,"IBM Plex Sans Thai","Noto Sans Thai",system-ui,sans-serif}
+.lq-legal-foot p{max-width:1240px;margin:0 auto;padding:10px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:0 18px;font-size:.82rem;color:#4a5470}
+.lq-legal-foot a{color:#2b3352;text-decoration:underline;text-decoration-color:#b9c0d6;text-underline-offset:3px;display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px}
+.lq-legal-foot a:hover{color:#0e1430;text-decoration-color:#0e1430}
+body[class*="-kiosk"] .lq-legal-foot{display:none}
+@media print{.lq-legal-foot{display:none!important}}
+.site-foot .foot-legal.foot-docs{margin-top:2px;padding-top:0;border-top:0}
+.site-foot .foot-docs a{color:#dfe4f5;text-decoration:underline;text-underline-offset:3px;display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px}
+.about-foot .foot-legal a{min-width:44px;justify-content:center}
+.about .hint a[href^="LICENSES/"]{display:inline-flex;align-items:center;min-height:44px;color:#3b2fc0;text-decoration:underline;text-underline-offset:3px}

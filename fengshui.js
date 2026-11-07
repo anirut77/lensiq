@@ -734,6 +734,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   async function readFortune(again) {
     touch();
+    AI = AI || window.FortuneAI; // fortune-ai.js loads after this file: look it up when reading (plan + reminder + language)
     var btn = $("#fsReadBtn"), out = $("#fsReading"), facts = FS.buildFacts(collect());
     state.lastFacts = facts;
     btn.disabled = true; $("#fsAgain").disabled = true;
@@ -751,12 +752,13 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   function renderReading(res, facts) {
     var host = $("#fsSections"), used = false;
+    AI = AI || window.FortuneAI;
     $("#fsReading").hidden = false;
     var badge = $("#fsSource");
     badge.textContent = res.source === "ai" ? T("fengshui.src.ai", "เรียบเรียงโดยผู้ช่วยเขียนคำทำนาย (Claude โดย Anthropic) จากผลคำนวณเท่านั้น") : T("fengshui.src.local", "เรียบเรียงในเครื่อง ไม่ส่งข้อมูลออก");
     badge.className = "fs-badge " + (res.source === "ai" ? "ai" : "local");
     if (AI && typeof AI.renderSections === "function") {
-      try { host.innerHTML = ""; var r = AI.renderSections(host, res, { domain: "fengshui" }); if (typeof r === "string") host.innerHTML = r; else if (r && r.nodeType) host.append(r); used = host.childNodes.length > 0; } catch (e) { used = false; }
+      try { host.innerHTML = ""; var r = AI.renderSections(host, res, { domain: "fengshui" }); if (typeof r === "string") host.innerHTML = r; else if (r && r.nodeType && r !== host) host.append(r); /* renderSections fills host itself and returns it */ used = host.childNodes.length > 0; } catch (e) { used = false; }
     }
     if (!used) {
       host.innerHTML = (res.sections || []).map(function (s) {

@@ -16,11 +16,14 @@
 //     unset, every call is refused (503 turnstile_not_configured); local-dev escape only for localhost origins
 //   * limits: per caller (day-salted IP hash) per minute + per day, global per minute + per day, plan quota,
 //     admin on/off per domain; Origin allowlist (router); never logs facts
+//   * membership (members.js): when the owner requires sign-in, guests are refused (401 member_required, fallback) and
+//     members get their tier's AI quota (member_ai_daily / plan entitlement); each AI use is a ledger row (domain only)
 // Calls Claude through the official Anthropic SDK (@anthropic-ai/sdk).
 import FortuneAIModule from "../../fortune-ai.js";
 import { FORTUNE_DOMAINS } from "./constants.js";
 import { FORTUNE_SYSTEM } from "./fortune-prompt.js";
-import { checkEntitlement } from "./billing.js";
+import { checkEntitlement, freeMode } from "./billing.js";
+import { aiQuota, ledger, membership, optionalMember } from "./members.js";
 import { getAiSettings, getApiKey } from "./settings.js";
 import { callerHash, hit } from "./store.js";
 import { turnstileReady, verifyTurnstile } from "./turnstile.js";
@@ -225,7 +228,11 @@ export async function fortuneStatus(env, request) {
   const s = await getAiSettings(env.DB);
   const key = await getApiKey(env);
   const ready = turnstileReady(env, request);
-  return { enabled: !!(key && s.enabled && ready), model: s.model, turnstile: true, ...(key && s.enabled && !ready ? { reason: "turnstile_not_configured" } : {}) };
+  const ms = await membership(env);
+  if (ms.required && key && s.enabled && ready && !(await optionalMember(env, request))) {
+    return { enabled: false, model: s.model, turnstile: true, member_required: true, reason: "member_required" };
+  }
+  return { enabled: !!(key && s.enabled && ready), model: s.model, turnstile: true, ...(ms.required ? { member_required: true } : {}), ...(key && s.enabled && !ready ? { reason: "turnstile_not_configured" } : {}) };
 }
 
 /** POST /api/fortune. Origin/CORS are checked by the router. Returns [body, status]. Never throws for the client:
@@ -234,6 +241,9 @@ export async function fortuneRun(env, request, deps = {}) {
   const settings = await getAiSettings(env.DB);
   const key = await getApiKey(env);
   if (!key || !settings.enabled) return [{ error: "ระบบ AI ยังไม่เปิดใช้งาน", fallback: true }, 503];
+  const ms = await membership(env);
+  const member = await optionalMember(env, request);
+  if (ms.required && !member) return [{ error: "เข้าสู่ระบบ (ฟรี) เพื่อใช้ผู้ช่วยเขียน AI", code: "member_required", fallback: true }, 401];
   let body;
   try { body = await readJson(request, MAX_BODY); } catch (e) { return [{ error: e.status === 413 ? "ข้อมูลใหญ่เกินกำหนด" : "รูปแบบคำขอไม่ถูกต้อง", fallback: true }, e.status || 400]; }
   if (!isObj(body)) return [{ error: "รูปแบบคำขอไม่ถูกต้อง", fallback: true }, 400];
@@ -265,8 +275,13 @@ export async function fortuneRun(env, request, deps = {}) {
     const r = await hit(env.DB, k, limit, win);
     if (!r.ok) return [{ error: msg, fallback: true }, 429];
   }
-  const ent = await checkEntitlement(env, who, "ai_reading");
-  if (!ent.allowed) return [{ error: "ใช้ AI ครบโควตาของแพ็กเกจแล้ว ระบบจะใช้ตัวเรียบเรียงในเครื่องแทน", fallback: true }, 429];
+  if (member) {
+    const q = await aiQuota(env, member.user, { consume: true, ms, freeMode: freeMode(env) });
+    if (!q.allowed) return [{ error: "วันนี้ใช้ผู้ช่วยเขียน AI ครบโควตาของบัญชีแล้ว ระบบจะใช้ตัวเรียบเรียงในเครื่องแทน", code: "quota", fallback: true }, 429];
+  } else {
+    const ent = await checkEntitlement(env, who, "ai_reading");
+    if (!ent.allowed) return [{ error: "ใช้ AI ครบโควตาของแพ็กเกจแล้ว ระบบจะใช้ตัวเรียบเรียงในเครื่องแทน", fallback: true }, 429];
+  }
 
   let Anthropic;
   try {
@@ -275,6 +290,7 @@ export async function fortuneRun(env, request, deps = {}) {
     const resp = await client.beta.messages.create(buildRequest(modelFacts, body.tone, settings));
     const g = groundSections(parseResponse(resp), modelFacts);
     log("fortune.ok", { domain: facts.domain, sections: g.sections.length, kept: g.log.kept, dropped: g.log.dropped });
+    if (member) await ledger(env, member.user.id, "ai", { domain: facts.domain });
     return [{ source: "ai", sections: g.sections, model: resp.model || settings.model }, 200];
   } catch (e) {
     const c = classifyError(e, Anthropic);

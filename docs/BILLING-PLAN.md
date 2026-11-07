@@ -35,21 +35,27 @@ in the admin AI tab if needed; every failure falls back to the free local compos
 
 ## 3. Tiers (placeholders — "ร่าง")
 
-| | **Free / ฟรี** | **Pro / โปร** | **Business / ธุรกิจ** | **Enterprise / องค์กร** |
-|---|---|---|---|---|
-| Price (VAT incl.) | 0 | **990 THB / month** · 9,900 / year (ร่าง) | **3,900 THB / month** · 39,000 / year (ร่าง) | quotation |
-| On-device features | all | all | all | all + on-premise install |
-| AI writing assistant | 3 / day / device | 100 / month | 600 / month | unlimited (fair use) / own API key |
-| Cloud analytics history | 7 days | 90 days | 400 days | custom retention |
-| CSV export | – | ✓ | ✓ | ✓ + API |
-| Multi-site hub nodes | 1 | 3 | 20 | unlimited |
-| Tax invoice (ใบกำกับภาษีเต็มรูป) | – | on request | ✓ | ✓ |
-| Support | community | e-mail 2 business days | e-mail + LINE, next business day | SLA, DPA, PDPA pack |
+| | **Guest / ผู้เยี่ยมชม** | **Member / สมาชิกฟรี** | **Pro / โปร** | **Business / ธุรกิจ** | **Enterprise / องค์กร** |
+|---|---|---|---|---|---|
+| Sign-in | none | Google (free) | Google + plan | Google + plan | contract |
+| Price (VAT incl.) | 0 | 0 | **990 THB / month** · 9,900 / year (ร่าง) | **3,900 THB / month** · 39,000 / year (ร่าง) | quotation |
+| On-device features | all | all | all | all | all + on-premise install |
+| Fortune readings | light: summary + 2 sections + cautions + reminder, 3 / day / device (soft) | full + 3-point plan, save history, print/PDF | full | full | full |
+| AI writing assistant | – (when membership is on) | 3 / day (server-enforced) | 100 / month | 600 / month | unlimited (fair use) / own API key |
+| Transaction history | – | ✓ (`account.html`) | ✓ | ✓ | ✓ |
+| Cloud analytics history | – | 7 days | 90 days | 400 days | custom retention |
+| CSV export | – | – | ✓ | ✓ | ✓ + API |
+| Multi-site hub nodes | 1 | 1 | 3 | 20 | unlimited |
+| Tax invoice (ใบกำกับภาษีเต็มรูป) | – | – | on request | ✓ | ✓ |
+| Support | community | community | e-mail 2 business days | e-mail + LINE, next business day | SLA, DPA, PDPA pack |
 
 Model cost at 100 % quota use: Pro ≈ 350 THB (≈ 35 % of price), Business ≈ 2,100 THB (≈ 54 %). Typical use is far
 below the cap, so gross margin after Opn fees should be 60–80 %. Add-on: **AI top-up 100 readings = 490 THB (ร่าง)**.
 
-Enforced by `entitlements` rows (`backend/migrations/0003_seed_plans.sql`) through `checkEntitlement()` — only when
+Guest/Member limits are owner settings (admin → Members, D1 `settings.membership`) and apply only when
+`membership_required` is on and Google sign-in is configured (docs/BACKEND.md "Member sign-in"); with it off every visitor
+keeps today's full readings. Paid tiers are
+enforced by `entitlements` rows (`backend/migrations/0003_seed_plans.sql`) through `checkEntitlement()` — only when
 `FREE_MODE=false`. Until then usage is counted (`usage_counters`, 35 days) so real demand can size the quotas.
 
 ## 4. B2B packages (ร่าง)

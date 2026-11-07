@@ -11,7 +11,12 @@
      nowrap <span class="lq-w"> with <wbr> between words; elsewhere only known loanwords ("แดชบอร์ด") are wrapped.
      Each rewritten text node becomes one <span class="lq-run">, so textContent and flex/grid layout are unchanged.
    - window.LQModels: "กำลังโหลดโมเดล xx MB" notice + cache check for large model downloads.
-   - service worker registration (sw.js: cache-first for vendor/ models, versioned). Disable with ?nosw. */
+   - member account chip: hands the header to lensiq-member.js (window.LQMember.mountNav) when that optional module is
+     loaded (API Worker configured + member sign-in set up); otherwise nothing changes.
+   - service worker registration (sw.js: cache-first for vendor/ models, versioned). Disable with ?nosw.
+   - Legal footer: pages without their own <footer> get a slim one (terms / privacy / help / about links, keys foot.*);
+     hidden in kiosk modes and in print. Pages with a <footer> (index, about) link the documents themselves.
+   - Fortune pages: loads lensiq-report.js ("report a problem with this reading", works without a backend). */
 (function () {
   "use strict";
 
@@ -87,7 +92,7 @@
   })();
 
   var header = document.getElementById("siteNav") || document.querySelector("header.nav");
-  if (!header) { thaiBreaks(); models(); registerSW(); return; }
+  if (!header) { thaiBreaks(); models(); registerSW(); legalFoot(); reportHook(); return; }
   if (!header.classList.contains("nav")) header.classList.add("nav");
 
   var page = (location.pathname.split("/").pop() || "index.html").toLowerCase();
@@ -291,9 +296,18 @@
   if (window.LQI18N) { window.LQI18N.apply(header); var cb = document.querySelector(".lq-crumbs"); if (cb) window.LQI18N.apply(cb); syncLang(); }
 
   window.LENSIQ_BRAND = BRAND;
+
+  // ---------- member account chip ----------
+  // lensiq-member.js (loaded by lensiq-config.js only when the API Worker is configured) renders "เข้าสู่ระบบด้วย Google"
+  // or the avatar + account menu next to the language switch; it does nothing unless member sign-in is set up.
+  var mountAccount = function () { if (window.LQMember && typeof window.LQMember.mountNav === "function") window.LQMember.mountNav(header); };
+  mountAccount();
+  window.addEventListener("lq-member-ready", mountAccount);
   thaiBreaks();
   models();
   registerSW();
+  legalFoot();
+  reportHook();
 
   // ---------- Thai line breaking: <wbr> at word boundaries ----------
   function thaiBreaks() {
@@ -483,6 +497,32 @@
     window.LQModels = { loading: loading, isCached: isCached, confirm: confirmDownload, fetch: fetchWithNotice, slowNet: slowNet };
   }
 
+  // ---------- legal footer (terms / privacy / help) on pages without their own <footer> ----------
+  function legalFoot() {
+    var add = function () {
+      if (!document.body || document.querySelector("footer, .lq-legal-foot")) return;
+      var f = document.createElement("footer");
+      f.className = "lq-legal-foot";
+      f.setAttribute("aria-label", "ข้อมูลทางกฎหมาย"); f.setAttribute("data-i18n-attr", "aria-label:foot.legalnav");
+      f.innerHTML = '<p><span>© 2026 LENSIQ</span>' +
+        '<a href="terms.html" data-i18n="foot.terms">ข้อกำหนดการใช้บริการ</a>' +
+        '<a href="privacy.html" data-i18n="foot.privacy">ความเป็นส่วนตัว</a>' +
+        '<a href="help.html" data-i18n="foot.help">ช่วยเหลือ</a>' +
+        '<a href="about.html" data-i18n="foot.about">เกี่ยวกับ &amp; สัญญาอนุญาต</a></p>';
+      document.body.appendChild(f);
+      if (window.LQI18N) window.LQI18N.apply(f);
+    };
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", add); else add();
+  }
+  // ---------- fortune pages: "report a problem with this reading" (lensiq-report.js) ----------
+  function reportHook() {
+    var p = (location.pathname.split("/").pop() || "").toLowerCase();
+    if (!/^(fortune|faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph)\.html$/.test(p)) return;
+    if (/** @type {any} */ (window).LQReport || document.querySelector('script[src^="lensiq-report.js"]')) return;
+    var sc = document.createElement("script");
+    sc.src = "lensiq-report.js?v=1"; sc.async = true;
+    (document.head || document.documentElement).appendChild(sc);
+  }
   // ---------- service worker (offline cache for vendor/ models) ----------
   function registerSW() {
     if (!("serviceWorker" in navigator) || !window.isSecureContext || /[?&]nosw\b/.test(location.search)) return;

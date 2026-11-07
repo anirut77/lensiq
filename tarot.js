@@ -484,6 +484,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   }
   /** ประโยคเด่นสั้น ๆ (≤ 60 ตัวอักษร) สำหรับการ์ดแชร์: ความหมายจาก facts ที่ปรากฏอยู่ในภาพรวมที่เรียบเรียงแล้ว (ไม่ใช้ประโยคเชื่อม) */
   function keyLines(res, facts, n) {
+    if (res && res.lang === "en" && window.FortuneAI && window.FortuneAI.en) return window.FortuneAI.en.keyLines(res, n); // English result: lines from the English text
     var secs = res.sections || [], ov = secs.find(function (s) { return s.id === "overview"; }) || secs[0];
     if (isZh()) { // ภาษาจีน: ใช้ประโยคสั้นจากภาพรวมที่เรียบเรียงแล้ว (facts เป็นภาษาไทย)
       var zs = [];

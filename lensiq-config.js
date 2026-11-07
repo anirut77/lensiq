@@ -15,6 +15,13 @@ window.LENSIQ_API_BASE = window.LENSIQ_API_BASE || "";
  *   (เพิ่ม https://challenges.cloudflare.com ใน CSP เฉพาะเมื่อตั้งค่านี้) */
 window.LENSIQ_TURNSTILE_SITEKEY = window.LENSIQ_TURNSTILE_SITEKEY || "";
 
+/* LENSIQ_GOOGLE_CLIENT_ID: OAuth 2.0 Client ID (ประเภท Web application) จาก Google Cloud Console สำหรับ "เข้าสู่ระบบด้วย Google"
+ *   ของสมาชิก — เป็นค่าสาธารณะ (ไม่ใช่ความลับ) ต้องตรงกับ GOOGLE_CLIENT_ID ใน backend/wrangler.toml
+ *   ""  (ค่าเริ่มต้น) = ไม่มีระบบสมาชิก: ไม่แสดงปุ่มเข้าสู่ระบบ ไม่จำกัดคำทำนาย ทุกหน้าทำงานเหมือนเดิม
+ *   ตั้งค่าแล้วรัน node tools/csp-meta.mjs (เพิ่ม https://accounts.google.com/gsi/ ใน CSP เฉพาะเมื่อตั้งค่านี้)
+ *   สคริปต์ของ Google โหลดเฉพาะเมื่อผู้ใช้กดปุ่มเข้าสู่ระบบเท่านั้น — ดู docs/BACKEND.md "Member sign-in" */
+window.LENSIQ_GOOGLE_CLIENT_ID = window.LENSIQ_GOOGLE_CLIENT_ID || "";
+
 /* LENSIQ_ANALYTICS: เมื่อตั้ง LENSIQ_API_BASE แล้ว จะโหลด lensiq-api.js + lensiq-analytics.js (ถามความยินยอมก่อนเสมอ,
  *   เคารพ Do-Not-Track) และ lensiq-fortune-hook.js บนหน้าดูดวง — ตั้งเป็น false เพื่อปิดสถิติทั้งหมด */
 window.LENSIQ_ANALYTICS = window.LENSIQ_ANALYTICS !== false;
@@ -42,6 +49,9 @@ window.LENSIQ_FACEPARSE = window.LENSIQ_FACEPARSE === true;
   load("lensiq-api.js", "LQApi");
   // the back office (admin.html) and the pricing draft never load analytics
   if (window.LENSIQ_ANALYTICS !== false && !/\/(admin|pricing)\.html$/.test(location.pathname)) load("lensiq-analytics.js", "LQAnalytics");
+  // member sign-in (account chip in the header, light reading for guests) — inert unless the Worker reports
+  // membership and LENSIQ_GOOGLE_CLIENT_ID is set; never on the back office
+  if (!/\/admin\.html$/.test(location.pathname)) load("lensiq-member.js", "LQMember");
   // fortune pages: analytics hook (no-op without consent) + Turnstile token for the AI writing assistant (when configured)
   if (/(fortune|faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph)\.html$/.test(location.pathname)) load("lensiq-fortune-hook.js", "__lqFortuneHook");
 })();

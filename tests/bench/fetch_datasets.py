@@ -23,6 +23,10 @@ Nothing here is committed or redistributed. You are responsible for accepting ea
   mit1003  MIT1003 eye-tracking data (Judd, Ehinger, Durand & Torralba, ICCV 2009), 1,003 images, 15 viewers each, from
        the authors' page people.csail.mit.edu/tjudd/WherePeopleLook — no licence is stated: research evaluation only, never
        bundled or used for shipping. ALLSTIMULI.zip (235 MB) + ALLFIXATIONMAPS.zip (10 MB). (creative.html attention map)
+  portraits  62 public-domain portraits from Wikimedia Commons (mostly US federal official portraits; works of the US
+       federal government), listed by title in tests/bench/studio-portraits.json (27 "dev" people used while building the
+       studio, 35 "test" people never used for tuning). Each file's licence is re-checked through the Commons API at
+       download time and the file is skipped unless it is "Public domain". 960 px wide thumbnails. (studio.bench.mjs)
 Layout produced (what the *.bench.mjs scripts read via LQ_BENCH_DATA):
   mot/MOT17/train/MOT17-0X-FRCNN/{img1,gt,seqinfo.ini}  mot/2DMOT2015/train/<SEQ>/{img1,gt}
   lfw/pairs.json + lfw/img/*.jpg                         utk/index.json + utk/img/*.jpg
@@ -30,6 +34,7 @@ Layout produced (what the *.bench.mjs scripts read via LQ_BENCH_DATA):
   oceyes/index.json + oceyes/img/*.jpg                   cew/index.json + cew/w/dataset_B_FacialImages/...
   fer/index.json + fer/test/<class>/*.jpg
   mit1003/ALLSTIMULI/*.jpeg + mit1003/ALLFIXATIONMAPS/*_fixPts.jpg, *_fixMap.jpg
+  portraits/index.json + portraits/img/<id>.jpg
 """
 import io, json, os, pickle, random, re, struct, sys, tarfile, urllib.request, zipfile, zlib
 from concurrent.futures import ThreadPoolExecutor
@@ -191,9 +196,40 @@ def mit1003(root):
             for m in zf.namelist():
                 if m.startswith(z + "/") and not m.endswith("/") and re.match(r"^[\w./-]+$", m) and ".." not in m: zf.extract(m, out)
 
+def portraits(root):
+    import time, urllib.parse
+    out = os.path.join(root, "portraits"); os.makedirs(os.path.join(out, "img"), exist_ok=True)
+    items = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "studio-portraits.json")))
+    ua = {"User-Agent": "LENSIQ-bench/1.0 (evaluation only)"}
+    idx = []
+    for it in items:
+        p = os.path.join(out, "img", it["id"] + ".jpg")
+        q = {"action": "query", "format": "json", "titles": it["title"], "prop": "imageinfo", "iiprop": "url|extmetadata", "iiurlwidth": 960}
+        for k in range(6):
+            try:
+                r = json.load(urllib.request.urlopen(urllib.request.Request("https://commons.wikimedia.org/w/api.php?" + urllib.parse.urlencode(q), headers=ua), timeout=60)); break
+            except Exception as e:
+                if k == 5: raise
+                time.sleep(10 * (k + 1))
+        page = list(r["query"]["pages"].values())[0]
+        if "imageinfo" not in page: print("missing", it["title"]); continue
+        ii = page["imageinfo"][0]; lic = ii.get("extmetadata", {}).get("LicenseShortName", {}).get("value", "")
+        if not lic.lower().startswith("public domain"): print("skip (licence %r)" % lic, it["title"]); continue
+        if not os.path.exists(p):
+            for k in range(6):
+                try:
+                    open(p, "wb").write(urllib.request.urlopen(urllib.request.Request(ii["thumburl"], headers=ua), timeout=120).read()); break
+                except Exception:
+                    if k == 5: raise
+                    time.sleep(10 * (k + 1))
+            time.sleep(1.5)
+        idx.append({**it, "f": "img/%s.jpg" % it["id"], "licence": lic, "page": ii["descriptionurl"]})
+        time.sleep(1)
+    json.dump(idx, open(os.path.join(out, "index.json"), "w"), indent=0, ensure_ascii=False)
+
 if __name__ == "__main__":
     if len(sys.argv) < 2: print(__doc__); sys.exit(1)
     root = os.path.abspath(sys.argv[1]); want = sys.argv[2:] or ["mot", "lfw", "utk", "hagrid"]
     repo = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
     if root == repo or root.startswith(repo + os.sep): sys.exit("refusing to download datasets inside the repository")
-    for w in want: print("==", w); {"mot": mot, "lfw": lfw, "lfwfull": lfwfull, "casia5": casia5, "utk": utk, "hagrid": hagrid, "oceyes": oceyes, "cew": cew, "fer": fer, "mit1003": mit1003}[w](root)
+    for w in want: print("==", w); {"mot": mot, "lfw": lfw, "lfwfull": lfwfull, "casia5": casia5, "utk": utk, "hagrid": hagrid, "oceyes": oceyes, "cew": cew, "fer": fer, "mit1003": mit1003, "portraits": portraits}[w](root)

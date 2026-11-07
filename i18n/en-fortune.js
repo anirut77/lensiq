@@ -295,8 +295,10 @@
 })(typeof window !== "undefined" ? window : globalThis);
 
 /* English mode on the fortune pages (this file is loaded only when English is chosen — sibling of zh-fortune.js).
- * Readings are composed in Thai (and natively in Chinese) by fortune-ai.js; there is no English composer yet, so:
- *   - a visible note under the page heading says readings are in Thai / Chinese, with one-tap language buttons;
+ * Readings are composed natively in English by fortune-ai.js from i18n/en-kb-*.js (loaded by lensiq-i18n.js as the
+ * siblings of the page's zh-kb-*.js). Around them:
+ *   - only on a page whose English reading data did not load, a note under the heading says readings are in Thai /
+ *     Chinese, with one-tap language buttons;
  *   - reading blocks rendered by fortune-ai.js (.fa-section, .fa-summary, …) are marked lang="th" (correct
  *     pronunciation for screen readers; reported separately — not as untranslated chrome — by the coverage tool);
  *   - short knowledge-base labels (symbol, animal, star names, source titles) are translated by whole-string lookup
@@ -341,8 +343,14 @@
     for (var i = 0; i < list.length; i++) { list[i].removeAttribute("lang"); list[i].removeAttribute("data-lq-en-th"); }
   }
   var note = null;
+  // English readings are available when every zh-kb-* data file on the page has its English sibling loaded
+  function enReadings() {
+    var tags = doc.querySelectorAll('script[src*="i18n/zh-kb-"]'), E = root.FORTUNE_EN || {}, n = 0;
+    for (var k in E) if (E[k] && E[k].items) n++;
+    return !tags.length || n > 0;
+  }
   function showNote() {
-    if (!isEn()) { if (note) note.hidden = true; return; }
+    if (!isEn() || enReadings()) { if (note) note.hidden = true; return; }
     if (!note) {
       var h1 = doc.querySelector("main h1"); if (!h1) return;
       var after = h1.nextElementSibling && h1.nextElementSibling.classList.contains("lead") ? h1.nextElementSibling : h1;

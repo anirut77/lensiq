@@ -8,6 +8,8 @@
 //   usage counters              35 days
 //   webhook raw payloads        WEBHOOK_PAYLOAD_DAYS (90); the event row (id, status) is kept with the payment
 //   audit log                   AUDIT_DAYS (400)
+//   member sessions             at expiry (30 days absolute / 14 days idle); sign-in nonces after 10 min
+//   member ledger (usage rows)  MEMBER_LEDGER_DAYS (400); payment rows kept with the payment; accounts until deletion
 //   payments / receipts         kept (Thai Revenue Code: accounting & tax documents >= 5 years) — never purged here
 import { aggregatePending } from "./analytics.js";
 import { audit } from "./store.js";
@@ -18,7 +20,8 @@ export function retentionConfig(env) {
     rawEventDays: intVar(env.RAW_EVENT_DAYS, 90, 1, 3650),
     auditDays: intVar(env.AUDIT_DAYS, 400, 30, 3650),
     webhookPayloadDays: intVar(env.WEBHOOK_PAYLOAD_DAYS, 90, 1, 3650),
-    usageDays: 35
+    usageDays: 35,
+    memberLedgerDays: intVar(env.MEMBER_LEDGER_DAYS, 400, 30, 3650)
   };
 }
 
@@ -36,7 +39,10 @@ export async function purge(env, t = now()) {
     devices: await run("DELETE FROM admin_devices WHERE created_at < ?1", t - 90 * 86400),
     usage: await run("DELETE FROM usage_counters WHERE day < ?1", addDays(today, -c.usageDays)),
     webhook_payloads: await run("UPDATE webhooks SET payload = NULL WHERE payload IS NOT NULL AND received_at < ?1", t - c.webhookPayloadDays * 86400),
-    audit: await run("DELETE FROM audit_log WHERE ts < ?1", t - c.auditDays * 86400)
+    audit: await run("DELETE FROM audit_log WHERE ts < ?1", t - c.auditDays * 86400),
+    member_sessions: await run("DELETE FROM member_sessions WHERE expires_at < ?1 OR last_seen < ?2", t, t - 14 * 86400),
+    auth_nonces: await run("DELETE FROM auth_nonces WHERE expires_at < ?1", t),
+    member_ledger: await run("DELETE FROM member_ledger WHERE kind != 'payment' AND ts < ?1", t - c.memberLedgerDays * 86400)
   };
   return out;
 }

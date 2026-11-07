@@ -698,10 +698,11 @@ if (typeof document !== "undefined") (() => {
     t.innerHTML = `<div class="tile-head">
         <input class="cam-name" maxlength="40" aria-label="ชื่อกล้อง">
         <select class="cam-role" aria-label="หน้าที่ของกล้อง"><option value="both">นับเข้า–ออก + โซน</option><option value="door">นับเข้า–ออก (ประตู)</option><option value="zone">โซนอย่างเดียว</option></select>
-        <span class="pill st-status"></span><span class="pill st-hz">—</span>
+        <span class="pill st-status"></span><span class="pill st-hz">—</span><span class="pill st-health" hidden></span>
         <button class="btn ghost small cam-del" type="button">ลบกล้อง</button>
       </div>
       <div class="cam"></div>
+      <p class="cam-health" role="status" hidden></p>
       <p class="cam-warn">อย่าให้เส้นนับ/โซนเดียวกันอยู่ในกล้องสองตัว (นับซ้ำ)</p>`;
     t.querySelector(".cam").append(c.video, c.overlay);
     c.overlay.setAttribute("aria-label", "ภาพจากกล้องพร้อมเส้นนับและโซน");
@@ -1005,6 +1006,7 @@ if (typeof document !== "undefined") (() => {
     if (pipe.reid) pipe.reid.cfg.CROSS_WINDOW_MS = opt.reidCfg.CROSS_WINDOW_MS;
     if (!opt.reid && pipe.reid) pipe.reid = null; // ปิดลดการนับซ้ำ -> ลบค่าลักษณะทันที
     const r = stepCam(pipe, { slot: c.slot, name: c.name, role: c.role, line: s.line, swap: s.swap, zones: s.zones, staffZone: s.staffZone }, day, dets, now, tcfg, opt);
+    healthStep(c, dets, now); scObserve(c, r, dets);
     if (G.queueZone) {
       const qn = zoneCount(G.queueZone), h = new Date(now).getHours();
       day.maxQueue = Math.max(day.maxQueue, qn); day.hourlyQ[h] = Math.max(day.hourlyQ[h] || 0, qn);
@@ -1654,8 +1656,114 @@ if (typeof document !== "undefined") (() => {
     return { render, merged, poll, flush, pushNow, exportPack, importText, setRole, get cfg() { return cfg; }, get server() { return server; } };
   })();
 
+  // ---- สุขภาพภาพจากกล้อง + ตรวจความแม่นยำหน้างาน (lensiq-sitecheck.js) ----
+  // สุขภาพภาพ: ทุก ~1 วินาทีต่อกล้อง วัดความสว่าง ย้อนแสง ความคม กล้องสั่น อัตราประมวลผล และขนาดคนในภาพ (ตัวเลขเท่านั้น ไม่เก็บภาพ)
+  const SITE = /** @type {any} */ (window).LQSite || null;
+  function healthStep(c, dets, now) {
+    if (!SITE) return;
+    const H = c._hl || (c._hl = { mon: SITE.createHealth({ kind: "store" }), at: 0, ph: [], cv: document.createElement("canvas"), state: null });
+    for (const d of dets) if (d.score >= 0.5 && H.ph.length < 200) H.ph.push(d.h);
+    if (now - H.at < 1000) return;
+    H.at = now;
+    let st = null; try { st = SITE.sampleElement(c.video, H.cv); } catch { /* ภาพจากแหล่งอื่น (cross-origin) อ่านไม่ได้ */ }
+    const hz = c.intervalMsEma ? 1000 / c.intervalMsEma : null;
+    H.state = H.mon.push(st, { hz, personH: H.ph.length >= 2 ? SITE.median(H.ph) : null });
+    H.ph = [];
+    if (SC && SC.slot === c.slot) { H.state.codes.forEach(k => SC.health.add(k)); if (Number.isFinite(hz)) SC.hz.push(hz); }
+    if (!c.tile) return;
+    const pill = c.tile.querySelector(".st-health"), line = c.tile.querySelector(".cam-health");
+    SITE.renderHealth(pill, H.state); pill.hidden = false;
+    SITE.renderHealthLine(line, H.state);
+  }
+
+  // ตรวจความแม่นยำหน้างาน: คนกด "+ เข้า"/"+ ออก" ทุกครั้งที่มีคนข้ามเส้นจริง แล้วเทียบกับยอดของระบบ (เวลา ± 2 วินาที หลังหักความช้าของการกด)
+  // กับไฟล์วิดีโอ: เวลา = ตำแหน่งในวิดีโอ (หยุดวิดีโอแล้วกดได้) และจบเองเมื่อวิดีโอจบ
+  let SC = null;
+  const scHist = SITE ? SITE.history(P + "sitecheck") : null;
+  const scPanel = SITE && $("#scPanel") ? SITE.mountPanel($("#scPanel"), {
+    title: "ตรวจความแม่นยำหน้างาน",
+    intro: "ทดสอบการนับเข้า–ออกที่ประตูร้านของคุณเอง: ระหว่างที่ระบบนับ ให้คนหนึ่งคนดูประตูแล้วกดปุ่มทุกครั้งที่มีคนเดินข้ามเส้นจริง ระบบจะคำนวณความแม่นยำที่หน้างานนี้พร้อมช่วงความเชื่อมั่น และแนะนำการตั้งค่า",
+    steps: [
+      "ติดกล้องและวาดเส้นนับบนกล้องที่เลือกให้เรียบร้อย (ใช้กล้องสด หรือไฟล์วิดีโอที่ถ่ายจากประตูร้านเอง)",
+      "กด \"เริ่มตรวจ\" แล้วดูประตู ทุกครั้งที่มีคนเดินข้ามเส้น กด \"+ เข้า\" หรือ \"+ ออก\" (คีย์บอร์ด: ลูกศรขึ้น = เข้า, ลูกศรลง = ออก, Backspace = ลบครั้งล่าสุด)",
+      "กดให้ตรงจังหวะที่คนข้ามเส้น ช้าหรือเร็วเท่า ๆ กันได้ ระบบหักความช้าของการกดให้เอง",
+      "เก็บอย่างน้อย 50 ครั้ง (ช่วงที่มีคนเข้าออกปกติ ราว 15–30 นาที) แล้วกด \"จบและคำนวณ\"",
+      "ทำซ้ำในช่วงแสงต่างกัน (กลางวัน/เย็น) และหลังย้ายกล้องหรือเปลี่ยนเส้นนับ เก็บไฟล์ผลตรวจไว้เป็นหลักฐานการรับมอบงาน"
+    ],
+    body: `<div class="sc-taps" hidden><button class="btn primary sc-in" type="button">+ เข้า</button><button class="btn primary sc-out" type="button">+ ออก</button><button class="btn ghost small sc-undo" type="button">ลบครั้งล่าสุด</button></div>`
+  }) : null;
+  const scClock = c => c === fileCam ? c.video.currentTime * 1000 : performance.now();
+  function scObserve(c, r, dets) {
+    if (!SC || SC.slot !== c.slot) return;
+    const t = scClock(c);
+    for (const x of r.crossings) SC.sys.push({ t, dir: x.dir });
+    for (const d of dets) if (d.score >= 0.5 && SC.ph.length < 20000) SC.ph.push(d.h);
+  }
+  function scLive() {
+    if (!scPanel || !SC) return;
+    const n = (a, d) => a.filter(e => e.dir === d).length, c = selCam();
+    const el = c ? (scClock(c) - SC.t0) / 1000 : 0;
+    scPanel.live.textContent = SITE.fmt("คนกด: เข้า {a} · ออก {b} | ระบบนับ: เข้า {c} · ออก {d} | เวลา {e}", { a: n(SC.truth, "in"), b: n(SC.truth, "out"), c: n(SC.sys, "in"), d: n(SC.sys, "out"), e: fmtDur(Math.max(0, el)) });
+  }
+  function scTap(dir) {
+    if (!SC) return;
+    const c = srcCams().find(x => x.slot === SC.slot);
+    if (!c) return;
+    SC.truth.push({ t: scClock(c), dir }); scLive();
+  }
+  function scStart() {
+    if (!SITE || SC) return;
+    const c = selCam();
+    if (!running || !c || !c.active) return engine("เปิดกล้องหรือไฟล์วิดีโอก่อน แล้วจึงเริ่มตรวจ", "warn");
+    const s = camSet(c);
+    if (!s.line || c.role === "zone") return engine("กล้องที่เลือกยังไม่มีเส้นนับ — ลากเส้นนับก่อนเริ่มตรวจ", "warn");
+    SC = { slot: c.slot, name: c.name, file: c === fileCam, t0: scClock(c), startedAt: Date.now(), sys: [], truth: [], ph: [], hz: [], health: new Set(), line: s.line, swap: !!s.swap, tiles: s.tiles || "" };
+    if (c === fileCam) { c.video.loop = false; c.video.addEventListener("ended", scFinish, { once: true }); }
+    scPanel.start.disabled = true; scPanel.stop.disabled = false; scPanel.q(".sc-taps").hidden = false; scPanel.exp.hidden = true;
+    scPanel.state.textContent = "กำลังตรวจ"; scPanel.state.dataset.s = "live"; SITE.renderReport(scPanel.report, null);
+    scLive(); scPanel.q(".sc-in").focus();
+  }
+  function scFinish() {
+    if (!SC) return;
+    const run = SC; SC = null;
+    const c = srcCams().find(x => x.slot === run.slot);
+    if (c && c === fileCam) c.video.loop = true;
+    const T = run.truth.map(e => ({ t: e.t - run.t0, dir: e.dir })), Sy = run.sys.map(e => ({ t: e.t - run.t0, dir: e.dir }));
+    const stats = { hz: run.hz.length ? SITE.median(run.hz) : null, personH: run.ph.length ? SITE.median(run.ph) : null, health: [...run.health], tiles: run.tiles };
+    const rep = SITE.countReport(Sy, T, { stats });
+    SITE.renderReport(scPanel.report, rep);
+    scPanel.start.disabled = false; scPanel.stop.disabled = true; scPanel.q(".sc-taps").hidden = true;
+    scPanel.state.textContent = SITE.VERDICT_TH[rep.verdict]; scPanel.state.dataset.s = rep.verdict;
+    const doc = SITE.exportDoc("store", {
+      camera: run.name, source: run.file ? "video file" : "live camera", startedAt: new Date(run.startedAt).toISOString(), durationSec: Math.round(Math.max(0, ...T.map(e => e.t), ...Sy.map(e => e.t)) / 1000),
+      settings: { line: run.line, swap: run.swap, tiles: run.tiles, reid: !!G.reid, detector: detName || "", backend: delegateUsed || "" },
+      conditions: stats, truth: T, system: Sy, report: { verdict: rep.verdict, n: rep.n, lagMs: rep.lagMs, net: rep.net, netCI: rep.netCI, precision: rep.precision, recall: rep.recall, dirAcc: rep.dirAcc, byDir: rep.byDir, recs: rep.recs }
+    });
+    scPanel.exp.hidden = false;
+    scPanel.exp.onclick = () => SITE.download(`lensiq-store-check-${dayKey(run.startedAt)}.json`, doc);
+    scHist.add({ at: run.startedAt, verdict: rep.verdict, summary: SITE.fmt("{a}: ระบบ {b} / คนนับ {c} · แม่นยำ {d}", { a: run.name, b: rep.n.sys, c: rep.n.truth, d: rep.precision.p == null ? "—" : (rep.precision.p * 100).toFixed(0) + "%" }) });
+    scHist.render(scPanel.hist);
+    SCLAST = { rep, doc };
+  }
+  let SCLAST = null;
+  if (scPanel) {
+    scPanel.start.addEventListener("click", scStart);
+    scPanel.stop.addEventListener("click", scFinish);
+    scPanel.q(".sc-in").addEventListener("click", () => scTap("in"));
+    scPanel.q(".sc-out").addEventListener("click", () => scTap("out"));
+    scPanel.q(".sc-undo").addEventListener("click", () => { if (SC && SC.truth.length) { SC.truth.pop(); scLive(); } });
+    document.addEventListener("keydown", e => {
+      if (!SC || e.altKey || e.ctrlKey || e.metaKey || /^(INPUT|SELECT|TEXTAREA)$/.test((e.target && e.target.tagName) || "")) return;
+      if (e.key === "ArrowUp") { e.preventDefault(); scTap("in"); } else if (e.key === "ArrowDown") { e.preventDefault(); scTap("out"); }
+      else if (e.key === "Backspace") { e.preventDefault(); if (SC.truth.length) { SC.truth.pop(); scLive(); } }
+    });
+    setInterval(() => { if (SC) scLive(); }, 1000);
+    $("#stop").addEventListener("click", () => { if (SC) scFinish(); });
+    scHist.render(scPanel.hist);
+  }
+
   // สำหรับการทดสอบอัตโนมัติ (อ่านอย่างเดียว ไม่มีภาพ)
-  window.__ST = { get day() { return day; }, get hub() { return hub; }, get running() { return running; }, sched, pipes, G, agg, reidStats: () => ({ ms: RS.ms, n: RS.n, loaded: !!RS.model || fakeEmb(), err: RS.err }), renderDash };
+  window.__ST = { get day() { return day; }, get hub() { return hub; }, get running() { return running; }, sched, pipes, G, agg, reidStats: () => ({ ms: RS.ms, n: RS.n, loaded: !!RS.model || fakeEmb(), err: RS.err }), renderDash, get sitecheck() { return SC; }, get sitecheckLast() { return SCLAST; }, scTap: d => scTap(d), scFinish: () => scFinish() };
 
   sel = (storedCams()[0] || {}).slot || "c1";
   tileUi(); renderZoneEditor(); syncForm(); renderDash();

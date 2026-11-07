@@ -55,13 +55,21 @@
   $("prForm").addEventListener("submit", function (/** @type {Event} */ ev) {
     ev.preventDefault();
     var f = /** @type {any} */ (ev.target);
-    var box = $("prQr"); box.textContent = "กำลังสร้าง QR…";
+    var box = $("prQr");
+    // member sign-in (lensiq-member.js): when the owner requires it, the Worker refuses checkout without a member, and
+    // a signed-in member's payment is linked to the account (history + plan) instead of a one-time order token
+    var MEM = /** @type {any} */ (window).LQMember;
+    if (MEM && MEM.active() && !MEM.signedIn()) { box.textContent = "กรุณาเข้าสู่ระบบ (ฟรี) ก่อนซื้อแพ็กเกจ เพื่อผูกการชำระเงินกับบัญชีของคุณ"; MEM.signIn(); return; }
+    box.textContent = "กำลังสร้าง QR…";
     // Turnstile is required by the Worker for checkout (fail closed)
     API.turnstile("checkout").then(function (/** @type {string} */ tok) {
+      /** @type {Record<string, string>} */
+      var hd = tok ? { "X-Turnstile-Token": tok } : {};
+      if (MEM && MEM.token()) hd.Authorization = "Bearer " + MEM.token();
       return API.postJSON("/v1/billing/checkout", {
         plan_id: chosen, period: period, accept_terms: !!f.accept.checked,
         buyer: { name: f.name.value, email: f.email.value, tax_id: f.tax_id.value, address: f.address.value, branch: f.branch.value }
-      }, { headers: tok ? { "X-Turnstile-Token": tok } : {} });
+      }, { headers: hd });
     }).then(function (/** @type {any} */ r) {
       if (!r) { box.textContent = "สร้างรายการชำระเงินไม่สำเร็จ กรุณาตรวจข้อมูลแล้วลองใหม่"; return; }
       box.textContent = "";
@@ -69,7 +77,8 @@
       var st = document.createElement("p"); st.textContent = "สแกนด้วยแอปธนาคาร · ยอด " + baht(r.amount_satang); box.appendChild(st);
       // the buyer keeps these to link the paid plan to themselves (the server stores only a hash of the token)
       var keep = document.createElement("p"); keep.className = "pr-small";
-      keep.textContent = "เก็บรหัสคำสั่งซื้อนี้ไว้ (ใช้ยืนยันสิทธิ์แพ็กเกจ แสดงเพียงครั้งเดียว): " + r.customer_id + " / " + r.order_token;
+      keep.textContent = r.linked_to_account ? "การชำระเงินนี้ผูกกับบัญชีของคุณแล้ว ดูสถานะและใบเสร็จได้ที่หน้า บัญชีของฉัน"
+        : "เก็บรหัสคำสั่งซื้อนี้ไว้ (ใช้ยืนยันสิทธิ์แพ็กเกจ แสดงเพียงครั้งเดียว): " + r.customer_id + " / " + r.order_token;
       box.appendChild(keep);
       fetch(API.url(r.qr_path), { credentials: "omit" }).then(function (x) { return x.ok ? x.blob() : null; }).then(function (b) { if (b) img.src = URL.createObjectURL(b); });
       var n = 0;

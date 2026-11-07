@@ -1,8 +1,29 @@
-# Support and service levels: SLA template
+# Support, service levels and incident handling
 
-A template for the support agreement between the **provider** (the integrator or LENSIQ vendor) and the **customer**
-(the store, event or training operator). Values in [brackets] are negotiable defaults. **This is not legal advice.**
-Attach the signed version to the commercial contract.
+Two layers. **Self-serve tiers** (Guest, Member, Pro, Business — §0) get the published response targets shown on
+`help.html#h-support`. **Contracted customers** (Enterprise, on-prem, pilots) sign the SLA template in §1–§9 with the
+Basic / Standard / Premium plan. Response templates in Thai are in §10, the status page and incident routine in §11.
+Values in [brackets] are negotiable defaults. **This is not legal advice** (see `docs/LEGAL-REVIEW-PACK.md`).
+
+## 0. Self-serve tiers (draft — effective when paid plans go on sale)
+
+| | Guest | Member | Pro | Business |
+|---|---|---|---|---|
+| Who | Anyone, no sign-in | Free Google sign-in | Paid (`docs/BILLING-PLAN.md` §3) | Paid |
+| Channels | Help/FAQ page, e-mail | E-mail | E-mail | E-mail + LINE Official |
+| Hours (Asia/Bangkok) | Mon–Fri 09:00–18:00 | Mon–Fri 09:00–18:00 | Mon–Fri 09:00–18:00 | Mon–Sat 09:00–18:00 |
+| First response | Best effort, no commitment | ≤ 3 business days | ≤ 2 business days | Next business day |
+| Billing / refund questions | n/a | ≤ 3 business days | ≤ 1 business day | ≤ 1 business day |
+| Privacy or security report (any tier) | ≤ 1 business day; suspected breach handled as S1 (§3) | same | same | same |
+| Languages | Thai, English, 中文 (best effort) | Thai, English | Thai, English, 中文 | Thai, English, 中文 |
+| Onboarding | — | — | — | 1 × 30-min call |
+| Service credit | — | — | Pro-rata refund if online service unavailable > 24 h in a month (terms §9) | same |
+
+On-device tools have no availability target (they run offline). The online features (sign-in, writing assistant,
+payments, statistics) target [99.5 %] monthly once paid plans exist; when they fail, fortune pages fall back to the
+local composer automatically and nothing else is affected.
+
+Contracted plans (§2) are for organisations that need named contacts, on-site visits, a DPA or faster targets.
 
 ## 1. Scope
 
@@ -89,3 +110,71 @@ Escalate to the next level when a target in section 3 is missed by more than 50 
 
 The provider sends a monthly report: tickets by severity, targets met, uptime, releases installed and open risks.
 A quarterly review covers accuracy (pilot re-checks), the DPIA review date and the roadmap.
+
+## 10. Response templates (Thai)
+
+Keep the tone polite and concrete; always give a reference number `[LQ-#####]`; never ask for photos of people, face
+data, ID cards or passwords. Replace [brackets]. English/Chinese versions: translate the same structure.
+
+**10.1 รับเรื่องแล้ว (ตอบอัตโนมัติ / ตอบครั้งแรก)**
+> เรียน คุณ[ชื่อ]
+> ขอบคุณที่ติดต่อ LENSIQ เราได้รับเรื่องของคุณแล้ว หมายเลขอ้างอิง [LQ-#####] ทีมงานจะตอบกลับภายใน [ระยะเวลาตามระดับ] วันทำการ
+> เพื่อให้ช่วยได้เร็วขึ้น โปรดแจ้ง: หน้าที่ใช้งาน เวลาที่พบปัญหา อุปกรณ์และเบราว์เซอร์ และขั้นตอนที่ทำ
+> โปรดอย่าส่งภาพบุคคล ข้อมูลใบหน้า หรือข้อมูลส่วนบุคคลของผู้อื่นมาในอีเมล
+> ด้วยความเคารพ ทีมสนับสนุน LENSIQ
+
+**10.2 ขอข้อมูลเพิ่มเติม**
+> เรียน คุณ[ชื่อ]
+> ขอบคุณสำหรับข้อมูล เพื่อตรวจสอบเรื่อง [LQ-#####] ต่อ รบกวนแจ้ง [รายการที่ต้องการ เช่น รุ่นเบราว์เซอร์ / ภาพหน้าจอที่ไม่มีบุคคล / ข้อความในคอนโซล]
+> หากไม่ได้รับข้อมูลภายใน 7 วัน เราจะปิดเรื่องไว้ก่อน และเปิดใหม่ได้ทุกเมื่อโดยตอบกลับอีเมลนี้
+
+**10.3 แก้ไขแล้ว / วิธีแก้ชั่วคราว**
+> เรียน คุณ[ชื่อ]
+> เรื่อง [LQ-#####]: สาเหตุคือ [สาเหตุโดยย่อ] เราได้ [แก้ไขในเวอร์ชัน x.y / แนะนำวิธีแก้ชั่วคราว: ขั้นตอน 1–3]
+> หากยังพบปัญหา ตอบกลับอีเมลนี้ได้ภายใน 14 วันโดยใช้หมายเลขอ้างอิงเดิม
+
+**10.4 ขอยกเลิกหรือขอคืนเงิน**
+> เรียน คุณ[ชื่อ]
+> เราได้รับคำขอ[ยกเลิก/คืนเงิน]สำหรับใบเสร็จเลขที่ [เลขที่] แล้ว ตามนโยบายในข้อกำหนดข้อ 9 คุณมีสิทธิ์ได้รับเงินคืน [จำนวน] บาท
+> เนื่องจากการชำระด้วยพร้อมเพย์คืนผ่านระบบชำระเงินไม่ได้ เราจะโอนคืนเข้าบัญชีของผู้ชำระ โปรดส่ง: ชื่อบัญชี ธนาคาร เลขที่บัญชี และสำเนาหน้าสมุดบัญชี (ปิดข้อมูลอื่นได้)
+> เราจะโอนภายใน 14 วันนับจากได้รับข้อมูลครบ และส่ง[ใบลดหนี้]ให้ทางอีเมล
+> แพ็กเกจรายเดือนไม่มีการต่ออายุอัตโนมัติ หากไม่ชำระรอบถัดไป แพ็กเกจจะกลับเป็นระดับสมาชิกเมื่อหมดรอบ
+
+**10.5 คำขอใช้สิทธิตาม PDPA**
+> เรียน คุณ[ชื่อ]
+> เราได้รับคำขอ[เข้าถึง/ลบ/แก้ไข/คัดค้าน/ถอนความยินยอม]ข้อมูลส่วนบุคคลของคุณเมื่อวันที่ [วันที่] หมายเลขอ้างอิง [LQ-#####]
+> เพื่อยืนยันตัวตน โปรดลงชื่อเข้าใช้บัญชีเดียวกับที่แจ้งไว้ แล้วตอบกลับอีเมลนี้ เราจะดำเนินการและแจ้งผลภายใน 30 วัน
+> ข้อมูลที่ประมวลผลในเครื่องของคุณ (เช่น สถิติหรือค่าตั้งในเบราว์เซอร์) เราไม่ได้เก็บ คุณลบได้เองที่ การตั้งค่าเบราว์เซอร์ → ไซต์นี้ → ล้างข้อมูล
+> หากคำขอเกี่ยวกับกล้องในร้านค้าหรือองค์กร โปรดติดต่อร้าน/องค์กรนั้นซึ่งเป็นผู้ควบคุมข้อมูลโดยตรง
+
+**10.6 รายงานปัญหาคำทำนาย**
+> เรียน คุณ[ชื่อ]
+> ขอบคุณที่ช่วยแจ้งปัญหาคำทำนายในหน้า [หน้า] เราส่งเรื่องให้ทีมเนื้อหาตรวจแล้ว ข้อความลักษณะนี้จะถูกแก้ไขที่ต้นทางและตรวจซ้ำโดยผู้ตรวจภาษาในรอบถัดไป
+> คำทำนายของ LENSIQ เป็นไปเพื่อความบันเทิงตามตำราและความเชื่อดั้งเดิม โปรดใช้วิจารณญาณของตัวเองเสมอ
+> (หากเป็นเรื่องความปลอดภัย เช่น คำแนะนำด้านสุขภาพ ให้จัดเป็น S2 และแก้ภายใน 5 วันทำการ)
+
+**10.7 แจ้งเหตุขัดข้อง / เหตุละเมิดข้อมูล (ร่าง ต้องให้ผู้ควบคุมข้อมูลและทนายความอนุมัติก่อนส่ง)**
+> เรียน ลูกค้า LENSIQ
+> เมื่อ [วันที่ เวลา] เราพบ [ลักษณะเหตุการณ์] ซึ่งกระทบ [บริการ/ข้อมูลประเภท] ของผู้ใช้ประมาณ [จำนวน] ราย
+> เราได้ [มาตรการที่ทำแล้ว] และแจ้งสำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคลแล้วเมื่อ [วันที่] (ถ้ามี)
+> สิ่งที่คุณควรทำ: [คำแนะนำ] ติดต่อผู้รับผิดชอบ: [ชื่อ อีเมล]
+> เครื่องมือที่ประมวลผลในเครื่องไม่ได้รับผลกระทบ เพราะไม่ส่งภาพหรือข้อมูลใบหน้าออกจากอุปกรณ์
+
+## 11. Status page and incident routine
+
+**Status page (static, no extra service needed):** publish `status.json` + a short status note on a separate,
+independent host (e.g. a GitHub Pages repo `lensiq-status` or a LINE OA rich menu), linked from `help.html#h-status`
+(`[status page URL]` placeholder). It must not depend on the Cloudflare Worker it reports on. Content: component
+(Website, Sign-in, Writing assistant, Payments, Statistics), state (operational / degraded / outage / maintenance),
+started, last update, next update time, and a one-line customer impact. Probe: an external uptime monitor on
+`GET <API>/api/fortune/status` (no dedicated health route exists yet; add `/api/health` in backend/ if preferred) and the site root every 5 min, alerting the on-call by LINE/e-mail.
+
+| Step | S1 (outage, suspected breach) | S2 | Owner |
+|---|---|---|---|
+| Acknowledge, open incident log | 30 min (business hours), status page "investigating" | 4 h | On-call |
+| Customer update cadence | every 2 h until resolved | daily | Support lead |
+| Personal-data breach: assess risk, decide PDPC notification | within 24 h of awareness; notify PDPC ≤ 72 h (s.37(4)); data subjects without delay if high risk | — | Controller + counsel |
+| Fallback | Owner can turn the writing assistant off (admin AI tab) → local composer; set `FREE_MODE` / disable checkout | — | Owner |
+| Close | Status "resolved", postmortem within 5 business days (timeline, cause, impact, fixes, follow-ups), linked from the status page | brief note | Engineering |
+
+Keep the incident log and postmortems for ≥ 3 years. Never publish personal data in status notes.

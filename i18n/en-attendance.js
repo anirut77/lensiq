@@ -13,6 +13,7 @@
   "attendance.s11": "Check in",
   "attendance.s12": "Register face",
   "attendance.s13": "Report",
+  "attendance.sc1": "Accuracy check",
   "attendance.s14": "Stand in front of the camera with your face clearly visible. Several people can check in at once; the system records automatically",
   "attendance.s15": "Scan result for each face",
   "attendance.s16": "Recognition strictness",

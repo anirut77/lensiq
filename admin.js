@@ -340,6 +340,66 @@
     }, function (/** @type {any} */ e) { box.textContent = ""; fail(e); });
   });
 
+  /* ---------------- members ---------------- */
+  loaders.members = function () {
+    call("/membership").then(function (/** @type {any} */ r) {
+      var f = /** @type {any} */ ($("adMemForm")), s = r.settings;
+      f.membership_required.checked = !!s.membership_required;
+      ["guest_daily_readings", "guest_light_sections", "member_ai_daily", "member_saved_max"].forEach(function (k) { f[k].value = s[k]; });
+      var box = $("adMemPlans"); box.textContent = "";
+      r.plan_ai_quotas.filter(function (/** @type {any} */ p) { return p.plan_id !== "free"; }).forEach(function (/** @type {any} */ p) {
+        box.appendChild(h("label", null, p.plan_id + " (" + (p.period === "month" ? "ต่อเดือน" : "ต่อวัน") + ") ", h("input", { type: "number", min: 0, max: 1000000, step: 1, name: "q_" + p.plan_id, value: p.quota == null ? "" : p.quota, placeholder: "ไม่จำกัด" })));
+      });
+      var w = [];
+      if (!r.google_client_id_set) w.push("ยังไม่ได้ตั้ง GOOGLE_CLIENT_ID (wrangler.toml) — สมาชิกเข้าสู่ระบบไม่ได้ และสวิตช์บังคับเข้าสู่ระบบจะไม่มีผล");
+      if (!(r.turnstile || {}).configured) w.push("Turnstile ยังไม่ได้ตั้งค่า — การเข้าสู่ระบบถูกปฏิเสธ (fail closed)");
+      if (s.membership_required && !r.effective_required) w.push("สวิตช์เปิดอยู่แต่ยังไม่มีผล (ต้องมี GOOGLE_CLIENT_ID)");
+      $("adMemWarn").hidden = !w.length; $("adMemWarn").textContent = w.map(function (x) { return "⚠ " + x; }).join(" · ");
+    }, fail);
+    memList("");
+  };
+  function memList(/** @type {string} */ q) {
+    call("/members" + (q ? "?q=" + encodeURIComponent(q) : "")).then(function (/** @type {any} */ r) {
+      var k = $("adMemKpis"); k.textContent = "";
+      var tiers = Object.keys(r.tiers).map(function (t) { return t + " " + r.tiers[t]; }).join(" · ");
+      [["สมาชิกทั้งหมด", r.count], ["ใช้งานอยู่", r.active], ["ถูกระงับ", r.disabled], ["รับข่าวสาร", r.marketing_opt_in], ["แยกตามระดับ", tiers]]
+        .forEach(function (x) { k.appendChild(h("div", { class: "ad-kpi" }, h("span", { class: "ad-kpi-v", text: String(x[1]) }), h("span", { class: "ad-kpi-l", text: String(x[0]) }))); });
+      var sg = $("adMemSignups"); sg.textContent = "";
+      sg.appendChild(h("h3", { text: "สมัครใหม่รายวัน (30 วัน)" }));
+      sg.appendChild(table(["วัน", "สมัครใหม่"], r.signups.map(function (/** @type {any} */ d) { return [d.day, d.n]; })));
+      var el = $("adMemList"); el.textContent = "";
+      var t = table(["อีเมล", "ชื่อ", "ระดับ", "สถานะ", "สมัครเมื่อ", "เข้าสู่ระบบล่าสุด", "จัดการ"], r.users.map(function (/** @type {any} */ u) {
+        return [u.email, u.display_name, u.plan || "member", u.status === "active" ? "ใช้งาน" : "ระงับ", when(u.created_at), when(u.last_login_at), ""];
+      }));
+      el.appendChild(t);
+      var rows = t.querySelectorAll("tbody tr");
+      r.users.forEach(function (/** @type {any} */ u, /** @type {number} */ i) {
+        var cell = rows[i] && rows[i].lastChild; if (!cell) return;
+        var b = h("button", { type: "button", class: "ad-btn ad-ghost", text: u.status === "active" ? "ระงับบัญชี" : "เปิดใช้งาน" });
+        b.addEventListener("click", function () {
+          var next = u.status === "active" ? "disabled" : "active";
+          if (next === "disabled" && !confirm("ระงับบัญชีนี้และออกจากระบบทุกอุปกรณ์?")) return;
+          call("/members/" + u.id + "/status", { method: "POST", body: { status: next } }).then(function () { msg("บันทึกแล้ว"); memList(q); }, fail);
+        });
+        cell.textContent = ""; cell.appendChild(b);
+      });
+    }, fail);
+  }
+  $("adMemSearch").addEventListener("submit", function (/** @type {Event} */ ev) {
+    ev.preventDefault();
+    memList(String(/** @type {any} */ (ev.target).q.value || "").trim());
+  });
+  $("adMemForm").addEventListener("submit", function (/** @type {Event} */ ev) {
+    ev.preventDefault();
+    var f = /** @type {any} */ (ev.target);
+    var settings = { membership_required: f.membership_required.checked };
+    ["guest_daily_readings", "guest_light_sections", "member_ai_daily", "member_saved_max"].forEach(function (k) { /** @type {any} */ (settings)[k] = parseInt(f[k].value, 10); });
+    /** @type {Record<string, number|null>} */
+    var plans = {};
+    f.querySelectorAll("input[name^=q_]").forEach(function (/** @type {HTMLInputElement} */ i) { plans[i.name.slice(2)] = i.value === "" ? null : parseInt(i.value, 10); });
+    call("/membership", { method: "PUT", body: { settings: settings, plan_ai_quotas: plans } }).then(function () { msg("บันทึกการตั้งค่าสมาชิกแล้ว"); loaders.members(); }, fail);
+  });
+
   /* ---------------- security ---------------- */
   loaders.security = function () {
     call("/me").then(function (/** @type {any} */ me) {

@@ -1,0 +1,75 @@
+/* legal.css — public document pages: terms.html, privacy.html, help.html, camera-notice.html.
+   Each page carries one complete version per language (.lg-th / .lg-en / .lg-zh); the one matching <html lang>
+   (set by lensiq-i18n.js) is shown. Legal text is reviewed as whole documents, not as translated strings, so it is
+   kept out of the i18n dictionaries on purpose. Without JavaScript the Thai version shows. */
+.lg-en,.lg-zh{display:none}
+html[lang=en] .lg-th,html[lang^=zh] .lg-th{display:none}
+html[lang=en] .lg-en,html[lang^=zh] .lg-zh{display:block}
+
+.doc{max-width:860px;margin:0 auto;padding:40px 16px 64px}
+.doc-hero h1{font-size:clamp(1.6rem,4.4vw,2.35rem);line-height:1.25;color:var(--navy);margin:6px 0 10px}
+.doc-hero .lead{max-width:none}
+.doc-meta{display:flex;flex-wrap:wrap;gap:6px 18px;margin:14px 0 0;padding:0;list-style:none;font-size:.88rem;color:var(--muted)}
+.doc-meta b{color:var(--navy);font-weight:600}
+.draft{margin:20px 0 8px;padding:14px 16px;border:1px solid #f0c36b;border-left:5px solid #d39400;border-radius:12px;background:#fff8e6;color:#5c4300;font-size:.93rem}
+.draft b{display:block;color:#3f2e00;margin-bottom:2px}
+.toc{margin:24px 0 8px;padding:14px 18px;background:#fff;border:1px solid var(--line);border-radius:var(--r)}
+.toc h2{font-size:1rem;margin:0 0 6px;color:var(--navy)}
+.toc ol{margin:0;padding-left:1.4em;columns:2 260px;column-gap:28px}
+.toc li{break-inside:avoid}
+.toc a{display:inline-flex;align-items:center;min-height:36px;min-width:44px;color:var(--navy);text-decoration:underline;text-decoration-color:#c9cfe2;text-underline-offset:3px}
+.toc a:hover{text-decoration-color:var(--navy)}
+.doc section{margin-top:30px;scroll-margin-top:calc(var(--nav-h,64px) + 12px)}
+.doc h2{font-size:clamp(1.15rem,3vw,1.38rem);color:var(--navy);margin:0 0 10px;line-height:1.35}
+.doc h3{font-size:1.02rem;color:var(--navy);margin:16px 0 6px}
+.doc p,.doc li{max-width:72ch}
+.doc p+p{margin-top:8px}
+.doc ul,.doc ol{padding-left:1.35em;margin:6px 0}
+.doc li+li{margin-top:4px}
+.doc a:not(.btn){color:#3b2fc0;text-decoration:underline;text-underline-offset:3px}
+.doc .ph{background:#eef0fb;border-radius:4px;padding:0 4px;font-family:inherit;color:#2b2f6b;white-space:normal}
+.doc .note{margin:12px 0;padding:12px 14px;background:var(--alt);border-radius:12px;font-size:.93rem}
+.doc .tbl{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px;background:#fff;margin:10px 0}
+.doc table{width:100%;border-collapse:collapse;font-size:.88rem;min-width:560px}
+.doc th,.doc td{text-align:left;vertical-align:top;padding:9px 11px;border-bottom:1px solid var(--line)}
+.doc th{background:var(--alt);color:var(--navy);font-weight:600}
+.doc tr:last-child td{border-bottom:0}
+.doc code{font-size:.92em;background:#f1f3f9;border-radius:4px;padding:0 4px;word-break:break-all}
+.doc-related{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px}
+
+/* help.html: FAQ accordions */
+.faq details{background:#fff;border:1px solid var(--line);border-radius:12px;margin:8px 0}
+.faq summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:10px 16px;font-weight:500;color:var(--navy)}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";flex:none;font-size:1.3rem;line-height:1;color:var(--gold)}
+.faq details[open] summary::after{content:"\2212"}
+.faq details>div{padding:0 16px 14px}
+.faq summary:focus-visible{outline:2px solid var(--aqua);outline-offset:2px;border-radius:12px}
+
+/* camera-notice.html: printable A4 signs */
+.sign-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0}
+.sign-tools label{display:inline-flex;flex-wrap:wrap;align-items:center;gap:8px;min-height:44px;max-width:100%}
+.sign-tools select{max-width:100%;min-width:0;min-height:44px;border:1px solid var(--line);border-radius:10px;padding:6px 10px;font:inherit;background:#fff}
+.sign{background:#fff;border:2px solid var(--navy);border-radius:18px;padding:24px 22px;margin:18px 0;color:#0e1430}
+.sign-top{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.sign-top svg{flex:none;width:58px;height:58px}
+.sign h2{font-size:clamp(1.35rem,4.6vw,2rem);line-height:1.2;margin:0}
+.sign .sign-sub{font-size:1.05rem;font-weight:500;margin:4px 0 12px}
+.sign ul{font-size:1rem}
+.sign .sign-fill{margin-top:14px;padding-top:12px;border-top:1px dashed #9aa3c0;font-size:.95rem}
+.sign .sign-fill span{display:inline-block;min-width:12em;border-bottom:1px solid #0e1430;margin-left:4px}
+.sign .sign-alt{margin-top:10px;font-size:.9rem;color:#33405f}
+.sign[hidden]{display:none}
+
+@media (pointer:coarse){.toc a{min-height:44px}}
+@media(max-width:600px){.doc{padding:28px 16px 48px}.toc ol{columns:1}.sign{padding:18px 16px}}
+@media print{
+  .nav,.lq-crumbs,.lq-legal-foot,.site-foot,.sign-tools,.doc-related,.no-print{display:none!important}
+  body{background:#fff}
+  .doc{max-width:none;padding:0}
+  .draft{border-color:#999;background:#fff}
+  .sign{break-inside:avoid;page-break-after:always;border-width:3px;margin:0 0 0;min-height:265mm;display:flex;flex-direction:column;justify-content:flex-start}
+  .sign h2{font-size:30pt}.sign .sign-sub{font-size:16pt}.sign ul,.sign p{font-size:14pt}
+  .sign:last-of-type{page-break-after:auto}
+}
+@page{size:A4;margin:14mm}

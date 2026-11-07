@@ -10,7 +10,7 @@ const vm = require("node:vm");
 
 const ROOT = join(__dirname, "..", "..");
 const PAGES = ["store", "booth", "signage", "attendance", "customers", "checkout", "qc", "driver", "neuro", "converter"];
-const SHARED = ["lensiq-camera.js", "lensiq-detect.js", "lensiq-agg.js", "lensiq-facevault.js", "lensiq-stats.js", "lensiq-config.js"];
+const SHARED = ["lensiq-camera.js", "lensiq-detect.js", "lensiq-agg.js", "lensiq-facevault.js", "lensiq-stats.js", "lensiq-config.js", "lensiq-sitecheck.js"];
 const TH = /[ก-ฺเ-๎]/g; // Thai letters (not the ฿ sign)
 
 function load(dicts = PAGES) {
@@ -19,6 +19,7 @@ function load(dicts = PAGES) {
   const ctx = vm.createContext(win);
   for (const p of dicts) vm.runInContext(readFileSync(join(ROOT, "i18n", `zh-rt-${p}.js`), "utf8"), ctx);
   vm.runInContext(readFileSync(join(ROOT, "i18n", "zh-rt-common.js"), "utf8"), ctx);
+  vm.runInContext(readFileSync(join(ROOT, "i18n", "zh-rt-sitecheck.js"), "utf8"), ctx); // on-site check + camera health (store/attendance/driver/qc)
   vm.runInContext(readFileSync(join(ROOT, "lensiq-i18n-rt.js"), "utf8"), ctx);
   return win.LQI18N_RTX;
 }

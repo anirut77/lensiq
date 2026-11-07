@@ -9,6 +9,7 @@
 <title data-i18n="attendance.s1">เช็คชื่ออบรมด้วยใบหน้า | LENSIQ</title>
 <link rel="stylesheet" href="styles.css?v=8">
 <link rel="stylesheet" href="attendance.css?v=6">
+<link rel="stylesheet" href="lensiq-sitecheck.css?v=1">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -17,6 +18,7 @@
 <script src="lensiq-i18n-rt.js?v=1"></script>
 <script src="i18n/zh-rt-common.js?v=1"></script>
 <script src="i18n/zh-rt-attendance.js?v=1"></script>
+<script src="i18n/zh-rt-sitecheck.js?v=1"></script>
 
 <main class="att">
   <h1 data-i18n="attendance.s2">เช็คชื่อเข้าอบรมด้วยการสแกนใบหน้า</h1>
@@ -37,6 +39,8 @@
       </div>
       <div class="cam-switch" id="camSwitch" hidden></div>
       <div class="banner" id="banner" role="status" aria-live="polite"></div>
+      <p class="cam-health-row"><span class="pill lq-health" id="camHealth" hidden></span></p>
+      <p class="cam-health" id="camHealthMsg" role="status" hidden></p>
     </section>
 
     <section class="panel">
@@ -44,6 +48,7 @@
         <button class="tab active" data-t="checkin" role="tab" data-i18n="attendance.s11">เช็คชื่อ</button>
         <button class="tab" data-t="register" role="tab" data-i18n="attendance.s12">ลงทะเบียนใบหน้า</button>
         <button class="tab" data-t="records" role="tab" data-i18n="attendance.s13">รายงาน</button>
+        <button class="tab" data-t="check" role="tab" data-i18n="attendance.sc1">ตรวจความแม่นยำ</button>
       </div>
 
       <div class="pane" id="pane-checkin">
@@ -86,6 +91,8 @@
         </details>
       </div>
 
+      <div class="pane sc-panel" id="pane-check" hidden><div id="scPanel"></div></div>
+
       <div class="pane" id="pane-records" hidden>
         <div class="row-actions">
           <button class="btn ghost" id="exportCsv" type="button" data-i18n="attendance.s34">ส่งออก CSV</button>
@@ -109,7 +116,8 @@
 <script src="lensiq-camera.js?v=2"></script>
 <script src="lensiq-detect.js?v=3"></script>
 <script src="lensiq-facevault.js?v=1"></script>
-<script src="attendance.js?v=11"></script>
+<script src="lensiq-sitecheck.js?v=1"></script>
+<script src="attendance.js?v=12"></script>
 <script src="lensiq-config.js?v=3"></script>
 </body>
 </html>
