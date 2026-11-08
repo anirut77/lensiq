@@ -78,6 +78,21 @@ incl. ≥ 30 at night. Export = plate text + numbers only.
   threshold (floor 0.90, default 0.95) and frame agreement ≥ 0.8, direction "in". Visitors, look-alikes, unknown and denied
   vehicles always wait for the guard.
 
+### Round 15 pre-work: leading digit, colour plates, tight text crops (2026-11-08)
+- **Leading digit is never dropped or added silently.** `LQPlate.leadAlternatives()` offers both readings (e.g. `1กข 2345` and
+  `กข 2345`) when frames disagree about the prefix, when the voted prefix is low-confidence, or when the crop touches the
+  left edge of the frame. Saving stays disabled until the guard picks a reading or types the plate (`gate.e2e.mjs`).
+- **Light text on dark plates** (white on green / blue) is inverted before recognition; tests read white, yellow,
+  green and red-text plates exactly with the real model.
+- **Known limit — finding the plate:** the classical (no-model) finder looks for a bright box. It usually misses dark
+  plates and can pick the province line of red-text plates. The guard taps the plate instead. A trained plate detector
+  (permissive licence) is needed; the field pilot (`docs/FIELD-PILOT.md`) measures how often guards have to tap.
+- **Tight text crops** (`LQPlate.tightText`) — PP-OCR rec expects the text to fill the line height. On the medicine page a
+  loose crop read the same registration number correctly in only 2 of 16 layouts; with tight crops 48/48.
+- **Tests use repo fonts, not system fonts:** demo plates use the self-hosted Prompt (OFL) with the Thai and Latin subsets
+  loaded before drawing; the medicine OCR test uses Liberation Sans (OFL, Arial-metric) from `tests/fixtures/fonts/`.
+  CI and dev machines apply the same exact-match pass rule.
+
 ## 4. Hardware guide
 
 **Camera placement.** Plate ≥ 120 px wide in the frame (≥ 160 px for motorcycles), ≤ 30° horizontal / vertical angle,

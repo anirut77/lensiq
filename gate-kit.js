@@ -99,11 +99,12 @@
     x.fillStyle = night ? "#22252d" : "#636b7e"; x.fillRect(120, 70, 400, 230); // car body
     x.fillStyle = night ? "#2d313b" : "#7c8496"; x.fillRect(150, 90, 340, 60);   // windscreen
     const px = 200, py = 175, pw = 240, ph = 112;
-    x.fillStyle = night ? "#c9cbd0" : "#fbfbf7"; x.fillRect(px, py, pw, ph);
-    x.strokeStyle = "#111"; x.lineWidth = 4; x.strokeRect(px + 4, py + 4, pw - 8, ph - 8);
-    x.fillStyle = "#111"; x.textAlign = "center"; x.textBaseline = "middle";
-    x.font = "600 46px Prompt, Thonburi, sans-serif"; x.fillText(text, px + pw / 2, py + 40);
-    x.font = "500 24px Prompt, Thonburi, sans-serif"; x.fillText(LP.provinceName(prov, "th"), px + pw / 2, py + 86);
+    // plate colours: white (private), yellow (taxi/public), green (commercial), red (dealer/trade) — o.bg / o.fg
+    x.fillStyle = o.bg || (night ? "#c9cbd0" : "#fbfbf7"); x.fillRect(px, py, pw, ph);
+    x.strokeStyle = o.fg || "#111"; x.lineWidth = 4; x.strokeRect(px + 4, py + 4, pw - 8, ph - 8);
+    x.fillStyle = o.fg || "#111"; x.textAlign = "center"; x.textBaseline = "middle";
+    x.font = "600 46px Prompt, sans-serif"; x.fillText(text, px + pw / 2, py + 40);
+    x.font = "500 24px Prompt, sans-serif"; x.fillText(LP.provinceName(prov, "th"), px + pw / 2, py + 86);
   }
 
   function init(opts) {
@@ -259,15 +260,16 @@
       }
       function stopCam() { if (st.cam) st.cam.stop(); st.source = ""; $("#gkCamBtn").textContent = T("gk.cam.start", "เปิดกล้อง"); $("#gkCamMsg").hidden = false; ready(); }
       function demoNext() {
-        const list = W.__LQ_DEMO_PLATES || DEMO_PLATES, [t, p] = list[st.demoI++ % list.length];
-        drawDemo(demo, t, p, { night: st.demoI % 4 === 0 });
+        const list = W.__LQ_DEMO_PLATES || DEMO_PLATES, [t, p, sty] = list[st.demoI++ % list.length];
+        drawDemo(demo, t, p, { night: st.demoI % 4 === 0, ...(sty || {}) });
         drawBox(null);
       }
       $("#gkCamBtn").addEventListener("click", () => (st.source === "cam" ? stopCam() : startCam()));
       $("#gkDemoBtn").addEventListener("click", async () => {
         if (!ackOk()) { status(T("gk.st.ack", "ยืนยันประกาศ PDPA ด้านบนก่อนเปิดกล้อง"), "err"); return; }
         if (st.cam) st.cam.stop();
-        try { await document.fonts.load("600 46px Prompt", "กข"); } catch { /* fonts API missing */ }
+        // load every subset the drawn plate uses (Thai letters AND the Latin digits) so the demo never falls back to a system font
+        try { await Promise.all([document.fonts.load("600 46px Prompt", "กข 0123456789"), document.fonts.load("500 24px Prompt", "กรุงเทพมหานคร")]); } catch { /* fonts API missing */ }
         st.source = "demo"; video.hidden = true; demo.hidden = false; $("#gkCamMsg").hidden = true; $("#gkNextBtn").hidden = false; demoNext();
         status(T("gk.st.demo", "ภาพตัวอย่าง: ป้ายจำลองที่วาดขึ้น ไม่ใช่รถจริง"), "ok"); ready();
       });
@@ -318,7 +320,8 @@
           const v = LP.vote(reads, { moto: $("#gkMoto").checked });
           if (!v) { status(small ? T("gk.st.small", "ป้ายเล็กเกินไป — ให้รถเข้าใกล้กล้องหรือซูมเข้า") : T("gk.st.none", "อ่านป้ายไม่ได้ — แตะกรอบรอบป้าย หรือพิมพ์เลขทะเบียนเอง"), "err"); return null; }
           const province = [...prov].sort((a, b) => b[1] - a[1])[0];
-          const read = { ...v, province: province ? province[0] : "", at: Date.now(), night: LP.isNight(Date.now(), st.luma == null ? {} : { luma: st.luma }) };
+          const lead = LP.leadAlternatives(v, reads, { moto: $("#gkMoto").checked });
+          const read = { ...v, alts: lead.alts, leadCheck: lead.leadCheck, leadReason: lead.reason, province: province ? province[0] : "", at: Date.now(), night: LP.isNight(Date.now(), st.luma == null ? {} : { luma: st.luma }) };
           if (auto && read.key === st.lastKey && Date.now() - st.lastAt < (C.debounceSec || 20) * 1000) { status(T("gk.st.same", "ป้ายเดิม — ข้าม (กันบันทึกซ้ำ)")); return null; }
           st.lastKey = read.key; st.lastAt = Date.now();
           setRead(read);
@@ -352,10 +355,25 @@
         st.read = read; st.tick = null;
         $("#gkPlate").value = read ? LP.format(read.key) : "";
         if (read && read.province) $("#gkProv").value = read.province;
-        $("#gkSugg").innerHTML = read ? T("gk.conf.sugg", "ระบบเสนอ") + " " + plateHTML(read.key, read.chars) + (read.low && read.low.length ? ` <small>${esc(T("gk.conf.low", "ตัวที่ขีดเส้นใต้ ระบบไม่มั่นใจ"))}</small>` : "") : "";
+        $("#gkSugg").innerHTML = read ? T("gk.conf.sugg", "ระบบเสนอ") + " " + plateHTML(read.key, read.chars) + (read.low && read.low.length ? ` <small>${esc(T("gk.conf.low", "ตัวที่ขีดเส้นใต้ ระบบไม่มั่นใจ"))}</small>` : "") + leadHTML(read) : "";
+        el.querySelectorAll("[data-alt]").forEach(b => b.addEventListener("click", () => {
+          setPlateValue(/** @type {HTMLElement} */ (b).dataset.alt || "");
+          el.querySelectorAll("[data-alt]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+          if (st.read) st.read.altPicked = true;
+          validate();
+        }));
         updTick(); validate();
       }
       kit.setRead = setRead;
+      /** leading-digit choices: the guard must pick one before saving (never dropped or added silently) */
+      function leadHTML(read) {
+        if (!read || !read.leadCheck) return "";
+        const msg = read.leadReason === "edge" && !(read.alts && read.alts.length)
+          ? T("gk.lead.edge", "ป้ายชิดขอบภาพด้านซ้าย — ตรวจว่ามีเลขนำหน้า (เช่น 1กข) หรือไม่ก่อนบันทึก")
+          : T("gk.lead.pick", "เลขนำหน้าไม่แน่ชัด — เลือกให้ตรงกับป้ายจริงก่อนบันทึก");
+        const btns = ((read.alts && read.alts.length) ? read.alts : [read.key]).map(k => `<button type="button" class="btn ghost gk-alt" data-alt="${esc(k)}" aria-pressed="false">${esc(LP.format(k))}</button>`).join(" ");
+        return `<div class="gk-lead" role="alert" id="gkLead"><small>${esc(msg)}</small>${btns ? `<div class="gk-alts">${btns}</div>` : ""}</div>`;
+      }
       function updTick() {
         const on = !!(st.read && kit.checking && kit.checking());
         $("#gkTick").hidden = !on;
@@ -373,10 +391,13 @@
         if (!$("#gkPlate").value.trim()) { v.textContent = ""; v.dataset.kind = ""; }
         else if (c.ok) { v.textContent = c.parsed.legacy ? T("gk.v.legacy", "รูปแบบป้ายรุ่นเก่า (อักษรตัวเดียว) — ตรวจอีกครั้ง") : T("gk.v.ok", "รูปแบบถูกต้อง"); v.dataset.kind = c.parsed.legacy ? "warn" : "ok"; }
         else { v.textContent = c.moto ? T("gk.v.badMoto", "รูปแบบไม่ถูก: ตัวเลข (ถ้ามี) + อักษร 2–3 ตัว + เลข 1–4 หลัก") : T("gk.v.bad", "รูปแบบไม่ถูก: ตัวเลข (ถ้ามี) + อักษร 2 ตัว + เลข 1–4 หลัก"); v.dataset.kind = "err"; }
-        el.querySelectorAll("[data-act]").forEach(b => { b.disabled = !c.ok && !b.hasAttribute("data-noplate"); });
+        // an uncertain leading digit blocks saving until the guard picks a reading (or types the plate themselves)
+        const leadWait = !!(st.read && !st.read.done && st.read.leadCheck && !st.read.altPicked);
+        if (leadWait && c.ok) { v.textContent = T("gk.lead.wait", "เลือกเลขทะเบียนที่ตรงกับป้ายจริงก่อนบันทึก"); v.dataset.kind = "warn"; }
+        el.querySelectorAll("[data-act]").forEach(b => { b.disabled = (!c.ok || leadWait) && !b.hasAttribute("data-noplate"); });
         if (lo.onRead) lo.onRead(c, st.read);
       }
-      $("#gkPlate").addEventListener("input", validate);
+      $("#gkPlate").addEventListener("input", () => { if (st.read) st.read.altPicked = true; validate(); }); // typing = the guard's own reading
       $("#gkProv").addEventListener("change", validate);
       $("#gkMoto").addEventListener("change", validate);
       $("#gkClear").addEventListener("click", () => { if (st.read) st.read.done = true; setRead(null); showCrop(null, null); drawBox(null); status(""); });
@@ -385,6 +406,7 @@
         if (!b || /** @type {HTMLButtonElement} */ (b).disabled) return;
         const c = current();
         if (!c.ok && !b.hasAttribute("data-noplate")) return;
+        if (st.read && !st.read.done && st.read.leadCheck && !st.read.altPicked && !b.hasAttribute("data-noplate")) return;
         const auto = st.read && !st.read.done ? st.read : null;
         const fin = { key: c.key, line1: c.line1, province: c.province, moto: c.moto, auto, edited: !!auto && (auto.key !== c.key || (!!auto.province && auto.province !== c.province)), at: Date.now() };
         const ev = await lo.onAction(b.dataset.act, fin);

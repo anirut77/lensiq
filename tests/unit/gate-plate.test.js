@@ -192,3 +192,42 @@ test("trimBorder: skips dark margins around the plate and its frame line", () =>
   const flat = P.trimBorder(new Uint8Array(W * H).fill(200), W, H);
   assert.deepEqual(flat, { x0: 0, y0: 0, x1: W, y1: H });
 });
+
+test("leading digit: plates with and without the optional 1-9 prefix parse; motorcycles keep their prefix", () => {
+  for (const [s, key] of [["1กข 2345", "1กข2345"], ["กข 2345", "กข2345"], ["9กก 9999", "9กก9999"], ["ทข 1234", "ทข1234"]]) {
+    const p = P.parse(s); assert.equal(p.ok, true, s); assert.equal(p.key, key);
+  }
+  assert.equal(P.parse("0กข 2345").ok, false, "a leading 0 is not a valid prefix");
+  assert.equal(P.parse("12กข 2345").ok, false, "only one leading digit");
+  const m = P.parse("1กขค 123", { moto: true }); assert.equal(m.ok, true); assert.equal(m.prefix, "1");
+});
+
+test("leadAlternatives: frames that disagree on the leading digit -> both readings offered, never dropped silently", () => {
+  const r = k => ({ key: k, conf: 0.9, chars: [...k].map(c => ({ c, p: 0.9 })) });
+  const reads = [r("กข2345"), r("กข2345"), r("1กข2345")];
+  const v = P.vote(reads);
+  assert.equal(v.key, "กข2345"); // the majority alone would drop the "1"
+  const a = P.leadAlternatives(v, reads);
+  assert.equal(a.leadCheck, true); assert.equal(a.reason, "frames");
+  assert.deepEqual(new Set(a.alts), new Set(["กข2345", "1กข2345"]));
+  assert.equal(a.alts[0], v.key, "the voted reading is listed first");
+});
+
+test("leadAlternatives: low-confidence prefix offers the reading without it; agreeing confident frames offer nothing", () => {
+  const k = "1กข2345";
+  const weak = { key: k, conf: 0.8, chars: [...k].map((c, i) => ({ c, p: i === 0 ? 0.4 : 0.95 })) };
+  const v = P.vote([weak, weak]);
+  const a = P.leadAlternatives(v, [weak, weak]);
+  assert.equal(a.leadCheck, true); assert.equal(a.reason, "lowconf"); assert.deepEqual(a.alts, ["1กข2345", "กข2345"]);
+  const sure = { key: k, conf: 0.95, chars: [...k].map(c => ({ c, p: 0.95 })) };
+  const b = P.leadAlternatives(P.vote([sure, sure]), [sure, sure]);
+  assert.equal(b.leadCheck, false); assert.deepEqual(b.alts, []);
+});
+
+test("leadAlternatives: a crop cut at the left frame edge without a prefix asks the guard to check", () => {
+  const k = "กข2345", rd = { key: k, conf: 0.95, chars: [...k].map(c => ({ c, p: 0.95 })), leftCut: true };
+  const a = P.leadAlternatives(P.vote([rd, rd]), [rd, rd]);
+  assert.equal(a.leadCheck, true); assert.equal(a.reason, "edge");
+  assert.equal(P.leadAlternatives(P.vote([rd, rd]), [rd, rd], { leftCut: false }).reason, "edge", "per-read flag is enough");
+  assert.equal(P.leadAlternatives(null, []).leadCheck, false);
+});

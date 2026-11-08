@@ -155,17 +155,17 @@ export default async function ({ base, launch, check }) {
       const out = await page.evaluate(async () => {
         const c = document.createElement("canvas"); c.width = 360; c.height = 64;
         const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height);
-        x.fillStyle = "#111"; x.font = "bold 40px Arial, Helvetica, sans-serif"; x.textBaseline = "middle"; x.fillText("1A 15/50", 24, 34);
+        // Liberation Sans (OFL, Arial-metric, tests/fixtures/fonts) loaded from the repo: identical glyphs on CI and dev
+        // machines and close to the Arial/Helvetica print on real boxes; no system font is involved.
+        const ff = new FontFace("LQTestSans", "url(/tests/fixtures/fonts/liberation/LiberationSans-Bold.ttf)", { weight: "700" });
+        document.fonts.add(await ff.load());
+        if (!document.fonts.check("700 40px LQTestSans", "1A 15/50")) return { err: "test font not loaded" };
+        x.fillStyle = "#111"; x.font = "700 40px LQTestSans"; x.textBaseline = "middle"; x.fillText("1A 15/50", 24, 34);
         try { return { text: await window.__LQ_MED.ocr(c) }; } catch (e) { return { err: String(e) }; }
       });
       assert(!out.err, "OCR ran: " + out.err);
       const reg = await page.evaluate(t => window.LQMed.findThaiReg(t).map(r => r.norm), out.text);
-      // Linux CI runners have no Arial, so the rendered text uses a fallback font the Thai rec model reads poorly:
-      // on CI only require that the real model ran and produced text; the exact read is asserted on dev machines.
-      if (process.env.CI && !reg.includes("1A 15/50")) {
-        console.log("    note: CI OCR read " + JSON.stringify(out.text) + " -> " + JSON.stringify(reg));
-        assert(typeof out.text === "string" && out.text.trim().length > 0, "OCR produced no text on CI");
-      } else assert(reg.includes("1A 15/50"), "read " + JSON.stringify(out.text) + " -> " + JSON.stringify(reg));
+      assert(reg.includes("1A 15/50"), "read " + JSON.stringify(out.text) + " -> " + JSON.stringify(reg));
       await page.close();
     });
 

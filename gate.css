@@ -44,6 +44,10 @@
 .gk-crop-wrap{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
 .gk-crop-wrap canvas{width:180px;max-width:100%;height:auto;border-radius:8px;border:1px solid var(--line);background:#e9ecf3}
 .gk-sugg{font-size:.92rem;margin:0;min-width:0}
+.gk-lead{margin-top:6px;padding:6px 8px;border-radius:8px;background:var(--warn-bg,#fff4d6);color:var(--warn-fg,#5c4300)}
+.gk-alts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.gk-alt{min-height:44px;min-width:44px;font-weight:600}
+.gk-alt[aria-pressed=true]{outline:3px solid currentColor}
 .gk-plate{display:inline-block;font-weight:600;font-size:1.2rem;letter-spacing:.02em;padding:2px 10px;border:2px solid #111;border-radius:6px;background:#fff;color:#111;white-space:nowrap}
 .gk-plate .low{text-decoration:underline wavy #a12b20;text-underline-offset:4px}
 .gk-tick{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0 10px;font-size:.9rem}

@@ -115,6 +115,12 @@ The `.venv` also contains `onnxruntime` 1.19.2 (MIT) and `sympy` / `coloredlogs`
 | Anthropic Claude API (USA) | `/api/fortune` rewording of derived facts | Anthropic Commercial Terms / Usage Policy | Cross-border transfer (see `docs/pdpa/`) |
 | Replicate (USA) | `/api/tryon` (off by default) | Replicate Terms + **the hosted model's own licence** (F2: `LENSIQ_TRYON_LICENSE` attestation required) | Sends photos. Cross-border transfer. |
 
+## Test-only fixtures (not published)
+
+| Item | Where | Licence | Notes |
+|---|---|---|---|
+| Liberation Sans 2.1.5 (Regular, Bold) | `tests/fixtures/fonts/liberation/` | SIL OFL 1.1 (LICENSE alongside) | Arial-metric font used only by e2e OCR tests so CI and dev machines render identical text. `tests/` is excluded by build-site. |
+
 ## Keeping this file current
 
 When adding anything under `vendor/` or to `requirements.txt`, add a row with its version, source, licence and status. Also put its licence text next to the file (as `FACEPARSE-LICENSE.txt` and `tarot/CREDITS.txt` do) when the licence requires the text to be distributed.

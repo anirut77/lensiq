@@ -16,6 +16,7 @@
  *   plateDist(a, b) -> weighted edit distance · lev(a, b) -> plain Levenshtein (code points)
  *   match(read, list, {max=1, province, ignoreProvince}) -> [{item, dist, exact, provinceOk}] best first
  *   vote(reads, {minAgree}) -> {key, conf, agree, n, chars:[{c,p}], low:[i]}|null   multi-frame per-character vote
+ *   leadAlternatives(vote, reads, {moto, leftCut}) -> {alts, leadCheck, reason}   leading-digit readings for the guard to pick
  *   ctcDecode(data, T, C, dict) -> {text, conf, chars:[{c,p}]}   greedy CTC (blank 0, dict 1..n, space last)
  *   fromOcr(lines:[{text, chars}], {moto}) -> {key, conf, chars, provinceText}|null  pick the plate line out of OCR lines
  * IMAGE (pure, on a grey Uint8Array)
@@ -185,6 +186,32 @@
     const conf = Math.round(Math.min(1, chars.reduce((s, x) => s + x.p, 0) / chars.length) * 1000) / 1000;
     const low = chars.map((x, i) => (x.p < (o.lowP || 0.6) ? i : -1)).filter(i => i >= 0);
     return { key, conf, agree: Math.round(agree * 1000) / 1000, n: R.length, chars, low, line1: format(key) };
+  }
+
+  /**
+   * Leading-digit safety net. Thai car plates may start with an optional digit 1-9 ("1กข 2345"); a thin "1" next to the
+   * plate frame is the character OCR most often drops. Never drop or add it silently: return every plausible reading so
+   * the guard picks one. Triggers: frames disagree about the prefix, the voted prefix is low-confidence, or the crop
+   * touches the left edge of the frame (the digit may be cut off).
+   * @param {any} v vote() result @param {any[]} reads per-frame reads @param {{moto?: boolean, leftCut?: boolean, lowP?: number}} [o]
+   * @returns {{alts: string[], leadCheck: boolean, reason: string}}
+   */
+  function leadAlternatives(v, reads, o = {}) {
+    const none = { alts: [], leadCheck: false, reason: "" };
+    if (!v || !v.key) return none;
+    const moto = !!o.moto, p = parse(v.key, { moto });
+    if (!p.ok) return none;
+    const body = p.letters + p.number, alts = new Map(), add = (k, w) => { if (parse(k, { moto }).ok) alts.set(k, (alts.get(k) || 0) + w); };
+    add(v.key, 1e6);
+    const R = (reads || []).filter(r => r && r.key);
+    for (const r of R) { const q = parse(r.key, { moto }); if (q.ok && q.letters + q.number === body) add(q.key, r.conf || 0.5); }
+    let reason = "";
+    if (alts.size > 1) reason = "frames";
+    if (p.prefix && v.chars && v.chars[0] && v.chars[0].p < (o.lowP || 0.75)) { add(body, 0.1); reason = reason || "lowconf"; }
+    const leftCut = !!o.leftCut || R.some(r => r.leftCut);
+    if (!p.prefix && leftCut) reason = reason || "edge";
+    const list = [...alts].sort((a, b) => b[1] - a[1]).map(x => x[0]);
+    return { alts: list.length > 1 ? list : [], leadCheck: !!reason, reason };
   }
 
   /* ---------------- OCR decode ---------------- */
@@ -458,6 +485,8 @@
   async function detect(canvas) {
     if (detector) { try { const r = await detector(canvas); if (Array.isArray(r)) return r; } catch { /* fall back to the classical finder */ } }
     const { gray, W, H } = grayOf(canvas, 320);
+    // NOTE: the classical finder looks for a bright box, so dark plates (white text on green / blue) are usually not found;
+    // the guard taps the plate instead (readNow(box)). A trained plate detector is on the roadmap (docs/GATE.md).
     return findCandidates(gray, W, H);
   }
   const OCR_URL = "vendor/models/plate-ocr-th/th_ppocrv5_mobile_rec.onnx", DICT_URL = "vendor/models/plate-ocr-th/dict.txt";
@@ -484,6 +513,39 @@
     return ocrP;
   }
   /** one text line (canvas) -> {text, conf, chars} with the PP-OCRv5 Thai recogniser */
+  /**
+   * Tight text crop for the recogniser. PP-OCR rec models are trained on detector crops where the text fills most of the
+   * line height; a loose box (text ~45% of the height) makes the read flip between correct and garbage on near-identical
+   * images. Finds the ink bounding box (dark-on-light, or light-on-dark -> inverted), adds margins relative to the text
+   * height and returns a dark-on-white canvas. Returns the input unchanged when no ink is found.
+   * @param {HTMLCanvasElement} src @param {{mv?: number, mh?: number}} [o]
+   */
+  function tightText(src, o = {}) {
+    const W = src.width, H = src.height;
+    if (!(W > 4 && H > 4)) return src;
+    const d = /** @type {CanvasRenderingContext2D} */ (src.getContext("2d", { willReadFrequently: true })).getImageData(0, 0, W, H).data;
+    const L = new Uint8Array(W * H); let mn = 255, mx = 0, sum = 0;
+    for (let i = 0; i < W * H; i++) { const v = (d[4 * i] * 77 + d[4 * i + 1] * 150 + d[4 * i + 2] * 29) >> 8; L[i] = v; if (v < mn) mn = v; if (v > mx) mx = v; sum += v; }
+    if (mx - mn < 40) return src;
+    const thr = (mn + mx) / 2, dark = sum / (W * H) < thr; // background darker than the midpoint -> light text
+    const ink = v => (dark ? v > thr : v < thr);
+    const rows = new Uint16Array(H), cols = new Uint16Array(W);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (ink(L[y * W + x])) { rows[y]++; cols[x]++; }
+    const minR = Math.max(1, Math.round(W * 0.004)), minC = 1;
+    let y0 = 0, y1 = H - 1, x0 = 0, x1 = W - 1;
+    while (y0 < H && rows[y0] < minR) y0++;
+    while (y1 > y0 && rows[y1] < minR) y1--;
+    while (x0 < W && cols[x0] < minC) x0++;
+    while (x1 > x0 && cols[x1] < minC) x1--;
+    if (y0 >= y1 || x0 >= x1) return src;
+    const h = y1 - y0 + 1, my = Math.round(h * (o.mv == null ? 0.2 : o.mv)), mxp = Math.round(h * (o.mh == null ? 0.5 : o.mh));
+    const t = document.createElement("canvas"); t.width = x1 - x0 + 1 + 2 * mxp; t.height = h + 2 * my;
+    const tx = /** @type {CanvasRenderingContext2D} */ (t.getContext("2d"));
+    tx.fillStyle = dark ? "#000" : "#fff"; tx.fillRect(0, 0, t.width, t.height);
+    tx.drawImage(src, x0, y0, x1 - x0 + 1, h, mxp, my, x1 - x0 + 1, h);
+    if (dark) { tx.globalCompositeOperation = "difference"; tx.fillStyle = "#fff"; tx.fillRect(0, 0, t.width, t.height); tx.globalCompositeOperation = "source-over"; }
+    return t;
+  }
   async function recognize(band) {
     const m = await loadOcr(), ort = g.ort, H = 48;
     const W = Math.max(16, Math.min(960, Math.round((band.width / band.height) * H / 8) * 8 || 16));
@@ -517,7 +579,16 @@
     const crop = document.createElement("canvas"), sc = Math.min(4, Math.max(1, 240 / cw));
     crop.width = Math.round(cw * sc); crop.height = Math.round(ch * sc);
     /** @type {CanvasRenderingContext2D} */ (crop.getContext("2d")).drawImage(canvas, x0, y0, cw, ch, 0, 0, crop.width, crop.height);
-    const g0 = grayOf(crop, crop.width), tb = trimBorder(g0.gray, g0.W, g0.H);
+    let g0 = grayOf(crop, crop.width);
+    // light text on a dark plate (e.g. white on green / blue): the recogniser expects dark text on light, so invert first
+    let mn = 255, mx = 0; for (const v of g0.gray) { if (v < mn) mn = v; if (v > mx) mx = v; }
+    const inverted = mx - mn > 40 && lumaMean(g0.gray) < (mn + mx) / 2; // background darker than the ink/background midpoint
+    if (inverted) {
+      const cx = /** @type {CanvasRenderingContext2D} */ (crop.getContext("2d"));
+      cx.globalCompositeOperation = "difference"; cx.fillStyle = "#fff"; cx.fillRect(0, 0, crop.width, crop.height); cx.globalCompositeOperation = "source-over";
+      g0 = grayOf(crop, crop.width);
+    }
+    const tb = trimBorder(g0.gray, g0.W, g0.H);
     const W = tb.x1 - tb.x0, H = tb.y1 - tb.y0, gray = new Uint8Array(W * H);
     for (let y = 0; y < H; y++) gray.set(g0.gray.subarray((y + tb.y0) * g0.W + tb.x0, (y + tb.y0) * g0.W + tb.x1), y * W);
     const bands = splitLines(gray, W, H), lines = [];
@@ -533,10 +604,10 @@
     const r = fromOcr(lines, o);
     if (!r) return { key: "", conf: 0, chars: [], provinceText: lines.map(l => l.text).join(" "), lines };
     const gp = guessProvince(r.provinceText);
-    return { ...r, province: gp ? gp.id : "", lines };
+    return { ...r, province: gp ? gp.id : "", lines, inverted, leftCut: b.x - pad * b.w <= 0.002 };
   }
 
-  return { CONS, normalize, parse, format, PROVINCES, provinceName, provinceList, guessProvince, LOOKALIKE, lookalike, lev, plateDist, match, vote,
+  return { CONS, normalize, parse, format, PROVINCES, provinceName, provinceList, guessProvince, LOOKALIKE, lookalike, lev, plateDist, match, vote, leadAlternatives,
     ctcDecode, fromOcr, plateChars, lumaMean, isNight, findCandidates, splitLines, trimBorder, toCSV, purge, auditAppend, auditVerify, fnv, TARGETS, accuracy,
-    registerDetector, grayOf, detect, loadOcr, recognize, readPlate, OCR_URL, hasDOM };
+    registerDetector, grayOf, detect, loadOcr, recognize, tightText, readPlate, OCR_URL, hasDOM };
 });

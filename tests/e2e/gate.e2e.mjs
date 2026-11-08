@@ -97,26 +97,31 @@ export default async function ({ base, launch, check }) {
       await page.close();
     });
 
-    await check("real Thai OCR (PP-OCRv5 Thai ONNX, WASM) reads the synthetic demo plate on parking.html", async () => {
-      const page = await browser.newPage(null, { initScripts: [INIT + "window.__LQ_DEMO_PLATES=[['1กข 2345','bangkok'],['ขค 789','chonburi']];"] });
+    // Same pass rule on CI and dev machines: the demo plate is drawn with the self-hosted Prompt font (vendor/fonts, OFL),
+    // fully loaded (Thai + Latin subsets) before drawing, so no system font is involved.
+    const readDemo = async (plates, want, tapBox) => {
+      const page = await browser.newPage(null, { initScripts: [INIT + `window.__LQ_DEMO_PLATES=${JSON.stringify(plates)};`] });
       await page.goto(`${base}/parking.html?cpu`);
       await assertNoWebGL(page);
       await page.evaluate(() => { document.querySelector("#gkAck1").click(); document.querySelector("#gkAck2").click(); document.querySelector("#gkAckBtn").click(); });
       await page.evaluate(() => document.querySelector("#gkDemoBtn").click());
       await page.waitFor(`!document.querySelector("#gkReadBtn").disabled`, 8000);
-      await page.evaluate(() => document.querySelector("#gkReadBtn").click());
-      // CI runners render the canvas plate with different Thai fonts than a Mac, so wait for ANY finished read and allow one look-alike/char slip there.
+      const fontOk = await page.evaluate(() => document.fonts.check("600 46px Prompt", "1กข 2345"));
+      assert(fontOk, "Prompt 600 (Thai + Latin) loaded before the demo plate is drawn");
+      if (tapBox) await page.evaluate(b => { window.__LQ_PK.kit.readNow(b); }, tapBox); // the guard taps the plate (dark plates are not auto-found)
+      else await page.evaluate(() => document.querySelector("#gkReadBtn").click());
       try {
-        await page.waitFor(`/1กข 2345|ขค 789/.test(document.querySelector("#gkPlate").value) || !!(window.__LQ_PK && window.__LQ_PK.kit.lane && window.__LQ_PK.kit.lane.read) || /อ่านป้ายไม่ได้|โหลดโมเดล.*ไม่ได้/.test(document.querySelector("#gkStatus").textContent)`, 180000, 250);
+        await page.waitFor(`!!(window.__LQ_PK && window.__LQ_PK.kit.lane && window.__LQ_PK.kit.lane.read) || /อ่านป้ายไม่ได้|โหลดโมเดล.*ไม่ได้/.test(document.querySelector("#gkStatus").textContent)`, 120000, 250);
       } catch (e) {
-        const dbg = await page.evaluate(() => ({ plate: document.querySelector("#gkPlate").value, st: document.querySelector("#gkStatus").textContent }));
-        throw new Error(e.message + " state " + JSON.stringify(dbg));
+        throw new Error(e.message + " state " + JSON.stringify(await page.evaluate(() => ({ plate: document.querySelector("#gkPlate").value, st: document.querySelector("#gkStatus").textContent }))));
       }
-      const r = await page.evaluate(() => ({ plate: document.querySelector("#gkPlate").value, prov: document.querySelector("#gkProv").value, st: document.querySelector("#gkStatus").textContent, read: window.__LQ_PK.kit.lane.read, dist: window.LQPlate && window.LQPlate.plateDist ? window.LQPlate.plateDist(document.querySelector("#gkPlate").value, "1กข 2345") : null }));
-      const exact = r.plate === "1กข 2345";
-      if (!exact && process.env.CI) console.log("    note: CI OCR read " + JSON.stringify({ plate: r.plate, dist: r.dist, st: r.st }));
-      assert(exact || (process.env.CI && r.dist != null && r.dist <= 1), "OCR read " + JSON.stringify({ plate: r.plate, dist: r.dist, st: r.st, lines: r.read && r.read.lines }));
-      if (!exact) { await privacyScan(page); await page.close(); return; }
+      const r = await page.evaluate(() => ({ plate: document.querySelector("#gkPlate").value, prov: document.querySelector("#gkProv").value, st: document.querySelector("#gkStatus").textContent, read: window.__LQ_PK.kit.lane.read }));
+      assert(r.plate === want, "OCR read " + JSON.stringify({ want, plate: r.plate, st: r.st, lines: r.read && r.read.lines }));
+      return { page, r };
+    };
+
+    await check("real Thai OCR (PP-OCRv5 Thai ONNX, WASM) reads the synthetic demo plate on parking.html", async () => {
+      const { page, r } = await readDemo([["1กข 2345", "bangkok"], ["ขค 789", "chonburi"]], "1กข 2345");
       assert(r.prov === "bangkok", "province guessed from line 2: " + r.prov);
       assert(r.read.conf > 0.5 && r.read.n >= 2 && r.read.agree === 1, "vote " + JSON.stringify({ conf: r.read.conf, n: r.read.n, agree: r.read.agree }));
       const ort = page.requests.filter(q => /th_ppocrv5_mobile_rec\.onnx|ort-wasm/.test(q.url));
@@ -124,6 +129,42 @@ export default async function ({ base, launch, check }) {
       const ext = page.requests.filter(q => !q.url.startsWith(base) && !/^(data|blob):/.test(q.url));
       assert(!ext.length, "third-party requests " + ext.map(q => q.url));
       await privacyScan(page);
+      await page.close();
+    });
+
+    await check("real Thai OCR reads plates with and without a leading digit on white, yellow, green and red plates", async () => {
+      const cases = [
+        ["กข 2345", "bangkok", null],
+        ["1กข 2345", "bangkok", { bg: "#f5c400", fg: "#111" }],   // yellow (taxi / public)
+        ["3ฒพ 12", "chiangmai", { bg: "#1f7a3a", fg: "#fff" }],    // green (commercial)
+        ["กท 4567", "nonthaburi", { bg: "#fbfbf7", fg: "#c8102e" }], // red text (trade / dealer)
+      ];
+      const PLATE_BOX = { x: 200 / 640, y: 175 / 360, w: 240 / 640, h: 112 / 360 }; // where drawDemo puts the plate
+      for (const [t, p, sty] of cases) {
+        // colour plates test the READER, so the guard taps the plate; auto-finding is covered by the white-plate cases
+        // (the classical finder misses dark plates and can pick the province line of red-text plates — docs/GATE.md)
+        const { page } = await readDemo([[t, p, sty], [t, p, sty]], t, sty ? PLATE_BOX : null);
+        await page.close();
+      }
+    });
+
+    await check("leading digit unclear -> guard must pick one of both readings before saving (never dropped silently)", async () => {
+      const page = await browser.newPage(null, { initScripts: [INIT + "window.__LQ_FAKE_N=0;window.__LQ_FAKE_PLATE=()=>({text:(window.__LQ_FAKE_N++%2===1?'1':'')+'กข 2345',conf:0.9,province:'bangkok'});"] });
+      await page.goto(`${base}/parking.html?cpu&fakedet`);
+      await page.evaluate(() => { document.querySelector("#gkAck1").click(); document.querySelector("#gkAck2").click(); document.querySelector("#gkAckBtn").click(); });
+      await page.evaluate(() => document.querySelector("#gkDemoBtn").click());
+      await page.waitFor(`!document.querySelector("#gkReadBtn").disabled`, 8000);
+      await page.evaluate(() => document.querySelector("#gkReadBtn").click());
+      await page.waitFor(`!!document.querySelector("#gkLead")`, 20000, 100);
+      const s = await page.evaluate(() => ({
+        alts: [...document.querySelectorAll("[data-alt]")].map(b => b.textContent.trim()),
+        blocked: [...document.querySelectorAll("#gkActions [data-act]:not([data-noplate])")].every(b => b.disabled),
+      }));
+      assert(s.alts.includes("1กข 2345") && s.alts.includes("กข 2345"), "both readings offered " + JSON.stringify(s.alts));
+      assert(s.blocked, "save buttons stay disabled until the guard picks");
+      await page.evaluate(() => /** @type {HTMLElement} */ ([...document.querySelectorAll("[data-alt]")].find(b => b.textContent.trim() === "1กข 2345")).click());
+      const after = await page.evaluate(() => ({ plate: document.querySelector("#gkPlate").value, enabled: [...document.querySelectorAll("#gkActions [data-act]:not([data-noplate])")].some(b => !b.disabled) }));
+      assert(after.plate === "1กข 2345" && after.enabled, "picked reading fills the plate and enables saving " + JSON.stringify(after));
       await page.close();
     });
   } finally { await browser.close(); }

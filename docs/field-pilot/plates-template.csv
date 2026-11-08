@@ -1,0 +1,3 @@
+read_id,date,time,site,device,photo_ref,ocr_result,ground_truth,province_ocr,province_truth,saved_value,guard_edited,confirm_s,alternatives,conditions,distance_m,vehicle,plate_type,notes
+SYN-0001,2099-01-01,10:15,SYNTHETIC-SITE,SYN-PHONE-1,SYNTHETIC-0001.jpg,9ฮฮ 9999,9ฮฮ 9999,กรุงเทพมหานคร,กรุงเทพมหานคร,9ฮฮ 9999,no,2.4,9ฮฮ 9998|9ฮช 9999,day;leading-digit;2m,2,car,white,SYNTHETIC EXAMPLE ROW - delete before use
+SYN-0002,2099-01-01,21:40,SYNTHETIC-SITE,SYN-PHONE-1,SYNTHETIC-0002.jpg,ฮฮฮ 1,ฮฮฮ 11,,กรุงเทพมหานคร,ฮฮฮ 11,yes,7.9,ฮฮฮ 11,night;rain;motorcycle;5m,5,motorcycle,white,SYNTHETIC EXAMPLE ROW - delete before use

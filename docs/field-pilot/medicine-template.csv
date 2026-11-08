@@ -1,0 +1,3 @@
+box_id,date,site,device,photo_ref,brand,reg_ocr,reg_truth,reg_edited,lot_ocr,lot_truth,lot_edited,expiry_ocr,expiry_truth,expiry_edited,confirm_s,conditions,notes
+SYN-M001,2099-01-01,SYNTHETIC-PHARMACY,SYN-PHONE-1,SYNTHETIC-M001.jpg,SYNTHETIC-BRAND-A,1A 99999/99,1A 99999/99,no,TEST0001,TEST0001,no,12/2099,12/2099,no,5.2,flat;matte;good-light,SYNTHETIC EXAMPLE ROW - delete before use
+SYN-M002,2099-01-01,SYNTHETIC-PHARMACY,SYN-PHONE-1,SYNTHETIC-M002.jpg,SYNTHETIC-BRAND-B,2A 8888/88,2A 88888/88 (N),yes,TESTO002,TEST0002,yes,11-2098,11/2098,no,14.0,curved;glossy-foil;small-print;low-light,SYNTHETIC EXAMPLE ROW - delete before use
