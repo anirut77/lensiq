@@ -194,10 +194,63 @@
         readN[s.cat] = (readN[s.cat] || 0) + 1;
         const r = boxes[0] ? await LP.readPlate(c, boxes[0], { moto: s.moto }) : null;
         row.read = r && r.key ? r.key : "";
+        // the plate-likeness guard on the same read: a read it rejects is not auto-read (the guard taps instead)
+        const gd = r && r.key ? LP.plateGuard(r, { moto: s.moto }) : null;
+        row.guard = gd ? { ok: gd.ok, reasons: gd.reasons } : null;
+      }
+      // a plate-less scene whose top box would start an auto-read: read it too (false auto-reads before / after the guard)
+      if (!truth && ocrPer && boxes[0] && boxes[0].score >= LP.AUTO_MIN && (readN[s.cat] || 0) < ocrPer) {
+        readN[s.cat] = (readN[s.cat] || 0) + 1;
+        const r = await LP.readPlate(c, boxes[0], { moto: false });
+        row.read = r && r.key ? r.key : "";
+        const gd = r && r.key ? LP.plateGuard(r, { moto: false }) : null;
+        row.guard = gd ? { ok: gd.ok, reasons: gd.reasons } : null;
       }
       rows.push(row); if (o.onItem) o.onItem(row);
     }
     return { rows, summary: LP.detEval(rows), set: LP.DEMO_SET };
+  }
+
+  /**
+   * One still frame through the shipped auto-read path (loopTick -> readNow(null, true)), for tools/plate-field-eval.mjs:
+   * trigger = finder top box (model "auto") scores >= AUTO_MIN; read = finder with LPD-YuNet (as on the first frame of a
+   * read) -> top box -> readPlate -> plateGuard. Nothing is stored. -> plain object (JSON-safe).
+   * @param {HTMLCanvasElement} c @param {{moto?: boolean, minPlatePx?: number}} [o]
+   */
+  /**
+   * Read the system's candidate boxes best first (at most LP.GUARD.tries); the first read that passes the plate-likeness
+   * guard (LQPlate.plateGuard) is the auto-read. Boxes narrower than minPlatePx are skipped (small).
+   * -> {r, b, i (index of the box that was auto-read, -1 none), guard, rejected (reads the guard refused), small, tried: [{i, b, r, gd}]}
+   * @param {HTMLCanvasElement} f @param {any[]} cands @param {{moto?: boolean, minPlatePx?: number, tries?: number}} [o]
+   */
+  async function readCandidates(f, cands, o = {}) {
+    const tries = o.tries || LP.GUARD.tries || 1, out = { r: null, b: null, i: -1, guard: null, rejected: 0, small: false, tried: /** @type {any[]} */ ([]) };
+    for (let i = 0; i < Math.min(tries, cands.length); i++) {
+      const b = cands[i];
+      if (b.w * f.width < (o.minPlatePx || 60)) { out.small = true; continue; }
+      const r = await LP.readPlate(f, b, { moto: !!o.moto }), gd = r ? LP.plateGuard(r, { moto: !!o.moto }) : null;
+      out.tried.push({ i, b, r, gd });
+      if (r && r.key && gd && gd.ok) { out.r = r; out.b = b; out.i = i; out.guard = gd; break; }
+      if (r && r.key) out.rejected++;
+    }
+    return out;
+  }
+
+  async function autoReadFrame(c, o = {}) {
+    const bx = b => (b ? { x: +b.x.toFixed(4), y: +b.y.toFixed(4), w: +b.w.toFixed(4), h: +b.h.toFixed(4), score: b.score, src: b.src || "" } : null);
+    const t0 = performance.now();
+    const c0 = await LP.detect(c, { model: "auto" }), trig = c0[0] && c0[0].score >= LP.AUTO_MIN ? c0[0] : null;
+    const cands = await LP.detect(c, { model: true });
+    const rd = (r, b) => ({ key: r && r.key ? r.key : "", conf: r ? r.conf : 0, box: bx((r && r.box) || b), geom: (r && r.geom) || null, lines: ((r && r.lines) || []).map(l => l.text) });
+    const gdOf = gd => (gd ? { ok: gd.ok, reasons: gd.reasons, text: gd.text, extra: gd.extra, marks: gd.marks } : null);
+    // every candidate the shipped path may read (up to GUARD.tries), so the tool can score: top box without the guard
+    // (round 15), top box with the guard, and the first plate-like box among the candidates (as shipped now)
+    const pick = await readCandidates(c, cands, { moto: !!o.moto, minPlatePx: o.minPlatePx });
+    const tried = pick.tried.map(t => ({ i: t.i, read: rd(t.r, t.b), guard: gdOf(t.gd) }));
+    const top = tried.find(t => t.i === 0) || null, small = !!cands[0] && !top;
+    const read = top ? top.read : null, guard = top ? top.guard : null;
+    const picked = pick.r ? { i: pick.i, read: rd(pick.r, pick.b), guard: gdOf(pick.guard) } : null;
+    return { trigger: bx(trig), cands: cands.slice(0, 3).map(bx), small, read, guard, picked, tried, ms: Math.round(performance.now() - t0) };
   }
 
   function init(opts) {
@@ -397,30 +450,61 @@
         try {
           if (!(await ensureOcr())) return null;
           status(T("gk.st.reading", "กำลังอ่านป้าย…"));
-          const reads = []; let lastF = null, lastB = null, small = false, prov = new Map(), found = null;
+          const reads = []; let lastF = null, lastB = null, small = false, prov = new Map(), found = null, notPlate = 0;
           st.det = { tapped: !!box, cands: [], used: null, grown: null };
+          const moto = $("#gkMoto").checked, gInfo = gd => (gd ? { ok: gd.ok, reasons: gd.reasons, text: gd.text, ar: gd.ar, bands: gd.bands } : null);
+          const take = (f, b, r) => {
+            lastF = f; lastB = (r && r.box) || b; st.det.used = b; st.det.grown = r && r.box ? r.box : null;
+            if (r && r.key) { reads.push(r); if (r.province) prov.set(r.province, (prov.get(r.province) || 0) + 1); }
+          };
           for (let i = 0; i < Math.max(1, Math.min(10, C.frames || 5)); i++) {
             const f = grab(); if (!f) break;
             let b = box || found;
             if (!b && !(TEST && W.__LQ_FAKE_PLATE)) {
               // the guard pressed "read" (or auto-read fired): full detector incl. LPD-YuNet once, then the box is reused for
               // the next frames of this read (the vehicle is stopped at the gate); a frame that reads nothing detects again
-              const c = await LP.detect(f, { model: i === 0 ? true : "auto" }); b = c[0] || null;
+              const c = await LP.detect(f, { model: i === 0 ? true : "auto" });
               st.det.cands = c.slice(0, 3).map(x => ({ x: +x.x.toFixed(3), y: +x.y.toFixed(3), w: +x.w.toFixed(3), h: +x.h.toFixed(3), score: x.score, src: x.src || "" }));
+              if (c.length) {
+                // plate-likeness guard: the system's boxes are read best first and only a read that looks like a plate is
+                // auto-read (readCandidates); non-plate boxes are never proposed — the guard taps the plate instead
+                const pick = await readCandidates(f, c, { moto, minPlatePx: C.minPlatePx });
+                if (!pick.tried.length && pick.small) small = true;
+                notPlate += pick.rejected;
+                const shown = pick.r ? { r: pick.r, b: pick.b, gd: pick.guard } : pick.tried[0] || null;
+                if (pick.r) { st.det.guard = gInfo(pick.guard); take(f, pick.b, pick.r); }
+                else if (shown) { st.det.guard = gInfo(shown.gd); lastF = f; lastB = (shown.r && shown.r.box) || shown.b; st.det.used = shown.b; }
+                found = pick.r ? pick.b : null;
+                if (!pick.r) continue;
+                if (st.source === "demo" && i >= 1 && reads.length >= 2 && reads.every(x => x.key === reads[0].key)) break;
+                await sleep(120);
+                continue;
+              }
             }
             if (!b && TEST) b = { x: 0.31, y: 0.49, w: 0.38, h: 0.31 };
             if (!b) continue;
             if (b.w * f.width < (C.minPlatePx || 60)) { small = true; continue; }
-            const r = await LP.readPlate(f, b, { moto: $("#gkMoto").checked });
-            lastF = f; lastB = (r && r.box) || b; st.det.used = b; st.det.grown = r && r.box ? r.box : null;
+            const r = await LP.readPlate(f, b, { moto });
+            // a box the SYSTEM chose (found on an earlier frame) is checked again on every frame; a box the guard tapped is
+            // read as it is (a person chose it). The fake-plate test seam has no image to check.
+            if (!box && r && r.key && !r.fake) {
+              const gd = LP.plateGuard(r, { moto });
+              st.det.guard = gInfo(gd);
+              if (!gd.ok) { notPlate++; found = null; lastF = f; lastB = r.box || b; continue; }
+            }
+            take(f, b, r);
             found = !box && r && r.key ? b : null;
-            if (r && r.key) { reads.push(r); if (r.province) prov.set(r.province, (prov.get(r.province) || 0) + 1); }
             if (st.source === "demo" && i >= 1 && reads.length >= 2 && reads.every(x => x.key === reads[0].key)) break; // a still image: two agreeing reads are enough
             await sleep(120);
           }
           if (lastF && lastB) { showCrop(lastF, lastB); drawBox(lastB); const g = LP.grayOf(lastF, 160); st.luma = LP.lumaMean(g.gray); }
           const v = LP.vote(reads, { moto: $("#gkMoto").checked });
-          if (!v) { status(small ? T("gk.st.small", "ป้ายเล็กเกินไป — ให้รถเข้าใกล้กล้องหรือซูมเข้า") : T("gk.st.none", "อ่านป้ายไม่ได้ — แตะกรอบรอบป้าย หรือพิมพ์เลขทะเบียนเอง"), "err"); return null; }
+          if (!v) {
+            status(small ? T("gk.st.small", "ป้ายเล็กเกินไป — ให้รถเข้าใกล้กล้องหรือซูมเข้า")
+              : notPlate ? T("gk.st.notplate", "กรอบที่ระบบพบไม่เหมือนป้ายทะเบียน — ไม่อ่านอัตโนมัติ แตะกรอบรอบป้าย หรือพิมพ์เลขทะเบียนเอง")
+              : T("gk.st.none", "อ่านป้ายไม่ได้ — แตะกรอบรอบป้าย หรือพิมพ์เลขทะเบียนเอง"), "err");
+            return null;
+          }
           const province = [...prov].sort((a, b) => b[1] - a[1])[0];
           const lead = LP.leadAlternatives(v, reads, { moto: $("#gkMoto").checked });
           // tapped: the guard had to show where the plate is (field-pilot / site-check "taps needed" metric)
@@ -655,5 +739,5 @@
     };
     return kit;
   }
-  W.GateKit = { init, openStore, drawDemo, drawScene, demoEval, DEMO_PLATES, T, esc };
+  W.GateKit = { init, openStore, drawDemo, drawScene, demoEval, autoReadFrame, DEMO_PLATES, T, esc };
 })();

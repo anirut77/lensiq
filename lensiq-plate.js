@@ -303,6 +303,78 @@
     return all ? { ...all, provinceText: L.map(l => l.text).join(" ") } : null;
   }
 
+  /* ---------------- plate-likeness guard (pure) ---------------- */
+  // Thai vowels and tone marks: never on a plate's number line (the 1-lookalikes ไ ใ before the letters are handled apart)
+  const TH_MARK = /[\u0E30-\u0E3A\u0E40-\u0E4E]/, TH_MARK_G = /[\u0E30-\u0E3A\u0E40-\u0E4E]/g;
+  const SIG = /[\u0E01-\u0E2E\u0E30-\u0E3A\u0E40-\u0E4E0-9๐-๙A-Za-z]/;
+  const PARTIAL = /^(?:[1-9]?[ก-ฮ]{1,3}[0-9]{1,4}|[1-9]?[ก-ฮ]{2,3}|[1-9][0-9]{1,3})$/;
+  // tries = candidate boxes read per frame (best first) until one passes; maxLatin = Latin letters allowed on the key band
+  // (Thai plate number lines carry only Thai consonants and digits; O / I / B … are repaired as digits, not counted)
+  const GUARD = Object.freeze({ arMin: 1.0, arMax: 3.8, motoAr: 1.5, maxBands: 2, maxBandsMoto: 3, maxExtra: 2, maxMarks: 1, maxLatin: 0, minPx: 40, tries: 3 });
+  /**
+   * Plate-likeness guard: a box chosen by the system (finder / model) is auto-read ONLY when its read looks like a plate.
+   * read = readPlate() result (geom = {ar, bands, wPx}; lines = OCR per band; line = band of the key). Checks:
+   * - aspect of the plate box in pixels: 1.0-3.8 (car ~2.2, motorcycle ~1.45);
+   * - text-line layout: 1-2 text lines, or up to 3 for a motorcycle plate (moto lane, 3-letter key, or a box narrower than
+   *   1.5:1); a band whose read has fewer than 2 Thai characters / digits (bolt, dirt, frame edge) is not a text line;
+   * - Thai character pattern: the key parses as a car / motorcycle plate (RE_CAR / RE_MOTO), comes from one band (car) and that band holds
+   *   (almost) nothing else: <= 2 extra characters and <= 1 Thai vowel / tone mark (a shop sign or a "กม. 794" board has
+   *   words around its digits), no Latin letter other than the digit look-alikes (O I B …), and the plate letters are not
+   *   the end of a longer Thai word ("ห้อง 1234", "ชลบุรี 64"). A band that only parses as a
+   *   plausible partial ("กข", "กข 12", "2345") -> text "partial".
+   * -> {ok, reasons[], text: "car" | "moto" | "partial" | "none", ar, bands, lines, extra, marks, latin}. ok = never auto-read when false;
+   * the guard can always tap the plate (a tapped box is read without this check: a person chose it).
+   * @param {any} r @param {{moto?: boolean, cfg?: Partial<typeof GUARD>}} [o]
+   */
+  function plateGuard(r, o = {}) {
+    const C = { ...GUARD, ...(o.cfg || {}) }, reasons = [];
+    if (!r) return { ok: false, reasons: ["no-read"], text: "none", ar: 0, bands: 0, lines: 0, extra: 0, marks: 0, latin: 0 };
+    const g = r.geom || null, key = r.key || "";
+    const motoKey = !!key && parse(key, { moto: true }).ok && !parse(key).ok;
+    const moto = !!o.moto || motoKey || (!!g && g.ar < C.motoAr);
+    const L = Array.isArray(r.lines) ? r.lines : [];
+    const textOf = l => String((l && l.text) || "");
+    // text lines = read bands with >= 2 Thai characters or digits (a bolt, dirt or the frame edge reads as 0-1 characters
+    // or Latin noise such as "b") + tall bands that were not read (only the first 3 bands are read). ONE unread band is
+    // tolerated (a dealer strip or frame text under the plate is common on Thai cars); two or more (a sign with 5+ lines) count
+    const un = g ? (g.unread != null ? g.unread : Math.max(0, g.bands - L.length)) : 0, unread = un >= 2 ? un : 0;
+    const lines = L.filter(l => [...textOf(l)].filter(c => SIG.test(c) && !/[A-Za-z]/.test(c)).length >= 2).length + unread;
+    if (g) {
+      if (!(g.ar >= C.arMin && g.ar <= C.arMax)) reasons.push("aspect");
+      if (!(g.bands >= 1 && lines >= 1 && lines <= (moto ? C.maxBandsMoto : C.maxBands))) reasons.push("layout");
+      if (g.wPx != null && g.wPx < C.minPx) reasons.push("small");
+    }
+    let text = "none", extra = 0, marks = 0, latin = 0;
+    if (key) {
+      text = parse(key, { moto }).ok && moto ? "moto" : parse(key).ok ? "car" : parse(key, { moto: true }).ok ? "moto" : "none";
+      if (text === "none") reasons.push("pattern");
+      // a car plate carries its whole key on ONE line; a key pieced together from several bands (line -1) is only
+      // plausible on a motorcycle plate (letters on line 1, digits on line 3)
+      if (r.line != null && r.line < 0 && !moto) reasons.push("split");
+      // the bands the key was read from: one band (car), or band 1 + the last band (motorcycle: letters / digits)
+      const idx = r.line >= 0 ? (moto && r.line === 0 && L.length >= 2 && !parse(plateChars(L[0]).map(x => x.c).join(""), { moto: true }).ok ? [0, L.length - 1] : [r.line]) : L.map((_, i) => i);
+      let raw = idx.map(i => textOf(L[i])).join("");
+      raw = raw.replace(/^[^\u0E01-\u0E2E0-9๐-๙]*[ไใ](?=[ก-ฮ])/, "1"); // a leading 1-lookalike already became the "1" of the key
+      const sig = [...raw].filter(c => SIG.test(c));
+      marks = sig.filter(c => TH_MARK.test(c)).length;
+      latin = sig.filter(c => /[A-Za-z]/.test(c) && !/[OQDBILSZG]/.test(c.toUpperCase())).length;
+      extra = Math.max(0, sig.length - [...key].length);
+      if (extra > C.maxExtra) reasons.push("extra-text");
+      if (marks > C.maxMarks) reasons.push("vowels");
+      if (latin > C.maxLatin) reasons.push("latin");
+      // the plate letters must not be the tail of a longer Thai word ("ห้อง 1234" -> "อง1234", "ชลบุรี 64" -> "บร64"):
+      // a Thai consonant directly before the letters (vowel / tone marks ignored, a space separates) is a word, not a plate
+      const pk = parse(key, { moto }).ok ? parse(key, { moto }) : parse(key, { moto: true });
+      const flat = raw.replace(TH_MARK_G, ""), at = pk.letters ? flat.indexOf(pk.letters) : -1;
+      if (at > 0 && /[ก-ฮ]/.test(flat[at - 1])) reasons.push("word");
+    } else {
+      reasons.push("no-key");
+      const part = L.some(l => { const t = plateChars(l).map(x => x.c).join(""), m = [...textOf(l)].filter(c => TH_MARK.test(c)).length; return m <= C.maxMarks && PARTIAL.test(t); });
+      text = part ? "partial" : "none";
+    }
+    return { ok: !reasons.length && (text === "car" || text === "moto"), reasons, text, ar: g ? g.ar : 0, bands: g ? g.bands : 0, lines, extra, marks, latin };
+  }
+
   /* ---------------- image (pure) ---------------- */
   function lumaMean(gray) { let s = 0; for (let i = 0; i < gray.length; i++) s += gray[i]; return gray.length ? s / gray.length : 0; }
   /** night = dark frame (mean luma < 60 of 255) when the luma is known, else the clock (18:00-06:00) */
@@ -362,7 +434,7 @@
   function splitLines(gray, W, H) {
     const m = lumaMean(gray), dark = new Float32Array(H);
     for (let y = 0; y < H; y++) { let c = 0; for (let x = 0; x < W; x++) if (gray[y * W + x] < m * 0.75) c++; dark[y] = c / W; }
-    const bands = []; let y0 = -1, gap = 0;
+    const bands = /** @type {{y0: number, y1: number, fallback?: boolean}[]} */ ([]); let y0 = -1, gap = 0;
     for (let y = 0; y < H; y++) {
       const on = dark[y] > 0.04;
       if (on) { if (y0 < 0) y0 = y; gap = 0; } else if (y0 >= 0 && ++gap >= 2) { bands.push({ y0, y1: y - gap + 1 }); y0 = -1; gap = 0; }
@@ -370,7 +442,8 @@
     if (y0 >= 0) bands.push({ y0, y1: H });
     const min = Math.max(3, H * 0.12);
     const B = bands.filter(b => b.y1 - b.y0 >= min);
-    return B.length ? B : [{ y0: 0, y1: Math.round(H * 0.62) }, { y0: Math.round(H * 0.62), y1: H }];
+    // fallback (no band found): a fixed 62 / 38 split, marked so the plate-likeness guard does not count it as text lines
+    return B.length ? B : [{ y0: 0, y1: Math.round(H * 0.62), fallback: true }, { y0: Math.round(H * 0.62), y1: H, fallback: true }];
   }
 
   /**
@@ -758,18 +831,29 @@
   function detEval(items, o = {}) {
     const thr = o.iou || 0.5, autoMin = o.autoMin == null ? AUTO_MIN : o.autoMin, cats = {};
     for (const it of items || []) {
-      const c = cats[it.cat] || (cats[it.cat] = { n: 0, det: 0, det3: 0, readN: 0, read: 0, fp: 0, neg: 0, ms: [] });
+      const c = cats[it.cat] || (cats[it.cat] = { n: 0, det: 0, det3: 0, readN: 0, read: 0, readG: 0, wrong: 0, wrongG: 0, fp: 0, neg: 0, negRead: 0, fpRead: 0, fpReadG: 0, ms: [] });
       const B = it.boxes || [];
-      if (!it.truth) { c.neg++; if (B[0] && B[0].score >= autoMin) c.fp++; continue; }
+      // it.guard = plateGuard verdict on the same read ({ok}); undefined = not measured (counted as passing)
+      const pass = !it.guard || !!it.guard.ok;
+      if (!it.truth) {
+        c.neg++; if (B[0] && B[0].score >= autoMin) c.fp++;
+        // a plate-less scene that was read: an auto-read proposal before / after the plate-likeness guard
+        if (it.read != null) { c.negRead++; if (it.read) { c.fpRead++; if (pass) c.fpReadG++; } }
+        continue;
+      }
       c.n++;
       if (B[0] && iou(B[0], it.truth) >= thr) c.det++;
       if (B.slice(0, 3).some(b => iou(b, it.truth) >= thr)) c.det3++;
-      if (it.read != null) { c.readN++; if (normalize(it.read) === normalize(it.key)) c.read++; }
+      if (it.read != null) {
+        c.readN++;
+        if (normalize(it.read) === normalize(it.key)) { c.read++; if (pass) c.readG++; } else if (it.read) { c.wrong++; if (pass) c.wrongG++; }
+      }
       if (it.ms != null) c.ms.push(it.ms);
     }
     const res = {};
     for (const [k, c] of Object.entries(cats)) {
-      res[k] = { n: c.n, det: wilson(c.det, c.n), det3: wilson(c.det3, c.n), read: wilson(c.read, c.readN), neg: c.neg, fp: wilson(c.fp, c.neg),
+      res[k] = { n: c.n, det: wilson(c.det, c.n), det3: wilson(c.det3, c.n), read: wilson(c.read, c.readN), readG: wilson(c.readG, c.readN), neg: c.neg, fp: wilson(c.fp, c.neg),
+        wrong: c.wrong, wrongG: c.wrongG, fpRead: wilson(c.fpRead, c.negRead), fpReadG: wilson(c.fpReadG, c.negRead),
         msMedian: c.ms.length ? median(c.ms) : null, target: c.n ? (c.det / c.n >= (o.target || 0.9) ? "met" : "not met") : "—" };
     }
     return res;
@@ -1086,6 +1170,12 @@
     const W = tb.x1 - tb.x0, H = tb.y1 - tb.y0, gray = new Uint8Array(W * H);
     for (let y = 0; y < H; y++) gray.set(g0.gray.subarray((y + tb.y0) * g0.W + tb.x0, (y + tb.y0) * g0.W + tb.x1), y * W);
     const bands = splitLines(gray, W, H), lines = [];
+    // layout facts for the plate-likeness guard (plateGuard): aspect of the plate box in pixels and the number of real text
+    // bands (all of them, not only the 3 that are read)
+    const real = bands.filter(x => !x.fallback), hMax = Math.max(1, ...real.map(x => x.y1 - x.y0));
+    const geom = { ar: Math.round(((b.w * W0) / Math.max(1e-6, b.h * H0)) * 100) / 100, bands: real.length,
+      // bands below the 3 that are read and at least 35 % as tall as the tallest band (text, not a bolt or dirt)
+      unread: real.slice(3).filter(x => (x.y1 - x.y0) >= 0.35 * hMax).length, wPx: Math.round(b.w * W0) };
     // ink touching the left edge of the plate crop on the first text line = a character may be cut off -> leftCut
     let inkLeft = false;
     if (bands.length && W > 8) {
@@ -1105,14 +1195,14 @@
     }
     const r = fromOcr(lines, o);
     const used = { x: b.x, y: b.y, w: b.w, h: b.h };
-    if (!r) return { key: "", conf: 0, chars: [], provinceText: lines.map(l => l.text).join(" "), lines, box: used, inkLeft };
+    if (!r) return { key: "", conf: 0, chars: [], provinceText: lines.map(l => l.text).join(" "), lines, box: used, inkLeft, geom };
     const gp = guessProvince(r.provinceText);
     // a glyph the recogniser skipped entirely (thin "1" -> nothing) still leaves ink left of the key's first character
     const ib = r.line >= 0 && bands[r.line] && lines[r.line] ? inkBefore(gray, W, H, bands[r.line], r.chars, lines[r.line], PX) : null;
     const p0 = parse(r.key, { moto: !!o.moto });
     let leadGuess = r.leadGuess || "", leadSuspect = r.leadSuspect || "";
     if (ib && !p0.prefix) { leadSuspect = leadSuspect || "ink"; if (ib.narrow && !leadGuess) leadGuess = "1" + r.key; }
-    return { ...r, province: gp ? gp.id : "", lines, inverted, box: used, inkLeft, inkBefore: ib, leadGuess, leadSuspect,
+    return { ...r, province: gp ? gp.id : "", lines, inverted, box: used, inkLeft, inkBefore: ib, leadGuess, leadSuspect, geom,
       leftCut: b.x - padL * b.w <= 0.002 || inkLeft || !!leadSuspect };
   }
   /**
@@ -1151,5 +1241,5 @@
     registerDetector, grayOf, detect, loadOcr, recognize, tightText, readPlate, OCR_URL, hasDOM,
     inkBefore, ONE_LIKE, iou, nms, lumaOf, chromaOf, stretch, blur3, flatRegions, growToPlate, plateScore, plateFeatures, findPlates,
     YN, yunetPriors, yunetDecode, rng, PLATE_COLOURS, DEMO_SET, demoSpec, detEval,
-    AUTO_MIN, DET_URL, loadPlateDet, modelBoxes, rgbaOf, plateDetReady: () => !!detS };
+    AUTO_MIN, DET_URL, loadPlateDet, modelBoxes, rgbaOf, plateDetReady: () => !!detS, GUARD, plateGuard, wilson };
 });

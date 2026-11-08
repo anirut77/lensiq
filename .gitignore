@@ -16,3 +16,5 @@ _site/
 
 # native-speaker review exports (tools/fortune-review-export.mjs)
 review-out/
+
+field-data/

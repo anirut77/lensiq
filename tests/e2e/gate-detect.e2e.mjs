@@ -11,6 +11,7 @@ const MEASURED = { white: 20, yellow: 19, green: 20, red: 20, blue: 20, moto: 19
 const MEASURED_FP = 1;      // plate-less scenes (of 20) whose top box would start an auto-read
 const MEASURED_READS = 23;  // exact reads, first 5 scenes of each of the 7 plate categories (35)
 const TOL = 2, TOL_READS = 3;
+const MAX_GUARD_LOST = 1;   // correct reads the plate-likeness guard may refuse (measured 0 of 96 / 81; 1 for rasterisation)
 
 export default async function ({ base, launch, check }) {
   const browser = await launch();
@@ -41,6 +42,11 @@ export default async function ({ base, launch, check }) {
       const reads = Object.entries(s).filter(([k]) => k !== "none").reduce((a, [, v]) => a + v.read.x, 0);
       const readN = Object.entries(s).filter(([k]) => k !== "none").reduce((a, [, v]) => a + v.read.n, 0);
       assert(readN === 35 && reads >= MEASURED_READS - TOL_READS, `exact reads ${reads}/${readN} below the measured ${MEASURED_READS} - ${TOL_READS} · ${table}`);
+      // round 16 plate-likeness guard on the same reads: it keeps the correct reads (measured: none lost on 140 + 140
+      // scenes, docs/GATE.md) and no plate-less scene is auto-read after it
+      const readsG = Object.entries(s).filter(([k]) => k !== "none").reduce((a, [, v]) => a + v.readG.x, 0);
+      assert(readsG >= reads - MAX_GUARD_LOST, `the plate-likeness guard refused ${reads - readsG} correct reads (max ${MAX_GUARD_LOST}) · ${table}`);
+      assert(s.none.fpReadG && s.none.fpReadG.x === 0, `plate-less scenes auto-read after the guard: ${s.none.fpReadG && s.none.fpReadG.x} · ${table}`);
       const ext = page.requests.filter(q => !q.url.startsWith(base) && !/^(data|blob):/.test(q.url));
       assert(!ext.length, "third-party requests " + ext.map(q => q.url));
       assert(page.requests.some(q => /plate-det\/license_plate_detection_lpd_yunet_2023mar\.onnx/.test(q.url)), "plate finder model loaded locally");

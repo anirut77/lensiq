@@ -220,6 +220,120 @@ a tolerance of 2 scenes for platform rasterisation, ≤ 3 false triggers, ≥ 20
 dev); `gate.e2e.mjs` (proposal boxes that miss the leading digit; colour plates read without a tap);
 `gate-parking.e2e.mjs` (the site check tallies taps).
 
+## 3c. Plate-likeness guard and real photos (round 16, item 7)
+
+### What changed
+Round 15 measured that on real photos the finder's top box was often NOT a plate and scored far above `AUTO_MIN`, so the
+auto-read loop would read signs and shop fronts. Round 16 adds a **plate-likeness guard** (`LQPlate.plateGuard`, pure):
+a box the SYSTEM chose (finder / LPD-YuNet) is auto-read only when its read looks like a Thai plate. A box the guard
+tapped is read as it is (a person chose it); the guard can always tap or type. The check runs on **every** box the
+system chose, so it also applies when the guard presses "Read" **without** tapping (the system still picks the box);
+only a tapped box skips it. This is stricter than round 15 and intended: a manual Read press on a sign gives the
+"does not look like a plate" status, not a suggestion.
+
+Checks, on the `readPlate()` result (`geom = {ar, bands, unread, wPx}`, OCR text per band):
+1. **Aspect** of the grown plate box in pixels: 1.0–3.8 (car ≈ 2.2, motorcycle ≈ 1.45).
+2. **Text-line layout:** 1–2 text lines (car) or up to 3 (motorcycle lane, 3-letter key, or a box narrower than 1.5:1).
+   A text line = a read band with ≥ 2 Thai characters / digits (a bolt, dirt or the frame edge is not one); bands below
+   the 3 that are read count when they are ≥ 35 % of the tallest band, and ONE such band is tolerated (dealer strip).
+3. **Thai plate pattern:** the key parses with `RE_CAR` / `RE_MOTO`; a car key comes from ONE band (a key pieced together
+   from two bands, e.g. "หยุด" + "9", is refused); the key band holds ≤ 2 extra characters, ≤ 1 Thai vowel / tone mark
+   (OCR noise such as "ศึก 234" on a real plate), no Latin letter other than the digit look-alikes, and the plate letters
+   are not the tail of a longer Thai word ("ห้อง 1234" → "อง1234", "ชลบุรี 64" → "บร64"). A band that only parses as a
+   plausible partial ("กข", "กข 12", "2345") gives `text: "partial"` — never an auto-read.
+
+Thresholds: `LQPlate.GUARD` (frozen). `gate-kit.js` `readCandidates()` reads the system's boxes best first (at most
+`GUARD.tries` = 3) and auto-reads the **first one that passes**; when none passes the lane says "the box does not look
+like a licence plate — tap the plate or type it" (`gk.st.notplate`, TH / EN / ZH). The same function runs in
+`GateKit.autoReadFrame()`, which the evaluation tools use, so the numbers below are the shipped path.
+
+### Real-photo benchmark (public dataset: Wikimedia Commons; benchmark only, never shipped or committed)
+**Fixed before the guard was built** (2026-11-08): 51 photos — 32 with a plate (33 plates: white 7, yellow 2, green 5,
+red 1, blue 1, motorcycle 6, night 2, graphic 2, numbers-only / legacy / other 6) and 19 without a plate (road signs,
+kilometre posts, a plate-shaped town-name sign "ชลบุรี 64", a car tax label, a post-office sign, street scenes).
+Licences: CC BY-SA 4.0 (30), public domain (9), CC0 (4), CC BY-SA 3.0 (3), CC BY 4.0 (2), CC BY-SA 2.0 (2), CC BY 2.5 (1);
+credits in `docs/CREDITS-MEDIA.md`. Plate boxes were drafted with a research-only detector and checked by eye: **open-image-models**
+`yolo-v9-t-384-license-plates-end2end.onnx` (https://github.com/ankandrew/open-image-models; code licence MIT, no
+separate licence stated for the weights; the architecture is YOLOv9, whose reference code is GPL-3.0). It ran only
+offline in the scratch folder to propose box coordinates for the labeller; **nothing from it — model, code or weights —
+is in the repo or the product** (checked: `git ls-files` has no YOLOv9 / open-image-models file; the shipped plate
+detector is LPD-YuNet, MIT). Because of the GPL lineage it must not be shipped; plate text typed by hand; 6 plates are marked "unsure" (4 with unclear letters such as ณ / ฌ, 2 unreadable) and
+left out of exact reads, as are numbers-only and legacy plates (the reader does not support them).
+Split stratified by category into **dev (28 photos)**, used to tune the guard, and **held-out (23)**, run after the guard
+was frozen. Manifest, labels and photos stay in the scratch folder.
+
+Two honest notes: (1) after the first dev run two labels were changed to "unsure", boxes unchanged: w08 (dev) and
+**w07, which is a held-out photo** (both: first letter ณ or ฌ). This was before any held-out run, so no held-out result
+was used, but it changes the held-out figure: **counted as sure, w07 makes held-out exact 1 → 1 → 3 of 11 (not 10) and
+all photos 7 of 23 (30 %, not 7 of 22), and adds one wrong read before the guard** (the top box read "ญข4052"; the guard
+refused it, layout, so the shipped wrong reads stay 2; its tap read "กข4052" is also not exact — re-measured
+2026-11-09); (2) one rule ("Thai word") was added after the first held-out run, motivated by a synthetic distractor
+written for the e2e test ("ห้อง 1234"), not by a held-out result; both halves were re-run and the held-out numbers did
+not change.
+
+Measured 2026-11-09, macOS, Chrome headless, WASM (`node tools/plate-field-eval.mjs --dir <photos> --split dev|heldout`).
+Arrows: round 15 (top box, no guard) → guard on the top box only → guard + first plate-like box (shipped).
+
+| Set | Plate is the top box | Exact automatic read | False auto-reads, photos WITHOUT a plate | False auto-reads, photos with a plate | Wrong text on a plate | Taps needed (shipped) |
+|---|---|---|---|---|---|---|
+| dev (18 plate / 10 none) | 9 / 18 | 2 → 2 → 4 of 12 | **2 → 0 → 0** of 10 | 0 → 0 → 0 | 1 → 1 → 1 | 14 / 18 |
+| held-out (14 / 9) | 4 / 14 | 1 → 1 → 3 of 10 | **1 → 0 → 0** of 9 | 0 → 0 → 0 | 1 → 1 → 2 | 11 / 14 |
+| all 51 | 13 / 32 (41 %) | 3 → 3 → 7 of 22 (32 %) | **3 → 0 → 0** of 19 | 0 → 0 → 0 | 2 → 2 → 3 | 25 / 32 (78 %) |
+
+Per category (all 51, shipped path): white exact 2 / 5, yellow 1 / 2, green 1 / 3, red 1 / 1, blue 1 / 1, night 1 / 2,
+motorcycle 0 / 6, graphic 0 / 2. The auto-read loop's trigger (top box ≥ `AUTO_MIN`) fired on 18 of the 19 plate-less
+photos — the guard, not the trigger, is what keeps them from being read. False auto-reads blocked: the town sign
+("บร64": extra text, vowels, word), a post-office sign ("รอ7": Latin), a STOP sign ("ยด9", second candidate: split key)
+and an airport sign. **Tap read** (the reader on the hand-labelled box, as when the guard taps): 4 of 15 exact — on real
+photos the OCR, not the finder or the guard, is now the main limit (rare letters, motorcycle plates 0 / 6, blur, dirt;
+the recogniser is not trained on plates).
+
+Small n: 95 % intervals are wide (0 / 19 false auto-reads → 0–17 %). **10 of those 19 are the dev half the guard was
+tuned on**; on the held-out half alone it is **0 / 9 (before the guard 1 / 9), 95 % interval 0–30 %**. These are public photos, not a gate camera.
+
+### Synthetic demo set with the guard (same scenes and metrics as section 3b)
+
+| Seed | Exact one-frame reads without → with the guard | Wrong reads proposed without → with | Plate-less scenes auto-read without → with |
+|---|---|---|---|
+| dev 20261108 | 96 → 96 / 140 | 28 → 21 | 0 → 0 / 20 |
+| held-out 7 | 81 → 81 / 140 | 29 → 21 | 0 → 0 / 20 |
+
+The guard refused no correct synthetic read, and refused about a quarter of the wrong ones (those go to the guard's tap).
+
+### Cost
+Per photo (trigger detect + detect with LPD-YuNet + up to 3 reads): median 1.5 s, p90 2.2 s on this Mac (Chrome headless,
+WASM, one thread; not a phone). Extra reads happen only when the top box's read fails the guard (~0.1–0.2 s each).
+
+### Known limits
+- A plate-shaped sign whose text is exactly a plate pattern on one line (e.g. a board reading "กม. 794" on one line,
+  "กม794") passes the pattern check; the drawn two-line kilometre post in the e2e test is refused (split key), a
+  one-line one would not be. The guard confirms every read anyway.
+- Real-photo detection stays low (41 % top box). A detector trained on Thai plates with a clean licence remains the fix
+  (`docs/PLATE-DATASETS.md`); the guard only makes misses safe (no false auto-read) and uses the next candidates.
+
+### Owner field set (`tools/plate-field-eval.mjs`)
+For the owner's ~100 phone photos: folder outside the repo (default `~/LENSIQ-field/plates/`; inside the repo only
+`field-data/`, git-ignored — the tool refuses any other repo folder), labelling sheet
+`docs/field-pilot/plates-photo-labels.csv` (template), steps in TH / EN in `docs/field-pilot/plates-photo-labels.md`.
+The report gives per category (white / yellow / green / red / blue / moto / night / graphic / other / none): detection,
+exact read, false auto-reads and wrong reads (round 15 → guard top-1 → shipped), taps needed and the read after a tap,
+labelled **"field (owner photos)"**, with the synthetic demo-set numbers in a separate column. Boxes are optional; without
+them a read more than one character from the label counts as a false auto-read (cautious).
+A photo the browser cannot decode never stops the run: iPhone HEIC / HEIF (also when renamed to .jpg — the tool reads the
+file header), RAW, TIFF or a broken file is listed under "could not decode" with the reason ("convert to JPEG first":
+iPhone Settings > Camera > Formats > Most Compatible) and left out of every number. A filled-in labelling sheet (plate
+numbers = personal data) is refused inside the repo unless it is under `field-data/`; only the unchanged template may be
+read from `docs/`.
+
+### Tests
+`tests/unit/gate-guard.test.js` (guard rules, thresholds, detEval guard columns), `tests/unit/gate-field-eval.test.js`
+(arguments, outside-the-repo rule for photos and for the labelling sheet, labelling sheet, scoring, report, whole run on
+a generated temp folder, HEIC / broken photos listed without stopping the run),
+`tests/e2e/gate-guard.e2e.mjs` (real OCR: drawn town sign / room board / kilometre post / shop sign / Latin plate never
+auto-read, demo plates still read; lane status, and a tap on the refused board IS read and marked tapped; the tool
+end-to-end on a generated folder incl. a HEIC and an undecodable PNG),
+`tests/e2e/gate-detect.e2e.mjs` (+ the guard keeps the correct synthetic reads, 0 plate-less scenes auto-read).
+
 ## 4. Hardware guide
 
 **Camera placement.** Plate ≥ 120 px wide in the frame (≥ 160 px for motorcycles), ≤ 30° horizontal / vertical angle,

@@ -1,0 +1,7 @@
+file,category,plate,province,x0,y0,x1,y1,split,sure,notes
+EXAMPLE-0001.jpg,white,1กข 2345,bangkok,,,,,,y,EXAMPLE ROW (skipped by the tool) - white plate; box columns may stay empty
+EXAMPLE-0002.jpg,moto,1กข 123,chonburi,812,1404,1190,1660,,y,EXAMPLE ROW - motorcycle: line 1 + line 3; box in pixels (optional)
+EXAMPLE-0003.jpg,night,กท 4567,nonthaburi,,,,,,n,EXAMPLE ROW - night; sure=n when you cannot read the plate for certain
+EXAMPLE-0004.jpg,none,,,,,,,,,EXAMPLE ROW - no plate in the photo (sign / shop front / road marking)
+EXAMPLE-0005.jpg,yellow,ทพ 7459,bangkok,,,,,,y,EXAMPLE ROW - photo with two plates: one row per plate
+EXAMPLE-0005.jpg,white,ฉธ 4063,bangkok,,,,,,y,EXAMPLE ROW - second plate of the same photo
