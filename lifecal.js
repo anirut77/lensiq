@@ -118,7 +118,72 @@
     var idx = b1.prev.idx, at = b1.prev.jd;
     return { year: idx === 0, month: true, term: JIE_ZH[idx], idx: idx, at: fromJD(at, tz) };
   }
-  /** b = { y, m, d, h, mi, tz (ชั่วโมง, ค่าเริ่ม 7), gender: "male"|"female", noTime } */
+  /* ---------- เขตเวลาตามประวัติ (IANA) และเวลาสุริยะจริง — รอบ 12 ----------
+     เวลาเกิดเป็น "เวลานาฬิกาท้องถิ่น" ของวันนั้น: ไทยก่อน 1 เม.ย. 1920 ใช้เวลาเฉลี่ยกรุงเทพฯ (UTC+6:42:04),
+     จีนแผ่นดินใหญ่มีเวลาออมแสง 1986–1991, สิงคโปร์/มาเลเซียใช้ UTC+7:30 ก่อนปี 1982 ฯลฯ
+     zoneOffset ใช้ฐานข้อมูลเขตเวลาของเบราว์เซอร์ (Intl) ถ้าไม่มีใช้ตารางสำรองด้านล่าง (เฉพาะกฎที่ผู้ประเมินระบุ) */
+  var ZONES = [
+    { id: "Asia/Bangkok", lon: 100.5, key: "lc.zone.bkk", th: "ไทย · กรุงเทพฯ (ตามประวัติ)" },
+    { id: "Asia/Shanghai", lon: 116.4, key: "lc.zone.sha", th: "จีนแผ่นดินใหญ่ · ปักกิ่ง (ตามประวัติ)" },
+    { id: "Asia/Hong_Kong", lon: 114.2, key: "lc.zone.hkg", th: "ฮ่องกง (ตามประวัติ)" },
+    { id: "Asia/Taipei", lon: 121.5, key: "lc.zone.tpe", th: "ไต้หวัน · ไทเป (ตามประวัติ)" },
+    { id: "Asia/Singapore", lon: 103.8, key: "lc.zone.sin", th: "สิงคโปร์ (ตามประวัติ)" },
+    { id: "Asia/Kuala_Lumpur", lon: 101.7, key: "lc.zone.kul", th: "มาเลเซีย · กัวลาลัมเปอร์ (ตามประวัติ)" },
+    { id: "Asia/Ho_Chi_Minh", lon: 106.7, key: "lc.zone.sgn", th: "เวียดนาม · โฮจิมินห์ (ตามประวัติ)" },
+    { id: "Asia/Jakarta", lon: 106.8, key: "lc.zone.jkt", th: "อินโดนีเซีย · จาการ์ตา (ตามประวัติ)" },
+    { id: "Asia/Manila", lon: 121.0, key: "lc.zone.mnl", th: "ฟิลิปปินส์ · มะนิลา (ตามประวัติ)" },
+    { id: "Asia/Yangon", lon: 96.2, key: "lc.zone.rgn", th: "เมียนมา · ย่างกุ้ง (ตามประวัติ)" },
+    { id: "Asia/Tokyo", lon: 139.7, key: "lc.zone.tyo", th: "ญี่ปุ่น · โตเกียว (ตามประวัติ)" },
+    { id: "Asia/Seoul", lon: 127.0, key: "lc.zone.sel", th: "เกาหลีใต้ · โซล (ตามประวัติ)" },
+    { id: "Asia/Kolkata", lon: 77.2, key: "lc.zone.del", th: "อินเดีย · นิวเดลี (ตามประวัติ)" },
+    { id: "Europe/London", lon: -0.1, key: "lc.zone.lon", th: "สหราชอาณาจักร · ลอนดอน (ตามประวัติ)" },
+    { id: "America/New_York", lon: -74.0, key: "lc.zone.nyc", th: "สหรัฐฯ ตะวันออก · นิวยอร์ก (ตามประวัติ)" },
+    { id: "America/Los_Angeles", lon: -118.2, key: "lc.zone.lax", th: "สหรัฐฯ ตะวันตก · ลอสแอนเจลิส (ตามประวัติ)" },
+    { id: "Australia/Sydney", lon: 151.2, key: "lc.zone.syd", th: "ออสเตรเลีย · ซิดนีย์ (ตามประวัติ)" },
+  ];
+  // ตารางสำรอง: [จนถึง (UT, ms), offset ชั่วโมง] ตามลำดับเวลา; ช่วงออมแสงของจีนเป็น [เริ่ม, จบ] เวลาท้องถิ่น 02:00
+  var U = function (y, m, d, h, mi) { return Date.UTC(y, m - 1, d, h || 0, mi || 0); };
+  var FALLBACK = {
+    "Asia/Bangkok": [[U(1920, 3, 31, 17, 17), 6 + 42 / 60 + 4 / 3600], [Infinity, 7]],
+    "Asia/Singapore": [[U(1905, 5, 31, 17, 4), 6 + 55 / 60 + 25 / 3600], [U(1932, 12, 31, 17), 7], [U(1941, 8, 31, 16, 40), 7 + 20 / 60], [U(1942, 2, 15, 16, 30), 7.5], [U(1945, 9, 11, 15), 9], [U(1981, 12, 31, 16, 30), 7.5], [Infinity, 8]],
+    "Asia/Shanghai": [[Infinity, 8]],
+  };
+  FALLBACK["Asia/Kuala_Lumpur"] = FALLBACK["Asia/Singapore"];
+  var CN_DST = { 1986: [[5, 4], [9, 14]], 1987: [[4, 12], [9, 13]], 1988: [[4, 17], [9, 11]], 1989: [[4, 16], [9, 17]], 1990: [[4, 15], [9, 16]], 1991: [[4, 14], [9, 15]] };
+  function fallbackOffset(zone, y, m, d, h, mi) {
+    var rows = FALLBACK[zone]; if (!rows) return null;
+    var ut = U(y, m, d, h, mi) - rows[rows.length - 1][1] * 3600000, off = rows[rows.length - 1][1];
+    for (var i = 0; i < rows.length; i++) if (ut < rows[i][0]) { off = rows[i][1]; break; }
+    if (zone === "Asia/Shanghai" && CN_DST[y]) { var r = CN_DST[y], t = U(y, m, d, h, mi); if (t >= U(y, r[0][0], r[0][1], 2) && t < U(y, r[1][0], r[1][1], 2)) off = 9; }
+    return off;
+  }
+  var fmtCache = {};
+  function intlOffsetAt(zone, t) {
+    var f = fmtCache[zone] || (fmtCache[zone] = new Intl.DateTimeFormat("en-US", { timeZone: zone, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" }));
+    var p = {}; f.formatToParts(new Date(t)).forEach(function (x) { p[x.type] = x.value; });
+    return (Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute, +p.second) - Math.floor(t / 1000) * 1000) / 3600000;
+  }
+  /** offset (ชั่วโมง) ของเขตเวลา IANA ณ เวลานาฬิกาท้องถิ่น y-m-d h:mi → { offset, source: "intl" | "table" | "default" } */
+  function zoneOffset(zone, y, m, d, h, mi, opts) {
+    var noIntl = opts && opts.noIntl;
+    if (!noIntl && typeof Intl !== "undefined" && Intl.DateTimeFormat) {
+      try {
+        var local = U(y, m, d, h, mi), o = intlOffsetAt(zone, local);
+        o = intlOffsetAt(zone, local - o * 3600000);
+        if (isFinite(o)) return { offset: Math.round(o * 3600) / 3600, source: "intl" };
+      } catch (e) { /* ไม่มีข้อมูลเขตเวลา → ตารางสำรอง */ }
+    }
+    var fb = fallbackOffset(zone, y, m, d, h, mi);
+    return fb != null ? { offset: fb, source: "table" } : { offset: 7, source: "default" };
+  }
+  /** สมการเวลา (นาที, ±~1 นาที): เวลาสุริยะปรากฏ − เวลาสุริยะเฉลี่ย */
+  function equationOfTime(y, m, d) { var n = jdn(y, m, d) - jdn(y, 1, 1) + 1, B = 2 * Math.PI * (n - 81) / 364; return 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B); }
+  /** เวลาสุริยะจริง ณ ลองจิจูด lon (องศาตะวันออก) ของขณะ J (UT) → { at: {y,m,d,h,mi}, eot } */
+  function trueSolar(J, lon) { var mean = fromJD(J, lon / 15), e = equationOfTime(mean.y, mean.m, mean.d); return { at: fromJD(J + e / 1440, lon / 15), eot: e }; }
+  /** "UTC+07:00" / "UTC+06:42" */
+  function fmtOffset(o) { var s = o < 0 ? "-" : "+", a = Math.abs(o), hh = Math.floor(a + 1e-9), mm = Math.round((a - hh) * 60); if (mm === 60) { hh++; mm = 0; } return "UTC" + s + String(hh).padStart(2, "0") + ":" + String(mm).padStart(2, "0"); }
+
+  /** b = { y, m, d, h, mi, tz (ชั่วโมง, ค่าเริ่ม 7), gender: "male"|"female", noTime, solarLon (ไม่บังคับ: ลองจิจูด °E → ยาม/วันใช้เวลาสุริยะจริง) } */
   function bazi(b) {
     var tz = b.tz == null ? 7 : b.tz, h = b.noTime ? 12 : b.h || 0, mi = b.noTime ? 0 : b.mi || 0;
     var J = jd(b.y, b.m, b.d, h, mi, tz);
@@ -131,10 +196,13 @@
     var mStem = mod(firstStem + mIdx, 10), mBranch = mod(2 + mIdx, 12);
     var monthP = pillar(cycleIndex(mStem, mBranch));
     // วัน: ยามจื่อ 23:00 เริ่มวันใหม่
-    var dn = jdn(b.y, b.m, b.d) + (!b.noTime && h >= 23 ? 1 : 0);
+    // เวลาสุริยะจริง (ถ้าเลือก): ยามและการขึ้นวันใหม่ตอน 23:00 ใช้เวลาสุริยะ ณ ลองจิจูดที่เกิด (ปี/เดือนยังใช้เวลาสารทจริง)
+    var sol = !b.noTime && b.solarLon != null && b.solarLon !== "" && isFinite(+b.solarLon) && Math.abs(+b.solarLon) <= 180 ? trueSolar(J, +b.solarLon) : null;
+    var dY = sol ? sol.at.y : b.y, dMo = sol ? sol.at.m : b.m, dD = sol ? sol.at.d : b.d, dh = sol ? sol.at.h : h;
+    var dn = jdn(dY, dMo, dD) + (!b.noTime && dh >= 23 ? 1 : 0);
     var dayP = pillar(dn + 49);
     var hourP = null;
-    if (!b.noTime) { var hb = Math.floor(((h + 1) % 24) / 2), hs = mod((dayP.stem % 5) * 2 + hb, 10); hourP = pillar(cycleIndex(hs, hb)); }
+    if (!b.noTime) { var hb = Math.floor(((dh + 1) % 24) / 2), hs = mod((dayP.stem % 5) * 2 + hb, 10); hourP = pillar(cycleIndex(hs, hb)); }
     var pillars = [yearP, monthP, dayP].concat(hourP ? [hourP] : []);
     // สมดุลห้าธาตุ: ก้าน 1.0 + ก้านแฝงในกิ่ง 1.0/0.5/0.3
     var el = [0, 0, 0, 0, 0];
@@ -167,6 +235,7 @@
       luck: { forward: forward, startAge: startAge, pillars: luck },
       jie: { prev: { name: JIE_ZH[ja.prev.idx], at: fromJD(ja.prev.jd, tz) }, next: { name: JIE_ZH[ja.next.idx], at: fromJD(ja.next.jd, tz) } },
       lichun: fromJD(lichun, tz), cycleYear: yy, unsure: b.noTime ? pillarUnsure(b.y, b.m, b.d, tz) : null,
+      solar: sol ? { lon: +b.solarLon, at: sol.at, eotMin: Math.round(sol.eot), offsetMin: Math.round((+b.solarLon / 15 - tz) * 60 + sol.eot) } : null,
     };
   }
   /** วัยจรที่ครอบคลุมอายุ age */
@@ -260,6 +329,7 @@
     jdn: jdn, jd: jd, fromJD: fromJD, sunLongitude: sunLongitude, sunAt: sunAt, solarTermJD: solarTermJD, jieAround: jieAround, newMoonJD: newMoonJD, newMoonBefore: newMoonBefore,
     STEMS: STEMS, BRANCHES: BRANCHES, JIE: JIE, jieLon: jieLon, STEM_EL: STEM_EL, BRANCH_EL: BRANCH_EL, HIDDEN: HIDDEN, EL_KEYS: EL_KEYS, JIE_ZH: JIE_ZH, tenGod: tenGod, bazi: bazi, pillarUnsure: pillarUnsure, luckAt: luckAt, pillar: pillar,
     TAKSA_ORDER: TAKSA_ORDER, BHUMI: BHUMI, MAHA_YEARS: MAHA_YEARS, weekday: weekday, birthPlanet: birthPlanet, taksa: taksa, mahaAt: mahaAt,
+    ZONES: ZONES, zoneOffset: zoneOffset, equationOfTime: equationOfTime, trueSolar: trueSolar, fmtOffset: fmtOffset,
     thaiLunarMonth: thaiLunarMonth, zodiacYearThai: zodiacYearThai, zodiacYearSongkran: zodiacYearSongkran, lek7: lek7, progressedSunChanges: progressedSunChanges, SATURN_RETURNS: SATURN_RETURNS,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

@@ -51,6 +51,8 @@ if (has("--render")) {
     const R = { id: it.id, split: it.split, wall: Date.now() - t0, g: {} };
     R.face = await page.evaluate(() => !!(window.__pb.idState.cap && window.__pb.idState.cap.face && window.__pb.idState.cap.face.P));
     const cells = [];
+    // round 12: outfits are behind the "experimental outfit simulation" switch (off by default); the bench measures them with it on
+    await page.evaluate(() => window.__pb.setExpOutfit && window.__pb.setExpOutfit(true));
     for (const g of ["none", ...OUTFITS]) {
       const r = await page.evaluate(g => {
         const c = window.__pb.renderIdPhoto({ outfit: g }), shown = window.__pb.selectOutfit(g);

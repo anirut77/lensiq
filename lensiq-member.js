@@ -195,8 +195,10 @@
 
   /** fetch helper that keeps the error code ({ok, status, j}); bearer auth when signed in. Goes through LQApi.call
    *  (15 s timeout, credentials "omit", no-store, no-referrer); the plain fetch below is only for an older cached
-   *  lensiq-api.js without call(). */
-  function call(/** @type {string} */ path, /** @type {any} */ o) {
+   *  lensiq-api.js without call().
+   * @param {string} path
+   * @param {any} [o] */
+  function call(path, o) {
     o = o || {};
     var a = API();
     if (!a || !a.enabled()) return Promise.resolve({ ok: false, status: 0, j: null });
@@ -295,7 +297,7 @@
     return e;
   }
 
-  /* ---------------- reading gate (wraps FortuneAI.renderSections) ---------------- */
+  /* ---------------- reading gate (FortuneAI.registerHooks; legacy wrapper only for an old fortune-ai.js) ---------------- */
   var PAGE_DOMAIN = { faceread: "face", palm: "palm", horoscope: "horoscope", tarot: "tarot", fengshui: "fengshui", numbers: "numbers", iching: "iching", zodiac: "zodiac", astro: "astro", dream: "dream", bazi: "bazi", taksa: "taksa", lek7: "lek7", lifegraph: "lifegraph" };
   var page = (location.pathname.split("/").pop() || "").replace(/\.html$/, "");
   var domain = PAGE_DOMAIN[page] || null;
@@ -389,30 +391,85 @@
     shown.push({ c: c, r: r, o: o });
     if (shown.length > 12) shown.shift();
   }
+  var rerendering = false;
   function rerender() {
     if (!origRender) return;
-    shown.forEach(function (x) { if (x.c && x.c.isConnected) render(x.c, x.r, x.o, true); });
+    rerendering = true;
+    try { shown.forEach(function (x) { if (x.c && x.c.isConnected) origRender.call(W.FortuneAI, x.c, x.r, x.o); }); } finally { rerendering = false; }
+  }
+  /* Explicit hooks (FortuneAI.registerHooks, fortune-ai.js): gate -> render -> decorate, and an observer of the
+   * POST /api/fortune responses. Same behaviour in either script load order: when FortuneAI is not defined yet the hooks
+   * object is queued on window.LQFortuneHooks and fortune-ai.js registers it when it loads. */
+  var HOOKS = {
+    gate: function (/** @type {any} */ result, /** @type {any} */ opts, /** @type {any} */ container) {
+      if (!rerendering) remember(container, result, opts);
+      var g = gateResult(result);
+      if (g !== result || active()) ensureStyle();
+      return g;
+    },
+    decorate: function (/** @type {any} */ container, /** @type {any} */ result, /** @type {any} */ g) { decorate(container, result, g); },
+    onAIResponse: function (/** @type {Response} */ r) { quotaFrom(r); }
+  };
+  /** Notices a writing-assistant refusal for quota (POST /api/fortune -> 429 {code:"quota"}): the next reading composed
+   *  on the device gets the upgrade card. Read-only: it reads a clone, the page's own response is untouched. */
+  function quotaFrom(/** @type {Response} */ r) {
+    if (!r || r.status !== 429) return;
+    r.clone().json().then(function (/** @type {any} */ j) {
+      if (!j || j.code !== "quota") return;
+      var first = st.aiQuotaDay !== today();
+      st.aiQuotaDay = today();
+      if (first) setTimeout(rerender, 0);
+    }).catch(function () { /* not JSON */ });
+  }
+  var hookMode = "";
+  function hookFA() {
+    var FA = W.FortuneAI;
+    if (FA && typeof FA.registerHooks === "function") {
+      FA.registerHooks(HOOKS); hookMode = "hooks";
+      origRender = function (/** @type {any} */ c, /** @type {any} */ r, /** @type {any} */ o) { return W.FortuneAI.renderSections(c, r, o); };
+      return true;
+    }
+    return false;
+  }
+  function attach() {
+    if (hookFA()) return;
+    if (!W.FortuneAI) {
+      // not loaded yet: queue the hooks (drained by fortune-ai.js) and finish wiring once the page has loaded
+      var q = W.LQFortuneHooks = Array.isArray(W.LQFortuneHooks) ? W.LQFortuneHooks : [];
+      if (q.indexOf(HOOKS) < 0) q.push(HOOKS);
+      var later = function () { if (!hookMode && !hookFA() && W.FortuneAI) legacy(); };
+      if (doc.readyState === "complete") setTimeout(later, 0); else root.addEventListener("load", later);
+      return;
+    }
+    legacy();
+  }
+  /** Fallback for an older cached fortune-ai.js without registerHooks: wrap renderSections and window.fetch. */
+  function legacy() {
+    if (hookMode) return;
+    hookMode = "legacy";
+    wrapFA();
+    watchQuota();
   }
   function render(container, result, opts, again) {
     if (!again) remember(container, result, opts);
     var g = gateResult(result);
     if (g !== result || active()) ensureStyle();
-    var out = origRender.call(W.FortuneAI, container, g, opts);
+    var out = legacyRender.call(W.FortuneAI, container, g, opts);
     decorate(container, result, g);
     return out;
   }
+  var legacyRender = /** @type {any} */ (null);
   var tries = 0;
   function wrapFA() {
     var FA = W.FortuneAI;
     if (!FA || typeof FA.renderSections !== "function") { if (tries++ < 40) setTimeout(wrapFA, 250); return; }
     if (FA.renderSections.__lqMember) return;
-    origRender = FA.renderSections;
-    var wrapped = function (/** @type {any} */ c, /** @type {any} */ r, /** @type {any} */ o) { return render(c, r, o, false); };
+    legacyRender = FA.renderSections;
+    var wrapped = function (/** @type {any} */ c, /** @type {any} */ r, /** @type {any} */ o) { return render(c, r, o, rerendering); };
     wrapped.__lqMember = true;
     FA.renderSections = wrapped;
+    origRender = wrapped;
   }
-  /** Notices a writing-assistant refusal for quota (POST /api/fortune -> 429 {code:"quota"}): the next reading composed
-   *  on the device gets the upgrade card. Read-only: the response itself is passed on untouched (a clone is read). */
   function watchQuota() {
     if (typeof W.fetch !== "function" || W.fetch.__lqQuota) return;
     var orig = W.fetch;
@@ -422,11 +479,7 @@
         var u = typeof input === "string" ? input : input && input.url;
         var m = String((init && init.method) || (input && input.method) || "GET").toUpperCase();
         var a = API();
-        if (m === "POST" && a && a.enabled() && u === a.url("/api/fortune")) {
-          p.then(function (/** @type {Response} */ r) {
-            if (r && r.status === 429) r.clone().json().then(function (/** @type {any} */ j) { if (j && j.code === "quota") { var first = st.aiQuotaDay !== today(); st.aiQuotaDay = today(); if (first) setTimeout(rerender, 0); } }).catch(function () { /* not JSON */ });
-          }, function () { /* network: the page falls back on its own */ });
-        }
+        if (m === "POST" && a && a.enabled() && u === a.url("/api/fortune")) p.then(quotaFrom, function () { /* network: the page falls back on its own */ });
       } catch (e) { /* never break a request */ }
       return p;
     };
@@ -780,8 +833,7 @@
     (doc.head || doc.documentElement).appendChild(sc);
   });
   root.addEventListener("lq-lang", function () { renderChip(); rerender(); });
-  wrapFA();
-  watchQuota();
+  attach();
   if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", function () { renderChip(); init(); });
   else { renderChip(); init(); }
 })(typeof window !== "undefined" ? window : /** @type {any} */ (globalThis));

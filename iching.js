@@ -256,7 +256,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       return "<li" + (fo.lines.indexOf(p) === 0 ? ' class="key"' : "") + "><b>" + esc(linePos(p)) + "</b> — " + esc(lineText(p, old)) + "</li>";
     }).join("") + "</ul>" : "");
     $("#icReadWrap").innerHTML = FK.readingBlock("icRd", T("iching.rdTitle", "คำทำนายโดยละเอียด"), true, st.topic);
-    FK.bindReading("icRd", "iching", function (topic, r) { return IC.buildFacts(c, topic, { rng: r }); }, { withTopics: true, topic: st.topic, onTopic: function (t) { st.topic = t; } });
+    FK.bindReading("icRd", "iching", function (topic, r) { return IC.buildFacts(c, topic, { rng: r }); }, { withTopics: true, topic: st.topic, onTopic: function (t) { st.topic = t; }, userText: function () { return ($("#icQuestion") || {}).value || ""; } });
   }
   function showResult(c) {
     st.cast = c;

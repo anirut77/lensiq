@@ -8,6 +8,7 @@
 #                          refuse without it; site key goes in lensiq-config.js window.LENSIQ_TURNSTILE_SITEKEY)
 #   ALERT_WEBHOOK_URL      optional https incoming-webhook URL (Slack / Discord / ntfy …) for owner alerts — no PII sent
 #   HEALTH_TOKEN           optional bearer token that protects GET /health/deep
+#   MAIL_API_KEY           optional (round 12) — Resend / MailChannels API key for transactional e-mail (src/mail.js)
 name = "lensiq-api"
 main = "src/worker.js"
 compatibility_date = "2026-10-01"
@@ -58,12 +59,30 @@ GO_LIVE_GATE = "enforce"
 LEGAL_TERMS_READY = "false"
 LEGAL_PRIVACY_READY = "false"
 # Owner TOTP is required for money ops while billing / live keys are on; "true" requires it always.
-REQUIRE_OWNER_TOTP = "false"
+# Round 12: "true" in this (production) file — complimentary grants / refunds / test charges need owner TOTP from day
+# one. Unit tests and `wrangler dev` without this var keep the old behaviour (TOTP only while billing / live keys are on).
+REQUIRE_OWNER_TOTP = "true"
+# How money ops re-authenticate (src/auth.js moneyReauthMode): "window" = body {password, totp} OR the 5-min sudo window
+# (POST /admin/api/reauth); "inline" = {password, totp} in that very request. Empty = "window" with test keys and
+# "inline" automatically once OPN_ALLOW_LIVE=true.
+MONEY_REAUTH = ""
+# Admin test charges per hour (POST /admin/api/billing/test-charge; re-auth required, every attempt audited)
+TEST_CHARGE_HOUR = "10"
 # Pending payments re-checked with Opn per 15-min cron run (unfulfilled successful payments repaired: same batch size)
 RECONCILE_BATCH = "25"
 # B2B demo requests (POST /v1/leads): kept this many days; global cap per Bangkok day
 LEADS_DAYS = "180"
 LEADS_GLOBAL_DAY = "200"
+# Transactional e-mail (src/mail.js): receipt / credit-note notices and a renewal reminder 3 days before a paid period
+# ends. OFF while MAIL_PROVIDER is empty (every mail logged as skipped_not_configured). Needs a provider account and the
+# sender domain's SPF / DKIM / DMARC; the API key is the SECRET MAIL_API_KEY (`wrangler secret put MAIL_API_KEY`).
+MAIL_PROVIDER = ""
+MAIL_FROM = ""
+# Public site origin for links in e-mails (https://…, no trailing slash)
+SITE_URL = ""
+# CSP violation report counters (POST /v1/csp-report): kept this many days; global cap per Bangkok day
+CSP_REPORT_DAYS = "90"
+CSP_REPORT_GLOBAL_DAY = "5000"
 # Retention (days). Raw analytics events are purged after RAW_EVENT_DAYS; daily aggregates are kept.
 RAW_EVENT_DAYS = "90"
 AUDIT_DAYS = "400"

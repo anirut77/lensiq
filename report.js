@@ -1,6 +1,9 @@
 /* report.js — รายงานดวงของฉัน (report.html): the deliverables of the one-time reports sold on pricing.html.
  *
- *   report_basic   one full multi-section reading: 八字 BaZi + ทักษา Taksa + เลข 7 ตัว 9 ฐาน, each composed in full
+ *   report_basic   one full multi-section reading: 八字 BaZi + ทักษา Taksa + เลข 7 ตัว 9 ฐาน, each composed in full, plus
+ *                  (round 12 — what the free pages do not give) a cross-system deep-dive on work / money / love (each
+ *                  topic composed by all 3 systems, paragraphs already shown are not repeated), the next 3 months
+ *                  (month pillar vs the Day Master) and a personalised 4-week plan merged from every system's remedies
  *   report_compat  two-person compatibility long form: 12-animal pair relation + Day-Master element relation + plan
  *   report_annual  12-month outlook for a chosen year: the year's zodiac reading, the BaZi luck period and one entry
  *                  per month (the month pillar's "ten god" against the Day Master, favourable elements)
@@ -73,8 +76,46 @@
   /** @param {any} b */
   var withDefaults = function (b) { return Object.assign({ h: 12, mi: 0, tz: 7, noTime: false, gender: "female" }, b, { h: b.noTime ? 12 : b.h == null ? 12 : b.h, mi: b.noTime ? 0 : b.mi || 0 }); };
 
+  /** One month of the outlook: the month pillar's ten god against the Day Master of chart B. @param {any} B @param {any} b
+   *  @param {number} year @param {number} m @param {Function} t @param {((m: number) => string)|undefined} monthName */
+  function monthEntry(B, b, year, m, t, monthName) {
+    var P = LC.bazi({ y: year, m: m, d: 15, h: 12, mi: 0, tz: b.tz == null ? 7 : b.tz, noTime: false, gender: b.gender }).pillars.month;
+    var mel = LC.STEM_EL[P.stem], god = LC.tenGod(B.dayMaster.el, mel), G = GODS[god];
+    var fav = B.favour.indexOf(mel) >= 0;
+    return {
+      m: m, year: year, label: monthName ? monthName(m) : String(m), pillar: P.zh, god: god, tone: G.tone,
+      title: t("rp.god." + god + ".title", G.title), text: t("rp.god." + god + ".text", G.text), tip: t("rp.god." + god + ".tip", G.tip),
+      fav: fav ? t("rp.favMonth", "ธาตุของเดือนนี้ ({e}) เป็นธาตุที่หนุนผังของคุณ เหมาะกับการเริ่มเรื่องที่ตั้งใจไว้", { e: t("rp.el." + mel, EL_TH[mel]) }) : ""
+    };
+  }
+  var DEEP = ["work", "money", "love"];
+  var DEEP_TH = /** @type {Record<string, string>} */ ({ work: "การงานและการเรียน · มุมมองจาก 3 ศาสตร์", money: "การเงิน · มุมมองจาก 3 ศาสตร์", love: "ความรักและความสัมพันธ์ · มุมมองจาก 3 ศาสตร์" });
+  /** Paragraphs of every part already in the report (so the deep-dive never repeats them). @param {any[]} parts */
+  function usedParas(parts) { var s = new Set(); parts.forEach(function (p) { p.sections.forEach(function (/** @type {any} */ x) { x.paragraphs.forEach(function (/** @type {string} */ q) { s.add(q); }); }); }); return s; }
+  /** Plan items of several composed readings, de-duplicated by text. @param {any[]} rs */
+  function planPool(rs) {
+    var seen = new Set(), out = /** @type {any[]} */ ([]);
+    rs.forEach(function (r) { ((r && r.plan && r.plan.items) || []).forEach(function (/** @type {any} */ x) { if (x && x.t && !seen.has(x.t)) { seen.add(x.t); out.push({ for: x.for || "", t: x.t }); } }); });
+    return out;
+  }
   /**
-   * @param {any} b birth @param {{lang?: string, t?: Function, now?: Date}} [o]
+   * 4-week plan: weeks 1–3 take two remedies each from the pool (the chart's own needs first), week 3 adds this month's
+   * tip, week 4 is a review. @param {any[]} pool @param {any} month first month of the outlook @param {Function} t
+   */
+  function plan30Of(pool, month, t) {
+    var weeks = [];
+    for (var w = 0; w < 3; w++) {
+      var items = pool.slice(w * 2, w * 2 + 2);
+      if (!items.length && pool.length) items = [pool[w % pool.length]];
+      if (w === 2 && month) items = items.concat([{ for: t("rp.plan30.month", "เดือนนี้"), t: month.tip }]);
+      weeks.push({ n: w + 1, label: t("rp.week", "สัปดาห์ที่ {n}", { n: w + 1 }), items: items });
+    }
+    weeks.push({ n: 4, label: t("rp.week", "สัปดาห์ที่ {n}", { n: 4 }), items: [{ for: t("rp.plan30.reviewFor", "ทบทวน"), t: t("rp.plan30.review", "จดสั้น ๆ ว่าข้อไหนทำได้และรู้สึกอย่างไร เลือกข้อที่ได้ผลที่สุดทำต่อในเดือนถัดไป และปล่อยข้อที่ไม่เหมาะกับคุณ") }] });
+    return { title: t("rp.plan30.title", "แผน 30 วันเฉพาะของคุณ"), note: t("rp.plan30.note", "รวมจากคำแนะนำของทั้ง 3 ศาสตร์ตามผังของคุณ เป็นกิจกรรมดูแลตัวเองเล็ก ๆ ไม่ใช่คำแนะนำทางการแพทย์หรือการเงิน"), weeks: weeks };
+  }
+
+  /**
+   * @param {any} b birth @param {{lang?: string, t?: Function, now?: Date, monthName?: (m: number) => string}} [o]
    * @returns {any} {kind, lang, title, parts:[{id, title, headline, sections}], summary, plan, reminder}
    */
   function buildBasic(b, o) {
@@ -85,13 +126,28 @@
     var rb = FA.compose(KB.baziFacts(B, "overall", { age: age }), { lang: lang, seed: seed });
     var rt = FA.compose(KB.taksaFacts(Tk, "overall", { age: age }), { lang: lang, seed: seed + 1 });
     var rl = FA.compose(KB.lek7Facts(L7, "overall"), { lang: lang, seed: seed + 2 });
+    var parts = [
+      { id: "bazi", title: t("rp.part.bazi", "แปดอักษร (八字) · เจ้าชะตาและห้าธาตุ"), headline: [B.pillars.year.zh, B.pillars.month.zh, B.pillars.day.zh].concat(B.pillars.hour ? [B.pillars.hour.zh] : []).join(" "), sections: plainSections(rb) },
+      { id: "taksa", title: t("rp.part.taksa", "ทักษา · ดาวประจำวันเกิดและภูมิทั้ง 8"), headline: "", sections: plainSections(rt) },
+      { id: "lek7", title: t("rp.part.lek7", "เลข 7 ตัว 9 ฐาน · ฐานรวม"), headline: L7.sum.join(" · "), sections: plainSections(rl) }
+    ];
+    // cross-system deep-dive: each topic composed by all three systems, nothing already shown above is repeated
+    var used = usedParas(parts), deepRs = /** @type {any[]} */ ([]), deepSecs = /** @type {any[]} */ ([]);
+    DEEP.forEach(function (tp, i) {
+      var rs = [FA.compose(KB.baziFacts(B, tp, { age: age }), { lang: lang, seed: seed + 10 + i }), FA.compose(KB.taksaFacts(Tk, tp, { age: age }), { lang: lang, seed: seed + 20 + i }), FA.compose(KB.lek7Facts(L7, tp), { lang: lang, seed: seed + 30 + i })];
+      deepRs = deepRs.concat(rs);
+      var paras = /** @type {string[]} */ ([]);
+      rs.forEach(function (r) { (r.sections || []).filter(function (/** @type {any} */ s) { return s.id === tp; }).forEach(function (/** @type {any} */ s) { (s.paragraphs || []).forEach(function (/** @type {string} */ q) { if (q && !used.has(q)) { used.add(q); paras.push(q); } }); }); });
+      if (paras.length) deepSecs.push({ id: tp, title: t("rp.deep." + tp, DEEP_TH[tp]), paragraphs: paras.slice(0, 8) });
+    });
+    if (deepSecs.length) parts.push({ id: "deep", title: t("rp.part.deep", "เจาะลึกรายหัวข้อ · 3 ศาสตร์ประกอบกัน"), headline: "", sections: deepSecs });
+    // the next three months (month pillar vs the Day Master)
+    var ahead = [0, 1, 2].map(function (k) { var mm = now.getMonth() + k, yy = now.getFullYear() + Math.floor(mm / 12); return monthEntry(B, b, yy, (mm % 12) + 1, t, o && o.monthName); });
+    parts.push({ id: "ahead", title: t("rp.part.ahead", "3 เดือนข้างหน้า"), headline: "", sections: ahead.map(function (x) { return { id: "m" + x.m, title: x.label + " (" + x.pillar + ") · " + x.title, paragraphs: [x.text, "→ " + x.tip].concat(x.fav ? [x.fav] : []) }; }) });
+    var plan30 = plan30Of(planPool([rb, rt, rl].concat(deepRs)), ahead[0], t);
     return {
       kind: "report_basic", lang: rb.lang || lang, title: t("rp.basic.title", "รายงานดวงพื้นฐาน"),
-      parts: [
-        { id: "bazi", title: t("rp.part.bazi", "แปดอักษร (八字) · เจ้าชะตาและห้าธาตุ"), headline: [B.pillars.year.zh, B.pillars.month.zh, B.pillars.day.zh].concat(B.pillars.hour ? [B.pillars.hour.zh] : []).join(" "), sections: plainSections(rb) },
-        { id: "taksa", title: t("rp.part.taksa", "ทักษา · ดาวประจำวันเกิดและภูมิทั้ง 8"), headline: "", sections: plainSections(rt) },
-        { id: "lek7", title: t("rp.part.lek7", "เลข 7 ตัว 9 ฐาน · ฐานรวม"), headline: L7.sum.join(" · "), sections: plainSections(rl) }
-      ],
+      parts: parts, ahead: ahead, plan30: plan30,
       summary: rb.summary || null, plan: rb.plan || null, reminder: rb.reminder || rt.reminder || ""
     };
   }
@@ -138,16 +194,7 @@
     var rb = FA.compose(KB.baziFacts(B, "overall", { age: ageOn(b, year, 7, 1) }), { lang: lang, seed: seed + 1 });
     var timing = plainSections(rb).filter(function (s) { return s.id === "timing" || s.id === "overview"; });
     var months = [];
-    for (var m = 1; m <= 12; m++) {
-      var P = LC.bazi({ y: year, m: m, d: 15, h: 12, mi: 0, tz: b.tz == null ? 7 : b.tz, noTime: false, gender: b.gender }).pillars.month;
-      var mel = LC.STEM_EL[P.stem], god = LC.tenGod(B.dayMaster.el, mel), G = GODS[god];
-      var fav = B.favour.indexOf(mel) >= 0;
-      months.push({
-        m: m, label: o.monthName ? o.monthName(m) : String(m), pillar: P.zh, god: god, tone: G.tone,
-        title: t("rp.god." + god + ".title", G.title), text: t("rp.god." + god + ".text", G.text), tip: t("rp.god." + god + ".tip", G.tip),
-        fav: fav ? t("rp.favMonth", "ธาตุของเดือนนี้ ({e}) เป็นธาตุที่หนุนผังของคุณ เหมาะกับการเริ่มเรื่องที่ตั้งใจไว้", { e: t("rp.el." + mel, EL_TH[mel]) }) : ""
-      });
-    }
+    for (var m = 1; m <= 12; m++) months.push(monthEntry(B, b, year, m, t, o.monthName));
     return {
       kind: "report_annual", lang: ry.lang || lang, title: t("rp.annual.title", "รายงานดวงรายปี {y}", { y: year }), year: year,
       parts: [
@@ -180,6 +227,12 @@
     }
     // months first when there is not room for everything (they are the point of the annual report)
     if (rep.months) secs = secs.filter(function (s) { return /^months-/.test(s.id); }).concat(secs.filter(function (s) { return !/^months-/.test(s.id); }));
+    // the personalised 4-week plan (basic report) is kept first, then the deep-dive, then the rest
+    if (rep.plan30 && rep.plan30.weeks) {
+      var p30 = { id: "plan30", title: rep.plan30.title, paragraphs: rep.plan30.weeks.map(function (/** @type {any} */ w) { return w.label + ": " + w.items.map(function (/** @type {any} */ x) { return (x.for ? x.for + " — " : "") + x.t; }).join(" · "); }) };
+      var deep = secs.filter(function (s) { return /^deep-/.test(s.id); });
+      secs = [p30].concat(deep, secs.filter(function (s) { return !/^deep-/.test(s.id); }));
+    }
     var data = { lang: rep.lang || "th", summary: rep.summary ? { title: rep.summary.title, lines: (rep.summary.lines || []).slice(0, 6) } : undefined, plan: rep.plan ? { title: rep.plan.title, items: (rep.plan.items || []).slice(0, 5) } : undefined, sections: secs.slice(0, 12), reminder: rep.reminder || undefined };
     var trimmed = secs.length > 12;
     while (bytes(JSON.stringify(data)) > SAVE_BUDGET && data.sections.length) {
@@ -203,7 +256,7 @@
     return out;
   }
 
-  var pure = { TYPES: TYPES, DOMAIN: DOMAIN, GODS: GODS, PAIR_EL: PAIR_EL, validBirth: validBirth, seedOf: seedOf, ageOn: ageOn, buildBasic: buildBasic, buildCompat: buildCompat, buildAnnual: buildAnnual, toSaved: toSaved, modeOf: modeOf, creditsOf: creditsOf, SAVE_BUDGET: SAVE_BUDGET };
+  var pure = { TYPES: TYPES, DOMAIN: DOMAIN, GODS: GODS, PAIR_EL: PAIR_EL, DEEP: DEEP, monthEntry: monthEntry, planPool: planPool, plan30Of: plan30Of, validBirth: validBirth, seedOf: seedOf, ageOn: ageOn, buildBasic: buildBasic, buildCompat: buildCompat, buildAnnual: buildAnnual, toSaved: toSaved, modeOf: modeOf, creditsOf: creditsOf, SAVE_BUDGET: SAVE_BUDGET };
   if (isNode) { module.exports = pure; return; }
 
   /* ============================ browser ============================ */
@@ -332,7 +385,17 @@
     var head = h("header", { class: "rp-head" }, h("p", { class: "eyebrow", text: "LENSIQ" }), h("h2", { id: "rpOutH", tabindex: "-1", text: rep.title }));
     head.appendChild(h("p", { class: "rp-meta", text: T("rp.meta", "สร้างเมื่อ {d} · คำนวณในเครื่องจากตำรา ไม่ได้ใช้ผู้ช่วยเขียน", { d: new Date().toLocaleString(locale(), { dateStyle: "medium", timeStyle: "short" }) }) }));
     if (st.mode === "sample") head.appendChild(h("p", { class: "rp-sample", role: "note", text: T("rp.sampleTag", "ตัวอย่างรายงาน (โหมดเดโม) — ไม่มีการชำระเงิน ไม่บันทึก") }));
+    // personal cover line (name typed on this page only — never saved or sent) + table of contents
+    var forName = String(($("rpName") && $("rpName").value) || "").trim().slice(0, 60);
+    if (forName) head.appendChild(h("p", { class: "rp-for", text: T("rp.for", "จัดทำสำหรับ {name}", { name: forName }) }));
     out.appendChild(head);
+    var toc = h("nav", { class: "rp-toc", "aria-label": T("rp.toc", "สารบัญ") }, h("p", { class: "rp-toch", text: T("rp.toc", "สารบัญ") }));
+    var tl = h("ol");
+    rep.parts.forEach(function (/** @type {any} */ p) { tl.appendChild(h("li", { text: p.title })); });
+    if (rep.months) tl.appendChild(h("li", { text: T("rp.part.months", "รายเดือนตลอดปี") }));
+    if (rep.plan30) tl.appendChild(h("li", { text: rep.plan30.title }));
+    toc.appendChild(tl);
+    if (rep.parts.length + (rep.months ? 1 : 0) + (rep.plan30 ? 1 : 0) > 2) out.appendChild(toc);
     if (rep.summary && rep.summary.lines && rep.summary.lines.length) {
       var sm = h("section", { class: "rp-summary" }, h("h3", { text: rep.summary.title || T("rp.summary", "สรุปสั้น") }));
       var ul = h("ul");
@@ -360,6 +423,17 @@
       var ol = h("ol");
       rep.plan.items.forEach(function (/** @type {any} */ x) { ol.appendChild(h("li", null, h("b", { text: x.for + " " }), x.t)); });
       pl.appendChild(ol); out.appendChild(pl);
+    }
+    if (rep.plan30 && rep.plan30.weeks) {
+      var p30 = h("section", { class: "rp-plan rp-plan30", "data-part": "plan30" }, h("h3", { text: rep.plan30.title }), h("p", { class: "rp-small", text: rep.plan30.note }));
+      var wl = h("ol", { class: "rp-weeks" });
+      rep.plan30.weeks.forEach(function (/** @type {any} */ w) {
+        var li = h("li", { class: "rp-week" }, h("p", { class: "rp-wlabel", text: w.label }));
+        var ul2 = h("ul");
+        w.items.forEach(function (/** @type {any} */ x) { ul2.appendChild(h("li", null, x.for ? h("b", { text: x.for + " " }) : null, x.t)); });
+        li.appendChild(ul2); wl.appendChild(li);
+      });
+      p30.appendChild(wl); out.appendChild(p30);
     }
     if (rep.reminder) out.appendChild(h("p", { class: "rp-reminder", role: "note", text: rep.reminder }));
     out.appendChild(h("p", { class: "rp-small", text: T("rp.disclaimer", "เพื่อความบันเทิงตามความเชื่อ ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์ ไม่ใช่คำแนะนำทางการแพทย์ การเงิน หรือการจ้างงาน") }));
@@ -394,8 +468,7 @@
     if (a.err) return { err: a.err };
     var o = { lang: lang(), t: T, monthName: monthName };
     if (st.type === "report_compat") { var b = readBirth("rpB"); if (b.err) return { err: b.err }; return { rep: buildCompat(a, b, o) }; }
-    if (st.type === "report_annual") return { rep: buildAnnual(a, +$("rpYear").value || new Date().getFullYear(), o) };
-    return { rep: buildBasic(a, o) };
+    if (st.type === "report_annual") return { rep: buildAnnual(a, +$("rpYear").value || new Date().getFullYear(), o) };    return { rep: buildBasic(a, o) };
   }
   $("rpForm").addEventListener("submit", function (/** @type {Event} */ e) {
     e.preventDefault();

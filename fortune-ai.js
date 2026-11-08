@@ -39,6 +39,7 @@
  *   FortuneAI.regenerate(facts, opts)          -> Promise<result> (สำนวนใหม่ = seed ใหม่) ใช้กับปุ่ม "อ่านอีกสำนวน"
  *   FortuneAI.status()                         -> Promise<{enabled, model?}>
  *   FortuneAI.renderSections(el, result, { aiBadge?: boolean|string, showNote?: boolean })
+ *   FortuneAI.registerHooks({ gate?, decorate?, onAIResponse? }) -> unregister()  (extension points, see below)
  *   FortuneAI.toHTML(result, opts)             -> string (escape แล้ว)
  *   FortuneAI.consentControl(el, { onChange }) -> Promise<HTMLElement|null> แสดงเฉพาะเมื่อ AI เปิดใช้งาน
  *   FortuneAI.hasConsent() / setConsent(bool)
@@ -543,6 +544,24 @@
     cure: /\b(?:depression|anxiety|insomnia|migraines?|diabetes|condition|symptoms?|illness|disease)\b[^.]{0,40}\b(?:go away|disappear|be cured|heal|vanish|clear up)\b|\bcures?\s+(?:your\s+)?(?:depression|anxiety|insomnia|illness|disease|migraines?)\b|\bdepress(?:ion|ed)\b/i,
     lendLuck: /\blend(?:ing)?\s+(?:money|cash)\b[^.]{0,40}\b(?:lucky|luck|fortune|auspicious|prosper\w*)\b|\b(?:co-?sign|guarantee)\s+(?:a\s+)?loan\b[^.]{0,30}\b(?:lucky|luck)\b/i,
   });
+  /* ---- รอบ 12: คำรุนแรง (HARSH_*) ที่เดิมตรวจแค่ใน lint ตอนนี้ตัดใน isSafe ด้วย + คำทำนายเหตุร้ายในอนาคต
+     (รถชน/บาดเจ็บ, ฟันธงเลิกรา/อกหัก, หยุดยาเอง, ดวงตกต่ำสุดขีด/ชีวิตพัง) ทั้ง TH/EN/ZH — คำกลาง ๆ อย่าง "วิกฤต"
+     "แก้ปัญหา" "失败" ยังใช้ได้ในคลังความรู้ จึงเลือกเฉพาะคำที่เป็นการตัดสินชะตาแบบรุนแรง (ทดสอบไม่ให้ตัดข้อความในคลัง) ---- */
+  const HARSH_BLOCK_TH = /แย่มาก|ย่ำแย่|เลวร้าย|หายนะ|พังทลาย|ล้มเหลวแน่|ดวง(?:ของ)?(?:คุณ|เธอ|เขา|ท่าน)?(?:จะ)?(?:ตก|ซวย|ดิ่ง|พัง|แย่)|ดวงซวย|อับโชค|ตกต่ำ(?:ที่)?สุด(?:ขีด)?|ชีวิต(?:ของ)?(?:คุณ|เธอ|เขา)?(?:จะ|อาจ(?:จะ)?|กำลังจะ)?(?:พัง|ล่ม|ดิ่ง|จบเห่|ไม่เหลืออะไร)|ไม่มีทางรอด|หมดหวัง|สิ้นหวัง|ไม่มีอนาคต|ซวยหนัก/;
+  const HARSH_BLOCK_ZH = /运(?:势|气|程)[^。，！？]{0,4}(?:极差|很差|非常差|特别差|极糟|很糟|低迷|跌入谷底|到谷底|最差)|(?:跌入|跌到|跌至|掉进|落入)谷底|一败涂地|诸事不顺|很糟|糟糕透|非常差|极差|完蛋|没有希望|毫无希望|前途渺茫|毁于一旦|人生(?:会|将|要)?(?:毁|崩|完)/;
+  const HARSH_BLOCK_EN = /\b(?:terrible|awful|dreadful|hopeless|doomed|ruined|ruinous|catastroph\w*|bad luck|misfortune|unlucky|cursed|bleak|grim|rock[- ]bottom|(?:worst|darkest) (?:year|month|week|period|time|luck)|(?:your )?luck (?:is|has|will) (?:hit|reach|run out|bottom\w*)|(?:life|everything) (?:will|is going to|is about to) (?:fall apart|go wrong|collapse))\b/i;
+  Object.assign(UNSAFE_TH, {
+    harsh: HARSH_BLOCK_TH,
+    futureNeg: /รถชน|(?:ถูก|โดน)รถ(?:ชน|เฉี่ยว|ทับ)|ชนรถ|รถ(?:พลิก)?คว่ำ|บาดเจ็บ|เจ็บตัว|ประสบเหตุ|(?:จะ|อาจ(?:จะ)?|เสี่ยง(?:ที่จะ)?|มีเกณฑ์|กำลังจะ)(?:ได้)?(?:อกหัก|ถูกบอกเลิก|โดนบอกเลิก|เลิกกัน|ผิดหวังในความรัก|แยกทาง)|(?:หยุด|เลิก|งด)(?:การ)?(?:กิน|ทาน|ใช้)ยา(?![กวมยงนสใ])|(?:ไม่ต้อง|ไม่จำเป็นต้อง)(?:กิน|ทาน)ยา/,
+  });
+  Object.assign(UNSAFE_ZH, {
+    harsh: HARSH_BLOCK_ZH,
+    futureNeg: /停止(?:服药|吃药|用药|治疗)|(?:别|不要|不用|不必)(?:再)?(?:吃药|服药|用药)|断药|(?:自行|擅自)(?:停药|减药)|撞车|翻车|被车撞|受伤|(?:会|将|要|可能)(?:失恋|被甩|分开|散伙)|失恋/,
+  });
+  Object.assign(UNSAFE_EN_CAT, {
+    harsh: HARSH_BLOCK_EN,
+    futureNeg: /\b(?:car|road|traffic|motorbike|motorcycle|bike|bus) (?:crash|accident|collision|wreck)(?:es|s)?\b|\bcrash(?:es|ed|ing)? (?:your|the|a|into)\b|\b(?:get|be|being|getting) (?:hurt|injured|hit by a (?:car|bus|truck)|run over)\b|\bbreak-?ups?\b|\b(?:face|facing|heading for|in for|expect|expecting|see|seeing)\s+(?:a\s+)?(?:split|separation|heartbreak|parting)\b|\b(?:will|'ll|are going to|may|might)\s+(?:be\s+)?(?:heartbroken|dumped|left by)\b|\b(?:stop|quit|skip|stopping|quitting|skipping|come off|go off)\s+(?:taking\s+)?(?:your\s+|the\s+)?(?:meds|medication|medications|medicines?|pills|prescriptions?|treatment)\b/i,
+  });
   const unsafeCategory = t => { for (const k in UNSAFE_TH) if (UNSAFE_TH[k].test(t)) return k; for (const k in UNSAFE_ZH) if (UNSAFE_ZH[k].test(t)) return "zh:" + k; for (const k in UNSAFE_EN_CAT) if (UNSAFE_EN_CAT[k].test(t)) return "en:" + k; return UNSAFE_EN.test(t) ? "en" : ""; };
   // "Cancer" (ตัวใหญ่) ที่อยู่ในบริบทราศี = ชื่อราศีกรกฎ ไม่ใช่โรค
   const ILLNESS_CTX = /โรค|มะเร็ง|ป่วย|\b(disease|patient|tumou?r|treatment|risk|diagnos\w*|oncolog\w*|cell|stage)\b/i;
@@ -656,6 +675,55 @@
     return sentences(s).filter(isSafe).join(zh ? "" : " ").trim();
   }
 
+  /* รอบ 12 — lead echo: ชื่อในกรอบนำถูกพูดซ้ำในความหมายที่ตามมา ("Turning to this luck period, this luck period centers on…",
+     "夫妻宫饱满这一点说明，你……的夫妻宫饱满") → ใช้ความหมายเป็นประโยคเลย (ถ้าตัวเลขในชื่อยังอยู่ครบ); lint "lead-echo" ตรวจที่เหลือ */
+  const ECHO_STOP_EN = new Set("the a an of to and or in on at for with by from this that your you is are be it its as can may will more than into about also".split(" "));
+  const echoWordsEn = t => String(t).toLowerCase().replace(/[^a-z0-9' ]+/g, " ").split(/\s+/).filter(Boolean);
+  function enEcho(lead, rest) {
+    const a = echoWordsEn(lead), b = " " + echoWordsEn(rest).join(" ") + " ";
+    for (let n = Math.min(6, a.length); n >= 2; n--) for (let i = 0; i + n <= a.length; i++) { const g = a.slice(i, i + n); if (g.filter(x => !ECHO_STOP_EN.has(x)).length < 2) continue; if (b.indexOf(" " + g.join(" ") + " ") >= 0) return g.join(" "); }
+    return null;
+  }
+  function zhEcho(lead, rest) {
+    const a = String(lead).replace(/[^\u4e00-\u9fff]/g, "|"), b = String(rest);
+    for (let n = Math.min(8, a.length), lo = a.length === 2 ? 2 : 3; n >= lo; n--) for (let i = 0; i + n <= a.length; i++) { const g = a.slice(i, i + n); if (g.indexOf("|") < 0 && b.indexOf(g) >= 0) return g; }
+    return null;
+  }
+  // ชื่อมีตัวเลข (ดาว 1, เลขชีวิต 9) ที่ความหมายไม่มี → คงกรอบนำไว้ แต่แทนชื่อที่ซ้ำในความหมายด้วยคำแทน
+  function enEchoPronoun(m, g) {
+    const re = new RegExp("\\b(?:the |your |a |an )?" + g.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/ /g, "[^a-z0-9]+") + "\\b", "i"), x = re.exec(m);
+    if (!x) return m;
+    return x.index === 0 ? "it" + m.slice(x[0].length) : m.slice(0, x.index) + "this " + g.split(" ").pop() + m.slice(x.index + x[0].length);
+  }
+  function zhEchoPronoun(m, g) {
+    const i = m.indexOf(g); if (i < 0) return m;
+    const pre = m.slice(Math.max(0, i - 2), i), cut = /你的$/.test(pre) ? 2 : 0;
+    return i === 0 ? "它" + m.slice(g.length) : m.slice(0, i - cut) + (/数$/.test(g) ? "这个数" : "它") + m.slice(i + g.length);
+  }
+  const digitsKept = (name, m) => (String(name).match(/\d+/g) || []).every(d => String(m).indexOf(d) >= 0);
+  // lint: the lead clause (up to the first ", " / ": " / reporting verb) repeats a phrase from itself in the rest of the sentence
+  const LEAD_EN = /^(.{4,120}?)(?:,\s|:\s| suggests that | also shows that | adds that | is that | means that )/;
+  const LEAD_ZH = /^(.{2,40}?)(?:[，：]|这一点说明|显示|来看)/;
+  function leadEcho(sen, lang) {
+    const t = String(sen), m = (lang === "zh" ? LEAD_ZH : LEAD_EN).exec(t), echo = lang === "zh" ? zhEcho : enEcho;
+    const hit = m ? echo(m[1], t.slice(m[0].length)) : null;
+    if (hit) return hit;
+    // a longer lead that ends in a colon ("…, held by Rahu, the shadow planet: … from Rahu, the shadow planet")
+    const c = lang === "zh" ? t.indexOf("：") : t.indexOf(": ");
+    return c > 0 && c <= 160 ? echo(t.slice(0, c), t.slice(c + 1)) : null;
+  }
+  /** รอบ 12 — lint "lead-echo" (EN/ZH): ประโยคที่กรอบนำ (ก่อน ", " / ": " / คำรายงาน) มีวลีที่ถูกพูดซ้ำในส่วนที่เหลือของประโยค
+      ("Turning to this luck period, this luck period centers on…"). แยกจาก FA.lint เพราะข้อความในคลังความรู้บางประโยค
+      ซ้ำแบบตั้งใจ ("什么时候该进、什么时候该等", "平等地付出，也平等地接受") — ใช้วัดอัตราใน corpus (tests/unit/fortune-plan-diversity.test.js) */
+  function lintRepeats(result) {
+    const lang = result && result.lang, out = [];
+    if (lang !== "en" && lang !== "zh") return out;
+    const units = p => (lang === "en" ? enSentences(p) : String(p).split(/(?<=[。！？])/));
+    const scan = (sec, p) => { for (const x of units(p)) { const g = leadEcho(x.trim(), lang); if (g) out.push({ rule: "lead-echo", section: sec, excerpt: g + ": " + x.slice(0, 100) }); } };
+    for (const s of (result.sections || [])) for (const p of s.paragraphs || []) scan(s.id, p);
+    for (const l of ((result.summary && result.summary.lines) || [])) scan("summary", l.t || "");
+    return out;
+  }
   /* ======================= ตัวตรวจประโยคซ้ำ ======================= */
   const STRIP_PREFIX = CONNECTORS.concat(HEDGES.filter(Boolean).map(h => h.trim())).sort((a, b) => b.length - a.length);
   function normSentence(s) {
@@ -1141,6 +1209,143 @@
     "reflect": "Spend five minutes writing an answer to \"What is this situation teaching me?\", then choose one thing to act on this week.",
     "reflect.caution": "Write your worries on paper, sort them into what you can and can't control, and start with one thing you can control.",
   };
+  /* รอบ 12: ข้อแนะนำทั่วไป (habit.* / reflect*) มีหลายแบบ — แผน 3 ข้อเลือกตามสิ่งที่พบ (hash ของรหัส) ไม่ใช่ประโยคเดิมทุกครั้ง
+     (ผู้ประเมินพบ "เลือกงานที่สำคัญที่สุด…" ใน 69% ของคำทำนาย) — แบบที่ v2… เป็นหมวดเดียวกับตัวหลัก (lint remedy-match ใช้ได้เหมือนเดิม) */
+  const REMEDY_VARIANTS = {
+    "habit.work": [
+      ["เขียนงานที่ค้างไว้ลงกระดาษ แล้วเลือกปิดงานที่เล็กที่สุดหนึ่งชิ้นวันนี้", "把手上没做完的事写下来，今天先收尾最小的一件", "Write down the tasks you have left open, and close the smallest one today."],
+      ["กันเวลาทำงานแบบปิดการแจ้งเตือนวันละหนึ่งชั่วโมง", "每天留一小时关掉通知，专心做事", "Block out one hour a day with notifications off for focused work."],
+      ["ก่อนจบวันทำงาน จดสามเรื่องที่ทำสำเร็จ และงานแรกของพรุ่งนี้", "收工前写下今天完成的三件事和明天要做的第一件事", "Before you finish for the day, note three things you got done and the first task for tomorrow."],
+      ["ขอความเห็นจากเพื่อนร่วมงานหนึ่งคนเรื่องงานที่กำลังทำในสัปดาห์นี้", "这周就手上的工作，向一位同事请教一次意见", "Ask one colleague for feedback on something you are working on this week."],
+      ["แบ่งงานใหญ่หนึ่งชิ้นเป็นขั้นเล็ก ๆ และกำหนดวันเสร็จให้แต่ละขั้น", "把一项大任务拆成几个小步骤，每一步定好完成日期", "Split one big job into small steps and give each step its own finish date."],
+      ["ฝึกทักษะใหม่ที่ใช้กับงานได้วันละสิบห้านาที", "每天花十五分钟练一项工作用得上的新技能", "Spend fifteen minutes a day practising a skill you can use at work."],
+      ["จัดโต๊ะทำงานให้โล่งก่อนเริ่มงานทุกเช้า แล้วเปิดไว้เฉพาะงานที่กำลังทำ", "每天早上开工前先把桌面理清，只留下正在做的事", "Clear your desk before you start each morning and keep out only the task in hand."],
+      ["ทบทวนเป้าหมายงานของเดือนนี้ทุกเช้าวันจันทร์ แล้วเลือกหนึ่งเรื่องที่จะขยับในสัปดาห์นั้น", "每周一早上回顾本月的工作目标，选一件这周要推进的事", "Every Monday morning, look over this month's work goals and pick one to move forward that week."],
+      ["ตอบอีเมลและข้อความงานเป็นรอบ ๆ วันละสองครั้ง แทนการตอบทันทีทุกครั้ง", "工作邮件和消息集中在每天两个时段回复，不必每条都马上回", "Answer work email and messages at two set times a day instead of replying to each one at once."],
+    ],
+    "habit.money": [
+      ["ก่อนจ่ายเงินกับของที่ไม่จำเป็น ลองรอสองวันแล้วค่อยตัดสินใจ", "非必要的开销，先等两天再决定", "Wait two days before spending on anything you don't really need."],
+      ["แยกบัญชีเงินออมไว้หนึ่งบัญชี และโอนเข้าทุกครั้งที่ได้รับเงิน", "单独开一个储蓄账户，每次收到钱先转一部分进去", "Keep a separate savings account and move a little into it every time you get paid."],
+      ["สำรวจค่าบริการรายเดือนที่สมัครไว้ แล้วยกเลิกรายการที่ไม่ได้ใช้", "检查每月自动扣费的订阅，取消用不上的", "Review your monthly subscriptions and cancel the ones you no longer use."],
+      ["ตั้งเป้าเงินสำรองฉุกเฉินเล็ก ๆ แล้วเก็บเพิ่มทีละนิดทุกสัปดาห์", "定一个小小的应急储备目标，每周存一点", "Set a small emergency-fund goal and add a little to it every week."],
+      ["ก่อนเซ็นสัญญาหรือโอนเงิน ให้อ่านรายละเอียดซ้ำอีกรอบและถามคนที่ไว้ใจ", "签合同或转账前，再读一遍细节，并问问信任的人", "Before signing anything or making a transfer, reread the details and ask someone you trust."],
+      ["สิ้นเดือนนี้ ลองดูว่ารายจ่ายหมวดไหนสูงที่สุด แล้วตั้งเพดานให้หมวดนั้น", "这个月底看看哪一类开销最高，给它定一个上限", "At the end of this month, see which kind of spending is highest and set a cap for it."],
+    ],
+    "habit.love": [
+      ["เขียนข้อความขอบคุณสั้น ๆ ถึงคนที่คุณรักสัปดาห์ละครั้ง", "每周给你在乎的人写一句简短的感谢", "Once a week, send a short thank-you message to someone you care about."],
+      ["ชวนคนสำคัญทำกิจกรรมใหม่ด้วยกันหนึ่งอย่างในเดือนนี้", "这个月约重要的人一起尝试一件新事情", "Plan one new activity to try together with someone close to you this month."],
+      ["เวลาคุยเรื่องที่เห็นต่าง ลองฟังให้จบก่อนแล้วค่อยตอบ", "谈到意见不同的事时，先听对方说完再回应", "When you disagree, listen all the way through before you reply."],
+      ["ถามคนใกล้ตัวว่าสัปดาห์นี้มีอะไรที่อยากให้ช่วย", "问问身边的人这周有什么需要你帮忙的", "Ask the person closest to you what you could help with this week."],
+      ["ถ้ายังโสด ลองเข้ากลุ่มกิจกรรมที่ชอบเพื่อพบคนใหม่ ๆ", "如果还单身，可以参加喜欢的兴趣活动，认识新朋友", "If you are single, join a group around something you enjoy and meet new people there."],
+      ["บอกคนที่คุณรักหนึ่งเรื่องที่คุณชื่นชมในตัวเขาวันนี้", "今天告诉你在乎的人一件你欣赏对方的地方", "Tell someone you love one thing you admire about them today."],
+    ],
+    "habit.social": [
+      ["ชวนเพื่อนร่วมงานหนึ่งคนกินข้าวกลางวันด้วยกันในสัปดาห์นี้", "这周约一位同事一起吃午饭", "Have lunch with one colleague this week."],
+      ["ช่วยงานเล็ก ๆ ให้ใครสักคนโดยไม่ต้องรอให้ขอ", "主动帮别人一个小忙，不用等对方开口", "Do one small favour for someone without waiting to be asked."],
+      ["จำชื่อและเรื่องที่คนรู้จักใหม่เล่าให้ฟัง แล้วถามถึงในครั้งต่อไป", "记住新认识的人的名字和他们说过的事，下次见面时问起", "Remember the name and story of someone new, and ask about it the next time you meet."],
+      ["ส่งข้อความชื่นชมใครสักคนที่ทำได้ดีในวันนี้", "今天给做得好的人发一句称赞", "Send a word of praise to someone who did something well today."],
+      ["เข้าร่วมกิจกรรมกลุ่มหรือชมรมที่สนใจหนึ่งครั้งในเดือนนี้", "这个月参加一次感兴趣的团体活动或社团", "Go to one group activity or club meeting that interests you this month."],
+    ],
+    "habit.care": [
+      ["เดินเล่นกลางแจ้งวันละยี่สิบนาที", "每天到户外散步二十分钟", "Take a twenty-minute walk outdoors every day."],
+      ["ดื่มน้ำให้พอระหว่างวัน และลุกขึ้นยืดเส้นทุกหนึ่งชั่วโมง", "白天多喝水，每隔一小时起来伸展一下", "Drink enough water during the day and stand up to stretch once an hour."],
+      ["วางจอก่อนนอนสามสิบนาที แล้วใช้เวลานั้นอ่านหนังสือหรือฟังเพลงเบา ๆ", "睡前三十分钟放下屏幕，看看书或听点轻音乐", "Put screens away thirty minutes before bed and read or listen to quiet music instead."],
+      ["หายใจลึก ๆ ช้า ๆ ห้าครั้งก่อนเริ่มงานแต่ละช่วง", "每段工作开始前，慢慢深呼吸五次", "Take five slow, deep breaths before each block of work."],
+      ["จดเรื่องดี ๆ สามเรื่องที่เกิดขึ้นก่อนเข้านอน", "睡前写下当天三件好事", "Before bed, write down three good things that happened today."],
+      ["เข้านอนและตื่นเวลาเดิมทุกวันตลอดสัปดาห์นี้", "这周每天固定时间睡觉和起床", "Go to bed and get up at the same time every day this week."],
+      ["ทำอาหารง่าย ๆ กินเองอย่างน้อยหนึ่งมื้อในสัปดาห์นี้", "这周至少自己做一顿简单的饭", "Cook yourself at least one simple meal this week."],
+    ],
+    "reflect": [
+      ["เขียนสิ่งที่ผลนี้ชวนให้คิดไว้หนึ่งประโยค แล้ววางไว้ให้เห็นตลอดสัปดาห์", "用一句话写下这次结果让你想到的事，放在这周看得见的地方", "Write in one sentence what this reading makes you think about, and keep it where you can see it this week."],
+      ["เล่าเรื่องที่กำลังคิดให้คนที่ไว้ใจฟังหนึ่งคน แล้วฟังมุมมองของเขา", "把正在想的事讲给一位信任的人听，再听听对方的看法", "Talk the situation through with one person you trust and hear their view."],
+      ["เลือกก้าวเล็ก ๆ หนึ่งก้าวที่ทำได้ภายในสามวัน แล้วลงมือทำ", "选一个三天内能做到的小步骤，然后去做", "Choose one small step you can take within three days, and take it."],
+    ],
+    "reflect.caution": [
+      ["ก่อนตัดสินใจเรื่องสำคัญ ให้เวลาตัวเองหนึ่งคืนแล้วค่อยตอบ", "做重要决定前，先给自己一个晚上再回复", "Before an important decision, give yourself one night before you answer."],
+      ["เขียนทางเลือกที่มีออกมาให้ครบ พร้อมข้อดีหนึ่งข้อของแต่ละทาง", "把所有选择都写出来，每个写一个好处", "List every option you have, with one upside for each."],
+      ["ถ้าเรื่องนี้หนักใจ ลองคุยกับคนที่ไว้ใจหรือผู้เชี่ยวชาญด้านนั้น", "如果这件事让你很有压力，可以和信任的人或相关专业人士聊聊", "If this weighs on you, talk it over with someone you trust or a professional in that field."],
+    ],
+  };
+  const VARIANT_KEYS = {};
+  for (const base in REMEDY_VARIANTS) {
+    VARIANT_KEYS[base] = [base];
+    REMEDY_VARIANTS[base].forEach(([th, zh, en], k) => { const key = base + ".v" + (k + 2); REMEDY[key] = RM(REMEDY[base].cat, th, zh); REMEDY_EN[key] = en; VARIANT_KEYS[base].push(key); });
+  }
+  const strHash = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
+  // แบบของข้อแนะนำทั่วไปที่ใช้กับสิ่งที่พบนี้ (เลือกตามรหัสสิ่งที่พบ + ชุดข้อมูล → คำทำนายเดิมได้ข้อเดิม)
+  const variantKey = (key, salt) => { const v = VARIANT_KEYS[key]; return v ? v[strHash(salt) % v.length] : key; };
+  /* รอบ 12: สิ่งที่ทำได้ตาม "ลักษณะของสิ่งที่พบ" ในแต่ละศาสตร์ — ชุดไพ่ทาโรต์ (ตั้ง/กลับหัว), ตรีแกรมของอี้จิง, ภูมิทักษา,
+     ดาวจรเทพทั้งสิบของวัยจร/ความแข็งของเจ้าชะตา (八字), ความสัมพันธ์ของนักษัตร, โหมดราศีตะวันตก
+     เป็นข้อแนะนำทั่วไปที่เลือกตามสิ่งที่พบ (ไม่อ้างว่าเป็นเคล็ดของตำรา) — lint remedy-match ตรวจว่าตรงกับสิ่งที่พบจริง */
+  const FEATURE_ACTIONS = {
+    "tarot.wands": ["เลือกไอเดียหนึ่งอย่างที่อยากทำมานาน แล้วเริ่มก้าวแรกภายในสัปดาห์นี้", "挑一个想了很久的点子，这周迈出第一步", "Pick one idea you have wanted to try for a while and take the first step this week."],
+    "tarot.wands.r": ["ถ้าเริ่มหลายเรื่องพร้อมกัน ลองพักไว้หนึ่งเรื่อง แล้วเติมแรงให้เรื่องที่สำคัญที่สุด", "如果同时开了好几件事，先暂停一件，把力气留给最重要的", "If you have started too many things at once, pause one and put your energy into the one that matters most."],
+    "tarot.cups": ["บอกความรู้สึกดี ๆ ที่มีต่อใครสักคนออกไปตรง ๆ ในสัปดาห์นี้", "这周把对某个人的好感或感谢直接说出来", "This week, tell someone plainly about a warm feeling you have for them."],
+    "tarot.cups.r": ["ให้เวลาตัวเองเงียบ ๆ วันละสิบนาที เพื่อฟังว่าใจตัวเองต้องการอะไร", "每天给自己安静的十分钟，听听自己心里真正想要什么", "Give yourself ten quiet minutes a day to notice what you really feel and need."],
+    "tarot.swords": ["ก่อนคุยเรื่องสำคัญ เขียนประเด็นที่อยากพูดให้ชัดเป็นสามข้อ", "重要谈话前，先把想说的重点写成三条", "Before an important conversation, write the points you want to make as three clear lines."],
+    "tarot.swords.r": ["เมื่อความคิดวนไม่หยุด ลองเขียนออกมาบนกระดาษ แล้วแยกข้อเท็จจริงออกจากความกังวล", "想法停不下来时，把它们写在纸上，分开事实和担心", "When your thoughts keep circling, write them down and separate the facts from the worries."],
+    "tarot.pentacles": ["เลือกเป้าหมายที่จับต้องได้หนึ่งอย่าง แล้วทำต่อเนื่องวันละนิดตลอดสัปดาห์", "选一件看得见成果的事，这周每天做一点", "Choose one practical goal and work on it a little every day this week."],
+    "tarot.pentacles.r": ["ทบทวนรายจ่ายและเวลาที่ใช้ในสัปดาห์นี้ แล้วตัดสิ่งที่ไม่จำเป็นออกหนึ่งอย่าง", "回顾这周的开销和时间安排，删掉一件不必要的", "Look over how you spent your money and time this week and drop one thing you don't need."],
+    "tarot.major": ["เขียนบทเรียนที่ไพ่ใบนี้ชวนให้คิดไว้หนึ่งประโยค แล้วลองใช้กับเรื่องจริงหนึ่งเรื่องในสัปดาห์นี้", "用一句话写下这张牌让你想到的课题，这周在一件实际的事上试试", "Write in one sentence the lesson this card points to, and try it on one real situation this week."],
+    "tarot.major.r": ["มองหาเรื่องที่คุณยังลังเลจะเปลี่ยน แล้วเลือกขั้นที่เล็กที่สุดที่ทำได้ก่อน", "找出一件你迟迟没有改变的事，先做最小的一步", "Find one thing you have been hesitant to change, and take the smallest possible step first."],
+    "iching.qian": ["ตั้งเป้าหมายที่ชัดหนึ่งข้อ แล้วเป็นฝ่ายเริ่มลงมือก่อน", "定一个清楚的目标，主动先开始做", "Set one clear goal and be the one who starts on it."],
+    "iching.kun": ["สนับสนุนงานหรือคนรอบตัวหนึ่งเรื่องให้เต็มที่ โดยไม่ต้องรีบเป็นผู้นำ", "在一件事上做好支持别人的角色，不急着带头", "Back up one person or project around you this week without needing to lead it."],
+    "iching.zhen": ["ถ้ามีเรื่องที่ค้างไว้เพราะรอจังหวะ ให้เริ่มขยับก้าวแรกวันนี้", "有因为等时机而搁置的事，今天就迈出第一步", "If something has been on hold while you wait for the right moment, make the first move today."],
+    "iching.xun": ["ค่อย ๆ เสนอความคิดทีละน้อยและฟังความเห็นกลับ แทนการผลักดันทีเดียว", "把想法一点一点提出来，多听回应，不要一次硬推", "Share your idea a little at a time and listen to the response, rather than pushing it all at once."],
+    "iching.kan": ["ก่อนก้าวต่อ ตรวจรายละเอียดอีกรอบ และเตรียมแผนสำรองไว้หนึ่งทาง", "往前走之前再核对一遍细节，准备一个备用方案", "Before you move on, check the details once more and keep one backup plan ready."],
+    "iching.li": ["เขียนสิ่งที่ต้องการให้ชัดบนกระดาษ แล้วแบ่งปันกับคนที่เกี่ยวข้อง", "把你想要的写清楚，再和相关的人分享", "Write down clearly what you want, then share it with the people involved."],
+    "iching.gen": ["เลือกหนึ่งเรื่องที่จะหยุดพักไว้ก่อนในสัปดาห์นี้ เพื่อมีเวลาคิดให้รอบคอบ", "这周选一件事先停一停，留出时间想清楚", "Choose one thing to put on pause this week so you have time to think it through."],
+    "iching.dui": ["ชวนคนที่เกี่ยวข้องคุยกันแบบสบาย ๆ หนึ่งครั้ง เพื่อฟังความคิดของกันและกัน", "约相关的人轻松聊一次，听听彼此的想法", "Have one relaxed conversation with the people involved and hear each other out."],
+    "taksa.boriwan": ["ขอบคุณหรือช่วยเหลือคนในทีมหรือในครอบครัวหนึ่งคนในสัปดาห์นี้", "这周感谢或帮一位团队成员或家人", "Thank or help one person on your team or in your family this week."],
+    "taksa.ayu": ["ตั้งกิจวัตรเล็ก ๆ ที่ดีต่อร่างกายหนึ่งอย่าง เช่น เดินหลังมื้อเย็น แล้วทำให้ครบเจ็ดวัน", "定一个对身体好的小习惯，比如晚饭后散步，坚持七天", "Start one small habit that is good for your body, such as a walk after dinner, and keep it up for seven days."],
+    "taksa.det": ["รับผิดชอบงานหนึ่งเรื่องให้เต็มที่ และตัดสินใจเรื่องนั้นอย่างชัดเจนในสัปดาห์นี้", "这周把一件事全权负责起来，清楚地做决定", "Take full ownership of one task this week and make the calls on it clearly."],
+    "taksa.sri": ["ดูแลการแต่งกายและบุคลิกให้เรียบร้อยในวันที่ต้องพบคนสำคัญ", "见重要的人那天，把仪容和穿着打理整齐", "On days you meet important people, take a little extra care with how you dress and present yourself."],
+    "taksa.mula": ["จัดบ้านหรือมุมพักผ่อนหนึ่งมุมให้เป็นระเบียบ และกันเงินเก็บส่วนหนึ่งไว้เป็นฐาน", "整理家里的一个角落，再存一部分钱作底子", "Tidy one corner of your home and set aside a little savings as your base."],
+    "taksa.utsaha": ["ฝึกเรื่องที่อยากเก่งวันละยี่สิบนาที แล้วจดความคืบหน้าไว้", "每天花二十分钟练习想精进的事，并记下进度", "Spend twenty minutes a day practising something you want to get better at, and log your progress."],
+    "taksa.montri": ["ขอคำแนะนำจากผู้ใหญ่หรือคนที่มีประสบการณ์หนึ่งคนในเรื่องที่กำลังตัดสินใจ", "就正在考虑的事，向一位长辈或有经验的人请教", "Ask one elder or experienced person for advice on a decision you are weighing."],
+    "taksa.kalakini": ["เคลียร์ของที่ไม่ใช้หรือเรื่องที่ค้างคาใจออกไปหนึ่งอย่างในสัปดาห์นี้", "这周清掉一件用不上的东西或一件放不下的事", "Clear out one thing you no longer use, or one matter that keeps nagging at you, this week."],
+    "luck.officer": ["ทำตามกติกาและกำหนดส่งงานให้ตรงเวลา แล้วแจ้งความคืบหน้าให้หัวหน้ารู้", "守好规则和期限，主动向上级汇报进度", "Keep to the rules and deadlines, and keep your manager updated on your progress."],
+    "luck.resource": ["กันเวลาอ่านหรือเรียนเรื่องใหม่สัปดาห์ละสองชั่วโมง", "每周留两小时读书或学新东西", "Set aside two hours a week to read or learn something new."],
+    "luck.output": ["หาโอกาสแสดงฝีมือหรือไอเดียของคุณให้คนอื่นเห็นหนึ่งครั้งในเดือนนี้", "这个月找一次机会把你的手艺或想法展示出来", "Find one chance this month to show your skills or ideas to others."],
+    "luck.wealth": ["ตั้งเป้าการเงินเป็นตัวเลขที่ชัด แล้วติดตามผลทุกสิ้นเดือน", "给理财定一个清楚的目标，每月底检查一次", "Give your money goal a clear figure and check it at the end of each month."],
+    "luck.peer": ["ชวนเพื่อนที่มีเป้าหมายเดียวกันมาทำเรื่องหนึ่งด้วยกัน", "约有相同目标的朋友一起做一件事", "Team up with a friend who shares your goal on one thing."],
+    "str.weak": ["อย่ารับงานเกินกำลัง เลือกทำทีละเรื่อง และขอแรงช่วยเมื่อจำเป็น", "别接超出能力的事，一次做一件，需要时请人帮忙", "Don't take on more than you can carry; do one thing at a time and ask for help when you need it."],
+    "str.strong": ["ใช้พลังที่มีช่วยคนอื่น หรือรับผิดชอบงานที่ท้าทายหนึ่งเรื่อง", "把充沛的精力用来帮助别人，或承担一件有挑战的事", "Put your energy to work by helping others or taking on one challenging task."],
+    "str.balanced": ["รักษาจังหวะชีวิตที่ดีอยู่แล้ว และทบทวนสมดุลระหว่างงานกับการพักทุกสุดสัปดาห์", "保持现在的好节奏，每个周末回顾一下工作和休息的平衡", "Keep the good rhythm you have, and check the balance between work and rest each weekend."],
+    "zodiac.rel.clash": ["ช่วงนี้ค่อย ๆ คุยและตัดสินใจเรื่องสำคัญ ให้เวลาคิดหนึ่งคืนก่อนตอบ", "这段时间重要的事慢慢谈、慢慢定，回复前先想一晚", "Take important talks and decisions slowly for now, and sleep on things before you answer."],
+    "zodiac.rel.harm": ["สื่อสารให้ชัด และยืนยันข้อตกลงเป็นลายลักษณ์อักษรเพื่อลดความเข้าใจผิด", "沟通说清楚，约定的事写下来确认，减少误会", "Say things clearly and confirm agreements in writing to avoid misunderstandings."],
+    "zodiac.rel.trine": ["ใช้ช่วงที่ผู้คนสนับสนุนนี้ ชวนคนที่เข้ากันได้ดีทำโครงการเล็ก ๆ ด้วยกัน", "趁人缘好，约合得来的人一起做个小项目", "Make use of the goodwill around you and start a small project with someone you get on well with."],
+    "zodiac.rel.harmony": ["นัดเจอคนที่คุณสบายใจด้วยในสัปดาห์นี้ และบอกขอบคุณที่อยู่ข้างกัน", "这周约见让你安心的人，谢谢对方的陪伴", "Meet up with someone you feel at ease with this week and thank them for being there."],
+    "zodiac.rel.same": ["แลกเปลี่ยนประสบการณ์กับเพื่อนที่กำลังเจอเรื่องคล้าย ๆ กัน", "和正在经历相似事情的朋友交流经验", "Swap experiences with a friend who is going through something similar."],
+    "zodiac.el.wealth": ["จดรายรับรายจ่ายของเดือนนี้ แล้วเลือกเพิ่มรายได้หรือลดรายจ่ายหนึ่งทาง", "记下这个月的收支，选一个增加收入或减少开销的办法", "Write down this month's income and spending, and choose one way to earn a bit more or spend a bit less."],
+    "zodiac.el.output": ["ทำงานสร้างสรรค์ชิ้นเล็ก ๆ ให้เสร็จหนึ่งชิ้น แล้วให้คนอื่นดู", "用创意完成一件小作品，拿给别人看看", "Finish one small creative piece and show it to someone."],
+    "zodiac.el.resource": ["ขอคำแนะนำจากคนที่มีประสบการณ์ในเรื่องที่คุณกำลังเรียนรู้", "就你正在学的东西，向有经验的人请教", "Ask someone experienced for pointers on what you are learning."],
+    "zodiac.el.power": ["รับผิดชอบงานที่ได้รับมอบหมายให้ครบ และถามให้ชัดเมื่อไม่แน่ใจ", "把交给你的事做完整，不确定时问清楚", "Finish what you have been given in full, and ask when anything is unclear."],
+    "zodiac.el.same": ["ชวนเพื่อนสนิทมาตั้งเป้าหมายเล็ก ๆ ร่วมกันหนึ่งเรื่อง", "约好朋友一起定一个小目标", "Set one small shared goal with a close friend."],
+    "astro.mode.cardinal": ["เริ่มเรื่องใหม่ที่ตั้งใจไว้หนึ่งเรื่อง แล้วกำหนดวันทบทวนผลไว้ล่วงหน้า", "开始一件计划已久的新事，提前定好检查进度的日子", "Start one new thing you have been planning, and set a date in advance to review how it is going."],
+    "astro.mode.fixed": ["เลือกนิสัยดีหนึ่งอย่างแล้วทำต่อเนื่องสามสัปดาห์ และเปิดใจลองวิธีใหม่หนึ่งครั้ง", "选一个好习惯坚持三周，同时愿意尝试一次新方法", "Keep one good habit going for three weeks, and be open to trying one new approach along the way."],
+    "astro.mode.mutable": ["เขียนสามเรื่องสำคัญของสัปดาห์ไว้ แล้วทำให้ครบก่อนเริ่มเรื่องใหม่", "写下本周最重要的三件事，做完再开始新的", "Write down the three most important things this week and finish them before you start anything new."],
+  };
+  function featureKey(F, it) {
+    const id = String((it && it.id) || ""), d = F.domain;
+    let m;
+    if (d === "tarot" && (m = /^card\.[a-z]+\.(wands|cups|swords|pentacles|m)\d+(\.r)?$/.exec(id))) return "tarot." + (m[1] === "m" ? "major" : m[1]) + (m[2] ? ".r" : "");
+    if (d === "iching") {
+      if ((m = /^tri\.(?:upper|lower)\.([a-z]+)$/.exec(id))) return "iching." + m[1];
+      if (/^hex\.\d+$/.test(id)) { const lo = F.items.find(x => /^tri\.lower\.[a-z]+$/.test(x.id)); if (lo) return "iching." + lo.id.split(".")[2]; }
+    }
+    if (d === "taksa" && (m = /^(?:tk\.([a-z]+)\.\d+|maha\.\d+\.([a-z]+))$/.exec(id))) return "taksa." + (m[1] || m[2]);
+    if ((d === "bazi" || d === "lifegraph") && (m = /^(?:lg\.)?luck\.(officer|resource|output|wealth|peer)$/.exec(id))) return "luck." + m[1];
+    if (d === "bazi" && (m = /^str\.(weak|strong|balanced)$/.exec(id))) return "str." + m[1];
+    if (d === "zodiac" && (m = /^(rel|el)\.([a-z]+)$/.exec(id))) return "zodiac." + m[1] + "." + m[2];
+    if (d === "astro" && (m = /^mode\.(cardinal|fixed|mutable)$/.exec(id))) return "astro.mode." + m[1];
+    return null;
+  }
+  /** สิ่งที่ทำได้ตามลักษณะของสิ่งที่พบ → { key, th, zh, en } หรือ null */
+  function featureAction(F, it) {
+    const k = featureKey(F, it), a = k && FEATURE_ACTIONS[k];
+    return a ? { key: "feat." + k, th: a[0], zh: a[1], en: a[2] } : null;
+  }
   const REMEDY_FIT = { face: ["grooming", "expression", "skincare", "posture", "habit", "element"], palm: ["habit", "handcare", "element"], element: ["element"],
     direction: ["direction"], money: ["money"], work: ["work"], love: ["love"], social: ["social"], care: ["care"], reflect: ["reflect"] };
   // หมวดวิธีปรับที่ตำรากำหนดจริง (สี/ธาตุ, ทิศ) — หมวดอื่นเป็นข้อแนะนำทั่วไป ห้ามขึ้นต้นด้วย "ตามตำรา"
@@ -1149,7 +1354,8 @@
   function habitAsTradRe() {
     if (HABIT_AS_TRAD) return HABIT_AS_TRAD;
     const esc = x => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const heads = Object.keys(REMEDY).filter(k => REMEDY[k] && !TRAD_REMEDY.has(REMEDY[k].cat)).map(k => String(REMEDY[k].th || "").replace(/^ตามตำรา/, "").replace(/\s+/g, "").slice(0, 12)).filter(h => h.length >= 6);
+    // แบบ v2… ใช้ในแผนเท่านั้น (ต้นประโยคสั้น ๆ อย่าง "ก่อนตัดสินใจ" ชนกับคลังความรู้) จึงไม่นับเป็นหัวประโยคของนิสัยทั่วไป
+    const heads = Object.keys(REMEDY).filter(k => REMEDY[k] && !TRAD_REMEDY.has(REMEDY[k].cat) && !/\.v\d+$/.test(k)).map(k => String(REMEDY[k].th || "").replace(/^ตามตำรา/, "").replace(/\s+/g, "").slice(0, 12)).filter(h => h.length >= 6);
     HABIT_AS_TRAD = new RegExp("(?:ตามตำรา|เคล็ดเสริมดวง)[^\\s]{0,20}?(?:" + Array.from(new Set(heads)).map(esc).join("|") + ")");
     return HABIT_AS_TRAD;
   }
@@ -1205,6 +1411,8 @@
     // remedy-match: วิธีปรับในแผนต้องเป็นหมวดที่เข้ากับสิ่งที่พบ (คิ้ว → การแต่งคิ้ว ไม่ใช่ "จดรายจ่าย")
     const F = facts ? normalizeFacts(facts) : null, byId = F ? new Map(F.items.map(it => [it.id, it])) : null;
     for (const p of plan) {
+      if (p.feat) { const fa = byId && byId.get(p.item) ? featureAction(F, byId.get(p.item)) : null; if (!p.item || (byId && (!fa || fa.key !== p.key))) out.push({ rule: "remedy-match", section: "plan", excerpt: "feature action " + p.key + " ↛ " + p.item }); continue; }
+      if (p.own) { if (!p.item || (byId && !byId.has(p.item))) out.push({ rule: "remedy-match", section: "plan", excerpt: "own action without its item: " + String(p.t).slice(0, 60) }); continue; }
       if (p.generic) { if ((REMEDY_FIT[p.family] || []).indexOf(p.cat) < 0) out.push({ rule: "remedy-match", section: "plan", excerpt: "generic " + p.family + " ↛ " + p.cat }); continue; }
       if (!p.item || !p.cat || !p.family) { out.push({ rule: "remedy-match", section: "plan", excerpt: "no source: " + String(p.t).slice(0, 60) }); continue; }
       if ((REMEDY_FIT[p.family] || []).indexOf(p.cat) < 0) out.push({ rule: "remedy-match", section: "plan", excerpt: p.family + " ↛ " + p.cat + ": " + p.t.slice(0, 60) });
@@ -1213,27 +1421,71 @@
     }
     return out;
   }
-  /** แผนปรับดวง 3 ข้อ: จุดที่ควรระวังก่อน แล้วจุดเด่นที่สุด — ไม่ซ้ำหมวด และเจาะจงกับสิ่งที่พบ */
-  function buildPlan(F, lang, used, nameOf) {
+  /* รอบ 12: แผน 3 ข้อใช้ "สิ่งที่ทำได้" ของสิ่งที่พบในคำทำนายนี้เอง (คำแนะนำของไพ่/ฉลาก/ฮู่/ภูมิ/ราศีในคลังความรู้ที่ยังไม่ได้ใช้ในเนื้อหา)
+     ก่อนข้อแนะนำทั่วไป — ข้อทั่วไปที่เหลือเลือกแบบตามรหัสสิ่งที่พบ (REMEDY_VARIANTS) จึงไม่มีข้อใดซ้ำเกิน ~10% ของคำทำนาย
+     (ทดสอบใน tests/unit/fortune-plan-diversity.test.js) */
+  const GENERIC_FAMILY = new Set(["reflect", "work", "money", "love", "social", "care"]);
+  const PLAN_ELEMENT_WORD = /ธาตุ|[木火土金水]|\b(?:wood|fire|earth|metal|water)\b/i;
+  const OWN_ACTION_EN = /^(?:try|take|make|keep|let|give|set|start|spend|choose|write|note|plan|ask|talk|listen|check|review|put|pause|share|tell|focus|look|use|finish|split|break|leave|stay|be|do|don't|avoid|wait|slow|read|learn|practi[cs]e|clear|tidy|open|reach|find|follow|trust|rest|accept|step|stop to|before|when|if|once|each|every|this is a good time|it helps|you can|a good)\b/i;
+  function ownAction(F, lang, it, own, taken) {
+    if (!own || typeof own.of !== "function") return null;
+    const re = lang === "zh" ? REMEDY_UNSAFE_ZH : lang === "en" ? REMEDY_UNSAFE_EN : REMEDY_UNSAFE_TH;
+    for (const raw of own.of(it) || []) {
+      const m = cleanMeaning(raw); if (!m || taken.has(m) || (own.used && (own.used.has(m) || own.used.has(raw)))) continue;
+      const n = m.length;
+      if (lang === "zh" ? n < 8 || n > 60 : lang === "en" ? n < 25 || n > 170 : n < 18 || n > 140) continue;
+      if (!isSafe(m) || re.test(m) || FOREIGN_FOR[lang].test(m) || (F.helpful && PLAN_ELEMENT_WORD.test(m))) continue;
+      if (lang === "th" ? !isImperative(m) || adviceOffTopic(m, F.topic) : lang === "en" ? !OWN_ACTION_EN.test(m) : !ACTION_ZH.test(m)) continue;
+      if (habitAsTradRe().test(m.replace(/\s+/g, ""))) continue;
+      return lang === "en" ? enEnd(m) : m;
+    }
+    return null;
+  }
+  const FOREIGN_FOR = { th: /[\u4e00-\u9fff]/, zh: /[\u0E00-\u0E7F]/, en: /[\u0E00-\u0E7F\u4e00-\u9fff]/ };
+  /** แผนปรับดวง 3 ข้อ: จุดที่ควรระวังก่อน แล้วจุดเด่นที่สุด — ไม่ซ้ำหมวด และเจาะจงกับสิ่งที่พบ
+      own = { of: it => คำแนะนำของสิ่งที่พบนี้ในภาษานั้น, used: ประโยคที่ใช้ในเนื้อหาแล้ว } (ไม่ส่ง = แบบเดิม) */
+  function buildPlan(F, lang, used, nameOf, own) {
     const order = F.items.slice().sort((a, b) => ((toneOf(b) === "caution") - (toneOf(a) === "caution")) || (b.strength - a.strength));
-    const items = [], keys = new Set();
+    const items = [], keys = new Set(), taken = new Set(), salt = String(factsHash(F));
     for (const it of order) {
-      if (used && used.size && !used.has(it.id)) continue;
-      const r = remedyFor(F, it, toneOf(it) === "caution" ? F.topic : null); if (!r || keys.has(r.key)) continue;
-      keys.add(r.key);
+      if (used && used.size && !used.has(it.id) && toneOf(it) !== "caution") continue;
+      const sec = toneOf(it) === "caution" ? F.topic : null;
+      const r0 = remedyFor(F, it, sec);
+      if (!r0 || GENERIC_FAMILY.has(r0.family)) {
+        const name = nameOf ? nameOf(it) : proseLabel(it.short || it.label).replace(CJK_PAREN, "").trim();
+        const t = name && ownAction(F, lang, it, own, taken);
+        if (t) {
+          taken.add(t);
+          items.push({ t, cat: "own", family: r0 ? r0.family : "own", item: it.id, key: "own." + it.id, own: true, sec, for: name, tone: toneOf(it) });
+          if (items.length >= 3) break;
+          continue;
+        }
+      }
+      if (!r0 || GENERIC_FAMILY.has(r0.family)) {
+        const fa = featureAction(F, it), name = fa && !keys.has(fa.key) && (nameOf ? nameOf(it) : proseLabel(it.short || it.label).replace(CJK_PAREN, "").trim());
+        if (name) {
+          keys.add(fa.key);
+          items.push({ t: lang === "zh" ? fa.zh : lang === "en" ? fa.en : fa.th, cat: "feature", family: r0 ? r0.family : "feature", item: it.id, key: fa.key, feat: true, sec, for: name, tone: toneOf(it) });
+          if (items.length >= 3) break;
+          continue;
+        }
+      }
+      if (!r0 || keys.has(r0.key)) continue;
+      keys.add(r0.key);
+      const vk = variantKey(r0.key, it.id + "|" + salt), r = vk === r0.key ? r0 : Object.assign({}, r0, REMEDY[vk], { key: vk, en: REMEDY_EN[vk] });
       const name = nameOf ? nameOf(it) : proseLabel(it.short || it.label).replace(CJK_PAREN, "").trim();
       if (!name) continue;
-      items.push({ t: lang === "zh" ? r.zh : lang === "en" ? r.en : r.th, cat: r.cat, family: r.family, item: it.id, key: r.key, sec: toneOf(it) === "caution" ? F.topic : null, for: name, tone: toneOf(it) });
+      items.push({ t: lang === "zh" ? r.zh : lang === "en" ? r.en : r.th, cat: r.cat, family: r.family, item: it.id, key: r.key, sec, for: name, tone: toneOf(it) });
       if (items.length >= 3) break;
     }
     // ไม่พอ 3 ข้อ → เติมนิสัยของหัวข้อที่ถาม (ระบุว่าเป็นข้อทั่วไปของหัวข้อนั้น)
     for (const k of ["habit." + (F.topic === "overall" ? "care" : F.topic), "habit.care", "habit.work", "habit.money"]) {
       if (items.length >= 3) break;
       if (!REMEDY[k] || keys.has(k)) continue;
-      keys.add(k); const r = REMEDY[k];
+      keys.add(k); const vk = variantKey(k, k + "|" + salt), r = REMEDY[vk];
       // ข้อทั่วไปของหัวข้อที่ถาม (generic) — ระบุชื่อหัวข้อแทนสิ่งที่พบ
       const tw = k.split(".")[1], label = lang === "zh" ? { money: "财运", work: "工作", love: "感情", care: "自我照顾", social: "人际" }[tw] : lang === "en" ? { money: "Money", work: "Work", love: "Love", care: "Self-care", social: "People" }[tw] : { money: "เรื่องเงิน", work: "เรื่องงาน", love: "เรื่องความรัก", care: "การดูแลตัวเอง", social: "เรื่องผู้คน" }[tw];
-      items.push({ t: lang === "zh" ? r.zh : lang === "en" ? REMEDY_EN[k] : r.th, cat: r.cat, family: tw, item: null, generic: true, key: k, sec: F.topic, for: label, tone: "neutral" });
+      items.push({ t: lang === "zh" ? r.zh : lang === "en" ? REMEDY_EN[vk] : r.th, cat: r.cat, family: tw, item: null, generic: true, key: vk, sec: F.topic, for: label, tone: "neutral" });
     }
     return items.length ? { title: lang === "zh" ? "三步开运计划" : lang === "en" ? "Your three-step plan" : "แผนปรับดวง 3 ข้อ", items } : null;
   }
@@ -1611,6 +1863,9 @@
     return out;
   }
 
+  /* รอบ 12: ภาพรวมต้องมีจุดที่ควรระวังอย่างน้อยหนึ่งจุดเมื่อผลมีจุดนั้น (ผู้ประเมินพบคำทำนายที่ติดป้าย caution แต่ไม่พูดถึงจุดระวังเลย
+     เพราะจุดระวังมีน้ำหนักต่ำจึงหลุดจากรายการแรก ๆ) → ถ้ารายการแรก k รายการไม่มีจุดระวัง เติมจุดระวังแรกต่อท้าย */
+  const withCaution = (list, k, isCaution) => { const top = list.slice(0, k); if (top.some(isCaution)) return top; const c = list.find(isCaution); return c ? top.concat([c]) : top; };
   function buildOverview(ctx, plan) {
     const { F, r } = ctx;
     ctx.secLead = 0; ctx.lastItem = null; ctx.sec = "overview"; ctx.secMeanings.overview = [];
@@ -1621,7 +1876,7 @@
       units.push({ text, fixed: true, sub: true });
     }
     const k = Math.min(F.items.length, 3 + Math.floor(r() * 3));
-    const top = F.items.slice(0, k);
+    const top = withCaution(F.items, k, it => toneOf(it) === "caution");
     // ภาพรวมใช้ความหมายด้านภาพรวม/บุคลิกก่อน เก็บความหมายของหัวข้อที่ถามไว้ให้หัวข้อนั้น (กันหัวข้อหลักเหลือแต่คำเกริ่น)
     const pref = ["overview", "personality"];
     // หัวข้อที่ถามจะมีหัวข้อของตัวเอง → ภาพรวมไม่ใช้ประโยคเดียวกับความหมายด้านหัวข้อนั้น (คลังบางชุดใส่ข้อความเดียวกันทั้งสองช่อง)
@@ -2167,7 +2422,7 @@
     const out = { source: "local", sections, seed, lang: "th", topic: F.topic, reminder: reminderFor("th", r, F.domain) };
     Object.defineProperty(out, "_dupNames", { value: dupNames, enumerable: false });
     if (ctx.why && ctx.why.length) out.why = { title: "ที่มาของผล", lines: ctx.why.slice(0, 4) };
-    const plan = buildPlan(F, "th", ctx.mentioned); if (plan) out.plan = plan;
+    const plan = buildPlan(F, "th", ctx.mentioned, null, { of: it => (it.meanings && it.meanings.advice) || [], used: ctx.used }); if (plan) out.plan = plan;
     if (opts.trace) out._rejected = ctx.rejected || 0;
     const summary = buildSummary(ctx, topicId);
     if (summary) out.summary = summary;
@@ -2350,10 +2605,17 @@
       } else if (it.kind === "plain") t = lastSubj === it.short && /^对方(?!也)/.test(m) ? m.replace(/^对方/, "对方也") : m;
       // 同名的不同项目（上卦与下卦同为巽卦等）也算同一主语
       else if (lastSubj === it.short && (nameShown.has(it.id) || items.some(x => x.id !== it.id && x.short === it.short && nameShown.has(x.id)))) { t = fill(same(), { M: m }); nameShown.add(it.id); }
-      else if (it.kind === "rel" && !nameShown.has(it.id)) t = fill(pick(r, ZH_REL), { N: nm(it), M: m });
-      else if (it.polarity === "challenge" && !nameShown.has(it.id)) t = fill(dk.chal(), { N: nm(it), M: m });
-      else if (!nameShown.has(it.id)) t = fill(dk.first(), { N: nm(it), M: m });
-      else t = fill(dk.next(), { S: nm(it), M: m });
+      else {
+        const isNew = !nameShown.has(it.id), N = nm(it);
+        if (it.kind === "rel" && isNew) t = fill(pick(r, ZH_REL), { N, M: m });
+        else if (it.polarity === "challenge" && isNew) t = fill(dk.chal(), { N, M: m });
+        else if (isNew) t = fill(dk.first(), { N, M: m });
+        else t = fill(dk.next(), { S: N, M: m });
+        // 含义本身已经说出名称（"你……的夫妻宫饱满"）→ 不再加引导语
+        const zg = zhEcho(N, m);
+        if (zg && digitsKept(N, m)) t = m;
+        else if (zg && t.endsWith(m)) t = t.slice(0, t.length - m.length) + zhEchoPronoun(m, zg);
+      }
       t = zhEnd(t);
       lastSubj = it.short;
       claims.push({ kind: "item", ids: [it.id], sec, text: t });
@@ -2387,7 +2649,7 @@
       top.forEach(it => nameShown.add(it.id));
       head = top.length ? { ids: top.map(it => it.id), at: 0 } : null;
       secM.overview = [];
-      for (const it of items.slice(0, 3 + Math.floor(r() * 2))) {
+      for (const it of withCaution(items, 3 + Math.floor(r() * 2), x => x.polarity === "challenge")) {
         const m = (topicHas ? takeOv(it) : take(it, ["overview", "personality"])) || (topicHas ? null : take(it, [F.topic]));
         if (!m) continue;
         if (!(head && head.ids[head.at] === it.id)) nameShown.delete(it.id);
@@ -2476,12 +2738,13 @@
     if (opts.split !== false) splitMain(sections, topicId, ZH_MAIN);
     const out = { source: "local", lang: "zh", sections, seed, topic: F.topic, reminder: reminderFor("zh", r, F.domain) };
     const zName = new Map(items.map(it => [it.id, it.short || it.label]));
-    const zplan = buildPlan(F, "zh", new Set(items.filter(it => nameShown.has(it.id)).map(it => it.id)), it => zName.get(it.id) || ""); if (zplan) out.plan = zplan;
+    const zById = new Map(items.map(it => [it.id, it]));
+    const zplan = buildPlan(F, "zh", new Set(items.filter(it => nameShown.has(it.id)).map(it => it.id)), it => zName.get(it.id) || "", { of: it => ((zById.get(it.id) || {}).meanings || {}).advice || [], used }); if (zplan) out.plan = zplan;
     // 简要总结：最突出 / 你问的主题 / 试试看
     const lines = [], ov = secM.overview || [];
-    if (ov[0]) lines.push({ k: "最突出", c: "top", t: ov[0].it.short + "：" + ov[0].m });
+    if (ov[0]) lines.push({ k: "最突出", c: "top", t: zhEcho(ov[0].it.short, ov[0].m) && digitsKept(ov[0].it.short, ov[0].m) ? ov[0].m : ov[0].it.short + "：" + ov[0].m });
     const tm = F.topic !== "overall" ? (secM[F.topic] || []).find(x => !ov[0] || x.m !== ov[0].m) : (ov[1] || null);
-    if (tm) lines.push({ k: F.topic !== "overall" ? ZH_TAG[F.topic] : "另一亮点", c: F.topic !== "overall" ? "topic." + F.topic : "other", t: tm.it.short + "：" + tm.m });
+    if (tm) lines.push({ k: F.topic !== "overall" ? ZH_TAG[F.topic] : "另一亮点", c: F.topic !== "overall" ? "topic." + F.topic : "other", t: zhEcho(tm.it.short, tm.m) && digitsKept(tm.it.short, tm.m) ? tm.m : tm.it.short + "：" + tm.m });
     if (actions[0]) lines.push({ k: "试试看", c: "try", t: actions[0] });
     const sl = lines.filter(l => l.t && isSafe(l.t)).slice(0, 3);
     if (sl.length >= 2) out.summary = { title: "简要总结", lines: sl };
@@ -2680,6 +2943,10 @@
         else t = isNew ? fill(dk.first(), { N, M: m }) : fill(dk.next(), { S: N, M: m });
         // never "X suggests that X…" or a reporting verb stacked on a clause that reports by itself
         if (enLabelEcho(enEnd(t)) || EN_CHAIN.test(t)) t = isNew ? fill(pick(r, EN_PLAIN_FIRST), { N, M: m }) : fill(pick(r, EN_PLAIN_NEXT), { S: N, M: m });
+        // the meaning already names it ("your Wealth palace, the tip of the nose, is full") → no lead frame
+        const eg = enEcho(N, m);
+        if (eg && digitsKept(N, m)) t = m;
+        else if (eg && t.endsWith(m)) t = t.slice(0, t.length - m.length) + enEchoPronoun(m, eg);
       }
       t = enAgree(t, it);
       // "…shows that if you are tired, rest…": a conditional/imperative clause cannot follow "that"
@@ -2717,7 +2984,7 @@
       head = top.length ? { ids: top.map(it => it.id), at: 0 } : null;
       secM.overview = [];
       // the items named in the headline are explained first, in the same order
-      for (const it of top.concat(items.filter(x => top.indexOf(x) < 0)).slice(0, 3 + Math.floor(r() * 2))) {
+      for (const it of withCaution(top.concat(items.filter(x => top.indexOf(x) < 0)), 3 + Math.floor(r() * 2), x => x.polarity === "challenge")) {
         const m = (topicHas ? takeOv(it) : take(it, ["overview", "personality"])) || (topicHas ? null : take(it, [F.topic]));
         if (!m) continue;
         if (!(head && head.ids[head.at] === it.id)) nameShown.delete(it.id);
@@ -2805,11 +3072,12 @@
     if (opts.split !== false) splitMain(sections, topicId, EN_MAIN);
     const out = { source: "local", lang: "en", sections, seed, topic: F.topic, reminder: reminderFor("en", r, F.domain) };
     const eName = new Map(items.map(it => [it.id, cap(it.short || it.label)]));
-    const eplan = buildPlan(F, "en", new Set(items.filter(it => nameShown.has(it.id)).map(it => it.id)), it => eName.get(it.id) || ""); if (eplan) out.plan = eplan;
+    const eById = new Map(items.map(it => [it.id, it]));
+    const eplan = buildPlan(F, "en", new Set(items.filter(it => nameShown.has(it.id)).map(it => it.id)), it => eName.get(it.id) || "", { of: it => ((eById.get(it.id) || {}).meanings || {}).advice || [], used }); if (eplan) out.plan = eplan;
     const lines = [], ov = secM.overview || [];
-    if (ov[0]) lines.push({ k: "Standout", c: "top", t: cap(ov[0].it.short) + ": " + ov[0].m });
+    if (ov[0]) lines.push({ k: "Standout", c: "top", t: enEcho(ov[0].it.short, ov[0].m) && digitsKept(ov[0].it.short, ov[0].m) ? cap(ov[0].m) : cap(ov[0].it.short) + ": " + ov[0].m });
     const tm = F.topic !== "overall" ? (secM[F.topic] || []).find(x => !ov[0] || x.m !== ov[0].m) : (ov[1] || null);
-    if (tm) lines.push({ k: F.topic !== "overall" ? { love: "Love", work: "Career", money: "Money" }[F.topic] : "Another highlight", c: F.topic !== "overall" ? "topic." + F.topic : "other", t: cap(tm.it.short) + ": " + tm.m });
+    if (tm) lines.push({ k: F.topic !== "overall" ? { love: "Love", work: "Career", money: "Money" }[F.topic] : "Another highlight", c: F.topic !== "overall" ? "topic." + F.topic : "other", t: enEcho(tm.it.short, tm.m) && digitsKept(tm.it.short, tm.m) ? cap(tm.m) : cap(tm.it.short) + ": " + tm.m });
     if (actions[0]) lines.push({ k: "Try this", c: "try", t: cap(actions[0]) });
     const sl = lines.filter(l => l.t && isSafe(l.t)).slice(0, 3);
     if (sl.length >= 2) out.summary = { title: "Summary", lines: sl };
@@ -3858,6 +4126,7 @@
             method: "POST", headers: { "Content-Type": "application/json" }, signal: ac ? ac.signal : undefined,
             body: JSON.stringify({ facts: factsForAI(facts), consent: true, tone: opts.tone || "warm" }),
           });
+          notifyAIResponse(res);
           if (res.ok) {
             const j = await res.json();
             const sections = normalizeAI(j);
@@ -4019,11 +4288,39 @@
     });
   }
 
+  /* ---- Extension points (explicit hooks instead of wrapping FortuneAI.renderSections / window.fetch) ----
+   * FortuneAI.registerHooks({ gate?(result, opts, container) -> result, decorate?(container, original, shown, opts),
+   *                           onAIResponse?(response) })  -> unregister()
+   *   gate          may return a different result to render (e.g. the member module's light reading for guests)
+   *   decorate      runs after rendering (cards, buttons); `original` is the result passed in, `shown` the rendered one
+   *   onAIResponse  observes every POST /api/fortune response (receives a clone; read-only)
+   * A module that loads BEFORE this file pushes its hooks object onto window.LQFortuneHooks (an array); it is drained
+   * here, so the result is the same in either script load order. Registering the same object twice is a no-op.
+   * Hooks never break a reading: each call is wrapped in try/catch. */
+  const HOOKS = [];
+  function registerHooks(h) {
+    if (!h || typeof h !== "object") return () => {};
+    if (HOOKS.indexOf(h) < 0) HOOKS.push(h);
+    return () => { const i = HOOKS.indexOf(h); if (i >= 0) HOOKS.splice(i, 1); };
+  }
+  function notifyAIResponse(res) {
+    for (const h of HOOKS) if (typeof h.onAIResponse === "function") { try { h.onAIResponse(res && typeof res.clone === "function" ? res.clone() : res); } catch (e) { /* observer error */ } }
+  }
+  function renderWithHooks(container, result, opts) {
+    if (!HOOKS.length) return renderSections(container, result, opts);
+    let shown = result;
+    for (const h of HOOKS) if (typeof h.gate === "function") { try { shown = h.gate(shown, opts, container); } catch (e) { /* keep the reading */ } }
+    const out = renderSections(container, shown, opts);
+    for (const h of HOOKS) if (typeof h.decorate === "function") { try { h.decorate(container, result, shown, opts); } catch (e) { /* keep the reading */ } }
+    return out;
+  }
+  try { const q = root.LQFortuneHooks; if (Array.isArray(q)) for (const h of q) registerHooks(h); } catch (e) { /* no queue */ }
+
   const api = {
     crisis: { check: crisisCheck, result: supportResult, render: renderSupport },
-    compose, interpret, regenerate, status, renderSections, toHTML, consentControl, hasConsent, setConsent,
+    compose, interpret, regenerate, status, renderSections: renderWithHooks, registerHooks, toHTML, consentControl, hasConsent, setConsent,
     rng, pick, shuffle, SECTION_TITLES, SECTION_IDS, CONSENT_TEXT, DOMAIN_NAMES,
-    lint, lintSemantic, lintZh, lintEn, nearDupPairs, PHRASE_BUDGET, FILLER_BUDGET,
+    lint, lintSemantic, lintZh, lintEn, nearDupPairs, lintRepeats, leadEcho, PHRASE_BUDGET, FILLER_BUDGET,
     grammar: { roleOf, grammarIssues, tautology, polesOf, proseLabel, asNoun, RULES: GRAMMAR_RULES.map(x => x[0]) },
     en: { load: enLoad, item: (domain, it) => { enLoad(); return enItem(domain, it); }, data: () => enLoad(), TITLES: EN_TITLES, REMEDY: REMEDY_EN, REMINDER: REMINDER_EN, OPENERS: EN_OPENERS, sentences: enSentences, labelEcho: enLabelEcho, keyLines: enKeyLines },
     zh: { load: zhLoad, keys: zhKeys, item: (domain, it) => { zhLoad(); return zhItem(domain, it); }, data: () => zhLoad(), TITLES: ZH_TITLES }, MAIN_LENGTH: { min: MAIN_MIN, target: MAIN_TARGET, max: MAIN_MAX, full: FULL_MAX },

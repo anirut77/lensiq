@@ -257,11 +257,11 @@ Admin (re-auth = body also carries `{password, totp}`; `403` when wrong, audited
   poll and the cron (`repairFulfilment`, alert `fulfilment_repaired`), never twice (the repair claim only succeeds while
   `fulfilled_at IS NULL`). Migration 0008 marks existing payments with evidence of fulfilment (subscription id /
   credits) as fulfilled. Regression tests inject a D1 failure into the grant statements
-  (`tests/unit/backend-r11.test.js`). `GET /admin/api/billing/payments` reports `unfulfilled`.
+  (`tests/unit/backend-fulfilment-refunds.test.js`). `GET /admin/api/billing/payments` reports `unfulfilled`.
 * **Alerts** are stored (`alerts`), logged as `alert.<kind>` (make a Workers Logs alert on that event) and, when the
   secret `ALERT_WEBHOOK_URL` (https incoming webhook: Slack / Discord / Google Chat / ntfy …) is set, pushed with the
   kind and a reference only — no personal data. Kinds: `payment_mismatch`, `fulfilment_failed`, `fulfilment_repaired`,
-  `lead_new`.
+  `lead_new`; round 12: `late_payment_fulfilled`, `charge_stuck_pending`, `test_charge_cap`.
 * **Admin re-auth is rate limited** per session: 5 wrong answers per 15 min -> 429 `reauth_rate_limited`; 10 wrong in
   one session -> the session is revoked (401 `reauth_revoked`). Applies to every re-auth (money ops, retention/run,
   member status, password change, TOTP setup / disable); every failure is audited (`reauth.failed`).
@@ -285,7 +285,7 @@ Admin (re-auth = body also carries `{password, totp}`; `403` when wrong, audited
   (403 `guardian_consent_required`). Stored as `payments.age_confirm`; nothing else about age is kept.
 * **Renewal reminder data**: `GET /api/me` returns `renewal_due` and `renewal {plan_id, period, current_period_end,
   days_left, renew_path}` when the paid period ends within 7 days (PromptPay does not renew by itself; the account page
-  / nav show the banner — no e-mail sender yet).
+  / nav show the banner). Round 12: plus an e-mail reminder 3 days before the end once a mail provider is configured.
 * **Erasure / export need a fresh Google confirmation**: `DELETE /api/me` and the export need a NEW Google ID token
   (fresh nonce, same `sub`, `auth_time` — or `iat` when Google omits it — within 5 min), inline
   (`{confirm:"DELETE", credential, nonce}`, `POST /api/me/export {credential, nonce}`) or via
@@ -319,6 +319,76 @@ Admin (re-auth = body also carries `{password, totp}`; `403` when wrong, audited
   TOTP + sudo window, two partial refunds with credit-note numbers. It found that the old entry module exported
   non-handler constants, which workerd refuses at start-up (`Incorrect type for map entry 'RECONCILE_CRON'`) — fixed with
   `src/worker.js`. CI runs it after the wrangler dry-run.
+
+### Round 12 — fulfilment race, expiry sweep, admin money gates, IPv6 keys, short tokens, e-mail, CSP reports
+
+* **Duplicate-subscription race fixed.** `fulfilStatements` reads the current subscription outside the transaction, so
+  two FIRST purchases of the same plan by the same buyer confirmed at the same moment both used to INSERT a subscription
+  (and `activeSub` only shows the one that ends last: one paid period lost). Now, inside the batch, the INSERT only runs
+  while there is still no active subscription of that buyer (customer or member) for that plan; otherwise the next
+  statement extends the one that won by this payment's length, and `payments.subscription_id` points at it. Tests:
+  the old race reproduced deterministically (both statement lists built before either batch runs) in
+  `tests/unit/backend-hardening.test.js`, and two concurrent signed webhooks in workerd (`tests/integration/`).
+* **Expiry sweep** (`expirySweep`, part of the 15-min reconcile cron): every `pending` payment whose QR `expires_at` is
+  more than `EXPIRY_GRACE` (1 h) in the past — whatever its age, so the 3-day re-check window no longer leaves rows
+  pending for ever — gets one final `retrieveCharge`: success is fulfilled normally, Opn `failed` / `expired` applied;
+  if Opn still says `pending` (or there is no charge id) the row becomes `expired` with `failure_code = 'expired_local'`.
+  Such a row stays open for a **late success** (webhook, poll, cron → fulfilled, audit `payment.late_success`, alert
+  `late_payment_fulfilled`). A charge older than 24 h that Opn still reports `pending` raises one
+  `charge_stuck_pending` alert per payment. A failing Opn call never closes anything (`sweep_errors`). The cron log line
+  carries `expired_local`, `late_success`, `stuck_alerts`, `sweep_errors`.
+* **Admin test charge** (`POST /admin/api/billing/test-charge`) now needs re-auth like the other money ops, is capped
+  at `TEST_CHARGE_HOUR` (10) per hour for the whole admin (429 `test_charge_cap`, alert `test_charge_cap` once per
+  window) and every attempt — including refused ones — is audited (`billing.test_charge`, `billing.test_charge.refused`).
+* **Money re-auth mode** (corrects the round-11 header comment in `auth.js`, which said money ops always needed the
+  password in the body — they accepted the sudo window too). `auth.moneyReauthMode(env)`: `window` (default with test
+  keys) = body `{password, totp}` or the 5-min sudo window; `inline` (`MONEY_REAUTH=inline`, and automatically once
+  `OPN_ALLOW_LIVE=true` unless `MONEY_REAUTH=window`) = the password (+ TOTP) must be in that very request — 403
+  `reauth_inline_required`; admin.js asks and resends the request with the credentials. Both paths are kept.
+* **`REQUIRE_OWNER_TOTP = "true"` in `backend/wrangler.toml`** (production): grants / refunds / test charges need the
+  owner's TOTP from day one. Without the var (tests, `wrangler dev`) the old rule applies (only while billing / live
+  keys are on).
+* **IPv6 callers are keyed on their /64** (`util.js ipv6Prefix64` / `callerIp`, used by `store.js callerHash`): every
+  per-caller limit (sign-in, checkout, claim, leads, fortune, CSP reports) and the day-salted analytics pseudonym. An
+  IPv4-mapped address counts as its IPv4. Turnstile `remoteip` still gets the full address.
+* **Short-lived member token (optional) + refresh.** Sign-in body `session: "short"` (the page's "do not remember me"
+  choice) gives a 12 h token with a 1 h idle timeout; `POST /api/auth/refresh` rotates the token (the old one dies in the
+  same statement) and extends a short session by 12 h, at most 7 days after the Google sign-in (then 401
+  `session_chain_ended`: sign in again). Long sessions (default, "remember me") are unchanged — 30 days / 14 days idle —
+  and can rotate too (expiry kept). `GET /api/me/sessions` shows each session's `kind`. Wiring the choice into
+  `lensiq-member.js` (short by default in sessionStorage, long only with an explicit "remember me") is front-end work
+  and not part of this backend change.
+* **Transactional e-mail** (`src/mail.js`, OFF until `MAIL_PROVIDER` = `resend` | `mailchannels`, `MAIL_FROM` and the
+  secret `MAIL_API_KEY` are set; `SITE_URL` for the account link): a receipt / tax-invoice notice after a successful
+  payment, a refund / credit-note notice after each refund, and a renewal reminder 3 days before a paid period ends
+  (daily cron). Fixed TH/EN/ZH text + document number + amount + a link to the signed-in account page — never the
+  document, tax ID, address or a sign-in link. Opt-outs `email_receipts` / `email_reminders`
+  (`POST /api/me/preferences`) stop the e-mail only; documents and the banner stay in the account. Delivery log
+  `mail_log` (UNIQUE `(kind, ref)`: a retried webhook / cron never sends twice; no address / subject / body stored;
+  member id cleared on erasure; purged after `AUDIT_DAYS`; included in the member export). Admin: `GET /admin/api/mail`
+  (status without the key + log); `GET /admin/api/billing` carries `mail` and `money_reauth`. A provider failure never
+  fails a payment, refund or cron run.
+* **CSP report collection**: `POST /v1/csp-report` (`application/csp-report` or `application/reports+json`) stores
+  only daily counters `csp_reports(day, directive, blocked origin, page path)` — no IP, user agent, query, script sample
+  or source line; 60 reports per caller per hour, `CSP_REPORT_GLOBAL_DAY` (5000) per day, always 204; purged after
+  `CSP_REPORT_DAYS` (90). Admin: `GET /admin/api/csp-reports?days=7`. The Worker-served admin shell now sends
+  `report-uri /v1/csp-report; report-to csp` + `Reporting-Endpoints`. **The GitHub Pages site cannot report**: browsers
+  ignore `report-uri` / `report-to` in a `<meta>` CSP — reports from the public pages start once the site is served
+  behind a header-capable host (Cloudflare Pages / a Worker in front) that sends the CSP as a header with
+  `report-uri https://<api>/v1/csp-report`.
+* **Migration `0009_round12_backend.sql`**: pending-expiry index, `member_sessions.kind / signed_in_at`,
+  `users.email_receipts / email_reminders`, `mail_log`, `csp_reports`. `/health/deep` lists and probes it.
+* **Real runtime coverage** (`npm run test:integration`, workerd): Turnstile wrong action / hostname, webhook bad
+  signature and replay outside the 5-min window (nothing stored), claim brute force (10 wrong → 429, audited), credit
+  exhaustion, wrong-account Google re-auth, a disabled member's session and sign-in, IPv6 /64 sign-in limit, the
+  subscription race, the expiry sweep through the real `scheduled()` handler + late success, token refresh, test-charge
+  re-auth + cap, CSP counters.
+* **Incident response / secrets rotation**: `docs/pdpa/INCIDENT-RESPONSE.md` (72-hour PDPC notification runbook,
+  rotation steps for `SECRETS_KEK`, `TURNSTILE_SECRET`, Opn keys, `MAIL_API_KEY`, `ADMIN_BOOTSTRAP_TOKEN`).
+* **Still needs outside resources**: a staging Cloudflare account + D1 and a real Opn TEST-mode charge / signed webhook /
+  refund run, a real Google OAuth client, a mail provider account + sender-domain DNS, a load test and an independent
+  penetration test (auth, CORS, CSRF, webhooks, IDOR on `/api/me/payments`). Read-only staff roles for the admin are not
+  built yet (one owner account).
 
 ### Member sign-in (Google) and tiers (ready, OFF by default)
 
@@ -467,7 +537,12 @@ Rollback: `npx wrangler rollback`; disable everything client-side by setting `LE
 | `RAW_EVENT_DAYS`, `AUDIT_DAYS`, `WEBHOOK_PAYLOAD_DAYS` | var | 90, 400, 90 | retention |
 | `GO_LIVE_GATE` | var | `report` (wrangler.toml: `enforce`) | `enforce` refuses checkout + new sign-ins while the go-live checks fail; live money always refused |
 | `LEGAL_TERMS_READY`, `LEGAL_PRIVACY_READY` | var | `false` | set `true` only after counsel signed off terms / privacy |
-| `REQUIRE_OWNER_TOTP` | var | `false` | owner TOTP for money ops always (it is required anyway while billing / live keys are on) |
+| `REQUIRE_OWNER_TOTP` | var | `false` (wrangler.toml: `true`, round 12) | owner TOTP for money ops always (it is required anyway while billing / live keys are on) |
+| `MONEY_REAUTH` | var | empty (= `window`; `inline` once `OPN_ALLOW_LIVE=true`) | `inline`: money ops need `{password, totp}` in the request body; `window`: body or the 5-min sudo window |
+| `TEST_CHARGE_HOUR` | var | 10 | admin test charges per hour (re-auth required) |
+| `MAIL_PROVIDER`, `MAIL_FROM`, `SITE_URL` | var | empty | transactional e-mail (`resend` or `mailchannels`); off while empty |
+| `MAIL_API_KEY` | secret | — | the mail provider's API key |
+| `CSP_REPORT_DAYS`, `CSP_REPORT_GLOBAL_DAY` | var | 90, 5000 | CSP report counter retention / daily cap |
 | `RECONCILE_BATCH` | var | 25 | payments repaired / re-checked per 15-min cron run (1–500) |
 | `LEADS_DAYS`, `LEADS_GLOBAL_DAY` | var | 180, 200 | B2B demo-request retention / daily cap |
 | `ALERT_WEBHOOK_URL` | secret | — | optional https incoming webhook for owner alerts (no PII sent) |
@@ -481,15 +556,16 @@ Rollback: `npx wrangler rollback`; disable everything client-side by setting `LE
 
 Public: `GET /health`, `GET /health/deep`, `GET /v1/config` (incl. `membership`), `POST /v1/events`, `GET /api/fortune/status`, `POST /api/fortune`,
 `GET /v1/billing/plans`, `POST /v1/billing/checkout`, `POST /v1/billing/claim`, `GET /v1/billing/payments/:id[/qr]`,
-`POST /v1/billing/webhook/opn`, `POST /v1/leads`.
-Members (bearer): `POST /api/auth/nonce|google|logout|reauth`, `GET|DELETE /api/me`, `POST /api/me/preferences|usage|saved|export`,
+`POST /v1/billing/webhook/opn`, `POST /v1/leads`, `POST /v1/csp-report`.
+Members (bearer): `POST /api/auth/nonce|google|logout|reauth|refresh`, `GET|DELETE /api/me`, `POST /api/me/preferences|usage|saved|export`,
 `GET /api/me/history|export|entitlements|sessions`, `POST /api/me/entitlements/use|sessions/revoke`, `GET /api/me/payments/:id/receipt`,
 `GET /api/me/payments/:id/refunds/:n/credit-note`, `GET|DELETE /api/me/saved/:id` (erasure + export: fresh Google confirmation).
 Admin (`/admin/api`): `GET state`, `POST bootstrap|login|logout|password|reauth|totp/setup|totp/enable|totp/disable`,
-`GET me|go-live|leads|analytics/summary|analytics/csv|ai|billing|billing/payments|billing/payments/:id[/receipt]|billing/payments/:id/refunds/:n/credit-note|billing/subscriptions|billing/webhooks|members|members/:id|membership|alerts|devices|audit|retention`,
+`GET me|go-live|leads|analytics/summary|analytics/csv|ai|billing|billing/payments|billing/payments/:id[/receipt]|billing/payments/:id/refunds/:n/credit-note|billing/subscriptions|billing/webhooks|members|members/:id|membership|alerts|devices|audit|retention|csp-reports|mail`,
 `PUT ai|ai/key|billing/settings|billing/plans/:id|membership`, `DELETE ai/key|devices|devices/:id|leads/:id`,
 `POST billing/test-charge|billing/plans|billing/payments/:id/refund|billing/subscriptions/:id/cancel|billing/subscriptions/:id/extend|members/:id/grant|members/:id/status|alerts/:id/ack|leads/:id/ack|retention/run`
-(re-auth — `{password, totp}` in the body or the 5-min window of `POST reauth` — for refund, cancel, extend, grant,
+(re-auth — `{password, totp}` in the body or the 5-min window of `POST reauth`; body only for money ops under
+`MONEY_REAUTH=inline` / live keys — for test-charge (round 12, capped), refund, cancel, extend, grant,
 member status, retention/run, plan / price / billing-settings / membership edits and the AI key; owner TOTP on for the
 money ops while billing is on). Details: §1 "Round-10 API …" and "Round 11".
 
@@ -512,7 +588,9 @@ needed). CI additionally runs `npm ci` in `backend/` (pinned by `backend/package
 | webhook raw payloads | 90 days | event id / result kept with the payment |
 | audit log | 400 days (`AUDIT_DAYS`) | |
 | member accounts | until the member deletes the account (or the owner on request) | `DELETE /api/me` |
-| member sessions / sign-in nonces | 30 days (14 idle) / 10 min | |
+| member sessions / sign-in nonces | 30 days (14 idle); short sessions 12 h (1 h idle), refresh chain ≤ 7 days / 10 min | |
+| e-mail delivery log (`mail_log`) | 400 days (`AUDIT_DAYS`) | no address / body; member id cleared on erasure |
+| CSP report counters (`csp_reports`) | 90 days (`CSP_REPORT_DAYS`) | directive + blocked origin + page path counts only |
 | member usage ledger | 400 days (`MEMBER_LEDGER_DAYS`) | payment and refund rows kept |
 | credits (one-time purchases / grants) | until used, expired (365 days) or the account is deleted | |
 | admin alerts | kept (small) | acknowledged in the admin |

@@ -152,7 +152,7 @@
     return { source: "local", sections: [sec] };
   }
   K.readings = {};
-  /** factsFn(topic, rng) → facts (domain = ชื่อจริง เช่น "iching") ; opts: { withTopics, topic, onTopic(topic), onDone(state) } */
+  /** factsFn(topic, rng) → facts (domain = ชื่อจริง เช่น "iching") ; opts: { withTopics, topic, onTopic(topic), onDone(state), userText: string | () => string } */
   K.bindReading = function (id, domain, factsFn, opts) {
     opts = opts || {};
     var box = document.getElementById(id); if (!box) return Promise.resolve();
@@ -163,7 +163,9 @@
       var facts = factsFn(st.topic, r), sent = factsDomain(domain, FA);
       facts = Object.assign({}, facts, { domain: sent, topic: st.topic });
       var useAI = FA && FA.hasConsent ? FA.hasConsent() : false;
-      var p = FA && FA.interpret ? FA.interpret(facts, { useAI: useAI, seed: seed }) : Promise.resolve(localFallback(facts));
+      // รอบ 12: ข้อความที่ผู้ใช้พิมพ์เอง (คำถาม/ความฝัน) ส่งเป็น userText ให้ตัวตรวจวิกฤตใน FortuneAI.interpret อีกชั้น
+      var userText = typeof opts.userText === "function" ? opts.userText() : opts.userText;
+      var p = FA && FA.interpret ? FA.interpret(facts, { useAI: useAI, seed: seed, userText: userText || "" }) : Promise.resolve(localFallback(facts));
       box.setAttribute("aria-busy", "true");
       return p.catch(function () { return localFallback(facts); }).then(function (res) {
         res = relabel(res, domain, sent);

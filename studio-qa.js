@@ -675,7 +675,7 @@
    *               left/right = ขอบตัวคนเป็นเส้นตั้งตรงยาวที่ไม่ใช่ขอบรูป (ขอบภาพต้นฉบับอยู่ในกรอบ)
    * คืน { islands: [{ x, y, w, h, area }], cuts: [{ k, x0, y0, x1, y1 }], ok }
    */
-  function idLeftovers({ pa, W, H, face }) {
+  function idLeftovers({ pa, W, H, face, sideMin = .4 }) {
     const n = W * H, on = new Uint8Array(n); for (let i = 0; i < n; i++) on[i] = pa[i] > .5 ? 1 : 0;
     const lab = new Int32Array(n).fill(-1), comps = [];
     for (let s0 = 0; s0 < n; s0++) {
@@ -703,12 +703,55 @@
         // ทั้งช่วงต้องอยู่ห่างจากคอลัมน์แรกของช่วงไม่เกิน 1 พิกเซล (ขอบแขนจริงเอียงทีละน้อย ไม่ตรงเป๊ะ)
         if (inner && prev != null && Math.abs(e - prev) <= 1) { run++; if (run > best) { best = run; bestY = y0; bestX = prev; } } else { run = 0; y0 = y; prev = inner ? e : null; }
       }
-      if (best >= fw * .4) cuts.push({ k: side, x0: bestX, y0: bestY, x1: bestX, y1: bestY + best });
+      if (best >= fw * sideMin) cuts.push({ k: side, x0: bestX, y0: bestY, x1: bestX, y1: bestY + best });
     }
     return { islands, cuts, ok: !islands.length && !cuts.length };
   }
 
-  const api = { idLeftovers, photoSuitability, PRE_LIMITS, garmentPhotoCheck, revealed, jawCover, jawCrop, jawCropOf, jawFeatures, JC, idSpecCheck, boothCheck, boothVerdict, BOOTH_LIMITS, GATE_FEATS, gateScore, confidence, defaultOutfitAllowed, get GATE() { return GATE; }, set GATE(g) { GATE = g; }, hairCut, neckNotch, faceIsland, neckRel, jawBlob, neckCheck, bgChunk, hemCheck, shoulderCheck, accessory, skinIsland, handsCheck, floatingHand, neckJoin, neckFlat, strayParts, leftover, verdict, evaluate, LIMITS };
+  /**
+   * Round 12: check of the NO-OUTFIT output (studio "none" / safe / plain composition) before it is shown as the result.
+   * The no-outfit version is the product (background change + light retouch); when this check fails, studio.js shows the
+   * untouched original photo instead, with a note and a button to see the edited version (marked, confirmation before export).
+   *  keep = person alpha after StudioCore.cleanLeftovers (working-image coords W×H), face = { cx, chinY, fw } (chinX optional),
+   *  hair = hair probability (optional; hair beside the head is allowed), src = original RGBA (optional; skin-like pixels are allowed)
+   * fails (most common no-outfit defect classes in ACCURACY.md §11 / §11b, round 10–11 labels):
+   *   "empty"            — the cut-out lost the person (main piece < 5 % of the photo; t07)
+   *   "island"           — a large piece not connected to the person is still there (≥ 0.15 % of the photo)
+   *   "attached"         — cut-out kept something beside the head, above the chin, that is not hair or skin (flag, chair back, door frame)
+   *   "cut-bottom"       — the torso ends above the bottom edge in a straight line (desk / podium removed with the body)
+   *   "cut-left/right"   — a long (≥ 0.6 face widths), perfectly straight vertical person edge inside the frame (flag pole, door frame, chair edge)
+   * Limits (NOOUT_LIMITS) were set a priori from the defect descriptions, not tuned on labelled renders (no portraits in the repo);
+   * studio.bench.mjs logs the verdict per portrait (`nq`) so the next labelled run measures it.
+   * returns { pass, fails, marks: [{ k, x, y, w, h }], m }
+   */
+  const NOOUT_LIMITS = { mainFrac: .05, attached: .08, besideHead: 1.1, sideMin: .6 };
+  function noOutfitCheck({ keep, W, H, face, hair = null, src = null, L = NOOUT_LIMITS }) {
+    const fails = [], marks = [], n = W * H, fw = face.fw, cx = face.chinX != null ? face.chinX : face.cx;
+    let on = 0; for (let i = 0; i < n; i++) if (keep[i] > .5) on++;
+    const m = { mainFrac: +(on / n).toFixed(4), attached: 0, islands: 0, cuts: [] };
+    if (on / n < L.mainFrac) return { pass: false, fails: ["empty"], marks: [{ k: "empty", x: 0, y: 0, w: W, h: H }], m };
+    const lo = idLeftovers({ pa: keep, W, H, face: { cx: face.cx, chinY: face.chinY, fw }, sideMin: L.sideMin });
+    m.islands = lo.islands.length; m.cuts = lo.cuts.map(c => c.k);
+    if (lo.islands.length) { fails.push("island"); lo.islands.forEach(b => marks.push({ k: "island", x: b.x, y: b.y, w: b.w, h: b.h })); }
+    for (const c of lo.cuts) { if (c.k === "empty") continue; fails.push("cut-" + c.k); marks.push({ k: "cut-" + c.k, x: Math.min(c.x0, c.x1), y: Math.min(c.y0, c.y1), w: Math.abs(c.x1 - c.x0) + 1, h: Math.abs(c.y1 - c.y0) + 1 }); }
+    // ข้างศีรษะเหนือคาง ห่างจากแนวกลางหน้า > 1.1 หน้า: มีได้แค่ผม (หรือมือ) — อย่างอื่นคือฉากที่ติดมา (ธง พนักเก้าอี้ วงกบประตู)
+    const yB = Math.min(H, Math.round(face.chinY)), dx = fw * L.besideHead; let c = 0, x0 = W, y0 = H, x1 = -1, y1 = -1;
+    for (let y = 0; y < yB; y++) for (let x = 0; x < W; x++) {
+      if (Math.abs(x - cx) < dx) continue; const i = y * W + x;
+      if (keep[i] <= .5 || (hair && hair[i] > .3) || (src && skinLike(src[i * 4], src[i * 4 + 1], src[i * 4 + 2]))) continue;
+      c++; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+    }
+    m.attached = +(c / (fw * fw)).toFixed(4);
+    if (m.attached > L.attached) { fails.push("attached"); marks.push({ k: "attached", x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 }); }
+    return { pass: !fails.length, fails: [...new Set(fails)], marks, m };
+  }
+
+  // BEGIN STUDIO_FIGURES — generated by `node tests/bench/studio-figures.mjs` from the committed labels + gate logs (ACCURACY.md §11 / §11b);
+  // do not edit by hand (tests/unit/studio-figures.test.js fails when this block and the logs disagree). p / lo / hi = percent, person-cluster 95 %.
+  const FIGURES = {"shownBad":{"dev":{"k":39,"n":70,"p":56,"lo":34,"hi":77},"test":{"k":34,"n":94,"p":36,"lo":21,"hi":53}},"calibCover":{"dev":{"k":24,"n":53,"p":45,"lo":20,"hi":71},"test":{"k":50,"n":72,"p":69,"lo":51,"hi":86}},"calibPlain":{"dev":{"k":7,"n":17,"p":41,"lo":0,"hi":87},"test":{"k":10,"n":22,"p":45,"lo":13,"hi":82}},"pbRaw":{"dev":{"k":54,"n":54,"p":100,"lo":88,"hi":100},"test":{"k":70,"n":70,"p":100,"lo":90,"hi":100}},"stNone":{"dev":{"k":5,"n":27,"p":19,"lo":4,"hi":37},"test":{"k":7,"n":35,"p":20,"lo":9,"hi":36}},"pbNone":{"dev":{"k":3,"n":27,"p":11,"lo":0,"hi":28},"test":{"k":11,"n":35,"p":31,"lo":17,"hi":49}},"rater":"AI agents, not human raters"};
+  // END STUDIO_FIGURES
+
+  const api = { noOutfitCheck, NOOUT_LIMITS, FIGURES, idLeftovers, photoSuitability, PRE_LIMITS, garmentPhotoCheck, revealed, jawCover, jawCrop, jawCropOf, jawFeatures, JC, idSpecCheck, boothCheck, boothVerdict, BOOTH_LIMITS, GATE_FEATS, gateScore, confidence, defaultOutfitAllowed, get GATE() { return GATE; }, set GATE(g) { GATE = g; }, hairCut, neckNotch, faceIsland, neckRel, jawBlob, neckCheck, bgChunk, hemCheck, shoulderCheck, accessory, skinIsland, handsCheck, floatingHand, neckJoin, neckFlat, strayParts, leftover, verdict, evaluate, LIMITS };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") root.StudioQA = api;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -24,6 +24,10 @@
 //   GET  /api/me/payments/:id/refunds/:n/credit-note[?format=json]   credit note (ใบลดหนี้) of a refunded tax invoice
 //   POST /v1/leads                       B2B demo / quotation request (Turnstile action "lead"; leads.js)
 //   GET  /health/deep                    D1 reachable + migrations current (HEALTH_TOKEN bearer when set)
+//   POST /api/auth/refresh               rotate the member bearer token (round 12; short sessions: +12 h, max 7 days)
+//   POST /v1/csp-report                  CSP violation reports (round 12, csp.js; counters only, always 204)
+// Admin round 12: GET /admin/api/csp-reports, GET /admin/api/mail (delivery log + provider status); POST
+//   /billing/test-charge needs re-auth and is capped (TEST_CHARGE_HOUR); money ops follow auth.moneyReauthMode
 // Admin (ADMIN_ORIGINS, credentials; see auth.js): /admin/api/*
 import * as analytics from "./analytics.js";
 import * as auth from "./auth.js";
@@ -33,19 +37,23 @@ import { RECEIPT_HEADERS, creditNoteFor, receiptFor } from "./receipt.js";
 import { goLiveStatus } from "./golive.js";
 import * as leads from "./leads.js";
 import { deepHealth } from "./health.js";
+import { adminCspReports, ingestCspReport } from "./csp.js";
+import { adminMailLog, mailStatus } from "./mail.js";
 import { fortuneRun, fortuneStatus } from "./fortune.js";
 import { reconcilePending } from "./billing.js";
 import { turnstileStatus } from "./turnstile.js";
 import { runMaintenance, retentionConfig } from "./retention.js";
 import * as members from "./members.js";
 import * as settings from "./settings.js";
-import { audit, callerHash } from "./store.js";
+import { audit, callerHash, hit } from "./store.js";
 import {
-  HttpError, adminOrigins, corsHeaders, flag, json, log, originAllowed, publicOrigins, readJson, readText, withHeaders
+  HttpError, adminOrigins, corsHeaders, flag, intVar, json, log, originAllowed, publicOrigins, readJson, readText, withHeaders
 } from "./util.js";
 
 const ADMIN_MAX_BODY = 16 * 1024;
 export const RECONCILE_CRON = "*/15 * * * *";
+/** Admin test charges per hour (all sessions together); override with the TEST_CHARGE_HOUR var (1–100). */
+export const TEST_CHARGE_HOUR = 10;
 
 async function publicRoute(request, env, url, deps) {
   const allow = publicOrigins(env);
@@ -66,6 +74,11 @@ async function publicRoute(request, env, url, deps) {
     if (!originAllowed(request, allow, { required: true })) return reply({ error: "origin not allowed" }, 403);
     return reply(await leads.submitLead(env, request, await readJson(request, 8192), deps), 201);
   }
+  if (p === "/v1/csp-report" && m === "POST") {
+    // round 12: CSP violation reports (csp.js) — counters only; always 204 (browsers never retry a report)
+    await ingestCspReport(env, request);
+    return json(null, 204, cors);
+  }
   if (p === "/v1/config" && m === "GET") {
     const b = await billing.publicBillingInfo(env);
     return reply({ analytics: true, free_mode: b.free_mode, pricing_enabled: b.pricing_enabled, membership: await members.publicMembership(env) });
@@ -77,6 +90,7 @@ async function publicRoute(request, env, url, deps) {
     if (p === "/api/auth/google" && m === "POST") return reply(await members.signInGoogle(env, request, await readJson(request, 8192), deps));
     const mem = await members.requireMember(env, request);
     if (p === "/api/auth/logout" && m === "POST") return reply(await members.logout(env, mem));
+    if (p === "/api/auth/refresh" && m === "POST") return reply(await members.refreshSession(env, mem));
     if (p === "/api/me" && m === "GET") return reply(await members.me(env, mem));
     if (p === "/api/auth/reauth" && m === "POST") return reply(await members.reauthMember(env, mem, await body(), deps));
     if (p === "/api/me" && m === "DELETE") return reply(await members.deleteAccount(env, mem, await body(), deps));
@@ -189,8 +203,18 @@ async function adminRoute(request, env, url, deps) {
       throw e;
     }
   };
+  /** Money re-auth (round 12): the sudo window is accepted unless auth.moneyReauthMode(env) is "inline" (MONEY_REAUTH=inline,
+   *  or live keys with OPN_ALLOW_LIVE=true) — then the body itself must carry {password, totp} (403 reauth_inline_required). */
+  const moneyReauthed = async () => {
+    if (auth.moneyReauthMode(env) !== "inline") return reauthed();
+    const b = await body();
+    try { return await auth.requireInlineReauth(env, sess, b); } catch (e) {
+      if (e && e.extra && e.extra.code === "reauth_inline_required") await act("reauth.failed", { route, missing: true, inline: true });
+      throw e;
+    }
+  };
   /** Money operation: re-auth + owner TOTP while billing / live keys are on (auth.requireOwnerTotpFor). */
-  const moneyOp = async () => { const b = await reauthed(); await auth.requireOwnerTotpFor(env, "money operations"); return b; };
+  const moneyOp = async () => { const b = await moneyReauthed(); await auth.requireOwnerTotpFor(env, "money operations"); return b; };
 
   switch (`${m} ${route}`) {
     case "GET /me": {
@@ -230,7 +254,7 @@ async function adminRoute(request, env, url, deps) {
     }
     case "DELETE /ai/key": await reauthed(); await settings.deleteApiKey(env); await act("ai.key.deleted"); return reply({ key: await settings.apiKeyStatus(env) });
 
-    case "GET /billing": return reply({ ...(await billing.publicBillingInfo(env)), go_live: await goLiveStatus(env), plans: await billing.listPlans(env.DB), open_alerts: (await billingAdmin.listAlerts(env.DB)).open, guest_checkout: await billing.guestCheckoutAllowed(env), settings: await settings.getBillingSettings(env.DB), turnstile: turnstileStatus(env), opn: { secret_key: !!env.OPN_SECRET_KEY, test_key: String(env.OPN_SECRET_KEY || "").startsWith("skey_test_"), public_key: !!env.OPN_PUBLIC_KEY, webhook_secret: !!env.OPN_WEBHOOK_SECRET } });
+    case "GET /billing": return reply({ ...(await billing.publicBillingInfo(env)), go_live: await goLiveStatus(env), plans: await billing.listPlans(env.DB), open_alerts: (await billingAdmin.listAlerts(env.DB)).open, guest_checkout: await billing.guestCheckoutAllowed(env), settings: await settings.getBillingSettings(env.DB), turnstile: turnstileStatus(env), mail: mailStatus(env), money_reauth: auth.moneyReauthMode(env), opn: { secret_key: !!env.OPN_SECRET_KEY, test_key: String(env.OPN_SECRET_KEY || "").startsWith("skey_test_"), public_key: !!env.OPN_PUBLIC_KEY, webhook_secret: !!env.OPN_WEBHOOK_SECRET } });
     case "PUT /billing/settings": {
       const input = await reauthed();
       const s = await settings.putBillingSettings(env.DB, input);
@@ -248,12 +272,24 @@ async function adminRoute(request, env, url, deps) {
     case "GET /billing/subscriptions": return reply(await billingAdmin.adminSubscriptions(env.DB, Object.fromEntries(url.searchParams)));
     case "GET /alerts": return reply(await billingAdmin.listAlerts(env.DB, Object.fromEntries(url.searchParams)));
     case "POST /billing/test-charge": {
-      const b = await body();
+      // round 12: re-auth (body {password, totp} or the sudo window; inline-only under MONEY_REAUTH=inline / live keys),
+      // capped at TEST_CHARGE_HOUR (default 10) per hour for the whole admin, every attempt audited
+      const b = await moneyReauthed();
       if (flag(env.OPN_ALLOW_LIVE)) await auth.requireOwnerTotpFor(env, "charges with live keys");
+      const cap = intVar(env.TEST_CHARGE_HOUR, TEST_CHARGE_HOUR, 1, 100);
+      const rl = await hit(env.DB, "admin:test_charge", cap, 3600);
+      if (!rl.ok) {
+        await act("billing.test_charge.refused", { reason: "hourly_cap", cap });
+        if (rl.count === cap + 1) await billing.raiseAlert(env, "test_charge_cap", null, { cap }, deps.fetch);
+        throw new HttpError(429, `test-charge limit reached (${cap} per hour) — try again later (test_charge_cap)`, { code: "test_charge_cap", retryAfter: rl.retryAfter });
+      }
       const r = await billing.adminTestCharge(env, b, deps);
-      await act("billing.test_charge", { payment: r.payment_id, amount: r.amount_satang });
+      await act("billing.test_charge", { payment: r.payment_id, amount: r.amount_satang, n: rl.count, cap });
       return reply(r, 201);
     }
+
+    case "GET /csp-reports": return reply(await adminCspReports(env.DB, Object.fromEntries(url.searchParams)));
+    case "GET /mail": return reply({ status: mailStatus(env), ...(await adminMailLog(env.DB, Object.fromEntries(url.searchParams))) });
 
     case "GET /audit": {
       const rows = (await env.DB.prepare("SELECT id, ts, actor, action, detail FROM audit_log ORDER BY id DESC LIMIT 200").all()).results || [];
@@ -307,7 +343,7 @@ async function adminRoute(request, env, url, deps) {
     return r.html ? new Response(r.html, { headers: { ...cors, ...RECEIPT_HEADERS } }) : reply(r.data);
   }
   if (pp && m === "POST" && pp[2] === "/refund") {
-    const r = await billingAdmin.refundPayment(env, pp[1], await moneyOp());
+    const r = await billingAdmin.refundPayment(env, pp[1], await moneyOp(), deps);
     await act("billing.refund", { payment: pp[1], amount: r.refund_satang, status: r.status, receipt: r.receipt_no, credit_note: r.credit_note_no, subscription_cancelled: r.subscription_cancelled, seconds_removed: r.subscription_seconds_removed, credits_revoked: r.credits_revoked });
     return reply(r);
   }
@@ -339,7 +375,8 @@ async function adminRoute(request, env, url, deps) {
 export const ADMIN_ASSETS = new Set(["/admin", "/admin/", "/admin.html", "/admin.js", "/admin.css", "/lensiq-api.js", "/lensiq-config.js"]);
 export const ADMIN_PAGE_HEADERS = {
   "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; " +
-    "font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'",
+    "font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'; report-uri /v1/csp-report; report-to csp",
+  "Reporting-Endpoints": 'csp="/v1/csp-report"',
   "X-Frame-Options": "DENY",
   "X-Content-Type-Options": "nosniff",
   "Referrer-Policy": "no-referrer",
@@ -387,7 +424,7 @@ export default {
     // which could carry SQL or values)
     const failed = job => e => log("cron.failed", { job, name: String((e && e.name) || "Error").slice(0, 40), status: Number((e && e.status) || 0) });
     if (event && event.cron === RECONCILE_CRON) {
-      ctx.waitUntil(reconcilePending(env).then(r => log("reconcile", { checked: r.checked || 0, changed: r.changed || 0, errors: r.errors || 0, repaired: r.repaired || 0, repair_errors: r.repair_errors || 0 }))
+      ctx.waitUntil(reconcilePending(env).then(r => log("reconcile", { checked: r.checked || 0, changed: r.changed || 0, errors: r.errors || 0, repaired: r.repaired || 0, repair_errors: r.repair_errors || 0, expired_local: r.expired_local || 0, late_success: r.late_success || 0, stuck_alerts: r.stuck_alerts || 0, sweep_errors: r.sweep_errors || 0 }))
         .catch(failed("reconcile")));
       return;
     }

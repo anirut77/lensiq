@@ -42,6 +42,9 @@ window.LENSIQ_AGE_GENDER = window.LENSIQ_AGE_GENDER !== false;
  *   และ LENSIQ_FACEPARSE = false (BiSeNet ไม่ใช่เชิงพาณิชย์) แม้จะตั้งค่าอื่นไว้ก่อนหน้า — ตั้งก่อนโหลดไฟล์นี้ เช่น
  *   <script>window.LENSIQ_PROFILE = "commercial"</script> ; ป้าย "โมเดลใบอนุญาตวิจัย" บนหน้ากล้องยังแสดงอยู่
  *   เพราะโมเดลตรวจจับ/จดจำใบหน้าของ face-api.js ยังรอความเห็นทนายความ (LICENSES/THIRD_PARTY.md F5/F6) */
+/* round 12: เลือก "ใช้งานเชิงพาณิชย์" ได้จากหน้า กล้องและการติดตั้ง (cameras.html#profile) — จำไว้ในเครื่องนี้ (localStorage "lq-profile")
+ *   ค่าที่จำไว้เปลี่ยนได้เฉพาะ demo -> commercial เท่านั้น (ไม่เคยเปิดโมเดลวิจัยกลับมาเองเมื่อหน้าเว็บตั้ง commercial ไว้แล้ว) */
+try { if (window.LENSIQ_PROFILE !== "commercial" && typeof localStorage !== "undefined" && localStorage.getItem("lq-profile") === "commercial") window.LENSIQ_PROFILE = "commercial"; } catch (e) { /* storage blocked */ }
 window.LENSIQ_PROFILE = window.LENSIQ_PROFILE === "commercial" ? "commercial" : "demo";
 if (window.LENSIQ_PROFILE === "commercial") { window.LENSIQ_AGE_GENDER = false; window.LENSIQ_FACEPARSE = false; }
 
@@ -70,6 +73,51 @@ window.LENSIQ_SELLER = window.LENSIQ_SELLER || {
   counsel_confirmed: false // ทนายความยืนยันเกณฑ์อายุ ฐานการส่งข้อมูลต่างประเทศ และระยะเวลาเก็บแล้ว
 };
 
+/* round 12: ป้องกันการติดตั้งเชิงพาณิชย์ที่ลืมตั้งชุดค่า — บนหน้ากล้อง เมื่อชุดค่ายังเป็น "demo" และหน้าเว็บไม่ได้เปิดจากเว็บสาธิต
+ *   (github.io) หรือเครื่องนักพัฒนา (localhost) จะแสดงแถบเตือนด้านบนว่าโมเดลใบอนุญาตวิจัยยังเปิดอยู่ พร้อมลิงก์ไปตั้งค่า
+ *   (?profilebanner=1 บังคับแสดงเพื่อทดสอบ) ; และสวิตช์ #lqProfile ในหน้า cameras.html ใช้เปิด/ปิด "ใช้งานเชิงพาณิชย์" ของเครื่องนี้ */
+(function () {
+  "use strict";
+  if (typeof document === "undefined" || typeof location === "undefined") return;
+  var TXT = {
+    th: { b: "ชุดค่า \"เดโม\" ยังเปิดอยู่บนเว็บนี้: โมเดลอายุ/เพศที่ฝึกจากข้อมูลใบอนุญาตวิจัย (UTKFace) ยังใช้ได้ ถ้าเป็นการติดตั้งเชิงพาณิชย์ให้เปิด \"ใช้งานเชิงพาณิชย์\"", a: "ตั้งค่าชุดการติดตั้ง",
+          on: "เครื่องนี้: ใช้งานเชิงพาณิชย์ (ปิดโมเดลอายุ/เพศ UTKFace และ BiSeNet)", off: "เครื่องนี้: ชุดค่าเดโม (เปิดโมเดลใบอนุญาตวิจัยได้)", fixed: "หน้าเว็บนี้ตั้ง LENSIQ_PROFILE = \"commercial\" ไว้แล้ว" },
+    en: { b: "The \"demo\" profile is still active on this site: the age/gender model trained on research-licence data (UTKFace) can still run. For a commercial installation, switch on \"Commercial use\"", a: "Installation profile settings",
+          on: "This device: commercial use (UTKFace age/gender and BiSeNet models off)", off: "This device: demo profile (research-licence models allowed)", fixed: "This site already sets LENSIQ_PROFILE = \"commercial\"" },
+    zh: { b: "本网站仍在使用“演示”配置：基于研究许可数据（UTKFace）训练的年龄/性别模型仍可运行。如为商业部署，请开启“商业使用”", a: "安装配置设置",
+          on: "本设备：商业使用（已关闭 UTKFace 年龄/性别与 BiSeNet 模型）", off: "本设备：演示配置（允许使用研究许可模型）", fixed: "本网站已设置 LENSIQ_PROFILE = \"commercial\"" }
+  };
+  var lang = function () { var l = (window.LQI18N && window.LQI18N.lang) || document.documentElement.lang || "th"; return /^zh/.test(l) ? "zh" : /^en/.test(l) ? "en" : "th"; };
+  var camPage = /(store|customers|attendance|driver|qc|signage|booth|cameras)\.html$/.test(location.pathname);
+  var demoHost = /(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$|^\[?::1\]?$|^$/.test(location.hostname || "");
+  var force = /[?&]profilebanner=1\b/.test(location.search || "");
+  function banner() {
+    if (!camPage || window.LENSIQ_PROFILE !== "demo" || (demoHost && !force) || document.getElementById("lqDemoBanner")) return;
+    var host = document.querySelector("main") || document.body; if (!host) return;
+    var p = document.createElement("p"); p.id = "lqDemoBanner"; p.className = "lq-demo-banner"; p.setAttribute("role", "note"); p.setAttribute("data-i18n-skip", "");
+    Object.assign(p.style, { margin: "8px 0", padding: "8px 12px", borderRadius: "10px", background: "#fdeaea", color: "#a12b20", border: "1px solid #f3b7b0", fontSize: ".86rem" });
+    var t = document.createElement("span"), a = document.createElement("a");
+    a.href = "cameras.html#profile"; a.style.marginLeft = "6px";
+    p.appendChild(t); p.appendChild(a); host.insertBefore(p, host.firstChild);
+    var fill = function () { var x = TXT[lang()]; t.textContent = x.b; a.textContent = x.a; };
+    fill(); window.addEventListener("lq-lang", fill);
+  }
+  function profileSwitch() {
+    var cb = /** @type {HTMLInputElement|null} */ (document.getElementById("lqProfile")), st = document.getElementById("lqProfileState"); if (!cb) return;
+    var stored = false; try { stored = localStorage.getItem("lq-profile") === "commercial"; } catch (e) { /* blocked */ }
+    var fixed = window.LENSIQ_PROFILE === "commercial" && !stored;
+    cb.checked = window.LENSIQ_PROFILE === "commercial"; cb.disabled = fixed;
+    var fill = function () { var x = TXT[lang()]; if (st) st.textContent = fixed ? x.fixed : cb.checked ? x.on : x.off; };
+    cb.addEventListener("change", function () {
+      try { if (cb.checked) localStorage.setItem("lq-profile", "commercial"); else localStorage.removeItem("lq-profile"); } catch (e) { /* blocked */ }
+      location.reload();
+    });
+    fill(); window.addEventListener("lq-lang", fill);
+  }
+  var go = function () { banner(); profileSwitch(); };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go();
+})();
+
 /* ตัวโหลด: เฉพาะเมื่อมี LENSIQ_API_BASE — ไฟล์มาจากต้นทางเดียวกับหน้าเว็บ (CSP script-src 'self') */
 (function () {
   "use strict";
@@ -80,7 +128,7 @@ window.LENSIQ_SELLER = window.LENSIQ_SELLER || {
   var load = function (file, global) {
     if (/** @type {any} */ (window)[global] || document.querySelector('script[src*="' + file + '"]')) return;
     var s = document.createElement("script");
-    s.src = dir + file + "?v=1";
+    s.src = dir + file + "?v=2";
     s.async = false; // keep order: api before analytics
     (document.head || document.documentElement).appendChild(s);
   };

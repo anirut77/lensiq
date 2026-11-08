@@ -23,11 +23,15 @@ test("tests/unit/index.js discovers every *.test.js (none can be forgotten)", ()
 // CHANGELOG.md). Round-named files still waiting to be folded into a feature suite are listed here; the list may only
 // shrink — rename a file (keeping every test) and delete its entry.
 const ROUND_NAMED_PENDING = new Set([
-  "backend-billing-r10.test.js", "backend-r11.test.js", "camera-r11.test.js", "commercial-r11.test.js",
-  "stats-r10.test.js", "stats-r11.test.js", "studio-r11.test.js"
+  // round 12: backend-billing-r10 -> backend-billing-receipts, backend-r11 -> backend-fulfilment-refunds,
+  // camera-r11 -> camera-liveness-wipe, stats-r10 -> stats-tails-forecast, stats-r11 -> stats-typeone-sequential,
+  // studio-r11 -> studio-suitability-leftovers (every test kept). Still pending: commercial-r11 (edited this round).
+  "commercial-r11.test.js"
 ]);
 test("unit test files are feature-named: no new *-rN.test.js / round-N file", () => {
   const files = fs.readdirSync(__dirname).filter(f => f.endsWith(".test.js"));
   const round = files.filter(f => /(?:^|-)r\d+(?:-|\.test\.js$)|round-?\d/i.test(f));
   assert.deepEqual(round.filter(f => !ROUND_NAMED_PENDING.has(f)), [], "name the file after its feature (e.g. fortune-grounding.test.js)");
+  assert.ok(ROUND_NAMED_PENDING.size <= 1, "the pending list only shrinks");
+  for (const f of ROUND_NAMED_PENDING) if (!files.includes(f)) assert.fail(`${f} was renamed: delete it from ROUND_NAMED_PENDING`);
 });

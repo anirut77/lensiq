@@ -2,7 +2,7 @@
 // backend/src/store.js — small D1 helpers: daily salts + day-salted hashes, fixed-window rate limits, audit log,
 // JSON settings.
 import { hmacHex, randomToken } from "./crypto.js";
-import { clientIp, dayOf, now } from "./util.js";
+import { callerIp, dayOf, now } from "./util.js";
 
 /** Random salt for `day`, created on first use. Deleted by the daily cron the next day (see retention.js). */
 export async function dailySalt(db, day = dayOf()) {
@@ -12,10 +12,11 @@ export async function dailySalt(db, day = dayOf()) {
   return (await db.prepare("SELECT salt FROM daily_salts WHERE day = ?1").bind(day).first()).salt;
 }
 
-/** Day-salted, purpose-bound pseudonym of the caller (IP [+ extra]). The IP itself is never stored. */
+/** Day-salted, purpose-bound pseudonym of the caller (IP [+ extra]). The IP itself is never stored. Round 12: an IPv6
+ *  caller is keyed on its /64 prefix (util.js callerIp), so per-caller limits cannot be dodged by rotating addresses. */
 export async function callerHash(env, request, purpose, extra = "") {
   const salt = await dailySalt(env.DB);
-  return (await hmacHex(salt, `${purpose}|${clientIp(request)}|${extra}`)).slice(0, 24);
+  return (await hmacHex(salt, `${purpose}|${callerIp(request)}|${extra}`)).slice(0, 24);
 }
 
 /** Start of the fixed window containing t. `offset` shifts the window boundary (BKK_OFFSET: daily windows start at

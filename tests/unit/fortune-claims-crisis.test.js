@@ -237,3 +237,33 @@ test("crisis net is wired into the Tarot and I Ching question boxes", () => {
     assert.ok(src.includes('crisisStop($("' + q + '").value)'), f + " checks " + q + " before the reading");
   }
 });
+
+/* ---------- round 12: harsh words and future-negative forecasts are blocked by isSafe (not only flagged by the lint) ---------- */
+test("safety R12: HARSH_* and future-negative forecasts (car crash, breakup, stopping medication, very bad luck, life falling apart) are blocked in TH/EN/ZH; no new false blocks across the KB", () => {
+  const blocked = [
+    // the evaluator's five probes
+    "You'll be in a car crash", "You may face a breakup soon", "停止服药", "今年运势极差", "ดวงคุณตกต่ำสุดขีด ชีวิตพัง",
+    // harsh verdicts
+    "Your luck has hit rock bottom", "This is a terrible year for you", "Your future looks hopeless", "This will be the worst year of your life", "Everything will go wrong this month",
+    "ชีวิตคุณจะพังในปีนี้", "ปีนี้ดวงซวยหนัก", "อนาคตของคุณหมดหวัง", "ดวงของคุณจะตกต่ำ", "ทุกอย่างเลวร้ายไปหมด",
+    "你的运势跌入谷底", "这个月诸事不顺", "你的人生会毁掉", "今年运气很差", "前途渺茫",
+    // future-negative events
+    "You will get hurt this week", "A traffic accident is coming", "Stop taking your medication when your luck turns", "You are heading for a split",
+    "ระวังรถชนเดือนนี้", "คุณจะอกหักปลายปี", "มีเกณฑ์ถูกบอกเลิก", "หยุดกินยาเองได้เลย", "คุณอาจได้รับบาดเจ็บ",
+    "你这个月会受伤", "小心撞车", "你会失恋", "可以自行停药", "不要再吃药了",
+  ];
+  for (const t of blocked) assert.equal(S.isSafe(t), false, t);
+  for (const t of ["ดวงคุณตกต่ำสุดขีด ชีวิตพัง", "今年运势极差", "Your luck has hit rock bottom"]) assert.match(S.category(t), /harsh/, t);
+  for (const t of ["You'll be in a car crash", "You may face a breakup soon", "停止服药"]) assert.match(S.category(t), /futureNeg/, t);
+  const kept = ["หลังผ่านช่วงเหนื่อย ให้เวลาตัวเองพักบ้าง", "Split one big job into small steps and give each step its own finish date.", "face reading splits the face into three zones",
+    "the Hurting Officer star (fresh thinking)", "เหมาะกับงานที่ต้องแก้วิกฤต", "每天花十五分钟练一项工作用得上的新技能", "Talk to a doctor if you feel low for a long time", "hexagram 23, Splitting Apart (Bo)"];
+  for (const t of kept) assert.ok(S.isSafe(t), "kept: " + t);
+  // no knowledge-base string (TH KBs + zh + en data) falls into the new categories
+  global.PALM_KB = global.PALM_KB || require("../../palm-kb.js"); global.FR_KB = global.FR_KB || require("../../faceread-kb.js");
+  const seen = new Set(), bad = [];
+  const walk = (o, src) => { if (typeof o === "string") { if (/harsh|futureNeg/.test(S.category(o))) bad.push(src + ": " + o); return; } if (!o || typeof o !== "object" || seen.has(o)) return; seen.add(o); for (const v of Object.values(o)) walk(v, src); };
+  for (const k of ["faceread", "palm", "tarot", "horoscope", "fengshui", "numbers", "iching", "zodiac", "astro", "dream", "lifecal"]) walk(require("../../" + k + "-kb.js"), k);
+  walk(FA.zh.data(), "zh"); walk(FA.en.data(), "en");
+  assert.ok(seen.size > 1000);
+  assert.deepEqual(bad, []);
+});

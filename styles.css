@@ -148,6 +148,20 @@ img,svg,canvas,video{max-width:100%}
 @media (pointer:coarse){.lq-crumbs a{min-height:44px;min-width:44px;display:inline-flex;align-items:center}}
 [class*="-kiosk"] .lq-crumbs,[class*="-kiosk"] ~ .lq-crumbs{display:none}
 @media print{.lq-crumbs{display:none!important}}
+/* round 12: on phones the breadcrumb stays ONE line — the separator is part of the item it precedes (never orphaned at
+   the start of a wrapped line), the group label shrinks first, the page title is ellipsised, Home keeps its text width */
+@media(max-width:719.98px){
+  .lq-crumbs ol{flex-wrap:nowrap;white-space:nowrap;overflow:hidden}
+  .lq-crumbs li{flex:none;min-width:0}
+  .lq-crumbs li+li::before{margin:0 6px;flex:none}
+  .lq-crumbs li:nth-child(2):not(:last-child){flex:0 3 auto;overflow:hidden}
+  .lq-crumbs li:last-child:not(:first-child){flex:0 1 auto;overflow:hidden;min-width:44px}
+  .lq-crumbs li:nth-child(n+2)>a,.lq-crumbs li:nth-child(n+2)>span{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:32px}
+}
+@media(max-width:719.98px) and (pointer:coarse){
+  .lq-crumbs li:first-child>a{justify-content:center}
+  .lq-crumbs li:nth-child(n+2)>a{line-height:44px;min-width:44px}
+}
 
 /* ---------- Generic building blocks used across pages ---------- */
 .eyebrow{letter-spacing:.18em;font-size:.78rem;color:var(--gold);font-weight:600;text-transform:uppercase}
@@ -210,11 +224,11 @@ footer{text-align:center;padding:28px;background:var(--navy);color:#b3bcd9;font-
 .lang-switch button:not([aria-pressed=true]):hover{color:var(--ink,#0e1430)}
 @media(max-width:1099.98px),(pointer:coarse) and (max-height:600px){
   .lang-switch{border:1px solid #e3e7f0;border-radius:8px;padding:2px}
-  .lang-switch button{min-width:42px;min-height:40px;font-size:.8rem}
+  .lang-switch button{min-width:44px;min-height:44px;font-size:.8rem}
   .lang-switch button+button{border-left:0}
   .lang-switch button[aria-pressed=true]{background:#0e1430;color:#fff;border-radius:6px;text-decoration:none}
 }
-@media(max-width:374px){.lang-switch button{min-width:40px;padding:0 4px}.logo{gap:8px;letter-spacing:.08em}}
+@media(max-width:374px){.lang-switch button{min-width:44px;padding:0 4px}.logo{gap:8px;letter-spacing:.08em}}
 /* Compact language switch (nav.js): on very narrow phones (< 341 px, e.g. 320 px iPhone SE 1st gen) — or < 401 px when
    the member account icon also sits in the bar (.nav.has-acct) — only the current language is shown; tapping it opens
    the other two below it (.lang-switch.open; Escape / outside tap closes). Every language stays one tap away. */
@@ -243,6 +257,8 @@ html[lang=en] h1,html[lang=en] h2{letter-spacing:-.01em}
 /* ---------- Simplified Chinese ---------- */
 html[lang^=zh] body{font-family:Prompt,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Noto Sans CJK SC","Source Han Sans SC","Microsoft YaHei",system-ui,sans-serif}
 html[lang^=zh] .eyebrow,html[lang^=zh] .kicker{letter-spacing:.06em}
+/* Thai script is never letter-spaced or upper-cased (tracking breaks the stacked vowel / tone marks apart) */
+html:lang(th) .eyebrow,html:lang(th) .kicker,html:lang(th) .tag{letter-spacing:.02em;text-transform:none}
 
 /* ---------- Thai line breaking ----------
    nav.js wraps each Thai word of headings/labels/buttons in .lq-w (nowrap) with <wbr> between words and marks the

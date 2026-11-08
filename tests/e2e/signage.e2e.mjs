@@ -206,7 +206,11 @@ export default async function ({ base, launch, check, fakeCams }) {
       await p2.waitFor("__sg.faceRunning", 8000);
       assert(await p2.evaluate(() => !__SG_SC.nets.includes("ageGenderNet") && !document.getElementById("demoOpt").hidden), "option off: not loaded");
       await p2.evaluate(() => { const t = document.getElementById("demoToggle"); t.checked = true; t.dispatchEvent(new Event("change")); });
+      // round 12: switching age/gender on first asks the operator to confirm the notice is posted; nothing loads before that
+      assert(await p2.evaluate(() => !document.getElementById("sgAck").hidden && !document.getElementById("demoToggle").checked && !__SG_SC.nets.includes("ageGenderNet")), "acknowledgement asked first");
+      await p2.evaluate(() => { const b = document.getElementById("sgAck"), cb = b.querySelector(".lq-ack-cb"); cb.checked = true; cb.dispatchEvent(new Event("change")); b.querySelector(".lq-ack-ok").click(); });
       await p2.waitFor("__SG_SC.nets.includes('ageGenderNet')", 4000);
+      assert(await p2.evaluate(() => document.getElementById("demoToggle").checked && /^\d{4}-/.test(JSON.parse(localStorage.getItem("sg-settings")).ackAt || "")), "ack time stored");
       assert(await p2.evaluate(() => /สัญญาอนุญาตเพื่อการวิจัย/.test(document.getElementById("ageLicence").textContent) && document.querySelectorAll(".sg-licence[data-lic=expr]").length >= 3), "licence labels");
       await p2.close();
     });

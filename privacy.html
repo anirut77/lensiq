@@ -8,12 +8,12 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="legal.privacy.doc.title">ประกาศความเป็นส่วนตัว | LENSIQ</title>
 <meta name="description" data-i18n-attr="content:legal.privacy.doc.desc" content="ประกาศความเป็นส่วนตัวของ LENSIQ ตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล มาตรา 23: ข้อมูลที่เก็บ วัตถุประสงค์ ฐานทางกฎหมาย ผู้ประมวลผล ระยะเวลาเก็บ และสิทธิของคุณ (ฉบับร่าง)">
-<link rel="stylesheet" href="styles.css?v=9">
-<link rel="stylesheet" href="legal.css?v=2">
+<link rel="stylesheet" href="styles.css?v=10">
+<link rel="stylesheet" href="legal.css?v=3">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=12"></script>
+<script src="nav.js?v=13"></script>
 <script src="i18n/zh-legal.js?v=1"></script>
 
 <main id="main" class="doc">
@@ -127,7 +127,10 @@
         <tr><td><code>lq-analytics</code>, <code>lq-a-sid</code>, <code>lq-a-last</code>, <code>lq-a-ret</code></td><td>localStorage / sessionStorage (เลือกเปิด)</td><td>บันทึกการตัดสินใจเรื่องสถิติ และรหัสสุ่มต่อแท็บเมื่อยินยอม</td><td>จนกว่าจะเปลี่ยนการตั้งค่า</td></tr>
         <tr><td><code>fa-consent</code></td><td>localStorage (เลือกเปิด)</td><td>บันทึกความยินยอมให้ใช้ผู้ช่วยเขียนคำทำนาย</td><td>จนกว่าจะยกเลิก</td></tr>
         <tr><td><code>lq-report-*</code></td><td>localStorage (เลือกเอง)</td><td>รายงานปัญหาคำทำนายที่คุณบันทึกไว้ในเครื่อง (สูงสุด 20 รายการ)</td><td>จนกว่าจะลบ</td></tr>
-        <tr><td>คุกกี้เซสชันสมาชิก <span class="ph pend" data-seller="cookie_name">ประกาศก่อนเปิดขาย</span></td><td>คุกกี้ HttpOnly, Secure (จำเป็นเมื่อลงชื่อเข้าใช้)</td><td>คงสถานะการลงชื่อเข้าใช้</td><td><span class="ph pend" data-seller="cookie_duration">ประกาศก่อนเปิดขาย</span> หรือเมื่อออกจากระบบ</td></tr>
+        <tr id="p9-member"><td><code>lq-member-session</code></td><td>sessionStorage (ค่าเริ่มต้น) · localStorage เฉพาะเมื่อติ๊ก "จดจำการเข้าสู่ระบบบนอุปกรณ์นี้"</td><td>โทเค็นสมาชิกที่ใช้เรียก API หลังเข้าสู่ระบบด้วย Google (ไม่ใช่รหัสผ่าน) — รุ่นนี้ใช้แทนคุกกี้เซสชัน อย่าติ๊ก "จดจำ" บนเครื่องสาธารณะ</td><td>ปิดแท็บ (ค่าเริ่มต้น) หรือจนออกจากระบบ / โทเค็นหมดอายุ (เมื่อเลือกจดจำ)</td></tr>
+        <tr><td><code>lq-leads</code>, <code>lq-pending-claims</code></td><td>localStorage (เมื่อคุณกดส่ง)</td><td>คำขอติดต่อ/แจ้งเตือนที่ยังส่งไม่ได้ (ระบบรับคำขอยังไม่เปิด) และรหัสคำสั่งซื้อที่รอผูกกับบัญชี — อยู่ในเบราว์เซอร์นี้เท่านั้น ไม่ส่งให้ใคร จนกว่าคุณกดส่งเอง</td><td>จนกว่าจะส่งหรือกดลบ (สูงสุด 10 รายการ)</td></tr>
+        <tr id="p9-images"><td>รูปที่คุณเลือกเก็บในเครื่อง: <code>lensiq-qc</code> (พื้นหลังสายการผลิตและภาพย่อชิ้นงานที่ไม่ผ่าน) · <code>pb-templates</code> (แม่แบบตู้ถ่ายรูป) · <code>sg-media</code> (สื่อป้ายโฆษณา)</td><td>IndexedDB / localStorage (เมื่อใช้ฟีเจอร์)</td><td>รูปเหล่านี้<b>บันทึกในอุปกรณ์นี้เท่านั้น</b> ไม่ส่งให้เรา — อาจมีพนักงานหรือลูกค้าติดอยู่ในภาพ จึงควรถ่ายเฉพาะชิ้นงาน/พื้นหลังและลบเมื่อไม่ใช้ · ภาพจากกล้องสดไม่ถูกบันทึก</td><td>จนกว่าจะลบในหน้านั้น หรือล้างข้อมูลไซต์</td></tr>
+        <tr><td>คุกกี้เซสชันสมาชิก (รุ่นนี้ยังไม่ใช้ — ดู <code>lq-member-session</code>) <span class="ph pend" data-seller="cookie_name">ประกาศก่อนเปิดขาย</span></td><td>คุกกี้ HttpOnly, Secure (จำเป็นเมื่อลงชื่อเข้าใช้)</td><td>คงสถานะการลงชื่อเข้าใช้</td><td><span class="ph pend" data-seller="cookie_duration">ประกาศก่อนเปิดขาย</span> หรือเมื่อออกจากระบบ</td></tr>
         <tr><td>Cloudflare Turnstile</td><td>สคริปต์และคุกกี้ของ Cloudflare (เมื่อเปิดระบบป้องกันบอท)</td><td>ตรวจว่าเป็นคนจริงก่อนใช้ผู้ช่วยเขียน</td><td>ตามนโยบาย Cloudflare</td></tr>
         <tr><td>ค่าตั้งและสถิติของแต่ละหน้า (เช่น <code>st-*</code>, <code>booth-*</code>, <code>sg-*</code>, <code>*-stats</code>)</td><td>localStorage / IndexedDB (จำเป็นต่อฟีเจอร์)</td><td>เก็บค่าตั้ง ตัวนับ และข้อมูลที่คุณบันทึกในเครื่องนั้น ไม่ส่งให้เรา</td><td>จนกว่าจะล้างในหน้า หรือล้างข้อมูลไซต์</td></tr>
         <tr><td>Cache Storage (<code>lq-models-*</code>)</td><td>แคชของ service worker</td><td>เก็บไฟล์โมเดลให้ใช้งานออฟไลน์ได้</td><td>เปลี่ยนเมื่อมีเวอร์ชันใหม่</td></tr>
@@ -259,7 +262,10 @@
         <tr><td><code>lq-analytics</code>, <code>lq-a-sid</code>, <code>lq-a-last</code>, <code>lq-a-ret</code></td><td>localStorage / sessionStorage (opt-in)</td><td>Stores your statistics choice and, with consent, a random per-tab ID</td><td>Until you change the setting</td></tr>
         <tr><td><code>fa-consent</code></td><td>localStorage (opt-in)</td><td>Stores your consent to the writing assistant</td><td>Until withdrawn</td></tr>
         <tr><td><code>lq-report-*</code></td><td>localStorage (your choice)</td><td>Reading problem reports you saved on this device (up to 20)</td><td>Until deleted</td></tr>
-        <tr><td>Member session cookie <span class="ph pend" data-seller="cookie_name">announced before sales open</span></td><td>HttpOnly, Secure cookie (necessary when signed in)</td><td>Keeps you signed in</td><td><span class="ph pend" data-seller="cookie_duration">announced before sales open</span> or until you sign out</td></tr>
+        <tr id="en-p9-member"><td><code>lq-member-session</code></td><td>sessionStorage (default) · localStorage only when you tick "remember me on this device"</td><td>The member token used to call the API after Google sign-in (not a password) — used instead of a session cookie in this version. Do not tick "remember me" on a shared computer</td><td>Until the tab closes (default), or until sign-out / token expiry (when remembered)</td></tr>
+        <tr><td><code>lq-leads</code>, <code>lq-pending-claims</code></td><td>localStorage (when you press send)</td><td>Contact / notify-me requests that could not be sent yet (online requests not open) and order codes waiting to be linked to an account — kept in this browser only, sent to no one until you send them yourself</td><td>Until sent or deleted (at most 10)</td></tr>
+        <tr id="en-p9-images"><td>Images you choose to keep on the device: <code>lensiq-qc</code> (production-line backgrounds and reject thumbnails) · <code>pb-templates</code> (photo-booth templates) · <code>sg-media</code> (signage media)</td><td>IndexedDB / localStorage (when you use the feature)</td><td>These images are <b>saved on this device only</b> and never sent to us. Workers or customers may appear in them, so capture only the product / background and delete them when no longer needed · live camera frames are never saved</td><td>Until deleted on that page or site data is cleared</td></tr>
+        <tr><td>Member session cookie (not used in this version — see <code>lq-member-session</code>) <span class="ph pend" data-seller="cookie_name">announced before sales open</span></td><td>HttpOnly, Secure cookie (necessary when signed in)</td><td>Keeps you signed in</td><td><span class="ph pend" data-seller="cookie_duration">announced before sales open</span> or until you sign out</td></tr>
         <tr><td>Cloudflare Turnstile</td><td>Cloudflare script and cookie (when bot protection is on)</td><td>Checks you are human before the writing assistant is used</td><td>Per Cloudflare's policy</td></tr>
         <tr><td>Page settings and statistics (e.g. <code>st-*</code>, <code>booth-*</code>, <code>sg-*</code>, <code>*-stats</code>)</td><td>localStorage / IndexedDB (needed by the feature)</td><td>Settings, counters and data you save on that device; never sent to us</td><td>Until cleared on the page or with site data</td></tr>
         <tr><td>Cache Storage (<code>lq-models-*</code>)</td><td>Service-worker cache</td><td>Keeps model files for offline use</td><td>Replaced with each new version</td></tr>
@@ -391,7 +397,10 @@
         <tr><td><code>lq-analytics</code>, <code>lq-a-sid</code>, <code>lq-a-last</code>, <code>lq-a-ret</code></td><td>localStorage／sessionStorage（自愿开启）</td><td>保存您对统计的选择，并在同意后保存每个标签页的随机 ID</td><td>直到您更改设置</td></tr>
         <tr><td><code>fa-consent</code></td><td>localStorage（自愿开启）</td><td>保存您对写作助手的同意</td><td>直到撤回</td></tr>
         <tr><td><code>lq-report-*</code></td><td>localStorage（由您选择）</td><td>您在本设备上保存的占卜问题报告（最多 20 条）</td><td>直到删除</td></tr>
-        <tr><td>会员会话 Cookie <span class="ph pend" data-seller="cookie_name">开售前公布</span></td><td>HttpOnly、Secure Cookie（登录时必需）</td><td>保持登录状态</td><td><span class="ph pend" data-seller="cookie_duration">开售前公布</span> 或直到退出登录</td></tr>
+        <tr id="zh-p9-member"><td><code>lq-member-session</code></td><td>sessionStorage（默认）· 仅在勾选“在此设备上记住登录”时使用 localStorage</td><td>Google 登录后调用 API 所用的会员令牌（不是密码），本版本以此代替会话 Cookie。请勿在公用电脑上勾选“记住登录”</td><td>关闭标签页时（默认），或退出登录／令牌过期时（选择记住时）</td></tr>
+        <tr><td><code>lq-leads</code>, <code>lq-pending-claims</code></td><td>localStorage（在您点击发送时）</td><td>暂时无法发送的联系／开售通知申请（在线申请尚未开放），以及等待绑定账户的订单编号；只保存在此浏览器中，在您亲自发送前不会发给任何人</td><td>直到发送或删除（最多 10 条）</td></tr>
+        <tr id="zh-p9-images"><td>您选择保存在设备上的图片：<code>lensiq-qc</code>（产线背景和不合格品缩略图）· <code>pb-templates</code>（拍照亭模板）· <code>sg-media</code>（广告屏素材）</td><td>IndexedDB／localStorage（使用该功能时）</td><td>这些图片<b>只保存在此设备上</b>，不会发送给我们。图中可能出现员工或顾客，请只拍摄产品／背景，不再需要时删除 · 实时摄像头画面从不保存</td><td>直到在该页面删除或清除网站数据</td></tr>
+        <tr><td>会员会话 Cookie（本版本未使用，见 <code>lq-member-session</code>）<span class="ph pend" data-seller="cookie_name">开售前公布</span></td><td>HttpOnly、Secure Cookie（登录时必需）</td><td>保持登录状态</td><td><span class="ph pend" data-seller="cookie_duration">开售前公布</span> 或直到退出登录</td></tr>
         <tr><td>Cloudflare Turnstile</td><td>Cloudflare 脚本和 Cookie（启用防机器人时）</td><td>在使用写作助手前确认您是真人</td><td>按 Cloudflare 政策</td></tr>
         <tr><td>各页面的设置和统计（如 <code>st-*</code>、<code>booth-*</code>、<code>sg-*</code>、<code>*-stats</code>）</td><td>localStorage／IndexedDB（功能所需）</td><td>您在该设备上保存的设置、计数和数据；不会发送给我们</td><td>直到在页面中清除或清除网站数据</td></tr>
         <tr><td>Cache Storage（<code>lq-models-*</code>）</td><td>Service Worker 缓存</td><td>保存模型文件以便离线使用</td><td>每次新版本时替换</td></tr>

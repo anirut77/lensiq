@@ -1,5 +1,5 @@
 {
-  "//": "tsc --checkJs over the shared platform modules and pure-logic modules (JSDoc types, no build step, nothing emitted). Run: npm run typecheck. Add a file to `files` once it type-checks cleanly (npm run typecheck:report lists the rest). sw.js is excluded: it runs in a ServiceWorkerGlobalScope, not the DOM lib.",
+  "//": "tsc --checkJs over the shared platform modules and pure-logic modules (JSDoc types, no build step, nothing emitted). Run: npm run typecheck. `pages` (round 12) = page scripts that declare top-level globals ($, video, mode ...) which collide with other pages: each is checked as its own program with the shared ambient types plus its own types/*.d.ts. `strictNull` (round 12) = gated files that must ALSO pass with strictNullChecks (errors are counted only in those files; the next step is strict for them, then more files). Add a file to `files` once it type-checks cleanly (npm run typecheck:report lists the rest). sw.js is excluded: it runs in a ServiceWorkerGlobalScope, not the DOM lib.",
   "compilerOptions": {
     "allowJs": true,
     "checkJs": true,
@@ -19,6 +19,18 @@
     "useUnknownInCatchVariables": false,
     "skipLibCheck": true
   },
+  "strictNull": [
+    "lensiq-member.js",
+    "lensiq-api.js",
+    "lensiq-fortune-hook.js",
+    "lensiq-leads.js",
+    "lensiq-analytics.js",
+    "account.js",
+    "nav.js"
+  ],
+  "pages": [
+    { "file": "photobooth.js", "types": ["types/lensiq-photobooth.d.ts"] }
+  ],
   "files": [
     "types/lensiq-globals.d.ts",
     "types/lensiq-pages.d.ts",
@@ -45,6 +57,8 @@
     "account.js",
     "report.js",
     "legal.js",
+    "lensiq-golive.js",
+    "products.js",
     "studio-qa.js",
     "palm.js",
     "insights-analysis.js",

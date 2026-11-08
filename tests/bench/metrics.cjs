@@ -243,11 +243,13 @@ function eer(same, diff) {
 }
 const oneToN = (far, n) => 1 - Math.pow(1 - far, n);
 
-/* Wilson score interval for a proportion (k of n) */
+/* Wilson score interval for a proportion (k of n). Round 12: the one Wilson formula of the repo is lensiq-stats.js wilsonZ;
+   this wrapper keeps the bench API (z = 1.96 default, n = 0 -> [0, 1]). tests/unit/stats-intervals.test.js pins it against
+   the round-11 inline formula (≤ 1e-15) and against lensiq-sitecheck.js / studio-tables.mjs on an (x, n, z) grid. */
+const LQS = require("../../lensiq-stats.js");
 function wilson(k, n, z = 1.96) {
   if (!n) return [0, 1];
-  const p = k / n, d = 1 + z * z / n, c = p + z * z / (2 * n), s = z * Math.sqrt(p * (1 - p) / n + z * z / (4 * n * n));
-  return [Math.max(0, (c - s) / d), Math.min(1, (c + s) / d)];
+  return /** @type {number[]} */ (LQS.wilsonZ(k, n, z));
 }
 
 /* identity-cluster bootstrap of a pooled rate Σk/Σn (see header). Seeded (park–miller) so reports are reproducible. */

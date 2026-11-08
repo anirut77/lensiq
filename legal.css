@@ -91,3 +91,15 @@ html[lang=en] .lg-en,html[lang^=zh] .lg-zh{display:block}
   .sign:last-of-type{page-break-after:auto}
 }
 @page{size:A4;margin:14mm}
+/* round 12: owner go-live checklist (lensiq-golive.js, help.html?owner=1) */
+.golive{margin:28px 0 0;padding:16px;border:2px dashed #b9a9ff;border-radius:14px;background:#faf9ff;max-width:100%;box-sizing:border-box}
+.golive h2{margin:0 0 6px}.golive h3{margin:16px 0 6px;font-size:1rem}
+.golive-lead,.golive-sum{margin:0 0 6px;font-size:.9rem}.golive-sum{font-weight:600}
+.golive-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.golive-list li{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;padding:8px 10px;border-radius:10px;background:#fff;border:1px solid #e3e6f0;font-size:.9rem;min-width:0}
+.golive-tag{grid-row:span 2;align-self:start;padding:1px 8px;border-radius:99px;font-size:.75rem;font-weight:700;background:#eef0fb;color:#3b2fc0;white-space:nowrap}
+.golive-ok .golive-tag{background:#e3f7ec;color:#0b5a35}.golive-todo .golive-tag{background:#fde7e7;color:#8a1c1c}
+.golive-warn .golive-tag{background:#fff4d6;color:#5c3f00}.golive-outside .golive-tag{background:#ececec;color:#333}
+.golive-w{font-size:.78rem;color:#4a5470;overflow-wrap:anywhere;min-width:0}
+.golive .btn{margin-top:12px;min-height:44px}
+@media print{.golive{display:none}}

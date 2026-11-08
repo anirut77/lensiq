@@ -24,6 +24,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
       # Git LFS (docs/LFS-MIGRATION.md): cached by object list; no-ops while vendor/ is still plain git
       - name: LFS object list (cache key)
         run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
@@ -40,6 +42,14 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+      # Format check on ADDED lines only (tools/format-check.mjs, rules in .editorconfig: LF, no tabs, no trailing
+      # whitespace, code lines <= 200 characters). Fails a pull request; on a push to main it is reported as a warning
+      # (round 12 introduced it — the round's own direct pushes are not blocked). Needs the parent commit: fetch-depth 2.
+      - name: format check (added lines; fails on pull requests)
+        run: |
+          node tools/format-check.mjs --selftest
+          if [ "${{ github.event_name }}" = "pull_request" ]; then node tools/format-check.mjs --base HEAD~1
+          else node tools/format-check.mjs --base HEAD~1 --warn-only; fi
       - name: type-check shared modules (tsc --checkJs, tsconfig.typecheck.json)
         run: npm run typecheck
       - name: unit tests (includes backend/ Worker — auth, analytics validation, retention, entitlements, Opn webhook, AI proxy — on an in-memory D1 shim)
@@ -47,9 +57,13 @@ jobs:
       # Ratchet: type errors across ALL root *.js (npm run typecheck:report) may only go down. When you fix files, lower
       # TYPECHECK_MAX to the new total in the same commit; never raise it. Lower it at the end of EVERY round:
       #   round 10: 800 (measured 790)   round 11: 714 (palm.js 46 -> 0 and gated; pricing/account/report/legal/leads gated)
+      #   round 12: 632 (measured 624: photobooth.js 93 -> 0 and gated as its own program — page scripts are now counted
+      #             in their own program, as the gate checks them; +8 for the round's parallel work in flight — lower it
+      #             to the measured total at the start of round 13). 136 of the 624 are vendor/mediapipe/vision_bundle.mjs,
+      #             pulled in by signage.js's literal import() (photobooth.js imports it through a variable path).
       - name: typecheck ratchet — total errors in the full report must not rise
         env:
-          TYPECHECK_MAX: "714"
+          TYPECHECK_MAX: "632"
         run: |
           npm run --silent typecheck:report | tee typecheck-report.txt
           total=$(sed -nE 's/^([0-9]+) error\(s\) in .*/\1/p' typecheck-report.txt | tail -1)
@@ -145,9 +159,20 @@ jobs:
       - name: phone gate — 360 px in TH / EN / 中文 and 390 px TH (overflow, touch targets >= 44 px, contrast)
         run: |
           for lang in th en zh; do
-            node tools/mobile-audit.mjs --width 360 --lang $lang --strict --checks overflow,targets,contrast --details || exit 1
+            node tools/mobile-audit.mjs --width 360 --lang $lang --strict --checks overflow,targets,contrast,hiddenShown,crumbs,thaiTracking --details || exit 1
           done
           node tools/mobile-audit.mjs --width 390 --lang th --strict --checks overflow,targets,contrast --details
+        env:
+          LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
+      # Round 12: the same checks AFTER interaction — open drawer, compact language menu (320 px), sign-in dialog, guest
+      # (light) and full readings, the signed-in account page and its error state (mocked API Worker from
+      # tests/e2e/member.e2e.mjs; nothing leaves the runner). Also: no element with [hidden] may render, the breadcrumb
+      # stays on one line, Thai is never letter-spaced, and each state's own expectations (no "retry" when nothing failed).
+      - name: phone gate — post-interaction states at 360 px in TH / EN / 中文
+        run: |
+          for lang in th en zh; do
+            node tools/mobile-audit.mjs --states --width 360 --lang $lang --strict --checks overflow,targets,contrast,hiddenShown,crumbs,thaiTracking,state,errors --details || exit 1
+          done
         env:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
       - name: e2e (one retry per failing file)

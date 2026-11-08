@@ -1,0 +1,133 @@
+{
+ "format": "lensiq-bench-summary",
+ "bench": "manifest",
+ "checkedAt": "2026-11-07T23:25:01.789Z",
+ "commit": "f1d7fba",
+ "machine": {
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v22.22.0"
+ },
+ "reproduce": "node tests/bench/results.mjs manifest [--content]  (LQ_BENCH_DATA=~/lq-bench-data)",
+ "datasets": {
+  "casia": {
+   "status": "absent",
+   "sha256": null,
+   "note": "not reproducible here: datasets absent (LQ_BENCH_DATA not set) — python3 -I tests/bench/fetch_datasets.py ~/lq-bench-data"
+  },
+  "cew": {
+   "status": "absent",
+   "sha256": null,
+   "note": "not reproducible here: datasets absent (LQ_BENCH_DATA not set) — python3 -I tests/bench/fetch_datasets.py ~/lq-bench-data"
+  },
+  "fer": {
+   "status": "absent",
+   "sha256": null,
+   "note": "not reproducible here: datasets absent (LQ_BENCH_DATA not set) — python3 -I tests/bench/fetch_datasets.py ~/lq-bench-data"
+  },
+  "hagrid": {
+   "status": "absent",
+   "sha256": null,
+   "note": "not reproducible here: datasets absent (LQ_BENCH_DATA not set) — python3 -I tests/bench/fetch_datasets.py ~/lq-bench-data"
+  },
+  "lfw": {
+   "status": "absent",
+   "sha256": null,
+   "note": "not reproducible here: datasets absent (LQ_BENCH_DATA not set) — python3 -I tests/bench/fetch_datasets.py ~/lq-bench-data"
+  },
+  "lfwfull": {
+   "status": "absent",
+   "sha256": null,
+   "note": "not reproducible here: datasets absent (LQ_BENCH_DATA not set) — python3 -I tests/bench/fetch_datasets.py ~/lq-bench-data"
+  },
+  "mot": {
+   "status": "absent",
+   "sha256": null,
+   "note": "not reproducible here: datasets absent (LQ_BENCH_DATA not set) — python3 -I tests/bench/fetch_datasets.py ~/lq-bench-data"
+  },
+  "oceyes": {
+   "status": "absent",
+   "sha256": null,
+   "note": "not reproducible here: datasets absent (LQ_BENCH_DATA not set) — python3 -I tests/bench/fetch_datasets.py ~/lq-bench-data"
+  },
+  "utk": {
+   "status": "absent",
+   "sha256": null,
+   "note": "not reproducible here: datasets absent (LQ_BENCH_DATA not set) — python3 -I tests/bench/fetch_datasets.py ~/lq-bench-data"
+  }
+ },
+ "benches": {
+  "people": {
+   "datasets": [
+    "mot"
+   ],
+   "reproducibleHere": false,
+   "status": "not reproducible here: datasets absent: mot",
+   "reproduce": "LQ_BENCH_DATA=~/lq-bench-data node tests/bench/people.bench.mjs --fps 5 --json out.json"
+  },
+  "face": {
+   "datasets": [
+    "lfw",
+    "utk"
+   ],
+   "reproducibleHere": false,
+   "status": "not reproducible here: datasets absent: lfw, utk",
+   "reproduce": "LQ_BENCH_DATA=~/lq-bench-data node tests/bench/face.bench.mjs --json out.json"
+  },
+  "face1n": {
+   "datasets": [
+    "lfwfull",
+    "casia"
+   ],
+   "reproducibleHere": false,
+   "status": "not reproducible here: datasets absent: lfwfull, casia",
+   "reproduce": "LQ_BENCH_DATA=~/lq-bench-data node tests/bench/face1n.bench.mjs --json out.json"
+  },
+  "hand": {
+   "datasets": [
+    "hagrid"
+   ],
+   "reproducibleHere": false,
+   "status": "not reproducible here: datasets absent: hagrid",
+   "reproduce": "LQ_BENCH_DATA=~/lq-bench-data node tests/bench/hand.bench.mjs --json out.json"
+  },
+  "driver": {
+   "datasets": [
+    "oceyes",
+    "cew"
+   ],
+   "reproducibleHere": false,
+   "status": "not reproducible here: datasets absent: oceyes, cew",
+   "reproduce": "LQ_BENCH_DATA=~/lq-bench-data node tests/bench/driver.bench.mjs --json out.json"
+  },
+  "driver-session": {
+   "datasets": [
+    "lfwfull",
+    "cew"
+   ],
+   "reproducibleHere": false,
+   "status": "not reproducible here: datasets absent: lfwfull, cew",
+   "reproduce": "LQ_BENCH_DATA=~/lq-bench-data node tests/bench/driver-session.bench.mjs --minutes 10 --json out.json"
+  },
+  "neuro": {
+   "datasets": [
+    "fer"
+   ],
+   "reproducibleHere": false,
+   "status": "not reproducible here: datasets absent: fer",
+   "reproduce": "LQ_BENCH_DATA=~/lq-bench-data node tests/bench/neuro.bench.mjs --json out.json"
+  },
+  "qc": {
+   "datasets": [],
+   "reproducibleHere": true,
+   "status": "reproducible here",
+   "reproduce": "node tests/bench/qc.bench.mjs --json out.json"
+  },
+  "checkout": {
+   "datasets": [],
+   "reproducibleHere": true,
+   "status": "reproducible here",
+   "reproduce": "node tests/bench/checkout.bench.mjs --json out.json"
+  }
+ }
+}

@@ -1,7 +1,11 @@
 /* ตู้ถ่ายรูป: ตู้สติ๊กเกอร์ + รูปติดบัตร — ประมวลผลในเบราว์เซอร์ ไม่ส่งภาพออกนอกเครื่อง */
 const L = window.PBLayout;
+/** @type {(s: string) => any} */
 const $ = s => document.querySelector(s);
+/** @type {(s: string) => NodeListOf<any>} */
+const $$ = s => document.querySelectorAll(s);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+/** @type {(w: number, h: number) => any} */
 const mk = (w, h) => Object.assign(document.createElement("canvas"), { width: w, height: h });
 const video = $("#video"), preview = $("#preview"), pctx = preview.getContext("2d");
 const out = $("#out"), octx = out.getContext("2d");
@@ -10,13 +14,15 @@ const tr = (k, th, vars) => window.LQI18N && LQI18N.tf ? LQI18N.tf(k, th, vars) 
 
 let camOK = false, faceOK = false, seg = null, mode = "booth", busy = false;
 const engineMsgs = {};
+// vendor bundle (a variable path: the type checker does not crawl the 1 MB minified bundle)
+const MP_BUNDLE = "./vendor/mediapipe/vision_bundle.mjs";
 function engine() {
   const e = $("#engine"), parts = Object.values(engineMsgs);
   const cls = parts.some(p => p.c === "err") ? "err" : parts.some(p => p.c === "warn") ? "warn" : parts.length >= 3 ? "ok" : "";
   e.textContent = parts.map(p => typeof p.t === "function" ? p.t() : p.t).join(" · ") || tr("photobooth.js.engine.prep", "กำลังเตรียมระบบ...");
   e.className = "engine " + cls;
 }
-const status = (k, t, c) => { engineMsgs[k] = { t, c }; engine(); }; // t = ข้อความ หรือฟังก์ชันคืนข้อความ (แปลใหม่เมื่อเปลี่ยนภาษา)
+const setStatus = (k, t, c) => { engineMsgs[k] = { t, c }; engine(); }; // t = ข้อความ หรือฟังก์ชันคืนข้อความ (แปลใหม่เมื่อเปลี่ยนภาษา)
 /* ข้อความใต้ปุ่มถ่าย: เก็บฟังก์ชันไว้ เพื่อแสดงใหม่เป็นภาษาที่เลือกเมื่อเปลี่ยนภาษา */
 let hintFn = null;
 const setHint = f => { hintFn = f; $("#shootHint").textContent = f(); };
@@ -29,7 +35,7 @@ function mountCamCtl(host, cam, onError) {
   const box = document.createElement("div"); box.className = "cam-ctl"; box.hidden = true;
   box.innerHTML = `<button type="button" class="cam-flip" aria-label="${escA(tr("photobooth.js.cam.flipAria", "สลับกล้องหน้า/หลัง"))}" title="${escA(tr("photobooth.js.cam.flipAria", "สลับกล้องหน้า/หลัง"))}" data-i18n-attr="aria-label:photobooth.js.cam.flipAria;title:photobooth.js.cam.flipAria"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h11l-3-3M20 16H9l3 3"/></svg><span data-i18n="photobooth.js.cam.flip">${escA(tr("photobooth.js.cam.flip", "สลับกล้อง"))}</span></button><select class="cam-pick" aria-label="${escA(tr("photobooth.js.cam.pick", "เลือกกล้อง"))}" data-i18n-attr="aria-label:photobooth.js.cam.pick"></select>`;
   host.append(box);
-  const flip = box.querySelector(".cam-flip"), pick = box.querySelector(".cam-pick");
+  const flip = /** @type {HTMLButtonElement} */ (box.querySelector(".cam-flip")), pick = /** @type {HTMLSelectElement} */ (box.querySelector(".cam-pick"));
   const run = p => { box.classList.add("busy"); p.catch(e => { if (e?.name !== "AbortError") onError?.(e); }).finally(() => box.classList.remove("busy")); };
   flip.onclick = () => run(cam.flip());
   pick.onchange = () => run(cam.start(pick.value));
@@ -127,7 +133,7 @@ const THEMES = {
     paper(c, W, H) {
       c.fillStyle = "#fff7e0"; c.fillRect(0, 0, W, H); const r = rng(5), cols = ["#e05a47", "#2a78d6", "#1baf7a", "#eda100", "#e87ba4", "#6250d6"];
       for (let i = 0; i < 160; i++) { c.save(); c.translate(r() * W, r() * H); c.rotate(r() * 3); c.fillStyle = cols[i % cols.length]; c.fillRect(-5, -2, 10, 4); c.restore(); }
-      [[40, "#e05a47"], [W - 40, "#2a78d6"]].forEach(([x, col]) => { c.strokeStyle = "#8a6d3b"; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x, 62); c.quadraticCurveTo(x + 8, 90, x, 120); c.stroke(); c.fillStyle = col; c.beginPath(); c.ellipse(x, 38, 20, 25, 0, 0, 7); c.fill(); });
+      /** @type {[number, string][]} */ ([[40, "#e05a47"], [W - 40, "#2a78d6"]]).forEach(([x, col]) => { c.strokeStyle = "#8a6d3b"; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x, 62); c.quadraticCurveTo(x + 8, 90, x, 120); c.stroke(); c.fillStyle = col; c.beginPath(); c.ellipse(x, 38, 20, 25, 0, 0, 7); c.fill(); });
     },
     cell(c, x, y, w, h) { c.strokeStyle = "#fff"; c.lineWidth = 6; c.strokeRect(x - 3, y - 3, w + 6, h + 6); }
   },
@@ -175,7 +181,7 @@ function composeCell(c, shot, x, y, w, h, bgKey) {
 }
 
 async function init() {
-  status("cam", () => tr("photobooth.js.st.camOpening", "กำลังเปิดกล้อง..."), "");
+  setStatus("cam", () => tr("photobooth.js.st.camOpening", "กำลังเปิดกล้อง..."), "");
   const camP = camera.start().catch(camErr);
 
   const face = (async () => {
@@ -183,13 +189,13 @@ async function init() {
     await LQDetect.tfBackend();
     await Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri("vendor/models/"), faceapi.nets.faceLandmark68Net.loadFromUri("vendor/models/")]);
     try { await faceapi.nets.faceExpressionNet.loadFromUri("vendor/models/"); exprOK = true; } catch (e) { console.warn("expression model", e); }
-  })().then(() => { faceOK = true; status("face", () => tr("photobooth.js.st.faceOk", "ตรวจจับใบหน้าพร้อม"), "ok"); },
-    e => { console.error(e); status("face", () => tr("photobooth.js.st.faceErr", "ตรวจจับใบหน้าไม่ได้ (โหมดรูปติดบัตรจัดตำแหน่งอัตโนมัติไม่ได้)"), "warn"); });
+  })().then(() => { faceOK = true; setStatus("face", () => tr("photobooth.js.st.faceOk", "ตรวจจับใบหน้าพร้อม"), "ok"); },
+    e => { console.error(e); setStatus("face", () => tr("photobooth.js.st.faceErr", "ตรวจจับใบหน้าไม่ได้ (โหมดรูปติดบัตรจัดตำแหน่งอัตโนมัติไม่ได้)"), "warn"); });
 
   const segP = (async () => {
     // กราฟ ImageSegmenter ของ MediaPipe ต้องใช้ GL แม้เลือก CPU delegate: ไม่มี WebGL (หรือ ?cpu) = ข้ามไปเลย ไม่พ่น error
     if (window.LQDetect && (!LQDetect.hasWebGL() || /[?&](cpu|nogl)\b/.test(location.search))) throw Object.assign(new Error("no WebGL"), { name: "NoWebGL" });
-    const { FilesetResolver, ImageSegmenter } = await import("./vendor/mediapipe/vision_bundle.mjs");
+    const { FilesetResolver, ImageSegmenter } = await import(MP_BUNDLE);
     const files = await FilesetResolver.forVisionTasks(new URL("vendor/mediapipe/wasm", location.href).href);
     let last;
     // ไม่มี WebGL (หรือ ?cpu): ข้าม GPU delegate ที่จะล้มเหลวและพ่น error ลงคอนโซล
@@ -202,13 +208,13 @@ async function init() {
       } catch (e) { last = e; console.warn("segmenter", delegate, e); }
     }
     throw last;
-  })().then(s => { seg = s; status("seg", () => tr("photobooth.js.st.segOk", "เปลี่ยนฉากหลังอัตโนมัติพร้อม"), "ok"); },
-    e => { if (e.name === "NoWebGL") console.warn("segmenter skipped: no WebGL"); else console.error(e); status("seg", () => tr("photobooth.js.st.segErr", "เปลี่ยนฉากหลังไม่ได้ในเครื่องนี้ (ใช้ภาพต้นฉบับแทน)"), "warn"); renderBgSwatches(); });
+  })().then(s => { seg = s; setStatus("seg", () => tr("photobooth.js.st.segOk", "เปลี่ยนฉากหลังอัตโนมัติพร้อม"), "ok"); },
+    e => { if (e.name === "NoWebGL") console.warn("segmenter skipped: no WebGL"); else console.error(e); setStatus("seg", () => tr("photobooth.js.st.segErr", "เปลี่ยนฉากหลังไม่ได้ในเครื่องนี้ (ใช้ภาพต้นฉบับแทน)"), "warn"); renderBgSwatches(); });
 
   // โหลด MODNet ล่วงหน้า (ใช้ตอนกดถ่าย เพื่อขอบผม/ขอบตัวเนียน)
-  status("hq", () => tr("photobooth.js.st.hqLoading", "กำลังโหลดโมเดลตัดพื้นหลังความละเอียดสูง..."), "");
-  const hqP = PBHQ.loadMatting().then(() => status("hq", () => tr("photobooth.js.st.hqOk", "ตัดพื้นหลังความละเอียดสูง (MODNet) พร้อม"), "ok"),
-    e => { console.warn(e); status("hq", () => tr("photobooth.js.st.hqErr", "ตัดพื้นหลังความละเอียดสูงไม่ได้ ใช้แบบมาตรฐาน + เกลาขอบแทน"), "warn"); });
+  setStatus("hq", () => tr("photobooth.js.st.hqLoading", "กำลังโหลดโมเดลตัดพื้นหลังความละเอียดสูง..."), "");
+  const hqP = PBHQ.loadMatting().then(() => setStatus("hq", () => tr("photobooth.js.st.hqOk", "ตัดพื้นหลังความละเอียดสูง (MODNet) พร้อม"), "ok"),
+    e => { console.warn(e); setStatus("hq", () => tr("photobooth.js.st.hqErr", "ตัดพื้นหลังความละเอียดสูงไม่ได้ ใช้แบบมาตรฐาน + เกลาขอบแทน"), "warn"); });
 
   await Promise.allSettled([camP, face, segP, hqP]);
   renderBgSwatches();
@@ -221,10 +227,10 @@ const camera = LQCam.create(video, {
   onChange: (c, ev) => {
     if (ev.type === "devices") { renderCamCtl(); return; }
     camOK = c.active && !!video.videoWidth; syncPreview();
-    if (ev.type === "ended") { status("cam", () => tr("photobooth.js.st.camEnded", "สัญญาณกล้องหลุด — โหลดหน้าใหม่หรือเลือกกล้องอีกครั้ง"), "err"); return; }
+    if (ev.type === "ended") { setStatus("cam", () => tr("photobooth.js.st.camEnded", "สัญญาณกล้องหลุด — โหลดหน้าใหม่หรือเลือกกล้องอีกครั้ง"), "err"); return; }
     if (ev.type === "error") return;
     const camKey = c.active ? (c.facing === "environment" ? ["photobooth.js.st.camBack", "กล้องหลังพร้อม"] : ["photobooth.js.st.camOk", "กล้องพร้อม"]) : ["photobooth.js.st.camPaused", "พักกล้องไว้ขณะสลับแอป"];
-    status("cam", () => tr(camKey[0], camKey[1]), c.active ? "ok" : "");
+    setStatus("cam", () => tr(camKey[0], camKey[1]), c.active ? "ok" : "");
   },
   onError: (c, e) => { if (e?.name !== "AbortError") camErr(e); }
 });
@@ -252,7 +258,7 @@ const MULTI_HINT = () => tr("photobooth.js.multi", "มีบุคคลอื�
 function camErr(e) {
   console.warn(e); camOK = false;
   if (e.name === "Insecure") showHttpsNote($("#engine"));
-  status("cam", () => e.name === "Insecure" ? HTTPS_MSG() : tr("photobooth.js.camErr", "เปิดกล้องไม่ได้: ") + ({ NotAllowedError: tr("photobooth.js.camErr.denied", "ไม่ได้รับอนุญาต"), NotFoundError: tr("photobooth.js.camErr.notFound", "ไม่พบกล้อง"), NotReadableError: tr("photobooth.js.camErr.busy", "กล้องถูกโปรแกรมอื่นใช้อยู่") }[e.name] || e.message), "err");
+  setStatus("cam", () => e.name === "Insecure" ? HTTPS_MSG() : tr("photobooth.js.camErr", "เปิดกล้องไม่ได้: ") + ({ NotAllowedError: tr("photobooth.js.camErr.denied", "ไม่ได้รับอนุญาต"), NotFoundError: tr("photobooth.js.camErr.notFound", "ไม่พบกล้อง"), NotReadableError: tr("photobooth.js.camErr.busy", "กล้องถูกโปรแกรมอื่นใช้อยู่") }[e.name] || e.message), "err");
 }
 renderCamCtl = mountCamCtl($(".preview"), camera, camErr);
 /* ขนาดพรีวิว: ตู้สติ๊กเกอร์ = 4:3 ตามช่องภาพจริง, รูปติดบัตร = ตามสัดส่วนกล้อง (แนวตั้งบนมือถือ) */
@@ -294,7 +300,7 @@ requestAnimationFrame(loop);
 
 // ---------- นับถอยหลัง ----------
 let timerSec = 3;
-document.querySelectorAll("#timerSel button").forEach(b => b.onclick = () => { timerSec = +b.dataset.s; document.querySelectorAll("#timerSel button").forEach(x => x.classList.toggle("on", x === b)); });
+$$("#timerSel button").forEach(b => b.onclick = () => { timerSec = +b.dataset.s; $$("#timerSel button").forEach(x => x.classList.toggle("on", x === b)); });
 async function countdown(n = timerSec) {
   const el = $("#count");
   for (let i = n; i > 0; i--) { el.textContent = i; el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop"); await sleep(900); }
@@ -355,14 +361,14 @@ function renderBgSwatches() {
     if (b.draw) b.draw(x, 60, 60); else { x.fillStyle = "#9fb1bc"; x.fillRect(0, 0, 60, 60); x.fillStyle = "#fff"; x.font = "26px sans-serif"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText("📷", 30, 28); }
     const label = document.createElement("span"); label.textContent = b.name;
     btn.append(c, label);
-    if (k !== "none" && !seg) btn.disabled = true, btn.style.opacity = .35;
+    if (k !== "none" && !seg) btn.disabled = true, btn.style.opacity = "0.35";
     btn.onclick = () => { booth.bg = k; renderBgSwatches(); renderBooth(); };
     $("#bgs").append(btn);
   });
 }
-document.querySelectorAll("#shots button").forEach(b => b.onclick = () => { booth.n = +b.dataset.n; document.querySelectorAll("#shots button").forEach(x => x.classList.toggle("on", x === b)); syncLayoutBtns(); });
-document.querySelectorAll("#layoutSel button").forEach(b => b.onclick = () => { if (b.disabled) return; booth.layout = b.dataset.l; document.querySelectorAll("#layoutSel button").forEach(x => x.classList.toggle("on", x === b)); renderBooth(); });
-function syncLayoutBtns() { document.querySelectorAll("#layoutSel button").forEach(b => b.disabled = booth.n === 1); }
+$$("#shots button").forEach(b => b.onclick = () => { booth.n = +b.dataset.n; $$("#shots button").forEach(x => x.classList.toggle("on", x === b)); syncLayoutBtns(); });
+$$("#layoutSel button").forEach(b => b.onclick = () => { if (b.disabled) return; booth.layout = b.dataset.l; $$("#layoutSel button").forEach(x => x.classList.toggle("on", x === b)); renderBooth(); });
+function syncLayoutBtns() { $$("#layoutSel button").forEach(b => b.disabled = booth.n === 1); }
 $("#caption").oninput = renderBooth; $("#showDate").onchange = renderBooth;
 
 async function shootBooth() {
@@ -391,7 +397,7 @@ function showBoothResult(keep) { // keep = วาดใหม่ตอนเป�
   $("#result").hidden = false; $("#resultTitle").textContent = tr("photobooth.js.res.booth", "ภาพตู้สติ๊กเกอร์");
   $("#resultActions").innerHTML = "";
   current = { canvas: () => out, name: "lensiq-photobooth", title: $("#caption").value.trim() || "LENSIQ Photo Booth" };
-  resultActions(true);
+  resultActions();
   const side = $("#resultSide");
   side.innerHTML = `<h3>${tr("photobooth.js.st.h", "สติ๊กเกอร์")}</h3><div class="stickers"></div><p>${tr("photobooth.js.st.help", "แตะเพื่อเพิ่ม ลากบนภาพเพื่อย้าย แตะสองครั้งเพื่อลบ")}</p><div class="row-actions"><button class="btn ghost" type="button" id="undoSt">${tr("photobooth.js.st.undo", "ลบอันล่าสุด")}</button><button class="btn ghost" type="button" id="clearSt">${tr("photobooth.js.st.clear", "ล้างทั้งหมด")}</button></div>`;
   STICKERS.forEach(ch => { const b = document.createElement("button"); b.type = "button"; b.textContent = ch; b.onclick = () => { const Lo = boothLayoutNow(); booth.stickers.push({ ch, x: Lo.W / 2 + (Math.random() - .5) * Lo.W * .4, y: Lo.H / 2 + (Math.random() - .5) * Lo.H * .3, s: Math.round(Lo.W / 7) }); renderBooth(); }; side.querySelector(".stickers").append(b); });
@@ -414,7 +420,14 @@ out.addEventListener("dblclick", e => { if (mode !== "booth") return; const s = 
 // รูปติดบัตร
 // =====================================================================
 let exprOK = false;
-const idState = { size: "1", bg: "#ffffff", outfit: "none", cap: null, paper: "4x6", copies: 0, marks: true, purpose: null };
+const idState = { size: "1", bg: "#ffffff", outfit: "none", cap: null, paper: "4x6", copies: 0, marks: true, purpose: null, expOutfit: false };
+/* round 12: ชุดจำลองบนรูปติดบัตรมีรอยทุกภาพในชุดวัดผล (124/124, ACCURACY.md §11b) — ปิดเป็นค่าเริ่มต้น เปิดเองด้วยสวิตช์ "ชุดจำลองแบบทดลอง"
+ * (ไม่ลบความสามารถ: ปุ่มวัตถุประสงค์ยังจำชุดที่เลือกไว้ เปิดสวิตช์แล้วแสดงแบบไม่ใส่ชุดก่อน ดูชุดเป็นแบบร่างได้เมื่อกดเองเหมือนเดิม) */
+function setExpOutfit(on) {
+  idState.expOutfit = !!on; const cb = $("#pbExpOutfit"), box = $("#pbOutfitBox"); if (cb) cb.checked = idState.expOutfit; if (box) box.hidden = !idState.expOutfit;
+  if (!idState.expOutfit) idState.draftFor = null;
+  renderId(); return idState.expOutfit;
+}
 const OUTFITS = {
   none: "ไม่ใส่ชุด", civil: "ชุดข้าราชการปกติขาว", khaki: "ชุดกากี", suit: "สูทสากลเทาเข้ม", suit_navy: "สูทกรมท่า",
   shirt_tie: "เชิ้ตขาวผูกเนคไท", lady: "สูทสุภาพสตรีกรมท่า", lady_black: "สูทสุภาพสตรีดำ", student: "นักศึกษาชาย", student_f: "นักศึกษาหญิง"
@@ -434,7 +447,7 @@ function renderPurposes() {
   $("#idPurpose").querySelectorAll("button").forEach(b => b.onclick = () => {
     const p = PURPOSES[b.dataset.k];
     Object.assign(idState, { purpose: b.dataset.k, outfit: p.outfit, size: p.size, bg: p.bg, draftFor: null });
-    document.querySelectorAll("#idBg button").forEach(x => x.classList.toggle("on", x.dataset.c === p.bg));
+    $$("#idBg button").forEach(x => x.classList.toggle("on", x.dataset.c === p.bg));
     renderPurposes(); renderIdSizes(); syncGuide(); renderOutfitChoices(); renderId();
   });
 }
@@ -521,8 +534,9 @@ function renderIdSizes() {
   $("#idSize").querySelectorAll("button").forEach(b => b.onclick = () => { idState.size = b.dataset.k; renderIdSizes(); syncGuide(); renderId(); });
 }
 function syncGuide() { const s = L.ID_SIZES[idState.size]; $("#idGuide").style.setProperty("--ar", s.w / s.h); }
-document.querySelectorAll("#idBg button").forEach(b => b.onclick = () => { idState.bg = b.dataset.c; document.querySelectorAll("#idBg button").forEach(x => x.classList.toggle("on", x === b)); renderId(); });
+$$("#idBg button").forEach(b => b.onclick = () => { idState.bg = b.dataset.c; $$("#idBg button").forEach(x => x.classList.toggle("on", x === b)); renderId(); });
 ["#oScale", "#oX", "#oY", "#adjBright", "#adjSmooth"].forEach(s => $(s).oninput = renderId);
+if ($("#pbExpOutfit")) $("#pbExpOutfit").onchange = e => setExpOutfit(/** @type {HTMLInputElement} */ (e.target).checked);
 
 // ถ่ายอัตโนมัติ: เมื่อหน้าตรง อยู่กลางกรอบ ขนาดพอดี และนิ่งต่อเนื่อง ~1.5 วินาที
 let autoStreak = 0, autoLast = null;
@@ -562,6 +576,7 @@ async function shootId() {
 async function processId(img) {
   const vw = img.width, vh = img.height;
   const mask = segment(img);
+  /** @type {any} */
   let face = null, qc = null, nFaces = 0;
   if (faceOK) {
     const all = await detectFaces(img, 416, .4, exprOK), r = all[0]; // ใบหน้าใหญ่สุดใช้จัดตำแหน่ง
@@ -699,6 +714,8 @@ function renderIdPhoto({ outfit = idState.outfit, res = 1 } = {}) { // คืน
 function renderGallery() { // แสดงทุกชุดบนใบหน้าจริงของผู้ถ่าย
   const g = $("#outfitGallery"); if (!g || !idState.cap) return;
   g.innerHTML = "";
+  const gw = $("#outfitGalleryWrap"); if (gw) gw.hidden = !idState.expOutfit;
+  if (!idState.expOutfit) return; // สวิตช์ทดลองปิด: ไม่วาดชุดบนรูปของผู้ถ่าย
   outfitList().forEach(([k, name]) => {
     const b = document.createElement("button"); b.type = "button"; b.className = "choice" + (k === idState.outfit ? " on" : "");
     b.append(renderIdPhoto({ outfit: k, res: .35 }), name);
@@ -719,7 +736,7 @@ function renderSheet(photo) {
   x.fillText(tr("photobooth.js.sheet.foot", "{size} × {n} รูป · 300 DPI · สั่งพิมพ์ขนาดจริง 100% (ห้ามย่อ/ขยาย)", { size: tr("photobooth.js.size." + idState.size, s.label), n: t.count }), t.W / 2, t.H - 18);
   return { canvas: c, info: t };
 }
-// ---------- AI เปลี่ยนชุดให้สมจริง (ปิดไว้จนกว่าจะตั้งค่า API key ที่เซิร์ฟเวอร์) ----------
+// ---------- AI สร้างภาพชุดจำลองด้วยบริการภายนอก (ปิดไว้จนกว่าจะตั้งค่า API key ที่เซิร์ฟเวอร์; ผลยังเป็นภาพสังเคราะห์) ----------
 let aiEnabled = false, aiReason = null, aiNC = false;
 fetch("/api/tryon/status").then(r => r.ok ? r.json() : null).then(s => { aiEnabled = !!(s && s.enabled); aiReason = s && s.reason || null; aiNC = !!(s && s.noncommercial); }).catch(() => {});
 /** เหตุผลที่ AI ปิดอยู่ (จาก /api/tryon/status: reason) — แสดงให้ผู้ดูแลรู้ว่าต้องตั้งค่าอะไร */
@@ -731,12 +748,12 @@ const aiReasonText = () => ({
 }[aiReason] || tr("photobooth.js.ai.r.offline", "ไม่พบเซิร์ฟเวอร์ประมวลผลภาพ (เปิดหน้าแบบไฟล์ static)"));
 const aiKey = () => [idState.outfit, idState.size, idState.bg, ...["#oScale", "#oX", "#oY", "#oBright", "#adjBright", "#adjSmooth"].map(s => $(s).value)].join("|");
 function aiPanelHTML() {
-  if (!aiEnabled) return `<h3>${tr("photobooth.js.ai.h", "✨ ปรับชุดให้สมจริง (บริการภายนอก)")}</h3><p class="note">${tr("photobooth.js.ai.off2", "ยังไม่เปิดใช้งาน: {r}", { r: String(aiReasonText()).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[c])) })}</p>`;
-  return `<h3>${tr("photobooth.js.ai.h", "✨ ปรับชุดให้สมจริง (บริการภายนอก)")}</h3>
+  if (!aiEnabled) return `<h3>${tr("photobooth.js.ai.h", "✨ สร้างภาพชุดด้วยบริการภายนอก (ยังเป็นภาพสังเคราะห์)")}</h3><p class="note">${tr("photobooth.js.ai.off2", "ยังไม่เปิดใช้งาน: {r}", { r: String(aiReasonText()).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[c])) })}</p>`;
+  return `<h3>${tr("photobooth.js.ai.h", "✨ สร้างภาพชุดด้วยบริการภายนอก (ยังเป็นภาพสังเคราะห์)")}</h3>
     ${aiNC ? `<p class="note">${tr("photobooth.js.ai.ncDemo", "โหมดสาธิตเท่านั้น: โมเดลนี้ห้ามใช้เชิงพาณิชย์")}</p>` : ""}
     <p class="note">${tr("photobooth.js.ai.note", "ใช้ได้กับชุดที่มีป้าย \"ภาพจริง\" รูปจะถูกส่งไปประมวลผลที่ Replicate (ต่างประเทศ) ใช้เวลา ~20-60 วินาที")}</p>
     <label class="check"><input type="checkbox" id="aiConsent"><span>${tr("photobooth.js.ai.consent", "ผู้ถ่ายยินยอมให้ส่งรูปไปประมวลผลที่บริการสร้างภาพภายนอก (Replicate ต่างประเทศ)")}</span></label>
-    <button class="btn ghost full" type="button" id="aiRun">${tr("photobooth.js.ai.run", "✨ สร้างภาพให้สมจริง")}</button><p class="hint" id="aiMsg"></p>`;
+    <button class="btn ghost full" type="button" id="aiRun">${tr("photobooth.js.ai.run", "✨ สร้างภาพชุดจำลองด้วยบริการภายนอก")}</button><p class="hint" id="aiMsg"></p>`;
 }
 async function runAI() {
   const msg = t => { $("#aiMsg").textContent = t; };
@@ -766,6 +783,8 @@ async function runAI() {
 /** ชุดในรูปติดบัตร: ผ่านการตรวจ = แสดงเป็น "ชุดตัวอย่าง (พรีวิว)" พร้อมป้ายมุมภาพ; ไม่ผ่าน = แสดงแบบไม่ใส่ชุด (เสื้อเดิม) ดูแบบร่างได้เมื่อกดเอง */
 function idPhotoNow() {
   const want = idState.outfit;
+  // สวิตช์ทดลองปิด (ค่าเริ่มต้น): ไม่วาดชุดเลย — ไม่มีแบบร่าง ไม่มีภาพจากบริการภายนอก
+  if (!idState.expOutfit) { idState.boothQA = null; idState.shownOutfit = want === "none" ? "none" : "off"; return renderIdPhoto({ outfit: "none" }); }
   if (idState.ai && idState.ai.key === aiKey()) { idState.shownOutfit = "ai"; idState.boothQA = null; const a = idState.ai.photo, c = mk(a.width, a.height); c.getContext("2d").drawImage(a, 0, 0); L.previewMark(c.getContext("2d"), c.width, c.height, OUTFIT_MARK); return c; }
   let photo = renderIdPhoto();
   idState.boothQA = want === "none" ? null : photo.qa || null;
@@ -781,9 +800,10 @@ const outfitShown = () => mode === "id" && (idState.shownOutfit === "preview" ||
 const sfx = () => outfitShown() ? "-outfit-preview" : "";
 function syncOutfitNote() {
   const el = $("#pbOutfitNote"), btn = $("#pbOutfitDraft"); if (!el) return;
-  const st = idState.shownOutfit, show = st === "preview" || st === "draft" || st === "safe" || st === "ai";
+  const st = idState.shownOutfit, show = st === "preview" || st === "draft" || st === "safe" || st === "ai" || st === "off";
   el.hidden = !show; btn.hidden = !(st === "safe" || st === "draft"); if (!show) return;
   el.dataset.shown = st;
+  if (st === "off") { $("#pbOutfitMsg").textContent = tr("photobooth.js.of.off", "รูปติดบัตรนี้ใช้เสื้อของคุณเอง (ไม่ใส่ชุดจำลอง): ชุดจำลองปิดไว้เป็นค่าเริ่มต้น เพราะในชุดวัดผลของเรามีรอยให้เห็นทุกภาพ เปิด \"ชุดจำลองแบบทดลอง\" ในตัวเลือกรูปติดบัตรถ้าต้องการดูตัวอย่าง"); return; }
   // "ai" = ภาพจากบริการสร้างภาพภายนอก (runAI): ยังเป็นภาพสังเคราะห์ มีป้ายมุมภาพ และหลายหน่วยงานไม่รับ
   $("#pbOutfitMsg").textContent = st === "ai" ? tr("photobooth.js.of.ai", "ชุดในรูปนี้สร้างโดยบริการสร้างภาพภายนอก (Replicate) เป็นภาพสังเคราะห์ ไม่ใช่ภาพถ่ายขณะสวมจริง รูปมีป้าย \"ภาพจำลองชุด\" ที่มุม หลายหน่วยงานไม่รับรูปที่แต่งชุดหรือสร้างด้วยดิจิทัล ตรวจคอ ปกเสื้อ และใบหน้าก่อนใช้")
     : st === "preview" ? tr("photobooth.js.of.preview", "ชุดเป็นชุดตัวอย่าง (พรีวิว) ที่โปรแกรมวาดขึ้น ไม่ใช่ภาพสวมจริง รูปมีป้าย \"ภาพจำลองชุด\" ที่มุม หลายหน่วยงานไม่รับรูปที่แต่งชุดด้วยดิจิทัล ใช้แบบไม่ใส่ชุดหรือถ่ายด้วยชุดจริงสำหรับการสมัครจริง")
@@ -885,7 +905,7 @@ function renderId() {
   out.width = sheet.canvas.width; out.height = sheet.canvas.height; octx.drawImage(sheet.canvas, 0, 0);
   idState.last = { photo, sheet: sheet.canvas };
   const info = $("#sheetInfo"); if (info) info.textContent = tr("photobooth.js.sheet.info", "{n} รูป (สูงสุด {max} รูปต่อแผ่น)", { n: sheet.info.count, max: sheet.info.capacity });
-  clearTimeout(renderId.t); renderId.t = setTimeout(renderGallery, 120); // หน่วงเล็กน้อยเวลาลากแถบปรับ
+  clearTimeout(/** @type {any} */ (renderId).t); /** @type {any} */ (renderId).t = setTimeout(renderGallery, 120); // หน่วงเล็กน้อยเวลาลากแถบปรับ
 }
 function showIdResult(keep) { // keep = วาดใหม่ตอนเปลี่ยนภาษา (ไม่เลื่อนหน้าจอ)
   $("#result").hidden = false; $("#resultTitle").textContent = tr("photobooth.js.res.id", "รูปติดบัตร (แผ่นพิมพ์)");
@@ -900,7 +920,7 @@ function showIdResult(keep) { // keep = วาดใหม่ตอนเปล�
   const qc = idState.cap.qc;
   $("#resultSide").innerHTML = `
     <div class="note pb-outfit-note" id="pbOutfitNote" role="status" aria-live="polite" hidden><span id="pbOutfitMsg"></span> <button type="button" class="btn ghost sm" id="pbOutfitDraft"></button></div>
-    <h3>${tr("photobooth.js.res.gallery", "เลือกชุดจากรูปของคุณ")}</h3><p class="hint">${tr("photobooth.js.res.galleryNote", "ชุดทั้งหมดเป็นชุดตัวอย่าง (พรีวิว) ที่โปรแกรมวาด ระบบตรวจรอยต่อก่อนแสดง")}</p><div class="choices gallery" id="outfitGallery"></div>
+    <div id="outfitGalleryWrap" ${idState.expOutfit ? "" : "hidden"}><h3>${tr("photobooth.js.res.gallery", "เลือกชุดจากรูปของคุณ")}</h3><p class="hint">${tr("photobooth.js.res.galleryNoteExp", "ชุดจำลองแบบทดลอง: ทุกชุดเป็นภาพที่โปรแกรมวาด ไม่ใช่ภาพสวมจริง ในชุดวัดผลของเรามีรอยให้เห็นทุกภาพ")}</p><div class="choices gallery" id="outfitGallery"></div></div>
     ${aiPanelHTML()}
     <h3>${tr("photobooth.js.qc.h", "ตรวจคุณภาพรูป")} ${qc ? tr("photobooth.js.qc.pass", "(ผ่าน {pass}/{total})", { pass: qc.pass, total: qc.total }) : ""}</h3>
     ${qc ? `<ul class="qc">${qc.items.map(([ok, good, bad]) => `<li class="${ok ? "ok" : "warn"}">${(ok ? good : bad)()}</li>`).join("")}</ul>${qc.pass < qc.total ? `<p class="note">${tr("photobooth.js.qc.retake", "แนะนำให้ถ่ายใหม่ตามข้อที่มีเครื่องหมาย !")}</p>` : ""}` : `<p class="note">${tr("photobooth.js.qc.none", "ตรวจคุณภาพไม่ได้ เพราะไม่พบใบหน้า")}</p>`}
@@ -944,7 +964,7 @@ const canvasBlob = c => new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej
 });
 function saveBlob(blob, filename) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
 function downloadCanvas(c, name) { canvasBlob(c).then(b => saveBlob(b, `${name}-${fileStamp()}.png`)).catch(e => toast(e.message)); }
-function toast(t) { const el = $("#toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 2600); }
+function toast(t) { const el = $("#toast"); el.textContent = t; el.classList.add("show"); clearTimeout(/** @type {any} */ (toast).t); /** @type {any} */ (toast).t = setTimeout(() => el.classList.remove("show"), 2600); }
 /* แชร์ไฟล์ภาพผ่าน Web Share (มือถือ) ถ้าไม่รองรับไฟล์ให้ดาวน์โหลดแทน */
 async function shareCurrent() {
   if (!current) return;
@@ -1043,7 +1063,7 @@ $("#tplSave").onclick = async () => {
   tplMsg(tr("photobooth.js.tpl.saved", "บันทึก \"{name}\" แล้ว เลือกใช้ได้ที่แท็บรูปติดบัตร", { name: item.name }), "ok");
   $("#tplFile").value = ""; $("#tplName").value = ""; tplPrep = tplFinal = null; $("#tplSave").disabled = true;
 };
-document.querySelectorAll("#assetKind button").forEach(b => b.onclick = () => { assetKind = b.dataset.k; document.querySelectorAll("#assetKind button").forEach(x => x.classList.toggle("on", x === b)); });
+$$("#assetKind button").forEach(b => b.onclick = () => { assetKind = b.dataset.k; $$("#assetKind button").forEach(x => x.classList.toggle("on", x === b)); });
 $("#assetSave").onclick = async () => {
   const f = $("#assetFile").files[0], m = $("#assetMsg");
   if (!f) { m.textContent = tr("photobooth.js.asset.noFile", "กรุณาเลือกไฟล์"); return; }
@@ -1070,9 +1090,9 @@ function renderTplList() {
 }
 $("#oBright").oninput = renderId;
 
-document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
+$$(".tab").forEach(t => t.onclick = () => {
   mode = t.dataset.t;
-  document.querySelectorAll(".tab").forEach(x => { x.classList.toggle("active", x === t); x.setAttribute("aria-selected", x === t ? "true" : "false"); });
+  $$(".tab").forEach(x => { x.classList.toggle("active", x === t); x.setAttribute("aria-selected", x === t ? "true" : "false"); });
   $("#pane-tpl").hidden = mode !== "tpl"; $("#mainLayout").hidden = mode === "tpl";
   if (mode === "tpl") { $("#result").hidden = true; return; }
   $("#opts-booth").hidden = mode !== "booth"; $("#opts-id").hidden = mode !== "id"; $("#idGuide").hidden = mode !== "id";
@@ -1092,4 +1112,4 @@ window.addEventListener("lq-lang", () => {
   if (!$("#result").hidden) { if (mode === "booth" && booth.shots.length) showBoothResult(true); else if (mode === "id" && idState.cap) showIdResult(true); }
 });
 // ---------- test hook (tests/bench/photobooth.bench.mjs, tests/e2e/studio.e2e.mjs) — ไม่เก็บหรือส่งข้อมูล ----------
-window.__pb = { idFromImage: c => { mode = "id"; return processId(c); }, idState, renderIdPhoto, idReview, reviewGate, idCheckMeta, canvasBlob, syncOutfitNote, selectOutfit: k => { idState.outfit = k; idState.draftFor = null; renderOutfitChoices(); renderId(); return idState.shownOutfit; }, idPhotoNow, outfitConfirm };
+window.__pb = { setExpOutfit, idFromImage: c => { mode = "id"; return processId(c); }, idState, renderIdPhoto, idReview, reviewGate, idCheckMeta, canvasBlob, syncOutfitNote, selectOutfit: k => { idState.outfit = k; idState.draftFor = null; renderOutfitChoices(); renderId(); return idState.shownOutfit; }, idPhotoNow, outfitConfirm };

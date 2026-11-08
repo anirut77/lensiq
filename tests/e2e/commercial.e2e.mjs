@@ -67,9 +67,12 @@ export default async function ({ base, launch, check }) {
       await page.goto(`${base}/report.html`);
       await page.waitFor(() => window.__rp && document.getElementById("rpMode").textContent.length > 10, 8000);
       await makeReport(page, "report_basic");
-      await page.waitFor(() => !document.getElementById("rpOut").hidden && document.querySelectorAll("#rpOut .rp-part").length === 3, 8000);
-      const b = await page.evaluate(() => ({ parts: [...document.querySelectorAll("#rpOut .rp-part")].map(p => p.getAttribute("data-part")), sample: !!document.querySelector("#rpOut .rp-sample"), print: !!document.getElementById("rpPrint"), len: document.getElementById("rpOut").textContent.length, plan: !!document.querySelector("#rpOut .rp-plan") }));
-      assert(b.parts.join() === "bazi,taksa,lek7" && b.sample && b.print && b.plan && b.len > 2500, JSON.stringify(b));
+      await page.evaluate(() => { document.getElementById("rpName").value = "Khun Test"; });
+      await page.waitFor(() => !document.getElementById("rpOut").hidden && document.querySelectorAll("#rpOut .rp-part").length === 5, 8000);
+      const b = await page.evaluate(() => ({ parts: [...document.querySelectorAll("#rpOut .rp-part")].map(p => p.getAttribute("data-part")), sample: !!document.querySelector("#rpOut .rp-sample"), print: !!document.getElementById("rpPrint"), len: document.getElementById("rpOut").textContent.length, plan: !!document.querySelector("#rpOut .rp-plan"),
+        weeks: document.querySelectorAll("#rpOut .rp-plan30 .rp-week").length, toc: document.querySelectorAll("#rpOut .rp-toc li").length, deep: document.querySelectorAll('#rpOut [data-part="deep"] .rp-sec').length }));
+      // round 12: the paid basic report is deeper than the free pages (deep-dive, next 3 months, 4-week plan, contents)
+      assert(b.parts.join() === "bazi,taksa,lek7,deep,ahead" && b.sample && b.print && b.plan && b.len > 5000 && b.weeks === 4 && b.toc === 6 && b.deep === 3, JSON.stringify(b));
       await makeReport(page, "report_compat");
       await page.waitFor(() => document.querySelector('#rpOut [data-part="elements"]'), 8000);
       await makeReport(page, "report_annual");
@@ -98,7 +101,7 @@ export default async function ({ base, launch, check }) {
       await page.goto(`${base}/report.html?type=report_basic`);
       await page.waitFor(() => window.LQMember && window.LQMember.ready() && window.LQMember.signedIn() && /1/.test(document.querySelector('[data-rp-credit="report_basic"]').textContent), 8000);
       await makeReport(page, "report_basic");
-      await page.waitFor(() => document.querySelectorAll("#rpOut .rp-part").length === 3 && /\S/.test(document.getElementById("rpSaveMsg").textContent) && !/…/.test(document.getElementById("rpSaveMsg").textContent), 8000);
+      await page.waitFor(() => document.querySelectorAll("#rpOut .rp-part").length === 5 && /\S/.test(document.getElementById("rpSaveMsg").textContent) && !/…/.test(document.getElementById("rpSaveMsg").textContent), 8000);
       const log = await page.evaluate(() => window.__apiLog.filter(x => x.method === "POST").map(x => x.path + (x.body && x.body.feature ? ":" + x.body.feature : "") + (x.body && x.body.domain ? ":" + x.body.domain : "")));
       const u = log.indexOf("/api/me/entitlements/use:report_basic"), s = log.indexOf("/api/me/saved:bazi");
       assert(u >= 0 && s > u, "use then save: " + log.join(" | "));
@@ -168,6 +171,28 @@ export default async function ({ base, launch, check }) {
         document.getElementById("lqInterest").value = "store"; document.getElementById("lqConsent").checked = true; document.getElementById("leadForm").requestSubmit();
       });
       await page.waitFor(() => /ยังไม่ได้ส่ง/.test(document.getElementById("leadMsg").textContent), 5000);
+      // round 12: nothing is lost — both requests wait in this browser, the box offers copy / delete, nothing was sent
+      const q = await page.evaluate(() => ({ n: JSON.parse(localStorage.getItem("lq-leads") || "[]").length, box: !document.querySelector("[data-lq-pending]").hidden, btns: document.querySelectorAll("[data-lq-pending] button").length }));
+      assert(q.n === 2 && q.box && q.btns === 2, JSON.stringify(q));
+      assert(!page.requests.some(r => /\/api\/|\/v1\//.test(r.url)), "queue sends nothing");
+      await page.evaluate(() => [...document.querySelectorAll("[data-lq-pending] button")].pop().click());
+      await page.waitFor(() => !localStorage.getItem("lq-leads") && document.querySelector("[data-lq-pending]").hidden, 5000);
+    });
+    await page.close();
+
+    page = await browser.newPage(null, { isolated: true });
+    await check("owner go-live checklist: hidden for visitors; help.html?owner=1 lists the empty placeholders (中文 without Thai, no overflow)", async () => {
+      await page.goto(`${base}/help.html`);
+      await page.waitFor(() => document.readyState === "complete", 8000);
+      assert(!(await page.evaluate(() => !!document.getElementById("owner-golive"))), "visitors never see the checklist");
+      await page.send("Emulation.setDeviceMetricsOverride", { width: 360, height: 780, deviceScaleFactor: 2, mobile: true });
+      await page.goto(`${base}/help.html?owner=1&lang=zh`);
+      await page.waitFor(() => document.querySelectorAll("#owner-golive .golive-list li").length > 20 && document.documentElement.lang !== "th", 8000);
+      const g = await page.evaluate(re => { const el = document.getElementById("owner-golive"); return { todo: el.querySelectorAll(".golive-todo").length, thai: (el.innerText.match(new RegExp(re.slice(1, -1), "g")) || []).length, over: document.documentElement.scrollWidth - innerWidth, flag: localStorage.getItem("lq-owner") }; }, THAI);
+      assert(g.todo >= 8 && g.thai === 0 && g.over <= 0 && g.flag === "1", JSON.stringify(g));
+      await page.send("Emulation.clearDeviceMetricsOverride", {});
+      await page.evaluate(() => document.querySelector("#owner-golive button").click());
+      await page.waitFor(() => !document.getElementById("owner-golive") && !localStorage.getItem("lq-owner"), 5000);
     });
     await page.close();
 

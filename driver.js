@@ -332,7 +332,20 @@ function createMonitor(baseline = {}, cfgIn = {}) {
   return { update, finish, log, setThreshold(v) { B.thr = v; }, get baseline() { return { ...B }; }, get maxFatigue() { return maxFatigue; }, get maxPerclos() { return maxPerclos; } };
 }
 
-if (typeof module !== "undefined") module.exports = { DR_DEFAULTS, DR_TYPES, DR_LEVELS, EYE_PATCH, EYE_MODEL, eyePatchRect, eyeVec, eyeClosedScore, eyeAspectRatio, mouthAspectRatio, faceMetrics, adaptiveEyeBase, createPerclos, calibrate, fatigueScore, countRecent, shouldRecommendBreak, safetyScore, summarizeTrip, csvCell, toCsv, createMonitor, median, pickDriver, synthFace, DR_MAX_FACES };
+/* round 12: ความพร้อมรายคนขับ — ระบบไม่ถือว่า "พร้อมช่วยเตือน" คนขับคนใดจนกว่าการตรวจตามคำสั่งหลับตา (ตรวจความแม่นยำหน้างาน)
+   ในรถคันนั้นจะเตือนได้อย่างน้อย DR_READY.min ของคำสั่งหลับตา (อย่างน้อย DR_READY.minPrompts ครั้ง) — ระบบยังทำงานได้ตามเดิม
+   แต่แสดงสถานะ "ยังไม่ยืนยัน" ชัดเจน ; rec = {at, hits, prompts} ล่าสุดของคนขับคนนั้น (เก็บในเครื่อง "dr-ready") */
+const DR_READY = Object.freeze({ min: 0.70, minPrompts: 8, maxAgeDays: 30 });
+const driverKey = name => String(name || "").trim().toLowerCase().replace(/\s+/g, " ").slice(0, 40);
+function driverReadiness(rec, now = Date.now(), cfg = DR_READY) {
+  if (!rec || !(rec.prompts > 0)) return { state: "unverified" };
+  const rate = rec.hits / rec.prompts, ageDays = (now - (+rec.at || 0)) / 86400000;
+  if (rec.prompts < cfg.minPrompts) return { state: "incomplete", rate, hits: rec.hits, prompts: rec.prompts, at: rec.at };
+  if (ageDays > cfg.maxAgeDays) return { state: "stale", rate, hits: rec.hits, prompts: rec.prompts, at: rec.at };
+  return { state: rate >= cfg.min ? "ok" : "low", rate, hits: rec.hits, prompts: rec.prompts, at: rec.at };
+}
+
+if (typeof module !== "undefined") module.exports = { DR_READY, driverKey, driverReadiness, DR_DEFAULTS, DR_TYPES, DR_LEVELS, EYE_PATCH, EYE_MODEL, eyePatchRect, eyeVec, eyeClosedScore, eyeAspectRatio, mouthAspectRatio, faceMetrics, adaptiveEyeBase, createPerclos, calibrate, fatigueScore, countRecent, shouldRecommendBreak, safetyScore, summarizeTrip, csvCell, toCsv, createMonitor, median, pickDriver, synthFace, DR_MAX_FACES };
 
 // ================= ส่วนหน้าจอ =================
 if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof LQCam !== "undefined") (() => {
@@ -598,6 +611,8 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     $("#alerts").innerHTML = `<li class="empty">ยังไม่มีการแจ้งเตือน</li>`;
     startCalibration();
     if (!running) { running = true; loop(); }
+    if (UA) UA.start();
+    { const r = driverReadiness(load("dr-ready", {})[driverKey(driver)]); if (r.state !== "ok") set("เริ่มเที่ยวแล้ว — ยังไม่ได้ยืนยันว่าระบบช่วยเตือนคนขับคนนี้ได้ (ดูสถานะความพร้อม) ระวังเป็นพิเศษและอย่าพึ่งเสียงเตือน", "err"); renderReady(); }
   });
 
   function startCalibration() {
@@ -753,7 +768,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   function stopTrip() {
     if (!trip) return;
     if (SCD) scdFinish();
-    running = false;
+    running = false; if (UA) UA.stop();
     const end = Date.now();
     let evs = [];
     if (monitor) monitor.finish(end);
@@ -828,6 +843,12 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     $("#summary").hidden = true; renderHistory(); histMsg("ลบข้อมูลแล้ว");
   };
 
+  // round 12: แท็บถูกซ่อน/จอดับ = กล้องหยุด (autoPause) = ระบบไม่ได้เฝ้าระวัง — แจ้งเมื่อกลับมาว่าหยุดไปนานเท่าไร
+  // และบันทึกเป็นเหตุการณ์ในเที่ยว (ตัวเลขเท่านั้น) ; ป้ายแท็บขึ้น "[หยุดเฝ้าระวัง]" ระหว่างซ่อน
+  const UA = LQCam.unattended ? LQCam.unattended({ container: $("#uaBox") || $("#engine").parentNode, isRunning: () => running && !!trip, tag: "หยุดเฝ้าระวัง",
+    gapText: "แท็บถูกซ่อนหรือจอดับ {a}–{b} ({m}) — ระหว่างนั้นระบบไม่ได้เฝ้าระวังการหลับตาเลย · เปิดหน้านี้ไว้ด้านหน้าตลอดการขับ (โหมดขับขี่)", onGap: g => {
+    if (trip) { (trip.gaps || (trip.gaps = [])).push({ from: g.from, to: g.to }); while (trip.gaps.length > 50) trip.gaps.shift(); }
+  } }) : null;
   // ---------- โหมดขับขี่ (เต็มจอ) ----------
   let wakeLock = null;
   async function enterDriving() {
@@ -932,6 +953,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     scdHist.add({ at: run.t0, verdict: rep.verdict, provisional: rep.provisional, pilot: rep.pilot ? rep.pilot.verdict : null, need: rep.need, cam: cam.label || "กล้องในรถ", summary: SITE.fmt("เตือนครบ {a}/{b} · เตือนผิด {c}", { a: rep.n.hits, b: rep.n.prompts, c: rep.n.falseAlarms }) });
     scdHist.render(scdPanel.hist);
     SCD_LAST = { rep, doc };
+    noteReady(rep);
   }
   if (scdPanel) {
     scdPanel.start.addEventListener("click", scdStart);
@@ -940,6 +962,31 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     scdHist.render(scdPanel.hist);
   }
   window.__DR_SC = { get active() { return SCD; }, get last() { return SCD_LAST; }, finish: () => scdFinish() };
+
+  // ---------- round 12: ความพร้อมรายคนขับ (ผลตรวจตามคำสั่งหลับตาล่าสุดของคนขับคนนี้) ----------
+  const readyName = () => (trip && trip.driver) || ($("#tripForm") && $("#tripForm").driver.value) || "";
+  function renderReady() {
+    const el = $("#drReady"); if (!el) return;
+    const name = readyName().trim();
+    if (!name) { el.hidden = true; return; }
+    const r = driverReadiness(load("dr-ready", {})[driverKey(name)]), pct = r.rate == null ? "" : Math.round(r.rate * 100);
+    const d = r.at ? new Date(r.at).toLocaleDateString() : "";
+    const minP = Math.round(DR_READY.min * 100);
+    el.hidden = false; el.dataset.s = r.state === "ok" ? "ok" : "no";
+    el.textContent = r.state === "ok" ? SITE_FMT("ผ่านการทดสอบกับคนขับคนนี้: เตือนได้ {a}/{b} ครั้ง ({c}%) เมื่อ {d} — ยังเป็นเพียงเครื่องช่วยเตือน ไม่ใช่อุปกรณ์ความปลอดภัย", { a: r.hits, b: r.prompts, c: pct, d })
+      : r.state === "low" ? SITE_FMT("ยังไม่พร้อมช่วยเตือนคนขับคนนี้: ทดสอบแล้วเตือนได้ {a}/{b} ครั้ง ({c}%) ต่ำกว่า {e}% — ปรับมุมกล้องและแสง (ตอนกลางคืนใช้กล้องอินฟราเรด) แล้วตรวจใหม่", { a: r.hits, b: r.prompts, c: pct, e: minP })
+      : r.state === "incomplete" ? SITE_FMT("ยังไม่พร้อมช่วยเตือนคนขับคนนี้: ทดสอบไปเพียง {b} คำสั่ง (ต้องอย่างน้อย {f}) — ทำ \"ตรวจความแม่นยำหน้างาน\" ให้ครบ", { b: r.prompts, f: DR_READY.minPrompts })
+      : r.state === "stale" ? SITE_FMT("ผลทดสอบของคนขับคนนี้เก่ากว่า {g} วัน ({d}) — ตรวจใหม่ก่อนใช้ ยังไม่ถือว่าพร้อมช่วยเตือน", { g: DR_READY.maxAgeDays, d })
+      : SITE_FMT("ยังไม่ได้ทดสอบกับคนขับคนนี้ จึงยังไม่ถือว่าพร้อมช่วยเตือน — ทำ \"ตรวจความแม่นยำหน้างาน\" (คำสั่งหลับตา) ในรถคันนี้ให้เตือนได้อย่างน้อย {e}% ก่อนใช้งานจริง", { e: minP });
+  }
+  const SITE_FMT = (t, o) => t.replace(/\{(\w+)\}/g, (m, k) => (k in o ? String(o[k]) : m));
+  function noteReady(rep) {
+    const name = readyName().trim(); if (!name || !rep || !rep.n) return;
+    const all = load("dr-ready", {}); all[driverKey(name)] = { at: Date.now(), hits: rep.n.hits || 0, prompts: rep.n.prompts || 0, verdict: rep.verdict };
+    save("dr-ready", all); renderReady();
+  }
+  if ($("#tripForm")) $("#tripForm").driver.addEventListener("input", renderReady);
+  renderReady();
 
   if (TEST) window.__LQ_DR = { get series() { return series.slice(); }, get phase() { return phase; }, get locked() { return !!prevBox; }, get anchor() { return anchor; }, get trip() { return trip; }, get camId() { return cam.deviceId; } };
   renderHistory(); gauge(0);

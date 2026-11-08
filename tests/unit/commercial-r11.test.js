@@ -75,7 +75,7 @@ test("lensiq-member.js: requests go through LQApi.call (timeout); init failure s
 test("report_basic: three systems composed in full, saved copy fits the Worker limit", () => {
   const r = R.buildBasic(BIRTH, { now: new Date(2026, 10, 8) });
   assert.equal(r.kind, "report_basic");
-  assert.deepEqual(r.parts.map(p => p.id), ["bazi", "taksa", "lek7"]);
+  assert.deepEqual(r.parts.slice(0, 3).map(p => p.id), ["bazi", "taksa", "lek7"]); // round 12 adds "deep" + "ahead" (commercial-r12)
   for (const p of r.parts) assert.ok(p.sections.length >= 2 && p.sections.every(s => s.paragraphs.length), p.id);
   assert.ok(r.plan && r.plan.items.length >= 1 && r.reminder);
   const s = R.toSaved(r);

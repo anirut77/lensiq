@@ -8,13 +8,13 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="bazi.title">แปดอักษร 八字 · เจ้าชะตา ห้าธาตุ วัยจร | LENSIQ</title>
 <meta name="description" content="ผังแปดอักษร (八字) จากวัน เวลาเกิด เจ้าชะตา สมดุลห้าธาตุ และวัยจร 10 ปี คำนวณสารทด้วยสูตรดาราศาสตร์ เพื่อความบันเทิง">
-<link rel="stylesheet" href="styles.css?v=9">
+<link rel="stylesheet" href="styles.css?v=10">
 <link rel="stylesheet" href="fortune-kit.css?v=2">
 <link rel="stylesheet" href="lifecal.css?v=2">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=12"></script>
+<script src="nav.js?v=13"></script>
 
 <main class="fk lc" id="lcApp" data-page="bazi">
   <div class="fk-head">
@@ -39,6 +39,8 @@
         <label><span data-i18n="lc.tz">เขตเวลา</span><select id="lcTz"></select></label>
       </div>
       <label class="fk-check"><input type="checkbox" id="lcNoTime"> <span data-i18n="lc.noTime">ไม่ทราบเวลาเกิด</span></label>
+      <label class="fk-check"><input type="checkbox" id="lcSolar"> <span data-i18n="lc.solar">ใช้เวลาสุริยะจริงสำหรับยามและวันของ八字 (ปรับตามลองจิจูดที่เกิด)</span></label>
+      <div class="fk-row" id="lcLonWrap" hidden><label><span data-i18n="lc.lon">ลองจิจูดที่เกิด (องศาตะวันออก เว้นว่าง = เมืองของเขตเวลาที่เลือก)</span><input id="lcLon" type="number" inputmode="decimal" step="0.1" min="-180" max="180" placeholder="100.5"></label></div>
     </fieldset>
     <fieldset><legend data-i18n="lc.legendGender">เพศ (ใช้กำหนดทิศของวัยจร 10 ปี)</legend><div class="lc-era" role="radiogroup"><label class="fk-check"><input type="radio" name="lcGender" value="female" checked> <span data-i18n="lc.female">หญิง</span></label><label class="fk-check"><input type="radio" name="lcGender" value="male"> <span data-i18n="lc.male">ชาย</span></label></div></fieldset>
     <p class="fk-msg" id="lcMsg" role="alert"></p>
@@ -60,21 +62,21 @@
   <div class="fk-foot">
     <section class="fk-block">
       <h3 data-i18n="fortune.common.sources">แหล่งอ้างอิง</h3>
-      <p class="fk-small" data-i18n="bazi.src">ปีเปลี่ยนที่ลี่ชุน (立春) เดือนเปลี่ยนที่สารท "เจี๋ย" 12 สารท วันใช้รอบ 60 วัน ยามจื่อ (23:00) นับเป็นวันถัดไป ใช้เวลามาตรฐานท้องถิ่น (ไม่ปรับเวลาสุริยะจริง) ความคลาดเคลื่อนของเวลาสารทไม่เกินราว 1 นาที</p>
+      <p class="fk-small" data-i18n="bazi.src">ปีเปลี่ยนที่ลี่ชุน (立春) เดือนเปลี่ยนที่สารท "เจี๋ย" 12 สารท วันใช้รอบ 60 วัน ยามจื่อ (23:00) นับเป็นวันถัดไป ใช้เวลาท้องถิ่นตามประวัติเขตเวลา ณ วันเกิด (เลือกเขตเวลาคงที่หรือเวลาสุริยะจริงได้ และผลจะบอกค่าที่ใช้) ความคลาดเคลื่อนของเวลาสารทไม่เกินราว 1 นาที</p>
       <p class="fk-small" data-i18n="lc.principle">หลักการ: ไม่ทำนายความตาย โรคภัย อุบัติเหตุ การนอกใจ การหย่าร้าง หรือภัยพิบัติ ไม่ให้เลขเสี่ยงโชค ไม่มีการเสียเงินแก้ดวง ด้านที่ควรระวังบอกตรง ๆ อย่างนุ่มนวลพร้อมสิ่งที่ทำได้</p>
     </section>
   </div>
 </main>
 
 <script src="i18n/zh-fortune.js?v=4"></script>
-<script src="i18n/zh-fortune-lifecal.js?v=2"></script>
+<script src="i18n/zh-fortune-lifecal.js?v=3"></script>
 <script src="i18n/zh-kb-lifecal.js?v=2"></script>
 <script src="lensiq-config.js?v=3"></script>
-<script src="fortune-ai.js?v=10"></script>
-<script src="fortune-kit.js?v=2"></script>
+<script src="fortune-ai.js?v=12"></script>
+<script src="fortune-kit.js?v=3"></script>
 <script src="horoscope.js?v=6"></script>
-<script src="lifecal.js?v=2"></script>
+<script src="lifecal.js?v=3"></script>
 <script src="lifecal-kb.js?v=2"></script>
-<script src="lifecal-ui.js?v=2"></script>
+<script src="lifecal-ui.js?v=3"></script>
 </body>
 </html>

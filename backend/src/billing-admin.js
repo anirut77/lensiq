@@ -1,6 +1,8 @@
 // @ts-check
 // backend/src/billing-admin.js — owner money operations and plan / price editing (admin API, audited by the router).
-// Money ops need re-authentication in the request body ({password, totp}; auth.reauthOwner, checked by the router).
+// Money ops need re-authentication, checked by the router: body {password, totp} or the 5-min sudo window, body only
+// under MONEY_REAUTH=inline / live keys (auth.moneyReauthMode, round 12). A refund also mails the member a notice
+// (mail.js, when a provider is configured).
 //
 //   refundPayment        manual refund (PromptPay cannot be refunded through Opn: bank transfer, reference recorded);
 //                        round 11: partial refunds ('partially_refunded'), only what THIS payment bought is revoked
@@ -14,6 +16,7 @@ import { PERKS } from "./constants.js";
 import { randomId } from "./crypto.js";
 import { grantCredits } from "./quota.js";
 import { ledger } from "./members.js";
+import { mailCreditNote } from "./mail.js";
 import { HttpError, bkkDay, intVar, now } from "./util.js";
 
 const ID_RE = /^[a-f0-9]{32}$/;
@@ -64,7 +67,7 @@ export const REFUNDABLE = ["successful", "partially_refunded", "mismatch"];
  *                   printable at …/refunds/:n/credit-note
  * Everything (status, refund row, numbering, revocations) commits in ONE transaction, claimed with a random token.
  */
-export async function refundPayment(env, id, body) {
+export async function refundPayment(env, id, body, deps = {}) {
   const db = env.DB, t = now();
   const p = await paymentRow(db, id);
   if (!REFUNDABLE.includes(p.status)) throw new HttpError(409, `a ${p.status} payment cannot be refunded`, { code: "not_refundable" });
@@ -127,6 +130,7 @@ export async function refundPayment(env, id, body) {
   if (!res[0].meta || !res[0].meta.changes) throw new HttpError(409, "payment changed meanwhile — reload", { code: "not_refundable" });
   const row = await db.prepare("SELECT id, credit_note_no FROM refunds WHERE payment_id = ?1 ORDER BY id DESC LIMIT 1").bind(p.id).first();
   if (p.user_id) await ledger(env, p.user_id, "refund", { ref: p.id, amount }, t);
+  if (p.user_id && row) await mailCreditNote(env, p.id, row.id, deps.fetch); // round 12: best effort, never throws
   return {
     ok: true, payment_id: p.id, status, refund_satang: amount, refunded_total_satang: total, remaining_refundable_satang: p.amount_satang - total,
     subscription_cancelled: cancel, subscription_seconds_removed: secondsRemoved, credits_revoked: creditsRevoked,

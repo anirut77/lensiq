@@ -60,7 +60,12 @@
     if (!rows.length) return none || empty(T("acct.empty", "ยังไม่มีรายการ"));
     return h("div", { class: "acct-scroll", tabindex: "0", role: "region", "aria-label": heads.join(" · ") }, h("table", { class: "acct-table" },
       h("thead", null, h("tr", null, ...heads.map(function (x) { return h("th", { scope: "col", text: x }); }))),
-      h("tbody", null, ...rows.map(function (r) { return h("tr", null, ...r.map(function (c) { return c instanceof Node ? h("td", null, c) : h("td", { text: c == null ? "—" : String(c) }); })); }))));
+      // data-label: the column name, shown beside each value when a phone stacks the rows as cards (account.css)
+      h("tbody", null, ...rows.map(function (r) {
+        return h("tr", null, ...r.map(function (c, i) {
+          return c instanceof Node ? h("td", { "data-label": heads[i] }, c) : h("td", { "data-label": heads[i], text: c == null ? "—" : String(c) });
+        }));
+      }))));
   }
   var DOMAIN = /** @type {Record<string, string>} */ ({ face: "โหงวเฮ้ง", palm: "ลายมือ", horoscope: "ดวงวันเดือนปีเกิด", tarot: "ไพ่ทาโรต์", siamsee: "เซียมซี", fengshui: "ฮวงจุ้ย", numbers: "เลขมงคล",
     iching: "อี้จิง", zodiac: "12 นักษัตร", astro: "ราศีตะวันตก", dream: "ทำนายฝัน", bazi: "แปดอักษร", taksa: "ทักษา", lek7: "เลข 7 ตัว 9 ฐาน", lifegraph: "กราฟชีวิต" });

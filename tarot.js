@@ -528,7 +528,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var seed = (Math.random() * 4294967296) >>> 0, r = FA && FA.rng ? FA.rng(seed) : Math.random;
       var facts = factsFn(r);
       var useAI = FA && FA.hasConsent ? FA.hasConsent() : false;
-      var p = FA && FA.interpret ? FA.interpret(facts, { useAI: useAI, seed: seed, trace: true }) : Promise.resolve(localFallback(facts));
+      var p = FA && FA.interpret ? FA.interpret(facts, { useAI: useAI, seed: seed, trace: true, userText: (document.getElementById("trQuestion") || {}).value || "" }) : Promise.resolve(localFallback(facts));
       root.setAttribute("aria-busy", "true");
       return p.catch(function () { return localFallback(facts); }).then(function (res) {
         st2.result = res; st2.lines = keyLines(res, facts, 3);

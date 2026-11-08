@@ -368,7 +368,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
 
   // mode: "count" = นับอย่างเดียว ไม่ใช้ค่าลักษณะใบหน้า (ค่าเริ่มต้น — DPIA R2 เมื่อไม่ได้ขอความยินยอม) | "recognise" = จำผู้เข้าชมที่กลับมา
   let prefs = { v: 1, remember: false, mode: "count" };
-  try { const p = JSON.parse(localStorage.getItem(PREF_KEY)); if (p && typeof p === "object") { prefs.remember = p.remember === true; prefs.mode = p.mode === "recognise" ? "recognise" : "count"; } } catch {}
+  try { const p = JSON.parse(localStorage.getItem(PREF_KEY)); if (p && typeof p === "object") { prefs.remember = p.remember === true; prefs.mode = p.mode === "recognise" ? "recognise" : "count"; if (typeof p.ackAt === "string" && !isNaN(Date.parse(p.ackAt))) prefs.ackAt = p.ackAt; } } catch {}
   const countOnly = () => prefs.mode !== "recognise";
   if (countOnly()) prefs.remember = false; // นับอย่างเดียว = ไม่มีค่าใบหน้าให้จำ
 
@@ -650,8 +650,9 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     }
     running = !running;
     $("#toggle").textContent = running ? "หยุดนับ" : "เริ่มนับผู้เข้าชม";
-    if (running) { syncSched(); sched.start(); }
+    if (running) { syncSched(); sched.start(); if (UA) UA.start(); }
     else {
+      if (UA) UA.stop();
       if (SCB) scbFinish();
       sched.stop(); frames.clear();
       hub.cams.forEach(c => c.overlay.getContext("2d").clearRect(0, 0, c.overlay.width, c.overlay.height));
@@ -679,13 +680,24 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     SITE.renderHealth(pill, H.state); pill.hidden = false;
     SITE.renderHealthLine(line, H.state);
   }
+  // round 12: แท็บถูกซ่อน/จอดับ = กล้องหยุด (autoPause) — Wake Lock, แจ้งเตือนเมื่อกลับมา, บันทึกช่วงที่หยุดเป็นวินาทีจริง ("กล้องออฟไลน์")
+  // และล้างผลเฟรมล่าสุด (คนในกล้องตอนนี้) เพื่อเริ่มติดตามใหม่หลังกลับมา
+  const UA = LQCam.unattended ? LQCam.unattended({ container: $("#uaBox") || $("#engine").parentNode, isRunning: () => running, onGap: g => {
+    if (SITE) SITE.noteGap(S.quality || (S.quality = {}), g.from, g.to);
+    (S.gaps || (S.gaps = [])).push({ from: g.from, to: g.to }); while (S.gaps.length > 50) S.gaps.shift();
+    if (SCB) SCB.hiddenMs = (SCB.hiddenMs || 0) + g.ms;
+    frames.clear(); persist();
+  } }) : null;
+  let qAt = 0;
   // ธงคุณภาพรายชั่วโมง: ระหว่างนับ ทุก 1 วินาที บันทึกวินาทีที่กล้องหลักมีปัญหาภาพ และวินาทีที่กล้องใดหลุด/ออฟไลน์ ลง S.quality (ตัวเลขเท่านั้น)
   setInterval(() => {
     if (!SITE || !running) return;
     const now = Date.now(), p = primaryCam(), H = p && p._hl;
     const codes = H && H.state && now - H.stateAt < 2500 ? H.state.codes : [];
     const offline = hub.cams.some(c => c.offlineSince || c.status === "error");
-    SITE.noteQuality(S.quality || (S.quality = {}), now, codes, { offline });
+    const sec = LQCam.sampleSec ? LQCam.sampleSec(qAt, now) : 1; qAt = now; // round 12: วินาทีจริง (ตัวจับเวลาถูกหน่วงเมื่อแท็บไม่อยู่ด้านหน้า)
+    if (document.hidden) return; // ช่วงที่ซ่อนอยู่บันทึกครั้งเดียวตอนกลับมา (noteGap)
+    SITE.noteQuality(S.quality || (S.quality = {}), now, codes, { offline, sec });
   }, 1000);
 
   // ตรวจความแม่นยำหน้างาน: เจ้าหน้าที่กด "+1 ผู้มาบูธ" ทุกครั้งที่มีคนมาที่บูธจริง แล้วเทียบกับเวลาที่ระบบสร้างผู้เข้าชมใหม่ (V###)
@@ -721,16 +733,16 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     if (!SCB) return;
     const run = SCB; SCB = null;
     const T = run.truth.map(e => ({ t: e.t - run.t0 })), Sy = run.sys.map(e => ({ t: e.t - run.t0 }));
-    const stats = { faceW: run.fw.length ? SITE.median(run.fw) : null, health: [...run.health] };
+    const stats = { faceW: run.fw.length ? SITE.median(run.fw) : null, health: [...run.health], hiddenMs: run.hiddenMs || 0 };
     const rep = SITE.visitorReport(Sy, T, { stats, countOnly: run.mode !== "recognise" });
     SITE.renderReport(scbPanel.report, rep);
     scbPanel.start.disabled = false; scbPanel.stop.disabled = true; scbPanel.q(".sc-taps").hidden = true;
     scbPanel.state.textContent = SITE.verdictText(rep); scbPanel.state.dataset.s = rep.verdict;
     const doc = SITE.exportDoc("booth", {
       camera: run.cam, startedAt: new Date(run.startedAt).toISOString(), durationSec: Math.round((Date.now() - run.t0) / 1000),
-      settings: { mode: run.mode, cameras: run.cams, match: CFG.MATCH, margin: CFG.MARGIN, promoteMs: CFG.PROMOTE_MS, backend: backendName },
+      settings: { mode: run.mode, consentAckAt: prefs.ackAt || null, cameras: run.cams, match: CFG.MATCH, margin: CFG.MARGIN, promoteMs: CFG.PROMOTE_MS, backend: backendName },
       conditions: stats, truth: T, system: Sy,
-      report: { verdict: rep.verdict, provisional: rep.provisional, pilot: rep.pilot ? rep.pilot.verdict : null, need: rep.need, n: rep.n, lagMs: rep.lagMs, net: rep.net, netCI: rep.netCI, precision: rep.precision, recall: rep.recall, recs: rep.recs }
+      report: { verdict: rep.verdict, provisional: rep.provisional, pilot: rep.pilot ? rep.pilot.verdict : null, need: rep.need, n: rep.n, lagMs: rep.lagMs, net: rep.net, netCI: rep.netCI, precision: rep.precision, recall: rep.recall, recs: rep.recs, short: rep.short || null, hiddenMs: rep.hiddenMs || 0 }
     });
     scbPanel.exp.hidden = false;
     scbPanel.exp.onclick = () => SITE.download(`lensiq-booth-check-${dayKey(run.startedAt)}.json`, doc);
@@ -899,21 +911,46 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     remember.checked = prefs.remember && !countOnly(); remember.disabled = countOnly(); modeSel.value = prefs.mode;
     $("#notice").textContent = countOnly() ? NOTICE.count : prefs.remember ? NOTICE.on : NOTICE.off;
   };
+  // round 12: เปิดโหมดจดจำใบหน้าได้หลังผู้ดูแลยืนยันว่าติดป้ายแจ้ง/ขอความยินยอมแล้วเท่านั้น — บันทึกเวลาที่ยืนยัน (prefs.ackAt) ลงไฟล์ส่งออก
+  // (ค่าที่ตั้งไว้ก่อนรอบ 12 ยังทำงานเหมือนเดิม แต่จะเห็นกล่องให้ยืนยันจนกว่าจะกดยืนยัน)
+  const SITE_FMT = (t, o) => t.replace(/\{(\w+)\}/g, (m, k) => (k in o ? String(o[k]) : m));
+  const AB = LQCam.ackBox({ label: "ยืนยันว่าติดป้ายแจ้งที่บูธแล้ว ผู้เข้าชมทราบว่ามีการใช้ค่าลักษณะใบหน้าเพื่อจำคนที่กลับมา และมีช่องทางขอไม่เข้าร่วม (ตาม PDPA ต้องขอความยินยอมโดยชัดแจ้ง)", okText: "ยืนยันและเปิดโหมดจดจำ" });
+  const ack = AB.el; ack.id = "boothAck";
+  modeSel.closest("label, .field, div")?.after(ack);
+  const ackCb = AB.cb, ackOk = AB.ok;
+  const ackUi = () => {
+    AB.at.textContent = prefs.ackAt ? SITE_FMT("ยืนยันการแจ้ง/ความยินยอมเมื่อ {t}", { t: new Date(prefs.ackAt).toLocaleString() }) : "";
+    if (!countOnly() && !prefs.ackAt) { ack.hidden = false; ackOk.textContent = "ยืนยันการแจ้ง/ความยินยอม"; }
+  };
+  ackOk.onclick = () => {
+    if (!ackCb.checked) return;
+    prefs.ackAt = new Date().toISOString(); ack.hidden = true; ackCb.checked = false; ackOk.disabled = true;
+    if (countOnly()) { modeSel.value = "recognise"; setMode(); } else { try { localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); } catch {} ackUi(); }
+  };
   modeSel.onchange = () => {
+    if (modeSel.value === "recognise" && countOnly()) {
+      modeSel.value = prefs.mode; ack.hidden = false; ackOk.textContent = "ยืนยันและเปิดโหมดจดจำ"; ackCb.focus();
+      return engine("ก่อนเปิดโหมดจดจำผู้เข้าชม: ติ๊กยืนยันว่าติดป้ายแจ้งและขอความยินยอมแล้ว", "warn");
+    }
+    setMode();
+  };
+  function setMode() {
+    ack.hidden = true;
     prefs.mode = modeSel.value === "recognise" ? "recognise" : "count";
     if (countOnly()) { prefs.remember = false; purgeFaces(S); if (V) vaultQ(() => V.wipe([VAULT_KEY])); } // เปลี่ยนเป็นนับอย่างเดียว = ลบค่าใบหน้าที่มีทันที
     else RUNTIME.delete(S); // เริ่มแทร็กใหม่ด้วยค่าลักษณะใบหน้า
     try { localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); } catch {}
     persist(); applyPrefs();
     engine(countOnly() ? "โหมดนับอย่างเดียว: ไม่ใช้ข้อมูลใบหน้า คนที่กลับมาจะนับเป็นผู้เข้าชมใหม่" : "โหมดจำผู้เข้าชมที่กลับมา: ใช้ค่าลักษณะใบหน้า ต้องติดป้ายแจ้งและขอความยินยอม", "ok");
-  };
+    ackUi();
+  }
   remember.onchange = () => {
     prefs.remember = remember.checked;
     try { localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); } catch {}
     persist(); applyPrefs();
     engine(prefs.remember ? "จะจำผู้เข้าชมเมื่อรีเฟรชหน้า (เก็บค่าลักษณะใบหน้าในเครื่องนี้ภายในวัน)" : "ไม่เก็บค่าลักษณะใบหน้าในเครื่องแล้ว ใช้เฉพาะระหว่างเปิดหน้านี้", "ok");
   };
-  applyPrefs();
+  applyPrefs(); ackUi();
   setInterval(() => { if (autoPurge(S)) { persist(); engine("ขึ้นวันใหม่: ลบข้อมูลใบหน้าของเมื่อวานแล้ว", "ok"); } }, 60000);
   $("#printNotice").onclick = () => {
     const w = window.open("", "_blank"); if (!w) return;

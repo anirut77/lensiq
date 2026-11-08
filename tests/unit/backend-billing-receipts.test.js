@@ -1,5 +1,5 @@
 "use strict";
-// tests/unit/backend-billing-r10.test.js — round 10 backend fixes: paid checkout really raises the member's quota,
+// tests/unit/backend-billing-receipts.test.js — round 10 backend fixes: paid checkout really raises the member's quota,
 // guest-purchase claim, final 'mismatch' state, receipts / tax invoices, admin money ops (re-auth), quota refunds and
 // Bangkok days, paid buckets, sign-in DoS, one-time credits, perk registry, idempotent checkout, devices, erasure audit.
 // Everything is local: in-memory D1, locally generated RSA keys, mocked Google / Turnstile / Opn / Anthropic.

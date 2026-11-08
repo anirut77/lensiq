@@ -73,6 +73,10 @@ Only when the controller deploys the Worker and sets `LENSIQ_API_BASE` (ROPA M16
 | Payments, subscriptions, receipt / tax-invoice party | `payments`, `subscriptions`, `customers` | **≥ 5 years** (Revenue Code accounting records) — never purged by the cron | Kept but unlinked: `user_id` → NULL, `payments.buyer_email` and `customers.email` → NULL, active subscription → cancelled. Tax-invoice buyer fields stay as the law requires. |
 | Payment webhook raw payloads (Opn; may contain buyer e-mail) | `webhooks.payload` | Payload set to NULL after 90 days (`WEBHOOK_PAYLOAD_DAYS`); the event row (id, status, signature result) stays with the payment | **Not cleared early** — the payload ages out at 90 days. [controller to confirm, or add an early wipe] |
 | Audit log (action, random account id, day-salted IP hash, secrets scrubbed; no e-mail or token) | `audit_log` | 400 days (`AUDIT_DAYS`) | Kept, including the `member.deleted` entry as proof of erasure. After deletion the random id no longer links to an e-mail or Google account; daily salts are deleted, so IP hashes cannot be linked across days. |
+| Member sessions — short kind (round 12, optional) | `member_sessions.kind = 'short'` | 12 h absolute, 1 h idle; refreshed tokens at most 7 days after the Google sign-in | All deleted |
+| Transactional e-mail delivery log (round 12): kind, document ref, member id, provider message id, outcome — no address / subject / body | `mail_log` | 400 days (`AUDIT_DAYS`) | Member id set to NULL (the row no longer links to anyone) |
+| E-mail opt-outs (round 12) | `users.email_receipts`, `users.email_reminders` | With the account | Row deleted |
+| CSP violation report counters (round 12): directive, blocked origin, page path, count | `csp_reports` | 90 days (`CSP_REPORT_DAYS`) | Not linked to members |
 | Raw analytics events / aggregates | `events` / `daily_agg` | 90 days raw (`RAW_EVENT_DAYS`), aggregates kept (not personal) | Not linked to members |
 
 ## Recommended operator settings

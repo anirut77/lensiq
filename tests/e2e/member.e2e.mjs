@@ -60,6 +60,9 @@ const MOCK = `(() => {
   } } };
 })();`;
 
+// shared with tools/mobile-audit.mjs --states (signed-in account page, sign-in dialog, gated reading on a phone)
+export { MOCK, API };
+
 const readingDone = `(() => { const b = document.getElementById("icRd-body"); return !!b && b.querySelectorAll(".fa-section").length >= 1 && b.textContent.length > 100; })()`;
 async function castIching(page) {
   await page.evaluate(() => { localStorage.clear(); });

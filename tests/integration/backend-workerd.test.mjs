@@ -6,6 +6,10 @@
 // batch (gap-free receipt / credit-note numbering), INSERT … SELECT … WHERE EXISTS claim guards (fulfilment), RETURNING,
 // Request/Response/WebCrypto behaviour, and the full checkout -> webhook -> receipt -> refund -> credit-note path,
 // Google sign-in and admin login + re-auth.
+// Round 12: negative / abuse paths in the real runtime — Turnstile wrong action / hostname, webhook bad signature and
+// replay outside the 5-min window, claim brute force, wrong-account re-auth, a disabled member's session, credit
+// exhaustion, IPv6 /64 caller keys, the duplicate-subscription race, the expiry sweep through scheduled(), the admin
+// test-charge re-auth + cap, member token refresh and CSP report counters.
 //
 // Needs `npm ci` in backend/ (wrangler brings miniflare + workerd + esbuild). Skipped (not failed) when they are absent.
 // Run: npm run test:integration   (or: node --test tests/integration/)
@@ -58,8 +62,9 @@ function fakeOutbound() {
     if (request.url === "https://www.googleapis.com/oauth2/v3/certs") return Response.json({ keys: [JWK] }, { headers: { "Cache-Control": "max-age=3600" } });
     if (url.hostname === "challenges.cloudflare.com") {
       const p = new URLSearchParams(await request.text());
-      const [tok, action] = String(p.get("response")).split(":");
-      return Response.json({ success: tok === "good", action, hostname: "site.example" });
+      const [tok, action, host] = String(p.get("response")).split(":");
+      st.remoteips = [...(st.remoteips || []), p.get("remoteip")];
+      return Response.json({ success: tok === "good", action, hostname: host || "site.example" });
     }
     if (url.hostname === "api.omise.co" && url.pathname === "/charges" && request.method === "POST") {
       const p = new URLSearchParams(await request.text());
@@ -190,5 +195,131 @@ test("workerd: sign-in -> checkout -> signed webhook (racing duplicates) -> rece
     // go-live status for the signed-in owner
     const st = await A("/state");
     assert.equal(st.j.bootstrapped, true); assert.equal(typeof st.j.go_live.ok, "boolean");
+  } finally { await mf.dispose(); }
+});
+
+const SKIP = !have && "backend/node_modules missing — run npm ci in backend/";
+async function member(call, sub, o = {}) {
+  const n = await call("/api/auth/nonce", { method: "POST", body: {}, headers: o.headers });
+  const claims = { iss: "https://accounts.google.com", aud: CLIENT_ID, sub, email: `u${sub}@example.test`, email_verified: true, iat: nowS() - 5, exp: nowS() + 3600, nonce: n.j.nonce };
+  return call("/api/auth/google", { method: "POST", headers: { "X-Turnstile-Token": o.ts || "good:signin", ...(o.headers || {}) }, body: { credential: jwt(claims), nonce: n.j.nonce, accept_terms: true, consent_version: "m1", ...(o.body || {}) } });
+}
+const freshCred = async (call, sub) => {
+  const n = await call("/api/auth/nonce", { method: "POST", body: {} });
+  return { credential: jwt({ iss: "https://accounts.google.com", aud: CLIENT_ID, sub, email: `u${sub}@example.test`, email_verified: true, iat: nowS() - 5, exp: nowS() + 3600, nonce: n.j.nonce }), nonce: n.j.nonce };
+};
+const signedHook = (call, chargeId, id, ts = String(nowS()), secret = WH_SECRET) => {
+  const body = JSON.stringify({ object: "event", id, key: "charge.complete", data: { object: "charge", id: chargeId } });
+  const sig = createHmac("sha256", Buffer.from(secret, "base64")).update(`${ts}.${body}`).digest("hex");
+  return call("/v1/billing/webhook/opn", { method: "POST", origin: null, body, headers: { "Omise-Signature-Timestamp": ts, "Omise-Signature": sig } });
+};
+const adminOf = async call => {
+  await call("/admin/api/bootstrap", { method: "POST", body: { token: ADMIN_TOKEN, username: "owner", password: ADMIN_PW } });
+  const login = await call("/admin/api/login", { method: "POST", body: { username: "owner", password: ADMIN_PW, mode: "bearer" } });
+  return (p, o = {}) => call("/admin/api" + p, { ...o, headers: { Authorization: "Bearer " + login.j.token, ...(o.headers || {}) } });
+};
+
+test("workerd r12: abuse paths — Turnstile action/hostname, webhook signature/replay, claim brute force, wrong-account re-auth, disabled member, credit exhaustion, IPv6 /64", { skip: SKIP }, async () => {
+  const { mf, db, net, call } = await start({ ALLOW_GUEST_CHECKOUT: "true" });
+  try {
+    // Turnstile: wrong action and wrong hostname are both refused (403 turnstile_failed); remoteip is the FULL address
+    assert.equal((await member(call, "9001", { ts: "good:checkout" })).j.code, "turnstile_failed");
+    assert.equal((await member(call, "9001", { ts: "good:signin:evil.example" })).j.code, "turnstile_failed");
+    const a = await member(call, "9001", { headers: { "CF-Connecting-IP": "2001:db8:5:6::abcd" } });
+    assert.equal(a.status, 200, a.text);
+    assert.equal(net.remoteips.at(-1), "2001:db8:5:6::abcd");
+    // webhook: bad signature and a replay outside the 5-min window are refused before anything is stored
+    assert.equal((await signedHook(call, "chrg_test_000000000999", "evnt_test_bad0000001", String(nowS()), Buffer.from("other-secret-0123456789").toString("base64"))).status, 401);
+    assert.equal((await signedHook(call, "chrg_test_000000000999", "evnt_test_old0000001", String(nowS() - 3600))).status, 401);
+    assert.equal((await db.prepare("SELECT COUNT(*) AS n FROM webhooks").first()).n, 0);
+    // guest purchase + claim brute force: 10 wrong tokens per member per hour, then 429 (even with the right one)
+    const g = await call("/v1/billing/checkout", { method: "POST", headers: { "X-Turnstile-Token": "good:checkout" }, body: { plan_id: "report_basic", accept_terms: true, age_confirm: "adult" } });
+    assert.equal(g.status, 201, g.text); assert.ok(g.j.order_token);
+    const codes = [];
+    for (let i = 0; i < 10; i++) codes.push((await call("/v1/billing/claim", { method: "POST", token: a.j.token, body: { customer_id: g.j.customer_id, order_token: "x".repeat(30) + i } })).status);
+    assert.deepEqual([...new Set(codes)], [403]);
+    const blocked = await call("/v1/billing/claim", { method: "POST", token: a.j.token, body: { customer_id: g.j.customer_id, order_token: g.j.order_token } });
+    assert.equal(blocked.status, 429);
+    assert.equal((await db.prepare("SELECT COUNT(*) AS n FROM audit_log WHERE action = 'billing.claim.denied'").first()).n, 10);
+    // another member claims it properly; it is then taken for everyone else
+    const b = await member(call, "9002");
+    const pay = await db.prepare("SELECT provider_charge_id FROM payments WHERE id = ?1").bind(g.j.payment_id).first();
+    net.charges.get(pay.provider_charge_id).status = "successful";
+    assert.equal((await signedHook(call, pay.provider_charge_id, "evnt_test_r12g000001")).status, 200);
+    assert.equal((await call("/v1/billing/claim", { method: "POST", token: b.j.token, body: { customer_id: g.j.customer_id, order_token: g.j.order_token } })).status, 200);
+    // credit exhaustion: the one report credit is used once, the second use is refused and not counted
+    const u1 = await call("/api/me/entitlements/use", { method: "POST", token: b.j.token, body: { feature: "report_basic" } });
+    assert.equal(u1.j.allowed, true, u1.text); assert.equal(u1.j.via, "credit");
+    const u2 = await call("/api/me/entitlements/use", { method: "POST", token: b.j.token, body: { feature: "report_basic" } });
+    assert.equal(u2.j.allowed, false);
+    assert.equal((await db.prepare("SELECT SUM(remaining) AS n FROM credits WHERE feature = 'report_basic'").first()).n, 0);
+    // wrong-account re-auth: member A confirms with member B's Google account -> 403, erasure still refused
+    const w = await call("/api/auth/reauth", { method: "POST", token: a.j.token, body: await freshCred(call, "9002") });
+    assert.equal(w.status, 403); assert.equal(w.j.code, "reauth_wrong_account");
+    assert.equal((await call("/api/me", { method: "DELETE", token: a.j.token, body: { confirm: "DELETE" } })).j.code, "reauth_required");
+    // disabled member: the session dies at once, and signing in again is refused
+    const A = await adminOf(call);
+    const uid = (await db.prepare("SELECT id FROM users WHERE google_sub = '9001'").first()).id;
+    assert.equal((await A(`/members/${uid}/status`, { method: "POST", body: { status: "disabled", password: ADMIN_PW } })).status, 200);
+    assert.equal((await call("/api/me", { token: a.j.token })).status, 401);
+    assert.equal((await member(call, "9001")).j.code, "account_disabled");
+    // IPv6: 10 sign-in attempts per caller per 15 min, keyed on the /64 — rotating the low 64 bits does not help
+    const st = [];
+    for (let i = 1; i <= 11; i++) st.push((await call("/api/auth/google", { method: "POST", headers: { "CF-Connecting-IP": `2001:db8:99:1::${i.toString(16)}`, "X-Turnstile-Token": "good:signin" }, body: {} })).status);
+    assert.equal(st.at(-1), 429, st.join(","));
+    assert.notEqual((await call("/api/auth/google", { method: "POST", headers: { "CF-Connecting-IP": "2001:db8:99:2::1", "X-Turnstile-Token": "good:signin" }, body: {} })).status, 429);
+  } finally { await mf.dispose(); }
+});
+
+test("workerd r12: duplicate-subscription race, expiry sweep via scheduled(), test-charge re-auth + cap, token refresh, CSP reports", { skip: SKIP }, async () => {
+  const { mf, db, net, call } = await start({ TEST_CHARGE_HOUR: "2" });
+  try {
+    const m = await member(call, "9101", { body: { session: "short" } });
+    assert.equal(m.status, 200, m.text); assert.equal(m.j.session, "short");
+    // two first purchases of the same plan paid at the same moment -> ONE subscription carrying both periods
+    const buy = k => call("/v1/billing/checkout", { method: "POST", token: m.j.token, headers: { "X-Turnstile-Token": "good:checkout", "Idempotency-Key": k }, body: { plan_id: "plus", period: "month", accept_terms: true, age_confirm: "adult" } });
+    const [c1, c2] = [await buy("r12-race-00000001"), await buy("r12-race-00000002")];
+    assert.equal(c1.status, 201, c1.text); assert.equal(c2.status, 201, c2.text);
+    const ch = [];
+    for (const c of [c1, c2]) { const p = await db.prepare("SELECT provider_charge_id FROM payments WHERE id = ?1").bind(c.j.payment_id).first(); net.charges.get(p.provider_charge_id).status = "successful"; ch.push(p.provider_charge_id); }
+    const rs = await Promise.all([signedHook(call, ch[0], "evnt_test_r12r000001"), signedHook(call, ch[1], "evnt_test_r12r000002")]);
+    assert.ok(rs.every(r => r.status === 200), rs.map(r => r.text).join(" | "));
+    const subs = (await db.prepare("SELECT id, current_period_end FROM subscriptions WHERE status = 'active'").all()).results;
+    assert.equal(subs.length, 1, "no duplicate subscription in a real D1");
+    assert.ok(subs[0].current_period_end - nowS() > 59 * 86400);
+    const linked = (await db.prepare("SELECT DISTINCT subscription_id AS s FROM payments WHERE kind = 'checkout'").all()).results;
+    assert.deepEqual(linked.map(r => r.s), [subs[0].id]);
+    // expiry sweep through the real scheduled() handler: an old pending payment whose QR expired is closed locally ...
+    const c3 = await buy("r12-sweep-0000001");
+    await db.prepare("UPDATE payments SET expires_at = ?1, created_at = ?2 WHERE id = ?3").bind(nowS() - 7200, nowS() - 5 * 86400, c3.j.payment_id).run();
+    const worker = await mf.getWorker();
+    await worker.scheduled({ cron: "*/15 * * * *" });
+    let row;
+    for (let i = 0; i < 50; i++) { row = await db.prepare("SELECT status, failure_code, provider_charge_id FROM payments WHERE id = ?1").bind(c3.j.payment_id).first(); if (row.status !== "pending") break; await new Promise(r => setTimeout(r, 100)); }
+    assert.equal(row.status, "expired"); assert.equal(row.failure_code, "expired_local");
+    assert.equal((await db.prepare("SELECT COUNT(*) AS n FROM alerts WHERE kind = 'charge_stuck_pending'").first()).n, 1, "older than 24 h and still pending at Opn");
+    // ... and a late success still fulfils it
+    net.charges.get(row.provider_charge_id).status = "successful";
+    assert.equal((await signedHook(call, row.provider_charge_id, "evnt_test_r12l000001")).status, 200);
+    assert.equal((await db.prepare("SELECT status FROM payments WHERE id = ?1").bind(c3.j.payment_id).first()).status, "successful");
+    // member token refresh: the old token dies in the same statement
+    const r = await call("/api/auth/refresh", { method: "POST", token: m.j.token, body: {} });
+    assert.equal(r.status, 200, r.text);
+    assert.equal((await call("/api/me", { token: m.j.token })).status, 401);
+    assert.equal((await call("/api/me", { token: r.j.token })).status, 200);
+    // admin test charge: re-auth required, then capped (TEST_CHARGE_HOUR=2)
+    const A = await adminOf(call);
+    assert.equal((await A("/billing/test-charge", { method: "POST", body: { amount_satang: 2000 } })).j.code, "reauth_required");
+    const tc = [];
+    for (let i = 0; i < 3; i++) tc.push((await A("/billing/test-charge", { method: "POST", body: { amount_satang: 2000, password: ADMIN_PW } })).status);
+    assert.deepEqual(tc, [201, 201, 429]);
+    // CSP reports: counters only
+    const rep = JSON.stringify({ "csp-report": { "document-uri": "https://site.example/a.html?x=1", "effective-directive": "script-src", "blocked-uri": "https://cdn.evil.example/p.js?s=2" } });
+    const cr = await call("/v1/csp-report", { method: "POST", origin: null, body: rep, headers: { "Content-Type": "application/csp-report" } });
+    assert.equal(cr.status, 204);
+    const csp = await db.prepare("SELECT directive, blocked, page, n FROM csp_reports").first();
+    assert.deepEqual({ ...csp }, { directive: "script-src", blocked: "https://cdn.evil.example", page: "/a.html", n: 1 });
+    const h = await call("/health/deep");
+    assert.deepEqual(h.j.migrations.missing, []);
   } finally { await mf.dispose(); }
 });

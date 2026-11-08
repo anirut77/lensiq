@@ -47,3 +47,31 @@ a.pd-card:hover,a.pd-card:focus-visible{transform:translateY(-2px);border-color:
 @media (min-width:720px){.pd-hero{padding:64px 5vw 72px}.pd-body{padding:36px 5vw 0}.pd-chooser{padding:56px 5vw 8px}}
 @media (prefers-reduced-motion:reduce){.pd-card{transition:none}}
 .pd-list+.pd-note{margin-top:14px}
+/* round 12: contact block, print one-pager, "not sent yet" lead box (index / pricing) */
+.pd-print{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:0 4px;border:0;background:none;font:inherit;color:#4b36d6;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.pd-contact-dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:0;font-size:.95rem}
+.pd-contact-dl dt{color:var(--muted);align-self:center}.pd-contact-dl dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.pd-contact-dl dd a{display:inline-flex;align-items:center;min-height:44px}
+.pd-contact-dl a,.pd-contact-pend a{color:#4b36d6;text-decoration:underline;text-underline-offset:2px}
+.pd-contact-pend{margin:0 0 8px;color:var(--muted);font-size:.92rem}
+.lq-pending{margin-top:12px;padding:12px 14px;border:1px dashed #b9a9ff;border-radius:12px;background:#faf9ff;font-size:.9rem}
+.lq-pending p{margin:0 0 6px}
+.lq-pending-acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.lq-pending-acts .btn{min-height:44px}
+@media print{
+  .nav,.lq-crumbs,.lq-legal-foot,.site-foot,.pd-othersec,.pd-links,.lq-toast,.skip-link{display:none!important}
+  body{background:#fff}
+  .pd{padding:0}
+  .pd-hero{background:#fff!important;color:#000;padding:0 0 10px;text-align:left;border-bottom:2px solid #0e1430}
+  .pd-hero h1{color:#0e1430;font-size:20pt;margin:4px 0}.pd-hero p{color:#222;margin:0;max-width:none}.pd-hero .eyebrow{color:#4b36d6}
+  .pd-cta{display:none}
+  .pd-body{padding:10px 0 0;max-width:none}.pd-body>section{margin-top:12px;break-inside:avoid}
+  .pd-grid{grid-template-columns:1fr 1fr;gap:6px}
+  .pd-card{box-shadow:none;padding:8px 10px;break-inside:avoid}.pd-ic,.pd-go{display:none}
+  .pd-card p,.pd-list li{font-size:9pt}.pd-card h3{font-size:10.5pt}
+  .pd-list{grid-template-columns:1fr 1fr;gap:6px}.pd-list li{padding:6px 8px}
+  .pd-note{padding:8px 10px;font-size:9pt}
+  .pd-contact{border-top:1px solid #ccc;padding-top:8px}
+  a{color:#000!important}
+}
+@page{size:A4;margin:12mm}

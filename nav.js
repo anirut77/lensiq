@@ -36,7 +36,7 @@
       { href: "creative.html", title: "Creative Lab ตรวจชิ้นงาน", desc: "แผนที่ความสนใจ ความชัด สี เทียบ A/B" },
       { href: "signage.html", title: "ป้ายโฆษณาดิจิทัล", desc: "เลือกคอนเทนต์ตามผู้ชม และคีออสก์ไร้สัมผัส" }
     ] },
-    { label: "บูธและสตูดิโอ", id: "photo", intro: "นับผู้เข้าชมบูธ ตู้ถ่ายรูป และสตูดิโอแต่งชุด สำหรับงานอีเวนต์และกิจกรรมแบรนด์", items: [
+    { label: "บูธและสตูดิโอ", id: "photo", intro: "นับผู้เข้าชมบูธ ตู้ถ่ายรูป และสตูดิโอภาพโปรไฟล์และรูปติดบัตร สำหรับงานอีเวนต์และกิจกรรมแบรนด์", items: [
       { href: "creative-suite.html", title: "LENSIQ Creative ภาพรวม", desc: "Creative Lab สตูดิโอ และตู้ถ่ายรูปในชุดเดียว" }, // product landing (Round 10 product split)
       { href: "booth.html", title: "วิเคราะห์บูธ", desc: "นับผู้เข้าชมและเวลาหยุดชม" },
       { href: "photobooth.html", title: "ตู้ถ่ายรูป", desc: "ตู้สติ๊กเกอร์และรูปติดบัตร" },
@@ -110,7 +110,7 @@
     });
   })();
 
-  var header = document.getElementById("siteNav") || document.querySelector("header.nav");
+  var header = /** @type {HTMLElement} */ (document.getElementById("siteNav") || document.querySelector("header.nav"));
   if (!header) { thaiBreaks(); models(); registerSW(); legalFoot(); reportHook(); return; }
   if (!header.classList.contains("nav")) header.classList.add("nav");
 
@@ -184,7 +184,7 @@
 
   // Skip link target: first <main>, else hide the link.
   var main = document.querySelector("main");
-  var skip = header.querySelector(".skip-link");
+  var skip = /** @type {HTMLElement} */ (header.querySelector(".skip-link"));
   if (main) { if (!main.id) main.id = "main"; skip.setAttribute("href", "#" + main.id); }
   else document.addEventListener("DOMContentLoaded", function () {
     var m = document.querySelector("main");
@@ -407,7 +407,8 @@
       var walker = document.createTreeWalker(el, 4 /* SHOW_TEXT */), out = [], n;
       while ((n = walker.nextNode())) {
         var p = n.parentElement;
-        if (n.nodeValue.length >= min && THAI.test(n.nodeValue) && p && !p.closest(SKIP)) out.push(n);
+        var nv = n.nodeValue || "";
+        if (nv.length >= min && THAI.test(nv) && p && !p.closest(SKIP)) out.push(n);
       }
       return out;
     }
@@ -422,7 +423,7 @@
       if (!root || root.nodeType !== 1 || root.closest(SKIP)) return;
       if (root.matches(SEL)) fix(root);
       Array.prototype.forEach.call(root.querySelectorAll(SEL), fix);
-      textNodes(root, 4).forEach(function (tn) { LOAN.lastIndex = 0; if (LOAN.test(tn.nodeValue)) rebuild(tn, false); });
+      textNodes(root, 4).forEach(function (tn) { LOAN.lastIndex = 0; if (LOAN.test(tn.nodeValue || "")) rebuild(tn, false); });
     }
     var pending = [], timer = 0;
     var idle = window.requestIdleCallback || function (f) { return setTimeout(f, 120); };
@@ -522,7 +523,7 @@
       var h = loading({ label: opts.label, mb: opts.mb, url: url });
       return fetch(url).then(function (r) {
         if (!r.ok) throw new Error("HTTP " + r.status);
-        var total = +r.headers.get("content-length") || (opts.mb || 0) * 1048576;
+        var total = +(r.headers.get("content-length") || 0) || (opts.mb || 0) * 1048576;
         if (!r.body || !r.body.getReader || !total) return r.arrayBuffer();
         var reader = r.body.getReader(), got = 0, chunks = [];
         return (function pump() {

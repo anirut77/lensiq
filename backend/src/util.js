@@ -102,6 +102,36 @@ export async function readJson(request, maxBytes, { types = ["application/json"]
 
 export const clientIp = request => request.headers.get("CF-Connecting-IP") || "0.0.0.0";
 
+/**
+ * Round 12: the per-caller KEY of an address. IPv4 stays as is; an IPv6 address is reduced to its /64 prefix (a single
+ * subscriber / LAN normally gets a whole /64, so rotating the low 64 bits must not buy a fresh rate-limit bucket).
+ * Unparseable values are returned unchanged (still a stable key). Turnstile siteverify keeps the full address.
+ */
+export function ipv6Prefix64(ip) {
+  let s = String(ip || "").trim().toLowerCase();
+  if (!s.includes(":")) return s;
+  s = s.replace(/^\[|\]$/g, "").replace(/%.*$/, "");
+  let tail = [];
+  const v4 = /(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(s);
+  if (v4) { // ::ffff:1.2.3.4 (IPv4-mapped): the IPv4 address is the caller
+    if (/^(0{0,4}:){0,5}:?ffff:/.test(s.slice(0, v4.index)) || s.slice(0, v4.index) === "::") return v4.slice(1).join(".");
+    tail = [((+v4[1] << 8) | +v4[2]).toString(16), ((+v4[3] << 8) | +v4[4]).toString(16)];
+    s = s.slice(0, v4.index);
+    if (!s.endsWith("::")) s = s.slice(0, -1);
+  }
+  const halves = s.split("::");
+  if (halves.length > 2) return s;
+  const head = halves[0] ? halves[0].split(":") : [];
+  const back = (halves.length === 2 && halves[1] ? halves[1].split(":") : []).concat(tail);
+  const fill = 8 - head.length - back.length;
+  if (fill < 0 || (halves.length === 1 && fill !== 0)) return s;
+  const groups = head.concat(Array(halves.length === 2 ? fill : 0).fill("0"), back);
+  if (groups.length !== 8 || !groups.every(g => /^[0-9a-f]{1,4}$/.test(g))) return s;
+  return groups.slice(0, 4).map(g => g.replace(/^0+(?=.)/, "")).join(":") + "::/64";
+}
+/** Rate-limit / pseudonym key of the caller: clientIp reduced to /64 for IPv6 (ipv6Prefix64). */
+export const callerIp = request => ipv6Prefix64(clientIp(request));
+
 export const intVar = (v, def, min = 0, max = Number.MAX_SAFE_INTEGER) => {
   const n = Number.parseInt(String(v ?? ""), 10);
   return Number.isFinite(n) && n >= min && n <= max ? n : def;

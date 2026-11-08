@@ -62,6 +62,8 @@ Data map and processing register: `docs/pdpa/data-map.md`, `docs/pdpa/ROPA.md` (
 | C3 | Terms §12 limitation of liability (cap = 12 months' fees; carve-outs for death/injury, wilful misconduct, gross negligence; CCC s.373) — reasonable under UCTA s.4–s.8 for consumers? |
 | C4 | Refund policy (terms §9): no pro-rata for started months; yearly 14-day refund if < 20 AI readings; event 7-day / 48-h rule. Fair under UCTA? Any mandatory consumer refund rights we must state? |
 | C5 | Price display: VAT-inclusive, quotas listed, "draft" pricing page hidden. Is `pricing.html` as a hidden, noindex draft acceptable until launch? |
+| C6 | Round 12 labelling: the basic report is described the same way everywhere (3 systems + work / money / love deep-dive + next 3 months + 30-day plan); CSV export is labelled "free on-device in every plan" rather than a paid perk; Creator / Business list support response times, the Business onboarding call and "pilot fee credited against the first period (per quotation)". Are these adequate under the CPA labelling rules? Collateral now says "commercial profile available; face models pending legal opinion" instead of "licensed for commercial use by default" (`docs/ONE-PAGER-*.md`). |
+| C7 | Lead forms before a channel exists: an unsent request is kept only in the visitor's own browser (`lq-leads`, max 10, copy / delete buttons, listed in privacy §9) and sent only when the visitor presses send once the e-mail / LINE / Worker exists. Is consent at the time of the first submit enough for that later send? |
 
 ### 3.3 Direct Sales and Direct Marketing Act B.E. 2545 (as amended B.E. 2560)
 

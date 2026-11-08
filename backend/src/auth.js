@@ -21,12 +21,16 @@
 //     required on every login
 //  TOTP       optional, RFC 6238, secret AES-GCM encrypted with SECRETS_KEK; the used time step is claimed with an atomic
 //             conditional UPDATE, so one code cannot be used twice even by parallel requests
-//  re-auth    password change needs the current password (+ TOTP when on); TOTP setup needs the password; money ops
-//             (refund, cancel / extend subscription, complimentary grant), retention/run and member status changes need
-//             {password, totp} in the body (reauthOwner). Round 11: rate limited per session (5 wrong / 15 min -> 429,
-//             10 wrong -> session revoked), every failure audited; price / plan / settings / membership / AI-key edits
-//             need re-auth too — body {password, totp} or the 5-min "sudo" window opened by POST /admin/api/reauth;
-//             owner TOTP is mandatory for money ops while billing / live keys are on (requireOwnerTotpFor)
+//  re-auth    password change needs the current password (+ TOTP when on); TOTP setup needs the password. Every other
+//             sensitive route — money ops (refund, cancel / extend subscription, complimentary grant, admin test charge),
+//             retention/run, member status, price / plan / settings / membership / AI-key edits — needs a re-auth that
+//             is EITHER body {password, totp} (reauthOwner) OR the 5-min "sudo" window opened by POST /admin/api/reauth
+//             (requireReauth). Round 12 (corrects the round-11 wording here, which said money ops always needed the
+//             body): money ops accept the sudo window only while moneyReauthMode(env) is "window"; with
+//             MONEY_REAUTH=inline, or live keys (OPN_ALLOW_LIVE=true), they need {password, totp} IN THE BODY of that very
+//             request (requireInlineReauth; 403 reauth_inline_required — admin.js asks and resends). Rate limited per
+//             session (5 wrong / 15 min -> 429, 10 wrong -> session revoked), every failure audited; owner TOTP is
+//             mandatory for money ops while billing / live keys are on or REQUIRE_OWNER_TOTP=true (requireOwnerTotpFor)
 //  devices    GET /admin/api/devices lists trusted devices (id = first 16 hex of the stored hash), DELETE revokes;
 //             disabling TOTP signs out every other session and forgets every trusted device
 import {
@@ -287,6 +291,26 @@ export async function requireReauth(env, sess, body) {
   if (password != null && password !== "") { await reauthOwner(env, { password, totp }, sess); return rest; }
   if (reauthFresh(sess)) return rest;
   throw new HttpError(403, "please confirm your password first (reauth_required)", { code: "reauth_required" });
+}
+
+/** How money operations re-authenticate (round 12): "inline" = {password, totp} in the request body only (MONEY_REAUTH=
+ *  inline, or live keys with OPN_ALLOW_LIVE=true unless MONEY_REAUTH=window is set explicitly); "window" = body or the
+ *  5-min sudo window (default in test mode). */
+export function moneyReauthMode(env) {
+  const v = String(env.MONEY_REAUTH || "").toLowerCase();
+  if (v === "inline" || v === "window") return v;
+  return String(env.OPN_ALLOW_LIVE || "") === "true" ? "inline" : "window";
+}
+
+/** Body {password, totp} is REQUIRED (the sudo window does not count). Returns the body without password / totp. */
+export async function requireInlineReauth(env, sess, body) {
+  const b = body && typeof body === "object" ? body : {};
+  const { password, totp, ...rest } = b;
+  if (password == null || password === "") {
+    throw new HttpError(403, "confirm your password (and TOTP) with this request (reauth_inline_required)", { code: "reauth_inline_required" });
+  }
+  await reauthOwner(env, { password, totp }, sess);
+  return rest;
 }
 
 /** Owner TOTP is mandatory for money operations while billing or live keys are on (or REQUIRE_OWNER_TOTP=true):

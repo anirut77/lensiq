@@ -103,3 +103,19 @@ label.check input{width:22px;height:22px;flex:none}
 .st-pre li{padding-left:1.3em;position:relative;margin:2px 0}
 .st-pre li::before{position:absolute;left:0;content:"✓";color:#15803d;font-weight:700}
 .st-pre li.warn::before{content:"!";color:#b45309}
+/* round 12: "อ่านเพิ่มเติม" / "รายละเอียดทางเทคนิค" เป็นปุ่มสลับที่มีรูปแบบ (เดิมเป็นข้อความเปล่า) */
+.st-more summary,.st-techline summary{list-style:none;gap:8px;padding:6px 14px;border:1px solid var(--line);border-radius:99px;background:#fff;font-weight:500;box-shadow:0 1px 2px rgba(14,20,48,.06);transition:background .15s,border-color .15s}
+.st-more summary::-webkit-details-marker,.st-techline summary::-webkit-details-marker{display:none}
+.st-more summary::after,.st-techline summary::after{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .15s;flex:none}
+.st-more[open] summary::after,.st-techline[open] summary::after{transform:rotate(-135deg) translateY(-1px)}
+.st-more summary:hover,.st-techline summary:hover{background:var(--alt);border-color:var(--navy)}
+.st-more summary:focus-visible,.st-techline summary:focus-visible{outline:2px solid var(--aqua);outline-offset:2px}
+.st-more[open]{background:#fff;border:1px solid var(--line);border-radius:12px;padding:4px 14px 10px;margin-top:6px}
+.st-more[open] summary{border:0;box-shadow:none;padding-left:0;background:none}
+.st-techline{text-align:center}
+.st-techline[open] .engine{text-align:left}
+/* round 12: ขั้นตรวจก่อนส่งออก + สถานะของแบบไม่ใส่ชุดที่ไม่ผ่านการตรวจ */
+.st-review img{display:block;max-width:100%;max-height:52vh;margin:10px auto;border-radius:10px;background:var(--bg)}
+.st-review #stReviewList{margin:6px 0}
+.st-qa[data-shown="orig"]{background:#fde8e8;color:#8a1c1c}
+.st-qa[data-shown="noq-draft"],.st-qa[data-shown="unchecked"]{background:#fde8e8;color:#8a1c1c}

@@ -8,13 +8,13 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="pd.r.doc.title">LENSIQ Retail — กล้องหน้าร้านสำหรับ SME | LENSIQ</title>
 <meta name="description" data-i18n-attr="content:pd.r.doc.desc" content="นับคนเข้าร้าน อัตราการซื้อโดยประมาณ สรุปรายวัน และรวมยอดหลายสาขา ด้วยกล้องที่มีอยู่ ประมวลผลบนเครื่อง ไม่เก็บภาพ เผยแพร่ความแม่นยำที่วัดได้">
-<link rel="stylesheet" href="styles.css?v=9">
-<link rel="stylesheet" href="products.css?v=1">
+<link rel="stylesheet" href="styles.css?v=10">
+<link rel="stylesheet" href="products.css?v=2">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=12"></script>
-<script src="i18n/zh-products.js?v=1"></script>
+<script src="nav.js?v=13"></script>
+<script src="i18n/zh-products.js?v=2"></script>
 <main class="pd" id="main">
   <section class="pd-hero" aria-labelledby="pdRH">
     <span class="eyebrow" data-i18n="pd.r.eyebrow">LENSIQ RETAIL · กล้องหน้าร้าน</span>
@@ -60,9 +60,14 @@
         <li><a href="pricing.html" data-i18n="pd.pricing">แพ็กเกจและราคา</a></li>
         <li><a href="cameras.html" data-i18n="pd.allSystems">ระบบทั้งหมด</a></li>
         <li><a href="help.html" data-i18n="pd.help">ช่วยเหลือ</a></li>
+        <li><button type="button" class="pd-print" data-pd-print data-i18n="pd.print">พิมพ์ / บันทึกเป็น PDF (สรุป 1 หน้า)</button></li>
       </ul>
     </section>
-    <section aria-labelledby="pdRO">
+    <section class="pd-contact" aria-labelledby="pdRC">
+      <h2 id="pdRC" data-i18n="pd.contact.h">ติดต่อ</h2>
+      <div data-pd-seller data-interest="store"></div>
+    </section>
+    <section class="pd-othersec" aria-labelledby="pdRO">
       <h2 id="pdRO" data-i18n="pd.others">ผลิตภัณฑ์อื่นของ LENSIQ</h2>
       <nav class="pd-others" aria-label="ผลิตภัณฑ์อื่นของ LENSIQ" data-i18n-attr="aria-label:pd.others">
         <a href="fortune.html"><span aria-hidden="true">🔮</span><span data-i18n="pd.p.fortune">LENSIQ ดูดวง</span></a>
@@ -73,5 +78,6 @@
   </div>
 </main>
 <script src="lensiq-config.js?v=3"></script>
+<script src="products.js?v=1"></script>
 </body>
 </html>

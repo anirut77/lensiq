@@ -1,5 +1,5 @@
 "use strict";
-// node --test tests/unit/camera-r11.test.js — round 11 camera-page additions: optional liveness challenge
+// node --test tests/unit/camera-liveness-wipe.test.js — round 11 camera-page additions: optional liveness challenge
 // (LQTrack.liveCues / createLiveness), device-wide biometric wipe and the auto-expiry list (LQVault.wipeAll /
 // expiringSoon), the commercial build profile (lensiq-config.js LENSIQ_PROFILE), the driver page relabel and its
 // non-dismissable calibration warning, and the IP-camera guide on cameras.html.

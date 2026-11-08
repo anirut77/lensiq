@@ -43,7 +43,7 @@ export const CONSENT_VERSIONS = ["a1"];
  * server before it runs the feature — csv_export: POST /api/me/entitlements/use {feature:"csv_export"}).
  * Only features listed here can be put on a plan through the admin API.
  * consumer (round 11): the page script that DELIVERS the perk (null = none yet). A unit test
- * (tests/unit/backend-r11.test.js "perk consumers") fails when an active credit perk — something sold as a one-time
+ * (tests/unit/backend-fulfilment-refunds.test.js "perk consumers") fails when an active credit perk — something sold as a one-time
  * purchase — has no consumer that calls POST /api/me/entitlements/use with that feature, so nothing is sold that the
  * site cannot hand over. report_* are delivered by report.js (redeem flow: generate, save to the account, print / PDF).
  * csv_export: the server check exists but no page calls it yet (CSV export is free on-device) — consumer null.

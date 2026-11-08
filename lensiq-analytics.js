@@ -86,7 +86,7 @@
     if (!s || !/^[a-f0-9]{32}$/.test(s) || /\d{5,}/.test(s)) {
       // the Worker rejects sids with a 6+ digit run: retry a few times, then break any run deterministically
       for (var tries = 0; tries < 8 && (!s || /\d{5,}/.test(s)); tries++) s = randHex(16);
-      s = s.replace(/\d{5,}/g, function (r) { return r.replace(/(\d{4})(\d)/g, function (_, a, d) { return a + "abcdef".charAt(+d % 6); }); });
+      s = String(s).replace(/\d{5,}/g, function (r) { return r.replace(/(\d{4})(\d)/g, function (_, a, d) { return a + "abcdef".charAt(+d % 6); }); });
       sset(SS, SID, s);
     }
     return s;

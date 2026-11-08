@@ -18,6 +18,7 @@ import { PERKS } from "./constants.js";
 import { createPromptPayCharge, fetchQr, opnKey, qrUriOf, retrieveCharge, verifyWebhookSignature } from "./opn.js";
 import { CREDIT_DAYS, activeSub, consumeCredit, consumeUse, creditBalance, periodKey, usedOf } from "./quota.js";
 import { pushAlert } from "./alerts.js";
+import { mailReceipt } from "./mail.js";
 import { getBillingSettings } from "./settings.js";
 import { audit, callerHash, hit } from "./store.js";
 import { verifyTurnstile } from "./turnstile.js";
@@ -381,17 +382,34 @@ export async function fulfilStatements(env, p, t, tok) {
       subscriptionId: cur.id
     };
   }
+  // Round 12 (duplicate-subscription race): the read above happens OUTSIDE the transaction, so two first purchases of the
+  // same plan confirmed at the same time both see "no active subscription". Inside the batch (one serialised
+  // transaction) the INSERT therefore only runs while there is STILL no active subscription of this buyer for this plan;
+  // otherwise the second statement extends the one that won (by this payment's length), and the payment is linked to
+  // whichever row now carries its time. Nothing is lost: the buyer gets both periods on one subscription.
   const id = randomId(12);
+  const same = "(customer_id = ?2 OR (?7 IS NOT NULL AND user_id = ?7)) AND plan_id = ?3 AND status = 'active'";
   return {
-    stmts: [db.prepare("INSERT INTO subscriptions (id, customer_id, plan_id, status, period, current_period_start, current_period_end, created_at, updated_at, user_id) " +
-      `SELECT ?1, ?2, ?3, 'active', ?4, ?5, ?6, ?5, ?5, ?7 WHERE ${guard(8, 9)}`).bind(id, p.customer_id, p.plan_id, p.period, t, t + len, p.user_id || null, p.id, tok), mark(id, len)],
+    stmts: [
+      db.prepare("INSERT INTO subscriptions (id, customer_id, plan_id, status, period, current_period_start, current_period_end, created_at, updated_at, user_id) " +
+        `SELECT ?1, ?2, ?3, 'active', ?4, ?5, ?6, ?5, ?5, ?7 WHERE ${guard(8, 9)} AND NOT EXISTS (SELECT 1 FROM subscriptions WHERE ${same})`)
+        .bind(id, p.customer_id, p.plan_id, p.period, t, t + len, p.user_id || null, p.id, tok),
+      db.prepare(`UPDATE subscriptions SET current_period_end = MAX(current_period_end, ?5) + ?4, updated_at = ?5, user_id = COALESCE(user_id, ?7) ` +
+        `WHERE id = (SELECT id FROM subscriptions WHERE ${same} AND id != ?1 ORDER BY current_period_end DESC LIMIT 1) ` +
+        `AND NOT EXISTS (SELECT 1 FROM subscriptions WHERE id = ?1) AND ${guard(8, 9)}`)
+        .bind(id, p.customer_id, p.plan_id, len, t, null, p.user_id || null, p.id, tok),
+      db.prepare(`UPDATE payments SET subscription_id = COALESCE((SELECT id FROM subscriptions WHERE id = ?1), ` +
+        `(SELECT id FROM subscriptions WHERE ${same} ORDER BY current_period_end DESC LIMIT 1)) WHERE id = ?8 AND fulfil_token = ?9 AND fulfilled_at IS NULL`)
+        .bind(id, p.customer_id, p.plan_id, null, null, null, p.user_id || null, p.id, tok),
+      mark(null, len)
+    ],
     subscriptionId: id
   };
 }
 
 /** Admin alert (best effort: an alert must never turn a handled case into a 5xx). kind: payment_mismatch |
  *  fulfilment_failed | fulfilment_repaired. Pushed to ALERT_WEBHOOK_URL as well when that secret is set (alerts.js). */
-async function raiseAlert(env, kind, ref, detail, fetchImpl) {
+export async function raiseAlert(env, kind, ref, detail, fetchImpl) {
   try {
     await env.DB.prepare("INSERT INTO alerts (ts, kind, ref, detail) VALUES (?1, ?2, ?3, ?4)").bind(now(), kind, ref, JSON.stringify(detail || {})).run();
   } catch { /* D1 down: the log line below is the alert */ }
@@ -433,7 +451,7 @@ export async function repairFulfilment(env, p, via = "repair", fetchImpl) {
 export async function applyCharge(env, p, charge, fetchImpl) {
   const t = now();
   const st = String(charge.status || "");
-  if (p.status !== "pending") {
+  if (p.status !== "pending" && !(locallyExpired(p) && st === "successful")) {
     if (!p.fulfilled_at && ["successful", "partially_refunded"].includes(p.status)) await repairFulfilment(env, p, "apply", fetchImpl);
     return p.status;
   }
@@ -441,7 +459,7 @@ export async function applyCharge(env, p, charge, fetchImpl) {
   if (Number(charge.amount) !== p.amount_satang || String(charge.currency || "").toLowerCase() !== "thb") {
     // FINAL state (round 10): never retried forever, never activates anything; the owner resolves it by hand
     const detail = { expected: p.amount_satang, amount: Number(charge.amount) || 0, currency: String(charge.currency || "").slice(0, 8), provider_status: st };
-    const r = await env.DB.prepare("UPDATE payments SET status = 'mismatch', failure_code = 'amount_mismatch', mismatch_detail = ?1, updated_at = ?2 WHERE id = ?3 AND status = 'pending'")
+    const r = await env.DB.prepare(`UPDATE payments SET status = 'mismatch', failure_code = 'amount_mismatch', mismatch_detail = ?1, updated_at = ?2 WHERE id = ?3 AND ${OPEN_SQL}`)
       .bind(JSON.stringify(detail), t, p.id).run();
     if (r.meta && r.meta.changes) {
       await audit(env, "system", "payment.mismatch", { payment: p.id, ...detail });
@@ -460,7 +478,7 @@ export async function applyCharge(env, p, charge, fetchImpl) {
     try {
       f = await fulfilStatements(env, p, t, tok);
       res = await db.batch([
-        db.prepare("UPDATE payments SET status = 'successful', paid_at = ?1, doc_type = ?2, updated_at = ?1, fulfil_token = ?4 WHERE id = ?3 AND status = 'pending'").bind(t, docType, p.id, tok),
+        db.prepare(`UPDATE payments SET status = 'successful', paid_at = ?1, doc_type = ?2, updated_at = ?1, fulfil_token = ?4, failure_code = NULL WHERE id = ?3 AND ${OPEN_SQL}`).bind(t, docType, p.id, tok),
         db.prepare("INSERT INTO counters (name, value) SELECT ?1, 1 WHERE changes() = 1 ON CONFLICT (name) DO UPDATE SET value = value + 1").bind(name),
         db.prepare("UPDATE payments SET receipt_no = 'LQ-' || ?1 || '-' || printf('%06d', (SELECT value FROM counters WHERE name = ?2)) " +
           "WHERE id = ?3 AND status = 'successful' AND receipt_no IS NULL AND paid_at = ?4 AND fulfil_token = ?5").bind(ym, name, p.id, t, tok),
@@ -472,9 +490,14 @@ export async function applyCharge(env, p, charge, fetchImpl) {
       throw e;
     }
     if (res[0].meta && res[0].meta.changes) {
-      const row = await db.prepare("SELECT receipt_no FROM payments WHERE id = ?1").bind(p.id).first();
-      await audit(env, "system", "payment.successful", { payment: p.id, receipt: row && row.receipt_no, amount: p.amount_satang, subscription: f.subscriptionId });
+      const row = await db.prepare("SELECT receipt_no, subscription_id FROM payments WHERE id = ?1").bind(p.id).first();
+      await audit(env, "system", "payment.successful", { payment: p.id, receipt: row && row.receipt_no, amount: p.amount_satang, subscription: (row && row.subscription_id) || f.subscriptionId });
       if (p.user_id) await ledger(env, p.user_id, "payment", { ref: p.id, amount: p.amount_satang }, t);
+      if (p.user_id) await mailReceipt(env, p.id, fetchImpl); // round 12: best effort, once per payment, never throws
+      if (locallyExpired(p)) {
+        await audit(env, "system", "payment.late_success", { payment: p.id });
+        await raiseAlert(env, "late_payment_fulfilled", p.id, { plan: p.plan_id }, fetchImpl);
+      }
     }
   } else {
     await env.DB.prepare("UPDATE payments SET status = ?1, failure_code = ?2, updated_at = ?3 WHERE id = ?4 AND status = 'pending'")
@@ -482,6 +505,13 @@ export async function applyCharge(env, p, charge, fetchImpl) {
   }
   return st;
 }
+
+/** Round 12: a payment the reconcile sweep closed locally (QR long expired, Opn still said 'pending') — status 'expired'
+ *  with failure_code 'expired_local'. A LATE success reported by Opn afterwards (webhook, poll, reconcile) still
+ *  fulfils it; every other provider state leaves it closed. */
+export const locallyExpired = p => !!p && p.status === "expired" && p.failure_code === "expired_local";
+/** SQL: the payment row may still move to a final provider state (pending, or closed locally by the sweep). */
+const OPEN_SQL = "(status = 'pending' OR (status = 'expired' AND failure_code = 'expired_local'))";
 
 const PAY_ID_RE = /^[a-f0-9]{32}$/;
 async function paymentById(db, id) {
@@ -495,7 +525,7 @@ async function paymentById(db, id) {
 export async function paymentStatus(env, id, deps = {}) {
   let p = await paymentById(env.DB, id);
   if (!p.fulfilled_at && ["successful", "partially_refunded"].includes(p.status)) { await repairFulfilment(env, p, "poll", deps.fetch); p = await paymentById(env.DB, id); }
-  if (p.status === "pending" && p.provider_charge_id) {
+  if ((p.status === "pending" || locallyExpired(p)) && p.provider_charge_id) {
     const rl = await hit(env.DB, `poll:${p.id}`, 20, 60);
     if (rl.ok) {
       const charge = await retrieveCharge(env, p.provider_charge_id, deps.fetch);
@@ -569,7 +599,7 @@ export async function reconcilePending(env, { limit, t = now(), fetchImpl } = {}
   for (const p of broken) {
     try { if (await repairFulfilment(env, p, "reconcile", fetchImpl)) out.repaired++; } catch { out.repair_errors++; }
   }
-  if (!env.OPN_SECRET_KEY) return { ...out, skipped: "no Opn key" };
+  if (!env.OPN_SECRET_KEY) return { ...out, ...(await expirySweep(env, { limit: n, t, fetchImpl })), skipped: "no Opn key" };
   const rows = (await env.DB.prepare("SELECT * FROM payments WHERE status = 'pending' AND provider_charge_id IS NOT NULL AND created_at > ?1 ORDER BY updated_at, created_at LIMIT ?2")
     .bind(t - 3 * 86400, n).all()).results || [];
   for (const p of rows) {
@@ -580,6 +610,67 @@ export async function reconcilePending(env, { limit, t = now(), fetchImpl } = {}
       if (st !== "pending") out.changed++;
       else await env.DB.prepare("UPDATE payments SET updated_at = ?1 WHERE id = ?2 AND status = 'pending'").bind(now(), p.id).run();
     } catch { out.errors++; }
+  }
+  return { ...out, ...(await expirySweep(env, { limit: n, t, fetchImpl })) };
+}
+
+/** Grace after a QR's expires_at before the sweep closes the payment locally (seconds). */
+export const EXPIRY_GRACE = 3600;
+/** A charge Opn still reports as 'pending' this long after creation raises one 'charge_stuck_pending' alert. */
+export const STUCK_AFTER = 24 * 3600;
+/**
+ * Round 12 expiry sweep (part of the 15-min reconcile cron). The 3-day re-check window above means a lost webhook plus a
+ * long cron outage used to leave a row 'pending' for ever. Now every pending payment whose QR expired more than
+ * EXPIRY_GRACE ago (whatever its age) gets ONE final retrieveCharge — a late success is fulfilled normally — and is
+ * otherwise closed: Opn 'failed' / 'expired' are applied as usual; when Opn still says 'pending' (or there is no charge
+ * id to ask about) the row becomes status 'expired', failure_code 'expired_local'. Such a row stays open for a late
+ * success (applyCharge / webhook / poll; see locallyExpired) and is re-checked for STUCK_AFTER + 2 days: once a charge
+ * is older than STUCK_AFTER and Opn STILL says 'pending', one admin alert 'charge_stuck_pending' is raised per payment.
+ * A failing Opn call never closes anything (counted in sweep_errors, retried next run).
+ * @param {Env} env @param {{limit?: number, t?: number, fetchImpl?: typeof fetch}} [o]
+ */
+export async function expirySweep(env, { limit = RECONCILE_BATCH, t = now(), fetchImpl } = {}) {
+  const db = env.DB;
+  const out = { expired_local: 0, late_success: 0, stuck_alerts: 0, sweep_errors: 0 };
+  const due = (await db.prepare("SELECT * FROM payments WHERE status = 'pending' AND expires_at IS NOT NULL AND expires_at < ?1 ORDER BY expires_at LIMIT ?2")
+    .bind(t - EXPIRY_GRACE, limit).all()).results || [];
+  for (const p of due) {
+    try {
+      let st = "pending";
+      if (p.provider_charge_id && env.OPN_SECRET_KEY) {
+        const charge = await retrieveCharge(env, p.provider_charge_id, fetchImpl);
+        st = await applyCharge(env, p, charge, fetchImpl);
+        if (st === "successful") out.late_success++;
+      } else if (p.provider_charge_id) continue; // cannot ask Opn now: never close a row we could not check
+      if (st === "pending") {
+        const r = await db.prepare("UPDATE payments SET status = 'expired', failure_code = 'expired_local', updated_at = ?1 WHERE id = ?2 AND status = 'pending'").bind(t, p.id).run();
+        if (r.meta && r.meta.changes) {
+          out.expired_local++;
+          await audit(env, "system", "payment.expired_local", { payment: p.id });
+          // closed late (e.g. after a long cron outage) and Opn still says pending after STUCK_AFTER: alert now
+          if (p.provider_charge_id && p.created_at < t - STUCK_AFTER) {
+            await raiseAlert(env, "charge_stuck_pending", p.id, { plan: p.plan_id, age_h: Math.floor((t - p.created_at) / 3600) }, fetchImpl);
+            out.stuck_alerts++;
+          }
+        }
+      }
+    } catch { out.sweep_errors++; }
+  }
+  if (!env.OPN_SECRET_KEY) return out;
+  const closed = (await db.prepare("SELECT * FROM payments WHERE status = 'expired' AND failure_code = 'expired_local' AND provider_charge_id IS NOT NULL " +
+    "AND created_at < ?1 AND created_at > ?2 AND id NOT IN (SELECT ref FROM alerts WHERE kind = 'charge_stuck_pending' AND ref IS NOT NULL) ORDER BY updated_at LIMIT ?3")
+    .bind(t - STUCK_AFTER, t - STUCK_AFTER - 2 * 86400, limit).all()).results || [];
+  for (const p of closed) {
+    try {
+      const charge = await retrieveCharge(env, p.provider_charge_id, fetchImpl);
+      const st = await applyCharge(env, p, charge, fetchImpl);
+      if (st === "successful") { out.late_success++; continue; }
+      if (String(charge.status || "") === "pending") {
+        await raiseAlert(env, "charge_stuck_pending", p.id, { plan: p.plan_id, age_h: Math.floor((t - p.created_at) / 3600) }, fetchImpl);
+        out.stuck_alerts++;
+      }
+      await db.prepare("UPDATE payments SET updated_at = ?1 WHERE id = ?2").bind(t, p.id).run();
+    } catch { out.sweep_errors++; }
   }
   return out;
 }

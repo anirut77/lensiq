@@ -55,6 +55,9 @@ Source → processing → storage → transfer for the optional "Sign in with Go
 | Readings and AI usage | Page reports "a reading of domain X happened" | Quota counting | `member_ledger` (kind, domain, time — no reading text; 400 days), `usage_counters` (35 days) | No |
 | Saved readings | Member taps "save" | Size/field clipping (≤ 16 KB) | `saved_readings` until deleted | No |
 | Payment | Opn checkout (PromptPay) and signed webhook | Signature check + status confirmation with the Opn API | `payments`/`subscriptions`/`customers` (≥ 5 years), `webhooks.payload` (90 days) | Opn Payments (processor) |
+| Transactional e-mail (round 12, OFF until `MAIL_PROVIDER` is set) | Successful payment, refund, plan ending in 3 days | `mail.js`: fixed TH/EN/ZH text + document number + amount + account-page link (no document, tax ID, address or sign-in link); member opt-outs `email_receipts` / `email_reminders` | `mail_log`: kind, document ref, member id, provider message id, outcome — **no address, subject or body**; 400 days; member id cleared on erasure | Mail provider (Resend or MailChannels) receives the verified e-mail address + the text — processor, country to document |
+| Short session + token refresh (round 12, optional) | Sign-in with `session: "short"` | 12 h absolute / 1 h idle; `POST /api/auth/refresh` rotates the token (≤ 7 days after sign-in) | `member_sessions.kind`, `signed_in_at` | No |
+| CSP violation reports (round 12) | Browser of a page whose CSP is sent as an HTTP header (today: the Worker-served admin) | Parsed to directive + blocked origin + page path | `csp_reports` day counters, 90 days — no IP, user agent, query or script sample | No |
 | Erasure | Member: `DELETE /api/me` on `account.html` | Batch delete + unlink | Deletes `users`, sessions, ledger, saved readings, usage counters; unlinks payments (user id and e-mail cleared). `audit_log` keeps `member.deleted` with the random id for 400 days; webhook payloads age out at 90 days. | No |
 
 ## Third parties and cross-border transfers
@@ -67,3 +70,18 @@ Source → processing → storage → transfer for the optional "Sign in with Go
 | Cloudflare (Workers + D1) | Global network; D1 in the chosen region (APAC hint recommended) | Backend deployed (`LENSIQ_API_BASE`) | Member, billing, analytics and audit tables above | Cloudflare DPA (s.40); transfer basis s.28/29 (DPIA §11, L9) |
 | Google (Sign in with Google) | USA | Member clicks the sign-in button | ID token exchange (Google already holds the account) | Privacy notice names Google; data minimised (no avatar, no access token) |
 | Opn Payments | Thailand / Japan group | Paid checkout | Amount, charge id, buyer e-mail / tax-invoice fields | Processor agreement; no card or bank data stored by LENSIQ |
+| E-mail provider (Resend — USA; or MailChannels — USA) | USA (provider region) | Only when the controller sets `MAIL_PROVIDER` + `MAIL_API_KEY` | Member's verified e-mail address, fixed notice text, document number, amount | Processor agreement (s.40), transfer basis s.28/29 [ตรวจทานกฎหมาย] (DPIA §14, L17) |
+
+## On-device image stores (round 12 — precise wording)
+
+By design no page sends image data anywhere except `/api/tryon` after the per-user consent (an automated e2e check that
+asserts this for every page is still to be added). A few operator tools do **keep images on the device** that runs them; they are listed here so the site wording can stay precise:
+
+| Page | What is stored on the device | Where | Can show people? | Delete |
+|---|---|---|---|---|
+| `qc.html` | Background frame per lane (JPEG data URL) and thumbnails of rejected items | localStorage `qc-*` (recipes), IndexedDB `lensiq-qc` store `thumbs` | Possibly, by accident (a worker's hand or body in the frame) — aim the camera at the belt only | Delete the shift / recipe, or clear site data |
+| `photobooth.html` | Operator frame / sticker templates | IndexedDB `pb-templates` | Only if the operator uploads such an image | Template settings → delete |
+| `studio.html` | Operator outfit templates; a speed estimate number (`lq.studio.ms`) | IndexedDB / localStorage | Only if the operator uploads such an image; guest photos are never stored | Template settings → delete, or clear site data |
+
+Guest photos in photobooth / studio stay in memory until the guest downloads or prints them. A UI label "images saved on this device only"
+with a delete button and a retention setting on these pages is front-end work tracked outside the backend (ROPA M11a, M12a).

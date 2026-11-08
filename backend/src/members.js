@@ -22,7 +22,9 @@
 //   DELETE /api/me                {confirm:"DELETE", credential?, nonce?}  5-min window; erasure (PDPA s.33), payments kept
 //                                 unlinked for tax retention; today's used quota kept as a day-only HMAC tombstone
 //   POST   /api/auth/reauth       {credential, nonce} fresh Google confirmation (same account, auth_time/iat <= 5 min)
-// Sessions: 256-bit random token returned once, only SHA-256 stored; 30 days absolute, 14 days idle; the site is on
+//   POST   /api/auth/refresh      rotate this session's token (round 12; short sessions extend by 12 h, max 7 days)
+// Sessions: 256-bit random token returned once, only SHA-256 stored; 30 days absolute, 14 days idle ("long", the
+// "remember me" default) or, with sign-in body session:"short", 12 h absolute / 1 h idle + refresh; the site is on
 // another origin than the API, so the token travels as `Authorization: Bearer` (no third-party cookies).
 import { FORTUNE_DOMAINS } from "./constants.js";
 import { hmacHex, randomId, randomToken, sha256Hex } from "./crypto.js";
@@ -109,7 +111,8 @@ async function claimNonce(db, nonce, t) {
 
 const publicUser = u => ({
   id: u.id, email: u.email, display_name: u.display_name || null, created_at: u.created_at, last_login_at: u.last_login_at,
-  marketing_opt_in: !!u.marketing_opt_in, consent_version: u.consent_version, consent_at: u.consent_at, status: u.status
+  marketing_opt_in: !!u.marketing_opt_in, consent_version: u.consent_version, consent_at: u.consent_at, status: u.status,
+  email_receipts: u.email_receipts == null ? true : !!u.email_receipts, email_reminders: u.email_reminders == null ? true : !!u.email_reminders
 });
 
 /** Coarse "browser · OS" label from a User-Agent (only this label is stored, never the raw string). */
@@ -122,11 +125,44 @@ export function uaLabel(ua) {
   return `${browser} · ${os}`;
 }
 
-async function newSession(db, userId, t, request = null) {
+/** Round 12: optional SHORT-LIVED member token (sign-in body `session: "short"`, the "do not remember me" choice): 12 h
+ *  absolute, 1 h idle, rotated by POST /api/auth/refresh (new token, old one dead) up to SHORT_SESSION_CHAIN after the
+ *  Google sign-in — a token copied out of the page stops working soon. The default ("long", the explicit "remember me"
+ *  choice) is unchanged: 30 days absolute / 14 days idle. */
+export const SHORT_SESSION_TTL = 12 * 3600;
+export const SHORT_SESSION_IDLE = 3600;
+export const SHORT_SESSION_CHAIN = 7 * 86400;
+export const sessionKindOf = v => (v === "short" ? "short" : "long");
+const idleOf = kind => (kind === "short" ? SHORT_SESSION_IDLE : SESSION_IDLE);
+
+async function newSession(db, userId, t, request = null, kind = "long") {
   const token = randomToken(32);
-  await db.prepare("INSERT INTO member_sessions (id_hash, user_id, created_at, last_seen, expires_at, ua_label) VALUES (?1, ?2, ?3, ?3, ?4, ?5)")
-    .bind(await sha256Hex(token), userId, t, t + SESSION_TTL, request ? uaLabel(request.headers.get("User-Agent")) : null).run();
-  return { token, expires_at: t + SESSION_TTL };
+  const exp = t + (kind === "short" ? SHORT_SESSION_TTL : SESSION_TTL);
+  await db.prepare("INSERT INTO member_sessions (id_hash, user_id, created_at, last_seen, expires_at, ua_label, kind, signed_in_at) VALUES (?1, ?2, ?3, ?3, ?4, ?5, ?6, ?3)")
+    .bind(await sha256Hex(token), userId, t, exp, request ? uaLabel(request.headers.get("User-Agent")) : null, kind).run();
+  return { token, expires_at: exp, kind, idle_timeout: idleOf(kind) };
+}
+
+/**
+ * POST /api/auth/refresh — rotates the bearer token of THIS session (round 12). The old token stops working in the same
+ * statement (its id_hash is replaced), so a stolen copy and the page cannot both keep using it. A short session gets
+ * SHORT_SESSION_TTL more, never past SHORT_SESSION_CHAIN after its Google sign-in (then: sign in again); a long
+ * session keeps its expiry. Rate limited (30 per session-chain per hour).
+ */
+export async function refreshSession(env, m, t = now()) {
+  const row = await env.DB.prepare("SELECT kind, signed_in_at, created_at, expires_at FROM member_sessions WHERE id_hash = ?1").bind(m.idHash).first();
+  if (!row) throw new HttpError(401, "please sign in (member_required)", { code: "member_required" });
+  const kind = sessionKindOf(row.kind);
+  const start = Number(row.signed_in_at || row.created_at);
+  const rl = await hit(env.DB, `refresh:${m.user.id}:${start}`, 30, 3600, t);
+  if (!rl.ok) throw new HttpError(429, "too many token refreshes — try again later", { retryAfter: rl.retryAfter });
+  const exp = kind === "short" ? Math.min(t + SHORT_SESSION_TTL, start + SHORT_SESSION_CHAIN) : Number(row.expires_at);
+  if (exp <= t + 60) throw new HttpError(401, "session ended — please sign in again (session_chain_ended)", { code: "session_chain_ended" });
+  const token = randomToken(32);
+  const r = await env.DB.prepare("UPDATE member_sessions SET id_hash = ?1, last_seen = ?2, expires_at = ?3 WHERE id_hash = ?4")
+    .bind(await sha256Hex(token), t, exp, m.idHash).run();
+  if (!r.meta || !r.meta.changes) throw new HttpError(401, "please sign in (member_required)", { code: "member_required" });
+  return { token, expires_at: exp, kind, idle_timeout: idleOf(kind) };
 }
 
 export async function signInGoogle(env, request, body, deps = {}) {
@@ -183,9 +219,9 @@ export async function signInGoogle(env, request, body, deps = {}) {
     }
   }
   u = await env.DB.prepare("SELECT * FROM users WHERE google_sub = ?1").bind(c.sub).first();
-  const s = await newSession(env.DB, u.id, t, request);
-  await audit(env, "member", created ? "member.signup" : "member.login", { user: u.id }, who);
-  return { token: s.token, expires_at: s.expires_at, created, user: publicUser(u) };
+  const s = await newSession(env.DB, u.id, t, request, sessionKindOf(body.session));
+  await audit(env, "member", created ? "member.signup" : "member.login", { user: u.id, session: s.kind }, who);
+  return { token: s.token, expires_at: s.expires_at, session: s.kind, idle_timeout: s.idle_timeout, refresh_path: "/api/auth/refresh", created, user: publicUser(u) };
 }
 
 // ---- sessions --------------------------------------------------------------------------------------------------------
@@ -200,15 +236,15 @@ export async function optionalMember(env, request, t = now()) {
   const token = bearerOf(request);
   if (!token) return null;
   const idHash = await sha256Hex(token);
-  const row = await env.DB.prepare("SELECT s.id_hash, s.last_seen, s.expires_at, s.reauth_at AS s_reauth_at, u.* FROM member_sessions s JOIN users u ON u.id = s.user_id WHERE s.id_hash = ?1").bind(idHash).first();
+  const row = await env.DB.prepare("SELECT s.id_hash, s.last_seen, s.expires_at, s.reauth_at AS s_reauth_at, s.kind AS s_kind, s.signed_in_at AS s_signed_in_at, u.* FROM member_sessions s JOIN users u ON u.id = s.user_id WHERE s.id_hash = ?1").bind(idHash).first();
   if (!row) return null;
-  if (row.expires_at <= t || t - row.last_seen > SESSION_IDLE || row.status !== "active") {
+  if (row.expires_at <= t || t - row.last_seen > idleOf(row.s_kind) || row.status !== "active") {
     await env.DB.prepare("DELETE FROM member_sessions WHERE id_hash = ?1").bind(idHash).run();
     return null;
   }
-  if (t - row.last_seen > 300) await env.DB.prepare("UPDATE member_sessions SET last_seen = ?1 WHERE id_hash = ?2").bind(t, idHash).run();
-  const { id_hash: _h, last_seen: _l, expires_at: _e, s_reauth_at: ra, ...user } = row;
-  return { user, idHash, reauthAt: Number(ra) || 0 };
+  if (t - row.last_seen > (row.s_kind === "short" ? 60 : 300)) await env.DB.prepare("UPDATE member_sessions SET last_seen = ?1 WHERE id_hash = ?2").bind(t, idHash).run();
+  const { id_hash: _h, last_seen: _l, expires_at: _e, s_reauth_at: ra, s_kind: kind, s_signed_in_at: _si, ...user } = row;
+  return { user, idHash, reauthAt: Number(ra) || 0, kind: sessionKindOf(kind) };
 }
 
 export async function requireMember(env, request) {
@@ -224,10 +260,10 @@ const sessionId = idHash => String(idHash).slice(0, 16);
 
 /** GET /api/me/sessions — this member's active sessions (expired / idle ones are not listed). */
 export async function listSessions(env, m, t = now()) {
-  const rows = (await env.DB.prepare("SELECT id_hash, created_at, last_seen, expires_at, ua_label FROM member_sessions WHERE user_id = ?1 AND expires_at > ?2 AND last_seen > ?3 ORDER BY last_seen DESC LIMIT 100")
+  const rows = (await env.DB.prepare("SELECT id_hash, created_at, last_seen, expires_at, ua_label, kind FROM member_sessions WHERE user_id = ?1 AND expires_at > ?2 AND last_seen > ?3 ORDER BY last_seen DESC LIMIT 100")
     .bind(m.user.id, t, t - SESSION_IDLE).all()).results || [];
   return {
-    sessions: rows.map(r => ({ id: sessionId(r.id_hash), created_at: r.created_at, last_seen_at: r.last_seen, expires_at: r.expires_at, label: r.ua_label || "Browser · other", current: r.id_hash === m.idHash }))
+    sessions: rows.map(r => ({ id: sessionId(r.id_hash), created_at: r.created_at, last_seen_at: r.last_seen, expires_at: r.expires_at, label: r.ua_label || "Browser · other", kind: sessionKindOf(r.kind), current: r.id_hash === m.idHash }))
   };
 }
 
@@ -339,7 +375,8 @@ export async function me(env, m) {
 
 /** Renewal reminder data (round 11; terms §8 "in-account reminder"): PromptPay plans do not renew by themselves, so
  *  GET /api/me says when the paid period ends within RENEWAL_NOTICE_DAYS — account.js / the nav show a banner with a
- *  link to buy the next period (new QR). No e-mail is sent (no mail provider yet). */
+ *  link to buy the next period (new QR). Round 12: an e-mail reminder REMINDER_DAYS (3) before the end is sent by the
+ *  daily cron when a mail provider is configured and the member did not turn email_reminders off (mail.js). */
 export const RENEWAL_NOTICE_DAYS = 7;
 export function renewalOf(sub, t = now()) {
   if (!sub || !sub.current_period_end) return { renewal_due: false, renewal: null };
@@ -351,12 +388,26 @@ export function renewalOf(sub, t = now()) {
   };
 }
 
+/** POST /api/me/preferences {marketing_opt_in?, email_receipts?, email_reminders?} (round 12: the two transactional
+ *  e-mail opt-outs, mail.js; at least one boolean field). The response keeps marketing_opt_in for older pages. */
 export async function setPreferences(env, m, body) {
-  if (!body || typeof body.marketing_opt_in !== "boolean") throw new HttpError(400, "marketing_opt_in must be boolean");
-  const v = body.marketing_opt_in ? 1 : 0;
-  await env.DB.prepare("UPDATE users SET marketing_opt_in = ?1, marketing_opt_in_at = ?2 WHERE id = ?3").bind(v, now(), m.user.id).run();
-  await audit(env, "member", "member.marketing", { user: m.user.id, opt_in: !!v });
-  return { ok: true, marketing_opt_in: !!v };
+  const fields = ["marketing_opt_in", "email_receipts", "email_reminders"];
+  if (!body || typeof body !== "object") throw new HttpError(400, "marketing_opt_in must be boolean");
+  for (const k of fields) if (body[k] != null && typeof body[k] !== "boolean") throw new HttpError(400, `${k} must be boolean`);
+  if (!fields.some(k => typeof body[k] === "boolean")) throw new HttpError(400, "marketing_opt_in must be boolean");
+  const db = env.DB, t = now();
+  if (typeof body.marketing_opt_in === "boolean") {
+    const v = body.marketing_opt_in ? 1 : 0;
+    await db.prepare("UPDATE users SET marketing_opt_in = ?1, marketing_opt_in_at = ?2 WHERE id = ?3").bind(v, t, m.user.id).run();
+    await audit(env, "member", "member.marketing", { user: m.user.id, opt_in: !!v });
+  }
+  for (const k of ["email_receipts", "email_reminders"]) {
+    if (typeof body[k] !== "boolean") continue;
+    await db.prepare(`UPDATE users SET ${k} = ?1 WHERE id = ?2`).bind(body[k] ? 1 : 0, m.user.id).run();
+    await audit(env, "member", "member.email_pref", { user: m.user.id, [k]: body[k] });
+  }
+  const u = await db.prepare("SELECT marketing_opt_in, email_receipts, email_reminders FROM users WHERE id = ?1").bind(m.user.id).first();
+  return { ok: true, marketing_opt_in: !!(u && u.marketing_opt_in), email_receipts: !!(u && u.email_receipts), email_reminders: !!(u && u.email_reminders) };
 }
 
 const paymentsOf = (db, userId) => db.prepare("SELECT id, kind, plan_id, period, status, amount_satang, vat_satang, receipt_no, doc_type, created_at, paid_at, refund_satang, refunded_at, " +
@@ -482,7 +533,7 @@ async function restoreTombstone(env, googleSub, userId, t) {
 export async function exportData(env, m, body = null, deps = {}) {
   await requireFreshMember(env, m, body, deps);
   const db = env.DB, id = m.user.id;
-  const u = await db.prepare("SELECT id, email, email_verified, display_name, status, consent_version, consent_at, marketing_opt_in, marketing_opt_in_at, created_at, last_login_at FROM users WHERE id = ?1").bind(id).first();
+  const u = await db.prepare("SELECT id, email, email_verified, display_name, status, consent_version, consent_at, marketing_opt_in, marketing_opt_in_at, email_receipts, email_reminders, created_at, last_login_at FROM users WHERE id = ?1").bind(id).first();
   const all = async sql => (await db.prepare(sql).bind(id).all()).results || [];
   const saved = (await all("SELECT id, created_at, domain, title, data FROM saved_readings WHERE user_id = ?1 ORDER BY created_at")).map(r => ({ ...r, data: JSON.parse(r.data) }));
   return {
@@ -494,7 +545,9 @@ export async function exportData(env, m, body = null, deps = {}) {
     saved_readings: saved,
     payments: await all("SELECT id, kind, plan_id, period, status, amount_satang, vat_satang, receipt_no, doc_type, buyer_name, buyer_tax_id, buyer_address, buyer_branch, buyer_email, created_at, paid_at FROM payments WHERE user_id = ?1 ORDER BY created_at"),
     subscriptions: await all("SELECT plan_id, status, period, source, current_period_start, current_period_end, cancelled_at FROM subscriptions WHERE user_id = ?1"),
-    credits: await all("SELECT feature, granted, remaining, source, created_at, expires_at FROM credits WHERE user_id = ?1 ORDER BY created_at")
+    credits: await all("SELECT feature, granted, remaining, source, created_at, expires_at FROM credits WHERE user_id = ?1 ORDER BY created_at"),
+    email_notices: await all("SELECT ts, kind, ref, status FROM mail_log WHERE user_id = ?1 ORDER BY id"),
+    email_preferences: { receipts: !!(u && u.email_receipts), reminders: !!(u && u.email_reminders) }
   };
 }
 
@@ -518,6 +571,7 @@ export async function deleteAccount(env, m, body, deps = {}) {
     db.prepare("UPDATE subscriptions SET user_id = NULL, status = CASE WHEN status = 'active' THEN 'cancelled' ELSE status END, updated_at = ?2 WHERE user_id = ?1").bind(id, now()),
     db.prepare("UPDATE customers SET user_id = NULL, email = NULL WHERE user_id = ?1").bind(id),
     db.prepare("DELETE FROM credits WHERE user_id = ?1").bind(id),
+    db.prepare("UPDATE mail_log SET user_id = NULL WHERE user_id = ?1").bind(id),
     db.prepare("DELETE FROM users WHERE id = ?1").bind(id)
   ]);
   // the audit log must not keep the erased member's id: earlier rows are rewritten to a one-way pseudonym and the

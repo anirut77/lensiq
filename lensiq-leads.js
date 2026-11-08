@@ -8,10 +8,16 @@
  *      in, the visitor's own mail app sends it) and/or the LINE Official Account link (LENSIQ_SELLER.line).
  *      Resolves {via: "mailto" | "line", ok: false, href, line}. Nothing has been sent at that point — the page says so.
  *   3) Neither configured: {via: "none", ok: false} — the page says honestly that the details are not announced yet.
+ *   Round 12 — nothing is lost in the static build: a lead that could not be sent is queued in THIS browser only
+ *   (localStorage "lq-leads", at most QUEUE_MAX, never sent anywhere by itself). Every [data-lq-pending] box on the page
+ *   then shows "n requests not sent yet" with copy / delete, and — once the owner fills LENSIQ_SELLER.email / .line or
+ *   deploys the Worker — "send now" (API) or ready mailto / LINE links. The one place to configure the fallback is
+ *   LENSIQ_SELLER in lensiq-config.js; the owner's go-live list (lensiq-golive.js, help.html?owner=1) flags it.
  * Nothing is sent anywhere else; the lead never goes to analytics. Pure helpers are unit-tested in Node
  * (tests/unit/leads.test.js). */
 (function (root) {
   "use strict";
+  var QUEUE_KEY = "lq-leads", QUEUE_MAX = 10;
   var LIMITS = /** @type {Record<string, number>} */ ({ name: 120, org: 160, email: 254, phone: 32, interest: 40, plan: 40, message: 1000, source: 40, lang: 5 });
 
   /** A config value that is really filled in (not empty, not a "[placeholder]"). @param {any} v */
@@ -60,7 +66,27 @@
     return { email: isEmail(s.email) ? s.email : "", line: line, lineId: line ? String(s.line) : "", any: !!(isEmail(s.email) || line) };
   }
 
-  var pure = { filled: filled, sellerOf: sellerOf, isEmail: isEmail, lineUrl: lineUrl, cleanLead: cleanLead, mailtoHref: mailtoHref, fallbackOf: fallbackOf, LIMITS: LIMITS };
+  /** Queue after adding one lead (cleaned, stamped, newest last, at most QUEUE_MAX). @param {any[]} list @param {any} lead @param {number} [now] */
+  function queueAdd(list, lead, now) {
+    var l = (Array.isArray(list) ? list : []).filter(function (x) { return x && typeof x === "object"; });
+    var c = /** @type {Record<string, any>} */ (cleanLead(lead));
+    if (!c.email && !c.name && !c.message) return l.slice(-QUEUE_MAX);
+    c.id = String(lead && lead.id || (now || Date.now()).toString(36));
+    c.createdAt = String(lead && lead.createdAt || new Date(now || Date.now()).toISOString());
+    l = l.filter(function (x) { return x.id !== c.id; });
+    l.push(c);
+    return l.slice(-QUEUE_MAX);
+  }
+  /** Plain-text copy of queued leads (for the visitor's clipboard). @param {any[]} list */
+  function queueText(list) {
+    return (Array.isArray(list) ? list : []).map(function (x) {
+      var l = cleanLead(x);
+      return [["Name", l.name], ["Organisation", l.org], ["E-mail", l.email], ["Phone", l.phone], ["Interest", l.interest], ["Plan", l.plan], ["Message", l.message]]
+        .filter(function (p) { return p[1]; }).map(function (p) { return p[0] + ": " + p[1]; }).join("\n");
+    }).join("\n\n---\n\n");
+  }
+
+  var pure = { filled: filled, sellerOf: sellerOf, isEmail: isEmail, lineUrl: lineUrl, cleanLead: cleanLead, mailtoHref: mailtoHref, fallbackOf: fallbackOf, queueAdd: queueAdd, queueText: queueText, LIMITS: LIMITS, QUEUE_KEY: QUEUE_KEY, QUEUE_MAX: QUEUE_MAX };
   if (typeof module !== "undefined" && module.exports) { module.exports = pure; return; }
 
   /* ============================ browser ============================ */
@@ -87,5 +113,83 @@
       return r && r.ok ? { via: "api", ok: true, status: r.status } : fb(r ? r.status : 0);
     }, function () { return fb(0); });
   }
-  W.LQLeads = Object.assign({ submit: submit, fallback: function () { return fallbackOf(W.LENSIQ_SELLER); } }, pure);
+  /* ---- local queue (this browser only) + the "not sent yet" box ---- */
+  function readQ() { try { var l = JSON.parse(W.localStorage.getItem(QUEUE_KEY) || "[]"); return Array.isArray(l) ? l.filter(function (x) { return x && typeof x === "object"; }) : []; } catch (e) { return []; } }
+  /** @param {any[]} l */
+  function writeQ(l) { try { if (l.length) W.localStorage.setItem(QUEUE_KEY, JSON.stringify(l.slice(-QUEUE_MAX))); else W.localStorage.removeItem(QUEUE_KEY); return true; } catch (e) { return false; } }
+  /** Keeps a lead that could not be sent (returns false when storage is blocked). @param {any} lead */
+  function queue(lead) { var ok = writeQ(queueAdd(readQ(), lead)); renderPending(); return ok; }
+  function clearQueue() { writeQ([]); renderPending(); }
+  (W.LQI18N_Q = W.LQI18N_Q || []).push({
+    en: {
+      "leads.q.wait": "{n} request(s) not sent yet — kept in this browser only. The contact channel will be announced before sales open; you can copy or delete them",
+      "leads.q.ready": "{n} request(s) not sent yet are kept in this browser. You can send them to the team now",
+      "leads.q.send": "Send now", "leads.q.copy": "Copy text", "leads.q.copied": "Copied", "leads.q.del": "Delete from this browser",
+      "leads.q.sent": "Sent {n} request(s) to the team", "leads.q.fail": "Could not send now; the requests stay in this browser",
+      "leads.q.mail": "Send by e-mail", "leads.q.line": "Chat on LINE"
+    },
+    zh: {
+      "leads.q.wait": "有 {n} 条申请尚未发送，只保存在此浏览器中。联系渠道将在开售前公布，您可以复制或删除",
+      "leads.q.ready": "此浏览器中保存着 {n} 条尚未发送的申请，现在可以发送给团队",
+      "leads.q.send": "立即发送", "leads.q.copy": "复制文本", "leads.q.copied": "已复制", "leads.q.del": "从此浏览器删除",
+      "leads.q.sent": "已向团队发送 {n} 条申请", "leads.q.fail": "暂时无法发送，申请仍保存在此浏览器中",
+      "leads.q.mail": "通过邮件发送", "leads.q.line": "在 LINE 上聊天"
+    }
+  });
+  /** @param {string} k @param {string} th @param {any} [v] */
+  var T = function (k, th, v) { return W.LQI18N && typeof W.LQI18N.tf === "function" ? W.LQI18N.tf(k, th, v) : String(th).replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : m; }); };
+  var apiOn = function () { var A = W.LQApi; return !!(A && A.enabled && A.enabled() && typeof A.call === "function"); };
+  /** @param {string} tag @param {string} [cls] @param {string} [text] */
+  var mk = function (tag, cls, text) { var e = W.document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  function renderPending() {
+    if (!W.document || !W.document.querySelectorAll) return;
+    var boxes = W.document.querySelectorAll("[data-lq-pending]");
+    if (!boxes.length) return;
+    var list = readQ(), fb = fallbackOf(W.LENSIQ_SELLER), ready = apiOn() || fb.any;
+    Array.prototype.forEach.call(boxes, function (/** @type {HTMLElement} */ box) {
+      box.textContent = "";
+      box.hidden = !list.length;
+      if (!list.length) return;
+      box.appendChild(mk("p", "", ready ? T("leads.q.ready", "มีคำขอ {n} รายการที่ยังไม่ได้ส่ง เก็บไว้ในเบราว์เซอร์นี้ ตอนนี้ส่งถึงทีมงานได้แล้ว", { n: list.length })
+        : T("leads.q.wait", "มีคำขอ {n} รายการที่ยังไม่ได้ส่ง เก็บไว้ในเบราว์เซอร์นี้เท่านั้น ช่องทางติดต่อจะประกาศก่อนเปิดขาย คัดลอกเก็บไว้หรือลบได้", { n: list.length })));
+      var row = mk("p", "lq-pending-acts"), out = mk("span", "lq-pending-msg");
+      out.setAttribute("role", "status");
+      if (apiOn()) {
+        var send = /** @type {HTMLButtonElement} */ (mk("button", "btn ghost", T("leads.q.send", "ส่งตอนนี้")));
+        send.type = "button";
+        send.addEventListener("click", function () {
+          send.disabled = true;
+          var left = /** @type {any[]} */ ([]), sent = 0;
+          list.reduce(function (p, l) { return p.then(function () { return submit(l).then(function (r) { if (r.ok) sent++; else left.push(l); }); }); }, Promise.resolve()).then(function () {
+            writeQ(left); renderPending();
+            Array.prototype.forEach.call(W.document.querySelectorAll("[data-lq-pending]"), function (/** @type {HTMLElement} */ b) { if (!left.length) { b.hidden = false; b.textContent = sent ? T("leads.q.sent", "ส่งคำขอ {n} รายการถึงทีมงานแล้ว", { n: sent }) : ""; } });
+            if (left.length) out.textContent = T("leads.q.fail", "ยังส่งไม่ได้ตอนนี้ คำขอยังเก็บไว้ในเบราว์เซอร์นี้");
+          });
+        });
+        row.appendChild(send);
+      } else if (fb.any) {
+        list.slice(-3).forEach(function (l) {
+          if (fb.email) { var a = /** @type {HTMLAnchorElement} */ (mk("a", "btn ghost", T("leads.q.mail", "ส่งทางอีเมล"))); a.href = mailtoHref(fb.email, l); row.appendChild(a); }
+        });
+        if (fb.line) { var b2 = /** @type {HTMLAnchorElement} */ (mk("a", "btn ghost", T("leads.q.line", "แชตทาง LINE"))); b2.href = fb.line; b2.target = "_blank"; b2.rel = "noopener"; row.appendChild(b2); }
+      }
+      var cp = /** @type {HTMLButtonElement} */ (mk("button", "btn ghost", T("leads.q.copy", "คัดลอกข้อความ")));
+      cp.type = "button";
+      cp.addEventListener("click", function () {
+        var txt = queueText(readQ());
+        var done = function () { out.textContent = T("leads.q.copied", "คัดลอกแล้ว"); };
+        try { W.navigator.clipboard.writeText(txt).then(done, function () { /* clipboard blocked */ }); } catch (e) { /* old browser */ }
+      });
+      var del = /** @type {HTMLButtonElement} */ (mk("button", "btn ghost", T("leads.q.del", "ลบออกจากเบราว์เซอร์นี้")));
+      del.type = "button";
+      del.addEventListener("click", clearQueue);
+      row.appendChild(cp); row.appendChild(del); row.appendChild(out);
+      box.appendChild(row);
+    });
+  }
+  if (W.document && W.addEventListener) {
+    W.addEventListener("load", renderPending);
+    W.addEventListener("lq-lang", renderPending);
+  }
+  W.LQLeads = Object.assign({ submit: submit, queue: queue, queued: readQ, clearQueue: clearQueue, renderPending: renderPending, fallback: function () { return fallbackOf(W.LENSIQ_SELLER); } }, pure);
 })(typeof window !== "undefined" ? window : /** @type {any} */ (globalThis));

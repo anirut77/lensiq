@@ -55,7 +55,7 @@ function iqKpiDelta(k, vs) {
   const conf = !t ? "" : !strong && lv !== "insufficient" && iqWide(t, t.kind === "rate" ? 0.1 * (t.p2 || 0) : 0.1) ? T("iq.kpi.notenough", "ข้อมูลยังไม่พอจะสรุป") : confShort(lv);
   return { dir, text, conf, strong: strong && dir !== "flat" };
 }
-/** round 11: ผลที่ “ชัด” จากการดูครั้งเดียว แต่ยังไม่ชัดตามเกณฑ์ที่เผื่อการเปิดดูซ้ำทุกวัน (always-valid p) → บอกไว้ในเหตุผล */
+/** round 11: ผลที่ “ชัด” จากการดูครั้งเดียว แต่ยังไม่ชัดตามเกณฑ์ที่เผื่อการเปิดดูซ้ำทุกวัน (mixture-SPRT p ; หน้าต่างเลื่อน 7 วัน = ปรับเทียบด้วยการจำลอง ไม่ใช่ always-valid ตามทฤษฎี) → บอกไว้ในเหตุผล */
 function iqSeqWhy(t) {
   if (!t || !sig(t.level) || !t.levelSeq || sig(t.levelSeq)) return "";
   return T("iq.seq.why", "ถ้าเปิดดูตัวเลขนี้ทุกวัน: เกณฑ์ที่เผื่อการดูซ้ำยังไม่ถือว่าชัด (ค่า {p}) — ตัดสินในวันที่กำหนดไว้ล่วงหน้าจะเชื่อถือได้กว่า", { p: pctTxt(t.pSeq) });
@@ -351,7 +351,8 @@ function iqMethods() {
     periodCounts: "negative binomial GLM (weekday-adjusted) + AR(1)+noise error on the working variate; (φ, q) by REML via Kalman filter, likelihood-weighted model averaging (prior 0.2 on the no-drift model, recalibrated in round 10 — see docs/STATS.md), df = (n−p)(1−φ)/(1+φ); variance floor = Poisson; small-sample correction for strong overdispersion: variance × a·ψ′(a) (a = effective sample size of each period) and df × 2/(2 + γ₂), γ₂ = 2κ + 1/(μ(1+κμ))",
     rates: "Wilson score CI (per person); purchase rate KPI: quasi-binomial CI on daily bills/visitors (√φ-inflated, φ = Pearson χ²/(days − 1), t on days − 1 df; quasiBinomCI) with the per-visitor Wilson shown next to it; period comparison quasi-binomial on daily rates (twoPropDaily)",
     multipleTesting: "Benjamini–Hochberg q across all tests on the page; confidence label from q (strong < 1%, moderate < 5%, weak < 20%)",
-    abTests: "omnibus first (chi-square / Monte Carlo permutation for small expected counts; Welch ANOVA for means), then all pairs with Holm; decision p = max(Holm p, omnibus p); Bonferroni-adjusted pairwise CIs; ranking by empirical-Bayes shrunk values; min 30 exposures (rates) / 10 testers (means) per arm",
+    abTests: "omnibus first (chi-square / Monte Carlo permutation for small expected counts; Welch ANOVA for means), then all pairs with Holm; decision p = max(Holm p, omnibus p); pairwise CIs compatible with that decision (level 1 − 0.05·p_raw/p_adj, so p_adj < 0.05 exactly when the CI excludes 0; the simultaneous Bonferroni CI is exported as loBonf/hiBonf); ranking by empirical-Bayes shrunk values; min 30 exposures (rates) / 10 testers (means) per arm",
+    repeatedLooks: "daily re-checked comparisons and alerts also need the mixture-SPRT p (Robbins 1970 / Johari et al. 2017, τ = 15%); its always-valid guarantee holds for accumulating data only — for the sliding 7-vs-7-day window used here the false-alarm control is empirically calibrated (simulated 22 daily looks: ≤ 5% at τ 0.10–0.25, docs/STATS.md §14), not guaranteed",
     correlation: "Pearson r on residuals after weekday + linear trend removal; Fisher z CI with Bartlett AR(1) effective n",
     anomalies: "counts: leave-one-out expected (multiplicative weekday factor × median of ±7 neighbouring days), negative-binomial two-sided p < 0.0005 with κ by trimmed ML (upper bound, ×1.3) and confirmed against the whole-series expectation (p < 0.01), ≥ 25% from expected; calibrated so clean Poisson/NB/AR(1) series give ≤ 0.15 false days per 60; non-counts (revenue): robust z ≥ 5 on leave-one-out residuals",
     power: "when a comparison is not clear: minimum detectable effect (80% power, α = 5%) from the CI width and days needed per period for max(10%, observed) assuming se ∝ 1/√days",
@@ -392,7 +393,7 @@ function iqAnalysisJson(D, A, cards) {
     correlations: A.corr.map(c => ({ id: c.id, x: c.xName, y: c.yName, n: c.n, nEff: c.nEff, adjusted: c.adjusted, r: c.r, rRaw: c.rRaw, lo: c.lo, hi: c.hi, p: c.p, q: iqFin(c.q) ? c.q : null, confidence: c.level, rho: c.rho, caution: c.caution })),
     heatmap: A.heat ? { source: A.heat.src, from: A.heat.from, to: A.heat.to, days: A.heat.nDays, meanByWeekdayHour: A.heat.grid } : null,
     quality: A.quality || null,
-    abTests: Object.fromEntries(Object.entries(A.ab || {}).map(([id, ab]) => [id, ab ? { enough: ab.enough, minN: ab.minN, omnibus: ab.omnibus, pairs: (ab.pairs || []).map(p => ({ a: p.a, b: p.b, diff: p.diff, lo: p.lo, hi: p.hi, ciConf: p.ciConf, pRaw: p.pRaw, pHolm: p.pHolm, pAdj: p.pAdj, overlap: p.overlap ?? null, shared: p.shared ?? null, cap: p.cap || null, method: p.method || null })), strata: ab.strata ?? null, groups: ab.groups.map(g => ({ id: g.id, name: g.name, n: g.n, enough: g.enough, raw: g.ci.p ?? g.ci.mean, shrunk: g.eb.p ?? g.eb.mean })) } : null])),
+    abTests: Object.fromEntries(Object.entries(A.ab || {}).map(([id, ab]) => [id, ab ? { enough: ab.enough, minN: ab.minN, omnibus: ab.omnibus, pairs: (ab.pairs || []).map(p => ({ a: p.a, b: p.b, diff: p.diff, lo: p.lo, hi: p.hi, ciConf: p.ciConf, ciMethod: p.ciMethod || null, loBonf: p.loBonf ?? null, hiBonf: p.hiBonf ?? null, pRaw: p.pRaw, pHolm: p.pHolm, pAdj: p.pAdj, overlap: p.overlap ?? null, shared: p.shared ?? null, cap: p.cap || null, method: p.method || null })), strata: ab.strata ?? null, groups: ab.groups.map(g => ({ id: g.id, name: g.name, n: g.n, enough: g.enough, raw: g.ci.p ?? g.ci.mean, shrunk: g.eb.p ?? g.eb.mean })) } : null])),
     goals: A.goals, alerts: A.alerts
   };
 }

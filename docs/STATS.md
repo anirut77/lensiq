@@ -1,10 +1,11 @@
-# LENSIQ statistics: calibration notes (rounds 10 and 11)
+# LENSIQ statistics: calibration notes (rounds 10–12)
 
-This page records the simulations behind the statistical choices in `lensiq-stats.js` (version 3.4.0), the insights
+This page records the simulations behind the statistical choices in `lensiq-stats.js` (version 3.5.0), the insights
 dashboard, and the benchmark intervals in `ACCURACY.md`. Every number below can be reproduced from a seeded simulation.
-The regression tests are `tests/unit/stats-r11.test.js`, `tests/unit/stats-r10.test.js`, `tests/unit/stats.test.js` and
-`tests/unit/bench-metrics.test.js`. Round-11 type-I pins use at least 1,000 seeded replications with the bound 5% + 2 Monte-Carlo
-SE (6.4% at 1,000); `LQ_STATS_LONG=1 node --test tests/unit/stats-r11.test.js` runs longer cells.
+The regression tests are `tests/unit/stats-typeone-sequential.test.js`, `tests/unit/stats-tails-forecast.test.js`, `tests/unit/stats.test.js` and
+`tests/unit/bench-metrics.test.js`; round 12 adds `tests/unit/stats-intervals.test.js` and `tests/unit/sitecheck-net-error.test.js`
+(§11–§14). Round-11 type-I pins use at least 1,000 seeded replications with the bound 5% + 2 Monte-Carlo
+SE (6.4% at 1,000); `LQ_STATS_LONG=1 node --test tests/unit/stats-typeone-sequential.test.js` runs longer cells.
 
 ## 1. Comparing daily counts between two periods (`countCompare`): type I error and power
 
@@ -38,7 +39,7 @@ false positives when the level really drifts. The worst case moves from 7.0% to 
 gives 25%. No tested setting met "type I ≤ 5% in every cell": the shipped one is at or below 5% without drift, and 4–7%
 with strong drift. The lost power is the price of not reporting a drifting level as a real change. The alternatives are
 still available for analysis, through `countCompare(days, { arP0, dfRule: "step" | "satt" | "rho", arPhis, iid })`.
-`tests/unit/stats-r10.test.js` pins three things: the defaults; type I ≤ 5% (+1 point MC tolerance) without drift; ≤ 9.5%
+`tests/unit/stats-tails-forecast.test.js` pins three things: the defaults; type I ≤ 5% (+1 point MC tolerance) without drift; ≤ 9.5%
 under φ = 0.85 drift. It also requires power ≥ 25% for +20% at 30 vs 30 days.
 
 **What helps instead.** Longer periods. The "days needed" hint (`planMore`) already says how many more days give about
@@ -92,7 +93,7 @@ interval is therefore too narrow. In a simulation of 14 days × 150 visitors wit
 per-visitor Wilson interval covered the true rate in only 68% of 600 replications, against a nominal 95%.
 
 The KPI now shows `quasiBinomCI`: φ = max(1, Pearson χ² of the daily counts ÷ (days − 1)), a Wilson interval on
-n / φ, and a t(days − 1) multiplier. Its coverage is 95.5% in the same simulation (`stats-r10.test.js` requires
+n / φ, and a t(days − 1) multiplier. Its coverage is 95.5% in the same simulation (`stats-tails-forecast.test.js` requires
 at least 92%). The
 per-visitor Wilson interval is still shown next to it as "counted per person". Goals on the purchase rate use the
 quasi-binomial interval.
@@ -158,11 +159,11 @@ n = 25. `tCrit` now uses Newton steps from a Cornish–Fisher start (same values
 
 The dashboard and its alerts are re-computed every day. A test that is fine for one look is not fine for 22: the purchase-rate
 alert (last 7 days vs the 7 before, "clear drop" = drop > 15% and p < 0.05) raised at least one false "clear drop" in 16–29% of
-22-day null runs. **Fix:** the alert's "clear" level now also needs the always-valid p of a mixture SPRT (normal mixture
+22-day null runs. **Fix:** the alert's "clear" level now also needs the p of a mixture SPRT (normal mixture
 τ = 15% of the earlier rate; the one-look p is converted to an equivalent z, so the same evidence is used). When only the one-look
 test is clear, the alert still appears at the "may have dropped, not conclusive" level, with a note that it is re-checked daily.
 
-| 22 daily looks, 1,000 runs | one-look p < 0.05 | **always-valid p < 0.05** |
+| 22 daily looks, 1,000 runs | one-look p < 0.05 | **mixture p < 0.05** |
 | --- | --- | --- |
 | no day effect, 150 people/day | 15.8% | **0.5%** |
 | day SD 0.2, 150/day | 29.3% | **3.0%** |
@@ -170,9 +171,15 @@ test is clear, the alert still appears at the "may have dropped, not conclusive"
 | real −30% in the last week (power) | 92.9% | 27.8% |
 
 The price is power. On accumulating data (period A growing from 7 to 28 days against a fixed B) the one-look rule gives ≈ 10%
-family-wise and `seqP` stays under 5% (`stats-r11.test.js`). KPI cards keep their one-look label, but when it is "clear" and the
+family-wise and `seqP` stays under 5% (`stats-typeone-sequential.test.js`). KPI cards keep their one-look label, but when it is "clear" and the
 always-valid p is not, the card says so ("if you check this every day …"), and the "days needed" hint now asks for a decision
 date fixed in advance. Not done: a stored per-user decision date that freezes a comparison (needs UI state in `insights-ui.js`).
+
+**Scope of the guarantee (round 12 correction).** The mixture-SPRT p is *always valid* (Ville's inequality: P(ever below α) ≤ α
+however often it is looked at) only for data that accumulate. The dashboard and the alert use a **sliding** window (the last
+7 days vs the 7 before, recomputed daily): old days drop out, so the theorem does not apply. On that window the false-alarm
+control is **empirically calibrated by simulation only**; the numbers in the table above are simulation results, not a bound.
+See §14 for the τ sensitivity and the accumulating alternative.
 
 ## 8. Signage A/B on time strata (round 11, `abRatesStrata`)
 
@@ -224,10 +231,99 @@ the arm's own Wilson interval (`ciMethod: "wilson"`); τ² > 0 → posterior wit
 the width at least 80% of Wilson. The shrunk point estimate used for ranking is unchanged. Coverage of the true arm rates (4 arms
 × 80, 2,000 runs): τ = 0: 35.2% → 97.4%; τ = 0.03: 46.5% → 96.7%; τ = 0.08: 71.8% → 93.0%.
 
+## 11. On-site door check: net count error interval (round 12, `lensiq-sitecheck.js` `netErrorCI`)
+
+**Problem.** Rounds 10–11 used a percentile bootstrap over 60-s blocks and accepted 3 blocks. A percentile bootstrap over 3–5
+blocks is far too narrow, and a busy door reaches the 50-crossing minimum in under 3 minutes. **Now:**
+- block length = span ÷ 10, rounded down to 5 s, kept within 15–60 s, so there are at least 10 blocks when the check lasts
+  ≥ 2.5 minutes; the system's times are shifted by the measured tap lag first;
+- a Fieller interval for the ratio Σcounted/Σtrue over blocks, with Student t on B − 1 df (the plain linearised ratio ± t·se was
+  tried first: it covered 92–93% at about 5 crossings per block because it ignores the random denominator);
+- fewer than 10 blocks = `short`: the interval is shown but cannot confirm the target. The strict verdict stops at "on target
+  so far" and `need` asks for more minutes. Below 3 blocks there is no interval (the cameras page then says how long to continue).
+- the pilot grade uses the 90% version of the same interval (`lo90`/`hi90`); the round-11 bootstrap is still reported as `.boot`.
+
+Monte Carlo (`sitecheck-net-error.test.js` model): arrivals in groups of 1–3, a group counted once 25% of the time, 8% single misses,
+3% false counts, 0.5–0.9 s lag; true net error −11.6%; 1,500 checks per row (600 at 20–30 min). "False pass" = the interval lies
+inside the ±10% target although the true error is −11.6%.
+
+| check | coverage, round-11 bootstrap | **coverage, round 12** | false pass, round 11 | **false pass, round 12** |
+| --- | --- | --- | --- | --- |
+| 3 min · 20/min | 72.2% | **96.3%** | 10.2% | **1.6%** |
+| 4 min · 20/min | 80.9% | **95.9%** | 6.9% | **0.8%** |
+| 5 min · 20/min | 83.3% | **94.8%** | 5.9% | **1.3%** |
+| 10 min · 20/min | 90.5% | **95.3%** | 2.1% | **1.1%** |
+| 30 min · 20/min | 96.3% | **96.5%** | 0.2% | **0.2%** |
+| 3 min · 60/min | 73.7% | **98.1%** | 6.5% | **0.5%** |
+| 10 min · 5/min | 91.1% | **94.6%** | 3.3% | **1.7%** |
+| 20 min · 5/min | 94.5% | **96.5%** | 1.2% | **1.7%** |
+
+A good door (true −2%) still reaches "pass" in ≥ 60% of 15-minute checks (pinned). **Door precision / recall / direction**
+now use episode clusters (crossings < 3 s apart = one group walking through): design effect deff = Σ(x_g − p·n_g)² / (N·p(1 − p)),
+cluster interval = Wilson on N / deff, and the reported interval is the wider of the two, as attendance does for people. Independent
+crossings keep exactly the Wilson interval; 25 groups of 4 missed together give deff ≈ 4. deff also inflates "collect N more".
+
+## 12. A/B pairs and `poissonTest`: p-values that agree with the interval shown (round 12)
+
+**A/B pairs.** Pairs were judged by protected Holm (pAdj = max(Holm p, omnibus p)) but displayed a Bonferroni interval at
+1 − 0.05/m, and the two disagreed. With 4 arms × 400 and 1,500 runs, 151 of 9,000 pairs (1.7%) had pAdj < 0.05 while the
+interval crossed 0. **Now** each pair's displayed interval is computed at the *compatible* level 1 − α·pRaw/pAdj. Because the raw
+pair p is inverted from the same interval (twoProp, Welch t, Mantel–Haenszel), that interval excludes 0 **exactly** when pAdj < α.
+This is the step-down Holm level 1 − α/(m − k + 1), and it widens enough to cross 0 when the omnibus test fails. The Bonferroni
+(simultaneous) interval is still returned as `loBonf`/`hiBonf`. Property test: 0 disagreements across abRates, abMeans and
+abRatesStrata (the Bonferroni interval disagreed on 1.2% of the same pairs).
+
+**poissonTest** returned an exact conditional p with a Wald log-ratio interval, and they disagreed in 64 cells of 1–59 × 1–59
+(3 vs 11: p = 0.057, interval [−92%, −2%]). Now p is the central exact p (2·min tail of Bin(c1 + c2, t1/(t1 + t2))). The interval is
+Clopper–Pearson on π converted to the rate ratio π/(1 − π)·t2/t1, so the two agree in every cell 0–59 × 0–59. The old values stay
+as `pMinLik` and `loWald`/`hiWald`. Exact coverage at λ 12 vs 8: ≥ 95% (conservative by construction).
+
+## 13. One Wilson formula; rater agreement (round 12)
+
+`lensiq-stats.js` `wilsonZ(x, n, z)` is the repo's Wilson formula. `tests/bench/metrics.cjs` now calls it. `lensiq-sitecheck.js`
+loads on camera pages without `lensiq-stats.js`, so it keeps a copy, and `stats-intervals.test.js` pins it bit-for-bit
+(together with the studio-tables copy and the round-11 bench formula, ≤ 1e-15) on a grid of 5 z × 10 n × all x. Its pinned t
+tables (`t975`) are checked against `tCrit` for df 1–200. Quantile rules still differ by design: type 7 in lensiq-stats, nearest
+rank in the sitecheck cluster bootstrap and the paired bootstrap. Both are seeded and pinned by their own tests.
+
+**Rater agreement.** `raterAgreement(rows)` gives raw agreement, Cohen's κ and Gwet's AC1 with person-cluster bootstrap intervals,
+and marks the result `indicative` below 15 people. AC1 is reported because κ drops when one label dominates, the κ paradox; the
+test pins a case with 90% agreement, κ < 0.1 and AC1 > 0.85. `fleissKappa` covers more than two raters (pinned to Fleiss's worked
+example, κ = 0.210). Studio labels (round-9 vs round-10 rater, plain renders; defect prevalence 71%):
+
+| split | renders / people | raw agreement | Cohen's κ [95% person-cluster] | Gwet's AC1 |
+| --- | --- | --- | --- | --- |
+| dev | 108 / 27 | 80.6% | 0.54 [0.19–0.83] | 0.67 [0.40–0.89] |
+| test | 140 / 35 | 83.6% | 0.60 [0.28–0.84] | 0.72 [0.48–0.90] |
+
+`node tests/bench/studio-intervals.mjs` also flags every row counted from fewer than 15 people as "indicative only".
+
+## 14. Repeated looks on the sliding window: τ sensitivity (round 12)
+
+Purchase rate 25%, 150 people/day, day-level logit SD 0.2, the 7-vs-7 window recomputed on 22 consecutive days. The table counts any
+p < 0.05 in either direction, with no "drop > 15%" filter, so it is stricter than the alert. 600 runs per row:
+
+| τ (fraction of the earlier rate) | one-look p < 0.05 | mixture p < 0.05 (sliding) | mixture p < 0.05 (accumulating, `seqAccum`) |
+| --- | --- | --- | --- |
+| 0.10 | 49.2% | 3.7% | 0.5% |
+| 0.15 (default) | 48.7% | 4.2% | 0.3% |
+| 0.25 | 46.7% | 4.7% | 0.7% |
+
+On the sliding window the mixture p stays under 5% at all three τ, but the margin shrinks as τ grows. That is an empirical result
+for this simulation design, not a guarantee. The test pins ≤ 5% + 2 SE at each τ. `seqAccum(daily, start, ref)` is the accumulating
+design: a fixed start date and a growing window against a fixed reference. That is where the always-valid guarantee does hold. It
+is available in the library, and the dashboard still uses the sliding window. Switching the dashboard needs a stored start date per
+comparison (UI state).
+
 ## Still open (needs outside resources)
 
 - Validate the dashboard tests on real store data (A/A splits of historical weeks to measure the empirical false-alarm rate)
   once a pilot site exists.
 - An independent statistician's review of `countCompare`, `arContrast`, the site-check verdicts and the round-11 rules above.
 - Human, blinded raters for the studio / photo booth labels (the intervals now honestly reflect 35 people, not more raters).
+- A held-out studio / booth test set of ≥ 100 people with two independent human raters (κ / AC1 are computed now; with 35 people
+  the κ interval is still 0.28–0.84).
+- Real in-store door-count ground truth at ≥ 3 sites over several hours (the §11 coverage is from a simulation model of grouped
+  arrivals, not field data), and a statistician's sign-off on the site-check acceptance protocol (target, minimum duration of
+  2.5 minutes / 10 blocks, block design) before it is sold as an acceptance test.
 

@@ -24,7 +24,7 @@
   "pd.i.fortune": "Face reading, palm reading, tarot, birth-date horoscopes and 10+ more traditions, with readings in Thai, English and Chinese. For entertainment",
   "pd.i.retail": "Door counts, estimated conversion, queues and multi-branch totals for shops and SMEs, with published accuracy",
   "pd.i.hr": "Structured interviews, independent scoring before discussion, a check for questions to avoid, and a candidate practice mode",
-  "pd.i.creative": "Creative Lab artwork checks, an outfit and background studio, and a photo booth for events",
+  "pd.i.creative": "Creative Lab artwork checks, a portrait & ID photo studio, and a photo booth for events",
   "pd.i.go": "See the product →",
   // ---------- retail.html ----------
   "pd.r.doc.title": "LENSIQ Retail — store cameras for SMEs | LENSIQ",
@@ -103,14 +103,14 @@
   "pd.c.doc.desc": "The LENSIQ creative suite: check artwork before print with Creative Lab, change outfits and remove backgrounds in the Studio, and run a photo booth with ID photos at events. Processed in the browser",
   "pd.c.eyebrow": "LENSIQ CREATIVE · CREATIVE SUITE",
   "pd.c.h1": "Check artwork, edit photos and create event content from one browser",
-  "pd.c.lead": "For agencies, creators and marketing teams: Creative Lab checks artwork before print, the Studio changes outfits and removes backgrounds, and the photo booth adds brand frames at events. Images are processed on the device",
+  "pd.c.lead": "For agencies, creators and marketing teams: Creative Lab checks artwork before print, the Portrait & ID Photo Studio changes backgrounds and retouches (with an outfit preview simulation), and the photo booth adds brand frames at events. Images are processed on the device",
   "pd.c.cta1": "Open Creative Lab",
   "pd.c.cta2": "Try the photo booth",
   "pd.c.fH": "Tools in the suite",
   "pd.c.c1.h": "Creative Lab artwork check",
   "pd.c.c1.p": "Estimated attention map, sharpness, colour and A/B comparison before you print or launch an ad",
-  "pd.c.c2.h": "Outfit studio",
-  "pd.c.c2.p": "Realistic outfit changes, background removal and retouching for product photos and social content",
+  "pd.c.c2.h": "Portrait & ID Photo Studio",
+  "pd.c.c2.p": "Background change, retouching and ID photos, plus an outfit preview (a simulation, not a photo of you wearing it)",
   "pd.c.c3.h": "Photo booth & ID photos",
   "pd.c.c3.p": "A sticker booth with brand frames and stickers, plus ID photos in standard sizes",
   "pd.c.c4.h": "Booth analytics",
@@ -141,5 +141,7 @@
   "pd.f.zodiac.p": "Yearly forecast, no birth date needed",
   "pd.f.allH": "All readings",
   "pd.f.team": "Team activity: team face reading, role cards for icebreakers. Never use it to select or assess people",
-  "pd.f.teamA": "Open team face reading"
+  "pd.f.teamA": "Open team face reading",
+  "pd.print": "Print / save as PDF (one-page summary)",
+  "pd.contact.h": "Contact"
 } });

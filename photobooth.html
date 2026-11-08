@@ -7,12 +7,12 @@
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="pb.title">ตู้ถ่ายรูป | LENSIQ</title>
-<link rel="stylesheet" href="styles.css?v=9">
-<link rel="stylesheet" href="photobooth.css?v=10">
+<link rel="stylesheet" href="styles.css?v=10">
+<link rel="stylesheet" href="photobooth.css?v=11">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=12"></script>
+<script src="nav.js?v=13"></script>
 
 <main class="pb">
   <h1 data-i18n="pb.h1">ตู้ถ่ายรูป</h1>
@@ -106,12 +106,19 @@
         <button data-c="#ffffff" class="on" data-i18n="pb.id.white">ขาว</button><button data-c="#d7e7f7" data-i18n="pb.id.sky">ฟ้าอ่อน</button><button data-c="#e4e4e4" data-i18n="pb.id.gray">เทาอ่อน</button>
       </div>
       <h3 data-i18n="pb.id.outfit">ชุดจำลอง</h3>
+      <!-- round 12: ชุดจำลองบนรูปติดบัตรมีรอยทุกภาพในชุดวัดผล (124/124) จึงปิดไว้เป็นค่าเริ่มต้น เปิดเองได้เป็น "ตัวอย่างทดลอง" -->
+      <div class="pb-exp">
+        <label class="check"><input type="checkbox" id="pbExpOutfit"><span data-i18n="pb.id.expOutfit">เปิดดูชุดจำลองแบบทดลอง (ตัวอย่างเท่านั้น ไม่ใช่ภาพสวมจริง)</span></label>
+        <p class="hint" id="pbExpNote" data-i18n="pb.id.expNote">ปิดไว้เป็นค่าเริ่มต้น: ในชุดวัดผลของเรา ชุดภาพวาดบนรูปติดบัตรมีรอยให้เห็นทุกภาพ (124 จาก 124 ภาพ ให้คะแนนโดย AI) รูปติดบัตรจึงใช้เสื้อของคุณเอง สำหรับการสมัครจริงให้ถ่ายด้วยชุดจริง</p>
+      </div>
+      <div id="pbOutfitBox" hidden>
       <div class="choices" id="outfits"></div>
       <h3 data-i18n="pb.id.adjOutfit">ปรับตำแหน่งชุด</h3>
       <label class="slider" data-i18n="pb.id.scale">ขนาด<input type="range" id="oScale" min="70" max="140" value="100"></label>
       <label class="slider" data-i18n="pb.id.x">ซ้าย–ขวา<input type="range" id="oX" min="-30" max="30" value="0"></label>
       <label class="slider" data-i18n="pb.id.y">ขึ้น–ลง<input type="range" id="oY" min="-30" max="30" value="0"></label>
       <label class="slider" data-i18n="pb.id.obright">ความสว่างชุด<input type="range" id="oBright" min="70" max="130" value="100"></label>
+      </div>
       <h3 data-i18n="pb.id.adj">ปรับภาพ</h3>
       <label class="slider" data-i18n="pb.id.bright">ความสว่าง<input type="range" id="adjBright" min="80" max="130" value="100"></label>
       <label class="slider" data-i18n="pb.id.smooth">ผิวเนียน<input type="range" id="adjSmooth" min="0" max="100" value="0"></label>
@@ -175,9 +182,9 @@
 <script src="photobooth-templates.js?v=1"></script>
 <script src="photobooth-outfits.js?v=3"></script>
 <script src="studio-core.js?v=6"></script>
-<script src="studio-qa.js?v=3"></script>
-<script src="i18n/zh-photobooth.js?v=2"></script>
-<script src="photobooth.js?v=13"></script>
+<script src="studio-qa.js?v=4"></script>
+<script src="i18n/zh-photobooth.js?v=3"></script>
+<script src="photobooth.js?v=15"></script>
 <script src="lensiq-config.js?v=3"></script>
 </body>
 </html>

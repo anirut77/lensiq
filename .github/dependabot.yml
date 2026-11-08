@@ -1,32 +1,82 @@
-# Dependabot — weekly update PRs. GitHub Actions are pinned to commit SHAs (with the tag in a trailing comment);
+# Dependabot — weekly, grouped update PRs. GitHub Actions are pinned to commit SHAs (with the tag in a trailing comment);
 # Dependabot bumps both together. npm/pip versions are exact pins, so every bump is a reviewed PR that CI must pass
 # before pages-lfs.yml can deploy it.
+#
+# Policy (round 12):
+#   - minor + patch bumps of each ecosystem arrive as ONE grouped PR per week (less noise, one CI run);
+#   - semver-MAJOR bumps are not opened automatically for the packages whose majors broke CI before
+#     (typescript 5 -> 7, the anthropic Python SDK 0.x -> 2.x, numpy 1 -> 2): a person upgrades those by hand, in a
+#     branch, with the type-check ratchet / server tests green (docs: tests/README.md "Dependency updates");
+#   - other majors still open, but each as its own PR (never grouped with safe updates), so one can be held back.
+#   - security updates are not affected by these rules (GitHub opens them separately).
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+      day: monday
     groups:
       actions:
         patterns: ["*"]
     commit-message:
       prefix: "ci"
+
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
+      day: monday
     open-pull-requests-limit: 5
     groups:
       dev-tooling:
-        patterns: ["eslint", "@eslint/*", "globals", "typescript"]
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    ignore:
+      # TypeScript 7 (the Go port) changed the checker: our JSDoc gate failed. Upgrade by hand.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      # ESLint majors change the flat-config / recommended rules: by hand, with `npm run lint` reviewed.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@eslint/js"
+        update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "deps-dev"
+
   - package-ecosystem: npm
     directory: /backend
     schedule:
       interval: weekly
+      day: monday
     open-pull-requests-limit: 5
+    groups:
+      worker:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    ignore:
+      # wrangler majors change the bundler / D1 local runtime used by `npm run test:integration`: by hand.
+      - dependency-name: "wrangler"
+        update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "deps-worker"
+
   - package-ecosystem: pip
     directory: /
     schedule:
       interval: weekly
+      day: monday
     open-pull-requests-limit: 5
+    groups:
+      python:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    ignore:
+      # anthropic 2.x changed the client API used by server.py: upgrade by hand with the server tests green.
+      - dependency-name: "anthropic"
+        update-types: ["version-update:semver-major"]
+      # numpy (pulled in by the vision wheels): numpy 2 changed dtype promotion and the C ABI. Held if it is ever pinned.
+      - dependency-name: "numpy"
+        update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "deps-py"

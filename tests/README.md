@@ -134,11 +134,16 @@ LQ_BENCH_DATA=~/lq-bench-data node tests/bench/creative.bench.mjs [--fit] [--lim
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/studio.bench.mjs --render --sheets [--split dev|test] [--ids d01,t05] [--query wear=0.42,0.7]   # studio outfit renders on 62 public-domain portraits; review sheets stay in the cache (photos of people); stage 2 joins tests/bench/studio-labels.json (ACCURACY.md §11)
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/studio.bench.mjs --variants plain,cover --log tests/bench/studio-gate-log-r10.json   # write the per-render gate log (no images); --only none renders just the no-outfit version (round 11)
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/photobooth.bench.mjs --render --log tests/bench/photobooth-gate-log-r11.json            # photo booth ID photo: outfit check + review-step findings per portrait (no images)
+node tests/bench/studio-figures.mjs [--check]   # regenerate / verify StudioQA.FIGURES (the numbers studio.html quotes) from the labels + gate logs (CI: tests/unit/studio-figures.test.js)
 node tests/bench/studio-tables.mjs [--check] [--json f]   # recompute every ACCURACY.md §11/§11b table from the committed labels + gate logs (no data, no browser; CI via tests/unit/studio-tables.test.js)
 node tests/bench/qc.bench.mjs       [--cond light] [--json out.json]   # synthetic bottles vs qc.js inspect (no data, ~15 min)
 node tests/bench/checkout.bench.mjs [--n 60] [--json out.json]         # synthetic EAN-13/UPC-A/Code 128 vs BarcodeDetector
 LQ_BENCH_DATA=~/lq-bench-data node tests/bench/people.bench.mjs --seq PETS09,TUD --degrade dark:0.1 [--health] [--frame-drop 0.3] [--quick]   # robustness: camera-like degradation before detection + replay of the camera-health monitor (lensiq-sitecheck.js)
 LQ_SOAK_VIDEO=/path/clip.mp4 node tests/bench/soak.mjs [--minutes 60] [--json out.json]   # long-run stability of store.html on WASM: retained heap, DOM nodes, listeners, rate (clip with people, never committed)
+node tests/bench/soak.mjs --source fake --cams 4 --hours 8 [--real] [--hide-every 30 --hide-for 2 [--freeze]] [--sample-min 5] [--json f]   # round 12: multi-camera / overnight / hidden-tab soak (no data needed) with a drift report (heap & RSS slope, rate drift, DOM growth, hidden time injected vs recorded offline)
+node tests/bench/results.mjs manifest [--content]   # round 12: tests/bench/results/manifest.json — per dataset "present" + file-list fingerprint, or "not reproducible here: datasets absent"; per bench whether it can be re-run here (benches update it when they find their data)
+node tests/bench/results.mjs --check --strict        # fails while a customer-facing figure's datasets have no content fingerprint (use after re-running the benches)
+node tests/bench/health-holdout.mjs --plan | <dir of people.bench --degrade JSONs> [--json f] | --selftest   # round 12: shipped camera-health thresholds scored on sequences NOT used to tune them (MOT17) vs PETS09/TUD
 ```
 
 - **Committed result summaries (round 11):** `tests/bench/results/*.json` hold numbers only (never images or dataset
@@ -165,3 +170,38 @@ LQ_SOAK_VIDEO=/path/clip.mp4 node tests/bench/soak.mjs [--minutes 60] [--json ou
 saved copy accepted by the Worker's `cleanSaved`, redeem = `entitlements/use` before the report, then `saved`), `lensiq-leads.js`
 (`/v1/leads`, mailto / LINE fallback), the `LENSIQ_SELLER` config + `check-legal`, member `CAUTION_RE` kept in sync with
 `fortune-ai.js`, renewal reminder, quota upsell card, sign-in dialog focus / footer, SLA cards at 360 px.
+
+`tests/unit/commercial-collateral.test.js` (+ `commercial.e2e.mjs`, `products.e2e.mjs`): pricing `DRAFT` ↔ migrations 0003/0006
+drift, one description of the basic report (3 systems), CSV labelled free on-device, the deeper basic report (deep-dive /
+next 3 months / 4-week plan, saved copy keeps the plan first), the on-device lead queue (`lq-leads`), the owner go-live
+checklist (`lensiq-golive.js`, `help.html?owner=1`, same list in `check-legal`), product one-pagers (contact + print),
+collateral wording and the privacy §9 storage rows.
+
+## Code-quality gates (round 12)
+
+- **Size budget** — `max-lines` is an ESLint error: 1500 code lines per file; the existing monoliths are capped at their
+  size in `eslint.config.mjs` `SIZE_CAPS`. `tests/unit/size-budget.test.js` fails when a cap has more than 5 % slack
+  (lower it when a file shrinks) or when a capped file falls under 1500 (delete its entry). Never raise a cap: split
+  pure logic into a module behind the existing global.
+- **Type checking** — `npm run typecheck` (gate) and `npm run typecheck:report` (per-file counts). Page scripts whose
+  top-level names collide with another page's (`$`, `video`, `mode`) go in `tsconfig.typecheck.json` "pages" and are
+  checked in their own program (`photobooth.js` + `types/lensiq-photobooth.d.ts`). Files in "strictNull" must also pass
+  with `strictNullChecks`. CI's `TYPECHECK_MAX` ratchet may only go down.
+- **Format** — `npm run format:check` (`tools/format-check.mjs`): only lines a change adds are checked against
+  `.editorconfig` (LF, spaces, no trailing whitespace, ≤ 200 characters; 160 is reported as a note). `--selftest`
+  checks the detector. Fails pull requests; warns on pushes to `main`.
+- **Test names** — unit files are named after the feature (`backend-fulfilment-refunds.test.js`, `stats-tails-forecast`),
+  never the round (`unit-index.test.js`). Round 12 renamed backend-billing-r10, backend-r11, camera-r11, stats-r10,
+  stats-r11 and studio-r11 (every test kept); `commercial-r11` is the last pending one.
+- **Hooks** — `tests/unit/fortune-hooks.test.js`: `FortuneAI.registerHooks` gives the same page in either script load
+  order (see docs/ARCHITECTURE.md §8).
+- **Phone states** — `node tools/mobile-audit.mjs --states --width 360 --lang th|en|zh --strict` (CI) audits the open
+  drawer, compact language menu, sign-in dialog, guest and full readings, signed-in account page and its error state,
+  with the mocked API Worker exported by `tests/e2e/member.e2e.mjs`.
+
+## Dependency updates
+
+Dependabot (`.github/dependabot.yml`) opens one grouped minor/patch PR per ecosystem each Monday. Semver-major bumps of
+`typescript`, `eslint` / `@eslint/js`, `wrangler`, `anthropic` and `numpy` are ignored: upgrade those by hand in a
+branch (`npm run typecheck`, the `TYPECHECK_MAX` ratchet, `npm run test:py` and `npm run test:integration` green), then
+merge. A round is done when CI is green on the pushed commit, not before.

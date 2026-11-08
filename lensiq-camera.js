@@ -501,6 +501,135 @@
     return el;
   }
 
+  // ================= unattended operation (round 12) =================
+  /* Pages that count while nobody watches (store door, booth, signage, attendance, QC line, driver cab) pause their
+     cameras when the tab is hidden or the screen locks (autoPause above) — so a hidden tab means NO analysis at all.
+     createGapLog() keeps those gaps as numbers ({from, to, ms}) so pages can record them as "offline" seconds in the
+     hourly quality flags (LQSite.noteGap) instead of silently under-counting; sampleSec() turns the time between two
+     health samples into real seconds (a throttled loop must not be counted as 1 s per sample). */
+  function createGapLog({ max = 50, minMs = 1000 } = {}) {
+    let open = null; const gaps = [];
+    return {
+      /** the page became hidden / frozen at t (ignored while a gap is already open) */
+      hide(t = Date.now()) { if (open == null) open = t; return open; },
+      /** the page is visible again: closes the gap -> {from, to, ms} (null when nothing was open or it was < minMs) */
+      show(t = Date.now()) {
+        if (open == null) return null;
+        const g = { from: open, to: Math.max(open, t), ms: Math.max(0, t - open) }; open = null;
+        if (g.ms < minMs) return null;
+        gaps.push(g); while (gaps.length > max) gaps.shift();
+        return g;
+      },
+      get open() { return open; },
+      get gaps() { return gaps.slice(); },
+      totalMs(now = Date.now()) { return gaps.reduce((s, g) => s + g.ms, 0) + (open != null ? Math.max(0, now - open) : 0); },
+      clear() { gaps.length = 0; open = null; }
+    };
+  }
+  /** seconds between two health samples: real elapsed time within [min, cap]; a first sample or a longer pause
+      (already recorded as a gap) counts as `fallback` */
+  function sampleSec(prevAt, now, { cap = 10, min = 0.2, fallback = 1 } = {}) {
+    if (!(prevAt > 0) || !(now >= prevAt)) return fallback;
+    const s = (now - prevAt) / 1000;
+    return s > cap ? fallback : Math.max(min, Math.round(s * 10) / 10);
+  }
+  /**
+   * unattended({container, isRunning() -> bool, onGap?(gap), onHide?(t), wakeLock = true, tag = "หยุดนับ", gapText?}) -> handle
+   *   gapText: Thai template with {a} {b} (HH:MM from/to) and {m} (duration) for pages where "counts" is the wrong word
+   *   Wake Lock ("screen") while running and visible (re-acquired after every return); a persistent notice in
+   *   `container` (.lq-unattended) after the tab was hidden: when and how long analysis stopped and that the time is
+   *   recorded as offline; the tab title gets "[tag] " while hidden so it shows in the tab strip; a one-time hint when the
+   *   browser has no Wake Lock. Nothing is stored or sent; gaps are numbers only.
+   *   handle = {start(), stop(), gaps, log, get wakeLocked, get supported, destroy()}
+   */
+  function unattended(o = {}) {
+    const opt = { container: null, isRunning: () => true, onGap: null, onHide: null, wakeLock: true, tag: "หยุดนับ", gapText: "", ...o };
+    const log = createGapLog();
+    const supported = !!(hasDOM && typeof navigator !== "undefined" && navigator.wakeLock && navigator.wakeLock.request);
+    let lock = null, active = false, baseTitle = null, el = null, hinted = false;
+    const hm = t => { const d = new Date(t); return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); };
+    const fill = (t, vars) => t.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m));
+    function box() {
+      if (el || !hasDOM || !opt.container) return el;
+      el = opt.container.querySelector(":scope > .lq-unattended");
+      if (!el) {
+        el = document.createElement("div"); el.className = "lq-unattended"; el.setAttribute("role", "status"); el.hidden = true;
+        el.innerHTML = '<p class="lq-ua-text"></p><button type="button" class="btn ghost small lq-ua-ok">รับทราบ</button>';
+        el.querySelector(".lq-ua-ok").addEventListener("click", () => { el.hidden = true; });
+        opt.container.appendChild(el);
+      }
+      return el;
+    }
+    function say(text, kind) { const b = box(); if (!b) return; b.dataset.s = kind; b.querySelector(".lq-ua-text").textContent = text; b.hidden = false; }
+    async function acquire() {
+      if (!opt.wakeLock || !supported || lock || !active || document.visibilityState !== "visible") return;
+      try { lock = await navigator.wakeLock.request("screen"); lock.addEventListener("release", () => { lock = null; }); }
+      catch (e) { lock = null; console.warn("wakeLock", e); }
+    }
+    async function release() { const l = lock; lock = null; if (l) { try { await l.release(); } catch { /* already released */ } } }
+    function onHidden() {
+      if (!active || !opt.isRunning()) return;
+      const t = log.hide(Date.now());
+      if (baseTitle == null) { baseTitle = document.title; document.title = "[" + opt.tag + "] " + baseTitle; }
+      if (opt.onHide) { try { opt.onHide(t); } catch (e) { console.warn("unattended", e); } }
+    }
+    function onVisible() {
+      if (baseTitle != null) { document.title = baseTitle; baseTitle = null; }
+      const g = log.show(Date.now());
+      if (g && active) {
+        const m = g.ms >= 60000 ? fill("{m} นาที", { m: Math.round(g.ms / 60000) }) : fill("{s} วินาที", { s: Math.round(g.ms / 1000) });
+        say(fill(opt.gapText || "แท็บถูกซ่อนหรือจอดับ {a}–{b} ({m}) — ระหว่างนั้นกล้องหยุดวิเคราะห์ ยอดช่วงนี้อาจขาด และถูกบันทึกเป็น \"กล้องออฟไลน์\" ในคุณภาพรายชั่วโมงแล้ว · เปิดแท็บนี้ไว้ด้านหน้าและตั้งจอไม่ให้ดับเอง", { a: hm(g.from), b: hm(g.to), m }), "gap");
+        if (opt.onGap) { try { opt.onGap(g); } catch (e) { console.warn("unattended", e); } }
+      }
+      acquire();
+    }
+    const vis = () => (document.hidden ? onHidden() : onVisible());
+    const frz = () => onHidden(), res = () => { if (!document.hidden) onVisible(); };
+    if (hasDOM) {
+      document.addEventListener("visibilitychange", vis);
+      document.addEventListener("freeze", frz); document.addEventListener("resume", res);
+      root.addEventListener("pagehide", frz); root.addEventListener("pageshow", res);
+    }
+    return {
+      start() {
+        active = true; acquire();
+        if (opt.wakeLock && !supported && hasDOM && !hinted) { hinted = true; say("เบราว์เซอร์นี้กันจอดับให้ไม่ได้ (ไม่รองรับ Wake Lock) — ตั้งค่าเครื่องไม่ให้จอดับ/ล็อกเอง และเปิดแท็บนี้ไว้ด้านหน้าตลอดเวลาที่นับ", "nolock"); }
+      },
+      stop() { active = false; release(); if (log.open != null) log.show(Date.now()); },
+      log, get gaps() { return log.gaps; },
+      get wakeLocked() { return !!lock; }, get supported() { return supported; },
+      destroy() {
+        active = false; release();
+        if (hasDOM) {
+          document.removeEventListener("visibilitychange", vis);
+          document.removeEventListener("freeze", frz); document.removeEventListener("resume", res);
+          root.removeEventListener("pagehide", frz); root.removeEventListener("pageshow", res);
+        }
+      }
+    };
+  }
+
+  /**
+   * ackBox({label, okText, cancelText = "ยกเลิก"}) -> {el, cb, ok, no, at} — round 12: the operator acknowledgement box
+   * ("notice posted / consent obtained") shown before booth face recognition and signage age/gender turn on. Built with
+   * textContent only (Thai literals stay plain text, translated at run time like every other page string).
+   */
+  function ackBox({ label = "", okText = "", cancelText = "ยกเลิก" } = {}) {
+    if (!hasDOM) return null;
+    const mk = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+    const el = mk("div", "lq-ack"); el.hidden = true;
+    const lab = mk("label"), cb = /** @type {HTMLInputElement} */ (mk("input", "lq-ack-cb")); cb.type = "checkbox";
+    lab.append(cb, " ", mk("span", null, label));
+    const ok = /** @type {HTMLButtonElement} */ (mk("button", "btn primary small lq-ack-ok", okText)), no = /** @type {HTMLButtonElement} */ (mk("button", "btn ghost small lq-ack-no", cancelText));
+    ok.type = "button"; no.type = "button"; ok.disabled = true;
+    const row = mk("p"); row.append(ok, " ", no);
+    const at = mk("small", "lq-ack-at");
+    el.append(lab, row, at);
+    cb.addEventListener("change", () => { ok.disabled = !cb.checked; });
+    no.addEventListener("click", () => { el.hidden = true; cb.checked = false; ok.disabled = true; });
+    return { el, cb, ok, no, at };
+  }
+
   // ================= DOM: hub (1..max cameras) =================
   function createHub(o = {}) {
     const opt = { ns: "lq", max: 4, grid: null, tile: null, facing: "environment", idealOne: { width: 1280, height: 720 }, idealMany: { width: 640, height: 480 }, frameRateMany: 15, probeMs: 800, onChange: null, ...o };
@@ -720,7 +849,8 @@
 
   const api = {
     fallbackChain, errorKind, errorText, parseCams, serializeCams, nextSlot, pickNext, mapSeatToImage,
-    readCapacity, writeCapacity, createScheduler, listCameras, create, createHub, offlineBadge, SLOTS, CAP_KEY
+    readCapacity, writeCapacity, createScheduler, listCameras, create, createHub, offlineBadge, SLOTS, CAP_KEY,
+    createGapLog, sampleSec, unattended, ackBox
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") root.LQCam = api;

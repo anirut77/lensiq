@@ -1,5 +1,5 @@
 "use strict";
-// tests/unit/studio-r11.test.js — round 11 studio / photo booth helpers: photo-suitability pre-flight (studio-qa.js photoSuitability),
+// tests/unit/studio-suitability-leftovers.test.js — round 11 studio / photo booth helpers: photo-suitability pre-flight (studio-qa.js photoSuitability),
 // ID-photo leftover / straight-cut finder (idLeftovers) and the no-outfit matte clean-up (studio-core.js cleanLeftovers)
 const test = require("node:test");
 const assert = require("node:assert/strict");

@@ -194,3 +194,5 @@ label.check input{width:20px;height:20px;min-height:0;margin-top:3px;accent-colo
   .site-foot{padding:36px 16px 24px}
   .foot-grid{gap:16px 20px}
 }
+/* round 12: Thai labels are not letter-spaced (the LIVE badge mixes Latin and Thai) */
+html:lang(th) .vis-bar{letter-spacing:.02em}

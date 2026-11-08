@@ -291,6 +291,9 @@
         message: $("lqMsg").value.trim()
       };
       var keepLocal = function () {
+        // round 12: lensiq-leads.js keeps it in the same "lq-leads" list (capped) and shows the "not sent yet" box
+        var LQ = /** @type {any} */ (window).LQLeads;
+        if (LQ && typeof LQ.queue === "function") return LQ.queue(lead);
         try {
           var list = JSON.parse(localStorage.getItem("lq-leads") || "[]");
           if (!Array.isArray(list)) list = [];

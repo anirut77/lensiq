@@ -13,6 +13,7 @@ Templates and reference material for a shop, event or training operator (the **d
 | [`DPIA.md`](DPIA.md) | **Filled DPIA (Thai, with an English summary)** for a standard deployment. It covers purposes and the lawful basis per module, s.26 biometric data, cross-border transfers, retention per storage key, security measures, L×S risk scoring, residual risks and legal-review items L1–L8. **It requires legal review.** Start here. |
 | [`ROPA.md`](ROPA.md) | Record of processing activities (s.39) in Thai, one row per module (M1–M15). |
 | [`DPIA-template.md`](DPIA-template.md) | The blank-ish DPIA template, for deployments that differ from the standard one. |
+| [`INCIDENT-RESPONSE.md`](INCIDENT-RESPONSE.md) | Round 12: breach runbook (72-hour PDPC notification, containment switches that exist in the Worker, evidence, notice drafts TH/EN/ZH, incident log) and the secrets-rotation procedure for `SECRETS_KEK`, `TURNSTILE_SECRET`, Opn keys, `MAIL_API_KEY`. **Requires legal review.** |
 | [`consent-texts.md`](consent-texts.md) | Ready-to-use Thai and English notices and consent wording: CCTV/analytics signage, biometric consent, photo booth, AI fortune (cross-border), withdrawal. |
 
 ## Roles
@@ -35,7 +36,7 @@ Templates and reference material for a shop, event or training operator (the **d
 6. **Licence review.** Some ML components are not cleared for commercial use. See [`../../LICENSES/THIRD_PARTY.md`](../../LICENSES/THIRD_PARTY.md).
 7. **Follow the operator checklist** in [`../DEPLOYMENT-CHECKLIST.md`](../DEPLOYMENT-CHECKLIST.md).
 8. **Handle data-subject requests.** Access, rectification, erasure, withdrawal of consent, objection: see "Withdrawal" in `consent-texts.md` and the delete procedures in `retention-table.md`. Respond within 30 days (s.30).
-9. **Breach handling.** Notify the PDPC within 72 hours of becoming aware of a breach unless it is unlikely to pose a risk (s.37(4)). See the incident section in the deployment checklist.
+9. **Breach handling.** Notify the PDPC within 72 hours of becoming aware of a breach unless it is unlikely to pose a risk (s.37(4)). See the incident section in the deployment checklist and the runbook [`INCIDENT-RESPONSE.md`](INCIDENT-RESPONSE.md).
 
 ## Built-in safeguards you can cite
 

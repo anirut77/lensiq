@@ -164,9 +164,12 @@ export function sample({ per = 2, langs = ["th", "zh", "en"], domains = DOMAINS,
     // no candidate carries a caution → caution cell from probes (weakest finding marked as caution)
     if (!cands.some(c => c.cautions > 0)) for (const c of cands) if (c.tone === "caution") { c.facts = cautionProbe(c.facts, 1); Object.assign(c, toneBalance(c.facts), { probe: true }); }
     for (const lang of langs) for (const tone of TONES) {
-      const pool2 = cands.filter(c => c.tone === tone).sort((x, y) => tone === "caution" ? y.balance - x.balance || y.cautions - x.cautions || x.i - y.i : x.i - y.i);
-      const off = pool2.length >= (LANG_OFF[lang] + 1) * per ? LANG_OFF[lang] * per : 0;
-      const pick = pool2.slice(off, off + per);
+      // caution cell: candidates that really carry a caution come first (round 12: the zh/en offset used to reach
+      // candidates with none, so iching zh/en and lifegraph en had no caution to judge)
+      const pool2 = cands.filter(c => c.tone === tone).sort((x, y) => tone === "caution" ? (y.cautions > 0) - (x.cautions > 0) || y.balance - x.balance || y.cautions - x.cautions || x.i - y.i : x.i - y.i);
+      const usable = tone === "caution" ? pool2.filter(c => c.cautions > 0).length : pool2.length;
+      const off = usable >= (LANG_OFF[lang] + 1) * per ? LANG_OFF[lang] * per : pool2.length >= (LANG_OFF[lang] + 1) * per && tone !== "caution" ? LANG_OFF[lang] * per : 0;
+      const pick = pool2.slice(off, off + per).map(c => tone === "caution" && !c.cautions ? Object.assign({}, c, { facts: cautionProbe(c.facts, 1), probe: true }, toneBalance(cautionProbe(c.facts, 1))) : c);
       cells[`${d}/${lang}/${tone}`] = pick.length;
       if (pick.length < per) gaps.push({ domain: d, lang, tone, have: pick.length, want: per });
       if (tone === "caution" && pick.length && pick.every(c => !c.cautions)) gaps.push({ domain: d, lang, tone, have: pick.length, want: per, note: "no fact marked caution in the sample: gentleness of cautions cannot be judged for this domain" });

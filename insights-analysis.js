@@ -126,7 +126,8 @@ function iqAnalyze(D, r, opt = {}) {
     const ch = iqFin(t.adjChange) ? t.adjChange : t.change;
     // ข้อมูลพอไหม: ผลต่างที่ตรวจจับได้ตอนนี้ และต้องเก็บอีกกี่วันถึงจะจับการเปลี่ยนขนาด max(10%, ที่เห็น) ได้ราว 80% ของครั้ง
     const plan = S.planMore({ lo: t.lo, hi: t.hi, days: Math.max(1, Math.round(t.e1)), target: Math.max(0.1, Math.abs(ch || 0)), scale: "log" });
-    // ดูซ้ำทุกวัน (round 11): always-valid p (mixture SPRT, τ = 15% บน log scale) — ใช้กับข้อความ “ถ้าเปิดดูทุกวัน” และการแจ้งเตือน
+    // ดูซ้ำทุกวัน (round 11): mixture-SPRT p (τ = 15% บน log scale) — ใช้กับข้อความ “ถ้าเปิดดูทุกวัน” และการแจ้งเตือน
+    // round 12: ช่วงที่เทียบเป็นหน้าต่างเลื่อน (ไม่สะสม) → คำรับประกัน always-valid ไม่ครอบคลุม ; การคุมเตือนผิด = ปรับเทียบด้วยการจำลอง (docs/STATS.md §14)
     const pSeq = iqFin(t.lo) && iqFin(t.hi) && t.adjRatio > 0 ? S.seqP(Math.log(t.adjRatio), t.p, S.SEQ.tauLog) : 1;
     return { ...t, cur: t.c1, prev: t.c2, level: S.confLevel(t.p, enough), enough, plan, kind: "count", pSeq, levelSeq: S.confLevel(pSeq, enough) };
   };
@@ -479,7 +480,8 @@ function iqAlertRules(raw) {
   if (raw && typeof raw === "object") for (const k of Object.keys(IQ_ALERT_DEFAULTS)) if (k in raw) o[k] = k === "notify" ? !!raw[k] : (raw[k] === null || raw[k] === "" ? null : (+raw[k] >= 0 ? +raw[k] : o[k]));
   return o;
 }
-/** ระดับความมั่นใจของการทดสอบที่ระบบประเมินซ้ำทุกวัน (round 11): ระดับที่ใช้ = ต่ำกว่าระหว่าง p ครั้งเดียว กับ always-valid p (mixture SPRT)
+/** ระดับความมั่นใจของการทดสอบที่ระบบประเมินซ้ำทุกวัน (round 11): ระดับที่ใช้ = ต่ำกว่าระหว่าง p ครั้งเดียว กับ mixture-SPRT p
+    (round 12: หน้าต่างเลื่อน 7 vs 7 วัน → การคุมเตือนผิดเป็นแบบปรับเทียบด้วยการจำลอง ≤ 5% ใน 22 วันที่ τ 0.10–0.25 ไม่ใช่ always-valid ตามทฤษฎี)
     t = ผลของ twoPropDaily ; คืน { level, fixed (ระดับจาก p ครั้งเดียว), pSeq } */
 function iqSeqClear(t, enough = true) {
   const S = IQ_ST, fixed = S.confLevel(t.p, enough), pSeq = t.p2 > 0 ? S.seqP(t.diff, t.p, S.SEQ.tauRel * t.p2) : 1;
@@ -504,7 +506,7 @@ function iqEvalAlerts(D, A, raw) {
       const t = IQ_ST.twoPropDaily(daily(a0, e), daily(b0, b1));
       const rel = t && t.p2 > 0 ? t.diff / t.p2 : 0, okN = n1 >= 30 && n2 >= 30 && !!t && t.days >= 8;
       // การแจ้งเตือนนี้ประเมินใหม่ทุกวัน (7 วันล่าสุดเทียบ 7 วันก่อน) — ถ้าตัดสินด้วย p < 0.05 ทุกวัน 22 วันจะเตือนผิดอย่างน้อยครั้งหนึ่งราว 30%
-      // round 11: “ลดชัด” ต้องผ่าน always-valid p (iqSeqClear) ด้วย → เตือนผิด ≤ 5% ตลอด 22 วัน ; ถ้ายังไม่ผ่านยังแจ้งเตือนระดับ “ยังสรุปไม่ได้” เหมือนเดิม
+      // round 11: “ลดชัด” ต้องผ่าน mixture-SPRT p (iqSeqClear) ด้วย → เตือนผิด ≤ 5% ตลอด 22 วัน (จากการจำลอง: หน้าต่างเลื่อนไม่ได้รับคำรับประกัน always-valid ตามทฤษฎี) ; ถ้ายังไม่ผ่านยังแจ้งเตือนระดับ “ยังสรุปไม่ได้” เหมือนเดิม
       const sq = t ? iqSeqClear(t, okN) : { level: "insufficient", fixed: "insufficient", pSeq: 1 }, lv = sq.level;
       const clear = lv === "strong" || lv === "moderate";
       if (t && rel < -R.convDropPct / 100) {

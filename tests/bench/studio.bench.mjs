@@ -86,7 +86,8 @@ if (has("--render")) {
           let bin = ""; for (let i = 0; i < all.length; i += 8192) bin += String.fromCharCode.apply(null, all.subarray(i, i + 8192));
           crop = { w: C.w, h: C.h, names, jaw: C.jaw, chin: C.chin, eyeY: C.eyeY, b64: btoa(bin) };
         }
-        return { clean: g === "none" && S.cleanInfo ? { ...S.cleanInfo, fail: !!S.matteFail } : undefined, shown: S.shown, pass: q ? q.pass : null, fails: q ? q.fails : [], m: q ? q.m : null, jf, conf: S.conf != null ? S.conf : null, variant: S.variant || null, crop, qaMs: Math.round(S.timings.qa || 0), renderMs: Math.round(S.timings.render || 0) };
+        // round 12: + nq = no-outfit check (StudioQA.noOutfitCheck) and whether the page fell back to the untouched original photo
+        return { clean: g === "none" && S.cleanInfo ? { ...S.cleanInfo, fail: !!S.matteFail } : undefined, nq: S.noq && (g === "none" || S.shown === "safe" || S.shown === "plain") ? { pass: S.noq.pass, fails: S.noq.fails, m: S.noq.m, orig: !!S.origFallback } : undefined, shown: S.shown, pass: q ? q.pass : null, fails: q ? q.fails : [], m: q ? q.m : null, jf, conf: S.conf != null ? S.conf : null, variant: S.variant || null, crop, qaMs: Math.round(S.timings.qa || 0), renderMs: Math.round(S.timings.render || 0) };
       }, g);
       if (R.g[gv].crop) { const c = R.g[gv].crop; writeFileSync(join(DIR, `${it.id}_${gv}.crop.bin`), Buffer.from(c.b64, "base64")); delete c.b64; }
       R.g[gv].selMs = Date.now() - t1;
@@ -213,7 +214,7 @@ export function gateLog(results, { query = "", variants = null, code = "" } = {}
     people[r.id] = { split: r.split, face: !!r.face, W: r.W, H: r.H, firstMs: r.first, wallMs: r.wall, err: r.err || null, ...(r.pre ? { pre: r.pre } : {}) };
     for (const [gv, v] of Object.entries(r.g)) {
       const [g, variant] = gv.split("+");
-      renders.push({ id: r.id, g, v: g === "none" ? null : variant || "plain", ...(v.clean ? { clean: v.clean } : {}), shown: v.shown, pass: v.pass, fails: v.fails || [], variant: v.variant || null, conf: v.conf, qaMs: v.qaMs, renderMs: v.renderMs, selMs: v.selMs, jf: v.jf || null, m: v.m || null });
+      renders.push({ id: r.id, g, v: g === "none" ? null : variant || "plain", ...(v.clean ? { clean: v.clean } : {}), ...(v.nq ? { nq: v.nq } : {}), shown: v.shown, pass: v.pass, fails: v.fails || [], variant: v.variant || null, conf: v.conf, qaMs: v.qaMs, renderMs: v.renderMs, selMs: v.selMs, jf: v.jf || null, m: v.m || null });
     }
   }
   const head = { about: "Per-render gate results of tests/bench/studio.bench.mjs (no images, no crops): one row per person x garment x variant. v = plain (cover off) | cover (cover on) | null (no outfit). shown = what studio.html put on screen; pass/fails = studio-qa.js verdict at render time; m = QA measurements; jf = jawFeatures of the garment render; conf = calibrated confidence; *Ms = timings in ms (headless Chrome, no WebGL).", code: code || "see git log for this file", query, variants, garments: GARMENTS };

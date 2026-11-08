@@ -38,7 +38,7 @@
     var o = opts || {};
     if (!enabled() || typeof fetch !== "function") return Promise.resolve(null);
     var ac = typeof AbortController !== "undefined" ? new AbortController() : null;
-    var timer = ac ? setTimeout(function () { ac.abort(); }, o.timeoutMs || 15000) : null;
+    var timer = ac ? setTimeout(function () { if (ac) ac.abort(); }, o.timeoutMs || 15000) : null;
     /** @type {RequestInit} */
     var init = { method: o.method || "GET", credentials: o.credentials || "omit", headers: o.headers || {}, signal: ac ? ac.signal : undefined };
     if (o.body !== undefined) { init.body = JSON.stringify(o.body); init.headers = Object.assign({ "Content-Type": "application/json" }, o.headers || {}); }
@@ -62,7 +62,7 @@
     var o = opts || {};
     if (!enabled() || typeof fetch !== "function") return Promise.resolve({ ok: false, status: 0, j: null });
     var ac = typeof AbortController !== "undefined" ? new AbortController() : null;
-    var timer = ac ? setTimeout(function () { ac.abort(); }, o.timeoutMs || 15000) : null;
+    var timer = ac ? setTimeout(function () { if (ac) ac.abort(); }, o.timeoutMs || 15000) : null;
     /** @type {Record<string, string>} */
     var h = Object.assign({}, o.headers || {});
     if (o.body !== undefined) h["Content-Type"] = "application/json";

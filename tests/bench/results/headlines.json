@@ -1,44 +1,53 @@
 {
  "format": "lensiq-bench-summary",
  "bench": "headlines",
- "round": 11,
+ "round": 12,
  "source": "docs/accuracy-figures.json (transcribed from ACCURACY.md)",
  "reproduce": "see BENCHES in tests/bench/results.mjs — one command per bench; datasets via python3 -I tests/bench/fetch_datasets.py ~/lq-bench-data",
  "datasets": {
   "casia": {
    "sha256": null,
+   "status": "not reproducible here: datasets absent",
    "note": "not recorded: the round 3–6 runs that produced these figures predate fingerprinting; re-run the bench and `results.mjs record` to fill it"
   },
   "cew": {
    "sha256": null,
+   "status": "not reproducible here: datasets absent",
    "note": "not recorded: the round 3–6 runs that produced these figures predate fingerprinting; re-run the bench and `results.mjs record` to fill it"
   },
   "fer": {
    "sha256": null,
+   "status": "not reproducible here: datasets absent",
    "note": "not recorded: the round 3–6 runs that produced these figures predate fingerprinting; re-run the bench and `results.mjs record` to fill it"
   },
   "hagrid": {
    "sha256": null,
+   "status": "not reproducible here: datasets absent",
    "note": "not recorded: the round 3–6 runs that produced these figures predate fingerprinting; re-run the bench and `results.mjs record` to fill it"
   },
   "lfw": {
    "sha256": null,
+   "status": "not reproducible here: datasets absent",
    "note": "not recorded: the round 3–6 runs that produced these figures predate fingerprinting; re-run the bench and `results.mjs record` to fill it"
   },
   "lfwfull": {
    "sha256": null,
+   "status": "not reproducible here: datasets absent",
    "note": "not recorded: the round 3–6 runs that produced these figures predate fingerprinting; re-run the bench and `results.mjs record` to fill it"
   },
   "mot": {
    "sha256": null,
+   "status": "not reproducible here: datasets absent",
    "note": "not recorded: the round 3–6 runs that produced these figures predate fingerprinting; re-run the bench and `results.mjs record` to fill it"
   },
   "oceyes": {
    "sha256": null,
+   "status": "not reproducible here: datasets absent",
    "note": "not recorded: the round 3–6 runs that produced these figures predate fingerprinting; re-run the bench and `results.mjs record` to fill it"
   },
   "utk": {
    "sha256": null,
+   "status": "not reproducible here: datasets absent",
    "note": "not recorded: the round 3–6 runs that produced these figures predate fingerprinting; re-run the bench and `results.mjs record` to fill it"
   }
  },
@@ -47,235 +56,352 @@
    "value": "−0.4",
    "raw": -0.4,
    "what": "store, pooled 5 fps, round 5: net count error",
-   "evidence": "**272 / 273** | **−0.4%**"
+   "evidence": "**272 / 273** | **−0.4%**",
+   "bench": "people",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (mot)"
   },
   "storeP5": {
    "value": "79",
    "raw": 79,
    "what": "store, pooled 5 fps: event precision",
-   "evidence": "**−0.4%** | 17.2% | 79.0%"
+   "evidence": "**−0.4%** | 17.2% | 79.0%",
+   "bench": "people",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (mot)"
   },
   "storeNet10": {
    "value": "−13",
    "raw": -13.1,
    "what": "store, pooled 10 fps: net count error",
-   "evidence": "**239 / 275** | **−13.1%**"
+   "evidence": "**239 / 275** | **−13.1%**",
+   "bench": "people",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (mot)"
   },
   "storeP10": {
    "value": "90",
    "raw": 90.4,
    "what": "store, pooled 10 fps: event precision",
-   "evidence": "**−13.1%** | 16.0% | 90.4%"
+   "evidence": "**−13.1%** | 16.0% | 90.4%",
+   "bench": "people",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (mot)"
   },
   "storeDoorNet": {
    "value": "+3",
    "raw": 3.2,
    "what": "store, PETS09 door-like scene: net error",
-   "evidence": "+2.4% → +3.2%"
+   "evidence": "+2.4% → +3.2%",
+   "bench": "people",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (mot)"
   },
   "storeDoorP": {
    "value": "93",
    "raw": 93.1,
    "what": "store, PETS09: event precision",
-   "evidence": "93.8% → 93.1%"
+   "evidence": "93.8% → 93.1%",
+   "bench": "people",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (mot)"
   },
   "storeCrowdLo": {
    "value": "−28",
    "raw": -28,
    "what": "store, MOT17 crowds: lowest net error",
-   "evidence": "net error is −28% to +19%"
+   "evidence": "net error is −28% to +19%",
+   "bench": "people",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (mot)"
   },
   "storeCrowdHi": {
    "value": "+19",
    "raw": 19,
    "what": "store, MOT17 crowds: highest net error",
-   "evidence": "net error is −28% to +19%"
+   "evidence": "net error is −28% to +19%",
+   "bench": "people",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (mot)"
   },
   "storeWrong5": {
    "value": "5",
    "raw": null,
    "what": "store: 1 in N counted crossings is wrong",
-   "evidence": "About 1 in 5 counted events is still wrong pooled at 5 fps"
+   "evidence": "About 1 in 5 counted events is still wrong pooled at 5 fps",
+   "bench": "people",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (mot)"
   },
   "lfwRec100": {
    "value": "85",
    "raw": 85,
    "what": "faces, LFW, 100 enrolled, round 5: member recognised",
-   "evidence": "| 100 | 84.9% → 85.0% |"
+   "evidence": "| 100 | 84.9% → 85.0% |",
+   "bench": "face1n",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (lfwfull, casia)"
   },
   "casiaRecLo": {
    "value": "66",
    "raw": 66.4,
    "what": "faces, CASIA (Asian), 200 enrolled: member recognised",
-   "evidence": "| 200 | 52.0% → **66.4%**"
+   "evidence": "| 200 | 52.0% → **66.4%**",
+   "bench": "face1n",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (lfwfull, casia)"
   },
   "casiaRecHi": {
    "value": "76",
    "raw": 75.6,
    "what": "faces, CASIA (Asian), 5 enrolled: member recognised",
-   "evidence": "| 5 | 57.4% → **75.6%**"
+   "evidence": "| 5 | 57.4% → **75.6%**",
+   "bench": "face1n",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (lfwfull, casia)"
   },
   "lfwStr100": {
    "value": "0.4",
    "raw": 0.42,
    "what": "faces, LFW, 100 enrolled: stranger offered a name",
-   "evidence": "0.89% → **0.42%**"
+   "evidence": "0.89% → **0.42%**",
+   "bench": "face1n",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (lfwfull, casia)"
   },
   "casiaStr100": {
    "value": "0.2",
    "raw": 0.18,
    "what": "faces, CASIA, 100 enrolled: stranger offered a name",
-   "evidence": "3.13% → **0.18%**"
+   "evidence": "3.13% → **0.18%**",
+   "bench": "face1n",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (lfwfull, casia)"
   },
   "strangerCiHi": {
    "value": "1.15",
    "raw": 1.15,
    "what": "faces, CASIA: upper end of the 95% interval at 5 and 200 enrolled",
-   "evidence": "(1.15% for both)"
+   "evidence": "(1.15% for both)",
+   "bench": "face1n",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (lfwfull, casia)"
   },
   "autoStr": {
    "value": "0.05",
    "raw": 0.05,
    "what": "faces: strangers accepted without a person confirming",
-   "evidence": "Fewer than 0.05% of strangers are accepted *without*"
+   "evidence": "Fewer than 0.05% of strangers are accepted *without*",
+   "bench": "face1n",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (lfwfull, casia)"
   },
   "confirmShare": {
    "value": "25–35",
    "raw": null,
    "what": "faces: share of recognised members asked to confirm",
-   "evidence": "About 25–35% of recognised members on LFW"
+   "evidence": "About 25–35% of recognised members on LFW",
+   "bench": "face1n",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (lfwfull, casia)"
   },
   "minEnrol": {
    "value": "5",
    "raw": 5,
    "what": "faces: minimum group for automatic check-in",
-   "evidence": "Enrol at least 5 people before relying on automatic check-in."
+   "evidence": "Enrol at least 5 people before relying on automatic check-in.",
+   "bench": "face1n",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (lfwfull, casia)"
   },
   "boothTar": {
    "value": "73",
    "raw": 72.6,
    "what": "faces 1:1 at 0.50 (booth returning-visitor option): same person accepted",
-   "evidence": "**72.6% [69.7–75.3%]**"
+   "evidence": "**72.6% [69.7–75.3%]**",
+   "bench": "face",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (lfw, utk)"
   },
   "agMae": {
    "value": "5",
    "raw": 5,
    "what": "signage age MAE (years)",
-   "evidence": "| all | 2000 | 78.9% | 5.0 y | 78.6% | 96.0%"
+   "evidence": "| all | 2000 | 78.9% | 5.0 y | 78.6% | 96.0%",
+   "bench": "face",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (lfw, utk)"
   },
   "agBand": {
    "value": "79",
    "raw": 78.6,
    "what": "signage age band correct",
-   "evidence": "| all | 2000 | 78.9% | 5.0 y | 78.6% | 96.0%"
+   "evidence": "| all | 2000 | 78.9% | 5.0 y | 78.6% | 96.0%",
+   "bench": "face",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (lfw, utk)"
   },
   "agGender": {
    "value": "96",
    "raw": 96,
    "what": "signage gender correct (when decided)",
-   "evidence": "| all | 2000 | 78.9% | 5.0 y | 78.6% | 96.0%"
+   "evidence": "| all | 2000 | 78.9% | 5.0 y | 78.6% | 96.0%",
+   "bench": "face",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (lfw, utk)"
   },
   "agAsian": {
    "value": "92",
    "raw": 92.2,
    "what": "signage gender correct, Asian faces",
-   "evidence": "| Asian | 319 | 72.4% | 4.9 y | 81.4% | 92.2% |"
+   "evidence": "| Asian | 319 | 72.4% | 4.9 y | 81.4% | 92.2% |",
+   "bench": "face",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (lfw, utk)"
   },
   "handRec": {
    "value": "88",
    "raw": 88.2,
    "what": "kiosk raised-hand recall, IoU 0.3",
-   "evidence": "| 88.2% / 98.6% |"
+   "evidence": "| 88.2% / 98.6% |",
+   "bench": "hand",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (hagrid)"
   },
   "handPrec": {
    "value": "99",
    "raw": 98.6,
    "what": "kiosk raised-hand precision, IoU 0.3",
-   "evidence": "| 88.2% / 98.6% |"
+   "evidence": "| 88.2% / 98.6% |",
+   "bench": "hand",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (hagrid)"
   },
   "handPalm": {
    "value": "95",
    "raw": 95,
    "what": "kiosk open-palm recall",
-   "evidence": "95% for open palm"
+   "evidence": "95% for open palm",
+   "bench": "hand",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (hagrid)"
   },
   "drFrameCatch": {
    "value": "84",
    "raw": 84.4,
    "what": "driver, CEW held out: closed-eye frames caught (own-photo calibration)",
-   "evidence": "25.7% → **84.4%**"
+   "evidence": "25.7% → **84.4%**",
+   "bench": "driver",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (oceyes, cew)"
   },
   "drEarCatch": {
    "value": "18–26",
    "raw": null,
    "what": "driver, EAR only (classifier off): closed-eye frames caught",
-   "evidence": "closed eyes caught rose from about **18–26% to 84%**"
+   "evidence": "closed eyes caught rose from about **18–26% to 84%**",
+   "bench": "driver",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (oceyes, cew)"
   },
   "drFallbackCatch": {
    "value": "18",
    "raw": 17.8,
    "what": "driver, calibration failed (0.25), CEW: closed-eye frames caught",
-   "evidence": "| fallback 0.25 (calibration failed) | 9.6% / 17.8%"
+   "evidence": "| fallback 0.25 (calibration failed) | 9.6% / 17.8%",
+   "bench": "driver",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (oceyes, cew)"
   },
   "drFaPerHour": {
    "value": "1.4",
    "raw": 1.4,
    "what": "driver, round 6 adaptive: false alarms per hour when the drive does not match calibration",
-   "evidence": "(7.4 → about 1.4 per hour)"
+   "evidence": "(7.4 → about 1.4 per hour)",
+   "bench": "driver-session",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (lfwfull, cew)"
   },
   "dr2s": {
    "value": "25",
    "raw": 25,
    "what": "driver, simulated drowsy drive: 2-s closures alerted",
-   "evidence": "2-s closures alerted fell from 32% to 25%"
+   "evidence": "2-s closures alerted fell from 32% to 25%",
+   "bench": "driver-session",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (lfwfull, cew)"
   },
   "drDrives": {
    "value": "6",
    "raw": null,
    "what": "driver: 1 in N simulated 10-min drives had a false alarm",
-   "evidence": "About 1 in 6 simulated 10-minute drives had at least one false alarm"
+   "evidence": "About 1 in 6 simulated 10-minute drives had at least one false alarm",
+   "bench": "driver-session",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (lfwfull, cew)"
   },
   "qcLight": {
    "value": "20",
    "raw": 20,
    "what": "qc: brightness change after calibration with 0% false rejects",
-   "evidence": "±10%, ±20%, +25% / −30% brightness and ±10% contrast give 0% false rejects"
+   "evidence": "±10%, ±20%, +25% / −30% brightness and ±10% contrast give 0% false rejects",
+   "bench": "qc",
+   "fingerprinted": true,
+   "status": "fingerprinted"
   },
   "qcAngleA": {
    "value": "5",
    "raw": 5,
    "what": "qc: label skew rejected (smaller)",
-   "evidence": "5° and 10° are rejected in every condition, 2° passes"
+   "evidence": "5° and 10° are rejected in every condition, 2° passes",
+   "bench": "qc",
+   "fingerprinted": true,
+   "status": "fingerprinted"
   },
   "qcAngleB": {
    "value": "10",
    "raw": 10,
    "what": "qc: label skew rejected (larger)",
-   "evidence": "5° and 10° are rejected in every condition, 2° passes"
+   "evidence": "5° and 10° are rejected in every condition, 2° passes",
+   "bench": "qc",
+   "fingerprinted": true,
+   "status": "fingerprinted"
   },
   "qcLift": {
    "value": "80",
    "raw": 80,
    "what": "qc: 6 px cap lift caught with belt-stop jitter",
-   "evidence": "(about 80% caught)"
+   "evidence": "(about 80% caught)",
+   "bench": "qc",
+   "fingerprinted": true,
+   "status": "fingerprinted"
   },
   "bcWrong": {
    "value": "0.06",
    "raw": 0.06,
    "what": "checkout: wrong code put through with 2 agreeing reads",
-   "evidence": "1.69% with 1 read and 0.06% with 2"
+   "evidence": "1.69% with 1 read and 0.06% with 2",
+   "bench": "checkout",
+   "fingerprinted": true,
+   "status": "fingerprinted"
   },
   "neuroLo": {
    "value": "52",
    "raw": 52,
    "what": "neuro: FER-2013 accuracy, page pipeline",
-   "evidence": "| page pipeline (face found 49%) | 346 | 52.0%"
+   "evidence": "| page pipeline (face found 49%) | 346 | 52.0%",
+   "bench": "neuro",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (fer)"
   },
   "neuroHi": {
    "value": "59",
    "raw": 59.1,
    "what": "neuro: FER-2013 accuracy, classifier alone",
-   "evidence": "| classifier alone on the face crop | 700 | 59.1%"
+   "evidence": "| classifier alone on the face crop | 700 | 59.1%",
+   "bench": "neuro",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (fer)"
   }
  }
 }

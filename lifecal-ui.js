@@ -31,9 +31,23 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function renderOptions() {
     keep("#lcDay", function (el) { el.innerHTML = '<option value="">' + esc(T("lc.day", "วันที่")) + "</option>" + Array.from({ length: 31 }, function (_, i) { return "<option>" + (i + 1) + "</option>"; }).join(""); });
     keep("#lcMonth", function (el) { el.innerHTML = '<option value="">' + esc(T("lc.month", "เดือน")) + "</option>" + months.map(function (m, i) { return '<option value="' + (i + 1) + '">' + esc(T("lc.monthN", m, { m: i + 1 })) + "</option>"; }).join(""); });
-    keep("#lcTz", function (el) { el.innerHTML = [[7, "lc.tz7", "ประเทศไทย (UTC+7)"], [8, "lc.tz8", "จีน ไต้หวัน สิงคโปร์ มาเลเซีย (UTC+8)"], [9, "lc.tz9", "ญี่ปุ่น เกาหลี (UTC+9)"], [0, "lc.tz0", "UTC"]].map(function (z) { return '<option value="' + z[0] + '">' + esc(T(z[1], z[2])) + "</option>"; }).join(""); });
+    // รอบ 12: เขตเวลาตามประวัติ (IANA: ไทยก่อน 1920 = UTC+6:42, จีน DST 1986–91, สิงคโปร์/มาเลเซีย UTC+7:30 ก่อน 1982) + ค่าคงที่เดิม
+    keep("#lcTz", function (el) { el.innerHTML = '<optgroup label="' + esc(T("lc.tzZones", "เขตเวลาตามประวัติ ณ วันเกิด (แนะนำ)")) + '">' + LC.ZONES.map(function (z) { return '<option value="z:' + esc(z.id) + '">' + esc(T(z.key, z.th)) + "</option>"; }).join("") + "</optgroup>" +
+      '<optgroup label="' + esc(T("lc.tzFixed", "เวลามาตรฐานคงที่")) + '">' + [[7, "lc.tz7", "ประเทศไทย (UTC+7)"], [8, "lc.tz8", "จีน ไต้หวัน สิงคโปร์ มาเลเซีย (UTC+8)"], [9, "lc.tz9", "ญี่ปุ่น เกาหลี (UTC+9)"], [0, "lc.tz0", "UTC"]].map(function (z) { return '<option value="' + z[0] + '">' + esc(T(z[1], z[2])) + "</option>"; }).join("") + "</optgroup>"; });
   }
   renderOptions();
+  // เวลาสุริยะจริง: ช่องลองจิจูดแสดงเมื่อเลือก (ค่าเริ่มจากเมืองของเขตเวลาที่เลือก)
+  function syncSolar() { var on = $("#lcSolar") && $("#lcSolar").checked, box = $("#lcLonWrap"); if (box) box.hidden = !on; }
+  if ($("#lcSolar")) { $("#lcSolar").addEventListener("change", syncSolar); syncSolar(); }
+  /** บรรทัดบอกเขตเวลา/เวลาสุริยะที่ใช้คำนวณจริง (หน้าที่มีช่องเลือกเขตเวลา) */
+  function tzNote(R) {
+    var b = st.b; if (!b || !$("#lcTz")) return "";
+    var z = b.zone ? LC.ZONES.filter(function (x) { return x.id === b.zone; })[0] : null;
+    var h = '<p class="fk-small lc-tzused" id="lcTzUsed">' + esc(z ? T("lc.tzUsed", "เขตเวลาที่ใช้คำนวณ: {o} — {z} ตามประวัติเขตเวลา ณ วันเวลาเกิด", { o: LC.fmtOffset(b.tz), z: T(z.key, z.th) }) : T("lc.tzUsedFixed", "เขตเวลาที่ใช้คำนวณ: {o} (ค่าคงที่ที่เลือก ไม่ปรับตามประวัติ)", { o: LC.fmtOffset(b.tz) }));
+    var S = R && R.bazi && R.bazi.solar;
+    if (S) h += " " + esc(T("lc.solarUsed", "ยามและวันของ八字ใช้เวลาสุริยะจริง {t} ({d} นาทีจากเวลานาฬิกา · ลองจิจูด {lon}° · สมการเวลา {e} นาที)", { t: String(S.at.h).padStart(2, "0") + ":" + String(S.at.mi).padStart(2, "0"), d: (S.offsetMin > 0 ? "+" : "") + S.offsetMin, lon: S.lon, e: (S.eotMin > 0 ? "+" : "") + S.eotMin }));
+    return h + "</p>";
+  }
   function showMsg() { $("#lcMsg").textContent = st.msg ? T(st.msg, st.msg) : ""; }
   function readForm() {
     var d = +$("#lcDay").value, m = +$("#lcMonth").value, raw = $("#lcYear").value.trim();
@@ -42,7 +56,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     if (y < 1900 || y > 2100) return { err: "lc.yearRange" };
     var noTime = $("#lcNoTime").checked, tm = ($("#lcTime").value || "12:00").split(":");
     var g = document.querySelector('input[name="lcGender"]:checked');
-    return { y: y, m: m, d: d, h: noTime ? 12 : +tm[0], mi: noTime ? 0 : +tm[1] || 0, noTime: noTime, tz: $("#lcTz") ? +$("#lcTz").value : 7, gender: g ? g.value : "female" };
+    var h = noTime ? 12 : +tm[0], mi = noTime ? 0 : +tm[1] || 0, tzv = $("#lcTz") ? $("#lcTz").value : "7", zone = /^z:/.test(tzv) ? tzv.slice(2) : null;
+    var zo = zone ? LC.zoneOffset(zone, y, m, d, h, mi) : null, tz = zo ? zo.offset : +tzv || 0;
+    var zInfo = zone ? LC.ZONES.filter(function (z) { return z.id === zone; })[0] : null;
+    var lonRaw = $("#lcLon") ? String($("#lcLon").value || "").trim() : "", solarOn = !noTime && !!($("#lcSolar") && $("#lcSolar").checked);
+    var lon = solarOn ? (lonRaw !== "" && isFinite(+lonRaw) && Math.abs(+lonRaw) <= 180 ? +lonRaw : zInfo ? zInfo.lon : tz * 15) : null;
+    return { y: y, m: m, d: d, h: h, mi: mi, noTime: noTime, tz: tz, zone: zone, tzSource: zo ? zo.source : "fixed", solarLon: lon, gender: g ? g.value : "female" };
   }
   $("#lcForm").addEventListener("submit", function (e) {
     e.preventDefault(); st.msg = null; showMsg();
@@ -167,7 +186,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var R = st.res, b = st.b; if (!R) return;
     $("#lcResult").hidden = false;
     $("#lcResTitle").textContent = T("lc.resTitle." + page, { bazi: "ผังแปดอักษร", taksa: "ผังทักษา", lek7: "ผังเลข 7 ตัว", lifegraph: "กราฟชีวิต" }[page]) + " · " + T("lc.bornOn", "เกิด {d}/{m}/{y}", { d: b.d, m: b.m, y: yearOut(b.y) });
-    $("#lcChart").innerHTML = unsureNotes(R) + (page === "bazi" ? renderBazi(R.bazi) : page === "taksa" ? renderTaksa(R.taksa) : page === "lek7" ? renderLek7(R.lek7) : renderLife(R));
+    $("#lcChart").innerHTML = tzNote(R) + unsureNotes(R) + (page === "bazi" ? renderBazi(R.bazi) : page === "taksa" ? renderTaksa(R.taksa) : page === "lek7" ? renderLek7(R.lek7) : renderLife(R));
     $("#lcReadWrap").innerHTML = FK.readingBlock("lcRd", T("lc.rdTitle", "คำอ่านตามตำรา"), true);
     FK.bindReading("lcRd", DOMAIN[page], function (topic) { return factsFor(topic); }, { withTopics: true });
     if (focus) $("#lcResTitle").focus();

@@ -15,7 +15,9 @@
 //   node tools/check-legal.mjs --billing       as if billing were enabled (the deploy gate)
 //   node tools/check-legal.mjs --dir _site     check the built site's copies of the pages (config from the same dir)
 //   node tools/check-legal.mjs --json          machine-readable result
+// It also prints the owner's go-live checklist (lensiq-golive.js — the same list help.html?owner=1 shows), report only.
 import { existsSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
@@ -47,6 +49,17 @@ export function sellerFromConfig(src) {
   const window = {};
   try { vm.runInNewContext(String(src), { window, location: { pathname: "/" } }, { timeout: 1000 }); } catch { /* malformed config: treat as empty */ }
   return window.LENSIQ_SELLER && typeof window.LENSIQ_SELLER === "object" ? window.LENSIQ_SELLER : {};
+}
+/** The site switches of lensiq-config.js (same sandbox as sellerFromConfig). */
+export function siteConfigFromConfig(src) {
+  const window = {};
+  try { vm.runInNewContext(String(src), { window, location: { pathname: "/" } }, { timeout: 1000 }); } catch { /* malformed config */ }
+  return { api: window.LENSIQ_API_BASE || "", turnstile: window.LENSIQ_TURNSTILE_SITEKEY || "", google: window.LENSIQ_GOOGLE_CLIENT_ID || "", profile: window.LENSIQ_PROFILE || "demo", ageGender: window.LENSIQ_AGE_GENDER !== false, faceparse: window.LENSIQ_FACEPARSE === true };
+}
+/** Go-live checklist items (lensiq-golive.js checklist) for this config. */
+export function goLiveList(src) {
+  const G = createRequire(import.meta.url)("../lensiq-golive.js");
+  return G.checklist(sellerFromConfig(src), siteConfigFromConfig(src));
 }
 /** The [vars] values of backend/wrangler.toml that matter here (simple KEY = "value" lines). */
 export function wranglerVars(toml) {
@@ -103,11 +116,15 @@ function main() {
   const wrangler = wranglerVars(read(join(repo, "backend", "wrangler.toml")));
   const billing = args.includes("--billing") || process.env.LENSIQ_BILLING === "1";
   const r = checkLegal({ seller, wrangler, pages, billing });
-  if (args.includes("--json")) { console.log(JSON.stringify(r, null, 2)); process.exit(r.ok ? 0 : 1); }
+  const cfgSrc = read(join(dir, "lensiq-config.js")) || read(join(repo, "lensiq-config.js"));
+  const golive = goLiveList(cfgSrc);
+  if (args.includes("--json")) { console.log(JSON.stringify(Object.assign({ golive }, r), null, 2)); process.exit(r.ok ? 0 : 1); }
   console.log(`check-legal: billing ${r.billing ? "ENABLED" : "off"} · pages ${Object.keys(pages).join(", ")}`);
   console.log(`check-legal: raw [placeholders] — ${Object.keys(r.raw).length ? JSON.stringify(r.raw) : "none"}`);
   console.log(`check-legal: seller keys used ${r.keys.length} · not announced yet ${r.missing.length ? r.missing.join(", ") : "none"}`);
   console.log(`check-legal: required before sales ${r.missingRequired.length ? "MISSING " + r.missingRequired.join(", ") : "all filled"} · Worker SELLER_* ${r.backend.missing.length ? "missing " + r.backend.missing.join(", ") : "set"}${r.backend.mismatch.length ? " · " + r.backend.mismatch.join(", ") : ""} · counsel ${r.counselConfirmed ? "confirmed" : "not confirmed"}`);
+  const open = golive.filter(x => x.state === "todo" || x.state === "warn");
+  console.log(`check-legal: go-live checklist (help.html?owner=1) — ${golive.filter(x => x.state === "ok").length} done · ${open.length} open${open.length ? ": " + open.map(x => x.id).join(", ") : ""} · ${golive.filter(x => x.state === "outside").length} need outside resources`);
   if (!r.ok) { for (const w of r.why) console.log("FAIL " + w); process.exit(1); }
   console.log(r.billing ? "check-legal: OK — ready to sell" : "check-legal: OK — the pages show the demo notice and the neutral \"announced before sales open\" wording until these are filled");
 }

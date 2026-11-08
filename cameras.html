@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="cameras.s1">ระบบทั้งหมด | LENSIQ</title>
-<link rel="stylesheet" href="styles.css?v=9">
+<link rel="stylesheet" href="styles.css?v=10">
 <style>
 .hub{max-width:1200px;margin:auto;padding:40px 5vw 90px}
 .hub-head{text-align:center;margin-bottom:8px}
@@ -49,8 +49,8 @@
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=12"></script>
-<script src="i18n/zh-cameras.js?v=1"></script>
+<script src="nav.js?v=13"></script>
+<script src="i18n/zh-cameras.js?v=3"></script>
 <script src="lensiq-i18n-rt.js?v=1"></script>
 <script src="i18n/zh-rt-common.js?v=1"></script>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -132,7 +132,7 @@
     <div class="group-head"><h2 id="h-photo" data-i18n="cameras.s133">ตู้ถ่ายรูป</h2><p data-i18n="cameras.s134">สร้างประสบการณ์และคอนเทนต์ในงาน</p></div>
     <div class="apps">
       <a class="app" href="photobooth.html"><span class="ic"><svg aria-hidden="true"><use href="#i-camera"/></svg></span><h3><span data-i18n="cameras.s135">ตู้สติ๊กเกอร์</span> &amp; <span data-i18n="cameras.s136">รูปติดบัตร</span></h3><p data-i18n="cameras.s137">ถ่ายภาพเป็นชุด แต่งกรอบ สติ๊กเกอร์ และพื้นหลัง พร้อมโหมดรูปติดบัตรและเปลี่ยนชุด</p><dl><dt data-i18n="cameras.s138">ใช้กับ</dt><dd data-i18n="cameras.s139">อีเวนต์ บูธ งานแต่ง ร้านถ่ายรูป</dd><dt data-i18n="cameras.s140">กล้อง</dt><dd data-i18n="cameras.s141">เว็บแคม มือถือ หรือแท็บเล็ต</dd></dl></a>
-      <a class="app" href="studio.html"><span class="ic"><svg aria-hidden="true"><use href="#i-camera"/></svg></span><h3><span data-i18n="cameras.s142">สตูดิโอแต่งชุด</span><span class="badge" data-i18n="cameras.s143">ใหม่</span></h3><p data-i18n="cameras.s144">เปลี่ยนฉากหลัง ปรับแสง รีทัชผิวแบบเป็นธรรมชาติ ทำรูปโปรไฟล์และรูปติดบัตรพร้อมตรวจขนาด มีชุดตัวอย่าง (พรีวิว) ที่ไม่ใช่ภาพสวมจริง</p><dl><dt data-i18n="cameras.s145">ใช้กับ</dt><dd data-i18n="cameras.s146">ร้านถ่ายรูป รูปสมัครงาน/สมัครเรียน</dd><dt data-i18n="cameras.s147">กล้อง</dt><dd data-i18n="cameras.s148">อัปโหลดรูป หรือเว็บแคม/มือถือ</dd></dl></a>
+      <a class="app" href="studio.html"><span class="ic"><svg aria-hidden="true"><use href="#i-camera"/></svg></span><h3><span data-i18n="cameras.s142">สตูดิโอภาพโปรไฟล์และรูปติดบัตร</span><span class="badge" data-i18n="cameras.s143">ใหม่</span></h3><p data-i18n="cameras.s144">เปลี่ยนฉากหลัง ปรับแสง รีทัชผิวแบบเป็นธรรมชาติ ทำรูปโปรไฟล์และรูปติดบัตรพร้อมตรวจขนาด มีชุดตัวอย่าง (พรีวิว) ที่ไม่ใช่ภาพสวมจริง</p><dl><dt data-i18n="cameras.s145">ใช้กับ</dt><dd data-i18n="cameras.s146">ร้านถ่ายรูป รูปสมัครงาน/สมัครเรียน</dd><dt data-i18n="cameras.s147">กล้อง</dt><dd data-i18n="cameras.s148">อัปโหลดรูป หรือเว็บแคม/มือถือ</dd></dl></a>
     </div>
   </section>
 
@@ -202,6 +202,16 @@
     </div>
   </section>
 
+  <section class="group" id="profile" aria-labelledby="h-profile">
+    <h2 id="h-profile" data-i18n="cameras.prof.h">ชุดค่าการติดตั้ง: เดโม หรือ ใช้งานเชิงพาณิชย์</h2>
+    <div class="howto">
+      <p data-i18n="cameras.prof.p1">ชุดค่า "เดโม" (ค่าเริ่มต้น) เปิดให้ใช้โมเดลที่ฝึกจากข้อมูลใบอนุญาตวิจัยได้ เช่น อายุ/เพศของป้ายโฆษณา (UTKFace) การติดตั้งให้ลูกค้าที่จ่ายเงินควรเปิด "ใช้งานเชิงพาณิชย์" ซึ่งปิดโมเดลอายุ/เพศและ BiSeNet ในเครื่องนี้ หน้ากล้องที่เปิดจากเว็บอื่นที่ไม่ใช่เว็บสาธิตจะมีแถบเตือนสีแดงจนกว่าจะเปิดค่านี้</p>
+      <label class="check"><input type="checkbox" id="lqProfile"> <span data-i18n="cameras.prof.cb">ใช้งานเชิงพาณิชย์ในเครื่องนี้ (จำไว้ในเบราว์เซอร์นี้ หน้าเว็บจะโหลดใหม่)</span></label>
+      <p class="hint" id="lqProfileState" role="status"></p>
+      <p class="hint" data-i18n="cameras.prof.p2">ผู้ติดตั้งตั้งค่าเดียวกันให้ทุกเครื่องได้ด้วย window.LENSIQ_PROFILE = "commercial" ก่อนโหลด lensiq-config.js · โมเดลตรวจจับ/จดจำใบหน้าของ face-api.js ยังรอความเห็นทนายความ ป้าย "โมเดลใบอนุญาตวิจัย" จึงยังแสดงในทั้งสองชุดค่า</p>
+    </div>
+  </section>
+
   <section class="group" id="ipcam" aria-labelledby="h-ipcam">
     <h2 id="h-ipcam" data-i18n="cameras.ip.h">ใช้กล้อง IP / กล้องวงจรปิด (ผ่านโปรแกรมเว็บแคมเสมือน)</h2>
     <div class="howto">
@@ -226,6 +236,6 @@
 
   <p class="note"><b data-i18n="cameras.s242">ข้อควรรู้ด้าน PDPA:</b> <span data-i18n="cameras.s243">ระบบที่วิเคราะห์ใบหน้าหรือพฤติกรรมคนต้องติดป้ายแจ้งและขอความยินยอมตามกฎหมาย ระบบในหน้านี้ออกแบบให้ไม่บันทึกภาพคนและเก็บเพียงสถิติไว้ในเครื่อง ผลการประเมินเพศ อายุ และอารมณ์เป็นการคาดคะเนที่อาจคลาดเคลื่อน ดู</span> <a href="#accuracy" data-i18n="cameras.s244">ความแม่นยำที่วัดได้</a></p>
 </main>
-<script src="lensiq-config.js?v=3"></script>
+<script src="lensiq-config.js?v=4"></script>
 </body>
 </html>

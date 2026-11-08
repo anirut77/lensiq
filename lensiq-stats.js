@@ -19,7 +19,10 @@
      อนุกรมเวลา (tsCorrelation): ตัดผลวันในสัปดาห์ + แนวโน้มก่อน แล้วใช้ n_eff แบบ Bartlett/AR(1) ใน CI และ p
    - A/B: empirical Bayes (beta-binomial / normal–normal) ดึงค่าของกลุ่มที่ข้อมูลน้อยเข้าหาค่ากลาง ใช้จัดอันดับแทนค่าดิบ
    round 11 (3.4.0): quasiRef (φ̂ ≤ 1 → z) · p ของ twoProp/twoPropDaily กลับด้านจากช่วงเดียวกัน · correlation p แบบ exact t ·
-     ebBinom ช่วงที่ซื่อตรงเมื่อ tau2 = 0 · mixtureP/seqP (ดูซ้ำทุกวัน) · dailyMeanCI (ปรับวันในสัปดาห์ + AR) · abRatesStrata (A/B แยกช่วงเวลา) */
+     ebBinom ช่วงที่ซื่อตรงเมื่อ tau2 = 0 · mixtureP/seqP (ดูซ้ำทุกวัน) · dailyMeanCI (ปรับวันในสัปดาห์ + AR) · abRatesStrata (A/B แยกช่วงเวลา)
+   round 12 (3.5.0): ช่วงรายคู่ของ A/B เข้ากับ pAdj (compatible ; Bonferroni เก็บไว้เป็น loBonf/hiBonf) · poissonTest ช่วง exact (Clopper–Pearson)
+     คู่กับ p แบบ central · wilsonZ สูตรเดียวของทั้ง repo · raterAgreement (Cohen κ + Gwet AC1 + cluster bootstrap) · fleissKappa ·
+     seqAccum (เฝ้าดูแบบสะสม) และคำอธิบายขอบเขตคำรับประกันของหน้าต่างเลื่อน — docs/STATS.md §11–§14 */
 (/** @param {any} root */ function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory();
   else root.LQStats = factory();
@@ -186,12 +189,20 @@
   }
 
   /* ---------- สัดส่วนและอัตรา ---------- */
+  /** สูตร Wilson score ชุดเดียวของทั้ง repo (round 12): รับค่า z ตรง ๆ → [lo, hi] (n ≤ 0 → null)
+     tests/bench/metrics.cjs ใช้ฟังก์ชันนี้โดยตรง ; lensiq-sitecheck.js (โหลดในหน้ากล้องโดยไม่มีไฟล์นี้) มีสำเนาที่ถูกตรึงให้ตรงกันทุกบิต
+     ด้วย tests/unit/stats-intervals.test.js บนตาราง (x, n, z) */
+  function wilsonZ(x, n, z) {
+    if (!(n > 0)) return null;
+    const p = x / n, z2 = z * z, den = 1 + z2 / n;
+    const c = (p + z2 / (2 * n)) / den, h = z * Math.sqrt(p * (1 - p) / n + z2 / (4 * n * n)) / den;
+    return [Math.max(0, c - h), Math.min(1, c + h)];
+  }
   /** Wilson score interval ของ x/n */
   function wilson(x, n, conf = 0.95) {
     if (!(n > 0) || !(x >= 0) || x > n) return null;
-    const z = zCrit(conf), p = x / n, z2 = z * z, den = 1 + z2 / n;
-    const c = (p + z2 / (2 * n)) / den, h = z * Math.sqrt(p * (1 - p) / n + z2 / (4 * n * n)) / den;
-    return { p, lo: Math.max(0, c - h), hi: Math.min(1, c + h), n, x };
+    const [lo, hi] = /** @type {number[]} */ (wilsonZ(x, n, zCrit(conf)));
+    return { p: x / n, lo, hi, n, x };
   }
   /** ช่วงความเชื่อมั่นของอัตรารวม Σx/Σn จากข้อมูลรายวัน — quasi-binomial (round 10)
      คนในวันเดียวกันไม่เป็นอิสระต่อกัน (วันคิวยาวทุกคนซื้อน้อยลงพร้อมกัน) → Wilson ต่อคนแคบเกิน
@@ -240,15 +251,29 @@
     return Math.min(1, tot);
   }
   /** เทียบอัตรานับ c1/t1 กับ c2/t2 (เช่น คนเข้าร้านต่อวัน) — exact conditional test ของ Poisson
-     คืน { rate1, rate2, ratio, change, lo, hi (ช่วงของ change), p } */
+     round 12: ช่วงและ p มาจากการทดสอบเดียวกัน (p < α ⇔ ช่วง 1 − α ไม่คร่อม 0 เสมอ ; เดิม p แบบ exact แต่ช่วงแบบ Wald บน log
+     ขัดกัน 64 ช่องในตาราง 1–59 × 1–59 เช่น 3 vs 11)
+     - เงื่อนไขบน n = c1 + c2 : c1 ~ Bin(n, π) , π = t1·λ1 / (t1·λ1 + t2·λ2) ; ไม่ต่าง ⇔ π0 = t1 / (t1 + t2)
+     - p = exact สองด้านแบบ central = min(1, 2·min(P(X ≥ c1), P(X ≤ c1))) ที่ π0
+     - ช่วง = Clopper–Pearson ของ π แปลงเป็นอัตราส่วน ratio = π/(1 − π) · t2/t1 → change = ratio − 1 ; c1 = 0 → lo = −1 ; c2 = 0 → hi = null (ไม่จำกัด)
+     ค่าเดิมยังคืนไว้: pMinLik (binomial test แบบรวมผลที่โอกาสเกิดไม่เกินค่าที่เห็น) และ loWald / hiWald
+     คืน { rate1, rate2, ratio, change, lo, hi (ช่วงของ change), p, pMinLik, loWald, hiWald, n, method } */
   function poissonTest(c1, t1, c2, t2, conf = 0.95) {
     if (!(t1 > 0) || !(t2 > 0) || !(c1 >= 0) || !(c2 >= 0)) return null;
     c1 = Math.round(c1); c2 = Math.round(c2);
-    const r1 = c1 / t1, r2 = c2 / t2, n = c1 + c2;
-    const p = n ? binomTest(c1, n, t1 / (t1 + t2)) : 1;
-    let lo = null, hi = null, ratio = r2 > 0 ? r1 / r2 : null;
-    if (c1 > 0 && c2 > 0) { const z = zCrit(conf), se = Math.sqrt(1 / c1 + 1 / c2), lr = Math.log(ratio); lo = Math.exp(lr - z * se) - 1; hi = Math.exp(lr + z * se) - 1; }
-    return { rate1: r1, rate2: r2, ratio, change: ratio == null ? null : ratio - 1, lo, hi, p, n };
+    const r1 = c1 / t1, r2 = c2 / t2, n = c1 + c2, pi0 = t1 / (t1 + t2);
+    const pMinLik = n ? binomTest(c1, n, pi0) : 1;
+    const ge = (k, pi) => (k <= 0 ? 1 : ibeta(pi, k, n - k + 1)), le = (k, pi) => (k >= n ? 1 : 1 - ibeta(pi, k + 1, n - k));
+    const p = n ? Math.min(1, 2 * Math.min(ge(c1, pi0), le(c1, pi0))) : 1;
+    let loWald = null, hiWald = null, ratio = r2 > 0 ? r1 / r2 : null;
+    if (c1 > 0 && c2 > 0) { const z = zCrit(conf), se = Math.sqrt(1 / c1 + 1 / c2), lr = Math.log(/** @type {number} */ (ratio)); loWald = Math.exp(lr - z * se) - 1; hiWald = Math.exp(lr + z * se) - 1; }
+    let lo = null, hi = null;
+    if (n > 0) {
+      const a = 1 - conf, toChg = pi => pi / (1 - pi) * (t2 / t1) - 1;
+      lo = c1 === 0 ? -1 : toChg(betaQuantile(a / 2, c1, n - c1 + 1));
+      hi = c2 === 0 ? null : toChg(betaQuantile(1 - a / 2, c1 + 1, n - c1));
+    }
+    return { rate1: r1, rate2: r2, ratio, change: ratio == null ? null : ratio - 1, lo, hi, p, pMinLik, loWald, hiWald, n, method: "exact-conditional" };
   }
   /** ค่าเฉลี่ยพร้อม CI (t) */
   function meanCI(a, conf = 0.95) {
@@ -552,16 +577,36 @@
     const B = 1 + 2 * (k - 2) / (k * k - 1) * lam, F = A / B, df2 = (k * k - 1) / (3 * lam);
     return { stat: F, df1: k - 1, df2, p: Math.min(1, fSf(F, k - 1, df2)), method: "welch-anova" };
   }
-  /** รวม omnibus + ทุกคู่ (Holm) ; pair(a, b, conf) คืน { diff, lo, hi, p } ; ช่วงความเชื่อมั่นรายคู่ปรับแบบ Bonferroni (ช่วงร่วม 95%)
-     ค่า p ที่ใช้ตัดสิน (pAdj) = max(p หลัง Holm, p ของ omnibus) → สรุปว่าต่างได้เมื่อผ่านทั้งสองขั้น (protected Holm) */
-  function abPairs(ok, omni, pair) {
-    const P = [], m = ok.length * (ok.length - 1) / 2, confB = 1 - 0.05 / Math.max(1, m);
-    for (let i = 0; i < ok.length; i++) for (let j = i + 1; j < ok.length; j++) { const t = pair(ok[i], ok[j], confB); if (t) P.push({ a: ok[i].id, b: ok[j].id, ...t }); }
+  /** รวม omnibus + ทุกคู่ (Holm) ; pair(a, b, conf) คืน { diff, lo, hi, p } (p ต้องกลับด้านจากช่วงเดียวกัน: p < 1 − conf ⇔ ช่วงไม่คร่อม 0)
+     ค่า p ที่ใช้ตัดสิน (pAdj) = max(p หลัง Holm, p ของ omnibus) → สรุปว่าต่างได้เมื่อผ่านทั้งสองขั้น (protected Holm)
+     round 12 — ช่วงรายคู่ที่แสดง (lo, hi) = ช่วงที่ “เข้ากับการตัดสิน” (compatible): ระดับ conf_i = 1 − α·pRaw/pAdj
+       ช่วงนี้ไม่คร่อม 0 ⇔ pRaw < α·pRaw/pAdj ⇔ pAdj < α เสมอ (Holm แบบ step-down: คู่อันดับ k ได้ระดับ 1 − α/(m − k + 1) ;
+       ถ้า omnibus ไม่ผ่าน ช่วงจะกว้างพอให้คร่อม 0) — เดิมช่วง Bonferroni (1 − α/m) กับ p แบบ protected Holm ขัดกันราว 1.7% ของคู่
+       (p < 0.05 แต่ช่วงคร่อม 0) ; ช่วง Bonferroni (ช่วงร่วมทุกคู่) ยังคืนไว้เป็น loBonf / hiBonf / ciConfBonf */
+  function abPairs(ok, omni, pair, alpha = 0.05) {
+    const P = [], m = ok.length * (ok.length - 1) / 2, confB = 1 - alpha / Math.max(1, m);
+    for (let i = 0; i < ok.length; i++) for (let j = i + 1; j < ok.length; j++) {
+      const a = ok[i], b = ok[j], t = pair(a, b, confB);
+      if (t) { const row = { a: a.id, b: b.id, ...t }; Object.defineProperty(row, "_at", { value: c => pair(a, b, c), enumerable: false }); P.push(row); }
+    }
     const holm = adjustP(P.map(t => t.p), "holm");
     P.forEach((t, i) => { t.pRaw = t.p; t.pHolm = holm[i]; t.pAdj = Math.min(1, Math.max(holm[i], omni ? omni.p : 1)); t.p = t.pAdj; t.ciConf = confB; t.adjust = "omnibus+holm"; t.pairs = m; });
+    alignPairCI(P, alpha);
     return P;
   }
-  const findPair = (P, a, b) => { if (!a || !b) return null; const t = P.find(x => (x.a === a.id && x.b === b.id) || (x.a === b.id && x.b === a.id)); if (!t) return null; return t.a === a.id ? t : { ...t, a: t.b, b: t.a, diff: -t.diff, lo: -t.hi, hi: -t.lo }; };
+  /** ตั้งช่วงรายคู่ให้เข้ากับ pAdj (ดู abPairs) ; เรียกซ้ำได้หลัง pAdj เปลี่ยน (abRatesStrata) */
+  function alignPairCI(P, alpha = 0.05) {
+    P.forEach(t => {
+      if (t.loBonf === undefined) { t.loBonf = t.lo; t.hiBonf = t.hi; t.ciConfBonf = t.ciConf; }
+      const at = /** @type {any} */ (t)._at, pr = t.pRaw, pa = t.pAdj;
+      if (typeof at !== "function" || !(pr > 0) || !(pa > 0) || !fin(t.diff)) { t.ciMethod = "bonferroni"; return; }
+      const conf = Math.min(1 - 1e-12, 1 - alpha * Math.min(1, pr / pa)), c = at(conf);
+      if (!c || !fin(c.lo) || !fin(c.hi)) { t.ciMethod = "bonferroni"; return; }
+      t.lo = c.lo; t.hi = c.hi; t.ciConf = conf; t.ciMethod = "compatible";
+    });
+    return P;
+  }
+  const findPair = (P, a, b) => { if (!a || !b) return null; const t = P.find(x => (x.a === a.id && x.b === b.id) || (x.a === b.id && x.b === a.id)); if (!t) return null; return t.a === a.id ? t : { ...t, a: t.b, b: t.a, diff: -t.diff, lo: -t.hi, hi: -t.lo, loBonf: fin(t.hiBonf) ? -t.hiBonf : t.hiBonf, hiBonf: fin(t.loBonf) ? -t.loBonf : t.loBonf }; };
   /** A/B ของอัตรา: groups = [{ id, name, x, n }] → ทุกกลุ่มมี Wilson (ดิบ) และ eb (ค่าหลัง shrinkage + ช่วง 95%)
      จัดอันดับด้วยค่าหลัง shrinkage ; กลุ่มที่ n < minN แสดงแต่ไม่จัดอันดับ/ไม่ทดสอบ
      omnibus = chi-square (หรือ permutation เมื่อค่าคาดหวังน้อย) ; test = best vs runner-up, spread = best vs worst (ค่า p = pAdj) */
@@ -810,8 +855,15 @@
      mixtureP: mSPRT (Robbins 1970 ; Johari et al. 2017) — ค่าประมาณ est ~ N(θ, V) ; prior ผสม θ ~ N(0, τ²)
        Λ = √(V/(V+τ²))·exp(est²τ² / (2V(V+τ²))) ; p = min(1, 1/Λ) — P(Λ ≥ 1/α ณ เวลาใดก็ได้) ≤ α เมื่อข้อมูลสะสมต่อเนื่อง (Ville)
      seqP(est, p, tau): แปลง p ของการทดสอบเดิม (t หรือ z) เป็น z เทียบเท่า แล้ว V = (est/z)² — ใช้หลักฐานชุดเดียวกับการทดสอบเดิม
-     τ = ขนาดผลที่สนใจ (เช่น 0.15 = 15% บน log scale) ; การจำลองใน tests/unit/stats-r11.test.js: แจ้งเตือนอัตราซื้อที่ดูทุกวัน 22 วัน
-     ผิดอย่างน้อยหนึ่งครั้ง 30% (p < 0.05) → ≤ 5% (mixture p < 0.05) ; ราคา = ต้องเห็นผลชัดกว่า (docs/STATS.md §7) */
+     τ = ขนาดผลที่สนใจ (เช่น 0.15 = 15% บน log scale) ; การจำลองใน tests/unit/stats-typeone-sequential.test.js: แจ้งเตือนอัตราซื้อที่ดูทุกวัน 22 วัน
+     ผิดอย่างน้อยหนึ่งครั้ง 30% (p < 0.05) → ≤ 5% (mixture p < 0.05) ; ราคา = ต้องเห็นผลชัดกว่า (docs/STATS.md §7)
+     round 12 — ขอบเขตของคำรับประกัน (พูดให้ตรง):
+       - ข้อมูลที่ “สะสมต่อเนื่อง” (ช่วงเริ่มคงที่ ยาวขึ้นทุกวัน): ทฤษฎี Ville รับประกัน P(เตือนผิดสักครั้ง) ≤ α แม้ดูกี่ครั้งก็ได้ (ภายใต้สมมติฐานปกติของ est)
+       - หน้าต่างเลื่อน “7 วันล่าสุด เทียบ 7 วันก่อน” ที่แดชบอร์ดและการแจ้งเตือนคำนวณใหม่ทุกวัน: ข้อมูลไม่สะสม (วันเก่าหลุดออก)
+         คำรับประกันข้างบนจึง “ไม่ครอบคลุม” — การคุมเตือนผิดเป็นแบบ “ปรับเทียบด้วยการจำลอง” (empirically calibrated) เท่านั้น:
+         เตือนผิดอย่างน้อยหนึ่งครั้งใน 22 วัน ≈ 0.5–3% ที่ τ = 0.15 และยังต่ำกว่า 5% ที่ τ = 0.10 และ 0.25 (ตรึงไว้ใน
+         tests/unit/stats-intervals.test.js ; ไม่ได้รับประกันเมื่อยาวกว่า 22 วันหรือรูปแบบความผันผวนต่างไปจากที่จำลอง)
+       - seqAccum(): ทางเลือกแบบสะสมจากวันเริ่มคงที่ (คำรับประกันตามทฤษฎีใช้ได้) — ดูด้านล่าง */
   function mixtureP(est, se, tau) {
     if (!fin(est) || !(se > 0) || !(tau > 0)) return 1;
     const V = se * se, T2 = tau * tau, L = 0.5 * Math.log(V / (V + T2)) + est * est * T2 / (2 * V * (V + T2));
@@ -822,7 +874,17 @@
     const z = zOfP(Math.max(1e-300, p)); if (!(z > 0)) return 1;
     return mixtureP(est, Math.abs(est) / z, tau);
   }
-  const SEQ = { tauLog: 0.15, tauRel: 0.15 };
+  const SEQ = { tauLog: 0.15, tauRel: 0.15, guarantee: { accumulating: "always-valid (Ville)", sliding: "empirically calibrated (simulation)" } };
+  /** round 12 — การเฝ้าดูแบบสะสม (accumulating) ที่คำรับประกัน always-valid ใช้ได้จริง: ช่วง A เริ่มที่วันคงที่ start แล้วยาวขึ้นทุกวัน
+     เทียบกับช่วงอ้างอิง B ที่คงที่ (เช่น 7–14 วันก่อนเริ่ม) ; daily = [{ x, n }] เรียงตามวัน ; คืน { p (twoPropDaily), pSeq, diff, days, guarantee }
+     ใช้ได้กับอัตรา (x/n) ; ถ้าเริ่มใหม่ (start ขยับ) ต้องถือเป็นการเฝ้าดูชุดใหม่ */
+  function seqAccum(daily, start, ref, { tau = SEQ.tauRel } = {}) {
+    const D = Array.isArray(daily) ? daily : [], A = D.slice(Math.max(0, start | 0)), B = Array.isArray(ref) ? ref : [];
+    if (!A.length || !B.length) return null;
+    const t = twoPropDaily(A, B); if (!t) return null;
+    const pSeq = t.p2 > 0 ? seqP(t.diff, t.p, tau * t.p2) : 1;
+    return { p: t.p, pSeq, diff: t.diff, p1: t.p1, p2: t.p2, lo: t.lo, hi: t.hi, days: A.length, guarantee: SEQ.guarantee.accumulating };
+  }
 
   /* ---------- ค่าเฉลี่ยต่อวัน (round 11): ปรับวันในสัปดาห์ + เผื่อสหสัมพันธ์ต่อเนื่อง ----------
      meanCI ธรรมดาบนค่ารายวัน: ช่วงที่มีสัปดาห์ไม่ครบเอียงตามวันที่มี และวันที่ติดกันคล้ายกัน (AR) → ช่วงแคบเกิน
@@ -913,7 +975,7 @@
     const dfs = pairsRaw.filter(t => t.df >= 1), dfPool = sum(dfs.map(t => t.df)), phiPool = dfPool > 0 ? sum(dfs.map(t => t.Q)) / dfPool : null;
     let omni = /** @type {any} */ (cmhOmnibus(ok, phiPool, dfPool));
     const P = abPairs(ok, omni || { p: 0 }, (a, b, c) => { const t = mhPair(a.strata, b.strata, c); return t.diff == null ? { ...t, diff: a.ci.p - b.ci.p, lo: -1, hi: 1, p: 1 } : t; });
-    if (!omni) { const hm = Math.min(1, ...P.map(t => t.pHolm)); omni = { p: hm, method: "holm-min" }; P.forEach(t => { t.pAdj = Math.min(1, Math.max(t.pHolm, hm)); t.p = t.pAdj; }); }
+    if (!omni) { const hm = Math.min(1, ...P.map(t => t.pHolm)); omni = { p: hm, method: "holm-min" }; P.forEach(t => { t.pAdj = Math.min(1, Math.max(t.pHolm, hm)); t.p = t.pAdj; }); alignPairCI(P); }
     P.forEach(t => { t.cap = !(t.overlap >= minOverlap) || !(t.shared >= minShared) ? "weak" : null; });
     const res = { ...base, omnibus: omni, omnibusTotals: base.omnibus, pairsTotals: base.pairs, pairs: P, strata: true, minOverlap, minShared, overlapMin: /** @type {number | null} */ (null) };
     res.test = findPair(P, res.best, res.runner); res.spread = findPair(P, res.best, res.worst);
@@ -1022,7 +1084,7 @@
     // ช่วง 95% (round 11): เดิมใช้ posterior ของ M ข้างบนตรง ๆ → เมื่อ tau2 ≤ 0 ช่วงแคบเกือบศูนย์ (24/80, 26/80, 25/80 → [0.3116, 0.3134])
     // ครอบคลุมค่าจริงเพียง ~55% ; ตอนนี้: tau2 ประมาณไม่ได้ (≤ 0 หรือกลุ่มเดียว) → Wilson ของกลุ่มนั้นเอง (ciMethod "wilson")
     // tau2 > 0 → posterior แต่จำกัดน้ำหนักของ prior ไม่เกินขนาดกลุ่มที่ใหญ่สุด (M_ci ≤ max n — prior จากข้อมูล k กลุ่มไม่ควรมีค่าเท่าข้อมูลมากกว่ากลุ่มใดกลุ่มหนึ่ง)
-    // และไม่แคบกว่า 80% ของ Wilson (ยังไม่ได้นับความไม่แน่นอนของ tau2 เอง) — ทดสอบการครอบคลุมใน tests/unit/stats-r11.test.js
+    // และไม่แคบกว่า 80% ของ Wilson (ยังไม่ได้นับความไม่แน่นอนของ tau2 เอง) — ทดสอบการครอบคลุมใน tests/unit/stats-typeone-sequential.test.js
     const identified = tau2 > 0 && k >= 3 && pbar > 0 && pbar < 1, Mci = identified ? Math.min(M, Math.max(...G.map(g => g.n))) : 0;
     const ac = Math.max(1e-6, pbar * Mci), bc = Math.max(1e-6, (1 - pbar) * Mci);
     const ciOf = g => {
@@ -1082,7 +1144,46 @@
     diff: { strong: "ต่างกันจริง หลักฐานชัด", moderate: "น่าจะต่างกันจริง", weak: "ยังไม่แน่ อาจต่างกันโดยบังเอิญ", none: "ยังไม่เห็นความต่างที่ชัด", insufficient: "ข้อมูลยังน้อย ยังสรุปไม่ได้" }
   };
   const plainConf = (level, kind = "change") => (TH_PLAIN[kind] || TH_PLAIN.change)[level] || TH_PLAIN.change.insufficient;
-  const VERSION = "3.4.0";
+  /* ---------- ความสอดคล้องของผู้ให้คะแนน (round 12): Cohen κ · Gwet AC1 · Fleiss κ พร้อมช่วงแบบ cluster bootstrap ---------- */
+  /** rows = [{ id, a, b }] — ป้ายของผู้ให้คะแนน 2 คนต่อรายการ (0/1 หรือหมวดใดก็ได้) ; id = กลุ่ม (เช่น คน) สำหรับ bootstrap ทั้งกลุ่ม
+     (รูปหลายรูปของคนเดียวกันไม่เป็นอิสระต่อกัน) ; po = สัดส่วนที่ตรงกัน
+     κ (Cohen 1960) = (po − pe)/(1 − pe), pe = Σ_k pA_k·pB_k ; AC1 (Gwet 2008) = (po − pe1)/(1 − pe1), pe1 = Σ_k π_k(1 − π_k)/(q − 1),
+     π_k = (pA_k + pB_k)/2 — AC1 ไม่ “ลงโทษ” เมื่อหมวดหนึ่งพบบ่อยมาก (κ paradox) ; q = จำนวนหมวด (อย่างน้อย 2)
+     ช่วง 95% = percentile bootstrap แบบสุ่มทั้งกลุ่ม (reps ครั้ง, seed คงที่) ; indicative = กลุ่มน้อยกว่า minClusters (ค่าเริ่มต้น 15)
+     คืน { n, clusters, po, pe, kappa, kappaLo, kappaHi, ac1, ac1Lo, ac1Hi, categories, indicative } หรือ null */
+  function agreeStats(R, cats) {
+    const n = R.length; if (!n) return null;
+    const q = Math.max(2, cats.length), idx = new Map(cats.map((c, i) => [c, i])), A = Array(cats.length).fill(0), B = Array(cats.length).fill(0);
+    let agree = 0; for (const r of R) { A[idx.get(r.a)]++; B[idx.get(r.b)]++; if (r.a === r.b) agree++; }
+    const po = agree / n, pe = A.reduce((t, x, k) => t + (x / n) * (B[k] / n), 0);
+    const pe1 = A.reduce((t, x, k) => { const pk = (x + B[k]) / (2 * n); return t + pk * (1 - pk); }, 0) / (q - 1);
+    return { po, pe, pe1, kappa: pe < 1 ? (po - pe) / (1 - pe) : (po === 1 ? 1 : null), ac1: pe1 < 1 ? (po - pe1) / (1 - pe1) : null };
+  }
+  function seededRng(seed) { let a = seed >>> 0 || 1; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  function raterAgreement(rows, { reps = 4000, seed = 2008, conf = 0.95, minClusters = 15 } = {}) {
+    const R = (rows || []).filter(r => r && r.a != null && r.b != null); if (!R.length) return null;
+    const cats = [...new Set(R.flatMap(r => [r.a, r.b]))].sort();
+    const est = /** @type {any} */ (agreeStats(R, cats));
+    const by = new Map(); R.forEach((r, i) => { const k = r.id != null ? String(r.id) : "#" + i; if (!by.has(k)) by.set(k, []); by.get(k).push(r); });
+    const G = [...by.values()], rnd = seededRng(seed), K = [], C = [];
+    if (G.length >= 2) for (let b = 0; b < reps; b++) {
+      const S = []; for (let j = 0; j < G.length; j++) S.push(...G[Math.floor(rnd() * G.length)]);
+      const e = agreeStats(S, cats); if (e && fin(e.kappa)) K.push(e.kappa); if (e && fin(e.ac1)) C.push(e.ac1);
+    }
+    const a = (1 - conf) / 2, qt = (v, x) => (v.length ? quantile(v, x) : null);
+    return { n: R.length, clusters: G.length, categories: cats, po: est.po, pe: est.pe, kappa: est.kappa, kappaLo: qt(K, a), kappaHi: qt(K, 1 - a),
+      ac1: est.ac1, ac1Lo: qt(C, a), ac1Hi: qt(C, 1 - a), indicative: G.length < minClusters, minClusters, method: "cluster-bootstrap" };
+  }
+  /** Fleiss κ (1971) สำหรับผู้ให้คะแนนหลายคน: items = [[จำนวนผู้ให้คะแนนที่เลือกหมวด k ของรายการนั้น, ...]] (ทุกรายการมีผู้ให้คะแนนเท่ากัน m ≥ 2)
+     คืน { kappa, po, pe, items, raters, categories } หรือ null */
+  function fleissKappa(items) {
+    const X = (items || []).filter(r => Array.isArray(r) && r.length >= 2 && r.every(v => v >= 0)); if (!X.length) return null;
+    const m = sum(X[0]), k = X[0].length; if (!(m >= 2) || X.some(r => r.length !== k || sum(r) !== m)) return null;
+    const N = X.length, pj = Array.from({ length: k }, (_, j) => sum(X.map(r => r[j])) / (N * m));
+    const Pi = X.map(r => (r.reduce((t, v) => t + v * v, 0) - m) / (m * (m - 1))), po = mean(Pi), pe = pj.reduce((t, p) => t + p * p, 0);
+    return { kappa: pe < 1 ? (/** @type {number} */ (po) - pe) / (1 - pe) : null, po, pe, items: N, raters: m, categories: k };
+  }
+  const VERSION = "3.5.0";
   /** ความแรงของสหสัมพันธ์ */
   function corrWord(r) {
     if (!fin(r)) return "ไม่ทราบ";
@@ -1093,7 +1194,7 @@
   return {
     fin, clean, sum, mean, median, quantile, sd, mad, describe, movingAvg,
     erf, erfc, erfAS, normCdf, normSf, normInv, lgamma, ibeta, tCdf, tCrit, zCrit,
-    wilson, quasiBinomCI, quasiRef, pFromCI, twoProp, binomTest, mixtureP, seqP, SEQ, dailyMeanCI, abRatesStrata, mhPair, cmhOmnibus, poissonTest, countCompare, arContrast, arWhiten, twoPropDaily, planMore, poissonGLM, nbGLM, solve, adjustP, meanCI, welch,
+    wilson, wilsonZ, quasiBinomCI, quasiRef, pFromCI, twoProp, binomTest, mixtureP, seqP, seqAccum, SEQ, alignPairCI, raterAgreement, fleissKappa, dailyMeanCI, abRatesStrata, mhPair, cmhOmnibus, poissonTest, countCompare, arContrast, arWhiten, twoPropDaily, planMore, poissonGLM, nbGLM, solve, adjustP, meanCI, welch,
     robustZ, stlLite, looExpected, nbCdf, nbTwoSided, zOfP, ANOM, anomalies, seasonGrid, holtWinters, forecast,
     correlation, tsCorrelation, funnel, cohorts, abRates, abMeans, chiSqHomog, welchAnova, gammaP, chi2Sf, fSf, ebBinom, ebNormal, betaQuantile,
     confLevel, corrWord, pctP, pTextTH, TH_CONF, TH_CONF_SHORT, TH_PLAIN, plainConf, VERSION

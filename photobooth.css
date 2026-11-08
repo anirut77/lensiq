@@ -164,3 +164,7 @@ label.slider input{padding:0}
 .pb-outfit-note[data-shown="draft"]{background:#fde8e8;color:#8a1c1c}
 .pb-outfit-note[data-shown="safe"]{background:#fff6e0;color:#7a5a05}
 .pb-outfit-note .btn{margin-top:6px}
+/* round 12: สวิตช์ "ชุดจำลองแบบทดลอง" (ปิดเป็นค่าเริ่มต้น) */
+.pb-exp{border:1px dashed var(--line);border-radius:12px;padding:4px 12px 8px;background:var(--bg);margin-bottom:8px}
+.pb-exp .hint{margin-top:2px}
+.pb-outfit-note[data-shown="off"]{background:var(--bg);color:var(--muted)}

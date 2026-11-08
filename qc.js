@@ -1168,6 +1168,11 @@ if (typeof document !== "undefined") (() => {
     renderStats();
   }
   $("#inspectNow").onclick = () => runInspect("manual");
+  // round 12: แท็บถูกซ่อน/จอดับ = กล้องหยุด — Wake Lock ระหว่างตรวจต่อเนื่อง แจ้งเมื่อกลับมา และเก็บช่วงที่ไม่ได้ตรวจไว้กับกะ (ตัวเลขเท่านั้น)
+  const UA = LQCam.unattended ? LQCam.unattended({ container: $("#uaBox") || $("#engine").parentNode, isRunning: () => running && source !== "sim", tag: "หยุดตรวจ",
+    gapText: "แท็บถูกซ่อนหรือจอดับ {a}–{b} ({m}) — ระหว่างนั้นไม่ได้ตรวจขวด ขวดที่ผ่านไลน์ในช่วงนี้ไม่ได้ถูกตรวจ · เปิดแท็บนี้ไว้ด้านหน้าและตั้งจอไม่ให้ดับเอง",
+    onGap: g => { (shift.gaps || (shift.gaps = [])).push({ from: g.from, to: g.to }); while (shift.gaps.length > 50) shift.gaps.shift(); save(K.shift, shift); } }) : null;
+  $("#toggle").addEventListener("click", () => setTimeout(() => { if (!UA) return; if (running) UA.start(); else UA.stop(); }, 0)); // หลัง onclick ด้านล่างสลับ running แล้ว
   $("#toggle").onclick = () => {
     if (!running) {
       if (source === "image") return engine("โหมดตรวจต่อเนื่องใช้กับกล้อง วิดีโอ หรือภาพจำลอง — สำหรับรูปภาพให้กด “ตรวจเดี๋ยวนี้”", "warn");

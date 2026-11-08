@@ -1,6 +1,6 @@
 {
   "$comment": "Single source of truth for every customer-facing accuracy figure on the camera pages (cameras.html#accuracy and the per-page acc-note banners). Edit the numbers here, then run `node tools/accuracy-sync.mjs` to rewrite the Thai markup and the en/zh dictionaries; `node tools/accuracy-sync.mjs --check` (and tests/unit/accuracy-figures.test.js) fails when a page or dictionary disagrees with this file, when a figure's `md` evidence is no longer in ACCURACY.md, or when `value` is not `raw` rounded. `{name}` in a text is replaced by figures[name].value.",
-  "round": 11,
+  "round": 12,
   "source": "ACCURACY.md",
   "figures": {
     "storeNet5": { "value": "−0.4", "raw": -0.4, "md": "**272 / 273** | **−0.4%**", "what": "store, pooled 5 fps, round 5: net count error" },
@@ -94,6 +94,12 @@
       "th": "ก่อนเริ่ม: ผลวัดล่าสุด (การขับจำลอง ไม่ใช่คนขับที่ง่วงจริง) ระบบเตือนการหลับตา 2 วินาทีได้ราว {dr2s}% และเตือนผิดราว {drFaPerHour} ครั้งต่อชั่วโมง จึงพลาดการหลับตาได้มาก ห้ามใช้แทนการพักผ่อน และห้ามมองจอขณะขับ",
       "en": "Before you start: in the latest measurement (simulated drives, not real drowsy drivers) the system alerted on about {dr2s}% of 2-second eye closures, with about {drFaPerHour} false alarms per hour, so it misses many closures. Do not use it instead of rest, and do not look at the screen while driving",
       "zh": "开始前请注意：最新测量（模拟驾驶，并非真实困倦司机）中，系统对约 {dr2s}% 的 2 秒闭眼发出提醒，误报约每小时 {drFaPerHour} 次，因此会漏掉很多闭眼。不能代替休息，驾驶时请勿看屏幕"
+    },
+    {
+      "key": "driver.accstart2",
+      "th": "หมายความว่ามีเพียงราว {dr2s}% ของการหลับตา 2 วินาทีที่มีเสียงเตือน ที่เหลือไม่มีเสียงเตือนเลย — เป็นเพียงเครื่องช่วยเตือนเสริม ไม่ใช่ตัวกันหลับ หากรู้สึกง่วงให้จอดพักทันที อย่ารอเสียงเตือน",
+      "en": "In other words, only about {dr2s}% of 2-second eye closures get an alert and the rest get none. It is only an extra awareness aid, not something that keeps you awake. If you feel drowsy, stop and rest at once; do not wait for an alert",
+      "zh": "也就是说，只有约 {dr2s}% 的 2 秒闭眼会发出提醒，其余完全没有提醒。它只是辅助提醒工具，不能防止打瞌睡。感到困倦时请立即停车休息，不要等待提醒"
     },
     {
       "key": "driver.calwarn.fail",

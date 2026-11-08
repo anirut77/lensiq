@@ -45,7 +45,8 @@ Contracted plans (§2) are for organisations that need named contacts, on-site v
 | Releases | Quarterly | Monthly | Monthly + hotfixes |
 | On-site visits included | 0 | [1 per year] | [4 per year] |
 | Pilot / re-acceptance (`PILOT-PLAN.md`) | Paid | [1 per year] | On every new site |
-| Price | [ ] | [ ] | [ ] |
+| Price (draft list price, VAT excl., per site per year — confirm in the quotation) | [36,000 THB] | [96,000 THB] | [240,000 THB] |
+| Pilot fee credit | Pilot fee credited against year 1 when signed within 30 days of the pilot report | same | same |
 
 ## 3. Severity and response targets
 

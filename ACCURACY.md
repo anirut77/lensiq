@@ -938,6 +938,11 @@ instances that did not write the code. They saw blind review sheets, with the 9 
 codes and no QA output, and used the same criteria. There are still no human raters. The second rater applied the garment-shape
 criterion more strictly than the round-9 rater (sack bodies, tube sleeves and pasted hands count). On the 248 plain renders, the
 two raters agree on 87/108 (dev) and 117/140 (test).
+Raw agreement is inflated when about 70 % of renders are defective, so round 12 adds chance-corrected agreement with
+person-cluster 95 % intervals (`node tests/bench/studio-intervals.mjs`, `lensiq-stats.js` `raterAgreement`): Cohen's κ = 0.54
+[0.19–0.83] (dev) and 0.60 [0.28–0.84] (test), Gwet's AC1 = 0.67 [0.40–0.89] and 0.72 [0.48–0.90]. That is moderate agreement, and
+the lower bounds are low. Rows counted from fewer than 15 people (for example "calibrated confidence: rule-passing plain renders",
+6 people) are marked "indicative only" in that output. Read their intervals as a rough range, not a measured rate.
 
 | test: 35 people, 140 person × garment pairs (second rater) [person-cluster 95 %] | round 9 page | round 10 page |
 | --- | --- | --- |
@@ -1046,6 +1051,30 @@ ID-photo requirements (`idSpecCheck`). The user must tick "checked" to continue.
 `LENSIQ-ID-Check` text chunk. The automatic marks are a weak aid: they show a finding on 4/11 of the defective round-11 test
 photos, and mark a leftover or cut on 2/24 clean ones. The point of the step is that a person looks at the photo.
 `photobooth-gate-log-r11.json` records what the step found for every portrait.
+
+### Round 12: a no-outfit check that falls back to the original photo, the outfit check fails closed, booth outfits off by default
+
+**Not measured yet.** The portraits are not in the repo and were not available for this round, so nothing below changes a count
+in §11 / §11b. The next run of `studio.bench.mjs --render --only none --log …` records the new verdict per portrait (`nq`: pass,
+fails, measurements, and whether the page showed the original photo), and the labels then give its effect.
+
+- **No-outfit check** (`studio-qa.js` `noOutfitCheck`). The round 10–11 labels name the common defects of the no-outfit output:
+  background attached to the person (flags, chair backs: t01, t34, t35), torsos cut by a straight line, and a lost person (t07).
+  The check looks for each: the person piece under 5 % of the photo, a detached piece ≥ 0.15 % of the photo, cut-out kept beside
+  the head above the chin (more than 1.1 face widths from the face centre, not hair, not skin; area > 0.08 face widths²), the torso
+  ending above the bottom edge, and a perfectly straight vertical person edge ≥ 0.6 face widths inside the frame. The limits were
+  set before any labelled render was looked at, not tuned. When it fails, studio.html shows **the untouched original photo** with
+  red frames on what it found; the edited version is one tap away, marked, and confirmed before export. When the checker cannot
+  run, the same fallback applies (fail closed). Expected cost: some clean photos also fall back to the original.
+- **Outfit check fails closed.** If `studio-qa.js` or the fit is missing, the outfit is withheld like a failed check; on request it
+  shows as "unchecked", with its own banner, the corner mark, and a confirmation before export.
+- **Review before export** (studio, as in the photo booth): PNG / JPEG / high-resolution and ID exports show the image with the red
+  frames and require a tick, once per image state.
+- **Photo booth outfits are off by default** behind an "experimental outfit simulation" switch (124/124 drawn outfits were defective
+  in §11b). The presets still remember their outfit; with the switch on, the round-10 flow (no-outfit first, draft on request) is
+  unchanged.
+- **On-screen numbers are generated** (`tests/bench/studio-figures.mjs` → `StudioQA.FIGURES`, checked in CI): the outfit miss rate
+  is quoted for both splits (36 % test, 56 % dev, AI-rated), and the calibrated-confidence line uses the same figures.
 
 ## 12. On-site accuracy check, camera health and long-run stability (round 9, extended in round 10)
 
@@ -1285,6 +1314,62 @@ garbage collection. The machine was running other benchmarks at the same time, s
   produced the published figures were not fingerprinted and the datasets are not on this machine. They are filled the
   next time each bench is re-run.
 
+### Round 12: unattended operation, reproducibility status, held-out health tooling, install guards
+
+- **Hidden tabs and locked screens.** The camera pages pause their cameras when the tab is hidden or the screen locks
+  (`LQCam` autoPause), so a hidden tab means no analysis at all, not slower analysis. Before round 12 this was silent: the
+  store's 1-s quality loop added a fixed 1 s per sample, and a throttled timer recorded far less than the real hidden
+  time. Now `LQCam.unattended` (store, booth, signage, attendance, QC line, driver) keeps a Wake Lock while running where
+  the browser supports it, and says once when it does not. It marks the tab title "[หยุดนับ]" while hidden. On return it
+  shows a notice that stays until dismissed: when analysis stopped, for how long, and that the time was recorded. Store and
+  booth record each gap as real "offline" seconds split over the hours it spans (`LQSite.noteGap`), so a 20-minute
+  hidden tab flags its hour (≥ 5 min) in the chart, the CSVs and insights. Health samples now add their real elapsed seconds
+  (`LQCam.sampleSec`, capped at 10 s) instead of 1 s each. After a gap, store starts tracking afresh (`resumePipe`): a
+  track from before the gap could otherwise be matched to a different person across the line. The unit test reproduces
+  that phantom crossing and shows it is gone. Gaps are also logged (numbers only) in `st-day-*.gaps`, `booth-state.gaps`,
+  `sg-stats.gaps`, the QC shift and the driver trip. An on-site check that was hidden for part of its run gets a warning
+  in its recommendations and `hiddenMs` in its export.
+- **Per-camera quality.** `day.qualityCam[slot][hour]` is stored next to the combined `day.quality`, which is unchanged
+  and still conservative. A flagged hour in the store note now names the camera at fault.
+- **Short on-site checks.** When a door or booth check is too short for the net-count interval, because netErrorCI
+  returns null below 3 blocks or marks it `short` below the minimum blocks, the report adds need "เวลาตรวจ (อีกราว N
+  นาที)" and a recommendation to run longer. Before, a 2-minute check with 60 perfect crossings said "on target so far"
+  with no next step. The interval maths and the block rule belong to the statistics work (see `docs/STATS.md`).
+- **Soak harness.** `tests/bench/soak.mjs` now takes `--hours`, `--sample-min`, `--source fake --cams N` (fake live
+  cameras: the hub, scheduler and hidden-tab path; `--real` runs YOLOX on the fake frames) and `--hide-every M
+  --hide-for H [--freeze]`. It ends with a drift report: heap and RSS slope, analysis-rate change from the first to the
+  last quarter, DOM growth, exceptions, and hidden time injected vs recorded. One run so far, on this machine
+  (Apple silicon, headless, no WebGL): 4 fake cameras with scripted detections, 10 minutes, two 1-minute hidden periods.
+  Retained heap went 2.9 → 3.6 MB. The analysis rate stayed at 2.5 Hz per camera from the first quarter to the last. DOM
+  nodes went 5,165 → 5,575, and no listeners were left behind. Hidden time was 120 s injected and 120 s recorded offline
+  in 2 gaps. Counting resumed after each gap, with 0 exceptions. **Not yet run:** 8–24 h, the real model on several
+  cameras, real background-tab throttling (headless Chrome does not reproduce it; the harness overrides visibility), and
+  mobile browsers.
+- **Reproducibility status.** `node tests/bench/results.mjs manifest` writes `tests/bench/results/manifest.json`. For each
+  dataset folder a bench reads, it records "present" with a file-list fingerprint (sha256 of sorted path + size; add
+  `--content` for the full content hash) or "not reproducible here: datasets absent". For each bench it records whether
+  the bench can be re-run on this machine. The benches update it themselves when they find their data
+  (`lib.mjs needData`). `headlines.json` now gives every figure its bench and an explicit status instead of a bare
+  `null`. `results.mjs --check --strict` fails while a customer-facing figure's datasets have no content fingerprint. It
+  fails today: 54 figure/dataset pairs, because no dataset is on this machine (`~/lq-bench-data` is absent). Only the
+  synthetic QC and checkout benches are "reproducible here".
+- **Held-out health thresholds (tooling only).** `tests/bench/health-holdout.mjs` scores the shipped thresholds on
+  sequences that were not used to tune them. A (sequence, degradation) case is harmful when |net error| > 10% or event
+  precision < 85%, and flagged when the pill warned in ≥ 50% of samples. The report gives sensitivity and false-alarm
+  rate with Wilson intervals, for the tune split (PETS09, TUD) and the hold-out split (MOT17). `--plan` prints the
+  people.bench runs. **No hold-out number exists yet**, because the datasets are not on this machine.
+- **Driver.** The page now spells out what 25% means: only about 25% of 2-second closures get an alert, and the rest get
+  none. It says the tool is an extra aid and that a drowsy driver should stop, not wait for an alert. The line comes from
+  `docs/accuracy-figures.json` (`driver.accstart2`). A per-driver readiness line shows "not ready to assist this driver"
+  until the prompted eyes-closed check in that vehicle has caught ≥ 70% of at least 8 prompts within the last 30 days.
+  Monitoring still runs, but a trip started without that shows a warning. An IR-camera profile was not added; it needs
+  IR hardware to test.
+- **Install guards.** Commercial use is selectable per device on cameras.html#profile (`localStorage "lq-profile"`). It
+  can only move demo → commercial. A red bar appears on camera pages served from a non-demo origin while the demo profile
+  is active. Turning on booth "recognise" mode or signage age/gender now needs an operator tick ("notice posted / consent
+  obtained"). The time of that acknowledgement is exported (`consentAckAt`, `noticeAckAt`). Settings saved before round 12
+  keep working but show the box until confirmed.
+
 ### What is still missing
 
 - **No field data.** Nothing here was measured at a real customer site. The on-site check makes that measurement
@@ -1299,9 +1384,10 @@ garbage collection. The machine was running other benchmarks at the same time, s
   above are the protocol for collecting them.
 - The driver check uses deliberate closures while parked, not real drowsiness. It shows that the camera, angle and
   light in that vehicle work. It does not certify safety.
-- Round 11 still has no held-out degradation run (MOT17) for the health thresholds, no dataset fingerprints for the
-  published runs, and no measurement of the liveness option or of IP cameras through a virtual webcam (added latency,
-  compression).
+- Round 12 added the tools (manifest, `--strict`, `health-holdout.mjs`, longer soak) but still has no held-out degradation
+  run (MOT17) for the health thresholds and no content fingerprints for the published runs: both need the datasets
+  re-downloaded. There is still no measurement of the liveness option or of IP cameras through a virtual webcam (added
+  latency, compression), and no field data from a real site.
 
 ## Datasets and licences
 

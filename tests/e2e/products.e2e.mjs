@@ -81,5 +81,22 @@ export default async function ({ base, launch, check }) {
       assert(f.teamLink && /ไม่ใช่การประเมิน/.test(f.team), "fortune hub links team face reading as not an assessment");
       await ft.close();
     });
+
+    await check("products: one-pager contact block (honest without seller details) + print button, in TH / EN / 中文", async () => {
+      for (const lang of ["th", "en", "zh"]) {
+        const pg = await browser.newPage(`${base}/retail.html?cpu&lang=${lang}`);
+        await pg.waitFor(() => document.querySelector("[data-pd-seller] .pd-contact-pend a[href='index.html?interest=store#contact']") && (document.documentElement.lang || "").slice(0, 2) === (location.search.match(/lang=(\w\w)/) || [])[1], 8000);
+        const r = await pg.evaluate(() => ({ print: !!document.querySelector("button[data-pd-print]"), text: document.querySelector(".pd-contact").innerText, mail: !!document.querySelector(".pd-contact-dl a[href^='mailto:']") }));
+        assert(r.print && !r.mail, lang + ": " + JSON.stringify(r)); // nothing invented: only the site address until LENSIQ_SELLER is filled
+        if (lang !== "th") assert(!/[฀-๿]/.test(r.text), lang + ": Thai in the contact block: " + r.text);
+        await pg.close();
+      }
+      const pg = await browser.newPage(null, { initScripts: [`window.LENSIQ_SELLER = { name: "LENSIQ Test Co.", email: "sales@example.test", line: "@lensiqtest" };`] });
+      await pg.goto(`${base}/hr.html?cpu&lang=en`);
+      await pg.waitFor(() => document.querySelector('.pd-contact-dl a[href="mailto:sales@example.test"]'), 8000);
+      const c = await pg.evaluate(() => ({ dt: [...document.querySelectorAll(".pd-contact-dl dt")].map(x => x.textContent), pend: !!document.querySelector(".pd-contact-pend") }));
+      assert(c.dt.join() === "Provider,E-mail,LINE,Website" && !c.pend, JSON.stringify(c));
+      await pg.close();
+    });
   } finally { await browser.close(); }
 }

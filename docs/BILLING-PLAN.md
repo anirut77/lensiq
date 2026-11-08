@@ -78,7 +78,8 @@ sign-in and one back office, so one account can hold a consumer plan and a busin
   a few tens to a few hundred baht and subscriptions in the low hundreds per month; we sit at the low-middle of that
   range and compete on privacy (on-device) and three languages. *Verify current competitor prices before launch —
   no specific competitor figures are claimed here.*
-* **Cost cover.** At ≈ 3 THB per AI reading, 30 AI readings/month cost ≈ 90–105 THB at 100 % use against ≈ 139 THB net
+* **Cost cover (assumption — NOT measured yet).** At ≈ 3 THB per AI reading (estimate from list token prices, to be
+  replaced by the measured `usage_counters` tokens × price on the deployed Worker before the Plus quota is fixed), 30 AI readings/month cost ≈ 90–105 THB at 100 % use against ≈ 139 THB net
   of VAT — thin at the cap, so watch real use in `usage_counters`; typical use is far lower. Reports keep > 85 % margin.
 
 **Delivery (round 11):** reports are redeemed on `report.html` (`report.js`): the page builds the report on the device, takes one credit with `POST /api/me/entitlements/use {feature: "report_*"}` BEFORE showing it, saves it with `POST /api/me/saved` (domain `bazi` / `zodiac` / `lifegraph`, trimmed to the 16 KB limit, print/PDF always full) and offers a retry that never takes a second credit. Without the API the page shows a full sample labelled "demo, not charged, not stored"; with `FREE_MODE` on no credit is taken. Refunds: terms §9 (full refund within 14 days if unopened). Renewal of Plus / Creator / Business: no automatic renewal; `account.html` shows a reminder banner and the account menu a reminder from 7 days before `current_period_end` (no e-mail sender yet — terms §8 says so). Checkout requires the age-of-majority box (`age_confirm`, 20 or older or guardian consent).
@@ -99,12 +100,17 @@ one-time purchases become `credits`); business `pro` (shown as Creator) and `bus
 | AI writing assistant | – (when membership is on) | 3 / day (server-enforced) | 100 / month | 600 / month | unlimited (fair use) / own API key |
 | Transaction history | – | ✓ (`account.html`) | ✓ | ✓ | ✓ |
 | Cloud analytics history | – | 7 days | 90 days | 400 days | custom retention |
-| CSV export | – | – | ✓ | ✓ | ✓ + API |
+| CSV export | ✓ on-device (free) | ✓ on-device (free) | ✓ on-device — included free in every tier, **not a paid differentiator** (pricing page says so) | same | ✓ + API (quotation) |
 | Multi-site hub nodes | 1 | 1 | 3 | 20 | unlimited |
 | Tax invoice (ใบกำกับภาษีเต็มรูป) | – | – | on request | ✓ | ✓ |
 | Support | community | community | e-mail 2 business days | e-mail + LINE, next business day | SLA, DPA, PDPA pack |
 
-Model cost at 100 % quota use: Creator (Pro) ≈ 350 THB (≈ 35 % of price), Business ≈ 2,100 THB (≈ 54 %). Typical use is far
+**Positioning (round 12).** Until cloud analytics history and hub nodes ship (`coming_soon`), Creator / Business are
+sold on what is delivered today: the AI writing-assistant quota, response-time support (e-mail; Business + LINE),
+the Business onboarding call and full tax invoice, and — for retail / HR buyers — a quotation + 2-week pilot whose fee
+is credited against the first paid period (`docs/PILOT-PLAN.md`). CSV export stays free on-device for everyone.
+
+Model cost at 100 % quota use (estimate, same unmeasured 3 THB assumption): Creator (Pro) ≈ 350 THB (≈ 35 % of price), Business ≈ 2,100 THB (≈ 54 %). Typical use is far
 below the cap, so gross margin after Opn fees should be 60–80 %. Add-on: **AI top-up 100 readings = 490 THB (ร่าง)**.
 
 Guest/Member limits are owner settings (admin → Members, D1 `settings.membership`) and apply only when
@@ -163,8 +169,10 @@ month; an event activation agency budgets per booth-day, so a day pass priced be
   Round 10: the owner records it in admin (`POST /admin/api/billing/payments/:id/refund`, password + TOTP re-auth,
   bank-transfer reference required): payment → `refunded`, subscription cancelled and unused report credits removed
   (both optional), a `refund` row in the member's history, the receipt is stamped "คืนเงินแล้ว". Cancel / extend a
-  subscription and complimentary plans or credits are admin actions with the same re-auth. A credit-note document is
-  not generated yet.
+  subscription and complimentary plans or credits are admin actions with the same re-auth. Round 11: a credit note (ใบลดหนี้, Revenue Code s.86/10) is generated for every refund of a VAT tax invoice
+  (`backend/src/receipt.js` `creditNoteData`; member `GET /api/me/payments/:id/refunds/:n/credit-note`, admin
+  `GET /admin/api/billing/payments/:id/refunds/:n/credit-note`; covered by the integration test). Without VAT
+  registration there is no tax invoice and therefore no credit note — the receipt is stamped "คืนเงินแล้ว".
 * **Amount mismatch:** if Opn reports a different amount / currency than the order, the payment is set to
   `mismatch` (final; nothing activated), the owner gets an admin alert, and resolves it by hand (refund or manual grant).
 * Duplicate/erroneous payments are always refunded in full.

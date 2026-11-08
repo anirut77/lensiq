@@ -757,7 +757,15 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
       await sleep(Math.max(0, 200 - (performance.now() - t0))); // ~5 fps สูงสุด ไม่ซ้อนงาน เบาพอสำหรับ WASM
     }
   }
+  // round 12: แท็บถูกซ่อน/จอดับ = กล้องหยุด — Wake Lock, แจ้งเตือนเมื่อกลับมา, จบผู้ชมที่ค้างก่อนช่วงหยุด และเก็บช่วงที่หยุด (ตัวเลขเท่านั้น)
+  const UA = LQCam.unattended ? LQCam.unattended({ container: $("#uaBox") || $("#engine").parentNode, isRunning: () => faceRunning, tag: "หยุดวัดผู้ชม",
+    gapText: "แท็บถูกซ่อนหรือจอดับ {a}–{b} ({m}) — ระหว่างนั้นไม่ได้วัดผู้ชมและไม่ได้เลือกโฆษณาตามผู้ชม · เปิดแท็บนี้ไว้ด้านหน้าและตั้งจอไม่ให้ดับเอง", onGap: g => {
+    tracker.tracks.forEach(endTrack); tracker = newTracker(); seg = null;
+    (stats.gaps || (stats.gaps = [])).push({ from: g.from, to: g.to }); while (stats.gaps.length > 50) stats.gaps.shift();
+    persistStats();
+  } }) : null;
   function stopFace() {
+    if (UA) UA.stop();
     faceRunning = false;
     tracker.tracks.forEach(endTrack);
     tracker = newTracker(); seg = null;
@@ -773,6 +781,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
       camLayout();
       engine(`กำลังวัดผู้ชม (ตัวประมวลผล: ${backend.toUpperCase()}${backend === "webgl" || backend === "test" ? "" : " — โหมดประหยัด ประมวลผลทุก 0.2 วินาที"}${R.shared ? "" : " · กล้องผู้ชม: " + audCam().name})`, "ok");
       faceRunning = true; $("#startFace").textContent = "หยุดวัดผู้ชม";
+      if (UA) UA.start();
       faceLoop();
     } catch (e) { camError(e, "เริ่มวัดผู้ชม", startFace); }
     finally { $("#startFace").disabled = false; }
@@ -782,11 +791,32 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   function applyPip() { $("#pip").hidden = !settings.pip; $("#pipToggle").textContent = settings.pip ? "ซ่อนภาพกล้อง" : "แสดงภาพกล้อง"; }
   $("#pipToggle").onclick = () => { settings.pip = !settings.pip; applyPip(); persistSettings(); };
   $("#demoToggle").checked = settings.useDemo;
+  // round 12: เปิดอายุ/เพศได้หลังผู้ดูแลยืนยันว่าติดป้ายแจ้งที่หน้าจอแล้ว — บันทึกเวลาที่ยืนยัน (settings.ackAt) ลงไฟล์ส่งออก
+  // (ค่าเริ่มต้นเดิมที่เปิดไว้ยังทำงานเหมือนเดิม แต่จะเห็นกล่องให้ยืนยันจนกว่าจะกดยืนยัน)
+  const SA = LQCam.ackBox({ label: "ยืนยันว่าติดป้ายแจ้งที่หน้าจอแล้วว่ามีการประมาณอายุ/เพศของผู้ที่มองจอแบบไม่ระบุตัวตน (ไม่บันทึกภาพ) และผู้ชมขอไม่เข้าร่วมได้", okText: "ยืนยันและเปิดอายุ/เพศ" });
+  const sgAck = SA.el; sgAck.id = "sgAck";
+  $("#demoToggle").closest("label").after(sgAck);
+  const sgCb = SA.cb, sgOk = SA.ok;
+  const sgAckUi = () => {
+    SA.at.textContent = settings.ackAt ? "ยืนยันการติดป้ายแจ้งเมื่อ {t}".replace("{t}", new Date(settings.ackAt).toLocaleString()) : "";
+    if (settings.useDemo && !settings.ackAt && AGE_OK()) { sgAck.hidden = false; sgOk.textContent = "ยืนยันการติดป้ายแจ้ง"; }
+  };
+  sgOk.onclick = () => {
+    if (!sgCb.checked) return;
+    settings.ackAt = new Date().toISOString(); sgAck.hidden = true; sgCb.checked = false; sgOk.disabled = true;
+    const t = $("#demoToggle");
+    if (!settings.useDemo) { t.checked = true; t.onchange({ target: t }); } else { persistSettings(); sgAckUi(); }
+  };
   $("#demoToggle").onchange = e => {
-    settings.useDemo = e.target.checked; persistSettings();
+    if (e.target.checked && !settings.useDemo && !settings.ackAt) {
+      e.target.checked = false; sgAck.hidden = false; sgOk.textContent = "ยืนยันและเปิดอายุ/เพศ"; sgCb.focus();
+      return engine("ก่อนเปิดอายุ/เพศ: ติ๊กยืนยันว่าติดป้ายแจ้งที่หน้าจอแล้ว", "warn");
+    }
+    settings.useDemo = e.target.checked; persistSettings(); sgAck.hidden = true; sgAckUi();
     if (demoOn() && faceReady) loadAgeGender().catch(err => engine("โหลดโมเดลอายุ/เพศไม่สำเร็จ: " + (err && err.message || err), "err")); // เปิดภายหลัง: โหลดตอนนี้
     engine(settings.useDemo ? "เปิดการเลือกโฆษณาตามอายุ/เพศ (ค่าประมาณ)" : "ปิดการใช้อายุ/เพศแล้ว — เลือกโฆษณาจากอารมณ์และการมองเท่านั้น และไม่เก็บสถิติอายุ/เพศ", "ok");
   };
+  sgAckUi();
   // เต็มจอ: ใช้ Fullscreen API ถ้ามี (รวม iPad แบบ webkit) ไม่งั้นขยายเต็มหน้าต่างด้วย CSS (iPhone)
   const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement || document.querySelector(".pseudo-fs");
   function toggleFs(el) {
@@ -1289,7 +1319,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     sgPanel.state.textContent = SITE.verdictText(rep); sgPanel.state.dataset.s = rep.verdict;
     const doc = SITE.exportDoc("signage", {
       camera: run.cam, startedAt: new Date(run.startedAt).toISOString(), durationSec: Math.round((Date.now() - run.startedAt) / 1000),
-      settings: { useDemo: settings.useDemo, ageGenderModel: "face-api.js ageGenderNet (research-licence training data)", bands: SITE.BANDS, genderCall: "male > 0.6, female < 0.4" },
+      settings: { useDemo: settings.useDemo, noticeAckAt: settings.ackAt || null, ageGenderModel: "face-api.js ageGenderNet (research-licence training data)", bands: SITE.BANDS, genderCall: "male > 0.6, female < 0.4" },
       conditions: { health: [...run.health] }, passes: run.rows.length, distinctPeople: null, distinctNote: "one row per pass in front of the screen; the same person may pass more than once",
       passers: run.rows.map(r => ({ truthBand: r.truthBand, truthGender: r.truthGender, band: r.band, gender: r.gender, skipped: r.skip })),
       report: { verdict: rep.verdict, provisional: rep.provisional, pilot: rep.pilot ? rep.pilot.verdict : null, need: rep.need, n: rep.n, gender: rep.gender, genderCalled: rep.genderCalled, band: rep.band, bandWithin1: rep.bandWithin1, coverage: rep.coverage, confusion: rep.confusion, recs: rep.recs }

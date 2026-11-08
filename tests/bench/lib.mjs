@@ -20,6 +20,8 @@ export function needData(sub, what) {
     process.exit(0);
   }
   if (CACHE) mkdirSync(CACHE, { recursive: true });
+  // round 12: record the dataset's file-list fingerprint in tests/bench/results/manifest.json (reproducibility; no data copied)
+  if (process.env.LQ_NO_MANIFEST !== "1") import("./results.mjs").then(r => r.noteDataset(DATA, sub.split("/")[0])).catch(() => {});
   return p;
 }
 

@@ -52,3 +52,13 @@
 .sc-pilot[data-v=pass]{background:#e6f6ee;color:#14653b}.sc-pilot[data-v=fail]{background:#fdeaea;color:#a12b20}
 .sc-pilot .sc-need-i{display:inline-block;margin-right:10px;font-weight:500}
 .sc-pilot-b{font-weight:500;color:#14653b}
+/* round 12: unattended operation — notice after the tab was hidden / screen locked (LQCam.unattended) */
+.lq-unattended{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin:8px 0;padding:8px 12px;border-radius:10px;font-size:.86rem;background:#fff4e0;color:#7a4a00;border:1px solid #f0c987}
+.lq-unattended[data-s="nolock"]{background:#eef4ff;color:#1d3f75;border-color:#bcd0f5}
+.lq-unattended p{margin:0;flex:1 1 240px}.lq-unattended[hidden]{display:none}
+/* round 12: operator acknowledgement before recognising faces / estimating age-gender; demo-profile banner */
+.lq-ack{margin:8px 0;padding:10px 12px;border-radius:10px;border:1px solid #f0c987;background:#fffaf0;font-size:.86rem}
+.lq-ack label{display:flex;gap:8px;align-items:flex-start}.lq-ack[hidden]{display:none}
+.lq-ack .lq-ack-at{display:block;color:#52514e;font-size:.78rem;margin-top:4px}
+.lq-ready{display:inline-block;margin:4px 0;padding:4px 10px;border-radius:999px;font-size:.8rem;background:#fdeaea;color:#a12b20}
+.lq-ready[data-s="ok"]{background:#e6f6ee;color:#14653b}.lq-ready[hidden]{display:none}

@@ -9,6 +9,10 @@
 //              (solid backgrounds only — text over images / gradients / video is skipped; disabled controls exempt)
 //   unlabeled  form controls without an accessible name (label, aria-label(ledby), title)
 //   errors     uncaught exceptions while loading
+//   hiddenShown elements carrying the [hidden] attribute that still render (an author display rule beat it)
+//   crumbs     the breadcrumb (nav.js .lq-crumbs) wraps onto more than one line on a phone
+//   thaiTracking Thai text that is letter-spaced (> .05em) or text-transform:uppercase (eyebrows, tags)
+//   state      (--states only) a scenario's own expectations, e.g. "retry" shown on a page that did not fail
 //
 //   node tools/mobile-audit.mjs                     all ./*.html, table on stdout
 //   node tools/mobile-audit.mjs palm store          only pages whose name contains a word
@@ -17,6 +21,10 @@
 //   node tools/mobile-audit.mjs --selftest         verify the detectors on synthetic markup first
 //   node tools/mobile-audit.mjs --strict            exit 1 when any page has findings (CI gate)
 //   node tools/mobile-audit.mjs --strict --checks overflow,contrast   only these categories count for --strict
+//   node tools/mobile-audit.mjs --states            post-interaction states instead of first load: open drawer, open
+//                                                   language menu, sign-in dialog, guest + full reading results,
+//                                                   signed-in account page and its error state (mocked API Worker
+//                                                   from tests/e2e/member.e2e.mjs — nothing leaves the machine)
 import { readdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -28,7 +36,7 @@ const argv = process.argv.slice(2);
 const opt = (name, def) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : def; };
 const width = +opt("--width", 390), height = +opt("--height", 844), lang = opt("--lang", "th"), jsonOut = opt("--json", null);
 const strict = argv.includes("--strict");
-const CHECKS = ["overflow", "targets", "tinyText", "thaiBreaks", "contrast", "unlabeled", "errors"];
+const CHECKS = ["overflow", "targets", "tinyText", "thaiBreaks", "contrast", "unlabeled", "errors", "hiddenShown", "crumbs", "thaiTracking", "state"];
 const checks = new Set(String(opt("--checks", CHECKS.join(","))).split(",").map(x => x.trim()).filter(Boolean));
 const skipNext = new Set(["--width", "--height", "--lang", "--json", "--checks"]);
 const words = argv.filter((a, i) => !a.startsWith("--") && !skipNext.has(argv[i - 1]));
@@ -173,9 +181,95 @@ function audit(W) {
     if (!named) out.unlabeled.push(name(el) + (el.name ? `[name=${el.name}]` : ""));
   }
 
+  // [hidden] elements that still render: `.btn{display:inline-flex}` & co. beat the UA [hidden] rule
+  out.hiddenShown = [...document.querySelectorAll("[hidden]")].filter(el => {
+    if (el.closest("template,head")) return false;
+    const st = getComputedStyle(el), r = el.getBoundingClientRect();
+    return st.display !== "none" && r.width > 0 && r.height > 0;
+  }).slice(0, 20).map(name);
+
+  // breadcrumb on one line (phones): items on several rows = an orphaned "/" or a page title pushed onto its own line
+  out.crumbs = [];
+  const ol = document.querySelector(".lq-crumbs ol");
+  if (ol && vis(ol)) {
+    const lis = [...ol.children].filter(vis);
+    // rows = items whose vertical extent does not overlap the previous row (items of different heights share a row)
+    const rects = lis.map(li => li.getBoundingClientRect()).sort((a, b) => a.top - b.top);
+    const tops = [];
+    for (const r of rects) if (!tops.length || r.top >= tops[tops.length - 1] - 1) tops.push(r.bottom); else tops[tops.length - 1] = Math.max(tops[tops.length - 1], r.bottom);
+    tops.size = tops.length;
+    if (tops.size > 1) out.crumbs.push(`${name(ol)} wraps onto ${tops.size} lines: ${lis.map(li => li.textContent.trim()).join(" / ").slice(0, 80)}`);
+  }
+
+  // Thai text with wide tracking or upper-casing
+  out.thaiTracking = [];
+  const seenT = new Set();
+  for (const el of document.body.querySelectorAll("*")) {
+    if (/^(SCRIPT|STYLE|SVG|TEMPLATE)$/i.test(el.tagName)) continue;
+    const direct = [...el.childNodes].some(n => n.nodeType === 3 && /[\u0E01-\u0E5B]/.test(n.nodeValue));
+    if (!direct || !vis(el)) continue;
+    const st = getComputedStyle(el), fs = parseFloat(st.fontSize) || 16;
+    const ls = st.letterSpacing === "normal" ? 0 : parseFloat(st.letterSpacing) || 0;
+    if (ls / fs > 0.05 + 1e-3 || st.textTransform === "uppercase") {
+      const k = `${name(el).slice(0, 60)} letter-spacing ${(ls / fs).toFixed(2)}em${st.textTransform === "uppercase" ? " uppercase" : ""}`;
+      if (!seenT.has(k)) { seenT.add(k); out.thaiTracking.push(k); }
+    }
+  }
+  out.thaiTracking = out.thaiTracking.slice(0, 40);
+
   out.targets = out.targets.slice(0, 400);
   return out;
 }
+
+/* ---------------- post-interaction states (--states) ---------------- */
+const SESSION = `try{sessionStorage.setItem("lq-member-session",JSON.stringify({t:"t".repeat(43),exp:Math.floor(Date.now()/1000)+3600}))}catch(e){}`;
+const visible = sel => `(() => { const e = document.querySelector(${JSON.stringify(sel)}); if (!e) return false; const s = getComputedStyle(e), r = e.getBoundingClientRect(); return s.display !== "none" && s.visibility !== "hidden" && r.width > 0 && r.height > 0; })()`;
+const castIching = async page => {
+  await page.evaluate(() => { document.getElementById("icStart").click(); document.getElementById("icAuto").click(); });
+  await page.waitFor(() => !document.getElementById("icResult").hidden, 15000);
+  await page.waitFor(() => { const b = document.getElementById("icRd-body"); return !!b && b.querySelectorAll(".fa-section").length >= 1; }, 8000);
+};
+/** Each scenario: page, mock (API Worker stand-in), signedIn, run(page) to reach the state, expect -> problems (in page). */
+export const SCENARIOS = [
+  { name: "drawer-open", page: "store.html", run: async page => {
+    await page.evaluate(() => { const t = document.querySelector(".nav-toggle"); if (t && getComputedStyle(t).display !== "none") t.click(); });
+    await sleep(500);
+  }, expect: `(() => { const t = document.querySelector(".nav-toggle"); if (!t || getComputedStyle(t).display === "none") return []; return t.getAttribute("aria-expanded") === "true" ? [] : ["menu button did not open the drawer"]; })()` },
+  { name: "lang-menu-open", page: "pricing.html", width: 320, run: async page => {
+    await page.evaluate(() => { const b = document.querySelector(".lang-switch button[aria-pressed=true]"); if (b) b.click(); });
+    await sleep(300);
+  }, expect: `(() => { const sw = document.querySelector(".lang-switch"); if (!sw) return ["no language switch"]; const other = [...sw.querySelectorAll("button[aria-pressed=false]")]; return other.length && other.every(b => b.getBoundingClientRect().height > 0) ? [] : ["the other languages are not reachable from the compact switch"]; })()` },
+  { name: "signin-dialog", page: "iching.html", mock: true, run: async page => {
+    await page.waitFor(() => window.LQMember && window.LQMember.ready(), 8000);
+    await page.evaluate(() => { const b = document.querySelector(".lq-acct [data-lq-signin]"); if (b) b.click(); });
+    await page.waitFor(() => !!document.querySelector("dialog.lq-dlg[open]"), 4000);
+    await sleep(300);
+  }, expect: `(() => { const d = document.querySelector("dialog.lq-dlg[open]"); if (!d) return ["dialog not open"]; const r = d.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight + 1 ? [] : ["dialog taller than the screen: " + Math.round(r.top) + ".." + Math.round(r.bottom)]; })()` },
+  { name: "reading-guest", page: "iching.html", mock: true, run: async page => {
+    await page.waitFor(() => window.LQMember && window.LQMember.ready(), 8000);
+    await castIching(page);
+    await page.waitFor(() => !!document.querySelector("#icRd-body .lq-gate"), 8000);
+    await sleep(300);
+  }, expect: `(() => { const b = document.getElementById("icRd-body"); return b && b.querySelector(".fa-reminder") ? [] : ["light reading lost its safety reminder"]; })()` },
+  { name: "reading-full", page: "iching.html", run: async page => { await castIching(page); await sleep(300); },
+    expect: `(() => document.querySelectorAll("#icRd-body .fa-section").length >= 3 ? [] : ["full reading has fewer than 3 sections"])()` },
+  { name: "account-signed-in", page: "account.html", mock: true, signedIn: true, run: async page => {
+    await page.waitFor(() => window.LQMember && window.LQMember.signedIn() && !document.getElementById("acApp").hidden, 8000);
+    await page.waitFor(() => !!document.querySelector("#acPayments table") && !document.getElementById("acPayments").hasAttribute("aria-busy"), 8000);
+    await sleep(300);
+  }, expect: `(() => { const p = []; const v = ${visible("#acRetry")}, m = ${visible("#acMore")}, pr = ${visible("#acPricing")};
+      if (v) p.push("'try loading again' shown although nothing failed"); if (m) p.push("'load more' shown at the end of the history");
+      if (pr) p.push("plans link shown while pricing is off (free mode)");
+      const t = document.querySelector("#acPayments table"), c = t && t.closest(".acct-card");
+      if (t && c && t.getBoundingClientRect().width > c.getBoundingClientRect().width + 1) p.push("payments table wider than its card: " + Math.round(t.getBoundingClientRect().width) + " > " + Math.round(c.getBoundingClientRect().width));
+      return p; })()` },
+  { name: "account-error", page: "account.html", mock: true, signedIn: true, run: async page => {
+    await page.waitFor(() => window.LQMember && window.LQMember.signedIn() && !!document.querySelector("#acPayments table"), 8000);
+    await page.evaluate(() => { window.__histFail = true; const r = document.getElementById("acRetry"); r.hidden = false; r.click(); });
+    await page.waitFor(() => document.getElementById("acHistMsg").classList.contains("bad"), 5000);
+    await sleep(300);
+  }, expect: `(() => { const p = []; if (!${visible("#acRetry")}) p.push("no retry after a failed load"); if (${visible("#acMore")}) p.push("'load more' shown after a failure"); if (!${visible("#acHistMsg")}) p.push("error message not visible"); return p; })()` }
+];
 
 if (argv.includes("--selftest")) {
   const srv0 = await serve(repo), b0 = await launch();
@@ -190,7 +284,10 @@ if (argv.includes("--selftest")) {
         '<p style="font-size:10px">ตัวเล็กเกินไป</p><button style="width:30px;height:30px;min-height:0;min-width:0;padding:0">x</button>' +
         '<div style="width:600px">กว้างเกินจอ</div>' +
         '<p id="lowc" style="color:#aaa;background:#fff">จางเกินไป</p><p id="okc" style="color:#111;background:#fff">ชัดเจน</p>' +
-        '<input id="nolab" type="text"><label>ชื่อ <input id="haslab" type="text"></label>';
+        '<input id="nolab" type="text"><label>ชื่อ <input id="haslab" type="text"></label>' +
+        '<button id="hb" hidden style="display:inline-flex!important">ซ่อน</button><p id="hp" hidden>ซ่อนจริง</p>' +
+        '<p id="trk" style="letter-spacing:.18em;font-size:16px">สมาชิก</p><p id="trkok" style="letter-spacing:.02em">สมาชิก</p>' +
+        '<nav class="lq-crumbs"><ol style="display:flex;flex-wrap:wrap;width:120px;list-style:none;padding:0"><li>หน้าแรก</li><li>บูธและสตูดิโอ</li><li>สตูดิโอภาพโปรไฟล์</li></ol></nav>';
     });
     const r = await page.evaluate(audit, width);
     const fails = [];
@@ -203,18 +300,52 @@ if (argv.includes("--selftest")) {
     if (r.contrast.some(x => x.includes("p#okc"))) fails.push("false positive contrast");
     if (!r.unlabeled.some(x => x.includes("input#nolab"))) fails.push("missed unlabeled input");
     if (r.unlabeled.some(x => x.includes("input#haslab"))) fails.push("false positive unlabeled input");
+    if (!r.hiddenShown.some(x => x.includes("button#hb"))) fails.push("missed a visible [hidden] element: " + JSON.stringify(r.hiddenShown));
+    if (r.hiddenShown.some(x => x.includes("p#hp"))) fails.push("false positive [hidden]");
+    if (!r.thaiTracking.some(x => x.includes("p#trk"))) fails.push("missed letter-spaced Thai: " + JSON.stringify(r.thaiTracking));
+    if (r.thaiTracking.some(x => x.includes("p#trkok"))) fails.push("false positive Thai tracking");
+    if (!r.crumbs.length) fails.push("missed a wrapped breadcrumb");
     console.log(fails.length ? "SELFTEST FAIL\n  " + fails.join("\n  ") : "selftest ok: " + JSON.stringify({ thaiBreaks: r.thaiBreaks, tiny: r.tinyText, targets: r.targets, overflow: r.overflow }));
     process.exitCode = fails.length ? 1 : 0;
   } finally { await b0.close(); await srv0.close(); }
   process.exit(process.exitCode);
 }
 
-const pages = readdirSync(repo).filter(f => f.endsWith(".html") && (!words.length || words.some(w => f.includes(w)))).sort();
+const statesMode = argv.includes("--states");
+const pages = statesMode ? SCENARIOS.filter(sc => !words.length || words.some(w => sc.name.includes(w) || sc.page.includes(w))).map(sc => sc.name)
+  : readdirSync(repo).filter(f => f.endsWith(".html") && (!words.length || words.some(w => f.includes(w)))).sort();
 const srv = await serve(repo);
 const browser = await launch();
 const results = {};
+const { MOCK } = statesMode ? await import("../tests/e2e/member.e2e.mjs") : { MOCK: "" };
 try {
-  for (const f of pages) {
+  if (statesMode) for (const nm of pages) {
+    const sc = SCENARIOS.find(x => x.name === nm), w = sc.width || width;
+    const init = [`try{localStorage.setItem("lq-lang",${JSON.stringify(lang)})}catch(e){}`];
+    if (sc.mock) init.unshift(MOCK);
+    if (sc.signedIn) init.push(SESSION);
+    const page = await browser.newPage(null, { initScripts: init, isolated: true });
+    await page.send("Emulation.setDeviceMetricsOverride", { width: w, height, deviceScaleFactor: 2, mobile: true });
+    await page.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 5 });
+    let r;
+    try {
+      const limit = (p, ms, what) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(what + " timeout")), ms))]);
+      await limit(page.goto(`${srv.base}/${sc.page}?cpu`), 30000, "load");
+      await sleep(800);
+      await limit(sc.run(page), 40000, "scenario");
+      r = await limit(page.evaluate(audit, w), 60000, "audit");
+      r.state = sc.expect ? await page.evaluate(sc.expect) : [];
+      r.errors = page.consoleErrors.filter(e => e.kind === "exception").map(e => String(e.text).split("\n")[0]).slice(0, 3);
+      r.width = w;
+    } catch (e) { r = { failed: String(e.message || e) }; }
+    await Promise.race([page.close(), sleep(5000)]);
+    results[nm] = r;
+    const c = k => (r[k] ? r[k].length : 0);
+    console.log(`${(nm + "@" + (sc.width || width)).padEnd(24)} ${r.failed ? "FAILED " + r.failed : `overflow=${r.scrollW > (r.width || width) + 1 ? "YES" : "no "} targets<44=${String(c("targets")).padStart(3)} contrast=${String(c("contrast")).padStart(3)} hiddenShown=${c("hiddenShown")} crumbs=${c("crumbs")} thaiTracking=${c("thaiTracking")} state=${c("state")} errors=${c("errors")}`}`);
+    if (argv.includes("--details") && !r.failed) for (const k of CHECKS) if (k !== "overflow" && (r[k] || []).length) console.log(`    ${k}: ${r[k].slice(0, 8).join(" | ")}`);
+    if (argv.includes("--details") && !r.failed && r.overflow.length) console.log(`    overflow: ${r.overflow.join(" | ")}`);
+  }
+  if (!statesMode) for (const f of pages) {
     const page = await browser.newPage(null, { initScripts: [`try{localStorage.setItem("lq-lang",${JSON.stringify(lang)})}catch(e){}`] });
     await page.send("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: 2, mobile: true });
     await page.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 5 });
@@ -230,7 +361,7 @@ try {
     await Promise.race([page.close(), sleep(5000)]);
     results[f] = r;
     const c = k => (r[k] ? r[k].length : 0);
-    console.log(`${f.padEnd(18)} ${r.failed ? "FAILED " + r.failed : `h=${String(r.height).padStart(5)} overflow=${r.scrollW > width + 1 ? "YES" : "no "} targets<44=${String(c("targets")).padStart(3)} text<12=${String(c("tinyText")).padStart(3)} thaiBreaks=${String(c("thaiBreaks")).padStart(3)} contrast=${String(c("contrast")).padStart(3)} unlabeled=${String(c("unlabeled")).padStart(2)} errors=${c("errors")}`}`);
+    console.log(`${f.padEnd(18)} ${r.failed ? "FAILED " + r.failed : `h=${String(r.height).padStart(5)} overflow=${r.scrollW > width + 1 ? "YES" : "no "} targets<44=${String(c("targets")).padStart(3)} text<12=${String(c("tinyText")).padStart(3)} thaiBreaks=${String(c("thaiBreaks")).padStart(3)} contrast=${String(c("contrast")).padStart(3)} unlabeled=${String(c("unlabeled")).padStart(2)} hidden=${c("hiddenShown")} crumbs=${c("crumbs")} thaiTrk=${c("thaiTracking")} errors=${c("errors")}`}`);
     if (argv.includes("--details") && !r.failed) for (const k of CHECKS) if (k !== "overflow" && (r[k] || []).length) console.log(`    ${k}: ${r[k].slice(0, 8).join(" | ")}`);
     if (argv.includes("--details") && !r.failed && r.overflow.length) console.log(`    overflow: ${r.overflow.join(" | ")}`);
   }
@@ -239,6 +370,6 @@ try {
   await srv.close();
 }
 if (jsonOut) { writeFileSync(jsonOut, JSON.stringify({ width, height, lang, results }, null, 2)); console.log("JSON written to " + jsonOut); }
-const anyBad = Object.values(results).some(r => r.failed || (checks.has("overflow") && r.scrollW > width + 1) ||
-  ["targets", "tinyText", "thaiBreaks", "contrast", "unlabeled", "errors"].some(k => checks.has(k) && (r[k] || []).length));
+const anyBad = Object.values(results).some(r => r.failed || (checks.has("overflow") && r.scrollW > (r.width || width) + 1) ||
+  CHECKS.filter(k => k !== "overflow").some(k => checks.has(k) && (r[k] || []).length));
 process.exit(strict && anyBad ? 1 : 0);

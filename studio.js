@@ -324,7 +324,7 @@
   }
 
   async function load(canvas) {
-    ST.phase = "analyzing"; ST.err = null; ST.cache = {}; ST.manual = null; ST.timings = {}; ST.qa = null; ST.draftOK = new Set(); ST.shown = null; ST.draft = null; $("#stQa").hidden = true;
+    ST.phase = "analyzing"; ST.err = null; ST.cache = {}; ST.manual = null; ST.timings = {}; ST.qa = null; ST.draftOK = new Set(); ST.shown = null; ST.draft = null; ST.noq = null; ST.noqAnyway = false; ST.origFallback = false; ST.reviewed = new Set(); $("#stQa").hidden = true;
     const T0 = now();
     ST.src = canvas; ST.W = canvas.width; ST.H = canvas.height; ST.hi = canvas._hi || null; ST.idSpec = null; if ($("#stIdSpec")) $("#stIdSpec").innerHTML = "";
     ST.px = ctx2(canvas).getImageData(0, 0, ST.W, ST.H).data;
@@ -654,7 +654,15 @@
           const sc = SC.composeLayers({ w: W, h: H, bg, person, keepA: safeKeep(pA), wrap: wrapK, wrapR });
           ST.out = sc.rgba; ST.fgAlpha = sc.fgAlpha; ST.shown = ok ? "plain" : "safe";
         } else { ST.out = r.rgba; ST.fgAlpha = r.fgAlpha; if (!ok) ST.shown = "draft"; }
+      } else if (g.key !== "none") {
+        // round 12: ปิดแบบปลอดภัย (fail closed) — ตัวตรวจ (studio-qa.js) โหลดไม่สำเร็จ หรือไม่มีผลจัดชุด/ชั้นชุด: ไม่แสดงชุดที่ไม่ได้ตรวจเป็นผลหลัก
+        // แสดงแบบไม่ใส่ชุดก่อน ดูชุดได้เมื่อกดเอง ("unchecked": ป้ายเตือนของตัวเอง ป้ายมุมภาพ และต้องยืนยันก่อนส่งออกเหมือนแบบร่าง)
+        ST.qa = { pass: false, ok: false, fails: ["unchecked"], m: {}, unchecked: true };
+        ST.draft = r;
+        if (ST.draftOK.has(g.key)) { ST.out = r.rgba; ST.fgAlpha = r.fgAlpha; ST.shown = "unchecked"; }
+        else { const sc = SC.composeLayers({ w: W, h: H, bg, person, keepA: safeKeep(pA), wrap: wrapK, wrapR }); ST.out = sc.rgba; ST.fgAlpha = sc.fgAlpha; ST.shown = "safe"; }
       }
+      noOutfitGate();
       ST.timings.render = now() - t0;
       $("#stOut").getContext("2d").putImageData(new ImageData(ST.out, W, H), 0, 0);
       drawOverlay();
@@ -691,38 +699,85 @@
     }
     ST.cache.safeKey = ck; ST.cache.safeK = k; return new Float32Array(k);
   }
+  // ---------- round 12: ประตูคุณภาพของแบบไม่ใส่ชุด (ผลหลักของหน้า: ฉากหลังใหม่ + รีทัชบางเบา) ----------
+  // ตรวจภาพตัดพื้นหลังหลังเก็บกวาด (StudioQA.noOutfitCheck: ตัวคนหาย เศษแยก ฉากติดข้างศีรษะ ลำตัวถูกตัดตรง) ถ้าไม่ผ่าน
+  // แสดงรูปเดิมที่ไม่ได้แก้ไข (ST.origFallback) แทนภาพที่มีรอย พร้อมกรอบสีแดงตรงจุดที่พบ — ผู้ใช้ดูแบบแก้ไขได้เมื่อกดเอง (ST.noqAnyway)
+  // และต้องยืนยันก่อนส่งออก; ตัวตรวจโหลดไม่สำเร็จ = ไม่ผ่าน (fail closed) · ?noq=0 = ปิด (เทียบใน tests/bench)
+  const NOQ = new URLSearchParams(location.search).get("noq") !== "0";
+  function noOutfitGate() {
+    ST.origFallback = false;
+    const noOut = ST.shown === "none" || ST.shown === "safe" || ST.shown === "plain";
+    if (!noOut || !NOQ || ST.matteFail || !ST.cache.safeK) return;
+    const ck = ST.cache.safeKey;
+    if (!ST.noq || ST.noq.key !== ck) {
+      let q;
+      try { q = window.StudioQA && window.StudioQA.noOutfitCheck ? window.StudioQA.noOutfitCheck({ keep: ST.cache.safeK, W: ST.W, H: ST.H, face: ST.face, hair: ST.layers && ST.layers.hair, src: ST.px }) : { pass: false, fails: ["unchecked"], marks: [], m: {} }; }
+      catch (e) { console.warn("no-outfit qa", e); q = { pass: false, fails: ["qa-error"], marks: [], m: {} }; }
+      ST.noq = { ...q, key: ck };
+    }
+    if (!ST.noq.pass && !ST.noqAnyway) { ST.out = new Uint8ClampedArray(ST.px); ST.origFallback = true; }
+  }
+  /** แบบไม่ใส่ชุดที่ไม่ผ่านการตรวจแต่ผู้ใช้เลือกดูเอง (ต้องยืนยันก่อนส่งออก) */
+  const noOutfitFlagged = () => !!(ST.noq && !ST.noq.pass && ST.noqAnyway && (ST.shown === "none" || ST.shown === "safe" || ST.shown === "plain"));
   // ---------- ประตูคุณภาพ: บอกผู้ใช้ตรง ๆ ว่าแสดงอะไร และทำไม ----------
   // ablation (tests/bench): ?wear=0.42,0.7 = WEAR k,t ของ synthNeck
   { const w = new URLSearchParams(location.search).get("wear"); if (w) { const [k, t] = w.split(",").map(Number); if (isFinite(k)) SC.WEAR.k = k; if (isFinite(t)) SC.WEAR.t = t; } }
-  const QA_GROUP = f => /^(neck|jaw|face-island)/.test(f) ? "neck" : /^(hem|balloon|shoulder)/.test(f) ? "shape" : /hand/.test(f) ? "hands" : f === "hair-cut" ? "hair" : "bits";
+  const QA_GROUP = f => f === "unchecked" ? "unchecked" : /^(neck|jaw|face-island)/.test(f) ? "neck" : /^(hem|balloon|shoulder)/.test(f) ? "shape" : /hand/.test(f) ? "hands" : f === "hair-cut" ? "hair" : "bits";
+  /** ตัวเลขบนหน้าจอมาจาก StudioQA.FIGURES (สร้างจากป้ายกำกับ + บันทึกผลตรวจที่ commit ไว้: tests/bench/studio-figures.mjs) — ทุกข้อความใช้ชุดเดียวกัน
+   *  บอกทั้งชุดทดสอบ (คนที่ระบบไม่เคยเห็น) และชุดพัฒนา ไม่เลือกเฉพาะตัวเลขที่ดูดีกว่า */
+  const FIG = () => (window.StudioQA && window.StudioQA.FIGURES) || null;
+  const figVars = () => { const F = FIG(); if (!F) return null; const a = F.shownBad.test.p, b = F.shownBad.dev.p; return { test: a, dev: b, lo: Math.min(a, b), hi: Math.max(a, b), nt: F.shownBad.test.n, nd: F.shownBad.dev.n }; };
+  /** ข้อความผลตรวจแบบไม่ใส่ชุด (StudioQA.noOutfitCheck) */
+  const NOQ_TXT = k => T("studio.js.noq.f." + k, { empty: "ตัวคนหายจากภาพตัด", island: "เศษที่ไม่ต่อกับตัวคน", attached: "ฉากหลังติดข้างศีรษะ (ธง เก้าอี้ วงกบ)", "cut-bottom": "ลำตัวถูกตัดตรงเหนือขอบล่าง", "cut-left": "ขอบตัวคนถูกตัดเป็นเส้นตรง", "cut-right": "ขอบตัวคนถูกตัดเป็นเส้นตรง", unchecked: "ตัวตรวจโหลดไม่สำเร็จ", "qa-error": "ตรวจไม่ได้" }[k] || k);
+  const noqList = () => [...new Set((ST.noq ? ST.noq.fails : []).map(NOQ_TXT))].join(", ");
   function showGate() {
     const el = $("#stQa"), msg = $("#stQaMsg"), btn = $("#stQaDraft"); if (!el) return;
     if (ST.shown === "none" && ST.matteFail) { el.hidden = false; el.dataset.shown = "none"; el.dataset.fails = "matte-fail"; msg.textContent = T("studio.js.qa.matteFail", "ตัดพื้นหลังไม่สำเร็จบนรูปนี้ จึงแสดงรูปเดิมทั้งภาพแทน ลองรูปที่หน้าชัด แสงพอ และฉากเรียบ"); btn.hidden = true; return; }
     btn.hidden = false;
-    if (!["safe", "draft", "garment", "plain"].includes(ST.shown)) { el.hidden = true; delete el.dataset.fails; return; }
-    const groups = [...new Set((ST.qa ? ST.qa.fails : []).map(QA_GROUP))].map(k => T("studio.js.qa.g." + k, { neck: "รอยต่อคอ/กราม", shape: "ทรงชุดที่ไหล่/ชายเสื้อ", hands: "มือและแขนเสื้อ", hair: "ผมที่ถูกตัด", bits: "เศษภาพรอบตัว" }[k])).join(", ");
+    // round 12: แบบไม่ใส่ชุดที่ไม่ผ่านการตรวจ: แสดงรูปเดิม (หรือแบบแก้ไขเมื่อผู้ใช้เลือกเอง) พร้อมเหตุผลและปุ่มสลับ
+    if (ST.shown === "none" && ST.noq && !ST.noq.pass) {
+      el.hidden = false; el.dataset.shown = ST.origFallback ? "orig" : "noq-draft"; el.dataset.fails = ST.noq.fails.join(" ");
+      msg.textContent = ST.origFallback
+        ? T("studio.js.noq.orig", "การตรวจอัตโนมัติพบปัญหาในภาพที่เปลี่ยนฉากหลัง ({f}) จึงแสดงรูปเดิมที่ยังไม่ได้แก้ไขแทน จุดที่พบอยู่ในกรอบสีแดง แก้ด้วยแปรงลบพื้นหลัง/แปรงคืนตัวคน หรือใช้รูปที่ถ่ายหน้าผนังเรียบ", { f: noqList() })
+        : T("studio.js.noq.draft", "กำลังแสดงภาพที่เปลี่ยนฉากหลังแล้วแม้ไม่ผ่านการตรวจอัตโนมัติ ({f}) ตรวจจุดในกรอบสีแดงก่อนใช้ ต้องยืนยันก่อนส่งออก", { f: noqList() });
+      btn.textContent = ST.origFallback ? T("studio.js.noq.showEdited", "ดูภาพที่แก้ไขแล้ว (อาจมีเศษฉากหลัง)") : T("studio.js.noq.showOrig", "กลับไปรูปเดิม");
+      btn.setAttribute("aria-label", btn.textContent); return;
+    }
+    if (!["safe", "draft", "garment", "plain", "unchecked"].includes(ST.shown)) { el.hidden = true; delete el.dataset.fails; return; }
+    const groups = [...new Set((ST.qa ? ST.qa.fails : []).map(QA_GROUP))].map(k => T("studio.js.qa.g." + k, { neck: "รอยต่อคอ/กราม", shape: "ทรงชุดที่ไหล่/ชายเสื้อ", hands: "มือและแขนเสื้อ", hair: "ผมที่ถูกตัด", bits: "เศษภาพรอบตัว", unchecked: "ตัวตรวจคุณภาพโหลดไม่สำเร็จ ชุดจึงยังไม่ได้ตรวจ" }[k])).join(", ");
     const g0 = groups || T("studio.js.qa.g.conf", "ความมั่นใจต่ำ");
     el.hidden = false; el.dataset.fails = ST.qa ? ST.qa.fails.join(" ") : ""; el.dataset.shown = ST.shown;
     // ผ่านการตรวจอัตโนมัติแล้วก็ยังพลาดได้บ่อย (ACCURACY.md §11): บอกตรง ๆ ทุกครั้งที่แสดงชุด
     msg.textContent = ST.shown === "safe"
       ? T("studio.js.qa.safe", "ชุดนี้ยังสวมบนรูปนี้ได้ไม่เนียน ({g}) จึงแสดงเฉพาะฉากหลังใหม่และรีทัชกับเสื้อเดิมของคุณ — ลองรูปหน้าตรงที่เห็นคอชัด ผมไม่บังไหล่", { g: g0 })
       : ST.shown === "draft" ? T("studio.js.qa.draft", "กำลังแสดงชุดแบบร่างที่ไม่ผ่านการตรวจอัตโนมัติ ({g}) อาจเห็นรอยต่อ ตรวจภาพก่อนใช้งาน", { g: g0 })
-      : ST.shown === "garment" ? T("studio.js.qa.preview", "ชุดเป็นชุดตัวอย่าง (พรีวิว) ไม่ใช่ภาพสวมจริง: ในชุดทดสอบของเรา ภาพชุดที่ผ่านการตรวจอัตโนมัติแล้วราว 1 ใน 3 ยังเห็นรอยที่กราม ใต้หู หรือปลายผม ตรวจบริเวณคอก่อนใช้ และใช้แบบไม่ใส่ชุดสำหรับรูปทางการ")
+      : ST.shown === "unchecked" ? T("studio.js.qa.unchecked", "กำลังแสดงชุดที่ยังไม่ได้ตรวจอัตโนมัติ (ตัวตรวจคุณภาพโหลดไม่สำเร็จ) อาจเห็นรอยต่อที่คอหรือกราม ภาพมีป้าย \"ภาพจำลองชุด\" และต้องยืนยันก่อนส่งออก")
+      : ST.shown === "garment" ? (figVars() ? T("studio.js.qa.previewFig", "ชุดตัวอย่างเป็นภาพจำลอง (พรีวิว) ไม่ใช่ภาพสวมจริง: ในการทดสอบของเรา (ให้คะแนนโดย AI ไม่ใช่คน) ภาพชุดที่ผ่านการตรวจอัตโนมัติแล้วยังเห็นรอยที่กราม ใต้หู หรือปลายผม {lo}–{hi}% — {test}% ในชุดทดสอบ (คนที่ระบบไม่เคยเห็น {nt} ภาพ) และ {dev}% ในชุดพัฒนา ({nd} ภาพ) ตรวจบริเวณคอก่อนใช้ และใช้แบบไม่ใส่ชุดสำหรับรูปทางการ", figVars())
+        : T("studio.js.qa.preview", "ชุดเป็นชุดตัวอย่าง (พรีวิว) ไม่ใช่ภาพสวมจริง: ในชุดทดสอบของเรา ภาพชุดที่ผ่านการตรวจอัตโนมัติแล้วราว 1 ใน 3 ยังเห็นรอยที่กราม ใต้หู หรือปลายผม ตรวจบริเวณคอก่อนใช้ และใช้แบบไม่ใส่ชุดสำหรับรูปทางการ"))
       : T("studio.js.qa.plain", "กำลังแสดงรูปของคุณแบบไม่ใส่ชุด (ฉากหลังใหม่ + รีทัช)");
     const extra = [];
-    if (ST.variant === "cover" && (ST.shown === "garment" || ST.shown === "draft")) extra.push(T("studio.js.qa.cover", "ใช้แบบคอสูง (คอเต่า) ให้อัตโนมัติ เพื่อปิดรอยต่อข้างกรามและใต้หู"));
+    if (ST.variant === "cover" && (ST.shown === "garment" || ST.shown === "draft" || ST.shown === "unchecked")) extra.push(T("studio.js.qa.cover", "ใช้แบบคอสูง (คอเต่า) ให้อัตโนมัติ เพื่อปิดรอยต่อข้างกรามและใต้หู"));
     // ความมั่นใจที่ปรับเทียบ (studio-qa.js confidence): มีค่าเฉพาะภาพที่ผ่านประตูกฎ จึงแสดงตอนกำลังแสดงชุด และต่ำกว่าเกณฑ์เท่านั้น
-    if (ST.shown === "garment" && ST.qa && ST.qa.conf && !ST.qa.conf.show) extra.push(T("studio.js.qa.lowConf2", "ในรูปชุดพัฒนาของเรา ภาพชุดแบบนี้ที่ผ่านการตรวจแล้วไม่มีรอยเพียง {p}% (ต่ำกว่าเกณฑ์ {t}% ที่ระบบจะเลือกชุดให้เอง)", { p: Math.round(100 * ST.qa.conf.p), t: Math.round(100 * ST.qa.conf.t) }));
+    // ตัวเลขชุดเดียวกับข้อความด้านบน (StudioQA.FIGURES): บอกเป็นอัตราภาพที่มีรอย ทั้งชุดพัฒนาและชุดทดสอบ จึงไม่ขัดกัน
+    if (ST.shown === "garment" && ST.qa && ST.qa.conf && !ST.qa.conf.show) {
+      const F = FIG(), c = F && F[ST.variant === "cover" ? "calibCover" : "calibPlain"];
+      extra.push(c ? T("studio.js.qa.lowConf3", "ภาพชุดแบบนี้ ({v}) ที่ผ่านการตรวจแล้วยังมีรอย {bd}% ในชุดพัฒนา ({nd} ภาพ) และ {bt}% ในชุดทดสอบ ({nt} ภาพ) ระบบจึงไม่เลือกชุดให้เอง (ต้องไม่มีรอยอย่างน้อย {t}% ในชุดพัฒนา)", { v: ST.variant === "cover" ? T("studio.js.qa.vCover", "แบบคอสูง") : T("studio.js.qa.vPlain", "แบบเดิม"), bd: 100 - c.dev.p, nd: c.dev.n, bt: 100 - c.test.p, nt: c.test.n, t: Math.round(100 * ST.qa.conf.t) })
+        : T("studio.js.qa.lowConf2", "ในรูปชุดพัฒนาของเรา ภาพชุดแบบนี้ที่ผ่านการตรวจแล้วไม่มีรอยเพียง {p}% (ต่ำกว่าเกณฑ์ {t}% ที่ระบบจะเลือกชุดให้เอง)", { p: Math.round(100 * ST.qa.conf.p), t: Math.round(100 * ST.qa.conf.t) }));
+    }
+    if (ST.origFallback && (ST.shown === "safe" || ST.shown === "plain")) extra.push(T("studio.js.noq.origOutfit", "ภาพแบบไม่ใส่ชุดก็ไม่ผ่านการตรวจอัตโนมัติ ({f}) จึงแสดงรูปเดิมที่ยังไม่ได้แก้ไข", { f: noqList() }));
     if (ST.matteFail && (ST.shown === "safe" || ST.shown === "plain")) extra.push(T("studio.js.qa.matteFail", "ตัดพื้นหลังไม่สำเร็จบนรูปนี้ จึงแสดงรูปเดิมทั้งภาพแทน ลองรูปที่หน้าชัด แสงพอ และฉากเรียบ"));
     if (ST.pre && !ST.pre.ok && ST.shown !== "plain") extra.push(T("studio.js.qa.preBad", "รูปนี้ไม่ตรงตามคำแนะนำสำหรับชุดตัวอย่าง (ดูรายการในส่วนชุดตัวอย่าง)"));
-    if (ST.shown === "safe" || ST.shown === "draft") extra.push(T("studio.js.qa.photoTip", "รูปใหม่ช่วยได้มากกว่าการเปลี่ยนชุด: ชุดอื่นบนรูปเดียวกันมักติดปัญหาเดียวกัน"));
+    if (ST.shown === "safe" || ST.shown === "draft" || ST.shown === "unchecked") extra.push(T("studio.js.qa.photoTip", "รูปใหม่ช่วยได้มากกว่าการเปลี่ยนชุด: ชุดอื่นบนรูปเดียวกันมักติดปัญหาเดียวกัน"));
     if (extra.length) msg.textContent += " " + extra.join(" ");
     el.dataset.variant = ST.variant || "";
-    btn.textContent = ST.shown === "safe" ? T("studio.js.qa.showDraft", "ดูชุดแบบร่าง (อาจมีรอยต่อ)") : ST.shown === "draft" ? T("studio.js.qa.showSafe", "กลับไปแบบปลอดภัย")
+    btn.textContent = ST.shown === "safe" ? T("studio.js.qa.showDraft", "ดูชุดแบบร่าง (อาจมีรอยต่อ)") : ST.shown === "draft" || ST.shown === "unchecked" ? T("studio.js.qa.showSafe", "กลับไปแบบปลอดภัย")
       : ST.shown === "garment" ? T("studio.js.qa.showPlain", "ดูแบบไม่ใส่ชุด") : T("studio.js.qa.showPreview", "ดูชุดแบบตัวอย่าง");
     btn.setAttribute("aria-label", btn.textContent);
   }
-  $("#stQaDraft").onclick = () => { const k = ST.gKey; if (ST.draftOK.has(k)) ST.draftOK.delete(k); else ST.draftOK.add(k); schedule("draft"); };
+  $("#stQaDraft").onclick = () => {
+    if (ST.shown === "none" && ST.noq && !ST.noq.pass) { ST.noqAnyway = !ST.noqAnyway; schedule("noq"); return; }
+    const k = ST.gKey; if (ST.draftOK.has(k)) ST.draftOK.delete(k); else ST.draftOK.add(k); schedule("draft");
+  };
 
   /** ผลตรวจความเหมาะสมของรูป (ก่อนลองชุด) ในส่วน "ชุดตัวอย่าง (ทดลอง)" — ไม่ซ่อนชุด: ผู้ใช้ยังลองได้ แต่รู้ล่วงหน้าว่ามักมีรอย */
   function renderPre() {
@@ -766,6 +821,12 @@
       const T = ST.targets; x.lineWidth = Math.max(2, r * .25); x.strokeStyle = "rgba(255,255,255,.85)"; x.setLineDash([r, r * .6]);
       x.beginPath(); x.moveTo(T.l.x, T.l.y); x.lineTo(T.chin.x, T.chin.y); x.lineTo(T.r.x, T.r.y); x.stroke(); x.setLineDash([]);
       [["chin", "#674ff2"], ["l", "#0891b2"], ["r", "#0891b2"]].forEach(([k, col]) => { x.fillStyle = col; x.strokeStyle = "#fff"; x.beginPath(); x.arc(T[k].x, T[k].y, r, 0, 7); x.fill(); x.stroke(); });
+    }
+    // round 12: กรอบสีแดงตรงจุดที่การตรวจแบบไม่ใส่ชุดพบ (เหมือนขั้นตรวจก่อนพิมพ์ของตู้ถ่ายรูป)
+    if (ST.noq && !ST.noq.pass && ST.noq.marks && (ST.shown === "none" || ST.shown === "safe" || ST.shown === "plain")) {
+      x.save(); x.strokeStyle = "#e11d48"; x.lineWidth = Math.max(3, ST.W / 240); x.setLineDash([x.lineWidth * 3, x.lineWidth * 2]);
+      for (const m of ST.noq.marks) if (m.k !== "empty") x.strokeRect(m.x - 4, m.y - 4, m.w + 8, m.h + 8);
+      x.restore();
     }
     if (cursor && (mode === "restore" || mode === "erase")) { x.strokeStyle = mode === "restore" ? "#22c55e" : "#ef4444"; x.lineWidth = Math.max(2, ST.W / 400); x.beginPath(); x.arc(cursor.x, cursor.y, brushR(), 0, 7); x.stroke(); }
   }
@@ -818,7 +879,7 @@
   const stamp = () => { const d = new Date(), p = n => String(n).padStart(2, "0"); return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`; };
   const MARK_TXT = "ภาพจำลองชุด / outfit preview";
   const META_EN = "LENSIQ Studio outfit preview: the garment is synthetic (drawn by software), not a photo of this person wearing it.";
-  const synthetic = () => ST.shown === "garment" || ST.shown === "draft";
+  const synthetic = () => ST.shown === "garment" || ST.shown === "draft" || ST.shown === "unchecked";
   /** ป้ายมุมขวาล่าง (พื้นเข้มโปร่ง ตัวอักษรขาว) — ขนาดตามภาพ */
   function drawMark(c) { return L.previewMark(c.getContext("2d"), c.width, c.height, MARK_TXT); }
   /** กล่องยืนยัน (dialog#stConfirm) — คืน Promise<boolean> */
@@ -845,16 +906,50 @@
     return out;
   }
   /** แบบร่างที่ไม่ผ่านการตรวจ: ยืนยันก่อนส่งออก */
-  const draftOK = async () => ST.shown !== "draft" || confirmBox(T("studio.js.cf.draft", "ภาพนี้เป็นชุดแบบร่างที่ไม่ผ่านการตรวจอัตโนมัติ อาจเห็นรอยต่อที่คอหรือกราม ไฟล์จะมีป้าย \"ภาพจำลองชุด\" ส่งออกต่อหรือไม่"));
+  // round 12: + ชุดที่ยังไม่ได้ตรวจ (ตัวตรวจโหลดไม่สำเร็จ) และแบบไม่ใส่ชุดที่ไม่ผ่านการตรวจแต่ผู้ใช้เลือกดูเอง ต้องยืนยันเหมือนแบบร่าง
+  const draftOK = async () => ST.shown === "draft" ? confirmBox(T("studio.js.cf.draft", "ภาพนี้เป็นชุดแบบร่างที่ไม่ผ่านการตรวจอัตโนมัติ อาจเห็นรอยต่อที่คอหรือกราม ไฟล์จะมีป้าย \"ภาพจำลองชุด\" ส่งออกต่อหรือไม่"))
+    : ST.shown === "unchecked" ? confirmBox(T("studio.js.cf.unchecked", "ภาพนี้มีชุดจำลองที่ยังไม่ได้ตรวจอัตโนมัติ (ตัวตรวจคุณภาพโหลดไม่สำเร็จ) อาจเห็นรอยต่อที่คอหรือกราม ไฟล์จะมีป้าย \"ภาพจำลองชุด\" ส่งออกต่อหรือไม่"))
+    : noOutfitFlagged() ? confirmBox(T("studio.js.cf.noq", "ภาพนี้ไม่ผ่านการตรวจอัตโนมัติ ({f}) อาจมีเศษฉากหลังหรือรอยตัด ส่งออกต่อหรือไม่", { f: noqList() }))
+    : true;
   async function saveMain(type) {
     if (!(await draftOK())) return null;
+    if (!(await reviewGate("main", $("#stOut"), mainFindings()))) return null;
     return save($("#stOut"), type, "lensiq-studio", { synth: synthetic(), mark: chk("stMark") });
+  }
+  // ---------- round 12: ตรวจภาพก่อนส่งออก (บังคับ ครั้งเดียวต่อภาพ: ภาพหลัก, ไฟล์ความละเอียดสูง และรูปติดบัตร — เหมือนตู้ถ่ายรูป) ----------
+  // แสดงภาพพร้อมกรอบสีแดง (StudioQA.noOutfitCheck บนภาพหลัก / StudioQA.idLeftovers บนรูปติดบัตร) + ข้อกำหนดรูปติดบัตร ผู้ใช้ต้องติ๊ก "ตรวจแล้ว"
+  const reviewKey = kind => [kind, ST.editVer, ST.gKey, ST.shown, ST.noqAnyway, ST.origFallback, bgKey, idSize, ST.cache.rtKey, ST.draftOK.has(ST.gKey), chk("stIdOutfit")].join("#");
+  const RV_TXT = k => T("studio.js.rv." + k, { none: "ไม่พบเศษฉากหลังหรือรอยตัดตรงโดยอัตโนมัติ (ยังควรตรวจด้วยตาเอง)", orig: "แสดงรูปเดิมที่ยังไม่ได้แก้ไข เพราะภาพที่เปลี่ยนฉากหลังไม่ผ่านการตรวจ", outfit: "มีชุดจำลอง (ภาพที่โปรแกรมวาด ไม่ใช่ภาพสวมจริง)" }[k] || k);
+  /** จุดที่ควรตรวจบนภาพหลัก: ผลตรวจแบบไม่ใส่ชุด + ชุดจำลอง */
+  function mainFindings() {
+    const f = [], noOut = ST.shown === "none" || ST.shown === "safe" || ST.shown === "plain";
+    if (noOut && ST.noq && !ST.noq.pass) { if (ST.origFallback) f.push({ k: "orig", text: RV_TXT("orig") }); else ST.noq.fails.forEach(k => f.push({ k, text: NOQ_TXT(k) })); }
+    if (synthetic()) f.push({ k: "outfit", text: RV_TXT("outfit") });
+    return { items: f, marks: noOut && ST.noq && !ST.noq.pass && !ST.origFallback ? ST.noq.marks : [] };
+  }
+  function reviewGate(kind, canvas, { items = [], marks = [], spec = null } = {}) {
+    const key = reviewKey(kind);
+    if (ST.reviewed && ST.reviewed.has(key)) return Promise.resolve(true);
+    const d = $("#stReview"); if (!d || !d.showModal) return Promise.resolve(true);
+    const c = mk(canvas.width, canvas.height), x = c.getContext("2d"); x.drawImage(canvas, 0, 0);
+    x.strokeStyle = "#e11d48"; x.lineWidth = Math.max(3, c.width / 120); x.setLineDash([x.lineWidth * 3, x.lineWidth * 2]);
+    for (const m of marks) if (m.k !== "empty") x.strokeRect(m.x - 4, m.y - 4, m.w + 8, m.h + 8);
+    // ภาพตัวอย่างเล็กพอสำหรับกล่องโต้ตอบ (ไม่ใช่ไฟล์ที่ส่งออก)
+    const k = Math.min(1, 900 / Math.max(c.width, c.height)), v = mk(Math.round(c.width * k), Math.round(c.height * k)); v.getContext("2d").drawImage(c, 0, 0, v.width, v.height);
+    $("#stReviewImg").src = v.toDataURL("image/jpeg", .85);
+    $("#stReviewList").innerHTML = (items.length ? items.map(i => `<li class="warn" data-k="${esc(i.k)}">${esc(i.text)}</li>`).join("") : `<li class="ok" data-k="none">${esc(RV_TXT("none"))}</li>`) + (spec || "");
+    const ok = $("#stReviewOk"), go = $("#stReviewGo"); ok.checked = false; go.disabled = true; ok.onchange = () => { go.disabled = !ok.checked; };
+    return new Promise(res => {
+      const done = v2 => { go.onclick = $("#stReviewNo").onclick = d.oncancel = null; if (d.open) d.close(); if (v2) ST.reviewed.add(key); res(v2); };
+      go.onclick = () => done(ok.checked); $("#stReviewNo").onclick = () => done(false); d.oncancel = () => done(false);
+      d.showModal();
+    });
   }
   $("#stPng").onclick = () => saveMain("image/png");
   $("#stJpg").onclick = () => saveMain("image/jpeg");
   $("#stHiRes").onclick = async () => {
     const b = $("#stHiRes"); b.disabled = true; busy(true, T("studio.js.busy.hires", "กำลังทำไฟล์ความละเอียดสูง..."));
-    try { const c = await hiResSafe(); if (c) await save(c, "image/png", "lensiq-studio-hires", { kind: "hires" }); } catch (e) { console.warn(e); toast(T("studio.js.fileFail", "สร้างไฟล์ไม่สำเร็จ")); }
+    try { if (!(await draftOK()) || !(await reviewGate("hires", $("#stOut"), mainFindings()))) return; const c = await hiResSafe(); if (c) await save(c, "image/png", "lensiq-studio-hires", { kind: "hires" }); } catch (e) { console.warn(e); toast(T("studio.js.fileFail", "สร้างไฟล์ไม่สำเร็จ")); }
     finally { busy(false); b.disabled = !ST.hi; }
   };
   let idSize = "1";
@@ -902,9 +997,28 @@
     if (src.synth && !(await confirmBox(T("studio.js.cf.id", "รูปติดบัตรนี้มีชุดจำลอง หลายหน่วยงานไม่รับรูปที่แต่งชุดหรือเปลี่ยนฉากหลังด้วยดิจิทัล ไฟล์จะมีป้าย \"ภาพจำลองชุด\" ที่มุมเสมอ ทำต่อหรือไม่"), T("studio.js.cf.idOk", "ทำรูปติดบัตรแบบมีชุด")))) return null;
     return src;
   }
-  $("#stIdOne").onclick = async () => { const src = await idGo(); if (src) save(idPhoto(src.canvas), "image/png", "lensiq-id-" + idSize, { synth: src.synth, mark: true, kind: "id" }); };
+  /** ขั้นตรวจก่อนส่งออกรูปติดบัตร: กรอบสีแดงบนเศษที่ไม่ต่อกับตัวและรอยตัดตรง (StudioQA.idLeftovers) + ข้อกำหนด (idSpecCheck) */
+  async function idReview(src) {
+    const p = idPhoto(src.canvas), items = [], marks = [];
+    if (src.synth) items.push({ k: "outfit", text: RV_TXT("outfit") });
+    if (ST.origFallback && !src.synth) items.push({ k: "orig", text: RV_TXT("orig") });
+    let spec = "";
+    try {
+      if (window.StudioQA && window.StudioQA.idLeftovers) {
+        const a = idAlpha(src.alpha || ST.fgAlpha), f = ST.face, cr = L.idCrop({ cx: f.cx, eyeY: f.eyeY, chinY: f.chinY }, { w: p.width, h: p.height });
+        const face = { cx: (f.cx - cr.sx) * cr.scale, eyeY: (f.eyeY - cr.sy) * cr.scale, chinY: (f.chinY - cr.sy) * cr.scale, fw: f.fw * cr.scale };
+        const lo = window.StudioQA.idLeftovers({ pa: a, W: p.width, H: p.height, face });
+        lo.islands.forEach(b => { marks.push({ k: "island", ...b }); }); if (lo.islands.length) items.push({ k: "island", text: NOQ_TXT("island") });
+        lo.cuts.filter(c => c.k !== "empty").forEach(c => { marks.push({ k: "cut-" + c.k, x: Math.min(c.x0, c.x1), y: Math.min(c.y0, c.y1), w: Math.abs(c.x1 - c.x0) + 1, h: Math.abs(c.y1 - c.y0) + 1 }); items.push({ k: "cut-" + c.k, text: NOQ_TXT("cut-" + c.k) }); });
+        const r = await idCheck(); if (r) spec = $("#stIdSpec").querySelector("ul") ? $("#stIdSpec").querySelector("ul").innerHTML.replace(/data-k="/g, 'data-k="spec-') : "";
+      } else items.push({ k: "unchecked", text: NOQ_TXT("unchecked") });
+    } catch (e) { console.warn("id review", e); }
+    const uniq = []; items.forEach(i => { if (!uniq.some(u => u.text === i.text)) uniq.push(i); });
+    return reviewGate("id", p, { items: uniq, marks, spec });
+  }
+  $("#stIdOne").onclick = async () => { const src = await idGo(); if (src && await idReview(src)) save(idPhoto(src.canvas), "image/png", "lensiq-id-" + idSize, { synth: src.synth, mark: true, kind: "id" }); };
   $("#stIdSheet").onclick = async () => {
-    const src = await idGo(); if (!src) return;
+    const src = await idGo(); if (!src || !(await idReview(src))) return;
     const p = idPhoto(src.canvas); if (src.synth) drawMark(p); // ป้ายอยู่บนทุกรูปในแผ่น
     const sh = L.tileSheet(L.PAPERS["4x6"], L.ID_SIZES[idSize]), c = mk(sh.W, sh.H), x = c.getContext("2d");
     x.fillStyle = "#fff"; x.fillRect(0, 0, sh.W, sh.H);
@@ -939,6 +1053,8 @@
   // ภาพทำงานจำกัดที่ 1200 พิกเซล; ไฟล์ใหญ่ใช้ภาพต้นฉบับที่ ≤ 2400 พิกเซล + matte ขยายแล้วเกลาขอบใหม่ (guided filter) + ผลรีทัช/ปรับแสงจากภาพทำงาน (ขยาย)
   async function hiResSafe() {
     const hi = ST.hi; if (!hi) return null;
+    // round 12: แบบไม่ใส่ชุดไม่ผ่านการตรวจ (แสดงรูปเดิมอยู่): ไฟล์ความละเอียดสูง = รูปเดิมที่ยังไม่ได้แก้ไข
+    if (ST.origFallback) { const c = mk(hi.width, hi.height); c.getContext("2d").drawImage(hi, 0, 0); return c; }
     const W = ST.W, H = ST.H, HW = hi.width, HH = hi.height, kx = HW / W, ky = HH / H, person = retouch(), BG = await bgPixels(person);
     const hpx = ctx2(hi).getImageData(0, 0, HW, HH).data;
     const up = (get, ch) => { // bilinear

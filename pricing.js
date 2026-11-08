@@ -28,10 +28,12 @@
       // = docs/BILLING-PLAN.md 3.0: 50 saved readings (owner setting); a member discount on reports is an owner option
       perks: [{ id: "full_readings", status: "active" }, { id: "history", status: "active" }, { id: "english_readings", status: "active" }, { id: "saved_50", status: "active" }, { id: "member_discount", status: "coming_soon" }] },
     { id: "pro", kind: "subscription", status: "draft", name_th: "ครีเอเตอร์", name_en: "Creator", name_zh: "创作者", price_month_satang: 99000, price_year_satang: 990000,
-      entitlements: { ai_reading: { quota: 100, period: "month" }, analytics_days: { quota: 90, period: "day" }, csv_export: { quota: null, period: "month" }, hub_nodes: { quota: 3, period: "month" } } },
+      entitlements: { ai_reading: { quota: 100, period: "month" }, analytics_days: { quota: 90, period: "day" }, csv_export: { quota: null, period: "month" }, hub_nodes: { quota: 3, period: "month" } },
+      // round 12: sold on what is delivered today (docs/BILLING-PLAN.md 3.1 "Positioning", docs/SUPPORT.md 0)
+      perks: [{ id: "support_2d", status: "active" }] },
     { id: "business", kind: "subscription", status: "draft", name_th: "ธุรกิจ", name_en: "Business", name_zh: "商业版", price_month_satang: 390000, price_year_satang: 3900000,
       entitlements: { ai_reading: { quota: 600, period: "month" }, analytics_days: { quota: 400, period: "day" }, csv_export: { quota: null, period: "month" }, hub_nodes: { quota: 20, period: "month" } },
-      perks: [{ id: "tax_invoice", status: "active" }] },
+      perks: [{ id: "tax_invoice", status: "active" }, { id: "support_nbd", status: "active" }, { id: "onboarding", status: "active" }, { id: "pilot_credit", status: "active" }] },
     { id: "enterprise", kind: "subscription", status: "draft", name_th: "องค์กร", name_en: "Enterprise", name_zh: "企业版", price_month_satang: null, price_year_satang: null,
       entitlements: { ai_reading: { quota: null, period: "day" } }, perks: [{ id: "onprem", status: "active" }, { id: "dpa", status: "active" }] },
     { id: "report_basic", kind: "one_time", status: "draft", name_th: "รายงานดวงพื้นฐาน", name_en: "Basic reading report", name_zh: "基础运势报告", price_once_satang: 4900,
@@ -55,14 +57,20 @@
     tax_invoice: ["pr.perk.tax_invoice", "ใบกำกับภาษีเต็มรูป"],
     onprem: ["pr.perk.onprem", "ติดตั้งในเครือข่ายองค์กร / SLA"],
     dpa: ["pr.perk.dpa", "DPA และเอกสาร PDPA"],
-    pdf_report: ["pr.perk.pdf_report", "รายงานฉบับ PDF (พิมพ์ / บันทึกเป็น PDF)"]
+    pdf_report: ["pr.perk.pdf_report", "รายงานฉบับ PDF (พิมพ์ / บันทึกเป็น PDF)"],
+    support_2d: ["pr.perk.support_2d", "ช่วยเหลือทางอีเมล ตอบกลับภายใน 2 วันทำการ"],
+    support_nbd: ["pr.perk.support_nbd", "ช่วยเหลือทางอีเมลและ LINE ตอบกลับวันทำการถัดไป"],
+    onboarding: ["pr.perk.onboarding", "โทรแนะนำการตั้งค่า 30 นาที 1 ครั้ง"],
+    pilot_credit: ["pr.perk.pilot_credit", "ค่าทดลองหน้างาน 2 สัปดาห์หักจากค่าบริการงวดแรก (ตามใบเสนอราคา)"]
   });
+  /** Features every tier already has for free on the device: listed for clarity, never sold as a paid perk. */
+  var INCLUDED = /** @type {Record<string, boolean>} */ ({ csv_export: true });
   var FEATURES = /** @type {Record<string, string[]>} */ ({
     ai_reading: ["pr.q.ai", "คำทำนายเรียบเรียงด้วย AI {n} ครั้ง{per}", "คำทำนายเรียบเรียงด้วย AI ไม่จำกัด (ใช้อย่างเหมาะสม)"],
     analytics_days: ["pr.q.analytics", "สถิติย้อนหลัง {n} วัน", "สถิติย้อนหลังไม่จำกัด"],
-    csv_export: ["pr.q.csv", "ส่งออก CSV", "ส่งออก CSV"],
+    csv_export: ["pr.q.csv", "ส่งออก CSV — ใช้ได้ฟรีในเครื่องทุกแผน", "ส่งออก CSV — ใช้ได้ฟรีในเครื่องทุกแผน"],
     hub_nodes: ["pr.q.hub", "ฮับรวมยอด {n} จุด", "ฮับรวมยอดไม่จำกัดจุด"],
-    report_basic: ["pr.q.report_basic", "รายงานดวงพื้นฐาน {n} ฉบับ (1 ศาสตร์)"],
+    report_basic: ["pr.q.report_basic", "รายงานดวงพื้นฐาน {n} ฉบับ (3 ศาสตร์: แปดอักษร · ทักษา · เลข 7 ตัว พร้อมเจาะลึกงาน เงิน ความรัก และแผน 30 วัน)"],
     report_compat: ["pr.q.report_compat", "รายงานดวงคู่ {n} ฉบับ"],
     report_annual: ["pr.q.report_annual", "รายงานดวงรายปี {n} ฉบับ (หลายศาสตร์ รายเดือน)"]
   });
@@ -137,12 +145,12 @@
       }
       var per = PER[e.period] || null;
       var unl = e.quota == null;
-      out.push({ key: unl ? def[0] + ".unl" : def[0], thai: unl ? def[2] || def[1] : def[1], feature: f, unlimited: unl, vars: { n: e.quota == null ? null : e.quota, per: per && f === "ai_reading" ? per : null }, status: status, label: null });
+      out.push({ key: unl ? def[0] + ".unl" : def[0], thai: unl ? def[2] || def[1] : def[1], feature: f, unlimited: unl, vars: { n: e.quota == null ? null : e.quota, per: per && f === "ai_reading" ? per : null }, status: status, label: null, included: !!INCLUDED[f] });
     });
     return out;
   }
 
-  var pure = { DRAFT: DRAFT, vatSplit: vatSplit, isOnce: isOnce, priceOf: priceOf, planName: planName, buyable: buyable, visiblePlans: visiblePlans, perksOf: perksOf, quotaLines: quotaLines };
+  var pure = { DRAFT: DRAFT, PERKS: PERKS, FEATURES: FEATURES, INCLUDED: INCLUDED, vatSplit: vatSplit, isOnce: isOnce, priceOf: priceOf, planName: planName, buyable: buyable, visiblePlans: visiblePlans, perksOf: perksOf, quotaLines: quotaLines };
   if (typeof module !== "undefined" && module.exports) { module.exports = pure; return; }
 
   /* ============================ browser ============================ */
@@ -204,7 +212,7 @@
     }
     var ul = h("ul", { class: "pr-perks" });
     quotaLines(p.entitlements, info.perks).forEach(function (q) {
-      var li = h("li", { class: q.status === "coming_soon" ? "soon" : null, text: quotaText(q) });
+      var li = h("li", { class: q.status === "coming_soon" ? "soon" : q.included ? "incl" : null, text: quotaText(q) });
       if (q.status === "coming_soon") li.appendChild(h("span", { class: "pr-soon", text: T("pr.soon", "เร็ว ๆ นี้") }));
       ul.appendChild(li);
     });
@@ -370,9 +378,10 @@
       if (!(L ? L.isEmail(email) : /@/.test(email))) { out.textContent = T("pr.off.badEmail", "กรุณากรอกอีเมลให้ถูกต้อง"); f.email.focus(); return; }
       if (!f.consent.checked) { out.textContent = T("pr.off.needConsent", "กรุณาติ๊กยินยอมก่อน"); return; }
       if (!L) { out.textContent = T("pr.off.none", "ยังไม่ได้ส่ง: ระบบรับคำขอออนไลน์และช่องทางติดต่อจะประกาศก่อนเปิดขาย"); return; }
+      var lead = { name: "notify-me", email: email, interest: "notify-" + f.interest.value, source: "pricing", lang: lang(), message: "notify me when sales open" };
       var btn = f.querySelector("button[type=submit]"); btn.disabled = true;
       out.textContent = T("pr.off.sending", "กำลังส่ง…");
-      L.submit({ name: "notify-me", email: email, interest: "notify-" + f.interest.value, source: "pricing", lang: lang(), message: "notify me when sales open" }, { subject: "LENSIQ — notify me when sales open" }).then(function (/** @type {any} */ r) {
+      L.submit(lead, { subject: "LENSIQ — notify me when sales open" }).then(function (/** @type {any} */ r) {
         btn.disabled = false; out.textContent = "";
         if (r.ok) { f.reset(); out.textContent = T("pr.off.sent", "บันทึกแล้ว เราจะแจ้งทางอีเมลเมื่อเปิดขาย"); return; }
         if (r.href || r.line) {
@@ -382,7 +391,11 @@
           if (r.line) out.appendChild(h("a", { href: r.line, target: "_blank", rel: "noopener", text: T("home.ok.line", "แชตทาง LINE {id}", { id: r.lineId || "" }) }));
           return;
         }
-        out.textContent = T("pr.off.none", "ยังไม่ได้ส่ง: ระบบรับคำขอออนไลน์และช่องทางติดต่อจะประกาศก่อนเปิดขาย");
+        // round 12: nothing can send it yet — keep it in this browser only (lensiq-leads.js queue, shown in the box below)
+        var kept = typeof L.queue === "function" && L.queue(lead);
+        out.textContent = kept ? T("pr.off.queued", "ยังไม่ได้ส่ง: ระบบรับคำขอออนไลน์และช่องทางติดต่อจะประกาศก่อนเปิดขาย เก็บคำขอไว้ในเบราว์เซอร์นี้เท่านั้นแล้ว (ส่งได้เมื่อประกาศช่องทาง)")
+          : T("pr.off.none", "ยังไม่ได้ส่ง: ระบบรับคำขอออนไลน์และช่องทางติดต่อจะประกาศก่อนเปิดขาย");
+        if (kept) f.reset();
       });
     });
   })();

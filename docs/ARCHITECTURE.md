@@ -129,8 +129,9 @@ Cache Storage is `lq-models-vN`.
 
 | Command | What it checks | CI |
 |---|---|---|
-| `npm run lint` | ESLint flat config (bug-class rules) | yes |
-| `npm run typecheck` | `tsc --checkJs` on the platform and pure-logic modules: 30 of 60 root scripts plus all 48 `i18n/*.js` (`tsconfig.typecheck.json`, `types/lensiq-globals.d.ts`). `node tools/typecheck.mjs --report` gives per-file error counts for the other files. | yes |
+| `npm run lint` | ESLint flat config (bug-class rules). `max-lines` is an **error**: 1500 code lines per file, and the six existing monoliths are capped at their size (`SIZE_CAPS`, a per-file ratchet; `tests/unit/size-budget.test.js` fails when a cap has more than 5 % slack) | yes |
+| `npm run format:check` | `tools/format-check.mjs`: lines a change ADDS follow `.editorconfig` (LF, no tabs, no trailing whitespace, ≤ 200 characters; 160 is the target and is reported). The repo is not mass-reformatted | PRs fail; pushes warn |
+| `npm run typecheck` | `tsc --checkJs` on the platform and pure-logic modules (`tsconfig.typecheck.json` "files", `types/lensiq-globals.d.ts`); page scripts with colliding top-level names each in their own program ("pages", e.g. `photobooth.js` + `types/lensiq-photobooth.d.ts`); the account / member / API modules also under `strictNullChecks` ("strictNull"); the API Worker (`backend/tsconfig.json`). `node tools/typecheck.mjs --report` gives per-file error counts for the other files; CI's `TYPECHECK_MAX` ratchet keeps the total from rising. | yes |
 | `npm run test:unit` | `node --test tests/unit` | yes |
 | `npm run test:py` | Flask test client: guard, hub, security, licensing | yes |
 | `npm run test:e2e` | Headless Chrome without WebGL: smoke, CSP, i18n, hub, privacy scans | yes |
@@ -139,7 +140,7 @@ Cache Storage is `lq-models-vN`.
 | `node tools/zh-coverage.mjs --shared --max 0` | Shared components fully Chinese in 中文 mode | yes |
 | `node tools/zh-coverage.mjs --json …` | Per-page Thai % report (artifact) | report |
 | `node tools/check-lfs.mjs` | No Git LFS pointer files in place of binaries | yes |
-| `node tools/mobile-audit.mjs` | 390 px layout report | report |
+| `node tools/mobile-audit.mjs` | Phone gates at 320 / 360 / 390 px (overflow, 44 px targets, contrast, labels, visible `[hidden]`, one-line breadcrumb, no letter-spaced Thai); `--states` repeats them after interaction (open drawer, language menu, sign-in dialog, readings, signed-in account page and its error state, mocked API) | yes (360 px TH / EN / 中文) |
 | `node tools/build-site.mjs`, `node tools/check-site.mjs` | Pages site built from an allowlist (`_site/`); no server code / tests / tools / docs / `package.json` / `*.py` in it; every reference exists; all 27 pages load in TH + 中文 under `/lensiq/` with no 404. Same steps gate the production deploy (`.github/workflows/pages-lfs.yml`) | yes |
 
 ## 7. Conventions
@@ -150,3 +151,20 @@ Cache Storage is `lq-models-vN`.
 - New storage keys use the owning module's prefix and are added to `docs/pdpa/retention-table.md`.
 - New vendored files get a row in `LICENSES/THIRD_PARTY.md`. After the migration in `LFS-MIGRATION.md`, large
   binaries go to LFS.
+
+## 8. Module boundaries and extension hooks
+
+One team owns each big page module; other modules extend it through an explicit hook, never by replacing its functions
+or `window.fetch`. Current contracts:
+
+| Hook | Owner | Used by | Contract |
+|---|---|---|---|
+| `FortuneAI.registerHooks({ gate, decorate, onAIResponse })` | `fortune-ai.js` | `lensiq-member.js` | `gate(result, opts, container)` may return the result to render (light reading); `decorate(container, original, shown, opts)` runs after rendering; `onAIResponse(response)` sees a clone of every `POST /api/fortune` response. A module loaded before `fortune-ai.js` pushes its hooks object onto `window.LQFortuneHooks`; both load orders give the same page (`tests/unit/fortune-hooks.test.js`). Hooks are wrapped in try/catch: a failing hook never breaks a reading. Returns `unregister()`. |
+| `LQMember.mountNav`, `window.LQNavCompact()` | `nav.js` / `lensiq-member.js` | each other | the member module draws the account chip into the bar and asks nav.js to recompute the compact language switch |
+| `lensiq-fortune-hook.js` fetch wrapper | integration | fortune pages | still wraps `window.fetch` to add the Turnstile / member `Authorization` headers to the two fortune requests; to be replaced by a request-header hook in `fortune-ai.js` (next step) |
+
+`lensiq-member.js` keeps its old `renderSections` / `fetch` wrappers only as a fallback for an older cached
+`fortune-ai.js` without `registerHooks`.
+
+Code comments are written in English in new code; Thai stays in user-facing strings (and in the existing comments until
+a file is next reorganised).

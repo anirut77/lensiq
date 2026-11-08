@@ -63,7 +63,9 @@ test("exact binomial and Poisson rate tests", () => {
   const t = S.poissonTest(30, 7, 15, 7);
   near(t.p, exact, 1e-9, "poisson p"); near(t.p, 0.0357, 1e-4);
   near(t.ratio, 2, 1e-12); near(t.change, 1, 1e-12);
-  near(t.lo, Math.exp(Math.log(2) - 1.959964 * Math.sqrt(1 / 30 + 1 / 15)) - 1, 1e-6, "lo"); near(t.hi, 2.7171, 1e-3, "hi");
+  // round 12: lo/hi are the exact (Clopper–Pearson) interval consistent with p; the Wald log interval stays as loWald/hiWald
+  near(t.loWald, Math.exp(Math.log(2) - 1.959964 * Math.sqrt(1 / 30 + 1 / 15)) - 1, 1e-6, "loWald"); near(t.hiWald, 2.7171, 1e-3, "hiWald");
+  assert.ok(t.lo > 0 && t.lo < t.loWald && t.hi > t.hiWald, "exact interval is wider than Wald and still excludes 0 (p = 0.036)");
   // unequal exposure: 20 in 2 days vs 10 in 1 day = same rate
   const u = S.poissonTest(20, 2, 10, 1); near(u.change, 0, 1e-12); assert.ok(u.p > 0.99);
   assert.equal(S.poissonTest(5, 0, 3, 1), null);

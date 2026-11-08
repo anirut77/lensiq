@@ -354,12 +354,16 @@ function checkIn(p) {
   return { kind: "ok", text: `เช็คชื่อสำเร็จ ${time}`, time };
 }
 
+// round 12: แท็บถูกซ่อน/จอดับ = กล้องหยุด — Wake Lock ระหว่างสแกน และแจ้งเมื่อกลับมาว่าหยุดสแกนไปนานเท่าไร
+const UA = LQCam.unattended ? LQCam.unattended({ container: document.getElementById("uaBox") || document.getElementById("banner").parentNode, isRunning: () => scanning, tag: "หยุดสแกน",
+  gapText: "แท็บถูกซ่อนหรือจอดับ {a}–{b} ({m}) — ระหว่างนั้นไม่ได้สแกนใบหน้า คนที่มาในช่วงนี้ยังไม่ถูกบันทึกเวลา · เปิดแท็บนี้ไว้ด้านหน้าและตั้งจอไม่ให้ดับเอง" }) : null;
 $("#startScan").onclick = () => {
   if (!ready) return say("กล้องยังไม่พร้อม — ดูข้อความในกรอบกล้อง หรือกดอนุญาตกล้องที่เบราว์เซอร์ แล้วรีเฟรช", "err");
   if (!people.length) return say("ยังไม่มีผู้ลงทะเบียน กรุณาลงทะเบียนใบหน้าก่อน", "warn");
   if (!session()) { needSession(); return say("กรุณากรอก \"หัวข้อ/รอบการอบรม\" ที่ช่องด้านบนก่อน แล้วกดเริ่มสแกนอีกครั้ง", "warn"); }
   scanning = !scanning;
   $("#startScan").textContent = scanning ? "หยุดสแกน" : "เริ่มสแกน";
+  if (UA) { if (scanning) UA.start(); else UA.stop(); }
   if (scanning) loop(); else { overlay.getContext("2d").clearRect(0, 0, overlay.width, overlay.height); $("#faceResults").innerHTML = ""; $("#unknownNote").hidden = true; say("หยุดสแกนแล้ว"); }
 };
 

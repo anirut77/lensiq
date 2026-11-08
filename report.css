@@ -61,3 +61,19 @@
   .rp-mgrid{grid-template-columns:1fr 1fr}
 }
 @page{size:A4;margin:14mm}
+/* round 12: cover line, contents, deep-dive, 30-day plan */
+.rp-for{margin:8px 0 0;font-size:1rem;font-weight:600;color:var(--navy)}
+.rp-toc{margin:14px 0 0;padding:10px 14px;border:1px solid var(--rp-line);border-radius:12px;background:#fbfbfe}
+.rp-toch{margin:0 0 4px;font-weight:600;color:var(--navy)}
+.rp-toc ol{margin:0;padding-left:1.3em;line-height:1.7;font-size:.92rem}
+.rp-plan30 .rp-weeks{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px}
+.rp-week{padding:10px 12px;border:1px solid var(--rp-line);border-radius:12px;background:#fff;break-inside:avoid}
+.rp-wlabel{margin:0 0 4px;font-weight:700;color:#4b36c9}
+.rp-week ul{margin:0;padding-left:1.1em;line-height:1.6;font-size:.9rem}
+@media print{
+  .rp-head{padding-bottom:10px;border-bottom:2px solid var(--navy)}
+  .rp-toc{break-after:auto;background:#fff}
+  .rp-part h3{break-after:avoid}.rp-sec h4{break-after:avoid}
+  .rp-plan30{break-inside:avoid;background:#fff;border:1px solid var(--rp-line)}
+  .rp-plan30 .rp-weeks{grid-template-columns:1fr 1fr}
+}

@@ -60,6 +60,13 @@
               });
             });
           }
+          // round 12: money operations with live keys (or MONEY_REAUTH=inline) need the password IN this request
+          if (j.code === "reauth_inline_required" && !opt.noReauth && opt.body && typeof opt.body === "object") {
+            return askReauth().then(function (/** @type {any} */ cred) {
+              if (!cred) throw e;
+              return call(path, Object.assign({}, opt, { noReauth: true, body: Object.assign({}, opt.body, cred) }));
+            });
+          }
           throw e;
         }
         return j;

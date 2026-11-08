@@ -75,5 +75,35 @@ export default async function ({ base, launch, check }) {
       });
       await page.close();
     }
+    // round 12: historical IANA time zones (default Asia/Bangkok), fixed offsets kept, optional true solar time; the result states what was used
+    for (const lang of ["th", "en", "zh"]) {
+      const page = await browser.newPage(null, { initScripts: [`try { localStorage.setItem("lq-lang", "${lang}"); } catch (e) {}`] });
+      await check(`${lang}: bazi time zone picker — historical zones + fixed offsets; Bangkok 1915 uses UTC+06:42, Shanghai 1988 DST UTC+09:00, true solar time shown`, async () => {
+        await page.goto(`${base}/bazi.html`);
+        const opts = await page.evaluate(() => Array.from(document.querySelectorAll("#lcTz option")).map(o => o.value));
+        assert(opts[0] === "z:Asia/Bangkok" && opts.includes("z:Asia/Shanghai") && opts.includes("z:Asia/Singapore") && ["7", "8", "9", "0"].every(v => opts.includes(v)), JSON.stringify(opts));
+        const run = async (d, m, y, era, tz, solar) => {
+          await page.evaluate(([d2, m2, y2, era2, tz2, sol]) => {
+            document.getElementById("lcDay").value = d2; document.getElementById("lcMonth").value = m2; document.getElementById("lcYear").value = y2;
+            document.querySelector(`input[name="lcEra"][value="${era2}"]`).checked = true;
+            document.getElementById("lcTime").value = "12:00"; document.getElementById("lcTz").value = tz2;
+            const s = document.getElementById("lcSolar"); s.checked = sol; s.dispatchEvent(new Event("change"));
+            document.getElementById("lcResult").hidden = true;
+            document.querySelector("#lcForm button[type=submit]").click();
+          }, [d, m, y, era, tz, solar]);
+          await page.waitFor(() => !document.getElementById("lcResult").hidden, 8000);
+          return page.evaluate(() => ({ note: (document.getElementById("lcTzUsed") || {}).textContent || "", tz: window.__lc.state.b.tz, solar: window.__lc.state.res.bazi.solar }));
+        };
+        let r = await run("1", "6", "1915", "ce", "z:Asia/Bangkok", false);
+        assert(/UTC\+06:42/.test(r.note) && Math.abs(r.tz - 6.7011) < 0.001 && !r.solar, JSON.stringify(r));
+        r = await run("1", "7", "1988", "ce", "z:Asia/Shanghai", false);
+        assert(/UTC\+09:00/.test(r.note) && r.tz === 9, JSON.stringify(r));
+        r = await run("1", "7", "1988", "ce", "8", true);
+        assert(/UTC\+08:00/.test(r.note) && r.solar && /11:5\d|12:0\d/.test(r.note), "fixed +8 with solar time: " + JSON.stringify(r));
+        if (lang !== "th") assert(!/[\u0E00-\u0E7F]/.test(r.note), lang + " note has no Thai: " + r.note);
+        noErrors(page, base);
+      });
+      await page.close();
+    }
   } finally { await browser.close(); }
 }

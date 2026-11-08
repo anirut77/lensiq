@@ -22,6 +22,7 @@
 .pr-save{margin:0;font-size:.88rem;font-weight:600;color:#1d6b3a}
 .pr-perks{padding-left:20px;margin:8px 0 12px;line-height:1.55}
 .pr-perks li.soon{color:var(--pr-muted)}
+.pr-perks li.incl{color:var(--pr-muted);font-style:italic}
 .pr-soon{display:inline-block;margin-left:6px;padding:0 8px;border-radius:999px;background:var(--pr-soon-bg);color:var(--pr-soon-ink);font-size:.78rem;font-weight:600;line-height:1.7}
 .pr-small{font-size:.9rem;color:var(--pr-muted)}
 .pr-small a,.pr-terms a{color:#3b2fc0;text-decoration:underline;text-underline-offset:3px}

@@ -92,7 +92,7 @@
   "cameras.s53": "Phone/tablet rear camera",
   "cameras.s54": "Birth-date Horoscope",
   "cameras.s55": "New",
-  "cameras.s56": "Thai astrology, Taksa, lucky colors, signs, ascendant, Ba Zi (Four Pillars), numerology, today's horoscope and compatibility",
+  "cameras.s56": "Thai astrology, Taksa, lucky colors, signs, ascendant, BaZi (Four Pillars), numerology, today's horoscope and compatibility",
   "cameras.s57": "Use cases",
   "cameras.s58": "Online campaigns, booths",
   "cameras.s59": "Camera",
@@ -178,7 +178,7 @@
   "cameras.s139": "Events, booths, weddings, photo studios",
   "cameras.s140": "Camera",
   "cameras.s141": "Webcam, phone or tablet",
-  "cameras.s142": "Outfit Studio",
+  "cameras.s142": "Portrait & ID Photo Studio",
   "cameras.s143": "New",
   "cameras.s144": "Background change, lighting, natural skin retouching, profile photos and ID photos with a size check; ready-made outfits are an outfit preview, not a photo of the outfit being worn",
   "cameras.s145": "Use cases",
@@ -280,5 +280,9 @@
   "cameras.s241": "Phones send only daily aggregate figures (entries, exits, hourly data, zones, queue and location names), never images, video or heatmaps. The server accepts only paired devices on the local network, and the main device can remove sub-devices or change the pairing code at any time. Combined results appear on the main device's Store Analytics and Insights Dashboard pages. The demo site (GitHub Pages) has no central server; use \"Transfer by file\" instead",
   "cameras.s242": "PDPA notice:",
   "cameras.s243": "Systems that analyze faces or behavior must display a notice and obtain consent as required by law. The solutions on this page are designed not to store images of people and keep statistics only on the device. Gender, age and emotion results are estimates and may be inaccurate; see",
-  "cameras.s244": "Measured accuracy"
+  "cameras.s244": "Measured accuracy",
+  "cameras.prof.h": "Installation profile: demo or commercial use",
+  "cameras.prof.p1": "The \"demo\" profile (the default) allows models trained on research-licence data, such as the signage age/gender model (UTKFace). An installation for a paying customer should switch on \"Commercial use\", which turns off the age/gender and BiSeNet models on this device. Camera pages opened from any site other than the demo site show a red warning bar until this is switched on",
+  "cameras.prof.cb": "Commercial use on this device (remembered in this browser; the page reloads)",
+  "cameras.prof.p2": "Installers can set the same for every device with window.LENSIQ_PROFILE = \"commercial\" before lensiq-config.js loads · the face-api.js face detection/recognition models still await a lawyer's opinion, so the \"research-licence models\" badge stays in both profiles"
 } });

@@ -4,6 +4,7 @@
   "driver.lic": "Faces are analysed with face-api.js models (MIT code) trained on datasets licensed for research only. Commercial use has not been cleared by a lawyer — check the licence before commercial use",
   "driver.calwarn.ear": "Eye images cannot be used (for example dark glasses, backlight, or eyes that looked closed during calibration) — the system is using EAR only, which caught only about 18–26% of closed-eye frames on real photos and will miss most closures. Remove dark glasses, reduce backlight, then press “Recalibrate”",
   "driver.calwarn.fail": "Calibration failed — the system is using the default threshold, which caught only about 18% of closed-eye frames on real photos, and head-drop detection is off. Treat yourself as unmonitored: park safely, adjust the camera and light so your face is clear, then press “Recalibrate”",
+  "driver.accstart2": "In other words, only about 25% of 2-second eye closures get an alert and the rest get none. It is only an extra awareness aid, not something that keeps you awake. If you feel drowsy, stop and rest at once; do not wait for an alert",
   "driver.accstart": "Before you start: in the latest measurement (simulated drives, not real drowsy drivers) the system alerted on about 25% of 2-second eye closures, with about 1.4 false alarms per hour, so it misses many closures. Do not use it instead of rest, and do not look at the screen while driving",
   "driver.calwarn.t": "Not fully monitoring",
   "driver.s1": "Driver Drowsiness Monitoring | LENSIQ",

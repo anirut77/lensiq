@@ -11,7 +11,7 @@ const WH_SECRET = Buffer.from("webhook-secret-for-tests-0123456789").toString("b
 const TEST_KEY = "skey_test_5xyzabcdefghijklmnop";
 // Turnstile is fail-closed on checkout: configured in these envs, siteverify answered by fakeOpn().
 // Round 10: checkout needs a signed-in member by default; these legacy-flow tests opt into guest checkout
-// (ALLOW_GUEST_CHECKOUT=true). The member-required default is tested in backend-billing-r10.test.js.
+// (ALLOW_GUEST_CHECKOUT=true). The member-required default is tested in backend-billing-receipts.test.js.
 const TSV = { TURNSTILE_SECRET: "ts-secret", TURNSTILE_HOSTNAMES: "site.example", ALLOW_GUEST_CHECKOUT: "true" };
 const TS = { "X-Turnstile-Token": "good" };
 
@@ -245,9 +245,9 @@ test("H3: reconcile cron settles pending payments from Opn (lost webhooks)", asy
   await env.DB.prepare("UPDATE plans SET status = 'active' WHERE id = 'pro'").run();
   const co = await (await handle(req("/v1/billing/checkout", { headers: TS, method: "POST", body: { plan_id: "pro", accept_terms: true, age_confirm: "adult" } }), env, { fetch: opn.fetch })).json();
   const pay = await env.DB.prepare("SELECT provider_charge_id FROM payments WHERE id = ?1").bind(co.payment_id).first();
-  assert.deepEqual(await reconcilePending(env, { fetchImpl: opn.fetch }), { checked: 1, changed: 0, errors: 0, repaired: 0, repair_errors: 0 });
+  assert.deepEqual(await reconcilePending(env, { fetchImpl: opn.fetch }), { checked: 1, changed: 0, errors: 0, repaired: 0, repair_errors: 0, expired_local: 0, late_success: 0, stuck_alerts: 0, sweep_errors: 0 });
   opn.charges.get(pay.provider_charge_id).status = "successful";
-  assert.deepEqual(await reconcilePending(env, { fetchImpl: opn.fetch }), { checked: 1, changed: 1, errors: 0, repaired: 0, repair_errors: 0 });
+  assert.deepEqual(await reconcilePending(env, { fetchImpl: opn.fetch }), { checked: 1, changed: 1, errors: 0, repaired: 0, repair_errors: 0, expired_local: 0, late_success: 0, stuck_alerts: 0, sweep_errors: 0 });
   assert.equal((await env.DB.prepare("SELECT status FROM payments WHERE id = ?1").bind(co.payment_id).first()).status, "successful");
   const worker = (await import(B + "index.js")).default;
   const waits = [];

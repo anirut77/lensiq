@@ -10,7 +10,14 @@
 //   node tests/bench/results.mjs headlines                 (re)write tests/bench/results/headlines.json from
 //                                                          docs/accuracy-figures.json (what the pages quote, with the
 //                                                          fingerprints recorded so far; null = not recorded yet)
-//   node tests/bench/results.mjs --check                   validate every committed summary (CI: tests/unit/bench-results.test.js)
+//   node tests/bench/results.mjs --check [--strict]          validate every committed summary (CI: tests/unit/bench-results.test.js);
+//                                                          --strict also fails while a customer-facing figure has no fingerprint
+//   node tests/bench/results.mjs manifest [--content]       round 12: write tests/bench/results/manifest.json — for every dataset
+//                                                          folder the benches read: "present" with a file-list fingerprint
+//                                                          (sha256 of sorted relpath + size; --content adds the full content hash)
+//                                                          or "absent" = "not reproducible here: datasets absent"; per bench
+//                                                          whether its figures can be re-run on this machine. The benches update
+//                                                          it themselves when they find their dataset (lib.mjs needData)
 //
 // Reproduce a figure: fetch the datasets (python3 -I tests/bench/fetch_datasets.py ~/lq-bench-data), compare
 // `results.mjs hash` with the fingerprints in the summary, then run the summary's `reproduce` command.
@@ -48,6 +55,65 @@ export function hashDir(dir) {
   return { sha256: h.digest("hex"), files: files.length, bytes };
 }
 
+/** round 12: cheap fingerprint of a folder's FILE LIST (sorted relpath + size, no file reads): detects a missing,
+    extra or truncated file in seconds even for multi-GB datasets; hashDir() is the full content fingerprint */
+export function hashList(dir) {
+  const rows = [];
+  const walk = d => { for (const e of readdirSync(d, { withFileTypes: true })) { if (e.name.startsWith(".")) continue; const p = join(d, e.name); if (e.isDirectory()) walk(p); else if (e.isFile()) rows.push([relative(dir, p).split(sep).join("/"), statSync(p).size]); } };
+  walk(dir);
+  rows.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+  const h = createHash("sha256"); let bytes = 0;
+  for (const [r, n] of rows) { bytes += n; h.update(`${r}\t${n}\n`); }
+  return { listSha256: h.digest("hex"), files: rows.length, bytes };
+}
+/** which bench produced each customer-facing figure (docs/accuracy-figures.json key prefix) */
+export const FIGURE_BENCH = Object.freeze([
+  [/^store/, "people"], [/^(lfw|casia|stranger|autoStr|confirmShare|minEnrol)/, "face1n"], [/^boothTar/, "face"], [/^ag/, "face"],
+  [/^hand/, "hand"], [/^dr(FrameCatch|EarCatch|FallbackCatch)$/, "driver"], [/^dr/, "driver-session"], [/^qc/, "qc"], [/^bc/, "checkout"], [/^neuro/, "neuro"]
+]);
+export const benchOfFigure = k => (FIGURE_BENCH.find(([re]) => re.test(k)) || [])[1] || null;
+export const ABSENT = "not reproducible here: datasets absent";
+/** manifest of the dataset folders under data (pure apart from reading the folders) */
+export function buildManifest(data, { content = false, now = new Date() } = {}) {
+  const all = [...new Set(Object.values(BENCHES).flatMap(b => b.datasets))].sort();
+  const datasets = {};
+  for (const n of all) {
+    const p = data && join(data, n);
+    if (p && existsSync(p) && statSync(p).isDirectory()) {
+      const l = hashList(p);
+      datasets[n] = { status: "present", sha256: content ? hashDir(p).sha256 : null, ...l, checkedAt: now.toISOString(), ...(content ? {} : { note: "file-list fingerprint only (listSha256); run `results.mjs manifest --content` for the content hash" }) };
+    } else datasets[n] = { status: "absent", sha256: null, note: `${ABSENT} (${data ? "no folder " + n + " under $LQ_BENCH_DATA" : "LQ_BENCH_DATA not set"}) — python3 -I tests/bench/fetch_datasets.py ~/lq-bench-data` };
+  }
+  const benches = Object.fromEntries(Object.entries(BENCHES).map(([b, B]) => {
+    const miss = B.datasets.filter(n => datasets[n].status !== "present");
+    return [b, { datasets: B.datasets, reproducibleHere: !miss.length, status: miss.length ? `${ABSENT}: ${miss.join(", ")}` : "reproducible here", reproduce: B.cmd }];
+  }));
+  return { format: "lensiq-bench-summary", bench: "manifest", checkedAt: now.toISOString(), commit: git("rev-parse", "--short", "HEAD"),
+    machine: { platform: platform(), arch: arch(), node: process.version },
+    reproduce: "node tests/bench/results.mjs manifest [--content]  (LQ_BENCH_DATA=~/lq-bench-data)", datasets, benches };
+}
+/** update one dataset entry of the committed manifest (called by the benches when they find their data) */
+export function noteDataset(data, name) {
+  try {
+    const f = join(OUT, "manifest.json"), m = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : buildManifest("");
+    const p = join(data, name); if (!existsSync(p)) return null;
+    m.datasets[name] = { status: "present", sha256: (m.datasets[name] && m.datasets[name].listSha256 === hashList(p).listSha256 && m.datasets[name].sha256) || null, ...hashList(p), checkedAt: new Date().toISOString(), note: "file-list fingerprint written by the bench run" };
+    for (const [b, B] of Object.entries(m.benches || {})) { const miss = B.datasets.filter(n => !m.datasets[n] || m.datasets[n].status !== "present"); B.reproducibleHere = !miss.length; B.status = miss.length ? `${ABSENT}: ${miss.join(", ")}` : "reproducible here"; m.benches[b] = B; }
+    m.checkedAt = new Date().toISOString();
+    mkdirSync(OUT, { recursive: true }); writeFileSync(f, JSON.stringify(m, null, 1) + "\n");
+    return m.datasets[name];
+  } catch (e) { console.warn("manifest:", e.message); return null; }
+}
+/** strict: customer-facing figures whose bench has a dataset without a content fingerprint -> ["figure (bench: dataset)"] */
+export function unfingerprinted(headlinesDoc) {
+  const out = [];
+  for (const k of Object.keys(headlinesDoc.figures || {})) {
+    const b = benchOfFigure(k), B = b && BENCHES[b]; if (!B) continue;
+    for (const n of B.datasets) { const d = headlinesDoc.datasets && headlinesDoc.datasets[n]; if (!d || !d.sha256) out.push(`${k} (${b}: ${n})`); }
+  }
+  return out;
+}
+
 /** throws when a summary could carry images or raw data: data: URIs, long base64 runs, huge arrays */
 export function assertNumbersOnly(obj, where = "summary") {
   const s = JSON.stringify(obj);
@@ -82,12 +148,17 @@ function headlines() {
     try { const d = JSON.parse(readFileSync(join(OUT, f), "utf8")); for (const [k, v] of Object.entries(d.datasets || {})) if (v && v.sha256) recorded[k] = v; } catch { /* ignore */ }
   }
   const all = [...new Set(Object.values(BENCHES).flatMap(b => b.datasets))].sort();
-  const datasets = Object.fromEntries(all.map(k => [k, recorded[k] || { sha256: null, note: "not recorded: the round 3–6 runs that produced these figures predate fingerprinting; re-run the bench and `results.mjs record` to fill it" }]));
+  let man = null; try { man = JSON.parse(readFileSync(join(OUT, "manifest.json"), "utf8")); } catch { /* no manifest yet */ }
+  const here = k => man && man.datasets && man.datasets[k] ? man.datasets[k].status : "absent";
+  const datasets = Object.fromEntries(all.map(k => [k, recorded[k] ? { ...recorded[k], status: "recorded" } : { sha256: null, status: here(k) === "present" ? "not recorded: dataset present here — re-run the bench and `results.mjs record`" : ABSENT,
+    note: "not recorded: the round 3–6 runs that produced these figures predate fingerprinting; re-run the bench and `results.mjs record` to fill it" }]));
+  const reproducible = b => !!b && BENCHES[b] && BENCHES[b].datasets.every(n => datasets[n] && datasets[n].sha256);
   return {
     format: "lensiq-bench-summary", bench: "headlines", round: fig.round, source: "docs/accuracy-figures.json (transcribed from ACCURACY.md)",
     reproduce: "see BENCHES in tests/bench/results.mjs — one command per bench; datasets via python3 -I tests/bench/fetch_datasets.py ~/lq-bench-data",
     datasets,
-    figures: Object.fromEntries(Object.entries(fig.figures).map(([k, v]) => [k, { value: v.value, raw: v.raw ?? null, what: v.what, evidence: v.md }]))
+    figures: Object.fromEntries(Object.entries(fig.figures).map(([k, v]) => { const b = benchOfFigure(k); return [k, { value: v.value, raw: v.raw ?? null, what: v.what, evidence: v.md, bench: b,
+      fingerprinted: reproducible(b), status: reproducible(b) ? "fingerprinted" : b && BENCHES[b].datasets.length ? `${ABSENT} or not fingerprinted (${BENCHES[b].datasets.join(", ")})` : "synthetic bench (no dataset)" }]; }))
   };
 }
 
@@ -117,12 +188,20 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     mkdirSync(OUT, { recursive: true });
     writeFileSync(join(OUT, "headlines.json"), JSON.stringify(headlines(), null, 1) + "\n");
     console.log("wrote tests/bench/results/headlines.json");
+  } else if (cmd === "manifest") {
+    mkdirSync(OUT, { recursive: true });
+    const m = buildManifest(DATA, { content: rest.includes("--content") });
+    writeFileSync(join(OUT, "manifest.json"), JSON.stringify(m, null, 1) + "\n");
+    writeFileSync(join(OUT, "headlines.json"), JSON.stringify(headlines(), null, 1) + "\n");
+    for (const [b, B] of Object.entries(m.benches)) console.log(`${b.padEnd(15)} ${B.status}`);
+    console.log("wrote tests/bench/results/manifest.json");
   } else if (cmd === "--check") {
     const errs = [];
     if (existsSync(OUT)) for (const f of readdirSync(OUT)) if (f.endsWith(".json")) errs.push(...validate(JSON.parse(readFileSync(join(OUT, f), "utf8")), f));
+    if (rest.includes("--strict")) { const u = unfingerprinted(JSON.parse(readFileSync(join(OUT, "headlines.json"), "utf8"))); if (u.length) errs.push(`--strict: ${u.length} customer-facing figure/dataset pair(s) without a fingerprint:\n  ` + u.join("\n  ")); }
     if (errs.length) { console.error(errs.join("\n")); process.exit(1); }
     console.log("bench summaries OK");
   } else {
-    console.error("usage: results.mjs hash | record <bench> <file> | headlines | --check"); process.exit(2);
+    console.error("usage: results.mjs hash | record <bench> <file> | headlines | manifest [--content] | --check [--strict]"); process.exit(2);
   }
 }
