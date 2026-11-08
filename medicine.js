@@ -386,7 +386,7 @@
   async function ocr(crop) {
     if (flagOn("fakeocr") && typeof W.__LQ_FAKE_OCR === "function") return String(W.__LQ_FAKE_OCR() || "");
     if (!W.ort) await loadScript("vendor/ort/ort.wasm.min.js");
-    if (!W.LQPlate) await loadScript("lensiq-plate.js?v=2");
+    if (!W.LQPlate) await loadScript("lensiq-plate.js?v=3");
     const P = W.LQPlate, whole = (await P.recognize(P.tightText ? P.tightText(crop) : crop)).text || "";
     if (M.classify(whole).some(d => d.kind !== "name")) return whole;
     const g = P.grayOf(crop, crop.width), bands = P.splitLines(g.gray, g.W, g.H).slice(0, 3), lines = [];

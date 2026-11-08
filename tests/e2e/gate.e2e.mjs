@@ -148,6 +148,20 @@ export default async function ({ base, launch, check }) {
       }
     });
 
+    await check("finder box that starts too far right (up to 20% of the plate) still reads the leading digit exactly", async () => {
+      const { page } = await readDemo([["1กข 2345", "bangkok"], ["1กข 2345", "bangkok"]], "1กข 2345");
+      const out = await page.evaluate(async () => {
+        const LP = window.LQPlate, c = [...document.querySelectorAll("canvas")].find(x => x.width === 640 && x.height === 360), res = [];
+        for (const cut of [0.05, 0.1, 0.15, 0.2]) {
+          const r = await LP.readPlate(c, { x: 200 / 640 + cut * 240 / 640, y: 175 / 360, w: 240 / 640 * (1 - cut), h: 112 / 360 }, {});
+          res.push([cut, r && r.key]);
+        }
+        return res;
+      });
+      for (const [cut, key] of out) assert(key === "1กข2345", `cut ${cut}: read ${key}`);
+      await page.close();
+    });
+
     await check("leading digit unclear -> guard must pick one of both readings before saving (never dropped silently)", async () => {
       const page = await browser.newPage(null, { initScripts: [INIT + "window.__LQ_FAKE_N=0;window.__LQ_FAKE_PLATE=()=>({text:(window.__LQ_FAKE_N++%2===1?'1':'')+'กข 2345',conf:0.9,province:'bangkok'});"] });
       await page.goto(`${base}/parking.html?cpu&fakedet`);

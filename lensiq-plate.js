@@ -573,8 +573,10 @@
       return p.ok ? { key: p.key, conf: f.conf == null ? 0.9 : f.conf, chars: [...p.key].map(c => ({ c, p: f.conf == null ? 0.9 : f.conf })), provinceText: f.provinceText || "", province: f.province || "", fake: true } : null;
     }
     const W0 = canvas.width, H0 = canvas.height, b = box || { x: 0, y: 0, w: 1, h: 1 };
-    const pad = 0.04, x0 = Math.max(0, (b.x - pad * b.w) * W0), y0 = Math.max(0, (b.y - pad * b.h) * H0);
-    const cw = Math.min(W0 - x0, b.w * (1 + 2 * pad) * W0), ch = Math.min(H0 - y0, b.h * (1 + 2 * pad) * H0);
+    // asymmetric margin: the optional leading digit sits at the far left of the plate and a finder box that starts a
+    // little too far right silently cut it ("1กข" -> "กข"), so look further left than right
+    const pad = 0.04, padL = 0.18, x0 = Math.max(0, (b.x - padL * b.w) * W0), y0 = Math.max(0, (b.y - pad * b.h) * H0);
+    const cw = Math.min(W0 - x0, b.w * (1 + padL + pad) * W0), ch = Math.min(H0 - y0, b.h * (1 + 2 * pad) * H0);
     if (!(cw > 8 && ch > 6)) return null;
     const crop = document.createElement("canvas"), sc = Math.min(4, Math.max(1, 240 / cw));
     crop.width = Math.round(cw * sc); crop.height = Math.round(ch * sc);
@@ -604,7 +606,7 @@
     const r = fromOcr(lines, o);
     if (!r) return { key: "", conf: 0, chars: [], provinceText: lines.map(l => l.text).join(" "), lines };
     const gp = guessProvince(r.provinceText);
-    return { ...r, province: gp ? gp.id : "", lines, inverted, leftCut: b.x - pad * b.w <= 0.002 };
+    return { ...r, province: gp ? gp.id : "", lines, inverted, leftCut: b.x - padL * b.w <= 0.002 };
   }
 
   return { CONS, normalize, parse, format, PROVINCES, provinceName, provinceList, guessProvince, LOOKALIKE, lookalike, lev, plateDist, match, vote, leadAlternatives,
