@@ -16,7 +16,8 @@
  *
  * DAY RECORD (numbers only; crowd.js persists it per day in localStorage)
  *   newDay(date) -> {date, peak, peakAt, in, out, hourly:{in, out, occSum, occMs, peak, uniq} (24 each),
- *                    minutes:{"<minute of day>": [personMsSum, ms, max]}, heat:grid, zones:{}, conv:{}, funnel:{pass, stop}}
+ *                    minutes:{"<minute of day>": [personMsSum, ms, max]}, heat:grid, heatH:{"<hour>": 12x7 grid},
+ *                    q15:{"<15-min slot>": [in, out]}, zones:{}, conv:{}, funnel:{pass, stop}}
  *     funnel: pass = anonymous ids seen in a "pass" or "stop" zone, stop = ids that stayed >= stopSec in a "stop" zone; entered = day.in
  *   ensureDay(d) -> d with any missing field filled (older / partial records)
  *   addMinute(day, minuteOfDay, count, dtMs) · hourAvg(day, h) -> number|null · peakHours(day, n=3) -> [{h, avg, peak}]
@@ -27,6 +28,28 @@
  *   funnelRates({pass, stop, enter}) -> {stopRate, enterRate, overall}
  *   densityLevel(perM2) -> 'low'|'busy'|'crowded'|'critical'|null   guide bands 0-1 / 1-2 / 2-4 / >4 people per m²
  *   aggDay(day, zones) -> store.js-shaped day for LQAgg.packFromDay (in/out/peak/hourly + zones "c1:<id>")
+ *
+ * DENSITY OVER TIME, ENTRY/EXIT PER 15 MIN, PEAK REPORT, MARKETING TABLES (round 15)
+ *   HEAT_H = {cols: 12, rows: 7}   heatHour(day, h) -> the hour's coarse grid (day.heatH["<h>"], created on demand)
+ *   heatHours(day) -> [h] hours with any person-seconds, ascending
+ *   addCross(day, minuteOfDay, 'in'|'out') -> day.q15["<slot 0..95>"] = [in, out]
+ *   quarterTable(day) -> [{slot, from:'HH:MM', to, in, out, net, occ}] every 15-min slot from the first to the last with a
+ *     crossing; net = in - out in the slot; occ = people inside since the start of the day (running in - out, never < 0)
+ *   zoneSummary(day, zone) -> {id, name, role, avg, peak, visits, dwellSec, area, avgPerM2, peakPerM2, level}
+ *   hotShare(grid, frac=0.1) -> share 0..1 of all person-seconds in the busiest `frac` of the cells (null when empty)
+ *   peakReport(day, zones, n=3) -> {hours:[{h, avg, peak, in, out, uniq}], zone: busiest zoneSummary|null,
+ *     quarter: busiest 15-min slot by in+out |null, hot: hotShare(day.heat), visitors, in, out, peak, peakAt}
+ *   marketingTables(day, zones) -> {hourly:[{h, avg, peak, uniq, in, out, net}], quarters: quarterTable, zones:[zoneSummary],
+ *     peak: peakReport}   numbers only; crowd.js adds the labelled headers (TH/EN/ZH) and writes the CSV
+ *
+ * COUNT QUALITY (measured, docs/CROWD-ACCURACY.md: the person detector misses small/far people and collapses in dense crowds)
+ *   QUALITY = {estimateAt: 15, smallH: 0.1, crowdedM2: 2, collapseShare: 0.5}
+ *   countQuality({count, medH, perM2, expected}) -> {estimate: boolean, small: boolean, collapse: boolean}
+ *     estimate: count >= estimateAt, a zone at >= crowdedM2 people per m², or collapse -> the page labels the figure "density
+ *     estimate, not an exact count"; small: >= 2 people whose median box height is < smallH of the frame -> far people are
+ *     missed; collapse: the operator's "expected crowd" setting is >= estimateAt and fewer than collapseShare of it are seen.
+ *     LIMIT (measured): a very dense crowd makes the count drop towards 0-2, NOT rise, so without the expected-crowd setting
+ *     no automatic label appears for it.
  *
  * STORAGE BUDGET (localStorage is ~5 MB for the whole origin, shared with every other LENSIQ page)
  *   compactDay(day) -> the same record without the per-minute map (only today's chart needs it) and with rounded numbers
@@ -125,7 +148,7 @@
   function newDay(date = "") {
     return { date, peak: 0, peakAt: 0, in: 0, out: 0,
       hourly: { in: z24(), out: z24(), occSum: z24(), occMs: z24(), peak: z24(), uniq: z24() },
-      minutes: {}, heat: newGrid(), zones: {}, conv: {}, funnel: { pass: 0, stop: 0 } };
+      minutes: {}, heat: newGrid(), heatH: {}, q15: {}, zones: {}, conv: {}, funnel: { pass: 0, stop: 0 } };
   }
   const num = v => typeof v === "number" && Number.isFinite(v) && v >= 0 ? v : 0;
   const isObj = v => !!v && typeof v === "object" && !Array.isArray(v);
@@ -144,6 +167,17 @@
     else g.d = g.d.map(num);
     if (!isObj(d.zones)) d.zones = {};
     if (!isObj(d.conv)) d.conv = {};
+    if (!isObj(d.heatH)) d.heatH = {};
+    for (const k of Object.keys(d.heatH)) {
+      const hg = d.heatH[k];
+      if (!/^\d{1,2}$/.test(k) || +k > 23 || !isObj(hg) || !Array.isArray(hg.d) || hg.d.length !== HEAT_H.cols * HEAT_H.rows) delete d.heatH[k];
+      else { hg.cols = HEAT_H.cols; hg.rows = HEAT_H.rows; hg.d = hg.d.map(num); }
+    }
+    if (!isObj(d.q15)) d.q15 = {};
+    for (const k of Object.keys(d.q15)) {
+      const r = d.q15[k];
+      if (!/^\d{1,2}$/.test(k) || +k > 95 || !Array.isArray(r)) delete d.q15[k]; else d.q15[k] = [num(r[0]), num(r[1])];
+    }
     if (!isObj(d.funnel)) d.funnel = base.funnel;
     for (const k of ["pass", "stop"]) d.funnel[k] = num(d.funnel[k]);
     return d;
@@ -190,6 +224,77 @@
     return out;
   }
 
+  // ---------- density over time, entry/exit per 15 minutes, peak report, marketing tables ----------
+  const HEAT_H = Object.freeze({ cols: 12, rows: 7 });
+  function heatHour(day, h) {
+    if (!isObj(day.heatH)) day.heatH = {};
+    const k = String(h | 0);
+    return day.heatH[k] || (day.heatH[k] = newGrid(HEAT_H.cols, HEAT_H.rows));
+  }
+  function heatHours(day) {
+    const out = [];
+    for (const k of Object.keys((day && day.heatH) || {})) { const h = +k; if (h >= 0 && h < 24 && gridMax(day.heatH[k]) > 0) out.push(h); }
+    return out.sort((a, b) => a - b);
+  }
+  function addCross(day, m, dir) {
+    if (!(m >= 0 && m < 1440) || (dir !== "in" && dir !== "out")) return;
+    if (!isObj(day.q15)) day.q15 = {};
+    const k = String(Math.floor(m / 15)), r = day.q15[k] || (day.q15[k] = [0, 0]);
+    r[dir === "in" ? 0 : 1]++;
+  }
+  const hm = m => String(Math.floor(m / 60) % 24).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
+  function quarterTable(day) {
+    const q = (day && isObj(day.q15)) ? day.q15 : {}, slots = Object.keys(q).map(Number).filter(n => n >= 0 && n < 96).sort((a, b) => a - b);
+    if (!slots.length) return [];
+    const out = []; let occ = 0;
+    for (let s = slots[0]; s <= slots[slots.length - 1]; s++) {
+      const r = q[String(s)] || [0, 0], i = num(r[0]), o = num(r[1]);
+      occ = Math.max(0, occ + i - o);
+      out.push({ slot: s, from: hm(s * 15), to: hm(s * 15 + 15), in: i, out: o, net: i - o, occ });
+    }
+    return out;
+  }
+  function zoneSummary(day, z) {
+    const zs = (day.zones && day.zones[z.id]) || {}, avg = zs.occMs ? zs.occSum / zs.occMs : 0, area = z.area > 0 ? z.area : 0;
+    return { id: z.id, name: z.name, role: z.role || "area", avg, peak: num(zs.peak), visits: num(zs.visits), dwellSec: avgDwellSec(zs),
+      area, avgPerM2: area ? avg / area : null, peakPerM2: area ? num(zs.peak) / area : null, level: area ? densityLevel(num(zs.peak) / area) : null };
+  }
+  function hotShare(G, frac = 0.1) {
+    const d = ((G && G.d) || []).map(num), tot = d.reduce((a, b) => a + b, 0);
+    if (!(tot > 0)) return null;
+    const k = Math.max(1, Math.round(d.length * frac));
+    return d.sort((a, b) => b - a).slice(0, k).reduce((a, b) => a + b, 0) / tot;
+  }
+  function peakReport(day, zones, n = 3) {
+    const d = ensureDay(day);
+    const hours = peakHours(d, n).map(p => ({ h: p.h, avg: p.avg, peak: p.peak, in: d.hourly.in[p.h], out: d.hourly.out[p.h], uniq: d.hourly.uniq[p.h] }));
+    const zs = (zones || []).map(z => zoneSummary(d, z)).filter(z => z.avg > 0 || z.peak > 0 || z.visits > 0)
+      .sort((a, b) => b.avg - a.avg || b.peak - a.peak || b.visits - a.visits);
+    const qt = quarterTable(d).filter(r => r.in + r.out > 0).sort((a, b) => (b.in + b.out) - (a.in + a.out) || a.slot - b.slot);
+    return { hours, zone: zs[0] || null, quarter: qt[0] || null, hot: hotShare(d.heat), visitors: d.hourly.uniq.reduce((a, b) => a + b, 0),
+      in: d.in, out: d.out, peak: d.peak, peakAt: d.peakAt };
+  }
+  function marketingTables(day, zones) {
+    const d = ensureDay(day), hourly = [];
+    for (let h = 0; h < 24; h++) {
+      const a = hourAvg(d, h), i = d.hourly.in[h], o = d.hourly.out[h];
+      if (a != null || i || o || d.hourly.uniq[h]) hourly.push({ h, avg: a, peak: d.hourly.peak[h], uniq: d.hourly.uniq[h], in: i, out: o, net: i - o });
+    }
+    return { hourly, quarters: quarterTable(d), zones: (zones || []).map(z => zoneSummary(d, z)), peak: peakReport(d, zones) };
+  }
+
+  // ---------- count quality ----------
+  const QUALITY = Object.freeze({ estimateAt: 15, smallH: 0.1, crowdedM2: 2, collapseShare: 0.5 });
+  function countQuality({ count = 0, medH = null, perM2 = null, expected = 0 } = {}) {
+    // collapse: the operator said a crowd of >= estimateAt people is expected (event setting) but the detector sees fewer than
+    // collapseShare of it. Measured: in a dense crowd the count FALLS towards 0-2 instead of saturating high, so no
+    // frame-only rule can tell "dense crowd" from "empty scene" - only the operator's expectation can.
+    const exp = Number.isFinite(Number(expected)) ? Number(expected) : 0;
+    const collapse = exp >= QUALITY.estimateAt && count < exp * QUALITY.collapseShare;
+    return { estimate: collapse || count >= QUALITY.estimateAt || (perM2 != null && perM2 >= QUALITY.crowdedM2),
+      small: count >= 2 && medH != null && medH > 0 && medH < QUALITY.smallH, collapse };
+  }
+
   // ---------- storage budget ----------
   const DAY_KEEP = 60;
   const r2 = v => Math.round(v * 100) / 100;
@@ -198,6 +303,7 @@
     d.minutes = {};
     for (const k of Object.keys(d.hourly)) d.hourly[k] = d.hourly[k].map(Math.round);
     d.heat.d = d.heat.d.map(r2);
+    for (const g of Object.values(d.heatH)) g.d = g.d.map(Math.round); // whole person-seconds: ~2-3 KB for a 10-hour day
     for (const zs of Object.values(d.zones)) if (isObj(zs)) for (const k of ["dwellSum", "occSum", "occMs"]) zs[k] = Math.round(num(zs[k]));
     return d;
   }
@@ -212,7 +318,8 @@
 
   const api = { CROSS, lineSide, segmentsIntersect, crossStep, foot, createLineCounter, newGrid, gridAdd, gridMax, gridNorm, heatColor,
     newDay, ensureDay, addMinute, hourAvg, peakHours, series, zoneStat, avgDwellSec, density, rate, funnelRates, densityLevel, aggDay,
-    DAY_KEEP, compactDay, planPrune };
+    DAY_KEEP, compactDay, planPrune, HEAT_H, heatHour, heatHours, addCross, quarterTable, zoneSummary, hotShare, peakReport, marketingTables,
+    QUALITY, countQuality };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") root.LQCrowd = api;
 })(typeof window !== "undefined" ? window : globalThis);

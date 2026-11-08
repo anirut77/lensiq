@@ -11,13 +11,13 @@
 <link rel="stylesheet" href="styles.css?v=11">
 <link rel="stylesheet" href="store.css?v=6">
 <link rel="stylesheet" href="zones.css?v=1">
-<link rel="stylesheet" href="crowd.css?v=1">
+<link rel="stylesheet" href="crowd.css?v=2">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=14"></script>
 <script src="i18n/zh-zones.js?v=1"></script>
-<script src="i18n/zh-crowd.js?v=1"></script>
+<script src="i18n/zh-crowd.js?v=2"></script>
 <script src="lensiq-i18n-rt.js?v=1"></script>
 <script src="i18n/zh-rt-common.js?v=1"></script>
 
@@ -29,6 +29,22 @@
   <p class="acc-note" role="note"><b class="beta" data-i18n="zc.beta">ค่าประมาณ (Beta)</b> <span data-i18n="cr.acc">ใช้ตัวตรวจจับคนตัวเดียวกับหน้าวิเคราะห์หน้าร้าน
     ในที่คนแน่นมาก คนที่ยืนบังกันอาจถูกนับขาด และคนเดิมที่ออกจากภาพแล้วกลับมาจะถูกนับเป็นผู้เข้าชมใหม่ ตัวเลขจึงเป็นค่าประมาณสำหรับวางแผน
     ไม่ใช่ยอดนับอย่างเป็นทางการ ตั้งกล้องสูงมองเฉียงลง แล้วเทียบกับการนับด้วยมือสักช่วงก่อนใช้จริง</span> <a href="cameras.html#accuracy" data-i18n="zc.accLink">ความแม่นยำที่วัดได้</a></p>
+  <details class="card cr-acc" id="crAcc">
+    <summary><span data-i18n="cr.acc2.h">ความแม่นยำของการนับคน: ผลวัดเบื้องต้น</span> <b class="beta" data-i18n="cr.acc2.pre">เบื้องต้น (PRELIMINARY)</b></summary>
+    <p data-i18n="cr.acc2.how">วัดกับวิดีโอสาธารณะ 5 คลิป (ทางม้าลายในเมือง คนน้อยถึงแน่นมาก) โดยรันตัวตรวจจับและตัวนับชุดเดียวกับหน้านี้ทีละเฟรม
+      แล้วเทียบกับจำนวนคนที่นับจากภาพนิ่งทุก 1–5 วินาที ผู้นับอ้างอิงรอบนี้เป็น AI ที่ดูภาพนิ่ง ไม่ใช่คนนับ 2 คน
+      ตัวเลขด้านล่างจึงเป็น AI เทียบกับ AI และยังไม่ใช่ค่าความจริง</p>
+    <ul class="cr-acc-list">
+      <li data-i18n="cr.acc2.r2">คน 15–22 คนเต็มภาพ ขนาดปานกลาง: นับต่ำกว่าจริงเฉลี่ย 26% (ประมาณ 5 คน)</li>
+      <li data-i18n="cr.acc2.r3">คนไกลหรือตัวเล็ก (สูงไม่ถึง 1 ใน 10 ของภาพ): นับต่ำกว่าจริง 37–59%</li>
+      <li data-i18n="cr.acc2.r1">คนที่ตัวใหญ่พอในโซนช่วงใกล้กล้อง (0–13 คนในโซน วัดจากคลิปเดียว): คลาดเฉลี่ย 1.2 คนต่อภาพ (ประมาณ 31%) แทบไม่เอียงไปทางขาดหรือเกิน</li>
+      <li data-i18n="cr.acc2.r4">ฝูงชนแน่นมาก (ประมาณ 300 คน): นับได้เพียง 0–2 คน ใช้นับจำนวนไม่ได้ ตัวเลขลดลงจนเกือบเป็นศูนย์แทนที่จะสูงขึ้น
+        หน้านี้จึงแยกไม่ออกจากภาพที่ไม่มีคนและจะไม่ขึ้นป้ายเตือนเอง เว้นแต่ตั้งค่า "จำนวนคนที่คาดว่าจะมีช่วงพีค" ไว้</li>
+      <li data-i18n="cr.acc2.r5">เส้นนับเข้า–ออก: นับถูก 1 จาก 1 ครั้งในคลิปคนน้อย และไม่นับเกินในคลิปที่ไม่มีคนข้ามเส้น ข้อมูลยังน้อยเกินกว่าจะสรุปเป็นเปอร์เซ็นต์</li>
+    </ul>
+    <p><b data-i18n="cr.acc2.final">ความแม่นยำสุดท้าย: รอผลการนับโดยคน</b> <span data-i18n="cr.acc2.kit">มีชุดนับให้คน 2 คนนับคลิปคนน้อยและคลิปคนปานกลางแยกกัน
+      แล้วคำนวณผลด้วยเครื่องมือเดียวกัน (docs/CROWD-ACCURACY.md)</span></p>
+  </details>
 
   <section class="card zc-gate" id="gate" aria-labelledby="gateH" hidden>
     <h2 id="gateH" data-i18n="zc.gate.h">ก่อนเปิดกล้อง (PDPA)</h2>
@@ -80,6 +96,7 @@
     <section class="card" aria-labelledby="nowH">
       <h2 id="nowH" data-i18n="cr.nowH">ตอนนี้</h2>
       <div class="tiles" id="tiles"></div>
+      <p class="cr-qual" id="crQual" role="status" hidden></p>
       <ul class="zc-states" id="zoneState"></ul>
       <h3 data-i18n="zc.setH">ตั้งค่า</h3>
       <form id="settingsForm" class="zc-form" novalidate>
@@ -95,6 +112,9 @@
           <option value="signup" data-i18n="cr.conv.signup">ยอดลงทะเบียน</option>
           <option value="other" data-i18n="cr.conv.other">ผลลัพธ์อื่น</option>
         </select></label>
+        <label><span data-i18n="cr.s.expect">จำนวนคนที่คาดว่าจะมีช่วงพีค (อีเวนต์) 0 = ไม่ใช้:
+          ถ้าตรวจพบไม่ถึงครึ่ง หน้านี้จะเตือนว่าตัวเลขใช้นับจำนวนไม่ได้</span>
+          <input name="expectCrowd" type="number" min="0" max="100000" inputmode="numeric"></label>
         <label class="chk"><input name="heatOverlay" type="checkbox"><span data-i18n="cr.s.overlay">แสดงฮีตแมปซ้อนบนภาพกล้อง</span></label>
         <label class="chk"><input name="sound" type="checkbox"><span data-i18n="zc.s.sound">เสียงเตือน</span></label>
       </form>
@@ -108,6 +128,11 @@
       <figure class="cr-fig">
         <canvas id="heat" class="cr-heat" width="480" height="280" role="img" aria-label="ฮีตแมปความหนาแน่นของคนวันนี้ (ตัวเลขเท่านั้น ไม่มีภาพ)" data-i18n-attr="aria-label:cr.heatAria"></canvas>
         <figcaption class="hint" data-i18n="cr.heatCap">สีแดง = มีคนยืน/เดินผ่านนานรวมมากที่สุด (คน-วินาที ตามตำแหน่งเท้า) สีน้ำเงิน = น้อย</figcaption>
+        <div class="cr-hsel">
+          <label for="heatHour" data-i18n="cr.heatH.lbl">ดูตามช่วงเวลา</label>
+          <input type="range" id="heatHour" min="0" max="0" step="1" value="0">
+          <output id="heatHourLbl" for="heatHour" data-i18n="cr.heatH.all">ทั้งวัน</output>
+        </div>
       </figure>
       <figure class="cr-fig">
         <svg id="series" class="cr-series" viewBox="0 0 480 200" preserveAspectRatio="none" role="img" aria-label="กราฟจำนวนคนในภาพ 2 ชั่วโมงล่าสุด" data-i18n-attr="aria-label:cr.seriesAria"></svg>
@@ -117,12 +142,25 @@
     <h3 data-i18n="cr.hourlyH">คนในภาพเฉลี่ยรายชั่วโมง</h3>
     <div class="cr-hours" id="crHourly" role="img" aria-label="กราฟแท่งคนเฉลี่ยรายชั่วโมง" data-i18n-attr="aria-label:cr.hourlyAria"></div>
     <p class="hint" id="peaks" role="status"></p>
+    <h3 data-i18n="cr.heatH.h">ฮีตแมปรายชั่วโมง (แตะเพื่อดูภาพใหญ่)</h3>
+    <div class="cr-hms" id="heatHours" role="group" aria-label="ฮีตแมปรายชั่วโมง" data-i18n-attr="aria-label:cr.heatH.aria"></div>
+  </section>
+
+  <section class="card cr-peak" id="peakRep" aria-labelledby="peakH">
+    <div class="report-head"><h2 id="peakH" data-i18n="cr.rep.h">รายงานช่วงเวลาคนเยอะ</h2></div>
+    <p class="hint" data-i18n="cr.rep.hint">3 ชั่วโมงที่มีคนในภาพเฉลี่ยมากที่สุด (ต้องมีข้อมูลอย่างน้อย 1 นาทีต่อชั่วโมง) โซนที่คนเยอะสุด และช่วง 15 นาทีที่คนเข้า–ออกมากสุด พิมพ์แนบรายงานได้</p>
+    <div id="peakBody"></div>
+    <div class="row-actions"><button class="btn primary" id="printPeak" type="button" data-i18n="cr.rep.print">พิมพ์รายงานช่วงคนเยอะ</button></div>
   </section>
 
   <section class="card" aria-labelledby="funH">
     <h2 id="funH" data-i18n="cr.funH">เข้า–ออก และกรวยหน้าร้าน</h2>
     <p class="hint" data-i18n="cr.funHint">วาดเส้นนับที่ประตูหรือทางเข้างาน (แตะ 2 จุดบนภาพ) ระบบนับเมื่อจุดเท้าของคนข้ามเส้น กรวยหน้าร้าน (ไม่บังคับ) ต้องมีโซน "ทางเดินหน้าร้าน" หรือ "หน้าตู้โชว์/บูธ" และเส้นนับที่ประตู</p>
     <ol class="cr-funnel" id="funnel"></ol>
+    <h3 data-i18n="cr.q15.h">เข้า–ออกราย 15 นาที (สำหรับอีเวนต์)</h3>
+    <p class="hint" data-i18n="cr.q15.hint">"เข้า" = คนที่เดินข้ามเส้นไปฝั่งที่เขียนว่าเข้า "ออก" = ทิศตรงข้าม
+      "คงอยู่ข้างใน" = ยอดเข้าลบออกสะสมตั้งแต่เริ่มวัน (ค่าประมาณ คนที่เข้าทางอื่นไม่ถูกนับ)</p>
+    <div id="q15"></div>
   </section>
 
   <section class="card" aria-labelledby="convH">
@@ -137,6 +175,7 @@
     <div class="row-actions">
       <button class="btn primary" id="printSummary" type="button" data-i18n="cr.print">พิมพ์สรุป</button>
       <button class="btn ghost" id="exportPack" type="button" data-i18n="cr.pack">ส่งออกสรุปรวมยอด (JSON)</button>
+      <button class="btn ghost" id="exportMkt" type="button" data-i18n="cr.mkBtn">ส่งออก CSV รายงานการตลาด</button>
     </div>
     <p class="hint" id="packMsg" role="status"></p>
   </section>
@@ -172,8 +211,8 @@
 <script src="lensiq-zones.js?v=1"></script>
 <script src="lensiq-zonecam.js?v=1"></script>
 <script src="lensiq-agg.js?v=1"></script>
-<script src="lensiq-crowd.js?v=1"></script>
-<script src="crowd.js?v=1"></script>
+<script src="lensiq-crowd.js?v=2"></script>
+<script src="crowd.js?v=2"></script>
 <script src="lensiq-config.js?v=4"></script>
 </body>
 </html>

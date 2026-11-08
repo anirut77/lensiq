@@ -41,3 +41,25 @@
   html.cr-print-sum #summary .hint{display:block!important}
   html.cr-print-sum .cr-tw{overflow:visible}
 }
+/* round 15: accuracy note, quality label, hour heatmaps, peak report, 15-min table */
+.cr-acc summary{cursor:pointer;min-height:44px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-weight:600;color:var(--navy)}
+.cr-acc-list{margin:8px 0;padding-left:20px;display:grid;gap:4px;font-size:.92rem}
+.cr-acc p{overflow-wrap:anywhere}
+.cr-qual{margin:10px 0 0;padding:10px 12px;border-radius:10px;background:#fff7e6;border:1px solid #f5c26b;color:#7a4a00;font-size:.9rem;overflow-wrap:anywhere}
+.cr-hsel{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-top:6px}
+.cr-hsel label{font-size:.88rem;color:var(--muted)}
+.cr-hsel input[type=range]{flex:1 1 160px;min-width:0;min-height:44px;accent-color:#4b36d6}
+.cr-hsel output{font-variant-numeric:tabular-nums;font-weight:600;min-width:7ch}
+.cr-hms{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px;margin-top:6px}
+.cr-hm{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:44px;padding:4px;min-width:0;cursor:pointer;
+  border:1px solid var(--line);border-radius:10px;background:var(--bg);font:inherit;font-size:.82rem;color:var(--text)}
+.cr-hm canvas{display:block;width:100%;height:auto;aspect-ratio:96/56;border-radius:6px}
+.cr-hm.on{border-color:#4b36d6;box-shadow:0 0 0 2px #4b36d6 inset}
+.cr-q15w{max-height:340px;overflow-y:auto}
+@media print{
+  html.cr-print-peak .zc>*:not(#peakRep){display:none!important}
+  html.cr-print-peak .zc #peakRep{display:block!important;box-shadow:none;border:0}
+  html.cr-print-peak #peakRep .row-actions{display:none!important}
+  html.cr-print-peak #peakRep .hint{display:block!important}
+  html.cr-print-peak .cr-tw{overflow:visible}
+}

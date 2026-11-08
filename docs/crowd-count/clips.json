@@ -1,0 +1,63 @@
+{
+  "_about": "Evaluation clips for crowd.html (docs/CROWD-ACCURACY.md). The clips themselves are NEVER committed: download them from the source URL, trim to `trim`, scale to <= 720p and save as `file` in a folder outside the repo (or ask the LENSIQ team for the evaluation copies). Geometry is normalised (0..1 of the frame width / height, top-left origin) and is used by BOTH tools/crowd-eval.mjs and the human counters, so app and people count the same zone and the same line. Line direction: 'in' = the person's feet move from the `outSide` description to the `inSide` description.",
+  "clips": [
+    {
+      "id": "sparse_roncesvalles", "file": "sparse_roncesvalles_toronto_ccbysa4.mp4", "crowd": "sparse", "camera": "fixed",
+      "title": "Roncesvalles Ave crossing at Galley Ave, PXO Type A lights flashing, July 2026", "author": "Qviri", "licence": "CC BY-SA 4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Roncesvalles_Ave_crossing_at_Galley_Ave,_PXO_Type_A_lights_flashing,_July_2026.webm",
+      "trim": "0-13.07 s (full clip)", "step": 1, "kit": true,
+      "zone": [{ "x": 0.3, "y": 0.55 }, { "x": 1, "y": 0.55 }, { "x": 1, "y": 1 }, { "x": 0.3, "y": 1 }],
+      "zoneDesc": "right 70% of the frame, lower 45% (the far crossing, the sidewalk and the near kerb)",
+      "line": { "a": { "x": 0.55, "y": 0.6 }, "b": { "x": 0.55, "y": 0.8 }, "swap": true },
+      "inSide": "right of the line", "inPoint": { "x": 0.95, "y": 0.7 }, "outSide": "left of the line"
+    },
+    {
+      "id": "sparse_tyumen", "file": "sparse_tyumen_respubliko_ccbysa4.mp4", "crowd": "sparse", "camera": "mostly fixed (slight drift)",
+      "title": "Kruciĝo de stratoj Respubliko kaj Orĝonikidze (Tjumeno)", "author": "RG72", "licence": "CC BY-SA 4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Kruci%C4%9Do_de_stratoj_Respubliko_kaj_Or%C4%9Donikidze_(Tjumeno).webm",
+      "trim": "full clip (30.7 s)", "step": 2, "kit": false,
+      "zone": [{ "x": 0, "y": 0.45 }, { "x": 1, "y": 0.45 }, { "x": 1, "y": 1 }, { "x": 0, "y": 1 }],
+      "zoneDesc": "lower 55% of the frame (far kerb, road and near crossing)",
+      "line": { "a": { "x": 0.5, "y": 0.45 }, "b": { "x": 0.5, "y": 0.62 }, "swap": true },
+      "inSide": "right of the line", "inPoint": { "x": 0.95, "y": 0.7 }, "outSide": "left of the line"
+    },
+    {
+      "id": "medium_yonge_dundas", "file": "medium_yonge_dundas_toronto_cc0.mp4", "crowd": "medium", "camera": "fixed",
+      "title": "DiagonalCrosswalkYongeDundas", "author": "Raysonho @ Open Grid Scheduler / Grid Engine", "licence": "CC0",
+      "url": "https://commons.wikimedia.org/wiki/File:DiagonalCrosswalkYongeDundas.webm",
+      "trim": "0-40 s", "step": 2, "kit": true,
+      "zone": [{ "x": 0, "y": 0.66 }, { "x": 1, "y": 0.66 }, { "x": 1, "y": 1 }, { "x": 0, "y": 1 }],
+      "zoneDesc": "lower 34% of the frame (the near half of the crossing; the far kerb, where people's feet are at about 60% of the height, is outside)",
+      "line": { "a": { "x": 0, "y": 0.8 }, "b": { "x": 1, "y": 0.8 }, "swap": false },
+      "inSide": "below the line (towards the camera)", "inPoint": { "x": 0.5, "y": 0.95 }, "outSide": "above the line (away from the camera)"
+    },
+    {
+      "id": "medium_tyumen", "file": "medium_tyumen_crossing_ccbysa4.mp4", "crowd": "medium", "camera": "slow pan (per-frame counts only, no line)",
+      "title": "Piedira pasejo en strato Respubliko (Tjumeno)", "author": "RG72", "licence": "CC BY-SA 4.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Piedira_pasejo_en_strato_Respubliko_(Tjumeno).webm",
+      "trim": "0-12 s", "step": 1, "kit": false,
+      "zone": [{ "x": 0, "y": 0.55 }, { "x": 1, "y": 0.55 }, { "x": 1, "y": 1 }, { "x": 0, "y": 1 }],
+      "zoneDesc": "lower 45% of the frame (the crossing)",
+      "line": null
+    },
+    {
+      "id": "dense_shibuya", "file": "dense_shibuya_realtime_ccby2.mp4", "crowd": "dense", "camera": "near-fixed (small drift)",
+      "title": "Shibuya Crossing", "author": "Emran Kassim from Nagoya, Aichi, Japan", "licence": "CC BY 2.0",
+      "url": "https://commons.wikimedia.org/wiki/File:Shibuya_Crossing.ogv",
+      "trim": "44-64 s", "step": 5, "kit": false,
+      "zone": [{ "x": 0.2, "y": 0.5 }, { "x": 0.8, "y": 0.5 }, { "x": 0.8, "y": 0.8 }, { "x": 0.2, "y": 0.8 }],
+      "zoneDesc": "centre of the crossing (x 20-80%, y 50-80%)",
+      "line": { "a": { "x": 0.5, "y": 0.5 }, "b": { "x": 0.5, "y": 0.8 }, "swap": true },
+      "inSide": "right of the line", "inPoint": { "x": 0.95, "y": 0.7 }, "outSide": "left of the line"
+    },
+    {
+      "id": "dense_shibuya_timelapse", "file": "dense_shibuya_timelapse_cc0.mp4", "crowd": "dense", "camera": "fixed, TIME-LAPSE (no line test)",
+      "title": "Shibuya crossing time-lapse 2019-01-05", "author": "Asanagi", "licence": "CC0",
+      "url": "https://commons.wikimedia.org/wiki/File:Shibuya_crossing_time-lapse_2019-01-05.webm",
+      "trim": "full clip (34.6 s)", "step": 5, "kit": false, "appOnly": true,
+      "zone": [{ "x": 0.2, "y": 0.5 }, { "x": 0.8, "y": 0.5 }, { "x": 0.8, "y": 0.85 }, { "x": 0.2, "y": 0.85 }],
+      "zoneDesc": "centre of the crossing",
+      "line": null
+    }
+  ]
+}

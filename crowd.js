@@ -2,6 +2,9 @@
  * People in view / per drawn zone, density heatmap (person-seconds by foot position, numbers only) + time series, peak hours,
  * entry/exit line counter, dwell per zone, visitors per hour (approx.), conversion against numbers the operator types in,
  * optional shopfront funnel (passers-by -> stopped -> entered), CSV export, printable summary, LQAgg summary pack (file).
+ * Round 15: density heatmap per hour (slider + small multiples), printable peak-hour report, entry/exit per 15 minutes with
+ * net occupancy, marketing CSV (labelled columns, UTF-8 BOM), and a "density estimate, not an exact count" label when the
+ * measured limits of the person detector are reached (docs/CROWD-ACCURACY.md; LQCrowd.countQuality).
  * Runs on LQZoneCam (camera + detector + zone UI) and LQCrowd / LQZones (pure maths, tests/unit/crowd.test.js).
  * Privacy: frames are analysed in memory and dropped; only counts and aggregates are stored (localStorage, this device).
  * No faces, no identity, no images, no network. Capacity alerts are for staff to look at — they never act on their own.
@@ -38,6 +41,9 @@
   const dwell = Z.createDwell({ graceMs: 2000 });
   const totalSmooth = Z.createSmoother(5), smooth = new Map(), live = new Map(), counted = new Map();
   let hourSeen = new Set(), passSeen = new Set(), stopSeen = new Set();
+  // count quality: median person-box height over the last ~5 s (25 frames at 5 Hz) + the busiest zone's people per m²
+  const medSmooth = Z.createSmoother(25);
+  let qual = { estimate: false, small: false, collapse: false }, heatSel = -1; // heatSel: -1 = whole day, 0..23 = that hour's grid
   // per-zone runtime state is keyed by zone id; a zone whose shape changed (or an id reused after a delete) gets a new
   // generation so only that zone's dwell starts over — people inside the other zones keep their time and are not re-counted
   const zoneSig = new Map(), zoneGen = new Map();
@@ -45,7 +51,8 @@
   const polySig = z => JSON.stringify(z.poly);
   const mkRule = s => Z.createThresholdAlert({ holdMs: s.holdSec * 1000, clearMs: s.clearSec * 1000, cooldownMs: s.cooldownMin * 60000 });
   function resetRuntime() {
-    smooth.clear(); live.clear(); counted.clear(); dwell.reset(); counter.reset(); totalSmooth.reset();
+    smooth.clear(); live.clear(); counted.clear(); dwell.reset(); counter.reset(); totalSmooth.reset(); medSmooth.reset();
+    qual = { estimate: false, small: false, collapse: false };
     hourSeen = new Set(); passSeen = new Set(); stopSeen = new Set(); hourKey = -1; lastNow = 0;
   }
 
@@ -64,8 +71,9 @@
     day.hourly.peak[h] = Math.max(day.hourly.peak[h], total);
     C.addMinute(day, h * 60 + d.getMinutes(), total, dt);
     if (h !== hourKey) { hourKey = h; hourSeen = new Set(); }
+    const hg = dt > 0 && people.length ? C.heatHour(day, h) : null;
     for (const p of people) {
-      if (dt > 0) C.gridAdd(day.heat, Z.anchor(p, "foot"), dt / 1000);
+      if (dt > 0) { const a = Z.anchor(p, "foot"); C.gridAdd(day.heat, a, dt / 1000); C.gridAdd(hg, a, dt / 1000); }
       if (p.id && !hourSeen.has(p.id)) { hourSeen.add(p.id); day.hourly.uniq[h]++; }
     }
     const minVisit = s.minVisitSec * 1000, stopMs = s.stopSec * 1000;
@@ -92,7 +100,12 @@
     }
     if (line) for (const c of counter.update(people, line, line.swap, now)) {
       if (c.dir === "in") { day.in++; day.hourly.in[h]++; } else { day.out++; day.hourly.out[h]++; }
+      C.addCross(day, h * 60 + d.getMinutes(), c.dir);
     }
+    const hs = people.map(b => b.h).sort((a, b) => a - b), medH = hs.length ? medSmooth.push(hs[hs.length >> 1]) : medSmooth.value();
+    let perM2 = null;
+    for (const v of live.values()) if (v.dens != null && (perM2 == null || v.dens > perM2)) perM2 = v.dens;
+    qual = C.countQuality({ count: total, medH: Number.isFinite(medH) ? medH : null, perM2, expected: Number(P.settings.expectCrowd) || 0 });
   }
 
   // ---------- drawing on the camera canvas ----------
@@ -147,14 +160,26 @@
     const anyOn = P.zones.some(z => live.get(z.id) && live.get(z.id).on);
     tiles.textContent = "";
     tiles.append(
-      tile(T("cr.t.now", "คนในภาพตอนนี้"), String(total), T("cr.t.zones", "{n} โซน", { n: P.zones.length }), anyOn),
+      tile(T("cr.t.now", "คนในภาพตอนนี้"), qual.estimate ? "≈ " + total : String(total),
+        qual.estimate ? T("cr.q.tile", "ค่าประมาณความหนาแน่น ไม่ใช่ยอดนับที่แน่นอน") : T("cr.t.zones", "{n} โซน", { n: P.zones.length }), anyOn),
       tile(T("cr.t.peak", "มากสุดวันนี้"), String(day.peak), day.peakAt ? ZC.fmtClock(day.peakAt) : "—"),
       tile(T("cr.t.inout", "เข้า / ออก (เส้นนับ)"), line ? `${day.in} / ${day.out}` : "—",
         line ? T("cr.t.inside", "คงอยู่ข้างในราว {n} คน", { n: Math.max(0, day.in - day.out) }) : T("cr.t.noLine", "ยังไม่มีเส้นนับ")),
+      tile(T("cr.t.net", "สุทธิ 15 นาทีล่าสุด (เข้า − ออก)"), line ? fmtNet(lastQuarter(day)) : "—", line ? T("cr.t.netS", "นับจากเส้นนับ ไม่ระบุตัวตน") : T("cr.t.noLine", "ยังไม่มีเส้นนับ")),
       tile(T("cr.t.hour", "ผู้เข้าชมชั่วโมงนี้ (ประมาณ)"), String(day.hourly.uniq[h]), T("cr.t.hourS", "นับตามรหัสชั่วคราว ไม่ระบุตัวตน")),
       tile(T("cr.t.busy", "ชั่วโมงที่คนเยอะสุด"), top ? hh(top.h) : "—", top ? T("cr.t.busyS", "เฉลี่ย {a} คน · สูงสุด {p}", { a: top.avg.toFixed(1), p: top.peak }) : T("cr.t.busyNone", "ต้องเก็บข้อมูลอย่างน้อย 1 นาที")),
       tile(T("cr.t.dwell", "เวลาอยู่ในโซนเฉลี่ย"), dwellAll(P) ? ZC.fmtMS(dwellAll(P)) : "—", T("cr.t.dwellS", "เฉพาะคนที่ออกจากโซนแล้ว"))
     );
+    const q = $("crQual");
+    if (q) {
+      const msgs = [];
+      if (qual.collapse) msgs.push(T("cr.q.collapse",
+        "ตั้งไว้ว่าคาดว่าจะมีคนราว {e} คน แต่ตรวจพบเพียง {n} คน: ในฝูงชนแน่นตัวตรวจจับนับได้ลดลงจนเกือบเป็นศูนย์ ใช้ตัวเลขนี้นับจำนวนไม่ได้",
+        { e: Number(P.settings.expectCrowd) || 0, n: total }));
+      if (qual.estimate) msgs.push(T("cr.q.est", "ค่าประมาณความหนาแน่น ไม่ใช่ยอดนับที่แน่นอน: คนในภาพมากหรือแน่น ตัวตรวจจับนับขาดเมื่อคนยืนบังกัน (วัดได้: ฝูงชนหลายร้อยคนถูกนับได้แทบเป็นศูนย์)"));
+      if (qual.small) msgs.push(T("cr.q.small", "คนในภาพดูตัวเล็ก (ไกลกล้อง) ตัวตรวจจับมักนับขาด — วัดได้ว่านับต่ำกว่าจริงราว 37–59% ย้ายกล้องให้ใกล้ขึ้นหรือวาดโซนเฉพาะช่วงใกล้กล้อง"));
+      q.hidden = !msgs.length; q.textContent = msgs.join(" · ");
+    }
     const ul = $("zoneState");
     if (ul) {
       ul.textContent = "";
@@ -174,11 +199,21 @@
     if (t - lastSlow > 1000 || P._force) { lastSlow = t; P._force = false; renderSlow(P); }
   }
   let lastSlow = 0;
-  function renderSlow(P) { renderHeat(P); renderSeries(P); renderHourly(P); renderFunnel(P); renderConv(P); renderSummary(P); }
+  function renderSlow(P) { renderHeat(P); renderHeatHours(P); renderSeries(P); renderHourly(P); renderFunnel(P); renderQ15(P); renderConv(P); renderSummary(P); renderPeak(P); }
+  const fmtNet = n => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.abs(n);
+  // Net in-out of the latest 15-minute slot: today = the wall-clock slot; a seeded/demo or earlier day = its last slot with data.
+  function lastQuarter(day) {
+    const d = new Date(), q = day.q15 || {};
+    if (day.date === ZC.dayKey(d)) { const r = q[String(Math.floor((d.getHours() * 60 + d.getMinutes()) / 15))]; return r ? r[0] - r[1] : 0; }
+    const ks = Object.keys(q).map(Number).filter(Number.isFinite).sort((a, b) => a - b), r = ks.length ? q[String(ks[ks.length - 1])] : null;
+    return r ? r[0] - r[1] : 0;
+  }
 
   function renderHeat(P) {
     const cv = $("heat"); if (!cv) return;
-    const c = cv.getContext("2d"), G = P.day.heat, m = C.gridMax(G), Wd = cv.width, Hd = cv.height;
+    const hours = C.heatHours(P.day);
+    if (heatSel >= 0 && !hours.includes(heatSel)) heatSel = -1;
+    const c = cv.getContext("2d"), G = heatSel >= 0 ? P.day.heatH[String(heatSel)] : P.day.heat, m = C.gridMax(G), Wd = cv.width, Hd = cv.height;
     c.fillStyle = "#1b2347"; c.fillRect(0, 0, Wd, Hd);
     for (let i = 0; i < G.d.length; i++) {
       const v = m ? Math.sqrt(G.d[i] / m) : 0;
@@ -193,6 +228,42 @@
     }
     if (line) { c.strokeStyle = "#facc15"; c.beginPath(); c.moveTo(line.a.x * Wd, line.a.y * Hd); c.lineTo(line.b.x * Wd, line.b.y * Hd); c.stroke(); }
     if (!m) { c.fillStyle = "#c9d0ea"; c.font = "16px Prompt, Inter, sans-serif"; c.textAlign = "center"; c.fillText(T("cr.heatEmpty", "ยังไม่มีข้อมูลวันนี้"), Wd / 2, Hd / 2); }
+    const sl = $("heatHour"), lb = $("heatHourLbl");
+    if (sl) {
+      sl.max = String(Math.max(0, hours.length)); sl.value = String(heatSel >= 0 ? hours.indexOf(heatSel) + 1 : 0); sl.disabled = !hours.length;
+      const txt = heatSel >= 0 ? T("cr.heatH.one", "ช่วง {from}–{to}", { from: hh(heatSel), to: hh((heatSel + 1) % 24) }) : T("cr.heatH.all", "ทั้งวัน");
+      sl.setAttribute("aria-valuetext", txt);
+      if (lb) lb.textContent = txt;
+    }
+  }
+  // small multiples: one mini heatmap per hour with data; tapping one (or moving the slider) shows that hour above
+  let hoursSig = "";
+  function renderHeatHours(P) {
+    const box = $("heatHours"); if (!box) return;
+    const hours = C.heatHours(P.day), sig = hours.join(",") + "|" + heatSel + "|" + (W.LQI18N ? W.LQI18N.lang : "");
+    if (sig !== hoursSig) {
+      hoursSig = sig; box.textContent = "";
+      if (!hours.length) { box.appendChild(el("p", "hint", T("cr.heatH.none", "ยังไม่มีข้อมูลรายชั่วโมง"))); }
+      for (const h of hours) {
+        const b = /** @type {HTMLButtonElement} */ (el("button", "cr-hm" + (h === heatSel ? " on" : "")));
+        b.type = "button"; b.dataset.h = String(h); b.setAttribute("aria-pressed", String(h === heatSel));
+        b.setAttribute("aria-label", T("cr.heatH.btn", "ดูฮีตแมปช่วง {from}–{to}", { from: hh(h), to: hh((h + 1) % 24) }));
+        const cv = /** @type {HTMLCanvasElement} */ (el("canvas")); cv.width = 96; cv.height = 56;
+        b.append(cv, el("span", "", hh(h)));
+        b.addEventListener("click", () => { heatSel = heatSel === h ? -1 : h; P._force = true; P.render(); });
+        box.appendChild(b);
+      }
+    }
+    for (const b of box.querySelectorAll("button")) {
+      const G = P.day.heatH[b.dataset.h], cv = b.querySelector("canvas"); if (!G || !cv) continue;
+      const c = cv.getContext("2d"), m = C.gridMax(G);
+      c.fillStyle = "#1b2347"; c.fillRect(0, 0, cv.width, cv.height);
+      for (let i = 0; i < G.d.length; i++) {
+        const v = m ? Math.sqrt(G.d[i] / m) : 0; if (v < 0.02) continue;
+        const [r, g, bl] = C.heatColor(v); c.fillStyle = `rgb(${r},${g},${bl})`;
+        c.fillRect((i % G.cols) * cv.width / G.cols, Math.floor(i / G.cols) * cv.height / G.rows, cv.width / G.cols + 0.5, cv.height / G.rows + 0.5);
+      }
+    }
   }
   const SVGNS = "http://www.w3.org/2000/svg";
   function svgEl(tag, attrs) { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, String(attrs[k])); return e; }
@@ -253,6 +324,57 @@
     step(T("cr.f.enter", "เข้า (เส้นนับ)"), line ? String(P.day.in) : "—", line
       ? (hasRoles ? T("cr.f.enterS", "{p} ของคนเดินผ่าน · {q} เทียบกับคนหยุดดู", { p: pct(r.overall), q: pct(r.enterRate) }) : T("cr.f.out", "ออก {n}", { n: P.day.out }))
       : T("cr.t.noLine", "ยังไม่มีเส้นนับ"));
+  }
+  function renderQ15(P) {
+    const box = $("q15"); if (!box) return;
+    const rows = C.quarterTable(P.day);
+    box.textContent = "";
+    if (!rows.length) { box.appendChild(el("p", "hint", line ? T("cr.q15.none", "ยังไม่มีคนข้ามเส้นนับวันนี้") : T("cr.t.noLine", "ยังไม่มีเส้นนับ"))); return; }
+    const tw = el("div", "cr-tw cr-q15w"), tb = el("table", "cr-table"), tr = el("tr");
+    for (const hd of [T("cr.q15.time", "ช่วงเวลา"), T("cr.q15.in", "เข้า (คน)"), T("cr.q15.out", "ออก (คน)"), T("cr.q15.net", "สุทธิ (เข้า − ออก)"),
+      T("cr.q15.occ", "คงอยู่ข้างใน (ประมาณ)")]) tr.appendChild(el("th", "", hd));
+    const th = el("thead"); th.appendChild(tr); tb.appendChild(th);
+    const body = el("tbody");
+    for (const r of rows.slice().reverse()) { // newest first
+      const row = el("tr");
+      for (const v of [r.from + "–" + r.to, r.in, r.out, fmtNet(r.net), r.occ]) row.appendChild(el("td", "", String(v)));
+      body.appendChild(row);
+    }
+    tb.appendChild(body); tw.appendChild(tb); box.appendChild(tw);
+  }
+  // ---------- peak-hour report (printable) ----------
+  function renderPeak(P) {
+    const box = $("peakBody"); if (!box) return;
+    const rp = C.peakReport(P.day, P.zones), name = String(P.settings.siteName || "").trim();
+    box.textContent = "";
+    box.appendChild(el("p", "cr-sum-h", T("cr.sum.head", "{site}วันที่ {date} · {zc}", { site: name ? name + " · " : "", date: P.day.date,
+      zc: P.day.demo ? T("cr.sum.demo", "ข้อมูลจำลอง (โหมดตัวอย่าง)") : T("cr.sum.real", "ตัวเลขประมาณจากกล้อง") })));
+    if (!rp.hours.length) box.appendChild(el("p", "hint", T("cr.peaksNone", "ยังไม่มีชั่วโมงที่มีข้อมูลครบ 1 นาที")));
+    else {
+      const tw = el("div", "cr-tw"), tb = el("table", "cr-table"), tr = el("tr");
+      for (const hd of [T("cr.rep.rank", "อันดับ"), T("zq.csv.h1", "ชั่วโมง"), T("cr.csv.avg", "คนในภาพเฉลี่ย"), T("cr.csv.max", "สูงสุด"),
+        T("cr.csv.uniq", "ผู้เข้าชม (ประมาณ)"), T("cr.csv.in", "เข้า"), T("cr.csv.out", "ออก")]) tr.appendChild(el("th", "", hd));
+      const th = el("thead"); th.appendChild(tr); tb.appendChild(th);
+      const body = el("tbody");
+      rp.hours.forEach((p, i) => {
+        const row = el("tr");
+        const io = line || p.in || p.out;
+        for (const v of [i + 1, hh(p.h) + "–" + hh((p.h + 1) % 24), p.avg.toFixed(1), p.peak, p.uniq, io ? p.in : "—", io ? p.out : "—"]) row.appendChild(el("td", "", String(v)));
+        body.appendChild(row);
+      });
+      tb.appendChild(body); tw.appendChild(tb); box.appendChild(tw);
+    }
+    const dl = el("dl", "cr-dl");
+    const kv = (k, v) => { dl.append(el("dt", "", k), el("dd", "", v)); };
+    kv(T("cr.rep.zone", "โซนที่คนเยอะสุด"), rp.zone ? T("cr.rep.zoneV", "{zone}: เฉลี่ย {a} คน · สูงสุด {p} คน · เข้าโซน {v} ครั้ง{dens}", {
+      zone: rp.zone.name, a: rp.zone.avg.toFixed(1), p: rp.zone.peak, v: rp.zone.visits,
+      dens: rp.zone.peakPerM2 == null ? "" : T("cr.rep.dens", " · สูงสุด {d} คน/ตร.ม. ({lv})", { d: rp.zone.peakPerM2.toFixed(2), lv: levelName(rp.zone.level) }) }) : "—");
+    const rq = rp.quarter;
+    kv(T("cr.rep.q", "15 นาทีที่คนเข้า–ออกมากสุด"), rq ? T("cr.rep.qV", "{from}–{to}: เข้า {i} · ออก {o}", { from: rq.from, to: rq.to, i: rq.in, o: rq.out }) : "—");
+    kv(T("cr.rep.hot", "ความกระจุกตัว"), rp.hot == null ? "—" : T("cr.rep.hotV", "{p} ของเวลาที่มีคนอยู่ รวมอยู่ใน 10% ของพื้นที่ภาพที่คนเยอะสุด", { p: pct(rp.hot) }));
+    kv(T("cr.sum.visitors", "ผู้เข้าชมรวม (ประมาณ)"), String(rp.visitors));
+    box.appendChild(dl);
+    box.appendChild(el("p", "hint", T("cr.rep.note", "ตัวเลขเป็นค่าประมาณจากกล้อง (ดูหมายเหตุความแม่นยำด้านบน) ไม่มีภาพหรือข้อมูลระบุตัวบุคคล")));
   }
   const convLabel = P => P.settings.convKind === "signup" ? T("cr.conv.signupN", "ยอดลงทะเบียน") : P.settings.convKind === "other" ? T("cr.conv.otherN", "ผลลัพธ์") : T("cr.conv.buyN", "ยอดซื้อ");
   function convRows(P) {
@@ -361,6 +483,53 @@
     return rows;
   }
 
+  // ---------- marketing CSV: labelled sections for a report (opens in Excel with Thai text: UTF-8 BOM via ZC.downloadCsv) ----------
+  function csvMarketing(P) {
+    const day = C.ensureDay(P.day), t = C.marketingTables(day, P.zones), rows = [], f1 = v => v == null ? "" : v.toFixed(1), f2 = v => v == null ? "" : v.toFixed(2);
+    rows.push([T("cr.mk.title", "รายงานจำนวนคนสำหรับการตลาด — LENSIQ นับคนและความหนาแน่น")]);
+    if (day.demo) rows.push([T("cr.csv.demo", "ข้อมูลจำลอง (โหมดตัวอย่าง) — ไม่ใช่ตัวเลขจริง")]);
+    rows.push([T("cr.csv.site", "จุด/อีเวนต์"), String(P.settings.siteName || ""), T("cr.csv.date", "วันที่"), day.date]);
+    rows.push([T("cr.mk.acc", "หมายเหตุ: ตัวเลขทั้งหมดเป็นค่าประมาณจากกล้อง ความแม่นยำสุดท้ายรอการนับเทียบโดยคน (ผลเบื้องต้น: นับต่ำกว่าจริงเมื่อคนตัวเล็ก/ไกล หรือแน่นมาก)")]);
+    rows.push([]);
+    rows.push([T("cr.mk.sumH", "สรุป")]);
+    rows.push([T("cr.mk.k", "ตัวชี้วัด"), T("cr.mk.v", "ค่า")]);
+    const pk = t.peak, top = pk.hours[0];
+    rows.push([T("cr.sum.visitors", "ผู้เข้าชมรวม (ประมาณ)"), pk.visitors]);
+    rows.push([T("cr.mk.in", "เข้าทั้งวัน (เส้นนับ, คน)"), day.in]);
+    rows.push([T("cr.mk.out", "ออกทั้งวัน (เส้นนับ, คน)"), day.out]);
+    rows.push([T("cr.mk.peakN", "คนในภาพสูงสุดพร้อมกัน (คน)"), day.peak]);
+    rows.push([T("cr.mk.peakAt", "เวลาที่คนในภาพสูงสุด"), day.peakAt ? ZC.fmtClock(day.peakAt) : ""]);
+    rows.push([T("cr.mk.peakH", "ชั่วโมงที่คนเยอะสุด"), top ? hh(top.h) + "–" + hh((top.h + 1) % 24) : ""]);
+    rows.push([T("cr.mk.peakHs", "3 ชั่วโมงที่คนเยอะสุด"), pk.hours.map(p => hh(p.h)).join(" / ")]);
+    rows.push([T("cr.mk.zone", "โซนที่คนเยอะสุด"), pk.zone ? pk.zone.name : ""]);
+    rows.push([T("cr.mk.hot", "สัดส่วนเวลาใน 10% ของพื้นที่ที่คนเยอะสุด (%)"), pk.hot == null ? "" : (pk.hot * 100).toFixed(1)]);
+    rows.push([]);
+    rows.push([T("cr.mk.hourH", "ผู้เข้าชมรายชั่วโมง")]);
+    rows.push([T("cr.mk.hour", "ชั่วโมง (เริ่ม)"), T("cr.mk.visitors", "ผู้เข้าชม (ประมาณ, คน)"), T("cr.mk.avg", "คนในภาพเฉลี่ย (คน)"), T("cr.mk.max", "คนในภาพสูงสุด (คน)"),
+      T("cr.mk.inH", "เข้า (คน)"), T("cr.mk.outH", "ออก (คน)"), T("cr.mk.net", "สุทธิ เข้า − ออก (คน)")]);
+    for (const r of t.hourly) rows.push([hh(r.h), r.uniq, f2(r.avg), r.peak, r.in, r.out, r.net]);
+    rows.push([]);
+    rows.push([T("cr.mk.qH", "เข้า–ออกราย 15 นาที (เส้นนับ)")]);
+    rows.push([T("cr.mk.qFrom", "เริ่ม"), T("cr.mk.qTo", "สิ้นสุด"), T("cr.mk.inH", "เข้า (คน)"), T("cr.mk.outH", "ออก (คน)"), T("cr.mk.net", "สุทธิ เข้า − ออก (คน)"),
+      T("cr.mk.occ", "คงอยู่ข้างใน ณ สิ้นช่วง (ประมาณ, คน)")]);
+    for (const r of t.quarters) rows.push([r.from, r.to, r.in, r.out, r.net, r.occ]);
+    rows.push([]);
+    rows.push([T("cr.mk.zH", "เวลาอยู่และความหนาแน่นรายโซน")]);
+    rows.push([T("zc.csv.zone", "โซน"), T("cr.csv.role", "บทบาท"), T("cr.mk.visits", "เข้าโซน (ครั้ง)"), T("cr.mk.dwell", "อยู่เฉลี่ย (วินาที)"), T("cr.mk.zavg", "คนเฉลี่ยในโซน (คน)"),
+      T("cr.mk.zpeak", "สูงสุดพร้อมกัน (คน)"), T("cr.mk.area", "พื้นที่ (ตร.ม.)"), T("cr.mk.dAvg", "ความหนาแน่นเฉลี่ย (คน/ตร.ม.)"),
+      T("cr.mk.dPeak", "ความหนาแน่นสูงสุด (คน/ตร.ม.)"), T("cr.mk.level", "ระดับที่จุดสูงสุด")]);
+    for (const z of t.zones) rows.push([z.name, roleName(z.role), z.visits, z.dwellSec ? z.dwellSec.toFixed(1) : "", f2(z.avg), z.peak, z.area || "",
+      z.avgPerM2 == null ? "" : z.avgPerM2.toFixed(3), z.peakPerM2 == null ? "" : z.peakPerM2.toFixed(3), z.level ? levelName(z.level) : ""]);
+    rows.push([]);
+    rows.push([T("cr.mk.dH", "สรุปความหนาแน่นตามช่วงเวลา (คน-วินาที ตามตำแหน่งเท้า รวมทั้งภาพ)")]);
+    rows.push([T("cr.mk.hour", "ชั่วโมง (เริ่ม)"), T("cr.mk.ps", "คน-วินาทีรวม"), T("cr.mk.hotH", "สัดส่วนใน 10% ของพื้นที่ที่คนเยอะสุด (%)")]);
+    for (const h of C.heatHours(day)) {
+      const G = day.heatH[String(h)], tot = G.d.reduce((a, b) => a + b, 0), hs = C.hotShare(G);
+      rows.push([hh(h), f1(tot), hs == null ? "" : (hs * 100).toFixed(1)]);
+    }
+    return rows;
+  }
+
   // ---------- demo: walkers along a shopfront, some stop at the window, some walk in through the door line ----------
   const AGENTS = [
     { o: 0, y: 0.5, v: 0.11, stop: 0, enter: true }, { o: 3, y: 0.22, v: 0.13, stop: 0, enter: false },
@@ -440,7 +609,7 @@
     ns: NS, key: "crowd", classes: ["person"], anchorKind: "foot", csvName: "lensiq-crowd", demoSpeed: DEMO_SPEED,
     zoneName: i => T("cr.zoneName", "โซน {n}", { n: i + 1 }),
     zoneFields: z => ({ role: ROLES.includes(z.role) ? z.role : "area", cap: Math.round(clampN(z.cap, 0, 10000)), area: Math.round(clampN(z.area, 0, 100000) * 10) / 10 }),
-    defaults: { siteName: "", minVisitSec: 2, stopSec: 5, holdSec: 10, clearSec: 15, cooldownMin: 5, convKind: "buy", heatOverlay: true, sound: false },
+    defaults: { siteName: "", minVisitSec: 2, stopSec: 5, holdSec: 10, clearSec: 15, cooldownMin: 5, convKind: "buy", heatOverlay: true, sound: false, expectCrowd: 0 },
     newDay: () => C.newDay(ZC.dayKey()), onFrame, render, csv, demo, draw,
     demoZones: DEMO_ZONES.map(d => d.poly),
     zoneColor: z => live.get(z.id) && live.get(z.id).on ? "#f87171" : null,
@@ -570,7 +739,23 @@
     if (pm) pm.textContent = T("cr.pack.ok", "ดาวน์โหลดไฟล์สรุปแล้ว (ตัวเลขล้วน ไม่มีภาพ) นำเข้าได้ที่หน้าวิเคราะห์หน้าร้าน > เชื่อมหลายเครื่อง > นำเข้าสรุปจากเครื่องอื่น");
   });
 
-  W.addEventListener("lq-lang", () => { convSig = ""; P._force = true; P.render(); });
+  $("printPeak").addEventListener("click", () => {
+    P._force = true; P.render();
+    const de = document.documentElement; de.classList.add("cr-print-peak");
+    const done = () => { de.classList.remove("cr-print-peak"); W.removeEventListener("afterprint", done); };
+    W.addEventListener("afterprint", done);
+    try { W.print(); } finally { setTimeout(done, 1500); }
+  });
+  $("exportMkt").addEventListener("click", () => {
+    P._force = true; P.render();
+    ZC.downloadCsv(`lensiq-crowd-marketing-${(P.day && P.day.date) || ZC.dayKey()}.csv`, csvMarketing(P));
+  });
+  $("heatHour").addEventListener("input", ev => {
+    const hours = C.heatHours(P.day), i = Number(/** @type {HTMLInputElement} */ (ev.target).value) | 0;
+    heatSel = i > 0 && hours[i - 1] != null ? hours[i - 1] : -1; P._force = true; P.render();
+  });
+
+  W.addEventListener("lq-lang", () => { convSig = ""; hoursSig = ""; P._force = true; P.render(); });
   P._force = true; P.render();
-  W.__LQZ.cr = { live, get line() { return line; }, counter };
+  W.__LQZ.cr = { live, get line() { return line; }, counter, get qual() { return qual; }, csvMarketing: () => csvMarketing(P), get heatSel() { return heatSel; } };
 })();

@@ -89,6 +89,8 @@ The system raises **signals only**: no emotion analysis, no suspicion ranking, n
 
 Plates are personal data: the operator confirms the PDPA notice before the camera starts and a guard confirms every read. See `docs/GATE.md`.
 
+Round 15: the plate finder adds colour, night and flat-background proposals, grows every box to the plate, and can use the vendored LPD-YuNet detector (OpenCV Zoo, Apache-2.0, `vendor/models/plate-det/`) as one optional proposal source. On the synthetic demo set it finds 136 / 140 plates on the held-out seed (was 13 / 140); real-photo results are weaker and listed honestly in `docs/GATE.md` §3b. A leading "1" that the OCR reads as ไ / ใ or drops always makes the guard pick. Training path for a Thai-plate model: `tools/train-plate-detector.ipynb` (YOLOX, Colab) and `docs/PLATE-DATASETS.md`.
+
 ### Sector catalogue and zone quick wins (round 13)
 
 | Page | What it does |
@@ -104,7 +106,7 @@ The zone pages share `lensiq-zones.js` / `lensiq-zonecam.js`: anonymous boxes on
 
 | Page | Menu group | What it does |
 |---|---|---|
-| `crowd.html` | Retail | People in view or in drawn zones, density heat map and per-minute series, peak hours, entry/exit line, dwell per zone, visitors per hour, conversion from typed purchases, optional shopfront funnel (passers-by → stopped → entered); CSV, printable summary, JSON numbers pack. Numbers only (`lqcr-*`, last 60 days); demo data never saved (`lensiq-crowd.js`). |
+| `crowd.html` | Retail | People in view or in drawn zones, density heat map and per-minute series, peak hours, entry/exit line, dwell per zone, visitors per hour, conversion from typed purchases, optional shopfront funnel (passers-by → stopped → entered); CSV, printable summary, JSON numbers pack. Numbers only (`lqcr-*`, last 60 days); demo data never saved (`lensiq-crowd.js`). Round 15: measured accuracy note on the page (PRELIMINARY: AI reference counts, human count pending; `docs/CROWD-ACCURACY.md`, `docs/crowd-count/`, `tools/crowd-eval.mjs`) and an "Expected crowd at peak" setting that labels a dense-crowd count collapse. |
 | `case-review.html` | Workplace | Case review from local video files: time tags, notes, reviewer name on every action, hash-chained append-only log (tamper-evident, not tamper-proof), open / review / closed, CSV / JSON / printable summary; clips stored only by opt-in, encrypted. **Never judges truthfulness**; no AI (`lensiq-case.js`). |
 | `omr.html` | Exams | Multiple-choice answer-sheet grader: print A4 sheets with corner markers, scan with a phone camera, perspective warp + bubble darkness (no ML, no faces), review screen, item analysis (difficulty, discrimination, KR-20), CSV (`lensiq-omr.js`). |
 | Exam evidence clip | Exams | Opt-in per exam (off by default) on `exam-lab` / `exam-hall` / `exam-dashboard`: 10 s video-only ring buffer, kept only on "Keep clip" (or institution auto-keep), AES-GCM encrypted on the device, invigilator PIN for the kept-clip list, auto-delete after 1–90 days, never uploaded (`lensiq-exam-clip.js`, `exam-clip-ui.js`). |

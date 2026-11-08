@@ -22,6 +22,17 @@ optional numbers-only JSON pack in the existing `lensiq-agg` format for `store.h
 | Retention | Storage cap (functional, not a policy choice): on page load and at day rollover, past day records lose their per-minute series (only today's chart uses it) and only the newest 60 day records are kept (`LQCrowd.DAY_KEEP`); older ones are deleted. Otherwise until the operator presses "Delete all statistics" (per-day records + alert list) or clears the browser. Zone shapes and settings stay until removed. Counsel may want a shorter default (change `DAY_KEEP`). If browser storage is full the page says so instead of silently failing. |
 | Demo mode | Simulated numbers are kept in memory only: they never enter the real day record, the alert list (a separate `lqcr-demo-log`, deleted when the demo stops) or the counting line, the CSV is marked "simulated data", and the JSON pack is not exported while the demo runs. |
 
+## Round 15 additions (same data categories: numbers only)
+
+| Addition | What is stored / produced |
+|---|---|
+| Density heatmap per hour | `heatH`: one 12×7 grid of person-seconds per hour with data, inside the same `lqcr-day-*` record (whole numbers once the day is compacted, about 2–3 KB for a 10-hour day). Foot positions are binned into 84 cells; no coordinates of individual people are kept. |
+| Entry/exit per 15 minutes | `q15`: `[in, out]` counts per 15-minute slot (at most 96 pairs per day). Net occupancy is computed on screen, not stored. |
+| Peak-hour report | Printed on demand from the numbers above (top hours, busiest zone, busiest 15 minutes, hot-spot share). |
+| Marketing CSV | Downloaded only when the operator presses the button: hourly visitors, in/out, peak hour, dwell and density per zone, density summary per hour. Numbers plus the operator's zone / spot names. |
+| Count-quality label | Computed per frame from box heights and counts held in memory (median of the last ~5 s); nothing new is stored. |
+| Accuracy evaluation (`tools/crowd-eval.mjs`) | A developer tool, not part of the page. It runs the page's detector on public Wikimedia Commons clips kept **outside the repo**, and writes counts only (`docs/crowd-count/app-counts.json`). Sampled frames for manual counting are written only to a folder outside the repo (the tool refuses a path inside it); no frame or video is committed. The human count sheet holds numbers and the counters' names or initials (counsel: initials are enough). |
+
 ## Why we think the risk is low (for counsel to confirm)
 
 - The page processes images of people (personal data under PDPA s.6 as far as a person could be identified in the live

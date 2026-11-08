@@ -206,6 +206,18 @@ Dependabot (`.github/dependabot.yml`) opens one grouped minor/patch PR per ecosy
 branch (`npm run typecheck`, the `TYPECHECK_MAX` ratchet, `npm run test:py` and `npm run test:integration` green), then
 merge. A round is done when CI is green on the pushed commit, not before.
 
+### Round 15 tests (plate detector, crowd accuracy)
+
+- Unit: `gate-detect.test.js` (proposals, `growToPlate`, `plateScore`, YuNet decode, demo-set definition),
+  `gate-det-eval.test.js` (eval tool arguments + summary table), `gate-train-notebook.test.js` (notebook JSON, YOLOX only, Colab install
+  steps), `gate-plate.test.js` (+ ไ/ใ leading "1", skipped character, `inkBefore`), `field-pilot-metrics.test.js`
+  (manual tap rows, good-light taps gate), `crowd-report.test.js` (MAE / MAPE / bias / band, `countQuality` collapse on
+  the stored dense samples).
+- E2e: `gate-detect.e2e.mjs` (demo set measured in the browser, baseline minus 2 scenes on every machine),
+  `gate.e2e.mjs` (leading-digit matrix: exact read, or the guard is asked with "1กข2345" offered), `gate-parking.e2e.mjs`
+  (typed-by-hand vehicle counted as a tap), `crowd-report.e2e.mjs` (accuracy note, expected-crowd label and "≈" tile).
+- Measured numbers come from `node tools/plate-det-eval.mjs` and `node tools/crowd-eval.mjs score` (no data in the repo).
+
 ### Round 14 tests (crowd, exam clip, case review, medicine, OMR, planner, lucky colour)
 
 - Unit: `crowd.test.js` (line crossing agrees with store.js, compaction + 60-day prune), `exam-clip.test.js` (default

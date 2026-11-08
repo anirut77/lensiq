@@ -1,6 +1,6 @@
 # LENSIQ — CTO brief
 
-As of 2026-11-08, commit `f478547` on `main`. Round 15 is in progress and uncommitted. Numbers marked "R15" come from that working tree.
+As of 2026-11-08 (updated after round 15). Round 15 shipped in two commits: Gate `70508bc` (CI green on Linux, live) and crowd/docs (the commit that adds this update). Accuracy sources are labelled synthetic, public dataset or field.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
 ## 1. System map
@@ -65,7 +65,7 @@ No module is production-ready. None has completed a field pilot, and the backend
 | MODNet | matting | 25 MB | Apache-2.0 (earlier releases CC BY-NC-SA; provenance commit unrecorded) | ZHKKKe/MODNet via Xenova | browser, ORT | ACCURACY §11 |
 | MobileNetV2 | checkout embedding, re-ID | 13 MB | Apache-2.0 (ImageNet) | tfjs-models | browser | not measured (§9) |
 | PP-OCRv5 Thai rec (mobile) | plate and label text | 7.5 MB | Apache-2.0 | PaddleOCR | browser, ORT | Plates (R15, synthetic, held out): exact read in 1 frame 81/140 (58%). Real plates not measured |
-| LPD-YuNet (R15, uncommitted) | plate proposal assist | ≈4 MB | Apache-2.0 | OpenCV Zoo | browser, ORT | Detection with finder (R15, synthetic, held out): 136/140 (97.1%), 18–20/20 per category. Real photos: 5 photos only (GATE.md) |
+| LPD-YuNet (R15) | plate proposal assist | 4.1 MB | Apache-2.0 | OpenCV Zoo | browser, ORT | **Synthetic:** finder + LPD-YuNet found 136/140 plates on the held-out seed, 18–20 of 20 in each colour, motorcycle and night category. **Public photos:** the right box ranked first on 2 of 6 plates (5 Wikimedia photos), and non-plate boxes scored up to 0.86. **Field:** not measured. |
 | Driver eye classifier (ours) | eye closed/open | < 2 KB | MIT; trained on ODC-BY data | `driver.js` | browser | ACCURACY §5 |
 | Creative attention (ours) | saliency | < 1 KB | MIT | `creative-core.js` | browser | NSS 1.59 held out, MIT1003 (ACCURACY §10) |
 | Claude API (optional) | rewording fortune facts | — | Anthropic commercial terms | — | server relay, consent required | not applicable |
@@ -87,8 +87,8 @@ No module is production-ready. None has completed a field pilot, and the backend
 
 | Type | Count |
 |---|---|
-| Unit (node:test) | 1,073 tests in 111 files, including backend tests. 2 fail in the R15 working tree (crowd story, mid-fix). At `f478547` all pass. |
-| e2e (headless Chrome) | 57 files, 432 tests in the last CI run |
+| Unit (node:test) | 1,080 tests, all passing. |
+| e2e (headless Chrome) | 437 tests, all passing (macOS, on the Gate-only commit). CI on Linux passed for `70508bc`. |
 | Integration | 1 file |
 | Python unittest | 4 files |
 | Gates | lint, typecheck, CSP, ZH/EN coverage, site check, and a mobile audit at 320/360/390 px |
@@ -97,18 +97,18 @@ No module is production-ready. None has completed a field pilot, and the backend
 
 | Commit | CI result | Notes |
 |---|---|---|
-| `aaad9bf` | last green | Rounds 13 and 14 are live on Pages from this commit. |
+| `70508bc` | green | Last green commit. Round 15 Gate is live on Pages. Earlier green: `aaad9bf`. |
 | `7fcbbd2` | red | Medicine OCR misread on Linux, which has no Arial. |
 | `8b9d6aa` | red, 1/431 | Same cause as `f478547`. |
-| `f478547` | red, 2/432 | On Linux, the auto-detected box for the demo plate "1กข 2345" cuts off the leading "1". It reads "กข 2345" at 100% confidence with no warning. A tapped box reads correctly. It does not reproduce on macOS. The R15 fix (grow the box to the plate edge, `leftCut` warning) is in progress. |
+| `f478547` | red, 2/432 | On Linux the auto-detected box for "1กข 2345" cut off the leading "1". **Fixed in `70508bc`:** the box grows to the plate edge, and a "1" read as ไ/ใ, a skipped character, or ink left of the first character makes the reader ask the guard. CI passed on Linux. |
 
 ### Known bugs and limitations, ranked by risk to a paying customer
 
 1. **No field accuracy for anything sold as a measurement:**
    - Plates are tested on synthetic scenes plus 5 real photos.
-   - Crowd counts undercount on street clips: MAPE 19–59%, and dense crowds of about 300 people count close to 0.
+   - Crowd counts run low on public street clips. Error is 26–59% across the whole frame. In the near zone of one clip it is 1.2 people (31%). A crowd of about 300 counts 1–2 people. These figures are **preliminary**: the reference counts were made by an AI, and the human count is pending. A new "expected crowd" setting shows a warning when the count collapses.
    - Face accuracy comes from public photos. It is lower for Asian faces (about 66–76%, per the attendance readiness doc).
-2. **The plate reader can silently drop the leading digit** (the CI failure above), so it can bill or admit the wrong vehicle. The guard confirms every read, but a confident wrong read invites a click-through.
+2. **Plate detection on real photos is weak** (public photos: 2 of 6 plates had the right box first). Non-plate boxes can trigger an auto-read. The silent leading-digit drop is fixed: the guard is now asked. The guard confirms every read, and a tap is the fallback.
 3. **The face-model licence is unresolved** (F5/F6). This could force a model swap in attendance, customers and exam.
 4. **The backend has never been deployed**, so billing, members, the Thai FDA lookup and the exam relay are untested against real Cloudflare and Opn. Opn KYC is pending.
 5. **All data lives in one browser per device.** There is no multi-site sync, no organisation accounts and no backup. Clearing the browser loses records.
@@ -124,7 +124,7 @@ No module is production-ready. None has completed a field pilot, and the backend
 - The CI-only relaxation of the medicine test (`aaad9bf`) was reverted to strict in `8b9d6aa`.
 - The only CI branch left is Chrome sandbox flags (`tests/e2e/cdp.mjs`).
 - CI runs e2e with `--retry=1`: one retry per failing file.
-- The colour-plate e2e tests use a tapped box instead of auto-detect. R15 adds auto-detect measurement through `tools/plate-det-eval.mjs`.
+- The colour-plate e2e tests still use a tapped box. Auto-detect is now measured separately with `tools/plate-det-eval.mjs` and tested in `tests/e2e/gate-detect.e2e.mjs`, which allows the measured baseline minus 2 scenes, under the same rule on CI and locally.
 
 ## 4. Data and privacy
 
@@ -206,7 +206,7 @@ No module is production-ready. None has completed a field pilot, and the backend
 | 13 | `551a989` | Exam, HR attendance, Gate (plates + PromptPay), sector catalogue |
 | 14 | `7fcbbd2` | Crowd, exam clip, case review, medicine, OMR, planner, lucky colour |
 | 14 fixes | `aaad9bf`, `8b9d6aa`, `f478547` | Strict OCR tests, leading-digit safety net, field-pilot kit |
-| 15 | in progress | Plate detector, crowd ground truth, credits |
+| 15 | `70508bc` + crowd/docs commit | Gate: plate finder for every colour, motorcycles and night, plus the leading-digit fix. Crowd: dense-crowd warning, preliminary error on 6 public clips, and a human counting sheet. Credits file, Colab training notebook, dataset list. |
 
 **Size**
 - 64 HTML pages and 36 commits.

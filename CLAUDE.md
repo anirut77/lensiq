@@ -3,6 +3,20 @@
 Static multi-page site (vanilla JS, TH default + `i18n/en-*.js`, `i18n/zh-*.js`), all vision on-device. Live:
 https://anirut77.github.io/lensiq/. Owner-facing replies are in Thai.
 
+## Working rules (owner: Tum)
+
+- Never loosen or skip a test to make CI pass. Fix the product. No CI-only allowances.
+- CI must be green before stacking new work. Push risky fixes as their own commit.
+- Ask the owner before changing approved scope or order. Don't start and report later.
+- Every round: fixed test set before building, real numbers per condition, an independent reviewer agent that re-measures.
+- On-device processing by default. A human confirms any decision affecting money, access or a person. No emotion or
+  deception scoring.
+- Check the licence of every model, dataset and media file for commercial use. Record credits.
+- Every accuracy claim states its source: synthetic, public dataset or field.
+- All user-facing text complete in Thai, English and Chinese.
+- Report format: built / deferred + why / numbers vs targets / risks / next step. Then wait for approval.
+- Keep docs/CTO-BRIEF.md and docs/FIELD-PILOT.md updated each round.
+
 ## Product structure
 
 - Never delete or freeze existing work. Merge, extend and regroup only.
@@ -41,10 +55,17 @@ A page may appear in two categories. Pages not listed under a category are platf
 - Commit messages end with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Do not deploy the backend,
   use real keys or change GitHub repo settings.
 
-## Round 16 (draft, waits for owner approval after round 15)
+## Round 16 "Sellable core" (plan only: prepare after round 15, with effort S/M/L, owner dependencies and risks per item; build only after approval)
 
-- Packaging: reorganise the home page, navigation and solutions catalogue by the categories above. Every page stays
-  reachable. Each category gets a landing page listing its tools, status (demo / experimental / pilot-ready) and
-  measured accuracy with its source.
-- Customer-build switch: age/gender and expression are off by default with a licence label. Demo mode keeps them on.
-  Today `window.LENSIQ_AGE_GENDER` in `lensiq-config.js` defaults to `true`.
+1. Packaging: reorganise the home page, navigation and solutions catalogue by the 7 categories. Every page stays
+   reachable. Each category gets a landing page listing its tools, status (demo / experimental / pilot-ready) and
+   measured accuracy with its source.
+2. Customer-build switch: one config turns off the age/gender and expression models in customer builds, with a
+   licence label. Demo mode keeps them on. Today `window.LENSIQ_AGE_GENDER` in `lensiq-config.js` defaults to `true`.
+3. Honest claims: every one-pager and product page states measured accuracy and its source. Crowd states it is not
+   yet suitable for dense crowds.
+4. Organisation accounts on the Cloudflare backend (staging): org, admin and staff roles, multi-device sync and
+   export/backup for Exam, Gate and Attendance. Show the data model and PDPA impact before building.
+5. Field pilot kits: one pilot plan and checklist each for Exam, Gate and Crowd, based on docs/FIELD-PILOT.md, listing
+   what the owner prepares on site.
+6. One-pager and pricing draft for Exam, Gate, Crowd and Attendance.
