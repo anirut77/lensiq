@@ -34,19 +34,41 @@ window.LENSIQ_FACEPARSE = window.LENSIQ_FACEPARSE === true;
 
 /* LENSIQ_AGE_GENDER: ตัวเลือก "ใช้อายุ/เพศ" ของป้ายโฆษณา (signage.html) — โมเดล face-api.js ageGenderNet ฝึกจาก UTKFace
  *   (ข้อมูลอนุญาตเฉพาะงานวิจัย ไม่ใช่เชิงพาณิชย์ — LICENSES/THIRD_PARTY.md F5) โหลดเฉพาะเมื่อเปิดตัวเลือกนี้เท่านั้น
- *   true (ค่าเริ่มต้น สำหรับเดโม) = แสดงตัวเลือก · false = ซ่อนตัวเลือกและไม่โหลดโมเดลเลย (ใช้งานเชิงพาณิชย์จนกว่าทนายความจะยืนยันสิทธิ์) */
+ *   ใช้ได้เฉพาะในโหมดเดโมงานวิจัย (ดู LENSIQ_PROFILE ด้านล่าง) · false = ซ่อนตัวเลือกและไม่โหลดโมเดลเลยแม้ในโหมดเดโม */
 window.LENSIQ_AGE_GENDER = window.LENSIQ_AGE_GENDER !== false;
 
-/* LENSIQ_PROFILE: ชุดค่าการติดตั้ง — "demo" (ค่าเริ่มต้น) | "commercial"
- *   "commercial" = ติดตั้งให้ลูกค้าที่จ่ายเงิน: บังคับ LENSIQ_AGE_GENDER = false (ไม่โหลด/ไม่แสดงอายุ/เพศที่ฝึกจาก UTKFace)
- *   และ LENSIQ_FACEPARSE = false (BiSeNet ไม่ใช่เชิงพาณิชย์) แม้จะตั้งค่าอื่นไว้ก่อนหน้า — ตั้งก่อนโหลดไฟล์นี้ เช่น
- *   <script>window.LENSIQ_PROFILE = "commercial"</script> ; ป้าย "โมเดลใบอนุญาตวิจัย" บนหน้ากล้องยังแสดงอยู่
- *   เพราะโมเดลตรวจจับ/จดจำใบหน้าของ face-api.js ยังรอความเห็นทนายความ (LICENSES/THIRD_PARTY.md F5/F6) */
-/* round 12: เลือก "ใช้งานเชิงพาณิชย์" ได้จากหน้า กล้องและการติดตั้ง (cameras.html#profile) — จำไว้ในเครื่องนี้ (localStorage "lq-profile")
- *   ค่าที่จำไว้เปลี่ยนได้เฉพาะ demo -> commercial เท่านั้น (ไม่เคยเปิดโมเดลวิจัยกลับมาเองเมื่อหน้าเว็บตั้ง commercial ไว้แล้ว) */
-try { if (window.LENSIQ_PROFILE !== "commercial" && typeof localStorage !== "undefined" && localStorage.getItem("lq-profile") === "commercial") window.LENSIQ_PROFILE = "commercial"; } catch (e) { /* storage blocked */ }
-window.LENSIQ_PROFILE = window.LENSIQ_PROFILE === "commercial" ? "commercial" : "demo";
-if (window.LENSIQ_PROFILE === "commercial") { window.LENSIQ_AGE_GENDER = false; window.LENSIQ_FACEPARSE = false; }
+/* LENSIQ_EXPRESSION (round 16): โมเดลสีหน้า face-api.js faceExpressionNet (ข้อมูลฝึกไม่ชัดเรื่องสิทธิ์ — F5) ที่หน้า neuro,
+ *   signage (ยิ้ม/Valence/อารมณ์), booth (สีหน้าหลัก/Valence) และ photobooth (ตรวจสีหน้ารูปติดบัตร) ใช้
+ *   ใช้ได้เฉพาะในโหมดเดโมงานวิจัย · false = ไม่โหลดแม้ในโหมดเดโม */
+/** @type {any} */ (window).LENSIQ_EXPRESSION = /** @type {any} */ (window).LENSIQ_EXPRESSION !== false;
+
+/* LENSIQ_RESEARCH_DEMO (round 16): สวิตช์ "เดโมงานวิจัย" ของแต่ละเครื่อง (cameras.html#profile และหน้าที่ใช้โมเดลวิจัย)
+ *   true (ค่าเริ่มต้น) = ผู้ใช้เปิดเดโมงานวิจัยในเครื่องตัวเองได้ (ปิดไว้เป็นค่าเริ่มต้น จำไว้ในเครื่อง ปิดกลับได้ตลอด)
+ *   false = **การติดตั้งให้ลูกค้า: ล็อกปิด** สวิตช์ใช้ไม่ได้ และไม่มีทางเปิดโมเดลอายุ/เพศหรือสีหน้าได้เลย
+ *   (แก้บรรทัดนี้เป็น window.LENSIQ_RESEARCH_DEMO = false; ในชุดไฟล์ที่ส่งให้ลูกค้า) */
+/** @type {any} */ (window).LENSIQ_RESEARCH_DEMO = /** @type {any} */ (window).LENSIQ_RESEARCH_DEMO !== false; // customer installation: = false
+
+/* LENSIQ_PROFILE: ชุดค่าการติดตั้ง — "commercial" (ค่าเริ่มต้นตั้งแต่ round 16: โหมดลูกค้า ทุกเว็บรวม GitHub Pages) | "demo"
+ *   โหมดลูกค้า: LENSIQ_AGE_GENDER = LENSIQ_EXPRESSION = LENSIQ_FACEPARSE = false — ไม่โหลดและไม่แสดงโมเดลอายุ/เพศ (UTKFace)
+ *   และโมเดลสีหน้า · BiSeNet (ไม่ใช่เชิงพาณิชย์) ปิดค่าเริ่มต้น แต่ลิงก์ทดสอบ ?faceparse=1 ใน studio.js / photobooth-hq.js ยังไม่อยู่ใต้ล็อกนี้
+ *   (ไฟล์โมเดลไม่อยู่ใน git จึงโหลดไม่ได้บนเว็บสาธิต — งานต่อ: ให้ ?faceparse=1 ใช้ได้เฉพาะเมื่อ LENSIQ_PROFILE === "demo") · โมเดลตรวจจับ/จุดใบหน้า/จดจำใบหน้าของ face-api.js ยังทำงานเหมือนเดิม
+ *   (ยังรอความเห็นทนายความ LICENSES/THIRD_PARTY.md F5/F6 ป้าย "โมเดลใบอนุญาตวิจัย" บนหน้ากล้องจึงยังแสดงอยู่)
+ *   "demo" = เดโมงานวิจัย: เปิดจากสวิตช์ในเครื่อง (localStorage "lq-research-demo" = "on") หรือผู้ติดตั้งตั้ง
+ *   window.LENSIQ_PROFILE = "demo" ก่อนโหลดไฟล์นี้ (เครื่องสาธิต) — สวิตช์ในเครื่องยังปิดกลับได้
+ *   ล็อกโหมดลูกค้า (สวิตช์เปิดไม่ได้): LENSIQ_RESEARCH_DEMO = false หรือผู้ติดตั้งตั้ง LENSIQ_PROFILE = "commercial" ไว้ก่อน
+ *   ค่าเดิมของ round 12: localStorage "lq-profile" = "commercial" ยังหมายถึงปิดเดโมงานวิจัยในเครื่องนี้
+ *   ผลรวมอยู่ใน window.LENSIQ_RESEARCH = { on, locked: null | "operator" | "profile", key } (lensiq-research.js ใช้แสดงสวิตช์) */
+(function () {
+  "use strict";
+  var W = /** @type {any} */ (window), KEY = "lq-research-demo";
+  var pre = W.LENSIQ_PROFILE, stored = null, legacy = null;
+  try { if (typeof localStorage !== "undefined") { stored = localStorage.getItem(KEY); legacy = localStorage.getItem("lq-profile"); } } catch (e) { /* storage blocked: customer mode */ }
+  var locked = W.LENSIQ_RESEARCH_DEMO === false ? "operator" : pre === "commercial" ? "profile" : null;
+  var on = locked ? false : stored === "on" ? true : stored === "off" || legacy === "commercial" ? false : pre === "demo";
+  W.LENSIQ_PROFILE = on ? "demo" : "commercial";
+  W.LENSIQ_RESEARCH = { on: on, locked: locked, key: KEY, operatorDemo: pre === "demo" && !locked };
+  if (!on) { W.LENSIQ_AGE_GENDER = false; W.LENSIQ_EXPRESSION = false; W.LENSIQ_FACEPARSE = false; }
+})();
 
 /* LENSIQ_SELLER: ข้อมูลผู้ให้บริการ/ผู้ขาย — แหล่งเดียวที่หน้า ช่วยเหลือ ข้อกำหนด ความเป็นส่วนตัว (legal.js) แบบฟอร์มติดต่อ
  *   (lensiq-leads.js) และหน้าราคาอ่านไปแสดง กรอกที่นี่ที่เดียวแล้วทุกหน้าเปลี่ยนตาม ช่องที่ว่างจะแสดงข้อความกลาง
@@ -73,22 +95,22 @@ window.LENSIQ_SELLER = window.LENSIQ_SELLER || {
   counsel_confirmed: false // ทนายความยืนยันเกณฑ์อายุ ฐานการส่งข้อมูลต่างประเทศ และระยะเวลาเก็บแล้ว
 };
 
-/* round 12: ป้องกันการติดตั้งเชิงพาณิชย์ที่ลืมตั้งชุดค่า — บนหน้ากล้อง เมื่อชุดค่ายังเป็น "demo" และหน้าเว็บไม่ได้เปิดจากเว็บสาธิต
- *   (github.io) หรือเครื่องนักพัฒนา (localhost) จะแสดงแถบเตือนด้านบนว่าโมเดลใบอนุญาตวิจัยยังเปิดอยู่ พร้อมลิงก์ไปตั้งค่า
- *   (?profilebanner=1 บังคับแสดงเพื่อทดสอบ) ; และสวิตช์ #lqProfile ในหน้า cameras.html ใช้เปิด/ปิด "ใช้งานเชิงพาณิชย์" ของเครื่องนี้ */
+/* round 12 (round 16 wording): ป้องกันการติดตั้งให้ลูกค้าที่ยังเปิดเดโมงานวิจัยค้างไว้ — บนหน้ากล้อง เมื่อเครื่องนี้เปิด
+ *   "เดโมงานวิจัย" อยู่และหน้าเว็บไม่ได้เปิดจากเว็บสาธิต (github.io) หรือเครื่องนักพัฒนา (localhost) จะแสดงแถบเตือนด้านบน
+ *   ว่าโมเดลใบอนุญาตวิจัยเปิดอยู่ พร้อมลิงก์ไปปิด (?profilebanner=1 บังคับแสดงเพื่อทดสอบ) ; สวิตช์อยู่ใน lensiq-research.js */
 (function () {
   "use strict";
   if (typeof document === "undefined" || typeof location === "undefined") return;
   var TXT = {
-    th: { b: "ชุดค่า \"เดโม\" ยังเปิดอยู่บนเว็บนี้: โมเดลอายุ/เพศที่ฝึกจากข้อมูลใบอนุญาตวิจัย (UTKFace) ยังใช้ได้ ถ้าเป็นการติดตั้งเชิงพาณิชย์ให้เปิด \"ใช้งานเชิงพาณิชย์\"", a: "ตั้งค่าชุดการติดตั้ง",
-          on: "เครื่องนี้: ใช้งานเชิงพาณิชย์ (ปิดโมเดลอายุ/เพศ UTKFace และ BiSeNet)", off: "เครื่องนี้: ชุดค่าเดโม (เปิดโมเดลใบอนุญาตวิจัยได้)", fixed: "หน้าเว็บนี้ตั้ง LENSIQ_PROFILE = \"commercial\" ไว้แล้ว" },
-    en: { b: "The \"demo\" profile is still active on this site: the age/gender model trained on research-licence data (UTKFace) can still run. For a commercial installation, switch on \"Commercial use\"", a: "Installation profile settings",
-          on: "This device: commercial use (UTKFace age/gender and BiSeNet models off)", off: "This device: demo profile (research-licence models allowed)", fixed: "This site already sets LENSIQ_PROFILE = \"commercial\"" },
-    zh: { b: "本网站仍在使用“演示”配置：基于研究许可数据（UTKFace）训练的年龄/性别模型仍可运行。如为商业部署，请开启“商业使用”", a: "安装配置设置",
-          on: "本设备：商业使用（已关闭 UTKFace 年龄/性别与 BiSeNet 模型）", off: "本设备：演示配置（允许使用研究许可模型）", fixed: "本网站已设置 LENSIQ_PROFILE = \"commercial\"" }
+    th: { b: "เครื่องนี้เปิด \"เดโมงานวิจัย\" อยู่: โมเดลอายุ/เพศ (UTKFace) และสีหน้าที่ใช้ข้อมูลใบอนุญาตวิจัยยังทำงานได้ ห้ามใช้เชิงพาณิชย์ — ปิดได้ที่", a: "ตั้งค่าชุดการติดตั้ง" },
+    en: {
+      b: "\"Research demo\" is on for this device: the research-licence age/gender (UTKFace) and expression models can still run. Not for commercial use — switch it off in",
+      a: "Installation profile settings"
+    },
+    zh: { b: "本设备已开启“研究演示”：基于研究许可数据的年龄/性别（UTKFace）与表情模型仍可运行，不得用于商业用途 — 可在此关闭：", a: "安装配置设置" }
   };
   var lang = function () { var l = (window.LQI18N && window.LQI18N.lang) || document.documentElement.lang || "th"; return /^zh/.test(l) ? "zh" : /^en/.test(l) ? "en" : "th"; };
-  var camPage = /(store|customers|attendance|driver|qc|signage|booth|cameras)\.html$/.test(location.pathname);
+  var camPage = /(store|customers|attendance|driver|qc|signage|booth|neuro|photobooth|cameras)\.html$/.test(location.pathname);
   var demoHost = /(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$|^\[?::1\]?$|^$/.test(location.hostname || "");
   var force = /[?&]profilebanner=1\b/.test(location.search || "");
   function banner() {
@@ -102,20 +124,7 @@ window.LENSIQ_SELLER = window.LENSIQ_SELLER || {
     var fill = function () { var x = TXT[lang()]; t.textContent = x.b; a.textContent = x.a; };
     fill(); window.addEventListener("lq-lang", fill);
   }
-  function profileSwitch() {
-    var cb = /** @type {HTMLInputElement|null} */ (document.getElementById("lqProfile")), st = document.getElementById("lqProfileState"); if (!cb) return;
-    var stored = false; try { stored = localStorage.getItem("lq-profile") === "commercial"; } catch (e) { /* blocked */ }
-    var fixed = window.LENSIQ_PROFILE === "commercial" && !stored;
-    cb.checked = window.LENSIQ_PROFILE === "commercial"; cb.disabled = fixed;
-    var fill = function () { var x = TXT[lang()]; if (st) st.textContent = fixed ? x.fixed : cb.checked ? x.on : x.off; };
-    cb.addEventListener("change", function () {
-      try { if (cb.checked) localStorage.setItem("lq-profile", "commercial"); else localStorage.removeItem("lq-profile"); } catch (e) { /* blocked */ }
-      location.reload();
-    });
-    fill(); window.addEventListener("lq-lang", fill);
-  }
-  var go = function () { banner(); profileSwitch(); };
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go();
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", banner); else banner();
 })();
 
 /* ตัวโหลด: เฉพาะเมื่อมี LENSIQ_API_BASE — ไฟล์มาจากต้นทางเดียวกับหน้าเว็บ (CSP script-src 'self') */

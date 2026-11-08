@@ -132,12 +132,15 @@ function runConfig(pre, store) {
   return win;
 }
 test("commercial profile persisted per device: lq-profile=commercial turns research models off; never the reverse", () => {
-  const com = runConfig({ LENSIQ_AGE_GENDER: true }, { "lq-profile": "commercial" });
+  const com = runConfig({ LENSIQ_PROFILE: "demo", LENSIQ_AGE_GENDER: true }, { "lq-profile": "commercial" });
   assert.equal(com.LENSIQ_PROFILE, "commercial"); assert.equal(com.LENSIQ_AGE_GENDER, false); assert.equal(com.LENSIQ_FACEPARSE, false);
-  assert.equal(runConfig({}, {}).LENSIQ_PROFILE, "demo");
+  // round 16: customer mode is the default; the research demo toggle is the only per-device way back to demo
+  assert.equal(runConfig({}, {}).LENSIQ_PROFILE, "commercial");
+  assert.equal(runConfig({}, { "lq-research-demo": "on" }).LENSIQ_PROFILE, "demo");
   assert.equal(runConfig({ LENSIQ_PROFILE: "commercial" }, { "lq-profile": "demo" }).LENSIQ_PROFILE, "commercial");
   const html = read("cameras.html");
-  assert.match(html, /<section class="group" id="profile"/); assert.match(html, /id="lqProfile"/);
+  assert.match(html, /<section class="group" id="profile"/); assert.match(html, /data-lq-research="cameras"/);
+  assert.match(html, /<script src="lensiq-research\.js[^"]*"><\/script>/);
   assert.match(read("lensiq-config.js"), /lqDemoBanner/);
 });
 

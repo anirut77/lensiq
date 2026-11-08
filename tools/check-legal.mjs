@@ -54,7 +54,9 @@ export function sellerFromConfig(src) {
 export function siteConfigFromConfig(src) {
   const window = {};
   try { vm.runInNewContext(String(src), { window, location: { pathname: "/" } }, { timeout: 1000 }); } catch { /* malformed config */ }
-  return { api: window.LENSIQ_API_BASE || "", turnstile: window.LENSIQ_TURNSTILE_SITEKEY || "", google: window.LENSIQ_GOOGLE_CLIENT_ID || "", profile: window.LENSIQ_PROFILE || "demo", ageGender: window.LENSIQ_AGE_GENDER !== false, faceparse: window.LENSIQ_FACEPARSE === true };
+  return { api: window.LENSIQ_API_BASE || "", turnstile: window.LENSIQ_TURNSTILE_SITEKEY || "", google: window.LENSIQ_GOOGLE_CLIENT_ID || "",
+    profile: window.LENSIQ_PROFILE || "demo", locked: !!(window.LENSIQ_RESEARCH && window.LENSIQ_RESEARCH.locked),
+    ageGender: window.LENSIQ_AGE_GENDER !== false, faceparse: window.LENSIQ_FACEPARSE === true };
 }
 /** Go-live checklist items (lensiq-golive.js checklist) for this config. */
 export function goLiveList(src) {

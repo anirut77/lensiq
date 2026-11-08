@@ -187,6 +187,7 @@
     "photobooth.js.qc.mouthBad": "Mouth open; please close your mouth",
     "photobooth.js.qc.expr": "Natural, composed expression",
     "photobooth.js.qc.exprBad": "Smile too wide for a formal ID photo",
+    "photobooth.js.qc.exprOff": "Expression: not checked (expression model off in customer mode), check it by eye",
     "photobooth.js.qc.light": "Lighting is adequate",
     "photobooth.js.qc.dark": "Photo too dark; add light from the front",
     "photobooth.js.qc.bright": "Photo too bright",

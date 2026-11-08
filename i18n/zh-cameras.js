@@ -285,8 +285,8 @@
   "cameras.s242": "PDPA 须知：",
   "cameras.s243": "分析人脸或人员行为的系统须依法张贴告示并征得同意。本页系统设计为不保存人员图像，仅在本机保存统计数据。性别、年龄和情绪的评估结果为推测，可能存在误差，详见",
   "cameras.s244": "实测准确率",
-  "cameras.prof.h": "安装配置：演示或商业使用",
-  "cameras.prof.p1": "“演示”配置（默认）允许使用基于研究许可数据训练的模型，例如数字标牌的年龄/性别模型（UTKFace）。为付费客户安装时应开启“商业使用”，它会在本设备上关闭年龄/性别与 BiSeNet 模型。从演示网站以外的网站打开的摄像头页面会显示红色警告条，直到开启此项",
-  "cameras.prof.cb": "本设备商业使用（保存在此浏览器中；页面将重新加载）",
-  "cameras.prof.p2": "安装人员可在加载 lensiq-config.js 之前设置 window.LENSIQ_PROFILE = \"commercial\"，为所有设备统一设置 · face-api.js 的人脸检测/识别模型仍在等待律师意见，因此两种配置下都会继续显示“研究许可模型”标签"
+  "cameras.prof.h": "安装配置：客户模式或研究演示",
+  "cameras.prof.p1": "所有网站（包括 GitHub Pages 演示站）默认以客户模式运行（LENSIQ_PROFILE = \"commercial\"）：不加载、不显示年龄/性别（UTKFace）和表情模型；BiSeNet 人脸解析模型处于关闭状态（LENSIQ_FACEPARSE = false，且网站文件中不包含该模型文件）。下方的“研究演示”开关仅在本设备上恢复年龄/性别和表情模型，用于演示或研究（默认关闭，可随时关闭）。如果在非演示站点上保持开启，摄像头页面会显示红色警告条",
+  "cameras.prof.cb": "在本设备开启研究演示（保存在此浏览器中；页面将重新加载）",
+  "cameras.prof.p2": "安装人员可在 lensiq-config.js 中设置 window.LENSIQ_RESEARCH_DEMO = false，为所有设备锁定客户模式（客户部署：开关无法开启）· 演示机可设置 window.LENSIQ_PROFILE = \"demo\" · face-api.js 的人脸检测/识别模型仍在等待律师意见（F5/F6），因此两种模式下都会继续显示“研究许可模型”标签"
 } });

@@ -70,7 +70,9 @@ export const NEW_FILE_CAPS = {
   "crowd.js": 800, "lensiq-crowd.js": 400, "case-review.js": 800, "lensiq-case.js": 600,
   "medicine.js": 750, "lensiq-med.js": 500, "omr.js": 750, "lensiq-omr.js": 650,
   "planner.js": 400, "lensiq-planner.js": 400, "luckycolor.js": 450, "lensiq-luckycolor.js": 400,
-  "lensiq-exam-clip.js": 450, "exam-clip-ui.js": 400, "backend/src/med.js": 300
+  "lensiq-exam-clip.js": 450, "exam-clip-ui.js": 400, "backend/src/med.js": 300,
+  // round 16: research-demo toggle (customer-build switch)
+  "lensiq-research.js": 300
 };
 
 export default [

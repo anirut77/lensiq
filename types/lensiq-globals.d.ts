@@ -43,8 +43,17 @@ interface Window {
   LENSIQ_FACEPARSE?: boolean;
   /** lensiq-config.js: false = hide the signage age/gender option and never load ageGenderNet (research-licence model) */
   LENSIQ_AGE_GENDER?: boolean;
-  /** lensiq-config.js: "commercial" forces LENSIQ_AGE_GENDER and LENSIQ_FACEPARSE off; anything else = "demo" */
+  /** lensiq-config.js: "commercial" (default since round 16, customer mode) forces LENSIQ_AGE_GENDER, LENSIQ_EXPRESSION and
+   *  LENSIQ_FACEPARSE off; "demo" = research demo (device toggle or operator preset) */
   LENSIQ_PROFILE?: string;
+  /** lensiq-config.js (round 16): false = never load faceExpressionNet (research-licence model, F5); forced off in customer mode */
+  LENSIQ_EXPRESSION?: boolean;
+  /** lensiq-config.js (round 16): false = customer installation, the "Research demo" toggle is locked off */
+  LENSIQ_RESEARCH_DEMO?: boolean;
+  /** lensiq-config.js (round 16): resolved research-demo state, read by lensiq-research.js */
+  LENSIQ_RESEARCH?: { on: boolean; locked: null | "operator" | "profile"; key: string; operatorDemo: boolean };
+  /** lensiq-research.js (round 16): research-demo toggle and notice */
+  LQResearch?: any;
   /** lensiq-config.js: false = never load lensiq-analytics.js */
   LENSIQ_ANALYTICS?: boolean;
   /** lensiq-config.js: Cloudflare Turnstile site key for the AI writing assistant on the Worker ("" = off) */

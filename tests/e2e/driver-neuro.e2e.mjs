@@ -22,6 +22,8 @@ async function noOverflowAt390(page) {
   assert(r.sw <= r.cw, `horizontal overflow at 390px: scrollWidth ${r.sw} > ${r.cw} ${JSON.stringify(r.wide)}`);
 }
 
+const RESEARCH_ON = "try{localStorage.setItem('lq-research-demo','on')}catch(e){}";
+
 export default async function ({ base, launch, check, fakeCams, repo }) {
   const browser = await launch();
   let nmRaw = null;
@@ -101,7 +103,9 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
     });
 
     await check("neuro: 2 faces -> every sample faces===2, primary = centre face, 'พบหลายใบหน้า' pill visible", async () => {
-      const page = await browser.newPage(null, { initScripts: [fakeCams] });
+      // round 16: the expression model is research-licence (F5): customer mode is the default, so this test switches the
+      // per-device research demo on explicitly (tests/e2e/research-switch.e2e.mjs covers customer mode)
+      const page = await browser.newPage(null, { initScripts: [fakeCams, RESEARCH_ON] });
       await page.goto(`${base}/neuro.html?cpu&fakedet`);
       await assertNoWebGL(page);
       await page.evaluate(() => {

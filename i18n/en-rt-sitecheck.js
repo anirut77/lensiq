@@ -276,9 +276,6 @@
   "ยังไม่ได้ทดสอบกับคนขับคนนี้ จึงยังไม่ถือว่าพร้อมช่วยเตือน — ทำ \"ตรวจความแม่นยำหน้างาน\" (คำสั่งหลับตา) ในรถคันนี้ให้เตือนได้อย่างน้อย {e}% ก่อนใช้งานจริง": "Not yet tested with this driver, so not considered ready to assist — run the \"on-site accuracy check\" (eyes-closed prompts) in this vehicle and reach at least {e}% alerted before real use",
   "เริ่มเที่ยวแล้ว — ยังไม่ได้ยืนยันว่าระบบช่วยเตือนคนขับคนนี้ได้ (ดูสถานะความพร้อม) ระวังเป็นพิเศษและอย่าพึ่งเสียงเตือน": "Trip started — it has not been confirmed that the system can assist this driver (see the readiness status); take extra care and do not rely on the alerts",
   "การตรวจสั้นเกินไป ({a} นาที) ช่วงความเชื่อมั่นของยอดนับจึงยังยืนยันผลไม่ได้ — ตรวจต่ออีกอย่างน้อย {b} นาที (ต้องครอบคลุมหลายช่วงเวลา ไม่ใช่แค่จำนวนครั้ง)": "The check is too short ({a} min), so the count's confidence interval cannot confirm the result yet — continue for at least {b} more minutes (it must cover several time blocks, not only enough events)",
-  "ชุดค่า \"เดโม\" ยังเปิดอยู่บนเว็บนี้: โมเดลอายุ/เพศที่ฝึกจากข้อมูลใบอนุญาตวิจัย (UTKFace) ยังใช้ได้ ถ้าเป็นการติดตั้งเชิงพาณิชย์ให้เปิด \"ใช้งานเชิงพาณิชย์\"": "The \"demo\" profile is still active on this site: the age/gender model trained on research-licence data (UTKFace) can still run. For a commercial installation, switch on \"Commercial use\"",
-  "ตั้งค่าชุดการติดตั้ง": "Installation profile settings",
-  "เครื่องนี้: ใช้งานเชิงพาณิชย์ (ปิดโมเดลอายุ/เพศ UTKFace และ BiSeNet)": "This device: commercial use (UTKFace age/gender and BiSeNet models off)",
-  "เครื่องนี้: ชุดค่าเดโม (เปิดโมเดลใบอนุญาตวิจัยได้)": "This device: demo profile (research-licence models allowed)",
-  "หน้าเว็บนี้ตั้ง LENSIQ_PROFILE = \"commercial\" ไว้แล้ว": "This site already sets LENSIQ_PROFILE = \"commercial\""
+  "เครื่องนี้เปิด \"เดโมงานวิจัย\" อยู่: โมเดลอายุ/เพศ (UTKFace) และสีหน้าที่ใช้ข้อมูลใบอนุญาตวิจัยยังทำงานได้ ห้ามใช้เชิงพาณิชย์ — ปิดได้ที่": "\"Research demo\" is on for this device: the research-licence age/gender (UTKFace) and expression models can still run. Not for commercial use — switch it off in",
+  "ตั้งค่าชุดการติดตั้ง": "Installation profile settings"
 });

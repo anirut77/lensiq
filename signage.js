@@ -21,9 +21,10 @@ const MOOD_TH = { any: "ทุกอารมณ์", happy: "กำลังย
 const GESTURES = ["swipe_left", "swipe_right", "pinch", "hold", "palm"];
 const GESTURE_TH = { swipe_left: "ปัดซ้าย", swipe_right: "ปัดขวา", pinch: "จีบนิ้วเลือก", hold: "ชี้ค้างเลือก", palm: "แบมือย้อนกลับ" };
 
-/* face-api models this page loads: detector + landmarks + expressions always (expression features are labelled
-   "research-licence model" in the UI), age/gender only when the option is on and allowed (LENSIQ_AGE_GENDER !== false) */
-function netsFor(ageGender) { return ["tinyFaceDetector", "faceLandmark68Net", "faceExpressionNet"].concat(ageGender ? ["ageGenderNet"] : []); }
+/* face-api models this page loads: detector + landmarks always; expressions only in the research demo (round 16:
+   customer mode, the default, never loads face_expression_model — LICENSES/THIRD_PARTY.md F5); age/gender only when the
+   option is on and allowed (LENSIQ_AGE_GENDER === true, research demo only) */
+function netsFor(ageGender, expr = true) { return ["tinyFaceDetector", "faceLandmark68Net"].concat(expr ? ["faceExpressionNet"] : [], ageGender ? ["ageGenderNet"] : []); }
 function ageBand(age) { return age < 18 ? "u18" : age < 35 ? "18_34" : age < 55 ? "35_54" : "55p"; }
 
 // yaw จากจุดกลางตาสองข้างกับปลายจมูก: 0 = หน้าตรง, บวก/ลบ = หันข้าง
@@ -67,7 +68,8 @@ function updateTracks(T, dets, now, cfg = SG, size = {}) {
     const dt = Math.min(cfg.MAX_DT_S, Math.max(0, (now - t.lastSeen) / 1000));
     t.box = d.box; t.frames++; t.lastSeen = now;
     t.lookNow = !!d.look; t.happyNow = !!d.happy;
-    t.valNow = typeof d.val === "number" && isFinite(d.val) ? d.val : 0;
+    t.valOk = typeof d.val === "number" && isFinite(d.val); // false = no expression model (customer mode): no valence sample
+    t.valNow = t.valOk ? d.val : 0;
     if (d.look) { t.lookFrames++; t.attnS += dt; }
     if (typeof d.val === "number" && isFinite(d.val)) { t.valSum = (t.valSum || 0) + d.val; t.valN = (t.valN || 0) + 1; }
     if (d.happy) t.happyFrames++;
@@ -203,7 +205,7 @@ function recordFrame(S, play, present, dt, cfg = SG) {
       if (!play.looked.has(t.id)) { play.looked.add(t.id); st.viewers++; }
       st.attn += dt; st.look++;
       if (t.happyNow) st.happy++;
-      st.valSum += t.valNow || 0; st.valN++;
+      if (t.valOk !== false) { st.valSum += t.valNow || 0; st.valN++; }
     }
   }
 }
@@ -432,9 +434,12 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     if (moved) try { localStorage.setItem("sg-ads", JSON.stringify(ads)); } catch {} }
   let stats = load("sg-stats", null); if (!stats || stats.v !== 1) stats = newStats();
   const settings = { useDemo: true, pip: true, ...load("sg-settings", {}) };
-  // window.LENSIQ_AGE_GENDER (lensiq-config.js, loaded after this file — read at use time): false = commercial deployment
+  // window.LENSIQ_AGE_GENDER (lensiq-config.js, loaded before this file since round 16; read at use time): false = customer mode
   // without a licence opinion: the age/gender option is hidden and the model is never loaded (the saved setting is kept)
-  const AGE_OK = () => window.LENSIQ_AGE_GENDER !== false;
+  // round 16: customer mode (the default) sets LENSIQ_AGE_GENDER = LENSIQ_EXPRESSION = false; only the research demo
+  // toggle (lensiq-research.js, per device, lockable by the operator) turns them on. Missing config = off.
+  const AGE_OK = () => window.LENSIQ_AGE_GENDER === true;
+  const EXPR_OK = () => window.LENSIQ_PROFILE === "demo" && /** @type {any} */ (window).LENSIQ_EXPRESSION === true;
   const demoOn = () => !!settings.useDemo && AGE_OK();
   const persistStats = () => save("sg-stats", stats);
   const persistAds = () => save("sg-ads", ads);
@@ -615,7 +620,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   function loadFace() {
     faceReady ??= (TEST ? Promise.resolve("test") : initBackend()).then(async b => {
       backend = b;
-      const nets = netsFor(false);
+      const nets = netsFor(false, EXPR_OK());
       netsRequested.push(...nets);
       if (!TEST) await Promise.all(nets.map(n => faceapi.nets[n].loadFromUri("vendor/models/")));
     }).catch(e => { faceReady = null; throw e; });
@@ -629,18 +634,23 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     if (TEST) { // กรอบจากสคริปต์ทดสอบ (0..1) -> พิกเซล
       const W = video.videoWidth || 1, H = video.videoHeight || 1;
       return (LQDetect.fake(R.audience || "c1", Date.now()) || []).map(d => {
-        const o = { box: { x: d.x * W, y: d.y * H, width: d.w * W, height: d.h * H }, look: d.look !== false, happy: !!d.happy, val: typeof d.val === "number" ? d.val : 0.2 };
+        const ex = EXPR_OK(); // customer mode: no smile / valence, exactly like the real path without the expression model
+        const o = { box: { x: d.x * W, y: d.y * H, width: d.w * W, height: d.h * H }, look: d.look !== false, happy: ex && !!d.happy,
+          val: !ex ? undefined : typeof d.val === "number" ? d.val : 0.2 };
         if (demoOn()) { o.age = typeof d.age === "number" ? d.age : 28; o.male = typeof d.male === "number" ? d.male : 0.8; }
         return o;
       });
     }
-    let q = faceapi.detectAllFaces(video, detOpts).withFaceLandmarks().withFaceExpressions();
+    const expr = EXPR_OK();
+    /** @type {any} */
+    let q = faceapi.detectAllFaces(video, detOpts).withFaceLandmarks();
+    if (expr) q = q.withFaceExpressions();
     if (demoOn() && agLoaded) q = q.withAgeAndGender();
     const rs = await q;
     return rs.map(r => {
-      const lm = r.landmarks, yaw = estimateYaw(center(lm.getLeftEye()), center(lm.getRightEye()), lm.getNose()[3]);
-      const b = r.detection.box, d = { box: { x: b.x, y: b.y, width: b.width, height: b.height }, look: isLooking(yaw), happy: (r.expressions.happy || 0) >= SG.HAPPY_P,
-        val: Object.keys(VAL).reduce((s, k) => s + (r.expressions[k] || 0) * VAL[k], 0) };
+      const lm = r.landmarks, yaw = estimateYaw(center(lm.getLeftEye()), center(lm.getRightEye()), lm.getNose()[3]), ex = expr ? r.expressions : null;
+      const b = r.detection.box, d = { box: { x: b.x, y: b.y, width: b.width, height: b.height }, look: isLooking(yaw), happy: ex ? (ex.happy || 0) >= SG.HAPPY_P : false,
+        val: ex ? Object.keys(VAL).reduce((s, k) => s + (ex[k] || 0) * VAL[k], 0) : undefined };
       if (demoOn() && typeof r.age === "number") { d.age = r.age; d.male = r.gender === "male" ? r.genderProbability : 1 - r.genderProbability; }
       return d;
     });
@@ -1338,11 +1348,12 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     list.addEventListener("click", e => { const b = e.target.closest(".sc-skip"); if (!b || !SGC) return; const r = SGC.rows[+b.closest("li").dataset.i]; if (r) { r.skip = !r.skip; if (r.skip) r.truthBand = r.truthGender = null; scRender(); } });
     sgHist.render(sgPanel.hist);
   }
-  window.__SG_SC = { get active() { return SGC; }, get last() { return SGC_LAST; }, label: scLabel, finish: () => scFinish(), get nets() { return netsRequested.slice(); } };
+  window.__SG_SC = { get active() { return SGC; }, get last() { return SGC_LAST; }, label: scLabel, finish: () => scFinish(), get nets() { return netsRequested.slice(); }, exprOk: () => EXPR_OK() };
   // ซ่อนตัวเลือกอายุ/เพศเมื่อ LENSIQ_AGE_GENDER === false (อ่านหลังโหลด lensiq-config.js)
   function applyAgeSwitch() {
     const off = !AGE_OK();
     const box = $("#demoOpt"); if (box) box.hidden = off;
+    document.querySelectorAll('[data-lic="expr"]').forEach(el => { /** @type {HTMLElement} */ (el).hidden = !EXPR_OK(); }); // customer mode: not shown
     if (off && sgPanel && !SGC) sgPanel.live.textContent = "การตรวจนี้ใช้ไม่ได้ในเครื่องนี้ — ปิดโมเดลอายุ/เพศไว้ในการตั้งค่าระบบ (LENSIQ_AGE_GENDER = false)";
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", applyAgeSwitch, { once: true }); else applyAgeSwitch();

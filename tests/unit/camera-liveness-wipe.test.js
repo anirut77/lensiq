@@ -121,13 +121,17 @@ function runConfig(pre) {
   vm.runInNewContext(read("lensiq-config.js"), { window: win, document: undefined, location: { pathname: "/x.html" } });
   return win;
 }
-test("LENSIQ_PROFILE: commercial forces age/gender and BiSeNet off; demo keeps the defaults", () => {
-  const demo = runConfig({});
-  assert.equal(demo.LENSIQ_PROFILE, "demo"); assert.equal(demo.LENSIQ_AGE_GENDER, true); assert.equal(demo.LENSIQ_FACEPARSE, false);
-  const com = runConfig({ LENSIQ_PROFILE: "commercial", LENSIQ_AGE_GENDER: true, LENSIQ_FACEPARSE: true });
-  assert.equal(com.LENSIQ_PROFILE, "commercial"); assert.equal(com.LENSIQ_AGE_GENDER, false); assert.equal(com.LENSIQ_FACEPARSE, false);
-  assert.equal(runConfig({ LENSIQ_PROFILE: "anything" }).LENSIQ_PROFILE, "demo");
-  assert.equal(runConfig({ LENSIQ_AGE_GENDER: false }).LENSIQ_AGE_GENDER, false, "explicit opt-out still works in demo");
+test("LENSIQ_PROFILE: commercial forces age/gender, expression and BiSeNet off; demo keeps the defaults", () => {
+  // round 16 (owner decision): customer mode is the default on every host, no storage available here
+  const def = runConfig({});
+  assert.equal(def.LENSIQ_PROFILE, "commercial"); assert.equal(def.LENSIQ_AGE_GENDER, false); assert.equal(def.LENSIQ_EXPRESSION, false); assert.equal(def.LENSIQ_FACEPARSE, false);
+  const demo = runConfig({ LENSIQ_PROFILE: "demo" });
+  assert.equal(demo.LENSIQ_PROFILE, "demo"); assert.equal(demo.LENSIQ_AGE_GENDER, true); assert.equal(demo.LENSIQ_EXPRESSION, true); assert.equal(demo.LENSIQ_FACEPARSE, false);
+  const com = runConfig({ LENSIQ_PROFILE: "commercial", LENSIQ_AGE_GENDER: true, LENSIQ_EXPRESSION: true, LENSIQ_FACEPARSE: true });
+  assert.equal(com.LENSIQ_PROFILE, "commercial"); assert.equal(com.LENSIQ_AGE_GENDER, false); assert.equal(com.LENSIQ_EXPRESSION, false); assert.equal(com.LENSIQ_FACEPARSE, false);
+  assert.equal(runConfig({ LENSIQ_PROFILE: "anything" }).LENSIQ_PROFILE, "commercial");
+  assert.equal(runConfig({ LENSIQ_PROFILE: "demo", LENSIQ_AGE_GENDER: false }).LENSIQ_AGE_GENDER, false, "explicit opt-out still works in demo");
+  assert.equal(runConfig({ LENSIQ_PROFILE: "demo", LENSIQ_EXPRESSION: false }).LENSIQ_EXPRESSION, false, "explicit opt-out still works in demo");
 });
 
 test("driver page: relabelled as an awareness aid, measured figures before the trip, warning without a close button", () => {

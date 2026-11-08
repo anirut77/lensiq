@@ -25,6 +25,7 @@
   <p class="lead" data-i18n="booth.s3">นับผู้เข้าชมบูธในงานอีเวนต์และนิทรรศการ จำผู้เข้าชมแบบไม่ระบุตัวตน วัดเวลาที่หยุดชม สีหน้า และการเข้าร่วมกิจกรรม ประมวลผลในเครื่อง ไม่บันทึกภาพ</p>
   <p class="acc-note" role="note"><b class="beta">Beta</b> <span data-i18n="booth.s4">นับผู้เข้าชมจากใบหน้าที่หันมาทางกล้อง คนที่ไม่หันหน้ามาจะไม่ถูกนับ · ตัวเลือกจำคนเดิม (ปิดไว้เป็นค่าเริ่มต้น) ใช้เกณฑ์ 0.50 ซึ่งทดสอบกับ LFW จำคนเดิมได้ราว 73% ต่อคู่ภาพ จึงอาจนับคนเดิมซ้ำได้บ้าง ยังไม่ได้วัดกับวิดีโอบูธจริง ใช้ดูแนวโน้มมากกว่ายอดที่แม่นทุกคน และใช้ “ตรวจความแม่นยำหน้างาน” ด้านล่างนับเทียบที่บูธของคุณ</span> <a href="cameras.html#accuracy" data-i18n="booth.s5">วิธีวัดและข้อจำกัด</a><br><b class="beta lic-b" data-i18n="booth.licb">โมเดลใบอนุญาตวิจัย</b> <span data-i18n="booth.lic">ใบหน้าวิเคราะห์ด้วยโมเดล face-api.js (โค้ด MIT) ที่ฝึกจากชุดข้อมูลซึ่งอนุญาตเฉพาะงานวิจัย สิทธิ์ใช้เชิงพาณิชย์ยังไม่ได้รับการยืนยันจากนักกฎหมาย — ตรวจสิทธิ์ก่อนใช้งานเชิงพาณิชย์</span></p>
 
+  <div id="boothResearch" data-lq-research="booth"></div>
   <div class="engine" id="engine" role="status">กำลังโหลดโมเดลวิเคราะห์ใบหน้า...</div>
   <div id="uaBox"></div>
 
@@ -116,7 +117,8 @@
 <script src="lensiq-detect.js?v=2"></script>
 <script src="lensiq-facevault.js?v=1"></script>
 <script src="lensiq-sitecheck.js?v=4"></script>
-<script src="booth.js?v=7"></script>
-<script src="lensiq-config.js?v=4"></script>
+<script src="lensiq-config.js?v=5"></script>
+<script src="lensiq-research.js?v=1"></script>
+<script src="booth.js?v=8"></script>
 </body>
 </html>

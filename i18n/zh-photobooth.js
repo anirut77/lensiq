@@ -188,6 +188,7 @@
     "photobooth.js.qc.mouthBad": "嘴巴张开，请闭紧嘴巴",
     "photobooth.js.qc.expr": "表情自然/端庄",
     "photobooth.js.qc.exprBad": "笑容过大，不适合正式证件照",
+    "photobooth.js.qc.exprOff": "表情：未检查（客户模式下表情模型已关闭），请目视检查",
     "photobooth.js.qc.light": "光线适中",
     "photobooth.js.qc.dark": "照片太暗，请增加正面光线",
     "photobooth.js.qc.bright": "照片太亮",

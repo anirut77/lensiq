@@ -67,6 +67,7 @@
     "lensiq-hand.js",
     "lensiq-i18n-rt.js",
     "lensiq-config.js",
+    "lensiq-research.js",
     "lensiq-fortune-hook.js",
     "lensiq-analytics.js",
     "lensiq-api.js",

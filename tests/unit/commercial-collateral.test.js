@@ -164,6 +164,30 @@ test("owner go-live checklist: every empty placeholder listed, owner-only, same 
   assert.deepEqual(list.map(x => x.id), G.checklist(CL.sellerFromConfig(read("lensiq-config.js")), CL.siteConfigFromConfig(read("lensiq-config.js"))).map(x => x.id));
 });
 
+test("go-live: customer mode only passes when the operator has locked it (round 16 research-demo switch)", async () => {
+  const st = (list, id) => list.find(x => x.id === id).state;
+  // pure checklist: commercial without a lock is still open
+  assert.equal(st(G.checklist({}, { profile: "commercial", ageGender: false }), "config.profile"), "warn");
+  assert.equal(st(G.checklist({}, { profile: "commercial", ageGender: false }), "config.age_gender"), "warn");
+  assert.equal(st(G.checklist({}, { profile: "commercial", locked: true, ageGender: false }), "config.profile"), "ok");
+  assert.equal(st(G.checklist({}, { profile: "commercial", locked: true, ageGender: false }), "config.age_gender"), "ok");
+  assert.equal(st(G.checklist({}, { profile: "demo", locked: false, ageGender: true }), "config.profile"), "warn");
+  for (const x of G.checklist({}, { profile: "commercial", ageGender: false }).filter(x => x.group === "config")) assert.ok(!THAI.test(x.en + x.zh), x.id);
+  // the shipped lensiq-config.js (no override) and the two operator locks, read the way check-legal reads them
+  const CL = await import("../../tools/check-legal.mjs");
+  const src = read("lensiq-config.js");
+  const dflt = CL.goLiveList(src);
+  assert.equal(st(dflt, "config.profile"), "warn", "default config: customer mode but not locked");
+  assert.equal(st(dflt, "config.age_gender"), "warn");
+  for (const pre of ["window.LENSIQ_RESEARCH_DEMO = false;\n", 'window.LENSIQ_PROFILE = "commercial";\n']) {
+    const locked = CL.goLiveList(pre + src);
+    assert.equal(st(locked, "config.profile"), "ok", pre);
+    assert.equal(st(locked, "config.age_gender"), "ok", pre);
+  }
+  // an operator demo profile is never "ok"
+  assert.equal(st(CL.goLiveList('window.LENSIQ_PROFILE = "demo";\n' + src), "config.profile"), "warn");
+});
+
 test("product one-pagers: contact from LENSIQ_SELLER only, print button, 3 languages", () => {
   assert.deepEqual(PD.contactOf({}, ""), []);
   assert.deepEqual(PD.contactOf({ name: "[name]", email: "bad", line: "x" }, "").map(x => x.k), [], "placeholders / malformed values never printed");

@@ -287,7 +287,7 @@ function markActivity(S, id, activity) {
 }
 
 /* ส่งออกสถิติรวมเท่านั้น (ไม่มีรหัสผู้เข้าชม ไม่มีข้อมูลรายคน ไม่เก็บข้อมูลติดต่อ) */
-function buildStatsCsv(S, cams = [], now = Date.now()) {
+function buildStatsCsv(S, cams = [], now = Date.now(), expr = true) {
   const m = aggregate(S, now, 0), cs = camStats(S, cams), f = m.funnel, pct = n => f.passed ? (n / f.passed * 100).toFixed(1) : "0.0";
   // quality_flag (round 10): ปัญหาภาพของชั่วโมงนั้น (≥ 5 นาที) — ยอดไม่ถูกแก้ ใช้ประกอบการอ่านตัวเลขเท่านั้น
   const out = [["section", "key", "label", "value", "pct_of_passed", "quality_flag"]], qf = qualityFlags(S);
@@ -296,7 +296,7 @@ function buildStatsCsv(S, cams = [], now = Date.now()) {
   row("summary", "unique", "ผู้เข้าชมไม่ซ้ำ (ทุกกล้อง)", m.unique, "");
   row("summary", "returning", "กลับมาซ้ำ", m.returning, "");
   row("summary", "avg_dwell_s", "เวลาเฉลี่ย (วินาที)", m.avgDwell.toFixed(1), "");
-  row("summary", "avg_valence", "Valence เฉลี่ย", m.valence.toFixed(3), "");
+  row("summary", "avg_valence", "Valence เฉลี่ย", expr ? m.valence.toFixed(3) : "", ""); // expr=false: customer mode, not measured
   row("summary", "seen_by_2plus_cams", "เห็นมากกว่า 1 กล้อง (นับครั้งเดียว)", cs.multi, "");
   [["passed", "ผ่าน"], ["stopped", "หยุดชม ≥ 5 วิ"], ["engaged", "อยู่ ≥ 30 วิ"], ["joined", "ร่วมกิจกรรม"]].forEach(([k, l]) => row("funnel", k, l, f[k], pct(f[k])));
   m.hourly.forEach(h => row("hourly", h.label, "ผู้เข้าชมใหม่", h.value, "", h.flag || ""));
@@ -370,6 +370,10 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   let prefs = { v: 1, remember: false, mode: "count" };
   try { const p = JSON.parse(localStorage.getItem(PREF_KEY)); if (p && typeof p === "object") { prefs.remember = p.remember === true; prefs.mode = p.mode === "recognise" ? "recognise" : "count"; if (typeof p.ackAt === "string" && !isNaN(Date.parse(p.ackAt))) prefs.ackAt = p.ackAt; } } catch {}
   const countOnly = () => prefs.mode !== "recognise";
+  // round 16: customer mode (the default) never loads face_expression_model (F5); only the research demo toggle
+  // (lensiq-research.js, per device, lockable by the operator) allows it. Counts, dwell and attention are unchanged.
+  const EXPR_OK = () => window.LENSIQ_PROFILE === "demo" && /** @type {any} */ (window).LENSIQ_EXPRESSION === true;
+  const EXPR_OFF_TH = "ปิดโมเดลสีหน้าในโหมดลูกค้า — ไม่วัดสีหน้าหลักและ Valence";
   if (countOnly()) prefs.remember = false; // นับอย่างเดียว = ไม่มีค่าใบหน้าให้จำ
 
   let S = restoreState(localStorage.getItem(KEY), ssGet(DESC_KEY), prefs.remember);
@@ -553,7 +557,8 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
       if (TEST) backendName = "test";
       else {
         backendName = await LQDetect.tfBackend();
-        await Promise.all(["tinyFaceDetector", "faceLandmark68Net", "faceRecognitionNet", "faceExpressionNet"].map(n => faceapi.nets[n].loadFromUri("vendor/models/")));
+        const nets = ["tinyFaceDetector", "faceLandmark68Net", "faceRecognitionNet"].concat(EXPR_OK() ? ["faceExpressionNet"] : []);
+        await Promise.all(nets.map(n => faceapi.nets[n].loadFromUri("vendor/models/")));
       }
       ready = true;
       engine(`โมเดลพร้อม (ตัวประมวลผล: ${backendName.toUpperCase()}${backendName === "webgl" ? "" : " — อาจช้ากว่าปกติ"}) — ${anyActive() ? "กด เริ่มนับผู้เข้าชม" : "กด เริ่มกล้อง"}`, "ok");
@@ -585,7 +590,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     const co = countOnly(); // นับอย่างเดียว: ไม่คำนวณค่าลักษณะใบหน้าเลย (ไม่มีข้อมูลชีวมิติ)
     let q = faceapi.detectAllFaces(video, detOpts).withFaceLandmarks();
     if (!co) q = q.withFaceDescriptors();
-    if (primary) q = q.withFaceExpressions();
+    if (primary && EXPR_OK()) q = q.withFaceExpressions();
     const rs = await q;
     return rs.map(r => {
       const lm = r.landmarks, le = center(lm.getLeftEye()), re = center(lm.getRightEye()), nose = lm.getNose()[3];
@@ -863,7 +868,7 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
       ["กลับมาซ้ำ", m.returning, "หายไป > 1 นาทีแล้วกลับมา"],
       ["เวลาเฉลี่ย", fmtDur(m.avgDwell), "ต่อคน"],
       ["เข้าร่วมกิจกรรม", m.participants, "คน"],
-      ["Valence เฉลี่ย", (m.valence > 0 ? "+" : "") + m.valence.toFixed(2), "บวก / ลบ"]
+      EXPR_OK() ? ["Valence เฉลี่ย", (m.valence > 0 ? "+" : "") + m.valence.toFixed(2), "บวก / ลบ"] : ["Valence เฉลี่ย", "–", "ปิดในโหมดลูกค้า"]
     ].map(([k, v, s]) => `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join("");
     // กรวยความสนใจ
     const F = m.funnel, stages = [["ผ่านบูธ", F.passed, "กล้องเห็น ≥ 1 วิ"], ["หยุดชม", F.stopped, "≥ 5 วิ"], ["อยู่นาน", F.engaged, "≥ 30 วิ"], ["ร่วมกิจกรรม", F.joined, "เจ้าหน้าที่บันทึก"]];
@@ -878,10 +883,12 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
     const qn = $("#qualityNote"); if (qn) { const fl = m.hourly.filter(h => h.flag); qn.hidden = !fl.length; qn.innerHTML = fl.length ? `<span>${"ชั่วโมงที่แรเงา: ภาพจากกล้องมีปัญหา ≥ 5 นาที ยอดอาจคลาดเคลื่อน (ข้อมูลยังเก็บครบ)"}</span> ${fl.map(h => `<span class="q-item"><b>${esc(h.label)}</b> <span>${esc(h.flag)}</span></span>`).join(" ")}` : ""; }
     lineChart($("#crowd"), m.timeline.filter(p => p.t > Date.now() - 12 * 3600e3));
     barChart($("#dwell"), m.dwellHist);
-    barChart($("#emo"), m.emoCount);
+    if (EXPR_OK()) barChart($("#emo"), m.emoCount); else $("#emo").innerHTML = `<p class="hint expr-off">${EXPR_OFF_TH}</p>`;
+    const ex = EXPR_OK();
     const rows = S.visitors.slice().reverse().slice(0, 300).map(v => {
       const s = visitorStats(v);
-      return `<tr><td>${v.id}</td><td>${fmtClock(v.first)}</td><td>${fmtClock(v.last)}</td><td class="n">${fmtDur(v.dwell)}</td><td class="n">${v.visits}</td><td>${EMO_TH[s.dom]}</td><td class="n">${(s.valence > 0 ? "+" : "") + s.valence.toFixed(2)}</td><td class="n">${Math.round(s.attRate * 100)}%</td><td>${esc(v.acts.join(", ") || "–")}</td></tr>`;
+      return `<tr><td>${v.id}</td><td>${fmtClock(v.first)}</td><td>${fmtClock(v.last)}</td><td class="n">${fmtDur(v.dwell)}</td><td class="n">${v.visits}</td>` +
+        `<td>${ex ? EMO_TH[s.dom] : "–"}</td><td class="n">${ex ? (s.valence > 0 ? "+" : "") + s.valence.toFixed(2) : "–"}</td><td class="n">${Math.round(s.attRate * 100)}%</td><td>${esc(v.acts.join(", ") || "–")}</td></tr>`;
     }).join("");
     $("#visitors").innerHTML = `<thead><tr><th>รหัส</th><th>เห็นครั้งแรก</th><th>ล่าสุด</th><th class="n">เวลาอยู่</th><th class="n">ครั้งที่มา</th><th>สีหน้าหลัก</th><th class="n">Valence</th><th class="n">มองบูธ</th><th>กิจกรรม</th></tr></thead><tbody>${rows || `<tr><td colspan="9" class="hint">ยังไม่มีผู้เข้าชม</td></tr>`}</tbody>`;
   }
@@ -968,10 +975,15 @@ if (typeof document !== "undefined" && typeof faceapi !== "undefined" && typeof 
   const iso = ts => new Date(ts).toISOString();
   $("#exportCsv").onclick = () => {
     const head = ["event", "visitor_id", "first_seen", "last_seen", "dwell_s", "visits", "stopped", "engaged", "attention_rate", "dominant_expression", "avg_valence", "activities"];
-    const rows = S.visitors.map(v => { const s = visitorStats(v); return [S.event.name, v.id, iso(v.first), iso(v.last), v.dwell.toFixed(1), v.visits, s.stopped ? 1 : 0, s.engaged ? 1 : 0, s.attRate.toFixed(2), s.dom, s.valence.toFixed(3), v.acts.join("; ")]; });
+    const ex = EXPR_OK(); // customer mode: expression columns left empty (not measured)
+    const rows = S.visitors.map(v => {
+      const s = visitorStats(v);
+      return [S.event.name, v.id, iso(v.first), iso(v.last), v.dwell.toFixed(1), v.visits, s.stopped ? 1 : 0, s.engaged ? 1 : 0, s.attRate.toFixed(2),
+        ex ? s.dom : "", ex ? s.valence.toFixed(3) : "", v.acts.join("; ")];
+    });
     download(`lensiq-booth-${S.event.date}.csv`, "﻿" + [head, ...rows].map(r => r.map(cell).join(",")).join("\r\n"), "text/csv;charset=utf-8");
   };
-  $("#exportStats").onclick = () => { persist(); download(`lensiq-booth-stats-${S.event.date}.csv`, buildStatsCsv(S, statCams()), "text/csv;charset=utf-8"); };
+  $("#exportStats").onclick = () => { persist(); download(`lensiq-booth-stats-${S.event.date}.csv`, buildStatsCsv(S, statCams(), Date.now(), EXPR_OK()), "text/csv;charset=utf-8"); };
   $("#exportJson").onclick = () => {
     const m = aggregate(S, Date.now(), 0);
     const { timeline, ...summary } = m;

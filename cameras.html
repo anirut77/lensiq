@@ -260,12 +260,16 @@
   </section>
 
   <section class="group" id="profile" aria-labelledby="h-profile">
-    <h2 id="h-profile" data-i18n="cameras.prof.h">ชุดค่าการติดตั้ง: เดโม หรือ ใช้งานเชิงพาณิชย์</h2>
+    <h2 id="h-profile" data-i18n="cameras.prof.h">ชุดค่าการติดตั้ง: โหมดลูกค้า หรือ เดโมงานวิจัย</h2>
     <div class="howto">
-      <p data-i18n="cameras.prof.p1">ชุดค่า "เดโม" (ค่าเริ่มต้น) เปิดให้ใช้โมเดลที่ฝึกจากข้อมูลใบอนุญาตวิจัยได้ เช่น อายุ/เพศของป้ายโฆษณา (UTKFace) การติดตั้งให้ลูกค้าที่จ่ายเงินควรเปิด "ใช้งานเชิงพาณิชย์" ซึ่งปิดโมเดลอายุ/เพศและ BiSeNet ในเครื่องนี้ หน้ากล้องที่เปิดจากเว็บอื่นที่ไม่ใช่เว็บสาธิตจะมีแถบเตือนสีแดงจนกว่าจะเปิดค่านี้</p>
-      <label class="check"><input type="checkbox" id="lqProfile"> <span data-i18n="cameras.prof.cb">ใช้งานเชิงพาณิชย์ในเครื่องนี้ (จำไว้ในเบราว์เซอร์นี้ หน้าเว็บจะโหลดใหม่)</span></label>
-      <p class="hint" id="lqProfileState" role="status"></p>
-      <p class="hint" data-i18n="cameras.prof.p2">ผู้ติดตั้งตั้งค่าเดียวกันให้ทุกเครื่องได้ด้วย window.LENSIQ_PROFILE = "commercial" ก่อนโหลด lensiq-config.js · โมเดลตรวจจับ/จดจำใบหน้าของ face-api.js ยังรอความเห็นทนายความ ป้าย "โมเดลใบอนุญาตวิจัย" จึงยังแสดงในทั้งสองชุดค่า</p>
+      <p data-i18n="cameras.prof.p1">ทุกเว็บ รวมเว็บสาธิตบน GitHub Pages เปิดในโหมดลูกค้าเป็นค่าเริ่มต้น (LENSIQ_PROFILE = "commercial") ซึ่งไม่โหลดและไม่แสดงโมเดลอายุ/เพศ
+        (UTKFace) และโมเดลสีหน้า ส่วนโมเดลแยกส่วนใบหน้า BiSeNet ปิดอยู่ (LENSIQ_FACEPARSE = false และไม่มีไฟล์โมเดลในชุดไฟล์ของเว็บ)
+        สวิตช์ "เดโมงานวิจัย" ด้านล่างเปิดโมเดลอายุ/เพศและสีหน้ากลับมาเฉพาะในเครื่องนี้เพื่อสาธิตหรือวิจัย (ปิดไว้เป็นค่าเริ่มต้น ปิดกลับได้ตลอด)
+        ถ้าเปิดไว้บนเว็บที่ไม่ใช่เว็บสาธิต หน้ากล้องจะมีแถบเตือนสีแดง</p>
+      <div id="lqResearchHost" data-lq-research="cameras"></div>
+      <p class="hint" data-i18n="cameras.prof.p2">ผู้ติดตั้งล็อกโหมดลูกค้าให้ทุกเครื่องได้ด้วย window.LENSIQ_RESEARCH_DEMO = false ใน lensiq-config.js (การติดตั้งให้ลูกค้า:
+        สวิตช์จะเปิดไม่ได้) · เครื่องสาธิตตั้ง window.LENSIQ_PROFILE = "demo" ได้ · โมเดลตรวจจับ/จดจำใบหน้าของ face-api.js ยังรอความเห็นทนายความ (F5/F6) ป้าย "โมเดลใบอนุญาตวิจัย"
+        จึงยังแสดงในทั้งสองโหมด</p>
     </div>
   </section>
 
@@ -293,6 +297,7 @@
 
   <p class="note"><b data-i18n="cameras.s242">ข้อควรรู้ด้าน PDPA:</b> <span data-i18n="cameras.s243">ระบบที่วิเคราะห์ใบหน้าหรือพฤติกรรมคนต้องติดป้ายแจ้งและขอความยินยอมตามกฎหมาย ระบบในหน้านี้ออกแบบให้ไม่บันทึกภาพคนและเก็บเพียงสถิติไว้ในเครื่อง ผลการประเมินเพศ อายุ และอารมณ์เป็นการคาดคะเนที่อาจคลาดเคลื่อน ดู</span> <a href="#accuracy" data-i18n="cameras.s244">ความแม่นยำที่วัดได้</a></p>
 </main>
-<script src="lensiq-config.js?v=4"></script>
+<script src="lensiq-config.js?v=5"></script>
+<script src="lensiq-research.js?v=1"></script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 /* i18n/en-rt-booth.js — run-time English for text written by booth.js (mirrors zh-rt-booth.js). */
 (window.LQI18N_RT = window.LQI18N_RT || []).push({
   "@lang": "en",
+  "ปิดโมเดลสีหน้าในโหมดลูกค้า — ไม่วัดสีหน้าหลักและ Valence": "Expression model off in customer mode — dominant expression and valence are not measured",
+  "ปิดในโหมดลูกค้า": "Off in customer mode",
   "พื้นที่นี้มีการวิเคราะห์ภาพจากกล้องแบบไม่ระบุตัวตน เพื่อนับจำนวนผู้เข้าชมและเวลาที่อยู่หน้าบูธ ระบบติดตามเพียงตำแหน่งของใบหน้าในภาพ ไม่สร้างค่าลักษณะใบหน้า ไม่จดจำหรือระบุตัวบุคคล และไม่บันทึกภาพหรือวิดีโอ หากไม่ต้องการเข้าร่วม กรุณาแจ้งเจ้าหน้าที่": "This area uses camera image analysis anonymously to count visitors and time spent in front of the booth. The system only tracks face positions in the image; it does not create face feature values, does not recognize or identify anyone, and does not record images or video. If you do not wish to take part, please tell a staff member",
   "โหมดนับอย่างเดียว: ไม่ใช้ข้อมูลใบหน้า คนที่กลับมาจะนับเป็นผู้เข้าชมใหม่": "Count-only mode: no face data is used; returning people are counted as new visitors",
   "โหมดจำผู้เข้าชมที่กลับมา: ใช้ค่าลักษณะใบหน้า ต้องติดป้ายแจ้งและขอความยินยอม": "Returning-visitor mode: uses face feature values; a notice sign and consent are required",

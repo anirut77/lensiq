@@ -1,6 +1,7 @@
 /* i18n/en-rt-neuro.js — run-time English for text written by neuro.js (mirrors zh-rt-neuro.js). */
 (window.LQI18N_RT = window.LQI18N_RT || []).push({
   "@lang": "en",
+  "โหมดลูกค้า: ปิดโมเดลสีหน้า หน้านี้จึงไม่เปิดกล้องและไม่วิเคราะห์ ดูคำอธิบายและสวิตช์เดโมงานวิจัยด้านบน": "Customer mode: the expression model is off, so this page does not open the camera or analyse anything. See the explanation and the research demo switch above",
   "พื้นที่จัดเก็บเต็ม กรุณาส่งออกแล้วลบผลเก่า": "Storage is full. Please export, then delete old results",
   "กล้องหลัง": "Rear camera",
   "เลือกกล้องใหม่หรือรีเฟรชหน้า": "Select a camera again or reload the page",

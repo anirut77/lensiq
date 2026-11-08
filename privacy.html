@@ -144,6 +144,10 @@
         <tr><td>Cache Storage (<code>lq-models-*</code>)</td><td>แคชของ service worker</td><td>เก็บไฟล์โมเดลให้ใช้งานออฟไลน์ได้</td><td>เปลี่ยนเมื่อมีเวอร์ชันใหม่</td></tr>
         <tr><td>ระบบใหม่ (นำร่อง): <code>lq-exam-*</code> · <code>lq-gate-parking*</code>, <code>lq-gate-village*</code> · <code>att-hr-*</code> · <code>lqq-*</code>, <code>lqt-*</code>, <code>lqa-*</code>, <code>lqb-*</code>, <code>lqz-cam-*</code> · <code>lq-sol-filter</code></td><td>localStorage / IndexedDB (จำเป็นต่อฟีเจอร์)</td><td>ค่าตั้ง ที่นั่ง/โซน บันทึกสัญญาณ บันทึกเวลา และบันทึกเข้าออกที่ผู้ใช้บันทึกในเครื่องนั้น ไม่ส่งให้เรา ไม่มีภาพจากกล้องสด (ยกเว้นภาพครอปป้ายทะเบียนที่ลบอัตโนมัติ)</td><td>ตามระยะที่ตั้งในหน้านั้น จนกว่าจะลบ หรือล้างข้อมูลไซต์</td></tr>
         <tr id="p9-r14"><td>ระบบรอบ 14: <code>lqcr-*</code> (นับคน) · <code>lq-exam-clips</code>, <code>lqx-clip-*</code>, <code>lq-exam-clip-pin</code> (คลิปสอบ) · <code>lqcase-*</code>, <code>lensiq-case</code> (ทบทวนเคส) · <code>lq-med-cfg</code>, <code>lq-med-history</code>, <code>lq-med-codes</code>, <code>lq-med-online</code> (ตรวจยา) · <code>lqomr-v1</code> (OMR) · <code>lqlc-prefs</code> (สีเสื้อ)</td><td>localStorage · IndexedDB (คลิปเข้ารหัส AES-GCM) · sessionStorage (<code>lq-med-online</code>)</td><td>ตัวเลขนับคน (ไม่มีภาพ) · คลิปสอบที่เข้ารหัสและค่าแฮชแบบใส่เกลือของ PIN ผู้คุมสอบ (ไม่เก็บ PIN จริง) · ล็อกเคสแบบข้อความ คลิปเคสที่เข้ารหัส และบันทึกการลบ · ค่าตั้ง ประวัติค้น (เลือกเปิด) และความยินยอมค้นออนไลน์เฉพาะแท็บ · ข้อสอบ เฉลย คำตอบ และคะแนน · เป้าหมายและวันเกิดที่เลือก (ไม่มีภาพ)</td><td>ดูหัวข้อ 7 · ลบได้ในแต่ละหน้า</td></tr>
+        <tr id="p9-r16"><td>รอบ 16: <code>lq-research-demo</code> (สวิตช์ "เดโมงานวิจัย") · <code>lq-profile</code> (ค่าเดิมของรอบ 12)</td>
+          <td>localStorage (เลือกเปิดเอง ปิดไว้เป็นค่าเริ่มต้น)</td>
+          <td>จำว่าเครื่องนี้เปิดหรือปิดโมเดลใบอนุญาตวิจัย (อายุ/เพศ และสีหน้า) — เก็บแค่คำว่าเปิด/ปิด ไม่มีข้อมูลบุคคล ไม่ส่งให้เรา ค่าเริ่มต้นคือปิด (โหมดลูกค้า) และผู้ติดตั้งล็อกปิดได้</td>
+          <td>จนกว่าจะปิดสวิตช์ หรือล้างข้อมูลไซต์</td></tr>
       </tbody>
     </table></div>
   </section>
@@ -289,6 +293,11 @@
         <tr><td>Cache Storage (<code>lq-models-*</code>)</td><td>Service-worker cache</td><td>Keeps model files for offline use</td><td>Replaced with each new version</td></tr>
         <tr><td>New pilot systems: <code>lq-exam-*</code> · <code>lq-gate-parking*</code>, <code>lq-gate-village*</code> · <code>att-hr-*</code> · <code>lqq-*</code>, <code>lqt-*</code>, <code>lqa-*</code>, <code>lqb-*</code>, <code>lqz-cam-*</code> · <code>lq-sol-filter</code></td><td>localStorage / IndexedDB (needed for the feature)</td><td>Settings, seats/zones, signal logs, time records and entry/exit logs saved on that device; never sent to us, and no live camera frames (except plate crops, which are deleted automatically)</td><td>As set on that page, until deleted, or until site data is cleared</td></tr>
         <tr id="en-p9-r14"><td>Round 14 systems: <code>lqcr-*</code> (crowd) · <code>lq-exam-clips</code>, <code>lqx-clip-*</code>, <code>lq-exam-clip-pin</code> (exam clips) · <code>lqcase-*</code>, <code>lensiq-case</code> (case review) · <code>lq-med-cfg</code>, <code>lq-med-history</code>, <code>lq-med-codes</code>, <code>lq-med-online</code> (medicine) · <code>lqomr-v1</code> (OMR) · <code>lqlc-prefs</code> (lucky colour)</td><td>localStorage · IndexedDB (AES-GCM encrypted clips) · sessionStorage (<code>lq-med-online</code>)</td><td>People counts (no images) · encrypted exam clips and a salted hash of the invigilator PIN (the PIN itself is never stored) · plain-text case logs, encrypted case clips and a deletion ledger · settings, look-up history (opt-in) and the per-tab online consent · exams, keys, answers and scores · the chosen goal and birth day (no images)</td><td>See section 7 · delete on each page</td></tr>
+        <tr id="en-p9-r16"><td>Round 16: <code>lq-research-demo</code> (the "Research demo" toggle) · <code>lq-profile</code> (round 12 legacy value)</td>
+          <td>localStorage (opt-in, off by default)</td>
+          <td>Remembers whether this device has the research-licence models (age/gender and expression) switched on. It stores only on/off, no personal data,
+          and is never sent to us. The default is off (customer mode) and an installer can lock it off.</td>
+          <td>Until you switch it off or clear site data</td></tr>
       </tbody>
     </table></div>
   </section>
@@ -434,6 +443,10 @@
         <tr><td>Cache Storage（<code>lq-models-*</code>）</td><td>Service Worker 缓存</td><td>保存模型文件以便离线使用</td><td>每次新版本时替换</td></tr>
         <tr><td>新的试点系统：<code>lq-exam-*</code> · <code>lq-gate-parking*</code>、<code>lq-gate-village*</code> · <code>att-hr-*</code> · <code>lqq-*</code>、<code>lqt-*</code>、<code>lqa-*</code>、<code>lqb-*</code>、<code>lqz-cam-*</code> · <code>lq-sol-filter</code></td><td>localStorage／IndexedDB（功能所需）</td><td>保存在该设备上的设置、座位/区域、提示记录、考勤记录与进出记录；不会发送给我们，也不保存实时摄像头画面（车牌裁剪图除外，会自动删除）</td><td>按该页面的设定，直到删除或清除网站数据</td></tr>
         <tr id="zh-p9-r14"><td>第 14 轮系统：<code>lqcr-*</code>（人流）· <code>lq-exam-clips</code>、<code>lqx-clip-*</code>、<code>lq-exam-clip-pin</code>（考试片段）· <code>lqcase-*</code>、<code>lensiq-case</code>（案件复核）· <code>lq-med-cfg</code>、<code>lq-med-history</code>、<code>lq-med-codes</code>、<code>lq-med-online</code>（药品）· <code>lqomr-v1</code>（答题卡）· <code>lqlc-prefs</code>（幸运色）</td><td>localStorage · IndexedDB（AES-GCM 加密片段）· sessionStorage（<code>lq-med-online</code>）</td><td>人数统计（无图像）· 加密的考试片段以及加盐哈希后的监考 PIN（从不保存 PIN 本身）· 纯文本案件日志、加密案件片段和删除记录 · 设置、查询记录（需自行开启）和仅限本标签页的在线查询同意 · 考试、答案、作答和分数 · 所选目标和出生日（无图像）</td><td>见第 7 节 · 可在各页面删除</td></tr>
+        <tr id="zh-p9-r16"><td>第 16 轮：<code>lq-research-demo</code>（“研究演示”开关）· <code>lq-profile</code>（第 12 轮的旧值）</td>
+          <td>localStorage（自行开启，默认关闭）</td>
+          <td>记住本设备是否开启研究许可模型（年龄/性别与表情）。只保存开/关，不含个人数据，不会发送给我们。默认关闭（客户模式），安装方可锁定为关闭。</td>
+          <td>直到关闭开关或清除网站数据</td></tr>
       </tbody>
     </table></div>
   </section>

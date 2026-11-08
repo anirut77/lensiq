@@ -283,8 +283,8 @@
   "cameras.s242": "PDPA notice:",
   "cameras.s243": "Systems that analyze faces or behavior must display a notice and obtain consent as required by law. The solutions on this page are designed not to store images of people and keep statistics only on the device. Gender, age and emotion results are estimates and may be inaccurate; see",
   "cameras.s244": "Measured accuracy",
-  "cameras.prof.h": "Installation profile: demo or commercial use",
-  "cameras.prof.p1": "The \"demo\" profile (the default) allows models trained on research-licence data, such as the signage age/gender model (UTKFace). An installation for a paying customer should switch on \"Commercial use\", which turns off the age/gender and BiSeNet models on this device. Camera pages opened from any site other than the demo site show a red warning bar until this is switched on",
-  "cameras.prof.cb": "Commercial use on this device (remembered in this browser; the page reloads)",
-  "cameras.prof.p2": "Installers can set the same for every device with window.LENSIQ_PROFILE = \"commercial\" before lensiq-config.js loads · the face-api.js face detection/recognition models still await a lawyer's opinion, so the \"research-licence models\" badge stays in both profiles"
+  "cameras.prof.h": "Installation profile: customer mode or research demo",
+  "cameras.prof.p1": "Every site, including the GitHub Pages demo, runs in customer mode by default (LENSIQ_PROFILE = \"commercial\"): the age/gender (UTKFace) and expression models are never loaded or shown, and BiSeNet face parsing is switched off (LENSIQ_FACEPARSE = false, and its model file is not shipped with the site). The \"Research demo\" switch below brings the age/gender and expression models back on this device only, for demonstrations or research (off by default, can always be switched off). If it is left on at a site that is not the demo site, camera pages show a red warning bar",
+  "cameras.prof.cb": "Research demo on this device (remembered in this browser; the page reloads)",
+  "cameras.prof.p2": "Installers lock customer mode for every device with window.LENSIQ_RESEARCH_DEMO = false in lensiq-config.js (customer installation: the switch cannot be turned on) · a demo unit can set window.LENSIQ_PROFILE = \"demo\" · the face-api.js face detection/recognition models still await a lawyer's opinion (F5/F6), so the \"research-licence model\" label stays in both modes"
 } });

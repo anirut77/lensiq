@@ -56,7 +56,11 @@ video.addEventListener("resize", layoutCam);
 addEventListener("orientationchange", () => setTimeout(layoutCam, 350));
 
 // ---------- เริ่มระบบ ----------
+/* round 16: โหมดลูกค้า (ค่าเริ่มต้น) ไม่โหลดโมเดลสีหน้า (face_expression_model, F5) — หน้าเปิดได้ อธิบายสิ่งที่ปิด และมีสวิตช์
+   "เดโมงานวิจัย" (lensiq-research.js) · lensiq-config.js โหลดก่อนไฟล์นี้ */
+const exprAllowed = () => window.LENSIQ_PROFILE === "demo" && /** @type {any} */ (window).LENSIQ_EXPRESSION === true;
 async function init() {
+  if (!exprAllowed()) { engine("โหมดลูกค้า: ปิดโมเดลสีหน้า หน้านี้จึงไม่เปิดกล้องและไม่วิเคราะห์ ดูคำอธิบายและสวิตช์เดโมงานวิจัยด้านบน", "warn"); return; }
   engine("กำลังเปิดกล้องและโหลดโมเดล...");
   try {
     if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) throw Object.assign(new Error(HTTPS_MSG), { name: "Insecure" });
@@ -446,3 +450,4 @@ addEventListener("resize", () => { clearTimeout(rsT); rsT = setTimeout(() => { i
 document.querySelectorAll(".tab").forEach(t => t.onclick = () => showTab(t.dataset.t));
 
 renderSessionList(); init();
+if (TEST) window.__nm = { get ready() { return ready; }, exprAllowed };

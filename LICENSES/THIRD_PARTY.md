@@ -40,6 +40,16 @@ were read for embedded notices; upstream licence pages were re-checked where mar
 | A5 | F6/F5 face detector, landmarks, expression, recognition: weights MIT/CC0, training data academic. Same open question as A4 but these models are core to most face pages. | Open — legal opinion | Covered by the review pack; fallback plan there (commercially licensed face SDK) if counsel advises against. |
 | A6 | Cloud services (Anthropic, Cloudflare, Opn, Google sign-in) are used under their commercial terms; none is a redistributed asset. | OK | Keep the signed/accepted terms and DPAs with the release record. |
 
+**A4 update (round 16, customer mode by default).** `lensiq-config.js` now defaults `LENSIQ_PROFILE` to `"commercial"` on every host,
+including the public GitHub Pages site. In that mode `LENSIQ_AGE_GENDER`, `LENSIQ_EXPRESSION` and `LENSIQ_FACEPARSE` are all `false`:
+the age/gender and expression weights are never requested (network-checked by `tests/e2e/research-switch.e2e.mjs`). A per-device
+"Research demo" toggle (`lensiq-research.js`, off by default, shown at `cameras.html#profile` and on signage, neuro, booth and
+photobooth) brings the two models back on that device only, with the licence label in TH/EN/ZH and a link to F5 above. A customer
+installation sets `LENSIQ_RESEARCH_DEMO = false`, which locks the toggle off; the go-live checklist (`lensiq-golive.js`,
+`tools/check-legal.mjs`) reports `config.profile` / `config.age_gender` as done only when that lock is set. Open: `?faceparse=1` in
+`studio.js` / `photobooth-hq.js` is not yet under this lock (the BiSeNet file is not in git, so the public site cannot load it).
+The legal question for F5/F6 itself is unchanged.
+
 
 ---
 
@@ -62,8 +72,8 @@ were read for embedded notices; upstream licence pages were re-checked where mar
 |---|---|---|---|---|---|
 | `tiny_face_detector_model.*` | 0.19 MB | all face pages | face-api.js (justadudewhohacks / vladmandic) | MIT | VERIFY (F5) |
 | `face_landmark_68_model.*` | 0.35 MB | all face pages | face-api.js | MIT | VERIFY (F5) |
-| `face_expression_model.*` | 0.32 MB | neuro, booth, signage, photobooth | face-api.js | MIT | VERIFY (F5) |
-| `age_gender_model.*` | 0.42 MB | signage (opt-in setting) | face-api.js | MIT | VERIFY (F5, UTKFace) |
+| `face_expression_model.*` | 0.32 MB | neuro, booth, signage, photobooth — **research demo only** (round 16: never loaded in customer mode, the default) | face-api.js | MIT | VERIFY (F5) |
+| `age_gender_model.*` | 0.42 MB | signage (opt-in setting) — **research demo only** (round 16: never loaded in customer mode, the default) | face-api.js | MIT | VERIFY (F5, UTKFace) |
 | `face_recognition_model.*` | 6.1 MB | customers, attendance, booth | face-api.js port of dlib ResNet | MIT (port) / dlib weights CC0 | VERIFY (F6) |
 | `yolox/yolox_nano_416.onnx` | 3.7 MB | store (person detection, default since v0.10; runs on onnxruntime-web WASM) | Megvii YOLOX-Nano, official ONNX release 0.1.1rc0, unchanged, trained on COCO 2017 | Apache-2.0 (`vendor/models/yolox/LICENSE`, provenance + sha256 in `README.txt`) | OK-ATTR. Not Ultralytics/AGPL. COCO annotations CC BY 4.0, images keep their Flickr licences (same position as COCO-SSD). |
 | `cocossd/` (graph model, 5 shards) | 18 MB | store (person detection — fallback when ONNX Runtime is unavailable, `?coco`) | TensorFlow.js models `coco-ssd` (SSD MobileNet), trained on COCO | Apache-2.0 | OK-ATTR. COCO annotations are CC BY 4.0, and images keep their Flickr licences; this is generally accepted for trained weights. |

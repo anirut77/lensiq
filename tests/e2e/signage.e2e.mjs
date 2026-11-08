@@ -26,13 +26,17 @@ async function overflow(page, w, h) {
   return out;
 }
 
+const RESEARCH_ON = "try{localStorage.setItem('lq-research-demo','on')}catch(e){}";
+
 export default async function ({ base, launch, check, fakeCams }) {
   const browser = await launch();
   const url = `${base}/signage.html?cpu&fakedet`;
   // seed runs once per tab, before page scripts (a reload's beforeunload would otherwise overwrite seeded keys)
-  const open = async (cams, seed) => {
+  // research: true = switch the per-device research demo on (round 16: customer mode is the default; the age/gender and
+  // expression models only load in the research demo — tests/e2e/research-switch.e2e.mjs covers customer mode)
+  const open = async (cams, seed, research = false) => {
     const once = `try{ if(!sessionStorage.getItem("__seeded")){ localStorage.clear(); (${seed ? seed.toString() : "() => {}"})(); sessionStorage.setItem("__seeded","1"); } }catch(e){}`;
-    const page = await browser.newPage(null, { initScripts: [fakeCams, `window.__LQ_FAKE_CAMS=${JSON.stringify(cams)}`, once] });
+    const page = await browser.newPage(null, { initScripts: [fakeCams, `window.__LQ_FAKE_CAMS=${JSON.stringify(cams)}`, once].concat(research ? [RESEARCH_ON] : []) });
     await page.goto(url);
     await page.evaluate(script);
     return page;
@@ -150,7 +154,7 @@ export default async function ({ base, launch, check, fakeCams }) {
       await page.close();
     });
     await check("round 10: on-site age/gender check — passers listed as tracks end, staff labels, confusion table, export, history, health pill, zh/en", async () => {
-      const page = await open({ n: 1, mode: "ok" });
+      const page = await open({ n: 1, mode: "ok" }, null, true);
       await page.waitFor("window.__SG_SC && document.querySelector('#scPanel .sc-start')", 8000);
       await page.evaluate(() => { window.__face = null; window.__LQ_FAKE_DET = () => window.__face ? [window.__face] : []; document.querySelector("#scPanel .sc-start").click(); });
       await page.waitFor("__SG_SC.active && __sg.faceRunning", 8000);
@@ -189,7 +193,9 @@ export default async function ({ base, launch, check, fakeCams }) {
     });
 
     await check("round 10: LENSIQ_AGE_GENDER=false hides the option, never requests ageGenderNet, check unavailable; option off = lazy", async () => {
-      const page = await browser.newPage(null, { initScripts: [fakeCams, "window.__LQ_FAKE_CAMS={n:1,mode:'ok'}", "window.LENSIQ_AGE_GENDER=false", "try{localStorage.clear()}catch(e){}"] });
+      const page = await browser.newPage(null, {
+        initScripts: [fakeCams, "window.__LQ_FAKE_CAMS={n:1,mode:'ok'}", "window.LENSIQ_AGE_GENDER=false", "try{localStorage.clear()}catch(e){}", RESEARCH_ON]
+      });
       await page.goto(url);
       await page.waitFor("window.__SG_SC && document.querySelector('#scPanel .sc-start')", 8000);
       assert(await page.evaluate(() => document.getElementById("demoOpt").hidden && document.getElementById("demoOpt").getClientRects().length === 0), "age/gender option hidden");
@@ -200,7 +206,10 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(await page.evaluate(() => !__SG_SC.active && /LENSIQ_AGE_GENDER/.test(document.querySelector("#scPanel .sc-live").textContent)), "check not available");
       await page.close();
       // allowed but switched off: not requested until switched on
-      const p2 = await browser.newPage(null, { initScripts: [fakeCams, "window.__LQ_FAKE_CAMS={n:1,mode:'ok'}", "try{localStorage.clear();localStorage.setItem('sg-settings',JSON.stringify({useDemo:false}))}catch(e){}"] });
+      const p2 = await browser.newPage(null, {
+        initScripts: [fakeCams, "window.__LQ_FAKE_CAMS={n:1,mode:'ok'}",
+          "try{localStorage.clear();localStorage.setItem('sg-settings',JSON.stringify({useDemo:false}))}catch(e){}", RESEARCH_ON]
+      });
       await p2.goto(url);
       await p2.evaluate(() => document.getElementById("startFace").click());
       await p2.waitFor("__sg.faceRunning", 8000);

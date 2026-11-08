@@ -188,7 +188,8 @@ async function init() {
     if (FAKE) return; // ?fakedet บน localhost: ตัวตรวจจับจำลองสำหรับทดสอบ ไม่โหลดโมเดล
     await LQDetect.tfBackend();
     await Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri("vendor/models/"), faceapi.nets.faceLandmark68Net.loadFromUri("vendor/models/")]);
-    try { await faceapi.nets.faceExpressionNet.loadFromUri("vendor/models/"); exprOK = true; } catch (e) { console.warn("expression model", e); }
+    // round 16: customer mode (the default) never loads face_expression_model (F5) — research demo toggle only
+    if (exprAllowed()) try { await faceapi.nets.faceExpressionNet.loadFromUri("vendor/models/"); exprOK = true; } catch (e) { console.warn("expression model", e); }
   })().then(() => { faceOK = true; setStatus("face", () => tr("photobooth.js.st.faceOk", "ตรวจจับใบหน้าพร้อม"), "ok"); },
     e => { console.error(e); setStatus("face", () => tr("photobooth.js.st.faceErr", "ตรวจจับใบหน้าไม่ได้ (โหมดรูปติดบัตรจัดตำแหน่งอัตโนมัติไม่ได้)"), "warn"); });
 
@@ -420,6 +421,8 @@ out.addEventListener("dblclick", e => { if (mode !== "booth") return; const s = 
 // รูปติดบัตร
 // =====================================================================
 let exprOK = false;
+/** research demo only (lensiq-config.js LENSIQ_PROFILE / LENSIQ_EXPRESSION, loaded before this file; lensiq-research.js toggle) */
+function exprAllowed() { return window.LENSIQ_PROFILE === "demo" && /** @type {any} */ (window).LENSIQ_EXPRESSION === true; }
 const idState = { size: "1", bg: "#ffffff", outfit: "none", cap: null, paper: "4x6", copies: 0, marks: true, purpose: null, expOutfit: false };
 /* round 12: ชุดจำลองบนรูปติดบัตรมีรอยทุกภาพในชุดวัดผล (124/124, ACCURACY.md §11b) — ปิดเป็นค่าเริ่มต้น เปิดเองด้วยสวิตช์ "ชุดจำลองแบบทดลอง"
  * (ไม่ลบความสามารถ: ปุ่มวัตถุประสงค์ยังจำชุดที่เลือกไว้ เปิดสวิตช์แล้วแสดงแบบไม่ใส่ชุดก่อน ดูชุดเป็นแบบร่างได้เมื่อกดเองเหมือนเดิม) */
@@ -651,7 +654,8 @@ function qualityCheck(img, r, face, eyeL, eyeR, nFaces = 1) {
     [Math.abs(tilt) < 6, q("tilt", "ศีรษะตรง (ปรับเอียงให้แล้ว {deg}°)", deg), q("tiltBad", "ศีรษะเอียง {deg}° ระบบหมุนแก้ให้แล้ว แต่ควรถ่ายใหม่ให้ตรง", deg)],
     [eyesOpen > .2, q("eyes", "ลืมตาปกติ"), q("eyesBad", "ตาอาจปิดหรือหรี่ ควรถ่ายใหม่")],
     [mouthGap < .04, q("mouth", "ปิดปาก"), q("mouthBad", "ปากเปิด ควรปิดปากสนิท")],
-    [neutral == null || neutral > .5 || smile < .5, q("expr", "สีหน้าปกติ/สุภาพ"), q("exprBad", "ยิ้มกว้างเกินไปสำหรับรูปราชการ")],
+    neutral == null ? [true, q("exprOff", "สีหน้า: ไม่ได้ตรวจ (ปิดโมเดลสีหน้าในโหมดลูกค้า) ให้ตรวจด้วยตา"), q("exprOff", "สีหน้า: ไม่ได้ตรวจ (ปิดโมเดลสีหน้าในโหมดลูกค้า) ให้ตรวจด้วยตา")]
+      : [neutral > .5 || smile < .5, q("expr", "สีหน้าปกติ/สุภาพ"), q("exprBad", "ยิ้มกว้างเกินไปสำหรับรูปราชการ")],
     [bright > 70 && bright < 210, q("light", "แสงพอดี"), bright <= 70 ? q("dark", "ภาพมืดเกินไป เพิ่มแสงด้านหน้า") : q("bright", "ภาพสว่างเกินไป")],
     [balance < .25, q("even", "แสงสม่ำเสมอทั้งสองข้างใบหน้า"), q("evenBad", "แสงไม่เท่ากัน มีเงาด้านหนึ่งของใบหน้า")],
     [sharp > 60, q("sharp", "ภาพคมชัด"), q("sharpBad", "ภาพอาจเบลอ ให้นิ่งขณะถ่าย")]
