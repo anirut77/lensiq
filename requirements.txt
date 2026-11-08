@@ -23,7 +23,7 @@ importlib_metadata==8.7.1 ; python_version < "3.10"
 zipp==3.23.1 ; python_version < "3.10"
 
 # --- pdfplumber (MIT) -> pdfminer.six (MIT), pypdfium2 (BSD-3 / Apache-2.0), Pillow (MIT-CMU) ---
-pdfminer.six==20251107
+pdfminer.six==20260107
 pypdfium2==5.15.0
 Pillow==11.3.0
 charset-normalizer==3.5.2
