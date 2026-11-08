@@ -55,7 +55,8 @@
 **ป้าย** (`plates-template.csv`): `read_id`, วันที่/เวลา, ไซต์, อุปกรณ์, `photo_ref` (ชื่อไฟล์ภาพ — **ภาพเก็บโดยทีมภาคสนามตามความยินยอม
 และระยะเวลาเก็บ ห้าม commit ลง repo**), `ocr_result` (ค่าที่ระบบเสนอครั้งแรก), `ground_truth` (ค่าจริงที่คนตรวจจากตัวรถ),
 จังหวัดที่อ่านได้/จริง, `saved_value` (ค่าที่บันทึกจริง), `guard_edited` (yes/no — รปภ. แก้ก่อนบันทึกหรือไม่), `confirm_s`
-(วินาทีจนกดยืนยัน), `alternatives` (ตัวเลือกอื่นที่หน้าจอเสนอ คั่นด้วย `|`), `conditions`, `distance_m`, ชนิดรถ, ชนิดป้าย, หมายเหตุ
+(วินาทีจนกดยืนยัน), `alternatives` (ตัวเลือกอื่นที่หน้าจอเสนอ คั่นด้วย `|`), `tapped` (1/0 — รปภ. ต้องแตะ/ลากกรอบรอบป้ายเอง
+เพราะระบบหาป้ายไม่เจอ; เพิ่มใน round 15), `conditions`, `distance_m`, ชนิดรถ, ชนิดป้าย, หมายเหตุ
 
 **ยา** (`medicine-template.csv`): `box_id`, วันที่, ไซต์, อุปกรณ์, `photo_ref`, ยี่ห้อ, `reg_ocr`/`reg_truth`/`reg_edited`,
 `lot_ocr`/`lot_truth`/`lot_edited`, `expiry_ocr`/`expiry_truth`/`expiry_edited`, `confirm_s`, `conditions`, หมายเหตุ
@@ -74,6 +75,9 @@
 - **เวลาต่อการอ่าน** — ค่าเฉลี่ยและมัธยฐานของ `confirm_s`
 - **Silent wrong saves** — ค่าที่บันทึก ≠ ค่าจริง **และ** ไม่ได้แก้ → **ต้องเป็น 0** (เป็นความเสี่ยงที่ร้ายแรงที่สุด: ค่าผิดเข้าระบบโดยไม่มีใครเห็น)
 - (ป้าย) **Alternatives hit** — เมื่อค่าแรกผิด ค่าจริงอยู่ในตัวเลือกอื่นที่เสนอหรือไม่
+- (ป้าย) **Taps needed** — สัดส่วนการอ่านที่ รปภ. ต้องแตะกรอบป้ายเอง (คอลัมน์ `tapped`) แยกตามเงื่อนไข พร้อม Wilson 95 %
+  แถวที่ช่อง `tapped` ว่างไม่นับ หน้า Gate นับค่านี้ให้อัตโนมัติในเมนูตรวจความแม่นยำ (แยกกลางวัน/กลางคืน) รวมรถที่ระบบอ่านไม่ได้เลย
+  แล้ว รปภ. พิมพ์เลขเอง (นับเป็น "ต้องแตะ" แต่ไม่นับในความแม่นยำการอ่าน) ในแบบฟอร์ม CSV ให้กรอก `tapped` = 1 สำหรับรถแบบนี้ด้วย
 
 ## 5. เกณฑ์เปิดใช้งาน — **PROPOSAL (ข้อเสนอให้เจ้าของปรับ ไม่ใช่มาตรฐานอุตสาหกรรม)**
 
@@ -83,12 +87,13 @@
 | ป้าย (ค่าจอด / เปิดไม้กั้น): exact-match กลางวันแสงดี (`day` ไม่มี `rain`/`backlight`/`night`/`low-light`) | ≥ 95 % |
 | ป้าย: exact-match กลางคืน (`night`) | ≥ 85 % |
 | ป้าย: silent wrong saves | 0 |
+| ป้าย: ต้องแตะกรอบป้ายเอง กลางวันแสงดี (`tapped`, ตรวจเมื่อแถวกลางวันแสงดีมีข้อมูลคอลัมน์นี้) | ≤ 10 % |
 | ยา: จำนวนกล่อง | ≥ 100 |
 | ยา: exact-match เลขทะเบียนยา — ก่อนฟีเจอร์ใดจะใช้ค่านี้โดยไม่ให้คนตรวจ | ≥ 95 % |
 | ยา: silent wrong saves (ทะเบียน + lot + วันหมดอายุ) | 0 |
 
 ค่าเริ่มต้นตัดสินที่ค่าประมาณ (point estimate); `--lower-bound` ตัดสินที่ขอบล่าง Wilson 95 % (เข้มกว่า สอดคล้องกับ site check
-ในหน้า Gate ที่ใช้ขอบล่าง) เจ้าของปรับเกณฑ์ได้ด้วย `--targets targets.json` (ชื่อคีย์ตาม `PROPOSAL` ในสคริปต์)
+ในหน้า Gate ที่ใช้ขอบล่าง; เกณฑ์ที่ต้อง "ต่ำ" เช่น taps ใช้ขอบบน) เจ้าของปรับเกณฑ์ได้ด้วย `--targets targets.json` (ชื่อคีย์ตาม `PROPOSAL` ในสคริปต์)
 
 ## 6. แผนการสุ่มตัวอย่าง
 
@@ -191,6 +196,7 @@ against the truth.
 the field team under the consent / retention rules and are never committed to the repo**), `ocr_result` (the system's
 first suggestion), `ground_truth` (read from the vehicle by a person), province read / truth, `saved_value`,
 `guard_edited` (yes/no), `confirm_s` (seconds to confirm), `alternatives` (other candidates shown, `|`-separated),
+`tapped` (1/0: the guard had to tap / draw the plate box because the finder did not find it; added in round 15),
 `conditions`, `distance_m`, vehicle, plate type, notes.
 
 **Medicine** (`medicine-template.csv`): `box_id`, date, site, device, `photo_ref`, brand, `reg_ocr`/`reg_truth`/`reg_edited`,
@@ -212,6 +218,10 @@ Overall and per condition tag, with Wilson 95 % intervals:
 - **Silent wrong saves** — saved value ≠ truth **and** not edited → **must be 0** (the worst failure: a wrong value enters
   the system unseen).
 - (plates) **Alternatives hit** — when the first read is wrong, was the truth among the alternatives offered?
+- (plates) **Taps needed** — share of reads where the guard had to tap the plate (`tapped`), per condition, Wilson 95 %.
+  Rows with an empty `tapped` are not counted. The Gate pages tally it automatically in the on-site accuracy check
+  (day / night), including vehicles the system did not read at all and the guard typed by hand (counted as a tap, left
+  out of the read-accuracy numbers). In the CSV, fill `tapped` = 1 for those vehicles too.
 
 ## 5. Go-live thresholds — **PROPOSAL (for the owner to adjust; not industry standards)**
 
@@ -221,12 +231,13 @@ Overall and per condition tag, with Wilson 95 % intervals:
 | Plates (fees / gate): exact match in good light (`day` without `rain`/`backlight`/`night`/`low-light`) | ≥ 95 % |
 | Plates: exact match at night (`night`) | ≥ 85 % |
 | Plates: silent wrong saves | 0 |
+| Plates: reads that needed a tap, good light (`tapped`; checked only when good-light rows have the column filled) | ≤ 10 % |
 | Medicine: number of boxes | ≥ 100 |
 | Medicine: registration-number exact match — before any feature relies on it without review | ≥ 95 % |
 | Medicine: silent wrong saves (reg + lot + expiry) | 0 |
 
 By default a rate is judged on the point estimate; `--lower-bound` judges on the Wilson 95 % lower bound (stricter, as the
-Gate site check does). The owner overrides values with `--targets targets.json` (keys as in `PROPOSAL` in the script).
+Gate site check does) and a rate that must stay low (taps) on the upper bound. The owner overrides values with `--targets targets.json` (keys as in `PROPOSAL` in the script).
 
 ## 6. Sampling plan
 
@@ -296,8 +307,16 @@ input. Rows without ground truth are skipped and counted.
 | Round | Date | Plates (n / good-light exact / night exact / silent) | Medicine (n / reg exact / silent) | Verdict | Notes |
 |---|---|---|---|---|---|
 | 15 | 2026-11-08 | — / — / — / — | — / — / — | not started | plan, templates and `tools/field-pilot-metrics.mjs` added; no field data yet |
+| 15b | 2026-11-08 | — / — / — / — · taps — | — / — / — | not started | "taps needed" added (template column `tapped`, metric + PROPOSAL ≤ 10 % good light, Gate site check tallies taps). Plate finder upgraded; synthetic demo set only: 136–137 / 140 found (docs/GATE.md), real photos 2 / 6 — the pilot's taps share is the real measure |
 
 ## Changelog / last reviewed
 
+- **2026-11-08 (round 15b, review fixes)** — the good-light taps check runs only when good-light rows carry `tapped`
+  (night-only tap data no longer fails `--strict` for missing data); the Gate site check also records vehicles saved
+  with no system read (finder missed, guard typed the plate) as a tap, so the taps share is not flattered. Unit tests.
+- **2026-11-08 (round 15b)** — "taps needed" metric: `tapped` column in `plates-template.csv`, per-condition share with
+  Wilson CI in `tools/field-pilot-metrics.mjs`, PROPOSAL threshold `plateTapsGoodLight` ≤ 10 % (checked only when the
+  column is filled; `--lower-bound` uses the upper bound), unit tests; the Gate on-site accuracy check records whether
+  each read was tapped and reports taps (day, with the 10 % proposal) and taps (night). Last reviewed: 2026-11-08.
 - **2026-11-08 (round 15)** — first version: test plan (TH/EN), CSV templates with synthetic rows, metrics script, unit
   tests. Thresholds are a PROPOSAL awaiting the owner. Last reviewed: 2026-11-08.

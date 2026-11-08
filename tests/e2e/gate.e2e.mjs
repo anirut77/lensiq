@@ -115,8 +115,10 @@ export default async function ({ base, launch, check }) {
       } catch (e) {
         throw new Error(e.message + " state " + JSON.stringify(await page.evaluate(() => ({ plate: document.querySelector("#gkPlate").value, st: document.querySelector("#gkStatus").textContent }))));
       }
-      const r = await page.evaluate(() => ({ plate: document.querySelector("#gkPlate").value, prov: document.querySelector("#gkProv").value, st: document.querySelector("#gkStatus").textContent, read: window.__LQ_PK.kit.lane.read }));
-      assert(r.plate === want, "OCR read " + JSON.stringify({ want, plate: r.plate, st: r.st, lines: r.read && r.read.lines }));
+      const r = await page.evaluate(() => ({ plate: document.querySelector("#gkPlate").value, prov: document.querySelector("#gkProv").value,
+        st: document.querySelector("#gkStatus").textContent, read: window.__LQ_PK.kit.lane.read, det: window.__LQ_PK.kit.lane.det }));
+      // the detected / used / grown boxes are part of the message so a CI-only miss (different font rasterisation) is diagnosable
+      assert(r.plate === want, "OCR read " + JSON.stringify({ want, plate: r.plate, st: r.st, lines: r.read && r.read.lines, det: r.det }));
       return { page, r };
     };
 
@@ -141,11 +143,21 @@ export default async function ({ base, launch, check }) {
       ];
       const PLATE_BOX = { x: 200 / 640, y: 175 / 360, w: 240 / 640, h: 112 / 360 }; // where drawDemo puts the plate
       for (const [t, p, sty] of cases) {
-        // colour plates test the READER, so the guard taps the plate; auto-finding is covered by the white-plate cases
-        // (the classical finder misses dark plates and can pick the province line of red-text plates — docs/GATE.md)
+        // colour plates test the READER here, so the guard taps the plate; auto-finding of colour plates (round 15 finder) is
+        // checked in the next test and per colour on the demo set in gate-detect.e2e.mjs
         const { page } = await readDemo([[t, p, sty], [t, p, sty]], t, sty ? PLATE_BOX : null);
         await page.close();
       }
+    });
+
+    await check("auto-detected (no tap) colour plates read exactly: yellow, green (white text), red text, blue text", async () => {
+      const cases = [
+        ["1กข 2345", "bangkok", { bg: "#f5c400", fg: "#111" }],
+        ["3ฒพ 12", "chiangmai", { bg: "#1f7a3a", fg: "#fff" }],
+        ["กท 4567", "nonthaburi", { bg: "#fbfbf7", fg: "#c8102e" }],
+        ["ขค 789", "chonburi", { bg: "#fbfbf7", fg: "#1b3fa0" }],
+      ];
+      for (const [t, p, sty] of cases) { const { page } = await readDemo([[t, p, sty], [t, p, sty]], t, null); await page.close(); }
     });
 
     await check("finder box that starts too far right (up to 20% of the plate) still reads the leading digit exactly", async () => {
@@ -159,6 +171,53 @@ export default async function ({ base, launch, check }) {
         return res;
       });
       for (const [cut, key] of out) assert(key === "1กข2345", `cut ${cut}: read ${key}`);
+      await page.close();
+    });
+
+    // CI (Linux) once auto-detected a box that missed the leading "1" by more than the 18 % left margin and read "กข 2345"
+    // at 100 % confidence. The same kind of box is produced here on purpose: text line only, 25 % / 35 % cut, digits only.
+    // readPlate grows every proposal to the plate background first, so all of them must read the full plate.
+    await check("proposal boxes that miss the leading digit (text line / 25-35% cut / digits only) are grown to the plate and read exactly", async () => {
+      const { page } = await readDemo([["1กข 2345", "bangkok"], ["1กข 2345", "bangkok"]], "1กข 2345");
+      const out = await page.evaluate(async () => {
+        const LP = window.LQPlate, c = [...document.querySelectorAll("canvas")].find(x => x.width === 640 && x.height === 360), res = [];
+        const boxes = { textLine: [240, 192, 180, 38], cut25: [260, 175, 180, 112], cut35: [284, 175, 156, 112], digits: [330, 190, 100, 42] };
+        for (const [k, [x, y, w, h]] of Object.entries(boxes)) {
+          const b = { x: x / 640, y: y / 360, w: w / 640, h: h / 360 }, r = await LP.readPlate(c, b, {});
+          res.push({ k, key: r && r.key, grown: r && r.box && [r.box.x * 640, r.box.y * 360, r.box.w * 640, r.box.h * 360].map(Math.round) });
+        }
+        return res;
+      });
+      for (const o of out) assert(o.key === "1กข2345", "box " + JSON.stringify(o));
+      await page.close();
+    });
+
+    // round 15 review: emulates the CI rasterisation by redrawing the demo plate's text in other weights / sizes / offsets
+    // (Prompt 400 46 px, 600 42 px shifted 8 px left, ...). The thin "1" then reads as the vowel ไ or vanishes. Rule, the same
+    // on every machine: the reading is exact, or the guard is asked (leadCheck) and "1กข2345" is one of the offered choices.
+    await check("thin leading \"1\" (other font weights / sizes / offsets, auto-detected and tapped boxes): exact, or the guard is asked with 1กข2345 offered", async () => {
+      const { page } = await readDemo([["1กข 2345", "bangkok"], ["1กข 2345", "bangkok"]], "1กข 2345");
+      const out = await page.evaluate(async () => {
+        const LP = window.LQPlate, GK = window.GateKit, res = [];
+        for (const w of ["300", "400", "500", "600"]) await document.fonts.load(`${w} 46px Prompt`, "1กข 2345");
+        const variants = [["400", 46, 0, 0], ["400", 46, 2, 1], ["600", 42, -8, 0], ["400", 42, -8, 0], ["500", 46, 0, 0], ["600", 40, 0, 0], ["600", 46, 6, 0], ["300", 46, 0, 0]];
+        for (const [wt, sz, dx, dy] of variants) {
+          const c = document.createElement("canvas"); GK.drawDemo(c, "", "bangkok", {});
+          const x = /** @type {CanvasRenderingContext2D} */ (c.getContext("2d")); x.fillStyle = "#111"; x.textAlign = "center"; x.textBaseline = "middle";
+          x.font = `${wt} ${sz}px Prompt, sans-serif`; x.fillText("1กข 2345", 320 + dx, 215 + dy);
+          const det = await LP.detect(c, { model: false });
+          for (const [how, box] of [["det", det[0] || null], ["tap", { x: 200 / 640, y: 175 / 360, w: 240 / 640, h: 112 / 360 }]]) {
+            const r = box ? await LP.readPlate(c, box, {}) : null, v = r && r.key ? LP.vote([r, r]) : null, a = v ? LP.leadAlternatives(v, [r, r]) : null;
+            res.push({ v: [wt, sz, dx, dy, how].join("/"), box: box && [box.x * 640, box.y * 360, box.w * 640, box.h * 360].map(Math.round), key: r && r.key,
+              lines: r && r.lines && r.lines.map(l => l.text), leadCheck: a && a.leadCheck, alts: a && a.alts, reason: a && a.reason, sus: r && r.leadSuspect, ib: r && r.inkBefore });
+          }
+        }
+        return res;
+      });
+      for (const o of out) {
+        const exact = o.key === "1กข2345", asked = !!o.leadCheck && (o.alts || []).includes("1กข2345");
+        assert(exact || asked, "leading digit dropped silently " + JSON.stringify(o));
+      }
       await page.close();
     });
 

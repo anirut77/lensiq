@@ -143,6 +143,39 @@ export default async function ({ base, launch, check }) {
       await page.close();
     });
 
+    await check("parking: accuracy check tallies 'taps needed' (guard drew the plate box vs the finder found it), day / night", async () => {
+      const page = await browser.newPage(null, { initScripts: [INIT], isolated: true });
+      await page.goto(`${base}/parking.html?cpu&fakedet`);
+      await ack(page);
+      await page.evaluate(() => { document.querySelector("#gkDemoBtn").click(); });
+      await page.waitFor(`!document.querySelector("#gkReadBtn").disabled`, 8000);
+      await page.evaluate(() => { document.querySelector("#t-check").click(); document.querySelector("#gkChkStart").click(); document.querySelector("#t-lane").click(); });
+      // 1: the guard taps / draws the plate box
+      await page.evaluate(() => { window.__plate = { text: "กข 1234", conf: 0.95, province: "bangkok" }; window.__LQ_PK.kit.readNow({ x: 0.3, y: 0.48, w: 0.4, h: 0.32 }); });
+      await page.waitFor(`document.querySelector("#gkPlate").value === "กข 1234" && !window.__LQ_PK.kit.lane.busy`, 8000);
+      assert(await page.evaluate(() => window.__LQ_PK.kit.lane.read.tapped === true), "tapped read flagged");
+      await page.evaluate(() => { document.querySelector('[data-tick="1"]').click(); document.querySelector('[data-act="in"]').click(); });
+      // 2: the finder found the plate (read button, no box)
+      await read(page, "ขข 55");
+      assert(await page.evaluate(() => window.__LQ_PK.kit.lane.read.tapped === false), "auto read not flagged");
+      await page.evaluate(() => { document.querySelector('[data-tick="1"]').click(); document.querySelector('[data-act="in"]').click(); });
+      // 3: the finder missed and the guard typed the plate (no system read): counted as a tap, not as an accuracy row
+      await page.waitFor(`!window.__LQ_PK.kit.lane.read`, 8000);
+      await page.evaluate(() => { const i = document.querySelector("#gkPlate"); i.value = "คค 77"; i.dispatchEvent(new Event("input", { bubbles: true })); });
+      await page.waitFor(`!document.querySelector('#gkActions [data-act="in"]').disabled`, 8000);
+      await page.evaluate(() => document.querySelector('[data-act="in"]').click());
+      await page.evaluate(() => document.querySelector("#t-check").click());
+      await page.waitFor(`/แตะกรอบป้าย 2 คัน/.test(document.querySelector("#gkChkLive").textContent)`, 5000).catch(() => {});
+      const live = await page.evaluate(() => document.querySelector("#gkChkLive").textContent);
+      assert(/แตะกรอบป้าย 2 คัน/.test(live) && /อ่านแล้ว 2 คัน/.test(live), "live tally shows taps incl. the typed plate " + live);
+      await page.evaluate(() => document.querySelector("#gkChkStop").click());
+      const rep = await page.evaluate(() => ({ r: window.__LQ_PK.kit.lastCheck, html: document.querySelector("#gkChkRep").innerText }));
+      const t = rep.r.taps, tn = rep.r.tapsNight;
+      assert(t.n + tn.n === 3 && t.x + tn.x === 2 && rep.r.n === 2 && rep.r.manual === 1, "taps over both reads + the typed plate " + JSON.stringify({ t, tn, n: rep.r.n, manual: rep.r.manual }));
+      assert(/ต้องแตะกรอบป้ายเอง/.test(rep.html) && /≤ 10%/.test(rep.html), "taps row with the proposal target " + rep.html.slice(0, 400));
+      await page.close();
+    });
+
     await check("parking: 中文 and English — no Thai left outside plate data (lane, payment, every tab)", async () => {
       for (const lang of ["zh", "en"]) {
         const page = await browser.newPage(null, { initScripts: [INIT], isolated: true });

@@ -141,7 +141,7 @@ test("templates: parse with the tool, every documented column present, synthetic
   const m = T.parseCSV(fs.readFileSync(path.join(ROOT, "docs/field-pilot/medicine-template.csv"), "utf8"));
   assert.equal(p.length, 2);
   assert.equal(m.length, 2);
-  for (const k of ["photo_ref", "ocr_result", "ground_truth", "guard_edited", "confirm_s", "alternatives", "conditions"]) assert.ok(k in p[0], k);
+  for (const k of ["photo_ref", "ocr_result", "ground_truth", "guard_edited", "confirm_s", "alternatives", "tapped", "conditions"]) assert.ok(k in p[0], k);
   for (const k of ["reg_ocr", "reg_truth", "lot_ocr", "lot_truth", "expiry_ocr", "expiry_truth"]) assert.ok(k in m[0], k);
   for (const r of [...p, ...m]) {
     assert.match(r.photo_ref, /^SYNTHETIC-/);
@@ -154,4 +154,47 @@ test("templates: parse with the tool, every documented column present, synthetic
   assert.match(doc, /node tools\/field-pilot-metrics\.mjs/);
 });
 
+test("taps needed (round 15): share of reads where the guard had to tap the plate, per condition, Wilson CI, PROPOSAL <= 10 % in good light", async () => {
+  const T = await load();
+  const head = PH.replace("alternatives,conditions", "alternatives,tapped,conditions");
+  const rows = [head];
+  for (let i = 0; i < 40; i++) {
+    const night = i % 4 === 0, key = `ฮฮ ${1000 + i}`;
+    // good light: 4 of 29 tapped (13.8 %); night: 5 of 10 tapped; one row without a value is not counted
+    const tapped = i === 39 ? "" : night ? (i % 8 === 0 ? "1" : "0") : (i % 10 === 1 ? "yes" : "no");
+    rows.push(`${i},SYN-${i}.jpg,${key},${key},,no,3,,${tapped},${night ? "night" : "day"}`);
+  }
+  const rep = T.platesReport(T.parseCSV(rows.join("\n")));
+  assert.equal(rep.goodLight.taps.n, 29); assert.equal(rep.goodLight.taps.x, 4);
+  assert.equal(rep.night.taps.n, 10); assert.equal(rep.night.taps.x, 5);
+  assert.equal(rep.byTag.night.taps.x, 5);
+  assert.ok(rep.goodLight.taps.lo < rep.goodLight.taps.p && rep.goodLight.taps.hi > rep.goodLight.taps.p, "Wilson interval around the share");
+  assert.equal(T.PROPOSAL.plateTapsGoodLight, 0.1);
+  const c = T.checkThresholds({ plates: rep }).find(x => x.id === "plate.taps.goodLight");
+  assert.equal(c.side, "<="); assert.ok(Math.abs(c.value - 4 / 29) < 1e-9); assert.equal(c.ok, false, "13.8 % > 10 %");
+  assert.equal(T.checkThresholds({ plates: rep }, { plateTapsGoodLight: 0.15 }).find(x => x.id === "plate.taps.goodLight").ok, true);
+  // --lower-bound judges a "must stay low" rate on the UPPER bound
+  const lb = T.checkThresholds({ plates: rep }, { plateTapsGoodLight: 0.15 }, { lowerBound: true }).find(x => x.id === "plate.taps.goodLight");
+  assert.equal(lb.value, rep.goodLight.taps.hi); assert.equal(lb.ok, false);
+  // older CSVs without the column: no taps check, the report says it was not recorded
+  const old = T.platesReport(T.parseCSV(PLATES));
+  assert.equal(old.overall.taps.n, 0);
+  assert.equal(T.checkThresholds({ plates: old }).some(x => x.id === "plate.taps.goodLight"), false);
+  const out = cli(["--plates", write("taps.csv", rows.join("\n"))]);
+  assert.equal(out.status, 0, out.stderr);
+  assert.match(out.stdout, /taps CI/);
+  assert.match(out.stdout, /needed a tap, good light/);
+  assert.match(cli(["--plates", write("old.csv", PLATES)]).stdout, /taps needed: not recorded/);
+});
+
 test.after(() => fs.rmSync(tmp, { recursive: true, force: true }));
+
+test("taps needed: tap data only for night rows -> no good-light check (no --strict failure for missing data)", async () => {
+  const T = await load();
+  const head = PH.replace("alternatives,conditions", "alternatives,tapped,conditions");
+  const rows = [head];
+  for (let i = 0; i < 12; i++) { const night = i % 2 === 0, key = `ฮฮ ${2000 + i}`; rows.push(`${i},SYN-${i}.jpg,${key},${key},,no,3,,${night ? "1" : ""},${night ? "night" : "day"}`); }
+  const rep = T.platesReport(T.parseCSV(rows.join("\n")));
+  assert.equal(rep.overall.taps.n, 6); assert.equal(rep.goodLight.taps.n, 0);
+  assert.equal(T.checkThresholds({ plates: rep }).some(x => x.id === "plate.taps.goodLight"), false);
+});

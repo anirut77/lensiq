@@ -31,7 +31,7 @@
   "gate.acc.h": "Accuracy: the honest picture",
   "gate.acc.l1": "There is no accuracy measurement from a real site yet. Usable figures must come from your own on-site accuracy check (the accuracy check tab on each page).",
   "gate.acc.l2": "Text reader: PP-OCRv5 Thai mobile (PaddleOCR, Apache-2.0, 7.5 MB), trained on general Thai text, not on licence plates. It reads straight, sharp plates better than tilted, dark or dirty ones.",
-  "gate.acc.l3": "Plate finder: no plate-detection model is included yet, because the available models have unclear training-data licences. A classical plate finder is used instead, or staff tap a box around the plate.",
+  "gate.acc.l3": "Plate finder: an on-device classical finder (plate background and text lines) plus the OpenCV Zoo LPD-YuNet model (Apache-2.0, trained on Chinese plates, 4.1 MB). On 140 synthetic demo scenes it finds 136–137 plates (every colour, motorcycles and night at least 90%), but on 5 real photos only 2 of 6 plates as its first box. A model trained on Thai plates is not included yet, because the available datasets have unclear training-data rights. Staff can always tap a box around the plate.",
   "gate.acc.l4": "The province is chosen from a list of 77 provinces, with the provinces common at that site first. The system's guess from the lower line is only a suggestion.",
   "gate.acc.l5": "Three-line motorcycle plates, graphic auction plates and special-colour plates are harder to read; staff check every one.",
   "gate.acc.l6": "On-site check target: at least 95% of plates fully correct (lower bound of the 95% confidence interval) from at least 100 vehicles, including at least 30 at night.",
@@ -107,7 +107,7 @@
   "gk.cam.demoBtn": "Use sample image",
   "gk.cam.next": "Next car (sample)",
   "gk.cam.read": "Read plate now",
-  "gk.cam.auto": "Read automatically when a plate is seen (downloads the 7.5 MB Thai text model the first time)",
+  "gk.cam.auto": "Read automatically when a plate is seen (downloads the 7.5 MB Thai text model and the 4.1 MB plate finder the first time)",
   "gk.cam.tap": "Tap or drag a box around the plate in the image to read only that part",
   "gk.conf.h": "Confirm the plate",
   "gk.conf.crop": "Plate crop",
@@ -195,6 +195,9 @@
   "gk.m.day": "Day (whole plate)",
   "gk.m.night": "Night (whole plate)",
   "gk.m.prov": "Province matches the staff choice",
+  "gk.m.taps": "Staff had to tap the plate (day)",
+  "gk.m.tapsNight": "Staff had to tap the plate (night)",
+  "gk.chk.taps": "plate tapped by staff: {t} vehicles",
   "gk.need.reads": "reads (about {n} more vehicles)",
   "gk.need.night": "night reads (about {n} more vehicles)"
 } });

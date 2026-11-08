@@ -3,7 +3,7 @@ LENSIQ — THIRD-PARTY NOTICES
 
 This site redistributes the third-party components below (in vendor/). Each remains under its own licence; the MIT
 licence of LENSIQ's own code does not extend to them. Inventory, sources, versions and status:
-LICENSES/THIRD_PARTY.md in the source repository. Last audited 2026-11-07.
+LICENSES/THIRD_PARTY.md in the source repository. Last audited 2026-11-08.
 
 A. Apache License 2.0 (full text in section D)
   - TensorFlow.js 4.7.0 (core, converter, cpu, webgl, wasm backends; bundled in vendor/face-api.js and
@@ -19,6 +19,8 @@ A. Apache License 2.0 (full text in section D)
   - pdf.js 3.11.174 (vendor/pdf.min.js, vendor/pdf.worker.min.js) — Copyright 2023 Mozilla Foundation.
   - PaddleOCR PP-OCRv5 Thai mobile recogniser (vendor/models/plate-ocr-th/, licence copy in that folder)
     — Copyright (c) PaddlePaddle Authors.
+  - LPD-YuNet licence-plate detector (vendor/models/plate-det/, OpenCV Zoo, licence copy in that folder)
+    — Copyright (c) OpenCV Zoo contributors (model by Dong Xu, watrix.ai).
 
 B. MIT License (text in section E)
   - face-api.js 1.7.12 (vendor/face-api.js) and its model weights (vendor/models/*_model*) —

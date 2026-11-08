@@ -18,6 +18,8 @@
 //   time      mean / median seconds to confirm
 //   altHit    (plates) share of wrong first reads whose truth was among the alternatives offered (`|`-separated)
 //   silent    "silent wrong saves": saved value != truth AND not edited (must be 0)
+//   taps      (plates, round 15) share of reads where the guard had to tap / draw the plate box because the finder did
+//             not find it (column `tapped` = 1/0, yes/no); Wilson 95 % CI; rows with an empty `tapped` are not counted
 // Plates are normalised with LQPlate.normalize (lensiq-plate.js); registration numbers with LQMed.parseThaiReg
 // (lensiq-med.js) when they parse, else the same text normalisation without spaces.
 // Exit codes: 0 ok · 1 --strict and a threshold failed · 2 usage / input error.
@@ -36,6 +38,7 @@ export const PROPOSAL = {
   plateExactGoodLight: 0.95,
   plateExactNight: 0.85,
   plateSilentMax: 0,
+  plateTapsGoodLight: 0.10, // at most 10 % of good-light reads need a tap (checked only when the `tapped` column is filled)
   medMinBoxes: 100,
   medRegExact: 0.95,
   medSilentMax: 0
@@ -67,6 +70,8 @@ export function parseCSV(text) {
 }
 
 const yes = v => /^(1|y|yes|true|ใช่|แก้)$/i.test(String(v || "").trim());
+/** 1/0, yes/no -> true / false; empty -> null (not recorded) */
+const flag = v => { const t = String(v == null ? "" : v).trim(); return t === "" ? null : yes(t); };
 const num = v => { const n = parseFloat(String(v || "").replace(",", ".")); return Number.isFinite(n) ? n : null; };
 const tagsOf = v => [...new Set(String(v || "").split(";").map(t => t.trim().toLowerCase()).filter(Boolean))];
 
@@ -84,9 +89,10 @@ const median = a => { const s = a.slice().sort((x, y) => x - y), m = s.length >>
 
 /** items: [{ocr, truth, saved, edited, time}] already normalised -> metric block */
 export function metrics(items) {
-  let ex = 0, ed = 0, dist = 0, len = 0, silent = 0;
+  let ex = 0, ed = 0, dist = 0, len = 0, silent = 0, tp = 0, tn = 0;
   const times = [];
   for (const it of items) {
+    if (it.tapped != null) { tn++; if (it.tapped) tp++; }
     if (it.ocr === it.truth) ex++;
     if (it.edited) ed++;
     dist += Plate.lev(it.ocr, it.truth); len += [...it.truth].length;
@@ -95,7 +101,7 @@ export function metrics(items) {
   }
   const n = items.length;
   return {
-    n, exact: Site.wilson(ex, n), edit: Site.wilson(ed, n), cer: len ? dist / len : null, silent,
+    n, exact: Site.wilson(ex, n), edit: Site.wilson(ed, n), cer: len ? dist / len : null, silent, taps: Site.wilson(tp, tn),
     timeMean: times.length ? times.reduce((a, b) => a + b, 0) / times.length : null, timeMedian: median(times), timed: times.length
   };
 }
@@ -114,7 +120,7 @@ export function platesReport(rows) {
     const ocr = normPlate(r.ocr_result), edited = yes(r.guard_edited);
     const savedRaw = r.saved_value != null && r.saved_value !== "" ? r.saved_value : edited ? r.ground_truth : r.ocr_result;
     const alts = String(r.alternatives || "").split("|").map(normPlate).filter(Boolean);
-    items.push({ ocr, truth, saved: normPlate(savedRaw), edited, time: num(r.confirm_s), tags: tagsOf(r.conditions), alts });
+    items.push({ ocr, truth, saved: normPlate(savedRaw), edited, time: num(r.confirm_s), tags: tagsOf(r.conditions), alts, tapped: flag(r.tapped) });
   }
   // wrong first reads whose truth was among the alternatives offered on the confirm screen
   const wrong = items.filter(i => i.ocr !== i.truth), altHit = Site.wilson(wrong.filter(i => i.alts.includes(i.truth)).length, wrong.length);
@@ -156,6 +162,13 @@ export function checkThresholds({ plates, medicine }, targets = {}, { lowerBound
     rate("plate.exact.goodLight", "plate exact, good light (day, no rain/backlight)", plates.goodLight.exact, T.plateExactGoodLight);
     rate("plate.exact.night", "plate exact, night", plates.night.exact, T.plateExactNight);
     max("plate.silent", "plate silent wrong saves", plates.overall.silent, T.plateSilentMax);
+    const tw = plates.goodLight.taps;
+    // judged only when good-light rows carry `tapped` (night / rain-only tap data must not fail --strict for missing data)
+    if (tw.n > 0) { // a rate that must stay LOW: --lower-bound judges on the Wilson UPPER bound
+      const v = tw.p == null ? null : lowerBound ? tw.hi : tw.p;
+      out.push({ id: "plate.taps.goodLight", label: "plate reads that needed a tap, good light", value: v, lo: tw.lo, hi: tw.hi, n: tw.n, target: T.plateTapsGoodLight, side: "<=",
+        ok: v != null && v <= T.plateTapsGoodLight });
+    }
   }
   if (medicine) {
     min("med.boxes", "medicine boxes (sample size)", medicine.n, T.medMinBoxes);
@@ -175,8 +188,9 @@ function table(head, rows) {
   const line = r => r.map((c, i) => String(c) + " ".repeat(w[i] - [...String(c)].length)).join("  ").trimEnd();
   return [line(head), w.map(x => "-".repeat(x)).join("  "), ...rows.map(line)].join("\n");
 }
-const HEAD = ["group", "n", "exact", "95% CI", "CER", "edit", "edit CI", "t mean", "t median", "silent"];
-const mrow = (name, m) => [name, m.n, pct(m.exact.p), ci(m.exact), pct(m.cer), pct(m.edit.p), ci(m.edit), sec(m.timeMean), sec(m.timeMedian), m.silent];
+const HEAD = ["group", "n", "exact", "95% CI", "CER", "edit", "edit CI", "t mean", "t median", "silent", "taps", "taps CI"];
+const mrow = (name, m) => [name, m.n, pct(m.exact.p), ci(m.exact), pct(m.cer), pct(m.edit.p), ci(m.edit), sec(m.timeMean), sec(m.timeMedian), m.silent,
+  m.taps && m.taps.n ? `${pct(m.taps.p)} (${m.taps.x}/${m.taps.n})` : "—", m.taps && m.taps.n ? ci(m.taps) : "—"];
 
 export function formatReport(rep) {
   const out = [];
@@ -195,8 +209,9 @@ export function formatReport(rep) {
   }
   out.push("", `THRESHOLDS (PROPOSAL — owner to adjust, not industry standards${rep.lowerBound ? "; rates judged on the Wilson 95% lower bound" : ""})`);
   out.push(table(["check", "value", "target", "result"], rep.checks.map(c => [c.label,
-    c.id.includes("exact") ? pct(c.value) : c.value == null ? "—" : c.value,
-    `${c.side} ${c.id.includes("exact") ? pct(c.target) : c.target}`, c.ok ? "PASS" : "FAIL"])));
+    /exact|taps/.test(c.id) ? pct(c.value) : c.value == null ? "—" : c.value,
+    `${c.side} ${/exact|taps/.test(c.id) ? pct(c.target) : c.target}`, c.ok ? "PASS" : "FAIL"])));
+  if (rep.plates && !rep.plates.overall.taps.n) out.push("(taps needed: not recorded — fill the `tapped` column, 1 = the guard had to tap the plate)");
   return out.join("\n");
 }
 

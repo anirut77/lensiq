@@ -178,7 +178,24 @@ test("accuracy: plate-level, char-level, day/night split, province; CI-aware ver
   assert.ok(["ontrack", "more"].includes(few.verdict) && few.need.some(n => n.group === "reads"), JSON.stringify(few.need));
   const ticks = P.accuracy([{ read: "กข1", ok: true }, { read: "กข2", ok: false, truth: "กข3" }]);
   assert.equal(ticks.plate.x, 1); assert.equal(ticks.plate.n, 2);
-  assert.deepEqual(ticks.metrics.map(m => m.k), ["plate", "char", "day", "night", "province"]);
+  // round 15 adds the "taps needed" rows after the original five (nothing removed)
+  assert.deepEqual(ticks.metrics.map(m => m.k), ["plate", "char", "day", "night", "province", "taps", "tapsNight"]);
+});
+
+test("accuracy: taps needed (guard drew the plate box) — day share vs the 10 % PROPOSAL, night separately, verdict unchanged", () => {
+  const rows = [];
+  for (let i = 0; i < 160; i++) rows.push({ read: "กข" + (1000 + i), truth: "กข" + (1000 + i), night: i % 4 === 0, tapped: i % 4 === 0 ? i % 8 === 0 : i % 20 === 1 });
+  const r = P.accuracy(rows);
+  assert.equal(r.taps.n, 120); assert.equal(r.taps.x, 8, "day: 8 of 120 tapped");
+  assert.equal(r.tapsNight.n, 40); assert.equal(r.tapsNight.x, 20);
+  const m = r.metrics.find(x => x.k === "taps");
+  assert.equal(m.v, "6.7%"); assert.equal(m.target, "≤ 10%"); assert.equal(m.ok, true);
+  assert.equal(r.verdict, "pass", "taps are informational: the plate-accuracy verdict does not change");
+  const many = P.accuracy(rows.map(x => ({ ...x, tapped: true })));
+  assert.equal(many.metrics.find(x => x.k === "taps").ok, false);
+  const old = P.accuracy(rows.map(({ tapped, ...x }) => x)); // rows recorded before round 15 carry no tapped field
+  assert.equal(old.taps.n, 0); assert.equal(old.metrics.find(x => x.k === "taps").ok, null);
+  assert.equal(P.TARGETS.tapsDay, 0.1);
 });
 
 test("trimBorder: skips dark margins around the plate and its frame line", () => {
@@ -230,4 +247,60 @@ test("leadAlternatives: a crop cut at the left frame edge without a prefix asks 
   assert.equal(a.leadCheck, true); assert.equal(a.reason, "edge");
   assert.equal(P.leadAlternatives(P.vote([rd, rd]), [rd, rd], { leftCut: false }).reason, "edge", "per-read flag is enough");
   assert.equal(P.leadAlternatives(null, []).leadCheck, false);
+});
+
+// round 15 review: on Prompt 400 (and 600/42 px) the recogniser read the thin leading "1" as the vowel sara ai
+// ("ไกข 2345") and fromOcr skipped it -> "กข2345" at 0.999 with no warning, even on a full-plate box
+test("fromOcr: a 1-lookalike (ไ ใ !) before the letters becomes a low-confidence \"1\"; the guard must pick (never dropped silently)", () => {
+  const L = (text, p = 0.99) => ({ text, conf: p, chars: [...text].map(c => ({ c, p })) });
+  for (const t of ["ไกข 2345", "ใกข 2345", "!กข 2345"]) {
+    const r = P.fromOcr([L(t), L("กรุงเทพมหานคร")]);
+    assert.equal(r.key, "1กข2345", t); assert.ok(r.chars[0].p < 0.75 && r.chars[0].look, "half-confidence lookalike " + JSON.stringify(r.chars[0]));
+    const a = P.leadAlternatives(P.vote([r, r]), [r, r]);
+    assert.equal(a.leadCheck, true, t); assert.equal(a.reason, "lowconf");
+    assert.deepEqual(new Set(a.alts), new Set(["1กข2345", "กข2345"]));
+  }
+  assert.equal(P.lookalike("1", "ไ"), true); assert.equal(P.lookalike("ใ", "1"), true);
+  // only before the first plate character: เชียงใหม่ keeps its ใ (no "1" in the middle of a province name)
+  assert.deepEqual(P.plateChars(L("เชียงใหม่")).map(x => x.c).join(""), "ชยงหม");
+  // a lookalike NOT followed by a consonant is dropped as before
+  assert.equal(P.plateChars(L("ไ12")).map(x => x.c).join(""), "12");
+});
+
+test("fromOcr: a plate character skipped before the letters sets leadSuspect (-> leftCut -> leadCheck edge) and a \"1\" guess", () => {
+  const L = (text, p = 0.99) => ({ text, conf: p, chars: [...text].map(c => ({ c, p })) });
+  const r = P.fromOcr([L("กกข 2345")]);
+  assert.equal(r.key, "กข2345"); assert.equal(r.leadSuspect, "skipped"); assert.equal(r.line, 0);
+  const ok = P.fromOcr([L("1กข 2345")]);
+  assert.equal(ok.leadSuspect, undefined, "a clean read is not suspect");
+  // readPlate turns leadSuspect into leftCut; leadAlternatives then asks the guard and offers a read's leadGuess
+  const rd = { key: "กข2345", conf: 0.99, chars: [..."กข2345"].map(c => ({ c, p: 0.99 })), leftCut: true, leadGuess: "1กข2345" };
+  const a = P.leadAlternatives(P.vote([rd, rd]), [rd, rd]);
+  assert.equal(a.leadCheck, true); assert.equal(a.reason, "edge"); assert.deepEqual(a.alts, ["กข2345", "1กข2345"]);
+});
+
+test("inkBefore: ink left of the key's first character on its band (the recogniser dropped a thin glyph); frame lines ignored", () => {
+  const W = 120, H = 40, gray = new Uint8Array(W * H).fill(230), bd = { y0: 6, y1: 30 };
+  const ink = (x0, x1, y0 = 8, y1 = 28) => { for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) gray[y * W + x] = 20; };
+  ink(30, 44); ink(50, 64); ink(70, 84); // three characters
+  // CTC time steps: inW = W + 2*px, T = inW / 4 -> x = (t + 0.5) * 4 - px
+  const px = 4, line = { T: (W + 2 * px) / 4, inW: W + 2 * px };
+  const chars = [37, 57, 77].map(x => ({ c: "ก", p: 0.9, t: Math.round((x + px) / 4 - 0.5) }));
+  assert.equal(P.inkBefore(gray, W, H, bd, chars, line, px), null, "nothing left of the first character");
+  ink(16, 21); // a thin "1"
+  const ib = P.inkBefore(gray, W, H, bd, chars, line, px);
+  assert.ok(ib && ib.narrow && ib.x0 === 16, JSON.stringify(ib));
+  const g2 = new Uint8Array(W * H).fill(230); for (let y = 0; y < H; y++) for (let x = 2; x < 5; x++) g2[y * W + x] = 20; // full-height frame line
+  for (let y = 8; y < 28; y++) for (const [a, b] of [[30, 44], [50, 64], [70, 84]]) for (let x = a; x < b; x++) g2[y * W + x] = 20;
+  assert.equal(P.inkBefore(g2, W, H, bd, chars, line, px), null, "the plate frame is not a glyph");
+  assert.equal(P.inkBefore(gray, W, H, bd, chars.map(({ t, ...c }) => c), line, px), null, "no time steps -> no claim");
+});
+
+test("accuracy: a vehicle saved with no system read (manual) counts as a tap, not as an accuracy row", () => {
+  const rows = [];
+  for (let i = 0; i < 20; i++) rows.push({ read: "กข" + (1000 + i), truth: "กข" + (1000 + i), night: false, tapped: false });
+  rows.push({ read: "", truth: "กข9999", night: false, tapped: true, manual: true }, { read: "", truth: "กข9998", night: true, tapped: true, manual: true });
+  const r = P.accuracy(rows);
+  assert.equal(r.n, 20); assert.equal(r.manual, 2); assert.equal(r.plate.x, 20);
+  assert.equal(r.taps.n, 21); assert.equal(r.taps.x, 1); assert.equal(r.tapsNight.n, 1); assert.equal(r.tapsNight.x, 1);
 });

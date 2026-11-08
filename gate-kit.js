@@ -107,6 +107,99 @@
     x.font = "500 24px Prompt, sans-serif"; x.fillText(LP.provinceName(prov, "th"), px + pw / 2, py + 86);
   }
 
+  /**
+   * One scene of the detection demo set (LQPlate.demoSpec): a synthetic car / motorcycle rear with a plate at a random
+   * position, scale, slight rotation, optional partial occlusion, day or night (dimmed scene, retro-reflective plate,
+   * optional headlight glare), sensor noise. No person, no real vehicle. -> the true plate box (normalised, axis-aligned
+   * around the rotated plate) or null for a plate-less scene.
+   * @param {HTMLCanvasElement} c @param {any} s spec
+   */
+  function drawScene(c, s) {
+    const [FW, FH] = LP.DEMO_SET.frame;
+    c.width = FW; c.height = FH;
+    const x = /** @type {CanvasRenderingContext2D} */ (c.getContext("2d", { willReadFrequently: true }));
+    const R = LP.rng(s.seed);
+    x.fillStyle = s.ground; x.fillRect(0, 0, FW, FH);
+    x.fillStyle = "rgba(255,255,255,0.06)"; for (let k = 0; k < 6; k++) x.fillRect(0, FH * (0.55 + k * 0.08), FW, 2); // road texture
+    const pw = s.pw || 200, ph = s.ph || 94, cx = s.cx, cy = s.cy;
+    // vehicle rear around the plate position
+    if (s.moto) {
+      x.fillStyle = "#1c1d21"; x.fillRect(cx - pw * 0.8, cy - ph * 2.6, pw * 1.6, ph * 2.3);           // seat / fender
+      x.fillStyle = "#b3121b"; x.fillRect(cx - pw * 0.35, cy - ph * 1.05, pw * 0.7, ph * 0.28);         // tail light
+      x.fillStyle = "#30333a"; x.fillRect(cx - pw * 0.15, cy + ph * 0.5, pw * 0.3, ph * 1.4);           // tyre
+    } else {
+      const bw = pw * 3.2, bh = ph * 3.4, bx = cx - bw / 2, by = cy - bh * 0.62;
+      x.fillStyle = s.body; x.fillRect(bx, by, bw, bh);
+      x.fillStyle = "rgba(0,0,0,0.35)"; x.fillRect(bx + bw * 0.08, by + bh * 0.06, bw * 0.84, bh * 0.22); // rear window
+      x.fillStyle = "#b3121b"; x.fillRect(bx + bw * 0.03, by + bh * 0.36, bw * 0.16, bh * 0.1); x.fillRect(bx + bw * 0.81, by + bh * 0.36, bw * 0.16, bh * 0.1);
+      x.fillStyle = "rgba(0,0,0,0.45)"; for (let k = 0; k < 3; k++) x.fillRect(bx + bw * 0.25, by + bh * (0.33 + k * 0.045), bw * 0.5, bh * 0.018); // trim lines
+      x.fillStyle = "rgba(0,0,0,0.5)"; x.fillRect(bx, cy + ph * 0.75, bw, ph * 0.22);                     // bumper shadow
+    }
+    let truth = null;
+    if (s.night) { x.fillStyle = `rgba(0,0,0,${1 - s.nightK[0]})`; x.fillRect(0, 0, FW, FH); }
+    if (!s.none) {
+      x.save(); x.translate(cx, cy); x.rotate((s.rot || 0) * Math.PI / 180);
+      x.fillStyle = s.bg; x.fillRect(-pw / 2, -ph / 2, pw, ph);
+      const lw = Math.max(1.5, pw / 60); x.strokeStyle = s.fg; x.lineWidth = lw; x.strokeRect(-pw / 2 + lw, -ph / 2 + lw, pw - 2 * lw, ph - 2 * lw);
+      x.fillStyle = s.fg; x.textAlign = "center"; x.textBaseline = "middle";
+      const line = (t, wt, size, y) => { x.font = `${wt} ${Math.round(size)}px Prompt, sans-serif`; const m = x.measureText(t).width, k = Math.min(1, (pw * 0.88) / Math.max(1,
+        m)); x.save(); x.scale(k, 1); x.fillText(t, 0, y); x.restore(); };
+      if (s.moto) {
+        line(s.line1, 600, ph * 0.3, -ph / 2 + ph * 0.22); line(LP.provinceName(s.prov, "th"), 500, ph * 0.16, -ph / 2 + ph * 0.48); line(s.line3, 600, ph * 0.33, -ph / 2 + ph * 0.77);
+      } else {
+        line(s.text, 600, ph * 0.41, -ph / 2 + ph * 0.357); line(LP.provinceName(s.prov, "th"), 500, ph * 0.214, -ph / 2 + ph * 0.768);
+      }
+      if (s.night) { x.fillStyle = `rgba(0,0,0,${1 - s.nightK[1]})`; x.fillRect(-pw / 2, -ph / 2, pw, ph); }
+      if (s.occl) { // something in front of part of the plate (tow bar, bike rack, a leg)
+        x.fillStyle = s.night ? "#0c0c0e" : "#26272b";
+        const f = s.occl.frac;
+        if (s.occl.side === "l") x.fillRect(-pw / 2 - 4, -ph / 2 - 4, pw * f + 4, ph + 8);
+        else if (s.occl.side === "r") x.fillRect(pw / 2 - pw * f, -ph / 2 - 4, pw * f + 4, ph + 8);
+        else x.fillRect(-pw / 2 - 4, ph / 2 - ph * f * 1.6, pw + 8, ph * f * 1.6 + 4);
+      }
+      x.restore();
+      const a = (s.rot || 0) * Math.PI / 180, hw = (Math.abs(Math.cos(a)) * pw + Math.abs(Math.sin(a)) * ph) / 2, hh = (Math.abs(Math.sin(a)) * pw + Math.abs(Math.cos(a)) * ph) / 2;
+      truth = { x: (cx - hw) / FW, y: (cy - hh) / FH, w: (2 * hw) / FW, h: (2 * hh) / FH };
+    }
+    if (s.glare) for (const gx of [cx - pw * 1.3, cx + pw * 1.3]) { // headlights of the car behind
+      const gr = x.createRadialGradient(gx, cy - ph * 0.2, 2, gx, cy - ph * 0.2, ph * 1.1);
+      gr.addColorStop(0, "rgba(255,250,235,0.95)"); gr.addColorStop(1, "rgba(255,250,235,0)"); x.fillStyle = gr; x.fillRect(0, 0, FW, FH);
+    }
+    if (s.noise) { // sensor noise (approx. Gaussian: sum of three uniforms), seeded
+      const im = x.getImageData(0, 0, FW, FH), d = im.data, k = s.noise * 2;
+      for (let i = 0; i < d.length; i += 4) { const n = (R() + R() + R() - 1.5) * k; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
+      x.putImageData(im, 0, 0);
+    }
+    return truth;
+  }
+
+  /**
+   * Run the detection demo set on this page: draw each scene, run LQPlate.detect (classical proposals + LPD-YuNet when
+   * loaded), optionally read the top box with the real OCR. Returns per-scene rows and LQPlate.detEval's summary.
+   * @param {{perCat?: number, seed?: number, cats?: string[], ocr?: boolean|number, model?: boolean|"auto", baseline?: boolean, onItem?: (r: any) => void}} [o]
+   */
+  async function demoEval(o = {}) {
+    try { await Promise.all([document.fonts.load("600 46px Prompt", "กข 0123456789"), document.fonts.load("500 24px Prompt", "กรุงเทพมหานคร")]); } catch { /* fonts API missing */ }
+    if (o.model !== false) { try { await LP.loadPlateDet(); } catch { /* model missing: classical only */ } }
+    if (o.ocr) await LP.loadOcr();
+    const spec = LP.demoSpec({ ...(o.perCat ? { perCat: o.perCat } : {}), ...(o.seed ? { seed: o.seed } : {}), ...(o.cats ? { cats: o.cats } : {}) });
+    const c = document.createElement("canvas"), rows = [], ocrPer = typeof o.ocr === "number" ? o.ocr : o.ocr ? Infinity : 0, readN = {};
+    for (const s of spec) {
+      const truth = drawScene(c, s), t0 = performance.now();
+      // o.baseline: the round-14 finder alone (findCandidates on a 320-px grey frame), kept for before / after numbers
+      const boxes = o.baseline ? (g => LP.findCandidates(g.gray, g.W, g.H))(LP.grayOf(c, 320)) : await LP.detect(c, { model: o.model == null ? "auto" : o.model });
+      const row = { i: s.i, cat: s.cat, colour: s.colour, key: s.key, truth, boxes: boxes.slice(0, 3).map(b => ({ x: b.x, y: b.y, w: b.w, h: b.h, score: b.score, src: b.src })),
+        ms: Math.round(performance.now() - t0), read: undefined };
+      if (truth && ocrPer && (readN[s.cat] || 0) < ocrPer) {
+        readN[s.cat] = (readN[s.cat] || 0) + 1;
+        const r = boxes[0] ? await LP.readPlate(c, boxes[0], { moto: s.moto }) : null;
+        row.read = r && r.key ? r.key : "";
+      }
+      rows.push(row); if (o.onItem) o.onItem(row);
+    }
+    return { rows, summary: LP.detEval(rows), set: LP.DEMO_SET };
+  }
+
   function init(opts) {
     const ns = opts.ns, CFG_KEY = ns + "-cfg";
     const DEF = { ack: null, operator: "", gate: "", common: ["bangkok", "nonthaburi", "pathumthani", "samutprakan"], imgDays: 7, logDays: 90, receiptYears: 5,
@@ -185,7 +278,8 @@
             <button class="btn ghost" type="button" id="gkNextBtn" hidden data-i18n="gk.cam.next">รถคันถัดไป (ตัวอย่าง)</button>
             <button class="btn ghost" type="button" id="gkReadBtn" disabled data-i18n="gk.cam.read">อ่านป้ายตอนนี้</button>
           </div>
-          <label class="gk-check"><input type="checkbox" id="gkAuto"> <span data-i18n="gk.cam.auto">อ่านอัตโนมัติเมื่อเห็นป้าย (โหลดโมเดลอ่านอักษรไทย 7.5 MB ครั้งแรก)</span></label>
+          <label class="gk-check"><input type="checkbox" id="gkAuto">
+            <span data-i18n="gk.cam.auto">อ่านอัตโนมัติเมื่อเห็นป้าย (โหลดโมเดลอ่านอักษรไทย 7.5 MB และโมเดลหาป้าย 4.1 MB ครั้งแรก)</span></label>
           <p class="hint" data-i18n="gk.cam.tap">แตะหรือลากกรอบรอบป้ายทะเบียนบนภาพ เพื่ออ่านเฉพาะส่วนนั้น</p>
           <p class="gk-status" id="gkStatus" role="status" aria-live="polite"></p>
         </div>
@@ -292,7 +386,8 @@
 
       async function ensureOcr() {
         if (TEST && typeof W.__LQ_FAKE_PLATE === "function") return true;
-        try { status(T("gk.st.loading", "กำลังโหลดโมเดลอ่านอักษรไทย…")); await LP.loadOcr(); return true; }
+        // the plate finder model (LPD-YuNet, 4.1 MB) is optional: when it fails to load the classical finder still works
+        try { status(T("gk.st.loading", "กำลังโหลดโมเดลอ่านอักษรไทย…")); await Promise.all([LP.loadOcr(), LP.loadPlateDet ? LP.loadPlateDet().catch(() => null) : null]); return true; }
         catch (e) { status(T("gk.st.noocr", "โหลดโมเดลอ่านอักษรไม่ได้ — พิมพ์เลขทะเบียนเองได้ตามปกติ"), "err"); return false; }
       }
       /** multi-frame read: N frames ~120 ms apart, plate box from the guard's tap or the detector, then a per-char vote */
@@ -302,16 +397,23 @@
         try {
           if (!(await ensureOcr())) return null;
           status(T("gk.st.reading", "กำลังอ่านป้าย…"));
-          const reads = []; let lastF = null, lastB = null, small = false, prov = new Map();
+          const reads = []; let lastF = null, lastB = null, small = false, prov = new Map(), found = null;
+          st.det = { tapped: !!box, cands: [], used: null, grown: null };
           for (let i = 0; i < Math.max(1, Math.min(10, C.frames || 5)); i++) {
             const f = grab(); if (!f) break;
-            let b = box;
-            if (!b && !(TEST && W.__LQ_FAKE_PLATE)) { const c = await LP.detect(f); b = c[0] || null; }
+            let b = box || found;
+            if (!b && !(TEST && W.__LQ_FAKE_PLATE)) {
+              // the guard pressed "read" (or auto-read fired): full detector incl. LPD-YuNet once, then the box is reused for
+              // the next frames of this read (the vehicle is stopped at the gate); a frame that reads nothing detects again
+              const c = await LP.detect(f, { model: i === 0 ? true : "auto" }); b = c[0] || null;
+              st.det.cands = c.slice(0, 3).map(x => ({ x: +x.x.toFixed(3), y: +x.y.toFixed(3), w: +x.w.toFixed(3), h: +x.h.toFixed(3), score: x.score, src: x.src || "" }));
+            }
             if (!b && TEST) b = { x: 0.31, y: 0.49, w: 0.38, h: 0.31 };
             if (!b) continue;
             if (b.w * f.width < (C.minPlatePx || 60)) { small = true; continue; }
             const r = await LP.readPlate(f, b, { moto: $("#gkMoto").checked });
-            lastF = f; lastB = b;
+            lastF = f; lastB = (r && r.box) || b; st.det.used = b; st.det.grown = r && r.box ? r.box : null;
+            found = !box && r && r.key ? b : null;
             if (r && r.key) { reads.push(r); if (r.province) prov.set(r.province, (prov.get(r.province) || 0) + 1); }
             if (st.source === "demo" && i >= 1 && reads.length >= 2 && reads.every(x => x.key === reads[0].key)) break; // a still image: two agreeing reads are enough
             await sleep(120);
@@ -321,7 +423,9 @@
           if (!v) { status(small ? T("gk.st.small", "ป้ายเล็กเกินไป — ให้รถเข้าใกล้กล้องหรือซูมเข้า") : T("gk.st.none", "อ่านป้ายไม่ได้ — แตะกรอบรอบป้าย หรือพิมพ์เลขทะเบียนเอง"), "err"); return null; }
           const province = [...prov].sort((a, b) => b[1] - a[1])[0];
           const lead = LP.leadAlternatives(v, reads, { moto: $("#gkMoto").checked });
-          const read = { ...v, alts: lead.alts, leadCheck: lead.leadCheck, leadReason: lead.reason, province: province ? province[0] : "", at: Date.now(), night: LP.isNight(Date.now(), st.luma == null ? {} : { luma: st.luma }) };
+          // tapped: the guard had to show where the plate is (field-pilot / site-check "taps needed" metric)
+          const read = { ...v, alts: lead.alts, leadCheck: lead.leadCheck, leadReason: lead.reason, province: province ? province[0] : "", at: Date.now(), night: LP.isNight(Date.now(),
+            st.luma == null ? {} : { luma: st.luma }), tapped: !!box };
           if (auto && read.key === st.lastKey && Date.now() - st.lastAt < (C.debounceSec || 20) * 1000) { status(T("gk.st.same", "ป้ายเดิม — ข้าม (กันบันทึกซ้ำ)")); return null; }
           st.lastKey = read.key; st.lastAt = Date.now();
           setRead(read);
@@ -339,7 +443,7 @@
         const f = grab(); if (!f) return;
         let b = null;
         if (TEST && typeof W.__LQ_FAKE_PLATE === "function") b = W.__LQ_FAKE_PLATE(Date.now()) ? { x: 0.31, y: 0.49, w: 0.38, h: 0.31 } : null;
-        else { const c = await LP.detect(f); b = c[0] && c[0].score >= 0.12 ? c[0] : null; }
+        else { const c = await LP.detect(f, { model: "auto" }); b = c[0] && c[0].score >= (LP.AUTO_MIN == null ? 0.12 : LP.AUTO_MIN) ? c[0] : null; }
         if (!b) { st.prev = null; return; }
         if (st.prev) await readNow(null, true);
         st.prev = b;
@@ -417,7 +521,11 @@
             store.put({ id: "au-" + String(e1.seq).padStart(7, "0"), kind: "au", ...e1 });
           }
           if (auto && C.keepCrops) saveCrop(ev.id);
-          if (auto && kit.checking && kit.checking()) kit.addCheck({ read: auto.key, truth: c.key, ok: st.tick == null ? null : st.tick, provRead: auto.province, provTruth: c.province, night: auto.night });
+          if (auto && kit.checking && kit.checking()) kit.addCheck({ read: auto.key, truth: c.key, ok: st.tick == null ? null : st.tick, provRead: auto.province, provTruth: c.province,
+            night: auto.night, tapped: !!auto.tapped });
+          // no system read at all (the finder missed, the guard typed the plate): still a "tap needed" for the site check
+          else if (!auto && c.key && kit.checking && kit.checking()) kit.addCheck({ read: "", truth: c.key, ok: null, provRead: "", provTruth: c.province,
+            night: LP.isNight(Date.now(), st.luma == null ? {} : { luma: st.luma }), tapped: true, manual: true });
         }
         if (auto) auto.done = true;
         setRead(null); showCrop(null, null); drawBox(null);
@@ -505,7 +613,9 @@
       let t0 = 0, last = null;
       const rows = () => store.list("chk").filter(r => r.at >= t0);
       const VERD = { pass: ["gk.v.pass", "ผ่าน (ยืนยันแล้ว)"], ontrack: ["gk.v.ontrack", "ตรงเป้าจนถึงตอนนี้ — เก็บเพิ่ม"], more: ["gk.v.more", "ข้อมูลยังไม่พอหรือยังไม่ถึงเป้า"], fail: ["gk.v.fail", "ไม่ผ่าน — ปรับกล้องแล้วตรวจใหม่"] };
-      const MET = { plate: ["gk.m.plate", "ป้ายถูกทั้งป้าย"], char: ["gk.m.char", "ตัวอักษรถูก"], day: ["gk.m.day", "กลางวัน (ทั้งป้าย)"], night: ["gk.m.night", "กลางคืน (ทั้งป้าย)"], province: ["gk.m.prov", "จังหวัดตรงกับที่เจ้าหน้าที่เลือก"] };
+      const MET = { plate: ["gk.m.plate", "ป้ายถูกทั้งป้าย"], char: ["gk.m.char", "ตัวอักษรถูก"], day: ["gk.m.day", "กลางวัน (ทั้งป้าย)"], night: ["gk.m.night", "กลางคืน (ทั้งป้าย)"],
+        province: ["gk.m.prov", "จังหวัดตรงกับที่เจ้าหน้าที่เลือก"],
+        taps: ["gk.m.taps", "ต้องแตะกรอบป้ายเอง (กลางวัน)"], tapsNight: ["gk.m.tapsNight", "ต้องแตะกรอบป้ายเอง (กลางคืน)"] };
       const NEED = { reads: ["gk.need.reads", "การอ่าน (อีกราว {n} คัน)"], night: ["gk.need.night", "การอ่านตอนกลางคืน (อีกราว {n} คัน)"] };
       const hist = () => { try { const a = JSON.parse(localStorage.getItem(CHK_KEY) || "[]"); return Array.isArray(a) ? a : []; } catch { return []; } };
       const renderRep = rep => {
@@ -519,8 +629,9 @@
       const renderHist = () => { $("#gkChkHist").innerHTML = hist().map(h => `<li>${esc(fmtTime(h.at))} — <b>${esc(T(VERD[h.verdict] ? VERD[h.verdict][0] : "gk.v.more", VERD[h.verdict] ? VERD[h.verdict][1] : h.verdict))}</b> <small>${esc(h.summary)}</small></li>`).join("") || `<li data-i18n="gk.chk.none">ยังไม่มีผลตรวจ</li>`; };
       kit.renderCheck = () => {
         if (!checking) return;
-        const r = rows(), ok = r.filter(x => (x.ok != null ? x.ok : x.read === x.truth)).length;
-        $("#gkChkLive").textContent = T("gk.chk.live", "กำลังตรวจ: อ่านแล้ว {n} คัน ถูก {k} คัน (กลางคืน {m})", { n: r.length, k: ok, m: r.filter(x => x.night).length });
+        const all = rows(), r = all.filter(x => !x.manual), ok = r.filter(x => (x.ok != null ? x.ok : x.read === x.truth)).length;
+        $("#gkChkLive").textContent = T("gk.chk.live", "กำลังตรวจ: อ่านแล้ว {n} คัน ถูก {k} คัน (กลางคืน {m})", { n: r.length, k: ok, m: r.filter(x => x.night).length }) +
+          " · " + T("gk.chk.taps", "ต้องแตะกรอบป้าย {t} คัน", { t: all.filter(x => x.tapped || x.manual).length });
       };
       $("#gkChkStart").addEventListener("click", () => { checking = true; t0 = Date.now(); last = null; $("#gkChkStart").disabled = true; $("#gkChkStop").disabled = false; $("#gkChkExp").hidden = true; renderRep(null); kit.renderCheck(); if (kit.setRead && kit.lane && kit.lane.read) kit.setRead(kit.lane.read); });
       $("#gkChkStop").addEventListener("click", () => {
@@ -534,7 +645,9 @@
       });
       $("#gkChkExp").addEventListener("click", () => {
         if (!last) return;
-        const doc = { format: "lensiq-sitecheck", v: 1, kind: "gate", created: new Date().toISOString(), note: "plate text and computed numbers only - no images", gate: C.gate || "", report: { ...last, metrics: last.metrics }, rows: rows().map(r => ({ at: r.at, read: r.read, truth: r.truth, ok: r.ok, night: !!r.night, provRead: r.provRead || "", provTruth: r.provTruth || "" })) };
+        const doc = { format: "lensiq-sitecheck", v: 1, kind: "gate", created: new Date().toISOString(), note: "plate text and computed numbers only - no images", gate: C.gate || "",
+          report: { ...last, metrics: last.metrics }, rows: rows().map(r => ({ at: r.at, read: r.read, truth: r.truth, ok: r.ok, night: !!r.night, provRead: r.provRead || "",
+          provTruth: r.provTruth || "", tapped: r.tapped == null ? null : !!r.tapped, ...(r.manual ? { manual: true } : {}) })) };
         download(ns + "-sitecheck.json", JSON.stringify(doc, null, 1), "application/json");
       });
       renderHist();
@@ -542,5 +655,5 @@
     };
     return kit;
   }
-  W.GateKit = { init, openStore, drawDemo, DEMO_PLATES, T, esc };
+  W.GateKit = { init, openStore, drawDemo, drawScene, demoEval, DEMO_PLATES, T, esc };
 })();
