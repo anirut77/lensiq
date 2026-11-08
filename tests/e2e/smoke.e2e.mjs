@@ -5,7 +5,9 @@ import { assert, assertNoWebGL, assertWasmBackend } from "./cdp.mjs";
 
 export const PAGES = [
   "store", "booth", "customers", "attendance", "signage", "checkout", "qc", "driver",
-  "neuro", "photobooth", "faceread", "palm", "fengshui", "insights"
+  "neuro", "photobooth", "faceread", "palm", "fengshui", "insights",
+  // round 13: exam / gate / zone quick-win camera pages
+  "exam-lab", "exam-hall", "exam-dashboard", "parking", "village", "queue", "tables", "afterhours", "bays"
 ];
 const SETTLE_MS = 2500;
 const sleep = ms => new Promise(r => setTimeout(r, ms));

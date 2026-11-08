@@ -1,0 +1,59 @@
+/* zones.css — shared layout of the quick-win zone pages (queue.html, tables.html, afterhours.html, bays.html).
+   Builds on store.css (.st, .card, .cam, .tiles, .seg, .engine) and the tokens in styles.css. Mobile-first. */
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.zc-crumb{margin:0 0 6px;font-size:.9rem}
+.zc-crumb a{display:inline-flex;align-items:center;min-height:44px;color:#4b36d6;text-decoration:underline;text-underline-offset:2px}
+.zc-cam{aspect-ratio:16/9}
+.zc-cam.mirror video,.zc-cam.mirror canvas{transform:scaleX(-1)}
+.zc-cam canvas.drawing{cursor:crosshair;touch-action:none;-webkit-user-select:none;user-select:none}
+.zc-gate{border-left:4px solid var(--gold)}
+.zc-gate .btn{margin-top:10px}
+.zc-gate a{color:#4b36d6;text-decoration:underline;display:inline-flex;align-items:center;min-height:44px}
+.zc-list{margin:0 0 6px;padding-left:20px;color:var(--text);font-size:.92rem}
+.zc-list li{margin:4px 0}
+.zc-zones,.zc-states,.zc-log,.zt-grid{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}
+.zc-zone{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-width:0}
+.zc-zone input,.zc-zone select{flex:1 1 140px;min-width:0;min-height:44px;padding:6px 10px;border:1px solid var(--line);
+  border-radius:10px;font:inherit;font-size:.9rem;background:#fff;color:var(--text)}
+.zc-zone select{flex:0 1 150px}
+.zc-sw{flex:none;width:16px;height:16px;border-radius:4px;border:1px solid rgba(14,20,48,.25)}
+.zc-empty{color:var(--muted);font-size:.88rem}
+.zc-state{background:var(--bg);border-radius:10px;padding:10px 12px;font-size:.9rem;overflow-wrap:anywhere}
+.zc-state.hot{background:#fdeaea;color:#a12b20;font-weight:500}
+.zc-form label{display:grid;gap:4px;font-size:.88rem;color:var(--text)}
+.zc-form label.chk{display:inline-flex}
+.zc-form input:not([type=checkbox]),.zc-form select{min-height:44px;padding:6px 10px;border:1px solid var(--line);border-radius:10px;
+  font:inherit;background:#fff;color:var(--text);width:100%;min-width:0}
+.zc-alert{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.zc-alert span{flex:1 1 220px;min-width:0;overflow-wrap:anywhere}
+.zc-alert .btn{color:#a12b20;border-color:#a12b20}
+.zc-ev{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--bg);border-radius:10px;padding:8px 10px;font-size:.88rem}
+.zc-ev-t{flex:1 1 220px;min-width:0;overflow-wrap:anywhere}
+.zc-ev.done.fp{opacity:.8}
+.zc-log{max-height:420px;overflow:auto}
+.za-badge{margin:0 0 10px}
+.za-badge .pill[data-on="1"]{background:#fdeaea;color:#a12b20;font-weight:600}
+.za-badge .pill[data-on="0"]{background:#e6f6ee;color:#14653b}
+/* tables */
+.zt-grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr));margin-bottom:14px}
+.zt-card{display:flex;flex-direction:column;gap:4px;border-radius:12px;padding:10px 12px;border:2px solid #34d399;background:#ecfdf5;min-width:0}
+.zt-card.occupied{border-color:#2563eb;background:#eff6ff}
+.zt-card.clearing{border-color:#c2410c;background:#fff7ed}
+.zt-card b{color:var(--navy);overflow-wrap:anywhere}
+.zt-st{font-size:.9rem;color:var(--text)}
+.zt-m{font-size:.8rem;color:var(--muted)}
+.zt-card .btn{margin-top:4px;align-self:flex-start}
+/* bays: entrance board */
+.zb-board{position:fixed;inset:0;z-index:90;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:8px;background:#0e1430;color:#fff;cursor:pointer;padding:16px;text-align:center}
+.zb-board[hidden]{display:none}
+.zb-num{font-size:clamp(5rem,30vw,16rem);font-weight:700;line-height:1;color:#34d399;font-variant-numeric:tabular-nums}
+.zb-board[data-full="1"] .zb-num{color:#f87171}
+.zb-sub{font-size:clamp(1.2rem,5vw,2.4rem)}
+.zb-tap{font-size:.9rem;color:#c9d0ea}
+@media (max-width:860px){.zc .grid2{grid-template-columns:minmax(0,1fr)}}
+@media print{
+  .nav,.lq-legal-foot,.site-foot,.zc-crumb,.zc .grid2,.zc .acc-note,.zc .lead,.zc h1,#engine,#alerts,.zc-gate,.zc section:not(:last-of-type),.row-actions,.zc .hint{display:none!important}
+  .zc .card{box-shadow:none;border:0}
+  .zc .notice{font-size:16pt;border-left:6px solid #0e1430}
+}

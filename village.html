@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="vg.title">หมู่บ้าน/คอนโด: ป้อมยามอ่านทะเบียน | LENSIQ Gate</title>
+<meta name="description" content="ป้อมยามหมู่บ้านและคอนโด: รายชื่อรถลูกบ้าน บัตรผ่านผู้มาเยือนแบบจำกัดเวลา แจ้งเตือนรถไม่รู้จัก บันทึกรายบ้าน และปุ่มเปิดไม้กั้นโดยเจ้าหน้าที่">
+<link rel="stylesheet" href="styles.css?v=10">
+<link rel="stylesheet" href="gate.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=13"></script>
+<script src="i18n/zh-gate.js?v=1"></script>
+<script src="i18n/zh-gate-village.js?v=1"></script>
+
+<main class="gk-page" id="main">
+  <p class="eyebrow" data-i18n="vg.eyebrow">LENSIQ Gate · หมู่บ้าน/คอนโด</p>
+  <h1 data-i18n="vg.h1">ป้อมยาม: อ่านทะเบียน รถลูกบ้าน และผู้มาเยือน</h1>
+  <p class="lead" data-i18n="vg.lead">ระบบเทียบทะเบียนกับรายชื่อรถลูกบ้าน รายการห้ามเข้า และบัตรผ่านผู้มาเยือน แล้วแสดงผลให้เจ้าหน้าที่ตัดสินใจ เจ้าหน้าที่เป็นผู้กดเปิดไม้กั้น</p>
+  <p class="gk-note" role="note"><b data-i18n="gk.acc.b">ความแม่นยำยังไม่ได้วัดที่หน้างาน</b> <span data-i18n="gk.acc.t">โมเดลอ่านอักษรไทย (PP-OCRv5 ภาษาไทย, Apache-2.0) ฝึกกับข้อความทั่วไป ไม่ได้ฝึกกับป้ายทะเบียน และยังไม่มีโมเดลตรวจหาป้ายที่สิทธิ์การใช้ชัดเจน จึงใช้วิธีหาป้ายแบบคลาสสิกหรือให้เจ้าหน้าที่แตะที่ป้าย จังหวัดเลือกจากรายการ ทุกผลต้องให้เจ้าหน้าที่ยืนยัน รันการตรวจความแม่นยำหน้างานก่อนใช้จริง</span> <a href="gate.html#accuracy" data-i18n="gk.acc.more">อ่านเพิ่ม</a></p>
+  <p class="gk-note gk-ok-note" role="note" data-i18n="vg.safety">ระบบไม่เปิดไม้กั้นเอง เว้นแต่เจ้าของโครงการเปิด "เปิดอัตโนมัติ" ไว้ และใช้เฉพาะรถลูกบ้านที่ทะเบียนตรงทุกตัวและความมั่นใจถึงเกณฑ์ เจ้าหน้าที่เปิดเองได้ทุกเมื่อ</p>
+
+  <div id="vgSetup"></div>
+
+  <div class="gk-tabs" role="tablist" aria-label="ส่วนของหน้า" data-i18n-attr="aria-label:gk.tabs">
+    <button type="button" role="tab" aria-selected="true" aria-controls="tab-gate" id="t-gate" data-tab="gate" data-i18n="vg.tab.gate">ป้อมยาม</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="tab-res" id="t-res" data-tab="res" data-i18n="vg.tab.res">รถลูกบ้าน</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="tab-vis" id="t-vis" data-tab="vis" data-i18n="vg.tab.vis">บัตรผ่านผู้มาเยือน</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="tab-deny" id="t-deny" data-tab="deny" data-i18n="vg.tab.deny">ห้ามเข้า</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="tab-log" id="t-log" data-tab="log" data-i18n="vg.tab.log">บันทึกรายบ้าน</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="tab-set" id="t-set" data-tab="set" data-i18n="vg.tab.set">ตั้งค่า</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="tab-check" id="t-check" data-tab="check" data-i18n="gk.tab.check">ตรวจความแม่นยำ</button>
+  </div>
+
+  <section id="tab-gate" role="tabpanel" aria-labelledby="t-gate">
+    <div class="gk-alerts" id="vgAlerts" aria-live="assertive"></div>
+    <div class="gk-row">
+      <label class="gk-field" style="flex:1 1 160px"><span data-i18n="vg.dir">ทิศทาง</span><select id="vgDir"><option value="in" data-i18n="vg.dir.in">ขาเข้า</option><option value="out" data-i18n="vg.dir.out">ขาออก</option></select></label>
+      <button class="btn warn" type="button" id="vgManual" data-i18n="vg.manual">เปิดไม้กั้น (เจ้าหน้าที่ ไม่ระบุทะเบียน)</button>
+    </div>
+    <p class="gk-status" id="vgRelayMsg" role="status" aria-live="polite"></p>
+    <div id="vgLane"></div>
+    <div class="card">
+      <h2 data-i18n="vg.pass.check">ตรวจบัตรผ่านผู้มาเยือน</h2>
+      <div class="gk-row">
+        <label class="gk-field" style="flex:1 1 200px"><span data-i18n="vg.pass.code">รหัสบัตรผ่าน</span><input id="vgPassCode" type="text" maxlength="12" autocomplete="off" placeholder="V-XXXXXX"></label>
+        <button class="btn ghost" type="button" id="vgPassCheck" data-i18n="vg.pass.verify">ตรวจรหัส</button>
+      </div>
+      <p class="gk-banner" id="vgPassRes" hidden></p>
+    </div>
+    <h3 data-i18n="vg.recent">ล่าสุดที่ป้อมนี้</h3>
+    <ul class="gk-list" id="vgRecent"></ul>
+  </section>
+
+  <section id="tab-res" role="tabpanel" aria-labelledby="t-res" hidden>
+    <div class="card">
+      <h2 data-i18n="vg.res.h">รายชื่อรถลูกบ้าน (allow-list)</h2>
+      <div class="gk-grid3">
+        <label class="gk-field"><span data-i18n="vg.res.house">บ้านเลขที่/ห้อง</span><input id="vgResHouse" type="text" maxlength="20" autocomplete="off"></label>
+        <label class="gk-field"><span data-i18n="gk.conf.plate">เลขทะเบียน</span><input id="vgResPlate" type="text" maxlength="12" autocomplete="off" lang="th"></label>
+        <label class="gk-field"><span data-i18n="gk.conf.prov">จังหวัด</span><select id="vgResProv"></select></label>
+      </div>
+      <button class="btn primary" type="button" id="vgResAdd" data-i18n="vg.res.add">เพิ่มรถลูกบ้าน</button>
+      <p class="gk-valid" id="vgResMsg" aria-live="polite"></p>
+      <details class="gk-hist"><summary data-i18n="vg.res.bulk">นำเข้าหลายคัน (บ้าน,ทะเบียน,จังหวัด ต่อบรรทัด)</summary>
+        <label class="gk-field"><span data-i18n="vg.res.bulkL">รายการ</span><textarea id="vgBulk" rows="5" lang="th"></textarea></label>
+        <button class="btn ghost" type="button" id="vgBulkAdd" data-i18n="vg.res.bulkGo">นำเข้า</button></details>
+      <div class="table-wrap"><table class="gk-table"><thead><tr><th data-i18n="vg.res.house">บ้านเลขที่/ห้อง</th><th data-i18n="gk.col.plate">ทะเบียน</th><th data-i18n="gk.col.prov">จังหวัด</th><th></th></tr></thead><tbody id="vgResBody"></tbody></table></div>
+    </div>
+  </section>
+
+  <section id="tab-vis" role="tabpanel" aria-labelledby="t-vis" hidden>
+    <div class="card">
+      <h2 data-i18n="vg.vis.h">ออกบัตรผ่านผู้มาเยือน (จำกัดเวลา)</h2>
+      <div class="gk-grid3">
+        <label class="gk-field"><span data-i18n="vg.res.house">บ้านเลขที่/ห้อง</span><input id="vgVisHouse" type="text" maxlength="20" autocomplete="off"></label>
+        <label class="gk-field"><span data-i18n="vg.vis.plate">ทะเบียนผู้มาเยือน (ถ้าทราบ)</span><input id="vgVisPlate" type="text" maxlength="12" autocomplete="off" lang="th"></label>
+        <label class="gk-field"><span data-i18n="vg.vis.name">ชื่อผู้มาเยือน (ไม่บังคับ)</span><input id="vgVisName" type="text" maxlength="60" autocomplete="off"></label>
+        <label class="gk-field"><span data-i18n="vg.vis.from">ตั้งแต่</span><input id="vgVisFrom" type="datetime-local"></label>
+        <label class="gk-field"><span data-i18n="vg.vis.to">ถึง</span><input id="vgVisTo" type="datetime-local"></label>
+        <label class="gk-field"><span data-i18n="vg.vis.uses">ใช้ได้ (ครั้ง, 0 = ไม่จำกัดในช่วงเวลา)</span><input id="vgVisUses" type="number" min="0" max="20" step="1" value="1"></label>
+      </div>
+      <button class="btn primary" type="button" id="vgVisMake" data-i18n="vg.vis.make">ออกบัตรผ่าน</button>
+      <div class="gk-qr" id="vgVisOut" hidden>
+        <canvas id="vgVisQr" width="200" height="200" aria-label="QR บัตรผ่าน" data-i18n-attr="aria-label:vg.vis.qr"></canvas>
+        <div>
+          <p class="gk-fee" id="vgVisCode" lang="th" translate="no"></p>
+          <p class="hint" id="vgVisWhen"></p>
+          <a class="btn ghost" id="vgVisLine" href="#" target="_blank" rel="noopener" data-i18n="vg.vis.line">ส่งทาง LINE</a>
+          <p class="hint" data-i18n="vg.vis.note">ผู้มาเยือนแสดงรหัสหรือ QR นี้ที่ป้อมยาม รหัสตรวจได้เฉพาะในเครื่องป้อมยามนี้ (ไม่มีเซิร์ฟเวอร์) การกดส่งทาง LINE จะส่งข้อความผ่านแอป LINE ของผู้ส่งเอง</p>
+        </div>
+      </div>
+    </div>
+    <h3 data-i18n="vg.vis.list">บัตรผ่านที่ใช้ได้</h3>
+    <div class="table-wrap"><table class="gk-table"><thead><tr><th data-i18n="vg.pass.code">รหัสบัตรผ่าน</th><th data-i18n="vg.res.house">บ้านเลขที่/ห้อง</th><th data-i18n="gk.col.plate">ทะเบียน</th><th data-i18n="vg.vis.to">ถึง</th><th data-i18n="vg.vis.used">ใช้แล้ว</th><th></th></tr></thead><tbody id="vgVisBody"></tbody></table></div>
+  </section>
+
+  <section id="tab-deny" role="tabpanel" aria-labelledby="t-deny" hidden>
+    <div class="card">
+      <h2 data-i18n="vg.deny.h">รายการห้ามเข้า (deny list)</h2>
+      <p class="hint" data-i18n="vg.deny.note">ใช้เฉพาะกรณีที่มีเหตุผลและอนุมัติโดยนิติบุคคล บันทึกเหตุผลทุกครั้ง ระบบแจ้งเตือนเจ้าหน้าที่ ไม่ตัดสินแทน</p>
+      <div class="gk-grid3">
+        <label class="gk-field"><span data-i18n="gk.conf.plate">เลขทะเบียน</span><input id="vgDenyPlate" type="text" maxlength="12" autocomplete="off" lang="th"></label>
+        <label class="gk-field"><span data-i18n="gk.conf.prov">จังหวัด</span><select id="vgDenyProv"></select></label>
+        <label class="gk-field"><span data-i18n="vg.deny.why">เหตุผล</span><input id="vgDenyWhy" type="text" maxlength="80" autocomplete="off"></label>
+      </div>
+      <button class="btn danger" type="button" id="vgDenyAdd" data-i18n="vg.deny.add">เพิ่มในรายการห้ามเข้า</button>
+      <ul class="gk-list" id="vgDenyList"></ul>
+    </div>
+  </section>
+
+  <section id="tab-log" role="tabpanel" aria-labelledby="t-log" hidden>
+    <div class="gk-row">
+      <label class="gk-field" style="flex:1 1 160px"><span data-i18n="vg.log.house">บ้าน</span><select id="vgLogHouse"></select></label>
+      <label class="gk-field" style="flex:1 1 160px"><span data-i18n="vg.log.search">ค้นหาทะเบียน</span><input id="vgSearch" type="search" maxlength="12" autocomplete="off" lang="th"></label>
+      <button class="btn ghost" type="button" id="vgCsv" data-i18n="vg.log.csv">ส่งออก CSV</button>
+    </div>
+    <div class="table-wrap"><table class="gk-table"><thead><tr><th data-i18n="gk.col.time">เวลา</th><th data-i18n="vg.dir">ทิศทาง</th><th data-i18n="gk.col.plate">ทะเบียน</th><th data-i18n="vg.res.house">บ้านเลขที่/ห้อง</th><th data-i18n="vg.col.status">สถานะ</th><th data-i18n="vg.col.open">ไม้กั้น</th><th data-i18n="gk.col.by">เจ้าหน้าที่</th></tr></thead><tbody id="vgLogBody"></tbody></table></div>
+    <div id="vgAudit"></div>
+  </section>
+
+  <section id="tab-set" role="tabpanel" aria-labelledby="t-set" hidden>
+    <div class="card">
+      <h2 data-i18n="vg.relay.h">รีเลย์เปิดไม้กั้น</h2>
+      <div class="gk-grid2">
+        <label class="gk-field"><span data-i18n="vg.relay.kind">ชนิด</span><select id="vgRelayKind"><option value="" data-i18n="vg.relay.none">ไม่ต่อรีเลย์ (เจ้าหน้าที่เปิดเองที่ตู้)</option><option value="shelly-get" data-i18n="vg.relay.sg">Shelly Gen2 (HTTP GET)</option><option value="shelly-rpc" data-i18n="vg.relay.sr">Shelly Gen2 (JSON-RPC POST)</option><option value="webhook" data-i18n="vg.relay.wh">Webhook / ตัวกลางในวง LAN</option></select></label>
+        <label class="gk-field"><span data-i18n="vg.relay.url">ที่อยู่ (เช่น http://192.168.1.50 หรือ /relay/open)</span><input id="vgRelayUrl" type="url" maxlength="200" autocomplete="off" inputmode="url"></label>
+        <label class="gk-field"><span data-i18n="vg.relay.ch">ช่องรีเลย์</span><input id="vgRelayCh" type="number" min="0" max="3" step="1" value="0"></label>
+        <label class="gk-field"><span data-i18n="vg.relay.pulse">กดค้าง (วินาที)</span><input id="vgRelayPulse" type="number" min="0.2" max="30" step="0.1" value="1"></label>
+        <label class="gk-field"><span data-i18n="vg.relay.token">โทเคน (webhook, ไม่บังคับ)</span><input id="vgRelayToken" type="password" maxlength="200" autocomplete="off"></label>
+      </div>
+      <p class="hint" data-i18n="vg.relay.csp">หน้านี้อนุญาตให้ส่งคำสั่งได้เฉพาะที่อยู่เดียวกับหน้าเว็บ (ตัวกลางในวง LAN) การสั่ง Shelly ตรงต้องเพิ่มที่อยู่อุปกรณ์ในนโยบายความปลอดภัยของหน้า และเบราว์เซอร์อาจขออนุญาตเข้าถึงเครือข่ายในบ้านก่อน ดู docs/GATE.md</p>
+      <div class="gk-row"><button class="btn ghost" type="button" id="vgRelayTest" data-i18n="vg.relay.test">ทดสอบเปิดไม้กั้น</button></div>
+      <h3 data-i18n="vg.auto.h">เปิดอัตโนมัติ (ปิดไว้เป็นค่าเริ่มต้น)</h3>
+      <label class="gk-check"><input type="checkbox" id="vgAutoOn"> <span data-i18n="vg.auto.on">เจ้าของโครงการอนุญาตให้เปิดไม้กั้นอัตโนมัติ เฉพาะรถลูกบ้านที่ทะเบียนตรงทุกตัว จังหวัดไม่ขัดกัน และความมั่นใจถึงเกณฑ์</span></label>
+      <div class="gk-grid2">
+        <label class="gk-field"><span data-i18n="vg.auto.conf">ความมั่นใจขั้นต่ำ (0.90–0.99)</span><input id="vgAutoConf" type="number" min="0.9" max="0.99" step="0.01" value="0.95"></label>
+        <label class="gk-field"><span data-i18n="vg.auto.agree">ภาพที่อ่านตรงกันขั้นต่ำ (0.6–1)</span><input id="vgAutoAgree" type="number" min="0.6" max="1" step="0.05" value="0.8"></label>
+      </div>
+      <p class="hint" data-i18n="vg.auto.note">ผู้มาเยือน รถที่ทะเบียนใกล้เคียง รถไม่รู้จัก และรถในรายการห้ามเข้า ต้องให้เจ้าหน้าที่ตัดสินเสมอ รันการตรวจความแม่นยำหน้างานให้ผ่านก่อนเปิดใช้</p>
+      <h3 data-i18n="vg.other.h">อื่น ๆ</h3>
+      <div class="gk-grid2">
+        <label class="gk-field"><span data-i18n="vg.over.grace">แจ้งเตือนผู้มาเยือนอยู่เกินเวลา หลังหมดบัตร (นาที)</span><input id="vgGrace" type="number" min="0" max="600" step="5" value="15"></label>
+        <label class="gk-field"><span data-i18n="vg.max">รถสูงสุดต่อบ้าน</span><input id="vgMax" type="number" min="1" max="10" step="1" value="4"></label>
+      </div>
+      <button class="btn primary" type="button" id="vgSetSave" data-i18n="vg.set.save">บันทึกการตั้งค่า</button>
+      <p class="hint" id="vgSetMsg" role="status"></p>
+    </div>
+    <div class="card" id="vgRetention"></div>
+  </section>
+
+  <section id="tab-check" role="tabpanel" aria-labelledby="t-check" hidden>
+    <div class="card" id="vgCheck"></div>
+  </section>
+
+  <p class="hint" data-i18n="vg.foot">ข้อมูลทั้งหมดเก็บในเบราว์เซอร์ของเครื่องป้อมยามนี้ (ไม่มีเซิร์ฟเวอร์) ส่งออก CSV สำรองไว้สม่ำเสมอ · คู่มือติดตั้งกล้องและรีเลย์: docs/GATE.md</p>
+</main>
+
+<script src="lensiq-config.js?v=4"></script>
+<script src="vendor/ort/ort.wasm.min.js"></script>
+<script src="vendor/qrcode-generator/qrcode.js"></script>
+<script src="lensiq-camera.js?v=4"></script>
+<script src="lensiq-detect.js?v=3"></script>
+<script src="lensiq-sitecheck.js?v=4"></script>
+<script src="lensiq-plate.js?v=1"></script>
+<script src="lensiq-promptpay.js?v=1"></script>
+<script src="gate-rules.js?v=1"></script>
+<script src="gate-kit.js?v=1"></script>
+<script src="village.js?v=1"></script>
+</body>
+</html>

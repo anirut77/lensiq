@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="exam.hall.title">เครื่องกล้องในห้องสอบ | LENSIQ Exam</title>
+<link rel="stylesheet" href="styles.css?v=10">
+<link rel="stylesheet" href="exam.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=13"></script>
+<script src="i18n/zh-exam.js?v=1"></script>
+
+<main class="ex" id="main">
+  <h1 data-i18n="exam.hall.h1">เครื่องกล้องในห้องสอบ</h1>
+  <p class="lead" data-i18n="exam.hall.lead">วางแล็ปท็อปหรือมือถือให้เห็นแถวที่นั่ง วาดขอบเขตที่นั่งบนภาพ แล้วเริ่มเฝ้าดู ภาพประมวลผลในเครื่องนี้ 2–5 ภาพต่อวินาที ส่งเฉพาะเหตุการณ์ไปที่แดชบอร์ดผู้คุมสอบ ไม่ส่งภาพ ไม่บันทึกวิดีโอ</p>
+  <p class="warn" role="note" data-i18n="exam.hall.warn">ระบบชี้ที่นั่งให้ผู้คุมสอบไปดูเท่านั้น ไม่ตัดสินการทุจริต ติดประกาศการใช้กล้องหน้าห้องก่อนเริ่มสอบ</p>
+  <p class="status" id="engine" role="status" aria-live="polite"></p>
+
+  <section class="card" aria-labelledby="setupH">
+    <h2 id="setupH" data-i18n="exam.hall.setupH">ตั้งค่าเครื่องกล้อง</h2>
+    <form id="setupForm" class="form" novalidate>
+      <label><span data-i18n="exam.hall.room">รหัสห้องสอบ</span><input id="room" maxlength="24" autocomplete="off" placeholder="เช่น HALL2" data-i18n-attr="placeholder:exam.hall.roomPh" required></label>
+      <label><span data-i18n="exam.hall.name">ชื่อเครื่องกล้อง</span><input id="nodeName" maxlength="40" autocomplete="off" placeholder="เช่น หน้าห้องซ้าย" data-i18n-attr="placeholder:exam.hall.namePh"></label>
+      <label><span data-i18n="exam.hall.pos">ตำแหน่งกล้อง</span>
+        <select id="pos"><option value="front" data-i18n="exam.hall.posFront">หน้าห้อง (หันเข้าหาผู้สอบ)</option><option value="back" data-i18n="exam.hall.posBack">หลังห้อง</option><option value="side" data-i18n="exam.hall.posSide">ด้านข้าง</option></select></label>
+      <label><span data-i18n="exam.hall.fps">ภาพต่อวินาที</span>
+        <select id="fps"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select></label>
+      <label><span data-i18n="exam.hall.minLeave">ออกจากห้องได้หลังเริ่มสอบ (นาที)</span><input id="minLeave" type="number" min="0" max="240" value="30"></label>
+      <label class="check"><input type="checkbox" id="tiles"> <span data-i18n="exam.hall.tiles">ห้องใหญ่: แบ่งภาพ 2×2 เพื่อเห็นคนที่อยู่ไกล (ช้าลง)</span></label>
+      <div class="row-actions" style="grid-column:1/-1"><button class="btn primary" type="submit" id="startCam" data-i18n="exam.hall.startCam">เปิดกล้อง</button></div>
+    </form>
+  </section>
+
+  <section class="card" aria-labelledby="seatsH">
+    <h2 id="seatsH" data-i18n="exam.hall.seatsH">ขอบเขตที่นั่งบนภาพ</h2>
+    <div class="grid2">
+      <div>
+        <div class="cam-wrap" id="camWrap"><video id="video" autoplay muted playsinline></video><canvas id="overlay" aria-label="ภาพจากกล้องพร้อมขอบเขตที่นั่ง" data-i18n-attr="aria-label:exam.hall.canvasL"></canvas></div>
+        <div id="camPick"></div>
+        <p class="note" id="drawHint" role="status"></p>
+      </div>
+      <div>
+        <h3 data-i18n="exam.hall.drawH">วาดทีละที่นั่ง</h3>
+        <div class="form">
+          <label><span data-i18n="exam.hall.seatId">เลขที่นั่ง</span><input id="seatId" maxlength="16" autocomplete="off" placeholder="เช่น 12" data-i18n-attr="placeholder:exam.hall.seatPh"></label>
+        </div>
+        <div class="row-actions">
+          <button class="btn ghost" type="button" id="drawBtn" aria-pressed="false" data-i18n="exam.hall.draw">เริ่มวาดที่นั่ง</button>
+          <button class="btn ghost" type="button" id="closePoly" disabled data-i18n="exam.hall.close">ปิดรูปที่นั่ง</button>
+          <button class="btn ghost" type="button" id="cancelPoly" disabled data-i18n="exam.hall.cancel">ยกเลิก</button>
+        </div>
+        <h3 data-i18n="exam.hall.gridH">หรือสร้างผังแบบตาราง</h3>
+        <div class="form">
+          <label><span data-i18n="exam.hall.rows">จำนวนแถว</span><input id="gRows" type="number" min="1" max="12" value="2"></label>
+          <label><span data-i18n="exam.hall.cols">ที่นั่งต่อแถว</span><input id="gCols" type="number" min="1" max="16" value="4"></label>
+          <label><span data-i18n="exam.hall.first">เลขที่นั่งแรก</span><input id="gFirst" type="number" min="1" max="9999" value="1"></label>
+        </div>
+        <div class="row-actions"><button class="btn ghost" type="button" id="makeGrid" data-i18n="exam.hall.makeGrid">สร้างผังที่นั่ง</button></div>
+        <h3><span data-i18n="exam.hall.listH">ที่นั่งในมุมกล้องนี้</span> (<span id="seatCount">0</span>)</h3>
+        <ul class="seat-list" id="seatList"></ul>
+        <div class="row-actions"><button class="btn ghost danger" type="button" id="clearSeats" data-i18n="exam.hall.clear">ลบที่นั่งทั้งหมด</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="runH">
+    <h2 id="runH" data-i18n="exam.hall.runH">เฝ้าดูระหว่างสอบ</h2>
+    <div class="row-actions">
+      <button class="btn primary" type="button" id="runBtn" aria-pressed="false"></button>
+      <button class="btn ghost" type="button" id="walkBtn" aria-pressed="false"></button>
+      <button class="btn ghost" type="button" id="muteBtn" data-i18n="exam.hall.mute">เหตุการณ์ทั้งห้อง: พักแจ้งเตือน 60 วินาที</button>
+    </div>
+    <div class="kv" id="kv" role="status"></div>
+    <h3 data-i18n="exam.hall.recentH">เหตุการณ์ล่าสุดจากเครื่องนี้</h3>
+    <ul class="own-log" id="recent"><li class="empty" data-i18n="exam.hall.none">ยังไม่มีเหตุการณ์</li></ul>
+    <div class="row-actions"><button class="btn ghost" type="button" id="exportEv" data-i18n="exam.hall.export">ส่งออกเหตุการณ์ (ไฟล์สำหรับแดชบอร์ดที่ไม่มีเครือข่าย)</button></div>
+    <p class="note" data-i18n="exam.hall.v2">รุ่นถัดไป: ท่าทางร่างกาย (ก้มดูตัก มือแนบหู ยื่นแขนข้ามที่นั่ง) และการหันศีรษะไปทางที่นั่งข้างเคียง (กล้องหน้าเท่านั้น น้ำหนักต่ำ)</p>
+  </section>
+</main>
+
+<script src="vendor/face-api.js"></script>
+<script src="lensiq-camera.js?v=4"></script>
+<script src="lensiq-detect.js?v=3"></script>
+<script src="lensiq-sitecheck.js?v=4"></script>
+<script src="lensiq-exam.js?v=1"></script>
+<script src="exam-ui.js?v=1"></script>
+<script src="exam-link.js?v=1"></script>
+<script src="exam-hall.js?v=1"></script>
+<script src="lensiq-config.js?v=4"></script>
+</body>
+</html>

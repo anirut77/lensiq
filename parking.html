@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="pk.title">ลานจอดรถ: อ่านทะเบียน คิดค่าจอด | LENSIQ Gate</title>
+<meta name="description" content="ลานจอดรถ: อ่านป้ายทะเบียนไทยบนเครื่อง จับคู่รถเข้า-ออก คิดค่าจอดตามกฎ ตราประทับร้านค้า QR พร้อมเพย์ยอดตรง ใบเสร็จ และปิดกะ">
+<link rel="stylesheet" href="styles.css?v=10">
+<link rel="stylesheet" href="gate.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=13"></script>
+<script src="i18n/zh-gate.js?v=1"></script>
+<script src="i18n/zh-gate-parking.js?v=1"></script>
+
+<main class="gk-page" id="main">
+  <p class="eyebrow" data-i18n="pk.eyebrow">LENSIQ Gate · ลานจอดรถ</p>
+  <h1 data-i18n="pk.h1">ลานจอดรถ: อ่านทะเบียนและคิดค่าจอด</h1>
+  <p class="lead" data-i18n="pk.lead">ระบบเสนอเลขทะเบียนจากกล้อง เจ้าหน้าที่ยืนยัน แล้วระบบจับคู่เวลาเข้า-ออก คิดค่าจอดตามกฎของลาน และสร้าง QR พร้อมเพย์ยอดตรงในเครื่องนี้</p>
+  <p class="gk-note" role="note"><b data-i18n="gk.acc.b">ความแม่นยำยังไม่ได้วัดที่หน้างาน</b> <span data-i18n="gk.acc.t">โมเดลอ่านอักษรไทย (PP-OCRv5 ภาษาไทย, Apache-2.0) ฝึกกับข้อความทั่วไป ไม่ได้ฝึกกับป้ายทะเบียน และยังไม่มีโมเดลตรวจหาป้ายที่สิทธิ์การใช้ชัดเจน จึงใช้วิธีหาป้ายแบบคลาสสิกหรือให้เจ้าหน้าที่แตะที่ป้าย จังหวัดเลือกจากรายการ ทุกผลต้องให้เจ้าหน้าที่ยืนยัน รันการตรวจความแม่นยำหน้างานก่อนใช้จริง</span> <a href="gate.html#accuracy" data-i18n="gk.acc.more">อ่านเพิ่ม</a></p>
+
+  <div id="pkSetup"></div>
+
+  <div class="gk-tabs" role="tablist" aria-label="ส่วนของหน้า" data-i18n-attr="aria-label:gk.tabs">
+    <button type="button" role="tab" aria-selected="true" aria-controls="tab-lane" id="t-lane" data-tab="lane" data-i18n="pk.tab.lane">ช่องทางเข้า-ออก</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="tab-lot" id="t-lot" data-tab="lot" data-i18n="pk.tab.lot">รถในลาน</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="tab-log" id="t-log" data-tab="log" data-i18n="pk.tab.log">บันทึก</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="tab-shift" id="t-shift" data-tab="shift" data-i18n="pk.tab.shift">ปิดกะ</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="tab-set" id="t-set" data-tab="set" data-i18n="pk.tab.set">ตั้งค่า</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="tab-check" id="t-check" data-tab="check" data-i18n="gk.tab.check">ตรวจความแม่นยำ</button>
+  </div>
+
+  <section id="tab-lane" role="tabpanel" aria-labelledby="t-lane">
+    <div id="pkLane"></div>
+    <section class="card" id="pkPay" hidden aria-labelledby="pkPayH">
+      <h2 id="pkPayH" data-i18n="pk.pay.h">ชำระค่าจอด</h2>
+      <div id="pkPayInfo"></div>
+      <div id="pkPickEntry" hidden>
+        <label class="gk-field"><span data-i18n="pk.pay.pick">ไม่พบรถเข้าที่ตรงกัน — เลือกรายการเข้า หรือคิดค่าบัตรหาย</span><select id="pkEntrySel"></select></label>
+      </div>
+      <div class="gk-row">
+        <label class="gk-field" style="flex:1 1 200px"><span data-i18n="pk.pay.stamp">รหัสตราประทับร้านค้า</span><input id="pkStamp" type="text" maxlength="16" autocomplete="off" placeholder="เช่น A1-7K3M-Q9" data-i18n-attr="placeholder:pk.pay.stamp.ph"></label>
+        <button class="btn ghost" type="button" id="pkStampBtn" data-i18n="pk.pay.stampAdd">ใช้ตราประทับ</button>
+      </div>
+      <p class="gk-valid" id="pkStampMsg" aria-live="polite"></p>
+      <p class="gk-fee" id="pkFee" aria-live="polite"></p>
+      <dl class="gk-kv" id="pkFeeParts"></dl>
+      <div class="gk-row" role="group" aria-label="วิธีชำระ" data-i18n-attr="aria-label:pk.pay.method">
+        <button class="btn primary" type="button" data-pay="cash" data-i18n="pk.pay.cash">รับเงินสด</button>
+        <button class="btn ghost" type="button" data-pay="promptpay" data-i18n="pk.pay.pp">พร้อมเพย์ (QR)</button>
+        <button class="btn ghost" type="button" data-pay="exempt" data-i18n="pk.pay.exempt">ยกเว้นค่าจอด</button>
+        <button class="btn ghost" type="button" id="pkPayCancel" data-i18n="pk.pay.cancel">ยกเลิก</button>
+      </div>
+      <div class="gk-qr" id="pkQrBox" hidden>
+        <canvas id="pkQr" width="200" height="200" aria-label="QR พร้อมเพย์" data-i18n-attr="aria-label:pk.pay.qr"></canvas>
+        <div>
+          <p id="pkQrAmt" class="gk-fee"></p>
+          <p class="hint" data-i18n="pk.pay.qrNote">QR นี้สร้างในเครื่องนี้ ยอดเงินตรงกับค่าจอด ตรวจยอดเงินเข้าในแอปธนาคารของลานก่อนกดยืนยัน ระบบไม่ได้ตรวจการโอนให้</p>
+          <button class="btn go" type="button" id="pkQrDone" data-i18n="pk.pay.qrDone">ตรวจยอดเข้าแล้ว — ยืนยันชำระ</button>
+        </div>
+      </div>
+      <p class="gk-status" id="pkPayMsg" role="status" aria-live="polite"></p>
+    </section>
+    <section class="card gk-print" id="pkReceipt" hidden aria-labelledby="pkRcH">
+      <div class="gk-receipt" id="pkRcBody"></div>
+      <div class="gk-row"><button class="btn ghost" type="button" id="pkRcPrint" data-i18n="pk.rc.print">พิมพ์ใบเสร็จ</button><button class="btn ghost" type="button" id="pkRcClose" data-i18n="pk.rc.close">ปิด</button></div>
+      <h2 id="pkRcH" class="hint" data-i18n="pk.rc.h">ใบเสร็จล่าสุด</h2>
+    </section>
+  </section>
+
+  <section id="tab-lot" role="tabpanel" aria-labelledby="t-lot" hidden>
+    <div class="gk-stats" id="pkLotStats"></div>
+    <div class="table-wrap"><table class="gk-table"><thead><tr><th data-i18n="gk.col.plate">ทะเบียน</th><th data-i18n="gk.col.prov">จังหวัด</th><th data-i18n="pk.col.in">เวลาเข้า</th><th data-i18n="pk.col.dur">จอดมาแล้ว</th><th data-i18n="pk.col.est">ค่าจอดถ้าออกตอนนี้</th><th></th></tr></thead><tbody id="pkLotBody"></tbody></table></div>
+  </section>
+
+  <section id="tab-log" role="tabpanel" aria-labelledby="t-log" hidden>
+    <div class="gk-row">
+      <label class="gk-field" style="flex:1 1 220px"><span data-i18n="pk.log.search">ค้นหาทะเบียน</span><input id="pkSearch" type="search" maxlength="12" autocomplete="off" lang="th"></label>
+      <button class="btn ghost" type="button" id="pkCsv" data-i18n="pk.log.csv">ส่งออก CSV</button>
+      <button class="btn ghost" type="button" id="pkRcCsv" data-i18n="pk.log.rcCsv">ส่งออกใบเสร็จ (CSV)</button>
+    </div>
+    <div class="table-wrap"><table class="gk-table"><thead><tr><th data-i18n="gk.col.time">เวลา</th><th data-i18n="pk.col.dir">ทาง</th><th data-i18n="gk.col.plate">ทะเบียน</th><th data-i18n="gk.col.prov">จังหวัด</th><th data-i18n="gk.col.read">การอ่าน</th><th data-i18n="pk.col.fee">ค่าจอด</th><th data-i18n="gk.col.by">เจ้าหน้าที่</th><th></th></tr></thead><tbody id="pkLogBody"></tbody></table></div>
+    <div class="card" id="pkEdit" hidden>
+      <h3 data-i18n="pk.edit.h">แก้ไขเลขทะเบียน (บันทึกในสายการแก้ไข)</h3>
+      <div class="gk-grid2">
+        <label class="gk-field"><span data-i18n="gk.conf.plate">เลขทะเบียน</span><input id="pkEditPlate" type="text" maxlength="12" autocomplete="off" lang="th"></label>
+        <label class="gk-field"><span data-i18n="gk.conf.prov">จังหวัด</span><select id="pkEditProv"></select></label>
+      </div>
+      <label class="gk-field"><span data-i18n="pk.edit.why">เหตุผล</span><input id="pkEditWhy" type="text" maxlength="80" autocomplete="off"></label>
+      <div class="gk-row"><button class="btn primary" type="button" id="pkEditSave" data-i18n="pk.edit.save">บันทึกการแก้ไข</button><button class="btn ghost" type="button" id="pkEditCancel" data-i18n="pk.pay.cancel">ยกเลิก</button></div>
+    </div>
+    <div id="pkAudit"></div>
+  </section>
+
+  <section id="tab-shift" role="tabpanel" aria-labelledby="t-shift" hidden>
+    <div class="card gk-print" id="pkShiftCard">
+      <h2 data-i18n="pk.sh.h">กะปัจจุบัน</h2>
+      <p class="gk-status" id="pkShiftState"></p>
+      <div class="gk-row">
+        <label class="gk-field" style="flex:1 1 180px"><span data-i18n="pk.sh.float">เงินทอนตั้งต้น (บาท)</span><input id="pkFloat" type="number" min="0" step="1" value="0"></label>
+        <button class="btn primary" type="button" id="pkShiftOpen" data-i18n="pk.sh.open">เปิดกะ</button>
+      </div>
+      <div id="pkRecon"></div>
+      <div class="gk-row">
+        <label class="gk-field" style="flex:1 1 180px"><span data-i18n="pk.sh.counted">เงินสดที่นับได้จริง (บาท)</span><input id="pkCounted" type="number" min="0" step="1"></label>
+        <button class="btn primary" type="button" id="pkShiftClose" data-i18n="pk.sh.close">ปิดกะและบันทึก</button>
+        <button class="btn ghost" type="button" id="pkShiftPrint" data-i18n="pk.sh.print">พิมพ์สรุปกะ</button>
+      </div>
+    </div>
+    <h3 data-i18n="pk.sh.past">กะที่ปิดแล้ว</h3>
+    <ul class="gk-list" id="pkShiftList"></ul>
+  </section>
+
+  <section id="tab-set" role="tabpanel" aria-labelledby="t-set" hidden>
+    <div class="card">
+      <h2 data-i18n="pk.set.fee">กฎค่าจอด</h2>
+      <div class="gk-grid3">
+        <label class="gk-field"><span data-i18n="pk.set.free">จอดฟรี (นาที)</span><input data-fee="freeMin" type="number" min="0" step="1"></label>
+        <label class="gk-field"><span data-i18n="pk.set.unit">หน่วยคิดเงิน (นาที)</span><input data-fee="unitMin" type="number" min="1" step="1"></label>
+        <label class="gk-field"><span data-i18n="pk.set.rate">ค่าจอดต่อหน่วย (บาท)</span><input data-fee="rate" type="number" min="0" step="1"></label>
+        <label class="gk-field"><span data-i18n="pk.set.first">หน่วยแรก (บาท, เว้นว่าง = เท่ากัน)</span><input data-fee="firstRate" type="number" min="0" step="1"></label>
+        <label class="gk-field"><span data-i18n="pk.set.grace">ผ่อนผันก่อนปัดขึ้น (นาที)</span><input data-fee="graceMin" type="number" min="0" step="1"></label>
+        <label class="gk-field"><span data-i18n="pk.set.cap">เพดานต่อ 24 ชม. (บาท, 0 = ไม่มี)</span><input data-fee="dailyCap" type="number" min="0" step="1"></label>
+        <label class="gk-field"><span data-i18n="pk.set.nightAt">เวลาคิดค่าค้างคืน</span><input data-fee="overnightAt" type="time"></label>
+        <label class="gk-field"><span data-i18n="pk.set.nightFee">ค่าค้างคืนต่อคืน (บาท)</span><input data-fee="overnightFee" type="number" min="0" step="1"></label>
+        <label class="gk-field"><span data-i18n="pk.set.lost">บัตรหาย/ไม่พบรถเข้า (บาท)</span><input data-fee="lostFee" type="number" min="0" step="1"></label>
+      </div>
+      <label class="gk-check"><input type="checkbox" data-fee="freeDeduct"> <span data-i18n="pk.set.deduct">หักเวลาจอดฟรีออกก่อนคิดเงิน (ปิด = เกินเวลาฟรีแล้วคิดตั้งแต่นาทีแรก)</span></label>
+      <h3 data-i18n="pk.set.site">ลานจอดและพร้อมเพย์</h3>
+      <div class="gk-grid3">
+        <label class="gk-field"><span data-i18n="pk.set.name">ชื่อลานจอด (บนใบเสร็จ)</span><input id="pkSiteName" type="text" maxlength="60" autocomplete="off"></label>
+        <label class="gk-field"><span data-i18n="pk.set.pp">พร้อมเพย์: เบอร์มือถือ / เลขประจำตัวผู้เสียภาษี</span><input id="pkPpId" type="text" inputmode="numeric" maxlength="20" autocomplete="off"></label>
+        <label class="gk-field"><span data-i18n="pk.set.cap2">จำนวนช่องจอด</span><input id="pkCapacity" type="number" min="0" step="1"></label>
+        <label class="gk-field"><span data-i18n="pk.set.dir">ช่องทางนี้</span><select id="pkDir"><option value="both" data-i18n="pk.dir.both">เข้าและออก</option><option value="in" data-i18n="pk.dir.in">ทางเข้า</option><option value="out" data-i18n="pk.dir.out">ทางออก</option></select></label>
+      </div>
+      <p class="gk-valid" id="pkPpMsg" aria-live="polite"></p>
+      <button class="btn primary" type="button" id="pkSetSave" data-i18n="pk.set.save">บันทึกกฎและข้อมูลลาน</button>
+      <p class="hint" id="pkSetMsg" role="status"></p>
+    </div>
+    <div class="card">
+      <h2 data-i18n="pk.mp.h">บัตรจอดรายเดือน (ยกเว้นค่าจอด)</h2>
+      <div class="gk-grid3">
+        <label class="gk-field"><span data-i18n="gk.conf.plate">เลขทะเบียน</span><input id="pkMpPlate" type="text" maxlength="12" autocomplete="off" lang="th"></label>
+        <label class="gk-field"><span data-i18n="gk.conf.prov">จังหวัด</span><select id="pkMpProv"></select></label>
+        <label class="gk-field"><span data-i18n="pk.mp.until">ใช้ได้ถึง</span><input id="pkMpUntil" type="date"></label>
+      </div>
+      <button class="btn ghost" type="button" id="pkMpAdd" data-i18n="pk.mp.add">เพิ่มบัตรรายเดือน</button>
+      <ul class="gk-list" id="pkMpList"></ul>
+    </div>
+    <div class="card">
+      <h2 data-i18n="pk.sp.h">ร้านค้าและตราประทับ (e-stamp)</h2>
+      <p class="hint" data-i18n="pk.sp.intro">ร้านค้าแจกรหัสตราประทับให้ลูกค้า รหัสแต่ละใบใช้ได้ครั้งเดียว ตรวจสอบในเครื่องนี้ด้วยกุญแจของลาน (ไม่ใช่ระบบความปลอดภัยระดับสูง)</p>
+      <div class="gk-grid3">
+        <label class="gk-field"><span data-i18n="pk.sp.id">รหัสร้าน (1–4 ตัว A–Z/0–9)</span><input id="pkSpId" type="text" maxlength="4" autocomplete="off"></label>
+        <label class="gk-field"><span data-i18n="pk.sp.name">ชื่อร้าน</span><input id="pkSpName" type="text" maxlength="40" autocomplete="off"></label>
+        <label class="gk-field"><span data-i18n="pk.sp.min">จอดฟรีเพิ่ม (นาที)</span><input id="pkSpMin" type="number" min="0" step="15" value="60"></label>
+        <label class="gk-field"><span data-i18n="pk.sp.disc">ส่วนลด (บาท)</span><input id="pkSpDisc" type="number" min="0" step="1" value="0"></label>
+      </div>
+      <button class="btn ghost" type="button" id="pkSpAdd" data-i18n="pk.sp.add">เพิ่มร้านค้า</button>
+      <ul class="gk-list" id="pkSpList"></ul>
+      <div class="card gk-print" id="pkCodes" hidden><h3 id="pkCodesH"></h3><ol class="gk-list" id="pkCodeList"></ol><button class="btn ghost" type="button" id="pkCodesPrint" data-i18n="pk.sp.print">พิมพ์รหัส</button></div>
+    </div>
+    <div class="card" id="pkRetention"></div>
+  </section>
+
+  <section id="tab-check" role="tabpanel" aria-labelledby="t-check" hidden>
+    <div class="card" id="pkCheck"></div>
+  </section>
+
+  <p class="hint" data-i18n="pk.foot">ข้อมูลทั้งหมดเก็บในเบราว์เซอร์ของเครื่องนี้ (ไม่มีเซิร์ฟเวอร์) สำรองข้อมูลด้วยการส่งออก CSV สม่ำเสมอ · คู่มือติดตั้งกล้องและอุปกรณ์: docs/GATE.md</p>
+</main>
+
+<script src="lensiq-config.js?v=4"></script>
+<script src="vendor/ort/ort.wasm.min.js"></script>
+<script src="vendor/qrcode-generator/qrcode.js"></script>
+<script src="lensiq-camera.js?v=4"></script>
+<script src="lensiq-detect.js?v=3"></script>
+<script src="lensiq-sitecheck.js?v=4"></script>
+<script src="lensiq-plate.js?v=1"></script>
+<script src="lensiq-promptpay.js?v=1"></script>
+<script src="gate-rules.js?v=1"></script>
+<script src="gate-kit.js?v=1"></script>
+<script src="parking.js?v=1"></script>
+</body>
+</html>

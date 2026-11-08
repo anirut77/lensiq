@@ -8,7 +8,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="attendance.s1">เช็คชื่ออบรมด้วยใบหน้า | LENSIQ</title>
 <link rel="stylesheet" href="styles.css?v=10">
-<link rel="stylesheet" href="attendance.css?v=6">
+<link rel="stylesheet" href="attendance.css?v=7">
 <link rel="stylesheet" href="lensiq-sitecheck.css?v=3">
 </head>
 <body>
@@ -26,7 +26,42 @@
   <p class="acc-note" role="note"><b class="beta" data-i18n="attendance.s4">ความแม่นยำที่วัดได้</b> <span data-i18n="attendance.s5">ทดสอบกับภาพใบหน้าสาธารณะ (ภาพข่าว LFW และใบหน้าเอเชีย CASIA-FaceV5 ไม่ใช่กล้องหน้างาน) ด้วยกฎปัจจุบัน ผู้ลงทะเบียน 100 คน: จำผู้ลงทะเบียนได้ราว 85% ต่อการสแกน แต่ใบหน้าเอเชียเพียงราว 66–76% · คนที่ไม่ได้ลงทะเบียนถูกเสนอชื่อราว 0.4% (ใบหน้าเอเชีย 0.2% ขอบบนของช่วงความเชื่อมั่นถึง 1.15%) และถูกเช็คชื่ออัตโนมัติไม่ถึง 0.05% ระบบต้องเห็นตรงกัน 2 ครั้งก่อนบันทึก และราว 25–35% ของคนที่จำได้จะถูกขอให้กดยืนยัน ลงทะเบียนอย่างน้อย 5 คนก่อนใช้เช็คชื่ออัตโนมัติ และควรให้เจ้าหน้าที่ตรวจรายชื่อ</span> <a href="cameras.html#accuracy" data-i18n="attendance.s6">วิธีวัดและข้อจำกัด</a><br><b class="beta lic-b" data-i18n="attendance.licb">โมเดลใบอนุญาตวิจัย</b> <span data-i18n="attendance.lic">ใบหน้าวิเคราะห์ด้วยโมเดล face-api.js (โค้ด MIT) ที่ฝึกจากชุดข้อมูลซึ่งอนุญาตเฉพาะงานวิจัย สิทธิ์ใช้เชิงพาณิชย์ยังไม่ได้รับการยืนยันจากนักกฎหมาย — ตรวจสิทธิ์ก่อนใช้งานเชิงพาณิชย์</span></p>
   <p class="expiry-banner" id="expiryBanner" role="status" hidden></p>
 
-  <div class="session">
+  <!-- employee time attendance (attendance-hr.js + lensiq-timeclock.js) — added on top of the training check-in, nothing removed -->
+  <div class="att-mode" role="group" aria-label="โหมดการใช้งาน" data-i18n-attr="aria-label:attendance.hr.modeL">
+    <button type="button" class="mode-btn" data-mode="training" aria-pressed="true"><span data-i18n="attendance.hr.modeT">เช็คชื่ออบรม/กิจกรรม</span></button>
+    <button type="button" class="mode-btn" data-mode="employee" aria-pressed="false"><span data-i18n="attendance.hr.modeE">ลงเวลาทำงานพนักงาน</span></button>
+  </div>
+  <details class="hr-notice emp-only" id="hrNotice">
+    <summary data-i18n="attendance.hr.nT">ข้อมูลส่วนบุคคลในการลงเวลาทำงาน (PDPA) — อ่านก่อนใช้</summary>
+    <ul>
+      <li data-i18n="attendance.hr.n1">บันทึกเวลาเข้า–ออกงานเก็บเพื่อปฏิบัติตามกฎหมายแรงงานและคำนวณค่าจ้าง (ฐานหน้าที่ตามกฎหมาย PDPA ม.24(5)/(6)) และต้องเก็บไว้อย่างน้อย 2 ปี (พ.ร.บ.คุ้มครองแรงงาน ม.114)</li>
+      <li data-i18n="attendance.hr.n2">ข้อมูลใบหน้าเป็นข้อมูลชีวมิติ (ข้อมูลอ่อนไหว PDPA ม.26) ใช้ได้เฉพาะเมื่อพนักงานยินยอมโดยชัดแจ้ง พนักงานที่ไม่ยินยอมลงเวลาด้วย PIN หรือบัตร QR ได้ทันที โดยไม่มีผลต่อการจ้างงาน</li>
+      <li data-i18n="attendance.hr.n3">ภาพจากกล้องประมวลผลในเครื่องนี้เท่านั้น ไม่มีภาพหรือวิดีโอถูกส่งออก ไม่เก็บภาพ และไม่อ่านอารมณ์หรือสีหน้า</li>
+      <li data-i18n="attendance.hr.n4">ระบบแสดงรายการให้คนตรวจ (สาย ออกก่อน ลงเวลาไม่ครบ) ไม่ได้ตัดสินแทนผู้จัดการ การแก้ไขเวลาทุกครั้งต้องระบุผู้แก้ไขและเหตุผล และแสดงในรายงาน</li>
+      <li data-i18n="attendance.hr.n5">ระยะเก็บบันทึกเวลาทำงานตั้งแยกจากระยะเก็บข้อมูลใบหน้า ลบใบหน้าได้ตลอดเวลาโดยบันทึกเวลายังอยู่</li>
+    </ul>
+    <p class="hint"><a href="camera-notice.html" data-i18n="attendance.hr.nSign">ป้ายแจ้งการใช้กล้องและแบบฟอร์มขอความยินยอม (แม่แบบ)</a></p>
+  </details>
+  <div class="hr-bar emp-only" id="hrBar">
+    <div class="hr-clock" aria-live="off"><span id="hrClock">--:--</span><small id="hrDate"></small></div>
+    <label><span data-i18n="attendance.hr.ptL">ประเภทการลงเวลา</span>
+      <select id="hrType">
+        <option value="auto" data-i18n="attendance.hr.pt.auto">อัตโนมัติ (ครั้งแรก = เข้า ต่อไป = ออก)</option>
+        <option value="in" data-i18n="attendance.hr.pt.in">เข้างาน</option>
+        <option value="out" data-i18n="attendance.hr.pt.out">ออกงาน</option>
+        <option value="break_out" data-i18n="attendance.hr.pt.break_out">เริ่มพัก</option>
+        <option value="break_in" data-i18n="attendance.hr.pt.break_in">กลับจากพัก</option>
+      </select></label>
+    <button type="button" class="btn ghost" id="hrKiosk"><span data-i18n="attendance.hr.kiosk">โหมดคิออสก์</span></button>
+    <form class="hr-kexit" id="hrKioskExit" hidden novalidate>
+      <label><span data-i18n="attendance.hr.kexL">PIN ผู้จัดการเพื่อออก</span><input id="hrKioskPin" type="password" inputmode="numeric" autocomplete="off" maxlength="8"></label>
+      <button type="submit" class="btn primary" data-i18n="attendance.hr.kexB">ออกจากคิออสก์</button>
+      <p class="form-msg" id="hrKioskMsg" role="status"></p>
+    </form>
+    <p class="hr-kiosk-note" data-i18n="attendance.hr.kNote">จุดลงเวลานี้ตรวจใบหน้าในเครื่อง ไม่ส่งภาพออก · ไม่ต้องการใช้ใบหน้า? ใช้ PIN หรือบัตร QR</p>
+  </div>
+
+  <div class="session tr-only">
     <label><span data-i18n="attendance.s7">หัวข้อ/รอบการอบรม</span><input id="session" placeholder="เช่น อบรมความปลอดภัย รอบ 1" maxlength="80" data-i18n-attr="placeholder:attendance.s8"></label>
     <label><span data-i18n="attendance.s9">วันที่</span><input id="date" type="date"></label>
   </div>
@@ -51,6 +86,7 @@
         <button class="tab" data-t="register" role="tab" data-i18n="attendance.s12">ลงทะเบียนใบหน้า</button>
         <button class="tab" data-t="records" role="tab" data-i18n="attendance.s13">รายงาน</button>
         <button class="tab" data-t="check" role="tab" data-i18n="attendance.sc1">ตรวจความแม่นยำ</button>
+        <button class="tab emp-only" data-t="pin" role="tab" id="tabPin" data-i18n="attendance.hr.tabPin">PIN / QR</button>
       </div>
 
       <div class="pane" id="pane-checkin">
@@ -76,7 +112,8 @@
           <label><span data-i18n="attendance.s20">ชื่อ-นามสกุล</span><input name="name" required maxlength="80" autocomplete="off"></label>
           <label><span data-i18n="attendance.s21">รหัสพนักงาน/ผู้เข้าอบรม</span><input name="code" required maxlength="30" autocomplete="off"></label>
           <label class="check"><input type="checkbox" name="consent" required>
-            <span data-i18n="attendance.s22">ข้าพเจ้ายินยอมให้เก็บข้อมูลใบหน้า (ข้อมูลชีวมิติ) เพื่อใช้เช็คชื่อเข้าอบรมเท่านั้น และสามารถขอลบข้อมูลได้ตลอดเวลา</span></label>
+            <span class="tr-only" data-i18n="attendance.s22">ข้าพเจ้ายินยอมให้เก็บข้อมูลใบหน้า (ข้อมูลชีวมิติ) เพื่อใช้เช็คชื่อเข้าอบรมเท่านั้น และสามารถขอลบข้อมูลได้ตลอดเวลา</span>
+            <span class="emp-only" data-i18n="attendance.hr.consent">ข้าพเจ้ายินยอมให้เก็บข้อมูลใบหน้า (ข้อมูลชีวมิติ) เพื่อลงเวลาทำงานเท่านั้น ทราบว่าเลือกใช้ PIN หรือบัตร QR แทนได้โดยไม่มีผลต่อการจ้างงาน และขอลบได้ตลอดเวลา</span></label>
           <button class="btn primary full" type="submit" data-i18n="attendance.s23">ถ่ายภาพและลงทะเบียน</button>
           <p class="form-msg" id="regMsg" role="status"></p>
         </form>
@@ -99,6 +136,20 @@
 
       <div class="pane sc-panel" id="pane-check" hidden><div id="scPanel"></div></div>
 
+      <div class="pane" id="pane-pin" hidden>
+        <p data-i18n="attendance.hr.pinIntro">สำหรับพนักงานที่ไม่ใช้ใบหน้า หรือเมื่อสแกนใบหน้าไม่ผ่าน: ใส่รหัสพนักงานกับ PIN หรือสแกนบัตร QR</p>
+        <form id="hrPinForm" novalidate>
+          <label><span data-i18n="attendance.hr.code">รหัสพนักงาน</span><input id="hrCode" maxlength="30" autocomplete="off" autocapitalize="characters"></label>
+          <label><span data-i18n="attendance.hr.pin">PIN (4–8 หลัก)</span><input id="hrPin" type="password" inputmode="numeric" autocomplete="off" maxlength="8"></label>
+          <button class="btn primary full" type="submit" data-i18n="attendance.hr.punch">ลงเวลา</button>
+        </form>
+        <label class="hr-qr-l"><span data-i18n="attendance.hr.qrL">บัตร QR (สแกนด้วยเครื่องอ่านบัตร หรือวางข้อความ แล้วกด Enter)</span><input id="hrQr" autocomplete="off" maxlength="200"></label>
+        <button class="btn ghost full" type="button" id="hrQrCam" hidden data-i18n="attendance.hr.qrCam">สแกนบัตร QR ด้วยกล้อง</button>
+        <p class="form-msg scan-msg" id="hrPunchMsg" role="status" aria-live="polite"></p>
+        <h3><span data-i18n="attendance.hr.today">ลงเวลาวันนี้</span> (<span id="hrTodayN">0</span>)</h3>
+        <ul class="recent" id="hrToday"></ul>
+      </div>
+
       <div class="pane" id="pane-records" hidden>
         <div class="row-actions">
           <button class="btn ghost" id="exportCsv" type="button" data-i18n="attendance.s34">ส่งออก CSV</button>
@@ -114,6 +165,155 @@
     </section>
   </div>
 
+  <section class="hr-admin emp-only" id="hrAdmin" aria-labelledby="hrAdminH">
+    <h2 id="hrAdminH" data-i18n="attendance.hr.adminH">จัดการเวลาทำงาน</h2>
+    <div class="hr-who">
+      <label><span data-i18n="attendance.hr.byL">ชื่อผู้ดูแลที่ทำรายการ (บันทึกในประวัติการแก้ไข)</span><input id="hrBy" maxlength="60" autocomplete="off"></label>
+      <label><span data-i18n="attendance.hr.mgrPinL">PIN ผู้จัดการ (ถ้าตั้งไว้)</span><input id="hrMgrPinIn" type="password" inputmode="numeric" autocomplete="off" maxlength="8"></label>
+    </div>
+    <div class="hr-tabs" role="tablist" aria-label="จัดการเวลาทำงาน" data-i18n-attr="aria-label:attendance.hr.adminH">
+      <button type="button" class="hr-tab active" role="tab" aria-selected="true" data-h="emp" data-i18n="attendance.hr.tEmp">พนักงาน</button>
+      <button type="button" class="hr-tab" role="tab" aria-selected="false" data-h="shift" data-i18n="attendance.hr.tShift">กะการทำงาน</button>
+      <button type="button" class="hr-tab" role="tab" aria-selected="false" data-h="cal" data-i18n="attendance.hr.tCal">วันหยุดและการลา</button>
+      <button type="button" class="hr-tab" role="tab" aria-selected="false" data-h="month" data-i18n="attendance.hr.tMonth">สรุปเดือนและเงินเดือน</button>
+      <button type="button" class="hr-tab" role="tab" aria-selected="false" data-h="audit" data-i18n="attendance.hr.tAudit">แก้ไขเวลาและประวัติ</button>
+      <button type="button" class="hr-tab" role="tab" aria-selected="false" data-h="data" data-i18n="attendance.hr.tData">ตั้งค่าและข้อมูล</button>
+    </div>
+
+    <div class="hr-pane" role="tabpanel" id="hr-emp">
+      <form id="hrEmpForm" class="hr-grid" novalidate>
+        <label><span data-i18n="attendance.hr.code">รหัสพนักงาน</span><input name="code" required maxlength="30" autocomplete="off"></label>
+        <label><span data-i18n="attendance.hr.name">ชื่อ-นามสกุล</span><input name="name" required maxlength="80" autocomplete="off"></label>
+        <label><span data-i18n="attendance.hr.dept">แผนก</span><input name="dept" maxlength="40" autocomplete="off" list="hrDeptList"></label>
+        <label><span data-i18n="attendance.hr.shift">กะ</span><select name="shift" id="hrEmpShift" translate="no" data-i18n-skip></select></label>
+        <label><span data-i18n="attendance.hr.shiftFrom">กะนี้มีผลตั้งแต่วันที่ (เว้นว่าง = วันนี้)</span><input name="shiftFrom" type="date"></label>
+        <label><span data-i18n="attendance.hr.pinSet">ตั้ง PIN (4–8 หลัก เว้นว่าง = ไม่ใช้ PIN)</span><input name="pin" type="password" inputmode="numeric" autocomplete="new-password" maxlength="8"></label>
+        <label class="check"><input type="checkbox" name="noFace"> <span data-i18n="attendance.hr.noFace">ไม่ใช้ข้อมูลใบหน้า (ลงเวลาด้วย PIN หรือบัตร QR เท่านั้น)</span></label>
+        <div class="hr-actions"><button class="btn primary" type="submit" id="hrEmpSave" data-i18n="attendance.hr.empSave">บันทึกพนักงาน</button><button class="btn ghost" type="button" id="hrEmpNew" data-i18n="attendance.hr.empNew">ล้างฟอร์ม</button></div>
+        <p class="form-msg" id="hrEmpMsg" role="status"></p>
+      </form>
+      <datalist id="hrDeptList"></datalist>
+      <p class="hint" data-i18n="attendance.hr.empHint">ลงทะเบียนใบหน้าที่แท็บ "ลงทะเบียนใบหน้า" ด้วยรหัสพนักงานเดียวกัน (เฉพาะผู้ที่ยินยอม)</p>
+      <div class="hr-filter"><label><span data-i18n="attendance.hr.deptF">กรองตามแผนก</span><select id="hrDeptE" translate="no" data-i18n-skip></select></label></div>
+      <div class="table-wrap"><table class="hr-table">
+        <thead><tr><th data-i18n="attendance.hr.code">รหัสพนักงาน</th><th data-i18n="attendance.hr.name">ชื่อ-นามสกุล</th><th data-i18n="attendance.hr.dept">แผนก</th><th data-i18n="attendance.hr.shift">กะ</th><th data-i18n="attendance.hr.method">วิธีลงเวลา</th><th data-i18n="attendance.hr.act">จัดการ</th></tr></thead>
+        <tbody id="hrEmpBody"></tbody>
+      </table></div>
+      <div class="hr-badge" id="hrBadge" hidden></div>
+    </div>
+
+    <div class="hr-pane" role="tabpanel" id="hr-shift" hidden>
+      <form id="hrShiftForm" class="hr-grid" novalidate>
+        <label><span data-i18n="attendance.hr.shiftPick">เลือกกะเพื่อแก้ไข</span><select id="hrShiftPick" translate="no" data-i18n-skip></select></label>
+        <label><span data-i18n="attendance.hr.shiftName">ชื่อกะ</span><input name="name" maxlength="40" autocomplete="off"></label>
+        <label><span data-i18n="attendance.hr.start">เวลาเข้างาน</span><input name="start" type="time" required></label>
+        <label><span data-i18n="attendance.hr.end">เวลาออกงาน (น้อยกว่าเวลาเข้า = ข้ามเที่ยงคืน)</span><input name="end" type="time" required></label>
+        <label><span data-i18n="attendance.hr.breakMin">พักไม่รับค่าจ้าง (นาที)</span><input name="breakMin" type="number" min="0" max="240" inputmode="numeric"></label>
+        <label><span data-i18n="attendance.hr.graceLate">ผ่อนผันมาสาย (นาที)</span><input name="graceLate" type="number" min="0" max="120" inputmode="numeric"></label>
+        <label><span data-i18n="attendance.hr.graceEarly">ผ่อนผันออกก่อน (นาที)</span><input name="graceEarly" type="number" min="0" max="120" inputmode="numeric"></label>
+        <label><span data-i18n="attendance.hr.otMin">OT ขั้นต่ำ (นาที)</span><input name="otMinMin" type="number" min="0" max="240" inputmode="numeric"></label>
+        <label><span data-i18n="attendance.hr.otRound">ปัด OT ลงทีละ (นาที)</span><input name="otRound" type="number" min="1" max="60" inputmode="numeric"></label>
+        <label><span data-i18n="attendance.hr.otAfter">เริ่มนับ OT หลังเลิกงาน (นาที)</span><input name="otStartAfter" type="number" min="0" max="240" inputmode="numeric"></label>
+        <label class="check"><input type="checkbox" name="otApproval"> <span data-i18n="attendance.hr.otAppr">OT ต้องให้ผู้จัดการอนุมัติก่อนนับ</span></label>
+        <fieldset class="hr-days"><legend data-i18n="attendance.hr.days">วันทำงาน</legend><div id="hrDays"></div></fieldset>
+        <div class="hr-actions"><button class="btn primary" type="submit" data-i18n="attendance.hr.shiftSave">บันทึกกะ</button><button class="btn ghost" type="button" id="hrShiftAdd" data-i18n="attendance.hr.shiftAdd">เพิ่มกะใหม่</button></div>
+        <p class="form-msg" id="hrShiftMsg" role="status"></p>
+      </form>
+      <p class="hint" data-i18n="attendance.hr.shiftHint">มาสายเกินเวลาผ่อนผัน = นับสายเต็มจำนวนนาทีจากเวลาเข้างาน · OT นับเมื่อเกินขั้นต่ำและปัดลง · กะข้ามเที่ยงคืนนับเป็นวันที่เริ่มกะ · ไม่ได้บันทึกพัก = หักพักตามกะเมื่อทำงานเกิน 5 ชั่วโมง</p>
+    </div>
+
+    <div class="hr-pane" role="tabpanel" id="hr-cal" hidden>
+      <h3 data-i18n="attendance.hr.holH">วันหยุดตามประเพณี</h3>
+      <div class="hr-grid">
+        <label><span data-i18n="attendance.hr.year">ปี (ค.ศ.)</span><select id="hrYear"></select></label>
+        <div class="hr-actions"><button class="btn ghost" type="button" id="hrHolDefault" data-i18n="attendance.hr.holDef">เพิ่มวันหยุดราชการไทยของปีนี้</button></div>
+      </div>
+      <p class="hint" id="hrHolNote" role="status"></p>
+      <form id="hrHolForm" class="hr-grid" novalidate>
+        <label><span data-i18n="attendance.hr.date">วันที่</span><input name="date" type="date" required></label>
+        <label><span data-i18n="attendance.hr.holName">ชื่อวันหยุด</span><input name="name" maxlength="60" required autocomplete="off"></label>
+        <div class="hr-actions"><button class="btn primary" type="submit" data-i18n="attendance.hr.holAdd">เพิ่มวันหยุด</button></div>
+      </form>
+      <div class="table-wrap"><table class="hr-table"><thead><tr><th data-i18n="attendance.hr.date">วันที่</th><th data-i18n="attendance.hr.holName">ชื่อวันหยุด</th><th data-i18n="attendance.hr.act">จัดการ</th></tr></thead><tbody id="hrHolBody"></tbody></table></div>
+
+      <h3 data-i18n="attendance.hr.leaveH">บันทึกการลา</h3>
+      <form id="hrLeaveForm" class="hr-grid" novalidate>
+        <label><span data-i18n="attendance.hr.emp">พนักงาน</span><select name="emp" id="hrLeaveEmp" translate="no" data-i18n-skip></select></label>
+        <label><span data-i18n="attendance.hr.from">ตั้งแต่วันที่</span><input name="from" type="date" required></label>
+        <label><span data-i18n="attendance.hr.to">ถึงวันที่</span><input name="to" type="date"></label>
+        <label><span data-i18n="attendance.hr.leaveType">ประเภทการลา</span><select name="type">
+          <option value="sick" data-i18n="attendance.hr.lv.sick">ลาป่วย</option><option value="personal" data-i18n="attendance.hr.lv.personal">ลากิจ</option>
+          <option value="annual" data-i18n="attendance.hr.lv.annual">ลาพักร้อน</option><option value="maternity" data-i18n="attendance.hr.lv.maternity">ลาคลอด</option>
+          <option value="other" data-i18n="attendance.hr.lv.other">ลาอื่น ๆ</option></select></label>
+        <label class="check"><input type="checkbox" name="half"> <span data-i18n="attendance.hr.half">ลาครึ่งวัน</span></label>
+        <label><span data-i18n="attendance.hr.reason">เหตุผล / หมายเหตุ</span><input name="reason" maxlength="200" autocomplete="off"></label>
+        <div class="hr-actions"><button class="btn primary" type="submit" data-i18n="attendance.hr.leaveAdd">บันทึกการลา</button></div>
+        <p class="form-msg" id="hrLeaveMsg" role="status"></p>
+      </form>
+      <div class="table-wrap"><table class="hr-table"><thead><tr><th data-i18n="attendance.hr.date">วันที่</th><th data-i18n="attendance.hr.emp">พนักงาน</th><th data-i18n="attendance.hr.leaveType">ประเภทการลา</th><th data-i18n="attendance.hr.reason">เหตุผล / หมายเหตุ</th><th data-i18n="attendance.hr.act">จัดการ</th></tr></thead><tbody id="hrLeaveBody"></tbody></table></div>
+      <h3 data-i18n="attendance.hr.useH">วันลาที่ใช้ในปีนี้</h3>
+      <p class="hint" data-i18n="attendance.hr.useHint">ตัวเลขอ้างอิงตามกฎหมายขั้นต่ำ: ลาป่วยได้รับค่าจ้างไม่เกิน 30 วันทำงานต่อปี (ม.32, ม.57) · ลากิจอย่างน้อย 3 วันทำงาน (ม.34) · พักร้อนอย่างน้อย 6 วันทำงานเมื่อทำงานครบ 1 ปี (ม.30) — ตรวจกับข้อบังคับการทำงานของบริษัท</p>
+      <div class="table-wrap"><table class="hr-table"><thead><tr><th data-i18n="attendance.hr.emp">พนักงาน</th><th data-i18n="attendance.hr.lv.sick">ลาป่วย</th><th data-i18n="attendance.hr.lv.personal">ลากิจ</th><th data-i18n="attendance.hr.lv.annual">ลาพักร้อน</th><th data-i18n="attendance.hr.lv.maternity">ลาคลอด</th><th data-i18n="attendance.hr.lv.other">ลาอื่น ๆ</th></tr></thead><tbody id="hrLeaveUse"></tbody></table></div>
+    </div>
+
+    <div class="hr-pane" role="tabpanel" id="hr-month" hidden>
+      <div class="hr-grid">
+        <label><span data-i18n="attendance.hr.month">เดือน</span><input id="hrMonth" type="month"></label>
+        <label><span data-i18n="attendance.hr.deptF">กรองตามแผนก</span><select id="hrDeptM" translate="no" data-i18n-skip></select></label>
+      </div>
+      <div class="row-actions">
+        <button class="btn ghost" type="button" id="hrPayCsv" data-i18n="attendance.hr.payCsv">ส่งออก CSV เงินเดือน</button>
+        <button class="btn ghost" type="button" id="hrDetailCsv" data-i18n="attendance.hr.detCsv">ส่งออก CSV รายวัน</button>
+        <button class="btn ghost" type="button" id="hrAuditCsv" data-i18n="attendance.hr.audCsv">ส่งออก CSV ประวัติการแก้ไข</button>
+      </div>
+      <p class="hint" id="hrMonthNote" role="status"></p>
+      <div class="table-wrap"><table class="hr-table hr-sum"><thead><tr><th data-i18n="attendance.hr.code">รหัสพนักงาน</th><th data-i18n="attendance.hr.name">ชื่อ-นามสกุล</th><th data-i18n="attendance.hr.dept">แผนก</th><th data-i18n="attendance.hr.cDays">มาทำงาน/ตามตาราง (วัน)</th><th data-i18n="attendance.hr.cLate">สาย (ครั้ง · นาที)</th><th data-i18n="attendance.hr.cEarly">ออกก่อน (นาที)</th><th data-i18n="attendance.hr.cOt">OT (ชม.:นาที)</th><th data-i18n="attendance.hr.cHol">ทำงานวันหยุด (ชม.:นาที)</th><th data-i18n="attendance.hr.cLeave">ลา (วัน)</th><th data-i18n="attendance.hr.cAbs">ขาด (วัน)</th><th data-i18n="attendance.hr.cInc">ลงเวลาไม่ครบ</th><th data-i18n="attendance.hr.cFix">แก้ไขโดยผู้จัดการ</th><th data-i18n="attendance.hr.act">จัดการ</th></tr></thead><tbody id="hrSumBody"></tbody></table></div>
+      <div id="hrDayBox" hidden>
+        <h3 id="hrDayH"></h3>
+        <div class="row-actions"><button class="btn ghost" type="button" id="hrEmpCsv" data-i18n="attendance.hr.empCsv">ส่งออกบันทึกของพนักงานคนนี้ (คำขอเข้าถึงข้อมูลตาม PDPA)</button></div>
+        <div class="table-wrap"><table class="hr-table"><thead><tr><th data-i18n="attendance.hr.date">วันที่</th><th data-i18n="attendance.hr.cKind">ประเภทวัน</th><th data-i18n="attendance.hr.cIn">เข้า</th><th data-i18n="attendance.hr.cOut">ออก</th><th data-i18n="attendance.hr.cWork">ทำงาน (ชม.:นาที)</th><th data-i18n="attendance.hr.cLateM">สาย (นาที)</th><th data-i18n="attendance.hr.cEarly">ออกก่อน (นาที)</th><th data-i18n="attendance.hr.cOt">OT (ชม.:นาที)</th><th data-i18n="attendance.hr.cNote">ให้ตรวจ / หมายเหตุ</th><th data-i18n="attendance.hr.act">จัดการ</th></tr></thead><tbody id="hrDayBody"></tbody></table></div>
+      </div>
+    </div>
+
+    <div class="hr-pane" role="tabpanel" id="hr-audit" hidden>
+      <h3 data-i18n="attendance.hr.fixH">แก้ไขเวลา (บันทึกต่อท้ายเท่านั้น ไม่ลบของเดิม)</h3>
+      <form id="hrFixForm" class="hr-grid" novalidate>
+        <label><span data-i18n="attendance.hr.emp">พนักงาน</span><select name="emp" id="hrFixEmp" translate="no" data-i18n-skip></select></label>
+        <label><span data-i18n="attendance.hr.date">วันที่</span><input name="date" id="hrFixDate" type="date" required></label>
+        <label><span data-i18n="attendance.hr.time">เวลา</span><input name="time" type="time"></label>
+        <label><span data-i18n="attendance.hr.ptL">ประเภทการลงเวลา</span><select name="type" id="hrFixType">
+          <option value="in" data-i18n="attendance.hr.pt.in">เข้างาน</option><option value="out" data-i18n="attendance.hr.pt.out">ออกงาน</option>
+          <option value="break_out" data-i18n="attendance.hr.pt.break_out">เริ่มพัก</option><option value="break_in" data-i18n="attendance.hr.pt.break_in">กลับจากพัก</option></select></label>
+        <label><span data-i18n="attendance.hr.reason">เหตุผล / หมายเหตุ</span><input name="reason" id="hrFixReason" maxlength="200" autocomplete="off"></label>
+        <div class="hr-actions"><button class="btn primary" type="submit" data-i18n="attendance.hr.fixAdd">เพิ่มเวลาที่ขาด</button></div>
+        <p class="form-msg" id="hrFixMsg" role="status"></p>
+      </form>
+      <ul class="hr-fixlist" id="hrFixList"></ul>
+      <h3 data-i18n="attendance.hr.auditH">ประวัติการแก้ไข (ใคร · ก่อน · หลัง · เหตุผล)</h3>
+      <p class="hint" id="hrChain" role="status"></p>
+      <div class="table-wrap"><table class="hr-table"><thead><tr><th data-i18n="attendance.hr.at">เวลา</th><th data-i18n="attendance.hr.by">ผู้แก้ไข</th><th data-i18n="attendance.hr.action">รายการ</th><th data-i18n="attendance.hr.emp">พนักงาน</th><th data-i18n="attendance.hr.before">ก่อน</th><th data-i18n="attendance.hr.after">หลัง</th><th data-i18n="attendance.hr.reason">เหตุผล / หมายเหตุ</th></tr></thead><tbody id="hrAuditBody"></tbody></table></div>
+    </div>
+
+    <div class="hr-pane" role="tabpanel" id="hr-data" hidden>
+      <div class="hr-grid">
+        <label><span data-i18n="attendance.hr.devName">ชื่อจุดลงเวลา / สาขา (เครื่องนี้)</span><input id="hrDevName" maxlength="40" autocomplete="off"></label>
+        <label><span data-i18n="attendance.hr.ret">เก็บบันทึกเวลาทำงาน</span><select id="hrRet">
+          <option value="2" data-i18n="attendance.hr.ret2">2 ปี (ขั้นต่ำตามกฎหมาย)</option><option value="3" data-i18n="attendance.hr.ret3">3 ปี</option>
+          <option value="5" data-i18n="attendance.hr.ret5">5 ปี</option><option value="10" data-i18n="attendance.hr.ret10">10 ปี</option></select></label>
+        <label><span data-i18n="attendance.hr.mgrPinSet">ตั้ง/เปลี่ยน PIN ผู้จัดการ (ใช้ยืนยันการแก้ไขและออกจากคิออสก์)</span><input id="hrMgrPinNew" type="password" inputmode="numeric" autocomplete="new-password" maxlength="8"></label>
+        <div class="hr-actions"><button class="btn primary" type="button" id="hrDataSave" data-i18n="attendance.hr.dataSave">บันทึกการตั้งค่า</button></div>
+      </div>
+      <p class="hint" data-i18n="attendance.hr.retNote">พ.ร.บ.คุ้มครองแรงงาน ม.114: เก็บเอกสารเกี่ยวกับการคำนวณค่าจ้าง ค่าล่วงเวลา และค่าทำงานในวันหยุดไว้ไม่น้อยกว่า 2 ปี (หากมีข้อพิพาทให้เก็บจนคดีถึงที่สุด) ระบบลบบันทึกที่เก่ากว่าระยะนี้ให้อัตโนมัติ และไม่ยอมตั้งต่ำกว่า 2 ปี — ระยะนี้แยกจากการลบข้อมูลใบหน้าที่ไม่ได้ใช้ (แท็บลงทะเบียนใบหน้า)</p>
+      <h3 data-i18n="attendance.hr.mergeH">รวมข้อมูลจากหลายจุดลงเวลา</h3>
+      <p class="hint" data-i18n="attendance.hr.mergeHint">แต่ละเครื่องส่งออกไฟล์บันทึกเวลา (ไม่มีภาพ ค่าใบหน้า PIN หรือรหัสบัตร) แล้วนำเข้าที่เครื่องหลัก รายการซ้ำถูกรวมให้อัตโนมัติ</p>
+      <div class="row-actions">
+        <button class="btn ghost" type="button" id="hrExport" data-i18n="attendance.hr.export">ส่งออกไฟล์บันทึกเวลา</button>
+        <label class="btn ghost hr-file"><span data-i18n="attendance.hr.import">นำเข้าไฟล์จากเครื่องอื่น</span><input id="hrImport" type="file" accept=".json,application/json" multiple></label>
+      </div>
+      <p class="form-msg" id="hrDataMsg" role="status"></p>
+    </div>
+  </section>
+
   <p class="note" data-i18n="attendance.s40">เว็บตัวอย่าง: ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้เท่านั้น ค่าลักษณะใบหน้าเข้ารหัสด้วยกุญแจที่อยู่ในเบราว์เซอร์นี้ มีตัวเลือกให้หันหน้าเพื่อตรวจว่าเป็นคนจริง (ปิดไว้เป็นค่าเริ่มต้น ยังไม่ได้วัดผล) แต่ยังไม่มีระบบกันภาพปลอมที่ผ่านการทดสอบ หากใช้งานจริงควรมีฐานข้อมูลฝั่งเซิร์ฟเวอร์ และนโยบายตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล (PDPA)</p>
 </main>
 
@@ -123,7 +323,10 @@
 <script src="lensiq-detect.js?v=3"></script>
 <script src="lensiq-facevault.js?v=1"></script>
 <script src="lensiq-sitecheck.js?v=4"></script>
-<script src="attendance.js?v=14"></script>
+<script src="attendance.js?v=15"></script>
+<script src="lensiq-timeclock.js?v=1"></script>
+<script src="attendance-qr.js?v=1"></script>
+<script src="attendance-hr.js?v=1"></script>
 <script src="lensiq-config.js?v=4"></script>
 </body>
 </html>

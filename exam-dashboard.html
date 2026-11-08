@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="exam.db.title">แดชบอร์ดผู้คุมสอบ | LENSIQ Exam</title>
+<link rel="stylesheet" href="styles.css?v=10">
+<link rel="stylesheet" href="exam.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=13"></script>
+<script src="i18n/zh-exam.js?v=1"></script>
+
+<main class="ex" id="main">
+  <div class="no-print">
+  <h1 data-i18n="exam.db.h1">แดชบอร์ดผู้คุมสอบ</h1>
+  <p class="lead" data-i18n="exam.db.lead">รวมเหตุการณ์จากหน้าผู้เข้าสอบและเครื่องกล้องในห้อง เป็นผังที่นั่งและรายการที่ควรไปดู ระบบแจ้งให้คนไปตรวจเท่านั้น ผู้คุมสอบเป็นผู้ตัดสินทุกกรณี ไม่มีภาพจากกล้องในหน้านี้</p>
+  <p class="status" id="engine" role="status" aria-live="polite"></p>
+
+  <section class="card" aria-labelledby="joinH">
+    <h2 id="joinH" data-i18n="exam.db.joinH">ห้องสอบ</h2>
+    <form id="joinForm" class="form" novalidate>
+      <label><span data-i18n="exam.db.room">รหัสห้องสอบ</span><input id="room" maxlength="24" autocomplete="off" placeholder="เช่น HALL2" data-i18n-attr="placeholder:exam.db.roomPh" required></label>
+      <label><span data-i18n="exam.db.who">ชื่อผู้คุมสอบ (บันทึกกับทุกการตรวจ)</span><input id="who" maxlength="40" autocomplete="name" placeholder="เช่น อ.สมศรี" data-i18n-attr="placeholder:exam.db.whoPh"></label>
+      <label><span data-i18n="exam.db.seats">ที่นั่งในห้อง (เช่น 1-40 หรือ A1,A2)</span><input id="seatRange" maxlength="200" autocomplete="off" placeholder="1-20" data-i18n-attr="placeholder:exam.db.seatsPh"></label>
+      <div class="row-actions" style="grid-column:1/-1">
+        <button class="btn primary" type="submit" data-i18n="exam.db.join">เปิดแดชบอร์ดห้องนี้</button>
+        <button class="btn ghost" type="button" id="demoBtn" data-i18n="exam.db.demo">สาธิต: จำลองเหตุการณ์</button>
+      </div>
+    </form>
+    <details>
+      <summary data-i18n="exam.db.moreH">นำเข้าไฟล์ / เชื่อมหลายเครื่อง</summary>
+      <label><span data-i18n="exam.db.import">นำเข้าไฟล์เหตุการณ์จากเครื่องที่ไม่มีเครือข่าย (.json)</span><input type="file" id="importFile" accept="application/json,.json"></label>
+      <p class="note" data-i18n="exam.db.linkNote">หน้าต่างในเบราว์เซอร์เดียวกันเชื่อมกันเองทันที สำหรับหลายเครื่องในห้อง ใช้ไฟล์นำเข้าด้านบน หรือเครื่องรวมข้อมูลในวง LAN (ตั้งค่า LENSIQ_EXAM_RELAY ดู docs/EXAM.md) ข้อมูลที่ส่งเป็นเหตุการณ์ JSON เท่านั้น</p>
+      <p class="form-msg" id="importMsg" role="status"></p>
+    </details>
+    <div class="kv" id="nodes" role="status"></div>
+  </section>
+
+  <div class="row-actions">
+    <button class="btn ghost" type="button" id="muteBtn" data-i18n="exam.db.mute">เหตุการณ์ทั้งห้อง (ประกาศ / เสียงดัง): พักแจ้งเตือน 60 วินาที</button>
+    <span class="note" id="muteState" role="status"></span>
+  </div>
+
+  <div class="grid2">
+    <section class="card" aria-labelledby="mapH">
+      <h2 id="mapH" data-i18n="exam.db.mapH">ผังที่นั่ง</h2>
+      <p class="note" data-i18n="exam.db.mapP">สีและคำบอกระดับที่ค่อย ๆ ลดลงเองเมื่อไม่มีเหตุการณ์ใหม่: ปกติ · ข้อมูล · เฝ้าดู · ไปตรวจ กรอบเส้นประ = มีเงื่อนไขเฉพาะบุคคล</p>
+      <div class="seatmap" id="seatMap"></div>
+    </section>
+    <section class="card" aria-labelledby="qH">
+      <h2 id="qH"><span data-i18n="exam.db.qH">ที่ควรไปดู</span> (<span id="qCount">0</span>)</h2>
+      <div class="alerts" id="queue" aria-live="polite"></div>
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="accH">
+    <h2 id="accH" data-i18n="exam.db.accH">เงื่อนไขเฉพาะบุคคล (สถาบันกำหนด ไม่ต้องระบุการวินิจฉัย)</h2>
+    <form id="accForm" class="form" novalidate>
+      <label><span data-i18n="exam.db.accSeat">เลขที่นั่ง</span><input id="accSeat" maxlength="16" autocomplete="off"></label>
+      <label class="check"><input type="checkbox" id="accGaze"> <span data-i18n="exam.db.accGaze">ไม่ดูทิศสายตาและการหันไปทางข้างเคียง</span></label>
+      <label class="check"><input type="checkbox" id="accRead"> <span data-i18n="exam.db.accRead">อ่านออกเสียงได้ (ไม่บันทึกปากขยับ)</span></label>
+      <label class="check"><input type="checkbox" id="accBreaks"> <span data-i18n="exam.db.accBreaks">พักได้บ่อยขึ้น (ที่นั่งว่างนานขึ้นได้ ไม่แจ้งออกก่อนเวลา)</span></label>
+      <label><span data-i18n="exam.db.accNoFace">ยืดเวลา “ไม่เห็นใบหน้า”</span><select id="accNoFace"><option value="1" data-i18n="exam.db.x1">ปกติ</option><option value="2" data-i18n="exam.db.x2">2 เท่า</option><option value="3" data-i18n="exam.db.x3">3 เท่า</option></select></label>
+      <label><span data-i18n="exam.db.accTic">เพิ่มเกณฑ์การเคลื่อนไหว (เช่น อาการกระตุก)</span><select id="accTic"><option value="1" data-i18n="exam.db.x1">ปกติ</option><option value="1.5" data-i18n="exam.db.x15">1.5 เท่า</option><option value="2" data-i18n="exam.db.x2">2 เท่า</option></select></label>
+      <div class="row-actions" style="grid-column:1/-1"><button class="btn ghost" type="submit" data-i18n="exam.db.accSave">บันทึกเงื่อนไข</button></div>
+    </form>
+    <ul class="seat-list" id="accList"></ul>
+  </section>
+
+  <section class="card" aria-labelledby="sumH">
+    <h2 id="sumH" data-i18n="exam.db.sumH">สรุปห้องสอบ</h2>
+    <div class="kv" id="summary"></div>
+    <h3 data-i18n="exam.db.precH">ตรวจความแม่นยำหน้างาน (ผู้คุมสอบนับว่าแจ้งถูกหรือผิด)</h3>
+    <p class="note" data-i18n="exam.db.precP">กด “แจ้งถูก” เมื่อไปดูแล้วเห็นตามที่ระบบบอก (เช่น มีโทรศัพท์จริง) ไม่ได้แปลว่ามีการทุจริต กด “แจ้งผิด” เมื่อไม่เป็นอย่างที่บอก ช่วงความเชื่อมั่น 95% แบบ Wilson</p>
+    <div class="table-wrap"><table><thead><tr><th data-i18n="exam.db.tSig">ข้อสังเกต</th><th data-i18n="exam.db.tRight">แจ้งถูก</th><th data-i18n="exam.db.tWrong">แจ้งผิด</th><th data-i18n="exam.db.tPrec">ความแม่นยำ (95%)</th></tr></thead><tbody id="precBody"></tbody></table></div>
+  </section>
+
+  <section class="card" aria-labelledby="logH">
+    <h2 id="logH" data-i18n="exam.db.logH">บันทึกเหตุการณ์ (เรียงตามเวลา)</h2>
+    <div class="row-actions">
+      <button class="btn ghost" type="button" id="csvBtn" data-i18n="exam.db.csv">ส่งออก CSV</button>
+      <button class="btn ghost" type="button" id="printBtn" data-i18n="exam.db.print">พิมพ์รายงานสำหรับคณะกรรมการ (PDF)</button>
+      <button class="btn ghost danger" type="button" id="clearBtn" data-i18n="exam.db.clear">ล้างข้อมูลห้องนี้</button>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th data-i18n="exam.db.tTime">เวลา</th><th data-i18n="exam.db.tSeat">ที่นั่ง</th><th data-i18n="exam.db.tReason">เหตุผล</th><th data-i18n="exam.db.tLvl">ระดับ</th><th data-i18n="exam.db.tWho">ผู้ตรวจ / ผล</th><th data-i18n="exam.db.tTally">แจ้งถูกไหม</th></tr></thead><tbody id="logBody"></tbody></table></div>
+    <p class="note" data-i18n="exam.db.keep">ข้อมูลเก็บในเบราว์เซอร์นี้เท่านั้น (ไม่มีภาพ) ส่งออกให้คณะกรรมการแล้วล้างข้อมูลตามระเบียบของสถาบัน</p>
+  </section>
+  </div>
+
+  <section class="print-only" id="report" aria-hidden="true"></section>
+</main>
+
+<script src="lensiq-exam.js?v=1"></script>
+<script src="exam-ui.js?v=1"></script>
+<script src="exam-link.js?v=1"></script>
+<script src="exam-dashboard.js?v=1"></script>
+<script src="lensiq-config.js?v=4"></script>
+</body>
+</html>

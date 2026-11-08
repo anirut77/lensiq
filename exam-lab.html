@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="exam.lab.title">หน้าผู้เข้าสอบ | LENSIQ Exam</title>
+<link rel="stylesheet" href="styles.css?v=10">
+<link rel="stylesheet" href="exam.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=13"></script>
+<script src="i18n/zh-exam.js?v=1"></script>
+
+<main class="ex" id="main">
+  <h1 data-i18n="exam.lab.h1">หน้าผู้เข้าสอบ (ห้องคอมพิวเตอร์ / เว็บแคม)</h1>
+  <p class="lead" data-i18n="exam.lab.lead">กล้องของเครื่องนี้ช่วยผู้คุมสอบสังเกตสิ่งที่เห็นได้ ภาพประมวลผลในเครื่องนี้เท่านั้น ส่งไปที่ผู้คุมสอบเฉพาะเหตุการณ์ (เวลาและประเภท) ไม่มีภาพ ไม่มีเสียง ระบบไม่ตัดสินว่ามีการทุจริต</p>
+  <ol class="steps" id="steps" aria-label="ขั้นตอน" data-i18n-attr="aria-label:exam.lab.stepsL">
+    <li data-step="notice" aria-current="step" data-i18n="exam.lab.st1">1 ประกาศและความยินยอม</li>
+    <li data-step="cam" data-i18n="exam.lab.st2">2 กล้องและแสง</li>
+    <li data-step="cal" data-i18n="exam.lab.st3">3 ปรับเทียบ</li>
+    <li data-step="exam" data-i18n="exam.lab.st4">4 ทำข้อสอบ</li>
+  </ol>
+  <p class="status" id="engine" role="status" aria-live="polite"></p>
+
+  <section class="card" id="stepNotice" aria-labelledby="noticeH">
+    <h2 id="noticeH" data-i18n="exam.lab.nH">ประกาศก่อนเริ่มสอบ</h2>
+    <ul class="ticks">
+      <li data-i18n="exam.lab.n1">สิ่งที่สังเกต: ไม่เห็นใบหน้า หลายใบหน้า หันศีรษะออกจากจอนาน โทรศัพท์หรือหนังสือในภาพ การสลับหน้าต่าง การออกจากเต็มจอ การวางข้อความยาว จอที่สอง และกล้องเสมือน</li>
+      <li data-i18n="exam.lab.n2">สิ่งที่ไม่ทำ: ไม่บันทึกภาพหรือเสียง ไม่ฟังคำพูด ไม่สแกนห้อง ไม่วิเคราะห์อารมณ์ ไม่จดจำว่าคุณเป็นใคร และไม่ให้ตกอัตโนมัติ</li>
+      <li data-i18n="exam.lab.n3">ทุกการแจ้งเป็นเพียง “ให้ผู้คุมสอบไปดู” ผู้คุมสอบเป็นผู้ตัดสินเสมอ คุณจะเห็นข้อความเตือนก่อน และเห็นบันทึกเหตุการณ์ของตัวเองได้ตลอด</li>
+      <li data-i18n="exam.lab.n4">บันทึกเหตุการณ์เก็บไว้ให้คณะกรรมการสอบตรวจสอบตามระเบียบของสถาบัน คุณขอดูหรือร้องเรียนได้ที่เจ้าหน้าที่คุ้มครองข้อมูลส่วนบุคคล</li>
+    </ul>
+    <form id="noticeForm" class="form" novalidate>
+      <label><span data-i18n="exam.lab.room">รหัสห้องสอบ</span><input id="room" name="room" maxlength="24" autocomplete="off" inputmode="latin" placeholder="เช่น LAB1" data-i18n-attr="placeholder:exam.lab.roomPh" required></label>
+      <label><span data-i18n="exam.lab.seat">เลขที่นั่ง / เลขประจำตัวสอบ</span><input id="seat" name="seat" maxlength="16" autocomplete="off" placeholder="เช่น 12" data-i18n-attr="placeholder:exam.lab.seatPh" required></label>
+      <label class="check" style="grid-column:1/-1"><input type="checkbox" id="consent" name="consent" required> <span data-i18n="exam.lab.consent">ข้าพเจ้าได้อ่านประกาศแล้ว และยินยอมให้ใช้กล้องของเครื่องนี้ช่วยผู้คุมสอบตามที่ระบุ</span></label>
+      <div class="row-actions" style="grid-column:1/-1">
+        <button class="btn primary" type="submit" id="toCam" data-i18n="exam.lab.next1">ถัดไป: ตรวจกล้องและแสง</button>
+        <button class="btn ghost" type="button" id="decline" data-i18n="exam.lab.decline">ไม่ยินยอม / ขอทางเลือกอื่น</button>
+      </div>
+      <p class="form-msg" id="noticeMsg" role="status" style="grid-column:1/-1"></p>
+    </form>
+    <details>
+      <summary data-i18n="exam.lab.cfgH">ตั้งค่าของผู้คุมสอบสำหรับวิชานี้</summary>
+      <div class="form">
+        <label class="check"><input type="checkbox" id="allowBook"> <span data-i18n="exam.lab.allowBook">อนุญาตหนังสือ / เอกสาร</span></label>
+        <label class="check"><input type="checkbox" id="allowLaptop"> <span data-i18n="exam.lab.allowLaptop">อนุญาตแล็ปท็อปเครื่องที่สอง</span></label>
+        <label class="check"><input type="checkbox" id="allowScreen"> <span data-i18n="exam.lab.allowScreen">อนุญาตจอที่สอง</span></label>
+        <label class="check"><input type="checkbox" id="mouthOn" checked> <span data-i18n="exam.lab.mouthOn">บันทึกปากขยับต่อเนื่อง (ข้อมูลเท่านั้น ไม่ฟังเสียง)</span></label>
+        <label><span data-i18n="exam.lab.calLen">เวลาปรับเทียบ</span>
+          <select id="calLen"><option value="120" data-i18n="exam.lab.cal120">2 นาที (แนะนำ)</option><option value="60" data-i18n="exam.lab.cal60">1 นาที</option><option value="15" data-i18n="exam.lab.cal15">15 วินาที (สาธิต)</option></select></label>
+      </div>
+      <p class="note" data-i18n="exam.lab.gazeNote">การดูทิศสายตายังไม่เปิดใช้: จุดใบหน้า 68 จุดไม่มีตำแหน่งม่านตา จึงวัดสายตาไม่ได้อย่างน่าเชื่อถือ (แผนรุ่นถัดไป น้ำหนักต่ำ ไม่แจ้งเพียงลำพัง)</p>
+    </details>
+  </section>
+
+  <section class="card" id="stepCam" hidden aria-labelledby="camH">
+    <h2 id="camH" data-i18n="exam.lab.camH">ตรวจกล้องและแสง</h2>
+    <div class="grid2">
+      <div>
+        <div class="cam-wrap" id="camWrap"><video id="video" autoplay muted playsinline></video><canvas id="overlay"></canvas></div>
+        <div id="camPick"></div>
+      </div>
+      <div>
+        <p><span data-i18n="exam.lab.light">คุณภาพภาพและแสง</span> <b id="lightVal">–</b></p>
+        <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="lightMeter" aria-label="คุณภาพภาพและแสง" data-i18n-attr="aria-label:exam.lab.light"><i></i></div>
+        <p class="status" id="lightMsg" role="status"></p>
+        <ul class="ticks" id="checks"></ul>
+        <p class="note" data-i18n="exam.lab.camTip">นั่งให้เห็นใบหน้าเต็ม แสงอยู่ด้านหน้า ไม่หันหลังให้หน้าต่าง ถ้าระบบเห็นใบหน้าได้ไม่ดี เป็นเรื่องการติดตั้ง ไม่ใช่ความผิดของคุณ</p>
+        <div class="row-actions"><button class="btn primary" type="button" id="toCal" data-i18n="exam.lab.next2">ถัดไป: ปรับเทียบ</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="stepCal" hidden aria-labelledby="calH">
+    <h2 id="calH" data-i18n="exam.lab.calH">ปรับเทียบท่าศีรษะ</h2>
+    <p data-i18n="exam.lab.calP">มองจอตามปกติเหมือนตอนทำข้อสอบ ระบบจะจำท่าศีรษะปกติของคุณ เพื่อเทียบการหันศีรษะกับท่านี้ ไม่ใช่กับค่ามาตรฐาน</p>
+    <p class="status" id="calMsg" role="status" aria-live="polite"></p>
+    <div class="meter"><i id="calBar"></i></div>
+    <div class="row-actions"><button class="btn primary" type="button" id="toExam" disabled data-i18n="exam.lab.next3">เข้าเต็มจอและเริ่มสอบ</button></div>
+  </section>
+
+  <section class="card" id="stepExam" hidden aria-labelledby="examH">
+    <h2 id="examH" data-i18n="exam.lab.examH">ทำข้อสอบ</h2>
+    <div class="prompt" id="prompt" role="alert" hidden></div>
+    <div class="row-actions"><button class="btn ghost" type="button" id="reFs" hidden data-i18n="exam.lab.reFs">กลับเข้าเต็มจอ</button></div>
+    <label><span data-i18n="exam.lab.answer">พื้นที่ทำข้อสอบ (ตัวอย่าง — ใช้ระบบข้อสอบของสถาบันได้)</span><textarea id="answer" rows="6"></textarea></label>
+    <div class="row-actions"><button class="btn ghost danger" type="button" id="endExam" data-i18n="exam.lab.end">ส่งข้อสอบและปิดกล้อง</button></div>
+  </section>
+
+  <section class="card" aria-labelledby="ownH">
+    <h2 id="ownH" data-i18n="exam.lab.ownH">บันทึกเหตุการณ์ของฉัน</h2>
+    <p class="note" data-i18n="exam.lab.ownP">ทุกเหตุการณ์ที่ระบบบันทึกจากเครื่องนี้ แสดงที่นี่เหมือนที่ผู้คุมสอบเห็น ไม่มีคะแนน มีแต่เวลาและสิ่งที่สังเกตได้</p>
+    <ul class="own-log" id="ownLog"><li class="empty" data-i18n="exam.lab.ownEmpty">ยังไม่มีเหตุการณ์</li></ul>
+    <div class="row-actions"><button class="btn ghost" type="button" id="exportOwn" data-i18n="exam.lab.export">ส่งออกบันทึก (ไฟล์สำหรับผู้คุมสอบ)</button></div>
+  </section>
+  <p class="note" data-i18n="exam.lab.cant">หน้าเว็บมองไม่เห็นโปรแกรมอื่นบนเครื่อง หรืออุปกรณ์ที่อยู่นอกกล้อง การสอบที่มีผลสูงควรใช้ Safe Exam Browser หรือ Chrome โหมดคีออสก์ร่วมด้วย</p>
+</main>
+<div class="ex-monitor" id="monitor" hidden role="status"><i aria-hidden="true"></i><span data-i18n="exam.lab.mon">กล้องช่วยผู้คุมสอบทำงานอยู่ · ไม่มีการส่งภาพ</span></div>
+
+<script src="vendor/face-api.js"></script>
+<script src="lensiq-camera.js?v=4"></script>
+<script src="lensiq-detect.js?v=3"></script>
+<script src="lensiq-sitecheck.js?v=4"></script>
+<script src="lensiq-exam.js?v=1"></script>
+<script src="exam-ui.js?v=1"></script>
+<script src="exam-link.js?v=1"></script>
+<script src="exam-lab.js?v=1"></script>
+<script src="lensiq-config.js?v=4"></script>
+</body>
+</html>

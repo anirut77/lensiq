@@ -213,6 +213,7 @@ $("#regForm").addEventListener("submit", async e => {
   if (faceState === "locked") return set(LQVault.STATE_TH.locked, "err");
   { const why = LQVault.enrollBlockReason(); if (why) return set(why, "err"); } // เข้ารหัสไม่ได้ (เช่น ไม่ใช่ https) = ไม่เก็บใบหน้า
   if (people.some(p => p.code === code)) return set("รหัสนี้ลงทะเบียนแล้ว", "err");
+  { const why = HR() && HR().blockFace(code); if (why) return set(why, "err"); } // employee chose PIN/QR only: no face data
   btn.disabled = true; set("กำลังสแกน กรุณามองกล้องนิ่ง ๆ...", "");
   try {
     const descriptor = await capture(3, (pose, i, n) => set(`กำลังสแกน ${i}/${n}: ${pose}...`, ""));
@@ -339,11 +340,15 @@ function notify(p, r) {
   const t = Date.now();
   if (r.kind !== "ok" && t - (lastSaid.get(p.id) || 0) < 2500) return; // จำกัดความถี่รายคน
   lastSaid.set(p.id, t); lastMsgAt = t;
+  if (r.msg) return say(r.msg, RES_CLS[r.kind]);
   say(r.kind === "ok" ? `✓ เช็คชื่อสำเร็จ: ${p.name} (${r.time})` : r.kind === "dup" ? `${p.name} ${r.text}` : r.text, RES_CLS[r.kind]);
 }
 
 // บันทึกการเข้าเรียน -> {kind:'ok'|'dup'|'err', text, time?}
+// employee mode (attendance-hr.js): a face check-in becomes a time punch (in / out / break) instead of a training log
+const HR = () => { const h = /** @type {any} */ (window).LQHR; return h && h.active() ? h : null; };
 function checkIn(p) {
+  if (HR()) return HR().facePunch(p);
   const s = session(), d = day();
   if (!s) return { kind: "err", text: "กรุณากรอกหัวข้อ/รอบการอบรมก่อน" };
   const already = logs.find(l => l.pid === p.id && l.session === s && l.date === d);
@@ -360,7 +365,7 @@ const UA = LQCam.unattended ? LQCam.unattended({ container: document.getElementB
 $("#startScan").onclick = () => {
   if (!ready) return say("กล้องยังไม่พร้อม — ดูข้อความในกรอบกล้อง หรือกดอนุญาตกล้องที่เบราว์เซอร์ แล้วรีเฟรช", "err");
   if (!people.length) return say("ยังไม่มีผู้ลงทะเบียน กรุณาลงทะเบียนใบหน้าก่อน", "warn");
-  if (!session()) { needSession(); return say("กรุณากรอก \"หัวข้อ/รอบการอบรม\" ที่ช่องด้านบนก่อน แล้วกดเริ่มสแกนอีกครั้ง", "warn"); }
+  if (!session() && !HR()) { needSession(); return say("กรุณากรอก \"หัวข้อ/รอบการอบรม\" ที่ช่องด้านบนก่อน แล้วกดเริ่มสแกนอีกครั้ง", "warn"); }
   scanning = !scanning;
   $("#startScan").textContent = scanning ? "หยุดสแกน" : "เริ่มสแกน";
   if (UA) { if (scanning) UA.start(); else UA.stop(); }
@@ -372,9 +377,9 @@ function renderLogs() {
   const s = session(), d = day();
   const today = logs.filter(l => l.date === d && (!s || l.session === s));
   $("#todayCount").textContent = today.length;
-  $("#recent").innerHTML = today.slice().reverse().map(l => `<li><span>${esc(l.name)} <small>${esc(l.code)}</small></span><small>${esc(l.time)}</small></li>`).join("");
+  $("#recent").innerHTML = today.slice().reverse().map(l => `<li><span><span translate="no" data-i18n-skip>${esc(l.name)}</span> <small translate="no" data-i18n-skip>${esc(l.code)}</small></span><small>${esc(l.time)}</small></li>`).join("");
   $("#logBody").innerHTML = logs.slice().reverse().map(l =>
-    `<tr><td>${esc(l.date)} ${esc(l.time)}</td><td>${esc(l.name)}</td><td>${esc(l.code)}</td><td>${esc(l.session)}</td></tr>`).join("")
+    `<tr><td>${esc(l.date)} ${esc(l.time)}</td><td translate="no" data-i18n-skip>${esc(l.name)}</td><td translate="no" data-i18n-skip>${esc(l.code)}</td><td translate="no" data-i18n-skip>${esc(l.session)}</td></tr>`).join("")
     || `<tr><td colspan="4">ยังไม่มีบันทึก</td></tr>`;
 }
 // round 11: ป้ายแจ้งการลบอัตโนมัติ (ข้อมูลใบหน้าในเครื่องนี้ + คนที่จะหมดอายุภายใน 30 วัน)
@@ -392,7 +397,7 @@ function renderExpiry() {
 function renderPeople() {
   renderExpiry();
   $("#peopleCount").textContent = people.length;
-  $("#people").innerHTML = people.map(p => `<li><span>${esc(p.name)} <small>${esc(p.code)}</small>${Array.isArray(p.descriptor) ? "" : ' <small class="hint">(อ่านข้อมูลใบหน้าไม่ได้)</small>'}</span><button type="button" data-id="${p.id}" aria-label="ลบข้อมูลใบหน้าของ ${esc(p.name)}">ลบข้อมูล</button></li>`).join("");
+  $("#people").innerHTML = people.map(p => `<li><span><span translate="no" data-i18n-skip>${esc(p.name)}</span> <small translate="no" data-i18n-skip>${esc(p.code)}</small>${Array.isArray(p.descriptor) ? "" : ' <small class="hint">(อ่านข้อมูลใบหน้าไม่ได้)</small>'}</span><button type="button" data-id="${p.id}" aria-label="ลบข้อมูลใบหน้าของ ${esc(p.name)}">ลบข้อมูล</button></li>`).join("");
 }
 $("#people").addEventListener("click", e => {
   const id = e.target.dataset.id; if (!id) return;
@@ -452,10 +457,10 @@ $("#clearLogs").onclick = () => {
 // ---------- แท็บ ----------
 document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
   document.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", x === t));
-  ["checkin", "register", "records", "check"].forEach(n => { const el = $("#pane-" + n); if (el) el.hidden = n !== t.dataset.t; });
+  ["checkin", "register", "records", "check", "pin"].forEach(n => { const el = $("#pane-" + n); if (el) el.hidden = n !== t.dataset.t; });
   mode = t.dataset.t;
   if (mode !== "check" && SCA) scaFinish();
-  if (mode !== "checkin" && mode !== "check" && scanning) $("#startScan").click();
+  if (mode !== "checkin" && mode !== "check" && mode !== "pin" && scanning) $("#startScan").click();
   if (mode === "check" && SCA) scaWho();
 });
 
@@ -585,6 +590,8 @@ if (scaPanel) {
   scaPanel.q(".sc-who").addEventListener("change", () => { scaPanel.q(".sc-sidl").hidden = scaPanel.q(".sc-who").value !== "stranger"; });
   scaHist.render(scaPanel.hist); renderField();
 }
+// bridge for attendance-hr.js (employee time attendance): read-only view of this page's state + the status line
+window.__ATT_CORE = { get people() { return people; }, get ready() { return ready; }, get scanning() { return scanning; }, say, video, isTest: TEST };
 window.__ATT_SC = { get active() { return SCA; }, get last() { return SCA_LAST; }, get field() { return { ...fieldStats }; } };
 
 renderPeople(); renderLogs(); init();

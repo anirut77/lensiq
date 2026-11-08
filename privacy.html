@@ -70,6 +70,7 @@
   <section id="p4"><h2>4. ข้อมูลชีวมิติและข้อมูลอ่อนไหว</h2>
     <p>ฟีเจอร์จดจำลูกค้า เช็คชื่อ และนับผู้เข้าชมไม่ซ้ำ สร้างค่าตัวเลขลักษณะใบหน้า (ข้อมูลชีวมิติ ซึ่งเป็นข้อมูลอ่อนไหวตามมาตรา 26) ค่าเหล่านี้เก็บแบบเข้ารหัส AES-256 ในเบราว์เซอร์ของอุปกรณ์ที่ใช้งานเท่านั้น และลบอัตโนมัติตามระยะที่ตั้งไว้ <b>เราไม่ได้รับ ไม่เก็บ และไม่สามารถถอดรหัสข้อมูลนี้</b> องค์กรที่ใช้ฟีเจอร์ต้องขอความยินยอมโดยชัดแจ้งจากเจ้าของใบหน้าก่อน และต้องมีทางเลือกที่ไม่ใช้ใบหน้า</p>
     <p>การอ่านโหงวเฮ้งและลายมือใช้จุดบนใบหน้าหรือมือเพื่อคำนวณในเครื่องขณะใช้งาน และไม่เก็บค่าที่ใช้ระบุตัวบุคคล</p>
+    <p id="p4-new"><b>ระบบใหม่ (นำร่อง) ประมวลผลบนอุปกรณ์ของลูกค้าธุรกิจเช่นกัน:</b> <b>LENSIQ Gate</b> อ่านป้ายทะเบียนรถ ซึ่งเป็น<b>ข้อมูลส่วนบุคคล</b> (เชื่อมโยงถึงเจ้าของรถได้) จึงต้องติดป้ายแจ้งที่ทางเข้า กำหนดระยะเวลาเก็บ และให้เจ้าหน้าที่ยืนยันทุกครั้ง · <b>LENSIQ Exam</b> ส่งเพียง<b>สัญญาณ</b>ให้ผู้คุมสอบไปดู ไม่วิเคราะห์อารมณ์ ไม่ให้คะแนนความน่าสงสัย ไม่ส่งภาพ และ<b>คนเป็นผู้ตัดสินเสมอ</b> ระบบไม่ตัดสินการทุจริต · <b>ลงเวลาทำงานพนักงาน</b> (หน้าเช็คชื่อ) เก็บบันทึกเวลาในเบราว์เซอร์ของนายจ้าง แยกจากข้อมูลใบหน้า และเลือกใช้ PIN/QR แทนใบหน้าได้ · <b>ระบบโซน</b> (คิว โต๊ะ พื้นที่หวงห้าม ช่องจอด) นับเป็นกรอบไม่ระบุตัวตน ไม่เก็บภาพ</p>
   </section>
 
   <section id="p5"><h2>5. ผู้รับข้อมูลและผู้ประมวลผลข้อมูล</h2>
@@ -103,6 +104,9 @@
         <tr><td>สถิติการใช้งานแบบรายเหตุการณ์</td><td>90 วัน (ลบอัตโนมัติ) ยอดรวมรายวันที่ไม่ระบุตัวตนเก็บต่อได้</td></tr>
         <tr><td>อีเมลและรายงานปัญหา</td><td><span class="ph num" data-seller="draft">24</span> เดือนหลังปิดเรื่อง</td></tr>
         <tr><td>บันทึกความปลอดภัย (ค่าแฮช IP รายวัน)</td><td><span class="ph num" data-seller="draft">90</span> วัน</td></tr>
+        <tr><td>บันทึกเวลาทำงานพนักงาน (ลงเวลา การแก้ไขโดยหัวหน้างาน) — เก็บในเบราว์เซอร์ของนายจ้าง ไม่ส่งให้เรา</td><td>อย่างน้อย 2 ปีตามกฎหมายคุ้มครองแรงงาน (นายจ้างกำหนด) แยกจากระยะเก็บข้อมูลใบหน้า</td></tr>
+        <tr><td>ป้ายทะเบียนรถ ภาพครอปป้าย และบันทึกเข้าออก (LENSIQ Gate) — อยู่ในอุปกรณ์ของผู้ประกอบการ</td><td>ภาพครอป 7–30 วัน บันทึกตามที่ผู้ประกอบการกำหนดและแจ้งบนป้าย ใบเสร็จ 5 ปี</td></tr>
+        <tr><td>สัญญาณและบันทึกการคุมสอบ (LENSIQ Exam) — อยู่ในอุปกรณ์ของผู้จัดสอบ ไม่มีภาพ</td><td>ตามที่ผู้จัดสอบกำหนดและแจ้งผู้เข้าสอบ</td></tr>
       </tbody>
     </table></div>
   </section>
@@ -134,6 +138,7 @@
         <tr><td>Cloudflare Turnstile</td><td>สคริปต์และคุกกี้ของ Cloudflare (เมื่อเปิดระบบป้องกันบอท)</td><td>ตรวจว่าเป็นคนจริงก่อนใช้ผู้ช่วยเขียน</td><td>ตามนโยบาย Cloudflare</td></tr>
         <tr><td>ค่าตั้งและสถิติของแต่ละหน้า (เช่น <code>st-*</code>, <code>booth-*</code>, <code>sg-*</code>, <code>*-stats</code>)</td><td>localStorage / IndexedDB (จำเป็นต่อฟีเจอร์)</td><td>เก็บค่าตั้ง ตัวนับ และข้อมูลที่คุณบันทึกในเครื่องนั้น ไม่ส่งให้เรา</td><td>จนกว่าจะล้างในหน้า หรือล้างข้อมูลไซต์</td></tr>
         <tr><td>Cache Storage (<code>lq-models-*</code>)</td><td>แคชของ service worker</td><td>เก็บไฟล์โมเดลให้ใช้งานออฟไลน์ได้</td><td>เปลี่ยนเมื่อมีเวอร์ชันใหม่</td></tr>
+        <tr><td>ระบบใหม่ (นำร่อง): <code>lq-exam-*</code> · <code>lq-gate-parking*</code>, <code>lq-gate-village*</code> · <code>att-hr-*</code> · <code>lqq-*</code>, <code>lqt-*</code>, <code>lqa-*</code>, <code>lqb-*</code>, <code>lqz-cam-*</code> · <code>lq-sol-filter</code></td><td>localStorage / IndexedDB (จำเป็นต่อฟีเจอร์)</td><td>ค่าตั้ง ที่นั่ง/โซน บันทึกสัญญาณ บันทึกเวลา และบันทึกเข้าออกที่ผู้ใช้บันทึกในเครื่องนั้น ไม่ส่งให้เรา ไม่มีภาพจากกล้องสด (ยกเว้นภาพครอปป้ายทะเบียนที่ลบอัตโนมัติ)</td><td>ตามระยะที่ตั้งในหน้านั้น จนกว่าจะลบ หรือล้างข้อมูลไซต์</td></tr>
       </tbody>
     </table></div>
   </section>
@@ -205,6 +210,7 @@
   <section id="en-p4"><h2>4. Biometric and sensitive data</h2>
     <p>Customer recognition, check-in and unique-visitor counting create numeric face templates (biometric data, sensitive data under s.26). They are stored encrypted with AES-256 in the browser of the device in use only, and deleted automatically after the configured period. <b>We do not receive, store or have the means to decrypt them.</b> An organisation using these features must first obtain explicit consent from the person and offer a non-face alternative.</p>
     <p>Face and palm reading use points on the face or hand for an on-device calculation while you use the page and keep no identifying template.</p>
+    <p id="en-p4-new"><b>The new pilot systems also run on the business customer's devices:</b> <b>LENSIQ Gate</b> reads licence plates, which are <b>personal data</b> (they can be linked to the owner), so a sign must be posted at the entrance, a retention period set, and staff confirm every read · <b>LENSIQ Exam</b> only sends <b>signals</b> for an invigilator to check: no emotion analysis, no suspicion score, no images sent, and <b>a person always decides</b>; the system never decides cheating · <b>Employee time attendance</b> (check-in page) keeps time records in the employer's browser, separate from face data, with PIN/QR as an alternative to the face · <b>Zone systems</b> (queue, tables, restricted zones, parking bays) count anonymous boxes and keep no images.</p>
   </section>
 
   <section id="en-p5"><h2>5. Recipients and processors</h2>
@@ -238,6 +244,9 @@
         <tr><td>Event-level usage statistics</td><td>90 days (deleted automatically); anonymous daily totals may be kept</td></tr>
         <tr><td>E-mails and problem reports</td><td><span class="ph num" data-seller="draft">24</span> months after the case is closed</td></tr>
         <tr><td>Security logs (daily IP hash)</td><td><span class="ph num" data-seller="draft">90</span> days</td></tr>
+        <tr><td>Employee time records (punches, manager corrections), kept in the employer's browser and never sent to us</td><td>At least 2 years under labour protection law (set by the employer), separate from face-data retention</td></tr>
+        <tr><td>Licence plates, plate crops and entry/exit logs (LENSIQ Gate), on the operator's device</td><td>Crops 7–30 days; logs as set by the operator and stated on the sign; receipts 5 years</td></tr>
+        <tr><td>Exam signals and invigilation logs (LENSIQ Exam), on the exam organiser's device, no images</td><td>As set by the exam organiser and stated to candidates</td></tr>
       </tbody>
     </table></div>
   </section>
@@ -269,6 +278,7 @@
         <tr><td>Cloudflare Turnstile</td><td>Cloudflare script and cookie (when bot protection is on)</td><td>Checks you are human before the writing assistant is used</td><td>Per Cloudflare's policy</td></tr>
         <tr><td>Page settings and statistics (e.g. <code>st-*</code>, <code>booth-*</code>, <code>sg-*</code>, <code>*-stats</code>)</td><td>localStorage / IndexedDB (needed by the feature)</td><td>Settings, counters and data you save on that device; never sent to us</td><td>Until cleared on the page or with site data</td></tr>
         <tr><td>Cache Storage (<code>lq-models-*</code>)</td><td>Service-worker cache</td><td>Keeps model files for offline use</td><td>Replaced with each new version</td></tr>
+        <tr><td>New pilot systems: <code>lq-exam-*</code> · <code>lq-gate-parking*</code>, <code>lq-gate-village*</code> · <code>att-hr-*</code> · <code>lqq-*</code>, <code>lqt-*</code>, <code>lqa-*</code>, <code>lqb-*</code>, <code>lqz-cam-*</code> · <code>lq-sol-filter</code></td><td>localStorage / IndexedDB (needed for the feature)</td><td>Settings, seats/zones, signal logs, time records and entry/exit logs saved on that device; never sent to us, and no live camera frames (except plate crops, which are deleted automatically)</td><td>As set on that page, until deleted, or until site data is cleared</td></tr>
       </tbody>
     </table></div>
   </section>
@@ -340,6 +350,7 @@
   <section id="zh-p4"><h2>4. 生物特征与敏感数据</h2>
     <p>顾客识别、签到和独立访客计数会生成数字化的人脸模板（生物特征数据，属第 26 条规定的敏感数据）。这些模板以 AES-256 加密，仅保存在所用设备的浏览器中，并在设定期限后自动删除。<b>我们不会收到、保存，也无法解密这些数据。</b>使用这些功能的组织须事先取得本人的明示同意，并提供不使用人脸的替代方式。</p>
     <p>面相和手相仅在您使用页面时利用面部或手部的点位在设备上计算，不保存可识别身份的模板。</p>
+    <p id="zh-p4-new"><b>新的试点系统同样在企业客户的设备上运行：</b><b>LENSIQ Gate</b> 识别车牌，车牌属于<b>个人数据</b>（可关联到车主），因此须在入口张贴告示、设定保存期限，并由工作人员确认每次识别 · <b>LENSIQ Exam</b> 只发出<b>提示信号</b>供监考员查看：不做情绪分析，不给可疑评分，不发送图像，<b>始终由人决定</b>；系统从不判定作弊 · <b>员工考勤打卡</b>（签到页面）将考勤记录保存在雇主的浏览器中，与人脸数据分开，并可用 PIN/二维码代替人脸 · <b>区域系统</b>（排队、餐桌、禁区、车位）仅统计匿名框，不保存图像。</p>
   </section>
 
   <section id="zh-p5"><h2>5. 接收方与处理者</h2>
@@ -373,6 +384,9 @@
         <tr><td>逐条事件的使用统计</td><td>90 天（自动删除）；可保留匿名的每日汇总</td></tr>
         <tr><td>邮件与问题报告</td><td>结案后 <span class="ph num" data-seller="draft">24</span> 个月</td></tr>
         <tr><td>安全日志（每日 IP 哈希）</td><td><span class="ph num" data-seller="draft">90</span> 天</td></tr>
+        <tr><td>员工考勤记录（打卡、主管更正），保存在雇主的浏览器中，不发送给我们</td><td>依劳动保护法至少 2 年（由雇主设定），与人脸数据的保存期限分开</td></tr>
+        <tr><td>车牌、车牌裁剪图与进出记录（LENSIQ Gate），保存在经营者的设备上</td><td>裁剪图 7–30 天；记录按经营者设定并在告示中写明；收据 5 年</td></tr>
+        <tr><td>监考提示信号与记录（LENSIQ Exam），保存在考试主办方的设备上，不含图像</td><td>按考试主办方设定并告知考生</td></tr>
       </tbody>
     </table></div>
   </section>
@@ -404,6 +418,7 @@
         <tr><td>Cloudflare Turnstile</td><td>Cloudflare 脚本和 Cookie（启用防机器人时）</td><td>在使用写作助手前确认您是真人</td><td>按 Cloudflare 政策</td></tr>
         <tr><td>各页面的设置和统计（如 <code>st-*</code>、<code>booth-*</code>、<code>sg-*</code>、<code>*-stats</code>）</td><td>localStorage／IndexedDB（功能所需）</td><td>您在该设备上保存的设置、计数和数据；不会发送给我们</td><td>直到在页面中清除或清除网站数据</td></tr>
         <tr><td>Cache Storage（<code>lq-models-*</code>）</td><td>Service Worker 缓存</td><td>保存模型文件以便离线使用</td><td>每次新版本时替换</td></tr>
+        <tr><td>新的试点系统：<code>lq-exam-*</code> · <code>lq-gate-parking*</code>、<code>lq-gate-village*</code> · <code>att-hr-*</code> · <code>lqq-*</code>、<code>lqt-*</code>、<code>lqa-*</code>、<code>lqb-*</code>、<code>lqz-cam-*</code> · <code>lq-sol-filter</code></td><td>localStorage／IndexedDB（功能所需）</td><td>保存在该设备上的设置、座位/区域、提示记录、考勤记录与进出记录；不会发送给我们，也不保存实时摄像头画面（车牌裁剪图除外，会自动删除）</td><td>按该页面的设定，直到删除或清除网站数据</td></tr>
       </tbody>
     </table></div>
   </section>

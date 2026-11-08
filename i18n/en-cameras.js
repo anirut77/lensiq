@@ -187,6 +187,8 @@
   "cameras.s148": "Uploaded photo or webcam/phone",
   "cameras.s149": "Tools",
   "cameras.s150": "Operations, people and tools",
+  "cameras.new.h": "New product lines and zone systems (pilot)",
+  "cameras.new.p": "Exams, parking and access, queues, tables and restricted zones. Accuracy has not been measured on site yet, and a person makes every decision",
   "cameras.s151": "Production Line QC",
   "cameras.s152": "Checks fill level, caps and labels on the production line, rejects defective items and summarizes defect causes",
   "cameras.s153": "Use cases",

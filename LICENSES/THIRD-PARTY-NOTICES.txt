@@ -17,6 +17,8 @@ A. Apache License 2.0 (full text in section D)
   - MODNet portrait matting (vendor/models/modnet.onnx, ONNX conversion by Xenova) — Copyright ZHKKKe (MODNet authors).
     Source repository and the Xenova/modnet model page both state Apache-2.0 (checked 2026-11-07).
   - pdf.js 3.11.174 (vendor/pdf.min.js, vendor/pdf.worker.min.js) — Copyright 2023 Mozilla Foundation.
+  - PaddleOCR PP-OCRv5 Thai mobile recogniser (vendor/models/plate-ocr-th/, licence copy in that folder)
+    — Copyright (c) PaddlePaddle Authors.
 
 B. MIT License (text in section E)
   - face-api.js 1.7.12 (vendor/face-api.js) and its model weights (vendor/models/*_model*) —
@@ -26,6 +28,7 @@ B. MIT License (text in section E)
   - docx (vendor/docx.js) — Copyright (c) 2016 Dolan Miu.
   - JSZip 3.10.1 (bundled in vendor/docx.js, used under its MIT option) — Copyright (c) 2009-2016 Stuart Knightley,
     David Duponchel, Franz Buchinger, António Afonso.
+  - qrcode-generator 2.0.4 (vendor/qrcode-generator/qrcode.js) — Copyright (c) 2009 Kazuhiko Arase.
 
 C. Other
   - Prompt font (vendor/fonts/prompt/) — Copyright 2015 Cadson Demak; Inter font (vendor/fonts/inter/) — Copyright

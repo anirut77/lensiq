@@ -26,10 +26,20 @@
     "lensiq-leads.js",
     "lensiq-analytics.js",
     "account.js",
-    "nav.js"
+    "nav.js",
+    "lensiq-timeclock.js",
+    "attendance-qr.js"
   ],
   "pages": [
-    { "file": "photobooth.js", "types": ["types/lensiq-photobooth.d.ts"] }
+    {
+      "file": "photobooth.js",
+      "types": [
+        "types/lensiq-photobooth.d.ts"
+      ]
+    },
+    {
+      "file": "attendance-hr.js"
+    }
   ],
   "files": [
     "types/lensiq-globals.d.ts",
@@ -137,6 +147,41 @@
     "i18n/en-interview.js",
     "i18n/zh-interview.js",
     "i18n/en-teamface.js",
-    "i18n/zh-teamface.js"
+    "i18n/zh-teamface.js",
+    "lensiq-exam.js",
+    "exam-link.js",
+    "exam-ui.js",
+    "exam-lab.js",
+    "exam-hall.js",
+    "exam-dashboard.js",
+    "exam-landing.js",
+    "i18n/en-exam.js",
+    "i18n/zh-exam.js",
+    "lensiq-timeclock.js",
+    "attendance-qr.js",
+    "lensiq-plate.js",
+    "lensiq-promptpay.js",
+    "gate-rules.js",
+    "gate-kit.js",
+    "gate-notice.js",
+    "parking.js",
+    "village.js",
+    "i18n/en-gate.js",
+    "i18n/zh-gate.js",
+    "i18n/en-gate-parking.js",
+    "i18n/zh-gate-parking.js",
+    "i18n/en-gate-village.js",
+    "i18n/zh-gate-village.js",
+    "lensiq-zones.js",
+    "lensiq-zonecam.js",
+    "solutions.js",
+    "queue.js",
+    "tables.js",
+    "afterhours.js",
+    "bays.js",
+    "i18n/en-solutions.js",
+    "i18n/zh-solutions.js",
+    "i18n/en-zones.js",
+    "i18n/zh-zones.js"
   ]
 }

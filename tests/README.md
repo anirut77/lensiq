@@ -205,3 +205,15 @@ Dependabot (`.github/dependabot.yml`) opens one grouped minor/patch PR per ecosy
 `typescript`, `eslint` / `@eslint/js`, `wrangler`, `anthropic` and `numpy` are ignored: upgrade those by hand in a
 branch (`npm run typecheck`, the `TYPECHECK_MAX` ratchet, `npm run test:py` and `npm run test:integration` green), then
 merge. A round is done when CI is green on the pushed commit, not before.
+
+### Round 13 tests (Exam, Gate, employee time attendance, zones)
+
+- Unit: `exam.test.js`, `exam-i18n.test.js` (Exam logic + 0 % Thai in en/zh), `attendance-timeclock.test.js` (shifts, OT,
+  holidays, leave, corrections hash chain), `gate-plate.test.js`, `gate-rules.test.js`, `promptpay.test.js` (plate
+  format / look-alike matching, fee rules, PromptPay payload + CRC), `zones.test.js`, `solutions.test.js`.
+- E2e: `exam.e2e.mjs`, `exam-lab.e2e.mjs`, `exam-hall.e2e.mjs`, `exam-dashboard.e2e.mjs` (shared helper `exam-kit.mjs`,
+  not a test file), `attendance-hr.e2e.mjs`, `gate.e2e.mjs`, `gate-parking.e2e.mjs`, `gate-village.e2e.mjs`,
+  `queue.e2e.mjs`, `tables.e2e.mjs`, `afterhours.e2e.mjs`, `bays.e2e.mjs`, `solutions.e2e.mjs` (shared helper
+  `zones-lib.mjs`). Each checks 320 / 360 / 390 px (no overflow, 44 px targets, text >= 12 px), 0 % Thai in en / zh,
+  and that no images or `/api/` requests leave the page. `smoke`, `camera-mobile` and `i18n-camera` also list the new
+  camera pages; `products.e2e.mjs` checks the new-product-lines chooser on index.html.

@@ -23,7 +23,9 @@
     "#startFace"
   ],
   "attendance.html": [
-    "#startScan"
+    "#startScan",
+    ".mode-btn[data-mode=employee]",
+    ".hr-tab"
   ],
   "customers.html": [
     "#scanToggle"
@@ -40,5 +42,20 @@
   ],
   "neuro.html": [
     "#liveToggle"
+  ],
+  "parking.html": [
+    "#t-lot",
+    "#t-log",
+    "#t-shift",
+    "#t-set",
+    "#t-check"
+  ],
+  "village.html": [
+    "#t-res",
+    "#t-vis",
+    "#t-deny",
+    "#t-log",
+    "#t-set",
+    "#t-check"
   ]
 }

@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="sl.doc.title">โซลูชันตามอุตสาหกรรม | LENSIQ</title>
+<meta name="description"
+  data-i18n-attr="content:sl.doc.desc"
+  content="งานที่ LENSIQ ทำได้ในแต่ละอุตสาหกรรม: การศึกษา องค์กร ค้าปลีก ร้านอาหาร โรงงาน ลานจอด สุขภาพ ฟิตเนส เกษตร อีเวนต์ และภาครัฐ พร้อมสถานะและหมายเหตุความเป็นส่วนตัว">
+<link rel="stylesheet" href="styles.css?v=10">
+<link rel="stylesheet" href="products.css?v=2">
+<link rel="stylesheet" href="solutions.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=13"></script>
+<script src="i18n/zh-solutions.js?v=1"></script>
+<main class="pd sl" id="main">
+  <section class="pd-hero" aria-labelledby="slH">
+    <span class="eyebrow" data-i18n="sl.eyebrow">LENSIQ · โซลูชันตามอุตสาหกรรม</span>
+    <h1 id="slH" data-i18n="sl.h1">กล้องที่มีอยู่ ทำงานได้มากกว่าที่คิด โดยไม่ต้องเก็บภาพ</h1>
+    <p data-i18n="sl.lead">เลือกอุตสาหกรรมของคุณ ดูว่าแต่ละงานทำอะไร เหมาะกับใคร พร้อมใช้แค่ไหน และดูแลความเป็นส่วนตัวอย่างไร
+      ทุกระบบประมวลผลบนเครื่องเป็นค่าเริ่มต้น และส่งสัญญาณให้คนตรวจสอบ ไม่ตัดสินแทนคน</p>
+    <div class="pd-cta">
+      <a class="btn primary" href="#sec-retail" data-i18n="sl.cta1">ลองหน้าตัวอย่างที่ใช้ได้แล้ว</a>
+      <a class="btn ghost light" href="index.html?interest=solutions#contact" data-i18n="sl.cta2">ขอโครงการนำร่อง</a>
+    </div>
+  </section>
+  <div class="pd-body">
+    <section aria-labelledby="slStH">
+      <h2 id="slStH" data-i18n="sl.statusH">สถานะหมายถึงอะไร</h2>
+      <ul class="sl-legend">
+        <li><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span> <span data-i18n="sl.st.now.d">เปิดใช้ได้ทันทีในเบราว์เซอร์ มีโหมดตัวอย่าง และเครื่องมือวัดความแม่นยำหน้างาน</span></li>
+        <li><span class="sl-tag pilot" data-i18n="sl.st.pilot">นำร่อง</span> <span data-i18n="sl.st.pilot.d">ระบบครบขั้นตอนแล้ว แต่ต้องทดสอบกับหน้างานจริงร่วมกันก่อนใช้งานประจำ</span></li>
+        <li><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span> <span data-i18n="sl.st.soon.d">ยังไม่เปิดใช้ ระบุสิ่งที่ยังขาดไว้ตรง ๆ (โมเดล
+          การทดสอบ หรือขั้นตอนขอความยินยอม)</span></li>
+      </ul>
+      <div class="sl-filter" role="group" aria-label="กรองตามสถานะ" data-i18n-attr="aria-label:sl.filterAria">
+        <button class="seg" type="button" data-f="all" aria-pressed="true" data-i18n="sl.f.all">ทั้งหมด</button>
+        <button class="seg" type="button" data-f="now" aria-pressed="false" data-i18n="sl.st.now">ใช้ได้แล้ว</button>
+        <button class="seg" type="button" data-f="pilot" aria-pressed="false" data-i18n="sl.st.pilot">นำร่อง</button>
+        <button class="seg" type="button" data-f="soon" aria-pressed="false" data-i18n="sl.st.soon">กำลังพัฒนา</button>
+      </div>
+      <p class="pd-sub sl-count" id="slCount" role="status"></p>
+      <nav class="sl-sectors" aria-label="อุตสาหกรรม" data-i18n-attr="aria-label:sl.sectorsAria">
+        <a href="#sec-edu"><span aria-hidden="true">🎓</span><span data-i18n="sl.s.edu">การศึกษา</span></a>
+        <a href="#sec-hr"><span aria-hidden="true">🏢</span><span data-i18n="sl.s.hr">องค์กรและสำนักงาน</span></a>
+        <a href="#sec-retail"><span aria-hidden="true">🛍️</span><span data-i18n="sl.s.retail">ค้าปลีกและร้านอาหาร</span></a>
+        <a href="#sec-mfg"><span aria-hidden="true">🏭</span><span data-i18n="sl.s.mfg">การผลิตและความปลอดภัย</span></a>
+        <a href="#sec-park"><span aria-hidden="true">🅿️</span><span data-i18n="sl.s.park">ลานจอด การขนส่ง และความปลอดภัย</span></a>
+        <a href="#sec-health"><span aria-hidden="true">🏥</span><span data-i18n="sl.s.health">สุขภาพและการดูแลผู้สูงอายุ</span></a>
+        <a href="#sec-fit"><span aria-hidden="true">🏋️</span><span data-i18n="sl.s.fit">ฟิตเนสและกีฬา</span></a>
+        <a href="#sec-agri"><span aria-hidden="true">🌾</span><span data-i18n="sl.s.agri">เกษตรกรรม</span></a>
+        <a href="#sec-event"><span aria-hidden="true">🎪</span><span data-i18n="sl.s.event">อีเวนต์และการท่องเที่ยว</span></a>
+        <a href="#sec-gov"><span aria-hidden="true">🏛️</span><span data-i18n="sl.s.gov">ชุมชนและภาครัฐ</span></a>
+      </nav>
+    </section>
+    <section class="sl-sec" id="sec-edu" aria-labelledby="h-edu">
+      <h2 id="h-edu"><span aria-hidden="true">🎓</span> <span data-i18n="sl.s.edu">การศึกษา</span></h2>
+      <p class="pd-sub" data-i18n="sl.s.edu.sub">โรงเรียน มหาวิทยาลัย ศูนย์สอบ และสถาบันฝึกอบรม</p>
+      <div class="pd-grid sl-grid">
+      <article class="sl-card" data-status="pilot" id="sol-edu1">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">📝</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">นำร่อง</span></div>
+        <h3 data-i18n="sl.c.edu1.h">ผู้ช่วยกรรมการคุมสอบ</h3>
+        <p data-i18n="sl.c.edu1.p">บอกกรรมการว่าควรไปดูที่นั่งไหน (ไม่มีใบหน้า หลายใบหน้า โทรศัพท์ ออกจากหน้าจอ)
+          ทั้งห้องสอบคอมพิวเตอร์และห้องสอบที่มีกล้องรอบห้อง ไม่ตัดสินว่าทุจริต กรรมการเป็นผู้ตรวจและบันทึกผล</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.edu1.w">โรงเรียน มหาวิทยาลัย ศูนย์สอบ หน่วยงานที่จัดสอบออนไลน์</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.exam">ไม่บันทึกภาพเป็นค่าเริ่มต้น ส่งเฉพาะเหตุการณ์ที่ไม่มีภาพ
+          ไม่อ่านอารมณ์ ไม่ตัดสินอัตโนมัติ มีหน้าแจ้งและขอความยินยอม</span></p>
+        <a class="sl-go" href="exam.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.exam">ผู้ช่วยกรรมการคุมสอบ</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-edu2">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">✅</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.edu2.h">เช็คชื่อเข้าอบรมด้วยใบหน้า</h3>
+        <p data-i18n="sl.c.edu2.p">ลงทะเบียนใบหน้าครั้งเดียวแล้วสแกนเพื่อบันทึกการเข้าเรียน มีการตรวจความมีชีวิต ส่งออกรายชื่อ CSV และตั้งระยะเวลาลบข้อมูลใบหน้า</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.edu2.w">ผู้จัดอบรม สัมมนา และคลาสเรียนผู้ใหญ่</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.face">ใช้ใบหน้าเฉพาะผู้ที่ยินยอมโดยชัดแจ้ง (ข้อมูลชีวภาพ PDPA
+          ม.26) เข้ารหัสในเครื่อง ตั้งระยะเวลาเก็บและลบได้ ควรมีทางเลือกที่ไม่ใช้ใบหน้า</span></p>
+        <a class="sl-go" href="attendance.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.attendance">เช็คชื่อด้วยใบหน้า</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-edu3">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🏫</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.edu3.h">เช็คชื่อหน้าประตูโรงเรียนและแจ้งผู้ปกครอง</h3>
+        <p data-i18n="sl.c.edu3.p">บันทึกเวลานักเรียนเข้า–ออกโรงเรียนและส่งข้อความแจ้งผู้ปกครอง ต่อยอดจากระบบเช็คชื่อ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.edu3.w">โรงเรียนประถมและมัธยม</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.minor">ผู้เยาว์: ต้องได้ความยินยอมจากผู้ปกครองก่อน และมีทางเลือก QR สำหรับผู้ไม่ใช้ใบหน้า</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.edu3.y">ขั้นตอนขอความยินยอมจากผู้ปกครอง ทางเลือก QR
+          สำหรับเด็กที่ไม่ใช้ใบหน้า และช่องทางส่งข้อความถึงผู้ปกครอง</span></p>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-edu4">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🤸</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.edu4.h">ทดสอบสมรรถภาพพลศึกษา (นับครั้งด้วยท่าทาง)</h3>
+        <p data-i18n="sl.c.edu4.p">นับจำนวนครั้งลุกนั่ง วิดพื้น หรือกระโดดตบ จากท่าทางร่างกาย เพื่อช่วยครูบันทึกผล</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.edu4.w">ครูพลศึกษา</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.pose">ตั้งใจใช้จุดโครงร่างร่างกายหรือภาพเงาแทนภาพจริง ประมวลผลในเครื่อง ไม่บันทึกภาพ</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.edu4.y">โมเดลท่าทาง (MediaPipe Pose, Apache-2.0)
+          และการวัดความแม่นยำกับนักเรียนจริงพร้อมความยินยอมของผู้ปกครอง</span></p>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-edu5">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🍱</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.edu5.h">คิวโรงอาหารและจุดลงทะเบียน</h3>
+        <p data-i18n="sl.c.edu5.p">นับคนในโซนคิวและเตือนให้เปิดจุดบริการเพิ่มเมื่อคิวยาว</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.edu5.w">โรงอาหาร ฝ่ายทะเบียน วันรับสมัคร</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <a class="sl-go" href="queue.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.queue">แจ้งเตือนคิวยาว</span> <span aria-hidden="true">→</span></a>
+      </article>
+      </div>
+      <p class="sl-none" hidden data-i18n="sl.empty">ไม่มีรายการในสถานะนี้</p>
+    </section>
+    <section class="sl-sec" id="sec-hr" aria-labelledby="h-hr">
+      <h2 id="h-hr"><span aria-hidden="true">🏢</span> <span data-i18n="sl.s.hr">องค์กรและสำนักงาน</span></h2>
+      <p class="pd-sub" data-i18n="sl.s.hr.sub">ฝ่ายบุคคล สำนักงาน และอาคาร</p>
+      <div class="pd-grid sl-grid">
+      <article class="sl-card" data-status="pilot" id="sol-hr1">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">⏱️</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">นำร่อง</span></div>
+        <h3 data-i18n="sl.c.hr1.h">ลงเวลาทำงานพนักงาน</h3>
+        <p data-i18n="sl.c.hr1.p">โหมดพนักงาน: กะ เวลาสาย ออกก่อน OT พักเบรก สรุปรายเดือนสำหรับเงินเดือน และทางเลือก PIN/QR สำหรับผู้ไม่ใช้ใบหน้า (กำลังเพิ่มในหน้าเช็คชื่อ)</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.hr1.w">SME โรงงาน ร้านค้าหลายสาขา</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.face">ใช้ใบหน้าเฉพาะผู้ที่ยินยอมโดยชัดแจ้ง (ข้อมูลชีวภาพ PDPA
+          ม.26) เข้ารหัสในเครื่อง ตั้งระยะเวลาเก็บและลบได้ ควรมีทางเลือกที่ไม่ใช้ใบหน้า</span></p>
+        <a class="sl-go" href="attendance.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.attendance">เช็คชื่อด้วยใบหน้า</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-hr2">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🧑‍💼</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.hr2.h">สัมภาษณ์งานแบบมีโครงสร้าง</h3>
+        <p data-i18n="sl.c.hr2.p">คำถามเดียวกันทุกคน เกณฑ์ให้คะแนนที่บรรยายพฤติกรรม ผู้สัมภาษณ์ให้คะแนนแยกกันก่อนหารือ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.hr2.w">ฝ่ายบุคคลและหัวหน้างานที่รับคน</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.interview">ไม่ใช้กล้องวิเคราะห์ผู้สมัคร ผู้สัมภาษณ์ให้คะแนนเองตามเกณฑ์เดียวกัน</span></p>
+        <a class="sl-go" href="interview.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.interview">ชุดสัมภาษณ์แบบมีโครงสร้าง</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-hr3">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🔐</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.hr3.h">เฝ้าสำนักงานและห้องเซิร์ฟเวอร์นอกเวลา</h3>
+        <p data-i18n="sl.c.hr3.p">แจ้งเจ้าหน้าที่เมื่อพบคนในห้องเซิร์ฟเวอร์ ห้องเอกสาร หรือสำนักงานหลังเลิกงาน ให้คนตรวจสอบเสมอ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.hr3.w">ผู้ดูแลอาคารและฝ่ายไอที</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <a class="sl-go" href="afterhours.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.afterhours">พื้นที่หวงห้ามและนอกเวลา</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-hr4">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🗓️</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.hr4.h">ห้องประชุมว่างหรือไม่</h3>
+        <p data-i18n="sl.c.hr4.p">ใช้หน้าโต๊ะว่าง: วาดโซนรอบโต๊ะประชุม ดูว่าว่างหรือมีคน และเวลาที่ใช้ต่อวัน</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.hr4.w">สำนักงานและโคเวิร์กกิ้งสเปซ</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <a class="sl-go" href="tables.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.tables">โต๊ะว่างและรอบการนั่ง</span> <span aria-hidden="true">→</span></a>
+      </article>
+      </div>
+      <p class="sl-none" hidden data-i18n="sl.empty">ไม่มีรายการในสถานะนี้</p>
+    </section>
+    <section class="sl-sec" id="sec-retail" aria-labelledby="h-retail">
+      <h2 id="h-retail"><span aria-hidden="true">🛍️</span> <span data-i18n="sl.s.retail">ค้าปลีกและร้านอาหาร</span></h2>
+      <p class="pd-sub" data-i18n="sl.s.retail.sub">ร้านค้า ร้านอาหาร คาเฟ่ และศูนย์การค้า</p>
+      <div class="pd-grid sl-grid">
+      <article class="sl-card" data-status="now" id="sol-r1">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🚪</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.r1.h">นับคนเข้าร้านและโซนยอดนิยม</h3>
+        <p data-i18n="sl.c.r1.p">นับคนเข้า–ออก จำนวนคนในร้าน โซนยอดนิยม และฮีตแมป หลายกล้องต่อเครื่อง</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r1.w">ร้านค้าปลีกและ SME</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <a class="sl-go" href="store.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.store">วิเคราะห์หน้าร้าน</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-r2">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🧍</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.r2.h">แจ้งเตือนคิวยาว</h3>
+        <p data-i18n="sl.c.r2.p">นับคนในโซนคิว ประมาณเวลารอ และเตือนพนักงานให้พิจารณาเปิดเคาน์เตอร์เพิ่ม</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r2.w">ซูเปอร์มาร์เก็ต ร้านกาแฟ จุดชำระเงิน</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <a class="sl-go" href="queue.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.queue">แจ้งเตือนคิวยาว</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-r3">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🍽️</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.r3.h">โต๊ะว่างและรอบการนั่ง</h3>
+        <p data-i18n="sl.c.r3.p">ดูโต๊ะว่าง มีลูกค้า หรือรอเก็บ จับเวลาต่อโต๊ะ และนับรอบการนั่งต่อวัน</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r3.w">ร้านอาหาร ฟู้ดคอร์ต คาเฟ่</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <a class="sl-go" href="tables.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.tables">โต๊ะว่างและรอบการนั่ง</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-r4">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🧾</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.r4.h">คิดเงินด้วยกล้อง</h3>
+        <p data-i18n="sl.c.r4.p">สอนระบบจำสินค้าจากกล้อง แล้วใช้คิดเงินแบบบริการตนเองหรือนับสต็อก</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r4.w">ร้านสะดวกซื้อ ร้านขนม ร้านในสำนักงาน</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.object">ตรวจชิ้นงานหรือสินค้า ไม่ใช่คน ประมวลผลในเครื่อง</span></p>
+        <a class="sl-go" href="checkout.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.checkout">สแกนสินค้าด้วยกล้อง</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-r5">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">📺</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.r5.h">ป้ายโฆษณาดิจิทัล</h3>
+        <p data-i18n="sl.c.r5.p">วัดเวลาดูจอแบบไม่ระบุตัวตน และคีออสก์สั่งงานด้วยมือไม่ต้องสัมผัสจอ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r5.w">ร้านค้า ศูนย์การค้า ล็อบบี้</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.page">ประมวลผลในเบราว์เซอร์ ดูรายละเอียดการเก็บข้อมูลในหน้านั้นและในประกาศความเป็นส่วนตัว</span></p>
+        <a class="sl-go" href="signage.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.signage">ป้ายโฆษณาดิจิทัล</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-r6">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🤝</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.r6.h">จดจำสมาชิก (เฉพาะผู้ยินยอม)</h3>
+        <p data-i18n="sl.c.r6.p">ทักทายสมาชิกที่ยินยอม แสดงเมนูที่สั่งบ่อย มีทางเลือกค้นด้วยชื่อ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r6.w">ร้านกาแฟ ร้านอาหารที่มีลูกค้าประจำ</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.face">ใช้ใบหน้าเฉพาะผู้ที่ยินยอมโดยชัดแจ้ง (ข้อมูลชีวภาพ PDPA
+          ม.26) เข้ารหัสในเครื่อง ตั้งระยะเวลาเก็บและลบได้ ควรมีทางเลือกที่ไม่ใช้ใบหน้า</span></p>
+        <a class="sl-go" href="customers.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.customers">จดจำสมาชิก</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-r7">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">📦</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.r7.h">เฝ้าหลังร้านและคลังสินค้าหลังปิด</h3>
+        <p data-i18n="sl.c.r7.p">แจ้งเมื่อพบคนในคลังสินค้าหรือหลังเคาน์เตอร์ในช่วงเวลาที่ตั้ง มีเวลาพักการแจ้งซ้ำ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r7.w">ร้านค้าและร้านอาหาร</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <a class="sl-go" href="afterhours.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.afterhours">พื้นที่หวงห้ามและนอกเวลา</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-r8">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">📊</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.r8.h">แดชบอร์ดรวมหลายสาขา</h3>
+        <p data-i18n="sl.c.r8.p">สรุปตัวเลขจากทุกระบบในเครื่องนี้ พร้อมความมั่นใจทางสถิติและคาดการณ์</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r8.w">เจ้าของร้านหลายสาขา</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.page">ประมวลผลในเบราว์เซอร์ ดูรายละเอียดการเก็บข้อมูลในหน้านั้นและในประกาศความเป็นส่วนตัว</span></p>
+        <a class="sl-go" href="insights.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.insights">แดชบอร์ดรวม</span> <span aria-hidden="true">→</span></a>
+      </article>
+      </div>
+      <p class="sl-none" hidden data-i18n="sl.empty">ไม่มีรายการในสถานะนี้</p>
+    </section>
+    <section class="sl-sec" id="sec-mfg" aria-labelledby="h-mfg">
+      <h2 id="h-mfg"><span aria-hidden="true">🏭</span> <span data-i18n="sl.s.mfg">การผลิตและความปลอดภัย</span></h2>
+      <p class="pd-sub" data-i18n="sl.s.mfg.sub">โรงงาน สายการผลิต และคลังสินค้า</p>
+      <div class="pd-grid sl-grid">
+      <article class="sl-card" data-status="now" id="sol-m1">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🔍</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.m1.h">ตรวจคุณภาพบนสายการผลิต</h3>
+        <p data-i18n="sl.c.m1.p">เทียบชิ้นงานกับตัวอย่างที่ผ่าน นับยอดผ่าน/คัดทิ้ง และส่งออกรายงานประจำกะ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.m1.w">โรงงาน SME และสายบรรจุ</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.object">ตรวจชิ้นงานหรือสินค้า ไม่ใช่คน ประมวลผลในเครื่อง</span></p>
+        <a class="sl-go" href="qc.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.qc">ตรวจคุณภาพสินค้า</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-m2">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">⚠️</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.m2.h">แจ้งเตือนคนเข้าพื้นที่หวงห้าม</h3>
+        <p data-i18n="sl.c.m2.p">แจ้งเจ้าหน้าที่เมื่อพบคนในพื้นที่ที่กำหนด เช่น หลังรั้วเครื่องจักร เป็นสัญญาณให้คนดูเท่านั้น ไม่ใช่ระบบความปลอดภัยของเครื่องจักรและไม่ใช้หยุดเครื่อง</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.m2.w">หัวหน้ากะ เจ้าหน้าที่ความปลอดภัย</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.staff">กล้องที่ดูพนักงานขณะทำงาน: แจ้งล่วงหน้าและให้ลงนามรับทราบ
+          ประมวลผลในเครื่อง ไม่บันทึกภาพ</span></p>
+        <a class="sl-go" href="afterhours.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.afterhours">พื้นที่หวงห้ามและนอกเวลา</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-m3">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">⛑️</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.m3.h">ตรวจหมวกนิรภัยและเสื้อสะท้อนแสงที่ประตู</h3>
+        <p data-i18n="sl.c.m3.p">เตือนเมื่อคนเข้าพื้นที่โดยไม่เห็นหมวกนิรภัยหรือเสื้อสะท้อนแสง ให้หัวหน้างานตรวจ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.m3.w">ไซต์ก่อสร้าง โรงงาน คลังสินค้า</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.staff">กล้องที่ดูพนักงานขณะทำงาน: แจ้งล่วงหน้าและให้ลงนามรับทราบ
+          ประมวลผลในเครื่อง ไม่บันทึกภาพ</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.m3.y">โมเดลตรวจจับเฉพาะ (YOLOX, Apache-2.0)
+          ที่ฝึกจากภาพที่มีสิทธิ์ใช้เชิงพาณิชย์ ตอนนี้ยังไม่มีโมเดลสำเร็จรูปที่ใบอนุญาตชัดเจน</span></p>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-m4">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🚚</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.m4.h">เฝ้าระวังความง่วงคนขับ</h3>
+        <p data-i18n="sl.c.m4.p">เตือนเมื่อหลับตานานหรือหาวบ่อย สำหรับคนขับรถส่งของและรถรับส่งพนักงาน</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.m4.w">ฟลีตขนส่งและรถรับส่ง</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.staff">กล้องที่ดูพนักงานขณะทำงาน: แจ้งล่วงหน้าและให้ลงนามรับทราบ
+          ประมวลผลในเครื่อง ไม่บันทึกภาพ</span></p>
+        <a class="sl-go" href="driver.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.driver">เฝ้าระวังความง่วงคนขับ</span> <span aria-hidden="true">→</span></a>
+      </article>
+      </div>
+      <p class="sl-none" hidden data-i18n="sl.empty">ไม่มีรายการในสถานะนี้</p>
+    </section>
+    <section class="sl-sec" id="sec-park" aria-labelledby="h-park">
+      <h2 id="h-park"><span aria-hidden="true">🅿️</span> <span data-i18n="sl.s.park">ลานจอด การขนส่ง และความปลอดภัย</span></h2>
+      <p class="pd-sub" data-i18n="sl.s.park.sub">ลานจอด หมู่บ้าน คอนโด และงานรักษาความปลอดภัย</p>
+      <div class="pd-grid sl-grid">
+      <article class="sl-card" data-status="pilot" id="sol-p1">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🚗</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">นำร่อง</span></div>
+        <h3 data-i18n="sl.c.p1.h">อ่านป้ายทะเบียนที่ประตู</h3>
+        <p data-i18n="sl.c.p1.p">ช่วยอ่านทะเบียนรถไทย เจ้าหน้าที่ยืนยันหรือแก้ทุกครั้ง บันทึกเข้า–ออก ส่งออก CSV และใช้งานได้ครบแม้พิมพ์ทะเบียนเอง</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.p1.w">ลานจอด อาคาร โรงงาน</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.plate">ทะเบียนรถเป็นข้อมูลส่วนบุคคล: ติดป้ายแจ้ง
+          ตั้งระยะเวลาเก็บและลบอัตโนมัติ เจ้าหน้าที่ยืนยันทุกครั้ง</span></p>
+        <a class="sl-go" href="gate.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.gate">อ่านป้ายทะเบียนที่ประตู</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="pilot" id="sol-p2">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">💳</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">นำร่อง</span></div>
+        <h3 data-i18n="sl.c.p2.h">ลานจอดเก็บเงินพร้อม PromptPay</h3>
+        <p data-i18n="sl.c.p2.p">จับคู่เข้า–ออกด้วยทะเบียน คิดค่าจอดตามกฎ (ฟรีช่วงแรก ปัดชั่วโมง เพดานรายวัน) สร้าง QR พร้อมเพย์ตามยอด และสรุปปิดกะ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.p2.w">ลานจอดเอกชน ตลาด ศูนย์การค้าขนาดเล็ก</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.plate">ทะเบียนรถเป็นข้อมูลส่วนบุคคล: ติดป้ายแจ้ง
+          ตั้งระยะเวลาเก็บและลบอัตโนมัติ เจ้าหน้าที่ยืนยันทุกครั้ง</span></p>
+        <a class="sl-go" href="parking.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.parking">ลานจอดเก็บเงิน</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="pilot" id="sol-p3">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🏘️</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">นำร่อง</span></div>
+        <h3 data-i18n="sl.c.p3.h">ประตูหมู่บ้านและคอนโด</h3>
+        <p data-i18n="sl.c.p3.p">รายชื่อรถลูกบ้าน บัตรผู้มาเยือนแบบจำกัดเวลา แจ้งยามเมื่อเป็นรถไม่รู้จัก และปุ่มเปิดไม้กั้นที่ยามกดเองเสมอ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.p3.w">นิติบุคคลหมู่บ้าน คอนโด</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.plate">ทะเบียนรถเป็นข้อมูลส่วนบุคคล: ติดป้ายแจ้ง
+          ตั้งระยะเวลาเก็บและลบอัตโนมัติ เจ้าหน้าที่ยืนยันทุกครั้ง</span></p>
+        <a class="sl-go" href="village.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.village">ประตูหมู่บ้านและคอนโด</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-p4">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🅿️</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.p4.h">นับช่องจอดว่าง</h3>
+        <p data-i18n="sl.c.p4.p">นับช่องรถยนต์และจักรยานยนต์ที่ว่างโดยไม่อ่านทะเบียน พร้อมจอแสดงช่องว่างหน้าทางเข้า</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.p4.w">ลานจอดอาคาร โรงพยาบาล ห้าง</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.vehicle">ดูเฉพาะว่ามีรถในช่องหรือไม่ ไม่อ่านป้ายทะเบียน ไม่สนใจคน ไม่บันทึกภาพ</span></p>
+        <a class="sl-go" href="bays.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.bays">นับช่องจอดว่าง</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-p5">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🚌</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.p5.h">เฝ้าระวังความง่วงคนขับ</h3>
+        <p data-i18n="sl.c.p5.p">ประมวลผลบนมือถือหรือแท็บเล็ตในรถ ไม่ต้องใช้อินเทอร์เน็ต</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.p5.w">รถตู้ รถบัส รถขนส่ง</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.staff">กล้องที่ดูพนักงานขณะทำงาน: แจ้งล่วงหน้าและให้ลงนามรับทราบ
+          ประมวลผลในเครื่อง ไม่บันทึกภาพ</span></p>
+        <a class="sl-go" href="driver.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.driver">เฝ้าระวังความง่วงคนขับ</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-p6">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🌙</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.p6.h">เฝ้าพื้นที่นอกเวลา</h3>
+        <p data-i18n="sl.c.p6.p">แจ้ง รปภ. เมื่อพบคนในพื้นที่ที่กำหนดในช่วงกลางคืน ให้คนตรวจสอบก่อนดำเนินการ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.p6.w">รปภ. ไซต์ก่อสร้าง ลานจอด</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <a class="sl-go" href="afterhours.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.afterhours">พื้นที่หวงห้ามและนอกเวลา</span> <span aria-hidden="true">→</span></a>
+      </article>
+      </div>
+      <p class="sl-none" hidden data-i18n="sl.empty">ไม่มีรายการในสถานะนี้</p>
+    </section>
+    <section class="sl-sec" id="sec-health" aria-labelledby="h-health">
+      <h2 id="h-health"><span aria-hidden="true">🏥</span> <span data-i18n="sl.s.health">สุขภาพและการดูแลผู้สูงอายุ</span></h2>
+      <p class="pd-sub" data-i18n="sl.s.health.sub">คลินิก โรงพยาบาล บ้านพักผู้สูงอายุ และศูนย์กายภาพ</p>
+      <div class="pd-grid sl-grid">
+      <article class="sl-card" data-status="soon" id="sol-h1">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🧓</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.h1.h">แจ้งเตือนการล้มหรือไม่ขยับนาน</h3>
+        <p data-i18n="sl.c.h1.p">แจ้งผู้ดูแลเมื่อพบท่าทางคล้ายการล้ม หรือไม่มีการเคลื่อนไหวนานผิดปกติ เป็นเครื่องช่วยเตือนเท่านั้น</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.h1.w">บ้านพักผู้สูงอายุ ครอบครัวที่ดูแลผู้สูงอายุ</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.pose">ตั้งใจใช้จุดโครงร่างร่างกายหรือภาพเงาแทนภาพจริง ประมวลผลในเครื่อง ไม่บันทึกภาพ</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.h1.y">โมเดลท่าทาง (MediaPipe Pose, Apache-2.0)
+          ภาพแบบเงาเพื่อความเป็นส่วนตัว และการทดสอบกับผู้ดูแลจริง ไม่ใช่อุปกรณ์การแพทย์</span></p>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-h2">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🦵</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.h2.h">ผู้ช่วยนับท่ากายภาพบำบัด</h3>
+        <p data-i18n="sl.c.h2.p">นับจำนวนครั้งและประมาณองศาการเคลื่อนไหวของข้อ ให้นักกายภาพดูความก้าวหน้า</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.h2.w">ศูนย์กายภาพบำบัด คลินิก</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.pose">ตั้งใจใช้จุดโครงร่างร่างกายหรือภาพเงาแทนภาพจริง ประมวลผลในเครื่อง ไม่บันทึกภาพ</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.h2.y">โมเดลท่าทางและการวัดความแม่นยำเทียบกับการวัดของนักกายภาพ</span></p>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-h3">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">💊</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.h3.h">คิวห้องรอตรวจและห้องยา</h3>
+        <p data-i18n="sl.c.h3.p">นับคนรอและเตือนให้เปิดช่องบริการเพิ่มเมื่อคิวยาว</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.h3.w">คลินิก โรงพยาบาล ร้านยา</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <a class="sl-go" href="queue.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.queue">แจ้งเตือนคิวยาว</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-h4">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🔒</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.h4.h">เฝ้าห้องยาและพื้นที่จำกัด</h3>
+        <p data-i18n="sl.c.h4.p">แจ้งเจ้าหน้าที่เมื่อพบคนในห้องยาหรือพื้นที่จำกัดนอกเวลาที่กำหนด</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.h4.w">คลินิกและโรงพยาบาล</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <a class="sl-go" href="afterhours.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.afterhours">พื้นที่หวงห้ามและนอกเวลา</span> <span aria-hidden="true">→</span></a>
+      </article>
+      </div>
+      <p class="sl-none" hidden data-i18n="sl.empty">ไม่มีรายการในสถานะนี้</p>
+    </section>
+    <section class="sl-sec" id="sec-fit" aria-labelledby="h-fit">
+      <h2 id="h-fit"><span aria-hidden="true">🏋️</span> <span data-i18n="sl.s.fit">ฟิตเนสและกีฬา</span></h2>
+      <p class="pd-sub" data-i18n="sl.s.fit.sub">ฟิตเนส ค่ายมวย และสนามกีฬา</p>
+      <div class="pd-grid sl-grid">
+      <article class="sl-card" data-status="soon" id="sol-f1">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🥊</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.f1.h">ผู้ช่วยนับท่าออกกำลังกายและมวยไทย</h3>
+        <p data-i18n="sl.c.f1.p">นับจำนวนครั้งและจังหวะของท่า เช่น สควอต เตะ หรือต่อย เพื่อช่วยโค้ช</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.f1.w">ฟิตเนส ค่ายมวย ครูฝึกส่วนตัว</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.pose">ตั้งใจใช้จุดโครงร่างร่างกายหรือภาพเงาแทนภาพจริง ประมวลผลในเครื่อง ไม่บันทึกภาพ</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.f1.y">โมเดลท่าทางและการทดสอบกับท่าจริงหลายมุมกล้อง</span></p>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-f2">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🏃</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.f2.h">นับคนในฟิตเนสและแต่ละโซน</h3>
+        <p data-i18n="sl.c.f2.p">ใช้หน้าวิเคราะห์หน้าร้าน: นับคนเข้า–ออกและจำนวนคนในโซนเครื่องเล่น เพื่อจัดพนักงานและบอกช่วงเวลาที่ว่าง</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.f2.w">ฟิตเนสและสระว่ายน้ำ (เฉพาะจำนวนคน)</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <a class="sl-go" href="store.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.store">วิเคราะห์หน้าร้าน</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-f3">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🧘</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.f3.h">เช็คชื่อเข้าคลาส</h3>
+        <p data-i18n="sl.c.f3.p">เช็คชื่อเข้าคลาสด้วยใบหน้าเฉพาะสมาชิกที่ยินยอม</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.f3.w">สตูดิโอโยคะ คลาสกลุ่ม</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.face">ใช้ใบหน้าเฉพาะผู้ที่ยินยอมโดยชัดแจ้ง (ข้อมูลชีวภาพ PDPA
+          ม.26) เข้ารหัสในเครื่อง ตั้งระยะเวลาเก็บและลบได้ ควรมีทางเลือกที่ไม่ใช้ใบหน้า</span></p>
+        <a class="sl-go" href="attendance.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.attendance">เช็คชื่อด้วยใบหน้า</span> <span aria-hidden="true">→</span></a>
+      </article>
+      </div>
+      <p class="sl-none" hidden data-i18n="sl.empty">ไม่มีรายการในสถานะนี้</p>
+    </section>
+    <section class="sl-sec" id="sec-agri" aria-labelledby="h-agri">
+      <h2 id="h-agri"><span aria-hidden="true">🌾</span> <span data-i18n="sl.s.agri">เกษตรกรรม</span></h2>
+      <p class="pd-sub" data-i18n="sl.s.agri.sub">ฟาร์ม โรงคัดแยก และจุดรับซื้อผลผลิต</p>
+      <div class="pd-grid sl-grid">
+      <article class="sl-card" data-status="now" id="sol-a1">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🏚️</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.a1.h">เฝ้าโรงเก็บและฟาร์มตอนกลางคืน</h3>
+        <p data-i18n="sl.c.a1.p">แจ้งเมื่อพบคนในโรงเก็บปุ๋ย เครื่องมือ หรือผลผลิตในช่วงกลางคืน ให้เจ้าของตรวจสอบ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.a1.w">ฟาร์ม สหกรณ์</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <a class="sl-go" href="afterhours.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.afterhours">พื้นที่หวงห้ามและนอกเวลา</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="pilot" id="sol-a2">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🥭</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">นำร่อง</span></div>
+        <h3 data-i18n="sl.c.a2.h">คัดแยกผลผลิตด้วยกล้อง</h3>
+        <p data-i18n="sl.c.a2.p">ใช้หน้าตรวจคุณภาพกับผลผลิต (สี ขนาด ตำหนิ) ต้องตั้งเกณฑ์และทดสอบกับผลผลิตจริงก่อน</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.a2.w">โรงคัดบรรจุ ผู้ส่งออกผลไม้</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.object">ตรวจชิ้นงานหรือสินค้า ไม่ใช่คน ประมวลผลในเครื่อง</span></p>
+        <a class="sl-go" href="qc.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.qc">ตรวจคุณภาพสินค้า</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-a3">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🚜</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.a3.h">คิวรถที่จุดรับซื้อ</h3>
+        <p data-i18n="sl.c.a3.p">วาดช่องจอดรอขาย ดูว่ามีรถรออยู่กี่ช่อง โดยไม่อ่านทะเบียน</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.a3.w">ลานรับซื้อผลผลิต โรงสี</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.vehicle">ดูเฉพาะว่ามีรถในช่องหรือไม่ ไม่อ่านป้ายทะเบียน ไม่สนใจคน ไม่บันทึกภาพ</span></p>
+        <a class="sl-go" href="bays.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.bays">นับช่องจอดว่าง</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-a4">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🐄</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.a4.h">นับสัตว์ในฟาร์ม</h3>
+        <p data-i18n="sl.c.a4.p">นับโค กระบือ หรือแพะเข้า–ออกคอก</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.a4.w">ฟาร์มปศุสัตว์</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.object">ตรวจชิ้นงานหรือสินค้า ไม่ใช่คน ประมวลผลในเครื่อง</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.a4.y">ตัวตรวจจับรู้จักวัวและแกะจากชุดข้อมูลทั่วไป แต่ยังไม่ได้วัดความแม่นยำกับสัตว์และคอกในไทย</span></p>
+      </article>
+      </div>
+      <p class="sl-none" hidden data-i18n="sl.empty">ไม่มีรายการในสถานะนี้</p>
+    </section>
+    <section class="sl-sec" id="sec-event" aria-labelledby="h-event">
+      <h2 id="h-event"><span aria-hidden="true">🎪</span> <span data-i18n="sl.s.event">อีเวนต์และการท่องเที่ยว</span></h2>
+      <p class="pd-sub" data-i18n="sl.s.event.sub">งานแสดงสินค้า บูธ แหล่งท่องเที่ยว และพิพิธภัณฑ์</p>
+      <div class="pd-grid sl-grid">
+      <article class="sl-card" data-status="now" id="sol-e1">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🎟️</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.e1.h">นับผู้เข้าชมบูธ</h3>
+        <p data-i18n="sl.c.e1.p">นับผู้เข้าชมและเวลาหยุดชมบูธแบบไม่ระบุตัวตน</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e1.w">ผู้ออกบูธ ผู้จัดงาน</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.page">ประมวลผลในเบราว์เซอร์ ดูรายละเอียดการเก็บข้อมูลในหน้านั้นและในประกาศความเป็นส่วนตัว</span></p>
+        <a class="sl-go" href="booth.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.booth">วิเคราะห์บูธ</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-e2">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">📸</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.e2.h">ตู้ถ่ายรูป</h3>
+        <p data-i18n="sl.c.e2.p">ตู้ถ่ายรูปสติ๊กเกอร์ เปลี่ยนฉากหลัง และแชร์ภาพเข้ามือถือ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e2.w">งานอีเวนต์ บูธแบรนด์</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.page">ประมวลผลในเบราว์เซอร์ ดูรายละเอียดการเก็บข้อมูลในหน้านั้นและในประกาศความเป็นส่วนตัว</span></p>
+        <a class="sl-go" href="photobooth.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.photobooth">ตู้ถ่ายรูป</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-e3">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🔮</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.e3.h">กิจกรรมดูดวงดึงคนเข้าบูธ</h3>
+        <p data-i18n="sl.c.e3.p">ศาสตร์ไทยและจีนเพื่อความบันเทิง ใช้เป็นกิจกรรมหน้าบูธ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e3.w">งานแสดงสินค้า ห้าง เทศกาล</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.page">ประมวลผลในเบราว์เซอร์ ดูรายละเอียดการเก็บข้อมูลในหน้านั้นและในประกาศความเป็นส่วนตัว</span></p>
+        <a class="sl-go" href="fortune.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.fortune">รวมศาสตร์ดูดวง</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-e4">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🪪</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.e4.h">ลงทะเบียนเข้างาน</h3>
+        <p data-i18n="sl.c.e4.p">เช็คชื่อผู้ร่วมงานที่ลงทะเบียนและยินยอม ส่งออกรายชื่อ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e4.w">งานสัมมนา งานประชุม</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.face">ใช้ใบหน้าเฉพาะผู้ที่ยินยอมโดยชัดแจ้ง (ข้อมูลชีวภาพ PDPA
+          ม.26) เข้ารหัสในเครื่อง ตั้งระยะเวลาเก็บและลบได้ ควรมีทางเลือกที่ไม่ใช้ใบหน้า</span></p>
+        <a class="sl-go" href="attendance.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.attendance">เช็คชื่อด้วยใบหน้า</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-e5">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🎢</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.e5.h">คิวเครื่องเล่นและจุดจำหน่ายบัตร</h3>
+        <p data-i18n="sl.c.e5.p">ประมาณเวลารอและเตือนให้เปิดช่องขายบัตรเพิ่ม</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e5.w">สวนสนุก พิพิธภัณฑ์ แหล่งท่องเที่ยว</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <a class="sl-go" href="queue.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.queue">แจ้งเตือนคิวยาว</span> <span aria-hidden="true">→</span></a>
+      </article>
+      </div>
+      <p class="sl-none" hidden data-i18n="sl.empty">ไม่มีรายการในสถานะนี้</p>
+    </section>
+    <section class="sl-sec" id="sec-gov" aria-labelledby="h-gov">
+      <h2 id="h-gov"><span aria-hidden="true">🏛️</span> <span data-i18n="sl.s.gov">ชุมชนและภาครัฐ</span></h2>
+      <p class="pd-sub" data-i18n="sl.s.gov.sub">หน่วยงานรัฐ ท้องถิ่น ชุมชน และหมู่บ้าน</p>
+      <div class="pd-grid sl-grid">
+      <article class="sl-card" data-status="now" id="sol-g1">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🧾</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.g1.h">คิวจุดบริการประชาชน</h3>
+        <p data-i18n="sl.c.g1.p">นับคนรอที่จุดบริการ เช่น ที่ว่าการอำเภอ และเตือนให้เปิดช่องบริการเพิ่ม</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.g1.w">ที่ว่าการอำเภอ สำนักงานเขต หน่วยบริการ</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <a class="sl-go" href="queue.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.queue">แจ้งเตือนคิวยาว</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="pilot" id="sol-g2">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🏡</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">นำร่อง</span></div>
+        <h3 data-i18n="sl.c.g2.h">ประตูหมู่บ้านและชุมชน</h3>
+        <p data-i18n="sl.c.g2.p">บันทึกรถเข้า–ออกหมู่บ้าน บัตรผู้มาเยือน และให้ยามตัดสินใจเปิดไม้กั้นเอง</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.g2.w">หมู่บ้านจัดสรร ชุมชน</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.plate">ทะเบียนรถเป็นข้อมูลส่วนบุคคล: ติดป้ายแจ้ง
+          ตั้งระยะเวลาเก็บและลบอัตโนมัติ เจ้าหน้าที่ยืนยันทุกครั้ง</span></p>
+        <a class="sl-go" href="village.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.village">ประตูหมู่บ้านและคอนโด</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-g3">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🅿️</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.g3.h">ช่องจอดว่างลานจอดสาธารณะ</h3>
+        <p data-i18n="sl.c.g3.p">แสดงจำนวนช่องว่างหน้าทางเข้าโดยไม่อ่านทะเบียน</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.g3.w">เทศบาล โรงพยาบาลรัฐ ตลาด</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.vehicle">ดูเฉพาะว่ามีรถในช่องหรือไม่ ไม่อ่านป้ายทะเบียน ไม่สนใจคน ไม่บันทึกภาพ</span></p>
+        <a class="sl-go" href="bays.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.bays">นับช่องจอดว่าง</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-g4">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🏫</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.g4.h">เฝ้าศาลาชุมชนและโรงเรียนนอกเวลา</h3>
+        <p data-i18n="sl.c.g4.p">แจ้งผู้ดูแลเมื่อพบคนในอาคารนอกเวลาที่กำหนด ให้คนตรวจสอบเสมอ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.g4.w">อบต. เทศบาล โรงเรียน</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <a class="sl-go" href="afterhours.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.afterhours">พื้นที่หวงห้ามและนอกเวลา</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="pilot" id="sol-g5">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🖥️</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">นำร่อง</span></div>
+        <h3 data-i18n="sl.c.g5.h">ห้องสอบออนไลน์ของหน่วยงาน</h3>
+        <p data-i18n="sl.c.g5.p">ช่วยกรรมการคุมสอบในห้องสอบคอมพิวเตอร์ สัญญาณทุกอย่างให้คนตรวจ ไม่ตัดสินผลสอบอัตโนมัติ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.g5.w">หน่วยงานที่จัดสอบคัดเลือก</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.exam">ไม่บันทึกภาพเป็นค่าเริ่มต้น ส่งเฉพาะเหตุการณ์ที่ไม่มีภาพ
+          ไม่อ่านอารมณ์ ไม่ตัดสินอัตโนมัติ มีหน้าแจ้งและขอความยินยอม</span></p>
+        <a class="sl-go" href="exam.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.exam">ผู้ช่วยกรรมการคุมสอบ</span> <span aria-hidden="true">→</span></a>
+      </article>
+      </div>
+      <p class="sl-none" hidden data-i18n="sl.empty">ไม่มีรายการในสถานะนี้</p>
+    </section>
+    <section aria-labelledby="slNoH">
+      <h2 id="slNoH" data-i18n="sl.no.h">สิ่งที่เราจะไม่ทำ</h2>
+      <p class="pd-sub" data-i18n="sl.no.sub">บางงานเสี่ยงต่อสิทธิของคนหรือความปลอดภัยเกินกว่าที่กล้องในเบราว์เซอร์ควรรับผิดชอบ</p>
+      <ul class="pd-list sl-no">
+        <li><b data-i18n="sl.no.1">ให้คะแนนอารมณ์หรือความตั้งใจของนักเรียนหรือพนักงาน</b><span data-i18n="sl.no.1.r">ไม่แม่นยำพอและกระทบสิทธิ กฎหมาย AI
+          ของสหภาพยุโรปห้ามการอ่านอารมณ์ในที่ทำงานและสถานศึกษา</span></li>
+        <li><b data-i18n="sl.no.2">ระบุตัวบุคคลด้วยใบหน้าในที่สาธารณะ</b><span data-i18n="sl.no.2.r">การจดจำใบหน้าทำเฉพาะกับผู้ที่ยินยอมและลงทะเบียนเองเท่านั้น</span></li>
+        <li><b data-i18n="sl.no.3">ตรวจจับคนจมน้ำในสระ</b><span data-i18n="sl.no.3.r">ความผิดพลาดหนึ่งครั้งอาจถึงชีวิต ต้องใช้ระบบและเจ้าหน้าที่ช่วยชีวิตที่รับรองแล้ว</span></li>
+        <li><b data-i18n="sl.no.4">เตือนระยะใกล้รถยก</b><span data-i18n="sl.no.4.r">เป็นระบบความปลอดภัยที่ต้องผ่านการรับรอง กล้องในเบราว์เซอร์ไม่ควรเป็นตัวหยุดอุบัติเหตุ</span></li>
+      </ul>
+    </section>
+    <section aria-labelledby="slPrH">
+      <h2 id="slPrH" data-i18n="sl.pr.h">หลักที่ทุกโซลูชันใช้</h2>
+      <ul class="pd-list">
+        <li><b data-i18n="sl.pr.1b">ประมวลผลบนเครื่อง</b><span data-i18n="sl.pr.1">ภาพไม่ออกจากเครื่องเป็นค่าเริ่มต้น ส่งออกได้เฉพาะตัวเลขหรือเหตุการณ์ที่ไม่มีภาพ</span></li>
+        <li><b data-i18n="sl.pr.2b">คนเป็นผู้ตัดสิน</b><span data-i18n="sl.pr.2">ระบบส่งสัญญาณให้คนไปดู ไม่ตัดสินว่าใครผิด และทุกการแจ้งเตือนมีปุ่มให้คนบันทึกผลการตรวจ</span></li>
+        <li><b data-i18n="sl.pr.3b">PDPA ตั้งแต่ต้น</b><span data-i18n="sl.pr.3">ป้ายแจ้ง 3 ภาษา หน้ารับทราบก่อนเปิดกล้อง แบบฟอร์มขอความยินยอมเมื่อใช้ใบหน้า และปุ่มลบข้อมูล</span></li>
+        <li><b data-i18n="sl.pr.4b">บอกความแม่นยำตรง ๆ</b><span data-i18n="sl.pr.4">เผยแพร่ผลวัดและข้อจำกัด และมีเครื่องมือวัดความแม่นยำหน้างานก่อนใช้ตัวเลขจริง</span></li>
+      </ul>
+      <p class="pd-note"><a href="camera-notice.html" data-i18n="sl.pr.a">พิมพ์ป้ายแจ้งการใช้กล้อง</a> · <a href="cameras.html#accuracy" data-i18n="sl.pr.acc">ความแม่นยำที่วัดได้</a></p>
+    </section>
+    <section aria-labelledby="slNxH">
+      <h2 id="slNxH" data-i18n="sl.next.h">เริ่มอย่างไร</h2>
+      <p class="pd-sub" data-i18n="sl.next.p">ลองหน้าที่ใช้ได้แล้วในโหมดตัวอย่าง → ทดลองหน้างาน 2 สัปดาห์พร้อมตรวจความแม่นยำ → สรุปผลร่วมกัน</p>
+      <ul class="pd-links">
+        <li><a href="index.html?interest=solutions#contact" data-i18n="sl.next.demo">ขอเดโมหรือโครงการนำร่อง</a></li>
+        <li><a href="cameras.html" data-i18n="sl.next.all">ระบบทั้งหมด</a></li>
+        <li><a href="pricing.html" data-i18n="sl.next.pricing">แพ็กเกจและราคา</a></li>
+        <li><button type="button" class="pd-print" id="slPrint" data-i18n="sl.print">พิมพ์ / บันทึกเป็น PDF</button></li>
+      </ul>
+    </section>
+  </div>
+</main>
+<script src="solutions.js?v=1"></script>
+<script src="lensiq-config.js?v=4"></script>
+</body>
+</html>

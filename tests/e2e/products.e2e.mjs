@@ -37,9 +37,11 @@ export default async function ({ base, launch, check }) {
       const page = await browser.newPage(`${base}/index.html?cpu&lang=th`);
       const r = await page.evaluate(() => ({
         products: [...document.querySelectorAll("#products .pd-card")].map(a => a.getAttribute("href")),
+        lines: [...document.querySelectorAll("#productsNew .pd-card")].map(a => a.getAttribute("href")),
         hrefs: [...document.querySelectorAll("a[href]")].map(a => a.getAttribute("href").split("#")[0])
       }));
       assert(r.products.join() === "fortune.html,retail.html,hr.html,creative-suite.html", "chooser: " + r.products);
+      assert(r.lines.join() === "exam.html,gate.html,solutions.html", "new product lines (round 13): " + r.lines);
       const missing = INDEX_LINKS.filter(h => !r.hrefs.includes(h));
       assert(!missing.length, "index lost links: " + missing);
       await page.close();

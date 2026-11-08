@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="za.doc.title">แจ้งเตือนพื้นที่หวงห้ามและนอกเวลา | LENSIQ</title>
+<meta name="description" data-i18n-attr="content:za.doc.desc" content="แจ้งเจ้าหน้าที่เมื่อพบคนในพื้นที่หวงห้ามหรือนอกเวลาทำการ มีเวลาพักการแจ้งซ้ำ ให้คนตรวจสอบเสมอ ประมวลผลบนเครื่อง ไม่บันทึกภาพ">
+<link rel="stylesheet" href="styles.css?v=10">
+<link rel="stylesheet" href="store.css?v=6">
+<link rel="stylesheet" href="zones.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=13"></script>
+<script src="i18n/zh-zones.js?v=1"></script>
+<script src="lensiq-i18n-rt.js?v=1"></script>
+<script src="i18n/zh-rt-common.js?v=1"></script>
+
+<main class="st zc" id="main">
+  <p class="zc-crumb"><a href="solutions.html" data-i18n="zc.back">← โซลูชันตามอุตสาหกรรม</a></p>
+  <h1 data-i18n="za.h1">แจ้งเตือนพื้นที่หวงห้ามและนอกเวลา</h1>
+  <p class="lead" data-i18n="za.lead">วาดพื้นที่ที่ไม่ควรมีคนในช่วงเวลาที่กำหนด (เช่น คลังสินค้าหลังปิดร้าน ห้องเครื่อง หลังเคาน์เตอร์)
+    เมื่อพบกรอบตัวคนในพื้นที่ต่อเนื่องตามเวลาที่ตั้ง ระบบขึ้นแถบเตือนและเสียงให้เจ้าหน้าที่ตรวจสอบ</p>
+  <p class="acc-note" role="note"><b class="beta" data-i18n="zc.beta">ค่าประมาณ (Beta)</b> <span data-i18n="za.acc">การแจ้งเตือนอาจเกิดจากเงา สัตว์ หรือแสงไฟรถ
+    และอาจพลาดคนในที่มืดมาก ไม่ใช้แทนระบบสัญญาณเตือนภัยหรือเจ้าหน้าที่รักษาความปลอดภัย ทดสอบด้วยการเดินเข้าพื้นที่ในสภาพแสงจริงก่อนใช้งาน</span>
+    <a href="cameras.html#accuracy" data-i18n="zc.accLink">ความแม่นยำที่วัดได้</a></p>
+
+  <section class="card zc-gate" id="gate" aria-labelledby="gateH" hidden>
+    <h2 id="gateH" data-i18n="zc.gate.h">ก่อนเปิดกล้อง (PDPA)</h2>
+    <ul class="zc-list">
+      <li data-i18n="zc.gate.1">ติดป้ายแจ้งการใช้กล้องในจุดที่คนเห็นก่อนเข้าพื้นที่ (ป้าย A ในหน้าพิมพ์ป้าย)</li>
+      <li data-i18n="zc.gate.2">หน้านี้นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพหรือวิดีโอ เก็บเฉพาะตัวเลขและรายการแจ้งเตือนในเครื่องนี้</li>
+      <li data-i18n="zc.gate.3">การแจ้งเตือนเป็นเพียงสัญญาณให้คนไปดู ผู้รับผิดชอบเป็นผู้ตัดสินใจเสมอ</li>
+    </ul>
+    <p><a href="camera-notice.html" data-i18n="zc.gate.print">พิมพ์ป้ายแจ้งการใช้กล้อง</a></p>
+    <label class="chk"><input type="checkbox" id="ackChk"><span data-i18n="zc.gate.chk">ติดป้ายแจ้งแล้ว และเข้าใจว่าหน้านี้ไม่บันทึกภาพ</span></label>
+    <button class="btn primary" type="button" data-ack data-i18n="zc.gate.ok">รับทราบ เริ่มใช้งาน</button>
+  </section>
+
+  <div class="engine" id="engine" role="status"></div>
+  <div id="alerts" role="alert" aria-live="assertive"></div>
+
+  <div class="grid2 top">
+    <section class="card" aria-labelledby="camH">
+      <h2 id="camH" class="sr-only" data-i18n="zc.camH">กล้องและโซน</h2>
+      <div class="cam zc-cam" id="cam"><video class="zc-video" autoplay muted playsinline></video>
+        <canvas class="zc-ov" role="img"
+        aria-label="ภาพกล้องพร้อมพื้นที่หวงห้ามและกรอบตัวคน (ไม่บันทึก)"
+        data-i18n-attr="aria-label:za.camAria"></canvas></div>
+      <div class="zc-switch" hidden></div>
+      <div class="cam-actions">
+        <button class="btn primary" id="startCam" type="button" data-i18n="zc.start">เปิดกล้อง</button>
+        <button class="btn ghost" id="demoCam" type="button" data-i18n="zc.demoBtn">ดูตัวอย่าง (ข้อมูลจำลอง)</button>
+        <button class="btn ghost" id="stopCam" type="button" disabled data-i18n="zc.stop">หยุด</button>
+      </div>
+      <div class="tools" role="group" aria-label="เครื่องมือโซน" data-i18n-attr="aria-label:zc.toolsAria">
+        <button class="seg" type="button" id="drawZone" data-i18n="zc.draw">วาดโซน</button>
+        <button class="seg" type="button" id="finishZone" hidden data-i18n="zc.finish">เสร็จ</button>
+        <button class="seg" type="button" id="cancelZone" hidden data-i18n="zc.cancel">ยกเลิก</button>
+        <button class="seg" type="button" id="rectZone" data-i18n="zc.rect">เพิ่มโซนสี่เหลี่ยม</button>
+      </div>
+      <p class="hint" id="drawMsg" role="status"></p>
+      <h3 data-i18n="za.zonesH">พื้นที่หวงห้าม</h3>
+      <ul class="zc-zones" id="zoneList"></ul>
+    </section>
+
+    <section class="card" aria-labelledby="nowH">
+      <h2 id="nowH" data-i18n="za.nowH">สถานะการเฝ้า</h2>
+      <p class="za-badge"><span class="pill" id="armBadge" data-on="0">ไม่ได้เฝ้า</span></p>
+      <div class="tiles" id="tiles"></div>
+      <div class="row-actions"><button class="btn ghost small" type="button" id="testAlert" data-i18n="za.testBtn">ทดสอบการแจ้งเตือน</button></div>
+      <h3 data-i18n="zc.setH">ตั้งค่า</h3>
+      <form id="settingsForm" class="zc-form" novalidate>
+        <label><span data-i18n="za.s.mode">เฝ้าเมื่อใด</span><select name="mode">
+          <option value="schedule" data-i18n="za.s.mode.sched">ตามช่วงเวลาที่ตั้ง</option>
+          <option value="always" data-i18n="za.s.mode.always">ตลอดเวลา</option>
+          <option value="off" data-i18n="za.s.mode.off">ปิดการเฝ้า</option>
+        </select></label>
+        <label><span data-i18n="za.s.from">เริ่มเฝ้า</span><input name="from" type="time"></label>
+        <label><span data-i18n="za.s.to">หยุดเฝ้า (ข้ามเที่ยงคืนได้)</span><input name="to" type="time"></label>
+        <label><span data-i18n="za.s.days">วัน</span><select name="days">
+          <option value="all" data-i18n="za.s.days.all">ทุกวัน</option>
+          <option value="weekdays" data-i18n="za.s.days.wd">จันทร์–ศุกร์</option>
+          <option value="weekend" data-i18n="za.s.days.we">เสาร์–อาทิตย์</option>
+        </select></label>
+        <label><span data-i18n="za.s.persist">ต้องอยู่ในพื้นที่ต่อเนื่อง (วินาที)</span><input name="persistSec" type="number" min="1" max="120" inputmode="numeric"></label>
+        <label><span data-i18n="za.s.cool">ไม่เตือนซ้ำพื้นที่เดิมภายใน (วินาที)</span><input name="cooldownSec" type="number" min="10" max="3600" inputmode="numeric"></label>
+        <label><span data-i18n="za.s.minH">ไม่นับกรอบที่สูงน้อยกว่า (% ของภาพ)</span><input name="minH" type="number" min="1" max="80" inputmode="numeric"></label>
+        <label class="chk"><input name="sound" type="checkbox"><span data-i18n="zc.s.sound">เสียงเตือน</span></label>
+      </form>
+      <p class="form-msg" id="setMsg" role="status"></p>
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="logH">
+    <div class="report-head"><h2 id="logH" data-i18n="zc.logH">รายการแจ้งเตือน (ให้พนักงานตรวจ)</h2></div>
+    <p class="hint" id="logStats" role="status"></p>
+    <ul class="zc-log" id="log"></ul>
+    <div class="row-actions">
+      <button class="btn primary" id="exportCsv" type="button" data-i18n="zc.csv">ส่งออก CSV</button>
+      <button class="btn ghost danger" id="clearData" type="button" data-i18n="zc.clear">ลบข้อมูลสถิติทั้งหมด</button>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="privH">
+    <h2 id="privH" data-i18n="zc.privH">ความเป็นส่วนตัวและข้อมูล</h2>
+    <p class="notice" data-i18n="za.notice">พื้นที่นี้ใช้กล้องแจ้งเตือนเจ้าหน้าที่เมื่อมีคนเข้าในช่วงเวลาที่กำหนด ระบบประมวลผลภาพในเครื่องทันที
+      ไม่บันทึกภาพหรือวิดีโอ และไม่จดจำใบหน้า เก็บเฉพาะเวลาและพื้นที่ที่แจ้งเตือน สอบถามเพิ่มเติมได้ที่ผู้ดูแลสถานที่</p>
+    <p class="hint" data-i18n="zc.data">เก็บในเบราว์เซอร์เครื่องนี้เท่านั้น: รูปทรงโซน การตั้งค่า ตัวเลขสรุปรายวัน และรายการแจ้งเตือน (เวลา โซน ข้อความ
+      ผลการตรวจ) ไม่มีภาพ ไม่มีข้อมูลระบุตัวบุคคล ไม่ส่งออกจากเครื่อง ลบได้ด้วยปุ่ม "ลบข้อมูลสถิติทั้งหมด"</p>
+    <div class="row-actions">
+      <button class="btn ghost" id="printNotice" type="button" data-i18n="zc.printNotice">พิมพ์ป้ายนี้</button>
+      <a class="btn ghost" href="camera-notice.html" data-i18n="zc.allNotices">ป้ายแจ้งและแบบฟอร์มทั้งหมด</a>
+    </div>
+  </section>
+</main>
+
+<script src="vendor/face-api.js"></script>
+<script src="lensiq-track.js?v=3"></script>
+<script src="lensiq-camera.js?v=4"></script>
+<script src="vendor/ort/ort.wasm.min.js"></script>
+<script src="lensiq-detect.js?v=3"></script>
+<script src="lensiq-zones.js?v=1"></script>
+<script src="lensiq-zonecam.js?v=1"></script>
+<script src="afterhours.js?v=1"></script>
+<script src="lensiq-config.js?v=4"></script>
+</body>
+</html>

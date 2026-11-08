@@ -62,9 +62,43 @@ The site header (`nav.js`, `MENU`) and the "all systems" page (`cameras.html`) l
 | `checkout.html` | Camera product recognition (teach-by-example on MobileNet) for self-checkout and stock counts. |
 | `qc.html` | Production-line QC: fill level, cap and label checks with classical CV. Multi-lane. |
 | `driver.html` | Driver drowsiness: eye closure (PERCLOS), yawns, nodding and looking away, with an audio alert. |
-| `attendance.html` | Face check-in for training or seminars. **Explicit biometric consent** is required at enrolment. Encrypted descriptors. Retention is selectable. |
+| `attendance.html` | Face check-in for training or seminars. **Explicit biometric consent** is required at enrolment. Encrypted descriptors. Retention is selectable. **Employee time-attendance mode** (round 13, `?mode=employee`): shifts with grace minutes, OT rules, night shifts, breaks, Thai holiday calendar, leave, monthly summary and payroll CSV, PIN (salted hash) and QR badge punches as alternatives to the face, append-only manager corrections with a hash chain, time records kept at least 2 years separately from face retention (`lensiq-timeclock.js`, `attendance-hr.js`, `attendance-qr.js`, docs/ATTENDANCE-READINESS.md). |
 | `about.html` | About, privacy principles and open-source licence attributions (OFL / Apache NOTICE obligations), in TH and 中文. Linked from the landing-page footer. |
 | `converter.html` | PDF to DOCX. Uses `server.py` (`/api/convert`, `pdfconvert.py`). The default engine is permissive (pdfplumber + python-docx, MIT) and keeps headings, bold, tables and page breaks. The AGPL layout-preserving engine is opt-in (`LENSIQ_CONVERT_ENGINE=pdf2docx`). Without a server, the page falls back to in-browser conversion. Files are processed in a temp dir and are not kept. |
+
+### Education / exams (การศึกษาและการสอบ) — LENSIQ Exam, pilot
+
+| Page | What it does |
+|---|---|
+| `exam.html` | Product landing page, draft prices, printable notice and consent template (`#notice`). |
+| `exam-lab.html` | Candidate page (online / computer-room exams): notice and consent (declining never opens the camera), camera / light check, 2-minute self-calibration, camera and browser signals, always-on "monitoring" badge, own log with no score. |
+| `exam-hall.html` | Hall camera node: draw seats, seat empty / back, extra person, aisle, leaning, phone; mass-movement pause, walk mode, room mute. |
+| `exam-dashboard.html` | Invigilator dashboard: seat map, "check first" queue with plain reasons, named actions, accommodation profiles (no diagnosis field), on-site precision tally, time-ordered CSV / printable report. |
+
+The system raises **signals only**: no emotion analysis, no suspicion ranking, nothing decided automatically. A person always decides. Pure logic in `lensiq-exam.js`; pages talk through a strict JSON allowlist (`exam-link.js`). See `docs/EXAM.md`.
+
+### Parking & access (ลานจอดและการเข้าออก) — LENSIQ Gate, pilot
+
+| Page | What it does |
+|---|---|
+| `gate.html` | Product landing page and draft prices. |
+| `parking.html` | Car park: Thai plate read on the device (PaddleOCR th_PP-OCRv5, Apache-2.0, `vendor/models/plate-ocr-th/`), entry/exit pairing, fee rules, single-use shop stamps, exact-amount PromptPay QR (`lensiq-promptpay.js`, qrcode-generator MIT), receipts, shift close. |
+| `village.html` | Village / condo guard post: resident cars, deny list, unknown-plate alert, visitor passes, staff-operated barrier relay (auto-open off by default). |
+| `gate-notice.html` | Printable plate-camera sign and privacy notice template. |
+| `bays.html` | Free car / motorcycle bay counter with an entrance board; reads no plates. |
+
+Plates are personal data: the operator confirms the PDPA notice before the camera starts and a guard confirms every read. See `docs/GATE.md`.
+
+### Sector catalogue and zone quick wins (round 13)
+
+| Page | What it does |
+|---|---|
+| `solutions.html` | Catalogue by sector: what each card does, who it is for, status (available / pilot / coming soon), the page it uses and a privacy note, plus a "we will not build" list. |
+| `queue.html` | People in the queue zone, estimated and measured wait, "open another counter" alert. |
+| `tables.html` | Free / seated / needs-clearing per table, seatings and average stay. |
+| `afterhours.html` | Person in a restricted zone or outside opening hours, for staff to check (schedule, cooldown). |
+
+The zone pages share `lensiq-zones.js` / `lensiq-zonecam.js`: anonymous boxes only, no images stored, every alert "for a person to check" with a staff real/false tally.
 
 ---
 

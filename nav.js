@@ -34,7 +34,9 @@
       { href: "checkout.html", title: "สแกนสินค้าด้วยกล้อง", desc: "คิดเงินแบบบริการตนเองและรายงานยอดขาย" },
       { href: "neuro.html", title: "วิเคราะห์อารมณ์ (Neuromarketing)", desc: "ทดสอบโฆษณาและบรรจุภัณฑ์จากสีหน้า" },
       { href: "creative.html", title: "Creative Lab ตรวจชิ้นงาน", desc: "แผนที่ความสนใจ ความชัด สี เทียบ A/B" },
-      { href: "signage.html", title: "ป้ายโฆษณาดิจิทัล", desc: "เลือกคอนเทนต์ตามผู้ชม และคีออสก์ไร้สัมผัส" }
+      { href: "signage.html", title: "ป้ายโฆษณาดิจิทัล", desc: "เลือกคอนเทนต์ตามผู้ชม และคีออสก์ไร้สัมผัส" },
+      { href: "queue.html", title: "แจ้งเตือนคิวยาว", desc: "นับคนในโซนคิว ประมาณเวลารอ เตือนเปิดเคาน์เตอร์เพิ่ม" }, // quick win (round 13)
+      { href: "tables.html", title: "โต๊ะว่างและรอบการนั่ง", desc: "โต๊ะว่าง มีลูกค้า รอเก็บ และเวลานั่งต่อโต๊ะ" } // quick win (round 13)
     ] },
     { label: "บูธและสตูดิโอ", id: "photo", intro: "นับผู้เข้าชมบูธ ตู้ถ่ายรูป และสตูดิโอภาพโปรไฟล์และรูปติดบัตร สำหรับงานอีเวนต์และกิจกรรมแบรนด์", items: [
       { href: "creative-suite.html", title: "LENSIQ Creative ภาพรวม", desc: "Creative Lab สตูดิโอ และตู้ถ่ายรูปในชุดเดียว" }, // product landing (Round 10 product split)
@@ -44,11 +46,24 @@
     ] },
     { label: "องค์กรและความปลอดภัย", id: "work", intro: "เช็คชื่อ สัมภาษณ์งาน กิจกรรมทีม เฝ้าระวังความง่วง และตรวจคุณภาพบนสายการผลิต", items: [
       { href: "hr.html", title: "LENSIQ HR ภาพรวม", desc: "ชุดสัมภาษณ์ โหมดฝึกซ้อมผู้สมัคร และกิจกรรมทีม" }, // product landing (Round 10 product split)
-      { href: "attendance.html", title: "เช็คชื่อด้วยใบหน้า", desc: "ลงชื่อเข้าอบรมและสัมมนา" },
+      { href: "attendance.html", title: "เช็คชื่อด้วยใบหน้า", desc: "เช็คชื่ออบรม · ลงเวลาทำงานพนักงาน" },
       { href: "driver.html", title: "เฝ้าระวังความง่วงคนขับ", desc: "แจ้งเตือนเมื่อหลับตานานหรือหาว" },
       { href: "qc.html", title: "ตรวจคุณภาพสินค้า", desc: "ตรวจชิ้นงานบนสายการผลิต" },
       { href: "interview.html", title: "ชุดสัมภาษณ์แบบมีโครงสร้าง", desc: "คำถาม STAR + เกณฑ์ BARS ให้คะแนนอิสระ สรุปความสอดคล้อง โหมดฝึกซ้อม" },
-      { href: "teamface.html", title: "โหงวเฮ้งทีม", desc: "กิจกรรมละลายพฤติกรรม การ์ดบทบาทในทีม เพื่อความบันเทิงเท่านั้น" }
+      { href: "teamface.html", title: "โหงวเฮ้งทีม", desc: "กิจกรรมละลายพฤติกรรม การ์ดบทบาทในทีม เพื่อความบันเทิงเท่านั้น" },
+      { href: "afterhours.html", title: "แจ้งเตือนพื้นที่หวงห้ามและนอกเวลา", desc: "พบคนในโซนหวงห้ามหรือนอกเวลา ให้เจ้าหน้าที่ตรวจสอบ" } // quick win (round 13)
+    ] },
+    { label: "การสอบ", id: "edu", intro: "ช่วยผู้คุมสอบรู้ว่าควรไปดูที่นั่งไหน ระบบไม่ตัดสินการทุจริต คนตัดสินเสมอ ประมวลผลภาพในเครื่อง", items: [
+      { href: "exam.html", title: "LENSIQ Exam ภาพรวม", desc: "ช่วยผู้คุมสอบ ไม่ตัดสินการทุจริต (นำร่อง)" }, // product landing (round 13)
+      { href: "exam-lab.html", title: "หน้าผู้เข้าสอบ", desc: "สอบออนไลน์: แจ้งสิทธิ์ ปรับเทียบ ป้ายกำลังติดตาม" },
+      { href: "exam-hall.html", title: "เครื่องกล้องในห้องสอบ", desc: "วาดที่นั่ง แจ้งที่นั่งว่างและคนเกิน" },
+      { href: "exam-dashboard.html", title: "แดชบอร์ดผู้คุมสอบ", desc: "แผนที่ที่นั่ง คิวให้ตรวจ รายงานตามเวลา" }
+    ] },
+    { label: "ลานจอดรถ", id: "gate", intro: "อ่านป้ายทะเบียนรถไทยบนเครื่อง ลานจอด หมู่บ้าน และนับช่องจอดว่าง เจ้าหน้าที่ยืนยันทุกครั้ง", items: [
+      { href: "gate.html", title: "LENSIQ Gate ภาพรวม", desc: "อ่านป้ายทะเบียนรถไทยบนเครื่อง (นำร่อง)" }, // product landing (round 13)
+      { href: "parking.html", title: "ลานจอดรถ", desc: "จับคู่รถเข้า-ออก คิดค่าจอด QR พร้อมเพย์" },
+      { href: "village.html", title: "ป้อมยามหมู่บ้าน/คอนโด", desc: "รถลูกบ้าน บัตรผ่านผู้มาเยือน เปิดไม้กั้นโดยเจ้าหน้าที่" },
+      { href: "bays.html", title: "นับช่องจอดว่าง", desc: "ช่องจอดว่างจากกล้อง ไม่อ่านป้ายทะเบียน" } // quick win (round 13)
     ] },
     { label: "ดูดวงและวัฒนธรรม", id: "fortune", intro: "กิจกรรมดึงคนเข้าบูธจากศาสตร์ไทยและจีน เพื่อความบันเทิงเท่านั้น", items: [
       { href: "fortune.html", title: "รวมศาสตร์ดูดวง", desc: "เลือกศาสตร์ที่ต้องการ" },
@@ -68,6 +83,7 @@
       { href: "dream.html", title: "ทำนายฝัน", desc: "ความหมายสัญลักษณ์ในฝัน" }
     ] },
     { label: "เครื่องมือ", id: "tools", intro: "เครื่องมือเสริมและรายการระบบทั้งหมด", items: [
+      { href: "solutions.html", title: "โซลูชันตามอุตสาหกรรม", desc: "เลือกตามธุรกิจ: พร้อมใช้ นำร่อง และเร็ว ๆ นี้" }, // sector catalogue (round 13)
       { href: "cameras.html", title: "ระบบทั้งหมด", desc: "รายการระบบและการใช้งานทั้งหมด" },
       { href: "converter.html", title: "แปลง PDF เป็น Word", desc: "แปลงในเบราว์เซอร์ ไม่อัปโหลดไฟล์" }
     ] },
@@ -80,7 +96,7 @@
   // Account, pricing / checkout and every camera page refuse to run inside a frame (a hidden page cannot be clicked
   // through): the page stays blank and we try to break out. Server headers (frame-ancestors / X-Frame-Options) do the
   // same where the host can send them; GitHub Pages cannot, and a <meta> CSP cannot carry frame-ancestors.
-  var NOFRAME = /^(account|pricing|report|checkout|attendance|booth|customers|driver|faceread|fengshui|interview|neuro|palm|photobooth|qc|signage|store|studio|teamface)\.html$/;
+  var NOFRAME = /^(account|pricing|report|checkout|attendance|booth|customers|driver|faceread|fengshui|interview|neuro|palm|photobooth|qc|signage|store|studio|teamface|exam-lab|exam-hall|exam-dashboard|queue|tables|afterhours|bays|parking|village)\.html$/;
   var framed = false;
   try { framed = window.top !== window.self; } catch (e) { framed = true; }
   if (framed && NOFRAME.test((location.pathname.split("/").pop() || "").toLowerCase())) {

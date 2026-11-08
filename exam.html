@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="exam.l.title">LENSIQ Exam ช่วยผู้คุมสอบ | LENSIQ</title>
+<meta name="description" content="LENSIQ Exam ช่วยผู้คุมสอบรู้ว่าควรไปดูที่นั่งไหน ระบบไม่ตัดสินการทุจริต ประมวลผลภาพในเครื่อง" data-i18n-attr="content:exam.l.desc">
+<link rel="stylesheet" href="styles.css?v=10">
+<link rel="stylesheet" href="exam.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=13"></script>
+<script src="i18n/zh-exam.js?v=1"></script>
+
+<main class="ex" id="main">
+  <p class="eyebrow" data-i18n="exam.l.eyebrow">การศึกษาและการสอบ</p>
+  <h1 data-i18n="exam.l.h1">LENSIQ Exam — บอกผู้คุมสอบว่าควรไปดูที่นั่งไหน</h1>
+  <p class="lead" data-i18n="exam.l.lead">ระบบช่วยผู้คุมสอบ ไม่ใช่ผู้ตัดสิน: กล้องสังเกตสิ่งที่เห็นได้ เช่น ไม่เห็นใบหน้า หรือมีโทรศัพท์ในภาพ แล้วแจ้งที่นั่งให้คนไปดู การตัดสินว่ามีการทุจริตหรือไม่เป็นของผู้คุมสอบและคณะกรรมการเท่านั้น ภาพประมวลผลในเครื่อง ไม่ส่งภาพออกนอกเครื่อง</p>
+  <div class="row-actions">
+    <a class="btn primary" href="exam-lab.html" data-i18n="exam.l.ctaLab">หน้าผู้เข้าสอบ (ห้องคอมพิวเตอร์)</a>
+    <a class="btn ghost" href="exam-hall.html" data-i18n="exam.l.ctaHall">เครื่องกล้องในห้องสอบ</a>
+    <a class="btn ghost" href="exam-dashboard.html" data-i18n="exam.l.ctaDash">แดชบอร์ดผู้คุมสอบ</a>
+  </div>
+  <p class="warn" role="note"><b data-i18n="exam.l.betaB">เดโม ยังไม่ได้วัดความแม่นยำในห้องสอบจริง</b> <span data-i18n="exam.l.beta">เกณฑ์ทุกค่าเป็นค่าเริ่มต้นจากงานวิจัยและต้องตรวจในสถานที่จริงก่อนใช้ (มีเครื่องมือนับว่าแจ้งถูกหรือผิดในแดชบอร์ด) ใบหน้าวิเคราะห์ด้วยโมเดล face-api.js (โค้ด MIT) ที่ฝึกจากชุดข้อมูลซึ่งอนุญาตเฉพาะงานวิจัย ตรวจสิทธิ์ก่อนใช้งานเชิงพาณิชย์</span></p>
+
+  <section class="modes" aria-labelledby="modesH">
+    <h2 id="modesH" class="sr-only" data-i18n="exam.l.modesH">เลือกรูปแบบการสอบ</h2>
+    <article class="card mode">
+      <h3 data-i18n="exam.l.mB">ห้องคอมพิวเตอร์ / สอบผ่านเว็บแคม</h3>
+      <p data-i18n="exam.l.mBp">ผู้เข้าสอบแต่ละคนเปิดหน้าผู้เข้าสอบบนเครื่องของตน: อ่านประกาศและให้ความยินยอม ตรวจกล้องและแสง ปรับเทียบท่าศีรษะ 2 นาที แล้วเข้าโหมดเต็มจอ</p>
+      <ul class="ticks">
+        <li data-i18n="exam.l.mB1">สังเกต: ไม่เห็นใบหน้า หลายใบหน้า หันศีรษะนาน โทรศัพท์หรือหนังสือในภาพ</li>
+        <li data-i18n="exam.l.mB2">สัญญาณจากเบราว์เซอร์: สลับหน้าต่าง ออกจากเต็มจอ วางข้อความยาว จอที่สอง กล้องเสมือน</li>
+        <li data-i18n="exam.l.mB3">ผู้สอบเห็นข้อความเตือนแบบสุภาพก่อน และเห็นบันทึกเหตุการณ์ของตัวเองได้ตลอด</li>
+      </ul>
+      <a class="btn primary" href="exam-lab.html" data-i18n="exam.l.openLab">เปิดหน้าผู้เข้าสอบ</a>
+    </article>
+    <article class="card mode">
+      <h3 data-i18n="exam.l.mA">ห้องสอบที่มีกล้องรอบห้อง</h3>
+      <p data-i18n="exam.l.mAp">ใช้แล็ปท็อปหรือมือถือ 1–3 เครื่องเป็นเครื่องกล้อง ผู้คุมสอบวาดขอบเขตที่นั่งบนภาพแต่ละมุม ระบบประมวลผล 2–5 ภาพต่อวินาที และส่งเฉพาะเหตุการณ์ไปที่แดชบอร์ด</p>
+      <ul class="ticks">
+        <li data-i18n="exam.l.mA1">สังเกต: ที่นั่งว่าง (เวลาออก–กลับ) คนเพิ่มที่ที่นั่ง คนยืนในทางเดิน เอนตัวเข้าที่นั่งข้างเคียง โทรศัพท์</li>
+        <li data-i18n="exam.l.mA2">หลายที่นั่งขยับพร้อมกัน (ประกาศ เสียงดัง) ระบบพักการแจ้งเตือนเอง และมีปุ่มพักทั้งห้อง 60 วินาที</li>
+        <li data-i18n="exam.l.mA3">ปุ่ม “โหมดเดินตรวจ” เมื่อผู้คุมสอบเดินในห้อง ไม่ให้ระบบแจ้งว่ามีคนในทางเดิน</li>
+      </ul>
+      <a class="btn primary" href="exam-hall.html" data-i18n="exam.l.openHall">เปิดเครื่องกล้อง</a>
+    </article>
+    <article class="card mode">
+      <h3 data-i18n="exam.l.mD">แดชบอร์ดผู้คุมสอบ (ทั้งสองแบบ)</h3>
+      <p data-i18n="exam.l.mDp">ผังที่นั่งตามสีระดับที่ค่อย ๆ ลดลงเอง รายการแจ้งพร้อมเหตุผลเป็นภาษาธรรมดา ปุ่ม กำลังไปดู / ไม่มีปัญหา / บันทึก / ส่งต่อ พร้อมชื่อผู้คุมสอบ ส่งออก CSV และรายงานสำหรับคณะกรรมการ</p>
+      <a class="btn primary" href="exam-dashboard.html" data-i18n="exam.l.openDash">เปิดแดชบอร์ด</a>
+    </article>
+  </section>
+
+  <section class="card" aria-labelledby="whyH">
+    <h2 id="whyH" data-i18n="exam.l.whyH">ทำไมระบบไม่ตัดสินเอง</h2>
+    <ul class="ticks">
+      <li data-i18n="exam.l.why1">การทดลองแบบสุ่มที่มหาวิทยาลัย Twente พบว่าระบบคุมสอบอัตโนมัติจับผู้ที่ถูกสั่งให้ทุจริตได้ 0 จาก 6 คน</li>
+      <li data-i18n="exam.l.why2">ผู้ให้บริการคุมสอบรายใหญ่เลิกใช้การตัดสินด้วยระบบอย่างเดียว และให้คนตรวจทุกการแจ้ง</li>
+      <li data-i18n="exam.l.why3">ข้อร้องเรียนส่วนใหญ่มาจากการแจ้งผิด: ผิวสีเข้มในแสงน้อย ความพิการ อาการกระตุก (tic) การอ่านออกเสียง</li>
+      <li data-i18n="exam.l.why4">ศาลสหรัฐฯ (Ogletree v. Cleveland State, 2022) ตัดสินว่าการบังคับสแกนห้องที่บ้านขัดรัฐธรรมนูญ ระบบนี้จึงไม่มีการสแกนห้อง</li>
+    </ul>
+  </section>
+
+  <div class="grid2">
+    <section class="card" aria-labelledby="neverH">
+      <h2 id="neverH" data-i18n="exam.l.neverH">สิ่งที่ระบบไม่ทำเด็ดขาด</h2>
+      <ul class="ticks">
+        <li data-i18n="exam.l.never1">ไม่ให้ตกหรือหยุดการสอบอัตโนมัติ และไม่มีการจำกัดจำนวนครั้งที่ถูกแจ้ง</li>
+        <li data-i18n="exam.l.never2">ไม่แสดง “คะแนนทุจริต” ต่อผู้สอบ และไม่เรียงผู้สอบตามความน่าสงสัยในรายงาน</li>
+        <li data-i18n="exam.l.never3">ไม่วิเคราะห์อารมณ์หรือสีหน้า ไม่จดจำว่าใครเป็นใคร (ไม่เทียบใบหน้า)</li>
+        <li data-i18n="exam.l.never4">ไม่บันทึกภาพหรือเสียงแบบซ่อน ไม่บังคับสแกนห้อง ไม่ฟังคำพูด</li>
+      </ul>
+    </section>
+    <section class="card" aria-labelledby="cantH">
+      <h2 id="cantH" data-i18n="exam.l.cantH">สิ่งที่หน้าเว็บมองไม่เห็น</h2>
+      <ul class="ticks">
+        <li data-i18n="exam.l.cant1">โปรแกรมอื่นบนเครื่อง ข้อความแชต หรือหน้าต่างที่เปิดอยู่เบื้องหลัง</li>
+        <li data-i18n="exam.l.cant2">โทรศัพท์หรืออุปกรณ์ที่อยู่นอกภาพ หูฟังขนาดเล็ก แว่นอัจฉริยะ คนที่อยู่นอกกล้อง</li>
+        <li data-i18n="exam.l.cant3">กล้องเสมือนบางแบบที่ตั้งชื่อเหมือนกล้องจริง</li>
+      </ul>
+      <p class="note" data-i18n="exam.l.cantRec">การสอบที่มีผลสูง ควรใช้ Safe Exam Browser หรือ Chrome โหมดคีออสก์ ร่วมกับผู้คุมสอบในห้องเสมอ</p>
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="sigH">
+    <h2 id="sigH" data-i18n="exam.l.sigH">สิ่งที่ระบบสังเกต และระดับการแจ้ง</h2>
+    <p class="note" data-i18n="exam.l.sigP">ทุกสัญญาณเป็น “ข้อสังเกต” ต้องเกิดต่อเนื่องตามเวลาที่กำหนดก่อนแจ้ง แจ้งซ้ำไม่ถี่กว่า 60–120 วินาทีต่อที่นั่ง และรวมเป็นระดับที่ค่อย ๆ ลดลงเอง: ข้อมูล → เฝ้าดู → ไปตรวจ</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th data-i18n="exam.l.tSig">ข้อสังเกต</th><th data-i18n="exam.l.tRule">เงื่อนไขเริ่มต้น</th><th data-i18n="exam.l.tLvl">ระดับ</th></tr></thead>
+        <tbody>
+          <tr><td data-i18n="exam.l.s1">ไม่เห็นใบหน้า</td><td data-i18n="exam.l.s1r">5 วินาที ขอให้ผู้สอบปรับแสง · 10 วินาที เฝ้าดู · 30 วินาที ไปตรวจ</td><td><span class="pill lv-check" data-i18n="exam.lvl.check">ไปตรวจ</span></td></tr>
+          <tr><td data-i18n="exam.l.s2">หลายใบหน้า</td><td data-i18n="exam.l.s2r">2 ใบหน้าขึ้นไป 3 วินาที ใน 3 จาก 5 ภาพ</td><td><span class="pill lv-check" data-i18n="exam.lvl.check">ไปตรวจ</span></td></tr>
+          <tr><td data-i18n="exam.l.s3">หันศีรษะนาน</td><td data-i18n="exam.l.s3r">หันเกิน 35° หรือก้มเกิน 25° จากท่าที่ปรับเทียบ 8 วินาที · 3 ครั้งใน 5 นาที = เฝ้าดู</td><td><span class="pill lv-watch" data-i18n="exam.lvl.watch">เฝ้าดู</span></td></tr>
+          <tr><td data-i18n="exam.l.s4">โทรศัพท์ในภาพ</td><td data-i18n="exam.l.s4r">ความมั่นใจ ≥ 0.6 ใน 3 จาก 5 ภาพ</td><td><span class="pill lv-check" data-i18n="exam.lvl.check">ไปตรวจ</span></td></tr>
+          <tr><td data-i18n="exam.l.s5">หนังสือ แล็ปท็อป จออื่น</td><td data-i18n="exam.l.s5r">ตั้งค่าได้ว่าอนุญาตหรือไม่ในแต่ละวิชา</td><td><span class="pill lv-watch" data-i18n="exam.lvl.watch">เฝ้าดู</span></td></tr>
+          <tr><td data-i18n="exam.l.s6">สลับหน้าต่าง / ออกจากเต็มจอ</td><td data-i18n="exam.l.s6r">สลับสั้นกว่า 2 วินาที = ข้อมูล · ซ่อนหน้า 5 วินาทีขึ้นไป = เฝ้าดู · ออกจากเต็มจอ = เฝ้าดู + ขอให้กลับเข้า</td><td><span class="pill lv-watch" data-i18n="exam.lvl.watch">เฝ้าดู</span></td></tr>
+          <tr><td data-i18n="exam.l.s7">ที่นั่งว่าง / คนเพิ่ม / เอนตัว / ทางเดิน</td><td data-i18n="exam.l.s7r">ว่าง 20 วินาที = ข้อมูล · คนเพิ่ม 5 วินาที = เฝ้าดู, 15 วินาที = ไปตรวจ · เอนเข้าเขตข้างเคียงเกิน 25% นาน 4 วินาที = เฝ้าดู</td><td><span class="pill lv-watch" data-i18n="exam.lvl.watch">เฝ้าดู</span></td></tr>
+          <tr><td data-i18n="exam.l.s8">ปากขยับ / สายตา</td><td data-i18n="exam.l.s8r">ข้อมูลเท่านั้น ไม่ฟังเสียง · สายตาน้ำหนักต่ำ ไม่แจ้งเพียงลำพัง ปิดได้</td><td><span class="pill lv-info" data-i18n="exam.lvl.info">ข้อมูล</span></td></tr>
+          <tr><td data-i18n="exam.l.s9">ภาพไม่ชัด / แสงไม่พอ</td><td data-i18n="exam.l.s9r">ไม่ใช่การแจ้งเตือน: แสดง “ปรับการติดตั้ง” ให้แก้กล้องหรือแสง</td><td><span class="pill lv-setup" data-i18n="exam.lvl.setup">ปรับการติดตั้ง</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="fairH">
+    <h2 id="fairH" data-i18n="exam.l.fairH">ความเป็นธรรมและการปรับเงื่อนไขเฉพาะบุคคล</h2>
+    <ul class="ticks">
+      <li data-i18n="exam.l.fair1">มาตรวัดแสงก่อนเริ่มสอบ: ถ้าระบบเห็นใบหน้าได้ไม่ดี จะขอให้ปรับแสงหรือกล้อง ไม่ใช่แจ้งว่าผู้สอบผิด</li>
+      <li data-i18n="exam.l.fair2">สถาบันตั้งเงื่อนไขเฉพาะบุคคลได้โดยไม่ต้องระบุการวินิจฉัย: ปิดการดูสายตา ยืดเวลาไม่เห็นใบหน้า อ่านออกเสียงได้ พักได้บ่อยขึ้น เพิ่มเกณฑ์สำหรับอาการกระตุก</li>
+      <li data-i18n="exam.l.fair3">อัตราการตรวจไม่พบใบหน้าในสภาพแสงและสีผิวต่าง ๆ ยังไม่ได้วัด จะเผยแพร่ในรายงานความแม่นยำก่อนเปิดขาย</li>
+    </ul>
+  </section>
+
+  <section class="card" aria-labelledby="lawH">
+    <h2 id="lawH" data-i18n="exam.l.lawH">PDPA และกฎหมาย AI ของสหภาพยุโรป</h2>
+    <ul class="ticks">
+      <li data-i18n="exam.l.law1">PDPA: แจ้งผู้สอบล่วงหน้าว่ากล้องสังเกตอะไร เพื่ออะไร เก็บนานเท่าไร และใครเห็น ระบบนี้ตรวจจับใบหน้าและท่าศีรษะ แต่ไม่ระบุตัวตน (ไม่ใช่ข้อมูลชีวมิติเพื่อยืนยันตัวตนตามมาตรา 26) หากเพิ่มการเทียบใบหน้าต้องขอความยินยอมโดยชัดแจ้ง</li>
+      <li data-i18n="exam.l.law2">ไม่มีการส่งภาพออกนอกเครื่อง ส่งเฉพาะเหตุการณ์ (เวลา ที่นั่ง ประเภท) ไปที่แดชบอร์ดในห้อง ผู้สอบที่ไม่ยินยอมควรได้รับทางเลือกอื่น เช่น สอบในห้องที่มีผู้คุมสอบ</li>
+      <li data-i18n="exam.l.law3">EU AI Act: ระบบเฝ้าดูพฤติกรรมระหว่างสอบเป็นระบบความเสี่ยงสูง (ภาคผนวก III ข้อ 3(d)) ต้องมีคนกำกับดูแล บันทึกเหตุการณ์ และประเมินความแม่นยำ ส่วนการอนุมานอารมณ์ในการศึกษาถูกห้าม (มาตรา 5(1)(f)) ระบบนี้จึงไม่มีการวิเคราะห์อารมณ์</li>
+      <li data-i18n="exam.l.law4">ข้อความนี้ไม่ใช่คำปรึกษาทางกฎหมาย ควรให้นักกฎหมายตรวจประกาศและขั้นตอนของสถาบันก่อนใช้งานจริง</li>
+    </ul>
+  </section>
+
+  <section class="card" aria-labelledby="priceH">
+    <h2 id="priceH"><span data-i18n="exam.l.priceH">ราคา (ร่าง)</span> <span class="tag-draft" data-i18n="exam.l.draft">ร่าง ยังไม่เปิดขาย</span></h2>
+    <div class="price-grid">
+      <div class="card"><h3 data-i18n="exam.l.p1">ทดลองใช้ฟรี</h3><b data-i18n="exam.l.p1b">1 ห้อง 10 ที่นั่ง</b><p class="note" data-i18n="exam.l.p1n">ใช้ในเครื่อง ไม่มีค่าใช้จ่าย</p></div>
+      <div class="card"><h3 data-i18n="exam.l.p2">ห้องคอมพิวเตอร์</h3><b data-i18n="exam.l.p2b">฿15–30 ต่อผู้สอบต่อการสอบ</b><p class="note" data-i18n="exam.l.p2n">หรือแพ็กเกจรายเดือน ฿990–1,490</p></div>
+      <div class="card"><h3 data-i18n="exam.l.p3">ห้องสอบที่มีกล้อง</h3><b data-i18n="exam.l.p3b">฿300–600 ต่อห้องต่อวันสอบ</b><p class="note" data-i18n="exam.l.p3n">หรือ ฿1,990 ต่อเดือนต่อห้อง (3 เครื่องกล้อง)</p></div>
+      <div class="card"><h3 data-i18n="exam.l.p4">สถาบัน</h3><b data-i18n="exam.l.p4b">฿30,000–120,000 ต่อปี</b><p class="note" data-i18n="exam.l.p4n">ใบอนุญาตทั้งสถาบัน พร้อมการอบรมผู้คุมสอบ</p></div>
+    </div>
+    <p class="note" data-i18n="exam.l.priceNote">ราคาเป็นร่างเพื่อรับฟังความเห็น ผู้ดูแลระบบปรับได้ ยังไม่มีการเก็บเงินในหน้านี้</p>
+  </section>
+
+  <section class="card" id="notice" aria-labelledby="noticeH">
+    <h2 id="noticeH" data-i18n="exam.l.noticeH">ประกาศและแบบขอความยินยอม (แม่แบบสำหรับพิมพ์)</h2>
+    <div class="notice-print">
+      <h3 data-i18n="exam.l.nT">ประกาศการใช้กล้องช่วยผู้คุมสอบ</h3>
+      <p data-i18n="exam.l.n1">การสอบนี้ใช้กล้องช่วยผู้คุมสอบ ระบบสังเกตสิ่งที่เห็นได้ เช่น ไม่เห็นใบหน้า มีหลายคนในภาพ หรือมีโทรศัพท์ แล้วแจ้งให้ผู้คุมสอบไปดู ระบบไม่ตัดสินว่ามีการทุจริต และไม่จดจำว่าใครเป็นใคร</p>
+      <p data-i18n="exam.l.n2">ภาพประมวลผลในเครื่องเท่านั้น ไม่บันทึกและไม่ส่งออก สิ่งที่เก็บคือบันทึกเหตุการณ์ (เวลา ที่นั่ง ประเภท ผลการตรวจ) เพื่อให้คณะกรรมการสอบตรวจสอบ เก็บไม่เกิน 90 วันหรือตามระเบียบของสถาบัน</p>
+      <p data-i18n="exam.l.n3">ผู้เข้าสอบขอดูบันทึกของตนเอง ขอทางเลือกอื่น หรือร้องเรียนได้ที่เจ้าหน้าที่คุ้มครองข้อมูลส่วนบุคคลของสถาบัน</p>
+      <p data-i18n="exam.l.n4">ข้าพเจ้าได้อ่านประกาศนี้แล้ว และยินยอมให้ใช้กล้องช่วยผู้คุมสอบตามที่ระบุ ลงชื่อ ____________ วันที่ ________</p>
+    </div>
+    <div class="row-actions no-print"><button class="btn ghost" type="button" id="printNotice" data-i18n="exam.l.print">พิมพ์ประกาศ</button></div>
+  </section>
+</main>
+
+<script src="exam-landing.js?v=1"></script>
+<script src="lensiq-config.js?v=4"></script>
+</body>
+</html>

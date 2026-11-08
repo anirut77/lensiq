@@ -138,6 +138,29 @@ Pricing rationale for Thai SMEs: comparable Thai SaaS (POS, booking, LINE OA add
 month; an event activation agency budgets per booth-day, so a day pass priced below a promoter's day rate is an easy
 "yes". Yearly = 10 × monthly. Prices end in 0/900 to keep VAT-inclusive totals readable.
 
+### 4.1 Round 13 proposals: new product lines (not on the plan registry yet)
+
+Plans live in the D1 `plans` table (backend/migrations) and the pricing page's built-in `DRAFT` copy mirrors those
+migrations, so adding a plan needs a new migration. These lines are therefore **proposals only**: nothing below is
+sold, listed on pricing.html or enforced. The figures are the draft text already shown on each product page (each
+page labels them "ร่าง / draft"). Owner decision needed before any of them becomes a migration.
+
+| Proposed plan id | Product | Contents | Indicative price (draft, from the page) |
+|---|---|---|---|
+| `exam_lab` | LENSIQ Exam: computer room / online exam (exam-lab.html) | candidate page, signals log, invigilator dashboard | 15–30 THB per candidate per exam, or 990–1,490 THB / month |
+| `exam_hall` | LENSIQ Exam: camera exam hall (exam-hall.html) | up to 3 hall camera nodes per room + dashboard | 300–600 THB per room per exam day, or 1,990 THB / month per room |
+| `exam_institution` | LENSIQ Exam: institution licence | whole-institution licence + invigilator training | 30,000–120,000 THB / year |
+| `gate_trial` | LENSIQ Gate trial | 1 lane, 100 reads / day, 7-day logs | 0 THB |
+| `gate_village_basic` | LENSIQ Gate village Basic (village.html) | resident cars, visitor passes, alerts, Open button | ~990 THB / month / lane |
+| `gate_village_pro` | LENSIQ Gate village Pro | 3 lanes, per-house reports, on-site accuracy check | ~1,990 THB / month |
+| `gate_parking` | LENSIQ Gate car park (parking.html) | fees, shop stamps, PromptPay QR, receipts, shift close | ~1,490 THB / month / lane |
+| `gate_setup` | Gate installation (one-time) | camera angle / light tuning + joint accuracy check | 3,000–5,000 THB per visit |
+| `attendance_employee` | Employee time attendance (attendance.html employee mode) | shifts, OT, holidays, payroll CSV, PIN/QR | fold into "Training / attendance" above (owner to decide) |
+
+Possible perks (would go into `PERKS` in backend/src/constants.js as `coming_soon`, consumer null, once a plan uses
+them): `exam_rooms` (rooms), `gate_lanes` (lanes), `zone_cameras` (camera pages for queue / tables / afterhours / bays).
+They are not added yet because no plan references them and an unused perk would only show as "coming soon".
+
 ## 5. Tax (Thailand) **[ตรวจทานกฎหมาย]**
 
 * **VAT 7 %** only if the seller is VAT-registered (mandatory above 1.8 M THB turnover/year, voluntary below).

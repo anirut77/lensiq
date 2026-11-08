@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="gn.title">ป้ายแจ้งกล้องอ่านทะเบียนและประกาศความเป็นส่วนตัว | LENSIQ Gate</title>
+<meta name="description" content="ชุดป้ายแจ้ง PDPA สำหรับกล้องอ่านป้ายทะเบียน: ป้ายภาษาไทย/อังกฤษสำหรับพิมพ์ และแม่แบบประกาศความเป็นส่วนตัว">
+<link rel="stylesheet" href="styles.css?v=10">
+<link rel="stylesheet" href="gate.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=13"></script>
+<script src="i18n/zh-gate.js?v=1"></script>
+
+<main class="gk-page" id="main">
+  <p class="eyebrow" data-i18n="gn.eyebrow">LENSIQ Gate · ชุดป้ายแจ้ง PDPA</p>
+  <h1 data-i18n="gn.h1">ป้ายแจ้งกล้องอ่านทะเบียน และประกาศความเป็นส่วนตัว</h1>
+  <p class="lead" data-i18n="gn.lead">กรอกข้อมูลสถานที่ แล้วพิมพ์ป้าย (ไทย/อังกฤษ) ติดก่อนถึงจุดกล้องให้ผู้ขับขี่เห็นชัด และเผยแพร่ประกาศความเป็นส่วนตัวที่ป้อมหรือเว็บไซต์ของสถานที่</p>
+  <p class="gk-note" role="note" data-i18n="gn.legal">แม่แบบนี้ไม่ใช่คำแนะนำทางกฎหมาย ควรให้นักกฎหมายหรือเจ้าหน้าที่คุ้มครองข้อมูลส่วนบุคคล (DPO) ของคุณตรวจก่อนใช้จริง</p>
+
+  <section class="card" aria-labelledby="gnFormH">
+    <h2 id="gnFormH" data-i18n="gn.form">ข้อมูลที่จะใส่ในป้ายและประกาศ</h2>
+    <div class="gk-grid2">
+      <label class="gk-field"><span data-i18n="gn.f.site">ชื่อสถานที่</span><input data-f="site" type="text" maxlength="80" autocomplete="off"></label>
+      <label class="gk-field"><span data-i18n="gn.f.ctrl">ผู้ควบคุมข้อมูล (นิติบุคคล/บริษัท)</span><input data-f="ctrl" type="text" maxlength="100" autocomplete="off"></label>
+      <label class="gk-field"><span data-i18n="gn.f.contact">ช่องทางติดต่อ (โทร/อีเมล)</span><input data-f="contact" type="text" maxlength="100" autocomplete="off"></label>
+      <label class="gk-field"><span data-i18n="gn.f.purpose">วัตถุประสงค์</span><select data-f="purpose"><option value="parking" data-i18n="gn.p.parking">คิดค่าจอดและความปลอดภัยของลานจอด</option><option value="village" data-i18n="gn.p.village">ควบคุมการเข้าออกและความปลอดภัยของโครงการ</option></select></label>
+      <label class="gk-field"><span data-i18n="gn.f.log">เก็บบันทึกเข้า-ออก (วัน)</span><input data-f="logDays" type="number" min="7" max="730" value="90"></label>
+      <label class="gk-field"><span data-i18n="gn.f.img">เก็บภาพครอปป้าย (วัน, 0 = ไม่เก็บ)</span><input data-f="imgDays" type="number" min="0" max="30" value="0"></label>
+    </div>
+    <div class="gk-row">
+      <button class="btn primary" type="button" id="gnPrintPoster" data-i18n="gn.printPoster">พิมพ์ป้าย</button>
+      <button class="btn ghost" type="button" id="gnPrintNotice" data-i18n="gn.printNotice">พิมพ์ประกาศความเป็นส่วนตัว</button>
+    </div>
+    <p class="hint" data-i18n="gn.local">ข้อมูลที่กรอกใช้ในหน้านี้เท่านั้น ไม่ถูกส่งหรือบันทึก</p>
+  </section>
+
+  <h2 data-i18n="gn.posterH">ป้ายแจ้ง (ตัวอย่างก่อนพิมพ์)</h2>
+  <div class="gn-poster gk-print" id="gnPoster">
+    <svg class="gn-ico" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="18" width="40" height="28" rx="6" fill="none" stroke="#0e1430" stroke-width="4"/><path d="M46 26l12-7v26l-12-7z" fill="#0e1430"/><rect x="14" y="50" width="28" height="10" rx="2" fill="#fff" stroke="#0e1430" stroke-width="3"/></svg>
+    <div lang="th" translate="no">
+      <h2>พื้นที่นี้ใช้กล้องอ่านป้ายทะเบียนรถ</h2>
+      <p>เพื่อ<span data-out="purpose_th"></span></p>
+      <p>ระบบอ่านเลขทะเบียนและจังหวัด เจ้าหน้าที่เป็นผู้ยืนยัน เก็บบันทึก <span data-out="logDays"></span> วัน<span data-out="img_th"></span></p>
+      <p class="gn-small">ผู้ควบคุมข้อมูล: <span class="gn-fill" data-out="ctrl"></span> · ติดต่อ: <span class="gn-fill" data-out="contact"></span> · <span data-out="site"></span></p>
+    </div>
+    <div class="gn-en" lang="en" translate="no">
+      <h2>Licence-plate recognition camera in use</h2>
+      <p>For <span data-out="purpose_en"></span>. Plate number and province are read on site and confirmed by staff. Logs are kept for <span data-out="logDays"></span> days<span data-out="img_en"></span>.</p>
+      <p class="gn-small">Data controller: <span class="gn-fill" data-out="ctrl"></span> · Contact: <span class="gn-fill" data-out="contact"></span></p>
+    </div>
+  </div>
+
+  <h2 data-i18n="gn.noticeH">ประกาศความเป็นส่วนตัว (แม่แบบ)</h2>
+  <div class="gn-notice gk-print" id="gnNotice">
+    <div lang="th" translate="no">
+      <h3>ประกาศความเป็นส่วนตัว: กล้องอ่านป้ายทะเบียนรถ — <span class="gn-fill" data-out="site"></span></h3>
+      <ol>
+        <li><b>ผู้ควบคุมข้อมูลส่วนบุคคล:</b> <span class="gn-fill" data-out="ctrl"></span> ติดต่อ <span class="gn-fill" data-out="contact"></span></li>
+        <li><b>ข้อมูลที่เก็บ:</b> เลขทะเบียน จังหวัด เวลาเข้า-ออก จุด/ช่องทาง ชื่อเจ้าหน้าที่ผู้ยืนยัน ค่าบริการและวิธีชำระ (ถ้ามี) บ้านเลขที่ที่รถลงทะเบียน (กรณีหมู่บ้าน/คอนโด)<span data-out="img_th2"></span> ไม่ใช้จดจำใบหน้า และไม่ประเมินอารมณ์หรือพฤติกรรม</li>
+        <li><b>วัตถุประสงค์:</b> <span data-out="purpose_th"></span></li>
+        <li><b>ฐานทางกฎหมาย:</b> ประโยชน์โดยชอบด้วยกฎหมาย (มาตรา 24(5) พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562) และการปฏิบัติตามสัญญาการให้บริการ (มาตรา 24(3)) — <span class="gn-fill">ให้นักกฎหมายยืนยัน</span></li>
+        <li><b>ระยะเวลาเก็บ:</b> บันทึกเข้า-ออก <span data-out="logDays"></span> วัน · ภาพครอปป้าย <span data-out="imgTxt_th"></span> · ใบเสร็จ 5 ปีตามกฎหมายบัญชี/ภาษี แล้วลบอัตโนมัติ</li>
+        <li><b>การเปิดเผย:</b> ไม่ส่งภาพออกจากเครื่องที่จุดกล้อง เปิดเผยแก่เจ้าหน้าที่รัฐเมื่อมีหน้าที่ตามกฎหมายเท่านั้น</li>
+        <li><b>สิทธิของเจ้าของข้อมูล:</b> ขอเข้าถึง ขอสำเนา ขอแก้ไข ขอลบ คัดค้าน หรือขอระงับการใช้ข้อมูล และร้องเรียนต่อสำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล</li>
+        <li><b>การตัดสินใจ:</b> ระบบเสนอผลการอ่าน เจ้าหน้าที่เป็นผู้ตัดสินใจ การแก้ไขผลการอ่านถูกบันทึกแบบแก้ย้อนหลังไม่ได้</li>
+      </ol>
+    </div>
+    <div lang="en" translate="no">
+      <h3>Privacy notice: licence-plate recognition camera — <span class="gn-fill" data-out="site"></span></h3>
+      <ol>
+        <li><b>Data controller:</b> <span class="gn-fill" data-out="ctrl"></span>, contact <span class="gn-fill" data-out="contact"></span></li>
+        <li><b>Data collected:</b> plate number, province, entry/exit times, gate, the confirming staff member, fee and payment method (if any), registered house number (village/condo)<span data-out="img_en2"></span>. No face recognition and no emotion or behaviour assessment.</li>
+        <li><b>Purpose:</b> <span data-out="purpose_en"></span></li>
+        <li><b>Legal basis:</b> legitimate interests (PDPA B.E. 2562 s. 24(5)) and performance of the service contract (s. 24(3)) — <span class="gn-fill">to be confirmed by counsel</span></li>
+        <li><b>Retention:</b> entry/exit logs <span data-out="logDays"></span> days · plate crops <span data-out="imgTxt_en"></span> · receipts 5 years (accounting/tax law), then deleted automatically</li>
+        <li><b>Disclosure:</b> images do not leave the device at the gate; disclosed to authorities only where the law requires</li>
+        <li><b>Your rights:</b> access, copy, correction, deletion, objection and restriction; complaint to the Personal Data Protection Committee (PDPC)</li>
+        <li><b>Decisions:</b> the system suggests a read and staff decide; corrections are kept in a log that cannot be edited afterwards</li>
+      </ol>
+    </div>
+  </div>
+</main>
+<script src="gate-notice.js?v=1"></script>
+</body>
+</html>

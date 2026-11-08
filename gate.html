@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="gate.title">LENSIQ Gate: อ่านป้ายทะเบียนรถไทย ลานจอดและหมู่บ้าน | LENSIQ</title>
+<meta name="description" content="LENSIQ Gate อ่านป้ายทะเบียนรถไทยบนเครื่อง สำหรับลานจอดรถ (คิดค่าจอด พร้อมเพย์) และหมู่บ้าน/คอนโด (รถลูกบ้าน บัตรผ่านผู้มาเยือน) เจ้าหน้าที่ยืนยันทุกครั้ง">
+<link rel="stylesheet" href="styles.css?v=10">
+<link rel="stylesheet" href="gate.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=13"></script>
+<script src="i18n/zh-gate.js?v=1"></script>
+
+<main class="gk-page" id="main">
+  <p class="eyebrow" data-i18n="gate.eyebrow">LENSIQ Gate · ลานจอดรถและการเข้าออก</p>
+  <h1 data-i18n="gate.h1">อ่านป้ายทะเบียนรถไทย บนเครื่องของคุณ</h1>
+  <p class="lead" data-i18n="gate.lead">ใช้กล้องมือถือ กล้อง USB หรือกล้องวงจรปิดผ่านตัวกลาง ระบบเสนอเลขทะเบียนและจังหวัด เจ้าหน้าที่ยืนยันหรือแก้ไข แล้วระบบคิดค่าจอดหรือเทียบรายชื่อรถลูกบ้านให้ ภาพไม่ถูกส่งออกจากเครื่อง</p>
+
+  <h2 data-i18n="gate.choose">เลือกรูปแบบการใช้งาน</h2>
+  <div class="gk-variants">
+    <section class="card" aria-labelledby="gvA">
+      <p class="tag" data-i18n="gate.a.tag">แบบ A</p>
+      <h2 id="gvA" data-i18n="gate.a.h">ลานจอดรถเก็บค่าบริการ</h2>
+      <ul class="gk-list">
+        <li data-i18n="gate.a.l1">จับคู่รถเข้า-ออกด้วยทะเบียน (รองรับอักษรที่อ่านสับสนกันง่าย)</li>
+        <li data-i18n="gate.a.l2">กฎค่าจอด: จอดฟรี N นาที ปัดชั่วโมง เพดานรายวัน ค้างคืน บัตรหาย บัตรรายเดือน</li>
+        <li data-i18n="gate.a.l3">ตราประทับร้านค้า (e-stamp) ใช้ครั้งเดียว</li>
+        <li data-i18n="gate.a.l4">QR พร้อมเพย์ยอดตรง สร้างในเครื่อง ใบเสร็จ ปิดกะเทียบเงินสด</li>
+        <li data-i18n="gate.a.l5">จำนวนรถในลาน ส่งออก CSV</li>
+      </ul>
+      <p><a class="btn primary" href="parking.html" data-i18n="gate.a.go">เปิดหน้าลานจอดรถ</a></p>
+    </section>
+    <section class="card" aria-labelledby="gvB">
+      <p class="tag" data-i18n="gate.b.tag">แบบ B</p>
+      <h2 id="gvB" data-i18n="gate.b.h">หมู่บ้าน/คอนโด ป้อมยาม</h2>
+      <ul class="gk-list">
+        <li data-i18n="gate.b.l1">รายชื่อรถลูกบ้านตามบ้านเลขที่ และรายการห้ามเข้า</li>
+        <li data-i18n="gate.b.l2">บัตรผ่านผู้มาเยือนจำกัดเวลา (รหัส/QR ส่งทาง LINE ได้)</li>
+        <li data-i18n="gate.b.l3">แจ้งเตือนรถไม่รู้จัก และผู้มาเยือนอยู่เกินเวลา</li>
+        <li data-i18n="gate.b.l4">ปุ่มเปิดไม้กั้นของเจ้าหน้าที่ สั่งรีเลย์ได้ (Shelly / webhook) เปิดเองได้ทุกเมื่อ</li>
+        <li data-i18n="gate.b.l5">บันทึกเข้า-ออกรายบ้าน ส่งออก CSV</li>
+      </ul>
+      <p><a class="btn primary" href="village.html" data-i18n="gate.b.go">เปิดหน้าป้อมยาม</a></p>
+    </section>
+  </div>
+
+  <section aria-labelledby="gHow">
+    <h2 id="gHow" data-i18n="gate.how">ทำงานอย่างไร</h2>
+    <ol class="gk-steps">
+      <li data-i18n="gate.s1">กล้องเห็นป้าย: มือถือ กล้อง USB หรือกล้อง IP ผ่าน go2rtc</li>
+      <li data-i18n="gate.s2">ระบบหาป้ายและอ่าน 5 ภาพ แล้วโหวตทีละตัวอักษร</li>
+      <li data-i18n="gate.s3">เจ้าหน้าที่ดูภาพครอป ยืนยันหรือแก้เลขและจังหวัด</li>
+      <li data-i18n="gate.s4">ระบบคิดค่าจอด หรือบอกว่าเป็นรถลูกบ้าน ผู้มาเยือน หรือรถไม่รู้จัก</li>
+      <li data-i18n="gate.s5">บันทึกในเครื่อง ลบอัตโนมัติตามระยะที่ตั้ง ส่งออก CSV</li>
+    </ol>
+  </section>
+
+  <section class="card" id="accuracy" aria-labelledby="gAcc">
+    <h2 id="gAcc" data-i18n="gate.acc.h">ความแม่นยำ: บอกตามจริง</h2>
+    <ul class="gk-list">
+      <li data-i18n="gate.acc.l1">ยังไม่มีผลวัดความแม่นยำที่หน้างานจริง ตัวเลขที่ใช้ได้ต้องมาจากการตรวจความแม่นยำหน้างานของคุณเอง (เมนู ตรวจความแม่นยำ ในแต่ละหน้า)</li>
+      <li data-i18n="gate.acc.l2">ตัวอ่านอักษร: PP-OCRv5 ภาษาไทยรุ่นมือถือ (PaddleOCR, Apache-2.0, 7.5 MB) ฝึกกับข้อความไทยทั่วไป ไม่ได้ฝึกกับป้ายทะเบียน อ่านภาพป้ายตรงและชัดได้ดีกว่าภาพเอียง มืด หรือสกปรก</li>
+      <li data-i18n="gate.acc.l3">ตัวหาป้าย: ยังไม่ได้ใส่โมเดลตรวจหาป้าย เพราะโมเดลที่มีอยู่ยังไม่ชัดเรื่องสิทธิ์ข้อมูลฝึก จึงใช้วิธีหาป้ายแบบคลาสสิก หรือให้เจ้าหน้าที่แตะกรอบรอบป้าย</li>
+      <li data-i18n="gate.acc.l4">จังหวัดเลือกจากรายการ 77 จังหวัด โดยจังหวัดที่พบบ่อยที่จุดนั้นขึ้นก่อน ระบบเดาจังหวัดจากบรรทัดล่างเป็นเพียงคำแนะนำ</li>
+      <li data-i18n="gate.acc.l5">ป้ายมอเตอร์ไซค์ 3 บรรทัด ป้ายประมูลลายกราฟิก และป้ายสีพิเศษ อ่านได้ยากกว่า ให้เจ้าหน้าที่ตรวจทุกครั้ง</li>
+      <li data-i18n="gate.acc.l6">เป้าของการตรวจหน้างาน: ถูกทั้งป้ายอย่างน้อย 95% (ขอบล่างช่วงความเชื่อมั่น 95%) จากอย่างน้อย 100 คัน และกลางคืนอย่างน้อย 30 คัน</li>
+    </ul>
+  </section>
+
+  <section class="card" aria-labelledby="gHw">
+    <h2 id="gHw" data-i18n="gate.hw.h">อุปกรณ์และการติดตั้ง</h2>
+    <ul class="gk-list">
+      <li data-i18n="gate.hw.l1">ติดกล้องให้ป้ายกว้างอย่างน้อย 120 พิกเซลในภาพ มุมเอียงไม่เกิน 30 องศา สูงประมาณ 1–1.5 เมตร ห่าง 3–6 เมตร</li>
+      <li data-i18n="gate.hw.l2">ตั้งชัตเตอร์เร็ว (1/500 วินาทีหรือเร็วกว่า) ให้รถชะลอหรือหยุดที่ไม้กั้น กลางคืนใช้ไฟอินฟราเรดหรือไฟส่องป้าย</li>
+      <li data-i18n="gate.hw.l3">กล้อง IP (RTSP) ใช้ตัวกลาง go2rtc ในวง LAN ส่งภาพเข้าเบราว์เซอร์ รีเลย์ไม้กั้นใช้ Shelly Gen2 หรือ webhook ผ่านตัวกลาง</li>
+      <li data-i18n="gate.hw.l4">คู่มือเต็ม: docs/GATE.md (ตำแหน่งกล้อง ชัตเตอร์ IR go2rtc การต่อรีเลย์ และข้อจำกัดการเข้าถึงเครือข่ายในบ้านของเบราว์เซอร์)</li>
+    </ul>
+  </section>
+
+  <section class="card" aria-labelledby="gPd">
+    <h2 id="gPd" data-i18n="gate.pdpa.h">ชุดป้ายแจ้ง PDPA</h2>
+    <p data-i18n="gate.pdpa.p">ก่อนเปิดใช้ ติดป้ายแจ้งการใช้กล้องอ่านทะเบียนให้ผู้ขับขี่เห็นก่อนถึงจุดกล้อง และเผยแพร่ประกาศความเป็นส่วนตัว ชุดนี้มีป้ายภาษาไทย/อังกฤษสำหรับพิมพ์ และแม่แบบประกาศที่กรอกชื่อสถานที่และระยะเวลาเก็บได้ ควรให้นักกฎหมายตรวจก่อนใช้จริง</p>
+    <p><a class="btn ghost" href="gate-notice.html" data-i18n="gate.pdpa.go">เปิดชุดป้ายแจ้งและประกาศ</a> <a class="btn ghost" href="camera-notice.html" data-i18n="gate.pdpa.cam">ป้ายแจ้งกล้องทั่วไป</a></p>
+  </section>
+
+  <section aria-labelledby="gPr">
+    <h2 id="gPr" data-i18n="gate.price.h">ราคา (ร่าง ยังไม่เปิดขาย)</h2>
+    <div class="gk-price">
+      <div class="card"><p class="tag" data-i18n="gate.p1.t">ทดลองฟรี</p><b data-i18n="gate.p1.p">฿0</b><p data-i18n="gate.p1.d">1 ช่องทาง อ่านได้ 100 ครั้ง/วัน เก็บบันทึก 7 วัน</p></div>
+      <div class="card"><p class="tag" data-i18n="gate.p2.t">หมู่บ้าน Basic</p><b data-i18n="gate.p2.p">ประมาณ ฿990 / เดือน / ช่องทาง</b><p data-i18n="gate.p2.d">รถลูกบ้าน บัตรผ่าน แจ้งเตือน ปุ่มเปิดไม้กั้น</p></div>
+      <div class="card"><p class="tag" data-i18n="gate.p3.t">หมู่บ้าน Pro</p><b data-i18n="gate.p3.p">ประมาณ ฿1,990 / เดือน (3 ช่องทาง)</b><p data-i18n="gate.p3.d">หลายป้อม รายงานรายบ้าน ตรวจความแม่นยำหน้างาน</p></div>
+      <div class="card"><p class="tag" data-i18n="gate.p4.t">ลานจอดรถ</p><b data-i18n="gate.p4.p">ประมาณ ฿1,490 / เดือน / ช่องทาง</b><p data-i18n="gate.p4.d">คิดค่าจอด ตราประทับ พร้อมเพย์ ใบเสร็จ ปิดกะ</p></div>
+      <div class="card"><p class="tag" data-i18n="gate.p5.t">ติดตั้งและปรับกล้อง</p><b data-i18n="gate.p5.p">฿3,000–5,000 ต่อครั้ง</b><p data-i18n="gate.p5.d">ปรับมุมกล้อง แสง และตรวจความแม่นยำหน้างานร่วมกัน</p></div>
+    </div>
+    <p class="hint" data-i18n="gate.price.note">ราคาทั้งหมดเป็นร่างเพื่อรับฟังความเห็น อาจเปลี่ยนก่อนเปิดขาย ยังไม่รวมภาษีมูลค่าเพิ่มและอุปกรณ์</p>
+  </section>
+</main>
+</body>
+</html>

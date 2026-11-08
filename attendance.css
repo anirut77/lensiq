@@ -92,3 +92,94 @@ th{white-space:nowrap}
 .expiry-banner{margin:-6px 0 14px;padding:8px 14px;border-radius:10px;background:#eef4ff;border:1px solid #c9d6f2;color:#1d3f75;font-size:.85rem;line-height:1.55}
 .expiry-banner[hidden]{display:none}
 .acc-note{overflow-wrap:anywhere}
+
+/* ---------- employee time attendance (attendance-hr.js) — training check-in above is unchanged ---------- */
+body:not(.att-emp) .emp-only{display:none !important}
+body.att-emp .tr-only{display:none !important}
+.att-mode{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 0 16px}
+.mode-btn{min-height:44px;padding:8px 18px;border-radius:99px;border:1.5px solid var(--line);background:#fff;color:var(--navy);font:inherit;cursor:pointer;max-width:100%}
+.mode-btn[aria-pressed=true]{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:500}
+.hr-notice{margin:0 0 16px;padding:10px 14px;border:1px solid #c9d6f2;border-radius:10px;background:#f4f7ff;font-size:.86rem;color:#24324f;line-height:1.6}
+.hr-notice summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:500;color:#1d3f75}
+.hr-notice ul{margin:6px 0 4px 18px;padding:0}
+.hr-notice a{color:#1d3f75;text-decoration:underline}
+.hr-bar{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end;margin:0 0 20px;padding:12px 16px;background:#fff;border:1px solid var(--line);border-radius:var(--r)}
+.hr-bar > label{flex:1 1 220px;min-width:0}
+.hr-bar select{width:100%;min-height:44px}
+.hr-clock{display:flex;flex-direction:column;min-width:0}
+.hr-clock span{font-size:2rem;font-weight:500;color:var(--navy);font-variant-numeric:tabular-nums;line-height:1.1}
+.hr-clock small{color:#4a5068}
+.hr-kexit{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;padding:0;border:0;box-shadow:none;flex:1 1 100%}
+.hr-kexit label{flex:1 1 180px}
+.hr-kexit input{width:100%;min-height:44px}
+.hr-kiosk-note{display:none;flex:1 1 100%;margin:0;font-size:.85rem;color:#4a5068}
+#pane-pin form{display:grid;gap:10px}
+.hr-qr-l{margin-top:14px}
+#hrQrCam{margin-top:8px}
+/* admin */
+.hr-admin{margin-top:28px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow);min-width:0}
+.hr-admin h2{margin:0 0 12px;font-size:1.25rem;color:var(--navy);font-weight:500}
+.hr-admin h3{margin:20px 0 8px;font-size:1rem;color:var(--navy);font-weight:500}
+.hr-who{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:14px}
+.hr-who input,.hr-grid input,.hr-grid select,.hr-filter select{width:100%;min-height:44px;min-width:0}
+.hr-tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:thin}
+.hr-tab{background:none;border:0;padding:10px 14px;min-height:44px;white-space:nowrap;color:#4a5068;border-bottom:2px solid transparent;margin-bottom:-1px;font:inherit;cursor:pointer;flex:none}
+.hr-tab.active{color:var(--navy);border-color:var(--gold);font-weight:500}
+.hr-pane[hidden]{display:none}
+.hr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;align-items:end;padding:0;border:0;box-shadow:none;margin-bottom:12px}
+.hr-grid > *{min-width:0}
+.hr-grid label.check{align-self:center;min-height:44px;align-items:center}
+.hr-grid .form-msg{grid-column:1/-1}
+.hr-grid label.check input,.hr-days label.check input{width:20px;height:20px;min-height:0;flex:none}
+.hr-actions{display:flex;flex-wrap:wrap;gap:8px}
+.hr-actions .btn{padding:8px 18px}
+.hr-days{grid-column:1/-1;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:0;min-width:0}
+.hr-days legend{font-size:.88rem;color:#4a5068;padding:0 4px}
+.hr-days div{display:flex;flex-wrap:wrap;gap:4px 16px}
+.hr-days label.check{min-height:44px;align-items:center;font-size:.9rem}
+.hr-filter{margin:10px 0}
+.hr-filter label{max-width:320px}
+.hr-table td{vertical-align:top;overflow-wrap:anywhere}
+.hr-table th{white-space:normal;min-width:4.5em}
+.hr-btns{display:flex;flex-wrap:wrap;gap:6px}
+.hr-admin .btn.small,.hr-fixlist .btn.small,#hrBadge .btn{min-height:44px;padding:6px 12px;font-size:.85rem}
+.hr-table tr.hr-flag td{background:#fff6e0}
+.hr-table tr.hr-off td{color:#4a5068;background:#f7f8fb}
+.hr-table tr.hr-void td{text-decoration:line-through;color:#4a5068}
+.hr-bad{color:#a12b20 !important;font-weight:500}
+.hr-fixlist{list-style:none;padding:0;display:grid;gap:8px}
+.hr-fixlist li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center;padding:8px 12px;background:var(--bg);border-radius:10px;font-size:.9rem;min-width:0}
+.hr-fixlist input[type=time]{min-height:44px}
+.sr{position:relative}
+.sr > span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.hr-file{position:relative;overflow:hidden;cursor:pointer}
+.hr-file input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;min-height:0}
+.hr-file:focus-within{outline:2px solid var(--aqua);outline-offset:2px}
+.hr-badge{margin-top:16px;display:grid;gap:10px;justify-items:start}
+.badge-card{display:grid;justify-items:center;gap:4px;padding:16px;border:1px solid var(--line);border-radius:12px;background:#fff;color:#0e1430;max-width:100%}
+.badge-card svg{max-width:100%;height:auto}
+.badge-card b{font-size:1.05rem}
+.hr-admin .hint,.hr-notice .hint{font-size:.83rem;color:#4a5068}
+@media(max-width:640px){
+  .hr-admin{padding:16px}
+  .hr-who{grid-template-columns:minmax(0,1fr)}
+  .hr-grid{grid-template-columns:minmax(0,1fr)}
+  .hr-bar{padding:12px}
+  .mode-btn{flex:1 1 140px}
+}
+/* kiosk: one screen for punching (camera + face check-in + PIN/QR); exit needs the manager PIN when one is set */
+body.att-kiosk #siteNav,body.att-kiosk .att > h1,body.att-kiosk .att > .lead,body.att-kiosk .acc-note,body.att-kiosk .expiry-banner,body.att-kiosk .att-mode,
+body.att-kiosk .hr-notice,body.att-kiosk .hr-admin,body.att-kiosk .tabs,body.att-kiosk .att > .note,body.att-kiosk #pane-register,body.att-kiosk #pane-records,
+body.att-kiosk #pane-check,body.att-kiosk .tune,body.att-kiosk .hr-bar > label,body.att-kiosk footer{display:none !important}
+body.att-kiosk #pane-pin[hidden],body.att-kiosk #pane-checkin[hidden]{display:block}
+body.att-kiosk #pane-pin{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+body.att-kiosk .hr-kiosk-note{display:block}
+body.att-kiosk .hr-clock span{font-size:clamp(2.4rem,7vw,4rem)}
+body.att-kiosk .att{padding-top:16px}
+/* badge printing: only the badge */
+@media print{
+  body.att-print-badge *{visibility:hidden}
+  body.att-print-badge #hrBadge .badge-card,body.att-print-badge #hrBadge .badge-card *{visibility:visible}
+  body.att-print-badge #hrBadge .badge-card{position:absolute;left:0;top:0}
+}
+.hr-table .btn{white-space:nowrap;min-width:44px}
