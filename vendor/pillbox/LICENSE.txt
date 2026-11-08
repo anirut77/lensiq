@@ -1,0 +1,25 @@
+Pillbox data (vendor/pillbox/pillbox-2020-v1.json)
+=======================================================
+
+Source: U.S. National Library of Medicine (NLM), Pillbox.
+        https://datadiscovery.nlm.nih.gov/api/views/crzr-uvwg/rows.csv?accessType=DOWNLOAD
+        Retirement notice: https://www.nlm.nih.gov/pubs/techbull/ja20/ja20_pillbox_discontinue.html
+
+Licence: PUBLIC DOMAIN. Pillbox is a work of the United States Government (NLM, part of the National Institutes of
+Health) and is not subject to copyright in the United States (17 U.S.C. 105). NLM web policies:
+https://www.nlm.nih.gov/web_policies.html . The underlying label data are submitted by the labelers to the U.S. FDA
+as Structured Product Labeling (SPL) and published through DailyMed.
+
+Required attribution (shown on medicine.html and in docs/MEDICINE.md):
+  "This product uses publicly available data from the U.S. National Library of Medicine (NLM)."
+  LENSIQ is not endorsed by NLM, NIH or FDA. The NLM name and logo are not used.
+
+NLM WARNING (verbatim, shown on medicine.html next to every result):
+  "These files will not be updated and should not be used for pill identification."
+
+What this means for LENSIQ:
+  - US-market products only; Thai products (GPO, local generics) are mostly NOT in this data.
+  - Data frozen at 2020-10. Products, imprints and colours may have changed since.
+  - The page shows several CANDIDATES that match the features the user typed. It never names a single pill and never
+    replaces a pharmacist.
+  - Trade names inside the data are trademarks of their owners; they are shown as label facts only.

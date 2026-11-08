@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="cr.doc.title">ทบทวนเคสจากคลิปวิดีโอ | LENSIQ</title>
+<meta name="description" data-i18n-attr="content:cr.doc.desc"
+  content="เปิดคลิปวิดีโอจากเครื่อง ใส่แท็กตามเวลา จดบันทึก ระบุชื่อผู้ตรวจทุกการกระทำ
+    และเก็บบันทึกตรวจสอบแบบเพิ่มได้อย่างเดียว (เชื่อมด้วยแฮช) เครื่องมือนี้ไม่ตัดสินว่าใครพูดจริงหรือไม่">
+<link rel="stylesheet" href="styles.css?v=11">
+<link rel="stylesheet" href="store.css?v=6">
+<link rel="stylesheet" href="case-review.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=14"></script>
+<script src="i18n/zh-case.js?v=1"></script>
+
+<main class="st cr" id="main">
+  <p class="cr-crumb"><a href="solutions.html" data-i18n="cr.back">← โซลูชันตามอุตสาหกรรม</a></p>
+  <h1 data-i18n="cr.h1">ทบทวนเคสจากคลิปวิดีโอ</h1>
+  <p class="lead" data-i18n="cr.lead">เปิดคลิปจากเครื่องนี้ ใส่แท็กตามเวลา จดบันทึก และเปลี่ยนสถานะเคส
+    ทุกการกระทำบันทึกชื่อผู้ตรวจและเวลาไว้ในบันทึกตรวจสอบแบบเพิ่มได้อย่างเดียว ซึ่งตรวจพบการแก้ไขข้อมูลจากนอกหน้านี้ได้
+    (ยืนยันเต็มที่ด้วยการเทียบแฮชล่าสุดกับฉบับที่พิมพ์หรือส่งออกเก็บไว้) ส่งออกเป็น CSV / JSON หรือพิมพ์สรุปเคสได้</p>
+
+  <div class="cr-banner" role="note" id="banner">
+    <b data-i18n="cr.banner.h">เครื่องมือนี้ไม่ตัดสินว่าใครพูดจริงหรือโกหก</b>
+    <span data-i18n="cr.banner.p">ระบบไม่วิเคราะห์ใบหน้า อารมณ์ น้ำเสียง หรือความน่าเชื่อถือของบุคคลในคลิป ไม่มี AI
+      ประมวลผลภาพในหน้านี้ ผู้ตรวจเป็นผู้ดู บันทึก และตัดสินใจเองทั้งหมด ผลการทบทวนเป็นความเห็นของผู้ตรวจ ไม่ใช่ข้อสรุปของระบบ</span>
+  </div>
+
+  <section class="card" aria-labelledby="whoH">
+    <h2 id="whoH" data-i18n="cr.who.h">ผู้ตรวจ</h2>
+    <label class="cr-field"><span data-i18n="cr.who.label">ชื่อผู้ตรวจ (บันทึกไว้กับทุกการกระทำ)</span>
+      <input id="reviewer" type="text" maxlength="80" autocomplete="name" data-i18n-attr="placeholder:cr.who.ph" placeholder="เช่น สมหญิง (ฝ่ายบุคคล)"></label>
+    <p class="hint" data-i18n="cr.who.hint">ชื่อนี้เป็นชื่อที่ผู้ใช้กรอกเอง ไม่ใช่การยืนยันตัวตน ใช้เครื่องร่วมกันหลายคน ให้เปลี่ยนชื่อก่อนทำงานทุกครั้ง</p>
+  </section>
+
+  <section class="card" aria-labelledby="casesH">
+    <h2 id="casesH" data-i18n="cr.cases.h">เคส</h2>
+    <ul class="cr-cases" id="caseList"></ul>
+    <form id="newCase" class="cr-form" novalidate>
+      <h3 data-i18n="cr.new.h">เปิดเคสใหม่</h3>
+      <label class="cr-field"><span data-i18n="cr.new.title">ชื่อเคส</span>
+        <input name="title" type="text" maxlength="120" required data-i18n-attr="placeholder:cr.new.titlePh" placeholder="เช่น ทบทวนเหตุการณ์หน้าคลังสินค้า 3 พ.ย."></label>
+      <label class="cr-field"><span data-i18n="cr.new.ref">เลขอ้างอิง (ถ้ามี)</span>
+        <input name="ref" type="text" maxlength="60" data-i18n-attr="placeholder:cr.new.refPh" placeholder="เช่น HR-2026-014"></label>
+      <button class="btn primary" type="submit" data-i18n="cr.new.ok">เปิดเคส</button>
+    </form>
+    <div class="row-actions">
+      <label class="btn ghost cr-file"><span data-i18n="cr.import">นำเข้าเคส (JSON)</span>
+        <input id="importFile" type="file" accept="application/json,.json" data-i18n-attr="aria-label:cr.import"></label>
+    </div>
+    <p class="form-msg" id="caseMsg" role="status"></p>
+  </section>
+
+  <div id="ws" hidden>
+    <section class="card" aria-labelledby="caseH">
+      <div class="report-head">
+        <h2 id="caseH"><span id="caseTitle"></span> <span class="pill" id="caseStatus"></span></h2>
+        <span class="cr-badge" id="integrity" role="status"></span>
+      </div>
+      <p class="hint" id="caseMeta"></p>
+      <div class="row-actions" role="group" aria-label="สถานะเคส" data-i18n-attr="aria-label:cr.st.group">
+        <button class="seg" type="button" data-status="open" data-i18n="cr.st.toOpen">เปิดเคส / เปิดใหม่</button>
+        <button class="seg" type="button" data-status="review" data-i18n="cr.st.toReview">กำลังทบทวน</button>
+        <button class="seg" type="button" data-status="closed" data-i18n="cr.st.toClosed">ปิดเคส</button>
+      </div>
+      <label class="cr-field"><span data-i18n="cr.st.reason">เหตุผลที่เปลี่ยนสถานะ (ถ้ามี)</span><input id="statusReason" type="text" maxlength="300"></label>
+      <p class="form-msg" id="wsMsg" role="status"></p>
+    </section>
+
+    <div class="grid2">
+      <section class="card" aria-labelledby="clipsH">
+        <h2 id="clipsH" data-i18n="cr.clips.h">คลิปวิดีโอ</h2>
+        <p class="hint" data-i18n="cr.clips.hint">เลือกไฟล์จากเครื่องนี้ ไฟล์ไม่ถูกอัปโหลด และไม่ถูกเก็บไว้
+          เว้นแต่กด "เก็บแบบเข้ารหัสในเครื่องนี้" ระบบบันทึกชื่อไฟล์ ขนาด และลายนิ้วมือ SHA-256 เพื่อยืนยันว่าเป็นไฟล์เดิม</p>
+        <label class="btn primary cr-file" id="addClipBtn"><span data-i18n="cr.clips.add">เพิ่มคลิปจากเครื่อง</span>
+          <input id="clipFile" type="file" accept="video/*" multiple data-i18n-attr="aria-label:cr.clips.add"></label>
+        <ul class="cr-clips" id="clipList"></ul>
+        <h3 data-i18n="cr.ret.h">ลบคลิปที่เก็บไว้อัตโนมัติ</h3>
+        <label class="cr-field"><span data-i18n="cr.ret.label">ลบคลิปที่เก็บแบบเข้ารหัสเมื่อเก็บครบ (วัน)</span><select id="retention"></select></label>
+        <p class="form-msg" id="retMsg" role="status"></p>
+        <p class="hint" id="vaultState"></p>
+      </section>
+
+      <section class="card" aria-labelledby="playH">
+        <h2 id="playH" data-i18n="cr.play.h">ดูคลิปและใส่แท็ก</h2>
+        <p class="hint" id="playName" data-i18n="cr.play.none">ยังไม่ได้เลือกคลิป</p>
+        <video id="player" class="cr-video" controls playsinline preload="metadata"></video>
+        <div class="cr-timeline" id="timeline" role="group" aria-label="เส้นเวลาและแท็ก" data-i18n-attr="aria-label:cr.tl.aria">
+          <div class="cr-tl-bar"><div class="cr-tl-pos" id="tlPos"></div></div>
+          <div class="cr-tl-marks" id="tlMarks"></div>
+        </div>
+        <p class="hint" id="nowTime" role="status"></p>
+        <form id="tagForm" class="cr-form" novalidate>
+          <label class="cr-field"><span data-i18n="cr.tag.kind">ประเภทแท็ก</span><select name="kind" id="tagKind"></select></label>
+          <label class="cr-field"><span data-i18n="cr.tag.text">สิ่งที่เห็น (ข้อเท็จจริง ไม่ใช่การตัดสินบุคคล)</span><input name="text" type="text" maxlength="300"></label>
+          <label class="cr-field"><span data-i18n="cr.tag.time">เวลาในคลิป (นาที:วินาที) เว้นว่าง = ตำแหน่งปัจจุบัน</span>
+            <input name="time" type="text" inputmode="decimal" maxlength="12" placeholder="0:00"></label>
+          <button class="btn primary" type="submit" data-i18n="cr.tag.add">ใส่แท็กที่เวลานี้</button>
+        </form>
+        <h3 data-i18n="cr.tags.h">แท็กในคลิปนี้</h3>
+        <ul class="cr-items" id="tagList"></ul>
+      </section>
+    </div>
+
+    <section class="card" aria-labelledby="notesH">
+      <h2 id="notesH" data-i18n="cr.notes.h">บันทึกของผู้ตรวจ</h2>
+      <form id="noteForm" class="cr-form" novalidate>
+        <label class="cr-field"><span data-i18n="cr.note.text">บันทึก (แก้ไขภายหลังได้ด้วยการเพิ่มฉบับแก้ไข ฉบับเดิมยังอยู่ในบันทึกตรวจสอบ)</span>
+          <textarea name="text" rows="3" maxlength="2000"></textarea></label>
+        <label class="chk"><input name="atTime" type="checkbox"><span data-i18n="cr.note.atTime">ผูกกับเวลาปัจจุบันในคลิปที่เปิดอยู่</span></label>
+        <button class="btn primary" type="submit" data-i18n="cr.note.add">เพิ่มบันทึก</button>
+      </form>
+      <ul class="cr-items" id="noteList"></ul>
+    </section>
+
+    <section class="card" aria-labelledby="logH">
+      <div class="report-head"><h2 id="logH" data-i18n="cr.log.h">บันทึกตรวจสอบ (เพิ่มได้อย่างเดียว)</h2></div>
+      <p class="hint" data-i18n="cr.log.hint">ทุกรายการเก็บใคร ทำอะไร เมื่อไร และแฮช SHA-256
+        ที่เชื่อมกับรายการก่อนหน้า หากมีการแก้หรือลบรายการใดในเครื่อง การตรวจสอบจะชี้ว่าขาดที่รายการไหน</p>
+      <div class="cr-logwrap"><ol class="cr-log" id="auditLog"></ol></div>
+      <div class="row-actions">
+        <button class="btn ghost" id="verifyBtn" type="button" data-i18n="cr.log.verify">ตรวจความครบถ้วน</button>
+        <button class="btn primary" id="csvBtn" type="button" data-i18n="cr.log.csv">ส่งออก CSV</button>
+        <button class="btn ghost" id="jsonBtn" type="button" data-i18n="cr.log.json">ส่งออก JSON</button>
+        <button class="btn ghost" id="printBtn" type="button" data-i18n="cr.log.print">พิมพ์สรุปเคส</button>
+      </div>
+      <h3 data-i18n="cr.del.h">ลบเคส</h3>
+      <p class="hint" data-i18n="cr.del.hint">ลบเคสนี้ บันทึก และคลิปที่เก็บไว้ออกจากเครื่องนี้ ส่งออกก่อนถ้าต้องเก็บ ระบบเก็บไว้เพียงรหัสเคส ผู้ลบ เวลา และแฮชสุดท้าย</p>
+      <button class="btn ghost danger" id="delCase" type="button" data-i18n="cr.del.btn">ลบเคสนี้</button>
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="privH">
+    <h2 id="privH" data-i18n="cr.priv.h">ความเป็นส่วนตัวและข้อมูล</h2>
+    <ul class="cr-list">
+      <li data-i18n="cr.priv.1">คลิปเปิดจากไฟล์ในเครื่องนี้ ไม่อัปโหลด ไม่ส่งออกนอกเครื่อง และไม่มีการวิเคราะห์ภาพด้วย AI</li>
+      <li data-i18n="cr.priv.2">ค่าเริ่มต้นไม่เก็บคลิป ปิดหน้าแล้วต้องเลือกไฟล์ใหม่ ระบบเทียบลายนิ้วมือ SHA-256 ให้ว่าเป็นไฟล์เดิมหรือไม่</li>
+      <li data-i18n="cr.priv.3">ถ้าเลือกเก็บ คลิปถูกเข้ารหัส AES-GCM ด้วยกุญแจที่อยู่ในเบราว์เซอร์นี้เท่านั้น และลบอัตโนมัติเมื่อครบจำนวนวันที่ตั้งไว้ (ลบตอนเปิดหน้านี้ครั้งถัดไปหลังครบกำหนด) คลิปเหล่านี้แยกจากข้อมูลใบหน้า ปุ่มลบข้อมูลใบหน้าในหน้าอื่นไม่ลบคลิปเคส ใช้ปุ่มลบในหน้านี้</li>
+      <li data-i18n="cr.priv.4">ชื่อเคส แท็ก บันทึก และบันทึกตรวจสอบเก็บในเบราว์เซอร์เครื่องนี้ (ไม่เข้ารหัส) อย่าใส่ข้อมูลอ่อนไหวเกินจำเป็น และใช้เครื่องที่ล็อกหน้าจอ</li>
+      <li data-i18n="cr.priv.5">บุคคลในคลิปควรได้รับแจ้งเรื่องการบันทึกภาพตามนโยบายขององค์กร และมีสิทธิ์ขอดูหรือคัดค้านตาม PDPA</li>
+    </ul>
+    <div class="row-actions">
+      <button class="btn ghost danger" id="wipeAll" type="button" data-i18n="cr.wipe">ลบข้อมูลทบทวนเคสทั้งหมดในเครื่องนี้</button>
+    </div>
+    <p class="form-msg" id="wipeMsg" role="status"></p>
+  </section>
+
+  <article class="cr-summary" id="summary" aria-hidden="true"></article>
+</main>
+
+<script src="lensiq-case.js?v=1"></script>
+<script src="case-review.js?v=1"></script>
+<script src="lensiq-config.js?v=4"></script>
+</body>
+</html>

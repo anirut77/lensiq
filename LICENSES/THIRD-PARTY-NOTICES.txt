@@ -37,6 +37,10 @@ C. Other
     "Rider-Waite" is a trademark of U.S. Games Systems, Inc.; LENSIQ does not use it as a product name.
   - Driver eye-state classifier (weights embedded in driver.js, trained by LENSIQ) uses the "Open/Closed Eyes dataset by
     MichalMlodawski (huggingface.co/datasets/MichalMlodawski/closed-open-eyes), licensed under ODC-BY 1.0".
+  - Pillbox pill data, slimmed (vendor/pillbox/pillbox-2020-v1.json, round 14 medicine checker) — U.S. National Library
+    of Medicine (NLM), public domain (U.S. Government work). "This product uses publicly available data from the U.S.
+    National Library of Medicine (NLM)." NLM: "These files will not be updated and should not be used for pill
+    identification." Not endorsed by NLM, NIH or FDA. Details: vendor/pillbox/LICENSE.txt.
   - Person/object detectors above were trained on MS COCO (annotations CC BY 4.0, (c) COCO Consortium).
 
 D. Apache License, Version 2.0

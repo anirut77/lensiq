@@ -39,6 +39,15 @@
     },
     {
       "file": "attendance-hr.js"
+    },
+    {
+      "file": "case-review.js"
+    },
+    {
+      "file": "luckycolor.js",
+      "types": [
+        "types/lensiq-luckycolor.d.ts"
+      ]
     }
   ],
   "files": [
@@ -151,6 +160,8 @@
     "lensiq-exam.js",
     "exam-link.js",
     "exam-ui.js",
+    "lensiq-exam-clip.js",
+    "exam-clip-ui.js",
     "exam-lab.js",
     "exam-hall.js",
     "exam-dashboard.js",
@@ -182,6 +193,28 @@
     "i18n/en-solutions.js",
     "i18n/zh-solutions.js",
     "i18n/en-zones.js",
-    "i18n/zh-zones.js"
+    "i18n/zh-zones.js",
+    "lensiq-crowd.js",
+    "crowd.js",
+    "i18n/en-crowd.js",
+    "i18n/zh-crowd.js",
+    "lensiq-case.js",
+    "i18n/en-case.js",
+    "i18n/zh-case.js",
+    "lensiq-med.js",
+    "medicine.js",
+    "i18n/en-med.js",
+    "i18n/zh-med.js",
+    "lensiq-omr.js",
+    "omr.js",
+    "i18n/en-omr.js",
+    "i18n/zh-omr.js",
+    "lensiq-planner.js",
+    "planner.js",
+    "i18n/en-planner.js",
+    "i18n/zh-planner.js",
+    "lensiq-luckycolor.js",
+    "i18n/en-luckycolor.js",
+    "i18n/zh-luckycolor.js"
   ]
 }

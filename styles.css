@@ -77,6 +77,19 @@ img,svg,canvas,video{max-width:100%}
 .nav-cta{display:inline-flex;align-items:center;min-height:40px;margin-left:12px;padding:8px 16px;border:1px solid var(--ink);border-radius:6px;background:var(--ink);color:#fff;font-weight:500;font-size:.88rem;white-space:nowrap;transition:background .15s,color .15s}
 .nav-cta:hover{background:#fff;color:var(--ink)}
 .nav-cta[aria-current=page]{background:#fff;color:var(--ink)}
+/* round 14: all groups on one line at 1100-1440 px. The bar shows the compact group name (.nav-lbl-s, key nav.groups.*),
+   the drawer the full one (.nav-lbl-f); items never shrink or wrap (the Thai <wbr> word breaks stay inside the label) */
+.nav-lbl-f{display:none}
+.nav-item{flex:none}
+.nav-link[data-lqwb],.nav-cta[data-lqwb]{overflow-wrap:normal}
+.nav-link>span{white-space:nowrap}
+@media(max-width:1199.98px){
+  .nav{column-gap:16px}
+  .nav-list{gap:0}
+  .nav-link{padding:8px 9px;font-size:.88rem}
+  .nav-link::after{left:9px;right:9px}
+  .nav-cta{margin-left:6px;padding:8px 12px;font-size:.86rem}
+}
 
 /* mega-menu panel: full bar width, under the sticky bar */
 .nav-sub{position:absolute;left:0;right:0;top:100%;display:none;background:#fff;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);box-shadow:0 24px 48px -24px rgba(14,20,48,.25);
@@ -120,6 +133,8 @@ img,svg,canvas,video{max-width:100%}
   .nav-item-cta{border-bottom:0}
   .nav-link{width:100%;justify-content:space-between;min-height:52px;font-size:1rem;padding:12px 2px;color:var(--ink)}
   .nav-link::after{display:none}
+  .nav-lbl-s{display:none}
+  .nav-lbl-f{display:inline}
   .nav-link.is-current{box-shadow:inset 3px 0 0 #5b47e0;padding-left:12px}
   .nav-sub{position:static;max-height:none;overflow:visible;box-shadow:none;border:0;background:none}
   .nav-sub.open{animation:none}

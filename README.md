@@ -100,6 +100,21 @@ Plates are personal data: the operator confirms the PDPA notice before the camer
 
 The zone pages share `lensiq-zones.js` / `lensiq-zonecam.js`: anonymous boxes only, no images stored, every alert "for a person to check" with a staff real/false tally.
 
+### Round 14 pages
+
+| Page | Menu group | What it does |
+|---|---|---|
+| `crowd.html` | Retail | People in view or in drawn zones, density heat map and per-minute series, peak hours, entry/exit line, dwell per zone, visitors per hour, conversion from typed purchases, optional shopfront funnel (passers-by → stopped → entered); CSV, printable summary, JSON numbers pack. Numbers only (`lqcr-*`, last 60 days); demo data never saved (`lensiq-crowd.js`). |
+| `case-review.html` | Workplace | Case review from local video files: time tags, notes, reviewer name on every action, hash-chained append-only log (tamper-evident, not tamper-proof), open / review / closed, CSV / JSON / printable summary; clips stored only by opt-in, encrypted. **Never judges truthfulness**; no AI (`lensiq-case.js`). |
+| `omr.html` | Exams | Multiple-choice answer-sheet grader: print A4 sheets with corner markers, scan with a phone camera, perspective warp + bubble darkness (no ML, no faces), review screen, item analysis (difficulty, discrimination, KR-20), CSV (`lensiq-omr.js`). |
+| Exam evidence clip | Exams | Opt-in per exam (off by default) on `exam-lab` / `exam-hall` / `exam-dashboard`: 10 s video-only ring buffer, kept only on "Keep clip" (or institution auto-keep), AES-GCM encrypted on the device, invigilator PIN for the kept-clip list, auto-delete after 1–90 days, never uploaded (`lensiq-exam-clip.js`, `exam-clip-ui.js`). |
+| `medicine.html` | Tools | Medicine checker: barcode, Thai FDA registration-number parser, OCR crop box (PaddleOCR Thai), drug name with RxNav approximate match; loose pill candidates from slimmed NLM Pillbox data (public domain, US, frozen 2020, `vendor/pillbox/`); verbatim label text with source; online look-ups only after a per-tab opt-in, text only; pharmacist mode with opt-in local history; always "confirm with a pharmacist, 1669 / 1367". Thai FDA look-ups need the Worker route `/api/med/*` (`backend/src/med.js`). See `docs/MEDICINE.md`. |
+| `planner.html` | Fortune | Auspicious-date planner (moving house, opening a shop, starting work): good days only, from weekday, Thai lunar day/month, owners' birth weekday and Chinese day animal; .ics export; nothing stored (`lensiq-planner.js` on `horoscope.js`). |
+| `luckycolor.html` | Fortune | Lucky-colour outfit mirror: clothing colour from MediaPipe Selfie Multiclass (already vendored) compared with the colour of the day and of the birth day; no face model, nothing but `lqlc-prefs` stored (`lensiq-luckycolor.js`). |
+
+Design only (no code): `docs/DEVICE-ADAPTERS.md` (external devices; physiological signals are never used for lie /
+emotion inference). PDPA notes for counsel, one section per product: `docs/PDPA-NOTES-FOR-COUNSEL.md`.
+
 ---
 
 ### Languages
@@ -259,6 +274,8 @@ Caveats:
 | Document | Contents |
 |---|---|
 | [`SECURITY.md`](SECURITY.md) | Threat model, server hardening, reporting vulnerabilities |
+| [`docs/PDPA-NOTES-FOR-COUNSEL.md`](docs/PDPA-NOTES-FOR-COUNSEL.md) | PDPA notes for the owner's counsel: one section per product (all rounds) with open questions |
+| [`docs/MEDICINE.md`](docs/MEDICINE.md), [`docs/DEVICE-ADAPTERS.md`](docs/DEVICE-ADAPTERS.md) | Medicine checker (data sources, safety rules, Worker route); device-adapter design (no code) |
 | [`docs/pdpa/`](docs/pdpa/README.md) | PDPA pack: filled DPIA (TH + EN summary, needs legal review), ROPA, consent texts (TH/EN), retention table, data map |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Modules, data flow, storage keys, i18n, security model, tooling |
 | [`docs/PILOT-PLAN.md`](docs/PILOT-PLAN.md) | How to run a store pilot: labelled footage, accuracy acceptance criteria |

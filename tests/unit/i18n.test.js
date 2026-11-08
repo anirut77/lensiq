@@ -103,7 +103,11 @@ test("zh-common.js translates every nav.js menu entry", () => {
     assert.ok(I.has(`nav.${h}.title`, "zh"), `nav.${h}.title`);
     assert.ok(I.has(`nav.${h}.desc`, "zh"), `nav.${h}.desc`);
   }
-  for (const g of [...nav.matchAll(/label: "[^"]+", id: "([a-z]+)"/g)].map(m => m[1])) assert.ok(I.has(`nav.group.${g}`, "zh"), g);
+  const groups = [...nav.matchAll(/label: "[^"]+",(?: short: "[^"]+",)? id: "([a-z]+)"/g)].map(m => m[1]);
+  assert.ok(groups.length >= 7, "menu groups parsed: " + groups.length);
+  for (const g of groups) assert.ok(I.has(`nav.group.${g}`, "zh"), g);
+  // round 14: compact desktop-bar group names (nav.groups.<id>)
+  for (const g of [...nav.matchAll(/short: "[^"]+", id: "([a-z]+)"/g)].map(m => m[1])) assert.ok(I.has(`nav.groups.${g}`, "zh"), "nav.groups." + g);
   for (const k of ["nav.cta", "nav.open", "nav.close", "nav.skip", "models.loading", "vault.insecure"]) assert.ok(I.has(k, "zh"), k);
 });
 

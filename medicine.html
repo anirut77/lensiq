@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="md.title">ตรวจข้อมูลยา: อ่านฉลากและเลขทะเบียน | LENSIQ</title>
+<meta name="description" content="ตรวจข้อมูลยาจากเลขทะเบียน อย. บาร์โค้ด หรือชื่อยา และหาเม็ดยาที่มีลักษณะตรงกับที่คุณเห็น แสดงข้อความฉลากตามต้นฉบับพร้อมแหล่งที่มา ยืนยันกับเภสัชกรทุกครั้ง">
+<link rel="stylesheet" href="styles.css?v=11">
+<link rel="stylesheet" href="medicine.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=14"></script>
+<script src="i18n/zh-med.js?v=1"></script>
+
+<main class="md-page" id="main">
+  <p class="eyebrow" data-i18n="md.eyebrow">LENSIQ · ตรวจข้อมูลยา</p>
+  <h1 data-i18n="md.h1">ตรวจข้อมูลยา จากกล่อง ฉลาก หรือเม็ดยา</h1>
+  <p class="lead" data-i18n="md.lead">พิมพ์หรือสแกนเลขทะเบียนยา บาร์โค้ด หรือชื่อยา แล้วดูข้อความฉลากตามต้นฉบับพร้อมแหล่งที่มา หรือใส่ลักษณะเม็ดยาเพื่อดูรายการยาที่ลักษณะตรงกัน ระบบนี้เป็นแหล่งอ้างอิงข้อมูล ไม่ใช่การวินิจฉัยหรือคำแนะนำการใช้ยา</p>
+
+  <div class="md-safety" role="note" aria-labelledby="mdSafeH">
+    <p class="md-safety-h" id="mdSafeH" data-i18n="md.safe.h">ยืนยันกับเภสัชกรทุกครั้งก่อนใช้ยา</p>
+    <div class="md-tel">
+      <a class="btn md-call" href="tel:1669"><b>1669</b> <span data-i18n="md.safe.1669">เจ็บป่วยฉุกเฉิน</span></a>
+      <a class="btn md-call" href="tel:1367"><b>1367</b> <span data-i18n="md.safe.1367">ศูนย์พิษวิทยา (กินยาผิด / เกินขนาด)</span></a>
+    </div>
+  </div>
+
+  <section class="md-emerg" id="mdEmerg" hidden tabindex="-1" role="alert" aria-labelledby="mdEmergH">
+    <h2 id="mdEmergH" data-i18n="md.em.h">ถ้ามีคนกินยาเกินขนาด กินยาผิด หรือหมดสติ โทรขอความช่วยเหลือตอนนี้</h2>
+    <ul class="md-list">
+      <li><a href="tel:1669"><b>1669</b></a> <span data-i18n="md.em.1669">หน่วยแพทย์ฉุกเฉิน — หมดสติ หายใจลำบาก ชัก</span></li>
+      <li><a href="tel:1367"><b>1367</b></a> <span data-i18n="md.em.1367">ศูนย์พิษวิทยา โรงพยาบาลรามาธิบดี — ปรึกษาเรื่องได้รับยาหรือสารพิษ ตลอด 24 ชั่วโมง</span></li>
+      <li id="mdEmSelf" hidden><a href="tel:1323"><b>1323</b></a> <span data-i18n="md.em.1323">สายด่วนสุขภาพจิต กรมสุขภาพจิต — โทรฟรี ตลอด 24 ชั่วโมง</span></li>
+    </ul>
+    <p data-i18n="md.em.t">เก็บกล่องหรือแผงยาไว้ให้เจ้าหน้าที่ดู อย่าทำให้อาเจียนเองถ้าไม่ได้รับคำแนะนำ ระบบนี้ช่วยในเหตุฉุกเฉินไม่ได้</p>
+  </section>
+
+  <section class="card md-set" aria-labelledby="mdSetH">
+    <h2 id="mdSetH" data-i18n="md.set.h">ความเป็นส่วนตัวและการตั้งค่า</h2>
+    <p class="hint" data-i18n="md.set.p">ค่าเริ่มต้น: ทำงานในเครื่องนี้ทั้งหมด ภาพจากกล้องไม่ถูกส่งออกและไม่ถูกเก็บ การค้นฐานข้อมูลออนไลน์จะส่งเฉพาะข้อความ (เลขทะเบียน รหัส หรือชื่อยา) และเฉพาะเมื่อคุณเปิดตัวเลือกด้านล่าง</p>
+    <label class="md-check"><input type="checkbox" id="mdOnline"> <span><b data-i18n="md.set.online">อนุญาตค้นข้อมูลออนไลน์ (ส่งเฉพาะข้อความ ไม่ส่งภาพ)</b><br><small data-i18n="md.set.onlineT">openFDA และ RxNav (สหรัฐฯ) ส่งตรงจากเบราว์เซอร์หรือผ่านเซิร์ฟเวอร์ของผู้ให้บริการ ทะเบียนยาไทย (อย.) ผ่านเซิร์ฟเวอร์ของผู้ให้บริการ ซึ่งไม่เก็บที่อยู่ IP</small></span></label>
+    <p class="md-status" id="mdServer" aria-live="polite"></p>
+    <label class="md-check"><input type="checkbox" id="mdPharm"> <span><b data-i18n="md.set.pharm">โหมดเภสัชกร</b><br><small data-i18n="md.set.pharmT">ข้อมูลชุดเดียวกัน แสดงแบบกระชับ เปิดทุกหัวข้อฉลาก และแสดงรหัสอ้างอิง (RxCUI, set id)</small></span></label>
+    <label class="md-check"><input type="checkbox" id="mdHist"> <span><b data-i18n="md.set.hist">เก็บประวัติการค้นในเครื่องนี้</b><br><small data-i18n="md.set.histT">เก็บเฉพาะข้อความที่ค้นและชื่อที่พบ ในเบราว์เซอร์นี้เท่านั้น ลบได้ทุกเมื่อในแท็บประวัติ ประวัติการใช้ยาเป็นข้อมูลสุขภาพ อย่าเปิดบนเครื่องที่ใช้ร่วมกับผู้อื่น</small></span></label>
+  </section>
+
+  <div class="md-tabs" role="tablist" aria-label="โหมดการตรวจ" data-i18n-attr="aria-label:md.tabs">
+    <button type="button" role="tab" id="t-pack" aria-controls="tab-pack" aria-selected="true" data-tab="pack" data-i18n="md.tab.pack">กล่อง / ฉลาก / ชื่อยา</button>
+    <button type="button" role="tab" id="t-pill" aria-controls="tab-pill" aria-selected="false" tabindex="-1" data-tab="pill" data-i18n="md.tab.pill">เม็ดยาที่ไม่มีกล่อง</button>
+    <button type="button" role="tab" id="t-hist" aria-controls="tab-hist" aria-selected="false" tabindex="-1" data-tab="hist" data-i18n="md.tab.hist">ประวัติ</button>
+  </div>
+
+  <section id="tab-pack" role="tabpanel" aria-labelledby="t-pack">
+    <div class="card">
+      <h2 data-i18n="md.pk.h">พิมพ์หรือสแกนสิ่งที่อยู่บนกล่องยา</h2>
+      <label class="md-field"><span data-i18n="md.pk.q">เลขทะเบียนยา (เช่น 1A 15/50) เลข อย. 13 หลัก บาร์โค้ด รหัส NDC หรือชื่อยา</span>
+        <input id="mdQ" type="text" maxlength="120" autocomplete="off" spellcheck="false" placeholder="เช่น 1A 15/50 หรือ paracetamol" data-i18n-attr="placeholder:md.pk.ph"></label>
+      <div class="md-row">
+        <button class="btn primary" type="button" id="mdCheck" data-i18n="md.pk.go">ตรวจ</button>
+        <button class="btn ghost" type="button" id="mdCamBtn" data-i18n="md.pk.cam">เปิดกล้อง</button>
+        <label class="btn ghost md-file"><input type="file" id="mdFile" accept="image/*"> <span data-i18n="md.pk.file">เลือกรูปจากเครื่อง</span></label>
+      </div>
+      <div class="md-camwrap" id="mdCamWrap" hidden>
+        <div class="md-cam" id="mdCam" tabindex="0" role="application" aria-describedby="mdCamHint" aria-label="ภาพจากกล้องหรือรูปที่เลือก พร้อมกรอบเลือกบริเวณ ใช้ปุ่มลูกศรเลื่อนกรอบ กด Shift พร้อมลูกศรเพื่อปรับขนาด" data-i18n-attr="aria-label:md.pk.camA">
+          <video id="mdVideo" muted playsinline aria-hidden="true"></video>
+          <canvas id="mdStill" hidden aria-hidden="true"></canvas>
+          <div class="md-guide" id="mdGuide" aria-hidden="true"></div>
+        </div>
+        <p class="hint" id="mdCamHint" data-i18n="md.pk.guide">วางเลขทะเบียนหรือบาร์โค้ดให้อยู่ในกรอบ หรือลากบนรูปเพื่อเลือกบริเวณ ภาพอยู่ในเครื่องนี้เท่านั้น อย่าถ่ายใบหน้าหรือชื่อผู้ป่วย</p>
+        <div class="md-row">
+          <button class="btn primary" type="button" id="mdOcrBtn" data-i18n="md.pk.ocr">อ่านตัวอักษรในกรอบ</button>
+          <button class="btn ghost" type="button" id="mdScanBtn" data-i18n="md.pk.scan">สแกนบาร์โค้ด</button>
+          <button class="btn ghost" type="button" id="mdCamStop" data-i18n="md.pk.stop">ปิดกล้อง / ล้างรูป</button>
+        </div>
+      </div>
+      <p class="md-status" id="mdPkStatus" aria-live="polite"></p>
+      <p class="hint" data-i18n="md.pk.ocrNote">การอ่านตัวอักษรใช้ PP-OCRv5 ภาษาไทย (Apache-2.0) บนเครื่องนี้ ยังไม่มีโมเดลหาตำแหน่งข้อความ จึงต้องวางกรอบเอง ตรวจและแก้ข้อความที่อ่านได้ก่อนกดตรวจทุกครั้ง</p>
+    </div>
+    <div id="mdOut" aria-live="polite"></div>
+  </section>
+
+  <section id="tab-pill" role="tabpanel" aria-labelledby="t-pill" hidden>
+    <div class="card">
+      <h2 data-i18n="md.pl.h">หายาที่ลักษณะตรงกับเม็ดยาที่คุณเห็น</h2>
+      <p class="md-warn" role="note"><b data-i18n="md.pl.nlmB">คำเตือนจาก NLM (ต้นฉบับ):</b> <span lang="en" translate="no">"These files will not be updated and should not be used for pill identification."</span> <span data-i18n="md.pl.nlmT">(ไฟล์เหล่านี้จะไม่ถูกปรับปรุงอีก และไม่ควรใช้เพื่อระบุเม็ดยา)</span></p>
+      <ul class="md-list">
+        <li data-i18n="md.pl.l1">ข้อมูล Pillbox ของห้องสมุดแพทยศาสตร์แห่งชาติสหรัฐฯ (NLM) มีเฉพาะยาในตลาดสหรัฐฯ และหยุดปรับปรุงตั้งแต่ปี 2020 ยาที่ผลิตในไทยส่วนใหญ่ไม่มีในข้อมูลนี้</li>
+        <li data-i18n="md.pl.l2">ระบบแสดงรายการยาที่ลักษณะตรงกันอย่างน้อย 3 รายการ หรือไม่แสดงเลย ไม่บอกว่าเม็ดยาของคุณเป็นยาตัวไหน</li>
+        <li data-i18n="md.pl.l3">ถ้าไม่แน่ใจ อย่ากินยา นำเม็ดยาไปให้เภสัชกรตรวจ</li>
+      </ul>
+      <div class="md-grid">
+        <label class="md-field"><span data-i18n="md.pl.imp">ตัวอักษร/ตัวเลขบนเม็ดยา (คั่นสองด้านด้วย ;)</span><input id="mdImp" type="text" maxlength="40" autocomplete="off" spellcheck="false" placeholder="เช่น 5892;V" data-i18n-attr="placeholder:md.pl.impPh"></label>
+        <label class="md-field"><span data-i18n="md.pl.color">สี</span><select id="mdColor"></select></label>
+        <label class="md-field"><span data-i18n="md.pl.shape">รูปร่าง</span><select id="mdShape"></select></label>
+        <label class="md-field"><span data-i18n="md.pl.size">ขนาด (มม. ไม่บังคับ)</span><input id="mdSize" type="number" min="1" max="40" step="1" inputmode="numeric"></label>
+        <label class="md-field"><span data-i18n="md.pl.score">รอยแบ่งเม็ด</span><select id="mdScore">
+          <option value="" data-i18n="md.pl.any">ไม่ระบุ</option>
+          <option value="1" data-i18n="md.pl.s1">ไม่มีรอยแบ่ง</option>
+          <option value="2" data-i18n="md.pl.s2">แบ่งได้ 2 ส่วน</option>
+          <option value="3" data-i18n="md.pl.s3">แบ่งได้ 3 ส่วน</option>
+          <option value="4" data-i18n="md.pl.s4">แบ่งได้ 4 ส่วน</option>
+        </select></label>
+      </div>
+      <div class="md-row"><button class="btn primary" type="button" id="mdPillBtn" data-i18n="md.pl.go">ค้นหารายการที่ตรงกัน</button></div>
+      <p class="md-status" id="mdPlStatus" aria-live="polite"></p>
+    </div>
+    <div id="mdPillOut" aria-live="polite"></div>
+  </section>
+
+  <section id="tab-hist" role="tabpanel" aria-labelledby="t-hist" hidden>
+    <div class="card">
+      <h2 data-i18n="md.hi.h">ประวัติการค้นในเครื่องนี้</h2>
+      <p class="hint" id="mdHistNote"></p>
+      <div id="mdHistList"></div>
+      <div class="md-row">
+        <button class="btn ghost" type="button" id="mdHistCsv" data-i18n="md.hi.csv">ส่งออก CSV</button>
+        <button class="btn ghost danger" type="button" id="mdHistClear" data-i18n="md.hi.clear">ลบประวัติทั้งหมด</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card md-about" aria-labelledby="mdAboutH">
+    <h2 id="mdAboutH" data-i18n="md.ab.h">แหล่งข้อมูลและข้อจำกัด</h2>
+    <ul class="md-list">
+      <li><span data-i18n="md.ab.nlm">แหล่งข้อมูลจากห้องสมุดแพทยศาสตร์แห่งชาติสหรัฐฯ:</span> <span lang="en" translate="no">"This product uses publicly available data from the U.S. National Library of Medicine (NLM)."</span> <span data-i18n="md.ab.nlm2">LENSIQ ไม่ได้รับการรับรองจาก NLM</span></li>
+      <li><span data-i18n="md.ab.fda">openFDA (สำนักงานอาหารและยาสหรัฐฯ):</span> <span lang="en" translate="no">"Do not rely on openFDA to make decisions regarding medical care. While we make every effort to ensure that data is accurate, you should assume all results are unvalidated."</span> <span data-i18n="md.ab.fda2">LENSIQ ไม่ได้รับการรับรองจาก FDA</span></li>
+      <li data-i18n="md.ab.th">ทะเบียนยาไทย: บริการค้นข้อมูลของสำนักงานคณะกรรมการอาหารและยา (porta.fda.moph.go.th) ข้อมูลมีเฉพาะสถานะทะเบียน ประเภทยา ชื่อการค้า และผู้รับอนุญาต ไม่มีข้อบ่งใช้หรือวิธีใช้ ให้อ่านจากฉลากและเอกสารกำกับยาในกล่อง</li>
+      <li data-i18n="md.ab.lang">ข้อความฉลากเป็นภาษาอังกฤษตามต้นฉบับของสหรัฐฯ ไม่ได้แปล และอาจต่างจากฉลากยาที่ขายในไทย ฉลากบนกล่องยาของคุณสำคัญกว่าเสมอ</li>
+      <li data-i18n="md.ab.no">ระบบนี้ไม่คำนวณขนาดยา ไม่แนะนำว่าควรใช้ยาใด ไม่จัดอันดับยา ไม่ขายหรือโฆษณายา และไม่ระบุเม็ดยาจากภาพ</li>
+    </ul>
+    <p class="hint" data-i18n="md.ab.doc">รายละเอียดสำหรับผู้ดูแลระบบ: docs/MEDICINE.md</p>
+  </section>
+</main>
+
+<script src="lensiq-config.js?v=4"></script>
+<script src="lensiq-api.js?v=2"></script>
+<script src="lensiq-camera.js?v=4"></script>
+<script src="lensiq-med.js?v=1"></script>
+<script src="medicine.js?v=1"></script>
+</body>
+</html>

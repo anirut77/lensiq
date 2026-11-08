@@ -96,3 +96,16 @@
 .ex .btn.danger{border-color:#9b2318;color:#9b2318}
 .ex .btn.danger:hover{background:#9b2318;color:#fff}
 .ex .warn-li{color:var(--watch-fg)}
+/* evidence clip (opt-in): status tag next to a flag, kept-clip list and player on the camera device */
+.ex .clip-tag{display:inline-block;background:#eef0f4;color:#3d4660;border-radius:8px;padding:2px 8px;font-size:.8rem;line-height:1.5;max-width:100%;overflow-wrap:anywhere}
+.ex .clip-list{list-style:none;padding:0;margin:8px 0;display:grid;gap:10px}
+.ex .clip-list li{display:grid;gap:4px;border-bottom:1px solid var(--line);padding:8px 0;font-size:.88rem;min-width:0;overflow-wrap:anywhere}
+.ex .clip-list .acts{display:flex;flex-wrap:wrap;gap:8px}
+.ex .clip-list .acts .btn{padding:6px 14px;font-size:.88rem}
+.ex .clip-player video{width:100%;max-height:60vh;background:#0b1020;border-radius:12px}
+.ex .own-log .btn{padding:6px 14px;font-size:.85rem}
+.ex li.clip-notice{font-weight:600}
+/* kept-clip list behind the invigilator PIN: candidates see only the count */
+.ex .clip-pin{grid-template-columns:1fr;max-width:24rem;margin:8px 0}
+.ex .clip-pin .note,.ex .clip-pin .form-msg{margin:0}
+.ex .clip-pin input{width:100%;min-height:44px;padding:8px 10px;border:1px solid #b9c1d6;border-radius:10px;font:inherit;background:#fff;color:var(--text)}

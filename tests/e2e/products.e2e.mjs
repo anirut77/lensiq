@@ -57,6 +57,7 @@ export default async function ({ base, launch, check }) {
           if (!path || /^[a-z]+:/i.test(path) || seen.has(path)) continue;
           seen.add(path);
           const res = await fetch(`${base}/${path}`);
+          await res.arrayBuffer().catch(() => null); // drain the body (undici asserts on unconsumed bodies)
           assert(res.ok, `${p}: link ${h} -> ${res.status}`);
         }
         await page.close();

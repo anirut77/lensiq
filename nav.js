@@ -24,9 +24,11 @@
 
   // Information architecture: id -> menu group (mega-menu panel on desktop, accordion in the mobile drawer).
   // Strings here are the Thai defaults; English/Chinese come from i18n/en-common.js / zh-common.js via data-i18n keys
-  // "nav.group.<id>", "nav.groupd.<id>" (panel intro), "nav.<page>.title|desc".
+  // "nav.group.<id>", "nav.groupd.<id>" (panel intro), "nav.<page>.title|desc". `short` (key "nav.groups.<id>") is the
+  // compact group name on the desktop bar (round 14: eight groups must fit one line at 1100-1440 px); the drawer, the
+  // mega-menu intro and the breadcrumb keep the full name.
   var MENU = [
-    { label: "วิเคราะห์ค้าปลีก", id: "ana", intro: "วัดผลหน้าร้าน ป้ายโฆษณา และการตอบสนองของลูกค้า แบบไม่ระบุตัวตน ประมวลผลบนเครื่อง", items: [
+    { label: "วิเคราะห์ค้าปลีก", short: "ค้าปลีก", id: "ana", intro: "วัดผลหน้าร้าน ป้ายโฆษณา และการตอบสนองของลูกค้า แบบไม่ระบุตัวตน ประมวลผลบนเครื่อง", items: [
       { href: "retail.html", title: "LENSIQ Retail ภาพรวม", desc: "กล้องหน้าร้านสำหรับ SME: นับคน อัตราการซื้อ หลายสาขา" }, // product landing (Round 10 product split)
       { href: "store.html", title: "วิเคราะห์หน้าร้าน", desc: "นับคน แผนที่ความร้อน และคิว" },
       { href: "insights.html", title: "แดชบอร์ดรวม", desc: "สรุปผลจากทุกระบบในที่เดียว" },
@@ -36,36 +38,39 @@
       { href: "creative.html", title: "Creative Lab ตรวจชิ้นงาน", desc: "แผนที่ความสนใจ ความชัด สี เทียบ A/B" },
       { href: "signage.html", title: "ป้ายโฆษณาดิจิทัล", desc: "เลือกคอนเทนต์ตามผู้ชม และคีออสก์ไร้สัมผัส" },
       { href: "queue.html", title: "แจ้งเตือนคิวยาว", desc: "นับคนในโซนคิว ประมาณเวลารอ เตือนเปิดเคาน์เตอร์เพิ่ม" }, // quick win (round 13)
-      { href: "tables.html", title: "โต๊ะว่างและรอบการนั่ง", desc: "โต๊ะว่าง มีลูกค้า รอเก็บ และเวลานั่งต่อโต๊ะ" } // quick win (round 13)
+      { href: "tables.html", title: "โต๊ะว่างและรอบการนั่ง", desc: "โต๊ะว่าง มีลูกค้า รอเก็บ และเวลานั่งต่อโต๊ะ" }, // quick win (round 13)
+      { href: "crowd.html", title: "นับคนและความหนาแน่น", desc: "คนในโซน ช่วงพีค เส้นเข้า-ออก เวลาอยู่ และอัตราการซื้อ" } // round 14
     ] },
-    { label: "บูธและสตูดิโอ", id: "photo", intro: "นับผู้เข้าชมบูธ ตู้ถ่ายรูป และสตูดิโอภาพโปรไฟล์และรูปติดบัตร สำหรับงานอีเวนต์และกิจกรรมแบรนด์", items: [
+    { label: "บูธและสตูดิโอ", short: "บูธ·สตูดิโอ", id: "photo", intro: "นับผู้เข้าชมบูธ ตู้ถ่ายรูป และสตูดิโอภาพโปรไฟล์และรูปติดบัตร สำหรับงานอีเวนต์และกิจกรรมแบรนด์", items: [
       { href: "creative-suite.html", title: "LENSIQ Creative ภาพรวม", desc: "Creative Lab สตูดิโอ และตู้ถ่ายรูปในชุดเดียว" }, // product landing (Round 10 product split)
       { href: "booth.html", title: "วิเคราะห์บูธ", desc: "นับผู้เข้าชมและเวลาหยุดชม" },
       { href: "photobooth.html", title: "ตู้ถ่ายรูป", desc: "ตู้สติ๊กเกอร์และรูปติดบัตร" },
       { href: "studio.html", title: "สตูดิโอภาพโปรไฟล์และรูปติดบัตร", desc: "เปลี่ยนฉากหลัง รีทัช รูปโปรไฟล์ ตรวจขนาดรูปติดบัตร · ชุดตัวอย่าง (พรีวิว)" }
     ] },
-    { label: "องค์กรและความปลอดภัย", id: "work", intro: "เช็คชื่อ สัมภาษณ์งาน กิจกรรมทีม เฝ้าระวังความง่วง และตรวจคุณภาพบนสายการผลิต", items: [
+    { label: "องค์กรและความปลอดภัย", short: "องค์กร", id: "work", intro: "เช็คชื่อ สัมภาษณ์งาน กิจกรรมทีม เฝ้าระวังความง่วง และตรวจคุณภาพบนสายการผลิต", items: [
       { href: "hr.html", title: "LENSIQ HR ภาพรวม", desc: "ชุดสัมภาษณ์ โหมดฝึกซ้อมผู้สมัคร และกิจกรรมทีม" }, // product landing (Round 10 product split)
       { href: "attendance.html", title: "เช็คชื่อด้วยใบหน้า", desc: "เช็คชื่ออบรม · ลงเวลาทำงานพนักงาน" },
       { href: "driver.html", title: "เฝ้าระวังความง่วงคนขับ", desc: "แจ้งเตือนเมื่อหลับตานานหรือหาว" },
       { href: "qc.html", title: "ตรวจคุณภาพสินค้า", desc: "ตรวจชิ้นงานบนสายการผลิต" },
       { href: "interview.html", title: "ชุดสัมภาษณ์แบบมีโครงสร้าง", desc: "คำถาม STAR + เกณฑ์ BARS ให้คะแนนอิสระ สรุปความสอดคล้อง โหมดฝึกซ้อม" },
       { href: "teamface.html", title: "โหงวเฮ้งทีม", desc: "กิจกรรมละลายพฤติกรรม การ์ดบทบาทในทีม เพื่อความบันเทิงเท่านั้น" },
-      { href: "afterhours.html", title: "แจ้งเตือนพื้นที่หวงห้ามและนอกเวลา", desc: "พบคนในโซนหวงห้ามหรือนอกเวลา ให้เจ้าหน้าที่ตรวจสอบ" } // quick win (round 13)
+      { href: "afterhours.html", title: "แจ้งเตือนพื้นที่หวงห้ามและนอกเวลา", desc: "พบคนในโซนหวงห้ามหรือนอกเวลา ให้เจ้าหน้าที่ตรวจสอบ" }, // quick win (round 13)
+      { href: "case-review.html", title: "ทบทวนเคสจากคลิปวิดีโอ", desc: "แท็กเวลา บันทึก ล็อกตรวจสอบย้อนหลัง ไม่ตัดสินความจริง" } // round 14
     ] },
-    { label: "การสอบ", id: "edu", intro: "ช่วยผู้คุมสอบรู้ว่าควรไปดูที่นั่งไหน ระบบไม่ตัดสินการทุจริต คนตัดสินเสมอ ประมวลผลภาพในเครื่อง", items: [
+    { label: "การสอบ", short: "การสอบ", id: "edu", intro: "ช่วยผู้คุมสอบรู้ว่าควรไปดูที่นั่งไหน และตรวจกระดาษคำตอบด้วยมือถือ ระบบไม่ตัดสินการทุจริต คนตัดสินเสมอ ประมวลผลภาพในเครื่อง", items: [
       { href: "exam.html", title: "LENSIQ Exam ภาพรวม", desc: "ช่วยผู้คุมสอบ ไม่ตัดสินการทุจริต (นำร่อง)" }, // product landing (round 13)
       { href: "exam-lab.html", title: "หน้าผู้เข้าสอบ", desc: "สอบออนไลน์: แจ้งสิทธิ์ ปรับเทียบ ป้ายกำลังติดตาม" },
       { href: "exam-hall.html", title: "เครื่องกล้องในห้องสอบ", desc: "วาดที่นั่ง แจ้งที่นั่งว่างและคนเกิน" },
-      { href: "exam-dashboard.html", title: "แดชบอร์ดผู้คุมสอบ", desc: "แผนที่ที่นั่ง คิวให้ตรวจ รายงานตามเวลา" }
+      { href: "exam-dashboard.html", title: "แดชบอร์ดผู้คุมสอบ", desc: "แผนที่ที่นั่ง คิวให้ตรวจ รายงานตามเวลา" },
+      { href: "omr.html", title: "ตรวจกระดาษคำตอบ", desc: "พิมพ์กระดาษคำตอบ ตรวจด้วยกล้องมือถือ วิเคราะห์ข้อสอบ" } // round 14
     ] },
-    { label: "ลานจอดรถ", id: "gate", intro: "อ่านป้ายทะเบียนรถไทยบนเครื่อง ลานจอด หมู่บ้าน และนับช่องจอดว่าง เจ้าหน้าที่ยืนยันทุกครั้ง", items: [
+    { label: "ลานจอดรถ", short: "ลานจอดรถ", id: "gate", intro: "อ่านป้ายทะเบียนรถไทยบนเครื่อง ลานจอด หมู่บ้าน และนับช่องจอดว่าง เจ้าหน้าที่ยืนยันทุกครั้ง", items: [
       { href: "gate.html", title: "LENSIQ Gate ภาพรวม", desc: "อ่านป้ายทะเบียนรถไทยบนเครื่อง (นำร่อง)" }, // product landing (round 13)
       { href: "parking.html", title: "ลานจอดรถ", desc: "จับคู่รถเข้า-ออก คิดค่าจอด QR พร้อมเพย์" },
       { href: "village.html", title: "ป้อมยามหมู่บ้าน/คอนโด", desc: "รถลูกบ้าน บัตรผ่านผู้มาเยือน เปิดไม้กั้นโดยเจ้าหน้าที่" },
       { href: "bays.html", title: "นับช่องจอดว่าง", desc: "ช่องจอดว่างจากกล้อง ไม่อ่านป้ายทะเบียน" } // quick win (round 13)
     ] },
-    { label: "ดูดวงและวัฒนธรรม", id: "fortune", intro: "กิจกรรมดึงคนเข้าบูธจากศาสตร์ไทยและจีน เพื่อความบันเทิงเท่านั้น", items: [
+    { label: "ดูดวงและวัฒนธรรม", short: "ดูดวง", id: "fortune", intro: "กิจกรรมดึงคนเข้าบูธจากศาสตร์ไทยและจีน เพื่อความบันเทิงเท่านั้น", items: [
       { href: "fortune.html", title: "รวมศาสตร์ดูดวง", desc: "เลือกศาสตร์ที่ต้องการ" },
       { href: "faceread.html", title: "อ่านโหงวเฮ้ง", desc: "อ่านโหงวเฮ้งจากใบหน้า" },
       { href: "palm.html", title: "ดูลายมือ", desc: "ถ่ายฝ่ามือ อ่านเส้นหลัก" },
@@ -80,12 +85,15 @@
       { href: "iching.html", title: "อี้จิง เสี่ยงกว้า", desc: "โยนเหรียญ 64 กว้า" },
       { href: "zodiac.html", title: "12 นักษัตร · ปีชง", desc: "ดวงรายปี คู่มงคล" },
       { href: "astro.html", title: "ราศีตะวันตก", desc: "ราศีอาทิตย์ จันทร์ ลัคนา" },
-      { href: "dream.html", title: "ทำนายฝัน", desc: "ความหมายสัญลักษณ์ในฝัน" }
+      { href: "dream.html", title: "ทำนายฝัน", desc: "ความหมายสัญลักษณ์ในฝัน" },
+      { href: "planner.html", title: "วางแผนฤกษ์มงคล", desc: "วันดีขึ้นบ้านใหม่ เปิดร้าน เริ่มงาน" }, // round 14
+      { href: "luckycolor.html", title: "กระจกส่องสีเสื้อมงคล", desc: "ส่องกล้องดูสีเสื้อวันนี้กับสีมงคลประจำวัน" } // round 14
     ] },
-    { label: "เครื่องมือ", id: "tools", intro: "เครื่องมือเสริมและรายการระบบทั้งหมด", items: [
+    { label: "เครื่องมือ", short: "เครื่องมือ", id: "tools", intro: "เครื่องมือเสริมและรายการระบบทั้งหมด", items: [
       { href: "solutions.html", title: "โซลูชันตามอุตสาหกรรม", desc: "เลือกตามธุรกิจ: พร้อมใช้ นำร่อง และเร็ว ๆ นี้" }, // sector catalogue (round 13)
       { href: "cameras.html", title: "ระบบทั้งหมด", desc: "รายการระบบและการใช้งานทั้งหมด" },
-      { href: "converter.html", title: "แปลง PDF เป็น Word", desc: "แปลงในเบราว์เซอร์ ไม่อัปโหลดไฟล์" }
+      { href: "converter.html", title: "แปลง PDF เป็น Word", desc: "แปลงในเบราว์เซอร์ ไม่อัปโหลดไฟล์" },
+      { href: "medicine.html", title: "ตรวจข้อมูลยา", desc: "เลขทะเบียน อย. บาร์โค้ด ชื่อยา และเม็ดยา ยืนยันกับเภสัชกรทุกครั้ง" } // round 14
     ] },
     { label: "เกี่ยวกับ", href: "about.html" },
     { label: "ระบบทั้งหมด", href: "cameras.html", cta: true }
@@ -96,7 +104,7 @@
   // Account, pricing / checkout and every camera page refuse to run inside a frame (a hidden page cannot be clicked
   // through): the page stays blank and we try to break out. Server headers (frame-ancestors / X-Frame-Options) do the
   // same where the host can send them; GitHub Pages cannot, and a <meta> CSP cannot carry frame-ancestors.
-  var NOFRAME = /^(account|pricing|report|checkout|attendance|booth|customers|driver|faceread|fengshui|interview|neuro|palm|photobooth|qc|signage|store|studio|teamface|exam-lab|exam-hall|exam-dashboard|queue|tables|afterhours|bays|parking|village)\.html$/;
+  var NOFRAME = /^(account|pricing|report|checkout|attendance|booth|customers|driver|faceread|fengshui|interview|neuro|palm|photobooth|qc|signage|store|studio|teamface|exam-lab|exam-hall|exam-dashboard|queue|tables|afterhours|bays|parking|village|crowd|case-review|medicine|omr|luckycolor)\.html$/;
   var framed = false;
   try { framed = window.top !== window.self; } catch (e) { framed = true; }
   if (framed && NOFRAME.test((location.pathname.split("/").pop() || "").toLowerCase())) {
@@ -162,7 +170,7 @@
       var cur = g.items.filter(function (i) { return isCur(i.href); })[0];
       if (cur && !curGroup) { curGroup = g; curItem = cur; }
       // mega-menu panel: intro column (group name, one-line scope, link to the directory) + link grid
-      html += '<li class="nav-item has-sub"><button class="nav-link' + (cur ? " is-current" : "") + '" type="button" aria-expanded="false" aria-controls="navsub-' + g.id + '"><span data-i18n="nav.group.' + g.id + '">' + esc(g.label) + '</span>' + chev + '</button>' +
+      html += '<li class="nav-item has-sub"><button class="nav-link' + (cur ? " is-current" : "") + '" type="button" aria-expanded="false" aria-controls="navsub-' + g.id + '"><span class="nav-lbl-s" data-i18n="nav.groups.' + g.id + '">' + esc(g.short || g.label) + '</span><span class="nav-lbl-f" data-i18n="nav.group.' + g.id + '">' + esc(g.label) + '</span>' + chev + '</button>' +
         '<div class="nav-sub" id="navsub-' + g.id + '"><div class="mega">' +
           '<div class="mega-intro"><p class="mega-k" data-i18n="nav.group.' + g.id + '">' + esc(g.label) + '</p><p class="mega-d" data-i18n="nav.groupd.' + g.id + '">' + esc(g.intro) + '</p>' +
           '<a class="mega-all" href="cameras.html"><span data-i18n="nav.viewall">ดูระบบทั้งหมด</span>' + arrow + '</a></div>' +
@@ -592,7 +600,7 @@
   // ---------- fortune pages: "report a problem with this reading" (lensiq-report.js) ----------
   function reportHook() {
     var p = (location.pathname.split("/").pop() || "").toLowerCase();
-    if (!/^(fortune|faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph)\.html$/.test(p)) return;
+    if (!/^(fortune|faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph|planner|luckycolor)\.html$/.test(p)) return;
     if (/** @type {any} */ (window).LQReport || document.querySelector('script[src^="lensiq-report.js"]')) return;
     var sc = document.createElement("script");
     sc.src = "lensiq-report.js?v=1"; sc.async = true;

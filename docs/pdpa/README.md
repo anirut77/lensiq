@@ -8,6 +8,7 @@ Templates and reference material for a shop, event or training operator (the **d
 
 | File | Use it for |
 |---|---|
+| [`../PDPA-NOTES-FOR-COUNSEL.md`](../PDPA-NOTES-FOR-COUNSEL.md) | **Round 14:** one section per product (all products, incl. round 13 Exam / time attendance / Gate and the round 14 pages) with the questions for counsel. Read with the DPIA. |
 | [`data-map.md`](data-map.md) | What data each module collects, where it is processed and stored, and what (if anything) leaves the device. Third parties included. |
 | [`retention-table.md`](retention-table.md) | Every storage key and database per module, its default retention, and how to delete it. |
 | [`DPIA.md`](DPIA.md) | **Filled DPIA (Thai, with an English summary)** for a standard deployment. It covers purposes and the lawful basis per module, s.26 biometric data, cross-border transfers, retention per storage key, security measures, L×S risk scoring, residual risks and legal-review items L1–L8. **It requires legal review.** Start here. |

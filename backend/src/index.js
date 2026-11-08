@@ -26,6 +26,7 @@
 //   GET  /health/deep                    D1 reachable + migrations current (HEALTH_TOKEN bearer when set)
 //   POST /api/auth/refresh               rotate the member bearer token (round 12; short sessions: +12 h, max 7 days)
 //   POST /v1/csp-report                  CSP violation reports (round 12, csp.js; counters only, always 204)
+//   GET  /api/med/status|thfda|openfda|rxnav   medicine checker text proxy (round 14, med.js; MED_ENABLED, text only)
 // Admin round 12: GET /admin/api/csp-reports, GET /admin/api/mail (delivery log + provider status); POST
 //   /billing/test-charge needs re-auth and is capped (TEST_CHARGE_HOUR); money ops follow auth.moneyReauthMode
 // Admin (ADMIN_ORIGINS, credentials; see auth.js): /admin/api/*
@@ -40,6 +41,7 @@ import { deepHealth } from "./health.js";
 import { adminCspReports, ingestCspReport } from "./csp.js";
 import { adminMailLog, mailStatus } from "./mail.js";
 import { fortuneRun, fortuneStatus } from "./fortune.js";
+import { medRoute } from "./med.js";
 import { reconcilePending } from "./billing.js";
 import { turnstileStatus } from "./turnstile.js";
 import { runMaintenance, retentionConfig } from "./retention.js";
@@ -124,6 +126,11 @@ async function publicRoute(request, env, url, deps) {
     if (sm && m === "GET") return reply(await members.getSaved(env, mem, sm[1]));
     if (sm && m === "DELETE") return reply(await members.deleteSaved(env, mem, sm[1]));
     return reply({ error: "not found" }, 404);
+  }
+  if (p.startsWith("/api/med/")) {
+    // round 14: medicine checker text proxy (med.js does its own Origin / GET-only / rate-limit checks)
+    const r = await medRoute(request, env, url, deps, cors);
+    if (r) return r;
   }
   if (p === "/api/fortune/status" && m === "GET") return reply(await fortuneStatus(env, request));
   if (p === "/api/fortune" && m === "POST") {

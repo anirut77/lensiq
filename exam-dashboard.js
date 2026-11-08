@@ -4,6 +4,8 @@
  * invigilator actions (Going / No issue / Note / Escalate, always with a name), accommodation profiles (sent to the nodes),
  * room mute, on-site precision tally, per-room summary, CSV (time order) and a printable committee report.
  * No images, ever. Test hook: window.__LQ_EXAM_DB.
+ * Evidence clip (opt-in on the camera device): a flag row shows its time + "clip on device" status; "Keep clip" (named,
+ * like every action) sends a JSON keep message to that device. The video itself never comes to the dashboard.
  */
 (function () {
   "use strict";
@@ -76,7 +78,7 @@
       const kind = n.src === "hall" ? T("exam.db.nodeHall", "กล้องห้อง") : T("exam.db.nodeLab", "ผู้สอบ");
       const label = n.name ? `<span translate="no">${U.esc(n.name)}</span>` : U.esc(n.seats && n.seats.length === 1 ? T("exam.c.seatN", "ที่นั่ง {s}", { s: n.seats[0] }) : n.node.slice(0, 6));
       return `<span>${U.esc(kind)} ${label} · ` +
-        `${stale ? U.esc(T("exam.db.nodeStale", "ขาดการติดต่อ {n} วินาที", { n: age })) : U.esc(T("exam.db.nodeOk", "ออนไลน์"))}${n.walk ? " · " + U.esc(T("exam.db.nodeWalk", "เดินตรวจ")) : ""}</span>`;
+        `${stale ? U.esc(T("exam.db.nodeStale", "ขาดการติดต่อ {n} วินาที", { n: age })) : U.esc(T("exam.db.nodeOk", "ออนไลน์"))}${n.walk ? " · " + U.esc(T("exam.db.nodeWalk", "เดินตรวจ")) : ""}${n.clip ? " · " + U.esc(T("exam.db.nodeClip", "คลิปหลักฐานเปิด")) : ""}</span>`;
     }).join("") : `<span>${U.esc(T("exam.db.noNodes", "ยังไม่มีเครื่องเชื่อมต่อ"))}</span>`;
     const mu = board.mutedUntil(), ms = $("#muteState");
     ms.textContent = now < mu ? T("exam.db.muted", "พักแจ้งเตือนถึง {t}", { t: U.time(mu) }) : "";
@@ -89,6 +91,18 @@
       return `<div class="seat lv-${l}${prof[id] ? " acc" : ""}" role="img" aria-label="${U.esc(T("exam.db.seatL", "ที่นั่ง {s}: {l}", { s: id, l: U.lvl(l) }))}"><b>${U.esc(id)}</b><span>${U.esc(U.lvl(l))}</span></div>`;
     }).join("") : `<p class="empty">${U.esc(T("exam.db.noSeats", "ยังไม่มีที่นั่ง — กรอกช่วงที่นั่ง หรือรอเหตุการณ์จากเครื่องในห้อง"))}</p>`;
   }
+  /** "clip on device" text for a flag (null = no clip for it) */
+  function clipText(c) {
+    if (!c) return "";
+    if (c.st === "pending") return T("exam.db.clipPending", "คลิป 10 วินาทีรออยู่ในเครื่องกล้อง — ยังไม่เก็บ (หมดเวลาใน 10 นาที)");
+    if (c.st === "kept" || c.st === "auto") {
+      return (c.st === "auto" ? T("exam.db.clipAuto", "คลิปอยู่ในเครื่องกล้อง (เก็บอัตโนมัติ)") : T("exam.db.clipKept", "คลิปอยู่ในเครื่องกล้อง (เก็บแล้ว)")) +
+        (c.days ? " · " + T("exam.db.clipDays", "ลบเองใน {d} วัน", { d: c.days }) : "");
+    }
+    if (c.st === "fail") return T("exam.db.clipFail", "เครื่องกล้องเก็บคลิปไม่สำเร็จ");
+    if (c.st === "del") return T("exam.db.clipDel", "คลิปถูกลบจากเครื่องกล้องแล้ว");
+    return T("exam.db.clipGone", "ไม่ได้เก็บคลิป (หมดเวลา)");
+  }
   function renderQueue(now) {
     const q = board.queue(now);
     $("#qCount").textContent = String(q.length);
@@ -98,6 +112,7 @@
         <header><span class="pill lv-${a.lvl}">${U.esc(U.lvl(a.lvl))}</span><b>${U.esc(a.seat ? T("exam.c.seatN", "ที่นั่ง {s}", { s: a.seat }) : T("exam.db.roomWide", "ทั้งห้อง"))}</b>
           <time>${U.esc(U.time(a.t))}</time>${a.n > 1 ? `<span class="note">${U.esc(T("exam.db.times", "{n} ครั้ง", { n: a.n }))}</span>` : ""}${a.seat ? spark(a.seat, now) : ""}</header>
         <p class="why">${U.esc(U.reason(a))}</p>
+        ${(() => { const c = board.clipState(a); return c ? `<p class="clip-tag" data-clip="${U.esc(c.st)}">${U.esc(clipText(c))}</p>` : ""; })()}
         ${going.length ? `<p class="note">${U.esc(T("exam.db.goingBy", "{w} กำลังไปดู", { w: "\u0001" })).replace("\u0001", `<span translate="no">${U.esc(going.join(", "))}</span>`)}</p>` : ""}
         <label><span>${U.esc(T("exam.db.noteL", "บันทึก (ไม่บังคับ)"))}</span><input class="note-in" maxlength="300" autocomplete="off"></label>
         <div class="acts">
@@ -105,6 +120,7 @@
           <button class="btn ghost" type="button" data-act="noissue">${U.esc(T("exam.db.noissue", "ไม่มีปัญหา"))}</button>
           <button class="btn ghost" type="button" data-act="note">${U.esc(T("exam.db.note", "บันทึก"))}</button>
           <button class="btn ghost danger" type="button" data-act="escalate">${U.esc(T("exam.db.escalate", "ส่งต่อคณะกรรมการ"))}</button>
+          ${board.clipsOf(a).some(c => c.st === "pending") ? `<button class="btn ghost" type="button" data-act="keepclip">${U.esc(T("exam.db.keepClip", "เก็บคลิป (ในเครื่องกล้อง)"))}</button>` : ""}
         </div>
         <div class="acts"><span class="note">${U.esc(T("exam.db.tallyQ", "ระบบแจ้งถูกไหม:"))}</span>
           <button class="btn ghost" type="button" data-v="1" aria-pressed="${a.verdict === "right"}">${U.esc(T("exam.db.right", "แจ้งถูก"))}</button>
@@ -120,7 +136,9 @@
       const names = e.kind === "alert" ? [...new Set(e.acts.map(x => x.who))].join(", ") : "";
       const whoTxt = (names ? `<span translate="no">${U.esc(names)}</span>` + (outcome(e) ? " · " : "") : "") + U.esc(e.kind === "alert" ? outcome(e) : e.kind === "muted" ? T("exam.db.wasMuted", "อยู่ในช่วงพักแจ้งเตือน") : "");
       const tally = e.kind === "alert" ? `<button class="btn ghost" type="button" data-lid="${e.id}" data-v="1" aria-pressed="${e.verdict === "right"}">${U.esc(T("exam.db.right", "แจ้งถูก"))}</button> <button class="btn ghost" type="button" data-lid="${e.id}" data-v="0" aria-pressed="${e.verdict === "wrong"}">${U.esc(T("exam.db.wrong", "แจ้งผิด"))}</button>` : "";
-      return `<tr><td>${U.esc(U.time(e.t))}</td><td>${U.esc(e.seat || "–")}</td><td>${U.esc(U.reason(e))}</td><td><span class="pill lv-${U.esc(e.lvl)}">${U.esc(U.lvl(e.lvl))}</span></td><td>${whoTxt}</td><td>${tally}</td></tr>`;
+      const ct = e.kind === "alert" ? clipText(board.clipState(e)) : "";
+      return `<tr><td>${U.esc(U.time(e.t))}</td><td>${U.esc(e.seat || "–")}</td><td>${U.esc(U.reason(e))}${ct ? `<br><span class="clip-tag">${U.esc(ct)}</span>` : ""}</td>` +
+        `<td><span class="pill lv-${U.esc(e.lvl)}">${U.esc(U.lvl(e.lvl))}</span></td><td>${whoTxt}</td><td>${tally}</td></tr>`;
     }).join("") : `<tr><td colspan="6" class="empty">${U.esc(T("exam.db.logEmpty", "ยังไม่มีเหตุการณ์"))}</td></tr>`;
   }
   function renderSummary() {
@@ -171,6 +189,13 @@
     if (b.hasAttribute("data-v")) { board.verdict(id, b.getAttribute("data-v") === "1"); changed(); return; }
     const act = b.getAttribute("data-act"); if (!act) return;
     if (!who()) { engine(() => T("exam.db.needWho", "กรอกชื่อผู้คุมสอบก่อน — ทุกการตรวจต้องมีชื่อผู้ตรวจ"), "warn"); $("#who").focus(); return; }
+    if (act === "keepclip") {
+      const msgs = board.keepClip(id, who(), Date.now());
+      for (const m of msgs) if (link) link.send(m);
+      engine(() => (msgs.length ? T("exam.db.keepSent", "ขอให้เครื่องกล้องเก็บคลิปแล้ว — คลิปอยู่ในเครื่องนั้นเท่านั้น")
+        : T("exam.db.keepNone", "ไม่มีคลิปที่รอเก็บสำหรับการแจ้งนี้")), msgs.length ? "ok" : "warn");
+      changed(); return;
+    }
     const note = /** @type {HTMLInputElement} */ (card.querySelector(".note-in")).value;
     if ((act === "note" || act === "escalate") && !note.trim()) { engine(() => T("exam.db.needNote", "เขียนบันทึกสั้น ๆ ก่อนกด บันทึก หรือ ส่งต่อ"), "warn"); /** @type {HTMLElement} */ (card.querySelector(".note-in")).focus(); return; }
     board.act(id, act, { who: who(), note }, Date.now());
@@ -207,7 +232,7 @@
     board.setProfile(b.getAttribute("data-unacc"), null); sendProfiles(); changed();
   });
   const csvLabels = () => ({
-    sig: U.sig, lvl: U.lvl, outcome, time: t => new Date(t).toLocaleString(),
+    sig: U.sig, lvl: U.lvl, outcome, time: t => new Date(t).toLocaleString(), clip: clipText, clipHead: T("exam.db.cClip", "คลิปหลักฐาน (อยู่ในเครื่องกล้อง)"),
     head: [T("exam.db.tTime", "เวลา"), T("exam.db.cRoom", "ห้อง"), T("exam.db.tSeat", "ที่นั่ง"), T("exam.db.tReason", "เหตุผล"), T("exam.db.tLvl", "ระดับ"),
       T("exam.db.cWho", "ผู้ตรวจ"), T("exam.db.cOut", "ผลการตรวจ"), T("exam.db.cResp", "เวลาตอบสนอง (วินาที)"), T("exam.db.cNote", "บันทึก")]
   });
@@ -220,8 +245,10 @@
       <p>${U.esc(T("exam.db.rNote", "ระบบช่วยชี้ที่นั่งให้ผู้คุมสอบไปดูเท่านั้น ไม่ใช่หลักฐานการทุจริต ผลการตรวจในรายงานนี้บันทึกโดยผู้คุมสอบ รายการเรียงตามเวลา"))}</p>
       <p>${U.esc(T("exam.db.sAlerts", "แจ้งให้ไปดู {n}", { n: s.alerts }))} · ${U.esc(T("exam.db.sDismiss", "ไม่มีปัญหา {n}", { n: s.dismissed }))} · ${U.esc(T("exam.db.sEsc", "ส่งต่อ {n}", { n: s.escalated }))}</p>
       <table><thead><tr>${csvLabels().head.slice(0, 1).concat(csvLabels().head.slice(2, 9)).map(h => `<th>${U.esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map(e => {
-        const acts = e.acts || [], r = acts.find(x => x.a !== "note");
-        return `<tr><td>${U.esc(U.time(e.t))}</td><td>${U.esc(e.seat || "–")}</td><td>${U.esc(U.reason(e))}</td><td>${U.esc(U.lvl(e.lvl))}</td><td translate="no">${U.esc([...new Set(acts.map(x => x.who))].join(", "))}</td><td>${U.esc(e.kind === "alert" ? outcome(e) : "")}</td><td>${r ? Math.round((r.t - e.t) / 1000) : ""}</td><td>${U.esc(acts.filter(x => x.note).map(x => x.note).join(" | "))}</td></tr>`;
+        const acts = e.acts || [], fr = e.kind === "alert" ? board.firstResp(e) : null; // same rule as CSV / summary: notes and keep-clip are not responses
+        const ct = e.kind === "alert" ? clipText(board.clipState(e)) : "";
+        return `<tr><td>${U.esc(U.time(e.t))}</td><td>${U.esc(e.seat || "–")}</td><td>${U.esc(U.reason(e))}${ct ? " · " + U.esc(ct) : ""}</td><td>${U.esc(U.lvl(e.lvl))}</td>` +
+          `<td translate="no">${U.esc([...new Set(acts.map(x => x.who))].join(", "))}</td><td>${U.esc(e.kind === "alert" ? outcome(e) : "")}</td><td>${fr != null ? Math.round(fr / 1000) : ""}</td><td>${U.esc(acts.filter(x => x.note).map(x => x.note).join(" | "))}</td></tr>`;
       }).join("")}</tbody></table>
       <p>${U.esc(T("exam.db.rSign", "ลงชื่อผู้คุมสอบ ____________________ วันที่ ____________"))}</p>`;
     window.print();

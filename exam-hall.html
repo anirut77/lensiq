@@ -7,18 +7,22 @@
 <meta name="theme-color" content="#0e1430">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="exam.hall.title">เครื่องกล้องในห้องสอบ | LENSIQ Exam</title>
-<link rel="stylesheet" href="styles.css?v=10">
-<link rel="stylesheet" href="exam.css?v=1">
+<link rel="stylesheet" href="styles.css?v=11">
+<link rel="stylesheet" href="exam.css?v=2">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=13"></script>
+<script src="nav.js?v=14"></script>
 <script src="i18n/zh-exam.js?v=1"></script>
 
 <main class="ex" id="main">
   <h1 data-i18n="exam.hall.h1">เครื่องกล้องในห้องสอบ</h1>
-  <p class="lead" data-i18n="exam.hall.lead">วางแล็ปท็อปหรือมือถือให้เห็นแถวที่นั่ง วาดขอบเขตที่นั่งบนภาพ แล้วเริ่มเฝ้าดู ภาพประมวลผลในเครื่องนี้ 2–5 ภาพต่อวินาที ส่งเฉพาะเหตุการณ์ไปที่แดชบอร์ดผู้คุมสอบ ไม่ส่งภาพ ไม่บันทึกวิดีโอ</p>
+  <p class="lead" id="lead" data-i18n="exam.hall.lead">วางแล็ปท็อปหรือมือถือให้เห็นแถวที่นั่ง วาดขอบเขตที่นั่งบนภาพ แล้วเริ่มเฝ้าดู ภาพประมวลผลในเครื่องนี้ 2–5 ภาพต่อวินาที ส่งเฉพาะเหตุการณ์ไปที่แดชบอร์ดผู้คุมสอบ ไม่ส่งภาพ ไม่บันทึกวิดีโอ</p>
+  <p class="lead" id="leadC" hidden data-i18n="exam.hall.leadC">วางแล็ปท็อปหรือมือถือให้เห็นแถวที่นั่ง วาดขอบเขตที่นั่งบนภาพ แล้วเริ่มเฝ้าดู ภาพประมวลผลในเครื่องนี้ 2–5 ภาพต่อวินาที ส่งเฉพาะเหตุการณ์ไปที่แดชบอร์ดผู้คุมสอบ ไม่ส่งภาพ ไม่บันทึกวิดีโอต่อเนื่อง (คลิปหลักฐานสั้นเก็บในเครื่องนี้เฉพาะเมื่อมีการแจ้ง)</p>
   <p class="warn" role="note" data-i18n="exam.hall.warn">ระบบชี้ที่นั่งให้ผู้คุมสอบไปดูเท่านั้น ไม่ตัดสินการทุจริต ติดประกาศการใช้กล้องหน้าห้องก่อนเริ่มสอบ</p>
+  <p class="warn" role="note" id="clipWarn" hidden data-i18n="exam.hall.clipWarn">คลิปหลักฐานเปิดอยู่: เครื่องนี้จำภาพวิดีโอ 10 วินาทีล่าสุดในหน่วยความจำ (ไม่มีเสียง)
+    และเก็บคลิปช่วงที่มีการแจ้งเฉพาะเมื่อผู้คุมสอบกด “เก็บคลิป” (หรืออัตโนมัติถ้าสถาบันตั้งไว้) แบบเข้ารหัสในเครื่องนี้ ไม่ส่งออก
+    ลบเองตามวันที่กำหนด — ประกาศหน้าห้องและความยินยอมต้องระบุเรื่องคลิปด้วย คลิปอาจเห็นผู้สอบคนอื่นในภาพ</p>
   <p class="status" id="engine" role="status" aria-live="polite"></p>
 
   <section class="card" aria-labelledby="setupH">
@@ -32,6 +36,12 @@
         <select id="fps"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select></label>
       <label><span data-i18n="exam.hall.minLeave">ออกจากห้องได้หลังเริ่มสอบ (นาที)</span><input id="minLeave" type="number" min="0" max="240" value="30"></label>
       <label class="check"><input type="checkbox" id="tiles"> <span data-i18n="exam.hall.tiles">ห้องใหญ่: แบ่งภาพ 2×2 เพื่อเห็นคนที่อยู่ไกล (ช้าลง)</span></label>
+      <label class="check"><input type="checkbox" id="clipOn"> <span data-i18n="exam.clip.on">เปิดคลิปหลักฐานสำหรับการสอบนี้ (จำภาพ 10 วินาทีล่าสุดในเครื่องนี้ ไม่มีเสียง)</span></label>
+      <label class="check"><input type="checkbox" id="clipAuto" disabled> <span data-i18n="exam.clip.auto">เก็บอัตโนมัติเมื่อมีการแจ้ง (เฉพาะเมื่อสถาบันกำหนด)</span></label>
+      <label><span data-i18n="exam.clip.days">ลบคลิปอัตโนมัติหลัง</span>
+        <select id="clipDays"><option value="1" data-i18n="exam.clip.d1">1 วัน</option><option value="7" data-i18n="exam.clip.d7">7 วัน</option>
+          <option value="14" selected data-i18n="exam.clip.d14">14 วัน</option><option value="30" data-i18n="exam.clip.d30">30 วัน</option>
+          <option value="90" data-i18n="exam.clip.d90">90 วัน</option></select></label>
       <div class="row-actions" style="grid-column:1/-1"><button class="btn primary" type="submit" id="startCam" data-i18n="exam.hall.startCam">เปิดกล้อง</button></div>
     </form>
   </section>
@@ -79,6 +89,11 @@
     <h3 data-i18n="exam.hall.recentH">เหตุการณ์ล่าสุดจากเครื่องนี้</h3>
     <ul class="own-log" id="recent"><li class="empty" data-i18n="exam.hall.none">ยังไม่มีเหตุการณ์</li></ul>
     <div class="row-actions"><button class="btn ghost" type="button" id="exportEv" data-i18n="exam.hall.export">ส่งออกเหตุการณ์ (ไฟล์สำหรับแดชบอร์ดที่ไม่มีเครือข่าย)</button></div>
+    <details class="no-print" id="clipBox" hidden>
+      <summary data-i18n="exam.clip.boxH">คลิปหลักฐานในเครื่องนี้ (สำหรับผู้คุมสอบ)</summary>
+      <p class="status" id="clipStatus" role="status" hidden></p>
+      <div id="clipList"></div>
+    </details>
     <p class="note" data-i18n="exam.hall.v2">รุ่นถัดไป: ท่าทางร่างกาย (ก้มดูตัก มือแนบหู ยื่นแขนข้ามที่นั่ง) และการหันศีรษะไปทางที่นั่งข้างเคียง (กล้องหน้าเท่านั้น น้ำหนักต่ำ)</p>
   </section>
 </main>
@@ -87,10 +102,13 @@
 <script src="lensiq-camera.js?v=4"></script>
 <script src="lensiq-detect.js?v=3"></script>
 <script src="lensiq-sitecheck.js?v=4"></script>
-<script src="lensiq-exam.js?v=1"></script>
+<script src="lensiq-exam.js?v=2"></script>
 <script src="exam-ui.js?v=1"></script>
 <script src="exam-link.js?v=1"></script>
-<script src="exam-hall.js?v=1"></script>
+<script src="lensiq-facevault.js?v=1"></script>
+<script src="lensiq-exam-clip.js?v=2"></script>
+<script src="exam-clip-ui.js?v=2"></script>
+<script src="exam-hall.js?v=2"></script>
 <script src="lensiq-config.js?v=4"></script>
 </body>
 </html>

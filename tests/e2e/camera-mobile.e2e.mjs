@@ -5,7 +5,9 @@ import { assert } from "./cdp.mjs";
 
 const PAGES = ["cameras.html", "store.html", "booth.html", "signage.html", "attendance.html", "customers.html", "checkout.html", "qc.html", "driver.html", "neuro.html",
   // round 13: exam / gate / zone quick-win camera pages
-  "exam-lab.html", "exam-hall.html", "exam-dashboard.html", "parking.html", "village.html", "queue.html", "tables.html", "afterhours.html", "bays.html"];
+  "exam-lab.html", "exam-hall.html", "exam-dashboard.html", "parking.html", "village.html", "queue.html", "tables.html", "afterhours.html", "bays.html",
+  // round 14
+  "crowd.html", "case-review.html", "medicine.html", "omr.html", "luckycolor.html"];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 export function audit() {

@@ -5,6 +5,10 @@
  * Test seams (localhost + ?fakedet, LQDetect.isTest()): no models; window.__LQ_FAKE_DET("exam-lab") returns
  *   [{x,y,w,h, yaw?, pitch?, mar?}] faces (normalised; turned into 68 synthetic landmarks) and [{cls:"phone"|..., score}] objects;
  *   window.__LQ_FAKE_Q = {ok, code, score} overrides the lighting verdict. ?calsec=N shortens calibration. window.__LQ_EXAM_LAB = state.
+ * Evidence clip (opt-in per exam, default OFF; ?clip=1&clipauto=1&clipdays=N or the invigilator settings): the notice and
+ *   consent text change BEFORE consent, then the setting is locked. During the exam the last 10 s of video (no audio) stay in
+ *   memory; a Watch / Check flag copies them to a pending slot that is encrypted to this device only when the invigilator
+ *   taps "keep clip" on the dashboard (or auto-keep). Never uploaded (exam-clip-ui.js / lensiq-exam-clip.js).
  */
 /* global LQCam, LQDetect, LQSite, faceapi */
 (function () {
@@ -25,7 +29,15 @@
   const own = U.store.get(K.log, []).filter(e => e && E.SIGNALS[e.sig]);
   const sent = [];
   const frozen = E.createFrozen({ ms: 4000 });
-  let qAt = 0, cocoN = 0;
+  let qAt = 0, cocoN = 0, evSeq = 0;
+  const evTag = L.newNodeId().slice(0, 4); // event ids unique per page load: "e<n>-<tag>" (≤ 16 chars, CODE_RE)
+  const Clip = W.LQExamClip;
+  let clipCfg = Clip.cfgFromParams(P, null);
+  const clips = W.LQExamClipUI.create({
+    send: m => link && link.send(m), ctx: () => ({ room, node: nodeId, src: "lab" }),
+    listEl: $("#clipList"), statusEl: $("#clipStatus"),
+    onState: (id, st) => { const e = own.find(x => x.id === id); if (e) { e.clipSt = st; U.store.set(K.log, own); renderOwn(); } }
+  });
 
   /* ---------- small UI helpers ---------- */
   let lastEngine = null; // re-rendered on every language switch (status text is written by JS, not data-i18n)
@@ -71,7 +83,9 @@
     if (!own.length) { ul.innerHTML = `<li class="empty">${U.esc(T("exam.lab.ownEmpty", "ยังไม่มีเหตุการณ์"))}</li>`; return; }
     ul.innerHTML = own.slice().reverse().slice(0, 200).map(e => {
       const told = e.lvl === "watch" || e.lvl === "check" ? T("exam.lab.toldCheck", "แจ้งผู้คุมสอบให้มาดู") : e.lvl === "setup" ? T("exam.lab.toldSetup", "แจ้งให้ปรับการติดตั้ง") : T("exam.lab.toldInfo", "บันทึกไว้");
-      return `<li><time>${U.esc(U.time(e.t))}</time><span>${U.esc(U.reason(e))}</span><span class="note">— ${U.esc(told)}</span></li>`;
+      const clipTxt = e.clipSt ? W.LQExamClipUI.stateText(e.clipSt) : "";
+      return `<li><time>${U.esc(U.time(e.t))}</time><span>${U.esc(U.reason(e))}</span><span class="note">— ${U.esc(told)}</span>` +
+        `${clipTxt ? `<span class="clip-tag">${U.esc(clipTxt)}</span>` : ""}</li>`;
     }).join("");
   }
 
@@ -82,12 +96,13 @@
       if (ev.lvl === "end") { if (ev.sig === "noface") $("#prompt").hidden = true; continue; }
       if (ev.local) continue;
       if (ev.prompt || ev.lvl === "setup" || (ev.lvl !== "info" && PROMPTS[ev.sig])) prompt(ev.sig);
-      const msg = { v: 1, type: "ev", room, node: nodeId, src: "lab", seat, sig: ev.sig, lvl: ev.lvl, t: Math.round(ev.t) };
+      const msg = { v: 1, type: "ev", room, node: nodeId, src: "lab", seat, sig: ev.sig, lvl: ev.lvl, t: Math.round(ev.t), id: "e" + (++evSeq).toString(36) + "-" + evTag };
       for (const k of ["dur", "n"]) if (Number.isFinite(ev[k])) msg[k] = ev[k];
       if (ev.what) msg.what = ev.what;
       if (ev.code) msg.code = ev.code;
       if (link && link.send(msg)) sent.push(msg);
-      own.push({ t: msg.t, sig: msg.sig, lvl: msg.lvl, dur: msg.dur, cnt: msg.n, what: msg.what, code: msg.code });
+      own.push({ t: msg.t, sig: msg.sig, lvl: msg.lvl, dur: msg.dur, cnt: msg.n, what: msg.what, code: msg.code, id: msg.id });
+      if (clipCfg.on) clips.onFlag(msg);
       while (own.length > 500) own.shift();
       U.store.set(K.log, own);
     }
@@ -95,9 +110,10 @@
   }
   function heartbeat() {
     if (!link) return;
-    link.send({ v: 1, type: "hb", room, node: nodeId, src: "lab", name: "", seats: [seat], t: Date.now(), fps: Math.round(fpsEma * 10) / 10, q: lastQ.score || 0 });
+    link.send({ v: 1, type: "hb", room, node: nodeId, src: "lab", name: "", seats: [seat], t: Date.now(), fps: Math.round(fpsEma * 10) / 10, q: lastQ.score || 0, clip: clips.armed });
   }
   function onMessage(m) {
+    if (m.type === "keep") { clips.onMessage(m); return; }
     if (m.type === "prof" && m.profiles) {
       const p = m.profiles[seat] || null;
       if (JSON.stringify(p) !== JSON.stringify(profile)) {
@@ -124,7 +140,7 @@
         onChange: (c, ev) => {
           if (ev.type === "started") { $("#camWrap").classList.toggle("mirror", c.mirrored); checkCamLabel(); }
           else if (ev.type === "ended") engine(() => T("exam.lab.camLost", "สัญญาณกล้องหลุด — ระบบกำลังลองเชื่อมต่อใหม่"), "warn");
-          else if (ev.type === "reconnected") engine(() => T("exam.lab.camBack", "กล้องกลับมาแล้ว"), "ok");
+          else if (ev.type === "reconnected") { engine(() => T("exam.lab.camBack", "กล้องกลับมาแล้ว"), "ok"); if (phase === "exam" && clipCfg.on) clips.arm(video.srcObject); }
         }
       });
       const [, b] = await Promise.all([cam.start(), loadModels()]);
@@ -265,6 +281,37 @@
     reloadPending = !!sessionStorage.getItem(K.active) && nav && nav.type === "reload";
   } catch (e) { reloadPending = false; }
 
+  /* ---------- evidence clip: notice + consent text follow the setting until consent is given ---------- */
+  function clipNotice() {
+    const on = clipCfg.on;
+    $("#n2").hidden = on; $("#n2c").hidden = !on; $("#n5c").hidden = !on;
+    $("#lead").hidden = on; $("#leadC").hidden = !on;
+    $("#consentTxt").hidden = on; $("#consentClip").hidden = !on;
+    $("#n5c").textContent = !on ? "" : clipCfg.auto
+      ? T("exam.lab.n5a",
+        "คลิปหลักฐาน (สถาบันเปิดใช้สำหรับการสอบนี้): ระหว่างสอบ เครื่องนี้จำภาพวิดีโอ 10 วินาทีล่าสุดไว้ในหน่วยความจำ (ไม่มีเสียง) เมื่อมีการแจ้งให้ผู้คุมสอบมาดู คลิปช่วงนั้นจะถูกเก็บในเครื่องนี้โดยอัตโนมัติ แบบเข้ารหัส ไม่ถูกส่งออกจากเครื่อง และลบเองภายใน {d} วัน คลิปใช้ประกอบการตรวจของผู้คุมสอบเท่านั้น ไม่ใช่การตัดสิน",
+        { d: clipCfg.days })
+      : T("exam.lab.n5c",
+        "คลิปหลักฐาน (สถาบันเปิดใช้สำหรับการสอบนี้): ระหว่างสอบ เครื่องนี้จำภาพวิดีโอ 10 วินาทีล่าสุดไว้ในหน่วยความจำ (ไม่มีเสียง) เมื่อมีการแจ้งให้ผู้คุมสอบมาดู คลิปช่วงนั้นอาจถูกเก็บในเครื่องนี้ถ้าผู้คุมสอบกด “เก็บคลิป” แบบเข้ารหัส ไม่ถูกส่งออกจากเครื่อง และลบเองภายใน {d} วัน ถ้าไม่มีใครกดเก็บ คลิปจะถูกลบจากหน่วยความจำ",
+        { d: clipCfg.days });
+    $("#monClip").hidden = !on;
+    $("#clipBox").hidden = !on && !clips.kept.length;
+    $("#clipOn").checked = on; $("#clipAuto").checked = clipCfg.auto; $("#clipAuto").disabled = !on || phase !== "notice"; $("#clipDays").value = String(clipCfg.days);
+  }
+  function readClipCfg() {
+    if (phase !== "notice") return; // locked after consent: the candidate agreed to what the notice said
+    const before = JSON.stringify(clipCfg);
+    clipCfg = Clip.cleanCfg({ on: $("#clipOn").checked, auto: $("#clipAuto").checked, days: +$("#clipDays").value });
+    clips.setCfg(clipCfg); clipNotice();
+    if (JSON.stringify(clipCfg) !== before && $("#consent").checked) {
+      $("#consent").checked = false; // the candidate must tick the wording they actually read
+      $("#noticeMsg").textContent = T("exam.lab.reread", "ประกาศเปลี่ยนแล้ว โปรดอ่านอีกครั้งแล้วติ๊กยินยอมใหม่");
+    }
+  }
+  for (const id of ["#clipOn", "#clipAuto", "#clipDays"]) $(id).addEventListener("change", readClipCfg);
+  clips.setCfg(clipCfg);
+  clips.refresh().then(clipNotice);
+
   /* ---------- flow ---------- */
   const saved = U.store.get(K.lab, null);
   if (saved) { $("#room").value = saved.room || ""; $("#seat").value = saved.seat || ""; }
@@ -277,7 +324,10 @@
     const msg = $("#noticeMsg");
     if (!room || !seat) { msg.textContent = T("exam.lab.needIds", "กรอกรหัสห้องสอบและเลขที่นั่ง (ตัวอักษรอังกฤษหรือตัวเลข)"); return; }
     if (!$("#consent").checked) { msg.textContent = T("exam.lab.needConsent", "โปรดอ่านประกาศและติ๊กยินยอมก่อน หรือกด “ขอทางเลือกอื่น”"); return; }
+    if (clipCfg.on && !clips.pin.has()) { msg.textContent = T("exam.lab.needPin", "ผู้คุมสอบ: ตั้ง PIN สำหรับคลิปหลักฐานในกล่อง “คลิปหลักฐานในเครื่องนี้” ก่อน หรือปิดคลิปหลักฐาน"); $("#clipBox").open = true; return; }
     msg.textContent = "";
+    clips.lock(); // the candidate never sees the kept-clip list
+    for (const id of ["#clipOn", "#clipAuto", "#clipDays"]) $(id).disabled = true; // consent covers exactly this setting
     $("#room").value = room; $("#seat").value = seat;
     U.store.set(K.lab, { room, seat });
     if (link) link.close();
@@ -296,6 +346,8 @@
     show("exam");
     try { sessionStorage.setItem(K.active, room + "|" + seat); } catch (e) { /* ignore */ }
     if (reloadPending) { reloadPending = false; B("reload"); }
+    clips.lock();
+    if (clipCfg.on) { clips.arm(video.srcObject); $("#clipBox").hidden = false; } // count only; list needs the invigilator PIN
     const ext = /** @type {any} */ (window.screen).isExtended;
     if (ext === true) B("screens", { extended: true });
     if (E.isVirtualCamLabel(cam && cam.label)) B("virtualcam");
@@ -304,6 +356,8 @@
   $("#reFs").addEventListener("click", async () => { try { await document.documentElement.requestFullscreen(); } catch (e) { /* ignore */ } });
   $("#endExam").addEventListener("click", () => {
     running = false; clearInterval(hbTimer);
+    clips.disarm(); // the memory ring stops; pending clips stay keepable for their 10-min window, kept (encrypted) clips until their auto-delete date
+    clips.lock();
     try { cam && cam.stop(); } catch (e) { /* ignore */ }
     try { sessionStorage.removeItem(K.active); } catch (e) { /* ignore */ }
     try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* ignore */ }
@@ -316,7 +370,7 @@
   renderOwn();
   engine(() => T("exam.lab.engine0", "ยังไม่ได้เปิดกล้อง"));
   window.addEventListener("lq-lang", () => {
-    renderOwn(); if (phase === "cam") renderChecks();
+    renderOwn(); if (phase === "cam") renderChecks(); clipNotice();
     if (lastEngine) engine(lastEngine[0], lastEngine[1]);
     const pe = $("#prompt"); if (!pe.hidden && promptSig && PROMPTS[promptSig]) pe.textContent = T(PROMPTS[promptSig][0], PROMPTS[promptSig][1]);
     qAt = 0; // re-render the light message in the new language on the next frame
@@ -324,6 +378,6 @@
 
   /** @type {any} */ (window).__LQ_EXAM_LAB = {
     get phase() { return phase; }, get mon() { return mon; }, get baseline() { return mon && mon.baseline; },
-    own, sent, get link() { return link; }, get quality() { return lastQ; }, get faces() { return lastFaces; }, nodeId
+    own, sent, get link() { return link; }, get quality() { return lastQ; }, get faces() { return lastFaces; }, nodeId, clips, get clipCfg() { return clipCfg; }
   };
 })();

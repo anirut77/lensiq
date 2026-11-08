@@ -12,6 +12,8 @@ flag is an observation ("a phone may be in view"), never a verdict ("cheating de
 | `lensiq-exam.js` (`LQExam`) | Pure logic, Node-testable, no DOM / network / images (`tests/unit/exam.test.js`) |
 | `exam-link.js` (`LQExamLink`) | Transport: BroadcastChannel, optional relay, file export / import — every message through `LQExam.cleanMsg()` |
 | `exam-ui.js` (`LQExamUI`) | Shared page helpers (translation, labels, plain-language reasons, downloads, storage) |
+| `lensiq-exam-clip.js` (`LQExamClip`) | Evidence clip (opt-in): config, 10 s ring buffer (MediaRecorder, video only), pending slots, encrypted store (LQVault + IndexedDB). Node-testable parts in `tests/unit/exam-clip.test.js` |
+| `exam-clip-ui.js` (`LQExamClipUI`) | Evidence-clip controller for the two camera pages: arm / disarm, flag → pending / auto-keep, "keep" from the dashboard, kept-clip list (play, save file, delete, delete all) |
 | `exam.css` | Styles for the four pages (level colours always paired with a text label) |
 | `i18n/en-exam.js`, `i18n/zh-exam.js` | English / Chinese for all four pages and the run-time text (Thai is in the markup and scripts) |
 
@@ -84,7 +86,30 @@ rooms) at 2–5 fps. A person belongs to the seat polygon that contains the box 
 | room event | ≥ max(3, 40% of seats) change occupancy / lean within 3 s → per-seat alerts suppressed 20 s (phones are never suppressed); manual "room event" mute 60 s on node or dashboard | info |
 
 v2: pose landmarker (head down to lap, hand at ear, arm crossing seats), phone detection on cycled seat crops,
-optional 10 s evidence ring buffer kept only on "keep" (encrypted, auto-delete, other faces blurred).
+blurring the other seats in a kept hall clip (the evidence clip itself shipped in round 14 — see below).
+
+## Evidence clip (round 14, opt-in per exam, default OFF)
+
+| Step | What happens |
+|---|---|
+| Switch on | Institution only: `?clip=1` (`&clipauto=1` auto-keep, `&clipdays=1/7/14/30/90`, default 14) in the exam link, or the invigilator settings on the camera page (lab: the "settings for this subject" panel before consent; hall: the setup form while not monitoring). `LQExamClip.cleanCfg` — anything but a real `true` is OFF; auto-keep needs clips on. |
+| Notice + consent | Lab: with clips on, notice line n2 ("no image recording") is replaced by n2c ("no continuous video, no audio"), a clip paragraph (n5c, or n5a for auto-keep, with the retention days) is added, and the consent checkbox text names the clip. The setting is **locked** once consent is given. Hall: a warning tells the invigilator the room notice must mention clips and that a clip may show other candidates. TH / EN / ZH. |
+| While monitoring | The camera device keeps only the last ~10 s **in memory**: a new MediaRecorder segment every 2 s on a **video-only** copy of the camera stream (audio is never recorded), older segments dropped by time (not by count, so several quick flags still give a full clip). A kept clip is ~9.5–11.5 s (`pickSegs` never overshoots to 15 s).  With clips on, the lab and hall lead texts say "no continuous video" (`exam.lab.leadC`, `exam.hall.leadC`) instead of "no video".  Clips need an **invigilator PIN** on the device first (see Use): without it `arm()` records nothing and the lab consent step does not go ahead. Lab candidates see "· last 10 s kept in memory" on the permanent monitoring badge; the heartbeat carries `clip: true` so the dashboard shows "evidence clip on" for that device. Nothing at all is recorded when the browser cannot encrypt (no secure context / WebCrypto / IndexedDB) or has no MediaRecorder. |
+| Flag | Only Watch / Check events of objective signals (`CLIP_SIGS`: face count, objects, head turn, frozen feed, browser / screen events, seat empty / extra / aisle / lean / early). The ring is copied into a **pending** slot (memory only, max 6, dropped after 10 min). Pending slots survive End exam, Stop monitoring and a camera reconnect (only the ring restarts), so an invigilator can still keep them within the 10 minutes; a page reload drops them (memory only, by design). The device sends `{type:"clip", id, st:"pending"}` — JSON, never video. |
+| Keep | The invigilator taps **Keep clip** on that flag on the dashboard (needs the invigilator's name like every action; logged as `keepclip`, not counted as a response). The dashboard sends `{type:"keep", node, id}`; the camera device encrypts the clip and stores it. Hall nodes also have a Keep button next to the event. With auto-keep the clip is stored at once (`st:"auto"`). |
+| At rest | IndexedDB `lq-exam-clips` / `clips`: metadata (time, seat, signal, how, kept, expiry) + one LQVault envelope (AES-GCM 256, non-extractable key per clip in IndexedDB `lensiq-vault`, the clip name as AAD). No plaintext fallback. Max 60 clips per device. |
+| Delete | Automatic after N days: purged on load of every exam page that loads `lensiq-exam-clip.js` (`purgeDevice`, which never creates the database), every minute while a camera page is open, on every list refresh, and `load()` refuses (and deletes) an expired clip so it can never be played or saved, per clip or "delete all" on the device. Deleting removes the record **and its key** (a copied envelope can no longer be opened); the dashboard is told (`st:"del"`). LQVault `wipeAll` (admin "delete all biometric data") also makes clips unreadable. |
+| Use | The kept-clip list is on the camera device only (lab: "Evidence clips on this device" below the event log; hall: under monitoring) and is **behind an invigilator PIN** (4–8 digits, `LQExamClip.createPin`: PBKDF2-SHA-256 salted hash in localStorage `lq-exam-clip-pin`, never the PIN; 5 wrong tries = 60 s wait; changing it needs the old PIN). Without the PIN anyone at the device (a candidate on a shared lab computer) sees only the number of clips — no list, play, save or delete. The list re-locks at consent, at exam start / end, when hall monitoring starts / stops, and after 5 minutes. The PIN is a UI gate, not the encryption (the clips are encrypted with LQVault either way); a forgotten PIN means clips stay locked until they auto-delete (or site data is cleared). Unlocked: play (decrypted locally into a `blob:` URL), save as file (a person's explicit action, e.g. for the committee), delete. The dashboard flag row and log row show the time and the clip status ("clip on the camera device · deleted automatically in N days"); CSV gets an extra "Evidence clip" column only when the room used clips. |
+| Never | Uploaded, sent to the dashboard or relay, recorded with audio, recorded while clips are off, analysed by any model, used to score anyone. |
+
+Also: changing the clip setting after the consent box was ticked clears the tick ("the notice has changed — read it
+again"); `store.save` refuses unless LQVault really returned an encrypted envelope (even if some script set
+`allowPlaintext`).
+
+Deferred: blurring other seats in hall clips (needs a canvas re-encode per frame; would cut fps on phones), an in-app
+"change PIN" button (the API supports it with the old PIN), and clips coming back to the dashboard over the relay
+(deliberately not built: clips stay on the device). Note: someone with full control of the browser (devtools, clearing
+site data) can still delete local data; the dashboard keeps its own "clip kept" log row either way.
 
 ## Accommodations (`cleanProfile` / `applyAccommodation`)
 
@@ -137,7 +162,11 @@ All thresholds are research-based defaults. Before sale: a face-detection miss-r
 ## Tests
 
 `tests/unit/exam.test.js` (gates, risk, room suppression, accommodations, pose, calibration, lighting, frozen, lab and hall
-monitors, geometry, message allowlist, board, CSV), `tests/unit/exam-i18n.test.js` (every run-time key in en + zh, no
+monitors, geometry, message allowlist, board, CSV), `tests/unit/exam-clip.test.js` (clip config default OFF, objective
+signals only, ring segments video-only, pending drop, encrypted store / crypto-shred / auto-delete / insecure = nothing
+stored, clip + keep allowlist, named keep on the board, CSV column; **no emotion / expression / age-gender API in any exam
+file** and every signal in an objective-event allowlist), `tests/e2e/exam-clip.e2e.mjs` (default OFF = no MediaRecorder,
+consent text, pending → named keep → encrypted record → play / delete, hall auto-keep), `tests/unit/exam-i18n.test.js` (every run-time key in en + zh, no
 Thai, no verdict wording), `tests/e2e/exam*.e2e.mjs` (one per page, fake camera + `?fakedet`, phone widths, 0% Thai in
 中文 / English, privacy scan). Test seams: `window.__LQ_FAKE_DET("exam-lab" | "exam-hall")`, `window.__LQ_FAKE_Q`
 (lighting override), `?calsec=N`, `window.__LQ_EXAM_LAB / __LQ_EXAM_HALL / __LQ_EXAM_DB`.

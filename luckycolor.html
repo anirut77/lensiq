@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="lucky.doc.title">กระจกส่องสีเสื้อมงคล | LENSIQ</title>
+<meta name="description" data-i18n-attr="content:lucky.doc.desc" content="ส่องกระจกดูว่าสีเสื้อที่ใส่ตรงกับสีมงคลประจำวันเรื่องการงาน การเงิน หรือความรักไหม ตามทักษาจร ประมวลผลบนเครื่อง ไม่บันทึกภาพ">
+<link rel="stylesheet" href="styles.css?v=11">
+<link rel="stylesheet" href="fortune-kit.css?v=2">
+<link rel="stylesheet" href="luckycolor.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=14"></script>
+<script src="i18n/zh-luckycolor.js?v=1"></script>
+
+<main class="fk lc-mirror" id="main">
+  <div class="fk-head">
+    <span class="eyebrow" data-i18n="lucky.eyebrow">สีมงคลประจำวัน · ทักษาจร</span>
+    <h1 data-i18n="lucky.h1">กระจกส่องสีเสื้อมงคล</h1>
+    <p class="lead" data-i18n="lucky.lead">เปิดกล้อง ยืนให้เห็นตั้งแต่ใบหน้าถึงเอว ระบบจะดูเฉพาะเสื้อผ้าใต้ใบหน้า หาสีหลักของชุด แล้วเทียบกับสีมงคลของวันตามความเชื่อไทย
+      สำหรับเรื่องการงาน การเงิน ความรัก หรือผู้ใหญ่อุปถัมภ์</p>
+  </div>
+  <p class="fk-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+    <span><b data-i18n="lucky.disc.b">เพื่อความบันเทิงตามความเชื่อ ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์</b>
+    <span data-i18n="lucky.disc.rest">ภาพจากกล้องประมวลผลในเครื่องนี้เท่านั้น ไม่บันทึก ไม่ส่งออก ไม่จดจำใบหน้า ใช้ตำแหน่งใบหน้าเพียงเพื่อแยกเสื้อผ้าออกจากศีรษะ</span></span></p>
+
+  <section class="fk-block lc-opts" aria-labelledby="optH">
+    <h2 id="optH" data-i18n="lucky.optH">อยากเสริมเรื่องอะไรวันนี้</h2>
+    <div class="lc-goals" role="group" aria-labelledby="optH" id="goals">
+      <button class="lc-goal" type="button" data-goal="work" aria-pressed="true">
+        <b data-i18n="lucky.goal.work">การงาน</b><small data-i18n="lucky.goal.work.s">ภูมิเดช</small></button>
+      <button class="lc-goal" type="button" data-goal="money" aria-pressed="false">
+        <b data-i18n="lucky.goal.money">การเงิน โชคลาภ</b><small data-i18n="lucky.goal.money.s">ภูมิศรี</small></button>
+      <button class="lc-goal" type="button" data-goal="love" aria-pressed="false">
+        <b data-i18n="lucky.goal.love">ความรัก เสน่ห์</b><small data-i18n="lucky.goal.love.s">ภูมิศรี</small></button>
+      <button class="lc-goal" type="button" data-goal="support" aria-pressed="false">
+        <b data-i18n="lucky.goal.support">ผู้ใหญ่อุปถัมภ์</b><small data-i18n="lucky.goal.support.s">ภูมิมนตรี</small></button>
+    </div>
+    <label class="lc-day"><span data-i18n="lucky.dayL">สีของวัน</span>
+      <select id="daySel">
+        <option value="auto" data-i18n="lucky.day.auto">วันนี้ (อัตโนมัติ)</option>
+        <option value="0" data-i18n="lucky.day.0">วันอาทิตย์</option>
+        <option value="1" data-i18n="lucky.day.1">วันจันทร์</option>
+        <option value="2" data-i18n="lucky.day.2">วันอังคาร</option>
+        <option value="3" data-i18n="lucky.day.3">วันพุธ</option>
+        <option value="4" data-i18n="lucky.day.4">วันพฤหัสบดี</option>
+        <option value="5" data-i18n="lucky.day.5">วันศุกร์</option>
+        <option value="6" data-i18n="lucky.day.6">วันเสาร์</option>
+      </select></label>
+    <div id="recBox" class="lc-rec" aria-live="polite"></div>
+  </section>
+
+  <div class="lc-grid">
+    <section class="fk-block" aria-labelledby="camH">
+      <h2 id="camH" data-i18n="lucky.camH">กระจก</h2>
+      <div class="lc-cam" id="cam"><video id="video" autoplay muted playsinline></video>
+        <canvas id="ov" role="img" aria-label="ภาพกล้องพร้อมบริเวณเสื้อผ้าที่ใช้หาสี (ไม่บันทึก)" data-i18n-attr="aria-label:lucky.camAria"></canvas>
+        <p class="lc-cam-empty" id="camEmpty" data-i18n="lucky.camEmpty">กดเปิดกล้องเพื่อเริ่มส่อง</p></div>
+      <div class="lc-actions">
+        <button class="btn primary" id="startCam" type="button" data-i18n="lucky.start">เปิดกล้อง</button>
+        <button class="btn ghost" id="stopCam" type="button" disabled data-i18n="lucky.stop">ปิดกล้อง</button>
+      </div>
+      <p class="hint" id="engine" role="status"></p>
+      <p class="hint" data-i18n="lucky.tip">เคล็ดลับ: ยืนห่างกล้องราว 1–1.5 เมตร แสงสว่างจากด้านหน้า ไม่ย้อนแสง สีจะใกล้เคียงของจริงที่สุด</p>
+    </section>
+
+    <section class="fk-block" aria-labelledby="resH">
+      <h2 id="resH" data-i18n="lucky.resH">สีชุดของคุณ</h2>
+      <ul class="lc-sw" id="swatches"></ul>
+      <div class="lc-match" id="match" aria-live="polite"><p class="fk-small" data-i18n="lucky.waiting">ยังไม่ได้ส่อง — เปิดกล้องแล้วผลจะขึ้นที่นี่</p></div>
+      <p class="fk-small lc-remind" data-i18n="lucky.remind">สีเสื้อเป็นเพียงกำลังใจตามความเชื่อ ทุกสีใส่ได้ ใส่สีที่ชอบแล้วมั่นใจ วันนี้ก็เป็นวันที่ดีได้ด้วยตัวเราเอง</p>
+    </section>
+  </div>
+
+  <section class="fk-block" aria-labelledby="weekH">
+    <h2 id="weekH" data-i18n="lucky.weekH">ตารางสีเสื้อมงคลทั้งสัปดาห์</h2>
+    <div class="lc-week-wrap"><table class="lc-week" id="week"></table></div>
+  </section>
+
+  <div class="fk-foot">
+    <section class="fk-block">
+      <h3 data-i18n="lucky.privH">ความเป็นส่วนตัว</h3>
+      <p class="fk-small" data-i18n="lucky.priv">ภาพกล้องอยู่ในหน่วยความจำของเบราว์เซอร์ระหว่างส่องเท่านั้น ไม่บันทึกเป็นไฟล์ ไม่ส่งขึ้นเซิร์ฟเวอร์ ไม่เก็บใบหน้าหรือข้อมูลชีวภาพ
+        เครื่องจำไว้เพียงเรื่องที่เลือก (เช่น การงาน) และวันที่เลือก เพื่อเปิดครั้งหน้าได้สะดวก ลบได้ด้วยปุ่มด้านล่าง</p>
+      <p class="fk-small"><a href="camera-notice.html" data-i18n="lucky.noticeLink">ใช้ที่บูธหรือในร้าน: พิมพ์ป้ายแจ้งการใช้กล้อง (ป้าย D)</a> · <a href="privacy.html#p4-r14" data-i18n="lucky.privLink">ประกาศความเป็นส่วนตัว</a></p>
+      <div class="lc-actions"><button class="btn ghost" id="clearPrefs" type="button" data-i18n="lucky.clear">ลบค่าที่จำไว้</button></div>
+      <p class="hint" id="clearMsg" role="status"></p>
+    </section>
+    <section class="fk-block">
+      <h3 data-i18n="lucky.srcH">ที่มาของสี</h3>
+      <p class="fk-small" data-i18n="lucky.src">ใช้หลักทักษาจร: ดาวของวันเริ่มที่ภูมิบริวาร แล้วนับเวียนตามวงทักษา (อาทิตย์ จันทร์ อังคาร พุธ เสาร์ พฤหัสบดี ราหู ศุกร์)
+        สีประจำดาว: อาทิตย์แดง จันทร์เหลือง/ครีม อังคารชมพู พุธเขียว พฤหัสบดีส้ม ศุกร์ฟ้า/น้ำเงิน เสาร์ม่วง/ดำ ราหูเทา ตำราแต่ละสำนักอาจต่างกันเล็กน้อย</p>
+      <p class="fk-small" data-i18n="lucky.principle">หลักการ: บอกเฉพาะด้านที่ส่งเสริม ไม่ทำนายเรื่องร้าย ไม่อ่านอารมณ์ ไม่ประเมินรูปร่างหน้าตา และไม่มีการขายของแก้ดวง</p>
+    </section>
+  </div>
+</main>
+
+<script src="lensiq-camera.js?v=4"></script>
+<script src="vendor/ort/ort.wasm.min.js"></script>
+<script src="photobooth-hq.js?v=7"></script>
+<script src="lensiq-luckycolor.js?v=1"></script>
+<script src="luckycolor.js?v=1"></script>
+</body>
+</html>

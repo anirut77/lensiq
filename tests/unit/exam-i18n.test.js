@@ -17,7 +17,7 @@ const ph = s => (String(s).match(/\{\w+\}/g) || []).sort().join(",");
 
 function usedKeys() {
   const out = new Map();
-  for (const f of ["exam-lab.js", "exam-hall.js", "exam-dashboard.js", "exam-ui.js"]) {
+  for (const f of ["exam-lab.js", "exam-hall.js", "exam-dashboard.js", "exam-ui.js", "exam-clip-ui.js"]) {
     const s = read(f);
     for (const m of s.matchAll(/T\(\s*"(exam\.[^"]+)",\s*"((?:[^"\\]|\\.)*)"/g)) out.set(m[1], m[2]);
     for (const m of s.matchAll(/\[\s*"(exam\.[^"]+)",\s*"((?:[^"\\]|\\.)*)"\s*\]/g)) out.set(m[1], m[2]);

@@ -8,12 +8,12 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
 <title data-i18n="exam.l.title">LENSIQ Exam ช่วยผู้คุมสอบ | LENSIQ</title>
 <meta name="description" content="LENSIQ Exam ช่วยผู้คุมสอบรู้ว่าควรไปดูที่นั่งไหน ระบบไม่ตัดสินการทุจริต ประมวลผลภาพในเครื่อง" data-i18n-attr="content:exam.l.desc">
-<link rel="stylesheet" href="styles.css?v=10">
+<link rel="stylesheet" href="styles.css?v=11">
 <link rel="stylesheet" href="exam.css?v=1">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=13"></script>
+<script src="nav.js?v=14"></script>
 <script src="i18n/zh-exam.js?v=1"></script>
 
 <main class="ex" id="main">
@@ -144,6 +144,7 @@
       <h3 data-i18n="exam.l.nT">ประกาศการใช้กล้องช่วยผู้คุมสอบ</h3>
       <p data-i18n="exam.l.n1">การสอบนี้ใช้กล้องช่วยผู้คุมสอบ ระบบสังเกตสิ่งที่เห็นได้ เช่น ไม่เห็นใบหน้า มีหลายคนในภาพ หรือมีโทรศัพท์ แล้วแจ้งให้ผู้คุมสอบไปดู ระบบไม่ตัดสินว่ามีการทุจริต และไม่จดจำว่าใครเป็นใคร</p>
       <p data-i18n="exam.l.n2">ภาพประมวลผลในเครื่องเท่านั้น ไม่บันทึกและไม่ส่งออก สิ่งที่เก็บคือบันทึกเหตุการณ์ (เวลา ที่นั่ง ประเภท ผลการตรวจ) เพื่อให้คณะกรรมการสอบตรวจสอบ เก็บไม่เกิน 90 วันหรือตามระเบียบของสถาบัน</p>
+      <p data-i18n="exam.l.n5">(ใช้ข้อนี้เฉพาะเมื่อสถาบันเปิดคลิปหลักฐาน มิฉะนั้นขีดฆ่าออก) ข้อยกเว้น: ระหว่างสอบ เครื่องเก็บวิดีโอ 10 วินาทีล่าสุดไว้ในหน่วยความจำเท่านั้น ไม่มีเสียง เมื่อมีสัญญาณให้ผู้คุมสอบไปดู คลิปช่วงนั้นอาจถูกเก็บไว้ในเครื่องนี้ (ผู้คุมสอบกดเก็บ หรือเก็บอัตโนมัติถ้าสถาบันตั้งไว้) เข้ารหัส ไม่ส่งออกจากเครื่อง เปิดดูได้เฉพาะผู้คุมสอบที่มีรหัส PIN และลบอัตโนมัติภายใน ____ วัน (1, 7, 14, 30 หรือ 90 วัน) คลิปช่วยผู้คุมสอบตรวจสอบเท่านั้น ไม่ใช่คำตัดสิน</p>
       <p data-i18n="exam.l.n3">ผู้เข้าสอบขอดูบันทึกของตนเอง ขอทางเลือกอื่น หรือร้องเรียนได้ที่เจ้าหน้าที่คุ้มครองข้อมูลส่วนบุคคลของสถาบัน</p>
       <p data-i18n="exam.l.n4">ข้าพเจ้าได้อ่านประกาศนี้แล้ว และยินยอมให้ใช้กล้องช่วยผู้คุมสอบตามที่ระบุ ลงชื่อ ____________ วันที่ ________</p>
     </div>
@@ -151,6 +152,8 @@
   </section>
 </main>
 
+<script src="lensiq-facevault.js?v=1"></script>
+<script src="lensiq-exam-clip.js?v=2"></script>
 <script src="exam-landing.js?v=1"></script>
 <script src="lensiq-config.js?v=4"></script>
 </body>

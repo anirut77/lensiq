@@ -10,13 +10,13 @@
 <meta name="description"
   data-i18n-attr="content:sl.doc.desc"
   content="งานที่ LENSIQ ทำได้ในแต่ละอุตสาหกรรม: การศึกษา องค์กร ค้าปลีก ร้านอาหาร โรงงาน ลานจอด สุขภาพ ฟิตเนส เกษตร อีเวนต์ และภาครัฐ พร้อมสถานะและหมายเหตุความเป็นส่วนตัว">
-<link rel="stylesheet" href="styles.css?v=10">
+<link rel="stylesheet" href="styles.css?v=11">
 <link rel="stylesheet" href="products.css?v=2">
 <link rel="stylesheet" href="solutions.css?v=1">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
-<script src="nav.js?v=13"></script>
+<script src="nav.js?v=14"></script>
 <script src="i18n/zh-solutions.js?v=1"></script>
 <main class="pd sl" id="main">
   <section class="pd-hero" aria-labelledby="slH">
@@ -107,6 +107,55 @@
         <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
         <a class="sl-go" href="queue.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.queue">แจ้งเตือนคิวยาว</span> <span aria-hidden="true">→</span></a>
       </article>
+      <!-- round 14: new pages + RESEARCH-E ideas (status now / pilot = page exists; soon = later, with what is missing) -->
+      <article class="sl-card" data-status="pilot" id="sol-edu6">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🧾</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">นำร่อง</span></div>
+        <h3 data-i18n="sl.c.edu6.h">ตรวจกระดาษคำตอบด้วยกล้องมือถือ</h3>
+        <p data-i18n="sl.c.edu6.p">พิมพ์กระดาษคำตอบที่มีมุมอ้างอิง ถ่ายด้วยมือถือ ระบบอ่านช่องที่ฝน ให้คะแนนตามเฉลย วิเคราะห์รายข้อ และส่งออก CSV ไม่ใช้ AI ไม่ใช้ใบหน้า ครูตรวจทานข้อที่อ่านไม่ชัดเอง</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.edu6.w">ครู โรงเรียน สถาบันกวดวิชา</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.omr">ชื่อและคะแนนนักเรียนเก็บในเครื่องนี้เท่านั้น ไม่เก็บภาพกระดาษคำตอบ ไม่ใช้ใบหน้า</span></p>
+        <a class="sl-go" href="omr.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.omr">ตรวจกระดาษคำตอบ</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-edu7">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🚌</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.edu7.h">นับจำนวนนักเรียนขึ้นรถหรือไปทัศนศึกษา</h3>
+        <p data-i18n="sl.c.edu7.p">นับคนที่เดินผ่านเส้นที่ประตูรถหรือทางเข้า แล้วให้ครูเทียบกับจำนวนตามรายชื่อ นับจำนวนเท่านั้น ไม่ระบุว่าใครเป็นใคร</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.edu7.w">ครูประจำชั้น ผู้จัดทัศนศึกษา โรงเรียนที่มีรถรับส่ง</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <a class="sl-go" href="crowd.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.crowd">นับคนและความหนาแน่น</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-edu8">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🗳️</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.edu8.h">โพลในห้องเรียนด้วยการ์ดกระดาษ</h3>
+        <p data-i18n="sl.c.edu8.p">นักเรียนชูการ์ดที่พิมพ์ไว้แล้วหมุนให้เป็น ก ข ค หรือ ง ครูใช้มือถือกวาดทั้งห้องครั้งเดียว ได้กราฟคำตอบทันที นับคำตอบ ไม่ดูใบหน้า</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.edu8.w">ครูทุกระดับชั้น</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.cards">อ่านเฉพาะการ์ด ไม่ดูใบหน้า การจับคู่เลขการ์ดกับนักเรียนอยู่ในเครื่องครูเท่านั้น</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.edu8.y">ตัวอ่านมาร์กเกอร์บนการ์ด (js-aruco, MIT) และการทดสอบในห้องเรียนจริง</span></p>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-edu9">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">📄</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.edu9.h">สแกนการบ้านและเอกสารเป็น PDF</h3>
+        <p data-i18n="sl.c.edu9.p">หาขอบกระดาษ ปรับมุมให้ตรง เพิ่มความคมชัด แล้วรวมหลายหน้าเป็น PDF ในเบราว์เซอร์</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.edu9.w">ครูและนักเรียน</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.page">ประมวลผลในเบราว์เซอร์ ดูรายละเอียดการเก็บข้อมูลในหน้านั้นและในประกาศความเป็นส่วนตัว</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.edu9.y">ขั้นตอนหาขอบกระดาษและสร้าง PDF ในเบราว์เซอร์ ยังไม่ได้สร้าง</span></p>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-edu10">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">📚</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.edu10.h">ยืม-คืนหนังสือห้องสมุดด้วยบาร์โค้ด</h3>
+        <p data-i18n="sl.c.edu10.p">สแกนบาร์โค้ดหนังสือและ QR ของนักเรียนด้วยกล้อง บันทึกการยืม-คืน และส่งออกรายการ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.edu10.w">ห้องสมุดโรงเรียนและชุมชน</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.page">ประมวลผลในเบราว์เซอร์ ดูรายละเอียดการเก็บข้อมูลในหน้านั้นและในประกาศความเป็นส่วนตัว</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.edu10.y">ตัวอ่านบาร์โค้ดสำรองสำหรับ iPhone (zxing-js, Apache-2.0) และหน้าบันทึกการยืม-คืน</span></p>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-edu11">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🥽</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.edu11.h">ตรวจแว่นนิรภัยในห้องปฏิบัติการ</h3>
+        <p data-i18n="sl.c.edu11.p">เตือนครูเมื่อเห็นนักเรียนในโซนทดลองโดยไม่สวมแว่นนิรภัย ให้ครูไปตรวจดู</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.edu11.w">ห้องวิทยาศาสตร์ของโรงเรียน</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.minor">ผู้เยาว์: ต้องได้ความยินยอมจากผู้ปกครองก่อน และมีทางเลือก QR สำหรับผู้ไม่ใช้ใบหน้า</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.edu11.y">ตัวตรวจจับเฉพาะ (YOLOX, Apache-2.0) ที่ฝึกด้วยภาพที่ใช้เชิงพาณิชย์ได้ และความยินยอมของผู้ปกครอง</span></p>
+      </article>
       </div>
       <p class="sl-none" hidden data-i18n="sl.empty">ไม่มีรายการในสถานะนี้</p>
     </section>
@@ -146,6 +195,15 @@
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.hr4.w">สำนักงานและโคเวิร์กกิ้งสเปซ</span></p>
         <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
         <a class="sl-go" href="tables.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.tables">โต๊ะว่างและรอบการนั่ง</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <!-- round 14: new pages + RESEARCH-E ideas (status now / pilot = page exists; soon = later, with what is missing) -->
+      <article class="sl-card" data-status="now" id="sol-hr5">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🎞️</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.hr5.h">ทบทวนเคสจากคลิปวิดีโอ</h3>
+        <p data-i18n="sl.c.hr5.p">เปิดคลิปจากเครื่อง ติดแท็กตามเวลา จดบันทึก ระบุชื่อผู้ตรวจทุกขั้น เก็บล็อกแบบต่อท้ายที่ตรวจพบการแก้ไขได้ ส่งออก CSV/JSON และพิมพ์สรุปเคส ระบบไม่ตัดสินว่าใครพูดจริงหรือเท็จ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.hr5.w">ฝ่ายบุคคล ฝ่ายกฎหมาย ผู้ตรวจสอบภายใน</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.case">คลิปอยู่ในเครื่องและเก็บเฉพาะเมื่อเลือกเก็บแบบเข้ารหัส ล็อกเก็บเป็นข้อความในเครื่อง ไม่มี AI ไม่วิเคราะห์ใบหน้าหรือเสียง</span></p>
+        <a class="sl-go" href="case-review.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.case">ทบทวนเคส</span> <span aria-hidden="true">→</span></a>
       </article>
       </div>
       <p class="sl-none" hidden data-i18n="sl.empty">ไม่มีรายการในสถานะนี้</p>
@@ -218,6 +276,63 @@
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r8.w">เจ้าของร้านหลายสาขา</span></p>
         <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.page">ประมวลผลในเบราว์เซอร์ ดูรายละเอียดการเก็บข้อมูลในหน้านั้นและในประกาศความเป็นส่วนตัว</span></p>
         <a class="sl-go" href="insights.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.insights">แดชบอร์ดรวม</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <!-- round 14: new pages + RESEARCH-E ideas (status now / pilot = page exists; soon = later, with what is missing) -->
+      <article class="sl-card" data-status="now" id="sol-r9">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🪟</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.r9.h">นับคนและความหนาแน่น พร้อมกรวยหน้าร้าน</h3>
+        <p data-i18n="sl.c.r9.p">คนในโซน ฮีตแมปความหนาแน่น ช่วงพีค เส้นนับเข้า-ออก เวลาอยู่ในโซน และกรวยหน้าร้าน (คนเดินผ่าน → หยุดดู → เข้าร้าน) ใส่ยอดซื้อเองเพื่อดูอัตราการซื้อ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r9.w">ร้านริมถนน ร้านในห้าง แบรนด์ที่ทดสอบหน้าร้าน</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <a class="sl-go" href="crowd.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.crowd">นับคนและความหนาแน่น</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-r10">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🛵</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.r10.h">จุดรอไรเดอร์รับอาหาร</h3>
+        <p data-i18n="sl.c.r10.p">นับไรเดอร์ที่รออยู่ในโซนหน้าเคาน์เตอร์ และเตือนพนักงานเมื่อรอมากเกินไป ซึ่งอาจแปลว่าออเดอร์ค้าง ใช้หน้าแจ้งเตือนคิว</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r10.w">ร้านอาหารและคาเฟ่ที่ขายผ่านแอปเดลิเวอรี</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <a class="sl-go" href="queue.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.queue">แจ้งเตือนคิวยาว</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-r11">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">📊</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.r11.h">ทดสอบก่อน-หลังแคมเปญ</h3>
+        <p data-i18n="sl.c.r11.p">เลือกวันที่เปลี่ยนหน้าร้าน โปรโมชัน หรือป้าย แล้วเทียบจำนวนคน อัตราหยุดดู และอัตราการซื้อ 2 สัปดาห์ก่อนและหลัง พร้อมช่วงความเชื่อมั่น</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r11.w">เจ้าของร้านและทีมการตลาด</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.r11.y">หน้าเทียบผลที่ใช้ตัวเลขรายวันจากหน้านับคน (lensiq-stats) ยังไม่ได้สร้าง</span></p>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-r12">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">📦</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.r12.h">นับสต็อกด้วยการสแกนบาร์โค้ด</h3>
+        <p data-i18n="sl.c.r12.p">เดินสแกนบาร์โค้ดตามชั้นวางต่อเนื่อง รวมจำนวนตามรหัสสินค้า และส่งออก CSV</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r12.w">ร้านสะดวกซื้อ มินิมาร์ท คลังสินค้าขนาดเล็ก</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.object">ตรวจชิ้นงานหรือสินค้า ไม่ใช่คน ประมวลผลในเครื่อง</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.r12.y">ตัวอ่านบาร์โค้ดสำรองสำหรับ iPhone (zxing-js, Apache-2.0) และหน้านับสต็อก</span></p>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-r13">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🗄️</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.r13.h">ตรวจชั้นวางว่างจากภาพถ่าย</h3>
+        <p data-i18n="sl.c.r13.p">ถ่ายภาพชั้นวางที่เต็มไว้เป็นต้นแบบ แล้วเทียบภาพครั้งต่อไปตามโซนที่วาด เตือนว่าโซนไหนดูว่างให้พนักงานไปเติมสินค้า</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r13.w">ร้านค้าปลีก ซูเปอร์มาร์เก็ต ทีมขายหน้าร้านของแบรนด์</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.object">ตรวจชิ้นงานหรือสินค้า ไม่ใช่คน ประมวลผลในเครื่อง</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.r13.y">การเทียบภาพกับต้นแบบแบบนำร่อง และต่อไปตัวตรวจจับช่องว่างที่ฝึกด้วยข้อมูลที่ใช้เชิงพาณิชย์ได้</span></p>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-r14">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🗓️</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.r14.h">วางกะพนักงานตามจำนวนลูกค้า</h3>
+        <p data-i18n="sl.c.r14.p">เทียบจำนวนคนเข้าร้านรายชั่วโมงกับตารางกะที่ใส่เอง แล้วเสนอช่วงเวลาที่ควรเพิ่มหรือลดคน</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r14.w">ร้านที่มีพนักงานหลายกะ</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.r14.y">ส่วนเสริมในแดชบอร์ดรวมที่อ่านตารางกะ ยังไม่ได้สร้าง</span></p>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-r15">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🏷️</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.r15.h">อ่านป้ายราคาและวันหมดอายุ</h3>
+        <p data-i18n="sl.c.r15.p">อ่านป้ายราคาหรือวันหมดอายุเพื่อหาราคาที่ไม่ตรงหรือสินค้าใกล้หมดอายุ ให้พนักงานตรวจ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.r15.w">ซูเปอร์มาร์เก็ต ร้านสะดวกซื้อ</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.object">ตรวจชิ้นงานหรือสินค้า ไม่ใช่คน ประมวลผลในเครื่อง</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.r15.y">โมเดลหาตำแหน่งข้อความ (PP-OCR det, Apache-2.0) เพิ่มจากตัวอ่านข้อความที่มีอยู่</span></p>
       </article>
       </div>
       <p class="sl-none" hidden data-i18n="sl.empty">ไม่มีรายการในสถานะนี้</p>
@@ -321,6 +436,15 @@
         <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
         <a class="sl-go" href="afterhours.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.afterhours">พื้นที่หวงห้ามและนอกเวลา</span> <span aria-hidden="true">→</span></a>
       </article>
+      <!-- round 14: new pages + RESEARCH-E ideas (status now / pilot = page exists; soon = later, with what is missing) -->
+      <article class="sl-card" data-status="now" id="sol-p7">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🚿</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.p7.h">ช่องล้างรถและร้านซักผ้าที่ว่าง</h3>
+        <p data-i18n="sl.c.p7.p">วาดช่องล้างรถหรือจุดจอด แล้วดูว่าว่างกี่ช่อง ไม่อ่านป้ายทะเบียน</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.p7.w">คาร์แคร์ ร้านซักผ้าหยอดเหรียญ</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.vehicle">ดูเฉพาะว่ามีรถในช่องหรือไม่ ไม่อ่านป้ายทะเบียน ไม่สนใจคน ไม่บันทึกภาพ</span></p>
+        <a class="sl-go" href="bays.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.bays">นับช่องจอดว่าง</span> <span aria-hidden="true">→</span></a>
+      </article>
       </div>
       <p class="sl-none" hidden data-i18n="sl.empty">ไม่มีรายการในสถานะนี้</p>
     </section>
@@ -360,6 +484,56 @@
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.h4.w">คลินิกและโรงพยาบาล</span></p>
         <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
         <a class="sl-go" href="afterhours.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.afterhours">พื้นที่หวงห้ามและนอกเวลา</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <!-- round 14: new pages + RESEARCH-E ideas (status now / pilot = page exists; soon = later, with what is missing) -->
+      <article class="sl-card" data-status="pilot" id="sol-h5">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">💊</span><span class="sl-tag pilot" data-i18n="sl.st.pilot">นำร่อง</span></div>
+        <h3 data-i18n="sl.c.h5.h">ตรวจข้อมูลยาจากกล่องหรือเม็ดยา</h3>
+        <p data-i18n="sl.c.h5.p">อ่านเลขทะเบียน อย. บาร์โค้ด หรือชื่อยา แสดงข้อความฉลากตามต้นฉบับพร้อมแหล่งที่มา และแสดงเม็ดยาที่ลักษณะใกล้เคียงหลายรายการ ไม่ใช่คำแนะนำทางการแพทย์ ยืนยันกับเภสัชกรทุกครั้ง</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.h5.w">ร้านยา ผู้ดูแลผู้สูงอายุ ครอบครัว</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.med">ภาพอยู่ในเครื่อง การค้นออนไลน์ต้องเปิดเองและส่งเฉพาะข้อความ (เลขทะเบียนหรือชื่อยา) ไม่ส่งภาพ</span></p>
+        <a class="sl-go" href="medicine.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.medicine">ตรวจข้อมูลยา</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-h6">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🪑</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.h6.h">ที่นั่งว่างในห้องรอ</h3>
+        <p data-i18n="sl.c.h6.p">ใช้หน้าโต๊ะว่าง วาดโซนรอบเก้าอี้ในห้องรอเพื่อดูว่าเหลือที่นั่งว่างกี่ที่</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.h6.w">คลินิก โรงพยาบาล สำนักงานบริการ</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <a class="sl-go" href="tables.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.tables">โต๊ะว่างและรอบการนั่ง</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-h7">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🔢</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.h7.h">นับเม็ดยาบนถาด</h3>
+        <p data-i18n="sl.c.h7.p">วางเม็ดยาบนถาดสีตัดกัน ระบบนับและติดหมายเลขบนภาพ เภสัชกรแตะแก้ได้ ช่วยนับเท่านั้น ไม่แทนการตรวจสอบ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.h7.w">ร้านยา ห้องยาโรงพยาบาล</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.object">ตรวจชิ้นงานหรือสินค้า ไม่ใช่คน ประมวลผลในเครื่อง</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.h7.y">วิธีแยกเม็ดยาที่ติดกัน และการวัดความแม่นยำกับถาดจริงก่อนใช้งาน</span></p>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-h8">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🧼</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.h8.h">จับเวลาล้างมือ</h3>
+        <p data-i18n="sl.c.h8.p">เมื่อเห็นมือที่อ่างล้างมือ เริ่มจับเวลา 20–40 วินาทีพร้อมภาพขั้นตอนการล้างมือ เป็นสื่อฝึก ไม่ให้คะแนนพนักงานรายคน</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.h8.w">คลินิก โรงพยาบาล ครัวร้านอาหาร</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.staff">กล้องที่ดูพนักงานขณะทำงาน: แจ้งล่วงหน้าและให้ลงนามรับทราบ
+          ประมวลผลในเครื่อง ไม่บันทึกภาพ</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.h8.y">โมเดลตรวจจับมือ (MediaPipe, Apache-2.0) ในหน้าใหม่ และภาพขั้นตอนที่มีสิทธิ์ใช้</span></p>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-h9">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🪪</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.h9.h">อ่านบัตรประชาชนเพื่อลงทะเบียน</h3>
+        <p data-i18n="sl.c.h9.p">ถ่ายบัตรประชาชนเพื่อกรอกชื่อ เลขบัตร และวันเกิดในแบบฟอร์มลงทะเบียนคลินิก ไม่เก็บภาพบัตร</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.h9.w">คลินิกและหน่วยบริการ</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.idcard">เลขบัตรและรูปเป็นข้อมูลเสี่ยงสูง ประมวลผลในเครื่อง ไม่เก็บภาพ ปิดรหัสหลังบัตร และใช้ตามวัตถุประสงค์เท่านั้น</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.h9.y">โมเดลหาตำแหน่งข้อความและการตัดกรอบบัตร พร้อมการประเมินผลกระทบด้านข้อมูลส่วนบุคคล</span></p>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-h10">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🔊</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.h10.h">อ่านฉลากยาออกเสียง</h3>
+        <p data-i18n="sl.c.h10.p">อ่านข้อความบนฉลากยาแล้วอ่านออกเสียงให้ผู้สูงอายุฟัง เป็นเครื่องมือช่วยการเข้าถึง ไม่ใช่คำแนะนำทางการแพทย์</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.h10.w">ผู้สูงอายุ ผู้มีปัญหาด้านสายตา ผู้ดูแล</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.page">ประมวลผลในเบราว์เซอร์ ดูรายละเอียดการเก็บข้อมูลในหน้านั้นและในประกาศความเป็นส่วนตัว</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.h10.y">โมเดลหาตำแหน่งข้อความ (PP-OCR det, Apache-2.0) และการทดสอบกับฉลากยาไทยจริง</span></p>
       </article>
       </div>
       <p class="sl-none" hidden data-i18n="sl.empty">ไม่มีรายการในสถานะนี้</p>
@@ -479,6 +653,79 @@
         <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e5.w">สวนสนุก พิพิธภัณฑ์ แหล่งท่องเที่ยว</span></p>
         <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
         <a class="sl-go" href="queue.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.queue">แจ้งเตือนคิวยาว</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <!-- round 14: new pages + RESEARCH-E ideas (status now / pilot = page exists; soon = later, with what is missing) -->
+      <article class="sl-card" data-status="now" id="sol-e6">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">⛩️</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.e6.h">นับผู้มาเที่ยวงานวัดและเทศกาล</h3>
+        <p data-i18n="sl.c.e6.p">วางเส้นนับที่ทางเข้า ดูจำนวนคนเข้า-ออกรายชั่วโมงและช่วงพีค เพื่อจัดเจ้าหน้าที่และเต็นท์บริการ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e6.w">วัด ผู้จัดงานเทศกาล ชุมชน</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <a class="sl-go" href="crowd.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.crowd">นับคนและความหนาแน่น</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-e7">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🍳</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.e7.h">ห้องอาหารเช้าโรงแรมคนเยอะไหม</h3>
+        <p data-i18n="sl.c.e7.p">ใช้หน้าโต๊ะว่าง แสดงโต๊ะว่างในห้องอาหารเช้า เพื่อให้แขกรู้ว่าตอนนี้คนเยอะหรือไม่</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e7.w">โรงแรม รีสอร์ท</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <a class="sl-go" href="tables.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.tables">โต๊ะว่างและรอบการนั่ง</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-e8">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">📅</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.e8.h">วางแผนฤกษ์มงคล</h3>
+        <p data-i18n="sl.c.e8.p">เลือกงาน (ขึ้นบ้านใหม่ เปิดร้าน เริ่มงาน) และเดือน ระบบแสดงเฉพาะวันดีตามวันเกิดของเจ้าของงาน จากตำราไทยและจีน เพื่อความบันเทิงและวัฒนธรรม ตำราต่างกันได้ ควรปรึกษาผู้รู้ที่ไว้ใจ</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e8.w">บูธงานแต่งงานและงานบ้าน ร้านค้า ผู้สนใจโหราศาสตร์</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.fortune">วันเกิดคำนวณในเครื่องและไม่ถูกเก็บ</span></p>
+        <a class="sl-go" href="planner.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.planner">วางแผนฤกษ์มงคล</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="now" id="sol-e9">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">👕</span><span class="sl-tag now" data-i18n="sl.st.now">ใช้ได้แล้ว</span></div>
+        <h3 data-i18n="sl.c.e9.h">กระจกส่องสีเสื้อมงคล</h3>
+        <p data-i18n="sl.c.e9.p">ส่องกล้องดูสีเสื้อที่ใส่ เทียบกับสีมงคลประจำวันและสีวันเกิด แล้วแนะนำเครื่องประดับ ไม่วิเคราะห์ใบหน้า เพื่อความบันเทิง</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e9.w">บูธงานอีเวนต์ ร้านเสื้อผ้า ห้างสรรพสินค้า</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.lucky">ใช้กล้องหาตำแหน่งตัวและเสื้อเท่านั้น ไม่ระบุตัวตน ภาพไม่ออกจากเครื่อง</span></p>
+        <a class="sl-go" href="luckycolor.html"><span data-i18n="sl.uses">ใช้หน้า</span> <span data-i18n="sl.pg.lucky">กระจกสีเสื้อมงคล</span> <span aria-hidden="true">→</span></a>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-e10">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🛋️</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.e10.h">ตรวจการจัดเฟอร์นิเจอร์ตามฮวงจุ้ยจากภาพห้อง</h3>
+        <p data-i18n="sl.c.e10.p">หาเตียง โซฟา เตา อ่างล้างจาน และต้นไม้ในภาพห้อง รวมกับทิศจากเข็มทิศ แล้วให้คำแนะนำการจัดวางด้วยถ้อยคำกลาง ๆ ไม่ใช้คำขู่</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e10.w">ผู้สนใจฮวงจุ้ย ร้านเฟอร์นิเจอร์ โครงการบ้าน</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.page">ประมวลผลในเบราว์เซอร์ ดูรายละเอียดการเก็บข้อมูลในหน้านั้นและในประกาศความเป็นส่วนตัว</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.e10.y">ตัวตรวจจับวัตถุในหน้าฮวงจุ้ย (COCO-SSD) และตัวกรองถ้อยคำที่ทำให้กลัว</span></p>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-e11">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🏠</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.e11.h">แผนขึ้นบ้านใหม่แบบพิมพ์ได้</h3>
+        <p data-i18n="sl.c.e11.p">รวมวันดีจากหน้าวางแผนฤกษ์ ทิศประตูหน้าบ้านจากหน้าฮวงจุ้ย ข้อควรรู้เรื่องศาลพระภูมิ (แต่ละตำราต่างกัน) และรายการเตรียมงาน เป็นแผนพิมพ์ได้ฉบับเดียว</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e11.w">ผู้ซื้อบ้านใหม่ โครงการบ้านและคอนโด</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.fortune">วันเกิดคำนวณในเครื่องและไม่ถูกเก็บ</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.e11.y">หน้ารวมที่ดึงข้อมูลจากหน้าวางแผนฤกษ์และหน้าฮวงจุ้ย ยังไม่ได้สร้าง</span></p>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-e12">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🔟</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.e12.h">เลขมงคลจากกล้อง</h3>
+        <p data-i18n="sl.c.e12.p">ส่องกล้องที่เลขที่บ้าน ป้ายทะเบียน หรือป้ายร้าน อ่านตัวเลขแล้วเปิดคำทำนายในหน้าเลขมงคล ไม่ให้เลขเสี่ยงโชค</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e12.w">บูธงานอีเวนต์ ผู้สนใจเลขศาสตร์</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.numcam">ทะเบียนรถและเบอร์โทรเป็นข้อมูลส่วนบุคคล อ่านในเครื่องและไม่เก็บ</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.e12.y">เชื่อมตัวอ่านป้ายทะเบียน (lensiq-plate.js) เข้ากับหน้าเลขมงคล</span></p>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-e13">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">🃏</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.e13.h">จดจำไพ่ทาโรต์จริงด้วยกล้อง</h3>
+        <p data-i18n="sl.c.e13.p">ผู้ใช้สับไพ่จริงแล้วชูไพ่ที่จั่ว กล้องรู้ว่าเป็นไพ่ใบไหนแล้วเปิดคำทำนาย</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e13.w">บูธดูดวง ร้านไพ่</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.object">ตรวจชิ้นงานหรือสินค้า ไม่ใช่คน ประมวลผลในเครื่อง</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.e13.y">ตัวจำแนกไพ่ที่ต้องฝึกเอง หรือการเทียบกับภาพไพ่ที่มีสิทธิ์ใช้</span></p>
+      </article>
+      <article class="sl-card" data-status="soon" id="sol-e14">
+        <div class="sl-top"><span class="sl-ic" aria-hidden="true">👥</span><span class="sl-tag soon" data-i18n="sl.st.soon">กำลังพัฒนา</span></div>
+        <h3 data-i18n="sl.c.e14.h">ประมาณจำนวนคนในฝูงชนหนาแน่น</h3>
+        <p data-i18n="sl.c.e14.p">ประมาณจำนวนคนจากแผนที่ความหนาแน่น เมื่อคนยืนเบียดกันจนนับทีละกรอบไม่ได้ เช่น คอนเสิร์ตและงานเทศกาล</p>
+        <p class="sl-meta"><b data-i18n="sl.who">เหมาะกับ</b> <span data-i18n="sl.c.e14.w">ผู้จัดคอนเสิร์ตและเทศกาล</span></p>
+        <p class="sl-meta sl-pv"><b data-i18n="sl.priv">ความเป็นส่วนตัว</b> <span data-i18n="pv.anon">นับกรอบตัวคนแบบไม่ระบุตัวตน ไม่จดจำใบหน้า ไม่บันทึกภาพ เก็บเฉพาะตัวเลขในเครื่อง</span></p>
+        <p class="sl-meta sl-why"><b data-i18n="sl.why">ยังขาด</b> <span data-i18n="sl.c.e14.y">โมเดลประมาณความหนาแน่นที่น้ำหนักโมเดลใช้เชิงพาณิชย์ได้ (โมเดลที่พบส่วนใหญ่ฝึกด้วยชุดข้อมูลเพื่อการวิจัยเท่านั้น)</span></p>
       </article>
       </div>
       <p class="sl-none" hidden data-i18n="sl.empty">ไม่มีรายการในสถานะนี้</p>

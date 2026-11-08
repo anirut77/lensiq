@@ -5,6 +5,9 @@
  * Only JSON events + a heartbeat go to the dashboard (exam-link.js). No frame is stored or sent.
  * Test seams (localhost + ?fakedet): no model; window.__LQ_FAKE_DET("exam-hall") -> [{x,y,w,h,score, cls?:"phone"}];
  * window.__LQ_FAKE_Q overrides the lighting verdict; window.__LQ_EXAM_HALL = state.
+ * Evidence clip (opt-in per exam, default OFF; ?clip=1&clipauto=1&clipdays=N or the setup form): while monitoring, the last
+ * 10 s of video (no audio) stay in memory; a Watch / Check flag copies them to a pending slot that is encrypted to this
+ * device only on "keep clip" (dashboard, or the button next to the event here) or auto-keep. Never uploaded.
  */
 /* global LQCam, LQDetect, LQSite */
 (function () {
@@ -23,6 +26,16 @@
   let profiles = {}, lastQ = { ok: true, code: "ok", score: 0 }, qAt = 0;
   const recent = [], sent = [];
   const setupGate = E.createGate({ k: 3, n: 5, stages: [{ ms: 5000, lvl: "setup" }], cooldownMs: 60000 });
+  let evSeq = 0;
+  const evTag = L.newNodeId().slice(0, 4);
+  const Clip = W.LQExamClip;
+  let clipCfg = Clip.cfgFromParams(P, null);
+  const clipSt = {};
+  const clips = W.LQExamClipUI.create({
+    send: m => link && link.send(m), ctx: () => ({ room, node: nodeId, src: "hall" }),
+    listEl: $("#clipList"), statusEl: $("#clipStatus"),
+    onState: (id, st) => { clipSt[id] = st; renderRecent(); if (st === "kept" || st === "auto") $("#clipBox").hidden = false; }
+  });
 
   let lastEngine = null; // re-rendered on every language switch (status text is written by JS, not data-i18n)
   function engine(text, kind) {
@@ -119,7 +132,7 @@
         onChange: (c, ev) => {
           if (ev.type === "started") loadSeats();
           else if (ev.type === "ended") engine(() => T("exam.hall.camLost", "สัญญาณกล้องหลุด — กำลังลองเชื่อมต่อใหม่"), "warn");
-          else if (ev.type === "reconnected") engine(() => T("exam.hall.camBack", "กล้องกลับมาแล้ว"), "ok");
+          else if (ev.type === "reconnected") { engine(() => T("exam.hall.camBack", "กล้องกลับมาแล้ว"), "ok"); if (monitoring && clipCfg.on) clips.arm(video.srcObject); }
         }
       });
       const [, b] = await Promise.all([cam.start(), TEST ? Promise.resolve("test") : LQDetect.tfBackend().then(async bk => { if (!coco) coco = await LQDetect.loadCoco("vendor/models/cocossd/model.json"); return bk; })]);
@@ -176,13 +189,14 @@
 
   /* ---------- events ---------- */
   function send(ev) {
-    const msg = { v: 1, type: "ev", room, node: nodeId, src: "hall", seat: ev.seat || "", sig: ev.sig, lvl: ev.lvl, t: Math.round(ev.t) };
+    const msg = { v: 1, type: "ev", room, node: nodeId, src: "hall", seat: ev.seat || "", sig: ev.sig, lvl: ev.lvl, t: Math.round(ev.t), id: "e" + (++evSeq).toString(36) + "-" + evTag };
     for (const k of ["dur", "n"]) if (Number.isFinite(ev[k])) msg[k] = ev[k];
     if (ev.code) msg.code = ev.code;
     if (link && link.send(msg)) sent.push(msg);
     if (msg.seat && msg.lvl !== "info" && msg.lvl !== "setup") seatFlag[msg.seat] = msg.lvl;
     if (msg.sig === "back" && msg.seat) delete seatFlag[msg.seat];
     recent.push(msg); while (recent.length > 100) recent.shift();
+    if (clipCfg.on && monitoring) clips.onFlag(msg);
     while (sent.length > 5000) sent.shift();
     renderRecent();
   }
@@ -190,7 +204,9 @@
     const ul = $("#recent");
     if (!recent.length) { ul.innerHTML = `<li class="empty">${U.esc(T("exam.hall.none", "ยังไม่มีเหตุการณ์"))}</li>`; return; }
     ul.innerHTML = recent.slice().reverse().slice(0, 40).map(e => `<li><time>${U.esc(U.time(e.t))}</time><span class="pill lv-${U.esc(e.lvl)}">${U.esc(U.lvl(e.lvl))}</span>` +
-      `<span>${e.seat ? U.esc(T("exam.c.seatN", "ที่นั่ง {s}", { s: e.seat })) + " · " : ""}${U.esc(U.reason(Object.assign({ cnt: e.n }, e)))}</span></li>`).join("");
+      `<span>${e.seat ? U.esc(T("exam.c.seatN", "ที่นั่ง {s}", { s: e.seat })) + " · " : ""}${U.esc(U.reason(Object.assign({ cnt: e.n }, e)))}</span>` +
+      (clipSt[e.id] ? `<span class="clip-tag">${U.esc(W.LQExamClipUI.stateText(clipSt[e.id]))}</span>` : "") +
+      (clipSt[e.id] === "pending" ? `<button class="btn ghost" type="button" data-keep="${U.esc(e.id)}" aria-label="${U.esc(T("exam.clip.keep", "เก็บคลิป") + " · " + U.time(e.t) + (e.seat ? " · " + T("exam.c.seatN", "ที่นั่ง {s}", { s: e.seat }) : "") + " · " + U.sig(e.sig))}">${U.esc(T("exam.clip.keep", "เก็บคลิป"))}</button>` : "") + "</li>").join("");
   }
   function status() {
     const st = mon ? mon.state() : null, occ = st ? Object.values(st.seats).filter(s => s.occupied).length : 0;
@@ -207,13 +223,15 @@
   }
   function heartbeat() {
     if (!link) return;
-    link.send({ v: 1, type: "hb", room, node: nodeId, src: "hall", name: String($("#nodeName").value || "").slice(0, 40), seats: seats.map(s => s.id), t: Date.now(), fps: Math.round(fpsEma * 10) / 10, q: lastQ.score || 0, pos: $("#pos").value, walk });
+    link.send({ v: 1, type: "hb", room, node: nodeId, src: "hall", name: String($("#nodeName").value || "").slice(0, 40), seats: seats.map(s => s.id), t: Date.now(),
+      fps: Math.round(fpsEma * 10) / 10, q: lastQ.score || 0, pos: $("#pos").value, walk, clip: clips.armed });
   }
   function rebuild() {
     mon = E.createHallMonitor(seats, { minLeaveMin: Math.max(0, +$("#minLeave").value || 0), profiles });
   }
   function onMessage(m) {
-    if (m.type === "prof") { profiles = m.profiles || {}; if (monitoring) rebuild(); }
+    if (m.type === "keep") clips.onMessage(m);
+    else if (m.type === "prof") { profiles = m.profiles || {}; if (monitoring) rebuild(); }
     else if (m.type === "mute" && mon) { mon.mute(Date.now(), m.ms); status(); }
   }
 
@@ -221,6 +239,27 @@
   const saved = U.store.get(K.hall, null);
   if (saved) { $("#room").value = saved.room || ""; $("#nodeName").value = saved.name || ""; if (saved.pos) $("#pos").value = saved.pos; if (saved.minLeave != null) $("#minLeave").value = saved.minLeave; }
   if (P.get("room")) $("#room").value = U.cleanRoom(P.get("room"));
+  /* evidence clip setting: changeable while not monitoring; the room notice must say so when it is on */
+  function clipUI() {
+    $("#clipOn").checked = clipCfg.on; $("#clipAuto").checked = clipCfg.auto; $("#clipDays").value = String(clipCfg.days);
+    $("#clipAuto").disabled = !clipCfg.on || monitoring;
+    $("#clipOn").disabled = $("#clipDays").disabled = monitoring;
+    $("#clipWarn").hidden = !clipCfg.on;
+    $("#lead").hidden = clipCfg.on; $("#leadC").hidden = !clipCfg.on;
+    $("#clipBox").hidden = !clipCfg.on && !clips.kept.length;
+  }
+  function readClipCfg() {
+    if (monitoring) return;
+    clipCfg = Clip.cleanCfg({ on: $("#clipOn").checked, auto: $("#clipAuto").checked, days: +$("#clipDays").value });
+    clips.setCfg(clipCfg); clipUI();
+  }
+  for (const id of ["#clipOn", "#clipAuto", "#clipDays"]) $(id).addEventListener("change", readClipCfg);
+  clips.setCfg(clipCfg);
+  clips.refresh().then(clipUI);
+  $("#recent").addEventListener("click", e => {
+    const b = /** @type {HTMLElement} */ (e.target).closest("[data-keep]"); if (!b) return;
+    clips.keep(b.getAttribute("data-keep"), "kept");
+  });
   $("#setupForm").addEventListener("submit", e => {
     e.preventDefault();
     room = U.cleanRoom($("#room").value);
@@ -235,7 +274,10 @@
     if (!running) { engine(() => T("exam.hall.camFirst", "เปิดกล้องก่อน"), "warn"); return; }
     if (!monitoring && !seats.length) { engine(() => T("exam.hall.seatsFirst", "วาดหรือสร้างที่นั่งก่อนเริ่มเฝ้าดู"), "warn"); return; }
     monitoring = !monitoring;
-    if (monitoring) { rebuild(); examStart = Date.now(); }
+    clips.lock(); // the kept-clip list is re-locked whenever monitoring starts or stops (invigilator PIN)
+    if (monitoring) { rebuild(); examStart = Date.now(); if (clipCfg.on) clips.arm(video.srcObject); }
+    else clips.disarm(); // ring stops; pending clips stay keepable until their 10-min window ends
+    clipUI();
     runLabel();
     engine(() => (monitoring ? T("exam.hall.on", "กำลังเฝ้าดู — ส่งเฉพาะเหตุการณ์ไปที่แดชบอร์ด") : T("exam.hall.off", "หยุดเฝ้าดูแล้ว")), "ok");
     heartbeat(); status();
@@ -270,6 +312,6 @@
 
   /** @type {any} */ (window).__LQ_EXAM_HALL = {
     get seats() { return seats; }, get mon() { return mon; }, get monitoring() { return monitoring; }, get walk() { return walk; },
-    sent, recent, get link() { return link; }, nodeId, toNorm
+    sent, recent, get link() { return link; }, nodeId, toNorm, clips, clipSt, get clipCfg() { return clipCfg; }
   };
 })();

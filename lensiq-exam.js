@@ -31,7 +31,9 @@
  *   createHallMonitor(seats, cfg?) -> {frame(t, {persons, phones}, {walk, elapsedMin}), mute(t, ms), state()} -> events
  *   cleanMsg(msg) -> {ok, msg}|{ok:false, error}   strict allowlist for everything sent between pages (no images, no names)
  *   createBoard({room}) -> dashboard state: ingest(msg, now), act(id, action, {who, note}, now), verdict(id, right), mute(now, ms),
- *     setProfile(seat, p), levels(now), queue(now), log(), summary(), precision(), csv(labels), spark(seat, now), toJSON(), load(json)
+ *     setProfile(seat, p), levels(now), queue(now), log(), summary(), precision(), csv(labels), spark(seat, now), toJSON(), load(json),
+ *     keepClip(id, who, now) -> keep messages · clipsOf(alert) · clipState(alert) -> {st, days, t, n}|null   (opt-in evidence clip:
+ *     "clip" status messages from the camera device; the video never leaves that device — lensiq-exam-clip.js)
  *   wilson(x, n) · median(a) · fmtDur(ms)
  */
 (/** @param {any} root @param {() => any} factory */ function (root, factory) {
@@ -470,10 +472,13 @@
   }
 
   /* ---------- messages between pages (BroadcastChannel / relay / file) ---------- */
-  const MSG_TYPES = ["ev", "hb", "prof", "mute"];
+  const MSG_TYPES = ["ev", "hb", "prof", "mute", "clip", "keep"];
   const ROOM_RE = /^[A-Za-z0-9_.-]{1,24}$/, NODE_RE = /^[a-z0-9]{6,24}$/, CODE_RE = /^[a-z0-9_-]{1,16}$/i;
   const EV_KEYS = ["v", "type", "room", "node", "src", "seat", "sig", "lvl", "t", "dur", "n", "what", "code", "id"];
-  const HB_KEYS = ["v", "type", "room", "node", "src", "name", "seats", "t", "fps", "q", "pos", "walk"];
+  const HB_KEYS = ["v", "type", "room", "node", "src", "name", "seats", "t", "fps", "q", "pos", "walk", "clip"];
+  // evidence clip (opt-in, docs/EXAM.md): node -> board status of a clip that stays ON the camera device; board -> node "keep"
+  const CLIP_KEYS = ["v", "type", "room", "node", "src", "seat", "t", "id", "st", "days"], KEEP_KEYS = ["v", "type", "room", "node", "t", "id"];
+  const CLIP_ST = ["pending", "kept", "auto", "gone", "fail", "del"];
   const PROF_KEYS = ["v", "type", "room", "t", "profiles"], MUTE_KEYS = ["v", "type", "room", "t", "ms"];
   const LVL_OK = ["info", "watch", "check", "setup", "end"];
   const shortText = (v, max) => String(v == null ? "" : v).replace(/[\u0000-\u001f\u007f<>]/g, "").replace(/\s+/g, " ").trim().slice(0, max);
@@ -485,14 +490,19 @@
     if (m.v !== 1 || !MSG_TYPES.includes(m.type)) return bad("version/type");
     if (!ROOM_RE.test(String(m.room || ""))) return bad("room");
     if (!fin(m.t) || m.t < 0 || m.t > 1e13) return bad("t");
-    const keys = { ev: EV_KEYS, hb: HB_KEYS, prof: PROF_KEYS, mute: MUTE_KEYS }[m.type];
+    const keys = { ev: EV_KEYS, hb: HB_KEYS, prof: PROF_KEYS, mute: MUTE_KEYS, clip: CLIP_KEYS, keep: KEEP_KEYS }[m.type];
     const extra = Object.keys(m).filter(k => !keys.includes(k));
     if (extra.length) return bad("unknown key " + extra[0]); // reject the whole message: nothing unexpected leaves a device
     const out = { v: 1, type: m.type, room: m.room, t: Math.round(m.t) };
-    if (m.type === "ev" || m.type === "hb") {
+    if (m.type === "ev" || m.type === "hb" || m.type === "clip") {
       if (!NODE_RE.test(String(m.node || ""))) return bad("node");
       if (!["lab", "hall"].includes(m.src)) return bad("src");
       out.node = m.node; out.src = m.src;
+    }
+    if (m.type === "clip" || m.type === "keep") {
+      if (m.type === "keep") { if (!NODE_RE.test(String(m.node || ""))) return bad("node"); out.node = m.node; }
+      if (!CODE_RE.test(String(m.id || ""))) return bad("id");
+      out.id = String(m.id);
     }
     if (m.type === "ev") {
       if (!Object.prototype.hasOwnProperty.call(SIGNALS, m.sig)) return bad("sig");
@@ -508,6 +518,7 @@
       for (const k of ["fps", "q"]) if (m[k] != null) { if (!fin(m[k]) || m[k] < 0 || m[k] > 1000) return bad(k); out[k] = Math.round(m[k] * 10) / 10; }
       if (m.pos != null) { if (!["front", "back", "side", "desk"].includes(m.pos)) return bad("pos"); out.pos = m.pos; }
       if (m.walk != null) out.walk = !!m.walk;
+      if (m.clip != null) out.clip = !!m.clip;
     } else if (m.type === "prof") {
       if (!m.profiles || typeof m.profiles !== "object" || Array.isArray(m.profiles)) return bad("profiles");
       const ps = {}, ids = Object.keys(m.profiles);
@@ -517,6 +528,12 @@
     } else if (m.type === "mute") {
       if (!fin(m.ms) || m.ms < 0 || m.ms > 600000) return bad("ms");
       out.ms = Math.round(m.ms);
+    } else if (m.type === "clip") {
+      if (!CLIP_ST.includes(m.st)) return bad("st");
+      const seat = m.seat == null ? "" : String(m.seat);
+      if (seat && !SEAT_RE.test(seat)) return bad("seat");
+      out.seat = seat; out.st = m.st;
+      if (m.days != null) { if (!fin(m.days) || m.days < 1 || m.days > 365) return bad("days"); out.days = Math.round(m.days); }
     }
     return { ok: true, msg: out };
   }
@@ -536,6 +553,7 @@
   const ACTIONS = ["going", "noissue", "note", "escalate"];
   function createBoard({ room = "", halfLifeMs = 180000 } = {}) {
     let alerts = [], log = [], seq = 0, muteUntil = -Infinity, suppressed = 0;
+    /** @type {Object<string, any>} */ let clips = {}; // "<node>:<event id>" -> {st, t, days?, seat} — the clip itself never leaves the camera device
     /** @type {Object<string, any>} */ let profiles = {};
     /** @type {Object<string, any>} */ let nodes = {};
     const seatsSeen = new Set();
@@ -551,20 +569,30 @@
     function ingest(msg, now) {
       const c = cleanMsg(msg); if (!c.ok) return { ok: false, error: c.error };
       const m = c.msg; now = fin(now) ? now : m.t;
-      if (m.type === "hb") { nodes[m.node] = { node: m.node, src: m.src, name: m.name, seats: m.seats || [], fps: m.fps, q: m.q, pos: m.pos, walk: m.walk, last: now }; (m.seats || []).forEach(s => seatsSeen.add(s)); return { ok: true, kind: "hb" }; }
+      if (m.type === "hb") {
+        nodes[m.node] = { node: m.node, src: m.src, name: m.name, seats: m.seats || [], fps: m.fps, q: m.q, pos: m.pos, walk: m.walk, clip: m.clip, last: now };
+        (m.seats || []).forEach(s => seatsSeen.add(s)); return { ok: true, kind: "hb" };
+      }
       if (m.type === "mute") { mute(now, m.ms); return { ok: true, kind: "mute" }; }
       if (m.type === "prof") { profiles = Object.assign({}, profiles, m.profiles); return { ok: true, kind: "prof" }; }
+      if (m.type === "keep") return { ok: true, kind: "keep" };
+      if (m.type === "clip") { clips[m.node + ":" + m.id] = { st: m.st, t: m.t, seat: m.seat, days: m.days }; return { ok: true, kind: "clip" }; }
       const ev = filtered(m); if (!ev) return { ok: true, kind: "filtered" };
       if (ev.seat) seatsSeen.add(ev.seat);
       if (ev.lvl === "end") return { ok: true, kind: "end" };
       const def = SIGNALS[ev.sig];
       const entry = { id: nextId(), t: ev.t, seat: ev.seat, sig: ev.sig, lvl: ev.lvl, dur: ev.dur, cnt: ev.n, src: ev.src, node: ev.node, what: ev.what };
+      if (ev.id) entry.eids = [ev.id];
       if (ev.lvl === "setup" || def.w === 0) { log.push(Object.assign(entry, { kind: ev.lvl === "setup" ? "setup" : "log" })); return { ok: true, kind: entry.kind }; }
       if (ev.seat) risk.add(ev.seat, ev.t, POINTS[ev.lvl] * def.w, { alone: def.alone !== false });
       if (ev.lvl === "info") { log.push(Object.assign(entry, { kind: "info" })); return { ok: true, kind: "info" }; }
       if (now < muteUntil) { suppressed++; log.push(Object.assign(entry, { kind: "muted" })); return { ok: true, kind: "muted" }; }
       const open = alerts.find(a => a.seat === ev.seat && a.sig === ev.sig && (a.status === "open" || a.status === "going"));
-      if (open) { open.n = (open.n || 1) + 1; open.last = ev.t; open.lvl = maxLvl(open.lvl, ev.lvl); if (ev.dur != null) open.dur = Math.max(open.dur || 0, ev.dur); return { ok: true, kind: "bump", id: open.id }; }
+      if (open) {
+        open.n = (open.n || 1) + 1; open.last = ev.t; open.lvl = maxLvl(open.lvl, ev.lvl); if (ev.dur != null) open.dur = Math.max(open.dur || 0, ev.dur);
+        if (ev.id && open.node === ev.node) (open.eids || (open.eids = [])).push(ev.id);
+        return { ok: true, kind: "bump", id: open.id };
+      }
       const a = Object.assign(entry, { kind: "alert", n: 1, last: ev.t, status: "open", acts: [], verdict: null });
       alerts.push(a); log.push(a);
       return { ok: true, kind: "alert", id: a.id };
@@ -589,14 +617,37 @@
         .map(a => Object.assign({}, a, { seatLevel: risk.level(a.seat, now) }))
         .sort((x, y) => rank(y.lvl) - rank(x.lvl) || x.t - y.t);
     }
-    const firstResp = a => { const r = a.acts.find(x => x.a !== "note"); return r ? r.t - a.t : null; };
+    const isResp = x => x.a !== "note" && x.a !== "keepclip"; // keeping a clip is not "responding" to the flag
+    const firstResp = a => { const r = a.acts.find(isResp); return r ? r.t - a.t : null; };
+    /** clips of an alert, newest first: [{key, node, id, st, t, days}] */
+    function clipsOf(a) {
+      if (!a || !a.eids || !a.node) return [];
+      return a.eids.map(id => ({ key: a.node + ":" + id, node: a.node, id })).filter(c => clips[c.key]).map(c => Object.assign(c, clips[c.key])).sort((x, y) => y.t - x.t);
+    }
+    /** best clip state of an alert for its row: kept/auto > pending > fail > del > gone (null = no clip) */
+    function clipState(a) {
+      const order = ["kept", "auto", "pending", "fail", "del", "gone"], cs = clipsOf(a);
+      if (!cs.length) return null;
+      const best = cs.slice().sort((x, y) => order.indexOf(x.st) - order.indexOf(y.st))[0];
+      return { st: best.st, days: best.days, t: best.t, n: cs.length };
+    }
+    /** invigilator taps "keep clip" on a flag: named action + the keep messages for the camera device(s) */
+    function keepClip(id, who, now) {
+      const a = alerts.find(x => x.id === id); who = shortText(who, 40);
+      if (!a || !who) return [];
+      const pend = clipsOf(a).filter(c => c.st === "pending");
+      if (!pend.length) return [];
+      const t = fin(now) ? now : Date.now();
+      a.acts.push({ a: "keepclip", who, t, note: "" });
+      return pend.map(c => ({ v: 1, type: "keep", room, node: c.node, t, id: c.id }));
+    }
     function summary() {
       const byType = {}; alerts.forEach(a => { byType[a.sig] = (byType[a.sig] || 0) + 1; });
       const resp = alerts.map(firstResp).filter(fin);
       const early = [...new Set(log.filter(e => e.sig === "early" && e.lvl !== "info").map(e => e.seat))].sort();
       return {
         room, alerts: alerts.length, byType,
-        acknowledged: alerts.filter(a => a.acts.some(x => x.a !== "note")).length,
+        acknowledged: alerts.filter(a => a.acts.some(isResp)).length,
         dismissed: alerts.filter(a => a.status === "closed").length,
         escalated: alerts.filter(a => a.status === "escalated").length,
         open: alerts.filter(a => a.status === "open" || a.status === "going").length,
@@ -624,19 +675,25 @@
       const out = (L.outcome || (a => a.status || ""));
       const time = L.time || (t => new Date(t).toISOString());
       const head = L.head || ["เวลา", "ห้อง", "ที่นั่ง", "เหตุผล", "ระดับ", "ผู้ตรวจ", "ผลการตรวจ", "เวลาตอบสนอง (วินาที)", "บันทึก"];
-      const lines = [head].concat(rows().map(e => {
+      // evidence clip column only when this room used clips (the clip itself stays on the camera device)
+      const anyClip = Object.keys(clips).length > 0, clipTxt = L.clip || (c => (c ? c.st : ""));
+      const lines = [anyClip ? head.concat([L.clipHead || "คลิปหลักฐาน (อยู่ในเครื่องกล้อง)"]) : head].concat(rows().map(e => {
         const acts = e.acts || [], r = e.kind === "alert" ? firstResp(e) : null;
-        return [time(e.t), room, e.seat, label(e) + (e.dur ? " (" + fmtDur(e.dur) + ")" : ""), lvl(e.lvl),
+        const row = [time(e.t), room, e.seat, label(e) + (e.dur ? " (" + fmtDur(e.dur) + ")" : ""), lvl(e.lvl),
           [...new Set(acts.map(x => x.who))].join("; "), e.kind === "alert" ? out(e) : "", r != null ? Math.round(r / 1000) : "",
           acts.filter(x => x.note).map(x => x.note).join(" | ")];
+        return anyClip ? row.concat([e.kind === "alert" ? clipTxt(clipState(e)) : ""]) : row;
       }));
       return "﻿" + lines.map(r => r.map(cell).join(",")).join("\r\n");
     }
-    function toJSON() { return { v: 1, room, seq, alerts, log: log.filter(e => e.kind !== "alert"), muteUntil: fin(muteUntil) ? muteUntil : 0, suppressed, profiles, seats: [...seatsSeen] }; }
+    function toJSON() { return { v: 1, room, seq, alerts, log: log.filter(e => e.kind !== "alert"), muteUntil: fin(muteUntil) ? muteUntil : 0, suppressed, profiles, seats: [...seatsSeen], clips }; }
     function load(j) {
       if (!j || j.v !== 1 || !Array.isArray(j.alerts) || !Array.isArray(j.log)) return false;
       alerts = j.alerts.filter(a => a && SIGNALS[a.sig] && fin(a.t)); log = j.log.filter(e => e && SIGNALS[e.sig] && fin(e.t)).concat(alerts).sort((a, b) => a.t - b.t);
-      seq = j.seq | 0; muteUntil = j.muteUntil || -Infinity; suppressed = j.suppressed | 0; profiles = {};
+      seq = j.seq | 0; muteUntil = j.muteUntil || -Infinity; suppressed = j.suppressed | 0; profiles = {}; clips = {};
+      for (const [k, c] of Object.entries(j.clips && typeof j.clips === "object" ? j.clips : {})) {
+        if (c && CLIP_ST.includes(c.st) && /^[a-z0-9]{6,24}:[a-z0-9_-]{1,16}$/i.test(k)) clips[k] = { st: c.st, t: +c.t || 0, seat: String(c.seat || ""), days: fin(c.days) ? c.days : undefined };
+      }
       for (const [k, p] of Object.entries(j.profiles || {})) if (SEAT_RE.test(k)) profiles[k] = cleanProfile(p);
       (j.seats || []).forEach(s => { if (SEAT_RE.test(String(s))) seatsSeen.add(String(s)); });
       risk = createRisk({ halfLifeMs });
@@ -645,15 +702,15 @@
     }
     function addSeats(ids) { (ids || []).forEach(s => { if (SEAT_RE.test(String(s))) seatsSeen.add(String(s)); }); }
     return {
-      ingest, act, verdict, mute, setProfile, levels, queue, summary, precision, rows, csv, toJSON, load, addSeats,
+      ingest, act, verdict, mute, setProfile, levels, queue, summary, precision, rows, csv, toJSON, load, addSeats, keepClip, clipsOf, clipState, firstResp,
       spark: (seat, now, o) => risk.series(seat, now, o),
       get alerts() { return alerts; }, get log() { return log; }, get profiles() { return profiles; }, get nodes() { return nodes; },
-      get room() { return room; }, mutedUntil: () => muteUntil, seats: () => [...seatsSeen]
+      get room() { return room; }, get clips() { return clips; }, mutedUntil: () => muteUntil, seats: () => [...seatsSeen]
     };
   }
 
   return {
-    SIGNALS, LEVELS, LEVEL_TH, POINTS, DEFAULTS, PROFILE_KEYS, ACTIONS, SEAT_RE, ROOM_RE,
+    SIGNALS, LEVELS, LEVEL_TH, POINTS, DEFAULTS, PROFILE_KEYS, ACTIONS, SEAT_RE, ROOM_RE, CLIP_ST,
     levelOf, createGate, createRisk, createRoomMonitor, cleanProfile, isPlainProfile, applyAccommodation,
     poseFrom68, pitchDeg, synth68, calibrate, lightingVerdict, createFrozen, isVirtualCamLabel, createLabMonitor,
     pointInPoly, polyArea, polyCentroid, boxFracInPoly, seatOf, gridSeats, cleanSeats, createHallMonitor,

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="pl.doc.title">วางแผนฤกษ์มงคล ขึ้นบ้านใหม่ เปิดร้าน เริ่มงาน | LENSIQ</title>
+<meta name="description" data-i18n-attr="content:pl.doc.desc" content="หาวันดีสำหรับขึ้นบ้านใหม่ เปิดร้าน หรือเริ่มงานใหม่ จากวันในสัปดาห์ สีประจำวัน ข้างขึ้นข้างแรม และวันเกิดของเจ้าของ แสดงเฉพาะวันดีพร้อมเหตุผล บันทึกลงปฏิทินได้ คำนวณในเครื่อง">
+<link rel="stylesheet" href="styles.css?v=11">
+<link rel="stylesheet" href="fortune-kit.css?v=2">
+<link rel="stylesheet" href="planner.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=14"></script>
+<script src="i18n/zh-planner.js?v=1"></script>
+
+<main class="fk pl" id="plApp">
+  <div class="fk-head">
+    <span class="eyebrow" data-i18n="pl.eyebrow">ฤกษ์มงคล · วันดีตามความเชื่อไทย</span>
+    <h1 data-i18n="pl.h1">วางแผนฤกษ์มงคล</h1>
+    <p class="lead" data-i18n="pl.lead">เลือกงานที่จะทำและช่วงเดือน แล้วใส่วันเกิดของเจ้าของ (ถ้ามี) หน้านี้จะแสดงเฉพาะวันดีพร้อมเหตุผลว่าดีเพราะอะไร เลือกวันที่ชอบแล้วบันทึกลงปฏิทินในมือถือได้</p>
+  </div>
+  <p class="fk-disclaimer" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+    <span><b data-i18n="pl.disc.b">เพื่อการวางแผนตามวัฒนธรรม ไม่ใช่การรับประกันผล</b>
+    <span data-i18n="pl.disc.rest">ตำราแต่ละสายต่างกัน ควรสอบถามพระหรือผู้รู้ที่คุณเคารพก่อนกำหนดวันจริง คำนวณในเครื่องนี้ ไม่บันทึกและไม่ส่งวันเกิดไปที่ใด</span></span></p>
+
+  <form class="fk-form fk-stack fk-block" id="plForm" novalidate>
+    <fieldset><legend data-i18n="pl.f.event">งานที่จะทำ</legend>
+      <div class="fk-opts pl-events">
+        <label class="fk-opt"><input type="radio" name="plEvent" value="move" checked><b data-i18n="pl.ev.move">ขึ้นบ้านใหม่</b><small data-i18n="pl.ev.moveS">ย้ายเข้า ทำบุญบ้าน</small></label>
+        <label class="fk-opt"><input type="radio" name="plEvent" value="shop"><b data-i18n="pl.ev.shop">เปิดร้าน / กิจการ</b><small data-i18n="pl.ev.shopS">วันเปิดขายวันแรก</small></label>
+        <label class="fk-opt"><input type="radio" name="plEvent" value="work"><b data-i18n="pl.ev.work">เริ่มงานใหม่</b><small data-i18n="pl.ev.workS">เริ่มงาน เริ่มโปรเจกต์ เริ่มเรียน</small></label>
+      </div>
+    </fieldset>
+    <fieldset><legend data-i18n="pl.f.range">ช่วงเวลา</legend>
+      <div class="fk-row">
+        <label><span data-i18n="pl.f.from">เริ่มเดือน</span><select id="plFrom"></select></label>
+        <label><span data-i18n="pl.f.span">ดูกี่เดือน</span><select id="plSpan">
+          <option value="1" data-i18n="pl.f.span1">1 เดือน</option>
+          <option value="2" data-i18n="pl.f.span2" selected>2 เดือน</option>
+          <option value="3" data-i18n="pl.f.span3">3 เดือน</option>
+        </select></label>
+      </div>
+    </fieldset>
+    <fieldset class="pl-owner" data-owner="0"><legend data-i18n="pl.f.owner1">เจ้าของ / เจ้าบ้าน (ไม่บังคับ)</legend>
+      <div class="fk-row">
+        <label><span data-i18n="pl.f.birthWd">เกิดวัน</span><select class="pl-wd"></select></label>
+        <label><span data-i18n="pl.f.zodiac">ปีนักษัตร (ไม่บังคับ)</span><select class="pl-zd"></select></label>
+      </div>
+      <details class="pl-calc"><summary data-i18n="pl.f.calc">ไม่แน่ใจว่าเกิดวันอะไร? คำนวณจากวันเดือนปีเกิด</summary>
+        <label><span data-i18n="pl.f.birthDate">วันเดือนปีเกิด (ค.ศ. ตามปฏิทินของเครื่อง)</span><input type="date" class="pl-bd" min="1900-01-01" max="2100-12-31"></label>
+        <p class="fk-small pl-bdnote" aria-live="polite"></p>
+      </details>
+    </fieldset>
+    <fieldset class="pl-owner" data-owner="1" id="plOwner2" hidden><legend data-i18n="pl.f.owner2">เจ้าของคนที่ 2 (ไม่บังคับ)</legend>
+      <div class="fk-row">
+        <label><span data-i18n="pl.f.birthWd">เกิดวัน</span><select class="pl-wd"></select></label>
+        <label><span data-i18n="pl.f.zodiac">ปีนักษัตร (ไม่บังคับ)</span><select class="pl-zd"></select></label>
+      </div>
+      <details class="pl-calc"><summary data-i18n="pl.f.calc">ไม่แน่ใจว่าเกิดวันอะไร? คำนวณจากวันเดือนปีเกิด</summary>
+        <label><span data-i18n="pl.f.birthDate">วันเดือนปีเกิด (ค.ศ. ตามปฏิทินของเครื่อง)</span><input type="date" class="pl-bd" min="1900-01-01" max="2100-12-31"></label>
+        <p class="fk-small pl-bdnote" aria-live="polite"></p>
+      </details>
+    </fieldset>
+    <button class="btn ghost" type="button" id="plAddOwner" aria-controls="plOwner2" aria-expanded="false" data-i18n="pl.f.add2">+ เพิ่มเจ้าของคนที่ 2 (เช่น คู่สมรส หุ้นส่วน)</button>
+    <p class="fk-small" data-i18n="pl.f.privacy">วันเกิดใช้คำนวณในหน้านี้เท่านั้น ไม่บันทึกในเครื่องและไม่ส่งออกไปที่ใด ปิดหน้าแล้วข้อมูลหายไป</p>
+    <p class="fk-msg" id="plMsg" role="alert"></p>
+    <button class="btn primary big full" type="submit" id="plGo" data-i18n="pl.f.go">หาวันดี</button>
+  </form>
+
+  <section class="pl-result" id="plResult" hidden aria-labelledby="plResH">
+    <div class="pl-res-head">
+      <h2 id="plResH" tabindex="-1"></h2>
+      <p class="fk-small" id="plResSub"></p>
+      <div class="pl-sort" role="group" aria-label="เรียงลำดับ" data-i18n-attr="aria-label:pl.sortAria">
+        <button type="button" class="pl-seg" data-sort="date" aria-pressed="true" data-i18n="pl.sort.date">เรียงตามวันที่</button>
+        <button type="button" class="pl-seg" data-sort="score" aria-pressed="false" data-i18n="pl.sort.score">ตรงเกณฑ์มากก่อน</button>
+      </div>
+    </div>
+    <ol class="pl-list" id="plList"></ol>
+    <p class="fk-small pl-empty" id="plEmpty" hidden data-i18n="pl.empty">ช่วงนี้ยังไม่มีวันที่ตรงเกณฑ์ ลองดูเพิ่มเป็น 3 เดือน หรือเลือกเดือนถัดไป</p>
+    <div class="fk-block pl-export">
+      <h3 data-i18n="pl.x.h">บันทึกวันที่เลือกลงปฏิทิน</h3>
+      <p class="fk-small" data-i18n="pl.x.hint">ติ๊กวันที่สนใจในรายการ แล้วกดบันทึก จะได้ไฟล์ .ics
+        เปิดได้ในปฏิทินของ iPhone, Android (Google Calendar) และ Outlook ไฟล์สร้างในเครื่อง ไม่ส่งออกไปที่ใด</p>
+      <div class="fk-row">
+        <label><span data-i18n="pl.x.time">เวลาที่ตั้งใจ (ไม่บังคับ เวลาไทย)</span><input type="time" id="plTime"></label>
+      </div>
+      <p class="fk-small" id="plPicked" aria-live="polite"></p>
+      <div class="fk-res-actions">
+        <button class="btn primary big" type="button" id="plIcs" disabled data-i18n="pl.x.ics">บันทึกลงปฏิทิน (.ics)</button>
+        <button class="btn ghost big" type="button" id="plPrint" data-i18n="pl.x.print">พิมพ์รายการ</button>
+        <button class="btn ghost big" type="button" id="plAgain" data-i18n="pl.x.again">เปลี่ยนเงื่อนไข</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="fk-foot">
+    <section class="fk-block pl-basis" aria-labelledby="plBasisH">
+      <h3 id="plBasisH" data-i18n="pl.b.h">ดูวันดีจากอะไรบ้าง</h3>
+      <ul>
+        <li data-i18n="pl.b.wd">วันในสัปดาห์และสีประจำวัน: แต่ละวันมีดาวประจำวันและสีประจำวัน
+          (อาทิตย์แดง จันทร์เหลือง อังคารชมพู พุธเขียว พฤหัสบดีส้ม ศุกร์ฟ้า เสาร์ม่วง) งานแต่ละแบบมีวันที่นิยมต่างกัน</li>
+        <li data-i18n="pl.b.lunar">ข้างขึ้นข้างแรม: ข้างขึ้น (ขึ้น 1–15 ค่ำ) จันทร์กำลังสว่างขึ้น ตามความเชื่อเป็นช่วงเจริญงอกงาม ขึ้นบ้านใหม่นิยมเดือนคู่ตามจันทรคติ</li>
+        <li data-i18n="pl.b.taksa">วันเกิดของเจ้าของ (ทักษา): นับวงทักษาจากดาววันเกิด วันที่ตกภูมิศรี (โชคลาภ) เดช (การงาน) มนตรี (ผู้สนับสนุน) หรือมูละ (หลักฐาน) นับเป็นวันส่งเสริม</li>
+        <li data-i18n="pl.b.zodiac">ปีนักษัตร (ถ้าใส่): วันที่นักษัตรประจำวันตามปฏิทินจีนเข้ากันกับปีเกิด (หกประสาน หรือสามประสาน) ได้คะแนนเพิ่ม</li>
+        <li data-i18n="pl.b.colour">สีเสื้อเสริมมงคล: สีของดาวที่อยู่ภูมิศรีในทักษาของวันนั้น (แบบเดียวกับสีเสื้อมงคลรายวัน)</li>
+      </ul>
+      <p class="fk-small" data-i18n="pl.b.approx">ข้างขึ้นข้างแรมคำนวณทางดาราศาสตร์ (จันทร์ดับ จันทร์เพ็ญ) อาจต่างจากปฏิทินหลวงได้ 1 วัน ควรตรวจกับปฏิทินไทยอีกครั้ง</p>
+      <p class="fk-small" data-i18n="pl.b.only">หน้านี้แสดงเฉพาะวันดี ไม่ระบุวันไม่ดีหรือคำเตือนใด ๆ ไม่ให้เลขเสี่ยงโชค และไม่มีการเสียเงินแก้ดวง
+        เวลาเริ่มงาน (ฤกษ์เวลา) นิยมช่วงเช้า หรือตามที่ผู้รู้แนะนำ</p>
+    </section>
+  </div>
+</main>
+
+<script src="lensiq-config.js?v=4"></script>
+<script src="horoscope-kb.js?v=4"></script>
+<script src="horoscope.js?v=6"></script>
+<script src="lensiq-planner.js?v=1"></script>
+<script src="planner.js?v=1"></script>
+</body>
+</html>

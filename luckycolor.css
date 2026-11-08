@@ -1,0 +1,47 @@
+/* luckycolor.css — lucky-colour outfit mirror (luckycolor.html); builds on fortune-kit.css (.fk-*). */
+.lc-mirror .lc-opts{max-width:860px;margin:0 auto 16px}
+.lc-goals{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:8px;margin-bottom:12px}
+.lc-goal{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:52px;padding:8px 10px;
+  border:1.5px solid var(--line);border-radius:14px;background:#fff;color:var(--text);font:inherit;cursor:pointer;text-align:center}
+.lc-goal b{font-weight:600;color:var(--navy);font-size:.95rem}
+.lc-goal small{color:var(--muted);font-size:.78rem}
+.lc-goal[aria-pressed=true]{border-color:var(--gold);background:#f1edff;box-shadow:inset 0 0 0 1px var(--gold)}
+.lc-goal:focus-visible{outline:2px solid var(--aqua);outline-offset:2px}
+.lc-day{max-width:320px;margin-bottom:12px}
+.lc-day select{font-size:16px;min-height:46px;width:100%}
+.lc-rec{display:grid;gap:8px}
+.lc-rec-h{margin:0;font-weight:600;color:var(--navy)}
+.lc-rec-row{display:flex;gap:12px;align-items:center;min-width:0;background:var(--alt);border-radius:12px;padding:10px 12px}
+.lc-rec-t{display:grid;min-width:0}
+.lc-rec-t b{color:var(--navy);overflow-wrap:anywhere}
+.lc-rec-t small{color:var(--muted);font-size:.82rem;overflow-wrap:anywhere}
+.lc-dots{display:inline-flex;gap:4px;flex:none}
+.lc-dot{display:inline-block;width:18px;height:18px;border-radius:50%;border:1px solid rgba(0,0,0,.18);vertical-align:middle;flex:none}
+.lc-dot.big{width:30px;height:30px}
+.lc-grid{display:grid;gap:16px;margin-bottom:16px}
+@media (min-width:860px){.lc-grid{grid-template-columns:3fr 2fr}}
+.lc-cam{position:relative;aspect-ratio:4/3;background:var(--navy);border-radius:12px;overflow:hidden}
+.lc-cam video,.lc-cam canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}
+.lc-cam.mirrored video,.lc-cam.mirrored canvas{transform:scaleX(-1)}
+.lc-cam-empty{position:absolute;inset:auto 0 0;margin:0;padding:12px;color:#e4e8f7;text-align:center;font-size:.92rem}
+.lc-actions{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 4px}
+.lc-actions .btn{flex:1 1 140px}
+.lc-sw{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:0 0 12px}
+.lc-sw li{display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:99px;background:var(--alt);color:var(--navy);font-size:.92rem}
+.lc-chip-sw{width:28px;height:28px;border-radius:50%;border:1px solid rgba(0,0,0,.18);flex:none}
+.lc-match{border-radius:14px;padding:12px 14px;background:#f6f4ff;border:1px solid #ddd5ff}
+.lc-match[data-level="3"]{background:#eafbf0;border-color:#9fe0b5}
+.lc-level{margin:0;color:#a06d00;font-size:1.2rem;letter-spacing:.12em}
+.lc-msg{margin:4px 0;font-weight:600;color:var(--navy)}
+.lc-accent{margin:4px 0;color:var(--text);font-size:.92rem}
+.lc-remind{margin-top:12px}
+.lc-week-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
+.lc-week{width:100%;border-collapse:collapse;font-size:.88rem;min-width:0}
+.lc-week th,.lc-week td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+.lc-week thead th{color:var(--muted);font-weight:500;font-size:.8rem}
+.lc-week tbody th{color:var(--navy);font-weight:600;white-space:nowrap}
+.lc-week td .lc-dot{margin-right:3px}
+.lc-wk-t{display:block;font-size:.8rem;color:var(--muted);overflow-wrap:anywhere}
+.lc-week tr.is-today{background:#f1edff}
+@media (max-width:420px){.lc-week{font-size:.8rem}.lc-week th,.lc-week td{padding:6px 3px}.lc-wk-t{font-size:.75rem}}
+.lc-week caption.lc-cap{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}

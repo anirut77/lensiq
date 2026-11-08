@@ -14,7 +14,9 @@ const LENSIQ = Object.fromEntries([
   "LQInsightsAnalysis", "LQInsightsCards", "LQInsightsCharts", "LQInsightsData", "LQInsightsDemo", "LQInsightsUI",
   "PBHQ", "PBOutfits", "PBTpl", "StudioCore", "StudioQA", "NMCore", "FR_KB",
   // round 13: Exam, Gate (plates / PromptPay), zone quick wins, employee time clock
-  "LQExam", "LQExamUI", "LQExamLink", "LQPlate", "LQPromptPay", "LQGateRules", "GateKit", "LQZones", "LQZoneCam", "LQClock", "LQHR"
+  "LQExam", "LQExamUI", "LQExamLink", "LQPlate", "LQPromptPay", "LQGateRules", "GateKit", "LQZones", "LQZoneCam", "LQClock", "LQHR",
+  // round 14: crowd, exam evidence clip, case review, medicine checker, answer-sheet grader, date planner, lucky colour
+  "LQCrowd", "LQExamClip", "LQExamClipUI", "LQCase", "LQMed", "LQOMR", "LQPlanner", "LQLucky"
 ].map(k => [k, "writable"]));
 
 const RULES = {
@@ -61,6 +63,16 @@ export const SIZE_CAPS = {
 };
 export const SIZE_DEFAULT = 1500;
 
+// round 14 new files: a tighter per-file budget than the 1500 default (each is well under it today), so a new page grows
+// by splitting pure logic into its lensiq-*.js module instead of drifting toward a monolith. Lower a cap freely; raise
+// one only by splitting the file. (Not part of the SIZE_CAPS ratchet test: these are under the default by design.)
+export const NEW_FILE_CAPS = {
+  "crowd.js": 800, "lensiq-crowd.js": 400, "case-review.js": 800, "lensiq-case.js": 600,
+  "medicine.js": 750, "lensiq-med.js": 500, "omr.js": 750, "lensiq-omr.js": 650,
+  "planner.js": 400, "lensiq-planner.js": 400, "luckycolor.js": 450, "lensiq-luckycolor.js": 400,
+  "lensiq-exam-clip.js": 450, "exam-clip-ui.js": 400, "backend/src/med.js": 300
+};
+
 export default [
   { ignores: ["vendor/**", "_site/**", "node_modules/**", ".venv/**", "**/*.min.js", "data/**", "logs/**", "certs/**", "*-kb.js"] },
   js.configs.recommended,
@@ -74,6 +86,7 @@ export default [
     linterOptions: { reportUnusedDisableDirectives: "off" }
   },
   ...Object.entries(SIZE_CAPS).map(([file, max]) => ({ files: [file], rules: { "max-lines": ["error", { max, skipBlankLines: true, skipComments: true }] } })),
+  ...Object.entries(NEW_FILE_CAPS).map(([file, max]) => ({ files: [file], rules: { "max-lines": ["error", { max, skipBlankLines: true, skipComments: true }] } })),
   // dictionaries are data, not code: no size budget
   { files: ["i18n/**"], rules: { "max-lines": "off" } },
   { files: ["sw.js"], languageOptions: { globals: { ...globals.serviceworker } } },

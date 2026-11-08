@@ -7,7 +7,9 @@ export const PAGES = [
   "store", "booth", "customers", "attendance", "signage", "checkout", "qc", "driver",
   "neuro", "photobooth", "faceread", "palm", "fengshui", "insights",
   // round 13: exam / gate / zone quick-win camera pages
-  "exam-lab", "exam-hall", "exam-dashboard", "parking", "village", "queue", "tables", "afterhours", "bays"
+  "exam-lab", "exam-hall", "exam-dashboard", "parking", "village", "queue", "tables", "afterhours", "bays",
+  // round 14: crowd / case review / medicine / answer-sheet grader / lucky-colour mirror
+  "crowd", "case-review", "medicine", "omr", "luckycolor"
 ];
 const SETTLE_MS = 2500;
 const sleep = ms => new Promise(r => setTimeout(r, ms));

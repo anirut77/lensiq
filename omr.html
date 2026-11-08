@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e1430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
+<title data-i18n="om.doc.title">ตรวจกระดาษคำตอบปรนัยด้วยกล้องมือถือ | LENSIQ</title>
+<meta name="description" data-i18n-attr="content:om.doc.desc"
+  content="พิมพ์กระดาษคำตอบ A4 สแกนด้วยกล้องมือถือ ตรวจคะแนนตามเฉลย วิเคราะห์ข้อสอบรายข้อ และส่งออก CSV ประมวลผลในเครื่อง ไม่ใช้ AI ไม่ถ่ายใบหน้า ไม่เก็บภาพ">
+<link rel="stylesheet" href="styles.css?v=11">
+<link rel="stylesheet" href="store.css?v=6">
+<link rel="stylesheet" href="omr.css?v=1">
+</head>
+<body>
+<header class="nav" id="siteNav"></header>
+<script src="nav.js?v=14"></script>
+<script src="i18n/zh-omr.js?v=1"></script>
+
+<main class="st om" id="main">
+  <p class="om-crumb"><a href="solutions.html" data-i18n="om.back">← โซลูชันตามอุตสาหกรรม</a></p>
+  <h1 data-i18n="om.h1">ตรวจกระดาษคำตอบปรนัยด้วยกล้องมือถือ</h1>
+  <p class="lead" data-i18n="om.lead">พิมพ์กระดาษคำตอบ A4 (20 / 40 / 60 / 100 ข้อ, 4 หรือ 5 ตัวเลือก) ให้นักเรียนระบายวงกลม
+    แล้วส่องด้วยกล้องมือถือ ระบบหามุมกระดาษทั้งสี่ ปรับภาพให้ตรง อ่านวงที่ระบาย และให้คะแนนตามเฉลยทันที
+    ครูแก้คำตอบรายข้อได้ทุกข้อ ดูวิเคราะห์ข้อสอบ และส่งออก CSV</p>
+  <p class="om-note" role="note"><b data-i18n="om.note.h">ไม่ใช้ AI ไม่ถ่ายใบหน้า ไม่เก็บภาพ</b>
+    <span data-i18n="om.note.p">อ่านกระดาษด้วยการวัดความเข้มของวงกลมแบบธรรมดาในเบราว์เซอร์นี้ ภาพจากกล้องใช้ชั่วคราวแล้วทิ้ง
+      เก็บเฉพาะคำตอบ รหัสนักเรียน และคะแนนในเครื่องนี้ ไม่ส่งออกนอกเครื่อง ข้อที่ระบบไม่แน่ใจจะถูกทำเครื่องหมายให้ครูตรวจ ครูเป็นผู้ยืนยันคะแนนเสมอ</span></p>
+
+  <section class="card" aria-labelledby="examH">
+    <h2 id="examH" data-i18n="om.exam.h">1. ชุดข้อสอบ</h2>
+    <label class="om-field"><span data-i18n="om.exam.pick">ชุดข้อสอบที่ใช้อยู่</span><select id="examPick"></select></label>
+    <p class="hint" id="examMeta"></p>
+    <details class="om-new" id="newWrap">
+      <summary class="btn ghost" data-i18n="om.new.h">สร้างชุดข้อสอบใหม่</summary>
+      <form id="newExam" class="om-form" novalidate>
+        <label class="om-field"><span data-i18n="om.new.title">ชื่อการสอบ (พิมพ์บนกระดาษ)</span>
+          <input name="title" type="text" maxlength="80" data-i18n-attr="placeholder:om.new.titlePh" placeholder="เช่น สอบกลางภาค วิทยาศาสตร์ ม.2"></label>
+        <div class="om-row">
+          <label class="om-field"><span data-i18n="om.new.n">จำนวนข้อ</span>
+            <select name="n"><option value="20">20</option><option value="40">40</option><option value="60">60</option><option value="100">100</option></select></label>
+          <label class="om-field"><span data-i18n="om.new.choices">ตัวเลือกต่อข้อ</span>
+            <select name="choices"><option value="4">4</option><option value="5">5</option></select></label>
+          <label class="om-field"><span data-i18n="om.new.labels">ตัวอักษรตัวเลือก</span>
+            <select name="labels"><option value="en">A B C D E</option><option value="th" lang="th">ก ข ค ง จ</option><option value="num">1 2 3 4 5</option></select></label>
+          <label class="om-field"><span data-i18n="om.new.id">หลักรหัสนักเรียน (0 = ไม่ใช้)</span>
+            <select name="idDigits"><option value="0">0</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="8">8</option><option value="10">10</option></select></label>
+        </div>
+        <button class="btn primary" type="submit" data-i18n="om.new.ok">สร้างชุดข้อสอบ</button>
+      </form>
+    </details>
+    <p class="form-msg" id="examMsg" role="status"></p>
+  </section>
+
+  <div id="ws" hidden>
+    <section class="card" aria-labelledby="printH">
+      <h2 id="printH" data-i18n="om.print.h">2. พิมพ์กระดาษคำตอบ</h2>
+      <p class="hint" data-i18n="om.print.hint">พิมพ์ขนาด A4 ที่ขนาดจริง (100 % ไม่ย่อให้พอดีหน้า) แล้วถ่ายเอกสารได้ สี่เหลี่ยมดำที่มุมทั้งสี่และแถบดำด้านบนใช้หาตำแหน่งกระดาษ อย่าเขียนทับ อย่าตัดขอบ</p>
+      <div class="om-preview" id="sheetPreview" aria-hidden="true"></div>
+      <div class="row-actions">
+        <button class="btn primary" id="printBtn" type="button" data-i18n="om.print.btn">พิมพ์กระดาษคำตอบ</button>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="keyH">
+      <h2 id="keyH" data-i18n="om.key.h">3. เฉลย</h2>
+      <p class="hint" data-i18n="om.key.hint">พิมพ์เฉลยต่อกัน เช่น ABCDA… หรือ กขคง… ใช้ - แทนข้อที่ไม่คิดคะแนน และวงเล็บสำหรับข้อที่รับได้มากกว่าหนึ่งคำตอบ เช่น (AC) หรือแตะเลือกทีละข้อด้านล่าง หรือสแกนกระดาษเฉลยที่ระบายไว้</p>
+      <label class="om-field"><span data-i18n="om.key.text">เฉลยแบบพิมพ์</span><input id="keyText" type="text" autocomplete="off" spellcheck="false" maxlength="600"></label>
+      <div class="row-actions">
+        <button class="btn primary" id="keyApply" type="button" data-i18n="om.key.apply">ใช้เฉลยนี้</button>
+        <button class="btn ghost" id="keyScan" type="button" aria-pressed="false" data-i18n="om.key.scan">สแกนแผ่นถัดไปเป็นเฉลย</button>
+      </div>
+      <p class="form-msg" id="keyMsg" role="status"></p>
+      <details class="om-keygrid-wrap">
+        <summary class="btn ghost" data-i18n="om.key.grid">แตะเลือกเฉลยทีละข้อ</summary>
+        <div class="om-qgrid" id="keyGrid"></div>
+      </details>
+    </section>
+
+    <section class="card" aria-labelledby="scanH">
+      <h2 id="scanH" data-i18n="om.scan.h">4. สแกนกระดาษคำตอบ</h2>
+      <p class="hint" data-i18n="om.scan.hint">วางกระดาษบนพื้นเรียบที่มีแสงสว่างพอ ถือมือถือให้เห็นสี่เหลี่ยมดำครบทั้งสี่มุม เมื่อกรอบเป็นสีเขียวนิ่ง ระบบถ่ายและอ่านให้เอง จากนั้นเปลี่ยนแผ่นถัดไป</p>
+      <div class="om-cam" id="camBox">
+        <video id="video" autoplay muted playsinline></video>
+        <canvas id="overlay" class="om-ov" role="img" aria-label="ภาพกล้องพร้อมกรอบมุมกระดาษ (ไม่บันทึก)" data-i18n-attr="aria-label:om.scan.camAria"></canvas>
+      </div>
+      <p class="om-status" id="scanStatus" role="status" aria-live="polite"></p>
+      <div class="row-actions">
+        <button class="btn primary" id="camStart" type="button" data-i18n="om.scan.start">เปิดกล้อง</button>
+        <button class="btn ghost" id="camStop" type="button" disabled data-i18n="om.scan.stop">ปิดกล้อง</button>
+        <button class="btn ghost" id="snap" type="button" disabled data-i18n="om.scan.snap">ถ่ายตอนนี้</button>
+        <label class="btn ghost om-file"><span data-i18n="om.scan.file">เลือกรูปจากเครื่อง</span>
+          <input id="photoFile" type="file" accept="image/*" multiple data-i18n-attr="aria-label:om.scan.file"></label>
+      </div>
+      <label class="chk"><input id="autoSnap" type="checkbox" checked><span data-i18n="om.scan.auto">ถ่ายอัตโนมัติเมื่อเห็นมุมครบและภาพนิ่ง</span></label>
+    </section>
+
+    <section class="card" aria-labelledby="revH" id="review" hidden>
+      <div class="report-head"><h2 id="revH" data-i18n="om.rev.h">ตรวจทานแผ่นนี้</h2><span class="pill" id="revScore"></span></div>
+      <p class="hint" id="revMeta"></p>
+      <div class="om-rev">
+        <div class="om-warp-box"><canvas id="warp" class="om-warp" role="img" aria-label="ภาพกระดาษที่ปรับให้ตรงแล้ว แตะวงกลมเพื่อแก้คำตอบ" data-i18n-attr="aria-label:om.rev.warpAria"></canvas>
+          <p class="hint" id="warpNote" data-i18n="om.rev.warpHint">แตะวงกลมบนภาพเพื่อสลับว่าระบาย / ไม่ระบาย ภาพนี้อยู่ในหน่วยความจำชั่วคราว ไม่ถูกบันทึก</p></div>
+        <div class="om-rev-side">
+          <div class="om-row">
+            <label class="om-field"><span data-i18n="om.rev.sid">รหัสนักเรียน</span><input id="revSid" type="text" inputmode="numeric" maxlength="12" autocomplete="off"></label>
+            <label class="om-field"><span data-i18n="om.rev.name">ชื่อ (ไม่บังคับ)</span><input id="revName" type="text" maxlength="60" autocomplete="off"></label>
+          </div>
+          <p class="hint" id="revFlags" role="status"></p>
+          <label class="chk"><input id="revAll" type="checkbox"><span data-i18n="om.rev.all">แสดงทุกข้อ (ปกติแสดงเฉพาะข้อที่ควรตรวจ)</span></label>
+          <div class="om-qgrid" id="revGrid"></div>
+          <div class="row-actions">
+            <button class="btn primary" id="revDone" type="button" data-i18n="om.rev.done">ยืนยันแผ่นนี้</button>
+            <button class="btn ghost danger" id="revDel" type="button" data-i18n="om.rev.del">ลบแผ่นนี้</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="resH">
+      <h2 id="resH" data-i18n="om.res.h">5. คะแนน</h2>
+      <div class="tiles" id="tiles"></div>
+      <div class="om-tablewrap"><table class="om-table" id="resTable"><thead><tr>
+        <th scope="col" data-i18n="om.res.c.sid">รหัส</th><th scope="col" data-i18n="om.res.c.name">ชื่อ</th>
+        <th scope="col" data-i18n="om.res.c.score">คะแนน</th><th scope="col" data-i18n="om.res.c.check">ต้องตรวจ</th><th scope="col"><span class="sr-only" data-i18n="om.res.c.act">แก้ไข</span></th>
+      </tr></thead><tbody id="resBody"></tbody></table></div>
+      <p class="hint" id="resEmpty" data-i18n="om.res.empty">ยังไม่มีแผ่นที่สแกน</p>
+      <div class="row-actions">
+        <button class="btn primary" id="csvScores" type="button" data-i18n="om.res.csv">ส่งออกคะแนน CSV</button>
+        <button class="btn ghost" id="csvItems" type="button" data-i18n="om.res.csvItems">ส่งออกวิเคราะห์ข้อสอบ CSV</button>
+        <button class="btn ghost danger" id="delSheets" type="button" data-i18n="om.res.clear">ลบผลสแกนทั้งหมดของชุดนี้</button>
+      </div>
+      <p class="form-msg" id="resMsg" role="status"></p>
+    </section>
+
+    <section class="card" aria-labelledby="itemH">
+      <h2 id="itemH" data-i18n="om.item.h">6. วิเคราะห์ข้อสอบรายข้อ</h2>
+      <p class="hint" data-i18n="om.item.hint">ความยาก p = สัดส่วนคนตอบถูก · อำนาจจำแนก r = (กลุ่มเก่ง 27 % ตอบถูก − กลุ่มอ่อน 27 % ตอบถูก) ÷ จำนวนคนในกลุ่ม · ค่า r ติดลบมักหมายถึงเฉลยผิดหรือโจทย์กำกวม เป็นข้อแนะนำให้ครูพิจารณา ระบบไม่เปลี่ยนเฉลยเอง</p>
+      <div class="om-tablewrap"><table class="om-table" id="itemTable"><thead id="itemHead"></thead><tbody id="itemBody"></tbody></table></div>
+    </section>
+
+    <section class="card" aria-labelledby="delH">
+      <h2 id="delH" data-i18n="om.del.h">ลบชุดข้อสอบนี้</h2>
+      <p class="hint" data-i18n="om.del.hint">ลบชุดข้อสอบ เฉลย และคะแนนทุกแผ่นของชุดนี้ออกจากเครื่องนี้ ส่งออก CSV ก่อนถ้าต้องเก็บ</p>
+      <button class="btn ghost danger" id="delExam" type="button" data-i18n="om.del.btn">ลบชุดข้อสอบนี้</button>
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="privH">
+    <h2 id="privH" data-i18n="om.priv.h">ความเป็นส่วนตัวและข้อมูล</h2>
+    <ul class="om-list">
+      <li data-i18n="om.priv.1">ภาพจากกล้องและรูปที่เลือกถูกอ่านในเบราว์เซอร์นี้แล้วทิ้ง ไม่บันทึก ไม่อัปโหลด ภาพสำหรับตรวจทานอยู่ในหน่วยความจำจนปิดหน้า</li>
+      <li data-i18n="om.priv.2">เก็บในเครื่องนี้เท่านั้น: ชุดข้อสอบ เฉลย คำตอบที่อ่านได้ รหัสนักเรียน ชื่อที่ครูพิมพ์ (ถ้ามี) และคะแนน</li>
+      <li data-i18n="om.priv.3">คะแนนและรหัสนักเรียนเป็นข้อมูลส่วนบุคคลของผู้เรียน ซึ่งส่วนใหญ่เป็นผู้เยาว์ ใช้เพื่อการวัดผลของโรงเรียนเท่านั้น ใช้เครื่องที่ล็อกหน้าจอ และลบเมื่อบันทึกคะแนนเข้าระบบโรงเรียนแล้ว</li>
+      <li data-i18n="om.priv.4">ไม่มี AI ไม่ตรวจจับใบหน้า ไม่วิเคราะห์อารมณ์หรือพฤติกรรม หน้านี้อ่านเฉพาะวงกลมบนกระดาษ</li>
+    </ul>
+    <div class="row-actions">
+      <button class="btn ghost danger" id="wipeAll" type="button" data-i18n="om.wipe">ลบข้อมูลตรวจข้อสอบทั้งหมดในเครื่องนี้</button>
+    </div>
+    <p class="form-msg" id="wipeMsg" role="status"></p>
+  </section>
+
+  <div class="om-print" id="printArea" aria-hidden="true"></div>
+</main>
+
+<script src="lensiq-camera.js?v=4"></script>
+<script src="lensiq-omr.js?v=1"></script>
+<script src="omr.js?v=1"></script>
+<script src="lensiq-config.js?v=4"></script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+/* omr.css — omr.html (builds on styles.css tokens + store.css .st/.card/.btn/.tiles/.chk). Mobile-first; A4 print rules. */
+.om .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.om-crumb{margin:0 0 6px;font-size:.9rem}
+.om-crumb a{display:inline-flex;align-items:center;min-height:44px;color:#4b36d6;text-decoration:underline;text-underline-offset:2px}
+.om-note{display:grid;gap:4px;margin:0 0 20px;padding:14px 16px;border-radius:12px;border:2px solid #0e1430;background:#f2fbff;color:var(--text);font-size:.92rem;line-height:1.6}
+.om-note b{color:var(--navy);font-size:1.02rem}
+.om-field{display:grid;gap:4px;font-size:.88rem;color:var(--text);min-width:0;margin:8px 0}
+.om-field input,.om-field select{min-height:44px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:.95rem;background:#fff;color:var(--text);width:100%;min-width:0}
+.om-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0 12px}
+.om-form{display:grid;gap:4px;margin:8px 0 0}
+.om-form .btn{justify-self:start;margin-top:6px}
+.om-new,.om-keygrid-wrap{margin-top:8px}
+.om-new>summary,.om-keygrid-wrap>summary{list-style:none;cursor:pointer;width:max-content;max-width:100%}
+.om-new>summary::-webkit-details-marker,.om-keygrid-wrap>summary::-webkit-details-marker{display:none}
+.om .row-actions{margin-top:10px}
+.om .row-actions .btn{flex:1 1 auto}
+.om-list{margin:8px 0 0;padding-left:20px;font-size:.92rem;display:grid;gap:4px}
+.form-msg.bad,.om-status.bad{color:#a12b20}
+.om-status{min-height:1.5em;font-size:.92rem;margin:8px 0 0;font-weight:500}
+.om-file{position:relative;overflow:hidden;cursor:pointer}
+.om-file input{position:absolute;inset:-2px;opacity:0;cursor:pointer;width:auto;height:auto;min-height:44px}
+
+/* sheet preview: the real A4 SVG scaled to the card */
+.om-preview{max-width:420px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff;margin:8px 0}
+.om-preview svg{display:block;width:100%;height:auto}
+
+/* camera */
+.om-cam{position:relative;background:#0e1430;border-radius:12px;overflow:hidden;aspect-ratio:3/4;max-height:70vh;max-width:520px;display:none}
+.om-cam.on{display:block}
+.om-cam video,.om-ov{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.om-ov{pointer-events:none}
+
+/* review */
+.om-rev{display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){.om-rev{grid-template-columns:minmax(0,420px) minmax(0,1fr)}}
+.om-warp{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:#fff;touch-action:manipulation}
+.om-qgrid{display:grid;gap:6px;margin:8px 0;max-height:520px;overflow:auto;padding:2px}
+.om-q{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;padding:4px 6px;border-radius:10px;background:var(--bg);min-width:0}
+.om-q.r-w,.om-q.r-m{box-shadow:inset 3px 0 0 #dc2626}
+.om-q.r-c{box-shadow:inset 3px 0 0 #16a34a}
+.om-qn{min-width:2.2em;font-variant-numeric:tabular-nums;font-weight:600;color:var(--navy);text-align:right}
+.om-ch{width:44px;height:44px;border-radius:50%;border:1.5px solid #555;background:#fff;color:var(--text);font:inherit;font-weight:600;cursor:pointer;padding:0}
+.om-ch.on{background:#0e1430;border-color:#0e1430;color:#fff}
+.om-ch:focus-visible{outline:3px solid var(--aqua);outline-offset:2px}
+.om-qf{font-size:.8rem;color:var(--muted);flex:1 1 120px;min-width:0;overflow-wrap:anywhere}
+
+/* tables */
+.om-tablewrap{position:relative;overflow-x:auto;max-width:100%;border:1px solid var(--line);border-radius:12px;margin:8px 0}
+.om-table{border-collapse:collapse;width:100%;font-size:.86rem}
+.om-table th,.om-table td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+.om-table th{background:var(--alt);font-weight:600}
+.om-table tr:last-child td{border-bottom:0}
+.om-mono{font-variant-numeric:tabular-nums}
+.om-warn{color:#a12b20;font-weight:600}
+.om-keyc{background:#e6f6ee;font-weight:700;color:#14653b}
+.om-edit{padding:6px 14px}
+.om-print{display:none}
+
+@media print{
+  @page{size:A4 portrait;margin:0}
+  body.om-printing > *:not(main),body.om-printing .om > *:not(.om-print){display:none!important}
+  body.om-printing,body.om-printing main{margin:0!important;padding:0!important;background:#fff!important}
+  body.om-printing .om-print{display:block!important}
+  body.om-printing .om-print svg{display:block;width:210mm;height:297mm}
+}

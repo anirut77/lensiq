@@ -206,6 +206,18 @@ Dependabot (`.github/dependabot.yml`) opens one grouped minor/patch PR per ecosy
 branch (`npm run typecheck`, the `TYPECHECK_MAX` ratchet, `npm run test:py` and `npm run test:integration` green), then
 merge. A round is done when CI is green on the pushed commit, not before.
 
+### Round 14 tests (crowd, exam clip, case review, medicine, OMR, planner, lucky colour)
+
+- Unit: `crowd.test.js` (line crossing agrees with store.js, compaction + 60-day prune), `exam-clip.test.js` (default
+  OFF, encrypted store, auto-delete, PIN, no emotion API / model name in any exam file), `case.test.js` (hash chain,
+  replay, crafted imports, match states, ledger), `med.test.js` + `backend-med.test.js` (registration numbers, ≥ 3
+  candidates or none, emergency wording, Thai marks kept, Worker guards, hashed cache key, worker entry routing),
+  `omr.test.js`, `planner.test.js` (good days only, no storage / network), `luckycolor.test.js`.
+- E2e: `crowd.e2e.mjs`, `exam-clip.e2e.mjs`, `case-review.e2e.mjs`, `medicine.e2e.mjs`, `omr.e2e.mjs`,
+  `planner.e2e.mjs`, `luckycolor.e2e.mjs` (320 / 360 / 390 px, 0 % Thai in en / zh, no images or `/api/` leaving the
+  page). `smoke`, `camera-mobile` and `i18n-camera` list the new pages; `i18n.e2e.mjs` checks that the desktop menu fits
+  one line at 1100–1440 px in TH / EN / 中文 and that the drawer keeps the full group names.
+
 ### Round 13 tests (Exam, Gate, employee time attendance, zones)
 
 - Unit: `exam.test.js`, `exam-i18n.test.js` (Exam logic + 0 % Thai in en/zh), `attendance-timeclock.test.js` (shifts, OT,

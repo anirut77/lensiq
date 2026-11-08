@@ -43,7 +43,8 @@ export default async function ({ base, launch, check, fakeCams }) {
     await check("camera pages + converter in 中文 (?lang=zh): < 5% Thai letters, incl. run-time status", async () => {
       const rows = [];
       for (const pg of ["store", "booth", "signage", "attendance", "customers", "checkout", "qc", "driver", "neuro", "cameras", "converter",
-        "exam-lab", "exam-hall", "exam-dashboard", "parking", "village", "queue", "tables", "afterhours", "bays"]) {
+        "exam-lab", "exam-hall", "exam-dashboard", "parking", "village", "queue", "tables", "afterhours", "bays",
+        "crowd", "case-review", "medicine", "omr", "luckycolor", "planner"]) {
         const page = await browser.newPage(null, { initScripts: [fakeCams, "window.__LQ_FAKE_CAMS={n:1,mode:'ok'}"] });
         await page.goto(`${base}/${pg}.html?cpu&fakedet&nosw&lang=zh`);
         await page.waitFor("window.LQI18N && LQI18N.lang === 'zh' && typeof LQI18N.coverage === 'function'", 8000);
