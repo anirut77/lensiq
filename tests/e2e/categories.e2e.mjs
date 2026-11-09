@@ -34,7 +34,11 @@ export default async function ({ base, launch, check, fakeCams, repo }) {
       const missing = all.filter(f => !found.has(f) && !D.UNLINKED[f.replace(/\.html$/, "")]);
       assert(!missing.length, "not linked from header / home / category pages: " + missing.join(", "));
       const broken = [];
-      for (const f of found.keys()) { const r = await fetch(`${base}/${f}`); if (r.status !== 200) broken.push(`${f} ${r.status} (from ${found.get(f)})`); }
+      for (const f of found.keys()) {
+        const r = await fetch(`${base}/${f}`);
+        await r.arrayBuffer().catch(() => null); // drain the body (undici asserts on unconsumed bodies)
+        if (r.status !== 200) broken.push(`${f} ${r.status} (from ${found.get(f)})`);
+      }
       assert(!broken.length, "broken links: " + broken.join(", "));
       const unlinked = Object.keys(D.UNLINKED).map(p => p + ".html").filter(f => found.has(f));
       const nLinked = [...found.keys()].filter(f => all.includes(f)).length;
