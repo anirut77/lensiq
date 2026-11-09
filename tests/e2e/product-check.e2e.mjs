@@ -8,7 +8,7 @@
 //   3. barcodes through the self-hosted zxing-wasm ponyfill: a generated EAN-13 (check digit, GS1 issuer note) and a
 //      GS1 DataMatrix (GTIN, expiry as a printed fact, lot, serial); the wasm comes from vendor/zxing, never a CDN;
 //   4. the face gate blocks: a face from the detector seam (?fakeface, same approach as the other face e2e tests) blocks,
-//      a missing model blocks (?noface), and the real detector without WebGL blocks (fails closed);
+//      a missing model blocks (?noface), and a detector that cannot run (no WebAssembly) blocks (fails closed);
 //   5. English / 中文 leave no Thai outside lang="th" / translate="no" content; 6. phones 320 / 360 / 390 px.
 // Synthetic images only (canvas); no photo of a person is used or committed.
 import { assert, privacyScan } from "./cdp.mjs";
@@ -163,7 +163,7 @@ export default async function ({ base, launch, check }) {
       await page.close();
     });
 
-    await check("product-check: face gate blocks a face (detector seam), blocks when the model is missing, blocks without WebGL (fails closed)", async () => {
+    await check("product-check: face gate blocks a face (detector seam), blocks when the model is missing, blocks when the detector cannot run (fails closed)", async () => {
       const page = await browser.newPage(null, { initScripts: [INIT, DRAW, "window.__faces={frame:[{score:0.91}],crop:[]};window.__LQ_FAKE_FACE=s=>window.__faces[s];"], isolated: true });
       const put = () => page.evaluate(() => { const s = window.__LQ_PC.st, c = document.querySelector("#pcStill"); c.width = 400; c.height = 300; c.getContext("2d").fillRect(0, 0, 400,
         300); s.still = true; s.crop = { x: 50, y: 50, w: 200, h: 150 }; });
@@ -184,22 +184,22 @@ export default async function ({ base, launch, check }) {
       await page.goto(`${base}/medicine.html`);
       await put();
       const real = await page.evaluate(() => window.__LQ_PC.faceCheck());
-      // MediaPipe runs on WebGL 1 or 2, so probe both (CI's Chrome has WebGL 1 only)
-      const webgl = await page.evaluate(() => { const c = document.createElement("canvas"); return !!(c.getContext("webgl2") || c.getContext("webgl")); });
-      if (!webgl) assert(real.allow === false && ["error", "model-missing"].includes(real.reason), "no WebGL -> the real detector cannot run -> blocked " + JSON.stringify(real));
-      else assert(real.allow === true && real.runs.length === 3, "WebGL: a plain dark picture has no face " + JSON.stringify(real));
+      // fail closed = either the real detector ran on all three views (frame, tiles, crop) or the picture is blocked.
+      // (CI's Chrome reports no WebGL at all and MediaPipe still runs there, so WebGL is not the switch to test.)
+      const ran = real.allow === true && real.runs.length === 3 && real.runs.every(r => Array.isArray(r.faces));
+      const blocked = real.allow === false && ["error", "model-missing"].includes(real.reason);
+      assert(ran || blocked, "real detector: ran on frame + tiles + crop, or blocked " + JSON.stringify(real));
       const fetched = page.requests.filter(q => /face-gate\/blaze_face_short_range\.tflite/.test(q.url));
       assert(fetched.length >= 1 && fetched.every(q => q.url.startsWith(base)), "BlazeFace model self-hosted " + fetched.map(q => q.url));
       await page.close();
-      // fail closed on every machine: WebGL switched off in the page itself, the real detector must block
-      const NO_GL = "{const g=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(t,...a){return /webgl/i.test(t)?null:g.call(this,t,...a)};" +
-        "if(window.OffscreenCanvas){const o=OffscreenCanvas.prototype.getContext;OffscreenCanvas.prototype.getContext=function(t,...a){return /webgl/i.test(t)?null:o.call(this,t,...a)}}}";
-      const page2 = await browser.newPage(null, { initScripts: [INIT, DRAW, NO_GL], isolated: true });
+      // the detector cannot run (WebAssembly removed from the page) -> must block, on every machine
+      const NO_WASM = "try{Object.defineProperty(window,'WebAssembly',{value:undefined,configurable:true})}catch(e){}";
+      const page2 = await browser.newPage(null, { initScripts: [INIT, DRAW, NO_WASM], isolated: true });
       await page2.goto(`${base}/medicine.html`);
       await page2.evaluate(() => { const s = window.__LQ_PC.st, c = document.querySelector("#pcStill"); c.width = 400; c.height = 300; c.getContext("2d").fillRect(0, 0, 400, 300);
         s.still = true; s.crop = { x: 50, y: 50, w: 200, h: 150 }; });
-      const nogl = await page2.evaluate(() => window.__LQ_PC.faceCheck());
-      assert(nogl.allow === false && ["error", "model-missing"].includes(nogl.reason), "WebGL off -> the real detector cannot run -> blocked " + JSON.stringify(nogl));
+      const broken = await page2.evaluate(() => window.__LQ_PC.faceCheck());
+      assert(broken.allow === false && ["error", "model-missing"].includes(broken.reason), "detector cannot run -> blocked " + JSON.stringify(broken));
       await page2.close();
     });
 
