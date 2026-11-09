@@ -27,8 +27,11 @@
 //   POST /api/auth/refresh               rotate the member bearer token (round 12; short sessions: +12 h, max 7 days)
 //   POST /v1/csp-report                  CSP violation reports (round 12, csp.js; counters only, always 204)
 //   GET  /api/med/status|thfda|openfda|rxnav   medicine checker text proxy (round 14, med.js; MED_ENABLED, text only)
+//   GET  /v1/ai/providers?feature=…      AI gateway consent-screen data (round 17 P5, ai/gateway.js; no secrets)
+//   POST /v1/ai/:feature                 AI gateway (consent, Turnstile action "ai", limits, budget, fallback chain)
 // Admin round 12: GET /admin/api/csp-reports, GET /admin/api/mail (delivery log + provider status); POST
 //   /billing/test-charge needs re-auth and is capped (TEST_CHARGE_HOUR); money ops follow auth.moneyReauthMode
+// Admin round 17: GET|PUT /admin/api/ai/gateway (PUT needs re-auth, audited), GET /admin/api/ai/usage?month=YYYY-MM
 // Admin (ADMIN_ORIGINS, credentials; see auth.js): /admin/api/*
 import * as analytics from "./analytics.js";
 import * as auth from "./auth.js";
@@ -41,6 +44,8 @@ import { deepHealth } from "./health.js";
 import { adminCspReports, ingestCspReport } from "./csp.js";
 import { adminMailLog, mailStatus } from "./mail.js";
 import { fortuneRun, fortuneStatus } from "./fortune.js";
+import { adminGateway, adminPutGateway, adminUsage, aiRoute, providersInfo } from "./ai/gateway.js";
+import { LEGACY_KEY_UNUSED, getGateway, legacyKeyUnused } from "./ai/settings.js";
 import { medRoute } from "./med.js";
 import { reconcilePending } from "./billing.js";
 import { turnstileStatus } from "./turnstile.js";
@@ -131,6 +136,16 @@ async function publicRoute(request, env, url, deps) {
     // round 14: medicine checker text proxy (med.js does its own Origin / GET-only / rate-limit checks)
     const r = await medRoute(request, env, url, deps, cors);
     if (r) return r;
+  }
+  if (p === "/v1/ai/providers" && m === "GET") {
+    const info = await providersInfo(env, url.searchParams.get("feature") || "", deps);
+    return info ? reply(info) : reply({ error: "unknown feature", fallback: true, reason: "unavailable" }, 404);
+  }
+  const aim = /^\/v1\/ai\/([a-z][a-z0-9_]{1,40})$/.exec(p);
+  if (aim && m === "POST") {
+    if (!originAllowed(request, allow, { required: true })) return reply({ error: "origin not allowed", fallback: true, reason: "bad_request" }, 403);
+    const [body, status] = await aiRoute(env, request, aim[1], deps);
+    return reply(body, status);
   }
   if (p === "/api/fortune/status" && m === "GET") return reply(await fortuneStatus(env, request));
   if (p === "/api/fortune" && m === "POST") {
@@ -246,7 +261,12 @@ async function adminRoute(request, env, url, deps) {
       return new Response(r.csv, { headers: { ...cors, "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="lensiq-analytics-${r.from}_${r.to}.csv"`, "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } });
     }
 
-    case "GET /ai": return reply({ settings: await settings.getAiSettings(env.DB), key: await settings.apiKeyStatus(env), turnstile: turnstileStatus(env), efforts: settings.EFFORTS, providers: settings.PROVIDERS });
+    case "GET /ai": {
+      // round 17: legacy_key_store / legacy_key_unused — a key stored here is read by the gateway only with legacyKeyStore on
+      const gw = await getGateway(env.DB), key = await settings.apiKeyStatus(env);
+      return reply({ settings: await settings.getAiSettings(env.DB), key, turnstile: turnstileStatus(env), efforts: settings.EFFORTS, providers: settings.PROVIDERS,
+        legacy_key_store: gw.legacyKeyStore, legacy_key_unused: legacyKeyUnused(gw, key) ? LEGACY_KEY_UNUSED : null });
+    }
     case "PUT /ai": {
       const input = await body();
       const s = await settings.putAiSettings(env.DB, input);
@@ -260,6 +280,15 @@ async function adminRoute(request, env, url, deps) {
       return reply({ key: await settings.apiKeyStatus(env) });
     }
     case "DELETE /ai/key": await reauthed(); await settings.deleteApiKey(env); await act("ai.key.deleted"); return reply({ key: await settings.apiKeyStatus(env) });
+    // round 17 P5: AI gateway (settings change = re-auth + audit; key presence only, never values)
+    case "GET /ai/gateway": return reply(await adminGateway(env));
+    case "PUT /ai/gateway": {
+      const input = await reauthed();
+      const r = await adminPutGateway(env, input);
+      await act("ai.gateway.settings", { changed: Object.keys(input), features: input.features && typeof input.features === "object" ? Object.keys(input.features) : [] });
+      return reply(r);
+    }
+    case "GET /ai/usage": return reply(await adminUsage(env, Object.fromEntries(url.searchParams)));
 
     case "GET /billing": return reply({ ...(await billing.publicBillingInfo(env)), go_live: await goLiveStatus(env), plans: await billing.listPlans(env.DB), open_alerts: (await billingAdmin.listAlerts(env.DB)).open, guest_checkout: await billing.guestCheckoutAllowed(env), settings: await settings.getBillingSettings(env.DB), turnstile: turnstileStatus(env), mail: mailStatus(env), money_reauth: auth.moneyReauthMode(env), opn: { secret_key: !!env.OPN_SECRET_KEY, test_key: String(env.OPN_SECRET_KEY || "").startsWith("skey_test_"), public_key: !!env.OPN_PUBLIC_KEY, webhook_secret: !!env.OPN_WEBHOOK_SECRET } });
     case "PUT /billing/settings": {
@@ -379,7 +408,9 @@ async function adminRoute(request, env, url, deps) {
 
 /** Static admin shell served from the Worker's own origin (Workers Static Assets binding ASSETS, built by
  *  backend/scripts/build-admin.mjs). HTTP headers a <meta> cannot carry: frame-ancestors 'none' + X-Frame-Options. */
-export const ADMIN_ASSETS = new Set(["/admin", "/admin/", "/admin.html", "/admin.js", "/admin.css", "/lensiq-api.js", "/lensiq-config.js"]);
+export const ADMIN_ASSETS = new Set(["/admin", "/admin/", "/admin.html", "/admin.js", "/admin.css", "/lensiq-api.js", "/lensiq-config.js",
+  // round 17 P5: AI Gateway section text in English / Chinese (Thai stays the default)
+  "/lensiq-i18n.js", "/i18n/zh-admin.js", "/i18n/en-admin.js"]);
 export const ADMIN_PAGE_HEADERS = {
   "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; " +
     "font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'; report-uri /v1/csp-report; report-to csp",

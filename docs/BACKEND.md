@@ -32,6 +32,7 @@
 | Analytics | `backend/src/analytics.js` | strict event allowlist, ingest, daily aggregation, dashboard, CSV |
 | Retention | `backend/src/retention.js` | cron: aggregate first, then purge (table in §6) |
 | AI | `backend/src/fortune.js`, `settings.js`, `fortune-prompt.js` | port of `server.py` `/api/fortune`; admin AI settings; API key storage |
+| AI gateway (round 17) | `backend/src/ai/` (provider code only in `ai/adapters/`) | `POST /v1/ai/:feature`, `GET /v1/ai/providers`, budget, fallback chain, admin `/admin/api/ai/gateway`, `/admin/api/ai/usage`; fortune calls the model through it — see `docs/AI-GATEWAY.md` |
 | Billing | `backend/src/billing.js`, `billing-admin.js`, `receipt.js`, `opn.js` | plans/entitlements, FREE_MODE, PromptPay charge, polling, webhook, atomic fulfilment + repair, refunds, receipts / tax invoices / credit notes |
 | Members | `backend/src/members.js`, `google.js` | Sign in with Google (ID token verified with WebCrypto RS256 + JWKS), member sessions, tiers/quotas, ledger, saved readings, export/erasure, admin Members tab |
 

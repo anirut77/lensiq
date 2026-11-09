@@ -13,7 +13,10 @@ const repo = resolve(here, "..", "..");
 const out = resolve(here, "..", "admin-dist");
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
-for (const f of ["admin.js", "admin.css", "lensiq-api.js"]) copyFileSync(join(repo, f), join(out, f));
+for (const f of ["admin.js", "admin.css", "lensiq-api.js", "lensiq-i18n.js"]) copyFileSync(join(repo, f), join(out, f));
+// round 17 P5: English / Chinese text of the AI Gateway section (lensiq-i18n.js loads en-admin.js on demand)
+mkdirSync(join(out, "i18n"), { recursive: true });
+for (const f of ["zh-admin.js", "en-admin.js"]) copyFileSync(join(repo, "i18n", f), join(out, "i18n", f));
 // the page keeps its <meta> CSP; with the API on the same origin connect-src 'self' is all it needs
 const html = readFileSync(join(repo, "admin.html"), "utf8").replace(/connect-src [^;]*;/, "connect-src 'self';");
 writeFileSync(join(out, "admin.html"), html);

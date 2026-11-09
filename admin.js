@@ -300,6 +300,12 @@
       $("adKeyStatus").textContent = "ที่มาของคีย์: " + ({ worker_secret: "Worker secret (แนะนำ)", admin_encrypted: "เก็บแบบเข้ารหัสจากหน้านี้", none: "ยังไม่มีคีย์ — AI ปิดอยู่" }[/** @type {"worker_secret"|"admin_encrypted"|"none"} */ (k.source)] || k.source) +
         (k.stored_encrypted ? " · คีย์เข้ารหัสอัปเดต " + when(k.stored_updated_at) + (k.stored_readable ? "" : " (ถอดรหัสไม่ได้ — KEK เปลี่ยน?)") : "") +
         " · SECRETS_KEK: " + (k.kek_configured ? "ตั้งแล้ว" : "ยังไม่ตั้ง") + (k.kek_error ? " (" + k.kek_error + ")" : "");
+      // round 17: a stored key the gateway does not read (legacyKeyStore off) — TH / EN / ZH via i18n/*-admin.js
+      var lk = $("adKeyLegacy");
+      lk.hidden = !r.legacy_key_unused;
+      lk.textContent = r.legacy_key_unused
+        ? G("adg.legacyUnused", "มีคีย์ Anthropic ที่เก็บแบบเข้ารหัสไว้ แต่ไม่ได้ใช้ (legacyKeyStore ปิดอยู่) ตั้ง Worker secret ANTHROPIC_API_KEY หรือเปิด legacyKeyStore ในแท็บ AI Gateway")
+        : "";
     }, fail);
   };
   $("adAiForm").addEventListener("submit", function (/** @type {Event} */ ev) {
@@ -327,6 +333,159 @@
     if (!confirm("ลบคีย์ที่เก็บแบบเข้ารหัส?")) return;
     call("/ai/key", { method: "DELETE" }).then(function () { msg("ลบคีย์แล้ว"); loaders.ai(); }, fail);
   });
+
+  /* ---------------- AI Gateway (round 17 P5; backend/src/ai/, docs/AI-GATEWAY.md) ----------------
+   * Global switch, legacy key store switch, provider allowlist (key set / not set only), per-feature switch, ordered
+   * chain editor, budget and limits, monthly usage. Saving needs re-auth (call() asks for the password once). Thai is the
+   * default text; English / Chinese come from i18n/en-admin.js / i18n/zh-admin.js (keys adg.*). */
+  var G = function (/** @type {string} */ key, /** @type {string} */ thai) {
+    var I = /** @type {any} */ (window).LQI18N;
+    return I && typeof I.tf === "function" ? I.tf(key, thai) : thai;
+  };
+  var gLang = function () { var I = /** @type {any} */ (window).LQI18N; return I && (I.lang === "en" || I.lang === "zh") ? I.lang : "th"; };
+  var gw = /** @type {any} */ ({ data: null, usage: null });
+  var NUM_FIELDS = [
+    ["timeoutMs", "adg.f.timeout", "เวลารอต่อครั้ง (มิลลิวินาที)", 1000, 120000, 1000],
+    ["monthlyBudgetUsd", "adg.f.budget", "งบประมาณต่อเดือน (USD) — 0 = ไม่ให้ทำงาน", 0, 100000, 0.01],
+    ["perUserDaily", "adg.f.pud", "ต่อผู้ใช้ต่อวัน", 0, 10000, 1],
+    ["perUserPerMinute", "adg.f.pum", "ต่อผู้ใช้ต่อนาที", 0, 600, 1],
+    ["globalPerMinute", "adg.f.gpm", "รวมทุกคนต่อนาที", 1, 10000, 1],
+    ["maxOutputTokens", "adg.f.maxout", "โทเค็นคำตอบสูงสุด", 64, 8192, 1]
+  ];
+  function chainRow(/** @type {any} */ e, /** @type {HTMLElement} */ list) {
+    var d = gw.data;
+    var row = h("div", { class: "ad-row adg-chain" });
+    var ps = h("select", { "aria-label": G("adg.chain.provider", "ผู้ให้บริการ"), class: "adg-p" });
+    d.providers.forEach(function (/** @type {any} */ p) { ps.appendChild(h("option", { value: p.id, text: p.name[gLang()] || p.id, selected: p.id === e.provider })); });
+    var listId = "adgM" + Math.random().toString(36).slice(2, 8);
+    var mi = h("input", { class: "adg-m", value: e.model || "", list: listId, "aria-label": G("adg.chain.model", "โมเดล"), autocomplete: "off", spellcheck: "false" });
+    var dl = h("datalist", { id: listId });
+    var fillModels = function () {
+      dl.textContent = "";
+      var p = d.providers.find(function (/** @type {any} */ x) { return x.id === ps.value; });
+      ((p && p.models) || []).forEach(function (/** @type {string} */ m) { dl.appendChild(h("option", { value: m })); });
+    };
+    fillModels(); ps.addEventListener("change", fillModels);
+    var es = h("select", { class: "adg-e", "aria-label": "Effort" });
+    es.appendChild(h("option", { value: "", text: "—" }));
+    d.efforts.forEach(function (/** @type {string} */ x) { es.appendChild(h("option", { value: x, text: x, selected: x === e.effort })); });
+    var up = h("button", { type: "button", class: "ad-btn ad-ghost", "aria-label": G("adg.chain.up", "เลื่อนขึ้น"), text: "↑" });
+    var down = h("button", { type: "button", class: "ad-btn ad-ghost", "aria-label": G("adg.chain.down", "เลื่อนลง"), text: "↓" });
+    var del = h("button", { type: "button", class: "ad-btn ad-ghost", "aria-label": G("adg.chain.del", "ลบแถวนี้"), text: "✕" });
+    up.addEventListener("click", function () { if (row.previousElementSibling) list.insertBefore(row, row.previousElementSibling); });
+    down.addEventListener("click", function () { if (row.nextElementSibling) list.insertBefore(row.nextElementSibling, row); });
+    del.addEventListener("click", function () { row.remove(); });
+    row.append(ps, mi, dl, es, up, down, del);
+    list.appendChild(row);
+  }
+  function featureCard(/** @type {any} */ meta, /** @type {any} */ f) {
+    var card = h("div", { class: "ad-card adg-feature", "data-feature": meta.id });
+    card.appendChild(h("h3", null, (meta.label[gLang()] || meta.id) + " ", h("code", { text: meta.id })));
+    var status = meta.status === "live" ? G("adg.st.live", "สถานะ: ใช้งานจริง")
+      : G("adg.st.planned", "สถานะ: วางแผน (ยังไม่มีหน้าใช้งาน ตั้งค่าไว้ล่วงหน้าได้)");
+    card.appendChild(h("p", { class: "ad-muted", text: status }));
+    if (meta.legacy) {
+      card.appendChild(h("p", { class: "ad-muted", text: G("adg.legacyNote",
+        "ฟีเจอร์เดิมของคำทำนาย: สวิตช์ โมเดล effort และขีดจำกัดต่อผู้ใช้ใช้ค่าชุดเดียวกับแท็บ \"ตั้งค่า AI\" แถวแรกต้องเป็น Anthropic งบประมาณว่าง = ไม่จำกัด (เหมือนเดิม)") }));
+    }
+    card.appendChild(h("label", { class: "ad-inline" }, h("input", { type: "checkbox", class: "adg-on", checked: !!f.enabled }), " " + G("adg.f.on", "เปิดฟีเจอร์นี้")));
+    card.appendChild(h("p", { class: "ad-muted", text: G("adg.chain.h", "ลำดับผู้ให้บริการ (บนสุดใช้ก่อน ถ้าล้มเหลวจะใช้แถวถัดไปตามนโยบาย)") }));
+    var list = h("div", { class: "adg-list" });
+    (f.chain || []).forEach(function (/** @type {any} */ e) { chainRow(e, list); });
+    card.appendChild(list);
+    var add = h("button", { type: "button", class: "ad-btn ad-ghost", text: G("adg.chain.add", "+ เพิ่มผู้ให้บริการ") });
+    add.addEventListener("click", function () { chainRow({ provider: gw.data.providers[0].id, model: "" }, list); });
+    card.appendChild(add);
+    var form = h("div", { class: "ad-form adg-nums" });
+    NUM_FIELDS.forEach(function (x) {
+      var v = f[String(x[0])];
+      var ph = meta.legacy && x[0] === "monthlyBudgetUsd" ? G("adg.f.nobudget", "ว่าง = ไม่จำกัด") : "";
+      var inp = h("input", { type: "number", name: x[0], min: x[3], max: x[4], step: x[5], value: v == null ? "" : v, placeholder: ph });
+      form.appendChild(h("label", null, G(String(x[1]), String(x[2])), inp));
+    });
+    if (meta.imageCapable) {
+      form.appendChild(h("label", { class: "ad-inline" }, h("input", { type: "checkbox", class: "adg-img", checked: !!f.imageModeAllowed }),
+        " " + G("adg.f.image", "อนุญาตโหมดภาพ (ผู้ใช้ต้องยินยอมเองอีกครั้ง ค่าเริ่มต้น: ข้อความเท่านั้น)")));
+    }
+    card.appendChild(form);
+    return card;
+  }
+  function renderGateway() {
+    var d = gw.data;
+    if (!d) return;
+    var s = d.settings;
+    $("adgOn").checked = !!s.enabled;
+    $("adgLegacy").checked = !!s.legacyKeyStore;
+    $("adgEval").textContent = s.last_eval || G("adg.eval.none", "ยังไม่เคยประเมิน (ทำในขั้น P8)");
+    var pv = $("adgProv"); pv.textContent = "";
+    var boxes = h("div", { class: "ad-checks adg-prov" });
+    d.providers.forEach(function (/** @type {any} */ p) {
+      boxes.appendChild(h("label", { title: p.region[gLang()] }, h("input", { type: "checkbox", "data-provider": p.id, checked: s.providers[p.id] !== false }),
+        " " + (p.name[gLang()] || p.id) + " · " + (p.key_set ? G("adg.key.set", "คีย์: ตั้งแล้ว") : G("adg.key.unset", "คีย์: ยังไม่ตั้ง")) +
+        (p.implemented ? "" : " · " + G("adg.notImpl", "ยังไม่มีตัวเชื่อม (P6)"))));
+    });
+    pv.appendChild(boxes);
+    pv.appendChild(table([G("adg.t.provider", "ผู้ให้บริการ"), G("adg.t.secret", "ตั้งคีย์ด้วย"), G("adg.t.region", "ประมวลผลที่")],
+      d.providers.map(function (/** @type {any} */ p) { return [p.name[gLang()] || p.id, "wrangler secret put " + p.secret_name, p.region[gLang()]]; })));
+    var fx = $("adgFeatures"); fx.textContent = "";
+    d.features.forEach(function (/** @type {any} */ m) { fx.appendChild(featureCard(m, s.features[m.id] || {})); });
+    var u = gw.usage, ub = $("adgUsage"); ub.textContent = "";
+    if (u) {
+      ub.appendChild(h("p", { class: "ad-muted", text: G("adg.u.month", "เดือน") + " " + u.month }));
+      ub.appendChild(table([G("adg.u.feature", "ฟีเจอร์"), G("adg.u.req", "คำขอ"), G("adg.u.ok", "สำเร็จ"), G("adg.u.fb", "ใช้ผลในเครื่อง"),
+        G("adg.u.calls", "เรียกผู้ให้บริการ"), G("adg.u.cost", "ค่าใช้จ่าย (USD)"), G("adg.u.budget", "งบที่ใช้ / งบ"), "p50", "p95"],
+        u.features.map(function (/** @type {any} */ r) {
+          return [r.feature, r.requests, r.ok, r.fallbacks, r.calls, r.cost_usd.toFixed(4), r.budget_used_usd.toFixed(4) + " / " + (r.budget_usd == null ? "∞" : r.budget_usd),
+            r.p50_ms == null ? "—" : "≤ " + r.p50_ms + " ms", r.p95_ms == null ? "—" : "≤ " + r.p95_ms + " ms"];
+        })));
+    }
+  }
+  loaders.aigw = function () {
+    Promise.all([call("/ai/gateway"), call("/ai/usage")]).then(function (/** @type {any[]} */ r) { gw.data = r[0]; gw.usage = r[1]; renderGateway(); }, fail);
+  };
+  function collectGateway() {
+    /** @type {Record<string, boolean>} */
+    var providers = {};
+    document.querySelectorAll("#adgProv input[data-provider]").forEach(function (/** @type {any} */ i) { providers[i.getAttribute("data-provider")] = i.checked; });
+    /** @type {Record<string, any>} */
+    var features = {};
+    document.querySelectorAll(".adg-feature").forEach(function (/** @type {any} */ c) {
+      var id = c.getAttribute("data-feature");
+      var meta = gw.data.features.find(function (/** @type {any} */ m) { return m.id === id; }) || {};
+      /** @type {any[]} */
+      var chain = [];
+      c.querySelectorAll(".adg-chain").forEach(function (/** @type {any} */ r) {
+        var model = r.querySelector(".adg-m").value.trim();
+        if (!model) return;
+        /** @type {Record<string, string>} */
+        var e = { provider: r.querySelector(".adg-p").value, model: model };
+        if (r.querySelector(".adg-e").value) e.effort = r.querySelector(".adg-e").value;
+        chain.push(e);
+      });
+      /** @type {Record<string, any>} */
+      var f = { enabled: c.querySelector(".adg-on").checked, chain: chain };
+      NUM_FIELDS.forEach(function (x) {
+        var k = String(x[0]);
+        var v = c.querySelector("input[name=" + k + "]").value;
+        if (v === "" && meta.legacy && k === "monthlyBudgetUsd") { f.monthlyBudgetUsd = null; return; }
+        if (v !== "") f[k] = k === "monthlyBudgetUsd" ? Number(v) : parseInt(v, 10);
+      });
+      var img = c.querySelector(".adg-img");
+      if (img) f.imageModeAllowed = img.checked;
+      features[id] = f;
+    });
+    return { enabled: $("adgOn").checked, legacyKeyStore: $("adgLegacy").checked, providers: providers, features: features };
+  }
+  $("adgSave").addEventListener("click", function () {
+    call("/ai/gateway", { method: "PUT", body: collectGateway() }).then(function (/** @type {any} */ r) {
+      gw.data.settings = r.settings; renderGateway(); msg(G("adg.saved", "บันทึกการตั้งค่า AI Gateway แล้ว"));
+    }, fail);
+  });
+  $("adgLang").addEventListener("change", function () {
+    var I = /** @type {any} */ (window).LQI18N;
+    if (I && typeof I.setLang === "function") I.setLang($("adgLang").value);
+  });
+  window.addEventListener("lq-lang", function () { $("adgLang").value = gLang(); renderGateway(); });
 
   /* ---------------- billing ---------------- */
   loaders.billing = function () {

@@ -20,7 +20,7 @@
 <meta name="theme-color" content="#0e1430">
 <title>LENSIQ Admin</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="admin.css?v=1">
+<link rel="stylesheet" href="admin.css?v=2">
 </head>
 <body>
 <!-- Back office for the LENSIQ API Worker (backend/, docs/BACKEND.md). Not linked from any page; static shell only —
@@ -70,6 +70,7 @@
     <nav class="ad-tabs" role="tablist" aria-label="เมนูผู้ดูแล">
       <button type="button" role="tab" data-tab="analytics" aria-selected="true">สถิติการใช้งาน</button>
       <button type="button" role="tab" data-tab="ai" aria-selected="false">ตั้งค่า AI</button>
+      <button type="button" role="tab" data-tab="aigw" aria-selected="false" data-i18n="adg.tab">AI Gateway</button>
       <button type="button" role="tab" data-tab="billing" aria-selected="false">การชำระเงิน</button>
       <button type="button" role="tab" data-tab="members" aria-selected="false">สมาชิก</button>
       <button type="button" role="tab" data-tab="security" aria-selected="false">ความปลอดภัย</button>
@@ -114,12 +115,42 @@
       <div class="ad-card">
         <h2>API key</h2>
         <p id="adKeyStatus" class="ad-muted"></p>
+        <p id="adKeyLegacy" class="ad-warn" role="status" hidden></p>
         <p class="ad-muted">แนะนำ: <code>cd backend &amp;&amp; npx wrangler secret put ANTHROPIC_API_KEY</code> — คีย์ไม่ผ่านเบราว์เซอร์เลย
           ช่องด้านล่างใช้เมื่อจำเป็นเท่านั้น: เข้ารหัส AES-GCM ด้วย <code>SECRETS_KEK</code> ก่อนเก็บ และจะไม่ถูกส่งกลับมาที่เบราว์เซอร์อีก</p>
         <form id="adKeyForm" class="ad-form" autocomplete="off">
           <label>Anthropic API key <input name="key" type="password" autocomplete="off" pattern="sk-ant-[A-Za-z0-9_-]{20,300}"></label>
           <div class="ad-row"><button class="ad-btn" type="submit">บันทึกแบบเข้ารหัส</button><button class="ad-btn ad-ghost" type="button" id="adKeyDel">ลบคีย์ที่เก็บไว้</button></div>
         </form>
+      </div>
+    </div>
+
+    <!-- round 17 P5: AI Gateway (backend/src/ai/, docs/AI-GATEWAY.md). TH default; EN / ZH in i18n/en-admin.js, i18n/zh-admin.js -->
+    <div class="ad-panel" data-panel="aigw" role="tabpanel" hidden>
+      <div class="ad-card">
+        <div class="ad-row adg-head">
+          <h2 data-i18n="adg.h">AI Gateway: ศูนย์ควบคุมการเรียก AI</h2>
+          <label><span data-i18n="adg.lang">ภาษาของส่วนนี้</span> <select id="adgLang"><option value="th">ไทย</option><option value="en">English</option><option value="zh">中文</option></select></label>
+        </div>
+        <p class="ad-muted" data-i18n="adg.intro">ทุกการเรียก AI ผ่านเซิร์ฟเวอร์นี้เท่านั้น เบราว์เซอร์ไม่ติดต่อผู้ให้บริการโดยตรง
+          ผู้ใช้ต้องกดยินยอมก่อนทุกครั้ง ถ้างบหมดหรือถึงขีดจำกัด ผู้ใช้จะเห็นผลจากในเครื่องแทน</p>
+        <label class="ad-inline"><input type="checkbox" id="adgOn"> <span data-i18n="adg.global">เปิดใช้ AI ทั้งระบบ (ติดตั้งใหม่: ปิด) — ผู้ช่วยเขียนคำทำนายใช้สวิตช์เดิมของตัวเอง</span></label>
+        <label class="ad-inline"><input type="checkbox" id="adgLegacy">
+          <span data-i18n="adg.legacy">อ่านคีย์ Anthropic ที่เก็บแบบเข้ารหัสจากแท็บ "ตั้งค่า AI" (แบบเดิม ค่าเริ่มต้น: ปิด — ใช้ Worker secret ก่อนเสมอ)</span></label>
+        <p class="ad-muted"><span data-i18n="adg.lastEval">วันที่ประเมินโมเดลครั้งล่าสุด</span>: <b id="adgEval">—</b></p>
+      </div>
+      <div class="ad-card">
+        <h2 data-i18n="adg.prov.h">ผู้ให้บริการที่อนุญาต</h2>
+        <p class="ad-muted" data-i18n="adg.prov.p">ปิดผู้ให้บริการใดก็ได้ ระบบจะไม่เรียกและไม่แสดงบนหน้าขอความยินยอม หน้านี้แสดงเพียงว่าตั้งคีย์แล้วหรือยัง ไม่แสดงค่าคีย์</p>
+        <div id="adgProv"></div>
+      </div>
+      <div id="adgFeatures"></div>
+      <div class="ad-card">
+        <button class="ad-btn" id="adgSave" type="button" data-i18n="adg.save">บันทึก (ต้องยืนยันรหัสผ่านอีกครั้ง)</button>
+      </div>
+      <div class="ad-card">
+        <h2 data-i18n="adg.usage.h">การใช้งานรายเดือน</h2>
+        <div id="adgUsage"></div>
       </div>
     </div>
 
@@ -211,8 +242,10 @@
   </section>
   <p id="adMsg" class="ad-msg" role="status" aria-live="polite"></p>
 </main>
+<script src="i18n/zh-admin.js?v=1"></script>
+<script src="lensiq-i18n.js?v=1"></script>
 <script src="lensiq-api.js?v=2"></script>
 <script src="lensiq-config.js?v=3"></script>
-<script src="admin.js?v=2"></script>
+<script src="admin.js?v=3"></script>
 </body>
 </html>

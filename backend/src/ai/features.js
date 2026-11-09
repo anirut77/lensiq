@@ -1,0 +1,37 @@
+// @ts-check
+// backend/src/ai/features.js — feature registry of the AI gateway.
+//
+//   id             what the admin configures and the URL names (POST /v1/ai/<id>)
+//   status         "live" (has a route) | "planned" (settings can be prepared; the route answers 404 + fallback)
+//   legacy         true for fortune_reword: its route stays /api/fortune (fortune.js: grounding, quotas, client contract);
+//                  its switch, model, effort, max tokens and per-user limits stay in the existing 'ai' settings
+//   imageCapable   image mode may be allowed for it (owner decision PC-D9: text only by default; an image only after the
+//                  user's own consent, and only where the feature allows it)
+//   timeoutMs      default per-attempt timeout (design §10.2: 20 s vision, 30 s text)
+//   overallMs      deadline for the WHOLE request (all attempts); default min(120 s, timeoutMs x 2 x chain length)
+//   gatewayRetries false = never retry the same model (the §10.3 "once" retries are skipped; next provider still used)
+//   sdkRetries     retries inside the provider SDK (default 0: the gateway owns retries)
+//   build(input, {mode}) -> provider-neutral request {system, text, images?, output: {name, schema}} — only for features
+//                  with a public route. P5 ships none: Product Check features (pc_*) get theirs in P7. Tests inject one
+//                  through deps.aiFeatures.
+// Every output schema is checked with schema.js assertSupportedSchema when the request is built.
+
+/** @typedef {{th: string, en: string, zh: string}} L3 */
+/** @typedef {{id: string, status: "live"|"planned", legacy?: boolean, imageCapable?: boolean, timeoutMs?: number, overallMs?: number,
+ *    gatewayRetries?: boolean, sdkRetries?: number, label: L3, build?: Function}} Feature */
+
+/** @type {Readonly<Record<string, Feature>>} */
+export const FEATURES = Object.freeze({
+  // fortune keeps its behaviour from before the gateway: one SDK call with the SDK's own single retry, no same-model
+  // retry by the gateway, and the whole request inside the 90 s abort of the fortune-ai.js client
+  fortune_reword: {
+    id: "fortune_reword", status: "live", legacy: true, imageCapable: false, timeoutMs: 120000, overallMs: 85000, gatewayRetries: false, sdkRetries: 1,
+    label: { th: "ผู้ช่วยเขียนคำทำนาย", en: "Fortune writing assistant", zh: "运势写作助手" }
+  },
+  pc_fields: { id: "pc_fields", status: "planned", imageCapable: true, timeoutMs: 20000, label: { th: "ตรวจสินค้า: อ่านข้อมูลบนฉลาก", en: "Product Check: label fields", zh: "产品核查：标签字段" } },
+  pc_claims: { id: "pc_claims", status: "planned", imageCapable: false, timeoutMs: 30000, label: { th: "ตรวจสินค้า: คำโฆษณาเกินจริง", en: "Product Check: over-claims", zh: "产品核查：夸大宣传" } },
+  pc_translate: { id: "pc_translate", status: "planned", imageCapable: false, timeoutMs: 30000, label: { th: "ตรวจสินค้า: แปลฉลาก", en: "Product Check: label translation", zh: "产品核查：标签翻译" } }
+});
+
+/** Registry with test features merged in (deps.aiFeatures). @param {Record<string, Feature>} [injected] */
+export const featuresWith = injected => ({ ...FEATURES, ...(injected || {}) });

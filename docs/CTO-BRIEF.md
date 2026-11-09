@@ -3,6 +3,7 @@
 As of 2026-11-09 (round 16 complete). Round 15 shipped in two commits: Gate `70508bc` (CI green on Linux, live) and crowd/docs `41dc0b7`. Round 16 shipped as: customer switch `d039058`; Gate plate check + field tools `d049dfd`; claims, crowd test, org design, pilot kits `34e14b3`; Wilson rule `77b555a`; multi-line CSP `7c47eba`; then the category packaging and the pricing draft after the owner approved them on 2026-11-09. Accuracy sources are labelled synthetic, public dataset or field.
 **Round 17 = Product Check + AI Gateway, in progress: P0, P1, P3 done** (design approved 2026-11-09; §5 "Round 17", legal list §8).
 Org accounts P1–P3 follow after Product Check is complete.
+Round 17 P5 "AI Gateway core" (built in a working tree, not committed, awaiting review): every cloud AI call goes through `backend/src/ai/` (`POST /v1/ai/:feature`; fortune moved onto it as `fortune_reword` with its existing tests unchanged), with a provider allowlist, a monthly budget reserved per call, the §10.3 fallback policy, JSON-schema checks, content-free logs, an admin "AI Gateway" tab and the consent helper `lensiq-ai.js`. Only the Anthropic adapter exists; the others are P6. See `docs/AI-GATEWAY.md`.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
 ## 1. System map
@@ -94,7 +95,7 @@ No module is production-ready. None has completed a field pilot, and the backend
 
 | Type | Count |
 |---|---|
-| Unit (node:test) | 1,121 tests, all passing (R16 working tree; backend subset 135/135). |
+| Unit (node:test) | 1,121 tests, all passing (R16 working tree; backend subset 135/135). R17 P5 working tree on top of P3 (`7a39bc3`): 1,223 tests, all passing (backend subset 187/187; 58 new P5 tests incl. 11 for the independent-review fixes). |
 | e2e (headless Chrome) | 437 tests, all passing (macOS, on the Gate-only commit). CI on Linux passed for `70508bc`. |
 | Integration | 1 file |
 | Python unittest | 4 files |

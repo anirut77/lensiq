@@ -28,7 +28,8 @@
     "account.js",
     "nav.js",
     "lensiq-timeclock.js",
-    "attendance-qr.js"
+    "attendance-qr.js",
+    "lensiq-ai.js"
   ],
   "pages": [
     {
@@ -218,6 +219,7 @@
     "i18n/en-luckycolor.js",
     "i18n/zh-luckycolor.js",
     "lensiq-claims-rules.js",
-    "lensiq-claims.js"
+    "lensiq-claims.js",
+    "lensiq-ai.js"
   ]
 }

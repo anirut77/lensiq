@@ -28,7 +28,7 @@ controller only for its own website, member accounts, billing and the optional b
 - **E. Round 16** — E1 customer mode and the research-demo toggle · E2 Gate plate check and the owner photo set ·
   E3 organisation accounts (design only — the main PDPA change)
 - **F. Round 17** — F1 Product Check + AI Gateway (design approved; cloud AI providers, image mode, cross-border
-  processing, Thai FDA data)
+  processing, Thai FDA data) · F2 AI Gateway core as built in P5 (consent screen, remembered consent, image mode, logs)
 - **D. Questions that cut across products**
 
 ---
@@ -642,6 +642,36 @@ Added on approval (all providers enabled, remembered consent):
 12. **Consent texts:** please review the TH / EN / ZH texts of the AI consent screen (provider, country, what is sent,
     retention line, remember / withdraw) once drafted in P7 (`docs/pdpa/consent-texts.md`).
 13. **Privacy notice:** the AI providers become recipients; confirm the wording to add to `privacy.html` / `terms.html`.
+
+### F2. AI Gateway core as built (phase P5; `docs/AI-GATEWAY.md`)
+
+- **What changed:** every cloud AI call (today only the fortune writing assistant) now goes through one gateway on the
+  Worker. Nothing new is sent: fortune still sends the same derived facts. The browser never talks to a provider.
+- **Defaults:** a new install has AI switched off globally and a budget of 0 for every new feature, so nothing runs
+  until the owner sets it. Every provider is on in the allowlist by default (owner decision PC-D2, 2026-11-09), including
+  the Chinese providers and OpenRouter, but only Anthropic has an adapter in this phase; the others are never called
+  until P6 and can be switched off by the admin.
+- **Consent screen** (`lensiq-ai.js`, not used by any page yet): before anything is sent it names the provider and model
+  actually used, the processing country (e.g. "USA / Anthropic's global routing", "Singapore", "People's Republic of
+  China"), the providers it may fall back to, what is sent, that LENSIQ stores nothing, and the provider's retention in
+  one line. The gateway never uses a provider the user was not shown.
+- **Remembered consent:** the user may tick "remember my choice"; the choice (provider ids, mode, time) is stored on the
+  device only (`localStorage` "lq-ai-consent") and can be withdrawn with a visible button. A changed provider list asks
+  again. **For counsel:** is a remembered consent valid consent for cross-border transfer under s.28–29 for later
+  requests, or must it be asked every session / every request? Is the one-line retention text enough?
+- **Every provider in the chain** (review fix): the consent screen shows the retention / training note of every provider
+  that may receive the data, not only the first — e.g. DeepSeek "stored in China and may be used for training" — and,
+  next to "remember my choice", how to withdraw (the "withdraw consent" button under the result or in settings), in
+  TH / EN / ZH. **For counsel:** is listing each fallback provider's country and retention on one screen enough
+  information for a valid consent to all of them, or must a fallback to a provider in another country (e.g. China) ask
+  again at the moment it would be used?
+- **Image mode** (PC-D1 / PC-D9): text only is the default and the fallback; an image may be sent only when the admin
+  allows it for that feature and the user chooses it on the consent screen. **For counsel:** the questions in
+  `docs/PRODUCT-CHECK-DESIGN.md` §15 (hand in frame, prescription labels, transfer mechanism) apply before P7 ships.
+- **Logs:** one line per attempt with counts, model, cost and timing only — never text, images, prompts, IPs, user ids or
+  e-mails. Monthly aggregates are counts only.
+- **Keys:** Worker secrets only. The older AES-GCM key stored in D1 from the admin page is kept but switched off by
+  default (PC-D4). Not legal advice.
 
 ---
 

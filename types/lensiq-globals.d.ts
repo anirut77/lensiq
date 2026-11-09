@@ -66,6 +66,8 @@ interface Window {
   LQLeads?: any;
   /** lensiq-member.js: member sign-in, account chip, light-reading gate (inert without API + membership) */
   LQMember?: any;
+  /** lensiq-ai.js (round 17): AI gateway client — consent screen, remembered consent + withdraw, fallback messages */
+  LQAI?: any;
   /** lensiq-api.js: optional Cloudflare Worker backend client (null results when LENSIQ_API_BASE is empty) */
   LQApi?: typeof import("../lensiq-api.js");
   /** lensiq-analytics.js: opt-in, privacy-first usage analytics */

@@ -11,7 +11,7 @@ import { log } from "./util.js";
 export const MIGRATIONS = [
   "0001_init.sql", "0002_billing.sql", "0003_seed_plans.sql", "0004_hardening.sql", "0005_members.sql",
   "0006_consumer_pricing.sql", "0007_member_session_labels.sql", "0008_round11_backend.sql",
-  "0009_round12_backend.sql"
+  "0009_round12_backend.sql", "0010_ai_gateway.sql"
 ];
 /** Columns / tables the newest migration adds (schema probe). */
 const PROBES = [
@@ -22,7 +22,8 @@ const PROBES = [
   "SELECT id, status FROM leads LIMIT 0",
   "SELECT email_receipts, email_reminders FROM users LIMIT 0",
   "SELECT id, kind, ref, status FROM mail_log LIMIT 0",
-  "SELECT day, directive, blocked, page, n FROM csp_reports LIMIT 0"
+  "SELECT day, directive, blocked, page, n FROM csp_reports LIMIT 0",
+  "SELECT month, feature, metric, n FROM ai_usage_monthly LIMIT 0"
 ];
 
 /** @param {Env} env */
