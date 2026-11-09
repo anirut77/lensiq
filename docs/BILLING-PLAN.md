@@ -169,6 +169,9 @@ They are not added yet because no plan references them and an unused perk would 
 
 ## 5. Tax (Thailand) **[ตรวจทานกฎหมาย]**
 
+* **Price-display rule (owner decision 2026-11-09):** self-serve consumer prices (pricing.html checkout, Fortune,
+  Retail) are shown VAT-inclusive because that is what the customer pays; B2B quotes (Exam, Gate, Crowd, Attendance)
+  are shown "excl. 7 % VAT" and the customer pays the figure + 7 %.
 * **VAT 7 %** only if the seller is VAT-registered (mandatory above 1.8 M THB turnover/year, voluntary below).
   `VAT_REGISTERED=false` → receipts only, no VAT line. When `true`, prices are VAT-inclusive and the Worker stores
   subtotal/VAT/total per payment (`splitVat`, rounding to the satang).

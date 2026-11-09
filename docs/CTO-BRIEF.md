@@ -157,6 +157,8 @@ No module is production-ready. None has completed a field pilot, and the backend
 - Real-site plate accuracy (≥100 vehicles): needs a field pilot.
 - Trained Thai YOLOX-nano detector: no torch here, and the Roboflow downloads are blocked. Colab notebook and dataset list are R15 deliverables.
 - Automatic PromptPay confirmation: needs a bank or Opn integration.
+- Enforcing the free 30-day trial in code (today the 30 days are text only): deferred by the owner (2026-11-09) to the org-accounts and billing work, where a `gate_trial` plan with a start date can be checked on the server.
+- Positioning until a Thai-trained plate detector exists: "assisted reading, the guard taps to confirm" on gate / parking / village and the one-pager, with the real-photo numbers (public dataset) beside it (owner decision 2026-11-09).
 
 **Crowd**
 - Human ground-truth count: needs two people for 1–2 hours.

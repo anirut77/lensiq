@@ -2,6 +2,8 @@
 
 **ใช้มือถือ โน้ตบุ๊ก หรือกล้องที่มีอยู่ ไม่ต้องซื้อกล้อง LPR ราคาหลายหมื่น ระบบเสนอเลขป้าย รปภ. ยืนยันทุกคัน**
 
+> **อ่านป้ายแบบช่วย รปภ.**: ระบบเสนอเลขป้าย และ รปภ. แตะยืนยันทุกคัน ยังไม่ใช่การอ่านอัตโนมัติเต็มรูปแบบจนกว่าจะมีตัวหาป้ายที่ฝึกด้วยภาพป้ายไทย ผลกับภาพถ่ายจริง 51 ภาพ (ชุดข้อมูลสาธารณะ Wikimedia Commons): อ่านถูกทั้งป้ายโดยไม่ต้องแตะ 32% (7 / 22 · n = 22 · บางภาพอยู่ในชุดที่ใช้ปรับค่า จึงดีเกินจริง) และต้องแตะเลือกกรอบป้าย 78% (25 / 32 · n = 32) (`docs/GATE.md` §3c)
+
 > **ฉบับร่าง (DRAFT) — ราคาและเนื้อหารอเจ้าของอนุมัติ** ราคาในเอกสารนี้มาจาก `docs/PRICING-RESEARCH.md` §3.2 ยังไม่เปิดขาย
 
 ## ปัญหา
@@ -69,6 +71,8 @@
 It uses a phone, a laptop or an existing camera, with no LPR camera to buy. The system suggests the plate and the
 guard confirms every vehicle. **DRAFT: prices and text await owner approval** (`docs/PRICING-RESEARCH.md` §3.2, not on
 sale).
+
+> **Assisted reading**: the system suggests the plate and the guard taps to confirm every vehicle. It is not fully automatic until a plate finder trained on Thai plates exists. On 51 real photos (public dataset, Wikimedia Commons): exact read with no tap 32% (7 / 22 · n = 22 · some photos are in the tuning set, so this is optimistic); a tap to pick the plate was needed in 78% (25 / 32 · n = 32) (`docs/GATE.md` §3c)
 
 **What you get:**
 - **Village / condo** (`village.html`): resident cars, visitor passes, a watch list (each entry needs a reason),

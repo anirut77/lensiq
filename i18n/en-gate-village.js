@@ -4,6 +4,7 @@
   "vg.eyebrow": "LENSIQ Gate · Village / condo",
   "vg.h1": "Guard post: plates, resident vehicles and visitors",
   "vg.lead": "The system compares the plate with the resident vehicle list, the deny list and visitor passes, and shows the result for the guard to decide. The guard presses the button that opens the barrier.",
+  "vg.assist": "Assisted reading: the system suggests the plate and the guard taps to confirm every vehicle. It is not fully automatic until a plate finder trained on Thai plates exists. On 51 real photos (public dataset, Wikimedia Commons): exact read with no tap 32% (7 / 22 · n = 22 · some photos are in the tuning set, so this is optimistic); a tap to pick the plate was needed in 78% (25 / 32 · n = 32)",
   "vg.safety": "The system does not open the barrier by itself, unless the site owner has switched on \"auto-open\", and then only for resident vehicles whose plate matches exactly with enough confidence. Guards can always open it themselves.",
   "vg.tab.gate": "Guard post",
   "vg.tab.res": "Resident vehicles",

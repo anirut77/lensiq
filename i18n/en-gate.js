@@ -5,6 +5,7 @@
   "gate.eyebrow": "LENSIQ Gate · Parking and access",
   "gate.h1": "Read Thai licence plates on your own device",
   "gate.lead": "Use a phone camera, a USB camera or a CCTV camera through a bridge. The system suggests the plate number and province, staff confirm or correct it, and the system then calculates the parking fee or checks the resident list. Images never leave the device.",
+  "gate.assist": "Assisted reading: the system suggests the plate and the guard taps to confirm every vehicle. It is not fully automatic until a plate finder trained on Thai plates exists. On 51 real photos (public dataset, Wikimedia Commons): exact read with no tap 32% (7 / 22 · n = 22 · some photos are in the tuning set, so this is optimistic); a tap to pick the plate was needed in 78% (25 / 32 · n = 32)",
   "gate.choose": "Choose how you will use it",
   "gate.a.tag": "Variant A",
   "gate.a.h": "Paid car park",

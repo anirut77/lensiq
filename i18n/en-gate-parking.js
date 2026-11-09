@@ -4,6 +4,7 @@
   "pk.eyebrow": "LENSIQ Gate · Car park",
   "pk.h1": "Car park: plate reading and parking fees",
   "pk.lead": "The system suggests the plate from the camera, staff confirm it, and the system pairs entry and exit times, calculates the fee by your car-park rules and makes a PromptPay QR for the exact amount on this device.",
+  "pk.assist": "Assisted reading: the system suggests the plate and the guard taps to confirm every vehicle. It is not fully automatic until a plate finder trained on Thai plates exists. On 51 real photos (public dataset, Wikimedia Commons): exact read with no tap 32% (7 / 22 · n = 22 · some photos are in the tuning set, so this is optimistic); a tap to pick the plate was needed in 78% (25 / 32 · n = 32)",
   "pk.tab.lane": "Entry / exit lane",
   "pk.tab.lot": "Cars in the car park",
   "pk.tab.log": "Log",
