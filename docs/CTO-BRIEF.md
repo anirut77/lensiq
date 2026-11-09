@@ -1,6 +1,8 @@
 # LENSIQ — CTO brief
 
 As of 2026-11-09 (round 16 complete). Round 15 shipped in two commits: Gate `70508bc` (CI green on Linux, live) and crowd/docs `41dc0b7`. Round 16 shipped as: customer switch `d039058`; Gate plate check + field tools `d049dfd`; claims, crowd test, org design, pilot kits `34e14b3`; Wilson rule `77b555a`; multi-line CSP `7c47eba`; then the category packaging and the pricing draft after the owner approved them on 2026-11-09. Accuracy sources are labelled synthetic, public dataset or field.
+**Round 17 = Product Check + AI Gateway, in progress: P0 done** (design approved 2026-11-09; §5 "Round 17", legal list §8).
+Org accounts P1–P3 follow after Product Check is complete.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
 ## 1. System map
@@ -209,6 +211,20 @@ No module is production-ready. None has completed a field pilot, and the backend
 **Owner and outside actions**
 - Lawyer review, Cloudflare deploy, Opn KYC, field pilots, native-speaker review.
 
+**Round 17: Product Check + AI Gateway (`docs/PRODUCT-CHECK-DESIGN.md`)**
+- Design approved by the owner on 2026-11-09: "we are not charging yet, so build everything fully now for testing; legal
+  review happens before we start charging". All phases P0–P9 are built to completion, each with a fixed test set, an
+  independent reviewer and real numbers. Org accounts P1–P3 follow after Product Check is complete.
+- Owner decisions (design §15): PC-D1 image-mode exception to "derived facts only" approved for Product Check only;
+  PC-D2 all AI providers enabled in every build (Chinese providers and OpenRouter included), admin can switch any off,
+  consent names the provider and processing country, eval covers all providers; PC-D9 image mode after one consent per
+  user with "remember my choice" and withdraw at any time, text only stays a choice and the fallback, crop only, face
+  blocks the upload; PC-D3 to PC-D8 and PC-D10 as recommended. Food rules move to the 2569 notice in P1. Thai FDA web
+  service used for testing now; permission letter drafted.
+- P0 done (docs only): decisions recorded, `docs/legal/FDA-PERMISSION-REQUEST-TH.md` and
+  `docs/legal/WHO-PERMISSION-REQUEST.md` drafted, counsel notes in `docs/PDPA-NOTES-FOR-COUNSEL.md` F1, legal-review
+  running list in §8 below. Next: P1 (test sets first).
+
 ## 6. Delivery facts
 
 | Round | Commit | Main outcome |
@@ -230,6 +246,7 @@ No module is production-ready. None has completed a field pilot, and the backend
 | 14 fixes | `aaad9bf`, `8b9d6aa`, `f478547` | Strict OCR tests, leading-digit safety net, field-pilot kit |
 | 15 | `70508bc`, `41dc0b7` | Gate: plate finder for every colour, motorcycles and night, plus the leading-digit fix. Crowd: dense-crowd warning, preliminary error on 6 public clips, and a human counting sheet. Credits file, Colab training notebook, dataset list. |
 | 16 | `d039058` … `7c47eba` + packaging + pricing | Customer mode by default + research-demo toggle; Gate plate check (0/19 plate-less photos auto-read on 51 public photos) and owner photo tool; claims with n and source everywhere; crowd resolution/tiling test; org-accounts design; pilot kits; Wilson rule; multi-line CSP; 7 category pages + page-status table; pricing draft and four one-pagers (excl. VAT). |
+| 17 (in progress) | `6634a7d` (design) + P0 docs | Product Check + AI Gateway design approved 2026-11-09 (PC-D1–D10 recorded); Thai FDA and WHO permission requests drafted; legal-review running list (§8). P1–P9 to follow. |
 
 **Size**
 - 64 HTML pages and 36 commits.
@@ -255,3 +272,41 @@ No module is production-ready. None has completed a field pilot, and the backend
 3. **Deploy the backend to a staging Cloudflare account and finish Opn KYC.** Without that, nothing can be sold online, and medicine (Thai FDA) and exam relay stay partial. **Effort: S–M.**
 4. **Add organisation accounts with sync and backup** (R16: design and PDPA impact written, `docs/ORG-ACCOUNTS-DESIGN.md`; waiting for approval) for business products (attendance, gate, exam), replacing the one-browser-per-device data model. B2B buyers expect multi-device access, admin roles and data export. **Effort: L.**
 5. **Organise by category.** Owner decision 2026-11-08, replacing "lead products plus add-ons": seven work categories, listed in `CLAUDE.md`. Every page stays and every category keeps being developed. Each category gets a landing page showing status and measured accuracy with its source. Exam, Gate and Crowd come first for pilots and sales materials. Age/gender and expression are off by default in customer builds. **Effort: S–M** (R16: customer mode done; category pages and status table prepared, waiting for approval).
+
+## 8. Legal review before charging (running list)
+
+Owner rule (2026-11-09): LENSIQ is not charging yet, so features are built fully for testing; **every item below must be
+reviewed by counsel (or answered by the data owner) before charging starts.** Items are added each round and never
+removed; a closed item keeps its row with the answer and date. Not legal advice. Detail for counsel:
+`docs/PDPA-NOTES-FOR-COUNSEL.md` (F1 for Product Check), `docs/LEGAL-REVIEW-PACK.md`.
+
+| # | Item | Why | Where in code / docs | Status | Added |
+|---|---|---|---|---|---|
+| L1 | Anthropic API terms | Commercial use, 30-day retention, processing in the US / global routing (no Asia option); DPA needed? Already used by fortune | `backend/src/fortune.js`; AI Gateway adapter (P5); design §11 | open | 2026-11-09 |
+| L2 | Google Gemini API terms | **Paid tier only**: the free tier may train on inputs and is not allowed; users 18+; no data residency | Gemini adapter (P6); design §10.2, §11 | open | 2026-11-09 |
+| L3 | OpenAI API terms | Up to 30 days of abuse logs; storage-only residency, processing elsewhere | OpenAI adapter (P6); design §11 | open | 2026-11-09 |
+| L4 | Alibaba Model Studio (Qwen) terms | "International" deployment scope not defined; retention period not stated; Thailand sign-up not verified | dashscope adapter (P6); design §11 | open | 2026-11-09 |
+| L5 | DeepSeek terms | Privacy policy: data **stored in the PRC and may be used for training**; API terms silent; PRC law. Enabled now by owner decision PC-D2; highest PDPA risk | deepseek adapter (P6); design §10.2, §11; counsel notes F1 | open | 2026-11-09 |
+| L6 | z.ai (Zhipu) terms | DPA says content is not stored; Singapore; Thailand sign-up and token pricing not verified | zai adapter (P6); design §11 | open | 2026-11-09 |
+| L7 | Kimi (Moonshot) terms | Processing region and prices not verified; zero-retention only on an enterprise option | kimi adapter (P6); design §11 | open | 2026-11-09 |
+| L8 | OpenRouter terms | Adds a **second processor** between LENSIQ and the model provider; `zdr:true` and `data_collection:"deny"` forced, routed provider varies | openrouter adapter (P6); design §10.3, §11 | open | 2026-11-09 |
+| L9 | Cross-border processing (US, Singapore, China) | Product crops and OCR text leave Thailand; PDPA s.28–29 mechanism per country; is consent naming provider and country enough? | design §8.2, §10.6, §11; counsel notes F1 | open | 2026-11-09 |
+| L10 | Image-mode exception to "only derived facts are sent" (PC-D1) | A product crop is more than a derived fact: hand in frame, prescription label with a patient name | design §8.2; face gate and patient-name guard (P7) | open | 2026-11-09 |
+| L11 | AI consent texts TH / EN / ZH incl. "remember my choice" and withdraw (PC-D9) | Consent must be specific and as easy to withdraw as to give (s.19); remembered consent must not cover a provider or country not shown | design §8.2, §10.6; `medicine.html`, `i18n/en-med.js`, `i18n/zh-med.js`; `docs/pdpa/consent-texts.md` (P7) | open | 2026-11-09 |
+| L12 | Privacy notice and terms: AI providers as recipients | `privacy.html` / `terms.html` must list the AI providers, countries and retention once Product Check is public | `privacy.html`, `terms.html` (TH / EN / ZH) | open | 2026-11-09 |
+| L13 | Thai FDA web-service reuse (`WS_LICENSE_SEARCH`) | No licence stated ("License not specified"); used for testing now by owner decision; written permission needed before charging; natural-person licensee names / addresses dropped | `backend/src/med.js` (P4); design §4.1; **letter drafted** `docs/legal/FDA-PERMISSION-REQUEST-TH.md` (not sent) | open (letter drafted) | 2026-11-09 |
+| L14 | WHO Medical Product Alerts (and WHO INN / ATC) | CC BY-NC-SA 3.0 IGO: commercial use needs permission; INN and ATC have their own terms | design §4.5; **email drafted** `docs/legal/WHO-PERMISSION-REQUEST.md` (not sent) | open (email drafted) | 2026-11-09 |
+| L15 | Share-alike data: ChEMBL (CC BY-SA 3.0), Open Food Facts / Open Beauty Facts (ODbL, CC BY-SA images) (PC-D10) | Share-alike on derived data; kept in a separate cache, never merged or shipped in `vendor/`; confirm this is enough | design §4.5, §7 | open | 2026-11-09 |
+| L16 | EU Safety Gate licence | CC0 1.0 reported by a secondary source only; confirm on data.europa.eu. Also RASFF registration, MHRA OGL per item, HSA / Singapore Open Data Licence attribution, openFDA / Health Canada no-endorsement wording | design §4.2–4.4, §4.6 | open | 2026-11-09 |
+| L17 | Over-claim flag wording and defamation risk for brands | Do the food / cosmetic / supplement advert rules apply to packs and online listings? Wording "risk signal under <rule>" must not defame a legitimate brand | `lensiq-claims.js` (P3); design §5, §14 PR3 | open | 2026-11-09 |
+| L18 | Curated Thai alert list from FDA press releases | Fact-only table built by hand from press releases; no copying of text or images; copyright in facts | `vendor/pc-alerts/th.json` (P4); design §6.2 | open | 2026-11-09 |
+| L19 | Reference-image library copyright | Embeddings from LENSIQ's own photos of retail packs (Thai Copyright Act s.32–33); manufacturer licences preferred; no third-party images collected before the answer (PC-D7) | design §6.3; tooling in P9 | open | 2026-11-09 |
+| L20 | Sourcing photos of illegal / warned products for the test set | Buying or photographing listed products lawfully (≥ 75 needed for the 5 % bound) | design §9.1, §13 | open | 2026-11-09 |
+| L21 | Medical-device software classification of Product Check | Does reading labels and checking registrations make LENSIQ medical-device software under Thai law or the EU MDR? | design §15 Q8; `docs/MEDICINE.md` "Regulatory positioning" | open | 2026-11-09 |
+| L22 | Organisation accounts: 16 counsel questions | LENSIQ becomes a processor (s.40) and transfers data abroad once sync is on; DPA template; DPIA R38–R47 | `docs/ORG-ACCOUNTS-DESIGN.md` §9–10; counsel notes E3 | open | 2026-11-09 (raised R16) |
+| L23 | Face model licences F5 / F6 | face-api age/gender trained on UTKFace (non-commercial), expression data licence unclear; detector, landmarks and recognition also need an opinion | §2 above; `LICENSES/THIRD_PARTY.md`; `docs/LEGAL-REVIEW-PACK.md` §4 | open | 2026-11-09 (raised earlier) |
+| L24 | Gate signage and privacy notice | Sign wording, legal basis (s.24(5) / s.24(3)) and retention for plates; owner photos of public streets for testing | `gate-notice.html`; `docs/GATE.md` §5; counsel notes B3, E2 | open | 2026-11-09 (raised R13–R16) |
+| L25 | Pricing terms and VAT | B2B prices excl. 7 % VAT vs VAT-inclusive self-serve plans; Gate 30-day trial wording (not enforced in code); refund and contract terms | `docs/PRICING-RESEARCH.md`, `docs/BILLING-PLAN.md` §4.1, `pricing.html`, `terms.html`; `docs/LEGAL-REVIEW-PACK.md` §3.2–3.5 | open | 2026-11-09 (raised R16) |
+| L26 | Public procurement fit | Specific-method threshold, VAT inside the threshold, multi-year contracts, no splitting, e-GP / SME registration | `docs/SALES-PACKAGES.md` A.5, C1–C3 | open | 2026-11-09 |
+| L27 | TOR wording vendor-neutral | The Thai / English TOR text must not lock in a brand | `docs/SALES-PACKAGES.md` A.6, C4 | open | 2026-11-09 |
+| L28 | Partner agreement | Reseller vs agent, VAT on the revenue share, withholding tax, liability, DPA with partners | `docs/SALES-PACKAGES.md` B, C5–C6 | open | 2026-11-09 |

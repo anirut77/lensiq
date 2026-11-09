@@ -1,5 +1,5 @@
 // tests/e2e/gate.e2e.mjs — LENSIQ Gate landing (gate.html) and the PDPA signage kit (gate-notice.html): variant chooser
-// links, honest accuracy note, pricing draft, poster + notice filled live from the form, TH / EN / 中文 (no Thai left in
+// links, honest accuracy note, approved prices (not on sale, excl. VAT), poster + notice filled live from the form, TH / EN / 中文 (no Thai left in
 // zh / en outside lang="th" content), phone layouts at 320 / 360 / 390 px (no overflow, 44 px targets, text >= 12 px),
 // and the REAL Thai OCR model (PP-OCRv5 Thai, ONNX Runtime Web WASM) reading the synthetic demo plate on parking.html.
 import { assert, assertNoWebGL, privacyScan } from "./cdp.mjs";
@@ -28,7 +28,7 @@ export async function phone(page, url, widths = [320, 360, 390]) {
 export default async function ({ base, launch, check }) {
   const browser = await launch();
   try {
-    await check("gate.html: variant chooser, honest accuracy note, PDPA kit link, pricing draft, no errors, no storage", async () => {
+    await check("gate.html: variant chooser, honest accuracy note, PDPA kit link, approved prices (not on sale, excl. VAT), no errors, no storage", async () => {
       const page = await browser.newPage(null, { initScripts: [INIT] });
       await page.goto(`${base}/gate.html`);
       const r = await page.evaluate(() => ({
@@ -37,7 +37,7 @@ export default async function ({ base, launch, check }) {
       }));
       for (const h of ["parking.html", "village.html", "gate-notice.html", "camera-notice.html"]) assert(r.links.includes(h), "link " + h + " " + r.links);
       assert(/ยังไม่มีผลวัดความแม่นยำ/.test(r.acc) && /Apache-2\.0/.test(r.acc) && /สิทธิ์ข้อมูลฝึก/.test(r.acc), "honest accuracy note");
-      assert(/ร่าง/.test(r.price) && /990/.test(r.price) && /1,490/.test(r.price) && /3,000–5,000/.test(r.price), "pricing draft " + r.price.slice(0, 120));
+      assert(/ยังไม่เปิดขาย/.test(r.price) && /ไม่รวม VAT 7%/.test(r.price) && /490/.test(r.price) && /990/.test(r.price) && /1,490/.test(r.price) && /3,000–5,000/.test(r.price), "approved price list, not on sale, excl. VAT " + r.price.slice(0, 120));
       const txt = await page.evaluate(() => document.querySelector("main").innerText);
       assert(!/ตรวจจับการโกง|จับผิด|ผู้กระทำผิด/.test(txt), "no accusatory wording");
       await privacyScan(page);

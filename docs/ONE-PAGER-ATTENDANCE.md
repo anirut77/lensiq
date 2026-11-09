@@ -2,7 +2,7 @@
 
 **ใช้มือถือหรือแท็บเล็ตที่มีอยู่เป็นเครื่องลงเวลา กะ OT วันหยุด และ CSV สำหรับทำเงินเดือน ข้อมูลอยู่บนเครื่องของคุณ**
 
-> **ฉบับร่าง (DRAFT) — ราคาและเนื้อหารอเจ้าของอนุมัติ** ราคาในเอกสารนี้มาจาก `docs/PRICING-RESEARCH.md` §3.4 ยังไม่เปิดขาย
+> **ราคาที่อนุมัติแล้ว (ยังไม่เปิดขาย)** ราคาในเอกสารนี้มาจากรายการราคาที่เจ้าของอนุมัติ 2026-11-09 (`docs/PRICING-RESEARCH.md` §3.4) ยังไม่มีการเก็บเงิน
 
 ## ปัญหา
 - ร้านและบริษัท 5–20 คนยังลงเวลาด้วยกระดาษหรือ LINE รวมชั่วโมงและ OT ปลายเดือนช้าและผิดง่าย
@@ -39,7 +39,7 @@
 2 สัปดาห์ที่ร้านหรือบริษัท 5–20 คน ตาม `docs/PILOT-PLAN.md` ข้อ 3.2 (ใบหน้าเฉพาะอาสาสมัครที่ยินยอม: รับคนผิด ≤ 1%, ปฏิเสธคนถูก ≤ 10%)
 และเทียบ CSV เงินเดือนกับบันทึกเดิมของร้าน 1 รอบเดือน (ชั่วโมงและ OT ตรงกัน) ใช้แท็บ "ตรวจความแม่นยำ" ในหน้าเพื่อวัดกับพนักงานของคุณเอง
 
-## ราคา (ฉบับร่าง รอเจ้าของอนุมัติ — ยังไม่เปิดขาย ราคาไม่รวม VAT 7% ลูกค้าชำระราคา + 7%)
+## ราคา (ราคาที่อนุมัติแล้ว ยังไม่เปิดขาย — ราคาไม่รวม VAT 7% ลูกค้าชำระราคา + 7%)
 | แพ็กเกจ | ช่วงนำร่อง (ตอนนี้) | หลังผ่านเกณฑ์นำร่อง |
 |---|---|---|
 | ฟรี | ไม่เกิน 5 คน PIN / QR 1 เครื่อง | ไม่เกิน 5 คน |
@@ -58,7 +58,7 @@
 
 **ติดต่อ:** แบบฟอร์ม `index.html?interest=hr#contact` · ชื่อบริษัท อีเมล และ LINE OA จะประกาศก่อนเปิดขาย (`LENSIQ_SELLER`)
 
-> **ต้นฉบับภายใน** (มีชื่อไฟล์ในระบบ) — ฉบับร่าง round 16 ราคาและข้อความรอเจ้าของอนุมัติก่อนส่งลูกค้า
+> **ต้นฉบับภายใน** (มีชื่อไฟล์ในระบบ) — round 16 ราคาเจ้าของอนุมัติแล้ว 2026-11-09 (ยังไม่เปิดขาย) ข้อความตรวจกับเจ้าของก่อนส่งลูกค้า
 
 ---
 
@@ -67,7 +67,8 @@
 ## LENSIQ Attendance — employee time attendance with PIN / QR (face optional) for small shops and companies
 
 It uses a phone or tablet you already have, and includes shifts, OT, holidays and a payroll CSV. The data stays on your
-device. **DRAFT: prices and text await owner approval** (`docs/PRICING-RESEARCH.md` §3.4, not on sale).
+device. **Approved price list (not on sale yet)**: prices approved by the owner 2026-11-09 (`docs/PRICING-RESEARCH.md`
+§3.4); nothing is charged yet.
 
 **What you get:**
 - **Check-in:** PIN or QR badge by default. Face check-in is optional, with the employee's consent (an encrypted face
@@ -104,7 +105,7 @@ The face figures apply only when face check-in is switched on. PIN / QR involves
 - Face check-in only with consenting volunteers: false accept ≤ 1%, false reject ≤ 10%.
 - One month's payroll CSV is compared with the shop's own records (hours and OT must match).
 
-**Price (DRAFT, awaiting owner approval; excl. 7% VAT, so the customer pays the price + 7%):**
+**Price (approved price list, not on sale yet; excl. 7% VAT, so the customer pays the price + 7%):**
 
 | Package | Pilot stage (now) | After pilot |
 |---|---|---|
@@ -126,4 +127,4 @@ prices (excl. VAT) is approximate by about 7%.
 
 **Contact:** `index.html?interest=hr#contact`.
 
-> **Internal draft** (contains file names). Round 16. Prices and text await owner approval before they go to customers.
+> **Internal copy** (contains file names). Round 16. Prices approved by the owner 2026-11-09 (not on sale yet); the text is checked with the owner before it goes to customers.

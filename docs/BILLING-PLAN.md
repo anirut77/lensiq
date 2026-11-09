@@ -132,36 +132,48 @@ enforced or delivered); `csv_export` is checked by the server (`POST /api/me/ent
 | **Event Day Pass** | booth activations, fairs | 1 day, up to 500 AI readings, booth + photobooth analytics report, branded templates | 3,900 THB / day |
 | **Event Week** | trade shows (BITEC, QSNCC) | 7 days, 3,000 readings, multi-booth hub, daily CSV, on-site setup checklist | 14,900 THB |
 | **Retail Starter** | 1–3 shops | Business tier + hub + store analytics onboarding call | Business price + 4,900 setup |
-| **Training / attendance** | academies, HR | attendance module set-up, DPIA template filled with the client | 9,900 setup + Pro |
+| **Training / attendance** | academies, HR | training check-in set-up, DPIA template filled with the client (employee time attendance: approved `attendance_*` lines in §4.1, excl. 7 % VAT) | 9,900 setup + Pro |
 | **Enterprise on-prem** | chains, mall operators | server.py LAN install, own Anthropic key, SLA, DPA (PDPA s.40), security review | quotation |
 
 Pricing rationale for Thai SMEs: comparable Thai SaaS (POS, booking, LINE OA add-ons) sits at roughly 300–1,500 THB per
 month; an event activation agency budgets per booth-day, so a day pass priced below a promoter's day rate is an easy
 "yes". Yearly = 10 × monthly. Prices end in 0/900 to keep VAT-inclusive totals readable (checkout plans only; see §4.1 for the B2B lines).
 
-### 4.1 Round 13 proposals: new product lines (not on the plan registry yet)
+### 4.1 Round 13 product lines: approved price list (not on sale yet; not on the plan registry)
 
 Plans live in the D1 `plans` table (backend/migrations) and the pricing page's built-in `DRAFT` copy mirrors those
-migrations, so adding a plan needs a new migration. These lines are therefore **proposals only**: nothing below is
-sold, listed on pricing.html or enforced. The figures are the draft text already shown on each product page (each
-page labels them "ร่าง / draft"). Owner decision needed before any of them becomes a migration.
+migrations, so adding a plan needs a new migration. **Owner decision 2026-11-09:** the price levels below (pilot stage
+and after pilot, `docs/PRICING-RESEARCH.md` §3) are **approved**. They are still **not on sale**: nothing below is
+sold, listed on pricing.html or enforced, and no migration has been written. Each product page shows them as
+"approved price list (not on sale yet)". A migration for any line needs its own owner decision.
 
-**Owner decision 2026-11-09:** every price in this table is **excluding 7 % VAT** (the customer pays price + 7 %), and the
-Gate free tier is a **free 30-day trial**, not a permanent free plan. The checkout plans above (§3) stay VAT-inclusive
-because that is the amount `pricing.html` actually charges; moving them to excl. VAT would change what customers pay
-and needs a separate owner decision and a migration. Draft levels for these lines: `docs/PRICING-RESEARCH.md`.
+Every price in this table is **excluding 7 % VAT** (the customer pays price + 7 %), and the Gate free tier is a **free
+30-day trial**, not a permanent free plan. The checkout plans above (§3) stay VAT-inclusive because that is the amount
+`pricing.html` actually charges; moving them to excl. VAT would change what customers pay and needs a separate owner
+decision and a migration. "After pilot" applies only once that site has passed its pilot thresholds
+(`docs/pilot/PILOT-*.md`); until then the pilot-stage price stays.
 
-| Proposed plan id | Product | Contents | Indicative price (draft, from the page; excl. 7 % VAT) |
-|---|---|---|---|
-| `exam_lab` | LENSIQ Exam: computer room / online exam (exam-lab.html) | candidate page, signals log, invigilator dashboard | 15–30 THB per candidate per exam, or 990–1,490 THB / month |
-| `exam_hall` | LENSIQ Exam: camera exam hall (exam-hall.html) | up to 3 hall camera nodes per room + dashboard | 300–600 THB per room per exam day, or 1,990 THB / month per room |
-| `exam_institution` | LENSIQ Exam: institution licence | whole-institution licence + invigilator training | 30,000–120,000 THB / year |
-| `gate_trial` | LENSIQ Gate trial | free 30-day trial: 1 lane, 100 reads / day, 7-day logs | 0 THB for 30 days |
-| `gate_village_basic` | LENSIQ Gate village Basic (village.html) | resident cars, visitor passes, alerts, Open button | ~990 THB / month / lane |
-| `gate_village_pro` | LENSIQ Gate village Pro | 3 lanes, per-house reports, on-site accuracy check | ~1,990 THB / month |
-| `gate_parking` | LENSIQ Gate car park (parking.html) | fees, shop stamps, PromptPay QR, receipts, shift close | ~1,490 THB / month / lane |
-| `gate_setup` | Gate installation (one-time) | camera angle / light tuning + joint accuracy check | 3,000–5,000 THB per visit |
-| `attendance_employee` | Employee time attendance (attendance.html employee mode) | shifts, OT, holidays, payroll CSV, PIN/QR | fold into "Training / attendance" above (owner to decide) |
+| Proposed plan id | Product | Contents | Pilot stage (now; excl. 7 % VAT) | After pilot (excl. 7 % VAT) |
+|---|---|---|---|---|
+| `exam_pilot` | LENSIQ Exam field pilot | 1 institution, ≤ 4 weeks, ≤ 3 rooms, invigilator tallies | free | — |
+| `exam_lab` | LENSIQ Exam: computer room / online exam (exam-lab.html), **per candidate** | candidate page, signals log, invigilator dashboard | 10 THB per candidate per exam (min. 300 THB per session), or 990 THB / month per lab | 15–30 THB per candidate per exam, or 990–1,490 THB / month |
+| `exam_hall` | LENSIQ Exam: camera exam hall (exam-hall.html), **per room** | up to 3 hall camera nodes per room + dashboard | 290 THB per room per exam day, or 990 THB / month per room | 300–600 THB per room per exam day, or 1,990 THB / month per room |
+| `exam_institution` | LENSIQ Exam: institution licence | whole-institution licence + invigilator training | from 19,900 THB / year (≤ 1,000 candidates) | 30,000–120,000 THB / year by size |
+| `gate_trial` | LENSIQ Gate trial | free 30-day trial: 1 lane, 100 reads / day, 7-day logs | 0 THB for 30 days | 0 THB for 30 days |
+| `gate_village_basic` | LENSIQ Gate village / condo (village.html) | resident cars, visitor passes, alerts, Open button | 490 THB / month / lane | 990 THB / month / lane |
+| `gate_village_pro` | LENSIQ Gate village Pro | 3 lanes, per-house reports, on-site accuracy check | 490 THB / month / lane | 1,990 THB / month (3 lanes) |
+| `gate_parking` | LENSIQ Gate car park (parking.html) | fees, shop stamps, PromptPay QR, receipts, shift close — **all included, no add-on** | 790 THB / month / lane | 1,490 THB / month / lane |
+| `gate_setup` | Gate installation (one-time) | camera angle / light tuning + joint accuracy check | 2,500 THB per visit | 3,000–5,000 THB per visit |
+| `crowd_event_day` | LENSIQ Crowd event day (crowd.html) | 1 camera device, sparse / medium areas, density estimate | 590 THB per device per day | 990 THB per device per day |
+| `crowd_event_week` | LENSIQ Crowd event week | 7 days, 1 device | 2,490 THB per device | 3,900 THB per device |
+| `crowd_monthly` | LENSIQ Crowd fixed site | zone / line monitoring | **not sold until a fixed-site pilot passes** (approved level 290 THB / month / device) | 490 THB / month / device |
+| `attendance_free` | Employee time attendance, free | up to 5 people, PIN / QR, 1 device | 0 THB | 0 THB |
+| `attendance_employee` | Employee time attendance (attendance.html employee mode) | shifts, OT, holidays, payroll CSV, PIN/QR; face optional with consent | 19 THB per active person / month (min. 190 THB / month) | 29 THB per active person / month (min. 290 THB / month) |
+| `attendance_setup` | Attendance set-up help (optional, one-time) | shift tables, payroll CSV mapping, DPIA template | 2,900 THB | 4,900 THB |
+
+Dense crowds (≈ 50+ people in view) are not sold at any stage until a density model with a clean licence is approved.
+Bundles built from these lines (institution bundle, installer partner programme): `docs/SALES-PACKAGES.md` (DRAFT).
+Yearly = 10 × monthly.
 
 Possible perks (would go into `PERKS` in backend/src/constants.js as `coming_soon`, consumer null, once a plan uses
 them): `exam_rooms` (rooms), `gate_lanes` (lanes), `zone_cameras` (camera pages for queue / tables / afterhours / bays).

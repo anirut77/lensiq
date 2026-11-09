@@ -116,7 +116,7 @@ test("crowd.js / crowd.html: hour heatmaps, peak report, 15-min table, marketing
   assert.match(js, /ZC\.downloadCsv\(`lensiq-crowd-marketing-/, "marketing CSV goes through the BOM writer");
   assert.match(js, /C\.countQuality\(/);
   assert.match(html, /PRELIMINARY/); assert.match(html, /รอผลการนับโดยคน/); assert.match(html, /AI/);
-  for (const f of ["crowd.js?v=2", "lensiq-crowd.js?v=2", "crowd.css?v=2", "i18n/zh-crowd.js?v=2"]) assert.ok(html.includes(f), "cache-busted " + f);
+  for (const f of ["crowd.js?v=2", "lensiq-crowd.js?v=2", "crowd.css?v=2", "i18n/zh-crowd.js?v=3"]) assert.ok(html.includes(f), "cache-busted " + f);
   assert.match(read("crowd.css"), /html\.cr-print-peak/);
 });
 

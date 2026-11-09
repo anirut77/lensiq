@@ -330,5 +330,16 @@
   "attendance.hr.useH": "本年已用假期",
   "attendance.hr.useHint": "法定最低参考值：带薪病假每年最多 30 个工作日（第32、57条）· 事假至少 3 个工作日（第34条）· 工作满 1 年后年假至少 6 个工作日（第30条）——请核对公司的工作规章",
   "attendance.hr.empCsv": "导出该员工的记录（PDPA 查阅请求）",
-  "attendance.hr.normOver": "每周正常工作时间超过 48 小时（待核查）：{n} 人"
+  "attendance.hr.normOver": "每周正常工作时间超过 48 小时（待核查）：{n} 人",
+  "attendance.price.h": "员工考勤：已批准价目表（尚未开售）",
+  "attendance.price.stages": "试点阶段价格现在适用。试点达标后价格仅在工作场所通过试点中测得的门槛后适用。",
+  "attendance.p1.t": "免费",
+  "attendance.p1.p": "最多 5 人，PIN / 二维码打卡，1 台设备",
+  "attendance.p2.t": "标准版",
+  "attendance.p2.p": "每位活跃人员每月 ฿19（每月最低 ฿190）· 试点达标后 ฿29（最低 ฿290），不含 7% 增值税",
+  "attendance.p3.t": "设置协助（可选）",
+  "attendance.p3.p": "一次性 ฿2,900 · 试点达标后 ฿4,900（不含 7% 增值税）",
+  "attendance.p4.t": "多分店同步 / 云备份",
+  "attendance.p4.p": "暂不销售：需等待组织账户功能",
+  "attendance.price.note": "价格已批准，但尚未开售，不收取任何费用。所有价格均不含 7% 增值税（实付为价格 + 7%）。使用现有的手机或平板，无需购买设备。人脸打卡为可选项，需员工同意。"
 } });

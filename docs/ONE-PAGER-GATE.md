@@ -4,7 +4,7 @@
 
 > **อ่านป้ายแบบช่วย รปภ.**: ระบบเสนอเลขป้าย และ รปภ. แตะยืนยันทุกคัน ยังไม่ใช่การอ่านอัตโนมัติเต็มรูปแบบจนกว่าจะมีตัวหาป้ายที่ฝึกด้วยภาพป้ายไทย ผลกับภาพถ่ายจริง 51 ภาพ (ชุดข้อมูลสาธารณะ Wikimedia Commons): อ่านถูกทั้งป้ายโดยไม่ต้องแตะ 32% (7 / 22 · n = 22 · บางภาพอยู่ในชุดที่ใช้ปรับค่า จึงดีเกินจริง) และต้องแตะเลือกกรอบป้าย 78% (25 / 32 · n = 32) (`docs/GATE.md` §3c)
 
-> **ฉบับร่าง (DRAFT) — ราคาและเนื้อหารอเจ้าของอนุมัติ** ราคาในเอกสารนี้มาจาก `docs/PRICING-RESEARCH.md` §3.2 ยังไม่เปิดขาย
+> **ราคาที่อนุมัติแล้ว (ยังไม่เปิดขาย)** ราคาในเอกสารนี้มาจากรายการราคาที่เจ้าของอนุมัติ 2026-11-09 (`docs/PRICING-RESEARCH.md` §3.2) ยังไม่มีการเก็บเงิน
 
 ## ปัญหา
 - รปภ. จดเลขทะเบียนด้วยมือ ช้า อ่านผิด ตรวจย้อนหลังยาก
@@ -42,12 +42,12 @@
 ขั้น 0: ภาพมือถือของเจ้าของ ~100 ภาพ (`tools/plate-field-eval.mjs`) → ขั้น 1: ลานจอด 1 + หมู่บ้าน 1 อย่างน้อย 5 วัน ≥ 200 การอ่านจริง
 เกณฑ์ที่เสนอ: อ่านถูก ≥ 95% กลางวัน ≥ 85% กลางคืน ไม่มีค่าผิดที่บันทึกโดยไม่มีใครเห็น ตัดสินด้วยขอบล่าง Wilson 95% (เจ้าของตัดสินใจแล้ว 2026-11-09) และรายงานค่าเฉลี่ยธรรมดา (อ่านถูก k / n) คู่กันเสมอ — ที่จำนวนตัวอย่างตามแผน ต้องอ่านถูกจริงราว 98.8% กลางวัน และ 97.5% กลางคืน แผนและเช็กลิสต์: `docs/pilot/PILOT-GATE.md` §5
 
-## ราคา (ฉบับร่าง รอเจ้าของอนุมัติ — ยังไม่เปิดขาย ราคาไม่รวม VAT 7% ลูกค้าชำระราคา + 7% ไม่รวมอุปกรณ์)
+## ราคา (ราคาที่อนุมัติแล้ว ยังไม่เปิดขาย — ราคาไม่รวม VAT 7% ลูกค้าชำระราคา + 7% ไม่รวมอุปกรณ์)
 | แพ็กเกจ | ช่วงนำร่อง (ตอนนี้) | หลังผ่านเกณฑ์นำร่อง |
 |---|---|---|
 | ทดลองใช้ | ทดลองใช้ฟรี 30 วัน: 1 ช่องทาง อ่านได้ 100 ครั้ง/วัน เก็บบันทึก 7 วัน | ทดลองใช้ฟรี 30 วัน: 1 ช่องทาง อ่านได้ 100 ครั้ง/วัน เก็บบันทึก 7 วัน |
 | หมู่บ้าน / คอนโด | 490 บาท/เดือน/ช่องทาง ไม่รวม VAT 7% | 990 บาท/เดือน/ช่องทาง ไม่รวม VAT 7% · 1,990 บาท/เดือน (3 ช่องทาง) ไม่รวม VAT 7% |
-| ลานจอดรถ | 790 บาท/เดือน/ช่องทาง ไม่รวม VAT 7% | 1,490 บาท/เดือน/ช่องทาง ไม่รวม VAT 7% |
+| ลานจอดรถ (รวมพร้อมเพย์ ใบเสร็จ ปิดกะ ไม่มีค่าเสริม) | 790 บาท/เดือน/ช่องทาง ไม่รวม VAT 7% | 1,490 บาท/เดือน/ช่องทาง ไม่รวม VAT 7% |
 | ติดตั้งหน้างาน (มุมกล้อง แสง ตรวจความแม่นยำร่วมกัน) | 2,500 บาท/ครั้ง ไม่รวม VAT 7% | 3,000–5,000 บาท/ครั้ง ไม่รวม VAT 7% |
 
 เทียบตลาด (ซื้อขาด): กล้อง LPR อย่างเดียว 29,900 บาทขึ้นไป กล้องติดกับไม้กั้นที่มีอยู่ 55,000 บาท ชุดไม้กั้นพร้อมกล้อง 85,000 บาท (ราคาปกติ 115,000) ระบบแลกบัตรผู้มาติดต่อเริ่ม
@@ -60,7 +60,7 @@
 
 **ติดต่อ:** แบบฟอร์ม `index.html?interest=security#contact` · ชื่อบริษัท อีเมล และ LINE OA จะประกาศก่อนเปิดขาย (`LENSIQ_SELLER`)
 
-> **ต้นฉบับภายใน** (มีชื่อไฟล์ในระบบ) — ฉบับร่าง round 16 ราคาและข้อความรอเจ้าของอนุมัติก่อนส่งลูกค้า
+> **ต้นฉบับภายใน** (มีชื่อไฟล์ในระบบ) — round 16 ราคาเจ้าของอนุมัติแล้ว 2026-11-09 (ยังไม่เปิดขาย) ข้อความตรวจกับเจ้าของก่อนส่งลูกค้า
 
 ---
 
@@ -69,8 +69,8 @@
 ## LENSIQ Gate — a guard's assistant for Thai licence plates (villages, condos, car parks)
 
 It uses a phone, a laptop or an existing camera, with no LPR camera to buy. The system suggests the plate and the
-guard confirms every vehicle. **DRAFT: prices and text await owner approval** (`docs/PRICING-RESEARCH.md` §3.2, not on
-sale).
+guard confirms every vehicle. **Approved price list (not on sale yet)**: prices approved by the owner 2026-11-09
+(`docs/PRICING-RESEARCH.md` §3.2); nothing is charged yet.
 
 > **Assisted reading**: the system suggests the plate and the guard taps to confirm every vehicle. It is not fully automatic until a plate finder trained on Thai plates exists. On 51 real photos (public dataset, Wikimedia Commons): exact read with no tap 32% (7 / 22 · n = 22 · some photos are in the tuning set, so this is optimistic); a tap to pick the plate was needed in 78% (25 / 32 · n = 32) (`docs/GATE.md` §3c)
 
@@ -108,13 +108,13 @@ not as an automatic barrier.
   lower bound (owner decision, 2026-11-09), with the plain average (exact reads, k / n) always shown next to it. At the
   planned sample sizes this needs about 98.8% observed by day and 97.5% at night (`docs/pilot/PILOT-GATE.md` §5).
 
-**Price (DRAFT, awaiting owner approval; excl. 7% VAT, so the customer pays the price + 7%; hardware not included):**
+**Price (approved price list, not on sale yet; excl. 7% VAT, so the customer pays the price + 7%; hardware not included):**
 
 | Package | Pilot stage (now) | After pilot |
 |---|---|---|
 | Trial | free 30-day trial: 1 lane, 100 reads / day, logs kept 7 days | free 30-day trial: 1 lane, 100 reads / day, logs kept 7 days |
 | Village / condo | 490 THB / month per lane excl. 7% VAT | 990 THB / month per lane excl. 7% VAT; 1,990 THB / month for 3 lanes excl. 7% VAT |
-| Car park | 790 THB / month per lane excl. 7% VAT | 1,490 THB / month per lane excl. 7% VAT |
+| Car park (PromptPay, receipts and shift close included, no add-on) | 790 THB / month per lane excl. 7% VAT | 1,490 THB / month per lane excl. 7% VAT |
 | Set-up visit | 2,500 THB per visit excl. 7% VAT | 3,000–5,000 THB per visit excl. 7% VAT |
 
 Market comparison (`docs/PRICING-RESEARCH.md` §1A–1B):
@@ -128,4 +128,4 @@ prices (excl. VAT) is approximate by about 7%.
 
 **Contact:** `index.html?interest=security#contact`.
 
-> **Internal draft** (contains file names). Round 16. Prices and text await owner approval before they go to customers.
+> **Internal copy** (contains file names). Round 16. Prices approved by the owner 2026-11-09 (not on sale yet); the text is checked with the owner before it goes to customers.

@@ -2,7 +2,7 @@
 
 **ใช้มือถือหรือโน้ตบุ๊กที่มีกล้อง ประมวลผลบนเครื่อง ไม่จดจำใบหน้า ไม่เก็บภาพ — เหมาะกับฝูงชนเบาบางถึงปานกลาง**
 
-> **ฉบับร่าง (DRAFT) — ราคาและเนื้อหารอเจ้าของอนุมัติ** ราคาในเอกสารนี้มาจาก `docs/PRICING-RESEARCH.md` §3.3 ยังไม่เปิดขาย
+> **ราคาที่อนุมัติแล้ว (ยังไม่เปิดขาย)** ราคาในเอกสารนี้มาจากรายการราคาที่เจ้าของอนุมัติ 2026-11-09 (`docs/PRICING-RESEARCH.md` §3.3) ยังไม่มีการเก็บเงิน
 >
 > **ยังไม่เหมาะกับฝูงชนหนาแน่น** ฝูงชนราว 300 คนถูกนับได้ราว 1 คนต่อภาพ ห้ามใช้ตัดสินความปลอดภัยของฝูงชน
 
@@ -41,12 +41,14 @@
 ขั้น 0: คน 2 คนนับคลิปทดสอบเดิม (ผลสุดท้าย) + วัดเวลาบนมือถือระดับกลางจริง → ขั้น 1: ไซต์ 1–2 แห่ง (5–40 คนในภาพช่วงพีค) 2–3 วัน
 เทียบผู้นับ 2 คนทุก 5 นาที แผนและเช็กลิสต์: `docs/pilot/PILOT-CROWD.md`
 
-## ราคา (ฉบับร่าง รอเจ้าของอนุมัติ — ยังไม่เปิดขาย ราคาไม่รวม VAT 7% ลูกค้าชำระราคา + 7% ไม่รวมอุปกรณ์)
+## ราคา (ราคาที่อนุมัติแล้ว ยังไม่เปิดขาย — ราคาไม่รวม VAT 7% ลูกค้าชำระราคา + 7% ไม่รวมอุปกรณ์)
+ขายแบบวันงานและสัปดาห์งานก่อน แบบรายเดือนรอโครงการนำร่องที่พื้นที่ถาวร
+
 | แพ็กเกจ | ช่วงนำร่อง (ตอนนี้) | หลังผ่านเกณฑ์นำร่อง |
 |---|---|---|
 | วันงาน (1 กล้อง/เครื่อง) | 590 บาท/วัน ไม่รวม VAT 7% | 990 บาท/วัน ไม่รวม VAT 7% |
 | สัปดาห์งาน (7 วัน, 1 กล้อง) | 2,490 บาท ไม่รวม VAT 7% | 3,900 บาท ไม่รวม VAT 7% |
-| รายเดือน (พื้นที่ถาวร) | 290 บาท/เดือน/กล้อง ไม่รวม VAT 7% | 490 บาท/เดือน/กล้อง ไม่รวม VAT 7% |
+| รายเดือน (พื้นที่ถาวร) | ยังไม่ขาย จนกว่าโครงการนำร่องพื้นที่ถาวรผ่านเกณฑ์ (ราคาที่อนุมัติ 290 บาท/เดือน/กล้อง ไม่รวม VAT 7%) | 490 บาท/เดือน/กล้อง ไม่รวม VAT 7% |
 | ฝูงชนหนาแน่น (ประมาณ 50 คนขึ้นไปต่อภาพ) | ไม่ขาย | ไม่ขาย จนกว่าจะมีโมเดลที่ใบอนุญาตใช้เชิงพาณิชย์ได้และเจ้าของอนุมัติ |
 
 เทียบตลาด: เครื่องนับคนที่ประตู 7,900–19,900 บาท (ซื้อขาด) บริการรายเดือนต่างประเทศราว 290–315 บาทต่ออุปกรณ์ต่อเดือน
@@ -58,7 +60,7 @@
 
 **ติดต่อ:** แบบฟอร์ม `index.html?interest=marketing#contact` · ชื่อบริษัท อีเมล และ LINE OA จะประกาศก่อนเปิดขาย (`LENSIQ_SELLER`)
 
-> **ต้นฉบับภายใน** (มีชื่อไฟล์ในระบบ) — ฉบับร่าง round 16 ราคาและข้อความรอเจ้าของอนุมัติก่อนส่งลูกค้า
+> **ต้นฉบับภายใน** (มีชื่อไฟล์ในระบบ) — round 16 ราคาเจ้าของอนุมัติแล้ว 2026-11-09 (ยังไม่เปิดขาย) ข้อความตรวจกับเจ้าของก่อนส่งลูกค้า
 
 ---
 
@@ -67,8 +69,8 @@
 ## LENSIQ Crowd — people in a zone and entry / exit counts for booths, lobbies and event entrances
 
 It runs on a phone or laptop camera and processes on the device. It does no face recognition and keeps no images. It is
-for **sparse to medium crowds**. **DRAFT: prices and text await owner approval** (`docs/PRICING-RESEARCH.md` §3.3, not
-on sale). **Not yet suitable for dense crowds:** about 300 people were counted as about 1 per frame. Never use it for
+for **sparse to medium crowds**. **Approved price list (not on sale yet)**: prices approved by the owner 2026-11-09
+(`docs/PRICING-RESEARCH.md` §3.3); nothing is charged yet. **Not yet suitable for dense crowds:** about 300 people were counted as about 1 per frame. Never use it for
 crowd-safety decisions.
 
 **What you get:**
@@ -102,13 +104,14 @@ final figure is pending a human count).
 - Phase 0: a two-person human count of the existing clips (the final figure), plus timing on a real mid-range phone.
 - Phase 1: 1–2 sites with 5–40 people in view at peak, for 2–3 days, against two counters every 5 minutes.
 
-**Price (DRAFT, awaiting owner approval; excl. 7% VAT, so the customer pays the price + 7%; hardware not included):**
+**Price (approved price list, not on sale yet; excl. 7% VAT, so the customer pays the price + 7%; hardware not included).
+Event day and event week are sold first; the monthly level waits for a fixed-site pilot:**
 
 | Package | Pilot stage (now) | After pilot |
 |---|---|---|
 | Event day, 1 camera device | 590 THB / day excl. 7% VAT | 990 THB / day excl. 7% VAT |
 | Event week, 1 device | 2,490 THB excl. 7% VAT | 3,900 THB excl. 7% VAT |
-| Monthly, fixed site | 290 THB / month per device excl. 7% VAT | 490 THB / month per device excl. 7% VAT |
+| Monthly, fixed site | not sold until a fixed-site pilot passes (approved level: 290 THB / month per device excl. 7% VAT) | 490 THB / month per device excl. 7% VAT |
 | Dense crowds (about 50+ per view) | not sold | not sold until a model with a commercial-use licence is approved |
 
 Market comparison: door counters cost 7,900–19,900 THB one-off, and international subscriptions about 290–315 THB per
@@ -118,4 +121,4 @@ prices (excl. VAT) is approximate by about 7%.
 
 **Contact:** `index.html?interest=marketing#contact`.
 
-> **Internal draft** (contains file names). Round 16. Prices and text await owner approval before they go to customers.
+> **Internal copy** (contains file names). Round 16. Prices approved by the owner 2026-11-09 (not on sale yet); the text is checked with the owner before it goes to customers.

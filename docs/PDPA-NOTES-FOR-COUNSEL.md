@@ -1,6 +1,6 @@
 # PDPA notes for counsel — all LENSIQ products
 
-For the owner's lawyer (pre-sale review). Compiled from the source code and the per-feature notes, 2026-11-08 (round 14; section E added 2026-11-09, round 16).
+For the owner's lawyer (pre-sale review). Compiled from the source code and the per-feature notes, 2026-11-08 (round 14; section E added 2026-11-09, round 16; section F added 2026-11-09, round 17).
 **Not legal advice.** Each section says what the feature does, which personal data it touches, where the data lives,
 whether anything leaves the device, and the questions we need counsel to answer. The detailed records stay where they
 were: [`docs/pdpa/DPIA.md`](pdpa/DPIA.md) (risk assessment), [`docs/pdpa/ROPA.md`](pdpa/ROPA.md) (s.39 record),
@@ -27,6 +27,8 @@ controller only for its own website, member accounts, billing and the optional b
   C5 answer-sheet grader (OMR) · C6 auspicious-date planner · C7 lucky-colour mirror · C8 device adapters (design only)
 - **E. Round 16** — E1 customer mode and the research-demo toggle · E2 Gate plate check and the owner photo set ·
   E3 organisation accounts (design only — the main PDPA change)
+- **F. Round 17** — F1 Product Check + AI Gateway (design approved; cloud AI providers, image mode, cross-border
+  processing, Thai FDA data)
 - **D. Questions that cut across products**
 
 ---
@@ -561,6 +563,85 @@ are linked to a person; review the consent design before any adapter is built.
   visitor names stay on the device; only the org owner can switch sync on. DPIA delta R38–R47 (10 risks, all medium
   before measures, low after — depending on counsel's answers). The 16 questions for counsel are in §10 of the design.
 - Nothing is built; the owner approves the design and counsel reviews §9–10 first.
+
+## F. Round 17
+
+### F1. Product Check + AI Gateway (`medicine.html` new tab; design: `docs/PRODUCT-CHECK-DESIGN.md`)
+
+**Status.** The owner approved the design on 2026-11-09 and it is being built (P0–P9) **for testing; LENSIQ is not
+charging yet.** Counsel reviews this section, and the running list in `docs/CTO-BRIEF.md` §8, **before charging starts.**
+Not legal advice.
+
+#### What the feature does
+
+- The user points the camera at a medicine, supplement, cosmetic or food pack (any country). On the device: image quality
+  check, product crop, barcode / QR / GS1 reading, OCR, registration-number parsing and a rule-based over-claim check.
+- The card lists **risk signals and how to verify them**: never "genuine" or "fake", never dosing advice, always
+  "Not a definitive identification. Confirm with a pharmacist" with the 1669 / 1367 lines.
+- Optional official lookups go through the LENSIQ Worker as **text only** (registration number or name): Thai FDA web
+  service, openFDA, Health Canada, Singapore HSA, EU Safety Gate, RASFF and others (design §4).
+- Optional cloud AI (structured fields, claim classifier, translation) goes through the **AI Gateway** (design §10).
+
+#### What changed on approval (owner decisions, design §15)
+
+- **PC-D1:** image mode (a product crop) is approved as an explicit exception to the "only derived facts are sent" rule,
+  for Product Check only.
+- **PC-D2:** **every AI provider is enabled in every build**: Anthropic (US / global routing), Google Gemini (paid tier
+  only; no residency), OpenAI (processing outside Thailand), Alibaba Model Studio (Singapore), **DeepSeek (China; its
+  privacy policy says data is stored in the PRC and may be used for training)**, z.ai (Singapore), Kimi (region not
+  verified) and OpenRouter (a second processor that routes to another provider). The admin can switch any provider off.
+- **PC-D9:** image mode is allowed after **one consent per user**, with an unticked "remember my choice" option that the
+  user can withdraw at any time; text only stays a choice and is the fallback; product crop only; the upload is blocked
+  if a face is detected (the detector fails closed); a pharmacy dispensing label (patient name, HN) is blacked out
+  before upload.
+- **Owner rule kept:** the consent screen always names the provider actually used and the country where the data is
+  processed, because the site is public. A remembered consent does not cover a provider or country not shown; the
+  screen appears again.
+- **Thai FDA data:** the web service is used for testing now; a permission letter to the Thai FDA is drafted
+  (`docs/legal/FDA-PERMISSION-REQUEST-TH.md`, not sent). WHO alerts: email drafted (`docs/legal/WHO-PERMISSION-REQUEST.md`).
+
+#### Personal data involved
+
+- **Product crop (image mode):** may show a hand, or a prescription label with a patient's name; the face gate and the
+  patient-name blackout reduce this, and their miss rate is measured before any claim (design §9).
+- **OCR text (text mode):** label text; a medicine query can reveal health information about the user (as for C4).
+- **Remembered consent:** a local flag in the browser (or on a member account when signed in); a consent flag travels
+  with each call.
+- **Gateway logs:** no images, text, prompts, IPs, user ids or emails (design §10.5). Nothing is stored on the server by
+  default; local history is opt-in.
+- **Thai FDA responses:** some licensees are natural persons; their names and addresses are dropped before the reply.
+
+#### Questions for counsel
+
+From the design (§15):
+
+1. Do the food, cosmetic and supplement advertising rules apply to packs and online listings, so that LENSIQ may label
+   wording as a "risk signal under <rule>"? What wording keeps LENSIQ out of defamation risk for brands?
+2. Commercial reuse of the Thai FDA SOAP data (no licence stated), and dropping natural-person licensee names. Please
+   review the draft letter `docs/legal/FDA-PERMISSION-REQUEST-TH.md` before it is sent.
+3. A curated, fact-only list built from Thai FDA press releases: allowed?
+4. Product crop images sent to a provider abroad: mechanism under PDPA s.28–29; a hand in frame; prescription labels.
+5. DeepSeek and the other Chinese providers: acceptable at all, and on what terms? (They are enabled now for testing.)
+6. Embeddings from LENSIQ's own photos of packs (Thai Copyright Act s.32–33).
+7. Obtaining photos of illegal products for the test set lawfully.
+8. Does Product Check make LENSIQ a medical-device software provider under Thai law or the EU MDR?
+
+Added on approval (all providers enabled, remembered consent):
+
+9. **Providers:** for each enabled provider (Anthropic, Google paid tier, OpenAI, Alibaba, DeepSeek, z.ai, Kimi,
+   OpenRouter), are its API terms acceptable for a commercial Thai service, which need a DPA or extra clauses, and is the
+   Google free tier correctly excluded? Is OpenRouter, as a second processor, acceptable, and must the routed provider
+   also be named?
+10. **Cross-border processing:** product crops and OCR text may be processed in the **US, Singapore or China**
+    depending on the provider. Which s.28–29 mechanism applies to each destination? Is explicit consent naming the
+    provider and the country enough for a public consumer site, and does health-related label text need s.26 explicit
+    consent?
+11. **Remember-my-choice consent:** is one consent per user with "remember my choice" (unticked by default) valid under
+    s.19 (freely given, specific, informed, as easy to withdraw as to give)? Is the withdraw control on every result
+    card and in settings enough? Must consent be asked again after a set period?
+12. **Consent texts:** please review the TH / EN / ZH texts of the AI consent screen (provider, country, what is sent,
+    retention line, remember / withdraw) once drafted in P7 (`docs/pdpa/consent-texts.md`).
+13. **Privacy notice:** the AI providers become recipients; confirm the wording to add to `privacy.html` / `terms.html`.
 
 ---
 

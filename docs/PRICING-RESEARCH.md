@@ -1,8 +1,12 @@
-# Pricing research and draft price levels: Exam, Gate, Crowd, Attendance
+# Pricing research and approved price levels: Exam, Gate, Crowd, Attendance
 
-> **DRAFT — awaiting owner approval (ร่าง รอเจ้าของอนุมัติ).** Nothing in this file is on sale. `pricing.html`, the D1
-> `plans` table, `docs/BILLING-PLAN.md` and the product pages are **unchanged**. Once the owner approves (or changes) the levels in
-> section 3, the integrator moves them into the product pages and the billing plan in a separate commit.
+> **APPROVED price list, not on sale yet (ราคาที่อนุมัติแล้ว ยังไม่เปิดขาย).** The owner approved the pilot-stage and
+> after-pilot levels in section 3 on 2026-11-09 (open questions 1–6, section 4). Nothing is sold yet: there is no
+> checkout, no plan in the D1 `plans` table and no migration for these lines, and `pricing.html` (consumer checkout,
+> VAT-inclusive) is unchanged. The approved levels are shown on `exam.html`, `gate.html`, `crowd.html` and
+> `attendance.html` (TH / EN / ZH, labelled "approved price list, not on sale yet"), in the four one-pagers and in
+> `docs/BILLING-PLAN.md` §4.1. Bundles and the installer partner programme built from these levels:
+> `docs/SALES-PACKAGES.md` (DRAFT).
 >
 > Round 16, item 6. Researched 2026-11-09 (all prices were read on that date unless a page gives its own date). Prices
 > are in THB. "One-off" = paid once (hardware, lifetime licence); "monthly" = recurring.
@@ -11,7 +15,7 @@
 > (`ONE-PAGER-EXAM/GATE/CROWD/ATTENDANCE.md`) is quoted **excluding VAT** and carries the label "excl. 7% VAT"
 > ("ไม่รวม VAT 7%"). The customer total is the figure + 7% (e.g. 490 THB excl. 7% VAT = 524.30 THB to pay). The
 > numbers themselves are unchanged from the earlier draft; only their basis changed. Free / 0 THB items carry no label.
-> **Live product aligned 2026-11-09 (owner approval):** `gate.html` and `exam.html` (TH / EN / ZH) and
+> **Live product aligned 2026-11-09 (owner approval):** `gate.html`, `exam.html`, `crowd.html` and `attendance.html` (TH / EN / ZH) and
 > `docs/BILLING-PLAN.md` §1.4 / §4.1 now say "excl. 7% VAT" for the B2B lines. Not changed: the self-serve checkout
 > plans (BILLING-PLAN §3, pricing.html, `ONE-PAGER-RETAIL.md` / `ONE-PAGER-FORTUNE.md`) stay VAT-inclusive, because
 > that is the amount actually charged; changing them changes what customers pay (separate owner decision). If the seller is not VAT-registered there is no VAT line (BILLING-PLAN §5).
@@ -26,9 +30,9 @@
 - **What was not possible:** most Thai B2B vendors (LPR integrators, village / condo platforms such as Silverman,
   TheLivingOS, COMVISITOR and WAC; Proctorio; Honorlock) do **not** publish prices and only quote on request. They are listed
   as "quote only", not guessed. Retail promotion prices change often, and some listings are 1–3 years old.
-- **USD figures** are converted at an **assumed 33 THB per USD, for comparison only**. Check the rate on the day before
-  using any of them.
-- **The rule this draft follows** (owner working rules): *prices must match what is actually measured.* The field
+- **USD figures** are converted at **33 THB per USD (owner decision 2026-11-09, open question 6), for comparison
+  only**. Recheck the rate on the day of any quotation that uses them.
+- **The rule these prices follow** (owner working rules): *prices must match what is actually measured.* The field
   accuracy of all four products is **not measured** yet (no pilot), so every proposal has a **pilot-stage price**. A
   higher price applies only once a site has passed its pilot thresholds (`docs/pilot/PILOT-*.md`).
 
@@ -118,7 +122,13 @@ No Thai vendor publishes a price for **event / crowd density** counting (per eve
 | **Crowd** | Door counters 7,900–19,900 THB one-off per door; international subscriptions ≈ 290–315 THB per device per month | Zone / line / "people in view" on a phone or laptop camera. Sparse and medium scenes only | Undercount 26–59 % on sparse / medium public clips (n = 12–20 frames per clip, 4 clips); **not yet suitable for dense crowds** (≈ 300 people counted as ≈ 1 per frame); preliminary AI reference; field **not measured** (`docs/CROWD-ACCURACY.md`) |
 | **Attendance** | Cloud apps 25–60 THB per user per month (flat 5,000+ for small firms at TikTrack); devices 2,699–10,700 THB | PIN / QR check-in by default, face optional on the device (consent); shifts, OT, payroll CSV; no cloud sync yet (item 4) | Face, public datasets: Asian (held out, not perfectly blind: `ACCURACY.md` disclosure) 66–76 % (n = 500 people × 5 photos), strangers auto-checked-in ≤ 0.03 %; real workplace **not measured** (`ACCURACY.md` §2) |
 
-## 3. Proposed price levels — **DRAFT, awaiting owner approval**
+## 3. Price levels — **APPROVED by the owner 2026-11-09 (not on sale yet)**
+
+The levels below were approved as drafted (open question 1). Decisions 2–5 set how they are sold: Exam offers both
+units (per candidate for computer rooms / online, per room for halls); the Gate car-park price includes PromptPay,
+receipts and shift close; Crowd sells event day and event week first, and the monthly level waits for a fixed-site
+pilot; Attendance keeps a free tier up to 5 people. "Approved" means the price list is fixed; it does **not** mean the
+products are on sale (no checkout, no plan migration).
 
 Two stages for every product:
 
@@ -135,20 +145,22 @@ Yearly = 10 × monthly (BILLING-PLAN rule).
 
 ### 3.1 LENSIQ Exam
 
-The "after pilot" column is the **current draft on `exam.html` and BILLING-PLAN §4.1, unchanged**. This draft only
-adds a lower pilot-stage column next to it.
+The "after pilot" column keeps the earlier `exam.html` draft numbers; the pilot-stage column is lower. **Unit (owner
+decision 2026-11-09, question 2): both are offered** — per candidate for computer rooms / online exams, per room for
+exam halls with cameras. `exam.html` shows both stages since 2026-11-09.
 
-| Level | Pilot stage (now) | After pilot (thresholds in `docs/pilot/PILOT-EXAM.md` met) = current draft |
+| Level | Pilot stage (now) | After pilot (thresholds in `docs/pilot/PILOT-EXAM.md` met) |
 |---|---|---|
 | Field pilot (1 institution, ≤ 4 weeks, ≤ 3 rooms) | **free** (in exchange for the invigilator tallies) | — |
+| Free trial (on the device, as shown on `exam.html`) | **free: 1 room, 10 seats** | free: 1 room, 10 seats |
 | Computer room / online, per candidate (Mode B, `exam-lab.html`) | **10 THB per candidate per exam excl. 7% VAT** (minimum 300 THB per exam session excl. 7% VAT) | 15–30 THB per candidate per exam excl. 7% VAT |
-| Computer room / online, monthly lab package (`exam_lab`) | **990 THB / month per lab excl. 7% VAT** (the low end of the current draft) | 990–1,490 THB / month excl. 7% VAT |
+| Computer room / online, monthly lab package (`exam_lab`) | **990 THB / month per lab excl. 7% VAT** (the low end of the after-pilot range) | 990–1,490 THB / month excl. 7% VAT |
 | Exam hall with cameras, per day (Mode A, `exam-hall.html`, up to 3 camera devices per room) | **290 THB per room per exam day excl. 7% VAT** | 300–600 THB per room per exam day excl. 7% VAT |
 | Exam hall with cameras, monthly | **990 THB / month per room excl. 7% VAT** | 1,990 THB / month per room excl. 7% VAT |
 | Institution licence (unlimited rooms, invigilator training) | **from 19,900 THB / year excl. 7% VAT** (≤ 1,000 candidates) | 30,000–120,000 THB / year excl. 7% VAT by size |
 
-**Changes from the current drafts (`exam.html`, BILLING-PLAN §4.1):** none in the "after pilot" numbers (their basis is
-now excl. 7% VAT; `exam.html` and BILLING-PLAN §4.1 carry the label since 2026-11-09). The only new
+**Changes from the earlier page draft (`exam.html`, BILLING-PLAN §4.1):** none in the "after pilot" numbers (their basis is
+now excl. 7% VAT). The only new
 numbers are the pilot-stage prices (10 THB excl. 7% VAT, 990 THB / month per lab excl. 7% VAT, 290 THB / day excl. 7%
 VAT, 990 THB / month per room excl. 7% VAT, 19,900 THB / year excl. 7% VAT) and the free field pilot. *(An earlier
 version of this file narrowed the after-pilot column, then quoted VAT-inclusive, to 15–20 THB, 390–490 THB, 1,490 /
@@ -159,7 +171,7 @@ proctoring licences (≈ 196 THB per student per course, X2, a North-American pr
 and excludes the LockDown Browser licence). LENSIQ Exam does not replace an invigilator, and its accuracy is **not
 measured**. The pilot-stage price is therefore a small add-on to an exam session: 10 THB × 40 candidates = 400 THB excl. 7% VAT per
 session, less than one invigilator-hour. The monthly packages at pilot stage sit at (lab) or below (hall) the low end
-of the current draft for the same reason. The current draft becomes payable only once a site's per-signal precision
+of the after-pilot range for the same reason. The after-pilot price becomes payable only once a site's per-signal precision
 has been measured and has passed `docs/pilot/PILOT-EXAM.md`.
 
 ### 3.2 LENSIQ Gate
@@ -168,7 +180,7 @@ has been measured and has passed `docs/pilot/PILOT-EXAM.md`.
 |---|---|---|
 | Trial | **free 30-day trial: 1 lane, 100 reads / day, logs kept 7 days** | free 30-day trial: 1 lane, 100 reads / day, logs kept 7 days |
 | Village / condo guard post (`village.html`) | **490 THB / month per lane excl. 7% VAT** | 990 THB / month per lane excl. 7% VAT; 1,990 THB / month for 3 lanes excl. 7% VAT |
-| Car park (`parking.html`: fees, stamps, PromptPay, receipts, shift close) | **790 THB / month per lane excl. 7% VAT** | 1,490 THB / month per lane excl. 7% VAT |
+| Car park (`parking.html`: fees, stamps, PromptPay, receipts, shift close — **all included, no add-on**, decision 3) | **790 THB / month per lane excl. 7% VAT** | 1,490 THB / month per lane excl. 7% VAT |
 | Set-up visit (camera angle, light, joint accuracy check) | **2,500 THB per visit excl. 7% VAT** | 3,000–5,000 THB per visit excl. 7% VAT |
 | Hardware | not sold: the customer's phone / laptop / IP camera; LENSIQ does not sell or drive barriers in this stage | barrier / relay integration: quotation |
 
@@ -183,8 +195,8 @@ Reasoning: dedicated LPR hardware costs, one-off, from 29,900 THB for a camera o
 fitted to an existing barrier (G2), and 85,000 THB for a full barrier kit (G1, list 115,000). Visitor software costs
 from 300 THB / month (V1). LENSIQ Gate is a **guard assistant**, not an automatic barrier. On public photos, 78 % of plates still needed a
 tap and 32 % were read exactly automatically, and the field figure is not measured. The pilot-stage price
-(490 THB per lane excl. 7% VAT) sits in the range of visitor-pass software, not LPR hardware. The page draft (990 / 1,990 /
-1,490 THB excl. 7% VAT) becomes the "after pilot" price, which needs a site to show ≥ 95 % exact reads in good light and 0 silent
+(490 THB per lane excl. 7% VAT) sits in the range of visitor-pass software, not LPR hardware. The earlier page figures (990 / 1,990 /
+1,490 THB excl. 7% VAT) become the "after pilot" price, which needs a site to show ≥ 95 % exact reads in good light and 0 silent
 wrong saves.
 
 ### 3.3 LENSIQ Crowd
@@ -193,7 +205,7 @@ wrong saves.
 |---|---|---|
 | Event day (1 camera device, sparse / medium areas, density estimate) | **590 THB per device per day excl. 7% VAT** | 990 THB per device per day excl. 7% VAT |
 | Event week (7 days) | **2,490 THB per device excl. 7% VAT** | 3,900 THB per device excl. 7% VAT |
-| Monthly (zone / line monitoring at a fixed site) | **290 THB / month per device excl. 7% VAT** | 490 THB / month per device excl. 7% VAT |
+| Monthly (zone / line monitoring at a fixed site) — **not sold until a fixed-site pilot has passed** (decision 4) | 290 THB / month per device excl. 7% VAT (approved, held back) | 490 THB / month per device excl. 7% VAT |
 | **Dense crowds (≈ 50+ people in view, concerts, crossings)** | **not sold** | not sold until a density model with a clean licence is approved (`docs/CROWD-DENSITY-MODELS.md`) |
 
 Reasoning: dedicated door counters cost 7,900–19,900 THB one-off per door (P1–P4), and international subscriptions run
@@ -206,7 +218,7 @@ existing Event Day Pass (3,900 THB per day, booth + photobooth bundle, BILLING-P
 
 | Level | Pilot stage (now) | After pilot (thresholds in `docs/pilot/PILOT-PLAN.md` §3.2 + payroll check met) |
 |---|---|---|
-| Free | **up to 5 people**, PIN / QR, 1 device | up to 5 people |
+| Free (approved, decision 5) | **up to 5 people**, PIN / QR, 1 device | up to 5 people |
 | Standard (shifts, OT, holidays, payroll CSV, PIN / QR; face optional with consent) | **19 THB per active person / month excl. 7% VAT** (minimum 190 THB / month excl. 7% VAT) | 29 THB per active person / month excl. 7% VAT (minimum 290 THB / month excl. 7% VAT) |
 | Set-up help (shift tables, payroll CSV mapping, DPIA template filled with the client) | **2,900 THB one-off excl. 7% VAT** (optional) | 4,900 THB one-off excl. 7% VAT |
 | Multi-branch sync, cloud backup | not sold: needs organisation accounts (item 4, design awaiting approval) | quotation after item 4 |
@@ -217,16 +229,17 @@ services that LENSIQ does not have yet. LENSIQ has no cloud sync yet (item 4 is 
 about 20 people × 2 years per device (`docs/ATTENDANCE-READINESS.md`, so the target is shops and companies with 5–20
 staff), and face check-in has no workplace measurement. The pilot-stage price is therefore below the cheapest comparable (TimeMint Bio, 25 THB as the page shows it), also
 with VAT added (19 THB excl. 7% VAT = 20.33 THB to pay). The "Training / attendance 9,900 setup" line in BILLING-PLAN §4
-(VAT-inclusive there) would drop to 2,900–4,900 THB excl. 7% VAT if this draft is approved.
+(VAT-inclusive there) is for training check-in; employee attendance set-up is the approved 2,900 / 4,900 THB excl. 7% VAT
+line above (BILLING-PLAN §4 / §4.1 updated 2026-11-09).
 
 ## 4. Open questions for the owner
 
-1. Approve, change or reject each level in section 3 (pilot stage and after pilot).
-2. Exam: charge per candidate (simpler for schools) or per room (simpler for exam halls)? Both are drafted.
-3. Gate: should the car-park price include the PromptPay / receipt features, or should they be an add-on?
-4. Crowd: sell only event days at first (the "monthly" level needs a fixed-site pilot)?
-5. Attendance: is a free tier for up to 5 people acceptable while there is no cloud sync?
-6. Confirm the exchange rate to use for the USD comparisons (33 THB per USD assumed here).
+1. **Levels.** **Decided 2026-11-09:** the pilot-stage and after-pilot levels in section 3 are approved as drafted.
+2. **Exam unit.** **Decided 2026-11-09:** offer both — per candidate for computer rooms / online, per room for halls.
+3. **Gate car park.** **Decided 2026-11-09:** PromptPay, receipts and shift close are included in the car-park price.
+4. **Crowd.** **Decided 2026-11-09:** sell event day and event week first; the monthly level waits for a fixed-site pilot.
+5. **Attendance.** **Decided 2026-11-09:** free tier up to 5 people approved.
+6. **Exchange rate.** **Decided 2026-11-09:** use 33 THB per USD; recheck the rate when quoting.
 7. **VAT basis.** **Decided 2026-11-09:** prices are shown excluding VAT, with "excl. 7% VAT" ("ไม่รวม VAT 7%") on every
    price; the numbers are unchanged, so the customer pays the figure + 7%. Applied to section 3 and the four one-pagers.
    Live gate.html / exam.html and BILLING-PLAN §1.4 / §4.1 aligned 2026-11-09. Still open: the self-serve checkout plans (BILLING-PLAN §3, pricing.html, `ONE-PAGER-RETAIL.md` / `ONE-PAGER-FORTUNE.md`) stay
@@ -242,12 +255,20 @@ with VAT added (19 THB excl. 7% VAT = 20.33 THB to pay). The "Training / attenda
 
 ## 5. Changelog
 
+- 2026-11-09 (round 16, S56, owner decisions on questions 1–6): section 3 levels **approved** as drafted; the file is
+  now the approved price list (not on sale yet) and the outdated "DRAFT, product pages unchanged" header is replaced.
+  Exam sold per candidate (computer room / online) and per room (halls); Gate car-park price includes PromptPay,
+  receipts and shift close; Crowd sells event day / week first, monthly held until a fixed-site pilot; Attendance free
+  tier up to 5 people; 33 THB per USD, recheck when quoting. Applied to `exam.html`, `gate.html`, new price sections on
+  `crowd.html` and `attendance.html` (TH / EN / ZH), the four one-pagers and BILLING-PLAN §4 / §4.1. New:
+  `docs/SALES-PACKAGES.md` (DRAFT: institution bundle, installer partner programme).
+
 - 2026-11-09 (round 16, S56, owner decisions on questions 7–9): every LENSIQ price in section 3 and the four one-pagers is
   now quoted excluding VAT with the label "excl. 7% VAT" / "ไม่รวม VAT 7%" (numbers unchanged; customer total = figure
   + 7%; live gate.html / exam.html and BILLING-PLAN §4.1 aligned; checkout plans stay VAT-inclusive). Gate trial: the permanent free tier becomes a free
   30-day trial (1 lane, 100 reads / day, 7-day logs); the live gate.html text says so (no timer in code). Gate pilot targets
   judged on the Wilson 95 % bound with the observed rate (k / n) shown beside it (PILOT-GATE §5, field-pilot-metrics).
-  Questions 1–6 stay open; the price levels remain a DRAFT.
+  Questions 1–6 stay open; the price levels remain a DRAFT (superseded by the entry above).
 - 2026-11-09 (round 16, S56, review fixes): VAT basis made explicit (section 3 is VAT-inclusive, as BILLING-PLAN;
   open question 7). Gate trial restored to the existing free tier (1 lane, 100 reads / day, 7-day logs, no time limit;
   open question 8). Gate market figures corrected to the sourced rows (29,900 camera only / 55,000 camera on an existing

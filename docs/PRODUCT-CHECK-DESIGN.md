@@ -1,6 +1,9 @@
 # Product Check + AI Gateway: design (round 17, step 2)
 
-> **Status: DESIGN ONLY. No code is written and nothing is deployed.** Building starts only after the owner approves it.
+> **Status: APPROVED 2026-11-09 — building (P0–P9).** The owner approved this design on 2026-11-09; the decisions are
+> recorded in section 15. LENSIQ is not charging yet: everything is built fully for testing, and the legal review
+> (running list in `docs/CTO-BRIEF.md` §8) happens before charging starts. P0 (docs, letters, counsel notes) is done;
+> nothing is deployed. Org accounts P1–P3 follow after Product Check is complete.
 > This document is not legal advice. Every legal point is a **risk signal** for counsel to confirm, not a finding.
 > Written 2026-11-09 from the current code (`medicine.html`, `medicine.js`, `lensiq-med.js`, `backend/src/med.js`,
 > `backend/src/fortune.js`, `settings.js`, `quota.js`, `util.js`, `checkout.js`, `lensiq-plate.js`) and three research
@@ -22,32 +25,43 @@
   - อ่านตัวอักษรหลายภาษา (PP-OCRv5 ใบอนุญาต Apache-2.0)
   - ตรวจรูปแบบเลขทะเบียน
   - ตรวจคำโฆษณาเกินจริงด้วยชุดกฎ
+- **สถานะ:** เจ้าของอนุมัติแล้ว 9 พ.ย. 2569 กำลังสร้าง P0–P9 ยังไม่เก็บเงิน จึงสร้างครบทุกอย่างเพื่อทดสอบก่อน
+  และให้ทนายตรวจก่อนเริ่มเก็บเงิน (รายการที่ต้องส่งทนายอยู่ใน `docs/CTO-BRIEF.md` ข้อ 8) P0 เสร็จแล้ว
+  ลำดับงาน: Product Check + AI Gateway ก่อน แล้วจึงทำบัญชีองค์กร P1–P3
 - **ขั้นคลาวด์:**
-  - ใช้โมเดลภาษาและภาพผ่าน AI Gateway เป็นทางเลือกที่ผู้ใช้ต้องกดยินยอมทุกครั้ง
-  - ค่าเริ่มต้นส่ง**เฉพาะข้อความที่อ่านได้** ส่งภาพครอปสินค้าเฉพาะเมื่อผู้ใช้เลือก และระบบบล็อกการส่งถ้าตรวจพบใบหน้า
+  - ใช้โมเดลภาษาและภาพผ่าน AI Gateway เป็นทางเลือกที่ผู้ใช้ต้องกดยินยอม
+  - โหมดข้อความ (ส่งเฉพาะข้อความที่อ่านได้) ยังเป็นตัวเลือกและเป็นทางสำรองเสมอ
+  - โหมดภาพ: ส่งภาพครอปสินค้าได้หลังผู้ใช้ยินยอมหนึ่งครั้ง มีตัวเลือก "จำการเลือกของฉัน"
+    ซึ่งผู้ใช้ถอนได้ทุกเมื่อ ส่งเฉพาะภาพครอปสินค้า และระบบบล็อกการส่งถ้าตรวจพบใบหน้า
+  - หน้ายินยอมระบุชื่อผู้ให้บริการที่ใช้จริงและประเทศที่ประมวลผลข้อมูล (เพราะเว็บไซต์เปิดสาธารณะ)
   - ไม่เก็บอะไรเป็นค่าเริ่มต้น
 - **แหล่งข้อมูลไทย:**
   - เว็บเซอร์วิสของ อย. มีบริการค้นยา อาหาร เครื่องสำอาง สมุนไพร และเครื่องมือแพทย์ ผู้วิจัยเรียกใช้จริงเมื่อ 9 พ.ย. 2569 ได้ผลกับเลขอาหาร เครื่องสำอาง สมุนไพร เครื่องมือแพทย์ และใบอนุญาตโฆษณา บริการอื่นยังไม่ได้ทดสอบ
-  - แต่ไม่มีการระบุใบอนุญาตใช้ข้อมูล จึงต้อง**ขออนุญาตเป็นลายลักษณ์อักษรจาก อย. ก่อนขาย**
+  - ไม่มีการระบุใบอนุญาตใช้ข้อมูล เจ้าของตัดสินใจให้**ใช้เว็บเซอร์วิสเพื่อทดสอบได้เลย**
+    และ**ส่งหนังสือขออนุญาตถึง อย. ก่อนเริ่มเก็บเงิน** (ร่างไว้ที่ `docs/legal/FDA-PERMISSION-REQUEST-TH.md`)
   - ไม่มีรายการสินค้าผิดกฎหมายของไทยที่ดาวน์โหลดได้
 - **AI Gateway:**
   - ระบบกลางสำหรับทุกฟีเจอร์ AI เปิดปิดได้ทั้งระบบและรายฟีเจอร์
   - เลือกผู้ให้บริการและโมเดลต่อฟีเจอร์ พร้อมลำดับสำรองเมื่อผู้ให้บริการล่ม
+  - ผู้ให้บริการ**ทุกราย**เปิดในรายการอนุญาตทุกบิลด์ รวมผู้ให้บริการจีนและ OpenRouter ผู้ดูแลระบบปิดรายใดก็ได้
+    (ความเสี่ยงของ DeepSeek เรื่องเก็บข้อมูลในจีนและอาจนำไปฝึกโมเดล ยังอยู่ในรายการให้ทนายตรวจ)
   - ตั้งงบรายเดือนและจำกัดจำนวนครั้งต่อผู้ใช้ได้
   - คีย์ API อยู่เป็นความลับบนเซิร์ฟเวอร์เท่านั้น
-  - ค่าเริ่มต้นของการติดตั้งใหม่คือ AI ปิด
+  - ค่าเริ่มต้นของการติดตั้งใหม่คือ AI ปิดทั้งระบบ จนกว่าผู้ดูแลจะเปิด
 - **ค่าใช้จ่ายต่อการตรวจหนึ่งครั้ง** (ราคาประกาศ ยังไม่รวมโทเค็นการคิด):
   - โหมดภาพ: ราว 0.02–0.07 บาท สำหรับโมเดลราคาถูก (Claude Haiku 5.5, GPT-6-luna, Qwen, DeepSeek-flash, Gemini 3.5 Flash-Lite)
-  - โหมดข้อความ (ค่าเริ่มต้น) ถูกกว่าโหมดภาพราว 15–25%
+  - โหมดข้อความถูกกว่าโหมดภาพราว 15–25%
   - ถึงราว 0.7 บาท สำหรับ Claude Opus 5.5
   - โมเดลเริ่มต้นต้องเลือกจาก**ผลวัดจริง**บนชุดทดสอบ 300 ภาพ ไม่ใช่จากราคา
 - **สิ่งที่เจ้าของต้องเตรียม** (ข้อ 13):
   - คีย์ API ใส่เองผ่าน `wrangler secret put`
   - งบประมาณรายเดือน
   - ภาพสินค้าจริงอย่างน้อย 300 ภาพ ห้ามมีคน
-  - หนังสือขออนุญาตใช้ข้อมูล อย.
+  - ลงชื่อและส่งหนังสือขออนุญาตถึง อย. และอีเมลถึง WHO (ร่างเสร็จแล้วใน `docs/legal/`) ก่อนเริ่มเก็บเงิน
   - เภสัชกรที่ปรึกษา
-- **ระยะเวลาโดยประมาณ:** 7–10 สัปดาห์ แบ่งเป็น 10 ช่วง (ข้อ 12) เริ่มจากชุดทดสอบก่อนสร้างเสมอ
+- **ระยะเวลาโดยประมาณ:** 7–10 สัปดาห์ แบ่งเป็น 10 ช่วง (ข้อ 12) ทุกช่วงมีชุดทดสอบคงที่ก่อนสร้าง
+  ผู้ตรวจอิสระวัดซ้ำ และตัวเลขจริงต่อช่วง
+- **กฎอาหาร:** ปรับให้ตรงกับประกาศโฆษณาอาหารฉบับ 2569 ใน P1
 
 ## 0. Fixed coverage list (written before the design)
 
@@ -69,6 +83,12 @@ The design is complete only when every row has an answer here. Rows come from th
 | C5 | Evaluation tool: same fixed set against every configured model; default model chosen from the numbers | 10.7 |
 | C6 | No provider-specific logic outside adapters | 10.3 |
 | D | Cost per check per model, effort per phase, risks, what the owner provides | 11, 12, 14, 13 |
+| P0 | Owner decisions PC-D1–D10 recorded (approved 2026-11-09); Thai FDA and WHO request letters drafted; counsel notes and the legal-review running list updated | 15, 12, 13; `docs/legal/`; `docs/PDPA-NOTES-FOR-COUNSEL.md` F1; `docs/CTO-BRIEF.md` §8 |
+
+**Changed by the owner's approval (2026-11-09):** B5 / C4 now read "image mode after one consent per user, with
+remember-my-choice and withdraw; text only stays a choice and the fallback" (PC-D9), and the provider allowlist starts
+with every provider on, the admin can switch any one off (PC-D2). The consent screen still names the provider actually
+used and where data is processed (owner rule: the site is public).
 
 ## 1. What exists today (built on, nothing removed)
 
@@ -408,16 +428,29 @@ are already on the page.
 
 ### 8.2 Cloud step
 
-- **Off by default.** It needs the admin switch (10.2) **and** the user's consent on that device, every session.
-- **Default cloud mode is text only.** The on-device OCR text is sent, a derived fact, which fits the CLAUDE.md rule
-  "only derived facts are sent".
-- **Image mode is a separate opt-in for one check.**
-  - It sends **a crop of the product only**: the crop box is shown to the user first, and EXIF is stripped by re-encoding.
-  - The image is downscaled to at most 1,024 px on the long side.
-- **Owner decision PC-D1:** image mode sends an image, which is more than a derived fact. The owner's brief (B5)
-  approves a crop with a face block. This design records that as an explicit exception to the "derived facts only" rule,
-  limited to Product Check image mode. It also goes to `docs/PDPA-NOTES-FOR-COUNSEL.md`: a hand in frame, a prescription
-  label with a patient name, cross-border transfer.
+- **Off until switched on.** A new install has AI off (10.2). The cloud step needs the admin switch **and** the user's
+  consent (10.6). Nothing is sent before the consent screen has been accepted.
+- **Two modes, chosen by the user on the consent screen (owner decision PC-D9, 2026-11-09):**
+  - **Text only:** the on-device OCR text is sent, a derived fact, which fits the CLAUDE.md rule "only derived facts are
+    sent". It stays available as a choice at every check, and it is the **fallback** whenever image mode cannot run
+    (face detected, face detector not loaded, image mode switched off by the admin, consent withdrawn, provider without
+    vision).
+  - **Image mode:** allowed after **one consent per user**. The screen offers "remember my choice"; when ticked, later
+    checks use image mode without asking again. Without it, the user is asked again at the next session.
+  - **Per user** means per signed-in member account when the user is signed in, otherwise per browser profile on that
+    device (stored locally; nothing about the choice is sent to the server except a consent flag on each call, as fortune
+    does today).
+  - **Withdraw at any time:** a "Stop sending images" control sits on every result card and in the page settings. It
+    clears the remembered choice at once; the next check falls back to text only (or on-device only) and asks again.
+  - **The remembered consent is tied to the providers shown.** If the admin changes the chain so that a provider or
+    processing country not shown at consent time would be used, the remembered choice no longer applies and the consent
+    screen is shown again (10.6).
+  - Image mode sends **a crop of the product only**: the crop box is shown to the user first, and EXIF is stripped by
+    re-encoding. The image is downscaled to at most 1,024 px on the long side.
+- **Owner decision PC-D1 (approved 2026-11-09):** image mode sends an image, which is more than a derived fact. The owner
+  approved this as an explicit exception to the "derived facts only" rule, **limited to Product Check image mode**. It is
+  on the legal-review list (`docs/CTO-BRIEF.md` §8) and in `docs/PDPA-NOTES-FOR-COUNSEL.md` F1: a hand in frame, a
+  prescription label with a patient name, cross-border transfer, the remembered consent.
 - **Face gate (fails closed):**
   - The detector is MediaPipe BlazeFace (Apache-2.0, 0.23 MB) through the vendored `FaceDetector`.
   - It runs on the full frame and on the crop: short-range model, plus full-range or tiles for faces in the background.
@@ -507,8 +540,13 @@ browser feature ──► POST /v1/ai/<feature>  (Worker)
 | Per-user limit | per feature | e.g. 10 checks / day / user, 3 / minute |
 | Global rate limit | per feature | e.g. 60 / minute |
 | Max output tokens | per feature | 1,500 |
-| Image mode allowed | `pc_fields` only | off |
-| Provider allowlist (e.g. exclude providers whose terms counsel rejects) | global | Anthropic, Google, OpenAI on; Chinese providers and OpenRouter off until counsel |
+| Image mode allowed | `pc_fields` only | **on** (PC-D9): each user still gives their own consent (8.2); the admin can switch it off, and then every check runs text only |
+| Provider allowlist | global | **every provider on, in every build** (PC-D2): Anthropic, Google (paid tier only), OpenAI, Alibaba (Qwen), DeepSeek, z.ai, Kimi, OpenRouter. The admin can switch any provider off; an off provider is skipped in every chain and never shown on the consent screen |
+
+- **Allowlist and counsel (PC-D2):** all providers are on because LENSIQ is not charging yet and the build is for
+  testing. The provider terms, including **DeepSeek's PRC storage and possible training on inputs**, stay on the
+  legal-review list (`docs/CTO-BRIEF.md` §8) and must be cleared before charging starts. The Google adapter refuses a
+  key that is not on the paid tier (the free tier may train on inputs).
 
 - **When the budget or a limit is hit:** the gateway returns `{fallback:true, reason:"budget"}`. The page says, in all
   three languages, "AI checks are paused for this month; you are seeing the on-device result only".
@@ -585,7 +623,7 @@ claims_on_pack:[string], languages_on_pack:[string], unreadable:[field]}`.
 - **Existing D1 encrypted key path** (`settings.js setApiKey`, AES-GCM under `SECRETS_KEK`):
   - Kept, under the "never delete" rule, but marked legacy.
   - The gateway reads the Worker secret first.
-  - Owner decision PC-D4: switch the legacy path off by default.
+  - Owner decision PC-D4 (approved 2026-11-09): the legacy path is off by default.
 - **Calls:** every call goes through the Worker. The browser never talks to a provider, and the CSP `connect-src` stays
   `'self'` + the API origin.
 - **Log line per attempt:**
@@ -598,7 +636,13 @@ claims_on_pack:[string], languages_on_pack:[string], unreadable:[field]}`.
 
 ### 10.6 Consent screen
 
-- **Shown when:** before the first AI step in a session.
+- **Shown when:** before the first AI step in a session, unless the user ticked "remember my choice" (8.2) for the same
+  providers and processing countries. It is shown again whenever the chain would use a provider or country that was not
+  on the screen the user accepted, and after the user withdraws.
+- **Choices on the screen:** "text only" or "text + product photo (crop)", plus "remember my choice" (unticked by
+  default) with a line saying how to withdraw it.
+- **Owner rule (kept on approval, 2026-11-09):** because the site is public, the screen always names the provider that
+  will actually be used and the country where the data is processed. No build may hide either.
 - **Contents:**
   - the **provider and model that will actually be used** (the first in the chain, with "may fall back to <next>");
   - **where data is processed**, from the provider table (11), e.g. "Anthropic, USA (global routing)" or "Alibaba
@@ -613,7 +657,7 @@ claims_on_pack:[string], languages_on_pack:[string], unreadable:[field]}`.
 ### 10.7 Evaluation tool
 
 - **Command:** `tools/ai-eval.mjs` runs the fixed Product Check set (9.1) and the text set (5.3) against every configured
-  `{provider, model}`.
+  `{provider, model}`. **It covers all providers** in 11, Chinese providers and OpenRouter included (PC-D2).
   - It uses the **same gateway code**, either through a local Worker or the Worker test harness.
   - Keys come from the environment. The tool refuses to run in CI and never commits keys or images.
 - **Report** (per model):
@@ -639,7 +683,7 @@ claims_on_pack:[string], languages_on_pack:[string], unreadable:[field]}`.
 - **Reasoning tokens are extra:**
   - All current Claude models think by default (Haiku 5.5 and Opus 5.5 at effort medium; thinking cannot be switched off on Opus 5.5; Sonnet 5.5 is adaptive). Gemini 3.x and the other reasoning models are similar.
   - The real cost per model comes from the eval (10.7), not this table.
-- **Text-only mode (the default, 8.2):** cost = (800 prompt + about 600 OCR-text tokens) × input + 600 × output. This is only about **15–25 % less** than image mode, because output tokens dominate (table below the main table).
+- **Text-only mode (a user choice and the fallback, 8.2):** cost = (800 prompt + about 600 OCR-text tokens) × input + 600 × output. This is only about **15–25 % less** than image mode, because output tokens dominate (table below the main table).
 - **THB conversion:** at 33 THB / USD (the PRICING-RESEARCH assumption).
 
 | Provider | Model | Image in (verified) | JSON | In / out per 1M (USD) | Image tokens | Cost per check (USD) | ≈ THB | Retention / training (API) | Processing region | Notes |
@@ -655,13 +699,13 @@ claims_on_pack:[string], languages_on_pack:[string], unreadable:[field]}`.
 | OpenAI | gpt-6.1-sol | yes | native | 2 / 10 | ~1,229 | ~0.0101 | 0.33 | same | same | |
 | Alibaba Model Studio | qwen3-vl-plus | yes | supported (Singapore) | 0.20 / 1.60 | 963 | 0.0013 | 0.04 | "never used for training"; retention period not stated | Singapore (International scope not defined) | counsel |
 | Alibaba Model Studio | qwen3.7-plus | yes | supported in Singapore, not in US | 0.40 / 1.60 | 963 | 0.0017 | 0.06 | same | same | |
-| DeepSeek | deepseek-flash | yes (`deepseek-v4-pro` has no vision) | JSON mode; with images not documented | 0.30 / 1.20 peak; 0.15 / 0.60 off-peak | ≤ 1,024 | 0.0013 / 0.0006 | 0.04 / 0.02 | privacy policy: stored in the PRC, may train; API terms silent; PRC law | China | **highest PDPA risk; off until counsel** |
+| DeepSeek | deepseek-flash | yes (`deepseek-v4-pro` has no vision) | JSON mode; with images not documented | 0.30 / 1.20 peak; 0.15 / 0.60 off-peak | ≤ 1,024 | 0.0013 / 0.0006 | 0.04 / 0.02 | privacy policy: stored in the PRC, may train; API terms silent; PRC law | China | **highest PDPA risk; on for testing (PC-D2); counsel before charging** |
 | Zhipu z.ai | glm-4.6v | yes | prompt only (gateway validates) | 0.30 / 0.90 | not documented (~1,300 assumed) | ~0.0012 | 0.04 | DPA: does not store content | Singapore | price per check unverified |
 | Moonshot | kimi-k3 | yes | json_schema strict | **not verified** (third party: 3 / 15) | not published | ~0.015 | 0.50 | enterprise ZDR option | not verified | |
 | OpenRouter | many | per routed model | pass-through (`require_parameters`) | provider price, no markup; 5.5 % fee on credits | — | provider + 5.5 % | | `zdr:true` and `data_collection:"deny"` forced | depends on routed provider | adds a second processor |
 
 
-**Text-only mode (default) cost per check**, same prices, 1,400 input + 600 output tokens:
+**Text-only mode cost per check**, same prices, 1,400 input + 600 output tokens:
 
 | Model | USD | ≈ THB |
 |---|---|---|
@@ -723,21 +767,27 @@ Every phase follows the working rules:
 
 | Phase | Content | Effort | Depends on |
 |---|---|---|---|
-| P0 | Owner decisions PC-D1–D8 (15); request letters to Thai FDA / DGA (reuse of the SOAP data) and WHO (alerts); counsel notes | S (docs) | owner |
-| P1 | **Test sets first:** labelled text set (5.3, ≥ 400) and the photo set protocol + labelling sheet (9.1); read the 2569 food-advert notice and re-check F01–F17; pharmacist reviews the rule list | M | owner photos, pharmacist |
+| P0 | **Done 2026-11-09.** Owner decisions PC-D1–D10 recorded (15); request letters drafted: Thai FDA (`docs/legal/FDA-PERMISSION-REQUEST-TH.md`, reuse of the SOAP data) and WHO (`docs/legal/WHO-PERMISSION-REQUEST.md`, alerts), for the owner to send before charging; counsel notes (`docs/PDPA-NOTES-FOR-COUNSEL.md` F1); legal-review running list (`docs/CTO-BRIEF.md` §8) | S (docs) | owner |
+| P1 | **Test sets first:** labelled text set (5.3, ≥ 400) and the photo set protocol + labelling sheet (9.1); read the 2569 food-advert notice and **update F01–F18 to it** (owner decision 2026-11-09); pharmacist reviews the rule list | M | owner photos, pharmacist |
 | P2 | On-device: PP-OCRv5 det + CJK / KO / Latin rec, quality checks, auto crop, zxing-wasm fallback, GS1 parse, country number parsers; unit + e2e; numbers on the photo set (on-device only baseline) | L | P1 |
 | P3 | Over-claim rules `lensiq-claims.js` + card UI (exact text + rule + basis); numbers on the held-out text set | M | P1 |
-| P4 | Lookups: `med.js` extended to Thai FDA FOOD / CMT / HERB / MDC / ADVERTISE (staging, behind permission flag), openFDA enforcement, Safety Gate, RASFF, HSA, Health Canada; curated Thai alert list; risk-signal card | L | P0 (permission) for Thai data in production |
+| P4 | Lookups: `med.js` extended to Thai FDA FOOD / CMT / HERB / MDC / ADVERTISE (the web service is used for testing now, owner decision 2026-11-09; a permission flag stays so it can be switched to link-out if the FDA says no), openFDA enforcement, Safety Gate, RASFF, HSA, Health Canada; curated Thai alert list; risk-signal card | L | FDA written permission before charging (letter drafted in P0) |
 | P5 | AI Gateway core: adapter interface, Anthropic adapter (moved from fortune, same behaviour, fortune tests unchanged), settings, budget reservation, logs, admin panel, consent screen | L | — |
-| P6 | Adapters: Gemini, OpenAI, Qwen, OpenRouter (+ DeepSeek, z.ai, Kimi behind the allowlist, off) with a mocked-provider test per adapter (no real keys in CI) | M | P5 |
-| P7 | Product Check AI features: `pc_fields`, `pc_claims`, `pc_translate`, face gate, patient-name guard, image mode; validators | M | P2–P6 |
-| P8 | Eval tool + first full run on the owner's keys (owner runs it or sets the keys); choose the default chain from the numbers; `docs/PRODUCT-CHECK-ACCURACY.md` | M | P7, owner keys and budget |
+| P6 | Adapters: Gemini, OpenAI, Qwen, DeepSeek, z.ai, Kimi, OpenRouter, **all on in the allowlist** (PC-D2; admin can switch any off), with a mocked-provider test per adapter (no real keys in CI) | M | P5 |
+| P7 | Product Check AI features: `pc_fields`, `pc_claims`, `pc_translate`, face gate, patient-name guard, image mode with one consent per user + remember-my-choice + withdraw, text-only fallback (PC-D9); validators | M | P2–P6 |
+| P8 | Eval tool covering **all providers** + first full run on the owner's keys (owner runs it or sets the keys); choose the default chain from the numbers; `docs/PRODUCT-CHECK-ACCURACY.md` | M | P7, owner keys and budget |
 | P9 | Travel mode (translation, INN, Thai equivalents behind permission) + reference-image library tooling (embeddings only, no images) | M | P4, P7, counsel for 6.3 |
 
 **Total:** about **7–10 weeks of rounds**, excluding external waits (Thai FDA / WHO replies, counsel). Possible build orders:
 
 - **Suggested:** P0 → P1 → P2 + P3 (parallel) → P5 → P4 + P6 → P7 → P8 → P9.
 - **Alternative if the owner wants AI value early:** P5 + P6 can start right after P1.
+
+**Owner decision 2026-11-09:** build all phases P0–P9 to completion, each with a fixed test set, an independent reviewer
+and real numbers. Product Check + AI Gateway come first; org accounts P1–P3 follow after Product Check is complete.
+Nothing waits for counsel to be **built**; counsel and the FDA / WHO replies are needed before **charging** starts
+(running list in `docs/CTO-BRIEF.md` §8). The reference-image library (6.3) is the exception kept from PC-D7: tooling is
+built in P9, but no third-party pack images are collected until counsel answers.
 
 **Portability** (Part A, applies here too):
 
@@ -754,9 +804,11 @@ Every phase follows the working rules:
 
 ## 13. What the owner provides
 
-1. **API keys** for the providers chosen for the first eval: at least one of Anthropic / Google / OpenAI, plus Qwen if
-   wanted. Keys are set with `wrangler secret put` in staging and never shared with agents.
-2. **A monthly AI budget per feature** (e.g. USD 20 for the first eval month, then from the eval numbers).
+1. **API keys** for the providers to evaluate. All providers are enabled (PC-D2) and the eval covers all of them, so a
+   key per provider is needed for a full run: Anthropic, Google (**paid tier**), OpenAI, Alibaba Model Studio
+   (Singapore), DeepSeek, z.ai, Kimi, OpenRouter. A provider without a key is skipped and reported as "not run". Keys are
+   set with `wrangler secret put` in staging and never shared with agents.
+2. **A monthly AI budget per feature**: USD 20 for the first eval month (PC-D8), then from the eval numbers.
 3. **At least 300 product photos** (9.1):
    - taken by the owner or the team, with no people and no prescription labels;
    - placed in `~/LENSIQ-field/products/` (outside the repo).
@@ -764,19 +816,22 @@ Every phase follows the working rules:
    This includes at least 75 known illegal or warned products (n ≥ 73 is needed to reach the 5 % bound). Counsel advises how to obtain them lawfully. Photos of
    products already owned, or listed products shown in official warnings, may be enough.
 4. **A pharmacist adviser** to review the rule list, the "how to verify" wording and the labelled sets (about 1–2 days).
-5. **Letters** to Thai FDA / DGA asking for written commercial reuse terms for the SOAP web service, and to WHO for the
-   alerts. Drafts are prepared in P0.
-6. **Counsel** for the questions in 15.
+5. **Letters** to Thai FDA asking for written commercial reuse terms for the SOAP web service, and to WHO for the
+   alerts. **Drafted in P0 (done):** `docs/legal/FDA-PERMISSION-REQUEST-TH.md` (Thai official letter + English summary)
+   and `docs/legal/WHO-PERMISSION-REQUEST.md` (English email). The owner fills the bracketed contact details, signs and
+   sends them **before charging starts**; testing uses the web service now (owner decision 2026-11-09). If DGA turns out
+   to be the data owner for the data.go.th listings, the same letter is copied to DGA.
+6. **Counsel** for the questions in 15 and the running list in `docs/CTO-BRIEF.md` §8, before charging starts.
 
 ## 14. Risks
 
 | # | Risk | Mitigation |
 |---|---|---|
 | PR1 | A user reads "no signals found" as "genuine" | no verdict; the card always lists the checks that could not run; key metric false "looks fine" ≤ 5 % upper bound; fixed bottom line |
-| PR2 | Thai FDA data used commercially without permission | permission flag: production lookups stay off until a written reply; link-out fallback |
+| PR2 | Thai FDA data used commercially without permission | no paid (charging) build uses the lookups until a written reply; testing uses the web service now (owner decision 2026-11-09); link-out fallback |
 | PR3 | A wrong over-claim flag harms a legitimate brand | wording "risk signal", exact text shown, rule cited, model-only flags marked "possible"; precision target ≥ 80 % held-out |
-| PR4 | Images of people or patient names reach a provider | text-only default; face gate fails closed; patient-name blackout; crop shown before upload |
-| PR5 | Cross-border transfer and provider retention | consent names provider and region; Chinese providers and OpenRouter off until counsel; Anthropic / OpenAI / Google paid tiers do not train on API data |
+| PR4 | Images of people or patient names reach a provider | text-only always available; image mode only after per-user consent; face gate fails closed; patient-name blackout; crop shown before upload |
+| PR5 | Cross-border transfer and provider retention | consent names provider and region; all providers on for testing (PC-D2), each listed for counsel before charging (CTO-BRIEF §8); Anthropic / OpenAI / Google paid tiers do not train on API data |
 | PR6 | Cost overrun | reserved budget per feature; on-device fallback; reasoning-token cost measured in the eval |
 | PR7 | Rule text out of date (2569 notice) | P1 re-check; rule list dated; review every 6 months |
 | PR8 | Translation errors in warnings | warnings and directions shown untranslated with a note |
@@ -789,20 +844,34 @@ Every phase follows the working rules:
 
 ### Owner decisions
 
-| # | Decision | Default in this design |
-|---|---|---|
-| PC-D1 | Allow image mode (a product crop leaves the device) as an explicit exception to "only derived facts are sent" | yes, opt-in per check, face gate, crop only, off by default |
-| PC-D2 | Which providers may be used before counsel reviews them | Anthropic, Google (paid), OpenAI; Chinese providers and OpenRouter off |
-| PC-D3 | Key safety target: false "looks fine" on illegal products | 0 observed, Wilson upper bound ≤ 5 % (needs n ≥ 73; plan ≥ 75) |
-| PC-D4 | Legacy D1-encrypted key path in `settings.js` | kept, off by default, Worker secrets first |
-| PC-D5 | Product Check lives in `medicine.html` (new tab) or a new page `product-check.html` | new tab in medicine.html (category 5 Health, Safety & Quality) |
-| PC-D6 | Store results? | no by default; local history opt-in only |
-| PC-D7 | Reference-image library | design now, build only after counsel (6.3) |
-| PC-D8 | Monthly budget and per-user limits for the first eval month | USD 20, 10 checks / user / day |
-| PC-D9 | Default cloud mode: text only (this design, stricter) or product crop (the brief) | text only; crop is a second opt-in per check. **This changes the brief, so it needs the owner's choice** |
-| PC-D10 | Share-alike data (ChEMBL CC BY-SA, Open Food Facts ODbL): acceptable under the no-copyleft spirit of CLAUDE.md? | yes, kept in a separate table, never shipped in `vendor/`, never merged into our own register |
+The owner approved the design on 2026-11-09: "we are not charging yet, so build everything fully now for testing; legal
+review happens before we start charging". Every decision below is on the legal-review running list where it has a legal
+side (`docs/CTO-BRIEF.md` §8).
 
-### Counsel questions (added to `docs/PDPA-NOTES-FOR-COUNSEL.md` in P0)
+| # | Decision | Default proposed in this design | Decided 2026-11-09 |
+|---|---|---|---|
+| PC-D1 | Allow image mode (a product crop leaves the device) as an explicit exception to "only derived facts are sent" | yes, opt-in per check, face gate, crop only, off by default | **Approved:** the exception applies to Product Check image mode only (8.2) |
+| PC-D2 | Which providers may be used before counsel reviews them | Anthropic, Google (paid), OpenAI; Chinese providers and OpenRouter off | **All providers enabled now, in every build**, Chinese providers and OpenRouter included; the admin can switch any provider off; the consent screen names the provider actually used and where data is processed; the eval tool covers all providers (10.2, 10.6, 10.7). DeepSeek's PRC storage / training risk stays on the counsel list |
+| PC-D3 | Key safety target: false "looks fine" on illegal products | 0 observed, Wilson upper bound ≤ 5 % (needs n ≥ 73; plan ≥ 75) | **Accepted as recommended** |
+| PC-D4 | Legacy D1-encrypted key path in `settings.js` | kept, off by default, Worker secrets first | **Accepted as recommended** |
+| PC-D5 | Product Check lives in `medicine.html` (new tab) or a new page `product-check.html` | new tab in medicine.html (category 5 Health, Safety & Quality) | **Accepted as recommended:** new tab in medicine.html |
+| PC-D6 | Store results? | no by default; local history opt-in only | **Accepted as recommended** |
+| PC-D7 | Reference-image library | design now, build only after counsel (6.3) | **Accepted as recommended:** tooling built in P9 (embeddings only); no third-party pack images collected before counsel |
+| PC-D8 | Monthly budget and per-user limits for the first eval month | USD 20, 10 checks / user / day | **Accepted as recommended** |
+| PC-D9 | Default cloud mode: text only (this design, stricter) or product crop (the brief) | text only; crop is a second opt-in per check | **Image mode allowed after one consent per user**, with "remember my choice" that the user can withdraw at any time; text only stays available as a choice and as the fallback; product crop only; upload blocked if a face is detected (8.2, 10.6) |
+| PC-D10 | Share-alike data (ChEMBL CC BY-SA, Open Food Facts ODbL): acceptable under the no-copyleft spirit of CLAUDE.md? | yes, kept in a separate table, never shipped in `vendor/`, never merged into our own register | **Accepted as recommended** (share-alike terms stay on the counsel list) |
+
+**Other owner decisions on 2026-11-09:**
+
+- **Food rules:** update to the 2569 food-advert notification in P1 (5.1).
+- **Thai FDA data:** use the web service for testing now; the Thai permission request letter is drafted
+  (`docs/legal/FDA-PERMISSION-REQUEST-TH.md`) for the owner to send before charging.
+- **Build scope:** all phases P0–P9 to completion, each with a fixed test set, an independent reviewer and real numbers.
+- **Order:** Product Check + AI Gateway first; org accounts P1–P3 after Product Check is complete.
+- **Running list:** everything that must go to legal review before charging is kept in `docs/CTO-BRIEF.md` §8
+  (providers, cross-border processing, FDA data, consent texts).
+
+### Counsel questions (added to `docs/PDPA-NOTES-FOR-COUNSEL.md` F1 in P0, done)
 
 1. Do the food, cosmetic and supplement advertising rules apply to packs and online listings, so that we may label
    wording as a "risk signal under <rule>"? What wording keeps LENSIQ out of defamation risk for brands?
@@ -815,3 +884,12 @@ Every phase follows the working rules:
 7. Obtaining photos of illegal products for the test set lawfully.
 8. Does Product Check make LENSIQ a medical-device software provider under Thai law or the EU MDR? Today
    medicine.html is positioned as a reference / label reader (`docs/MEDICINE.md` "Regulatory positioning").
+
+Added on approval (2026-11-09), because every provider is enabled and image consent can be remembered:
+
+9. Every enabled provider's terms (Anthropic, Google paid tier, OpenAI, Alibaba, DeepSeek, z.ai, Kimi, OpenRouter as a
+   second processor): acceptable for a commercial Thai service, and which need a DPA or extra clauses?
+10. Cross-border processing of product crops and OCR text in the US, Singapore and China: which s.28–29 mechanism
+    applies to each, and is consent naming the provider and country enough?
+11. One consent per user with "remember my choice" and withdraw at any time: valid under PDPA s.19 (freely given,
+    specific, as easy to withdraw as to give)? Review the TH / EN / ZH consent texts.

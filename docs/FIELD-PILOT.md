@@ -2,6 +2,11 @@
 
 > เอกสารนี้ปรับปรุงทุก round (ดู "Changelog / last reviewed" และ "Status per round" ท้ายเอกสาร)
 > This document is maintained every round (see "Changelog / last reviewed" and "Status per round" at the end).
+>
+> **ราคาระหว่างนำร่อง (เจ้าของอนุมัติ 9 พ.ย. 2569):** ระหว่างนำร่องใช้ราคาช่วงนำร่อง และนำร่อง Exam ฟรี ราคาหลังผ่านเกณฑ์ใช้เมื่อหน้างานผ่านเกณฑ์ในชุดนำร่องเท่านั้น (`docs/PRICING-RESEARCH.md` §3)
+> **Pilot pricing (owner approved 2026-11-09):** pilot-stage prices apply during pilots and the Exam field pilot is free;
+> after-pilot prices apply only once a site passes its pilot kit thresholds (`docs/PRICING-RESEARCH.md` §3).
+> Product Check (round 17) has its own photo-set protocol: `docs/product-check/PHOTO-SET-PROTOCOL.md`.
 
 ไฟล์ที่เกี่ยวข้อง / Related files:
 

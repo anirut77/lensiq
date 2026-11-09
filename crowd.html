@@ -28,7 +28,7 @@
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=15"></script>
 <script src="i18n/zh-zones.js?v=1"></script>
-<script src="i18n/zh-crowd.js?v=2"></script>
+<script src="i18n/zh-crowd.js?v=3"></script>
 <script src="lensiq-i18n-rt.js?v=1"></script>
 <script src="i18n/zh-rt-common.js?v=1"></script>
 
@@ -209,6 +209,19 @@
       <button class="btn primary" id="exportCsv" type="button" data-i18n="zc.csv">ส่งออก CSV</button>
       <button class="btn ghost danger" id="clearData" type="button" data-i18n="zc.clear">ลบข้อมูลสถิติทั้งหมด</button>
     </div>
+  </section>
+
+  <section class="card" aria-labelledby="crPriceH">
+    <h2 id="crPriceH" data-i18n="cr.price.h">ราคาที่อนุมัติแล้ว (ยังไม่เปิดขาย)</h2>
+    <p class="hint" data-i18n="cr.price.stages">ราคาช่วงนำร่องใช้ตอนนี้ ราคาหลังผ่านเกณฑ์นำร่องใช้เมื่อสถานที่ผ่านเกณฑ์ที่วัดในโครงการนำร่องแล้วเท่านั้น</p>
+    <ul>
+      <li><b data-i18n="cr.p1.t">วันงาน (1 กล้อง/เครื่อง)</b> <span data-i18n="cr.p1.p">฿590 ต่อวัน · หลังผ่านเกณฑ์นำร่อง ฿990 ต่อวัน (ไม่รวม VAT 7%)</span></li>
+      <li><b data-i18n="cr.p2.t">สัปดาห์งาน (7 วัน, 1 กล้อง)</b> <span data-i18n="cr.p2.p">฿2,490 · หลังผ่านเกณฑ์นำร่อง ฿3,900 (ไม่รวม VAT 7%)</span></li>
+      <li><b data-i18n="cr.p3.t">รายเดือน (พื้นที่ถาวร)</b> <span data-i18n="cr.p3.p">ยังไม่ขาย รอโครงการนำร่องที่พื้นที่ถาวรผ่านเกณฑ์ก่อน</span></li>
+      <li><b data-i18n="cr.p4.t">ฝูงชนหนาแน่น</b> <span data-i18n="cr.p4.p">ไม่ขาย ระบบยังไม่เหมาะกับฝูงชนหนาแน่น</span></li>
+    </ul>
+    <p class="hint" data-i18n="cr.price.note">ราคาที่อนุมัติแล้ว แต่ยังไม่เปิดขายและยังไม่มีการเก็บเงิน ทุกราคาไม่รวม VAT 7% (ชำระราคา + 7%) และไม่รวมอุปกรณ์
+      ตัวเลขเป็นการประมาณความหนาแน่น ไม่ใช่การนับคนที่แม่นยำ</p>
   </section>
 
   <section class="card" aria-labelledby="privH">

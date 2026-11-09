@@ -2,7 +2,7 @@
 
 **ใช้กล้องและคอมพิวเตอร์ที่สถาบันมีอยู่แล้ว ประมวลผลบนเครื่อง ไม่ส่งภาพขึ้นคลาวด์ ไม่มีการวิเคราะห์อารมณ์ ไม่มีการจดจำใบหน้า**
 
-> **ฉบับร่าง (DRAFT) — ราคาและเนื้อหารอเจ้าของอนุมัติ** ราคาในเอกสารนี้มาจาก `docs/PRICING-RESEARCH.md` §3.1 ยังไม่เปิดขาย
+> **ราคาที่อนุมัติแล้ว (ยังไม่เปิดขาย)** ราคาในเอกสารนี้มาจากรายการราคาที่เจ้าของอนุมัติ 2026-11-09 (`docs/PRICING-RESEARCH.md` §3.1) ยังไม่มีการเก็บเงิน
 
 ## ปัญหา
 - ห้องสอบใหญ่ ผู้คุมสอบ 1–2 คนมองไม่ทั่ว เห็นเหตุเมื่อสายไปแล้ว
@@ -38,14 +38,16 @@
 1 สถาบัน ≤ 4 สัปดาห์ ≤ 3 ห้อง ในรอบสอบที่ไม่ชี้ขาดสูง: ตรวจกล้องและแสงกับอาสาสมัคร → การสอบจำลองตามบท → การสอบจริงพร้อมผู้คุมสอบนับ
 "แจ้งถูก/แจ้งผิด" แผนและเช็กลิสต์: `docs/pilot/PILOT-EXAM.md` ผลเป็นตัวเลขของสถาบันเองพร้อมช่วงความเชื่อมั่น 95%
 
-## ราคา (ฉบับร่าง รอเจ้าของอนุมัติ — ยังไม่เปิดขาย ราคาไม่รวม VAT 7% ลูกค้าชำระราคา + 7%)
+## ราคา (ราคาที่อนุมัติแล้ว ยังไม่เปิดขาย — ราคาไม่รวม VAT 7% ลูกค้าชำระราคา + 7%)
+ห้องคอมพิวเตอร์ / สอบออนไลน์คิดต่อผู้สอบ ห้องสอบที่มีกล้องคิดต่อห้อง
+
 | แพ็กเกจ | ช่วงนำร่อง (ตอนนี้) | หลังผ่านเกณฑ์นำร่อง |
 |---|---|---|
-| ห้องคอมพิวเตอร์ / ออนไลน์ | 10 บาท ต่อผู้สอบต่อการสอบ ไม่รวม VAT 7% (ขั้นต่ำ 300 บาทต่อรอบ ไม่รวม VAT 7%) หรือ 990 บาท/เดือน/ห้อง ไม่รวม VAT 7% | 15–30 บาท ต่อผู้สอบต่อการสอบ ไม่รวม VAT 7% หรือ 990–1,490 บาท/เดือน ไม่รวม VAT 7% |
-| ห้องสอบที่มีกล้อง (≤ 3 เครื่องต่อห้อง) | 290 บาท ต่อห้องต่อวันสอบ ไม่รวม VAT 7% หรือ 990 บาท/เดือน/ห้อง ไม่รวม VAT 7% | 300–600 บาท ต่อห้องต่อวันสอบ ไม่รวม VAT 7% หรือ 1,990 บาท/เดือน/ห้อง ไม่รวม VAT 7% |
+| ห้องคอมพิวเตอร์ / ออนไลน์ (ต่อผู้สอบ) | 10 บาท ต่อผู้สอบต่อการสอบ ไม่รวม VAT 7% (ขั้นต่ำ 300 บาทต่อรอบ ไม่รวม VAT 7%) หรือ 990 บาท/เดือน/ห้อง ไม่รวม VAT 7% | 15–30 บาท ต่อผู้สอบต่อการสอบ ไม่รวม VAT 7% หรือ 990–1,490 บาท/เดือน ไม่รวม VAT 7% |
+| ห้องสอบที่มีกล้อง (ต่อห้อง ≤ 3 เครื่องต่อห้อง) | 290 บาท ต่อห้องต่อวันสอบ ไม่รวม VAT 7% หรือ 990 บาท/เดือน/ห้อง ไม่รวม VAT 7% | 300–600 บาท ต่อห้องต่อวันสอบ ไม่รวม VAT 7% หรือ 1,990 บาท/เดือน/ห้อง ไม่รวม VAT 7% |
 | ใบอนุญาตทั้งสถาบัน | เริ่ม 19,900 บาท/ปี ไม่รวม VAT 7% (≤ 1,000 ผู้สอบ) | 30,000–120,000 บาท/ปี ไม่รวม VAT 7% |
 
-คอลัมน์ "หลังผ่านเกณฑ์" คือตัวเลขร่างเดิมบนหน้า `exam.html` ไม่เปลี่ยน (ตอนนี้ระบุเป็นราคาไม่รวม VAT 7%)
+ราคาหลังผ่านเกณฑ์ใช้เมื่อสถานที่ผ่านเกณฑ์ใน `docs/pilot/PILOT-EXAM.md` แล้วเท่านั้น โครงการนำร่องภาคสนาม (1 สถาบัน ≤ 4 สัปดาห์ ≤ 3 ห้อง) ฟรี
 
 เทียบตลาด: ใบอนุญาตคุมสอบผ่านเว็บแคมจากต่างประเทศราว 196 บาทต่อผู้สอบต่อวิชา (Respondus Monitor, 1,000 ที่นั่งแรก เป็นราคาอเมริกาเหนือ อาจไม่เปิดขายในไทย และต้องซื้อ LockDown Browser เพิ่ม) และค่าตอบแทนผู้คุมสอบ
 ไม่เกิน 600 บาทต่อชั่วโมงในประกาศของมหาวิทยาลัยแห่งหนึ่ง (แหล่งที่มาและวันที่ใน `docs/PRICING-RESEARCH.md` §1C)
@@ -57,7 +59,7 @@
 
 **ติดต่อ:** แบบฟอร์ม `index.html?interest=education#contact` · ชื่อบริษัท อีเมล และ LINE OA จะประกาศก่อนเปิดขาย (`LENSIQ_SELLER`)
 
-> **ต้นฉบับภายใน** (มีชื่อไฟล์ในระบบ) — ฉบับร่าง round 16 ราคาและข้อความรอเจ้าของอนุมัติก่อนส่งลูกค้า
+> **ต้นฉบับภายใน** (มีชื่อไฟล์ในระบบ) — round 16 ราคาเจ้าของอนุมัติแล้ว 2026-11-09 (ยังไม่เปิดขาย) ข้อความตรวจกับเจ้าของก่อนส่งลูกค้า
 
 ---
 
@@ -66,8 +68,8 @@
 ## LENSIQ Exam — an invigilator's assistant: it says which seat to check, it never decides
 
 Uses the institution's own cameras and computers, processes on the device, sends no images to a cloud, has no emotion
-analysis and no face recognition. **DRAFT — prices and text await owner approval** (prices from
-`docs/PRICING-RESEARCH.md` §3.1, not on sale).
+analysis and no face recognition. **Approved price list (not on sale yet)**: prices approved by the owner 2026-11-09
+(`docs/PRICING-RESEARCH.md` §3.1); nothing is charged yet.
 
 **What you get:**
 - **Camera exam hall** (`exam-hall.html`): seat polygons and objective observations (empty seat, leaning, phone in view).
@@ -98,15 +100,17 @@ analysis and no face recognition. **DRAFT — prices and text await owner approv
 **Pilot (free):** 1 institution, ≤ 4 weeks, ≤ 3 rooms, in low-stakes sessions. It runs a light check, then a staged
 exam, then a real exam with invigilator tallies (`docs/pilot/PILOT-EXAM.md`).
 
-**Price (DRAFT, awaiting owner approval; excl. 7% VAT, so the customer pays the price + 7%):**
+**Price (approved price list, not on sale yet; excl. 7% VAT, so the customer pays the price + 7%). Computer rooms and
+online exams are priced per candidate, camera halls per room:**
 
 | Package | Pilot stage (now) | After pilot |
 |---|---|---|
-| Computer room / online | 10 THB per candidate per exam excl. 7% VAT (minimum 300 THB per session excl. 7% VAT), or 990 THB / month per lab excl. 7% VAT | 15–30 THB per candidate per exam excl. 7% VAT, or 990–1,490 THB / month excl. 7% VAT |
-| Camera hall | 290 THB per room per exam day excl. 7% VAT, or 990 THB / month per room excl. 7% VAT | 300–600 THB per room per exam day excl. 7% VAT, or 1,990 THB / month per room excl. 7% VAT |
+| Computer room / online (per candidate) | 10 THB per candidate per exam excl. 7% VAT (minimum 300 THB per session excl. 7% VAT), or 990 THB / month per lab excl. 7% VAT | 15–30 THB per candidate per exam excl. 7% VAT, or 990–1,490 THB / month excl. 7% VAT |
+| Camera hall (per room) | 290 THB per room per exam day excl. 7% VAT, or 990 THB / month per room excl. 7% VAT | 300–600 THB per room per exam day excl. 7% VAT, or 1,990 THB / month per room excl. 7% VAT |
 | Institution licence | from 19,900 THB / year excl. 7% VAT | 30,000–120,000 THB / year excl. 7% VAT |
 
-The "after pilot" column is the current `exam.html` draft numbers, unchanged (now stated excl. 7% VAT).
+The "after pilot" price applies only once the site has passed `docs/pilot/PILOT-EXAM.md`. The field pilot (1
+institution, ≤ 4 weeks, ≤ 3 rooms) is free.
 
 Market comparison: about 196 THB per student per course for an international webcam-proctoring licence (Respondus;
 North-American price, may not be offered in Thailand, LockDown Browser licence extra), and up to
@@ -116,4 +120,4 @@ prices (excl. VAT) is approximate by about 7%.
 
 **Contact:** `index.html?interest=education#contact`.
 
-> **Internal draft** (contains file names). Round 16. Prices and text await owner approval before they go to customers.
+> **Internal copy** (contains file names). Round 16. Prices approved by the owner 2026-11-09 (not on sale yet); the text is checked with the owner before it goes to customers.

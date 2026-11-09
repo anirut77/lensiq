@@ -25,7 +25,7 @@
 <body>
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=15"></script>
-<script src="i18n/zh-attendance.js?v=1"></script>
+<script src="i18n/zh-attendance.js?v=2"></script>
 <script src="lensiq-i18n-rt.js?v=1"></script>
 <script src="i18n/zh-rt-common.js?v=1"></script>
 <script src="i18n/zh-rt-attendance.js?v=1"></script>
@@ -346,6 +346,20 @@
       </div>
       <p class="form-msg" id="hrDataMsg" role="status"></p>
     </div>
+  </section>
+
+  <section class="hr-admin" id="attPrice" aria-labelledby="attPriceH">
+    <h2 id="attPriceH" data-i18n="attendance.price.h">ราคาลงเวลาพนักงาน: ราคาที่อนุมัติแล้ว (ยังไม่เปิดขาย)</h2>
+    <p class="hint" data-i18n="attendance.price.stages">ราคาช่วงนำร่องใช้ตอนนี้ ราคาหลังผ่านเกณฑ์นำร่องใช้เมื่อที่ทำงานผ่านเกณฑ์ที่วัดในโครงการนำร่องแล้วเท่านั้น</p>
+    <ul>
+      <li><b data-i18n="attendance.p1.t">ฟรี</b> <span data-i18n="attendance.p1.p">ไม่เกิน 5 คน ลงเวลาด้วย PIN / QR 1 เครื่อง</span></li>
+      <li><b data-i18n="attendance.p2.t">มาตรฐาน</b> <span data-i18n="attendance.p2.p">฿19 ต่อคนที่ใช้งานต่อเดือน (ขั้นต่ำ ฿190 / เดือน) ·
+        หลังผ่านเกณฑ์นำร่อง ฿29 (ขั้นต่ำ ฿290) ไม่รวม VAT 7%</span></li>
+      <li><b data-i18n="attendance.p3.t">ช่วยตั้งค่า (ไม่บังคับ)</b> <span data-i18n="attendance.p3.p">฿2,900 ครั้งเดียว · หลังผ่านเกณฑ์นำร่อง ฿4,900 (ไม่รวม VAT 7%)</span></li>
+      <li><b data-i18n="attendance.p4.t">ซิงก์หลายสาขา / สำรองบนคลาวด์</b> <span data-i18n="attendance.p4.p">ยังไม่ขาย รอระบบบัญชีองค์กร</span></li>
+    </ul>
+    <p class="hint" data-i18n="attendance.price.note">ราคาที่อนุมัติแล้ว แต่ยังไม่เปิดขายและยังไม่มีการเก็บเงิน ทุกราคาไม่รวม VAT 7% (ชำระราคา + 7%) ใช้มือถือหรือแท็บเล็ตที่มีอยู่
+      ไม่ต้องซื้ออุปกรณ์ ใบหน้าเป็นตัวเลือกเมื่อพนักงานยินยอม</p>
   </section>
 
   <p class="note" data-i18n="attendance.s40">เว็บตัวอย่าง: ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้เท่านั้น ค่าลักษณะใบหน้าเข้ารหัสด้วยกุญแจที่อยู่ในเบราว์เซอร์นี้ มีตัวเลือกให้หันหน้าเพื่อตรวจว่าเป็นคนจริง (ปิดไว้เป็นค่าเริ่มต้น ยังไม่ได้วัดผล) แต่ยังไม่มีระบบกันภาพปลอมที่ผ่านการทดสอบ หากใช้งานจริงควรมีฐานข้อมูลฝั่งเซิร์ฟเวอร์ และนโยบายตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล (PDPA)</p>

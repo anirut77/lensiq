@@ -15,7 +15,7 @@ export default async function ({ base, launch, check }) {
         text: document.querySelector("main").innerText
       }));
       for (const h of ["exam-lab.html", "exam-hall.html", "exam-dashboard.html"]) assert(r.links.includes(h), "link to " + h);
-      for (const w of ["0 จาก 6", "Ogletree", "Safe Exam Browser", "มาตรา 5(1)(f)", "ภาคผนวก III", "฿15–30", "ร่าง"]) assert(r.text.includes(w), "landing mentions " + w);
+      for (const w of ["0 จาก 6", "Ogletree", "Safe Exam Browser", "มาตรา 5(1)(f)", "ภาคผนวก III", "฿15–30", "ยังไม่เปิดขาย", "ไม่รวม VAT 7%"]) assert(r.text.includes(w), "landing mentions " + w);
       await noThai(page, "exam.html");
       await phoneAudit(page, "exam.html");
       assert(!exceptions(page).length, "exceptions: " + JSON.stringify(exceptions(page).slice(0, 2)));

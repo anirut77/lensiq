@@ -223,5 +223,16 @@
   "cr.mk.level": "Level at peak",
   "cr.mk.dH": "Density summary by hour (person-seconds by foot position, whole view)",
   "cr.mk.ps": "Total person-seconds",
-  "cr.mk.hotH": "Share in the busiest 10% of the area (%)"
+  "cr.mk.hotH": "Share in the busiest 10% of the area (%)",
+  "cr.price.h": "Approved price list (not on sale yet)",
+  "cr.price.stages": "The pilot-stage price applies now. The after-pilot price applies only once the site has passed the thresholds measured in its pilot.",
+  "cr.p1.t": "Event day (1 camera device)",
+  "cr.p1.p": "590 THB per day · after pilot 990 THB per day (excl. 7% VAT)",
+  "cr.p2.t": "Event week (7 days, 1 camera)",
+  "cr.p2.p": "2,490 THB · after pilot 3,900 THB (excl. 7% VAT)",
+  "cr.p3.t": "Monthly (fixed site)",
+  "cr.p3.p": "Not sold yet: waits for a fixed-site pilot to pass first",
+  "cr.p4.t": "Dense crowds",
+  "cr.p4.p": "Not sold: the system is not yet suitable for dense crowds",
+  "cr.price.note": "Approved prices, but not on sale yet and nothing is charged. Every price excludes 7% VAT (you pay the price + 7%) and hardware. The figures are a density estimate, not an exact headcount."
 } });
