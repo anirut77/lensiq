@@ -18,6 +18,9 @@
 //   frame-ancestors + X-Frame-Options when it serves the pages.
 // The meta goes right after <meta charset> (before any <link>/<script>), because a meta policy only applies to
 // content that appears after it.
+// The tag is written one directive per line (2-space indent) so no page line is long (tools/format-check.mjs). CSP splits
+// directives on ";" and tokens on ASCII whitespace (LF included), so the line breaks do not change the policy; readers
+// compare policies after normalizePolicy() (whitespace runs collapsed), and an old one-line tag is replaced in place.
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -95,10 +98,28 @@ export function configuredTurnstile(configSrc) {
 const escAttr = s => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
 const META_RE = /[ \t]*<meta\s+http-equiv\s*=\s*["']?content-security-policy["']?[^>]*>[ \t]*\r?\n?/gi;
 
-/** Returns the html with exactly one CSP meta (placed after <meta charset>, else first in <head>). */
+/** Collapses every run of ASCII whitespace to one space and trims: the form in which the CSP parser sees a policy
+ *  (directives split on ";", tokens on ASCII whitespace, LF included). Readers compare policies in this form, so a
+ *  meta written over several lines equals the same policy on one line, and nothing else is ignored. */
+export const normalizePolicy = s => String(s).replace(/[\t\n\f\r ]+/g, " ").trim();
+
+/** The content of the page's CSP meta, normalised (normalizePolicy), or null when the page has none. */
+export function metaPolicy(html) {
+  const m = /<meta\s+http-equiv\s*=\s*["']?content-security-policy["']?\s+content\s*=\s*"([^"]*)"[^>]*>/i.exec(String(html));
+  return m ? normalizePolicy(m[1].replace(/&quot;/g, '"').replace(/&amp;/g, "&")) : null;
+}
+
+/** The meta tag, one directive per line (2-space indent) so no page line is long (tools/format-check.mjs). */
+export function metaTag(pol = policy(), nl = "\n") {
+  const dirs = normalizePolicy(pol).split(/\s*;\s*/).filter(Boolean).map(escAttr);
+  return `<meta http-equiv="Content-Security-Policy" content="${dirs.join(";" + nl + "  ")}">`;
+}
+
+/** Returns the html with exactly one CSP meta (placed after <meta charset>, else first in <head>). An existing tag is
+ *  replaced whether it was written on one line (older pages) or over several lines (META_RE: [^>]* spans newlines). */
 export function apply(html, pol = policy()) {
-  const tag = `<meta http-equiv="Content-Security-Policy" content="${escAttr(pol)}">`;
   const nl = html.includes("\r\n") ? "\r\n" : "\n";
+  const tag = metaTag(pol, nl);
   let out = html.replace(META_RE, "");
   const charset = /<meta\s+charset\s*=\s*["']?[\w-]+["']?\s*\/?>[ \t]*\r?\n?/i.exec(out);
   if (charset) {

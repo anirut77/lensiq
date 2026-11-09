@@ -20,7 +20,12 @@ test("apply() is idempotent and places the meta right after <meta charset>", asy
   assert.equal(count(once, /http-equiv="Content-Security-Policy"/g), 1);
   const lines = once.split("\n");
   const i = lines.findIndex(l => l.startsWith("<meta charset"));
-  assert.match(lines[i + 1], /^<meta http-equiv="Content-Security-Policy" content="default-src 'self'; /);
+  // one directive per line, 2-space indent, so no page line exceeds the format-check width
+  const n = policy().split("; ").length;
+  assert.equal(lines[i + 1], `<meta http-equiv="Content-Security-Policy" content="default-src 'self';`);
+  for (let k = 2; k < n; k++) assert.match(lines[i + k], /^ {2}[a-z-]+ [^;"]+;$/, lines[i + k]);
+  assert.equal(lines[i + n], `  form-action 'self'">`);
+  assert.ok(lines.every(l => l.length <= 200), "no long line");
   assert.ok(once.indexOf("Content-Security-Policy") < once.indexOf("<link"), "before any resource");
   assert.equal(once.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>\n/, ""), html, "nothing else changed");
   assert.ok(!policy().includes("frame-ancestors"), "meta cannot carry frame-ancestors");
@@ -35,6 +40,20 @@ test("replaces an outdated policy (any case), keeps CRLF, works without <meta ch
   assert.equal(count(out, /content-security-policy/gi), 1);
   assert.ok(!/[^\r]\n/.test(out), "CRLF kept");
   assert.match(out, /<HEAD data-x="1">\r\n<meta http-equiv="Content-Security-Policy"/);
+});
+
+test("multi-line meta: same policy as one line once whitespace is collapsed; an old one-line tag is replaced", async () => {
+  const { apply, policy, metaPolicy, normalizePolicy } = await tool();
+  const html = readFileSync(join(FIX, "csp-plain.html"), "utf8");
+  const multi = apply(html);
+  assert.equal(metaPolicy(multi), policy(), "normalised meta content = policy()");
+  assert.notEqual(metaPolicy(multi), normalizePolicy(policy({ connect: ["https://api.example.com"] })), "still exact otherwise");
+  const i = html.indexOf("\n", html.indexOf("<meta charset")) + 1;
+  const oneLine = html.slice(0, i) + `<meta http-equiv="Content-Security-Policy" content="${policy()}">\n` + html.slice(i);
+  assert.equal(apply(oneLine), multi, "old single-line tag rewritten to the multi-line form");
+  const stale = multi.replace("form-action 'self'", "form-action *");
+  assert.equal(apply(stale), multi, "outdated multi-line tag replaced");
+  assert.equal(metaPolicy("<p>no meta</p>"), null);
 });
 
 test("lint() flags markup the policy would block", async () => {
