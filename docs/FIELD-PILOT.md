@@ -13,6 +13,8 @@
 | `tests/unit/field-pilot-metrics.test.js` | unit tests of the tool |
 | [`docs/GATE.md`](GATE.md), [`docs/MEDICINE.md`](MEDICINE.md) | วิธีอ่านของระบบ / how the products read |
 | [`docs/PILOT-PLAN.md`](PILOT-PLAN.md), [`docs/pdpa/`](pdpa/) | ชุดนำร่องทั่วไป + PDPA / general pilot kit + PDPA documents |
+| [`docs/pilot/PILOT-GATE.md`](pilot/PILOT-GATE.md), [`PILOT-EXAM.md`](pilot/PILOT-EXAM.md), [`PILOT-CROWD.md`](pilot/PILOT-CROWD.md) | ชุดนำร่องรายผลิตภัณฑ์ (รอบ 16) / per-product pilot kits (round 16) |
+| `tools/plate-field-eval.mjs`, [`docs/field-pilot/plates-photo-labels.md`](field-pilot/plates-photo-labels.md) | ระยะ 0 ของ Gate: ภาพถ่ายป้ายจากโทรศัพท์ของเจ้าของ (~100 ภาพ เก็บนอก repo) / Gate phase 0: the owner's ~100 phone photos (kept outside the repo) |
 
 ---
 
@@ -308,9 +310,17 @@ input. Rows without ground truth are skipped and counted.
 |---|---|---|---|---|---|
 | 15 | 2026-11-08 | — / — / — / — | — / — / — | not started | plan, templates and `tools/field-pilot-metrics.mjs` added; no field data yet |
 | 15b | 2026-11-08 | — / — / — / — · taps — | — / — / — | not started | "taps needed" added (template column `tapped`, metric + PROPOSAL ≤ 10 % good light, Gate site check tallies taps). Plate finder upgraded; synthetic demo set only: 136–137 / 140 found (docs/GATE.md), real photos 2 / 6 — the pilot's taps share is the real measure |
+| 16 | 2026-11-09 | — / — / — / — · taps — | — / — / — | not started | Plate check before every auto-read (`LQPlate.plateGuard`). **Public dataset** (51 Wikimedia Commons photos, not field): exact automatic read 7 / 22, photos without a plate auto-read 0 / 19 (held-out 0 / 9), taps needed 25 / 32. Owner photo tool and sheet ready; **field (owner photos): not measured**. Per-product kits in `docs/pilot/`. Owner decision open: the Wilson rule for the pilot targets (night n 120+, point estimate, or as is). |
 
 ## Changelog / last reviewed
 
+- **2026-11-09 (round 16)** — per-product pilot kits `docs/pilot/PILOT-GATE.md` / `PILOT-EXAM.md` / `PILOT-CROWD.md`.
+  The Gate kit starts with phase 0: the owner's ~100 phone photos run through `tools/plate-field-eval.mjs` with a dev /
+  held-out split fixed before the first run; the site visit goes ahead only if no plate-less photo is auto-read. The
+  plates sheet for that phase is `docs/field-pilot/plates-photo-labels.csv` (template only — a filled-in sheet stays
+  outside the repo or under the git-ignored `field-data/`). PILOT-GATE §5 shows the observed rate each Wilson
+  lower-bound target needs at the planned n (night ≥ 85 % needs 39 / 40 at n = 40); the choice of rule is an owner
+  decision before phase 1. Last reviewed: 2026-11-09.
 - **2026-11-08 (round 15b, review fixes)** — the good-light taps check runs only when good-light rows carry `tapped`
   (night-only tap data no longer fails `--strict` for missing data); the Gate site check also records vehicles saved
   with no system read (finder missed, guard typed the plate) as a tap, so the taps share is not flattered. Unit tests.

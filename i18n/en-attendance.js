@@ -1,5 +1,12 @@
 /* i18n/en-attendance.js — English for attendance.html (mirrors zh-attendance.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
+  "attendance.cl6": "Optional real-person check (head turn): not measured",
+  "attendance.cl5": "A real workplace in Thailand: not measured · source: field (no pilot yet) — use the “Accuracy check” tab to measure with your own staff",
+  "attendance.cl4": "Person not enrolled checked in automatically with no one confirming: Asian faces (held-out set) ≤ 0.03% · LFW (tuning set) 0.01–0.07% · n = 12,000 (approx.) stranger visits per row, from about 1,800 / 500 people · source: public dataset (LFW, CASIA-FaceV5)",
+  "attendance.cl3": "Person not enrolled offered a name: Asian faces (held-out set, 100 enrolled) 0.2%, 95% interval 0.04–0.45% (upper end up to 1.15% at 5 or 200 enrolled) · LFW (tuning set) 0.4% · n = 12,000 (approx.) stranger visits per row, from about 1,800 / 500 people · source: public dataset (LFW, CASIA-FaceV5)",
+  "attendance.cl2": "Headline figure: Asian faces recognised per scan (5 / 20 / 200 enrolled): 66–76% · n = 500 people × 5 photos (held-out set, not used when setting the values) · source: public dataset (CASIA-FaceV5)",
+  "attendance.cl1": "Enrolled person recognised per scan (100 enrolled), measured on the tuning set, so optimistic: 85% · n = 610 member probe photos (one per member; 100 members per group, 200 random groups; the whole dataset has 13,233 photos) · source: public dataset (LFW news photos, tuning set)",
+  "attendance.cl.h": "Figures and sources",
   "attendance.wipeall": "Delete all biometric data on this device (all systems)",
   "attendance.live2": "Stops a still photo held up to the camera to some extent, but not a video, a picture on a screen or a mask, and its accuracy has not been measured. Always have staff watching the check-in point",
   "attendance.live1": "Check that a real person is present before check-in: ask them to turn their head slightly left or right (off by default)",

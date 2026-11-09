@@ -1,6 +1,6 @@
 # PDPA notes for counsel — all LENSIQ products
 
-For the owner's lawyer (pre-sale review). Compiled from the source code and the per-feature notes, 2026-11-08 (round 14).
+For the owner's lawyer (pre-sale review). Compiled from the source code and the per-feature notes, 2026-11-08 (round 14; section E added 2026-11-09, round 16).
 **Not legal advice.** Each section says what the feature does, which personal data it touches, where the data lives,
 whether anything leaves the device, and the questions we need counsel to answer. The detailed records stay where they
 were: [`docs/pdpa/DPIA.md`](pdpa/DPIA.md) (risk assessment), [`docs/pdpa/ROPA.md`](pdpa/ROPA.md) (s.39 record),
@@ -25,6 +25,8 @@ controller only for its own website, member accounts, billing and the optional b
   (queue, tables, after hours, bays) and the solutions catalogue
 - **C. Round 14** — C1 crowd counting & density · C2 exam evidence clip · C3 case review · C4 medicine checker ·
   C5 answer-sheet grader (OMR) · C6 auspicious-date planner · C7 lucky-colour mirror · C8 device adapters (design only)
+- **E. Round 16** — E1 customer mode and the research-demo toggle · E2 Gate plate check and the owner photo set ·
+  E3 organisation accounts (design only — the main PDPA change)
 - **D. Questions that cut across products**
 
 ---
@@ -520,6 +522,45 @@ physiological signals (heart rate, RR intervals, skin conductance, breathing, te
 deception, truthfulness, stress-as-guilt, emotion or mood inference in any product, mode or export (exam, case review,
 HR, interviews, fortune). Counsel: heart-rate and similar readings are **health data** (sensitive, s.26) the moment they
 are linked to a person; review the consent design before any adapter is built.
+
+---
+
+## E. Round 16
+
+### E1. Customer mode by default and the "Research demo" toggle (`lensiq-config.js`, `lensiq-research.js`)
+
+- Every host, including the public GitHub Pages site, now runs in **customer mode**: the age/gender (UTKFace-trained) and
+  face-expression models are never loaded, so signage records no age/gender, smile or valence; booth and photobooth run
+  without expression; neuro opens and explains but does not open the camera. Less processing than before: no new data.
+- A per-device toggle, **off by default**, brings the two research-licence models back on that device only. It stores the
+  word on/off in `localStorage` (`lq-research-demo`; listed in `privacy.html` §9, TH/EN/ZH). An installer locks it off
+  with `LENSIQ_RESEARCH_DEMO = false`; the go-live checklist reports the profile as done only with that lock.
+- Face detection, landmarks and recognition are unchanged and still depend on the F5/F6 licence opinion.
+- **For counsel:** confirm that a demo device with the toggle on (staff demonstrations only) needs no extra notice beyond
+  the existing camera notice, and that the licence label wording ("research-licence models, not for commercial use") is
+  adequate. Not legal advice.
+
+### E2. Gate plate check and the owner photo set (`docs/GATE.md` §3c)
+
+- The plate check only reduces automatic reads of non-plate text (signs, boards); it adds no data. A guard still confirms
+  every read.
+- The owner's ~100 phone photos for testing stay **outside the repository** (default `~/LENSIQ-field/plates/`;
+  `field-data/` is git-ignored); the tool refuses a filled-in label sheet inside the repo. Photos of public streets may
+  show people and other vehicles' plates: **for counsel**, confirm the owner may photograph plates in public for internal
+  testing, and how long the photos and sheet may be kept (we propose: delete after the pilot report).
+- Public benchmark photos (Wikimedia Commons, CC BY / BY-SA / PD) are used for measurement only, never shipped
+  (`docs/CREDITS-MEDIA.md` §2b).
+
+### E3. Organisation accounts — design only (`docs/ORG-ACCOUNTS-DESIGN.md` §9–10)
+
+- **The main change if built:** once Exam, Gate or Attendance data syncs to the Cloudflare backend, LENSIQ stops being a
+  software supplier with no access and becomes a **processor (s.40)** for each customer: a data processing agreement is
+  needed before sync is switched on. Every synced record is a **cross-border transfer** (s.28–29): D1 offers only an
+  `apac` location hint, no Thai jurisdiction.
+- Default design: face descriptors, exam clips, plate crops, frames, PIN hashes, QR tokens, the barrier relay token and
+  visitor names stay on the device; only the org owner can switch sync on. DPIA delta R38–R47 (10 risks, all medium
+  before measures, low after — depending on counsel's answers). The 16 questions for counsel are in §10 of the design.
+- Nothing is built; the owner approves the design and counsel reviews §9–10 first.
 
 ---
 

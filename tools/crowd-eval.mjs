@@ -11,6 +11,19 @@
 //       The clips are served from --clips (outside the repo); they are never copied into the repo.
 //       --tiles CxR (EXPERIMENT, not what the page does today): also run the detector on CxR overlapping tiles (max 300 boxes),
 //       to measure how much a "dense mode" would recover. Stored under "<id>@tilesCxR".
+//       Round 16 experiment options (none of them changes the page; the key gets a suffix from variantKey()):
+//         --overlap 0.3      tile overlap (default 0.2)        --iou 0.6     NMS + tile-merge IoU (default 0.5)
+//         --split none       one letterboxed full frame instead of the page's two halves
+//         --model-file <onnx outside the repo> --size 640       the same YOLOX-Nano weights with a larger input (the ONNX
+//                            with only its input dims changed, kept outside the repo); served as /__model/<name>
+//         --max N            box cap (default: the page's; 300 with tiles or any of the options above); a cap other than
+//                            that default adds "max<N>" to the key, and any --model-file at --size 416 adds "m416"
+//       An experiment needs --out <file>: only the shipped pipeline, coco and tiles3x2 (round 15) go to app-counts.json.
+//   node tools/crowd-eval.mjs bench --clips <dir> [--clip medium_yonge_dundas] [--frames 30] [--throttle 1,4,6] [variant options]
+//       Time per detector call (detectPeople only, median / p90 after 3 warm-up frames) with Chrome CDP
+//       Emulation.setCPUThrottlingRate at each rate. Rate 4 = "emulated mid-range phone, not a real phone" (docs/CROWD-ACCURACY.md).
+//   node tools/crowd-eval.mjs compare [--app <file>] --variants shipped,tiles3x2,r640,... [--json]
+//       Scores every variant against the AI reference and prints a Markdown table with the change against "shipped".
 //   node tools/crowd-eval.mjs frames --clips <dir> --out <dir outside the repo> [--clip id]
 //       Extracts the sampled frames (ffmpeg) for the manual count, named <id>/t<seconds>.jpg, plus a copy with the zone and
 //       line drawn on it (<id>/t<seconds>_zone.jpg). Refuses an --out inside the repo (no images of people in the repo).
@@ -24,7 +37,7 @@
 //       (Re)writes the empty human count sheet for the clips marked "kit": true (two counters, A and B).
 import { createServer } from "node:http";
 import { createReadStream, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { cpus, platform, release } from "node:os";
+import { cpus, loadavg, platform, release } from "node:os";
 import { dirname, extname, join, normalize, resolve, sep } from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -35,7 +48,33 @@ export const CLIPS_FILE = "docs/crowd-count/clips.json";
 export const SHEET_FILE = "docs/crowd-count/count-sheet.csv";
 export const AI_SHEET_FILE = "docs/crowd-count/ai-reference.csv";
 export const APP_FILE = "docs/crowd-count/app-counts.json";
+/** experiment keys already stored in APP_FILE (round 15); any other experiment needs an explicit --out */
+export const ACCEPTED_IN_APP_FILE = ["coco", "tiles3x2"];
 export const SHEET_COLS = ["video", "frame_time_s", "people_in_frame", "people_in_zone", "window_start_s", "window_end_s", "crossings_in", "crossings_out", "counter_name", "notes"];
+
+/** variant options -> the app-counts key suffix ("" = the page as shipped). 3x2 tiles with defaults stay "tiles3x2".
+ *  Every option that changes the result changes the key, so an experiment can never be stored over the shipped row:
+ *  any --model-file at the shipped size 416 -> "m416"; an explicit --max that differs from that run's default cap ->
+ *  "max<N>" (maxDefault = 300 for experiments, the page's cap for the shipped pipeline). */
+export function variantKey({ size = 416, tiles = null, overlap = 0.2, iou = null, split = "auto", model = "yolox", modelFile = false, max = null, maxDefault = null } = {}) {
+  const k = [];
+  if (model === "coco") k.push("coco");
+  if (size && Number(size) !== 416) k.push("r" + Number(size));
+  else if (modelFile) k.push("m" + Number(size || 416));
+  if (tiles) k.push("tiles" + tiles);
+  if (tiles && Number(overlap) !== 0.2) k.push("o" + Number(overlap));
+  if (iou != null && Number(iou) !== 0.5) k.push("iou" + Number(iou));
+  if (!tiles && split === "none") k.push("full");
+  if (max != null && Number(max) !== Number(maxDefault)) k.push("max" + Number(max));
+  return k.join("-");
+}
+/** sorted numbers -> {median, p90, mean} rounded to 0.1 ms */
+export function timingStats(ms) {
+  const a = ms.filter(Number.isFinite).slice().sort((x, y) => x - y);
+  if (!a.length) return { n: 0, median: null, p90: null, mean: null };
+  const q = p => a[Math.min(a.length - 1, Math.max(0, Math.ceil(p * a.length) - 1))], r = v => Math.round(v * 10) / 10;
+  return { n: a.length, median: r(a.length % 2 ? a[a.length >> 1] : (a[a.length / 2 - 1] + a[a.length / 2]) / 2), p90: r(q(0.9)), mean: r(a.reduce((s, v) => s + v, 0) / a.length) };
+}
 
 export function loadClips(root = repo) { return JSON.parse(readFileSync(join(root, CLIPS_FILE), "utf8")).clips; }
 
@@ -202,11 +241,12 @@ const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; ch
   ".json": "application/json", ".wasm": "application/wasm", ".onnx": "application/octet-stream", ".bin": "application/octet-stream",
   ".woff2": "font/woff2", ".svg": "image/svg+xml", ".png": "image/png", ".mp4": "video/mp4", ".webm": "video/webm" };
 /** repo read-only + /__clips/<file> from the clip folder, with HTTP Range (needed to seek a video) */
-function serveEval(clipDir) {
+function serveEval(clipDir, modelFile = null) {
   const srv = createServer((req, res) => {
     let p; try { p = decodeURIComponent(new URL(req.url, "http://x").pathname); } catch { res.writeHead(400).end(); return; }
     let base = repo;
     if (p.startsWith("/__clips/")) { base = resolve(clipDir); p = p.slice(8); }
+    else if (modelFile && p.startsWith("/__model/")) { base = dirname(resolve(modelFile)); p = "/" + p.slice(9).split("/").pop(); }
     const f = normalize(join(base, p.endsWith("/") ? p + "index.html" : p));
     if (!f.startsWith(base + sep) || !existsSync(f) || !statSync(f).isFile()) { res.writeHead(404).end(); return; }
     const size = statSync(f).size, type = TYPES[extname(f).toLowerCase()] || "application/octet-stream";
@@ -229,23 +269,34 @@ async function inPage(cfg) {
   const seek = t => new Promise(res => { v.onseeked = () => res(); v.currentTime = t; });
   let model, kind;
   if (cfg.model === "coco") { await D.tfBackend(); model = await D.loadCoco(); kind = "coco"; } else { model = await D.loadYolox(); kind = "yolox"; }
+  if (cfg.modelUrl) { // same weights, larger input: a session on the re-dimensioned ONNX; runYolox / decodeYolox read m.S
+    const ort = W.ort, S = cfg.size;
+    const session = await ort.InferenceSession.create(cfg.modelUrl, { executionProviders: ["wasm"], graphOptimizationLevel: "all" });
+    const r0 = await session.run({ [session.inputNames[0]]: new ort.Tensor("float32", new Float32Array(3 * S * S).fill(114), [1, 3, S, S]) });
+    Object.values(r0).forEach(t => t.dispose && t.dispose());
+    model = { kind: "yolox", session, S };
+  }
   const cls = ["person"].map(n => Z.cocoIndex(n, kind)).filter(i => i >= 0);
   const P = cfg.pipe;
   const tracker = TR.newTracker(Object.assign({}, TR.PRESET[P.preset] || TR.DEFAULTS, { MIN_HITS: P.minHits }));
   const lc = C.createLineCounter(), sm = Z.createSmoother(P.smooth), smZ = Z.createSmoother(P.smooth);
   const samples = [], crossings = [], perFrame = [];
   const want = new Set(cfg.samples.map(t => Math.round(t * P.hz)));
-  const dur = v.duration, n = Math.floor((dur - 0.05) * P.hz);
+  const dur = v.duration, n = cfg.benchFrames ? Math.min(cfg.benchFrames - 1, Math.floor((dur - 0.05) * P.hz)) : Math.floor((dur - 0.05) * P.hz);
   let ms = 0;
+  const times = [];
   for (let i = 0; i <= n; i++) {
     const t = i / P.hz;
     await seek(Math.min(dur - 0.04, t + 0.001));
     const t0 = performance.now();
-    const opts = { classes: cls, minScore: P.minScore, detW: P.detW, max: P.max, split: P.split };
-    if (cfg.tiles) { opts.tiles = cfg.tiles; opts.split = null; opts.max = cfg.tilesMax || P.max; }
-    const raw = (await D.detectPeople(model, v, opts))
-      .map(d => ({ ...d, label: Z.labelOf(d, kind) })).filter(d => d && d.w > 0 && d.h > 0);
-    ms += performance.now() - t0;
+    const opts = { classes: cls, minScore: P.minScore, detW: P.detW, max: cfg.max || P.max, split: cfg.split === "none" ? null : P.split };
+    if (cfg.iou != null) opts.iou = cfg.iou;
+    if (cfg.tiles) { opts.tiles = cfg.tiles; opts.split = null; opts.max = cfg.tilesMax || cfg.max || P.max; }
+    const det = await D.detectPeople(model, v, opts);
+    const dt = performance.now() - t0;
+    ms += dt; times.push(dt);
+    if (cfg.benchFrames) continue; // timing only
+    const raw = det.map(d => ({ ...d, label: Z.labelOf(d, kind) })).filter(d => d && d.w > 0 && d.h > 0);
     const now = t * 1000;
     TR.updateTracker(tracker, raw, now);
     const byDet = new Map();
@@ -259,7 +310,25 @@ async function inPage(cfg) {
     const hs = people.map(d => d.h).sort((a, b) => a - b), medH = hs.length ? Math.round(1000 * hs[hs.length >> 1]) / 1000 : null;
     if (want.has(i)) samples.push({ t: Math.round(t * 1000) / 1000, raw: people.length, shown, zoneRaw: inZ, zone: zShown, medH, capped: people.length >= (opts.max || P.max) });
   }
+  if (cfg.benchFrames) return { frames: n + 1, times: times.map(x => Math.round(x * 10) / 10), crossOriginIsolated: !!W.crossOriginIsolated, threads: W.ort && W.ort.env.wasm.numThreads };
   return { duration: Math.round(dur * 1000) / 1000, frames: n + 1, msPerFrame: Math.round(ms / (n + 1)), samples, crossings, perFrame };
+}
+
+/** CLI variant options -> {key, cfg} for inPage (shared by run and bench) */
+function variantOf(o) {
+  if (o["model-file"] && insideRepo(o["model-file"])) throw new Error("--model-file must be outside the repo (only the shipped model is vendored)");
+  if (o["model-file"] && !o.size) throw new Error("--model-file needs --size (the input size of that ONNX)");
+  const size = o["model-file"] ? Number(o.size) : 416;
+  const tiles = o.tiles ? { cols: +String(o.tiles).split("x")[0], rows: +String(o.tiles).split("x")[1], overlap: o.overlap != null ? Number(o.overlap) : 0.2 } : null;
+  const iou = o.iou != null ? Number(o.iou) : null, split = o.split === "none" ? "none" : "auto";
+  const optExp = !!(tiles || o["model-file"] || iou != null || split === "none");
+  const max = o.max != null && o.max !== true ? Number(o.max) : null;
+  if (max != null && !(max > 0)) throw new Error("--max needs a positive number");
+  const maxDefault = optExp ? 300 : pagePipeline().max;
+  const key = variantKey({ size, tiles: o.tiles || null, overlap: tiles ? tiles.overlap : 0.2, iou, split, model: o.model || "yolox", modelFile: !!o["model-file"], max, maxDefault });
+  const experiment = optExp || (max != null && max !== maxDefault);
+  return { key, size, experiment, cfg: { model: o.model || "yolox", tiles, tilesMax: tiles ? (max || 300) : 0, max: max || (optExp ? 300 : 0),
+    iou, split, size, modelUrl: o["model-file"] ? "/__model/" + encodeURIComponent(String(o["model-file"]).split(/[\\/]/).pop()) : null } };
 }
 
 async function cmdRun(o) {
@@ -267,10 +336,14 @@ async function cmdRun(o) {
   if (insideRepo(o.clips)) console.warn("warning: --clips is inside the repo — clips must never be committed");
   const { launch } = await import(pathToFileURL(join(repo, "tests/e2e/cdp.mjs")).href);
   const pipe = pagePipeline(), clips = loadClips().filter(c => !o.clip || String(o.clip).split(",").includes(c.id));
+  const V = variantOf(o);
+  // Experiments go to a file outside the committed results unless they are the ones round 15 accepted into it.
+  if (V.experiment && !o.out && !ACCEPTED_IN_APP_FILE.includes(V.key))
+    throw new Error(`variant "${V.key}" is an experiment: pass --out <file> (the committed ${APP_FILE} only holds the shipped pipeline, ${ACCEPTED_IN_APP_FILE.join(", ")})`);
   const outFile = resolve(o.out || rel(APP_FILE));
   const prev = existsSync(outFile) ? JSON.parse(readFileSync(outFile, "utf8")) : { clips: {} };
   const html = readFileSync(rel("crowd.html"), "utf8"), ver = f => (html.match(new RegExp(f.replace(".", "\\.") + "\\?v=(\\d+)")) || [])[1] || "?";
-  const { srv, base } = await serveEval(o.clips);
+  const { srv, base } = await serveEval(o.clips, o["model-file"] || null);
   const browser = await launch();
   const result = { _about: "App counts from tools/crowd-eval.mjs run (numbers only, no frames). PRELIMINARY until compared with the human count sheet.",
     generated: new Date().toISOString(), pipeline: pipe,
@@ -285,11 +358,11 @@ async function cmdRun(o) {
       const dur = probe(f), samples = sampleTimes(c.step, dur);
       const line = c.line ? { a: c.line.a, b: c.line.b, swap: !!c.line.swap } : null;
       const t0 = Date.now();
-      const tiles = o.tiles ? { cols: +String(o.tiles).split("x")[0], rows: +String(o.tiles).split("x")[1], overlap: 0.2 } : null;
-      const r = await page.evaluate(inPage, { src: `${base}/__clips/${encodeURIComponent(c.file)}`, model: o.model || "yolox", pipe, samples, zone: c.zone, line, tiles, tilesMax: tiles ? 300 : 0 });
-      const key = c.id + (o.model === "coco" ? "@coco" : "") + (tiles ? "@tiles" + o.tiles : "");
-      result.clips[key] = { file: c.file, crowd: c.crowd, step: c.step, model: o.model === "coco" ? "COCO-SSD (fallback)" : "YOLOX-Nano 416 (ORT Web WASM)",
-        variant: tiles ? `EXPERIMENT: + ${o.tiles} tiles (not what the page does)` : "as shipped", ...r };
+      const cfg = { ...V.cfg, modelUrl: V.cfg.modelUrl ? base + V.cfg.modelUrl : null };
+      const r = await page.evaluate(inPage, { src: `${base}/__clips/${encodeURIComponent(c.file)}`, pipe, samples, zone: c.zone, line, ...cfg });
+      const key = c.id + (V.key ? "@" + V.key : "");
+      result.clips[key] = { file: c.file, crowd: c.crowd, step: c.step, model: o.model === "coco" ? "COCO-SSD (fallback)" : `YOLOX-Nano ${V.size} (ORT Web WASM)`,
+        variant: V.experiment ? `EXPERIMENT: ${V.key} (not what the page does)` : "as shipped", ...r };
       const sh = r.samples.map(s => s.shown);
       const nDir = d => r.crossings.filter(x => x.dir === d).length;
       console.log(`${key}: ${r.frames} frames in ${((Date.now() - t0) / 1000).toFixed(1)} s (${r.msPerFrame} ms/frame) · shown ${Math.min(...sh)}-${Math.max(...sh)}` +
@@ -302,6 +375,71 @@ async function cmdRun(o) {
   writeFileSync(outFile, JSON.stringify(result, (k, v) => Array.isArray(v) && v.length === 4 && typeof v[0] === "number" ? JSON.stringify(v) : v, 1)
     .replace(/"\[([^\]]*)\]"/g, "[$1]") + "\n");
   console.log("wrote " + outFile);
+}
+
+async function cmdBench(o) {
+  if (!o.clips) throw new Error("--clips <dir> is required");
+  const { launch } = await import(pathToFileURL(join(repo, "tests/e2e/cdp.mjs")).href);
+  const pipe = pagePipeline(), V = variantOf(o), id = String(o.clip || "medium_yonge_dundas"), c = loadClips().find(x => x.id === id);
+  if (!c) throw new Error("unknown clip " + id);
+  const frames = Number(o.frames || 30), warm = 3, rates = String(o.throttle || "1,4,6").split(",").map(Number);
+  const { srv, base } = await serveEval(o.clips, o["model-file"] || null);
+  const browser = await launch(), out = { variant: V.key || "shipped", clip: id, frames, warmup: warm, device: `${platform()} ${release()} · ${(cpus()[0] || {}).model || "cpu"}`, rates: {} };
+  try {
+    const page = await browser.newPage(`${base}/crowd.html?cpu`, { timeout: 60000 });
+    for (const rate of rates) {
+      await page.send("Emulation.setCPUThrottlingRate", { rate });
+      const cfg = { ...V.cfg, modelUrl: V.cfg.modelUrl ? base + V.cfg.modelUrl : null };
+      const r = await page.evaluate(inPage, { src: `${base}/__clips/${encodeURIComponent(c.file)}`, pipe, samples: [], zone: null, line: null, benchFrames: frames, ...cfg });
+      const st = timingStats(r.times.slice(warm));
+      out.threads = r.threads; out.crossOriginIsolated = r.crossOriginIsolated;
+      const cap = st.median ? Math.round(10000 / st.median) / 10 : null;
+      out.rates[rate] = { ...st, load1: Math.round(10 * loadavg()[0]) / 10, fpsCapacity: cap, pageHz: cap == null ? null : Math.min(pipe.hz, cap) };
+      const R = out.rates[rate];
+      console.log(`${out.variant} @ CPU x${rate}: median ${st.median} ms · p90 ${st.p90} ms · ${R.fpsCapacity} detector calls/s (page runs at ${R.pageHz} Hz of ${pipe.hz}) · load ${R.load1}`);
+    }
+    await page.send("Emulation.setCPUThrottlingRate", { rate: 1 });
+    await page.close();
+  } finally { await browser.close(); srv.close(); }
+  if (o.out) {
+    const f = resolve(o.out), prev = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : {};
+    prev[out.variant] = out; writeFileSync(f, JSON.stringify(prev, null, 1) + "\n"); console.log("wrote " + f);
+  }
+  return out;
+}
+
+/** score several variants against the same reference -> rows {variant, clip, crowd, frame, zone, dFrameMape, dZoneMape} */
+export function compareVariants(rows, app, clips, variants, { ai = true } = {}) {
+  const per = Object.fromEntries(variants.map(v => [v, score(rows, app, clips, { ai, variant: v === "shipped" ? "" : v })]));
+  const base = per.shipped || per[variants[0]], out = [];
+  for (const v of variants) for (const [id, s] of Object.entries(per[v])) {
+    const b = base && base[id], d = (x, y) => x == null || y == null ? null : Math.round(10 * (x - y)) / 10;
+    out.push({ variant: v, clip: id, crowd: s.crowd, frame: s.frame, zone: s.zone,
+      dFrameMape: b ? d(s.frame.mape, b.frame.mape) : null, dZoneMape: b ? d(s.zone.mape, b.zone.mape) : null,
+      dFrameBias: b ? d(s.frame.bias, b.frame.bias) : null, capped: (app.clips[id + (v === "shipped" ? "" : "@" + v)].samples || []).filter(x => x.capped).length });
+  }
+  return out;
+}
+function cmdCompare(o) {
+  const sheets = [].concat(o.sheet || [rel(AI_SHEET_FILE)]).filter(f => existsSync(f));
+  const rows = sheets.flatMap(f => parseCsv(readFileSync(f, "utf8")));
+  const app = JSON.parse(readFileSync(resolve(o.app || rel(APP_FILE)), "utf8"));
+  const variants = String(o.variants || "shipped").split(",");
+  const res = compareVariants(rows, app, loadClips(), variants, { ai: !o.human });
+  if (o.json) { console.log(JSON.stringify(res, null, 1)); return res; }
+  const r1 = x => Math.round(x * 10) / 10;
+  const f = (x, suf = "") => x == null ? "—" : (x > 0 && suf === "pp" ? "+" : "") + r1(x) + (suf === "pp" ? " pp" : suf);
+  const b = x => x == null ? "—" : (x > 0 ? "+" : "") + r1(x);
+  console.log(`Reference: ${o.human ? "HUMAN" : "AI reviewer (public dataset, preliminary AI reference)"}\n`);
+  console.log("| Variant | Clip | Frame MAE | Frame MAPE | Frame bias | Δ MAPE vs shipped | Within band | Zone MAE | Zone MAPE | Zone bias | Δ zone MAPE | at cap |");
+  console.log("|---|---|---|---|---|---|---|---|---|---|---|---|");
+  for (const r of res) {
+    const wb = r.frame.within == null ? "—" : Math.round(100 * r.frame.within) + " %";
+    const fr = `${f(r.frame.mae)} | ${f(r.frame.mape, " %")} | ${b(r.frame.bias)} | ${f(r.dFrameMape, "pp")} | ${wb}`;
+    const zn = `${f(r.zone.mae)} | ${f(r.zone.mape, " %")} | ${b(r.zone.bias)} | ${f(r.dZoneMape, "pp")}`;
+    console.log(`| ${r.variant} | ${r.clip} | ${fr} | ${zn} | ${r.capped} |`);
+  }
+  return res;
 }
 
 function cmdFrames(o) {
@@ -364,7 +502,7 @@ function cmdScore(o) {
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const o = args(process.argv.slice(2)), cmd = o._[0];
-  const run = { run: cmdRun, frames: cmdFrames, score: cmdScore, template: cmdTemplate }[cmd];
-  if (!run) { console.log("usage: node tools/crowd-eval.mjs run|frames|score|template [options] — see the header of this file"); process.exit(cmd ? 2 : 0); }
+  const run = { run: cmdRun, bench: cmdBench, compare: cmdCompare, frames: cmdFrames, score: cmdScore, template: cmdTemplate }[cmd];
+  if (!run) { console.log("usage: node tools/crowd-eval.mjs run|bench|compare|frames|score|template [options] — see the header of this file"); process.exit(cmd ? 2 : 0); }
   Promise.resolve(run(o)).catch(e => { console.error(e && e.stack || e); process.exit(1); });
 }

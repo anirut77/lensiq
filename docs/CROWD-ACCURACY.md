@@ -113,6 +113,127 @@ but costs about 4× the time per frame (≈ 2–3 frames per second on an M1, mu
 crowd. It is **not** shipped; it is listed as a possible opt-in "far / dense mode" (deferred, needs a change in the shared
 `lensiq-zonecam.js`).
 
+## Round 16: higher input resolution and tiling (sparse and medium clips)
+
+> **Source label: public dataset, preliminary AI reference.** The clips are the four sparse and medium Wikimedia
+> Commons clips above. The reference is the round 15 AI-reviewer count in
+> [`ai-reference.csv`](crowd-count/ai-reference.csv), unchanged (no re-count). **EXPERIMENT ONLY: `crowd.js` and
+> `lensiq-zonecam.js` are unchanged and the page still runs the "shipped" row.** Dense clips are not part of this test.
+
+### Fixed test set (written down before the runs, 2026-11-08)
+
+- **Clips:** `sparse_roncesvalles`, `sparse_tyumen`, `medium_tyumen`, `medium_yonge_dundas` (1280×720, the round 15
+  files). Pipeline: the page's own (`pagePipeline()`: minScore 0.4, 5 Hz, tracker `PRESET.object` with 2 hits, 5-frame
+  median). Same YOLOX-Nano weights (Apache-2.0).
+- **Higher input resolution:** the same ONNX with only the input dimensions changed (640×640 and 832×832; YOLOX's graph
+  uses `Reshape -1` and scale-based `Resize`, so nothing else changes). The re-dimensioned files stay in the scratch
+  folder and are **never** put in the repo. Box cap 300 for every experiment (the page uses 40), so the cap cannot hide
+  a difference. Any sample at the cap is reported: none were.
+- **Variants:** `shipped` (416, two overlapping halves = 2 model runs), `full` (416, one letterboxed frame = 1 run),
+  `tiles2x1` / `tiles3x2` / `tiles4x3` (416, full frame + C×R tiles, overlap 0.2, IoU 0.5 = 3 / 7 / 13 runs),
+  `tiles3x2-o0.3` (overlap 0.3), `tiles3x2-iou0.4` / `-iou0.6` (NMS and tile-merge IoU), `r640-full` (640, one frame),
+  `r640` / `r832` (640 / 832, two halves), `r640-tiles2x1` (640, full + 2×1 = 3 runs).
+- **Timing:** `medium_yonge_dundas`, 30 frames from 0 s at 5 Hz, first 3 discarded as warm-up, detector call only
+  (`detectPeople`), median and p90. CPU throttling via Chrome CDP `Emulation.setCPUThrottlingRate`: ×1 (this Mac,
+  Apple M1), ×4 (mid-range phone), ×6 (low-end check). ORT Web WASM on 1 thread: the page is not cross-origin isolated,
+  and neither is GitHub Pages.
+
+### Accuracy per clip (whole frame; MAE people / MAPE / bias)
+
+| Variant | sparse_roncesvalles | sparse_tyumen | medium_tyumen (pan) | medium_yonge_dundas (estimate ref.) | Zone: sparse_roncesvalles | Zone: medium_yonge_dundas (near half) |
+|---|---|---|---|---|---|---|
+| **shipped** (416, 2 halves) | 2.5 / 59 % / −2.5 | 4.5 / 37 % / −4.5 | 5.2 / 26 % / −5.0 | 22.8 / 58 % / −22.7 | 2.2 / 57 % / −2.2 | 1.2 / 31 % / −0.2 |
+| full (416, 1 frame) | 4.1 / 98 % / −4.1 | 9.8 / 83 % / −9.7 | 8.5 / 43 % / −8.5 | 32.6 / 83 % / −32.5 | 3.8 / 98 % / −3.8 | 1.9 / 43 % / −1.8 |
+| tiles2x1 | 2.5 / 59 % / −2.5 | 4.4 / 36 % / −4.4 | 4.8 / 24 % / −4.6 | 22.6 / 57 % / −22.5 | 2.2 / 57 % / −2.2 | 1.3 / 32 % / −0.4 |
+| tiles3x2 | 1.9 / 47 % / −1.9 | 2.4 / 22 % / −1.1 | 2.4 / 12 % / −2.2 | 15.6 / 39 % / −15.6 | 1.7 / 44 % / −1.7 | 1.4 / 38 % / −0.1 |
+| **tiles4x3** | 1.0 / 25 % / −0.8 | 2.8 / 25 % / −0.9 | 1.3 / 7 % / −0.2 | 10.8 / 26 % / −10.4 | 0.8 / 21 % / −0.6 | 1.5 / 34 % / −0.8 |
+| tiles3x2, overlap 0.3 | 2.0 / 49 % / −2.0 | 2.8 / 25 % / −1.7 | 3.3 / 16 % / −3.0 | 15.3 / 38 % / −15.3 | 1.8 / 46 % / −1.8 | 1.2 / 34 % / +0.1 |
+| tiles3x2, IoU 0.4 | 1.9 / 47 % / −1.9 | 2.5 / 23 % / −1.4 | 2.5 / 13 % / −2.2 | 15.9 / 40 % / −15.8 | 1.7 / 44 % / −1.7 | 1.4 / 37 % / −0.1 |
+| tiles3x2, IoU 0.6 | 1.9 / 47 % / −1.9 | 2.4 / 22 % / −1.1 | 2.4 / 12 % / −2.2 | 15.5 / 39 % / −15.4 | 1.7 / 44 % / −1.7 | 1.4 / 38 % / −0.1 |
+| r640-full (640, 1 frame) | 2.9 / 72 % / −2.9 | 5.9 / 50 % / −5.9 | 5.3 / 27 % / −5.3 | 23.3 / 59 % / −23.2 | 2.7 / 70 % / −2.7 | 1.2 / 35 % / +0.2 |
+| **r640** (640, 2 halves) | 1.2 / 29 % / −1.2 | 2.6 / 21 % / −1.9 | 2.8 / 14 % / −2.1 | 13.4 / 33 % / −13.4 | 1.0 / 27 % / −1.0 | 1.2 / 33 % / 0.0 |
+| **r832** (832, 2 halves) | 1.2 / 30 % / −0.8 | 2.6 / 24 % / −1.5 | 1.8 / 9 % / −0.6 | 10.6 / 26 % / −10.0 | 1.1 / 29 % / −0.8 | 1.3 / 34 % / +0.3 |
+| r640-tiles2x1 | 1.2 / 29 % / −1.2 | 2.8 / 24 % / −1.6 | 2.4 / 12 % / −1.6 | 13.5 / 34 % / −13.5 | 1.0 / 27 % / −1.0 | 1.3 / 34 % / +0.1 |
+
+For `sparse_tyumen` and `medium_tyumen` the zone is the whole frame, so their zone figures equal the frame figures
+above (that is why the table has zone columns only for `sparse_roncesvalles` and Yonge–Dundas).
+
+Share of frames within the acceptance band (±1 sparse, ±15 % medium), whole frame: shipped 0 / 19 / 25 / 0 %;
+tiles4x3 77 / 38 / 83 / 25 %; r640 62 / 25 / 50 / 15 %; r832 62 / 31 / 83 / 25 % (same clip order). The `shipped` row
+reproduces round 15 exactly, so the run is deterministic.
+
+**What changes:**
+
+1. **More pixels per person is what helps.** `r640` (two halves at 640) halves the sparse error (`sparse_roncesvalles`
+   59 % → 29 %) and cuts the Yonge–Dundas whole-frame undercount from −22.7 to −13.4 people. `tiles4x3` and `r832` get
+   the most (Yonge–Dundas −10.4 / −10.0, `medium_tyumen` 7–9 %), but even they still miss about a quarter of the people
+   on Yonge–Dundas, mostly the far kerb.
+2. **A bigger input on its own is worse.** `r640-full` letterboxes the 16:9 frame into 640×640, so a person gets about
+   the same number of pixels as the shipped two halves at 416. The model was trained at 416, so it does worse
+   (59 % → 72 % on `sparse_roncesvalles`). One letterboxed frame at 416 (`full`) is the worst variant: the shipped
+   two-halves split is already worth 17–46 points.
+3. **Overlap and NMS hardly matter.** IoU 0.4 / 0.5 / 0.6 differ by at most 0.4 people per frame. Overlap 0.3 is
+   slightly *worse* than 0.2 on three clips. `tiles2x1` adds a full-frame pass to the shipped halves and gains almost
+   nothing (≤ 2 points).
+4. **The near zone does not improve.** The Yonge–Dundas near-half zone (0–13 people, large people) is already close
+   (bias −0.2) and stays at MAE 1.2–1.5 with every variant; the change in MAPE (+2 to +6 points) is within the noise of
+   small counts. The gain is entirely in far / small people.
+5. **New over-counts (unverified).** On `sparse_tyumen`, 2–3 of 16 frames come out above the reference by more than one
+   person (by up to 2–5 people) with `tiles3x2`, `tiles4x3`, `r640`, `r832` and `r640-tiles2x1`, while `shipped` never
+   over-counts. These are either false detections from the tiles or far people the AI reference missed. The human
+   count decides which. No variant produced a false line crossing on the sparse clips (`sparse_roncesvalles` out 1,
+   `sparse_tyumen` 0 / 0, same as shipped).
+6. **The 40-box cap would bind.** `tiles4x3` and `r832` reach 45 raw boxes on Yonge–Dundas (shipped: 27). The
+   recommended `r640` already peaks at 38 and `r640-tiles2x1` at exactly 40, the page's cap. Shipping any of them also
+   means raising `max` in `lensiq-zonecam.js`, and checking the cap again on denser scenes. (The runs above used a cap of
+   300, so the measured numbers are not affected.)
+
+### Time per frame and fps cost
+
+Detector call only (`detectPeople`, the part that changes), `medium_yonge_dundas`, 27 timed frames per cell, median
+(p90). "Calls/s" = 1000 / median. The page asks for 5 per second. When a call takes longer than 200 ms, the page runs at
+the lower rate shown, and the tracker and line counter (tuned for 5 Hz) get fewer frames.
+
+| Variant | Model runs / frame | This Mac (Apple M1, ×1) | **Emulated mid-range phone (×4)**, not a real phone | Emulated low-end phone (×6), not a real phone | Cost vs shipped (×1) | Calls/s lost at ×4 vs shipped |
+|---|---|---|---|---|---|---|
+| **shipped** | 2 × 416 | 100 ms (119) · 10/s | 355 ms (366) · **2.8/s** | 533 ms (542) · 1.9/s | ×1.0 | — |
+| full | 1 × 416 | 46 ms (49) · 22/s | 180 ms (183) · 5.6/s | 270 ms (275) · 3.7/s | ×0.5 | +100 % (but far worse accuracy) |
+| tiles2x1 | 3 × 416 | 130 ms (139) · 7.7/s | 528 ms (533) · 1.9/s | 794 ms (808) · 1.3/s | ×1.3 | −32 % |
+| tiles3x2 | 7 × 416 | 303 ms (309) · 3.3/s | 1215 ms (1222) · 0.8/s | 1828 ms (1840) · 0.5/s | ×3.0 | −71 % |
+| **tiles4x3** | 13 × 416 | 551 ms (562) · 1.8/s | 2250 ms (2260) · **0.4/s** | 3393 ms (3429) · 0.3/s | ×5.5 | −86 % |
+| r640-full | 1 × 640 | 97 ms (100) · 10/s | 401 ms (411) · 2.5/s | 602 ms (609) · 1.7/s | ×1.0 | −11 % |
+| **r640** | 2 × 640 | 196 ms (199) · 5.1/s | 807 ms (816) · **1.2/s** | 1209 ms (1223) · 0.8/s | ×2.0 | −57 % |
+| **r832** | 2 × 832 | 330 ms (336) · 3.0/s | 1350 ms (1358) · **0.7/s** | 2037 ms (2077) · 0.5/s | ×3.3 | −75 % |
+| r640-tiles2x1 | 3 × 640 | 291 ms (299) · 3.4/s | 1196 ms (1207) · 0.8/s | 1801 ms (1808) · 0.6/s | ×2.9 | −71 % |
+
+**Why ×4 for "mid-range phone":** ×4 is the CPU slowdown that Chrome DevTools' "Mid-tier mobile" preset and the
+Lighthouse mobile profile use to approximate a mid-range Android phone from a fast desktop CPU. The Apple M1 counts as
+fast here (single-thread speed matters, because ORT Web runs on one thread on this site). ×6 is DevTools' "Low-tier
+mobile" setting, given as a check. **Emulated, not a real phone.** CDP throttling slows the page's CPU time evenly. It
+does not model a phone's memory bandwidth, WASM SIMD speed, heat throttling or camera/video decoding, so a real phone
+can be slower. A real-phone check belongs in the Crowd pilot kit.
+
+**How the numbers were taken:** the machine was shared with other jobs, so the bench was run three times (system load
+6–63 in pass 1, 3–9 in pass 2, 2–6 in pass 3; `bench-r16*.json` in the scratch folder, outside the repo). The table
+shows the fastest pass per cell. Every cell came from pass 3, where the p90 is within 1–7 % of the median except
+`shipped` ×1 (load 6.4, p90 +19 %). An unloaded single run of `shipped` at ×1 gave 90 ms, and round 15 measured
+87–128 ms. The ×4 / ×1 ratio is 3.5–4.1 for every variant, so the cost ratios hold at every rate.
+
+**Trade-off, in short (preliminary, AI reference, 4 clips):**
+
+| Option | Sparse + medium error (MAPE, whole frame, 4 clips) | Emulated mid-range phone |
+|---|---|---|
+| shipped | 59 / 37 / 26 / 58 % | 2.8 calls/s |
+| r640 (same 2 halves, 640 input) | 29 / 21 / 14 / 33 % | 1.2 calls/s (−57 %) |
+| r832 | 30 / 24 / 9 / 26 % | 0.7 calls/s (−75 %) |
+| tiles4x3 | 25 / 25 / 7 / 26 % | 0.4 calls/s (−86 %) |
+
+`r640` gives most of the gain for the lowest cost: about half the error for 2× the compute. Below about 1 call per
+second the 5 Hz tracker and the entry/exit line would need re-tuning (people move further between frames), which was
+**not** tested. A slower variant would suit a "count every few seconds" mode for far or sparse scenes, not live line
+counting. None of these variants addresses dense crowds (Shibuya ≈ 300 people). For dense crowds see
+[`CROWD-DENSITY-MODELS.md`](CROWD-DENSITY-MODELS.md).
+
 ## Where it breaks
 
 1. **Small or distant people.** When the median person box is less than about a tenth of the frame height (box heights
@@ -198,6 +319,20 @@ node tools/crowd-eval.mjs score [--variant coco|tiles3x2] [--json]  # AI referen
 node tools/crowd-eval.mjs template                                  # rewrite the empty human sheet
 ```
 
+Round 16 experiments (results written OUTSIDE the repo with `--out`; the re-dimensioned ONNX files too):
+
+```
+node tools/crowd-eval.mjs run --clips <dir> --out <scratch>/app-r16.json --split none          # one letterboxed frame
+node tools/crowd-eval.mjs run --clips <dir> --out <scratch>/app-r16.json --tiles 4x3 [--overlap 0.3] [--iou 0.6]
+node tools/crowd-eval.mjs run --clips <dir> --out <scratch>/app-r16.json --model-file <scratch>/yolox_nano_640.onnx --size 640
+node tools/crowd-eval.mjs bench --clips <dir> --clip medium_yonge_dundas --frames 30 --throttle 1,4,6 [same variant options]
+node tools/crowd-eval.mjs compare --app <scratch>/app-r16.json --variants shipped,tiles4x3,r640,r832
+```
+
+The 640 / 832 ONNX is the vendored `yolox_nano_416.onnx` with only the graph input set to `[1,3,640,640]` (or 832) and
+the output to `[1,8400,85]` (or `[1,14196,85]`); a 416 copy made the same way gives identical outputs (max difference 0).
+`--model-file` refuses a path inside the repo.
+
 Re-run after any change to the detector, its options, the tracker or the line counter; the tool reads those settings from
 `lensiq-zonecam.js` / `crowd.js` and records the page's script versions with the results.
 
@@ -206,5 +341,7 @@ Re-run after any change to the detector, its options, the tracker or the line co
 - The human count itself (two people, about 1–2 hours for both clips).
 - Line-crossing reference for `medium_yonge_dundas` (part of the human kit).
 - An opt-in "far / dense mode" (tiles) and a density-map model for crowds of hundreds: both need changes outside this page
-  (`lensiq-zonecam.js`, a new model with a clean licence).
+  (`lensiq-zonecam.js`, a new model with a clean licence). Round 16 measured the options (section above) and researched
+  the density models and their licences ([`CROWD-DENSITY-MODELS.md`](CROWD-DENSITY-MODELS.md)): no public checkpoint is
+  clean for commercial use. Nothing ships without the owner's approval.
 - Re-measuring on the customer's own camera position: these are street clips, not shops or event halls.

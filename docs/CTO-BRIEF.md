@@ -1,6 +1,6 @@
 # LENSIQ — CTO brief
 
-As of 2026-11-08 (updated after round 15). Round 15 shipped in two commits: Gate `70508bc` (CI green on Linux, live) and crowd/docs (the commit that adds this update). Accuracy sources are labelled synthetic, public dataset or field.
+As of 2026-11-09 (updated for round 16, integrated in the working tree, not yet committed). Round 15 shipped in two commits: Gate `70508bc` (CI green on Linux, live) and crowd/docs `41dc0b7`. Round 16 is split into three commits for approval (customer switch; Gate plate check + field tools; claims, crowd test, design, pilot kits) plus two held groups (category packaging, pricing) that wait for the owner. Accuracy sources are labelled synthetic, public dataset or field.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
 ## 1. System map
@@ -57,15 +57,15 @@ No module is production-ready. None has completed a field pilot, and the backend
 | COCO-SSD lite | person fallback | 18 MB | Apache-2.0 | tfjs-models coco-ssd | browser, TF.js | AP@0.5 69.1% PETS / 81.4% TUD |
 | face-api tiny detector + 68 landmarks | face find and landmarks | 0.19 + 0.35 MB | MIT weights (training data academic) | vladmandic/face-api | browser, TF.js | not measured separately |
 | face-api recognition (dlib ResNet) | 1:1 and 1:N face match | 6.1 MB | MIT port / CC0 weights (training data research) | as above | browser | TAR 86.5% at FAR 0.09% (thr 0.55). 1:N with 100 enrolled: 85.1% recognised, 0.79% strangers accepted (ACCURACY §2) |
-| face-api age/gender | signage estimate (opt-in) | 0.42 MB | MIT weights; **UTKFace non-commercial** | as above | browser | ACCURACY §3 |
-| face-api expression | neuro/booth demo | 0.32 MB | MIT weights; data licence unclear | as above | browser | ACCURACY §6 |
+| face-api age/gender | signage estimate (opt-in, **research demo only** since R16) | 0.42 MB | MIT weights; **UTKFace non-commercial** | as above | browser | ACCURACY §3 |
+| face-api expression | neuro/booth/signage/photobooth (**research demo only** since R16) | 0.32 MB | MIT weights; data licence unclear | as above | browser | ACCURACY §6 |
 | MediaPipe Hands (TF.js) + hand_landmarker | palm, kiosk | 3.9 + 7.5 MB | Apache-2.0 | google-ai-edge/mediapipe | browser | ACCURACY §4 |
 | Selfie segmenter | booth background | 0.24 MB | Apache-2.0 | MediaPipe | browser | not measured |
 | Selfie Multiclass 256 | studio parsing | 7.8 MB | Apache-2.0 | MediaPipe | browser, ORT | ACCURACY §11 |
 | MODNet | matting | 25 MB | Apache-2.0 (earlier releases CC BY-NC-SA; provenance commit unrecorded) | ZHKKKe/MODNet via Xenova | browser, ORT | ACCURACY §11 |
 | MobileNetV2 | checkout embedding, re-ID | 13 MB | Apache-2.0 (ImageNet) | tfjs-models | browser | not measured (§9) |
-| PP-OCRv5 Thai rec (mobile) | plate and label text | 7.5 MB | Apache-2.0 | PaddleOCR | browser, ORT | Plates (R15, synthetic, held out): exact read in 1 frame 81/140 (58%). Real plates not measured |
-| LPD-YuNet (R15) | plate proposal assist | 4.1 MB | Apache-2.0 | OpenCV Zoo | browser, ORT | **Synthetic:** finder + LPD-YuNet found 136/140 plates on the held-out seed, 18–20 of 20 in each colour, motorcycle and night category. **Public photos:** the right box ranked first on 2 of 6 plates (5 Wikimedia photos), and non-plate boxes scored up to 0.86. **Field:** not measured. |
+| PP-OCRv5 Thai rec (mobile) | plate and label text | 7.5 MB | Apache-2.0 | PaddleOCR | browser, ORT | Plates (synthetic, held out): exact read in 1 frame 81/140 (58%), unchanged by the R16 plate check. **Public photos (R16, 51 Wikimedia Commons photos):** exact automatic read 7/22 (32%; 7/23 = 30% counting held-out photo w07, whose label was set to "unsure" before any held-out run); motorcycle plates 0/6; 4/15 exact even when the guard taps the plate. **Field:** not measured |
+| LPD-YuNet (R15) | plate proposal assist | 4.1 MB | Apache-2.0 | OpenCV Zoo | browser, ORT | **Synthetic:** finder + LPD-YuNet found 136/140 plates on the held-out seed, 18–20 of 20 in each colour, motorcycle and night category. **Public photos (R16, 51 photos):** the top box is the plate on 13/32 (41%). The top box scored high enough to start an auto-read on 18 of 19 plate-less photos; the R16 plate check (`LQPlate.plateGuard`) is what stops them: photos without a plate read automatically 3/19 → 0/19 (held-out 1/9 → 0/9; 95% interval 0–17% for 0/19, 0–30% for 0/9). **Field:** not measured. |
 | Driver eye classifier (ours) | eye closed/open | < 2 KB | MIT; trained on ODC-BY data | `driver.js` | browser | ACCURACY §5 |
 | Creative attention (ours) | saliency | < 1 KB | MIT | `creative-core.js` | browser | NSS 1.59 held out, MIT1003 (ACCURACY §10) |
 | Claude API (optional) | rewording fortune facts | — | Anthropic commercial terms | — | server relay, consent required | not applicable |
@@ -75,10 +75,15 @@ No module is production-ready. None has completed a field pilot, and the backend
 - **Blocked:**
   - `faceparse-bisenet-r18-q8.onnx` (CelebAMask-HQ, non-commercial). It is git-ignored, refused by the build and off by default.
   - Open virtual try-on weights (CC BY-NC-SA). Try-on is off unless the operator attests to a commercial licence.
-  - YOLOv9 weights from open-image-models (GPL-derived). Benchmark use only; never shipped.
+  - YOLOv9 weights from open-image-models (GPL-derived). Benchmark use only; never shipped. In R16 the `yolo-v9-t-384-license-plates-end2end.onnx` model (github.com/ankandrew/open-image-models; code MIT, weights licence not stated, YOLOv9 reference code GPL-3.0) was run offline, outside the repo, **only to draw candidate boxes for labelling** the real-photo set (`docs/GATE.md` §3c). Nothing from it is in the repo (`git ls-files` checked).
 - **Unresolved, needs a legal opinion:**
   - The face-api models (F5/F6), whose training data is academic. Age/gender is trained on UTKFace, which is non-commercial.
   - These models are core to attendance, customers, booth and exam.
+  - **R16:** customer mode is now the default on every host (public site included): age/gender and expression are never
+    loaded unless a device switches on the labelled "Research demo" toggle; `LENSIQ_RESEARCH_DEMO = false` locks it off
+    for a customer install. Detector, landmarks and recognition still run and still need the opinion.
+    Open: `?faceparse=1` (BiSeNet test link in `studio.js` / `photobooth-hq.js`) is not under the lock yet; the model file
+    is not in git, so the public site cannot load it.
 - **Opt-in copyleft:** PyMuPDF (AGPL) and pdf2docx (GPL). Neither is installed by default.
 
 ## 3. Quality status
@@ -87,7 +92,7 @@ No module is production-ready. None has completed a field pilot, and the backend
 
 | Type | Count |
 |---|---|
-| Unit (node:test) | 1,080 tests, all passing. |
+| Unit (node:test) | 1,121 tests, all passing (R16 working tree; backend subset 135/135). |
 | e2e (headless Chrome) | 437 tests, all passing (macOS, on the Gate-only commit). CI on Linux passed for `70508bc`. |
 | Integration | 1 file |
 | Python unittest | 4 files |
@@ -105,10 +110,10 @@ No module is production-ready. None has completed a field pilot, and the backend
 ### Known bugs and limitations, ranked by risk to a paying customer
 
 1. **No field accuracy for anything sold as a measurement:**
-   - Plates are tested on synthetic scenes plus 5 real photos.
-   - Crowd counts run low on public street clips. Error is 26–59% across the whole frame. In the near zone of one clip it is 1.2 people (31%). A crowd of about 300 counts 1–2 people. These figures are **preliminary**: the reference counts were made by an AI, and the human count is pending. A new "expected crowd" setting shows a warning when the count collapses.
+   - Plates are tested on synthetic scenes plus 51 public real photos (R16). Owner phone photos and a real gate: not measured.
+   - Crowd counts run low on public street clips. Error is 26–59% across the whole frame. R16 test: a 640 input or 4×3 tiles cut the whole-frame error to about 7–33% on the four sparse/medium clips, but cost fps and add a few over-counts; not shipped (`docs/CROWD-ACCURACY.md` "Round 16"). In the near zone of one clip it is 1.2 people (31%). A crowd of about 300 counts 1–2 people. These figures are **preliminary**: the reference counts were made by an AI, and the human count is pending. A new "expected crowd" setting shows a warning when the count collapses.
    - Face accuracy comes from public photos. It is lower for Asian faces (about 66–76%, per the attendance readiness doc).
-2. **Plate detection on real photos is weak** (public photos: 2 of 6 plates had the right box first). Non-plate boxes can trigger an auto-read. The silent leading-digit drop is fixed: the guard is now asked. The guard confirms every read, and a tap is the fallback.
+2. **Plate reading on real photos is weak** (R16, 51 public photos: top box on the plate 13/32, exact automatic read 7/22 = 32%, or 7/23 = 30% with w07 counted; motorcycle plates 0/6). The R16 plate check stops non-plate boxes from being auto-read (0/19 photos without a plate, held-out 0/9, 95% interval up to 30% on the held-out half alone). The OCR, not the finder, is now the main limit. The guard confirms every read, and a tap is the fallback.
 3. **The face-model licence is unresolved** (F5/F6). This could force a model swap in attendance, customers and exam.
 4. **The backend has never been deployed**, so billing, members, the Thai FDA lookup and the exam relay are untested against real Cloudflare and Opn. Opn KYC is pending.
 5. **All data lives in one browser per device.** There is no multi-site sync, no organisation accounts and no backup. Clearing the browser loses records.
@@ -132,7 +137,7 @@ No module is production-ready. None has completed a field pilot, and the backend
 |---|---|---|---|
 | Attendance, customers, booth (recognition mode), teamface | Face descriptors (128-D), names or codes, punch times | IndexedDB, AES-GCM-256 encrypted with a non-extractable key (`LQVault`), with retention expiry. No face images stored. | No |
 | Exam | Signal flags. Video clips only when opted in. | Clips encrypted in IndexedDB and auto-deleted. Flags kept locally. | No (relay designed, needs the Worker) |
-| Gate | Plate text, times, fees, visitor names | localStorage/IndexedDB with retention and an audit log. No vehicle photos stored. | No |
+| Gate | Plate text, times, fees, visitor names | localStorage/IndexedDB with retention and an audit log. No vehicle photos stored. | No (R16 org-accounts design would sync plates centrally — design only, `docs/ORG-ACCOUNTS-DESIGN.md`) |
 | Crowd, store, queue and other zone pages, signage | Counts only. Frames stay in memory. | Local, or numbers-only through the LAN hub | Aggregate numbers only, when the hub is configured |
 | Medicine | Label text typed or OCR'd | Not stored | Text only, to openFDA/RxNav/Thai FDA, after opt-in |
 | Fortune | Birth data, question text | Local | Derived facts only, to Claude, when there is a server key and the user consents |
@@ -155,7 +160,7 @@ No module is production-ready. None has completed a field pilot, and the backend
 
 **Crowd**
 - Human ground-truth count: needs two people for 1–2 hours.
-- Tiled "far/dense" mode and a density-map model: need shared-code changes and a model with a clean licence.
+- Tiled "far/dense" mode and a density-map model: need shared-code changes and a model with a clean licence. R16 measured resolution / tiling (not shipped; needs owner approval and a real-phone fps check) and listed density models with code / weights / data licences (`docs/CROWD-DENSITY-MODELS.md`); none added.
 
 **Medicine**
 - PP-OCRv5 text detector: not vendored yet.
@@ -184,6 +189,16 @@ No module is production-ready. None has completed a field pilot, and the backend
 **Device adapters (heart-rate, serial, webhook)**
 - Design only (`docs/DEVICE-ADAPTERS.md`).
 
+**Round 16, waiting for the owner**
+- Approve the page-status table (`docs/PAGE-STATUS.md`) before the category packaging is published.
+- Approve the draft prices (`docs/PRICING-RESEARCH.md`) and open questions 7–9 there: VAT-inclusive vs excluding VAT for
+  B2B, a time limit on the Gate free tier, and the Wilson rule for the Gate and Exam pilot targets (raise night n to
+  120+, judge on the point estimate, or keep the table).
+- CSP `<meta>` line width on new pages (format check): either `tools/csp-meta.mjs` writes one directive per line on all
+  pages, or the format check exempts that generated line. Not decided by the integrator.
+- Org accounts (item 4): approve the design and the PDPA impact before any code; counsel reviews §9–10.
+- `?faceparse=1` lock (patch prepared).
+
 **Owner and outside actions**
 - Lawyer review, Cloudflare deploy, Opn KYC, field pilots, native-speaker review.
 
@@ -206,7 +221,8 @@ No module is production-ready. None has completed a field pilot, and the backend
 | 13 | `551a989` | Exam, HR attendance, Gate (plates + PromptPay), sector catalogue |
 | 14 | `7fcbbd2` | Crowd, exam clip, case review, medicine, OMR, planner, lucky colour |
 | 14 fixes | `aaad9bf`, `8b9d6aa`, `f478547` | Strict OCR tests, leading-digit safety net, field-pilot kit |
-| 15 | `70508bc` + crowd/docs commit | Gate: plate finder for every colour, motorcycles and night, plus the leading-digit fix. Crowd: dense-crowd warning, preliminary error on 6 public clips, and a human counting sheet. Credits file, Colab training notebook, dataset list. |
+| 15 | `70508bc`, `41dc0b7` | Gate: plate finder for every colour, motorcycles and night, plus the leading-digit fix. Crowd: dense-crowd warning, preliminary error on 6 public clips, and a human counting sheet. Credits file, Colab training notebook, dataset list. |
+| 16 | working tree (not committed yet) | Customer mode by default + research-demo toggle; Gate plate check (0/19 plate-less photos auto-read on 51 public photos) and owner photo tool; claims with n and source everywhere; crowd resolution/tiling test; org-accounts design; pilot kits. Held for approval: 7 category pages, page-status table, pricing and four one-pagers. |
 
 **Size**
 - 64 HTML pages and 36 commits.
@@ -230,5 +246,5 @@ No module is production-ready. None has completed a field pilot, and the backend
 1. **Run one paid-shaped field pilot per lead product, with human ground truth** (Gate at one car park, Attendance at one office, Crowd at one event). Use the existing `docs/FIELD-PILOT.md` kit. Every accuracy claim is currently synthetic or comes from public datasets; real numbers are the main thing a buyer will ask for. **Effort: M.**
 2. **Resolve the face-model licence (F5/F6).** Get a legal opinion now, and in parallel price a commercially licensed face SDK as a drop-in behind the existing `LQVault` and matcher interface. It is a single dependency that four products rely on. **Effort: M** (opinion S, swap M–L).
 3. **Deploy the backend to a staging Cloudflare account and finish Opn KYC.** Without that, nothing can be sold online, and medicine (Thai FDA) and exam relay stay partial. **Effort: S–M.**
-4. **Add organisation accounts with sync and backup** for business products (attendance, gate, exam), replacing the one-browser-per-device data model. B2B buyers expect multi-device access, admin roles and data export. **Effort: L.**
-5. **Organise by category.** Owner decision 2026-11-08, replacing "lead products plus add-ons": seven work categories, listed in `CLAUDE.md`. Every page stays and every category keeps being developed. Each category gets a landing page showing status and measured accuracy with its source. Exam, Gate and Crowd come first for pilots and sales materials. Age/gender and expression are off by default in customer builds. **Effort: S–M** (round 16 draft).
+4. **Add organisation accounts with sync and backup** (R16: design and PDPA impact written, `docs/ORG-ACCOUNTS-DESIGN.md`; waiting for approval) for business products (attendance, gate, exam), replacing the one-browser-per-device data model. B2B buyers expect multi-device access, admin roles and data export. **Effort: L.**
+5. **Organise by category.** Owner decision 2026-11-08, replacing "lead products plus add-ons": seven work categories, listed in `CLAUDE.md`. Every page stays and every category keeps being developed. Each category gets a landing page showing status and measured accuracy with its source. Exam, Gate and Crowd come first for pilots and sales materials. Age/gender and expression are off by default in customer builds. **Effort: S–M** (R16: customer mode done; category pages and status table prepared, waiting for approval).

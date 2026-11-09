@@ -206,6 +206,24 @@ Dependabot (`.github/dependabot.yml`) opens one grouped minor/patch PR per ecosy
 branch (`npm run typecheck`, the `TYPECHECK_MAX` ratchet, `npm run test:py` and `npm run test:integration` green), then
 merge. A round is done when CI is green on the pushed commit, not before.
 
+### Round 16 tests (customer mode, Gate plate check, claims, categories)
+
+- Unit: `research-switch.test.js` (default = customer, toggle, operator / profile lock, licence label and F5 link),
+  `camera-unattended.test.js` / `camera-liveness-wipe.test.js` (new default asserted), `commercial-collateral.test.js`
+  (go-live `config.profile` / `config.age_gender` done only with the operator lock), `gate-guard.test.js` (plate check:
+  aspect, text lines, Thai pattern, partials), `gate-field-eval.test.js` (owner photo tool on a tiny generated folder:
+  HEIC / renamed / unreadable photos, labels sheet refused inside the repo), `accuracy-claims.test.js` (every claim has
+  value · n · source in TH/EN/ZH, evidence still in its source doc, tuning-set caveats), `crowd-report.test.js` (+ crowd-eval
+  variant keys, `timingStats`, `compareVariants`), `cat-pages.test.js` (category pages generated and tied to the claims
+  register; held for owner approval with the category pages).
+- E2e: `research-switch.e2e.mjs` (network check: no age/gender or expression weights in customer or locked mode; toggle
+  brings them back), `signage.e2e.mjs` / `driver-neuro.e2e.mjs` (switch the research demo on explicitly), `gate-guard.e2e.mjs`
+  (non-plate boards never auto-read, a tap still reads, HEIC / undecodable photos listed and skipped), `gate-detect.e2e.mjs`
+  (+ the guard keeps the correct reads, no plate-less scene auto-read), `categories.e2e.mjs` (every page linked from nav,
+  home or a category page; nav fits at 1024–1440 px).
+- Measured numbers come from `node tools/plate-field-eval.mjs` (photos outside the repo) and
+  `node tools/crowd-eval.mjs run|bench|compare` (no data in the repo).
+
 ### Round 15 tests (plate detector, crowd accuracy)
 
 - Unit: `gate-detect.test.js` (proposals, `growToPlate`, `plateScore`, YuNet decode, demo-set definition),

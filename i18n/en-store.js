@@ -1,5 +1,10 @@
 /* i18n/en-store.js — English for store.html (mirrors zh-store.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
+  "store.cl4": "A real shop door: not measured · source: field (no pilot yet) — use the “On-site accuracy check” below",
+  "store.cl3": "All 5 sequences pooled at 5 fps: total −0.4%, 79% of counted events real (about 1 in 5 wrong) · n = 273 crossings · source: public dataset",
+  "store.cl2": "Crowded street scenes: off by −28% to +19% per sequence · n = 139 crossings (3 MOT17 sequences) · source: public dataset",
+  "store.cl1": "Door-like scene: line-crossing total off by +3.2%, 93% of counted events real · n = 126 crossings (PETS09-S2L1, the tuning sequence, so optimistic) · source: public dataset",
+  "store.cl.h": "Figures and sources",
   "store.s1": "Store Analytics | LENSIQ",
   "store.s2": "Store Analytics",
   "store.s3": "Counts entries and exits, current occupancy, popular zones, queue length and a heatmap of where customers stop. Processed in the browser; no images are stored, only aggregate figures",

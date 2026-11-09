@@ -117,6 +117,23 @@ The zone pages share `lensiq-zones.js` / `lensiq-zonecam.js`: anonymous boxes on
 Design only (no code): `docs/DEVICE-ADAPTERS.md` (external devices; physiological signals are never used for lie /
 emotion inference). PDPA notes for counsel, one section per product: `docs/PDPA-NOTES-FOR-COUNSEL.md`.
 
+### Round 16 ("Sellable core")
+
+- **Customer mode is the default on every host, including this public site.** The age/gender (UTKFace-trained) and
+  face-expression models are never loaded or shown. A per-device **"Research demo"** toggle (`lensiq-research.js`, off by
+  default, licence label in TH/EN/ZH, link to `LICENSES/THIRD_PARTY.md` F5) brings them back on that device only; it is on
+  `cameras.html#profile` and on signage, neuro, booth and photobooth. A customer install sets
+  `window.LENSIQ_RESEARCH_DEMO = false` in `lensiq-config.js` to lock it off. Neuro still opens and explains what is off.
+- **Gate plate check** (`LQPlate.plateGuard`): a box must look like a Thai plate (shape, text lines, plate pattern)
+  before any automatic read; staff can still tap any box. Real-photo figures are in `docs/GATE.md` §3c. Owner phone
+  photos: `node tools/plate-field-eval.mjs --dir ~/LENSIQ-field/plates` with the sheet in
+  `docs/field-pilot/plates-photo-labels.md` (photos stay outside the repo; `field-data/` is git-ignored).
+- **Claims**: every accuracy claim shows value · n · source (synthetic / public dataset / field) or "not measured"
+  (`docs/ACCURACY-CLAIMS.md`). Crowd is labelled "not yet suitable for dense crowds"; the resolution / tiling test and
+  the density-model licence list are in `docs/CROWD-ACCURACY.md` and `docs/CROWD-DENSITY-MODELS.md`.
+- **Pilot kits**: `docs/pilot/PILOT-EXAM.md`, `PILOT-GATE.md`, `PILOT-CROWD.md`. **Design only**: organisation accounts
+  (`docs/ORG-ACCOUNTS-DESIGN.md`), waiting for owner approval and counsel.
+
 ---
 
 ### Languages

@@ -191,3 +191,54 @@ test("crowd accuracy docs + data: clips with licences, line direction matches sw
   // no image or video files under docs/crowd-count (frames of people are never committed)
   for (const f of fs.readdirSync(path.join(ROOT, "docs", "crowd-count"))) assert.ok(!/\.(jpe?g|png|webp|gif|mp4|webm|ogv)$/i.test(f), f);
 });
+
+test("crowd-eval: variantKey gives every experiment its own key (never the shipped row)", async () => {
+  const E = await evalTool(), k = E.variantKey;
+  assert.equal(k(), "", "shipped");
+  assert.equal(k({ model: "coco" }), "coco");
+  assert.equal(k({ tiles: "3x2" }), "tiles3x2", "round 15 key unchanged");
+  assert.equal(k({ tiles: "2x1" }), "tiles2x1");
+  assert.equal(k({ tiles: "4x3" }), "tiles4x3");
+  assert.equal(k({ tiles: "3x2", overlap: 0.3 }), "tiles3x2-o0.3");
+  assert.equal(k({ tiles: "3x2", iou: 0.4 }), "tiles3x2-iou0.4");
+  assert.equal(k({ tiles: "3x2", iou: 0.6 }), "tiles3x2-iou0.6");
+  assert.equal(k({ tiles: "3x2", iou: 0.5 }), "tiles3x2", "default IoU adds nothing");
+  assert.equal(k({ split: "none" }), "full");
+  assert.equal(k({ size: 640, modelFile: true }), "r640");
+  assert.equal(k({ size: 640, modelFile: true, split: "none" }), "r640-full");
+  assert.equal(k({ size: 832, modelFile: true }), "r832");
+  assert.equal(k({ size: 640, modelFile: true, tiles: "2x1" }), "r640-tiles2x1");
+  // the two collisions the round 16 review found
+  assert.equal(k({ size: 416, modelFile: true }), "m416", "a custom ONNX at 416 is not the shipped model");
+  assert.equal(k({ max: 300, maxDefault: 40 }), "max300", "a custom cap is not the shipped pipeline");
+  assert.equal(k({ max: 40, maxDefault: 40 }), "", "the page's own cap is the shipped pipeline");
+  assert.equal(k({ tiles: "4x3", max: 300, maxDefault: 300 }), "tiles4x3", "the experiment default cap adds nothing");
+  assert.equal(k({ tiles: "4x3", max: 500, maxDefault: 300 }), "tiles4x3-max500");
+  assert.deepEqual(E.ACCEPTED_IN_APP_FILE, ["coco", "tiles3x2"]);
+  assert.match(read("tools/crowd-eval.mjs"), /is an experiment: pass --out/);
+});
+
+test("crowd-eval: timingStats median / p90 / mean on odd and even lengths", async () => {
+  const E = await evalTool();
+  assert.deepEqual(E.timingStats([3, 1, 2]), { n: 3, median: 2, p90: 3, mean: 2 });
+  assert.deepEqual(E.timingStats([4, 1, 3, 2]), { n: 4, median: 2.5, p90: 4, mean: 2.5 });
+  const ten = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+  assert.deepEqual(E.timingStats(ten), { n: 10, median: 55, p90: 90, mean: 55 });
+  assert.deepEqual(E.timingStats([1.04, NaN, 1.06]), { n: 2, median: 1.1, p90: 1.1, mean: 1.1 }, "drops non-numbers, rounds to 0.1");
+  assert.deepEqual(E.timingStats([]), { n: 0, median: null, p90: null, mean: null });
+});
+
+test("crowd-eval: compareVariants reports the change against shipped", async () => {
+  const E = await evalTool();
+  const rows = E.parseCsv(E.SHEET_COLS.join(",") + "\n" + ["clipA,0,10,4,,,,,AI reviewer,", "clipA,2,20,8,,,,,AI reviewer,"].join("\n"));
+  const clips = [{ id: "clipA", crowd: "medium" }];
+  const app = { clips: {
+    clipA: { samples: [{ t: 0, shown: 5, zone: 4 }, { t: 2, shown: 10, zone: 8 }], crossings: [] },
+    "clipA@r640": { samples: [{ t: 0, shown: 8, zone: 4 }, { t: 2, shown: 18, zone: 6, capped: true }], crossings: [] } } };
+  const res = E.compareVariants(rows, app, clips, ["shipped", "r640"]);
+  assert.equal(res.length, 2);
+  const [s, r] = res;
+  assert.equal(s.variant, "shipped"); assert.equal(s.frame.mape, 50); assert.equal(s.dFrameMape, 0); assert.equal(s.capped, 0);
+  assert.equal(r.variant, "r640"); assert.equal(r.frame.mape, 15); assert.equal(r.dFrameMape, -35);
+  assert.equal(r.frame.bias, -2); assert.equal(r.dFrameBias, 5.5); assert.equal(r.zone.bias, -1); assert.equal(r.capped, 1);
+});

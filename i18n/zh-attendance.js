@@ -2,6 +2,13 @@
  * data-i18n / data-i18n-attr values on attendance.html. Text set at run time by attendance.js stays Thai for now.
  * Queue pattern: works before or after lensiq-i18n.js (see i18n/zh-common.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
+  "attendance.cl6": "可选的真人检查（转头）：尚未测量",
+  "attendance.cl5": "泰国真实工作场所：尚未测量 · 来源：现场（尚无试点）— 请用“准确度检查”标签页以自己的员工测量",
+  "attendance.cl4": "未登记者在无人确认的情况下被自动签到：亚洲人脸（独立测试集）≤ 0.03% · LFW（调参集）0.01–0.07% · n = 12,000（约）次陌生人到访/每行，来自约 1,800 / 500 人 · 来源：公开数据集（LFW、CASIA-FaceV5）",
+  "attendance.cl3": "未登记者被提示为某人：亚洲人脸（独立测试集，登记 100 人）0.2%，95% 置信区间 0.04–0.45%（登记 5 或 200 人时上限可达 1.15%）· LFW（调参集）0.4% · n = 12,000（约）次陌生人到访/每行，来自约 1,800 / 500 人 · 来源：公开数据集（LFW、CASIA-FaceV5）",
+  "attendance.cl2": "主要数字：亚洲人脸每次扫描识别率（登记 5 / 20 / 200 人）：66–76% · n = 500 人 × 5 张照片（独立测试集，设定参数时未使用）· 来源：公开数据集（CASIA-FaceV5）",
+  "attendance.cl1": "每次扫描识别出已登记人员（登记 100 人），在调参所用数据集上测得，因此偏乐观：85% · n = 610 张成员测试照片（每名成员 1 张；每组 100 名成员，随机 200 组；整个数据集共 13,233 张照片）· 来源：公开数据集（LFW 新闻照片，调参集）",
+  "attendance.cl.h": "数字与来源",
   "attendance.wipeall": "删除本设备上的全部生物特征数据（所有系统）",
   "attendance.live2": "可在一定程度上阻止拿静态照片对着摄像头签到，但无法阻止视频、屏幕上的图片或面具，且准确度尚未测量。签到点应始终有工作人员看守",
   "attendance.live1": "签到前确认是真人：请对方稍微向左或向右转头（默认关闭）",

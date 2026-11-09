@@ -2,6 +2,11 @@
  * data-i18n / data-i18n-attr values on store.html. Text set at run time by store.js stays Thai for now.
  * Queue pattern: works before or after lensiq-i18n.js (see i18n/zh-common.js). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
+  "store.cl4": "真实门店门口：尚未测量 · 来源：现场（尚无试点）— 请使用下方的“现场准确度检查”",
+  "store.cl3": "5 段序列合并，每秒 5 帧：总数 −0.4%，计数事件中 79% 真实（约 1/5 错误）· n = 273 次过线 · 来源：公开数据集",
+  "store.cl2": "拥挤街景：各序列误差 −28% 至 +19% · n = 139 次过线（3 段 MOT17 序列）· 来源：公开数据集",
+  "store.cl1": "类似门口的场景：过线总数误差 +3.2%，计数事件中 93% 真实 · n = 126 次过线（PETS09-S2L1，为调参所用序列，因此偏乐观）· 来源：公开数据集",
+  "store.cl.h": "数字与来源",
   "store.s1": "门店客流分析 | LENSIQ",
   "store.s2": "门店客流分析",
   "store.s3": "统计进出人数、店内人数、热门区域、排队长度及顾客驻足热力图。在浏览器中处理，不保存图像，仅保存汇总数字",
