@@ -679,8 +679,8 @@ Added on approval (all providers enabled, remembered consent):
   (all on in the allowlist, PC-D2). Nothing runs on a new install: AI is off and every feature budget is 0. Default
   chains for the Product Check features use only Anthropic, OpenAI, Google (paid tier) and Alibaba, whose API terms say
   API data is not used for training; DeepSeek, Kimi, z.ai and OpenRouter run only if the owner adds them. Pending the
-  18+ question below, Google is held out of the label-reading and translation defaults (it remains third in the
-  over-claim chain until the owner confirms).
+  18+ question below, Google is held out of all three Product Check default chains (label reading, over-claim check,
+  translation); the admin can still add it.
 - **Terms re-read 2026-11-10** (links in `docs/AI-GATEWAY.md` §3b) — points for counsel:
   - **Google Gemini:** paid tier only (the unpaid tier uses content to improve products, with human review); the
     terms also require users to be **18+** and forbid apps "likely to be accessed by" people under 18. A public site

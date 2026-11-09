@@ -175,11 +175,11 @@ preferred, cheapest first, then a different company:
 | Feature | Chain (in / out USD per 1M) |
 |---|---|
 | `pc_fields` (label fields, image or text) | Claude Haiku 5.5 effort low (0.10 / 0.50) → GPT-6 Luna (0.10 / 0.50) → Qwen3-VL-Plus (0.20 / 1.60) |
-| `pc_claims` (over-claim classifier; a wrong flag can harm a brand, so quality first) | Claude Sonnet 5.5 effort low (2 / 10) → GPT-6.1 Terra (1 / 5) → Gemini 3.8 Flash (0.75 / 3.75; 1.50 / 7.50 from 2027-01-01) |
+| `pc_claims` (over-claim classifier; a wrong flag can harm a brand, so quality first) | Claude Sonnet 5.5 effort low (2 / 10) → GPT-6.1 Terra (1 / 5) → Qwen3.7-Plus (0.50 / 2.00) |
 | `pc_translate` (label translation, Thai / CJK) | Claude Haiku 5.5 effort low → GPT-6 Luna → Qwen3.7-Plus (0.50 / 2.00) |
 | `fortune_reword` | unchanged (first entry = the "AI settings" Anthropic model) |
 
-**Gemini held out (owner pending, 2026-11-10):** Gemini is removed from the `pc_fields` and `pc_translate` defaults because Google's terms require users 18+ and forbid apps likely to be used by under-18s (the public medicine page cannot check age), until the owner or counsel decides (L2). It stays allowed (PC-D2) and the admin can add it back to any default chain. `pc_claims` still lists Gemini 3.8 Flash third (the review named only `pc_fields` / `pc_translate`; owner to confirm).
+**Gemini held out (owner pending, 2026-11-10):** Gemini is removed from the `pc_fields`, `pc_claims` and `pc_translate` defaults because Google's terms require users 18+ and forbid apps likely to be used by under-18s (the public medicine page cannot check age), until the owner or counsel decides (L2). It stays allowed (PC-D2) and the admin can add it back to any default chain. `pc_claims` was aligned the same way at merge (Qwen3.7-Plus third instead).
 
 DeepSeek, Kimi, z.ai and OpenRouter are in no default chain (training allowed or not stated, unverified price, or a
 second processor); the owner can add them.
@@ -394,7 +394,7 @@ injected `fetchImpl`; the global `fetch` is replaced by one that fails the test 
 | 40 | Review: OpenRouter `max_price.request` 0 and `max_price.image` cap; price day passed by the gateway | same | pass |
 | 41 | Review: reported cost accepted only as a finite number 0–100x the table cost; else table cost + alert | same | pass |
 | 42 | Review: estimate includes the JSON instruction + schema for JSON-object providers; Qwen-VL per-image tokens above the default; the gateway uses them | same | pass |
-| 43 | Owner pending: Gemini held out of the `pc_fields` / `pc_translate` defaults (18+), still allowed and addable | same | pass |
+| 43 | Owner pending: Gemini held out of the `pc_fields` / `pc_claims` / `pc_translate` defaults (18+), still allowed and addable | same | pass |
 
 ## 11. Open points
 

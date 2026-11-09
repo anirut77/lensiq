@@ -132,14 +132,14 @@ export const NO_TRAINING = Object.freeze(["anthropic", "gemini", "openai", "dash
  *   pc_fields (label fields; image or text): Claude Haiku 5.5 (0.10 / 0.50) -> GPT-6 Luna (0.10 / 0.50) ->
  *     Qwen3-VL-Plus (0.20 / 1.60, JSON object mode only). All read images.
  *   pc_claims (over-claim classifier, a wrong flag can harm a brand: quality first): Claude Sonnet 5.5 (2 / 10) ->
- *     GPT-6.1 Terra (1 / 5) -> Gemini 3.8 Flash (0.75 / 3.75; 1.50 / 7.50 from 2027-01-01).
+ *     GPT-6.1 Terra (1 / 5) -> Qwen3.7-Plus (0.50 / 2.00, JSON object mode only).
  *   pc_translate (label translation, CJK / Thai): Claude Haiku 5.5 -> GPT-6 Luna -> Qwen3.7-Plus (0.50 / 2.00).
  * GEMINI_HELD (owner pending, 2026-11-10): Google's terms require users 18+ and forbid apps likely to be used by
- * under-18s; until the owner / counsel decide (L2), Gemini is not in the pc_fields / pc_translate defaults (the
- * public medicine page). The admin can still add it to any chain.
+ * under-18s; until the owner / counsel decide (L2), Gemini is not in any Product Check default chain (the public
+ * medicine page). The admin can still add it to any chain.
  * fortune_reword is not touched (its first entry stays the Anthropic settings of the "AI settings" tab).
  */
-export const GEMINI_HELD = Object.freeze(["pc_fields", "pc_translate"]);
+export const GEMINI_HELD = Object.freeze(["pc_fields", "pc_claims", "pc_translate"]);
 export const DEFAULT_CHAINS = Object.freeze({
   pc_fields: Object.freeze([
     { provider: "anthropic", model: "claude-haiku-5-5", effort: "low" }, { provider: "openai", model: "gpt-6-luna" },
@@ -147,7 +147,7 @@ export const DEFAULT_CHAINS = Object.freeze({
   ]),
   pc_claims: Object.freeze([
     { provider: "anthropic", model: "claude-sonnet-5-5", effort: "low" }, { provider: "openai", model: "gpt-6.1-terra" },
-    { provider: "gemini", model: "gemini-3.8-flash" }
+    { provider: "dashscope", model: "qwen3.7-plus" }
   ]),
   pc_translate: Object.freeze([
     { provider: "anthropic", model: "claude-haiku-5-5", effort: "low" }, { provider: "openai", model: "gpt-6-luna" },

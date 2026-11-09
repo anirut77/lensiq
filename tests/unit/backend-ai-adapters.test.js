@@ -592,9 +592,9 @@ test("42 budget estimate: JSON-object providers add the instruction + schema; Qw
   assert.deepEqual([r.ok, r.reason, f.calls.length], [false, "budget", 0], "the larger, honest estimate does not fit");
 });
 
-test("43 Gemini held out of the pc_fields / pc_translate defaults until the 18+ question is decided; still allowed", async () => {
+test("43 Gemini held out of every Product Check default chain (pc_fields / pc_claims / pc_translate) until the 18+ question is decided; still allowed", async () => {
   const { DEFAULT_CHAINS, GEMINI_HELD } = await import(A + "index.js");
-  assert.deepEqual([...GEMINI_HELD].sort(), ["pc_fields", "pc_translate"]);
+  assert.deepEqual([...GEMINI_HELD].sort(), ["pc_claims", "pc_fields", "pc_translate"]);
   for (const f of GEMINI_HELD) assert.ok(!DEFAULT_CHAINS[f].some(e => e.provider === "gemini"), f);
   const { DEFAULT_GATEWAY, putGateway } = await import(B + "ai/settings.js");
   assert.equal(DEFAULT_GATEWAY.providers.gemini, true, "allowlist unchanged (PC-D2)");
