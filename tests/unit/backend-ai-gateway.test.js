@@ -352,8 +352,9 @@ test("GET /v1/ai/providers?feature=…: ordered chain with provider name, model,
   assert.equal(j.feature, "pc_fields");
   assert.equal(j.imageModeAllowed, true);
   assert.equal(j.stores, false, "LENSIQ stores nothing");
-  // P5 ships the Anthropic adapter only: providers without an adapter yet are not shown (never used)
-  assert.deepEqual(j.chain.map(x => [x.provider, x.model]), [["anthropic", "claude-haiku-5-5"]]);
+  // P5 shipped the Anthropic adapter only (then only Anthropic was shown); since P6 every provider has its adapter, so
+  // the whole chain with a key set is shown, in order (docs/AI-GATEWAY.md §10 row 34)
+  assert.deepEqual(j.chain.map(x => [x.provider, x.model]), [["anthropic", "claude-haiku-5-5"], ["gemini", "gemini-3.5-flash-lite"], ["openai", "gpt-6-luna"]]);
   for (const x of j.chain) {
     for (const f of ["name", "region", "retention"]) for (const l of ["th", "en", "zh"]) assert.ok(typeof x[f][l] === "string" && x[f][l].length > 1, `${x.provider}.${f}.${l}`);
   }

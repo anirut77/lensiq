@@ -29,7 +29,7 @@
       storesNothing: "LENSIQ ไม่เก็บข้อความ ภาพ หรือผลลัพธ์ไว้บนเซิร์ฟเวอร์", mode: "เลือกสิ่งที่ส่ง", modeText: "ข้อความเท่านั้น (แนะนำ)", modeImage: "ข้อความและภาพสินค้า",
       retentionAll: "การเก็บข้อมูลของผู้ให้บริการแต่ละราย", withdrawHow: "ถอนความยินยอมได้ทุกเมื่อด้วยปุ่ม \"ถอนความยินยอมการส่งให้ AI\" ใต้ผลตรวจ หรือในหน้าตั้งค่า ครั้งต่อไประบบจะถามใหม่",
       remember: "จำการเลือกนี้ไว้ในเครื่องนี้", agree: "ยินยอมและส่ง", cancel: "ไม่ส่ง ใช้ผลในเครื่อง", withdraw: "ถอนความยินยอมการส่งให้ AI", withdrawn: "ถอนความยินยอมแล้ว ครั้งหน้าระบบจะถามใหม่",
-      checkedBy: "ตรวจโดย {provider}, {region}",
+      checkedBy: "ตรวจโดย {provider}, {region}", routedTo: "ส่งต่อไปยัง {routed}",
       fbBudget: "ระบบตรวจด้วย AI หยุดชั่วคราวสำหรับเดือนนี้ คุณกำลังดูผลจากในเครื่องเท่านั้น", fbLimit: "ใช้การตรวจด้วย AI ครบจำนวนแล้วในขณะนี้ คุณกำลังดูผลจากในเครื่องเท่านั้น",
       fbDisabled: "การตรวจด้วย AI ยังไม่เปิดใช้งาน คุณกำลังดูผลจากในเครื่องเท่านั้น", fbConsent: "ไม่ได้ส่งข้อมูล เพราะยังไม่ได้รับความยินยอม คุณกำลังดูผลจากในเครื่องเท่านั้น",
       fbImage: "การส่งภาพไม่เปิดให้ใช้กับการตรวจนี้ ระบบส่งเฉพาะข้อความได้", fbInvalid: "คำตอบจาก AI ไม่ผ่านการตรวจรูปแบบ คุณกำลังดูผลจากในเครื่องเท่านั้น",
@@ -46,7 +46,7 @@
       withdrawHow: "You can withdraw at any time with the \"Withdraw consent to send to AI\" button under the result or in settings; you will then be asked again",
       remember: "Remember my choice on this device", agree: "Agree and send", cancel: "Don't send, use the on-device result",
       withdraw: "Withdraw consent to send to AI", withdrawn: "Consent withdrawn; you will be asked again next time",
-      checkedBy: "Checked by {provider}, {region}",
+      checkedBy: "Checked by {provider}, {region}", routedTo: "routed to {routed}",
       fbBudget: "AI checks are paused for this month; you are seeing the on-device result only", fbLimit: "The AI check limit has been reached for now; you are seeing the on-device result only",
       fbDisabled: "AI checks are not switched on; you are seeing the on-device result only", fbConsent: "Nothing was sent because consent was not given; you are seeing the on-device result only",
       fbImage: "Sending an image is not allowed for this check; text only can be sent", fbInvalid: "The AI answer failed the format check; you are seeing the on-device result only",
@@ -61,7 +61,7 @@
       storesNothing: "LENSIQ 不在服务器上保存文字、图片或结果", mode: "选择发送内容", modeText: "仅文字（推荐）", modeImage: "文字和产品图片",
       retentionAll: "各服务商的数据保留", withdrawHow: "您可随时通过结果下方或设置中的“撤回发送给 AI 的同意”按钮撤回，之后会再次询问",
       remember: "在本设备上记住我的选择", agree: "同意并发送", cancel: "不发送，使用本机结果", withdraw: "撤回发送给 AI 的同意", withdrawn: "已撤回同意，下次会再询问",
-      checkedBy: "由 {provider} 核查，{region}",
+      checkedBy: "由 {provider} 核查，{region}", routedTo: "转接至 {routed}",
       fbBudget: "本月的 AI 核查已暂停；您看到的仅是本机结果", fbLimit: "目前已达到 AI 核查次数上限；您看到的仅是本机结果",
       fbDisabled: "AI 核查尚未开启；您看到的仅是本机结果", fbConsent: "因未获得同意，没有发送任何数据；您看到的仅是本机结果",
       fbImage: "此项核查不允许发送图片，只能发送文字", fbInvalid: "AI 回答未通过格式检查；您看到的仅是本机结果",
@@ -134,10 +134,13 @@
   }
   /** @param {string} reason @param {any} [l] */
   function fallbackMessage(reason, l) { return STR[lang(l)][/** @type {any} */ (FB)[reason] || "fbError"]; }
-  /** "Checked by <provider>, <location>" for the result card. @param {any} res @param {any} [l] */
+  /** "Checked by <provider>, <location>" for the result card; a router (OpenRouter) also names the provider it routed
+   *  to (res.routedVia, from the gateway). @param {any} res @param {any} [l] */
   function checkedBy(res, l) {
     var L = lang(l);
-    return STR[L].checkedBy.replace("{provider}", pick(res && res.providerName, L)).replace("{region}", pick(res && res.regionText, L));
+    var who = pick(res && res.providerName, L);
+    if (res && typeof res.routedVia === "string" && res.routedVia) who += " (" + STR[L].routedTo.replace("{routed}", res.routedVia) + ")";
+    return STR[L].checkedBy.replace("{provider}", who).replace("{region}", pick(res && res.regionText, L));
   }
 
   var pure = { STR: STR, CONSENT_KEY: CONSENT_KEY, consentView: consentView, modes: modes, pickMode: pickMode, rememberedConsent: rememberedConsent,

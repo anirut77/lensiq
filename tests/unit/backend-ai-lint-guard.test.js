@@ -22,7 +22,9 @@ test("lint guard: a planted provider string outside ai/adapters fails; the same 
   try {
     mkdirSync(join(tmp, "backend", "src", "ai", "adapters"), { recursive: true });
     const planted = ["https://api.anthropic.com/v1/messages", "generativelanguage.googleapis.com", "https://api.openai.com/v1", "dashscope-intl.aliyuncs.com",
-      "api.deepseek.com", "open.bigmodel.cn z.ai", "api.moonshot.ai", "kimi-k3", "https://openrouter.ai/api/v1", 'import x from "@anthropic-ai/sdk";'];
+      "api.deepseek.com", "open.bigmodel.cn z.ai", "api.moonshot.ai", "kimi-k3", "https://openrouter.ai/api/v1", 'import x from "@anthropic-ai/sdk";',
+      // P6 review: Alibaba Model Studio hosts without the word "dashscope"
+      "https://ws1.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1", "aliyuncs.com", "https://maas.example/v1"];
     planted.forEach((s, i) => writeFileSync(join(tmp, "backend", "src", `planted${i}.js`), `// @ts-check\nexport const u = ${JSON.stringify(s)};\n`));
     writeFileSync(join(tmp, "backend", "src", "ai", "adapters", "ok.js"), planted.map(s => `export const a${planted.indexOf(s)} = ${JSON.stringify(s)};`).join("\n"));
     writeFileSync(join(tmp, "backend", "src", "ai", "core.js"), "export const fine = 'anthropic gemini openai provider-neutral';\n");

@@ -184,12 +184,23 @@ export default async function ({ base, launch, check }) {
       await page.goto(`${base}/medicine.html`);
       await put();
       const real = await page.evaluate(() => window.__LQ_PC.faceCheck());
-      const webgl = await page.evaluate(() => !!document.createElement("canvas").getContext("webgl2"));
+      // MediaPipe runs on WebGL 1 or 2, so probe both (CI's Chrome has WebGL 1 only)
+      const webgl = await page.evaluate(() => { const c = document.createElement("canvas"); return !!(c.getContext("webgl2") || c.getContext("webgl")); });
       if (!webgl) assert(real.allow === false && ["error", "model-missing"].includes(real.reason), "no WebGL -> the real detector cannot run -> blocked " + JSON.stringify(real));
       else assert(real.allow === true && real.runs.length === 3, "WebGL: a plain dark picture has no face " + JSON.stringify(real));
       const fetched = page.requests.filter(q => /face-gate\/blaze_face_short_range\.tflite/.test(q.url));
       assert(fetched.length >= 1 && fetched.every(q => q.url.startsWith(base)), "BlazeFace model self-hosted " + fetched.map(q => q.url));
       await page.close();
+      // fail closed on every machine: WebGL switched off in the page itself, the real detector must block
+      const NO_GL = "{const g=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(t,...a){return /webgl/i.test(t)?null:g.call(this,t,...a)};" +
+        "if(window.OffscreenCanvas){const o=OffscreenCanvas.prototype.getContext;OffscreenCanvas.prototype.getContext=function(t,...a){return /webgl/i.test(t)?null:o.call(this,t,...a)}}}";
+      const page2 = await browser.newPage(null, { initScripts: [INIT, DRAW, NO_GL], isolated: true });
+      await page2.goto(`${base}/medicine.html`);
+      await page2.evaluate(() => { const s = window.__LQ_PC.st, c = document.querySelector("#pcStill"); c.width = 400; c.height = 300; c.getContext("2d").fillRect(0, 0, 400, 300);
+        s.still = true; s.crop = { x: 50, y: 50, w: 200, h: 150 }; });
+      const nogl = await page2.evaluate(() => window.__LQ_PC.faceCheck());
+      assert(nogl.allow === false && ["error", "model-missing"].includes(nogl.reason), "WebGL off -> the real detector cannot run -> blocked " + JSON.stringify(nogl));
+      await page2.close();
     });
 
     await check("product-check: history opt-in ON stores only number norms, GTINs and country codes — never the OCR text or an image; emergency wording opens the emergency card", async () => {

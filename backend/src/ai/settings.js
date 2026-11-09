@@ -8,7 +8,8 @@
 //                    the admin can switch any off; an off provider is never called and never shown for consent
 //   features         {feature: {enabled, chain: [{provider, model, effort}], timeoutMs, monthlyBudgetUsd, perUserDaily,
 //                    perUserPerMinute, globalPerMinute, maxOutputTokens, imageModeAllowed}}
-//                    new features: off, empty chain, budget 0 (= nothing runs until the owner sets a budget)
+//                    new features: off, default chain (P6, adapters/index.js DEFAULT_CHAINS), budget 0 (= nothing runs
+//                    until the owner sets a budget)
 //   last_eval        date of the last evaluation run of the active chains (filled by the eval tool in P8; placeholder)
 //
 // fortune_reword (the existing fortune writing assistant) is MIGRATED, not copied: its switch, model, effort, max tokens
@@ -19,7 +20,7 @@
 // The global switch does not gate fortune_reword (it keeps its own switch, as before); the allowlist does.
 import { EFFORTS, getAiSettings, putAiSettings, validateAi } from "../settings.js";
 import { HttpError } from "../util.js";
-import { PROVIDER_IDS } from "./adapters/index.js";
+import { DEFAULT_CHAINS, PROVIDER_IDS } from "./adapters/index.js";
 import { readSettings, writeSettings } from "./db.js";
 import { FEATURES } from "./features.js";
 
@@ -38,9 +39,13 @@ export const LEGACY_KEY_UNUSED = Object.freeze({
  *  @param {{stored_encrypted?: boolean}} keyStatus settings.js apiKeyStatus() */
 export const legacyKeyUnused = (gw, keyStatus) => !gw.legacyKeyStore && !!(keyStatus && keyStatus.stored_encrypted);
 
-/** @param {{timeoutMs?: number}} f */
+/** Default chain of a feature (adapters/index.js DEFAULT_CHAINS, P6; [] when none). Copies, never the frozen objects.
+ *  @param {{id?: string}} f */
+const defaultChain = f => ((f && f.id && /** @type {any} */ (DEFAULT_CHAINS)[f.id]) || []).map(e => ({ ...e }));
+
+/** @param {{id?: string, timeoutMs?: number}} f */
 export const defaultFeature = f => ({
-  enabled: false, chain: [], timeoutMs: (f && f.timeoutMs) || 30000, monthlyBudgetUsd: 0,
+  enabled: false, chain: defaultChain(f), timeoutMs: (f && f.timeoutMs) || 30000, monthlyBudgetUsd: 0,
   perUserDaily: 10, perUserPerMinute: 3, globalPerMinute: 60, maxOutputTokens: 1500, imageModeAllowed: false
 });
 

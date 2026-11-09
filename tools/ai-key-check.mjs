@@ -13,9 +13,10 @@ import { fileURLToPath } from "node:url";
 import { checkKeys } from "../backend/src/ai/adapters/keycheck.js";
 import { SECRET_NAMES } from "../backend/src/ai/adapters/index.js";
 
-/** dotenv-style KEY=value lines (comments, blank lines, optional quotes). Only the AI secret names are kept. */
+/** dotenv-style KEY=value lines (comments, blank lines, optional quotes). Only the AI secret names (and the non-secret
+ *  DASHSCOPE_WORKSPACE_ID, part of the Singapore endpoint URL) are kept. */
 export function parseVars(text) {
-  const want = new Set(Object.values(SECRET_NAMES));
+  const want = new Set([...Object.values(SECRET_NAMES), "DASHSCOPE_WORKSPACE_ID"]);
   /** @type {Record<string, string>} */
   const out = {};
   for (const line of String(text).split(/\r?\n/)) {
@@ -26,8 +27,9 @@ export function parseVars(text) {
   return out;
 }
 
-/** @param {{provider: string, secret: string, status: string, http: number|null, verified: boolean}} r */
-export const formatLine = r => `${r.provider.padEnd(10)} ${r.secret.padEnd(19)} ${r.status.padEnd(4)} http=${r.http == null ? "-" : r.http}${r.verified ? "" : " (endpoint not verified)"}`;
+/** @param {{provider: string, secret: string, status: string, http: number|null, verified: boolean, note?: string}} r */
+export const formatLine = r => `${r.provider.padEnd(10)} ${r.secret.padEnd(19)} ${r.status.padEnd(4)} http=${r.http == null ? "-" : r.http}` +
+  `${r.verified ? "" : " (endpoint not verified)"}${r.note ? " (" + r.note + ")" : ""}`;
 
 const isMain = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {

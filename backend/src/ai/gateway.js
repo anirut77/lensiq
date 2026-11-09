@@ -20,7 +20,7 @@ import { apiKeyStatus, EFFORTS } from "../settings.js";
 import { callerHash, hit, hitAll } from "../store.js";
 import { verifyTurnstile } from "../turnstile.js";
 import { BKK_OFFSET, dayOf, log, now, readJson } from "../util.js";
-import { ADAPTERS, PROVIDERS, PROVIDER_IDS, SECRET_NAMES, adaptersWith, keyFor, keyPresence, publicProvider } from "./adapters/index.js";
+import { ADAPTERS, PROVIDERS, PROVIDER_IDS, SECRET_NAMES, adaptersWith, configState, keyFor, keyPresence, providerConfig, providerReady, publicProvider } from "./adapters/index.js";
 import { PRICES, costMicros, modelsOf, priceAt } from "./adapters/prices.js";
 import { addAggregates, adjustBudget, readMonth, reserveBudget } from "./db.js";
 import { POLICY, decide } from "./fallback.js";
@@ -41,11 +41,16 @@ const utf8Len = s => new TextEncoder().encode(String(s || "")).length;
 
 /** Conservative estimate (micro-USD) reserved before a call: input ~ UTF-8 bytes / 2 + 64 tokens, images, and the FULL
  *  output allowance; the system prompt is priced as a prompt-cache WRITE (the dearest way it can be billed).
- *  @param {any} price @param {any} req */
-export function estimateMicros(price, req) {
+ *  hints (adapter.estimateHints, review fix P6-7): extraSystem = text the adapter appends to the system prompt (the
+ *  JSON instruction + schema of JSON-object providers); imageTokens = a provider's own, higher per-image count (never
+ *  below IMAGE_TOKENS).
+ *  @param {any} price @param {any} req @param {{extraSystem?: string, imageTokens?: number}} [hints] */
+export function estimateMicros(price, req, hints = {}) {
   if (!price) return 0;
-  const sysTok = Math.ceil(utf8Len(req.system) / 2);
-  const inTok = sysTok + Math.ceil(utf8Len(req.text) / 2) + 64 + (req.images ? req.images.length * IMAGE_TOKENS : 0);
+  const h = hints || {};
+  const perImage = Math.max(IMAGE_TOKENS, Number.isFinite(h.imageTokens) ? Number(h.imageTokens) : 0);
+  const sysTok = Math.ceil((utf8Len(req.system) + utf8Len(h.extraSystem)) / 2);
+  const inTok = sysTok + Math.ceil(utf8Len(req.text) / 2) + 64 + (req.images ? req.images.length * perImage : 0);
   const write = (price.cacheWrite ?? 1) > 1 ? sysTok : 0;
   return costMicros(price, { inputTokens: inTok, cacheWriteTokens: write, outputTokens: req.maxOutputTokens });
 }
@@ -53,12 +58,13 @@ export function estimateMicros(price, req) {
 const latBucket = ms => { for (const b of LAT_BUCKETS) if (ms <= b) return String(b); return "inf"; };
 const hasUsage = u => !!u && (Number(u.inputTokens) > 0 || Number(u.outputTokens) > 0);
 
-/** Chain entries that may be used: provider allowlisted, adapter implemented, key set and (when given) shown to the user
+/** Chain entries that may be used: provider allowlisted, adapter implemented, key set, required non-secret provider
+ *  settings present (providerReady, e.g. a workspace id) and (when given) shown to the user
  *  on the consent screen. The consent screen (providersInfo) uses the same function, so what is shown is what runs. */
 async function usableChain(env, gw, fs, adapters, consentProviders) {
   const out = [];
   for (const e of (fs && fs.chain) || []) {
-    if (gw.providers[e.provider] === false || !adapters[e.provider]) continue;
+    if (gw.providers[e.provider] === false || !adapters[e.provider] || !providerReady(env, e.provider)) continue;
     if (consentProviders && !consentProviders.includes(e.provider)) continue;
     const key = await keyFor(env, e.provider, gw);
     if (key) out.push({ entry: e, key });
@@ -138,7 +144,7 @@ export async function runFeature(env, featureId, req0, opts = {}) {
       await alertConfig(env, featureId, entry.provider, "no_price", deps.fetch);
       continue;
     }
-    const est = estimateMicros(price, req);
+    const est = estimateMicros(price, req, typeof adapter.estimateHints === "function" ? adapter.estimateHints(req, entry) : undefined);
     for (let same = 1; ; same++) {
       const left = deadline - Date.now();
       if (left < Math.min(500, timeoutMs / 4, overallMs / 4)) { last = last || { kind: "timeout", unexpected: false }; stop = "deadline"; break; }
@@ -148,7 +154,8 @@ export async function runFeature(env, featureId, req0, opts = {}) {
       if (!rsv.ok) { budgetSkips++; break; } // a cheaper model further down the chain may still fit
       tried++;
       const t0 = Date.now();
-      const ctx = { key, timeoutMs: attemptMs, loadSdk: deps.loadSdk, fetchImpl: deps.fetch, sdkRetries: meta.sdkRetries ?? 0, pin };
+      const ctx = { key, timeoutMs: attemptMs, loadSdk: deps.loadSdk, fetchImpl: deps.aiFetch, sdkRetries: meta.sdkRetries ?? 0, pin,
+        config: providerConfig(env, entry.provider), day }; // day: the price day the reservation used (router price caps)
       let r = await withDeadline(signal => adapter.call(req, entry, { ...ctx, signal }), attemptMs);
       const latencyMs = Date.now() - t0;
       if (!r || typeof r !== "object") r = { ok: false, kind: "server_error", unexpected: true };
@@ -160,7 +167,16 @@ export async function runFeature(env, featureId, req0, opts = {}) {
       const d = r.ok ? null : decide(kind, { sameAttempts: meta.gatewayRetries === false ? 2 : same, retryAfterMs: r.retryAfterMs, timeLeftMs: deadline - Date.now() });
       const billed = r.ok ? true : d.billed;
       const servedPrice = (r.model && priceAt(entry.provider, r.model, day)) || price;
-      const cost = billed ? (hasUsage(r.usage) ? costMicros(servedPrice, r.usage) : est) : 0;
+      const tableCost = billed ? (hasUsage(r.usage) ? costMicros(servedPrice, r.usage) : Math.ceil(est)) : 0;
+      // a provider-reported cost (usage.reportedCostMicros, e.g. a router) is honoured when it is higher than the
+      // price-table cost AND plausible: a finite number from 0 to 100x the table cost. Anything else (a string, NaN,
+      // negative, absurdly high) is ignored, the table cost is used, and the admin is alerted (review fix P6-6).
+      const rep = r.usage ? r.usage.reportedCostMicros : undefined;
+      let cost = tableCost;
+      if (billed && rep !== undefined) {
+        if (typeof rep === "number" && Number.isFinite(rep) && rep >= 0 && rep <= 100 * tableCost) cost = Math.max(tableCost, Math.ceil(rep));
+        else await alertConfig(env, featureId, entry.provider, "reported_cost_out_of_range", deps.fetch);
+      }
       if (capMicros != null) {
         // the budget counter never moves past the reservation (so never past the cap); a higher real cost is an alert
         const charged = Math.min(cost, Math.ceil(est));
@@ -183,7 +199,8 @@ export async function runFeature(env, featureId, req0, opts = {}) {
       } catch { /* best effort */ }
       if (r.ok) {
         const region = typeof adapter.region === "function" ? adapter.region(entry.model) : null;
-        return finish({ ok: true, json: r.json, provider: entry.provider, model: entry.model, servedModel: r.model || entry.model, region });
+        return finish({ ok: true, json: r.json, provider: entry.provider, model: entry.model, servedModel: r.model || entry.model, region,
+          routedProvider: typeof r.routedProvider === "string" && r.routedProvider ? r.routedProvider : undefined });
       }
       last = { kind, unexpected: !!r.unexpected, httpStatus: r.httpStatus };
       if (d.alert) await alertConfig(env, featureId, entry.provider, kind, deps.fetch);
@@ -282,7 +299,8 @@ export async function aiRoute(env, request, featureId, deps = {}) {
     return fb(run.reason, FB_STATUS[run.reason] || 502);
   }
   const pp = publicProvider(run.provider);
-  return [{ ok: true, json: run.json, provider: run.provider, model: run.servedModel, region: run.region, providerName: pp && pp.name, regionText: pp && pp.region }, 200];
+  return [{ ok: true, json: run.json, provider: run.provider, model: run.servedModel, region: run.region, providerName: pp && pp.name, regionText: pp && pp.region,
+    routedVia: run.routedProvider }, 200];
 }
 
 /** GET /v1/ai/providers?feature=… — consent-screen data. null = unknown feature. @param {Env} env @param {string} featureId @param {any} [deps] */
@@ -310,7 +328,8 @@ export async function adminGateway(env) {
     settings: await getGateway(env.DB),
     providers: PROVIDER_IDS.map(id => ({
       id, name: PROVIDERS[id].name, region: PROVIDERS[id].region, retention: PROVIDERS[id].retention,
-      secret_name: SECRET_NAMES[id], key_set: keys[id], implemented: !!ADAPTERS[id], models: modelsOf(id)
+      secret_name: SECRET_NAMES[id], key_set: keys[id], implemented: !!ADAPTERS[id], models: modelsOf(id),
+      note: PROVIDERS[id].note || null, config_names: PROVIDERS[id].config || [], config_set: providerReady(env, id), config_state: configState(env, id)
     })),
     legacy_key: await apiKeyStatus(env),
     features: Object.values(FEATURES).map(f => ({ id: f.id, status: f.status, legacy: !!f.legacy, imageCapable: !!f.imageCapable, label: f.label })),

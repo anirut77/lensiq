@@ -673,6 +673,32 @@ Added on approval (all providers enabled, remembered consent):
 - **Keys:** Worker secrets only. The older AES-GCM key stored in D1 from the admin page is kept but switched off by
   default (PC-D4). Not legal advice.
 
+### F3. Provider adapters as built (phase P6, 2026-11-10; `docs/AI-GATEWAY.md` §3, §3b)
+
+- **What changed:** Gemini, OpenAI, Alibaba (Qwen, Singapore), DeepSeek, z.ai, Kimi and OpenRouter can now be called
+  (all on in the allowlist, PC-D2). Nothing runs on a new install: AI is off and every feature budget is 0. Default
+  chains for the Product Check features use only Anthropic, OpenAI, Google (paid tier) and Alibaba, whose API terms say
+  API data is not used for training; DeepSeek, Kimi, z.ai and OpenRouter run only if the owner adds them. Pending the
+  18+ question below, Google is held out of the label-reading and translation defaults (it remains third in the
+  over-claim chain until the owner confirms).
+- **Terms re-read 2026-11-10** (links in `docs/AI-GATEWAY.md` §3b) — points for counsel:
+  - **Google Gemini:** paid tier only (the unpaid tier uses content to improve products, with human review); the
+    terms also require users to be **18+** and forbid apps "likely to be accessed by" people under 18. A public site
+    cannot check age: is Gemini usable on the public medicine page at all?
+  - **DeepSeek:** privacy policy says data is stored in the PRC and used to train models; it also says developers are
+    the controller for end-user data of their apps. Consent text: "Data is stored in the People's Republic of China and
+    may be used for training".
+  - **Kimi:** servers in Singapore; its policy allows using user content to optimise models and does not exclude API
+    use. Consent text now says so.
+  - **z.ai:** API DPA says content is not stored, processed in Singapore; training on API content is not stated.
+  - **Alibaba:** "never use your data for model training"; retention period and the "International" scope still not
+    stated. The Singapore endpoint now needs a workspace id (`DASHSCOPE_WORKSPACE_ID`).
+  - **OpenRouter:** a second processor; zero retention and "deny data collection" are forced on every call; OpenRouter
+    keeps request metadata (not content) by default; the result card names the provider it routed to. **For counsel:**
+    is naming "OpenRouter, then the routed provider's country" enough when the routed provider (and its country) is only
+    known after the call?
+  - **OpenAI:** the docs do not state a default processing country; no residency option is used.
+
 ---
 
 ## D. Questions that cut across products

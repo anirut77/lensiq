@@ -422,9 +422,22 @@
     d.providers.forEach(function (/** @type {any} */ p) {
       boxes.appendChild(h("label", { title: p.region[gLang()] }, h("input", { type: "checkbox", "data-provider": p.id, checked: s.providers[p.id] !== false }),
         " " + (p.name[gLang()] || p.id) + " · " + (p.key_set ? G("adg.key.set", "คีย์: ตั้งแล้ว") : G("adg.key.unset", "คีย์: ยังไม่ตั้ง")) +
-        (p.implemented ? "" : " · " + G("adg.notImpl", "ยังไม่มีตัวเชื่อม (P6)"))));
+        (p.implemented ? "" : " · " + G("adg.notImpl", "ยังไม่มีตัวเชื่อม (P6)")) +
+        (p.config_names || []).map(function (/** @type {string} */ n) {
+          var st = (p.config_state || {})[n] || (p.config_set ? "set" : "missing");
+          if (st === "set") return "";
+          return " · " + n + " " + (st === "invalid" ? G("adg.cfg.invalid", "รูปแบบไม่ถูกต้อง (ผู้ให้บริการนี้จะไม่ถูกใช้)")
+            : G("adg.cfg.unset", "ยังไม่ตั้ง (ผู้ให้บริการนี้จะไม่ถูกใช้)"));
+        }).join("")));
     });
     pv.appendChild(boxes);
+    var notes = d.providers.filter(function (/** @type {any} */ p) { return p.note; });
+    if (notes.length) {
+      pv.appendChild(h("p", { class: "ad-muted", text: G("adg.notes.h", "หมายเหตุของผู้ให้บริการ") }));
+      var ul = h("ul", { class: "ad-muted adg-notes" });
+      notes.forEach(function (/** @type {any} */ p) { ul.appendChild(h("li", { text: (p.name[gLang()] || p.id) + ": " + (p.note[gLang()] || p.note.th) })); });
+      pv.appendChild(ul);
+    }
     pv.appendChild(table([G("adg.t.provider", "ผู้ให้บริการ"), G("adg.t.secret", "ตั้งคีย์ด้วย"), G("adg.t.region", "ประมวลผลที่")],
       d.providers.map(function (/** @type {any} */ p) { return [p.name[gLang()] || p.id, "wrangler secret put " + p.secret_name, p.region[gLang()]]; })));
     var fx = $("adgFeatures"); fx.textContent = "";

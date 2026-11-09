@@ -19,6 +19,9 @@ export const PATTERNS = [
   ["generativelanguage.googleapis.com", /generativelanguage\.googleapis\.com/i],
   ["api.openai.com", /api\.openai\.com/i],
   ["dashscope", /dashscope/i],
+  // Alibaba Model Studio hosts (P6 review: the Singapore endpoint is {workspace}.ap-southeast-1.maas.aliyuncs.com)
+  ["aliyuncs", /aliyuncs/i],
+  ["maas.", /(^|[^A-Za-z0-9_])maas\./i],
   ["deepseek", /deepseek/i],
   ["z.ai", /(^|[^A-Za-z0-9_])z\.ai\b/i],
   ["bigmodel.cn", /bigmodel\.cn/i],

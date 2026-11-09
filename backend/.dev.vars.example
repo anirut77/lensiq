@@ -8,6 +8,8 @@ SECRETS_KEK=replace-with-base64-of-32-random-bytes
 # GEMINI_API_KEY=
 # OPENAI_API_KEY=
 # DASHSCOPE_API_KEY=
+# Alibaba Singapore endpoint URL needs the workspace id (Model Studio console; not a secret, can be a plain [vars] entry):
+# DASHSCOPE_WORKSPACE_ID=
 # DEEPSEEK_API_KEY=
 # ZAI_API_KEY=
 # KIMI_API_KEY=
