@@ -198,3 +198,38 @@ test("taps needed: tap data only for night rows -> no good-light check (no --str
   assert.equal(rep.overall.taps.n, 6); assert.equal(rep.goodLight.taps.n, 0);
   assert.equal(T.checkThresholds({ plates: rep }).some(x => x.id === "plate.taps.goodLight"), false);
 });
+
+test("--lower-bound (owner decision 2026-11-09): every rate check shows the observed rate k/n next to the Wilson bound; pass/fail unchanged", async () => {
+  const T = await load();
+  const head = PH.replace("alternatives,conditions", "alternatives,tapped,conditions");
+  const rows = [head];
+  // 40 night reads, 39 exact (97.5 % observed; Wilson 95 % lower bound ≈ 87.1 % -> passes >= 85 %); 20 day reads, 2 tapped
+  for (let i = 0; i < 60; i++) {
+    const night = i < 40, key = `ฮฮ ${3000 + i}`, miss = i === 0;
+    rows.push(`${i},SYN-${i}.jpg,${miss ? `ฮช ${3000 + i}` : key},${key},${miss ? key : ""},${miss ? "yes" : "no"},3,,${!night && i < 42 ? "1" : "0"},${night ? "night" : "day"}`);
+  }
+  const rep = T.platesReport(T.parseCSV(rows.join("\n")));
+  const lb = T.checkThresholds({ plates: rep }, {}, { lowerBound: true }), pt = T.checkThresholds({ plates: rep });
+  const night = lb.find(x => x.id === "plate.exact.night"), taps = lb.find(x => x.id === "plate.taps.goodLight");
+  assert.equal(night.basis, "wilson95-lower"); assert.equal(night.x, 39); assert.equal(night.n, 40);
+  assert.ok(Math.abs(night.observed - 0.975) < 1e-9); assert.equal(night.value, night.lo); assert.ok(night.value < night.observed);
+  assert.equal(night.ok, true);
+  assert.equal(taps.basis, "wilson95-upper"); assert.equal(taps.x, 2); assert.equal(taps.n, 20); assert.equal(taps.value, taps.hi);
+  assert.ok(Math.abs(taps.observed - 0.1) < 1e-9);
+  // point mode: same observed figure, judged on it; ok flags are exactly what the pre-existing rule gives
+  const ptNight = pt.find(x => x.id === "plate.exact.night");
+  assert.equal(ptNight.basis, "point"); assert.equal(ptNight.value, ptNight.observed);
+  for (const c of lb) if (c.basis) assert.equal(c.ok, c.side === ">=" ? c.value >= c.target : c.value <= c.target, c.id);
+  // count checks carry no basis
+  assert.equal(lb.find(x => x.id === "plate.reads").basis, undefined);
+  // text and --json
+  const f = write("lb.csv", rows.join("\n"));
+  const txt = cli(["--plates", f, "--lower-bound"]);
+  assert.equal(txt.status, 0, txt.stderr);
+  assert.match(txt.stdout, /observed \(k\/n\)/);
+  assert.match(txt.stdout, /plate exact, night\s+87\.\d%\s+Wilson 95% lower\s+97\.5% \(39\/40\)\s+>= 85\.0%\s+PASS/);
+  assert.match(txt.stdout, /needed a tap, good light\s+\d+\.\d%\s+Wilson 95% upper\s+10\.0% \(2\/20\)/);
+  const js = JSON.parse(cli(["--plates", f, "--lower-bound", "--json"]).stdout);
+  const jn = js.checks.find(x => x.id === "plate.exact.night");
+  assert.equal(jn.basis, "wilson95-lower"); assert.equal(jn.x, 39); assert.ok(Math.abs(jn.observed - 0.975) < 1e-9);
+});

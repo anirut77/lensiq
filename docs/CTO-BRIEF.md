@@ -191,11 +191,12 @@ No module is production-ready. None has completed a field pilot, and the backend
 
 **Round 16, waiting for the owner**
 - Approve the page-status table (`docs/PAGE-STATUS.md`) before the category packaging is published.
-- Approve the draft prices (`docs/PRICING-RESEARCH.md`) and open questions 7–9 there: VAT-inclusive vs excluding VAT for
-  B2B, a time limit on the Gate free tier, and the Wilson rule for the Gate and Exam pilot targets (raise night n to
-  120+, judge on the point estimate, or keep the table).
-- CSP `<meta>` line width on new pages (format check): either `tools/csp-meta.mjs` writes one directive per line on all
-  pages, or the format check exempts that generated line. Not decided by the integrator.
+- Approve the draft price levels (`docs/PRICING-RESEARCH.md`, open questions 1–6). Decided 2026-11-09: prices are
+  quoted excluding VAT ("excl. 7% VAT" on every price); the Gate free tier becomes a 30-day trial; Gate pilot targets
+  are judged on the Wilson 95 % lower bound with the plain average beside it. Still open: aligning BILLING-PLAN and
+  the Retail / Fortune one-pagers (still VAT-inclusive) and the live gate.html trial text (still no time limit).
+- CSP `<meta>` line width on new pages: decided 2026-11-09, `tools/csp-meta.mjs` writes the policy across several
+  lines on every page; no format-check exemption.
 - Org accounts (item 4): approve the design and the PDPA impact before any code; counsel reviews §9–10.
 - `?faceparse=1` lock (patch prepared).
 

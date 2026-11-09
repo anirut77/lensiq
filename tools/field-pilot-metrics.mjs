@@ -8,7 +8,10 @@
 //
 //   --json         print the full report as JSON instead of tables
 //   --strict       exit 1 when any proposal threshold fails (sample size included)
-//   --lower-bound  a rate threshold passes only when the Wilson 95 % LOWER bound reaches it (default: the point estimate)
+//   --lower-bound  a rate threshold passes only when the Wilson 95 % LOWER bound reaches it (UPPER bound for a rate that
+//                  must stay low, e.g. taps); default: the point estimate. Either way every rate check also reports the
+//                  plain observed rate (`observed`, k / n) next to the value it is judged on (`basis`), in the table and
+//                  in --json (owner decision 2026-11-09, docs/pilot/PILOT-GATE.md §5)
 //   --targets f    JSON object merged over PROPOSAL (owner-adjusted thresholds)
 //
 // Metrics (overall and per condition tag; tags in the `conditions` column separated by `;`):
@@ -153,7 +156,8 @@ export function checkThresholds({ plates, medicine }, targets = {}, { lowerBound
   const T = { ...PROPOSAL, ...targets }, out = [];
   const rate = (id, label, w, t) => {
     const v = w.p == null ? null : lowerBound ? w.lo : w.p;
-    out.push({ id, label, value: v, lo: w.lo, hi: w.hi, n: w.n, target: t, side: ">=", ok: v != null && v >= t });
+    out.push({ id, label, value: v, basis: lowerBound ? "wilson95-lower" : "point", observed: w.p, x: w.x, lo: w.lo, hi: w.hi, n: w.n, target: t, side: ">=",
+      ok: v != null && v >= t });
   };
   const max = (id, label, v, t) => out.push({ id, label, value: v, target: t, side: "<=", ok: v <= t });
   const min = (id, label, v, t) => out.push({ id, label, value: v, target: t, side: ">=", ok: v >= t });
@@ -166,7 +170,8 @@ export function checkThresholds({ plates, medicine }, targets = {}, { lowerBound
     // judged only when good-light rows carry `tapped` (night / rain-only tap data must not fail --strict for missing data)
     if (tw.n > 0) { // a rate that must stay LOW: --lower-bound judges on the Wilson UPPER bound
       const v = tw.p == null ? null : lowerBound ? tw.hi : tw.p;
-      out.push({ id: "plate.taps.goodLight", label: "plate reads that needed a tap, good light", value: v, lo: tw.lo, hi: tw.hi, n: tw.n, target: T.plateTapsGoodLight, side: "<=",
+      out.push({ id: "plate.taps.goodLight", label: "plate reads that needed a tap, good light", value: v, basis: lowerBound ? "wilson95-upper" : "point",
+        observed: tw.p, x: tw.x, lo: tw.lo, hi: tw.hi, n: tw.n, target: T.plateTapsGoodLight, side: "<=",
         ok: v != null && v <= T.plateTapsGoodLight });
     }
   }
@@ -207,9 +212,13 @@ export function formatReport(rep) {
       out.push(table(HEAD, [mrow("overall", f.overall), ...Object.entries(f.byTag).map(([t, m]) => mrow(`#${t}`, m))]));
     }
   }
-  out.push("", `THRESHOLDS (PROPOSAL — owner to adjust, not industry standards${rep.lowerBound ? "; rates judged on the Wilson 95% lower bound" : ""})`);
-  out.push(table(["check", "value", "target", "result"], rep.checks.map(c => [c.label,
+  const lbNote = "; rates judged on the Wilson 95% lower bound, upper bound for rates that must stay low; observed rate shown beside it";
+  out.push("", `THRESHOLDS (PROPOSAL — owner to adjust, not industry standards${rep.lowerBound ? lbNote : ""})`);
+  const BASIS = { "wilson95-lower": "Wilson 95% lower", "wilson95-upper": "Wilson 95% upper", point: "observed" };
+  out.push(table(["check", "judged value", "judged on", "observed (k/n)", "target", "result"], rep.checks.map(c => [c.label,
     /exact|taps/.test(c.id) ? pct(c.value) : c.value == null ? "—" : c.value,
+    c.basis ? BASIS[c.basis] : "count",
+    c.basis ? `${pct(c.observed)} (${c.x}/${c.n})` : "—",
     `${c.side} ${/exact|taps/.test(c.id) ? pct(c.target) : c.target}`, c.ok ? "PASS" : "FAIL"])));
   if (rep.plates && !rep.plates.overall.taps.n) out.push("(taps needed: not recorded — fill the `tapped` column, 1 = the guard had to tap the plate)");
   return out.join("\n");

@@ -94,7 +94,7 @@
 | ยา: exact-match เลขทะเบียนยา — ก่อนฟีเจอร์ใดจะใช้ค่านี้โดยไม่ให้คนตรวจ | ≥ 95 % |
 | ยา: silent wrong saves (ทะเบียน + lot + วันหมดอายุ) | 0 |
 
-ค่าเริ่มต้นตัดสินที่ค่าประมาณ (point estimate); `--lower-bound` ตัดสินที่ขอบล่าง Wilson 95 % (เข้มกว่า สอดคล้องกับ site check
+ค่าเริ่มต้นของสคริปต์ตัดสินที่ค่าประมาณ (point estimate) แต่**นำร่อง Gate ต้องใช้ `--lower-bound` เสมอ** (เจ้าของตัดสิน 2026-11-09; ตารางแสดงค่าเฉลี่ยธรรมดา k / n ข้างขอบ Wilson); `--lower-bound` ตัดสินที่ขอบล่าง Wilson 95 % (เข้มกว่า สอดคล้องกับ site check
 ในหน้า Gate ที่ใช้ขอบล่าง; เกณฑ์ที่ต้อง "ต่ำ" เช่น taps ใช้ขอบบน) เจ้าของปรับเกณฑ์ได้ด้วย `--targets targets.json` (ชื่อคีย์ตาม `PROPOSAL` ในสคริปต์)
 
 ## 6. แผนการสุ่มตัวอย่าง
@@ -238,7 +238,7 @@ Overall and per condition tag, with Wilson 95 % intervals:
 | Medicine: registration-number exact match — before any feature relies on it without review | ≥ 95 % |
 | Medicine: silent wrong saves (reg + lot + expiry) | 0 |
 
-By default a rate is judged on the point estimate; `--lower-bound` judges on the Wilson 95 % lower bound (stricter, as the
+By default the script judges a rate on the point estimate, but **the Gate pilot always uses `--lower-bound`** (owner decision 2026-11-09; the table shows the plain average k / n beside the Wilson bound); `--lower-bound` judges on the Wilson 95 % lower bound (stricter, as the
 Gate site check does) and a rate that must stay low (taps) on the upper bound. The owner overrides values with `--targets targets.json` (keys as in `PROPOSAL` in the script).
 
 ## 6. Sampling plan
@@ -310,7 +310,7 @@ input. Rows without ground truth are skipped and counted.
 |---|---|---|---|---|---|
 | 15 | 2026-11-08 | — / — / — / — | — / — / — | not started | plan, templates and `tools/field-pilot-metrics.mjs` added; no field data yet |
 | 15b | 2026-11-08 | — / — / — / — · taps — | — / — / — | not started | "taps needed" added (template column `tapped`, metric + PROPOSAL ≤ 10 % good light, Gate site check tallies taps). Plate finder upgraded; synthetic demo set only: 136–137 / 140 found (docs/GATE.md), real photos 2 / 6 — the pilot's taps share is the real measure |
-| 16 | 2026-11-09 | — / — / — / — · taps — | — / — / — | not started | Plate check before every auto-read (`LQPlate.plateGuard`). **Public dataset** (51 Wikimedia Commons photos, not field): exact automatic read 7 / 22, photos without a plate auto-read 0 / 19 (held-out 0 / 9), taps needed 25 / 32. Owner photo tool and sheet ready; **field (owner photos): not measured**. Per-product kits in `docs/pilot/`. Owner decision open: the Wilson rule for the pilot targets (night n 120+, point estimate, or as is). |
+| 16 | 2026-11-09 | — / — / — / — · taps — | — / — / — | not started | Plate check before every auto-read (`LQPlate.plateGuard`). **Public dataset** (51 Wikimedia Commons photos, not field): exact automatic read 7 / 22, photos without a plate auto-read 0 / 19 (held-out 0 / 9), taps needed 25 / 32. Owner photo tool and sheet ready; **field (owner photos): not measured**. Per-product kits in `docs/pilot/`. Owner decided 2026-11-09: Gate targets are judged on the Wilson 95 % lower bound (upper bound for taps), with the plain average k / n shown beside it. |
 
 ## Changelog / last reviewed
 

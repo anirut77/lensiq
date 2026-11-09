@@ -100,6 +100,11 @@
 
 ## 5. ตัวชี้วัดและเป้า (ข้อเสนอ)
 
+**วิธีตัดสิน (เจ้าของตัดสินใจแล้ว 2026-11-09):** เป้าที่เป็นอัตราตัดสินด้วย**ขอบล่าง Wilson 95%** (อัตราที่ต้อง "ต่ำ" เช่น ต้องแตะกรอบเอง
+ใช้**ขอบบน** Wilson 95%) และตารางผลต้องแสดง**ค่าเฉลี่ยธรรมดา** (อัตราที่เห็นจริง k / n) คู่กับขอบที่ใช้ตัดสินเสมอ
+`node tools/field-pilot-metrics.mjs --plates plates.csv --lower-bound` พิมพ์ทั้งสองค่าในตาราง THRESHOLDS (คอลัมน์ "judged value" กับ
+"observed (k/n)") และใน `--json` (`value`, `basis`, `observed`, `x`, `n`) ตัวเลขเป้าด้านล่างยังเป็นข้อเสนอ
+
 | ตัวชี้วัด | เป้า | ตัดสินด้วย |
 |---|---|---|
 | จำนวนการอ่าน | ≥ 200 (กลางคืน ≥ 40, มอเตอร์ไซค์ ≥ 30) | นับแถว |
@@ -111,7 +116,7 @@
 | ป้ายจริงที่ถูกบล็อกว่า "ไม่เหมือนป้าย" | รายงาน (ไม่มีเกณฑ์รอบแรก) | นับจาก `notes` |
 | เวลาจนกดยืนยัน | รายงานค่ามัธยฐาน | `confirm_s` |
 
-**สิ่งที่เกณฑ์ขอบล่าง Wilson แปลว่าในทางปฏิบัติ (รอเจ้าของตัดสินใจ)** — ขอบล่างต้องถึงเป้า จึงต้องอ่านถูกจริงสูงกว่าเป้ามาก
+**สิ่งที่เกณฑ์ขอบล่าง Wilson แปลว่าในทางปฏิบัติ** — ขอบล่างต้องถึงเป้า จึงต้องอ่านถูกจริงสูงกว่าเป้ามาก
 เมื่อ n น้อย คำนวณด้วย Wilson 95% (z = 1.96) ด้วยสคริปต์ node บรรทัดเดียว:
 
 | เป้า | n ที่วางแผน | ต้องอ่านถูกอย่างน้อย (ค่าที่เห็นจริง) | ถ้าเพิ่ม n |
@@ -121,8 +126,10 @@
 | ต้องแตะ กลางวัน ≤ 10% (ขอบบน) | ≈ 160 | แตะได้ไม่เกิน 8 / 160 = **5.0%** | 11 / 200 = 5.5% |
 
 ที่ n = 40 เกณฑ์กลางคืนจึง**เข้มกว่า**กลางวัน และวันนี้ภาพถ่ายสาธารณะอ่านอัตโนมัติถูก 32% (n = 22, `docs/GATE.md` §3c)
-ทางเลือกให้เจ้าของ: (ก) คงขอบล่าง แต่เพิ่มกลางคืนเป็น ≥ 120 การอ่าน (ต้องเห็นจริง ≥ 91.7%) (ข) ตัดสินกลางคืนด้วยค่าที่เห็นจริง (point
-estimate) ≥ 85% และรายงานช่วง 95% คู่กัน (ค) คงตามตาราง ไม่ว่าเลือกแบบใด ต้องตัดสินใจ**ก่อน**เริ่มขั้น 1 และไม่เปลี่ยนหลังเห็นผล
+เก็บการอ่านกลางคืนมากกว่าขั้นต่ำ 40 ครั้งทำให้ค่าที่ต้องเห็นจริงลดลง (คอลัมน์ "ถ้าเพิ่ม n") วิธีตัดสินนี้กำหนดไว้**ก่อน**เริ่มขั้น 1
+และไม่เปลี่ยนหลังเห็นผล
+
+ตัวอย่างแถวในตารางผล (ตัวเลขสมมติ): `อ่านถูก กลางคืน · ค่าที่ใช้ตัดสิน 87.1% (ขอบล่าง Wilson 95%) · ค่าเฉลี่ยธรรมดา 97.5% (39 / 40) · เป้า ≥ 85% · ผ่าน`
 
 ผลลัพธ์: **ผ่าน** = ทุกข้อผ่าน → ใช้ราคา "หลังนำร่อง" ใน `docs/PRICING-RESEARCH.md` ได้ · **ผ่านแบบมีเงื่อนไข** = กลางวันผ่าน
 กลางคืนไม่ผ่าน → ใช้เฉพาะกลางวัน หรือ รปภ. ตรวจทุกคันกลางคืน · **ไม่ผ่าน** = ทำต่อในรอบถัดไป (เช่น โมเดลหาป้ายที่ฝึกกับป้ายไทย)
@@ -141,14 +148,14 @@ estimate) ≥ 85% และรายงานช่วง 95% คู่กัน
 
 ตารางสรุปผล Gate (คัดลอกไปกรอก):
 
-| ตัวชี้วัด | ผล (ช่วง 95%) | n | เป้า | สถานะ |
+| ตัวชี้วัด | ค่าที่ใช้ตัดสิน (ขอบ Wilson 95%) | ค่าเฉลี่ยธรรมดา (k / n) | เป้า | สถานะ |
 |---|---|---|---|---|
-| ขั้น 0: อ่านอัตโนมัติถูก (held-out) | [ ] | [ ] ภาพ | รายงาน | |
-| ขั้น 0: ภาพ `none` ถูกอ่านอัตโนมัติ | [ ] | [ ] ภาพ | 0 | |
-| อ่านถูก กลางวันแสงดี | [ ] | [ ] คัน | ≥ 95% (ขอบล่าง) | |
-| อ่านถูก กลางคืน | [ ] | [ ] คัน | ≥ 85% (ขอบล่าง) | |
-| Silent wrong save | [ ] | [ ] | 0 | |
-| ต้องแตะเอง กลางวัน | [ ] | [ ] | ≤ 10% (ขอบบน) | |
+| ขั้น 0: อ่านอัตโนมัติถูก (held-out) | [ ] | [ ] / [ ] ภาพ | รายงาน | |
+| ขั้น 0: ภาพ `none` ถูกอ่านอัตโนมัติ | [ ] | [ ] / [ ] ภาพ | 0 | |
+| อ่านถูก กลางวันแสงดี | [ ] | [ ] / [ ] คัน | ≥ 95% (ขอบล่าง) | |
+| อ่านถูก กลางคืน | [ ] | [ ] / [ ] คัน | ≥ 85% (ขอบล่าง) | |
+| Silent wrong save | — (นับจำนวน) | [ ] / [ ] คัน | 0 | |
+| ต้องแตะเอง กลางวัน | [ ] | [ ] / [ ] คัน | ≤ 10% (ขอบบน) | |
 
 ## 7. PDPA และข้อห้าม
 
@@ -242,6 +249,12 @@ reads. Phase-0 numbers are **not** the site's field result (phone photos, not th
 
 ## 5. Metrics and targets (proposal)
 
+**How targets are judged (owner decision, 2026-11-09):** a rate target is judged on the **Wilson 95% lower bound** (the
+**upper** bound for a rate that must stay low, such as taps needed). The results table always shows the **plain
+average** (the observed rate, k / n) next to the bound it is judged on. `node tools/field-pilot-metrics.mjs --plates
+plates.csv --lower-bound` prints both in the THRESHOLDS table (columns "judged value" and "observed (k/n)") and in
+`--json` (`value`, `basis`, `observed`, `x`, `n`). The target numbers below are still a proposal.
+
 | Metric | Target | Judged on |
 |---|---|---|
 | Reads | ≥ 200 (night ≥ 40, motorcycle ≥ 30) | count |
@@ -253,7 +266,7 @@ reads. Phase-0 numbers are **not** the site's field result (phone photos, not th
 | Real plates blocked as "does not look like a plate" | report | count (`notes`) |
 | Time to confirm | report median | `confirm_s` |
 
-**What the Wilson lower-bound rule means in practice (owner decision).** The lower bound must reach the target, so at
+**What the Wilson lower-bound rule means in practice.** The lower bound must reach the target, so at
 small n the observed rate has to be far above it. Computed with Wilson 95% (z = 1.96) in a node one-liner:
 
 | Target | Planned n | Observed rate needed | With more reads |
@@ -263,9 +276,11 @@ small n the observed rate has to be far above it. Computed with Wilson 95% (z = 
 | Taps needed, day ≤ 10% (upper bound) | ≈ 160 | at most 8 / 160 = **5.0%** | 11 / 200 = 5.5% |
 
 At n = 40 the night target is therefore **stricter** than the day target. Today's exact automatic read on public
-photos is 32% (n = 22, `docs/GATE.md` §3c). Options for the owner: (a) keep the lower bound but raise night to ≥ 120
-reads (needs ≥ 91.7% observed); (b) judge night on the point estimate ≥ 85% and report the 95% interval beside it;
-(c) keep the table as it is. Whichever is chosen is fixed **before** phase 1 starts and not changed after results.
+photos is 32% (n = 22, `docs/GATE.md` §3c). Collecting more night reads than the minimum of 40 lowers the observed
+rate needed (the "with more reads" column). This rule is fixed **before** phase 1 starts and not changed after results.
+
+Example results row (made-up numbers): `exact read, night · judged value 87.1% (Wilson 95% lower) · plain average 97.5%
+(39 / 40) · target ≥ 85% · PASS`
 
 - **Accept:** every metric passes. The "after pilot" price in `docs/PRICING-RESEARCH.md` may then apply.
 - **Conditional:** day passes and night fails. Use the system by day only, or have the guard check every night read.
@@ -278,7 +293,16 @@ reads (needs ≥ 91.7% observed); (b) judge night on the point estimate ≥ 85% 
 - **Tools:** `tools/plate-field-eval.mjs` and `tools/field-pilot-metrics.mjs`.
 - **Agreement:** `docs/pilot/AGREEMENT-TH.md`.
 - **Signs:** `gate-notice.html` and `camera-notice.html`.
-- **Results:** the Gate table above, attached to `docs/pilot/RESULTS-FORM.md`.
+- **Results:** fill in this table and attach it to `docs/pilot/RESULTS-FORM.md`:
+
+| Measure | Judged value (Wilson 95% bound) | Plain average (k / n) | Target | Status |
+|---|---|---|---|---|
+| Phase 0: exact automatic read (held-out) | [ ] | [ ] / [ ] photos | report | |
+| Phase 0: `none` photos read automatically | [ ] | [ ] / [ ] photos | 0 | |
+| Exact read, good light | [ ] | [ ] / [ ] vehicles | ≥ 95% (lower bound) | |
+| Exact read, night | [ ] | [ ] / [ ] vehicles | ≥ 85% (lower bound) | |
+| Silent wrong save | — (count) | [ ] / [ ] vehicles | 0 | |
+| Taps needed, good light | [ ] | [ ] / [ ] vehicles | ≤ 10% (upper bound) | |
 
 ## 7. PDPA and never-do
 
