@@ -13,7 +13,8 @@
    model cost), cloud analytics history/exports, multi-site hub, support/SLA, on-premise installs.
 3. **No surprise charges.** PromptPay is a push payment — the customer approves every payment in their bank app; there
    is no stored card and no silent auto-renewal. Renewal = a reminder + a new QR.
-4. **Thai-SME friendly:** THB, VAT-inclusive prices, PromptPay first, tax invoice on request, monthly *and* yearly
+4. **Thai-SME friendly:** THB, VAT-inclusive prices for the self-serve checkout plans on `pricing.html` (B2B product
+   prices for Exam, Gate, Crowd and Attendance are shown **excluding 7 % VAT**, owner decision 2026-11-09, see §4.1), PromptPay first, tax invoice on request, monthly *and* yearly
    (2 months free), event-day passes for booths.
 
 ## 2. Unit economics (why the quotas look like this)
@@ -136,7 +137,7 @@ enforced or delivered); `csv_export` is checked by the server (`POST /api/me/ent
 
 Pricing rationale for Thai SMEs: comparable Thai SaaS (POS, booking, LINE OA add-ons) sits at roughly 300–1,500 THB per
 month; an event activation agency budgets per booth-day, so a day pass priced below a promoter's day rate is an easy
-"yes". Yearly = 10 × monthly. Prices end in 0/900 to keep VAT-inclusive totals readable.
+"yes". Yearly = 10 × monthly. Prices end in 0/900 to keep VAT-inclusive totals readable (checkout plans only; see §4.1 for the B2B lines).
 
 ### 4.1 Round 13 proposals: new product lines (not on the plan registry yet)
 
@@ -145,12 +146,17 @@ migrations, so adding a plan needs a new migration. These lines are therefore **
 sold, listed on pricing.html or enforced. The figures are the draft text already shown on each product page (each
 page labels them "ร่าง / draft"). Owner decision needed before any of them becomes a migration.
 
-| Proposed plan id | Product | Contents | Indicative price (draft, from the page) |
+**Owner decision 2026-11-09:** every price in this table is **excluding 7 % VAT** (the customer pays price + 7 %), and the
+Gate free tier is a **free 30-day trial**, not a permanent free plan. The checkout plans above (§3) stay VAT-inclusive
+because that is the amount `pricing.html` actually charges; moving them to excl. VAT would change what customers pay
+and needs a separate owner decision and a migration. Draft levels for these lines: `docs/PRICING-RESEARCH.md`.
+
+| Proposed plan id | Product | Contents | Indicative price (draft, from the page; excl. 7 % VAT) |
 |---|---|---|---|
 | `exam_lab` | LENSIQ Exam: computer room / online exam (exam-lab.html) | candidate page, signals log, invigilator dashboard | 15–30 THB per candidate per exam, or 990–1,490 THB / month |
 | `exam_hall` | LENSIQ Exam: camera exam hall (exam-hall.html) | up to 3 hall camera nodes per room + dashboard | 300–600 THB per room per exam day, or 1,990 THB / month per room |
 | `exam_institution` | LENSIQ Exam: institution licence | whole-institution licence + invigilator training | 30,000–120,000 THB / year |
-| `gate_trial` | LENSIQ Gate trial | 1 lane, 100 reads / day, 7-day logs | 0 THB |
+| `gate_trial` | LENSIQ Gate trial | free 30-day trial: 1 lane, 100 reads / day, 7-day logs | 0 THB for 30 days |
 | `gate_village_basic` | LENSIQ Gate village Basic (village.html) | resident cars, visitor passes, alerts, Open button | ~990 THB / month / lane |
 | `gate_village_pro` | LENSIQ Gate village Pro | 3 lanes, per-house reports, on-site accuracy check | ~1,990 THB / month |
 | `gate_parking` | LENSIQ Gate car park (parking.html) | fees, shop stamps, PromptPay QR, receipts, shift close | ~1,490 THB / month / lane |

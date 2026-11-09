@@ -1,0 +1,119 @@
+# LENSIQ Exam — ผู้ช่วยผู้คุมสอบ บอกว่าควรไปดูที่นั่งไหน ไม่ตัดสินแทนคน
+
+**ใช้กล้องและคอมพิวเตอร์ที่สถาบันมีอยู่แล้ว ประมวลผลบนเครื่อง ไม่ส่งภาพขึ้นคลาวด์ ไม่มีการวิเคราะห์อารมณ์ ไม่มีการจดจำใบหน้า**
+
+> **ฉบับร่าง (DRAFT) — ราคาและเนื้อหารอเจ้าของอนุมัติ** ราคาในเอกสารนี้มาจาก `docs/PRICING-RESEARCH.md` §3.1 ยังไม่เปิดขาย
+
+## ปัญหา
+- ห้องสอบใหญ่ ผู้คุมสอบ 1–2 คนมองไม่ทั่ว เห็นเหตุเมื่อสายไปแล้ว
+- ระบบคุมสอบอัตโนมัติจากต่างประเทศแพง (ใบอนุญาตต่อผู้สอบต่อวิชา) และหลายระบบ "ตัดสิน" แทนคน ทำให้เกิดการแจ้งผิดกับผู้สอบที่ผิวคล้ำ อยู่ในแสงน้อย หรือมีความต้องการพิเศษ
+
+## สิ่งที่ได้
+| ระบบ | ผลลัพธ์ |
+|---|---|
+| ห้องสอบที่มีกล้อง (`exam-hall.html`) | มือถือ/โน้ตบุ๊ก 1–3 เครื่องต่อห้อง กำหนดที่นั่งบนภาพ แจ้ง "ข้อสังเกต" เช่น ที่นั่งว่าง เอนไปที่นั่งข้าง ๆ มีโทรศัพท์ในภาพ |
+| ห้องคอมพิวเตอร์ / สอบออนไลน์ (`exam-lab.html`) | ผู้สอบรับทราบประกาศและยินยอมก่อน ตรวจแสงและกล้อง เตือนเบา ๆ ก่อน (ไม่เห็นใบหน้า ออกจากเต็มจอ) และเห็นบันทึกของตัวเองเหมือนที่ผู้คุมสอบเห็น |
+| แดชบอร์ดผู้คุมสอบ (`exam-dashboard.html`) | แผนผังที่นั่ง คิวข้อสังเกตตามลำดับ ทุกการกระทำต้องใส่ชื่อผู้คุมสอบ ตรวจความแม่นยำหน้างาน ("แจ้งถูก/แจ้งผิด") CSV เรียงตามเวลา รายงานพิมพ์ |
+| การปรับการสอบ | สถาบันกำหนดต่อที่นั่ง (พักบ่อย อ่านออกเสียง ฯลฯ) โดยไม่บันทึกการวินิจฉัย |
+
+## สิ่งที่ระบบไม่ทำ (เด็ดขาด)
+ไม่ตัดสินว่าทุจริต · ไม่ให้ตกอัตโนมัติ · ไม่มีคะแนนความน่าสงสัย · ไม่วิเคราะห์อารมณ์หรือสีหน้า · ไม่จดจำใบหน้า · ไม่บังคับสแกนห้อง ·
+ไม่บันทึกวิดีโอต่อเนื่อง (คลิปหลักฐาน 10 วินาทีเปิดได้เฉพาะเมื่อสถาบันเลือกและประกาศไว้ ค่าเริ่มต้นปิด)
+หน้าเว็บมองไม่เห็นโปรแกรมอื่น อุปกรณ์นอกกรอบภาพ หรือหูฟัง: การสอบเดิมพันสูงต้องใช้ร่วมกับผู้คุมสอบและ Safe Exam Browser
+
+## ความแม่นยำและที่มา
+
+รูปแบบ: ตัวเลข · ขนาดชุดทดสอบ (n) · ที่มา (ข้อมูลจำลอง / ชุดข้อมูลสาธารณะ / หน้างานจริง) — ไม่มีผลวัดเขียนว่า “ยังไม่ได้วัด” (`docs/ACCURACY-CLAIMS.md`)
+
+| ข้อกล่าวอ้าง | ค่า | n | ที่มา | เอกสาร |
+|---|---|---|---|---|
+| ข้อสังเกตถูก/ผิดในห้องสอบจริง | ยังไม่ได้วัด | — | หน้างานจริง: ยังไม่ได้วัด (ยังไม่มีโครงการนำร่อง) | `docs/EXAM.md` |
+| หาใบหน้าไม่เจอ แยกตามแสงและสีผิว | ยังไม่ได้วัด | — | ยังไม่ได้วัด (แผนวัดในชุดนำร่อง ขั้น 0) | `docs/EXAM.md`, `docs/pilot/PILOT-EXAM.md` |
+| ตรวจพบโทรศัพท์/หนังสือในภาพการสอบ | ยังไม่ได้วัด | — | ยังไม่ได้วัด (แผนวัดในการสอบจำลองตามบท ขั้น 1) | `docs/EXAM.md` |
+| ระบบคุมสอบด้วย AI อย่างเดียวจับผู้ที่ถูกสั่งให้โกงได้ (การทดลองของ University of Twente กับ Proctorio) | 0 จาก 6 คน | — | งานวิจัยที่ตีพิมพ์ (ไม่ใช่ผลวัดของ LENSIQ) | `docs/EXAM.md` "Why it does not decide" |
+
+เหตุผลที่ระบบ "ไม่ตัดสินแทนคน" อยู่ที่แถวสุดท้าย: ระบบอัตโนมัติพลาดได้ ผู้คุมสอบจึงเป็นผู้ตัดสินเสมอ
+
+## โครงการนำร่อง (ฟรี)
+1 สถาบัน ≤ 4 สัปดาห์ ≤ 3 ห้อง ในรอบสอบที่ไม่ชี้ขาดสูง: ตรวจกล้องและแสงกับอาสาสมัคร → การสอบจำลองตามบท → การสอบจริงพร้อมผู้คุมสอบนับ
+"แจ้งถูก/แจ้งผิด" แผนและเช็กลิสต์: `docs/pilot/PILOT-EXAM.md` ผลเป็นตัวเลขของสถาบันเองพร้อมช่วงความเชื่อมั่น 95%
+
+## ราคา (ฉบับร่าง รอเจ้าของอนุมัติ — ยังไม่เปิดขาย ราคาไม่รวม VAT 7% ลูกค้าชำระราคา + 7%)
+| แพ็กเกจ | ช่วงนำร่อง (ตอนนี้) | หลังผ่านเกณฑ์นำร่อง |
+|---|---|---|
+| ห้องคอมพิวเตอร์ / ออนไลน์ | 10 บาท ต่อผู้สอบต่อการสอบ ไม่รวม VAT 7% (ขั้นต่ำ 300 บาทต่อรอบ ไม่รวม VAT 7%) หรือ 990 บาท/เดือน/ห้อง ไม่รวม VAT 7% | 15–30 บาท ต่อผู้สอบต่อการสอบ ไม่รวม VAT 7% หรือ 990–1,490 บาท/เดือน ไม่รวม VAT 7% |
+| ห้องสอบที่มีกล้อง (≤ 3 เครื่องต่อห้อง) | 290 บาท ต่อห้องต่อวันสอบ ไม่รวม VAT 7% หรือ 990 บาท/เดือน/ห้อง ไม่รวม VAT 7% | 300–600 บาท ต่อห้องต่อวันสอบ ไม่รวม VAT 7% หรือ 1,990 บาท/เดือน/ห้อง ไม่รวม VAT 7% |
+| ใบอนุญาตทั้งสถาบัน | เริ่ม 19,900 บาท/ปี ไม่รวม VAT 7% (≤ 1,000 ผู้สอบ) | 30,000–120,000 บาท/ปี ไม่รวม VAT 7% |
+
+คอลัมน์ "หลังผ่านเกณฑ์" คือตัวเลขร่างเดิมบนหน้า `exam.html` ไม่เปลี่ยน (ตอนนี้ระบุเป็นราคาไม่รวม VAT 7%)
+
+เทียบตลาด: ใบอนุญาตคุมสอบผ่านเว็บแคมจากต่างประเทศราว 196 บาทต่อผู้สอบต่อวิชา (Respondus Monitor, 1,000 ที่นั่งแรก เป็นราคาอเมริกาเหนือ อาจไม่เปิดขายในไทย และต้องซื้อ LockDown Browser เพิ่ม) และค่าตอบแทนผู้คุมสอบ
+ไม่เกิน 600 บาทต่อชั่วโมงในประกาศของมหาวิทยาลัยแห่งหนึ่ง (แหล่งที่มาและวันที่ใน `docs/PRICING-RESEARCH.md` §1C)
+ราคาตลาดเป็นราคาตามที่แหล่งที่มาแสดง ร้านในไทยมักรวม VAT แล้ว จึงเทียบกับราคา LENSIQ (ไม่รวม VAT) ได้โดยประมาณ ต่างกันราว 7%
+
+## PDPA และกฎหมาย
+ประกาศก่อนสอบ (`exam.html#notice` พิมพ์ได้ 3 ภาษา) ช่องยินยอม ทางเลือกสำหรับผู้ไม่ยินยอมโดยไม่เสียสิทธิสอบ EU AI Act: การเฝ้าดูพฤติกรรมการสอบเป็นความเสี่ยงสูง
+(Annex III 3(d)) และห้ามรู้จำอารมณ์ในสถานศึกษา (มาตรา 5(1)(f)) — ระบบไม่มี ข้อความกฎหมายรอทนายตรวจ
+
+**ติดต่อ:** แบบฟอร์ม `index.html?interest=education#contact` · ชื่อบริษัท อีเมล และ LINE OA จะประกาศก่อนเปิดขาย (`LENSIQ_SELLER`)
+
+> **ต้นฉบับภายใน** (มีชื่อไฟล์ในระบบ) — ฉบับร่าง round 16 ราคาและข้อความรอเจ้าของอนุมัติก่อนส่งลูกค้า
+
+---
+
+# English
+
+## LENSIQ Exam — an invigilator's assistant: it says which seat to check, it never decides
+
+Uses the institution's own cameras and computers, processes on the device, sends no images to a cloud, has no emotion
+analysis and no face recognition. **DRAFT — prices and text await owner approval** (prices from
+`docs/PRICING-RESEARCH.md` §3.1, not on sale).
+
+**What you get:**
+- **Camera exam hall** (`exam-hall.html`): seat polygons and objective observations (empty seat, leaning, phone in view).
+- **Computer room / online** (`exam-lab.html`): notice and consent, a light check, gentle prompts first, and the
+  candidate sees their own log.
+- **Dashboard:** a seat map, a queue, a named action for every response, the on-site tally (right / wrong), a CSV in
+  time order and a printable report.
+- **Accommodations:** set per seat, with no diagnosis stored.
+
+**Never:**
+- a cheating verdict;
+- an automatic fail;
+- a suspicion score;
+- emotion or expression analysis;
+- face recognition;
+- mandatory room scans;
+- continuous video. The 10 s evidence clip is opt-in per exam and off by default.
+
+## Accuracy and source
+
+| Claim | Value | n | Source | Document |
+|---|---|---|---|---|
+| Observations right / wrong in a real exam room | not measured | — | field: not measured (no pilot yet) | `docs/EXAM.md` |
+| Face-detection misses by lighting and skin tone | not measured | — | not measured (planned in pilot phase 0) | `docs/EXAM.md`, `docs/pilot/PILOT-EXAM.md` |
+| Phone / book detection on exam footage | not measured | — | not measured (planned in the staged exam, phase 1) | `docs/EXAM.md` |
+| AI-only proctoring caught instructed cheaters (University of Twente trial with Proctorio) | 0 of 6 | — | published research (not a LENSIQ measurement) | `docs/EXAM.md` |
+
+**Pilot (free):** 1 institution, ≤ 4 weeks, ≤ 3 rooms, in low-stakes sessions. It runs a light check, then a staged
+exam, then a real exam with invigilator tallies (`docs/pilot/PILOT-EXAM.md`).
+
+**Price (DRAFT, awaiting owner approval; excl. 7% VAT, so the customer pays the price + 7%):**
+
+| Package | Pilot stage (now) | After pilot |
+|---|---|---|
+| Computer room / online | 10 THB per candidate per exam excl. 7% VAT (minimum 300 THB per session excl. 7% VAT), or 990 THB / month per lab excl. 7% VAT | 15–30 THB per candidate per exam excl. 7% VAT, or 990–1,490 THB / month excl. 7% VAT |
+| Camera hall | 290 THB per room per exam day excl. 7% VAT, or 990 THB / month per room excl. 7% VAT | 300–600 THB per room per exam day excl. 7% VAT, or 1,990 THB / month per room excl. 7% VAT |
+| Institution licence | from 19,900 THB / year excl. 7% VAT | 30,000–120,000 THB / year excl. 7% VAT |
+
+The "after pilot" column is the current `exam.html` draft numbers, unchanged (now stated excl. 7% VAT).
+
+Market comparison: about 196 THB per student per course for an international webcam-proctoring licence (Respondus;
+North-American price, may not be offered in Thailand, LockDown Browser licence extra), and up to
+600 THB per invigilator-hour in one university's rules (`docs/PRICING-RESEARCH.md` §1C).
+Market prices are as the sources show them. Thai shop prices are usually VAT-inclusive, so the comparison with LENSIQ
+prices (excl. VAT) is approximate by about 7%.
+
+**Contact:** `index.html?interest=education#contact`.
+
+> **Internal draft** (contains file names). Round 16. Prices and text await owner approval before they go to customers.

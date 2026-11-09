@@ -1,6 +1,6 @@
 # LENSIQ — CTO brief
 
-As of 2026-11-09 (updated for round 16, integrated in the working tree, not yet committed). Round 15 shipped in two commits: Gate `70508bc` (CI green on Linux, live) and crowd/docs `41dc0b7`. Round 16 is split into three commits for approval (customer switch; Gate plate check + field tools; claims, crowd test, design, pilot kits) plus two held groups (category packaging, pricing) that wait for the owner. Accuracy sources are labelled synthetic, public dataset or field.
+As of 2026-11-09 (round 16 complete). Round 15 shipped in two commits: Gate `70508bc` (CI green on Linux, live) and crowd/docs `41dc0b7`. Round 16 shipped as: customer switch `d039058`; Gate plate check + field tools `d049dfd`; claims, crowd test, org design, pilot kits `34e14b3`; Wilson rule `77b555a`; multi-line CSP `7c47eba`; then the category packaging and the pricing draft after the owner approved them on 2026-11-09. Accuracy sources are labelled synthetic, public dataset or field.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
 ## 1. System map
@@ -189,12 +189,16 @@ No module is production-ready. None has completed a field pilot, and the backend
 **Device adapters (heart-rate, serial, webhook)**
 - Design only (`docs/DEVICE-ADAPTERS.md`).
 
-**Round 16, waiting for the owner**
-- Approve the page-status table (`docs/PAGE-STATUS.md`) before the category packaging is published.
-- Approve the draft price levels (`docs/PRICING-RESEARCH.md`, open questions 1–6). Decided 2026-11-09: prices are
-  quoted excluding VAT ("excl. 7% VAT" on every price); the Gate free tier becomes a 30-day trial; Gate pilot targets
-  are judged on the Wilson 95 % lower bound with the plain average beside it. Still open: aligning BILLING-PLAN and
-  the Retail / Fortune one-pagers (still VAT-inclusive) and the live gate.html trial text (still no time limit).
+**Round 16, owner decisions and what is still open**
+- Page-status table (`docs/PAGE-STATUS.md`): approved as proposed on 2026-11-09; the category packaging is published.
+- Draft price levels (`docs/PRICING-RESEARCH.md`, open questions 1–6): still open; the document is committed as a
+  draft. Decided 2026-11-09: B2B prices are quoted excluding VAT ("excl. 7% VAT" on every price, now also on the live
+  gate.html and exam.html in TH / EN / ZH and in BILLING-PLAN §4.1); the Gate free tier is a free 30-day trial (live
+  text updated; no trial timer is enforced in code); Gate pilot targets are judged on the Wilson 95 % lower bound with
+  the plain average beside it. Still open: the self-serve checkout plans on pricing.html (Plus, Creator, Business, and
+  the Fortune / Retail one-pagers) stay VAT-inclusive because that is the amount actually charged; changing them
+  changes what customers pay and needs a separate owner decision and a plans migration.
+- `?faceparse=1` lock patch: not applied (owner decision 2026-11-09), because it would change behaviour.
 - CSP `<meta>` line width on new pages: decided 2026-11-09, `tools/csp-meta.mjs` writes the policy across several
   lines on every page; no format-check exemption.
 - Org accounts (item 4): approve the design and the PDPA impact before any code; counsel reviews §9–10.
@@ -223,7 +227,7 @@ No module is production-ready. None has completed a field pilot, and the backend
 | 14 | `7fcbbd2` | Crowd, exam clip, case review, medicine, OMR, planner, lucky colour |
 | 14 fixes | `aaad9bf`, `8b9d6aa`, `f478547` | Strict OCR tests, leading-digit safety net, field-pilot kit |
 | 15 | `70508bc`, `41dc0b7` | Gate: plate finder for every colour, motorcycles and night, plus the leading-digit fix. Crowd: dense-crowd warning, preliminary error on 6 public clips, and a human counting sheet. Credits file, Colab training notebook, dataset list. |
-| 16 | working tree (not committed yet) | Customer mode by default + research-demo toggle; Gate plate check (0/19 plate-less photos auto-read on 51 public photos) and owner photo tool; claims with n and source everywhere; crowd resolution/tiling test; org-accounts design; pilot kits. Held for approval: 7 category pages, page-status table, pricing and four one-pagers. |
+| 16 | `d039058` … `7c47eba` + packaging + pricing | Customer mode by default + research-demo toggle; Gate plate check (0/19 plate-less photos auto-read on 51 public photos) and owner photo tool; claims with n and source everywhere; crowd resolution/tiling test; org-accounts design; pilot kits; Wilson rule; multi-line CSP; 7 category pages + page-status table; pricing draft and four one-pagers (excl. VAT). |
 
 **Size**
 - 64 HTML pages and 36 commits.

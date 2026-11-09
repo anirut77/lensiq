@@ -1,0 +1,121 @@
+# LENSIQ Crowd — ประมาณจำนวนคนในโซนและนับคนเข้าออก สำหรับบูธ ล็อบบี้ และทางเข้างาน
+
+**ใช้มือถือหรือโน้ตบุ๊กที่มีกล้อง ประมวลผลบนเครื่อง ไม่จดจำใบหน้า ไม่เก็บภาพ — เหมาะกับฝูงชนเบาบางถึงปานกลาง**
+
+> **ฉบับร่าง (DRAFT) — ราคาและเนื้อหารอเจ้าของอนุมัติ** ราคาในเอกสารนี้มาจาก `docs/PRICING-RESEARCH.md` §3.3 ยังไม่เปิดขาย
+>
+> **ยังไม่เหมาะกับฝูงชนหนาแน่น** ฝูงชนราว 300 คนถูกนับได้ราว 1 คนต่อภาพ ห้ามใช้ตัดสินความปลอดภัยของฝูงชน
+
+## ปัญหา
+- ผู้จัดงานและเจ้าของพื้นที่อยากรู้ว่าช่วงไหนคนเยอะ โซนไหนคนแน่น มีคนเข้าออกกี่คน แต่เครื่องนับที่ประตูราคา 7,900–19,900 บาทต่อจุด (ซื้อขาด) และติดตั้งถาวร
+- งานชั่วคราว 1–7 วันไม่คุ้มที่จะซื้ออุปกรณ์
+
+## สิ่งที่ได้
+| ระบบ | ผลลัพธ์ |
+|---|---|
+| คนในภาพตอนนี้ / คนในโซน (`crowd.html`) | ค่ามัธยฐาน 5 ภาพ แสดง "≈ ค่าประมาณ ไม่ใช่จำนวนที่แน่นอน" เมื่อคนตั้งแต่ 15 คน หรือโซนแน่น ≥ 2 คน/ตร.ม. |
+| เส้นนับเข้า/ออก | ตัวติดตามแบบไม่ระบุตัวตน นับคนข้ามเส้นต่อช่วงเวลา |
+| คำเตือน | "คนดูเล็ก" เมื่อคนสูงไม่ถึง 10% ของภาพ พร้อมวิธีแก้ · ตั้ง "จำนวนคนที่คาดว่าจะมีช่วงพีค" เพื่อให้เตือนเมื่อตัวตรวจจับล้า |
+| รายงาน | CSV รายงานการตลาด (หัวไฟล์ระบุว่าเป็นค่าประมาณ) สรุปรวมยอด JSON |
+
+ไม่ทำ: ไม่จดจำใบหน้า ไม่ประมาณอายุ/เพศ/สีหน้า (ปิดในโหมดลูกค้า) ไม่บันทึกวิดีโอ
+
+## ความแม่นยำและที่มา
+
+รูปแบบ: ตัวเลข · ขนาดชุดทดสอบ (n) · ที่มา (ข้อมูลจำลอง / ชุดข้อมูลสาธารณะ / หน้างานจริง) — ไม่มีผลวัดเขียนว่า “ยังไม่ได้วัด” (`docs/ACCURACY-CLAIMS.md`)
+ตัวเลขทั้งหมดเป็น **ผลเบื้องต้น**: ค่าจริงนับโดย AI ดูภาพนิ่ง ไม่ใช่คน 2 คน (ผลสุดท้ายรอการนับโดยคน)
+
+| ข้อกล่าวอ้าง | ค่า | n | ที่มา | เอกสาร |
+|---|---|---|---|---|
+| ฝูงชนหนาแน่น (ราว 300 คน) | ยังไม่เหมาะกับฝูงชนหนาแน่น: นับได้ราว 1 คนต่อภาพ (0–2 คนในคลิปไทม์แลปส์ที่มีคนมากกว่า 100 คน) | n = 2 + 7 ภาพ (2 คลิป) | ชุดข้อมูลสาธารณะ ผลเบื้องต้น | `docs/CROWD-ACCURACY.md` |
+| คน 15–22 คนเต็มภาพ | นับต่ำกว่าจริง 26% | n = 12 ภาพ (1 คลิป) | ชุดข้อมูลสาธารณะ ผลเบื้องต้น | `docs/CROWD-ACCURACY.md` |
+| คน 30–50 คน หลายคนอยู่ไกล | นับต่ำกว่าจริง 58% (ค่าจริงเองเป็นค่าประมาณ ±20%) | n = 20 ภาพ (1 คลิป) | ชุดข้อมูลสาธารณะ ผลเบื้องต้น | `docs/CROWD-ACCURACY.md` |
+| คนตัวเล็ก / อยู่ไกล | นับต่ำกว่าจริง 37–59% | n = 29 ภาพ (2 คลิป) | ชุดข้อมูลสาธารณะ ผลเบื้องต้น | `docs/CROWD-ACCURACY.md` |
+| โซนใกล้กล้อง 0–13 คน | คลาด 1.2 คนต่อภาพ (31%) bias −0.2 | n = 20 ภาพ (1 คลิป) | ชุดข้อมูลสาธารณะ ผลเบื้องต้น | `docs/CROWD-ACCURACY.md` |
+| เส้นนับเข้า/ออก | 1 / 1 ครั้ง ไม่มีการนับเกิน | n = 1 ครั้งที่ข้ามเส้น (2 คลิป) | ชุดข้อมูลสาธารณะ ผลเบื้องต้น | `docs/CROWD-ACCURACY.md` |
+| เวลาต่อภาพบนมือถือระดับกลาง | 355 ms (≈ 2.8 ครั้งต่อวินาที) จำลองด้วยการลดความเร็ว CPU ×4 ไม่ใช่มือถือจริง | n = 27 ภาพ (1 คลิป) | ชุดข้อมูลสาธารณะ (เครื่องจำลอง) | `docs/CROWD-ACCURACY.md` |
+| ความแม่นยำสุดท้าย (คนนับ) | ยังไม่ได้วัด | — | หน้างานจริง: ยังไม่ได้วัด (รอการนับโดยคน) | `docs/CROWD-ACCURACY.md` |
+| ที่ไซต์ลูกค้าจริง | ยังไม่ได้วัด | — | หน้างานจริง: ยังไม่ได้วัด (ยังไม่มีโครงการนำร่อง) | `docs/pilot/PILOT-CROWD.md` |
+
+## โครงการนำร่อง
+ขั้น 0: คน 2 คนนับคลิปทดสอบเดิม (ผลสุดท้าย) + วัดเวลาบนมือถือระดับกลางจริง → ขั้น 1: ไซต์ 1–2 แห่ง (5–40 คนในภาพช่วงพีค) 2–3 วัน
+เทียบผู้นับ 2 คนทุก 5 นาที แผนและเช็กลิสต์: `docs/pilot/PILOT-CROWD.md`
+
+## ราคา (ฉบับร่าง รอเจ้าของอนุมัติ — ยังไม่เปิดขาย ราคาไม่รวม VAT 7% ลูกค้าชำระราคา + 7% ไม่รวมอุปกรณ์)
+| แพ็กเกจ | ช่วงนำร่อง (ตอนนี้) | หลังผ่านเกณฑ์นำร่อง |
+|---|---|---|
+| วันงาน (1 กล้อง/เครื่อง) | 590 บาท/วัน ไม่รวม VAT 7% | 990 บาท/วัน ไม่รวม VAT 7% |
+| สัปดาห์งาน (7 วัน, 1 กล้อง) | 2,490 บาท ไม่รวม VAT 7% | 3,900 บาท ไม่รวม VAT 7% |
+| รายเดือน (พื้นที่ถาวร) | 290 บาท/เดือน/กล้อง ไม่รวม VAT 7% | 490 บาท/เดือน/กล้อง ไม่รวม VAT 7% |
+| ฝูงชนหนาแน่น (ประมาณ 50 คนขึ้นไปต่อภาพ) | ไม่ขาย | ไม่ขาย จนกว่าจะมีโมเดลที่ใบอนุญาตใช้เชิงพาณิชย์ได้และเจ้าของอนุมัติ |
+
+เทียบตลาด: เครื่องนับคนที่ประตู 7,900–19,900 บาท (ซื้อขาด) บริการรายเดือนต่างประเทศราว 290–315 บาทต่ออุปกรณ์ต่อเดือน
+(`docs/PRICING-RESEARCH.md` §1D) ราคาช่วงนำร่องอยู่ล่างสุดของช่วง เพราะระบบนับต่ำกว่าจริง 26–59% (n = 12–20 ภาพต่อคลิป 4 คลิป) และยังไม่มีผลหน้างานจริง
+ราคาตลาดเป็นราคาตามที่แหล่งที่มาแสดง ร้านในไทยมักรวม VAT แล้ว จึงเทียบกับราคา LENSIQ (ไม่รวม VAT) ได้โดยประมาณ ต่างกันราว 7%
+
+## PDPA
+ติดป้าย A (`camera-notice.html` 3 ภาษา) ที่ทางเข้าพื้นที่ ไม่จดจำใบหน้า ไม่เก็บภาพ ตัวติดตามไม่ระบุตัวตน รายงานมีเฉพาะตัวเลข
+
+**ติดต่อ:** แบบฟอร์ม `index.html?interest=marketing#contact` · ชื่อบริษัท อีเมล และ LINE OA จะประกาศก่อนเปิดขาย (`LENSIQ_SELLER`)
+
+> **ต้นฉบับภายใน** (มีชื่อไฟล์ในระบบ) — ฉบับร่าง round 16 ราคาและข้อความรอเจ้าของอนุมัติก่อนส่งลูกค้า
+
+---
+
+# English
+
+## LENSIQ Crowd — people in a zone and entry / exit counts for booths, lobbies and event entrances
+
+It runs on a phone or laptop camera and processes on the device. It does no face recognition and keeps no images. It is
+for **sparse to medium crowds**. **DRAFT: prices and text await owner approval** (`docs/PRICING-RESEARCH.md` §3.3, not
+on sale). **Not yet suitable for dense crowds:** about 300 people were counted as about 1 per frame. Never use it for
+crowd-safety decisions.
+
+**What you get:**
+- **People in view and in a zone:** a 5-frame median, shown as "≈ estimate" when 15 or more people are in view or a zone
+  is crowded.
+- **Line counting:** in / out, with an anonymous tracker.
+- **Warnings:** a "people look small" hint, and an "expected crowd at peak" setting that warns when the detector has
+  collapsed.
+- **Reports:** a marketing CSV (its header says the figures are estimates) and a JSON summary.
+
+**Never:** face recognition; age, gender or expression estimation (off in customer mode); video recording.
+
+## Accuracy and source
+
+All figures are **preliminary**: the reference was an AI reviewer looking at still frames, not two human counters (the
+final figure is pending a human count).
+
+| Claim | Value | n | Source | Document |
+|---|---|---|---|---|
+| Dense crowd (about 300 people) | not yet suitable for dense crowds: about 1 counted per frame (0–2 on the 100+ person time-lapse) | n = 2 + 7 frames (2 clips) | public dataset, preliminary | `docs/CROWD-ACCURACY.md` |
+| 15–22 people, whole view | undercount 26% | n = 12 frames (1 clip) | public dataset, preliminary | `docs/CROWD-ACCURACY.md` |
+| 30–50 people, many far | undercount 58% (reference itself an estimate ±20%) | n = 20 frames (1 clip) | public dataset, preliminary | `docs/CROWD-ACCURACY.md` |
+| Small / far people | undercount 37–59% | n = 29 frames (2 clips) | public dataset, preliminary | `docs/CROWD-ACCURACY.md` |
+| Near zone, 0–13 people | 1.2 people per frame (31%), bias −0.2 | n = 20 frames (1 clip) | public dataset, preliminary | `docs/CROWD-ACCURACY.md` |
+| Entry / exit line | 1 / 1 crossings, 0 false | n = 1 crossing (2 clips) | public dataset, preliminary | `docs/CROWD-ACCURACY.md` |
+| Time per frame, mid-range phone | 355 ms (≈ 2.8 calls/s), emulated CPU ×4, not a real phone | n = 27 frames (1 clip) | public dataset (emulated device) | `docs/CROWD-ACCURACY.md` |
+| Final accuracy (human count) | not measured | — | field: not measured (human count pending) | `docs/CROWD-ACCURACY.md` |
+| A real customer site | not measured | — | field: not measured (no pilot yet) | `docs/pilot/PILOT-CROWD.md` |
+
+**Pilot:** two phases (`docs/pilot/PILOT-CROWD.md`).
+- Phase 0: a two-person human count of the existing clips (the final figure), plus timing on a real mid-range phone.
+- Phase 1: 1–2 sites with 5–40 people in view at peak, for 2–3 days, against two counters every 5 minutes.
+
+**Price (DRAFT, awaiting owner approval; excl. 7% VAT, so the customer pays the price + 7%; hardware not included):**
+
+| Package | Pilot stage (now) | After pilot |
+|---|---|---|
+| Event day, 1 camera device | 590 THB / day excl. 7% VAT | 990 THB / day excl. 7% VAT |
+| Event week, 1 device | 2,490 THB excl. 7% VAT | 3,900 THB excl. 7% VAT |
+| Monthly, fixed site | 290 THB / month per device excl. 7% VAT | 490 THB / month per device excl. 7% VAT |
+| Dense crowds (about 50+ per view) | not sold | not sold until a model with a commercial-use licence is approved |
+
+Market comparison: door counters cost 7,900–19,900 THB one-off, and international subscriptions about 290–315 THB per
+device per month (`docs/PRICING-RESEARCH.md` §1D).
+Market prices are as the sources show them. Thai shop prices are usually VAT-inclusive, so the comparison with LENSIQ
+prices (excl. VAT) is approximate by about 7%.
+
+**Contact:** `index.html?interest=marketing#contact`.
+
+> **Internal draft** (contains file names). Round 16. Prices and text await owner approval before they go to customers.
