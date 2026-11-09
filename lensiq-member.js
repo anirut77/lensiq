@@ -262,7 +262,7 @@
     ".lq-acct-menu .danger{color:#b42318}.lq-acct-item{display:none}" +
     // phones / the drawer layout: the chip becomes a 44 px avatar (or a sign-in icon) beside the menu button; the drawer
     // keeps its own "My account" / sign-in row as well
-    "@media(max-width:1099.98px),(pointer:coarse) and (max-height:600px){.nav-end{gap:6px}.lq-acct{order:2}" +
+    "@media(max-width:1023.98px),(pointer:coarse) and (max-height:600px){.nav-end{gap:6px}.lq-acct{order:2}" +
     ".lq-acct-btn,.lq-acct-btn.signin{width:44px;height:44px;min-height:44px;min-width:44px;padding:0;justify-content:center;border-radius:50%;max-width:none}" +
     ".lq-acct-btn .lbl{display:none}.lq-acct-btn .ic{display:block}.lq-av{width:34px;height:34px;font-size:.9rem}" +
     ".lq-acct-menu{right:-50px;max-width:calc(100vw - 24px)}.lq-acct-item{display:block}.lq-acct-item>.nav-link{width:100%}}" +

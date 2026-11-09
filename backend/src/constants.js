@@ -6,11 +6,12 @@ export const FORTUNE_DOMAINS = ["face", "palm", "horoscope", "tarot", "siamsee",
  *  Anything else is rejected (the client sends "other" instead). A unit test fails when a page is missing here;
  *  lensiq-analytics.js carries the same lists (drift test in tests/unit/backend-site.test.js). */
 export const ANALYTICS_PAGES = [
-  "about", "account", "afterhours", "astro", "attendance", "bays", "bazi", "booth", "camera-notice", "cameras", "case-review", "checkout", "converter",
-  "creative", "creative-suite", "crowd", "customers", "dream", "driver", "exam", "exam-dashboard", "exam-hall", "exam-lab", "faceread", "fengshui",
-  "fortune", "gate", "gate-notice", "help", "horoscope", "hr", "iching", "index", "insights", "interview", "lek7", "lifegraph", "luckycolor", "medicine", "neuro",
-  "numbers", "omr", "palm", "parking", "photobooth", "planner", "pricing", "privacy", "qc", "queue", "report", "retail", "signage", "solutions", "store",
-  "studio", "tables", "taksa", "tarot", "teamface", "terms", "village", "zodiac", "other"
+  "about", "account", "afterhours", "astro", "attendance", "bays", "bazi", "booth", "camera-notice", "cameras", "case-review", "cat-education",
+  "cat-fortune", "cat-health", "cat-hr", "cat-marketing", "cat-security", "cat-studio", "checkout", "converter", "creative", "creative-suite",
+  "crowd", "customers", "dream", "driver", "exam", "exam-dashboard", "exam-hall", "exam-lab", "faceread", "fengshui", "fortune", "gate",
+  "gate-notice", "help", "horoscope", "hr", "iching", "index", "insights", "interview", "lek7", "lifegraph", "luckycolor", "medicine", "neuro",
+  "numbers", "omr", "palm", "parking", "photobooth", "planner", "pricing", "privacy", "qc", "queue", "report", "retail", "signage", "solutions",
+  "store", "studio", "tables", "taksa", "tarot", "teamface", "terms", "village", "zodiac", "other"
 ];
 
 /** Feature slugs the analytics accepts; anything else is rejected (the client sends "other"). Add new ones here AND in

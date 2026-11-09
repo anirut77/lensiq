@@ -28,3 +28,5 @@
   .sl-ic{display:none}
   .sl-sec{break-inside:auto}
 }
+/* round 16 (item 1): links to the 7 work-category pages above the sector catalogue */
+.sl-cats{margin:0 0 4px}

@@ -16,11 +16,12 @@ const mainText = page => page.evaluate(() => (document.querySelector("main") || 
 export default async function ({ base, launch, check }) {
   const browser = await launch();
   try {
-    // round 14: every menu group + About + CTA on ONE line of the desktop bar (1100-1440 px) in TH / EN / 中文: no wrapped
-    // label (Thai <wbr> breaks), no overlap with the logo, no overflow; the drawer (below 1100 px) shows the full group names
-    await check("desktop nav: all groups fit one line at 1100-1440 px (TH/EN/中文), drawer keeps full names", async () => {
+    // round 14: every menu group + About + CTA on ONE line of the desktop bar in TH / EN / 中文: no wrapped label (Thai
+    // <wbr> breaks), no overlap with the logo, no overflow; the drawer shows the full group names. Round 16 (item 1, owner:
+    // "the desktop nav must fit at 1024-1440 px"): the 7 work categories + About + CTA, desktop bar from 1024 px, drawer below.
+    await check("desktop nav: all groups fit one line at 1024-1440 px (TH/EN/中文), drawer keeps full names", async () => {
       const rows = [];
-      for (const w of [1100, 1199, 1280, 1366, 1440]) for (const lang of ["th", "en", "zh"]) {
+      for (const w of [1024, 1100, 1199, 1280, 1366, 1440]) for (const lang of ["th", "en", "zh"]) {
         const page = await browser.newPage(null);
         await viewport(page, w, 800, false);
         await page.goto(`${base}/store.html?cpu&nosw&lang=${lang}`);
@@ -39,12 +40,12 @@ export default async function ({ base, launch, check }) {
       }
       console.log("       spare: " + rows.join(", "));
       const page = await browser.newPage(null);
-      await viewport(page, 1024, 768, false);
+      await viewport(page, 1023, 768, false);
       await page.goto(`${base}/store.html?cpu&nosw&lang=th`);
       await page.waitFor(() => document.querySelector(".nav-toggle"), 8000);
       await sleep(300);
       const d = await page.evaluate(() => { document.querySelector(".nav-toggle").click(); const b = document.querySelector("#siteMenu .has-sub > .nav-link"); return { name: b.innerText.trim(), full: !!b.querySelector(".nav-lbl-f").offsetWidth, short: !!b.querySelector(".nav-lbl-s").offsetWidth }; });
-      assert(d.full && !d.short && /วิเคราะห์ค้าปลีก/.test(d.name), "drawer shows the full group name " + JSON.stringify(d));
+      assert(d.full && !d.short && /ความปลอดภัยและการเข้าออก/.test(d.name), "drawer shows the full group name " + JSON.stringify(d));
       await page.close();
     });
     for (const [w, h, mobile] of [[390, 844, true], [1280, 800, false]]) {
@@ -145,7 +146,7 @@ export default async function ({ base, launch, check }) {
       await page.goto(`${base}/tarot.html?nosw&lang=en`);
       await page.waitFor(() => document.documentElement.lang === "en" && !!(window.FORTUNE_EN && window.FORTUNE_EN.tarot && window.FORTUNE_EN.siamsee) && !document.querySelector(".lq-lang-note:not([hidden])"), 8000);
       const f = await page.evaluate(() => ({ crumbs: [...document.querySelectorAll(".lq-crumbs li")].map(li => li.textContent.trim()), cov: LQI18N.coverage() }));
-      assert(f.crumbs.join(" / ") === "Home / Fortune & Culture / Tarot & Siam Si", f.crumbs.join(" / "));
+      assert(f.crumbs.join(" / ") === "Home / Fortune & Auspicious Planning / Tarot & Siam Si", f.crumbs.join(" / "));
       assert(f.cov.pct === 0, "tarot en " + JSON.stringify(f.cov.top.slice(0, 3)));
       const ex = page.consoleErrors.filter(e => e.kind === "exception");
       assert(!ex.length, ex.map(e => e.text).join(" | "));
