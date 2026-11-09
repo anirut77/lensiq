@@ -250,6 +250,10 @@ it at <official site link>." A missing lookup is **never** shown as "looks fine"
 
 ### 5.1 Rule set (on device, deterministic)
 
+> **P1 (2026-11-09):** the current rule list is [`docs/product-check/RULES.md`](product-check/RULES.md) (49 rules, updated to
+> the 2569 food-advert notice; machine-readable draft `tools/pc-rules-draft.json`). The table below is the design-time
+> version and is kept for history. Test sets: [`docs/product-check/TEST-SETS.md`](product-check/TEST-SETS.md).
+
 - **Positioning.** Each flag says "this wording is a risk signal under <rule>". It never says "illegal".
   - Drug Act s.88 covers advertising, and s.88 para 2 excludes labels for parts (5) and (6).
   - Whether the food, cosmetic and supplement rules cover packs and online listings is for counsel to confirm.

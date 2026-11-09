@@ -1,0 +1,2055 @@
+{
+  "fields": {
+    "requires_claim_verb": "the rule fires only when a claim verb (claim_verbs) is also present",
+    "requires_context": "the rule fires only when the text (or the product record) also contains one of these words; empty = no context needed"
+  },
+  "version": "p1-draft-2026-11-09",
+  "status": "DRAFT for phase P3. Not wired into any page. Every flag is a risk signal, never a finding of illegality.",
+  "wording": {
+    "en": "Risk signal under {rule}",
+    "th": "สัญญาณเสี่ยงตาม {rule}",
+    "zh": "可能违反 {rule} 的风险信号"
+  },
+  "claim_verbs": {
+    "th": "(?:รักษา|บำบัด|บรรเทา|ป้องกัน|ต้าน|แก้|หาย|ยับยั้ง|ลดความเสี่ยง)",
+    "en": "(?:treat|cure|heal|prevent|fight|combat|reverse|relieve|eliminate|kill|beat|protect against)",
+    "zh": "(?:治疗|治愈|预防|缓解|根治|抗)"
+  },
+  "scoping": "A rule family applies by product category: D = drug, F = food/supplement, H = herbal, C = cosmetic. detect: text = pattern on text; absence = a required item is missing; lookup = needs a register lookup; image = needs the picture.",
+  "regex_flags": "iu",
+  "sources": {
+    "F69": {
+      "cite": "FDA notice 'หลักเกณฑ์การโฆษณาอาหาร พ.ศ. 2569', Royal Gazette vol.143 special 182 ง, 27 Jul 2569 (signed 13 Jul 2569; in force from the next day, cl.1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "status": "PRIMARY"
+    },
+    "F64": {
+      "cite": "FDA notice 'หลักเกณฑ์การโฆษณาอาหาร พ.ศ. 2564', Royal Gazette vol.138 special 73 ง, 30 Mar 2564 (repealed by F69 cl.2)",
+      "url": "https://exfood.fda.moph.go.th/law/data/announ_fda/64_Advertising.PDF",
+      "status": "PRIMARY"
+    },
+    "FA": {
+      "cite": "Food Act B.E. 2522 (s.40 and s.41 as quoted in the preamble of F69; other sections not re-read in P1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "status": "PRIMARY"
+    },
+    "N293": {
+      "cite": "MoPH Notification No. 293 (B.E. 2548) on dietary supplements, FDA compilation incl. No. 405 and 411 (B.E. 2562)",
+      "url": "https://exfood.fda.moph.go.th/law/data/complilation/Compi_293.pdf",
+      "status": "PRIMARY"
+    },
+    "DA": {
+      "cite": "Drug Act B.E. 2510 (Krisdika consolidated text, as amended to No. 6 B.E. 2562)",
+      "url": "https://laws.fda.moph.go.th/laws/drug-act-be-2510/",
+      "status": "PRIMARY"
+    },
+    "S77": {
+      "cite": "MoPH notice on diseases that drugs may not be advertised to treat (22 Feb 2520, Royal Gazette vol.94 part 13 p.782), quoted by two secondary sources that disagree on 'อัมพาต'",
+      "url": "https://so01.tci-thaijo.org/index.php/gjournal-ksu/article/view/268262",
+      "status": "SECONDARY"
+    },
+    "HA": {
+      "cite": "Herbal Products Act B.E. 2562, Royal Gazette vol.136 part 56 ก, 30 Apr 2562",
+      "url": "https://ratchakitcha.soc.go.th/documents/17087272.pdf",
+      "status": "PRIMARY"
+    },
+    "HP": {
+      "cite": "FDA notice on herbal advert permits B.E. 2564 (forms ฆสมพ.1-4)",
+      "url": "https://ratchakitcha.soc.go.th/documents/17168807.pdf",
+      "status": "PRIMARY"
+    },
+    "CA": {
+      "cite": "Cosmetic Act B.E. 2558, Royal Gazette vol.132 part 86 ก, 8 Sep 2558",
+      "url": "https://laws.fda.moph.go.th/laws/cosmetic-products-act-be-2558/",
+      "status": "PRIMARY"
+    },
+    "CM": {
+      "cite": "Thai FDA 'คู่มือการโฆษณาเครื่องสำอาง ฉบับปรับปรุง พ.ศ. 2567' (official guidance, examples of unlawful wording per s.41)",
+      "url": "https://www.fda.moph.go.th/news/09102567",
+      "status": "PRIMARY"
+    },
+    "CR": {
+      "cite": "Ministerial regulation under Cosmetic Act s.41 para 2 (7) (Cabinet approved 3 Sep / 19 Nov 2567); Gazette text not located",
+      "url": "https://www.thansettakij.com/health/605737",
+      "status": "SECONDARY"
+    }
+  },
+  "rules": [
+    {
+      "id": "D01",
+      "family": "D",
+      "category": "drug",
+      "scope": "both",
+      "title_en": "Miraculous or complete-cure claim",
+      "title_th": "โอ้อวดว่ารักษาได้อย่างศักดิ์สิทธิ์หรือหายขาด",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "ศักดิ์สิทธิ์",
+          "หายขาด",
+          "หายสนิท",
+          "หายเป็นปลิดทิ้ง",
+          "รักษาได้ทุกโรค",
+          "สารพัดโรค",
+          "ครอบจักรวาล"
+        ],
+        "en": [
+          "\\bmiracl(?:e|ous)",
+          "\\bcures?\\s+(?:completely|permanently|for good)",
+          "\\bpermanent(?:ly)?\\s+cure",
+          "\\bcure[- ]all\\b",
+          "\\bpanacea\\b",
+          "\\bcures?\\s+all\\b"
+        ],
+        "zh": [
+          "神效",
+          "根治",
+          "包治百病",
+          "药到病除",
+          "奇效"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Drug Act s.88(1)",
+      "source": "Drug Act B.E. 2510 (Krisdika consolidated text, as amended to No. 6 B.E. 2562)",
+      "url": "https://laws.fda.moph.go.th/laws/drug-act-be-2510/",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": ""
+    },
+    {
+      "id": "D02",
+      "family": "D",
+      "category": "drug",
+      "scope": "both",
+      "title_en": "False or exaggerated efficacy",
+      "title_th": "แสดงสรรพคุณอันเป็นเท็จหรือเกินความจริง",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "ได้ผล\\s*100",
+          "100\\s*%",
+          "เห็นผลทันที",
+          "ดีที่สุด",
+          "ไม่มีผลข้างเคียง",
+          "ไร้ผลข้างเคียง",
+          "ปลอดภัย\\s*100"
+        ],
+        "en": [
+          "100\\s*%\\s*(?:effective|safe|natural|guaranteed)",
+          "\\bno\\s+side[- ]effects?",
+          "\\bworks\\s+(?:instantly|immediately)",
+          "\\bguaranteed\\s+results?"
+        ],
+        "zh": [
+          "无副作用",
+          "100%有效",
+          "立即见效"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Drug Act s.88(2)",
+      "source": "Drug Act B.E. 2510 (Krisdika consolidated text, as amended to No. 6 B.E. 2562)",
+      "url": "https://laws.fda.moph.go.th/laws/drug-act-be-2510/",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": ""
+    },
+    {
+      "id": "D03",
+      "family": "D",
+      "category": "drug",
+      "scope": "both",
+      "title_en": "Implies an ingredient the product lacks",
+      "title_th": "ทำให้เข้าใจว่ามีตัวยาที่ไม่มีจริง",
+      "detect": "lookup",
+      "severity": "risk",
+      "patterns": {
+        "th": [],
+        "en": [],
+        "zh": []
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Drug Act s.88(3)",
+      "source": "Drug Act B.E. 2510 (Krisdika consolidated text, as amended to No. 6 B.E. 2562)",
+      "url": "https://laws.fda.moph.go.th/laws/drug-act-be-2510/",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": "Needs the register's ingredient list; the text alone cannot show this."
+    },
+    {
+      "id": "D04",
+      "family": "D",
+      "category": "drug",
+      "scope": "both",
+      "title_en": "Abortion or strong emmenagogue",
+      "title_th": "ทำให้เข้าใจว่าเป็นยาทำแท้งหรือยาขับระดูอย่างแรง",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "ขับระดู",
+          "ทำแท้ง",
+          "แท้งลูก",
+          "ขับเลือดเสีย",
+          "ประจำเดือนมาทันที"
+        ],
+        "en": [
+          "\\babortifacient",
+          "\\binduces?\\s+(?:an\\s+)?(?:abortion|miscarriage|menstruation|period)"
+        ],
+        "zh": [
+          "堕胎",
+          "打胎"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Drug Act s.88(4)",
+      "source": "Drug Act B.E. 2510 (Krisdika consolidated text, as amended to No. 6 B.E. 2562)",
+      "url": "https://laws.fda.moph.go.th/laws/drug-act-be-2510/",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": ""
+    },
+    {
+      "id": "D05",
+      "family": "D",
+      "category": "drug",
+      "scope": "ad",
+      "title_en": "Aphrodisiac or contraceptive",
+      "title_th": "ทำให้เข้าใจว่าเป็นยาบำรุงกามหรือยาคุมกำเนิด",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "บำรุงกาม",
+          "สมรรถภาพทางเพศ",
+          "สมรรถภาพท่านชาย",
+          "ปลุกเซ็กส์",
+          "นกเขาไม่ขัน",
+          "อึด\\s*ถึก\\s*ทน",
+          "คุมกำเนิด"
+        ],
+        "en": [
+          "\\baphrodisiac",
+          "\\bsexual\\s+(?:performance|enhancement|stamina|desire)",
+          "\\berectile",
+          "\\blibido",
+          "\\bmale\\s+enhancement",
+          "\\bcontracepti"
+        ],
+        "zh": [
+          "壮阳",
+          "补肾壮阳",
+          "避孕"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Drug Act s.88(5); s.88 para 2 excludes label and leaflet text",
+      "source": "Drug Act B.E. 2510 (Krisdika consolidated text, as amended to No. 6 B.E. 2562)",
+      "url": "https://laws.fda.moph.go.th/laws/drug-act-be-2510/",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": ""
+    },
+    {
+      "id": "D06",
+      "family": "D",
+      "category": "drug",
+      "scope": "ad",
+      "title_en": "Efficacy claim for a dangerous or specially controlled drug",
+      "title_th": "แสดงสรรพคุณยาอันตรายหรือยาควบคุมพิเศษ",
+      "detect": "lookup",
+      "severity": "risk",
+      "patterns": {
+        "th": [],
+        "en": [],
+        "zh": []
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Drug Act s.88(6); s.88 para 2 excludes labels",
+      "source": "Drug Act B.E. 2510 (Krisdika consolidated text, as amended to No. 6 B.E. 2562)",
+      "url": "https://laws.fda.moph.go.th/laws/drug-act-be-2510/",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": "Needs the register class of the drug."
+    },
+    {
+      "id": "D07",
+      "family": "D",
+      "category": "drug",
+      "scope": "both",
+      "title_en": "Endorsement by another person",
+      "title_th": "รับรองหรือยกย่องสรรพคุณโดยบุคคลอื่น",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "(?:แพทย์|หมอ|เภสัชกร|ดารา|คนดัง|ผู้เชี่ยวชาญ)\\S{0,6}(?:แนะนำ|รับรอง|ยืนยัน|การันตี)",
+          "รีวิวจากผู้ใช้จริง",
+          "ผู้ใช้จริง"
+        ],
+        "en": [
+          "\\b(?:doctor|physician|pharmacist|md)s?[- ](?:recommended|approved)",
+          "\\brecommended\\s+by\\s+(?:doctors|physicians|pharmacists|experts)",
+          "\\btestimonial"
+        ],
+        "zh": [
+          "医生推荐",
+          "专家推荐"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Drug Act s.88(7)",
+      "source": "Drug Act B.E. 2510 (Krisdika consolidated text, as amended to No. 6 B.E. 2562)",
+      "url": "https://laws.fda.moph.go.th/laws/drug-act-be-2510/",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": ""
+    },
+    {
+      "id": "D08",
+      "family": "D",
+      "category": "drug",
+      "scope": "ad",
+      "title_en": "Claims to treat a disease listed under s.77",
+      "title_th": "แสดงสรรพคุณรักษาโรคที่ประกาศตามมาตรา 77",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "เบาหวาน",
+          "มะเร็ง",
+          "เนื้องอก",
+          "วัณโรค",
+          "โรคเรื้อน",
+          "อัมพาต",
+          "อัมพฤกษ์",
+          "โรค(?:หัวใจ|ไต|ตับ|ปอด|สมอง|ม้าม)",
+          "ไตวาย",
+          "ตับแข็ง",
+          "สมองเสื่อม",
+          "อัลไซเมอร์"
+        ],
+        "en": [
+          "\\bdiabet",
+          "\\bcancer",
+          "\\btumou?r",
+          "\\btuberculosis",
+          "\\bleprosy",
+          "\\bparaly",
+          "\\bstroke\\b",
+          "\\b(?:heart|kidney|liver|lung|brain)\\s+disease",
+          "\\balzheimer",
+          "\\bdementia"
+        ],
+        "zh": [
+          "糖尿病",
+          "癌",
+          "肿瘤",
+          "结核",
+          "瘫痪",
+          "中风",
+          "心脏病",
+          "肾病",
+          "肝病"
+        ]
+      },
+      "requires_claim_verb": true,
+      "requires_context": [],
+      "basis": "Drug Act s.88(8) + s.77 notice (22 Feb 2520)",
+      "source": "MoPH notice on diseases that drugs may not be advertised to treat (22 Feb 2520, Royal Gazette vol.94 part 13 p.782), quoted by two secondary sources that disagree on 'อัมพาต'",
+      "url": "https://so01.tci-thaijo.org/index.php/gjournal-ksu/article/view/268262",
+      "accessed": "2026-11-09",
+      "status": "SECONDARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": "Claim verb required: (?:รักษา|บำบัด|บรรเทา|ป้องกัน|ต้าน|แก้|หาย|ยับยั้ง|ลดความเสี่ยง) / (?:treat|cure|heal|prevent|fight|combat|reverse|relieve|eliminate|kill|beat|protect against). Two secondary sources disagree on whether อัมพาต is on the 2520 list; the 2556 notice that adds hypertension, psychiatric disease and AIDS is for medical devices, not drugs."
+    },
+    {
+      "id": "D09",
+      "family": "D",
+      "category": "drug",
+      "scope": "ad",
+      "title_en": "Broadcast or print drug advert without an approval number (ฆท.)",
+      "title_th": "โฆษณายาทางสื่อโดยไม่มีเลขที่อนุญาต ฆท.",
+      "detect": "absence",
+      "severity": "risk",
+      "patterns": {
+        "th": [],
+        "en": [],
+        "zh": []
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Drug Act s.88 bis",
+      "source": "Drug Act B.E. 2510 (Krisdika consolidated text, as amended to No. 6 B.E. 2562)",
+      "url": "https://laws.fda.moph.go.th/laws/drug-act-be-2510/",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": "Format seen on Thai product pages: 'ฆท. 1020/2564', 'ฆท. HB74/64A' [SECONDARY: observed, official format not verified]. Only meaningful when the text is an advert."
+    },
+    {
+      "id": "D10",
+      "family": "D",
+      "category": "drug",
+      "scope": "ad",
+      "title_en": "Free gift or prize draw in a drug advert",
+      "title_th": "โฆษณาขายยาโดยแถมพกหรือออกสลากรางวัล",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "แถม",
+          "ชิงรางวัล",
+          "ชิงโชค",
+          "ลุ้นรางวัล",
+          "จับรางวัล",
+          "ซื้อ\\s*\\d+\\s*แถม"
+        ],
+        "en": [
+          "\\bfree\\s+gift",
+          "\\bbuy\\s+one\\s+get\\s+one",
+          "\\bsweepstake",
+          "\\blucky\\s+draw"
+        ],
+        "zh": [
+          "买一送一",
+          "赠品",
+          "抽奖"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Drug Act s.90",
+      "source": "Drug Act B.E. 2510 (Krisdika consolidated text, as amended to No. 6 B.E. 2562)",
+      "url": "https://laws.fda.moph.go.th/laws/drug-act-be-2510/",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": ""
+    },
+    {
+      "id": "D11",
+      "family": "D",
+      "category": "drug",
+      "scope": "label",
+      "title_en": "Registration number not found or registered to another product",
+      "title_th": "ไม่พบเลขทะเบียนยาหรือชื่อไม่ตรงทะเบียน",
+      "detect": "lookup",
+      "severity": "risk",
+      "patterns": {
+        "th": [],
+        "en": [],
+        "zh": []
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Drug Act s.72-73 (fake / substandard drug)",
+      "source": "Drug Act B.E. 2510 (Krisdika consolidated text, as amended to No. 6 B.E. 2562)",
+      "url": "https://laws.fda.moph.go.th/laws/drug-act-be-2510/",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": ""
+    },
+    {
+      "id": "D12",
+      "family": "D",
+      "category": "drug",
+      "scope": "label",
+      "title_en": "Registration cancelled or expired",
+      "title_th": "ทะเบียนยาถูกยกเลิกหรือสิ้นอายุ",
+      "detect": "lookup",
+      "severity": "risk",
+      "patterns": {
+        "th": [],
+        "en": [],
+        "zh": []
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Drug Act s.86/1-86/2 (registration validity, added by Act No. 6 B.E. 2562)",
+      "source": "Drug Act B.E. 2510 (Krisdika consolidated text, as amended to No. 6 B.E. 2562)",
+      "url": "https://laws.fda.moph.go.th/laws/drug-act-be-2510/",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": ""
+    },
+    {
+      "id": "D13",
+      "family": "D",
+      "category": "drug",
+      "scope": "ad",
+      "title_en": "Indecent advert, song and dance, or showing a patient's suffering",
+      "title_th": "โฆษณาไม่สุภาพ ร้องรำทำเพลง หรือแสดงความทุกข์ทรมานของผู้ป่วย",
+      "detect": "image",
+      "severity": "risk",
+      "patterns": {
+        "th": [],
+        "en": [],
+        "zh": []
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Drug Act s.89",
+      "source": "Drug Act B.E. 2510 (Krisdika consolidated text, as amended to No. 6 B.E. 2562)",
+      "url": "https://laws.fda.moph.go.th/laws/drug-act-be-2510/",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": "New id (not in the design table). Not text-detectable."
+    },
+    {
+      "id": "F01",
+      "family": "F",
+      "category": "food,supplement",
+      "scope": "ad",
+      "title_en": "Miraculous wording",
+      "title_th": "คำศักดิ์สิทธิ์ มหัศจรรย์ ปาฏิหาริย์ วิเศษ",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "ศักดิ์สิทธิ์",
+          "มหัศจรรย์",
+          "ปาฏิหาริย์",
+          "วิเศษ"
+        ],
+        "en": [
+          "\\bmiracl(?:e|ous)",
+          "\\bmagic(?:al)?\\b",
+          "\\bwonder(?:ful)?\\s+(?:drug|cure|food|product)"
+        ],
+        "zh": [
+          "神奇",
+          "奇迹",
+          "神效"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "F69 cl.5(1); Annex 1 §1 (F64 cl.4(1), Annex 1 §1)",
+      "source": "FDA notice 'หลักเกณฑ์การโฆษณาอาหาร พ.ศ. 2569', Royal Gazette vol.143 special 182 ง, 27 Jul 2569 (signed 13 Jul 2569; in force from the next day, cl.1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "Unchanged list; clause renumbered 4 → 5.",
+      "note": ""
+    },
+    {
+      "id": "F02",
+      "family": "F",
+      "category": "food,supplement",
+      "scope": "ad",
+      "title_en": "Superlative or ranking claim",
+      "title_th": "คำยกย่องเกินจริง ที่สุด อันดับหนึ่ง",
+      "detect": "text",
+      "severity": "low",
+      "patterns": {
+        "th": [
+          "ดีที่สุด",
+          "ที่สุด",
+          "สุดยอด",
+          "ยอดเยี่ยม",
+          "ดีเลิศ",
+          "เลิศล้ำ",
+          "อันดับ\\s*(?:1|๑|หนึ่ง)",
+          "ที่หนึ่ง",
+          "หนึ่งเดียว",
+          "เบอร์\\s*1",
+          "No\\.?\\s*1"
+        ],
+        "en": [
+          "\\bthe\\s+best\\b",
+          "\\bbest\\s+(?:in\\s+the\\s+world|ever)",
+          "#\\s*1\\b",
+          "\\bnumber\\s+one\\b",
+          "\\bmost\\s+effective",
+          "\\bsuperior\\s+to"
+        ],
+        "zh": [
+          "最好",
+          "第一",
+          "顶级",
+          "最有效"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "F69 cl.5(1); Annex 2 item 14 (sales rank needs evidence and year); Annex 3 (Best / Premium / 'สูตรที่ดีที่สุด' need a permit and evidence)",
+      "source": "FDA notice 'หลักเกณฑ์การโฆษณาอาหาร พ.ศ. 2569', Royal Gazette vol.143 special 182 ง, 27 Jul 2569 (signed 13 Jul 2569; in force from the next day, cl.1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "CHANGED. F64 Annex 1 §1 banned 'ที่สุด ดีที่สุด ดีเด็ด สูงสุด', 'ยอด…สุดยอด', 'เลิศที่สุด ดีเลิศ ชนะเลิศ…', 'ที่หนึ่ง หนึ่งเดียว'. F69 Annex 1 no longer lists them; F69 Annex 2-3 allow some rank or quality words with evidence (and a permit for Annex 3). Severity lowered to 'low'; the signal now means 'needs evidence'.",
+      "note": ""
+    },
+    {
+      "id": "F03",
+      "family": "F",
+      "category": "food,supplement",
+      "scope": "ad",
+      "title_en": "Worry-free or complete-cure wording",
+      "title_th": "หายห่วง หายขาด หมดกังวล",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "หายห่วง",
+          "หายขาด",
+          "หมดกังวล",
+          "หายสนิท"
+        ],
+        "en": [
+          "\\bcures?\\s+(?:completely|permanently|for good)",
+          "\\bgone\\s+for\\s+good",
+          "\\bpermanent(?:ly)?\\s+(?:cure|result)"
+        ],
+        "zh": [
+          "根治",
+          "永不复发"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "F69 cl.5(1); Annex 1 §1",
+      "source": "FDA notice 'หลักเกณฑ์การโฆษณาอาหาร พ.ศ. 2569', Royal Gazette vol.143 special 182 ง, 27 Jul 2569 (signed 13 Jul 2569; in force from the next day, cl.1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "CHANGED (minor). 'เด็ดขาด' was dropped from the list.",
+      "note": ""
+    },
+    {
+      "id": "F04",
+      "family": "F",
+      "category": "food,supplement",
+      "scope": "ad",
+      "title_en": "No side effects",
+      "title_th": "ไม่มีผลข้างเคียง ไร้ผลข้างเคียง",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "ไม่มีผลข้างเคียง",
+          "ไร้ผลข้างเคียง",
+          "ไม่มีอาการข้างเคียง"
+        ],
+        "en": [
+          "\\bno\\s+(?:known\\s+)?side[- ]effects?",
+          "\\bwithout\\s+(?:any\\s+)?side[- ]effects?",
+          "\\bfree\\s+of\\s+side[- ]effects?"
+        ],
+        "zh": [
+          "无副作用",
+          "零副作用"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "F69 cl.5(1); Annex 1 §1",
+      "source": "FDA notice 'หลักเกณฑ์การโฆษณาอาหาร พ.ศ. 2569', Royal Gazette vol.143 special 182 ง, 27 Jul 2569 (signed 13 Jul 2569; in force from the next day, cl.1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "Unchanged.",
+      "note": ""
+    },
+    {
+      "id": "F05",
+      "family": "F",
+      "category": "food,supplement",
+      "scope": "ad",
+      "title_en": "Misuse of the FDA mark or 'safe' guarantee",
+      "title_th": "อ้าง อย. รับรอง / ปลอดภัย",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "อย(?!่)\\.?\\s*(?:รับรอง|การันตี|รับประกัน|ยืนยัน)",
+          "ผ่าน\\s*อย(?!่)\\.?\\s*(?:รับรอง)?",
+          "ปลอดภัย\\s*100",
+          "ปลอดภัยแน่นอน"
+        ],
+        "en": [
+          "\\bfda[- ](?:approved|certified|registered)",
+          "\\bapproved\\s+by\\s+(?:the\\s+)?fda",
+          "\\b100\\s*%\\s*safe",
+          "\\bgovernment[- ]approved"
+        ],
+        "zh": [
+          "药监局认证",
+          "FDA认证",
+          "绝对安全"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "F69 cl.5(1); Annex 1 §1 'อย. รับรอง ปลอดภัย'; Annex 2 item 31 (FDA PERMITTED / APPROVED FOR … only as the permit states)",
+      "source": "FDA notice 'หลักเกณฑ์การโฆษณาอาหาร พ.ศ. 2569', Royal Gazette vol.143 special 182 ง, 27 Jul 2569 (signed 13 Jul 2569; in force from the next day, cl.1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "CHANGED (addition). F69 Annex 2 item 31 now allows 'FDA PERMITTED FOR …' / 'FDA APPROVED FOR …' wording only for the specific item that was actually permitted (e.g. LABEL).",
+      "note": ""
+    },
+    {
+      "id": "F06",
+      "family": "F",
+      "category": "food,supplement",
+      "scope": "ad",
+      "title_en": "Fast or instant results",
+      "title_th": "เห็นผลเร็ว เห็นผลทันที",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "เห็นผล(?:เร็ว|ไว|ทันที|ทันใจ)",
+          "เห็นผลใน\\s*\\d+",
+          "ภายใน\\s*\\d+\\s*(?:วัน|สัปดาห์|อาทิตย์|ชั่วโมง)",
+          "ทันทีที่"
+        ],
+        "en": [
+          "\\binstant(?:ly)?\\s+results?",
+          "\\bresults\\s+in\\s+\\d+",
+          "\\bfast[- ]acting",
+          "\\bworks?\\s+(?:fast|immediately|instantly)",
+          "\\bin\\s+(?:just\\s+)?\\d+\\s+(?:days|weeks|hours)"
+        ],
+        "zh": [
+          "立即见效",
+          "快速见效",
+          "\\d+天见效"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "F69 cl.5(1)-(7); Annex 1 §2.1, §2.2, §2.5 'เห็นผลเร็ว เห็นผลทันที'",
+      "source": "FDA notice 'หลักเกณฑ์การโฆษณาอาหาร พ.ศ. 2569', Royal Gazette vol.143 special 182 ง, 27 Jul 2569 (signed 13 Jul 2569; in force from the next day, cl.1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "CHANGED. F64 listed 'เห็นผลเร็ว' once; F69 lists 'เห็นผลเร็ว เห็นผลทันที' under §2.1, §2.2 and §2.5.",
+      "note": ""
+    },
+    {
+      "id": "F07",
+      "family": "F",
+      "category": "food,supplement",
+      "scope": "ad",
+      "title_en": "Lowers a disease marker (cholesterol, blood pressure, blood sugar, blood fat)",
+      "title_th": "ลดโคเลสเตอรอล ความดัน น้ำตาลในเลือด",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "ลด(?:ระดับ)?\\s*(?:โคเลสเตอรอล|คอเลสเตอรอล|ความดัน|น้ำตาลในเลือด|ไขมันในเส้นเลือด|ไขมันในเลือด|ไตรกลีเซอไรด์|กรดยูริก|ค่าน้ำตาล)",
+          "คุมน้ำตาล",
+          "คุมความดัน",
+          "ปรับสมดุลน้ำตาล"
+        ],
+        "en": [
+          "\\b(?:lower|reduce|control|regulate|balance)s?\\w*\\s+(?:your\\s+)?(?:bad\\s+)?(?:cholesterol|blood\\s+pressure|blood\\s+sugar|blood\\s+glucose|glucose|triglycerides|a1c|uric\\s+acid)",
+          "\\bhealthy\\s+blood\\s+sugar"
+        ],
+        "zh": [
+          "降血糖",
+          "降血压",
+          "降血脂",
+          "降胆固醇"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "F69 cl.5(2); Annex 1 §2.1",
+      "source": "FDA notice 'หลักเกณฑ์การโฆษณาอาหาร พ.ศ. 2569', Royal Gazette vol.143 special 182 ง, 27 Jul 2569 (signed 13 Jul 2569; in force from the next day, cl.1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "Unchanged.",
+      "note": ""
+    },
+    {
+      "id": "F08",
+      "family": "F",
+      "category": "food,supplement",
+      "scope": "ad",
+      "title_en": "Prevents disease or fights infection",
+      "title_th": "ป้องกันโรค ต้านเชื้อโรค",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "ป้องกัน(?:โรค|การเกิด)?\\s*(?:หัวใจ|มะเร็ง|เนื้องอก|เบาหวาน|หลอดเลือด|ภูมิแพ้|หอบหืด|โควิด|ไข้หวัด|ไวรัส|การติดเชื้อ)",
+          "ต้าน(?:ไวรัส|มะเร็ง|เชื้อ|เซลล์มะเร็ง|เนื้องอก)",
+          "ฆ่าเชื้อ",
+          "ยับยั้ง(?:เชื้อ|การเจริญเติบโตของแบคทีเรีย|แบคทีเรีย|ไวรัส|เซลล์มะเร็ง)",
+          "โควิด",
+          "COVID"
+        ],
+        "en": [
+          "\\bprevent\\w*\\s+(?:\\w+\\s+){0,2}(?:cancer|diabetes|heart\\s+disease|covid|coronavirus|infection|flu|stroke|disease)",
+          "\\banti-?(?:viral|cancer|tumou?r|bacterial)",
+          "\\bkills?\\s+(?:the\\s+)?(?:virus|bacteria|germs|cancer)",
+          "\\bcovid",
+          "\\bcoronavirus"
+        ],
+        "zh": [
+          "预防癌",
+          "抗癌",
+          "抗病毒",
+          "预防新冠",
+          "杀菌"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "F69 cl.5(2); Annex 1 §2.1",
+      "source": "FDA notice 'หลักเกณฑ์การโฆษณาอาหาร พ.ศ. 2569', Royal Gazette vol.143 special 182 ง, 27 Jul 2569 (signed 13 Jul 2569; in force from the next day, cl.1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "Unchanged (F69 drops the trailing 'เป็นต้น' only).",
+      "note": ""
+    },
+    {
+      "id": "F09",
+      "family": "F",
+      "category": "food,supplement",
+      "scope": "ad",
+      "title_en": "Treats or relieves a disease or symptom",
+      "title_th": "รักษา บรรเทาโรคหรืออาการของโรค",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "เบาหวาน",
+          "มะเร็ง",
+          "ไมเกรน",
+          "ปวดหัว",
+          "ปวดศีรษะ",
+          "ปวดประจำเดือน",
+          "ตกขาว",
+          "อัลไซเมอร์",
+          "ความจำเสื่อม",
+          "ซึมเศร้า",
+          "นอนไม่หลับ",
+          "ตับอักเสบ",
+          "ไขมันพอกตับ",
+          "ไตเสื่อม",
+          "นิ่ว",
+          "เกาต์",
+          "รูมาตอยด์",
+          "ข้อเสื่อม",
+          "ข้อเข่า",
+          "ปวดเข่า",
+          "ปวดกล้ามเนื้อ",
+          "ต้อ",
+          "จอประสาทตา",
+          "ตาแห้ง",
+          "หูอื้อ",
+          "ริดสีดวง",
+          "กรดไหลย้อน",
+          "ปอดอักเสบ",
+          "ไอเรื้อรัง",
+          "สะเก็ดเงิน",
+          "ความดันโลหิตสูง",
+          "โรค\\S+"
+        ],
+        "en": [
+          "\\bdiabet",
+          "\\bcancer",
+          "\\bmigraine",
+          "\\balzheimer",
+          "\\bdementia",
+          "\\bdepression",
+          "\\binsomnia",
+          "\\bhepatitis",
+          "\\bfatty\\s+liver",
+          "\\bkidney\\s+(?:disease|stones?)",
+          "\\bgout",
+          "\\barthritis",
+          "\\bglaucoma|\\bcataract",
+          "\\bpsoriasis",
+          "\\beczema",
+          "\\bhypertension",
+          "\\bautism",
+          "\\bdisease"
+        ],
+        "zh": [
+          "糖尿病",
+          "癌",
+          "失眠",
+          "抑郁",
+          "痛风",
+          "关节炎",
+          "高血压",
+          "疾病"
+        ]
+      },
+      "requires_claim_verb": true,
+      "requires_context": [],
+      "basis": "F69 cl.5(2); Annex 1 §2.1",
+      "source": "FDA notice 'หลักเกณฑ์การโฆษณาอาหาร พ.ศ. 2569', Royal Gazette vol.143 special 182 ง, 27 Jul 2569 (signed 13 Jul 2569; in force from the next day, cl.1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "Unchanged.",
+      "note": "Claim verb required: (?:รักษา|บำบัด|บรรเทา|ป้องกัน|ต้าน|แก้|หาย|ยับยั้ง|ลดความเสี่ยง) / (?:treat|cure|heal|prevent|fight|combat|reverse|relieve|eliminate|kill|beat|protect against)."
+    },
+    {
+      "id": "F10",
+      "family": "F",
+      "category": "food,supplement",
+      "scope": "ad",
+      "title_en": "Changes body structure or organ function",
+      "title_th": "บำรุงอวัยวะ เพิ่มภูมิคุ้มกัน ดีท็อกซ์ ปรับสมดุล",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "บำรุง(?:ตับ|ไต|สมอง|ประสาท|สายตา|หัวใจ|ปอด|เลือด|กระดูก|อวัยวะ)",
+          "(?:เพิ่ม|เสริม|เสริมสร้าง|กระตุ้น)\\s*(?:ระบบ)?ภูมิ(?:คุ้มกัน|ต้านทาน)",
+          "ดีท็อกซ์",
+          "[Dd]etox",
+          "ล้าง(?:สารพิษ|ลำไส้|พิษ)",
+          "ขับสารพิษ",
+          "ปรับสมดุล",
+          "ฟื้นฟู(?:ร่างกาย|อวัยวะ|ตับ|ไต|เซลล์|สมอง)",
+          "(?:เพิ่ม|กระตุ้น)น้ำนม",
+          "การไหลเวียน(?:ของ)?เลือด",
+          "ขับน้ำคาวปลา",
+          "มดลูกเข้าอู่",
+          "วัยทอง",
+          "ร้อนวูบวาบ",
+          "สายตาสั้น",
+          "หน้าเรียว",
+          "เหนียงหาย",
+          "จมูกเข้ารูป"
+        ],
+        "en": [
+          "\\bboosts?\\s+(?:your\\s+)?(?:the\\s+)?immun",
+          "\\bimmune\\s+(?:support|booster|system)",
+          "\\bdetox",
+          "\\bcleanse",
+          "\\b(?:liver|kidney|brain)\\s+(?:support|booster|health|function)",
+          "\\bimproves?\\s+(?:blood\\s+)?circulation",
+          "\\bbalances?\\s+(?:your\\s+)?hormones",
+          "\\blactation",
+          "\\bmenopaus"
+        ],
+        "zh": [
+          "增强免疫",
+          "提高免疫",
+          "排毒",
+          "护肝",
+          "补脑",
+          "调节内分泌"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "F69 cl.5(3); Annex 1 §2.2 (unless an approved health claim under cl.7(3))",
+      "source": "FDA notice 'หลักเกณฑ์การโฆษณาอาหาร พ.ศ. 2569', Royal Gazette vol.143 special 182 ง, 27 Jul 2569 (signed 13 Jul 2569; in force from the next day, cl.1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "Unchanged list (F69 keeps the face-shaping items added in F64).",
+      "note": "A label-approved health claim (MoPH health-claim notice) is lawful; the signal is 'check the claim is on the approved label'."
+    },
+    {
+      "id": "F11",
+      "family": "F",
+      "category": "food,supplement",
+      "scope": "ad",
+      "title_en": "Sexual enhancement",
+      "title_th": "บำรุงกาม บำรุงเพศ",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "สมรรถภาพ",
+          "ท่านชาย",
+          "ปลุกความเป็นชาย",
+          "ปลุกเซ็กส์",
+          "อึด\\s*ถึก\\s*ทน",
+          "อัพไซส์",
+          "เพิ่มขนาด(?:หน้าอก|อวัยวะเพศ|น้องชาย)",
+          "หลั่งเร็ว",
+          "หลังเร็ว",
+          "กระชับช่องคลอด",
+          "คืนความ(?:สาว|เป็นหนุ่ม)",
+          "ฮอร์โมนเพศ",
+          "อาหารเสริม(?:สำหรับ)?(?:ชาย|ผู้ชาย|หญิง|ผู้หญิง)",
+          "บำรุงกาม",
+          "บำรุงเพศ",
+          "แข็งตัว"
+        ],
+        "en": [
+          "\\bsexual",
+          "\\blibido",
+          "\\berect",
+          "\\bmale\\s+enhancement",
+          "\\btestosterone\\s+boost",
+          "\\baphrodisiac",
+          "\\bbreast\\s+enlarg",
+          "\\bviagra"
+        ],
+        "zh": [
+          "壮阳",
+          "性功能",
+          "增大",
+          "丰胸"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "F69 cl.5(4); Annex 1 §2.3",
+      "source": "FDA notice 'หลักเกณฑ์การโฆษณาอาหาร พ.ศ. 2569', Royal Gazette vol.143 special 182 ง, 27 Jul 2569 (signed 13 Jul 2569; in force from the next day, cl.1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "Unchanged (spelling only).",
+      "note": ""
+    },
+    {
+      "id": "F12",
+      "family": "F",
+      "category": "food,supplement",
+      "scope": "ad",
+      "title_en": "Skin or beauty benefit from a food",
+      "title_th": "บำรุงผิวพรรณ ความสวยงาม",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "ผิวขาว",
+          "ขาวใส",
+          "กระจ่างใส",
+          "ออร่า",
+          "ลด(?:ริ้วรอย|สิว|ฝ้า|กระ|จุดด่างดำ)",
+          "ชะลอ(?:ความ)?(?:แก่|ชรา)",
+          "อ่อนกว่าวัย",
+          "ผมร่วง",
+          "ผมหงอก",
+          "เปล่งปลั่ง",
+          "ผิว(?:นุ่ม|เด้ง)",
+          "กันแดด",
+          "ดับกลิ่นตัว",
+          "ยกกระชับ",
+          "กระชับรูขุมขน",
+          "ฟื้นฟูผิว"
+        ],
+        "en": [
+          "\\bwhiten",
+          "\\bbrighten",
+          "\\banti-?aging",
+          "\\bwrinkle",
+          "\\byouthful",
+          "\\bglowing\\s+skin",
+          "\\bhair\\s+loss",
+          "\\bskin\\s+(?:lightening|whitening)"
+        ],
+        "zh": [
+          "美白",
+          "抗衰老",
+          "去皱",
+          "养颜"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "F69 cl.5(5); Annex 1 §2.4",
+      "source": "FDA notice 'หลักเกณฑ์การโฆษณาอาหาร พ.ศ. 2569', Royal Gazette vol.143 special 182 ง, 27 Jul 2569 (signed 13 Jul 2569; in force from the next day, cl.1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "Unchanged.",
+      "note": ""
+    },
+    {
+      "id": "F13",
+      "family": "F",
+      "category": "food,supplement",
+      "scope": "ad",
+      "title_en": "Weight loss or body shaping",
+      "title_th": "ลดน้ำหนัก กระชับสัดส่วน",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "ลด(?:น้ำหนัก|ความอ้วน|พุง|ต้นแขน|ต้นขา|หน้าท้อง|ไขมันส่วนเกิน|ไขมันสะสม)",
+          "ดักจับไขมัน",
+          "สลายไขมัน",
+          "เผาผลาญไขมัน",
+          "บล็อก|เบิร์น|[Bb]lock|[Bb]urn",
+          "ไม่โยโย่",
+          "พุงหาย",
+          "หุ่น(?:ดี|สวย|เป๊ะ)",
+          "ผอม",
+          "เพรียว",
+          "สลิม|[Ss]lim",
+          "กระชับสัดส่วน",
+          "ลดความอยากอาหาร",
+          "ลดลง?\\s*\\d+\\s*(?:กิโล|โล|kg)",
+          "ระบายท้อง",
+          "ลดยาก",
+          "ดื้อยา"
+        ],
+        "en": [
+          "\\bweight\\s*loss",
+          "\\blose\\s+(?:up\\s+to\\s+)?\\d+\\s*(?:lbs?|pounds|kg|kilos)",
+          "\\bfat[- ]?burn",
+          "\\bburns?\\s+fat",
+          "\\bfat\\s+blocker",
+          "\\bappetite\\s+suppress",
+          "\\bslimming",
+          "\\blose\\s+weight",
+          "\\bglp-?1",
+          "\\bozempic"
+        ],
+        "zh": [
+          "减肥",
+          "瘦身",
+          "燃脂",
+          "减重"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "F69 cl.5(6)-(7); Annex 1 §2.5 (except approved weight-control foods)",
+      "source": "FDA notice 'หลักเกณฑ์การโฆษณาอาหาร พ.ศ. 2569', Royal Gazette vol.143 special 182 ง, 27 Jul 2569 (signed 13 Jul 2569; in force from the next day, cl.1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "Unchanged.",
+      "note": ""
+    },
+    {
+      "id": "F14",
+      "family": "F",
+      "category": "food,supplement",
+      "scope": "ad",
+      "title_en": "Endorsement by a health professional",
+      "title_th": "บุคลากรทางการแพทย์แนะนำหรือรับรอง",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "(?:แพทย์|หมอ|คุณหมอ|เภสัชกร|พยาบาล|นักโภชนาการ|นักกำหนดอาหาร)\\S{0,8}(?:แนะนำ|รับรอง|ยืนยัน|การันตี|เลือกใช้)"
+        ],
+        "en": [
+          "\\b(?:doctor|physician|pharmacist|nutritionist|dietitian|md)s?[- ](?:recommended|approved|formulated|endorsed)",
+          "\\brecommended\\s+by\\s+(?:doctors|physicians|pharmacists)"
+        ],
+        "zh": [
+          "医生推荐",
+          "专家推荐",
+          "医师推荐"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "F69 cl.4(6) (F64 cl.3(6))",
+      "source": "FDA notice 'หลักเกณฑ์การโฆษณาอาหาร พ.ศ. 2569', Royal Gazette vol.143 special 182 ง, 27 Jul 2569 (signed 13 Jul 2569; in force from the next day, cl.1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "Unchanged (clause renumbered 3(6) → 4(6)).",
+      "note": ""
+    },
+    {
+      "id": "F15",
+      "family": "F",
+      "category": "supplement",
+      "scope": "both",
+      "title_en": "Missing mandatory supplement warnings",
+      "title_th": "ไม่มีคำเตือนบังคับของผลิตภัณฑ์เสริมอาหาร",
+      "detect": "absence",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "เด็กและสตรีมีครรภ์ไม่ควรรับประทาน",
+          "ไม่มีผลในการป้องกัน\\s*หรือรักษาโรค",
+          "ควรกินอาหารหลากหลาย\\s*ครบ\\s*5\\s*หมู่",
+          "อ่านคำเตือนในฉลากก่อนบริโภค"
+        ],
+        "en": [],
+        "zh": []
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Label: N293 Annex item 1. Ads: F69 cl.9(2.2) + Annex 4 item 1",
+      "source": "MoPH Notification No. 293 (B.E. 2548) on dietary supplements, FDA compilation incl. No. 405 and 411 (B.E. 2562)",
+      "url": "https://exfood.fda.moph.go.th/law/data/complilation/Compi_293.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "CHANGED for adverts. F64 cl.10(10.1) required 4 lines incl. 'ควรกินอาหารหลากหลายครบ 5 หมู่…'. F69 Annex 4 item 1 requires 3: 'เด็กและสตรีมีครรภ์ไม่ควรรับประทาน', 'ไม่มีผลในการป้องกันหรือรักษาโรค', 'อ่านคำเตือนในฉลากก่อนบริโภค'. The label rule (N293, 4 lines incl. 5 food groups) is unchanged.",
+      "note": "Absence check on a full label or full advert only; not labelled in the text set. Patterns here are the REQUIRED lines."
+    },
+    {
+      "id": "F16",
+      "family": "F",
+      "category": "food,supplement",
+      "scope": "label",
+      "title_en": "13-digit food number missing, malformed or registered to another product",
+      "title_th": "เลขสารบบอาหารไม่ถูกต้องหรือไม่ตรงผลิตภัณฑ์",
+      "detect": "lookup",
+      "severity": "risk",
+      "patterns": {
+        "th": [],
+        "en": [],
+        "zh": []
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Food Act B.E. 2522 (food serial number on label; exact section per design: s.27(4))",
+      "source": "Food Act B.E. 2522 (s.40 and s.41 as quoted in the preamble of F69; other sections not re-read in P1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "accessed": "2026-11-09",
+      "status": "UNVERIFIED",
+      "changed_from_2564": "n/a",
+      "note": "Section number carried over from the design; Food Act text was not re-read in P1."
+    },
+    {
+      "id": "F17",
+      "family": "F",
+      "category": "food,supplement",
+      "scope": "ad",
+      "title_en": "Advert permit (ฆอ.) missing or not found",
+      "title_th": "ไม่มีเลขที่ใบอนุญาตโฆษณา ฆอ. หรือไม่พบในระบบ",
+      "detect": "lookup",
+      "severity": "risk",
+      "patterns": {
+        "th": [],
+        "en": [],
+        "zh": []
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Food Act s.41; F69 cl.8(3)(ค) show the permit number, (ง) permit valid ≤ 5 years",
+      "source": "FDA notice 'หลักเกณฑ์การโฆษณาอาหาร พ.ศ. 2569', Royal Gazette vol.143 special 182 ง, 27 Jul 2569 (signed 13 Jul 2569; in force from the next day, cl.1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "Unchanged in substance; F69 cl.8(3)(ค)-(ง) repeat the duty to show the number and the 5-year limit.",
+      "note": "Format seen on Thai pages: 'ฆอ. 3920/2564' [SECONDARY: observed]."
+    },
+    {
+      "id": "F18",
+      "family": "F",
+      "category": "food,supplement",
+      "scope": "ad",
+      "title_en": "Kratom supplement or cannabis / hemp / CBD food with a drug-like effect claim",
+      "title_th": "ผลิตภัณฑ์เสริมอาหารที่มีกระท่อม หรืออาหารที่มีกัญชา กัญชง CBD อ้างผลต่อร่างกายหรือจิตใจ",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "ทำงานทน",
+          "คลายเครียด",
+          "ต้านซึมเศร้า",
+          "แก้ปวด",
+          "หัวเราะ",
+          "ช่วยให้หลับ",
+          "หลับลึก",
+          "หลับนาน",
+          "เคลิบเคลิ้ม",
+          "ผ่อนคลาย"
+        ],
+        "en": [
+          "\\brelax",
+          "\\bstress\\s+relief",
+          "\\bsleep",
+          "\\beuphori",
+          "\\bpain\\s+relief",
+          "\\banti-?depress"
+        ],
+        "zh": [
+          "助眠",
+          "放松",
+          "解压"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [
+        "กระท่อม",
+        "ไมทราไจนีน",
+        "กัญชา",
+        "กัญชง",
+        "CBD",
+        "THC",
+        "kratom",
+        "cannabis",
+        "hemp"
+      ],
+      "basis": "F69 cl.10(12.2) (dietary supplements containing kratom), cl.10(13.2) (foods containing hemp seed, cannabis or hemp parts, or CBD)",
+      "source": "FDA notice 'หลักเกณฑ์การโฆษณาอาหาร พ.ศ. 2569', Royal Gazette vol.143 special 182 ง, 27 Jul 2569 (signed 13 Jul 2569; in force from the next day, cl.1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "NEW in F69 (no kratom or cannabis rules in F64): cl.10(12) covers dietary supplements containing kratom; cl.10(13) covers foods containing hemp seed / hemp-seed oil / hemp-seed protein, cannabis or hemp parts, or CBD extract. The design listed it as [SECONDARY]; now read in the Gazette text.",
+      "note": "Applies only when the text also names one of requires_context (kratom / cannabis / hemp / CBD / THC)."
+    },
+    {
+      "id": "F19",
+      "family": "F",
+      "category": "food,supplement",
+      "scope": "ad",
+      "title_en": "Cites research or statistics not evaluated by Thai FDA",
+      "title_th": "อ้างงานวิจัยหรือสถิติที่ยังไม่ผ่านการประเมิน",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "งานวิจัย",
+          "ผลวิจัย",
+          "ผลการวิจัย",
+          "วิจัยยืนยัน",
+          "ทดสอบทางคลินิก",
+          "ผ่านการทดสอบ",
+          "พิสูจน์แล้ว",
+          "ทางวิทยาศาสตร์",
+          "ผลการศึกษา",
+          "\\d+\\s*%\\s*ของผู้"
+        ],
+        "en": [
+          "\\bclinically\\s+(?:proven|tested|studied|shown)",
+          "\\bstudies\\s+(?:show|prove|have\\s+shown)",
+          "\\bscientifically\\s+proven",
+          "\\bresearch\\s+(?:shows|proves|has\\s+shown)",
+          "\\bdemonstrated\\s+to",
+          "\\b\\d+\\s*%\\s+of\\s+(?:users|people|participants)"
+        ],
+        "zh": [
+          "临床证明",
+          "研究表明",
+          "科学证明"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "F69 cl.5(8) (F64 cl.4(8))",
+      "source": "FDA notice 'หลักเกณฑ์การโฆษณาอาหาร พ.ศ. 2569', Royal Gazette vol.143 special 182 ง, 27 Jul 2569 (signed 13 Jul 2569; in force from the next day, cl.1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "Unchanged clause; new rule id in P1.",
+      "note": "New rule id; the clause existed in F64."
+    },
+    {
+      "id": "F20",
+      "family": "F",
+      "category": "food,supplement",
+      "scope": "ad",
+      "title_en": "Compares with or disparages other products",
+      "title_th": "เปรียบเทียบหรือทับถมผลิตภัณฑ์ของผู้อื่น",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "ดีกว่า(?:ยี่ห้อ|แบรนด์|ทั่วไป|ที่อื่น)",
+          "เหนือกว่า",
+          "ยี่ห้ออื่น",
+          "แบรนด์อื่น",
+          "ของปลอม",
+          "ไม่เหมือนที่อื่น"
+        ],
+        "en": [
+          "\\bbetter\\s+than\\s+(?:other|any|leading)",
+          "\\bunlike\\s+other\\s+(?:brands|products)",
+          "\\boutperforms"
+        ],
+        "zh": [
+          "比其他",
+          "优于"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "F69 cl.4(7) (F64 cl.3(7))",
+      "source": "FDA notice 'หลักเกณฑ์การโฆษณาอาหาร พ.ศ. 2569', Royal Gazette vol.143 special 182 ง, 27 Jul 2569 (signed 13 Jul 2569; in force from the next day, cl.1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "Unchanged clause; new rule id in P1.",
+      "note": ""
+    },
+    {
+      "id": "F21",
+      "family": "F",
+      "category": "food,supplement",
+      "scope": "ad",
+      "title_en": "Environmental / BCG claim without certification",
+      "title_th": "อ้างรักษ์โลก ลดคาร์บอน ไม่มีหลักฐาน",
+      "detect": "text",
+      "severity": "low",
+      "patterns": {
+        "th": [
+          "รักษ์โลก",
+          "รักสิ่งแวดล้อม",
+          "ลด(?:การปล่อย)?(?:ก๊าซ)?คาร์บอน",
+          "คาร์บอนฟุตพริ้นท์",
+          "ลดการใช้พลาสติก",
+          "รีไซเคิล"
+        ],
+        "en": [
+          "\\beco[- ]friendly",
+          "\\bcarbon[- ]neutral",
+          "\\bplanet[- ]friendly",
+          "\\bnet[- ]zero",
+          "\\brecyclable"
+        ],
+        "zh": [
+          "环保",
+          "碳中和"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "F69 Annex 2 item 30 (allowed with evidence; must not imply a food benefit)",
+      "source": "FDA notice 'หลักเกณฑ์การโฆษณาอาหาร พ.ศ. 2569', Royal Gazette vol.143 special 182 ง, 27 Jul 2569 (signed 13 Jul 2569; in force from the next day, cl.1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "NEW in F69 Annex 2 item 30.",
+      "note": "Only a prompt to check the certificate; not an over-claim by itself."
+    },
+    {
+      "id": "F22",
+      "family": "F",
+      "category": "food",
+      "scope": "ad",
+      "title_en": "Advert for infant formula or infant food",
+      "title_th": "โฆษณาอาหารทารก",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "อาหารสำหรับทารก",
+          "นม(?:ผง)?สำหรับทารก",
+          "สูตรสำหรับทารก",
+          "ทารกแรกเกิด",
+          "0\\s*-\\s*12\\s*เดือน"
+        ],
+        "en": [
+          "\\binfant\\s+formula",
+          "\\bfor\\s+infants",
+          "\\b0\\s*-\\s*12\\s+months"
+        ],
+        "zh": [
+          "婴儿配方"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "F69 cl.10(1.1) (no ads for infant food and follow-on formula 6-12 months), cl.10(2.1)",
+      "source": "FDA notice 'หลักเกณฑ์การโฆษณาอาหาร พ.ศ. 2569', Royal Gazette vol.143 special 182 ง, 27 Jul 2569 (signed 13 Jul 2569; in force from the next day, cl.1)",
+      "url": "https://ratchakitcha.soc.go.th/documents/123102.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "Unchanged in substance (F64 cl.9(1.1)).",
+      "note": "Context needed (is the text an advert?)."
+    },
+    {
+      "id": "H01",
+      "family": "H",
+      "category": "herbal",
+      "scope": "ad",
+      "title_en": "Miraculous, complete-cure or belief-based claim",
+      "title_th": "โอ้อวดว่ารักษาได้อย่างศักดิ์สิทธิ์ ตามความเชื่อ หรือหายขาด",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "ศักดิ์สิทธิ์",
+          "หายขาด",
+          "หายสนิท",
+          "ตามความเชื่อ",
+          "ปลุกเสก",
+          "เสริมดวง",
+          "รักษาได้ทุกโรค",
+          "สารพัดโรค",
+          "ครอบจักรวาล"
+        ],
+        "en": [
+          "\\bmiracl(?:e|ous)",
+          "\\bcures?\\s+(?:completely|permanently|all)",
+          "\\bcure[- ]all"
+        ],
+        "zh": [
+          "神效",
+          "根治",
+          "包治百病"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Herbal Products Act s.74(1)",
+      "source": "Herbal Products Act B.E. 2562, Royal Gazette vol.136 part 56 ก, 30 Apr 2562",
+      "url": "https://ratchakitcha.soc.go.th/documents/17087272.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": ""
+    },
+    {
+      "id": "H02",
+      "family": "H",
+      "category": "herbal",
+      "scope": "ad",
+      "title_en": "False, exaggerated or misleading efficacy",
+      "title_th": "แสดงสรรพคุณเท็จ เกินจริง หรือทำให้เข้าใจผิด",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "100\\s*%",
+          "ดีที่สุด",
+          "ไม่มีผลข้างเคียง",
+          "ไร้ผลข้างเคียง",
+          "เห็นผล(?:เร็ว|ทันที)",
+          "ปลอดภัย\\s*100"
+        ],
+        "en": [
+          "\\bno\\s+side[- ]effects?",
+          "\\b100\\s*%\\s*(?:effective|safe|natural)",
+          "\\bguaranteed"
+        ],
+        "zh": [
+          "无副作用",
+          "100%"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Herbal Products Act s.74(2)",
+      "source": "Herbal Products Act B.E. 2562, Royal Gazette vol.136 part 56 ก, 30 Apr 2562",
+      "url": "https://ratchakitcha.soc.go.th/documents/17087272.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": ""
+    },
+    {
+      "id": "H03",
+      "family": "H",
+      "category": "herbal",
+      "scope": "ad",
+      "title_en": "Implies an ingredient the product lacks",
+      "title_th": "ทำให้เข้าใจว่ามีส่วนประกอบที่ไม่มีจริง",
+      "detect": "lookup",
+      "severity": "risk",
+      "patterns": {
+        "th": [],
+        "en": [],
+        "zh": []
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Herbal Products Act s.74(3)",
+      "source": "Herbal Products Act B.E. 2562, Royal Gazette vol.136 part 56 ก, 30 Apr 2562",
+      "url": "https://ratchakitcha.soc.go.th/documents/17087272.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": ""
+    },
+    {
+      "id": "H04",
+      "family": "H",
+      "category": "herbal",
+      "scope": "ad",
+      "title_en": "Endorsement by a person, group or institution",
+      "title_th": "รับรองหรือยกย่องสรรพคุณโดยบุคคล คณะบุคคล หรือสถาบัน",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "(?:แพทย์|หมอ|เภสัชกร|ดารา|ผู้เชี่ยวชาญ|มหาวิทยาลัย|โรงพยาบาล)\\S{0,8}(?:แนะนำ|รับรอง|ยืนยัน|การันตี)",
+          "รีวิวจากผู้ใช้จริง",
+          "รับรองโดย"
+        ],
+        "en": [
+          "\\b(?:doctor|physician|expert|university|hospital)[- ]?(?:recommended|approved|endorsed)",
+          "\\bendorsed\\s+by",
+          "\\btestimonial"
+        ],
+        "zh": [
+          "专家推荐",
+          "医生推荐"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Herbal Products Act s.74(4) (not for adverts aimed only at licensed professionals)",
+      "source": "Herbal Products Act B.E. 2562, Royal Gazette vol.136 part 56 ก, 30 Apr 2562",
+      "url": "https://ratchakitcha.soc.go.th/documents/17087272.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": ""
+    },
+    {
+      "id": "H05",
+      "family": "H",
+      "category": "herbal",
+      "scope": "ad",
+      "title_en": "Serious-disease claim for a herbal product",
+      "title_th": "อ้างรักษาโรคร้ายแรง",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "เบาหวาน",
+          "มะเร็ง",
+          "เนื้องอก",
+          "อัมพาต",
+          "อัมพฤกษ์",
+          "โรค(?:หัวใจ|ไต|ตับ|ปอด|สมอง)",
+          "ไตวาย",
+          "ความดัน(?:โลหิต)?สูง",
+          "เอดส์",
+          "HIV",
+          "โควิด",
+          "สะเก็ดเงิน",
+          "เกาต์",
+          "ไวรัสตับอักเสบ"
+        ],
+        "en": [
+          "\\bdiabet",
+          "\\bcancer",
+          "\\btumou?r",
+          "\\bstroke",
+          "\\b(?:heart|kidney|liver|lung)\\s+disease",
+          "\\bhypertension",
+          "\\bhiv\\b|\\baids\\b",
+          "\\bcovid",
+          "\\bpsoriasis",
+          "\\bhepatitis"
+        ],
+        "zh": [
+          "糖尿病",
+          "癌",
+          "高血压",
+          "肝病",
+          "新冠"
+        ]
+      },
+      "requires_claim_verb": true,
+      "requires_context": [],
+      "basis": "Herbal Products Act s.74(2) (claim beyond the registered indication); ministerial advert criteria under s.74(5) not located [UNVERIFIED]",
+      "source": "Herbal Products Act B.E. 2562, Royal Gazette vol.136 part 56 ก, 30 Apr 2562",
+      "url": "https://ratchakitcha.soc.go.th/documents/17087272.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": "Heuristic using the s.77 drug list as a guide; registered traditional-medicine indications (e.g. 'บรรเทาอาการท้องอืด') are not flagged. Claim verb required."
+    },
+    {
+      "id": "H06",
+      "family": "H",
+      "category": "herbal",
+      "scope": "ad",
+      "title_en": "Herbal advert without a permit number",
+      "title_th": "โฆษณาผลิตภัณฑ์สมุนไพรโดยไม่มีใบอนุญาต",
+      "detect": "absence",
+      "severity": "risk",
+      "patterns": {
+        "th": [],
+        "en": [],
+        "zh": []
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Herbal Products Act s.70 + FDA herbal advert-permit notice B.E. 2564 (forms ฆสมพ.)",
+      "source": "FDA notice on herbal advert permits B.E. 2564 (forms ฆสมพ.1-4)",
+      "url": "https://ratchakitcha.soc.go.th/documents/17168807.pdf",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": "Printed permit-number format not stated in the notice; not verified."
+    },
+    {
+      "id": "C01",
+      "family": "C",
+      "category": "cosmetic",
+      "scope": "both",
+      "title_en": "Treats disease or a non-cosmetic purpose",
+      "title_th": "แสดงสรรพคุณรักษาโรคหรือไม่ใช่จุดมุ่งหมายเครื่องสำอาง",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "รักษา(?:สิว|ฝ้า|โรค|แผล|อาการ)",
+          "บำบัด",
+          "ฆ่าเชื้อ",
+          "ยับยั้ง(?:เชื้อ|แบคทีเรีย)",
+          "แก้(?:อักเสบ|ผดผื่น|คัน|ปวด)",
+          "ลดการอักเสบ",
+          "ผดผื่นคัน",
+          "สะเก็ดเงิน",
+          "กลาก",
+          "เกลื้อน",
+          "เชื้อรา",
+          "เหงือกอักเสบ",
+          "ปวด(?:ข้อ|เข่า|หลัง|เมื่อย)",
+          "ต้อ(?:หิน|กระจก|ลม)",
+          "ไล่ยุง",
+          "เปิดดวง",
+          "เสริมดวง",
+          "คุณไสย"
+        ],
+        "en": [
+          "\\btreats?\\b",
+          "\\bcures?\\b",
+          "\\bheals?\\b",
+          "\\bantibacterial",
+          "\\bantifungal",
+          "\\banti-?inflammatory",
+          "\\beczema",
+          "\\bpsoriasis",
+          "\\bkills?\\s+(?:germs|bacteria|fungus)",
+          "\\brosacea",
+          "\\bdermatitis",
+          "\\bhair\\s+(?:re)?growth"
+        ],
+        "zh": [
+          "治疗",
+          "杀菌",
+          "消炎",
+          "抗菌"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Cosmetic Act s.41 para 2 (3); s.22 para 2 (1) for labels; examples: FDA cosmetic advert manual 2567 pp.19-20",
+      "source": "Cosmetic Act B.E. 2558, Royal Gazette vol.132 part 86 ก, 8 Sep 2558",
+      "url": "https://laws.fda.moph.go.th/laws/cosmetic-products-act-be-2558/",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": "US 'Drug Facts' OTC products (sunscreen SPF, acne, dandruff) are drugs, not cosmetics, in the US; in Thailand many are controlled cosmetics. The pharmacist decides per product."
+    },
+    {
+      "id": "C02",
+      "family": "C",
+      "category": "cosmetic",
+      "scope": "both",
+      "title_en": "Aphrodisiac claim",
+      "title_th": "ทำให้เข้าใจว่ามีสรรพคุณบำรุงกาม",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "สมรรถภาพ",
+          "บำรุงกาม",
+          "ฟีโรโมน",
+          "มัดใจ",
+          "เพิ่มขนาด(?:น้องชาย|อวัยวะเพศ)",
+          "กระชับ(?:ภายใน|ช่องคลอด)",
+          "ช่องคลอดฟิต",
+          "คืนความสาว",
+          "สนุก(?:สนาน)?บนเตียง",
+          "แข็งตัว"
+        ],
+        "en": [
+          "\\blibido",
+          "\\bsexual",
+          "\\bpheromone",
+          "\\baphrodisiac",
+          "\\benhancement"
+        ],
+        "zh": [
+          "催情",
+          "壮阳"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Cosmetic Act s.41 para 2 (4); manual 2567 p.21",
+      "source": "Cosmetic Act B.E. 2558, Royal Gazette vol.132 part 86 ก, 8 Sep 2558",
+      "url": "https://laws.fda.moph.go.th/laws/cosmetic-products-act-be-2558/",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": ""
+    },
+    {
+      "id": "C03",
+      "family": "C",
+      "category": "cosmetic",
+      "scope": "both",
+      "title_en": "False or exaggerated claim",
+      "title_th": "ข้อความเป็นเท็จหรือเกินความจริง",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "ที่สุด",
+          "ไร้ผลข้างเคียง",
+          "ไม่มีผลข้างเคียง",
+          "ไม่ระคายเคือง",
+          "ไร้สารพิษ",
+          "ปลอดภัย\\s*100",
+          "ขาวถาวร",
+          "ถาวร",
+          "100\\s*%",
+          "ได้ผลทุกคน",
+          "จบทุกปัญหา",
+          "เท่ากับฉีด",
+          "ไวกว่าฉีด",
+          "ไม่ง้อ(?:โบท็อก|ศัลยกรรม)",
+          "เสมือน(?:ยิง)?เลเซอร์",
+          "ผ่านมาตรฐาน(?:จาก)?\\s*(?:อย(?!่)|องค์การอาหาร)",
+          "อย(?!่)\\.?\\s*รับรอง",
+          "มหัศจรรย์"
+        ],
+        "en": [
+          "\\bpermanent",
+          "\\b100\\s*%",
+          "\\bguarantee",
+          "\\bworks\\s+for\\s+everyone",
+          "\\bbetter\\s+than\\s+botox",
+          "\\blike\\s+(?:a\\s+)?(?:laser|botox|filler)",
+          "\\bfda[- ](?:approved|certified)",
+          "\\bmiracl",
+          "\\bno\\s+side[- ]effects?"
+        ],
+        "zh": [
+          "永久",
+          "100%",
+          "最好",
+          "无副作用"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Cosmetic Act s.41 para 2 (1); manual 2567 pp.13-14 (superlatives, 'no side effects', 'FDA-certified', 'equal to injection / botox / laser')",
+      "source": "Cosmetic Act B.E. 2558, Royal Gazette vol.132 part 86 ก, 8 Sep 2558",
+      "url": "https://laws.fda.moph.go.th/laws/cosmetic-products-act-be-2558/",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": "Unlike food (F02 after 2569), the 2567 cosmetic manual still treats 'ที่สุด' as unlawful. Text a reader knows cannot be true is exempt (s.41 last para)."
+    },
+    {
+      "id": "C04",
+      "family": "C",
+      "category": "cosmetic",
+      "scope": "both",
+      "title_en": "Research, statistics or endorsement claim",
+      "title_th": "อ้างงานวิจัย สถิติ หรือการรับรองที่อาจไม่จริง",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "ผลวิจัย",
+          "งานวิจัย",
+          "ทดสอบทางคลินิก",
+          "ผ่านการทดสอบ",
+          "พิสูจน์แล้ว",
+          "แพทย์ผิวหนัง(?:แนะนำ|รับรอง)",
+          "\\d+\\s*%\\s*(?:ของผู้|เห็นผล|พึงพอใจ)",
+          "กลุ่มตัวอย่าง"
+        ],
+        "en": [
+          "\\bclinically\\s+(?:proven|tested|shown)",
+          "\\bdermatologist[- ](?:recommended|tested|approved)",
+          "\\b\\d+\\s*%\\s+(?:of\\s+)?(?:users|women|people|saw|reported)",
+          "\\bstudies\\s+show",
+          "\\bscientifically\\s+proven"
+        ],
+        "zh": [
+          "临床证明",
+          "研究表明"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Cosmetic Act s.41 para 2 (2), s.45 (proof of research, statistics, endorsements)",
+      "source": "Cosmetic Act B.E. 2558, Royal Gazette vol.132 part 86 ก, 8 Sep 2558",
+      "url": "https://laws.fda.moph.go.th/laws/cosmetic-products-act-be-2558/",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": "Lawful if the maker can prove it (s.45); the signal asks for the evidence."
+    },
+    {
+      "id": "C05",
+      "family": "C",
+      "category": "cosmetic",
+      "scope": "label",
+      "title_en": "Notification number not found, revoked, or registered to another maker",
+      "title_th": "ไม่พบเลขที่ใบรับจดแจ้ง ถูกเพิกถอน หรือไม่ตรงผู้ผลิต",
+      "detect": "lookup",
+      "severity": "risk",
+      "patterns": {
+        "th": [],
+        "en": [],
+        "zh": []
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Cosmetic Act s.27(2),(5), s.29(4), s.32(1)",
+      "source": "Cosmetic Act B.E. 2558, Royal Gazette vol.132 part 86 ก, 8 Sep 2558",
+      "url": "https://laws.fda.moph.go.th/laws/cosmetic-products-act-be-2558/",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": ""
+    },
+    {
+      "id": "C06",
+      "family": "C",
+      "category": "cosmetic",
+      "scope": "label",
+      "title_en": "Label lacks Thai text, maker or importer, batch, MFG / EXP or ingredient list",
+      "title_th": "ฉลากไม่มีภาษาไทย ผู้ผลิต ครั้งที่ผลิต วันผลิต/หมดอายุ หรือส่วนผสม",
+      "detect": "absence",
+      "severity": "risk",
+      "patterns": {
+        "th": [],
+        "en": [],
+        "zh": []
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Cosmetic Act s.22 para 2 (2)-(3)",
+      "source": "Cosmetic Act B.E. 2558, Royal Gazette vol.132 part 86 ก, 8 Sep 2558",
+      "url": "https://laws.fda.moph.go.th/laws/cosmetic-products-act-be-2558/",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": ""
+    },
+    {
+      "id": "C07",
+      "family": "C",
+      "category": "cosmetic",
+      "scope": "ad",
+      "title_en": "Use inside the body, injection or invasive device",
+      "title_th": "ใช้ภายในร่างกาย ฉีด หรือใช้กับอุปกรณ์ที่รุกล้ำร่างกาย",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "ฉีด(?!พ่น)",
+          "เมโส",
+          "[Mm]eso",
+          "ไมโครนีดเดิล",
+          "[Dd]erma\\s*[Pp]en",
+          "ใช้ภายในช่องคลอด",
+          "สอดช่องคลอด",
+          "กินได้"
+        ],
+        "en": [
+          "\\binject",
+          "\\bmesotherapy",
+          "\\bmicro-?needl",
+          "\\bderma\\s*pen",
+          "\\bintravaginal"
+        ],
+        "zh": [
+          "注射",
+          "微针"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Cosmetic Act s.41 para 2 (7) + ministerial regulation (draft text as reported)",
+      "source": "Ministerial regulation under Cosmetic Act s.41 para 2 (7) (Cabinet approved 3 Sep / 19 Nov 2567); Gazette text not located",
+      "url": "https://www.thansettakij.com/health/605737",
+      "accessed": "2026-11-09",
+      "status": "SECONDARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": "News report of the regulation; Royal Gazette text not located, enactment [UNVERIFIED]. Items reported: use inside the body (except tampons, teeth and oral mucosa) and injection or invasive devices."
+    },
+    {
+      "id": "C08",
+      "family": "C",
+      "category": "cosmetic",
+      "scope": "both",
+      "title_en": "Claims a health, body-structure or body-function effect",
+      "title_th": "สื่อว่ามีผลต่อสุขภาพ โครงสร้าง หรือการทำงานของร่างกาย",
+      "detect": "text",
+      "severity": "risk",
+      "patterns": {
+        "th": [
+          "ล้างสารพิษ",
+          "ดีท็อกซ์",
+          "ขับสารพิษ",
+          "การไหลเวียน(?:ของ)?(?:เลือด|โลหิต)",
+          "เสริม(?:หน้า)?อก",
+          "อกฟู",
+          "อกอึ๋ม|อกอื้ม",
+          "ลดความอ้วน",
+          "สลายไขมัน",
+          "กระชับสัดส่วน",
+          "ปรับรูปหน้า",
+          "หน้าเรียว",
+          "ทำให้สูง",
+          "ลดการสร้างเม็ดสี",
+          "ยับยั้งเอนไซม์",
+          "[Tt]yrosinase",
+          "ปลูกผม",
+          "ปลูกหนวด",
+          "เร่งการงอก",
+          "ผมขึ้นใหม่",
+          "สร้างคอลลาเจน",
+          "คอลลาเจนขึ้นใหม่",
+          "ฟื้นฟูเซลล์",
+          "ซ่อมแซมเซลล์",
+          "ลดเซลลูไลท์"
+        ],
+        "en": [
+          "\\bdetox",
+          "\\bcirculation",
+          "\\bbreast\\s+(?:enlarg|enhanc|firm)",
+          "\\bfat[- ]?burn",
+          "\\bslimming",
+          "\\bboosts?\\s+collagen",
+          "\\bcollagen\\s+production",
+          "\\bcell\\s+(?:renewal|repair|regeneration)",
+          "\\bhair\\s+regrowth",
+          "\\bgrow(?:s)?\\s+hair",
+          "\\bcellulite",
+          "\\bmelanin\\s+production"
+        ],
+        "zh": [
+          "丰胸",
+          "瘦身",
+          "生发",
+          "促进胶原"
+        ]
+      },
+      "requires_claim_verb": false,
+      "requires_context": [],
+      "basis": "Cosmetic Act s.41 para 2 (2) as applied in FDA manual 2567 pp.15-18 (health, body-structure and body-function effects)",
+      "source": "Thai FDA 'คู่มือการโฆษณาเครื่องสำอาง ฉบับปรับปรุง พ.ศ. 2567' (official guidance, examples of unlawful wording per s.41)",
+      "url": "https://www.fda.moph.go.th/news/09102567",
+      "accessed": "2026-11-09",
+      "status": "PRIMARY",
+      "changed_from_2564": "n/a (not a food-advert rule)",
+      "note": "New rule id (not in the design table). The FDA manual is official guidance; whether each example is unlawful is for counsel."
+    }
+  ]
+}
