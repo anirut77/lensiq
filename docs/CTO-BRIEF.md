@@ -1,7 +1,7 @@
 # LENSIQ — CTO brief
 
 As of 2026-11-09 (round 16 complete). Round 15 shipped in two commits: Gate `70508bc` (CI green on Linux, live) and crowd/docs `41dc0b7`. Round 16 shipped as: customer switch `d039058`; Gate plate check + field tools `d049dfd`; claims, crowd test, org design, pilot kits `34e14b3`; Wilson rule `77b555a`; multi-line CSP `7c47eba`; then the category packaging and the pricing draft after the owner approved them on 2026-11-09. Accuracy sources are labelled synthetic, public dataset or field.
-**Round 17 = Product Check + AI Gateway, in progress: P0 done** (design approved 2026-11-09; §5 "Round 17", legal list §8).
+**Round 17 = Product Check + AI Gateway, in progress: P0, P1, P3 done** (design approved 2026-11-09; §5 "Round 17", legal list §8).
 Org accounts P1–P3 follow after Product Check is complete.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
@@ -223,7 +223,14 @@ No module is production-ready. None has completed a field pilot, and the backend
   service used for testing now; permission letter drafted.
 - P0 done (docs only): decisions recorded, `docs/legal/FDA-PERMISSION-REQUEST-TH.md` and
   `docs/legal/WHO-PERMISSION-REQUEST.md` drafted, counsel notes in `docs/PDPA-NOTES-FOR-COUNSEL.md` F1, legal-review
-  running list in §8 below. Next: P1 (test sets first).
+  running list in §8 below.
+- P1 done (`51788d7`): rule list updated to the 2569 notice (`docs/product-check/RULES.md`, 49 rules); 534 label texts
+  (two AI labellers, kappa 0.915, 59 disagreements pending pharmacist); public photo set 281 images (Open Food Facts,
+  local only; 66 images with any part of a person removed by hand). Source: public dataset.
+- P3 done: `lensiq-claims.js` rule engine, tuned on dev only; held-out (264 texts, public dataset, AI labels):
+  precision 91.9 %, recall **65.5 % (target 80 %, not met)**, 3.3 false flags per 100 compliant texts (target ≤ 5, met).
+  Independent reviewer reproduced every number. Recall options for the owner: the opt-in LLM classifier (§5.2, P7)
+  and/or a larger labelled set with a new unseen split; pharmacist adjudication still pending.
 
 ## 6. Delivery facts
 

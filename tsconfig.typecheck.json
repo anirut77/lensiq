@@ -216,6 +216,8 @@
     "i18n/zh-planner.js",
     "lensiq-luckycolor.js",
     "i18n/en-luckycolor.js",
-    "i18n/zh-luckycolor.js"
+    "i18n/zh-luckycolor.js",
+    "lensiq-claims-rules.js",
+    "lensiq-claims.js"
   ]
 }
