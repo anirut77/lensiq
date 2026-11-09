@@ -11,6 +11,7 @@ image. Every screen tells the user to confirm with a pharmacist and shows 1669 (
 | `vendor/pillbox/` | slim NLM Pillbox index (public domain) + `LICENSE.txt` + `README.md`; rebuilt by `tools/build-pillbox.mjs` |
 | `backend/src/med.js` | Worker text proxy `/api/med/*` (Thai FDA SOAP; openFDA / RxNav fallback). Not deployed. Tests: `tests/unit/backend-med.test.js` |
 | `tests/e2e/medicine.e2e.mjs` | browser test (offline default, opt-in lookups via `?fakenet`, candidates, history, OCR, i18n, phones) |
+| `lensiq-pc.js`, `lensiq-pc-run.js`, `lensiq-pc-ui.js` | Product check tab (round 17 P2, section 3 below) |
 | `docs/pdpa-notes/S1-D-medicine.md` | PDPA note for counsel |
 
 ## Modes
@@ -49,6 +50,38 @@ A strict pass uses every chosen feature; when it yields fewer than 3, imprint-on
 > "These files will not be updated and should not be used for pill identification."
 
 Pillbox is US-only and frozen at 2020; most Thai products are not in it — the page says so.
+
+### 3. Product check (round 17, phase P2: on-device recognition)
+
+A fourth tab, "ตรวจสินค้า (ทุกประเทศ)", for medicines, supplements, cosmetics and food from any country (design:
+`docs/PRODUCT-CHECK-DESIGN.md` §2, §3, §8; numbers: `docs/product-check/P2-RESULTS.md`). The other modes are unchanged.
+
+| File | Role |
+|---|---|
+| `lensiq-pc.js` (`LQPC`) | pure logic, unit-tested (`tests/unit/pc-ondevice.test.js`): quality hints (Laplacian variance + Tenengrad blur, HSV glare blob, exposure clipping, text height), DB box post-processing (axis-aligned + rotated boxes for tilted lines), reading order, product crop, CTC decode, GTIN check digits + GS1 issuer prefix, GS1 element strings (AI 01 / 17 with DD = 00 -> last day / 10 / 21, FNC1, `(01)…` text), registration-number SHAPES per country, "how to verify" links, the face-gate decision, measurement helpers |
+| `lensiq-pc-run.js` (`LQPCRun`) | browser runtime: PP-OCRv5 mobile det + per-script rec on ONNX Runtime Web (WASM, 1 thread), barcodes (native `BarcodeDetector`, then the self-hosted zxing-wasm ponyfill), BlazeFace face gate (MediaPipe `FaceDetector`) |
+| `lensiq-pc-ui.js` | the tab: camera snapshot or photo -> automatic crop around the text (the user can redraw it) -> quality hints -> OCR (editable text) + barcodes -> number shapes with country, GS1 fields, how-to-verify links, "could not check" list |
+| `vendor/models/pc-ocr/`, `vendor/models/face-gate/`, `vendor/zxing/` | models / wasm, each with `README.txt` (source, sha256, size) and licence files; Thai recogniser shared with Gate (`vendor/models/plate-ocr-th/`) |
+| `tests/e2e/product-check.e2e.mjs` | real models on a synthetic Thai + Latin + Chinese label, EAN-13 + GS1 DataMatrix through zxing-wasm, face gate fail-closed, TH / EN / ZH, phones |
+| `tools/pc-ondevice-eval.mjs` | measurement on the public photo set + synthetic labels (data stays in `~/LENSIQ-field/`) |
+
+Rules kept: no verdict ("genuine" / "fake" is never said; a number with the right shape is "format matches, not checked
+against the register"); the meaning of letters inside a number is never asserted; expiry from a GS1 barcode is shown as a
+printed fact (a passed date is a signal); no dosing words; fixed bottom line "ไม่ใช่การยืนยันขั้นสุดท้าย ยืนยันกับเภสัชกร"
++ 1669 / 1367; the picture stays in memory (nothing uploaded, nothing stored); history rows (numbers and barcodes only,
+never the OCR text) only with the existing opt-in history. Models load on first use, one script at a time: Thai 12.1 MiB
+(det + rec), Chinese / Japanese 20.4, Korean 17.4, Latin 12.3. The user picks the script (Thai default).
+
+Face gate (for P7, nothing is uploaded in P2): BlazeFace short range on the frame, 2 x 2 tiles and the crop; any score
+>= 0.3 blocks; a missing model, an error or a browser without WebGL (MediaPipe needs it) blocks. P2 measured a high
+false-block rate on clean product photos (P2-RESULTS.md): P7 must offer text-only mode as the normal fallback.
+
+Extension point for P3 (over-claim rules): after every read or edit the tab fires `window` event `lq-pc-text`
+`{detail: {text, script}}` and leaves `#pcClaimsSlot` empty for the claims card.
+
+Not in P2: register lookups (P4), over-claim rules (P3), automatic script detection, reading printed (non-GS1) expiry dates,
+Cyrillic / Arabic / Indic scripts, Vietnamese tone marks (not in the Latin model's dictionary; owner decision
+2026-11-10: a known limit, the opt-in AI step handles Vietnamese for now).
 
 ### Pharmacist mode
 
@@ -124,8 +157,9 @@ if (p.startsWith("/api/med/")) return await medRoute(request, env, url, deps, co
 
 ## Deferred / later
 
-- PP-OCRv5 mobile **det** model (Apache-2.0, ~4.7 MB) for automatic text finding — not vendored this round.
-- zxing-js (Apache-2.0) fallback for browsers without `BarcodeDetector` (iOS Safari) — not vendored; users type the digits.
+- ~~PP-OCRv5 mobile det model~~ and ~~a barcode fallback for browsers without `BarcodeDetector`~~: done in round 17 P2 for
+  the Product check tab (PP-OCRv5 det, zxing-wasm). The "Box / label" tab still uses the user-placed crop box and the native
+  `BarcodeDetector` (unchanged on purpose).
 - Curated TH/EN/ZH monographs for ~100 Thai household remedies (needs an in-house pharmacist + source review).
 - Thai FDA permission for an official API / bulk data; TMT licence; DailyMed SPL pipeline to refresh imprints.
 - Crisis net reuse from `fortune-ai.js`: the medicine page has its own small detector (`LQMed.emergency`) to avoid loading

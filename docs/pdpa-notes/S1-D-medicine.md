@@ -29,6 +29,22 @@ device and makes every outward step an explicit opt-in.
 | Stored on the device | `lq-med-cfg` (pharmacist-mode and history toggles). The online-lookup consent is kept in `sessionStorage` only (`lq-med-online`), so it resets when the tab/browser session ends and must be given again. **Only if the user switches on "Keep a lookup history"**: `lq-med-history` (up to 200 entries: time, kind, query text, names found) and `lq-med-codes` (barcode → registration number the user chose to remember). Delete button + CSV export in the History tab; switching history off offers to delete it. |
 | Third parties | api.fda.gov (U.S. FDA), rxnav.nlm.nih.gov (U.S. NLM), porta.fda.moph.go.th (Thai FDA). The US services are outside Thailand: a cross-border transfer of the query text (PDPA s.28). It carries no identifier of the user, but a query can still be health-related. |
 
+## Product check tab (round 17, phase P2, added 2026-11-10)
+
+A fourth tab reads packs of medicines, supplements, cosmetics and food from any country. It is **on-device only** in P2.
+
+| Step | Detail |
+|---|---|
+| Camera / photo | The same `getUserMedia` rear camera or a picked file. A snapshot is drawn to an in-memory canvas (at most 1,600 px). The camera stops after the snapshot, when the user leaves the tab and when the page closes. "Close camera / clear picture" wipes the canvas. **No image leaves the device in P2**: no encoding, no upload and no storage. A unit test asserts that `lensiq-pc*.js` contain no `toDataURL`, `toBlob`, `FormData`, `readAsDataURL` or POST, and the e2e test asserts that no non-GET request and no third-party request is made. |
+| On-device models | Text detection and recognition (PP-OCRv5, ONNX Runtime Web), barcodes (the browser's `BarcodeDetector`, otherwise the self-hosted zxing-wasm), all loaded from this site. No CDN and no query string is sent. |
+| Face check | BlazeFace (MediaPipe, on the device) can run on the snapshot and the crop. In P2 it only computes an allow / block decision for the later upload step (P7) and **nothing is uploaded**. Its result is not stored or shown as information about a person. The owner has decided that P7 will **blur** detected face regions before any upload instead of blocking; that design comes after P2. |
+| Emergency wording | Overdose / poisoning / self-harm wording in the read text opens the same emergency card as the other tab and is never stored. |
+| Stored on the device | Nothing by default. **Only with the existing opt-in "Keep a lookup history"** does a row of kind `pc` get added to `lq-med-history`. It holds only the registration-number formats found (normalised numbers), barcode GTINs and the country codes. It **never** holds the OCR text (which could contain a patient name on a dispensing label) or an image (e2e-tested). |
+| Third parties | None in P2. The "how to verify" links (oryor.com, Thai FDA, NPRA, HSA, Health Canada, FDA, NMPA, EMA, TGA, PMDA, MFDS, GS1, WHO) open only when the user taps them. |
+
+Open question for counsel (P7, before image mode): the photo may show a hand, a face (blurred per the owner's decision) or a
+prescription label with a patient name. P7 adds the patient-name guard (design §8.2).
+
 ## Why we think the risk is manageable (for counsel to confirm)
 
 - Default is fully on-device; nothing leaves without a visible, unticked-by-default opt-in that states "text only, never images".
@@ -47,5 +63,5 @@ device and makes every outward step an explicit opt-in.
 
 ## Deferred
 
-- Text-detection model (crop box is manual), zxing fallback for browsers without `BarcodeDetector` (iOS Safari): see `docs/MEDICINE.md`.
+- Text-detection model and the zxing fallback: done in the Product check tab (round 17 P2). The "Box / label" tab still uses a manual crop box and the native `BarcodeDetector`. See `docs/MEDICINE.md`.
 - Default retention for the opt-in history (currently 200 entries, kept until deleted).

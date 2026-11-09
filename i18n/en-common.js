@@ -219,6 +219,8 @@
   "about.oss.face": "Face and expression detection",
   "about.oss.mp": "Image segmentation, hand detection",
   "about.oss.ort": "High-quality background removal",
+  "about.oss.pcocr": "Read text on product labels; find faces in a photo before it is sent",
+  "about.oss.barcode": "Read barcodes on packaging",
   "about.oss.coco": "People and product detection",
   "about.oss.pdf": "In-browser PDF conversion",
   "about.oss.srv": "Server (if used)",

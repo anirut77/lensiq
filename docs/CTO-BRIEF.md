@@ -1,9 +1,9 @@
 # LENSIQ — CTO brief
 
 As of 2026-11-09 (round 16 complete). Round 15 shipped in two commits: Gate `70508bc` (CI green on Linux, live) and crowd/docs `41dc0b7`. Round 16 shipped as: customer switch `d039058`; Gate plate check + field tools `d049dfd`; claims, crowd test, org design, pilot kits `34e14b3`; Wilson rule `77b555a`; multi-line CSP `7c47eba`; then the category packaging and the pricing draft after the owner approved them on 2026-11-09. Accuracy sources are labelled synthetic, public dataset or field.
-**Round 17 = Product Check + AI Gateway, in progress: P0, P1, P3 done** (design approved 2026-11-09; §5 "Round 17", legal list §8).
+**Round 17 = Product Check + AI Gateway, in progress: P0, P1, P2, P3, P5 done** (design approved 2026-11-09; §5 "Round 17", legal list §8).
 Org accounts P1–P3 follow after Product Check is complete.
-Round 17 P5 "AI Gateway core" (built in a working tree, not committed, awaiting review): every cloud AI call goes through `backend/src/ai/` (`POST /v1/ai/:feature`; fortune moved onto it as `fortune_reword` with its existing tests unchanged), with a provider allowlist, a monthly budget reserved per call, the §10.3 fallback policy, JSON-schema checks, content-free logs, an admin "AI Gateway" tab and the consent helper `lensiq-ai.js`. Only the Anthropic adapter exists; the others are P6. See `docs/AI-GATEWAY.md`.
+Round 17 P5 "AI Gateway core" (`13814a8`, independent review fixes applied): every cloud AI call goes through `backend/src/ai/` (`POST /v1/ai/:feature`; fortune moved onto it as `fortune_reword` with its existing tests unchanged), with a provider allowlist, a monthly budget reserved per call, the §10.3 fallback policy, JSON-schema checks, content-free logs, an admin "AI Gateway" tab and the consent helper `lensiq-ai.js`. Only the Anthropic adapter exists; the others are P6. See `docs/AI-GATEWAY.md`.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
 
 ## 1. System map
@@ -232,6 +232,19 @@ No module is production-ready. None has completed a field pilot, and the backend
   precision 91.9 %, recall **65.5 % (target 80 %, not met)**, 3.3 false flags per 100 compliant texts (target ≤ 5, met).
   Independent reviewer reproduced every number. Recall options for the owner: the opt-in LLM classifier (§5.2, P7)
   and/or a larger labelled set with a new unseen split; pharmacist adjudication still pending.
+- P5 done (`13814a8`): AI Gateway core, see `docs/AI-GATEWAY.md`. Reviewer re-measured unit 1,212 / backend 176 and
+  found 9 issues (budget overshoot on settle, fortune retries, consent text for every provider, lint guard on SDK
+  imports, …); all fixed with tests (unit 1,223, backend 187). Only the Anthropic adapter so far (others in P6).
+- P2 done: "Product check" tab in `medicine.html` (on-device OCR PP-OCRv5, barcode, registration-number formats,
+  quality hints, face check), `docs/product-check/P2-RESULTS.md`. Synthetic labels 94.9 % character accuracy (rotated
+  set tuned on itself, optimistic; held-out rotated 97.7 %, easier labels); public photo set (281, Open Food Facts):
+  brand/name token found 47.0 %. Face check at 0.3 + tiles flags 60.4 % of clean packs; owner decision 2026-11-10:
+  **blur detected faces before any upload instead of blocking**, setting chosen from measured readability and missed
+  real faces (built next). Vietnamese tone marks: known limit, AI step handles them for now. Not measured on a phone yet.
+- Drug data (owner request 2026-11-10): `docs/product-check/DRUG-DATA-SOURCES.md` (24 sources). TMT 2563 snapshot on
+  data.go.th is CC BY and is used; the current TMT release (this.or.th, catalogue label "Open Data Common", login) has
+  no stated licence, so it stays out until THIS gives written permission (L29). Letter to the UBU Faculty of
+  Pharmaceutical Sciences drafted: `docs/legal/UBU-PHARMACY-COLLAB-TH.md` (not sent).
 
 ## 6. Delivery facts
 
@@ -318,3 +331,13 @@ removed; a closed item keeps its row with the answer and date. Not legal advice.
 | L26 | Public procurement fit | Specific-method threshold, VAT inside the threshold, multi-year contracts, no splitting, e-GP / SME registration | `docs/SALES-PACKAGES.md` A.5, C1–C3 | open | 2026-11-09 |
 | L27 | TOR wording vendor-neutral | The Thai / English TOR text must not lock in a brand | `docs/SALES-PACKAGES.md` A.6, C4 | open | 2026-11-09 |
 | L28 | Partner agreement | Reseller vs agent, VAT on the revenue share, withholding tax, liability, DPA with partners | `docs/SALES-PACKAGES.md` B, C5–C6 | open | 2026-11-09 |
+| L29 | TMT / TTMT current release files (THIS / สมสท.) | No licence on the pages; "สงวนลิขสิทธิ์" footer; login; HSRI catalogue label "Open Data Common" undefined. Written permission for commercial use and redistribution of derived tables needed before charging; is TMT a s.7(5) state compilation? Checked 2026-11-10 on data.go.th: the newest release (2568) is catalogued as "Open Data Common", not CC BY, so the 2563 CC BY snapshot stays in use until permission; | `docs/product-check/DRUG-DATA-SOURCES.md` S1, S3 | open | 2026-11-10 |
+| L30 | TMT 2020-02-17 snapshot under CC BY | CC BY version not stated on data.go.th; does CC BY on the old release cover our derived table, and may it be mixed with later (unlicensed) releases? Six-year-old data shown to users needs a "data as of" label | S2 | open | 2026-11-10 |
+| L31 | data.go.th "Open Data Common" and "License not specified" datasets (Thai FDA licensee lists, DTAM herbal codes and herbal NLEM structure) | The label has no definition in any Thai CKAN licence list; ask DGA / the data owner what it permits | S14, S16 | open | 2026-11-10 |
+| L32 | NLEM via the Royal Gazette and the MIT thai-nlem-api CSV | Confirm s.7(3) / s.7(5) covers our own table of the announcement; the CSV's origin is not stated, so verify against the Gazette | S4, S5 | open | 2026-11-10 |
+| L33 | RxNav: no RxClass without UMLS; DailyMed label text | RxClass carries SNOMED CT; DailyMed text belongs to labellers, so store derived facts and link out only | S8–S11 | open | 2026-11-10 |
+| L34 | Thai traditional medicine knowledge (national formulas, Positive List) | DTAM CSVs are CC BY-NC; national formulas are protected under the TTM Knowledge Protection Act B.E. 2542; may we show formula names or herbal Positive List facts rebuilt from MoPH announcements? | S17, S18 | open | 2026-11-10 |
+| L35 | Thai Herbal Pharmacopoeia (DMSc) | Copyright notice; no reuse licence; ask DMSc before using monograph content | S19 | open | 2026-11-10 |
+| L36 | University herbal databases and the UBU collaboration | No open licence; a collaboration agreement (data rights, credit, publication, no personal data) is needed before using any faculty data or pharmacist labels commercially | S20; `docs/legal/UBU-PHARMACY-COLLAB-TH.md` (not sent) | open (letter drafted) | 2026-11-10 |
+| L37 | icdevelop/thai-pharma-kb | HAI-DEF terms applied to a dataset (pass-on restrictions, Notice file); TMT rights not cleared; `ingredient_kb.jsonl` is AI-generated. Not used: record the decision | S12, S13 | closed: not used (2026-11-10) | 2026-11-10 |
+| L38 | DrugBank and WHO ATC/DDD | Non-commercial / no commercial copying; not used. If ever needed: DrugBank commercial licence, WHO CC permission | S21, S22 | open (not used) | 2026-11-10 |

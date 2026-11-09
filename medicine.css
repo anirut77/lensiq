@@ -72,4 +72,10 @@
 .md-dense .md-cand{padding:8px}
 .md-dense .md-ref{display:block}
 .md-ref{display:none;font-size:.82rem;color:var(--muted)}
+/* Product Check tab (round 17 P2): editable OCR text, crop box, fixed bottom line */
+.md-field textarea{font:inherit;font-size:.92rem;min-height:120px;padding:8px 12px;border:1.5px solid #c9cfdd;border-radius:10px;
+  width:100%;min-width:0;resize:vertical;background:#fff;color:var(--text)}
+.pc-crop{border-color:#f59e0b;left:0;top:0;width:0;height:0}
+.pc-bottom{margin:8px auto 0}
+#pcHints li{color:#8a4b00}
 @media print{.nav,.md-tabs,.md-set,.md-row,.md-camwrap{display:none!important}}

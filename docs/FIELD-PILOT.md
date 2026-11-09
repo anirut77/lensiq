@@ -319,6 +319,11 @@ input. Rows without ground truth are skipped and counted.
 
 ## Changelog / last reviewed
 
+- **2026-11-10 (round 17)**: Product Check P2 tab (`medicine.html` → "ตรวจสินค้า (ทุกประเทศ)") ready for the owner's
+  first phone test (checklist given in the round report). Numbers so far: synthetic labels and the public photo set
+  only (`docs/product-check/P2-RESULTS.md`); **field and phone: not measured**. Photo protocol:
+  `docs/product-check/PHOTO-SET-PROTOCOL.md`.
+
 - **2026-11-09 (round 16)** — per-product pilot kits `docs/pilot/PILOT-GATE.md` / `PILOT-EXAM.md` / `PILOT-CROWD.md`.
   The Gate kit starts with phase 0: the owner's ~100 phone photos run through `tools/plate-field-eval.mjs` with a dev /
   held-out split fixed before the first run; the site visit goes ahead only if no plate-less photo is auto-read. The

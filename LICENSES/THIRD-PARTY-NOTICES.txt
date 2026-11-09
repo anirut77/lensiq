@@ -3,7 +3,7 @@ LENSIQ — THIRD-PARTY NOTICES
 
 This site redistributes the third-party components below (in vendor/). Each remains under its own licence; the MIT
 licence of LENSIQ's own code does not extend to them. Inventory, sources, versions and status:
-LICENSES/THIRD_PARTY.md in the source repository. Last audited 2026-11-08.
+LICENSES/THIRD_PARTY.md in the source repository. Last audited 2026-11-09.
 
 A. Apache License 2.0 (full text in section D)
   - TensorFlow.js 4.7.0 (core, converter, cpu, webgl, wasm backends; bundled in vendor/face-api.js and
@@ -21,6 +21,12 @@ A. Apache License 2.0 (full text in section D)
     — Copyright (c) PaddlePaddle Authors.
   - LPD-YuNet licence-plate detector (vendor/models/plate-det/, OpenCV Zoo, licence copy in that folder)
     — Copyright (c) OpenCV Zoo contributors (model by Dong Xu, watrix.ai).
+  - PaddleOCR PP-OCRv5 mobile text detector and the Chinese / Japanese, Korean and Latin recognisers
+    (vendor/models/pc-ocr/, licence copy in that folder) — Copyright (c) PaddlePaddle Authors.
+  - MediaPipe BlazeFace short-range face detector (vendor/models/face-gate/, licence copy in that folder)
+    — Copyright Google LLC / The MediaPipe Authors.
+  - zxing-cpp, compiled into vendor/zxing/zxing_reader.wasm (licence copy vendor/zxing/LICENSE-zxing-cpp-Apache-2.0)
+    — Copyright the ZXing authors / zxing-cpp contributors.
 
 B. MIT License (text in section E)
   - face-api.js 1.7.12 (vendor/face-api.js) and its model weights (vendor/models/*_model*) —
@@ -31,6 +37,8 @@ B. MIT License (text in section E)
   - JSZip 3.10.1 (bundled in vendor/docx.js, used under its MIT option) — Copyright (c) 2009-2016 Stuart Knightley,
     David Duponchel, Franz Buchinger, António Afonso.
   - qrcode-generator 2.0.4 (vendor/qrcode-generator/qrcode.js) — Copyright (c) 2009 Kazuhiko Arase.
+  - barcode-detector 3.2.3 (vendor/zxing/barcode-detector-ponyfill.js) and the zxing-wasm 3.1.6 glue compiled into
+    vendor/zxing/zxing_reader.wasm — Copyright (c) 2023 Ze-Zheng Wu.
 
 C. Other
   - Prompt font (vendor/fonts/prompt/) — Copyright 2015 Cadson Demak; Inter font (vendor/fonts/inter/) — Copyright

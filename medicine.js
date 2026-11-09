@@ -5,7 +5,9 @@
  * Privacy: images stay in memory on this device and are never stored or sent. Online lookups (openFDA, RxNav direct;
  * Thai FDA via the Worker /api/med/*) happen only after the explicit opt-in toggle and send text only.
  * Test seams (localhost only): ?fakenet -> window.__LQ_MED_FETCH(url, init) replaces fetch; ?fakeocr ->
- * window.__LQ_FAKE_OCR() / window.__LQ_FAKE_BARCODE() replace the OCR model / BarcodeDetector. Hook: window.__LQ_MED. */
+ * window.__LQ_FAKE_OCR() / window.__LQ_FAKE_BARCODE() replace the OCR model / BarcodeDetector. Hook: window.__LQ_MED.
+ * The "Product Check" tab (round 17 P2) lives in lensiq-pc-ui.js; it reads cfg.hist from window.__LQ_MED and adds
+ * history rows of kind "pc" (text facts only) through the same opt-in history. */
 (function () {
   "use strict";
   const W = /** @type {any} */ (window), M = W.LQMed;
@@ -126,7 +128,8 @@
   /* ---------- history ---------- */
   // never store emergency / self-harm wording, even with history on
   function addHist(kind, q, r) { if (cfg.hist && !M.emergency(q).poison) LS.set(HIST, M.historyAdd(LS.get(HIST, []), { kind, q, r })); }
-  const KIND = () => ({ pack: T("md.hi.k.pack", "กล่อง/ฉลาก"), pill: T("md.hi.k.pill", "เม็ดยา"), label: T("md.hi.k.label", "ฉลาก"), thfda: T("md.hi.k.thfda", "ทะเบียนไทย") });
+  const KIND = () => ({ pack: T("md.hi.k.pack", "กล่อง/ฉลาก"), pill: T("md.hi.k.pill", "เม็ดยา"), label: T("md.hi.k.label", "ฉลาก"), thfda: T("md.hi.k.thfda", "ทะเบียนไทย"),
+    pc: T("md.hi.k.pc", "ตรวจสินค้า") });
   function renderHist() {
     const list = LS.get(HIST, []), box = $("#mdHistList");
     $("#mdHistNote").textContent = cfg.hist ? T("md.hi.on", "กำลังเก็บประวัติในเบราว์เซอร์นี้ (สูงสุด 200 รายการ) ไม่ส่งออกจากเครื่อง")
