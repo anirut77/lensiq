@@ -46,7 +46,8 @@ const OUT = resolve(opt("--out", join(homedir(), "LENSIQ-field", "product-check"
 const LIMIT = +opt("--limit", 0) || 0;
 if (OUT.startsWith(repo + "/")) { console.error("pc-ondevice-eval: --out must be outside the repo (data never in the repo)"); process.exit(2); }
 
-// headless Chrome WITH WebGL (SwiftShader): the e2e launcher disables WebGL, but MediaPipe's FaceDetector needs it.
+// headless Chrome WITH WebGL (SwiftShader), as in the P2 runs. Correction 2026-11-10: MediaPipe's FaceDetector does NOT need
+// WebGL (it runs in CI's Chrome, which has none); WebGL is kept on here only so the numbers match the earlier runs.
 // A tiny wrapper drops the three "disable" switches and execs the real Chrome (same PID, so cdp.mjs can stop it).
 const realChrome = process.env.LQ_CHROME || ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "/usr/bin/google-chrome", "/usr/bin/chromium"].find(p => existsSync(p));
 const wrapDir = mkdtempSync(join(tmpdir(), "lq-pc-eval-"));

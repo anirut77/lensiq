@@ -75,14 +75,14 @@ Reading the table:
 ## 3. Face gate (source: public dataset images + synthetic drawings)
 
 BlazeFace short range on the whole frame, 2 x 2 overlapping tiles (60 % per side) and the crop; any score >= 0.3 blocks
-(design §8.2); fails closed (no model, no WebGL, any error = blocked).
+(design §8.2); fails closed (no model, the detector cannot run, any error = blocked).
 
 | Set | Blocked | Notes |
 |---|---|---|
 | Pack art with printed / drawn people (`pack_art_person`) | **10 / 11 = 90.9 % [62.3 – 98.4]** | the one miss scored below 0.3; packaging faces count as faces for the gate (acceptable, fail-closed) |
 | Other images (no person after the P1 manual check) | **163 / 270 = 60.4 % [54.4 – 66.0]** | false blocks: frame 75, tiles 148, crop 73 images had a score >= 0.3 |
 | Drawn cartoon faces (synthetic, 5 sizes) | 5 / 5 [56.6 – 100] | scores 0.83 – 0.87 |
-| No WebGL (CI browser) | blocked by design | MediaPipe uploads images through WebGL even on the CPU delegate |
+| No WebGL (CI browser) | ~~blocked by design~~ **corrected 2026-11-10:** the detector runs without WebGL | CI's Chrome reports no WebGL at all (neither webgl2 nor webgl) and BlazeFace still ran on frame, tiles and crop there. The earlier claim "MediaPipe uploads images through WebGL even on the CPU delegate" was wrong. Fail-closed is now tested by removing WebAssembly (the detector cannot run -> blocked) |
 
 For comparison only (the gate stays at 0.3): at 0.5 the gate blocks 4 / 11 pack-art and 62 / 270 other images; at 0.7,
 0 / 11 and 6 / 270. **Miss rate on real faces is not measured** (needs the 100-photo face set of design §9.3; no photos
@@ -154,7 +154,7 @@ easier than the tuned set, not a measure of real tilted packs.
   future and the 00:00-07:00 Bangkok edge, where UTC is still on the previous day — the page used UTC; fixed).
 - `tests/e2e/product-check.e2e.mjs` — 8 checks: tab offline / nothing stored; real models read a synthetic Thai + Latin +
   Chinese label (TH drug + food number, CN approval number, Thai and Chinese lines >= 80 % character accuracy); EAN-13 and
-  GS1 DataMatrix via self-hosted zxing-wasm; face gate blocks (seam face, missing model, no WebGL); history opt-in ON
+  GS1 DataMatrix via self-hosted zxing-wasm; face gate blocks (seam face, missing model, detector cannot run; since 2026-11-10 tested with WebAssembly removed, not WebGL); history opt-in ON
   stores only number norms, GTINs and country codes (never OCR text or an image) and emergency wording opens the emergency
   card without being stored; a GS1 expiry before today's local date shows the risk signal, today / future do not;
   EN / ZH with no Thai; phones 320 / 360 / 390.
@@ -171,3 +171,7 @@ Owner decision for P7 (2026-11-10, not built in P2): the face check changes from
 region is blurred before any upload, the user sees the blurred preview, and an upload is never blocked because of a
 face. The P2 runs already carry each face's box in frame pixels (`lensiq-pc-run.js faceCheck`) for a later
 `faceBlur(canvas, faces)`; the false-block figures in section 3 then become "regions blurred unnecessarily".
+
+**Built 2026-11-10 (face blur):** the upload path now blurs instead of blocking. Fixed test set (packs + 160 Open Images V7
+real-face images), the 30-setting sweep, the picked setting (round 2: 3 x 3 overlapping tiles, threshold 0.5, 15 % padding) and its dev /
+held-out numbers: `docs/product-check/FACE-BLUR-RESULTS.md`. `faceGate` and section 3 above stay as they were (API kept).

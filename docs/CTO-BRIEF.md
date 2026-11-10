@@ -1,7 +1,7 @@
 # LENSIQ — CTO brief
 
 As of 2026-11-09 (round 16 complete). Round 15 shipped in two commits: Gate `70508bc` (CI green on Linux, live) and crowd/docs `41dc0b7`. Round 16 shipped as: customer switch `d039058`; Gate plate check + field tools `d049dfd`; claims, crowd test, org design, pilot kits `34e14b3`; Wilson rule `77b555a`; multi-line CSP `7c47eba`; then the category packaging and the pricing draft after the owner approved them on 2026-11-09. Accuracy sources are labelled synthetic, public dataset or field.
-**Round 17 = Product Check + AI Gateway, in progress: P0, P1, P2, P3, P5 done** (design approved 2026-11-09; §5 "Round 17", legal list §8).
+**Round 17 = Product Check + AI Gateway, in progress: P0, P1, P2, P3, P5, P6 done; face blur built** (design approved 2026-11-09; §5 "Round 17", legal list §8).
 Org accounts P1–P3 follow after Product Check is complete.
 Round 17 P5 "AI Gateway core" (`13814a8`, independent review fixes applied): every cloud AI call goes through `backend/src/ai/` (`POST /v1/ai/:feature`; fortune moved onto it as `fortune_reword` with its existing tests unchanged), with a provider allowlist, a monthly budget reserved per call, the §10.3 fallback policy, JSON-schema checks, content-free logs, an admin "AI Gateway" tab and the consent helper `lensiq-ai.js`. Only the Anthropic adapter exists; the others are P6. See `docs/AI-GATEWAY.md`.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
@@ -241,6 +241,15 @@ No module is production-ready. None has completed a field pilot, and the backend
   brand/name token found 47.0 %. Face check at 0.3 + tiles flags 60.4 % of clean packs; owner decision 2026-11-10:
   **blur detected faces before any upload instead of blocking**, setting chosen from measured readability and missed
   real faces (built next). Vietnamese tone marks: known limit, AI step handles them for now. Not measured on a phone yet.
+- P6 done (`5021a1d`): adapters for Gemini, OpenAI, Qwen, DeepSeek, z.ai, Kimi, OpenRouter (plain REST, mocked tests);
+  reviewer re-measured, 8 findings fixed. Gemini held out of every Product Check default chain pending the 18+ question.
+- Face check "block" → "blur" (owner decision 2026-11-10): every detected face is blurred (irreversible pixelation) before
+  any upload; the user sees the blurred preview and confirms; a detector that cannot run means text only. Setting picked
+  by a fixed rule (label readable ≥ 90 % on dev, then fewest missed faces): BlazeFace 3×3 tiles, 0.5, pad 0.15. Public
+  datasets (Open Images V7 faces CC BY 2.0; Open Food Facts packs): fresh unseen set label readable 90.1 % [82.7–94.5],
+  real faces left unblurred 34.7 % [29.3–40.5] (faces < 40 px mostly missed; close-ups 7 / 25 missed). Reviewer found
+  the earlier held-out numbers optimistic; fresh numbers are the ones to quote. YuNet rejected (WIDER FACE training data
+  is CC BY-NC-ND). Fresh face images deleted 2026-11-10 06:09 after the eval (manifest kept). `docs/product-check/FACE-BLUR-RESULTS.md`.
 - Drug data (owner request 2026-11-10): `docs/product-check/DRUG-DATA-SOURCES.md` (24 sources). TMT 2563 snapshot on
   data.go.th is CC BY and is used; the current TMT release (this.or.th, catalogue label "Open Data Common", login) has
   no stated licence, so it stays out until THIS gives written permission (L29). Letter to the UBU Faculty of
@@ -341,3 +350,5 @@ removed; a closed item keeps its row with the answer and date. Not legal advice.
 | L36 | University herbal databases and the UBU collaboration | No open licence; a collaboration agreement (data rights, credit, publication, no personal data) is needed before using any faculty data or pharmacist labels commercially | S20; `docs/legal/UBU-PHARMACY-COLLAB-TH.md` (not sent) | open (letter drafted) | 2026-11-10 |
 | L37 | icdevelop/thai-pharma-kb | HAI-DEF terms applied to a dataset (pass-on restrictions, Notice file); TMT rights not cleared; `ingredient_kb.jsonl` is AI-generated. Not used: record the decision | S12, S13 | closed: not used (2026-11-10) | 2026-11-10 |
 | L38 | DrugBank and WHO ATC/DDD | Non-commercial / no commercial copying; not used. If ever needed: DrugBank commercial licence, WHO CC permission | S21, S22 | open (not used) | 2026-11-10 |
+| L39 | Face-blur image mode safeguard | The on-device detector leaves about a third of real faces unblurred (mostly small ones, some close-ups); a picture with a missed face can be sent after the user sees the blurred preview and presses "Use this picture". Is preview + confirmation adequate (s.6 personal data), or should image mode default to a smaller crop / text only? | `lensiq-pc*.js` `prepareUpload`; `docs/product-check/FACE-BLUR-RESULTS.md` | open | 2026-11-10 |
+| L40 | Public face images used for measurement only | Open Images V7 (images CC BY 2.0 per image, boxes CC BY 4.0), stored outside the repo, never shipped or used for training; fresh set deleted after the eval, builder set kept pending the owner. Confirm local evaluation use and attribution are sufficient | `~/LENSIQ-field/face-blur/` (manifest + CREDITS.tsv); FACE-BLUR-RESULTS §6.1 | open | 2026-11-10 |

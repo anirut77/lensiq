@@ -290,7 +290,16 @@ test("Product Check files: no dosing, no buy links, no verdict words, no image e
   assert.ok(!/(shopee|lazada|amazon|buy now|ซื้อเลย|สั่งซื้อ|affiliate|sponsor)/i.test(all), "no buy links");
   assert.ok(!/best for|ดีที่สุด|ยอดนิยม|recommended for you/i.test(all), "no ranking");
   assert.ok(!/ของแท้|ของปลอม|\bgenuine\b|\bcounterfeit\b|\bfake\b|真品|假货|正品/i.test(all), "never says genuine / fake");
-  assert.ok(!/toDataURL|toBlob|FormData|readAsDataURL|fetch\([^)]*method:\s*"POST"/.test(files.join("\n")), "no image encoding / upload in P2");
+  // Owner decision 2026-11-10 (face blur before upload): prepareUpload() returns {blob} for P7, so exactly ONE image encoding
+  // is allowed: in lensiq-pc-ui.js prepareUpload, after faceBlur and after the user pressed "Use this picture". No other
+  // encoding anywhere, and still no upload in this phase (no network sending API in these files).
+  const enc = [...files.join("\n").matchAll(/toDataURL|toBlob|convertToBlob|readAsDataURL|createObjectURL\((?!f\))/g)];
+  assert.equal(enc.length, 1, "exactly one image encoding: " + enc.map(m => m[0]));
+  const prep = /async function prepareUpload\(\)[\s\S]*?\n {2}}\n/.exec(files[2]);
+  assert.ok(prep && /toBlob/.test(prep[0]), "the only encoding is inside prepareUpload");
+  assert.ok(/R\.faceBlur\([\s\S]*await new Promise\(res => \{ pending = res; \}\)[\s\S]*choice !== "use"[\s\S]*toBlob/.test(prep[0]),
+    "encoding happens after the blur and after the user confirmed the preview");
+  assert.ok(!/FormData|XMLHttpRequest|sendBeacon|WebSocket|fetch\([^)]*method:\s*"POST"/.test(files.join("\n")), "no upload in this phase");
   assert.ok(!/localStorage\.setItem\([^)]*(image|frame|photo|canvas)/i.test(files.join("\n")), "no images in storage");
   assert.ok(!/expression|emotion|faceapi|\blie\b|deception|truthful|age_gender/i.test(files.join("\n")), "no emotion / age / lie inference");
   assert.match(tab[0], /ไม่ใช่การยืนยันขั้นสุดท้าย/, "fixed bottom line (TH)");

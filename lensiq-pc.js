@@ -23,8 +23,13 @@
  *   lastDay(y, m) · barcodeInfo(raw, format, {now}) -> {kind: "gs1"|"gtin"|"other", ...}
  *   findRegNumbers(text) -> [{country, kind, norm, check, ok, note}]  registration-number SHAPES (format check only)
  *   VERIFY[country] -> [{id, url}] official "how to verify" links (checked 2026-11-09)
- * FACE GATE (decision only; the detector runs in lensiq-pc-run.js)
- *   faceGate({loaded, runs:[{scope, faces:[{score}]}]}, {threshold}) -> {allow, reason, maxScore}   FAILS CLOSED
+ * FACE BLUR (decision only; the detector and the pixel blur run in lensiq-pc-run.js). Owner decision 2026-11-10: blur
+ * every detected face before an upload, never block an upload because of a face (docs/product-check/FACE-BLUR-RESULTS.md)
+ *   FACE_BLUR = picked setting · faceBlurPlan(state, frameW, frameH, {threshold, pad, tiles, crop, scale})
+ *       -> {textOnly:false, regions, faces} | {textOnly:true, reason}   FAIL-SAFE: detector failure -> text only, never unblurred
+ *   mergeBoxes(boxes) · coverage(box, regions) · tileRects(W, H, n, overlap) -> n x n overlapping tiles for the detector
+ *   faceGate({loaded, runs:[{scope, faces:[{score}]}]}, {threshold}) -> {allow, reason, maxScore}   FAILS CLOSED; kept as an
+ *       API for other callers, no longer used on the upload path
  * MEASUREMENT (tools/pc-ondevice-eval.mjs)
  *   levenshtein(a, b) · charAccuracy(ref, hyp) · nameTokens(s) · tokenHit(ocrText, {brands, product_name}) · wilson(k, n)
  */
@@ -462,6 +467,10 @@
 
   /* ---------------- face gate (decision) ---------------- */
   /**
+   * NOT USED ON THE UPLOAD PATH ANY MORE. Owner decision 2026-11-10: faces are blurred before upload, an upload is never
+   * blocked because of a face (packaging often has printed faces); the upload path uses faceBlurPlan below. faceGate is
+   * kept as an API, unchanged, for any other caller that needs a yes / no "is there a face" decision.
+   *
    * faceGate(state, {threshold=0.3, need=["frame","crop"]}) — the upload gate used before any image leaves the device (P7).
    * FAILS CLOSED: allow is true only when the detector loaded, every required scope ran, and no face scored >= threshold.
    * A detection whose score is not a finite number (missing, null, NaN, a string) counts as a face with score 1.
@@ -480,6 +489,106 @@
     if (max >= thr) return { allow: false, reason: "face", maxScore: max };
     if (!need.every(s => runs.some(r => r && r.scope === s && Array.isArray(r.faces)))) return { allow: false, reason: "not-run", maxScore: max };
     return { allow: true, reason: "", maxScore: max };
+  }
+
+  /* ---------------- face blur plan (decision; pixels are blurred in lensiq-pc-run.js faceBlur) ---------------- */
+  /** Setting picked on the dev split of docs/product-check/FACE-BLUR-RESULTS.md (pick rule §1.6; the owner may change it). */
+  const FACE_BLUR = { threshold: 0.5, tiles: true, grid: 3, overlap: 0.2, upscale: 1, close: 0, pad: 0.15 }; // close-up pass: measured, not picked (§6)
+  const finite = v => typeof v === "number" && Number.isFinite(v);
+  const okBox = b => !!b && finite(b.x) && finite(b.y) && finite(b.w) && finite(b.h) && b.w > 0 && b.h > 0;
+  const overlaps = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  const union = (a, b) => { const x = Math.min(a.x, b.x), y = Math.min(a.y, b.y); return { x, y, w: Math.max(a.x + a.w, b.x + b.w) - x, h: Math.max(a.y + a.h, b.y + b.h) - y }; };
+  /** merge overlapping boxes into their union until no two overlap (the result is a set of disjoint rectangles) */
+  function mergeBoxes(boxes) {
+    let out = boxes.map(b => ({ ...b })), changed = true;
+    while (changed) {
+      changed = false;
+      const next = [];
+      for (const b of out) {
+        const i = next.findIndex(n => overlaps(n, b));
+        if (i < 0) next.push(b); else { next[i] = union(next[i], b); changed = true; }
+      }
+      out = next;
+    }
+    return out;
+  }
+  /**
+   * faceBlurPlan(state, frameW, frameH, {threshold, pad, tiles, need, crop, scale}) — which regions to blur before an
+   * image leaves the device. Replaces the block decision (owner decision 2026-11-10): a face never blocks an upload.
+   *   state  = {loaded, error, runs:[{scope, faces:[{score, box:{x, y, w, h}}]}]} from LQPCRun.faceRuns (boxes in FRAME
+   *            pixels, the same `box` field P2 already returns). A plain array of faces is read as ONE loaded "frame" run,
+   *            so with the default `need` it is text only ("not-run") unless the caller says which runs it requires.
+   *   need   = runs that must be present with a faces array. Default (fail closed): every scope the caller supplied, and at
+   *            least "frame" and "upload". Every run object must be {scope: string, faces: array}; anything else, e.g. a
+   *            duplicate scope whose faces is not an array, means a run did not complete ("not-run").
+   *   crop / scale = the upload image: frame rect {x, y, w, h} scaled by `scale` (<= 1). Regions are returned in the
+   *            upload image's pixels and clamped to it. Without crop: frame pixels, clamped to the frame.
+   *   pad    = fraction of each box's width / height added on every side (BlazeFace boxes are tight around the face).
+   *   tiles  = false ignores the scope "tiles" (the tile runs; they must still be well-formed).
+   * Returns {textOnly:false, regions:[{x, y, w, h}] (integers, disjoint, merged when they overlap), faces: n used, reason:""}
+   * or, FAIL-SAFE, {textOnly:true, regions:[], faces:0, reason}: the detector did not load ("model-missing"), failed
+   * ("error"; `loaded` must be exactly true), a required run is missing or any run is malformed ("not-run"), a
+   * score is not a finite number in [0, 1] ("bad-score"), a face at or above the threshold has no usable box ("bad-box"),
+   * or the frame / crop / scale is invalid ("bad-frame"). A detector that
+   * did not run cannot be fixed by blurring, so that upload goes as text only — never as an unblurred image.
+   */
+  function faceBlurPlan(st, frameW, frameH, o = {}) {
+    const fail = reason => ({ textOnly: true, regions: [], faces: 0, reason });
+    const thr = finite(o.threshold) ? o.threshold : FACE_BLUR.threshold, pad = finite(o.pad) && o.pad >= 0 ? o.pad : FACE_BLUR.pad;
+    const tiles = o.tiles == null ? FACE_BLUR.tiles : !!o.tiles;
+    if (Array.isArray(st)) st = { loaded: true, runs: [{ scope: "frame", faces: st }] };
+    if (!st || st.loaded !== true) return fail("model-missing");
+    if (st.error) return fail("error");
+    if (!(finite(frameW) && finite(frameH) && frameW > 0 && frameH > 0)) return fail("bad-frame");
+    const runs = Array.isArray(st.runs) ? st.runs : [];
+    if (!runs.every(r => r && typeof r.scope === "string" && Array.isArray(r.faces))) return fail("not-run");
+    const need = Array.isArray(o.need) ? o.need : [...new Set(["frame", "upload", ...runs.map(r => r.scope)])];
+    if (!need.every(sc => runs.some(r => r.scope === sc))) return fail("not-run");
+    if (o.scale !== undefined && !(finite(o.scale) && o.scale > 0)) return fail("bad-frame");
+    const crop = o.crop || { x: 0, y: 0, w: frameW, h: frameH }, k = o.scale === undefined ? 1 : o.scale;
+    if (!okBox(crop)) return fail("bad-frame");
+    const outW = Math.max(1, Math.round(crop.w * k)), outH = Math.max(1, Math.round(crop.h * k));
+    const boxes = [];
+    for (const r of runs) {
+      const ignored = !tiles && r.scope === "tiles";
+      for (const f of r.faces) {
+        const s = f ? f.score : undefined;
+        // a malformed score is never read as 0 — even in an ignored run it means the detector output cannot be trusted
+        if (!(finite(s) && s >= 0 && s <= 1)) return fail("bad-score");
+        if (ignored || s < thr) continue;
+        if (!okBox(f.box)) return fail("bad-box");
+        const b = f.box, px = b.w * pad, py = b.h * pad;
+        const x0 = Math.max(0, (b.x - px - crop.x) * k), y0 = Math.max(0, (b.y - py - crop.y) * k);
+        const x1 = Math.min(outW, (b.x + b.w + px - crop.x) * k), y1 = Math.min(outH, (b.y + b.h + py - crop.y) * k);
+        if (x1 - x0 < 1 || y1 - y0 < 1) continue; // outside the upload image: nothing of it is sent
+        const fx = Math.floor(x0), fy = Math.floor(y0); // round outwards: a face is never cut by a fraction of a pixel
+        boxes.push({ x: fx, y: fy, w: Math.min(outW, Math.ceil(x1)) - fx, h: Math.min(outH, Math.ceil(y1)) - fy });
+      }
+    }
+    return { textOnly: false, regions: mergeBoxes(boxes), faces: boxes.length, reason: "" };
+  }
+  /**
+   * tileRects(W, H, n=2, overlap=1/3) -> n x n tiles [{x, y, w, h}] covering the frame; neighbouring tiles share `overlap`
+   * of a tile's size, so a face on a seam is whole in at least one tile. n = 2, overlap = 1/3 gives the P2 tiles (60 % of
+   * each side). Integer pixels; the last row / column ends exactly at the frame edge.
+   */
+  function tileRects(W, H, n = 2, overlap = 1 / 3) {
+    const N = Math.max(1, Math.round(n)), o = Math.min(0.9, Math.max(0, overlap));
+    const axis = L => {
+      const t = Math.min(L, Math.round(L / (N - (N - 1) * o))), out = [];
+      for (let i = 0; i < N; i++) out.push(N === 1 ? 0 : Math.round((i * (L - t)) / (N - 1)));
+      return { t, at: out };
+    };
+    const X = axis(W), Y = axis(H), tiles = [];
+    for (const y of Y.at) for (const x of X.at) tiles.push({ x, y, w: X.t, h: Y.t });
+    return tiles;
+  }
+  /** share of box b's area covered by disjoint regions (measurement: "face left unblurred" = coverage < 0.5) */
+  function coverage(b, regions) {
+    if (!okBox(b)) return 0;
+    let a = 0;
+    for (const r of regions || []) a += Math.max(0, Math.min(b.x + b.w, r.x + r.w) - Math.max(b.x, r.x)) * Math.max(0, Math.min(b.y + b.h, r.y + r.h) - Math.max(b.y, r.y));
+    return Math.min(1, a / (b.w * b.h));
   }
 
   /* ---------------- measurement helpers ---------------- */
@@ -535,6 +644,6 @@
     luma, shrinkGray, laplacianVar, tenengrad, glare, exposure, textSize, assess,
     dbBoxes, scaleBoxes, sortLines, cropFromBoxes, parseDict, ctcDecode,
     gtinValid, gs1Prefix, parseGS1, lastDay, gs1Date, localDate, expiryStatus, barcodeInfo, findRegNumbers, VERIFY,
-    faceGate, levenshtein, charAccuracy, nameTokens, tokenHit, wilson
+    faceGate, FACE_BLUR, faceBlurPlan, mergeBoxes, coverage, tileRects, levenshtein, charAccuracy, nameTokens, tokenHit, wilson
   };
 });

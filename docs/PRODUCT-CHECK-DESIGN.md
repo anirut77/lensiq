@@ -461,6 +461,12 @@ are already on the page.
   - Any face above a low threshold (about 0.3) blocks the upload and asks the user to re-crop.
   - If the detector does not load, the upload is blocked.
   - Its miss rate is measured on a fixed set before any claim is made (9.3).
+  - **Owner decision 2026-11-10: blur, not block.** Before any image upload, every detected face region is blurred
+    automatically (irreversible pixelation of the upload image), the user sees the blurred preview with "N face regions
+    blurred" and can go back; no upload is blocked because of a face. The detector also runs on the crop at upload
+    resolution. A detector that does not load / run, or malformed output, means text only for that check (blurring cannot
+    fix it). Setting, test set and numbers: `docs/product-check/FACE-BLUR-RESULTS.md`; code: `LQPC.faceBlurPlan`,
+    `LQPCRun.faceRuns` / `faceBlur`, `prepareUpload()` in `lensiq-pc-ui.js` (P7 calls it). `faceGate` stays as an API.
 - **Patient-name guard (image and text mode):**
   - If the OCR finds a pharmacy dispensing label pattern (patient name line, "ชื่อผู้ป่วย", HN, date of dispensing),
     that region is blacked out before upload and its text is dropped.

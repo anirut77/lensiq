@@ -8,7 +8,13 @@
  *       native BarcodeDetector first, then the zxing-wasm ponyfill (self-hosted vendor/zxing/, never a CDN; CSP stays 'self')
  *   faceCheck(frameCanvas, cropRect) -> LQPC.faceGate(...) result + {runs}   BlazeFace short range (MediaPipe FaceDetector
  *       from vendor/mediapipe) on the whole frame, 2 x 2 overlapping tiles of it (small / background faces) AND the crop;
- *       fails closed when the model does not load or cannot run (MediaPipe needs WebGL)
+ *       fails closed when the model does not load or cannot run (no WebAssembly, a load or run error; WebGL is NOT required:
+ *       CI's Chrome has no WebGL at all and BlazeFace still runs there)
+ *       Kept as an API; the upload path does not block on a face any more (owner decision 2026-11-10), it blurs:
+ *   uploadCanvas(frame, crop, maxSide) -> {canvas, scale}   the crop at upload resolution (long side <= 1,024 px)
+ *   faceRuns(frame, crop, {maxSide, tiles}) -> {loaded, error?, runs, upload, scale, crop}   BlazeFace on the frame, 2 x 2
+ *       tiles and the upload image at upload resolution (boxes in frame pixels) -> LQPC.faceBlurPlan
+ *   faceBlur(canvas, regions) -> n   irreversible blur + pixelate of each region, in place
  *   quality(canvas, boxes) -> LQPC.assess(...)
  *   loaded() -> {det, rec:{th, cjk, ko, latin}, zxing, face}  (what has been downloaded in this tab)
  * Models load lazily (first use), one script at a time; ONNX Runtime Web WASM, one thread, no WebGL.
@@ -193,7 +199,11 @@
       box: b ? { x: Math.round(b.originX + dx), y: Math.round(b.originY + dy), w: Math.round(b.width), h: Math.round(b.height) } : null
     };
   }));
-  /** faceCheck(frame, crop{x,y,w,h}) -> {allow, reason, maxScore, runs}; any failure -> blocked (fail closed) */
+  /**
+   * faceCheck(frame, crop{x,y,w,h}) -> {allow, reason, maxScore, runs}; any failure -> blocked (fail closed).
+   * Kept as an API for other callers; the upload path no longer blocks on a face (owner decision 2026-11-10): it uses
+   * faceRuns + LQPC.faceBlurPlan + faceBlur below.
+   */
   async function faceCheck(frame, crop) {
     const runs = [];
     if (flag("fakeface") && typeof W.__LQ_FAKE_FACE === "function") {
@@ -221,6 +231,118 @@
     }
   }
 
+  /* ---------- face blur before upload (owner decision 2026-11-10: blur, never block) ---------- */
+  /**
+   * uploadCanvas(frame, crop, maxSide=1024) -> {canvas, scale}: the picture that would be sent = the crop, scaled so the long
+   * side is at most maxSide (design §8.2). Re-encoding it later (toBlob) drops EXIF.
+   */
+  function uploadCanvas(frame, crop, maxSide = 1024) {
+    const r = crop || { x: 0, y: 0, w: frame.width, h: frame.height }, k = Math.min(1, maxSide / Math.max(r.w, r.h));
+    const c = canvas(Math.round(r.w * k), Math.round(r.h * k));
+    ctx(c).drawImage(frame, r.x, r.y, r.w, r.h, 0, 0, c.width, c.height);
+    return { canvas: c, scale: k };
+  }
+  /**
+   * closeView(frame, fill) -> {canvas, ox, oy, k}: the whole frame letterboxed on a grey square (side 640 px) so that it
+   * fills `fill` of the side. A face larger than the frame's short side, or cut by the frame edge, is then fully inside the
+   * model's view with a margin around it (the close-up pass). Boxes map back with x_frame = (x - ox) / k.
+   */
+  function closeView(frame, fill) {
+    const S = 640, k = (S * fill) / Math.max(frame.width, frame.height), w = Math.round(frame.width * k), h = Math.round(frame.height * k);
+    const c = canvas(S, S), x = ctx(c), ox = Math.round((S - w) / 2), oy = Math.round((S - h) / 2);
+    x.fillStyle = "#808080"; x.fillRect(0, 0, S, S);
+    x.drawImage(frame, 0, 0, frame.width, frame.height, ox, oy, w, h);
+    return { canvas: c, ox, oy, k };
+  }
+  /** faces of the close-up pass, boxes in FRAME pixels (they may reach past the frame edge; faceBlurPlan clamps) */
+  function closeFaces(dets, frame, fill) {
+    const v = closeView(frame, fill);
+    return facesIn(dets, v.canvas).map(f => ({ score: f.score, box: f.box ? { x: Math.round((f.box.x - v.ox) / v.k), y: Math.round((f.box.y - v.oy) / v.k),
+      w: Math.round(f.box.w / v.k), h: Math.round(f.box.h / v.k) } : null }));
+  }
+  /** faceClose(frame, fill) -> {loaded, error?, faces}: the close-up pass alone (measurement: tools/pc-faceblur-eval.mjs) */
+  async function faceClose(frame, fill) {
+    try { return { loaded: true, faces: closeFaces(await faceModels(), frame, fill) }; } catch (e) { return { loaded: false, error: String((e && e.message) || e), faces: [] }; }
+  }
+  /**
+   * faceRuns(frame, crop, {maxSide=1024, tiles=true, grid=2, overlap=1/3, upscale=1, close=0}) -> {loaded, error?, runs, upload,
+   * scale, crop}. BlazeFace on the whole frame, on grid x grid overlapping tiles (when tiles; LQPC.tileRects, optional upscale
+   * per tile), on the letterboxed frame (when close > 0: the close-up pass, `close` = share of the view the frame fills) AND
+   * on the upload image itself (the crop at upload resolution); every box in FRAME pixels -> LQPC.faceBlurPlan.
+   * SAME PICTURE: the frame is copied once at the start, before any await; every pass and the upload image come from that
+   * copy, so a picture changed while the detector loads can never be blurred with another picture's faces.
+   * loaded = false / error when the detector cannot run (no model, no WebAssembly, any load / run error): faceBlurPlan then
+   * answers text only. Test seam ?fakeface: __LQ_FAKE_FACE(scope) for the scopes frame / tiles / close / upload returns
+   * [{score, box}] with boxes in frame pixels.
+   */
+  async function faceRuns(frame0, crop, o = {}) {
+    const frame = canvas(frame0.width, frame0.height);
+    ctx(frame).drawImage(frame0, 0, 0);
+    const grid = o.grid || 2, overlap = o.overlap == null ? 1 / 3 : o.overlap, up2 = o.upscale > 1 ? o.upscale : 1, close = o.close > 0 ? Math.min(1, o.close) : 0;
+    const tiles = o.tiles !== false, up = uploadCanvas(frame, crop, o.maxSide || 1024), r = crop ? { ...crop } : { x: 0, y: 0, w: frame.width, h: frame.height };
+    const base = { upload: up.canvas, scale: up.scale, crop: r, w: frame.width, h: frame.height };
+    const runs = [];
+    if (flag("fakeface") && typeof W.__LQ_FAKE_FACE === "function") {
+      for (const scope of ["frame", ...(tiles ? ["tiles"] : []), ...(close ? ["close"] : []), "upload"]) runs.push({ scope, faces: W.__LQ_FAKE_FACE(scope) || [] });
+      await Promise.resolve(); // the real path awaits the model here; keep the seam asynchronous too
+      return { loaded: true, runs, ...base };
+    }
+    let dets;
+    try { dets = await faceModels(); } catch (e) { return { loaded: false, error: String((e && e.message) || e), runs, ...base }; }
+    try {
+      runs.push({ scope: "frame", faces: facesIn(dets, frame) });
+      if (tiles) {
+        // grid x grid overlapping tiles (LQPC.tileRects); each tile optionally upscaled before detection, boxes scaled back
+        const found = [];
+        for (const g of P.tileRects(frame.width, frame.height, grid, overlap)) {
+          const t = canvas(Math.round(g.w * up2), Math.round(g.h * up2));
+          ctx(t).drawImage(frame, g.x, g.y, g.w, g.h, 0, 0, t.width, t.height);
+          found.push(...facesIn(dets, t).map(f => ({ score: f.score, box: f.box ? { x: Math.round(f.box.x / up2 + g.x), y: Math.round(f.box.y / up2 + g.y),
+            w: Math.round(f.box.w / up2), h: Math.round(f.box.h / up2) } : null })));
+        }
+        runs.push({ scope: "tiles", faces: found });
+      }
+      if (close) runs.push({ scope: "close", faces: closeFaces(dets, frame, close) });
+      // the upload image at upload resolution; its boxes go back to frame pixels (/ scale + crop origin)
+      const k = up.scale;
+      runs.push({ scope: "upload", faces: facesIn(dets, up.canvas).map(f => ({ score: f.score, box: f.box ? { x: Math.round(f.box.x / k + r.x), y: Math.round(f.box.y / k + r.y),
+        w: Math.round(f.box.w / k), h: Math.round(f.box.h / k) } : null })) });
+      return { loaded: true, runs, ...base };
+    } catch (e) {
+      return { loaded: true, error: String((e && e.message) || e), runs, ...base };
+    }
+  }
+  /**
+   * faceBlur(canvas, regions, {blocks=8}) -> number of regions blurred. IRREVERSIBLE, in place: each region is blurred
+   * (canvas filter, where the browser has it) and then pixelated — every block of the region is replaced by its mean colour,
+   * at most `blocks` blocks across the longer side (a block is >= 4 px), so the original pixels cannot be recovered.
+   */
+  function faceBlur(c, regions, o = {}) {
+    const x = ctx(c), blocks = o.blocks || 8;
+    let n = 0;
+    for (const g of regions || []) {
+      const rx = Math.max(0, Math.floor(g.x)), ry = Math.max(0, Math.floor(g.y)), rw = Math.min(c.width, Math.ceil(g.x + g.w)) - rx, rh = Math.min(c.height, Math.ceil(g.y + g.h)) - ry;
+      if (!(rw > 0 && rh > 0)) continue;
+      const b = Math.max(4, Math.ceil(Math.max(rw, rh) / blocks));
+      if ("filter" in x) { // 1. blur (ignored where canvas filters are not supported; the pixelation below always runs)
+        const t = canvas(rw, rh);
+        ctx(t).drawImage(c, rx, ry, rw, rh, 0, 0, rw, rh);
+        x.save(); x.beginPath(); x.rect(rx, ry, rw, rh); x.clip(); x.filter = `blur(${Math.max(2, b / 2)}px)`; x.drawImage(t, rx, ry); x.restore();
+      }
+      const im = x.getImageData(rx, ry, rw, rh), d = im.data; // 2. pixelate: block means
+      for (let by = 0; by < rh; by += b) for (let bx = 0; bx < rw; bx += b) {
+        const ex = Math.min(rw, bx + b), ey = Math.min(rh, by + b);
+        let R = 0, G = 0, B = 0, A = 0, m = 0;
+        for (let yy = by; yy < ey; yy++) for (let xx = bx; xx < ex; xx++) { const i = (yy * rw + xx) * 4; R += d[i]; G += d[i + 1]; B += d[i + 2]; A += d[i + 3]; m++; }
+        R = Math.round(R / m); G = Math.round(G / m); B = Math.round(B / m); A = Math.round(A / m);
+        for (let yy = by; yy < ey; yy++) for (let xx = bx; xx < ex; xx++) { const i = (yy * rw + xx) * 4; d[i] = R; d[i + 1] = G; d[i + 2] = B; d[i + 3] = A; }
+      }
+      x.putImageData(im, rx, ry);
+      n++;
+    }
+    return n;
+  }
+
   /* ---------- quality ---------- */
   function quality(src, boxes) {
     const k = Math.min(1, 1280 / Math.max(src.width, src.height)), w = Math.max(1, Math.round(src.width * k)), h = Math.max(1, Math.round(src.height * k));
@@ -230,5 +352,5 @@
     return P.assess(im, boxes ? boxes.map(b => ({ x0: b.x0 * k, x1: b.x1 * k, y0: b.y0 * k, y1: b.y1 * k })) : undefined);
   }
 
-  W.LQPCRun = { ocr, detect, recognize, barcodes, faceCheck, quality, loaded: () => JSON.parse(JSON.stringify(state)) };
+  W.LQPCRun = { ocr, detect, recognize, barcodes, faceCheck, uploadCanvas, faceRuns, faceClose, faceBlur, quality, loaded: () => JSON.parse(JSON.stringify(state)) };
 })();

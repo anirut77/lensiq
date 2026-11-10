@@ -6,8 +6,11 @@
  * only, never the OCR text) are written only when the page's opt-in history is on (window.__LQ_MED.cfg.hist).
  * Extension point for the over-claim rules (P3): after every read or edit the tab fires
  * window "lq-pc-text" {detail: {text, script}} and leaves #pcClaimsSlot empty for that card.
+ * Upload preview (owner decision 2026-11-10: blur faces, never block on a face): prepareUpload() blurs every detected face
+ * region of the crop, shows the picture with "N face regions blurred" and waits for "Use this picture" / "Back"; text only
+ * when the face detector cannot run. Not wired to the AI yet (P7 calls it); nothing is uploaded in this phase.
  * Test hooks (any host; they only expose what the page already shows): window.__LQ_PC = {st, setImage(canvas), read(),
- * scan(), faceCheck(), reparse()}.
+ * scan(), faceCheck(), prepareUpload(), reparse()}.
  */
 (function () {
   "use strict";
@@ -24,7 +27,7 @@
   const card = (k, inner, id) => `<section class="card md-res"${id ? ` id="${id}"` : ""} data-k="${k}">${inner}</section>`;
   const mb = b => Math.round(b / 1048576);
 
-  const st = { script: P.DEFAULT_SCRIPT, cam: null, still: false, crop: null, boxes: [], ocr: null, codes: null, quality: null, text: "", busy: false, read: false };
+  const st = { gen: 0, script: P.DEFAULT_SCRIPT, cam: null, still: false, crop: null, boxes: [], ocr: null, codes: null, quality: null, text: "", busy: false, read: false };
   W.__LQ_PC = { st };
 
   /* ---------- labels (TH default; EN / ZH in i18n/en-med.js, i18n/zh-med.js) ---------- */
@@ -119,10 +122,12 @@
     if (st.still) { sctx().clearRect(0, 0, still.width, still.height); still.width = still.height = 1; }
     Object.assign(st, { still: false, crop: null, boxes: [], ocr: null, codes: null, quality: null, text: "", read: false });
     $("#pcCamWrap").hidden = true; $("#pcOut").innerHTML = ""; $("#pcHints").innerHTML = ""; cropEl.hidden = true;
+    st.gen++; closePrev("back");
   }
   /** put a picture (canvas / image / video frame) into the still canvas (<= 1600 px long side) and analyse it */
   async function setImage(src, w, h) {
     stopCam();
+    st.gen++; closePrev("back"); // a new picture: any preview or face search of the old one is void
     const k = Math.min(1, 1600 / Math.max(w, h));
     still.width = Math.max(1, Math.round(w * k)); still.height = Math.max(1, Math.round(h * k));
     sctx().drawImage(src, 0, 0, still.width, still.height);
@@ -133,6 +138,7 @@
     if (st.crop) await read();
   }
   W.__LQ_PC.setImage = c => setImage(c, c.width, c.height);
+  W.__LQ_PC.clear = () => clearImage(); // same as "Close camera / clear picture" (the button is disabled while busy; a new file is not)
 
   /* ---------- analysis ---------- */
   const firstLoad = () => (R.loaded().det ? "" : " " + T("md.pc.st.first", "(ครั้งแรกโหลดโมเดลประมาณ {mb} MB)", { mb: mb(P.downloadBytes(st.script)) }));
@@ -188,8 +194,94 @@
     });
   }
   W.__LQ_PC.read = read; W.__LQ_PC.scan = scan;
-  /** face gate on the current picture (whole frame + crop) — used by P7 before any upload; nothing is uploaded in P2 */
+  /** face gate on the current picture (whole frame + crop). Kept as a hook / API; the upload path does NOT use it any more
+   *  (owner decision 2026-11-10: faces are blurred by prepareUpload, an upload is never blocked because of a face) */
   W.__LQ_PC.faceCheck = () => (st.still ? R.faceCheck(still, st.crop) : Promise.resolve({ ...P.faceGate(null), runs: [] }));
+  /* ---------- upload preview: faces blurred before any picture leaves the device (owner decision 2026-11-10) ---------- */
+  // Not wired to the AI yet (P7 calls prepareUpload). A face never blocks an upload: every detected face region is blurred
+  // (pixelated, irreversible) in the picture that would be sent, the user sees that picture and the count, and can go back.
+  // If the face detector cannot run, the picture is NOT sent: that check goes as text only (blurring cannot fix a detector
+  // that did not run). Nothing is uploaded or stored here.
+  const prev = $("#pcPrev");
+  let pending = null; // resolver of the preview that is waiting for the user's choice
+  const UP_REASON = () => ({ "model-missing": T("md.pc.up.rModel", "โหลดตัวหาใบหน้าบนเครื่องนี้ไม่ได้ จึงไม่รู้ว่ามีใบหน้าตรงไหน การเบลอจึงช่วยไม่ได้"),
+    error: T("md.pc.up.rError", "ตัวหาใบหน้าทำงานไม่สำเร็จบนเบราว์เซอร์นี้ จึงไม่รู้ว่ามีใบหน้าตรงไหน การเบลอจึงช่วยไม่ได้"),
+    "not-run": T("md.pc.up.rError", "ตัวหาใบหน้าทำงานไม่สำเร็จบนเบราว์เซอร์นี้ จึงไม่รู้ว่ามีใบหน้าตรงไหน การเบลอจึงช่วยไม่ได้"),
+    "bad-score": T("md.pc.up.rBad", "ผลจากตัวหาใบหน้าอ่านไม่ได้ จึงไม่แน่ใจว่าเบลอใบหน้าได้ครบ"),
+    "bad-box": T("md.pc.up.rBad", "ผลจากตัวหาใบหน้าอ่านไม่ได้ จึงไม่แน่ใจว่าเบลอใบหน้าได้ครบ"),
+    "bad-frame": T("md.pc.up.rBad", "ผลจากตัวหาใบหน้าอ่านไม่ได้ จึงไม่แน่ใจว่าเบลอใบหน้าได้ครบ"),
+    "no-image": T("md.pc.st.noImg", "เปิดกล้องแล้วถ่ายภาพ หรือเลือกรูปก่อน") });
+  function closePrev(choice) {
+    if (pending) { const r = pending; pending = null; r(choice); }
+    prev.hidden = true; prev.innerHTML = "";
+  }
+  function showTextOnly(reason) {
+    closePrev("back");
+    prev.innerHTML = card("warn", `<h3>${esc(T("md.pc.up.textOnlyH", "ครั้งนี้ใช้เฉพาะข้อความ ไม่ส่งภาพ"))}</h3>` +
+      `<p class="md-status" data-kind="warn" data-reason="${esc(reason)}">${esc(UP_REASON()[reason] || UP_REASON().error)}</p>` +
+      `<p class="hint">${esc(T("md.pc.up.textOnlyT", "ภาพไม่ถูกส่ง ใช้เฉพาะข้อความที่อ่านได้บนเครื่องนี้ (แก้ไขได้ด้านล่าง) ลองใหม่บนเบราว์เซอร์อื่นได้ถ้าต้องการส่งภาพ"))}</p>`, "pcPrevCard");
+    prev.hidden = false;
+  }
+  /**
+   * prepareUpload() -> Promise of
+   *   {blob, blurredCount}          the user pressed "Use this picture": a JPEG of the crop (long side <= 1,024 px, EXIF
+   *                                 dropped by re-encoding) with every detected face region blurred; blurredCount = regions
+   *   {textOnly: true, reason}      the face detector could not run / gave unreadable output (LQPC.faceBlurPlan) or there
+   *                                 is no picture: send text only, never this picture
+   *   {cancelled: true, reason: "back"}   the user went back (to redraw the box); nothing is sent
+   *   {cancelled: true, reason: "busy" | "changed"}   another analysis was running, or the picture was replaced / cleared
+   *                                 while the faces were being found; nothing is sent
+   * Faces never block: a picture with faces is blurred and shown, not refused.
+   * SAME PICTURE: LQPCRun.faceRuns copies the picture before its first await and builds the upload image from that copy;
+   * a generation counter (st.gen, bumped by every new / cleared picture) is checked after the await, so the regions found
+   * are always blurred on, and sent with, exactly the picture the detector saw.
+   */
+  async function prepareUpload() {
+    closePrev("back");
+    if (!st.still) { showTextOnly("no-image"); return { textOnly: true, reason: "no-image" }; }
+    if (st.busy) return { cancelled: true, reason: "busy" };
+    const set = P.FACE_BLUR, gen = st.gen;
+    let out = null, up = null, n = 0;
+    await busy(async () => {
+      status(T("md.pc.up.scan", "กำลังหาใบหน้าในภาพบนเครื่องนี้ เพื่อเบลอก่อนส่ง…"), "");
+      let fr;
+      try { fr = await R.faceRuns(still, st.crop, { tiles: set.tiles, grid: set.grid, overlap: set.overlap, upscale: set.upscale, close: set.close, maxSide: 1024 }); }
+      catch (e) { fr = { loaded: false, error: String(e) }; }
+      if (gen !== st.gen) { status("", ""); out = { cancelled: true, reason: "changed" }; return; }
+      const plan = P.faceBlurPlan(fr, fr.w, fr.h, { threshold: set.threshold, pad: set.pad, tiles: set.tiles,
+        need: ["frame", ...(set.tiles ? ["tiles"] : []), ...(set.close ? ["close"] : []), "upload"], crop: fr.crop, scale: fr.scale });
+      if (plan.textOnly) { status("", ""); showTextOnly(plan.reason); out = { textOnly: true, reason: plan.reason }; return; }
+      up = fr.upload; n = R.faceBlur(up, plan.regions);
+    });
+    if (out) return out;
+    if (!up) return { cancelled: true, reason: "busy" };
+    up.id = "pcPrevImg";
+    up.setAttribute("role", "img");
+    up.setAttribute("aria-label", T("md.pc.up.imgA", "ภาพที่จะส่ง บริเวณใบหน้าถูกเบลอแล้ว"));
+    prev.innerHTML = card("info", `<h3>${esc(T("md.pc.up.h", "ภาพที่จะส่ง: ตรวจก่อนส่ง"))}</h3>` +
+      `<p class="md-status" data-kind="${n ? "ok" : ""}" id="pcPrevCount" data-n="${n}">${esc(n === 1 ? T("md.pc.up.n1", "เบลอบริเวณใบหน้าแล้ว 1 จุด")
+        : n ? T("md.pc.up.n", "เบลอบริเวณใบหน้าแล้ว {n} จุด", { n }) : T("md.pc.up.none", "ไม่พบใบหน้าในภาพ ไม่มีบริเวณที่ต้องเบลอ"))}</p><div class="pc-prev-img"></div>` +
+      `<p class="hint">${esc(T("md.pc.up.note",
+        "เครื่องนี้หาใบหน้าและเบลอให้อัตโนมัติ รวมถึงภาพคนบนบรรจุภัณฑ์ ใบหน้าที่เล็กมากอาจหาไม่พบ ถ้ายังเห็นใบหน้าหรือชื่อคน กด 'กลับไปแก้กรอบ' ยังไม่มีการส่งภาพจนกว่าจะกด 'ใช้ภาพนี้'"))}</p>` +
+      `<div class="md-row"><button class="btn ghost" type="button" id="pcPrevBack">${esc(T("md.pc.up.back", "กลับไปแก้กรอบ"))}</button>` +
+      `<button class="btn primary" type="button" id="pcPrevUse">${esc(T("md.pc.up.use", "ใช้ภาพนี้"))}</button></div>`, "pcPrevCard");
+    prev.querySelector(".pc-prev-img").appendChild(up);
+    prev.hidden = false;
+    status(T("md.pc.up.ready", "ภาพพร้อมให้ตรวจ ยังไม่มีการส่ง"), "ok");
+    prev.scrollIntoView({ block: "nearest" });
+    const choice = await new Promise(res => { pending = res; });
+    if (choice !== "use") { up.width = up.height = 1; return { cancelled: true, reason: "back" }; }
+    // the only image encoding in Product Check: the BLURRED crop, after the user confirmed it in the preview (P7 sends it)
+    const blob = await new Promise(res => up.toBlob(res, "image/jpeg", 0.85));
+    up.width = up.height = 1;
+    return blob ? { blob, blurredCount: n } : { textOnly: true, reason: "error" };
+  }
+  prev.addEventListener("click", e => {
+    if (e.target.closest("#pcPrevBack")) { closePrev("back"); status(T("md.pc.up.backSt", "ยังไม่ส่งภาพ วางกรอบใหม่ได้"), ""); $("#pcCam").focus(); }
+    else if (e.target.closest("#pcPrevUse")) closePrev("use");
+  });
+  W.__LQ_PC.prepareUpload = prepareUpload;
+
   function reparse() { const t = $("#pcText"); if (t) st.text = t.value; emergency(); renderOut(); remember(); announce(); }
   W.__LQ_PC.reparse = reparse;
   /** same emergency card as the "Box / label" tab (LQMed.emergency): overdose / poisoning / self-harm wording in the text */

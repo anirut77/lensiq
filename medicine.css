@@ -78,4 +78,5 @@
 .pc-crop{border-color:#f59e0b;left:0;top:0;width:0;height:0}
 .pc-bottom{margin:8px auto 0}
 #pcHints li{color:#8a4b00}
+.pc-prev-img canvas{display:block;max-width:100%;height:auto;max-height:60vh;margin:8px 0;border:1px solid var(--line);border-radius:8px}
 @media print{.nav,.md-tabs,.md-set,.md-row,.md-camwrap{display:none!important}}

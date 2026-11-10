@@ -308,5 +308,21 @@
   "md.pc.r.expPast": "The printed expiry date appears to have passed. Check the date on the pack; if confirmed, do not use it and ask a pharmacist.",
   "md.pc.r.expFact": "This is what is printed in the barcode; it was not checked with the maker. Compare it with the date printed on the box.",
   "md.pc.r.expDay": "The barcode gives the day as 00, which the GS1 standard reads as the last day of the month.",
-  "md.pc.r.other": "The content of this code is shown as read; links are never opened automatically."
+  "md.pc.r.other": "The content of this code is shown as read; links are never opened automatically.",
+  "md.pc.up.rModel": "The face finder could not be loaded on this device, so it is not known where faces are. Blurring cannot help in that case.",
+  "md.pc.up.rError": "The face finder did not run in this browser, so it is not known where faces are. Blurring cannot help in that case.",
+  "md.pc.up.rBad": "The face finder's output could not be read, so it is not certain that every face would be blurred.",
+  "md.pc.up.textOnlyH": "This time: text only, no picture",
+  "md.pc.up.textOnlyT": "The picture is not sent. Only the text read on this device is used (you can edit it below). Try another browser if you want to send a picture.",
+  "md.pc.up.scan": "Looking for faces in the picture on this device, to blur them before sending…",
+  "md.pc.up.imgA": "The picture that would be sent, with face regions blurred",
+  "md.pc.up.h": "Picture to be sent: check it first",
+  "md.pc.up.n1": "1 face region blurred",
+  "md.pc.up.n": "{n} face regions blurred",
+  "md.pc.up.none": "No face found in the picture; no region needed blurring.",
+  "md.pc.up.note": "This device finds faces and blurs them automatically, including people printed on the packaging. Very small faces can be missed. Look at the picture before sending: if you still see a face or a person's name, press 'Back to the box' and draw the box again. Nothing is sent until you press 'Use this picture'.",
+  "md.pc.up.back": "Back to the box",
+  "md.pc.up.use": "Use this picture",
+  "md.pc.up.ready": "The picture is ready to check. Nothing has been sent.",
+  "md.pc.up.backSt": "No picture sent. You can draw the box again."
 } });

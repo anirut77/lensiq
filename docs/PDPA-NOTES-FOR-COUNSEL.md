@@ -721,3 +721,12 @@ Added on approval (all providers enabled, remembered consent):
    medicine history — counsel to recommend defaults.
 8. **Shared devices**: kept exam clips are behind an invigilator PIN, but someone with browser devtools or "clear site
    data" can still delete local data; confirm the notice wording.
+
+### F4. Product Check face blur (2026-11-10)
+
+Product Check image mode now blurs every detected face before upload instead of blocking (owner decision). On a fresh
+public held-out set the on-device detector left 34.7 % of real faces unblurred, mostly faces under 40 px, and 7 of 25
+close-ups (`docs/product-check/FACE-BLUR-RESULTS.md`). A picture with a missed face can therefore be sent after the user
+has seen the blurred preview and pressed "Use this picture"; if the detector cannot run, no picture is sent (text only).
+Question for counsel: is preview plus user confirmation an adequate safeguard for an image that may still show an
+identifiable person (s.6), or should image mode use a stricter default (smaller crop, or text only)? (CTO-BRIEF L39, L40.)

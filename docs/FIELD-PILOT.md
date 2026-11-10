@@ -319,6 +319,8 @@ input. Rows without ground truth are skipped and counted.
 
 ## Changelog / last reviewed
 
+- **2026-11-10 (round 17)**: face blur before upload built (no upload path until P7); its numbers are public-dataset
+  only. A field check of the blurred preview on the owner's phone (photos with a hand or a face in frame) is still to do.
 - **2026-11-10 (round 17)**: Product Check P2 tab (`medicine.html` → "ตรวจสินค้า (ทุกประเทศ)") ready for the owner's
   first phone test (checklist given in the round report). Numbers so far: synthetic labels and the public photo set
   only (`docs/product-check/P2-RESULTS.md`); **field and phone: not measured**. Photo protocol:

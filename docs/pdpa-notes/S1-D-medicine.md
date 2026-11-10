@@ -35,15 +35,23 @@ A fourth tab reads packs of medicines, supplements, cosmetics and food from any 
 
 | Step | Detail |
 |---|---|
-| Camera / photo | The same `getUserMedia` rear camera or a picked file. A snapshot is drawn to an in-memory canvas (at most 1,600 px). The camera stops after the snapshot, when the user leaves the tab and when the page closes. "Close camera / clear picture" wipes the canvas. **No image leaves the device in P2**: no encoding, no upload and no storage. A unit test asserts that `lensiq-pc*.js` contain no `toDataURL`, `toBlob`, `FormData`, `readAsDataURL` or POST, and the e2e test asserts that no non-GET request and no third-party request is made. |
+| Camera / photo | The same `getUserMedia` rear camera or a picked file. A snapshot is drawn to an in-memory canvas (at most 1,600 px). The camera stops after the snapshot, when the user leaves the tab and when the page closes. "Close camera / clear picture" wipes the canvas. **No image leaves the device in P2**: no upload and no storage. Since the face-blur step (2026-11-10) there is exactly one image encoding, `prepareUpload()`: the **blurred** crop is encoded to JPEG in memory (EXIF dropped) only after the user has seen the preview and pressed "Use this picture", and it is handed to the caller (P7, not wired yet). A unit test asserts that this is the only encoding in `lensiq-pc*.js`, that it comes after the blur and the confirmation, and that there is no `FormData`, `XMLHttpRequest`, `sendBeacon`, `WebSocket` or POST; the e2e test asserts that no non-GET request and no third-party request is made. |
 | On-device models | Text detection and recognition (PP-OCRv5, ONNX Runtime Web), barcodes (the browser's `BarcodeDetector`, otherwise the self-hosted zxing-wasm), all loaded from this site. No CDN and no query string is sent. |
 | Face check | BlazeFace (MediaPipe, on the device) can run on the snapshot and the crop. In P2 it only computes an allow / block decision for the later upload step (P7) and **nothing is uploaded**. Its result is not stored or shown as information about a person. The owner has decided that P7 will **blur** detected face regions before any upload instead of blocking; that design comes after P2. |
+| Face blur before upload (built 2026-11-10, not wired to the AI yet) | Owner decision: before any image upload, every detected face region is blurred automatically; no upload is blocked because of a face. BlazeFace runs on the device on the whole snapshot, on 3 x 3 overlapping tiles and on the picture at upload resolution (long side at most 1,024 px). Each region is blurred and then pixelated (each block replaced by its mean colour), which cannot be reversed. The user sees the blurred picture with "N face regions blurred" and can go back; nothing is sent before "Use this picture" (and in this phase nothing is sent at all). If the detector does not load or run, or its output is malformed, **no picture is sent**: that check goes as text only, and the user is told why. Faces in the picture are not identified, stored, counted per person or used for anything else. Measured miss rate and readability: `docs/product-check/FACE-BLUR-RESULTS.md` (public datasets; small faces are missed more often, so the preview text tells the user to look and go back). |
 | Emergency wording | Overdose / poisoning / self-harm wording in the read text opens the same emergency card as the other tab and is never stored. |
 | Stored on the device | Nothing by default. **Only with the existing opt-in "Keep a lookup history"** does a row of kind `pc` get added to `lq-med-history`. It holds only the registration-number formats found (normalised numbers), barcode GTINs and the country codes. It **never** holds the OCR text (which could contain a patient name on a dispensing label) or an image (e2e-tested). |
 | Third parties | None in P2. The "how to verify" links (oryor.com, Thai FDA, NPRA, HSA, Health Canada, FDA, NMPA, EMA, TGA, PMDA, MFDS, GS1, WHO) open only when the user taps them. |
 
 Open question for counsel (P7, before image mode): the photo may show a hand, a face (blurred per the owner's decision) or a
 prescription label with a patient name. P7 adds the patient-name guard (design §8.2).
+
+Open question for counsel (face blur, 2026-11-10): the detector misses some real faces, mostly small ones (numbers in
+`docs/product-check/FACE-BLUR-RESULTS.md`). With blur instead of block, a picture in which a face was missed can be sent
+after the user has looked at the preview and pressed "Use this picture". Is the preview plus the user's confirmation an
+adequate safeguard for an image that may still show an identifiable person (s.26 is not engaged by a face alone, but a
+face is personal data under s.6), or should image mode add a stricter step (for example a smaller crop by default, or a
+higher-recall detector setting at the cost of label readability)?
 
 ## Why we think the risk is manageable (for counsel to confirm)
 
