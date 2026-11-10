@@ -291,6 +291,17 @@ the recogniser is not trained on plates).
 Small n: 95 % intervals are wide (0 / 19 false auto-reads → 0–17 %). **10 of those 19 are the dev half the guard was
 tuned on**; on the held-out half alone it is **0 / 9 (before the guard 1 / 9), 95 % interval 0–30 %**. These are public photos, not a gate camera.
 
+**Boxes re-checked without YOLOv9 (2026-11-10).** Every photo was opened and every box checked by hand against a pixel
+grid (an agent with an image viewer; no detector of any kind was run). Convention: the plate itself, not its holder,
+frame or dealer strip. Of the 34 v1 boxes, 20 unchanged, 13 redrawn (12 had boxed the holder; IoU v1 vs v2 0.55–0.84,
+mean 0.75), 1 removed (w12: a decal, not a second plate); 5 small unreadable background plates added. The 19 plate-less
+photos were confirmed to show no readable plate. No plate text changed. Re-run with the same command on the v2 labels
+(public dataset, Wikimedia Commons): **exact read 7 of 22, taps needed 25 / 32, false auto-reads 0 of 19 and wrong reads
+are unchanged**; "plate is the top box" goes 13 → **14 / 32 (44 %)** (dev 9 → 10 / 18, w26); tap read stays 4 of 15
+(dev 2 → 3, held-out 2 → 1). The v2 labels (`plates-photo-labels.v2.csv`, with a `box_source` column) and the per-photo
+report `BOX-RECHECK.md` stay with the photos in `~/LENSIQ-field/plates-public/` (outside the repo); the owner is asked to confirm the
+convention and 10 doubtful cases listed there. Use v2 for the YOLOX-nano comparison.
+
 ### Synthetic demo set with the guard (same scenes and metrics as section 3b)
 
 | Seed | Exact one-frame reads without → with the guard | Wrong reads proposed without → with | Plate-less scenes auto-read without → with |
@@ -344,7 +355,7 @@ from the web without licence or consent. The delivered detector is the Thai-trai
 
 **Fairness fix before the Thai model is measured:** the 51-photo Wikimedia Commons set's plate boxes were drafted with
 YOLOv9 and checked by eye (section 3c). Before any comparison, every box is re-checked by hand or redrawn without
-YOLOv9, and the eval docs state which boxes changed. Until then, box-based numbers on this set favour YOLOv9-like
+YOLOv9, and the eval docs state which boxes changed. **Done 2026-11-10** ("Boxes re-checked without YOLOv9" above). Until then, box-based numbers on this set favour YOLOv9-like
 detectors; read-based numbers (exact read, taps) are less affected.
 
 ## 4. Hardware guide

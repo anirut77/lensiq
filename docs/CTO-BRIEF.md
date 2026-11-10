@@ -65,7 +65,7 @@ No module is production-ready. None has completed a field pilot, and the backend
 | MediaPipe Hands (TF.js) + hand_landmarker | palm, kiosk | 3.9 + 7.5 MB | Apache-2.0 | google-ai-edge/mediapipe | browser | ACCURACY §4 |
 | Selfie segmenter | booth background | 0.24 MB | Apache-2.0 | MediaPipe | browser | not measured |
 | Selfie Multiclass 256 | studio parsing | 7.8 MB | Apache-2.0 | MediaPipe | browser, ORT | ACCURACY §11 |
-| MODNet | matting | 25 MB | Apache-2.0 (earlier releases CC BY-NC-SA; provenance commit unrecorded) | ZHKKKe/MODNet via Xenova | browser, ORT | ACCURACY §11 |
+| MODNet | matting | 25 MB | Apache-2.0 (earlier releases CC BY-NC-SA; shipped file is byte-identical to Xenova/modnet `onnx/model.onnx`, published Feb 2024, after the Jan 2022 switch to Apache-2.0; training-data question in `docs/LICENCE-REQUESTS.md` letter L) | ZHKKKe/MODNet via Xenova | browser, ORT | ACCURACY §11 |
 | MobileNetV2 | checkout embedding, re-ID | 13 MB | Apache-2.0 (ImageNet) | tfjs-models | browser | not measured (§9) |
 | PP-OCRv5 Thai rec (mobile) | plate and label text | 7.5 MB | Apache-2.0 | PaddleOCR | browser, ORT | Plates (synthetic, held out): exact read in 1 frame 81/140 (58%), unchanged by the R16 plate check. **Public photos (R16, 51 Wikimedia Commons photos):** exact automatic read 7/22 (32%; 7/23 = 30% counting held-out photo w07, whose label was set to "unsure" before any held-out run); motorcycle plates 0/6; 4/15 exact even when the guard taps the plate. **Field:** not measured |
 | LPD-YuNet (R15) | plate proposal assist | 4.1 MB | Apache-2.0 | OpenCV Zoo | browser, ORT | **Synthetic:** finder + LPD-YuNet found 136/140 plates on the held-out seed, 18–20 of 20 in each colour, motorcycle and night category. **Public photos (R16, 51 photos):** the top box is the plate on 13/32 (41%). The top box scored high enough to start an auto-read on 18 of 19 plate-less photos; the R16 plate check (`LQPlate.plateGuard`) is what stops them: photos without a plate read automatically 3/19 → 0/19 (held-out 1/9 → 0/9; 95% interval 0–17% for 0/19, 0–30% for 0/9). **Field:** not measured. |
@@ -78,7 +78,7 @@ No module is production-ready. None has completed a field pilot, and the backend
 - **Blocked:**
   - `faceparse-bisenet-r18-q8.onnx` (CelebAMask-HQ, non-commercial). It is git-ignored, refused by the build and off by default.
   - Open virtual try-on weights (CC BY-NC-SA). Try-on is off unless the operator attests to a commercial licence.
-  - YOLOv9 weights from open-image-models (GPL-derived). Benchmark use only; never shipped. In R16 the `yolo-v9-t-384-license-plates-end2end.onnx` model (github.com/ankandrew/open-image-models; code MIT, weights licence not stated, YOLOv9 reference code GPL-3.0) was run offline, outside the repo, **only to draw candidate boxes for labelling** the real-photo set (`docs/GATE.md` §3c). Nothing from it is in the repo (`git ls-files` checked).
+  - YOLOv9 weights from open-image-models (GPL-derived). Benchmark use only; never shipped. In R16 the `yolo-v9-t-384-license-plates-end2end.onnx` model (github.com/ankandrew/open-image-models; code MIT, weights licence not stated, YOLOv9 reference code GPL-3.0) was run offline, outside the repo, **only to draw candidate boxes for labelling** the real-photo set (`docs/GATE.md` §3c). Nothing from it is in the repo (`git ls-files` checked). **Owner decision 2026-11-10: not used anywhere, not even for local demos (L41); the 51-photo boxes are re-checked without it before the Thai YOLOX-nano model is measured.**
 - **Unresolved, needs a legal opinion:**
   - The face-api models (F5/F6), whose training data is academic. Age/gender is trained on UTKFace, which is non-commercial.
   - These models are core to attendance, customers, booth and exam.
@@ -250,6 +250,8 @@ No module is production-ready. None has completed a field pilot, and the backend
   real faces left unblurred 34.7 % [29.3–40.5] (faces < 40 px mostly missed; close-ups 7 / 25 missed). Reviewer found
   the earlier held-out numbers optimistic; fresh numbers are the ones to quote. YuNet rejected (WIDER FACE training data
   is CC BY-NC-ND). Fresh face images deleted 2026-11-10 06:09 after the eval (manifest kept). `docs/product-check/FACE-BLUR-RESULTS.md`.
+- `docs/LICENCE-REQUESTS.md` (2026-11-10): 18 licence-limited items, 15 draft letters (A–P, K withdrawn) for the owner
+  to send; top 3: face-api.js author (Exam, Attendance), dlib recognition data (Attendance), THIS/TMT. Nothing sent.
 - New feature designs approved 2026-11-10 (`docs/NUTRITION-DESIGN.md`, `TRYON-DESIGN.md`, `MERIT-DESIGN.md`,
   `STYLE-DESIGN.md`): MVP first, built after Product Check and LICENCE-REQUESTS, in the order Nutrition, Try-On, Merit,
   Style, then org accounts P1–P3. Back-office phase 1 uses the platform admin login (BO-1). Thai plate model (YOLOX-nano)
