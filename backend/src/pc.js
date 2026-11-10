@@ -40,6 +40,7 @@
 import { callerHash, getSetting, hit, putSetting } from "./store.js";
 import { HttpError, flag, intVar, json, log, originAllowed, publicOrigins } from "./util.js";
 import { cleanTerm } from "./med.js";
+import { testerGateRequired, testerState } from "./tester.js";
 
 export const THFDA_URL = "https://porta.fda.moph.go.th/FDA_SEARCH_ALL/WS_LICENSE_SEARCH.asmx";
 export const UPSTREAM_MS = 10000;
@@ -436,12 +437,14 @@ export const BATCH_MAX = 16;
  * @param {any} env @param {any} cfg @param {{source: any, op?: any, by?: any, q?: any}} L @param {{fetch?: typeof fetch, cache?: any}} deps
  * @returns {Promise<[any, number]>}
  */
-async function lookupOne(env, cfg, L, deps) {
+async function lookupOne(env, cfg, L, deps, testerOk = true) {
   const route = String(L.source || "");
   if (!Object.hasOwn(SOURCES, route)) return [{ error: "unknown source" }, 400];
   const meta = SOURCES[route];
   const base = { source: route, name: meta.name, credit: meta.credit, licence: meta.licence, testing_only: meta.testing_only };
   if (cfg.sources[route] === false) return [{ ...base, ok: false, could_not_check: true, reason: cfg.off_reason[route] || "switched_off" }, 503];
+  // deploy B8 (owner decision D2): testing-only sources answer tester-code holders only; nobody else triggers an upstream call
+  if (meta.testing_only && !testerOk) return [{ ...base, ok: false, could_not_check: true, reason: "tester_required" }, 503];
   const by = ["name", "gtin", "ndc"].includes(String(L.by || "")) ? String(L.by) : "name";
   const q = cleanTerm(L.q || "", 80);
   if (q.length < 2) return [{ error: "query too short" }, 400];
@@ -492,8 +495,11 @@ export async function pcRoute(request, env, url, deps = {}, cors = {}) {
   if (request.method !== (batch ? "POST" : "GET")) return reply({ error: "method not allowed" }, 405);
   if (!originAllowed(request, publicOrigins(env), { required: true })) return reply({ error: "origin not allowed" }, 403);
   const cfg = await getPcSettings(env);
+  const gated = testerGateRequired(env);
   if (route === "status") {
-    return reply({ enabled: true, build: cfg.build, thfda: { mode: cfg.thfda, permission_before_charging: true },
+    const tOk = !gated || (await testerState(env, request)).ok;
+    for (const [k, s] of Object.entries(SOURCES)) if (s.testing_only && !tOk && cfg.sources[k] !== false) { cfg.sources[k] = false; cfg.off_reason[k] = "tester_required"; }
+    return reply({ enabled: true, build: cfg.build, tester_gate: gated, thfda: { mode: cfg.thfda, permission_before_charging: true },
       sources: Object.fromEntries(Object.entries(SOURCES).map(([k, s]) => [k, { on: cfg.sources[k] !== false, off_reason: cfg.off_reason[k] || "",
         testing_only: s.testing_only, country: s.country, name: s.name, licence: s.licence }])) });
   }
@@ -518,10 +524,11 @@ export async function pcRoute(request, env, url, deps = {}, cors = {}) {
     if (cleanTerm(L.q || "", 80).length < 2) return reply({ error: "query too short" }, 400);
     if (String(L.by || "") === "gtin" && !GTIN.test(cleanTerm(L.q || "", 80))) return reply({ error: "bad gtin" }, 400);
   }
+  const testerOk = !gated || !list.some(L => SOURCES[String(L.source)].testing_only) || (await testerState(env, request)).ok;
   const rl = await limited(request, env); // ONE count per request: a tap is one batch
   if (!rl.ok) return json({ error: "rate limited", retry_after: rl.retryAfter }, 429, { ...cors, "Retry-After": String(rl.retryAfter) });
   if (!batch) {
-    try { const [b, st] = await lookupOne(env, cfg, list[0], deps); return reply(b, st); }
+    try { const [b, st] = await lookupOne(env, cfg, list[0], deps, testerOk); return reply(b, st); }
     catch { return reply({ source: route, ok: false, could_not_check: true, reason: "upstream_unavailable" }, 502); }
   }
   // de-duplicate (re-review 16): the same lookup twice in one batch is asked once; every position gets its answer
@@ -531,7 +538,7 @@ export async function pcRoute(request, env, url, deps = {}, cors = {}) {
   for (const L of list) if (!uniq.has(keyOf(L))) uniq.set(keyOf(L), L);
   /** @type {Map<string, any>} */
   const done = new Map(/** @type {Array<[string, any]>} */ (await Promise.all([...uniq].map(async ([k, L]) => {
-    try { const [b, st] = await lookupOne(env, cfg, L, deps); return [k, { status: st, ...b }]; }
+    try { const [b, st] = await lookupOne(env, cfg, L, deps, testerOk); return [k, { status: st, ...b }]; }
     catch { return [k, { status: 502, source: String(L.source), ok: false, could_not_check: true, reason: "upstream_unavailable" }]; }
   }))));
   return reply({ ok: true, results: list.map(L => done.get(keyOf(L))), unique: uniq.size });

@@ -38,6 +38,7 @@
   "adg.cfg.unset": "未设置（不会使用此服务商）",
   "adg.cfg.invalid": "格式无效（不会使用此服务商）",
   "adg.notes.h": "服务商备注",
+  "adg.pin.only": "此部署已固定实际服务商。只能使用以下模型；其他模型在代码中添加固定配置之前会被拒绝：",
   "adg.t.provider": "服务商",
   "adg.t.secret": "设置密钥的命令",
   "adg.t.region": "处理地点",

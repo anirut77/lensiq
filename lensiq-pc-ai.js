@@ -128,7 +128,8 @@
     /** @type {any} */
     const st = { busy: false, text: "", res: null, removed: [], notice: "", why: "", offer: null, via: "", preview: null, ready: false, whyCapture: false };
     W.__LQ_PCAI = { st };
-    const api = () => !!(W.LQApi && W.LQApi.enabled && W.LQApi.enabled() && W.LQAI && W.LQPCGuard);
+    // closed test (lensiq-tester.js): with the tester gate on, the step exists only for a visitor who entered the code
+    const api = () => !!(W.LQApi && W.LQApi.enabled && W.LQApi.enabled() && W.LQAI && W.LQPCGuard && (!W.LQTester || W.LQTester.unlocked()));
     const pcl = () => (W.__LQ_PCL && W.__LQ_PCL.st) || {};
     const KIND = () => ({ name: T("md.pc.ai.k.name", "ชื่อ"), hn: T("md.pc.ai.k.hn", "เลขผู้ป่วย (HN)"), phone: T("md.pc.ai.k.phone", "เบอร์โทร"),
       id: T("md.pc.ai.k.id", "เลขบัตรประชาชน"), email: T("md.pc.ai.k.email", "อีเมล"), dob: T("md.pc.ai.k.dob", "วันเกิด"), address: T("md.pc.ai.k.address", "ที่อยู่") });
@@ -434,6 +435,7 @@
     });
     W.addEventListener("lq-pc-card", paint);
     W.addEventListener("lq-lang", paint);
+    W.addEventListener("lq-tester", paint);
     W.addEventListener("pagehide", () => { st.res = null; st.removed = []; st.offer = null; st.text = ""; st.ready = false; closePreview(null); });
   }
 

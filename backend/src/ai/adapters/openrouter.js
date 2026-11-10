@@ -41,7 +41,50 @@ export function kindOf403(data) {
   return "auth"; // an unrecognised 403 is a configuration problem (alert), never reported to the user as a content refusal
 }
 
-export const adapter = makeAdapter({
+// ---- pinned routes (deploy B6: the consent screen names the real processor BEFORE the call) -------------------------
+// Applied only when the Worker var AI_ROUTE_PIN = "required" (adapters/index.js providerConfig -> ctx.config.pinRoutes;
+// the test deployment sets it). Then, for a model listed here, the request carries provider.only = [slug] and
+// allow_fallbacks = false (set last, with zdr / data_collection), so the router may use that serving provider only, and
+// an answer that names another serving provider (or none) is rejected (routeMismatch; the gateway alerts the owner).
+// Source of the pins (read 2026-11-10): https://openrouter.ai/api/v1/endpoints/zdr lists, for the Claude models, ZDR
+// endpoints google-vertex/global|us|europe (and amazon-bedrock, without structured outputs: P8-RESULTS section 2) and,
+// for the GPT models, azure, azure/us, azure/eu only. A base slug matches every region variant of that provider
+// (https://openrouter.ai/docs/features/provider-routing), so the country is NOT fixed: the texts say so.
+// UNVERIFIED wording: the exact region list can change at the router. Served names accepted: exactly what the P8 runs
+// recorded in real answers, "Google Vertex" and "Azure". The endpoints API labels the Vertex endpoints "Google", a name
+// Google's other API could also carry, so plain "Google" is NOT accepted: if real answers say "Google", the first call
+// fails closed with a route_mismatch alert (the chain moves on) and the pin is corrected deliberately.
+// With pinning on, a model that has NO pin is refused (usable() below): nothing is sent to a serving provider the
+// consent screen could not name.
+const VERTEX = Object.freeze({
+  slug: "google-vertex", served: /^google\s+vertex(\s+ai)?$/i,
+  name: { th: "Google Cloud Vertex AI (ผู้ให้บริการที่รันโมเดล)", en: "Google Cloud Vertex AI (serves the model)", zh: "Google Cloud Vertex AI（实际运行模型）" },
+  region: {
+    th: "ศูนย์ข้อมูลของ Google Cloud นอกประเทศไทย (ทั่วโลก สหรัฐฯ หรือยุโรป ไม่กำหนดประเทศ)",
+    en: "Google Cloud data centres outside Thailand (global, US or Europe; country not fixed)",
+    zh: "泰国境外的 Google Cloud 数据中心（全球、美国或欧洲，国家不固定）"
+  }
+});
+const AZURE = Object.freeze({
+  slug: "azure", served: /^(microsoft\s+)?azure(\s+openai)?$/i,
+  name: { th: "Microsoft Azure (ผู้ให้บริการที่รันโมเดล)", en: "Microsoft Azure (serves the model)", zh: "Microsoft Azure（实际运行模型）" },
+  region: {
+    th: "ศูนย์ข้อมูลของ Microsoft Azure นอกประเทศไทย (ทั่วโลก สหรัฐฯ หรือยุโรป ไม่กำหนดประเทศ)",
+    en: "Microsoft Azure data centres outside Thailand (global, US or Europe; country not fixed)",
+    zh: "泰国境外的 Microsoft Azure 数据中心（全球、美国或欧洲，国家不固定）"
+  }
+});
+/** model -> pinned serving provider. Models not listed stay unpinned ("routed provider varies", as before). */
+export const ROUTES = Object.freeze({
+  "anthropic/claude-haiku-5.5": VERTEX, "anthropic/claude-sonnet-5.5": VERTEX,
+  "openai/gpt-6-luna": AZURE, "openai/gpt-6.1-terra": AZURE
+});
+/** @param {any} config ctx.config / providerConfig(env, "openrouter") */
+const pinOn = config => !!(config && config.pinRoutes === true);
+/** The pin of a model while pinning is on, else null. @param {string} model @param {any} config */
+const pinOf = (model, config) => (pinOn(config) && Object.hasOwn(ROUTES, model) ? /** @type {Record<string, any>} */ (ROUTES)[model] : null);
+
+const base = makeAdapter({
   id: "openrouter",
   region: "routed",
   endpoint: () => ENDPOINT,
@@ -60,6 +103,8 @@ export const adapter = makeAdapter({
       data_collection: "deny", zdr: true, require_parameters: true,
       max_price: { prompt: p ? p.inPerM : 0, completion: p ? p.outPerM : 0, request: ROUTER_CAPS.requestUsd, image: ROUTER_CAPS.imageUsd }
     };
+    const pin = pinOf(entry.model, ctx && ctx.config);
+    if (pin) { body.provider.only = [pin.slug]; body.provider.allow_fallbacks = false; }
   },
   errorKind: (status, data) => (status === 403 ? kindOf403(data) : status === 402 ? "auth" : null),
   readExtra: (data, usage, key) => {
@@ -74,3 +119,24 @@ export const adapter = makeAdapter({
     return out;
   }
 });
+
+export const adapter = {
+  ...base,
+  /** Public view of the pinned serving provider (consent screen), or null. @param {string} model @param {any} [config] */
+  route: (model, config) => { const p = pinOf(model, config); return p ? { slug: p.slug, name: p.name, region: p.region } : null; },
+  /** May this model be used at all? With pinning on, only models that have a pin. @param {string} model @param {any} [config] */
+  usable: (model, config) => !pinOn(config) || Object.hasOwn(ROUTES, model),
+  /** The models usable in this deployment while pinning is on (admin page), else null. @param {any} [config] */
+  pinnedModels: config => (pinOn(config) ? Object.keys(ROUTES) : null),
+  /** @param {any} req @param {{model: string, effort?: string|null}} entry @param {any} ctx */
+  async call(req, entry, ctx) {
+    if (pinOn(ctx && ctx.config) && !Object.hasOwn(ROUTES, entry.model)) return { ok: false, kind: "unsupported" }; // no pin: never sent
+    const r = await base.call(req, entry, ctx);
+    const pin = pinOf(entry.model, ctx && ctx.config);
+    if (pin && r && r.ok && !(typeof r.routedProvider === "string" && pin.served.test(r.routedProvider))) {
+      // served by a provider the user was not shown: the answer is not used ("refusal": billed, next chain entry)
+      return { ok: false, kind: "refusal", routeMismatch: true, usage: r.usage, model: r.model, providerRequestId: r.providerRequestId, routedProvider: r.routedProvider };
+    }
+    return r;
+  }
+};

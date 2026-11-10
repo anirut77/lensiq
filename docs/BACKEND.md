@@ -467,6 +467,18 @@ Local dev with the Turnstile bypass: put `GO_LIVE_GATE=report` in `.dev.vars` (t
 
 ## 3. Deploy steps (owner — not done by CI)
 
+> **Test deployment to the owner's (shared) Cloudflare account, 2026-11-10: use `docs/DEPLOY.md`, not the generic steps
+> below.** It deploys only Worker `lensiq-api-test` + D1 `lensiq-test` through `[env.test]` of `wrangler.toml` and the
+> guarded scripts (`npm run backend:deploy:test`, `backend:off` / `backend:on`, `secrets:setup`, `ai:deploy-defaults`,
+> `backend:smoke`). New switches of that environment (`src/tester.js`): `TESTER_GATE` + secret `TESTER_ACCESS_CODE`
+> (header `X-Tester-Code`; gates `/v1/ai/*`, `/api/fortune*` and the testing-only lookup sources), `SERVICE_OFF` (kill
+> switch: every public route except `/health` answers 503 `{off:true}`), `DAILY_REQUEST_CAP` (LENSIQ-side cap on public
+> requests per UTC day; 429 `daily_cap`), `AI_ROUTE_PIN` (router models pinned to the serving provider named on the
+> consent screen; a model without a pin is refused), `PUBLIC_ROUTES` (allow-list of public routes; others 404 `route_off` before
+> D1), `D1_WRITE_BUDGET` (approximate daily budget of write statements; 429 `d1_budget`), `ADMIN_UNAUTH_WRITES_HOUR` (failed admin
+> sign-ins stop writing over this many statements an hour; a correct sign-in is never refused). All are unset in the default configuration, where nothing changes. `POST /v1/tester/check`
+> answers `{ok:true}` for a valid code. The generic steps below describe a fresh install on an account of its own.
+
 1. `cd backend && npm install`
 2. `npx wrangler login`
 3. `npx wrangler d1 create lensiq` → copy the printed `database_id` into `backend/wrangler.toml`.

@@ -31,7 +31,7 @@
 
   /**
    * @param {string} path
-   * @param {{method?: string, body?: any, timeoutMs?: number, credentials?: RequestCredentials, headers?: Record<string, string>}} [opts]
+   * @param {{method?: string, body?: any, timeoutMs?: number, credentials?: RequestCredentials, headers?: Record<string, string>, referrerPolicy?: ReferrerPolicy}} [opts]
    * @returns {Promise<any>}
    */
   function request(path, opts) {
@@ -41,6 +41,7 @@
     var timer = ac ? setTimeout(function () { if (ac) ac.abort(); }, o.timeoutMs || 15000) : null;
     /** @type {RequestInit} */
     var init = { method: o.method || "GET", credentials: o.credentials || "omit", headers: o.headers || {}, signal: ac ? ac.signal : undefined };
+    if (o.referrerPolicy) init.referrerPolicy = o.referrerPolicy;
     if (o.body !== undefined) { init.body = JSON.stringify(o.body); init.headers = Object.assign({ "Content-Type": "application/json" }, o.headers || {}); }
     return fetch(url(path), init)
       .then(function (r) { return r.ok ? r.json().catch(function () { return {}; }) : null; })

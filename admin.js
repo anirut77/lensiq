@@ -436,6 +436,11 @@
       pv.appendChild(h("p", { class: "ad-muted", text: G("adg.notes.h", "หมายเหตุของผู้ให้บริการ") }));
       var ul = h("ul", { class: "ad-muted adg-notes" });
       notes.forEach(function (/** @type {any} */ p) { ul.appendChild(h("li", { text: (p.name[gLang()] || p.id) + ": " + (p.note[gLang()] || p.note.th) })); });
+      // a deployment that pins serving providers: only these models can be used, every other model is refused
+      d.providers.filter(function (/** @type {any} */ p) { return p.usable_models && p.usable_models.length; }).forEach(function (/** @type {any} */ p) {
+        ul.appendChild(h("li", { class: "adg-pin", text: (p.name[gLang()] || p.id) + ": " +
+          G("adg.pin.only", "การติดตั้งนี้ตรึงผู้ให้บริการปลายทางไว้ ใช้ได้เฉพาะโมเดลต่อไปนี้ โมเดลอื่นจะถูกปฏิเสธจนกว่าจะเพิ่มการตรึงในโค้ด:") + " " + p.usable_models.join(", ") }));
+      });
       pv.appendChild(ul);
     }
     pv.appendChild(table([G("adg.t.provider", "ผู้ให้บริการ"), G("adg.t.secret", "ตั้งคีย์ด้วย"), G("adg.t.region", "ประมวลผลที่")],

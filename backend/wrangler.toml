@@ -9,6 +9,10 @@
 #   ALERT_WEBHOOK_URL      optional https incoming-webhook URL (Slack / Discord / ntfy …) for owner alerts — no PII sent
 #   HEALTH_TOKEN           optional bearer token that protects GET /health/deep
 #   MAIL_API_KEY           optional (round 12) — Resend / MailChannels API key for transactional e-mail (src/mail.js)
+# The top-level configuration below is the on-premise / template default (placeholder D1 id: it cannot be deployed as is).
+# The owner's Cloudflare account is SHARED with other projects: deploy ONLY through `npm run backend:deploy:test`
+# (tools/backend-deploy.mjs: prints the target, passes --env test, refuses any name that is not lensiq-*). See [env.test]
+# at the end of this file and docs/DEPLOY.md.
 name = "lensiq-api"
 main = "src/worker.js"
 compatibility_date = "2026-10-01"
@@ -126,3 +130,95 @@ run_worker_first = true
 enabled = true
 # Logs never contain facts, events, keys, passwords or IPs (see src/util.js log()).
 head_sampling_rate = 1
+
+# ======================================================================================================================
+# TEST environment (closed tester group, owner decisions 2026-11-10; docs/DEPLOY.md). Deployed ONLY with
+#   npm run backend:deploy:test        (tools/backend-deploy.mjs: prints the targets, --env test, name guard)
+# New, clearly named resources only: Worker "lensiq-api-test", D1 "lensiq-test". Nothing else in the account is touched.
+# vars and D1 bindings are not inherited by an environment, so every var is repeated here (a unit test checks that none
+# is missing). Secrets are set with `npm run secrets:setup` (never written here).
+[env.test]
+name = "lensiq-api-test"
+workers_dev = true
+# no extra public preview / version hostnames
+preview_urls = false
+
+# Workers Logs: the Free plan gives the whole ACCOUNT 200,000 log events / day, shared with the owner's other Workers.
+# Half of the invocations are logged (with the request cap below: at most about 10 % of that quota).
+[env.test.observability]
+enabled = true
+head_sampling_rate = 0.5
+
+# only the daily maintenance cron: the 15-minute payment reconcile has nothing to do (billing is off) and the Free plan
+# allows 5 cron triggers per ACCOUNT, shared with the owner's other Workers
+[env.test.triggers]
+crons = ["17 3 * * *"]
+
+[env.test.vars]
+ALLOWED_ORIGINS = "https://anirut77.github.io"
+ADMIN_ORIGINS = ""
+TURNSTILE_HOSTNAMES = "anirut77.github.io"
+CHECKOUT_GLOBAL_HOUR = "30"
+ANALYTICS_FEATURES = ""
+GOOGLE_CLIENT_ID = ""
+SIGNIN_GLOBAL_15MIN = "300"
+MEMBER_LEDGER_DAYS = "400"
+FREE_MODE = "true"
+BILLING_ENABLED = "false"
+ALLOW_GUEST_CHECKOUT = "false"
+OPN_ALLOW_LIVE = "false"
+VAT_REGISTERED = "false"
+SELLER_NAME = ""
+SELLER_TAX_ID = ""
+SELLER_ADDRESS = ""
+SELLER_BRANCH = "สำนักงานใหญ่"
+GO_LIVE_GATE = "enforce"
+LEGAL_TERMS_READY = "false"
+LEGAL_PRIVACY_READY = "false"
+REQUIRE_OWNER_TOTP = "true"
+MONEY_REAUTH = ""
+TEST_CHARGE_HOUR = "10"
+RECONCILE_BATCH = "25"
+LEADS_DAYS = "180"
+LEADS_GLOBAL_DAY = "200"
+MAIL_PROVIDER = ""
+MAIL_FROM = ""
+SITE_URL = "https://anirut77.github.io/lensiq"
+CSP_REPORT_DAYS = "90"
+CSP_REPORT_GLOBAL_DAY = "5000"
+PC_ENABLED = "true"
+PC_THFDA_MODE = "live"
+PC_BUILD = "demo"
+PC_RATE_MIN = "30"
+RAW_EVENT_DAYS = "90"
+AUDIT_DAYS = "400"
+WEBHOOK_PAYLOAD_DAYS = "90"
+# ---- test-environment switches (not in the default configuration) ----
+# Tester access code gate (src/tester.js): AI features, fortune AI and the testing-only lookup sources (Thai FDA web
+# service, EU Safety Gate, RASFF: owner decision D2) answer only requests that carry the code in X-Tester-Code.
+# "required" + secret TESTER_ACCESS_CODE missing or shorter than 16 characters = everyone is refused (fail closed).
+TESTER_GATE = "required"
+# The consent screen names the real serving provider: router models are pinned to it (src/ai/adapters, deploy B6).
+AI_ROUTE_PIN = "required"
+# LENSIQ-side cap on public requests per UTC day. The Free plan gives the whole ACCOUNT 100,000 requests / day, shared
+# with the owner's other Workers: LENSIQ stops itself at 20 % of it and answers 429 "try again tomorrow" (fail closed).
+DAILY_REQUEST_CAP = "20000"
+# Public routes of THIS deployment (src/tester.js). Anything else answers 404 "not enabled in this deployment" before D1
+# is touched: analytics (/v1/events), demo requests (/v1/leads: they store name, e-mail, phone), billing, member sign-in,
+# fortune AI (no key, not part of this test) and CSP reports are OFF here. /v1/config then reports analytics, sign-in and
+# billing as off.
+PUBLIC_ROUTES = "/health,/health/deep,/v1/config,/v1/tester/check,/v1/ai/*,/api/pc/*,/api/med/*"
+# Budget of D1 write statements per UTC day caused by public routes (approximate: counted per isolate, stored every 10
+# requests). The Free plan gives the whole ACCOUNT 100,000 rows written a day, shared with the owner's other projects:
+# LENSIQ stops itself at about 5 % and answers 429 "try again tomorrow"; the owner gets an alert when that happens.
+D1_WRITE_BUDGET = "5000"
+# Unauthenticated admin requests (failed sign-ins) may cause at most this many D1 write statements per hour and isolate.
+# Over it, sign-ins are still checked and a correct one still succeeds, but failed ones write nothing (src/tester.js).
+ADMIN_UNAUTH_WRITES_HOUR = "120"
+
+[[env.test.d1_databases]]
+binding = "DB"
+database_name = "lensiq-test"
+# Filled by `npm run backend:d1:create` (tools/backend-deploy.mjs) from the id wrangler prints. Not a secret. Do not edit by hand.
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"

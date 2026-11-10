@@ -804,3 +804,19 @@ lists what would never be sent, a crop-to-advert step, and an on-device-only alt
 any build: lawful basis for processing third parties' data found in a screenshot the user took; whether an individual
 seller's name or shop handle is personal data here; defamation exposure when a "risk signal" is shown about a named
 seller; wording of the separate consent.
+
+(g) Closed tester phase prepared (2026-11-10; nothing deployed yet; runbook `docs/DEPLOY.md`). Scope: `medicine.html`
+only; every other page keeps no API. Who can reach what: without a tester code the AI step does not exist on the page
+and the Worker refuses every AI request; the Thai FDA web service, EU Safety Gate and RASFF are called for tester-code
+holders only (owner decision D2). Processors accepted by the owner for this phase (D1): Cloudflare (API host, D1
+database, Turnstile), OpenRouter (second processor), Google Cloud Vertex AI and Microsoft Azure (serving providers,
+pinned; zero-retention routes forced; processing outside Thailand, country not fixed: global, US or Europe). Basis used
+for testers (D3): consent per send, or remembered for exactly the processors shown; withdrawable. Photo mode is on for
+testers: faces blurred on the device, the blurred preview shown before every send, the product-label filter active.
+Texts shown to testers (D4, draft): the tester card on `medicine.html?tester=1` and `privacy.html` section 5, TH / EN /
+ZH. What is stored: no label text, no image, no result; per-day salted caller hashes for rate limits; counters; the
+tester code only as a Worker secret (in the browser: sessionStorage, for the session). Logs: fixed fields only (test
+"logs" in `tests/unit/backend-deploy-gate.test.js`); Cloudflare's own invocation log records method and URL, so nothing
+personal is ever put in a URL. Switches: `npm run backend:off` (everything), admin global AI switch, tester-code
+rotation. Questions for counsel: L48 (lawful basis for real customers), L49 (this wording), L50 (processor terms and
+whether the model makers receive data on these routes, which the router does not state).

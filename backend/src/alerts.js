@@ -14,6 +14,8 @@ const TEXT = {
   late_payment_fulfilled: "LENSIQ: a payment closed as expired was paid late and has now been fulfilled — check admin → Alerts",
   charge_stuck_pending: "LENSIQ: a PromptPay charge is still 'pending' at Opn after 24 h — check it in the Opn dashboard",
   test_charge_cap: "LENSIQ: the admin test-charge cap was reached — check admin → Audit",
+  daily_limit_reached: "LENSIQ: today's request or database-write budget was reached; the public service is off until 00:00 UTC (admin and /health stay up)",
+  tester_code_weak: "LENSIQ: the configured tester access code is too short or too easy to guess; every tester is refused until a new one is set (npm run secrets:setup -- --only TESTER_ACCESS_CODE)",
   ai_config_error: "LENSIQ: an AI provider call failed with a configuration error (key, model or request) — check admin → AI Gateway"
 };
 

@@ -98,6 +98,12 @@
         <tr><td>หน่วยงานรัฐ</td><td>เมื่อกฎหมายกำหนด เช่น กรมสรรพากร หรือคำสั่งศาล</td><td>ประเทศไทย</td></tr>
       </tbody>
     </table></div>
+    <p class="pc-ai-test"><b>การตรวจด้วย AI ของ Product Check (การทดสอบแบบปิด, ฉบับร่าง):</b> เปิดให้เฉพาะกลุ่มผู้ทดสอบที่ได้รับรหัส
+      เฉพาะเมื่อคุณยินยอม ข้อความบนฉลาก และภาพถ่ายสินค้าที่เบลอใบหน้าบนเครื่องของคุณแล้วถ้าคุณเลือกโหมดภาพ จะถูกส่งผ่าน Cloudflare
+      (ผู้ให้บริการเซิร์ฟเวอร์ API ของเรา) และ OpenRouter ไปยัง Google Cloud Vertex AI หรือ Microsoft Azure ซึ่งอยู่นอกประเทศไทย
+      ผู้ให้บริการเหล่านี้ไม่เก็บเนื้อหา (เส้นทางแบบไม่เก็บข้อมูล) LENSIQ ไม่เก็บข้อความหรือภาพบนฉลาก Cloudflare Turnstile ใช้ตรวจว่าไม่ใช่บอทก่อนส่ง
+      หน้าขอความยินยอมจะระบุชื่อผู้ประมวลผลที่ใช้จริงก่อนส่งทุกครั้ง
+      คุณถอนความยินยอมได้ทุกเมื่อ</p>
   </section>
 
   <section id="p6"><h2>6. การส่งข้อมูลไปต่างประเทศ</h2>
@@ -247,6 +253,11 @@
         <tr><td>Public authorities</td><td>Where the law requires, e.g. the Revenue Department or a court order</td><td>Thailand</td></tr>
       </tbody>
     </table></div>
+    <p class="pc-ai-test"><b>Product Check AI (closed test, draft):</b> open only to the tester group that holds a code. Only after your consent, the
+      label text, and the product photo with faces blurred on your device if you choose photo mode, is sent through Cloudflare (our API host) and
+      OpenRouter to Google Cloud Vertex AI or Microsoft Azure, outside Thailand. They keep no content (zero-retention routes). LENSIQ stores no label
+      text or image. Cloudflare Turnstile checks that the sender is not a bot. The consent screen names the processors actually used, every time before anything is sent.
+      You can withdraw your consent at any time.</p>
   </section>
 
   <section id="en-p6"><h2>6. Transfers abroad</h2>
@@ -397,6 +408,10 @@
         <tr><td>政府机关</td><td>在法律要求时，如税务厅或法院命令</td><td>泰国</td></tr>
       </tbody>
     </table></div>
+    <p class="pc-ai-test"><b>Product Check AI（封闭测试，草稿）：</b>仅向持有代码的测试小组开放。仅在您同意后，标签文字（如果您选择照片模式，<!--
+      -->还包括已在您的设备上模糊人脸的产品照片）会经由 Cloudflare（我们的 API 托管方）和 OpenRouter 发送至泰国境外的 Google Cloud Vertex AI 或 Microsoft Azure。它们不保留内容（零保留线路）。<!--
+      -->LENSIQ 不保存标签文字或图片。Cloudflare Turnstile 用于在发送前确认不是机器人。<!--
+      -->每次发送前，同意页面都会列明实际使用的处理方。您可以随时撤回同意。</p>
   </section>
 
   <section id="zh-p6"><h2>6. 跨境传输</h2>

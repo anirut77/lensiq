@@ -450,6 +450,10 @@
       timeout: T("md.pc.l.r.timeout", "แหล่งข้อมูลตอบช้าเกินไป"), rate_limited: T("md.pc.l.r.rate", "มีการค้นมากเกินไป ลองใหม่ในอีกสักครู่"),
       bad_response: T("md.pc.l.r.bad", "แหล่งข้อมูลตอบกลับในรูปแบบที่อ่านไม่ได้"),
       testing_only_off: T("md.pc.l.r.testingOff", "ปิดในบิลด์นี้ เพราะยังไม่ได้ยืนยันสิทธิ์การใช้ข้อมูลของแหล่งนี้"),
+      tester_required: T("md.pc.l.r.tester", "แหล่งนี้ยังอยู่ระหว่างทดสอบ เปิดให้เฉพาะกลุ่มผู้ทดสอบ ตรวจเองได้ที่เว็บไซต์ของแหล่งข้อมูล"),
+      tester_locked: T("md.pc.l.r.tester", "แหล่งนี้ยังอยู่ระหว่างทดสอบ เปิดให้เฉพาะกลุ่มผู้ทดสอบ ตรวจเองได้ที่เว็บไซต์ของแหล่งข้อมูล"),
+      service_off: T("md.pc.l.r.serviceOff", "บริการตรวจออนไลน์ปิดชั่วคราว หน้านี้แสดงผลจากในเครื่องเท่านั้น"),
+      daily_cap: T("md.pc.l.r.cap", "วันนี้มีการค้นครบจำนวนแล้ว ลองใหม่พรุ่งนี้"),
       needs_setup: T("md.pc.l.r.setup", "เซิร์ฟเวอร์ยังไม่ได้ตั้งค่าสำหรับแหล่งนี้"), index_not_ready: T("md.pc.l.r.notReady", "ข้อมูลของแหล่งนี้ยังไม่พร้อมบนเซิร์ฟเวอร์") });
     const ISSUE = () => ({ contains: T("md.pc.l.i.contains", "ตรวจพบ {s}"), "exceeds-limit": T("md.pc.l.i.exceeds", "ปริมาณ {s} เกินเกณฑ์"),
       unregistered: T("md.pc.l.i.unreg", "ไม่ได้ขึ้นทะเบียน"), "no-number": T("md.pc.l.i.noNumber", "ไม่มีเลขทะเบียนบนฉลาก"),
@@ -551,13 +555,18 @@
         const timer = ac ? setTimeout(() => ac.abort(), 30000) : null;
         let status = 0, j = null;
         try {
-          const r = await f(W.LQApi.url("/api/pc/batch"), { method: "POST", credentials: "omit", headers: { "Content-Type": "application/json" },
+          const r = await f(W.LQApi.url("/api/pc/batch"), { method: "POST", credentials: "omit",
+            // closed test (lensiq-tester.js): a tester's code opens the testing-only sources; nobody else sends a header
+            headers: { "Content-Type": "application/json", ...(W.LQTester ? W.LQTester.headers() : {}) },
             body: JSON.stringify({ lookups: remote.map(p => p.req) }), signal: ac ? ac.signal : undefined });
           status = r.status;
           try { j = await r.json(); } catch { j = null; }
         } catch { status = 0; } finally { if (timer) clearTimeout(timer); }
         const results = j && j.ok === true && Array.isArray(j.results) && j.results.length === remote.length ? j.results : null;
-        const why = status === 429 ? "rate_limited" : status === 0 ? "timeout" : "bad_response";
+        // a kept tester code the Worker no longer accepts (rotated / revoked): forget it at once, so it is not sent again
+        if (W.LQTester && ((j && j.reason === "tester_required") || (results && results.some((/** @type {any} */ x) => x && x.reason === "tester_required")))) W.LQTester.refused();
+        const why = j && j.off === true ? "service_off" : j && (j.code === "daily_cap" || j.code === "d1_budget") ? "daily_cap"
+          : status === 429 ? "rate_limited" : status === 0 ? "timeout" : "bad_response";
         rows = remote.map((step, k) => (results ? rowFor(step, { ok: results[k] && results[k].ok === true, status: Number(results[k] && results[k].status) || 0, j: results[k] }, today)
           : rowFor(step, { ok: false, status, j: { reason: why } }, today)));
       }

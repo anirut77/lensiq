@@ -32,6 +32,11 @@
 //   POST /api/pc/batch                  the card's one call per tap (<= 16 lookups, one rate-limit count)
 //   GET  /v1/ai/providers?feature=…      AI gateway consent-screen data (round 17 P5, ai/gateway.js; no secrets)
 //   POST /v1/ai/:feature                 AI gateway (consent, Turnstile action "ai", limits, budget, fallback chain)
+//   POST /v1/tester/check               closed test (tester.js): {ok:true} when X-Tester-Code is valid (or no gate is set)
+// Test deployment switches (tester.js; all unset by default = no change): PUBLIC_ROUTES (allow-list; other public routes
+//   404 route_off before D1), D1_WRITE_BUDGET (429 d1_budget), ADMIN_UNAUTH_WRITES_HOUR, SERVICE_OFF (every public route except /health
+//   -> 503 {off:true}), DAILY_REQUEST_CAP (429 daily_cap), TESTER_GATE + TESTER_ACCESS_CODE (X-Tester-Code on /v1/ai/*,
+//   /api/fortune* and the testing-only lookup sources of pc.js / med.js)
 // Admin round 12: GET /admin/api/csp-reports, GET /admin/api/mail (delivery log + provider status); POST
 //   /billing/test-charge needs re-auth and is capped (TEST_CHARGE_HOUR); money ops follow auth.moneyReauthMode
 // Admin round 17 P4: GET|PUT /admin/api/pc/lookup (Thai FDA live / link-out + per-source switches; PUT re-auth, audited)
@@ -54,6 +59,10 @@ import { medRoute } from "./med.js";
 import { adminPcLookup, pcRoute, putPcSettings } from "./pc.js";
 import { reconcilePending } from "./billing.js";
 import { turnstileStatus } from "./turnstile.js";
+import {
+  OFF_BODY, ROUTE_OFF_BODY, adminStateCached, adminUnauth, capBody, countRequest, meterDb, noteBootstrapped, noteWrites, routeEnabled, serviceOff, strictLimit, testerBody,
+  testerState
+} from "./tester.js";
 import { runMaintenance, retentionConfig } from "./retention.js";
 import * as members from "./members.js";
 import * as settings from "./settings.js";
@@ -69,13 +78,29 @@ export const TEST_CHARGE_HOUR = 10;
 
 async function publicRoute(request, env, url, deps) {
   const allow = publicOrigins(env);
-  const cors = corsHeaders(request, allow, { methods: "GET, POST, DELETE, OPTIONS", headers: "Content-Type, X-Turnstile-Token, Authorization, Idempotency-Key" });
+  const cors = corsHeaders(request, allow, { methods: "GET, POST, DELETE, OPTIONS", headers: "Content-Type, X-Turnstile-Token, Authorization, Idempotency-Key, X-Tester-Code" });
   const p = url.pathname;
   const m = request.method;
   if (m === "OPTIONS") return json(null, originAllowed(request, allow, { required: true }) ? 204 : 403, cors);
   const reply = (body, status = 200) => json(body, status, cors);
 
-  if (p === "/health" && m === "GET") return reply({ ok: true });
+  // deploy B4: kill switch. /health stays up and says so; CORS preflights above still answer, so the page can read the 503.
+  const off = serviceOff(env);
+  if (p === "/health" && m === "GET") return reply(off ? { ok: true, off: true } : { ok: true });
+  if (off) return reply(OFF_BODY, 503);
+  // account safety: LENSIQ-side daily request cap (DAILY_REQUEST_CAP; the Free plan quota is shared by the whole account)
+  // this deployment's public route allow-list (PUBLIC_ROUTES): anything else is refused before D1 is touched
+  if (!routeEnabled(env, p)) return reply(ROUTE_OFF_BODY, 404);
+  const capped = await countRequest(env);
+  if (!capped.ok) return json(capBody(capped.code), capped.code === "config_invalid" ? 503 : 429, { ...cors, "Retry-After": String(capped.retryAfter) });
+  // deploy B3: tester access code (TESTER_GATE=required). Checked only on the gated routes below.
+  const gate = () => testerState(env, request);
+  const gateHeaders = st => (st.retryAfter ? { ...cors, "Retry-After": String(st.retryAfter) } : cors);
+  if (p === "/v1/tester/check" && m === "POST") {
+    if (!originAllowed(request, allow, { required: true })) return reply({ error: "origin not allowed" }, 403);
+    const st = await gate();
+    return st.ok ? reply({ ok: true, required: st.required }) : json(testerBody(st), st.status, gateHeaders(st));
+  }
   if (p === "/health/deep" && m === "GET") {
     const tok = String(env.HEALTH_TOKEN || "");
     if (tok && request.headers.get("Authorization") !== "Bearer " + tok) return reply({ error: "unauthorized" }, 401);
@@ -91,9 +116,13 @@ async function publicRoute(request, env, url, deps) {
     await ingestCspReport(env, request);
     return json(null, 204, cors);
   }
+  if (p === "/v1/config" && m === "GET" && !routeEnabled(env, "/v1/events") && !routeEnabled(env, "/api/auth/nonce") && !routeEnabled(env, "/v1/billing/plans")) {
+    // a deployment whose allow-list leaves analytics, sign-in and billing out says so, without touching D1
+    return reply({ analytics: false, free_mode: true, pricing_enabled: false, billing_enabled: false, membership: { required: false, google_client_id: null } });
+  }
   if (p === "/v1/config" && m === "GET") {
     const b = await billing.publicBillingInfo(env);
-    return reply({ analytics: true, free_mode: b.free_mode, pricing_enabled: b.pricing_enabled, membership: await members.publicMembership(env) });
+    return reply({ analytics: routeEnabled(env, "/v1/events"), free_mode: b.free_mode, pricing_enabled: b.pricing_enabled, membership: await members.publicMembership(env) });
   }
   if (p.startsWith("/api/auth/") || p === "/api/me" || p.startsWith("/api/me/")) {
     if (!originAllowed(request, allow, { required: true })) return reply({ error: "origin not allowed" }, 403);
@@ -148,18 +177,31 @@ async function publicRoute(request, env, url, deps) {
     if (r) return r;
   }
   if (p === "/v1/ai/providers" && m === "GET") {
+    const st = await gate();
+    // without a valid code nothing about the chain is told (same shape as a switched-off feature)
+    if (!st.ok) {
+      return reply({ feature: String(url.searchParams.get("feature") || "").slice(0, 41), enabled: false, tester: true, reason: st.reason,
+        imageModeAllowed: false, stores: false, chain: [] });
+    }
     const info = await providersInfo(env, url.searchParams.get("feature") || "", deps);
     return info ? reply(info) : reply({ error: "unknown feature", fallback: true, reason: "unavailable" }, 404);
   }
   const aim = /^\/v1\/ai\/([a-z][a-z0-9_]{1,40})$/.exec(p);
   if (aim && m === "POST") {
     if (!originAllowed(request, allow, { required: true })) return reply({ error: "origin not allowed", fallback: true, reason: "bad_request" }, 403);
+    const st = await gate();
+    if (!st.ok) return json(testerBody(st), st.status, gateHeaders(st));
     const [body, status] = await aiRoute(env, request, aim[1], deps);
     return reply(body, status);
   }
-  if (p === "/api/fortune/status" && m === "GET") return reply(await fortuneStatus(env, request));
+  if (p === "/api/fortune/status" && m === "GET") {
+    const st = await gate();
+    return st.ok ? reply(await fortuneStatus(env, request)) : reply({ enabled: false, tester: true, reason: st.reason, turnstile: true });
+  }
   if (p === "/api/fortune" && m === "POST") {
     if (!originAllowed(request, allow, { required: true })) return reply({ error: "Origin ไม่ได้รับอนุญาต", fallback: true }, 403);
+    const st = await gate();
+    if (!st.ok) return json(testerBody(st), st.status, gateHeaders(st));
     const [body, status] = await fortuneRun(env, request, deps);
     return reply(body, status);
   }
@@ -206,18 +248,31 @@ async function adminRoute(request, env, url, deps) {
   const reply = (body, status = 200, extra = {}) => json(body, status, { ...cors, ...extra });
   const body = async () => (unsafe ? readJson(request, ADMIN_MAX_BODY) : {});
 
-  // unauthenticated
+  // unauthenticated. ADMIN_UNAUTH_WRITES_HOUR (tester.js adminUnauth): failed sign-ins cannot write without bound, and no
+  // ceiling ever refuses a correct sign-in; only a caller over the in-memory attempt limit gets "admin_busy"
+  const busy = g => json({ error: "too many attempts from this address; try again later", code: "admin_busy" }, 429, { ...cors, "Retry-After": String(g.retryAfter) });
   if (route === "/state" && m === "GET") {
+    const cached = adminStateCached(env);
+    if (cached) return reply(cached); // over the hour's write ceiling: answered from memory
     // anonymous: only whether the one-time setup has been done (no configuration hints); signed in: + the go-live gate
     const out = { bootstrapped: !!(await auth.getOwner(env.DB)) };
+    noteBootstrapped(out.bootstrapped);
     let signedIn = null;
     try { signedIn = await auth.requireAdmin(env, request); } catch { /* anonymous */ }
     if (signedIn) out.go_live = await goLiveStatus(env);
     return reply(out);
   }
-  if (route === "/bootstrap" && m === "POST") return reply(await auth.bootstrap(env, request, await body()), 201);
+  if (route === "/bootstrap" && m === "POST") {
+    const b = await body();
+    const r = await adminUnauth(env, request, e => auth.bootstrap(e, request, b));
+    if (r && r.busy) return busy(r);
+    noteBootstrapped(true);
+    return reply(r, 201);
+  }
   if (route === "/login" && m === "POST") {
-    const r = await auth.login(env, request, await body());
+    const b = await body();
+    const r = await adminUnauth(env, request, e => auth.login(e, request, b));
+    if (r && r.busy) return busy(r);
     const resp = reply(r.body, 200);
     for (const c of r.cookies) resp.headers.append("Set-Cookie", c);
     return resp;
@@ -451,12 +506,20 @@ async function adminAsset(request, env, url) {
   return new Response(r.body, { status: r.status, headers: h });
 }
 
+/** Public routes with the D1 write meter of a deployment that sets D1_WRITE_BUDGET (tester.js); otherwise unchanged. */
+async function publicMetered(request, env, url, deps) {
+  if (!env.DB || !strictLimit(env.D1_WRITE_BUDGET).set) return publicRoute(request, env, url, deps);
+  const meter = meterDb(env.DB);
+  try { return await publicRoute(request, { ...env, DB: meter.db }, url, deps); }
+  finally { noteWrites(meter.writes); }
+}
+
 export async function handle(request, env, deps = {}) {
   const url = new URL(request.url);
   try {
     if (ADMIN_ASSETS.has(url.pathname)) { const a = await adminAsset(request, env, url); if (a) return a; }
     if (url.pathname.startsWith("/admin/api/") || url.pathname === "/admin/api") return await adminRoute(request, env, url, deps);
-    return await publicRoute(request, env, url, deps);
+    return await publicMetered(request, env, url, deps);
   } catch (e) {
     const allow = url.pathname.startsWith("/admin/") ? adminOrigins(env, request) : publicOrigins(env);
     const cors = corsHeaders(request, allow, { credentials: url.pathname.startsWith("/admin/") });

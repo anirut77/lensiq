@@ -17,7 +17,7 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, posix, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { listTree, scanForbidden } from "./build-site.mjs";
+import { SITE_CONFIG, SITE_CONFIG_JS, listTree, readSiteConfig, scanForbidden } from "./build-site.mjs";
 import { serve } from "./static-server.mjs";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -66,6 +66,18 @@ for (const f of files.filter(f => /\.(js|mjs|html)$/.test(f) && !f.startsWith("v
 }
 console.log(`check-site: ${files.length} file(s), ${pages.length} page(s), ${refs} static reference(s) checked`);
 
+// 2b. public-site deploy config (deploy/public-site.json, tools/build-site.mjs): the API is on the listed pages only
+let siteCfg = null;
+try { siteCfg = readSiteConfig(); } catch (e) { fail(e.message); }
+const withApi = pages.filter(p => readFileSync(join(site, p), "utf8").includes(SITE_CONFIG_JS));
+if (siteCfg && di < 0) {
+  if (withApi.slice().sort().join() !== siteCfg.pages.slice().sort().join()) fail(`${SITE_CONFIG}: pages with the API config are [${withApi}] but the file lists [${siteCfg.pages}]`);
+  for (const p of pages.filter(p => !siteCfg.pages.includes(p))) {
+    if (readFileSync(join(site, p), "utf8").includes(siteCfg.apiBase)) fail(`${p}: names the API origin although it is not in ${SITE_CONFIG}`);
+  }
+  console.log(`check-site: ${SITE_CONFIG} — API ${siteCfg.apiBase} on ${siteCfg.pages.join(", ")} only`);
+} else if (!siteCfg && withApi.length) fail(`pages load ${SITE_CONFIG_JS} but ${SITE_CONFIG} is inactive: ${withApi}`);
+
 // 3. crawl
 if (!args.includes("--static")) {
   const { launch } = await import("../tests/e2e/cdp.mjs");
@@ -100,6 +112,9 @@ if (!args.includes("--static")) {
           await sleep(600);
           const ex = page.consoleErrors.filter(e => e.kind === "exception").map(e => String(e.text).split("\n")[0]);
           const got = errors.slice(before);
+          // the crawl never calls the live Worker: an ordinary page load makes no API request at all (deploy B1)
+          const live = siteCfg ? page.requests.map(r => r.url).filter(u => u.startsWith(siteCfg.apiBase)) : [];
+          if (live.length) fail(`${current}: requested the live API on load: ${live.slice(0, 3).join(", ")}`);
           if (got.length) fail(`${current}: ${got.map(e => `${e.status} ${e.path}`).join(", ")}`);
           else if (ex.length) fail(`${current}: uncaught exception: ${ex[0]}`);
           else console.log(`ok   ${current} (${page.requests.length} requests)`);

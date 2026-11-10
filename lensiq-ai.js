@@ -40,7 +40,9 @@
       fbImage: "การส่งภาพไม่เปิดให้ใช้กับการตรวจนี้ ระบบส่งเฉพาะข้อความได้", fbInvalid: "คำตอบจาก AI ไม่ผ่านการตรวจรูปแบบ คุณกำลังดูผลจากในเครื่องเท่านั้น",
       fbPolicy: "ผู้ให้บริการ AI ไม่รับข้อมูลนี้ คุณกำลังดูผลจากในเครื่องเท่านั้น", fbTurnstile: "ยืนยันว่าไม่ใช่บอทไม่สำเร็จ คุณกำลังดูผลจากในเครื่องเท่านั้น",
       fbMember: "เข้าสู่ระบบเพื่อใช้การตรวจด้วย AI คุณกำลังดูผลจากในเครื่องเท่านั้น", fbNetwork: "เชื่อมต่อบริการ AI ไม่ได้ คุณกำลังดูผลจากในเครื่องเท่านั้น",
-      fbError: "บริการ AI ขัดข้องชั่วคราว คุณกำลังดูผลจากในเครื่องเท่านั้น"
+      fbError: "บริการ AI ขัดข้องชั่วคราว คุณกำลังดูผลจากในเครื่องเท่านั้น",
+      fbTester: "การตรวจด้วย AI เปิดให้เฉพาะกลุ่มผู้ทดสอบ คุณกำลังดูผลจากในเครื่องเท่านั้น", fbOff: "บริการปิดชั่วคราว คุณกำลังดูผลจากในเครื่องเท่านั้น",
+      fbCap: "วันนี้มีการใช้งานครบจำนวนแล้ว ลองใหม่พรุ่งนี้ คุณกำลังดูผลจากในเครื่องเท่านั้น", via: "{router} แล้วส่งต่อไปยัง {served}"
     },
     en: {
       title: "Send this to AI for a check?", intro: "Data is sent to the AI provider below only if you agree.",
@@ -59,7 +61,9 @@
       fbImage: "Sending an image is not allowed for this check; text only can be sent", fbInvalid: "The AI answer failed the format check; you are seeing the on-device result only",
       fbPolicy: "The AI provider declined this input; you are seeing the on-device result only", fbTurnstile: "The bot check failed; you are seeing the on-device result only",
       fbMember: "Sign in to use AI checks; you are seeing the on-device result only", fbNetwork: "The AI service could not be reached; you are seeing the on-device result only",
-      fbError: "The AI service is temporarily unavailable; you are seeing the on-device result only"
+      fbError: "The AI service is temporarily unavailable; you are seeing the on-device result only",
+      fbTester: "AI checks are open to the closed tester group only; you are seeing the on-device result only", fbOff: "The service is switched off for now; you are seeing the on-device result only",
+      fbCap: "The daily request limit has been reached; try again tomorrow. You are seeing the on-device result only", via: "{router}, then on to {served}"
     },
     zh: {
       title: "要发送给 AI 核查吗？", intro: "只有在您同意后，数据才会发送给下面的 AI 服务商。",
@@ -74,12 +78,15 @@
       fbImage: "此项核查不允许发送图片，只能发送文字", fbInvalid: "AI 回答未通过格式检查；您看到的仅是本机结果",
       fbPolicy: "AI 服务商拒绝了此输入；您看到的仅是本机结果", fbTurnstile: "人机验证未通过；您看到的仅是本机结果",
       fbMember: "登录后才能使用 AI 核查；您看到的仅是本机结果", fbNetwork: "无法连接 AI 服务；您看到的仅是本机结果",
-      fbError: "AI 服务暂时不可用；您看到的仅是本机结果"
+      fbError: "AI 服务暂时不可用；您看到的仅是本机结果",
+      fbTester: "AI 核查仅向封闭测试小组开放；您看到的仅是本机结果", fbOff: "服务暂时关闭；您看到的仅是本机结果",
+      fbCap: "今日请求次数已达上限，请明天再试；您看到的仅是本机结果", via: "{router}，再转至 {served}"
     }
   };
   var CONSENT_KEY = "lq-ai-consent";
   var FB = { budget: "fbBudget", limit: "fbLimit", disabled: "fbDisabled", unavailable: "fbDisabled", not_configured: "fbDisabled", consent_required: "fbConsent",
-    image_not_allowed: "fbImage", invalid_output: "fbInvalid", content_policy: "fbPolicy", turnstile: "fbTurnstile", member_required: "fbMember", network: "fbNetwork" };
+    image_not_allowed: "fbImage", invalid_output: "fbInvalid", content_policy: "fbPolicy", turnstile: "fbTurnstile", member_required: "fbMember", network: "fbNetwork",
+    tester_required: "fbTester", tester_locked: "fbTester", service_off: "fbOff", daily_cap: "fbCap", d1_budget: "fbCap", route_off: "fbDisabled" };
 
   /** @param {any} l @returns {"th"|"en"|"zh"} */
   function lang(l) { return l === "en" || l === "zh" ? l : "th"; }
@@ -88,21 +95,32 @@
   /** @param {any} info @returns {string[]} */
   function ids(info) { return ((info && info.chain) || []).map(function (/** @type {any} */ c) { return String(c.provider); }); }
 
+  /** The processors behind one chain entry, as stored with a remembered consent: the provider id, plus the pinned serving
+   *  provider when the gateway pins one (deploy B6: "openrouter>google-vertex"). A different serving provider is a
+   *  different consent. Unpinned entries give the plain provider id, as before. @param {any} info @returns {string[]} */
+  function procs(info) {
+    return ((info && info.chain) || []).map(function (/** @type {any} */ c) { return String(c.provider) + (c.routed && c.routed.slug ? ">" + String(c.routed.slug) : ""); });
+  }
+  /** Name shown for a chain entry: the provider, and the pinned serving provider behind a router. @param {any} c @param {"th"|"en"|"zh"} L */
+  function nameOf(c, L) { return c && c.routed ? STR[L].via.replace("{router}", pick(c.name, L)).replace("{served}", pick(c.routed.name, L)) : pick(c && c.name, L); }
+  /** Processing place of a chain entry: the pinned serving provider's when known. @param {any} c @param {"th"|"en"|"zh"} L */
+  function regionOf(c, L) { return c && c.routed ? pick(c.routed.region, L) : pick(c && c.region, L); }
+
   /** Consent-screen content for the first provider in the chain (the one actually used) + the fallbacks.
    * @param {any} info GET /v1/ai/providers result @param {any} l language @param {string} mode */
   function consentView(info, l, mode) {
     var L = lang(l), first = (info && info.chain && info.chain[0]) || null;
     return {
-      provider: first ? pick(first.name, L) : "", model: first ? String(first.model) : "", region: first ? pick(first.region, L) : "",
+      provider: first ? nameOf(first, L) : "", model: first ? String(first.model) : "", region: first ? regionOf(first, L) : "",
       retention: first ? pick(first.retention, L) : "",
-      fallbacks: ((info && info.chain) || []).slice(1).map(function (/** @type {any} */ c) { return pick(c.name, L) + " (" + pick(c.region, L) + ")"; }),
+      fallbacks: ((info && info.chain) || []).slice(1).map(function (/** @type {any} */ c) { return nameOf(c, L) + " (" + regionOf(c, L) + ")"; }),
       // retention / training note of EVERY provider that may receive the data, not only the first
       retentions: ((info && info.chain) || []).map(function (/** @type {any} */ c) { return pick(c.name, L) + ": " + pick(c.retention, L); }),
       withdrawHow: STR[L].withdrawHow,
       sends: mode === "image" ? STR[L].sendsImage : STR[L].sendsText, stores: STR[L].storesNothing,
       // one screen for several features (groupInfo): the provider, model and country actually used for EACH of them
       parts: ((info && info.parts) || []).map(function (/** @type {any} */ p) {
-        return { label: pick(p.label, L), text: STR[L].partRow.replace("{provider}", pick(p.first.name, L)).replace("{model}", String(p.first.model)).replace("{region}", pick(p.first.region, L)) };
+        return { label: pick(p.label, L), text: STR[L].partRow.replace("{provider}", nameOf(p.first, L)).replace("{model}", String(p.first.model)).replace("{region}", regionOf(p.first, L)) };
       })
     };
   }
@@ -141,7 +159,7 @@
   function rememberedConsent(storage, info) {
     var all = readAll(storage);
     var c = all && info ? all[info.feature] : null;
-    if (!c || !Array.isArray(c.providers) || c.providers.join(",") !== ids(info).join(",") || !ids(info).length) return null;
+    if (!c || !Array.isArray(c.providers) || c.providers.join(",") !== procs(info).join(",") || !ids(info).length) return null;
     return { mode: pickMode(info, c.mode), providers: c.providers.slice(), ts: c.ts || 0 };
   }
   /** @param {any} storage @param {any} info @param {string} mode @param {boolean} remember @returns {boolean} */
@@ -149,7 +167,7 @@
     if (!remember || !info) return false;
     var all = readAll(storage);
     if (!all) return false;
-    all[info.feature] = { providers: ids(info), mode: pickMode(info, mode), ts: Date.now() };
+    all[info.feature] = { providers: procs(info), mode: pickMode(info, mode), ts: Date.now() };
     try { storage.setItem(CONSENT_KEY, JSON.stringify(all)); return true; } catch (e) { return false; }
   }
   /** @param {any} storage @param {string} feature @returns {boolean} */
@@ -176,7 +194,7 @@
     return STR[L].checkedBy.replace("{provider}", who).replace("{region}", pick(res && res.regionText, L));
   }
 
-  var pure = { STR: STR, CONSENT_KEY: CONSENT_KEY, consentView: consentView, groupInfo: groupInfo, modes: modes, pickMode: pickMode, rememberedConsent: rememberedConsent,
+  var pure = { STR: STR, CONSENT_KEY: CONSENT_KEY, procs: procs, consentView: consentView, groupInfo: groupInfo, modes: modes, pickMode: pickMode, rememberedConsent: rememberedConsent,
     saveConsent: saveConsent, withdraw: withdraw, requestBody: requestBody, fallbackMessage: fallbackMessage, checkedBy: checkedBy };
   if (typeof module !== "undefined" && module.exports) { module.exports = pure; return; }
 
@@ -256,8 +274,14 @@
 
   /** @param {string} feature */
   function providers(feature) {
-    var A = W.LQApi;
-    return A && A.enabled() ? A.getJSON("/v1/ai/providers?feature=" + encodeURIComponent(feature)) : Promise.resolve(null);
+    var A = W.LQApi, TS = W.LQTester;
+    if (!A || !A.enabled()) return Promise.resolve(null);
+    // closed test (lensiq-tester.js): without tester access nothing is asked; with it the code goes in a header
+    if (TS && !TS.unlocked()) return Promise.resolve(null);
+    return A.getJSON("/v1/ai/providers?feature=" + encodeURIComponent(feature), TS ? { headers: TS.headers() } : undefined).then(function (/** @type {any} */ info) {
+      if (info && info.tester === true && TS) TS.refused(); // the code was rotated or revoked
+      return info;
+    });
   }
 
   /** Consent for one consent-screen info (a feature, or a group from groupInfo). remembered = no screen was shown.
@@ -268,10 +292,10 @@
     var r = rememberedConsent(store(), info);
     if (r) return Promise.resolve({ mode: o && o.mode === "text" ? "text" : r.mode, info: info, remembered: true }); // the page may ask for less, never for more
     var s = session[key];
-    if (s && s.providers === ids(info).join(",")) return Promise.resolve({ mode: o && o.mode === "text" ? "text" : pickMode(info, s.mode), info: info, remembered: false });
+    if (s && s.providers === procs(info).join(",")) return Promise.resolve({ mode: o && o.mode === "text" ? "text" : pickMode(info, s.mode), info: info, remembered: false });
     return dialog(info, (o && o.mode) || "text").then(function (/** @type {any} */ c) {
       if (!c) return null;
-      session[key] = { mode: c.mode, providers: ids(info).join(",") };
+      session[key] = { mode: c.mode, providers: procs(info).join(",") };
       saveConsent(store(), info, c.mode, c.remember);
       return { mode: pickMode(info, c.mode), info: info, remembered: false };
     });
@@ -296,7 +320,7 @@
     if (!info) return Promise.resolve(fallback("consent_required"));
     return Promise.resolve(typeof A.turnstile === "function" ? A.turnstile("ai") : "").then(function (/** @type {string} */ tok) {
       /** @type {Record<string, string>} */
-      var headers = {};
+      var headers = W.LQTester ? W.LQTester.headers() : {};
       if (tok) headers["X-Turnstile-Token"] = tok;
       var M = W.LQMember;
       var bearer = M && typeof M.token === "function" ? M.token() : "";
@@ -304,7 +328,9 @@
       return A.call("/v1/ai/" + encodeURIComponent(feature), { method: "POST", body: requestBody(info, mode, input), headers: headers, timeoutMs: 90000 });
     }).then(function (/** @type {any} */ r) {
       if (r && r.ok && r.j && r.j.ok) return { ok: true, json: r.j.json, provider: r.j.provider, model: r.j.model, checkedBy: checkedBy(r.j, cur()) };
-      return fallback(r && r.j && r.j.reason ? String(r.j.reason) : r && r.status === 0 ? "network" : "provider_error");
+      var why = r && r.j && r.j.reason ? String(r.j.reason) : r && r.status === 0 ? "network" : "provider_error";
+      if (why === "tester_required" && W.LQTester) W.LQTester.refused();
+      return fallback(why);
     });
   }
   /** @param {string} feature @param {any} input @param {{mode?: string}} [o] */
