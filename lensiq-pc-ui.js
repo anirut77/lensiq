@@ -241,7 +241,9 @@
     if (!st.still) { showTextOnly("no-image"); return { textOnly: true, reason: "no-image" }; }
     if (st.busy) return { cancelled: true, reason: "busy" };
     const set = P.FACE_BLUR, gen = st.gen;
-    let out = null, up = null, n = 0;
+    /** @type {any} */ let out = null;
+    /** @type {HTMLCanvasElement | null} */ let up = null;
+    let n = 0;
     await busy(async () => {
       status(T("md.pc.up.scan", "กำลังหาใบหน้าในภาพบนเครื่องนี้ เพื่อเบลอก่อนส่ง…"), "");
       let fr;

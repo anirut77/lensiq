@@ -220,6 +220,9 @@
     "i18n/zh-luckycolor.js",
     "lensiq-claims-rules.js",
     "lensiq-claims.js",
-    "lensiq-ai.js"
+    "lensiq-ai.js",
+    "lensiq-pc.js",
+    "lensiq-pc-run.js",
+    "lensiq-pc-ui.js"
   ]
 }
