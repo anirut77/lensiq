@@ -64,8 +64,10 @@ A page may appear in two categories. Pages not listed under a category are platf
   `vendor/models/faceparse-*.onnx` is never committed. Datasets, test videos and photos stay out of the repo.
 - PDPA: keep privacy defaults and add notes to `docs/PDPA-NOTES-FOR-COUNSEL.md`. A lawyer reviews before sale.
 - The same pass rule applies on CI and locally. No CI-only test allowances.
-- Commit messages end with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Do not deploy the backend,
-  use real keys or change GitHub repo settings.
+- Commit messages end with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The agent may deploy the backend to the
+  owner's Cloudflare account after the owner has run wrangler login. The agent never sees, prints or stores secret
+  values; the owner enters them. (Owner decision 2026-11-10, replaces "do not deploy the backend, use real keys".) Do
+  not change GitHub repo settings.
 
 ## Round 16 "Sellable core" (plan only: prepare after round 15, with effort S/M/L, owner dependencies and risks per item; build only after approval)
 
