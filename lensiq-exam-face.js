@@ -101,14 +101,15 @@
   /** the only options a caller may change (thresholds and face count); everything else, including any output switch,
       is fixed by MP_OPTIONS and dropped from create({options}) / setOptions() */
   const MP_TUNABLE = Object.freeze(["numFaces", "minFaceDetectionConfidence", "minFacePresenceConfidence", "minTrackingConfidence"]);
-  /** @param {any} x @returns {Record<string, number>} */
-  function cleanOptions(x) {
+  /** maxFaces: the largest numFaces kept (8 everywhere; only the hall setup check asks for HALL_SETUP.numFaces)
+   * @param {any} x @param {number} [maxFaces] @returns {Record<string, number>} */
+  function cleanOptions(x, maxFaces = 8) {
     /** @type {Record<string, number>} */ const out = {};
     if (!x || typeof x !== "object") return out;
     for (const k of MP_TUNABLE) {
       const v = x[k];
       if (typeof v !== "number" || !Number.isFinite(v)) continue;
-      if (k === "numFaces") { if (Number.isInteger(v) && v >= 1 && v <= 8) out[k] = v; } else if (v >= 0 && v <= 1) out[k] = v;
+      if (k === "numFaces") { if (Number.isInteger(v) && v >= 1 && v <= maxFaces) out[k] = v; } else if (v >= 0 && v <= 1) out[k] = v;
     }
     return out;
   }
@@ -125,11 +126,13 @@
   const srcSize = src => ({ W: src.videoWidth || src.naturalWidth || src.width || 0, H: src.videoHeight || src.naturalHeight || src.height || 0 });
 
   /** o.vision (test seam, Node only): {FilesetResolver, FaceLandmarker} instead of importing the vendored bundle
-   * @param {{base?: string, options?: object, pose?: string, vision?: any}} [o] */
+   * o.maxFaces (createHallFaces only): the numFaces limit of this engine, 8 unless the hall setup check raises it
+   * @param {{base?: string, options?: object, pose?: string, vision?: any, maxFaces?: number}} [o] */
   function createMediaPipe(o) {
     const base = (o && o.base) || (typeof location !== "undefined" ? location.href : "");
     const abs = p => new URL(p, base).href;
-    const opts = Object.assign({}, MP_OPTIONS, cleanOptions(o && o.options));
+    const maxFaces = o && o.maxFaces === HALL_SETUP.numFaces ? HALL_SETUP.numFaces : 8;
+    const opts = Object.assign({}, MP_OPTIONS, cleanOptions(o && o.options, maxFaces));
     const pose = (o && o.pose) || DEFAULT_POSE;
     let lm = null, initP = null;
     const eng = {
@@ -144,7 +147,7 @@
         initP.catch(() => { initP = null; });
         return initP;
       },
-      async setOptions(x) { const c = cleanOptions(x); await eng.init(); Object.assign(opts, c); await lm.setOptions(c); },
+      async setOptions(x) { const c = cleanOptions(x, maxFaces); await eng.init(); Object.assign(opts, c); await lm.setOptions(c); },
       async detect(src) {
         if (!lm) await eng.init();
         const { W, H } = srcSize(src);
@@ -252,16 +255,54 @@
   /** hall face pass = the option the fixed rule of §6.5 picked on dev (§7.1): the lab engine on the whole frame, numFaces 8,
    *  detection 0.5. It finds NO face 24 – 48 px wide (0 / 207 dev, 0 / 195 held-out): the small-face issue is not fixed. */
   const HALL_FACE = Object.freeze({ engine: "landmarker", numFaces: 8, conf: 0.5 });
-  /** hall face pass (experimental, off by default): boxes only -> {init, detect(src) -> [{box px}]}; no pose, no landmarks out
-   * @param {{base?: string, vision?: any}} [o] */
+  /** hall face pass (experimental, off by default): boxes only -> {init, detect(src) -> [{box px}]}; no pose, no landmarks out.
+   *  o.setup === true: the engine of the hall setup check (HALL_SETUP.numFaces faces at most); the exam loop never passes it.
+   * @param {{base?: string, vision?: any, setup?: boolean}} [o] */
   function createHallFaces(o) {
-    const e = createMediaPipe(Object.assign({}, o || {}, { options: { numFaces: HALL_FACE.numFaces, minFaceDetectionConfidence: HALL_FACE.conf } }));
+    const numFaces = o && o.setup === true ? HALL_SETUP.numFaces : HALL_FACE.numFaces;
+    const e = createMediaPipe(Object.assign({}, o || {}, { maxFaces: numFaces, options: { numFaces, minFaceDetectionConfidence: HALL_FACE.conf } }));
     return {
-      name: "hallfaces", engine: HALL_FACE.engine, numFaces: HALL_FACE.numFaces, conf: HALL_FACE.conf,
+      name: "hallfaces", engine: HALL_FACE.engine, numFaces, conf: HALL_FACE.conf,
       init: () => e.init(),
       async detect(/** @type {any} */ src) { return (await e.detect(src)).map((/** @type {any} */ f) => ({ box: f.box })); },
       close() { if (e.close) e.close(); }
     };
+  }
+  /** hall setup check (exam-hall.html, before monitoring; docs/EXAM.md "Hall setup check"): minFacePx = the smallest face
+   *  width, in pixels of the frame the page receives, the placement guide plans for (a minimum, not a guarantee); ladder =
+   *  the camera sizes asked for, highest first (LQCam ideal ladder); everyMs = one measurement about every 0.7 s (~1.4 per
+   *  second) on the native frame, only while the check is on and monitoring is off; numFaces = the most faces the setup
+   *  check's own engine returns per measurement (createHallFaces({setup: true}); the exam loop keeps HALL_FACE.numFaces);
+   *  peopleMaxAgeMs = how old the object detector's people count may be before it counts as "not measured". */
+  const HALL_SETUP = Object.freeze({
+    minFacePx: 48, everyMs: 700, numFaces: 16, peopleMaxAgeMs: 5000,
+    ladder: Object.freeze([Object.freeze({ width: 3840, height: 2160 }), Object.freeze({ width: 1920, height: 1080 }), Object.freeze({ width: 1280, height: 720 })])
+  });
+  /** hall setup check, pure: face boxes NORMALISED to the frame (0..1) x the native frame width -> width in px per face,
+   *  the smallest one, how many are under minPx, and how many people the object detector saw that have no measured face.
+   *  Width: the RAW width (box width x frame width) is compared with minPx, and the px shown is its floor, so a 47.9 px
+   *  face is "47 px" and small, never "48 px" and fine (raw widths are first rounded to 1e-6 px: 48 / 1920 x 1920 is 48).
+   *  people: the object detector's count, or null / undefined / anything that is not a count >= 0 when it has not finished
+   *  a turn yet or is failing: then the count is NOT 0, it is unknown (people: null) and the result is never OK.
+   *  cap: the most faces the engine returns per measurement (0 / missing = no limit known).
+   *  state: "nocam" (no frame size) | "noface" (nothing measured) | "small" (a face under minPx) | "nopeople" (faces fine,
+   *  people count not measured yet) | "cap" (the engine returned its maximum and more people are seen: the others were not
+   *  measured because of the limit, not necessarily because of size) | "people" (more people than faces: the others may be
+   *  too small or too far to be found) | "ok". ok is true ONLY for "ok": never with no face, a small face, no people
+   *  count, or more people than faces. atCap: n reached cap while more people are seen (also set in state "small").
+   *  Numbers only; nothing about who a face is.
+   * @param {{faces?: any[], people?: number|null, frameW?: number, frameH?: number, minPx?: number, cap?: number}} [o] */
+  function hallSetupCheck(o) {
+    const c = o || {}, W = fin(c.frameW) && c.frameW > 0 ? Math.round(c.frameW) : 0, H = fin(c.frameH) && c.frameH > 0 ? Math.round(c.frameH) : 0;
+    const minPx = fin(c.minPx) && c.minPx > 0 ? c.minPx : HALL_SETUP.minFacePx;
+    const people = fin(c.people) && c.people >= 0 ? Math.floor(c.people) : null;
+    const cap = fin(c.cap) && c.cap >= 1 ? Math.floor(c.cap) : 0;
+    const faces = W ? (c.faces || []).filter(b => b && fin(b.x) && fin(b.y) && fin(b.w) && fin(b.h) && b.w > 0 && b.h > 0)
+      .map(b => { const raw = Math.round(b.w * W * 1e6) / 1e6; return { x: b.x, y: b.y, w: b.w, h: b.h, px: Math.floor(raw), small: raw < minPx }; }) : [];
+    const n = faces.length, small = faces.filter(f => f.small).length, unmeasured = people == null ? 0 : Math.max(0, people - n);
+    const atCap = cap > 0 && n >= cap && unmeasured > 0;
+    const state = !W ? "nocam" : !n ? "noface" : small ? "small" : people == null ? "nopeople" : atCap ? "cap" : unmeasured ? "people" : "ok";
+    return { state, ok: state === "ok", frameW: W, frameH: H, minPx, faces, n, people, small, unmeasured, cap, atCap, minFacePx: n ? Math.min(...faces.map(f => f.px)) : null };
   }
   /** lab second-person cue = N4@0.5, the option the fixed rule of §6.8 picked on dev (§7.2): COCO-SSD person boxes (score >=
    *  minScore from the detector, counted at >= score, one box per person at IoU >= iou). The monitor uses the count only
@@ -329,6 +370,7 @@
   return {
     MESH68, PITCH_K, DEFAULT_POSE, MP_OPTIONS, MP_TUNABLE, MP_MODEL, FACEAPI_NETS, FACEAPI_OPTS, cleanOptions,
     boxOf, meshTo68, matrixAngles, poseFromMesh, synthMesh, pickEngine, create, createMediaPipe, createFaceApi,
-    FD_MODELS, FB_DEFAULT, HALL_FACE, LAB_PEOPLE, tileRects, sameFace, mergeFaces, mapTileBox, addSecondary, peopleBoxes, createFaceBoxes, createHallFaces
+    FD_MODELS, FB_DEFAULT, HALL_FACE, LAB_PEOPLE, tileRects, sameFace, mergeFaces, mapTileBox, addSecondary, peopleBoxes, createFaceBoxes, createHallFaces,
+    HALL_SETUP, hallSetupCheck
   };
 });

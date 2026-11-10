@@ -108,15 +108,17 @@ sent. Seat signals below do not use faces and are unchanged.
 
 > **Every number in this section is a calculation, not a measurement.** It is geometry and published interface limits,
 > written so the owner can test it with a 4K USB webcam in a real room. Nothing here has been run on hall footage, and
-> nothing here changes the "experimental" status of Mode A. The hall setup check (a page tool that measures face width
-> per seat) is **not built**; it is a separate piece of work after this one.
+> nothing here changes the "experimental" status of Mode A. The hall setup check (a page tool that measures the face
+> width in px in the live view) **is built** as a separate commit: see "Hall setup check" after this guide. The guide
+> itself stays a document.
 
 **สรุปภาษาไทย (ทุกตัวเลขเป็นการคำนวณ ยังไม่ได้วัด).**
 
 - สูตร: ความกว้างใบหน้าในภาพ (px) ≈ 0.15 ม. × ความละเอียดแนวนอน ÷ (2 × ระยะ × tan(มุมรับภาพแนวนอน ÷ 2))
   จะได้ 48 px ต้องมี 320 px ต่อเมตร ดังนั้นที่แถวไกลสุด ภาพต้องกว้างไม่เกิน **4 ม. (1,280 px) · 6 ม. (1080p) · 12 ม. (4K)**
 - ระยะไกลสุดที่ใบหน้ายังกว้าง 48 px: กล้อง 1080p ได้ 3.0–4.7 ม. กล้อง 4K ได้ 6.0–9.4 ม. (มุมรับภาพแนวนอน 90°–65°)
-  วันนี้หน้าเครื่องกล้องขอภาพ 1,280 × 720 จากกล้อง จึงได้เพียง 2.0–3.1 ม. การใช้ 1080p หรือ 4K ต้องแก้หน้าเว็บก่อน (ยังไม่ได้ทำ)
+  หน้าเครื่องกล้องขอภาพขนาดสูงสุดที่กล้องมี (3,840 × 2,160 แล้ว 1,920 × 1,080 แล้ว 1,280 × 720) และแสดงขนาดที่ได้จริงในแผง
+  “ตรวจการติดตั้งกล้อง” ถ้าได้เพียง 1,280 × 720 จะได้ระยะ 2.0–3.1 ม.
 - มุมที่ผู้ผลิตเว็บแคมบอกมักเป็น **มุมทแยง** ต้องแปลงเป็นมุมแนวนอนก่อน (ทแยง 78° ≈ แนวนอน 70° · ทแยง 90° ≈ แนวนอน 82°)
 - จำนวนกล้องโดยประมาณ (แถวห่างกัน 1.2 ม. แถวแรกห่างกล้อง 2 ม.): ห้อง 6 × 8 ม. ใช้ 1080p 4–10 ตัว หรือ 4K 2–4 ตัว ·
   ห้อง 8 × 10 ม. ใช้ 1080p 6–12 ตัว หรือ 4K 3–6 ตัว · ห้อง 10 × 15 ม. ใช้ 1080p 16–33 ตัว หรือ 4K 8–9 ตัว
@@ -142,7 +144,7 @@ because the view is 2 × d × tan(HFOV / 2) metres wide at that distance and R p
 
 | Maximum distance for a 48 px face (calculated) | HFOV 65° | HFOV 78° | HFOV 90° |
 |---|---|---|---|
-| 1,280 × 720 (what `exam-hall.js` asks the camera for today) | 3.14 m | 2.47 m | 2.00 m |
+| 1,280 × 720 (the lowest size `exam-hall.js` asks for; what a 720p camera gives) | 3.14 m | 2.47 m | 2.00 m |
 | 1,920 × 1,080 (1080p) | 4.71 m | 3.70 m | 3.00 m |
 | 3,840 × 2,160 (4K) | 9.42 m | 7.41 m | 6.00 m |
 | for comparison, 64 px: 1080p / 4K | 3.53 m / 7.06 m | 2.78 m / 5.56 m | 2.25 m / 4.50 m |
@@ -240,7 +242,9 @@ Reading the table:
   when it is lower. The only proof of what arrived is `track.getSettings()` (and `video.videoWidth`);
   `track.getCapabilities()` lists the maximum where the browser supports it. Using `{ exact: 3840 }` fails with
   `OverconstrainedError` instead of silently giving less, which is what a setup check wants.
-  `exam-hall.js` asks for **1,280 × 720** today, so a 4K camera gives 1,280 × 720 until the page is changed.
+  `exam-hall.js` asks for **3,840 × 2,160, then 1,920 × 1,080, then 1,280 × 720** (a ladder of `ideal` sizes in
+  `LQCam.fallbackChain`; a lower size is tried only when the camera cannot start at the higher one) and the setup
+  check shows the size that arrived. Until the setup-check commit it asked for 1,280 × 720.
 - *Devices that cap the resolution.* Built-in laptop cameras are 720p or 1080p. A 4K webcam may offer 4K only as
   MJPEG at 30 fps, only on USB 3, or only through the maker's driver; some operating-system camera stacks and some
   browsers expose at most 1080p for a given device. Phones give what their browser exposes for the rear camera, which
@@ -277,9 +281,84 @@ be cut into tiles in which a 48 px face is as large a share as in the lab frame 
 
 **6. What to write down in the room test (owner, 4K webcam).** Camera model, the DFOV on the box and the HFOV
 measured at 2 m; USB port type and cable; what `track.getSettings()` reports (width, height, frame rate) in Chrome on
-the laptop used; camera height and tilt; for each row: distance, face width in px read from a screenshot (upright and
-in writing posture), whether the row in front hides the face, and frames per second of the page. No image of a person
+the laptop used (the setup check shows the frame size received); camera height and tilt; for each row: distance,
+face width in px read from the setup check (upright and in writing posture; from a screenshot ruler where the page
+finds no face), whether the row in front hides the face, and frames per second of the page. No image of a person
 is kept: write the numbers down and delete the screenshots (`docs/FIELD-PILOT.md`).
+
+### Hall setup check (2026-11-10): face width in px in the live view
+
+A panel under the camera view of `exam-hall.html` ("ตรวจการติดตั้งกล้อง: ขนาดใบหน้า"), used **before monitoring** to
+place a camera with the guide above. It is a measuring aid, not a pass certificate.
+
+| Part | What it does |
+|---|---|
+| Camera size | The page asks for 3,840 × 2,160, then 1,920 × 1,080, then 1,280 × 720 and shows the size the browser delivered (`video.videoWidth` × `videoHeight`), also before the check is started. When the delivered width is under 3,840 a separate line says "received less than asked". A camera chosen by the invigilator is tried at all three sizes before any other camera may be opened (`LQCam.fallbackChain`); pages that ask for one size get the same four steps as before. |
+| Measurement | About every 0.7 s (`LQExamFace.HALL_SETUP.everyMs`, about 1.4 per second) the check's own face engine (`createHallFaces({setup: true})`, boxes only, at most 16 faces = `HALL_SETUP.numFaces`) reads the **native** frame. `LQExamFace.hallSetupCheck` turns each box into a width in px: normalised box width × native frame width. The **raw** width is compared with 48 and the number shown is rounded **down**, so a 47.9 px face reads "47 px" and warns. |
+| People count | The count comes from the seat monitor's object detector. It exists only after one finished detection turn on this camera, not older than 5 s (`HALL_SETUP.peopleMaxAgeMs`); a failing detector means "not counted yet", never 0 people. |
+| Shown | A box per measured face with its width in px (green ≥ 48 px, red below), the number of faces measured, the **smallest** width, the list of widths, and the people seen by COCO-SSD (the count the seat monitor already makes). |
+| States | `noface`: nothing measured (warning; with people seen: "N people seen, 0 faces measured"). `small`: any face under 48 px (clear warning with how many and the smallest). `nopeople`: the measured faces are ≥ 48 px but the people count does not exist yet (warning: "not a pass yet"). `cap`: the engine returned its maximum (16) and more people are seen: "measures at most 16 faces at a time — check the farthest rows with up to 16 people in view" (the limit is named; distance is not blamed). `people`: every measured face ≥ 48 px but more people than faces: "N people seen, M faces measured — the others may be too small or too far". `ok`: at least one face, all ≥ 48 px, a people count exists and people ≤ faces. `error`: the face engine cannot run on this device (said; seat monitoring goes on). |
+| Never OK | With no face, with any face under 48 px, or with more people seen than faces measured. Also never before the people count exists. |
+
+Limits, stated in the panel:
+
+- **48 px is a minimum, not a guarantee** (section 5 of the guide). The current engine found 0 / 195 faces 24 – 48 px
+  wide on wide frames (public dataset, `docs/exam/FACE-ENGINE-RESULTS.md` §7.1), so a small or distant face is usually
+  **not found and has no number**. That is why the panel compares people with faces. The comparison is a count, not a
+  match: one extra person and one missed face cancel out, and COCO-SSD also misses small or far people. Walk to the
+  far row and check that the person sitting there has a box.
+- **Face limit.** The setup check's engine returns at most 16 faces per measurement (`HALL_SETUP.numFaces`; the exam
+  loop's experimental face pass keeps 8, `HALL_FACE.numFaces`). The panel lead text says so, and at the limit with more
+  people seen the panel shows the `cap` message. Check a big room one group at a time. Timing on the development
+  machine (Apple M1, headless Chrome, one synthetic 3,840 × 2,160 frame made of 2 – 32 tiled face crops from public
+  CC-BY photos kept outside the repo, 25 calls per row, 2026-11-10): the time per call did **not** depend on the limit.
+  With GPU WebGL (Metal) the median was 37 – 47 ms when 2 – 3 faces were found and 19 – 46 ms when none was, the same
+  at 8, 16 and 32; with software WebGL 88 – 103 ms and 71 – 97 ms. The engine found **at most 3 faces in any of these
+  frames** (2 of 2, 2 of 6, 3 of 8, 0 of 12 – 32), so the cost with 16 faces found is **not measured** and the higher
+  limit showed **no benefit in this test**: on a wide view the engine stops finding faces long before 8. Script and
+  logs: `~/LENSIQ-field/evals/exam-followups/facecap/` (sha256 `cap-metal.log` 92440e98…, `cap-sw.log` 6b0fa454…).
+- **Seats and frame shape (residual risk).** Seat areas are stored normalised to the frame. A camera can deliver another
+  shape at another size (for example 4:3 at 1,280 × 960 and 16:9 at 3,840 × 2,160), and the same numbers then land on
+  another part of the room. From this version the page stores the frame's width / height with the saved seats (one
+  number per room + camera, on this device) and shows a warning when the current frame differs by more than 2 %.
+  Seats saved **before** this version have no stored shape, so no warning is possible for them: after this update,
+  look at every saved seat layout once and redraw it if it does not match.
+- What the check measures on hall footage, and how often the engine finds a 48 – 64 px face, is **not measured**.
+
+Cost and privacy: the check runs only while monitoring is off (starting monitoring stops it and disables the button).
+Boxes and numbers on this device only: no event, nothing stored, nothing sent, no identity, no expression output. The
+exam loop keeps its old work size on a larger camera frame: COCO-SSD reads a ≤ 416 px copy, the 2 × 2 tiles option and
+the experimental face pass a copy at most 1,280 px wide (made without smoothing; its effect on detection is not
+measured), and the evidence clip records a copy at most 1,280 px wide (a clone of the camera track scaled by the
+browser; where that is not possible, a canvas copy at about 15 fps), so a kept clip is not more detailed than before.
+Where neither copy can be made (no track scaling and no `canvas.captureStream`), **no clip is recorded**: the page
+says so in Thai / English / Chinese, the heartbeat reports clips as off, and the camera's full-size stream is never
+given to the recorder. The canvas copy is painted on each camera frame with `requestVideoFrameCallback` where the
+browser has it, otherwise on a 66 ms page timer. Browsers slow page timers down in a tab that is not in front, so
+on the timer path a clip can have fewer frames if the tab is covered; `LQCam` pauses the camera while the tab is
+hidden, so nothing is recorded then on either path. Keep the camera tab in front during the exam. **Not measured:**
+the clip frame rate on a real device on either path.
+
+Loop speed, measured on the development machine (headless Chrome, WASM backend, Chrome's fake camera, the fps setting
+at 5, 20 s per run; before = 1,280 × 720 delivered, after = 3,840 × 2,160 delivered):
+
+| Mode | Before (loops per second · detector ms, median) | After | Runs |
+|---|---|---|---|
+| whole frame | 4.95 · 67 – 69 | 4.95 – 4.97 · 69 – 71 | 2 + 4 |
+| whole frame + evidence clip | 4.98 – 4.99 · 55 – 62 | 4.97 – 4.98 · 56 – 60 | 3 + 3 |
+| 2 × 2 tiles | 3.71 · 237 | 3.70 · 231 | 1 + 2 |
+| 2 × 2 tiles + evidence clip | 2.43 – 3.65 | 2.38 – 3.53 | 5 + 5, while other processes loaded the machine: **no conclusion** |
+
+The setup check itself costs time while it is on (it is off during monitoring): with software WebGL in headless
+Chrome the loop went from 2.0 to 1.6 loops per second while it ran (one run each, not representative of a real
+device). **Not measured:** a real 4K webcam, a phone, a low-end laptop, and the setup check's cost on a real device.
+
+Tests: `tests/unit/exam-face.test.js` (px from normalised boxes × native width, the 48 px threshold at 47.4 – 48.1 px, no
+face, more people than faces, no people count, the face limit, never OK in those cases), `tests/unit/lensiq-camera.test.js`
+(request order of the ladder, the chosen camera at every size first, one-size pages unchanged),
+`tests/e2e/exam-hall-setup.e2e.mjs` (fake cameras of 4K / 1080p / 720p / 640 × 480 and one that cannot start at the
+higher sizes, a chosen camera that cannot start at 4K, every state in Thai / English / Chinese, nothing stored or sent,
+off while monitoring, clip source 1,280 px or no clip, the seat shape warning).
 
 v2: pose landmarker (head down to lap, hand at ear, arm crossing seats), phone detection on cycled seat crops,
 blurring the other seats in a kept hall clip (the evidence clip itself shipped in round 14 — see below).
@@ -371,7 +450,7 @@ monitors, geometry, message allowlist, board, CSV), `tests/unit/exam-clip.test.j
 signals only, ring segments video-only, pending drop, encrypted store / crypto-shred / auto-delete / insecure = nothing
 stored, clip + keep allowlist, named keep on the board, CSV column; **no emotion / expression / age-gender API in any exam
 file** and every signal in an objective-event allowlist), `tests/e2e/exam-clip.e2e.mjs` (default OFF = no MediaRecorder,
-consent text, pending → named keep → encrypted record → play / delete, hall auto-keep), `tests/unit/exam-i18n.test.js` (every run-time key in en + zh, no
+consent text, pending → named keep → encrypted record → play / delete, hall auto-keep), `tests/e2e/exam-hall-setup.e2e.mjs` (hall setup check, see "Hall setup check"), `tests/unit/exam-i18n.test.js` (every run-time key in en + zh, no
 Thai, no verdict wording), `tests/e2e/exam*.e2e.mjs` (one per page, fake camera + `?fakedet`, phone widths, 0% Thai in
 中文 / English, privacy scan; `exam-lab.e2e.mjs` also runs the real default path without `?fakedet`: MediaPipe is
 requested, no face-api.js script or model is, even with `?faceengine=faceapi`, and the detector either runs (detector calls

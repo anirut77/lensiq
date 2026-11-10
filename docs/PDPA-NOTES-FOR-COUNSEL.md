@@ -118,9 +118,17 @@ controller only for its own website, member accounts, billing and the optional b
   rate of that signal (28.8 %, 15 / 52, public dataset; an aid, not complete detection) was moved out of the candidate
   notice to the invigilator-facing pages (landing claim list, dashboard) and the sales documents; the measurement-only detector files are kept outside the
   repo and are not shipped; `docs/EXAM.md` has a hall camera placement guide (a calculation only) that would need more
-  cameras or 4K cameras so that each face is at least 48 px wide. Nothing is built from it yet. Question for counsel
-  before it is: do higher-resolution views of every candidate's face, still processed on the device with no image
-  stored or sent, change the DPIA or the notice for the hall mode?
+  cameras or 4K cameras so that each face is at least 48 px wide. (5) Hall setup check (2026-11-10, separate commit):
+  `exam-hall.html` now asks the camera for its highest size (3,840 × 2,160, then 1,920 × 1,080, then 1,280 × 720) and,
+  before monitoring only, shows a box and a width in px per detected face plus counts ("N people seen, M faces
+  measured"). What changes: the frames held in memory on the device are larger. What does not change: frames are
+  processed on the device and never stored or sent; the check stores nothing and sends no event; no identity and no
+  expression output; an evidence clip (opt-in) is recorded from a copy at most 1,280 px wide, so kept clips are
+  no more detailed than before; on a browser that cannot make such a copy no clip is recorded at all and the page
+  says so (the camera's full-size picture is never recorded). The page now also stores, next to the saved seat areas
+  on the device, one number per room and camera: the picture's width / height (`lq-exam-seats-ar`), used only to warn
+  that seat areas may have shifted; it is not personal data and is never sent. Question for counsel: do higher-resolution views of every candidate's face, still
+  processed on the device with no image stored or sent, change the DPIA or the notice for the hall mode?
 - **Notice and consent**: printable notice + consent template on `exam.html#notice`; declining never opens the camera
   and must not cost the right to sit the exam; access and complaint route through the institution's DPO.
 - **Questions**: lawful basis for public institutions (public task s.24(4)) vs. private ones (consent / contract);

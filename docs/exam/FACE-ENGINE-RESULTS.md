@@ -311,7 +311,8 @@ measured numbers.
 
 ### 6.2 Hall set (small faces in the hall camera view)
 
-Frame = the image scaled to fit a **1,280 × 720** canvas (the hall page asks the camera for 1,280 × 720), centred,
+Frame = the image scaled to fit a **1,280 × 720** canvas (the hall page asked the camera for 1,280 × 720 at the time of this measurement; since the setup-check commit it asks
+for the highest size the camera has, `docs/EXAM.md` "Hall setup check"), centred,
 padded with grey #808080. Face width is measured in that frame.
 
 | Group | Target | Rule |

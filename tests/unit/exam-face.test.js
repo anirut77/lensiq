@@ -415,8 +415,11 @@ test("owner decisions 2026-11-10 (follow-up): no rate in the candidate notice, >
   }
   for (const d of [en, zh]) for (const k of Object.keys(d).filter(k => k.startsWith("exam."))) assert.doesNotMatch(d[k], OLD, k);
   for (const k of ["exam.l.mAp", "exam.l.p3n"]) {
-    assert.match(new RegExp('data-i18n="' + k.replace(/\./g, "\\.") + '">([^<]*)<').exec(land)[1], /จำนวนกล้องขึ้นกับขนาดห้อง \(?ดูคู่มือวางกล้อง\)/, k);
-    assert.match(en[k], /number of cameras depends on room size[, (]+see the camera placement guide\)/i, k); assert.match(zh[k], /摄像头数量取决于考场大小[，（]见摄像头摆放指南）/, k);
+    assert.match(new RegExp('data-i18n="' + k.replace(/\./g, "\\.") + '">([^<]*)<').exec(land)[1], /จำนวนกล้องขึ้นกับขนาดห้อง \(?ขอคู่มือวางกล้องได้จากเรา\)/, k);
+    assert.match(en[k], /number of cameras depends on room size[, (]+ask us for the camera placement guide\)/i, k); assert.match(zh[k], /摄像头数量取决于考场大小[，（]请向我们索取摄像头摆放指南）/, k);
+    // the guide is not a public page: no text sends the reader to "see" a guide that has no link
+    assert.doesNotMatch(new RegExp('data-i18n="' + k.replace(/\./g, "\\.") + '">([^<]*)<').exec(land)[1], /ดูคู่มือวางกล้อง/, k);
+    assert.doesNotMatch(en[k], /see the camera placement guide/i, k); assert.doesNotMatch(zh[k], /[，（]见摄像头摆放指南/, k);
     assert.ok(!THAI_RE.test(en[k].replace(/฿/g, "")) && !THAI_RE.test(zh[k].replace(/฿/g, "")), k + ": no Thai in en / zh");
   }
   // prices unchanged, hall still "experimental, not on sale"
@@ -488,7 +491,10 @@ test("owner decisions 2026-11-10: lab-led pilot with the accepted limit, the 28.
     assert.ok(row, "distance row for " + label);
     assert.deepEqual(row.split("|").slice(2, 5).map(x => x.trim()), [dmax(R, 65), dmax(R, 78), dmax(R, 90)], label);
   }
-  assert.match(guide, /is \*\*not built\*\*/); assert.match(guide, /48 px is necessary, not\s+sufficient/);
+  // the guide stays a document; the setup check it used to call "not built" now exists as its own section and points back to the guide
+  assert.match(guide, /\*\*is built\*\* as a separate commit: see "Hall setup check" after this guide\. The guide\s+> itself stays a document/);
+  assert.doesNotMatch(guide, /is \*\*not built\*\*/); assert.match(guide, /48 px is necessary, not\s+sufficient/);
+  assert.match(guide, /### Hall setup check \(2026-11-10\)/); assert.match(guide, /\*\*48 px is a minimum, not a guarantee\*\* \(section 5 of the guide\)/);
   assert.ok(!fs.existsSync(path.join(ROOT, "exam-hall-setup.js")), "the hall setup check is a separate commit");
 });
 
@@ -577,4 +583,226 @@ test("LQDetect.detectCocoMulti: one inference, each option set decoded as detect
     const single = await D.detectCoco(model, src, { classes: [76, 83, 72, 71], minScore: 0.4, max: 10, canvas });
     assert.deepEqual(single, objs, "same list as detectCoco with the same options");
   } finally { g.tf = saved.tf; if (saved.LQDetect === undefined) delete g.LQDetect; else g.LQDetect = saved.LQDetect; delete require.cache[require.resolve("../../lensiq-detect.js")]; }
+});
+
+test("hall setup check: px = normalised box width x NATIVE frame width; 48 px threshold; smallest face; no face / more people than faces are never OK", () => {
+  const S = F.HALL_SETUP;
+  assert.equal(S.minFacePx, 48); assert.ok(S.everyMs >= 500 && S.everyMs <= 1000, "1 - 2 measurements per second");
+  assert.deepEqual(S.ladder.map(r => r.width + "x" + r.height), ["3840x2160", "1920x1080", "1280x720"]);
+  assert.ok(Object.isFrozen(S) && Object.isFrozen(S.ladder));
+  const box = (w, i = 0) => ({ x: 0.1 + 0.2 * i, y: 0.2, w, h: w * 1.3 });
+  // the same normalised face is 96 px on a 4K frame, 48 px on 1080p and 32 px on 1,280 px
+  for (const [W, H, px, state] of [[3840, 2160, 96, "ok"], [1920, 1080, 48, "ok"], [1280, 720, 32, "small"]]) {
+    const r = F.hallSetupCheck({ faces: [box(0.025)], people: 1, frameW: W, frameH: H });
+    assert.equal(r.faces[0].px, px, W + ""); assert.equal(r.minFacePx, px); assert.equal(r.state, state); assert.equal(r.ok, state === "ok");
+    assert.equal(r.frameW, W); assert.equal(r.frameH, H); assert.equal(r.minPx, 48);
+  }
+  // threshold: 47 px warns, 48 px does not; the smallest face and the count under the threshold
+  let r = F.hallSetupCheck({ faces: [box(47 / 1920), box(48 / 1920, 1), box(120 / 1920, 2)], people: 3, frameW: 1920, frameH: 1080 });
+  assert.deepEqual(r.faces.map(f => f.px), [47, 48, 120]); assert.deepEqual(r.faces.map(f => f.small), [true, false, false]);
+  assert.equal(r.state, "small"); assert.equal(r.ok, false); assert.equal(r.small, 1); assert.equal(r.minFacePx, 47); assert.equal(r.n, 3); assert.equal(r.unmeasured, 0);
+  r = F.hallSetupCheck({ faces: [box(48 / 1920), box(120 / 1920, 1)], people: 2, frameW: 1920, frameH: 1080 });
+  assert.equal(r.state, "ok"); assert.equal(r.ok, true); assert.equal(r.small, 0); assert.equal(r.minFacePx, 48);
+  // more people than faces: every measured face is fine, still not OK; fewer people than faces is fine
+  r = F.hallSetupCheck({ faces: [box(0.05), box(0.05, 1)], people: 5, frameW: 1920, frameH: 1080 });
+  assert.equal(r.state, "people"); assert.equal(r.ok, false); assert.equal(r.unmeasured, 3); assert.equal(r.people, 5); assert.equal(r.n, 2);
+  assert.equal(F.hallSetupCheck({ faces: [box(0.05), box(0.05, 1)], people: 1, frameW: 1920, frameH: 1080 }).state, "ok");
+  // a small face AND more people than faces: "small" wins, and the people gap is still reported
+  r = F.hallSetupCheck({ faces: [box(0.01)], people: 4, frameW: 1920, frameH: 1080 });
+  assert.equal(r.state, "small"); assert.equal(r.unmeasured, 3); assert.equal(r.ok, false);
+  // no face: never OK, with or without people; no smallest width
+  for (const people of [0, 6]) {
+    r = F.hallSetupCheck({ faces: [], people, frameW: 3840, frameH: 2160 });
+    assert.equal(r.state, "noface"); assert.equal(r.ok, false); assert.equal(r.minFacePx, null); assert.equal(r.n, 0); assert.equal(r.unmeasured, people);
+  }
+  // no frame size -> "nocam"; bad boxes and bad counts are dropped, never counted as a face
+  for (const bad of [undefined, {}, { faces: [box(0.05)], people: 1 }, { faces: [box(0.05)], frameW: 0 }, { faces: [box(0.05)], frameW: NaN }]) {
+    r = F.hallSetupCheck(bad); assert.equal(r.state, "nocam"); assert.equal(r.ok, false); assert.equal(r.n, 0);
+  }
+  r = F.hallSetupCheck({ faces: [null, { x: 0, y: 0, w: 0, h: 0.1 }, { x: 0, y: 0, w: NaN, h: 0.1 }, { x: 0, y: 0, w: -0.1, h: 0.1 }, box(0.05)], people: 0, frameW: 1920, frameH: 1080 });
+  assert.equal(r.n, 1); assert.equal(r.people, 0); assert.equal(r.state, "ok");
+  // a count that is not a count (negative) is "not measured", never 0 people and never OK
+  r = F.hallSetupCheck({ faces: [box(0.05)], people: -3, frameW: 1920, frameH: 1080 });
+  assert.equal(r.people, null); assert.equal(r.state, "nopeople"); assert.equal(r.ok, false);
+  // a custom minimum is honoured; the result carries numbers only
+  assert.equal(F.hallSetupCheck({ faces: [box(0.03)], people: 1, frameW: 1920, minPx: 64 }).state, "small");
+  r = F.hallSetupCheck({ faces: [Object.assign(box(0.05), { name: "x", yaw: 3, score: 0.9 })], people: 1, frameW: 1920, frameH: 1080 });
+  assert.deepEqual(Object.keys(r.faces[0]).sort(), ["h", "px", "small", "w", "x", "y"]);
+  assert.deepEqual(Object.keys(r).sort(), ["atCap", "cap", "faces", "frameH", "frameW", "minFacePx", "minPx", "n", "ok", "people", "small", "state", "unmeasured"]);
+});
+
+test("hall setup check (review S1): the RAW width is compared with 48 px and the px shown is rounded down: 47.4 / 47.5 / 47.9 are small and read 47, 48.0 / 48.1 are fine and read 48", () => {
+  const one = (px, W = 1920) => F.hallSetupCheck({ faces: [{ x: 0.1, y: 0.2, w: px / W, h: 0.05 }], people: 1, frameW: W, frameH: W * 9 / 16 });
+  for (const W of [1280, 1920, 3840]) {
+    for (const [px, shown, small] of [[47.4, 47, true], [47.5, 47, true], [47.9, 47, true], [48.0, 48, false], [48.1, 48, false]]) {
+      const r = one(px, W), label = px + " px on " + W;
+      assert.equal(r.faces[0].px, shown, label + ": px shown"); assert.equal(r.minFacePx, shown, label + ": smallest");
+      assert.equal(r.faces[0].small, small, label + ": small"); assert.equal(r.small, small ? 1 : 0, label);
+      assert.equal(r.state, small ? "small" : "ok", label + ": state"); assert.equal(r.ok, !small, label + ": ok");
+      assert.ok(!(r.faces[0].px >= 48 && r.faces[0].small), label + ": never 48 px shown for a face under 48 px");
+    }
+  }
+  // just under and just over, far from a rounding step; whole px widths survive the normalise / multiply round trip
+  assert.equal(one(47.999).state, "small"); assert.equal(one(47.999).faces[0].px, 47); assert.equal(one(48.999).faces[0].px, 48); assert.equal(one(48.999).state, "ok");
+  for (let px = 40; px <= 60; px++) for (const W of [640, 1280, 1920, 2560, 3840]) {
+    const r = one(px, W); assert.equal(r.faces[0].px, px, px + " on " + W); assert.equal(r.faces[0].small, px < 48, px + " on " + W);
+  }
+  // the smallest width with several faces is the floor of the smallest raw width; a custom minimum uses the raw width too
+  const r = F.hallSetupCheck({ faces: [{ x: 0, y: 0, w: 63.9 / 1920, h: 0.1 }, { x: 0.5, y: 0, w: 100.7 / 1920, h: 0.1 }], people: 2, frameW: 1920, frameH: 1080, minPx: 64 });
+  assert.deepEqual(r.faces.map(f => f.px), [63, 100]); assert.equal(r.minFacePx, 63); assert.equal(r.state, "small");
+  assert.match(read("lensiq-exam-face.js"), /px: Math\.floor\(raw\), small: raw < minPx/);
+});
+
+test("hall setup check (review S4): no people count yet (null / undefined / NaN / negative) is 'not measured', never 0 people and never OK", () => {
+  const box = (w, i = 0) => ({ x: 0.1 + 0.2 * i, y: 0.2, w, h: w * 1.3 });
+  for (const people of [undefined, null, NaN, -1, "3", Infinity]) {
+    const r = F.hallSetupCheck({ faces: [box(0.05), box(0.05, 1)], people: /** @type {any} */ (people), frameW: 1920, frameH: 1080 });
+    assert.equal(r.people, null, String(people)); assert.equal(r.state, "nopeople", String(people)); assert.equal(r.ok, false, String(people)); assert.equal(r.unmeasured, 0);
+    // a small face still warns, no face is still "noface": the missing count never hides them and never turns them into OK
+    assert.equal(F.hallSetupCheck({ faces: [box(0.01)], people: /** @type {any} */ (people), frameW: 1920, frameH: 1080 }).state, "small");
+    const none = F.hallSetupCheck({ faces: [], people: /** @type {any} */ (people), frameW: 1920, frameH: 1080 });
+    assert.equal(none.state, "noface"); assert.equal(none.ok, false); assert.equal(none.people, null);
+  }
+  // a real count of 0 is a count: one face, nobody seen by the object detector -> people (0) <= faces (1)
+  const zero = F.hallSetupCheck({ faces: [box(0.05)], people: 0, frameW: 1920, frameH: 1080 });
+  assert.equal(zero.people, 0); assert.equal(zero.state, "ok");
+  assert.equal(F.HALL_SETUP.peopleMaxAgeMs, 5000);
+  // the page: the count is known only after a finished detection turn on this camera, not older than peopleMaxAgeMs; a failing turn clears it
+  const js = read("exam-hall.js");
+  assert.match(js, /const peopleNow = \(\) => \(peopleAt && performance\.now\(\) - peopleAt <= SC\.peopleMaxAgeMs \? lastDets\.persons\.length : null\);/);
+  assert.match(js, /lastDets = d; peopleAt = performance\.now\(\);/); assert.match(js, /catch \(e\) \{ console\.warn\(e\); peopleAt = 0; \}/);
+  assert.match(js, /if \(ev\.type === "started"\) \{ peopleAt = 0;/);
+  assert.match(js, /let peopleAt = 0;/); assert.doesNotMatch(js, /people: lastDets\.persons\.length/);
+});
+
+test("hall setup check (review S2): its own engine with a higher face limit; at the limit with more people seen the state is 'cap', not 'too small or too far'", async () => {
+  const S = F.HALL_SETUP, cap = S.numFaces;
+  assert.equal(cap, 16); assert.equal(F.HALL_FACE.numFaces, 8, "the exam loop's face pass keeps its limit");
+  const box = i => ({ x: (i % 8) / 8, y: Math.floor(i / 8) / 8, w: 0.05, h: 0.06 });
+  const faces = n => Array.from({ length: n }, (_, i) => box(i));
+  // at the limit and more people: "cap"; at the limit and no more people: OK; under the limit and more people: "people"
+  let r = F.hallSetupCheck({ faces: faces(cap), people: cap + 9, frameW: 3840, frameH: 2160, cap });
+  assert.equal(r.state, "cap"); assert.equal(r.ok, false); assert.equal(r.atCap, true); assert.equal(r.cap, cap); assert.equal(r.unmeasured, 9);
+  r = F.hallSetupCheck({ faces: faces(cap), people: cap, frameW: 3840, frameH: 2160, cap });
+  assert.equal(r.state, "ok"); assert.equal(r.atCap, false);
+  r = F.hallSetupCheck({ faces: faces(cap - 1), people: cap + 9, frameW: 3840, frameH: 2160, cap });
+  assert.equal(r.state, "people"); assert.equal(r.atCap, false); assert.equal(r.ok, false);
+  // a small face still wins, and the limit is still reported; no limit given -> never "cap"; no people count -> not "cap"
+  r = F.hallSetupCheck({ faces: faces(cap - 1).concat([{ x: 0.9, y: 0.9, w: 0.005, h: 0.01 }]), people: cap + 2, frameW: 3840, frameH: 2160, cap });
+  assert.equal(r.state, "small"); assert.equal(r.atCap, true);
+  r = F.hallSetupCheck({ faces: faces(cap), people: cap + 9, frameW: 3840, frameH: 2160 });
+  assert.equal(r.state, "people"); assert.equal(r.cap, 0); assert.equal(r.atCap, false);
+  assert.equal(F.hallSetupCheck({ faces: faces(cap), frameW: 3840, frameH: 2160, cap }).state, "nopeople");
+  // engines: the setup engine asks for 16 faces; the exam loop's still asks for 8; nothing else may pass the old limit of 8
+  const got = [];
+  const vision = { FilesetResolver: { forVisionTasks: async () => ({}) },
+    FaceLandmarker: { createFromOptions: async (f, o) => { got.push(o); return { detect: () => ({ faceLandmarks: [] }), setOptions: async () => {}, close() {} }; } } };
+  const setup = F.createHallFaces({ base: "http://x/", vision, setup: true }), loop = F.createHallFaces({ base: "http://x/", vision });
+  await setup.init(); await loop.init();
+  assert.equal(setup.numFaces, cap); assert.equal(got[0].numFaces, cap); assert.equal(got[0].outputFaceBlendshapes, undefined);
+  assert.equal(loop.numFaces, 8); assert.equal(got[1].numFaces, 8);
+  assert.deepEqual(F.cleanOptions({ numFaces: 16 }), {}, "the lab engine cannot be raised above 8");
+  assert.deepEqual(F.cleanOptions({ numFaces: 16 }, 16), { numFaces: 16 }); assert.deepEqual(F.cleanOptions({ numFaces: 17 }, 16), {});
+  assert.equal(F.createMediaPipe({ base: "http://x/", vision, options: { numFaces: 16 } }).options.numFaces, 4, "createMediaPipe without the setup limit drops 16");
+  assert.equal(F.createMediaPipe({ base: "http://x/", vision, maxFaces: 32, options: { numFaces: 16 } }).options.numFaces, 4, "only HALL_SETUP.numFaces is accepted as a higher limit");
+  // the page: the setup check has its own engine and passes the limit; the exam loop's pass is not touched
+  const js = read("exam-hall.js"), html = read("exam-hall.html").replace(/\s+/g, " ");
+  assert.match(js, /if \(!scEng\) scEng = XF\.createHallFaces\(\{ setup: true \}\);/); assert.match(js, /if \(!faceEng\) faceEng = XF\.createHallFaces\(\);/);
+  assert.equal((js.match(/XF\.createHallFaces\(/g) || []).length, 2);
+  assert.match(js, /minPx: SC\.minFacePx, cap: SC\.numFaces \}\)/);
+  // the limit is in the panel lead text and in the cap message, in the three languages, with the number of HALL_SETUP
+  const en = dictOf("i18n/en-exam.js"), zh = dictOf("i18n/zh-exam.js");
+  assert.match(html, new RegExp('data-i18n="exam\\.hall\\.scLead">[^<]*วัดได้สูงสุดครั้งละ ' + cap + ' ใบหน้า'));
+  assert.match(en["exam.hall.scLead"], new RegExp("measures at most " + cap + " faces at a time")); assert.match(zh["exam.hall.scLead"], new RegExp("一次最多测量 " + cap + " 张脸"));
+  assert.match(js, /"exam\.hall\.scCap", "ตัววัดวัดได้สูงสุดครั้งละ \{cap\} ใบหน้า: เห็นคน \{p\} คน วัดได้ \{n\} ใบหน้า — ให้ตรวจแถวไกลสุดโดยให้มีคนในภาพไม่เกิน \{cap\} คน"/);
+  assert.match(en["exam.hall.scCap"], /^The check measures at most \{cap\} faces at a time: \{p\} people seen, \{n\} faces measured — check the farthest rows with up to \{cap\} people in view$/);
+  assert.match(zh["exam.hall.scCap"], /^一次最多测量 \{cap\} 张脸：看到 \{p\} 人，测到 \{n\} 张脸——请在画面中不超过 \{cap\} 人的情况下检查最远的几排$/);
+  for (const t of [en["exam.hall.scCap"], zh["exam.hall.scCap"]]) assert.doesNotMatch(t, /too small|too far|太小|太远/);
+  const doc = read("docs/EXAM.md");
+  assert.match(doc, new RegExp("returns at most " + cap + " faces per measurement \\(`HALL_SETUP\\.numFaces`")); assert.match(doc, /the cost with 16 faces found is \*\*not measured\*\*/);
+});
+
+test("evidence clip source (review): never the camera's own stream above 1280 px; no way to make the copy -> no clip, said in TH / EN / ZH; seat shape warning; guide wording", () => {
+  const js = read("exam-hall.js"), html = read("exam-hall.html"), en = dictOf("i18n/en-exam.js"), zh = dictOf("i18n/zh-exam.js");
+  // clipSource(): the only place the camera's own stream is returned is the "not wider than PROC_W" line
+  const src = /async function clipSource\(\) \{[\s\S]*?\n {2}\}\n/.exec(js)[0];
+  assert.equal((src.match(/return cam0;/g) || []).length, 1); assert.match(src, /if \(!\(Wv > PROC_W\) \|\| !cam0\) return cam0;/);
+  assert.match(src, /if \(typeof clipCv\.captureStream !== "function" \|\| \(TEST && W\.__LQ_NO_CANVAS_STREAM\)\) \{ clipW = 0; clipOff = true; renderClipOff\(\); return null; \}/);
+  assert.match(src, /typeof video\.requestVideoFrameCallback === "function"/); assert.match(src, /else clipTimer = setInterval\(paint, 66\);/);
+  assert.match(js, /clipSource\(\)\.then\(s => \{ if \(s && monitoring && clipCfg\.on\) clips\.arm\(s\);/);
+  for (const id of ["clipOff", "scLess", "seatAr"]) assert.match(html, new RegExp('<p class="status warn" id="' + id + '" role="status" hidden></p>'), id);
+  const ph = t => (t.match(/\{\w+\}/g) || []).sort().filter((x, i, a) => a.indexOf(x) === i).join();
+  for (const k of ["clipNoSrc", "scLess", "scCap", "scNoPeople", "scPeopleNone", "seatAr"]) {
+    const key = "exam.hall." + k, th = new RegExp('"' + key.replace(/\./g, "\\.") + '",\\s*"([^"]*)"').exec(js);
+    assert.ok(th, key + " is used with a Thai text"); assert.ok(THAI_RE.test(th[1]), key + ": Thai default");
+    for (const d of [en, zh]) { assert.ok(d[key], key); assert.ok(!THAI_RE.test(d[key]), key + ": no Thai"); assert.equal(ph(d[key]), ph(th[1]), key + " placeholders"); }
+  }
+  assert.match(en["exam.hall.clipNoSrc"], /no evidence clip is recorded .* full-size picture is never recorded/); assert.match(zh["exam.hall.clipNoSrc"], /不录制证据片段/);
+  assert.match(en["exam.hall.scLess"], /^Received less than asked: \{w\} × \{h\} px instead of \{aw\} × \{ah\} px/); assert.match(zh["exam.hall.scLess"], /^收到的画面低于所请求的/);
+  assert.match(js, /"exam\.hall\.scLess", "ได้ภาพน้อยกว่าที่ขอ: /); assert.match(js, /isLess = Wv > 0 && Wv < top\.width/);
+  // seat shape: one number per room + camera next to the seats, nothing else
+  assert.match(js, /seatsAr: "lq-exam-seats-ar"/); assert.match(js, /Math\.abs\(seatAr - now\) \/ now > 0\.02/);
+  // the guide is not published: every page text says where to get it, in the same words
+  const flat = html.replace(/\s+/g, " ");
+  assert.match(flat, /data-i18n="exam\.hall\.scMin">[^<]*ขอคู่มือวางกล้องได้จากเรา</);
+    assert.match(en["exam.hall.scMin"], /ask us for the camera placement guide$/); assert.match(zh["exam.hall.scMin"], /请向我们索取摄像头摆放指南$/);
+  for (const f of ["exam.html", "exam-hall.html", "exam-lab.html", "exam-dashboard.html", "exam-hall.js"]) assert.doesNotMatch(read(f), /ดูคู่มือวางกล้อง/, f);
+  for (const d of [en, zh]) for (const k of Object.keys(d)) assert.doesNotMatch(d[k], /see the camera placement guide|[（，]见摄像头摆放指南/i, k);
+  const doc = read("docs/EXAM.md");
+  assert.match(doc, /\*\*no clip is recorded\*\*/); assert.match(doc, /`requestVideoFrameCallback`/); assert.match(doc, /Browsers slow page timers down in a tab that is not in front/);
+  assert.match(doc, /\*\*Seats and frame shape \(residual risk\)\.\*\*/); assert.match(doc, /Seats saved \*\*before\*\* this version have no stored shape/);
+  const kit = read("docs/pilot/PILOT-EXAM.md");
+  assert.match(kit, /\*\*ที่นั่งที่บันทึกไว้ก่อนอัปเดตนี้:\*\*/); assert.match(kit, /\*\*Seats saved before this update:\*\*/);
+});
+
+test("hall setup check on the page: the panel, the camera ladder, TH / EN / ZH strings, off while monitoring, nothing sent or stored, no expression output", () => {
+  const html = read("exam-hall.html"), js = read("exam-hall.js");
+  const en = dictOf("i18n/en-exam.js"), zh = dictOf("i18n/zh-exam.js");
+  for (const id of ["setupCheck", "scBtn", "scKv", "scState", "scList"]) assert.match(html, new RegExp('id="' + id + '"'), id);
+  assert.match(html, /id="scState" role="status" aria-live="polite"/);
+  assert.ok(html.indexOf('id="setupCheck"') > html.indexOf('id="camWrap"') && html.indexOf('id="setupCheck"') < html.indexOf('id="runH"'), "under the camera view, before the run section");
+  const flat = html.replace(/\s+/g, " ");
+  assert.match(flat, /data-i18n="exam\.hall\.scH">ตรวจการติดตั้งกล้อง: ขนาดใบหน้า</);
+  assert.match(flat, /data-i18n="exam\.hall\.scMin">48 px เป็นขั้นต่ำ ไม่ใช่การรับประกัน[^<]*คู่มือวางกล้อง ขอคู่มือวางกล้องได้จากเรา</);
+  assert.match(flat, /data-i18n="exam\.hall\.scLead">[^<]*ไม่บันทึก ไม่ส่งออก ไม่จดจำว่าใครเป็นใคร</);
+  assert.match(en["exam.hall.scMin"], /^48 px is a minimum, not a guarantee\..*camera placement guide$/); assert.match(zh["exam.hall.scMin"], /^48 px 只是最低要求，并非保证。.*摄像头摆放指南$/);
+  const KEYS = ["scH", "scLead", "scMin", "scStart", "scStop", "scRes", "scPeople", "scFacesN", "scMinPx", "scMinNone", "scList", "scIdle", "scNoCam", "scMon", "scWait",
+    "scNoFace", "scNoFaceP", "scSmall", "scPeopleW", "scOk", "scErr", "scLess", "scPeopleNone", "scCap", "scNoPeople"];
+  for (const k of KEYS) {
+    const key = "exam.hall." + k;
+    assert.ok(js.includes('"' + key + '"') || html.includes('data-i18n="' + key + '"'), key + " is used");
+    for (const d of [en, zh]) { assert.ok(d[key], key); assert.ok(!THAI_RE.test(d[key]), key + ": no Thai"); }
+    // the same {placeholders} in Thai (page / script), English and Chinese
+    const th = (new RegExp('"' + key.replace(/\./g, "\\.") + '",\\s*"([^"]*)"').exec(js) || new RegExp('data-i18n="' + key.replace(/\./g, "\\.") + '">([^<]*)<').exec(html))[1];
+    const ph = t => (t.match(/\{\w+\}/g) || []).sort().filter((x, i, a) => a.indexOf(x) === i).join();
+    assert.equal(ph(en[key]), ph(th), key + " placeholders (en)"); assert.equal(ph(zh[key]), ph(th), key + " placeholders (zh)");
+  }
+  // the people-vs-faces warning and the OK text say what the owner asked for
+  assert.match(en["exam.hall.scPeopleW"], /^\{p\} people seen, \{n\} faces measured — the others may be too small or too far$/);
+  assert.match(js, /"exam\.hall\.scPeopleW", "เห็นคน \{p\} คน วัดใบหน้าได้ \{n\} ใบหน้า — คนที่เหลืออาจเล็กหรืออยู่ไกลเกินไป"/);
+  assert.match(zh["exam.hall.scPeopleW"], /^看到 \{p\} 人，测到 \{n\} 张脸——其余的人可能太小或太远$/);
+  for (const t of [en["exam.hall.scOk"], zh["exam.hall.scOk"]]) assert.match(t, /\{min\} px (is a minimum, not a guarantee|只是最低要求，并非保证)$/);
+  assert.match(js, /\{min\} px เป็นขั้นต่ำ ไม่ใช่การรับประกัน"/);
+  // camera: the ladder from HALL_SETUP, no fixed 1280 x 720 request left; the green state only from hallSetupCheck().ok
+  assert.match(js, /ideal: SC\.ladder\.map\(r => \(\{ width: r\.width, height: r\.height \}\)\)/); assert.doesNotMatch(js, /ideal: \{ width: 1280, height: 720 \}/);
+  assert.match(js, /XF\.hallSetupCheck\(\{ faces, people: peopleNow\(\), frameW: video\.videoWidth, frameH: video\.videoHeight, minPx: SC\.minFacePx, cap: SC\.numFaces \}\)/);
+  assert.equal((js.match(/kind = "ok"/g) || []).length, 1); assert.match(js, /else if \(r\.ok\) \{\s+kind = "ok";/);
+  // only outside monitoring; the result object is never put in a message, the store or the heartbeat
+  assert.match(js, /sc\.on = !!on && !monitoring;/); assert.match(js, /if \(monitoring\) \{ scSet\(false\);/); assert.match(js, /btn\.disabled = monitoring;/);
+  for (const line of js.split("\n").filter(l => /link\.send\(|U\.store\.set\(|localStorage|function send\(/.test(l))) assert.doesNotMatch(line, /\bsc\.|scFaces|setup/i, line.slice(0, 80));
+  assert.doesNotMatch(js, /blendshape|\.expressions?\b|emotion|\bgender\b/i);
+  // the exam loop keeps its old work size on a larger frame; the clip is recorded from a copy at most PROC_W wide
+  assert.match(js, /PROC_W = 1280/); assert.match(js, /const src = tiles && video\.videoWidth > PROC_W \? procFrame\(\) : video;/);
+  assert.match(js, /clipSource\(\)\.then\(s => \{ if \(s && monitoring && clipCfg\.on\) clips\.arm\(s\);/); assert.doesNotMatch(js, /clips\.arm\(video\.srcObject\)/);
+  assert.match(js, /ok = a\.width > 0 && a\.width <= PROC_W && !\(m\.width < Wv\);/);
+  assert.match(html, /lensiq-camera\.js\?v=5/); assert.match(html, /exam-hall\.js\?v=4/); assert.match(html, /lensiq-exam-face\.js\?v=3/);
+  // docs: the section, the pilot kit (use it during room setup; the owner tests with a 4K webcam), one line each in the briefs
+  const doc = read("docs/EXAM.md");
+  assert.match(doc, /### Hall setup check \(2026-11-10\): face width in px in the live view/); assert.match(doc, /place a camera with the guide above/);
+  assert.match(doc, /\| Never OK \| With no face, with any face under 48 px, or with more people seen than faces measured\. Also never before the people count exists\. \|/);
+  const kit = read("docs/pilot/PILOT-EXAM.md");
+  assert.match(kit, /ตอนติดตั้งห้องให้ใช้ “ตรวจการติดตั้งกล้อง” บนหน้า `exam-hall\.html`/); assert.match(kit, /เจ้าของจะทดสอบด้วยเว็บแคม 4K ในห้องจริง/);
+  assert.match(kit, /During room setup, use the "setup check" on `exam-hall\.html`/); assert.match(kit, /will test this with a 4K webcam in a real room/);
+  assert.match(read("docs/CTO-BRIEF.md"), /hall setup check is built \(separate commit\)/); assert.match(read("docs/FIELD-PILOT.md"), /Hall setup check \(same day, separate commit\)/);
+  assert.match(read("docs/PDPA-NOTES-FOR-COUNSEL.md"), /Hall setup check \(2026-11-10, separate commit\)/);
 });

@@ -7,6 +7,12 @@
  *     [ {deviceId:{exact}, ...ideal}, {facingMode:{ideal:facing}, ...ideal}, {...ideal}, true ]
  *     no deviceId -> no step 1 · no facing -> no step 2 · no ideal/frameRate -> no step 3 (it would equal `true`).
  *     ideal/frameRate are expanded to {width:{ideal}, height:{ideal}, frameRate:{ideal}}.
+ *     ideal may be a LADDER [{width,height}, ...] (highest first, e.g. 3840x2160, 1920x1080, 1280x720): with a deviceId,
+ *     step 1 is tried at EVERY rung first (the chosen camera is walked down the whole ladder before any other camera
+ *     may be opened); then steps 2-3 are repeated per rung in that order, then `true`. One ideal (every other page) gives
+ *     exactly the four steps above. "ideal" never fails for being too high (the browser gives the closest mode), so a
+ *     lower rung is reached only when a step throws: overconstrained / notfound, or busy (a camera that cannot start at
+ *     that size) while a lower rung is left. The page reads what arrived from video.videoWidth.
  *   errorKind(err) -> 'denied'|'insecure'|'busy'|'notfound'|'overconstrained'|'unknown'
  *   errorText(err) -> message in the current language (Thai default; zh via LQI18N keys cam.err.*; also handles CapacityError / DuplicateCamera / NoFreeCamera / Ended)
  *   parseCams(json|object) -> {v:1, cams:[{slot, deviceId, label, name, role}]}   tolerant: garbage -> {v:1, cams:[]}
@@ -75,12 +81,29 @@
   }
   /** @param {LQCamChainOpts} [o] */
   function fallbackChain({ deviceId, facing, ideal, frameRate } = {}) {
-    const base = idealC(ideal, frameRate), steps = [];
-    if (deviceId) steps.push({ deviceId: { exact: deviceId }, ...base });
-    if (facing) steps.push({ facingMode: { ideal: facing }, ...base });
-    if (Object.keys(base).length) steps.push({ ...base });
+    const steps = [], rungs = idealRungs(ideal);
+    // the chosen device at every rung first: a camera that cannot start at 4K is tried at 1080p / 720p before another camera is
+    if (deviceId) for (const rung of rungs) steps.push({ deviceId: { exact: deviceId }, ...idealC(rung, frameRate) });
+    for (const rung of rungs) {
+      const base = idealC(rung, frameRate);
+      if (facing) steps.push({ facingMode: { ideal: facing }, ...base });
+      if (Object.keys(base).length) steps.push({ ...base });
+    }
     steps.push(true);
     return steps;
+  }
+  /** ideal -> the rungs to try in order: a ladder array (entries without a width and height dropped) or the one ideal
+   * @param {any} ideal @returns {any[]} */
+  function idealRungs(ideal) {
+    if (!Array.isArray(ideal)) return [ideal];
+    const r = ideal.filter(x => x && x.width > 0 && x.height > 0);
+    return r.length ? r : [null];
+  }
+  /** is a lower-resolution step left after steps[i]? (a "busy" failure at a high rung then moves down instead of aborting)
+   * @param {any[]} steps @param {number} i */
+  function lowerRungLeft(steps, i) {
+    const w = (/** @type {any} */ s) => (s && typeof s === "object" && s.width && s.width.ideal) || 0;
+    return w(steps[i]) > 0 && steps.slice(i + 1).some(s => w(s) > 0 && w(s) < w(steps[i]));
   }
   function errorKind(err) {
     const n = (err && err.name) || "";
@@ -116,15 +139,40 @@
     overconstrained: "摄像头不支持所请求的分辨率",
     unknown: "打开摄像头失败"
   };
-  if (typeof window !== "undefined") {
-    const zh = {}; for (const k in ERR_ZH) zh["cam.err." + k] = ERR_ZH[k];
-    (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh });
-  }
-  const errT = (k, vars) => {
-    const I = typeof window !== "undefined" && window.LQI18N;
-    if (I && typeof I.tf === "function") return I.tf("cam.err." + k, ERR_TH[k], vars);
-    return ERR_TH[k].replace(/\{(\w+)\}/g, (m, x) => (vars && vars[x] != null ? vars[x] : m));
+  const ERR_EN = {
+    capacity: "This device can run up to {max} cameras at once — most phones run one camera at a time, so use 1 device per location",
+    duplicate: "This camera has already been added",
+    nofree: "No free camera to add — all detected cameras are already in use",
+    ended: "Camera disconnected or turned off",
+    denied: "Camera permission denied. Please allow it in your browser settings",
+    insecure: "On a phone, open the page through https:// — see how on the All systems page",
+    busy: "This camera is in use, or the USB bandwidth is not enough",
+    notfound: "No camera found on this device",
+    overconstrained: "The camera does not support the requested resolution",
+    unknown: "Could not start camera"
   };
+  /* camera picker of attach() (flip button, <select>, unnamed devices) */
+  const UI_TH = { back: "ใช้กล้องหลัง", front: "ใช้กล้องหน้า", pick: "เลือกกล้อง", camN: "กล้อง {n}" };
+  const UI_ZH = { back: "使用后置摄像头", front: "使用前置摄像头", pick: "选择摄像头", camN: "摄像头 {n}" };
+  const UI_EN = { back: "Use rear camera", front: "Use front camera", pick: "Select camera", camN: "Camera {n}" };
+  if (typeof window !== "undefined") {
+    const zh = {}, en = {};
+    for (const k in ERR_ZH) zh["cam.err." + k] = ERR_ZH[k];
+    for (const k in ERR_EN) en["cam.err." + k] = ERR_EN[k];
+    for (const k in UI_ZH) zh["cam.ui." + k] = UI_ZH[k];
+    for (const k in UI_EN) en["cam.ui." + k] = UI_EN[k];
+    (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh, en });
+  }
+  /* Pages with the run-time translator (lensiq-i18n-rt.js: window.LQI18N_RTX) keep getting exactly what they got before
+     these keys existed: Thai picker text and Thai English-mode errors, which that translator turns into zh / en itself.
+     Pages without it (the Exam pages) get the text in the current language from the keys above. */
+  const txt = (ns, TH, k, vars) => {
+    const I = typeof window !== "undefined" && window.LQI18N, rt = typeof window !== "undefined" && !!window.LQI18N_RTX;
+    if (I && typeof I.tf === "function" && !(rt && (ns === "cam.ui." || String(I.lang) === "en"))) return I.tf(ns + k, TH[k], vars);
+    return TH[k].replace(/\{(\w+)\}/g, (m, x) => (vars && vars[x] != null ? vars[x] : m));
+  };
+  const errT = (k, vars) => txt("cam.err.", ERR_TH, k, vars);
+  const uiT = (k, vars) => txt("cam.ui.", UI_TH, k, vars);
   function errorText(err) {
     const n = (err && err.name) || "";
     if (n === "CapacityError") return errT("capacity", { max: err.max || 1 });
@@ -310,20 +358,23 @@
     }
     function chainFor(id, face) {
       const want = { deviceId: id, facing: face, ideal: opt.ideal, frameRate: opt.frameRate };
-      if (id && opt.strictDevice) return [{ deviceId: { exact: id }, ...idealC(opt.ideal, opt.frameRate) }, { deviceId: { exact: id }, ...idealC({ width: 640, height: 480 }, 15) }];
+      if (id && opt.strictDevice) {
+        return idealRungs(opt.ideal).map(r => ({ deviceId: { exact: id }, ...idealC(r, opt.frameRate) })).concat([{ deviceId: { exact: id }, ...idealC({ width: 640, height: 480 }, 15) }]);
+      }
       return fallbackChain(want);
     }
     async function open(id, face) {
       const steps = /** @type {MediaTrackConstraints[]} */ (chainFor(id, face));
       let last = null;
-      for (const v of steps) {
+      for (let i = 0; i < steps.length; i++) {
+        const v = steps[i];
         try { return await navigator.mediaDevices.getUserMedia({ video: v, audio: false }); }
         catch (e) {
           last = e;
           const k = errorKind(e), devStep = v && typeof v === "object" && v.deviceId;
           if (k === "denied" || k === "insecure") throw e;
           if (k === "overconstrained" || k === "notfound") continue;
-          if (k === "busy" && devStep) continue;
+          if (k === "busy" && (devStep || lowerRungLeft(steps, i))) continue;
           throw e;
         }
       }
@@ -393,15 +444,20 @@
       if (!tr || !torchSupported) return false;
       try { await tr.applyConstraints({ advanced: [{ torch: !!onOff }] }); torchOn = !!onOff; return true; } catch { return false; }
     }
-    async function refreshDevices() {
-      devices = await listCameras();
+    /** picker text in the current language (also on a language switch) */
+    function labelUis() {
       for (const ui of uis) {
         ui.hidden = devices.length < 2;
         const [flip, sel] = ui.children;
-        flip.textContent = facing === "environment" ? "ใช้กล้องหน้า" : "ใช้กล้องหลัง";
-        sel.innerHTML = devices.map((d, i) => `<option value="${esc(d.deviceId)}">${esc((d.label || "กล้อง " + (i + 1)).replace(/[<&]/g, ""))}</option>`).join("");
+        flip.textContent = uiT(facing === "environment" ? "front" : "back");
+        sel.setAttribute("aria-label", uiT("pick"));
+        sel.innerHTML = devices.map((d, i) => `<option value="${esc(d.deviceId)}">${esc((d.label || uiT("camN", { n: i + 1 })).replace(/[<&]/g, ""))}</option>`).join("");
         if (deviceId) sel.value = deviceId;
       }
+    }
+    async function refreshDevices() {
+      devices = await listCameras();
+      labelUis();
       emit("devices", { devices });
       return devices;
     }
@@ -443,12 +499,13 @@
     if (hasDOM && navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
       on(navigator.mediaDevices, "devicechange", () => { refreshDevices(); });
     }
+    if (hasDOM) on(root, "lq-lang", () => { if (uis.length && !root.LQI18N_RTX) labelUis(); });
 
     const api = {
       video, start: id => start(id), stop, pause, resume, flip, setTorch, refreshDevices,
       attach(el) {
         uis.push(el); el.hidden = true;
-        el.innerHTML = `<button class="btn ghost" type="button">ใช้กล้องหลัง</button><select aria-label="เลือกกล้อง"></select>`;
+        el.innerHTML = `<button class="btn ghost" type="button">${esc(uiT("back"))}</button><select aria-label="${esc(uiT("pick"))}"></select>`;
         el.children[0].onclick = () => flip().catch(fail);
         el.children[1].onchange = e => start(e.target.value).catch(fail);
         refreshDevices();
@@ -848,7 +905,7 @@
   }
 
   const api = {
-    fallbackChain, errorKind, errorText, parseCams, serializeCams, nextSlot, pickNext, mapSeatToImage,
+    fallbackChain, lowerRungLeft, errorKind, errorText, parseCams, serializeCams, nextSlot, pickNext, mapSeatToImage,
     readCapacity, writeCapacity, createScheduler, listCameras, create, createHub, offlineBadge, SLOTS, CAP_KEY,
     createGapLog, sampleSec, unattended, ackBox
   };

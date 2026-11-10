@@ -332,7 +332,11 @@ input. Rows without ground truth are skipped and counted.
   claim "detects a second person" and the pilot reports the measured rate; the number of hall cameras depends on room
   size (see the guide); a hall camera placement guide (face ≥ 48 px wide; a
   calculation, not a measurement) is in `docs/EXAM.md` with the list of what to write down when the owner tests a 4K
-  webcam in a real room.
+  webcam in a real room. Hall setup check (same day, separate commit): during room setup use "ตรวจการติดตั้งกล้อง" on
+  `exam-hall.html` and write down the frame size received, the smallest face width in px per row and "people seen vs
+  faces measured"; 48 px is a minimum, not a guarantee. The check measures at most 16 faces at a time (check one group
+  at a time); write down "received less than asked" when the page shows it; look once at every seat layout saved before
+  this update (a camera can change picture shape at a higher size). **Field: not measured.**
 - **2026-11-10 (round 17)**: Exam lab face engine switched to MediaPipe Face Landmarker (owner decision); public /
   synthetic numbers in `docs/exam/FACE-ENGINE-RESULTS.md`. For the Exam pilot phase 0: (1) open the lab page on each lab computer
   and check the face check runs (if the detector cannot run there, the page switches the face signals off and says "fix setup"); (2) record no-face misses per

@@ -45,7 +45,14 @@
 - **โหมด A ห้องสอบที่มีกล้อง** (`exam-hall.html` + `exam-dashboard.html`): **รุ่นทดลอง ทดลองควบคู่ได้เท่านั้น** เปิดกล้องและแดชบอร์ดในเบราว์เซอร์
   เดียวกัน (คนละแท็บ) บนเครื่องเดียว แต่ละเครื่องดูได้ 1 มุมกล้อง จำนวนกล้องขึ้นกับขนาดห้อง (ดูคู่มือวางกล้อง) แต่ละเครื่องมีแดชบอร์ดของตัวเอง
   ตัวเลือก “นับใบหน้า (ทดลอง)” ยังไม่พบใบหน้าเล็กหรือที่อยู่ไกล การวางกล้องให้ใบหน้ากว้าง ≥ 48 px ดู `docs/EXAM.md`
-  “Hall camera placement guide” (เป็นการคำนวณ ยังไม่ได้วัด)
+  “Hall camera placement guide” (เป็นการคำนวณ ยังไม่ได้วัด) **ตอนติดตั้งห้องให้ใช้ “ตรวจการติดตั้งกล้อง” บนหน้า `exam-hall.html`
+  ก่อนเริ่มเฝ้าดู:** ให้คนนั่งทีละแถวรวมถึงแถวไกลสุด แล้วจดขนาดภาพที่ได้จากกล้อง ความกว้างใบหน้าเล็กสุด (px) ของแต่ละแถว
+  และจำนวน “เห็นคน / ใบหน้าที่วัดได้” ถ้ามีใบหน้าต่ำกว่า 48 px หรือเห็นคนมากกว่าใบหน้าที่วัดได้ ให้ขยับกล้องหรือเพิ่มกล้อง
+  48 px เป็นขั้นต่ำ ไม่ใช่การรับประกัน เจ้าของจะทดสอบด้วยเว็บแคม 4K ในห้องจริง (ยังไม่ได้วัดในห้องจริง)
+  ตัวตรวจวัดได้สูงสุดครั้งละ 16 ใบหน้า ให้ตรวจทีละกลุ่ม และถ้าหน้าจอขึ้นว่า “ได้ภาพน้อยกว่าที่ขอ” ให้จดไว้
+  **ที่นั่งที่บันทึกไว้ก่อนอัปเดตนี้:** กล้องบางตัวให้สัดส่วนภาพต่างกันเมื่อความละเอียดสูงขึ้น (เช่น 4:3 เป็น 16:9)
+  ขอบเขตที่นั่งเดิมจึงอาจเลื่อน ให้เปิดดูผังที่นั่งที่บันทึกไว้ทุกชุดหนึ่งครั้งก่อนวันสอบ และวาดใหม่ถ้าไม่ตรง
+  (ผังที่บันทึกหลังอัปเดตนี้ หน้าจะเตือนเองเมื่อสัดส่วนภาพเปลี่ยน)
 - **คลิปหลักฐาน** ปิดเป็นค่าเริ่มต้น ในนำร่องนี้ **ไม่เปิด** เว้นแต่ไซต์ขอเป็นหนังสือ และประกาศผู้สอบระบุไว้แล้ว (`docs/EXAM.md` "Evidence clip")
 
 ## 3. ตารางเวลา (ต่อสถาบัน)
@@ -199,7 +206,15 @@ This pilot does none of the following:
   camera and the dashboard run in two tabs of the same browser on one device. Each device covers one camera view, so the
   number of cameras depends on room size (see the guide), each with its own dashboard. Its "count faces (experimental)" option does not find small
   or distant faces. For placing a camera so that faces are ≥ 48 px wide see "Hall camera placement guide" in
-  `docs/EXAM.md` (a calculation, not a measurement).
+  `docs/EXAM.md` (a calculation, not a measurement). **During room setup, use the "setup check" on `exam-hall.html`
+  before monitoring:** seat people row by row, including the farthest row, and write down the frame size received,
+  the smallest face width in px for each row and "people seen / faces measured". If a face is under 48 px, or more
+  people are seen than faces measured, move the camera or add one. 48 px is a minimum, not a guarantee. The owner
+  will test this with a 4K webcam in a real room (not measured in a real room yet). The check measures at most 16
+  faces at a time, so check one group at a time, and write it down if the page says "received less than asked".
+  **Seats saved before this update:** some cameras deliver another picture shape at a higher size (for example 4:3
+  becomes 16:9), so saved seat areas may have shifted. Open every saved seat layout once before the exam day and
+  redraw it if it does not match (for layouts saved after this update the page warns when the shape changes).
 - **Evidence clips** stay **off** in this pilot unless the site asks in writing and the candidate notice already says
   so.
 

@@ -113,7 +113,11 @@ interface LQCamOptions {
   onChange?: (cam: any, ev: { type: string; [k: string]: unknown }) => void;
   onError?: (cam: any, err: any) => void;
 }
-interface LQCamChainOpts { deviceId?: string; facing?: string; ideal?: { width?: number; height?: number } | null; frameRate?: number }
+interface LQCamChainOpts {
+  deviceId?: string; facing?: string; frameRate?: number;
+  /** one ideal size, or a ladder tried highest first */
+  ideal?: { width?: number; height?: number } | Array<{ width: number; height: number }> | null;
+}
 interface LQCamSlotOpts { deviceId?: string; name?: string; role?: string; slot?: string; label?: string; _restore?: boolean }
 
 /** lensiq-detect.js detectCoco / detectYolox / embedBox options */

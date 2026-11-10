@@ -24,7 +24,7 @@
 <body>
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=15"></script>
-<script src="i18n/zh-exam.js?v=3"></script>
+<script src="i18n/zh-exam.js?v=4"></script>
 
 <main class="ex" id="main">
   <h1 data-i18n="exam.hall.h1">เครื่องกล้องในห้องสอบ</h1>
@@ -69,6 +69,21 @@
       <div>
         <div class="cam-wrap" id="camWrap"><video id="video" autoplay muted playsinline></video><canvas id="overlay" aria-label="ภาพจากกล้องพร้อมขอบเขตที่นั่ง" data-i18n-attr="aria-label:exam.hall.canvasL"></canvas></div>
         <div id="camPick"></div>
+        <div id="setupCheck">
+          <h3 data-i18n="exam.hall.scH">ตรวจการติดตั้งกล้อง: ขนาดใบหน้า</h3>
+          <p class="note" data-i18n="exam.hall.scLead">ใช้ก่อนเริ่มเฝ้าดู: ให้คนนั่งที่แถวไกลสุดแล้วกดเริ่ม
+            ระบบวัดความกว้างของแต่ละใบหน้าเป็นพิกเซลในภาพที่เครื่องนี้ได้รับจริง วัดได้สูงสุดครั้งละ 16 ใบหน้า
+            ถ้าในภาพมีคนมากกว่านั้น ให้ตรวจทีละกลุ่ม แสดงเฉพาะกรอบและตัวเลขในเครื่องนี้ ไม่บันทึก ไม่ส่งออก
+            ไม่จดจำว่าใครเป็นใคร</p>
+          <div class="row-actions"><button class="btn ghost" type="button" id="scBtn" aria-pressed="false"></button></div>
+          <div class="kv" id="scKv" role="status"></div>
+          <p class="status warn" id="scLess" role="status" hidden></p>
+          <p class="status" id="scState" role="status" aria-live="polite"></p>
+          <p class="note" id="scList" hidden></p>
+          <p class="note" data-i18n="exam.hall.scMin">48 px เป็นขั้นต่ำ ไม่ใช่การรับประกัน ตัวตรวจปัจจุบันมักไม่พบใบหน้าที่เล็กหรืออยู่ไกล
+            (ดูข้อความ “รุ่นทดลอง” ด้านบน) ใบหน้าที่หาไม่เจอจะไม่มีตัวเลข หน้านี้จึงเทียบจำนวนคนที่เห็นกับจำนวนใบหน้าที่วัดได้ด้วย
+            เหตุผลและตารางระยะกล้องอยู่ในคู่มือวางกล้อง ขอคู่มือวางกล้องได้จากเรา</p>
+        </div>
         <p class="note" id="drawHint" role="status"></p>
       </div>
       <div>
@@ -89,6 +104,7 @@
         </div>
         <div class="row-actions"><button class="btn ghost" type="button" id="makeGrid" data-i18n="exam.hall.makeGrid">สร้างผังที่นั่ง</button></div>
         <h3><span data-i18n="exam.hall.listH">ที่นั่งในมุมกล้องนี้</span> (<span id="seatCount">0</span>)</h3>
+        <p class="status warn" id="seatAr" role="status" hidden></p>
         <ul class="seat-list" id="seatList"></ul>
         <div class="row-actions"><button class="btn ghost danger" type="button" id="clearSeats" data-i18n="exam.hall.clear">ลบที่นั่งทั้งหมด</button></div>
       </div>
@@ -103,6 +119,7 @@
       <button class="btn ghost" type="button" id="muteBtn" data-i18n="exam.hall.mute">เหตุการณ์ทั้งห้อง: พักแจ้งเตือน 60 วินาที</button>
     </div>
     <div class="kv" id="kv" role="status"></div>
+    <p class="status warn" id="clipOff" role="status" hidden></p>
     <h3 data-i18n="exam.hall.recentH">เหตุการณ์ล่าสุดจากเครื่องนี้</h3>
     <ul class="own-log" id="recent"><li class="empty" data-i18n="exam.hall.none">ยังไม่มีเหตุการณ์</li></ul>
     <div class="row-actions"><button class="btn ghost" type="button" id="exportEv" data-i18n="exam.hall.export">ส่งออกเหตุการณ์ (ไฟล์สำหรับแดชบอร์ดที่ไม่มีเครือข่าย)</button></div>
@@ -117,17 +134,17 @@
 
 <script src="vendor/tfjs/tf.es2017.min.js"></script>
 <script src="vendor/tfjs/tf-backend-wasm.es2017.min.js"></script>
-<script src="lensiq-camera.js?v=4"></script>
+<script src="lensiq-camera.js?v=5"></script>
 <script src="lensiq-detect.js?v=5"></script>
 <script src="lensiq-sitecheck.js?v=4"></script>
 <script src="lensiq-exam.js?v=4"></script>
-<script src="lensiq-exam-face.js?v=2"></script>
+<script src="lensiq-exam-face.js?v=3"></script>
 <script src="exam-ui.js?v=2"></script>
 <script src="exam-link.js?v=1"></script>
 <script src="lensiq-facevault.js?v=1"></script>
 <script src="lensiq-exam-clip.js?v=2"></script>
 <script src="exam-clip-ui.js?v=2"></script>
-<script src="exam-hall.js?v=3"></script>
+<script src="exam-hall.js?v=4"></script>
 <script src="lensiq-config.js?v=4"></script>
 </body>
 </html>

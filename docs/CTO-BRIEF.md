@@ -303,7 +303,14 @@ No module is production-ready. None has completed a field pilot, and the backend
   `LQ_EXAM_EVAL_VENDOR`); the pilot kit leads with Mode B and accepts that Mode B has no live view on another machine;
   the hall "count faces (experimental)" option stays with its label. Hall camera placement guide (face ≥ 48 px wide;
   **a calculation, not a measurement**) is in `docs/EXAM.md`; the owner tests it with a 4K webcam in a real room. The
-  hall setup check is not built yet (separate commit). Process limits of this round (held-out tables printed on every
+  hall setup check is built (separate commit): `exam-hall.html` asks the camera for 3,840 × 2,160 → 1,920 × 1,080 →
+  1,280 × 720, shows the size received, and before monitoring shows each measured face's width in px, the smallest one,
+  a warning under 48 px and "N people seen, M faces measured" (never OK with no face, more people than faces, or before the people count exists; the check measures at most 16
+  faces at a time and says so; a 47.9 px face reads 47 px and warns; a chosen camera is tried at all three sizes before
+  another camera; no clip is recorded where no ≤ 1,280 px copy can be made; a warning when saved seats were drawn on
+  another frame shape; raising the face limit from 8 to 16 cost no time and found no more faces in a synthetic 4K test); loop
+  speed on the development machine, headless: 4.95 → 4.95 loops per second at 4K, tiles 3.71 → 3.70, tiles + clip
+  inconclusive (machine under other load); table in `docs/EXAM.md`; field: not measured. Process limits of this round (held-out tables printed on every
   run, order not provable from git) are stated in §7.
 - P4 done: official lookups through the Worker (Thai FDA web service, testing only; openFDA, DailyMed, RxNav, HSA;
   Safety Gate and RASFF testing only, off in customer builds), on-device TMT 2563 (CC BY) + NLEM 2567 + curated Thai
