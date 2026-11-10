@@ -327,8 +327,10 @@ input. Rows without ground truth are skipped and counted.
   person" now also uses a person count (public dataset: 28.8 % of frames with a second person, 0 / 17 false alarms); in
   phase 0 count how often it fires for a neighbour sitting normally at the next desk. **Field: not measured.**
   Owner decisions the same day: the Exam kit leads with lab mode and accepts that lab mode has no live feed to a
-  dashboard on another machine; the kit and the pages state 28.8 % (15 / 52, public dataset, held-out) for "more than
-  one person" and call it an aid, not complete detection; a hall camera placement guide (face ≥ 48 px wide; a
+  dashboard on another machine; the kit and the invigilator-facing pages (not the candidate notice) state 28.8 % (15 / 52, public dataset, held-out)
+  for "more than one person" and call it an aid, not complete detection; "second face ≥ 90 %" stays as the bar for the
+  claim "detects a second person" and the pilot reports the measured rate; the number of hall cameras depends on room
+  size (see the guide); a hall camera placement guide (face ≥ 48 px wide; a
   calculation, not a measurement) is in `docs/EXAM.md` with the list of what to write down when the owner tests a 4K
   webcam in a real room.
 - **2026-11-10 (round 17)**: Exam lab face engine switched to MediaPipe Face Landmarker (owner decision); public /

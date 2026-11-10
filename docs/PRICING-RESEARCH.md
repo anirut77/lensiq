@@ -155,7 +155,7 @@ exam halls with cameras. `exam.html` shows both stages since 2026-11-09.
 | Free trial (on the device, as shown on `exam.html`) | **free: 1 room, 10 seats** | free: 1 room, 10 seats |
 | Computer room / online, per candidate (Mode B, `exam-lab.html`) | **10 THB per candidate per exam excl. 7% VAT** (minimum 300 THB per exam session excl. 7% VAT) | 15–30 THB per candidate per exam excl. 7% VAT |
 | Computer room / online, monthly lab package (`exam_lab`) | **990 THB / month per lab excl. 7% VAT** (the low end of the after-pilot range) | 990–1,490 THB / month excl. 7% VAT |
-| Exam hall with cameras, per day (Mode A, `exam-hall.html`, up to 3 camera devices per room). **Experimental, not on sale** (owner decision 2026-11-10); the price applies only once it is on sale | **290 THB per room per exam day excl. 7% VAT** | 300–600 THB per room per exam day excl. 7% VAT |
+| Exam hall with cameras, per day (Mode A, `exam-hall.html`; the number of cameras depends on room size, see the guide: `docs/EXAM.md` "Hall camera placement guide"). **Experimental, not on sale** (owner decision 2026-11-10); the price applies only once it is on sale | **290 THB per room per exam day excl. 7% VAT** | 300–600 THB per room per exam day excl. 7% VAT |
 | Exam hall with cameras, monthly. **Experimental, not on sale** | **990 THB / month per room excl. 7% VAT** | 1,990 THB / month per room excl. 7% VAT |
 | Institution licence (unlimited rooms, invigilator training) | **from 19,900 THB / year excl. 7% VAT** (≤ 1,000 candidates) | 30,000–120,000 THB / year excl. 7% VAT by size |
 

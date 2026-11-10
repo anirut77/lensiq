@@ -114,8 +114,9 @@ controller only for its own website, member accounts, billing and the optional b
   only measured, not shipped; its model card lists "counting the number of people in a crowd" and "any form of
   surveillance" as out of scope (not a licence term, Apache-2.0). If it is ever proposed for the hall, counsel and the
   owner should decide first whether an exam hall is "surveillance" in that sense. (4) Owner decisions the same day: the
-  candidate notice on `exam-lab.html` now also states that "more than one person" is an aid, not complete detection,
-  with the measured rate (28.8 %, 15 / 52, public dataset); the measurement-only detector files are kept outside the
+  candidate notice on `exam-lab.html` states what is checked ("several faces or another person in view"); the measured
+  rate of that signal (28.8 %, 15 / 52, public dataset; an aid, not complete detection) was moved out of the candidate
+  notice to the invigilator-facing pages (landing claim list, dashboard) and the sales documents; the measurement-only detector files are kept outside the
   repo and are not shipped; `docs/EXAM.md` has a hall camera placement guide (a calculation only) that would need more
   cameras or 4K cameras so that each face is at least 48 px wide. Nothing is built from it yet. Question for counsel
   before it is: do higher-resolution views of every candidate's face, still processed on the device with no image

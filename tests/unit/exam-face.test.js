@@ -369,11 +369,80 @@ test("hall mode is labelled experimental in Thai, English and Chinese wherever i
   }
 });
 
+test("owner decisions 2026-11-10 (follow-up): no rate in the candidate notice, >= 90 % is the bar for the second-person claim, hall cameras depend on room size", () => {
+  const en = dictOf("i18n/en-exam.js"), zh = dictOf("i18n/zh-exam.js");
+  const RATE = /\d\s*[%％]|15 \/ 52|n = 52/;
+  // 2. candidate-facing: the lab page and every exam.lab.* string carry no percentage; the notice still says what is checked
+  const lab = read("exam-lab.html");
+  const labText = lab.replace(/<head>[\s\S]*?<\/head>/, "").replace(/<script[\s\S]*?<\/script>/g, "").replace(/<[^>]+>/g, " ");
+  assert.doesNotMatch(labText, RATE, "exam-lab.html (candidate page): no percentage");
+  assert.doesNotMatch(lab, /nMulti/);
+  for (const d of [en, zh]) {
+    assert.equal(d["exam.lab.nMulti"], undefined);
+    for (const k of Object.keys(d).filter(k => k.startsWith("exam.lab."))) assert.doesNotMatch(d[k], RATE, k + ": no rate on the candidate page");
+  }
+  const n1 = /data-i18n="exam\.lab\.n1">([^<]*)</.exec(lab)[1].replace(/\s+/g, " ");
+  assert.match(n1, /สิ่งที่สังเกต: ไม่เห็นใบหน้า หลายใบหน้าหรือมีคนอื่นในภาพ/);
+  assert.match(en["exam.lab.n1"], /several faces or another person in view/); assert.match(zh["exam.lab.n1"], /多张脸或画面中有其他人/);
+  // the printable notice template (handed to candidates) has no rate either
+  const tpl = /<div class="notice-print">([\s\S]*?)<\/div>/.exec(read("exam.html"))[1];
+  assert.doesNotMatch(tpl.replace(/90 วัน/g, ""), RATE);
+  for (const d of [en, zh]) for (const k of ["exam.l.n1", "exam.l.n3", "exam.l.n4"]) assert.doesNotMatch(d[k], RATE, k);
+  // invigilator-facing pages keep it: the dashboard note and the landing claim list
+  const dash = read("exam-dashboard.html");
+  assert.match(dash.replace(/\s+/g, " "), /class="note" id="nMulti" data-i18n="exam\.db\.nMulti">[^<]*28\.8% \(15 \/ 52\) · n = 52 ภาพ · ที่มา: ชุดข้อมูลสาธารณะ/);
+  assert.match(en["exam.db.nMulti"], /28\.8% \(15 \/ 52\) · n = 52 frames · source: public dataset/); assert.match(zh["exam.db.nMulti"], /28\.8%（15 \/ 52）· n = 52 帧 · 来源：公开数据集/);
+  assert.match(read("exam.html"), /data-i18n="exam\.l\.cl5">[^<]*28\.8% \(15 \/ 52\)/);
+  // 1. the >= 90 % target stays, as the bar for the claim; the pilot reports the measured rate; "aid" until met
+  const kit = read("docs/pilot/PILOT-EXAM.md");
+  assert.match(kit, /ใบหน้าที่สอง: รายงานค่าที่วัดได้ \(เกณฑ์ ≥ 90% ก่อนอ้างว่า “ตรวจจับคนที่สอง”/);
+  assert.match(kit, /second face: report the measured rate \(≥ 90% is the bar for the claim "detects a second person"/);
+  assert.match(kit, /เป้า “ใบหน้าที่สอง ≥ 90%” ยังคงอยู่/); assert.match(kit, /เกณฑ์ที่ต้องผ่านก่อนจะอ้างได้ว่า “ตรวจจับคนที่สอง”\s+เป็นความสามารถของระบบ/);
+  assert.match(kit, /the "second face ≥ 90%" target stays/); assert.match(kit, /the bar for ever claiming "detects a\s+second person" as a feature/);
+  assert.match(kit, /การนำร่องรายงานอัตราที่วัดได้จริง/); assert.match(kit, /The pilot reports the measured rate/);
+  assert.doesNotMatch(kit, /รอเจ้าของตัดสินใจ\): เป้า “ใบหน้าที่สอง/); assert.doesNotMatch(kit, /or to change\s+it to "report"/);
+  const claims = read("docs/ACCURACY-CLAIMS.md");
+  assert.match(claims, /≥ 90% is the bar for ever claiming "detects a second person" as a feature\*\*; the pilot reports the measured rate/);
+  assert.match(claims, /the pilot reports the measured rate, and until the bar is met the signal is described as an aid/);
+  assert.match(claims, /`exam-dashboard\.html` \(`exam\.db\.nMulti`\)/); assert.doesNotMatch(claims, /exam\.lab\.nMulti/);
+  // 3. hall mode: no "1-3 devices per room" left; "depends on room size (see guide)" in TH / EN / ZH; hall rows stay experimental
+  const land = read("exam.html");
+  const OLD = /1 ?[–-] ?3 (เครื่อง|laptops|devices|台)|\(3 เครื่องกล้อง\)|\(3 camera devices\)|3 台摄像头|≤ 3 เครื่องต่อห้อง|up to 3 (hall )?camera|camera devices per room|2–3 (เครื่อง|devices)/;
+  const HALL_DOCS = ["docs/ONE-PAGER-EXAM.md", "docs/ONE-PAGER-TH.md", "docs/ONE-PAGER-ZH.md", "docs/SALES-PACKAGES.md", "docs/PRICING-RESEARCH.md",
+    "docs/BILLING-PLAN.md", "docs/pilot/PILOT-EXAM.md"];
+  for (const f of ["exam.html", "exam-hall.html"].concat(HALL_DOCS)) {
+    for (const line of read(f).split("\n")) if (/exam|hall|ห้องสอบ|考场|โหมด A|Mode A/i.test(line)) assert.doesNotMatch(line, OLD, f + ": " + line.slice(0, 80));
+  }
+  for (const d of [en, zh]) for (const k of Object.keys(d).filter(k => k.startsWith("exam."))) assert.doesNotMatch(d[k], OLD, k);
+  for (const k of ["exam.l.mAp", "exam.l.p3n"]) {
+    assert.match(new RegExp('data-i18n="' + k.replace(/\./g, "\\.") + '">([^<]*)<').exec(land)[1], /จำนวนกล้องขึ้นกับขนาดห้อง \(?ดูคู่มือวางกล้อง\)/, k);
+    assert.match(en[k], /number of cameras depends on room size[, (]+see the camera placement guide\)/i, k); assert.match(zh[k], /摄像头数量取决于考场大小[，（]见摄像头摆放指南）/, k);
+    assert.ok(!THAI_RE.test(en[k].replace(/฿/g, "")) && !THAI_RE.test(zh[k].replace(/฿/g, "")), k + ": no Thai in en / zh");
+  }
+  // prices unchanged, hall still "experimental, not on sale"
+  assert.match(land, /data-i18n="exam\.l\.p3b">฿290 ต่อห้องต่อวันสอบ/);
+  assert.match(land, /data-i18n="exam\.l\.p3n">หรือ ฿990 ต่อเดือนต่อห้อง/);
+  assert.match(land, /data-i18n="exam\.l\.p3x">รุ่นทดลอง: ยังไม่เปิดขาย/);
+  assert.match(en["exam.l.p3n"], /^or ฿990 per month per room /); assert.match(zh["exam.l.p3n"], /^或每考场每月 ฿990/);
+  const one = read("docs/ONE-PAGER-EXAM.md");
+  assert.match(one, /ห้องสอบที่มีกล้อง \(ต่อห้อง จำนวนกล้องขึ้นกับขนาดห้อง ดูคู่มือวางกล้อง\) \*\*— รุ่นทดลอง ยังไม่เปิดขาย\*\* \| 290 บาท ต่อห้องต่อวันสอบ/);
+  assert.match(one, /Camera hall \(per room; number of cameras depends on room size, see the guide\), \*\*experimental, not on sale yet\*\* \| 290 THB per room per exam day/);
+  const GUIDE = '`docs\\/EXAM\\.md` "Hall camera placement guide"\\)';
+  assert.match(read("docs/BILLING-PLAN.md"), new RegExp("`exam_hall` \\|[^\\n]*\\*\\*Experimental, not on sale\\*\\*[^\\n]*the number of cameras depends on room size " +
+    "\\(see the guide: " + GUIDE + " \\| 290 THB per room per exam day, or 990 THB \\/ month per room \\|"));
+  assert.match(read("docs/PRICING-RESEARCH.md"), new RegExp("the number of cameras depends on room size, see the guide: " + GUIDE +
+    "\\. \\*\\*Experimental, not on sale\\*\\*[^\\n]*\\*\\*290 THB per room per exam day excl\\. 7% VAT\\*\\*"));
+  assert.match(read("docs/SALES-PACKAGES.md"), /exam halls \(the number\s+of cameras depends on room size, see the guide/);
+  assert.match(kit, /จำนวนกล้องขึ้นกับขนาดห้อง \(ดูคู่มือวางกล้อง: `docs\/EXAM\.md`/); assert.match(kit, /the number of cameras depends on room size \(see the\s+guide: `docs\/EXAM\.md`/);
+  assert.match(read("docs/EXAM.md"), /### Hall camera placement guide/);
+});
+
 test("owner decisions 2026-11-10: lab-led pilot with the accepted limit, the 28.8 % rate stated as an aid (TH / EN / ZH), the count-faces label, the placement guide is a calculation", () => {
   const en = dictOf("i18n/en-exam.js"), zh = dictOf("i18n/zh-exam.js");
   // "more than one person": the measured rate, its n, its source and "an aid, not complete detection" on both pages
   const thOf = (file, key) => new RegExp('data-i18n="' + key.replace(/\./g, "\\.") + '">([^<]*)<').exec(read(file))[1].replace(/\s+/g, " ");
-  for (const [file, key] of [["exam.html", "exam.l.cl5"], ["exam-lab.html", "exam.lab.nMulti"]]) {
+  // (owner decision 2 of the follow-up: the rate is on the invigilator-facing pages only: the landing claim list and the dashboard)
+  for (const [file, key] of [["exam.html", "exam.l.cl5"], ["exam-dashboard.html", "exam.db.nMulti"]]) {
     const th = thOf(file, key);
     for (const t of [th, en[key], zh[key]]) {
       assert.ok(t.includes("28.8%") && t.includes("n = 52"), key + ": 28.8% and n = 52 in " + t.slice(0, 50)); assert.match(t, /15 \/ 52/, key);
@@ -384,7 +453,9 @@ test("owner decisions 2026-11-10: lab-led pilot with the accepted limit, the 28.
     assert.match(zh[key], /不止一个人/); assert.match(zh[key], /辅助，并非完整检测/); assert.match(zh[key], /公开数据集/);
     assert.ok(!THAI_RE.test(en[key]) && !THAI_RE.test(zh[key]), key + ": no Thai in en / zh");
   }
-  for (const k of ["exam.lab.nMulti"]) { assert.match(thOf("exam-lab.html", k), /ในห้องสอบจริง: ยังไม่ได้วัด/); assert.match(en[k], /real exam rooms: not measured/); assert.match(zh[k], /尚未测量/); }
+  for (const k of ["exam.db.nMulti"]) { assert.match(thOf("exam-dashboard.html", k), /ในห้องสอบจริง: ยังไม่ได้วัด/);
+  assert.match(en[k], /real exam rooms: not measured/);
+  assert.match(zh[k], /尚未测量/); }
   // solutions catalogue: the same wording as the product ("more than one person"), not "several faces"
   assert.match(read("solutions.html"), /data-i18n="sl\.c\.edu1\.p">[^<]*มากกว่าหนึ่งคน/); assert.doesNotMatch(read("solutions.html"), /sl\.c\.edu1\.p">[^<]*หลายใบหน้า/);
   assert.match(dictOf("i18n/en-solutions.js")["sl.c.edu1.p"], /more than one person/); assert.doesNotMatch(dictOf("i18n/en-solutions.js")["sl.c.edu1.p"], /several faces/);

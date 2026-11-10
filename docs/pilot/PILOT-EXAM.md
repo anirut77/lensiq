@@ -43,7 +43,7 @@
   `docs/exam/FACE-ENGINE-RESULTS.md` §7.2) คนที่สองส่วนใหญ่ในภาพทดสอบจึงไม่ถูกแจ้ง ผู้คุมสอบต้องเดินตรวจตามปกติ อบรมผู้คุมสอบด้วยตัวเลขนี้
   และระหว่างนำร่องให้นับด้วยว่าสัญญาณนี้ขึ้นเพราะผู้สอบโต๊ะข้างเคียงที่นั่งอยู่ตามปกติกี่ครั้ง (ยังไม่ได้วัดในห้องจริง)
 - **โหมด A ห้องสอบที่มีกล้อง** (`exam-hall.html` + `exam-dashboard.html`): **รุ่นทดลอง ทดลองควบคู่ได้เท่านั้น** เปิดกล้องและแดชบอร์ดในเบราว์เซอร์
-  เดียวกัน (คนละแท็บ) บนเครื่องเดียว แต่ละเครื่องดูได้ 1 มุมกล้อง ห้องใหญ่ใช้ 2–3 เครื่อง แต่ละเครื่องมีแดชบอร์ดของตัวเอง
+  เดียวกัน (คนละแท็บ) บนเครื่องเดียว แต่ละเครื่องดูได้ 1 มุมกล้อง จำนวนกล้องขึ้นกับขนาดห้อง (ดูคู่มือวางกล้อง) แต่ละเครื่องมีแดชบอร์ดของตัวเอง
   ตัวเลือก “นับใบหน้า (ทดลอง)” ยังไม่พบใบหน้าเล็กหรือที่อยู่ไกล การวางกล้องให้ใบหน้ากว้าง ≥ 48 px ดู `docs/EXAM.md`
   “Hall camera placement guide” (เป็นการคำนวณ ยังไม่ได้วัด)
 - **คลิปหลักฐาน** ปิดเป็นค่าเริ่มต้น ในนำร่องนี้ **ไม่เปิด** เว้นแต่ไซต์ขอเป็นหนังสือ และประกาศผู้สอบระบุไว้แล้ว (`docs/EXAM.md` "Evidence clip")
@@ -68,7 +68,7 @@
 | สถาบัน 1 แห่ง | โรงเรียน มหาวิทยาลัย สถาบันกวดวิชา หรือศูนย์อบรม ที่ยอมให้ใช้ในรอบสอบที่ไม่ชี้ขาดสูง | เจ้าของ (ติดต่อ) |
 | หนังสืออนุญาต | ผู้บริหารสถาบันอนุมัติ ระบุรอบสอบ ห้อง และว่าไม่มีการบันทึกวิดีโอ | สถาบัน |
 | ห้อง | อย่างน้อย 3 ห้อง (1 ห้องคอมพิวเตอร์ถ้าทดสอบโหมด B) | สถาบัน |
-| อุปกรณ์โหมด A | โน้ตบุ๊ก/มือถือ 1–3 เครื่องต่อห้อง ขาตั้งสูง ≥ 2 ม. หรือติดผนังด้านหน้า สายไฟ ห้ามเครือข่ายภายนอกไม่จำเป็น | เจ้าของ |
+| อุปกรณ์โหมด A | โน้ตบุ๊ก/มือถือเป็นเครื่องกล้อง จำนวนกล้องขึ้นกับขนาดห้อง (ดูคู่มือวางกล้อง: `docs/EXAM.md` "Hall camera placement guide") ขาตั้งสูง ≥ 2 ม. หรือติดผนังด้านหน้า สายไฟ ห้ามเครือข่ายภายนอกไม่จำเป็น | เจ้าของ |
 | อุปกรณ์โหมด B | เครื่องในห้องคอมพิวเตอร์ที่มีเว็บแคม Chrome/Edge รุ่นใหม่ | สถาบัน |
 | แสง | ไฟหน้าห้องเปิด หลีกเลี่ยงหน้าต่างหลังผู้สอบ (ย้อนแสง) | สถาบัน |
 | ผู้คุมสอบ | ผู้คุมสอบตามปกติ ห้องละ 1–2 คน อบรม 1 ชม. ระบุชื่อในแดชบอร์ด | สถาบัน |
@@ -115,7 +115,7 @@
 |---|---|---|
 | หาใบหน้าเจอเมื่อแสง "ดี" | ≥ 98% ของวินาที ทุกกลุ่มที่รายงาน | 0 |
 | ช่องว่างระหว่างกลุ่ม (แสงหรือสีผิว) | ≤ 5 จุด ถ้าเกิน = ห้ามใช้ข้อสังเกต "ไม่เห็นใบหน้า" ในสภาพนั้นจนกว่าจะแก้ | 0 |
-| แจ้งเหตุตามบท (recall) ต่อข้อสังเกต | โทรศัพท์ในภาพ ≥ 80% · ที่นั่งว่าง ≥ 95% · ใบหน้าที่สอง ≥ 90% · (B) ออกจากเต็มจอ 100% | 1 |
+| แจ้งเหตุตามบท (recall) ต่อข้อสังเกต | โทรศัพท์ในภาพ ≥ 80% · ที่นั่งว่าง ≥ 95% · ใบหน้าที่สอง: รายงานค่าที่วัดได้ (เกณฑ์ ≥ 90% ก่อนอ้างว่า “ตรวจจับคนที่สอง” ดูหมายเหตุ) · (B) ออกจากเต็มจอ 100% | 1 |
 | ข้อสังเกตเกินบท ต่อผู้ร่วม-ชั่วโมง | ≤ 1 | 1 |
 | ความแม่นยำ "แจ้งถูก" ต่อข้อสังเกต (ระดับ Check) | ≥ 70% ขอบล่าง Wilson 95% (ข้อสังเกตที่มี ≥ 20 ครั้ง) | 2 |
 | เหตุที่ผู้คุมสอบเห็นแต่ระบบไม่ได้แจ้ง | รายงาน (ไม่ตั้งเกณฑ์รอบแรก) | 2 |
@@ -123,9 +123,10 @@
 | ผู้สอบเห็นว่า "ยุติธรรมและเข้าใจ" (1–5) | ≥ 4.0 | 2 |
 | ผู้ไม่ยินยอมได้สอบตามทางเลือก | 100% | 2 |
 
-หมายเหตุ (รอเจ้าของตัดสินใจ): เป้า “ใบหน้าที่สอง ≥ 90%” ในขั้น 1 อยู่ไกลจากค่าที่วัดได้กับภาพถ่ายสาธารณะมาก (สัญญาณ “มากกว่าหนึ่งคน”
-28.8 % = 15 / 52 ต่อภาพเดี่ยว; ในห้องจริงระบบดูต่อเนื่องจึงอาจต่างออกไป ยังไม่ได้วัด) สัญญาณนี้เป็นตัวช่วย ไม่ใช่การตรวจจับที่ครบถ้วน
-เจ้าของควรเลือกก่อนขั้น 1 ว่าจะคงเป้า 90% ไว้ (และยอมรับว่าน่าจะไม่ผ่าน = ปิดสัญญาณหรือใช้แบบมีเงื่อนไข) หรือเปลี่ยนเป็น “รายงานค่า”
+หมายเหตุ (เจ้าของตัดสินใจ 2026-11-10): เป้า “ใบหน้าที่สอง ≥ 90%” ยังคงอยู่ เป็น **เกณฑ์ที่ต้องผ่านก่อนจะอ้างได้ว่า “ตรวจจับคนที่สอง”
+เป็นความสามารถของระบบ** การนำร่องรายงานอัตราที่วัดได้จริง (ไม่ใช่เกณฑ์ผ่าน/ไม่ผ่านของขั้น 1) และจนกว่าจะถึง 90% ให้เรียกสัญญาณ
+“มากกว่าหนึ่งคน” ว่า **ตัวช่วยผู้คุมสอบ ไม่ใช่การตรวจจับที่ครบถ้วน** ค่าที่วัดได้กับภาพถ่ายสาธารณะวันนี้: 28.8 % = 15 / 52 ต่อภาพเดี่ยว
+(ชุดข้อมูลสาธารณะ ไม่ใช่ภาพห้องสอบจริง) ในห้องจริงระบบดูต่อเนื่องจึงอาจต่างออกไป ยังไม่ได้วัด
 
 หมายเหตุ (รอเจ้าของตัดสินใจ): เกณฑ์ "ขอบล่าง Wilson 95% ≥ 70%" ต้องเห็นแจ้งถูกจริง 19 / 20 = 95% ที่ 20 ครั้ง, 34 / 40 = 85%
 ที่ 40 ครั้ง, 49 / 60 = 81.7% ที่ 60 ครั้ง, 79 / 100 = 79% ที่ 100 ครั้ง ข้อสังเกตที่มีน้อยจึงผ่านยาก เลือกก่อนเริ่มขั้น 2 ว่าจะคงไว้
@@ -195,8 +196,8 @@ This pilot does none of the following:
   were not flagged, so invigilators keep walking the room; train them with this number. During the pilot, also count
   how often the signal fires for a neighbour sitting normally at the next desk (not measured in a real room).
 - **Mode A** (camera exam hall: `exam-hall.html` + `exam-dashboard.html`) is **experimental, alongside only**. The
-  camera and the dashboard run in two tabs of the same browser on one device. Each device covers one camera view, so a
-  big room uses 2–3 devices, each with its own dashboard. Its "count faces (experimental)" option does not find small
+  camera and the dashboard run in two tabs of the same browser on one device. Each device covers one camera view, so the
+  number of cameras depends on room size (see the guide), each with its own dashboard. Its "count faces (experimental)" option does not find small
   or distant faces. For placing a camera so that faces are ≥ 48 px wide see "Hall camera placement guide" in
   `docs/EXAM.md` (a calculation, not a measurement).
 - **Evidence clips** stay **off** in this pilot unless the site asks in writing and the candidate notice already says
@@ -222,7 +223,8 @@ This pilot does none of the following:
 - **Permission:** written approval from the head of the institution, naming the sessions and rooms and stating that
   no video is recorded.
 - **Rooms:** at least 3, including 1 computer room if Mode B is tested.
-- **Mode A equipment:** 1–3 laptops or phones per room, on stands at least 2 m high or on the front wall, with power.
+- **Mode A equipment:** laptops or phones as camera devices; the number of cameras depends on room size (see the
+  guide: `docs/EXAM.md` "Hall camera placement guide"), on stands at least 2 m high or on the front wall, with power.
 - **Mode B equipment:** the room's PCs with webcams and a current version of Chrome or Edge.
 - **Light:** front lights on, and no window behind the candidates.
 - **Invigilators:** the usual staff, 1–2 per room, trained for 1 hour and named on the dashboard.
@@ -259,7 +261,7 @@ The skin-tone group is sensitive data:
 |---|---|---|
 | Face found in "good" light | ≥ 98% of seconds, every reported group | 0 |
 | Gap between groups (light or skin tone) | ≤ 5 points; above that, the "no face" signal is off in that condition until fixed | 0 |
-| Recall per signal (scripted events) | phone in view ≥ 80% · empty seat ≥ 95% · second face ≥ 90% · (B) fullscreen exit 100% | 1 |
+| Recall per signal (scripted events) | phone in view ≥ 80% · empty seat ≥ 95% · second face: report the measured rate (≥ 90% is the bar for the claim "detects a second person", see the note) · (B) fullscreen exit 100% | 1 |
 | Extra flags per volunteer-hour | ≤ 1 | 1 |
 | Precision "flag was right" per signal (Check level) | ≥ 70% Wilson 95% lower bound (signals with ≥ 20 flags) | 2 |
 | Events seen by the invigilator but not flagged | report (no threshold in round 1) | 2 |
@@ -267,11 +269,11 @@ The skin-tone group is sensitive data:
 | Candidates rating "fair and clear" (1–5) | ≥ 4.0 | 2 |
 | Decliners who sat the exam by the alternative | 100% | 2 |
 
-Note (owner decision): the phase 1 target "second face ≥ 90%" is far from what was measured on public photos (the
-"more than one person" signal: 28.8 % = 15 / 52 per single frame; in a real room the page watches continuously, so the
-rate may differ; not measured). The signal is an aid, not complete detection. Decide before phase 1 whether to keep
-the 90% target (and accept that it will probably fail = the signal is switched off or used conditionally) or to change
-it to "report".
+Note (owner decision 2026-11-10): the "second face ≥ 90%" target stays. It is **the bar for ever claiming "detects a
+second person" as a feature**. The pilot reports the measured rate (it is not a phase 1 pass / fail line), and until
+the bar is met the "more than one person" signal is described as **an aid, not complete detection**. Measured on
+public photos today: 28.8 % = 15 / 52 per single frame (public dataset, not exam-room footage); in a real room the
+page watches continuously, so the rate may differ; not measured.
 
 Note (owner decision): "Wilson 95% lower bound ≥ 70%" needs an observed precision of 19 / 20 = 95% at 20 flags,
 34 / 40 = 85% at 40, 49 / 60 = 81.7% at 60 and 79 / 100 = 79% at 100. Signals with few flags are therefore hard to

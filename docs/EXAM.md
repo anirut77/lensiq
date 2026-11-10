@@ -196,7 +196,9 @@ Reading the table:
   the first row back from 2 m to 3 m widens the near view by half and can save a camera across at the cost of depth.
 - **One device runs one camera view today** (`exam-hall.html`), so "cameras" here also means laptops, and each has its
   own dashboard tab (`docs/pilot/PILOT-EXAM.md`). Six to nine cameras in a medium room is a different product from the
-  "1 – 3 devices per room" the page and the price list describe. This is a finding for the owner, not a plan.
+  "1 – 3 devices per room" the page and the price list described until 2026-11-10. Owner decision 2026-11-10: pages,
+  one-pagers, price lists and the pilot kit now say "the number of cameras depends on room size (see guide)"; hall
+  pricing stays "experimental, not on sale" until the owner has tested in a real room.
 - A 10 × 15 m hall is not practical with USB webcams at 48 px: the banks in the middle of the room need ceiling
   mounts and long active cables (see 4).
 

@@ -294,8 +294,10 @@ No module is production-ready. None has completed a field pilot, and the backend
   noise and is the current engine, so the issue is not fixed, nothing new is switched on, and no page loads the
   full-range model. Lab "more than one person": a person count
   from the COCO-SSD inference the page already runs, used only while a face is seen: held-out recall 9.6 % → 28.8 %
-  (n = 52), false alarms 0 / 17; the pages, the one-pagers and the pilot kit state 28.8 % (15 / 52) and that the signal
-  is an aid, not complete detection. Owner decisions 2026-11-10: the 15.5 MiB of measurement-only vendor files (second
+  (n = 52), false alarms 0 / 17; the invigilator-facing pages (landing claim list, dashboard), the one-pagers and the pilot kit state 28.8 % (15 / 52)
+  and that the signal is an aid, not complete detection; the candidate notice says what is checked and carries no rate;
+  ≥ 90 % stays as the bar for ever claiming "detects a second person" (the pilot reports the measured rate); hall text
+  says "the number of cameras depends on room size (see guide)" instead of "1 – 3 devices" (owner decisions 2026-11-10). Owner decisions 2026-11-10: the 15.5 MiB of measurement-only vendor files (second
   MediaPipe bundle 1.2.2 + full-range model, both Apache-2.0) are **out of the repo**, in
   `~/LENSIQ-field/evals/exam-followups/vendor/` (sha256 and licences in §7.3; the eval tool takes `--vendor` /
   `LQ_EXAM_EVAL_VENDOR`); the pilot kit leads with Mode B and accepts that Mode B has no live view on another machine;

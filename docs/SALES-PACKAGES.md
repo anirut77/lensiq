@@ -84,8 +84,8 @@ Notes on the arithmetic:
 
 ### A.3 What the institution provides
 
-- Devices: lab PCs or laptops with a webcam (computer-room mode), phones / laptops with a camera for exam halls (up to 3
-  camera devices per room), a phone or tablet per time clock, a phone or laptop camera per Crowd point.
+- Devices: lab PCs or laptops with a webcam (computer-room mode), phones / laptops with a camera for exam halls (the number
+  of cameras depends on room size, see the guide: `docs/EXAM.md` "Hall camera placement guide"), a phone or tablet per time clock, a phone or laptop camera per Crowd point.
 - A modern browser (Chrome / Edge / Safari). Several devices are merged by file export / import (no server or cloud
   account needed); a live local relay is not built yet.
 - A named project owner, an IT contact and, for the pilot, invigilators who keep tallies (`docs/pilot/PILOT-EXAM.md`)

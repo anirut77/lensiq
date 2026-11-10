@@ -1,0 +1,8 @@
+session_id,block,row,source,planned_time,event_type,seat,target_seat,on_time,actual_start,actual_end,walk_mode,object_on_chair,note,labeller
+EXAMPLE-delete-this-row,H1,1,scripted,00:00,LEAVE,B3,,Y,,01:12,,N,,ก.
+EXAMPLE-delete-this-row,H1,2,scripted,00:05,AISLE,B3,X,Y,,,,,,ก.
+EXAMPLE-delete-this-row,H1,3,scripted,00:35,SECOND,B3,A3,N,00:41,01:06,,,ไปถึงช้า,ก.
+EXAMPLE-delete-this-row,H1,4,scripted,01:18,LEAN,B1,B2,Y,,,,,,ก.
+EXAMPLE-delete-this-row,H1,5,unscripted,,LEAVE,A2,,,06:40,09:55,,Y,เข้าห้องน้ำจริง วางเสื้อไว้บนเก้าอี้,ก.
+EXAMPLE-delete-this-row,H1,6,scripted,09:15,STAFF_WALK,STAFF,,Y,,,on,,,ก.
+EXAMPLE-delete-this-row,H1,7,unscripted,,OTHER,,,,12:03,12:10,,,มีคนเปิดประตูแล้วปิด ไม่ได้เข้ามา,ก.
