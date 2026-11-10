@@ -220,5 +220,5 @@ ADMIN_UNAUTH_WRITES_HOUR = "120"
 binding = "DB"
 database_name = "lensiq-test"
 # Filled by `npm run backend:d1:create` (tools/backend-deploy.mjs) from the id wrangler prints. Not a secret. Do not edit by hand.
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "3385c7cc-d171-42ae-9d4c-8fdd8c12b21f"
 migrations_dir = "migrations"
