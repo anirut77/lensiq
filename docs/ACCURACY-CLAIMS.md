@@ -99,6 +99,9 @@ Searched: every `*.html` data-i18n text with a percentage or "x / y" and an accu
 | Exam | flags right / wrong in a real exam room | not measured | — | field (no pilot yet) | EXAM.md "Accuracy — not measured yet" |
 | Exam | face-detection misses by lighting and skin tone | not measured | — | — | EXAM.md |
 | Exam | phone / book detection on exam footage | not measured | — | — | EXAM.md |
+| Exam hall (experimental) | faces 24–48 px wide found in a wide room view, current engine | 0% (0 / 195) | n = 195 faces in 47 frames (held out) | public dataset (Open Images V7 group photos; not exam-room footage) | docs/exam/FACE-ENGINE-RESULTS.md §7.1 |
+| Exam hall (experimental) | the same, best option measured (full-range detector, 3 × 3 tiles); not switched on: 0.40 false boxes per frame, about 2 fps on an emulated mid-range laptop | 63% (122 / 195) | n = 195 faces (held out) | public dataset | docs/exam/FACE-ENGINE-RESULTS.md §7.1 |
+| Exam lab | a second person in view read as "more than one person" (was 10%, 5 / 52). Stated as **an aid, not complete detection** on `exam.html` (`exam.l.cl5`), on `exam-lab.html` (`exam.lab.nMulti`, checked by `tests/unit/exam-face.test.js`), in the one-pagers and in the pilot kit (owner decision 2026-11-10) | 28.8% (15 / 52) | n = 52 frames (held out); false alarms 0 / 17 one-person frames | public dataset (Open Images V7; not exam-room footage) | docs/exam/FACE-ENGINE-RESULTS.md §7.2 |
 | Attendance | **headline:** Asian faces recognised (5 / 20 / 200 enrolled) | 66–76% | n = 500 people × 5 photos (held out) | public dataset (CASIA-FaceV5) | ACCURACY.md §2 round 5 |
 | Attendance | enrolled person recognised per scan, 100 enrolled | 85% (**tuning set — optimistic**) | n = 610 member probe photos (one per member; 100 per group, 200 random groups); 13,233 is the size of the whole LFW dataset, not the test set | public dataset (LFW) | ACCURACY.md §2 round 5 ("Tuning set: full LFW") |
 | Attendance | stranger offered a name | Asian (held out, 100 enrolled) 0.2% [0.04–0.45%], upper 95% bound up to 1.15% at 5 or 200 enrolled; LFW (tuning set) 0.4% | n = about 12,000 stranger visits per row (about 1,800 / 500 different people) | public dataset | ACCURACY.md §2 |
@@ -142,6 +145,8 @@ collapsed).
 |---|---|---|---|---|---|---|---|---|
 | E1 | exam | exam | exam.l.cl1 | — | — | notmeasured; field | docs/EXAM.md | ## Accuracy — not measured yet |
 | E2 | exam | exam | exam.l.cl2 | 15%; 24–48 px | n = 26; n = 12 | public; notmeasured | docs/exam/FACE-ENGINE-RESULTS.md | **4 / 26 = 15.4 %**; **0 / 12 found**; by skin tone: not measured |
+| E4 | exam | exam | exam.l.cl4 | 0%; 63%; 24–48 px | n = 195 | public | docs/exam/FACE-ENGINE-RESULTS.md | **0 / 195 = 0.0 % [0.0 % – 1.9 %]**; **122 / 195 = 62.6 % [55.6 % – 69.1 %]** |
+| E5 | exam | exam | exam.l.cl5 | 28.8%; 15 / 52 | n = 52; n = 17 | public | docs/exam/FACE-ENGINE-RESULTS.md | **15 / 52 = 28.8 % [18.3 % – 42.3 %]**; 0 / 17 = 0.0 % [0.0 % – 18.4 %] |
 | E3 | exam | exam | exam.l.cl3 | — | — | notmeasured | docs/EXAM.md | pilot rooms with invigilator tallies per signal |
 | A1 | attendance | attendance | attendance.cl1 | 85%; 13,233 | n = 610 | public; tuning; optimistic | ACCURACY.md | \| 100 \| 84.9% → 85.0% \|; **Tuning set: full LFW**, 13,233 images; The 610 people with ≥ 4 photos are members; photo 4 is the probe; Each row averages 200 random galleries |
 | A2 | attendance | attendance | attendance.cl2 | 66–76% | n = 500 | public | ACCURACY.md | **76 / 74 / 66%**; **Held-out per-group check: CASIA-FaceV5**, 500 Asian (Chinese) people × 5 photos |

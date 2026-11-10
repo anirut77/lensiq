@@ -6,7 +6,7 @@ import { assert, privacyScan } from "./cdp.mjs";
 import { assertCleanMessages, exceptions, noThai, phoneAudit, sleep } from "./exam-kit.mjs";
 
 const INIT = `window.__LQ_FAKE_CAMS = {n: 1, mode: "ok"}; window.__dets = []; try { localStorage.setItem("lq-lang", "th"); } catch (e) {}
-  window.__LQ_FAKE_DET = key => key === "exam-hall" ? window.__dets : null;`;
+  window.__LQ_FAKE_DET = key => key === "exam-hall" ? window.__dets : key === "exam-hall-faces" ? window.__faces : null;`;
 // grid {x:.04, y:.3, w:.92, h:.66}, 1 row × 4 seats -> seat i spans x .04+.23i .. .27+.23i
 const P = (i, dx = 0) => ({ x: 0.04 + 0.23 * i + 0.06 + dx, y: 0.42, w: 0.1, h: 0.4, score: 0.9 });
 const FOUR = [0, 1, 2, 3].map(i => P(i));
@@ -76,6 +76,24 @@ export default async function ({ base, launch, check, fakeCams }) {
       await db.waitFor("__LQ_EXAM_DB.board.mutedUntil() > Date.now() + 50000", 3000);
       await db.evaluate(() => __LQ_EXAM_DB.render());
       assert(await db.evaluate(() => document.querySelectorAll("#seatMap .seat").length >= 4), "seat map tiles");
+
+      // experimental face pass: off by default; switched on, the boxes are counted on this device only and nothing about
+      // faces goes to the dashboard; a pass that fails switches itself off and says so, seat monitoring goes on
+      assert(await hall.evaluate(() => !__LQ_EXAM_HALL.faceOn && !document.querySelector("#faceOn").checked && __LQ_EXAM_HALL.faces.length === 0), "face pass off by default");
+      const sentBefore = await hall.evaluate(() => __LQ_EXAM_HALL.sent.length);
+      await hall.evaluate(() => {
+        window.__faces = [{ x: 0.1, y: 0.1, w: 0.03, h: 0.05 }, { x: 0.5, y: 0.1, w: 0.03, h: 0.05 }];
+        const c = document.querySelector("#faceOn"); c.checked = true; c.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+      await hall.waitFor("__LQ_EXAM_HALL.faceOn && __LQ_EXAM_HALL.faces.length === 2 && [...document.querySelectorAll('#kv span')].some(s => /ใบหน้า 2/.test(s.textContent))", 4000);
+      assert(await hall.evaluate(() => JSON.parse(localStorage.getItem("lq-exam-hall")).faceOn === true), "face pass setting remembered on this device");
+      await sleep(1200);
+      const faceMsgs = await hall.evaluate(n => __LQ_EXAM_HALL.sent.slice(n).filter(m => /face/i.test(JSON.stringify(m))), sentBefore);
+      assert(!faceMsgs.length, "nothing about faces is sent: " + JSON.stringify(faceMsgs.slice(0, 2)));
+      await hall.evaluate(() => { window.__faces = "fail"; });
+      await hall.waitFor("__LQ_EXAM_HALL.faceErr && __LQ_EXAM_HALL.faces.length === 0 && document.querySelector('#engine').classList.contains('warn')", 4000);
+      assert(await hall.evaluate(() => __LQ_EXAM_HALL.monitoring && Object.values(__LQ_EXAM_HALL.mon.state().seats).filter(s => s.occupied).length === 4),
+        "seat monitoring goes on without the face pass");
 
       await noThai(hall, "exam-hall running");
       await phoneAudit(hall, "exam-hall running", [360]);

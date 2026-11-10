@@ -159,12 +159,25 @@
       const bt = outs.find(t => t.shape.length === 4 && t.shape[3] === 4), st = outs.find(t => t !== bt);
       const [scores, boxes] = await Promise.all([st.data(), bt.data()]);
       const e = 0.01; // a box touching an INNER tile edge is a person cut by the tile: dropped (the full frame or the overlap sees it whole)
-      return decodeCoco(boxes, scores, st.shape[1], st.shape[2], opts)
+      const dec = (/** @type {any} */ o) => decodeCoco(boxes, scores, st.shape[1], st.shape[2], o)
         .filter(d => !((rect.x > 0 && d.x <= e) || (rect.x + rect.w < 0.999 && d.x + d.w >= 1 - e) || (rect.y > 0 && d.y <= e) || (rect.y + rect.h < 0.999 && d.y + d.h >= 1 - e)))
         .map(d => ({ ...d, x: rect.x + d.x * rect.w, y: rect.y + d.y * rect.h, w: d.w * rect.w, h: d.h * rect.h }));
+      return Array.isArray(opts) ? opts.map(dec) : dec(opts); // a list of option sets = several decodes of ONE inference
     } finally { outs.forEach(t => t.dispose()); }
   }
   let tileCanvas = null;
+  /** ONE inference on the whole frame, one detection list per option set (each decoded exactly as detectCoco would with
+   *  those options): the Exam lab reads phones / books and, separately, person boxes without running the model twice.
+   * @param {any} model @param {any} src @param {Array<{classes?: number[], minScore?: number, iou?: number, max?: number}>} list @param {{detW?: number, canvas?: any}} [o]
+   * @returns {Promise<any[][]>} */
+  async function detectCocoMulti(model, src, list, { detW = 416, canvas } = {}) {
+    const W = src.videoWidth || src.naturalWidth || src.width, H = src.videoHeight || src.naturalHeight || src.height;
+    if (!W || !H) return list.map(() => []);
+    const c = canvas || sharedCanvas || (sharedCanvas = document.createElement("canvas"));
+    const opts = list.map(o => ({ classes: o.classes || [0], minScore: o.minScore != null ? o.minScore : 0.4, iou: o.iou != null ? o.iou : 0.5, max: o.max != null ? o.max : 20 }));
+    const out = /** @type {any} */ (await runCoco(model, src, { x: 0, y: 0, w: 1, h: 1 }, W, H, detW, c, opts));
+    return out.map((/** @type {any[]} */ d, /** @type {number} */ i) => d.slice(0, opts[i].max));
+  }
   /** @param {any} model @param {any} src @param {LQDetectOpts} [o] */
   async function detectCoco(model, src, { detW = 416, classes = [0], minScore = 0.4, iou: iouThr = 0.5, max = 20, canvas, tiles = null } = {}) {
     const W = src.videoWidth || src.naturalWidth || src.width, H = src.videoHeight || src.naturalHeight || src.height;
@@ -352,7 +365,8 @@
     }
     return [];
   }
-  const api = { detectFacesCascade, FACE_SIZES, tfBackend, hasWebGL, loadCoco, decodeCoco, nms, detectCoco, decodeYolox, loadYolox, detectYolox, detectPeople, YOLOX_DEFAULT, tileRects, mergeTiles, loadEmbedder, embedBox, EMB_NODE, faceSharpness, isTest, fake };
+  const api = { detectFacesCascade, FACE_SIZES, tfBackend, hasWebGL, loadCoco, decodeCoco, nms, detectCoco, detectCocoMulti, decodeYolox, loadYolox, detectYolox, detectPeople, YOLOX_DEFAULT,
+    tileRects, mergeTiles, loadEmbedder, embedBox, EMB_NODE, faceSharpness, isTest, fake };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") root.LQDetect = api;
 })(typeof window !== "undefined" ? window : globalThis);

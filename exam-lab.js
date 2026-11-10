@@ -37,7 +37,7 @@
   const own = U.store.get(K.log, []).filter(e => e && E.SIGNALS[e.sig]);
   const sent = [];
   const frozen = E.createFrozen({ ms: 4000 });
-  let qAt = 0, cocoN = 0, evSeq = 0;
+  let qAt = 0, cocoN = 0, evSeq = 0, peopleN = 0, peopleAt = -Infinity;
   const evTag = L.newNodeId().slice(0, 4); // event ids unique per page load: "e<n>-<tag>" (≤ 16 chars, CODE_RE)
   const Clip = W.LQExamClip;
   let clipCfg = Clip.cfgFromParams(P, null);
@@ -71,7 +71,7 @@
     noface: ["exam.lab.pNoface", "ไม่เห็นใบหน้า — ขยับให้อยู่ในกรอบกล้อง หรือเพิ่มแสงด้านหน้า"],
     setup: ["exam.lab.pSetup", "ภาพไม่ชัดหรือแสงไม่พอ — ปรับแสงหรือมุมกล้อง (ไม่ใช่ความผิดของคุณ)"],
     fsexit: ["exam.lab.pFs", "คุณออกจากโหมดเต็มจอ — กดปุ่ม “กลับเข้าเต็มจอ” เพื่อทำข้อสอบต่อ"],
-    multiface: ["exam.lab.pMulti", "เห็นมากกว่าหนึ่งใบหน้า — หากมีคนอื่นอยู่ใกล้ โปรดแจ้งผู้คุมสอบ"],
+    multiface: ["exam.lab.pMulti", "เห็นมากกว่าหนึ่งคนในภาพ — หากมีคนอื่นอยู่ใกล้ โปรดแจ้งผู้คุมสอบ"],
     phone: ["exam.lab.pPhone", "อาจมีโทรศัพท์ในภาพ — โปรดเก็บโทรศัพท์ให้พ้นมือ ผู้คุมสอบอาจมาดู"],
     object: ["exam.lab.pObject", "อาจมีหนังสือหรืออุปกรณ์อื่นในภาพ — ถ้าไม่ได้รับอนุญาตโปรดเก็บ"],
     headturn: ["exam.lab.pTurn", "ดูเหมือนคุณหันออกจากจอนาน — ถ้าต้องการความช่วยเหลือ ยกมือเรียกผู้คุมสอบ"],
@@ -213,7 +213,10 @@
     if (TEST) {
       objects = [];
       const fa = F.pickEngine(window) === "faceapi";
-      for (const f of LQDetect.fake("exam-lab", performance.now()) || []) {
+      const fake = LQDetect.fake("exam-lab", performance.now()) || [];
+      peopleN = F.peopleBoxes(fake.filter(f => f.cls === "person").map(f => ({ x: f.x, y: f.y, w: f.w, h: f.h, score: f.score != null ? f.score : 0.9 }))).length; peopleAt = performance.now();
+      for (const f of fake) {
+        if (f.cls === "person") continue;
         if (f.cls) { objects.push({ cls: f.cls, score: f.score != null ? f.score : 0.9 }); continue; }
         const box = { x: f.x * W, y: f.y * H, w: f.w * W, h: f.h * H }, mar = f.mar != null ? f.mar : 0.05;
         const m = F.synthMesh(box, f.yaw || 0, f.pitch || 0, mar, W, H);
@@ -224,11 +227,17 @@
         try { for (const f of await faceEng.detect(video)) faces.push(f); faceRuns++; } catch (e) { console.warn("face engine", e); setFaceOff(); }
       }
       if (coco && cocoN++ % 3 === 0) {
-        const d = await LQDetect.detectCoco(coco, video, { classes: [76, 83, 72, 71], minScore: 0.4, max: 10 });
+        // one inference, two decodes: phones / books exactly as before, and person boxes for the second-person cue
+        // (LQExamFace.LAB_PEOPLE = option N4@0.5 of docs/exam/FACE-ENGINE-RESULTS.md §7.2). Boxes are counted, never kept.
+        const [d, pers] = await LQDetect.detectCocoMulti(coco, video, [{ classes: [76, 83, 72, 71], minScore: 0.4, max: 10 },
+          { classes: [0], minScore: F.LAB_PEOPLE.minScore, iou: F.LAB_PEOPLE.iou, max: F.LAB_PEOPLE.max }]);
         objects = d.map(o => ({ cls: COCO_NAME[o.cls], score: o.score }));
+        peopleN = F.peopleBoxes(pers).length; peopleAt = performance.now();
       }
     }
-    return { faces, objects, W, H, faceOff };
+    // the person count is read on every 3rd frame; it is used until the next read, never when older than 2 s
+    const people = performance.now() - peopleAt <= 2000 ? peopleN : 0;
+    return { faces, objects, people, W, H, faceOff };
   }
   function draw(o) {
     if (!o) return;
@@ -250,7 +259,7 @@
         lastTick = t0;
         if (phase === "cam" && frames % 4 === 0) renderChecks();
         if (phase === "cal") calStep(now, o);
-        if (phase === "exam" && mon) handle(mon.frame(now, { faces: o.faces, objects: o.objects, quality: q, faceOff: o.faceOff }));
+        if (phase === "exam" && mon) handle(mon.frame(now, { faces: o.faces, objects: o.objects, people: o.people, quality: q, faceOff: o.faceOff }));
       }
     } catch (e) { console.warn(e); }
     if (running) setTimeout(loop, Math.max(30, 250 - (performance.now() - t0)));

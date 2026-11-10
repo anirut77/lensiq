@@ -17,7 +17,7 @@ No module is production-ready. None has completed a field pilot, and the backend
 
 | Module | What it does | Status | Main files |
 |---|---|---|---|
-| Exam (lab, hall, dashboard) | Flags objective proctoring signals: face count, head turn, objects, frozen feed, browser events. Evidence clips are opt-in, encrypted and auto-deleted. No emotion inference. | demo | `exam*.html`, `exam-lab.js`, `exam-hall.js`, `exam-dashboard.js`, `lensiq-exam.js`, `lensiq-exam-clip.js`, `docs/EXAM.md` |
+| Exam (lab, dashboard; hall = experimental) | Flags objective proctoring signals: face count, head turn, objects, frozen feed, browser events. Evidence clips are opt-in, encrypted and auto-deleted. No emotion inference. | demo | `exam*.html`, `exam-lab.js`, `exam-hall.js`, `exam-dashboard.js`, `lensiq-exam.js`, `lensiq-exam-clip.js`, `docs/EXAM.md` |
 | Gate: parking / village | Thai plate reader (finder + PP-OCRv5 Thai). A guard confirms every read. Parking fees, PromptPay QR, visitor passes. | experimental (synthetic accuracy only) | `gate*.html`, `parking.*`, `village.*`, `gate-kit.js`, `gate-rules.js`, `lensiq-plate.js`, `lensiq-promptpay.js`, `docs/GATE.md` |
 | Crowd | Counts people in view and in a drawn zone. Density heatmap, peak hours, entry/exit line, marketing CSV. | experimental (accuracy preliminary; human count pending) | `crowd.*`, `lensiq-crowd.js`, `lensiq-zonecam.js`, `docs/CROWD-ACCURACY.md` |
 | Medicine checker | OCR of label and registration-number candidates, Pillbox imprint candidates (US, 2020), opt-in openFDA/RxNav text lookups, verbatim sourced text only. Not a definitive pill ID. | experimental | `medicine.*`, `lensiq-med.js`, `vendor/pillbox/`, `backend/src/med.js`, `docs/MEDICINE.md` |
@@ -249,6 +249,26 @@ No module is production-ready. None has completed a field pilot, and the backend
   video in the pilot. Face signals switch off only when the detector really cannot run (some browsers without GL);
   the pilot checks it on each lab computer. Independent review (2 parts) passed; face images deleted after the eval.
   L23: Exam resolved; Attendance, customers and booth still open (`docs/ATTENDANCE-READINESS.md` Part B).
+- Exam follow-ups (owner decision 2026-11-10; `docs/exam/FACE-ENGINE-RESULTS.md` §6 – §7; public dataset Open Images V7,
+  not exam footage). **Hall mode is marked "experimental, not on sale yet"** on the page, landing page, category page,
+  catalogue, one-pagers and sales packages (TH / EN / ZH); lab mode stays pilot-ready. Small faces (24 – 48 px) in a
+  1,280 × 720 view, held-out n = 195: current engine 0 %; full-range detector whole frame 14.4 %; full-range on 3 × 3
+  tiles 62.6 % but 0.40 false boxes per frame and 2.2 fps on an emulated mid-range laptop (M1 throttled 4×; 4.8 fps
+  unthrottled). Against the fixed rule (≤ 0.05 false positives per frame and ≥ 5 fps): the Face Landmarker variants
+  pass both limits **but find 0 % of these faces**; every option that finds small faces fails the false-positive limit
+  and the tiled ones also the fps limit. The rule's pick (numFaces 8 @0.5) came from an fps tie-break inside the timing
+  noise and is the current engine, so the issue is not fixed, nothing new is switched on, and no page loads the
+  full-range model. Lab "more than one person": a person count
+  from the COCO-SSD inference the page already runs, used only while a face is seen: held-out recall 9.6 % → 28.8 %
+  (n = 52), false alarms 0 / 17; the pages, the one-pagers and the pilot kit state 28.8 % (15 / 52) and that the signal
+  is an aid, not complete detection. Owner decisions 2026-11-10: the 15.5 MiB of measurement-only vendor files (second
+  MediaPipe bundle 1.2.2 + full-range model, both Apache-2.0) are **out of the repo**, in
+  `~/LENSIQ-field/evals/exam-followups/vendor/` (sha256 and licences in §7.3; the eval tool takes `--vendor` /
+  `LQ_EXAM_EVAL_VENDOR`); the pilot kit leads with Mode B and accepts that Mode B has no live view on another machine;
+  the hall "count faces (experimental)" option stays with its label. Hall camera placement guide (face ≥ 48 px wide;
+  **a calculation, not a measurement**) is in `docs/EXAM.md`; the owner tests it with a 4K webcam in a real room. The
+  hall setup check is not built yet (separate commit). Process limits of this round (held-out tables printed on every
+  run, order not provable from git) are stated in §7.
 - P4 done: official lookups through the Worker (Thai FDA web service, testing only; openFDA, DailyMed, RxNav, HSA;
   Safety Gate and RASFF testing only, off in customer builds), on-device TMT 2563 (CC BY) + NLEM 2567 + curated Thai
   alert list + Health Canada recalls, all as small sharded static files (free Workers plan); risk-signal card with the P3

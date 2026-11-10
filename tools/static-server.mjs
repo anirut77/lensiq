@@ -4,6 +4,8 @@
 // Like GitHub Pages it sends no security headers, so only <meta> policies apply.
 // Optional `prefix` (e.g. "/lensiq") mounts the root under a sub-path like a GitHub Pages project site; requests
 // outside it get 404. `onResponse(status, path)` is called after every response (tools/check-site.mjs records 4xx).
+// Optional `mounts` ({"/url-prefix": directory}) serves another folder under a URL prefix on the same origin
+// (tools/exam-hall-face-eval.mjs: measurement-only files that are kept outside the repo).
 import { createServer } from "node:http";
 import { createReadStream, readFileSync, statSync } from "node:fs";
 import { extname, join, normalize, resolve, sep } from "node:path";
@@ -17,8 +19,9 @@ const TYPES = {
   ".tflite": "application/octet-stream", ".woff2": "font/woff2", ".webmanifest": "application/manifest+json"
 };
 
-export function serve(root, { transformHtml = null, port = 0, prefix = "", onResponse = null } = {}) {
-  const base = resolve(root);
+export function serve(root, { transformHtml = null, port = 0, prefix = "", onResponse = null, mounts = null } = {}) {
+  const root0 = resolve(root);
+  const extra = Object.entries(mounts || {}).map(([m, dir]) => [m.replace(/\/+$/, ""), resolve(dir)]);
   const mount = prefix.replace(/\/+$/, "");
   const server = createServer((req, res) => {
     let p;
@@ -29,6 +32,8 @@ export function serve(root, { transformHtml = null, port = 0, prefix = "", onRes
       if (!p.startsWith(mount + "/")) { res.writeHead(404).end("not found"); return; }
       p = p.slice(mount.length);
     }
+    let base = root0;
+    for (const [m, dir] of extra) if (p.startsWith(m + "/")) { base = dir; p = p.slice(m.length); break; }
     if (p.endsWith("/")) p += "index.html";
     const file = normalize(join(base, p));
     if (!file.startsWith(base + sep) || /[\\/]\./.test(file.slice(base.length))) { res.writeHead(404).end(); return; }

@@ -26,7 +26,8 @@
  *   createFrozen({ms=4000, eps=0.6}) -> {push(t, thumb) -> boolean}   identical thumbnails for ms = a frozen / looped feed
  *   isVirtualCamLabel(label) -> boolean   OBS / ManyCam / "virtual" camera names
  *   createLabMonitor(cfg?) -> {setBaseline(b), frame(t, obs), browser(t, type, data), cfg}   -> events [{sig, lvl, t, dur?, n?, local?}]
- *     obs = {faces, objects?, quality?, faceOff?}: faceOff = the face engine cannot run here -> no-face / multi-face / head
+ *     obs = {faces, objects?, people?, quality?, faceOff?}: people = person boxes counted by the object detector (used for
+ *     "more than one person" only while >= 1 face is seen); faceOff = the face engine cannot run here -> no-face / multi-face / head
  *     turn / mouth are not evaluated (never "no face" because a detector is missing)
  *     lvl "prompt" = a gentle message to the candidate only (never sent); lvl "setup" = poor camera/light: "fix setup", not an alert
  *   pointInPoly(x, y, poly) · polyArea(poly) · polyCentroid(poly) · boxFracInPoly(box, poly, g=8) · seatOf(pt, seats)
@@ -50,7 +51,7 @@
   /* ---------- signals and levels ---------- */
   const SIGNALS = Object.freeze({
     noface: { src: "lab", lvl: "watch", w: 1, th: "ไม่เห็นใบหน้าในกล้อง" },
-    multiface: { src: "lab", lvl: "check", w: 1, th: "เห็นมากกว่าหนึ่งใบหน้า" },
+    multiface: { src: "lab", lvl: "check", w: 1, th: "เห็นมากกว่าหนึ่งคน" },
     headturn: { src: "lab", lvl: "info", w: 0.6, th: "หันศีรษะออกจากจอนาน" },
     phone: { src: "lab", lvl: "check", w: 1, th: "อาจมีโทรศัพท์ในภาพ" },
     object: { src: "lab", lvl: "watch", w: 0.8, th: "อาจมีหนังสือ แล็ปท็อป หรือจออื่นในภาพ" },
@@ -290,7 +291,11 @@
         for (const f of r.fire) ev.push({ sig: "noface", lvl: f.lvl, t, dur: Math.round(r.dur), local: f.lvl === "prompt" || undefined });
         if (r.ended && r.ended.fired) ev.push({ sig: "noface", lvl: "end", t, dur: Math.round(r.ended.dur), local: true });
       } else G.noface.reset();
-      if (faceOff) G.multiface.reset(); else push("multiface", G.multiface.push(t, faces.length >= 2), { n: faces.length });
+      // more than one person: >= 2 faces, or (docs/exam/FACE-ENGINE-RESULTS.md §6.7 N4, picked in §7.2) the candidate's face is
+      // seen AND the object detector counts >= 2 people (obs.people; a second person turned away or behind). Never without a
+      // face from the face engine, so the person cue cannot replace or mask the no-face signal.
+      const people = fin(obs.people) && faces.length >= 1 ? obs.people : 0;
+      if (faceOff) G.multiface.reset(); else push("multiface", G.multiface.push(t, faces.length >= 2 || people >= 2), { n: Math.max(faces.length, people) });
       // head turned away vs the calibrated baseline (only when calibration succeeded, one face, good light)
       const f0 = faces.length === 1 ? faces[0] : null;
       if (base.ok && !poor && !faceOff) {

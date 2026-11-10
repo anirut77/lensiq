@@ -319,6 +319,18 @@ input. Rows without ground truth are skipped and counted.
 
 ## Changelog / last reviewed
 
+- **2026-11-10 (round 17, follow-ups)**: Exam **hall mode is experimental** (owner decision) and not the lead mode of the
+  pilot; the pilot leads with the lab mode (`docs/pilot/PILOT-EXAM.md`). Small faces in the hall view are still not found
+  (public dataset: 0 / 195 at 24 – 48 px; `docs/exam/FACE-ENGINE-RESULTS.md` §7.1). If a hall trial runs alongside, record
+  per camera: distance to the nearest and farthest row, face width in px at each row (screenshot ruler), and frames per
+  second on the device, so the next round can be measured on real footage with complete labels. Lab: "more than one
+  person" now also uses a person count (public dataset: 28.8 % of frames with a second person, 0 / 17 false alarms); in
+  phase 0 count how often it fires for a neighbour sitting normally at the next desk. **Field: not measured.**
+  Owner decisions the same day: the Exam kit leads with lab mode and accepts that lab mode has no live feed to a
+  dashboard on another machine; the kit and the pages state 28.8 % (15 / 52, public dataset, held-out) for "more than
+  one person" and call it an aid, not complete detection; a hall camera placement guide (face ≥ 48 px wide; a
+  calculation, not a measurement) is in `docs/EXAM.md` with the list of what to write down when the owner tests a 4K
+  webcam in a real room.
 - **2026-11-10 (round 17)**: Exam lab face engine switched to MediaPipe Face Landmarker (owner decision); public /
   synthetic numbers in `docs/exam/FACE-ENGINE-RESULTS.md`. For the Exam pilot phase 0: (1) open the lab page on each lab computer
   and check the face check runs (if the detector cannot run there, the page switches the face signals off and says "fix setup"); (2) record no-face misses per

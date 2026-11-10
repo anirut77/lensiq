@@ -5,6 +5,10 @@
  * Only JSON events + a heartbeat go to the dashboard (exam-link.js). No frame is stored or sent.
  * Test seams (localhost + ?fakedet): no model; window.__LQ_FAKE_DET("exam-hall") -> [{x,y,w,h,score, cls?:"phone"}];
  * window.__LQ_FAKE_Q overrides the lighting verdict; window.__LQ_EXAM_HALL = state.
+ * Face pass (EXPERIMENTAL, off by default, "#faceOn"): LQExamFace.createHallFaces() = the option picked by the fixed rule of
+ * docs/exam/FACE-ENGINE-RESULTS.md §6.5 (the lab engine on the whole frame; it does NOT find small faces, §7.1); face boxes
+ * drawn and counted on this device only (no event, nothing sent).
+ * Test seam: __LQ_FAKE_DET("exam-hall-faces") -> [{x,y,w,h}] normalised, or "fail" (the pass switches itself off, said so).
  * Evidence clip (opt-in per exam, default OFF; ?clip=1&clipauto=1&clipdays=N or the setup form): while monitoring, the last
  * 10 s of video (no audio) stay in memory; a Watch / Check flag copies them to a pending slot that is encrypted to this
  * device only on "keep clip" (dashboard, or the button next to the event here) or auto-keep. Never uploaded.
@@ -22,8 +26,13 @@
   if (!/^[a-z0-9]{6,24}$/.test(String(nodeId))) { nodeId = L.newNodeId(); U.store.set(K.node, nodeId); }
 
   let room = "", cam = null, coco = null, link = null, mon = null, running = false, monitoring = false, walk = false, walkTimer = null;
-  let seats = [], draft = null, lastDets = { persons: [], phones: [] }, examStart = 0, fpsEma = 0, lastTick = 0, hbTimer = null;
+  let seats = [], draft = null, lastDets = { persons: [], phones: [], faces: [] }, examStart = 0, fpsEma = 0, lastTick = 0, hbTimer = null;
   let profiles = {}, lastQ = { ok: true, code: "ok", score: 0 }, qAt = 0;
+  /* face pass (EXPERIMENTAL, off by default; docs/exam/FACE-ENGINE-RESULTS.md §6 – §7): boxes of small faces in the wide view,
+     drawn and counted for the invigilator only. Boxes and a score, nothing else: no identity, no pose, no expression; no event
+     and nothing about faces is sent to the dashboard. If it cannot load or run here it switches itself off and says so. */
+  const XF = W.LQExamFace;
+  let faceOn = false, faceEng = null, faceErr = false;
   const recent = [], sent = [];
   const setupGate = E.createGate({ k: 3, n: 5, stages: [{ ms: 5000, lvl: "setup" }], cooldownMs: 60000 });
   let evSeq = 0;
@@ -115,6 +124,8 @@
     for (const b of lastDets.persons) c.strokeRect(b.x * W, b.y * H, b.w * W, b.h * H);
     c.strokeStyle = "#ff6b5e";
     for (const b of lastDets.phones) c.strokeRect(b.x * W, b.y * H, b.w * W, b.h * H);
+    c.strokeStyle = "#ffd23f"; c.lineWidth = 1.5;
+    for (const b of lastDets.faces || []) c.strokeRect(b.x * W, b.y * H, b.w * W, b.h * H);
     if (draft && draft.length) {
       c.strokeStyle = "#fff"; c.setLineDash([6, 4]); c.beginPath();
       draft.forEach((p, i) => (i ? c.lineTo(p[0] * W, p[1] * H) : c.moveTo(p[0] * W, p[1] * H))); c.stroke(); c.setLineDash([]);
@@ -161,11 +172,31 @@
     if (!video.videoWidth) return null;
     if (TEST) {
       const d = LQDetect.fake("exam-hall", performance.now()) || [];
-      return { persons: d.filter(b => !b.cls || b.cls === "person"), phones: d.filter(b => b.cls === "phone") };
+      return { persons: d.filter(b => !b.cls || b.cls === "person"), phones: d.filter(b => b.cls === "phone"), faces: await facePass() };
     }
     const tiles = $("#tiles").checked ? { cols: 2, rows: 2, overlap: 0.2 } : null;
     const d = await LQDetect.detectCoco(coco, video, { classes: [0, 76], minScore: 0.35, max: 40, tiles });
-    return { persons: d.filter(b => b.cls === 0 && b.score >= 0.4), phones: d.filter(b => b.cls === 76) };
+    return { persons: d.filter(b => b.cls === 0 && b.score >= 0.4), phones: d.filter(b => b.cls === 76), faces: await facePass() };
+  }
+  /** experimental face pass -> normalised boxes [{x, y, w, h}] ([] when off or not working on this device) */
+  async function facePass() {
+    if (!faceOn || faceErr) return [];
+    const Wv = video.videoWidth, Hv = video.videoHeight;
+    try {
+      if (TEST) {
+        const f = LQDetect.fake("exam-hall-faces", performance.now());
+        if (f === "fail") throw new Error("test: face pass fails");
+        return (f || []).map(b => ({ x: b.x, y: b.y, w: b.w, h: b.h }));
+      }
+      if (!faceEng) faceEng = XF.createHallFaces();
+      await faceEng.init();
+      return (await faceEng.detect(video)).map(f => ({ x: f.box.x / Wv, y: f.box.y / Hv, w: f.box.w / Wv, h: f.box.h / Hv }));
+    } catch (e) {
+      console.warn("face pass", e);
+      faceErr = true;
+      engine(() => T("exam.hall.faceErr", "ตัวนับใบหน้า (ทดลอง) ทำงานในเครื่องนี้ไม่ได้ จึงปิดไว้ การดูที่นั่งยังทำงานตามปกติ"), "warn");
+      return [];
+    }
   }
   async function loop() {
     if (!running) return;
@@ -216,6 +247,7 @@
       T("exam.hall.kvFps", "{f} ภาพ/วินาที", { f: fpsEma.toFixed(1) }),
       T("exam.hall.kvPeople", "เห็นคน {n}", { n: lastDets.persons.length })
     ];
+    if (faceOn) parts.push(faceErr ? T("exam.hall.kvFaceOff", "ตัวนับใบหน้าปิดอยู่ (ทำงานในเครื่องนี้ไม่ได้)") : T("exam.hall.kvFaces", "ใบหน้า {n} (ทดลอง)", { n: (lastDets.faces || []).length }));
     if (walk) parts.push(T("exam.hall.kvWalk", "โหมดเดินตรวจเปิดอยู่"));
     if (mon && Date.now() < mon.suppressedUntil()) parts.push(T("exam.hall.kvMuted", "พักแจ้งเตือนรายที่นั่งอยู่"));
     if (!lastQ.ok) parts.push(T("exam.hall.kvSetup", "ปรับการติดตั้ง: {w}", { w: U.what(lastQ.code) || lastQ.code }));
@@ -238,6 +270,13 @@
   /* ---------- controls ---------- */
   const saved = U.store.get(K.hall, null);
   if (saved) { $("#room").value = saved.room || ""; $("#nodeName").value = saved.name || ""; if (saved.pos) $("#pos").value = saved.pos; if (saved.minLeave != null) $("#minLeave").value = saved.minLeave; }
+  // experimental face pass: off unless the invigilator ticks it on this device (remembered with the node settings)
+  faceOn = !!(saved && saved.faceOn === true); $("#faceOn").checked = faceOn;
+  $("#faceOn").addEventListener("change", () => {
+    faceOn = $("#faceOn").checked; if (!faceOn) lastDets.faces = [];
+    const s = U.store.get(K.hall, {}) || {}; s.faceOn = faceOn; U.store.set(K.hall, s);
+    status(); draw();
+  });
   if (P.get("room")) $("#room").value = U.cleanRoom(P.get("room"));
   /* evidence clip setting: changeable while not monitoring; the room notice must say so when it is on */
   function clipUI() {
@@ -265,7 +304,7 @@
     room = U.cleanRoom($("#room").value);
     if (!room) { engine(() => T("exam.hall.needRoom", "กรอกรหัสห้องสอบ (ตัวอักษรอังกฤษหรือตัวเลข)"), "warn"); return; }
     $("#room").value = room;
-    U.store.set(K.hall, { room, name: $("#nodeName").value, pos: $("#pos").value, minLeave: $("#minLeave").value });
+    U.store.set(K.hall, { room, name: $("#nodeName").value, pos: $("#pos").value, minLeave: $("#minLeave").value, faceOn });
     if (link) link.close();
     link = L.create({ room, onMessage });
     startCamera();
@@ -312,6 +351,8 @@
 
   /** @type {any} */ (window).__LQ_EXAM_HALL = {
     get seats() { return seats; }, get mon() { return mon; }, get monitoring() { return monitoring; }, get walk() { return walk; },
-    sent, recent, get link() { return link; }, nodeId, toNorm, clips, clipSt, get clipCfg() { return clipCfg; }
+    sent, recent, get link() { return link; }, nodeId, toNorm, clips, clipSt, get clipCfg() { return clipCfg; },
+    get faceOn() { return faceOn; }, get faceErr() { return faceErr; }, get faces() { return lastDets.faces || []; },
+    get faceCfg() { return faceEng ? { engine: faceEng.engine, numFaces: faceEng.numFaces, conf: faceEng.conf } : null; }
   };
 })();

@@ -172,3 +172,338 @@ test("MediaPipe options: create({options}) and setOptions() keep only thresholds
   assert.deepEqual(got.set, [{ numFaces: 1 }], "setOptions passes only the cleaned keys");
   assert.ok(!("outputFaceBlendshapes" in e.options) && e.options.outputFacialTransformationMatrixes === true && e.options.numFaces === 1);
 });
+
+/* ---------- face boxes only (hall small faces / lab second-person pass; docs/exam/FACE-ENGINE-RESULTS.md §6 – §7) ---------- */
+test("tileRects = LQDetect.tileRects (n x n, 20 % overlap) and covers the frame", () => {
+  const D = require("../../lensiq-detect.js");
+  for (const n of [2, 3]) {
+    const a = F.tileRects(n, 0.2), b = D.tileRects(n, n, 0.2);
+    assert.equal(a.length, n * n);
+    a.forEach((r, i) => { for (const k of ["x", "y", "w", "h"]) near(r[k], b[i][k], 1e-12, `tile ${i}.${k}`); });
+    near(Math.max(...a.map(r => r.x + r.w)), 1, 1e-9, "right edge"); near(Math.max(...a.map(r => r.y + r.h)), 1, 1e-9, "bottom edge");
+  }
+});
+
+test("mergeFaces / sameFace / addSecondary: one box per face, the higher score kept; secondary faces only add new people", () => {
+  const A = { box: { x: 100, y: 100, w: 40, h: 40 }, score: 0.9 };
+  const A2 = { box: { x: 104, y: 102, w: 40, h: 40 }, score: 0.6 }; // same face, other tile
+  const Ain = { box: { x: 110, y: 110, w: 20, h: 20 }, score: 0.95 }; // inside A (>= 60 % of the smaller box)
+  const B = { box: { x: 300, y: 100, w: 30, h: 30 }, score: 0.5 };
+  const m = F.mergeFaces([A2, A, B, Ain]);
+  assert.equal(m.length, 2, JSON.stringify(m));
+  assert.equal(m[0], Ain, "highest score first"); assert.ok(m.includes(B));
+  assert.ok(F.sameFace(A.box, A2.box) && !F.sameFace(A.box, B.box));
+  assert.deepEqual(F.mergeFaces([{ box: { x: 0, y: 0, w: 0, h: 5 }, score: 1 }, null]), [], "empty boxes dropped");
+  const prim = [{ box: A.box, yaw: 0 }];
+  assert.equal(F.addSecondary(prim, [A2, B]).length, 2, "the candidate is not counted twice; a new face is added");
+  assert.equal(F.addSecondary(prim, []).length, 1);
+});
+
+test("mapTileBox: tile px -> frame px; a box cut by an INNER tile edge is dropped, frame edges are kept", () => {
+  const W = 1280, H = 720, r = { x: 0.5, y: 0, w: 0.5, h: 0.5 }; // top-right tile: inner edges left and bottom
+  assert.deepEqual(F.mapTileBox({ x: 10, y: 10, w: 20, h: 20 }, r, W, H), { x: 650, y: 10, w: 20, h: 20 });
+  assert.equal(F.mapTileBox({ x: 1, y: 50, w: 20, h: 20 }, r, W, H), null, "touches the inner left edge");
+  assert.equal(F.mapTileBox({ x: 50, y: 340, w: 20, h: 20 }, r, W, H), null, "touches the inner bottom edge");
+  assert.ok(F.mapTileBox({ x: 50, y: 0, w: 20, h: 20 }, r, W, H), "frame top edge is not an inner edge");
+  assert.ok(F.mapTileBox({ x: 618, y: 50, w: 22, h: 20 }, r, W, H), "frame right edge is not an inner edge");
+  assert.deepEqual(F.mapTileBox({ x: 0, y: 0, w: 5, h: 5 }, { x: 0, y: 0, w: 1, h: 1 }, W, H), { x: 0, y: 0, w: 5, h: 5 }, "whole frame");
+});
+
+test("createFaceBoxes: FaceDetector options (CPU, IMAGE, confidence), whole + tiles mapped back and merged, boxes and score only", async () => {
+  const got = [];
+  const vision = {
+    FilesetResolver: { forVisionTasks: async p => ({ wasm: p }) },
+    FaceDetector: {
+      createFromOptions: async (files, op) => {
+        got.push({ files, op });
+        return {
+          // whole frame (1280 x 720): one face at (600, 300); every tile crop: a face at (40, 40) in tile px
+          detect: img => ({ detections: img.width === 1280 ? [{ boundingBox: { originX: 600, originY: 300, width: 30, height: 30 }, categories: [{ score: 0.8 }], keypoints: [{ x: 0, y: 0 }] }]
+            : [{ boundingBox: { originX: 40, originY: 40, width: 20, height: 20 }, categories: [{ score: 0.6 }] }] }),
+          close() {}
+        };
+      }
+    }
+  };
+  const draws = [];
+  const makeCanvas = () => ({ width: 0, height: 0, getContext: () => ({ drawImage: (...a) => draws.push(a) }) });
+  // the measurement tool serves the outside folder under this same-origin prefix (tools/exam-hall-face-eval.mjs VENDOR_MOUNT)
+  const FULL = { bundle: "/__eval-vendor/mediapipe-1.2.2/vision_bundle.mjs", wasm: "/__eval-vendor/mediapipe-1.2.2/wasm",
+    model: "/__eval-vendor/models/face-detector-full/blaze_face_full_range.tflite" };
+  assert.deepEqual(Object.keys(F.FD_MODELS), ["short"], "the page script names only the short-range detector");
+  const e = F.createFaceBoxes({ model: "full", files: FULL, tiles: 2, whole: true, conf: 0.3, base: "http://127.0.0.1/", vision, makeCanvas });
+  assert.equal(e.model, "full");
+  assert.equal(e.passes, 5);
+  const r = await e.detect({ width: 1280, height: 720 });
+  assert.equal(got.length, 1);
+  assert.deepEqual(got[0].op, { baseOptions: { modelAssetPath: "http://127.0.0.1" + FULL.model, delegate: "CPU" }, runningMode: "IMAGE", minDetectionConfidence: 0.3 });
+  assert.equal(got[0].files.wasm, "http://127.0.0.1" + FULL.wasm, "full-range runs on the Tasks Vision 1.2.2 copy (files passed in by the measurement tool)");
+  assert.equal(draws.length, 4, "one crop per tile");
+  assert.equal(r.length, 5, "whole-frame face + one per tile (distinct places)");
+  for (const d of r) assert.deepEqual(Object.keys(d).sort(), ["box", "score"], "boxes and score only");
+  assert.deepEqual(r[0], { box: { x: 600, y: 300, w: 30, h: 30 }, score: 0.8 });
+  const t = F.tileRects(2, 0.2);
+  assert.ok(r.some(d => Math.abs(d.box.x - (t[3].x * 1280 + 40)) < 1e-6 && Math.abs(d.box.y - (t[3].y * 720 + 40)) < 1e-6), "tile box mapped to the frame");
+  // the short-range detector runs on the vendored bundle; bad values fall back
+  const s = F.createFaceBoxes({ model: "short", tiles: 7, conf: 5, base: "http://127.0.0.1/", vision });
+  await s.init();
+  assert.equal(got[1].op.minDetectionConfidence, 0.5); assert.equal(s.tiles, 0); assert.equal(s.passes, 1);
+  assert.equal(got[1].op.baseOptions.modelAssetPath, "http://127.0.0.1/vendor/models/face-gate/blaze_face_short_range.tflite");
+  assert.equal(got[1].files.wasm, "http://127.0.0.1/vendor/mediapipe/wasm");
+});
+
+test("measurement-only files (Tasks Vision 1.2.2 + BlazeFace full-range) are NOT in the repo; the tool reads them from outside; §7.3 records where, sha256 and licence", () => {
+  // owner decision 2026-11-10: not shipped, so not in the repo, not in the licence notices, not on the About page
+  for (const d of ["vendor/mediapipe-1.2.2", "vendor/models/face-detector-full"]) assert.ok(!fs.existsSync(path.join(ROOT, d)), d + " must stay out of the repo");
+  for (const doc of ["LICENSES/THIRD_PARTY.md", "LICENSES/THIRD-PARTY-NOTICES.txt", "about.html", "i18n/en-common.js", "i18n/zh-common.js"]) {
+    assert.doesNotMatch(read(doc), /mediapipe-1\.2\.2|face-detector-full|BlazeFace full-range|about\.oss\.examhall/i, doc + " lists only what is shipped");
+  }
+  // the tool: location by flag or env, default outside the repo, sha256 checked, clear error when missing
+  const tool = read("tools/exam-hall-face-eval.mjs"), pg = read("tools/exam-hall-face-page.mjs");
+  assert.match(tool, /opt\("--vendor", process\.env\.LQ_EXAM_EVAL_VENDOR \|\| join\(homedir\(\), "LENSIQ-field", "evals", "exam-followups", "vendor"\)\)/);
+  assert.match(tool, /missing file: \$\{f\}/); assert.match(tool, /the vendor folder must be outside the repo/);
+  assert.match(tool, /Pass --vendor <dir> or set LQ_EXAM_EVAL_VENDOR/);
+  assert.doesNotMatch(tool + pg, /["'`]vendor\/mediapipe-1\.2\.2|["'`]vendor\/models\/face-detector-full/, "no in-repo path to the measurement-only files");
+  assert.match(pg, /vendorBase \+ "\/models\/face-detector-full\/blaze_face_full_range\.tflite"/);
+  // the sha256 the tool enforces are the ones recorded in the results document, with the place and the licence
+  const s73 = /### 7\.3 [\s\S]*?(?=\n### 7\.4 )/.exec(read("docs/exam/FACE-ENGINE-RESULTS.md"))[0];
+  const hashes = [...tool.matchAll(/"((?:mediapipe-1\.2\.2|models\/face-detector-full)\/[^"]+)": "([0-9a-f]{64})"/g)];
+  assert.equal(hashes.length, 4);
+  for (const [, file, h] of hashes) assert.ok(s73.includes(file) && s73.includes(h), "§7.3 records the sha256 of " + file);
+  assert.match(s73, /~\/LENSIQ-field\/evals\/exam-followups\/vendor\//); assert.match(s73, /Apache-2\.0/); assert.match(s73, /Model Card \(Full Range\)/);
+  assert.match(s73, /Owner decision \(2026-11-10\)/);
+});
+
+/* every root page that links to the hall page labels that link "experimental" in Thai, English and Chinese */
+test("every page offering the hall page carries the experimental label in Thai, English and Chinese", () => {
+  const all = lang => Object.assign({}, ...fs.readdirSync(path.join(ROOT, "i18n")).filter(x => x.startsWith(lang + "-") && x.endsWith(".js")).map(x => {
+    try { return dictOf("i18n/" + x); } catch { return {}; }
+  }));
+  const en = all("en"), zh = all("zh");
+  const TH = /ทดลอง/, EN = /experimental/i, ZH = /实验性/;
+  const pages = fs.readdirSync(ROOT).filter(x => x.endsWith(".html") && x !== "exam-hall.html" && /href="exam-hall\.html"/.test(read(x)));
+  for (const must of ["cameras.html", "cat-education.html", "exam.html"]) assert.ok(pages.includes(must), must + " offers the hall page");
+  let links = 0;
+  for (const p of pages) {
+    const html = read(p);
+    for (const m of html.matchAll(/<a\b[^>]*href="exam-hall\.html"[^>]*>[\s\S]*?<\/a>/g)) {
+      links++;
+      // the label is on the link itself, or (a bare "open" button) on the card that holds it
+      let scope = m[0];
+      if (!TH.test(scope.replace(/<[^>]+>/g, ""))) {
+        const start = html.lastIndexOf("<article", m.index), end = html.indexOf("</article>", m.index);
+        assert.ok(start >= 0 && end > m.index && html.lastIndexOf("</article>", m.index) < start, `${p}: hall link without the label and outside a card: ${m[0].slice(0, 90)}`);
+        scope = html.slice(start, end);
+      }
+      assert.match(scope.replace(/<[^>]+>/g, " "), TH, `${p}: Thai text of the hall link / card says ทดลอง`);
+      const keys = [...scope.matchAll(/data-i18n="([^"]+)"/g)].map(k => k[1]);
+      assert.ok(keys.length, p + ": hall link text is translatable");
+      for (const k of keys) { assert.ok(en[k] != null, `${p}: en ${k}`); assert.ok(zh[k] != null, `${p}: zh ${k}`); }
+      assert.ok(keys.some(k => EN.test(en[k])), `${p}: English text of the hall link / card says experimental (${keys.join(", ")})`);
+      assert.ok(keys.some(k => ZH.test(zh[k])), `${p}: Chinese text of the hall link / card says 实验性 (${keys.join(", ")})`);
+    }
+  }
+  assert.ok(links >= 4, "hall links checked: " + links);
+  // every inline Thai copy of the navigation description (the default text under data-i18n) carries the label too
+  for (const p of fs.readdirSync(ROOT).filter(x => x.endsWith(".html"))) {
+    for (const m of read(p).matchAll(/data-i18n="nav\.exam-hall\.desc">([^<]*)</g)) assert.match(m[1], TH, p + ": inline Thai nav.exam-hall.desc");
+  }
+  assert.match(read("nav.js"), /href: "exam-hall\.html"[^}]*desc: "[^"]*\(ทดลอง\)"/);
+});
+
+/* ---------- follow-ups 2026-11-10: hall "experimental", the hall pick, the lab second-person cue (§7) ---------- */
+function dictOf(file) {
+  const w = {}; w.window = w; require("node:vm").runInNewContext(read(file), w);
+  const lang = /i18n\/(en|zh)-/.exec(file)[1];
+  return Object.assign({}, ...w.LQI18N_Q.map(q => q[lang] || {}));
+}
+const THAI_RE = /[฀-๿]/;
+
+test("hall mode is labelled experimental in Thai, English and Chinese wherever it is offered or sold; lab mode is not", () => {
+  const en = dictOf("i18n/en-exam.js"), zh = dictOf("i18n/zh-exam.js");
+  const enC = dictOf("i18n/en-common.js"), zhC = dictOf("i18n/zh-common.js"), enS = dictOf("i18n/en-solutions.js"), zhS = dictOf("i18n/zh-solutions.js");
+  const enCat = dictOf("i18n/en-cat.js"), zhCat = dictOf("i18n/zh-cat.js");
+  const TH = /ทดลอง/, EN = /experimental/i, ZH = /实验性/;
+  // the hall page itself: a banner above the setup form, with the measured number, its n and its source
+  const hall = read("exam-hall.html");
+  assert.ok(hall.indexOf('id="hallExp"') > 0 && hall.indexOf('id="hallExp"') < hall.indexOf('id="setupForm"'), "banner above the setup form");
+  const banner = /id="hallExp"[^>]*>([\s\S]*?)<\/p>/.exec(hall)[1];
+  assert.match(banner, /data-i18n="exam\.hall\.expB">รุ่นทดลอง ยังไม่เปิดขาย</);
+  for (const t of [banner, en["exam.hall.exp"], zh["exam.hall.exp"]]) for (const tok of ["0%", "n = 195", "63%", "24–48 px", "0.40"]) assert.ok(t.includes(tok),
+    `hall banner: "${tok}" in ${t.slice(0, 40)}`);
+  assert.match(banner, /ชุดข้อมูลสาธารณะ/); assert.match(en["exam.hall.exp"], /public dataset/); assert.match(zh["exam.hall.exp"], /公开数据集/);
+  assert.match(en["exam.hall.expB"], /Experimental, not on sale yet/); assert.match(zh["exam.hall.expB"], /实验性，暂不销售/);
+  // Exam landing page: the button, the mode card and the price card
+  const landing = read("exam.html");
+  assert.match(landing, /data-i18n="exam\.l\.ctaHall">[^<]*ทดลอง/);
+  assert.match(landing, /id="hallExp"><b data-i18n="exam\.l\.mAxB">รุ่นทดลอง ยังไม่เปิดขาย</);
+  assert.match(landing, /data-i18n="exam\.l\.p3x">รุ่นทดลอง[^<]*ยังไม่เปิดขาย/);
+  for (const k of ["exam.l.ctaHall", "exam.l.mAxB", "exam.l.p3x"]) { assert.match(en[k], EN, "en " + k); assert.match(zh[k], ZH, "zh " + k); }
+  assert.match(en["exam.l.p3x"], /not on sale/); assert.match(zh["exam.l.p3x"], /不销售/);
+  // navigation, solutions catalogue
+  assert.match(read("nav.js"), /href: "exam-hall\.html"[^}]*ทดลอง/);
+  assert.match(enC["nav.exam-hall.desc"], EN); assert.match(zhC["nav.exam-hall.desc"], ZH);
+  assert.match(read("solutions.html"), /ห้องสอบที่มีกล้องรอบห้อง \(รุ่นทดลอง ยังไม่เปิดขาย\)/);
+  assert.match(enS["sl.c.edu1.p"], /cameras around the room \(experimental, not on sale yet\)/); assert.match(zhS["sl.c.edu1.p"], /实验性，暂不销售/);
+  // category page + status table: generated from tools/cat-data.cjs
+  const D = require("../../tools/cat-data.cjs");
+  assert.equal(D.PAGES["exam-hall"].st, "experimental");
+  for (const p of ["exam", "exam-lab", "exam-dashboard"]) assert.equal(D.PAGES[p].st, "pilot-ready", p + " unchanged");
+  assert.match(read("cat-education.html"), /data-page="exam-hall" data-status="experimental"/);
+  assert.match(read("cat-education.html"), /data-page="exam-lab" data-status="pilot-ready"/);
+  assert.match(D.REASONS.examHall.th, TH); assert.match(D.REASONS.examHall.en, EN); assert.match(D.REASONS.examHall.zh, ZH);
+  assert.match(enCat["cat.r.examHall"], /not for sale yet/); assert.match(zhCat["cat.r.examHall"], /暂不销售/);
+  assert.match(read("docs/PAGE-STATUS.md"), /\| `exam-hall\.html` \| 2 Education & Exams \| \*\*experimental\*\* \|/);
+  // sales documents
+  const one = read("docs/ONE-PAGER-EXAM.md");
+  assert.ok((one.match(/รุ่นทดลอง ยังไม่เปิดขาย/g) || []).length >= 2 && (one.match(/experimental, not on sale yet/g) || []).length >= 2, "one-pager: what you get + price row, TH and EN");
+  assert.match(read("docs/SALES-PACKAGES.md"), /camera-hall mode \(`exam-hall\.html`, \*\*experimental, not sold until the small-face issue is fixed\*\*/);
+  assert.match(read("docs/ONE-PAGER-ZH.md"), /考场摄像头[^|\n]*实验性/);
+  assert.match(read("docs/ONE-PAGER-TH.md"), /เครื่องกล้องในห้องสอบ[^|\n]*รุ่นทดลอง/);
+  // lab mode keeps its wording: no "experimental" on the lab button or nav entry
+  for (const d of [en, zh]) assert.doesNotMatch(d["exam.l.ctaLab"], /experimental|实验性/);
+  assert.doesNotMatch(enC["nav.exam-lab.desc"], EN);
+  // no Thai in the new en / zh strings
+  for (const d of [en, zh]) for (const k of ["exam.hall.exp", "exam.hall.expB", "exam.hall.faceOn", "exam.hall.faceErr", "exam.hall.kvFaces", "exam.hall.kvFaceOff", "exam.l.cl4", "exam.l.cl5"]) {
+    assert.ok(d[k] && !THAI_RE.test(d[k]), k);
+  }
+});
+
+test("owner decisions 2026-11-10: lab-led pilot with the accepted limit, the 28.8 % rate stated as an aid (TH / EN / ZH), the count-faces label, the placement guide is a calculation", () => {
+  const en = dictOf("i18n/en-exam.js"), zh = dictOf("i18n/zh-exam.js");
+  // "more than one person": the measured rate, its n, its source and "an aid, not complete detection" on both pages
+  const thOf = (file, key) => new RegExp('data-i18n="' + key.replace(/\./g, "\\.") + '">([^<]*)<').exec(read(file))[1].replace(/\s+/g, " ");
+  for (const [file, key] of [["exam.html", "exam.l.cl5"], ["exam-lab.html", "exam.lab.nMulti"]]) {
+    const th = thOf(file, key);
+    for (const t of [th, en[key], zh[key]]) {
+      assert.ok(t.includes("28.8%") && t.includes("n = 52"), key + ": 28.8% and n = 52 in " + t.slice(0, 50)); assert.match(t, /15 \/ 52/, key);
+    }
+    assert.match(th, /มากกว่าหนึ่งคน/); assert.match(th, /เป็นตัวช่วยผู้คุมสอบ ไม่ใช่การตรวจจับที่ครบถ้วน/); assert.match(th, /ชุดข้อมูลสาธารณะ/); assert.match(th, /ไม่ใช่ภาพห้องสอบจริง/);
+    assert.match(en[key], /more than one person/); assert.match(en[key], /an aid for the invigilator, not complete detection/);
+    assert.match(en[key], /public dataset/); assert.match(en[key], /held-out/);
+    assert.match(zh[key], /不止一个人/); assert.match(zh[key], /辅助，并非完整检测/); assert.match(zh[key], /公开数据集/);
+    assert.ok(!THAI_RE.test(en[key]) && !THAI_RE.test(zh[key]), key + ": no Thai in en / zh");
+  }
+  for (const k of ["exam.lab.nMulti"]) { assert.match(thOf("exam-lab.html", k), /ในห้องสอบจริง: ยังไม่ได้วัด/); assert.match(en[k], /real exam rooms: not measured/); assert.match(zh[k], /尚未测量/); }
+  // solutions catalogue: the same wording as the product ("more than one person"), not "several faces"
+  assert.match(read("solutions.html"), /data-i18n="sl\.c\.edu1\.p">[^<]*มากกว่าหนึ่งคน/); assert.doesNotMatch(read("solutions.html"), /sl\.c\.edu1\.p">[^<]*หลายใบหน้า/);
+  assert.match(dictOf("i18n/en-solutions.js")["sl.c.edu1.p"], /more than one person/); assert.doesNotMatch(dictOf("i18n/en-solutions.js")["sl.c.edu1.p"], /several faces/);
+  assert.match(dictOf("i18n/zh-solutions.js")["sl.c.edu1.p"], /不止一个人/);
+  // one-pagers and the pilot kit
+  const one = read("docs/ONE-PAGER-EXAM.md");
+  assert.match(one, /เป็นตัวช่วย ไม่ใช่การตรวจจับที่ครบถ้วน\*\* \| 28\.8% \(15 \/ 52\)/); assert.match(one, /An aid, not complete detection\*\* \| 28\.8% \(15 \/ 52\)/);
+  assert.match(read("docs/ONE-PAGER-TH.md"), /มากกว่าหนึ่งคน[^|\n]*ไม่ใช่การตรวจจับที่ครบถ้วน\) \| 28\.8% \(15 \/ 52\)/);
+  assert.match(read("docs/ONE-PAGER-ZH.md"), /不止一个人[^|\n]*并非完整检测） \| 28\.8%（15 \/ 52）/);
+  const kit = read("docs/pilot/PILOT-EXAM.md");
+  assert.match(kit, /นำด้วยโหมด B \(ห้องคอมพิวเตอร์\)/); assert.match(kit, /leads with Mode B \(computer room\)/);
+  assert.match(kit, /ยังไม่มีการส่งสด \(ทั้งเหตุการณ์และภาพวิดีโอ\) ไปยังแดชบอร์ดบนเครื่องอื่น/); assert.match(kit, /เจ้าของยอมรับข้อนี้สำหรับการนำร่อง/);
+  assert.match(kit, /no live feed \(events or video\) to a dashboard on another\s+> machine/); assert.match(kit, /The owner\s+> accepts this for the pilot/);
+  assert.ok(kit.indexOf("- **โหมด B ห้องคอมพิวเตอร์") < kit.indexOf("- **โหมด A ห้องสอบที่มีกล้อง"), "Thai: lab mode listed first");
+  assert.ok(kit.indexOf("- **Mode B, the lead mode**") < kit.indexOf("- **Mode A** (camera exam hall"), "English: lab mode listed first");
+  assert.match(kit, /28\.8 % \(15 \/ 52 ภาพที่มีคนที่สอง\)/); assert.match(kit, /28\.8 % \(15 \/ 52 frames with a\s+second person\)/);
+  assert.match(kit, /เป็นตัวช่วย ไม่ใช่การตรวจจับที่ครบถ้วน/); assert.match(kit, /is an aid, not complete detection/);
+  // hall "count faces (experimental)": stays, off by default, and its label says small or distant faces are not found
+  const hall = read("exam-hall.html");
+  assert.match(hall.replace(/\s+/g, " "), /id="faceOn"> <span data-i18n="exam\.hall\.faceOn">นับใบหน้าในภาพ \(ทดลอง: ยังไม่พบใบหน้าเล็กหรือที่อยู่ไกล/);
+  assert.match(en["exam.hall.faceOn"], /experimental: small or distant faces are not found yet/); assert.match(zh["exam.hall.faceOn"], /实验性：目前找不到小脸或远处的脸/);
+  // placement guide: document only, every number a calculation; the 48 px rule and its tables are there; no setup check built
+  const guide = /### Hall camera placement guide[\s\S]*?(?=\nv2: pose landmarker)/.exec(read("docs/EXAM.md"))[0];
+  assert.match(guide, /Every number in this section is a calculation, not a measurement/); assert.match(guide, /ทุกตัวเลขเป็นการคำนวณ ยังไม่ได้วัด/);
+  assert.match(guide, /face width \(px\) ≈ w × R \/ \(2 × d × tan\(HFOV \/ 2\)\)/);
+  // the table is the formula: d_max = 0.15 x R / (96 x tan(HFOV / 2))
+  const dmax = (R, hfov) => (0.15 * R / (96 * Math.tan(hfov * Math.PI / 360))).toFixed(2) + " m";
+  for (const [label, R] of [["1,280 × 720", 1280], ["1,920 × 1,080", 1920], ["3,840 × 2,160", 3840]]) {
+    const row = guide.split("\n").find(l => l.startsWith("| " + label) && / m \|/.test(l));
+    assert.ok(row, "distance row for " + label);
+    assert.deepEqual(row.split("|").slice(2, 5).map(x => x.trim()), [dmax(R, 65), dmax(R, 78), dmax(R, 90)], label);
+  }
+  assert.match(guide, /is \*\*not built\*\*/); assert.match(guide, /48 px is necessary, not\s+sufficient/);
+  assert.ok(!fs.existsSync(path.join(ROOT, "exam-hall-setup.js")), "the hall setup check is a separate commit");
+});
+
+test("hall face pass = the pick of the fixed rule (Face Landmarker, numFaces 8, detection 0.5): boxes only, off by default, no page loads the full-range model", async () => {
+  assert.deepEqual(F.HALL_FACE, { engine: "landmarker", numFaces: 8, conf: 0.5 });
+  const got = [];
+  const lms = Array.from({ length: 478 }, (_, i) => ({ x: 0.4 + (i % 10) * 0.01, y: 0.3 + (i % 7) * 0.01, z: 0 }));
+  const vision = {
+    FilesetResolver: { forVisionTasks: async () => ({}) },
+    FaceLandmarker: { createFromOptions: async (f, op) => { got.push(op); return { detect: () => ({ faceLandmarks: [lms, lms], facialTransformationMatrixes: [] }),
+      setOptions: async () => {}, close() {} }; } }
+  };
+  const e = F.createHallFaces({ base: "http://127.0.0.1/", vision });
+  const r = await e.detect({ width: 1280, height: 720 });
+  assert.equal(got.length, 1);
+  assert.equal(got[0].numFaces, 8); assert.equal(got[0].minFaceDetectionConfidence, 0.5);
+  assert.ok(!("outputFaceBlendshapes" in got[0]) || got[0].outputFaceBlendshapes === false, "no facial-movement scores requested");
+  assert.equal(r.length, 2);
+  for (const d of r) assert.deepEqual(Object.keys(d), ["box"], "boxes only: no pose, no landmarks leave the engine");
+  // the page: off by default, the picked engine, nothing about faces in a message; no page references the 1.2.2 copy
+  const js = read("exam-hall.js"), html = read("exam-hall.html");
+  assert.match(js, /faceEng = XF\.createHallFaces\(\)/); assert.doesNotMatch(js, /createFaceBoxes|FB_DEFAULT/);
+  assert.match(js, /faceOn = !!\(saved && saved\.faceOn === true\)/, "on only when this device stored true");
+  assert.match(html, /<input type="checkbox" id="faceOn">/, "not pre-checked");
+  assert.doesNotMatch(js.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, ""), /send\([^)]*face/i);
+  for (const f of fs.readdirSync(ROOT).filter(x => /\.(html|js)$/.test(x))) {
+    assert.doesNotMatch(read(f), /mediapipe-1\.2\.2\/|face-detector-full\/|blaze_face_full_range/, f + " must not name the measurement-only files");
+  }
+});
+
+test("lab second-person cue (N4@0.5): person boxes counted at >= 0.5, one per person; used only while a face is seen", () => {
+  assert.deepEqual(F.LAB_PEOPLE, { minScore: 0.3, score: 0.5, iou: 0.5, max: 20 });
+  const A = { x: 0.1, y: 0.1, w: 0.3, h: 0.8, score: 0.9 }, A2 = { x: 0.11, y: 0.1, w: 0.3, h: 0.8, score: 0.6 }, B = { x: 0.6, y: 0.2, w: 0.3, h: 0.7, score: 0.55 }, low = { x: 0.6, y: 0.2,
+    w: 0.1, h: 0.2, score: 0.45 };
+  assert.equal(F.peopleBoxes([A, A2, B, low]).length, 2, "same person merged, low score dropped");
+  assert.equal(F.peopleBoxes([A, low]).length, 1);
+  assert.equal(F.peopleBoxes([{ box: { x: 0, y: 0, w: 10, h: 10 }, score: 0.5 }]).length, 1, "{box} form, score 0.5 counts");
+  assert.equal(F.peopleBoxes(null).length, 0);
+  const one = [{ yaw: 0, pitchN: 0.45, mar: 0.05 }];
+  const run = (faces, people, extra) => {
+    const mon = E.createLabMonitor(); mon.setBaseline({ ok: true, yaw0: 0, pitchN0: 0.45 }); const ev = [];
+    for (let t = 0; t <= 20000; t += 250) ev.push(...mon.frame(t, Object.assign({ faces, people, quality: { ok: true } }, extra || {})));
+    return ev;
+  };
+  const hit = run(one, 2).filter(e => e.sig === "multiface");
+  assert.ok(hit.length && hit[0].lvl === "check" && hit[0].n === 2, "one face + two people -> more than one person: " + JSON.stringify(hit[0]));
+  assert.ok(!run(one, 1).some(e => e.sig === "multiface"), "one face, one person: nothing");
+  assert.ok(!run(one, undefined).some(e => e.sig === "multiface"), "no person count: as before");
+  const noFace = run([], 3);
+  assert.ok(!noFace.some(e => e.sig === "multiface"), "no face seen: the person cue is not used");
+  assert.ok(noFace.some(e => e.sig === "noface"), "and the no-face signal is unchanged");
+  assert.ok(!run(one, 3, { faceOff: true }).some(e => e.sig === "multiface"), "face engine off: no multi-person signal");
+  assert.ok(run([one[0], one[0]], 0).some(e => e.sig === "multiface" && e.n === 2), "two faces still fire on their own");
+  // the page: one inference, two decodes; the count expires; the wording says "person" in three languages
+  const lab = read("exam-lab.js");
+  assert.match(lab, /detectCocoMulti\(coco, video, \[\{ classes: \[76, 83, 72, 71\], minScore: 0\.4, max: 10 \},\s*\{ classes: \[0\], minScore: F\.LAB_PEOPLE\.minScore/);
+  assert.match(lab, /performance\.now\(\) - peopleAt <= 2000 \? peopleN : 0/);
+  assert.equal(E.SIGNALS.multiface.th, "เห็นมากกว่าหนึ่งคน");
+  const en = dictOf("i18n/en-exam.js"), zh = dictOf("i18n/zh-exam.js");
+  assert.equal(en["exam.sig.multiface"], "More than one person visible"); assert.equal(zh["exam.sig.multiface"], "看到不止一个人");
+  assert.match(read("exam-lab.html"), /data-i18n="exam\.lab\.n1">[^<]*หลายใบหน้าหรือมีคนอื่นในภาพ/, "the candidate notice says so");
+  assert.match(en["exam.lab.n1"], /several faces or another person in view/); assert.match(zh["exam.lab.n1"], /多张脸或画面中有其他人/);
+});
+
+test("LQDetect.detectCocoMulti: one inference, each option set decoded as detectCoco would decode it", async () => {
+  const g = /** @type {any} */ (globalThis);
+  const saved = { tf: g.tf, LQDetect: g.LQDetect };
+  let runs = 0;
+  // 3 anchors x 91 classes: anchor 0 = person 0.9, anchor 1 = phone (76) 0.8 with person 0.45, anchor 2 = person 0.35
+  const C = 91, scores = new Float32Array(3 * C), boxes = new Float32Array([0.1, 0.1, 0.9, 0.4, 0.5, 0.5, 0.6, 0.6, 0.1, 0.6, 0.9, 0.9]);
+  scores[0] = 0.9; scores[C + 76] = 0.8; scores[C] = 0.45; scores[2 * C] = 0.35;
+  const tensor = (shape, data) => ({ shape, data: async () => data, dispose() {} });
+  g.tf = { loadGraphModel() {}, tidy: f => f(), browser: { fromPixels: () => ({ expandDims: () => ({ dispose() {} }) }) } };
+  const model = { executeAsync: async () => { runs++; return [tensor([1, 3, C], scores), tensor([1, 3, 1, 4], boxes)]; } };
+  const canvas = { width: 0, height: 0, getContext: () => ({ drawImage() {} }) };
+  try {
+    delete require.cache[require.resolve("../../lensiq-detect.js")];
+    const mod = require("../../lensiq-detect.js");
+    const D = mod && mod.detectCocoMulti ? mod : g.LQDetect;
+    const src = { width: 640, height: 480 };
+    const [objs, pers] = await D.detectCocoMulti(model, src, [{ classes: [76, 83, 72, 71], minScore: 0.4, max: 10 }, { classes: [0], minScore: 0.3, max: 20 }], { canvas });
+    assert.equal(runs, 1, "one inference");
+    assert.deepEqual(objs.map(o => o.cls), [76], "phones / books exactly as before: the person class does not compete");
+    assert.deepEqual(pers.map(o => [o.cls, Math.round(o.score * 100)]), [[0, 90], [0, 45], [0, 35]]);
+    assert.equal(F.peopleBoxes(pers).length, 1, "one person at >= 0.5");
+    const single = await D.detectCoco(model, src, { classes: [76, 83, 72, 71], minScore: 0.4, max: 10, canvas });
+    assert.deepEqual(single, objs, "same list as detectCoco with the same options");
+  } finally { g.tf = saved.tf; if (saved.LQDetect === undefined) delete g.LQDetect; else g.LQDetect = saved.LQDetect; delete require.cache[require.resolve("../../lensiq-detect.js")]; }
+});

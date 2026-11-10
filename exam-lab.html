@@ -24,7 +24,7 @@
 <body>
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=15"></script>
-<script src="i18n/zh-exam.js?v=2"></script>
+<script src="i18n/zh-exam.js?v=3"></script>
 
 <main class="ex" id="main">
   <h1 data-i18n="exam.lab.h1">หน้าผู้เข้าสอบ (ห้องคอมพิวเตอร์ / เว็บแคม)</h1>
@@ -41,7 +41,11 @@
   <section class="card" id="stepNotice" aria-labelledby="noticeH">
     <h2 id="noticeH" data-i18n="exam.lab.nH">ประกาศก่อนเริ่มสอบ</h2>
     <ul class="ticks">
-      <li data-i18n="exam.lab.n1">สิ่งที่สังเกต: ไม่เห็นใบหน้า หลายใบหน้า หันศีรษะออกจากจอนาน โทรศัพท์หรือหนังสือในภาพ การสลับหน้าต่าง การออกจากเต็มจอ การวางข้อความยาว จอที่สอง และกล้องเสมือน</li>
+      <li data-i18n="exam.lab.n1">สิ่งที่สังเกต: ไม่เห็นใบหน้า หลายใบหน้าหรือมีคนอื่นในภาพ หันศีรษะออกจากจอนาน โทรศัพท์หรือหนังสือในภาพ
+        การสลับหน้าต่าง การออกจากเต็มจอ การวางข้อความยาว จอที่สอง และกล้องเสมือน</li>
+      <li id="nMulti" data-i18n="exam.lab.nMulti">สัญญาณ “มากกว่าหนึ่งคน” เป็นตัวช่วยผู้คุมสอบ ไม่ใช่การตรวจจับที่ครบถ้วน: เมื่อมีคนที่สองในภาพ
+        ระบบแจ้งได้ 28.8% (15 / 52) · n = 52 ภาพ · ที่มา: ชุดข้อมูลสาธารณะ (ภาพถ่ายสาธารณะจาก Open Images V7 ครึ่งที่ไม่ได้ใช้เลือกค่า
+        ไม่ใช่ภาพห้องสอบจริง) · ในห้องสอบจริง: ยังไม่ได้วัด</li>
       <li id="n2" data-i18n="exam.lab.n2">สิ่งที่ไม่ทำ: ไม่บันทึกภาพหรือเสียง ไม่ฟังคำพูด ไม่สแกนห้อง ไม่วิเคราะห์อารมณ์ ไม่จดจำว่าคุณเป็นใคร และไม่ให้ตกอัตโนมัติ</li>
       <li data-i18n="exam.lab.n3">ทุกการแจ้งเป็นเพียง “ให้ผู้คุมสอบไปดู” ผู้คุมสอบเป็นผู้ตัดสินเสมอ คุณจะเห็นข้อความเตือนก่อน และเห็นบันทึกเหตุการณ์ของตัวเองได้ตลอด</li>
       <li id="n2c" hidden data-i18n="exam.lab.n2c">สิ่งที่ไม่ทำ: ไม่บันทึกเสียง ไม่บันทึกวิดีโอต่อเนื่อง ไม่ฟังคำพูด ไม่สแกนห้อง ไม่วิเคราะห์อารมณ์ ไม่จดจำว่าคุณเป็นใคร และไม่ให้ตกอัตโนมัติ</li>
@@ -139,16 +143,16 @@
 <script src="vendor/tfjs/tf.es2017.min.js"></script>
 <script src="vendor/tfjs/tf-backend-wasm.es2017.min.js"></script>
 <script src="lensiq-camera.js?v=4"></script>
-<script src="lensiq-detect.js?v=4"></script>
+<script src="lensiq-detect.js?v=5"></script>
 <script src="lensiq-sitecheck.js?v=4"></script>
-<script src="lensiq-exam.js?v=3"></script>
-<script src="lensiq-exam-face.js?v=1"></script>
-<script src="exam-ui.js?v=1"></script>
+<script src="lensiq-exam.js?v=4"></script>
+<script src="lensiq-exam-face.js?v=2"></script>
+<script src="exam-ui.js?v=2"></script>
 <script src="exam-link.js?v=1"></script>
 <script src="lensiq-facevault.js?v=1"></script>
 <script src="lensiq-exam-clip.js?v=2"></script>
 <script src="exam-clip-ui.js?v=2"></script>
-<script src="exam-lab.js?v=3"></script>
+<script src="exam-lab.js?v=4"></script>
 <script src="lensiq-config.js?v=4"></script>
 </body>
 </html>

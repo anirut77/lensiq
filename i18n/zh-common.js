@@ -108,7 +108,7 @@
   "nav.exam-lab.title": "考生页面",
   "nav.exam-lab.desc": "在线考试：告知、校准、监控标识",
   "nav.exam-hall.title": "考场摄像节点",
-  "nav.exam-hall.desc": "绘制座位，提示空座与多余人员",
+  "nav.exam-hall.desc": "绘制座位，提示空座与多余人员（实验性）",
   "nav.exam-dashboard.title": "监考员面板",
   "nav.exam-dashboard.desc": "座位图、优先查看队列、按时间排序的报告",
   "nav.gate.title": "LENSIQ Gate 概览",

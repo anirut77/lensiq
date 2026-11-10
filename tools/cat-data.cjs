@@ -86,6 +86,13 @@ const CLAIMS = {
     th: "สัญญาณถูกหรือผิดในห้องสอบจริง: ยังไม่ได้วัด การนำร่องจะเทียบแต่ละสัญญาณกับบันทึกของผู้คุมสอบ ระบบไม่ตัดสินการทุจริต",
     en: "Signals right or wrong in a real exam room: not measured. The pilot compares each signal with the invigilator's tally. The system never decides cheating",
     zh: "真实考场中信号的对错：尚未测量。试点将把每种信号与监考员的记录比对。系统从不判定作弊" },
+  examHall: { src: "public", ref: "docs/exam/FACE-ENGINE-RESULTS.md §7.1 (Open Images V7 group photos, held-out half; not exam-room footage)",
+    ev: { doc: "docs/exam/FACE-ENGINE-RESULTS.md", quote: ["**0 / 195 = 0.0 % [0.0 % – 1.9 %]**", "**122 / 195 = 62.6 % [55.6 % – 69.1 %]**"] },
+    th: "ใบหน้าเล็กในภาพมุมกว้างของห้องสอบ (กว้าง 24–48 px): พบ 0% (0/195) · n = 195 ใบหน้า ภาพหมู่จาก Open Images V7 ครึ่งที่ไม่ได้ใช้เลือกค่า ไม่ใช่ภาพห้องสอบจริง " +
+      "ตัวเลือกที่ดีที่สุดที่วัดได้พบ 62.6% (122/195) แต่มีกรอบผิดมากและช้าเกินไปบนแล็ปท็อประดับกลางจำลอง จึงยังไม่เปิดใช้",
+    en: "Small faces in a wide exam-room view (24–48 px wide): 0% found (0/195) · n = 195 faces, Open Images V7 group photos, held-out half, not exam-room footage; the best option " +
+      "measured found 62.6% (122/195) but drew too many false boxes and was too slow on an emulated mid-range laptop, so it is not switched on",
+    zh: "考场广角画面中的小脸（宽 24–48 px）：找到 0%（0/195）· n = 195 张脸，Open Images V7 合影，未用于选择参数的一半，非真实考场画面；已测得的最佳方案找到 62.6%（122/195），但错误框过多，且在模拟的中端笔记本上过慢，因此未启用" },
   omrNone: { src: "none", ref: "tests/unit/omr.test.js (synthetic sheets, pass/fail only)",
     th: "ยังไม่ได้วัดกับกระดาษคำตอบที่สแกนจริง มีเพียงชุดทดสอบอัตโนมัติด้วยภาพสังเคราะห์ ครูตรวจแผ่นที่ระบบทำเครื่องหมายไว้",
     en: "Not measured on real scanned sheets; only automated tests on synthetic sheets. The teacher reviews flagged sheets",
@@ -240,6 +247,10 @@ const REASONS = {
     en:
       "Candidate page, room camera and dashboard are complete and a person decides every flag; accuracy is unmeasured and the pilot is the measurement; the face-model licence is still open (F5/F6)",
     zh: "考生页、考场摄像头与看板齐全，每个信号由人判断；准确率尚未测量，试点即为测量；人脸模型许可仍待确定（F5/F6）" },
+  examHall: { th: "เครื่องกล้องในห้องสอบใช้งานได้ครบ แต่ใบหน้าเล็กในภาพมุมกว้างของห้องสอบยังตรวจได้ไม่ดี จึงเป็นรุ่นทดลองจนกว่าจะแก้ ยังไม่เปิดขาย หน้าผู้เข้าสอบ (ห้องคอมพิวเตอร์) พร้อมนำร่อง",
+    en: "The room camera works end to end, but small faces in the wide exam-room view are still poorly detected, so it stays experimental until that is fixed and is not for sale yet; " +
+      "the candidate page (computer lab) is pilot-ready",
+    zh: "考场摄像头流程可用，但考场广角画面中的小脸仍检测不佳，因此在解决前保持实验性，暂不销售；考生页（机房）可试点" },
   omr: { th: "ใช้งานได้ครบ แต่ยังไม่ได้วัดกับกระดาษคำตอบที่สแกนจริง",
     en: "Works end to end, but it is not measured on real scanned sheets yet",
     zh: "流程可用，但尚未用真实扫描答题卡测量" },
@@ -323,7 +334,8 @@ const PAGES = {
   // 2 Education & Exams
   exam: { st: "pilot-ready", why: "exam", claims: ["examNone"] },
   "exam-lab": { st: "pilot-ready", why: "exam", claims: ["examNone"] },
-  "exam-hall": { st: "pilot-ready", why: "exam", claims: ["examNone"] },
+  // owner decision 2026-11-10: hall mode stays "experimental" until the small-face issue is fixed (docs/exam/FACE-ENGINE-RESULTS.md §7)
+  "exam-hall": { st: "experimental", why: "examHall", claims: ["examNone", "examHall"] },
   "exam-dashboard": { st: "pilot-ready", why: "exam", claims: ["examNone"] },
   omr: { st: "experimental", why: "omr", claims: ["omrNone"] },
   // 3 HR & Workplace

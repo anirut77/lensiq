@@ -27,11 +27,25 @@
 
 ### รูปแบบที่ใช้
 
-- **โหมด A ห้องสอบที่มีกล้อง** (`exam-hall.html` + `exam-dashboard.html`): **แนะนำสำหรับนำร่อง** เปิดกล้องและแดชบอร์ดในเบราว์เซอร์
+> **เจ้าของตัดสินใจ 10 พ.ย. 2569 (ยืนยันแล้ว):** การนำร่องนี้ **นำด้วยโหมด B (ห้องคอมพิวเตอร์)** ส่วนโหมด A (ห้องสอบที่มีกล้อง) เป็น
+> **รุ่นทดลอง** จนกว่าจะแก้ปัญหาใบหน้าเล็กในภาพมุมกว้าง (`docs/exam/FACE-ENGINE-RESULTS.md` §7.1) ใช้ได้เฉพาะเป็นการทดลองควบคู่
+> ไม่ใช่ตัวหลักของการนำร่องและยังไม่เปิดขาย
+>
+> **ข้อจำกัดที่ยอมรับแล้วสำหรับการนำร่อง:** ในโหมด B **ยังไม่มีการส่งสด (ทั้งเหตุการณ์และภาพวิดีโอ) ไปยังแดชบอร์ดบนเครื่องอื่น**
+> ผู้คุมสอบจึงไม่เห็นเหตุการณ์ของผู้สอบบนเครื่องของตัวเองระหว่างสอบ เจ้าของยอมรับข้อนี้สำหรับการนำร่อง: ผู้คุมสอบเดินตรวจตามปกติ
+> ผู้สอบเห็นข้อความเตือนบนเครื่องของตัวเอง และตรวจบันทึกย้อนหลังจากไฟล์ที่ส่งออกหลังสอบ ต้องแจ้งไซต์เรื่องนี้ก่อนเริ่ม
+
+- **โหมด B ห้องคอมพิวเตอร์ (ตัวหลักของการนำร่อง)** (`exam-lab.html`): เครื่องผู้สอบแต่ละเครื่องประมวลผลและเก็บบันทึกของตัวเอง
+  ไม่มีภาพหรือวิดีโอออกจากเครื่อง **ยังส่งสดไปแดชบอร์ดของผู้คุมสอบข้ามเครื่องไม่ได้** (ยังไม่มีปลายทาง relay `/api/exam/push`,
+  `docs/EXAM.md`) หลังสอบให้ส่งออกไฟล์ JSON จากแต่ละเครื่องแล้วนำเข้าแดชบอร์ด ผู้คุมสอบตรวจย้อนหลังกับบันทึกของตัวเอง
+- **สัญญาณ “มากกว่าหนึ่งคน” ในโหมด B เป็นตัวช่วย ไม่ใช่การตรวจจับที่ครบถ้วน:** วัดได้ **28.8 % (15 / 52 ภาพที่มีคนที่สอง)**
+  แจ้งผิดเมื่อมีคนเดียว 0 / 17 · ที่มา: ชุดข้อมูลสาธารณะ (ภาพถ่ายสาธารณะจาก Open Images V7 ชุดทดสอบแยก ไม่ใช่ภาพห้องสอบจริง,
+  `docs/exam/FACE-ENGINE-RESULTS.md` §7.2) คนที่สองส่วนใหญ่ในภาพทดสอบจึงไม่ถูกแจ้ง ผู้คุมสอบต้องเดินตรวจตามปกติ อบรมผู้คุมสอบด้วยตัวเลขนี้
+  และระหว่างนำร่องให้นับด้วยว่าสัญญาณนี้ขึ้นเพราะผู้สอบโต๊ะข้างเคียงที่นั่งอยู่ตามปกติกี่ครั้ง (ยังไม่ได้วัดในห้องจริง)
+- **โหมด A ห้องสอบที่มีกล้อง** (`exam-hall.html` + `exam-dashboard.html`): **รุ่นทดลอง ทดลองควบคู่ได้เท่านั้น** เปิดกล้องและแดชบอร์ดในเบราว์เซอร์
   เดียวกัน (คนละแท็บ) บนเครื่องเดียว แต่ละเครื่องดูได้ 1 มุมกล้อง ห้องใหญ่ใช้ 2–3 เครื่อง แต่ละเครื่องมีแดชบอร์ดของตัวเอง
-- **โหมด B ห้องคอมพิวเตอร์** (`exam-lab.html`): เครื่องผู้สอบแต่ละเครื่องเก็บบันทึกของตัวเอง **ยังส่งสดไปแดชบอร์ดของผู้คุมสอบข้ามเครื่องไม่ได้**
-  (ยังไม่มีปลายทาง relay `/api/exam/push`, `docs/EXAM.md`) หลังสอบให้ส่งออกไฟล์ JSON จากแต่ละเครื่องแล้วนำเข้าแดชบอร์ด
-  ผู้คุมสอบตรวจย้อนหลังกับบันทึกของตัวเอง ข้อนี้ต้องแจ้งไซต์ก่อนเลือกโหมด B
+  ตัวเลือก “นับใบหน้า (ทดลอง)” ยังไม่พบใบหน้าเล็กหรือที่อยู่ไกล การวางกล้องให้ใบหน้ากว้าง ≥ 48 px ดู `docs/EXAM.md`
+  “Hall camera placement guide” (เป็นการคำนวณ ยังไม่ได้วัด)
 - **คลิปหลักฐาน** ปิดเป็นค่าเริ่มต้น ในนำร่องนี้ **ไม่เปิด** เว้นแต่ไซต์ขอเป็นหนังสือ และประกาศผู้สอบระบุไว้แล้ว (`docs/EXAM.md` "Evidence clip")
 
 ## 3. ตารางเวลา (ต่อสถาบัน)
@@ -109,6 +123,10 @@
 | ผู้สอบเห็นว่า "ยุติธรรมและเข้าใจ" (1–5) | ≥ 4.0 | 2 |
 | ผู้ไม่ยินยอมได้สอบตามทางเลือก | 100% | 2 |
 
+หมายเหตุ (รอเจ้าของตัดสินใจ): เป้า “ใบหน้าที่สอง ≥ 90%” ในขั้น 1 อยู่ไกลจากค่าที่วัดได้กับภาพถ่ายสาธารณะมาก (สัญญาณ “มากกว่าหนึ่งคน”
+28.8 % = 15 / 52 ต่อภาพเดี่ยว; ในห้องจริงระบบดูต่อเนื่องจึงอาจต่างออกไป ยังไม่ได้วัด) สัญญาณนี้เป็นตัวช่วย ไม่ใช่การตรวจจับที่ครบถ้วน
+เจ้าของควรเลือกก่อนขั้น 1 ว่าจะคงเป้า 90% ไว้ (และยอมรับว่าน่าจะไม่ผ่าน = ปิดสัญญาณหรือใช้แบบมีเงื่อนไข) หรือเปลี่ยนเป็น “รายงานค่า”
+
 หมายเหตุ (รอเจ้าของตัดสินใจ): เกณฑ์ "ขอบล่าง Wilson 95% ≥ 70%" ต้องเห็นแจ้งถูกจริง 19 / 20 = 95% ที่ 20 ครั้ง, 34 / 40 = 85%
 ที่ 40 ครั้ง, 49 / 60 = 81.7% ที่ 60 ครั้ง, 79 / 100 = 79% ที่ 100 ครั้ง ข้อสังเกตที่มีน้อยจึงผ่านยาก เลือกก่อนเริ่มขั้น 2 ว่าจะคงไว้
 หรือตัดสินด้วยค่าที่เห็นจริงพร้อมรายงานช่วง 95%
@@ -158,13 +176,29 @@ This pilot does none of the following:
 
 **Modes:**
 
-- **Mode A** (camera exam hall: `exam-hall.html` + `exam-dashboard.html`) is recommended for the pilot. The camera
-  and the dashboard run in two tabs of the same browser on one device. Each device covers one camera view, so a big
-  room uses 2–3 devices, each with its own dashboard.
-- **Mode B** (computer room: `exam-lab.html`): each candidate PC keeps its own log. It **cannot stream live to the
-  invigilator's dashboard on another machine yet**, because the relay endpoint does not exist (`docs/EXAM.md`).
-  After the exam, export JSON from each PC and import it into the dashboard for review. Tell the site this before it
-  chooses Mode B.
+> **Owner decision 2026-11-10 (confirmed):** this pilot **leads with Mode B (computer room)**. Mode A (camera hall) is
+> **experimental** until small faces in the wide view are detected (`docs/exam/FACE-ENGINE-RESULTS.md` §7.1). Mode A may
+> run only as an experimental trial alongside; it is not the lead mode of the pilot and is not on sale.
+>
+> **Limit accepted for the pilot:** in Mode B there is **no live feed (events or video) to a dashboard on another
+> machine**, so the invigilator does not see a candidate's events on their own device during the exam. The owner
+> accepts this for the pilot: invigilators walk the room as usual, candidates see the prompts on their own screen, and
+> the logs are reviewed afterwards from the exported files. Tell the site this before the pilot starts.
+
+- **Mode B, the lead mode** (computer room: `exam-lab.html`): each candidate PC processes and keeps its own log; no
+  image or video leaves the PC. It **cannot stream live to the invigilator's dashboard on another machine yet**,
+  because the relay endpoint does not exist (`docs/EXAM.md`). After the exam, export JSON from each PC and import it
+  into the dashboard for review.
+- **"More than one person" in Mode B is an aid, not complete detection.** Measured: **28.8 % (15 / 52 frames with a
+  second person)**, false alarms with one person 0 / 17; source: public dataset (public photos from Open Images V7,
+  held-out; not exam-room footage; `docs/exam/FACE-ENGINE-RESULTS.md` §7.2). Most second people in the test photos
+  were not flagged, so invigilators keep walking the room; train them with this number. During the pilot, also count
+  how often the signal fires for a neighbour sitting normally at the next desk (not measured in a real room).
+- **Mode A** (camera exam hall: `exam-hall.html` + `exam-dashboard.html`) is **experimental, alongside only**. The
+  camera and the dashboard run in two tabs of the same browser on one device. Each device covers one camera view, so a
+  big room uses 2–3 devices, each with its own dashboard. Its "count faces (experimental)" option does not find small
+  or distant faces. For placing a camera so that faces are ≥ 48 px wide see "Hall camera placement guide" in
+  `docs/EXAM.md` (a calculation, not a measurement).
 - **Evidence clips** stay **off** in this pilot unless the site asks in writing and the candidate notice already says
   so.
 
@@ -232,6 +266,12 @@ The skin-tone group is sensitive data:
 | Invigilator response time (median) | ≤ 60 s | 2 |
 | Candidates rating "fair and clear" (1–5) | ≥ 4.0 | 2 |
 | Decliners who sat the exam by the alternative | 100% | 2 |
+
+Note (owner decision): the phase 1 target "second face ≥ 90%" is far from what was measured on public photos (the
+"more than one person" signal: 28.8 % = 15 / 52 per single frame; in a real room the page watches continuously, so the
+rate may differ; not measured). The signal is an aid, not complete detection. Decide before phase 1 whether to keep
+the 90% target (and accept that it will probably fail = the signal is switched off or used conditionally) or to change
+it to "report".
 
 Note (owner decision): "Wilson 95% lower bound ≥ 70%" needs an observed precision of 19 / 20 = 95% at 20 flags,
 34 / 40 = 85% at 40, 49 / 60 = 81.7% at 60 and 79 / 100 = 79% at 100. Signals with few flags are therefore hard to

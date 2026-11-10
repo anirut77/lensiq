@@ -57,7 +57,7 @@
   "sl.s.edu": "Education",
   "sl.s.edu.sub": "Schools, universities, exam centres and training institutes",
   "sl.c.edu1.h": "Exam invigilation assistant",
-  "sl.c.edu1.p": "Tells invigilators which seat to go and look at (no face, several faces, a phone, leaving the exam screen), in computer labs and in halls with cameras around the room. It never decides misconduct; invigilators check and record the outcome.",
+  "sl.c.edu1.p": "Tells invigilators which seat to go and look at (no face, more than one person, a phone, leaving the exam screen), in computer labs (pilot-ready) and in halls with cameras around the room (experimental, not on sale yet). It never decides misconduct; invigilators check and record the outcome.",
   "sl.c.edu1.w": "Schools, universities, exam centres, bodies running e-exams",
   "sl.c.edu2.h": "Face check-in for training",
   "sl.c.edu2.p": "Enrol a face once, then scan to record attendance, with a liveness check, CSV export and an automatic face-data deletion period.",

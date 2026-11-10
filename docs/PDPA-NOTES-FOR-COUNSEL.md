@@ -105,6 +105,21 @@ controller only for its own website, member accounts, billing and the optional b
 - **Data**: an event log (time, seat, signal type, outcome, invigilator name) on the institution's devices; the candidate
   page keeps the candidate's own log with no score. No images by default (see C2 for the optional evidence clip).
   Pages exchange only allowlisted JSON fields (`exam-link.js`).
+- **Added 2026-11-10 (for counsel)**: (1) the candidate page now also **counts people** in the frame (boxes from the
+  object detector already running for phones and books; a count only, boxes are dropped, nothing new is stored or sent
+  beyond the number in the "more than one person" event). The candidate notice now says "several faces or another person
+  in view" in TH / EN / ZH. Question: a neighbour at the next desk can be in the frame and be counted; is the room notice
+  enough for them? (2) The camera-hall page has an optional, off-by-default "count faces (experimental)" setting: face
+  boxes drawn and counted on that device only, no event, nothing sent, no identity. (3) A full-range face detector was
+  only measured, not shipped; its model card lists "counting the number of people in a crowd" and "any form of
+  surveillance" as out of scope (not a licence term, Apache-2.0). If it is ever proposed for the hall, counsel and the
+  owner should decide first whether an exam hall is "surveillance" in that sense. (4) Owner decisions the same day: the
+  candidate notice on `exam-lab.html` now also states that "more than one person" is an aid, not complete detection,
+  with the measured rate (28.8 %, 15 / 52, public dataset); the measurement-only detector files are kept outside the
+  repo and are not shipped; `docs/EXAM.md` has a hall camera placement guide (a calculation only) that would need more
+  cameras or 4K cameras so that each face is at least 48 px wide. Nothing is built from it yet. Question for counsel
+  before it is: do higher-resolution views of every candidate's face, still processed on the device with no image
+  stored or sent, change the DPIA or the notice for the hall mode?
 - **Notice and consent**: printable notice + consent template on `exam.html#notice`; declining never opens the camera
   and must not cost the right to sit the exam; access and complaint route through the institution's DPO.
 - **Questions**: lawful basis for public institutions (public task s.24(4)) vs. private ones (consent / contract);

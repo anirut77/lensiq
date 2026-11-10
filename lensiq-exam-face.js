@@ -197,8 +197,138 @@
   }
   function create(name, o) { return name === "faceapi" ? createFaceApi(o) : createMediaPipe(o); }
 
+  /* ---------- face boxes only (BlazeFace): hall small faces, lab second-person pass ---------- */
+  /* docs/exam/FACE-ENGINE-RESULTS.md §6 – §7. Boxes and a detection score only: no landmarks, no pose, no identity, no
+     expression. "short" = the detector inside the Face Landmarker (vendored bundle). The BlazeFace full-range model was
+     measured too (it needs Tasks Vision 1.2.2: the vendored 0.10.x bundle rejects it, 2304 vs 896 anchors) but met no rule,
+     so its files are NOT named here: the measurement tool passes them in `o.files` (tools/exam-hall-face-page.mjs). */
+  const FD_MODELS = Object.freeze({
+    short: Object.freeze({ bundle: "vendor/mediapipe/vision_bundle.mjs", wasm: "vendor/mediapipe/wasm", model: "vendor/models/face-gate/blaze_face_short_range.tflite" })
+  });
+  /** n x n overlapping tiles, normalised (= LQDetect.tileRects(n, n, overlap)) */
+  function tileRects(n, overlap = 0.2) {
+    const out = [], t = 1 / (n - (n - 1) * overlap);
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+      const x = n > 1 ? c * (1 - t) / (n - 1) : 0, y = n > 1 ? r * (1 - t) / (n - 1) : 0;
+      out.push({ x, y, w: Math.min(t, 1 - x), h: Math.min(t, 1 - y) });
+    }
+    return out;
+  }
+  const area = b => Math.max(0, b.w) * Math.max(0, b.h);
+  function inter(a, b) {
+    const x1 = Math.max(a.x, b.x), y1 = Math.max(a.y, b.y), x2 = Math.min(a.x + a.w, b.x + b.w), y2 = Math.min(a.y + a.h, b.y + b.h);
+    return Math.max(0, x2 - x1) * Math.max(0, y2 - y1);
+  }
+  /** same face: IoU >= iou or >= ios of the smaller box inside the other */
+  function sameFace(a, b, iou = 0.3, ios = 0.6) {
+    const i = inter(a, b), u = area(a) + area(b) - i;
+    return (u > 0 && i / u >= iou) || i / Math.max(1e-9, Math.min(area(a), area(b))) >= ios;
+  }
+  /** score-sorted greedy merge of [{box, score}] (px) -> kept boxes */
+  function mergeFaces(dets, o) {
+    const keep = [];
+    for (const d of (dets || []).filter(x => x && x.box && area(x.box) > 0).sort((a, b) => (b.score || 0) - (a.score || 0))) {
+      if (!keep.some(k => sameFace(k.box, d.box, o && o.iou, o && o.ios))) keep.push(d);
+    }
+    return keep;
+  }
+  /** a detection box (px in the tile crop) -> frame px; null when it touches an inner tile edge (the face is cut) */
+  function mapTileBox(b, rect, W, H, edge = 2) {
+    const ox = rect.x * W, oy = rect.y * H, tw = rect.w * W, th = rect.h * H;
+    const inner = { l: rect.x > 1e-6, t: rect.y > 1e-6, r: rect.x + rect.w < 1 - 1e-6, b: rect.y + rect.h < 1 - 1e-6 };
+    if ((inner.l && b.x <= edge) || (inner.t && b.y <= edge) || (inner.r && b.x + b.w >= tw - edge) || (inner.b && b.y + b.h >= th - edge)) return null;
+    return { x: ox + b.x, y: oy + b.y, w: b.w, h: b.h };
+  }
+  /** extra faces that are not the same face as any primary face (lab second-person pass) */
+  function addSecondary(primary, extra) {
+    const out = primary.slice();
+    for (const e of mergeFaces(extra || [])) if (!out.some(p => p.box && sameFace(p.box, e.box))) out.push(e);
+    return out;
+  }
+  /** defaults of createFaceBoxes (the measurement tool passes every field). NOT a pick: no BlazeFace option met the fixed
+   *  hall rule (§6.5, §7.1), so no page creates a FaceDetector; tools/exam-hall-face-eval.mjs is the only caller.
+   *  @type {Readonly<{model: string, tiles: number, whole: boolean, conf: number, overlap: number}>} */
+  const FB_DEFAULT = Object.freeze({ model: "short", tiles: 3, whole: true, conf: 0.5, overlap: 0.2 });
+  /** hall face pass = the option the fixed rule of §6.5 picked on dev (§7.1): the lab engine on the whole frame, numFaces 8,
+   *  detection 0.5. It finds NO face 24 – 48 px wide (0 / 207 dev, 0 / 195 held-out): the small-face issue is not fixed. */
+  const HALL_FACE = Object.freeze({ engine: "landmarker", numFaces: 8, conf: 0.5 });
+  /** hall face pass (experimental, off by default): boxes only -> {init, detect(src) -> [{box px}]}; no pose, no landmarks out
+   * @param {{base?: string, vision?: any}} [o] */
+  function createHallFaces(o) {
+    const e = createMediaPipe(Object.assign({}, o || {}, { options: { numFaces: HALL_FACE.numFaces, minFaceDetectionConfidence: HALL_FACE.conf } }));
+    return {
+      name: "hallfaces", engine: HALL_FACE.engine, numFaces: HALL_FACE.numFaces, conf: HALL_FACE.conf,
+      init: () => e.init(),
+      async detect(/** @type {any} */ src) { return (await e.detect(src)).map((/** @type {any} */ f) => ({ box: f.box })); },
+      close() { if (e.close) e.close(); }
+    };
+  }
+  /** lab second-person cue = N4@0.5, the option the fixed rule of §6.8 picked on dev (§7.2): COCO-SSD person boxes (score >=
+   *  minScore from the detector, counted at >= score, one box per person at IoU >= iou). The monitor uses the count only
+   *  while the face engine sees at least one face, so the no-face signal is unchanged. */
+  const LAB_PEOPLE = Object.freeze({ minScore: 0.3, score: 0.5, iou: 0.5, max: 20 });
+  /** person boxes [{box|x,y,w,h, score}] -> the kept boxes (>= score, merged); units do not matter (IoU only)
+   * @param {any[]} dets @param {number} [score] */
+  function peopleBoxes(dets, score = LAB_PEOPLE.score) {
+    return mergeFaces((dets || []).filter(d => d && d.score >= score).map(d => ({ box: d.box || { x: d.x, y: d.y, w: d.w, h: d.h }, score: d.score })), { iou: LAB_PEOPLE.iou, ios: 2 });
+  }
+  /** face boxes: {model (a label; "short" = FD_MODELS.short), files {bundle, wasm, model} for any other model, tiles 0|2|3,
+   * whole (a whole-frame pass too), conf} -> {init, detect(src) -> [{box px, score}]}
+   * o.vision / o.makeCanvas (test seams): {FilesetResolver, FaceDetector} / () => a canvas-like object for the tile crops
+   * @param {{model?: string, files?: {bundle: string, wasm: string, model: string}, tiles?: number, whole?: boolean, conf?: number, overlap?: number,
+   *   base?: string, vision?: any, makeCanvas?: () => any}} [o] */
+  function createFaceBoxes(o) {
+    const c = Object.assign({}, FB_DEFAULT, o || {});
+    const M = c.files || FD_MODELS.short;
+    const tiles = c.tiles === 2 || c.tiles === 3 ? c.tiles : 0;
+    const conf = fin(c.conf) && c.conf > 0 && c.conf < 1 ? c.conf : 0.5;
+    const base = c.base || (typeof location !== "undefined" ? location.href : "");
+    const abs = p => new URL(p, base).href;
+    const rects = (c.whole !== false || !tiles ? [{ x: 0, y: 0, w: 1, h: 1 }] : []).concat(tiles ? tileRects(tiles, c.overlap) : []);
+    let fd = null, initP = null, cv = null;
+    const eng = {
+      name: "faceboxes", model: c.files ? String(c.model || "custom") : "short", tiles, whole: rects[0].w === 1, conf, passes: rects.length,
+      init() {
+        if (!initP) initP = (async () => {
+          const { FilesetResolver, FaceDetector } = c.vision || await import(abs(M.bundle));
+          const files = await FilesetResolver.forVisionTasks(abs(M.wasm));
+          fd = await FaceDetector.createFromOptions(files, { baseOptions: { modelAssetPath: abs(M.model), delegate: "CPU" }, runningMode: "IMAGE", minDetectionConfidence: conf });
+          return eng;
+        })();
+        initP.catch(() => { initP = null; });
+        return initP;
+      },
+      async detect(src) {
+        if (!fd) await eng.init();
+        const { W, H } = srcSize(src);
+        if (!W || !H) return [];
+        const all = [];
+        for (const r of rects) {
+          let img = src, cw = W, ch = H;
+          if (r.w < 1 || r.h < 1) {
+            cw = Math.max(1, Math.round(r.w * W)); ch = Math.max(1, Math.round(r.h * H));
+            if (!cv) cv = c.makeCanvas ? c.makeCanvas() : document.createElement("canvas");
+            if (cv.width !== cw || cv.height !== ch) { cv.width = cw; cv.height = ch; }
+            cv.getContext("2d").drawImage(src, r.x * W, r.y * H, cw, ch, 0, 0, cw, ch);
+            img = cv;
+          }
+          const res = fd.detect(img);
+          for (const d of (res && res.detections) || []) {
+            const bb = d.boundingBox; if (!bb) continue;
+            const m = mapTileBox({ x: bb.originX, y: bb.originY, w: bb.width, h: bb.height }, r, W, H);
+            if (m) all.push({ box: m, score: d.categories && d.categories[0] ? d.categories[0].score : 0 });
+          }
+        }
+        return mergeFaces(all);
+      },
+      close() { try { fd && fd.close(); } catch (e) { /* ignore */ } fd = null; initP = null; }
+    };
+    return eng;
+  }
+
   return {
     MESH68, PITCH_K, DEFAULT_POSE, MP_OPTIONS, MP_TUNABLE, MP_MODEL, FACEAPI_NETS, FACEAPI_OPTS, cleanOptions,
-    boxOf, meshTo68, matrixAngles, poseFromMesh, synthMesh, pickEngine, create, createMediaPipe, createFaceApi
+    boxOf, meshTo68, matrixAngles, poseFromMesh, synthMesh, pickEngine, create, createMediaPipe, createFaceApi,
+    FD_MODELS, FB_DEFAULT, HALL_FACE, LAB_PEOPLE, tileRects, sameFace, mergeFaces, mapTileBox, addSecondary, peopleBoxes, createFaceBoxes, createHallFaces
   };
 });

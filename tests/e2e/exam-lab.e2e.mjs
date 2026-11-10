@@ -56,6 +56,14 @@ export default async function ({ base, launch, check, fakeCams }) {
       await lab.waitFor("__LQ_EXAM_LAB.sent.some(m => m.sig === 'phone' && m.lvl === 'check')", 5000);
       await db.waitFor("__LQ_EXAM_DB.board.queue(Date.now())[0].sig === 'phone'", 5000);
       await lab.evaluate(f => { window.__dets = [f]; }, FACE);
+      // a second person behind the candidate, counted by the object detector (no second face): "more than one person"
+      // -> Check, with the count; a lone candidate with one person box stays quiet
+      assert(await lab.evaluate(() => !__LQ_EXAM_LAB.sent.some(m => m.sig === "multiface")), "one face + one person: no multi-person flag");
+      const PERSON = (x, score) => ({ cls: "person", x, y: 0.1, w: 0.3, h: 0.85, score });
+      await lab.evaluate((f, a, b) => { window.__dets = [f, a, b]; }, FACE, PERSON(0.3, 0.9), PERSON(0.66, 0.6));
+      await lab.waitFor("__LQ_EXAM_LAB.sent.some(m => m.sig === 'multiface' && m.lvl === 'check' && m.n === 2)", 8000);
+      assert(await lab.evaluate(() => !__LQ_EXAM_LAB.sent.some(m => m.sig === "object" && /person/.test(JSON.stringify(m)))), "a person is never an 'object' flag");
+      await lab.evaluate((f, a) => { window.__dets = [f, a]; }, FACE, PERSON(0.3, 0.9));
 
       // a long paste -> Watch; shown in the candidate's own log
       await lab.evaluate(() => {

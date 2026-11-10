@@ -105,7 +105,7 @@
   "nav.exam-lab.title": "Candidate page",
   "nav.exam-lab.desc": "Online exams: notice, calibration, monitoring badge",
   "nav.exam-hall.title": "Exam hall camera",
-  "nav.exam-hall.desc": "Draw seats, flag empty seats and extra people",
+  "nav.exam-hall.desc": "Draw seats, flag empty seats and extra people (experimental)",
   "nav.exam-dashboard.title": "Invigilator dashboard",
   "nav.exam-dashboard.desc": "Seat map, check-first queue, time-ordered report",
   "nav.gate.title": "LENSIQ Gate overview",

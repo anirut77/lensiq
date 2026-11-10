@@ -25,7 +25,7 @@
     const w = what(e.what || e.code);
     if (w) s += " · " + w;
     if (e.dur) s += " · " + dur(e.dur);
-    if (e.sig === "multiface" && e.cnt) s += " · " + T("exam.c.faces", "{n} ใบหน้า", { n: e.cnt });
+    if (e.sig === "multiface" && e.cnt) s += " · " + T("exam.c.faces", "{n} คน", { n: e.cnt });
     if (e.sig === "headturn" && e.lvl === "watch" && e.cnt) s += " · " + T("exam.c.times5", "{n} ครั้งใน 5 นาที", { n: e.cnt });
     if (e.sig === "paste" && e.cnt) s += " · " + T("exam.c.chars", "{n} ตัวอักษร", { n: e.cnt });
     return s;

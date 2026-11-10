@@ -30,7 +30,7 @@ Standing rules that every package below inherits (CLAUDE.md):
 
 | Part | Approved line used | What the institution gets |
 |---|---|---|
-| **Exam** | Institution licence (`exam_institution`) | Whole-institution licence, unlimited rooms, computer-room / online mode (`exam-lab.html`) and camera-hall mode (`exam-hall.html`), invigilator dashboard, invigilator training. Pilot stage covers up to 1,000 candidates. |
+| **Exam** | Institution licence (`exam_institution`) | Whole-institution licence, unlimited rooms, computer-room / online mode (`exam-lab.html`) and camera-hall mode (`exam-hall.html`, **experimental, not sold until the small-face issue is fixed**: owner decision 2026-11-10, `docs/exam/FACE-ENGINE-RESULTS.md` §7), invigilator dashboard, invigilator training. Pilot stage covers up to 1,000 candidates. |
 | **Attendance** | Standard (`attendance_employee`), yearly = 10 × monthly | Staff time attendance with PIN / QR by default (face optional, with consent), shifts, OT, holidays, payroll CSV. Training / event check-in mode is on the same page. |
 | **Crowd** | Event day / event week (`crowd_event_day`, `crowd_event_week`) as a yearly allowance | Zone counts, entry / exit line and density estimate for open days, graduation, exam-hall entrances and canteens, sparse to medium crowds only. **Crowd monthly is not in the bundle**: it waits for a fixed-site pilot (owner decision 4). |
 | Set-up (optional) | Attendance set-up help (`attendance_setup`) | Shift tables, payroll CSV mapping, DPIA template filled with the institution. |

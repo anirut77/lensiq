@@ -198,7 +198,7 @@ test("accuracy lines are tied to docs/ACCURACY-CLAIMS.md rows or quoted source f
       assert.match(c.zh, /偏乐观/, id + ".zh optimistic");
     }
   }
-  assert.equal(tied, 17, "measured lines checked (inventory: 17 lines with a number)");
+  assert.equal(tied, 18, "measured lines checked (inventory: 18 lines with a number; examHall added 2026-11-10)");
   // the check bites: a drifted figure or n is rejected
   const s3 = D.CLAIMS.store;
   assert.ok(!shownAs(claimNumbers(s3.en.replace("79%", "78%")).pct.find(v => v === 78), evidencePool(s3, reg)), "78% must not match S3");

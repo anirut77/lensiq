@@ -24,13 +24,17 @@
 <body>
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=15"></script>
-<script src="i18n/zh-exam.js?v=2"></script>
+<script src="i18n/zh-exam.js?v=3"></script>
 
 <main class="ex" id="main">
   <h1 data-i18n="exam.hall.h1">เครื่องกล้องในห้องสอบ</h1>
   <p class="lead" id="lead" data-i18n="exam.hall.lead">วางแล็ปท็อปหรือมือถือให้เห็นแถวที่นั่ง วาดขอบเขตที่นั่งบนภาพ แล้วเริ่มเฝ้าดู ภาพประมวลผลในเครื่องนี้ 2–5 ภาพต่อวินาที ส่งเฉพาะเหตุการณ์ไปที่แดชบอร์ดผู้คุมสอบ ไม่ส่งภาพ ไม่บันทึกวิดีโอ</p>
   <p class="lead" id="leadC" hidden data-i18n="exam.hall.leadC">วางแล็ปท็อปหรือมือถือให้เห็นแถวที่นั่ง วาดขอบเขตที่นั่งบนภาพ แล้วเริ่มเฝ้าดู ภาพประมวลผลในเครื่องนี้ 2–5 ภาพต่อวินาที ส่งเฉพาะเหตุการณ์ไปที่แดชบอร์ดผู้คุมสอบ ไม่ส่งภาพ ไม่บันทึกวิดีโอต่อเนื่อง (คลิปหลักฐานสั้นเก็บในเครื่องนี้เฉพาะเมื่อมีการแจ้ง)</p>
   <p class="warn" role="note" data-i18n="exam.hall.warn">ระบบชี้ที่นั่งให้ผู้คุมสอบไปดูเท่านั้น ไม่ตัดสินการทุจริต ติดประกาศการใช้กล้องหน้าห้องก่อนเริ่มสอบ</p>
+  <p class="warn" role="note" id="hallExp"><b data-i18n="exam.hall.expB">รุ่นทดลอง ยังไม่เปิดขาย</b>
+    <span data-i18n="exam.hall.exp">ใบหน้าเล็กในภาพมุมกว้างของห้องสอบ (กว้าง 24–48 px) ยังหาไม่เจอ: พบ 0% · n = 195 ใบหน้า · ที่มา: ชุดข้อมูลสาธารณะ
+    (ภาพหมู่จาก Open Images V7 ครึ่งที่ไม่ได้ใช้เลือกค่า ไม่ใช่ภาพห้องสอบจริง) ตัวเลือกที่ดีที่สุดที่วัดได้พบ 63% แต่มีกรอบผิดเฉลี่ย 0.40 กรอบต่อภาพ
+    และทำได้ประมาณ 2 ภาพต่อวินาทีบนแล็ปท็อประดับกลางจำลอง จึงยังไม่เปิดใช้ การดูที่นั่ง (คนและโทรศัพท์) ทำงานตามเดิม</span></p>
   <p class="warn" role="note" id="clipWarn" hidden data-i18n="exam.hall.clipWarn">คลิปหลักฐานเปิดอยู่: เครื่องนี้จำภาพวิดีโอ 10 วินาทีล่าสุดในหน่วยความจำ (ไม่มีเสียง)
     และเก็บคลิปช่วงที่มีการแจ้งเฉพาะเมื่อผู้คุมสอบกด “เก็บคลิป” (หรืออัตโนมัติถ้าสถาบันตั้งไว้) แบบเข้ารหัสในเครื่องนี้ ไม่ส่งออก
     ลบเองตามวันที่กำหนด — ประกาศหน้าห้องและความยินยอมต้องระบุเรื่องคลิปด้วย คลิปอาจเห็นผู้สอบคนอื่นในภาพ</p>
@@ -47,6 +51,8 @@
         <select id="fps"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select></label>
       <label><span data-i18n="exam.hall.minLeave">ออกจากห้องได้หลังเริ่มสอบ (นาที)</span><input id="minLeave" type="number" min="0" max="240" value="30"></label>
       <label class="check"><input type="checkbox" id="tiles"> <span data-i18n="exam.hall.tiles">ห้องใหญ่: แบ่งภาพ 2×2 เพื่อเห็นคนที่อยู่ไกล (ช้าลง)</span></label>
+      <label class="check"><input type="checkbox" id="faceOn"> <span data-i18n="exam.hall.faceOn">นับใบหน้าในภาพ (ทดลอง:
+        ยังไม่พบใบหน้าเล็กหรือที่อยู่ไกล แสดงในเครื่องนี้เท่านั้น ไม่ส่งไปแดชบอร์ด)</span></label>
       <label class="check"><input type="checkbox" id="clipOn"> <span data-i18n="exam.clip.on">เปิดคลิปหลักฐานสำหรับการสอบนี้ (จำภาพ 10 วินาทีล่าสุดในเครื่องนี้ ไม่มีเสียง)</span></label>
       <label class="check"><input type="checkbox" id="clipAuto" disabled> <span data-i18n="exam.clip.auto">เก็บอัตโนมัติเมื่อมีการแจ้ง (เฉพาะเมื่อสถาบันกำหนด)</span></label>
       <label><span data-i18n="exam.clip.days">ลบคลิปอัตโนมัติหลัง</span>
@@ -112,15 +118,16 @@
 <script src="vendor/tfjs/tf.es2017.min.js"></script>
 <script src="vendor/tfjs/tf-backend-wasm.es2017.min.js"></script>
 <script src="lensiq-camera.js?v=4"></script>
-<script src="lensiq-detect.js?v=4"></script>
+<script src="lensiq-detect.js?v=5"></script>
 <script src="lensiq-sitecheck.js?v=4"></script>
-<script src="lensiq-exam.js?v=3"></script>
-<script src="exam-ui.js?v=1"></script>
+<script src="lensiq-exam.js?v=4"></script>
+<script src="lensiq-exam-face.js?v=2"></script>
+<script src="exam-ui.js?v=2"></script>
 <script src="exam-link.js?v=1"></script>
 <script src="lensiq-facevault.js?v=1"></script>
 <script src="lensiq-exam-clip.js?v=2"></script>
 <script src="exam-clip-ui.js?v=2"></script>
-<script src="exam-hall.js?v=2"></script>
+<script src="exam-hall.js?v=3"></script>
 <script src="lensiq-config.js?v=4"></script>
 </body>
 </html>
