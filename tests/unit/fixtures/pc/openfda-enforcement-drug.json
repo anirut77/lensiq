@@ -1,0 +1,19 @@
+{
+ "meta": {
+  "results": {
+   "total": 1
+  }
+ },
+ "results": [
+  {
+   "recall_number": "D-0657-2026",
+   "report_date": "20260708",
+   "product_description": "Synjardy XR Tablets (empagliflozin and metformin hydrochloride extended-release tablets), 12.5/1000 mg, 60 Tablets per Bottle, Rx only, Distributed by: Boehringer Ingelheim Pharmaceuticals, Inc., Ridgefield, CT 06877 USA.  NDC: 00597-0300-45",
+   "recalling_firm": "Boehringer Ingelheim Pharmaceuticals, Inc.",
+   "reason_for_recall": "CGMP Deviations: An incorrect detergent was used and the required swab sampling was not performed on a production hopper that had previously been used for a different product.",
+   "classification": "Class II",
+   "status": "Ongoing",
+   "openfda": {}
+  }
+ ]
+}

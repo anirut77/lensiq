@@ -223,6 +223,7 @@
     "lensiq-ai.js",
     "lensiq-pc.js",
     "lensiq-pc-run.js",
-    "lensiq-pc-ui.js"
+    "lensiq-pc-ui.js",
+    "lensiq-pc-lookup.js"
   ]
 }

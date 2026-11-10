@@ -52,6 +52,26 @@ C. Other
     National Library of Medicine (NLM)." NLM: "These files will not be updated and should not be used for pill
     identification." Not endorsed by NLM, NIH or FDA. Details: vendor/pillbox/LICENSE.txt.
   - Person/object detectors above were trained on MS COCO (annotations CC BY 4.0, (c) COCO Consortium).
+  - Thai Medicines Terminology (TMT), release TMTRF20200217, by สำนักพัฒนามาตรฐานระบบข้อมูลสุขภาพไทย (สมสท. / THIS),
+    https://data.go.th/dataset/thai-medicines-terminology-tmt, licensed Creative Commons Attribution (data.go.th cc-by;
+    version not stated, see CTO-BRIEF L30; https://creativecommons.org/licenses/by/4.0/). Modified: converted to the
+    lookup table vendor/pc-drugs/tmt-2563.json and its index shards vendor/pc-drugs/tmt/ (columns dropped). Data as of 2020-02-17.
+  - National List of Essential Medicines 2567 (บัญชียาหลักแห่งชาติ), announcement of the National Drug System Development
+    Committee, Royal Gazette (public government announcement, Thai Copyright Act s.7). Compiled from the thai-nlem-api CSV,
+    Copyright (c) 2026 Suradet Pratomsak, MIT License (vendor/pc-drugs/LICENSE-thai-nlem-api.txt) — vendor/pc-drugs/nlem-2567.json.
+  - Health Canada Recalls and Safety Alerts (vendor/pc-recalls/hc/, built by tools/pc-hc-build.mjs): "Contains information
+    licensed under the Open Government Licence – Canada" (https://open.canada.ca/en/open-government-licence-canada).
+    Modified: fields selected, split into a search index. Health Canada does not endorse LENSIQ.
+  - Curated Thai warning list (vendor/pc-alerts/th.json): facts from Thai FDA (อย.) announcements, each with its source page
+    and date; no text or image copied.
+  - Product Check lookups at run time (round 17 P4, backend/src/pc.js; nothing shipped except test fixtures):
+    openFDA (U.S. FDA), CC0 1.0, "FDA does not endorse LENSIQ"; DailyMed and RxNorm / RxNav (U.S. NLM): "This product uses
+    publicly available data from the U.S. National Library of Medicine (NLM), National Institutes of Health, Department of
+    Health and Human Services; NLM is not responsible for the product and does not endorse or recommend this or any other
+    product."; RASFF Window (European Commission), CC BY 4.0; EU Safety Gate (European Commission), testing only until the
+    licence is confirmed (L16); Singapore HSA Listing of Registered Therapeutic Products (data.gov.sg): "made available
+    under the terms of the Singapore Open Data Licence version 1.0"; Thai FDA WS_LICENSE_SEARCH: no reuse licence stated,
+    testing only, written permission before charging (L13).
 
 D. Apache License, Version 2.0
 ------------------------------

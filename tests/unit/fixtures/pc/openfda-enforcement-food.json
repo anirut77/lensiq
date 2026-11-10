@@ -1,0 +1,19 @@
+{
+ "meta": {
+  "results": {
+   "total": 1
+  }
+ },
+ "results": [
+  {
+   "recall_number": "H-0130-2027",
+   "report_date": "20261028",
+   "product_description": "Jovy Gummy Worms Neon; packaged in 1lb plastic units. UPC 712199083411",
+   "recalling_firm": "El Ruisenor De Mexico, Inc.",
+   "reason_for_recall": "undeclared allergen ingredient (Red#40, Yellow#5, Yellow#6, Blue#1)",
+   "classification": "Class II",
+   "status": "Ongoing",
+   "openfda": {}
+  }
+ ]
+}

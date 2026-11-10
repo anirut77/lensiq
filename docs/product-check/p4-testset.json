@@ -1,0 +1,4388 @@
+{
+ "version": 1,
+ "written": "2026-11-10",
+ "seed": "lensiq-pc-p4-2026-11-10",
+ "note": "Fixed before any P4 matching code. Do not regenerate to fit results. TMT names / ingredients: TMT 2020-02-17 snapshot, CC BY (data.go.th), facts only.",
+ "tmt_dev": [
+  {
+   "id": "P4-TMT-D001",
+   "split": "dev",
+   "name": "HIBICET",
+   "expect_ingredients": [
+    "cetrimide + chlorhexidine gluconate"
+   ],
+   "queries": {
+    "exact": "HIBICET",
+    "label": "HIBICET 15 g/100 mL + 1.5 g/100 mL cutaneous solution",
+    "ocr": "hi8icet"
+   }
+  },
+  {
+   "id": "P4-TMT-D002",
+   "split": "dev",
+   "name": "ZYCEL 200",
+   "expect_ingredients": [
+    "celecoxib"
+   ],
+   "queries": {
+    "exact": "ZYCEL 200",
+    "label": "ZYCEL 200 200 mg capsule, hard",
+    "ocr": "zycel  200"
+   }
+  },
+  {
+   "id": "P4-TMT-D003",
+   "split": "dev",
+   "name": "OILATUM BAR",
+   "expect_ingredients": [
+    "arachis oil"
+   ],
+   "queries": {
+    "exact": "OILATUM BAR",
+    "label": "OILATUM BAR 75 mg/100 g bath additive",
+    "ocr": "oi1atum bar"
+   }
+  },
+  {
+   "id": "P4-TMT-D004",
+   "split": "dev",
+   "name": "INBUFEN-400",
+   "expect_ingredients": [
+    "ibuprofen"
+   ],
+   "queries": {
+    "exact": "INBUFEN-400",
+    "label": "INBUFEN-400 400 mg film-coated tablet",
+    "ocr": "in8ufen-400"
+   }
+  },
+  {
+   "id": "P4-TMT-D005",
+   "split": "dev",
+   "name": "RHIMAX",
+   "expect_ingredients": [
+    "brompheniramine maleate + pseudoephedrine hydrochloride"
+   ],
+   "queries": {
+    "exact": "RHIMAX",
+    "label": "RHIMAX 4 mg + 60 mg tablet",
+    "ocr": "rh1max"
+   }
+  },
+  {
+   "id": "P4-TMT-D006",
+   "split": "dev",
+   "name": "GITAZONE",
+   "expect_ingredients": [
+    "pioglitazone"
+   ],
+   "queries": {
+    "exact": "GITAZONE",
+    "label": "GITAZONE 15 mg tablet",
+    "ocr": "gita2one"
+   }
+  },
+  {
+   "id": "P4-TMT-D007",
+   "split": "dev",
+   "name": "AMOXY-T 250",
+   "expect_ingredients": [
+    "amoxicillin"
+   ],
+   "queries": {
+    "exact": "AMOXY-T 250",
+    "label": "AMOXY-T 250 250 mg film-coated tablet",
+    "ocr": "amoxy-t  250"
+   }
+  },
+  {
+   "id": "P4-TMT-D008",
+   "split": "dev",
+   "name": "CERAZETTE",
+   "expect_ingredients": [
+    "desogestrel"
+   ],
+   "queries": {
+    "exact": "CERAZETTE",
+    "label": "CERAZETTE 75 mcg film-coated tablet",
+    "ocr": "cera2ette"
+   }
+  },
+  {
+   "id": "P4-TMT-D009",
+   "split": "dev",
+   "name": "FENKETO",
+   "expect_ingredients": [
+    "ketotifen"
+   ],
+   "queries": {
+    "exact": "FENKETO",
+    "label": "FENKETO 1 mg/5 mL syrup",
+    "ocr": "feketo"
+   }
+  },
+  {
+   "id": "P4-TMT-D010",
+   "split": "dev",
+   "name": "0.75% DPCP",
+   "expect_ingredients": [
+    "diphenylcyclopropenone"
+   ],
+   "queries": {
+    "exact": "0.75% DPCP",
+    "label": "0.75% DPCP 750 mg/100 mL cutaneous solution",
+    "ocr": "0.75%  dpcp"
+   }
+  },
+  {
+   "id": "P4-TMT-D011",
+   "split": "dev",
+   "name": "FURLIN GREEN",
+   "expect_ingredients": [
+    "paracetamol"
+   ],
+   "queries": {
+    "exact": "FURLIN GREEN",
+    "label": "FURLIN GREEN 500 mg tablet",
+    "ocr": "fur1in green"
+   }
+  },
+  {
+   "id": "P4-TMT-D012",
+   "split": "dev",
+   "name": "MEFENAC 250",
+   "expect_ingredients": [
+    "mefenamic acid"
+   ],
+   "queries": {
+    "exact": "MEFENAC 250",
+    "label": "MEFENAC 250 250 mg capsule, hard",
+    "ocr": "meenac 250"
+   }
+  },
+  {
+   "id": "P4-TMT-D013",
+   "split": "dev",
+   "name": "AMMIMOX 250",
+   "expect_ingredients": [
+    "amoxicillin"
+   ],
+   "queries": {
+    "exact": "AMMIMOX 250",
+    "label": "AMMIMOX 250 250 mg capsule, hard",
+    "ocr": "amm1mox 250"
+   }
+  },
+  {
+   "id": "P4-TMT-D014",
+   "split": "dev",
+   "name": "RELIMAL CR 100",
+   "expect_ingredients": [
+    "morphine + morphine sulfate"
+   ],
+   "queries": {
+    "exact": "RELIMAL CR 100",
+    "label": "RELIMAL CR 100 100 mg prolonged-release tablet",
+    "ocr": "re1imal cr 100"
+   }
+  },
+  {
+   "id": "P4-TMT-D015",
+   "split": "dev",
+   "name": "SAFADINE",
+   "expect_ingredients": [
+    "povidone"
+   ],
+   "queries": {
+    "exact": "SAFADINE",
+    "label": "SAFADINE 10 g/100 mL cutaneous solution",
+    "ocr": "safad1ne"
+   }
+  },
+  {
+   "id": "P4-TMT-D016",
+   "split": "dev",
+   "name": "NEOSTIGMINE METHYLSULFATE",
+   "expect_ingredients": [
+    "neostigmine methylsulfate"
+   ],
+   "queries": {
+    "exact": "NEOSTIGMINE METHYLSULFATE",
+    "label": "NEOSTIGMINE METHYLSULFATE 2.5 mg/1 mL solution for injection",
+    "ocr": "neostigmine methy1sulfate"
+   }
+  },
+  {
+   "id": "P4-TMT-D017",
+   "split": "dev",
+   "name": "DICYCONE",
+   "expect_ingredients": [
+    "dicycloverine hydrochloride + simeticone"
+   ],
+   "queries": {
+    "exact": "DICYCONE",
+    "label": "DICYCONE 5 mg/5 mL + 50 mg/5 mL syrup",
+    "ocr": "dicyc0ne"
+   }
+  },
+  {
+   "id": "P4-TMT-D018",
+   "split": "dev",
+   "name": "R-J TAB",
+   "expect_ingredients": [
+    "metoclopramide hydrochloride"
+   ],
+   "queries": {
+    "exact": "R-J TAB",
+    "label": "R-J TAB 10 mg tablet",
+    "ocr": "r-j  tab"
+   }
+  },
+  {
+   "id": "P4-TMT-D019",
+   "split": "dev",
+   "name": "REVAC-BMCF",
+   "expect_ingredients": [
+    "hepatitis b virus vaccine"
+   ],
+   "queries": {
+    "exact": "REVAC-BMCF",
+    "label": "REVAC-BMCF 10 mcg/0.5 mL suspension for injection",
+    "ocr": "revac-bmcf"
+   }
+  },
+  {
+   "id": "P4-TMT-D020",
+   "split": "dev",
+   "name": "AMARYL R 2.0",
+   "expect_ingredients": [
+    "glimepiride"
+   ],
+   "queries": {
+    "exact": "AMARYL R 2.0",
+    "label": "AMARYL R 2.0 2 mg tablet",
+    "ocr": "amryl r 2.0"
+   }
+  },
+  {
+   "id": "P4-TMT-D021",
+   "split": "dev",
+   "name": "ENTIS",
+   "expect_ingredients": [
+    "diclofenac sodium"
+   ],
+   "queries": {
+    "exact": "ENTIS",
+    "label": "ENTIS 25 mg gastro-resistant tablet",
+    "ocr": "entis"
+   }
+  },
+  {
+   "id": "P4-TMT-D022",
+   "split": "dev",
+   "name": "NATEAR",
+   "expect_ingredients": [
+    "hypromellose"
+   ],
+   "queries": {
+    "exact": "NATEAR",
+    "label": "NATEAR 300 mg/100 mL eye drops, solution",
+    "ocr": "naear"
+   }
+  },
+  {
+   "id": "P4-TMT-D023",
+   "split": "dev",
+   "name": "V. DAY ZEPAM",
+   "expect_ingredients": [
+    "diazepam",
+    "diazepam + lidocaine"
+   ],
+   "queries": {
+    "exact": "V. DAY ZEPAM",
+    "label": "V. DAY ZEPAM 5 mg/10 mL + 5 mg/10 mL powder for solution for injection",
+    "ocr": "v.  day  zepam"
+   }
+  },
+  {
+   "id": "P4-TMT-D024",
+   "split": "dev",
+   "name": "POLIDINE SCRUB",
+   "expect_ingredients": [
+    "povidone iodine"
+   ],
+   "queries": {
+    "exact": "POLIDINE SCRUB",
+    "label": "POLIDINE SCRUB 7.5 g/100 mL cutaneous solution",
+    "ocr": "po1idine scrub"
+   }
+  },
+  {
+   "id": "P4-TMT-D025",
+   "split": "dev",
+   "name": "DOXYCLATE",
+   "expect_ingredients": [
+    "doxycycline"
+   ],
+   "queries": {
+    "exact": "DOXYCLATE",
+    "label": "DOXYCLATE 100 mg capsule, hard",
+    "ocr": "doxyc1ate"
+   }
+  },
+  {
+   "id": "P4-TMT-D026",
+   "split": "dev",
+   "name": "TERBUSIN",
+   "expect_ingredients": [
+    "guaifenesin + terbutaline sulfate"
+   ],
+   "queries": {
+    "exact": "TERBUSIN",
+    "label": "TERBUSIN 66.5 mg/5 mL + 1.5 mg/5 mL syrup",
+    "ocr": "ter8usin"
+   }
+  },
+  {
+   "id": "P4-TMT-D027",
+   "split": "dev",
+   "name": "THEOLIN",
+   "expect_ingredients": [
+    "guaifenesin + theophylline",
+    "theophylline"
+   ],
+   "queries": {
+    "exact": "THEOLIN",
+    "label": "THEOLIN 200 mg tablet",
+    "ocr": "the0lin"
+   }
+  },
+  {
+   "id": "P4-TMT-D028",
+   "split": "dev",
+   "name": "M.V. POLY SC",
+   "expect_ingredients": [
+    "multivitamins"
+   ],
+   "queries": {
+    "exact": "M.V. POLY SC",
+    "label": "M.V. POLY SC coated tablet",
+    "ocr": "m.v.  poly  sc"
+   }
+  },
+  {
+   "id": "P4-TMT-D029",
+   "split": "dev",
+   "name": "PINMINE",
+   "expect_ingredients": [
+    "calamine + diphenhydramine hydrochloride"
+   ],
+   "queries": {
+    "exact": "PINMINE",
+    "label": "PINMINE 8 g/100 mL + 1 g/100 mL cutaneous liquid",
+    "ocr": "pinm1ne"
+   }
+  },
+  {
+   "id": "P4-TMT-D030",
+   "split": "dev",
+   "name": "CYRAMZA",
+   "expect_ingredients": [
+    "ramucirumab"
+   ],
+   "queries": {
+    "exact": "CYRAMZA",
+    "label": "CYRAMZA 100 mg/10 mL concentrate for solution for infusion",
+    "ocr": "cyram2a"
+   }
+  },
+  {
+   "id": "P4-TMT-D031",
+   "split": "dev",
+   "name": "CLORESIAN",
+   "expect_ingredients": [
+    "loratadine"
+   ],
+   "queries": {
+    "exact": "CLORESIAN",
+    "label": "CLORESIAN 10 mg tablet",
+    "ocr": "cl0resian"
+   }
+  },
+  {
+   "id": "P4-TMT-D032",
+   "split": "dev",
+   "name": "VEROX (ORANGE)",
+   "expect_ingredients": [
+    "piroxicam"
+   ],
+   "queries": {
+    "exact": "VEROX (ORANGE)",
+    "label": "VEROX (ORANGE) 10 mg capsule, hard",
+    "ocr": "verox (oran6e)"
+   }
+  },
+  {
+   "id": "P4-TMT-D033",
+   "split": "dev",
+   "name": "ZIMAQUIN",
+   "expect_ingredients": [
+    "clomifene citrate"
+   ],
+   "queries": {
+    "exact": "ZIMAQUIN",
+    "label": "ZIMAQUIN 50 mg tablet",
+    "ocr": "zimaqu1n"
+   }
+  },
+  {
+   "id": "P4-TMT-D034",
+   "split": "dev",
+   "name": "THIODIL 10",
+   "expect_ingredients": [
+    "thioridazine"
+   ],
+   "queries": {
+    "exact": "THIODIL 10",
+    "label": "THIODIL 10 10 mg film-coated tablet",
+    "ocr": "th1odil 10"
+   }
+  },
+  {
+   "id": "P4-TMT-D035",
+   "split": "dev",
+   "name": "IMOVAX POLIO",
+   "expect_ingredients": [
+    "poliomyelitis, inactived type 1 (vero cell) + poliomyelitis, inactived type 2 (vero cell) + poliomyelitis, inactived type 3 (vero cell)"
+   ],
+   "queries": {
+    "exact": "IMOVAX POLIO",
+    "label": "IMOVAX POLIO 40 D antigen unit/0.5 mL + 8 D antigen unit/0.5 mL + 32 D antigen unit/0.5 mL suspension for injection",
+    "ocr": "im0vax polio"
+   }
+  },
+  {
+   "id": "P4-TMT-D036",
+   "split": "dev",
+   "name": "LOSU-1",
+   "expect_ingredients": [
+    "glimepiride"
+   ],
+   "queries": {
+    "exact": "LOSU-1",
+    "label": "LOSU-1 1 mg tablet",
+    "ocr": "losu-1"
+   }
+  },
+  {
+   "id": "P4-TMT-D037",
+   "split": "dev",
+   "name": "ANTICOGH",
+   "expect_ingredients": [
+    "chlorphenamine maleate + dextromethorphan hydrobromide + phenylephrine"
+   ],
+   "queries": {
+    "exact": "ANTICOGH",
+    "label": "ANTICOGH 2 mg/5 mL + 5 mg/5 mL + 1 mg/5 mL syrup",
+    "ocr": "ant1cogh"
+   }
+  },
+  {
+   "id": "P4-TMT-D038",
+   "split": "dev",
+   "name": "ROTHRICIN",
+   "expect_ingredients": [
+    "roxithromycin"
+   ],
+   "queries": {
+    "exact": "ROTHRICIN",
+    "label": "ROTHRICIN 150 mg film-coated tablet",
+    "ocr": "rothr1cin"
+   }
+  },
+  {
+   "id": "P4-TMT-D039",
+   "split": "dev",
+   "name": "CLOMIPHENE",
+   "expect_ingredients": [
+    "clomifene citrate"
+   ],
+   "queries": {
+    "exact": "CLOMIPHENE",
+    "label": "CLOMIPHENE 50 mg tablet",
+    "ocr": "cl0miphene"
+   }
+  },
+  {
+   "id": "P4-TMT-D040",
+   "split": "dev",
+   "name": "OCZET-O",
+   "expect_ingredients": [
+    "oxatomide"
+   ],
+   "queries": {
+    "exact": "OCZET-O",
+    "label": "OCZET-O 30 mg tablet",
+    "ocr": "oczet-o"
+   }
+  },
+  {
+   "id": "P4-TMT-D041",
+   "split": "dev",
+   "name": "URITOS",
+   "expect_ingredients": [
+    "imidafenacin"
+   ],
+   "queries": {
+    "exact": "URITOS",
+    "label": "URITOS 100 mcg film-coated tablet",
+    "ocr": "ur1tos"
+   }
+  },
+  {
+   "id": "P4-TMT-D042",
+   "split": "dev",
+   "name": "GLUCOXAN",
+   "expect_ingredients": [
+    "glucosamine sulfate"
+   ],
+   "queries": {
+    "exact": "GLUCOXAN",
+    "label": "GLUCOXAN 1.5 g/3.95 g powder for oral solution",
+    "ocr": "gluc0xan"
+   }
+  },
+  {
+   "id": "P4-TMT-D043",
+   "split": "dev",
+   "name": "NORXIBID",
+   "expect_ingredients": [
+    "norfloxacin"
+   ],
+   "queries": {
+    "exact": "NORXIBID",
+    "label": "NORXIBID 400 mg film-coated tablet",
+    "ocr": "norx1bid"
+   }
+  },
+  {
+   "id": "P4-TMT-D044",
+   "split": "dev",
+   "name": "CARXASIN",
+   "expect_ingredients": [
+    "doxazosin"
+   ],
+   "queries": {
+    "exact": "CARXASIN",
+    "label": "CARXASIN 2 mg tablet",
+    "ocr": "carxa5in"
+   }
+  },
+  {
+   "id": "P4-TMT-D045",
+   "split": "dev",
+   "name": "UNITORAL",
+   "expect_ingredients": [
+    "tegafur + uracil"
+   ],
+   "queries": {
+    "exact": "UNITORAL",
+    "label": "UNITORAL 100 mg + 224 mg capsule, hard",
+    "ocr": "un1toral"
+   }
+  },
+  {
+   "id": "P4-TMT-D046",
+   "split": "dev",
+   "name": "TT VACCINE",
+   "expect_ingredients": [
+    "tetanus toxoid"
+   ],
+   "queries": {
+    "exact": "TT VACCINE",
+    "label": "TT VACCINE 20 Lf/1 mL suspension for injection",
+    "ocr": "tt vacc1ne"
+   }
+  },
+  {
+   "id": "P4-TMT-D047",
+   "split": "dev",
+   "name": "LISINOPRIL STADA",
+   "expect_ingredients": [
+    "lisinopril"
+   ],
+   "queries": {
+    "exact": "LISINOPRIL STADA",
+    "label": "LISINOPRIL STADA 2.5 mg tablet",
+    "ocr": "li5inopril stada"
+   }
+  },
+  {
+   "id": "P4-TMT-D048",
+   "split": "dev",
+   "name": "ORAL POLIOMYELITIS VACCINE",
+   "expect_ingredients": [
+    "poliomyelitis, live attenuated type 1 + poliomyelitis, live attenuated type 2 + poliomyelitis, live attenuated type 3"
+   ],
+   "queries": {
+    "exact": "ORAL POLIOMYELITIS VACCINE",
+    "label": "ORAL POLIOMYELITIS VACCINE 1 vaccinating dose + 1 vaccinating dose + 1 vaccinating dose oral solution",
+    "ocr": "oral po1iomyelitis vaccine"
+   }
+  },
+  {
+   "id": "P4-TMT-D049",
+   "split": "dev",
+   "name": "POVADINE",
+   "expect_ingredients": [
+    "povidone iodine"
+   ],
+   "queries": {
+    "exact": "POVADINE",
+    "label": "POVADINE 10 g/100 mL cutaneous solution",
+    "ocr": "povad1ne"
+   }
+  },
+  {
+   "id": "P4-TMT-D050",
+   "split": "dev",
+   "name": "TETRACYCLINE HCL",
+   "expect_ingredients": [
+    "tetracycline"
+   ],
+   "queries": {
+    "exact": "TETRACYCLINE HCL",
+    "label": "TETRACYCLINE HCL 250 mg capsule, hard",
+    "ocr": "tetracyc1ine hcl"
+   }
+  },
+  {
+   "id": "P4-TMT-D051",
+   "split": "dev",
+   "name": "BOSTON ADVANCE COMFORT FORMULA CONDITIONING SOLUTION",
+   "expect_ingredients": [
+    "chlorhexidine gluconate + polihexanide"
+   ],
+   "queries": {
+    "exact": "BOSTON ADVANCE COMFORT FORMULA CONDITIONING SOLUTION",
+    "label": "BOSTON ADVANCE COMFORT FORMULA CONDITIONING SOLUTION 176 mcg + 28.6 mcg irrigation solution",
+    "ocr": "boston advance comfort formula cond1tioning solution"
+   }
+  },
+  {
+   "id": "P4-TMT-D052",
+   "split": "dev",
+   "name": "PIPPROLOL 40",
+   "expect_ingredients": [
+    "propranolol hydrochloride"
+   ],
+   "queries": {
+    "exact": "PIPPROLOL 40",
+    "label": "PIPPROLOL 40 40 mg film-coated tablet",
+    "ocr": "pippr0lol 40"
+   }
+  },
+  {
+   "id": "P4-TMT-D053",
+   "split": "dev",
+   "name": "POLYOPH",
+   "expect_ingredients": [
+    "gramicidin + neomycin sulfate + polymyxin b sulfate"
+   ],
+   "queries": {
+    "exact": "POLYOPH",
+    "label": "POLYOPH 25 mcg/1 mL + 2 mg/1 mL + 5000 iu/1 mL eye drops, solution",
+    "ocr": "po1yoph"
+   }
+  },
+  {
+   "id": "P4-TMT-D054",
+   "split": "dev",
+   "name": "PROFENSIC",
+   "expect_ingredients": [
+    "ibuprofen"
+   ],
+   "queries": {
+    "exact": "PROFENSIC",
+    "label": "PROFENSIC 100 mg/5 mL oral suspension",
+    "ocr": "pr0fensic"
+   }
+  },
+  {
+   "id": "P4-TMT-D055",
+   "split": "dev",
+   "name": "TIZAN 2",
+   "expect_ingredients": [
+    "tizanidine"
+   ],
+   "queries": {
+    "exact": "TIZAN 2",
+    "label": "TIZAN 2 2 mg tablet",
+    "ocr": "tizan  2"
+   }
+  },
+  {
+   "id": "P4-TMT-D056",
+   "split": "dev",
+   "name": "TOBREX",
+   "expect_ingredients": [
+    "tobramycin"
+   ],
+   "queries": {
+    "exact": "TOBREX",
+    "label": "TOBREX 300 mg/100 mL eye drops, solution",
+    "ocr": "to8rex"
+   }
+  },
+  {
+   "id": "P4-TMT-D057",
+   "split": "dev",
+   "name": "DITAP INFANT DROPS",
+   "expect_ingredients": [
+    "brompheniramine maleate + phenylephrine hydrochloride"
+   ],
+   "queries": {
+    "exact": "DITAP INFANT DROPS",
+    "label": "DITAP INFANT DROPS 800 mcg/1 mL + 1 mg/1 mL oral drops, solution",
+    "ocr": "ditap inant drops"
+   }
+  },
+  {
+   "id": "P4-TMT-D058",
+   "split": "dev",
+   "name": "NATARAL-EZ",
+   "expect_ingredients": [
+    "iron + minerals + multivitamins"
+   ],
+   "queries": {
+    "exact": "NATARAL-EZ",
+    "label": "NATARAL-EZ + + coated tablet",
+    "ocr": "naaral-ez"
+   }
+  },
+  {
+   "id": "P4-TMT-D059",
+   "split": "dev",
+   "name": "BERLONTIN 100",
+   "expect_ingredients": [
+    "gabapentin"
+   ],
+   "queries": {
+    "exact": "BERLONTIN 100",
+    "label": "BERLONTIN 100 100 mg capsule, hard",
+    "ocr": "ber1ontin 100"
+   }
+  },
+  {
+   "id": "P4-TMT-D060",
+   "split": "dev",
+   "name": "FENO-99",
+   "expect_ingredients": [
+    "piroxicam"
+   ],
+   "queries": {
+    "exact": "FENO-99",
+    "label": "FENO-99 10 mg capsule, hard",
+    "ocr": "feno-99"
+   }
+  },
+  {
+   "id": "P4-TMT-D061",
+   "split": "dev",
+   "name": "FOB-VERMIN",
+   "expect_ingredients": [
+    "niclosamide + phenolphthalein"
+   ],
+   "queries": {
+    "exact": "FOB-VERMIN",
+    "label": "FOB-VERMIN 500 mg + 50 mg tablet",
+    "ocr": "fob-verm1n"
+   }
+  },
+  {
+   "id": "P4-TMT-D062",
+   "split": "dev",
+   "name": "KAMILLOSAN M",
+   "expect_ingredients": [
+    "chamazulene + chamomile extract + essential oil"
+   ],
+   "queries": {
+    "exact": "KAMILLOSAN M",
+    "label": "KAMILLOSAN M 3 mg/1 mL + 370.5 mg/1 mL + 100 mg/1 mL oromucosal spray, solution",
+    "ocr": "kam1llosan m"
+   }
+  },
+  {
+   "id": "P4-TMT-D063",
+   "split": "dev",
+   "name": "TEXTMYCIN",
+   "expect_ingredients": [
+    "tetracycline"
+   ],
+   "queries": {
+    "exact": "TEXTMYCIN",
+    "label": "TEXTMYCIN 250 mg capsule, hard",
+    "ocr": "textmyc1n"
+   }
+  },
+  {
+   "id": "P4-TMT-D064",
+   "split": "dev",
+   "name": "SALICYLIC ACID 10% + TA 0.02%",
+   "expect_ingredients": [
+    "salicylic acid + triamcinolone acetonide"
+   ],
+   "queries": {
+    "exact": "SALICYLIC ACID 10% + TA 0.02%",
+    "label": "SALICYLIC ACID 10% + TA 0.02% 10 g/100 g + 20 mg/100 g cream",
+    "ocr": "sa1icylic acid 10% + ta 0.02%"
+   }
+  },
+  {
+   "id": "P4-TMT-D065",
+   "split": "dev",
+   "name": "AVIRANZ",
+   "expect_ingredients": [
+    "efavirenz"
+   ],
+   "queries": {
+    "exact": "AVIRANZ",
+    "label": "AVIRANZ 200 mg capsule, hard",
+    "ocr": "av1ranz"
+   }
+  },
+  {
+   "id": "P4-TMT-D066",
+   "split": "dev",
+   "name": "TRAXEL",
+   "expect_ingredients": [
+    "tramadol hydrochloride"
+   ],
+   "queries": {
+    "exact": "TRAXEL",
+    "label": "TRAXEL 50 mg capsule, hard",
+    "ocr": "trxel"
+   }
+  },
+  {
+   "id": "P4-TMT-D067",
+   "split": "dev",
+   "name": "HIROX",
+   "expect_ingredients": [
+    "piroxicam"
+   ],
+   "queries": {
+    "exact": "HIROX",
+    "label": "HIROX 20 mg capsule, hard",
+    "ocr": "hirox"
+   }
+  },
+  {
+   "id": "P4-TMT-D068",
+   "split": "dev",
+   "name": "FLAVO-SPA",
+   "expect_ingredients": [
+    "flavoxate hydrochloride"
+   ],
+   "queries": {
+    "exact": "FLAVO-SPA",
+    "label": "FLAVO-SPA 200 mg coated tablet",
+    "ocr": "flavo-spa"
+   }
+  },
+  {
+   "id": "P4-TMT-D069",
+   "split": "dev",
+   "name": "VICTOZA",
+   "expect_ingredients": [
+    "liraglutide"
+   ],
+   "queries": {
+    "exact": "VICTOZA",
+    "label": "VICTOZA 18 mg/3 mL solution for injection",
+    "ocr": "vict0za"
+   }
+  },
+  {
+   "id": "P4-TMT-D070",
+   "split": "dev",
+   "name": "LEXEMIN-M 200",
+   "expect_ingredients": [
+    "fenofibrate"
+   ],
+   "queries": {
+    "exact": "LEXEMIN-M 200",
+    "label": "LEXEMIN-M 200 200 mg capsule, hard",
+    "ocr": "lexem1n-m 200"
+   }
+  },
+  {
+   "id": "P4-TMT-D071",
+   "split": "dev",
+   "name": "PANAMOL",
+   "expect_ingredients": [
+    "paracetamol"
+   ],
+   "queries": {
+    "exact": "PANAMOL",
+    "label": "PANAMOL 300 mg/2 mL solution for injection",
+    "ocr": "panam0l"
+   }
+  },
+  {
+   "id": "P4-TMT-D072",
+   "split": "dev",
+   "name": "GENDAZEL",
+   "expect_ingredients": [
+    "albendazole"
+   ],
+   "queries": {
+    "exact": "GENDAZEL",
+    "label": "GENDAZEL 200 mg film-coated tablet",
+    "ocr": "genda2el"
+   }
+  },
+  {
+   "id": "P4-TMT-D073",
+   "split": "dev",
+   "name": "DEXTROMETHORPHAN",
+   "expect_ingredients": [
+    "dextromethorphan hydrobromide"
+   ],
+   "queries": {
+    "exact": "DEXTROMETHORPHAN",
+    "label": "DEXTROMETHORPHAN 15 mg coated tablet",
+    "ocr": "dextr0methorphan"
+   }
+  },
+  {
+   "id": "P4-TMT-D074",
+   "split": "dev",
+   "name": "BROMPHEN",
+   "expect_ingredients": [
+    "brompheniramine maleate"
+   ],
+   "queries": {
+    "exact": "BROMPHEN",
+    "label": "BROMPHEN 2 mg/5 mL syrup",
+    "ocr": "br0mphen"
+   }
+  },
+  {
+   "id": "P4-TMT-D075",
+   "split": "dev",
+   "name": "LAXADRYL",
+   "expect_ingredients": [
+    "bisacodyl"
+   ],
+   "queries": {
+    "exact": "LAXADRYL",
+    "label": "LAXADRYL 5 mg coated tablet",
+    "ocr": "laadryl"
+   }
+  },
+  {
+   "id": "P4-TMT-D076",
+   "split": "dev",
+   "name": "COZEP 10",
+   "expect_ingredients": [
+    "chlordiazepoxide"
+   ],
+   "queries": {
+    "exact": "COZEP 10",
+    "label": "COZEP 10 10 mg film-coated tablet",
+    "ocr": "cozep  10"
+   }
+  },
+  {
+   "id": "P4-TMT-D077",
+   "split": "dev",
+   "name": "TAMJAI PARA",
+   "expect_ingredients": [
+    "paracetamol"
+   ],
+   "queries": {
+    "exact": "TAMJAI PARA",
+    "label": "TAMJAI PARA 500 mg tablet",
+    "ocr": "tajai para"
+   }
+  },
+  {
+   "id": "P4-TMT-D078",
+   "split": "dev",
+   "name": "ENPRIL",
+   "expect_ingredients": [
+    "enalapril maleate"
+   ],
+   "queries": {
+    "exact": "ENPRIL",
+    "label": "ENPRIL 20 mg tablet",
+    "ocr": "enpr1l"
+   }
+  },
+  {
+   "id": "P4-TMT-D079",
+   "split": "dev",
+   "name": "FIRIDE",
+   "expect_ingredients": [
+    "finasteride"
+   ],
+   "queries": {
+    "exact": "FIRIDE",
+    "label": "FIRIDE 1 mg film-coated tablet",
+    "ocr": "fir1de"
+   }
+  },
+  {
+   "id": "P4-TMT-D080",
+   "split": "dev",
+   "name": "PARACET 500 FRX",
+   "expect_ingredients": [
+    "paracetamol"
+   ],
+   "queries": {
+    "exact": "PARACET 500 FRX",
+    "label": "PARACET 500 FRX 500 mg tablet",
+    "ocr": "paacet 500 frx"
+   }
+  },
+  {
+   "id": "P4-TMT-D081",
+   "split": "dev",
+   "name": "ALOE GEL",
+   "expect_ingredients": [
+    "aloe vera"
+   ],
+   "queries": {
+    "exact": "ALOE GEL",
+    "label": "ALOE GEL 87.4 g/100 g gel",
+    "ocr": "aloe  gel"
+   }
+  },
+  {
+   "id": "P4-TMT-D082",
+   "split": "dev",
+   "name": "MAGNESIUM CHLORIDE",
+   "expect_ingredients": [
+    "magnesium chloride"
+   ],
+   "queries": {
+    "exact": "MAGNESIUM CHLORIDE",
+    "label": "MAGNESIUM CHLORIDE 5 g/100 mL oral solution",
+    "ocr": "ma6nesium chloride"
+   }
+  },
+  {
+   "id": "P4-TMT-D083",
+   "split": "dev",
+   "name": "HOPS (CHERRY)",
+   "expect_ingredients": [
+    "cetylpyridinium chloride"
+   ],
+   "queries": {
+    "exact": "HOPS (CHERRY)",
+    "label": "HOPS (CHERRY) 330 mcg lozenge",
+    "ocr": "hops (chrry)"
+   }
+  },
+  {
+   "id": "P4-TMT-D084",
+   "split": "dev",
+   "name": "VADEE",
+   "expect_ingredients": [
+    "brompheniramine maleate + paracetamol + phenylephrine hydrochloride"
+   ],
+   "queries": {
+    "exact": "VADEE",
+    "label": "VADEE 2 mg + 300 mg + 10 mg tablet",
+    "ocr": "vadee"
+   }
+  },
+  {
+   "id": "P4-TMT-D085",
+   "split": "dev",
+   "name": "CEFUTE FORTE",
+   "expect_ingredients": [
+    "cefalexin"
+   ],
+   "queries": {
+    "exact": "CEFUTE FORTE",
+    "label": "CEFUTE FORTE 250 mg/5 mL powder for syrup",
+    "ocr": "ceute forte"
+   }
+  },
+  {
+   "id": "P4-TMT-D086",
+   "split": "dev",
+   "name": "POVANIL 2",
+   "expect_ingredients": [
+    "clonazepam"
+   ],
+   "queries": {
+    "exact": "POVANIL 2",
+    "label": "POVANIL 2 2 mg tablet",
+    "ocr": "povan1l 2"
+   }
+  },
+  {
+   "id": "P4-TMT-D087",
+   "split": "dev",
+   "name": "JOINT",
+   "expect_ingredients": [
+    "piroxicam"
+   ],
+   "queries": {
+    "exact": "JOINT",
+    "label": "JOINT 20 mg capsule, hard",
+    "ocr": "joint"
+   }
+  },
+  {
+   "id": "P4-TMT-D088",
+   "split": "dev",
+   "name": "OXYLIM",
+   "expect_ingredients": [
+    "lidocaine + oxytetracycline"
+   ],
+   "queries": {
+    "exact": "OXYLIM",
+    "label": "OXYLIM 40 mg/2 mL + 100 mg/2 mL solution for injection",
+    "ocr": "oxy1im"
+   }
+  },
+  {
+   "id": "P4-TMT-D089",
+   "split": "dev",
+   "name": "COLLU ANALGESIC",
+   "expect_ingredients": [
+    "aspirin"
+   ],
+   "queries": {
+    "exact": "COLLU ANALGESIC",
+    "label": "COLLU ANALGESIC 500 mg tablet",
+    "ocr": "collu ana1gesic"
+   }
+  },
+  {
+   "id": "P4-TMT-D090",
+   "split": "dev",
+   "name": "RIFAMPYZID",
+   "expect_ingredients": [
+    "isoniazid + pyrazinamide + rifampicin"
+   ],
+   "queries": {
+    "exact": "RIFAMPYZID",
+    "label": "RIFAMPYZID 80 mg + 250 mg + 120 mg coated tablet",
+    "ocr": "rifampy2id"
+   }
+  },
+  {
+   "id": "P4-TMT-D091",
+   "split": "dev",
+   "name": "AZADINE",
+   "expect_ingredients": [
+    "azacitidine"
+   ],
+   "queries": {
+    "exact": "AZADINE",
+    "label": "AZADINE 100 mg powder for suspension for injection",
+    "ocr": "azad1ne"
+   }
+  },
+  {
+   "id": "P4-TMT-D092",
+   "split": "dev",
+   "name": "MEALIN 30",
+   "expect_ingredients": [
+    "mianserin"
+   ],
+   "queries": {
+    "exact": "MEALIN 30",
+    "label": "MEALIN 30 30 mg film-coated tablet",
+    "ocr": "mea1in 30"
+   }
+  },
+  {
+   "id": "P4-TMT-D093",
+   "split": "dev",
+   "name": "HI-Z (FINE GRANULES)",
+   "expect_ingredients": [
+    "gamma-oryzanol"
+   ],
+   "queries": {
+    "exact": "HI-Z (FINE GRANULES)",
+    "label": "HI-Z (FINE GRANULES) 100 mg/0.5 g oral powder",
+    "ocr": "hi-z (fine granu1es)"
+   }
+  },
+  {
+   "id": "P4-TMT-D094",
+   "split": "dev",
+   "name": "STREPSILS ORANGE WITH VITAMIN C",
+   "expect_ingredients": [
+    "amylmetacresol + ascorbic acid + dichlorobenzyl alcohol"
+   ],
+   "queries": {
+    "exact": "STREPSILS ORANGE WITH VITAMIN C",
+    "label": "STREPSILS ORANGE WITH VITAMIN C 600 mcg + 100 mg + 1.2 mg lozenge",
+    "ocr": "strep5ils orange with vitamin c"
+   }
+  },
+  {
+   "id": "P4-TMT-D095",
+   "split": "dev",
+   "name": "ACYVIR 400",
+   "expect_ingredients": [
+    "aciclovir"
+   ],
+   "queries": {
+    "exact": "ACYVIR 400",
+    "label": "ACYVIR 400 400 mg tablet",
+    "ocr": "acyv1r 400"
+   }
+  },
+  {
+   "id": "P4-TMT-D096",
+   "split": "dev",
+   "name": "SPASMINAR",
+   "expect_ingredients": [
+    "dicycloverine hydrochloride"
+   ],
+   "queries": {
+    "exact": "SPASMINAR",
+    "label": "SPASMINAR 10 mg coated tablet",
+    "ocr": "spa5minar"
+   }
+  },
+  {
+   "id": "P4-TMT-D097",
+   "split": "dev",
+   "name": "OFTAN TIMOLOL",
+   "expect_ingredients": [
+    "timolol"
+   ],
+   "queries": {
+    "exact": "OFTAN TIMOLOL",
+    "label": "OFTAN TIMOLOL 250 mg/100 mL eye drops, solution",
+    "ocr": "oftan tim0lol"
+   }
+  },
+  {
+   "id": "P4-TMT-D098",
+   "split": "dev",
+   "name": "KO-KURE FORTE",
+   "expect_ingredients": [
+    "sulfamethoxazole + trimethoprim"
+   ],
+   "queries": {
+    "exact": "KO-KURE FORTE",
+    "label": "KO-KURE FORTE 800 mg + 160 mg tablet",
+    "ocr": "ko-kure  forte"
+   }
+  },
+  {
+   "id": "P4-TMT-D099",
+   "split": "dev",
+   "name": "OILEZZ",
+   "expect_ingredients": [
+    "desogestrel + ethinylestradiol"
+   ],
+   "queries": {
+    "exact": "OILEZZ",
+    "label": "OILEZZ 125 mcg + 30 mcg tablet",
+    "ocr": "oi1ezz"
+   }
+  },
+  {
+   "id": "P4-TMT-D100",
+   "split": "dev",
+   "name": "PENTAGON CAP",
+   "expect_ingredients": [
+    "indometacin"
+   ],
+   "queries": {
+    "exact": "PENTAGON CAP",
+    "label": "PENTAGON CAP 25 mg capsule, hard",
+    "ocr": "penta6on cap"
+   }
+  },
+  {
+   "id": "P4-TMT-D101",
+   "split": "dev",
+   "name": "VFEND",
+   "expect_ingredients": [
+    "voriconazole"
+   ],
+   "queries": {
+    "exact": "VFEND",
+    "label": "VFEND 200 mg film-coated tablet",
+    "ocr": "vfend"
+   }
+  },
+  {
+   "id": "P4-TMT-D102",
+   "split": "dev",
+   "name": "TETANA",
+   "expect_ingredients": [
+    "tetanus toxoid"
+   ],
+   "queries": {
+    "exact": "TETANA",
+    "label": "TETANA 40 iu/0.5 mL suspension for injection",
+    "ocr": "teana"
+   }
+  },
+  {
+   "id": "P4-TMT-D103",
+   "split": "dev",
+   "name": "VICCILLIN",
+   "expect_ingredients": [
+    "ampicillin"
+   ],
+   "queries": {
+    "exact": "VICCILLIN",
+    "label": "VICCILLIN 250 mg capsule, hard",
+    "ocr": "vicc1llin"
+   }
+  },
+  {
+   "id": "P4-TMT-D104",
+   "split": "dev",
+   "name": "BENLACON",
+   "expect_ingredients": [
+    "glibenclamide"
+   ],
+   "queries": {
+    "exact": "BENLACON",
+    "label": "BENLACON 5 mg tablet",
+    "ocr": "ben1acon"
+   }
+  },
+  {
+   "id": "P4-TMT-D105",
+   "split": "dev",
+   "name": "KAMOXIN",
+   "expect_ingredients": [
+    "amoxicillin"
+   ],
+   "queries": {
+    "exact": "KAMOXIN",
+    "label": "KAMOXIN 250 mg capsule, hard",
+    "ocr": "kam0xin"
+   }
+  },
+  {
+   "id": "P4-TMT-D106",
+   "split": "dev",
+   "name": "METHYLCELLULOSE 0.5%",
+   "expect_ingredients": [
+    "methylcellulose"
+   ],
+   "queries": {
+    "exact": "METHYLCELLULOSE 0.5%",
+    "label": "METHYLCELLULOSE 0.5% 500 mg/100 mL eye drops, solution",
+    "ocr": "methy1cellulose 0.5%"
+   }
+  },
+  {
+   "id": "P4-TMT-D107",
+   "split": "dev",
+   "name": "BUCIN",
+   "expect_ingredients": [
+    "indometacin"
+   ],
+   "queries": {
+    "exact": "BUCIN",
+    "label": "BUCIN 25 mg capsule, hard",
+    "ocr": "bucin"
+   }
+  },
+  {
+   "id": "P4-TMT-D108",
+   "split": "dev",
+   "name": "MOX-C 250",
+   "expect_ingredients": [
+    "amoxicillin"
+   ],
+   "queries": {
+    "exact": "MOX-C 250",
+    "label": "MOX-C 250 250 mg capsule, hard",
+    "ocr": "mox-c  250"
+   }
+  },
+  {
+   "id": "P4-TMT-D109",
+   "split": "dev",
+   "name": "MED-ZEPAM",
+   "expect_ingredients": [
+    "diazepam"
+   ],
+   "queries": {
+    "exact": "MED-ZEPAM",
+    "label": "MED-ZEPAM 2 mg tablet",
+    "ocr": "med-zepam"
+   }
+  },
+  {
+   "id": "P4-TMT-D110",
+   "split": "dev",
+   "name": "XANACINE 1.0",
+   "expect_ingredients": [
+    "alprazolam"
+   ],
+   "queries": {
+    "exact": "XANACINE 1.0",
+    "label": "XANACINE 1.0 1 mg tablet",
+    "ocr": "xanac1ne 1.0"
+   }
+  },
+  {
+   "id": "P4-TMT-D111",
+   "split": "dev",
+   "name": "BOOTS TRIAMCINOLONE",
+   "expect_ingredients": [
+    "triamcinolone acetonide"
+   ],
+   "queries": {
+    "exact": "BOOTS TRIAMCINOLONE",
+    "label": "BOOTS TRIAMCINOLONE 100 mg/100 mL cutaneous solution",
+    "ocr": "boots tr1amcinolone"
+   }
+  },
+  {
+   "id": "P4-TMT-D112",
+   "split": "dev",
+   "name": "BABYCOUGH",
+   "expect_ingredients": [
+    "ammonium chloride + chlorphenamine maleate + potassium guaiacolsulfonate"
+   ],
+   "queries": {
+    "exact": "BABYCOUGH",
+    "label": "BABYCOUGH 75 mg/5 mL + 250 mcg/5 mL + 12.5 mg/5 mL syrup",
+    "ocr": "ba8ycough"
+   }
+  },
+  {
+   "id": "P4-TMT-D113",
+   "split": "dev",
+   "name": "MANROXIN",
+   "expect_ingredients": [
+    "roxithromycin"
+   ],
+   "queries": {
+    "exact": "MANROXIN",
+    "label": "MANROXIN 150 mg film-coated tablet",
+    "ocr": "manr0xin"
+   }
+  },
+  {
+   "id": "P4-TMT-D114",
+   "split": "dev",
+   "name": "CHLORAMDON-R",
+   "expect_ingredients": [
+    "chloramphenicol"
+   ],
+   "queries": {
+    "exact": "CHLORAMDON-R",
+    "label": "CHLORAMDON-R 250 mg coated tablet",
+    "ocr": "ch1oramdon-r"
+   }
+  },
+  {
+   "id": "P4-TMT-D115",
+   "split": "dev",
+   "name": "CLODEMEX",
+   "expect_ingredients": [
+    "clotrimazole"
+   ],
+   "queries": {
+    "exact": "CLODEMEX",
+    "label": "CLODEMEX 1 g/100 g cream",
+    "ocr": "cl0demex"
+   }
+  },
+  {
+   "id": "P4-TMT-D116",
+   "split": "dev",
+   "name": "INDOCID-R",
+   "expect_ingredients": [
+    "indometacin"
+   ],
+   "queries": {
+    "exact": "INDOCID-R",
+    "label": "INDOCID-R 25 mg capsule, hard",
+    "ocr": "ind0cid-r"
+   }
+  },
+  {
+   "id": "P4-TMT-D117",
+   "split": "dev",
+   "name": "VIREAD",
+   "expect_ingredients": [
+    "tenofovir disoproxil fumarate"
+   ],
+   "queries": {
+    "exact": "VIREAD",
+    "label": "VIREAD 300 mg film-coated tablet",
+    "ocr": "viead"
+   }
+  },
+  {
+   "id": "P4-TMT-D118",
+   "split": "dev",
+   "name": "PRALOL",
+   "expect_ingredients": [
+    "propranolol hydrochloride"
+   ],
+   "queries": {
+    "exact": "PRALOL",
+    "label": "PRALOL 10 mg tablet",
+    "ocr": "pra1ol"
+   }
+  },
+  {
+   "id": "P4-TMT-D119",
+   "split": "dev",
+   "name": "ASPIRIN-STAR 81",
+   "expect_ingredients": [
+    "aspirin"
+   ],
+   "queries": {
+    "exact": "ASPIRIN-STAR 81",
+    "label": "ASPIRIN-STAR 81 81 mg film-coated tablet",
+    "ocr": "asp1rin-star 81"
+   }
+  },
+  {
+   "id": "P4-TMT-D120",
+   "split": "dev",
+   "name": "SPASMANOL PAEDIATRIC DROPS",
+   "expect_ingredients": [
+    "dicycloverine hydrochloride + simeticone"
+   ],
+   "queries": {
+    "exact": "SPASMANOL PAEDIATRIC DROPS",
+    "label": "SPASMANOL PAEDIATRIC DROPS 10 mg/1 mL + 40 mg/1 mL oral drops, solution",
+    "ocr": "spasmanol paed1atric drops"
+   }
+  },
+  {
+   "id": "P4-TMT-D121",
+   "split": "dev",
+   "name": "FUGACAR",
+   "expect_ingredients": [
+    "mebendazole"
+   ],
+   "queries": {
+    "exact": "FUGACAR",
+    "label": "FUGACAR 500 mg chewable tablet",
+    "ocr": "fu6acar"
+   }
+  },
+  {
+   "id": "P4-TMT-D122",
+   "split": "dev",
+   "name": "VIROGON 400",
+   "expect_ingredients": [
+    "aciclovir"
+   ],
+   "queries": {
+    "exact": "VIROGON 400",
+    "label": "VIROGON 400 400 mg tablet",
+    "ocr": "vir0gon 400"
+   }
+  },
+  {
+   "id": "P4-TMT-D123",
+   "split": "dev",
+   "name": "LEVOMET",
+   "expect_ingredients": [
+    "benserazide + levodopa",
+    "carbidopa + levodopa"
+   ],
+   "queries": {
+    "exact": "LEVOMET",
+    "label": "LEVOMET 250 mg + 25 mg tablet",
+    "ocr": "lev0met"
+   }
+  },
+  {
+   "id": "P4-TMT-D124",
+   "split": "dev",
+   "name": "DEXTROSE 5% IN SALINE 0.9%",
+   "expect_ingredients": [
+    "dextrose + sodium chloride"
+   ],
+   "queries": {
+    "exact": "DEXTROSE 5% IN SALINE 0.9%",
+    "label": "DEXTROSE 5% IN SALINE 0.9% 5 g/100 mL + 900 mg/100 mL solution for infusion",
+    "ocr": "dextr0se 5% in saline 0.9%"
+   }
+  },
+  {
+   "id": "P4-TMT-D125",
+   "split": "dev",
+   "name": "FLAGYL 400",
+   "expect_ingredients": [
+    "metronidazole"
+   ],
+   "queries": {
+    "exact": "FLAGYL 400",
+    "label": "FLAGYL 400 400 mg film-coated tablet",
+    "ocr": "fla6yl 400"
+   }
+  },
+  {
+   "id": "P4-TMT-D126",
+   "split": "dev",
+   "name": "UFACIN",
+   "expect_ingredients": [
+    "thiamphenicol"
+   ],
+   "queries": {
+    "exact": "UFACIN",
+    "label": "UFACIN 500 mg capsule, hard",
+    "ocr": "ufac1n"
+   }
+  },
+  {
+   "id": "P4-TMT-D127",
+   "split": "dev",
+   "name": "GEMCITABINE SANDOZ",
+   "expect_ingredients": [
+    "gemcitabine"
+   ],
+   "queries": {
+    "exact": "GEMCITABINE SANDOZ",
+    "label": "GEMCITABINE SANDOZ 1 g/100 mL concentrate for solution for infusion",
+    "ocr": "gemc1tabine sandoz"
+   }
+  },
+  {
+   "id": "P4-TMT-D128",
+   "split": "dev",
+   "name": "DICLOXILIN-500",
+   "expect_ingredients": [
+    "dicloxacillin"
+   ],
+   "queries": {
+    "exact": "DICLOXILIN-500",
+    "label": "DICLOXILIN-500 500 mg capsule, hard",
+    "ocr": "dic1oxilin-500"
+   }
+  },
+  {
+   "id": "P4-TMT-D129",
+   "split": "dev",
+   "name": "GLYCEMIN",
+   "expect_ingredients": [
+    "chlorpropamide"
+   ],
+   "queries": {
+    "exact": "GLYCEMIN",
+    "label": "GLYCEMIN 250 mg tablet",
+    "ocr": "glycem1n"
+   }
+  },
+  {
+   "id": "P4-TMT-D130",
+   "split": "dev",
+   "name": "DIANE-35",
+   "expect_ingredients": [
+    "cyproterone acetate + ethinylestradiol"
+   ],
+   "queries": {
+    "exact": "DIANE-35",
+    "label": "DIANE-35 2 mg + 35 mcg coated tablet",
+    "ocr": "diane-35"
+   }
+  },
+  {
+   "id": "P4-TMT-D131",
+   "split": "dev",
+   "name": "ALDRARAX",
+   "expect_ingredients": [
+    "hydroxyzine hydrochloride"
+   ],
+   "queries": {
+    "exact": "ALDRARAX",
+    "label": "ALDRARAX 10 mg tablet",
+    "ocr": "alrarax"
+   }
+  },
+  {
+   "id": "P4-TMT-D132",
+   "split": "dev",
+   "name": "SINNY",
+   "expect_ingredients": [
+    "hydroxyzine hydrochloride"
+   ],
+   "queries": {
+    "exact": "SINNY",
+    "label": "SINNY 10 mg tablet",
+    "ocr": "sinny"
+   }
+  },
+  {
+   "id": "P4-TMT-D133",
+   "split": "dev",
+   "name": "NABUMETONE COSMA",
+   "expect_ingredients": [
+    "nabumetone"
+   ],
+   "queries": {
+    "exact": "NABUMETONE COSMA",
+    "label": "NABUMETONE COSMA 500 mg film-coated tablet",
+    "ocr": "na8umetone cosma"
+   }
+  },
+  {
+   "id": "P4-TMT-D134",
+   "split": "dev",
+   "name": "BLC-GESIC",
+   "expect_ingredients": [
+    "paracetamol"
+   ],
+   "queries": {
+    "exact": "BLC-GESIC",
+    "label": "BLC-GESIC 500 mg tablet",
+    "ocr": "blc-gesic"
+   }
+  },
+  {
+   "id": "P4-TMT-D135",
+   "split": "dev",
+   "name": "DENASAL",
+   "expect_ingredients": [
+    "brompheniramine maleate + phenylephrine hydrochloride"
+   ],
+   "queries": {
+    "exact": "DENASAL",
+    "label": "DENASAL 4 mg + 5 mg tablet",
+    "ocr": "dena5al"
+   }
+  },
+  {
+   "id": "P4-TMT-D136",
+   "split": "dev",
+   "name": "MANITON",
+   "expect_ingredients": [
+    "mannitol"
+   ],
+   "queries": {
+    "exact": "MANITON",
+    "label": "MANITON 20 g/100 mL solution for infusion",
+    "ocr": "man1ton"
+   }
+  },
+  {
+   "id": "P4-TMT-D137",
+   "split": "dev",
+   "name": "METOBLOCK",
+   "expect_ingredients": [
+    "metoprolol"
+   ],
+   "queries": {
+    "exact": "METOBLOCK",
+    "label": "METOBLOCK 100 mg film-coated tablet",
+    "ocr": "met0block"
+   }
+  },
+  {
+   "id": "P4-TMT-D138",
+   "split": "dev",
+   "name": "MECZE",
+   "expect_ingredients": [
+    "mecobalamin"
+   ],
+   "queries": {
+    "exact": "MECZE",
+    "label": "MECZE 500 mcg film-coated tablet",
+    "ocr": "mecze"
+   }
+  },
+  {
+   "id": "P4-TMT-D139",
+   "split": "dev",
+   "name": "GENHEAL",
+   "expect_ingredients": [
+    "somatropin"
+   ],
+   "queries": {
+    "exact": "GENHEAL",
+    "label": "GENHEAL 4 iu powder for solution for injection",
+    "ocr": "geheal"
+   }
+  },
+  {
+   "id": "P4-TMT-D140",
+   "split": "dev",
+   "name": "CIFRAN OD 1000",
+   "expect_ingredients": [
+    "ciprofloxacin"
+   ],
+   "queries": {
+    "exact": "CIFRAN OD 1000",
+    "label": "CIFRAN OD 1000 1 g prolonged-release tablet",
+    "ocr": "ciran od 1000"
+   }
+  },
+  {
+   "id": "P4-TMT-D141",
+   "split": "dev",
+   "name": "PIOS",
+   "expect_ingredients": [
+    "gliclazide"
+   ],
+   "queries": {
+    "exact": "PIOS",
+    "label": "PIOS 80 mg tablet",
+    "ocr": "pios"
+   }
+  },
+  {
+   "id": "P4-TMT-D142",
+   "split": "dev",
+   "name": "MALUM",
+   "expect_ingredients": [
+    "domperidone"
+   ],
+   "queries": {
+    "exact": "MALUM",
+    "label": "MALUM 10 mg tablet",
+    "ocr": "malum"
+   }
+  },
+  {
+   "id": "P4-TMT-D143",
+   "split": "dev",
+   "name": "AMIPAREN-10",
+   "expect_ingredients": [
+    "amino acids"
+   ],
+   "queries": {
+    "exact": "AMIPAREN-10",
+    "label": "AMIPAREN-10 10 g/100 mL solution for infusion",
+    "ocr": "am1paren-10"
+   }
+  },
+  {
+   "id": "P4-TMT-D144",
+   "split": "dev",
+   "name": "CINNA",
+   "expect_ingredients": [
+    "cinnarizine"
+   ],
+   "queries": {
+    "exact": "CINNA",
+    "label": "CINNA 25 mg tablet",
+    "ocr": "cinna"
+   }
+  },
+  {
+   "id": "P4-TMT-D145",
+   "split": "dev",
+   "name": "MEITHROMAX",
+   "expect_ingredients": [
+    "azithromycin"
+   ],
+   "queries": {
+    "exact": "MEITHROMAX",
+    "label": "MEITHROMAX 250 mg capsule, hard",
+    "ocr": "me1thromax"
+   }
+  },
+  {
+   "id": "P4-TMT-D146",
+   "split": "dev",
+   "name": "FELSTAR FORTE",
+   "expect_ingredients": [
+    "piroxicam"
+   ],
+   "queries": {
+    "exact": "FELSTAR FORTE",
+    "label": "FELSTAR FORTE 20 mg film-coated tablet",
+    "ocr": "fe1star forte"
+   }
+  },
+  {
+   "id": "P4-TMT-D147",
+   "split": "dev",
+   "name": "MALARONE",
+   "expect_ingredients": [
+    "atovaquone + proguanil hydrochloride"
+   ],
+   "queries": {
+    "exact": "MALARONE",
+    "label": "MALARONE 250 mg + 100 mg film-coated tablet",
+    "ocr": "ma1arone"
+   }
+  },
+  {
+   "id": "P4-TMT-D148",
+   "split": "dev",
+   "name": "SALICAP",
+   "expect_ingredients": [
+    "chlorphenamine maleate + paracetamol"
+   ],
+   "queries": {
+    "exact": "SALICAP",
+    "label": "SALICAP 4 mg + 325 mg capsule, hard",
+    "ocr": "sa1icap"
+   }
+  },
+  {
+   "id": "P4-TMT-D149",
+   "split": "dev",
+   "name": "B.O.S D",
+   "expect_ingredients": [
+    "glucosamine sulfate"
+   ],
+   "queries": {
+    "exact": "B.O.S D",
+    "label": "B.O.S D 500 mg capsule, hard",
+    "ocr": "b.o.s  d"
+   }
+  },
+  {
+   "id": "P4-TMT-D150",
+   "split": "dev",
+   "name": "FENOSUP LIDOSE",
+   "expect_ingredients": [
+    "fenofibrate"
+   ],
+   "queries": {
+    "exact": "FENOSUP LIDOSE",
+    "label": "FENOSUP LIDOSE 160 mg capsule, hard",
+    "ocr": "fen0sup lidose"
+   }
+  }
+ ],
+ "tmt_heldout": [
+  {
+   "id": "P4-TMT-H001",
+   "split": "heldout",
+   "name": "T-BUFFER",
+   "expect_ingredients": [
+    "tetracycline"
+   ],
+   "queries": {
+    "exact": "T-BUFFER",
+    "label": "T-BUFFER 250 mg capsule, hard",
+    "ocr": "t-bufer"
+   }
+  },
+  {
+   "id": "P4-TMT-H002",
+   "split": "heldout",
+   "name": "ZYNERIL 5",
+   "expect_ingredients": [
+    "enalapril maleate"
+   ],
+   "queries": {
+    "exact": "ZYNERIL 5",
+    "label": "ZYNERIL 5 5 mg tablet",
+    "ocr": "zyner1l 5"
+   }
+  },
+  {
+   "id": "P4-TMT-H003",
+   "split": "heldout",
+   "name": "STARSEPTIC PLUS",
+   "expect_ingredients": [
+    "cetrimide + chlorhexidine gluconate"
+   ],
+   "queries": {
+    "exact": "STARSEPTIC PLUS",
+    "label": "STARSEPTIC PLUS 15 g/100 mL + 1.5 g/100 mL cutaneous solution",
+    "ocr": "star5eptic plus"
+   }
+  },
+  {
+   "id": "P4-TMT-H004",
+   "split": "heldout",
+   "name": "PARADEINE",
+   "expect_ingredients": [
+    "codeine phosphate + paracetamol"
+   ],
+   "queries": {
+    "exact": "PARADEINE",
+    "label": "PARADEINE 15 mg + 300 mg tablet",
+    "ocr": "parade1ne"
+   }
+  },
+  {
+   "id": "P4-TMT-H005",
+   "split": "heldout",
+   "name": "APO-PENTOXIFYLLINE SR",
+   "expect_ingredients": [
+    "pentoxifylline"
+   ],
+   "queries": {
+    "exact": "APO-PENTOXIFYLLINE SR",
+    "label": "APO-PENTOXIFYLLINE SR 400 mg tablet",
+    "ocr": "apo-pent0xifylline sr"
+   }
+  },
+  {
+   "id": "P4-TMT-H006",
+   "split": "heldout",
+   "name": "SINGHA",
+   "expect_ingredients": [
+    "paracetamol"
+   ],
+   "queries": {
+    "exact": "SINGHA",
+    "label": "SINGHA 500 mg tablet",
+    "ocr": "sin6ha"
+   }
+  },
+  {
+   "id": "P4-TMT-H007",
+   "split": "heldout",
+   "name": "MEBAMOL",
+   "expect_ingredients": [
+    "methocarbamol"
+   ],
+   "queries": {
+    "exact": "MEBAMOL",
+    "label": "MEBAMOL 500 mg tablet",
+    "ocr": "me8amol"
+   }
+  },
+  {
+   "id": "P4-TMT-H008",
+   "split": "heldout",
+   "name": "AMOX 500 GUARDIAN",
+   "expect_ingredients": [
+    "amoxicillin"
+   ],
+   "queries": {
+    "exact": "AMOX 500 GUARDIAN",
+    "label": "AMOX 500 GUARDIAN 500 mg capsule, hard",
+    "ocr": "amox 500 guard1an"
+   }
+  },
+  {
+   "id": "P4-TMT-H009",
+   "split": "heldout",
+   "name": "CEPHALEX-125",
+   "expect_ingredients": [
+    "cefalexin"
+   ],
+   "queries": {
+    "exact": "CEPHALEX-125",
+    "label": "CEPHALEX-125 125 mg/5 mL powder for oral suspension",
+    "ocr": "cepha1ex-125"
+   }
+  },
+  {
+   "id": "P4-TMT-H010",
+   "split": "heldout",
+   "name": "DEXTRO",
+   "expect_ingredients": [
+    "chlorphenamine maleate + dextromethorphan hydrobromide + guaifenesin",
+    "chlorphenamine maleate + dextromethorphan hydrobromide + terpin hydrate",
+    "dextromethorphan hydrobromide"
+   ],
+   "queries": {
+    "exact": "DEXTRO",
+    "label": "DEXTRO 2 mg + 10 mg + 125 mg tablet",
+    "ocr": "detro"
+   }
+  },
+  {
+   "id": "P4-TMT-H011",
+   "split": "heldout",
+   "name": "PONDNEBIUM-5",
+   "expect_ingredients": [
+    "chlordiazepoxide"
+   ],
+   "queries": {
+    "exact": "PONDNEBIUM-5",
+    "label": "PONDNEBIUM-5 5 mg coated tablet",
+    "ocr": "pondne8ium-5"
+   }
+  },
+  {
+   "id": "P4-TMT-H012",
+   "split": "heldout",
+   "name": "COLCHILY",
+   "expect_ingredients": [
+    "colchicine"
+   ],
+   "queries": {
+    "exact": "COLCHILY",
+    "label": "COLCHILY 600 mcg tablet",
+    "ocr": "co1chily"
+   }
+  },
+  {
+   "id": "P4-TMT-H013",
+   "split": "heldout",
+   "name": "SUNSTAN 250",
+   "expect_ingredients": [
+    "mefenamic acid"
+   ],
+   "queries": {
+    "exact": "SUNSTAN 250",
+    "label": "SUNSTAN 250 250 mg capsule, hard",
+    "ocr": "sun5tan 250"
+   }
+  },
+  {
+   "id": "P4-TMT-H014",
+   "split": "heldout",
+   "name": "LIDOCAINE HCL 2% U.S.P.",
+   "expect_ingredients": [
+    "lidocaine hydrochloride"
+   ],
+   "queries": {
+    "exact": "LIDOCAINE HCL 2% U.S.P.",
+    "label": "LIDOCAINE HCL 2% U.S.P. 2 g/100 mL solution for injection",
+    "ocr": "lid0caine hcl 2% u.s.p."
+   }
+  },
+  {
+   "id": "P4-TMT-H015",
+   "split": "heldout",
+   "name": "LCD IN TA LOTION",
+   "expect_ingredients": [
+    "coal tar + triamcinolone acetonide"
+   ],
+   "queries": {
+    "exact": "LCD IN TA LOTION",
+    "label": "LCD IN TA LOTION 5 g/100 mL + 20 mg/100 mL cutaneous solution",
+    "ocr": "lcd in ta lot1on"
+   }
+  },
+  {
+   "id": "P4-TMT-H016",
+   "split": "heldout",
+   "name": "BRONCHONYL EXPECTORANT",
+   "expect_ingredients": [
+    "guaifenesin + terbutaline sulfate"
+   ],
+   "queries": {
+    "exact": "BRONCHONYL EXPECTORANT",
+    "label": "BRONCHONYL EXPECTORANT 100 mg + 2.5 mg tablet",
+    "ocr": "bronchonyl expect0rant"
+   }
+  },
+  {
+   "id": "P4-TMT-H017",
+   "split": "heldout",
+   "name": "MUCOSOLVAN",
+   "expect_ingredients": [
+    "ambroxol hydrochloride"
+   ],
+   "queries": {
+    "exact": "MUCOSOLVAN",
+    "label": "MUCOSOLVAN 30 mg tablet",
+    "ocr": "muc0solvan"
+   }
+  },
+  {
+   "id": "P4-TMT-H018",
+   "split": "heldout",
+   "name": "TEPMIDINE-40",
+   "expect_ingredients": [
+    "famotidine"
+   ],
+   "queries": {
+    "exact": "TEPMIDINE-40",
+    "label": "TEPMIDINE-40 40 mg tablet",
+    "ocr": "tepm1dine-40"
+   }
+  },
+  {
+   "id": "P4-TMT-H019",
+   "split": "heldout",
+   "name": "CYCLOGEST",
+   "expect_ingredients": [
+    "progesterone"
+   ],
+   "queries": {
+    "exact": "CYCLOGEST",
+    "label": "CYCLOGEST 400 mg pessary",
+    "ocr": "cyc1ogest"
+   }
+  },
+  {
+   "id": "P4-TMT-H020",
+   "split": "heldout",
+   "name": "PACEP",
+   "expect_ingredients": [
+    "cefalexin"
+   ],
+   "queries": {
+    "exact": "PACEP",
+    "label": "PACEP 500 mg capsule, hard",
+    "ocr": "pacep"
+   }
+  },
+  {
+   "id": "P4-TMT-H021",
+   "split": "heldout",
+   "name": "LINA",
+   "expect_ingredients": [
+    "ethinylestradiol + levonorgestrel"
+   ],
+   "queries": {
+    "exact": "LINA",
+    "label": "LINA 20 mcg + 100 mcg film-coated tablet",
+    "ocr": "lina"
+   }
+  },
+  {
+   "id": "P4-TMT-H022",
+   "split": "heldout",
+   "name": "CLANOXY",
+   "expect_ingredients": [
+    "amoxicillin + clavulanic acid"
+   ],
+   "queries": {
+    "exact": "CLANOXY",
+    "label": "CLANOXY 250 mg + 125 mg film-coated tablet",
+    "ocr": "clan0xy"
+   }
+  },
+  {
+   "id": "P4-TMT-H023",
+   "split": "heldout",
+   "name": "TOFLEX 250 DRY",
+   "expect_ingredients": [
+    "cefalexin"
+   ],
+   "queries": {
+    "exact": "TOFLEX 250 DRY",
+    "label": "TOFLEX 250 DRY 250 mg/5 mL powder for oral suspension",
+    "ocr": "tof1ex 250 dry"
+   }
+  },
+  {
+   "id": "P4-TMT-H024",
+   "split": "heldout",
+   "name": "ULCIMET",
+   "expect_ingredients": [
+    "cimetidine"
+   ],
+   "queries": {
+    "exact": "ULCIMET",
+    "label": "ULCIMET 200 mg film-coated tablet",
+    "ocr": "ulc1met"
+   }
+  },
+  {
+   "id": "P4-TMT-H025",
+   "split": "heldout",
+   "name": "DARAX",
+   "expect_ingredients": [
+    "hydroxyzine hydrochloride"
+   ],
+   "queries": {
+    "exact": "DARAX",
+    "label": "DARAX 10 mg tablet",
+    "ocr": "darax"
+   }
+  },
+  {
+   "id": "P4-TMT-H026",
+   "split": "heldout",
+   "name": "FOMANIC",
+   "expect_ingredients": [
+    "mefenamic acid"
+   ],
+   "queries": {
+    "exact": "FOMANIC",
+    "label": "FOMANIC 250 mg capsule, hard",
+    "ocr": "foman1c"
+   }
+  },
+  {
+   "id": "P4-TMT-H027",
+   "split": "heldout",
+   "name": "BOOTS ACICLOVIR",
+   "expect_ingredients": [
+    "aciclovir"
+   ],
+   "queries": {
+    "exact": "BOOTS ACICLOVIR",
+    "label": "BOOTS ACICLOVIR 200 mg tablet",
+    "ocr": "boots ac1clovir"
+   }
+  },
+  {
+   "id": "P4-TMT-H028",
+   "split": "heldout",
+   "name": "DANZYME-5 (PINK)",
+   "expect_ingredients": [
+    "serratiopeptidase"
+   ],
+   "queries": {
+    "exact": "DANZYME-5 (PINK)",
+    "label": "DANZYME-5 (PINK) 5 mg gastro-resistant tablet",
+    "ocr": "dan2yme-5 (pink)"
+   }
+  },
+  {
+   "id": "P4-TMT-H029",
+   "split": "heldout",
+   "name": "NOOPROFEN-400",
+   "expect_ingredients": [
+    "ibuprofen"
+   ],
+   "queries": {
+    "exact": "NOOPROFEN-400",
+    "label": "NOOPROFEN-400 400 mg film-coated tablet",
+    "ocr": "no0profen-400"
+   }
+  },
+  {
+   "id": "P4-TMT-H030",
+   "split": "heldout",
+   "name": "FERTAMIN",
+   "expect_ingredients": [
+    "ferrous fumarate + multivitamins"
+   ],
+   "queries": {
+    "exact": "FERTAMIN",
+    "label": "FERTAMIN + film-coated tablet",
+    "ocr": "fertam1n"
+   }
+  },
+  {
+   "id": "P4-TMT-H031",
+   "split": "heldout",
+   "name": "SIDUOL",
+   "expect_ingredients": [
+    "rutoside, combinations"
+   ],
+   "queries": {
+    "exact": "SIDUOL",
+    "label": "SIDUOL capsule, hard",
+    "ocr": "sidu0l"
+   }
+  },
+  {
+   "id": "P4-TMT-H032",
+   "split": "heldout",
+   "name": "AMPAC 250",
+   "expect_ingredients": [
+    "ampicillin"
+   ],
+   "queries": {
+    "exact": "AMPAC 250",
+    "label": "AMPAC 250 250 mg capsule, hard",
+    "ocr": "ampac  250"
+   }
+  },
+  {
+   "id": "P4-TMT-H033",
+   "split": "heldout",
+   "name": "VITARA",
+   "expect_ingredients": [
+    "clindamycin",
+    "hydroquinone"
+   ],
+   "queries": {
+    "exact": "VITARA",
+    "label": "VITARA 1 g/100 mL cutaneous solution",
+    "ocr": "viara"
+   }
+  },
+  {
+   "id": "P4-TMT-H034",
+   "split": "heldout",
+   "name": "MEBEN",
+   "expect_ingredients": [
+    "mebendazole"
+   ],
+   "queries": {
+    "exact": "MEBEN",
+    "label": "MEBEN 100 mg tablet",
+    "ocr": "meben"
+   }
+  },
+  {
+   "id": "P4-TMT-H035",
+   "split": "heldout",
+   "name": "FLOXCIPRO 500",
+   "expect_ingredients": [
+    "ciprofloxacin"
+   ],
+   "queries": {
+    "exact": "FLOXCIPRO 500",
+    "label": "FLOXCIPRO 500 500 mg film-coated tablet",
+    "ocr": "fl0xcipro 500"
+   }
+  },
+  {
+   "id": "P4-TMT-H036",
+   "split": "heldout",
+   "name": "ACITAC",
+   "expect_ingredients": [
+    "ranitidine"
+   ],
+   "queries": {
+    "exact": "ACITAC",
+    "label": "ACITAC 25 mg/1 mL solution for injection",
+    "ocr": "ac1tac"
+   }
+  },
+  {
+   "id": "P4-TMT-H037",
+   "split": "heldout",
+   "name": "RESTYLANE TOUCH",
+   "expect_ingredients": [
+    "hyaluronic acid"
+   ],
+   "queries": {
+    "exact": "RESTYLANE TOUCH",
+    "label": "RESTYLANE TOUCH 20 mg/1 mL gel for injection",
+    "ocr": "re5tylane touch"
+   }
+  },
+  {
+   "id": "P4-TMT-H038",
+   "split": "heldout",
+   "name": "TULIPT",
+   "expect_ingredients": [
+    "ciprofloxacin"
+   ],
+   "queries": {
+    "exact": "TULIPT",
+    "label": "TULIPT 500 mg film-coated tablet",
+    "ocr": "tu1ipt"
+   }
+  },
+  {
+   "id": "P4-TMT-H039",
+   "split": "heldout",
+   "name": "MYCODERM-C",
+   "expect_ingredients": [
+    "clotrimazole"
+   ],
+   "queries": {
+    "exact": "MYCODERM-C",
+    "label": "MYCODERM-C 1 g/100 g cutaneous powder",
+    "ocr": "myc0derm-c"
+   }
+  },
+  {
+   "id": "P4-TMT-H040",
+   "split": "heldout",
+   "name": "FLUOCINOLONE IN ORABASE",
+   "expect_ingredients": [
+    "fluocinolone acetonide"
+   ],
+   "queries": {
+    "exact": "FLUOCINOLONE IN ORABASE",
+    "label": "FLUOCINOLONE IN ORABASE 100 mg/100 g oromucosal paste",
+    "ocr": "flu0cinolone in orabase"
+   }
+  },
+  {
+   "id": "P4-TMT-H041",
+   "split": "heldout",
+   "name": "CORSONE",
+   "expect_ingredients": [
+    "hydrocortisone"
+   ],
+   "queries": {
+    "exact": "CORSONE",
+    "label": "CORSONE 1 g/100 g cream",
+    "ocr": "cor5one"
+   }
+  },
+  {
+   "id": "P4-TMT-H042",
+   "split": "heldout",
+   "name": "NEOCYTE",
+   "expect_ingredients": [
+    "filgrastim"
+   ],
+   "queries": {
+    "exact": "NEOCYTE",
+    "label": "NEOCYTE 300 mcg/1 mL solution for injection/infusion",
+    "ocr": "ne0cyte"
+   }
+  },
+  {
+   "id": "P4-TMT-H043",
+   "split": "heldout",
+   "name": "NATURAL BETACAR-15",
+   "expect_ingredients": [
+    "natural betacarotene"
+   ],
+   "queries": {
+    "exact": "NATURAL BETACAR-15",
+    "label": "NATURAL BETACAR-15 15 mg capsule, soft",
+    "ocr": "naural betacar-15"
+   }
+  },
+  {
+   "id": "P4-TMT-H044",
+   "split": "heldout",
+   "name": "CAFFOX",
+   "expect_ingredients": [
+    "caffeine + ergotamine tartrate"
+   ],
+   "queries": {
+    "exact": "CAFFOX",
+    "label": "CAFFOX 100 mg + 1 mg tablet",
+    "ocr": "caff0x"
+   }
+  },
+  {
+   "id": "P4-TMT-H045",
+   "split": "heldout",
+   "name": "OBIMIN-AF",
+   "expect_ingredients": [
+    "multivitamins"
+   ],
+   "queries": {
+    "exact": "OBIMIN-AF",
+    "label": "OBIMIN-AF coated tablet",
+    "ocr": "ob1min-af"
+   }
+  },
+  {
+   "id": "P4-TMT-H046",
+   "split": "heldout",
+   "name": "ZENZERA LIVA",
+   "expect_ingredients": [
+    "praziquantel"
+   ],
+   "queries": {
+    "exact": "ZENZERA LIVA",
+    "label": "ZENZERA LIVA 600 mg film-coated tablet",
+    "ocr": "zen2era liva"
+   }
+  },
+  {
+   "id": "P4-TMT-H047",
+   "split": "heldout",
+   "name": "PHIHAMOX-250",
+   "expect_ingredients": [
+    "amoxicillin"
+   ],
+   "queries": {
+    "exact": "PHIHAMOX-250",
+    "label": "PHIHAMOX-250 250 mg capsule, hard",
+    "ocr": "ph1hamox-250"
+   }
+  },
+  {
+   "id": "P4-TMT-H048",
+   "split": "heldout",
+   "name": "METHYSOL",
+   "expect_ingredients": [
+    "thiamazole"
+   ],
+   "queries": {
+    "exact": "METHYSOL",
+    "label": "METHYSOL 5 mg tablet",
+    "ocr": "methy5ol"
+   }
+  },
+  {
+   "id": "P4-TMT-H049",
+   "split": "heldout",
+   "name": "N-TOLIN",
+   "expect_ingredients": [
+    "salbutamol"
+   ],
+   "queries": {
+    "exact": "N-TOLIN",
+    "label": "N-TOLIN 2 mg tablet",
+    "ocr": "n-tolin"
+   }
+  },
+  {
+   "id": "P4-TMT-H050",
+   "split": "heldout",
+   "name": "GEMOX 600",
+   "expect_ingredients": [
+    "gemfibrozil"
+   ],
+   "queries": {
+    "exact": "GEMOX 600",
+    "label": "GEMOX 600 600 mg capsule, hard",
+    "ocr": "gemox  600"
+   }
+  },
+  {
+   "id": "P4-TMT-H051",
+   "split": "heldout",
+   "name": "MICONAZOLE CREAM",
+   "expect_ingredients": [
+    "miconazole nitrate"
+   ],
+   "queries": {
+    "exact": "MICONAZOLE CREAM",
+    "label": "MICONAZOLE CREAM 2 g/100 g cream",
+    "ocr": "mic0nazole cream"
+   }
+  },
+  {
+   "id": "P4-TMT-H052",
+   "split": "heldout",
+   "name": "METISON",
+   "expect_ingredients": [
+    "cisapride"
+   ],
+   "queries": {
+    "exact": "METISON",
+    "label": "METISON 5 mg tablet",
+    "ocr": "met1son"
+   }
+  },
+  {
+   "id": "P4-TMT-H053",
+   "split": "heldout",
+   "name": "VEPESID K50",
+   "expect_ingredients": [
+    "etoposide"
+   ],
+   "queries": {
+    "exact": "VEPESID K50",
+    "label": "VEPESID K50 50 mg capsule, soft",
+    "ocr": "vepe5id k50"
+   }
+  },
+  {
+   "id": "P4-TMT-H054",
+   "split": "heldout",
+   "name": "PIPBROVOL",
+   "expect_ingredients": [
+    "bromhexine hydrochloride"
+   ],
+   "queries": {
+    "exact": "PIPBROVOL",
+    "label": "PIPBROVOL 4 mg/5 mL syrup",
+    "ocr": "pip8rovol"
+   }
+  },
+  {
+   "id": "P4-TMT-H055",
+   "split": "heldout",
+   "name": "CLOFEC",
+   "expect_ingredients": [
+    "diclofenac sodium"
+   ],
+   "queries": {
+    "exact": "CLOFEC",
+    "label": "CLOFEC 25 mg gastro-resistant tablet",
+    "ocr": "cl0fec"
+   }
+  },
+  {
+   "id": "P4-TMT-H056",
+   "split": "heldout",
+   "name": "ECODERM",
+   "expect_ingredients": [
+    "econazole nitrate + triamcinolone acetonide"
+   ],
+   "queries": {
+    "exact": "ECODERM",
+    "label": "ECODERM 1 g/100 g + 100 mg/100 g cream",
+    "ocr": "ec0derm"
+   }
+  },
+  {
+   "id": "P4-TMT-H057",
+   "split": "heldout",
+   "name": "SALICYLIC ACID + BETAMETHASONE",
+   "expect_ingredients": [
+    "betamethasone valerate + salicylic acid"
+   ],
+   "queries": {
+    "exact": "SALICYLIC ACID + BETAMETHASONE",
+    "label": "SALICYLIC ACID + BETAMETHASONE 100 mg/100 g + 10 g/100 g cream",
+    "ocr": "salicylic acid + betametha5one"
+   }
+  },
+  {
+   "id": "P4-TMT-H058",
+   "split": "heldout",
+   "name": "M.AMMON CARB ET.SENEGAE",
+   "expect_ingredients": [
+    "ammonium carbonate + senega tincture"
+   ],
+   "queries": {
+    "exact": "M.AMMON CARB ET.SENEGAE",
+    "label": "M.AMMON CARB ET.SENEGAE 800 mg/100 mL + 6.66 mL/100 mL oral liquid",
+    "ocr": "m.ammon carb et.sene6ae"
+   }
+  },
+  {
+   "id": "P4-TMT-H059",
+   "split": "heldout",
+   "name": "ERASIT",
+   "expect_ingredients": [
+    "albendazole"
+   ],
+   "queries": {
+    "exact": "ERASIT",
+    "label": "ERASIT 200 mg film-coated tablet",
+    "ocr": "era5it"
+   }
+  },
+  {
+   "id": "P4-TMT-H060",
+   "split": "heldout",
+   "name": "MERISLON",
+   "expect_ingredients": [
+    "betahistine mesilate"
+   ],
+   "queries": {
+    "exact": "MERISLON",
+    "label": "MERISLON 12 mg tablet",
+    "ocr": "mer1slon"
+   }
+  },
+  {
+   "id": "P4-TMT-H061",
+   "split": "heldout",
+   "name": "FABRAZYME",
+   "expect_ingredients": [
+    "agalsidase beta"
+   ],
+   "queries": {
+    "exact": "FABRAZYME",
+    "label": "FABRAZYME 35 mg powder for concentrate for solution for infusion",
+    "ocr": "fa8razyme"
+   }
+  },
+  {
+   "id": "P4-TMT-H062",
+   "split": "heldout",
+   "name": "BROMAFED",
+   "expect_ingredients": [
+    "brompheniramine maleate + pseudoephedrine hydrochloride"
+   ],
+   "queries": {
+    "exact": "BROMAFED",
+    "label": "BROMAFED 4 mg + 60 mg tablet",
+    "ocr": "br0mafed"
+   }
+  },
+  {
+   "id": "P4-TMT-H063",
+   "split": "heldout",
+   "name": "MED-BUTAZONE",
+   "expect_ingredients": [
+    "phenylbutazone"
+   ],
+   "queries": {
+    "exact": "MED-BUTAZONE",
+    "label": "MED-BUTAZONE 100 mg coated tablet",
+    "ocr": "med-buta2one"
+   }
+  },
+  {
+   "id": "P4-TMT-H064",
+   "split": "heldout",
+   "name": "TILNOXCAM",
+   "expect_ingredients": [
+    "tenoxicam"
+   ],
+   "queries": {
+    "exact": "TILNOXCAM",
+    "label": "TILNOXCAM 20 mg film-coated tablet",
+    "ocr": "ti1noxcam"
+   }
+  },
+  {
+   "id": "P4-TMT-H065",
+   "split": "heldout",
+   "name": "GLUCOSA-500",
+   "expect_ingredients": [
+    "glucosamine sulfate"
+   ],
+   "queries": {
+    "exact": "GLUCOSA-500",
+    "label": "GLUCOSA-500 500 mg capsule, hard",
+    "ocr": "gluc0sa-500"
+   }
+  },
+  {
+   "id": "P4-TMT-H066",
+   "split": "heldout",
+   "name": "COLPOCIN-T",
+   "expect_ingredients": [
+    "metronidazole"
+   ],
+   "queries": {
+    "exact": "COLPOCIN-T",
+    "label": "COLPOCIN-T 500 mg/100 mL solution for infusion",
+    "ocr": "co1pocin-t"
+   }
+  },
+  {
+   "id": "P4-TMT-H067",
+   "split": "heldout",
+   "name": "XALINEX",
+   "expect_ingredients": [
+    "oxaliplatin"
+   ],
+   "queries": {
+    "exact": "XALINEX",
+    "label": "XALINEX 50 mg powder for solution for infusion",
+    "ocr": "xa1inex"
+   }
+  },
+  {
+   "id": "P4-TMT-H068",
+   "split": "heldout",
+   "name": "RHINOPHEN-C ELIXIR",
+   "expect_ingredients": [
+    "ascorbic acid + brompheniramine maleate"
+   ],
+   "queries": {
+    "exact": "RHINOPHEN-C ELIXIR",
+    "label": "RHINOPHEN-C ELIXIR 50 mg/5 mL + 2 mg/5 mL oral solution",
+    "ocr": "rh1nophen-c elixir"
+   }
+  },
+  {
+   "id": "P4-TMT-H069",
+   "split": "heldout",
+   "name": "TENSIDOL",
+   "expect_ingredients": [
+    "haloperidol"
+   ],
+   "queries": {
+    "exact": "TENSIDOL",
+    "label": "TENSIDOL 10 mg tablet",
+    "ocr": "ten5idol"
+   }
+  },
+  {
+   "id": "P4-TMT-H070",
+   "split": "heldout",
+   "name": "CLOMACIN",
+   "expect_ingredients": [
+    "clotrimazole"
+   ],
+   "queries": {
+    "exact": "CLOMACIN",
+    "label": "CLOMACIN 1 g/100 g cream",
+    "ocr": "cl0macin"
+   }
+  },
+  {
+   "id": "P4-TMT-H071",
+   "split": "heldout",
+   "name": "MINOX IRIS",
+   "expect_ingredients": [
+    "minoxidil"
+   ],
+   "queries": {
+    "exact": "MINOX IRIS",
+    "label": "MINOX IRIS 2 g/100 mL cutaneous solution",
+    "ocr": "minox  iris"
+   }
+  },
+  {
+   "id": "P4-TMT-H072",
+   "split": "heldout",
+   "name": "BIOYETIN",
+   "expect_ingredients": [
+    "epoetin alfa"
+   ],
+   "queries": {
+    "exact": "BIOYETIN",
+    "label": "BIOYETIN 4000 iu powder and solvent for solution for injection",
+    "ocr": "bi0yetin"
+   }
+  },
+  {
+   "id": "P4-TMT-H073",
+   "split": "heldout",
+   "name": "VARICELLA VACCINE-GCC",
+   "expect_ingredients": [
+    "varicella zoster, live attenuated"
+   ],
+   "queries": {
+    "exact": "VARICELLA VACCINE-GCC",
+    "label": "VARICELLA VACCINE-GCC 1400 pfu powder and solvent for solution for injection",
+    "ocr": "var1cella vaccine-gcc"
+   }
+  },
+  {
+   "id": "P4-TMT-H074",
+   "split": "heldout",
+   "name": "EFAMAT 200",
+   "expect_ingredients": [
+    "efavirenz"
+   ],
+   "queries": {
+    "exact": "EFAMAT 200",
+    "label": "EFAMAT 200 200 mg film-coated tablet",
+    "ocr": "efmat 200"
+   }
+  },
+  {
+   "id": "P4-TMT-H075",
+   "split": "heldout",
+   "name": "TOPO",
+   "expect_ingredients": [
+    "etoposide"
+   ],
+   "queries": {
+    "exact": "TOPO",
+    "label": "TOPO 100 mg/5 mL concentrate for solution for infusion",
+    "ocr": "topo"
+   }
+  },
+  {
+   "id": "P4-TMT-H076",
+   "split": "heldout",
+   "name": "POLYDOL PF",
+   "expect_ingredients": [
+    "orphenadrine citrate + paracetamol"
+   ],
+   "queries": {
+    "exact": "POLYDOL PF",
+    "label": "POLYDOL PF 30 mg + 500 mg film-coated tablet",
+    "ocr": "po1ydol pf"
+   }
+  },
+  {
+   "id": "P4-TMT-H077",
+   "split": "heldout",
+   "name": "COX-M",
+   "expect_ingredients": [
+    "methyltestosterone"
+   ],
+   "queries": {
+    "exact": "COX-M",
+    "label": "COX-M 10 mg coated tablet",
+    "ocr": "cox-m"
+   }
+  },
+  {
+   "id": "P4-TMT-H078",
+   "split": "heldout",
+   "name": "K.B. SYRUP",
+   "expect_ingredients": [
+    "ammonium chloride + sodium citrate"
+   ],
+   "queries": {
+    "exact": "K.B. SYRUP",
+    "label": "K.B. SYRUP 110 mg/5 mL + 125 mg/5 mL oral solution",
+    "ocr": "k.b.  syrup"
+   }
+  },
+  {
+   "id": "P4-TMT-H079",
+   "split": "heldout",
+   "name": "RIGOCIN",
+   "expect_ingredients": [
+    "rifampicin"
+   ],
+   "queries": {
+    "exact": "RIGOCIN",
+    "label": "RIGOCIN 300 mg capsule, hard",
+    "ocr": "ri6ocin"
+   }
+  },
+  {
+   "id": "P4-TMT-H080",
+   "split": "heldout",
+   "name": "PIPPEN-200",
+   "expect_ingredients": [
+    "ibuprofen"
+   ],
+   "queries": {
+    "exact": "PIPPEN-200",
+    "label": "PIPPEN-200 200 mg film-coated tablet",
+    "ocr": "pipen-200"
+   }
+  },
+  {
+   "id": "P4-TMT-H081",
+   "split": "heldout",
+   "name": "CUP-CO",
+   "expect_ingredients": [
+    "chlorphenamine maleate + dextromethorphan hydrobromide + paracetamol + phenylpropanolamine"
+   ],
+   "queries": {
+    "exact": "CUP-CO",
+    "label": "CUP-CO 1 mg/5 mL + 10 mg/5 mL + 120 mg/5 mL + 6.25 mg/5 mL syrup",
+    "ocr": "cup-co"
+   }
+  },
+  {
+   "id": "P4-TMT-H082",
+   "split": "heldout",
+   "name": "DEXTROSE 5% IN SODIUM CHLORIDE 0.3%",
+   "expect_ingredients": [
+    "dextrose + sodium chloride"
+   ],
+   "queries": {
+    "exact": "DEXTROSE 5% IN SODIUM CHLORIDE 0.3%",
+    "label": "DEXTROSE 5% IN SODIUM CHLORIDE 0.3% 5 g/100 mL + 300 mg/100 mL solution for infusion",
+    "ocr": "dextr0se 5% in sodium chloride 0.3%"
+   }
+  },
+  {
+   "id": "P4-TMT-H083",
+   "split": "heldout",
+   "name": "PEKQUINE",
+   "expect_ingredients": [
+    "chloroquine phosphate + lidocaine"
+   ],
+   "queries": {
+    "exact": "PEKQUINE",
+    "label": "PEKQUINE 200 mg/5 mL + 50 mg/5 mL solution for injection",
+    "ocr": "pekqu1ne"
+   }
+  },
+  {
+   "id": "P4-TMT-H084",
+   "split": "heldout",
+   "name": "KENTRA 500",
+   "expect_ingredients": [
+    "tetracycline"
+   ],
+   "queries": {
+    "exact": "KENTRA 500",
+    "label": "KENTRA 500 500 mg capsule, hard",
+    "ocr": "ketra 500"
+   }
+  },
+  {
+   "id": "P4-TMT-H085",
+   "split": "heldout",
+   "name": "SMW. CONC",
+   "expect_ingredients": [
+    "chloroxylenol"
+   ],
+   "queries": {
+    "exact": "SMW. CONC",
+    "label": "SMW. CONC 7.44 g/100 mL gargle/mouthwash",
+    "ocr": "smw.  conc"
+   }
+  },
+  {
+   "id": "P4-TMT-H086",
+   "split": "heldout",
+   "name": "MED-PHENAZO",
+   "expect_ingredients": [
+    "phenazopyridine"
+   ],
+   "queries": {
+    "exact": "MED-PHENAZO",
+    "label": "MED-PHENAZO 100 mg coated tablet",
+    "ocr": "med-phena2o"
+   }
+  },
+  {
+   "id": "P4-TMT-H087",
+   "split": "heldout",
+   "name": "OXETINE 20",
+   "expect_ingredients": [
+    "fluoxetine"
+   ],
+   "queries": {
+    "exact": "OXETINE 20",
+    "label": "OXETINE 20 20 mg capsule, hard",
+    "ocr": "oxet1ne 20"
+   }
+  },
+  {
+   "id": "P4-TMT-H088",
+   "split": "heldout",
+   "name": "PANADOL ACTIFAST",
+   "expect_ingredients": [
+    "paracetamol"
+   ],
+   "queries": {
+    "exact": "PANADOL ACTIFAST",
+    "label": "PANADOL ACTIFAST 500 mg film-coated tablet",
+    "ocr": "panadol act1fast"
+   }
+  },
+  {
+   "id": "P4-TMT-H089",
+   "split": "heldout",
+   "name": "RAMADOL-100",
+   "expect_ingredients": [
+    "tramadol hydrochloride"
+   ],
+   "queries": {
+    "exact": "RAMADOL-100",
+    "label": "RAMADOL-100 100 mg tablet",
+    "ocr": "ramad0l-100"
+   }
+  },
+  {
+   "id": "P4-TMT-H090",
+   "split": "heldout",
+   "name": "DRIED FACTOR VIII",
+   "expect_ingredients": [
+    "octocog alfa"
+   ],
+   "queries": {
+    "exact": "DRIED FACTOR VIII",
+    "label": "DRIED FACTOR VIII 250 iu powder for solution for injection",
+    "ocr": "dried fact0r viii"
+   }
+  },
+  {
+   "id": "P4-TMT-H091",
+   "split": "heldout",
+   "name": "HALOX 10",
+   "expect_ingredients": [
+    "haloperidol"
+   ],
+   "queries": {
+    "exact": "HALOX 10",
+    "label": "HALOX 10 10 mg tablet",
+    "ocr": "halox  10"
+   }
+  },
+  {
+   "id": "P4-TMT-H092",
+   "split": "heldout",
+   "name": "TENPRESS 50",
+   "expect_ingredients": [
+    "atenolol"
+   ],
+   "queries": {
+    "exact": "TENPRESS 50",
+    "label": "TENPRESS 50 50 mg film-coated tablet",
+    "ocr": "tenpre5s 50"
+   }
+  },
+  {
+   "id": "P4-TMT-H093",
+   "split": "heldout",
+   "name": "UROKA",
+   "expect_ingredients": [
+    "dutasteride"
+   ],
+   "queries": {
+    "exact": "UROKA",
+    "label": "UROKA 500 mcg capsule, soft",
+    "ocr": "uroka"
+   }
+  },
+  {
+   "id": "P4-TMT-H094",
+   "split": "heldout",
+   "name": "PARA WITH CODEINE 15",
+   "expect_ingredients": [
+    "codeine phosphate + paracetamol"
+   ],
+   "queries": {
+    "exact": "PARA WITH CODEINE 15",
+    "label": "PARA WITH CODEINE 15 15 mg + 300 mg tablet",
+    "ocr": "para with code1ne 15"
+   }
+  },
+  {
+   "id": "P4-TMT-H095",
+   "split": "heldout",
+   "name": "CD-24 ORALZEP",
+   "expect_ingredients": [
+    "chlorhexidine"
+   ],
+   "queries": {
+    "exact": "CD-24 ORALZEP",
+    "label": "CD-24 ORALZEP 120 mg/100 mL mouthwash",
+    "ocr": "cd-24 ora1zep"
+   }
+  },
+  {
+   "id": "P4-TMT-H096",
+   "split": "heldout",
+   "name": "RELENZA",
+   "expect_ingredients": [
+    "zanamivir"
+   ],
+   "queries": {
+    "exact": "RELENZA",
+    "label": "RELENZA 5 mg/1 dose inhalation powder, pre-dispensed",
+    "ocr": "re1enza"
+   }
+  },
+  {
+   "id": "P4-TMT-H097",
+   "split": "heldout",
+   "name": "ARPIMUNE ME (100)",
+   "expect_ingredients": [
+    "ciclosporin"
+   ],
+   "queries": {
+    "exact": "ARPIMUNE ME (100)",
+    "label": "ARPIMUNE ME (100) 100 mg capsule, soft",
+    "ocr": "arp1mune me (100)"
+   }
+  },
+  {
+   "id": "P4-TMT-H098",
+   "split": "heldout",
+   "name": "BUFIEN",
+   "expect_ingredients": [
+    "ibuprofen"
+   ],
+   "queries": {
+    "exact": "BUFIEN",
+    "label": "BUFIEN 200 mg film-coated tablet",
+    "ocr": "buf1en"
+   }
+  },
+  {
+   "id": "P4-TMT-H099",
+   "split": "heldout",
+   "name": "ACCIN 2",
+   "expect_ingredients": [
+    "tretinoin"
+   ],
+   "queries": {
+    "exact": "ACCIN 2",
+    "label": "ACCIN 2 50 mg/100 g cream",
+    "ocr": "accin  2"
+   }
+  },
+  {
+   "id": "P4-TMT-H100",
+   "split": "heldout",
+   "name": "APAMID",
+   "expect_ingredients": [
+    "glipizide"
+   ],
+   "queries": {
+    "exact": "APAMID",
+    "label": "APAMID 5 mg tablet",
+    "ocr": "apam1d"
+   }
+  },
+  {
+   "id": "P4-TMT-H101",
+   "split": "heldout",
+   "name": "FARMARS NORFLOXACIN 400",
+   "expect_ingredients": [
+    "norfloxacin"
+   ],
+   "queries": {
+    "exact": "FARMARS NORFLOXACIN 400",
+    "label": "FARMARS NORFLOXACIN 400 400 mg film-coated tablet",
+    "ocr": "farmars norf1oxacin 400"
+   }
+  },
+  {
+   "id": "P4-TMT-H102",
+   "split": "heldout",
+   "name": "FOBANCORT",
+   "expect_ingredients": [
+    "betamethasone dipropionate + fusidic acid"
+   ],
+   "queries": {
+    "exact": "FOBANCORT",
+    "label": "FOBANCORT 64 mg/100 g + 2 g/100 g cream",
+    "ocr": "fo8ancort"
+   }
+  },
+  {
+   "id": "P4-TMT-H103",
+   "split": "heldout",
+   "name": "SORDASE",
+   "expect_ingredients": [
+    "serratiopeptidase"
+   ],
+   "queries": {
+    "exact": "SORDASE",
+    "label": "SORDASE 5 mg film-coated tablet",
+    "ocr": "sorda5e"
+   }
+  },
+  {
+   "id": "P4-TMT-H104",
+   "split": "heldout",
+   "name": "COROC-150",
+   "expect_ingredients": [
+    "roxithromycin"
+   ],
+   "queries": {
+    "exact": "COROC-150",
+    "label": "COROC-150 150 mg film-coated tablet",
+    "ocr": "coroc-150"
+   }
+  },
+  {
+   "id": "P4-TMT-H105",
+   "split": "heldout",
+   "name": "ISOTREX",
+   "expect_ingredients": [
+    "isotretinoin"
+   ],
+   "queries": {
+    "exact": "ISOTREX",
+    "label": "ISOTREX 100 mg/100 g cream",
+    "ocr": "is0trex"
+   }
+  },
+  {
+   "id": "P4-TMT-H106",
+   "split": "heldout",
+   "name": "SANODRYL",
+   "expect_ingredients": [
+    "ammonium chloride + diphenhydramine hydrochloride"
+   ],
+   "queries": {
+    "exact": "SANODRYL",
+    "label": "SANODRYL 125 mg/5 mL + 12.5 mg/5 mL syrup",
+    "ocr": "san0dryl"
+   }
+  },
+  {
+   "id": "P4-TMT-H107",
+   "split": "heldout",
+   "name": "ZYTIZINE",
+   "expect_ingredients": [
+    "cetirizine hydrochloride"
+   ],
+   "queries": {
+    "exact": "ZYTIZINE",
+    "label": "ZYTIZINE 5 mg/5 mL syrup",
+    "ocr": "zyt1zine"
+   }
+  },
+  {
+   "id": "P4-TMT-H108",
+   "split": "heldout",
+   "name": "CENA",
+   "expect_ingredients": [
+    "miconazole nitrate + triamcinolone acetonide"
+   ],
+   "queries": {
+    "exact": "CENA",
+    "label": "CENA 2 g/100 g + 200 mg/100 g cream",
+    "ocr": "cena"
+   }
+  },
+  {
+   "id": "P4-TMT-H109",
+   "split": "heldout",
+   "name": "PLATOL",
+   "expect_ingredients": [
+    "cisplatin"
+   ],
+   "queries": {
+    "exact": "PLATOL",
+    "label": "PLATOL 10 mg/10 mL concentrate for solution for infusion",
+    "ocr": "plat0l"
+   }
+  },
+  {
+   "id": "P4-TMT-H110",
+   "split": "heldout",
+   "name": "TRICOCIDE",
+   "expect_ingredients": [
+    "metronidazole"
+   ],
+   "queries": {
+    "exact": "TRICOCIDE",
+    "label": "TRICOCIDE 200 mg tablet",
+    "ocr": "tr1cocide"
+   }
+  },
+  {
+   "id": "P4-TMT-H111",
+   "split": "heldout",
+   "name": "GAPIZIDE",
+   "expect_ingredients": [
+    "glipizide"
+   ],
+   "queries": {
+    "exact": "GAPIZIDE",
+    "label": "GAPIZIDE 5 mg tablet",
+    "ocr": "gap1zide"
+   }
+  },
+  {
+   "id": "P4-TMT-H112",
+   "split": "heldout",
+   "name": "NEOLEXIN 500",
+   "expect_ingredients": [
+    "cefalexin"
+   ],
+   "queries": {
+    "exact": "NEOLEXIN 500",
+    "label": "NEOLEXIN 500 500 mg capsule, hard",
+    "ocr": "ne0lexin 500"
+   }
+  },
+  {
+   "id": "P4-TMT-H113",
+   "split": "heldout",
+   "name": "NEROXIN-300",
+   "expect_ingredients": [
+    "roxithromycin"
+   ],
+   "queries": {
+    "exact": "NEROXIN-300",
+    "label": "NEROXIN-300 300 mg film-coated tablet",
+    "ocr": "ner0xin-300"
+   }
+  },
+  {
+   "id": "P4-TMT-H114",
+   "split": "heldout",
+   "name": "ARTHROXY",
+   "expect_ingredients": [
+    "piroxicam"
+   ],
+   "queries": {
+    "exact": "ARTHROXY",
+    "label": "ARTHROXY 20 mg capsule, hard",
+    "ocr": "arthr0xy"
+   }
+  },
+  {
+   "id": "P4-TMT-H115",
+   "split": "heldout",
+   "name": "MINOXIDIL MILKY",
+   "expect_ingredients": [
+    "minoxidil"
+   ],
+   "queries": {
+    "exact": "MINOXIDIL MILKY",
+    "label": "MINOXIDIL MILKY 5 g/100 mL cutaneous emulsion",
+    "ocr": "min0xidil milky"
+   }
+  },
+  {
+   "id": "P4-TMT-H116",
+   "split": "heldout",
+   "name": "G-PRIM",
+   "expect_ingredients": [
+    "sulfamethoxazole + trimethoprim"
+   ],
+   "queries": {
+    "exact": "G-PRIM",
+    "label": "G-PRIM 400 mg + 80 mg tablet",
+    "ocr": "g-prim"
+   }
+  },
+  {
+   "id": "P4-TMT-H117",
+   "split": "heldout",
+   "name": "LCD 3% IN TA 0.1% CREAM",
+   "expect_ingredients": [
+    "coal tar + triamcinolone acetonide"
+   ],
+   "queries": {
+    "exact": "LCD 3% IN TA 0.1% CREAM",
+    "label": "LCD 3% IN TA 0.1% CREAM 3 mL/100 g + 100 mg/100 g cream",
+    "ocr": "lcd  3%  in  ta  0.1%  cream"
+   }
+  },
+  {
+   "id": "P4-TMT-H118",
+   "split": "heldout",
+   "name": "BLASTOFERON",
+   "expect_ingredients": [
+    "interferon beta-1a"
+   ],
+   "queries": {
+    "exact": "BLASTOFERON",
+    "label": "BLASTOFERON 22 mcg/0.5 mL solution for injection",
+    "ocr": "bla5toferon"
+   }
+  },
+  {
+   "id": "P4-TMT-H119",
+   "split": "heldout",
+   "name": "AMPICAN",
+   "expect_ingredients": [
+    "ampicillin"
+   ],
+   "queries": {
+    "exact": "AMPICAN",
+    "label": "AMPICAN 500 mg capsule, hard",
+    "ocr": "amp1can"
+   }
+  },
+  {
+   "id": "P4-TMT-H120",
+   "split": "heldout",
+   "name": "MIVON",
+   "expect_ingredients": [
+    "mianserin"
+   ],
+   "queries": {
+    "exact": "MIVON",
+    "label": "MIVON 10 mg tablet",
+    "ocr": "mivon"
+   }
+  },
+  {
+   "id": "P4-TMT-H121",
+   "split": "heldout",
+   "name": "DALACIN",
+   "expect_ingredients": [
+    "clindamycin"
+   ],
+   "queries": {
+    "exact": "DALACIN",
+    "label": "DALACIN 150 mg capsule, hard",
+    "ocr": "da1acin"
+   }
+  },
+  {
+   "id": "P4-TMT-H122",
+   "split": "heldout",
+   "name": "FUNGIZONE EYE DROP 1.5",
+   "expect_ingredients": [
+    "amphotericin b"
+   ],
+   "queries": {
+    "exact": "FUNGIZONE EYE DROP 1.5",
+    "label": "FUNGIZONE EYE DROP 1.5 150 mg/100 mL eye drops, solution",
+    "ocr": "fun6izone eye drop 1.5"
+   }
+  },
+  {
+   "id": "P4-TMT-H123",
+   "split": "heldout",
+   "name": "CHLORHEXIDINE 2%",
+   "expect_ingredients": [
+    "chlorhexidine"
+   ],
+   "queries": {
+    "exact": "CHLORHEXIDINE 2%",
+    "label": "CHLORHEXIDINE 2% 2 mL/100 mL cutaneous solution",
+    "ocr": "ch1orhexidine 2%"
+   }
+  },
+  {
+   "id": "P4-TMT-H124",
+   "split": "heldout",
+   "name": "FOLI-PLUS",
+   "expect_ingredients": [
+    "ascorbic acid + calcium phosphate + cyanocobalamin + ferrous fumarate + folic acid + nicotinamide + potassium iodide + riboflavin + thiamine mononitrate"
+   ],
+   "queries": {
+    "exact": "FOLI-PLUS",
+    "label": "FOLI-PLUS 20 mg + 100 mg + 5 mcg + 200 mg + 100 mcg + 10 mg + 170 mcg + 2 mg + 2 mg film-coated tablet",
+    "ocr": "foli-plus"
+   }
+  },
+  {
+   "id": "P4-TMT-H125",
+   "split": "heldout",
+   "name": "MIHEXINE",
+   "expect_ingredients": [
+    "bromhexine hydrochloride"
+   ],
+   "queries": {
+    "exact": "MIHEXINE",
+    "label": "MIHEXINE 8 mg tablet",
+    "ocr": "mihex1ne"
+   }
+  },
+  {
+   "id": "P4-TMT-H126",
+   "split": "heldout",
+   "name": "BEMOLAX",
+   "expect_ingredients": [
+    "bisacodyl"
+   ],
+   "queries": {
+    "exact": "BEMOLAX",
+    "label": "BEMOLAX 5 mg coated tablet",
+    "ocr": "bem0lax"
+   }
+  },
+  {
+   "id": "P4-TMT-H127",
+   "split": "heldout",
+   "name": "COSIC",
+   "expect_ingredients": [
+    "orphenadrine citrate + paracetamol"
+   ],
+   "queries": {
+    "exact": "COSIC",
+    "label": "COSIC 35 mg + 500 mg tablet",
+    "ocr": "cosic"
+   }
+  },
+  {
+   "id": "P4-TMT-H128",
+   "split": "heldout",
+   "name": "FELSTAR-T",
+   "expect_ingredients": [
+    "piroxicam"
+   ],
+   "queries": {
+    "exact": "FELSTAR-T",
+    "label": "FELSTAR-T 10 mg tablet",
+    "ocr": "fe1star-t"
+   }
+  },
+  {
+   "id": "P4-TMT-H129",
+   "split": "heldout",
+   "name": "MUCOCIN",
+   "expect_ingredients": [
+    "bromhexine hydrochloride"
+   ],
+   "queries": {
+    "exact": "MUCOCIN",
+    "label": "MUCOCIN 8 mg tablet",
+    "ocr": "muc0cin"
+   }
+  },
+  {
+   "id": "P4-TMT-H130",
+   "split": "heldout",
+   "name": "SODIUM CHLORIDE U.S.P.",
+   "expect_ingredients": [
+    "sodium chloride"
+   ],
+   "queries": {
+    "exact": "SODIUM CHLORIDE U.S.P.",
+    "label": "SODIUM CHLORIDE U.S.P. 900 mg/100 mL solution for infusion",
+    "ocr": "sodium ch1oride u.s.p."
+   }
+  },
+  {
+   "id": "P4-TMT-H131",
+   "split": "heldout",
+   "name": "DASTYL",
+   "expect_ingredients": [
+    "simeticone"
+   ],
+   "queries": {
+    "exact": "DASTYL",
+    "label": "DASTYL 40 mg chewable tablet",
+    "ocr": "da5tyl"
+   }
+  },
+  {
+   "id": "P4-TMT-H132",
+   "split": "heldout",
+   "name": "UNAT 5",
+   "expect_ingredients": [
+    "torasemide"
+   ],
+   "queries": {
+    "exact": "UNAT 5",
+    "label": "UNAT 5 5 mg tablet",
+    "ocr": "unat  5"
+   }
+  },
+  {
+   "id": "P4-TMT-H133",
+   "split": "heldout",
+   "name": "DESALT",
+   "expect_ingredients": [
+    "dextrose + potassium chloride + sodium chloride + sodium citrate dihydrate"
+   ],
+   "queries": {
+    "exact": "DESALT",
+    "label": "DESALT 1.8 g/2.519 g + 134 mg/2.519 g + 342 mg/2.519 g + 243 mg/2.519 g powder for oral solution",
+    "ocr": "de5alt"
+   }
+  },
+  {
+   "id": "P4-TMT-H134",
+   "split": "heldout",
+   "name": "HEROMYCIN",
+   "expect_ingredients": [
+    "tetracycline"
+   ],
+   "queries": {
+    "exact": "HEROMYCIN",
+    "label": "HEROMYCIN 250 mg capsule, hard",
+    "ocr": "her0mycin"
+   }
+  },
+  {
+   "id": "P4-TMT-H135",
+   "split": "heldout",
+   "name": "TRICILEST",
+   "expect_ingredients": [
+    "ethinylestradiol + norgestimate"
+   ],
+   "queries": {
+    "exact": "TRICILEST",
+    "label": "TRICILEST 35 mcg + 250 mcg tablet",
+    "ocr": "tr1cilest"
+   }
+  },
+  {
+   "id": "P4-TMT-H136",
+   "split": "heldout",
+   "name": "COSYR",
+   "expect_ingredients": [
+    "chlorphenamine maleate + dextromethorphan hydrobromide + guaifenesin"
+   ],
+   "queries": {
+    "exact": "COSYR",
+    "label": "COSYR 2 mg/5 mL + 10 mg/5 mL + 50 mg/5 mL oral drops, solution",
+    "ocr": "cosyr"
+   }
+  },
+  {
+   "id": "P4-TMT-H137",
+   "split": "heldout",
+   "name": "METAPLEX",
+   "expect_ingredients": [
+    "nicotinamide + pantothenol + pyridoxine + riboflavin + thiamine"
+   ],
+   "queries": {
+    "exact": "METAPLEX",
+    "label": "METAPLEX 50 mg/1 mL + 5 mg/1 mL + 5 mg/1 mL + 5 mg/1 mL + 100 mg/1 mL solution for injection",
+    "ocr": "metap1ex"
+   }
+  },
+  {
+   "id": "P4-TMT-H138",
+   "split": "heldout",
+   "name": "MEDICOLD",
+   "expect_ingredients": [
+    "chlorphenamine maleate + paracetamol"
+   ],
+   "queries": {
+    "exact": "MEDICOLD",
+    "label": "MEDICOLD 2 mg + 500 mg tablet",
+    "ocr": "med1cold"
+   }
+  },
+  {
+   "id": "P4-TMT-H139",
+   "split": "heldout",
+   "name": "UREA 20% IN TA CREAM",
+   "expect_ingredients": [
+    "triamcinolone acetonide + urea"
+   ],
+   "queries": {
+    "exact": "UREA 20% IN TA CREAM",
+    "label": "UREA 20% IN TA CREAM 100 mcg/100 g + 20 g/100 g cream",
+    "ocr": "urea  20%  in  ta  cream"
+   }
+  },
+  {
+   "id": "P4-TMT-H140",
+   "split": "heldout",
+   "name": "SELLON",
+   "expect_ingredients": [
+    "selenium sulfide"
+   ],
+   "queries": {
+    "exact": "SELLON",
+    "label": "SELLON 2.5 g/100 mL shampoo",
+    "ocr": "se1lon"
+   }
+  },
+  {
+   "id": "P4-TMT-H141",
+   "split": "heldout",
+   "name": "FELROX",
+   "expect_ingredients": [
+    "piroxicam"
+   ],
+   "queries": {
+    "exact": "FELROX",
+    "label": "FELROX 10 mg tablet",
+    "ocr": "fe1rox"
+   }
+  },
+  {
+   "id": "P4-TMT-H142",
+   "split": "heldout",
+   "name": "SOLUVIT N",
+   "expect_ingredients": [
+    "multivitamins"
+   ],
+   "queries": {
+    "exact": "SOLUVIT N",
+    "label": "SOLUVIT N powder for solution for injection/infusion",
+    "ocr": "so1uvit n"
+   }
+  },
+  {
+   "id": "P4-TMT-H143",
+   "split": "heldout",
+   "name": "S.P.SYRUP",
+   "expect_ingredients": [
+    "ammonium chloride + chlorphenamine maleate"
+   ],
+   "queries": {
+    "exact": "S.P.SYRUP",
+    "label": "S.P.SYRUP 150 mg/5 mL + 2 mg/5 mL syrup",
+    "ocr": "s.p.syrup"
+   }
+  },
+  {
+   "id": "P4-TMT-H144",
+   "split": "heldout",
+   "name": "GERMISCRUB",
+   "expect_ingredients": [
+    "povidone iodine"
+   ],
+   "queries": {
+    "exact": "GERMISCRUB",
+    "label": "GERMISCRUB 7.5 g/100 mL cutaneous solution",
+    "ocr": "germ1scrub"
+   }
+  },
+  {
+   "id": "P4-TMT-H145",
+   "split": "heldout",
+   "name": "TRITANRIX HB",
+   "expect_ingredients": [
+    "diphtheria toxoid + hepatitis b virus vaccine + pertussis vaccine, acellular + tetanus toxoid"
+   ],
+   "queries": {
+    "exact": "TRITANRIX HB",
+    "label": "TRITANRIX HB 30 iu/0.5 mL + 10 mcg/0.5 mL + 4 iu/0.5 mL + 60 iu/0.5 mL suspension for injection",
+    "ocr": "tr1tanrix hb"
+   }
+  },
+  {
+   "id": "P4-TMT-H146",
+   "split": "heldout",
+   "name": "TAZCINE",
+   "expect_ingredients": [
+    "pentazocine"
+   ],
+   "queries": {
+    "exact": "TAZCINE",
+    "label": "TAZCINE 25 mg tablet",
+    "ocr": "ta2cine"
+   }
+  },
+  {
+   "id": "P4-TMT-H147",
+   "split": "heldout",
+   "name": "PARA V.S.",
+   "expect_ingredients": [
+    "paracetamol"
+   ],
+   "queries": {
+    "exact": "PARA V.S.",
+    "label": "PARA V.S. 500 mg tablet",
+    "ocr": "para  v.s."
+   }
+  },
+  {
+   "id": "P4-TMT-H148",
+   "split": "heldout",
+   "name": "NO-SPA",
+   "expect_ingredients": [
+    "drotaverine hydrochloride"
+   ],
+   "queries": {
+    "exact": "NO-SPA",
+    "label": "NO-SPA 40 mg tablet",
+    "ocr": "no-spa"
+   }
+  },
+  {
+   "id": "P4-TMT-H149",
+   "split": "heldout",
+   "name": "KENEFEN",
+   "expect_ingredients": [
+    "ketotifen"
+   ],
+   "queries": {
+    "exact": "KENEFEN",
+    "label": "KENEFEN 1 mg tablet",
+    "ocr": "keefen"
+   }
+  },
+  {
+   "id": "P4-TMT-H150",
+   "split": "heldout",
+   "name": "TRENMED",
+   "expect_ingredients": [
+    "pentoxifylline"
+   ],
+   "queries": {
+    "exact": "TRENMED",
+    "label": "TRENMED 100 mg film-coated tablet",
+    "ocr": "trnmed"
+   }
+  }
+ ],
+ "tmt_notfound": [
+  {
+   "id": "P4-NF-S01",
+   "kind": "synthetic",
+   "query": "KAGOPIRO"
+  },
+  {
+   "id": "P4-NF-S02",
+   "kind": "synthetic",
+   "query": "KUKOPEW"
+  },
+  {
+   "id": "P4-NF-S03",
+   "kind": "synthetic",
+   "query": "PIROJOTI"
+  },
+  {
+   "id": "P4-NF-S04",
+   "kind": "synthetic",
+   "query": "WERADA"
+  },
+  {
+   "id": "P4-NF-S05",
+   "kind": "synthetic",
+   "query": "MAHENOF"
+  },
+  {
+   "id": "P4-NF-S06",
+   "kind": "synthetic",
+   "query": "SUKOJAM"
+  },
+  {
+   "id": "P4-NF-S07",
+   "kind": "synthetic",
+   "query": "MUJIRE"
+  },
+  {
+   "id": "P4-NF-S08",
+   "kind": "synthetic",
+   "query": "WIWUSO"
+  },
+  {
+   "id": "P4-NF-S09",
+   "kind": "synthetic",
+   "query": "LAREVU"
+  },
+  {
+   "id": "P4-NF-S10",
+   "kind": "synthetic",
+   "query": "WASOTETI"
+  },
+  {
+   "id": "P4-NF-S11",
+   "kind": "synthetic",
+   "query": "JAVARI"
+  },
+  {
+   "id": "P4-NF-S12",
+   "kind": "synthetic",
+   "query": "WODUJURA"
+  },
+  {
+   "id": "P4-NF-S13",
+   "kind": "synthetic",
+   "query": "PAXONUJO"
+  },
+  {
+   "id": "P4-NF-S14",
+   "kind": "synthetic",
+   "query": "HUSOLUKE"
+  },
+  {
+   "id": "P4-NF-S15",
+   "kind": "synthetic",
+   "query": "CANUBIC"
+  },
+  {
+   "id": "P4-NF-S16",
+   "kind": "synthetic",
+   "query": "WAGEXIDA"
+  },
+  {
+   "id": "P4-NF-S17",
+   "kind": "synthetic",
+   "query": "KIXAJOK"
+  },
+  {
+   "id": "P4-NF-S18",
+   "kind": "synthetic",
+   "query": "GAKABE"
+  },
+  {
+   "id": "P4-NF-S19",
+   "kind": "synthetic",
+   "query": "ZIXEVAPU"
+  },
+  {
+   "id": "P4-NF-S20",
+   "kind": "synthetic",
+   "query": "PEFAGO"
+  },
+  {
+   "id": "P4-NF-S21",
+   "kind": "synthetic",
+   "query": "NOXELA"
+  },
+  {
+   "id": "P4-NF-S22",
+   "kind": "synthetic",
+   "query": "MULORUH"
+  },
+  {
+   "id": "P4-NF-S23",
+   "kind": "synthetic",
+   "query": "WALANE"
+  },
+  {
+   "id": "P4-NF-S24",
+   "kind": "synthetic",
+   "query": "VAKAJA"
+  },
+  {
+   "id": "P4-NF-S25",
+   "kind": "synthetic",
+   "query": "POBILOT"
+  },
+  {
+   "id": "P4-NF-S26",
+   "kind": "synthetic",
+   "query": "HUXUSE"
+  },
+  {
+   "id": "P4-NF-S27",
+   "kind": "synthetic",
+   "query": "WELEFAH"
+  },
+  {
+   "id": "P4-NF-S28",
+   "kind": "synthetic",
+   "query": "DUCOHUH"
+  },
+  {
+   "id": "P4-NF-S29",
+   "kind": "synthetic",
+   "query": "DEBAMAH"
+  },
+  {
+   "id": "P4-NF-S30",
+   "kind": "synthetic",
+   "query": "BUWUCO"
+  },
+  {
+   "id": "P4-NF-R01",
+   "kind": "post-2020 brand",
+   "query": "PAXLOVID"
+  },
+  {
+   "id": "P4-NF-R02",
+   "kind": "post-2020 brand",
+   "query": "LAGEVRIO"
+  },
+  {
+   "id": "P4-NF-R03",
+   "kind": "post-2020 brand",
+   "query": "EVUSHELD"
+  },
+  {
+   "id": "P4-NF-R04",
+   "kind": "post-2020 brand",
+   "query": "COMIRNATY"
+  },
+  {
+   "id": "P4-NF-R05",
+   "kind": "post-2020 brand",
+   "query": "SPIKEVAX"
+  },
+  {
+   "id": "P4-NF-R06",
+   "kind": "post-2020 brand",
+   "query": "VAXZEVRIA"
+  },
+  {
+   "id": "P4-NF-R07",
+   "kind": "post-2020 brand",
+   "query": "MOUNJARO"
+  },
+  {
+   "id": "P4-NF-R08",
+   "kind": "post-2020 brand",
+   "query": "WEGOVY"
+  },
+  {
+   "id": "P4-NF-R09",
+   "kind": "post-2020 brand",
+   "query": "LEQEMBI"
+  },
+  {
+   "id": "P4-NF-R10",
+   "kind": "post-2020 brand",
+   "query": "BEYFORTUS"
+  },
+  {
+   "id": "P4-NF-R11",
+   "kind": "post-2020 brand",
+   "query": "VEKLURY"
+  },
+  {
+   "id": "P4-NF-R12",
+   "kind": "post-2020 brand",
+   "query": "XOCOVA"
+  },
+  {
+   "id": "P4-NF-R13",
+   "kind": "post-2020 brand",
+   "query": "RONAPREVE"
+  },
+  {
+   "id": "P4-NF-R14",
+   "kind": "post-2020 brand",
+   "query": "KISUNLA"
+  },
+  {
+   "id": "P4-NF-R15",
+   "kind": "post-2020 brand",
+   "query": "AREXVY"
+  }
+ ],
+ "registry": [
+  {
+   "id": "P4-REG-01",
+   "op": "drug",
+   "q": "1A 844/39",
+   "expect": "found",
+   "status": "active",
+   "name_en": "TYLENOL 500"
+  },
+  {
+   "id": "P4-REG-02",
+   "op": "food",
+   "q": "10-1-02141-1-0375",
+   "expect": "found",
+   "status": "active"
+  },
+  {
+   "id": "P4-REG-03",
+   "op": "cosmetic",
+   "q": "13-1-6800016755",
+   "expect": "found",
+   "status": "active"
+  },
+  {
+   "id": "P4-REG-04",
+   "op": "herbal",
+   "q": "G123/45",
+   "expect": "found",
+   "status": "active"
+  },
+  {
+   "id": "P4-REG-05",
+   "op": "advert",
+   "q": "ฆท.1377/2564",
+   "expect": "found"
+  },
+  {
+   "id": "P4-REG-06",
+   "op": "device",
+   "q": "69-1-3-2-0000467",
+   "expect": "found",
+   "note": "one row per model / size; all rows share the number"
+  },
+  {
+   "id": "P4-REG-07",
+   "op": "cosmetic",
+   "q": "12-1-6900003013",
+   "expect": "found",
+   "status": "cancelled",
+   "note": "named in an FDA warning (alert list)"
+  },
+  {
+   "id": "P4-REG-08",
+   "op": "food",
+   "q": "13-2-06463-5-0326",
+   "expect": "found",
+   "status": "active",
+   "note": "register still active, but named in an FDA warning: the alert must still show"
+  },
+  {
+   "id": "P4-REG-N1",
+   "op": "drug",
+   "q": "1A 9999/99",
+   "expect": "none"
+  },
+  {
+   "id": "P4-REG-N2",
+   "op": "food",
+   "q": "10-1-99999-9-9999",
+   "expect": "none"
+  },
+  {
+   "id": "P4-REG-N3",
+   "op": "cosmetic",
+   "q": "13-1-6899999999",
+   "expect": "none"
+  },
+  {
+   "id": "P4-REG-N4",
+   "op": "herbal",
+   "q": "G9999/99",
+   "expect": "none"
+  },
+  {
+   "id": "P4-REG-N5",
+   "op": "device",
+   "q": "64-1-3-2-9999999",
+   "expect": "none"
+  },
+  {
+   "id": "P4-REG-N6",
+   "op": "cosmetic",
+   "q": "10-2-6600188171",
+   "expect": "none",
+   "note": "publicly reported fake cosmetic number"
+  },
+  {
+   "id": "P4-REG-S1",
+   "source": "hsa",
+   "q": "SIN09110P",
+   "expect": "found",
+   "name_en": "PANADOL EXTRA CAPLET"
+  },
+  {
+   "id": "P4-REG-S2",
+   "source": "hsa",
+   "q": "zzqxlensiqnotreal",
+   "expect": "none"
+  }
+ ],
+ "recalls": [
+  {
+   "id": "P4-REC-01",
+   "source": "openfda",
+   "by": "gtin",
+   "q": "712199083411",
+   "expect": "found",
+   "ref": "H-0130-2027"
+  },
+  {
+   "id": "P4-REC-02",
+   "source": "openfda",
+   "by": "name",
+   "q": "Synjardy",
+   "expect": "found",
+   "ref": "D-0657-2026"
+  },
+  {
+   "id": "P4-REC-03",
+   "source": "safetygate",
+   "by": "name",
+   "q": "5D EXTREME Whitening Face Cream",
+   "expect": "found",
+   "ref": "SR/01376/26"
+  },
+  {
+   "id": "P4-REC-04",
+   "source": "rasff",
+   "by": "name",
+   "q": "pine nuts",
+   "expect": "found",
+   "ref": "2026.9864"
+  },
+  {
+   "id": "P4-REC-05",
+   "source": "healthcanada",
+   "by": "name",
+   "q": "Organic Roasted Black Soybeans",
+   "expect": "found",
+   "ref": "77435"
+  },
+  {
+   "id": "P4-REC-N1",
+   "source": "openfda",
+   "by": "name",
+   "q": "zzqxlensiqnotreal",
+   "expect": "none"
+  },
+  {
+   "id": "P4-REC-N2",
+   "source": "safetygate",
+   "by": "name",
+   "q": "zzqxlensiqnotreal",
+   "expect": "none"
+  },
+  {
+   "id": "P4-REC-N3",
+   "source": "rasff",
+   "by": "name",
+   "q": "zzqxlensiqnotreal",
+   "expect": "none"
+  },
+  {
+   "id": "P4-REC-N4",
+   "source": "healthcanada",
+   "by": "name",
+   "q": "zzqxlensiqnotreal",
+   "expect": "none"
+  }
+ ],
+ "alerts": [
+  {
+   "id": "P4-AL-01",
+   "q": "12-1-6900003013",
+   "expect": "found"
+  },
+  {
+   "id": "P4-AL-02",
+   "q": "13-2-06463-5-0326",
+   "expect": "found"
+  },
+  {
+   "id": "P4-AL-03",
+   "q": "1314650052",
+   "expect": "none",
+   "note": "partial digits: must not match 13-1-13465-5-0052"
+  },
+  {
+   "id": "P4-AL-04",
+   "q": "1A 844/39",
+   "expect": "none"
+  }
+ ],
+ "down": [
+  {
+   "id": "P4-DOWN-1",
+   "source": "thfda",
+   "upstream": "500"
+  },
+  {
+   "id": "P4-DOWN-2",
+   "source": "openfda",
+   "upstream": "timeout"
+  },
+  {
+   "id": "P4-DOWN-3",
+   "source": "safetygate",
+   "upstream": "500"
+  },
+  {
+   "id": "P4-DOWN-4",
+   "source": "rasff",
+   "upstream": "timeout"
+  },
+  {
+   "id": "P4-DOWN-5",
+   "source": "hsa",
+   "upstream": "500"
+  },
+  {
+   "id": "P4-DOWN-6",
+   "source": "healthcanada",
+   "upstream": "timeout"
+  },
+  {
+   "id": "P4-DOWN-7",
+   "source": "dailymed",
+   "upstream": "500"
+  },
+  {
+   "id": "P4-DOWN-8",
+   "source": "rxnav",
+   "upstream": "timeout"
+  }
+ ]
+}

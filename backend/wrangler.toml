@@ -83,6 +83,21 @@ SITE_URL = ""
 # CSP violation report counters (POST /v1/csp-report): kept this many days; global cap per Bangkok day
 CSP_REPORT_DAYS = "90"
 CSP_REPORT_GLOBAL_DAY = "5000"
+# Product Check official lookups (round 17 P4, src/pc.js; GET /api/pc/*, POST /api/pc/batch). "false" -> 404 on /api/pc/*.
+PC_ENABLED = "true"
+# Thai FDA web service (WS_LICENSE_SEARCH): "live" = call it (DEMO / TESTING: owner decision 2026-11-09); "link" = never call
+# it, the card links to oryor.com. The service states no reuse licence: written permission from Thai FDA is needed BEFORE
+# CHARGING (CTO-BRIEF L13). The owner can override this through the admin API GET|PUT /admin/api/pc/lookup (re-auth,
+# audited; no admin.html control yet); the stored setting wins over this var.
+PC_THFDA_MODE = "live"
+# "demo" (this file) or "customer". In a customer build the testing-only sources (Thai FDA, EU Safety Gate, RASFF: licence or
+# endpoint not confirmed, L13 / L16) are OFF unless the owner switches them on through the admin API; answers keep the licence label.
+PC_BUILD = "demo"
+# Product Check: one tap = one POST /api/pc/batch = ONE count; per caller per minute (1-120). Without D1 an in-memory
+# limiter applies per isolate.
+PC_RATE_MIN = "30"
+# Health Canada recalls are NOT fetched by the Worker: tools/pc-hc-build.mjs shards the open-data file offline into
+# vendor/pc-recalls/hc/ and the page searches those static files (free plan and *.workers.dev work; nothing is sent).
 # Retention (days). Raw analytics events are purged after RAW_EVENT_DAYS; daily aggregates are kept.
 RAW_EVENT_DAYS = "90"
 AUDIT_DAYS = "400"

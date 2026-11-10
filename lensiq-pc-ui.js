@@ -190,7 +190,7 @@
       st.read = true;
       status(st.codes.codes.length ? T("md.pc.st.barOk", "พบบาร์โค้ด {n} รายการ", { n: st.codes.codes.length }) : T("md.pc.st.barNone", "ไม่พบบาร์โค้ด ลองให้บาร์โค้ดเต็มภาพและไม่สะท้อนแสง"),
         st.codes.codes.length ? "ok" : "warn");
-      renderOut(); remember();
+      renderOut(); remember(); announce();
     });
   }
   W.__LQ_PC.read = read; W.__LQ_PC.scan = scan;
@@ -295,7 +295,9 @@
     box.scrollIntoView({ block: "start" }); box.focus({ preventScroll: true });
     return true;
   }
-  const announce = () => { try { window.dispatchEvent(new CustomEvent("lq-pc-text", { detail: { text: st.text, script: st.script } })); } catch { /* old browser */ } };
+  // P4: codes ride along so lensiq-pc-lookup.js (risk-signal card in #pcClaimsSlot) can use the GTINs
+  const announce = () => { try { window.dispatchEvent(new CustomEvent("lq-pc-text", { detail: { text: st.text, script: st.script,
+    codes: (st.codes && st.codes.codes) || [] } })); } catch { /* old browser */ } };
 
   /* ---------- results ---------- */
   function renderHints() {
@@ -338,8 +340,11 @@
       h += card("info", `<h3>${esc(T("md.pc.r.how", "วิธีตรวจต่อด้วยตัวเอง"))}</h3><p class="hint">${esc(T("md.pc.r.howT",
         "ตรวจเลขทะเบียนกับหน่วยงานของประเทศที่ระบุ ในไทยใช้ oryor.com แอป ORYOR Smart หรือ LINE @FDAthai ถ้าไม่แน่ใจ อย่าใช้สินค้า และถามเภสัชกร"))}</p>` +
         `<div class="md-row">${links.map(v => link(v.url, V[v.id] || v.id)).join("")}</div>`, "pcHow");
-      const miss = [T("md.pc.x.registry", "ยังไม่ได้ตรวจเลขกับฐานข้อมูลทะเบียนของหน่วยงาน (ขั้นนี้ตรวจเฉพาะรูปแบบเลข)"),
-        T("md.pc.x.claims", "ยังไม่ได้ตรวจคำโฆษณาเกินจริงบนฉลากในขั้นนี้"),
+      // P4: with the risk-signal card (lensiq-pc-lookup.js) on the page, over-claims are checked there and the register check
+      // is one tap away in that card; the old "not checked in this step" lines would contradict it
+      const lookupCard = !!(W.LQPCLookup && $("#pcClaimsSlot"));
+      const miss = [...(lookupCard ? [T("md.pc.x.registryCard", "เลขทะเบียนตรวจกับฐานข้อมูลของหน่วยงานได้ในการ์ด \"สัญญาณเสี่ยง\" ด้านล่าง เมื่อกด \"ตรวจกับแหล่งข้อมูลทางการ\"")]
+        : [T("md.pc.x.registry", "ยังไม่ได้ตรวจเลขกับฐานข้อมูลทะเบียนของหน่วยงาน (ขั้นนี้ตรวจเฉพาะรูปแบบเลข)"), T("md.pc.x.claims", "ยังไม่ได้ตรวจคำโฆษณาเกินจริงบนฉลากในขั้นนี้")]),
         T("md.pc.x.printedExp", "วันหมดอายุที่พิมพ์เป็นตัวอักษรยังไม่ได้อ่านอัตโนมัติ ดูบนกล่องเอง (ระบบอ่านเฉพาะวันหมดอายุในบาร์โค้ด GS1)")];
       if (!regs.length) miss.push(T("md.pc.x.noReg", "ไม่พบเลขทะเบียน จึงตรวจรูปแบบเลขไม่ได้"));
       if (!codes.length) miss.push(T("md.pc.x.noBar", "ไม่พบบาร์โค้ด จึงไม่มีข้อมูล GTIN ล็อต หรือวันหมดอายุจากบาร์โค้ด"));

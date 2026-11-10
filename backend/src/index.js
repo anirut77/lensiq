@@ -27,10 +27,14 @@
 //   POST /api/auth/refresh               rotate the member bearer token (round 12; short sessions: +12 h, max 7 days)
 //   POST /v1/csp-report                  CSP violation reports (round 12, csp.js; counters only, always 204)
 //   GET  /api/med/status|thfda|openfda|rxnav   medicine checker text proxy (round 14, med.js; MED_ENABLED, text only)
+//   GET  /api/pc/status|thfda|openfda|safetygate|rasff|healthcanada|hsa|label|ndc|dailymed|rxnav   Product Check official
+//                                        lookups (round 17 P4, pc.js; PC_ENABLED + admin "pc_lookup" switch; text only);
+//   POST /api/pc/batch                  the card's one call per tap (<= 16 lookups, one rate-limit count)
 //   GET  /v1/ai/providers?feature=…      AI gateway consent-screen data (round 17 P5, ai/gateway.js; no secrets)
 //   POST /v1/ai/:feature                 AI gateway (consent, Turnstile action "ai", limits, budget, fallback chain)
 // Admin round 12: GET /admin/api/csp-reports, GET /admin/api/mail (delivery log + provider status); POST
 //   /billing/test-charge needs re-auth and is capped (TEST_CHARGE_HOUR); money ops follow auth.moneyReauthMode
+// Admin round 17 P4: GET|PUT /admin/api/pc/lookup (Thai FDA live / link-out + per-source switches; PUT re-auth, audited)
 // Admin round 17: GET|PUT /admin/api/ai/gateway (PUT needs re-auth, audited), GET /admin/api/ai/usage?month=YYYY-MM
 // Admin (ADMIN_ORIGINS, credentials; see auth.js): /admin/api/*
 import * as analytics from "./analytics.js";
@@ -47,6 +51,7 @@ import { fortuneRun, fortuneStatus } from "./fortune.js";
 import { adminGateway, adminPutGateway, adminUsage, aiRoute, providersInfo } from "./ai/gateway.js";
 import { LEGACY_KEY_UNUSED, getGateway, legacyKeyUnused } from "./ai/settings.js";
 import { medRoute } from "./med.js";
+import { adminPcLookup, pcRoute, putPcSettings } from "./pc.js";
 import { reconcilePending } from "./billing.js";
 import { turnstileStatus } from "./turnstile.js";
 import { runMaintenance, retentionConfig } from "./retention.js";
@@ -135,6 +140,11 @@ async function publicRoute(request, env, url, deps) {
   if (p.startsWith("/api/med/")) {
     // round 14: medicine checker text proxy (med.js does its own Origin / GET-only / rate-limit checks)
     const r = await medRoute(request, env, url, deps, cors);
+    if (r) return r;
+  }
+  if (p.startsWith("/api/pc/")) {
+    // round 17 P4: Product Check official lookups (pc.js does its own Origin / GET-only / rate-limit checks)
+    const r = await pcRoute(request, env, url, deps, cors);
     if (r) return r;
   }
   if (p === "/v1/ai/providers" && m === "GET") {
@@ -287,6 +297,14 @@ async function adminRoute(request, env, url, deps) {
       const r = await adminPutGateway(env, input);
       await act("ai.gateway.settings", { changed: Object.keys(input), features: input.features && typeof input.features === "object" ? Object.keys(input.features) : [] });
       return reply(r);
+    }
+    // round 17 P4: Product Check lookup switches (Thai FDA web service: live for testing / link-out before permission)
+    case "GET /pc/lookup": return reply(await adminPcLookup(env));
+    case "PUT /pc/lookup": {
+      const input = await reauthed();
+      const r = await putPcSettings(env, input);
+      await act("pc.lookup.settings", r);
+      return reply({ settings: r });
     }
     case "GET /ai/usage": return reply(await adminUsage(env, Object.fromEntries(url.searchParams)));
 

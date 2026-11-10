@@ -1,7 +1,7 @@
 # LENSIQ — CTO brief
 
 As of 2026-11-09 (round 16 complete). Round 15 shipped in two commits: Gate `70508bc` (CI green on Linux, live) and crowd/docs `41dc0b7`. Round 16 shipped as: customer switch `d039058`; Gate plate check + field tools `d049dfd`; claims, crowd test, org design, pilot kits `34e14b3`; Wilson rule `77b555a`; multi-line CSP `7c47eba`; then the category packaging and the pricing draft after the owner approved them on 2026-11-09. Accuracy sources are labelled synthetic, public dataset or field.
-**Round 17 = Product Check + AI Gateway, in progress: P0, P1, P2, P3, P5, P6 done; face blur built** (design approved 2026-11-09; §5 "Round 17", legal list §8).
+**Round 17 = Product Check + AI Gateway, in progress: P0–P6 done; face blur built** (design approved 2026-11-09; §5 "Round 17", legal list §8).
 Org accounts P1–P3 follow after Product Check is complete.
 Round 17 P5 "AI Gateway core" (`13814a8`, independent review fixes applied): every cloud AI call goes through `backend/src/ai/` (`POST /v1/ai/:feature`; fortune moved onto it as `fortune_reword` with its existing tests unchanged), with a provider allowlist, a monthly budget reserved per call, the §10.3 fallback policy, JSON-schema checks, content-free logs, an admin "AI Gateway" tab and the consent helper `lensiq-ai.js`. Only the Anthropic adapter exists; the others are P6. See `docs/AI-GATEWAY.md`.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
@@ -241,6 +241,15 @@ No module is production-ready. None has completed a field pilot, and the backend
   brand/name token found 47.0 %. Face check at 0.3 + tiles flags 60.4 % of clean packs; owner decision 2026-11-10:
   **blur detected faces before any upload instead of blocking**, setting chosen from measured readability and missed
   real faces (built next). Vietnamese tone marks: known limit, AI step handles them for now. Not measured on a phone yet.
+- P4 done: official lookups through the Worker (Thai FDA web service, testing only; openFDA, DailyMed, RxNav, HSA;
+  Safety Gate and RASFF testing only, off in customer builds), on-device TMT 2563 (CC BY) + NLEM 2567 + curated Thai
+  alert list + Health Canada recalls, all as small sharded static files (free Workers plan); risk-signal card with the P3
+  over-claim signals; one batch request per tap, sent only after the tap with a notice naming every source and country.
+  Numbers (`docs/product-check/P4-RESULTS.md`): TMT held-out OCR 92.7 % hit / 1.3 % wrong (public + synthetic), not-found
+  0/45, live sources 25/25, source down 8/8 "could not check"; non-drug texts matched to a brand 6.5 % (target ≤ 5 %,
+  **not met**). Heap on an emulated mid-range phone 34 MB → 1.2 MB. Independent review split by source (5 parts): first
+  pass found 1 blocker (HTTP 200 error page read as "not in register"), fixed; second pass all 5 parts pass, 17
+  should-fixes applied. Open: NLEM Gazette cross-check (L32), ≥ 75 warned-product photos for the key safety metric.
 - P6 done (`5021a1d`): adapters for Gemini, OpenAI, Qwen, DeepSeek, z.ai, Kimi, OpenRouter (plain REST, mocked tests);
   reviewer re-measured, 8 findings fixed. Gemini held out of every Product Check default chain pending the 18+ question.
 - Face check "block" → "blur" (owner decision 2026-11-10): every detected face is blurred (irreversible pixelation) before
@@ -250,6 +259,9 @@ No module is production-ready. None has completed a field pilot, and the backend
   real faces left unblurred 34.7 % [29.3–40.5] (faces < 40 px mostly missed; close-ups 7 / 25 missed). Reviewer found
   the earlier held-out numbers optimistic; fresh numbers are the ones to quote. YuNet rejected (WIDER FACE training data
   is CC BY-NC-ND). Fresh face images deleted 2026-11-10 06:09 after the eval (manifest kept). `docs/product-check/FACE-BLUR-RESULTS.md`.
+- Hosting decision (owner, 2026-11-10): no Cloudflare Workers Paid plan yet. Large lookup data (Health Canada drug
+  file, TMT index) is pre-processed offline into small sharded files loaded on demand, so the free plan works. Workers
+  Paid (~USD 5/month) is turned on at launch, for org accounts and backups.
 - `docs/LICENCE-REQUESTS.md` (2026-11-10): 18 licence-limited items, 15 draft letters (A–P, K withdrawn) for the owner
   to send; top 3: face-api.js author (Exam, Attendance), dlib recognition data (Attendance), THIS/TMT. Nothing sent.
 - New feature designs approved 2026-11-10 (`docs/NUTRITION-DESIGN.md`, `TRYON-DESIGN.md`, `MERIT-DESIGN.md`,

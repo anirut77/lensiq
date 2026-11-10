@@ -1,0 +1,219 @@
+{
+ "schema": "lensiq-pc-alerts/1",
+ "updated": "2026-11-07",
+ "built_from": "tools/pc-alerts-th.src.json (facts typed by hand from Thai FDA press releases; no text or images copied)",
+ "notice": {
+  "en": "Facts from Thai FDA (อย.) announcements, with the source page and date of each. Not a complete list.",
+  "th": "ข้อเท็จจริงจากประกาศของ อย. พร้อมหน้าที่มาและวันที่ ไม่ใช่รายการครบถ้วน",
+  "zh": "事实摘自泰国 FDA (อย.) 公告，附来源页面和日期。并非完整清单。"
+ },
+ "issue_codes": [
+  "contains",
+  "exceeds-limit",
+  "unregistered",
+  "no-number",
+  "number-of-other-product",
+  "no-dates",
+  "recall",
+  "fake-number"
+ ],
+ "categories": [
+  "drug",
+  "supplement",
+  "food",
+  "cosmetic",
+  "herbal",
+  "device"
+ ],
+ "entries": [
+  {
+   "id": "TH-2026-0001",
+   "category": "cosmetic",
+   "name_th": "แอลโบทรอส ไวท์เทนนิ่ง ครีม 3",
+   "name_en": "ALBOTROSS WHITENING CREAM 3",
+   "reg": "12-1-6900003013",
+   "reg_key": "1216900003013",
+   "lot": "",
+   "reg_note": "number printed on the label",
+   "issues": [
+    "contains",
+    "no-dates"
+   ],
+   "substances": [
+    "hydroquinone"
+   ],
+   "source_url": "https://www.fda.moph.go.th/news/news19-2570",
+   "source_date": "2026-11-07",
+   "reviewed": false,
+   "verified": {
+    "on": "2026-11-10",
+    "ok": true
+   }
+  },
+  {
+   "id": "TH-2026-0002",
+   "category": "cosmetic",
+   "name_th": "แอลโบทรอส ไนท์ ครีม 4",
+   "name_en": "ALBOTROSS NIGHT CREAM 4",
+   "reg": "12-1-6900003122",
+   "reg_key": "1216900003122",
+   "lot": "",
+   "reg_note": "number printed on the label",
+   "issues": [
+    "contains",
+    "no-dates"
+   ],
+   "substances": [
+    "hydroquinone",
+    "retinoic acid"
+   ],
+   "source_url": "https://www.fda.moph.go.th/news/news19-2570",
+   "source_date": "2026-11-07",
+   "reviewed": false,
+   "verified": {
+    "on": "2026-11-10",
+    "ok": true
+   }
+  },
+  {
+   "id": "TH-2026-0003",
+   "category": "cosmetic",
+   "name_th": "",
+   "name_en": "ALBOTROSS WHITENING CREAM 3",
+   "reg": "",
+   "reg_key": "",
+   "lot": "",
+   "reg_note": "jar without a notification number on the label",
+   "issues": [
+    "contains",
+    "no-number"
+   ],
+   "substances": [
+    "hydroquinone"
+   ],
+   "source_url": "https://www.fda.moph.go.th/news/news19-2570",
+   "source_date": "2026-11-07",
+   "reviewed": false,
+   "verified": {
+    "on": "2026-11-10",
+    "ok": true
+   }
+  },
+  {
+   "id": "TH-2026-0004",
+   "category": "supplement",
+   "name_th": "ผลิตภัณฑ์เสริมอาหาร ตรา โคเรีย เพียว",
+   "name_en": "Korea Pure",
+   "reg": "11-4-03260-5-0007",
+   "reg_key": "1140326050007",
+   "lot": "18015",
+   "reg_note": "",
+   "issues": [
+    "exceeds-limit",
+    "recall"
+   ],
+   "substances": [
+    "niacin"
+   ],
+   "source_url": "https://www.fda.moph.go.th/news/1031",
+   "source_date": "2026-10-31",
+   "reviewed": false,
+   "verified": {
+    "on": "2026-11-10",
+    "ok": true
+   }
+  },
+  {
+   "id": "TH-2025-0001",
+   "category": "supplement",
+   "name_th": "ผลิตภัณฑ์เสริมอาหาร ธานอส",
+   "name_en": "Thanos",
+   "reg": "13-2-06463-5-0326",
+   "reg_key": "1320646350326",
+   "lot": "062025002",
+   "reg_note": "",
+   "issues": [
+    "contains"
+   ],
+   "substances": [
+    "sildenafil"
+   ],
+   "source_url": "https://www.fda.moph.go.th/news/%E0%B8%8B%E0%B8%B4%E0%B8%A5%E0%B9%80%E0%B8%94%E0%B8%99%E0%B8%B2%E0%B8%9F%E0%B8%B4%E0%B8%A5",
+   "source_date": "2025-11-13",
+   "reviewed": false,
+   "verified": {
+    "on": "2026-11-10",
+    "ok": true
+   }
+  },
+  {
+   "id": "TH-2025-0002",
+   "category": "supplement",
+   "name_th": "ผลิตภัณฑ์เสริมอาหารชนิดแคปซูล ตรา ซูสส์",
+   "name_en": "ZOODS",
+   "reg": "20-1-04267-5-0013",
+   "reg_key": "2010426750013",
+   "lot": "ZOD-001",
+   "reg_note": "printed as 2010426750013",
+   "issues": [
+    "contains"
+   ],
+   "substances": [
+    "sildenafil"
+   ],
+   "source_url": "https://www.fda.moph.go.th/news/sildenafil1",
+   "source_date": "2025-10-06",
+   "reviewed": false,
+   "verified": {
+    "on": "2026-11-10",
+    "ok": true
+   }
+  },
+  {
+   "id": "TH-2025-0003",
+   "category": "supplement",
+   "name_th": "คาโมมายล์ กัมมี่ พลัส (ตรา เพียว 99)",
+   "name_en": "Chamomile Gummy Plus (Pure 99)",
+   "reg": "10-3-14067-5-0005",
+   "reg_key": "1031406750005",
+   "lot": "",
+   "reg_note": "",
+   "issues": [
+    "contains"
+   ],
+   "substances": [
+    "melatonin"
+   ],
+   "source_url": "https://www.fda.moph.go.th/news/melatonin2",
+   "source_date": "2025-06-10",
+   "reviewed": false,
+   "verified": {
+    "on": "2026-11-10",
+    "ok": true
+   }
+  },
+  {
+   "id": "TH-2024-0001",
+   "category": "supplement",
+   "name_th": "ผลิตภัณฑ์เสริมอาหาร (ตรา คอร์เซ่)",
+   "name_en": "Korse",
+   "reg": "13-1-13465-5-0052",
+   "reg_key": "1311346550052",
+   "lot": "001013",
+   "reg_note": "",
+   "issues": [
+    "contains"
+   ],
+   "substances": [
+    "sibutramine"
+   ],
+   "source_url": "https://www.fda.moph.go.th/news/%E0%B8%84%E0%B8%AD%E0%B8%A3%E0%B9%8C%E0%B9%80%E0%B8%8B%E0%B9%88",
+   "source_date": "2024-11-08",
+   "reviewed": false,
+   "verified": {
+    "on": "2026-11-10",
+    "ok": true
+   }
+  }
+ ]
+}

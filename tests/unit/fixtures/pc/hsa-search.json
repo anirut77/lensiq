@@ -1,0 +1,18 @@
+{
+ "success": true,
+ "result": {
+  "records": [
+   {
+    "LicenceNo": "SIN09110P",
+    "Productname": "PANADOL EXTRA CAPLET",
+    "Licenseholder": "HALEON SINGAPORE PTE. LTD.",
+    "Approvaldate": "4/9/1996",
+    "Forensicclassification": "General Sale List",
+    "Dosageform": "TABLET",
+    "Activeingredients": "CAFFEINE&&PARACETAMOL",
+    "Strength": "65.0 mg&&500 mg"
+   }
+  ],
+  "total": 1
+ }
+}

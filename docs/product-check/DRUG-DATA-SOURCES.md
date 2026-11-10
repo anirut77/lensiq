@@ -1,6 +1,6 @@
 # Product Check: free drug and herbal data sources (licence check before integration)
 
-> Research only, 2026-11-10. **Nothing is integrated, downloaded into the repo or committed.** Every licence below was
+> Research 2026-11-10; integration status in §0 (P4). Every licence below was
 > read on the source's own page on 2026-11-09/10 unless marked **[SECONDARY]** (taken from a third party) or
 > **[UNVERIFIED]** (not confirmed). Not legal advice: every row feeds the counsel list (CTO-BRIEF §8, L29–L38).
 >
@@ -23,6 +23,26 @@
 - **ห้ามใช้:** ingredient_kb.jsonl (AI สร้าง ไม่ผ่านเภสัชกร), DrugBank (ไม่ใช่เพื่อการค้า), WHO ATC/DDD (ห้ามคัดลอกเพื่อการค้า),
   ข้อมูลกรมการแพทย์แผนไทยที่ติด CC BY-NC (ตำรับยาแผนไทยของชาติ, Positive List)
 - **ต้องถามทนาย:** ป้าย "Open Data Common" บน data.go.th ไม่มีคำนิยามสัญญาอนุญาต (ใช้กับ TMT/TTMT ปัจจุบันและข้อมูลกรมแพทย์แผนไทยหลายชุด)
+
+## 0. P4 status (2026-11-10): what is integrated
+
+Integrated in P4, exactly as the verdicts below allow:
+- **S2** TMT 2020-02-17 → `vendor/pc-drugs/tmt-2563.json` (`tools/pc-tmt-build.mjs`; downloads to `~/LENSIQ-field/drug-data/`).
+- **S4 / S5** NLEM 2567 → `vendor/pc-drugs/nlem-2567.json` (`tools/pc-nlem-build.mjs`, MIT notice kept; Gazette check pending).
+- **S7–S9** openFDA, DailyMed and RxNav through the Worker (`backend/src/pc.js`): facts and links only, no RxClass.
+- **S15** Thai FDA web service: testing only, behind the admin switch.
+- Health Canada recalls (design §4.4, OGL-Canada): sharded offline by `tools/pc-hc-build.mjs` into `vendor/pc-recalls/hc/`
+  and searched on the device. The TMT table is also served as on-demand shards (`vendor/pc-drugs/tmt/`).
+
+Recall sources as used (coordinator decisions 2026-11-10):
+- **EU Safety Gate** (search API, Commission reuse notice; CC0 only for the weekly XML; L16): **testing only**, off in customer
+  builds unless the owner switches it on.
+- **RASFF Window** (CC BY 4.0; the public search endpoint is undocumented; L16 open): **testing only**, off in customer builds
+  unless the owner switches it on.
+- **openFDA** (CC0): use now; `recalling_firm` is kept only when it is clearly a company (a sole proprietor is a person).
+
+Refused by the build tools' licence guard (`tools/pc-drug-sources.json`): S1, S3, and TMT 2568 ("Open Data Common").
+Not used: S6, S10, S12, S13, S16–S22. Recall sources (design §4): see `docs/product-check/P4-RESULTS.md` §3.
 
 ## 1. Source table
 

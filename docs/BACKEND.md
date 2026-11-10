@@ -570,6 +570,56 @@ Admin (`/admin/api`): `GET state`, `POST bootstrap|login|logout|password|reauth|
 member status, retention/run, plan / price / billing-settings / membership edits and the AI key; owner TOTP on for the
 money ops while billing is on). Details: §1 "Round-10 API …" and "Round 11".
 
+Product Check official lookups (round 17 P4, `src/pc.js`; not deployed):
+- **Routes:**
+  - `GET /api/pc/status|thfda|openfda|safetygate|rasff|healthcanada|hsa|label|ndc|dailymed|rxnav`;
+  - `POST /api/pc/batch {lookups:[{source, op?, by?, q}]}`, 1–16 lookups. This is the card's single call per tap: the
+    Worker fans out and counts **one** rate-limit hit.
+- **Requests:** text only, sent after the user taps "check official sources".
+  - The browser sends a registration number, a GTIN, a TMT product name or an ingredient name, never the label text or
+    an image.
+  - Origin is required. Lookups are GET; the batch is POST `application/json`, at most 4 KB.
+  - Thai FDA: only the operations the card uses are public (`drug, food, cosmetic, herbal, device, advert, all`). The
+    licensee-name searches (`lcn_*`, `drug_lcn_info`) and the rest are not exposed.
+- **Rate limit:** `PC_RATE_MIN` per caller per minute (default 30). It uses D1 when it is bound and an in-memory window
+  per isolate otherwise.
+- **Accepted answers:** only each source's documented shape.
+  - Thai FDA: the operation's `…Response` / `…Result` and no SOAP Fault.
+  - JSON sources: the expected array — `results`, `content`, `notifications`, `result.records`, `data`, plus RxNav's
+    `approximateGroup` / `relatedGroup`.
+  - Anything else (an HTML / WAF page, a Fault, an empty 200, other JSON) is `could_not_check` (`bad_response`), never
+    "not found", and is never cached.
+- **Caches:** keyed by a SHA-256 of the query, never the query itself. Errors are never cached. Lifetimes:
+  - recalls: 1 h;
+  - registers: 6 h;
+  - labels: 24 h.
+- **TMT brand table:** also static. `tools/pc-tmt-build.mjs` writes `vendor/pc-drugs/tmt/`: `meta.json` plus 473 key-prefix
+  shards. The page loads only the shards a label needs (owner decision 2026-11-10).
+- **Health Canada:** never fetched by the Worker. `GET /api/pc/healthcanada` always answers `on_device`.
+  - `tools/pc-hc-build.mjs` shards the 16 MB open-data file offline into `vendor/pc-recalls/hc/`: word postings by
+    2-letter prefix plus 100-item chunks, with the OGL-Canada credit in `meta.json`.
+  - The page searches those static files itself, so it works on the Workers free plan and on `*.workers.dev`, and the
+    search words are not sent anywhere.
+  - Re-run the tool on each Health Canada release; `--check` verifies the committed files (owner decision 2026-11-10).
+- **Failures:** a source that fails answers `{ok:false, could_not_check:true, reason}`: HTTP 502 when it is down, 503 when
+  it is switched off. Reasons: `upstream_<status>`, `timeout`, `rate_limited`, `bad_response`, `switched_off`,
+  `testing_only_off`, `on_device`, `link_out`.
+- **Thai FDA personal data:**
+  - Rows are whitelisted.
+  - Licensee names are kept only for companies: the name starts with บริษัท… or ends with จำกัด / Co., Ltd. …,
+    after NFKC and zero-width stripping.
+  - A name that starts with a person's title (civil, academic, medical, military / police ranks) is always dropped.
+  - Addresses and foreign-maker fields are always dropped.
+- **Switches:**
+  - `PC_ENABLED` turns the routes on or off.
+  - `PC_THFDA_MODE`: `live` (demo / testing) or `link` (no Thai FDA call). Written permission is needed before charging
+    (CTO-BRIEF L13).
+  - `PC_BUILD`: `demo` (this repo) or `customer`. In a customer build the testing-only sources (Thai FDA, EU Safety
+    Gate, RASFF; L13 / L16) are **off** unless the owner switches them on, and their answers keep the licence label.
+  - Admin API `GET|PUT /admin/api/pc/lookup`: Thai FDA mode plus per-source on/off. PUT needs re-auth and is audited;
+    only explicit owner choices are stored. There is no admin.html control yet. `wrangler.toml` says the same.
+- **Licences and testing-only flags per source:** `docs/product-check/P4-RESULTS.md` §3.
+
 Type checking: `npm run typecheck` also runs `tsc -p backend/tsconfig.json` (every `backend/src` file is
 `// @ts-check`; minimal ambient Workers / D1 / SDK types in `backend/types/worker.d.ts`, so no network install is
 needed). CI additionally runs `npm ci` in `backend/` (pinned by `backend/package-lock.json`) and

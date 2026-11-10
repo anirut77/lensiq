@@ -110,7 +110,9 @@ export default async function ({ base, launch, check }) {
       const acc = await page.evaluate(t => Math.max(...t.split("\n").map(l => window.LQPC.charAccuracy("ยาแก้ปวดลดไข้", l))), th.text);
       assert(acc >= 0.8, "Thai line read (char accuracy " + acc + "): " + JSON.stringify(th.text));
       assert(th.how.some(u => /oryor\.com/.test(u)) && th.how.some(u => /porta\.fda\.moph\.go\.th/.test(u)), "Thai verify links " + th.how);
-      assert(/ยังไม่ได้ตรวจเลขกับฐานข้อมูลทะเบียน/.test(th.cant), "could-not-check list " + th.cant);
+      // P4 (re-review 15): with the risk-signal card on the page the register check is one tap away there and the over-claims
+      // are checked there, so the list points to the card instead of saying "not checked in this step"
+      assert(/ตรวจกับฐานข้อมูลของหน่วยงานได้ในการ์ด/.test(th.cant) && !/ยังไม่ได้ตรวจคำโฆษณาเกินจริง/.test(th.cant), "could-not-check list " + th.cant);
       assert(!/ของแท้|ของปลอม/.test(await page.evaluate(() => document.querySelector("#tab-pc").innerText)), "no genuine / fake verdict");
       // the user edits the text: parsing follows the edit (no model run)
       await page.evaluate(() => { document.querySelector("#pcText").value = "MAL19990123AZ"; document.querySelector("#pcReparse").click(); });

@@ -61,6 +61,19 @@ higher-recall detector setting at the cost of label readability)?
 - History is opt-in, local only, deletable, and the setting text warns that a medicine history is health data and not to enable it on a shared device.
 - Images of people are never needed; the page asks users not to capture faces or patient names.
 
+## Product Check official lookups (round 17 P4)
+
+- **What is sent:** after the user taps "check official sources", the Worker receives derived facts only (registration
+  numbers, GTINs, product names found in TMT, ingredient names) in one batch per tap. The card's notice names every
+  source and its country first. Health Canada, TMT, NLEM and the Thai warning list run on the device from static files.
+- **Thai FDA answers** can contain the names and home addresses of natural-person licensees. The Worker holds them in
+  memory for the request only and returns whitelisted product fields. A licensee name is kept only when it is clearly a
+  company; a name that starts with a person's title is always dropped.
+- **openFDA `recalling_firm`** can be a sole proprietor's name, which is personal data.
+  - Choice made: the same company-marker filter is applied. The firm is returned only when it is clearly a company
+    (Inc., LLC, Co., Ltd., …); otherwise the field is empty.
+  - The card does not display the firm.
+
 ## Open questions for counsel
 
 1. Is the opt-in toggle (with its text) sufficient explicit consent under s.26 for sending a drug name to the Worker and to US services, given no identifier travels with it? The toggle now resets every session (sessionStorage) pending this answer.

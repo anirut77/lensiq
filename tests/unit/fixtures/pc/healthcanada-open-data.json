@@ -1,0 +1,32 @@
+[
+ {
+  "NID": "77435",
+  "Title": "T&T brand Organic Roasted Black Soybeans recalled due to undeclared milk",
+  "URL": "https://recalls-rappels.canada.ca/en/alert-recall/tt-brand-organic-roasted-black-soybeans-recalled-due-undeclared-milk",
+  "Organization": "CFIA",
+  "Product": "Organic Roasted Black Soybeans",
+  "Issue": "Milk",
+  "Category": "Candy, confectionary, snacks and sweeteners",
+  "Recall class": "Class 1",
+  "Last updated": "2026-11-07",
+  "Archived": "0"
+ },
+ {
+  "NID": "1",
+  "Title": "LQ TEST synthetic old item Black Soybeans",
+  "URL": "https://recalls-rappels.canada.ca/en/alert-recall/lq-test-old",
+  "Organization": "CFIA",
+  "Product": "Black Soybeans",
+  "Issue": "Milk",
+  "Last updated": "2019-01-01"
+ },
+ {
+  "NID": "2",
+  "Title": "LQ TEST synthetic off-site Black Soybeans",
+  "URL": "https://evil.example/x",
+  "Organization": "CFIA",
+  "Product": "Black Soybeans",
+  "Issue": "Milk",
+  "Last updated": "2026-11-01"
+ }
+]

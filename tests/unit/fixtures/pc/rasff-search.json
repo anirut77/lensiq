@@ -1,0 +1,30 @@
+{
+ "notifications": [
+  {
+   "notifId": 885147,
+   "ecValidationDate": "06-11-2026 09:10:04",
+   "reference": "2026.9864",
+   "notifyingCountry": {
+    "organizationName": "Germany",
+    "isoCode": "DE"
+   },
+   "subject": "Salmonella spp. in organic pine nuts from Italy",
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "originCountries": [
+    {
+     "organizationName": "Austria",
+     "isoCode": "AT"
+    },
+    {
+     "organizationName": "Italy",
+     "isoCode": "IT"
+    }
+   ]
+  }
+ ],
+ "totalPages": 1,
+ "totalElements": 1
+}

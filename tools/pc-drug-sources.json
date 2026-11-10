@@ -1,0 +1,77 @@
+{
+ "_doc": "Product Check P4: drug-data sources the build tools may read (tools/pc-tmt-build.mjs, tools/pc-nlem-build.mjs). A tool refuses any source whose licence_allowed is not true. Change licence_allowed only after the licence is read on the source's own page (or written permission is on file) and recorded in docs/product-check/DRUG-DATA-SOURCES.md and docs/CTO-BRIEF.md section 8.",
+ "sources": {
+  "tmt-2563": {
+   "kind": "tmt",
+   "title": "Thai Medicines Terminology (TMT), release TMTRF20200217",
+   "publisher": "สำนักพัฒนามาตรฐานระบบข้อมูลสุขภาพไทย (สมสท. / THIS)",
+   "dataset_url": "https://data.go.th/dataset/thai-medicines-terminology-tmt",
+   "licence": "Creative Commons Attribution (data.go.th cc-by; version not stated, L30)",
+   "licence_url": "https://creativecommons.org/licenses/by/4.0/",
+   "licence_allowed": true,
+   "licence_checked": "2026-11-10, data.go.th dataset page (DRUG-DATA-SOURCES S2)",
+   "as_of": "2020-02-17",
+   "dir": "tmt-2020-ccby",
+   "files": {
+    "mastertmt_20200217.xls": "https://data.go.th/dataset/ca6ec620-369c-4f56-a8d6-56f1541e5ddf/resource/caa41e90-aa41-41c0-9316-2b73a1f45cec/download/mastertmt_20200217.xls"
+   },
+   "master": "mastertmt_20200217.xls",
+   "out": "vendor/pc-drugs/tmt-2563.json"
+  },
+  "tmt-2568": {
+   "kind": "tmt",
+   "title": "Thai Medicines Terminology (TMT), 2568 release on data.go.th",
+   "publisher": "สมสท. / THIS",
+   "dataset_url": "https://data.go.th/dataset/thai-medicines-terminology-tmt",
+   "licence": "\"Open Data Common\" (label with no definition in any Thai CKAN licence list; L29, L31)",
+   "licence_allowed": false,
+   "licence_checked": "2026-11-10 (CTO-BRIEF L29)",
+   "files": {}
+  },
+  "tmt-current": {
+   "kind": "tmt",
+   "title": "TMT current release files (TMTRFyyyymmdd.zip, login at this.or.th)",
+   "publisher": "สมสท. / THIS",
+   "dataset_url": "https://this.or.th/service/tmt/download/",
+   "licence": "none stated; footer \"สงวนลิขสิทธิ์\" (L29: written permission needed)",
+   "licence_allowed": false,
+   "licence_checked": "2026-11-10 (DRUG-DATA-SOURCES S1)",
+   "files": {}
+  },
+  "nlem-2567": {
+   "kind": "nlem",
+   "title": "National List of Essential Medicines (บัญชียาหลักแห่งชาติ) 2567, CSV from thai-nlem-api",
+   "publisher": "Data: National Drug System Development Committee announcement (Royal Gazette). CSV: suradet-ps/thai-nlem-api",
+   "dataset_url": "https://github.com/suradet-ps/thai-nlem-api",
+   "licence": "CSV and code: MIT (keep the notice). Announcement text: Thai Copyright Act s.7(3) (L32)",
+   "licence_url": "https://github.com/suradet-ps/thai-nlem-api/blob/main/LICENSE",
+   "licence_allowed": true,
+   "licence_checked": "2026-11-10, GitHub licence file (DRUG-DATA-SOURCES S4, S5)",
+   "as_of": "2567 (2024) edition as compiled by thai-nlem-api; last push 2026-10-02",
+   "dir": "nlem",
+   "files": {
+    "nlem_2567.csv": "https://raw.githubusercontent.com/suradet-ps/thai-nlem-api/main/data/nlem_2567.csv",
+    "LICENSE": "https://raw.githubusercontent.com/suradet-ps/thai-nlem-api/main/LICENSE"
+   },
+   "master": "nlem_2567.csv",
+   "out": "vendor/pc-drugs/nlem-2567.json"
+  },
+  "hc-recalls": {
+   "kind": "recalls",
+   "title": "Health Canada Recalls and Safety Alerts, open-data JSON (HCRSAMOpenData.json)",
+   "publisher": "Health Canada / Government of Canada",
+   "dataset_url": "https://open.canada.ca/data/en/dataset/d38de914-c94c-429b-8ab1-8776c31643e3",
+   "licence": "Open Government Licence - Canada (open.canada.ca license_id ca-ogl-lgo)",
+   "licence_url": "https://open.canada.ca/en/open-government-licence-canada",
+   "licence_allowed": true,
+   "licence_checked": "2026-11-10, open.canada.ca dataset record + OGL text (P4 research)",
+   "as_of": "daily file; the build records the newest Last updated date",
+   "dir": "hc-recalls",
+   "files": {
+    "HCRSAMOpenData.json": "https://recalls-rappels.canada.ca/sites/default/files/opendata-donneesouvertes/HCRSAMOpenData.json"
+   },
+   "master": "HCRSAMOpenData.json",
+   "out": "vendor/pc-recalls/hc"
+  }
+ }
+}

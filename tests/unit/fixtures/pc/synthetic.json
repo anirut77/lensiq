@@ -1,0 +1,15 @@
+{
+ "_doc": "SYNTHETIC fixtures (made-up values) in the shape of the live answers seen on 2026-11-10. EU Safety Gate: licence of the search API unconfirmed (L16), so no real record is recorded. Label / NDC / DailyMed / RxNav: shapes only; the label carries a marker text that must never pass the Worker (L33).",
+ "safetygate": { "content": [ { "id": 10000001, "reference": "SR/99999/26", "publicationDate": "2026-05-05T10:00:00.000+00:00",
+   "product": { "nameSpecific": "LQ TEST Whitening Cream", "name": "Cosmetics", "brands": [ { "brand": "LQ TEST BRAND" } ], "photos": [ { "id": 1, "fileName": "x.jpg" } ] },
+   "risk": { "riskType": [ { "key": "riskType.chemical", "name": "CHEMICAL" } ] } } ], "totalElements": 1 },
+ "label": { "results": [ { "set_id": "00000000-0000-4000-8000-000000000001", "effective_time": "20241107",
+   "indications_and_usage": ["LQ-LABEL-TEXT-MUST-NOT-PASS"], "warnings": ["LQ-LABEL-TEXT-MUST-NOT-PASS"],
+   "openfda": { "brand_name": ["LQ TEST BRAND"], "generic_name": ["LQTESTAMINOPHEN"], "manufacturer_name": ["LQ Test Labs LLC"], "route": ["ORAL"], "product_ndc": ["99999-001"] } } ] },
+ "ndc": { "results": [ { "product_ndc": "99999-001", "brand_name": "LQ TEST BRAND", "generic_name": "LQTESTAMINOPHEN", "labeler_name": "LQ Test Labs LLC", "dosage_form": "TABLET",
+   "marketing_category": "OTC MONOGRAPH DRUG", "spl_id": "00000000-0000-4000-8000-000000000002", "active_ingredients": [ { "name": "LQTESTAMINOPHEN", "strength": "500 mg/1" } ] } ] },
+ "dailymed": { "data": [ { "setid": "00000000-0000-4000-8000-000000000001", "title": "LQ TEST BRAND (LQTESTAMINOPHEN) TABLET [LQ TEST LABS LLC]", "published_date": "Oct 26, 2026", "spl_version": 1 } ],
+   "metadata": { "total_elements": 1 } },
+ "rxnav_approx": { "approximateGroup": { "candidate": [ { "rxcui": "9999001", "score": "10", "rank": "1" } ] } },
+ "rxnav_related": { "relatedGroup": { "conceptGroup": [ { "tty": "IN", "conceptProperties": [ { "rxcui": "9999002", "name": "lqtestaminophen", "tty": "IN" } ] } ] } }
+}
