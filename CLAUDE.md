@@ -5,6 +5,8 @@ https://anirut77.github.io/lensiq/. Owner-facing replies are in Thai.
 
 ## Working rules (owner: Tum)
 
+- Owner messages for this project start with `[LENSIQ]`. If a message starts with another project's tag, or clearly
+  refers to another project (for example Anumat), do nothing and tell the owner it was sent to the wrong window.
 - Never loosen or skip a test to make CI pass. Fix the product. No CI-only allowances.
 - CI must be green before stacking new work. Push risky fixes as their own commit.
 - Ask the owner before changing approved scope or order. Don't start and report later.
