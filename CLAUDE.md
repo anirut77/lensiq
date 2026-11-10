@@ -46,8 +46,17 @@ A page may appear in two categories. Pages not listed under a category are platf
   plate read.
 - Nothing leaves the device without the user's opt-in, and external AI also needs a server key. Only derived facts are
   sent. No images of people are stored or committed.
-- Fortune hard bans: no predictions of death, illness, accident, disaster or infidelity; no lottery numbers; no paid
-  remedies; no medical or cosmetic advice.
+- Fortune hard bans: no predictions of death, illness, accident, disaster or infidelity; no lottery numbers; no medical
+  or cosmetic advice.
+- Remedies and merit (owner decision 2026-11-10, replaces "no paid remedies"):
+  - Never sell a remedy, a change of fortune or any outcome. No wording like "pay and your luck improves" or
+    "guaranteed to fix ชง".
+  - A paid "merit on your behalf" service is allowed only as a service: we charge for staff time, travel and
+    photo/video proof. The donation or offering amount is shown separately and passed on in full, with proof and a
+    receipt.
+  - Remedy, place and lucky-item recommendations are free information, labelled "according to belief, please use your
+    own judgement", and are never tied to a purchase.
+  - Never offer the paid service when the crisis net triggers; show help resources instead.
 - No AGPL, GPL or non-commercial models, code or data in the product. No Ultralytics.
   `vendor/models/faceparse-*.onnx` is never committed. Datasets, test videos and photos stay out of the repo.
 - PDPA: keep privacy defaults and add notes to `docs/PDPA-NOTES-FOR-COUNSEL.md`. A lawyer reviews before sale.
