@@ -334,6 +334,19 @@ auto-read, demo plates still read; lane status, and a tap on the refused board I
 end-to-end on a generated folder incl. a HEIC and an undecodable PNG),
 `tests/e2e/gate-detect.e2e.mjs` (+ the guard keeps the correct synthetic reads, 0 plate-less scenes auto-read).
 
+### Owner decision: YOLOv9 not used, not even for demos (2026-11-10)
+
+The open-image-models YOLOv9 plate detector is **not used anywhere**, including local sales demos. Reasons: the weights
+carry no licence (the maintainer defers to WongKinYiu/yolov9, GPL-3.0); that training code descends from Ultralytics
+YOLOv5 (AGPL-3.0 since 2023-04-14), against the "No Ultralytics" rule; and its ~11–15k training images were scraped
+from the web without licence or consent. The delivered detector is the Thai-trained YOLOX-nano (Apache-2.0,
+`tools/train-plate-detector.ipynb`, steps in `docs/PLATE-DATASETS.md`). Legal list: CTO-BRIEF §8 L41.
+
+**Fairness fix before the Thai model is measured:** the 51-photo Wikimedia Commons set's plate boxes were drafted with
+YOLOv9 and checked by eye (section 3c). Before any comparison, every box is re-checked by hand or redrawn without
+YOLOv9, and the eval docs state which boxes changed. Until then, box-based numbers on this set favour YOLOv9-like
+detectors; read-based numbers (exact read, taps) are less affected.
+
 ## 4. Hardware guide
 
 **Camera placement.** Plate ≥ 120 px wide in the frame (≥ 160 px for motorcycles), ≤ 30° horizontal / vertical angle,
