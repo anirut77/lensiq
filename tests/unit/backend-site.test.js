@@ -2,10 +2,10 @@
 // tests/unit/backend-site.test.js — front-end integration of the API Worker: backend/ and Worker secrets are never
 // published; CSP connect-src gets the API origin only when LENSIQ_API_BASE is configured; lensiq-api.js is inert
 // offline; lensiq-analytics.js sends nothing without opt-in / with Do-Not-Track and only allowlisted fields;
-// no secrets committed under backend/.
+// no secrets in the git-tracked files under backend/, and backend/.dev.vars stays git-ignored.
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { readFileSync, readdirSync, statSync } = require("node:fs");
+const { readFileSync, readdirSync } = require("node:fs");
 const { join } = require("node:path");
 const vm = require("node:vm");
 
@@ -46,16 +46,82 @@ test("admin.html / pricing.html: noindex, not linked from public pages or the me
   assert.ok(!/admin\.html/.test(readFileSync(join(ROOT, "nav.js"), "utf8")));
 });
 
-test("no secrets committed under backend/ (only placeholders)", () => {
-  const walk = d => readdirSync(d).flatMap(f => { const p = join(d, f); if (f === "node_modules" || f === ".wrangler") return []; return statSync(p).isDirectory() ? walk(p) : [p]; });
-  const files = walk(join(ROOT, "backend"));
-  assert.ok(!files.some(f => /[/\\]\.dev\.vars$/.test(f)), ".dev.vars must not exist in the tree");
+// ---- secrets (owner decision 2026-11-10): git-TRACKED files only + the ignore rule itself is asserted -----------------
+// A developer's own backend/.dev.vars (real keys for `wrangler dev`) is expected on a laptop and is git-ignored: its
+// presence must not fail the suite. What must fail: a tracked .dev.vars, a tracked file with a real-looking key, or a
+// backend/.gitignore that no longer ignores .dev.vars (the next `git add -A` would then commit the keys).
+const git = (args, o = {}) => require("node:child_process").spawnSync("git", args, { cwd: ROOT, encoding: "utf8", ...o });
+const SECRET_PATTERNS = [
+  [/sk-ant-api\d{2}-[A-Za-z0-9_-]{20,}/, "Anthropic key"],
+  [/skey_(test_)?[0-9a-z]{19,}/, "Opn secret key"],
+  [/pkey_(test_)?[0-9a-z]{19,}/, "Opn public key"],
+  [/sk-or-v1-[0-9a-f]{32,}/, "OpenRouter key"],
+  [/sk-(proj-)?[A-Za-z0-9]{40,}/, "OpenAI-style key"],
+  [/AIza[0-9A-Za-z_-]{35}/, "Google API key"]
+];
+/** A local secrets file: .dev.vars or .dev.vars.<anything> except the committed example. */
+const isDevVars = f => /(^|\/)\.dev\.vars(\.[^/]*)?$/.test(f) && !/(^|\/)\.dev\.vars\.example$/.test(f);
+/** Problems in a list of tracked paths. read(path) -> file text. @param {string[]} files @param {(f: string) => string} read */
+function secretProblems(files, read) {
+  const out = [];
   for (const f of files) {
-    const s = readFileSync(f, "utf8");
-    assert.ok(!/sk-ant-api\d{2}-[A-Za-z0-9_-]{20,}/.test(s), f + ": Anthropic key");
-    assert.ok(!/skey_(test_)?[0-9a-z]{19,}/.test(s), f + ": Opn secret key");
-    assert.ok(!/pkey_(test_)?[0-9a-z]{19,}/.test(s), f + ": Opn public key");
+    if (isDevVars(f)) { out.push(f + ": a .dev.vars file is tracked"); continue; }
+    const s = read(f);
+    for (const [re, name] of SECRET_PATTERNS) if (re.test(s)) out.push(f + ": " + name);
   }
+  return out;
+}
+const trackedBackend = () => {
+  const r = git(["ls-files", "-z", "--", "backend"]);
+  assert.equal(r.status, 0, "git ls-files must work (the secrets test needs the repository): " + r.stderr);
+  return r.stdout.split("\0").filter(Boolean);
+};
+
+test("secrets checker: a tracked .dev.vars or a real-looking key in a tracked file is reported; placeholders are not", () => {
+  const A = "sk-ant-" + "api03-" + "Ab1_".repeat(8), O = "skey_" + "test_" + "5x".repeat(12), P = "pkey_" + "9z".repeat(12), R = "sk-or-" + "v1-" + "0a1b2c3d".repeat(8);
+  const fake = { "backend/src/a.js": "const k = \"" + A + "\";", "backend/b.md": "key: " + O, "backend/c.toml": "OPN_PUBLIC_KEY = \"" + P + "\"", "backend/d.js": R,
+    "backend/.dev.vars": "X=1", "backend/sub/.dev.vars.staging": "X=1", "backend/.dev.vars.local": "",
+    "backend/.dev.vars.example": "ANTHROPIC_API_KEY=\nOPN_SECRET_KEY=skey_test_xxx\n", "backend/ok.js": "const k = env.ANTHROPIC_API_KEY; // sk-ant-... goes in .dev.vars" };
+  const got = secretProblems(Object.keys(fake), f => fake[f]);
+  assert.deepEqual(got.sort(), [
+    "backend/.dev.vars.local: a .dev.vars file is tracked", "backend/.dev.vars: a .dev.vars file is tracked", "backend/b.md: Opn secret key", "backend/c.toml: Opn public key",
+    "backend/d.js: OpenRouter key", "backend/src/a.js: Anthropic key", "backend/sub/.dev.vars.staging: a .dev.vars file is tracked"
+  ].sort());
+  assert.equal(isDevVars("backend/.dev.vars.example"), false);
+  assert.equal(isDevVars("backend/.dev.vars.example.bak"), true, "only the exact example name is exempt");
+  assert.equal(isDevVars("backend/src/dev.vars.js"), false);
+});
+
+test("backend/.dev.vars and .dev.vars.* are git-ignored (the example is not): removing the ignore rule fails here", () => {
+  // --no-index: the rule itself is checked, whether or not the file exists or is tracked. Exit 0 = ignored, 1 = not.
+  const ignored = p => { const r = git(["check-ignore", "-q", "--no-index", "--", p]); assert.ok(r.status === 0 || r.status === 1, "git check-ignore failed: " + r.stderr); return r.status === 0; };
+  for (const p of ["backend/.dev.vars", "backend/.dev.vars.local", "backend/.dev.vars.staging", "backend/.dev.vars.production", "backend/.dev.vars.bak"]) {
+    assert.ok(ignored(p), p + " must be git-ignored (backend/.gitignore: .dev.vars and .dev.vars.*)");
+  }
+  assert.ok(!ignored("backend/.dev.vars.example"), "the placeholder example stays committed");
+  assert.ok(!ignored("backend/wrangler.toml") && !ignored("backend/src/index.js"), "sanity: ordinary files are not ignored");
+  // the rule is in a TRACKED ignore file (not only in a developer's .git/info/exclude or global excludes)
+  const v = git(["check-ignore", "-v", "--no-index", "--", "backend/.dev.vars", "backend/.dev.vars.staging"]);
+  for (const line of v.stdout.trim().split("\n")) assert.match(line, /^(backend\/)?\.gitignore:\d+:/, "ignored by a .gitignore in the repo: " + line);
+  const src = v.stdout.trim().split("\n").map(l => l.split(":")[0]);
+  const tracked = git(["ls-files", "--", ...new Set(src)]).stdout.trim().split("\n");
+  for (const f of new Set(src)) assert.ok(tracked.includes(f), f + " is tracked");
+});
+
+test("no secrets committed under backend/ (git-tracked files only; only placeholders)", () => {
+  const { existsSync } = require("node:fs");
+  const files = trackedBackend();
+  assert.ok(files.length > 20 && files.includes("backend/wrangler.toml") && files.includes("backend/.dev.vars.example"), "the tracked list is the real backend tree");
+  assert.ok(!files.some(isDevVars), ".dev.vars must never be tracked");
+  // working-tree content when the file is there; otherwise (deleted locally, or staged only) the content in the index
+  const read = f => {
+    if (existsSync(join(ROOT, f))) return readFileSync(join(ROOT, f), "utf8");
+    const r = git(["show", ":" + f], { maxBuffer: 64 * 1024 * 1024 });
+    assert.equal(r.status, 0, "git show :" + f + " failed");
+    return r.stdout;
+  };
+  const problems = secretProblems(files, read);
+  assert.deepEqual(problems, []);
   const toml = readFileSync(join(ROOT, "backend", "wrangler.toml"), "utf8");
   assert.match(toml, /FREE_MODE = "true"/);
   assert.match(toml, /BILLING_ENABLED = "false"/);

@@ -39,6 +39,12 @@ declare module "@anthropic-ai/sdk" {
 }
 
 /** The shared browser module (fortune-ai.js, CommonJS/UMD at the repo root) is imported as-is by fortune.js. */
+/** The Product Check personal-data guard (UMD at the repo root), imported as-is by ai/pc-features.js. */
+declare module "../../../lensiq-pc-guard.js" {
+  const LQPCGuard: any;
+  export default LQPCGuard;
+}
+
 declare module "../../fortune-ai.js" {
   const FortuneAI: any;
   export default FortuneAI;

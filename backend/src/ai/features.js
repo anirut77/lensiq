@@ -12,9 +12,12 @@
 //   gatewayRetries false = never retry the same model (the §10.3 "once" retries are skipped; next provider still used)
 //   sdkRetries     retries inside the provider SDK (default 0: the gateway owns retries)
 //   build(input, {mode}) -> provider-neutral request {system, text, images?, output: {name, schema}} — only for features
-//                  with a public route. P5 ships none: Product Check features (pc_*) get theirs in P7. Tests inject one
-//                  through deps.aiFeatures.
+//                  with a public route. P7 (2026-11-10): pc_fields, pc_claims, pc_translate are live (ai/pc-features.js:
+//                  schemas, prompts, verify); they stay OFF with budget 0 on a new install (settings.js). Tests inject
+//                  extra features through deps.aiFeatures.
 // Every output schema is checked with schema.js assertSupportedSchema when the request is built.
+
+import { buildClaims, buildFields, buildTranslate } from "./pc-features.js";
 
 /** @typedef {{th: string, en: string, zh: string}} L3 */
 /** @typedef {{id: string, status: "live"|"planned", legacy?: boolean, imageCapable?: boolean, timeoutMs?: number, overallMs?: number,
@@ -28,9 +31,12 @@ export const FEATURES = Object.freeze({
     id: "fortune_reword", status: "live", legacy: true, imageCapable: false, timeoutMs: 120000, overallMs: 85000, gatewayRetries: false, sdkRetries: 1,
     label: { th: "ผู้ช่วยเขียนคำทำนาย", en: "Fortune writing assistant", zh: "运势写作助手" }
   },
-  pc_fields: { id: "pc_fields", status: "planned", imageCapable: true, timeoutMs: 20000, label: { th: "ตรวจสินค้า: อ่านข้อมูลบนฉลาก", en: "Product Check: label fields", zh: "产品核查：标签字段" } },
-  pc_claims: { id: "pc_claims", status: "planned", imageCapable: false, timeoutMs: 30000, label: { th: "ตรวจสินค้า: คำโฆษณาเกินจริง", en: "Product Check: over-claims", zh: "产品核查：夸大宣传" } },
-  pc_translate: { id: "pc_translate", status: "planned", imageCapable: false, timeoutMs: 30000, label: { th: "ตรวจสินค้า: แปลฉลาก", en: "Product Check: label translation", zh: "产品核查：标签翻译" } }
+  pc_fields: { id: "pc_fields", status: "live", imageCapable: true, timeoutMs: 20000, build: buildFields, label: { th: "ตรวจสินค้า: อ่านข้อมูลบนฉลาก", en: "Product Check: label fields",
+    zh: "产品核查：标签字段" } },
+  pc_claims: { id: "pc_claims", status: "live", imageCapable: false, timeoutMs: 30000, build: buildClaims, label: { th: "ตรวจสินค้า: คำโฆษณาเกินจริง", en: "Product Check: over-claims",
+    zh: "产品核查：夸大宣传" } },
+  pc_translate: { id: "pc_translate", status: "live", imageCapable: false, timeoutMs: 30000, build: buildTranslate, label: { th: "ตรวจสินค้า: แปลฉลาก",
+    en: "Product Check: label translation", zh: "产品核查：标签翻译" } }
 });
 
 /** Registry with test features merged in (deps.aiFeatures). @param {Record<string, Feature>} [injected] */

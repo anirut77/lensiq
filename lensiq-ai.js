@@ -9,7 +9,10 @@
  * asks again. Requests go through LQApi (CSP connect-src stays 'self' + the API origin).
  *
  *   LQAI.run(feature, input, {mode?})  -> Promise<{ok:true, json, provider, model, checkedBy} | {fallback:true, reason, message}>
- *   LQAI.ensureConsent(feature, {mode?}) -> Promise<{mode, info} | null>
+ *   LQAI.ensureConsent(feature, {mode?}) -> Promise<{mode, info, remembered} | null>
+ *   LQAI.ensureConsentGroup(id, features, labels?, {mode?}) -> same, ONE screen for several features (P7, groupInfo)
+ *   LQAI.send(feature, info, mode, input) -> the POST alone (a page step such as a photo preview sits between)
+ *   LQAI.consentState(feature|group)     -> {state: "remembered"|"session"|"", mode}
  *   LQAI.withdraw(feature)              -> boolean
  *   LQAI.renderWithdraw(container, feature) -> HTMLElement   button shown while a remembered consent exists
  *   LQAI.fallbackMessage(reason)        -> text in the current language (budget: "on-device result only")
@@ -25,8 +28,10 @@
     th: {
       title: "ส่งให้ AI ช่วยตรวจหรือไม่", intro: "ระบบจะส่งข้อมูลไปให้ผู้ให้บริการ AI ด้านล่าง เฉพาะเมื่อคุณกดยินยอม",
       provider: "ผู้ให้บริการ", model: "โมเดล", region: "ประมวลผลที่", retention: "การเก็บข้อมูลของผู้ให้บริการ", fallbackTo: "ถ้าระบบแรกไม่ว่าง อาจใช้",
-      sends: "สิ่งที่ส่ง", sendsText: "เฉพาะข้อความที่อ่านได้ในเครื่อง (ไม่ส่งภาพ)", sendsImage: "ข้อความที่อ่านได้ และภาพสินค้าที่ครอปแล้ว (ไม่มีใบหน้า)",
-      storesNothing: "LENSIQ ไม่เก็บข้อความ ภาพ หรือผลลัพธ์ไว้บนเซิร์ฟเวอร์", mode: "เลือกสิ่งที่ส่ง", modeText: "ข้อความเท่านั้น (แนะนำ)", modeImage: "ข้อความและภาพสินค้า",
+      sends: "สิ่งที่ส่ง", sendsText: "เฉพาะข้อความที่อ่านได้ในเครื่อง (ไม่ส่งภาพ)",
+        sendsImage: "ข้อความที่อ่านได้ และภาพถ่ายสินค้าเฉพาะในกรอบ โดยเบลอใบหน้าบนเครื่องนี้ก่อน คุณจะเห็นภาพก่อนส่งทุกครั้ง",
+      storesNothing: "LENSIQ ไม่เก็บข้อความ ภาพ หรือผลลัพธ์ไว้บนเซิร์ฟเวอร์", mode: "เลือกสิ่งที่ส่ง", modeText: "ข้อความเท่านั้น (แนะนำ)",
+        modeImage: "ภาพถ่ายสินค้า (เบลอใบหน้าก่อนส่ง)", usedFor: "ใช้กับ", partRow: "{provider} · {model} · ประมวลผลที่ {region}",
       retentionAll: "การเก็บข้อมูลของผู้ให้บริการแต่ละราย", withdrawHow: "ถอนความยินยอมได้ทุกเมื่อด้วยปุ่ม \"ถอนความยินยอมการส่งให้ AI\" ใต้ผลตรวจ หรือในหน้าตั้งค่า ครั้งต่อไประบบจะถามใหม่",
       remember: "จำการเลือกนี้ไว้ในเครื่องนี้", agree: "ยินยอมและส่ง", cancel: "ไม่ส่ง ใช้ผลในเครื่อง", withdraw: "ถอนความยินยอมการส่งให้ AI", withdrawn: "ถอนความยินยอมแล้ว ครั้งหน้าระบบจะถามใหม่",
       checkedBy: "ตรวจโดย {provider}, {region}", routedTo: "ส่งต่อไปยัง {routed}",
@@ -40,8 +45,10 @@
     en: {
       title: "Send this to AI for a check?", intro: "Data is sent to the AI provider below only if you agree.",
       provider: "Provider", model: "Model", region: "Processed in", retention: "Provider's data retention", fallbackTo: "If the first one is busy, it may use",
-      sends: "What is sent", sendsText: "Only the text read on this device (no image)", sendsImage: "The text read on this device and the cropped product image (no faces)",
-      storesNothing: "LENSIQ stores no text, image or result on its servers", mode: "Choose what to send", modeText: "Text only (recommended)", modeImage: "Text and product image",
+      sends: "What is sent", sendsText: "Only the text read on this device (no image)",
+      sendsImage: "The text read on this device and a photo of the product inside the box, with faces blurred on this device first; you see the photo before it is sent, every time",
+      storesNothing: "LENSIQ stores no text, image or result on its servers", mode: "Choose what to send", modeText: "Text only (recommended)",
+        modeImage: "Photo of the product (faces blurred first)", usedFor: "Used for", partRow: "{provider} · {model} · processed in {region}",
       retentionAll: "Data retention of each provider",
       withdrawHow: "You can withdraw at any time with the \"Withdraw consent to send to AI\" button under the result or in settings; you will then be asked again",
       remember: "Remember my choice on this device", agree: "Agree and send", cancel: "Don't send, use the on-device result",
@@ -57,8 +64,8 @@
     zh: {
       title: "要发送给 AI 核查吗？", intro: "只有在您同意后，数据才会发送给下面的 AI 服务商。",
       provider: "服务商", model: "模型", region: "处理地点", retention: "服务商的数据保留", fallbackTo: "如果第一个繁忙，可能改用",
-      sends: "发送内容", sendsText: "仅发送本设备读取的文字（不发送图片）", sendsImage: "本设备读取的文字和裁剪后的产品图片（不含人脸）",
-      storesNothing: "LENSIQ 不在服务器上保存文字、图片或结果", mode: "选择发送内容", modeText: "仅文字（推荐）", modeImage: "文字和产品图片",
+      sends: "发送内容", sendsText: "仅发送本设备读取的文字（不发送图片）", sendsImage: "本设备读取的文字和框内的产品照片，人脸先在本设备上模糊处理；每次发送前您都会先看到照片",
+      storesNothing: "LENSIQ 不在服务器上保存文字、图片或结果", mode: "选择发送内容", modeText: "仅文字（推荐）", modeImage: "产品照片（先模糊人脸）", usedFor: "用于", partRow: "{provider} · {model} · 处理地点 {region}",
       retentionAll: "各服务商的数据保留", withdrawHow: "您可随时通过结果下方或设置中的“撤回发送给 AI 的同意”按钮撤回，之后会再次询问",
       remember: "在本设备上记住我的选择", agree: "同意并发送", cancel: "不发送，使用本机结果", withdraw: "撤回发送给 AI 的同意", withdrawn: "已撤回同意，下次会再询问",
       checkedBy: "由 {provider} 核查，{region}", routedTo: "转接至 {routed}",
@@ -92,7 +99,33 @@
       // retention / training note of EVERY provider that may receive the data, not only the first
       retentions: ((info && info.chain) || []).map(function (/** @type {any} */ c) { return pick(c.name, L) + ": " + pick(c.retention, L); }),
       withdrawHow: STR[L].withdrawHow,
-      sends: mode === "image" ? STR[L].sendsImage : STR[L].sendsText, stores: STR[L].storesNothing
+      sends: mode === "image" ? STR[L].sendsImage : STR[L].sendsText, stores: STR[L].storesNothing,
+      // one screen for several features (groupInfo): the provider, model and country actually used for EACH of them
+      parts: ((info && info.parts) || []).map(function (/** @type {any} */ p) {
+        return { label: pick(p.label, L), text: STR[L].partRow.replace("{provider}", pick(p.first.name, L)).replace("{model}", String(p.first.model)).replace("{region}", pick(p.first.region, L)) };
+      })
+    };
+  }
+  /** Unique values, first-seen order. @param {string[]} a */
+  function uniq(a) { var o = /** @type {string[]} */ ([]); a.forEach(function (x) { if (o.indexOf(x) < 0) o.push(x); }); return o; }
+  /**
+   * ONE consent screen for several features of a page (Product Check: pc_fields + pc_claims + pc_translate). Merges the
+   * GET /v1/ai/providers answers of the features that are switched on: the chain is every {provider, model} that may
+   * receive data (first-seen order), parts names the first provider of EACH feature, image mode is offered when one of
+   * them allows it. The remembered consent is stored under the group id and tied to that merged provider list.
+   * @param {string} id group id @param {any[]} infos @param {Record<string, any>} [labels] feature -> {th, en, zh}
+   */
+  function groupInfo(id, infos, labels) {
+    var on = (infos || []).filter(function (/** @type {any} */ i) { return i && i.enabled && ids(i).length; });
+    /** @type {any[]} */ var chain = [];
+    /** @type {Record<string, boolean>} */ var seen = {};
+    on.forEach(function (/** @type {any} */ i) {
+      i.chain.forEach(function (/** @type {any} */ c) { var k = c.provider + "|" + c.model; if (!seen[k]) { seen[k] = true; chain.push(c); } });
+    });
+    return {
+      feature: id, enabled: on.length > 0, stores: false, chain: chain, features: on.map(function (/** @type {any} */ i) { return String(i.feature); }),
+      imageModeAllowed: on.some(function (/** @type {any} */ i) { return !!i.imageModeAllowed; }),
+      parts: on.map(function (/** @type {any} */ i) { return { feature: i.feature, label: (labels && labels[i.feature]) || { th: i.feature, en: i.feature, zh: i.feature }, first: i.chain[0] }; })
     };
   }
   /** @param {any} info @returns {string[]} */
@@ -130,7 +163,7 @@
   function requestBody(info, mode, input) {
     var m = pickMode(info, mode), inp = Object.assign({}, input || {});
     if (m !== "image") delete inp.images;
-    return { consent: true, providers: ids(info), mode: m, input: inp };
+    return { consent: true, providers: uniq(ids(info)), mode: m, input: inp };
   }
   /** @param {string} reason @param {any} [l] */
   function fallbackMessage(reason, l) { return STR[lang(l)][/** @type {any} */ (FB)[reason] || "fbError"]; }
@@ -143,7 +176,7 @@
     return STR[L].checkedBy.replace("{provider}", who).replace("{region}", pick(res && res.regionText, L));
   }
 
-  var pure = { STR: STR, CONSENT_KEY: CONSENT_KEY, consentView: consentView, modes: modes, pickMode: pickMode, rememberedConsent: rememberedConsent,
+  var pure = { STR: STR, CONSENT_KEY: CONSENT_KEY, consentView: consentView, groupInfo: groupInfo, modes: modes, pickMode: pickMode, rememberedConsent: rememberedConsent,
     saveConsent: saveConsent, withdraw: withdraw, requestBody: requestBody, fallbackMessage: fallbackMessage, checkedBy: checkedBy };
   if (typeof module !== "undefined" && module.exports) { module.exports = pure; return; }
 
@@ -175,7 +208,10 @@
       f.appendChild(el("p", undefined, T("intro")));
       var dl = el("dl");
       var row = function (/** @type {string} */ k, /** @type {string} */ val) { dl.appendChild(el("dt", undefined, T(k))); dl.appendChild(el("dd", undefined, val)); };
-      row("provider", v.provider); row("model", v.model); row("region", v.region); row("retention", v.retention);
+      if (v.parts.length > 1) {
+        v.parts.forEach(function (/** @type {any} */ p) { dl.appendChild(el("dt", undefined, T("usedFor") + " " + p.label)); dl.appendChild(el("dd", { "data-part": "" }, p.text)); });
+        row("retention", v.retention);
+      } else { row("provider", v.provider); row("model", v.model); row("region", v.region); row("retention", v.retention); }
       if (v.fallbacks.length) row("fallbackTo", v.fallbacks.join(", "));
       if (v.retentions.length > 1) {
         dl.appendChild(el("dt", undefined, T("retentionAll")));
@@ -224,49 +260,73 @@
     return A && A.enabled() ? A.getJSON("/v1/ai/providers?feature=" + encodeURIComponent(feature)) : Promise.resolve(null);
   }
 
-  /** @param {string} feature @param {{mode?: string}} [o] */
-  function ensureConsent(feature, o) {
-    return providers(feature).then(function (/** @type {any} */ info) {
-      if (!info || !info.enabled || !ids(info).length) return null;
-      var r = rememberedConsent(store(), info);
-      if (r) return { mode: o && o.mode === "text" ? "text" : r.mode, info: info }; // the page may ask for less, never for more
-      var s = session[feature];
-      if (s && s.providers === ids(info).join(",")) return { mode: pickMode(info, s.mode), info: info };
-      return dialog(info, (o && o.mode) || "text").then(function (/** @type {any} */ c) {
-        if (!c) return null;
-        session[feature] = { mode: c.mode, providers: ids(info).join(",") };
-        saveConsent(store(), info, c.mode, c.remember);
-        return { mode: pickMode(info, c.mode), info: info };
-      });
+  /** Consent for one consent-screen info (a feature, or a group from groupInfo). remembered = no screen was shown.
+   * @param {any} info @param {{mode?: string}} [o] */
+  function consentFor(info, o) {
+    if (!info || !info.enabled || !ids(info).length) return Promise.resolve(null);
+    var key = String(info.feature);
+    var r = rememberedConsent(store(), info);
+    if (r) return Promise.resolve({ mode: o && o.mode === "text" ? "text" : r.mode, info: info, remembered: true }); // the page may ask for less, never for more
+    var s = session[key];
+    if (s && s.providers === ids(info).join(",")) return Promise.resolve({ mode: o && o.mode === "text" ? "text" : pickMode(info, s.mode), info: info, remembered: false });
+    return dialog(info, (o && o.mode) || "text").then(function (/** @type {any} */ c) {
+      if (!c) return null;
+      session[key] = { mode: c.mode, providers: ids(info).join(",") };
+      saveConsent(store(), info, c.mode, c.remember);
+      return { mode: pickMode(info, c.mode), info: info, remembered: false };
     });
+  }
+  /** @param {string} feature @param {{mode?: string}} [o] */
+  function ensureConsent(feature, o) { return providers(feature).then(function (/** @type {any} */ info) { return consentFor(info, o); }); }
+  /** One consent screen for several features (groupInfo). Resolves {mode, info, remembered} | null (nothing switched on,
+   *  or the user did not agree). @param {string} id @param {string[]} features @param {Record<string, any>} [labels] @param {{mode?: string}} [o] */
+  function ensureConsentGroup(id, features, labels, o) {
+    return Promise.all(features.map(providers)).then(function (/** @type {any[]} */ infos) { return consentFor(groupInfo(id, infos, labels), o); });
   }
 
   /** @param {string} reason */
   function fallback(reason) { return { fallback: true, reason: reason, message: fallbackMessage(reason, cur()) }; }
 
+  /** The POST alone, for a consent the page already holds (ensureConsent / ensureConsentGroup): lets a page put a step
+   *  between consent and sending (Product Check: the blurred-photo preview). @param {string} feature @param {any} info
+   *  @param {string} mode @param {any} input */
+  function send(feature, info, mode, input) {
+    var A = W.LQApi;
+    if (!A || !A.enabled()) return Promise.resolve(fallback("disabled"));
+    if (!info) return Promise.resolve(fallback("consent_required"));
+    return Promise.resolve(typeof A.turnstile === "function" ? A.turnstile("ai") : "").then(function (/** @type {string} */ tok) {
+      /** @type {Record<string, string>} */
+      var headers = {};
+      if (tok) headers["X-Turnstile-Token"] = tok;
+      var M = W.LQMember;
+      var bearer = M && typeof M.token === "function" ? M.token() : "";
+      if (bearer) headers.Authorization = "Bearer " + bearer;
+      return A.call("/v1/ai/" + encodeURIComponent(feature), { method: "POST", body: requestBody(info, mode, input), headers: headers, timeoutMs: 90000 });
+    }).then(function (/** @type {any} */ r) {
+      if (r && r.ok && r.j && r.j.ok) return { ok: true, json: r.j.json, provider: r.j.provider, model: r.j.model, checkedBy: checkedBy(r.j, cur()) };
+      return fallback(r && r.j && r.j.reason ? String(r.j.reason) : r && r.status === 0 ? "network" : "provider_error");
+    });
+  }
   /** @param {string} feature @param {any} input @param {{mode?: string}} [o] */
   function run(feature, input, o) {
     var A = W.LQApi;
     if (!A || !A.enabled()) return Promise.resolve(fallback("disabled"));
     return ensureConsent(feature, o).then(function (/** @type {any} */ c) {
       if (!c) return fallback("consent_required");
-      return Promise.resolve(typeof A.turnstile === "function" ? A.turnstile("ai") : "").then(function (/** @type {string} */ tok) {
-        /** @type {Record<string, string>} */
-        var headers = {};
-        if (tok) headers["X-Turnstile-Token"] = tok;
-        var M = W.LQMember;
-        var bearer = M && typeof M.token === "function" ? M.token() : "";
-        if (bearer) headers.Authorization = "Bearer " + bearer;
-        return A.call("/v1/ai/" + encodeURIComponent(feature), { method: "POST", body: requestBody(c.info, c.mode, input), headers: headers, timeoutMs: 90000 });
-      }).then(function (/** @type {any} */ r) {
-        if (r && r.ok && r.j && r.j.ok) return { ok: true, json: r.j.json, provider: r.j.provider, model: r.j.model, checkedBy: checkedBy(r.j, cur()) };
-        return fallback(r && r.j && r.j.reason ? String(r.j.reason) : r && r.status === 0 ? "network" : "provider_error");
-      });
+      return send(feature, c.info, c.mode, input);
     });
   }
 
   /** @param {string} feature */
   function withdrawNow(feature) { delete session[feature]; return withdraw(store(), feature); }
+  /** What is in force for a feature or group: "remembered" (stored on this device), "session" (this page only) or "".
+   *  The remembered mode comes with it. @param {string} feature */
+  function consentState(feature) {
+    var all = readAll(store()), c = all && all[feature];
+    if (c && Array.isArray(c.providers)) return { state: "remembered", mode: c.mode === "image" ? "image" : "text" };
+    if (session[feature]) return { state: "session", mode: session[feature].mode === "image" ? "image" : "text" };
+    return { state: "", mode: "" };
+  }
 
   /** "Withdraw" button, visible while a consent is remembered for the feature. @param {HTMLElement} container @param {string} feature */
   function renderWithdraw(container, feature) {
@@ -278,6 +338,9 @@
     return b;
   }
 
-  W.LQAI = Object.assign({ run: run, ensureConsent: ensureConsent, providers: providers, renderWithdraw: renderWithdraw,
-    withdraw: withdrawNow, fallbackMessage: function (/** @type {string} */ r) { return fallbackMessage(r, cur()); } }, pure);
+  // the browser API LAST, so the documented LQAI.withdraw(feature) / LQAI.fallbackMessage(reason) win over the pure
+  // helpers of the same name (P7 fix: before, the pure withdraw(storage, feature) replaced it and did nothing)
+  W.LQAI = Object.assign({}, pure, { run: run, send: send, ensureConsent: ensureConsent, ensureConsentGroup: ensureConsentGroup, consentState: consentState, providers: providers,
+    renderWithdraw: renderWithdraw,
+    withdraw: withdrawNow, fallbackMessage: function (/** @type {string} */ r) { return fallbackMessage(r, cur()); } });
 })(typeof window !== "undefined" ? window : globalThis);

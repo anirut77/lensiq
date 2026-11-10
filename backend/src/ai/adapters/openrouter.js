@@ -11,8 +11,8 @@
 //   The response's `model` is the served model and `provider` the routed provider (result card: "OpenRouter, routed to
 //   <provider>"); usage.cost (credits = USD) is passed on as reportedCostMicros and the gateway settles with
 //   max(price-table cost, reported cost) under the P5 cap + cost_over_reservation alert.
-//   Errors (https://openrouter.ai/docs/api-reference/errors): 402 no credit -> auth; 403 guardrail / moderation flag ->
-//   content_policy_input; 408 -> timeout; 502 -> server_error; 503 (no provider meets the routing requirements) ->
+//   Errors (https://openrouter.ai/docs/api-reference/errors): 402 no credit -> auth; 403 moderation flag ->
+//   content_policy_input, 403 key / credit limit (or any other 403) -> auth + owner alert (kindOf403 below); 408 -> timeout; 502 -> server_error; 503 (no provider meets the routing requirements) ->
 //   overloaded; errors during generation can come with HTTP 200 and an `error` object (handled the same way).
 //   Docs read 2026-11-10: https://openrouter.ai/docs/features/provider-routing , https://openrouter.ai/docs/api-reference/overview ,
 //   https://openrouter.ai/docs/guides/privacy/data-collection (OpenRouter stores request metadata, not prompts, by default).
@@ -22,6 +22,24 @@ import { ROUTER_CAPS, priceAt } from "./prices.js";
 
 export const ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 const NAME_RE = /[^A-Za-z0-9 ._()-]/g;
+
+// OpenRouter uses HTTP 403 for two different things (P8 finding, 2026-11-10):
+//   - a moderation flag: error.metadata.reasons (array) and / or error.metadata.flagged_input -> content_policy_input
+//   - a key limit ("Key limit exceeded (total limit) …") or a credit / spending limit -> auth (configuration: the gateway
+//     alerts the owner and moves to the next provider; the user is not told the input was refused)
+// Only the structure and fixed patterns are tested here. The error body (it includes the key's hash and the key's
+// management URL) is never copied into the result, a log line or an alert.
+const LIMIT_RE = /\b(key|credit|credits|spend(?:ing)?|usage|budget)\b[^.]{0,40}\b(limit|exceeded|insufficient|exhausted)\b|\b(limit|insufficient)\b[^.]{0,20}\b(key|credit|credits)\b/i;
+const MODERATION_RE = /\b(flagged|moderation|moderated)\b/i;
+/** @param {any} data parsed error body (never returned) @returns {"auth"|"content_policy_input"} */
+export function kindOf403(data) {
+  const err = data && typeof data === "object" && data.error && typeof data.error === "object" ? data.error : {};
+  const msg = typeof err.message === "string" ? err.message.slice(0, 500) : "";
+  const meta = err.metadata && typeof err.metadata === "object" ? err.metadata : {};
+  if (LIMIT_RE.test(msg)) return "auth";
+  if (Array.isArray(meta.reasons) || meta.flagged_input != null || MODERATION_RE.test(msg)) return "content_policy_input";
+  return "auth"; // an unrecognised 403 is a configuration problem (alert), never reported to the user as a content refusal
+}
 
 export const adapter = makeAdapter({
   id: "openrouter",
@@ -43,7 +61,7 @@ export const adapter = makeAdapter({
       max_price: { prompt: p ? p.inPerM : 0, completion: p ? p.outPerM : 0, request: ROUTER_CAPS.requestUsd, image: ROUTER_CAPS.imageUsd }
     };
   },
-  errorKind: status => (status === 403 ? "content_policy_input" : status === 402 ? "auth" : null),
+  errorKind: (status, data) => (status === 403 ? kindOf403(data) : status === 402 ? "auth" : null),
   readExtra: (data, usage, key) => {
     /** @type {Record<string, any>} */
     const out = {};

@@ -759,3 +759,39 @@ the old engine kept working there. Questions for counsel: (1) does the s.26 anal
 without identification is not biometric data) still hold for a dense 3-D landmark mesh that is never stored? (2) Google's
 model card lists "human life-critical decisions" as out of scope; Exam flags go to a named invigilator who decides —
 please confirm this is an adequate human-oversight statement for the notice.
+
+### F6. Product Check AI integration (P7, 2026-11-10)
+
+(a) One consent screen names provider, model and processing country per feature and every provider's retention;
+"remember my choice" is stored per browser, tied to the providers shown, and cleared by a visible withdraw; a new
+provider or country asks again. (b) Before any send, an on-device guard removes names, patient numbers, phones, Thai
+IDs, e-mails, birth dates and patient addresses and shows the user what was removed; the exact text is shown and must
+be confirmed; only words that came from OCR of the label can be sent (typed additions are dropped). (c) Dispensing /
+prescription labels are never sent to AI by default. (d) A photo is sent only after an explicit choice and a confirmed
+blurred preview. Residual risks for counsel: personal data printed on a non-dispensing label that the guard misses
+(independent recall 62–76 %), foreign ID/phone formats, and that provenance and the photo gate are browser-enforced.
+(CTO-BRIEF L46, L47.)
+
+(e) Product-label evidence filter (owner decision 2026-11-10; measured once by an independent agent on a locked synthetic
+set: 0 of 260 personal-data items reached the AI in text mode or in image mode; 19.2 % of real product labels were
+refused, see `docs/product-check/P7-RESULTS.md` §3.7). When a capture is refused for lack of product evidence the page
+suggests photographing the side with the registration number or the ingredients, or scanning the barcode; a capture
+refused as a personal document or as a dispensing label gets no such suggestion. Changes after the measurement (not
+independently measured): a maker-printed responsible-pharmacist line next to a maker block no longer makes a pack a
+"dispensing label" (the person's name is still removed from the text and the photo is still blocked); a bare name-like
+line no longer makes a text with the full structure of a pack a "dispensing label". AI is offered for
+a capture only when it shows evidence of being a product label and no sign of a personal document (parcel label, order,
+receipt, medical certificate, appointment slip, letter); otherwise nothing is asked or sent. The decision runs on the
+device and is repeated by the server on the text. New data flow to note: the product barcode numbers decoded on the
+device (GTIN; product identifiers, not personal data) are sent to our server with the text as evidence; they are not
+passed to the AI provider, and the preview says so. Residual risks for counsel: the filter is rule-based (dev figures
+only so far); an informal note written with label words can pass; in image mode without text the server cannot repeat
+the check.
+
+(f) Proposal only, nothing built (2026-11-10): an "advert" capture type for the AI claims check (social posts, leaflets,
+shop pages). Adverts carry third-party personal data that labels do not: commenters' and sellers' names, profile
+photos, phone numbers and LINE IDs, chat screenshots. The proposal (`docs/product-check/ADVERT-CAPTURE-PROPOSAL.md`)
+lists what would never be sent, a crop-to-advert step, and an on-device-only alternative. Questions for counsel before
+any build: lawful basis for processing third parties' data found in a screenshot the user took; whether an individual
+seller's name or shop handle is personal data here; defamation exposure when a "risk signal" is shown about a named
+seller; wording of the separate consent.

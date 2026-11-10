@@ -83,6 +83,33 @@ Not in P2: register lookups (P4), over-claim rules (P3), automatic script detect
 Cyrillic / Arabic / Indic scripts, Vietnamese tone marks (not in the Latin model's dictionary; owner decision
 2026-11-10: a known limit, the opt-in AI step handles Vietnamese for now).
 
+#### Opt-in AI step in the Product check tab (round 17, phase P7)
+
+What the user sees (`lensiq-pc-ai.js`, guard `lensiq-pc-guard.js`; numbers and limits:
+`docs/product-check/P7-RESULTS.md`). **Off by default: every AI feature is off with budget 0 on a new install, and the
+button only appears when a server is configured.**
+
+- Under the on-device results there is an optional button, "ขอความเห็นจาก AI". AI reads the label fields, looks for
+  over-claim wording and translates foreign labels. Its results are shown below the on-device results as "AI estimate"
+  with the provider and country; they never replace on-device or official data. No verdict words.
+- **AI does not work on any photo.** It is offered only when the capture is a product label and shows the side with
+  the **registration number, the ingredients list or the barcode** (one registration-number shape or decoded barcode,
+  or two different kinds of label detail). The front of a pack with only the product name and a slogan is usually
+  refused. The panel says this before the user asks.
+- When a capture is refused for that reason, the page shows what to do next ("photograph the side of the label with
+  the registration number or the ingredients list, or scan the product's barcode, then ask AI again") and two buttons:
+  scan the barcode in the current picture, or photograph another side. Nothing is sent, and the on-device results
+  stay.
+- A capture that looks like a personal document (parcel label, order, receipt, medical certificate, appointment slip,
+  letter or note) or like a dispensing / prescription label is refused with its own message and no retry suggestion.
+  Dispensing labels never go to AI (`dispensingAI: "off"`).
+- Before anything is sent: one consent screen (provider, model, country per task; text only by default, photo with
+  faces blurred as a choice), names / patient numbers / phones / IDs removed on the device, and a mandatory preview of
+  the exact text. Maker phones and e-mails are kept (`companyPhones: "keep"`).
+- Measured (independent agent, locked synthetic set, 2026-11-10): 0 of 260 personal-data items reached the AI; 19.2 %
+  of real product labels were refused (front panel 38.9 %, short capture 28.9 %, long label 7.8 %, back panel 1.1 %;
+  5.0 % when the device had read a barcode or a registration number). Field: not measured.
+
 ### Pharmacist mode
 
 Same data, denser layout, every label section open, reference codes (RxCUI, set id, merged SPL count), more

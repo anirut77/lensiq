@@ -308,8 +308,11 @@ test("POST /v1/ai/:feature: global off / feature off / no consent / image mode n
   await configure(env, { enabled: false });
   assert.equal((await post(env, ad, BODY)).j.reason, "disabled");
   const { handle } = await import(B + "index.js");
+  // P7: pc_fields has its route now; on this install it is OFF (new-install default), so it answers "disabled", never runs
   const u = await handle(req("/v1/ai/pc_fields", { method: "POST", body: BODY, headers: { "X-Turnstile-Token": "good" } }), env, { fetch: siteverify });
-  assert.equal(u.status, 404); assert.equal((await u.json()).fallback, true, "planned feature has no route yet");
+  assert.equal(u.status, 503); const uj = await u.json(); assert.equal(uj.fallback, true); assert.equal(uj.reason, "disabled", "pc_fields is off by default");
+  const nf = await handle(req("/v1/ai/no_such_feature", { method: "POST", body: BODY, headers: { "X-Turnstile-Token": "good" } }), env, { fetch: siteverify });
+  assert.equal(nf.status, 404); assert.equal((await nf.json()).fallback, true, "a feature without a route answers 404 + fallback");
 });
 
 test("logs: one line per attempt with allowed fields only — never image, base64, text, prompt, IP, e-mail", async () => {

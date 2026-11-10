@@ -69,6 +69,21 @@ export const PRICES = Object.freeze([
   // OpenRouter: pass-through price of the routed model (+ 5.5 % fee when buying credits). Per-model prices could not be
   // read from an official page: every OpenRouter model, listed or not, is priced at the conservative ceiling, and the
   // same ceiling is sent as provider.max_price, so routing can never pick a provider dearer than what was reserved.
+  // OpenRouter per-model rows (P8, 2026-11-10): the model's list price from OpenRouter's public models API. The same
+  // price is sent as provider.max_price, so only endpoints at or below it are used; for each row at least one
+  // zero-data-retention endpoint with structured outputs at or below this price was listed by
+  // https://openrouter.ai/api/v1/endpoints/zdr on the same day (except the two rows marked "no ZDR route", kept to record
+  // that they fail under zdr:true).
+  ...[
+    ["anthropic/claude-haiku-5.5", 0.10, 0.50], ["anthropic/claude-sonnet-5.5", 2, 10],
+    ["openai/gpt-6-luna", 0.10, 0.50], ["openai/gpt-6.1-terra", 1, 5],
+    ["google/gemini-3.5-flash-lite", 0.30, 2.50],
+    ["qwen/qwen3.8-27b", 0.15, 1.875], ["qwen/qwen3.7-plus", 0.32, 1.28, "no ZDR route on 2026-11-10"],
+    ["deepseek/deepseek-v4.1-flash", 0.051, 0.567],
+    ["z-ai/glm-5.3-flash", 0.15, 0.50], ["z-ai/glm-4.6v", 0.30, 0.90, "no ZDR route with structured outputs on 2026-11-10"],
+    ["moonshotai/kimi-k3", 0.192, 16]
+  ].map(([model, inPerM, outPerM, note]) => /** @type {PriceRow} */ ({ provider: "openrouter", model: String(model), from: "2026-01-01", inPerM: Number(inPerM),
+    outPerM: Number(outPerM), asOf: D, source: "https://openrouter.ai/api/v1/models", note: note ? String(note) : "OpenRouter list price (models API)" })),
   { provider: "openrouter", model: "*", from: "2026-01-01", inPerM: CONSERVATIVE.inPerM, outPerM: CONSERVATIVE.outPerM, note: "unverified; ceiling = max_price",
     unverified: true, source: "https://openrouter.ai/docs/features/provider-routing" }
 ]);

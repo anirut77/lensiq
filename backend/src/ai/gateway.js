@@ -18,7 +18,7 @@ import { randomId } from "../crypto.js";
 import { periodKey } from "../quota.js";
 import { apiKeyStatus, EFFORTS } from "../settings.js";
 import { callerHash, hit, hitAll } from "../store.js";
-import { verifyTurnstile } from "../turnstile.js";
+import { isLocalOrigin, verifyTurnstile } from "../turnstile.js";
 import { BKK_OFFSET, dayOf, log, now, readJson } from "../util.js";
 import { ADAPTERS, PROVIDERS, PROVIDER_IDS, SECRET_NAMES, adaptersWith, configState, keyFor, keyPresence, providerConfig, providerReady, publicProvider } from "./adapters/index.js";
 import { PRICES, costMicros, modelsOf, priceAt } from "./adapters/prices.js";
@@ -100,7 +100,7 @@ async function alertConfig(env, feature, provider, kind, fetchImpl) {
  * Runs one feature request through the ordered chain.
  * @param {Env} env
  * @param {string} featureId
- * @param {{system: string, text: string, images?: any[], output: {name: string, schema: object, validate?: object}, maxOutputTokens?: number}} req0
+ * @param {{system: string, text: string, images?: any[], output: {name: string, schema: object, validate?: object, verify?: Function}, maxOutputTokens?: number}} req0
  * @param {{deps?: any, gw?: any, fs?: any, consentProviders?: string[], t?: number, timeoutOverrideMs?: number, overallMs?: number}} [opts]
  */
 export async function runFeature(env, featureId, req0, opts = {}) {
@@ -160,7 +160,15 @@ export async function runFeature(env, featureId, req0, opts = {}) {
       const latencyMs = Date.now() - t0;
       if (!r || typeof r !== "object") r = { ok: false, kind: "server_error", unexpected: true };
       if (r.ok) {
-        const errs = validateJson(schema, r.json);
+        let errs = validateJson(schema, r.json);
+        // feature validator (P7, design §10.4): runs only on a schema-valid answer; may reject it (e.g. a pc_claims evidence
+        // span that is not in the text sent) or return a cleaned copy (e.g. registration numbers marked "model")
+        if (!errs.length && typeof req0.output.verify === "function") {
+          let v;
+          try { v = req0.output.verify(r.json); } catch { v = { errors: ["verify failed"] }; }
+          errs = v && Array.isArray(v.errors) ? v.errors : ["verify failed"];
+          if (!errs.length) r = { ...r, json: v.json };
+        }
         if (errs.length) r = { ok: false, kind: "schema_mismatch", usage: r.usage, model: r.model, providerRequestId: r.providerRequestId };
       }
       const kind = r.ok ? "ok" : typeof r.kind === "string" && Object.hasOwn(POLICY, r.kind) ? r.kind : "server_error";
@@ -239,6 +247,23 @@ function cleanImages(images) {
   return out;
 }
 
+/** True when the Worker itself is being served on this machine (local `wrangler dev`): the request URL's host is
+ *  localhost / 127.0.0.1 / [::1]. A deployed Worker is never reached under such a host, and unlike the Origin header the
+ *  caller cannot choose it. @param {Request} request */
+export function isLocalRequestUrl(request) {
+  try { return /^(localhost|127\.0\.0\.1|\[::1\])$/.test(new URL(request.url).hostname); } catch { return false; }
+}
+
+/**
+ * Local evaluation mode: ALL THREE of (1) AI_EVAL_LOCAL=1 in the Worker's own environment (backend/.dev.vars or
+ * `wrangler dev --var`; never in wrangler.toml, never a stored setting), (2) the request URL's host is localhost /
+ * 127.0.0.1 / [::1] (the Worker runs under local `wrangler dev`), (3) a localhost Origin. The ONE condition for the
+ * cost / latency echo and for skipping the Product Check product-label filter (pc-features.js). A deployed Worker has no
+ * such variable and is never served under a localhost host; the Origin header alone (caller-chosen) is not enough.
+ * @param {Env} env @param {Request} request @returns {boolean}
+ */
+export const evalLocalMode = (env, request) => String(env.AI_EVAL_LOCAL || "") === "1" && isLocalRequestUrl(request) && isLocalOrigin(request);
+
 /**
  * POST /v1/ai/:feature (Origin is checked by the router). Returns [body, status]; every refusal carries fallback:true and
  * a reason so the page keeps its on-device result.
@@ -280,9 +305,13 @@ export async function aiRoute(env, request, featureId, deps = {}) {
   const lim = await hitAll(env.DB, specs);
   if (!lim.ok) return fb("limit", 429);
 
+  // Local evaluation mode (owner decision 2026-11-10): decided ONLY from the Worker's own variable, the host the Worker
+  // is served under (localhost = local wrangler dev) and the Origin the router already checked against ALLOWED_ORIGINS. Nothing in the body, the query, a header or the stored settings
+  // can switch it on (tests/unit/backend-pc-features.test.js P7-9).
+  const evalLocal = evalLocalMode(env, request);
   let nreq;
   try {
-    nreq = meta.build(input, { mode });
+    nreq = meta.build(input, { mode, evalLocal });
     if (!nreq || typeof nreq.system !== "string" || typeof nreq.text !== "string" || !nreq.output || !nreq.output.schema) throw new Error("bad build");
   } catch { await lim.release(x => !!x.daily); return fb("bad_input", 400); }
   if (mode !== "image") delete nreq.images;
@@ -294,13 +323,17 @@ export async function aiRoute(env, request, featureId, deps = {}) {
     log("ai.config_error", { feature: featureId, name: String((e && e.name) || "Error").slice(0, 40) });
     return fb("not_configured", 503);
   }
+  // P8 eval on a LOCAL `wrangler dev` only (tools/pc-ai-eval.mjs): in local evaluation mode the answer (success or
+  // fallback) also carries this request's cost and per-attempt latency.
+  const evalInfo = evalLocal
+    ? { eval: { costMicros: run.costMicros, attempts: run.attempts.map(a => ({ provider: a.provider, model: a.model, kind: a.kind, costMicros: a.costMicros, latencyMs: a.latencyMs })) } } : {};
   if (!run.ok) {
     if (!run.attempts.some(a => a.billed)) await lim.release(x => !!x.daily); // nothing was produced: the day's use is given back
-    return fb(run.reason, FB_STATUS[run.reason] || 502);
+    return fb(run.reason, FB_STATUS[run.reason] || 502, evalInfo);
   }
   const pp = publicProvider(run.provider);
   return [{ ok: true, json: run.json, provider: run.provider, model: run.servedModel, region: run.region, providerName: pp && pp.name, regionText: pp && pp.region,
-    routedVia: run.routedProvider }, 200];
+    routedVia: run.routedProvider, ...evalInfo }, 200];
 }
 
 /** GET /v1/ai/providers?feature=… — consent-screen data. null = unknown feature. @param {Env} env @param {string} featureId @param {any} [deps] */

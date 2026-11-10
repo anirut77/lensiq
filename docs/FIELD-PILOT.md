@@ -337,12 +337,30 @@ input. Rows without ground truth are skipped and counted.
   light level and self-reported skin tone as planned; (3) record real head turns (left / right / down) with the scripted
   sheet, because the head-turn numbers so far come from synthetic renders that favour the new engine; (4) faces smaller
   than ~48 px (a second person far behind the candidate) are not detected by either engine. **Field: not measured.**
+- **2026-11-10 (round 17)**: P7 "Ask AI" step built (off by default; needs the owner's keys and the P8 run before any
+  pilot). Before enabling AI at a pilot pharmacy, test the patient-name guard on 30+ staged dispensing labels from that
+  pharmacy's own printer and record misses; keep photo mode off on pilot devices until that result is reviewed.
+- **2026-11-10 (round 17)**: product-label evidence filter built (dev numbers only; `docs/product-check/P7-RESULTS.md`
+  §3.4). At a pilot site also stage 30+ captures that are NOT product labels (parcel labels, receipts, appointment
+  slips, notes left with medicine) and 50+ real packs photographed badly (glare, half the label, curved bottle): record
+  every non-product capture that still offers AI and every real pack that is refused. **Field: not measured.**
 - **2026-11-10 (round 17)**: face blur before upload built (no upload path until P7); its numbers are public-dataset
   only. A field check of the blurred preview on the owner's phone (photos with a hand or a face in frame) is still to do.
 - **2026-11-10 (round 17)**: Product Check P2 tab (`medicine.html` → "ตรวจสินค้า (ทุกประเทศ)") ready for the owner's
   first phone test (checklist given in the round report). Numbers so far: synthetic labels and the public photo set
   only (`docs/product-check/P2-RESULTS.md`); **field and phone: not measured**. Photo protocol:
   `docs/product-check/PHOTO-SET-PROTOCOL.md`.
+- **2026-11-10 (round 17, P7)**: Product Check AI is offered only for a capture that shows product-label evidence.
+  Pilots should photograph the side of the pack with the registration number or the barcode; adverts and other sides
+  get the on-device results only (`docs/product-check/P7-RESULTS.md` §3.4, §3.6). Field: not measured.
+- **2026-11-10 (round 17, P7, owner decision ก)**: the filter was measured by an independent agent on a locked
+  synthetic set: 0/260 personal-data items reached the AI; 19.2 % of real product labels were refused (front panel
+  38.9 %, short capture 28.9 %, long label 7.8 %, back panel 1.1 %; with a decoded barcode or a parsed registration
+  number 5.0 %). When a capture is refused for lack of evidence the page now tells the user to photograph the side
+  with the registration number or the ingredients list, or to scan the barcode. At a pilot site record, per pack:
+  which side was photographed first, whether AI was refused, whether the user followed the guidance and whether the
+  second capture was accepted; and every pack that is still refused after the barcode side was photographed.
+  **Field: not measured.** (`docs/product-check/P7-RESULTS.md` §3.7)
 
 - **2026-11-09 (round 16)** — per-product pilot kits `docs/pilot/PILOT-GATE.md` / `PILOT-EXAM.md` / `PILOT-CROWD.md`.
   The Gate kit starts with phase 0: the owner's ~100 phone photos run through `tools/plate-field-eval.mjs` with a dev /

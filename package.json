@@ -31,6 +31,8 @@
     "check:external": "node tools/check-external.mjs --as-is",
     "check:legal": "node tools/check-legal.mjs",
     "ai:keycheck": "node tools/ai-key-check.mjs",
+    "ai:test-enable": "node tools/ai-test-enable.mjs",
+    "ai:eval:pc": "node tools/pc-ai-eval.mjs",
     "fonts:check": "node tools/self-host-fonts.mjs --check",
     "zh:coverage": "node tools/zh-coverage.mjs",
     "zh:shared": "node tools/zh-coverage.mjs --shared --no-interact --max 0",

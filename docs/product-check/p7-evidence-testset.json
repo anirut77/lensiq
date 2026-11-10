@@ -1,0 +1,5017 @@
+{
+ "name": "P7 product-label evidence filter — DEV set",
+ "source": "synthetic (written 2026-11-10 before the filter was built; every person, number, address and brand is invented). DEV: tuned on, not a measurement",
+ "frozen": "2026-11-10",
+ "metrics": "documents / dispensing labels refused (aiGate.allow === false) / all; product labels refused / all, per OCR variant and language",
+ "items": [
+  {
+   "id": "e001",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "ยาสามัญประจำบ้าน\nซาแมพลาม็อล 500\nพาราเซตามอล 500 มก.\nบรรเทาอาการปวด ลดไข้\nวิธีใช้: ผู้ใหญ่ รับประทานครั้งละ 1-2 เม็ด ทุก 4-6 ชั่วโมง\nคำเตือน: ห้ามใช้เกินขนาดที่กำหนด\nเก็บที่อุณหภูมิไม่เกิน 30°C\nเลขทะเบียนที่ 1A 844/39\nผลิตโดย บริษัท สาธิตฟาร์มา จำกัด กรุงเทพฯ\nLot 2405A Mfg 05/2567 Exp 05/2570"
+  },
+  {
+   "id": "e002",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "ยาสาัญประจำบ้า\nซาแมพลามอล 500\nพาราเซตาม 500มก.\nรรเทาอาการปว ลดไข้\nวิธใช: ผู้ใหญ่ รบระทานรั้งละ 1-2 เม็ด ทุก 4- ชั่วโมง\nคำเือน: ห้ามใชเกนนาดท่กำหนด\nเก็บีอุณหภมิไม่เกิน 30°C\nเลขทะเบยนท A 844/39\nผลิต บรัทสาธิตฟาร์มา จำกดกรุงเทพฯ\nLot 2405A Mfg 05/2567 Exp 05/570"
+  },
+  {
+   "id": "e003",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "ยาสามัญประจำบ้าน ซาแมพลาม็อล 500 พาราเซตามอล 500 มก. บรรเทาอาการปวด ลดไข้ วิธีใช้: ผู้ใหญ่ รับประทานครั้งละ 1-2 เม็ด ทุก 4-6 ชั่วโมง คำเตือน: ห้ามใช้เกินขนาดที่กำหนด เก็บที่อุณหภูมิไม่เกิน 30°C เลขทะเบียนที่ 1A 844/39 ผลิตโดย บริษัท สาธิตฟาร์มา จำกัด กรุงเทพฯ Lot 2405A Mfg 05/2567 Exp 05/2570"
+  },
+  {
+   "id": "e004",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "half",
+   "text": "ยาสามัญประจำบ้าน\nพาราเซตามอล 500 มก.\nวิธีใช้: ผู้ใหญ่ รับประทานครั้งละ 1-2 เม็ด ทุก 4-6 ชั่วโมง\nเก็บที่อุณหภูมิไม่เกิน 30°C\nผลิตโดย บริษัท สาธิตฟาร์มา จำกัด กรุงเทพฯ"
+  },
+  {
+   "id": "e005",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "ยาสามัญประจำบ้าน\nซาแมพลาม็อล S0O\nพาราเซตามอล 500 ม ก.\nบรรเทาอาการปวด ลดไข้\nวิธีใช้: ผู้ใหญ่ รับประทานครั้งละ 1-2 เม็ด ทุก 4-6 ชั่วโมง\nคำเตือน: ห้ามใช้เก ินขนาดที่กำหนด\nเก็บที่อุณหภูมิไม่เกิน 30°C\nเลข ทะเบียนที่ 1A B44/39\nผลิตโดย บริษัท สาธิตฟาร์มา จำกัด กรุงเทพฯ\nLot 24O5A Mfg 05/2S67 Exp 05/2570"
+  },
+  {
+   "id": "e006",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "ยาอันตราย\nLORASAMP 10\nLoratadine 10 mg\nบรรจุ 10 เม็ด\nReg. No. 1A 12/55\nเก็บให้พ้นมือเด็ก\nผู้ผลิต: บริษัท ตัวอย่างเภสัช จำกัด\nเลขที่ผลิต 23117 วันหมดอายุ 11/2027"
+  },
+  {
+   "id": "e007",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "ยาอันตราย\nLORASAMP 10\nLoratdine 10 m\nบรจุ 0 เม็ด\nReg. No. 1A 1/55\nเก็บใหพ้นมือเด็ก\nผู้ผลิ: บริษัท ตวอางเภสัช จำกัด\nลขที่ผลิต 23117 วันหมดอยุ 11/2027"
+  },
+  {
+   "id": "e008",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "ยาอันตราย LORASAMP 10 Loratadine 10 mg บรรจุ 10 เม็ด Reg. No. 1A 12/55 เก็บให้พ้นมือเด็ก ผู้ผลิต: บริษัท ตัวอย่างเภสัช จำกัด เลขที่ผลิต 23117 วันหมดอายุ 11/2027"
+  },
+  {
+   "id": "e009",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "half",
+   "text": "ยาอันตราย\nLoratadine 10 mg\nReg. No. 1A 12/55\nผู้ผลิต: บริษัท ตัวอย่างเภสัช จำกัด"
+  },
+  {
+   "id": "e010",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "ยาอันตราย\nLORASAMP 10\nLoratadine 10 mg\nบรรจุ lO เม็ด\nRe g. No. 1A 12/S5\nเก็บให้พ้นมือเด็ก\nผู้ผลิต: บริษัท ตัวอย่างเภสัช จำกัด\nเลขที่ผลิต 23l17 วัน หมดอายุ 1l/2027"
+  },
+  {
+   "id": "e011",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "ยาน้ำแก้ไอ ตราสาธิต\nยาใช้ภายใน\nขนาดบรรจุ 60 มล.\nเขย่าขวดก่อนใช้\nผู้ใหญ่ รับประทานครั้งละ 1 ช้อนโต๊ะ วันละ 3 ครั้ง\nทะเบียนยาเลขที่ 2A 45/61\nจำหน่ายโดย หจก. สาธิตโอสถ"
+  },
+  {
+   "id": "e012",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "ยาน้ำแกไอ ตาสาธต\nาใช้ภายใน\nขนาดบรรจุ 60 ล.\nเขย่าขวก่อใช\nผูใหญรับประทาครั้งละ 1 ช้อโตะ วัละ 3 คั้\nทะเบีนยาเลขที่ 2A 45/61\nจำหนายโดยหจก. สาธตโอสถ"
+  },
+  {
+   "id": "e013",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "ยาน้ำแก้ไอ ตราสาธิต ยาใช้ภายใน ขนาดบรรจุ 60 มล. เขย่าขวดก่อนใช้ ผู้ใหญ่ รับประทานครั้งละ 1 ช้อนโต๊ะ วันละ 3 ครั้ง ทะเบียนยาเลขที่ 2A 45/61 จำหน่ายโดย หจก. สาธิตโอสถ"
+  },
+  {
+   "id": "e014",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "half",
+   "text": "ยาน้ำแก้ไอ ตราสาธิต\nขนาดบรรจุ 60 มล.\nผู้ใหญ่ รับประทานครั้งละ 1 ช้อนโต๊ะ วันละ 3 ครั้ง\nจำหน่ายโดย หจก. สาธิตโอสถ"
+  },
+  {
+   "id": "e015",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "ยาน้ำแก้ไอ ตราสาธิต\nยาใช้ภายใน\nขนาดบรรจุ 6O มล.\nเขย่าขวดก่อนใช้\nผู้ใหญ่ รับประทานครั้งละ l ช้อ น โต๊ะ วันละ 3 ครั้ง\nทะเบียนยาเลขที่ 2A 4S/61\nจำหน่ายโดย หจก. สาธิตโอสถ"
+  },
+  {
+   "id": "e016",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "ยาหม่องน้ำ ตราทดสอบ\nยาใช้ภายนอก ห้ามรับประทาน\nตัวยาสำคัญ: เมนทอล 15% การบูร 10%\nปริมาณสุทธิ 8 ซีซี\nทะเบียนยาเลขที่ G 123/45\nราคา 35 บาท"
+  },
+  {
+   "id": "e017",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "ยาหม่องน้ำ ตราทดสอบ\nยาใช้ภายนอกห้ามรับรทาน\nตัาสำคญ: เมนทอล 15% การูร 10%\nปริมาณสุทธ 8 ซซ\nทะเบียนยาเลขท G 12/45\nราคา 35 บาท"
+  },
+  {
+   "id": "e018",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "ยาหม่องน้ำ ตราทดสอบ ยาใช้ภายนอก ห้ามรับประทาน ตัวยาสำคัญ: เมนทอล 15% การบูร 10% ปริมาณสุทธิ 8 ซีซี ทะเบียนยาเลขที่ G 123/45 ราคา 35 บาท"
+  },
+  {
+   "id": "e019",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "half",
+   "text": "ยาหม่องน้ำ ตราทดสอบ\nตัวยาสำคัญ: เมนทอล 15% การบูร 10%\nทะเบียนยาเลขที่ G 123/45"
+  },
+  {
+   "id": "e020",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "ยาหม่อง น้ำ ตราทดสอบ \nยาใช้ภายนอก ห้ามรับประทาน\nตัวยาสำคัญ: เมนทอล 15% การบูร lO%\nปริมาณสุทธิ 8 ซีซี\nทะเบียนยาเลขที่ G 123/45\nราคา 35 บาท"
+  },
+  {
+   "id": "e021",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "ผงเกลือแร่ โออาร์เอส\nทดแทนการเสียน้ำในรายที่มีอาการท้องร่วง\nละลายผง 1 ซอง ในน้ำสะอาด 150 มล.\nยาสิ้นอายุ: 08/2570\nรุ่นที่ผลิต: A2231\nน้ำหนักสุทธิ 3.3 กรัม"
+  },
+  {
+   "id": "e022",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "ผงเกลอแร่ โอารเอส\nทดแทนการเสีย้ในรายที่มอาการท้องร่วง\nละลายผง 1 ซอง ในนำสะอาด 150 มล.\nาส้นอาุ: 08/2570\nรุที่ผลิต: A2231\nนำหนัสทธิ 3.3 กรัม"
+  },
+  {
+   "id": "e023",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "ผงเกลือแร่ โออาร์เอส ทดแทนการเสียน้ำในรายที่มีอาการท้องร่วง ละลายผง 1 ซอง ในน้ำสะอาด 150 มล. ยาสิ้นอายุ: 08/2570 รุ่นที่ผลิต: A2231 น้ำหนักสุทธิ 3.3 กรัม"
+  },
+  {
+   "id": "e024",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "half",
+   "text": "ผงเกลือแร่ โออาร์เอส\nละลายผง 1 ซอง ในน้ำสะอาด 150 มล.\nรุ่นที่ผลิต: A2231"
+  },
+  {
+   "id": "e025",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "ผงเกลือแร ่ โออาร์เอส\nทดแทนการเสียน้ำในรายที่มีอาการท้องร่วง\nละลายผง  l ซอง ในน้ำสะอาด 15O มล.\nยาสิ้นอายุ: 08/2S7O\nรุ่นที่ผลิต: A2231\nน้ำหนักสุทธิ 3.3 กรัม"
+  },
+  {
+   "id": "e026",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "ผลิตภัณฑ์เสริมอาหาร วิตซี-สาธิต\nวิตามินซี 1000 มก.\nส่วนประกอบสำคัญใน 1 เม็ด: กรดแอสคอร์บิก 1000 มก.\nวิธีรับประทาน: วันละ 1 เม็ด พร้อมอาหาร\nคำเตือน: เด็กและสตรีมีครรภ์ไม่ควรรับประทาน\nควรกินอาหารหลากหลาย ครบ 5 หมู่ ในสัดส่วนที่เหมาะสมเป็นประจำ\nไม่มีผลในการป้องกันหรือรักษาโรค\nอย. 13-2-06463-5-0326\nบรรจุ 30 เม็ด"
+  },
+  {
+   "id": "e027",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "ผลิตภัณฑ์เสริมอาหาร วตี-สาธต\nวิตามินซี 1000 มก.\nส่วนประกอบำคัญใน 1เมด: กรดแอสคอรบิก100 มก.\nวิธับประทาน: วันะ 1 เมด พ้มอาหาร\nคำตือน: เด็กแะสตรีมีครรภ์ไม่ควรรับประทาน\nควรกินอาารหลากหลาย ครบ 5 หม่ ในสัดส่วนทเหมาะสมเปนประจำ\nไม่มีลในกรปองกนหรือรกษาโรค\nอย. 13-2-06463-5-0326\nบรรจุ 0 เม็ด"
+  },
+  {
+   "id": "e028",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "ผลิตภัณฑ์เสริมอาหาร วิตซี-สาธิต วิตามินซี 1000 มก. ส่วนประกอบสำคัญใน 1 เม็ด: กรดแอสคอร์บิก 1000 มก. วิธีรับประทาน: วันละ 1 เม็ด พร้อมอาหาร คำเตือน: เด็กและสตรีมีครรภ์ไม่ควรรับประทาน ควรกินอาหารหลากหลาย ครบ 5 หมู่ ในสัดส่วนที่เหมาะสมเป็นประจำ ไม่มีผลในการป้องกันหรือรักษาโรค อย. 13-2-06463-5-0326 บรรจุ 30 เม็ด"
+  },
+  {
+   "id": "e029",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "half",
+   "text": "ผลิตภัณฑ์เสริมอาหาร วิตซี-สาธิต\nส่วนประกอบสำคัญใน 1 เม็ด: กรดแอสคอร์บิก 1000 มก.\nคำเตือน: เด็กและสตรีมีครรภ์ไม่ควรรับประทาน\nไม่มีผลในการป้องกันหรือรักษาโรค\nบรรจุ 30 เม็ด"
+  },
+  {
+   "id": "e030",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "ผลิตภ ัณฑ์เสริมอาหาร วิตซี-สาธิต \nวิตามินซี 1O00 ม ก.\nส่วนประกอบสำคัญใน l เม ็ด: ก รดแอสคอร์บิก 1000 ม ก.\nวิธีรับประทาน: วันละ 1 เม็ด พร้อมอาหาร\nคำเตือน: เด็กและส ตรีมีครรภ์ไม่ควรรับประทาน\nควรกินอาหารหลากหล าย ครบ 5 หมู่ ในสัดส่วนที่เหมาะสมเป็นประจำ\nไม่มีผลในการป้องกันหรือรักษาโรค\nอย. 13-2-06463-S-0326\nบรรจุ 30 เม็ด"
+  },
+  {
+   "id": "e031",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "คอลลาเจน ไตรเปปไทด์ ตราตัวอย่าง\nผลิตภัณฑ์เสริมอาหาร\nข้อมูลโภชนาการ\nหนึ่งหน่วยบริโภค: 1 ซอง (5 กรัม)\nพลังงานทั้งหมด 20 กิโลแคลอรี\nโปรตีน 5 ก.\nน้ำหนักสุทธิ 75 กรัม (15 ซอง)\nผลิตโดย บริษัท สาธิต นิวทริชั่น จำกัด\nควรบริโภคก่อน 12/2569"
+  },
+  {
+   "id": "e032",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "คอลลาเจน ไตรเปปไทด ตราตวย่า\nลตณฑ์เสริมอาหาร\nข้อมลโชนการ\nนึ่งหนวยบริโภค:1 ซอง (5 กรัม)\nพลังงานั้งหมด 20 กิโลแคลรี\nโปรตีน 5 ก.\nน้ำหนัสุทธิ 75 กรัม (15 ซอง)\nผลิตโดย บริษท สาธิต นวทริชั่น จำกั\nควรบิโคก่อน 12259"
+  },
+  {
+   "id": "e033",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "คอลลาเจน ไตรเปปไทด์ ตราตัวอย่าง ผลิตภัณฑ์เสริมอาหาร ข้อมูลโภชนาการ หนึ่งหน่วยบริโภค: 1 ซอง (5 กรัม) พลังงานทั้งหมด 20 กิโลแคลอรี โปรตีน 5 ก. น้ำหนักสุทธิ 75 กรัม (15 ซอง) ผลิตโดย บริษัท สาธิต นิวทริชั่น จำกัด ควรบริโภคก่อน 12/2569"
+  },
+  {
+   "id": "e034",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "half",
+   "text": "คอลลาเจน ไตรเปปไทด์ ตราตัวอย่าง\nข้อมูลโภชนาการ\nพลังงานทั้งหมด 20 กิโลแคลอรี\nน้ำหนักสุทธิ 75 กรัม (15 ซอง)\nควรบริโภคก่อน 12/2569"
+  },
+  {
+   "id": "e035",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "คอล ลาเจน ไตรเปปไทด์ ตราตัวอย ่าง\nผลิตภัณฑ์เสริมอาห าร\nข้อมูลโภชนาการ\nหนึ่งหน่วยบริโภค: l ซอง (5 กรัม)\nพลังงานทั้ง หมด 20 กิโลแค ลอรี\nโปรตีน 5 ก.\nน้ำหนักสุทธิ 75 กรัม (l5 ซอง)\nผลิตโดย บริษัท สาธิต นิวทริชั่น จำกัด\nควรบริโภคก ่อน 12/2569"
+  },
+  {
+   "id": "e036",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "น้ำมันปลา 1000 มก.\nFish Oil 1000 mg\nผลิตภัณฑ์เสริมอาหาร\n60 แคปซูล\nเลขสารบบอาหาร 10-1-12345-5-0099\nเก็บในที่แห้งและเย็น"
+  },
+  {
+   "id": "e037",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "นำมล 1000 มก.\nFish Oi 100 mg\nผิตภณ์เสริมอาหาร\n60 แปซูล\nเลขสารบบอาหาร 0-11235-5-0099\nเก็บในที่แห้งและเยน"
+  },
+  {
+   "id": "e038",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "น้ำมันปลา 1000 มก. Fish Oil 1000 mg ผลิตภัณฑ์เสริมอาหาร 60 แคปซูล เลขสารบบอาหาร 10-1-12345-5-0099 เก็บในที่แห้งและเย็น"
+  },
+  {
+   "id": "e039",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "half",
+   "text": "น้ำมันปลา 1000 มก.\nผลิตภัณฑ์เสริมอาหาร\nเลขสารบบอาหาร 10-1-12345-5-0099"
+  },
+  {
+   "id": "e040",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "น้ำมันปลา 1000 มก.\nFish 0il 1O00 mg\nผลิตภัณฑ์เส ริมอาหาร\n60 แคปซูล\nเลขสารบบอาหาร 1O-l-12345-5-0099\nเก็บ ในที่แห้งและเย็น"
+  },
+  {
+   "id": "e041",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "แคลเซียม พลัส ดี\nประกอบด้วย: แคลเซียมคาร์บอเนต 1500 มก. วิตามินดี3 200 ไอยู\nขนาดรับประทาน: ครั้งละ 1 เม็ด วันละ 1 ครั้ง\nนำเข้าและจัดจำหน่ายโดย บริษัท ทดสอบ เฮลท์ จำกัด\nMFG 01/2025 EXP 01/2027"
+  },
+  {
+   "id": "e042",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "แคลเซียม พลัสดี\nประกอบด้วย แคลเซยมคาร์บอเนต 1500 มก. วิตามนดี3 20 ไยู\nขนาดรัระทาน: ครงละ 1 เมด วัะ 1 ครั้\nนำเาและจัดจำหน่าโดย บริษท ทดสอ เลท์จำกัด\nMFG 01/2025 EP 1/2027"
+  },
+  {
+   "id": "e043",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "แคลเซียม พลัส ดี ประกอบด้วย: แคลเซียมคาร์บอเนต 1500 มก. วิตามินดี3 200 ไอยู ขนาดรับประทาน: ครั้งละ 1 เม็ด วันละ 1 ครั้ง นำเข้าและจัดจำหน่ายโดย บริษัท ทดสอบ เฮลท์ จำกัด MFG 01/2025 EXP 01/2027"
+  },
+  {
+   "id": "e044",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "half",
+   "text": "แคลเซียม พลัส ดี\nขนาดรับประทาน: ครั้งละ 1 เม็ด วันละ 1 ครั้ง\nMFG 01/2025 EXP 01/2027"
+  },
+  {
+   "id": "e045",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "แคลเซียม พลัส ดี\nประกอบด้วย: แคลเซียมคาร์บอเนต l5O0 มก. ว ิตามินดี3 2OO ไอยู\nขนาดรับประทาน : ครั้งละ l เม็ด วันละ 1 ครั้ง\nนำเข้าและจัดจำหน่ายโดย บริษัท ทดสอบ เฮลท์ จำกัด\nM FG 01/2O25 EXP 01/2027"
+  },
+  {
+   "id": "e046",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "ครีมกันแดด ซันสาธิต SPF50+ PA++++\nวิธีใช้: ทาให้ทั่วใบหน้าก่อนออกแดด 15 นาที\nส่วนประกอบ: Water, Ethylhexyl Methoxycinnamate, Glycerin, Niacinamide\nคำเตือน: ใช้ภายนอกเท่านั้น หากมีอาการระคายเคืองให้หยุดใช้\nปริมาณสุทธิ 30 กรัม\nเลขที่ใบรับจดแจ้ง 10-1-6600012345\nผลิตโดย บริษัท ตัวอย่าง คอสเมติก จำกัด"
+  },
+  {
+   "id": "e047",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "ครีมกนแด ซันสาธต SPF50+ PA++++\nวิีใช้: ทาให้ทวใบหน้ากอนออกแดด15 าที\nสวนระกอบ: Water, Ethylhexyl Mehocinnamate,Glycri,Niacnamide\nคำเตือน: ใช้ภายนอกเท่นน หากมีอาการระคายเคองใหหยดใช้\nปริมาณสุทธิ 30 กรัม\nเลขทีใบรับจดแจ้ง 10-1-6600012345\nผลิตโดย บิษทตัอย่าง คอสเมติก ำัด"
+  },
+  {
+   "id": "e048",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "ครีมกันแดด ซันสาธิต SPF50+ PA++++ วิธีใช้: ทาให้ทั่วใบหน้าก่อนออกแดด 15 นาที ส่วนประกอบ: Water, Ethylhexyl Methoxycinnamate, Glycerin, Niacinamide คำเตือน: ใช้ภายนอกเท่านั้น หากมีอาการระคายเคืองให้หยุดใช้ ปริมาณสุทธิ 30 กรัม เลขที่ใบรับจดแจ้ง 10-1-6600012345 ผลิตโดย บริษัท ตัวอย่าง คอสเมติก จำกัด"
+  },
+  {
+   "id": "e049",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "half",
+   "text": "ครีมกันแดด ซันสาธิต SPF50+ PA++++\nส่วนประกอบ: Water, Ethylhexyl Methoxycinnamate, Glycerin, Niacinamide\nปริมาณสุทธิ 30 กรัม\nผลิตโดย บริษัท ตัวอย่าง คอสเมติก จำกัด"
+  },
+  {
+   "id": "e050",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "ครีมกันแดด ซันสาธิต SPFS0+ PA++++\nวิธีใช ้: ทาให้ทั่วใบหน้าก่อนออกแดด 15 นาที\nส่วนประกอบ: Water , Ethylhexyl Methoxycinnarnate, Gly cerin, Nia cinarnide\nคำเตือน: ใช้ภายนอกเท่านั้น หากมีอ าการระคายเคืองให้หยุดใช้\nปริมาณสุทธิ 30 กรัม\nเลข ที่ใบรับจดแจ้ง 10-1-6600012345\nผลิตโดย บริษัท ต ัวอย่าง คอสเมติก จำกัด"
+  },
+  {
+   "id": "e051",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "แชมพูสมุนไพร อัญชัน\nSample Herbal Shampoo\nขนาด 300 มล.\nใบรับจดแจ้งเลขที่ 13-1-6500098765\nผลิตเมื่อ 03/2568 หมดอายุ 03/2571\nผู้จัดจำหน่าย: ร้านสาธิตสมุนไพร"
+  },
+  {
+   "id": "e052",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "แชมพสุนไพรอัญชัน\nSample Herbl Shampo\nขนด 300 ล.\nใบรับจดแจ้งเขท่ 13-1-650009765\nลิตเื่อ 03/2568 หมดอาย 3/257\nู้จดจำ่าย: รานสาธิตสมุนพร"
+  },
+  {
+   "id": "e053",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "แชมพูสมุนไพร อัญชัน Sample Herbal Shampoo ขนาด 300 มล. ใบรับจดแจ้งเลขที่ 13-1-6500098765 ผลิตเมื่อ 03/2568 หมดอายุ 03/2571 ผู้จัดจำหน่าย: ร้านสาธิตสมุนไพร"
+  },
+  {
+   "id": "e054",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "half",
+   "text": "แชมพูสมุนไพร อัญชัน\nขนาด 300 มล.\nผลิตเมื่อ 03/2568 หมดอายุ 03/2571"
+  },
+  {
+   "id": "e055",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "แชมพูสมุนไพร อัญชัน\nSample Herbal Shampoo\nขนาด 3O0 มล .\nใบรับจดแจ้งเลขที่ 13-1-650O098765\nผลิตเมื่อ 03/2S68 หมดอายุ 03/257l\nผู้จัดจำหน่าย: ร้านสาธิตสมุนไพร"
+  },
+  {
+   "id": "e056",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "เซรั่มบำรุงผิวหน้า\nBrightening Serum\nIngredients: Aqua, Niacinamide, Butylene Glycol, Sodium Hyaluronate\n30 ml\nวันผลิต/ครั้งที่ผลิต ดูที่ก้นขวด\nเก็บให้พ้นแสงแดด"
+  },
+  {
+   "id": "e057",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "เซรัมบุงผิวหน้า\nBrgheing Serum\nIngredients: Aqu, Niacinamide, Butylene Glycol, Soium Hyaluroae\n3 ml\nวันผลต/ครั้งที่ผลิต ดที่้นวด\nกบให้พ้นแสงแดด"
+  },
+  {
+   "id": "e058",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "เซรั่มบำรุงผิวหน้า Brightening Serum Ingredients: Aqua, Niacinamide, Butylene Glycol, Sodium Hyaluronate 30 ml วันผลิต/ครั้งที่ผลิต ดูที่ก้นขวด เก็บให้พ้นแสงแดด"
+  },
+  {
+   "id": "e059",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "half",
+   "text": "เซรั่มบำรุงผิวหน้า\nIngredients: Aqua, Niacinamide, Butylene Glycol, Sodium Hyaluronate\nวันผลิต/ครั้งที่ผลิต ดูที่ก้นขวด"
+  },
+  {
+   "id": "e060",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "เซรั่มบำรุงผิวหน้า\nBri g htening 5erum\nIng redients: Aqua, Niacinamide, Butylene Glyco1, Sodiurn Hyaluronate\n30 ml\nวันผลิต/ครั้งที่ผลิต ดูที่ก้นขวด\nเก็บให้พ้นแสงแดด"
+  },
+  {
+   "id": "e061",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "สบู่ก้อน น้ำผึ้งทองคำ\nน้ำหนักสุทธิ 100 กรัม\nส่วนผสม: Sodium Palmate, Honey Extract, Perfume\nเลขจดแจ้ง 10-1-5912345678\nราคา 59 บาท"
+  },
+  {
+   "id": "e062",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "สบู่ก้อน น้ำผงทองคำ\nน้ำนักสทธ 100 กรม\nส่วนผสม: Sodium Palmate Honey Extrct, Perfume\nเลขจจ้ง 10-1-9123567\nราคา9 บาท"
+  },
+  {
+   "id": "e063",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "สบู่ก้อน น้ำผึ้งทองคำ น้ำหนักสุทธิ 100 กรัม ส่วนผสม: Sodium Palmate, Honey Extract, Perfume เลขจดแจ้ง 10-1-5912345678 ราคา 59 บาท"
+  },
+  {
+   "id": "e064",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "half",
+   "text": "สบู่ก้อน น้ำผึ้งทองคำ\nส่วนผสม: Sodium Palmate, Honey Extract, Perfume\nราคา 59 บาท"
+  },
+  {
+   "id": "e065",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "สบู่ก้อน น้ำผึ้งทองคำ\nน้ำหนักสุทธิ 1O0 กรัม\nส่วนผสม: 5odium Palmate, Honey E xtract, Perfume\nเลขจดแจ้ง 10-1-S91234S678\nราคา 59 บาท"
+  },
+  {
+   "id": "e066",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "นมถั่วเหลือง สูตรหวานน้อย ตราสาธิต\nข้อมูลโภชนาการ\nหนึ่งหน่วยบริโภค 1 กล่อง (230 มล.)\nพลังงาน 130 กิโลแคลอรี น้ำตาล 8 ก. โซเดียม 95 มก.\nส่วนประกอบโดยประมาณ: น้ำนมถั่วเหลือง 92% น้ำตาล 4%\nข้อมูลสำหรับผู้แพ้อาหาร: มีถั่วเหลือง\nปริมาตรสุทธิ 230 มล.\nควรบริโภคก่อน: ดูที่ฝากล่อง\nอย. 10-1-06155-1-0042"
+  },
+  {
+   "id": "e067",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "มถัวเหลือง สูตรหวานน้อยตราสาธิต\nข้มูลโภชนาการ\nหึ่งหน่วบรโภค 1 ก่อง (230 มล.)\nพลงงาน 10 กิโลแคลรี น้ำตาล 8ก. โซเดียม  มก.\nสนประกอบโดยประาณ: นำนมถั่วเหลือง 92% น้ำตาล 4%\nข้อมูสำหรับผู้แ้อาหาร: มถั่วเหลืง\nปรมาตรสุทธ 230 มล.\nควรบริภคก่อน: ดท่ฝากล่อง\nอย.10-1-0615--0042"
+  },
+  {
+   "id": "e068",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "นมถั่วเหลือง สูตรหวานน้อย ตราสาธิต ข้อมูลโภชนาการ หนึ่งหน่วยบริโภค 1 กล่อง (230 มล.) พลังงาน 130 กิโลแคลอรี น้ำตาล 8 ก. โซเดียม 95 มก. ส่วนประกอบโดยประมาณ: น้ำนมถั่วเหลือง 92% น้ำตาล 4% ข้อมูลสำหรับผู้แพ้อาหาร: มีถั่วเหลือง ปริมาตรสุทธิ 230 มล. ควรบริโภคก่อน: ดูที่ฝากล่อง อย. 10-1-06155-1-0042"
+  },
+  {
+   "id": "e069",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "half",
+   "text": "นมถั่วเหลือง สูตรหวานน้อย ตราสาธิต\nหนึ่งหน่วยบริโภค 1 กล่อง (230 มล.)\nส่วนประกอบโดยประมาณ: น้ำนมถั่วเหลือง 92% น้ำตาล 4%\nปริมาตรสุทธิ 230 มล.\nอย. 10-1-06155-1-0042"
+  },
+  {
+   "id": "e070",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "นมถั่วเหลือง สูตรหวานน้อย ตราสาธิต\nข้อมูลโภช นาการ\nหนึ่งหน่วยบริโภค 1 กล่อง (230 มล.)\nพลังงาน l3O กิโลแคลอรี น้ำตาล 8 ก . โซเดียม 95 มก.\nส่วนประกอบโดยประมาณ: น้ำนมถั่วเหลือง 92% น้ำตาล 4%\nข้อมูลสำหรับผู้แพ้อาหาร: มีถั่วเหลือง\nปริมาตรสุทธิ 230 มล.\nควรบริโภคก่อน: ดูที่ฝากล่อง\nอย. 10-1-O6lS5-l-0042"
+  },
+  {
+   "id": "e071",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "ขนมอบกรอบ รสสาหร่าย\nส่วนประกอบที่สำคัญ: แป้งข้าวโพด 60% น้ำมันปาล์ม 20% ผงปรุงรสสาหร่าย 5%\nใช้วัตถุปรุงแต่งรสอาหาร\nน้ำหนักสุทธิ 48 กรัม\nผลิตโดย บริษัท ขนมสาธิต จำกัด 99 หมู่ 4 ต.บางพลี จ.สมุทรปราการ\nบริโภคแต่น้อยและออกกำลังกายเพื่อสุขภาพ"
+  },
+  {
+   "id": "e072",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "ขนมอบกรอบ สสาหร่าย\nส่วประกอบที่สำคัญ: แป้งข้าวโพด 60% น้ำปาลม 20% ผงปรงรสสาหราย 5%\nใ้วัตถุปุงแต่งรสอาหาร\nน้ำหนักสุทธิ 48 รัม\nผลตโดย บรษัท ขนสาธิ จำกัด 99 หมู 4 ต.บงพลี จ.สุทรปราการ\nบริโภคแตนอยและออกำลังกายเพื่อสุขภาพ"
+  },
+  {
+   "id": "e073",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "ขนมอบกรอบ รสสาหร่าย ส่วนประกอบที่สำคัญ: แป้งข้าวโพด 60% น้ำมันปาล์ม 20% ผงปรุงรสสาหร่าย 5% ใช้วัตถุปรุงแต่งรสอาหาร น้ำหนักสุทธิ 48 กรัม ผลิตโดย บริษัท ขนมสาธิต จำกัด 99 หมู่ 4 ต.บางพลี จ.สมุทรปราการ บริโภคแต่น้อยและออกกำลังกายเพื่อสุขภาพ"
+  },
+  {
+   "id": "e074",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "half",
+   "text": "ขนมอบกรอบ รสสาหร่าย\nใช้วัตถุปรุงแต่งรสอาหาร\nผลิตโดย บริษัท ขนมสาธิต จำกัด 99 หมู่ 4 ต.บางพลี จ.สมุทรปราการ"
+  },
+  {
+   "id": "e075",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "ขนมอบกรอบ รสสาหร่าย\nส่วนปร ะกอบที่สำคัญ: แป้งข้าวโพด 60% น้ำมันปาล์ม 20% ผงปรุงรสสาหร่าย S%\nใช้วัตถุปรุงแต่งรสอาหาร\nน้ำหนักสุทธิ 48 กรัม\nผลิตโดย บริษัท ขนมสาธิต จำก ัด 99 หมู่ 4 ต.บางพลี จ.สมุทรปราการ\nบริโภคแต่น ้อยและออกกำลังกายเพื่อสุขภาพ"
+  },
+  {
+   "id": "e076",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "น้ำปลาแท้ ตราทดลอง\nส่วนประกอบ: ปลากะตัก 70% เกลือ 27% น้ำตาล 3%\nปริมาตรสุทธิ 700 มล.\nเลขสารบบอาหาร 20-1-00455-2-0001\nควรบริโภคก่อน 15 03 27"
+  },
+  {
+   "id": "e077",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "น้ำปลาแท้ ตราทดลอง\nสวนประกอบ: ปลากะตัก 70% เลือ 2% น้ำตาล 3%\nปิมารสุทธิ 700 มล.\nเลขสารบบอาหาร 201-0055--0001\nควรบริโภคกอน 15 03 27"
+  },
+  {
+   "id": "e078",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "น้ำปลาแท้ ตราทดลอง ส่วนประกอบ: ปลากะตัก 70% เกลือ 27% น้ำตาล 3% ปริมาตรสุทธิ 700 มล. เลขสารบบอาหาร 20-1-00455-2-0001 ควรบริโภคก่อน 15 03 27"
+  },
+  {
+   "id": "e079",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "half",
+   "text": "น้ำปลาแท้ ตราทดลอง\nปริมาตรสุทธิ 700 มล.\nควรบริโภคก่อน 15 03 27"
+  },
+  {
+   "id": "e080",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "น้ำปลาแท้ ตราทดลอง \nส่วนประกอบ: ปลากะตัก 70% เกลือ 27% น้ำตาล 3%\nปริมาตรสุทธิ 700 มล.\nเลขสารบบอาหาร 20-1-OO455-2-0001\nควรบริโภคก่อน lS 03 27"
+  },
+  {
+   "id": "e081",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "กาแฟปรุงสำเร็จชนิดผง 3 in 1\nวิธีชง: เทกาแฟ 1 ซอง ลงในน้ำร้อน 150 มล.\nบรรจุ 27 ซอง น้ำหนักสุทธิ 486 กรัม\nผลิตและจำหน่ายโดย บริษัท สาธิต เบฟเวอเรจ จำกัด\nศูนย์บริการลูกค้า โทร 02-123-4567"
+  },
+  {
+   "id": "e082",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "กาแฟปรุงสำเร็จชนดผง 3 i \nวิธีชง: เทกาแฟ 1 อง ลงในน้ำ้อน 150 มล.\nบรรจุ 27 ซอง น้ำหนกสุทธ486 กรัม\nผลตและจำน่ยโดย บริท สาธิตเฟเวอเรจ จำกัด\nศูนย์บริการลูกคาโท 02-123-4567"
+  },
+  {
+   "id": "e083",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "กาแฟปรุงสำเร็จชนิดผง 3 in 1 วิธีชง: เทกาแฟ 1 ซอง ลงในน้ำร้อน 150 มล. บรรจุ 27 ซอง น้ำหนักสุทธิ 486 กรัม ผลิตและจำหน่ายโดย บริษัท สาธิต เบฟเวอเรจ จำกัด ศูนย์บริการลูกค้า โทร 02-123-4567"
+  },
+  {
+   "id": "e084",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "half",
+   "text": "กาแฟปรุงสำเร็จชนิดผง 3 in 1\nบรรจุ 27 ซอง น้ำหนักสุทธิ 486 กรัม\nศูนย์บริการลูกค้า โทร 02-123-4567"
+  },
+  {
+   "id": "e085",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "กาแฟปรุงสำเร็จชนิดผง 3 in 1\nวิธีชง: เทกาแฟ 1 ซอง ลงในน้ำร้อน 150 มล.\nบรรจุ 27 ซอง น้ำหนักสุทธิ 486 กรัม\nผลิตและจำหน่ายโดย บริษัท สาธิต เบฟเวอเรจ จำกัด\nศูนย์บริการลูกค้า โทร 02-123-4567"
+  },
+  {
+   "id": "e086",
+   "lang": "th",
+   "kind": "product",
+   "category": "herbal",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "ยาแผนโบราณ ยาหอมสาธิต\nสรรพคุณ: แก้ลมวิงเวียน\nขนาดและวิธีใช้: รับประทานครั้งละ 1 ช้อนชา ละลายน้ำอุ่น\nทะเบียนยาเลขที่ G 56/2563\nผู้ผลิต: ห้างหุ้นส่วนสาธิตโอสถ\nน้ำหนักสุทธิ 15 กรัม"
+  },
+  {
+   "id": "e087",
+   "lang": "th",
+   "kind": "product",
+   "category": "herbal",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "ยาผนโบราณยาหอาธิ\nสรรพคณ: แก้ลมวงเวยน\nขนาดและวิธีใช้: รบประทานคงละ 1 ชอนชาละลายน้ำอุ่\nทะเบยาเลขท G 56/263\nผู้ผิต: หางห้น่วนสาธิตโสถ\nน้ำหนักุทธ 15 กัม"
+  },
+  {
+   "id": "e088",
+   "lang": "th",
+   "kind": "product",
+   "category": "herbal",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "ยาแผนโบราณ ยาหอมสาธิต สรรพคุณ: แก้ลมวิงเวียน ขนาดและวิธีใช้: รับประทานครั้งละ 1 ช้อนชา ละลายน้ำอุ่น ทะเบียนยาเลขที่ G 56/2563 ผู้ผลิต: ห้างหุ้นส่วนสาธิตโอสถ น้ำหนักสุทธิ 15 กรัม"
+  },
+  {
+   "id": "e089",
+   "lang": "th",
+   "kind": "product",
+   "category": "herbal",
+   "expect": "allow",
+   "variant": "half",
+   "text": "ยาแผนโบราณ ยาหอมสาธิต\nขนาดและวิธีใช้: รับประทานครั้งละ 1 ช้อนชา ละลายน้ำอุ่น\nผู้ผลิต: ห้างหุ้นส่วนสาธิตโอสถ"
+  },
+  {
+   "id": "e090",
+   "lang": "th",
+   "kind": "product",
+   "category": "herbal",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "ยาแผ นโบราณ ยาหอมสาธิต\nสรรพคุณ: แก้ลมวิงเว ียน\nขนาดและวิธีใช้: รับประทานครั้งละ 1 ช้อนชา ละลายน้ำอุ่น\nทะเบียนยาเลขที่ G S6/2563\nผู้ผลิต: ห้างหุ้น ส่วนสาธิตโอสถ\nน้ำหนักสุทธิ 15 กรัม"
+  },
+  {
+   "id": "e091",
+   "lang": "th",
+   "kind": "product",
+   "category": "herbal",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "ผลิตภัณฑ์สมุนไพร ฟ้าทะลายโจร แคปซูล\nตัวยาสำคัญ: ผงฟ้าทะลายโจร 400 มก.\nคำเตือน: ห้ามใช้ในหญิงตั้งครรภ์และให้นมบุตร\nเก็บในที่แห้ง อุณหภูมิไม่เกิน 30 องศาเซลเซียส\nบรรจุ 60 แคปซูล"
+  },
+  {
+   "id": "e092",
+   "lang": "th",
+   "kind": "product",
+   "category": "herbal",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "ผลิตภัณฑ์สมุนไพร ฟ้าทะลายโร แคปซูล\nตวยาสำคัญ: ผงฟาทะลายโจร 400 มก.\nำเอน: ามใช้ในหญิงตั้งครภ์และให้นมบุตร\nเก็บในทีแหง อุหูมิไม่กน 0 องศาเซลเซย\nบร60แคปซล"
+  },
+  {
+   "id": "e093",
+   "lang": "th",
+   "kind": "product",
+   "category": "herbal",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "ผลิตภัณฑ์สมุนไพร ฟ้าทะลายโจร แคปซูล ตัวยาสำคัญ: ผงฟ้าทะลายโจร 400 มก. คำเตือน: ห้ามใช้ในหญิงตั้งครรภ์และให้นมบุตร เก็บในที่แห้ง อุณหภูมิไม่เกิน 30 องศาเซลเซียส บรรจุ 60 แคปซูล"
+  },
+  {
+   "id": "e094",
+   "lang": "th",
+   "kind": "product",
+   "category": "herbal",
+   "expect": "allow",
+   "variant": "half",
+   "text": "ผลิตภัณฑ์สมุนไพร ฟ้าทะลายโจร แคปซูล\nคำเตือน: ห้ามใช้ในหญิงตั้งครรภ์และให้นมบุตร\nบรรจุ 60 แคปซูล"
+  },
+  {
+   "id": "e095",
+   "lang": "th",
+   "kind": "product",
+   "category": "herbal",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "ผล ิตภัณฑ์ส มุนไพร ฟ้าทะลายโจร แคปซูล\nตัวยาสำคัญ: ผงฟ้าทะลายโจร 40O มก.\nคำเตือน: ห้าม ใช้ในหญิงตั้งครรภ์และให้นมบุตร\nเก็บในท ี่แห้ง อุณหภูมิไม่เกิน 3O องศาเซลเซียส\nบรรจุ 60 แคปซูล"
+  },
+  {
+   "id": "e096",
+   "lang": "th",
+   "kind": "product",
+   "category": "device",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "หน้ากากอนามัยทางการแพทย์\nใช้ครั้งเดียว ห้ามนำกลับมาใช้ซ้ำ\nบรรจุ 50 ชิ้น\nเลขที่ใบจดแจ้ง จน. 65-1-2-2-0001234\nผลิตโดย บริษัท สาธิตเมดิคอล จำกัด\nLOT 2408B"
+  },
+  {
+   "id": "e097",
+   "lang": "th",
+   "kind": "product",
+   "category": "device",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "น้ากากอนามัทงกรแพย์\nใช้ครั้งเียว หานำกลบมาใช้ซ\nบรจุ 50 ชิ้น\nเลขทใบจดจ้ง จน. 65-12-2-0001234\nผลตโด บริษัท สาธิตมดคล จำกด\nLOT 2408B"
+  },
+  {
+   "id": "e098",
+   "lang": "th",
+   "kind": "product",
+   "category": "device",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "หน้ากากอนามัยทางการแพทย์ ใช้ครั้งเดียว ห้ามนำกลับมาใช้ซ้ำ บรรจุ 50 ชิ้น เลขที่ใบจดแจ้ง จน. 65-1-2-2-0001234 ผลิตโดย บริษัท สาธิตเมดิคอล จำกัด LOT 2408B"
+  },
+  {
+   "id": "e099",
+   "lang": "th",
+   "kind": "product",
+   "category": "device",
+   "expect": "allow",
+   "variant": "half",
+   "text": "หน้ากากอนามัยทางการแพทย์\nบรรจุ 50 ชิ้น\nผลิตโดย บริษัท สาธิตเมดิคอล จำกัด"
+  },
+  {
+   "id": "e100",
+   "lang": "th",
+   "kind": "product",
+   "category": "device",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "หน้ากากอนามัยทางการแพทย์\nใช้ครั้งเดียว ห้ามนำกลับมาใช้ซ้ำ\nบรรจุ 5O ชิ้น\nเลขที่ใบจดแจ ้ง จน. 6S-1-2-2-O001234\nผลิตโดย บ ริษัท สาธิตเมดิคอล จำกัด\nLOT 24OBB"
+  },
+  {
+   "id": "e101",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "Drug Facts\nActive ingredient (in each tablet): Ibuprofen 200 mg\nPurpose: Pain reliever/fever reducer\nUses: temporarily relieves minor aches and pains\nWarnings: Stomach bleeding warning. Ask a doctor before use if you have liver disease.\nDirections: adults and children 12 years and over: take 1 tablet every 4 to 6 hours\nOther information: store at 20-25°C\nInactive ingredients: corn starch, hypromellose\nNDC 0573-0150-20\nLOT A12345 EXP 01/2028"
+  },
+  {
+   "id": "e102",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "Dru Fcts\nActive ingediet (in each tablet): Ibuprofen 200 mg\nPurpse: Pain reliever/feverreduc\nUses: tmporaily rieves minr achesand pains\nWarings: Stomachbleeding arning. Ask a doctor before se if youhave liver dseae\nDirection: duts and children 12years and over take  tablet very4 to 6 hours\nOtheinformation store at0-25°C\nInactive ingrediens: corn starch, hypomllose\nNDC 0573-015-20\nOT A12345 EXP 012028"
+  },
+  {
+   "id": "e103",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "Drug Facts Active ingredient (in each tablet): Ibuprofen 200 mg Purpose: Pain reliever/fever reducer Uses: temporarily relieves minor aches and pains Warnings: Stomach bleeding warning. Ask a doctor before use if you have liver disease. Directions: adults and children 12 years and over: take 1 tablet every 4 to 6 hours Other information: store at 20-25°C Inactive ingredients: corn starch, hypromellose NDC 0573-0150-20 LOT A12345 EXP 01/2028"
+  },
+  {
+   "id": "e104",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "half",
+   "text": "Drug Facts\nPurpose: Pain reliever/fever reducer\nWarnings: Stomach bleeding warning. Ask a doctor before use if you have liver disease.\nOther information: store at 20-25°C\nNDC 0573-0150-20"
+  },
+  {
+   "id": "e105",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "Drug Facts\nA c tive ingredie nt (in each tablet): lbuprofen 20O m g\nPurpose: Pain reliever/fever r educer\nUses: tempor arily relieves minor aches and pains\nWarnings: Stomach bleeding warning. Ask a doctor before use if  you have liver di sease.\nDirections: adults and chi1dren l2 years and o ver: take 1 ta blet every 4 to 6 hours\nOther information: store at 20-2S°C\nInactive ingredients: corn starch, hyprornellose\nNDC 0S73-0150-20\nLOT A1234S EXP 01/2028"
+  },
+  {
+   "id": "e106",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "PARACETAMOL Tablets BP 500 mg\n16 tablets\nFor oral use. Read the package leaflet before use.\nKeep out of the sight and reach of children.\nPL 12345/0678\nMA Holder: Example Pharma Ltd., Sampletown, UK\nBatch No. A12345\nExp. Date 01/2028"
+  },
+  {
+   "id": "e107",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "PARACETAMOL Tablets BP 500 mg\n16 tablets\nFor ora use. Rea e package leflet beforese.\nKeepout of the sight and reach of children.\nPL 12345/0678\nMAHolder: Example Pharma Ltd., Sampletown, UK\nBach No. A1345\nEp. Date 01/228"
+  },
+  {
+   "id": "e108",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "PARACETAMOL Tablets BP 500 mg 16 tablets For oral use. Read the package leaflet before use. Keep out of the sight and reach of children. PL 12345/0678 MA Holder: Example Pharma Ltd., Sampletown, UK Batch No. A12345 Exp. Date 01/2028"
+  },
+  {
+   "id": "e109",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "half",
+   "text": "PARACETAMOL Tablets BP 500 mg\nFor oral use. Read the package leaflet before use.\nPL 12345/0678\nBatch No. A12345"
+  },
+  {
+   "id": "e110",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "PARACETAMOL Tab1ets BP 500 rng\n16 ta blets\nFor oral use. Read the package leaflet before use.\nKeep out of the si ght and reach of chi1dren.\nPL l234S/O678\nMA Hol der: Example Pharma Ltd., Sampletown, UK\nBatch No . A12345\nExp. Date O1/2O28"
+  },
+  {
+   "id": "e111",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "SAMPLE COLD & FLU\nEach capsule contains: Paracetamol 500 mg, Phenylephrine HCl 5 mg\nAUST R 123456\nStore below 25°C\n24 capsules\nSample Health Pty Ltd, Sydney"
+  },
+  {
+   "id": "e112",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "SAMPLE COD & FLU\nEach capsule contains: Paracetamol 500 g, Phenylephrine HCl 5 m\nAUST R 123456\nStore below 25°C\n24 apses\nSame Health Pty Ltd, Sydney"
+  },
+  {
+   "id": "e113",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "SAMPLE COLD & FLU Each capsule contains: Paracetamol 500 mg, Phenylephrine HCl 5 mg AUST R 123456 Store below 25°C 24 capsules Sample Health Pty Ltd, Sydney"
+  },
+  {
+   "id": "e114",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "half",
+   "text": "SAMPLE COLD & FLU\nAUST R 123456\n24 capsules"
+  },
+  {
+   "id": "e115",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "5AMPLE COLD & FLU\nEach capsule co ntains: Paracetamol S0O rng, P henylephrine HCl 5 mg\nAUST R l23456\n5tore be1ow 25°C\n24 capsules\nSamp1e Health Pty Ltd, Sydney"
+  },
+  {
+   "id": "e116",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "Loratadine Tablets 10 mg\nAntihistamine\nDIN 02345678\n30 Tablets\nManufactured by Example Pharma Inc., Toronto\nKeep out of reach of children\nLot 4471 Exp 2027-06"
+  },
+  {
+   "id": "e117",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "Loratadine Tablets 10 mg\nAntihistamine\nI 2345678\n30 Tablets\nManufacued by Example Phara nc., Toroto\nKeep out of each of children\nLot 4471 Exp 2027-06"
+  },
+  {
+   "id": "e118",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "Loratadine Tablets 10 mg Antihistamine DIN 02345678 30 Tablets Manufactured by Example Pharma Inc., Toronto Keep out of reach of children Lot 4471 Exp 2027-06"
+  },
+  {
+   "id": "e119",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "half",
+   "text": "Loratadine Tablets 10 mg\nDIN 02345678\nManufactured by Example Pharma Inc., Toronto\nLot 4471 Exp 2027-06"
+  },
+  {
+   "id": "e120",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "Loratadine Tablets 10 mg\nAntihista mine\nDIN 02345678\n3O Tablets\nManufactured by Examp1e Pharma Inc., Toronto\nKeep out of reach of  ch ildren\nLot 4471 Exp 2027-06"
+  },
+  {
+   "id": "e121",
+   "lang": "en",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "Supplement Facts\nServing Size 1 Softgel\nServings Per Container 90\nFish Oil 1000 mg\nOther ingredients: gelatin, glycerin, purified water\nSuggested use: take one softgel daily with a meal\nThese statements have not been evaluated by the Food and Drug Administration.\nDistributed by Sample Naturals LLC"
+  },
+  {
+   "id": "e122",
+   "lang": "en",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "Supplement acts\nServing Size 1 Sofel\nServins PerContainer 90\nFish Oil 00 mg\nOther igreens:gelain, glyceri purified water\nSuggested use take one sofgel daily with a eal\nThse statements hav nt been evaluated by te Fod and Drug Administration.\nDistributed by Sample Natuas LC"
+  },
+  {
+   "id": "e123",
+   "lang": "en",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "Supplement Facts Serving Size 1 Softgel Servings Per Container 90 Fish Oil 1000 mg Other ingredients: gelatin, glycerin, purified water Suggested use: take one softgel daily with a meal These statements have not been evaluated by the Food and Drug Administration. Distributed by Sample Naturals LLC"
+  },
+  {
+   "id": "e124",
+   "lang": "en",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "half",
+   "text": "Supplement Facts\nServings Per Container 90\nOther ingredients: gelatin, glycerin, purified water\nThese statements have not been evaluated by the Food and Drug Administration."
+  },
+  {
+   "id": "e125",
+   "lang": "en",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "Supplement Facts\n5erving  Size l Softgel\nServings Per Containe r 90\nFish Oil lO0O mg\nOther ingredient s: ge1atin, glyc erin, purified water \n5uggested use: take one softgel daily with a mea1\nThese statemen t s have no t been evaluated  by the Foo d and Drug Adm inistration.\nDistributed by Sample Naturals LLC"
+  },
+  {
+   "id": "e126",
+   "lang": "en",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "SAMPLAVIT C\nVitamin C 1000 mg\nDietary Supplement\n60 Tablets"
+  },
+  {
+   "id": "e127",
+   "lang": "en",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "SAMPAVIT C\nVitamin C 1000 mg\nDietary upplement\n60 ablets"
+  },
+  {
+   "id": "e128",
+   "lang": "en",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "SAMPLAVIT C Vitamin C 1000 mg Dietary Supplement 60 Tablets"
+  },
+  {
+   "id": "e129",
+   "lang": "en",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "half",
+   "text": "SAMPLAVIT C\nDietary Supplement"
+  },
+  {
+   "id": "e130",
+   "lang": "en",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "SAMPLAVIT C\nVitamin C 1000 rng\nDi et a ry Supp1ement\n6O Tab lets"
+  },
+  {
+   "id": "e131",
+   "lang": "en",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "Zinc + Vitamin D3\nNPN 80012345\nRecommended dose: Adults: 1 tablet daily\nNon-medicinal ingredients: microcrystalline cellulose, magnesium stearate\n120 tablets\nBest before 2027-03"
+  },
+  {
+   "id": "e132",
+   "lang": "en",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "Zinc+ itamin D3\nNPN 80012345\nReommeded dose: Adults: 1 tablet daily\nNon-medicinal inrdient: microcrystalline cellulos, magnesim sterate\n120 tablets\nBest befor 027-03"
+  },
+  {
+   "id": "e133",
+   "lang": "en",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "Zinc + Vitamin D3 NPN 80012345 Recommended dose: Adults: 1 tablet daily Non-medicinal ingredients: microcrystalline cellulose, magnesium stearate 120 tablets Best before 2027-03"
+  },
+  {
+   "id": "e134",
+   "lang": "en",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "half",
+   "text": "Zinc + Vitamin D3\nRecommended dose: Adults: 1 tablet daily\n120 tablets"
+  },
+  {
+   "id": "e135",
+   "lang": "en",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "Zinc + Vitamin D3\nNPN 800l234S\nRecommended dose: Adults : 1 tablet daily\nNon-med icina1 ingred ients: m icroc rysta 1line cellu1ose, magnesium stearate\n12O tab1ets\nBest bef ore 2027-03"
+  },
+  {
+   "id": "e136",
+   "lang": "en",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "Hydrating Face Cream\nDirections: apply to clean skin morning and night.\nIngredients: Aqua, Glycerin, Cetearyl Alcohol, Dimethicone, Parfum\nCaution: for external use only. Avoid contact with eyes.\nNet Wt. 50 g / 1.7 oz\nMade in Korea\n12M"
+  },
+  {
+   "id": "e137",
+   "lang": "en",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "Hydrating aceCream\nDiretions: apply toclen skin orning and night.\nngredients: Aq, Glcerin, etearyl Alcohol Dimthicon, Parfum\nCaution:for exera ue only. Aoid contact with eyes.\nNet Wt. 5 g / 1.7 oz\nMade in Korea\n12"
+  },
+  {
+   "id": "e138",
+   "lang": "en",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "Hydrating Face Cream Directions: apply to clean skin morning and night. Ingredients: Aqua, Glycerin, Cetearyl Alcohol, Dimethicone, Parfum Caution: for external use only. Avoid contact with eyes. Net Wt. 50 g / 1.7 oz Made in Korea 12M"
+  },
+  {
+   "id": "e139",
+   "lang": "en",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "half",
+   "text": "Hydrating Face Cream\nIngredients: Aqua, Glycerin, Cetearyl Alcohol, Dimethicone, Parfum\nNet Wt. 50 g / 1.7 oz\n12M"
+  },
+  {
+   "id": "e140",
+   "lang": "en",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "Hydrating Face Cream\nDirections: a pply to clean skin rnorning and night .\nIngredients: Aqua, Glyceri n, Cetearyl A1coho1, Dirnethicone, Parfum\nCaution: for externa1 use only. Avoid contac t with eyes.\nNet Wt. SO g / 1.7 oz\nMade in Korea\n12M"
+  },
+  {
+   "id": "e141",
+   "lang": "en",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "Gentle Baby Shampoo\nTear-free formula\n200 ml e 6.7 fl. oz.\nINGREDIENTS: WATER, COCAMIDOPROPYL BETAINE, SODIUM CHLORIDE, CITRIC ACID\nDistributed by Sample Baby Co., Ltd.\nBatch 22B07"
+  },
+  {
+   "id": "e142",
+   "lang": "en",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "entle Baby Shampoo\near-free formula\n200 ml 6.7 fl. oz.\nINGRDIENS: WATER, COCAMIDOPROPYL BETAIE, SODIUM CHORIDE, CITRC CID\nDistribued by Sample Baby Co., Ltd.\nBath 22B07"
+  },
+  {
+   "id": "e143",
+   "lang": "en",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "Gentle Baby Shampoo Tear-free formula 200 ml e 6.7 fl. oz. INGREDIENTS: WATER, COCAMIDOPROPYL BETAINE, SODIUM CHLORIDE, CITRIC ACID Distributed by Sample Baby Co., Ltd. Batch 22B07"
+  },
+  {
+   "id": "e144",
+   "lang": "en",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "half",
+   "text": "Gentle Baby Shampoo\n200 ml e 6.7 fl. oz.\nDistributed by Sample Baby Co., Ltd."
+  },
+  {
+   "id": "e145",
+   "lang": "en",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "Gentle Baby Shampoo \nTear-free fo rmu1a\n200 ml e 6.7 f1. oz.\nINGREDlENTS: WATER, COCAMIDOPR0PYL BETAINE, S0D IUM CHLORIDE, CITRlC AClD\nDistributed by 5ampl e B a by Co., Lt d.\nBatch 22BO7"
+  },
+  {
+   "id": "e146",
+   "lang": "en",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "Sample Sunscreen Lotion SPF 30\nBroad Spectrum\nWarnings: For external use only. Keep out of reach of children.\nNet 100 ml\nMFD 2025.02.11 EXP 2028.02.10"
+  },
+  {
+   "id": "e147",
+   "lang": "en",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "Sample Sunscen Ltion SPF 3\nBrod Spectrum\nWarnings: For exteal use only. Keep out of reach of children.\nNet 100 m\nMFD 2025.02.11 EXP2028.02.10"
+  },
+  {
+   "id": "e148",
+   "lang": "en",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "Sample Sunscreen Lotion SPF 30 Broad Spectrum Warnings: For external use only. Keep out of reach of children. Net 100 ml MFD 2025.02.11 EXP 2028.02.10"
+  },
+  {
+   "id": "e149",
+   "lang": "en",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "half",
+   "text": "Sample Sunscreen Lotion SPF 30\nWarnings: For external use only. Keep out of reach of children.\nMFD 2025.02.11 EXP 2028.02.10"
+  },
+  {
+   "id": "e150",
+   "lang": "en",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "Samp1e Sunscreen Lotion 5PF 30\nBroad 5pectrurn\nWarnings: For ext ernal use only. Keep  out of reach of children.\nNet 100 ml\nMFD 2025.02.1l EXP 202B.02.l0"
+  },
+  {
+   "id": "e151",
+   "lang": "en",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "Nutrition Facts\nServing size 2/3 cup (55g)\nCalories 230\nTotal Fat 8g Sodium 160mg Total Carbohydrate 37g Protein 3g\nIngredients: whole grain oats, sugar, almonds, salt\nContains: tree nuts\nNet Wt 12 oz (340g)\nBest by 03 2027"
+  },
+  {
+   "id": "e152",
+   "lang": "en",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "Nutrition ats\nServing size 23 cup (5g)\nCalories 230\nTotal Fat 8g Sodium 160mg Total Carbohydrate 37g Protein 3\nngredients: whoe grai oats, sugar, almnds, sat\nContain: tree nuts\net Wt 12 oz (340g)\nBest by 03 202"
+  },
+  {
+   "id": "e153",
+   "lang": "en",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "Nutrition Facts Serving size 2/3 cup (55g) Calories 230 Total Fat 8g Sodium 160mg Total Carbohydrate 37g Protein 3g Ingredients: whole grain oats, sugar, almonds, salt Contains: tree nuts Net Wt 12 oz (340g) Best by 03 2027"
+  },
+  {
+   "id": "e154",
+   "lang": "en",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "half",
+   "text": "Nutrition Facts\nCalories 230\nIngredients: whole grain oats, sugar, almonds, salt\nNet Wt 12 oz (340g)"
+  },
+  {
+   "id": "e155",
+   "lang": "en",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "Nutr ition Facts\nServi ng s ize 2/3 cup (55g)\nCa1ories 230\nTotal F at 8g S odium 16Omg Total Carbohydrate 37g Protein 3g\nIngredients: whole grain oat s, sugar, alrnonds, sa1t \nContains: t ree nuts\nNet Wt 12 oz (340g )\nBest by 03 2O27"
+  },
+  {
+   "id": "e156",
+   "lang": "en",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "Sample Instant Noodles Chicken Flavour\nIngredients: Wheat flour, palm oil, salt, flavour enhancer (E621)\nAllergen advice: contains wheat, soy\nNet weight: 85 g\nStore in a cool, dry place\nProduct of Thailand"
+  },
+  {
+   "id": "e157",
+   "lang": "en",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "Sample Instant odles Chickn Flavou\nIngredients: Wheat four, al oil, salt, flavou enhancer (E621)\nAllergen advice: cotains wheat,soy\nNet weight: 85 g\nStor in a ool, dry place\nProduct of Thilad"
+  },
+  {
+   "id": "e158",
+   "lang": "en",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "Sample Instant Noodles Chicken Flavour Ingredients: Wheat flour, palm oil, salt, flavour enhancer (E621) Allergen advice: contains wheat, soy Net weight: 85 g Store in a cool, dry place Product of Thailand"
+  },
+  {
+   "id": "e159",
+   "lang": "en",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "half",
+   "text": "Sample Instant Noodles Chicken Flavour\nAllergen advice: contains wheat, soy\nStore in a cool, dry place"
+  },
+  {
+   "id": "e160",
+   "lang": "en",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "5arnple Instant No odles Chicken Flav our \nIngredients: Wheat flour, palm oil , salt, f1avour enhancer (E62l)\nAllergen advice: conta ins wheat, soy\nNet weight: BS g\nStore in a co o1, dry place\nProduct of Thai land"
+  },
+  {
+   "id": "e161",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "Rx only\nATORVASTATIN CALCIUM Tablets 20 mg\n90 Tablets\nStore at controlled room temperature\nMfd. for Example Generics, Inc.\nNDC 12345-678-90\nLOT 8H221 EXP 09/27"
+  },
+  {
+   "id": "e162",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "Rx onl\nATORASATIN CALCIUM Tablets 0 mg\n90 ablets\nStre t ontroled room temperature\nM. or Eaple Generics, Inc.\nNDC 12345-68-90\nLOT H221 EXP 09/27"
+  },
+  {
+   "id": "e163",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "Rx only ATORVASTATIN CALCIUM Tablets 20 mg 90 Tablets Store at controlled room temperature Mfd. for Example Generics, Inc. NDC 12345-678-90 LOT 8H221 EXP 09/27"
+  },
+  {
+   "id": "e164",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "half",
+   "text": "Rx only\n90 Tablets\nMfd. for Example Generics, Inc.\nLOT 8H221 EXP 09/27"
+  },
+  {
+   "id": "e165",
+   "lang": "en",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "Rx only\nATORVA5TATIN CALCIUM Tablets 20 rng\n90 Tablets\nStore at contro1led roorn temperature\nMf d. for Example Generics, Inc.\nNDC 12345-678-9O\nL0T BH221 EXP 09/27"
+  },
+  {
+   "id": "e166",
+   "lang": "en",
+   "kind": "product",
+   "category": "herbal",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "Traditional Herbal Balm\nComposition: Menthol 10%, Camphor 11%, Eucalyptus oil 5%\nMAL20012345T\nFor external use only\nNett weight 20 g\nManufactured by Sample Herbs Sdn. Bhd."
+  },
+  {
+   "id": "e167",
+   "lang": "en",
+   "kind": "product",
+   "category": "herbal",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "Traditional Herbal alm\nCoposition: Menthol 10%, Camphor 11%, Euclyptus oil 5%\nMAL20012345T\nFor external ue onl\nNett weight20 g\nManfature b SampleHerb dn. Bhd."
+  },
+  {
+   "id": "e168",
+   "lang": "en",
+   "kind": "product",
+   "category": "herbal",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "Traditional Herbal Balm Composition: Menthol 10%, Camphor 11%, Eucalyptus oil 5% MAL20012345T For external use only Nett weight 20 g Manufactured by Sample Herbs Sdn. Bhd."
+  },
+  {
+   "id": "e169",
+   "lang": "en",
+   "kind": "product",
+   "category": "herbal",
+   "expect": "allow",
+   "variant": "half",
+   "text": "Traditional Herbal Balm\nMAL20012345T\nNett weight 20 g"
+  },
+  {
+   "id": "e170",
+   "lang": "en",
+   "kind": "product",
+   "category": "herbal",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "Traditional  Her bal Balrn\nComposition: Mentho1 1O%, Camphor 11%, Eucal yptus oi1 5%\nMAL2001234ST\nFor externa1 use only\nNett weight 20 g\nManufactur ed b y Sarnple Herbs Sdn. Bhd ."
+  },
+  {
+   "id": "e171",
+   "lang": "zh",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "布洛芬缓释胶囊\n【成份】本品每粒含布洛芬0.3克\n【适应症】用于缓解轻至中度疼痛\n【用法用量】口服。成人一次1粒，一日2次\n【注意事项】孕妇及哺乳期妇女禁用\n【贮藏】密封保存\n【批准文号】国药准字H20013062\n【生产企业】示例制药有限公司\n产品批号 20240501 有效期至 2027.04"
+  },
+  {
+   "id": "e172",
+   "lang": "zh",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "布洛芬缓释胶囊\n【成份】本品每粒含布洛芬0.3克\n【应症】用于缓解至中度疼痛\n【用法用量】口。成人一次1粒，一日2次\n【注意事项】孕妇及哺乳期妇女禁用\n【贮藏密封存\n【批准文号】国药准字H2001362\n生产企业】示例制药有限公司\n产品批号 2024051 有期 2027.04"
+  },
+  {
+   "id": "e173",
+   "lang": "zh",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "布洛芬缓释胶囊 【成份】本品每粒含布洛芬0.3克 【适应症】用于缓解轻至中度疼痛 【用法用量】口服。成人一次1粒，一日2次 【注意事项】孕妇及哺乳期妇女禁用 【贮藏】密封保存 【批准文号】国药准字H20013062 【生产企业】示例制药有限公司 产品批号 20240501 有效期至 2027.04"
+  },
+  {
+   "id": "e174",
+   "lang": "zh",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "half",
+   "text": "布洛芬缓释胶囊\n【适应症】用于缓解轻至中度疼痛\n【注意事项】孕妇及哺乳期妇女禁用\n【批准文号】国药准字H20013062\n产品批号 20240501 有效期至 2027.04"
+  },
+  {
+   "id": "e175",
+   "lang": "zh",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "布洛芬缓释胶囊\n【成份】本品每粒含布洛芬0.3克\n【适应症】用于缓解轻至中度疼痛\n【用法用量】口服。成人一次l粒，一日2次 \n【注意事项】孕妇及哺乳期妇女 禁用\n【贮藏】密封保存\n【批准文号】国药准字 H20013062\n【生产企业】示例制药有限公司\n产 品批号 20240501 有效期至 2027.04"
+  },
+  {
+   "id": "e176",
+   "lang": "zh",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "感冒灵颗粒\nOTC 甲类\n规格：每袋重10克\n国药准字Z44021940\n请仔细阅读说明书并按说明使用\n生产日期 2025/01/12"
+  },
+  {
+   "id": "e177",
+   "lang": "zh",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "感冒灵颗粒\nOTC 甲类\n规格：每袋重10克\n国药准字Z44021940\n请仔阅读说明书并按说明用\n生产日期2025/01/12"
+  },
+  {
+   "id": "e178",
+   "lang": "zh",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "感冒灵颗粒 OTC 甲类 规格：每袋重10克 国药准字Z44021940 请仔细阅读说明书并按说明使用 生产日期 2025/01/12"
+  },
+  {
+   "id": "e179",
+   "lang": "zh",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "half",
+   "text": "感冒灵颗粒\n规格：每袋重10克\n请仔细阅读说明书并按说明使用"
+  },
+  {
+   "id": "e180",
+   "lang": "zh",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "感冒灵颗粒\nOTC 甲类 \n规格：每袋 重10克\n国药准字 Z44O21940\n请仔细阅读说明书并按说明使用\n生产日期 2025/01/12"
+  },
+  {
+   "id": "e181",
+   "lang": "zh",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "阿莫西林胶囊 0.25g×24粒\n本品为处方药，凭医师处方销售、购买和使用\n贮藏：遮光，密封保存\n批准文号：国药准字H44021351\n生产企业：示例药业股份有限公司"
+  },
+  {
+   "id": "e182",
+   "lang": "zh",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "阿莫西林胶囊0.25g×4粒\n本品为处药，凭医师处方销售、购买和使用\n贮藏：遮光，密封\n批准文号：国药准字44021351\n生产企业：示例药业股份有限公司"
+  },
+  {
+   "id": "e183",
+   "lang": "zh",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "阿莫西林胶囊 0.25g×24粒 本品为处方药，凭医师处方销售、购买和使用 贮藏：遮光，密封保存 批准文号：国药准字H44021351 生产企业：示例药业股份有限公司"
+  },
+  {
+   "id": "e184",
+   "lang": "zh",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "half",
+   "text": "阿莫西林胶囊 0.25g×24粒\n贮藏：遮光，密封保存\n生产企业：示例药业股份有限公司"
+  },
+  {
+   "id": "e185",
+   "lang": "zh",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "阿莫西林胶囊 0.25g×24粒\n本品为处方药，凭医师处方销售、购买和使用\n贮藏：遮光，密封保存\n批准文号：国药准字H4402135l\n生产企业：示例药业股份有限公司"
+  },
+  {
+   "id": "e186",
+   "lang": "zh",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "钙维生素D软胶囊\n保健食品\n卫食健字(2013)第0123号\n【主要原料】碳酸钙、维生素D3\n【食用方法及食用量】每日1次，每次1粒\n【不适宜人群】婴幼儿\n本品不能代替药物\n净含量：60粒"
+  },
+  {
+   "id": "e187",
+   "lang": "zh",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "钙维生素D软胶囊\n健食品\n卫食健字(2013)第123号\n【主要原】碳酸钙、维生素D\n【用方法及用量】每日1次，1粒\n【不适宜人群婴幼儿\n本品不能代替药物\n净含量：60粒"
+  },
+  {
+   "id": "e188",
+   "lang": "zh",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "钙维生素D软胶囊 保健食品 卫食健字(2013)第0123号 【主要原料】碳酸钙、维生素D3 【食用方法及食用量】每日1次，每次1粒 【不适宜人群】婴幼儿 本品不能代替药物 净含量：60粒"
+  },
+  {
+   "id": "e189",
+   "lang": "zh",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "half",
+   "text": "钙维生素D软胶囊\n卫食健字(2013)第0123号\n【食用方法及食用量】每日1次，每次1粒\n本品不能代替药物"
+  },
+  {
+   "id": "e190",
+   "lang": "zh",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "钙维生素D软胶囊\n保健食品\n卫食健字(20l3)第O123号\n【主要原料】碳酸钙、维生素D3\n【食用方法及 食用量】每日l次，每次1粒\n【不适宜人群】婴 幼儿\n本品不能代替药物\n净含量：60粒"
+  },
+  {
+   "id": "e191",
+   "lang": "zh",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "蛋白粉\n保健食品 国食健注G20200123\n保健功能：增强免疫力\n配料：大豆分离蛋白、乳清蛋白\n保质期：24个月\n贮存方法：置阴凉干燥处\n净含量 400克"
+  },
+  {
+   "id": "e192",
+   "lang": "zh",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "白粉\n保健食 国食健注G20200123\n保健能：增强免疫力\n料：大豆分离蛋白、乳清蛋白\n保质期：24个月\n贮存方法：置阴凉干燥处\n净含量 400克"
+  },
+  {
+   "id": "e193",
+   "lang": "zh",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "蛋白粉 保健食品 国食健注G20200123 保健功能：增强免疫力 配料：大豆分离蛋白、乳清蛋白 保质期：24个月 贮存方法：置阴凉干燥处 净含量 400克"
+  },
+  {
+   "id": "e194",
+   "lang": "zh",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "half",
+   "text": "蛋白粉\n保健功能：增强免疫力\n保质期：24个月\n净含量 400克"
+  },
+  {
+   "id": "e195",
+   "lang": "zh",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "蛋白粉\n保健食品 国食健注G202O0123\n保健功能：增 强免疫力\n配料：大豆分离蛋白、乳清蛋白\n保质期：24个月 \n贮存方法：置阴凉干燥处\n净含量 400克"
+  },
+  {
+   "id": "e196",
+   "lang": "zh",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "美白精华液\n国妆特字G20190123\n成分：水、甘油、烟酰胺、透明质酸钠\n使用方法：洁面后取适量涂抹于面部\n净含量：30ml\n生产企业：示例化妆品有限公司\n限期使用日期见包装"
+  },
+  {
+   "id": "e197",
+   "lang": "zh",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "美白精华液\n国妆特字G20912\n成分：水、甘油、烟酰胺、透明质酸钠\n用方法：洁面后取适涂抹于面部\n净含量30ml\n生产业示例化妆品有公司\n限期用日期见包装"
+  },
+  {
+   "id": "e198",
+   "lang": "zh",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "美白精华液 国妆特字G20190123 成分：水、甘油、烟酰胺、透明质酸钠 使用方法：洁面后取适量涂抹于面部 净含量：30ml 生产企业：示例化妆品有限公司 限期使用日期见包装"
+  },
+  {
+   "id": "e199",
+   "lang": "zh",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "half",
+   "text": "美白精华液\n成分：水、甘油、烟酰胺、透明质酸钠\n净含量：30ml\n限期使用日期见包装"
+  },
+  {
+   "id": "e200",
+   "lang": "zh",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "美白精华液\n国妆特字G20l90l23\n成分：水、甘油、烟酰胺、透明质酸钠\n使用方法：洁面 后取适量涂抹于面部\n净含量：30ml\n生产 企业：示例化妆品有限公司\n限期使用日期见包装 "
+  },
+  {
+   "id": "e201",
+   "lang": "zh",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "保湿面膜\n产品执行标准 QB/T 2872\n化妆品生产许可证号 粤妆20160001\n注意事项：仅供外用，如有不适请停止使用\n净含量 25ml×5片\n保质期 三年"
+  },
+  {
+   "id": "e202",
+   "lang": "zh",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "保湿面膜\n产执行标准 QB/T 2872\n化妆品生产许可证号 粤妆20160001\n注意事项：仅供外用如有不适请停止使用\n净含量 2ml×5片\n保质期 三年"
+  },
+  {
+   "id": "e203",
+   "lang": "zh",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "保湿面膜 产品执行标准 QB/T 2872 化妆品生产许可证号 粤妆20160001 注意事项：仅供外用，如有不适请停止使用 净含量 25ml×5片 保质期 三年"
+  },
+  {
+   "id": "e204",
+   "lang": "zh",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "half",
+   "text": "保湿面膜\n化妆品生产许可证号 粤妆20160001\n净含量 25ml×5片"
+  },
+  {
+   "id": "e205",
+   "lang": "zh",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "保湿面膜\n产 品 执行标准 QB/T 2B72\n化妆品生产许可证号 粤妆2O160OO1\n注意事项：仅 供外用 ，如有不适请停止使用\n净含量  25m l×5片\n保质期 三年"
+  },
+  {
+   "id": "e206",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "原味酸奶\n营养成分表\n项目 每100克 NRV%\n能量 380千焦 5%\n蛋白质 3.1克 脂肪 3.3克 碳水化合物 12.0克 钠 60毫克\n配料：生牛乳、白砂糖、乳酸菌\n贮存条件：2-6℃冷藏\n生产许可证编号 SC10531011500012\n净含量 200克"
+  },
+  {
+   "id": "e207",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "原味酸奶\n营养成分表\n项目 每00克 NRV%\n能量380千焦 5\n蛋白质 1克 脂肪3.3克 碳化合物 1.0克 钠 6毫\n配料：生牛乳、白砂糖、乳酸菌\n贮存条件：2-6℃冷藏\n产许可证号 SC10531011500012\n含量200"
+  },
+  {
+   "id": "e208",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "原味酸奶 营养成分表 项目 每100克 NRV% 能量 380千焦 5% 蛋白质 3.1克 脂肪 3.3克 碳水化合物 12.0克 钠 60毫克 配料：生牛乳、白砂糖、乳酸菌 贮存条件：2-6℃冷藏 生产许可证编号 SC10531011500012 净含量 200克"
+  },
+  {
+   "id": "e209",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "half",
+   "text": "原味酸奶\n项目 每100克 NRV%\n蛋白质 3.1克 脂肪 3.3克 碳水化合物 12.0克 钠 60毫克\n贮存条件：2-6℃冷藏\n净含量 200克"
+  },
+  {
+   "id": "e210",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "原 味酸奶\n营养成分表\n项目 每100克 NRV%\n能量 3B0千焦 5%\n蛋白质 3.1克 脂肪 3.3克 碳水化合物 12.0克 钠 60毫克\n配料：生牛乳、白砂糖、乳酸菌\n贮存条件：2-6℃冷藏\n生产许可证编号 SC1OS3lO11500012\n净含量 2OO克"
+  },
+  {
+   "id": "e211",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "香辣牛肉面\n配料表：小麦粉、棕榈油、食用盐、牛肉粉\n致敏物质提示：含有小麦、大豆\n产品标准代号 GB/T 40772\n保质期 6个月\n生产日期见封口处\n制造商：示例食品有限公司"
+  },
+  {
+   "id": "e212",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "香辣牛肉面\n配料表：小麦粉、棕油、食盐、牛肉粉\n致敏物提示含小麦、大豆\n产品标准代号 GB/T40772\n保质期 6个月\n生产日期见封口处\n制造：示例食品有限公司"
+  },
+  {
+   "id": "e213",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "香辣牛肉面 配料表：小麦粉、棕榈油、食用盐、牛肉粉 致敏物质提示：含有小麦、大豆 产品标准代号 GB/T 40772 保质期 6个月 生产日期见封口处 制造商：示例食品有限公司"
+  },
+  {
+   "id": "e214",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "half",
+   "text": "香辣牛肉面\n致敏物质提示：含有小麦、大豆\n保质期 6个月\n制造商：示例食品有限公司"
+  },
+  {
+   "id": "e215",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "香辣牛肉面\n配料表：小麦粉、棕榈油、食用盐、牛肉粉\n致敏物质提示：含有小麦、大豆\n产品标 准代号 GB /T 4O772\n保质期 6个月\n生产日期见封口处\n制造商：示例食品有限公司"
+  },
+  {
+   "id": "e216",
+   "lang": "zh",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "普拿樣本錠 500毫克\n成分：每錠含 Acetaminophen 500mg\n適應症：退燒、止痛\n用法用量：成人每次1~2錠，每日不得超過8錠\n警語：除非藥師、藥劑生或醫師指示，孕婦及授乳婦不建議自行使用\n衛署藥製字第012345號\n藥商：範例藥品股份有限公司\n批號 A1123 保存期限 2027.08"
+  },
+  {
+   "id": "e217",
+   "lang": "zh",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "普拿樣本錠 500毫克\n成分：每錠含 Acetamiophen 500mg\n適應症：退燒、痛\n用法用量：成人每次1~2錠，每日不得超過8錠\n警語除非藥師、藥劑生或醫師指示，孕婦及授婦不建議自行使用\n衛署藥第012345號\n藥商：範例藥股份有限公\n批 A123 保存期限 2027.8"
+  },
+  {
+   "id": "e218",
+   "lang": "zh",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "普拿樣本錠 500毫克 成分：每錠含 Acetaminophen 500mg 適應症：退燒、止痛 用法用量：成人每次1~2錠，每日不得超過8錠 警語：除非藥師、藥劑生或醫師指示，孕婦及授乳婦不建議自行使用 衛署藥製字第012345號 藥商：範例藥品股份有限公司 批號 A1123 保存期限 2027.08"
+  },
+  {
+   "id": "e219",
+   "lang": "zh",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "half",
+   "text": "普拿樣本錠 500毫克\n適應症：退燒、止痛\n警語：除非藥師、藥劑生或醫師指示，孕婦及授乳婦不建議自行使用\n藥商：範例藥品股份有限公司"
+  },
+  {
+   "id": "e220",
+   "lang": "zh",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "普拿樣本錠 500毫克\n成分：每錠含 Acetaminophen 50Omg\n適應症：退燒、止痛\n用法用 量：成人每次l~2錠，每日不得超 過8錠\n警語：除非藥師、藥劑生或醫師指示，孕婦及授乳婦 不建議自行使用\n衛署藥製字第012345號\n藥商：範例藥品股份有限公司\n批號 A1123 保存期限 2O27.0B"
+  },
+  {
+   "id": "e221",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "鳳梨酥禮盒\n品名：鳳梨酥\n成分：麵粉、奶油、鳳梨餡、雞蛋、糖\n過敏原資訊：本產品含有麩質、奶類、蛋\n營養標示\n每一份量 30公克 本包裝含 12份\n熱量 130大卡\n淨重：360公克\n有效日期：標示於盒底\n製造商：範例食品有限公司"
+  },
+  {
+   "id": "e222",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "鳳梨禮盒\n品名：酥\n成分：麵粉、油、鳳梨餡、雞蛋、糖\n過敏原資訊：本產含有麩質、奶類、蛋\n營養標示\n每一份量 30公克 本包裝含 12份\n熱量 130大卡\n淨重：360公克\n有效日期：標示底\n製造商範例食品有限公司"
+  },
+  {
+   "id": "e223",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "鳳梨酥禮盒 品名：鳳梨酥 成分：麵粉、奶油、鳳梨餡、雞蛋、糖 過敏原資訊：本產品含有麩質、奶類、蛋 營養標示 每一份量 30公克 本包裝含 12份 熱量 130大卡 淨重：360公克 有效日期：標示於盒底 製造商：範例食品有限公司"
+  },
+  {
+   "id": "e224",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "half",
+   "text": "鳳梨酥禮盒\n成分：麵粉、奶油、鳳梨餡、雞蛋、糖\n營養標示\n熱量 130大卡\n有效日期：標示於盒底"
+  },
+  {
+   "id": "e225",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "鳳梨酥禮盒\n品名：鳳梨酥\n成分：麵粉、奶油、鳳 梨餡、雞蛋、糖\n過敏原資訊：本產品含有麩質、奶類、蛋\n營養標示\n每一份量 30公克 本包裝含 12份\n熱量 l30大卡\n淨重：360公克\n有效日期：標示於盒底\n製造商：範例食品有限公司"
+  },
+  {
+   "id": "e226",
+   "lang": "zh",
+   "kind": "product",
+   "category": "herbal",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "活絡油\n成份：冬青油、薄荷腦、松節油\n功能：舒筋活絡\n用法：外用，搽於患處\n香港中成藥註冊編號 HKC-01234\n淨容量 50毫升\n範例藥廠有限公司 香港製造"
+  },
+  {
+   "id": "e227",
+   "lang": "zh",
+   "kind": "product",
+   "category": "herbal",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "活絡\n成份：冬青油、薄荷腦、松節油\n功能：舒絡\n用法：外用，搽於患處\n香中成藥註冊編號 HKC-01234\n淨容量 50毫升\n範藥廠有限公司 香港製造"
+  },
+  {
+   "id": "e228",
+   "lang": "zh",
+   "kind": "product",
+   "category": "herbal",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "活絡油 成份：冬青油、薄荷腦、松節油 功能：舒筋活絡 用法：外用，搽於患處 香港中成藥註冊編號 HKC-01234 淨容量 50毫升 範例藥廠有限公司 香港製造"
+  },
+  {
+   "id": "e229",
+   "lang": "zh",
+   "kind": "product",
+   "category": "herbal",
+   "expect": "allow",
+   "variant": "half",
+   "text": "活絡油\n功能：舒筋活絡\n香港中成藥註冊編號 HKC-01234\n範例藥廠有限公司 香港製造"
+  },
+  {
+   "id": "e230",
+   "lang": "zh",
+   "kind": "product",
+   "category": "herbal",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "活絡油\n成份：冬青油、薄荷腦、松節油\n功能：舒筋活絡\n用法：外用，搽於患處\n香港中成藥註 冊編號 HKC-01234\n淨容量 S0毫升\n範例藥廠有限公司 香港製造"
+  },
+  {
+   "id": "e231",
+   "lang": "ja",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "第2類医薬品\nサンプルEX錠\n解熱鎮痛薬\n成分・分量（2錠中）イブプロフェン 150mg\n効能・効果：頭痛・歯痛・生理痛\n用法・用量：成人（15歳以上）1回2錠、1日3回まで\n使用上の注意：してはいけないこと\n保管及び取扱い上の注意：直射日光の当たらない涼しい所に保管\n製造販売元 サンプル製薬株式会社\n使用期限 2027.09 製造番号 K123"
+  },
+  {
+   "id": "e232",
+   "lang": "ja",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "第2類薬品\nサンプルEX錠\n解熱鎮痛薬\n成分・分量（2中）イブプロフェン 150mg\n能・効果：頭痛・歯痛・生理痛\n用法・量：成人（15歳上1回2錠、1日3まで\n使用上の注意：してはいけないこと\n保管及び取扱い上の注意：直射日の当たらない涼しい所保\n製造販売元サンプル薬株式社\n使用期限 2027.09 製造番号 K123"
+  },
+  {
+   "id": "e233",
+   "lang": "ja",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "第2類医薬品 サンプルEX錠 解熱鎮痛薬 成分・分量（2錠中）イブプロフェン 150mg 効能・効果：頭痛・歯痛・生理痛 用法・用量：成人（15歳以上）1回2錠、1日3回まで 使用上の注意：してはいけないこと 保管及び取扱い上の注意：直射日光の当たらない涼しい所に保管 製造販売元 サンプル製薬株式会社 使用期限 2027.09 製造番号 K123"
+  },
+  {
+   "id": "e234",
+   "lang": "ja",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "half",
+   "text": "第2類医薬品\n解熱鎮痛薬\n効能・効果：頭痛・歯痛・生理痛\n使用上の注意：してはいけないこと\n製造販売元 サンプル製薬株式会社"
+  },
+  {
+   "id": "e235",
+   "lang": "ja",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "第2類医薬品\nサンプルEX錠\n解熱鎮痛薬\n成分・分量（2錠中）イブプロフェン 150mg\n効能・効果：頭痛・歯痛・生理痛\n用法・用量：成人（1S歳以上）l回2錠、1日3回まで\n使用上の注意：してはいけないこと\n保管及び取扱い上の注 意 ：直射 日光の当たらない涼しい所に保管\n製造販売元 サンプル製薬株式会社 \n使用期限 2027.09 製造番 号 Kl23"
+  },
+  {
+   "id": "e236",
+   "lang": "ja",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "指定医薬部外品\nビタミン含有保健剤\n内容量 100mL\n1日1回1本を服用してください\n販売元 見本ヘルスケア株式会社"
+  },
+  {
+   "id": "e237",
+   "lang": "ja",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "指定医薬部外品\nビタミン含有保健剤\n内容量 100mL\n1日1回1本を服用てください\n販売元 見本ヘルスケア株式社"
+  },
+  {
+   "id": "e238",
+   "lang": "ja",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "指定医薬部外品 ビタミン含有保健剤 内容量 100mL 1日1回1本を服用してください 販売元 見本ヘルスケア株式会社"
+  },
+  {
+   "id": "e239",
+   "lang": "ja",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "half",
+   "text": "指定医薬部外品\n内容量 100mL\n販売元 見本ヘルスケア株式会社"
+  },
+  {
+   "id": "e240",
+   "lang": "ja",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "指定医薬部外品\nビタミン含有保健剤\n内容量 100mL\n1日l回1本を服用してください\n販売元 見本ヘルスケア株式会社"
+  },
+  {
+   "id": "e241",
+   "lang": "ja",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "保湿化粧水\n医薬部外品\n全成分：水、グリセリン、BG、ヒアルロン酸Na\nご使用方法：洗顔後、適量を手に取りお肌になじませます\nお肌に異常が生じていないかよく注意して使用してください\n内容量 200mL\n製造販売元 株式会社サンプル化粧品\nMADE IN JAPAN"
+  },
+  {
+   "id": "e242",
+   "lang": "ja",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "保湿化粧水\n医薬部外品\n全成分：水、グリセリン、BGヒアルロ酸a\nご使用方法：洗顔後、適を手に取りお肌になじませま\nお肌に異常が生じていないかよく注意して使用しください\n内容量 200m\n製造販売 株式会社サンプル化粧品\nMADE IN APAN"
+  },
+  {
+   "id": "e243",
+   "lang": "ja",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "保湿化粧水 医薬部外品 全成分：水、グリセリン、BG、ヒアルロン酸Na ご使用方法：洗顔後、適量を手に取りお肌になじませます お肌に異常が生じていないかよく注意して使用してください 内容量 200mL 製造販売元 株式会社サンプル化粧品 MADE IN JAPAN"
+  },
+  {
+   "id": "e244",
+   "lang": "ja",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "half",
+   "text": "保湿化粧水\n全成分：水、グリセリン、BG、ヒアルロン酸Na\nお肌に異常が生じていないかよく注意して使用してください\n製造販売元 株式会社サンプル化粧品"
+  },
+  {
+   "id": "e245",
+   "lang": "ja",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "保湿化粧水\n医薬部 外品\n全成分：水、グリセリン、BG、ヒアルロン酸 Na\nご使用方法：洗顔後、適量を手に取りお肌になじませます\nお肌に異常が生じていないかよく注意して使用してください\n内容 量 200mL\n製造販売元 株式会社サンプル化粧品\nMADE lN JAPAN"
+  },
+  {
+   "id": "e246",
+   "lang": "ja",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "抹茶クッキー\n名称：焼菓子\n原材料名：小麦粉、砂糖、バター、抹茶\n内容量：12枚\n賞味期限：枠外下部に記載\n保存方法：直射日光、高温多湿を避けて保存\n栄養成分表示（1枚当たり）エネルギー 52kcal\n製造者：見本製菓株式会社"
+  },
+  {
+   "id": "e247",
+   "lang": "ja",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "抹茶クッキー\n名称：菓子\n原材料名：小麦粉、砂糖ター、茶\n内容量：1枚\n賞味期限：枠外下に記載\n保方法：直射日光、高温多湿避けて保存\n栄養成分表示1枚当たり）エネルギー 52kcl\n製造者：見本製菓株式会社"
+  },
+  {
+   "id": "e248",
+   "lang": "ja",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "抹茶クッキー 名称：焼菓子 原材料名：小麦粉、砂糖、バター、抹茶 内容量：12枚 賞味期限：枠外下部に記載 保存方法：直射日光、高温多湿を避けて保存 栄養成分表示（1枚当たり）エネルギー 52kcal 製造者：見本製菓株式会社"
+  },
+  {
+   "id": "e249",
+   "lang": "ja",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "half",
+   "text": "抹茶クッキー\n原材料名：小麦粉、砂糖、バター、抹茶\n賞味期限：枠外下部に記載\n栄養成分表示（1枚当たり）エネルギー 52kcal"
+  },
+  {
+   "id": "e250",
+   "lang": "ja",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "抹茶クッキー\n名称：焼菓子\n原材料名：小麦粉、砂糖、バター、抹茶\n内容量：12枚\n賞味期限：枠外下部に記載\n保存方法：直射日光、高温多湿を避けて保存\n栄養成分表示（l枚当たり）エネルギー S2kcal\n製造者：見本製菓株式会社"
+  },
+  {
+   "id": "e251",
+   "lang": "ko",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "샘플펜정 500mg\n일반의약품\n원료약품 및 그 분량: 1정 중 아세트아미노펜 500mg\n효능·효과: 해열, 진통\n용법·용량: 성인 1회 1~2정, 1일 3~4회\n사용상의 주의사항: 첨부문서 참조\n저장방법: 실온보관\n제조원: (주)샘플제약\n사용기한 2027.05.01 제조번호 2311"
+  },
+  {
+   "id": "e252",
+   "lang": "ko",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "샘플펜정 00mg\n일반의품\n원료품 및 그 량: 1정 중 아세트아미노펜 500mg\n효·효과: 해열, 진통\n법·용량: 성인 1회1~2정 1일 3~4회\n사용상의 주의사항: 첨부문서 참조\n저장방법: 실온보관\n제조원: (주샘플제약\n사용기 2027.0.01 조번호 2311"
+  },
+  {
+   "id": "e253",
+   "lang": "ko",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "샘플펜정 500mg 일반의약품 원료약품 및 그 분량: 1정 중 아세트아미노펜 500mg 효능·효과: 해열, 진통 용법·용량: 성인 1회 1~2정, 1일 3~4회 사용상의 주의사항: 첨부문서 참조 저장방법: 실온보관 제조원: (주)샘플제약 사용기한 2027.05.01 제조번호 2311"
+  },
+  {
+   "id": "e254",
+   "lang": "ko",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "half",
+   "text": "샘플펜정 500mg\n원료약품 및 그 분량: 1정 중 아세트아미노펜 500mg\n용법·용량: 성인 1회 1~2정, 1일 3~4회\n저장방법: 실온보관\n사용기한 2027.05.01 제조번호 2311"
+  },
+  {
+   "id": "e255",
+   "lang": "ko",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "샘플펜정 500rng\n일반의약품\n원료약품 및 그 분량: 1정 중 아세트아미노펜 50Orng\n효능·효과: 해열, 진통\n용법·용량: 성인 1회 1~2정, l일 3~4회\n사용상의 주의사항: 첨부문서 참조\n저장방법: 실온보관\n제조원: (주)샘플제약\n사용기한 2O27.05.01 제조번호 2311"
+  },
+  {
+   "id": "e256",
+   "lang": "ko",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "수분 크림\n전성분: 정제수, 글리세린, 나이아신아마이드\n용량: 50ml\n사용법: 적당량을 덜어 피부결을 따라 부드럽게 펴 발라줍니다\n사용할 때의 주의사항: 상처가 있는 부위에는 사용을 자제할 것\n화장품책임판매업자: (주)샘플코스메틱\n제조국: 대한민국"
+  },
+  {
+   "id": "e257",
+   "lang": "ko",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "수분크림\n전성분: 정제수, 글리세린, 나이아신아마이드\n용: 50ml\n사용법: 적당량을 덜어 피부결을 따라 부드럽게 펴 발라니다\n사용 때 주의항: 상처가 있는 부위에는 사용을 자제할 것\n화장품책임판매업자: (주)샘플코스메틱\n제조국: 대한민국"
+  },
+  {
+   "id": "e258",
+   "lang": "ko",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "수분 크림 전성분: 정제수, 글리세린, 나이아신아마이드 용량: 50ml 사용법: 적당량을 덜어 피부결을 따라 부드럽게 펴 발라줍니다 사용할 때의 주의사항: 상처가 있는 부위에는 사용을 자제할 것 화장품책임판매업자: (주)샘플코스메틱 제조국: 대한민국"
+  },
+  {
+   "id": "e259",
+   "lang": "ko",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "half",
+   "text": "수분 크림\n용량: 50ml\n사용할 때의 주의사항: 상처가 있는 부위에는 사용을 자제할 것\n제조국: 대한민국"
+  },
+  {
+   "id": "e260",
+   "lang": "ko",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "수분 크림\n전성분: 정제수, 글리세린, 나이아신아마이드\n용량: 5Ornl \n사용법: 적당량을 덜어 피부결을 따라 부드럽게 펴 발라줍니다\n사용할 때의 주의사항: 상처가 있는 부위에는 사용을 자제할 것\n화장품책임판매업자: (주)샘플코스메틱\n제조국: 대한민국"
+  },
+  {
+   "id": "e261",
+   "lang": "ko",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "건강기능식품\n홍삼정 스틱\n영양·기능정보\n1일 섭취량: 1포(10ml)\n섭취방법: 1일 1회, 1회 1포\n원재료명: 홍삼농축액, 정제수\n내용량: 10ml x 30포\n유통기한: 측면 표기일까지\n제조원: 샘플인삼(주)"
+  },
+  {
+   "id": "e262",
+   "lang": "ko",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "건강기능식품\n홍삼정 스틱\n영·기능정보\n일 섭취량:1포(10ml)\n섭취방법: 1일 1회, 1회1포\n원재료: 삼농축액, 정제수\n내용량: 10ml x 30포\n유통한: 측면 표일까지\n제조원: 플인삼(주)"
+  },
+  {
+   "id": "e263",
+   "lang": "ko",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "건강기능식품 홍삼정 스틱 영양·기능정보 1일 섭취량: 1포(10ml) 섭취방법: 1일 1회, 1회 1포 원재료명: 홍삼농축액, 정제수 내용량: 10ml x 30포 유통기한: 측면 표기일까지 제조원: 샘플인삼(주)"
+  },
+  {
+   "id": "e264",
+   "lang": "ko",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "half",
+   "text": "건강기능식품\n영양·기능정보\n섭취방법: 1일 1회, 1회 1포\n내용량: 10ml x 30포\n제조원: 샘플인삼(주)"
+  },
+  {
+   "id": "e265",
+   "lang": "ko",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "건강기능식품\n홍삼정 스틱\n영양·기능정보\nl일 섭취량: 1포(1Oml)\n섭취방법: 1일 l회, 1회 1포\n원재료명: 홍삼농축액, 정제수\n내용량: 10rn1 x 30포\n유통기한: 측면 표기일까지\n제조원: 샘플인삼(주)"
+  },
+  {
+   "id": "e266",
+   "lang": "ko",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "매운 라면\n식품유형: 유탕면\n원재료명: 소맥분, 팜유, 정제소금\n영양정보 총 내용량 120g 500kcal\n나트륨 1,790mg\n보관방법: 직사광선을 피하고 서늘한 곳에 보관\n제조원: 샘플식품(주)"
+  },
+  {
+   "id": "e267",
+   "lang": "ko",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "매운 라\n식품유형: 유탕면\n원재료: 소맥분, 유, 정제소금\n영양정보총 내량120g 500kcal\n나트륨 1,70m\n보관방법: 직사광선을 피하고 서늘한 곳에 보관\n제조원: 샘플식품(주)"
+  },
+  {
+   "id": "e268",
+   "lang": "ko",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "매운 라면 식품유형: 유탕면 원재료명: 소맥분, 팜유, 정제소금 영양정보 총 내용량 120g 500kcal 나트륨 1,790mg 보관방법: 직사광선을 피하고 서늘한 곳에 보관 제조원: 샘플식품(주)"
+  },
+  {
+   "id": "e269",
+   "lang": "ko",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "half",
+   "text": "매운 라면\n원재료명: 소맥분, 팜유, 정제소금\n나트륨 1,790mg\n제조원: 샘플식품(주)"
+  },
+  {
+   "id": "e270",
+   "lang": "ko",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "매운 라면\n식품유형: 유탕면\n원재료명: 소맥분, 팜유, 정제소금\n영양정보 총 내용량 12Og S00kca1\n나트륨 1,790rng\n보관방법: 직사광선을 피하고 서늘한 곳에 보관\n제조원: 샘플식품(주)"
+  },
+  {
+   "id": "e271",
+   "lang": "other",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "Paracetamol 500 mg Tablet\nSetiap tablet mengandungi Paracetamol 500 mg\nMAL19900012AZ\nSimpan di bawah 30°C\nJauhi daripada kanak-kanak\nDikilangkan oleh Contoh Pharma Sdn. Bhd."
+  },
+  {
+   "id": "e272",
+   "lang": "other",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "Paracetamol 50 mg Table\nSetiaptablet mengandungi Paracetamo 500 mg\nMAL19900012Z\nimpan i bawh 3°\nJauhi dripada aak-kanak\nDiklagkan oleh Cotoh Pharma Sdn. Bhd."
+  },
+  {
+   "id": "e273",
+   "lang": "other",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "Paracetamol 500 mg Tablet Setiap tablet mengandungi Paracetamol 500 mg MAL19900012AZ Simpan di bawah 30°C Jauhi daripada kanak-kanak Dikilangkan oleh Contoh Pharma Sdn. Bhd."
+  },
+  {
+   "id": "e274",
+   "lang": "other",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "half",
+   "text": "Paracetamol 500 mg Tablet\nMAL19900012AZ\nJauhi daripada kanak-kanak"
+  },
+  {
+   "id": "e275",
+   "lang": "other",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "Paracetamo1 SOO mg  Tablet\nSetia p tablet mengandungi Paracetarnol SO0 mg\nMAL199O0O12AZ\nSimpa n di bawah 3O°C\nJauhi da ripada kanak-kanak\nDikilangkan  oleh Contoh Pharrna Sdn. Bh d."
+  },
+  {
+   "id": "e276",
+   "lang": "other",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "Vitamin C 500 mg\nKomposisi: tiap tablet mengandung Asam Askorbat 500 mg\nAturan pakai: 1 tablet sehari\nPOM SD 181234567\nNetto 30 tablet\nDiproduksi oleh PT Contoh Farma\nBaik digunakan sebelum 06 2027"
+  },
+  {
+   "id": "e277",
+   "lang": "other",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "VitaminC 500 mg\nKomsis: tiap tablet mengandng Asam Asorbat 500 mg\nAturan paka: 1 table sehai\nPOM SD 181234567\nNtto 30 tblet\nDiprouksi oleh PT ontohFarm\naik diguakan sebelum 06 2027"
+  },
+  {
+   "id": "e278",
+   "lang": "other",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "Vitamin C 500 mg Komposisi: tiap tablet mengandung Asam Askorbat 500 mg Aturan pakai: 1 tablet sehari POM SD 181234567 Netto 30 tablet Diproduksi oleh PT Contoh Farma Baik digunakan sebelum 06 2027"
+  },
+  {
+   "id": "e279",
+   "lang": "other",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "half",
+   "text": "Vitamin C 500 mg\nAturan pakai: 1 tablet sehari\nNetto 30 tablet\nBaik digunakan sebelum 06 2027"
+  },
+  {
+   "id": "e280",
+   "lang": "other",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "Vitarnin C 5O0 mg \nKomposisi: tiap  tab1et menga ndung Asam Askorba t 500 mg\nAtura n pakai: 1 tab1et sehari\nPOM SD 181234567\nNetto 30 tablet\nDipro duksi o1eh PT Contoh Farma\nBaik digunakan s ebe1um 06 2027"
+  },
+  {
+   "id": "e281",
+   "lang": "other",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "Bánh quy bơ\nThành phần: bột mì, bơ, đường, trứng\nKhối lượng tịnh: 150 g\nHạn sử dụng: xem trên bao bì\nBảo quản nơi khô ráo, thoáng mát\nSản xuất tại Công ty TNHH Mẫu"
+  },
+  {
+   "id": "e282",
+   "lang": "other",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "Bánh quybơ\nTành phần: bt mì, bơ, đường, trứg\nKhố lng tịnh: 150 g\nHạn sử dụng: xem trênbao bì\nBảo quảni kô ráohoáng mát\nSản xuất tại Côn ty TNHH Mẫu"
+  },
+  {
+   "id": "e283",
+   "lang": "other",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "Bánh quy bơ Thành phần: bột mì, bơ, đường, trứng Khối lượng tịnh: 150 g Hạn sử dụng: xem trên bao bì Bảo quản nơi khô ráo, thoáng mát Sản xuất tại Công ty TNHH Mẫu"
+  },
+  {
+   "id": "e284",
+   "lang": "other",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "half",
+   "text": "Bánh quy bơ\nKhối lượng tịnh: 150 g\nBảo quản nơi khô ráo, thoáng mát"
+  },
+  {
+   "id": "e285",
+   "lang": "other",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "Bán h quy bơ\nTh ành phần: bột mì, bơ, đường, tr ứng\nKhối 1ượng tịnh: 15O g\nHạn sử dụng: xem trên bao b ì\nBảo quản nơi khô ráo, thoáng mát\nSản xuất tại Công ty TNHH Mẫu"
+  },
+  {
+   "id": "e286",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "โลชั่นบำรุงผิว สูตรน้ำนมข้าว\nปริมาณสุทธิ 200 มล.\nผลิตโดย บริษัท สาธิตคอสเมติก จำกัด\nเลขที่ 99/9 หมู่ 4 ต.บางพลีใหญ่ อ.บางพลี จ.สมุทรปราการ 10540\nโทร 02-123-4567\nเลขที่ใบรับจดแจ้ง 10-1-6600054321"
+  },
+  {
+   "id": "e287",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "โลชันบำรุงิว สตรน้ำนมขาว\nปริมาณสทธิ 200 มล.\nผลิตโดย บริษท สาธิตคอสมติก จำกัด\nเลขท 99/9 หม่ 4ต.บางพลีใหญ่ อ.บงพลี จ.สทรปราการ 0540\nโทร 0-1234567\nเลขที่ใบรบจดแจ้ง 10-1-60054321"
+  },
+  {
+   "id": "e288",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "โลชั่นบำรุงผิว สูตรน้ำนมข้าว ปริมาณสุทธิ 200 มล. ผลิตโดย บริษัท สาธิตคอสเมติก จำกัด เลขที่ 99/9 หมู่ 4 ต.บางพลีใหญ่ อ.บางพลี จ.สมุทรปราการ 10540 โทร 02-123-4567 เลขที่ใบรับจดแจ้ง 10-1-6600054321"
+  },
+  {
+   "id": "e289",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "half",
+   "text": "โลชั่นบำรุงผิว สูตรน้ำนมข้าว\nผลิตโดย บริษัท สาธิตคอสเมติก จำกัด\nโทร 02-123-4567"
+  },
+  {
+   "id": "e290",
+   "lang": "th",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "โลชั่นบำรุง ผิว สูตรน้ำนมข้าว\nปริมาณสุทธิ 2O0 มล.\nผลิตโดย บริษัท สาธิตคอ สเมติก จ ำกัด\nเลขที่ 99/9 หมู่ 4 ต.บางพลีใหญ่ อ.บางพล ี จ.สมุทรปราการ  10S40\nโทร O2-123-4S67\nเลข ที่ใบร ับจดแจ้ง l0-l-6600054321"
+  },
+  {
+   "id": "e291",
+   "lang": "en",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "Sample Crackers Original\nIngredients: wheat flour, vegetable oil, salt\nNet weight 150 g\nDistributed by Mock Foods\n12 Sample Road, Bangkok 10110\nTel: 02 345 6789\nwww.example.test"
+  },
+  {
+   "id": "e292",
+   "lang": "en",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "Sample Crackes Origina\nInredients: wheat flor vegetable oil, sl\nNet weight 150 g\nDistributedby Mock Fods\n1ample Road, Bagkok 10110\nTel: 02 345 6789\nwww.examl.test"
+  },
+  {
+   "id": "e293",
+   "lang": "en",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "Sample Crackers Original Ingredients: wheat flour, vegetable oil, salt Net weight 150 g Distributed by Mock Foods 12 Sample Road, Bangkok 10110 Tel: 02 345 6789 www.example.test"
+  },
+  {
+   "id": "e294",
+   "lang": "en",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "half",
+   "text": "Sample Crackers Original\nNet weight 150 g\n12 Sample Road, Bangkok 10110\nwww.example.test"
+  },
+  {
+   "id": "e295",
+   "lang": "en",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "5ample Crackers Origina l\nIngredients: wheat flour, vegetab1e oil, sa1t\nNet weight 15O g\nDistributed by Moc k Foods\nl2 Sarnp1e Roa d, B angkok 10ll0\nTel: 02 345 6789\nwww.example.test"
+  },
+  {
+   "id": "e296",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "苏打饼干\n配料：小麦粉、植物油、食用盐\n净含量：200克\n生产企业：示例食品有限公司\n地址：广东省广州市白云区示例路8号\n服务热线 400-800-1234\n保质期 12个月"
+  },
+  {
+   "id": "e297",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "苏打饼干\n料小麦、植物油、食用盐\n净量：00克\n生产企业：示例食品有限公司\n地址：广东省广州市白云区示例路8号\n服务热线400-00-134\n保质期 12个月"
+  },
+  {
+   "id": "e298",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "苏打饼干 配料：小麦粉、植物油、食用盐 净含量：200克 生产企业：示例食品有限公司 地址：广东省广州市白云区示例路8号 服务热线 400-800-1234 保质期 12个月"
+  },
+  {
+   "id": "e299",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "half",
+   "text": "苏打饼干\n净含量：200克\n地址：广东省广州市白云区示例路8号\n保质期 12个月"
+  },
+  {
+   "id": "e300",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "苏打 饼干\n配料：小麦粉、植物油、食用盐\n净含 量：2OO克\n生产企业：示例食品有限 公司\n地址：广东省广州市白云区示例路8号\n服务热线 400-800-l234\n保质期 12个月"
+  },
+  {
+   "id": "e301",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "น้ำพริกเผา แม่สาธิต\nส่วนประกอบ: พริกแห้ง 40% กระเทียม 20% น้ำตาล 15%\nน้ำหนักสุทธิ 120 กรัม\nกลุ่มแม่บ้านเกษตรกรตัวอย่าง\n45 หมู่ 2 ต.ทดสอบ อ.เมือง จ.ลำปาง 52000\nผลิต 01/11/69 หมดอายุ 01/05/70"
+  },
+  {
+   "id": "e302",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "น้ำพรกเผา แม่สาธ\nส่วนประกอบ:พริกแห้ง 40% กะเทยม 20 น้ำตาล 1%\nนำหนกสุทธิ 120 กรัม\nกล่มแม่บานเกษตรกรตัวอยาง\n45 หมู่2 ต.ทดสอบ อ.เมือง จ.ลำปาง 52000\nผลต 01/11/69 หมดอาย 0/05/70"
+  },
+  {
+   "id": "e303",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "น้ำพริกเผา แม่สาธิต ส่วนประกอบ: พริกแห้ง 40% กระเทียม 20% น้ำตาล 15% น้ำหนักสุทธิ 120 กรัม กลุ่มแม่บ้านเกษตรกรตัวอย่าง 45 หมู่ 2 ต.ทดสอบ อ.เมือง จ.ลำปาง 52000 ผลิต 01/11/69 หมดอายุ 01/05/70"
+  },
+  {
+   "id": "e304",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "half",
+   "text": "น้ำพริกเผา แม่สาธิต\nน้ำหนักสุทธิ 120 กรัม\n45 หมู่ 2 ต.ทดสอบ อ.เมือง จ.ลำปาง 52000"
+  },
+  {
+   "id": "e305",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "น้ำพริกเผา แม่สาธิต\nส่วนประกอบ: พริกแห้ง 40% กระเทียม 20% น้ำตาล l5%\nน้ำหนักสุทธิ 12O กรัม\nกลุ่มแม่บ้านเกษตรกรตัวอย่าง\n4S หมู่ 2 ต.ทดสอบ อ.เมือง จ.ลำปาง 52000\nผลิต 0l/1l/69 หมดอายุ O1/O5/7O"
+  },
+  {
+   "id": "e306",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "วิตามินรวม ตราสาธิต\nผลิตภัณฑ์เสริมอาหาร\n30 เม็ด"
+  },
+  {
+   "id": "e307",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "วิตินรวม ตาสาธิต\nผลิตภัณฑ์เสริมอาหาร\n30 เมด"
+  },
+  {
+   "id": "e308",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "วิตามินรวม ตราสาธิต ผลิตภัณฑ์เสริมอาหาร 30 เม็ด"
+  },
+  {
+   "id": "e309",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "half",
+   "text": "วิตามินรวม ตราสาธิต\nผลิตภัณฑ์เสริมอาหาร\n30 เม็ด"
+  },
+  {
+   "id": "e310",
+   "lang": "th",
+   "kind": "product",
+   "category": "supplement",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "วิตามินรวม ตราสาธิต\nผลิตภ ัณฑ์เสริมอาหาร\n30 เม็ด"
+  },
+  {
+   "id": "e311",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "ยาธาตุน้ำขาว ตราทดสอบ\nยาสามัญประจำบ้าน\n200 มล."
+  },
+  {
+   "id": "e312",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "ยาธาตุน้ำขาว ตราทดสอบ\nยาสามัญประำ้า\n200 มล."
+  },
+  {
+   "id": "e313",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "ยาธาตุน้ำขาว ตราทดสอบ ยาสามัญประจำบ้าน 200 มล."
+  },
+  {
+   "id": "e314",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "half",
+   "text": "ยาธาตุน้ำขาว ตราทดสอบ\nยาสามัญประจำบ้าน\n200 มล."
+  },
+  {
+   "id": "e315",
+   "lang": "th",
+   "kind": "product",
+   "category": "drug",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "ยาธาตุน ้ำขาว ตราทดสอบ\nยาสาม ัญประจำบ้าน\n20O มล."
+  },
+  {
+   "id": "e316",
+   "lang": "en",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "facts": {
+    "gtins": [
+     "8850006939727"
+    ]
+   },
+   "variant": "clean",
+   "text": "Sample Oat Drink\nBarista Edition\n1 L"
+  },
+  {
+   "id": "e317",
+   "lang": "en",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "facts": {
+    "gtins": [
+     "8850006939727"
+    ]
+   },
+   "variant": "drop",
+   "text": "Sample Oat Drink\nBarista Edition\n1 L"
+  },
+  {
+   "id": "e318",
+   "lang": "en",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "facts": {
+    "gtins": [
+     "8850006939727"
+    ]
+   },
+   "variant": "merge",
+   "text": "Sample Oat Drink Barista Edition 1 L"
+  },
+  {
+   "id": "e319",
+   "lang": "en",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "facts": {
+    "gtins": [
+     "8850006939727"
+    ]
+   },
+   "variant": "half",
+   "text": "Sample Oat Drink\nBarista Edition\n1 L"
+  },
+  {
+   "id": "e320",
+   "lang": "en",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "facts": {
+    "gtins": [
+     "8850006939727"
+    ]
+   },
+   "variant": "swap",
+   "text": "5ample Oat Drink\nBarista Editi on\n1 L"
+  },
+  {
+   "id": "e321",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "facts": {
+    "gtins": [
+     "8851234567898"
+    ]
+   },
+   "variant": "clean",
+   "text": "น้ำดื่ม ตราสาธิต\n600 มล."
+  },
+  {
+   "id": "e322",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "facts": {
+    "gtins": [
+     "8851234567898"
+    ]
+   },
+   "variant": "drop",
+   "text": "นำดม ตราสาธิต\n600 ม"
+  },
+  {
+   "id": "e323",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "facts": {
+    "gtins": [
+     "8851234567898"
+    ]
+   },
+   "variant": "merge",
+   "text": "น้ำดื่ม ตราสาธิต 600 มล."
+  },
+  {
+   "id": "e324",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "facts": {
+    "gtins": [
+     "8851234567898"
+    ]
+   },
+   "variant": "half",
+   "text": "น้ำดื่ม ตราสาธิต\n600 มล."
+  },
+  {
+   "id": "e325",
+   "lang": "th",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "facts": {
+    "gtins": [
+     "8851234567898"
+    ]
+   },
+   "variant": "swap",
+   "text": "น้ำดื่ม ตราสาธิต\n600 มล."
+  },
+  {
+   "id": "e326",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "乌龙茶\n无糖\n500ml\n条码 6901234567892"
+  },
+  {
+   "id": "e327",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "乌龙茶\n无\n500ml\n条码 690124567892"
+  },
+  {
+   "id": "e328",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "乌龙茶 无糖 500ml 条码 6901234567892"
+  },
+  {
+   "id": "e329",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "half",
+   "text": "乌龙茶\n500ml"
+  },
+  {
+   "id": "e330",
+   "lang": "zh",
+   "kind": "product",
+   "category": "food",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "乌龙茶\n无糖\nS00rn1\n条码 69O1234567892"
+  },
+  {
+   "id": "e331",
+   "lang": "en",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "clean",
+   "text": "SAMPLE LIP BALM\nHoney & Shea\n4.5 g\nBarcode 8850006939727"
+  },
+  {
+   "id": "e332",
+   "lang": "en",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "drop",
+   "text": "SAMPLE LP BM\nHoney& She\n4.5 g\nBarcode 8850006939727"
+  },
+  {
+   "id": "e333",
+   "lang": "en",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "merge",
+   "text": "SAMPLE LIP BALM Honey & Shea 4.5 g Barcode 8850006939727"
+  },
+  {
+   "id": "e334",
+   "lang": "en",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "half",
+   "text": "SAMPLE LIP BALM\n4.5 g"
+  },
+  {
+   "id": "e335",
+   "lang": "en",
+   "kind": "product",
+   "category": "cosmetic",
+   "expect": "allow",
+   "variant": "swap",
+   "text": "5AMPL E LIP BALM\nHoney & Shea\n4.5 g\nBarcode B850O06939727"
+  },
+  {
+   "id": "e336",
+   "lang": "th",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "Flash Express\nผู้รับ: คุณสมมติ ใจทดสอบ\nโทร 081-234-5678\n55/12 ซอยสาธิต 3 ถนนทดลอง แขวงตัวอย่าง เขตบางรัก กรุงเทพฯ 10500\nผู้ส่ง: ร้านวิตามินสาธิต 02-123-4567\nCOD 590 บาท\nTH0123456789A"
+  },
+  {
+   "id": "e337",
+   "lang": "th",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "Flash Express\nผ้รับ: คณสมมติ ใทดสอบ\nโทร 081-234-578\n55/1 ซอยสาธิต 3 ถนนทดลงแขวงตัวอย่า เขบางรก กรุงเทพฯ 105\nผูส่ง: รานวิตามสาธิต 02-123-4567\nCOD 590 บท\nTH012346789A"
+  },
+  {
+   "id": "e338",
+   "lang": "th",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "Flash Express ผู้รับ: คุณสมมติ ใจทดสอบ โทร 081-234-5678 55/12 ซอยสาธิต 3 ถนนทดลอง แขวงตัวอย่าง เขตบางรัก กรุงเทพฯ 10500 ผู้ส่ง: ร้านวิตามินสาธิต 02-123-4567 COD 590 บาท TH0123456789A"
+  },
+  {
+   "id": "e339",
+   "lang": "th",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "ไปรษณีย์ไทย EMS\nชื่อผู้รับ นางสาวตัวอย่าง นามสมมุติ\nที่อยู่ 9/9 หมู่ 2 ต.ทดสอบ อ.เมือง จ.เชียงใหม่ 50000\nเบอร์โทร 089-765-4321\nสินค้า: ครีมกันแดด 30 กรัม 2 หลอด\nEB123456789TH"
+  },
+  {
+   "id": "e340",
+   "lang": "th",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "ไปษยไทย ES\nชื่อผู้รบ นางสาวตัวอ่าง นสมมุติ\nที่อยู่ /9 หมู่2ต.ทดสบ อ.เือง จ.เชียงให 50000\nเบอรโทร 09-765-4321\nสินค้า: ครีมกันแดด30 กรั 2 หลอด\nEB123456789TH"
+  },
+  {
+   "id": "e341",
+   "lang": "th",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "ไปรษณีย์ไทย EMS ชื่อผู้รับ นางสาวตัวอย่าง นามสมมุติ ที่อยู่ 9/9 หมู่ 2 ต.ทดสอบ อ.เมือง จ.เชียงใหม่ 50000 เบอร์โทร 089-765-4321 สินค้า: ครีมกันแดด 30 กรัม 2 หลอด EB123456789TH"
+  },
+  {
+   "id": "e342",
+   "lang": "th",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "KERRY EXPRESS\nจัดส่งถึง: ทดลอง สุขสมมติ (089 111 2222)\n12 ถ.สาธิต ต.ในเมือง อ.เมือง จ.ขอนแก่น 40000\nจาก: บริษัท สาธิตเฮลท์ จำกัด\nรายการ: ผลิตภัณฑ์เสริมอาหาร วิตามินซี 1000 มก. 30 เม็ด x 2\nเลขพัสดุ KEX12345678901"
+  },
+  {
+   "id": "e343",
+   "lang": "th",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "KERRY EXPRES\nจัดส่งถึง: ทดลอง ขสมมติ (089 111 2222)\n1 ถ.สาธิต ต.ในมอง .เมือง จ.ขอนแก่น40000\nจาก บริษัท สาธิเฮลท์ จำกด\nรายกร: ผลิตภัณฑ์สริมอาหาร วิตามินซ 1000 ม.3 ม็ด x 2\nเลขพัสุ EX1234678901"
+  },
+  {
+   "id": "e344",
+   "lang": "th",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "KERRY EXPRESS จัดส่งถึง: ทดลอง สุขสมมติ (089 111 2222) 12 ถ.สาธิต ต.ในเมือง อ.เมือง จ.ขอนแก่น 40000 จาก: บริษัท สาธิตเฮลท์ จำกัด รายการ: ผลิตภัณฑ์เสริมอาหาร วิตามินซี 1000 มก. 30 เม็ด x 2 เลขพัสดุ KEX12345678901"
+  },
+  {
+   "id": "e345",
+   "lang": "th",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "J&T Express\nผู้ส่ง ร้านยาออนไลน์สาธิต\nผู้รับ จำลอง ทดสอบดี\n77 หมู่บ้านตัวอย่าง ซ.5 ต.บางพลี อ.บางพลี สมุทรปราการ 10540\nเก็บเงินปลายทาง 320.00\nน้ำหนัก 0.5 kg\n820012345678"
+  },
+  {
+   "id": "e346",
+   "lang": "th",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "J&T Expess\nผ้สงรานยาออนไลนธิต\nผู้รับ จำอง ทดสอบดี\n77 ห่บ้านตัวอย่าง ซ.5 ต.บางพลีอ.บางพลี สมทรปรากา 10540\nเกบเงนลายทาง 320.00\nน้ำหนก 0.5 kg\n82001235678"
+  },
+  {
+   "id": "e347",
+   "lang": "th",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "J&T Express ผู้ส่ง ร้านยาออนไลน์สาธิต ผู้รับ จำลอง ทดสอบดี 77 หมู่บ้านตัวอย่าง ซ.5 ต.บางพลี อ.บางพลี สมุทรปราการ 10540 เก็บเงินปลายทาง 320.00 น้ำหนัก 0.5 kg 820012345678"
+  },
+  {
+   "id": "e348",
+   "lang": "th",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "Shopee Xpress\nOrder ID 2411108ABCDEFG\nผู้รับ: สาธิต ไม่มีจริง\n(+66)812345678\n88/1 ถนนตัวอย่าง แขวงทดสอบ เขตจตุจักร กรุงเทพมหานคร 10900\nสินค้า: เซรั่มบำรุงผิวหน้า 30 ml เลขจดแจ้ง 10-1-6600012345 จำนวน 1"
+  },
+  {
+   "id": "e349",
+   "lang": "th",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "Shpee Xpress\nOder ID 2411108ABEFG\nผูับ: าธต ไม่มีจริง\n(+6)812345678\n88/1 นตวอย่ง แขวงทดสอบ เขตจุจก กรงเทพมหานคร 10900\nสนค้า: เซร่มบำรุงผิวหนา 30 mlเลขจดแจ้ง 10-1600012345 จำนวน 1"
+  },
+  {
+   "id": "e350",
+   "lang": "th",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "Shopee Xpress Order ID 2411108ABCDEFG ผู้รับ: สาธิต ไม่มีจริง (+66)812345678 88/1 ถนนตัวอย่าง แขวงทดสอบ เขตจตุจักร กรุงเทพมหานคร 10900 สินค้า: เซรั่มบำรุงผิวหน้า 30 ml เลขจดแจ้ง 10-1-6600012345 จำนวน 1"
+  },
+  {
+   "id": "e351",
+   "lang": "en",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "SHIP TO:\nJane Placeholder\n12 Sample Road, Apt 4B\nSpringfield, IL 62704\nTracking # 1Z 999 AA1 01 2345 6784\nFROM: Sample Naturals LLC\nContents: Fish Oil 1000 mg softgels, 90 count"
+  },
+  {
+   "id": "e352",
+   "lang": "en",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "SHIP TO:\nJane Placeholder\n12 Saml Road, pt 4B\nSpringfeld, IL 62704\nTracking # 1Z 999AA1 01 2345 6784\nFROM: Sampl Naturals LC\nContents: ish Oil 1000 mg softges, 90 coun"
+  },
+  {
+   "id": "e353",
+   "lang": "en",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "SHIP TO: Jane Placeholder 12 Sample Road, Apt 4B Springfield, IL 62704 Tracking # 1Z 999 AA1 01 2345 6784 FROM: Sample Naturals LLC Contents: Fish Oil 1000 mg softgels, 90 count"
+  },
+  {
+   "id": "e354",
+   "lang": "en",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "Royal Mail Tracked 48\nDelivery address\nMr John Exampleton\n4 Mock Lane\nLondon N1 9GU\nReturn address: Example Pharma Ltd, PO Box 12\nParcel weight 0.42 kg"
+  },
+  {
+   "id": "e355",
+   "lang": "en",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "Royal Mail Tracked 48\nDelivery address\nMr John Exampleton\n4Mock Lane\nLondn N19GU\nReturn addess: Exampe Pharma Ltd, PO Box 2\nPrel weight042 kg"
+  },
+  {
+   "id": "e356",
+   "lang": "en",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "Royal Mail Tracked 48 Delivery address Mr John Exampleton 4 Mock Lane London N1 9GU Return address: Example Pharma Ltd, PO Box 12 Parcel weight 0.42 kg"
+  },
+  {
+   "id": "e357",
+   "lang": "en",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "Recipient: Mary Fictive\nPhone: +66 81 234 5678\nAddress: 99 Soi Sample 4, Sukhumvit Rd, Bangkok 10110\nSender: Mock Beauty Store\nItem: Hydrating Face Cream 50 g, Ingredients: Aqua, Glycerin\nWaybill 7700123456"
+  },
+  {
+   "id": "e358",
+   "lang": "en",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "Reipet Mary Fictive\nPhon: +66 81 23 5678\nAddress: 99 Soamle 4,Sukhumvit Rd, Bangok 1010\nSender: Mock Beauty Store\nIte: Hydratin Face ream 50 g, Ingredients: Aqua, Glycerin\nWaybill 7700123456"
+  },
+  {
+   "id": "e359",
+   "lang": "en",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "Recipient: Mary Fictive Phone: +66 81 234 5678 Address: 99 Soi Sample 4, Sukhumvit Rd, Bangkok 10110 Sender: Mock Beauty Store Item: Hydrating Face Cream 50 g, Ingredients: Aqua, Glycerin Waybill 7700123456"
+  },
+  {
+   "id": "e360",
+   "lang": "en",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "DHL EXPRESS WORLDWIDE\nFrom: Example Pharma Ltd, Sampletown\nTo: Alan Mockridge\n25 Placeholder Street, Singapore 049213\nContact: +65 6123 4567\nAWB 12 3456 7890\nDescription: vitamins 2 bottles, Net Wt 0.3 kg"
+  },
+  {
+   "id": "e361",
+   "lang": "en",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "DH EXPRESSWORLDWID\nFrom: Example ParmaLtd Sapletown\nTo: an Mokrige\n25 Plcehlder Street, Singapore 04923\nContat: +65 123 4567\nAWB 12 3456 7890\nDecriptio: vitamins otts, NetWt 0.3 kg"
+  },
+  {
+   "id": "e362",
+   "lang": "en",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "DHL EXPRESS WORLDWIDE From: Example Pharma Ltd, Sampletown To: Alan Mockridge 25 Placeholder Street, Singapore 049213 Contact: +65 6123 4567 AWB 12 3456 7890 Description: vitamins 2 bottles, Net Wt 0.3 kg"
+  },
+  {
+   "id": "e363",
+   "lang": "zh",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "顺丰速运\n收件人：测试明 138 0013 8000\n收件地址：上海市浦东新区示例路88号3栋502室\n寄件人：示例药房旗舰店\n托寄物：维生素C片 100片×2\n运单号 SF1234567890123\n已验视"
+  },
+  {
+   "id": "e364",
+   "lang": "zh",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "顺丰速运\n收件人：测试明 138 0013 8000\n收件地址：上海市浦东新区示例路88号3栋502室\n寄件人：示例药房旗舰店\n托寄物：维素C 100片×2\n运单号 SF123456789023\n已验视"
+  },
+  {
+   "id": "e365",
+   "lang": "zh",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "顺丰速运 收件人：测试明 138 0013 8000 收件地址：上海市浦东新区示例路88号3栋502室 寄件人：示例药房旗舰店 托寄物：维生素C片 100片×2 运单号 SF1234567890123 已验视"
+  },
+  {
+   "id": "e366",
+   "lang": "zh",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "中通快递\n寄件人 样本华 13900001111\n收货人 李示例 13800002222\n收货地址 广东省深圳市南山区示例大道66号\n订单号 20241110123456\n品名：面膜 25ml×5片 国妆特字G20190123"
+  },
+  {
+   "id": "e367",
+   "lang": "zh",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "中通快递\n寄件人 样本华 13900001111\n收货人 李示例 13800002222\n收货地广东省深圳市南区示大道66号\n单号202411101234\n品名：面膜 25ml5片 国妆特字G2019013"
+  },
+  {
+   "id": "e368",
+   "lang": "zh",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "中通快递 寄件人 样本华 13900001111 收货人 李示例 13800002222 收货地址 广东省深圳市南山区示例大道66号 订单号 20241110123456 品名：面膜 25ml×5片 国妆特字G20190123"
+  },
+  {
+   "id": "e369",
+   "lang": "zh",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "黑貓宅急便\n收件人：陳範例 先生\n電話：0912-345-678\n地址：台北市大安區範例路一段100號5樓\n寄件人：範例生技股份有限公司\n品名：保健食品 魚油軟膠囊 60粒\n託運單號 9012-3456-7890\n代收貨款 NT$1,280"
+  },
+  {
+   "id": "e370",
+   "lang": "zh",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "黑貓宅急便\n收件人：陳範例 先生\n電話：0912-34-678\n地址台北市大安區範例路一段00號5樓\n寄人：範生技份有限司\n品名保健食品 魚油軟膠囊 60\n託運單號 902-3456-790\n代收貨款 NT$1,280"
+  },
+  {
+   "id": "e371",
+   "lang": "zh",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "黑貓宅急便 收件人：陳範例 先生 電話：0912-345-678 地址：台北市大安區範例路一段100號5樓 寄件人：範例生技股份有限公司 品名：保健食品 魚油軟膠囊 60粒 託運單號 9012-3456-7890 代收貨款 NT$1,280"
+  },
+  {
+   "id": "e372",
+   "lang": "ja",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "ヤマト運輸 宅急便\nお届け先\n〒100-0001 東京都千代田区見本町1-2-3\n見本 太郎 様\nご依頼主 サンプル製薬株式会社 通販部\n品名：健康食品（ビタミンC 60粒）\n送り状番号 1234-5678-9012"
+  },
+  {
+   "id": "e373",
+   "lang": "ja",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "ヤト運輸 宅急便\nお届け先\n〒100-0001 東京都千田区見本町1-2-3\n見本 太郎 様\nご依頼主 サンプル製薬株式会社 販部\n品名：健康食品（ビタミンC 6粒）\n送状番号 1234-5678-9012"
+  },
+  {
+   "id": "e374",
+   "lang": "ja",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "ヤマト運輸 宅急便 お届け先 〒100-0001 東京都千代田区見本町1-2-3 見本 太郎 様 ご依頼主 サンプル製薬株式会社 通販部 品名：健康食品（ビタミンC 60粒） 送り状番号 1234-5678-9012"
+  },
+  {
+   "id": "e375",
+   "lang": "ko",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "CJ대한통운\n받는 분: 김샘플 010-1234-5678\n주소: 서울특별시 강남구 샘플로 12길 34, 101동 202호\n보내는 분: 샘플코스메틱(주)\n품목: 수분 크림 50ml 2개\n운송장번호 5678-1234-9012\n배송메모: 문 앞에 놓아주세요"
+  },
+  {
+   "id": "e376",
+   "lang": "ko",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "CJ한통운\n는 분: 김샘플 010-1234-678\n소: 서울특별시 강남구 샘플로 12 34, 01동 202호\n보내는 분: 샘플코스메틱(주)\n품목: 수분 크림 50l 2개\n송장번 5678-1234-901\n배송메모: 문 앞에 놓주세"
+  },
+  {
+   "id": "e377",
+   "lang": "ko",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "CJ대한통운 받는 분: 김샘플 010-1234-5678 주소: 서울특별시 강남구 샘플로 12길 34, 101동 202호 보내는 분: 샘플코스메틱(주) 품목: 수분 크림 50ml 2개 운송장번호 5678-1234-9012 배송메모: 문 앞에 놓아주세요"
+  },
+  {
+   "id": "e378",
+   "lang": "other",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "J&T Express\nPenerima: Budi Contoh\n0812-3456-7890\nJl. Contoh No. 12, Jakarta Selatan 12345\nPengirim: Toko Vitamin Contoh\nNo. Resi JP1234567890\nIsi paket: Vitamin C 500 mg 30 tablet"
+  },
+  {
+   "id": "e379",
+   "lang": "other",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "J&T xpress\nPenrima: Budi Contoh\n0812-356-7890\nJl. Conth No12, akarta Selatn 12345\nPengirim:Tok Vitain Contoh\nNo. si JP1234567890\nIsipket: Vitamn C500 mg 30 tablet"
+  },
+  {
+   "id": "e380",
+   "lang": "other",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "J&T Express Penerima: Budi Contoh 0812-3456-7890 Jl. Contoh No. 12, Jakarta Selatan 12345 Pengirim: Toko Vitamin Contoh No. Resi JP1234567890 Isi paket: Vitamin C 500 mg 30 tablet"
+  },
+  {
+   "id": "e381",
+   "lang": "th",
+   "kind": "document",
+   "category": "order",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "ใบส่งของ / Packing list\nเลขที่คำสั่งซื้อ #A10234\nลูกค้า: คุณทดลอง สุขสมมติ\nโทร 086-555-1234\n1 x วิตามินซี 1000 มก. 30 เม็ด\n2 x คอลลาเจน 15 ซอง\nขอบคุณที่อุดหนุนค่ะ"
+  },
+  {
+   "id": "e382",
+   "lang": "th",
+   "kind": "document",
+   "category": "order",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "ใบส่งของ / Packig list\nเลทีคำส่งซื้อ #A10234\nลูคา คุณทลอง สุขสมมต\nโทร 086-555-1234\n1 x วิตมนซี 1000 มก. 30 เม็ด\n2 x คอลลาเจน 15 ซอง\nขอบคณ่อุดหนุนค่ะ"
+  },
+  {
+   "id": "e383",
+   "lang": "th",
+   "kind": "document",
+   "category": "order",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "ใบส่งของ / Packing list เลขที่คำสั่งซื้อ #A10234 ลูกค้า: คุณทดลอง สุขสมมติ โทร 086-555-1234 1 x วิตามินซี 1000 มก. 30 เม็ด 2 x คอลลาเจน 15 ซอง ขอบคุณที่อุดหนุนค่ะ"
+  },
+  {
+   "id": "e384",
+   "lang": "th",
+   "kind": "document",
+   "category": "note",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "ถึงคุณแม่\nหนูส่งวิตามินกับแคลเซียมมาให้นะคะ กินวันละ 1 เม็ด หลังอาหารเช้า\nรักแม่นะคะ\nจาก น้องสาธิต 081-234-5678"
+  },
+  {
+   "id": "e385",
+   "lang": "th",
+   "kind": "document",
+   "category": "note",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "ถงคุณแม่\nหนูส่งมนกับแคซยมาให้นะะ กนวันละ 1 เม็ด หลังอาหารเช้า\nรักแม่นะคะ\nจาก ้องสิต 081234-678"
+  },
+  {
+   "id": "e386",
+   "lang": "th",
+   "kind": "document",
+   "category": "note",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "ถึงคุณแม่ หนูส่งวิตามินกับแคลเซียมมาให้นะคะ กินวันละ 1 เม็ด หลังอาหารเช้า รักแม่นะคะ จาก น้องสาธิต 081-234-5678"
+  },
+  {
+   "id": "e387",
+   "lang": "th",
+   "kind": "document",
+   "category": "note",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "สุขสันต์วันเกิดนะพี่ตัวอย่าง\nขอให้สุขภาพแข็งแรง ครีมกระปุกนี้ทาก่อนนอนนะ\nจากน้องทดลอง"
+  },
+  {
+   "id": "e388",
+   "lang": "th",
+   "kind": "document",
+   "category": "note",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "สุขสันต์วันเกิดนะพีตวอย่าง\nขอใ้สุขภาพข็งแรง ครีมกระปุกนี้ก่อนนอนนะ\nจากน้องทดลอง"
+  },
+  {
+   "id": "e389",
+   "lang": "th",
+   "kind": "document",
+   "category": "note",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "สุขสันต์วันเกิดนะพี่ตัวอย่าง ขอให้สุขภาพแข็งแรง ครีมกระปุกนี้ทาก่อนนอนนะ จากน้องทดลอง"
+  },
+  {
+   "id": "e390",
+   "lang": "th",
+   "kind": "document",
+   "category": "note",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "ฝากให้ลุงจำลอง ทดสอบดี ห้อง 502\nยาแก้ปวด 500 มก. 10 เม็ด กินครั้งละ 1 เม็ด\nโทรหาป้าได้ที่ 089-765-4321"
+  },
+  {
+   "id": "e391",
+   "lang": "th",
+   "kind": "document",
+   "category": "note",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "ฝากให้ลงจำลอง ทดสบดี หอง 502\nยแก้ปวด 500 มก.10เม็ด กินคร้งละ 1เม็ด\nโทรหาปาได้ท่ 0-765-431"
+  },
+  {
+   "id": "e392",
+   "lang": "th",
+   "kind": "document",
+   "category": "note",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "ฝากให้ลุงจำลอง ทดสอบดี ห้อง 502 ยาแก้ปวด 500 มก. 10 เม็ด กินครั้งละ 1 เม็ด โทรหาป้าได้ที่ 089-765-4321"
+  },
+  {
+   "id": "e393",
+   "lang": "en",
+   "kind": "document",
+   "category": "order",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "PACKING SLIP\nOrder No. 100234\nOrder date: 10 Nov 2026\nBill to: Jane Placeholder, 12 Sample Road\nQty 2 Vitamin C 1000 mg, 60 Tablets, Dietary Supplement\nQty 1 Zinc 50 mg 120 tablets\nThank you for your order!"
+  },
+  {
+   "id": "e394",
+   "lang": "en",
+   "kind": "document",
+   "category": "order",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "PACKING SLIP\nOerNo. 100234\nOrer date: 0 No 206\nBil to: Jane Placeholder, 12 Samp Road\nQty 2 Vitamin C 1000 mg, 60 Tablets, Dietay Supplement\nQty 1 Zinc 50mg 20 tabets\nThank you for yoroder!"
+  },
+  {
+   "id": "e395",
+   "lang": "en",
+   "kind": "document",
+   "category": "order",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "PACKING SLIP Order No. 100234 Order date: 10 Nov 2026 Bill to: Jane Placeholder, 12 Sample Road Qty 2 Vitamin C 1000 mg, 60 Tablets, Dietary Supplement Qty 1 Zinc 50 mg 120 tablets Thank you for your order!"
+  },
+  {
+   "id": "e396",
+   "lang": "en",
+   "kind": "document",
+   "category": "note",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "Dear Mary,\nHappy birthday! I got you the face cream you liked (50 g, apply morning and night).\nLove,\nJohn\nCall me on 081-234-5678"
+  },
+  {
+   "id": "e397",
+   "lang": "en",
+   "kind": "document",
+   "category": "note",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "Dear Mary,\nHapp birthdy! I gt you the face eam ou lied 50 gpply morning d night).\nLove,\nJhn\nall me on 081-234-567"
+  },
+  {
+   "id": "e398",
+   "lang": "en",
+   "kind": "document",
+   "category": "note",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "Dear Mary, Happy birthday! I got you the face cream you liked (50 g, apply morning and night). Love, John Call me on 081-234-5678"
+  },
+  {
+   "id": "e399",
+   "lang": "en",
+   "kind": "document",
+   "category": "note",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "Gift message:\nTo: Alan Mockridge\nFrom: Jane\nGet well soon! Take 1 tablet of the vitamin C 1000 mg daily with a meal.\nOrder #55012"
+  },
+  {
+   "id": "e400",
+   "lang": "en",
+   "kind": "document",
+   "category": "note",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "Gift message:\nTo: Alan Mockridg\nFrom Jane\nGt well soon Take 1 tablt of the vitain C 1000 mg daily wih a mea\nOrer 5012"
+  },
+  {
+   "id": "e401",
+   "lang": "en",
+   "kind": "document",
+   "category": "note",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "Gift message: To: Alan Mockridge From: Jane Get well soon! Take 1 tablet of the vitamin C 1000 mg daily with a meal. Order #55012"
+  },
+  {
+   "id": "e402",
+   "lang": "en",
+   "kind": "document",
+   "category": "order",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "Order confirmation\nCustomer: Testy McSample\nEmail: testy.mcsample@example.test\nItems: Hydrating Face Cream 50 g x1; Baby Shampoo 200 ml x2\nShipping method: Standard\nDeliver to: 4 Mock Lane, London"
+  },
+  {
+   "id": "e403",
+   "lang": "en",
+   "kind": "document",
+   "category": "order",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "Ordronfirmation\nCustomer: TestyMcSample\nEmal: testy.mcsampleexaple.tet\nItems: Hydrating FaceCream 50 g x1; Bab Shampo 200 ml x2\nShipping method: Stndard\nDelver to 4 Mock Lane, ondon"
+  },
+  {
+   "id": "e404",
+   "lang": "en",
+   "kind": "document",
+   "category": "order",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "Order confirmation Customer: Testy McSample Email: testy.mcsample@example.test Items: Hydrating Face Cream 50 g x1; Baby Shampoo 200 ml x2 Shipping method: Standard Deliver to: 4 Mock Lane, London"
+  },
+  {
+   "id": "e405",
+   "lang": "zh",
+   "kind": "document",
+   "category": "order",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "发货清单\n订单编号：202411100987\n买家：测试明\n买家留言：请尽快发货\n商品：钙维生素D软胶囊 60粒 ×1 保健食品\n实付金额：￥128.00\n谢谢惠顾"
+  },
+  {
+   "id": "e406",
+   "lang": "zh",
+   "kind": "document",
+   "category": "order",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "发货清\n订单号：20241110987\n买家：测试\n买家留言：请尽快发货\n商品：钙维生素D软胶 60粒 ×1 保健品\n实付额：￥128.00\n谢谢惠顾"
+  },
+  {
+   "id": "e407",
+   "lang": "zh",
+   "kind": "document",
+   "category": "order",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "发货清单 订单编号：202411100987 买家：测试明 买家留言：请尽快发货 商品：钙维生素D软胶囊 60粒 ×1 保健食品 实付金额：￥128.00 谢谢惠顾"
+  },
+  {
+   "id": "e408",
+   "lang": "zh",
+   "kind": "document",
+   "category": "note",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "亲爱的妈妈：\n给您买了钙片，每天一粒，饭后吃。\n祝您身体健康，生日快乐！\n女儿 样本华 敬上"
+  },
+  {
+   "id": "e409",
+   "lang": "zh",
+   "kind": "document",
+   "category": "note",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "亲爱的妈妈：\n给您买了钙片，每天一粒，饭后吃。\n祝您身体健康，日快乐！\n女 样华 敬上"
+  },
+  {
+   "id": "e410",
+   "lang": "zh",
+   "kind": "document",
+   "category": "note",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "亲爱的妈妈： 给您买了钙片，每天一粒，饭后吃。 祝您身体健康，生日快乐！ 女儿 样本华 敬上"
+  },
+  {
+   "id": "e411",
+   "lang": "ja",
+   "kind": "document",
+   "category": "note",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "見本 花子 様\nお誕生日おめでとうございます。\n化粧水をお送りします。洗顔後にお使いください。\n見本 太郎より"
+  },
+  {
+   "id": "e412",
+   "lang": "ja",
+   "kind": "document",
+   "category": "note",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "見本 花 \nお誕生日めとうございます。\n化粧水をお送りします洗顔後にお使くだい。\n見本 太より"
+  },
+  {
+   "id": "e413",
+   "lang": "ja",
+   "kind": "document",
+   "category": "note",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "見本 花子 様 お誕生日おめでとうございます。 化粧水をお送りします。洗顔後にお使いください。 見本 太郎より"
+  },
+  {
+   "id": "e414",
+   "lang": "ko",
+   "kind": "document",
+   "category": "order",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "주문번호 20241110-000123\n받는사람: 이샘플\n연락처: 010-9876-5432\n배송지: 부산광역시 해운대구 샘플로 45\n상품명: 홍삼정 스틱 10ml x 30포\n결제금액 58,000원"
+  },
+  {
+   "id": "e415",
+   "lang": "ko",
+   "kind": "document",
+   "category": "order",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "주번호 202111-000123\n받사람:이샘플\n연락: 01-9876-5432\n배송지: 부산광역시 해운대구 플로 45\n상명: 홍정 스틱 10ml x 30포\n결제금액 58,000원"
+  },
+  {
+   "id": "e416",
+   "lang": "ko",
+   "kind": "document",
+   "category": "order",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "주문번호 20241110-000123 받는사람: 이샘플 연락처: 010-9876-5432 배송지: 부산광역시 해운대구 샘플로 45 상품명: 홍삼정 스틱 10ml x 30포 결제금액 58,000원"
+  },
+  {
+   "id": "e417",
+   "lang": "th",
+   "kind": "document",
+   "category": "receipt",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "ร้านยาสาธิตเภสัช สาขา 2\nใบเสร็จรับเงิน/ใบกำกับภาษีอย่างย่อ\nลูกค้า: คุณตัวอย่าง นามสมมุติ สมาชิกเลขที่ 001234\nพาราเซตามอล 500 มก. 10 เม็ด 15.00\nวิตามินซี 1000 มก. 30 เม็ด 250.00\nรวมทั้งสิ้น 265.00\nเงินสด 300.00 เงินทอน 35.00"
+  },
+  {
+   "id": "e418",
+   "lang": "th",
+   "kind": "document",
+   "category": "receipt",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "ร้านยาาธิตเภสชาข 2\nใบเ็จรับเงินใบกำกับภาษีอย่างยอ\nลูกค้า: คณตัอย่าง ามสมมุต สมาชิกขที่ 001234\nพาราเซามอล 500 มก. 10 เม็ด 5.00\nวตามินซี 000 มก. 30 เมด 50.00\nรวมทั้งสิ้น 265.00\nเงิสด 300.0 เงทอน 35.0"
+  },
+  {
+   "id": "e419",
+   "lang": "th",
+   "kind": "document",
+   "category": "receipt",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "ร้านยาสาธิตเภสัช สาขา 2 ใบเสร็จรับเงิน/ใบกำกับภาษีอย่างย่อ ลูกค้า: คุณตัวอย่าง นามสมมุติ สมาชิกเลขที่ 001234 พาราเซตามอล 500 มก. 10 เม็ด 15.00 วิตามินซี 1000 มก. 30 เม็ด 250.00 รวมทั้งสิ้น 265.00 เงินสด 300.00 เงินทอน 35.00"
+  },
+  {
+   "id": "e420",
+   "lang": "th",
+   "kind": "document",
+   "category": "receipt",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "โรงพยาบาลตัวอย่าง\nใบแจ้งค่ารักษาพยาบาล\nนาย สมมติ ใจทดสอบ อายุ 45 ปี\nค่ายา 450.00 ค่าบริการทางการแพทย์ 300.00\nยอดชำระ 750.00 บาท\nสิทธิการรักษา: ประกันสังคม"
+  },
+  {
+   "id": "e421",
+   "lang": "th",
+   "kind": "document",
+   "category": "receipt",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "งพยาบาลัวอย่าง\nใบแจ้งคารกษาพยาบาล\nนาย สมมติ ใจทดสอ อายุ 45 ปี\nค่ยา 450.0 คาบริการทางการแพทย์ 30.0\nยอดชำระ 75.00 บาท\nสิทธิการรักษา: ประันสังคม"
+  },
+  {
+   "id": "e422",
+   "lang": "th",
+   "kind": "document",
+   "category": "receipt",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "โรงพยาบาลตัวอย่าง ใบแจ้งค่ารักษาพยาบาล นาย สมมติ ใจทดสอบ อายุ 45 ปี ค่ายา 450.00 ค่าบริการทางการแพทย์ 300.00 ยอดชำระ 750.00 บาท สิทธิการรักษา: ประกันสังคม"
+  },
+  {
+   "id": "e423",
+   "lang": "en",
+   "kind": "document",
+   "category": "receipt",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "SAMPLE PHARMACY\nTAX INVOICE / RECEIPT\nSold to: Mr John Exampleton\nMember ID 440012\nIbuprofen 200 mg tablets x24 4.99\nSunscreen Lotion SPF 30 100 ml 12.50\nSubtotal 17.49\nTotal due 17.49\nPaid by card ****1234"
+  },
+  {
+   "id": "e424",
+   "lang": "en",
+   "kind": "document",
+   "category": "receipt",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "SAMPLE PHARMACY\nTAX VOIC RECEIPT\nSold to: MrJohn Exampleon\nMemer ID 44002\nIbuprofen 200 mg tablets x244.99\nSuncreenLtion SPF 30100 ml1.50\nSubtotal 17.9\nTtal due 17.49\nPaid by card ***234"
+  },
+  {
+   "id": "e425",
+   "lang": "en",
+   "kind": "document",
+   "category": "receipt",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "SAMPLE PHARMACY TAX INVOICE / RECEIPT Sold to: Mr John Exampleton Member ID 440012 Ibuprofen 200 mg tablets x24 4.99 Sunscreen Lotion SPF 30 100 ml 12.50 Subtotal 17.49 Total due 17.49 Paid by card ****1234"
+  },
+  {
+   "id": "e426",
+   "lang": "en",
+   "kind": "document",
+   "category": "receipt",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "INVOICE #INV-2026-0042\nBill To: Mary Fictive, 99 Sample Street\nDescription: Fish Oil 1000 mg softgels (Lot A12345, Exp 01/2028) x 3\nAmount due: USD 45.00\nCompany Reg. No. 201912345Z"
+  },
+  {
+   "id": "e427",
+   "lang": "en",
+   "kind": "document",
+   "category": "receipt",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "INVOICE #INV-2026-0042\nBill To: Mar ictive, 99 Sample Stret\nDescrition:Fish Oil 1000 mg softgels (ot A1245, xp 01/028) x 3\nAmont due: USD45.0\nCompny Reg. No. 201912345Z"
+  },
+  {
+   "id": "e428",
+   "lang": "en",
+   "kind": "document",
+   "category": "receipt",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "INVOICE #INV-2026-0042 Bill To: Mary Fictive, 99 Sample Street Description: Fish Oil 1000 mg softgels (Lot A12345, Exp 01/2028) x 3 Amount due: USD 45.00 Company Reg. No. 201912345Z"
+  },
+  {
+   "id": "e429",
+   "lang": "zh",
+   "kind": "document",
+   "category": "receipt",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "示例大药房\n销售小票\n会员：李示例 139****2222\n布洛芬缓释胶囊 1盒 18.50\n维生素C片 1瓶 29.90\n合计：48.40\n实付：48.40 微信支付\n收银员：003"
+  },
+  {
+   "id": "e430",
+   "lang": "zh",
+   "kind": "document",
+   "category": "receipt",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "示例大药房\n销售小票\n会员：李示例 13***2222\n布洛芬缓释胶囊 1盒 18.50\n维生素C片 1瓶 29.90\n合计：48.40\n实付：48.40 微信付\n银员：003"
+  },
+  {
+   "id": "e431",
+   "lang": "zh",
+   "kind": "document",
+   "category": "receipt",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "示例大药房 销售小票 会员：李示例 139****2222 布洛芬缓释胶囊 1盒 18.50 维生素C片 1瓶 29.90 合计：48.40 实付：48.40 微信支付 收银员：003"
+  },
+  {
+   "id": "e432",
+   "lang": "ja",
+   "kind": "document",
+   "category": "receipt",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "領収書\n見本 太郎 様\n合計金額 ¥3,480（税込）\n但し ビタミン剤 100mL×3本 代として\nサンプル薬局 駅前店"
+  },
+  {
+   "id": "e433",
+   "lang": "ja",
+   "kind": "document",
+   "category": "receipt",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "領収\n見本郎 様\n合計金額 ¥3,480（込）\n但し ビタミン剤 10mL×3本代して\nサンル局 駅前店"
+  },
+  {
+   "id": "e434",
+   "lang": "ja",
+   "kind": "document",
+   "category": "receipt",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "領収書 見本 太郎 様 合計金額 ¥3,480（税込） 但し ビタミン剤 100mL×3本 代として サンプル薬局 駅前店"
+  },
+  {
+   "id": "e435",
+   "lang": "th",
+   "kind": "document",
+   "category": "certificate",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "ใบรับรองแพทย์\nข้าพเจ้า นพ.สาธิต ไม่มีจริง ใบอนุญาตประกอบวิชาชีพเวชกรรมเลขที่ ว.12345\nได้ตรวจร่างกาย นางสาวตัวอย่าง นามสมมุติ เมื่อวันที่ 10 พฤศจิกายน 2569\nผลการวินิจฉัย: ไข้หวัดใหญ่\nเห็นควรให้หยุดพักรักษาตัว 3 วัน\nลงชื่อ ........................ แพทย์ผู้ตรวจ"
+  },
+  {
+   "id": "e436",
+   "lang": "th",
+   "kind": "document",
+   "category": "certificate",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "ใบรับรองแทย์\nขาพเจา นพ.สาธิต ไม่มีจริง บอนุญาประกอบวิชาชพเวชกรรมเลขท ว.12345\nไดตรวจร่างกาย นางสวตัวอย่าง นามสมมติ ม่อวนที่ 10 พฤศจิกายน 2569\nลการวนิจฉัย: ไข้หวัดใหญ่\nเห็นควรให้หยุดพกรักษาต 3 น\nลชื่อ ........................ แพทย์ผูตว"
+  },
+  {
+   "id": "e437",
+   "lang": "th",
+   "kind": "document",
+   "category": "certificate",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "ใบรับรองแพทย์ ข้าพเจ้า นพ.สาธิต ไม่มีจริง ใบอนุญาตประกอบวิชาชีพเวชกรรมเลขที่ ว.12345 ได้ตรวจร่างกาย นางสาวตัวอย่าง นามสมมุติ เมื่อวันที่ 10 พฤศจิกายน 2569 ผลการวินิจฉัย: ไข้หวัดใหญ่ เห็นควรให้หยุดพักรักษาตัว 3 วัน ลงชื่อ ........................ แพทย์ผู้ตรวจ"
+  },
+  {
+   "id": "e438",
+   "lang": "th",
+   "kind": "document",
+   "category": "appointment",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "ใบนัด\nโรงพยาบาลตัวอย่าง แผนกอายุรกรรม\nนาย ทดลอง สุขสมมติ\nนัดครั้งต่อไป 15 ธ.ค. 2569 เวลา 09.00 น.\nงดน้ำงดอาหารหลังเที่ยงคืน\nกรุณานำยาเดิมมาด้วย"
+  },
+  {
+   "id": "e439",
+   "lang": "th",
+   "kind": "document",
+   "category": "appointment",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "ใบนัด\nโรงพยาบลตัวอย่างผนกอายุรกรรม\nนาย ทดลอง สุขสมมต\nนัดครั้งต่อไป 15 ธ.ค. 2569เวลา 09.00 น.\nงดน้ำงดอาหารหลังเี่ยงคืน\nกรุณานำยาเิมาดวย"
+  },
+  {
+   "id": "e440",
+   "lang": "th",
+   "kind": "document",
+   "category": "appointment",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "ใบนัด โรงพยาบาลตัวอย่าง แผนกอายุรกรรม นาย ทดลอง สุขสมมติ นัดครั้งต่อไป 15 ธ.ค. 2569 เวลา 09.00 น. งดน้ำงดอาหารหลังเที่ยงคืน กรุณานำยาเดิมมาด้วย"
+  },
+  {
+   "id": "e441",
+   "lang": "th",
+   "kind": "document",
+   "category": "labreport",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "ผลตรวจเลือด\nชื่อ จำลอง ทดสอบดี อายุ 52 ปี\nน้ำตาลในเลือด 105 mg/dL\nคอเลสเตอรอล 210 mg/dL\nแพทย์ผู้สั่งตรวจ พญ.ตัวอย่าง"
+  },
+  {
+   "id": "e442",
+   "lang": "th",
+   "kind": "document",
+   "category": "labreport",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "ผลตรวจเลือด\nชื่อ จำลอง ทดสอบดีอายุ 52 ปี\n้ำตาลในเลืด 105mg/dL\nคอเลสเตออล 210 mg/dL\nแพทย์ผ้สั่งตวจ พญ.ัวอย่าง"
+  },
+  {
+   "id": "e443",
+   "lang": "th",
+   "kind": "document",
+   "category": "labreport",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "ผลตรวจเลือด ชื่อ จำลอง ทดสอบดี อายุ 52 ปี น้ำตาลในเลือด 105 mg/dL คอเลสเตอรอล 210 mg/dL แพทย์ผู้สั่งตรวจ พญ.ตัวอย่าง"
+  },
+  {
+   "id": "e444",
+   "lang": "th",
+   "kind": "document",
+   "category": "card",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "บัตรประจำตัวผู้ป่วย\nโรงพยาบาลสาธิต\nนาง สมมติ ใจทดสอบ\nแพ้ยา: เพนิซิลลิน\nกรุ๊ปเลือด O\nกรุณานำบัตรมาทุกครั้ง"
+  },
+  {
+   "id": "e445",
+   "lang": "th",
+   "kind": "document",
+   "category": "card",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "บตรปะจำตวูปวย\nโรงพยาบาลสาต\nนาง สมมิ ใจทดสอบ\nแพ้ยา: เพนิซิลลิน\nกร๊ปเลดO\nกรุณานำบัตรมาทุกค้ง"
+  },
+  {
+   "id": "e446",
+   "lang": "th",
+   "kind": "document",
+   "category": "card",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "บัตรประจำตัวผู้ป่วย โรงพยาบาลสาธิต นาง สมมติ ใจทดสอบ แพ้ยา: เพนิซิลลิน กรุ๊ปเลือด O กรุณานำบัตรมาทุกครั้ง"
+  },
+  {
+   "id": "e447",
+   "lang": "en",
+   "kind": "document",
+   "category": "certificate",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "MEDICAL CERTIFICATE\nThis is to certify that Mr Alan Mockridge, aged 34, was examined on 10 November 2026.\nDiagnosis: acute gastroenteritis\nHe is unfit for work for 2 days.\nMedication: oral rehydration salts 3.3 g, paracetamol 500 mg tablets\nDr. Jane Placeholder, MD"
+  },
+  {
+   "id": "e448",
+   "lang": "en",
+   "kind": "document",
+   "category": "certificate",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "MEDCAL CERTIFICATE\nThis is to cetify that Mr AlanMockrige aged 34, was examind on 10 Novemer 2026.\nDiagnosis: ace gastrnteritis\nHe is unft foror for 2 days\nMeication: ora rehyration salts .3 g, paraetamol 50 mg tablets\nDr. ane Placehlder M"
+  },
+  {
+   "id": "e449",
+   "lang": "en",
+   "kind": "document",
+   "category": "certificate",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "MEDICAL CERTIFICATE This is to certify that Mr Alan Mockridge, aged 34, was examined on 10 November 2026. Diagnosis: acute gastroenteritis He is unfit for work for 2 days. Medication: oral rehydration salts 3.3 g, paracetamol 500 mg tablets Dr. Jane Placeholder, MD"
+  },
+  {
+   "id": "e450",
+   "lang": "en",
+   "kind": "document",
+   "category": "letter",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "To whom it may concern,\nMary Fictive has been under my care since March 2026 and is prescribed atorvastatin 20 mg tablets.\nPlease allow her to carry this medication when travelling.\nYours sincerely,\nDr John Exampleton"
+  },
+  {
+   "id": "e451",
+   "lang": "en",
+   "kind": "document",
+   "category": "letter",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "To whomit mayoncern,\nary Ficive as en under my car ince March 202 an is prescribed torvatatin 20 mg tablet.\nPlease alow her to carry this medicaton when traelling.\nYours sincrey,\nD JohnEampleton"
+  },
+  {
+   "id": "e452",
+   "lang": "en",
+   "kind": "document",
+   "category": "letter",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "To whom it may concern, Mary Fictive has been under my care since March 2026 and is prescribed atorvastatin 20 mg tablets. Please allow her to carry this medication when travelling. Yours sincerely, Dr John Exampleton"
+  },
+  {
+   "id": "e453",
+   "lang": "en",
+   "kind": "document",
+   "category": "appointment",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "APPOINTMENT CARD\nCity Dental Centre\nName: Testy McSample\nYour next visit: Mon 14 Dec 2026, 10:30\nPlease bring your current medication, 30 tablets pack\nTo reschedule call 02-555-1234"
+  },
+  {
+   "id": "e454",
+   "lang": "en",
+   "kind": "document",
+   "category": "appointment",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "APPONTMENT CARD\nCity Dntal Centre\nName: estyMcSample\nYour nextvisit: Mon 14 Dec 2026,10:30\nPlease rig your curent mdication, 30 tablets pac\nTo reschedul cll 02-555-124"
+  },
+  {
+   "id": "e455",
+   "lang": "en",
+   "kind": "document",
+   "category": "appointment",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "APPOINTMENT CARD City Dental Centre Name: Testy McSample Your next visit: Mon 14 Dec 2026, 10:30 Please bring your current medication, 30 tablets pack To reschedule call 02-555-1234"
+  },
+  {
+   "id": "e456",
+   "lang": "en",
+   "kind": "document",
+   "category": "labreport",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "LABORATORY REPORT\nJane Placeholder  Sex: F  Age: 41\nSpecimen: serum\nGlucose 5.4 mmol/L\nVitamin D 22 ng/mL (low)\nReported by: Sample Diagnostics"
+  },
+  {
+   "id": "e457",
+   "lang": "en",
+   "kind": "document",
+   "category": "labreport",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "LABORATORY REPRT\nane Placholder Sex: F  Age 41\nSpecimen: seum\nGlucose 5.4mmol/L\nViamin D 22 ng/mL (ow)\nReportd by: Sample iagnotics"
+  },
+  {
+   "id": "e458",
+   "lang": "en",
+   "kind": "document",
+   "category": "labreport",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "LABORATORY REPORT Jane Placeholder  Sex: F  Age: 41 Specimen: serum Glucose 5.4 mmol/L Vitamin D 22 ng/mL (low) Reported by: Sample Diagnostics"
+  },
+  {
+   "id": "e459",
+   "lang": "en",
+   "kind": "document",
+   "category": "card",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "INSURANCE CARD\nMember: John Exampleton\nPolicy No. 88-1234567\nPlan: Gold\nRx BIN 012345\nCustomer care 1-800-555-0100"
+  },
+  {
+   "id": "e460",
+   "lang": "en",
+   "kind": "document",
+   "category": "card",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "ISURANCE CARD\nMembe: ohn xamplton\noliy No.88-1234567\nln: Gold\nRx BN 012345\nCstomer cae 1800-55-0100"
+  },
+  {
+   "id": "e461",
+   "lang": "en",
+   "kind": "document",
+   "category": "card",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "INSURANCE CARD Member: John Exampleton Policy No. 88-1234567 Plan: Gold Rx BIN 012345 Customer care 1-800-555-0100"
+  },
+  {
+   "id": "e462",
+   "lang": "zh",
+   "kind": "document",
+   "category": "certificate",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "疾病诊断证明书\n兹证明 测试明，男，36岁，于2026年11月10日来我院就诊。\n临床诊断：急性上呼吸道感染\n建议休息三天。\n医师签名：样本华\n示例市人民医院（盖章）"
+  },
+  {
+   "id": "e463",
+   "lang": "zh",
+   "kind": "document",
+   "category": "certificate",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "疾病诊断证明书\n兹证明 试明男，36岁，于2026年11月10日我院就诊\n临床诊断：急性上呼吸道感染\n建议三天。\n医师签名：样本华\n示例市人民医院（盖章）"
+  },
+  {
+   "id": "e464",
+   "lang": "zh",
+   "kind": "document",
+   "category": "certificate",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "疾病诊断证明书 兹证明 测试明，男，36岁，于2026年11月10日来我院就诊。 临床诊断：急性上呼吸道感染 建议休息三天。 医师签名：样本华 示例市人民医院（盖章）"
+  },
+  {
+   "id": "e465",
+   "lang": "zh",
+   "kind": "document",
+   "category": "certificate",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "診斷證明書\n姓名 陳範例 性別 男 出生 民國 70 年 5 月 6 日\n病名：急性腸胃炎\n醫師囑言：宜休養三日\n範例醫院 院長 王樣本"
+  },
+  {
+   "id": "e466",
+   "lang": "zh",
+   "kind": "document",
+   "category": "certificate",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "診斷證明書\n姓名 陳範例 性別男 出生 民國 70 年 5月6 日\n病名：急性腸胃炎\n醫師囑言：宜休養三\n範例醫院 院 王本"
+  },
+  {
+   "id": "e467",
+   "lang": "zh",
+   "kind": "document",
+   "category": "certificate",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "診斷證明書 姓名 陳範例 性別 男 出生 民國 70 年 5 月 6 日 病名：急性腸胃炎 醫師囑言：宜休養三日 範例醫院 院長 王樣本"
+  },
+  {
+   "id": "e468",
+   "lang": "zh",
+   "kind": "document",
+   "category": "appointment",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "预约挂号凭条\n就诊人：李示例\n科室：心内科门诊\n预约时间：2026-11-12 上午 09:30\n请提前15分钟取号候诊"
+  },
+  {
+   "id": "e469",
+   "lang": "zh",
+   "kind": "document",
+   "category": "appointment",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "预约挂号凭条\n就诊人：李示例\n科室：内科门诊\n预约时：2026-11-12 上午 09:30\n请提前15分钟取号候"
+  },
+  {
+   "id": "e470",
+   "lang": "zh",
+   "kind": "document",
+   "category": "appointment",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "预约挂号凭条 就诊人：李示例 科室：心内科门诊 预约时间：2026-11-12 上午 09:30 请提前15分钟取号候诊"
+  },
+  {
+   "id": "e471",
+   "lang": "zh",
+   "kind": "document",
+   "category": "labreport",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "检验报告单\n测试明 男 45岁\n项目 结果 参考值\n葡萄糖 5.6 mmol/L 3.9-6.1\n总胆固醇 5.9 mmol/L\n检验者：样本华"
+  },
+  {
+   "id": "e472",
+   "lang": "zh",
+   "kind": "document",
+   "category": "labreport",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "检报告单\n测试明 男 45岁\n项目 结果 参考值\n葡萄糖 5.6 mmol/L 3.9-6.1\n总胆固醇 5.9 mmol/L\n检验者：本"
+  },
+  {
+   "id": "e473",
+   "lang": "zh",
+   "kind": "document",
+   "category": "labreport",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "检验报告单 测试明 男 45岁 项目 结果 参考值 葡萄糖 5.6 mmol/L 3.9-6.1 总胆固醇 5.9 mmol/L 检验者：样本华"
+  },
+  {
+   "id": "e474",
+   "lang": "ja",
+   "kind": "document",
+   "category": "certificate",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "診断書\n氏名 見本 太郎 殿\n病名 急性胃腸炎\n上記の通り診断します。3日間の安静加療を要する。\nサンプル内科クリニック 医師 見本 一郎"
+  },
+  {
+   "id": "e475",
+   "lang": "ja",
+   "kind": "document",
+   "category": "certificate",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "診断書\n氏名 見本 太郎 殿\n名急性胃腸炎\n上記のり診断します。3日間の安静加療を要する。\nサンプル内科クリニック 医師 見本 一郎"
+  },
+  {
+   "id": "e476",
+   "lang": "ja",
+   "kind": "document",
+   "category": "certificate",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "診断書 氏名 見本 太郎 殿 病名 急性胃腸炎 上記の通り診断します。3日間の安静加療を要する。 サンプル内科クリニック 医師 見本 一郎"
+  },
+  {
+   "id": "e477",
+   "lang": "ja",
+   "kind": "document",
+   "category": "appointment",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "予約票\n見本 花子 様\n次回予約 11月20日（金）10:30\n診察券をお持ちください\nサンプル歯科クリニック"
+  },
+  {
+   "id": "e478",
+   "lang": "ja",
+   "kind": "document",
+   "category": "appointment",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "予票\n見本 花子\n次予約 11月2日（）10:30\n診察券をお持ちください\nサル歯科クニック"
+  },
+  {
+   "id": "e479",
+   "lang": "ja",
+   "kind": "document",
+   "category": "appointment",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "予約票 見本 花子 様 次回予約 11月20日（金）10:30 診察券をお持ちください サンプル歯科クリニック"
+  },
+  {
+   "id": "e480",
+   "lang": "ko",
+   "kind": "document",
+   "category": "certificate",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "진단서\n성명: 박샘플 주민등록번호: 800101-1******\n병명: 급성 장염\n위와 같이 진단함\n샘플내과의원 의사 김견본"
+  },
+  {
+   "id": "e481",
+   "lang": "ko",
+   "kind": "document",
+   "category": "certificate",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "진단서\n성명: 샘플 주민등록번호: 800101-1*****\n병명:급성 장염\n위와 같이 진단함\n샘플내과의원 의사 김견본"
+  },
+  {
+   "id": "e482",
+   "lang": "ko",
+   "kind": "document",
+   "category": "certificate",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "진단서 성명: 박샘플 주민등록번호: 800101-1****** 병명: 급성 장염 위와 같이 진단함 샘플내과의원 의사 김견본"
+  },
+  {
+   "id": "e483",
+   "lang": "th",
+   "kind": "document",
+   "category": "letter",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "เรียน คุณสาธิต ไม่มีจริง\nตามที่ท่านได้สมัครสมาชิกไว้ บริษัทขอแจ้งว่าได้รับเอกสารของท่านเรียบร้อยแล้ว\nขอแสดงความนับถือ\nฝ่ายบริการลูกค้า"
+  },
+  {
+   "id": "e484",
+   "lang": "th",
+   "kind": "document",
+   "category": "letter",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "เรียน คุณสธต ไมมีจริง\nตามที่ท่นได้สมครสมาชิกไว บรษทขอแจ้งวาได้รบเกสาอท่าเรีบร้อยแล้ว\nอแสดงความนับถือ\nฝ่ายบริการลูกค้า"
+  },
+  {
+   "id": "e485",
+   "lang": "th",
+   "kind": "document",
+   "category": "letter",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "เรียน คุณสาธิต ไม่มีจริง ตามที่ท่านได้สมัครสมาชิกไว้ บริษัทขอแจ้งว่าได้รับเอกสารของท่านเรียบร้อยแล้ว ขอแสดงความนับถือ ฝ่ายบริการลูกค้า"
+  },
+  {
+   "id": "e486",
+   "lang": "th",
+   "kind": "document",
+   "category": "card",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "นามบัตร\nตัวอย่าง นามสมมุติ\nผู้จัดการฝ่ายขาย\nมือถือ 081-234-5678\nsample.person@example.test"
+  },
+  {
+   "id": "e487",
+   "lang": "th",
+   "kind": "document",
+   "category": "card",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "นาบัตร\nตัวอย่าง นามสมมติ\nผู้จัดการ่ายขาย\nมอถอ 081-234-5678\nsample.person@exaple.test"
+  },
+  {
+   "id": "e488",
+   "lang": "th",
+   "kind": "document",
+   "category": "card",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "นามบัตร ตัวอย่าง นามสมมุติ ผู้จัดการฝ่ายขาย มือถือ 081-234-5678 sample.person@example.test"
+  },
+  {
+   "id": "e489",
+   "lang": "th",
+   "kind": "document",
+   "category": "slip",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "โอนเงินสำเร็จ\nจาก นาย ทดลอง ส. xxx-x-x1234-x\nไปยัง น.ส. ตัวอย่าง น. xxx-x-x5678-x\nจำนวนเงิน 1,250.00 บาท\nเลขที่รายการ 202611101234"
+  },
+  {
+   "id": "e490",
+   "lang": "th",
+   "kind": "document",
+   "category": "slip",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "โอนเงินสำร็จ\nจาก นายทดลอง ส. xxx-x-x234-x\nไปยัง น.ส. ตัวอย่า น. xxx-x-x5678-x\nจำวนเิน 1,20.00 บา\nลขที่รายการ 20261110124"
+  },
+  {
+   "id": "e491",
+   "lang": "th",
+   "kind": "document",
+   "category": "slip",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "โอนเงินสำเร็จ จาก นาย ทดลอง ส. xxx-x-x1234-x ไปยัง น.ส. ตัวอย่าง น. xxx-x-x5678-x จำนวนเงิน 1,250.00 บาท เลขที่รายการ 202611101234"
+  },
+  {
+   "id": "e492",
+   "lang": "en",
+   "kind": "document",
+   "category": "letter",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "Dear Mr Mockridge,\nThank you for your application. We are pleased to confirm your interview on 3 December.\nKind regards,\nHR Department"
+  },
+  {
+   "id": "e493",
+   "lang": "en",
+   "kind": "document",
+   "category": "letter",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "Dear Mr Mokridg,\nThank you for your appliction. W are pleased tocofirm your interviw on3 December.\nKind regards\nHR epatment"
+  },
+  {
+   "id": "e494",
+   "lang": "en",
+   "kind": "document",
+   "category": "letter",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "Dear Mr Mockridge, Thank you for your application. We are pleased to confirm your interview on 3 December. Kind regards, HR Department"
+  },
+  {
+   "id": "e495",
+   "lang": "en",
+   "kind": "document",
+   "category": "card",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "Boarding pass\nPLACEHOLDER/JANE MS\nBKK to SIN  Flight LQ 123\nSeat 14A  Gate D5\nBooking ref X7K2PQ"
+  },
+  {
+   "id": "e496",
+   "lang": "en",
+   "kind": "document",
+   "category": "card",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "Boarding pas\nPLACEHOLDER/JANE MS\nBKKto SINFlight Q 123\nSet 14A  Gate D5\nooking ref X7K2PQ"
+  },
+  {
+   "id": "e497",
+   "lang": "en",
+   "kind": "document",
+   "category": "card",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "Boarding pass PLACEHOLDER/JANE MS BKK to SIN  Flight LQ 123 Seat 14A  Gate D5 Booking ref X7K2PQ"
+  },
+  {
+   "id": "e498",
+   "lang": "zh",
+   "kind": "document",
+   "category": "card",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "姓名 李示例\n性别 男 民族 汉\n出生 1990年1月1日\n住址 北京市朝阳区示例街道1号\n公民身份号码 11010519900101XXXX"
+  },
+  {
+   "id": "e499",
+   "lang": "zh",
+   "kind": "document",
+   "category": "card",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "姓名 李示例\n性  民族 汉\n出 1990年11\n住址 北京市朝阳区示道1号\n公民身份号码 1010519900101XXXX"
+  },
+  {
+   "id": "e500",
+   "lang": "zh",
+   "kind": "document",
+   "category": "card",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "姓名 李示例 性别 男 民族 汉 出生 1990年1月1日 住址 北京市朝阳区示例街道1号 公民身份号码 11010519900101XXXX"
+  },
+  {
+   "id": "e501",
+   "lang": "th",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "ผู้รับ คุณจำลอง ทดสอบดี 0891234567\n1/2 ถ.ตัวอย่าง อ.เมือง จ.ระยอง 21000\nสินค้า: ซาแมพลาม็อล 500 พาราเซตามอล 500 มก. เลขทะเบียนที่ 1A 844/39 บรรจุ 10 เม็ด Lot 2405A Exp 05/2570\nผู้ส่ง ร้านยาสาธิต"
+  },
+  {
+   "id": "e502",
+   "lang": "th",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "ผู้รบ ณจำลอง ทดสบดี 089123467\n1/2 ถ.ตัวอยง อ.มือ จ.ระยอ 1000\nสินค้า: ซแมพาม็อล 500 พาราเซตามอล 500 มก. เลขทะเบีนท่ 1A 844/3 บรรจุ 1เม็ด Lot 2405 Exp 05/2570\nผ้ส่ง ร้านยาสาธิต"
+  },
+  {
+   "id": "e503",
+   "lang": "th",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "ผู้รับ คุณจำลอง ทดสอบดี 0891234567 1/2 ถ.ตัวอย่าง อ.เมือง จ.ระยอง 21000 สินค้า: ซาแมพลาม็อล 500 พาราเซตามอล 500 มก. เลขทะเบียนที่ 1A 844/39 บรรจุ 10 เม็ด Lot 2405A Exp 05/2570 ผู้ส่ง ร้านยาสาธิต"
+  },
+  {
+   "id": "e504",
+   "lang": "en",
+   "kind": "document",
+   "category": "order",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "Delivery note\nDeliver to: Mary Fictive, Ward 5\nIbuprofen 200 mg tablets, NDC 0573-0150-20, LOT A12345 EXP 01/2028, qty 2\nReceived by: ____________"
+  },
+  {
+   "id": "e505",
+   "lang": "en",
+   "kind": "document",
+   "category": "order",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "Delivery note\nDeiver to: Mary Ficve Wrd 5\nIbupofen 200 mg tablets, C 0573-0150-20, LOT A12345 EXP01/2028, qty 2\nReceived by ____________"
+  },
+  {
+   "id": "e506",
+   "lang": "en",
+   "kind": "document",
+   "category": "order",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "Delivery note Deliver to: Mary Fictive, Ward 5 Ibuprofen 200 mg tablets, NDC 0573-0150-20, LOT A12345 EXP 01/2028, qty 2 Received by: ____________"
+  },
+  {
+   "id": "e507",
+   "lang": "zh",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "收件人：样本华 13800138000\n地址：浙江省杭州市西湖区示例路9号\n内件：布洛芬缓释胶囊 国药准字H20013062 批号20240501 2盒\n寄件人：示例大药房"
+  },
+  {
+   "id": "e508",
+   "lang": "zh",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "收件人：样本华 800138000\n地址浙江省杭州市西湖区示例路号\n内件：洛芬缓释胶囊 国准字H2013062 批号2020501 2盒\n寄件人：示例药房"
+  },
+  {
+   "id": "e509",
+   "lang": "zh",
+   "kind": "document",
+   "category": "shipping",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "收件人：样本华 13800138000 地址：浙江省杭州市西湖区示例路9号 内件：布洛芬缓释胶囊 国药准字H20013062 批号20240501 2盒 寄件人：示例大药房"
+  },
+  {
+   "id": "e510",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "範例診所\n王樣本 先生\n身分證字號 A123456789\n看診日期 113/11/08\n普拿疼錠 500mg\n每日三次 每次一粒 飯後服用\n共 9 粒"
+  },
+  {
+   "id": "e511",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "範例診所 王樣本 先生 身分證字號 A123456789 看診日期 113/11/08 普拿疼錠 500mg 每日三次 每次一粒 飯後服用 共 9 粒"
+  },
+  {
+   "id": "e512",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "範例診所\n王樣本 先生\n身證字號 A123456789\n看診日期 113/1/08\n普拿疼錠 500mg\n每日三次 每次一粒 飯後服用\n共9 粒"
+  },
+  {
+   "id": "e513",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "仁範耳鼻喉科診所 藥袋\n姓名：陳範例\n病歷號：0012345\n藥名：Amoxicillin 500mg\n用法：一天三次，每次一顆，飯後\n調劑日期：113.11.08\n藥師：林樣本"
+  },
+  {
+   "id": "e514",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "仁範耳鼻喉科診所 藥袋 姓名：陳範例 病歷號：0012345 藥名：Amoxicillin 500mg 用法：一天三次，每次一顆，飯後 調劑日期：113.11.08 藥師：林樣本"
+  },
+  {
+   "id": "e515",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "仁範耳鼻喉科診 藥袋\n姓名：陳範例\n病歷號：0012345\n藥名：Amoxicilin 500mg\n用法：一三次，每次一顆，飯後\n調劑日：113.11.08\n師：林樣本"
+  },
+  {
+   "id": "e516",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "範例聯合門診\n林樣本 女 45歲\n門診日期 2026/11/08 科別 家醫科\nLoratadine 10mg 錠\n每日一次 每次一粒 睡前\n調劑藥師 張範例"
+  },
+  {
+   "id": "e517",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "範例聯合門診 林樣本 女 45歲 門診日期 2026/11/08 科別 家醫科 Loratadine 10mg 錠 每日一次 每次一粒 睡前 調劑藥師 張範例"
+  },
+  {
+   "id": "e518",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "範例聯合診\n林樣本女 45歲\n門診日期 2026/1/08 科別 家醫科\nLoratane 10mg 錠\n每日一次每一粒 睡前\n調劑藥師 張例"
+  },
+  {
+   "id": "e519",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "健保特約藥局\n領藥人 黃範例\nF223456786\n處方箋來源：範例醫院\nMetformin 500mg\n早晚飯後各一粒\n給藥日數 28 天"
+  },
+  {
+   "id": "e520",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "健保特約藥局 領藥人 黃範例 F223456786 處方箋來源：範例醫院 Metformin 500mg 早晚飯後各一粒 給藥日數 28 天"
+  },
+  {
+   "id": "e521",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "健保特約藥局\n領藥人黃範例\nF223456786\n處方箋來源：範例醫院\nMeformin 500mg\n早晚飯後各一粒\n藥日數 28 天"
+  },
+  {
+   "id": "e522",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "上海市示例区中心医院 门诊\n张示例 男 52岁\n就诊卡号 6001234567\n科别：内分泌科\n二甲双胍片 0.5g×20片\n用法：口服 每次1片 一日2次\n发药窗口 3 号"
+  },
+  {
+   "id": "e523",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "上海市示例区中心医院 门诊 张示例 男 52岁 就诊卡号 6001234567 科别：内分泌科 二甲双胍片 0.5g×20片 用法：口服 每次1片 一日2次 发药窗口 3 号"
+  },
+  {
+   "id": "e524",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "上海市示例区中心医院 门诊\n示例 男 5岁\n就诊卡号 6001234567\n科别：内分泌科\n二甲双胍片 0.5g×20片\n用法：口服 每次1片 一日2次\n发窗口 3 号"
+  },
+  {
+   "id": "e525",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "门诊处方\n费别：医保\n李示例 女 34岁\n科室：呼吸内科\n阿莫西林胶囊 0.25g\n每次2粒 一日3次 口服\n医师：样本华\n调配：测试明"
+  },
+  {
+   "id": "e526",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "门诊处方 费别：医保 李示例 女 34岁 科室：呼吸内科 阿莫西林胶囊 0.25g 每次2粒 一日3次 口服 医师：样本华 调配：测试明"
+  },
+  {
+   "id": "e527",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "门处方\n费：医保\n李示例 女 34岁\n科室：呼内科\n阿西林胶囊 0.25\n每次2粒 一日3次 口服\n医师：样华\n调配：试明"
+  },
+  {
+   "id": "e528",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "上海示例社区卫生服务中心\n门诊药房\n样本华\n就诊日期 2026-11-10\n氨氯地平片 5mg\n一日一次 每次一片\n处方医师 王示例"
+  },
+  {
+   "id": "e529",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "上海示例社区卫生服务中心 门诊药房 样本华 就诊日期 2026-11-10 氨氯地平片 5mg 一日一次 每次一片 处方医师 王示例"
+  },
+  {
+   "id": "e530",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "上海示例社区卫生服务中心\n门诊药房\n样华\n就诊日期 2026-11-10\n氨氯地平片 5mg\n一日一次 每次一片\n处方医师 王示例"
+  },
+  {
+   "id": "e531",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "门诊用药指导单\n测试明 病历 20241110088\n硝苯地平控释片 30mg\n每日1次 每次1片 整片吞服\n请遵医嘱"
+  },
+  {
+   "id": "e532",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "门诊用药指导单 测试明 病历 20241110088 硝苯地平控释片 30mg 每日1次 每次1片 整片吞服 请遵医嘱"
+  },
+  {
+   "id": "e533",
+   "lang": "zh",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "门用药指导单\n测试 病历 202110088\n硝苯地平释片 30g\n每日1次 次1 整片吞服\n请遵医嘱"
+  },
+  {
+   "id": "e534",
+   "lang": "ja",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "サンプル調剤薬局\n見本 太郎 様\n内服薬\n1日3回 毎食後 1回1錠 7日分\nロキソプロフェン錠60mg\n調剤日 令和8年11月10日"
+  },
+  {
+   "id": "e535",
+   "lang": "ja",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "サンプル調剤薬局 見本 太郎 様 内服薬 1日3回 毎食後 1回1錠 7日分 ロキソプロフェン錠60mg 調剤日 令和8年11月10日"
+  },
+  {
+   "id": "e536",
+   "lang": "ja",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "サンプル調剤薬局\n見本 太郎 様\n内服薬\n1日3回 毎食後 1回1錠 7日分\nロソプロフェン錠60mg\n調剤日和8年1110日"
+  },
+  {
+   "id": "e537",
+   "lang": "ko",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "샘플약국\n환자명: 김샘플\n조제일자 2026.11.10\n타이레놀정 500mg\n1일 3회 식후 30분 1회 1정 3일분\n조제약사 박견본"
+  },
+  {
+   "id": "e538",
+   "lang": "ko",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "샘플약국 환자명: 김샘플 조제일자 2026.11.10 타이레놀정 500mg 1일 3회 식후 30분 1회 1정 3일분 조제약사 박견본"
+  },
+  {
+   "id": "e539",
+   "lang": "ko",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "샘플국\n환자명: 김샘플\n조제일자 202611.1\n타이레놀정 500mg\n1일 3 식후 30분 1회 1정 3일분\n조제약사 견본"
+  },
+  {
+   "id": "e540",
+   "lang": "en",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "SAMPLE FAMILY CLINIC\nJane Placeholder\nNRIC S1234567D\nAmoxicillin 500 mg capsules\nTake 1 capsule 3 times a day after food\nQty 21  Date 10/11/2026"
+  },
+  {
+   "id": "e541",
+   "lang": "en",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "SAMPLE FAMILY CLINIC Jane Placeholder NRIC S1234567D Amoxicillin 500 mg capsules Take 1 capsule 3 times a day after food Qty 21  Date 10/11/2026"
+  },
+  {
+   "id": "e542",
+   "lang": "en",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "SAMPLE FAMILY CLINIC\nJane Placholdr\nNRIC S1234567\nAmoxicillin 50 mg capsules\nTake 1 capsule 3 times a day after food\nQty 21  Dte 10/11/2026"
+  },
+  {
+   "id": "e543",
+   "lang": "en",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "Klinik Contoh\nPatient: Alan Mockridge\nParacetamol 500 mg\nTake 2 tablets 4 times a day when necessary\nDispensed on 10 Nov 2026"
+  },
+  {
+   "id": "e544",
+   "lang": "en",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "Klinik Contoh Patient: Alan Mockridge Paracetamol 500 mg Take 2 tablets 4 times a day when necessary Dispensed on 10 Nov 2026"
+  },
+  {
+   "id": "e545",
+   "lang": "en",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "Klinik Conth\nPatent: Alan Mocrdge\nParcetamol 500 mg\nake 2 tablets 4 times a day when necessary\nDispesed n 10 Nov 2026"
+  },
+  {
+   "id": "e546",
+   "lang": "th",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "คลินิกสาธิตการแพทย์\nสมพร ใจสมมติ\nยาแก้อักเสบ AMOXICILLIN 500 mg\nรับประทานครั้งละ 1 เม็ด วันละ 3 ครั้ง หลังอาหาร\nเลขทะเบียน 1A 844/39"
+  },
+  {
+   "id": "e547",
+   "lang": "th",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "คลินิกสาธิตการแพทย์ สมพร ใจสมมติ ยาแก้อักเสบ AMOXICILLIN 500 mg รับประทานครั้งละ 1 เม็ด วันละ 3 ครั้ง หลังอาหาร เลขทะเบียน 1A 844/39"
+  },
+  {
+   "id": "e548",
+   "lang": "th",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "คลินิกสาธิตการแพทย์\nสมพร ใจสมติ\nยาแก้อักเสบ AMOIILLIN 50 mg\nรบปะทานครั้งล 1 เม วันละ 3 ครั้ง หลังอาหาร\nเลขทะเบียน1A 844/39"
+  },
+  {
+   "id": "e549",
+   "lang": "th",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "clean",
+   "text": "ใบสั่งยา\nนาย ทดลอง สุขสมมติ HN 65-01234\nMetformin 500 mg 1x2 pc\nแพทย์ผู้สั่ง นพ.ตัวอย่าง"
+  },
+  {
+   "id": "e550",
+   "lang": "th",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "merge",
+   "text": "ใบสั่งยา นาย ทดลอง สุขสมมติ HN 65-01234 Metformin 500 mg 1x2 pc แพทย์ผู้สั่ง นพ.ตัวอย่าง"
+  },
+  {
+   "id": "e551",
+   "lang": "th",
+   "kind": "dispensing",
+   "category": "dispensing",
+   "expect": "refuse",
+   "variant": "drop",
+   "text": "ใบส่งยา\nนาย ดลอง สขสมมต N -01234\nMetformi 500 mg 1x2pc\nแพย์ผ้ั่ง นพ.วอย่าง"
+  }
+ ]
+}

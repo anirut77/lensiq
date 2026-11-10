@@ -21,6 +21,20 @@
 - หน้าขอความยินยอมบอกชื่อผู้ให้บริการที่ใช้จริง โมเดล ประเทศที่ประมวลผล และการเก็บข้อมูลของผู้ให้บริการ (ไทย / อังกฤษ / จีน)
   ผู้ใช้เลือก "จำการเลือก" ได้ และถอนความยินยอมได้ทุกเมื่อ โหมดข้อความเป็นค่าเริ่มต้น โหมดภาพเฉพาะฟีเจอร์ที่อนุญาต
 
+## Product Check decisions (owner, 2026-11-10; P7)
+
+| Topic | Decision | Where |
+|---|---|---|
+| Text the AI may receive | **Only text from the on-device OCR of the label** (option b). The user may delete or correct; added words are struck through and dropped (`LQPCGuard.provenance`). The Worker cannot verify this (it never sees the label or its OCR; sending them would move deleted label data off the device), so it is enforced at the page's single send path and by e2e | `lensiq-pc-guard.js`, `lensiq-pc-ai.js` |
+| Dispensing / prescription labels | AI **off** (`dispensingAI: "off"`); the Worker refuses such text too. Foreign labels added after the v5 check (Taiwan clinic, Shanghai outpatient; dev only) | `pc-features.js` |
+| Product-label evidence (option 1; **measured independently; owner decision ก, 2026-11-10: keep the filter, add guidance when refused, fix the misclassified cases**) | AI only for a capture that IS a product label: one strong cue (registration-number shape, or a barcode with a valid check digit) or two label cue types, AND no personal-document sign (recipient / sender, delivery, order, receipt, certificate, appointment, letter), AND not a dispensing label. One function, `LQPCGuard.aiGate`, for text mode and image mode: otherwise no consent screen, no request, a message in TH / EN / ZH; on-device results stay. The Worker runs the same function on the text and answers `bad_input`; the page may hand in `gtins` / `regs` as evidence (never passed to a provider). Client-only: image mode without text, that a barcode was really scanned, OCR provenance. Targets: 0 personal-data items reaching the AI, < 5 % product labels refused. **Official (independent agent, locked set sha256 `470d3e7b…`, scored once; synthetic): personal-data items reaching the AI 0/260 in text mode and in image mode (met); real product labels refused 69/360 = 19.2 % (not met)**: clean 12.5 %, low-quality OCR 22.5 %, Thai 25.0 %, foreign 16.7 %, with barcode / registration facts 5.0 %, without 28.2 %, front panel 38.9 %, short capture 28.9 %, long 7.8 %, back 1.1 %. 61 refusals = no evidence (front panels, 2–4 lines); 8 = misclassified, fixed. Spent set after the fixes (not an independent figure): 0/260 and 61/360 = 16.9 %. Dev (synthetic, tuned on): documents 174/174 refused, product labels 14/335 = 4.2 % refused | `lensiq-pc-guard.js`, `lensiq-pc-ai.js`, `pc-features.js`; `docs/product-check/P7-RESULTS.md` §3.4, §3.7 |
+| Refused for lack of product evidence (decision ก) | The page says what to do next: photograph the side with the registration number or the ingredients list, or scan the barcode; one-tap buttons to the page's own barcode scan and camera. Nothing is sent. A personal document or a dispensing label gets its reason only, no retry hint. The Worker answer is unchanged (`bad_input`) | `lensiq-pc-ai.js` (`#pcAiGuide`); e2e 4e |
+| Option ข | **Not built.** If ordered: its own commit, measured once by an independent agent on a new locked set (the current one is spent) | `docs/product-check/P7-RESULTS.md` §3.7 |
+| Local evaluation mode (**eval bypass, approved for local evaluation only**) | With `AI_EVAL_LOCAL=1` AND a localhost request URL AND a localhost Origin the Worker skips the product-label filter (not the name guard, not the dispensing refusal) so advert snippets can be scored. Never in a deployed Worker (§10a) | `ai/gateway.js` `evalLocalMode`, `ai/pc-features.js`, tests P7-9a–e |
+| Maker phones and e-mails | **kept** (`companyPhones: "keep"`) | `lensiq-pc-guard.js` |
+| Mandatory text preview | always before a send; possible names underlined | `lensiq-pc-ai.js` |
+| Patient-name guard figures | independent, fresh frozen set each time: v1 60.6 %, v2 78.8 %, v3 76.0 %, v4 73.2 %, **v5 62.0 %** recall (harder, non-Thai-heavy set; target 99 %: not met). The layers above carry the rest; known gaps in P7-RESULTS §3.2c | `docs/product-check/P7-RESULTS.md` §3 |
+
 ## 1. Architecture
 
 ```
@@ -43,7 +57,8 @@ fortune.js /api/fortune (unchanged route, grounding, quotas, client contract) �
 |---|---|
 | `backend/src/ai/gateway.js` | core: `runFeature`, `aiRoute`, `providersInfo`, `chainReady`, admin `adminGateway` / `adminPutGateway` / `adminUsage` |
 | `backend/src/ai/settings.js` | settings shape, defaults, validation, fortune migration (`getGateway`, `putGateway`) |
-| `backend/src/ai/features.js` | feature registry (`fortune_reword` live; `pc_fields`, `pc_claims`, `pc_translate` planned for P7) |
+| `backend/src/ai/features.js` | feature registry (`fortune_reword` live; P7: `pc_fields`, `pc_claims`, `pc_translate` live, still OFF with budget 0 on a new install) |
+| `backend/src/ai/pc-features.js` | P7: the three Product Check features: strict schemas (no verdict field), short prompts, `verify` (evidence spans must be substrings of the text sent; registration numbers marked `ocr` / `model`), server-side patient-name guard (`lensiq-pc-guard.js`, same module as the page). Details: `docs/product-check/P7-RESULTS.md` |
 | `backend/src/ai/fallback.js` | the §10.3 policy table as data + `decide()` |
 | `backend/src/ai/schema.js` | JSON-Schema subset validator (`validateJson`, `assertSupportedSchema`) |
 | `backend/src/ai/db.js` | **all** gateway database access (standard SQL) |
@@ -358,7 +373,7 @@ All mocked: fake adapters (`deps.aiAdapters`), a fake SDK (`deps.loadSdk`), mock
 | 10 | Schema validator: extra keys, wrong types, enum, maxLength, nested, nullable via type arrays; no values in errors; unsupported keywords refused | same | pass |
 | 11 | Gateway validates every result: schema_mismatch retried once then next provider | same | pass |
 | 12 | Per-user per-minute / per-day and global per-minute limits → `reason: "limit"` | same | pass |
-| 13 | Route guards: globally off, consent missing, image mode not allowed, feature off, planned feature 404 | same | pass |
+| 13 | Route guards: globally off, consent missing, image mode not allowed, feature off, unknown feature 404 (P7: `pc_fields` now has a route; off by default it answers 503 `disabled`) | same | pass |
 | 14 | Logs: one line per attempt, allowed fields only; no image, base64, text, prompt, IP, e-mail or key | same | pass |
 | 15 | `GET /v1/ai/providers`: ordered chain, name / model / region / retention in TH/EN/ZH, no secrets, unknown feature 404 | same | pass |
 | 16 | Settings migration: fortune values kept, edits written back, invalid edits refused | same | pass |
@@ -395,6 +410,44 @@ injected `fetchImpl`; the global `fetch` is replaced by one that fails the test 
 | 41 | Review: reported cost accepted only as a finite number 0–100x the table cost; else table cost + alert | same | pass |
 | 42 | Review: estimate includes the JSON instruction + schema for JSON-object providers; Qwen-VL per-image tokens above the default; the gateway uses them | same | pass |
 | 43 | Owner pending: Gemini held out of the `pc_fields` / `pc_claims` / `pc_translate` defaults (18+), still allowed and addable | same | pass |
+
+## 10a. Local evaluation mode (`AI_EVAL_LOCAL`; owner decision 2026-11-10)
+
+For measuring models on the owner's laptop only (`tools/pc-ai-eval.mjs` against `wrangler dev`).
+
+**One condition**, `evalLocalMode(env, request)` in `ai/gateway.js`, used for both the cost echo and the filter bypass.
+All three must hold:
+
+1. the Worker's own variable `AI_EVAL_LOCAL` is exactly `1`;
+2. the **request URL's hostname** is `localhost`, `127.0.0.1` or `[::1]` (`isLocalRequestUrl`): the Worker is being
+   served by local `wrangler dev`. A deployed Worker is never reached under such a host, and the caller cannot choose it;
+3. the request's Origin is localhost / 127.0.0.1 (`turnstile.js` `isLocalOrigin`; the router has already checked that
+   Origin against `ALLOWED_ORIGINS`).
+
+| In local evaluation mode | Always, in every mode |
+|---|---|
+| The answer carries this request's settled cost and per-attempt latency (`eval`) | Patient-name guard on the server: text with a name, HN, phone, ID, e-mail or birth date left is `bad_input` |
+| The Product Check **product-label filter** is skipped: a text with no label evidence, or with a personal-document sign, is still built and sent (advert snippets of the P3 claim set, short translation fragments) | Dispensing / prescription labels are refused (`dispensingAI: "off"`) |
+| | Consent, provider chain, budgets, rate limits, schema and `verify` checks |
+
+**Why it cannot be active in a deployed Worker** (tests `P7-9a` to `P7-9e` in `tests/unit/backend-pc-features.test.js`):
+
+- The variable is read in one place and comes only from the Worker's environment. `backend/wrangler.toml`, the deploy
+  scripts and the CI workflows never define it (asserted on the files). It lives in the git-ignored `backend/.dev.vars`
+  or a `wrangler dev --var`.
+- Nothing in a request sets it: body, `input`, query string, headers and cookies are ignored (tested with all of them at
+  once). The builders take the flag only from the gateway's own argument, as the boolean `true`.
+- The admin API and panel have no such setting; a `PUT /admin/api/ai/gateway` or a `settings` row carrying it changes
+  nothing.
+- With the variable set, a public Origin never gets the mode. Production `ALLOWED_ORIGINS` has no localhost, so the
+  router answers 403 to a forged localhost Origin before the gateway runs.
+- **The Origin header is caller-chosen, so it is not relied on alone.** With the variable set and a localhost Origin, a
+  Worker reached under a public host (`api.example`, `*.workers.dev`, look-alikes such as `localhost.evil.example`)
+  gives no bypass and no cost echo (tested). Only variable + localhost URL + localhost Origin switches the mode on.
+
+Residual points: a variable set by hand in the Cloudflare dashboard is outside what a test can see, but it has no
+effect on a deployed Worker (condition 2). Local `wrangler dev` must be called on its localhost address (the eval tools
+already refuse any other base); a dev setup that rewrites the request host to a route's zone would simply not get the mode.
 
 ## 11. Open points
 

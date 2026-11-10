@@ -73,12 +73,12 @@ function createEnv(vars = {}) {
 }
 
 /** Request helper. */
-function req(path, { method = "GET", body, headers = {}, origin = "https://site.example", ip = "203.0.113.7" } = {}) {
+function req(path, { method = "GET", body, headers = {}, origin = "https://site.example", ip = "203.0.113.7", base = "https://api.example" } = {}) {
   const h = { "CF-Connecting-IP": ip, ...headers };
   if (origin) h.Origin = origin;
   let b;
   if (body !== undefined) { b = typeof body === "string" ? body : JSON.stringify(body); if (!h["Content-Type"]) h["Content-Type"] = "application/json"; }
-  return new Request("https://api.example" + path, { method, headers: h, body: b });
+  return new Request(base + path, { method, headers: h, body: b });
 }
 
 module.exports = { createD1, createEnv, req };

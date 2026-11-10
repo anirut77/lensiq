@@ -1,7 +1,7 @@
 # LENSIQ — CTO brief
 
 As of 2026-11-09 (round 16 complete). Round 15 shipped in two commits: Gate `70508bc` (CI green on Linux, live) and crowd/docs `41dc0b7`. Round 16 shipped as: customer switch `d039058`; Gate plate check + field tools `d049dfd`; claims, crowd test, org design, pilot kits `34e14b3`; Wilson rule `77b555a`; multi-line CSP `7c47eba`; then the category packaging and the pricing draft after the owner approved them on 2026-11-09. Accuracy sources are labelled synthetic, public dataset or field.
-**Round 17 = Product Check + AI Gateway, in progress: P0–P6 done; face blur built** (design approved 2026-11-09; §5 "Round 17", legal list §8).
+**Round 17 = Product Check + AI Gateway, in progress: P0–P7 done; face blur built; P8 waiting on the owner's OpenRouter credit** (design approved 2026-11-09; §5 "Round 17", legal list §8).
 Org accounts P1–P3 follow after Product Check is complete.
 Round 17 P5 "AI Gateway core" (`13814a8`, independent review fixes applied): every cloud AI call goes through `backend/src/ai/` (`POST /v1/ai/:feature`; fortune moved onto it as `fortune_reword` with its existing tests unchanged), with a provider allowlist, a monthly budget reserved per call, the §10.3 fallback policy, JSON-schema checks, content-free logs, an admin "AI Gateway" tab and the consent helper `lensiq-ai.js`. Only the Anthropic adapter exists; the others are P6. See `docs/AI-GATEWAY.md`.
 Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the GitHub Actions history. Anything that cannot be found there is marked "unknown" or "not measured".
@@ -241,6 +241,40 @@ No module is production-ready. None has completed a field pilot, and the backend
   brand/name token found 47.0 %. Face check at 0.3 + tiles flags 60.4 % of clean packs; owner decision 2026-11-10:
   **blur detected faces before any upload instead of blocking**, setting chosen from measured readability and missed
   real faces (built next). Vietnamese tone marks: known limit, AI step handles them for now. Not measured on a phone yet.
+- P7 done: `pc_fields`, `pc_claims`, `pc_translate` through the gateway (off, budget 0 on a new install); one consent
+  screen naming provider, model and country per feature; text only by default, photo mode after one consent with
+  "remember", faces blurred and previewed every time; mandatory preview of the exact text before any send; AI receives
+  only text that came from OCR of the label (owner decision (b), client-enforced); dispensing labels never go to AI
+  (default "off"); maker phones and e-mails kept. Patient-name guard, independent fresh sets (synthetic): v1 60.6 %,
+  v2 78.8 %, v3 76.0 %, v4 73.2 %, **v5 62.0 % [52.2–70.9]** (latest, harder non-Thai formats); target 99 % not met,
+  so the safeguard is layered (`docs/product-check/P7-RESULTS.md` §3.2c lists the gaps). P8 tools ready; OpenRouter
+  403 "key limit" now raises an owner alert instead of reading as a content refusal.
+- P7 product-label evidence filter, **measured independently; owner decision ก (2026-11-10)**: keep the filter, add
+  on-screen guidance when a capture is refused for lack of evidence (photograph the side with the registration number
+  or the ingredients list, or scan the barcode), fix the misclassified cases, commit with AI off and budget 0.
+  Official figures (independent agent, locked synthetic set sha256 `470d3e7b…`, scored once): personal-data items
+  reaching the AI **0/260** in text and in image mode (target 0: met); real product labels refused **69/360 = 19.2 %**
+  (target < 5 %: **not met**): clean 12.5 %, low-quality OCR 22.5 %, Thai 25.0 %, foreign 16.7 %, with barcode /
+  registration facts 5.0 %, without 28.2 %, front panel 38.9 %, short capture 28.9 %, long 7.8 %, back 1.1 %. 61 of
+  the 69 had no evidence (front panels, 2–4 lines); 8 were misclassified and are fixed. After the fixes, on the same
+  **spent** set (not an independent figure): 0/260 and 61/360 = 16.9 %. Product Check AI therefore needs the side of
+  the pack with the registration number, the ingredients or the barcode; it is not sold as "works on any photo".
+  Option ข is not built (own commit, new locked set). Details: `docs/product-check/P7-RESULTS.md` §3.7.
+- P7 product-label evidence filter (owner decision 2026-11-10, option 1), the rule and its dev figures:
+  One decision for text and image mode (`LQPCGuard.aiGate`): AI only when the capture shows product-label evidence (a
+  registration-number shape, a decoded barcode, or two label cue types), no personal-document sign and is not a
+  dispensing label; otherwise no consent screen, no request, a TH / EN / ZH message, on-device results stay. The Worker
+  repeats the text check. Dev numbers only (synthetic, tuned on): non-product documents refused 174/174, dispensing
+  labels 42/42 (Taiwan clinic and Shanghai outpatient added), product labels refused 14/335 = 4.2 % (low-quality OCR
+  5.2 %). Rule: `docs/product-check/P7-RESULTS.md` §3.4; the independent measurement is in the item above.
+- P7 follow-ups (owner decisions 2026-11-10; not committed): (1) the secrets test scans git-tracked files only and
+  asserts that `backend/.dev.vars` is git-ignored; (2) eval bypass for local evaluation only: with `AI_EVAL_LOCAL=1`,
+  a localhost request URL (local `wrangler dev`) and a localhost Origin the Worker skips the product-label filter (never the name guard or the dispensing refusal),
+  with tests proving it cannot be on in a deployed Worker (`docs/AI-GATEWAY.md` §10a); (3) advert impact measured, not
+  built (source: public dataset, AI-labelled): 6.1 % of the P3 held-out claim texts pass the filter (16/264) and 2.1 %
+  of the violating ones (3/141), so adverts get the on-device rules only (held-out recall 65.9 % on the refused texts,
+  target 80 %). AI recall on full labels is not measured (needs a full-label set and a paid run). Proposal for an
+  "advert" capture type, design only: `docs/product-check/ADVERT-CAPTURE-PROPOSAL.md`.
 - Exam face engine switched to MediaPipe Face Landmarker (Apache-2.0, facial-movement model removed from the bundle),
   owner decision 2026-11-10; face-api.js stays in the repo behind the research-demo switch and is never loaded by a
   customer Exam build (e2e-checked). Held-out (public dataset Open Images V7 + synthetic; `docs/exam/FACE-ENGINE-RESULTS.md`):
@@ -403,3 +437,5 @@ removed; a closed item keeps its row with the answer and date. Not legal advice.
 | L43 | Merit service: Fundraising Control Act B.E. 2487 (and Sangha orders) | **Must answer before charging.** Donations go straight to the temple's e-Donation QR (owner decision); confirm LENSIQ's booking of offerings is not fundraising | `docs/MERIT-DESIGN.md` §6, §13 | open (must answer before charging) | 2026-11-10 |
 | L44 | Remedies and merit wording (consumer protection) | Every service, advert and recommendation text reviewed against Thai consumer-protection and advertising law before launch; never sell an outcome (CLAUDE.md rule 2026-11-10) | `docs/MERIT-DESIGN.md`; fortune pages | open | 2026-11-10 |
 | L45 | Try-On cloud mode sends a customer photo (TO-D3) | Exception to "only derived facts are sent", approved 2026-11-10: after consent, only to providers whose terms say they neither keep nor train on the image; retention terms recorded per provider; only garment cut-outs stored (TO-D7) | `docs/TRYON-DESIGN.md` | open | 2026-11-10 |
+| L46 | Product Check patient-name guard limits | Rule guard recall 62–76 % on independent synthetic sets; text that is on the label (OCR) and not caught can be sent after the mandatory preview; non-Thai IDs/phones and CJK names without 姓名 weakest; provenance, photo gate and dispensing check enforced in the browser (the Worker cannot see the label) | `lensiq-pc-guard.js`, `lensiq-pc-ai.js`; `docs/product-check/P7-RESULTS.md` §3 | open | 2026-11-10 |
+| L47 | Translating printed dosing lines (`pc_translate`) | Is translating the label's own dosing text "dosing advice" under the medicine-page rule? Shown as "translated from the label, not advice, ask a pharmacist" | `backend/src/ai/pc-features.js`; P9 travel mode | open | 2026-11-10 |

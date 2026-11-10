@@ -1,0 +1,2285 @@
+{
+ "name": "P7 patient-name / personal-identifier guard — fixed test set",
+ "source": "synthetic (written 2026-11-10 before the guard was built; every name, phone number, HN and ID is invented)",
+ "frozen": "2026-11-10",
+ "metrics": "recall = pii strings no longer present after redaction / all pii strings (target >= 99 %); false redaction = keep strings damaged / all keep strings, and negative texts with any redaction",
+ "items": [
+  {
+   "id": "g001",
+   "lang": "th",
+   "text": "โรงพยาบาลตัวอย่าง\nชื่อผู้ป่วย: สมมติ ใจทดสอบ  HN: 60-00345\nPARACETAMOL 500 mg\nรับประทานครั้งละ 1 เม็ด วันละ 3 ครั้ง หลังอาหาร\nวันที่จ่ายยา 10/11/2569",
+   "pii": [
+    "สมมติ ใจทดสอบ",
+    "60-00345"
+   ],
+   "keep": [
+    "PARACETAMOL 500 mg",
+    "หลังอาหาร"
+   ]
+  },
+  {
+   "id": "g002",
+   "lang": "th",
+   "text": "โรงพยาบาลตัวอย่าง\nชื่อผู้ป่วย: ตัวอย่าง นามสมมุติ  HN: 61-01445\nAMOXICILLIN 500 mg\nรับประทานครั้งละ 1 เม็ด วันละ 3 ครั้ง หลังอาหาร\nวันที่จ่ายยา 10/11/2569",
+   "pii": [
+    "ตัวอย่าง นามสมมุติ",
+    "61-01445"
+   ],
+   "keep": [
+    "AMOXICILLIN 500 mg",
+    "หลังอาหาร"
+   ]
+  },
+  {
+   "id": "g003",
+   "lang": "th",
+   "text": "โรงพยาบาลตัวอย่าง\nชื่อผู้ป่วย: ทดลอง สุขสมมติ  HN: 62-02545\nIBUPROFEN 400 mg\nรับประทานครั้งละ 1 เม็ด วันละ 3 ครั้ง หลังอาหาร\nวันที่จ่ายยา 10/11/2569",
+   "pii": [
+    "ทดลอง สุขสมมติ",
+    "62-02545"
+   ],
+   "keep": [
+    "IBUPROFEN 400 mg",
+    "หลังอาหาร"
+   ]
+  },
+  {
+   "id": "g004",
+   "lang": "th",
+   "text": "โรงพยาบาลตัวอย่าง\nชื่อผู้ป่วย: จำลอง ทดสอบดี  HN: 63-03645\nLORATADINE 10 mg\nรับประทานครั้งละ 1 เม็ด วันละ 3 ครั้ง หลังอาหาร\nวันที่จ่ายยา 10/11/2569",
+   "pii": [
+    "จำลอง ทดสอบดี",
+    "63-03645"
+   ],
+   "keep": [
+    "LORATADINE 10 mg",
+    "หลังอาหาร"
+   ]
+  },
+  {
+   "id": "g005",
+   "lang": "th",
+   "text": "โรงพยาบาลตัวอย่าง\nชื่อผู้ป่วย: สาธิต ไม่มีจริง  HN: 64-04745\nOMEPRAZOLE 20 mg\nรับประทานครั้งละ 1 เม็ด วันละ 3 ครั้ง หลังอาหาร\nวันที่จ่ายยา 10/11/2569",
+   "pii": [
+    "สาธิต ไม่มีจริง",
+    "64-04745"
+   ],
+   "keep": [
+    "OMEPRAZOLE 20 mg",
+    "หลังอาหาร"
+   ]
+  },
+  {
+   "id": "g006",
+   "lang": "th",
+   "text": "โรงพยาบาลตัวอย่าง\nชื่อผู้ป่วย: ลองดู แสนสมมติ  HN: 65-05845\nMETFORMIN 500 mg\nรับประทานครั้งละ 1 เม็ด วันละ 3 ครั้ง หลังอาหาร\nวันที่จ่ายยา 10/11/2569",
+   "pii": [
+    "ลองดู แสนสมมติ",
+    "65-05845"
+   ],
+   "keep": [
+    "METFORMIN 500 mg",
+    "หลังอาหาร"
+   ]
+  },
+  {
+   "id": "g007",
+   "lang": "th",
+   "text": "ร้านยาสาธิต โทร. 02-100-4507\nคุณสมมติ ใจทดสอบ\nAMOXICILLIN 500 mg 10 เม็ด\nเลขทะเบียน 1A 844/39",
+   "pii": [
+    "สมมติ ใจทดสอบ",
+    "02-100-4507"
+   ],
+   "keep": [
+    "AMOXICILLIN 500 mg",
+    "1A 844/39"
+   ]
+  },
+  {
+   "id": "g008",
+   "lang": "th",
+   "text": "ร้านยาสาธิต โทร. 02-101-4517\nคุณตัวอย่าง นามสมมุติ\nIBUPROFEN 400 mg 10 เม็ด\nเลขทะเบียน 1A 844/39",
+   "pii": [
+    "ตัวอย่าง นามสมมุติ",
+    "02-101-4517"
+   ],
+   "keep": [
+    "IBUPROFEN 400 mg",
+    "1A 844/39"
+   ]
+  },
+  {
+   "id": "g009",
+   "lang": "th",
+   "text": "ร้านยาสาธิต โทร. 02-102-4527\nคุณทดลอง สุขสมมติ\nLORATADINE 10 mg 10 เม็ด\nเลขทะเบียน 1A 844/39",
+   "pii": [
+    "ทดลอง สุขสมมติ",
+    "02-102-4527"
+   ],
+   "keep": [
+    "LORATADINE 10 mg",
+    "1A 844/39"
+   ]
+  },
+  {
+   "id": "g010",
+   "lang": "th",
+   "text": "ร้านยาสาธิต โทร. 02-103-4537\nคุณจำลอง ทดสอบดี\nOMEPRAZOLE 20 mg 10 เม็ด\nเลขทะเบียน 1A 844/39",
+   "pii": [
+    "จำลอง ทดสอบดี",
+    "02-103-4537"
+   ],
+   "keep": [
+    "OMEPRAZOLE 20 mg",
+    "1A 844/39"
+   ]
+  },
+  {
+   "id": "g011",
+   "lang": "th",
+   "text": "ชื่อ-สกุล นายทดลอง สุขสมมติ อายุ 40 ปี\nPARACETAMOL 500 mg\nก่อนนอน",
+   "pii": [
+    "ทดลอง สุขสมมติ"
+   ],
+   "keep": [
+    "PARACETAMOL 500 mg",
+    "ก่อนนอน"
+   ]
+  },
+  {
+   "id": "g012",
+   "lang": "th",
+   "text": "ชื่อ-สกุล นางจำลอง ทดสอบดี อายุ 41 ปี\nAMOXICILLIN 500 mg\nก่อนนอน",
+   "pii": [
+    "จำลอง ทดสอบดี"
+   ],
+   "keep": [
+    "AMOXICILLIN 500 mg",
+    "ก่อนนอน"
+   ]
+  },
+  {
+   "id": "g013",
+   "lang": "th",
+   "text": "ชื่อ-สกุล นางสาวสาธิต ไม่มีจริง อายุ 42 ปี\nIBUPROFEN 400 mg\nก่อนนอน",
+   "pii": [
+    "สาธิต ไม่มีจริง"
+   ],
+   "keep": [
+    "IBUPROFEN 400 mg",
+    "ก่อนนอน"
+   ]
+  },
+  {
+   "id": "g014",
+   "lang": "th",
+   "text": "ชื่อ-สกุล ด.ช.ลองดู แสนสมมติ อายุ 43 ปี\nLORATADINE 10 mg\nก่อนนอน",
+   "pii": [
+    "ลองดู แสนสมมติ"
+   ],
+   "keep": [
+    "LORATADINE 10 mg",
+    "ก่อนนอน"
+   ]
+  },
+  {
+   "id": "g015",
+   "lang": "th",
+   "text": "นาย สมมติ ใจทดสอบ\nHN 123450\nยาลดน้ำมูก",
+   "pii": [
+    "สมมติ ใจทดสอบ",
+    "123450"
+   ],
+   "keep": [
+    "ยาลดน้ำมูก"
+   ]
+  },
+  {
+   "id": "g016",
+   "lang": "th",
+   "text": "นางสาว ตัวอย่าง นามสมมุติ\nHN 223451\nยาลดน้ำมูก",
+   "pii": [
+    "ตัวอย่าง นามสมมุติ",
+    "223451"
+   ],
+   "keep": [
+    "ยาลดน้ำมูก"
+   ]
+  },
+  {
+   "id": "g017",
+   "lang": "th",
+   "text": "เด็กหญิง ทดลอง สุขสมมติ\nHN 323452\nยาลดน้ำมูก",
+   "pii": [
+    "ทดลอง สุขสมมติ",
+    "323452"
+   ],
+   "keep": [
+    "ยาลดน้ำมูก"
+   ]
+  },
+  {
+   "id": "g018",
+   "lang": "th",
+   "text": "ผู้ป่วย สาธิต ไม่มีจริง เบอร์โทร 081-234-5678\nยาทาภายนอก",
+   "pii": [
+    "สาธิต ไม่มีจริง",
+    "081-234-5678"
+   ],
+   "keep": [
+    "ยาทาภายนอก"
+   ]
+  },
+  {
+   "id": "g019",
+   "lang": "th",
+   "text": "คนไข้: ลองดู แสนสมมติ\nโทร 0891234567\nยาหยอดตา",
+   "pii": [
+    "ลองดู แสนสมมติ",
+    "0891234567"
+   ],
+   "keep": [
+    "ยาหยอดตา"
+   ]
+  },
+  {
+   "id": "g020",
+   "lang": "th",
+   "text": "เลขประจำตัวประชาชน 1-1037-00123-45-8\nชื่อ สมมติ ใจทดสอบ",
+   "pii": [
+    "1-1037-00123-45-8",
+    "สมมติ ใจทดสอบ"
+   ],
+   "keep": []
+  },
+  {
+   "id": "g021",
+   "lang": "th",
+   "text": "บัตรประชาชน 3109900678901 ผู้รับยา ตัวอย่าง นามสมมุติ",
+   "pii": [
+    "3109900678901",
+    "ตัวอย่าง นามสมมุติ"
+   ],
+   "keep": []
+  },
+  {
+   "id": "g022",
+   "lang": "th",
+   "text": "ชื่อผู้ป่วย จำลอง ทดสอบดี HN:6512345 AN 2569-001\nยาฆ่าเชื้อ ทานจนหมด",
+   "pii": [
+    "จำลอง ทดสอบดี",
+    "6512345",
+    "2569-001"
+   ],
+   "keep": [
+    "ยาฆ่าเชื้อ"
+   ]
+  },
+  {
+   "id": "g023",
+   "lang": "th",
+   "text": "ติดต่อ +66 81 234 5678 หรือ 5-5001-00246-80-6",
+   "pii": [
+    "+66 81 234 5678",
+    "5-5001-00246-80-6"
+   ],
+   "keep": []
+  },
+  {
+   "id": "g024",
+   "lang": "en",
+   "text": "CITY CLINIC PHARMACY\nPatient: Testy McSample\nMRN: 0004802\nPARACETAMOL 500 mg\nTake 1 tablet twice daily",
+   "pii": [
+    "Testy McSample",
+    "0004802"
+   ],
+   "keep": [
+    "PARACETAMOL 500 mg",
+    "twice daily"
+   ]
+  },
+  {
+   "id": "g025",
+   "lang": "en",
+   "text": "CITY CLINIC PHARMACY\nPatient: Jane Placeholder\nMRN: 0014812\nAMOXICILLIN 500 mg\nTake 1 tablet twice daily",
+   "pii": [
+    "Jane Placeholder",
+    "0014812"
+   ],
+   "keep": [
+    "AMOXICILLIN 500 mg",
+    "twice daily"
+   ]
+  },
+  {
+   "id": "g026",
+   "lang": "en",
+   "text": "CITY CLINIC PHARMACY\nPatient: John Exampleton\nMRN: 0024822\nIBUPROFEN 400 mg\nTake 1 tablet twice daily",
+   "pii": [
+    "John Exampleton",
+    "0024822"
+   ],
+   "keep": [
+    "IBUPROFEN 400 mg",
+    "twice daily"
+   ]
+  },
+  {
+   "id": "g027",
+   "lang": "en",
+   "text": "CITY CLINIC PHARMACY\nPatient: Mary Fictive\nMRN: 0034832\nLORATADINE 10 mg\nTake 1 tablet twice daily",
+   "pii": [
+    "Mary Fictive",
+    "0034832"
+   ],
+   "keep": [
+    "LORATADINE 10 mg",
+    "twice daily"
+   ]
+  },
+  {
+   "id": "g028",
+   "lang": "en",
+   "text": "CITY CLINIC PHARMACY\nPatient: Alan Mockridge\nMRN: 0044842\nOMEPRAZOLE 20 mg\nTake 1 tablet twice daily",
+   "pii": [
+    "Alan Mockridge",
+    "0044842"
+   ],
+   "keep": [
+    "OMEPRAZOLE 20 mg",
+    "twice daily"
+   ]
+  },
+  {
+   "id": "g029",
+   "lang": "en",
+   "text": "Patient name: Mr. Testy McSample  Tel: 02-550-1234\nIBUPROFEN 400 mg",
+   "pii": [
+    "Testy McSample",
+    "02-550-1234"
+   ],
+   "keep": [
+    "IBUPROFEN 400 mg"
+   ]
+  },
+  {
+   "id": "g030",
+   "lang": "en",
+   "text": "Patient name: Mrs. Jane Placeholder  Tel: 02-551-1234\nLORATADINE 10 mg",
+   "pii": [
+    "Jane Placeholder",
+    "02-551-1234"
+   ],
+   "keep": [
+    "LORATADINE 10 mg"
+   ]
+  },
+  {
+   "id": "g031",
+   "lang": "en",
+   "text": "Patient name: Ms. John Exampleton  Tel: 02-552-1234\nOMEPRAZOLE 20 mg",
+   "pii": [
+    "John Exampleton",
+    "02-552-1234"
+   ],
+   "keep": [
+    "OMEPRAZOLE 20 mg"
+   ]
+  },
+  {
+   "id": "g032",
+   "lang": "en",
+   "text": "Rx for Mr Jane Placeholder\nHN 7700012\nPARACETAMOL 500 mg",
+   "pii": [
+    "Jane Placeholder",
+    "7700012"
+   ],
+   "keep": [
+    "PARACETAMOL 500 mg"
+   ]
+  },
+  {
+   "id": "g033",
+   "lang": "en",
+   "text": "Rx for Miss John Exampleton\nHN 7710012\nAMOXICILLIN 500 mg",
+   "pii": [
+    "John Exampleton",
+    "7710012"
+   ],
+   "keep": [
+    "AMOXICILLIN 500 mg"
+   ]
+  },
+  {
+   "id": "g034",
+   "lang": "en",
+   "text": "Rx for Mrs Mary Fictive\nHN 7720012\nIBUPROFEN 400 mg",
+   "pii": [
+    "Mary Fictive",
+    "7720012"
+   ],
+   "keep": [
+    "IBUPROFEN 400 mg"
+   ]
+  },
+  {
+   "id": "g035",
+   "lang": "en",
+   "text": "Name: Alan Mockridge\nPhone: +66 2 123 4567\nemail mock.patient@example.test",
+   "pii": [
+    "Alan Mockridge",
+    "+66 2 123 4567",
+    "mock.patient@example.test"
+   ],
+   "keep": []
+  },
+  {
+   "id": "g036",
+   "lang": "en",
+   "text": "Pt: Testy McSample  DOB 01/02/1980\nAMOXICILLIN 250 mg",
+   "pii": [
+    "Testy McSample"
+   ],
+   "keep": [
+    "AMOXICILLIN 250 mg"
+   ]
+  },
+  {
+   "id": "g037",
+   "lang": "zh",
+   "text": "患者姓名：测试明\n门诊号：3200190\n阿莫西林胶囊 0.25g\n每日三次",
+   "pii": [
+    "测试明",
+    "3200190"
+   ],
+   "keep": [
+    "阿莫西林胶囊",
+    "每日三次"
+   ]
+  },
+  {
+   "id": "g038",
+   "lang": "zh",
+   "text": "患者姓名：样本华\n门诊号：4200191\n阿莫西林胶囊 0.25g\n每日三次",
+   "pii": [
+    "样本华",
+    "4200191"
+   ],
+   "keep": [
+    "阿莫西林胶囊",
+    "每日三次"
+   ]
+  },
+  {
+   "id": "g039",
+   "lang": "zh",
+   "text": "患者姓名：李示例\n门诊号：5200192\n阿莫西林胶囊 0.25g\n每日三次",
+   "pii": [
+    "李示例",
+    "5200192"
+   ],
+   "keep": [
+    "阿莫西林胶囊",
+    "每日三次"
+   ]
+  },
+  {
+   "id": "g040",
+   "lang": "zh",
+   "text": "姓名: 测试明 电话: 138 0013 8000\n布洛芬缓释胶囊",
+   "pii": [
+    "测试明",
+    "138 0013 8000"
+   ],
+   "keep": [
+    "布洛芬缓释胶囊"
+   ]
+  },
+  {
+   "id": "g041",
+   "lang": "zh",
+   "text": "病人 样本华 病历号 A12345\n国药准字H20013062",
+   "pii": [
+    "样本华",
+    "A12345"
+   ],
+   "keep": [
+    "国药准字H20013062"
+   ]
+  },
+  {
+   "id": "g042",
+   "lang": "th",
+   "text": "ยาแก้ปวดลดไข้ PARACETAMOL 500 mg\nเลขทะเบียน 1A 844/39\nผลิตภัณฑ์นี้ไม่ใช้สำหรับรักษา บำบัด บรรเทา หรือป้องกันโรค",
+   "pii": [],
+   "keep": [
+    "PARACETAMOL",
+    "1A 844/39"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g043",
+   "lang": "th",
+   "text": "ผลิตภัณฑ์เสริมอาหาร คุณภาพสูง คุณประโยชน์จากธรรมชาติ\nอย. 13-2-06463-5-0326\nควรกินอาหารหลากหลาย ครบ 5 หมู่",
+   "pii": [],
+   "keep": [
+    "คุณภาพ",
+    "คุณประโยชน์",
+    "13-2-06463-5-0326"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g044",
+   "lang": "th",
+   "text": "เหมาะสำหรับคุณแม่ตั้งครรภ์ คุณค่าทางโภชนาการ\nบาร์โค้ด 8850006939727\nเลขที่ผลิต LOT 2401A EXP 01/2027",
+   "pii": [],
+   "keep": [
+    "คุณแม่ตั้งครรภ์",
+    "คุณค่า",
+    "8850006939727"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g045",
+   "lang": "th",
+   "text": "คุณสมบัติ: ช่วยให้ผิวชุ่มชื้น\nเลขที่ใบรับจดแจ้ง 10-1-6600012345\nผลิตโดย บริษัท ตัวอย่าง จำกัด",
+   "pii": [],
+   "keep": [
+    "คุณสมบัติ",
+    "10-1-6600012345"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g046",
+   "lang": "th",
+   "text": "สายด่วน อย. 1556 ศูนย์พิษวิทยา 1367 เจ็บป่วยฉุกเฉิน 1669\nยาสามัญประจำบ้าน",
+   "pii": [],
+   "keep": [
+    "1556",
+    "1367",
+    "1669"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g047",
+   "lang": "th",
+   "text": "นางฟ้าเฮิร์บ ครีมบำรุง\nนายหน้าห้ามจำหน่าย\nเลขจดแจ้ง 10-1-5912345678",
+   "pii": [],
+   "keep": [
+    "นางฟ้าเฮิร์บ",
+    "นายหน้า",
+    "10-1-5912345678"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g048",
+   "lang": "th",
+   "text": "วันผลิต 12/05/2568 วันหมดอายุ 12/05/2570\nปริมาณสุทธิ 30 แคปซูล\nขนาด 500 มก.",
+   "pii": [],
+   "keep": [],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g049",
+   "lang": "th",
+   "text": "ส่วนประกอบ: วิตามินซี 1000 มก. ซิงค์ 15 มก.\nเลข อย. 1310064635032",
+   "pii": [],
+   "keep": [
+    "1310064635032"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g050",
+   "lang": "th",
+   "text": "ยาน้ำแก้ไอ สำหรับเด็ก\nG 123/45\nเก็บในที่แห้ง อุณหภูมิไม่เกิน 30 องศา",
+   "pii": [],
+   "keep": [
+    "G 123/45"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g051",
+   "lang": "th",
+   "text": "ยาแผนโบราณ ทะเบียนยาเลขที่ G 56/2563\nผู้ผลิต: ห้างหุ้นส่วนสาธิต",
+   "pii": [],
+   "keep": [
+    "G 56/2563",
+    "ห้างหุ้นส่วนสาธิต"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g052",
+   "lang": "en",
+   "text": "PARACETAMOL Tablets BP 500 mg\nReg. No. 1A 844/39\nMfg. Date 01/2025 Exp. Date 01/2028\nBatch No. A12345",
+   "pii": [],
+   "keep": [
+    "PARACETAMOL",
+    "1A 844/39",
+    "Batch No. A12345"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g053",
+   "lang": "en",
+   "text": "Product name: Vitamin C 1000 mg\nBrand name: LQTEST\nNDC 0573-0150-20",
+   "pii": [],
+   "keep": [
+    "NDC 0573-0150-20"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g054",
+   "lang": "en",
+   "text": "Manufactured by Example Pharma Ltd.\nDIN 02345678\nNPN 80012345\nKeep out of reach of children",
+   "pii": [],
+   "keep": [
+    "Example Pharma Ltd.",
+    "DIN 02345678",
+    "NPN 80012345"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g055",
+   "lang": "en",
+   "text": "Generic name: Loratadine 10 mg\nMAL20012345AZ\nSIN09110P",
+   "pii": [],
+   "keep": [
+    "MAL20012345AZ",
+    "SIN09110P"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g056",
+   "lang": "en",
+   "text": "Drug Facts\nActive ingredient (in each tablet): Ibuprofen 200 mg\nUses: temporarily relieves minor aches",
+   "pii": [],
+   "keep": [],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g057",
+   "lang": "en",
+   "text": "GTIN 09501101530003 LOT LQTEST1 SN42 EXP 2027-01-31",
+   "pii": [],
+   "keep": [
+    "09501101530003"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g058",
+   "lang": "en",
+   "text": "Ask a doctor before use if you have liver disease. Store at 20-25°C.\nNet wt 60 capsules",
+   "pii": [],
+   "keep": [],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g059",
+   "lang": "en",
+   "text": "AUST L 123456\nEU/1/96/007/001\nCE 0123",
+   "pii": [],
+   "keep": [
+    "AUST L 123456"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g060",
+   "lang": "zh",
+   "text": "国药准字H20013062\n生产批号 20240501\n有效期至 2027.04",
+   "pii": [],
+   "keep": [
+    "国药准字H20013062",
+    "20240501"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g061",
+   "lang": "zh",
+   "text": "卫食健字(2013)第0123号\n保健食品 蓝帽子\n净含量 60粒",
+   "pii": [],
+   "keep": [],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g062",
+   "lang": "zh",
+   "text": "国妆特字G20190123\n产品名称：美白精华液\n生产企业：示例化妆品有限公司",
+   "pii": [],
+   "keep": [
+    "国妆特字G20190123"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g063",
+   "lang": "ko",
+   "text": "식품의약품안전처 허가번호 제 2024-123호\n유통기한 2027.01.01",
+   "pii": [],
+   "keep": [],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g064",
+   "lang": "th",
+   "text": "ยาอมแก้เจ็บคอ\nเลขทะเบียน 2A 12/66 (N)\nรหัส 8851234567893",
+   "pii": [],
+   "keep": [
+    "2A 12/66",
+    "8851234567893"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g065",
+   "lang": "th",
+   "text": "คุณภาพมาตรฐาน GMP คุณภาพชีวิตที่ดี\nขนาดบรรจุ 100 มล.",
+   "pii": [],
+   "keep": [
+    "คุณภาพ"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g066",
+   "lang": "en",
+   "text": "Phone orders: see website\nLot 13-2-06463-5-0326 printed on cap",
+   "pii": [],
+   "keep": [
+    "13-2-06463-5-0326"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g067",
+   "lang": "th",
+   "text": "ใช้ภายใน 30 วันหลังเปิด\nเลขที่ใบอนุญาตโฆษณา ฆอ. 123/2568",
+   "pii": [],
+   "keep": [
+    "ฆอ. 123/2568"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g068",
+   "lang": "en",
+   "text": "Contains 13-2-06463-5-0326 food serial; Barcode 8850006939727",
+   "pii": [],
+   "keep": [
+    "13-2-06463-5-0326",
+    "8850006939727"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g069",
+   "lang": "th",
+   "text": "ครีมกันแดด SPF50 PA++++\nจดแจ้งเลขที่ 10-1-6500098765\nคุณภาพจากญี่ปุ่น",
+   "pii": [],
+   "keep": [
+    "10-1-6500098765",
+    "คุณภาพ"
+   ],
+   "note": "negative: product label, nothing to remove"
+  },
+  {
+   "id": "g070",
+   "lang": "th",
+   "text": "ใบสั่งยา คลินิกสาธิต\nชื่อผู้ป่วย นางสาวมะลิ สมมุติวงศ์\nเลขที่ผู้ป่วย 2569/0042\nยาแก้แพ้ 1x3",
+   "pii": [
+    "มะลิ สมมุติวงศ์",
+    "2569/0042"
+   ],
+   "keep": [
+    "ยาแก้แพ้"
+   ],
+   "note": "hold-out"
+  },
+  {
+   "id": "g071",
+   "lang": "th",
+   "text": "ชื่อ: ด.ญ. ใบเตย ทดลองดี\nโทร: 095 111 2233",
+   "pii": [
+    "ใบเตย ทดลองดี",
+    "095 111 2233"
+   ],
+   "keep": [],
+   "note": "hold-out"
+  },
+  {
+   "id": "g072",
+   "lang": "th",
+   "text": "ผู้รับยา : คุณ ปลาทอง ไม่จริงเลย\nวันเกิด 03/04/2530",
+   "pii": [
+    "ปลาทอง ไม่จริงเลย",
+    "03/04/2530"
+   ],
+   "keep": [],
+   "note": "hold-out"
+  },
+  {
+   "id": "g073",
+   "lang": "th",
+   "text": "ชื่อ - นามสกุล  นายเมฆ ลอยสมมติ\nHN : 64-001122",
+   "pii": [
+    "เมฆ ลอยสมมติ",
+    "64-001122"
+   ],
+   "keep": [],
+   "note": "hold-out"
+  },
+  {
+   "id": "g074",
+   "lang": "th",
+   "text": "เลขประจำตัวประชาชน 1 1037 00123 45 8\nยาลดกรด",
+   "pii": [
+    "1 1037 00123 45 8"
+   ],
+   "keep": [
+    "ยาลดกรด"
+   ],
+   "note": "hold-out"
+  },
+  {
+   "id": "g075",
+   "lang": "en",
+   "text": "PATIENT: Ms Olive Testcase\nVN 556677\nCETIRIZINE 10 mg",
+   "pii": [
+    "Olive Testcase",
+    "556677"
+   ],
+   "keep": [
+    "CETIRIZINE 10 mg"
+   ],
+   "note": "hold-out"
+  },
+  {
+   "id": "g076",
+   "lang": "en",
+   "text": "Patient's name: Peter Dummyson  Phone 089-765-4321",
+   "pii": [
+    "Peter Dummyson",
+    "089-765-4321"
+   ],
+   "keep": [],
+   "note": "hold-out"
+  },
+  {
+   "id": "g077",
+   "lang": "en",
+   "text": "Dispensed to Mrs Rosa Notreal on 10/11/2026\nDate of birth: 1975-06-01",
+   "pii": [
+    "Rosa Notreal",
+    "1975-06-01"
+   ],
+   "keep": [],
+   "note": "hold-out"
+  },
+  {
+   "id": "g078",
+   "lang": "en",
+   "text": "Contact: sample.person@mail.example.test, +66-2-555-0101",
+   "pii": [
+    "sample.person@mail.example.test",
+    "+66-2-555-0101"
+   ],
+   "keep": [],
+   "note": "hold-out"
+  },
+  {
+   "id": "g079",
+   "lang": "zh",
+   "text": "患者：王测试\n住院号：Z778899\n头孢克肟分散片",
+   "pii": [
+    "王测试",
+    "Z778899"
+   ],
+   "keep": [
+    "头孢克肟分散片"
+   ],
+   "note": "hold-out"
+  },
+  {
+   "id": "g080",
+   "lang": "zh",
+   "text": "姓名：赵样例 手机 159-1234-5678",
+   "pii": [
+    "赵样例",
+    "159-1234-5678"
+   ],
+   "keep": [],
+   "note": "hold-out"
+  },
+  {
+   "id": "g081",
+   "lang": "th",
+   "text": "สินค้าคุณภาพดี คุณพ่อคุณแม่ไว้ใจ\nอย. 10-1-6512345678\nโทรสั่งซื้อ 1112",
+   "pii": [],
+   "keep": [
+    "คุณภาพดี",
+    "คุณพ่อคุณแม่",
+    "10-1-6512345678",
+    "1112"
+   ],
+   "note": "hold-out"
+  },
+  {
+   "id": "g082",
+   "lang": "en",
+   "text": "Brand Name: SAMPLEX\nDrug name: Cetirizine\nLot 230601 Exp 06/2027\nwww.example.test",
+   "pii": [],
+   "keep": [
+    "SAMPLEX",
+    "Cetirizine",
+    "230601"
+   ],
+   "note": "hold-out"
+  },
+  {
+   "id": "g083",
+   "lang": "zh",
+   "text": "患者应在医生指导下使用\n批准文号 国药准字Z20025001",
+   "pii": [],
+   "keep": [
+    "患者应在医生指导下使用",
+    "国药准字Z20025001"
+   ],
+   "note": "hold-out"
+  },
+  {
+   "id": "g084",
+   "lang": "th",
+   "text": "เหมาะสำหรับผู้ป่วย เบาหวาน ปรึกษาแพทย์ก่อนใช้\nเลขทะเบียน 1A 15/62",
+   "pii": [],
+   "keep": [
+    "1A 15/62"
+   ],
+   "note": "hold-out"
+  },
+  {
+   "id": "g085",
+   "lang": "th",
+   "text": "ชื่อผู้ป่วย สมมติ ใจทดสอบ HN ๖๕๑๒๓๔๕\nยาแก้แพ้",
+   "pii": [
+    "สมมติ ใจทดสอบ",
+    "๖๕๑๒๓๔๕"
+   ],
+   "keep": [
+    "ยาแก้แพ้"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g086",
+   "lang": "th",
+   "text": "โทร ๐๘๑-๒๓๔-๕๖๗๘\nยาทาแก้คัน",
+   "pii": [
+    "๐๘๑-๒๓๔-๕๖๗๘"
+   ],
+   "keep": [
+    "ยาทาแก้คัน"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g087",
+   "lang": "th",
+   "text": "เลขประจำตัวประชาชน ๓-๑๐๙๙-๐๐๖๗๘-๙๐-๑",
+   "pii": [
+    "๓-๑๐๙๙-๐๐๖๗๘-๙๐-๑"
+   ],
+   "keep": [],
+   "note": "dev-2"
+  },
+  {
+   "id": "g088",
+   "lang": "th",
+   "text": "คนไข้ ตัวอย่าง นามสมมุติ วันเกิด ๑๒/๐๑/๒๕๓๐",
+   "pii": [
+    "ตัวอย่าง นามสมมุติ",
+    "๑๒/๐๑/๒๕๓๐"
+   ],
+   "keep": [],
+   "note": "dev-2"
+  },
+  {
+   "id": "g089",
+   "lang": "th",
+   "text": "ผู้ติดต่อ 08-9765-4321\nยาลดไข้",
+   "pii": [
+    "08-9765-4321"
+   ],
+   "keep": [
+    "ยาลดไข้"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g090",
+   "lang": "th",
+   "text": "ผู้ติดต่อ 0 2123 4567\nยาธาตุ",
+   "pii": [
+    "0 2123 4567"
+   ],
+   "keep": [
+    "ยาธาตุ"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g091",
+   "lang": "en",
+   "text": "Mobile +66(0)81-234-5678\nLORATADINE 10 mg",
+   "pii": [
+    "+66(0)81-234-5678"
+   ],
+   "keep": [
+    "LORATADINE 10 mg"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g092",
+   "lang": "en",
+   "text": "Tel (02) 123 4567 / 089.765.4321",
+   "pii": [
+    "(02) 123 4567",
+    "089.765.4321"
+   ],
+   "keep": [],
+   "note": "dev-2"
+  },
+  {
+   "id": "g093",
+   "lang": "th",
+   "text": "โทร.02-987-6543 ต่อ 12",
+   "pii": [
+    "02-987-6543"
+   ],
+   "keep": [],
+   "note": "dev-2"
+  },
+  {
+   "id": "g094",
+   "lang": "th",
+   "text": "เกิด 12 ม.ค. 2530\nยาแก้ไอ",
+   "pii": [
+    "12 ม.ค. 2530"
+   ],
+   "keep": [
+    "ยาแก้ไอ"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g095",
+   "lang": "th",
+   "text": "เกิด ๓ มีนาคม พ.ศ. ๒๕๒๘",
+   "pii": [
+    "๓ มีนาคม พ.ศ. ๒๕๒๘"
+   ],
+   "keep": [],
+   "note": "dev-2"
+  },
+  {
+   "id": "g096",
+   "lang": "th",
+   "text": "ว/ด/ป เกิด 01/02/2520",
+   "pii": [
+    "01/02/2520"
+   ],
+   "keep": [],
+   "note": "dev-2"
+  },
+  {
+   "id": "g097",
+   "lang": "en",
+   "text": "DOB 3 March 1985\nOMEPRAZOLE 20 mg",
+   "pii": [
+    "3 March 1985"
+   ],
+   "keep": [
+    "OMEPRAZOLE 20 mg"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g098",
+   "lang": "en",
+   "text": "Date of birth: Mar 4, 1990",
+   "pii": [
+    "Mar 4, 1990"
+   ],
+   "keep": [],
+   "note": "dev-2"
+  },
+  {
+   "id": "g099",
+   "lang": "zh",
+   "text": "出生日期：1985年3月4日\n阿莫西林胶囊",
+   "pii": [
+    "1985年3月4日"
+   ],
+   "keep": [
+    "阿莫西林胶囊"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g100",
+   "lang": "zh",
+   "text": "生日 1990年5月",
+   "pii": [
+    "1990年5月"
+   ],
+   "keep": [],
+   "note": "dev-2"
+  },
+  {
+   "id": "g101",
+   "lang": "th",
+   "text": "ชื่อเล่น: น้องเมย์\nยาแก้ปวด",
+   "pii": [
+    "น้องเมย์"
+   ],
+   "keep": [
+    "ยาแก้ปวด"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g102",
+   "lang": "en",
+   "text": "ร้านยาสาธิต\nKhun Somsak Testdee\nCETIRIZINE 10 mg",
+   "pii": [
+    "Somsak Testdee"
+   ],
+   "keep": [
+    "CETIRIZINE 10 mg"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g103",
+   "lang": "th",
+   "text": "ร้านยาสาธิต\nคุณเมย์\nวิธีใช้ รับประทานครั้งละ 1 เม็ด",
+   "pii": [
+    "เมย์"
+   ],
+   "keep": [
+    "รับประทานครั้งละ 1 เม็ด"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g104",
+   "lang": "th",
+   "text": "ชื่อผู้ป่วย นายทดลอง สุขสมมติ (น้องบอล)\nยาลดน้ำมูก",
+   "pii": [
+    "ทดลอง สุขสมมติ (น้องบอล)"
+   ],
+   "keep": [
+    "ยาลดน้ำมูก"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g105",
+   "lang": "th",
+   "text": "โรงพยาบาลตัวอย่าง\nร.ต.อ. จำลอง ทดสอบดี\nยาแก้ปวด",
+   "pii": [
+    "จำลอง ทดสอบดี"
+   ],
+   "keep": [
+    "ยาแก้ปวด"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g106",
+   "lang": "th",
+   "text": "คลินิกสาธิต\nพ.ต.ท.หญิง สาธิต ไม่มีจริง\nยาทา",
+   "pii": [
+    "สาธิต ไม่มีจริง"
+   ],
+   "keep": [
+    "ยาทา"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g107",
+   "lang": "th",
+   "text": "ร้านยาสาธิต\nพระครูสมมติ ทดสอบวงศ์\nรับประทานครั้งละ 2 เม็ด",
+   "pii": [
+    "สมมติ ทดสอบวงศ์"
+   ],
+   "keep": [
+    "รับประทานครั้งละ 2 เม็ด"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g108",
+   "lang": "th",
+   "text": "โรงพยาบาลตัวอย่าง\nพระมหาจำลอง ปัญญาสมมติ\nยาลดกรด",
+   "pii": [
+    "จำลอง ปัญญาสมมติ"
+   ],
+   "keep": [
+    "ยาลดกรด"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g109",
+   "lang": "zh",
+   "text": "药房\n王测试先生\n用法用量：每次1粒",
+   "pii": [
+    "王测试先生"
+   ],
+   "keep": [
+    "每次1粒"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g110",
+   "lang": "zh",
+   "text": "诊所\n李样本女士 每日两次",
+   "pii": [
+    "李样本女士"
+   ],
+   "keep": [
+    "每日两次"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g111",
+   "lang": "en",
+   "text": "NAME: JOHN EXAMPLETON\nAMOXICILLIN 500 mg",
+   "pii": [
+    "JOHN EXAMPLETON"
+   ],
+   "keep": [
+    "AMOXICILLIN 500 mg"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g112",
+   "lang": "en",
+   "text": "Dispensed to Alan Mockridge\nIBUPROFEN 400 mg",
+   "pii": [
+    "Alan Mockridge"
+   ],
+   "keep": [
+    "IBUPROFEN 400 mg"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g113",
+   "lang": "en",
+   "text": "CITY PHARMACY\nFor: Mary Fictive\nTake 1 tablet twice daily",
+   "pii": [
+    "Mary Fictive"
+   ],
+   "keep": [
+    "Take 1 tablet twice daily"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g114",
+   "lang": "en",
+   "text": "Dr. order for Mr Peter Dummyson\nMETFORMIN 500 mg",
+   "pii": [
+    "Peter Dummyson"
+   ],
+   "keep": [
+    "METFORMIN 500 mg"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g115",
+   "lang": "en",
+   "text": "Patient Name - Olive Testcase\nCETIRIZINE",
+   "pii": [
+    "Olive Testcase"
+   ],
+   "keep": [
+    "CETIRIZINE"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g116",
+   "lang": "th",
+   "text": "ชื่อผู้ป่วย สม ชาย ใจ ทด สอบ\nยาแก้ไอ",
+   "pii": [
+    "สม ชาย ใจ ทด สอบ"
+   ],
+   "keep": [
+    "ยาแก้ไอ"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g117",
+   "lang": "th",
+   "text": "โรงพยาบาลสาธิต\nสมศรี มีสุขสมมติ\nวิธีใช้ รับประทานครั้งละ 1 เม็ด",
+   "pii": [
+    "สมศรี มีสุขสมมติ"
+   ],
+   "keep": [
+    "วิธีใช้ รับประทานครั้งละ 1 เม็ด"
+   ],
+   "note": "dev-2",
+   "image": "block"
+  },
+  {
+   "id": "g118",
+   "lang": "en",
+   "text": "Rx #22041\nJane Placeholder\nTake 1 tablet daily",
+   "pii": [
+    "Jane Placeholder"
+   ],
+   "keep": [
+    "Take 1 tablet daily"
+   ],
+   "note": "dev-2",
+   "image": "block"
+  },
+  {
+   "id": "g119",
+   "lang": "zh",
+   "text": "处方笺\n张样例\n用法用量：每日三次",
+   "pii": [],
+   "keep": [
+    "用法用量：每日三次"
+   ],
+   "note": "dev-2",
+   "image": "block"
+  },
+  {
+   "id": "g120",
+   "lang": "en",
+   "text": "Mrs. Bee's Herbal Tea\nSteep 1 bag for 3 minutes",
+   "pii": [],
+   "keep": [
+    "Mrs. Bee's Herbal Tea"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g121",
+   "lang": "en",
+   "text": "Dr. Sample Skincare Night Cream\nApply 2 times a day",
+   "pii": [],
+   "keep": [
+    "Dr. Sample Skincare Night Cream"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g122",
+   "lang": "en",
+   "text": "Miss Lily Body Lotion 200 ml",
+   "pii": [],
+   "keep": [
+    "Miss Lily Body Lotion"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g123",
+   "lang": "th",
+   "text": "ยาหม่องนายห้างสมุนไพร\nนายห้าง ยาดมสมุนไพร",
+   "pii": [],
+   "keep": [
+    "นายห้างสมุนไพร",
+    "นายห้าง ยาดมสมุนไพร"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g124",
+   "lang": "en",
+   "text": "Patient Package Insert\nRead before use",
+   "pii": [],
+   "keep": [
+    "Patient Package Insert"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g125",
+   "lang": "en",
+   "text": "Patient Information Leaflet: IBUPROFEN 200 mg",
+   "pii": [],
+   "keep": [
+    "Patient Information Leaflet",
+    "IBUPROFEN 200 mg"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g126",
+   "lang": "th",
+   "text": "ผู้ป่วย โรคไต ควรปรึกษาแพทย์ก่อนใช้\nรับประทานครั้งละ 1 เม็ด",
+   "pii": [],
+   "keep": [
+    "โรคไต ควรปรึกษาแพทย์ก่อนใช้"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g127",
+   "lang": "en",
+   "text": "For: external use only\nRx only",
+   "pii": [],
+   "keep": [
+    "external use only",
+    "Rx only"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g128",
+   "lang": "zh",
+   "text": "适合女士 每日一次",
+   "pii": [],
+   "keep": [
+    "适合女士"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g129",
+   "lang": "th",
+   "text": "พระจันทร์ ครีมบำรุงผิว\nคุณภาพดี",
+   "pii": [],
+   "keep": [
+    "พระจันทร์ ครีมบำรุงผิว",
+    "คุณภาพดี"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g130",
+   "lang": "th",
+   "text": "ผลิตโดย บริษัท ตัวอย่าง จำกัด\nโทร 02-123-4567",
+   "pii": [],
+   "keep": [
+    "02-123-4567"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g131",
+   "lang": "en",
+   "text": "Manufactured by Example Co., Ltd. Tel: +66 2 555 0101",
+   "pii": [],
+   "keep": [
+    "+66 2 555 0101"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g132",
+   "lang": "zh",
+   "text": "生产企业：示例制药有限公司 电话：021-5555-0101",
+   "pii": [],
+   "keep": [
+    "021-5555-0101",
+    "示例制药有限公司"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g133",
+   "lang": "th",
+   "text": "จำหน่ายโดย หจก. สาธิต โทร 053-123456\nผู้ติดต่อ 081-999-8888",
+   "pii": [
+    "081-999-8888"
+   ],
+   "keep": [
+    "053-123456"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g134",
+   "lang": "th",
+   "text": "คลินิกสาธิต\nนาง  ทดสอบ  สมมติวงศ์\nยาทาแผล",
+   "pii": [
+    "ทดสอบ  สมมติวงศ์"
+   ],
+   "keep": [
+    "ยาทาแผล"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g135",
+   "lang": "th",
+   "text": "HN๖๕๐๐๙๘๗ ยาแก้ไอ",
+   "pii": [
+    "๖๕๐๐๙๘๗"
+   ],
+   "keep": [
+    "ยาแก้ไอ"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g136",
+   "lang": "ko",
+   "text": "판매원: 샘플(주) 고객센터 02-123-4567",
+   "pii": [],
+   "keep": [
+    "02-123-4567"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g137",
+   "lang": "en",
+   "text": "Mrs Jane Placeholder\nMETFORMIN 500 mg",
+   "pii": [
+    "Jane Placeholder"
+   ],
+   "keep": [
+    "METFORMIN 500 mg"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g138",
+   "lang": "th",
+   "text": "ด.ช. ภูผา ทดลองไทย\nยาน้ำแก้ไอเด็ก",
+   "pii": [
+    "ภูผา ทดลองไทย"
+   ],
+   "keep": [
+    "ยาน้ำแก้ไอเด็ก"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g139",
+   "lang": "th",
+   "text": "ด.ญ. ใบข้าว\nยาลดไข้เด็ก",
+   "pii": [
+    "ใบข้าว"
+   ],
+   "keep": [
+    "ยาลดไข้เด็ก"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g140",
+   "lang": "en",
+   "text": "Khun Malee\nPARACETAMOL 500 mg",
+   "pii": [
+    "Malee"
+   ],
+   "keep": [
+    "PARACETAMOL 500 mg"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g141",
+   "lang": "en",
+   "text": "For: Peter Dummyson\nTake 1 tablet twice daily",
+   "pii": [
+    "Peter Dummyson"
+   ],
+   "keep": [
+    "Take 1 tablet twice daily"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g142",
+   "lang": "th",
+   "text": "จ.ส.ต. สมหมาย\nยาแก้ปวดหลัง",
+   "pii": [
+    "สมหมาย"
+   ],
+   "keep": [
+    "ยาแก้ปวดหลัง"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g143",
+   "lang": "th",
+   "text": "พระมหาสมปอง\nยาธาตุ",
+   "pii": [
+    "สมปอง"
+   ],
+   "keep": [
+    "ยาธาตุ"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g144",
+   "lang": "zh",
+   "text": "陈测试先生 头孢克肟",
+   "pii": [
+    "陈测试先生"
+   ],
+   "keep": [
+    "头孢克肟"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g145",
+   "lang": "th",
+   "text": "ปชช. ๓๑๐๙๙๐๐๑๒๓๔๐๒",
+   "pii": [
+    "๓๑๐๙๙๐๐๑๒๓๔๐๒"
+   ],
+   "keep": [],
+   "note": "dev-2"
+  },
+  {
+   "id": "g146",
+   "lang": "th",
+   "text": "3109900123402\nยาแก้แพ้",
+   "pii": [
+    "3109900123402"
+   ],
+   "keep": [
+    "ยาแก้แพ้"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g147",
+   "lang": "th",
+   "text": "สมใจ ทดลองสุข\nยาแก้ไอ รับประทานครั้งละ 1 ช้อนชา",
+   "pii": [
+    "สมใจ ทดลองสุข"
+   ],
+   "keep": [
+    "รับประทานครั้งละ 1 ช้อนชา"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g148",
+   "lang": "en",
+   "text": "Henry Mockwell\nTake 2 capsules at night",
+   "pii": [
+    "Henry Mockwell"
+   ],
+   "keep": [
+    "Take 2 capsules at night"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g149",
+   "lang": "th",
+   "text": "ยาแก้ปวด ลดไข้\nรับประทานครั้งละ 1-2 เม็ด ทุก 4-6 ชั่วโมง",
+   "pii": [],
+   "keep": [
+    "ยาแก้ปวด ลดไข้"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g150",
+   "lang": "en",
+   "text": "Cold Relief\nNight Time\nTake 2 tablets at bedtime",
+   "pii": [],
+   "keep": [
+    "Cold Relief",
+    "Night Time"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g151",
+   "lang": "th",
+   "text": "สมุนไพร ขมิ้นชัน\nรับประทานครั้งละ 2 แคปซูล",
+   "pii": [],
+   "keep": [
+    "สมุนไพร ขมิ้นชัน"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g152",
+   "lang": "en",
+   "text": "Recommended by Dr. Sample for daily use\nTake 1 tablet daily",
+   "pii": [],
+   "keep": [
+    "Dr. Sample"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g153",
+   "lang": "zh",
+   "text": "适用人群：孕妇、哺乳期女士\n每日一次",
+   "pii": [],
+   "keep": [
+    "哺乳期女士"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g154",
+   "lang": "th",
+   "text": "ผลิตโดย บริษัท สาธิตฟาร์มา จำกัด\n99/9 หมู่ 4 ต.บางพลี อ.บางพลี จ.สมุทรปราการ 10540\nโทร 02-123-4567",
+   "pii": [],
+   "keep": [
+    "02-123-4567",
+    "99/9 หมู่ 4 ต.บางพลี อ.บางพลี จ.สมุทรปราการ 10540"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g155",
+   "lang": "en",
+   "text": "Distributed by Mock Foods\n12 Sample Road, Bangkok 10110\nTel: 02 345 6789\nwww.example.test",
+   "pii": [],
+   "keep": [
+    "02 345 6789",
+    "12 Sample Road, Bangkok 10110"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g156",
+   "lang": "th",
+   "text": "สอบถามข้อมูลผลิตภัณฑ์ โทร 081-234-5600",
+   "pii": [],
+   "keep": [
+    "081-234-5600"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g157",
+   "lang": "en",
+   "text": "Call center 02-555-0101\nMade in Thailand",
+   "pii": [],
+   "keep": [
+    "02-555-0101"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g158",
+   "lang": "th",
+   "text": "SAMPLEX\nwww.samplex.example\nโทร 02-999-1234",
+   "pii": [],
+   "keep": [
+    "02-999-1234"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g159",
+   "lang": "th",
+   "text": "ผลิตโดย บริษัท สาธิต จำกัด\nผู้ติดต่อ: คุณสมมติ ใจทดสอบ 081-222-3333",
+   "pii": [
+    "สมมติ ใจทดสอบ",
+    "081-222-3333"
+   ],
+   "keep": [],
+   "note": "dev-2"
+  },
+  {
+   "id": "g160",
+   "lang": "th",
+   "text": "ชื่อผู้ป่วย สมชาย ใจทดลอง ถามเรื่องยา Losartan",
+   "pii": [
+    "สมชาย ใจทดลอง"
+   ],
+   "keep": [
+    "ถามเรื่องยา Losartan"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g161",
+   "lang": "en",
+   "text": "Patient: John Exampleton asks about METFORMIN dose",
+   "pii": [
+    "John Exampleton"
+   ],
+   "keep": [
+    "asks about METFORMIN dose"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g162",
+   "lang": "zh",
+   "text": "手机13800138000 阿莫西林",
+   "pii": [
+    "13800138000"
+   ],
+   "keep": [
+    "阿莫西林"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g163",
+   "lang": "zh",
+   "text": "身份证 11010519491231002X",
+   "pii": [
+    "11010519491231002X"
+   ],
+   "keep": [],
+   "note": "dev-2"
+  },
+  {
+   "id": "g164",
+   "lang": "en",
+   "text": "HKID A123456(3) Paracetamol",
+   "pii": [
+    "A123456(3)"
+   ],
+   "keep": [
+    "Paracetamol"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g165",
+   "lang": "en",
+   "text": "hn 6512345 cetirizine",
+   "pii": [
+    "6512345"
+   ],
+   "keep": [
+    "cetirizine"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g166",
+   "lang": "th",
+   "text": "HN 65O1234 ยาแก้แพ้",
+   "pii": [
+    "65O1234"
+   ],
+   "keep": [
+    "ยาแก้แพ้"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g167",
+   "lang": "th",
+   "text": "บัตรประชาชน 1234567890123",
+   "pii": [
+    "1234567890123"
+   ],
+   "keep": [],
+   "note": "dev-2"
+  },
+  {
+   "id": "g168",
+   "lang": "en",
+   "text": "Passport No. AA1234567\nIBUPROFEN 200 mg",
+   "pii": [
+    "AA1234567"
+   ],
+   "keep": [
+    "IBUPROFEN 200 mg"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g169",
+   "lang": "th",
+   "text": "ชื่อผู้ป่วย สมมติ ใจทดสอบ\nบ้านเลขที่ 12/3 หมู่ 5 ต.ทดลอง อ.เมือง จ.ขอนแก่น 40000",
+   "pii": [
+    "สมมติ ใจทดสอบ",
+    "12/3 หมู่ 5 ต.ทดลอง อ.เมือง จ.ขอนแก่น 40000"
+   ],
+   "keep": [],
+   "note": "dev-2"
+  },
+  {
+   "id": "g170",
+   "lang": "th",
+   "text": "ร้านยาสาธิต\nสมพร ใจสมมติ\n55 ซอย 3 ถนนสาธิต แขวงทดลอง เขตบางรัก กรุงเทพฯ 10500\nรับประทานครั้งละ 1 เม็ด",
+   "pii": [
+    "สมพร ใจสมมติ",
+    "55 ซอย 3 ถนนสาธิต แขวงทดลอง เขตบางรัก กรุงเทพฯ 10500"
+   ],
+   "keep": [
+    "รับประทานครั้งละ 1 เม็ด"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g171",
+   "lang": "zh",
+   "text": "患者姓名：钱样例\n地址：北京市朝阳区样例路12号",
+   "pii": [
+    "钱样例",
+    "北京市朝阳区样例路12号"
+   ],
+   "keep": [],
+   "note": "dev-2"
+  },
+  {
+   "id": "g172",
+   "lang": "th",
+   "text": "บาร์โค้ด 8850006939727\nยาแก้ไอ",
+   "pii": [],
+   "keep": [
+    "8850006939727"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g173",
+   "lang": "th",
+   "text": "8851234567893\nขนมอบกรอบ",
+   "pii": [],
+   "keep": [
+    "8851234567893"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g174",
+   "lang": "en",
+   "text": "Manufactured by Example Co., Ltd.\ninfo@example-brand.test\nCall 1-800-555-0100",
+   "pii": [],
+   "keep": [
+    "info@example-brand.test",
+    "1-800-555-0100"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g175",
+   "lang": "en",
+   "text": "Customer care 1-888-123-4567",
+   "pii": [],
+   "keep": [
+    "1-888-123-4567"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g176",
+   "lang": "en",
+   "text": "Dr. Sample Laboratories\nVitamin D3 1000 IU",
+   "pii": [],
+   "keep": [
+    "Dr. Sample Laboratories"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g177",
+   "lang": "th",
+   "text": "ดร.สมุนไพร ยาหอมตำรับไทย",
+   "pii": [],
+   "keep": [
+    "ดร.สมุนไพร"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g178",
+   "lang": "th",
+   "text": "คุณยายสมศรี เภสัช ยาดมสมุนไพร",
+   "pii": [],
+   "keep": [
+    "คุณยายสมศรี เภสัช"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g179",
+   "lang": "th",
+   "text": "HN 6 5 1 2 3 4 5\nยาแก้แพ้",
+   "pii": [
+    "6 5 1 2 3 4 5"
+   ],
+   "keep": [
+    "ยาแก้แพ้"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g180",
+   "lang": "en",
+   "text": "H.N. 6512345\nCETIRIZINE",
+   "pii": [
+    "6512345"
+   ],
+   "keep": [
+    "CETIRIZINE"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g181",
+   "lang": "en",
+   "text": "Hosp. No 778899 IBUPROFEN",
+   "pii": [
+    "778899"
+   ],
+   "keep": [
+    "IBUPROFEN"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g182",
+   "lang": "zh",
+   "text": "MRN/病歷號碼: A123456 普拿疼",
+   "pii": [
+    "A123456"
+   ],
+   "keep": [
+    "普拿疼"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g183",
+   "lang": "zh",
+   "text": "姓名：王小明\n病歷號碼：A1234567\n民國113年11月10日\n每日三次",
+   "pii": [
+    "王小明",
+    "A1234567"
+   ],
+   "keep": [
+    "每日三次"
+   ],
+   "note": "dev-2"
+  },
+  {
+   "id": "g184",
+   "lang": "zh",
+   "text": "藥袋\n姓名 林測試\n113/11/10 調劑",
+   "pii": [
+    "林測試"
+   ],
+   "keep": [],
+   "note": "dev-2"
+  },
+  {
+   "id": "g185",
+   "lang": "zh",
+   "text": "範例診所\n王樣本 先生\n身分證字號 A123456789\n看診日期 113/11/08\n普拿疼錠 500mg\n每日三次 每次一粒 飯後服用\n共 9 粒",
+   "pii": [
+    "A123456789"
+   ],
+   "keep": [
+    "普拿疼錠 500mg"
+   ],
+   "note": "dev-2",
+   "image": "block"
+  },
+  {
+   "id": "g186",
+   "lang": "zh",
+   "text": "仁範耳鼻喉科診所 藥袋\n姓名：陳範例\n病歷號：0012345\n藥名：Amoxicillin 500mg\n用法：一天三次，每次一顆，飯後\n調劑日期：113.11.08\n藥師：林樣本",
+   "pii": [
+    "陳範例",
+    "0012345"
+   ],
+   "keep": [
+    "Amoxicillin 500mg"
+   ],
+   "note": "dev-2",
+   "image": "block"
+  },
+  {
+   "id": "g187",
+   "lang": "zh",
+   "text": "範例聯合門診\n林樣本 女 45歲\n門診日期 2026/11/08 科別 家醫科\nLoratadine 10mg 錠\n每日一次 每次一粒 睡前\n調劑藥師 張範例",
+   "pii": [],
+   "keep": [
+    "Loratadine 10mg"
+   ],
+   "note": "dev-2",
+   "image": "block"
+  },
+  {
+   "id": "g188",
+   "lang": "zh",
+   "text": "健保特約藥局\n領藥人 黃範例\nF223456786\n處方箋來源：範例醫院\nMetformin 500mg\n早晚飯後各一粒\n給藥日數 28 天",
+   "pii": [
+    "F223456786"
+   ],
+   "keep": [
+    "Metformin 500mg"
+   ],
+   "note": "dev-2",
+   "image": "block"
+  },
+  {
+   "id": "g189",
+   "lang": "zh",
+   "text": "王樣本\nB123456780\n每日三次 飯後",
+   "pii": [
+    "B123456780"
+   ],
+   "keep": [
+    "每日三次"
+   ],
+   "note": "dev-2",
+   "image": "block"
+  },
+  {
+   "id": "g190",
+   "lang": "zh",
+   "text": "上海市示例区中心医院 门诊\n张示例 男 52岁\n就诊卡号 6001234567\n科别：内分泌科\n二甲双胍片 0.5g×20片\n用法：口服 每次1片 一日2次\n发药窗口 3 号",
+   "pii": [],
+   "keep": [
+    "二甲双胍片"
+   ],
+   "note": "dev-2",
+   "image": "block"
+  },
+  {
+   "id": "g191",
+   "lang": "zh",
+   "text": "门诊处方\n费别：医保\n李示例 女 34岁\n科室：呼吸内科\n阿莫西林胶囊 0.25g\n每次2粒 一日3次 口服\n医师：样本华\n调配：测试明",
+   "pii": [],
+   "keep": [
+    "阿莫西林胶囊"
+   ],
+   "note": "dev-2",
+   "image": "block"
+  },
+  {
+   "id": "g192",
+   "lang": "zh",
+   "text": "上海示例社区卫生服务中心\n门诊药房\n样本华\n就诊日期 2026-11-10\n氨氯地平片 5mg\n一日一次 每次一片\n处方医师 王示例",
+   "pii": [],
+   "keep": [
+    "氨氯地平片 5mg"
+   ],
+   "note": "dev-2",
+   "image": "block"
+  },
+  {
+   "id": "g193",
+   "lang": "zh",
+   "text": "门诊用药指导单\n测试明 病历 20241110088\n硝苯地平控释片 30mg\n每日1次 每次1片 整片吞服\n请遵医嘱",
+   "pii": [],
+   "keep": [
+    "硝苯地平控释片"
+   ],
+   "note": "dev-2",
+   "image": "block"
+  },
+  {
+   "id": "g194",
+   "lang": "zh",
+   "text": "张示例 男 52岁\n阿司匹林肠溶片 100mg\n每日1次 每次1片",
+   "pii": [],
+   "keep": [
+    "阿司匹林肠溶片"
+   ],
+   "note": "dev-2",
+   "image": "block"
+  },
+  {
+   "id": "g195",
+   "lang": "zh",
+   "text": "阿莫西林胶囊 0.25g×24粒\n本品为处方药，凭医师处方销售、购买和使用\n如症状未缓解，请及时就诊\n请咨询医师或药师\n国药准字H44021351",
+   "pii": [],
+   "keep": [
+    "国药准字H44021351",
+    "0.25g×24粒"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g196",
+   "lang": "zh",
+   "text": "普拿樣本錠 500毫克\n警語：除非藥師、藥劑生或醫師指示，孕婦及授乳婦不建議自行使用\n衛署藥製字第012345號",
+   "pii": [],
+   "keep": [
+    "衛署藥製字第012345號"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  },
+  {
+   "id": "g197",
+   "lang": "zh",
+   "text": "感冒灵颗粒\nOTC 甲类 非处方药\n适用年龄：成人\n每次1袋 一日3次",
+   "pii": [],
+   "keep": [
+    "每次1袋"
+   ],
+   "note": "dev-2",
+   "image": "allow"
+  }
+ ]
+}

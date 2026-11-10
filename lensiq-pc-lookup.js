@@ -625,10 +625,13 @@
       if (st.rows) for (const r of st.rows.filter(x => x.state === "could_not_check")) cant.push(`${S[r.source] || r.source}: ${(REASON()[r.reason]) || T("md.pc.l.r.down", "แหล่งข้อมูลไม่ตอบ")}`);
       else if (st.plan.length) cant.push(T("md.pc.l.cNotYet", "ยังไม่ได้ตรวจกับแหล่งข้อมูลทางการ (ต้องกดปุ่มด้านบนก่อน)"));
       if (cant.length) h += `<div id="pcLookupCant"><h4>${esc(T("md.pc.l.cantH", "ตรวจไม่ได้"))}</h4><ul class="md-list">${cant.map(x => `<li data-cant>${esc(x)}</li>`).join("")}</ul></div>`;
+      // P7: the opt-in "ask AI" step (lensiq-pc-ai.js) paints here, under the on-device and official results, never over them
+      h += `<div id="pcAiSlot"></div>`;
       h += `<p class="hint">${esc(T("md.pc.l.credit",
         "ที่มา: TMT ฉบับ 17 ก.พ. 2563 โดย สมสท. (data.go.th, CC BY) ดัดแปลงเป็นตารางค้นหา · บัญชียาหลักแห่งชาติ 2567 (ราชกิจจานุเบกษา; ไฟล์ thai-nlem-api, MIT) · " +
         "รายการเตือนสรุปข้อเท็จจริงจากประกาศของ อย."))}</p></section>`;
       slot.innerHTML = h;
+      try { W.dispatchEvent(new CustomEvent("lq-pc-card")); } catch { /* old browser: no AI step */ }
       const go = slot.querySelector("#pcLookupGo");
       if (go) go.addEventListener("click", check);
     }

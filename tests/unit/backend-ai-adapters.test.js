@@ -603,3 +603,64 @@ test("43 Gemini held out of every Product Check default chain (pc_fields / pc_cl
   assert.equal(g.features.pc_fields.chain[0].provider, "gemini", "admin can still add it");
   assert.match(readFileSync(join(ROOT, "docs", "AI-GATEWAY.md"), "utf8"), /Gemini[^\n]*18\+[^\n]*default/i);
 });
+
+// ---- 44: OpenRouter 403 = key / credit limit vs moderation (P8 finding, 2026-11-10) ---------------------------------
+
+const OR_HASH = "f".repeat(64);
+const OR_LIMIT_MSG = `Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/default/keys/${OR_HASH} $11.16 of $11.00 used; does not reset.`;
+const OR_LIMIT = { error: { code: 403, message: OR_LIMIT_MSG } };
+const OR_MOD = { error: { code: 403, message: "Input was flagged by moderation", metadata: { reasons: ["violence"], flagged_input: "abc", provider_name: "X" } } };
+/** @param {string} s @param {string} what */
+const noLeak = (s, what) => {
+  for (const bad of [OR_HASH, OR_HASH.slice(0, 16), "Key limit exceeded", "workspaces/default/keys", "$11.16", "flagged by moderation"]) {
+    assert.ok(!s.includes(bad), `${what} leaks "${bad.slice(0, 20)}"`);
+  }
+};
+
+test("44a OpenRouter 403 key limit -> auth; moderation 403 -> content_policy_input; unknown 403 -> auth; body never in the result", async () => {
+  const o = await adapterOf("openrouter");
+  const entry = { provider: "openrouter", model: "openai/gpt-6-luna" };
+  const run = (body, status) => o.call(REQ, entry, ctxOf(mockFetch(() => json(body, status))));
+  for (const status of [403, 200]) { // HTTP 403, and the HTTP 200 + error-object form
+    const lim = await run(OR_LIMIT, status);
+    assert.equal(lim.kind, "auth", "key limit, HTTP " + status);
+    noLeak(JSON.stringify(lim), "limit result");
+    const mod = await run(OR_MOD, status);
+    assert.equal(mod.kind, "content_policy_input", "moderation, HTTP " + status);
+    noLeak(JSON.stringify(mod), "moderation result");
+  }
+  const { kindOf403 } = await import(A + "openrouter.js");
+  assert.equal(kindOf403({ error: { code: 403, message: "Insufficient credits for this request" } }), "auth");
+  assert.equal(kindOf403({ error: { code: 403, message: "Spending limit exceeded" } }), "auth");
+  assert.equal(kindOf403({ error: { code: 403, message: "flagged", metadata: { reasons: [] } } }), "content_policy_input");
+  assert.equal(kindOf403({ error: { code: 403, message: "Forbidden" } }), "auth", "unknown 403 is a configuration error, not a content refusal");
+  assert.equal(kindOf403(null), "auth");
+});
+
+test("44b through the gateway: key-limit 403 raises the owner alert; moderation 403 does not; no body in logs, alerts or result", async () => {
+  const { runFeature } = await import(B + "ai/gateway.js");
+  const { putGateway } = await import(B + "ai/settings.js");
+  const F = feature("t_403");
+  const one = async body => {
+    const env = createEnv({ OPENROUTER_API_KEY: KEY });
+    await putGateway(env.DB, { enabled: true, features: { t_403: { enabled: true, chain: [{ provider: "openrouter", model: "openai/gpt-6-luna" }], monthlyBudgetUsd: 1 } } }, { features: F });
+    const { out, lines } = await captureLogs(() => runFeature(env, "t_403", REQ, { deps: { aiFeatures: F, aiFetch: mockFetch(() => json(body, 403)) } }));
+    const al = await env.DB.prepare("SELECT kind, detail FROM alerts").all();
+    return { r: out, lines, alerts: al.results };
+  };
+  const lim = await one(OR_LIMIT);
+  assert.equal(lim.r.ok, false);
+  assert.equal(lim.r.attempts[0].kind, "auth");
+  assert.notEqual(lim.r.reason, "content_policy", "the user is not told the input was refused");
+  assert.ok(lim.alerts.some(a => a.kind === "ai_config_error" && /openrouter/.test(a.detail) && /auth/.test(a.detail)), "owner alerted: " + JSON.stringify(lim.alerts));
+  assert.ok(lim.lines.some(l => /"kind":"auth"/.test(l)), "attempt logged as auth");
+  for (const [s, what] of [[JSON.stringify(lim.r), "result"], [lim.lines.join("\n"), "log"], [JSON.stringify(lim.alerts), "alert"]]) {
+    noLeak(s, what);
+    assert.ok(!s.includes(KEY), what + " key");
+  }
+  const mod = await one(OR_MOD);
+  assert.equal(mod.r.attempts[0].kind, "content_policy_input");
+  assert.equal(mod.r.reason, "content_policy");
+  assert.ok(!mod.alerts.some(a => a.kind === "ai_config_error"), "a moderation refusal is not a configuration alert");
+  for (const [s, what] of [[JSON.stringify(mod.r), "result"], [mod.lines.join("\n"), "log"]]) noLeak(s, what);
+});

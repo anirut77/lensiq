@@ -1,0 +1,700 @@
+{
+ "name": "P7 patient-name / personal-identifier guard — HOLD-OUT set (separate from the dev set)",
+ "source": "synthetic (written 2026-11-10 after the dev-2 fixes and BEFORE the guard was run on it; every name, number and ID is invented)",
+ "frozen": "2026-11-10; SHA-256 in p7-guard-holdout.sha256, written before the single scoring run",
+ "rules": "pii = strings that must be fully removed; keep = strings that must survive untouched; image = what imageCheck() must say (default: block when pii is listed, allow otherwise)",
+ "items": [
+  {
+   "id": "h001",
+   "lang": "th",
+   "text": "โรงพยาบาลบ้านสาธิต\nชื่อ-นามสกุล: นางมะลิวัลย์ ทดลองศรี\nHN 66-004512\nAMLODIPINE 5 mg\nรับประทานวันละ 1 ครั้ง หลังอาหารเช้า",
+   "pii": [
+    "มะลิวัลย์ ทดลองศรี",
+    "66-004512"
+   ],
+   "keep": [
+    "AMLODIPINE 5 mg",
+    "หลังอาหารเช้า"
+   ]
+  },
+  {
+   "id": "h002",
+   "lang": "th",
+   "text": "ร้านยาเภสัชสาธิต\nคุณ ก้องภพ สมมุติชัย\nโทร ๐๙๒-๓๔๕-๖๗๘๙\nยาแก้อักเสบ ครั้งละ 1 แคปซูล",
+   "pii": [
+    "ก้องภพ สมมุติชัย",
+    "๐๙๒-๓๔๕-๖๗๘๙"
+   ],
+   "keep": [
+    "ยาแก้อักเสบ ครั้งละ 1 แคปซูล"
+   ]
+  },
+  {
+   "id": "h003",
+   "lang": "th",
+   "text": "ชื่อผู้ป่วย ด.ญ.ใบบุญ จำลองดี อายุ 7 ปี\nยาน้ำลดไข้ ครั้งละ 5 มล.",
+   "pii": [
+    "ใบบุญ จำลองดี"
+   ],
+   "keep": [
+    "ยาน้ำลดไข้ ครั้งละ 5 มล."
+   ]
+  },
+  {
+   "id": "h004",
+   "lang": "th",
+   "text": "ผู้ป่วย: นาย ธนา กิตติสมมติ  เพศ ชาย\nเลขที่ผู้ป่วย 0045/67\nวันที่ 3 พ.ย. 2567",
+   "pii": [
+    "ธนา กิตติสมมติ",
+    "0045/67"
+   ],
+   "keep": []
+  },
+  {
+   "id": "h005",
+   "lang": "th",
+   "text": "เลขบัตรประชาชน 3 5501 00246 80 1\nชื่อ น.ส. ปรียา ตัวอย่างงาม",
+   "pii": [
+    "3 5501 00246 80 1",
+    "ปรียา ตัวอย่างงาม"
+   ],
+   "keep": []
+  },
+  {
+   "id": "h006",
+   "lang": "th",
+   "text": "คนไข้ นางสาว อรุณี  แสงสมมติ\nเบอร์ 06-1234-5678",
+   "pii": [
+    "อรุณี  แสงสมมติ",
+    "06-1234-5678"
+   ],
+   "keep": []
+  },
+  {
+   "id": "h007",
+   "lang": "th",
+   "text": "วัน/เดือน/ปีเกิด 15 สิงหาคม 2531\nยาลดความดัน",
+   "pii": [
+    "15 สิงหาคม 2531"
+   ],
+   "keep": [
+    "ยาลดความดัน"
+   ]
+  },
+  {
+   "id": "h008",
+   "lang": "th",
+   "text": "เกิดวันที่ ๒๑ ก.ย. ๒๕๔๐\nชื่อเล่น ต้นกล้า",
+   "pii": [
+    "๒๑ ก.ย. ๒๕๔๐",
+    "ต้นกล้า"
+   ],
+   "keep": []
+  },
+  {
+   "id": "h009",
+   "lang": "th",
+   "text": "คลินิกทันตกรรมสาธิต\nทพญ. สมมติ รักฟัน\nผู้ป่วย นายกล้า ทดสอบใจ\nยาแก้ปวด ครั้งละ 1 เม็ด เมื่อปวด",
+   "pii": [
+    "สมมติ รักฟัน",
+    "กล้า ทดสอบใจ"
+   ],
+   "keep": [
+    "ยาแก้ปวด ครั้งละ 1 เม็ด เมื่อปวด"
+   ]
+  },
+  {
+   "id": "h010",
+   "lang": "th",
+   "text": "รพ.สต.ตัวอย่าง\nพระ ปัญญา ทดลองธรรม\nยาธาตุน้ำขาว รับประทานครั้งละ 2 ช้อนชา",
+   "pii": [
+    "ปัญญา ทดลองธรรม"
+   ],
+   "keep": [
+    "ยาธาตุน้ำขาว"
+   ]
+  },
+  {
+   "id": "h011",
+   "lang": "th",
+   "text": "ใบสั่งยา\nจ.ส.อ. วีระ สมมุติกล้า\nติดต่อญาติ 0 2987 6543",
+   "pii": [
+    "วีระ สมมุติกล้า",
+    "0 2987 6543"
+   ],
+   "keep": []
+  },
+  {
+   "id": "h012",
+   "lang": "th",
+   "text": "ผู้รับยา: แม่ชี ศรีสุข สาธิตบุญ\nยาหอม 1 ขวด",
+   "pii": [
+    "ศรีสุข สาธิตบุญ"
+   ],
+   "keep": [
+    "ยาหอม 1 ขวด"
+   ]
+  },
+  {
+   "id": "h013",
+   "lang": "th",
+   "text": "ร้านยาสาธิต 24 ชม.\nคุณนิด (ลูกค้าประจำ)\nยาคุมกำเนิด 1 แผง",
+   "pii": [
+    "นิด"
+   ],
+   "keep": [
+    "ยาคุมกำเนิด 1 แผง"
+   ]
+  },
+  {
+   "id": "h014",
+   "lang": "th",
+   "text": "Line ID ผู้ป่วย: @mockpatient\nอีเมล ทดสอบ: mock.user99@example.test",
+   "pii": [
+    "mock.user99@example.test"
+   ],
+   "keep": []
+  },
+  {
+   "id": "h015",
+   "lang": "th",
+   "text": "ชื่อผู้ป่วย  ส ม ห ญิ ง  ใ จ ดี\nยาแก้แพ้",
+   "pii": [
+    "ส ม ห ญิ ง  ใ จ ดี"
+   ],
+   "keep": [
+    "ยาแก้แพ้"
+   ]
+  },
+  {
+   "id": "h016",
+   "lang": "en",
+   "text": "GREENVALE HOSPITAL PHARMACY\nPatient: Mr. Edwin Sampleford\nMRN 0099123\nAMOXICILLIN 500 mg capsule\nTake 1 capsule three times daily",
+   "pii": [
+    "Edwin Sampleford",
+    "0099123"
+   ],
+   "keep": [
+    "AMOXICILLIN 500 mg capsule",
+    "Take 1 capsule three times daily"
+   ]
+  },
+  {
+   "id": "h017",
+   "lang": "en",
+   "text": "Name : Clara Nowhere   Age: 54\nPhone 081 555 0199",
+   "pii": [
+    "Clara Nowhere",
+    "081 555 0199"
+   ],
+   "keep": []
+  },
+  {
+   "id": "h018",
+   "lang": "en",
+   "text": "Rx for: Ms. Hana Testwood\nDate of Birth 12 Feb 1979\nSIMVASTATIN 20 mg",
+   "pii": [
+    "Hana Testwood",
+    "12 Feb 1979"
+   ],
+   "keep": [
+    "SIMVASTATIN 20 mg"
+   ]
+  },
+  {
+   "id": "h019",
+   "lang": "en",
+   "text": "Dispensed to: Khun Arthit Mockchai\nHN: 7712-09\nTake 2 tablets at bedtime",
+   "pii": [
+    "Arthit Mockchai",
+    "7712-09"
+   ],
+   "keep": [
+    "Take 2 tablets at bedtime"
+   ]
+  },
+  {
+   "id": "h020",
+   "lang": "en",
+   "text": "PATIENT NAME: ROBERT EXEMPLAR\nD.O.B. 07/09/1962\nMETFORMIN 850 mg",
+   "pii": [
+    "ROBERT EXEMPLAR",
+    "07/09/1962"
+   ],
+   "keep": [
+    "METFORMIN 850 mg"
+   ]
+  },
+  {
+   "id": "h021",
+   "lang": "en",
+   "text": "Prepared for Mrs Ingrid Placeholm\nContact: ingrid.p@example.test / +66 89 123 4567",
+   "pii": [
+    "Ingrid Placeholm",
+    "ingrid.p@example.test",
+    "+66 89 123 4567"
+   ],
+   "keep": []
+  },
+  {
+   "id": "h022",
+   "lang": "en",
+   "text": "Sunrise Clinic\nDr. Wanchai Samplemed\nFor: Baby Pim Testrak (nickname Pimmy)\nParacetamol syrup 120 mg/5 ml",
+   "pii": [
+    "Wanchai Samplemed",
+    "Pim Testrak"
+   ],
+   "keep": [
+    "Paracetamol syrup 120 mg/5 ml"
+   ]
+  },
+  {
+   "id": "h023",
+   "lang": "en",
+   "text": "Pt name - Lucas Demoreau\nVN 2567-88812\nCEFIXIME 100 mg",
+   "pii": [
+    "Lucas Demoreau",
+    "2567-88812"
+   ],
+   "keep": [
+    "CEFIXIME 100 mg"
+   ]
+  },
+  {
+   "id": "h024",
+   "lang": "en",
+   "text": "Born on March 3, 1984 · Emergency contact 089-765-4321",
+   "pii": [
+    "March 3, 1984",
+    "089-765-4321"
+   ],
+   "keep": []
+  },
+  {
+   "id": "h026",
+   "lang": "zh",
+   "text": "示例人民医院 药房\n患者：赵测试\n病历号：MZ20240711\n用法用量：每日两次，每次一片",
+   "pii": [
+    "赵测试",
+    "MZ20240711"
+   ],
+   "keep": [
+    "用法用量：每日两次，每次一片"
+   ]
+  },
+  {
+   "id": "h027",
+   "lang": "zh",
+   "text": "姓名 钱样例  性别 女  年龄 36\n手机 186 1234 5678",
+   "pii": [
+    "钱样例",
+    "186 1234 5678"
+   ],
+   "keep": []
+  },
+  {
+   "id": "h028",
+   "lang": "zh",
+   "text": "就诊人：孙示范\n出生日期 1990年12月1日\n头孢呋辛酯片",
+   "pii": [
+    "孙示范",
+    "1990年12月1日"
+   ],
+   "keep": [
+    "头孢呋辛酯片"
+   ]
+  },
+  {
+   "id": "h029",
+   "lang": "zh",
+   "text": "社区诊所\n周测试先生\n每次2粒，每日3次",
+   "pii": [
+    "周测试先生"
+   ],
+   "keep": [
+    "每次2粒，每日3次"
+   ]
+  },
+  {
+   "id": "h030",
+   "lang": "zh",
+   "text": "住院号 ZY-778812 病人 吴样本",
+   "pii": [
+    "ZY-778812",
+    "吴样本"
+   ],
+   "keep": []
+  },
+  {
+   "id": "h031",
+   "lang": "th",
+   "text": "ชื่อผู้ป่วย: Mr. Kevin Mockley (ชาวต่างชาติ)\nPassport ขอไม่ระบุ\nยาแก้เมารถ",
+   "pii": [
+    "Kevin Mockley"
+   ],
+   "keep": [
+    "ยาแก้เมารถ"
+   ]
+  },
+  {
+   "id": "h032",
+   "lang": "th",
+   "text": "โรงพยาบาลสาธิต\nนาย  สมปอง  ทดลองใช้\nวิธีใช้: ทาบาง ๆ วันละ 2 ครั้ง",
+   "pii": [
+    "สมปอง  ทดลองใช้"
+   ],
+   "keep": [
+    "ทาบาง ๆ วันละ 2 ครั้ง"
+   ]
+  },
+  {
+   "id": "h033",
+   "lang": "th",
+   "text": "เภสัชกรผู้จ่ายยา ภญ.วิภา สมมุติเภสัช\nผู้ป่วย นางบัวผัน แสนทดสอบ",
+   "pii": [
+    "วิภา สมมุติเภสัช",
+    "บัวผัน แสนทดสอบ"
+   ],
+   "keep": []
+  },
+  {
+   "id": "h034",
+   "lang": "th",
+   "text": "ผู้ป่วย ด.ช. ภูผา ตัวอย่างไทย  น้ำหนัก 18 กก.\nยาน้ำแก้ไอ ครั้งละ 5 มล.",
+   "pii": [
+    "ภูผา ตัวอย่างไทย"
+   ],
+   "keep": [
+    "ยาน้ำแก้ไอ ครั้งละ 5 มล.",
+    "18 กก."
+   ]
+  },
+  {
+   "id": "h035",
+   "lang": "th",
+   "text": "โทรศัพท์ผู้ป่วย 0812345670 ต่อ 1\nHN๖๗๐๐๑๒๓",
+   "pii": [
+    "0812345670",
+    "๖๗๐๐๑๒๓"
+   ],
+   "keep": []
+  },
+  {
+   "id": "h036",
+   "lang": "th",
+   "text": "ร้านยาสาธิต\nสมพร ใจสมมติ\nรับประทานครั้งละ 1 เม็ด วันละ 2 ครั้ง",
+   "pii": [],
+   "keep": [
+    "รับประทานครั้งละ 1 เม็ด วันละ 2 ครั้ง"
+   ],
+   "image": "block",
+   "note": "bare name, no cue: the stated limit (text keeps it, photo blocked)"
+  },
+  {
+   "id": "h037",
+   "lang": "en",
+   "text": "Northside Pharmacy\nGrace Exampleton\nTake 1 tablet every morning",
+   "pii": [],
+   "keep": [
+    "Take 1 tablet every morning"
+   ],
+   "image": "block",
+   "note": "bare name, no cue"
+  },
+  {
+   "id": "h038",
+   "lang": "th",
+   "text": "ยาแก้ปวดลดไข้ SAMPLAMOL 500\nเลขทะเบียน 1A 211/62\nผลิตโดย บริษัท สาธิตฟาร์มา จำกัด โทร 02-555-0123\nรับประทานครั้งละ 1-2 เม็ด ทุก 4-6 ชั่วโมง",
+   "pii": [],
+   "keep": [
+    "1A 211/62",
+    "02-555-0123",
+    "รับประทานครั้งละ 1-2 เม็ด ทุก 4-6 ชั่วโมง",
+    "SAMPLAMOL 500"
+   ],
+   "image": "allow"
+  },
+  {
+   "id": "h039",
+   "lang": "th",
+   "text": "ผลิตภัณฑ์เสริมอาหาร ตรานางสาวสวย\nอย. 12-1-04567-5-0012\nผลิตและจำหน่ายโดย บจก. ตัวอย่างเฮลท์\nโทร. 034-123-456",
+   "pii": [],
+   "keep": [
+    "นางสาวสวย",
+    "12-1-04567-5-0012",
+    "034-123-456"
+   ],
+   "image": "allow"
+  },
+  {
+   "id": "h040",
+   "lang": "th",
+   "text": "ครีมคุณนายสาธิต สูตรเข้มข้น\nเลขที่ใบรับจดแจ้ง 10-1-6512340001\nวันผลิต ๐๑/๐๓/๒๕๖๘ หมดอายุ ๐๑/๐๓/๒๕๗๑",
+   "pii": [],
+   "keep": [
+    "ครีมคุณนายสาธิต",
+    "10-1-6512340001",
+    "๐๑/๐๓/๒๕๖๘",
+    "๐๑/๐๓/๒๕๗๑"
+   ],
+   "image": "allow"
+  },
+  {
+   "id": "h041",
+   "lang": "th",
+   "text": "ยาสามัญประจำบ้าน ยาธาตุน้ำแดง\nทะเบียนยาเลขที่ G 123/2550\nสำหรับผู้ป่วย ท้องอืด ท้องเฟ้อ\nรับประทานครั้งละ 1 ช้อนโต๊ะ",
+   "pii": [],
+   "keep": [
+    "G 123/2550",
+    "ท้องอืด ท้องเฟ้อ",
+    "รับประทานครั้งละ 1 ช้อนโต๊ะ"
+   ],
+   "image": "allow"
+  },
+  {
+   "id": "h042",
+   "lang": "th",
+   "text": "คำเตือน: ผู้ป่วยโรคหัวใจ ความดันโลหิตสูง ห้ามรับประทาน\nเด็กอายุต่ำกว่า 12 ปี ไม่ควรใช้",
+   "pii": [],
+   "keep": [
+    "ผู้ป่วยโรคหัวใจ ความดันโลหิตสูง ห้ามรับประทาน",
+    "เด็กอายุต่ำกว่า 12 ปี"
+   ],
+   "image": "allow"
+  },
+  {
+   "id": "h043",
+   "lang": "th",
+   "text": "ยาดมสมุนไพร ตราพระอาทิตย์\nเลขทะเบียน G 45/2560\nศูนย์บริการลูกค้า 1234",
+   "pii": [],
+   "keep": [
+    "ตราพระอาทิตย์",
+    "G 45/2560",
+    "1234"
+   ],
+   "image": "allow"
+  },
+  {
+   "id": "h044",
+   "lang": "en",
+   "text": "Grandma Rose's Cough Drops\nMenthol 5 mg\nDistributed by Mock Foods Ltd.\nCustomer care +66 2 777 8899\nwww.example.test",
+   "pii": [],
+   "keep": [
+    "Grandma Rose's Cough Drops",
+    "Menthol 5 mg",
+    "+66 2 777 8899"
+   ],
+   "image": "allow"
+  },
+  {
+   "id": "h045",
+   "lang": "en",
+   "text": "Dr. Fixwell Joint Formula\nGlucosamine 1500 mg\nTake 2 tablets daily with food\nLot 23B19 EXP 04/2028",
+   "pii": [],
+   "keep": [
+    "Dr. Fixwell Joint Formula",
+    "Take 2 tablets daily with food",
+    "23B19",
+    "04/2028"
+   ],
+   "image": "allow"
+  },
+  {
+   "id": "h046",
+   "lang": "en",
+   "text": "Mr. Bright Whitening Toothpaste\nSodium fluoride 0.24%\nAUST L 345678",
+   "pii": [],
+   "keep": [
+    "Mr. Bright Whitening Toothpaste",
+    "AUST L 345678"
+   ],
+   "image": "allow"
+  },
+  {
+   "id": "h047",
+   "lang": "en",
+   "text": "Patient information: read this leaflet carefully\nIBUPROFEN 400 mg film-coated tablets\nPL 12345/0067",
+   "pii": [],
+   "keep": [
+    "Patient information",
+    "IBUPROFEN 400 mg film-coated tablets",
+    "PL 12345/0067"
+   ],
+   "image": "allow"
+  },
+  {
+   "id": "h048",
+   "lang": "en",
+   "text": "Name of the medicinal product: Exampladol 50 mg\nMarketing authorisation holder: Mock Pharma GmbH, Tel +49 30 1234567",
+   "pii": [],
+   "keep": [
+    "Exampladol 50 mg",
+    "Mock Pharma GmbH"
+   ],
+   "image": "allow"
+  },
+  {
+   "id": "h049",
+   "lang": "en",
+   "text": "Rx only\nNDC 12345-678-90\nKeep at 20° to 25°C (68° to 77°F)\nMfd. for Example Labs Inc., Tel 1-800-555-0100",
+   "pii": [],
+   "keep": [
+    "Rx only",
+    "NDC 12345-678-90",
+    "20° to 25°C"
+   ],
+   "image": "allow"
+  },
+  {
+   "id": "h050",
+   "lang": "en",
+   "text": "Miss Daisy Herbal Shampoo 400 ml\nBatch 0567 Exp 09.2027\nMade in Thailand",
+   "pii": [],
+   "keep": [
+    "Miss Daisy Herbal Shampoo",
+    "0567",
+    "09.2027"
+   ],
+   "image": "allow"
+  },
+  {
+   "id": "h051",
+   "lang": "en",
+   "text": "Recommended by Dr. Sample for daily use\nVitamin D3 1000 IU\nMAL19876543N",
+   "pii": [],
+   "keep": [
+    "Vitamin D3 1000 IU",
+    "MAL19876543N"
+   ],
+   "image": "allow"
+  },
+  {
+   "id": "h052",
+   "lang": "en",
+   "text": "Barcode 8859876543210\nBest before 2027-06-30\nCall centre 1556",
+   "pii": [],
+   "keep": [
+    "8859876543210",
+    "2027-06-30",
+    "1556"
+   ],
+   "image": "allow"
+  },
+  {
+   "id": "h053",
+   "lang": "zh",
+   "text": "国药准字Z44023456\n用法用量：口服，一次2片，一日3次\n生产企业：示例药业股份有限公司\n电话：020-8888-6666",
+   "pii": [],
+   "keep": [
+    "国药准字Z44023456",
+    "一次2片，一日3次",
+    "020-8888-6666"
+   ],
+   "image": "allow"
+  },
+  {
+   "id": "h054",
+   "lang": "zh",
+   "text": "王老太太凉茶\n配料：水、白砂糖、仙草\n生产日期：2025年6月1日",
+   "pii": [],
+   "keep": [
+    "王老太太凉茶",
+    "2025年6月1日"
+   ],
+   "image": "allow"
+  },
+  {
+   "id": "h055",
+   "lang": "zh",
+   "text": "适用人群：孕妇、哺乳期女士\n不适宜人群：儿童\n保健食品批准文号：国食健注G20190456",
+   "pii": [],
+   "keep": [
+    "孕妇、哺乳期女士",
+    "国食健注G20190456"
+   ],
+   "image": "allow"
+  },
+  {
+   "id": "h056",
+   "lang": "ko",
+   "text": "1일 2회 1회 1포\n제조원: 샘플제약(주) 고객상담실 080-123-4567\n유통기한 2027.03.15",
+   "pii": [],
+   "keep": [
+    "1일 2회 1회 1포",
+    "2027.03.15"
+   ],
+   "image": "allow"
+  },
+  {
+   "id": "h057",
+   "lang": "th",
+   "text": "นมผงสำหรับเด็ก สูตร 3\nอย. 10-3-12345-1-0002\nปริมาณสุทธิ 600 กรัม\nควรบริโภคก่อน ๓๐ มิ.ย. ๒๕๗๐",
+   "pii": [],
+   "keep": [
+    "10-3-12345-1-0002",
+    "600 กรัม",
+    "๓๐ มิ.ย. ๒๕๗๐"
+   ],
+   "image": "allow"
+  },
+  {
+   "id": "h058",
+   "lang": "th",
+   "text": "เจลล้างมือ แอลกอฮอล์ 70%\nเลขที่ใบรับจดแจ้ง 74-1-6300012345\nนำเข้าโดย บริษัท ทดลองเทรด จำกัด 53/1 ถ.สาธิต โทร 02 345 6789",
+   "pii": [],
+   "keep": [
+    "74-1-6300012345",
+    "02 345 6789",
+    "70%"
+   ],
+   "image": "allow"
+  },
+  {
+   "id": "h059",
+   "lang": "th",
+   "text": "สถานพยาบาลสาธิต\nชื่อ นางสาวกานดา ทดลองสุข โทร 091 234 5678\nยาแก้ปวดท้อง",
+   "pii": [
+    "กานดา ทดลองสุข",
+    "091 234 5678"
+   ],
+   "keep": [
+    "ยาแก้ปวดท้อง"
+   ]
+  },
+  {
+   "id": "h060",
+   "lang": "en",
+   "text": "Customer: Ms Nadia Fakeworth\nDOB: 14/11/1993\nTel 02-111-2233",
+   "pii": [
+    "Nadia Fakeworth",
+    "14/11/1993",
+    "02-111-2233"
+   ],
+   "keep": []
+  },
+  {
+   "id": "h061",
+   "lang": "zh",
+   "text": "患者姓名：郑示例 联系电话：139-0000-1111\n用法：每日一次",
+   "pii": [
+    "郑示例",
+    "139-0000-1111"
+   ],
+   "keep": [
+    "每日一次"
+   ]
+  },
+  {
+   "id": "h062",
+   "lang": "th",
+   "text": "ผู้ป่วย น.ส.ลลิตา สาธิตกุล HN 5501234 แพ้ยา เพนิซิลลิน",
+   "pii": [
+    "ลลิตา สาธิตกุล",
+    "5501234"
+   ],
+   "keep": [
+    "แพ้ยา เพนิซิลลิน"
+   ]
+  }
+ ]
+}
