@@ -15,13 +15,19 @@ const { PassThrough } = require("node:stream");
 const { createEnv } = require("./backend-d1-shim.js");
 
 const ROOT = join(__dirname, "..", "..");
-const TOML = readFileSync(join(ROOT, "backend", "wrangler.toml"), "utf8");
+/** the committed file as it is (it carries the real D1 id once the database exists) */
+const TOML_LIVE = readFileSync(join(ROOT, "backend", "wrangler.toml"), "utf8");
+const PLACEHOLDER = "00000000-0000-0000-0000-000000000000";
+/** FIXTURE for every test that drives a tool: the same text with the [env.test] database id back to the placeholder.
+ *  No test runs a tool against the live file or writes to it (tools get this text or a temp copy of it). */
+const TOML = TOML_LIVE.replace(/(\[\[env\.test\.d1_databases\]\][\s\S]*?database_id = ")[0-9a-f-]{36}"/, `$1${PLACEHOLDER}"`);
 const sha = s => createHash("sha256").update(s).digest("hex");
 const guard = () => import(join(ROOT, "tools", "lib", "cf-guard.mjs"));
 /** the [env.test.vars] of wrangler.toml, as the deployed Worker gets them */
 const readTargetsSync = () => ({ vars: Object.fromEntries([...TOML.slice(TOML.indexOf("[env.test.vars]"),
   TOML.indexOf("[[env.test.d1_databases]]")).matchAll(/^([A-Z0-9_]+) = "(.*)"$/gm)].map(m => [m[1], m[2]])) });
-const OTHERS = ["dearday-staging", "aidanex-staging", "aidanex-pet-clinic-pilot", "faksak.com", "tripsdna.com"];
+const OTHERS = ["dearday-staging", "aidanex-staging", "aidanex-pet-clinic-pilot", "faksak.com", "tripsdna.com",
+  "aidanex-sales-staging", "kaguwood-store", "aidanex-pet-clinic"];
 
 /** A fake wrangler. It resolves the script name the way the real one does (secret / tail: `${name}-${env}` when both
  *  flags are given, else --name ?? the environment's name), appends {argv, effective, stdinSha, stdinLen, draft} to
@@ -94,7 +100,27 @@ test("B0 wrangler.toml: [env.test] names only LENSIQ's own new resources and car
   const t = readTargets(TOML);
   assert.deepEqual([t.env, t.worker, t.d1, t.d1Binding], ["test", "lensiq-api-test", "lensiq-test", "DB"]);
   assert.deepEqual([ALLOWED.worker, ALLOWED.d1], [t.worker, t.d1]);
-  assert.equal(t.d1Id, D1_PLACEHOLDER, "the id is a placeholder in the repo: a script fills it at deploy time");
+  assert.equal(t.d1Id, D1_PLACEHOLDER, "the fixture carries the placeholder");
+  // the COMMITTED file: the placeholder (nothing created yet) or exactly the id recorded in deploy/created.json; any other id fails
+  const live = readTargets(TOML_LIVE);
+  assert.deepEqual([live.worker, live.d1, live.d1Binding], [t.worker, t.d1, t.d1Binding]);
+  assert.deepEqual(live.vars, t.vars, "the fixture differs from the committed file in the database id only");
+  assert.equal(TOML_LIVE.replace(live.d1Id, PLACEHOLDER), TOML);
+  const rec = existsSync(join(ROOT, "deploy", "created.json")) ? JSON.parse(readFileSync(join(ROOT, "deploy", "created.json"), "utf8")) : null;
+  const recorded = rec && rec.d1 ? rec.d1.id : null;
+  assert.ok(live.d1Id === D1_PLACEHOLDER || live.d1Id === recorded, `backend/wrangler.toml [env.test] database_id must be the placeholder or the id in deploy/created.json (${recorded})`);
+  if (rec) {
+    assert.deepEqual([rec.environment, rec.worker.name, rec.d1.name, rec.d1.binding], ["test", ALLOWED.worker, ALLOWED.d1, "DB"], "created.json names LENSIQ's own resources only");
+    assert.match(rec.d1.id, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+    assert.notEqual(rec.d1.id, D1_PLACEHOLDER);
+    assert.match(rec.worker.url, /^https:\/\/lensiq-api-test\.[a-z0-9-]+\.workers\.dev$/);
+    assert.match(rec.worker.first_version_id, /^[0-9a-f-]{36}$/);
+    assert.deepEqual(rec.worker.cron, t.crons);
+    assert.match(rec.created, /^\d{4}-\d{2}-\d{2}$/);
+    assert.deepEqual([...rec.never_touched].sort(), [...OTHERS].sort());
+    assert.doesNotMatch(JSON.stringify(rec), /sk-[A-Za-z0-9]|secret"\s*:|token"\s*:|password|api_key/i, "no secret in the record");
+    assert.equal(live.d1Id, recorded, "once the database is recorded as created, the committed config carries its id (a fresh checkout is deployable)");
+  }
   assert.equal(t.workersDev, true);
   assert.equal(t.previewUrls, false);
   assert.match(TOML, /\[env\.test\][\s\S]*?^preview_urls = false$/m, "no public preview / version hostnames");
@@ -345,7 +371,7 @@ test("deploy tool: no secret is written when the Worker is not deployed; migrate
   }
   sb = sandbox();
   try {
-    assert.equal(await D.main(["--apply"], { print: () => {}, env: sb.env }), 3, "placeholder id: refused");
+    assert.equal(await D.main(["--apply"], { print: () => {}, env: sb.env, toml: TOML }), 3, "placeholder id: refused");
     assert.deepEqual(sb.calls(), []);
     assert.equal(await D.main(["--apply"], { print: () => {}, env: { ...sb.env, CLOUDFLARE_API_TOKEN: "x" }, toml: TOML_WITH_ID }), 3, "stray token: refused");
     assert.deepEqual(sb.calls(), []);
@@ -418,6 +444,51 @@ test("environment: wrangler never inherits the shell; a target- or endpoint-chan
     assert.equal(s.code, 0, s.screen);
     assert.ok(sb2.calls().slice(-3).every(c => c.sawEnv.length === 0), "secrets:setup starts wrangler with the allow-listed environment too");
   } finally { sb2.done(); }
+});
+
+test("offline: no test, lint step or CI script can start the real wrangler against the account; tools never touch the committed wrangler.toml", async () => {
+  const G = await guard();
+  const before = readFileSync(join(ROOT, "backend", "wrangler.toml"), "utf8");
+  // 1. under a test runner the real binary is refused for everything but a dry-run bundle, even when a test forgets the fake
+  assert.ok(process.env.NODE_TEST_CONTEXT, "node --test marks its processes");
+  const t = G.readTargets(TOML_WITH_ID);
+  for (const args of [["whoami"], ["d1", "list", "--json"], ["deploy", "--env", "test", "--name", "lensiq-api-test"], ["secret", "put", "X", "--env", "test"],
+    ["d1", "execute", "lensiq-test", "--remote", "--env", "test", "--command", "SELECT 1"], ["deployments", "list", "--env", "test", "--name", "lensiq-api-test", "--json"]]) {
+    for (const env of [{ PATH: process.env.PATH }, { PATH: process.env.PATH, NODE_ENV: "test" }, { PATH: process.env.PATH, LQ_WRANGLER_BIN: "/tmp/x" }]) {
+      assert.throws(() => G.assertOffline(env, args), G.GuardError, args.join(" "));
+      assert.throws(() => G.wrangler(args, { print: () => {}, env, cfg: t, target: "x", capture: true }), G.GuardError, args.join(" "));
+    }
+  }
+  assert.doesNotThrow(() => G.assertOffline({ PATH: "x" }, ["deploy", "--dry-run", "--env", "test"]), "a dry-run bundle contacts nothing");
+  const { main } = await import(join(ROOT, "tools", "backend-deploy.mjs"));
+  const D = await import(join(ROOT, "tools", "ai-deploy-defaults.mjs"));
+  for (const a of ["whoami", "list", "versions", "d1:bind", "off", "migrate", "deploy"]) {
+    const out = [];
+    assert.equal(main([a], { print: s => out.push(s), env: { PATH: process.env.PATH }, toml: a === "d1:bind" ? TOML : TOML_WITH_ID }), 3, a + " without the fake is refused in a test");
+    assert.ok(out.some(l => /REFUSED/.test(l)), a);
+  }
+  assert.equal(await D.main(["--apply"], { print: () => {}, env: { PATH: process.env.PATH }, toml: TOML_WITH_ID }), 3);
+  const r = await setup([], ["\r"], { env: { PATH: process.env.PATH } });
+  assert.equal(r.code, 3, "secrets:setup without the fake is refused in a test: " + r.screen.slice(-200));
+  // 2. the tests themselves: every tool call in this file is given a config text or a temp copy, and a fake wrangler
+  const self = readFileSync(__filename, "utf8");
+  const calls = self.split("\n").filter(l => /\b(main|D\.main)\(\[/.test(l) && !/site-config|--base|"--api-base"|"--clear"/.test(l));
+  assert.ok(calls.length >= 8, "the scan sees the tool calls: " + calls.length);
+  assert.match(self, /const code = main\(argv, \{ print: s => out\.push\(s\), env, tomlPath \}\)/, "the deploy-tool tests run on a temp copy");
+  for (const l of calls) assert.ok(/toml: |tomlPath|run\(\[|file[,:]/.test(l) || /const run = /.test(l), "a tool is called with the live wrangler.toml: " + l.trim().slice(0, 120));
+  assert.doesNotMatch(self.replace(/TOML_LIVE = readFileSync[^\n]*/, ""), /writeFileSync\(join\(ROOT, "backend", "wrangler\.toml"\)/, "no test writes the committed file");
+  // 3. CI and the npm scripts CI runs: the only wrangler command is the dry-run bundle
+  const wf = readdirSync(join(ROOT, ".github", "workflows")).map(f => readFileSync(join(ROOT, ".github", "workflows", f), "utf8")).join("\n");
+  const runs = wf.split("\n").filter(l => /wrangler\s+[a-z]/.test(l) && !/^\s*#/.test(l) && !/name:/.test(l));
+  assert.ok(runs.length >= 1 && runs.every(l => /wrangler deploy --dry-run/.test(l)), "workflow wrangler commands: " + runs.join(" | "));
+  assert.doesNotMatch(wf, /backend:(deploy|migrate|off|on|d1|list|versions|whoami|rollback|bootstrap|tester)|secrets:setup|ai:deploy-defaults|CLOUDFLARE_API_TOKEN/,
+    "no deploy script or Cloudflare credential in CI");
+  const scripts = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).scripts;
+  for (const k of ["test", "test:unit", "test:backend", "test:integration", "lint", "typecheck", "format:check", "check:legal", "csp:check", "pretest:e2e"]) {
+    assert.doesNotMatch(String(scripts[k] || ""), /wrangler|backend-deploy|secrets-setup|ai-deploy-defaults/, "npm run " + k);
+  }
+  // 4. nothing above changed the committed configuration
+  assert.equal(readFileSync(join(ROOT, "backend", "wrangler.toml"), "utf8"), before);
 });
 
 // ---- B2: secrets:setup ----------------------------------------------------------------------------------------------
@@ -659,12 +730,12 @@ test("B5 ai:deploy-defaults: one INSERT that never overwrites, accepted by a rea
   const sb = sandbox();
   try {
     const out = [];
-    assert.equal(await D.main([], { print: s => out.push(s), env: sb.env }), 0);
+    assert.equal(await D.main([], { print: s => out.push(s), env: sb.env, toml: TOML }), 0);
     assert.ok(out.some(l => /^TARGET {3}D1 database "lensiq-test"/.test(l)) && out.some(l => /npx wrangler d1 execute lensiq-test --remote --env test/.test(l)) &&
       out.some(l => /Dry run: nothing was sent/.test(l)));
     assert.deepEqual(sb.calls(), [], "the default is a dry run");
     assert.equal(await D.main(["--apply"], { print: () => {}, env: sb.env, toml: TOML.replace('database_name = "lensiq-test"', 'database_name = "aidanex-db"') }), 3);
-    assert.equal(await D.main(["--apply"], { print: () => {}, env: { ...sb.env, CI: "1" } }), 3);
+    assert.equal(await D.main(["--apply"], { print: () => {}, env: { ...sb.env, CI: "1" }, toml: TOML }), 3);
     assert.deepEqual(sb.calls(), []);
     assert.equal(await D.main(["--apply"], { print: () => {}, env: sb.env, toml: TOML_WITH_ID }), 0);
     assert.deepEqual(sb.calls().map(c => c.argv.slice(0, 7).join(" ")), ["d1 list --json", "d1 execute lensiq-test --remote --env test --json", "d1 execute lensiq-test --remote --env test --yes"],

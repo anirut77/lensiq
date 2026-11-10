@@ -31,7 +31,10 @@ export const BACKEND = join(REPO, "backend");
 export const WRANGLER_TOML = join(BACKEND, "wrangler.toml");
 export const ENV = "test";
 /** The owner's other resources in the same account: never a target. */
-export const PROTECTED = Object.freeze(["dearday-staging", "aidanex-staging", "aidanex-pet-clinic-pilot", "faksak.com", "tripsdna.com"]);
+export const PROTECTED = Object.freeze([
+  "dearday-staging", "aidanex-staging", "aidanex-pet-clinic-pilot", "faksak.com", "tripsdna.com",
+  "aidanex-sales-staging", "kaguwood-store", "aidanex-pet-clinic"
+]);
 /** The only resources LENSIQ scripts may create or change. */
 export const ALLOWED = Object.freeze({ worker: "lensiq-api-test", d1: "lensiq-test" });
 export const D1_PLACEHOLDER = "00000000-0000-0000-0000-000000000000";
@@ -252,6 +255,19 @@ export function wranglerBin(env = process.env) {
   return join(BACKEND, "node_modules", "wrangler", "bin", "wrangler.js");
 }
 const isFake = env => !!(env.LQ_WRANGLER_BIN && env.NODE_ENV === "test");
+/**
+ * Tests stay offline: under a test runner (node --test sets NODE_TEST_CONTEXT; tests pass NODE_ENV=test) the REAL wrangler
+ * is never started, whatever the test forgot to stub. The owner's machine has a wrangler login, so a test that reached
+ * the real binary could touch the account. The one exception is `deploy --dry-run`, which contacts nothing.
+ * Throws GuardError. @param {any} env @param {string[]} args
+ */
+export function assertOffline(env, args) {
+  if (isFake(env)) return;
+  const underTest = !!(process.env.NODE_TEST_CONTEXT || (env && (env.NODE_TEST_CONTEXT || env.NODE_ENV === "test")));
+  if (underTest && !(args[0] === "deploy" && args.includes("--dry-run"))) {
+    throw new GuardError(`REFUSED: a test tried to start the real wrangler (${args.slice(0, 2).join(" ")}). Tests use the fake (LQ_WRANGLER_BIN). Nothing was sent to Cloudflare.`);
+  }
+}
 /** Throws GuardError when the installed wrangler no longer matches the resolution rules (skipped for the test fake). */
 export function assertWranglerBundle(env = process.env) {
   if (isFake(env)) return;
@@ -293,6 +309,7 @@ export function wrangler(args, opts) {
     print(`COMMAND  (cd backend &&${opts.input != null ? " <value on stdin> |" : ""} npx wrangler ${args.map(a => (/[\s"';]/.test(a) ? JSON.stringify(a) : a)).join(" ")})`);
   }
   if (opts.printOnly) return { status: 0, stdout: "", stderr: "", printed: true };
+  assertOffline(callerEnv, args);
   const bin = wranglerBin(callerEnv);
   if (!existsSync(bin)) throw new Error("wrangler is not installed: run `npm ci` in backend/ first");
   const r = spawnSync(process.execPath, [bin, ...args], { cwd: BACKEND, input: opts.input, encoding: "utf8",

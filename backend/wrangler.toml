@@ -219,6 +219,7 @@ ADMIN_UNAUTH_WRITES_HOUR = "120"
 [[env.test.d1_databases]]
 binding = "DB"
 database_name = "lensiq-test"
-# Filled by `npm run backend:d1:create` (tools/backend-deploy.mjs) from the id wrangler prints. Not a secret. Do not edit by hand.
-database_id = "00000000-0000-0000-0000-000000000000"
+# Written by `npm run backend:d1:create` / `backend:d1:bind` (tools/backend-deploy.mjs) from the id wrangler prints. Not a secret.
+# Do not edit by hand: a unit test accepts only the placeholder or the id recorded in deploy/created.json.
+database_id = "3385c7cc-d171-42ae-9d4c-8fdd8c12b21f"
 migrations_dir = "migrations"

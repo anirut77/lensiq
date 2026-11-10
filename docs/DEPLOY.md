@@ -304,6 +304,24 @@ under Turnstile. Expected list: Worker `lensiq-api-test`; D1 `lensiq-test`; Turn
 `SECRETS_KEK`, `ADMIN_BOOTSTRAP_TOKEN` (closed in step 9), `TURNSTILE_SECRET`, `OPENROUTER_API_KEY`,
 `TESTER_ACCESS_CODE` (and `SERVICE_OFF` once the kill switch has been used); 1 cron trigger.
 
+### Created resources (record: `deploy/created.json`)
+
+Created on 2026-11-11 through `tools/backend-deploy.mjs`. Nothing else in the account was created, changed or deleted.
+
+| Resource | Name | Id / address |
+|---|---|---|
+| D1 database | `lensiq-test` | `3385c7cc-d171-42ae-9d4c-8fdd8c12b21f` (migrations 0001–0010 applied) |
+| Worker | `lensiq-api-test` | `https://lensiq-api-test.anirut-s-4df.workers.dev` · first version `c0562341-11d5-4109-a88e-9a239a5544df` |
+| Cron trigger | of `lensiq-api-test` | `17 3 * * *` (daily maintenance) |
+| Turnstile widget | `LENSIQ test` | created by the owner in the dashboard (step 2); not recorded here until it exists |
+
+The database id is not a secret and is committed in `backend/wrangler.toml [env.test]`, so a fresh checkout can migrate
+and deploy. It is written only by `npm run backend:d1:create` / `backend:d1:bind`; a unit test accepts only the
+placeholder or the id in `deploy/created.json`, and the tools check before every write that this id is the database
+named `lensiq-test`. Tests never use the committed file to drive a tool (they use a copy with the placeholder id), and
+under a test runner the tools refuse to start the real wrangler at all, so `npm test` stays offline on a machine that
+is logged in to Cloudflare.
+
 ## 7. Five-minute phone checklist (owner)
 
 Phone, mobile data or Wi-Fi, a boxed Thai product with a registration number and one label in English or Chinese.

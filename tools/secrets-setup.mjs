@@ -33,7 +33,7 @@ import { pathToFileURL } from "node:url";
 // the ONE definition of a usable tester code: the Worker refuses a weak configured code too (backend/src/tester.js)
 import { weakCode } from "../backend/src/tester.js";
 import {
-  BACKEND, ENV, GuardError, accountEnvRefusal, assertEffective, assertSafeEnv, assertTarget, assertWranglerBundle, childEnv, deployedArgs, jsonArray, readTargets, wranglerBin
+  BACKEND, ENV, GuardError, accountEnvRefusal, assertEffective, assertOffline, assertSafeEnv, assertTarget, assertWranglerBundle, childEnv, deployedArgs, jsonArray, readTargets, wranglerBin
 } from "./lib/cf-guard.mjs";
 
 /** when: "now" = needed for the tester deploy · "later" = optional. gen: generated here. min: shortest accepted value. */
@@ -109,6 +109,7 @@ export function openTerminal(stdin, proc = process) {
 
 /** Runs wrangler; `input` goes to its stdin. Its output is captured and never returned to the caller's screen. */
 function runWrangler(env, args, input, spawnImpl = spawn, creds = false) {
+  assertOffline(env, args); // tests never start the real wrangler
   return new Promise(resolve => {
     let out = "";
     let child;

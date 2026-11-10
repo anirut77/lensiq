@@ -1,0 +1,29 @@
+{
+  "note": "Cloudflare resources LENSIQ created in the owner's (shared) account. No secret is in this file: names, ids and URLs only. tests/unit/deploy-tools.test.js checks backend/wrangler.toml [env.test] against it. Update it only when a resource is created or replaced through tools/backend-deploy.mjs.",
+  "created": "2026-11-11",
+  "environment": "test",
+  "worker": {
+    "name": "lensiq-api-test",
+    "url": "https://lensiq-api-test.anirut-s-4df.workers.dev",
+    "first_version_id": "c0562341-11d5-4109-a88e-9a239a5544df",
+    "cron": [
+      "17 3 * * *"
+    ]
+  },
+  "d1": {
+    "name": "lensiq-test",
+    "id": "3385c7cc-d171-42ae-9d4c-8fdd8c12b21f",
+    "binding": "DB"
+  },
+  "turnstile_widget": null,
+  "never_touched": [
+    "dearday-staging",
+    "aidanex-staging",
+    "aidanex-pet-clinic-pilot",
+    "faksak.com",
+    "tripsdna.com",
+    "aidanex-sales-staging",
+    "kaguwood-store",
+    "aidanex-pet-clinic"
+  ]
+}
