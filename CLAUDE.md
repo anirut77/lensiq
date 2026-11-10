@@ -16,6 +16,9 @@ https://anirut77.github.io/lensiq/. Owner-facing replies are in Thai.
 - All user-facing text complete in Thai, English and Chinese.
 - Report format: built / deferred + why / numbers vs targets / risks / next step. Then wait for approval.
 - Keep docs/CTO-BRIEF.md and docs/FIELD-PILOT.md updated each round.
+- Keep every locked test set, eval log and gate log in a persistent folder outside the repo and its worktrees
+  (`~/LENSIQ-field/evals/<phase>/`), never only in a session temp folder. Record each locked set's sha256 in the repo
+  results doc before scoring.
 
 ## Product structure
 
