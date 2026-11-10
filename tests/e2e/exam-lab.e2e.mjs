@@ -112,5 +112,86 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(!exceptions(lab).length, "exceptions");
       await lab.close();
     });
+
+    // the real default path (no ?fakedet): MediaPipe is the face engine and no face-api.js script or model is ever requested,
+    // even when the URL asks for face-api.js. Capability, not a WebGL probe, decides: the detector either runs on the live
+    // camera (faceRuns grows, the face signals stay on) or it failed to load / run and the page says so. Both are correct;
+    // which one happens depends on this Chrome (a Mac with WebGL disabled fails at MediaPipe's frame upload; CI's Linux
+    // Chrome runs it while reporting no WebGL).
+    const FACEAPI = /vendor\/face-api\.js|tiny_face_detector|face_landmark_68|face_expression|age_gender|face_recognition/;
+    const start = async (lab, url, room) => {
+      await lab.goto(url);
+      await lab.waitFor("window.__LQ_EXAM_LAB && window.LQI18N", 8000);
+      await lab.evaluate(r => {
+        document.querySelector("#room").value = r; document.querySelector("#seat").value = "7";
+        document.querySelector("#consent").checked = true; document.querySelector("#noticeForm").requestSubmit();
+      }, room);
+      await lab.waitFor("__LQ_EXAM_LAB.phase === 'cam' && __LQ_EXAM_LAB.faceEngine === 'mediapipe'", 30000);
+    };
+    await check("exam-lab default path: MediaPipe engine, no face-api.js request; the detector runs, or its failure is said (no WebGL probe)", async () => {
+      const lab = await browser.newPage(null, { initScripts: [fakeCams, INIT] });
+      await start(lab, `${base}/exam-lab.html?cpu&faceengine=faceapi`, "LAB3");
+      await lab.waitFor("__LQ_EXAM_LAB.faceRuns >= 3 || __LQ_EXAM_LAB.faceOff === true", 60000);
+      const st = await lab.evaluate(() => ({ runs: __LQ_EXAM_LAB.faceRuns, off: __LQ_EXAM_LAB.faceOff, gl: LQDetect.hasWebGL(), checks: document.querySelector("#checks").textContent }));
+      console.log("    exam-lab default path on this Chrome: " + JSON.stringify({ ran: st.runs > 0 && !st.off, webglProbe: st.gl }));
+      if (!st.off) assert(st.runs >= 3 && /ยังไม่เห็นใบหน้า/.test(st.checks), "detector runs on the camera (fake frames have no face): " + JSON.stringify(st));
+      else {
+        const warn = await lab.evaluate(() => document.querySelector("#engine").classList.contains("warn"));
+        assert(st.runs === 0 && /ตัวตรวจใบหน้าทำงาน/.test(st.checks) && warn, "failure said: " + JSON.stringify(st));
+      }
+      const urls = lab.requests.map(r => r.url);
+      assert(!urls.some(u => FACEAPI.test(u)), "face-api.js requested on the default path: " + urls.filter(u => FACEAPI.test(u)).join(", "));
+      assert(urls.some(u => /vendor\/models\/face-landmarker\/face_landmarker_lm\.task$/.test(u)), "MediaPipe Face Landmarker requested");
+      assert(urls.some(u => /vendor\/tfjs\/tf\.es2017\.min\.js/.test(u)) && urls.some(u => /vendor\/models\/cocossd\/model\.json/.test(u)), "TF.js on its own runs COCO-SSD");
+      assert(!exceptions(lab).length, "exceptions: " + JSON.stringify(exceptions(lab).slice(0, 2)));
+      await lab.close();
+    });
+
+    // the detector cannot run on every machine (WebAssembly removed from the page): face signals off and said so,
+    // one "fix setup" event, never "no face"
+    await check("exam-lab: face detector cannot run (no WebAssembly) -> face signals off and said so, one 'fix setup' event, no no-face alert", async () => {
+      const NO_WASM = "try{Object.defineProperty(window,'WebAssembly',{value:undefined,configurable:true})}catch(e){}";
+      const lab = await browser.newPage(null, { initScripts: [fakeCams, INIT, NO_WASM] });
+      await start(lab, `${base}/exam-lab.html?cpu&calsec=1`, "LAB5");
+      await lab.waitFor("__LQ_EXAM_LAB.faceOff === true && document.querySelector('#engine').classList.contains('warn')", 60000);
+      await lab.waitFor("document.querySelector('#checks').textContent.includes('ตัวตรวจใบหน้าทำงาน')", 5000);
+      assert(await lab.evaluate(() => __LQ_EXAM_LAB.faceRuns === 0), "no detector call succeeded");
+      assert(!lab.requests.some(r => FACEAPI.test(r.url)), "no fallback to face-api.js");
+      await lab.evaluate(() => document.querySelector("#toCal").click());
+      await lab.waitFor("__LQ_EXAM_LAB.phase === 'calDone'", 8000);
+      assert(await lab.evaluate(() => !__LQ_EXAM_LAB.baseline.ok && /ตัวตรวจใบหน้าทำงาน/.test(document.querySelector("#calMsg").textContent)), "calibration says why it failed");
+      await lab.evaluate(() => document.querySelector("#toExam").click());
+      await lab.waitFor("__LQ_EXAM_LAB.sent.some(m => m.sig === 'setup' && m.lvl === 'setup' && m.code === 'faceoff')", 8000);
+      await sleep(12000); // longer than the no-face prompt (5 s) and Watch (10 s) times
+      const sent = await lab.evaluate(() => __LQ_EXAM_LAB.sent.map(m => m.sig + ":" + (m.code || m.lvl)));
+      assert(!sent.some(x => /^(noface|multiface|headturn|mouth):/.test(x)), "no face signal without a face detector: " + sent.join(","));
+      assert(sent.filter(x => x === "setup:faceoff").length === 1, "told once: " + sent.join(","));
+      assert(await lab.evaluate(() => document.querySelector("#prompt").hidden || !/ไม่เห็นใบหน้า/.test(document.querySelector("#prompt").textContent)), "no 'no face' prompt to the candidate");
+      assert(/ตัวตรวจใบหน้าทำงาน/.test(await lab.evaluate(() => document.querySelector("#ownLog").innerText)), "own log says the face check is off");
+      assertCleanMessages(await lab.evaluate(() => __LQ_EXAM_LAB.sent), "lab faceoff");
+      await noThai(lab, "exam-lab face check off"); // the new status / log text exists in English and Chinese
+      assert(!exceptions(lab).length, "exceptions: " + JSON.stringify(exceptions(lab).slice(0, 2)));
+      await lab.close();
+    });
+
+    // face-api.js stays in the repo behind the research-demo switch: reachable only with the switch on AND ?faceengine=faceapi
+    await check("exam-lab research demo + ?faceengine=faceapi: face-api.js detector + 68 landmarks only (never expression, age/gender, recognition)", async () => {
+      const lab = await browser.newPage(null, { initScripts: [fakeCams, INIT + `\ntry { localStorage.setItem("lq-research-demo", "on"); } catch (e) {}`] });
+      await lab.goto(`${base}/exam-lab.html?cpu&faceengine=faceapi`);
+      await lab.waitFor("window.__LQ_EXAM_LAB && window.LQI18N && window.LENSIQ_PROFILE === 'demo'", 8000);
+      await lab.evaluate(() => {
+        document.querySelector("#room").value = "LAB4"; document.querySelector("#seat").value = "2";
+        document.querySelector("#consent").checked = true; document.querySelector("#noticeForm").requestSubmit();
+      });
+      await lab.waitFor("__LQ_EXAM_LAB.faceEngine === 'faceapi' && document.querySelector('#engine').classList.contains('ok')", 60000);
+      await sleep(1500);
+      assert(await lab.evaluate(() => __LQ_EXAM_LAB.faceOff === false), "face-api.js runs without WebGL (wasm)");
+      const urls = lab.requests.map(r => r.url);
+      assert(urls.some(u => /vendor\/face-api\.js/.test(u)) && urls.some(u => /tiny_face_detector_model/.test(u))
+        && urls.some(u => /face_landmark_68_model/.test(u)), "research path loads face-api.js");
+      assert(!urls.some(u => /face_expression|age_gender|face_recognition|face_landmarker_lm\.task/.test(u)), "only the detector + 68 landmarks: " + urls.filter(u => /model/.test(u)).join(", "));
+      assert(!exceptions(lab).length, "exceptions: " + JSON.stringify(exceptions(lab).slice(0, 2)));
+      await lab.close();
+    });
   } finally { await browser.close(); }
 }

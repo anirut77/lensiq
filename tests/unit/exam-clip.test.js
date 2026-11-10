@@ -247,7 +247,7 @@ test("board: flag row knows its clip status; 'keep clip' needs a name, is not a 
 });
 
 /* ---------- objective events only; no emotion / expression / age-gender API anywhere in LENSIQ Exam ---------- */
-const EXAM_CODE = ["lensiq-exam.js", "lensiq-exam-clip.js", "exam-lab.js", "exam-hall.js", "exam-dashboard.js", "exam-ui.js", "exam-link.js",
+const EXAM_CODE = ["lensiq-exam.js", "lensiq-exam-clip.js", "lensiq-exam-face.js", "exam-lab.js", "exam-hall.js", "exam-dashboard.js", "exam-ui.js", "exam-link.js",
   "exam-clip-ui.js", "exam-landing.js"];
 const EXAM_PAGES = ["exam.html", "exam-lab.html", "exam-hall.html", "exam-dashboard.html"];
 const stripComments = s => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'`\\])\/\/.*$/gm, "$1");
@@ -267,11 +267,21 @@ test("no emotion / expression / age-gender API is used by any exam file", () => 
     const scripts = [...read(p).matchAll(/<script src="([^"]+)"/g)].map(m => m[1]);
     for (const s of scripts) assert.ok(!/expression|age-gender|agegender|emotion|faceread/i.test(s), p + " loads " + s);
   }
-  // the lab page loads only the detector + 68 landmarks (no expression / age-gender weights)
+  // the face engine (lensiq-exam-face.js, since 2026-11-10 MediaPipe by default): the research-demo face-api path loads only
+  // the detector + 68 landmarks with no descriptors (was: the same regex checks on exam-lab.js, which no longer touches face-api)
+  const Face = require("../../lensiq-exam-face.js");
+  assert.deepEqual([...Face.FACEAPI_NETS], ["tinyFaceDetector", "faceLandmark68Net"], "face-api: detector + 68 landmarks only");
+  assert.equal(Face.FACEAPI_OPTS.descriptors, false, "no face descriptors (no identity)");
+  const face = read("lensiq-exam-face.js");
+  assert.ok(!/faceExpressionNet|ageGenderNet|faceRecognitionNet|withFaceDescriptors/.test(face), "no expression, age-gender, recognition net or descriptors");
+  assert.match(face, /fa\.nets\[n\]\.loadFromUri/, "face-api nets are loaded only from FACEAPI_NETS");
+  // MediaPipe: only these options are ever passed (anything else, e.g. per-face facial-movement scores, fails here)
+  assert.deepEqual(Object.keys(Face.MP_OPTIONS).sort(), ["minFaceDetectionConfidence", "minFacePresenceConfidence", "minTrackingConfidence", "numFaces",
+    "outputFacialTransformationMatrixes", "runningMode"]);
+  // the exam pages themselves never load or call face-api.js
   const lab = read("exam-lab.js");
-  assert.match(lab, /\["tinyFaceDetector", "faceLandmark68Net"\]/);
-  assert.ok(!/faceExpressionNet|ageGenderNet|faceRecognitionNet/.test(lab), "no expression, age-gender or recognition net");
-  assert.match(lab, /descriptors: false/, "no face descriptors (no identity)");
+  assert.ok(!/faceapi\.|loadFromUri|detectFacesCascade|faceExpressionNet|ageGenderNet|faceRecognitionNet/.test(stripComments(lab)), "exam-lab.js calls no face-api API");
+  for (const p of EXAM_PAGES) assert.ok(![...read(p).matchAll(/<script src="([^"]+)"/g)].some(m => /face-api/.test(m[1])), p + " loads vendor/face-api.js");
 });
 
 test("every exam flag is an objective event (presence, objects, position, browser / device state) — none is inferred feeling or intent", () => {

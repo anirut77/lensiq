@@ -3,7 +3,8 @@
  *
  * PRINCIPLE: the system FLAGS observations for a person (the invigilator) to go and check. It never decides misconduct,
  * never ends an exam, never shows a "cheating score" to a candidate, never infers emotion (EU AI Act Art 5(1)(f)) and
- * never identifies a person (no face matching: detection and head pose only). See docs/EXAM.md.
+ * never identifies a person (no face matching: detection and head pose only). See docs/EXAM.md. The face engine
+ * (MediaPipe Face Landmarker by default) is in lensiq-exam-face.js.
  *
  * API
  *   SIGNALS {id: {src:"lab"|"hall"|"browser"|"room", lvl, w, alone?, th}}   th = Thai label (key exam.sig.<id>)
@@ -25,6 +26,8 @@
  *   createFrozen({ms=4000, eps=0.6}) -> {push(t, thumb) -> boolean}   identical thumbnails for ms = a frozen / looped feed
  *   isVirtualCamLabel(label) -> boolean   OBS / ManyCam / "virtual" camera names
  *   createLabMonitor(cfg?) -> {setBaseline(b), frame(t, obs), browser(t, type, data), cfg}   -> events [{sig, lvl, t, dur?, n?, local?}]
+ *     obs = {faces, objects?, quality?, faceOff?}: faceOff = the face engine cannot run here -> no-face / multi-face / head
+ *     turn / mouth are not evaluated (never "no face" because a detector is missing)
  *     lvl "prompt" = a gentle message to the candidate only (never sent); lvl "setup" = poor camera/light: "fix setup", not an alert
  *   pointInPoly(x, y, poly) · polyArea(poly) · polyCentroid(poly) · boxFracInPoly(box, poly, g=8) · seatOf(pt, seats)
  *   gridSeats({x, y, w, h}, rows, cols, ids?) -> [{id, poly}]
@@ -184,7 +187,7 @@
     return c;
   }
 
-  /* ---------- head pose from face-api 68 landmarks ---------- */
+  /* ---------- head pose from 68-point landmarks (MediaPipe mesh points mapped by lensiq-exam-face.js, or face-api) ---------- */
   const P = (pts, i) => { const p = pts[i]; return p ? { x: p.x != null ? p.x : p[0], y: p.y != null ? p.y : p[1] } : { x: 0, y: 0 }; };
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   const NOSE_R = 0.9; // nose-tip depth / half face width (cylinder head model) -> yaw = asin(r / NOSE_R)
@@ -278,16 +281,19 @@
       const push = (sig, r, extra) => { for (const f of r.fire) ev.push(Object.assign({ sig, lvl: f.lvl, t, dur: Math.round(r.dur) }, extra || {})); };
       push("setup", G.setup.push(t, !q.ok), { code: q.code });
       const poor = !q.ok;
+      // obs.faceOff: the face engine cannot run on this device (init or detect actually failed) -> no face signal is evaluated
+      // at all (an absent detector must never read as "no face"); the page reports it once as "fix setup"
+      const faceOff = obs.faceOff === true;
       // no face: poor light / camera -> "fix setup", never an alert
-      if (!poor) {
+      if (!poor && !faceOff) {
         const r = G.noface.push(t, faces.length === 0);
         for (const f of r.fire) ev.push({ sig: "noface", lvl: f.lvl, t, dur: Math.round(r.dur), local: f.lvl === "prompt" || undefined });
         if (r.ended && r.ended.fired) ev.push({ sig: "noface", lvl: "end", t, dur: Math.round(r.ended.dur), local: true });
       } else G.noface.reset();
-      push("multiface", G.multiface.push(t, faces.length >= 2), { n: faces.length });
+      if (faceOff) G.multiface.reset(); else push("multiface", G.multiface.push(t, faces.length >= 2), { n: faces.length });
       // head turned away vs the calibrated baseline (only when calibration succeeded, one face, good light)
       const f0 = faces.length === 1 ? faces[0] : null;
-      if (base.ok && !poor) {
+      if (base.ok && !poor && !faceOff) {
         const turned = !!f0 && fin(f0.yaw) && (Math.abs(f0.yaw - base.yaw0) > cfg.yawDeg || pitchDeg(f0.pitchN, base.pitchN0) > cfg.pitchDeg);
         const r = G.headturn.push(t, turned);
         if (r.fire.length) {
@@ -297,7 +303,7 @@
         }
       }
       // mouth movement (Info only, no audio) — off with the read-aloud accommodation
-      if (cfg.mouth && f0 && fin(f0.mar) && !poor) {
+      if (cfg.mouth && f0 && fin(f0.mar) && !poor && !faceOff) {
         mars = mars.filter(m => t - m.t <= 3000); mars.push({ t, v: f0.mar });
         const mean = mars.reduce((a, m) => a + m.v, 0) / mars.length;
         const sd = Math.sqrt(mars.reduce((a, m) => a + (m.v - mean) * (m.v - mean), 0) / mars.length);

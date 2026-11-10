@@ -141,7 +141,7 @@ collapsed).
 | id | page | dict | key | figures | n | labels | evidence | quote |
 |---|---|---|---|---|---|---|---|---|
 | E1 | exam | exam | exam.l.cl1 | — | — | notmeasured; field | docs/EXAM.md | ## Accuracy — not measured yet |
-| E2 | exam | exam | exam.l.cl2 | — | — | notmeasured | docs/EXAM.md | a face-detection miss-rate bench across lighting and skin tones |
+| E2 | exam | exam | exam.l.cl2 | 15%; 24–48 px | n = 26; n = 12 | public; notmeasured | docs/exam/FACE-ENGINE-RESULTS.md | **4 / 26 = 15.4 %**; **0 / 12 found**; by skin tone: not measured |
 | E3 | exam | exam | exam.l.cl3 | — | — | notmeasured | docs/EXAM.md | pilot rooms with invigilator tallies per signal |
 | A1 | attendance | attendance | attendance.cl1 | 85%; 13,233 | n = 610 | public; tuning; optimistic | ACCURACY.md | \| 100 \| 84.9% → 85.0% \|; **Tuning set: full LFW**, 13,233 images; The 610 people with ≥ 4 photos are members; photo 4 is the probe; Each row averages 200 random galleries |
 | A2 | attendance | attendance | attendance.cl2 | 66–76% | n = 500 | public | ACCURACY.md | **76 / 74 / 66%**; **Held-out per-group check: CASIA-FaceV5**, 500 Asian (Chinese) people × 5 photos |

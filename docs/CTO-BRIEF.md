@@ -241,6 +241,14 @@ No module is production-ready. None has completed a field pilot, and the backend
   brand/name token found 47.0 %. Face check at 0.3 + tiles flags 60.4 % of clean packs; owner decision 2026-11-10:
   **blur detected faces before any upload instead of blocking**, setting chosen from measured readability and missed
   real faces (built next). Vietnamese tone marks: known limit, AI step handles them for now. Not measured on a phone yet.
+- Exam face engine switched to MediaPipe Face Landmarker (Apache-2.0, facial-movement model removed from the bundle),
+  owner decision 2026-11-10; face-api.js stays in the repo behind the research-demo switch and is never loaded by a
+  customer Exam build (e2e-checked). Held-out (public dataset Open Images V7 + synthetic; `docs/exam/FACE-ENGINE-RESULTS.md`):
+  one face 22/26 both, low light 61.5 → 76.9 %, mask 53.8 → 65.4 %, no false face 0/37 both, count 67.1 → 70.3 %,
+  about 4.5x faster. Head turn: synthetic renders only (favour the new engine) — not a claim until measured on real
+  video in the pilot. Face signals switch off only when the detector really cannot run (some browsers without GL);
+  the pilot checks it on each lab computer. Independent review (2 parts) passed; face images deleted after the eval.
+  L23: Exam resolved; Attendance, customers and booth still open (`docs/ATTENDANCE-READINESS.md` Part B).
 - P4 done: official lookups through the Worker (Thai FDA web service, testing only; openFDA, DailyMed, RxNav, HSA;
   Safety Gate and RASFF testing only, off in customer builds), on-device TMT 2563 (CC BY) + NLEM 2567 + curated Thai
   alert list + Health Canada recalls, all as small sharded static files (free Workers plan); risk-signal card with the P3

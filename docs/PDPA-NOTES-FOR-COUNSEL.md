@@ -730,3 +730,17 @@ close-ups (`docs/product-check/FACE-BLUR-RESULTS.md`). A picture with a missed f
 has seen the blurred preview and pressed "Use this picture"; if the detector cannot run, no picture is sent (text only).
 Question for counsel: is preview plus user confirmation an adequate safeguard for an image that may still show an
 identifiable person (s.6), or should image mode use a stricter default (smaller crop, or text only)? (CTO-BRIEF L39, L40.)
+
+### F5. Exam face engine switch: face-api.js → MediaPipe Face Landmarker (2026-11-10)
+
+Owner decision: the Exam lab page now finds faces, counts them and estimates head pose with Google's MediaPipe Face
+Landmarker (Apache-2.0; `docs/exam/FACE-ENGINE-RESULTS.md`). **Data flows are unchanged**: frames are analysed in the
+candidate's browser, nothing but the allowlisted JSON events leaves the page, nothing is stored. The landmarks (478
+points) exist only in memory for the current frame; no face template, no descriptor and no identity is computed, and
+the facial-movement score model shipped in Google's bundle was removed from the vendored file, so no expression output
+exists (CLAUDE.md: no emotion inference in Exam). face-api.js remains only behind the research-demo switch. New: when a
+device cannot run the detector (seen on a browser with WebGL disabled) the face signals are switched off and the candidate and the invigilator are told ("fix setup");
+the old engine kept working there. Questions for counsel: (1) does the s.26 analysis in B1 (detection and head pose
+without identification is not biometric data) still hold for a dense 3-D landmark mesh that is never stored? (2) Google's
+model card lists "human life-critical decisions" as out of scope; Exam flags go to a named invigilator who decides —
+please confirm this is an adequate human-oversight statement for the notice.

@@ -160,6 +160,7 @@
     "i18n/en-teamface.js",
     "i18n/zh-teamface.js",
     "lensiq-exam.js",
+    "lensiq-exam-face.js",
     "exam-link.js",
     "exam-ui.js",
     "lensiq-exam-clip.js",

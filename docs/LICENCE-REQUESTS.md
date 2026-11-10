@@ -120,6 +120,9 @@ The P1 risk is the face-api.js models used by **Exam** and **Attendance**.
   within about 2 m; in Product Check it missed about a third of real faces, mostly small ones
   (`docs/product-check/FACE-BLUR-RESULTS.md`). Fine for a webcam exam (one close face), weak for an exam-hall wide shot.
   Not measured on Exam yet. Swapping is a scope change: ask the owner before starting.
+- **Update 2026-11-10 (owner decision, not yet committed at the time of writing):** Exam lab now uses MediaPipe Face
+  Landmarker by default and never loads face-api.js in a customer build; face-api.js stays behind the research-demo
+  switch. Measured old vs new: `docs/exam/FACE-ENGINE-RESULTS.md`. Letter A is still needed for the other face pages.
 
 ### Item 2. face-api.js face recognition (dlib ResNet port)
 

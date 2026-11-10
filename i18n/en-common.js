@@ -218,6 +218,7 @@
   "about.oss.font": "Web fonts",
   "about.oss.face": "Face and expression detection",
   "about.oss.mp": "Image segmentation, hand detection",
+  "about.oss.examface": "Face count and head turning on the exam candidate page (no face recognition)",
   "about.oss.ort": "High-quality background removal",
   "about.oss.pcocr": "Read text on product labels; find faces in a photo before it is sent",
   "about.oss.barcode": "Read barcodes on packaging",

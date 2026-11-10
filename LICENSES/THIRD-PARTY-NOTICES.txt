@@ -7,7 +7,8 @@ LICENSES/THIRD_PARTY.md in the source repository. Last audited 2026-11-09.
 
 A. Apache License 2.0 (full text in section D)
   - TensorFlow.js 4.7.0 (core, converter, cpu, webgl, wasm backends; bundled in vendor/face-api.js and
-    vendor/tfjs-backend-wasm*.wasm) — Copyright Google LLC.
+    vendor/tfjs-backend-wasm*.wasm; the same release on its own in vendor/tfjs/tf.es2017.min.js and
+    vendor/tfjs/tf-backend-wasm.es2017.min.js, licence copy in that folder) — Copyright Google LLC.
   - MediaPipe Tasks Vision (vendor/mediapipe/) and the models hand_landmarker.task, selfie_segmenter.tflite,
     selfie-multiclass-256-f16.onnx (converted TFLite -> ONNX fp16, see vendor/models/SELFIE-MULTICLASS-LICENSE.txt)
     — Copyright The MediaPipe Authors / Google LLC.
@@ -25,6 +26,10 @@ A. Apache License 2.0 (full text in section D)
     (vendor/models/pc-ocr/, licence copy in that folder) — Copyright (c) PaddlePaddle Authors.
   - MediaPipe BlazeFace short-range face detector (vendor/models/face-gate/, licence copy in that folder)
     — Copyright Google LLC / The MediaPipe Authors.
+  - MediaPipe Face Landmarker (Face Mesh V2 + BlazeFace short range; vendor/models/face-landmarker/face_landmarker_lm.task,
+    licence copy in that folder) — Copyright Google LLC / The MediaPipe Authors. MODIFIED by the LENSIQ project
+    (2026-11-10): the facial-movement score model was removed from the original face_landmarker.task bundle; the other
+    three members are unchanged (vendor/models/face-landmarker/README.txt).
   - zxing-cpp, compiled into vendor/zxing/zxing_reader.wasm (licence copy vendor/zxing/LICENSE-zxing-cpp-Apache-2.0)
     — Copyright the ZXing authors / zxing-cpp contributors.
 

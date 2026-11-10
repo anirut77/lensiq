@@ -9,7 +9,8 @@
   const lvl = l => T("exam.lvl." + l, E().LEVEL_TH[l] || l);
   const WHAT_TH = { phone: "โทรศัพท์", book: "หนังสือ", laptop: "แล็ปท็อป", screen: "จอภาพ", copy: "คัดลอก", cut: "ตัด", contextmenu: "คลิกขวา",
     print: "สั่งพิมพ์", printscreen: "ปุ่มจับภาพหน้าจอ", offline: "หลุด", online: "กลับมา",
-    dark: "มืดเกินไป", bright: "สว่างเกินไป", backlight: "แสงย้อน", blur: "ภาพเบลอ", flat: "ภาพไม่มีรายละเอียด" };
+    dark: "มืดเกินไป", bright: "สว่างเกินไป", backlight: "แสงย้อน", blur: "ภาพเบลอ", flat: "ภาพไม่มีรายละเอียด",
+    faceoff: "ตัวตรวจใบหน้าทำงานในเครื่องนี้ไม่ได้" };
   const what = w => (w && WHAT_TH[w] ? T("exam.what." + w, WHAT_TH[w]) : "");
   const lang = () => (root.LQI18N && root.LQI18N.lang) || "th";
   const locale = () => ({ th: "th-TH", en: "en-GB", zh: "zh-CN" }[lang()] || "th-TH");

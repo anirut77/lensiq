@@ -1,9 +1,10 @@
 /* lensiq-detect.js — LQDetect: TF.js backend chain, COCO-SSD loader/decoder and a localhost-only fake-detector seam.
- * Browser: window.LQDetect (needs vendor/face-api.js loaded first for faceapi.tf) · Node: module.exports (pure parts).
+ * Browser: window.LQDetect (needs TF.js first: vendor/tfjs/tf.es2017.min.js (+ tf-backend-wasm.es2017.min.js) as window.tf, used when present,
+ *   otherwise vendor/face-api.js for faceapi.tf) · Node: module.exports (pure parts).
  * Never relies on WebGL: with ?cpu or ?nogl, or when no WebGL context exists, the chain is wasm -> cpu.
  *
  * API
- *   tfBackend() -> Promise<'webgl'|'wasm'|'cpu'>   cached; faceapi.tf.setWasmPaths('vendor/'); chain webgl -> wasm -> cpu
+ *   tfBackend() -> Promise<'webgl'|'wasm'|'cpu'>   cached; setWasmPaths('vendor/') on window.tf or faceapi.tf; chain webgl -> wasm -> cpu
  *   hasWebGL() -> boolean                            true when a webgl/webgl2 context can be created
  *   loadCoco(url='vendor/models/cocossd/model.json') -> Promise<GraphModel>   cached per URL, warmed up once
  *   decodeCoco(boxes, scores, N, C, {classes=[0], minScore=0.4, iou=0.5, max=20}) -> [{x,y,w,h,score,cls}]
@@ -80,13 +81,18 @@
     return glCache;
   }
 
+  /** TF.js: the standalone vendor/tfjs runtime (Exam pages: no face-api.js) when loaded, otherwise the copy inside face-api.js */
+  const tfLib = () => (root.tf && root.tf.loadGraphModel ? root.tf : root.faceapi && root.faceapi.tf);
   let backendP = null;
   function tfBackend() {
     if (backendP) return backendP;
     backendP = (async () => {
-      const tf = root.faceapi && root.faceapi.tf;
-      if (!tf) throw new Error("ไม่พบไลบรารี vendor/face-api.js");
-      try { tf.setWasmPaths && tf.setWasmPaths("vendor/"); } catch (e) { console.warn("setWasmPaths", e); }
+      const tf = tfLib();
+      if (!tf) throw new Error("ไม่พบไลบรารี TensorFlow.js (vendor/tfjs/tf.es2017.min.js หรือ vendor/face-api.js)");
+      try {
+        if (tf.setWasmPaths) tf.setWasmPaths("vendor/"); // face-api.js bundle
+        else if (tf.wasm && tf.wasm.setWasmPaths) tf.wasm.setWasmPaths("vendor/"); // vendor/tfjs + tf-backend-wasm.es2017.min.js
+      } catch (e) { console.warn("setWasmPaths", e); }
       const q = params();
       const order = q.has("cpu") || q.has("nogl") || !hasWebGL() ? ["wasm", "cpu"] : ["webgl", "wasm", "cpu"];
       for (const name of order) {
@@ -104,7 +110,7 @@
     if (models.has(href)) return models.get(href);
     const p = (async () => {
       await tfBackend();
-      const tf = root.faceapi.tf;
+      const tf = tfLib();
       const model = await tf.loadGraphModel(href);
       const warm = tf.zeros([1, 180, 320, 3], "int32");
       try { (await model.executeAsync(warm)).forEach(t => t.dispose()); } finally { warm.dispose(); }
@@ -141,7 +147,7 @@
 
   let sharedCanvas = null;
   async function runCoco(model, src, rect, W, H, detW, c, opts) {
-    const tf = root.faceapi.tf;
+    const tf = tfLib();
     const rx = rect.x * W, ry = rect.y * H, rw = rect.w * W, rh = rect.h * H;
     const sw = Math.max(1, Math.round(Math.min(detW, rw))), sh = Math.max(1, Math.round(rh * sw / rw));
     if (c.width !== sw || c.height !== sh) { c.width = sw; c.height = sh; }
@@ -280,7 +286,7 @@
     if (models.has(href)) return models.get(href);
     const p = (async () => {
       await tfBackend();
-      const tf = root.faceapi.tf;
+      const tf = tfLib();
       const m = await tf.loadGraphModel(href);
       tf.tidy(() => m.execute({ images: tf.zeros([1, 224, 224, 3]) }, EMB_NODE)).dispose();
       return m;
@@ -292,7 +298,7 @@
   let cropCanvas = null;
   /** @param {any} model @param {any} src @param {any} box @param {LQDetectOpts} [o] */
   function embedBox(model, src, box, { pad = 0.04, canvas } = {}) {
-    const tf = root.faceapi.tf;
+    const tf = tfLib();
     const W = src.videoWidth || src.naturalWidth || src.width, H = src.videoHeight || src.naturalHeight || src.height;
     if (!W || !H) return null;
     const x = Math.max(0, (box.x - pad * box.w) * W), y = Math.max(0, (box.y - pad * box.h) * H);

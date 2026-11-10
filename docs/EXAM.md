@@ -10,6 +10,7 @@ flag is an observation ("a phone may be in view"), never a verdict ("cheating de
 | `exam-hall.html` (+ `exam-hall.js`) | **Mode A** camera node (laptop / phone, 2–5 fps): seat polygon editor per camera view, grid generator, walk mode, room mute |
 | `exam-dashboard.html` (+ `exam-dashboard.js`) | Room dashboard for both modes: seat map, alert queue, actions, accommodations, summary, on-site tally, CSV, printable report |
 | `lensiq-exam.js` (`LQExam`) | Pure logic, Node-testable, no DOM / network / images (`tests/unit/exam.test.js`) |
+| `lensiq-exam-face.js` (`LQExamFace`) | Face engine of the lab page (2026-11-10): MediaPipe Face Landmarker (Apache-2.0) by default; face-api.js only in the research demo with `?faceengine=faceapi`. Face presence, count and head pose only (`tests/unit/exam-face.test.js`, results `docs/exam/FACE-ENGINE-RESULTS.md`) |
 | `exam-link.js` (`LQExamLink`) | Transport: BroadcastChannel, optional relay, file export / import — every message through `LQExam.cleanMsg()` |
 | `exam-ui.js` (`LQExamUI`) | Shared page helpers (translation, labels, plain-language reasons, downloads, storage) |
 | `lensiq-exam-clip.js` (`LQExamClip`) | Evidence clip (opt-in): config, 10 s ring buffer (MediaRecorder, video only), pending slots, encrypted store (LQVault + IndexedDB). Node-testable parts in `tests/unit/exam-clip.test.js` |
@@ -51,7 +52,7 @@ contribution in the last 2 minutes — they can never raise a flag by themselves
 | phone | COCO-SSD "cell phone" score ≥ 0.6 in 3 of 5 detector frames | check |
 | book / laptop / other screen | score ≥ 0.5 in 3 of 5 detector frames, unless allowed for this exam | watch |
 | mouth movement | MAR standard deviation > 0.06 over 3 s, for 5 s (no audio) | info |
-| gaze | **not measured** (68 landmarks have no iris); hook only, low weight, never alone, off by default | info |
+| gaze | **not measured** (the mesh has iris points, but their gaze accuracy is unmeasured); hook only, low weight, never alone, off by default | info |
 | frozen feed | 32×18 luma thumbnails identical (mean abs diff < 0.6) for 4 s | watch |
 | virtual camera | label matches OBS / ManyCam / Snap / XSplit / DroidCam / "virtual" … | watch |
 | away | blur → focus: Info with duration · `visibilitychange` hidden ≥ 5 s = Watch | info / watch |
@@ -62,12 +63,21 @@ contribution in the last 2 minutes — they can never raise a flag by themselves
 | device change / offline / online / reload | logged (reload = session marker + navigation type "reload") | info |
 | setup | lighting verdict not ok for 3 of 5 checks over 5 s (dark / bright / backlight / flat / blur) | setup (not an alert) |
 
-Head pose comes from the vendored face-api 68 landmarks (`poseFrom68`): yaw = asin(nose offset between the jaw contour
-points ÷ 0.9) in approximate degrees; pitch is a proxy (nose position between the eye line and the chin) converted with
-120°/unit and always compared with the candidate's **own 2-minute calibration** (`calibrate`: median of single-face
-frames; < 60% single-face frames = calibration fails and head turn is switched off — honest, the exam can still start).
-MediaPipe Face Landmarker was **not** vendored (no download in this round); `vendor/mediapipe/vision_bundle.mjs` already
-has the code, so a `.task` file (Apache-2.0) could later replace the proxy with a real 3-D pose.
+Face engine (since 2026-11-10, owner decision; `lensiq-exam-face.js`): **MediaPipe Face Landmarker** (Apache-2.0,
+`vendor/models/face-landmarker/face_landmarker_lm.task`, the facial-movement score model removed from the bundle), CPU
+delegate, every frame detected afresh, up to 4 faces, detection confidence 0.5. Exam needs no face recognition and none
+is loaded. Head pose: the MediaPipe mesh points that stand in for the 68-point indices (jaw 234 / 454, nose tip 1, outer
+eye corners 33 / 263, chin 152, inner lips) go through the same `poseFrom68`: yaw = asin(nose offset between the jaw
+contour points ÷ 0.9) in approximate degrees; pitch is a proxy (nose position between the eye line and the chin)
+converted with 120°/unit and always compared with the candidate's **own 2-minute calibration** (`calibrate`: median of
+single-face frames; < 60% single-face frames = calibration fails and head turn is switched off — honest, the exam can
+still start). This "mesh68" pose was picked over the transformation-matrix pose by the fixed rule of
+`docs/exam/FACE-ENGINE-RESULTS.md` §1.7. If the detector fails to load or run (decided by the actual failure, never by a WebGL probe; seen on a Mac Chrome with
+WebGL disabled and with WebAssembly removed), the page switches the face signals off, tells the candidate, and sends one
+`setup` event (`code: "faceoff"`); it never reads as "no face".
+The earlier face-api.js engine (TinyFaceDetector + 68 landmarks, MIT code, training data undocumented — LICENSES F5) is
+kept in the repo behind the research-demo switch (`LENSIQ_RESEARCH.on` **and** `?faceengine=faceapi`); a customer
+build never loads `vendor/face-api.js` on any Exam page (the lab and hall pages load TF.js on its own for COCO-SSD).
 
 ### Mode A (camera node)
 
@@ -153,14 +163,23 @@ Browser or Chrome kiosk mode together with invigilators.
   person), logging (incident log), accuracy evaluation (on-site tally). Emotion inference in education is prohibited
   (Art 5(1)(f)): there is none; `tests/unit/exam*.test.js` fail on emotion / verdict wording in signal labels and translations.
 
-## Accuracy — not measured yet
+## Accuracy — not measured yet in exam rooms
 
-All thresholds are research-based defaults. Before sale: a face-detection miss-rate bench across lighting and skin tones
-(ACCURACY.md style), pilot rooms with invigilator tallies per signal, and a lawyer's review of the notice. Models: face-api
-(MIT code, weights trained on research-only data — same caveat as the other face pages) and COCO-SSD (Apache-2.0).
+All thresholds are research-based defaults. Before sale: pilot rooms with invigilator tallies per signal, a skin-tone
+breakdown, and a lawyer's review of the notice. Models: MediaPipe Face Landmarker and COCO-SSD (both Apache-2.0).
+
+**Face engine, measured 2026-11-10 on a fixed public + synthetic set** (`docs/exam/FACE-ENGINE-RESULTS.md`, source:
+public dataset Open Images V7 and synthetic frames / renders; held-out half): one face at desk distance found 22 / 26
+(both engines), no false face on 37 no-person frames, faces only 24 – 48 px wide never found (0 / 12, both engines),
+low light (synthetic) 76.9 % new vs 61.5 % old, mask (synthetic) 65.4 % vs 53.8 %; about 4.5× faster per frame
+(12.8–18.7 ms vs 57.5–85.9 ms on WASM, two runs). Head turn on renders 81.1 % new vs 84.4 % old (synthetic render; favours the new engine; not a claim until measured on real video (pilot)).
+Not measured: skin tone, mouth movement, real exam rooms.
 
 ## Tests
 
+`tests/unit/exam-face.test.js` (mesh → 68-point mapping, pose from mesh and matrix, the fake seam, engine choice: face-api.js
+only with the research demo + `?faceengine=faceapi`, no face signal without a face engine, the vendored `.task` has no
+facial-movement score model, sha256 of the vendored files, the Exam pages never load `vendor/face-api.js`),
 `tests/unit/exam.test.js` (gates, risk, room suppression, accommodations, pose, calibration, lighting, frozen, lab and hall
 monitors, geometry, message allowlist, board, CSV), `tests/unit/exam-clip.test.js` (clip config default OFF, objective
 signals only, ring segments video-only, pending drop, encrypted store / crypto-shred / auto-delete / insecure = nothing
@@ -168,5 +187,9 @@ stored, clip + keep allowlist, named keep on the board, CSV column; **no emotion
 file** and every signal in an objective-event allowlist), `tests/e2e/exam-clip.e2e.mjs` (default OFF = no MediaRecorder,
 consent text, pending → named keep → encrypted record → play / delete, hall auto-keep), `tests/unit/exam-i18n.test.js` (every run-time key in en + zh, no
 Thai, no verdict wording), `tests/e2e/exam*.e2e.mjs` (one per page, fake camera + `?fakedet`, phone widths, 0% Thai in
-中文 / English, privacy scan). Test seams: `window.__LQ_FAKE_DET("exam-lab" | "exam-hall")`, `window.__LQ_FAKE_Q`
+中文 / English, privacy scan; `exam-lab.e2e.mjs` also runs the real default path without `?fakedet`: MediaPipe is
+requested, no face-api.js script or model is, even with `?faceengine=faceapi`, and the detector either runs (detector calls
+counted) or its failure is said; with WebAssembly removed the face signals are off with one "fix setup" event and no
+no-face alert; plus the research-demo path loads only the face-api.js detector + 68
+landmarks). Test seams: `window.__LQ_FAKE_DET("exam-lab" | "exam-hall")`, `window.__LQ_FAKE_Q`
 (lighting override), `?calsec=N`, `window.__LQ_EXAM_LAB / __LQ_EXAM_HALL / __LQ_EXAM_DB`.

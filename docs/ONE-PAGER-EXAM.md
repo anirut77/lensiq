@@ -28,7 +28,7 @@
 | ข้อกล่าวอ้าง | ค่า | n | ที่มา | เอกสาร |
 |---|---|---|---|---|
 | ข้อสังเกตถูก/ผิดในห้องสอบจริง | ยังไม่ได้วัด | — | หน้างานจริง: ยังไม่ได้วัด (ยังไม่มีโครงการนำร่อง) | `docs/EXAM.md` |
-| หาใบหน้าไม่เจอ แยกตามแสงและสีผิว | ยังไม่ได้วัด | — | ยังไม่ได้วัด (แผนวัดในชุดนำร่อง ขั้น 0) | `docs/EXAM.md`, `docs/pilot/PILOT-EXAM.md` |
+| หาใบหน้าไม่เจอ (คนเดียว ระยะนั่งหน้าโต๊ะ ตัวตรวจ MediaPipe) | 15% (ใบหน้ากว้าง 24–48 px: ไม่พบเลย) | n = 26 ภาพ (n = 12) | ชุดข้อมูลสาธารณะ (Open Images V7 ครึ่งที่ไม่ได้ใช้เลือกค่า) · แยกตามสีผิว: ยังไม่ได้วัด · ในห้องสอบจริง: ยังไม่ได้วัด (ชุดนำร่อง ขั้น 0) | `docs/exam/FACE-ENGINE-RESULTS.md`, `docs/pilot/PILOT-EXAM.md` |
 | ตรวจพบโทรศัพท์/หนังสือในภาพการสอบ | ยังไม่ได้วัด | — | ยังไม่ได้วัด (แผนวัดในการสอบจำลองตามบท ขั้น 1) | `docs/EXAM.md` |
 | ระบบคุมสอบด้วย AI อย่างเดียวจับผู้ที่ถูกสั่งให้โกงได้ (การทดลองของ University of Twente กับ Proctorio) | 0 จาก 6 คน | — | งานวิจัยที่ตีพิมพ์ (ไม่ใช่ผลวัดของ LENSIQ) | `docs/EXAM.md` "Why it does not decide" |
 
@@ -93,7 +93,7 @@ analysis and no face recognition. **Approved price list (not on sale yet)**: pri
 | Claim | Value | n | Source | Document |
 |---|---|---|---|---|
 | Observations right / wrong in a real exam room | not measured | — | field: not measured (no pilot yet) | `docs/EXAM.md` |
-| Face-detection misses by lighting and skin tone | not measured | — | not measured (planned in pilot phase 0) | `docs/EXAM.md`, `docs/pilot/PILOT-EXAM.md` |
+| Face not found (one person at desk distance, MediaPipe engine) | 15% (faces 24–48 px wide: none found) | n = 26 frames (n = 12) | public dataset (Open Images V7, held-out half) · by skin tone: not measured · real exam rooms: not measured (pilot phase 0) | `docs/exam/FACE-ENGINE-RESULTS.md`, `docs/pilot/PILOT-EXAM.md` |
 | Phone / book detection on exam footage | not measured | — | not measured (planned in the staged exam, phase 1) | `docs/EXAM.md` |
 | AI-only proctoring caught instructed cheaters (University of Twente trial with Proctorio) | 0 of 6 | — | published research (not a LENSIQ measurement) | `docs/EXAM.md` |
 

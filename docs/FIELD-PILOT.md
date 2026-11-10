@@ -319,6 +319,12 @@ input. Rows without ground truth are skipped and counted.
 
 ## Changelog / last reviewed
 
+- **2026-11-10 (round 17)**: Exam lab face engine switched to MediaPipe Face Landmarker (owner decision); public /
+  synthetic numbers in `docs/exam/FACE-ENGINE-RESULTS.md`. For the Exam pilot phase 0: (1) open the lab page on each lab computer
+  and check the face check runs (if the detector cannot run there, the page switches the face signals off and says "fix setup"); (2) record no-face misses per
+  light level and self-reported skin tone as planned; (3) record real head turns (left / right / down) with the scripted
+  sheet, because the head-turn numbers so far come from synthetic renders that favour the new engine; (4) faces smaller
+  than ~48 px (a second person far behind the candidate) are not detected by either engine. **Field: not measured.**
 - **2026-11-10 (round 17)**: face blur before upload built (no upload path until P7); its numbers are public-dataset
   only. A field check of the blurred preview on the owner's phone (photos with a hand or a face in frame) is still to do.
 - **2026-11-10 (round 17)**: Product Check P2 tab (`medicine.html` → "ตรวจสินค้า (ทุกประเทศ)") ready for the owner's

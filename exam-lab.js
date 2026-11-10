@@ -1,19 +1,26 @@
 /* exam-lab.js — LENSIQ Exam Mode B: candidate page (exam-lab.html).
  * Flow: notice + consent -> camera & lighting check -> calibration (baseline head pose) -> fullscreen exam.
- * Frames are analysed on this device (face-api TinyFaceDetector + 68 landmarks, COCO-SSD for phone / book / laptop / screen);
+ * Frames are analysed on this device (MediaPipe Face Landmarker via lensiq-exam-face.js for face presence, count and head
+ * pose; COCO-SSD on the standalone TF.js runtime for phone / book / laptop / screen). face-api.js is never loaded unless the
+ * device's "Research demo" switch is on AND the URL has ?faceengine=faceapi (LQExamFace.pickEngine);
  * only JSON events (LQExam.cleanMsg) go to the room dashboard (exam-link.js). No image, audio or name ever leaves the page.
  * Test seams (localhost + ?fakedet, LQDetect.isTest()): no models; window.__LQ_FAKE_DET("exam-lab") returns
  *   [{x,y,w,h, yaw?, pitch?, mar?}] faces (normalised; turned into 68 synthetic landmarks) and [{cls:"phone"|..., score}] objects;
  *   window.__LQ_FAKE_Q = {ok, code, score} overrides the lighting verdict. ?calsec=N shortens calibration. window.__LQ_EXAM_LAB = state.
+ *   Fake faces go through the same pose code as the real engine (LQExamFace.synthMesh -> poseFromMesh).
+ * Face detector cannot load or run (decided only by an actual failure of init() or detect(), never by a WebGL probe; seen on
+ *   a Mac Chrome with WebGL disabled, and with WebAssembly removed): the face signals are switched off and said so
+ *   (candidate: status line; invigilator: one "fix setup" event, code "faceoff"); an absent detector never reads as "no face".
+ *   __LQ_EXAM_LAB.faceRuns counts successful detector calls.
  * Evidence clip (opt-in per exam, default OFF; ?clip=1&clipauto=1&clipdays=N or the invigilator settings): the notice and
  *   consent text change BEFORE consent, then the setting is locked. During the exam the last 10 s of video (no audio) stay in
  *   memory; a Watch / Check flag copies them to a pending slot that is encrypted to this device only when the invigilator
  *   taps "keep clip" on the dashboard (or auto-keep). Never uploaded (exam-clip-ui.js / lensiq-exam-clip.js).
  */
-/* global LQCam, LQDetect, LQSite, faceapi */
+/* global LQCam, LQDetect, LQSite */
 (function () {
   "use strict";
-  const W = /** @type {any} */ (window), E = W.LQExam, U = W.LQExamUI, L = W.LQExamLink, T = U.T;
+  const W = /** @type {any} */ (window), E = W.LQExam, F = W.LQExamFace, U = W.LQExamUI, L = W.LQExamLink, T = U.T;
   const $ = s => document.querySelector(s);
   const TEST = !!(window.LQDetect && LQDetect.isTest());
   const P = U.params();
@@ -24,6 +31,7 @@
   if (!/^[a-z0-9]{6,24}$/.test(String(nodeId))) { nodeId = L.newNodeId(); U.store.set(K.node, nodeId); }
 
   let phase = "notice", room = "", seat = "", link = null, mon = null, cam = null, coco = null, modelsReady = false;
+  let faceEng = null, faceOff = false, faceOffSent = false, faceRuns = 0;
   let running = false, profile = null, lastQ = { ok: true, code: "ok", score: 0 }, lastFaces = [], frames = 0, fpsEma = 0, lastTick = 0;
   let calSamples = [], calEnd = 0, calLen = 120, hbTimer = null, promptTimer = null, wasFs = false, reloadPending = false;
   const own = U.store.get(K.log, []).filter(e => e && E.SIGNALS[e.sig]);
@@ -95,7 +103,7 @@
       if (ev.lvl === "prompt") { prompt(ev.sig); continue; }
       if (ev.lvl === "end") { if (ev.sig === "noface") $("#prompt").hidden = true; continue; }
       if (ev.local) continue;
-      if (ev.prompt || ev.lvl === "setup" || (ev.lvl !== "info" && PROMPTS[ev.sig])) prompt(ev.sig);
+      if (ev.code !== "faceoff" && (ev.prompt || ev.lvl === "setup" || (ev.lvl !== "info" && PROMPTS[ev.sig]))) prompt(ev.sig);
       const msg = { v: 1, type: "ev", room, node: nodeId, src: "lab", seat, sig: ev.sig, lvl: ev.lvl, t: Math.round(ev.t), id: "e" + (++evSeq).toString(36) + "-" + evTag };
       for (const k of ["dur", "n"]) if (Number.isFinite(ev[k])) msg[k] = ev[k];
       if (ev.what) msg.what = ev.what;
@@ -124,10 +132,19 @@
   }
 
   /* ---------- camera + models ---------- */
+  const faceOffText = () => T("exam.lab.faceOff",
+    "ตัวตรวจใบหน้าทำงานในเครื่องนี้ไม่ได้ (เช่น เบราว์เซอร์ไม่รองรับ WebGL หรือ WebAssembly): ระบบจะไม่ดูใบหน้า จำนวนใบหน้า และการหันศีรษะ ผู้คุมสอบจะเห็นว่าต้องปรับการติดตั้ง ไม่ใช่ความผิดของคุณ");
+  /** the face engine cannot run here: face signals off, said so once to the invigilator ("fix setup", not an alert) */
+  function setFaceOff() {
+    if (!faceOff) { faceOff = true; lastFaces = []; engine(faceOffText, "warn"); renderChecks(); }
+    if (phase === "exam" && !faceOffSent) { faceOffSent = true; handle([{ sig: "setup", lvl: "setup", t: Date.now(), code: "faceoff" }]); }
+  }
   async function loadModels() {
-    if (TEST || modelsReady) return TEST ? "test" : "ok";
+    if (modelsReady) return TEST ? "test" : "ok";
+    if (TEST) { modelsReady = true; return "test"; }
     const b = await LQDetect.tfBackend();
-    await Promise.all(["tinyFaceDetector", "faceLandmark68Net"].map(n => faceapi.nets[n].loadFromUri("vendor/models/")));
+    faceEng = F.create(F.pickEngine(window));
+    try { await faceEng.init(); } catch (e) { console.warn("face engine", e); faceOff = true; }
     try { coco = await LQDetect.loadCoco("vendor/models/cocossd/model.json"); } catch (e) { console.warn("COCO-SSD", e); coco = null; }
     modelsReady = true; return b;
   }
@@ -146,6 +163,7 @@
       const [, b] = await Promise.all([cam.start(), loadModels()]);
       try { cam.attach($("#camPick")); } catch (e) { /* single camera */ }
       engine(() => T("exam.lab.ready", "พร้อม — ตัวประมวลผล: {b} · ภาพไม่ออกจากเครื่องนี้", { b: String(b).toUpperCase() }), "ok");
+      if (faceOff) { faceOff = false; setFaceOff(); }
       running = true; loop();
       renderChecks();
     } catch (e) {
@@ -165,7 +183,10 @@
     items.push(E.isVirtualCamLabel(label) ? ["warn", T("exam.lab.chkVirt", "กล้องที่เลือกดูเหมือนกล้องเสมือน (เช่น OBS) — โปรดเลือกกล้องจริง")] : ["ok", T("exam.lab.chkCam", "กล้อง: {l}", { l: label || T("exam.lab.camUnnamed", "ไม่มีชื่อ") })]);
     const ext = window.screen && /** @type {any} */ (window.screen).isExtended;
     items.push(ext === true ? ["warn", T("exam.lab.chkScreens", "พบจอภาพมากกว่าหนึ่งจอ — ถ้าไม่ได้รับอนุญาตโปรดถอดจอที่สอง")] : ["ok", ext === false ? T("exam.lab.chkOne", "จอภาพ: หนึ่งจอ") : T("exam.lab.chkUnknown", "เบราว์เซอร์นี้ไม่บอกจำนวนจอภาพ")]);
-    items.push(lastFaces.length === 1 ? ["ok", T("exam.lab.chkFace", "เห็นใบหน้าหนึ่งใบหน้า")] : ["warn", lastFaces.length ? T("exam.lab.chkMany", "เห็น {n} ใบหน้า — ควรมีเพียงคุณในภาพ", { n: lastFaces.length }) : T("exam.lab.chkNoFace", "ยังไม่เห็นใบหน้า — ขยับให้อยู่ในกรอบและเพิ่มแสง")]);
+    items.push(faceOff ? ["warn", T("exam.lab.chkFaceOff", "ตัวตรวจใบหน้าทำงานในเครื่องนี้ไม่ได้ — ระบบจะไม่ดูใบหน้าและการหันศีรษะ")]
+      : lastFaces.length === 1 ? ["ok", T("exam.lab.chkFace", "เห็นใบหน้าหนึ่งใบหน้า")]
+      : ["warn", lastFaces.length ? T("exam.lab.chkMany", "เห็น {n} ใบหน้า — ควรมีเพียงคุณในภาพ", { n: lastFaces.length })
+        : T("exam.lab.chkNoFace", "ยังไม่เห็นใบหน้า — ขยับให้อยู่ในกรอบและเพิ่มแสง")]);
     $("#checks").innerHTML = items.map(([k, s]) => `<li class="${k === "ok" ? "" : "warn-li"}">${k === "ok" ? "✓" : "!"} ${U.esc(s)}</li>`).join("");
   }
   const qCanvas = document.createElement("canvas"); qCanvas.width = 160; qCanvas.height = 120;
@@ -191,20 +212,23 @@
     let objects;
     if (TEST) {
       objects = [];
+      const fa = F.pickEngine(window) === "faceapi";
       for (const f of LQDetect.fake("exam-lab", performance.now()) || []) {
         if (f.cls) { objects.push({ cls: f.cls, score: f.score != null ? f.score : 0.9 }); continue; }
-        const box = { x: f.x * W, y: f.y * H, w: f.w * W, h: f.h * H };
-        faces.push(Object.assign(E.poseFrom68(E.synth68(box, f.yaw || 0, f.pitch || 0, f.mar != null ? f.mar : 0.05)), { box }));
+        const box = { x: f.x * W, y: f.y * H, w: f.w * W, h: f.h * H }, mar = f.mar != null ? f.mar : 0.05;
+        const m = F.synthMesh(box, f.yaw || 0, f.pitch || 0, mar, W, H);
+        faces.push(Object.assign(fa ? E.poseFrom68(E.synth68(box, f.yaw || 0, f.pitch || 0, mar)) : F.poseFromMesh(m.lms, W, H, { matrix: m.matrix }), { box }));
       }
     } else {
-      const r = await LQDetect.detectFacesCascade(faceapi, video, { sizes: [320, 224], scoreThreshold: 0.5, descriptors: false });
-      for (const x of r) { const b = x.detection.box; faces.push(Object.assign(E.poseFrom68(x.landmarks.positions), { box: { x: b.x, y: b.y, w: b.width, h: b.height } })); }
+      if (!faceOff && faceEng) {
+        try { for (const f of await faceEng.detect(video)) faces.push(f); faceRuns++; } catch (e) { console.warn("face engine", e); setFaceOff(); }
+      }
       if (coco && cocoN++ % 3 === 0) {
         const d = await LQDetect.detectCoco(coco, video, { classes: [76, 83, 72, 71], minScore: 0.4, max: 10 });
         objects = d.map(o => ({ cls: COCO_NAME[o.cls], score: o.score }));
       }
     }
-    return { faces, objects, W, H };
+    return { faces, objects, W, H, faceOff };
   }
   function draw(o) {
     if (!o) return;
@@ -226,7 +250,7 @@
         lastTick = t0;
         if (phase === "cam" && frames % 4 === 0) renderChecks();
         if (phase === "cal") calStep(now, o);
-        if (phase === "exam" && mon) handle(mon.frame(now, { faces: o.faces, objects: o.objects, quality: q }));
+        if (phase === "exam" && mon) handle(mon.frame(now, { faces: o.faces, objects: o.objects, quality: q, faceOff: o.faceOff }));
       }
     } catch (e) { console.warn(e); }
     if (running) setTimeout(loop, Math.max(30, 250 - (performance.now() - t0)));
@@ -251,6 +275,7 @@
     U.store.set(K.lab, { room, seat, baseline: b });
     phase = "calDone";
     $("#calMsg").textContent = b.ok ? T("exam.lab.calOk", "ปรับเทียบแล้ว — ระบบจะเทียบการหันศีรษะกับท่าปกติของคุณ")
+      : faceOff ? T("exam.lab.calOff", "ปรับเทียบการหันศีรษะไม่ได้ เพราะตัวตรวจใบหน้าทำงานในเครื่องนี้ไม่ได้ คุณยังเริ่มสอบได้")
       : T("exam.lab.calFail", "ปรับเทียบไม่สำเร็จ (เห็นใบหน้าชัดเพียง {p}% ของเวลา) — ระบบจะไม่ดูการหันศีรษะ คุณยังเริ่มสอบได้ หรือปรับแสงแล้วปรับเทียบใหม่", { p: Math.round(b.onePct * 100) });
     $("#calMsg").className = "status " + (b.ok ? "ok" : "warn");
     $("#toExam").disabled = false;
@@ -351,6 +376,7 @@
     const ext = /** @type {any} */ (window.screen).isExtended;
     if (ext === true) B("screens", { extended: true });
     if (E.isVirtualCamLabel(cam && cam.label)) B("virtualcam");
+    if (faceOff) setFaceOff(); // tells the invigilator once: face signals are off on this device ("fix setup")
     heartbeat();
   });
   $("#reFs").addEventListener("click", async () => { try { await document.documentElement.requestFullscreen(); } catch (e) { /* ignore */ } });
@@ -378,6 +404,7 @@
 
   /** @type {any} */ (window).__LQ_EXAM_LAB = {
     get phase() { return phase; }, get mon() { return mon; }, get baseline() { return mon && mon.baseline; },
-    own, sent, get link() { return link; }, get quality() { return lastQ; }, get faces() { return lastFaces; }, nodeId, clips, get clipCfg() { return clipCfg; }
+    own, sent, get link() { return link; }, get quality() { return lastQ; }, get faces() { return lastFaces; }, nodeId, clips, get clipCfg() { return clipCfg; },
+    get faceEngine() { return faceEng ? faceEng.name : TEST ? "test" : null; }, get faceOff() { return faceOff; }, get faceRuns() { return faceRuns; }
   };
 })();

@@ -82,7 +82,7 @@
       </div>
       <p class="note" data-i18n="exam.clip.cfgNote">ตั้งค่านี้ก่อนผู้เข้าสอบอ่านประกาศ ข้อความประกาศและความยินยอมจะเปลี่ยนตาม
         คลิปเข้ารหัสในเครื่องนี้ ไม่ถูกส่งออก และเก็บเฉพาะเมื่อผู้คุมสอบกด “เก็บคลิป” ที่การแจ้ง</p>
-      <p class="note" data-i18n="exam.lab.gazeNote">การดูทิศสายตายังไม่เปิดใช้: จุดใบหน้า 68 จุดไม่มีตำแหน่งม่านตา จึงวัดสายตาไม่ได้อย่างน่าเชื่อถือ (แผนรุ่นถัดไป น้ำหนักต่ำ ไม่แจ้งเพียงลำพัง)</p>
+      <p class="note" data-i18n="exam.lab.gazeNote">การดูทิศสายตายังไม่เปิดใช้: ยังไม่ได้วัดว่าจุดม่านตาของโมเดลใบหน้าบอกทิศสายตาได้น่าเชื่อถือแค่ไหน (แผนรุ่นถัดไป น้ำหนักต่ำ ไม่แจ้งเพียงลำพัง)</p>
     </details>
   </section>
 
@@ -136,17 +136,19 @@
 <div class="ex-monitor" id="monitor" hidden role="status"><i aria-hidden="true"></i><span data-i18n="exam.lab.mon">กล้องช่วยผู้คุมสอบทำงานอยู่ · ไม่มีการส่งภาพ</span>
   <span id="monClip" hidden data-i18n="exam.lab.monClip">· จำภาพ 10 วินาทีล่าสุด</span></div>
 
-<script src="vendor/face-api.js"></script>
+<script src="vendor/tfjs/tf.es2017.min.js"></script>
+<script src="vendor/tfjs/tf-backend-wasm.es2017.min.js"></script>
 <script src="lensiq-camera.js?v=4"></script>
-<script src="lensiq-detect.js?v=3"></script>
+<script src="lensiq-detect.js?v=4"></script>
 <script src="lensiq-sitecheck.js?v=4"></script>
-<script src="lensiq-exam.js?v=2"></script>
+<script src="lensiq-exam.js?v=3"></script>
+<script src="lensiq-exam-face.js?v=1"></script>
 <script src="exam-ui.js?v=1"></script>
 <script src="exam-link.js?v=1"></script>
 <script src="lensiq-facevault.js?v=1"></script>
 <script src="lensiq-exam-clip.js?v=2"></script>
 <script src="exam-clip-ui.js?v=2"></script>
-<script src="exam-lab.js?v=2"></script>
+<script src="exam-lab.js?v=3"></script>
 <script src="lensiq-config.js?v=4"></script>
 </body>
 </html>

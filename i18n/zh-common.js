@@ -221,6 +221,7 @@
   "about.oss.font": "网页字体",
   "about.oss.face": "人脸与表情检测",
   "about.oss.mp": "图像分割、手部检测",
+  "about.oss.examface": "考生页面的人脸计数与转头观察（不做人脸识别）",
   "about.oss.ort": "高质量抠图",
   "about.oss.pcocr": "读取产品标签文字；发送前检测照片中的人脸",
   "about.oss.barcode": "读取包装上的条形码",
