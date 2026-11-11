@@ -1,0 +1,136 @@
+# คู่มือเริ่มต้นใช้งาน: LENSIQ Attendance (ลงเวลาพนักงาน PIN / QR เป็นค่าเริ่มต้น)
+
+> **ร่าง (DRAFT) 2026-11-11** สำหรับลูกค้าหลังตกลงซื้อหรือเริ่มนำร่อง ใช้กับ `attendance.html?mode=employee` ฐานข้อมูล:
+> `docs/ATTENDANCE-READINESS.md`, `docs/PILOT-PLAN.md` §3.2, `docs/DEPLOYMENT-CHECKLIST.md`, `docs/SUPPORT.md` จุดเปิด OP-xx อยู่ใน `docs/sales/README.md`
+> ช่อง [วงเล็บ] เจ้าของกรอก ห้ามแต่งข้อมูลติดต่อ ตัวเลือกใบหน้ารอข้อสรุปใบอนุญาตโมเดล (OP-14) คู่มือนี้เริ่มจาก PIN/QR เสมอ
+
+## 1. ก่อนติดตั้ง: สิ่งที่ลูกค้าต้องมี
+
+| หัวข้อ | รายละเอียด |
+|---|---|
+| อุปกรณ์ | โทรศัพท์ แท็บเล็ต หรือคอมพิวเตอร์ 1 เครื่องต่อจุดลงเวลา วางประจำที่ ต่อชาร์จตลอด ลูกค้าจัดหาเอง LENSIQ ไม่ขายอุปกรณ์ |
+| เบราว์เซอร์ | Chrome/Edge รุ่นปัจจุบัน (110 ขึ้นไป) หรือ Safari 16.4 ขึ้นไป ใช้โปรไฟล์เฉพาะ ไม่ใช้หน้าต่างส่วนตัว เปิดอัปเดตอัตโนมัติ |
+| ที่อยู่หน้าเว็บ | `https://` ที่ใบรับรองถูกต้อง หรือ `http://localhost` เท่านั้น ที่อยู่ที่ใช้จริง [ที่อยู่เว็บ — ต้องยืนยัน / to confirm] |
+| สแกน QR ด้วยกล้อง | ทำงานที่เบราว์เซอร์มี `BarcodeDetector` (Chrome บน Android/macOS/ChromeOS) ที่อื่นใช้เครื่องอ่านบาร์โค้ดแบบ USB/บลูทูธ (ทำหน้าที่เหมือนคีย์บอร์ด) หรือใช้ PIN |
+| เครือข่าย | ต้องมีอินเทอร์เน็ตตอนเปิดหน้าครั้งแรก หลังนั้นทำงานต่อได้ แต่การโหลดหน้าใหม่โดยไม่มีเครือข่ายอาจล้มเหลว (เก็บเฉพาะโมเดล) ไม่ต้องมีเครือข่ายภายในที่ซับซ้อน |
+| ที่เก็บข้อมูล | บันทึกอยู่ในเบราว์เซอร์ของเครื่องนั้น ประมาณ 20 คน × 2 ปีต่อเครื่อง หน้าแสดงมิเตอร์และเตือนเมื่อใช้เกิน 3.5 MB จาก 5 MB |
+| ความปลอดภัย | ผู้ใช้ไม่ใช่ผู้ดูแลระบบ ล็อกหน้าจอ เข้ารหัสดิสก์ ปิดโหมดหลับ ตั้ง PIN ผู้จัดการ |
+| เอกสาร | แจ้งพนักงานก่อนใช้ ประกาศ PDPA ในหน้า ป้ายและแบบยินยอม (`camera-notice.html`) ถ้าจะเปิดใบหน้า ข้อความตามกฎหมายแรงงานให้ทนายแรงงานตรวจ (OP-24) |
+| ข้อมูลที่ต้องมี | รายชื่อพนักงานและรหัส (สร้างเอง) ตารางกะ วันหยุดบริษัท ตัวอย่างไฟล์ของระบบเงินเดือน (ไม่มีข้อมูลบุคคล) |
+
+## 2. วันแรกทีละขั้น
+
+1. **เปิดหน้า** `attendance.html?mode=employee` บนเครื่องลงเวลา ตรวจว่าวัน-เวลาของเครื่องถูกต้อง (ระบบอิงนาฬิกาเครื่อง เตือนเมื่อถูกตั้งย้อนหลัง)
+2. **แท็บ "ตั้งค่าและข้อมูล"**: ตั้งชื่ออุปกรณ์/จุดลงเวลา ตั้ง **PIN ผู้จัดการ** (ใช้ยืนยันการแก้ไขและออกจากโหมดคิออสก์) ตั้งระยะเก็บบันทึกเวลา (ขั้นต่ำ 2 ปี ตามมาตรา 114
+   [ต้องยืนยัน / to confirm กับทนายแรงงาน]) แยกจากระยะเก็บข้อมูลใบหน้า
+3. **แท็บ "กะการทำงาน"**: สร้างกะ เวลาเริ่ม-เลิก เวลาพัก ผ่อนผันสาย/ออกก่อน กติกา OT (เริ่มหลังกี่นาที ขั้นต่ำ ปัดลง ต้องอนุมัติหรือไม่) ข้อควรระวัง: เกินเวลาผ่อนผันแล้วนับทุกนาทีตั้งแต่เริ่มกะ
+   และ OT ปัดลงตามที่ตั้ง บริษัทต้องเขียนกติกานี้ในข้อบังคับ [ต้องยืนยัน / to confirm กับทนาย]
+4. **แท็บ "วันหยุดและการลา"**: ตรวจรายการวันหยุดนักขัตฤกษ์ หน้าจะเตือนถ้าไม่ถึง 13 วันหรือไม่มี 1 พฤษภาคม วันหยุดตามจันทรคติมีเฉพาะปี 2026 ปีอื่นต้องเพิ่มเองตามประกาศ
+5. **แท็บ "พนักงาน"**: เพิ่มพนักงาน (รหัส ชื่อ แผนก กะ PIN) ทำที่ละคน พนักงานที่ไม่ประสงค์ใช้ใบหน้าตั้ง "ไม่ใช้ใบหน้า" ระบบจะไม่ลงทะเบียนใบหน้าให้ พิมพ์บัตร QR (ออกบัตรใหม่แล้วบัตรเก่าใช้ไม่ได้)
+6. **แจ้งพนักงาน** อ่านประกาศ PDPA ในหน้า อธิบายว่าลงเวลาด้วย PIN หรือ QR ไม่มีใบหน้า ใบหน้าเปิดเมื่อสมัครใจเท่านั้น และไม่มีผลเสียถ้าไม่ใช้
+7. **ทดลองลงเวลา** ทุกคนลองลงเวลาเข้า-ออกที่แท็บ "PIN / QR" ล็อกหลังใส่ PIN ผิด 5 ครั้ง (ผู้จัดการปลดล็อก) ตรวจ "ลงเวลาวันนี้"
+8. **เปิดโหมดคิออสก์** ถ้าวางเครื่องประจำ (ออกด้วย PIN ผู้จัดการ) ตั้งให้เครื่องไม่หลับ
+9. **สัปดาห์แรก**: ผู้จัดการตรวจ "สรุปเดือนและเงินเดือน" ทุกวันศุกร์ แก้เวลาที่ลืมที่แท็บ "แก้ไขเวลาและประวัติ" (ใส่ชื่อและเหตุผลทุกครั้ง ข้อมูลดิบไม่ถูกแก้)
+10. **ปลายเดือนแรก**: ส่งออก CSV เงินเดือน เทียบชั่วโมงและ OT กับบันทึกเดิมของร้านหนึ่งรอบ (เกณฑ์นำร่อง: ตรงกัน) ถ้าคอลัมน์ไม่ตรงระบบเงินเดือน ส่งไฟล์ตัวอย่างที่ไม่มีข้อมูลบุคคลมาให้ช่วยจับคู่ (บริการช่วยตั้งค่า 2,900 บาท ถ้าสั่ง)
+
+หลายจุดลงเวลา: แต่ละเครื่องส่งออกไฟล์ JSON (ไม่มีภาพ ค่าใบหน้า PIN หรือรหัสบัตร) นำเข้าที่เครื่องหลัก ไม่มีซิงก์สด ซิงก์หลายสาขาและสำรองบนคลาวด์ยังไม่ขาย
+
+## 3. ถ้าจะเปิดใบหน้า (ทางเลือก ต้องผ่านเงื่อนไขก่อน)
+
+- เปิดเฉพาะเมื่อ (1) OP-14 ใบอนุญาตโมเดลได้ข้อสรุป (2) พนักงานแต่ละคนยินยอมเป็นลายลักษณ์อักษร (3) มี PIN/QR ให้เลือกเสมอ (4) ลูกค้าเข้าใจตัวเลข: ใบหน้าเอเชีย จำได้ต่อการสแกน 66–76%
+  (n = 500 คน × 5 ภาพ ชุดข้อมูลสาธารณะ) ที่ทำงานจริงยังไม่ได้วัด
+- ลงทะเบียนอย่างน้อย 5 คนก่อนพึ่งการเช็คอินอัตโนมัติ ใช้แท็บ "ตรวจความแม่นยำ" วัดกับพนักงานของลูกค้าเอง (เกณฑ์นำร่อง: รับคนผิด ≤ 1% ปฏิเสธคนถูก ≤ 10%)
+- ลบข้อมูลใบหน้าเมื่อพนักงานออกหรือถอนความยินยอม (ลบข้อมูลใบหน้าไม่ลบบันทึกเวลา)
+
+## 4. ปัญหาที่พบบ่อยและวิธีแก้
+
+| อาการ | สาเหตุที่น่าจะเป็น | วิธีแก้ |
+|---|---|---|
+| ปุ่มสแกน QR ด้วยกล้องไม่ทำงาน | เบราว์เซอร์ไม่มี `BarcodeDetector` | ใช้ Chrome บน Android/macOS หรือต่อเครื่องอ่านบาร์โค้ด USB/บลูทูธ หรือใช้ PIN |
+| PIN ถูกล็อก | ใส่ผิด 5 ครั้ง (ล็อกรหัสนั้น) หรือ 15 ครั้งทั้งเครื่อง | ผู้จัดการปลดล็อก รอตามที่หน้าแจ้ง |
+| ออกจากโหมดคิออสก์ไม่ได้ | ตั้ง PIN ผู้จัดการไว้ | ใส่ PIN ผู้จัดการ ถ้าลืม ติดต่อฝ่ายสนับสนุน (ห้ามส่ง PIN ทางอีเมล) |
+| เตือน "นาฬิกาเครื่องถูกตั้งย้อนหลัง" | ตั้งเวลาเครื่องผิด หรือมีการแก้เวลา | ตั้งเวลาเครื่องให้ถูก (เปิดเวลาอัตโนมัติ) ผู้จัดการตรวจรายการและแก้ด้วยรายการแก้ไข |
+| ข้อมูลหายหลังปิดเบราว์เซอร์ | ใช้หน้าต่างส่วนตัว หรือเบราว์เซอร์ล้างข้อมูลเว็บ | ใช้โปรไฟล์เฉพาะ ส่งออกไฟล์สำรองทุกสัปดาห์ (ไฟล์สำรองมีชื่อ เก็บแบบเข้ารหัส) |
+| มิเตอร์พื้นที่เกิน 3.5 MB | ข้อมูลสะสมมาก | ส่งออก ล้างตามระยะเก็บ แยกเครื่องตามกลุ่มพนักงาน (ราว 20 คน × 2 ปีต่อเครื่อง) |
+| นำเข้าไฟล์จากเครื่องอื่นไม่ได้ | ไม่ใช่ไฟล์ของ LENSIQ หรือมีคีย์ที่ไม่รู้จัก | ส่งออกใหม่จากเครื่องต้นทาง อย่าแก้ไฟล์ |
+| ชั่วโมงไม่ตรงกับบันทึกเดิม | กติกาผ่อนผัน/ปัด OT ต่างจากเดิม พักไม่ได้ลงเวลา | ปรับกติกากะ ตรวจคอลัมน์ในสรุปเดือน ตรวจรายวันก่อน |
+| กะกลางคืนข้ามเที่ยงคืน | การลงเวลานับตามวันที่เริ่มกะ | ตรวจว่าตั้งกะเป็นกะกลางคืน |
+| ต้องการกะหมุนเวียน/ลาออนไลน์/ซิงก์ | ยังไม่มี | แจ้งความต้องการ ยังไม่ขาย (รอระบบบัญชีองค์กร) |
+| การสแกนใบหน้าซ้ำไม่ถูกบันทึก (เฉพาะเมื่อเปิดตัวเลือกใบหน้า) | การสแกนใบหน้าซ้ำภายใน 60 วินาทีถูกละเว้นตามที่ออกแบบ | รอให้เกิน 60 วินาที |
+
+## 5. ติดต่อใคร
+
+| เรื่อง | ช่องทาง |
+|---|---|
+| คำถามการใช้งาน | อีเมล [อีเมลสนับสนุน] · LINE OA [LINE OA] · โทร [เบอร์โทร] (OP-16 ยังไม่ประกาศ) |
+| ระบบใช้ไม่ได้ทั้งหมด หรือสงสัยข้อมูลรั่ว | ช่องทางเดียวกัน ระบุว่าเป็น S1 เวลาตอบรับตามแผนสนับสนุนที่ตกลง [ต้องยืนยัน / to confirm ค่าใน `docs/SUPPORT.md` §2–3 เป็นร่างในวงเล็บ] (OP-17) |
+| คำขอสิทธิ์ของพนักงาน | องค์กรของลูกค้าเป็นผู้ควบคุมข้อมูล ใช้ปุ่ม "ส่งออกข้อมูลของพนักงานคนนี้" ในหน้า |
+
+แจ้งปัญหา: จุดลงเวลา ชื่อหน้า เวลา ขั้นตอน รุ่นเบราว์เซอร์ **ห้ามส่งภาพ ใบหน้า PIN หรือรายชื่อพนักงาน**
+
+---
+
+# English
+
+> **DRAFT 2026-11-11.** For customers after purchase or at the start of a pilot, for `attendance.html?mode=employee`. Based on `docs/ATTENDANCE-READINESS.md`, `docs/PILOT-PLAN.md` §3.2,
+> `docs/DEPLOYMENT-CHECKLIST.md` and `docs/SUPPORT.md`. Open points (OP-xx) are in `docs/sales/README.md`. Fields in [brackets] are for the owner. This guide always starts with PIN / QR; the face
+> option waits for the model-licence decision (OP-14).
+
+## 1. Before installing
+
+- **Devices:** one phone, tablet or computer per clock-in point, fixed in place and always charging. The customer supplies them; LENSIQ sells no hardware.
+- **Browser:** current Chrome or Edge (110+) or Safari 16.4+, a dedicated profile, no private window, auto-update on.
+- **Page address:** a valid `https://` or `http://localhost` only. The real address: [to confirm].
+- **QR scanning by camera:** works where the browser has `BarcodeDetector` (Chrome on Android, macOS, ChromeOS). Elsewhere use a USB or Bluetooth barcode reader (keyboard mode) or the PIN.
+- **Network:** needed when the page is first opened; afterwards it keeps working, but reloading the page without a network may fail (only models are cached). No complex local network is needed.
+- **Storage:** records live in that device's browser: about 20 people x 2 years per device. The page shows usage and warns above 3.5 MB of 5 MB.
+- **Security:** non-admin user, screen lock, disk encryption, sleep off, a manager PIN.
+- **Documents:** tell staff before use; the PDPA notice in the page; the sign and consent form (`camera-notice.html`) if faces are used; labour-law wording checked by a labour lawyer (OP-24).
+- **Information to gather:** staff list and codes, shift tables, company holidays, a payroll-system sample file with no personal data.
+
+## 2. First day, step by step
+
+1. Open `attendance.html?mode=employee` on the clock device. Check the device date and time (the system follows the device clock and warns if it is set back).
+2. Tab "Settings and data": name the device or clock point; set the **manager PIN** (confirms corrections and exiting the kiosk); set the time-record retention (minimum 2 years, s.114
+   **[to confirm] with a labour lawyer**), separate from face-data retention.
+3. Tab "Shifts": create shifts, start and end, break, grace minutes, OT rules (start after N minutes, minimum, round down, approval needed or not). Note: beyond the grace period every minute from the
+   shift start counts, and OT rounds down as set; the company must write this into its rules **[to confirm] with counsel**.
+4. Tab "Holidays and leave": check the public-holiday list. The page warns if there are fewer than 13 or no 1 May. Lunar holidays are filled in for 2026 only; add other years from the official announcement.
+5. Tab "Employees": add staff one at a time (code, name, department, shift, PIN). For anyone who prefers no face, mark "no face"; the system will not enrol a face for them. Print the QR badges
+   (re-issuing revokes the old one).
+6. Tell staff: read the PDPA notice in the page; explain that clock-in is by PIN or QR with no face; a face is switched on only voluntarily and carries no penalty if declined.
+7. Test: everyone clocks in and out on the "PIN / QR" tab. Five wrong PINs lock a code (the manager unlocks). Check "today's punches".
+8. Switch on kiosk mode if the device is fixed (exit with the manager PIN) and keep the device awake.
+9. First week: the manager reviews "Month and payroll" every Friday and fixes missed punches in "Corrections and history" (name and reason every time; raw data is never edited).
+10. End of the first month: export the payroll CSV and compare hours and OT with the shop's existing record for one cycle (pilot criterion: they match). If columns do not match the payroll
+    system, send a sample file with no personal data for mapping (the 2,900 THB set-up help, if ordered).
+
+Several clock-in points: each device exports a JSON file (no images, face values, PINs or badge codes) and the main device imports it. There is no live sync. Multi-branch sync and cloud backup are not sold.
+
+## 3. If faces are switched on (optional, with conditions)
+
+Only when (1) the model licence is settled (OP-14); (2) each employee consents in writing; (3) PIN / QR is always available; (4) the customer understands the figures: Asian faces recognised per scan
+66–76% (n = 500 people x 5 photos, public dataset), real workplace not measured. Enrol at least 5 people before relying on automatic check-in. Use the "accuracy check" tab on your own staff
+(pilot criteria: false accept at most 1%, false reject at most 10%). Delete face data when someone leaves or withdraws consent (deleting face data never deletes time records).
+
+## 4. Common problems and fixes
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| Camera QR scan does not work | Browser has no `BarcodeDetector` | Use Chrome on Android / macOS, a USB or Bluetooth reader, or the PIN |
+| PIN locked | 5 wrong tries (code locked) or 15 (whole device) | The manager unlocks; wait as the page says |
+| Cannot leave kiosk mode | A manager PIN is set | Enter it; if forgotten, contact support (never send a PIN by e-mail) |
+| "Device clock set back" warning | Wrong time or a changed clock | Set the device time correctly (automatic time); the manager reviews and corrects with a correction entry |
+| Data gone after closing the browser | Private window or site data cleared | Use a dedicated profile; export a backup weekly (it holds names; store it encrypted) |
+| Storage meter above 3.5 MB | Data has built up | Export, clear by retention, split staff across devices (about 20 people x 2 years each) |
+| Cannot import a file from another device | Not a LENSIQ file, or an unknown key | Export again from the source; do not edit the file |
+| Hours differ from the old record | Different grace or OT rounding; breaks not punched | Adjust the shift rules; check the month columns; check day by day first |
+| Night shift across midnight | Punches belong to the date the shift starts | Check that the shift is set as a night shift |
+| Need rotating rosters, online leave or sync | Not built | Tell us the need; not sold yet (waits for organisation accounts) |
+| A repeated face scan is not recorded (only when the face option is on) | Repeat face scans within 60 seconds are ignored by design | Wait more than 60 seconds |
+
+## 5. Who to contact
+
+Questions: e-mail [support e-mail], LINE OA [LINE OA], phone [phone] (OP-16, not announced yet). System down or a suspected data leak: the same channels, marked S1; response times follow the agreed
+support plan **[to confirm]** (`docs/SUPPORT.md` §2–3 values are bracketed drafts, OP-17). Staff data requests: the customer is the controller; use "export this employee's records".
+When reporting give the clock point, page, time, steps and browser version. **Never send images, faces, PINs or staff lists.**

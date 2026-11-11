@@ -1,0 +1,140 @@
+# คู่มือเริ่มต้นใช้งาน: LENSIQ Exam (ห้องคอมพิวเตอร์ / lab mode)
+
+> **ร่าง (DRAFT) 2026-11-11** สำหรับลูกค้าหลังตกลงซื้อหรือเริ่มโครงการนำร่อง ใช้ได้กับ `exam-lab.html` และ `exam-dashboard.html`
+> ห้องสอบที่มีกล้อง (`exam-hall.html`) เป็นรุ่นทดลอง ไม่ขาย ไม่อยู่ในคู่มือนี้ ฐานข้อมูล: `docs/EXAM.md`, `docs/pilot/PILOT-EXAM.md`,
+> `docs/DEPLOYMENT-CHECKLIST.md`, `docs/SUPPORT.md` จุดเปิด OP-xx อยู่ใน `docs/sales/README.md`
+> ตัวอย่างข้อความติดต่ออยู่ท้ายเอกสาร ช่อง [วงเล็บ] เจ้าของกรอก ห้ามแต่งข้อมูลติดต่อ
+
+## 1. ก่อนติดตั้ง: สิ่งที่ลูกค้าต้องมี
+
+| หัวข้อ | รายละเอียด |
+|---|---|
+| อุปกรณ์ | คอมพิวเตอร์ในห้องที่มีเว็บแคมทุกเครื่อง (ผู้สอบ 1 คน 1 เครื่อง) และเครื่องของผู้คุมสอบสำหรับแดชบอร์ด 1 เครื่องต่อห้อง |
+| เบราว์เซอร์ | Chrome หรือ Edge รุ่นปัจจุบัน (110 ขึ้นไป) เปิดอัปเดตอัตโนมัติ ใช้โปรไฟล์เบราว์เซอร์เฉพาะสำหรับการสอบ ไม่ใช้หน้าต่างส่วนตัว (ข้อมูลหายเมื่อปิด) |
+| ที่อยู่หน้าเว็บ | ต้องเปิดผ่าน `https://` ที่ใบรับรองถูกต้อง หรือ `http://localhost` เท่านั้น มิฉะนั้นกล้องใช้ไม่ได้ ที่อยู่หน้าจริงที่ลูกค้าจะใช้ [ที่อยู่เว็บที่ใช้งาน — ต้องยืนยัน / to confirm] |
+| กล้อง | เว็บแคมหน้าจอ ผู้สอบนั่งหน้ากล้อง ใบหน้าอยู่กลางภาพ แสงหน้าตรง หลีกเลี่ยงหน้าต่างหลังผู้สอบ |
+| เครือข่าย | ต้องมีอินเทอร์เน็ตตอนเปิดหน้าครั้งแรกเพื่อโหลดโมเดล (MediaPipe Face Landmarker และ COCO-SSD) โมเดลถูกเก็บไว้ในเบราว์เซอร์ การโหลดหน้าใหม่โดยไม่มีเครือข่ายอาจล้มเหลว (เก็บเฉพาะโมเดล ไม่เก็บหน้า `ATTENDANCE-READINESS.md` §6) **ให้เปิดหน้าไว้ก่อนสอบและอย่ารีโหลด [ต้องยืนยัน / to confirm] ในห้องจริง** |
+| การรักษาความปลอดภัย | ผู้ใช้เครื่องไม่ใช่ผู้ดูแลระบบ ล็อกหน้าจอ เข้ารหัสดิสก์ (FileVault/BitLocker) ปิดโหมดหลับ ต่อไฟ |
+| การสอบ | ใช้ระบบข้อสอบของสถาบันเอง หน้า Exam เป็นผู้ช่วยสังเกต ไม่ใช่ระบบข้อสอบ การสอบเดิมพันสูงต้องมีผู้คุมสอบและ Safe Exam Browser ร่วมด้วย |
+| เอกสาร | ประกาศผู้สอบ (`exam.html#notice` พิมพ์ได้ 3 ภาษา) ทางเลือกสำหรับผู้ไม่ยินยอม DPIA (`docs/pdpa/DPIA-template.md`) ผู้ลงนามอนุมัติ |
+
+## 2. ตารางเวลาเริ่มต้นใช้งาน (สอดคล้อง `docs/pilot/PILOT-EXAM.md` §3)
+
+| วัน | งาน | ผู้ทำ |
+|---|---|---|
+| −14 ถึง −8 | เลือกรอบสอบ (ไม่ใช่การสอบชี้ขาดสูง เช่น สอบย่อย/กลางภาค) ลงนามเอกสาร ทำ DPIA | สถาบัน |
+| −7 | ประกาศผู้สอบ อย่างน้อย 7 วันก่อนสอบ พร้อมทางเลือกสำหรับผู้ไม่ยินยอม | สถาบัน |
+| −5 | ตรวจกล้องและแสงในห้องจริง 2–3 ชั่วโมง เวลาและแสงเดียวกับวันสอบ | LENSIQ + สถาบัน |
+| −4 | อบรมผู้คุมสอบ 1 ชั่วโมง | LENSIQ |
+| วันสอบ | ตามหัวข้อ 3 | สถาบัน |
+| +1 ถึง +3 | ส่งออกไฟล์ นำเข้าแดชบอร์ด ดูรายงาน ประชุมสรุป | สถาบัน + LENSIQ |
+
+## 3. วันแรก (วันสอบ) ทีละขั้น
+
+1. **มาถึง 45 นาทีก่อนสอบ** เปิดเครื่องทุกเครื่อง ต่ออินเทอร์เน็ต เปิด Chrome/Edge โปรไฟล์สอบ
+2. **ผู้คุมสอบเปิด `exam-dashboard.html`** ใส่รหัสห้อง ชื่อผู้คุมสอบ (ทุกการกระทำบันทึกชื่อ) ช่วงที่นั่ง เช่น 1-40 กด "เปิดแดชบอร์ดห้องนี้"
+   ถ้าต้องปรับการสอบเป็นรายที่นั่ง (พักบ่อย อ่านออกเสียง) ตั้งก่อนเริ่ม ไม่บันทึกการวินิจฉัย
+3. **เปิด `exam-lab.html` บนเครื่องผู้สอบทุกเครื่อง** ให้ผู้สอบอ่านประกาศและติ๊กยินยอม ผู้ไม่ยินยอมสอบโดยไม่เปิดกล้อง (ไม่เสียสิทธิ์สอบ)
+4. **ตรวจแสงและกล้อง** ถ้าคำตัดสินแสงเป็น "แย่" ให้ปรับแสงหรือมุมก่อน ระบบจะไม่ประเมินสัญญาณใบหน้าและส่ง "ปรับการติดตั้ง" ไม่ใช่การแจ้งเหตุ
+5. **ปรับเทียบท่านั่ง** (ประมาณ 2 นาที) ถ้าเฟรมที่มีใบหน้าเดียวต่ำกว่า 60% การปรับเทียบจะไม่ผ่านและปิดสัญญาณหันศีรษะ การสอบยังเริ่มได้
+6. **เริ่มสอบ** ผู้สอบเข้าโหมดเต็มจอ ผู้คุมสอบเดินตรวจตามปกติ ข้อจำกัดที่ต้องบอกผู้คุมสอบ: ในโหมดห้องคอมพิวเตอร์ยังไม่มีการส่งสดไปแดชบอร์ดข้ามเครื่อง (OP-25)
+   และสัญญาณ "มากกว่าหนึ่งคน" เป็นตัวช่วย ไม่ครบถ้วน (28.8% บนชุดข้อมูลสาธารณะ)
+7. **หลังสอบ** แต่ละเครื่องส่งออกไฟล์ JSON ผู้คุมสอบนำเข้าที่แดชบอร์ด (ส่วน "นำเข้าไฟล์เหตุการณ์") ตรวจข้อสังเกตทีละรายการ กด "ไปตรวจ / ไม่พบปัญหา / บันทึก / ส่งต่อ"
+   และกด "แจ้งถูก" หรือ "แจ้งผิด" ทุกข้อสังเกตที่ไปดู
+8. **ส่งออก** CSV (เรียงตามเวลา) และรายงานพิมพ์ ("บันทึกเป็น PDF" จากเบราว์เซอร์) ข้อสังเกตไม่ใช่หลักฐานการทุจริต รายงานระบุข้อความนี้
+9. **ลบ** ไฟล์ส่งออกที่มีชื่อผู้คุมสอบ/ที่นั่งตามตารางเก็บรักษา (ชุดนำร่อง: ภายในวันที่ +14 ถ้าสถาบันไม่เก็บเป็นเอกสารของตน)
+
+คลิปหลักฐาน 10 วินาทีปิดเป็นค่าเริ่มต้น ไม่เปิดเว้นแต่สถาบันขอเป็นหนังสือและประกาศผู้สอบแล้ว (`docs/EXAM.md` "Evidence clip")
+
+## 4. ปัญหาที่พบบ่อยและวิธีแก้
+
+| อาการ | สาเหตุที่น่าจะเป็น | วิธีแก้ |
+|---|---|---|
+| เบราว์เซอร์ไม่ขออนุญาตกล้อง หรือกล้องไม่เปิด | เปิดผ่าน `http://` ที่ไม่ใช่ localhost หรืออนุญาตกล้องถูกปิดไว้ | ใช้ `https://` ที่ถูกต้อง เปิดสิทธิ์กล้องของเว็บนี้ในการตั้งค่าเบราว์เซอร์ แล้วโหลดหน้าใหม่ก่อนเริ่มสอบ |
+| หน้าแจ้งว่าตัวตรวจใบหน้าทำงานไม่ได้ ("ปรับการติดตั้ง") | โมเดลโหลดไม่ได้ (เครือข่าย) หรือเบราว์เซอร์ปิด WebAssembly | ตรวจเครือข่ายและอัปเดตเบราว์เซอร์ โหลดหน้าใหม่ก่อนสอบ ระบบจะปิดสัญญาณใบหน้าและแจ้งผู้สอบ ไม่แสดงเป็น "ไม่เห็นใบหน้า" การสอบดำเนินต่อได้ |
+| แสง "แย่" ซ้ำ | หน้าต่างอยู่หลังผู้สอบ ไฟน้อย | ปิดม่าน เปิดไฟหน้าห้อง หมุนจอ ไม่ตีความเป็นพฤติกรรมผู้สอบ |
+| แจ้ง "ไม่เห็นใบหน้า" บ่อยกับผู้สอบบางคน | ใบหน้าเล็กในภาพ มุมกล้อง ผิวคล้ำในแสงน้อย (ยังไม่ได้วัดตามสีผิว) | ปรับมุมและแสงก่อน ผู้คุมสอบไปดูก่อนตัดสิน ห้ามใช้สัญญาณนี้ตัดสินผู้สอบ บันทึกเป็น "แจ้งผิด" ถ้าไม่พบเหตุ |
+| แจ้ง "จอที่สอง" "ออกจากเต็มจอ" | ผู้สอบต่อจอสอง หรือกดออกจากเต็มจอ | ปุ่ม "กลับเข้าเต็มจอ" แสดงให้ผู้สอบ ขึ้นอยู่กับกติกาสอบของสถาบัน |
+| แจ้ง "กล้องเสมือน" | ชื่ออุปกรณ์กล้องมีคำว่า virtual เช่น OBS | ตรวจให้ใช้กล้องจริง บางโปรแกรมใช้ชื่อกล้องจริง ระบบมองไม่เห็น |
+| ผู้สอบรีโหลดหน้า | เครือข่ายหลุดหรือเบราว์เซอร์ค้าง | ระบบบันทึกเป็นเครื่องหมายเซสชัน ผู้คุมสอบดูเหตุผล หากไม่มีเครือข่าย การโหลดใหม่อาจล้มเหลว (ดูหัวข้อ 1) |
+| ไม่เห็นเหตุการณ์ของผู้สอบบนแดชบอร์ดระหว่างสอบ | ยังไม่มีการส่งสดข้ามเครื่องในโหมดห้องคอมพิวเตอร์ (ข้อจำกัดที่ยอมรับสำหรับการนำร่อง) | ผู้คุมสอบเดินตรวจตามปกติ หลังสอบส่งออกไฟล์ JSON จากแต่ละเครื่องแล้วนำเข้าแดชบอร์ด |
+| นำเข้าไฟล์แล้วไม่ขึ้น | ไฟล์ไม่ใช่ไฟล์ของ LENSIQ หรือมีคีย์ที่ไม่รู้จัก (ระบบปฏิเสธทั้งไฟล์) | ส่งออกใหม่จากหน้าผู้สอบ อย่าแก้ไฟล์ด้วยมือ |
+| ข้อมูลหายหลังปิดเบราว์เซอร์ | ใช้หน้าต่างส่วนตัว หรือล้างข้อมูลเว็บ | ใช้โปรไฟล์เฉพาะ ส่งออกไฟล์ก่อนปิดเสมอ |
+| ผู้สอบไม่ยินยอมเปิดกล้อง | สิทธิ์ของผู้สอบ | ให้สอบโดยไม่เปิดกล้องตามทางเลือกที่ประกาศ ไม่ลงโทษ ไม่เสียสิทธิ์สอบ |
+
+## 5. ติดต่อใคร
+
+| เรื่อง | ช่องทาง |
+|---|---|
+| ปัญหาการใช้งาน ข้อสงสัย | อีเมล [อีเมลสนับสนุน] · LINE OA [LINE OA] · โทร [เบอร์โทร] (OP-16 ยังไม่ประกาศ) |
+| เหตุขัดข้องระดับสูง (ระบบใช้ไม่ได้ในเวลาสอบ) หรือสงสัยข้อมูลรั่ว | ช่องทางเดียวกัน ระบุว่าเป็น S1 เวลาตอบรับตามแผนสนับสนุนที่ตกลง [ต้องยืนยัน / to confirm ค่าใน `docs/SUPPORT.md` §2–3 อยู่ในวงเล็บ ต่อรองได้ ยังไม่ได้อนุมัติ] (OP-17) |
+| คำขอสิทธิ์ข้อมูลส่วนบุคคลของผู้สอบ | องค์กรของลูกค้าเป็นผู้ควบคุมข้อมูล ติดต่อ [ผู้ติดต่อด้านข้อมูลส่วนบุคคลของสถาบัน] |
+
+เมื่อแจ้งปัญหา บอกเพียง: สถาบัน/ห้อง ชื่อหน้า เวลา ขั้นตอนที่ทำ รุ่นเบราว์เซอร์ และข้อความในคอนโซลถ้ามี **ห้ามส่งภาพผู้สอบ ใบหน้า หรือรายชื่อผู้สอบ** (`docs/SUPPORT.md` §6, §10.1)
+
+---
+
+# English
+
+> **DRAFT 2026-11-11.** For customers after purchase or at the start of a pilot. Covers `exam-lab.html` and `exam-dashboard.html`. The camera exam hall (`exam-hall.html`) is experimental,
+> not sold and not covered. Based on `docs/EXAM.md`, `docs/pilot/PILOT-EXAM.md`, `docs/DEPLOYMENT-CHECKLIST.md` and `docs/SUPPORT.md`. Open points (OP-xx) are in `docs/sales/README.md`.
+> Contact fields in [brackets] are for the owner. Never invent contact details.
+
+## 1. Before installing
+
+- **Devices:** a computer with a webcam for every candidate, and one invigilator machine per room for the dashboard.
+- **Browser:** current Chrome or Edge (110 or newer), auto-update on, a dedicated profile for exams, no private window (data disappears when it closes).
+- **Page address:** `https://` with a valid certificate, or `http://localhost`; otherwise the camera does not work. The real address the customer will use: [to confirm].
+- **Camera and light:** webcam at the screen; the candidate's face centred; light from the front; no window behind the candidate.
+- **Network:** internet is needed when the page is first opened, to load the models (MediaPipe Face Landmarker and COCO-SSD). They are kept in the browser. Reloading without a network may
+  fail (only models are cached, not the page; `ATTENDANCE-READINESS.md` §6). Open the page before the exam and do not reload **[to confirm] in a real room**.
+- **Security:** a non-admin user, screen lock, disk encryption, sleep off, mains power.
+- **The exam itself:** stays in the institution's own exam system. LENSIQ only observes. High-stakes exams need invigilators and Safe Exam Browser too.
+- **Documents:** candidate notice (`exam.html#notice`, printable in 3 languages), the way to sit without the camera, a DPIA, a signatory.
+
+## 2. Timeline (follows `docs/pilot/PILOT-EXAM.md` §3)
+
+Day −14 to −8: choose a low-stakes exam, sign, DPIA. Day −7: notice to candidates, at least 7 days before the exam, with the no-camera route. Day −5: camera and light check in the real room
+(2–3 hours, same time of day). Day −4: one hour of invigilator training. Exam day: section 3. Day +1 to +3: export files, import, review, wrap-up meeting.
+
+## 3. Exam day, step by step
+
+1. Arrive 45 minutes early; switch on all machines; connect to the internet; open the exam browser profile.
+2. The invigilator opens `exam-dashboard.html`, enters a room code, their name (every action is recorded under it) and a seat range such as 1-40, then "Open dashboard for this room".
+   Set per-seat accommodations (breaks, reading aloud) before the start; no diagnosis is stored.
+3. Open `exam-lab.html` on every candidate machine. Candidates read the notice and tick consent. A candidate who declines sits without the camera and keeps the right to sit the exam.
+4. Check light and camera. If the verdict is "poor", fix light or angle first. The page then does not evaluate face signals and shows "fix setup", not an alert.
+5. Calibrate the sitting position (about 2 minutes). If fewer than 60% of frames have a single face, calibration fails and head-turn is switched off; the exam can still start.
+6. Start. Candidates go full-screen; invigilators walk the room as usual. Tell invigilators the two limits: in computer-room mode there is no live feed to the dashboard across devices (OP-25),
+   and the "more than one person" signal is an aid, not complete (28.8% on public photos).
+7. After the exam each machine exports a JSON file; the invigilator imports them in the dashboard ("import events file"), reviews each observation (Going to check / No issue / Note / Escalate)
+   and presses "flag was right" or "wrong" for every observation checked.
+8. Export the CSV (time order) and the printable report ("Save as PDF"). A flag is not evidence of misconduct and the report says so.
+9. Delete exports that hold invigilator names or seats on the retention schedule (pilot kit: by day +14, unless the institution keeps them as its own records).
+
+The 10-second evidence clip is off by default; it stays off unless the institution asks in writing and has told candidates (`docs/EXAM.md` "Evidence clip").
+
+## 4. Common problems and fixes
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| No camera prompt, or the camera will not start | `http://` that is not localhost, or camera permission blocked | Use a valid `https://`; allow the camera for the site in browser settings; reload before the exam |
+| "Fix setup": the face detector cannot run | Model did not load (network) or WebAssembly is off | Check the network, update the browser, reload before the exam. Face signals switch off and candidates are told; this never reads as "no face"; the exam continues |
+| Light "poor" again and again | Window behind the candidate, dim room | Close curtains, switch on front lights, turn the screen. It is not read as candidate behaviour |
+| Frequent "no face" for some candidates | Small face in the frame, camera angle, dark skin in dim light (not yet measured by skin tone) | Fix angle and light first; the invigilator looks before judging; never judge a candidate on this signal; log as "wrong" if nothing was found |
+| "Second screen" or "left full-screen" | Candidate connected a second display or left full-screen | A "return to full-screen" button is shown; follow the institution's exam rules |
+| "Virtual camera" | The camera device name contains "virtual", for example OBS | Check that a real camera is used; some tools use a real camera's name and cannot be seen |
+| Candidate reloads the page | Network drop or browser freeze | Recorded as a session marker; the invigilator reads the reason; without a network a reload may fail (section 1) |
+| No candidate events on the dashboard during the exam | No live feed across devices in computer-room mode (accepted limit for the pilot) | Walk the room as usual; export each machine's JSON file after the exam and import it |
+| Import shows nothing | Not a LENSIQ file, or an unknown key (the whole file is rejected) | Export again from the candidate page; do not edit the file by hand |
+| Data gone after closing the browser | Private window or site data cleared | Use a dedicated profile; always export before closing |
+| A candidate declines the camera | Their right | Let them sit without the camera as announced; no penalty |
+
+## 5. Who to contact
+
+Usage problems and questions: e-mail [support e-mail], LINE OA [LINE OA], phone [phone] (OP-16, not announced yet). Serious incidents (service unusable during the exam) or a suspected data
+leak: the same channels, marked S1. Response times follow the agreed support plan **[to confirm]**; the values in `docs/SUPPORT.md` §2–3 are bracketed, negotiable and not approved (OP-17).
+Data-subject requests from candidates: the customer organisation is the controller; contact [institution's personal-data contact].
+
+When reporting, give only: institution and room, page name, time, steps taken, browser version, and the console message if any. **Never send images of candidates, faces or candidate lists**
+(`docs/SUPPORT.md` §6, §10.1).
