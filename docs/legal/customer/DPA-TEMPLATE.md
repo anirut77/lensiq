@@ -206,7 +206,7 @@
 8. **ระบบหลังบ้าน Cloudflare Worker + D1 (เมื่อใช้):** โทเค็นเซสชันเก็บเป็นแฮช; บันทึกตรวจสอบโดยไม่มีอีเมล/โทเค็น และ IP เป็นแฮชรายวัน; การตั้งค่าสำคัญของผู้ดูแลต้องยืนยันตัวตนซ้ำด้วยรหัสผ่านและรหัส 6 หลัก;
 คีย์ AI เก็บแบบเข้ารหัสซองจดหมาย (เขียนอย่างเดียว); ความลับอยู่ใน Worker secrets; ตัวกันบอท Turnstile; จำกัดอัตรา; log ไม่มีภาพ ข้อความ พรอมต์ IP หรืออีเมล
 9. **AI Gateway:** AI ปิดทั้งระบบเมื่อติดตั้งใหม่ งบเริ่มต้น 0 เรียกผ่าน Worker เท่านั้น เบราว์เซอร์ไม่ติดต่อผู้ให้บริการโดยตรง ผู้ใช้เห็นชื่อผู้ให้บริการและประเทศก่อนยินยอม ถอนได้ทุกเมื่อ
-10. **ข้อจำกัดที่ทราบและยังไม่แก้:** รหัสกู้คืนผู้ดูแล 10 ชุดเก็บเป็น SHA-256 ธรรมดา **ต้องแก้ก่อนมีลูกค้าจริงใช้หลังบ้าน (L51)**; Chrome/เบราว์เซอร์ของลูกค้าที่ถูกควบคุมโดยผู้ไม่หวังดีอยู่นอกขอบเขต;
+10. **ข้อจำกัดที่ทราบและยังไม่แก้:** (รหัสกู้คืนผู้ดูแลเก็บด้วยแฮชแบบช้าและมี salt แล้ว ตั้งแต่ 11 พ.ย. 2569, L51) Chrome/เบราว์เซอร์ของลูกค้าที่ถูกควบคุมโดยผู้ไม่หวังดีอยู่นอกขอบเขต;
 อุปกรณ์ที่ไม่มีบริบทปลอดภัย (HTTP) จะไม่บันทึกข้อมูลใบหน้า
 11. **การสำรองข้อมูล:** ข้อมูลบนอุปกรณ์สำรองโดยลูกค้า (ไฟล์ส่งออกไม่รวมข้อมูลใบหน้า); การสำรองระบบหลังบ้านเมื่อใช้: [ระบุ]
 
@@ -407,6 +407,6 @@ The Provider claims no formal security certification (for example ISO 27001, SOC
 8. **Cloudflare Worker + D1 back end (when used).** Session tokens stored as hashes; audit log without e-mail or token and with IPs only as day-salted hashes; sensitive admin changes need re-authentication with a password and a 6-digit code;
    AI keys stored envelope-encrypted (write-only); secrets held in Worker secrets; Turnstile bot check; rate limits; logs hold no images, text, prompts, IPs or e-mails.
 9. **AI Gateway.** AI is off system-wide on a new install with a budget of 0. Calls go only through the Worker; the browser never contacts a provider directly. The user sees the provider name and country before consenting and can withdraw at any time.
-10. **Known limits not yet fixed.** The ten admin recovery codes are stored as plain SHA-256. **This must be fixed before real customers use the back end (L51).**
+10. **Known limits not yet fixed.** (Fixed 2026-11-11, L51: the admin recovery codes are stored with a slow, salted hash keyed with the master key.)
     A compromised customer browser or operating system is out of scope. A device without a secure context (HTTP) will not store face data.
 11. **Backups.** Data on devices is backed up by the Customer (export files never contain face data). Back-end backups when used: [specify].

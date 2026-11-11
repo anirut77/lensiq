@@ -11,7 +11,7 @@ every figure is copied from the file named next to it. Where two sources disagre
   ใบหน้าเป็นทางเลือก), Gate (เจ้าหน้าที่ยืนยันทุกป้าย), Crowd (งานอีเวนต์ รุ่นทดลอง ไม่เหมาะกับฝูงชนหนาแน่น)
 - **ยังไม่มีตัวเลขหน้างานจริงเลยสักตัว** ทุกตัวเลขมาจากข้อมูลจำลองหรือชุดข้อมูลสาธารณะ จึงขายได้เฉพาะ "ราคาช่วงนำร่อง"
   ตาม `docs/PRICING-RESEARCH.md` §3 (ราคาไม่รวม VAT 7%)
-- **งานโค้ดที่ต้องเสร็จก่อนขาย (กำลังทำอยู่ 2026-11-11):** รหัสกู้คืนของผู้ดูแลใช้แฮชแบบช้าและมี salt (L51),
+- **งานโค้ดที่ต้องเสร็จก่อนขาย:** เสร็จแล้ว 2026-11-11: รหัสกู้คืนของผู้ดูแลใช้แฮชแบบช้าและมี salt (L51),
   ยืนยันว่า cron ลบข้อมูลตามระยะเก็บทำงาน, ป้าย "ทดลอง" ของห้องสอบ (hall) และ Crowd ตรงกันทุกหน้า,
   ไม่มีหน้าไหนอ้างเกินกว่าที่วัดได้
 - **สิ่งที่เจ้าของต้องทำ:** ข้อมูลผู้ขาย (ชื่อ เลขผู้เสียภาษี ที่อยู่ อีเมล วันที่มีผล อีเมล DPO ยังว่างทั้งหมด),
@@ -71,10 +71,10 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 
 | Item | What | Status |
 |---|---|---|
-| L51 | Admin recovery codes: slow, salted hash | in progress 2026-11-11 |
-| — | Hall mode labelled "experimental, not on sale yet" consistently everywhere | in progress 2026-11-11 |
-| — | No page claims more than was measured | in progress 2026-11-11 |
-| — | Retention cron confirmed on | in progress 2026-11-11 |
+| L51 | Admin recovery codes: slow, salted hash | **done 2026-11-11** (deployed; owner re-issued; 10 salted codes, 0 old) |
+| — | Hall mode labelled "experimental, not on sale yet" consistently everywhere | **done 2026-11-11** (commit `72d733b`) |
+| — | No page claims more than was measured | **done 2026-11-11** (commit `72d733b`; claim-rules check added) |
+| — | Retention cron confirmed on | **done 2026-11-11** (ran 03:17 UTC on lensiq-test; audit `retention.run`) |
 | L23 | Face model licences. For Exam: resolved by the switch to MediaPipe (`docs/CTO-BRIEF.md` §5 "L23: Exam resolved"), but the L23 row still says "open" and `docs/PAGE-STATUS.md` still names F5/F6 for the Exam pages ⚠ | open (row); resolved for Exam (text) |
 | L25 | Pricing terms and VAT, refund and contract terms | open (counsel) |
 | L26, L27 | Public procurement fit; vendor-neutral TOR wording (schools and universities) | open (counsel) |
@@ -111,9 +111,9 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 
 | Item | What | Status |
 |---|---|---|
-| L51 | Admin recovery codes: slow, salted hash | in progress 2026-11-11 |
-| — | No page claims more than was measured (the "fewer than 0.05 %" banner above is one candidate) | in progress 2026-11-11 |
-| — | Retention cron confirmed on | in progress 2026-11-11 |
+| L51 | Admin recovery codes: slow, salted hash | **done 2026-11-11** (deployed; owner re-issued; 10 salted codes, 0 old) |
+| — | No page claims more than was measured (the "fewer than 0.05 %" banner above is one candidate) | **done 2026-11-11** (commit `72d733b`; claim-rules check added) |
+| — | Retention cron confirmed on | **done 2026-11-11** (ran 03:17 UTC on lensiq-test; audit `retention.run`) |
 | L23 | Face model licence (research-only training data) for the optional face mode | open (counsel; letters A / B in `docs/LICENCE-REQUESTS.md` not sent) |
 | L25 | Pricing terms and VAT, refund and contract terms | open (counsel) |
 | L28 | Partner agreement (if sold through partners) | open (counsel) |
@@ -150,9 +150,9 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 
 | Item | What | Status |
 |---|---|---|
-| L51 | Admin recovery codes: slow, salted hash | in progress 2026-11-11 |
-| — | No page claims more than was measured | in progress 2026-11-11 |
-| — | Retention cron confirmed on | in progress 2026-11-11 |
+| L51 | Admin recovery codes: slow, salted hash | **done 2026-11-11** (deployed; owner re-issued; 10 salted codes, 0 old) |
+| — | No page claims more than was measured | **done 2026-11-11** (commit `72d733b`; claim-rules check added) |
+| — | Retention cron confirmed on | **done 2026-11-11** (ran 03:17 UTC on lensiq-test; audit `retention.run`) |
 | L24 | Gate sign wording, legal basis (s.24(5) / s.24(3)), plate retention; owner photos of public streets | open (counsel) |
 | L25 | Pricing terms and VAT, incl. the 30-day trial wording (not enforced in code) | open (counsel) |
 | L26, L27 | Public procurement and TOR wording (public car parks) | open (counsel) |
@@ -174,7 +174,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 |---|---|---|
 | **Pages** | `crowd.html`; sign A on `camera-notice.html` | `docs/PDPA-NOTES-FOR-COUNSEL.md` C1 |
 | **Works today** | People in view (5-frame median) and in a drawn zone; entry / exit line with an anonymous tracker; density heatmap; peak hours; "≈ estimate" label from 15 people or ≥ 2 people / m²; "people look small" hint; "expected crowd at peak" setting that warns when the detector collapses; marketing CSV with a caveat header; JSON summary; operator confirms a notice is posted before the camera starts; day records capped at 60 days | `docs/CROWD-ACCURACY.md` "What the page does with this"; `docs/ONE-PAGER-CROWD.md`; `docs/pdpa-notes/S1-A-crowd.md` |
-| **Status label** | Task wording and `docs/CTO-BRIEF.md:22`: experimental. ⚠ `docs/PAGE-STATUS.md:100`: pilot-ready. Consistent labels are being fixed | in progress 2026-11-11 |
+| **Status label** | Task wording and `docs/CTO-BRIEF.md:22`: experimental. `docs/PAGE-STATUS.md` now also says experimental (commit `72d733b`); every page, card and one-pager use the same words | in progress 2026-11-11 |
 | **All figures** | **Preliminary:** the reference is an AI reviewer looking at still frames, not two human counters | `docs/CROWD-ACCURACY.md` status box |
 | **Measured: dense crowd** | ≈ 300 people counted as about 1 per frame (0–2 on the 100+ person time-lapse) · n = 2 + 7 frames (2 clips) · public dataset, preliminary · **not yet suitable for dense crowds** | register C1; `docs/CROWD-ACCURACY.md` |
 | **Measured: 15–22 people, whole view** | Undercount 26 % · n = 12 frames (1 clip) · public dataset, preliminary | register C2 |
@@ -193,10 +193,10 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 
 | Item | What | Status |
 |---|---|---|
-| L51 | Admin recovery codes: slow, salted hash | in progress 2026-11-11 |
-| — | Crowd labelled consistently (experimental, not for dense crowds) everywhere | in progress 2026-11-11 |
-| — | No page claims more than was measured | in progress 2026-11-11 |
-| — | Retention cron confirmed on | in progress 2026-11-11 |
+| L51 | Admin recovery codes: slow, salted hash | **done 2026-11-11** (deployed; owner re-issued; 10 salted codes, 0 old) |
+| — | Crowd labelled consistently (experimental, not for dense crowds) everywhere | **done 2026-11-11** (commit `72d733b`) |
+| — | No page claims more than was measured | **done 2026-11-11** (commit `72d733b`; claim-rules check added) |
+| — | Retention cron confirmed on | **done 2026-11-11** (ran 03:17 UTC on lensiq-test; audit `retention.run`) |
 | L25 | Pricing terms and VAT, refund and contract terms | open (counsel) |
 | L28 | Partner agreement (event agencies, installers) | open (counsel) |
 
@@ -214,10 +214,10 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 
 | # | Blocker | Products | Status |
 |---|---|---|---|
-| C1 | L51: admin recovery codes stored with a slow, salted hash; existing codes re-issued | all (back office) | in progress 2026-11-11 |
-| C2 | Retention cron confirmed on | all (backend) | in progress 2026-11-11 |
-| C3 | Hall mode and Crowd labels consistent on every page, category page, catalogue and one-pager | Exam, Crowd | in progress 2026-11-11 |
-| C4 | No page claims more than was measured (candidates found while writing this file: section 7 items 1, 2, 4) | all | in progress 2026-11-11 |
+| C1 | L51: admin recovery codes stored with a slow, salted hash; existing codes re-issued | all (back office) | **done 2026-11-11** |
+| C2 | Retention cron confirmed on | all (backend) | **done 2026-11-11** (audit `retention.run` 03:17 UTC) |
+| C3 | Hall mode and Crowd labels consistent on every page, category page, catalogue and one-pager | Exam, Crowd | **done 2026-11-11** (commit `72d733b`; claim-rules check added) |
+| C4 | No page claims more than was measured (candidates found while writing this file: section 7 items 1, 2, 4) | all | **done 2026-11-11** (commit `72d733b`; claim-rules check added) |
 | C5 | Customer install locks the research models off (`LENSIQ_RESEARCH_DEMO = false`); checklist items `config.profile`, `config.age_gender` open | all | open (set per install) |
 
 Not blockers by owner decision: the Gate trial timer (deferred to org accounts and billing, `docs/CTO-BRIEF.md` §5);
@@ -281,6 +281,6 @@ accountant's invoices; see owner item O3).
     the B2B prices of these four products are excl. 7 % VAT since 2026-11-09 (`docs/PRICING-RESEARCH.md` §4 item 7).
 12. **Exam lab monthly price, Thai one-pager.** `docs/ONE-PAGER-EXAM.md:49` writes "990 บาท/เดือน/ห้อง" (per room) for
     the lab package; `docs/PRICING-RESEARCH.md` §3.1 and the English one-pager say "per lab".
-13. **L51 row incomplete.** `docs/CTO-BRIEF.md:481` has empty "Where", "Status" and "Added" cells.
+13. ~~**L51 row incomplete.**~~ Fixed 2026-11-11 (the row now has where, status and date).
 14. **Duplicate L-numbering.** `docs/LEGAL-REVIEW-PACK.md` §3.7 (L1–L5) and `docs/pdpa/DPIA.md` §9 (L1–L20) use the same
     IDs as `docs/CTO-BRIEF.md` §8 for different questions.

@@ -9,13 +9,13 @@
     "cron": [
       "17 3 * * *"
     ],
-    "rollback_note": "Before the admin first-run deploy: 10e8c043-3118-4882-b7ab-46f66dd10e76 (pre-0011 code). Admin first-run code: 63439342-30ca-4b25-aa09-8cab8ba748ff. After closing the bootstrap token (2026-11-11): 901abb5a-bb32-46d3-8c4b-92b9d05f7bfa."
+    "rollback_note": "Before the admin first-run deploy: 10e8c043-3118-4882-b7ab-46f66dd10e76 (pre-0011 code). Admin first-run code: 63439342-30ca-4b25-aa09-8cab8ba748ff. After closing the bootstrap token (2026-11-11): 901abb5a-bb32-46d3-8c4b-92b9d05f7bfa. Admin key management (2026-11-11): dc80ba56-47fd-4b18-9fea-0b1905326438 (migration 0012). Recovery codes slow hash (2026-11-11): cbd74330-79f4-4bae-80ca-8c9cf03257ce (migration 0013)."
   },
   "d1": {
     "name": "lensiq-test",
     "id": "3385c7cc-d171-42ae-9d4c-8fdd8c12b21f",
     "binding": "DB",
-    "migrations_applied_through": "0011_admin_recovery.sql"
+    "migrations_applied_through": "0013_recovery_slow_hash.sql"
   },
   "turnstile_widget": {
     "name": "lensiq-test",
