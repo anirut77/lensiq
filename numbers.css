@@ -52,7 +52,7 @@
 .nm-scorecard{display:flex;align-items:center;gap:20px;background:linear-gradient(135deg,#0e1430,#2a1f6b);color:#fff;border:0}
 .nm-scorecard .nm-small{color:#a5f3fc}
 .ring{--p:0;flex:none;width:128px;height:128px;border-radius:50%;display:grid;place-content:center;text-align:center;background:radial-gradient(closest-side,#16204a 78%,transparent 79% 100%),conic-gradient(#facc15 calc(var(--p)*1%),rgba(255,255,255,.14) 0)}
-.ring b{font-size:2.6rem;line-height:1;font-weight:700;font-variant-numeric:tabular-nums}
+.ring b{font-size:2.6rem;line-height:normal;font-weight:700;font-variant-numeric:tabular-nums}
 .ring small{color:#c9d0ea;font-size:.8rem}
 .nm-num{font-size:clamp(1.3rem,4.5vw,1.8rem);font-weight:600;letter-spacing:.04em;word-break:break-all;margin:2px 0;font-variant-numeric:tabular-nums}
 .nm-word{color:#facc15;font-weight:500;margin:0}

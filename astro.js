@@ -174,9 +174,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       if (!p) return;
       var q = pt(p.lon, rad), e = pt(p.lon, r);
       out.push('<line x1="' + cx + '" y1="' + cy + '" x2="' + e[0].toFixed(1) + '" y2="' + e[1].toFixed(1) + '" stroke="' + col + '" stroke-width="1.5" opacity=".5"/>');
-      out.push('<circle cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="15" fill="' + col + '"/><text x="' + q[0].toFixed(1) + '" y="' + q[1].toFixed(1) + '" text-anchor="middle" dominant-baseline="central" font-size="' + (lbl ? 13 : 16) + '" fill="#fff" font-weight="600">' + sym + "</text>");
+      var qx = q[0].toFixed(1), qy = q[1].toFixed(1);
+      out.push('<circle cx="' + qx + '" cy="' + qy + '" r="' + (lbl ? 19 : 15) + '" fill="' + col + '"/>' +
+        '<text x="' + qx + '" y="' + qy + '" text-anchor="middle" dominant-baseline="central" font-size="16" fill="#fff" font-weight="600">' + sym + "</text>");
     };
-    mark(C.sun, "☉︎", "#e8590c", 88); mark(C.moon, "☽︎", "#5f3dc4", 62); mark(C.asc, "ASC", "#0891b2", 38, true);
+    mark(C.sun, "☉︎", "#e8590c", 88); mark(C.moon, "☽︎", "#5f3dc4", 62); mark(C.asc, "ASC", "#0891b2", 34, true); // ป้าย ASC 16 หน่วย (≥ 12 px ที่จอ 320 px) ในวงใหญ่ขึ้น
     var aria = T("astro.wheelAria", "แผนภูมิราศี: อาทิตย์{sun} จันทร์{moon}", { sun: sn(C.sun.sign), moon: sn(C.moon.sign) }) + (C.asc ? T("astro.wheelAriaAsc", " ลัคนา{asc}", { asc: sn(C.asc.sign) }) : "");
     return '<svg class="as-wheel" viewBox="0 0 320 320" role="img" aria-label="' + esc(aria) + '">' + out.join("") + "</svg>";
   }

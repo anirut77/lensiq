@@ -800,24 +800,33 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   // ตำแหน่งทิศ: อาทิตย์ NE, จันทร์ E, อังคาร SE, พุธ S, เสาร์ SW, พฤหัส W, ราหู NW, ศุกร์ N
   var DIR_ANGLE = { 0: -45, 1: 0, 2: 45, 3: 90, 6: 135, 4: 180, 7: 225, 5: 270 };
   var plainDay = function (p) { return DAYS[p].name.replace(" (กลางวัน)", "").replace(" (ราหู)", "").replace("（白天）", "").replace("（罗睺）", ""); };
+  // ป้ายในวง: บรรทัดดาว + บรรทัดภูมิ ซ้อนกันกลางช่อง (ไม่วางตามรัศมีแล้ว ป้ายยาวในทิศตะวันออก/ตะวันตกจึงไม่ทับกัน)
+  // ช่องเหนือ/ใต้ดันออกด้านนอก ช่องเฉียงอยู่ด้านใน ป้ายที่อยู่ติดกันจึงไม่ชนกัน ขนาดตัวอักษร ≥ 15 หน่วย = ≥ 12 px ที่จอ 320 px
+  // ชื่อภูมิในวงใช้คำสั้นจากไฟล์ภาษา (ชื่อเต็มพร้อมความหมายอยู่ในตารางข้าง ๆ และใน <title> ของแต่ละช่อง)
+  var WHEEL_FS = 15, WHEEL_LH = 23;
+  var tspans = function (x, lines, lh) { return lines.map(function (ln, i) { return '<tspan x="' + x + '" dy="' + (i ? lh : -(lines.length - 1) * lh / 2) + '">' + esc(ln) + "</tspan>"; }).join(""); };
   function taksaWheel(P) {
-    var cx = 160, cy = 160, R = 150, r0 = 58, out = [];
+    var cx = 160, cy = 160, R = 150, r0 = 56, out = [];
     var pt = function (a, r) { return [cx + r * Math.cos(a * Math.PI / 180), cy + r * Math.sin(a * Math.PI / 180)]; };
     HS.TAKSA_ORDER.forEach(function (p) {
       var a = DIR_ANGLE[p], a0 = a - 22.5, a1 = a + 22.5;
       var p0 = pt(a0, R), p1 = pt(a1, R), q0 = pt(a1, r0), q1 = pt(a0, r0);
       var mine = p === P.thaiDay.planet, bh = HS.bhumiOf(P.thaiDay.planet, p), d = DAYS[p];
-      out.push('<path d="M' + p0 + " A" + R + " " + R + " 0 0 1 " + p1 + " L" + q0 + " A" + r0 + " " + r0 + " 0 0 0 " + q1 + 'Z" fill="' + d.hex + '" fill-opacity="' + (mine ? 1 : 0.82) + '" stroke="#fff" stroke-width="' + (mine ? 4 : 2) + '"/>');
-      var l1 = pt(a, 120), l2 = pt(a, 88);
-      var fg = p === 1 ? "#3d2d00" : "#fff";
-      out.push('<text x="' + l1[0].toFixed(1) + '" y="' + l1[1].toFixed(1) + '" fill="' + fg + '" font-size="13" font-weight="600" text-anchor="middle" dominant-baseline="middle">' + esc(d.planet.replace("พระ", "")) + " " + d.num + "</text>");
-      out.push('<text x="' + l2[0].toFixed(1) + '" y="' + l2[1].toFixed(1) + '" fill="' + fg + '" font-size="12" text-anchor="middle" dominant-baseline="middle">' + esc(K.bhumi[bh].th) + "</text>");
+      out.push('<path d="M' + p0 + " A" + R + " " + R + " 0 0 1 " + p1 + " L" + q0 + " A" + r0 + " " + r0 + " 0 0 0 " + q1 + 'Z" fill="' + d.hex + '" fill-opacity="' + (mine ? 1 : 0.82) +
+        '" stroke="#fff" stroke-width="' + (mine ? 4 : 2) + '"><title>' + esc(d.planet.replace("พระ", "") + " " + d.num + " · " + K.bhumi[bh].th) + "</title></path>");
+      var vertical = Math.abs(Math.sin(a * Math.PI / 180)) > 0.99, c = pt(a, vertical ? 110 : 100);
+      var fg = p === 1 ? "#3d2d00" : "#fff", x = c[0].toFixed(1), y = c[1].toFixed(1);
+      var attr = '" fill="' + fg + '" font-size="' + WHEEL_FS + '" text-anchor="middle" dominant-baseline="middle"';
+      out.push('<text x="' + x + '" y="' + (c[1] - WHEEL_LH / 2).toFixed(1) + attr + ' font-weight="600">' + esc(d.planet.replace("พระ", "")) + " " + d.num + "</text>");
+      out.push('<text x="' + x + '" y="' + (+y + WHEEL_LH / 2).toFixed(1) + attr + ">" + esc(T("horoscope.x.wb." + bh, K.bhumi[bh].th)) + "</text>");
     });
     out.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + (r0 - 4) + '" fill="#fff"/>');
-    out.push('<text x="' + cx + '" y="' + (cy - 9) + '" font-size="13" fill="#525c78" text-anchor="middle">' + esc(T("horoscope.x.wheelOf", "ทักษาของ")) + "</text>");
-    out.push('<text x="' + cx + '" y="' + (cy + 12) + '" font-size="15" font-weight="600" fill="#0e1430" text-anchor="middle">' + esc(plainDay(P.thaiDay.planet)) + "</text>");
-    out.push('<text x="' + cx + '" y="8" font-size="11" fill="#525c78" text-anchor="middle" dominant-baseline="hanging">' + esc(T("horoscope.x.north", "เหนือ")) + "</text>");
-    return '<svg class="hs-wheel" viewBox="-6 -6 332 332" role="img" aria-label="' + esc(T("horoscope.x.wheelAria", "วงทักษา 8 ดาว พร้อมภูมิของคุณ")) + '">' + out.join("") + "</svg>";
+    var me = P.thaiDay.planet, day = T("horoscope.x.wd." + me, me === 7 && !isZh() ? "วันพุธ|กลางคืน" : plainDay(me)).split("|");
+    out.push('<text x="' + cx + '" y="' + (cy - 14 - (day.length - 1) * WHEEL_LH / 2) + '" font-size="' + WHEEL_FS + '" fill="#525c78" text-anchor="middle" dominant-baseline="middle">' +
+      esc(T("horoscope.x.wheelOf", "ทักษาของ")) + "</text>");
+    out.push('<text x="' + cx + '" y="' + (cy + 10) + '" font-size="16" font-weight="600" fill="#0e1430" text-anchor="middle" dominant-baseline="middle">' + tspans(cx, day, WHEEL_LH) + "</text>");
+    out.push('<text x="' + cx + '" y="-8" font-size="' + WHEEL_FS + '" fill="#525c78" text-anchor="middle" dominant-baseline="middle">' + esc(T("horoscope.x.north", "เหนือ")) + "</text>");
+    return '<svg class="hs-wheel" viewBox="4 -24 312 340" role="img" aria-label="' + esc(T("horoscope.x.wheelAria", "วงทักษา 8 ดาว พร้อมภูมิของคุณ")) + '">' + out.join("") + "</svg>";
   }
 
   /* ---------- SVG: ห้าธาตุ (รูปห้าเหลี่ยม) ---------- */
@@ -831,16 +840,23 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var g = shorten(pos[k], pos[HS.GEN[k]], 40); out.push('<line x1="' + g[0] + '" y1="' + g[1] + '" x2="' + g[2] + '" y2="' + g[3] + '" stroke="#9aa3bd" stroke-width="2" marker-end="url(#hsArr)"/>');
       var t = shorten(pos[k], pos[HS.CTRL[k]], 42); out.push('<line x1="' + t[0] + '" y1="' + t[1] + '" x2="' + t[2] + '" y2="' + t[3] + '" stroke="#c9cfe0" stroke-width="1.5" stroke-dasharray="4 4"/>');
     });
+    // ป้ายชื่อธาตุอยู่นอกวงกลมเสมอ (บนสำหรับจุดบน ล่างสำหรับจุดล่าง) "(ตัวเรา)" ขึ้นบรรทัดใหม่ ป้ายจึงไม่ล้นขอบซ้ายขวา
+    // ตัวอักษร ≥ 16 หน่วย = ≥ 12 px ที่จอ 320 px; ตัวจีนกับจำนวนเว้นระยะไม่ให้กล่องตัวอักษรทับกัน
     order.forEach(function (k) {
-      var e = EL[k], r = 20 + 16 * (c[k] / max), p = pos[k];
+      var e = EL[k], r = 22 + 14 * (c[k] / max), p = pos[k];
       if (k === dm) out.push('<circle cx="' + p[0] + '" cy="' + p[1] + '" r="' + (r + 6) + '" fill="none" stroke="#0e1430" stroke-width="2.5"/>');
       out.push('<circle cx="' + p[0] + '" cy="' + p[1] + '" r="' + r + '" fill="' + e.color + '" fill-opacity="' + (c[k] ? 0.92 : 0.18) + '" stroke="' + e.color + '" stroke-width="' + (c[k] ? 0 : 1.5) + '" stroke-dasharray="' + (c[k] ? "" : "3 3") + '"/>');
-      out.push('<text x="' + p[0] + '" y="' + (p[1] - 5) + '" font-size="16" font-weight="700" fill="' + (c[k] ? "#fff" : e.color) + '" text-anchor="middle" dominant-baseline="middle">' + e.zh + "</text>");
-      out.push('<text x="' + p[0] + '" y="' + (p[1] + 12) + '" font-size="11" fill="' + (c[k] ? "#fff" : "#0e1430") + '" text-anchor="middle" dominant-baseline="middle">' + c[k] + "</text>");
-      var ly = p[1] + (p[1] > cy ? r + 16 : -r - 12);
-      out.push('<text x="' + p[0] + '" y="' + ly + '" font-size="13" fill="#0e1430" text-anchor="middle" font-weight="' + (k === fav ? 700 : 500) + '">' + esc((isZh() ? "" : e.th) + (k === dm ? T("horoscope.x.pentaMe", " (ตัวเรา)") : "")) + (k === fav ? " ★" : "") + "</text>");
+      out.push('<text x="' + p[0] + '" y="' + (p[1] - 13) + '" font-size="18" font-weight="700" fill="' + (c[k] ? "#fff" : e.color) + '" text-anchor="middle" dominant-baseline="middle">' +
+        e.zh + "</text>");
+      out.push('<text x="' + p[0] + '" y="' + (p[1] + 13) + '" font-size="16" fill="' + (c[k] ? "#fff" : "#0e1430") + '" text-anchor="middle" dominant-baseline="middle">' + c[k] + "</text>");
+      var lines = [((isZh() ? "" : e.th) + (k === fav ? " ★" : "")).trim(), k === dm ? T("horoscope.x.pentaMe", " (ตัวเรา)").trim() : ""].filter(Boolean);
+      var below = p[1] > cy, edge = (k === dm ? r + 6 : r) + 4, lh = 19;
+      var y0 = below ? p[1] + edge + 20 : p[1] - edge - 12 - (lines.length - 1) * lh;
+      out.push('<text x="' + p[0] + '" y="' + y0 + '" font-size="16" fill="#0e1430" text-anchor="middle" font-weight="' + (k === fav ? 700 : 500) + '">' +
+        lines.map(function (ln, i) { return '<tspan x="' + p[0] + '" dy="' + (i ? lh : 0) + '">' + esc(ln) + "</tspan>"; }).join("") + "</text>");
     });
-    return '<svg class="hs-penta" viewBox="0 0 340 340" role="img" aria-label="' + esc(T("horoscope.x.pentaAria", "แผนภาพห้าธาตุ: ") + order.map(function (k) { return EL[k].th + " " + c[k]; }).join(", ")) + '">' + out.join("") + "</svg>";
+    var aria = T("horoscope.x.pentaAria", "แผนภาพห้าธาตุ: ") + order.map(function (k) { return EL[k].th + " " + c[k]; }).join(", ");
+    return '<svg class="hs-penta" viewBox="6 -44 328 400" role="img" aria-label="' + esc(aria) + '">' + out.join("") + "</svg>";
   }
 
   /* ---------- เนื้อหาแต่ละแท็บ ---------- */

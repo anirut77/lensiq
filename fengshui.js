@@ -556,7 +556,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       var am = (KB.dirs[d].deg - 90) * Math.PI / 180;
       c.save(); c.translate(Math.cos(am) * R * 0.7, Math.sin(am) * R * 0.7); c.rotate(h * Math.PI / 180);
       c.fillStyle = d === "N" ? "#f87171" : "#fff"; c.textAlign = "center"; c.textBaseline = "middle";
-      c.font = "600 " + Math.max(11, R * 0.13) + "px " + F; c.fillText(abbrL(d), 0, 0);
+      c.font = "600 " + Math.max(12 * dpr, R * 0.13) + "px " + F; c.fillText(abbrL(d), 0, 0); // ≥ 12 CSS px บนจอแคบ
       c.restore();
     });
     c.restore();
