@@ -471,6 +471,7 @@
   "md.pc.ai.guideImg": "A good side to photograph: ① ingredients list ② registration number ③ barcode",
   "md.pc.ai.guideImgAlt": "Drawing of the back of a pack with an ingredients list, a registration-number box and a barcode",
   "md.pc.ai.ready": "Product label details found. You can now press \"Ask AI\". Nothing is sent until you do",
+  "md.pc.ai.prevSession": "This capture has no barcode or registration number of its own, so the codes scanned earlier in this session ({n}) are used to confirm it is a product label. Check the text below for personal data before sending.",
   "md.pc.ai.prevCodes": "The product barcode numbers read here ({n}) go to the LENSIQ server with the text, to confirm this is a product label. They are not passed on to the AI provider",
   "md.pc.ai.prevH": "Check the text before it is sent. Nothing is sent until you press \"Send this text\"",
   "md.pc.ai.prevShow": "See and edit the text that will be sent",

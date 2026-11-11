@@ -149,8 +149,23 @@
     });
     /** Barcodes and registration numbers this device read for the capture (never the photo). */
     const facts = () => captureFacts(W.LQPC, pcl().text, pcl().codes);
-    /** THE decision for both modes: product-label evidence, no personal-document sign, not a dispensing label. @param {string} text */
-    const gate = text => W.LQPCGuard.aiGate(text, facts(), { dispensingAI: dispPolicy() });
+    // Option ข (owner decision 2026-11-10): barcodes / registration numbers scanned in this session (memory only, 15 min,
+    // gone on reload) may stand in for a later capture that has no evidence of its own. The guard still refuses any
+    // capture with a personal-document sign, a dispensing look or ANY personal data it can see (lensiq-pc-guard.js).
+    const SESSION_MS = 15 * 60 * 1000;
+    const sess = { gtins: /** @type {string[]} */ ([]), regs: /** @type {string[]} */ ([]), at: 0 };
+    const noteSession = (/** @type {any} */ fx) => {
+      if (!fx.gtins.length && !fx.regs.length) return;
+      sess.gtins = [...new Set([...fx.gtins, ...sess.gtins])].slice(0, 8);
+      sess.regs = [...new Set([...fx.regs, ...sess.regs])].slice(0, 8);
+      sess.at = Date.now();
+    };
+    const sessionOn = () => W.LQPCGuard.DEFAULTS.sessionEvidence === "on"; // off until the owner decides (P7-RESULTS.md)
+    const sessionFacts = () => (sessionOn() && sess.at && Date.now() - sess.at < SESSION_MS ? { gtins: sess.gtins.slice(), regs: sess.regs.slice() } : undefined);
+    W.__LQ_PCAI.session = { facts: sessionFacts, clear: () => { sess.gtins = []; sess.regs = []; sess.at = 0; } };
+    /** THE decision for both modes: product-label evidence (own, or scanned earlier in this session), no personal-document
+     *  sign, not a dispensing label. @param {string} text */
+    const gate = text => { const fx = facts(); noteSession(fx); return W.LQPCGuard.aiGate(text, fx, { dispensingAI: dispPolicy(), sessionFacts: sessionFacts() }); };
     /** @param {string} reason aiGate reason @param {boolean} [capture] the capture itself was refused (not an edit in the preview) */
     const refuse = (reason, capture) => { st.notice = NOTE()[gateNote(reason)] || NOTE().noProduct; st.why = reason; st.ready = false; st.whyCapture = !!capture; };
     const gopt = () => (W.LENSIQ_PC_COMPANY_PHONES === "remove" ? { companyPhones: "remove" } : undefined);
@@ -163,7 +178,9 @@
       const ocr = ocrText();
       // words that are not on the label (e.g. typed into the OCR text box above) are shown struck through and never sent
       const f = W.LQPCGuard.provenance(g.text, ocr);
-      return new Promise(resolve => { st.preview = { text: g.text, ocr, removed: g.removed, open: open || f.dropped.length > 0, warn: "", resolve }; paint(); });
+      // session: this capture is allowed only through codes scanned earlier in the session (option ข): say so in the preview
+      const session = !!gate(ocr || g.text).session;
+      return new Promise(resolve => { st.preview = { text: g.text, ocr, removed: g.removed, open: open || f.dropped.length > 0 || session, warn: "", session, resolve }; paint(); });
     }
     function closePreview(/** @type {string|null} */ v) {
       const p = st.preview;
@@ -251,7 +268,9 @@
     async function sendAll(c, mode, text, removed, images, via) {
       st.via = via || "";
       if (!text.trim() && !images) { st.notice = NOTE().empty; return; }
-      const feats = c.info.features, P = pcl(), out = {}, fx = facts();
+      const feats = c.info.features, P = pcl(), out = {}, own = facts(), sf = sessionFacts();
+      // the session evidence travels to the LENSIQ server (never to the AI provider), as the capture's own codes do
+      const fx = sf && !own.gtins.length && !own.regs.length ? { ...own, sessionGtins: sf.gtins, sessionRegs: sf.regs } : own;
       const script = W.__LQ_PC && W.__LQ_PC.st ? W.__LQ_PC.st.script : "th";
       const tgt = translateTarget(text, lang());
       const jobs = [];
@@ -320,6 +339,9 @@
           `<div id="pcAiPrevView" translate="no" style="white-space:pre-wrap;overflow-wrap:anywhere">${marked(p.text)}</div>` +
           `<p class="md-status" data-kind="warn" id="pcAiPrevMaybe"${maybeHint(p.text) ? "" : " hidden"}>${esc(maybeHint(p.text))}</p>` +
           `<p class="md-status" data-kind="warn" id="pcAiPrevDropped"${droppedHint(p.text) ? "" : " hidden"}>${esc(droppedHint(p.text))}</p>` +
+          (p.session ? `<p class="hint" id="pcAiPrevSession">${esc(T("md.pc.ai.prevSession",
+            "ภาพนี้ไม่มีบาร์โค้ดหรือเลขทะเบียนของตัวเอง จึงใช้รหัสที่สแกนไว้ก่อนหน้าในรอบนี้ ({n} รายการ) ยืนยันว่าเป็นฉลากสินค้า ตรวจข้อความด้านล่างว่าไม่มีข้อมูลส่วนตัวก่อนส่ง",
+            { n: ((sessionFacts() || { gtins: [] }).gtins.length + (sessionFacts() || { regs: [] }).regs.length) }))}</p>` : "") +
           (facts().gtins.length ? `<p class="hint" id="pcAiPrevCodes">${esc(T("md.pc.ai.prevCodes",
             "เลขบาร์โค้ดของสินค้าที่อ่านได้ ({n} รหัส) จะส่งไปที่เซิร์ฟเวอร์ LENSIQ พร้อมข้อความ เพื่อยืนยันว่าเป็นฉลากสินค้า ไม่ส่งต่อให้ผู้ให้บริการ AI", { n: facts().gtins.length }))}</p>` : "") +
           `<label class="md-field"><span>${esc(T("md.pc.ai.prevEditL", "แก้ข้อความที่จะส่ง"))}</span>` +

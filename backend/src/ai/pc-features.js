@@ -31,7 +31,7 @@
 import GuardModule from "../../../lensiq-pc-guard.js";
 
 /** @type {{scan: (t: string) => any[], isDispensingLabel: (t: string) => boolean, DEFAULTS: {dispensingAI: string},
- *   aiGate: (t: string, facts?: {gtins?: string[], regs?: string[]}) => {allow: boolean, reason: string}}} */
+ *   aiGate: (t: string, facts?: {gtins?: string[], regs?: string[]}, opts?: any) => {allow: boolean, reason: string}}} */
 const Guard = GuardModule;
 export const MAX_TEXT = 8000;
 const S = (n = 200) => ({ type: ["string", "null"], maxLength: n });
@@ -158,7 +158,9 @@ function cleanText(input, o = {}) {
   // ONE decision, the same function the page runs first: not a dispensing / prescription label (owner's setting "off",
   // the default), no personal-document sign, product-label evidence in the text or in the facts handed in
   if (t) {
-    const g = Guard.aiGate(t, { gtins: strList(input.gtins), regs: strList(input.regs) });
+    // option ข: evidence scanned earlier in the session (sessionGtins / sessionRegs), checked by the same guard rule
+    const sf = { gtins: strList(input.sessionGtins), regs: strList(input.sessionRegs) };
+    const g = Guard.aiGate(t, { gtins: strList(input.gtins), regs: strList(input.regs) }, sf.gtins.length || sf.regs.length ? { sessionFacts: sf } : undefined);
     // Local evaluation mode only (o.evalLocal comes from the gateway: AI_EVAL_LOCAL=1, local wrangler dev AND a localhost Origin, never from
     // the request body): the PRODUCT-LABEL part of the decision (no evidence / personal-document sign) is skipped so the
     // advert snippets of the P3 claim set can be scored. A dispensing label is still refused, and so is personal data

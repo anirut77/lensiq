@@ -54,6 +54,9 @@
   const PLACEHOLDER = "[removed]";
   /** Owner decision pending (2026-11-10): company / maker phones are kept by default. */
   const DEFAULTS = Object.freeze({
+    // option ข (session evidence): OFF. The independent run on the locked p7b set missed the privacy target (6 of 614
+    // personal items reached the AI); stays off until the owner decides (docs/product-check/P7-RESULTS.md).
+    sessionEvidence: "off",
     companyPhones: /** @type {"keep"|"remove"} */ ("keep"),
     // owner decision pending (coordinator, 2026-11-10): "off" = no AI send at all (text or photo) for a text that looks like a
     // dispensing / prescription label; "text-preview" = text only, after the mandatory preview. On-device results stay.
@@ -951,14 +954,43 @@
    * THE decision for a capture, used by text mode and image mode alike (page: lensiq-pc-ai.js; Worker: ai/pc-features.js):
    * AI is allowed only when the text is not a dispensing label (setting dispensingAI "off"), shows no personal-document
    * sign and shows product-label evidence. reason: "ok" | "dispensing" | "personal-doc" | "no-product".
-   * @param {any} input @param {{gtins?: any[], regs?: any[]}} [facts] @param {{dispensingAI?: string}} [opts]
+   * @param {any} input @param {{gtins?: any[], regs?: any[]}} [facts]
+   * @param {{dispensingAI?: string, companyPhones?: "keep"|"remove", sessionEvidence?: string, sessionFacts?: {gtins?: any[], regs?: any[]}}} [opts]
    */
   function aiGate(input, facts, opts) {
     const pe = productEvidence(input, facts);
     const dispensing = isDispensingLabel(input);
     const off = ((opts && opts.dispensingAI) || DEFAULTS.dispensingAI) === "off";
-    const reason = dispensing && off ? "dispensing" : pe.personalDoc ? "personal-doc" : pe.product ? "ok" : "no-product";
-    return { allow: reason === "ok", reason, dispensing, ...pe };
+    let reason = dispensing && off ? "dispensing" : pe.personalDoc ? "personal-doc" : pe.product ? "ok" : "no-product";
+    // Option ข (owner decision 2026-11-10): a capture without product evidence of its own may use a barcode or a
+    // registration number scanned EARLIER in the same session (opts.sessionFacts), but only when it is neither a
+    // dispensing label nor a personal document (checked above, as for every capture) AND the guard finds no personal
+    // data in it at all: no name, phone, ID, e-mail, date of birth or address span, and no possible name. Anything the
+    // guard can see as personal keeps the capture refused, because the session evidence says nothing about THIS text.
+    let session = false;
+    const sessionOn = ((opts && opts.sessionEvidence) || DEFAULTS.sessionEvidence) === "on";
+    if (reason === "no-product" && sessionOn && opts && sessionOk(opts.sessionFacts) && !scan(input, opts).length && !possibleNames(input).length &&
+        !SESSION_BLOCK.some(re => re.test(String(input == null ? "" : input)))) {
+      reason = "ok"; session = true;
+    }
+    return { allow: reason === "ok", reason, session, dispensing, ...pe };
+  }
+  /** Option ข is a convenience, never a reason to send a personal text: a capture that only reaches the gate through
+   *  session evidence must also show none of these, whatever the detectors above say (they miss some formats): a
+   *  phone-like group of 9+ digits, a form of address, or letter / note wording. Refusing a product here only means
+   *  the user scans or captures the back panel, as before option ข. */
+  const SESSION_BLOCK = [
+    /(?:^|[^\d])\+?\d(?:[\s().-]?\d){8,}(?!\d)/u,
+    /様|さま|さん|殿|御中|님|씨|先生|女士|小姐|\b(?:dear|mr|mrs|ms|miss|dr|khun|hi|hello)\b|คุณ\s?[ก-๙]|นาย\s?[ก-๙]|นาง\s?[ก-๙]|น\.ส\.|ด\.ช\.|ด\.ญ\./iu,
+    /おめでとう|ありがとう|ご連絡|拝啓|敬具|お大事に|谢谢|感谢|祝你|祝您|감사|축하|안녕|ขอบคุณ|ยินดีด้วย|ด้วยความเคารพ|regards|sincerely|thank you|thanks|congratulations|get well|reminder|เตือน|อย่าลืม|นัด|appointment|予約|预约|예약/iu
+  ];
+  /** Session evidence usable for option ข: a barcode with a valid check digit, or a registration number of 5+ letters
+   *  and digits, scanned earlier in the session by the page. @param {any} sf {gtins?, regs?} */
+  function sessionOk(sf) {
+    if (!sf || typeof sf !== "object") return false;
+    const g = Array.isArray(sf.gtins) && sf.gtins.some((/** @type {any} */ x) => gtinOk(String(x == null ? "" : x).replace(/\D/g, "")));
+    const r = Array.isArray(sf.regs) && sf.regs.some((/** @type {any} */ x) => String(x == null ? "" : x).replace(/[^\p{L}\p{N}]/gu, "").length >= 5);
+    return !!(g || r);
   }
 
   /** @param {any} [opts] */

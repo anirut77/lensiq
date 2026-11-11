@@ -764,7 +764,50 @@ Nothing was loosened.
 8. **No real provider has seen these prompts or schemas.** Strict-mode quirks per provider (for example OpenAI's dropped
    `maxLength`) are only exercised in P8.
 
-### Option ข (owner decision 2026-11-10, not built)
+### Option ข (owner decision 2026-11-10): built 2026-11-11, measured once on a new locked set
+
+**Locked set recorded BEFORE scoring** (written by an independent set author who did not read the guard):
+`~/LENSIQ-field/evals/p7b/p7b-locked-set.json`, sha256 `371748a23ae2d4871de18f53a05acc9ce28ab99fe8a8bfa7f7bff4067f188f8e` (494 items, 614
+personal-data items; groups: session 200, session-personal 132, borderline 42 incl. the 10 required documents
+REQ-D004, D008, D023, D025, N017, N018, N049, N050, N051, N052 and 30 variants, control 120). Scorer
+`p7b-score.mjs` (refuses a changed set). Guard under test: `lensiq-pc-guard.js` sha256 `c10b0b9bfc1031a8dd1e57be4c1b56e4d001ee3bd8c0cb46649ae27911648faa`.
+
+**Rule.** A capture without product evidence of its own may use a barcode with a valid check digit, or a registration
+number, scanned earlier in the same session (page memory only, 15 minutes, gone on reload), only when it is not a
+dispensing label, shows no personal-document sign, and the guard sees no personal data at all in it (no name, phone,
+ID, e-mail, date-of-birth or address span, no possible name, no phone-like digit group, form of address or letter /
+note wording). The preview then says that the earlier codes were used. The Worker applies the same rule.
+
+**Design data (not an official figure).** On the spent 2026-11-10 set with a scanned barcode added to every capture
+refused for lack of evidence: 51 of 61 product captures become allowed; 0 of the 10 borderline documents allowed;
+0 personal-data items reached the AI. The first rule version (personal spans only) let the two Japanese notes N017 /
+N018 through (a phone number and a name with 様 the detectors do not catch), which led to the extra block list.
+
+**Independent figures (scored once, 2026-11-11 04:27 UTC; source: synthetic locked set; log
+`~/LENSIQ-field/evals/p7b/p7b-score-run-2026-11-11T04-27-45-988Z.log`; re-measured by the scorer's own script with
+identical results):**
+
+| Target | Result | Verdict |
+|---|---|---|
+| T1 text: personal-data items reaching the AI | **6/614 = 1.0 % [0.4–2.1]** from 3 captures (session-personal 4/398, borderline variants 2/65, control 0/125) | **not met** (target 0) |
+| T1: the 10 required documents | 0/22 items; all 10 refused (`no-product`) | met |
+| T1 image: personal captures whose photo would be allowed | 3/214 = 1.4 % [0.5–4.0] (the same 3) | **not met** |
+| T2: product captures refused (session group) | **13/200 = 6.5 % [3.8–10.8]** (without session evidence the same texts: 65/80 = 81.3 %) | **not met** (target < 5 %) |
+
+The 3 captures that leaked, all low-quality OCR (lq2), allowed only through the session path:
+- SPD-071, a Korean lab report: name, registration number, date of birth, doctor and the results;
+- REQV-D023-2, a Hong Kong dispensing label where OCR noise ("Patiet") hides the dispensing look: patient name with
+  the medicine;
+- REQV-N052-2, an English carer note: a phone number written "(415) 555-0138", which the session block list's phone
+  pattern does not match (one separator between digits only).
+
+T2 per condition: front 7.5 %, side 11.7 %, back 0 %; Chinese 24.0 %, Japanese 12.0 %, English 6.7 %, Thai 0 %,
+Korean 0 %; food 17.1 %, device 16.0 %, drug and supplement 0 %.
+
+**Decision taken:** option ข stays **off** (`DEFAULTS.sessionEvidence: "off"`; page and Worker ignore session codes)
+because a privacy target was missed. The code stays in the product. **Owner decision 2026-11-11: keep it off.**
+
+### Option ข: owner decision text (2026-11-10)
 
 After a barcode or a registration number has been scanned for a product, later captures in the same session (for
 example the front panel) may use that evidence. The personal-document and dispensing checks still apply to every
