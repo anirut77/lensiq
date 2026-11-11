@@ -79,6 +79,8 @@ node tests/e2e/run.mjs            # all *.e2e.mjs
 node tests/e2e/run.mjs hub        # only files whose name contains "hub"
 node tests/e2e/run.mjs agg csp    # several filters
 node tests/e2e/run.mjs --retry=1  # re-run a failing file once (LQ_RETRY=1); LQ_FILE_TIMEOUT=ms per file (default 900000)
+node tests/e2e/run.mjs --shard=2/3 --manifest=e2e-shard-2.json  # one CI shard (tools/e2e-shards.mjs); CI checks that
+                                  # every *.e2e.mjs ran exactly once across the 3 shards (job "e2e shards"), else CI is red
 LQ_BASE=http://127.0.0.1:8000 node tests/e2e/run.mjs   # reuse a running server
 LQ_CHROME=/path/to/chrome node tests/e2e/run.mjs       # other Chrome binary
 ```

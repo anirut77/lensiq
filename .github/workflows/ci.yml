@@ -110,10 +110,18 @@ jobs:
 
   # Round 16: the browser checks run as two parallel jobs (same checks, same flags) because one job passed 75 minutes
   # once the 7 category pages were added. Neither job skips or loosens anything.
+  # Owner decision 2026-11-11 (gate time, option ค): the e2e files run in 3 parallel shards (tools/e2e-shards.mjs, balanced by
+  # tests/e2e/shard-weights.json) and the phone / language gates in 2 parallel parts. Same checks, same flags, same single
+  # retry per failing file. The job "e2e shards: every test file ran exactly once" turns CI red when any shard is missing,
+  # any file ran twice or not at all, or a shard ran a file it was not given.
   e2e:
-    name: End-to-end (headless Chrome)
+    name: End-to-end (headless Chrome) ${{ matrix.shard }}/3
     runs-on: ubuntu-latest
     timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     env:
       CI: "1"
     steps:
@@ -146,27 +154,61 @@ jobs:
       - run: npm ci
       - name: Thai + CJK fonts (line-breaking checks need real glyphs)
         run: sudo apt-get update -q && sudo apt-get install -y -q fonts-thai-tlwg fonts-noto-cjk
-      - name: e2e (one retry per failing file)
-        run: npm run test:e2e:ci
+      - name: e2e shard ${{ matrix.shard }}/3 (one retry per failing file)
+        run: npm run test:e2e:ci -- --shard=${{ matrix.shard }}/3 --manifest=e2e-shard-${{ matrix.shard }}.json
         env:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
-      - name: pages under the GitHub Pages <meta> CSP
-        run: node tools/check-csp.mjs
-        env:
-          LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: e2e-shard-${{ matrix.shard }}
+          path: e2e-shard-${{ matrix.shard }}.json
+          if-no-files-found: ignore
+      # the three site-wide checks, one per shard (each runs exactly once per CI run)
       - name: built _site — every page loads under /lensiq/ in TH + 中文 with no 404 (same as the Pages deploy)
+        if: matrix.shard == 1
         run: node tools/build-site.mjs && node tools/check-site.mjs
         env:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
       - name: no page requests a third-party origin (th + zh)
+        if: matrix.shard == 2
         run: node tools/check-external.mjs --as-is
         env:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
+      - name: pages under the GitHub Pages <meta> CSP
+        if: matrix.shard == 3
+        run: node tools/check-csp.mjs
+        env:
+          LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
+
+  e2e-shards:
+    name: "e2e shards: every test file ran exactly once"
+    needs: e2e
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          pattern: e2e-shard-*
+          path: e2e-shards
+      - name: every *.e2e.mjs ran in exactly one shard; all 3 shards reported
+        run: |
+          mkdir -p e2e-shards
+          node tools/e2e-shards.mjs --check e2e-shards
 
   browser-audits:
-    name: Phone and language gates (headless Chrome)
+    name: Phone and language gates (headless Chrome) — ${{ matrix.part }}
     runs-on: ubuntu-latest
     timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [phone, language]
     env:
       CI: "1"
     steps:
@@ -200,10 +242,12 @@ jobs:
       - name: Thai + CJK fonts (line-breaking checks need real glyphs)
         run: sudo apt-get update -q && sudo apt-get install -y -q fonts-thai-tlwg fonts-noto-cjk
       - name: mobile-audit detector self-test
+        if: matrix.part == 'phone'
         run: node tools/mobile-audit.mjs --selftest
         env:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
       - name: phone gate — no horizontal overflow, text contrast >= 4.5:1, every form control labelled (320 / 360 / 390 px)
+        if: matrix.part == 'phone'
         run: |
           for w in 320 360 390; do
             node tools/mobile-audit.mjs --width $w --strict --checks overflow,contrast,unlabeled,errors --details || exit 1
@@ -213,6 +257,7 @@ jobs:
       # English and Chinese strings are longer / wider than Thai: the same page can overflow at 360 px only in EN
       # (driver.html, round 10). Touch targets (>= 44 x 44 CSS px, WCAG 2.5.5) are gated here too.
       - name: phone gate — 360 px in TH / EN / 中文 and 390 px TH (overflow, touch targets >= 44 px, contrast)
+        if: matrix.part == 'phone'
         run: |
           for lang in th en zh; do
             node tools/mobile-audit.mjs --width 360 --lang $lang --strict --checks overflow,targets,contrast,hiddenShown,crumbs,thaiTracking --details || exit 1
@@ -225,6 +270,7 @@ jobs:
       # tests/e2e/member.e2e.mjs; nothing leaves the runner). Also: no element with [hidden] may render, the breadcrumb
       # stays on one line, Thai is never letter-spaced, and each state's own expectations (no "retry" when nothing failed).
       - name: phone gate — post-interaction states at 360 px in TH / EN / 中文
+        if: matrix.part == 'language'
         run: |
           for lang in th en zh; do
             node tools/mobile-audit.mjs --states --width 360 --lang $lang --strict --checks overflow,targets,contrast,hiddenShown,crumbs,thaiTracking,state,errors --details || exit 1
@@ -232,38 +278,40 @@ jobs:
         env:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
       - name: shared components 100 % Chinese in 中文 mode
+        if: matrix.part == 'language'
         run: node tools/zh-coverage.mjs --shared --no-interact --max 0
         env:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
       - name: shared components 100 % English in English mode
+        if: matrix.part == 'language'
         run: node tools/zh-coverage.mjs --lang en --shared --no-interact --max 0
         env:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
       - name: zh coverage report per page (after typical interactions)
-        if: always()
+        if: always() && matrix.part == 'language'
         run: node tools/zh-coverage.mjs --top 10 --json zh-coverage.json
         env:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
       - name: Latin-only leftovers on Thai and 中文 pages (report only — untranslated English / technical wording)
-        if: always()
+        if: always() && matrix.part == 'language'
         run: |
           node tools/zh-coverage.mjs --latin --lang th --no-interact --json latin-th.json
           node tools/zh-coverage.mjs --latin --lang zh --no-interact --json latin-zh.json
         env:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
       - name: phone layout report (390 px)
-        if: always()
+        if: always() && matrix.part == 'language'
         run: node tools/mobile-audit.mjs --json mobile-audit.json
         env:
           LQ_CHROME: ${{ steps.chrome.outputs.chrome-path }}
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: always()
+        if: always() && matrix.part == 'language'
         with:
           name: mobile-audit
           path: mobile-audit.json
           if-no-files-found: ignore
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: always()
+        if: always() && matrix.part == 'language'
         with:
           name: zh-coverage
           path: |

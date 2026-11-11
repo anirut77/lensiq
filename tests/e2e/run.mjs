@@ -4,13 +4,17 @@
 //   node tests/e2e/run.mjs [filter ...]  files whose name contains any filter word; LQ_BASE=http://127.0.0.1:8000 reuses a server
 //   --retry=N / LQ_RETRY=N   re-run a failing file up to N times (CI uses 1); only the last attempt counts
 //   LQ_FILE_TIMEOUT=ms       per-file time limit (default 900000 = 15 min) — a hung file fails instead of blocking the run
+//   --shard=i/n              run only shard i of n (tools/e2e-shards.mjs assign(); CI runs n jobs); no filter words with it
+//   --manifest=path          write {shard, total, assigned, ran, passed, failed} as JSON at the end; CI's shard check job
+//                            (tools/e2e-shards.mjs --check) turns CI red unless every test file ran exactly once
 // Each *.e2e.mjs exports `default async function (ctx)`; ctx = {base, launch, check(name, fn), skip(name, why), fakeCams}.
 import { spawn } from "node:child_process";
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { launch } from "./cdp.mjs";
+import { allFiles, assign, parseShard, weights } from "../../tools/e2e-shards.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, "..", "..");
@@ -19,6 +23,10 @@ const retryArg = argv.find(a => a.startsWith("--retry="));
 const RETRY = Math.max(0, parseInt(retryArg ? retryArg.slice(8) : process.env.LQ_RETRY || "0", 10) || 0);
 const FILE_TIMEOUT = parseInt(process.env.LQ_FILE_TIMEOUT || "900000", 10) || 900000;
 const filters = argv.filter(a => !a.startsWith("--"));
+const shardArg = argv.find(a => a.startsWith("--shard="));
+const manifestArg = argv.find(a => a.startsWith("--manifest="));
+const SHARD = shardArg ? parseShard(shardArg.slice(8)) : null;
+if (SHARD && filters.length) { console.error("--shard cannot be combined with filter words"); process.exit(2); }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function freePort() {
@@ -45,10 +53,12 @@ process.on("exit", stopServer);
 process.on("SIGINT", () => { stopServer(); process.exit(130); });
 
 const fakeCams = readFileSync(join(here, "fake-cams.js"), "utf8");
-const files = readdirSync(here).filter(f => f.endsWith(".e2e.mjs") && (!filters.length || filters.some(w => f.includes(w)))).sort();
+const files = SHARD ? assign(allFiles(), weights(), SHARD.n)[SHARD.i - 1]
+  : readdirSync(here).filter(f => f.endsWith(".e2e.mjs") && (!filters.length || filters.some(w => f.includes(w)))).sort();
+const ran = [];
 let pass = 0, fail = 0, skipped = 0;
 const t0 = Date.now();
-console.log(`LENSIQ e2e — ${base} — ${files.length} file(s)`);
+console.log(`LENSIQ e2e — ${base} — ${files.length} file(s)${SHARD ? ` — shard ${SHARD.i}/${SHARD.n}` : ""}`);
 const flaky = [];
 for (const f of files) {
   for (let attempt = 0; attempt <= RETRY; attempt++) {
@@ -77,8 +87,13 @@ for (const f of files) {
     }
     console.log(`  (${ff} failure(s) — retrying ${f})`);
   }
+  ran.push(f);
 }
 if (flaky.length) console.log(`\nflaky (passed on retry): ${flaky.join(", ")}`);
 console.log(`\n${pass} passed, ${fail} failed, ${skipped} skipped — ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+if (manifestArg) {
+  writeFileSync(manifestArg.slice(11), JSON.stringify({ shard: SHARD ? SHARD.i : 1, total: SHARD ? SHARD.n : 1, assigned: files, ran, passed: pass, failed: fail,
+    seconds: Math.round((Date.now() - t0) / 1000) }, null, 1) + "\n");
+}
 stopServer();
 process.exit(fail ? 1 : 0);
