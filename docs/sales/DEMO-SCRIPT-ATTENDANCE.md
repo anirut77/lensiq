@@ -20,7 +20,7 @@
 | 1:00–2:00 | ส่วน "ข้อมูลส่วนบุคคลในการลงเวลาทำงาน (PDPA)" | "ก่อนใช้ต้องแจ้งพนักงาน ใบหน้าเป็นข้อมูลชีวภาพ ต้องได้ความยินยอมโดยชัดแจ้ง และต้องมี PIN/QR ให้เลือกเสมอ ไม่มีผลเสียต่อพนักงานที่ไม่ใช้ใบหน้า ระบบไม่วิเคราะห์อารมณ์ ไม่เก็บภาพ" | ประกาศพับได้ ลิงก์ป้ายและแบบยินยอม (`camera-notice.html`) | "ใครในองค์กรดูแลเรื่องข้อมูลส่วนบุคคล" |
 | 2:00–4:00 | แท็บ "พนักงาน" และ "กะการทำงาน" | "เพิ่มพนักงาน กำหนดกะ เวลาผ่อนผันสาย กติกา OT ถ้า OT ต้องอนุมัติ ผู้จัดการอนุมัติรายวัน" | เพิ่ม E01 E02 พร้อม PIN สร้างกะ 09:00–18:00 พักหนึ่งชั่วโมง ผ่อนผัน 10 นาที (ค่าตัวอย่าง) ออกบัตร QR พิมพ์ได้ | "เวลาทำงานและกะของร้านเป็นแบบไหน มีกะกลางคืนหรือไม่" |
 | 4:00–5:30 | แท็บ "PIN / QR" และโหมดคิออสก์ | "พนักงานใส่รหัสกับ PIN หรือสแกนบัตร ล็อกหลังใส่ผิด 5 ครั้ง โหมดคิออสก์ออกได้ด้วย PIN ผู้จัดการ" | ลงเวลาเข้า/ออกของ E01 และ E02 ด้วย PIN (ลองใส่ผิดหนึ่งครั้ง) แสดง "ลงเวลาวันนี้" ปุ่มโหมดคิออสก์ | "พนักงานเข้างานพร้อมกันที่จุดเดียวหรือหลายจุด" |
-| 5:30–7:00 | แท็บ "สรุปเดือนและเงินเดือน" | "สรุปรายเดือนต่อคน มาสายกี่นาที ออกก่อน OT วันหยุดนักขัตฤกษ์ วันลา เตือนสัปดาห์เกิน 48 ชั่วโมง ส่งออก CSV สำหรับเงินเดือน หัวคอลัมน์สองภาษา" | ตารางเดือนและปุ่มส่งออก CSV **ต้องมีโหมดเดโม (กำลังทำ) OP-15** `attendance.html?mode=employee&demo=1` เติมพนักงานสมมติ 8 คนและบันทึกเวลาหนึ่งเดือนไว้ก่อน ตอนนี้เดือนจะว่างเกือบหมด ให้ใช้ภาพหน้าจอสำรอง | "ระบบเงินเดือนที่ใช้คืออะไร ขอไฟล์ตัวอย่างที่ไม่มีข้อมูลบุคคลได้ไหม" |
+| 5:30–7:00 | แท็บ "สรุปเดือนและเงินเดือน" | "สรุปรายเดือนต่อคน มาสายกี่นาที ออกก่อน OT วันหยุดนักขัตฤกษ์ วันลา เตือนสัปดาห์เกิน 48 ชั่วโมง ส่งออก CSV สำหรับเงินเดือน หัวคอลัมน์สองภาษา" | ตารางเดือนและปุ่มส่งออก CSV **มีแล้ว** (`attendance.html?mode=employee&demo=1`) `attendance.html?mode=employee&demo=1` เติมพนักงานสมมติ 8 คนและบันทึกเวลาหนึ่งเดือนไว้ก่อน ตอนนี้เดือนจะว่างเกือบหมด ให้ใช้ภาพหน้าจอสำรอง | "ระบบเงินเดือนที่ใช้คืออะไร ขอไฟล์ตัวอย่างที่ไม่มีข้อมูลบุคคลได้ไหม" |
 | 7:00–8:00 | แท็บ "แก้ไขเวลาและประวัติ" | "ผู้จัดการแก้ได้แต่ไม่แก้ข้อมูลดิบ ทุกการแก้เป็นรายการตรวจสอบย้อนหลัง ต้องใส่ชื่อผู้แก้และเหตุผล ลบหรือสลับลำดับแล้วระบบเตือน" | เพิ่มการลงเวลาที่ลืม แล้วดูรายการประวัติ ลิงก์ส่งออก "ข้อมูลของพนักงานคนนี้" (สิทธิเข้าถึง PDPA) | "ใครอนุมัติการแก้เวลา" |
 | 8:00–9:00 | แท็บ "ตั้งค่าและข้อมูล" | พูดข้อจำกัดตรง ๆ: "พื้นที่ในเบราว์เซอร์ราว 20 คน × 2 ปีต่อเครื่อง ยังไม่มีซิงก์คลาวด์ หลายเครื่องรวมกันด้วยไฟล์ส่งออก/นำเข้า ยังไม่มีกะหมุนเวียน ไม่มีขออนุมัติลาออนไลน์ ไม่คำนวณค่าจ้าง ภาษี ประกันสังคม และเวลาอิงนาฬิกาเครื่อง" | ส่วน "รวมข้อมูลจากหลายจุดลงเวลา" มิเตอร์พื้นที่ | "มีกี่สาขา กี่คน ต้องการซิงก์ทันทีหรือไม่" |
 | 9:00–9:45 | `attendance.html` ส่วน "ตัวเลขและที่มา" | ถ้าลูกค้าถามใบหน้า: "ใบหน้าเป็นตัวเลือก ใช้เมื่อพนักงานยินยอม ใบหน้าเอเชีย จำได้ต่อการสแกน 66–76% (n = 500 คน × 5 ภาพ ชุดข้อมูลสาธารณะ CASIA ชุดทดสอบแยกแต่ไม่ปิดตาสมบูรณ์) คนที่ไม่ได้ลงทะเบียนถูกเช็คชื่ออัตโนมัติโดยไม่มีคนยืนยัน ≤ 0.03% ที่ทำงานจริงในไทย ยังไม่ได้วัด การหันหน้ายืนยันคนจริง ยังไม่ได้วัด PIN/QR ไม่มีความคลาดเคลื่อนจากการจดจำ" | แถว A2 A4 A5 A6 ป้าย "โมเดลใบอนุญาตวิจัย" (รอความเห็นทางกฎหมายก่อนขายเชิงพาณิชย์ OP-14) | "พนักงานจะยินยอมใช้ใบหน้าหรือไม่ หรือ PIN/QR เพียงพอ" |
@@ -31,8 +31,8 @@
 | ขั้นตอน | สถานะ |
 |---|---|
 | เพิ่มพนักงาน กะ ลงเวลาด้วย PIN สดบนหน้า | ทำได้แล้ว (ข้อมูลสมมติ) |
-| พนักงานสมมติ 8 คน + บันทึกเวลาหนึ่งเดือน + สรุปเดือน + CSV ตัวอย่าง | **ต้องมีโหมดเดโม (กำลังทำ) OP-15** `?mode=employee&demo=1` |
-| ล้างข้อมูลเดโมหลังจบด้วยปุ่มเดียว | **ต้องมีโหมดเดโม (กำลังทำ) OP-15** ตอนนี้ใช้ปุ่ม "ล้างบันทึกทั้งหมด" ในแท็บตั้งค่าและข้อมูล |
+| พนักงานสมมติ 8 คน + บันทึกเวลาหนึ่งเดือน + สรุปเดือน + CSV ตัวอย่าง | **มีแล้ว** (`attendance.html?mode=employee&demo=1`) `?mode=employee&demo=1` |
+| ล้างข้อมูลเดโมหลังจบด้วยปุ่มเดียว | **มีแล้ว** (`attendance.html?mode=employee&demo=1`) ตอนนี้ใช้ปุ่ม "ล้างบันทึกทั้งหมด" ในแท็บตั้งค่าและข้อมูล |
 
 ## ห้ามพูด / ห้ามกล่าวอ้าง (NOT to claim)
 
@@ -72,8 +72,8 @@ Do not switch on the face option during a customer demo; use minute 9 only if as
 | 9:00–9:45 | `attendance.html`, "Figures and sources" | Only if asked about faces: the face is optional and used only with consent. Asian faces recognised per scan 66–76% (n = 500 people x 5 photos, public dataset CASIA; held-out but not perfectly blind). Strangers auto-checked-in with no confirmation: at most 0.03%. A real Thai workplace: not measured. The head-turn liveness option: not measured. PIN / QR has no recognition error. | Rows A2, A4, A5, A6; the "research-licence model" label (waiting for legal opinion before commercial sale, OP-14) | Would your staff consent to a face, or is PIN / QR enough? |
 | 9:45–10:00 | `attendance.html`, price | Free up to 5 people (PIN / QR, 1 device). Standard at pilot stage 19 THB per active person per month, minimum 190 THB per month, excl. 7% VAT. Optional set-up help 2,900 THB one-off. A 2-week pilot compares the payroll CSV with your existing record for one month. | Price table (approved list) | When can we start a pilot? |
 
-**Needs demo mode (`?demo=1`):** adding staff, shifts and PIN punches live works today with fictitious data. Eight sample employees with a month of punches, a month summary and a
-sample CSV are **needs demo mode (in progress) OP-15**, as is a one-button reset (today use "clear all records" in the settings tab).
+**Demo mode (`?demo=1`):** available on `attendance.html?mode=employee&demo=1`: eight sample employees with a month of punches, a month summary and a CSV
+labelled SAMPLE; "reset sample data" reloads the page. Real records on the device are never read or changed in demo mode.
 
 **Do NOT claim:** workplace face accuracy (not measured); 85% as the headline (it is a tuning-set figure, optimistic; the headline is 66–76% on Asian faces); that it stops buddy punching (a PIN or badge can be shared; no
 photo on punch by design; liveness unmeasured); wage, tax or social-security calculation; a direct export for any named payroll product (none yet; a sample file is needed); multi-branch sync,

@@ -31,8 +31,8 @@
 | ขั้นตอน | สถานะ |
 |---|---|
 | `exam-dashboard.html` ปุ่ม "สาธิต: จำลองเหตุการณ์" | มีอยู่แล้ว |
-| `exam-lab.html?demo=1` เซสชันตัวอย่างไม่ใช้กล้อง และเหตุการณ์ตัวอย่างส่งไปแดชบอร์ด | **ต้องมีโหมดเดโม (กำลังทำ) OP-15** ตอนนี้ใช้เว็บแคมของผู้นำเสนอ |
-| แดชบอร์ดที่มี tally และการปรับการสอบตัวอย่างเติมไว้แล้ว | **ต้องมีโหมดเดโม (กำลังทำ) OP-15** ตอนนี้กรอกเองหลังกดจำลอง |
+| `exam-lab.html?demo=1` เซสชันตัวอย่างไม่ใช้กล้อง มีปุ่มจำลองเหตุการณ์ 4 แบบ | **มีแล้ว** (เหตุการณ์อยู่ในบันทึกของผู้สอบ ยังไม่ส่งไปแดชบอร์ด) |
+| แดชบอร์ดที่มี tally และการปรับการสอบตัวอย่างเติมไว้แล้ว | **ยังไม่มี OP-15** ตอนนี้ใช้ปุ่มสาธิตของแดชบอร์ด |
 
 ## ห้ามพูด / ห้ามกล่าวอ้าง (NOT to claim)
 
@@ -72,8 +72,8 @@ Never show real candidate lists or import a real .json file.
 | 8:30–9:30 | `exam.html`, pilot and price | Offer a free pilot: 1 institution, up to 4 weeks, up to 3 rooms, low-stakes sessions, led by the computer-room mode; invigilators tally right / wrong; the numbers become yours. Known limit: no live view across devices yet (OP-25); export a file after the exam and open it in the dashboard. | Price table (approved list, excl. 7% VAT); pilot stage 10 THB per candidate per exam, minimum 300 THB per session | How many computer rooms? Does every machine have a webcam? |
 | 9:30–10:00 | `exam.html#notice` | Next steps: quotation and order form; a camera and light check day; one hour of invigilator training; notice to candidates at least 7 days before the exam. | Printable notice in three languages | Which date suits the camera check? Who signs for approval? |
 
-**Needs demo mode (`?demo=1`):** the dashboard demo button exists today. A camera-free sample session on `exam-lab.html?demo=1`, and a dashboard with a pre-filled
-tally and sample accommodations, are **needs demo mode (in progress) OP-15**.
+**Demo mode (`?demo=1`):** available on `exam-lab.html?demo=1` (camera-free sample session, four simulated events in the candidate's own log). The dashboard
+has its own demo button; a dashboard with a pre-filled tally and sample accommodations is **not built yet (OP-15)**.
 
 **Do NOT claim:** that it catches cheating or decides; that phone or book detection is accurate (not measured on exam footage); that it finds every second person (28.8% on public
 photos); accuracy by skin tone or in low light (not measured); any field figure (none exists); anything about emotion, expression, suspicion score or lie detection (none exists);

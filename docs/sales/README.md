@@ -56,7 +56,7 @@
 | OP-12 | L | ร่าง DPA อยู่ที่ `docs/legal/customer/DPA-TEMPLATE.md` (ร่างสำหรับทนายตรวจ) ต้องให้ทนายตรวจก่อนขายครั้งแรก | ใบเสนอราคา ใบสั่งซื้อ | LENSIQ จะเป็นผู้ประมวลผล (ม.40) เมื่อเข้าถึงอุปกรณ์ระยะไกลหรือซิงก์ |
 | OP-13 | O, L | ไม่มีข้อกำหนดการใช้บริการ การยกเลิก การคืนเงิน ความรับผิด สำหรับการขายด้วยใบเสนอราคา (มีเฉพาะสัญญานำร่อง `docs/pilot/AGREEMENT-TH.md`) | ใบเสนอราคา ใบเสร็จ ใบสั่งซื้อ | `SUPPORT.md` §10.4 เป็นแม่แบบคืนเงินของผู้ใช้ทั่วไป |
 | OP-14 | L, O | โมเดลใบหน้า (Attendance ตัวเลือกใบหน้า) ฝึกจากชุดข้อมูลวิจัย รอความเห็นทางกฎหมายก่อนใช้เชิงพาณิชย์ จนกว่าจะได้ข้อสรุปไม่เสนอใบหน้าเป็นจุดขาย | ใบสั่งซื้อ เดโม Attendance คู่มือ สไลด์ | `ONE-PAGER-ATTENDANCE.md` PDPA · `DEPLOYMENT-CHECKLIST.md` ข้อ 1 · F5/F6 ใน `PAGE-STATUS.md` |
-| OP-15 | P | โหมดเดโม `?demo=1` ยังไม่มี: `exam-lab.html?demo=1` `attendance.html?mode=employee&demo=1` `village.html?demo=1` `parking.html?demo=1` `crowd.html?demo=1` (ที่มีแล้ว: ปุ่มสาธิตในแดชบอร์ด Exam ภาพป้ายตัวอย่างของ Gate ปุ่ม "ดูตัวอย่าง" ของ Crowd) | เดโม 4 ไฟล์ | ทุกขั้นตอนที่เกี่ยวข้องเขียนว่า "ต้องมีโหมดเดโม (กำลังทำ)" |
+| OP-15 | P | โหมดเดโม `?demo=1` มีแล้วบน 5 หน้า (exam-lab, attendance โหมดพนักงาน, village, parking, crowd) เหลือ: แดชบอร์ด Exam ที่เติม tally ตัวอย่างไว้ | DEMO-SCRIPT-EXAM | ใช้ปุ่มสาธิตของแดชบอร์ดแทน |
 | OP-16 | O | ช่องทางติดต่อและสนับสนุน (อีเมล LINE OA โทรศัพท์ หน้าสถานะ) ยังไม่ประกาศ | เอกสารทุกฉบับ คู่มือ สไลด์ | `SUPPORT.md` · `lensiq-config.js` `LENSIQ_SELLER` |
 | OP-17 | O | แผนสนับสนุนที่ขายและเวลาตอบรับ: ค่าใน `SUPPORT.md` §2–3 อยู่ในวงเล็บ ต่อรองได้ ยังไม่อนุมัติ และไม่มีราคาแผนสนับสนุนในรายการราคาอนุมัติ จึงไม่ใส่ในใบเสนอราคา | คู่มือเริ่มต้น 4 ไฟล์ | `SUPPORT.md` §2–3 |
 | OP-18 | O | นิยามหน่วยขาย: "รอบสอบ" "ห้องปฏิบัติการ" (Exam) "วัน" (Crowd) "ช่องทาง" (Gate) | ใบเสนอราคา ใบสั่งซื้อ | `PRICING-RESEARCH.md` §3 ไม่นิยามไว้ |
@@ -110,8 +110,8 @@ Deciders: owner (O), accountant (A), lawyer (L), product team (P). The table abo
 - **OP-12 (L)** No DPA draft exists as a file; the order form points to `SUPPORT.md` §5 and `PDPA-NOTES-FOR-COUNSEL.md` E3. Counsel must draft it before the first sale.
 - **OP-13 (O, L)** No sales terms (service, cancellation, refund, liability); only the pilot agreement exists.
 - **OP-14 (L, O)** Face model licence (Attendance face option) awaits legal opinion; the face option is not offered as a selling point until then.
-- **OP-15 (P)** Demo mode `?demo=1` does not exist for `exam-lab.html`, `attendance.html?mode=employee`, `village.html`, `parking.html`, `crowd.html`. Existing today: the Exam dashboard demo button,
-  Gate sample plates, the Crowd "try the demo" button. Marked "needs demo mode (in progress)" in the four demo scripts.
+- **OP-15 (P)** Demo mode `?demo=1` is available on `exam-lab.html`, `attendance.html?mode=employee`, `village.html`, `parking.html`, `crowd.html`.
+  Still open: an Exam dashboard with a pre-filled sample tally (use the dashboard's own demo button meanwhile).
 - **OP-16 (O)** Contact and support channels (e-mail, LINE OA, phone, status page) not announced.
 - **OP-17 (O)** Support plan sold and response times: `SUPPORT.md` §2–3 values are bracketed drafts, and no support price is in the approved list, so none is quoted.
 - **OP-18 (O)** Definition of units: "exam session" and "lab" (Exam), "day" (Crowd), "lane" (Gate).
