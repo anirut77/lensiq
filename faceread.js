@@ -1674,7 +1674,6 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   // แหล่งอ้างอิงและข้อความจาก KB
   function renderStatic() {
-    $("#frSources").innerHTML = KB.sources.map(function (s) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.label) + "</a></li>"; }).join("");
     $("#frElNote").textContent = KB.elementsNote;
     $("#frOvlCap").textContent = OVL_CAP(ovlMode);
     if (!current) $("#frSrc").textContent = T("faceread.src.local", "เรียบเรียงในเครื่อง");

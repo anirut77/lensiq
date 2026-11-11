@@ -534,7 +534,9 @@ export const ADMIN_ASSETS = new Set(["/admin", "/admin/", "/admin.html", "/admin
   // round 17 P5: AI Gateway section text in English / Chinese (Thai stays the default)
   "/lensiq-i18n.js", "/i18n/zh-admin.js", "/i18n/en-admin.js",
   // first-run setup: QR code of the 2-step verification secret, drawn in the browser (no request carries the secret)
-  "/attendance-qr.js"]);
+  "/attendance-qr.js",
+  // fortune citation list (back office only; fortune pages no longer show citations, owner order 2026-11-12)
+  "/fortune-sources.js"]);
 export const ADMIN_PAGE_HEADERS = {
   "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; " +
     "font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'; report-uri /v1/csp-report; report-to csp",

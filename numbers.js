@@ -698,7 +698,6 @@
     sel.querySelectorAll("option[data-wd]").forEach(o => o.remove());
     sel.insertAdjacentHTML("beforeend", KB.weekdays.map(w => '<option data-wd value="' + w.id + '">' + esc(wdName(w)) + "</option>").join(""));
     sel.value = v;
-    $("#nmSources").innerHTML = KB.sources.map((s, i) => '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(T("numbers.srcl." + i, s.label)) + "</a></li>").join("");
     renderLetterTables();
     $("#nmTips").innerHTML = KB.generalTips.map((t, i) => "<li>" + esc(T("numbers.tip." + i, t)) + "</li>").join("");
   }

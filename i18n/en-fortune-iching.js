@@ -11,7 +11,7 @@
   "iching.cardImgAlt": "Shareable I Ching result card",
   "iching.gridHint": "Tap a hexagram to see its meaning",
   "iching.statsOn": "Count casts, topics and hexagrams on this device",
-  "iching.srcNote": "Hexagram meanings are rewritten in plain modern language from the core ideas of the classic text; changing-line meanings are general interpretations by line position, not full line-by-line translations",
+  "iching.lineNote": "Changing-line meanings are general interpretations by line position, not full line-by-line translations",
   "iching.principle": "Principles: positive content; hexagrams traditionally called difficult are read as life lessons and rhythms; no predictions about health, accidents or misfortune, and your question is never saved",
 
   /* Topics */

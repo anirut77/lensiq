@@ -1969,7 +1969,6 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   window.addEventListener("resize", function () { if (!editSec.hidden) renderEditor(); });
 
   function renderSources() {
-    $("#plSources").innerHTML = KB.sources.map(function (s, i) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(KT("sources." + i, s.label)) + "</a></li>"; }).join("");
     $("#plEthics").textContent = KT("ethics", KB.ethics);
   }
   renderSources();

@@ -16,7 +16,7 @@
   "zodiac.cardImgAlt": "Shareable Chinese zodiac card",
   "zodiac.chongYearLabel": "Year",
   "zodiac.statsOn": "Count sessions and zodiac animals on this device (birth dates are not saved)",
-  "zodiac.srcNote": "Earthly Branch relationships follow traditional Chinese astrology; all readings are rewritten in a positive tone. Chinese New Year and Lichun are computed with astronomical formulas (Beijing time)",
+  "zodiac.calcNote": "Chinese New Year and Lichun are computed with astronomical formulas (Beijing time)",
   "zodiac.principle": "Principle: no predictions of illness, accidents or misfortune; Tai Sui text only suggests slowing down and planning ahead",
 
   /* Options */

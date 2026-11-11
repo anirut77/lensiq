@@ -41,10 +41,9 @@
     "numbers.how.gradeB": "Pair grades:",
     "numbers.how.grade": "Excellent 100 · Good 82 · Moderate 60 · Watch 35 (24 and 42 count as the same pair, but the leading digit sets the emphasis)",
     "numbers.how.sumB": "Sum:",
-    "numbers.how.sum": "All digits are added and reduced further if above 99. A two-digit sum is read as a digit pair, alongside its reduced single digit. Sums listed as positive examples in the references are graded Excellent.",
+    "numbers.how.sum": "All digits are added and reduced further if above 99. A two-digit sum is read as a digit pair, alongside its reduced single digit. Sums that the tradition gives as positive examples are graded Excellent.",
     "numbers.how.scoreB": "Score:",
     "numbers.how.score": "Digit pairs 65% + sum 20% + memorable patterns 15% (repeats, sequences, mirrors, alternation, no zeros). Plates and names use the weights shown in the result.",
-    "numbers.src.note": "Content is rewritten positively from widely shared numerology beliefs; schools differ on meanings and letter-value tables",
     "numbers.src.principle": "Principle: always positive; pairs to watch are worded gently, with no ill predictions, no gambling numbers, and no storage of user numbers",
 
     /* ---------- dynamic UI ---------- */

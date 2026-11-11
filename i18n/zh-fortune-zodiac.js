@@ -17,7 +17,7 @@
   "zodiac.cardImgAlt": "可分享的十二生肖运势卡片",
   "zodiac.chongYearLabel": "年份",
   "zodiac.statsOn": "在本机统计次数和生肖（不保存生日）",
-  "zodiac.srcNote": "地支关系依据中国传统命理，解读全部重新撰写并以积极角度表达；春节和立春用天文公式计算（北京时间）",
+  "zodiac.calcNote": "春节和立春用天文公式计算（北京时间）",
   "zodiac.principle": "原则：不预测疾病、意外或不幸；关于犯太岁的文字只用来提醒放慢节奏、做好规划",
 
   /* 选项 */

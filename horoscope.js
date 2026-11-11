@@ -1335,8 +1335,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   $("#hsKioskExit").addEventListener("click", function () { setKiosk(false); });
   document.addEventListener("fullscreenchange", function () { if (!document.fullscreenElement && wasFs) { wasFs = false; setKiosk(false); } });
 
-  function renderSources() { $("#hsSources").innerHTML = K.sources.map(function (s) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.label) + "</a></li>"; }).join(""); }
-  renderSources();
+  // citation list: back office / docs only (owner order 2026-11-12, tools/fortune-sources.mjs)
 
   /* ---------- สลับภาษา: วาดข้อความที่ JS สร้างใหม่ทั้งหมด (คำทำนายจะเรียบเรียงใหม่ในภาษานั้น) ---------- */
   var lastLang = "th";
@@ -1345,13 +1344,13 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     lastLang = lang;
     syncKB();
     if (was === K && current == null && same) return;
-    fillForm(); renderStats(); renderSources(); eraHint();
+    fillForm(); renderStats(); eraHint();
     if (!current) return;
     var sel = tabs.find(function (t) { return t.getAttribute("aria-selected") === "true"; }) || tabs[0];
     renderAll(current);
     if (lastPartner) renderCompat(current, lastPartner.P2, lastPartner.name);
     selectTab(sel, false, true);
   });
-  syncKB(); if (K !== KB) { fillForm(); renderStats(); renderSources(); }
+  syncKB(); if (K !== KB) { fillForm(); renderStats(); }
   window.__hs = { get current() { return current; }, readings: readings, makeCard: makeCard, reset: reset, show: show }; // ใช้ทดสอบ
 })();

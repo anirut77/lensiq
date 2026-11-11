@@ -35,6 +35,7 @@
   "fortune-lifecal.e2e.mjs": 6,
   "fortune-new.e2e.mjs": 10,
   "fortune-wheel-labels.e2e.mjs": 55,
+  "fortune-sources.e2e.mjs": 17,
   "fortune-zh.e2e.mjs": 34,
   "gate-detect.e2e.mjs": 18,
   "gate-guard.e2e.mjs": 12,

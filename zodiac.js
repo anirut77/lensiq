@@ -310,12 +310,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   });
 
   var kiosk = FK.kiosk({ toggle: "zdKiosk", exit: "zdKioskExit", idle: "zdIdle", busy: function () { return !$("#zdResult").hidden || !$("#zdPairRes").hidden; }, reset: function () { resetYear(); $("#zdPairRes").hidden = true; $("#zdPairForm").reset(); st.pair = null; selectTab("tabYear"); } });
-  function renderSources() { $("#zdSources").innerHTML = KB.sources.map(function (s, i) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(T("zodiac.src." + i, s.label)) + "</a></li>"; }).join(""); }
-  renderSources();
+  // citation list: back office / docs only (owner order 2026-11-12, tools/fortune-sources.mjs)
 
   /* สลับภาษา: วาดข้อความแบบไดนามิกใหม่ และประกอบคำทำนายใหม่จาก facts เดิม */
   window.addEventListener("lq-lang", function () {
-    renderOptions(); renderChong(); renderSources(); showMsg(); showPairMsg();
+    renderOptions(); renderChong(); showMsg(); showPairMsg();
     if (stats.render) stats.render();
     if (st.res && !$("#zdResult").hidden) renderYear();
     if (st.pair && !$("#zdPairRes").hidden) renderPair();

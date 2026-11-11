@@ -143,6 +143,7 @@
       <button type="button" role="tab" data-tab="members" aria-selected="false">สมาชิก</button>
       <button type="button" role="tab" data-tab="security" aria-selected="false">ความปลอดภัย</button>
       <button type="button" role="tab" data-tab="retention" aria-selected="false">การเก็บรักษาข้อมูล</button>
+      <button type="button" role="tab" data-tab="fsources" aria-selected="false" data-i18n="adf.tab">แหล่งอ้างอิงดูดวง</button>
     </nav>
 
     <div class="ad-panel" data-panel="analytics" role="tabpanel">
@@ -332,14 +333,24 @@
         <pre id="adRetOut" class="ad-pre"></pre>
       </div>
     </div>
+
+    <div class="ad-panel" data-panel="fsources" role="tabpanel" hidden>
+      <div class="ad-card">
+        <h2 data-i18n="adf.h">แหล่งอ้างอิงของศาสตร์ดูดวง (หลังบ้านเท่านั้น)</h2>
+        <p class="ad-muted" data-i18n="adf.p">หน้าดูดวงไม่แสดงการอ้างอิงหนังสือ ผู้แต่ง หรือตำราให้ผู้ใช้เห็นแล้ว (คำสั่งเจ้าของ 2026-11-12)
+          รายการนี้สร้างจากคลังความรู้ในโค้ดโดยอัตโนมัติ และมีฉบับเดียวกันใน docs/FORTUNE-SOURCES.md</p>
+        <div id="adFsrc"></div>
+      </div>
+    </div>
   </section>
   <p id="adMsg" class="ad-msg" role="status" aria-live="polite"></p>
 </main>
-<script src="i18n/zh-admin.js?v=2"></script>
+<script src="i18n/zh-admin.js?v=3"></script>
 <script src="lensiq-i18n.js?v=1"></script>
 <script src="attendance-qr.js?v=1"></script>
 <script src="lensiq-api.js?v=2"></script>
 <script src="lensiq-config.js?v=3"></script>
-<script src="admin.js?v=4"></script>
+<script src="fortune-sources.js?v=1"></script>
+<script src="admin.js?v=5"></script>
 </body>
 </html>

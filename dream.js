@@ -303,14 +303,13 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   });
 
   var kiosk = FK.kiosk({ toggle: "drKiosk", exit: "drKioskExit", idle: "drIdle", busy: function () { return !$("#drResult").hidden || !!$("#drText").value || selected().length > 0; }, reset: reset });
-  function renderSources() { $("#drSources").innerHTML = KB.sources.map(function (s, i) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(T("dream.src." + i, s.label)) + "</a></li>"; }).join(""); }
-  renderSources();
+  // citation list: back office / docs only (owner order 2026-11-12, tools/fortune-sources.mjs)
   // เปลี่ยนภาษา: วาดตัวเลือก ชิป รายการ สถิติ และผลลัพธ์ใหม่ (คำทำนายเรียบเรียงใหม่จาก facts เดิม)
   window.addEventListener("lq-lang", function (e) {
     if (e && e.detail && e.detail.init && !isZh()) return;
     zhAliases = null;
     if ($("#drText").value) st.detected = detectAll($("#drText").value);
-    renderStatic(); renderList(); renderSources(); stats.render(); $("#drMsg").textContent = "";
+    renderStatic(); renderList(); stats.render(); $("#drMsg").textContent = "";
     if (st.res && !$("#drResult").hidden) show(st.res.ids, st.res.mood, st.res.time, true);
     if (st.support) supportFor($("#drText").value);
   });

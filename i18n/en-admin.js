@@ -178,5 +178,9 @@
   "adk.test.ok": "Last test: working",
   "adk.test.okMsg": "{p}: the key works",
   "adk.v.key": "Please paste the key",
+  "adf.tab": "Fortune sources",
+  "adf.h": "Sources of the fortune disciplines (back office only)",
+  "adf.p": "Fortune pages no longer show book, author or tradition citations to users (owner order 2026-11-12). This list is generated from the knowledge bases in the code; the same list is in docs/FORTUNE-SOURCES.md.",
+  "adf.none": "No list found (fortune-sources.js did not load)",
   "adk.warn.unreadable": "{n} key(s) set in this panel can no longer be read. The key on the server is used instead, if there is one. Please set them again."
 } });

@@ -15,7 +15,6 @@
     "dream.max8": "最多可选 8 个象征",
     "dream.cardAlt": "可分享的解梦卡片",
     "dream.statsOn": " 在本机统计次数和所选象征（不保存梦境文字）",
-    "dream.srcNote": "象征含义依据泰国民间信仰的核心说法和常见的解梦思路重新撰写；梦的四种类型依据泰国传统（前兆梦、神示之梦、心绪之梦、体感之梦）",
     "dream.principle": "原则：旧说法里不太好的梦（例如掉牙）改从过渡与放下的角度解读，不做任何不吉利的预言，也不提供博彩号码",
     "dream.catAll": "全部",
     "dream.cat.animal": "动物", "dream.cat.nature": "自然", "dream.cat.people": "人物", "dream.cat.object": "物品",

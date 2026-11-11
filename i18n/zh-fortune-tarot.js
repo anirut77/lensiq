@@ -30,7 +30,6 @@
     "tarot.ssNote": "签诗和解读均为原创娱乐内容，并非出自任何寺庙或神坛",
     "tarot.ssImgAlt": "用于分享的签文卡片",
     "tarot.statsOn": " 在本机统计次数、主题和抽到的牌",
-    "tarot.srcNote": "牌义根据 Rider–Waite–Smith 塔罗牌的传统含义以积极的方式重新编写，不同流派的解读可能有所不同",
     "tarot.principle": "原则：内容积极、给人鼓励。转变牌（XIII）、高塔、恶魔等牌都解读为过渡与转变的象征，不预测健康、意外或不幸，也不会保存你的问题",
     "tarot.close": "关闭",
     "tarot.topic.general": "综合",

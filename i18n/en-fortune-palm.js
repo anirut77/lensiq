@@ -45,7 +45,6 @@
     "palm.howP": "All distances are measured in palm widths (index-finger base to little-finger base), so they do not depend on photo size. Palm lines in the photo are first enhanced with local contrast and a multi-scale Hessian ridge filter, then traced along the paths described in palmistry books. Line depth is estimated from how dark the creases appear in the photo and is strongly affected by lighting.",
     "palm.cardAlt": "Shareable palm reading card",
     "palm.statsOn": " Count readings and hand-element shares on this device",
-    "palm.sourcesNote": "The content combines Western, Chinese/Japanese and Thai palmistry and has been rewritten in a positive tone; interpretations vary between schools.",
     "palm.modelNote": "Hand landmark model: MediaPipe Hands (lite), TensorFlow.js version — Apache License 2.0",
 
     /* ---------- Camera and status ---------- */

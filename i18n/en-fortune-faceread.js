@@ -40,7 +40,6 @@
     "faceread.setReco": "Show \"Element-matched picks\"",
     "faceread.setLeads": "Enable customer contact form (consent required)",
     "faceread.leadsNote": "Customer details are stored only in this device's browser (localStorage \"fr-leads\") and contain no face photos. Export and delete them after the event, and state the purpose of collection as required by PDPA",
-    "faceread.srcNote": "Content is rewritten positively from common face reading ideas; schools may divide face shapes and age ranges differently",
     "faceread.principle": "Principle: content covers only positive meanings, makes no predictions about health, misfortune or negative relationships, does not judge looks, and does not touch on gender or ethnicity",
 
     /* ---------- status / engine ---------- */

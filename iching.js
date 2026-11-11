@@ -342,12 +342,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     render: function (s) { return '<p class="fk-small">' + esc(T("iching.statHex", "กว้าที่ออกบ่อย")) + "</p>" + FK.bars(s.hex, s.total, function (k) { return k + " " + (KB.HEX[k] ? hName(k) : ""); }, 5) + '<p class="fk-small">' + esc(T("iching.statTopic", "หัวข้อ")) + "</p>" + FK.bars(s.topics, s.total, function (k) { return KB.TOPICS[k] ? topicName(k) : k; }, 4); }
   });
   var kiosk = FK.kiosk({ toggle: "icKiosk", exit: "icKioskExit", idle: "icIdle", busy: function () { return !$("#icSetup").hidden ? false : true; }, reset: function () { reset(); selectTab("tabCast"); } });
-  function renderSources() { $("#icSources").innerHTML = KB.sources.map(function (s, i) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(T("iching.src." + i, s.label)) + "</a></li>"; }).join(""); }
-  renderSources();
+  // citation list: back office / docs only (owner order 2026-11-12, tools/fortune-sources.mjs)
 
   /* ---------- สลับภาษา: วาดข้อความแบบไดนามิกใหม่ และประกอบคำทำนายใหม่จาก facts เดิม ---------- */
   window.addEventListener("lq-lang", function () {
-    renderTopics(); coinLabels(); renderSources();
+    renderTopics(); coinLabels();
     if (stats.render) stats.render();
     if (!$("#icStage").hidden) renderBuild();
     if (st.cast && !$("#icResult").hidden) renderResult(st.cast);

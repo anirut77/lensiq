@@ -13,7 +13,6 @@
     "dream.max8": "Select up to 8 symbols",
     "dream.cardAlt": "Shareable dream interpretation card",
     "dream.statsOn": " Count sessions and selected symbols on this device (dream text is not saved)",
-    "dream.srcNote": "Symbol meanings are rewritten from core Thai folk beliefs and common dream-interpretation approaches; the four dream types follow Thai tradition (omen dreams, divine dreams, mind dreams and body dreams)",
     "dream.principle": "Principle: dreams traditionally seen as unlucky (such as losing teeth) are read in terms of transition and letting go; no ominous predictions and no gambling numbers",
     "dream.catAll": "All",
     "dream.cat.animal": "Animals", "dream.cat.nature": "Nature", "dream.cat.people": "People", "dream.cat.object": "Objects",

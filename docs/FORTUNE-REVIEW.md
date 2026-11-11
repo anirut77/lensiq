@@ -95,3 +95,9 @@ page, language and source. Pages that render readings another way can call `LQRe
 - Keep `review-report.md` and `review-summary.json` of each round with the release record (they contain no personal
   data). The trend of the means is the evidence for "native-speaker reviewed" in sales material — do not claim it
   before a round has passed the gate.
+
+## 7. Sources (back office only)
+
+Since 2026-11-12 (owner order) fortune pages and readings show no book, author or tradition citations to users. Reviewers
+who need the references behind a discipline use `docs/FORTUNE-SOURCES.md` (generated from the knowledge bases by
+`node tools/fortune-sources.mjs`) or the back office tab "แหล่งอ้างอิงดูดวง / Fortune sources" in `admin.html`.

@@ -364,6 +364,17 @@
     if (loaders[name] && !$("adApp").hidden) loaders[name]();
   }
   document.querySelectorAll(".ad-tabs [role=tab]").forEach(function (b) { b.addEventListener("click", function () { tab(String(b.getAttribute("data-tab"))); }); });
+  /* ---------------- fortune sources (back office only; generated fortune-sources.js) ---------------- */
+  loaders.fsources = function () {
+    var box = $("adFsrc"), data = /** @type {any[]} */ ((/** @type {any} */ (window)).LQ_FORTUNE_SOURCES || []);
+    if (!box || box.childNodes.length) return;
+    if (!data.length) { box.appendChild(h("p", { class: "ad-muted", text: G("adf.none", "ไม่พบรายการ (ไฟล์ fortune-sources.js ไม่ได้โหลด)") })); return; }
+    data.forEach(function (/** @type {any} */ d) {
+      var ul = h("ul", { class: "ad-fsrc" });
+      d.sources.forEach(function (/** @type {any} */ s) { ul.appendChild(h("li", null, h("a", { href: s.url, target: "_blank", rel: "noopener noreferrer", text: s.label }))); });
+      box.appendChild(h("section", { class: "ad-card", "data-discipline": d.id }, h("h3", { text: (gLang() === "th" ? d.th : d.en) + " · " + d.page + " · " + d.sources.length }), ul));
+    });
+  };
   var fail = function (/** @type {any} */ e) { if (e && e.status === 401) { show("adLogin"); msg("เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่", true); } else msg(e.message, true); };
 
   /** @param {string[]} heads @param {any[][]} rows */

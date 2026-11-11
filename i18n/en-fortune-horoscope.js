@@ -47,7 +47,7 @@
     "horoscope.pYearAria": "Their year of birth",
     "horoscope.cardAlt": "Shareable birth-date horoscope card",
     "horoscope.statsOn": "Count readings and zodiac animals on this device",
-    "horoscope.srcNote": "Content is based on widely shared folk beliefs, rewritten in a positive way; interpretations vary between schools. Astronomical calculations use standard formulas checked against published tables",
+    "horoscope.calcNote": "Planet positions are computed with standard astronomical formulas and checked against published tables; interpretations vary between schools",
     "horoscope.principle": "Principle: content stays positive with no frightening predictions; inauspicious days and clashes are framed only as reminders to stay calm and slow down",
 
     /* ---------- horoscope.js dynamic text ---------- */

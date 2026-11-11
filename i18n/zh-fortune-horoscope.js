@@ -49,7 +49,7 @@
     "horoscope.pYearAria": "对方的出生年份",
     "horoscope.cardAlt": "可分享的生辰运势卡片",
     "horoscope.statsOn": "在本机统计次数和生肖",
-    "horoscope.srcNote": "内容依据流传较广的民间信仰，以正面方式重新撰写，各派解释可能不同；天文计算采用标准公式，并对照已公布的表格校验",
+    "horoscope.calcNote": "行星位置采用标准天文公式计算，并对照已公布的表格校验；各派解释可能不同",
     "horoscope.principle": "原则：内容保持正面，不做吓人的负面预言；关于忌日与犯冲，只用提醒沉住气、放慢节奏的说法",
 
     /* ---------- horoscope.js 动态文字 ---------- */

@@ -919,7 +919,6 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   // แหล่งอ้างอิง/ข้อความจาก KB
   function renderKbText() {
-    $("#fsSources").innerHTML = KB.sources.map(function (s, i) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(T("fengshui.srcl." + i, s.label)) + "</a></li>"; }).join("");
     $("#fsSourcesNote").textContent = T("fengshui.sourcesNote", KB.sourcesNote);
     $("#fsLichunNote").textContent = T("fengshui.lichunNote", KB.lichunNote);
     $("#fsPeriodNote").textContent = T("fengshui.period", KB.period.text) + " · " + T("fengshui.baguaNote", KB.baguaNote);

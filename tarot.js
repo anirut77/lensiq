@@ -908,9 +908,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   $("#trKioskExit").addEventListener("click", function () { setKiosk(false); });
   document.addEventListener("fullscreenchange", function () { if (!document.fullscreenElement && wasFs) { wasFs = false; setKiosk(false); } });
 
-  // แหล่งอ้างอิง
+  // เครดิตภาพไพ่ (เครดิตสื่อ ไม่ใช่การอ้างอิง) — รายการอ้างอิงอยู่หลังบ้าน/เอกสารเท่านั้น (owner order 2026-11-12)
   function renderSources() {
-    $("#trSources").innerHTML = KB.sources.map(function (s, i) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(T("tarot.src." + i, s.label)) + "</a></li>"; }).join("");
     $("#trCredit").textContent = T("tarot.credit", KB.imageCredit + " · รายละเอียดใน vendor/tarot/CREDITS.txt");
   }
   renderSources();

@@ -27,7 +27,6 @@
     "tarot.ssNote": "The verses and readings are original entertainment content, not taken from any temple or shrine",
     "tarot.ssImgAlt": "Shareable fortune stick card",
     "tarot.statsOn": " Count draws, topics and cards on this device",
-    "tarot.srcNote": "Card meanings are rewritten in a positive tone from the traditional Rider–Waite–Smith meanings; interpretations vary between schools",
     "tarot.principle": "Principles: positive, encouraging content. Transformation (XIII), The Tower, The Devil and similar cards are read as symbols of transition and change; no predictions about health, accidents or misfortune, and your question is never saved",
     "tarot.close": "Close",
     "tarot.topic.general": "General",

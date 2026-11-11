@@ -282,12 +282,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   });
 
   var kiosk = FK.kiosk({ toggle: "asKiosk", exit: "asKioskExit", idle: "asIdle", busy: function () { return !$("#asResult").hidden || !$("#asSignRes").hidden; }, reset: function () { reset(); $("#asSignRes").hidden = true; st.sign = null; selectTab("tabChart"); } });
-  function renderSources() { $("#asSources").innerHTML = KB.sources.map(function (s, i) { return '<li><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(T("astro.src." + i, s.label)) + "</a></li>"; }).join(""); }
-  renderSources();
+  // citation list: back office / docs only (owner order 2026-11-12, tools/fortune-sources.mjs)
   // เปลี่ยนภาษา: วาดข้อความที่สร้างจาก JS ใหม่ทั้งหมด และเรียบเรียงคำทำนายใหม่ (facts เดิม ภาษาใหม่)
   window.addEventListener("lq-lang", function (e) {
     if (e && e.detail && e.detail.init && !isZh()) return;
-    fillSelects(); renderGrid(); renderSources(); stats.render(); $("#asMsg").textContent = "";
+    fillSelects(); renderGrid(); stats.render(); $("#asMsg").textContent = "";
     if (st.chart && !$("#asResult").hidden) showChart(st.chart, true);
     if (st.sign != null && !$("#asSignRes").hidden) showSign(st.sign, true);
   });

@@ -23,7 +23,7 @@
     "astro.cardAlt": "Shareable Western astrology card",
     "astro.signsNote": "Date ranges are approximate (may shift by a day each year); use Birth chart for precision",
     "astro.statsOn": " Count sessions and signs on this device (birth dates are not saved)",
-    "astro.method": "Sun and Moon positions use Meeus's low-precision formulas (error about 0.01–0.02°, a few minutes of time); the ascendant is computed from local sidereal time. Latitudes beyond ±66° are not supported",
+    "astro.method": "Sun and Moon positions use low-precision astronomical formulas (error about 0.01–0.02°, a few minutes of time); the ascendant is computed from local sidereal time. Latitudes beyond ±66° are not supported",
     "astro.principle": "Principle: positive content only; no predictions about health, accidents or misfortune",
     /* Sign names and attributes */
     "astro.signName": "{s}",
