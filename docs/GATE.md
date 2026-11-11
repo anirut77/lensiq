@@ -350,8 +350,9 @@ end-to-end on a generated folder incl. a HEIC and an undecodable PNG),
 The open-image-models YOLOv9 plate detector is **not used anywhere**, including local sales demos. Reasons: the weights
 carry no licence (the maintainer defers to WongKinYiu/yolov9, GPL-3.0); that training code descends from Ultralytics
 YOLOv5 (AGPL-3.0 since 2023-04-14), against the "No Ultralytics" rule; and its ~11–15k training images were scraped
-from the web without licence or consent. The delivered detector is the Thai-trained YOLOX-nano (Apache-2.0,
-`tools/train-plate-detector.ipynb`, steps in `docs/PLATE-DATASETS.md`). Legal list: CTO-BRIEF §8 L41.
+from the web without licence or consent. The planned replacement is a Thai-trained YOLOX-nano (Apache-2.0,
+`tools/train-plate-detector.ipynb`, steps in `docs/PLATE-DATASETS.md`); it is not trained or shipped yet. The detector
+that ships today is LPD-YuNet (Apache-2.0, `vendor/models/plate-det/`). Legal list: CTO-BRIEF §8 L41.
 
 **Fairness fix before the Thai model is measured:** the 51-photo Wikimedia Commons set's plate boxes were drafted with
 YOLOv9 and checked by eye (section 3c). Before any comparison, every box is re-checked by hand or redrawn without

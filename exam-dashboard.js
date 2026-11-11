@@ -75,7 +75,7 @@
     const now = Date.now(), list = Object.values(board.nodes);
     $("#nodes").innerHTML = list.length ? list.map(n => {
       const age = Math.round((now - n.last) / 1000), stale = age > 20;
-      const kind = n.src === "hall" ? T("exam.db.nodeHall", "กล้องห้อง") : T("exam.db.nodeLab", "ผู้สอบ");
+      const kind = n.src === "hall" ? T("exam.db.nodeHall", "เครื่องกล้องในห้องสอบ") : T("exam.db.nodeLab", "ผู้สอบ");
       const label = n.name ? `<span translate="no">${U.esc(n.name)}</span>` : U.esc(n.seats && n.seats.length === 1 ? T("exam.c.seatN", "ที่นั่ง {s}", { s: n.seats[0] }) : n.node.slice(0, 6));
       return `<span>${U.esc(kind)} ${label} · ` +
         `${stale ? U.esc(T("exam.db.nodeStale", "ขาดการติดต่อ {n} วินาที", { n: age })) : U.esc(T("exam.db.nodeOk", "ออนไลน์"))}${n.walk ? " · " + U.esc(T("exam.db.nodeWalk", "เดินตรวจ")) : ""}${n.clip ? " · " + U.esc(T("exam.db.nodeClip", "คลิปหลักฐานเปิด")) : ""}</span>`;

@@ -7,7 +7,7 @@
   "customers.s2": "Customer recognition and drink history",
   "customers.s3": "For members who consent to face recognition, the system greets them, shows their usual order and recent orders, and recommends drinks — marketing based on remembered customer behavior",
   "customers.s4": "Measured accuracy",
-  "customers.s5": "Tested on public face photos (LFW news photos and CASIA-FaceV5 Asian faces, not shop cameras) with the current rules (3-pose enrolment, limits calibrated to the member group, 2-frame confirmation) and 100 members: about 85% of member visits are recognised, but only about 66–76% for Asian faces · about 0.4% of non-members are offered a member's name (the upper end of the confidence interval reaches about 1.15%) and fewer than 0.05% are selected automatically. Staff should confirm the name before opening the order history, and run the on-site accuracy check below at your own shop",
+  "customers.s5": "Tested on public face photos (LFW news photos and CASIA-FaceV5 Asian faces, not shop cameras) with the current rules (3-pose enrolment, limits calibrated to the member group, 2-frame confirmation) and 100 members: about 85% of member visits are recognised, but only about 66–76% for Asian faces · about 0.4% of non-members are offered a member's name (the upper end of the confidence interval reaches about 1.15%) and about 0.05% are selected automatically (LFW). Staff should confirm the name before opening the order history, and run the on-site accuracy check below at your own shop",
   "customers.s6": "Method and limitations",
   "customers.s7": "Store",
   "customers.s8": "Member sign-up",

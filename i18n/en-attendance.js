@@ -16,7 +16,7 @@
   "attendance.s2": "Training attendance by face scan",
   "attendance.s3": "No signatures needed. Register a face once, then scan to record attendance",
   "attendance.s4": "Measured accuracy",
-  "attendance.s5": "Tested on public face photos (LFW news photos and CASIA-FaceV5 Asian faces, not on-site cameras) with the current rules and 100 registered people: about 85% of scans recognise the registered person, but only about 66–76% for Asian faces · an unregistered person is offered a name about 0.4% of the time (Asian faces 0.2%, with the upper end of the confidence interval at 1.15%) and checked in automatically less than 0.05% of the time. The system needs 2 matching scans before recording, and about 25–35% of recognised people are asked to confirm. Register at least 5 people before relying on automatic check-in, and have staff review the list",
+  "attendance.s5": "Tested on public face photos (LFW news photos and CASIA-FaceV5 Asian faces, not on-site cameras) with the current rules and 100 registered people: about 85% of scans recognise the registered person, but only about 66–76% for Asian faces · an unregistered person is offered a name about 0.4% of the time (Asian faces 0.2%, with the upper end of the confidence interval at 1.15%) and checked in automatically about 0.05% of the time (LFW). The system needs 2 matching scans before recording, and about 25–35% of recognised people are asked to confirm. Register at least 5 people before relying on automatic check-in, and have staff review the list",
   "attendance.s6": "Method and limitations",
   "attendance.s7": "Training topic/session",
   "attendance.s8": "e.g. Safety training, session 1",

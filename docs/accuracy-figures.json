@@ -19,6 +19,8 @@
     "casiaStr100": { "value": "0.2", "raw": 0.18, "md": "3.13% → **0.18%**", "what": "faces, CASIA, 100 enrolled: stranger offered a name" },
     "strangerCiHi": { "value": "1.15", "raw": 1.15, "md": "(1.15% for both)", "what": "faces, CASIA: upper end of the 95% interval at 5 and 200 enrolled" },
     "autoStr": { "value": "0.05", "raw": 0.05, "md": "Fewer than 0.05% of strangers are accepted *without*", "what": "faces: strangers accepted without a person confirming" },
+    "lfwAuto100": { "value": "0.05", "raw": 0.05, "md": "| 100 | 84.9% → 85.0% | 57.3% | 0.89% → **0.42%** [0.27–0.60%] | 1,809 (36) | 0.05% [0.01–0.12%] |", "what": "faces, LFW (tuning set), 100 enrolled: strangers checked in with no person confirming" },
+    "casiaAutoMax": { "value": "0.03", "raw": 0.03, "md": "| 0.03% [0.00–0.07%] | [0.7–1.1%] |", "what": "faces, CASIA (held out), 5–200 enrolled: highest rate of strangers checked in with no person confirming" },
     "confirmShare": { "value": "25–35", "md": "About 25–35% of recognised members on LFW", "what": "faces: share of recognised members asked to confirm" },
     "minEnrol": { "value": "5", "raw": 5, "md": "Enrol at least 5 people before relying on automatic check-in.", "what": "faces: minimum group for automatic check-in" },
     "boothTar": { "value": "73", "raw": 72.6, "md": "**72.6% [69.7–75.3%]**", "what": "faces 1:1 at 0.50 (booth returning-visitor option): same person accepted" },
@@ -56,7 +58,11 @@
     { "text": "≤0.1%", "files": ["cameras.html", "i18n/en-cameras.js", "i18n/zh-cameras.js"], "why": "round-4 driver false-alarm figure (round 6: ~1.4/hour)" },
     { "text": "ไม่เกิน 0.1%", "files": ["driver.html"], "why": "round-4 driver false-alarm figure" },
     { "text": "ราว 6%", "files": ["attendance.html"], "why": "round-3 attendance stranger rate" },
-    { "text": "±10% หลังสอบเทียบจะปัดตกทุกขวด", "files": ["qc.html"], "why": "fixed in round 5 (photometric normalisation)" }
+    { "text": "±10% หลังสอบเทียบจะปัดตกทุกขวด", "files": ["qc.html"], "why": "fixed in round 5 (photometric normalisation)" },
+    { "text": "ไม่ถึง 0.05%", "files": ["attendance.html", "customers.html", "cameras.html"], "why": "LFW auto check-in is 0.05% at 100 and 0.07% at 200 enrolled, so 'fewer than 0.05%' claimed more than measured (docs/ACCURACY-CLAIMS.md section 7 item 7)" },
+    { "text": "than 0.05%", "files": ["i18n/en-attendance.js", "i18n/en-customers.js", "i18n/en-cameras.js"], "why": "LFW auto check-in is 0.05% at 100 and 0.07% at 200 enrolled, so 'fewer than 0.05%' claimed more than measured (docs/ACCURACY-CLAIMS.md section 7 item 7)" },
+    { "text": "under 0.05%", "files": ["i18n/en-attendance.js", "i18n/en-customers.js", "i18n/en-cameras.js"], "why": "LFW auto check-in is 0.05% at 100 and 0.07% at 200 enrolled, so 'fewer than 0.05%' claimed more than measured (docs/ACCURACY-CLAIMS.md section 7 item 7)" },
+    { "text": "不到 0.05%", "files": ["i18n/zh-attendance.js", "i18n/zh-customers.js", "i18n/zh-cameras.js"], "why": "LFW auto check-in is 0.05% at 100 and 0.07% at 200 enrolled, so 'fewer than 0.05%' claimed more than measured (docs/ACCURACY-CLAIMS.md section 7 item 7)" }
   ],
   "texts": [
     {
@@ -67,15 +73,15 @@
     },
     {
       "key": "customers.s5",
-      "th": "ทดสอบกับภาพใบหน้าสาธารณะ (ภาพข่าว LFW และใบหน้าเอเชีย CASIA-FaceV5 ไม่ใช่กล้องหน้าร้าน) ด้วยกฎปัจจุบัน (ลงทะเบียน 3 ท่า เกณฑ์ปรับตามกลุ่มสมาชิก ยืนยัน 2 เฟรม) มีสมาชิก 100 คน: จำสมาชิกได้ราว {lfwRec100}% ต่อการมา แต่ใบหน้าเอเชียเพียงราว {casiaRecLo}–{casiaRecHi}% · เสนอชื่อสมาชิกให้คนที่ไม่ใช่สมาชิกราว {lfwStr100}% (ขอบบนของช่วงความเชื่อมั่นถึงราว {strangerCiHi}%) และเลือกให้อัตโนมัติไม่ถึง {autoStr}% ควรให้พนักงานยืนยันชื่อก่อนเปิดประวัติการสั่ง และตรวจความแม่นยำที่ร้านของคุณเองด้านล่าง",
-      "en": "Tested on public face photos (LFW news photos and CASIA-FaceV5 Asian faces, not shop cameras) with the current rules (3-pose enrolment, limits calibrated to the member group, 2-frame confirmation) and 100 members: about {lfwRec100}% of member visits are recognised, but only about {casiaRecLo}–{casiaRecHi}% for Asian faces · about {lfwStr100}% of non-members are offered a member's name (the upper end of the confidence interval reaches about {strangerCiHi}%) and fewer than {autoStr}% are selected automatically. Staff should confirm the name before opening the order history, and run the on-site accuracy check below at your own shop",
-      "zh": "在公开人脸照片上测试（LFW 新闻照片和 CASIA-FaceV5 亚洲人脸，并非店内摄像头），采用当前规则（3 个角度注册、按会员群体校准阈值、2 帧确认），会员 100 人：约 {lfwRec100}% 的会员到店可被识别，但亚洲人脸仅约 {casiaRecLo}–{casiaRecHi}% · 约 {lfwStr100}% 的非会员会被提示为某位会员（置信区间上限约 {strangerCiHi}%），自动选中的不到 {autoStr}%。打开点单记录前应由店员确认姓名，并在下方用您自己的门店做现场准确度检查"
+      "th": "ทดสอบกับภาพใบหน้าสาธารณะ (ภาพข่าว LFW และใบหน้าเอเชีย CASIA-FaceV5 ไม่ใช่กล้องหน้าร้าน) ด้วยกฎปัจจุบัน (ลงทะเบียน 3 ท่า เกณฑ์ปรับตามกลุ่มสมาชิก ยืนยัน 2 เฟรม) มีสมาชิก 100 คน: จำสมาชิกได้ราว {lfwRec100}% ต่อการมา แต่ใบหน้าเอเชียเพียงราว {casiaRecLo}–{casiaRecHi}% · เสนอชื่อสมาชิกให้คนที่ไม่ใช่สมาชิกราว {lfwStr100}% (ขอบบนของช่วงความเชื่อมั่นถึงราว {strangerCiHi}%) และเลือกให้อัตโนมัติราว {lfwAuto100}% (LFW) ควรให้พนักงานยืนยันชื่อก่อนเปิดประวัติการสั่ง และตรวจความแม่นยำที่ร้านของคุณเองด้านล่าง",
+      "en": "Tested on public face photos (LFW news photos and CASIA-FaceV5 Asian faces, not shop cameras) with the current rules (3-pose enrolment, limits calibrated to the member group, 2-frame confirmation) and 100 members: about {lfwRec100}% of member visits are recognised, but only about {casiaRecLo}–{casiaRecHi}% for Asian faces · about {lfwStr100}% of non-members are offered a member's name (the upper end of the confidence interval reaches about {strangerCiHi}%) and about {lfwAuto100}% are selected automatically (LFW). Staff should confirm the name before opening the order history, and run the on-site accuracy check below at your own shop",
+      "zh": "在公开人脸照片上测试（LFW 新闻照片和 CASIA-FaceV5 亚洲人脸，并非店内摄像头），采用当前规则（3 个角度注册、按会员群体校准阈值、2 帧确认），会员 100 人：约 {lfwRec100}% 的会员到店可被识别，但亚洲人脸仅约 {casiaRecLo}–{casiaRecHi}% · 约 {lfwStr100}% 的非会员会被提示为某位会员（置信区间上限约 {strangerCiHi}%），自动选中的约 {lfwAuto100}%（LFW）。打开点单记录前应由店员确认姓名，并在下方用您自己的门店做现场准确度检查"
     },
     {
       "key": "attendance.s5",
-      "th": "ทดสอบกับภาพใบหน้าสาธารณะ (ภาพข่าว LFW และใบหน้าเอเชีย CASIA-FaceV5 ไม่ใช่กล้องหน้างาน) ด้วยกฎปัจจุบัน ผู้ลงทะเบียน 100 คน: จำผู้ลงทะเบียนได้ราว {lfwRec100}% ต่อการสแกน แต่ใบหน้าเอเชียเพียงราว {casiaRecLo}–{casiaRecHi}% · คนที่ไม่ได้ลงทะเบียนถูกเสนอชื่อราว {lfwStr100}% (ใบหน้าเอเชีย {casiaStr100}% ขอบบนของช่วงความเชื่อมั่นถึง {strangerCiHi}%) และถูกเช็คชื่ออัตโนมัติไม่ถึง {autoStr}% ระบบต้องเห็นตรงกัน 2 ครั้งก่อนบันทึก และราว {confirmShare}% ของคนที่จำได้จะถูกขอให้กดยืนยัน ลงทะเบียนอย่างน้อย {minEnrol} คนก่อนใช้เช็คชื่ออัตโนมัติ และควรให้เจ้าหน้าที่ตรวจรายชื่อ",
-      "en": "Tested on public face photos (LFW news photos and CASIA-FaceV5 Asian faces, not on-site cameras) with the current rules and 100 registered people: about {lfwRec100}% of scans recognise the registered person, but only about {casiaRecLo}–{casiaRecHi}% for Asian faces · an unregistered person is offered a name about {lfwStr100}% of the time (Asian faces {casiaStr100}%, with the upper end of the confidence interval at {strangerCiHi}%) and checked in automatically less than {autoStr}% of the time. The system needs 2 matching scans before recording, and about {confirmShare}% of recognised people are asked to confirm. Register at least {minEnrol} people before relying on automatic check-in, and have staff review the list",
-      "zh": "在公开人脸照片上测试（LFW 新闻照片和 CASIA-FaceV5 亚洲人脸，并非现场摄像头），采用当前规则，注册 100 人：约 {lfwRec100}% 的扫描能识别出注册者，但亚洲人脸仅约 {casiaRecLo}–{casiaRecHi}% · 未注册者被提示姓名约 {lfwStr100}%（亚洲人脸 {casiaStr100}%，置信区间上限 {strangerCiHi}%），被自动签到不到 {autoStr}%。系统需要 2 次一致的扫描才会记录，约 {confirmShare}% 被识别的人需要点击确认。启用自动签到前请至少注册 {minEnrol} 人，并由工作人员核对名单"
+      "th": "ทดสอบกับภาพใบหน้าสาธารณะ (ภาพข่าว LFW และใบหน้าเอเชีย CASIA-FaceV5 ไม่ใช่กล้องหน้างาน) ด้วยกฎปัจจุบัน ผู้ลงทะเบียน 100 คน: จำผู้ลงทะเบียนได้ราว {lfwRec100}% ต่อการสแกน แต่ใบหน้าเอเชียเพียงราว {casiaRecLo}–{casiaRecHi}% · คนที่ไม่ได้ลงทะเบียนถูกเสนอชื่อราว {lfwStr100}% (ใบหน้าเอเชีย {casiaStr100}% ขอบบนของช่วงความเชื่อมั่นถึง {strangerCiHi}%) และถูกเช็คชื่ออัตโนมัติราว {lfwAuto100}% (LFW) ระบบต้องเห็นตรงกัน 2 ครั้งก่อนบันทึก และราว {confirmShare}% ของคนที่จำได้จะถูกขอให้กดยืนยัน ลงทะเบียนอย่างน้อย {minEnrol} คนก่อนใช้เช็คชื่ออัตโนมัติ และควรให้เจ้าหน้าที่ตรวจรายชื่อ",
+      "en": "Tested on public face photos (LFW news photos and CASIA-FaceV5 Asian faces, not on-site cameras) with the current rules and 100 registered people: about {lfwRec100}% of scans recognise the registered person, but only about {casiaRecLo}–{casiaRecHi}% for Asian faces · an unregistered person is offered a name about {lfwStr100}% of the time (Asian faces {casiaStr100}%, with the upper end of the confidence interval at {strangerCiHi}%) and checked in automatically about {lfwAuto100}% of the time (LFW). The system needs 2 matching scans before recording, and about {confirmShare}% of recognised people are asked to confirm. Register at least {minEnrol} people before relying on automatic check-in, and have staff review the list",
+      "zh": "在公开人脸照片上测试（LFW 新闻照片和 CASIA-FaceV5 亚洲人脸，并非现场摄像头），采用当前规则，注册 100 人：约 {lfwRec100}% 的扫描能识别出注册者，但亚洲人脸仅约 {casiaRecLo}–{casiaRecHi}% · 未注册者被提示姓名约 {lfwStr100}%（亚洲人脸 {casiaStr100}%，置信区间上限 {strangerCiHi}%），被自动签到约 {lfwAuto100}%（LFW）。系统需要 2 次一致的扫描才会记录，约 {confirmShare}% 被识别的人需要点击确认。启用自动签到前请至少注册 {minEnrol} 人，并由工作人员核对名单"
     },
     {
       "key": "booth.s4",
@@ -103,15 +109,15 @@
     },
     {
       "key": "driver.calwarn.fail",
-      "th": "ปรับเทียบไม่สำเร็จ — ระบบใช้เกณฑ์ค่าเริ่มต้น ซึ่งบนภาพจริงจับตาปิดได้เพียงราว {drFallbackCatch}% ต่อเฟรม และปิดการตรวจศีรษะตก ให้ถือว่าระบบไม่ได้เฝ้าระวังคุณ: จอดรถในที่ปลอดภัย ปรับมุมกล้องและแสงให้เห็นใบหน้าชัด แล้วกด “ปรับเทียบใหม่”",
-      "en": "Calibration failed — the system is using the default threshold, which caught only about {drFallbackCatch}% of closed-eye frames on real photos, and head-drop detection is off. Treat yourself as unmonitored: park safely, adjust the camera and light so your face is clear, then press “Recalibrate”",
-      "zh": "校准失败 — 系统正在使用默认阈值，在真实照片上每帧只能检出约 {drFallbackCatch}% 的闭眼，且已关闭低头检测。请视为未被监测：在安全处停车，调整摄像头和光线让脸部清晰，然后按“重新校准”"
+      "th": "ปรับเทียบไม่สำเร็จ — ระบบใช้เกณฑ์ค่าเริ่มต้น ซึ่งบนภาพจริงจากชุดข้อมูลสาธารณะ (CEW) จับตาปิดได้เพียงราว {drFallbackCatch}% ต่อเฟรม และปิดการตรวจศีรษะตก ให้ถือว่าระบบไม่ได้เฝ้าระวังคุณ: จอดรถในที่ปลอดภัย ปรับมุมกล้องและแสงให้เห็นใบหน้าชัด แล้วกด “ปรับเทียบใหม่”",
+      "en": "Calibration failed — the system is using the default threshold, which caught only about {drFallbackCatch}% of closed-eye frames on real photos (public dataset, CEW), and head-drop detection is off. Treat yourself as unmonitored: park safely, adjust the camera and light so your face is clear, then press “Recalibrate”",
+      "zh": "校准失败 — 系统正在使用默认阈值，在真实照片上（公开数据集 CEW）每帧只能检出约 {drFallbackCatch}% 的闭眼，且已关闭低头检测。请视为未被监测：在安全处停车，调整摄像头和光线让脸部清晰，然后按“重新校准”"
     },
     {
       "key": "driver.calwarn.ear",
-      "th": "ใช้ภาพดวงตาไม่ได้ (เช่น แว่นดำ แสงย้อน หรือตาดูเหมือนปิดตอนปรับเทียบ) — ระบบใช้ EAR อย่างเดียว ซึ่งบนภาพจริงจับตาปิดได้เพียงราว {drEarCatch}% ต่อเฟรม และจะพลาดการหลับตาส่วนใหญ่: ถอดแว่นดำ ลดแสงย้อน แล้วกด “ปรับเทียบใหม่”",
-      "en": "Eye images cannot be used (for example dark glasses, backlight, or eyes that looked closed during calibration) — the system is using EAR only, which caught only about {drEarCatch}% of closed-eye frames on real photos and will miss most closures. Remove dark glasses, reduce backlight, then press “Recalibrate”",
-      "zh": "无法使用眼部图像（例如墨镜、逆光，或校准时眼睛看起来像闭着）— 系统只使用 EAR，在真实照片上每帧只能检出约 {drEarCatch}% 的闭眼，会漏掉大部分闭眼。请摘下墨镜、减少逆光，然后按“重新校准”"
+      "th": "ใช้ภาพดวงตาไม่ได้ (เช่น แว่นดำ แสงย้อน หรือตาดูเหมือนปิดตอนปรับเทียบ) — ระบบใช้ EAR อย่างเดียว ซึ่งบนภาพจริงจากชุดข้อมูลสาธารณะ (CEW) จับตาปิดได้เพียงราว {drEarCatch}% ต่อเฟรม และจะพลาดการหลับตาส่วนใหญ่: ถอดแว่นดำ ลดแสงย้อน แล้วกด “ปรับเทียบใหม่”",
+      "en": "Eye images cannot be used (for example dark glasses, backlight, or eyes that looked closed during calibration) — the system is using EAR only, which caught only about {drEarCatch}% of closed-eye frames on real photos (public dataset, CEW) and will miss most closures. Remove dark glasses, reduce backlight, then press “Recalibrate”",
+      "zh": "无法使用眼部图像（例如墨镜、逆光，或校准时眼睛看起来像闭着）— 系统只使用 EAR，在真实照片上（公开数据集 CEW）每帧只能检出约 {drEarCatch}% 的闭眼，会漏掉大部分闭眼。请摘下墨镜、减少逆光，然后按“重新校准”"
     },
     {
       "key": "qc.s5",
@@ -133,15 +139,15 @@
     },
     {
       "key": "cameras.s195",
-      "th": "กฎรอบ 5 (เกณฑ์ปรับตามกลุ่ม ลงทะเบียน 3 ท่า ยืนยัน 2 เฟรม ขอให้กดยืนยันเมื่อไม่แน่ใจ) 100 คน: LFW จำได้ {lfwRec100}% คนนอกถูกเสนอชื่อ {lfwStr100}% · ใบหน้าเอเชีย (CASIA ทดสอบแยก) 5–200 คน จำได้ {casiaRecLo}–{casiaRecHi}% คนนอกถูกเสนอชื่อ {casiaStr100}% ที่ 100 คน (ขอบบนช่วงความเชื่อมั่นถึง {strangerCiHi}%) เช็คชื่ออัตโนมัติไม่ถึง {autoStr}% — การจำใบหน้าเอเชียยังต่ำ",
-      "en": "Round-5 rules (group-calibrated limits, 3-pose enrolment, 2-frame confirmation, ask to confirm when unsure), 100 people: LFW {lfwRec100}% recognised, outsiders offered a name {lfwStr100}% · Asian faces (CASIA, held out), 5–200 people: {casiaRecLo}–{casiaRecHi}% recognised, outsiders offered a name {casiaStr100}% at 100 people (upper end of the confidence interval up to {strangerCiHi}%), checked in automatically under {autoStr}% — recognition of Asian faces is still low",
-      "zh": "第 5 轮规则（按群体校准阈值、3 个角度注册、2 帧确认、不确定时请求确认），100 人：LFW 识别 {lfwRec100}%，外部人员被提示姓名 {lfwStr100}% · 亚洲人脸（CASIA，独立测试）5–200 人：识别 {casiaRecLo}–{casiaRecHi}%，100 人时外部人员被提示姓名 {casiaStr100}%（置信区间上限最高 {strangerCiHi}%），自动签到不到 {autoStr}% — 亚洲人脸识别率仍偏低"
+      "th": "กฎรอบ 5 (เกณฑ์ปรับตามกลุ่ม ลงทะเบียน 3 ท่า ยืนยัน 2 เฟรม ขอให้กดยืนยันเมื่อไม่แน่ใจ) 100 คน: LFW จำได้ {lfwRec100}% คนนอกถูกเสนอชื่อ {lfwStr100}% · ใบหน้าเอเชีย (CASIA ทดสอบแยก) 5–200 คน จำได้ {casiaRecLo}–{casiaRecHi}% คนนอกถูกเสนอชื่อ {casiaStr100}% ที่ 100 คน (ขอบบนช่วงความเชื่อมั่นถึง {strangerCiHi}%) เช็คชื่ออัตโนมัติไม่เกิน {casiaAutoMax}% (LFW ราว {lfwAuto100}%) — การจำใบหน้าเอเชียยังต่ำ",
+      "en": "Round-5 rules (group-calibrated limits, 3-pose enrolment, 2-frame confirmation, ask to confirm when unsure), 100 people: LFW {lfwRec100}% recognised, outsiders offered a name {lfwStr100}% · Asian faces (CASIA, held out), 5–200 people: {casiaRecLo}–{casiaRecHi}% recognised, outsiders offered a name {casiaStr100}% at 100 people (upper end of the confidence interval up to {strangerCiHi}%), checked in automatically at most {casiaAutoMax}% (LFW about {lfwAuto100}%) — recognition of Asian faces is still low",
+      "zh": "第 5 轮规则（按群体校准阈值、3 个角度注册、2 帧确认、不确定时请求确认），100 人：LFW 识别 {lfwRec100}%，外部人员被提示姓名 {lfwStr100}% · 亚洲人脸（CASIA，独立测试）5–200 人：识别 {casiaRecLo}–{casiaRecHi}%，100 人时外部人员被提示姓名 {casiaStr100}%（置信区间上限最高 {strangerCiHi}%），自动签到不超过 {casiaAutoMax}%（LFW 约 {lfwAuto100}%） — 亚洲人脸识别率仍偏低"
     },
     {
       "key": "cameras.s198",
-      "th": "ใช้กฎเดียวกับเช็คชื่อ: LFW 100 คน จำได้ {lfwRec100}% คนนอกถูกเสนอชื่อ {lfwStr100}% (เลือกให้อัตโนมัติไม่ถึง {autoStr}%) · ใบหน้าเอเชีย จำได้ {casiaRecLo}–{casiaRecHi}%",
-      "en": "Same rules as check-in: LFW with 100 people {lfwRec100}% recognised, outsiders offered a name {lfwStr100}% (selected automatically under {autoStr}%) · Asian faces {casiaRecLo}–{casiaRecHi}% recognised",
-      "zh": "与签到规则相同：LFW 100 人识别 {lfwRec100}%，外部人员被提示姓名 {lfwStr100}%（自动选中不到 {autoStr}%）· 亚洲人脸识别 {casiaRecLo}–{casiaRecHi}%"
+      "th": "ใช้กฎเดียวกับเช็คชื่อ: LFW 100 คน จำได้ {lfwRec100}% คนนอกถูกเสนอชื่อ {lfwStr100}% (เลือกให้อัตโนมัติราว {lfwAuto100}%) · ใบหน้าเอเชีย จำได้ {casiaRecLo}–{casiaRecHi}%",
+      "en": "Same rules as check-in: LFW with 100 people {lfwRec100}% recognised, outsiders offered a name {lfwStr100}% (selected automatically about {lfwAuto100}%) · Asian faces {casiaRecLo}–{casiaRecHi}% recognised",
+      "zh": "与签到规则相同：LFW 100 人识别 {lfwRec100}%，外部人员被提示姓名 {lfwStr100}%（自动选中约 {lfwAuto100}%）· 亚洲人脸识别 {casiaRecLo}–{casiaRecHi}%"
     },
     {
       "key": "cameras.s202",
