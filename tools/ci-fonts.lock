@@ -1,0 +1,31 @@
+# CI font packages (owner decision 2026-11-11): exact .deb files installed by the e2e and phone/language jobs.
+# Ubuntu 26.04 "resolute" amd64. Format: sha256  filename  pool-path  size. Generated from the archive Packages index by
+# tools/ci-fonts.mjs --manifest <dir with Packages.xz files> (do not edit by hand). The cache key is the hash of this file.
+be378a571b8f49b4b9146f7d13b31990950d35ee3e0bf1999f554c3ed5670dc0  fonts-noto-cjk_20240730+repack1-1build1_all.deb  pool/main/f/fonts-noto-cjk/fonts-noto-cjk_20240730+repack1-1build1_all.deb  61175182
+6f1a938606fb4f1d8e862bb68ca87e50ed5ca1e3cba8559fccc585aad21da5bc  fonts-thai-tlwg_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-thai-tlwg_0.7.3-1build1_all.deb  9378
+d21121ecce91d6d703199930f4b0e28a273e0efad4083e49974b280ff008b5b1  fonts-tlwg-garuda_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-garuda_0.7.3-1build1_all.deb  4390
+d8e2487fdbea09dedbddc404eb7d67248ddaec451fbc5afc96e1d73415130a54  fonts-tlwg-garuda-ttf_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-garuda-ttf_0.7.3-1build1_all.deb  151094
+fa16b1e62f9e7e5d90572f049cbef47e1c1c0c94066f464e13b8fd1d2eb56da1  fonts-tlwg-kinnari_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-kinnari_0.7.3-1build1_all.deb  4376
+2e4a0f43f2b4a0e9032241b84f374f08135164d14e4cd84cbf3bae859f17dc62  fonts-tlwg-kinnari-ttf_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-kinnari-ttf_0.7.3-1build1_all.deb  289290
+ca9460e95da83367e288bf536d98e78c4f6cc0da07cdb5047b2ea6af2d0354c0  fonts-tlwg-laksaman_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-laksaman_0.7.3-1build1_all.deb  4358
+3bb837739a335946195b3cc0ee40b5692a8248a5cc5c9f06795ede1cad5fbad9  fonts-tlwg-laksaman-ttf_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-laksaman-ttf_0.7.3-1build1_all.deb  190950
+f292f9e9e20530d057d2cc43a47d8f1324a8ef81f769e4551de6c20cfe3ac3b4  fonts-tlwg-loma_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-loma_0.7.3-1build1_all.deb  4130
+6f62c2823605ef3adc2984fe14de7c44284e0043d91967a5c77a8c23f50fba2b  fonts-tlwg-loma-ttf_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-loma-ttf_0.7.3-1build1_all.deb  169428
+5a3127c7bafc21816496a1ebd646825ec1f7c72e6a26da6ba451db2952ed14d1  fonts-tlwg-mono_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-mono_0.7.3-1build1_all.deb  4100
+6c232306a6754fa7f95168d5a7ae98d5ef4fde068a47dfc3af0028a2610cb0a2  fonts-tlwg-mono-ttf_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-mono-ttf_0.7.3-1build1_all.deb  173772
+6d1d39a7e49ff354bc9badfe7755bc890eeac94fef15f61306ad1e39291c5a4e  fonts-tlwg-norasi_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-norasi_0.7.3-1build1_all.deb  4114
+365cf8cf35cd040c437030adc802312701a6d640a124fca09e87c5d3616adc08  fonts-tlwg-norasi-ttf_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-norasi-ttf_0.7.3-1build1_all.deb  329604
+8c22b404c6a244b3bedeffb0bffe5c0e4bb6be50039d407898f62630e20e0a8f  fonts-tlwg-purisa_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-purisa_0.7.3-1build1_all.deb  3584
+6e84321e7b2b04845475089dd5e7d0baf2ebde08b11261c4099b7cf0d9d2f7ee  fonts-tlwg-purisa-ttf_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-purisa-ttf_0.7.3-1build1_all.deb  312030
+f02476ad3f74a8329e3611ba83f6dcec7c412fdc21937f61a588824fc461ec86  fonts-tlwg-sawasdee_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-sawasdee_0.7.3-1build1_all.deb  3596
+9143b201843757ab595a96659f704770893916918ddcab00f1704e2ff7383542  fonts-tlwg-sawasdee-ttf_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-sawasdee-ttf_0.7.3-1build1_all.deb  170278
+ad72407747bca999e6c4520c87a9ebc241f66d87e656c9268f3c8db0b07535a7  fonts-tlwg-typewriter_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-typewriter_0.7.3-1build1_all.deb  3650
+1b4d6de4c68408bb559e873dc3d9873e3320074b0af9ac54516545ed834b1c0c  fonts-tlwg-typewriter-ttf_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-typewriter-ttf_0.7.3-1build1_all.deb  177026
+81651b42ef690283408bcad9a47bc1524120f4b7c9d669b320c5300081274e98  fonts-tlwg-typist_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-typist_0.7.3-1build1_all.deb  4100
+fff9b3f7ef03c8e8a1b765a452af850269c3fd12db5fcb6cc8e44e3bd52be798  fonts-tlwg-typist-ttf_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-typist-ttf_0.7.3-1build1_all.deb  175800
+aefdb873bad044329e7412f3dc6fda8c9a85facd01160195474f6c4d1b38110a  fonts-tlwg-typo_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-typo_0.7.3-1build1_all.deb  4132
+0c3ed699217326b887cc09b1760ac6203a3e76967c70e82ccc3acde528ceeab4  fonts-tlwg-typo-ttf_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-typo-ttf_0.7.3-1build1_all.deb  176192
+2cf9333993e3897093db8fb27e6e32c38d55fa6385c695cb2a3ee09ad571176f  fonts-tlwg-umpush_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-umpush_0.7.3-1build1_all.deb  4374
+143a6ac9dc99ec66b976378b8c8cc89053c4317bc72e355f6527a73386c6e4e4  fonts-tlwg-umpush-ttf_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-umpush-ttf_0.7.3-1build1_all.deb  235422
+3239b0f2660851c26b32c00c9c472c7fc9c1e71db1691d5de1b522b38d0b466c  fonts-tlwg-waree_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-waree_0.7.3-1build1_all.deb  4106
+cab3c41adaefb7052c121b4d3ee19889f5ca07a42913dec7bf47d0bc51c4b165  fonts-tlwg-waree-ttf_0.7.3-1build1_all.deb  pool/main/f/fonts-tlwg/fonts-tlwg-waree-ttf_0.7.3-1build1_all.deb  177330

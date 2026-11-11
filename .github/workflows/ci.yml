@@ -152,8 +152,16 @@ jobs:
         with:
           chrome-version: stable
       - run: npm ci
+      # Thai + CJK fonts from a cache keyed by the exact package list (tools/ci-fonts.lock: name, version, SHA-256). Every
+      # .deb is checked against its SHA-256 before dpkg -i; a cache file with a wrong hash fails the job. The log says
+      # whether the fonts came from the cache or the network. Owner decision 2026-11-11 (runners failed to resolve the
+      # Ubuntu mirrors three times). No retries.
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ci-fonts
+          key: ci-fonts-${{ hashFiles('tools/ci-fonts.lock') }}
       - name: Thai + CJK fonts (line-breaking checks need real glyphs)
-        run: sudo apt-get update -q && sudo apt-get install -y -q fonts-thai-tlwg fonts-noto-cjk
+        run: node tools/ci-fonts.mjs install ~/.cache/ci-fonts
       - name: e2e shard ${{ matrix.shard }}/3 (one retry per failing file)
         run: npm run test:e2e:ci -- --shard=${{ matrix.shard }}/3 --manifest=e2e-shard-${{ matrix.shard }}.json
         env:
@@ -239,8 +247,16 @@ jobs:
         with:
           chrome-version: stable
       - run: npm ci
+      # Thai + CJK fonts from a cache keyed by the exact package list (tools/ci-fonts.lock: name, version, SHA-256). Every
+      # .deb is checked against its SHA-256 before dpkg -i; a cache file with a wrong hash fails the job. The log says
+      # whether the fonts came from the cache or the network. Owner decision 2026-11-11 (runners failed to resolve the
+      # Ubuntu mirrors three times). No retries.
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ci-fonts
+          key: ci-fonts-${{ hashFiles('tools/ci-fonts.lock') }}
       - name: Thai + CJK fonts (line-breaking checks need real glyphs)
-        run: sudo apt-get update -q && sudo apt-get install -y -q fonts-thai-tlwg fonts-noto-cjk
+        run: node tools/ci-fonts.mjs install ~/.cache/ci-fonts
       - name: mobile-audit detector self-test
         if: matrix.part == 'phone'
         run: node tools/mobile-audit.mjs --selftest
