@@ -353,6 +353,7 @@ async function adminRoute(request, env, url, deps) {
     case "GET /me": {
       const o = await auth.getOwner(env.DB);
       return reply({ username: o.username, totp_enabled: !!o.totp_enabled, recovery_left: o.totp_enabled ? await auth.recoveryLeft(env.DB) : 0,
+        recovery_legacy: o.totp_enabled ? await auth.recoveryLegacy(env.DB) : 0,
         csrf: sess.viaCookie ? await auth.rotateCsrf(env, sess) : null, password_changed_at: o.password_changed_at });
     }
     case "POST /logout": await auth.logout(env, sess); return reply({ ok: true }, 200, { "Set-Cookie": auth.clearCookie() });

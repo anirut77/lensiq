@@ -110,6 +110,7 @@
   "adm.sec.on": "Turn on 2-step verification",
   "adm.sec.left": "Recovery codes still usable",
   "adm.sec.new": "Create a new set of recovery codes (the old set stops working)",
+  "adm.sec.legacy": "Your current recovery codes were issued before a security upgrade. Press \"Create a new set of recovery codes\" and keep the new set instead of the old one.",
   "adm.sec.offH": "Turn off 2-step verification",
   "adm.sec.code": "6-digit code or a recovery code",
   "adm.sec.off": "Turn off 2-step verification",

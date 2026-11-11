@@ -21,7 +21,9 @@
 //     required on every login
 //  TOTP       optional, RFC 6238, secret AES-GCM encrypted with SECRETS_KEK; the used time step is claimed with an atomic
 //             conditional UPDATE, so one code cannot be used twice even by parallel requests
-//  recovery   ten one-time codes issued when TOTP is turned on (returned once, only SHA-256 stored, migration 0011);
+//  recovery   ten one-time codes issued when TOTP is turned on (returned once; migration 0011, slow salted hash 0013: each
+//             row holds a random id, a random 16-byte salt and PBKDF2-SHA256 of HMAC(key from SECRETS_KEK, code) with
+//             RECOVERY_ITERATIONS; codes issued before 0013 (plain SHA-256, no salt) work until a new set is issued);
 //             a code replaces the TOTP code at login and when turning TOTP off (lost phone); claimed atomically; a
 //             wrong code counts as a failed login like a wrong TOTP code; POST /admin/api/totp/recovery (password +
 //             TOTP) issues a new set and voids the old one
@@ -38,8 +40,8 @@
 //  devices    GET /admin/api/devices lists trusted devices (id = first 16 hex of the stored hash), DELETE revokes;
 //             disabling TOTP signs out every other session and forgets every trusted device
 import {
-  base32Decode, base32Encode, decryptString, encryptString, hashPassword, importKek, passwordProblem, randomBytes,
-  randomToken, sha256Hex, timingSafeEqual, totpUri, verifyPassword, verifyTotp
+  base32Decode, base32Encode, decryptString, encryptString, fromB64, hashPassword, importKek, kekHmacHex, passwordProblem, pbkdf2B64,
+  randomBytes, randomToken, sha256Hex, timingSafeEqual, toB64, totpUri, verifyPassword, verifyTotp
 } from "./crypto.js";
 import { audit, callerHash, hit, peek } from "./store.js";
 import { HttpError, now } from "./util.js";
@@ -165,7 +167,7 @@ export async function login(env, request, body) {
   // second step: the 6-digit code, or one of the one-time recovery codes (body.recovery) when the phone is not at hand
   const viaRecovery = typeof body.recovery === "string" && body.recovery.trim() !== "";
   if (owner && owner.totp_enabled && pwOk && userOk) {
-    if (viaRecovery) totpOk = await claimRecovery(env.DB, body.recovery, t);
+    if (viaRecovery) totpOk = await claimRecovery(env, body.recovery, t);
     else {
       const secret = await totpSecret(env, owner);
       const step = secret ? await verifyTotp(secret, body.totp, t, owner.totp_last_step) : -1;
@@ -254,7 +256,7 @@ async function reauth(env, owner, password, code, sess = null, t = now(), recove
   if (!(await verifyPassword(String(password || ""), owner.password_hash))) why = "password";
   else if (owner.totp_enabled) {
     // `recovery` is passed by totpDisable only (lost phone): a one-time recovery code instead of the 6-digit code
-    if (typeof recovery === "string" && recovery.trim() !== "") { if (!(await claimRecovery(env.DB, recovery, t))) why = "totp"; }
+    if (typeof recovery === "string" && recovery.trim() !== "") { if (!(await claimRecovery(env, recovery, t))) why = "totp"; }
     else {
       const secret = await totpSecret(env, owner);
       const step = secret ? await verifyTotp(secret, code, t, owner.totp_last_step) : -1;
@@ -394,7 +396,7 @@ export async function totpEnable(env, body) {
   const on = await env.DB.prepare("UPDATE admin_users SET totp_enabled = 1, updated_at = ?1 WHERE id = 1 AND totp_enabled = 0").bind(now()).run();
   if (!on.meta || !on.meta.changes) throw new HttpError(409, "TOTP already enabled — disable it first", { code: "totp_already_on" });
   let recovery_codes;
-  try { recovery_codes = await issueRecoveryCodes(env.DB); }
+  try { recovery_codes = await issueRecoveryCodes(env); }
   catch (e) {
     // never leave 2-step on without recovery codes (for example: migration 0011 not applied yet)
     await env.DB.prepare("UPDATE admin_users SET totp_enabled = 0, updated_at = ?1 WHERE id = 1").bind(now()).run();
@@ -412,30 +414,62 @@ function normRecovery(code) {
   const n = String(code == null ? "" : code).toUpperCase().replace(/[\s-]/g, "");
   return RECOVERY_RE.test(n) ? n : "";
 }
-const recoveryHash = n => sha256Hex("recovery:" + n);
+/** Launch item L51 (owner 2026-11-11): slow, salted hash. Each row: hash = a random row id (not derived from the code),
+ *  salt = 16 random bytes, slow_hash = PBKDF2-SHA256(HMAC(K, code), salt, RECOVERY_ITERATIONS) with K derived from
+ *  SECRETS_KEK. A copy of the database alone is useless (the HMAC key is a Worker secret); with the database AND the KEK
+ *  every guess still costs RECOVERY_ITERATIONS rounds per stored code. A claim tries the (at most 10) unused rows: about
+ *  10 x 2,000 rounds (~4 ms CPU, measured), sized to the Workers Free plan next to the ~12 ms password check. */
+export const RECOVERY_ITERATIONS = 2000;
+const PEPPER_INFO = "lensiq/admin-recovery-pepper/v1";
+/** keyed form of a normalised code (null without a usable SECRETS_KEK) @param {any} env @param {string} n */
+const recoveryPeppered = (env, n) => kekHmacHex(env.SECRETS_KEK, PEPPER_INFO, "recovery:" + n);
+/** codes issued before migration 0013: plain SHA-256, no salt */
+const legacyHash = n => sha256Hex("recovery:" + n);
 
 /** Replaces every recovery code with a fresh set (50 random bits each); returns the plain codes ONCE. */
-async function issueRecoveryCodes(db) {
-  const t = now(), codes = [], stmts = [db.prepare("DELETE FROM admin_recovery_codes")];
+async function issueRecoveryCodes(env) {
+  const db = env.DB, t = now(), codes = [], stmts = [db.prepare("DELETE FROM admin_recovery_codes")];
   for (let i = 0; i < RECOVERY_CODES; i++) {
     const n = base32Encode(randomBytes(10)).slice(0, 10);
+    const keyed = await recoveryPeppered(env, n);
+    if (!keyed) throw new HttpError(503, "SECRETS_KEK secret is not set (needed for recovery codes)", { code: "totp_unavailable" });
+    const salt = randomBytes(16);
     codes.push(n.slice(0, 5) + "-" + n.slice(5));
-    stmts.push(db.prepare("INSERT OR IGNORE INTO admin_recovery_codes (hash, created_at) VALUES (?1, ?2)").bind(await recoveryHash(n), t));
+    stmts.push(db.prepare("INSERT INTO admin_recovery_codes (hash, created_at, salt, slow_hash, iterations) VALUES (?1, ?2, ?3, ?4, ?5)")
+      .bind([...randomBytes(32)].map(b => b.toString(16).padStart(2, "0")).join(""), t, toB64(salt), await pbkdf2B64(keyed, salt, RECOVERY_ITERATIONS), RECOVERY_ITERATIONS));
   }
   await db.batch(stmts);
   return codes;
 }
 
 /** Claims one unused recovery code atomically: a code works exactly once, also under parallel requests. */
-async function claimRecovery(db, code, t) {
-  const n = normRecovery(code);
+async function claimRecovery(env, code, t) {
+  const db = env.DB, n = normRecovery(code);
   if (!n) return false;
-  const h = await recoveryHash(n);
   // READ first: over the hour's write ceiling, login runs on a buffering database view (tester.js bufferDb) whose write
   // statements report "1 row changed" without running. The read is always real, so an unknown code is refused there too.
-  const row = await db.prepare("SELECT hash FROM admin_recovery_codes WHERE hash = ?1 AND used_at IS NULL").bind(h).first();
-  if (!row) return false;
-  const r = await db.prepare("UPDATE admin_recovery_codes SET used_at = ?1 WHERE hash = ?2 AND used_at IS NULL").bind(t, h).run();
+  let id = null;
+  const keyed = await recoveryPeppered(env, n);
+  if (keyed) {
+    /** @type {any[]} */ let rows = [];
+    try { // tolerate a Worker deployed before migration 0013 (no salt column yet): only old-format codes exist then
+      rows = (await db.prepare("SELECT hash, salt, slow_hash, iterations FROM admin_recovery_codes WHERE used_at IS NULL AND salt IS NOT NULL LIMIT 20").all()).results || [];
+    } catch { rows = []; }
+    for (const row of rows) { // every row is checked (same work whether or not the code matches)
+      let ok = false;
+      try { ok = timingSafeEqual(await pbkdf2B64(keyed, fromB64(row.salt), Number(row.iterations) || RECOVERY_ITERATIONS), String(row.slow_hash)); } catch { ok = false; }
+      if (ok && !id) id = String(row.hash);
+    }
+  }
+  if (!id) { // a code issued before migration 0013
+    const h = await legacyHash(n);
+    let row = null;
+    try { row = await db.prepare("SELECT hash FROM admin_recovery_codes WHERE hash = ?1 AND used_at IS NULL AND salt IS NULL").bind(h).first(); }
+    catch { row = await db.prepare("SELECT hash FROM admin_recovery_codes WHERE hash = ?1 AND used_at IS NULL").bind(h).first(); }
+    if (!row) return false;
+    id = h;
+  }
+  const r = await db.prepare("UPDATE admin_recovery_codes SET used_at = ?1 WHERE hash = ?2 AND used_at IS NULL").bind(t, id).run();
   return !!(r.meta && r.meta.changes);
 }
 
@@ -444,12 +478,20 @@ export async function recoveryLeft(db) {
   return r ? Number(r.n) : 0;
 }
 
+/** Unused codes in the old format (issued before migration 0013): the security tab asks for a new set. */
+export async function recoveryLegacy(db) {
+  try {
+    const r = await db.prepare("SELECT COUNT(*) AS n FROM admin_recovery_codes WHERE used_at IS NULL AND salt IS NULL").first();
+    return r ? Number(r.n) : 0;
+  } catch { return recoveryLeft(db); } // before migration 0013 every code is old-format
+}
+
 /** POST /admin/api/totp/recovery {password, totp}: a new set of codes; the old ones stop working. */
 export async function recoveryRegenerate(env, body, sess = null) {
   const owner = await getOwner(env.DB);
   if (!owner.totp_enabled) throw new HttpError(409, "turn on TOTP first", { code: "totp_off" });
   await reauth(env, owner, body && body.password, body && body.totp, sess);
-  const recovery_codes = await issueRecoveryCodes(env.DB);
+  const recovery_codes = await issueRecoveryCodes(env);
   await audit(env, "owner", "recovery.regenerated");
   return { ok: true, recovery_codes };
 }

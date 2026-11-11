@@ -11,7 +11,7 @@ import { log } from "./util.js";
 export const MIGRATIONS = [
   "0001_init.sql", "0002_billing.sql", "0003_seed_plans.sql", "0004_hardening.sql", "0005_members.sql",
   "0006_consumer_pricing.sql", "0007_member_session_labels.sql", "0008_round11_backend.sql",
-  "0009_round12_backend.sql", "0010_ai_gateway.sql", "0011_admin_recovery.sql", "0012_ai_keys.sql"
+  "0009_round12_backend.sql", "0010_ai_gateway.sql", "0011_admin_recovery.sql", "0012_ai_keys.sql", "0013_recovery_slow_hash.sql"
 ];
 /** Columns / tables added by migrations 0008 and later, with the migration that adds each (schema probe): a failing
  *  probe names exactly the migration that is missing. */
@@ -26,7 +26,8 @@ const PROBES = [
   ["0009_round12_backend.sql", "SELECT day, directive, blocked, page, n FROM csp_reports LIMIT 0"],
   ["0010_ai_gateway.sql", "SELECT month, feature, metric, n FROM ai_usage_monthly LIMIT 0"],
   ["0011_admin_recovery.sql", "SELECT hash, created_at, used_at FROM admin_recovery_codes LIMIT 0"],
-  ["0012_ai_keys.sql", "SELECT provider, key_enc, last4, set_at, checked_at, check_ok FROM ai_provider_keys LIMIT 0"]
+  ["0012_ai_keys.sql", "SELECT provider, key_enc, last4, set_at, checked_at, check_ok FROM ai_provider_keys LIMIT 0"],
+  ["0013_recovery_slow_hash.sql", "SELECT salt, slow_hash, iterations FROM admin_recovery_codes LIMIT 0"]
 ];
 
 /** @param {Env} env */

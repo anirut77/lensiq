@@ -71,6 +71,24 @@ export async function verifyPassword(pw, stored) {
   return timingSafeEqual(toB64(h), m[3]);
 }
 
+/** PBKDF2-SHA256 of a short secret (recovery codes), base64. @param {string} secret @param {Uint8Array} salt @param {number} iterations */
+export async function pbkdf2B64(secret, salt, iterations) {
+  return toB64(await pbkdf2(secret, salt, Math.min(iterations, PBKDF2_ITERATIONS)));
+}
+
+/** HMAC-SHA256 (hex) of msg under a key derived from SECRETS_KEK with HKDF (info names the purpose, so the KEK itself is
+ *  never used as an HMAC key). null when the KEK is missing or invalid. @param {string} kekB64 @param {string} info @param {string} msg */
+export async function kekHmacHex(kekB64, info, msg) {
+  let raw;
+  try { raw = kekB64 ? fromB64(kekB64) : null; } catch { raw = null; }
+  if (!raw || raw.length !== 32) return null;
+  const base = await subtle().importKey("raw", raw, "HKDF", false, ["deriveKey"]);
+  const key = await subtle().deriveKey({ name: "HKDF", hash: "SHA-256", salt: new Uint8Array(32), info: enc.encode(info) }, base,
+    { name: "HMAC", hash: "SHA-256", length: 256 }, false, ["sign"]);
+  const mac = new Uint8Array(await subtle().sign("HMAC", key, enc.encode(msg)));
+  return [...mac].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
 // ---- TOTP (RFC 6238, SHA-1, 6 digits, 30 s) ------------------------------------------------------------------------
 const B32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 export function base32Encode(bytes) {

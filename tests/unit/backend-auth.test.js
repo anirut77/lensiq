@@ -475,7 +475,8 @@ test("review: without the recovery-code table 2-step verification is not left on
   const { deepHealth } = await import(B + "health.js");
   const h = await deepHealth(env);
   assert.equal(h.ok, false);
-  assert.deepEqual(h.migrations.missing, ["0011_admin_recovery.sql"]);
+  // the dropped table also lacks the columns of 0013 (slow recovery hash, 2026-11-11): both are named, exactly
+  assert.deepEqual(h.migrations.missing, ["0011_admin_recovery.sql", "0013_recovery_slow_hash.sql"]);
 });
 
 test("review: a body that is not a JSON object is refused with 400 on the admin routes", async () => {

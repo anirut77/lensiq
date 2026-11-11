@@ -939,6 +939,7 @@
       $("adTotpDisable").hidden = !me.totp_enabled;
       $("adRecBox").hidden = !me.totp_enabled;
       $("adRecLeft").textContent = String(me.recovery_left || 0);
+      $("adRecLegacy").hidden = !(me.totp_enabled && me.recovery_legacy > 0);
     }, fail);
     call("/audit").then(function (/** @type {any} */ r) {
       var el = $("adAudit"); el.textContent = "";

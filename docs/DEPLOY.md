@@ -415,3 +415,11 @@ First real AI call: served provider name seen on the result card:
   `OPENROUTER_API_KEY` can stay as a fallback or be deleted later by the owner.
 - `SECRETS_KEK` must not be changed while keys are stored in the panel: they would become unreadable (the panel then
   says so) and must be set again.
+  The same holds for the 2-step secret and the recovery codes (migration 0013): after a change, set up 2-step again and
+  issue a new set of recovery codes.
+
+### Migration 0013 (recovery codes with a slow, salted hash, 2026-11-11)
+
+Order: `npm run backend:migrate` (adds three columns; the running Worker ignores them), then `npm run
+backend:deploy:test`, then the smoke test. The new Worker also runs on a database without 0013 (old-format codes only).
+Then the owner: admin → Security → "create a new set of recovery codes" (password + 6-digit code), keep the new set.
