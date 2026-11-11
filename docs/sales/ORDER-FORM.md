@@ -93,9 +93,9 @@
    และดูแลการลบ ตามชุดเอกสารใน `docs/pdpa/` และ `docs/DEPLOYMENT-CHECKLIST.md` ข้อ 1
 2. ผู้ขายไม่เข้าถึงข้อมูลบนอุปกรณ์โดยค่าเริ่มต้น ผู้ขายจะเป็น **ผู้ประมวลผลข้อมูล** (PDPA ม.40) เมื่อมีการเข้าถึงอุปกรณ์ระยะไกล หรือเมื่อมีการซิงก์ขึ้น
    Cloudflare ในอนาคต ซึ่งต้องมีข้อตกลงประมวลผลข้อมูล (DPA) ก่อนเปิดใช้ (`docs/PDPA-NOTES-FOR-COUNSEL.md` ข้อ E3)
-3. **ฉบับร่างข้อตกลง DPA ยังไม่มีเป็นไฟล์** สิ่งที่มีคือสรุปข้อกำหนดผู้ประมวลผล `docs/SUPPORT.md` §5 (ประมวลผลตามคำสั่ง แจ้งเหตุละเมิดภายใน [24 ชม.]
+3. **ฉบับร่างข้อตกลง DPA:** `docs/legal/customer/DPA-TEMPLATE.md` (ร่างสำหรับทนายตรวจ ยังไม่ใช่ฉบับใช้จริง) และสรุปข้อกำหนดผู้ประมวลผล `docs/SUPPORT.md` §5 (ประมวลผลตามคำสั่ง แจ้งเหตุละเมิดภายใน [24 ชม.]
    ลบข้อมูลที่ผู้ขายถืออยู่ภายใน [30 วัน] เมื่อสิ้นสุด ค่าในวงเล็บยังต่อรองได้) และคำถามสำหรับทนายใน `PDPA-NOTES-FOR-COUNSEL.md`
-   **[ต้องยืนยัน / to confirm]** ต้องให้ทนายร่าง DPA ก่อนขายครั้งแรก (OP-12, OP-23)
+   **[ต้องยืนยัน / to confirm]** ทนายต้องตรวจร่าง DPA ก่อนขายครั้งแรก (OP-12, OP-23)
 4. ลูกค้า ☐ รับทราบข้อ 1–3 และ ☐ ยอมรับให้ผู้ขายเข้าถึงอุปกรณ์ระยะไกลเฉพาะเมื่อมีผู้แทนลูกค้าอยู่ด้วย (SUPPORT.md §5)
 
 ## 7. คำรับทราบเกี่ยวกับการใช้ผลิตภัณฑ์
@@ -167,9 +167,9 @@ Gate plate text and logs; Crowd counts. The seller does not ask for or accept ca
    sets retention and runs deletion, using `docs/pdpa/` and `docs/DEPLOYMENT-CHECKLIST.md` section 1.
 2. The seller has no access to device data by default. The seller becomes a **processor** (PDPA s.40) when it accesses a device remotely, or when sync to
    Cloudflare exists in future. A data processing agreement is needed before that (`docs/PDPA-NOTES-FOR-COUNSEL.md` E3).
-3. **A DPA draft does not exist as a file yet.** What exists is the processor-terms summary in `docs/SUPPORT.md` §5 (process on instructions; breach notice within
-   [24 h]; delete held data within [30 days] at the end; bracketed values are negotiable) and the questions for counsel. **[to confirm]** Counsel must draft
-   the DPA before the first sale (OP-12, OP-23).
+3. **DPA draft:** `docs/legal/customer/DPA-TEMPLATE.md` (draft for legal review, not final), with the processor-terms summary in `docs/SUPPORT.md` §5
+   (process on instructions; breach notice within [24 h]; delete held data within [30 days] at the end; bracketed values are negotiable).
+   **[to confirm]** Counsel must review the DPA before the first sale (OP-12, OP-23).
 4. The customer ticks: acknowledged items 1–3; and agrees to remote access to its devices only with its representative present (SUPPORT.md §5).
 
 ## 7. Acknowledgements about using the product (tick all)
