@@ -29,6 +29,10 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert(await hall.evaluate(() => !__LQ_EXAM_HALL.monitoring), "no camera -> not monitoring");
       await hall.evaluate(() => { document.querySelector("#room").value = "HALL2"; document.querySelector("#nodeName").value = "หน้าห้อง"; document.querySelector("#setupForm").requestSubmit(); });
       await hall.waitFor("document.querySelector('#engine').classList.contains('ok')", 10000);
+      // detector: COCO-SSD stays the default; YOLOX-Nano is an option that is off by default (docs/exam/HALL-DETECTOR-RESULTS.md)
+      assert(await hall.evaluate(() => __LQ_EXAM_HALL.detector.chosen === "coco" && !window.ort
+        && [...document.querySelectorAll("#detector option")].map(o => o.value).join() === "coco,yolox"), "hall detector: COCO-SSD default, YOLOX-Nano offered, ONNX Runtime not loaded");
+      assert(await hall.evaluate(() => JSON.parse(localStorage.getItem("lq-exam-hall")).det === "coco"), "hall detector choice saved with the node settings");
 
       // draw seat A1 with three taps on the canvas
       await hall.evaluate(() => {

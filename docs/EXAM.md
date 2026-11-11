@@ -84,6 +84,13 @@ build never loads `vendor/face-api.js` on any Exam page (the lab and hall pages 
 Persons and phones from COCO-SSD (Apache-2.0, `vendor/models/cocossd`) on the full frame (optional 2×2 tiles for big
 rooms) at 2–5 fps. A person belongs to the seat polygon that contains the box centre (overlap → nearest centroid).
 
+Detector switch (2026-11-11, `docs/exam/HALL-DETECTOR-RESULTS.md`): YOLOX-Nano (Apache-2.0, already vendored) was
+measured against COCO-SSD on a locked public still-image set (Open Images V7, 323 images; not exam-room footage). It found
+more seated people at hall size (57.9 % vs 34.4 %) but failed the fixed switch rule: 3 / 94 empty-room frames with a false
+person (COCO-SSD 0 / 94), phone recall 25.0 % vs 70.0 %, 612 vs 315 ms per frame on an emulated mid-range laptop.
+**COCO-SSD stays the default**; YOLOX-Nano is an experimental choice in the setup form (`?yolox`), off by default, with
+COCO-SSD as the fallback when ONNX Runtime cannot run.
+
 | Signal | Default rule | Level |
 |---|---|---|
 | empty / back | seat seen occupied, then empty 3 of 4 frames for 20 s = Info; return logs the time away | info |

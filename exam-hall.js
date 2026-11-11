@@ -1,6 +1,8 @@
 /* exam-hall.js — LENSIQ Exam Mode A: camera node (exam-hall.html).
  * The invigilator draws one polygon per seat on this camera's view (or generates a grid), then starts monitoring.
- * COCO-SSD (Apache-2.0, vendored) finds people and phones at 2–5 fps on this device; LQExam.createHallMonitor turns them
+ * COCO-SSD (Apache-2.0, vendored; the default) or, as an experimental option that is off by default ("#detector" / ?yolox),
+ * YOLOX-Nano (Apache-2.0, vendored, ONNX Runtime Web WASM loaded only then; docs/exam/HALL-DETECTOR-RESULTS.md: more seated people
+ * found, but more false boxes on empty seats, fewer phones and slower, so it failed the switch rule) finds people and phones at 2–5 fps on this device; LQExam.createHallMonitor turns them
  * into seat events (empty / back / early / extra / aisle / lean / phone, room-event suppression, walk mode).
  * Only JSON events + a heartbeat go to the dashboard (exam-link.js). No frame is stored or sent.
  * Test seams (localhost + ?fakedet): no model; window.__LQ_FAKE_DET("exam-hall") -> [{x,y,w,h,score, cls?:"phone"}];
@@ -39,7 +41,7 @@
   let nodeId = U.store.get(K.node, null);
   if (!/^[a-z0-9]{6,24}$/.test(String(nodeId))) { nodeId = L.newNodeId(); U.store.set(K.node, nodeId); }
 
-  let room = "", cam = null, coco = null, link = null, mon = null, running = false, monitoring = false, walk = false, walkTimer = null;
+  let room = "", cam = null, coco = null, yx = null, detKind = "", link = null, mon = null, running = false, monitoring = false, walk = false, walkTimer = null;
   let seats = [], draft = null, lastDets = { persons: [], phones: [], faces: [] }, examStart = 0, fpsEma = 0, lastTick = 0, hbTimer = null;
   let profiles = {}, lastQ = { ok: true, code: "ok", score: 0 }, qAt = 0;
   /* face pass (EXPERIMENTAL, off by default; docs/exam/FACE-ENGINE-RESULTS.md §6 – §7): boxes of small faces in the wide view,
@@ -208,10 +210,10 @@
           else if (ev.type === "reconnected") { engine(() => T("exam.hall.camBack", "กล้องกลับมาแล้ว"), "ok"); if (monitoring && clipCfg.on) armClips(); }
         }
       });
-      const [, b] = await Promise.all([cam.start(), TEST ? Promise.resolve("test") : LQDetect.tfBackend().then(async bk => { if (!coco) coco = await LQDetect.loadCoco("vendor/models/cocossd/model.json"); return bk; })]);
+      const [, b] = await Promise.all([cam.start(), TEST ? Promise.resolve("test") : loadDetector()]);
       try { cam.attach($("#camPick")); } catch (e) { /* one camera */ }
       loadSeats();
-      engine(() => T("exam.hall.ready", "พร้อม — ตัวประมวลผล: {b} · ภาพไม่ออกจากเครื่องนี้", { b: String(b).toUpperCase() }), "ok");
+      engine(() => T("exam.hall.ready", "พร้อม — ตัวประมวลผล: {b} · ภาพไม่ออกจากเครื่องนี้", { b: b === "test" ? "TEST" : String(b) }), "ok");
       if (!running) { running = true; loop(); }
       renderSc();
       clearInterval(hbTimer); hbTimer = setInterval(heartbeat, 5000); heartbeat();
@@ -231,6 +233,25 @@
     if (monitoring) { const r = setupGate.push(Date.now(), !lastQ.ok); for (const f of r.fire) send({ seat: "", sig: "setup", lvl: f.lvl, t: Date.now(), code: lastQ.code }); }
     return lastQ;
   }
+  /* person / phone detector (docs/exam/HALL-DETECTOR-RESULTS.md): COCO-SSD by default. YOLOX-Nano only when chosen (?yolox or
+     "#detector"); its ONNX Runtime is loaded only then, and COCO-SSD takes over when it cannot run on this device (decided by
+     the actual failure). Same score cuts for both. */
+  const loadScript = src => new Promise((res, rej) => {
+    const el = document.createElement("script"); el.src = src; el.onload = res; el.onerror = () => rej(new Error(src)); document.head.appendChild(el);
+  });
+  const DET = { yolox: { person: 0, phone: 67 }, coco: { person: 0, phone: 76 } };
+  async function loadDetector() {
+    if ($("#detector").value === "yolox") {
+      try {
+        if (!W.ort) await loadScript("vendor/ort/ort.wasm.min.js");
+        if (!yx) yx = await LQDetect.loadYolox();
+        detKind = "yolox"; return "YOLOX-Nano · WASM";
+      } catch (e) { console.warn("YOLOX unavailable, COCO-SSD fallback", e); }
+    }
+    const bk = await LQDetect.tfBackend();
+    if (!coco) coco = await LQDetect.loadCoco("vendor/models/cocossd/model.json");
+    detKind = "coco"; return "COCO-SSD · " + String(bk).toUpperCase();
+  }
   async function detect() {
     if (!video.videoWidth) return null;
     if (TEST) {
@@ -243,8 +264,11 @@
     // 2 x 2 tiles are cut from a frame at most PROC_W wide, as before the camera request was raised (cutting them from the 4K
     // frame was measured slower: 3.7 -> 3.2 loops per second on the development machine); the whole-frame pass reads a 416 px copy
     const src = tiles && video.videoWidth > PROC_W ? procFrame() : video;
-    const d = await LQDetect.detectCoco(coco, src, { classes: [0, 76], minScore: 0.35, max: 40, tiles });
-    return { persons: d.filter(b => b.cls === 0 && b.score >= 0.4), phones: d.filter(b => b.cls === 76), faces: await facePass() };
+    const c = DET[detKind === "yolox" ? "yolox" : "coco"];
+    const d = detKind === "yolox"
+      ? await LQDetect.detectPeople(yx, src, { classes: [c.person, c.phone], minScore: 0.35, max: 40, detW: 416, split: "auto", tiles })
+      : await LQDetect.detectCoco(coco, src, { classes: [c.person, c.phone], minScore: 0.35, max: 40, tiles });
+    return { persons: d.filter(b => b.cls === c.person && b.score >= 0.4), phones: d.filter(b => b.cls === c.phone), faces: await facePass() };
   }
   /** experimental face pass -> normalised boxes [{x, y, w, h}] ([] when off or not working on this device) */
   async function facePass() {
@@ -520,6 +544,13 @@
     const s = U.store.get(K.hall, {}) || {}; s.faceOn = faceOn; U.store.set(K.hall, s);
     status(); draw();
   });
+  // detector: COCO-SSD unless YOLOX-Nano is chosen (remembered with the node settings, or ?yolox). A change while the camera runs reloads it.
+  $("#detector").value = P.has("yolox") || (saved && saved.det === "yolox") ? "yolox" : "coco";
+  $("#detector").addEventListener("change", () => {
+    const s = U.store.get(K.hall, {}) || {}; s.det = $("#detector").value; U.store.set(K.hall, s);
+    if (running && !TEST) loadDetector().then(b => engine(() => T("exam.hall.ready", "พร้อม — ตัวประมวลผล: {b} · ภาพไม่ออกจากเครื่องนี้", { b }), "ok"))
+      .catch(e => { console.warn(e); engine(() => T("exam.hall.camErr", "เปิดกล้องไม่สำเร็จ: {m}", { m: e.message || e.name }), "err"); });
+  });
   if (P.get("room")) $("#room").value = U.cleanRoom(P.get("room"));
   /* evidence clip setting: changeable while not monitoring; the room notice must say so when it is on */
   function clipUI() {
@@ -547,7 +578,7 @@
     room = U.cleanRoom($("#room").value);
     if (!room) { engine(() => T("exam.hall.needRoom", "กรอกรหัสห้องสอบ (ตัวอักษรอังกฤษหรือตัวเลข)"), "warn"); return; }
     $("#room").value = room;
-    U.store.set(K.hall, { room, name: $("#nodeName").value, pos: $("#pos").value, minLeave: $("#minLeave").value, faceOn });
+    U.store.set(K.hall, { room, name: $("#nodeName").value, pos: $("#pos").value, minLeave: $("#minLeave").value, faceOn, det: $("#detector").value });
     if (link) link.close();
     link = L.create({ room, onMessage });
     startCamera();
@@ -595,6 +626,7 @@
   /** @type {any} */ (window).__LQ_EXAM_HALL = {
     get seats() { return seats; }, get mon() { return mon; }, get monitoring() { return monitoring; }, get walk() { return walk; },
     sent, recent, get link() { return link; }, nodeId, toNorm, clips, clipSt, get clipCfg() { return clipCfg; },
+    get detector() { return { chosen: $("#detector").value, loaded: detKind }; },
     get faceOn() { return faceOn; }, get faceErr() { return faceErr; }, get faces() { return lastDets.faces || []; },
     get faceCfg() { return faceEng ? { engine: faceEng.engine, numFaces: faceEng.numFaces, conf: faceEng.conf } : null; },
     get setup() { return { on: sc.on, err: sc.err, res: sc.res, everyMs: SC.everyMs, cap: SC.numFaces, people: peopleNow(), engine: scEng ? { numFaces: scEng.numFaces } : null }; },

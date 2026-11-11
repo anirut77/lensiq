@@ -50,6 +50,9 @@
       <label><span data-i18n="exam.hall.fps">ภาพต่อวินาที</span>
         <select id="fps"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select></label>
       <label><span data-i18n="exam.hall.minLeave">ออกจากห้องได้หลังเริ่มสอบ (นาที)</span><input id="minLeave" type="number" min="0" max="240" value="30"></label>
+      <label><span data-i18n="exam.hall.det">ตัวตรวจหาคนและโทรศัพท์</span>
+        <select id="detector"><option value="coco" data-i18n="exam.hall.detCoco">COCO-SSD (ค่าเริ่มต้น)</option>
+          <option value="yolox" data-i18n="exam.hall.detYolox">YOLOX-Nano (ทดลอง: เห็นคนนั่งมากขึ้น แต่มีกรอบผิดมากขึ้น หาโทรศัพท์ได้น้อยลง และช้ากว่า)</option></select></label>
       <label class="check"><input type="checkbox" id="tiles"> <span data-i18n="exam.hall.tiles">ห้องใหญ่: แบ่งภาพ 2×2 เพื่อเห็นคนที่อยู่ไกล (ช้าลง)</span></label>
       <label class="check"><input type="checkbox" id="faceOn"> <span data-i18n="exam.hall.faceOn">นับใบหน้าในภาพ (ทดลอง:
         ยังไม่พบใบหน้าเล็กหรือที่อยู่ไกล แสดงในเครื่องนี้เท่านั้น ไม่ส่งไปแดชบอร์ด)</span></label>
