@@ -185,3 +185,7 @@ Machine-readable gating fields in `tools/pc-rules-draft.json` (documented in its
   F08, F10, F19, F06, H02, F02, C03, D02, endorsement rules, F12, F13, F20, F05, F03, F11, C01; guards for warnings,
   directions, preparation times and sales deadlines). Dev numbers only, in `ADVERT-RESULTS.md` "Rule work 2026-11-11";
   approved nutrient-function statements and disclaimers stay suppressed as above.
+- 2026-11-12 (adverts rule work 2, owner order: only H02 and the drug rules): `RULE_WORK_2` in `tools/pc-rules-build.mjs`
+  (H02 anti-infection, efficacy-rate, comparison-with-medicine, superlative, "all kinds of" and mental-health families;
+  D02 anti-virus / COVID, "back to normal" and Chinese "condition improves" wording; D08 unchanged). Dev numbers in
+  `ADVERT-RESULTS.md` "Rule work 2026-11-12".

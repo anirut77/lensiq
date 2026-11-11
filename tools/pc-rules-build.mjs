@@ -911,6 +911,60 @@ export const RULE_WORK = [
   }
 ];
 
+/* ---------------- rule work 2026-11-12 (owner order: ONLY H02 herbal efficacy and the drug rules D02 / D08) ---------------- */
+// Tuned on the spent sets (P3 dev, first fresh set, fresh2); texts-fresh-3 (the next held-out set) not read. No other rule
+// changed. Word families, not copied phrases.
+const GERM_ZH = "(?:病毒|细菌|細菌|病菌|真菌)";
+// herbal: names the product as fighting infection (H02 = exaggerated efficacy for a herbal product)
+const ANTIINF = {
+  th: ["(?:ฆ่า|ยับยั้ง|ต้าน|ทำลาย|กำจัด|ป้องกัน|ดักจับ)\\S{0,10}(?:" + GERM_TH.slice(3, -1) + "|การติดเชื้อ)"],
+  en: ["\\b(?:kill|destroy|fight|combat|inhibit|neutrali[sz]e|eradicat|prevent)\\w*\\s+(?:off\\s+|against\\s+)?(?:the\\s+|an?\\s+|your\\s+)?(?:[\\w()-]+\\s+){0,3}?(?:" +
+    "virus(?:es)?|coronavirus|infect(?:ed|ions?)|bacteria|germs|pathogens?|viral\\s+\\w+)\\b",
+    "\\b(?:defen[cs]e|protection|shield)\\s+against\\s+(?:\\w+\\s+){0,3}?(?:virus(?:es)?|coronavirus|infections?|bacteria|germs)\\b", "\\bnatural\\s+antibiotic"],
+  zh: ["杀菌|殺菌|抗菌|抗病毒|天然抗生素", "(?:抑制|清除|杀灭|殺滅|预防|預防)\\S{0,8}" + GERM_ZH]
+};
+// herbal: efficacy rates, comparison with medicines, superlatives, "all kinds of", speed and "no relapse"
+const H02_MORE = {
+  th: ["(?:ได้|ถึง|สูงถึง)\\s*\\d{2}(?:\\.\\d+)?\\s*%", "(?:ดีกว่า|เทียบเท่า|เหมือน|แทน)(?:การใช้|การกิน)?ยา(?!สมุนไพร|แผนโบราณ)",
+    "(?:บรรเทา|แก้|รักษา|หาย)\\S{0,16}(?:ทุกชนิด|ทุกอาการ|ทุกโรค)", "วิจัยระดับโลก"],
+  en: ["\\b\\d{2}(?:\\.\\d+)?\\s*%\\s+(?:effective|kill|of\\s+(?:germs|bacteria|viruses))",
+    "\\b(?:as\\s+effective\\s+as|better\\s+than|works\\s+like|instead\\s+of)\\s+(?:\\w+\\s+){0,2}(?:drugs?|medications?|medicines?|pharmaceutical\\w*|antibiotics?|antidepressants?)",
+    "\\b(?:the\\s+)?best\\s+(?:\\w+\\s+)?(?:defen[cs]e|protection|protector|remedy|cure|treatment)", "\\bperfect\\s+(?:\\w+\\s+)?(?:protector|remedy|cure|solution|treatment)",
+    "\\bno\\.\\s*1\\b", "\\ball\\s+(?:kinds|types)\\s+of\\s+(?:pain|diseases?|illness)",
+    "\\b(?:remed(?:y|ies)|fight\\s+off|treat\\w*|help(?:ed|s)?\\s+(?:\\w+\\s+){0,4}with)\\s+(?:\\w+[\\s,]+){0,6}?(?:anxiety|depression|seizures|chronic\\s+pain|insomnia|sleep\\s+disorders)"],
+  zh: ["之首|最好|最强|最強|最佳|第一|克星|剋星", "\\d+\\s*种\\S{0,4}(?:病|妇科|疾病)|多种疾病|各种疾病", "(?:天|周|小时|晚)\\S{0,4}(?:就能|即可|就)\\S{0,4}(?:感受到|见|見)效|当晚降|當晚降|直降",
+    "改善(?:特别|非常|很)?明显|改善病情|效果(?:很|非常|特别)?明显|疗效显著|療效顯著|高效(?:降|治|改善|杀)", "没有\\S{0,8}副作用|沒有\\S{0,8}副作用|不反弹|不反彈|不复发|不復發"]
+};
+// herbal registered / traditional-use wording (UK THR style) and composition percentages are not efficacy claims
+const H02_EX = ["\\btraditional(?:ly)?\\s+(?:herbal\\s+medicinal\\s+product|used)\\b[^.]{0,160}", "\\bexclusively\\s+based\\s+(?:up)?on\\s+long-standing\\s+use",
+  "(?:สกัด|แท้|เข้มข้น)\\S{0,4}\\s*\\d+\\s*%", "\\d+\\s*%\\s*\\d+(?:\\.\\d+)?\\s*(?:มก|mg|กรัม|g)\\b"];
+// drug: claims against a virus or infection outside a registered indication (COVID, "kills the virus", "prevention")
+const DRUG_INF_EN = [
+  "\\b(?:kill|destroy|fight|combat|shield|protect|prevent|treat|eliminat|eradicat|inhibit)\\w*\\s+(?:against\\s+|off\\s+)?(?:the\\s+|a\\s+|an\\s+)?(?:[\\w()-]+\\s+){0,5}?" +
+    "(?:coronavirus|covid(?:-?19)?|sars-?cov-?2?|pathogens?|viral\\s+infections?)",
+  "\\b(?:virus|covid(?:-?19)?|coronavirus)\\s+(?:\\w+\\s+)?(?:killing|prevention|remed\\w*|cure)", "\\b(?:shorten|lessen)\\w*\\s+(?:the\\s+)?(?:duration|chance)\\s+of\\b"
+];
+
+export const RULE_WORK_2 = [
+  {
+    rule: "H02",
+    what: L("anti-infection wording (kill / inhibit / prevent … virus, germ, infection; ZH 抑菌 / 抗病毒 / 天然抗生素), efficacy rates (ถึง 90 %),",
+      "comparison with medicines, superlatives ('the best defence', 'perfect protector', No. 1, 之首 / 克星), 'all kinds of', remedy / treat / fight-off claims for anxiety /",
+      "depression / seizures / chronic pain, ZH speed and 'no relapse / no side effects' wording"),
+    why: L("rule work 2026-11-12 (spent fresh2 + earlier sets): H02 caught 5 of 31 on fresh2; herbal efficacy claims in these forms were",
+      "missed. Guards: UK traditional-use (THR) indications, composition percentages ('สกัด 100%', '100% 250 mg')"),
+    apply: all(add("th", [...ANTIINF.th, ...H02_MORE.th]), add("en", [...ANTIINF.en, ...H02_MORE.en]), add("zh", [...ANTIINF.zh, ...H02_MORE.zh]),
+      exclude([...H02_EX, ...NOT_SUBST, ...WARN_EX]))
+  },
+  {
+    rule: "D02",
+    what: L("anti-virus / COVID claims for a drug ('kills the coronavirus', 'combat viral infections', 'COVID prevention', 'shorten the",
+      "duration of'), 'กลับมาเป็นปกติ' (restored to normal), ZH 好转 / 自愈 / 病症减轻 / 多病化少"),
+    why: "rule work 2026-11-12: drug recall with the type chosen was 5 of 16 on fresh2; most misses were anti-virus or 'back to normal' claims",
+    apply: all(add("en", DRUG_INF_EN), add("th", ["(?:กลับ(?:มา)?(?:เป็น|สู่)|หายเป็น)\\s*ปกติ"]), add("zh", ["好转|好轉|自愈|病症减轻|病症減輕|多病化少"]), exclude([...WARN_EX, ...NOT_SUBST]))
+  }
+];
+
 const clone = o => JSON.parse(JSON.stringify(o));
 
 /** Build the rule data object from the parsed draft. @param {any} draft */
@@ -924,7 +978,7 @@ export function build(draft) {
     return r;
   });
   const byId = Object.fromEntries(rules.map(r => [r.id, r]));
-  for (const c of [...CHANGES, ...ADVERT_CHANGES, ...RULE_WORK]) {
+  for (const c of [...CHANGES, ...ADVERT_CHANGES, ...RULE_WORK, ...RULE_WORK_2]) {
     if (!byId[c.rule] && c.rule !== "*") throw new Error("CHANGES: unknown rule " + c.rule);
     c.apply(c.rule === "*" ? rules : byId[c.rule], { rules, byId });
   }
@@ -940,7 +994,8 @@ export function build(draft) {
     claim_verbs: draft.claim_verbs,
     sources: draft.sources,
     changes: [...CHANGES.map(c => ({ rule: c.rule, what: c.what, why: c.why })), ...POST_REVIEW,
-      ...ADVERT_CHANGES.map(c => ({ rule: c.rule, what: c.what, why: c.why })), ...RULE_WORK.map(c => ({ rule: c.rule, what: c.what, why: c.why }))],
+      ...ADVERT_CHANGES.map(c => ({ rule: c.rule, what: c.what, why: c.why })), ...RULE_WORK.map(c => ({ rule: c.rule, what: c.what, why: c.why })),
+      ...RULE_WORK_2.map(c => ({ rule: c.rule, what: c.what, why: c.why }))],
     masks: MASKS,
     warnings: WARNINGS,
     allow_source: N447_SOURCE,
@@ -999,7 +1054,7 @@ function main() {
   const args = process.argv.slice(2);
   const src = render(build(JSON.parse(readFileSync(DRAFT, "utf8"))));
   if (args.includes("--changes")) {
-    for (const c of [...CHANGES, ...POST_REVIEW, ...ADVERT_CHANGES, ...RULE_WORK]) console.log(`- ${c.rule}: ${c.what} (${c.why})`);
+    for (const c of [...CHANGES, ...POST_REVIEW, ...ADVERT_CHANGES, ...RULE_WORK, ...RULE_WORK_2]) console.log(`- ${c.rule}: ${c.what} (${c.why})`);
     return;
   }
   if (args.includes("--check")) {

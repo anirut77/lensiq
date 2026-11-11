@@ -10,11 +10,12 @@
 //   node tools/pc-advert-eval.mjs --fresh [DIR]   the SPENT first fresh advert set (default ~/LENSIQ-field/evals/adverts/fresh:
 //        blind-input.jsonl, labels-A.jsonl, labels-B.jsonl), consensus rule (both labellers), modes "released" (product type
 //        chosen by the user = the row's category, as the page runs) and "default" (no type: guessed, else every family);
-//        by language and category; [--misses] lists the released-mode misses / false flags. Refuses fresh2 / texts-fresh.
+//        by language and category; [--misses] lists the released-mode misses / false flags. Also takes the spent fresh2
+//        folder (--fresh ~/LENSIQ-field/evals/adverts/fresh2). Refuses texts-fresh* / fresh3+.
 //
-// DEV ONLY, by design: this tool refuses any other split, any data folder named texts-fresh* and the locked fresh2 set (the
-// first fresh set is spent since its one independent run on 2026-11-11, so it is a development set now). The P3 held-out split is
-// spent, and the fresh advert set (~/LENSIQ-field/product-check/texts-fresh/) is scored once, blind, by a separate agent.
+// DEV ONLY, by design: this tool refuses any other split, any data folder named texts-fresh* and any later locked set
+// (fresh3+). The first fresh set and fresh2 are spent (one independent run each, 2026-11-11) and are development sets
+// now. The P3 held-out split is spent; the next locked set (texts-fresh-3) is scored once, blind, by a separate agent.
 // Source of every figure: public-dataset quotes (P3 set), labels by an AI agent (agentA), dev split = the tuning set, so
 // the figures are NOT independent. Data and logs stay outside the repo.
 //
@@ -79,7 +80,11 @@ export function runDev(dir) {
 
 /** Folders that hold locked, unscored sets: never read here. @param {string} dir */
 export function assertNotLocked(dir) {
-  if (/texts-fresh|fresh2|fresh-2|held-?out/i.test(resolve(dir))) throw new Error("refusing a locked set (texts-fresh*, fresh2, held-out): scored once by a separate agent, never used here");
+  // spent and allowed for development: evals/adverts/fresh (first set), evals/adverts/fresh2 (spent 2026-11-11).
+  // Never: the texts-fresh* collection folders (texts-fresh-3 is the coming held-out set), fresh3+, any held-out split.
+  if (/texts-fresh|fresh-?[3-9]|held-?out/i.test(resolve(dir))) {
+    throw new Error("refusing a locked set (texts-fresh*, fresh3+, held-out): scored once by a separate agent, never used here");
+  }
 }
 
 /**
@@ -208,7 +213,7 @@ function mainFresh(args, opt, log) {
   try { assertOutsideRepo(log); res = runFresh(dir); } catch (e) { console.error(String(/** @type {any} */ (e).message || e)); process.exit(2); }
   const hashes = { rules_sha256: sha256File(join(REPO, "lensiq-claims-rules.js")), engine_sha256: sha256File(join(REPO, "lensiq-claims.js")),
     advert_sha256: sha256File(join(REPO, "lensiq-pc-advert.js")) };
-  const src = "dev: SPENT first fresh advert set (independent run done 2026-11-11), consensus of labellers A and B; tuning data now, not independent";
+  const src = `dev: SPENT advert set ${basename(dir)} (its one independent run is done), consensus of labellers A and B; tuning data now, not independent`;
   /** @type {Record<string, any>} */ const summary = { at: new Date().toISOString(), source: src, data: "adverts/" + basename(dir), split: "spent-fresh",
     texts: res.texts, ...hashes };
   for (const m of ["released", "default"]) summary[m] = Object.fromEntries(Object.entries(res[m].by).map(([k, v]) => [k, { ...v, recall_any_ci: undefined }]));

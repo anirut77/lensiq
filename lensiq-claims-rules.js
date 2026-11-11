@@ -350,6 +350,16 @@
      "rule": "C03",
      "what": "'หนึ่งเดียว', 'ทุกคนไว้วางใจ', 'look N years younger', magic 'เสก'",
      "why": "rule work 2026-11-11: cosmetic exaggeration in these words was missed"
+   },
+   {
+     "rule": "H02",
+     "what": "anti-infection wording (kill / inhibit / prevent … virus, germ, infection; ZH 抑菌 / 抗病毒 / 天然抗生素), efficacy rates (ถึง 90 %), comparison with medicines, superlatives ('the best defence', 'perfect protector', No. 1, 之首 / 克星), 'all kinds of', remedy / treat / fight-off claims for anxiety / depression / seizures / chronic pain, ZH speed and 'no relapse / no side effects' wording",
+     "why": "rule work 2026-11-12 (spent fresh2 + earlier sets): H02 caught 5 of 31 on fresh2; herbal efficacy claims in these forms were missed. Guards: UK traditional-use (THR) indications, composition percentages ('สกัด 100%', '100% 250 mg')"
+   },
+   {
+     "rule": "D02",
+     "what": "anti-virus / COVID claims for a drug ('kills the coronavirus', 'combat viral infections', 'COVID prevention', 'shorten the duration of'), 'กลับมาเป็นปกติ' (restored to normal), ZH 好转 / 自愈 / 病症减轻 / 多病化少",
+     "why": "rule work 2026-11-12: drug recall with the type chosen was 5 of 16 on fresh2; most misses were anti-virus or 'back to normal' claims"
    }
   ],
   "masks": [
@@ -799,7 +809,8 @@
          "บำรุงร่างกาย",
          "\\d+\\s*เท่า",
          "ไม่ต้องผ่าตัด",
-         "(?:ยุบ|หาย)\\S{0,2}(?:ไว|เร็ว)"
+         "(?:ยุบ|หาย)\\S{0,2}(?:ไว|เร็ว)",
+         "(?:กลับ(?:มา)?(?:เป็น|สู่)|หายเป็น)\\s*ปกติ"
        ],
        "en": [
          "100\\s*%\\s*(?:effective|safe|natural|guaranteed)",
@@ -809,12 +820,16 @@
          "\\bkills?\\s+(?:the\\s+)?virus",
          "\\bboosts?\\s+(?:your\\s+)?immune",
          "\\bantiviral",
-         "\\bresistance\\s+to\\s+(?:the\\s+)?(?:novel\\s+)?corona"
+         "\\bresistance\\s+to\\s+(?:the\\s+)?(?:novel\\s+)?corona",
+         "\\b(?:kill|destroy|fight|combat|shield|protect|prevent|treat|eliminat|eradicat|inhibit)\\w*\\s+(?:against\\s+|off\\s+)?(?:the\\s+|a\\s+|an\\s+)?(?:[\\w()-]+\\s+){0,5}?(?:coronavirus|covid(?:-?19)?|sars-?cov-?2?|pathogens?|viral\\s+infections?)",
+         "\\b(?:virus|covid(?:-?19)?|coronavirus)\\s+(?:\\w+\\s+)?(?:killing|prevention|remed\\w*|cure)",
+         "\\b(?:shorten|lessen)\\w*\\s+(?:the\\s+)?(?:duration|chance)\\s+of\\b"
        ],
        "zh": [
          "无副作用",
          "100%有效",
-         "立即见效"
+         "立即见效",
+         "好转|好轉|自愈|病症减轻|病症減輕|多病化少"
        ]
      },
      "requires_claim_verb": false,
@@ -829,7 +844,17 @@
      "title_zh": "虚假或夸大的疗效",
      "claim_window": 0,
      "exclude": [
-       "แท้\\s*100\\s*%"
+       "แท้\\s*100\\s*%",
+       "(?:ผู้ป่วย|ผู้ที่(?:เป็น|มี)|ผู้มี|หากมีอาการ|หากเป็น)\\S{0,20}",
+       "\\b(?:patients|people|persons|those|anyone)\\s+with\\b[^.,;]{0,30}",
+       "\\bif\\s+(?:you\\s+)?(?:have|experience|feel|are)\\b[^.]{0,40}",
+       "\\b(?:stop|discontinue)\\s+use\\b[^.]{0,60}",
+       "\\b(?:ask|consult)\\s+(?:a|your)\\s+(?:doctor|physician|pharmacist)\\b[^.]{0,60}",
+       "不能代替(?:药物|藥物)(?:治疗|治療)?(?:疾病)?",
+       "ไม่\\S{0,8}(?:ทดแทน|แทน)\\S{0,6}ยา",
+       "ไม่ใช่ยา",
+       "\\bnot\\s+(?:a\\s+)?(?:substitute|replacement)\\s+for\\b[^.]{0,40}",
+       "\\b(?:do\\s+not|don't|never)\\s+(?:stop|replace|discontinue)\\b[^.]{0,40}"
      ]
    },
    {
@@ -2699,7 +2724,12 @@
          "ทุกปัญหา",
          "ไม่ต้อง(?:เลเซอร์|ผ่าตัด|ฉีด|ออกกำลัง)",
          "สลายหาย",
-         "(?:แก้|หาย|เห็นผล|บรรเทา|ลด|ปกติ|ดีขึ้น)\\S{0,40}(?:ภาย)?ใน\\s*\\d+\\s*(?:นาที|วินาที|ชั่วโมง|วัน|เม็ด)"
+         "(?:แก้|หาย|เห็นผล|บรรเทา|ลด|ปกติ|ดีขึ้น)\\S{0,40}(?:ภาย)?ใน\\s*\\d+\\s*(?:นาที|วินาที|ชั่วโมง|วัน|เม็ด)",
+         "(?:ฆ่า|ยับยั้ง|ต้าน|ทำลาย|กำจัด|ป้องกัน|ดักจับ)\\S{0,10}(?:ไวรัส|เชื้อ|แบคทีเรีย|ปรสิต|พยาธิ|เซลล์มะเร็ง|การติดเชื้อ)",
+         "(?:ได้|ถึง|สูงถึง)\\s*\\d{2}(?:\\.\\d+)?\\s*%",
+         "(?:ดีกว่า|เทียบเท่า|เหมือน|แทน)(?:การใช้|การกิน)?ยา(?!สมุนไพร|แผนโบราณ)",
+         "(?:บรรเทา|แก้|รักษา|หาย)\\S{0,16}(?:ทุกชนิด|ทุกอาการ|ทุกโรค)",
+         "วิจัยระดับโลก"
        ],
        "en": [
          "\\bno\\s+side[- ]effects?",
@@ -2713,11 +2743,28 @@
          "\\bnumber\\s+one\\b",
          "\\bthe\\s+(?:highest|most\\s+(?:efficacious|effective|powerful|potent))\\b",
          "\\b(?:see|notice)\\s+(?:\\w+\\s+)?results?\\s+(?:in|within)\\s+\\d",
-         "\\bwith\\s+just\\s+one\\s+(?:bottle|dose|pack)"
+         "\\bwith\\s+just\\s+one\\s+(?:bottle|dose|pack)",
+         "\\b(?:kill|destroy|fight|combat|inhibit|neutrali[sz]e|eradicat|prevent)\\w*\\s+(?:off\\s+|against\\s+)?(?:the\\s+|an?\\s+|your\\s+)?(?:[\\w()-]+\\s+){0,3}?(?:virus(?:es)?|coronavirus|infect(?:ed|ions?)|bacteria|germs|pathogens?|viral\\s+\\w+)\\b",
+         "\\b(?:defen[cs]e|protection|shield)\\s+against\\s+(?:\\w+\\s+){0,3}?(?:virus(?:es)?|coronavirus|infections?|bacteria|germs)\\b",
+         "\\bnatural\\s+antibiotic",
+         "\\b\\d{2}(?:\\.\\d+)?\\s*%\\s+(?:effective|kill|of\\s+(?:germs|bacteria|viruses))",
+         "\\b(?:as\\s+effective\\s+as|better\\s+than|works\\s+like|instead\\s+of)\\s+(?:\\w+\\s+){0,2}(?:drugs?|medications?|medicines?|pharmaceutical\\w*|antibiotics?|antidepressants?)",
+         "\\b(?:the\\s+)?best\\s+(?:\\w+\\s+)?(?:defen[cs]e|protection|protector|remedy|cure|treatment)",
+         "\\bperfect\\s+(?:\\w+\\s+)?(?:protector|remedy|cure|solution|treatment)",
+         "\\bno\\.\\s*1\\b",
+         "\\ball\\s+(?:kinds|types)\\s+of\\s+(?:pain|diseases?|illness)",
+         "\\b(?:remed(?:y|ies)|fight\\s+off|treat\\w*|help(?:ed|s)?\\s+(?:\\w+\\s+){0,4}with)\\s+(?:\\w+[\\s,]+){0,6}?(?:anxiety|depression|seizures|chronic\\s+pain|insomnia|sleep\\s+disorders)"
        ],
        "zh": [
          "无副作用",
-         "100%"
+         "100%",
+         "杀菌|殺菌|抗菌|抗病毒|天然抗生素",
+         "(?:抑制|清除|杀灭|殺滅|预防|預防)\\S{0,8}(?:病毒|细菌|細菌|病菌|真菌)",
+         "之首|最好|最强|最強|最佳|第一|克星|剋星",
+         "\\d+\\s*种\\S{0,4}(?:病|妇科|疾病)|多种疾病|各种疾病",
+         "(?:天|周|小时|晚)\\S{0,4}(?:就能|即可|就)\\S{0,4}(?:感受到|见|見)效|当晚降|當晚降|直降",
+         "改善(?:特别|非常|很)?明显|改善病情|效果(?:很|非常|特别)?明显|疗效显著|療效顯著|高效(?:降|治|改善|杀)",
+         "没有\\S{0,8}副作用|沒有\\S{0,8}副作用|不反弹|不反彈|不复发|不復發"
        ]
      },
      "requires_claim_verb": false,
@@ -2735,7 +2782,21 @@
        "แท้\\s*100\\s*%",
        "(?:ต้ม|ชง|แช่|อบ|นึ่ง|ทิ้งไว้)\\S{0,12}(?:ภาย)?ใน?\\s*\\d+\\s*(?:นาที|วินาที|ชั่วโมง)",
        "(?:ลด\\s*\\d+\\s*%|ลดราคา|ส่วนลด|โปร|ซื้อ|ส่งฟรี|จัดส่ง|ส่งของ|ได้รับสินค้า|คืนเงิน)[^\\n.!]{0,30}?(?:ภาย)?ใน?\\s*\\d+\\s*(?:วัน|ชั่วโมง)",
-       "\\b(?:ships?|shipping|delivery|delivered|refund|returns?|sale|offer|discount)\\b[^.]{0,30}\\b(?:in|within)\\s+\\d+\\s+(?:days?|hours?)"
+       "\\b(?:ships?|shipping|delivery|delivered|refund|returns?|sale|offer|discount)\\b[^.]{0,30}\\b(?:in|within)\\s+\\d+\\s+(?:days?|hours?)",
+       "\\btraditional(?:ly)?\\s+(?:herbal\\s+medicinal\\s+product|used)\\b[^.]{0,160}",
+       "\\bexclusively\\s+based\\s+(?:up)?on\\s+long-standing\\s+use",
+       "(?:สกัด|แท้|เข้มข้น)\\S{0,4}\\s*\\d+\\s*%",
+       "\\d+\\s*%\\s*\\d+(?:\\.\\d+)?\\s*(?:มก|mg|กรัม|g)\\b",
+       "ไม่\\S{0,8}(?:ทดแทน|แทน)\\S{0,6}ยา",
+       "ไม่ใช่ยา",
+       "\\bnot\\s+(?:a\\s+)?(?:substitute|replacement)\\s+for\\b[^.]{0,40}",
+       "\\b(?:do\\s+not|don't|never)\\s+(?:stop|replace|discontinue)\\b[^.]{0,40}",
+       "(?:ผู้ป่วย|ผู้ที่(?:เป็น|มี)|ผู้มี|หากมีอาการ|หากเป็น)\\S{0,20}",
+       "\\b(?:patients|people|persons|those|anyone)\\s+with\\b[^.,;]{0,30}",
+       "\\bif\\s+(?:you\\s+)?(?:have|experience|feel|are)\\b[^.]{0,40}",
+       "\\b(?:stop|discontinue)\\s+use\\b[^.]{0,60}",
+       "\\b(?:ask|consult)\\s+(?:a|your)\\s+(?:doctor|physician|pharmacist)\\b[^.]{0,60}",
+       "不能代替(?:药物|藥物)(?:治疗|治療)?(?:疾病)?"
      ]
    },
    {

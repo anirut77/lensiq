@@ -154,3 +154,51 @@ test("counter-cases: approved nutrient-function statements stay suppressed (MoPH
   // the same nutrient with non-approved wording is still a signal
   fires("โปรตีนช่วยเพิ่มมวลกล้ามเนื้อ", "supplement", "F10");
 });
+
+/* ---------- rule work 2026-11-12: ONLY H02 (herbal efficacy) and D02 (drug); synthetic sentences ---------- */
+
+test("2026-11-12 changes are listed and touch only H02 and D02", () => {
+  const listed = R.changes.filter((/** @type {any} */ c) => /rule work 2026-11-12/.test(c.why)).map((/** @type {any} */ c) => c.rule);
+  assert.deepEqual([...new Set(listed)].sort(), ["D02", "H02"]);
+});
+
+test("H02 herbal efficacy: anti-infection, rates, comparison with medicines, superlatives, 'all kinds of', mental-health claims", () => {
+  fires("ยาอมสมุนไพรช่วยฆ่าเชื้อไวรัสในลำคอ", "herbal", "H02");
+  fires("ชาสมุนไพรยับยั้งการติดเชื้อได้ถึง 95%", "herbal", "H02");
+  fires("This herbal tonic destroys cold viruses on contact", "herbal", "H02");
+  fires("A natural antibiotic from the forest", "herbal", "H02");
+  fires("草本喷雾，抗病毒", "herbal", "H02");
+  fires("Works just as effective as prescription medications", "herbal", "H02");
+  fires("ได้ผลเทียบเท่ายาแผนปัจจุบัน", "herbal", "H02");
+  fires("The perfect remedy for tired joints", "herbal", "H02");
+  fires("草本之首", "herbal", "H02");
+  fires("น้ำมันนวดบรรเทาอาการปวดได้ทุกชนิด", "herbal", "H02");
+  fires("可调理30种妇科疾病", "herbal", "H02");
+  fires("A herbal blend to fight off anxiety and low mood", "herbal", "H02");
+  fires("喝三天就能感受到效果", "herbal", "H02");
+  fires("停用后不反弹", "herbal", "H02");
+});
+
+test("D02 drug: anti-virus / COVID claims, 'back to normal', Chinese 'condition improves'", () => {
+  fires("This spray kills the coronavirus on contact", "drug", "D02");
+  fires("Can be used to combat viral infections including COVID-19", "drug", "D02");
+  fires("Our tablets may shorten the duration of a cold", "drug", "D02");
+  fires("ยาหยอดตาช่วยให้สายตากลับมาเป็นปกติ", "drug", "D02");
+  fires("服用一个月，病症减轻", "drug", "D02");
+});
+
+test("counter-cases (H02 / D02): registered and traditional indications, warnings, 'consult a doctor', composition", () => {
+  silent("บรรเทาอาการท้องอืด ท้องเฟ้อ", "herbal");
+  silent("ยาแผนโบราณ สรรพคุณ: แก้ไอ ขับเสมหะ", "herbal");
+  silent("ส่วนประกอบ: สารสกัดขิง 100% 250 มก.", "herbal");
+  silent("Traditional herbal medicinal product used for the temporary relief of symptoms associated with stress such as mild anxiety, exclusively based upon long-standing use.", "herbal");
+  silent("For the relief of stress and mild anxiety.", "herbal");
+  silent("If symptoms persist, consult a doctor or pharmacist.", "herbal");
+  silent("ผลิตภัณฑ์นี้ไม่ใช่ยา ไม่ควรใช้แทนยาที่แพทย์สั่ง", "herbal");
+  silent("บรรเทาอาการปวดศีรษะ ตัวร้อน", "drug");
+  silent("For the temporary relief of minor aches and pains.", "drug");
+  silent("Ask a doctor before use if you have liver disease.", "drug");
+  silent("Stop use and ask a doctor if symptoms do not improve within 7 days.", "drug");
+  silent("ห้ามใช้ในผู้ที่แพ้ยานี้ หากอาการไม่ดีขึ้นควรปรึกษาแพทย์", "drug");
+  silent("用于缓解轻度头痛。如症状持续，请咨询医生。", "drug");
+});

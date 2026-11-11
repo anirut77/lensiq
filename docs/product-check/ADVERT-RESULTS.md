@@ -294,3 +294,45 @@ caught by the capital-letter heuristics were claim words and disease acronyms (C
 for drug and herbal types, so that type gating does not drop what the food rules catch; Chinese herbal wording.
 (2) fresh-2 is now spent too: **a third locked set is needed** to measure any further rule work; any tuning on fresh-2 is
 development only.
+
+## Rule work 2026-11-12 (owner order: ONLY H02 herbal efficacy and the drug rules D02 / D08)
+
+> **Dev numbers, not independent.** Tuned on the spent sets: P3 dev, the first fresh set and fresh2 (its one independent
+> run is above). The next held-out set (`texts-fresh-3`, being collected) was not read. `docs/accuracy-figures.json` is
+> unchanged: the page keeps quoting the fresh-2 run (67.3 %, 2.5 per 100) until the next independent run.
+
+สรุป (ไทย): แก้เฉพาะกฎ H02 (สมุนไพรอ้างสรรพคุณเกินจริง) และกฎยา D02 ตามคำสั่ง ไม่ได้ปรับกฎอื่น บน fresh2 (ข้อมูลที่ใช้ปรับแล้ว)
+สมุนไพรจับได้ 53 % -> 76 % ยา 31 % -> 88 % แจ้งเตือนผิดรวม 2.5 -> 1.9 ต่อ 100 ชุดอื่นไม่เปลี่ยน ตัวเลขนี้สูงเกินจริงเพราะเป็นข้อมูลที่ใช้ปรับ
+
+**What changed** (`RULE_WORK_2` in `tools/pc-rules-build.mjs`; no other rule touched):
+
+- **H02** (herbal): anti-infection wording (ฆ่า / ยับยั้ง / ป้องกัน … เชื้อ / ไวรัส / การติดเชื้อ; "kill / destroy / fight off … virus,
+  infection", "defence against", "natural antibiotic"; 杀菌 / 抗菌 / 抗病毒 / 抑制…病毒), efficacy rates ("ถึง 95%", "99 % effective"),
+  comparison with medicines ("as effective as … antidepressants", เทียบเท่ายา), superlatives ("the best defence", "perfect
+  protector", "No. 1", 之首 / 克星), "all kinds of" (ทุกชนิด / ทุกอาการ, N 种疾病), remedy / treat / fight-off claims for anxiety,
+  depression, seizures, chronic pain, insomnia, and Chinese speed / "no relapse / no side effects" wording.
+  Guards: UK traditional-use (THR) indications, composition percentages ("สกัด 100%", "100% 250 mg"; this also removes the
+  fresh-2 false flag FR2-0276), "not a substitute for medicine", warnings and "consult a doctor".
+- **D02** (drug): anti-virus / COVID claims ("kills the coronavirus", "combat viral infections", "COVID prevention",
+  "shorten the duration of"), "กลับมาเป็นปกติ" (restored to normal), 好转 / 自愈 / 病症减轻 / 多病化少; warning guards.
+- **D08**: unchanged. Its only fresh-2 miss is a registered indication on a drug label (metformin, type 2 diabetes);
+  registered indications must not fire, so it is left.
+- Dropped during tuning (false flags on fresh-2 compliant texts): bare 抑菌 / 消炎, and "relief of … anxiety" (registered
+  wording).
+
+**Dev numbers, released mode (type chosen), before (`156ebae8…`) → after (`cc9ea9aa…`):**
+
+| Set (n over-claim / n compliant) | H02 tp / fp / fn | D02 tp / fp / fn | D08 tp / fp / fn | Herbal: over-claim texts with a signal; false flags | Drug: over-claim texts with a signal; false flags | All: false flags / 100 compliant |
+|---|---|---|---|---|---|---|
+| fresh2, spent (455 / 159) | 5/3/26 → 27/18/4 | 1/1/9 → 10/1/0 | 4/1/1 → 4/1/1 | 53/100 → **76/100**; 2 on 107 → 1 on 107 | 5/16 → **14/16**; 1 on 39 → 1 on 39 | **2.5 → 1.9** (4 → 3 on 159) |
+| first fresh set, spent (246 / 135) | 8/0/0 → 8/1/0 | 3/0/0 → 3/0/0 | 4/0/0 → 4/0/0 | 27/31 → 27/31; 1 on 29 → 1 on 29 | 7/8 → 7/8; 0 on 30 → 0 on 30 | 1.5 → 1.5 |
+| P3 dev (99 / 123) | 5/0/0 → 5/0/0 | 6/0/0 → 6/0/0 | 0/0/0 → 0/0/0 | 9/9 → 9/9; 0 on 18 | 6/6 → 6/6; 0 on 34 | 0.8 → 0.8 |
+
+Fresh2 overall (released): 67.3 % → 74.3 % (338 / 455) of over-claim texts with a signal; consensus-rule precision /
+recall 81.0 / 55.6 % → 79.7 / 60.6 %. H02's 18 extra rule-level "fp" on fresh2 are on over-claim texts where the
+labellers chose H05 instead of H02 (not false flags on compliant text). Guessed mode (not used by the page): fresh2
+false flags 69.2 → 69.8 per 100. Tests: `tests/unit/pc-advert-rules.test.js` (new H02 / D02 positives; counter-cases for
+registered and traditional indications, composition, warnings and "consult a doctor" in TH / EN / ZH).
+
+Risk: this is the second round of hand-tuning on spent sets; expect the independent figure on `texts-fresh-3` to be lower
+than these dev numbers.
