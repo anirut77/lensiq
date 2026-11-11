@@ -48,8 +48,10 @@ experimental). Goal: the owner can sell by quotation and bank transfer, without 
    form on.
 
 Then the queue: CI sharding (approved: option ค, then ข after three clean trial runs, no added retries), adverts
-on-device, hall-mode detector switch, P8 extra evals (tell the owner the cost first), P9, Nutrition MVP, Try-On MVP,
-Merit MVP (must be built), Style MVP, org accounts P1–P3.
+on-device, hall-mode detector switch, P8 extra evals (tell the owner the cost first), P9, **Merit MVP (moved ahead of
+Nutrition by the owner on 2026-11-12; right after the Sellable pack)**, Nutrition MVP, Try-On MVP, Style MVP, org
+accounts P1–P3. Fortune fixes of 2026-11-12 (wheel-label overlaps, no source citations on fortune pages, honest
+negative readings behind owner approval) run alongside.
 
 Stop and ask the owner only when:
 - money would be spent or a plan upgraded;
