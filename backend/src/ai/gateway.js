@@ -26,6 +26,7 @@ import { PRICES, costMicros, modelsOf, priceAt } from "./adapters/prices.js";
 import { addAggregates, adjustBudget, readMonth, reserveBudget } from "./db.js";
 import { POLICY, decide } from "./fallback.js";
 import { FEATURES, featuresWith } from "./features.js";
+import { refusalCode } from "./pc-features.js";
 import { assertSupportedSchema, validateJson } from "./schema.js";
 import { getGateway, putGateway } from "./settings.js";
 
@@ -98,6 +99,19 @@ async function alertConfig(env, feature, provider, kind, fetchImpl) {
     const r = await hit(env.DB, `ai:alert:${feature}:${provider}:${kind}`, 1, 3600);
     if (r.ok) await raiseAlert(env, "ai_config_error", feature, { provider, kind }, fetchImpl);
   } catch { /* never fails the call */ }
+}
+
+/**
+ * A feature validator's metadata (e.g. pc_claims `off_family_dropped`), as it may leave the Worker: counts only (at most
+ * 8 keys of lower-case letters / underscores, each a non-negative integer); anything else is left out, so no text, rule
+ * id or model output can ride along. null when nothing is left.
+ * @param {any} m @returns {Record<string, number>|null}
+ */
+export function verifyMeta(m) {
+  if (!m || typeof m !== "object" || Array.isArray(m)) return null;
+  /** @type {Record<string, number>} */ const out = {};
+  for (const [k, v] of Object.entries(m).slice(0, 8)) if (/^[a-z_]{1,40}$/.test(k) && Number.isSafeInteger(v) && v >= 0) out[k] = v;
+  return Object.keys(out).length ? out : null;
 }
 
 /**
@@ -181,7 +195,7 @@ export async function runFeature(env, featureId, req0, opts = {}) {
           let v;
           try { v = req0.output.verify(r.json); } catch { v = { errors: ["verify failed"] }; }
           errs = v && Array.isArray(v.errors) ? v.errors : ["verify failed"];
-          if (!errs.length) r = { ...r, json: v.json };
+          if (!errs.length) r = { ...r, json: v.json, verifyMeta: verifyMeta(v.meta) };
         }
         if (errs.length) r = { ok: false, kind: "schema_mismatch", usage: r.usage, model: r.model, providerRequestId: r.providerRequestId };
       }
@@ -223,7 +237,7 @@ export async function runFeature(env, featureId, req0, opts = {}) {
       if (r.ok) {
         const region = typeof adapter.region === "function" ? adapter.region(entry.model) : null;
         return finish({ ok: true, json: r.json, provider: entry.provider, model: entry.model, servedModel: r.model || entry.model, region,
-          routedProvider: typeof r.routedProvider === "string" && r.routedProvider ? r.routedProvider : undefined });
+          routedProvider: typeof r.routedProvider === "string" && r.routedProvider ? r.routedProvider : undefined, ...(r.verifyMeta ? { meta: r.verifyMeta } : {}) });
       }
       last = { kind, unexpected: !!r.unexpected, httpStatus: r.httpStatus };
       if (d.alert) await alertConfig(env, featureId, entry.provider, kind, deps.fetch);
@@ -328,7 +342,11 @@ export async function aiRoute(env, request, featureId, deps = {}) {
   try {
     nreq = meta.build(input, { mode, evalLocal });
     if (!nreq || typeof nreq.system !== "string" || typeof nreq.text !== "string" || !nreq.output || !nreq.output.schema) throw new Error("bad build");
-  } catch { await lim.release(x => !!x.daily); return fb("bad_input", 400); }
+  } catch (e) { // refused before any provider call; a documented refusal of this text adds its code (pc-features.js INPUT_REFUSAL_CODES)
+    await lim.release(x => !!x.daily);
+    const code = refusalCode(e);
+    return fb("bad_input", 400, code ? { code } : {});
+  }
   if (mode !== "image") delete nreq.images;
   let run;
   try {
@@ -348,7 +366,7 @@ export async function aiRoute(env, request, featureId, deps = {}) {
   }
   const pp = publicProvider(run.provider);
   return [{ ok: true, json: run.json, provider: run.provider, model: run.servedModel, region: run.region, providerName: pp && pp.name, regionText: pp && pp.region,
-    routedVia: run.routedProvider, ...evalInfo }, 200];
+    routedVia: run.routedProvider, ...(run.meta ? { meta: run.meta } : {}), ...evalInfo }, 200];
 }
 
 /** GET /v1/ai/providers?feature=… — consent-screen data. null = unknown feature. @param {Env} env @param {string} featureId @param {any} [deps] */

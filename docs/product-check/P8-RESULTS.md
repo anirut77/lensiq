@@ -471,3 +471,59 @@ trial budget.
 5. Next step (needs owner approval): (a) tighten the `pc_claims` prompt, or use the AI only for the rules where the
    on-device detector is weak; (b) draw a fresh held-out split; (c) re-measure gpt-6.1-terra, gpt-6-luna and Sonnet
    5.5 on it.
+
+## Follow-up 2026-11-12: 21 texts refused as `bad_input`, and rule-family filtering (owner order 2026-11-12)
+
+Source: the independent fresh3 measurement (local `wrangler dev`, local evaluation mode, eval-only prompt variant B
+from branch `p8b-prompt-variants`, not on main). Raw outputs and texts stay in `~/LENSIQ-field/evals/adverts/fresh3/`
+(public advert texts, AI-labelled; no text is copied here or into the tests). `pc_claims` stays OFF in the product;
+these are correctness fixes.
+
+### F1: the 21 texts answered `bad_input` for all three models (cause found by running the guard on each id locally)
+
+| group | ids | cause | decision |
+|---|---|---|---|
+| 10 cosmetic (th 6, zh 4) | FR3-0039, 0163, 0184, 0243, 0365, 0428, 0447, 0466, 0692, 0842 | **Not a guard refusal.** Eval-only variant B asks the AI only about the "weak" rules, and the cosmetic family has none, so the variant's `buildClaims` throws "no AI rule for this category" and the gateway reports `bad_input`. These are all 10 cosmetic texts of the set. On main they reach the model in local evaluation mode. | Eval artefact, nothing to fix on main. The variant branch should skip a cosmetic item in the runner (device result only) and count it as such, not as `bad_input`. |
+| 10 zh drug / herbal / supplement | FR3-0118, 0367, 0449, 0462, 0541, 0559, 0573, 0626, 0820, 0854 | **Guard false positive.** `lensiq-pc-guard.js` treated 病人 ("patients") anywhere as a dispensing-label sign and as a name cue. In indications and adverts it ends a noun phrase ("糖尿病病人", "成人病人之", "…症)病人。"). 7 of the 10 also lost the rest of the sentence to `[removed]` (read as a name). | Fixed narrowly: 病人 counts only as a field word (token start, or followed by a colon, a space, a line end or 编号 / 編號 / 姓名 / 号 / 號 / 资料 / 信息 / ID / No). |
+| 1 zh herbal | FR3-0966 | **Guard false positive.** The CJK institution-header rule matched "…、…等各大医院" (a list of hospitals in advert prose) at a line start. | Fixed narrowly: the header may not run across 、，；。 and may not follow 各 / 各大 / 多家 / 等 / 众多 / 知名 / 权威. |
+
+None of the 21 is personal data. After the fix all 21 pass the name guard and the dispensing check; on a deployed
+Worker all 21 would be refused as `ai_off_no_product` (no product-label evidence), which is the owner-approved filter.
+
+Guard check (no figure may get worse): every text of every locked or fixed set was run through the old and the new
+guard (`aiGate` reason, evidence, document cues, dispensing, every span, the redacted text, `imageCheck`,
+`possibleNames`): P7 filter locked set 470, p7b locked set 494, P7 guard dev 197 and hold-out 61, P7 evidence set 551,
+P7 AI set 26, P3 claim set 534, advert sets fresh 402 / fresh2 635 / fresh3 967. **Changed: 11 texts, all in fresh3,
+exactly the 11 above; 0 in every other set.** The P7 re-score script (`p7-filter-rescore-after-fixes.mjs`, same code,
+new guard) reproduces the recorded log and detail file exactly apart from the guard hash and the run time. Every
+existing `pc-guard` / P7 guard test passes unchanged.
+
+Refusal codes: the Worker still answers `bad_input` (HTTP 400, no provider call; the page and the eval runner key on
+it) and now adds `code`: `ai_off_personal_data`, `ai_off_dispensing`, `ai_off_personal_doc` or `ai_off_no_product`
+(docs/AI-GATEWAY.md §4). A malformed request has no code. `tools/pc-ai-eval.mjs` reports `refused_by` per code. The
+page (`lensiq-pc-ai.js`) runs the same `aiGate` first and shows its own notice; a Worker refusal is still shown as the
+generic fallback.
+
+Adverts and the product-label filter (report only, no policy change): on a deployed Worker the filter refuses
+947 of the 967 fresh3 texts as `no-product` and 6 as `personal-doc`; 14 are allowed (fresh2: 622 of 635 refused,
+fresh: 391 of 402). The filter was built for photographed labels, so `pc_claims` on advert text cannot run on a
+deployed Worker today. Whether advert checks get their own gate is an owner decision.
+
+### F2: `pc_claims` rule-family filter on the server
+
+With a product category, the gateway's `pc_claims` verify now drops (does not reject) a signal whose rule is outside
+the category's family, using the same list the prompt offers (`claimRulesFor`: D drug, F supplement / food, H herbal,
+C cosmetic; F22 only for food), and returns only the count as `meta.off_family_dropped`. Without a category nothing
+changes. Re-analysis of the recorded fresh3 outputs (not a new measurement): haiku 61 off-family signals in 51 answers
+(herbal F10 40, supplement D08 11, food D08 9, herbal D08 1), gpt-6-luna 14 in 13 answers (herbal F10 7, supplement
+D08 4, supplement H05 3), gpt-6.1-terra 0. Neither labeller (A or B) used an off-family rule on any fresh3 text, so
+every dropped pair was a false flag under both labels. The page does not filter by family itself (it lists every
+signal it receives). It sends a category only when the device inferred one from a Thai registration number, and it
+sends a Thai food registration as `supplement`, so F22 is never offered from the page.
+
+Tests: `tests/unit/backend-pc-refusal-family.test.js` (8 tests: codes for all three features, no code on a malformed
+request, local evaluation mode, Chinese 病人 texts, family filter, F22, gateway metadata as counts only) and
+`tests/unit/pc-guard-zh-patient.test.js` (3 tests: prose is no dispensing sign; every field use and institution header
+still blocks and removes the name; the old guard fails the first test and passes the other two). The existing P7-4
+test sent `category: "drug"` and expected an F04 signal back; its original assertions now run without a category
+(unchanged result), and the drug-category call asserts that F04 is dropped with `off_family_dropped: 1`.

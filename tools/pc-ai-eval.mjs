@@ -20,6 +20,8 @@
 // evidence / personal-document sign). The name guard and the dispensing refusal still apply: such an item is answered
 // `bad_input` before any provider call and is counted here as a 0-cost fallback. Each feature row reports
 // `label_filter_skipped` = items the filter would refuse on a deployed Worker (LQPCGuard.aiGate, same function).
+// `refused_by` = the Worker's refusal code per `bad_input` (ai_off_personal_data / ai_off_dispensing / ...; "no_code" = a
+// malformed request); `off_family_dropped` = pc_claims signals outside the category's rule family the Worker dropped.
 // Providers without a key (or a required setting) are skipped: GET /v1/ai/providers shows an empty chain for them.
 // Every text goes through lensiq-pc-guard.js first, as on the page. Never prints a key, a label text or a held-out text.
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -108,7 +110,7 @@ export async function runEval(o) {
     if (!info || !Array.isArray(info.chain) || !info.chain.length) { row.skipped = "no key / not configured"; log(`skip ${m}: no key or not configured`); continue; }
     for (const f of o.features) {
       const items = (o.sets[f] || []).slice(0, o.limit || undefined);
-      const st = row.features[f] = { n: 0, ok: 0, fallback: {}, costMicros: 0, ms: [], results: [], labelFilterSkipped: 0 };
+      const st = row.features[f] = { n: 0, ok: 0, fallback: {}, costMicros: 0, ms: [], results: [], labelFilterSkipped: 0, refusedBy: {}, offFamilyDropped: 0 };
       for (const it of items) {
         if (!o.budget.canCall(m)) {
           row.stopped = o.budget.total + o.budget.maxCall * 1.5 > o.budget.cap ? "total budget" : "model cap";
@@ -124,11 +126,18 @@ export async function runEval(o) {
         // refused by the Worker's own input checks (dispensing label or personal data left): no provider call, no cost
         if (!ev && r.status === 400 && r.j && r.j.reason === "bad_input") {
           st.n++; st.fallback.bad_input = (st.fallback.bad_input || 0) + 1; st.results.push({ id: it.id, json: null, item: it, redacted: red.text });
+          // which refusal (backend/src/ai/pc-features.js INPUT_REFUSAL_CODES); "no_code" = a malformed request, not this text
+          const code = typeof r.j.code === "string" ? r.j.code : "no_code";
+          st.refusedBy[code] = (st.refusedBy[code] || 0) + 1;
           continue;
         }
         if (!ev) throw new Error("the Worker sent no cost (set AI_EVAL_LOCAL=1 in backend/.dev.vars and restart wrangler dev): caps cannot be enforced, stopping");
         o.budget.add(m, ev.costMicros); st.costMicros += ev.costMicros; st.n++; st.ms.push(r.ms);
-        if (r.j.ok) { st.ok++; st.results.push({ id: it.id, json: r.j.json, item: it, redacted: red.text }); }
+        if (r.j.ok) {
+          st.ok++; st.results.push({ id: it.id, json: r.j.json, item: it, redacted: red.text });
+          // pc_claims with a category: signals outside the category's rule family the Worker dropped (a count only)
+          if (r.j.meta && Number.isSafeInteger(r.j.meta.off_family_dropped)) st.offFamilyDropped += r.j.meta.off_family_dropped;
+        }
         else { st.fallback[r.j.reason || "error"] = (st.fallback[r.j.reason || "error"] || 0) + 1; st.results.push({ id: it.id, json: null, item: it,
           redacted: red.text }); if (r.j.reason === "budget") { row.stopped = "feature budget"; break; } }
       }
@@ -144,7 +153,8 @@ export function summarize(rows, claimsScore) {
   return rows.map(r => {
     const s = { model: r.model, skipped: r.skipped, stopped: r.stopped, features: {} };
     for (const [f, st] of Object.entries(r.features)) {
-      const base = { n: st.n, answered: st.ok, fallbacks: st.fallback, label_filter_skipped: st.labelFilterSkipped || 0,
+      const base = { n: st.n, answered: st.ok, fallbacks: st.fallback, refused_by: st.refusedBy || {}, off_family_dropped: st.offFamilyDropped || 0,
+        label_filter_skipped: st.labelFilterSkipped || 0,
         cost_usd: st.costMicros / 1e6, cost_per_call_usd: st.n ? st.costMicros / 1e6 / st.n : null,
         p50_ms: pctl(st.ms, 0.5), p95_ms: pctl(st.ms, 0.95), source: SOURCES[f] };
       if (f === "pc_fields") {

@@ -303,6 +303,20 @@ Fallback reasons returned to the page: `budget` (429), `limit` (429), `disabled`
 `unavailable` (404), `consent_required` / `image_not_allowed` / `bad_request` / `bad_input` (400), `turnstile`
 (403/503), `member_required` (401), `content_policy` (422), `invalid_output` / `provider_error` (502).
 
+Refusal codes (2026-11-12): when the Product Check features refuse the TEXT itself, the answer stays `bad_input` (400,
+no provider call) and adds `code`, so a refusal can be told apart from a malformed request (no `code`):
+`ai_off_personal_data` (a name, HN, phone, ID, e-mail, birth date or address is still in the text),
+`ai_off_dispensing` (looks like a dispensing / prescription label; setting `dispensingAI` "off", the default),
+`ai_off_personal_doc` (a personal-document sign: recipient / sender, delivery, order, receipt, certificate, appointment,
+letter), `ai_off_no_product` (no product-label evidence). Source: `backend/src/ai/pc-features.js` `INPUT_REFUSAL_CODES`.
+The page runs the same decision (`LQPCGuard.aiGate`) before sending, so in normal use the Worker's refusal is defence in
+depth; the page shows its generic fallback for it.
+
+Validator metadata (2026-11-12): a successful answer may carry `meta`, counts only (gateway `verifyMeta`: at most 8
+lower-case keys, non-negative integers). `pc_claims` with a product category: `meta.off_family_dropped` = signals whose
+rule is outside the category's family (the rules the prompt listed; F22 only for food) that were dropped, not
+rejected. Without a category every rule id is kept and there is no `meta`.
+
 ## 5. Budget
 
 - Unit: micro-USD (USD per 1M tokens = micro-USD per token). `cost = input × in + (output + reasoning) × out`, rounded up.

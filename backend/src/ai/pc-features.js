@@ -9,7 +9,9 @@
 // system prompt. No output field can carry a verdict: there is no "illegal", "fake", "genuine", "safe" or score field.
 // verify(json) runs in the gateway AFTER the schema check (runFeature): a pc_claims evidence span that is not a substring
 // of the text sent, or a translated line that is not in the text, rejects the whole answer (schema_mismatch: retried once,
-// then the next provider) — a hallucinated span never reaches the page. pc_fields registration numbers that are not in
+// then the next provider) — a hallucinated span never reaches the page. With a product category, a pc_claims signal whose
+// rule is outside the category's family (the rules the prompt listed) is dropped, not rejected, and only the COUNT is
+// returned (response `meta.off_family_dropped`). pc_fields registration numbers that are not in
 // the OCR text are kept but marked source "model" (shown as "read by the AI, not in the text").
 // Defence in depth for the patient-name guard (lensiq-pc-guard.js runs on the device first): build() runs the same guard
 // and refuses text that still carries a name, HN, phone, ID, e-mail or birth date, and (setting dispensingAI "off", the
@@ -131,12 +133,28 @@ export const piiLeft = t => Guard.scan(t).length > 0;
 /** Up to 8 short strings (barcode digits, registration numbers). @param {any} v @returns {string[]} */
 const strList = v => (Array.isArray(v) ? v.filter(x => typeof x === "string" && x.length <= 40).slice(0, 8) : []);
 
+/**
+ * Documented refusal codes (docs/AI-GATEWAY.md §4 "Refusal codes"): the gateway still answers reason "bad_input" (HTTP 400,
+ * no provider call; the page and tools/pc-ai-eval.mjs key on it) and adds `code` = one of these, so a refusal of THIS
+ * text can be told apart from a malformed request. Any other build error has no code.
+ *   ai_off_personal_data  a name, HN, phone, ID, e-mail, birth date or address is still in the text (device guard missed or skipped)
+ *   ai_off_dispensing     the text looks like a dispensing / prescription label (setting dispensingAI "off", the default)
+ *   ai_off_personal_doc   a personal-document sign (recipient / sender, delivery, order, receipt, certificate, appointment, letter)
+ *   ai_off_no_product     no product-label evidence (registration-number shape, valid barcode, or two label cue types)
+ */
+export const INPUT_REFUSAL_CODES = Object.freeze(["ai_off_personal_data", "ai_off_dispensing", "ai_off_personal_doc", "ai_off_no_product"]);
+const GATE_CODE = /** @type {Record<string, string>} */ ({ dispensing: "ai_off_dispensing", "personal-doc": "ai_off_personal_doc", "no-product": "ai_off_no_product" });
+/** @param {string} code one of INPUT_REFUSAL_CODES @param {string} message */
+function refusal(code, message) { return Object.assign(new Error(message), { code }); }
+/** The documented refusal code of a build error, or null (any other error). @param {any} e @returns {string|null} */
+export const refusalCode = e => (e && typeof e.code === "string" && INPUT_REFUSAL_CODES.includes(e.code) ? e.code : null);
+
 /** @param {any} input @param {{images?: boolean, evalLocal?: boolean}} [o] */
 function cleanText(input, o = {}) {
   const t = typeof input.text === "string" ? input.text.normalize("NFC").replace(/\r\n?/g, "\n").trim() : "";
   if (t.length > MAX_TEXT) throw new Error("text too long");
   if (!t && !o.images) throw new Error("no text");
-  if (t && piiLeft(t)) throw new Error("personal data left in the text");
+  if (t && piiLeft(t)) throw refusal("ai_off_personal_data", "personal data left in the text");
   // ONE decision, the same function the page runs first: not a dispensing / prescription label (owner's setting "off",
   // the default), no personal-document sign, product-label evidence in the text or in the facts handed in
   if (t) {
@@ -146,7 +164,7 @@ function cleanText(input, o = {}) {
     // advert snippets of the P3 claim set can be scored. A dispensing label is still refused, and so is personal data
     // (piiLeft above).
     const skip = o.evalLocal === true && (g.reason === "no-product" || g.reason === "personal-doc");
-    if (!g.allow && !skip) throw new Error("AI off for this text: " + g.reason);
+    if (!g.allow && !skip) throw refusal(GATE_CODE[g.reason] || "ai_off_no_product", "AI off for this text: " + g.reason);
   }
   return t;
 }
@@ -170,13 +188,27 @@ export function verifyFields(text) {
   };
 }
 
-/** Every evidence span must be a substring of the text that was sent (and long enough to mean something). @param {string} text */
-export function verifyClaims(text) {
+/** The rules the model is asked about for a product category (null = every rule): the category's family letter, and F22
+ *  (infant formula / infant food) only for food. @param {string|null} cat */
+export const claimRulesFor = cat => (cat ? PC_CLAIM_RULES.filter(r => r[0][0] === FAMILY[cat] && !(r[0] === "F22" && cat !== "food")) : PC_CLAIM_RULES);
+
+/**
+ * Every evidence span must be a substring of the text that was sent (and long enough to mean something).
+ * With a category (the same family filter as the prompt, claimRulesFor): a signal whose rule is outside the family is
+ * DROPPED before any other check (it never reaches the page and does not reject the answer), and the answer's metadata
+ * carries how many were dropped (`meta.off_family_dropped`: a count only, no rule id or text). Without a category every
+ * rule id of the schema is kept (the prompt listed them all) and there is no metadata.
+ * @param {string} text @param {string|null} [cat]
+ */
+export function verifyClaims(text, cat = null) {
+  const allowed = cat ? new Set(claimRulesFor(cat).map(r => r[0])) : null;
   return (/** @type {any} */ json) => {
     /** @type {string[]} */ const errors = [];
     const seen = new Set();
     const signals = [];
+    let dropped = 0;
     for (const [i, s] of (json.signals || []).entries()) {
+      if (allowed && !allowed.has(s.rule_id)) { dropped++; continue; }
       if (typeof s.evidence !== "string" || [...s.evidence.trim()].length < 2) { errors.push(`$.signals[${i}].evidence: empty`); continue; }
       if (!text.includes(s.evidence)) { errors.push(`$.signals[${i}].evidence: not a substring of the input`); continue; }
       const k = s.rule_id + "\u0000" + s.evidence;
@@ -185,7 +217,7 @@ export function verifyClaims(text) {
       signals.push({ rule_id: s.rule_id, evidence: s.evidence, start: text.indexOf(s.evidence) });
     }
     if (signals.length > MAX_SIGNALS) errors.push("$.signals: too many");
-    return { errors, json: { signals } };
+    return allowed ? { errors, json: { signals }, meta: { off_family_dropped: dropped } } : { errors, json: { signals } };
   };
 }
 
@@ -221,11 +253,12 @@ export function buildFields(input, o) {
 export function buildClaims(input, o) {
   const text = cleanText(input, { evalLocal: !!o && o.evalLocal === true });
   const cat = CATEGORIES.includes(input.category) ? input.category : null;
-  const rules = cat ? PC_CLAIM_RULES.filter(r => r[0][0] === FAMILY[cat] && !(r[0] === "F22" && cat !== "food")) : PC_CLAIM_RULES;
+  const rules = claimRulesFor(cat);
   return {
     system: PROMPTS.pc_claims + rules.map(r => `${r[0]}: ${r[1]}`).join("\n"),
     text: `Product category: ${cat || "unknown (consider every rule)"}.\nLabel text:\n<<<\n${text}\n>>>`,
-    output: { name: "pc_claims", schema: CLAIMS_SCHEMA, verify: verifyClaims(text) }
+    // the schema stays the full rule list (one schema for every category); verify drops off-family rules (claimRulesFor)
+    output: { name: "pc_claims", schema: CLAIMS_SCHEMA, verify: verifyClaims(text, cat) }
   };
 }
 

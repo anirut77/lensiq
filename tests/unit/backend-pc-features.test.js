@@ -90,12 +90,18 @@ test("P7-4 pc_claims: verbatim evidence spans pass; a span that is not in the te
   await setup(env, ["pc_claims"]);
   const good = { signals: [{ rule_id: "D01", evidence: "รักษาหายขาด" }, { rule_id: "F04", evidence: "ไม่มีผลข้างเคียง" }, { rule_id: "D01", evidence: "รักษาหายขาด" }] };
   const a = fake("anthropic", () => ok(good));
-  const r = await post(env, "pc_claims", body({ text: LABEL, category: "drug" }), { anthropic: a.adapter });
+  // no category: every rule id is kept (owner order 2026-11-12: with a category, off-family ids are dropped; see P8-F2)
+  const r = await post(env, "pc_claims", body({ text: LABEL }), { anthropic: a.adapter });
   assert.equal(r.status, 200);
   assert.deepEqual(r.j.json.signals.map(s => [s.rule_id, s.evidence]), [["D01", "รักษาหายขาด"], ["F04", "ไม่มีผลข้างเคียง"]], "deduplicated");
   assert.equal(r.j.json.signals[0].start, LABEL.indexOf("รักษาหายขาด"));
   assert.ok(!a.calls[0].r.images, "text only");
   assert.match(a.calls[0].r.text, /รักษาหายขาด/);
+  // category drug: the same answer, F04 (food family) is dropped, D01 kept and deduplicated
+  const rd = await post(env, "pc_claims", body({ text: LABEL, category: "drug" }), { anthropic: fake("anthropic", () => ok(good)).adapter });
+  assert.equal(rd.status, 200);
+  assert.deepEqual(rd.j.json.signals.map(s => [s.rule_id, s.evidence]), [["D01", "รักษาหายขาด"]], "deduplicated, off-family dropped");
+  assert.deepEqual(rd.j.meta, { off_family_dropped: 1 });
   // hallucinated span: first provider answers it twice (retry once), the second provider answers a good one
   const h = { signals: [{ rule_id: "D01", evidence: "หายขาดแน่นอน 100 %" }] };
   const bad = fake("anthropic", () => ok(h)), next = fake("openai", () => ok(good));
