@@ -221,3 +221,23 @@ Scoring rule fixed before scoring: an "over-claim text" is one both labellers fl
 text" is one both left empty; the 21 disagreements are reported apart. Recall = over-claim texts with ≥ 1 on-device signal
 (target 80 %); false flags = signals on compliant texts per 100 compliant texts; both for the advert card default
 (product type guessed) and with the labelled category chosen. One independent run; the set is then spent.
+
+## 5. Second fresh advert set "fresh-2" (collected and locked 2026-11-11)
+
+635 texts (380 over-claim, 255 compliant; th 193, en 220, zh 222; food 217, herbal 223), aimed at the misses of the
+first independent run (cure / body-function / prevention claims, food, herbal, Chinese). Same licence decision as §4
+(internal measurement only, outside the repo, L53). Stored in `~/LENSIQ-field/product-check/texts-fresh-2/`; README lists
+sources, de-duplication against all earlier sets (0 shared URLs, 0 contained texts) and thin cells. Two blind AI
+labellers: text-level κ = 0.916 (455 both flagged, 159 both clean, 21 disagree); rule labels A 691, B 733, agreed 629
+(Jaccard 0.791). Locked before any rule change or scoring (`~/LENSIQ-field/evals/adverts/fresh2/`, read-only):
+
+| File | sha256 |
+|---|---|
+| `blind-input.jsonl` | `e261cac0968b4646fb916b7b0a7ecd3bce30d6c3a1cd32e394bf496307ddfda4` |
+| `labels-A.jsonl` | `5a5fe55d8a1ab4cbc653dc9ba6f4613aa6e49886ac5acaaf9ded1d81c8c803d6` |
+| `labels-B.jsonl` | `1ee7431a87f7fbcddc5050f4b5bf8bf5f286950fff8b72896a384800ba8bb5e1` |
+
+Scoring rule (same as §4): over-claim = both labellers flagged; compliant = both empty; disagreements apart; recall
+(text with ≥ 1 signal) and false flags per 100 compliant texts with the product type chosen (the released mode), by
+language and category. Owner targets for the rule work: misses first, false flags ≤ 5 per 100. Rules are tuned only on
+the P3 dev split and the spent first fresh set (§4); this set is scored once by an independent agent, then spent.
