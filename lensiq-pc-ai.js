@@ -333,7 +333,7 @@
       if (st.notice && st.why === "no-product" && st.whyCapture) h += `<div class="md-cand" id="pcAiGuide"><p class="hint"><strong>${esc(T("md.pc.ai.guideH", "ทำอย่างไรต่อ"))}</strong> ` +
         `${esc(T("md.pc.ai.guideT", "ถ่ายด้านของฉลากที่มีเลขทะเบียน (เช่น เลข อย.) หรือรายการส่วนประกอบ หรือสแกนบาร์โค้ดของสินค้า แล้วกดขอความเห็นจาก AI อีกครั้ง"))}</p>` +
         `<div class="md-row"><button class="btn" type="button" id="pcAiGuideBar">${esc(T("md.pc.ai.guideBar", "สแกนบาร์โค้ดในภาพนี้"))}</button>` +
-        `<button class="btn ghost" type="button" id="pcAiGuideShot">${esc(T("md.pc.ai.guideShot", "ถ่ายอีกด้านของฉลาก"))}</button></div></div>`;
+        `<button class="btn ghost" type="button" id="pcAiGuideShot">${esc(T("md.pc.ai.guideShot", "ถ่ายอีกด้านของฉลาก"))}</button></div>` + guideFigure() + `</div>`;
       if (st.ready && !st.notice) h += `<p class="md-status" data-kind="ok" id="pcAiReady">${esc(T("md.pc.ai.ready",
         "พบข้อมูลฉลากสินค้าแล้ว กด \"ขอความเห็นจาก AI\" ได้ ยังไม่มีการส่งอะไรจนกว่าคุณจะกด"
       ))}</p>`;
@@ -346,6 +346,22 @@
     }
     W.__LQ_PCAI.paint = paint;
 
+    /** A small drawing (ours, no photo) of a good side of a pack: ① ingredients list, ② registration number, ③ barcode. */
+    function guideFigure() {
+      const n = (x, y, k) => `<circle cx="${x}" cy="${y}" r="9" fill="currentColor"/>` +
+        `<text x="${x}" y="${y + 4}" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">${k}</text>`;
+      const bars = [0, 3, 5, 9, 11, 14, 18, 20, 23, 27, 29, 33, 36, 38, 42, 45, 47, 51, 54, 56]
+        .map((x, i) => `<rect x="${150 + x}" y="96" width="${i % 3 ? 1.5 : 2.5}" height="26" fill="currentColor"/>`).join("");
+      const lines = [0, 1, 2, 3, 4].map(i => `<rect x="22" y="${30 + i * 11}" width="${[110, 96, 104, 82, 90][i]}" height="4" rx="2" fill="currentColor" opacity=".45"/>`).join("");
+      const alt = T("md.pc.ai.guideImgAlt", "ภาพวาดด้านหลังกล่องสินค้า มีรายการส่วนประกอบ กรอบเลขทะเบียน และบาร์โค้ด");
+      return `<figure class="pc-guide-fig" id="pcAiGuideImg"><svg viewBox="0 0 220 140" width="220" height="140" role="img" aria-label="${esc(alt)}">` +
+        `<rect x="6" y="6" width="208" height="128" rx="10" fill="none" stroke="currentColor" stroke-width="2"/>` +
+        `<rect x="22" y="16" width="56" height="6" rx="3" fill="currentColor"/>` + lines +
+        `<rect x="22" y="96" width="104" height="26" rx="4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>` +
+        `<rect x="30" y="106" width="88" height="6" rx="3" fill="currentColor" opacity=".7"/>` + bars +
+        n(146, 34, "1") + n(18, 92, "2") + n(198, 92, "3") + `</svg>` +
+        `<figcaption class="hint">${esc(T("md.pc.ai.guideImg", "ตัวอย่างด้านที่ใช้ได้: ① รายการส่วนประกอบ ② เลขทะเบียน ③ บาร์โค้ด"))}</figcaption></figure>`;
+    }
     function fbLine(x) { return `<p class="md-status" data-kind="warn" data-fb="${esc(x.reason)}">${esc(x.message)}</p>`; }
     function by(x) { return `<p class="hint" data-by>${esc(T("md.pc.ai.estimate", "ค่าประมาณจาก AI อาจผิดได้"))} · ${esc(x.checkedBy || "")}</p>`; }
     function results(r) {

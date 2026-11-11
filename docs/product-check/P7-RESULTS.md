@@ -595,6 +595,28 @@ with.
 
 **Defaults at commit:** every AI feature off, budget 0, `dispensingAI: "off"`, `companyPhones: "keep"`.
 
+### 3.8 Tester "relaxed capture": measured before building, not built (2026-11-11)
+
+Request (owner, 2026-11-11): for testers with a valid access code, let AI run on a capture without product-label evidence (for
+example a front panel) when it shows no personal-document sign and is not a dispensing label; stop before deploying if any item
+from a personal document or dispensing label gets through. Measured first with the current guard on main (sha256 `61aa058b…`, unchanged by this),
+on the two spent synthetic sets; dev figures, not independent. Scripts and log:
+`~/LENSIQ-field/evals/relaxed/` (`precheck-run.log`).
+
+| Measure | Rule today | Relaxed as asked | Variant: also no name-like line and no phone number |
+|---|---|---|---|
+| p7 set: real product labels refused | 61/360 | 0/360 | 10/360 |
+| p7 set: dispensing labels allowed | 0/30 | **4/30** (D004, D008, D023, D025) | 0/30 |
+| p7 set: non-product documents allowed | 0/60 | **6/60** (N017, N018, N049–N052) | 0/60 |
+| p7 set: of those, personal data still in the text sent | – | names or phones in 8 of 10; photo allowed on 4 | – |
+| p7b set: personal documents allowed | 0 | **54** (72 personal items in the text) | **7** (8 personal items) |
+
+The name guard does not find the names on these documents (a Hong Kong clinic label, Japanese gift cards, Thai and English
+medicine-reminder notes), so they were held back only by the evidence rule. The variant was tuned with the p7 items in view and
+still leaks on p7b. **Owner decision 2026-11-11: option 1, do not build.** Instead the page guides users to start on the right
+side of the pack (a line before capture and an example picture when a capture is refused for lack of evidence; copy and UI
+only, nothing measured). The public capture rule is on the launch list (CTO-BRIEF L52).
+
 ## 4. Backend features: checks (mocked providers)
 
 | Check | Result |

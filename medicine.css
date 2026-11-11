@@ -59,6 +59,7 @@
 .md-warn{background:#fff7ec;border:1px solid #f1d7b0;color:#5c3d10;border-radius:10px;padding:10px 12px;font-size:.9rem}
 .md-cands{display:grid;gap:12px}
 .md-cand{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff;min-width:0}
+.pc-guide-fig{margin:10px 0 0;color:var(--navy)}.pc-guide-fig svg{display:block;max-width:100%;height:auto}.pc-guide-fig figcaption{margin-top:4px}
 .md-cand[data-loose=true]{border-style:dashed;background:#fbfbfd}
 .md-imp{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700;font-size:1.05rem;letter-spacing:.03em;overflow-wrap:anywhere}
 .md-sugg{display:flex;gap:8px;flex-wrap:wrap}

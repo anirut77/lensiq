@@ -415,7 +415,9 @@ export default async function ({ base, launch, check }) {
       "no consent screen, no request; no retry hint for a personal document or a dispensing label; after a barcode fact is added AI is allowed; TH / EN / 中文", async () => {
       const ai = page => page.evaluate(() => window.__ai.filter(c => /\/v1\/ai\//.test(c.url)).length);
       const guide = page => page.evaluate(() => { const g = document.querySelector("#pcAiGuide");
-        return g ? { t: g.innerText, bar: !!g.querySelector("button#pcAiGuideBar"), shot: !!g.querySelector("button#pcAiGuideShot") } : null; });
+        const f = g && g.querySelector("figure#pcAiGuideImg");
+        return g ? { t: g.innerText, bar: !!g.querySelector("button#pcAiGuideBar"), shot: !!g.querySelector("button#pcAiGuideShot"),
+          fig: !!(f && f.querySelector("svg[role=img]") && f.querySelector("svg").getAttribute("aria-label") && f.querySelector("figcaption")) } : null; });
       const FRONT = "ซาแมพลาม็อล ตราสาธิต\nบรรเทาปวด ลดไข้\nสูตรใหม่"; // the front of a pack: a name and a slogan, no label details
       const page = await browser.newPage(null, { initScripts: [INIT, NET], isolated: true });
       await page.goto(`${base}/medicine.html?fakeface`);
@@ -426,7 +428,9 @@ export default async function ({ base, launch, check }) {
       await page.evaluate(() => document.querySelector("#pcAiGo").click());
       await page.waitFor(`document.querySelector("#pcAiNotice") && document.querySelector("#pcAiNotice").dataset.reason === "no-product"`, 8000);
       let g = await guide(page);
-      assert(g && /เลขทะเบียน/.test(g.t) && /ส่วนประกอบ/.test(g.t) && /บาร์โค้ด/.test(g.t) && g.bar && g.shot, "front panel: the next step and both one-tap buttons " + JSON.stringify(g));
+      assert(g && /เลขทะเบียน/.test(g.t) && /ส่วนประกอบ/.test(g.t) && /บาร์โค้ด/.test(g.t) && g.bar && g.shot && g.fig && /①.*②.*③/s.test(g.t),
+        "front panel: the next step, both one-tap buttons and the example drawing " + JSON.stringify(g));
+      assert(/ส่วนประกอบ.*เลขทะเบียน.*บาร์โค้ด/.test(await page.evaluate(() => document.querySelector("#pcSideHint").innerText)), "before capture: the side-to-photograph line");
       assert((await dialog(page)) === null && (await ai(page)) === 0, "front panel: no consent screen, no request of any kind");
       assert(await page.evaluate(() => !document.querySelector("#pcAiPreview") && !document.querySelector("#pcAiOffer") && !!document.querySelector("#pcOut").innerHTML &&
         !!document.querySelector("#pcText")), "front panel: no preview, no offer; on-device results stay");
@@ -473,7 +477,9 @@ export default async function ({ base, launch, check }) {
         await page2.waitFor(`document.querySelector("#pcAiGuide")`, 8000);
         g = await guide(page2);
         let c = await coverage(page2);
-        assert(re.test(g.t) && g.bar && g.shot && c.pct === 0 && !BAN.test(g.t), `${lang} guidance ${JSON.stringify(g)} Thai left ${JSON.stringify(c.top)}`);
+        assert(re.test(g.t) && g.bar && g.shot && g.fig && c.pct === 0 && !BAN.test(g.t), `${lang} guidance ${JSON.stringify(g)} Thai left ${JSON.stringify(c.top)}`);
+        const side = await page2.evaluate(() => document.querySelector("#pcSideHint").innerText);
+        assert((lang === "en" ? /ingredients.*registration number.*barcode/i : /成分.*注册号.*条码/).test(side), lang + ": the side-to-photograph line " + side);
         await setCapture(page2, FRONT, [{ rawValue: "8850006939727", format: "ean_13" }]);
         await page2.waitFor(`document.querySelector("#pcAiReady")`, 8000);
         c = await coverage(page2);

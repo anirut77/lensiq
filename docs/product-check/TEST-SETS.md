@@ -197,3 +197,11 @@ Counts are after both person checks ("Products" = products with at least one ima
 
 `tests/unit/pc-texts.test.js` and `tests/unit/pc-photo-labels.test.js` build their own fake rows (example.invalid URLs,
 "FAKE" rows). They test the tools, not detection accuracy, and produce no accuracy number.
+
+## 4. Fresh advert / claim texts (collected 2026-11-11)
+
+402 texts (239 over-claim, 163 compliant; th 158, en 210, zh 34) quoted from public pages, for one held-out measurement of the
+on-device advert rules (approved item 4, adverts option B). Stored outside the repo in `~/LENSIQ-field/product-check/texts-fresh/`;
+the README there lists every source and the licence of each row. **Owner decision 2026-11-11:** internal measurement only, not
+redistributed, not used for training, never committed; on the legal list as CTO-BRIEF L53. Rules are tuned on the old P3 data
+only; this set is labelled blind by two labellers, locked with sha256 recorded here, and scored once by an independent agent.
