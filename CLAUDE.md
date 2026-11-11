@@ -20,23 +20,36 @@ https://anirut77.github.io/lensiq/. Owner-facing replies are in Thai.
   below, do not wait for approval after the report; continue with the next item.
 - Keep docs/CTO-BRIEF.md and docs/FIELD-PILOT.md updated each round.
 
-## Standing order: approved work list (owner decision 2026-11-11, replaces "wait for approval after each step")
+## Standing order: approved work list (owner decisions 2026-11-11, replaces "wait for approval after each step")
 
-Work through this list in order without waiting for the owner between items:
+Work through this list in order without waiting for the owner between items. Done before this update: test
+deployment follow-ups, admin key management, P7 option ข (built, kept off), relaxed capture (not built; capture
+guidance instead).
 
-1. Test deployment follow-ups (bootstrap token off after the owner confirms sign-in, AI defaults, medicine.html
-   pointed at the Worker, phone checklist)
-2. Admin key management
-3. P7 option ข
-4. Adverts option B
-5. P8 extra evals
-6. Hall-mode detector switch
-7. P9
-8. Nutrition MVP
-9. Try-On MVP
-10. Merit MVP
-11. Style MVP
-12. Org accounts P1–P3
+First priority: **Sellable pack** for Exam (lab mode), Attendance (PIN/QR), Gate (assisted) and Crowd (events,
+experimental). Goal: the owner can sell by quotation and bank transfer, without online payment.
+
+1. `docs/LAUNCH-READINESS.md`: one table per product (what works, measured numbers with source, known limits, every
+   must-fix-before-launch item with status, what blocks selling: code / owner / legal).
+2. Fix the must-fix code items: recovery codes with a slow salted hash; retention cron confirmed on; hall mode and
+   Crowd labels consistent everywhere; no page claims more than was measured.
+3. Sales kit in Thai (English second): quotation, invoice and receipt templates (excl. 7 % VAT, approved prices),
+   order form, a 10-minute demo script per product, a demo mode with sample data (no customer data), an onboarding
+   guide per product (install, first day, common problems).
+4. A short sales deck per product from the one-pagers, measured claims only.
+5. Customer documents for lawyer review, each marked "draft for legal review": terms of service, privacy notice, DPA
+   template, pilot agreement, consent forms.
+6. `docs/LEGAL-PACKET.md` in Thai: every open legal item (L1 onward) by topic, with the question, current approach
+   and affected document.
+7. Finish `docs/OWNER-TEST-GUIDE.md` and the Exam lab pilot kit (equipment, consent form, step-by-step day, result
+   sheet).
+8. Custom domain steps: (a) existing domain, (b) new brand domain. Change nothing in DNS.
+9. Contact / request-a-quote: design how leads reach the owner with minimal personal data; ask before turning any
+   form on.
+
+Then the queue: CI sharding (approved: option ค, then ข after three clean trial runs, no added retries), adverts
+on-device, hall-mode detector switch, P8 extra evals (tell the owner the cost first), P9, Nutrition MVP, Try-On MVP,
+Merit MVP (must be built), Style MVP, org accounts P1–P3.
 
 Stop and ask the owner only when:
 - money would be spent or a plan upgraded;
@@ -57,7 +70,8 @@ Speed:
 - Use a faster or lower-effort model for translation, docs and repetitive edits. Keep high effort for reviewers and
   for anything touching sign-in, keys, sync or privacy.
 - Changes to the gate or CI that would shorten it: propose them with the expected saving first; change only after the
-  owner agrees.
+  owner agrees. (Approved 2026-11-11: CI shards ค with an "every test file ran exactly once" check; local ข after three
+  trial runs with no random failures. Not approved: ก.)
 - If the usage limit is near: finish and commit the current item cleanly, write a handover note in the repo
   (`docs/HANDOVER.md`), and stop.
 
