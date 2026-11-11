@@ -160,6 +160,7 @@ body.att-emp .tr-only{display:none !important}
 .badge-card svg{max-width:100%;height:auto}
 .badge-card b{font-size:1.05rem}
 .hr-admin .hint,.hr-notice .hint{font-size:.83rem;color:#4a5068}
+.hr-notice .hint a{display:inline-flex;align-items:center;min-height:44px}
 @media(max-width:640px){
   .hr-admin{padding:16px}
   .hr-who{grid-template-columns:minmax(0,1fr)}

@@ -23,6 +23,7 @@
   const W = /** @type {any} */ (window), E = W.LQExam, F = W.LQExamFace, U = W.LQExamUI, L = W.LQExamLink, T = U.T;
   const $ = s => document.querySelector(s);
   const TEST = !!(window.LQDetect && LQDetect.isTest());
+  const DEMO = !!(W.LQDemo && W.LQDemo.on); // sales demo mode (?demo=1, lensiq-demo.js): a sample session without the camera
   const P = U.params();
   const K = { node: "lq-exam-node", lab: "lq-exam-lab", log: "lq-exam-lab-log", active: "lq-exam-active" };
   const COCO_NAME = { 76: "phone", 83: "book", 72: "laptop", 71: "screen" };
@@ -367,7 +368,10 @@
     if (link) link.close();
     link = L.create({ room, onMessage });
     buildMonitor();
-    show("cam"); startCamera();
+    if (DEMO) { // no camera, no models: straight to the exam step; events come from the demo panel's buttons
+      show("exam"); wasFs = false;
+      engine(() => T("demo.exam.engine", "โหมดสาธิต: ไม่ได้เปิดกล้อง เหตุการณ์ในบันทึกเป็นตัวอย่าง"), "warn");
+    } else { show("cam"); startCamera(); }
     clearInterval(hbTimer); hbTimer = setInterval(heartbeat, 5000); setTimeout(heartbeat, 300);
   });
   $("#decline").addEventListener("click", () => {
@@ -415,5 +419,11 @@
     get phase() { return phase; }, get mon() { return mon; }, get baseline() { return mon && mon.baseline; },
     own, sent, get link() { return link; }, get quality() { return lastQ; }, get faces() { return lastFaces; }, nodeId, clips, get clipCfg() { return clipCfg; },
     get faceEngine() { return faceEng ? faceEng.name : TEST ? "test" : null; }, get faceOff() { return faceOff; }, get faceRuns() { return faceRuns; }
+  };
+  // demo mode only: a simulated event goes through the same path as a real one (own log, gentle prompt, room link)
+  if (DEMO) /** @type {any} */ (window).__LQ_EXAM_LAB.demoEvent = (/** @type {string} */ sig) => {
+    const s = E.SIGNALS[sig]; if (!s) return;
+    const extra = sig === "noface" ? { dur: 5000 } : sig === "multiface" ? { n: 2 } : sig === "phone" ? { what: "phone" } : sig === "away" ? { dur: 3000 } : {};
+    handle([Object.assign({ sig, lvl: s.lvl, t: Date.now(), prompt: true }, extra)]);
   };
 })();

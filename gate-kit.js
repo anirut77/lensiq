@@ -34,6 +34,9 @@
   function openStore(ns) {
     const mem = new Map();
     let db = null;
+    // sales demo mode (?demo=1, lensiq-demo.js): the store starts with the page's sample records (memory only)
+    const sample = W.LQDemo && W.LQDemo.on && W.LQDemo.records ? W.LQDemo.records(ns) : null;
+    const seed = v => { if (sample && !mem.size) for (const r of sample) mem.set(r.id, r); return v; };
     const ready = new Promise(res => {
       let req;
       try { req = indexedDB.open(ns, 1); } catch { res(false); return; }
@@ -47,7 +50,7 @@
           all.onerror = () => res(true);
         } catch { res(true); }
       };
-    });
+    }).then(seed);
     const tx = (fn) => { if (!db) return; try { const t = db.transaction("rec", "readwrite"); fn(t.objectStore("rec")); } catch { /* quota / closed: memory copy stays */ } };
     return {
       ready,

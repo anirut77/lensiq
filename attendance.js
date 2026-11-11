@@ -594,4 +594,11 @@ if (scaPanel) {
 window.__ATT_CORE = { get people() { return people; }, get ready() { return ready; }, get scanning() { return scanning; }, say, video, isTest: TEST };
 window.__ATT_SC = { get active() { return SCA; }, get last() { return SCA_LAST; }, get field() { return { ...fieldStats }; } };
 
-renderPeople(); renderLogs(); init();
+// sales demo mode (?demo=1, lensiq-demo.js): no camera and no face models — the demo is PIN / QR on sample employees
+function demoNoCamera() {
+  const txt = () => /** @type {any} */ (window).LQDemo.t("demo.att.cam", "โหมดสาธิต: ไม่เปิดกล้อง ลงเวลาด้วย PIN หรือบัตร QR ได้ตามปกติ");
+  const show = () => { camMsg.classList.remove("hide"); camMsg.textContent = txt(); say(txt(), "warn"); };
+  show(); window.addEventListener("lq-lang", show);
+}
+renderPeople(); renderLogs();
+if (/** @type {any} */ (window).LQDemo && /** @type {any} */ (window).LQDemo.on) demoNoCamera(); else init();

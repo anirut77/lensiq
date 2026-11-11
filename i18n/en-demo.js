@@ -1,0 +1,33 @@
+/* i18n/en-demo.js — English for the sales demo mode (?demo=1: lensiq-demo.js, lensiq-demo-data.js, demo.*). Mirrors
+ * i18n/zh-demo.js. */
+(window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
+  "demo.bar": "Demo mode: sample data, not real data",
+  "demo.h": "Demo mode for presentations",
+  "demo.p": "This page uses built-in sample data; every name is invented. No camera, no images of people, nothing leaves this device and the real records on this device are not touched. Exported files are marked SAMPLE.",
+  "demo.reset": "Reload the sample data",
+  "demo.exit": "Leave demo mode",
+  "demo.cam": "Demo mode does not open the camera — leave demo mode to use a real camera",
+  "demo.net": "Demo mode: nothing is sent outside this site",
+  "demo.exam.p": "A sample session without the camera: tick the consent box and press \"Next: check camera and light\"; the camera step is skipped and the exam page opens at once. The event log below is sample data. Use the buttons below to simulate what the invigilator would see. Every flag only means \"invigilator, please take a look\"; the invigilator always decides.",
+  "demo.exam.noface": "Simulate: face not visible",
+  "demo.exam.phone": "Simulate: phone in view",
+  "demo.exam.multi": "Simulate: someone else in view",
+  "demo.exam.away": "Simulate: switched window",
+  "demo.exam.engine": "Demo mode: the camera is not on; the events in the log are samples",
+  "demo.att.p": "8 fictitious employees (sample 01–08) with time records from the 1st of last month to yesterday, punched by PIN or QR badge (no face). Try a PIN punch on the PIN tab: codes S01 to S08 use PINs 1001 to 1008 in order.",
+  "demo.att.cam": "Demo mode: the camera stays off; punch in with a PIN or QR badge as usual",
+  "demo.att.month": "Show last month's summary and CSV export",
+  "demo.vg.p": "Fictitious houses and cars, visitor passes and a deny list are loaded. Confirm the notice below, then press \"Use sample image\" and \"Next car (sample)\" to see each kind of decision. Every plate read waits for the guard to press a button; auto-open is off.",
+  "demo.vg.res": "Resident car (house 99/1)",
+  "demo.vg.vis": "Visitor with a pass (house 99/1)",
+  "demo.vg.deny": "On the deny list",
+  "demo.vg.unk": "Unknown car (raises an alert)",
+  "demo.vg.over": "Another sample pass (house 12/3) has expired while the car is still inside, so the overstaying-visitor alert shows.",
+  "demo.pk.p": "Fee rules (15 minutes free, 20 baht an hour, at most 200 baht a day), 2 shops, 1 monthly pass and 4 cars in the lot are loaded. Confirm the notice below, press \"Use sample image\" to read a plate, then the guard presses \"Exit: calculate fee\". PromptPay is not set in demo mode so no real transfer can happen.",
+  "demo.pk.codes": "Sample shop stamp codes (single use):",
+  "demo.cr.p": "This is experimental and not yet suitable for dense crowds; the figures are estimates. The scenes below are simulated (grey blocks, no images of people). Pick a scene to see the \"people look small\" hint and the ≈ \"estimate\" label.",
+  "demo.cr.far": "Far crowd (small people + 15 or more)",
+  "demo.cr.small": "People look small (far from the camera)",
+  "demo.cr.crowd": "15 or more people",
+  "demo.cr.shop": "Shopfront (passers-by)"
+} });

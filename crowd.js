@@ -537,7 +537,27 @@
     { o: 11, y: 0.55, v: 0.12, stop: 0, enter: true }, { o: 13, y: 0.2, v: 0.14, stop: 0, enter: false },
     { o: 16, y: 0.5, v: 0.1, stop: 5, enter: true }, { o: 19, y: 0.28, v: 0.11, stop: 0, enter: false }
   ];
+  // sales demo mode (?demo=1, lensiq-demo.js) adds scenes that show the count-quality warnings (LQCrowd.countQuality):
+  // "far" = 18 small (far) people (small hint + ≈ estimate) · "small" = 6 small people · "crowd" = 18 people (≈) · "shop" = AGENTS
+  const SAMPLE = !!(W.LQDemo && W.LQDemo.on);
+  let scene = SAMPLE ? "far" : "shop";
+  const SCENES = {
+    far: { rows: [0.14, 0.24, 0.34], per: 6, x0: 0.08, dx: 0.14, w: 0.025, h: 0.07 },
+    small: { rows: [0.22], per: 6, x0: 0.1, dx: 0.14, w: 0.025, h: 0.07 },
+    crowd: { rows: [0.2, 0.45, 0.68], per: 6, x0: 0.03, dx: 0.16, w: 0.06, h: 0.28 }
+  };
+  function sceneDets(sc, t) {
+    const out = [];
+    sc.rows.forEach((y, r) => {
+      for (let i = 0; i < sc.per; i++) {
+        out.push({ x: sc.x0 + i * sc.dx + 0.012 * Math.sin(t * 0.7 + i + r * 2), y: y + 0.004 * Math.sin(t + i), w: sc.w, h: sc.h, score: 0.9, label: "person" });
+      }
+    });
+    return out;
+  }
+  if (SAMPLE) W.LQDemo.crowdScene = (/** @type {string} */ s) => { if (s === "shop" || SCENES[s]) scene = s; };
   function demo(ms) {
+    if (SCENES[scene]) return sceneDets(SCENES[scene], ms / 1000);
     const t = ms / 1000, out = [], CYCLE = 24;
     for (const a of AGENTS) {
       let u = (t - a.o) % CYCLE; if (u < 0) continue;
@@ -758,4 +778,13 @@
   W.addEventListener("lq-lang", () => { convSig = ""; hoursSig = ""; P._force = true; P.render(); });
   P._force = true; P.render();
   W.__LQZ.cr = { live, get line() { return line; }, counter, get qual() { return qual; }, csvMarketing: () => csvMarketing(P), get heatSel() { return heatSel; } };
+  // the sales demo starts at once, without a camera; in English / Chinese it waits for the dictionary (start-up "lq-lang")
+  // so the demo zones get translated names
+  if (SAMPLE && !$("demoCam").disabled) {
+    let started = false;
+    const go = () => { if (!started) { started = true; W.removeEventListener("lq-lang", go); if (!$("demoCam").disabled && !P.zc.running) $("demoCam").click(); } };
+    let want = (/[?&]lang=(th|en|zh)/i.exec(location.search) || [])[1] || "";
+    if (!want) try { want = localStorage.getItem("lq-lang") || ""; } catch { want = ""; }
+    if (!want || /^th/i.test(want)) go(); else { W.addEventListener("lq-lang", go); setTimeout(go, 3000); }
+  }
 })();
