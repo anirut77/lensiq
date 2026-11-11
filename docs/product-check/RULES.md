@@ -181,3 +181,7 @@ Machine-readable gating fields in `tools/pc-rules-draft.json` (documented in its
   2569; new ids D13, F19-F22, H01-H06, C07-C08. Review every 6 months (risk PR7) and when the Gazette publishes a change.
 - 2026-11-09 (P1 review fixes, before any tuning): F05 / C03 "อย(?!่)" lookahead; F18 `requires_context` field and wording
   (cl.10(12) is about dietary supplements containing kratom); no labels or metrics changed.
+- 2026-11-11 (adverts rule work): `RULE_WORK` in `tools/pc-rules-build.mjs` (verb and noun families for F09, D08, H05, F07,
+  F08, F10, F19, F06, H02, F02, C03, D02, endorsement rules, F12, F13, F20, F05, F03, F11, C01; guards for warnings,
+  directions, preparation times and sales deadlines). Dev numbers only, in `ADVERT-RESULTS.md` "Rule work 2026-11-11";
+  approved nutrient-function statements and disclaimers stay suppressed as above.

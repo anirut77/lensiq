@@ -7,8 +7,13 @@
 //        [--data DIR]          default ~/LENSIQ-field/product-check/texts (set.jsonl, split.json)
 //        [--log FILE]          run log (appended), default ~/LENSIQ-field/evals/adverts/dev-runs.jsonl
 //        [--json]              machine-readable summary
+//   node tools/pc-advert-eval.mjs --fresh [DIR]   the SPENT first fresh advert set (default ~/LENSIQ-field/evals/adverts/fresh:
+//        blind-input.jsonl, labels-A.jsonl, labels-B.jsonl), consensus rule (both labellers), modes "released" (product type
+//        chosen by the user = the row's category, as the page runs) and "default" (no type: guessed, else every family);
+//        by language and category; [--misses] lists the released-mode misses / false flags. Refuses fresh2 / texts-fresh.
 //
-// DEV ONLY, by design: this tool refuses any other split and any data folder named texts-fresh. The P3 held-out split is
+// DEV ONLY, by design: this tool refuses any other split, any data folder named texts-fresh* and the locked fresh2 set (the
+// first fresh set is spent since its one independent run on 2026-11-11, so it is a development set now). The P3 held-out split is
 // spent, and the fresh advert set (~/LENSIQ-field/product-check/texts-fresh/) is scored once, blind, by a separate agent.
 // Source of every figure: public-dataset quotes (P3 set), labels by an AI agent (agentA), dev split = the tuning set, so
 // the figures are NOT independent. Data and logs stay outside the repo.
@@ -72,6 +77,73 @@ export function runDev(dir) {
   return out;
 }
 
+/** Folders that hold locked, unscored sets: never read here. @param {string} dir */
+export function assertNotLocked(dir) {
+  if (/texts-fresh|fresh2|fresh-2|held-?out/i.test(resolve(dir))) throw new Error("refusing a locked set (texts-fresh*, fresh2, held-out): scored once by a separate agent, never used here");
+}
+
+/**
+ * Fresh-set measures (as the independent scorer of 2026-11-11 counts them): "overclaim" = both labellers flagged, "compliant"
+ * = both empty, the rest "disagree" (left out of recall and false flags). @param {any[]} rows
+ */
+export function freshMeasures(rows) {
+  const over = rows.filter(r => r.cls === "overclaim"), comp = rows.filter(r => r.cls === "compliant");
+  const hitAny = over.filter(r => r.predicted.length).length;
+  const hitCons = over.filter(r => r.consensus.some((/** @type {string} */ i) => r.predicted.includes(i))).length;
+  const flags = comp.reduce((a, r) => a + r.predicted.length, 0);
+  const flagged = comp.filter(r => r.predicted.length).length;
+  let tp = 0, fp = 0, fn = 0;
+  for (const r of rows) {
+    for (const i of r.predicted) if (r.consensus.includes(i)) tp++; else fp++;
+    for (const i of r.consensus) if (!r.predicted.includes(i)) fn++;
+  }
+  return { overclaim: over.length, hit_any: hitAny, recall_any: over.length ? hitAny / over.length : null, recall_any_ci: wilson(hitAny, over.length),
+    hit_consensus_rule: hitCons, recall_consensus_rule: over.length ? hitCons / over.length : null,
+    rule: { tp, fp, fn, precision: tp + fp ? tp / (tp + fp) : null, recall: tp + fn ? tp / (tp + fn) : null },
+    compliant: comp.length, flags, per100: comp.length ? 100 * flags / comp.length : null, flagged };
+}
+
+/** The spent first fresh set, both modes, with breakdowns. @param {string} dir */
+export function runFresh(dir) {
+  assertOutsideRepo(dir);
+  assertNotLocked(dir);
+  const input = readJsonl(join(dir, "blind-input.jsonl"));
+  const ids = (/** @type {any} */ r) => [...new Set(((r && r.rules) || []).map((/** @type {any} */ x) => String(x.rule_id)))];
+  const A = new Map(readJsonl(join(dir, "labels-A.jsonl")).map(r => [r.id, ids(r)]));
+  const B = new Map(readJsonl(join(dir, "labels-B.jsonl")).map(r => [r.id, ids(r)]));
+  /** @type {Record<string, any>} */ const out = { texts: input.length };
+  for (const mode of ["released", "default"]) {
+    const rows = input.map(r => {
+      const a = A.get(r.id) || [], b = B.get(r.id) || [];
+      const res = LQPCAdvert.analyze(r.text, { category: mode === "released" ? r.category : undefined });
+      return { id: r.id, lang: r.lang, category: r.category, text: r.text, flags: res.flags,
+        cls: a.length && b.length ? "overclaim" : !a.length && !b.length ? "compliant" : "disagree",
+        consensus: a.filter(x => b.includes(x)), A: a, B: b,
+        predicted: /** @type {string[]} */ ([...new Set(res.flags.map((/** @type {any} */ f) => f.rule_id))]) };
+    });
+    /** @type {Record<string, any>} */ const by = { overall: freshMeasures(rows) };
+    for (const l of ["th", "en", "zh"]) by["lang " + l] = freshMeasures(rows.filter(r => r.lang === l));
+    for (const c of ["supplement", "food", "herbal", "drug", "cosmetic"]) by["cat " + c] = freshMeasures(rows.filter(r => r.category === c));
+    out[mode] = { rows, by };
+  }
+  return out;
+}
+
+/** Dev split breakdown by language and category (agentA labels). @param {any[]} rows */
+function devBreakdown(rows) {
+  /** @type {Record<string, any>} */ const by = {};
+  const one = (/** @type {any[]} */ rs) => {
+    const t = textMeasures(rs), p = score(rs).overall;
+    const over = rs.filter(r => r.stratum === "overclaim" && r.expected.length);
+    return { overclaim: over.length, any: over.filter(r => r.predicted.length).length, hit: t.overclaim.hit, rule_recall: p.recall, rule_precision: p.precision,
+      compliant: t.compliant.n, flags: t.compliant.flags, per100: t.compliant.per100 };
+  };
+  by.overall = one(rows);
+  for (const l of ["th", "en", "zh"]) by["lang " + l] = one(rows.filter(r => r.lang === l));
+  for (const c of ["supplement", "food", "herbal", "drug", "cosmetic"]) by["cat " + c] = one(rows.filter(r => r.category === c));
+  return by;
+}
+
 const pct = (/** @type {number|null} */ x) => (x == null ? "—" : (100 * x).toFixed(1) + " %");
 const ci = (/** @type {number[]} */ c) => `[${(100 * c[0]).toFixed(1)}, ${(100 * c[1]).toFixed(1)}]`;
 
@@ -81,16 +153,19 @@ function main() {
   if (opt("--split") && opt("--split") !== "dev") { console.error("pc-advert-eval: dev split only (held-out is spent; the fresh set is scored by a separate agent)"); process.exit(2); }
   const dir = resolve(opt("--data", join(homedir(), "LENSIQ-field", "product-check", "texts")) || "");
   const log = resolve(opt("--log", join(homedir(), "LENSIQ-field", "evals", "adverts", "dev-runs.jsonl")) || "");
+  if (args.includes("--fresh")) return mainFresh(args, opt, log);
   /** @type {any} */ let res;
-  try { assertOutsideRepo(dir); assertOutsideRepo(log); res = runDev(dir); } catch (e) { console.error(String(/** @type {any} */ (e).message || e)); process.exit(2); }
+  try { assertOutsideRepo(dir); assertOutsideRepo(log); assertNotLocked(dir); res = runDev(dir); } catch (e) { console.error(String(/** @type {any} */ (e).message || e)); process.exit(2); }
   const hashes = { rules_sha256: sha256File(join(REPO, "lensiq-claims-rules.js")), engine_sha256: sha256File(join(REPO, "lensiq-claims.js")) };
   /** @type {Record<string, any>} */ const summary = { at: new Date().toISOString(), source: SOURCE, data: basename(dir), split: "dev", texts: res.texts, ...hashes };
   for (const m of MODES) {
     const p = res[m].pairs.overall, t = res[m].text;
     summary[m] = { pairs: { tp: p.tp, fp: p.fp, fn: p.fn, recall: p.recall, precision: p.precision },
       overclaim_texts: { n: t.overclaim.n, hit: t.overclaim.hit, recall: t.overclaim.recall },
-      compliant: { n: t.compliant.n, flags: t.compliant.flags, per100: t.compliant.per100, flagged: t.compliant.flagged } };
+      compliant: { n: t.compliant.n, flags: t.compliant.flags, per100: t.compliant.per100, flagged: t.compliant.flagged },
+      by: devBreakdown(res[m].rows) };
   }
+  summary.advert_sha256 = sha256File(join(REPO, "lensiq-pc-advert.js"));
   mkdirSync(dirname(log), { recursive: true });
   appendFileSync(log, JSON.stringify(summary) + "\n");
   if (args.includes("--json")) { console.log(JSON.stringify(summary, null, 1)); return; }
@@ -103,6 +178,13 @@ function main() {
       `${pct(t.overclaim.recall)} ${ci(t.overclaim.ci)} (${t.overclaim.hit}/${t.overclaim.n}) | ` +
       `${t.compliant.per100 == null ? "—" : t.compliant.per100.toFixed(1)} (${t.compliant.flags} on ${t.compliant.n}) | ${t.compliant.flagged}/${t.compliant.n} ${ci(t.compliant.flagged_ci)} |`);
   }
+  console.log("\n| Mode | Slice | Over-claim texts with >= 1 signal | with an expected rule | Rule recall / precision | False flags / 100 compliant |\n|---|---|---|---|---|---|");
+  for (const m of ["labelled", "auto"]) {
+    for (const [k, v] of Object.entries(summary[m].by)) {
+      console.log(`| ${m} | ${k} | ${v.any}/${v.overclaim} | ${v.hit}/${v.overclaim} | ${pct(v.rule_recall)} / ${pct(v.rule_precision)} | ` +
+        `${v.per100 == null ? "—" : v.per100.toFixed(1)} (${v.flags} on ${v.compliant}) |`);
+    }
+  }
   if (args.includes("--misses")) {
     for (const m of MODES) {
       console.log(`\n## dev misses / false flags, ${m} mode (vs agentA)`);
@@ -113,6 +195,45 @@ function main() {
         const found = r.flags.filter((/** @type {any} */ f) => fp.includes(f.rule_id)).map((/** @type {any} */ f) => `${f.rule_id}:"${f.text || f.evidence}"`).join(" ");
         console.log(`${r.id} [${r.category}/${r.stratum}/${r.lang}] FN ${fn.join(",") || "-"} FP ${fp.join(",") || "-"} ${found}\n   ${r.text.replace(/\s+/g, " ").slice(0, 400)}`);
       }
+    }
+  }
+}
+
+/** @param {string[]} args @param {Function} opt @param {string} log */
+function mainFresh(args, opt, log) {
+  const i = args.indexOf("--fresh");
+  const next = args[i + 1];
+  const dir = resolve(next && !next.startsWith("--") ? next : join(homedir(), "LENSIQ-field", "evals", "adverts", "fresh"));
+  /** @type {any} */ let res;
+  try { assertOutsideRepo(log); res = runFresh(dir); } catch (e) { console.error(String(/** @type {any} */ (e).message || e)); process.exit(2); }
+  const hashes = { rules_sha256: sha256File(join(REPO, "lensiq-claims-rules.js")), engine_sha256: sha256File(join(REPO, "lensiq-claims.js")),
+    advert_sha256: sha256File(join(REPO, "lensiq-pc-advert.js")) };
+  const src = "dev: SPENT first fresh advert set (independent run done 2026-11-11), consensus of labellers A and B; tuning data now, not independent";
+  /** @type {Record<string, any>} */ const summary = { at: new Date().toISOString(), source: src, data: "adverts/" + basename(dir), split: "spent-fresh",
+    texts: res.texts, ...hashes };
+  for (const m of ["released", "default"]) summary[m] = Object.fromEntries(Object.entries(res[m].by).map(([k, v]) => [k, { ...v, recall_any_ci: undefined }]));
+  mkdirSync(dirname(log), { recursive: true });
+  appendFileSync(log, JSON.stringify(summary) + "\n");
+  if (args.includes("--json")) { console.log(JSON.stringify(summary, null, 1)); return; }
+  console.log(`# Advert rules on the spent fresh set, ${src}\nlensiq-claims-rules.js sha256 ${hashes.rules_sha256}\nlensiq-pc-advert.js sha256 ${hashes.advert_sha256}\nlogged to ${log}\n`);
+  console.log("| Mode | Slice | Recall: >= 1 signal | Consensus-rule recall | Rule precision / recall vs consensus | False flags / 100 compliant | Compliant flagged |\n|---|---|---|---|---|---|---|");
+  for (const m of ["released", "default"]) {
+    for (const [k, v] of Object.entries(res[m].by)) {
+      const all = `${pct(v.recall_any)}${k === "overall" ? " " + ci(v.recall_any_ci) : ""} (${v.hit_any}/${v.overclaim})`;
+      console.log(`| ${m} | ${k} | ${all} | ${pct(v.recall_consensus_rule)} (${v.hit_consensus_rule}/${v.overclaim}) | ` +
+        `${pct(v.rule.precision)} (${v.rule.tp}/${v.rule.tp + v.rule.fp}) / ${pct(v.rule.recall)} (${v.rule.tp}/${v.rule.tp + v.rule.fn}) | ` +
+        `${v.per100 == null ? "—" : v.per100.toFixed(1)} (${v.flags} on ${v.compliant}) | ${v.flagged}/${v.compliant} |`);
+    }
+  }
+  if (args.includes("--misses")) {
+    console.log("\n## released-mode misses / false flags (vs consensus; disagreements marked)");
+    for (const r of res.released.rows) {
+      const fn = r.consensus.filter((/** @type {string} */ x) => !r.predicted.includes(x));
+      const fp = r.predicted.filter((/** @type {string} */ x) => !r.consensus.includes(x));
+      if (!fn.length && !fp.length) continue;
+      const found = r.flags.filter((/** @type {any} */ f) => fp.includes(f.rule_id)).map((/** @type {any} */ f) => `${f.rule_id}:"${f.evidence}"`).join(" ");
+      console.log(`${r.id} [${r.category}/${r.cls}/${r.lang}] A ${r.A.join(",") || "-"} B ${r.B.join(",") || "-"} ` +
+        `FN ${fn.join(",") || "-"} FP ${fp.join(",") || "-"} ${found}\n   ${r.text.replace(/\s+/g, " ").slice(0, 400)}`);
     }
   }
 }

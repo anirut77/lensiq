@@ -235,6 +235,121 @@
      "rule": "H02",
      "what": "exclude 'แท้ 100%' (composition: 'genuine 100% milk / coconut water')",
      "why": "adverts, dev: with no product type every family runs and 'น้ำมะพร้าวแท้ 100%' (a food) was flagged by C03, D02 and H02"
+   },
+   {
+     "rule": "F09",
+     "what": "treat / relieve verbs ลด, สยบ, ขจัด, คุม, 'reduce / ease / improve / suffer', ZH 消除 / 调理; symptom nouns (pain, numbness, dizziness, urinary, inflammation, fatty liver, dialysis, parasites, colds, fever, anxiety, named syndromes)",
+     "why": "rule work 2026-11-11 (spent fresh set + dev): most F09 misses named a symptom outside the list or used the verb 'reduce'"
+   },
+   {
+     "rule": "D08",
+     "what": "verbs 'suffering', 'beneficial for', 'improve'",
+     "why": "rule work 2026-11-11: s.77 disease claims phrased 'for people suffering from' were missed"
+   },
+   {
+     "rule": "H05",
+     "what": "verbs ลด / 'reduce, lower, dissolve, shrink' (risk reduction of a serious disease); โรค + organ with words between; tumour masses",
+     "why": "rule work 2026-11-11: herbal serious-disease claims ('reduce stroke risk', 'dissipate tumours', 'โรคหลอดเลือดในหัวใจ') were missed"
+   },
+   {
+     "rule": "F07",
+     "what": "control / lower / dissolve verbs before a marker with words between (Thai spacing removed), uric acid, 'fight / improve / reduce … cholesterol', 'for high cholesterol', ZH control / regulate + 血压 / 血糖 / 血脂",
+     "why": "rule work 2026-11-11: marker claims written as lists ('ลดเบาหวาน ความดัน ไขมัน'), with 'reducing high LDL cholesterol' or in Chinese were missed"
+   },
+   {
+     "rule": "F08",
+     "what": "prevent / inhibit / destroy + germ or condition nouns (TH ป้องกัน / ยับยั้ง / ทำลาย / กำจัด … ไวรัส / เชื้อ / ปรสิต, ลดเสี่ยง…, ลดการติดเชื้อ; EN fight / combat / inhibit … virus / infection, 'protection against', 'reduced … risk', 'prevention of'; ZH 抗 / 抑制 + germ / cancer)",
+     "why": "rule work 2026-11-11: infection and prevention claims outside the draft's noun list were missed"
+   },
+   {
+     "rule": "F10",
+     "what": "organ care verbs + organ / system nouns (บำรุง / ฟื้นฟู / ปกป้อง / ทำความสะอาด / ล้าง …), muscle growth or recovery, hormone / fertility / cycle support, energy / focus / endurance, rejuvenation, '<organ> health', ZH regulate / improve + 机能 / 骨密度",
+     "why": "rule work 2026-11-11: structure / function claims naming organs or functions outside the list were missed"
+   },
+   {
+     "rule": "F19",
+     "what": "research wording: 'จากการศึกษาพบว่า', 'studies reveal / found', 'in one study', 'clinical studies', hyphenated 'clinically-backed', ZH 实验 / 临床 / 研究 + show",
+     "why": "rule work 2026-11-11: research claims in these forms (and 'clinically-backed' with a hyphen) were missed"
+   },
+   {
+     "rule": "F06",
+     "what": "fast results in minutes / hours / pills, 'after one week of taking', 'see results in N', 'naturally and fast'",
+     "why": "rule work 2026-11-11: speed claims with minutes, pills or 'after one week' were missed"
+   },
+   {
+     "rule": "F12",
+     "what": "skin elasticity / firmness / hair growth wording, 'healthier skin', thick black hair, ZH youth / firming / anti-wrinkle words",
+     "why": "rule work 2026-11-11: beauty claims from food in these words (EN, TH, ZH) were missed"
+   },
+   {
+     "rule": "F13",
+     "what": "fat 'squeeze / flush / dissolve' verbs (รีด / ขับ / สลาย / เผา … ไขมัน); ZH 'lost N jin' weight wording",
+     "why": "rule work 2026-11-11: weight claims with these verbs and Chinese weight-loss amounts were missed"
+   },
+   {
+     "rule": "F03",
+     "what": "'จบ(ทุก)ปัญหา', 'หายจริง / หายแน่นอน'",
+     "why": "rule work 2026-11-11: complete-cure wording in these forms was missed"
+   },
+   {
+     "rule": "F05",
+     "what": "'รับรองโดย อย.' and ministry approval; 'completely / totally safe', 'zero toxicity'",
+     "why": "rule work 2026-11-11: FDA / ministry approval written after the verb and safety guarantees in these words were missed"
+   },
+   {
+     "rule": "F11",
+     "what": "'sex drive'",
+     "why": "rule work 2026-11-11: 'low sex drive' was missed"
+   },
+   {
+     "rule": "F02",
+     "what": "superlatives 'the strongest / purest / most trusted', 'the first company', '… in the world', ZH 最高 / 最强 / 世界级 / 唯一",
+     "why": "rule work 2026-11-11: superlative claims in these forms were missed"
+   },
+   {
+     "rule": "F20",
+     "what": "'no need for medicine', 'instead of / not a statin / medication'",
+     "why": "rule work 2026-11-11: comparisons with medicines were missed"
+   },
+   {
+     "rule": "F14",
+     "what": "endorsement 'แนะนำโดยแพทย์', doctor ... แนะนำ further apart, 'dermatologists recommend', 'doctor-formulated'",
+     "why": "rule work 2026-11-11: endorsements in these forms were missed"
+   },
+   {
+     "rule": "D07",
+     "what": "same endorsement family as F14",
+     "why": "rule work 2026-11-11: 'แนะนำโดยแพทย์' in a drug advert was missed"
+   },
+   {
+     "rule": "H04",
+     "what": "same endorsement family as F14",
+     "why": "rule work 2026-11-11: 'doctor-formulated', 'กระทรวง… รับรอง' in herbal adverts were missed"
+   },
+   {
+     "rule": "C04",
+     "what": "same endorsement family as F14",
+     "why": "rule work 2026-11-11: 'Dermatologists recommend' was missed"
+   },
+   {
+     "rule": "D02",
+     "what": "elixir / anti-ageing tonic wording, 'N times faster', 'no surgery needed'",
+     "why": "rule work 2026-11-11: exaggerated drug efficacy in these words was missed"
+   },
+   {
+     "rule": "H02",
+     "what": "superlatives (สุดยอด, อันดับ 1, 'the best / #1 / most efficacious'), 'every problem', 'no laser / surgery / exercise needed', fast results in minutes, 'see results in N days'",
+     "why": "rule work 2026-11-11: herbal H02 was 0 of 8 on the spent fresh set; exaggeration in these forms was missed"
+   },
+   {
+     "rule": "C01",
+     "what": "'ลดปัญหาสิว', acne / breakout treatment, anaesthetic and swelling / bleeding wording, 'replaces medicine'",
+     "why": "rule work 2026-11-11: cosmetic non-cosmetic-purpose claims in these words were missed"
+   },
+   {
+     "rule": "C03",
+     "what": "'หนึ่งเดียว', 'ทุกคนไว้วางใจ', 'look N years younger', magic 'เสก'",
+     "why": "rule work 2026-11-11: cosmetic exaggeration in these words was missed"
    }
   ],
   "masks": [
@@ -678,7 +793,13 @@
          "ได้ผลจริง",
          "บำรุง(?:หัวใจ|ปอด|สมอง|ตับ|ไต)",
          "หุ่นสวย",
-         "ความอ้วน"
+         "ความอ้วน",
+         "(?:ยา)?อายุวัฒนะ",
+         "ชะลอวัย",
+         "บำรุงร่างกาย",
+         "\\d+\\s*เท่า",
+         "ไม่ต้องผ่าตัด",
+         "(?:ยุบ|หาย)\\S{0,2}(?:ไว|เร็ว)"
        ],
        "en": [
          "100\\s*%\\s*(?:effective|safe|natural|guaranteed)",
@@ -873,12 +994,16 @@
        "th": [
          "(?:แพทย์|หมอ|เภสัชกร|ดารา|คนดัง|ผู้เชี่ยวชาญ)\\S{0,6}(?:แนะนำ|รับรอง|ยืนยัน|การันตี)",
          "รีวิวจากผู้ใช้จริง",
-         "ผู้ใช้จริง"
+         "ผู้ใช้จริง",
+         "(?<!คำ)(?:แนะนำ|รับรอง)(?:โดย|จาก)\\S{0,4}(?:แพทย์|หมอ|เภสัชกร|ผู้เชี่ยวชาญ|โรงพยาบาล|กระทรวง)",
+         "(?:แพทย์|หมอ|เภสัชกร|โรงพยาบาล|กระทรวง)\\S{0,30}(?<!คำ)(?:แนะนำ|รับรอง)"
        ],
        "en": [
          "\\b(?:doctor|physician|pharmacist|md)s?[- ](?:recommended|approved)",
          "\\brecommended\\s+by\\s+(?:doctors|physicians|pharmacists|experts)",
-         "\\btestimonial"
+         "\\btestimonial",
+         "\\b(?:doctors?|physicians?|dermatologists?|pharmacists?|experts?)\\s+(?:\\w+\\s+)?recommend",
+         "\\b(?:doctor|physician|pharmacist|dermatologist)s?[- ](?:formulated|developed|designed|trusted|recommended|approved)"
        ],
        "zh": [
          "医生推荐",
@@ -896,7 +1021,12 @@
      "note": "",
      "title_zh": "由他人认可或称赞疗效",
      "claim_window": 0,
-     "exclude": []
+     "exclude": [
+       "(?:ภายใต้|ตาม)\\S{0,4}คำแนะนำ\\S{0,16}",
+       "ปรึกษา\\S{0,4}(?:แพทย์|เภสัชกร|ผู้เชี่ยวชาญ)\\S{0,30}",
+       "คำแนะนำ(?:ของ|จาก)\\S{0,16}",
+       "\\b(?:ask|consult)\\s+(?:a|your)\\s+(?:doctor|physician|pharmacist|dermatologist)\\b[^.]{0,60}"
+     ]
    },
    {
      "id": "D08",
@@ -959,10 +1089,17 @@
      "note": "Claim verb required: (?:รักษา|บำบัด|บรรเทา|ป้องกัน|ต้าน|แก้|หาย|ยับยั้ง|ลดความเสี่ยง) / (?:treat|cure|heal|prevent|fight|combat|reverse|relieve|eliminate|kill|beat|protect against). Two secondary sources disagree on whether อัมพาต is on the 2520 list; the 2556 notice that adds hypertension, psychiatric disease and AIDS is for medical devices, not drugs.",
      "title_zh": "声称治疗第77条公告所列疾病",
      "claim_window": 60,
-     "exclude": [],
+     "exclude": [
+       "(?:ผู้ป่วย|ผู้ที่(?:เป็น|มี)|ผู้มี|หากมีอาการ|หากเป็น)\\S{0,20}",
+       "\\b(?:patients|people|persons|those|anyone)\\s+with\\b[^.,;]{0,30}",
+       "\\bif\\s+(?:you\\s+)?(?:have|experience|feel|are)\\b[^.]{0,40}",
+       "\\b(?:stop|discontinue)\\s+use\\b[^.]{0,60}",
+       "\\b(?:ask|consult)\\s+(?:a|your)\\s+(?:doctor|physician|pharmacist)\\b[^.]{0,60}",
+       "不能代替(?:药物|藥物)(?:治疗|治療)?(?:疾病)?"
+     ],
      "verbs": {
        "th": "(?:รักษา|บำบัด|บรรเทา|แก้|หาย|ฟื้นฟู|กำจัด|ลดอาการ|พิชิต|ทางออก|ต้าน(?!อนุมูล)|ยับยั้ง|ช่วยเรื่อง|ดูแล)",
-       "en": "(?:treat|cure|heal|relie|alleviat|eliminat|revers|control|manag|fight|beat|combat|target|sufferer|support|helped|anti-?(?=hyperglyc|diabet|viral|cancer|tumou?r|inflammat))",
+       "en": "(?:suffer|benefici|improv|treat|cure|heal|relie|alleviat|eliminat|revers|control|manag|fight|beat|combat|target|sufferer|support|helped|anti-?(?=hyperglyc|diabet|viral|cancer|tumou?r|inflammat))",
        "zh": "(?:治|疗|愈|缓解|根治|功效|改善|防|抗|抑制|溶|降)"
      }
    },
@@ -1202,13 +1339,17 @@
          "#\\s*1\\b",
          "\\bnumber\\s+one\\b",
          "\\bmost\\s+effective",
-         "\\bsuperior\\s+to"
+         "\\bsuperior\\s+to",
+         "\\bthe\\s+(?:strongest|purest|most\\s+(?:trusted|powerful|potent|advanced|efficacious))\\b",
+         "\\bthe\\s+first\\s+(?:company|brand|product)\\b",
+         "\\b(?:highest|strongest|purest)\\b[^.]{0,40}\\bin\\s+the\\s+world"
        ],
        "zh": [
          "最好",
          "第一",
          "顶级",
-         "最有效"
+         "最有效",
+         "最高(?:等级|等級|级|級|品质|品質|标准|標準)|最强|最強|世界级|世界級|唯一"
        ]
      },
      "requires_claim_verb": false,
@@ -1241,7 +1382,9 @@
          "หายห่วง",
          "หายขาด",
          "หมดกังวล",
-         "หายสนิท"
+         "หายสนิท",
+         "จบ(?:ทุก)?ปัญหา",
+         "หาย(?:จริง|แน่นอน)"
        ],
        "en": [
          "\\bcures?\\s+(?:completely|permanently|for good)",
@@ -1328,13 +1471,16 @@
          "อย(?!่)\\.?\\s*(?:รับรอง|การันตี|รับประกัน|ยืนยัน)",
          "ผ่าน\\s*อย(?!่)\\.?\\s*(?:รับรอง)?",
          "ปลอดภัย\\s*100",
-         "ปลอดภัยแน่นอน"
+         "ปลอดภัยแน่นอน",
+         "รับรอง(?:โดย|จาก)\\s*(?:อย(?!่)\\.?|กระทรวงสาธารณสุข)"
        ],
        "en": [
          "\\bfda[- ](?:approved|certified|registered)",
          "\\bapproved\\s+by\\s+(?:the\\s+)?fda",
          "\\b100\\s*%\\s*safe",
-         "\\bgovernment[- ]approved"
+         "\\bgovernment[- ]approved",
+         "\\b(?:completely|totally|absolutely|100\\s*%)\\s+safe\\b",
+         "\\bzero\\s+toxicity"
        ],
        "zh": [
          "药监局认证",
@@ -1377,7 +1523,11 @@
          "(?<!ภาย)ใน\\s*\\d+\\s*(?:วัน|สัปดาห์|อาทิตย์|ชั่วโมง|คืน)",
          "ใน(?:สัปดาห์|อาทิตย์|วัน|คืน)เดียว",
          "ทันใจ",
-         "อย่างรวดเร็ว"
+         "อย่างรวดเร็ว",
+         "(?:แก้|หาย|เห็นผล|บรรเทา|ลด|ปกติ|ดีขึ้น)\\S{0,40}(?:ภาย)?ใน\\s*\\d+\\s*(?:นาที|วินาที|ชั่วโมง|วัน|เม็ด)",
+         "(?:ลด|หาย|ดีขึ้น|ฟื้น)\\S{0,12}\\s?\\d+\\s*(?:วัน|ชั่วโมง|นาที)",
+         "\\d+\\s*(?:วัน|ชั่วโมง)\\s?\\S{0,10}(?:ปกติ|หาย|ดีขึ้น)",
+         "เห็นผลรวดเร็ว|รวดเร็วทันใจ"
        ],
        "en": [
          "\\binstant(?:ly)?\\s+results?",
@@ -1386,7 +1536,11 @@
          "\\bworks?\\s+(?:fast|immediately|instantly)",
          "\\bin\\s+(?:just\\s+)?\\d+\\s+(?:days|weeks|hours)",
          "\\bwithin\\s+(?:the\\s+first\\s+|a\\s+|one\\s+|\\d+\\s+)(?:days?|weeks?|hours?|nights?)\\b",
-         "\\bin\\s+(?:just\\s+)?(?:one|a|\\d+)\\s+(?:day|week|night)s?\\b"
+         "\\bin\\s+(?:just\\s+)?(?:one|a|\\d+)\\s+(?:day|week|night)s?\\b",
+         "\\bafter\\s+(?:just\\s+)?(?:one|a|two|three|\\d+)\\s+(?:days?|weeks?|nights?)\\s+(?:of\\s+(?:taking|using)|on)\\b",
+         "\\b(?:see|notice)\\s+(?:\\w+\\s+)?results?\\s+(?:in|within)\\s+\\d",
+         "\\bin\\s+(?:under\\s+|just\\s+)?\\d+(?:\\s*-\\s*\\d+)?\\s+(?:minutes|seconds|hours)\\b",
+         "\\b(?:naturally\\s+and\\s+fast|fast\\s+(?:results?|relief)|quick\\s+(?:results?|relief))\\b"
        ],
        "zh": [
          "立即见效",
@@ -1409,7 +1563,10 @@
        "(?:บริโภค|รับประทาน|ทาน|ใช้|เก็บ|หลังเปิด)\\S{0,8}(?:ภาย)?ใน\\s*\\d+\\s*(?:วัน|ชั่วโมง|เดือน)",
        "\\buse\\s+within\\b",
        "\\b(?:consume|use|eat|drink|finish|store|keep)(?:d|ed|en)?\\s+within\\s+\\d+\\s+(?:days?|hours?|weeks?)",
-       "\\bafter\\s+opening\\b[^.]{0,60}"
+       "\\bafter\\s+opening\\b[^.]{0,60}",
+       "(?:ต้ม|ชง|แช่|อบ|นึ่ง|ทิ้งไว้|ปั่น)\\S{0,12}(?:ภาย)?ใน?\\s*\\d+\\s*(?:นาที|วินาที|ชั่วโมง)",
+       "(?:ลด\\s*\\d+\\s*%|ลดราคา|ส่วนลด|โปร|ซื้อ|ส่งฟรี|จัดส่ง|ส่งของ|ได้รับสินค้า|คืนเงิน)[^\\n.!]{0,30}?(?:ภาย)?ใน?\\s*\\d+\\s*(?:วัน|ชั่วโมง)",
+       "\\b(?:ships?|shipping|delivery|delivered|refund|returns?|sale|offer|discount)\\b[^.]{0,30}\\b(?:in|within)\\s+\\d+\\s+(?:days?|hours?)"
      ]
    },
    {
@@ -1432,20 +1589,26 @@
          "ปรับสมดุลน้ำตาล",
          "(?:ควบคุม|คุม|ปรับ|รักษา)(?:ระดับ)?\\s*(?:น้ำตาล|ความดัน|ไขมันในเลือด|โคเลสเตอรอล|คอเลสเตอรอล)",
          "น้ำตาลในเลือด\\S{0,6}(?:คงที่|ปกติ|ลดลง|สมดุล)",
-         "(?:ลด|บรรเทา)\\S{0,12}ความดันโลหิต"
+         "(?:ลด|บรรเทา)\\S{0,12}ความดันโลหิต",
+         "(?:ลด|คุม|ควบคุม|สลาย|ปรับ)\\S{0,16}(?:ความดัน|ไขมันในเลือด|ไขมันในเส้นเลือด|น้ำตาลในเลือด|คอเลสเตอรอล|โคเลสเตอรอล|ไตรกลีเซอไรด์|(?:กรด)?ยูริก)",
+         "(?:ลด|คุม|ควบคุม)(?:ระดับ|ค่า)\\s*น้ำตาล",
+         "น้ำตาล(?:พุ่ง|สวิง|ขึ้น)|การพุ่งของน้ำตาล|ดูแลระดับน้ำตาล"
        ],
        "en": [
          "\\b(?:lower|reduce|control|regulate|balance)s?\\w*\\s+(?:your\\s+)?(?:bad\\s+)?(?:cholesterol|blood\\s+pressure|blood\\s+sugar|blood\\s+glucose|glucose|triglycerides|a1c|uric\\s+acid)",
          "\\bhealthy\\s+blood\\s+sugar",
          "\\b(?:manage|stabili[sz]e|support)s?\\w*\\s+(?:healthy\\s+)?(?:your\\s+)?(?:blood\\s+sugar|blood\\s+glucose|glucose|blood\\s+pressure|cholesterol)",
          "\\b(?:keep|keeps|keeping|maintain\\w*)\\s+(?:your\\s+)?(?:blood\\s+sugar|blood\\s+pressure|cholesterol|glucose)",
-         "\\bfights?\\s+insulin\\s+resistance"
+         "\\bfights?\\s+insulin\\s+resistance",
+         "\\b(?:lower|reduc|control|regulat|balanc|fight|manag|stabili[sz]|improv)\\w*\\s+(?:back\\s+against\\s+)?(?:\\w+\\s+){0,3}?(?:cholesterol|blood\\s+pressure|blood\\s+sugar|blood\\s+glucose|blood\\s+lipids|triglycerides|LDL|hypertension)",
+         "\\bfor\\s+(?:high|elevated)\\s+(?:cholesterol|blood\\s+pressure|blood\\s+sugar)"
        ],
        "zh": [
          "降血糖",
          "降血压",
          "降血脂",
-         "降胆固醇"
+         "降胆固醇",
+         "(?:控制|调节|調節|稳定|穩定|改善|平衡|维持|維持|降低?)\\S{0,4}(?:血压|血壓|血糖|血脂|胆固醇|膽固醇|尿酸|三高)"
        ]
      },
      "requires_claim_verb": false,
@@ -1483,7 +1646,12 @@
          "COVID",
          "ป้องกัน\\s*(?:โรค|อาการ)\\S",
          "ป้องกัน\\S{0,6}(?:กระดูกพรุน|ข้อเสื่อม|ข้อเข่าเสื่อม|แทรกซ้อน|อัลไซเมอร์|พาร์กินสัน|สมองเสื่อม|ต้อ)",
-         "ลดความเสี่ยง\\S{0,10}(?:โรค|ภาวะ)"
+         "ลดความเสี่ยง\\S{0,10}(?:โรค|ภาวะ)",
+         "(?:ป้องกัน|ยับยั้ง|ต้าน|ทำลาย|กำจัด|ฆ่า)\\S{0,12}(?:ไวรัส|เชื้อ|แบคทีเรีย|ปรสิต|พยาธิ|เซลล์มะเร็ง)",
+         "ป้องกัน\\S{0,6}(?:เส้นเลือด|หลอดเลือด|ตีบ|ตัน)",
+         "ลด(?:ความ)?เสี่ยง\\S{0,10}(?:โรค|ภาวะ|ไต|หัวใจ|มะเร็ง|หลอดเลือด)",
+         "(?:ลด|ป้องกัน)\\S{0,4}การติดเชื้อ",
+         "เซลล์มะเร็ง"
        ],
        "en": [
          "\\bprevent\\w*\\s+(?:\\w+\\s+){0,2}(?:cancer|diabetes|heart\\s+disease|covid|coronavirus|infection|flu|stroke|disease)",
@@ -1495,7 +1663,13 @@
          "\\bfight\\s+against\\b",
          "\\bprotects?\\s+against\\s+(?:the\\s+)?(?:\\w+\\s+){0,2}(?:virus|cancer|disease|infection|flu|cold)",
          "\\beliminates?\\s+infections?",
-         "\\bkills?\\s+(?:[\\w()-]+\\s+){0,4}(?:virus(?:es)?|bacteria|germs)"
+         "\\bkills?\\s+(?:[\\w()-]+\\s+){0,4}(?:virus(?:es)?|bacteria|germs)",
+         "\\b(?:fight|combat|inhibit|halt|block|neutrali[sz]e|destroy|attack)\\w*\\s+(?:off\\s+|back\\s+|against\\s+)?(?:the\\s+|an?\\s+|your\\s+)?(?:[\\w()-]+\\s+){0,3}?(?:virus(?:es)?|viral|bacteria|germs|infections?|pathogens?|parasites?|cancer\\s+cells?|tumou?rs?|flu|colds?)\\b",
+         "\\bprotect(?:s|ion|ive)?\\s+against\\s+(?:the\\s+)?(?:\\w+\\s+){0,2}(?:virus|cancer|disease|infection|flu|cold)",
+         "\\breduced\\s+(?:\\w+\\s+)?risk\\b",
+         "\\bprevention\\s+of\\b",
+         "\\b(?:bacterial|viral|respiratory)\\s+(?:\\w+,?\\s+){0,2}infections?",
+         "\\bsars-?cov"
        ],
        "zh": [
          "预防癌",
@@ -1505,7 +1679,10 @@
          "杀菌",
          "可防",
          "防病",
-         "预防"
+         "预防",
+         "抗(?:菌|病毒|癌|肿瘤|腫瘤|辐射|輻射|感染)",
+         "抑制\\S{0,4}(?:癌|肿瘤|腫瘤|病毒|细菌|細菌|病菌)",
+         "癌细胞|癌細胞"
        ]
      },
      "requires_claim_verb": false,
@@ -1584,7 +1761,27 @@
          "ไซนัส",
          "บุตรยาก",
          "เก๊า?ท์|เกาท์",
-         "สมองเสื่อม"
+         "สมองเสื่อม",
+         "ปวด",
+         "อักเสบ",
+         "มือ\\S{0,4}ชา|เท้าชา|เหน็บชา|ชาปลาย|ปลายประสาท",
+         "เวียน(?:หัว|ศีรษะ)|บ้านหมุน|วูบ",
+         "อ่อนเพลีย|เหนื่อยง่าย",
+         "หลับยาก",
+         "ตาพร่า",
+         "(?:ฉี่|ปัสสาวะ)(?:บ่อย|แสบ|ขัด|ไม่(?:สุด|หมด)|เป็นฟอง)|ท่อปัสสาวะ",
+         "ต่อมลูกหมากโต",
+         "ถุงลมโป่งพอง",
+         "ไขมัน(?:พอก|ใน)ตับ",
+         "ฟอกไต|ไต(?:เสื่อม|วาย|ทุกระยะ)",
+         "พยาธิ|ปรสิต",
+         "ออฟฟิศซินโดรม",
+         "อาการป่วย|เจ็บป่วย",
+         "ท้องผูก",
+         "ไข้หวัด|หวัด",
+         "ความดัน(?:โลหิต)?สูง",
+         "โปรตีนรั่ว",
+         "เส้นเลือด\\S{0,4}(?:ตีบ|ตัน)"
        ],
        "en": [
          "\\bdiabet",
@@ -1610,7 +1807,19 @@
          "\\ballerg",
          "\\bdisorders?",
          "\\binflammation",
-         "\\bcolds?\\s+(?:and\\s+flu|symptoms)"
+         "\\bcolds?\\s+(?:and\\s+flu|symptoms)",
+         "\\bpain\\b",
+         "\\bfever",
+         "\\binfluenza|\\bflu\\b|\\bcolds\\b|\\bcommon\\s+cold",
+         "\\bpneumonia",
+         "\\banxiety",
+         "\\binfections?\\b",
+         "\\bstroke\\b",
+         "\\bsymptoms?\\b",
+         "\\b(?:ADHD|PCOS|IBS|GERD|COPD)\\b",
+         "\\bnight\\s+sweats|\\bhot\\s+flash",
+         "\\bconstipation",
+         "\\bneuropathy"
        ],
        "zh": [
          "糖尿病",
@@ -1627,7 +1836,28 @@
          "炎症",
          "有病",
          "血栓",
-         "肿瘤"
+         "肿瘤",
+         "便秘",
+         "抽筋",
+         "咳嗽",
+         "头痛|頭痛|胃痛|疼痛|关节痛|關節痛",
+         "湿疹|濕疹",
+         "过敏|過敏",
+         "感冒",
+         "发烧|發燒",
+         "腹泻|腹瀉",
+         "冠心病",
+         "心脏病|心臟病",
+         "肝炎",
+         "贫血|貧血",
+         "中风|中風",
+         "痔疮|痔瘡",
+         "哮喘",
+         "鼻炎",
+         "胃炎",
+         "焦虑|焦慮",
+         "抑郁|抑鬱",
+         "三高"
        ]
      },
      "requires_claim_verb": true,
@@ -1643,12 +1873,19 @@
      "claim_window": 80,
      "exclude": [
        "\\b(?:risk|likelihood)\\s+of\\s+(?:\\w+\\s+){0,3}(?:disease|diabetes|cancer)",
-       "ความเสี่ยง\\S{0,12}โรค\\S*"
+       "ความเสี่ยง\\S{0,12}โรค\\S*",
+       "\\breduce[sd]?\\s+(?:the\\s+)?risk",
+       "(?:ผู้ป่วย|ผู้ที่(?:เป็น|มี)|ผู้มี|หากมีอาการ|หากเป็น)\\S{0,20}",
+       "\\b(?:patients|people|persons|those|anyone)\\s+with\\b[^.,;]{0,30}",
+       "\\bif\\s+(?:you\\s+)?(?:have|experience|feel|are)\\b[^.]{0,40}",
+       "\\b(?:stop|discontinue)\\s+use\\b[^.]{0,60}",
+       "\\b(?:ask|consult)\\s+(?:a|your)\\s+(?:doctor|physician|pharmacist)\\b[^.]{0,60}",
+       "不能代替(?:药物|藥物)(?:治疗|治療)?(?:疾病)?"
      ],
      "verbs": {
-       "th": "(?:รักษา|บำบัด|บรรเทา|แก้|หาย|ฟื้นฟู|กำจัด|ลดอาการ|พิชิต|ทางออก|ต้าน(?!อนุมูล)|ยับยั้ง|ช่วยเรื่อง|ดูแล)",
-       "en": "(?:treat|cure|heal|relie|alleviat|eliminat|revers|control|manag|fight|beat|combat|target|sufferer|support|helped|anti-?(?=hyperglyc|diabet|viral|cancer|tumou?r|inflammat))",
-       "zh": "(?:治|疗|愈|缓解|根治|功效|改善|防|抗|抑制|溶|降)"
+       "th": "(?:ลด(?!ความเสี่ยง|เสี่ยง)|สยบ|ขจัด|คุม|ควบคุม|หยุดยั้ง|หยุด(?!ใช้|รับ|ทาน|กิน|การ|ยา)|จบ(?:ปัญหา)?|คลาย|ดีขึ้น|รักษา|บำบัด|บรรเทา|แก้|หาย|ฟื้นฟู|กำจัด|ลดอาการ|พิชิต|ทางออก|ต้าน(?!อนุมูล)|ยับยั้ง|ช่วยเรื่อง|ดูแล)",
+       "en": "(?:reduc|lower|eas(?:e|es|ing)\\b|sooth|improv|suffer|help(?:s|ed)?\\s+(?:with|against)|dissipat|dissolv|shrink|treat|cure|heal|relie|alleviat|eliminat|revers|control|manag|fight|beat|combat|target|sufferer|support|helped|anti-?(?=hyperglyc|diabet|viral|cancer|tumou?r|inflammat))",
+       "zh": "(?:消除|调理|調理|控制|减轻|減輕|告别|告別|治|疗|愈|缓解|根治|功效|改善|防|抗|抑制|溶|降)"
      }
    },
    {
@@ -1694,7 +1931,10 @@
          "ดูแล(?:ลำไส้|ระบบขับถ่าย|ตับ|ไต|สมอง|หัวใจ|ดวงตา|สายตา|ข้อ|กระดูก)",
          "(?:เสริม|เสริมสร้าง|เพิ่ม|กระตุ้น|ปรับปรุง)\\S{0,4}การทำงานของ\\S{0,6}(?:ระบบ|สมอง|ตับ|ไต|หัวใจ|ประสาท|ลำไส้|ภูมิ)",
          "เพิ่ม(?:กล้ามเนื้อ|มวลกล้ามเนื้อ|น้ำหนัก)",
-         "ภูมิ(?:คุ้มกัน|ต้านทาน)"
+         "ภูมิ(?:คุ้มกัน|ต้านทาน)",
+         "(?:บำรุง|ฟื้นฟู|ปกป้อง|ทำความสะอาด|ล้าง|เสริมสร้าง|ดูแล)\\S{0,4}(?:ดวงตา|ต่อมลูกหมาก|ต่อม\\S{0,6}|ข้อเข่า|เส้นประสาท|ประสาท|เส้นเอ็น|กล้ามเนื้อ|หลอดเลือด|การไหลเวียน|ฮอร์โมน|เลือด|ลำไส้|ตับ|ไต|ข้อ|กระดูก|หัวใจ|สมอง)",
+         "(?:กระตุ้น|ปรับสมดุล|เพิ่ม)\\S{0,4}ฮอร์โมน",
+         "(?:มวล|ความแข็งแรงของ)กล้ามเนื้อ"
        ],
        "en": [
          "\\bboosts?\\s+(?:your\\s+)?(?:the\\s+)?immun",
@@ -1711,7 +1951,13 @@
          "\\bimmun(?:e|ity)\\b",
          "\\bantioxidant",
          "\\breduces?\\s+tiredness",
-         "\\bresponsible\\s+for\\s+(?:strong|healthy)"
+         "\\bresponsible\\s+for\\s+(?:strong|healthy)",
+         "\\bmuscle\\s+(?:growth|gain|mass|recovery|building|soreness)",
+         "\\brejuvenat",
+         "\\b(?:restore|boost|increase|balance|regulate|support|promote|stimulate)s?\\s+(?:\\w+\\s+){0,2}(?:estrogen|testosterone|hormon\\w*|ovulation|fertility|cycles?|periods?)",
+         "\\bhormon(?:e|al)\\s+(?:balance|harmony|support)",
+         "\\b(?:build|increase|boost|improve|enhance|maximi[sz]e|sharpen|sustain(?:ed)?)s?\\s+(?:your\\s+)?(?:mental\\s+)?(?:strength|focus|endurance|stamina|energy|memory|concentration|clarity)",
+         "\\b(?:bone|joint|heart|brain|breast|liver|kidney|eye|gut|prostate|digestive|cardiovascular|cognitive|urinary)\\s+(?:and\\s+\\w+\\s+)?health\\b"
        ],
        "zh": [
          "增强免疫",
@@ -1721,7 +1967,9 @@
          "补脑",
          "调节内分泌",
          "(?:維持|维持|幫助|帮助|有助於|有助于|促進|促进|增強|增强)[^，。；￭■]{0,8}(?:骨骼|牙齒|牙齿|神經|神经|肌肉|代謝|代谢|免疫|消化|循環|循环|健康|生長|生长|發育|发育)",
-         "抗氧化"
+         "抗氧化",
+         "(?:调节|調節|改善|增强|增強|提高|提升|恢复|恢復)\\S{0,4}(?:机能|機能|体质|體質|免疫力|记忆|記憶|睡眠|视力|視力|骨密度|体力|體力)",
+         "骨密度"
        ]
      },
      "requires_claim_verb": false,
@@ -1781,7 +2029,8 @@
          "\\btestosterone\\s+boost",
          "\\baphrodisiac",
          "\\bbreast\\s+enlarg",
-         "\\bviagra"
+         "\\bviagra",
+         "\\bsex\\s+drive"
        ],
        "zh": [
          "壮阳",
@@ -1841,7 +2090,8 @@
          "ผิวสวย",
          "หน้าใส",
          "ผิวใส",
-         "บำรุงผิว"
+         "บำรุงผิว",
+         "ผม(?:หนา|ดก|ดำ)|ดกดำ"
        ],
        "en": [
          "\\bwhiten",
@@ -1852,13 +2102,17 @@
          "\\bglowing\\s+skin",
          "\\bhair\\s+loss",
          "\\bskin\\s+(?:lightening|whitening)",
-         "\\bhealthy\\s+(?:\\w+,?\\s+){0,2}(?:skin|hair|nails)"
+         "\\bhealthy\\s+(?:\\w+,?\\s+){0,2}(?:skin|hair|nails)",
+         "\\b(?:skin|hair)\\s+(?:elasticity|firmness|growth|shedding)",
+         "\\belasticity\\s+and\\s+firmness",
+         "\\bhealthier\\s+(?:\\w+,?\\s+){0,2}(?:skin|hair|nails)"
        ],
        "zh": [
          "美白",
          "抗衰老",
          "去皱",
-         "养颜"
+         "养颜",
+         "永葆青春|青春常驻|青春常駐|留住青春|恢复青春|恢復青春|延缓衰老|延緩衰老|紧致|緊緻|抗皱|抗皺|祛斑|嫩肤|嫩膚"
        ]
      },
      "requires_claim_verb": false,
@@ -1910,7 +2164,8 @@
          "พุง\\S{0,8}หาย",
          "เผาผลาญ",
          "น้ำหนัก\\S{0,4}ลด",
-         "หุ่น(?:หมู|เพรียว|สวย)"
+         "หุ่น(?:หมู|เพรียว|สวย)",
+         "(?:รีด|ขับ|สลาย|เผา)\\S{0,4}ไขมัน"
        ],
        "en": [
          "\\bweight\\s*loss",
@@ -1933,7 +2188,8 @@
          "减肥",
          "瘦身",
          "燃脂",
-         "减重"
+         "减重",
+         "(?:减|減|瘦|掉)了?\\s*\\d+\\s*(?:斤|公斤|kg|磅)"
        ]
      },
      "requires_claim_verb": false,
@@ -1963,11 +2219,15 @@
      "severity": "risk",
      "patterns": {
        "th": [
-         "(?:แพทย์|หมอ|คุณหมอ|เภสัชกร|พยาบาล|นักโภชนาการ|นักกำหนดอาหาร)\\S{0,8}(?:แนะนำ|รับรอง|ยืนยัน|การันตี|เลือกใช้)"
+         "(?:แพทย์|หมอ|คุณหมอ|เภสัชกร|พยาบาล|นักโภชนาการ|นักกำหนดอาหาร)\\S{0,8}(?:แนะนำ|รับรอง|ยืนยัน|การันตี|เลือกใช้)",
+         "(?<!คำ)(?:แนะนำ|รับรอง)(?:โดย|จาก)\\S{0,4}(?:แพทย์|หมอ|เภสัชกร|ผู้เชี่ยวชาญ|โรงพยาบาล|กระทรวง)",
+         "(?:แพทย์|หมอ|เภสัชกร|โรงพยาบาล|กระทรวง)\\S{0,30}(?<!คำ)(?:แนะนำ|รับรอง)"
        ],
        "en": [
          "\\b(?:doctor|physician|pharmacist|nutritionist|dietitian|md)s?[- ](?:recommended|approved|formulated|endorsed)",
-         "\\brecommended\\s+by\\s+(?:doctors|physicians|pharmacists)"
+         "\\brecommended\\s+by\\s+(?:doctors|physicians|pharmacists)",
+         "\\b(?:doctors?|physicians?|dermatologists?|pharmacists?|experts?)\\s+(?:\\w+\\s+)?recommend",
+         "\\b(?:doctor|physician|pharmacist|dermatologist)s?[- ](?:formulated|developed|designed|trusted|recommended|approved)"
        ],
        "zh": [
          "医生推荐",
@@ -1986,7 +2246,12 @@
      "note": "",
      "title_zh": "医疗专业人员推荐或认证",
      "claim_window": 0,
-     "exclude": []
+     "exclude": [
+       "(?:ภายใต้|ตาม)\\S{0,4}คำแนะนำ\\S{0,16}",
+       "ปรึกษา\\S{0,4}(?:แพทย์|เภสัชกร|ผู้เชี่ยวชาญ)\\S{0,30}",
+       "คำแนะนำ(?:ของ|จาก)\\S{0,16}",
+       "\\b(?:ask|consult)\\s+(?:a|your)\\s+(?:doctor|physician|pharmacist|dermatologist)\\b[^.]{0,60}"
+     ]
    },
    {
      "id": "F15",
@@ -2168,7 +2433,12 @@
          "ทางวิทยาศาสตร์",
          "ผลการศึกษา",
          "\\d+\\s*%\\s*ของผู้",
-         "(?:ตาม)?หลักวิทยาศาสตร์"
+         "(?:ตาม)?หลักวิทยาศาสตร์",
+         "(?:จาก)?การศึกษา(?:พบ|แสดง|ยืนยัน|วิจัย)",
+         "ผลการทดลอง",
+         "นักวิจัย",
+         "(?:ผ่าน|มี|จาก)การวิจัย|วิจัย(?:พบ|แล้ว)",
+         "ทาง(?:การ)?คลินิก"
        ],
        "en": [
          "\\bclinically\\s+(?:proven|tested|studied|shown|backed|validated)",
@@ -2177,12 +2447,23 @@
          "\\bresearch\\s+(?:shows|proves|has\\s+shown)",
          "\\bdemonstrated\\s+to",
          "\\b\\d+\\s*%\\s+of\\s+(?:users|people|participants)",
-         "\\b\\d+\\s*%\\s+(?:of\\s+)?(?:\\w+\\s+)?(?:would|said|saw|reported|users|people|participants|customers|women|men)\\b"
+         "\\b\\d+\\s*%\\s+(?:of\\s+)?(?:\\w+\\s+)?(?:would|said|saw|reported|users|people|participants|customers|women|men)\\b",
+         "\\b(?:scientific|clinical)\\s+(?:studies|study|research|trials?|evidence)",
+         "\\bstud(?:y|ies)\\s+(?:show|shows|showed|prove|proves|reveal|reveals|indicate|indicates|suggest|suggests|found|find|have\\s+shown)",
+         "\\bin\\s+(?:one|a|two|several|recent)\\s+(?:\\w+\\s+)?(?:study|studies|trials?)\\b",
+         "\\bresearch(?:ers)?\\s+(?:shows?|proves?|has\\s+shown|found|discovered|recently|is\\s+showing)",
+         "\\bclinically[\\s-]+(?:proven|tested|studied|shown|backed|validated)",
+         "\\bbased\\s+on\\s+(?:real\\s+)?science"
        ],
        "zh": [
          "临床证明",
          "研究表明",
-         "科学证明"
+         "科学证明",
+         "实验(?:证明|表明|评价)|實驗(?:證明|表明|評價)",
+         "临床(?:证明|试验|研究|验证)|臨床(?:證明|試驗|研究|驗證)",
+         "研究(?:表明|证明|發現|发现|显示|顯示)",
+         "科学(?:证明|验证)|科學(?:證明|驗證)",
+         "动物实验|動物實驗|人体试食"
        ]
      },
      "requires_claim_verb": false,
@@ -2219,14 +2500,16 @@
          "ของปลอม",
          "ไม่เหมือนที่อื่น",
          "(?:ผลิตภัณฑ์|ยี่ห้อ|แบรนด์|สูตร)อื่น",
-         "ดีกว่า\\S{0,30}(?:อื่น|ทั่วไป)"
+         "ดีกว่า\\S{0,30}(?:อื่น|ทั่วไป)",
+         "ไม่ต้อง(?:ทาน|กิน|พึ่ง|ใช้)ยา|(?:ทดแทน|แทน)(?:การใช้)?ยา"
        ],
        "en": [
          "\\bbetter\\s+than\\s+(?:other|any|leading)",
          "\\bunlike\\s+other\\s+(?:brands|products)",
          "\\boutperforms",
          "\\bcompared\\s+(?:to|with)\\s+other",
-         "\\bsuperior\\s+absorption"
+         "\\bsuperior\\s+absorption",
+         "\\b(?:instead\\s+of|not|better\\s+than|alternative\\s+to|replaces?)\\s+(?:a\\s+|your\\s+)?(?:statins?|medications?|medicines?|prescriptions?)\\b"
        ],
        "zh": [
          "比其他",
@@ -2244,7 +2527,12 @@
      "note": "",
      "title_zh": "与其他产品比较或贬低其他产品",
      "claim_window": 0,
-     "exclude": []
+     "exclude": [
+       "ไม่\\S{0,8}(?:ทดแทน|แทน)\\S{0,6}ยา",
+       "ไม่ใช่ยา",
+       "\\bnot\\s+(?:a\\s+)?(?:substitute|replacement)\\s+for\\b[^.]{0,40}",
+       "\\b(?:do\\s+not|don't|never)\\s+(?:stop|replace|discontinue)\\b[^.]{0,40}"
+     ]
    },
    {
      "id": "F21",
@@ -2406,7 +2694,12 @@
          "ปลอดภัย\\s*100",
          "(?:หาย|เห็นผล)\\S{0,4}(?:ภาย)?ใน\\s*\\d+\\s*(?:วัน|สัปดาห์|ชั่วโมง)",
          "(?:สูง|ดี|แรง)กว่า\\S{0,40}\\d+\\s*เท่า",
-         "(?:ล้าง|ขับ)\\S{0,4}สารพิษ"
+         "(?:ล้าง|ขับ)\\S{0,4}สารพิษ",
+         "สุดยอด|อันดับ\\s*(?:1|หนึ่ง)|เบอร์\\s*1|หนึ่งเดียว",
+         "ทุกปัญหา",
+         "ไม่ต้อง(?:เลเซอร์|ผ่าตัด|ฉีด|ออกกำลัง)",
+         "สลายหาย",
+         "(?:แก้|หาย|เห็นผล|บรรเทา|ลด|ปกติ|ดีขึ้น)\\S{0,40}(?:ภาย)?ใน\\s*\\d+\\s*(?:นาที|วินาที|ชั่วโมง|วัน|เม็ด)"
        ],
        "en": [
          "\\bno\\s+side[- ]effects?",
@@ -2414,7 +2707,13 @@
          "\\bguaranteed",
          "\\b(?:devoid|free)\\s+of\\s+side[- ]effects?",
          "\\ballows?\\s+wounds?\\s+to\\s+heal",
-         "\\bheals?\\s+wounds?"
+         "\\bheals?\\s+wounds?",
+         "\\bbest\\s+(?:\\w+\\s+)?(?:formula|herb|remedy|product)s?\\b",
+         "#\\s*1\\b",
+         "\\bnumber\\s+one\\b",
+         "\\bthe\\s+(?:highest|most\\s+(?:efficacious|effective|powerful|potent))\\b",
+         "\\b(?:see|notice)\\s+(?:\\w+\\s+)?results?\\s+(?:in|within)\\s+\\d",
+         "\\bwith\\s+just\\s+one\\s+(?:bottle|dose|pack)"
        ],
        "zh": [
          "无副作用",
@@ -2433,7 +2732,10 @@
      "title_zh": "虚假、夸大或误导性的疗效",
      "claim_window": 0,
      "exclude": [
-       "แท้\\s*100\\s*%"
+       "แท้\\s*100\\s*%",
+       "(?:ต้ม|ชง|แช่|อบ|นึ่ง|ทิ้งไว้)\\S{0,12}(?:ภาย)?ใน?\\s*\\d+\\s*(?:นาที|วินาที|ชั่วโมง)",
+       "(?:ลด\\s*\\d+\\s*%|ลดราคา|ส่วนลด|โปร|ซื้อ|ส่งฟรี|จัดส่ง|ส่งของ|ได้รับสินค้า|คืนเงิน)[^\\n.!]{0,30}?(?:ภาย)?ใน?\\s*\\d+\\s*(?:วัน|ชั่วโมง)",
+       "\\b(?:ships?|shipping|delivery|delivered|refund|returns?|sale|offer|discount)\\b[^.]{0,30}\\b(?:in|within)\\s+\\d+\\s+(?:days?|hours?)"
      ]
    },
    {
@@ -2480,12 +2782,16 @@
        "th": [
          "(?:แพทย์|หมอ|เภสัชกร|ดารา|ผู้เชี่ยวชาญ|มหาวิทยาลัย|โรงพยาบาล)\\S{0,8}(?:แนะนำ|รับรอง|ยืนยัน|การันตี)",
          "รีวิวจากผู้ใช้จริง",
-         "รับรองโดย"
+         "รับรองโดย",
+         "(?<!คำ)(?:แนะนำ|รับรอง)(?:โดย|จาก)\\S{0,4}(?:แพทย์|หมอ|เภสัชกร|ผู้เชี่ยวชาญ|โรงพยาบาล|กระทรวง)",
+         "(?:แพทย์|หมอ|เภสัชกร|โรงพยาบาล|กระทรวง)\\S{0,30}(?<!คำ)(?:แนะนำ|รับรอง)"
        ],
        "en": [
          "\\b(?:doctor|physician|expert|university|hospital)[- ]?(?:recommended|approved|endorsed)",
          "\\bendorsed\\s+by",
-         "\\btestimonial"
+         "\\btestimonial",
+         "\\b(?:doctors?|physicians?|dermatologists?|pharmacists?|experts?)\\s+(?:\\w+\\s+)?recommend",
+         "\\b(?:doctor|physician|pharmacist|dermatologist)s?[- ](?:formulated|developed|designed|trusted|recommended|approved)"
        ],
        "zh": [
          "专家推荐",
@@ -2503,7 +2809,12 @@
      "note": "",
      "title_zh": "由个人、团体或机构认可疗效",
      "claim_window": 0,
-     "exclude": []
+     "exclude": [
+       "(?:ภายใต้|ตาม)\\S{0,4}คำแนะนำ\\S{0,16}",
+       "ปรึกษา\\S{0,4}(?:แพทย์|เภสัชกร|ผู้เชี่ยวชาญ)\\S{0,30}",
+       "คำแนะนำ(?:ของ|จาก)\\S{0,16}",
+       "\\b(?:ask|consult)\\s+(?:a|your)\\s+(?:doctor|physician|pharmacist|dermatologist)\\b[^.]{0,60}"
+     ]
    },
    {
      "id": "H05",
@@ -2533,7 +2844,8 @@
          "เกาต์",
          "ไวรัสตับอักเสบ",
          "เก๊า?ท์|เกาท์",
-         "รูมาตอยด์"
+         "รูมาตอยด์",
+         "โรค\\S{0,14}(?:หัวใจ|ไต|ตับ|ปอด|สมอง)"
        ],
        "en": [
          "\\bdiabet",
@@ -2547,7 +2859,8 @@
          "\\bpsoriasis",
          "\\bhepatitis",
          "\\bcorona",
-         "hyperglyc"
+         "hyperglyc",
+         "\\bmasses\\b"
        ],
        "zh": [
          "糖尿病",
@@ -2568,10 +2881,17 @@
      "note": "Heuristic using the s.77 drug list as a guide; registered traditional-medicine indications (e.g. 'บรรเทาอาการท้องอืด') are not flagged. Claim verb required.",
      "title_zh": "草药产品声称治疗严重疾病",
      "claim_window": 60,
-     "exclude": [],
+     "exclude": [
+       "(?:ผู้ป่วย|ผู้ที่(?:เป็น|มี)|ผู้มี|หากมีอาการ|หากเป็น)\\S{0,20}",
+       "\\b(?:patients|people|persons|those|anyone)\\s+with\\b[^.,;]{0,30}",
+       "\\bif\\s+(?:you\\s+)?(?:have|experience|feel|are)\\b[^.]{0,40}",
+       "\\b(?:stop|discontinue)\\s+use\\b[^.]{0,60}",
+       "\\b(?:ask|consult)\\s+(?:a|your)\\s+(?:doctor|physician|pharmacist)\\b[^.]{0,60}",
+       "不能代替(?:药物|藥物)(?:治疗|治療)?(?:疾病)?"
+     ],
      "verbs": {
-       "th": "(?:ป้องกัน|รักษา|บำบัด|บรรเทา|แก้|หาย|ฟื้นฟู|กำจัด|ลดอาการ|พิชิต|ทางออก|ต้าน(?!อนุมูล)|ยับยั้ง|ช่วยเรื่อง|ดูแล)",
-       "en": "(?:prevent|treat|cure|heal|relie|alleviat|eliminat|revers|control|manag|fight|beat|combat|target|sufferer|support|helped|anti-?(?=hyperglyc|diabet|viral|cancer|tumou?r|inflammat))",
+       "th": "(?:ลด|ป้องกัน|รักษา|บำบัด|บรรเทา|แก้|หาย|ฟื้นฟู|กำจัด|ลดอาการ|พิชิต|ทางออก|ต้าน(?!อนุมูล)|ยับยั้ง|ช่วยเรื่อง|ดูแล)",
+       "en": "(?:reduc|lower|dissipat|dissolv|shrink|prevent|treat|cure|heal|relie|alleviat|eliminat|revers|control|manag|fight|beat|combat|target|sufferer|support|helped|anti-?(?=hyperglyc|diabet|viral|cancer|tumou?r|inflammat))",
        "zh": "(?:治|疗|愈|缓解|根治|功效|改善|防|抗|抑制|溶|降)"
      }
    },
@@ -2636,7 +2956,9 @@
          "เสริมดวง",
          "คุณไสย",
          "ลด(?:สิว|ฝ้า|รอยสิว|รอยแผลเป็น)",
-         "(?:ลด|กำจัด|ยับยั้ง|ฆ่า)\\S{0,12}แบคทีเรีย"
+         "(?:ลด|กำจัด|ยับยั้ง|ฆ่า)\\S{0,12}แบคทีเรีย",
+         "ลด(?:ปัญหา)?\\s*(?:สิว|ฝ้า|รอยสิว|รอยแผลเป็น)",
+         "(?:ทดแทน|แทน)(?:การใช้)?ยา"
        ],
        "en": [
          "\\btreats?\\b",
@@ -2652,7 +2974,12 @@
          "\\bdermatitis",
          "\\bhair\\s+(?:re)?growth",
          "\\brelieves?\\b",
-         "\\bminor\\s+(?:cuts|burns|scrapes)"
+         "\\bminor\\s+(?:cuts|burns|scrapes)",
+         "\\bacne\\s+treatments?",
+         "\\b(?:clear|prevent|treat|fight)s?\\s+(?:and\\s+\\w+\\s+)?(?:\\w+\\s+){0,1}(?:breakouts|acne|pimples|blemishes)",
+         "\\bana?esthetic",
+         "\\blidocaine|\\btetracaine",
+         "\\breduces?\\s+(?:\\w+,?\\s+){0,2}(?:swelling|bruising|bleeding)"
        ],
        "zh": [
          "治疗",
@@ -2677,7 +3004,11 @@
      "title_zh": "声称治疗疾病或非化妆品用途",
      "claim_window": 0,
      "exclude": [
-       "eczema\\s+association"
+       "eczema\\s+association",
+       "ไม่\\S{0,8}(?:ทดแทน|แทน)\\S{0,6}ยา",
+       "ไม่ใช่ยา",
+       "\\bnot\\s+(?:a\\s+)?(?:substitute|replacement)\\s+for\\b[^.]{0,40}",
+       "\\b(?:do\\s+not|don't|never)\\s+(?:stop|replace|discontinue)\\b[^.]{0,40}"
      ]
    },
    {
@@ -2771,7 +3102,10 @@
          "สุดขั้ว",
          "ไม่มีใครเหมือน",
          "ดำ\\S{0,12}ก็ขาว",
-         "\\d+\\s*ปี\\s*ก็"
+         "\\d+\\s*ปี\\s*ก็",
+         "หนึ่งเดียว",
+         "ทุกคน\\S{0,4}ไว้วางใจ",
+         "อันดับ\\s*(?:1|หนึ่ง)|เบอร์\\s*1"
        ],
        "en": [
          "\\bpermanent",
@@ -2782,7 +3116,8 @@
          "\\blike\\s+(?:a\\s+)?(?:laser|botox|filler)",
          "\\bfda[- ](?:approved|certified)",
          "\\bmiracl",
-         "\\bno\\s+side[- ]effects?"
+         "\\bno\\s+side[- ]effects?",
+         "\\b(?:look|feel)s?\\s+(?:up\\s+to\\s+)?\\d+\\s+years?\\s+younger"
        ],
        "zh": [
          "永久",
@@ -2808,7 +3143,9 @@
        "\\buse\\s+within\\b",
        "\\b(?:consume|use|eat|drink|finish|store|keep)(?:d|ed|en)?\\s+within\\s+\\d+\\s+(?:days?|hours?|weeks?)",
        "\\bafter\\s+opening\\b[^.]{0,60}",
-       "แท้\\s*100\\s*%"
+       "แท้\\s*100\\s*%",
+       "(?:ลด\\s*\\d+\\s*%|ลดราคา|ส่วนลด|โปร|ซื้อ|ส่งฟรี|จัดส่ง|ส่งของ|ได้รับสินค้า|คืนเงิน)[^\\n.!]{0,30}?(?:ภาย)?ใน?\\s*\\d+\\s*(?:วัน|ชั่วโมง)",
+       "\\b(?:ships?|shipping|delivery|delivered|refund|returns?|sale|offer|discount)\\b[^.]{0,30}\\b(?:in|within)\\s+\\d+\\s+(?:days?|hours?)"
      ]
    },
    {
@@ -2832,7 +3169,9 @@
          "แพทย์ผิวหนัง(?:แนะนำ|รับรอง)",
          "\\d+\\s*%\\s*(?:ของผู้|เห็นผล|พึงพอใจ)",
          "กลุ่มตัวอย่าง",
-         "(?:แพทย์|หมอ|คุณหมอ)\\S{0,6}(?:แนะน|รับรอง)"
+         "(?:แพทย์|หมอ|คุณหมอ)\\S{0,6}(?:แนะน|รับรอง)",
+         "(?<!คำ)(?:แนะนำ|รับรอง)(?:โดย|จาก)\\S{0,4}(?:แพทย์|หมอ|เภสัชกร|ผู้เชี่ยวชาญ|โรงพยาบาล|กระทรวง)",
+         "(?:แพทย์|หมอ|เภสัชกร|โรงพยาบาล|กระทรวง)\\S{0,30}(?<!คำ)(?:แนะนำ|รับรอง)"
        ],
        "en": [
          "\\bclinically\\s+(?:proven|tested|shown)",
@@ -2841,7 +3180,9 @@
          "\\bstudies\\s+show",
          "\\bscientifically\\s+proven",
          "\\b(?:approved|endorsed|accepted|recommended|certified)\\s+by\\b",
-         "\\bresearch\\s+(?:has\\s+)?(?:shows?|shown|proves?|proven)"
+         "\\bresearch\\s+(?:has\\s+)?(?:shows?|shown|proves?|proven)",
+         "\\b(?:doctors?|physicians?|dermatologists?|pharmacists?|experts?)\\s+(?:\\w+\\s+)?recommend",
+         "\\b(?:doctor|physician|pharmacist|dermatologist)s?[- ](?:formulated|developed|designed|trusted|recommended|approved)"
        ],
        "zh": [
          "临床证明",
@@ -2859,7 +3200,12 @@
      "note": "Lawful if the maker can prove it (s.45); the signal asks for the evidence.",
      "title_zh": "引用研究、统计或认可",
      "claim_window": 0,
-     "exclude": []
+     "exclude": [
+       "(?:ภายใต้|ตาม)\\S{0,4}คำแนะนำ\\S{0,16}",
+       "ปรึกษา\\S{0,4}(?:แพทย์|เภสัชกร|ผู้เชี่ยวชาญ)\\S{0,30}",
+       "คำแนะนำ(?:ของ|จาก)\\S{0,16}",
+       "\\b(?:ask|consult)\\s+(?:a|your)\\s+(?:doctor|physician|pharmacist|dermatologist)\\b[^.]{0,60}"
+     ]
    },
    {
      "id": "C05",

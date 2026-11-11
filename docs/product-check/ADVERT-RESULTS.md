@@ -154,3 +154,97 @@ Built on this branch, **no rule pattern changed** (`lensiq-claims-rules.js` stil
 - **Chinese adverts:** "limited support" on the card (TH / EN / ZH) when Han characters are ≥ 30 % of the letters.
 - **"Experimental" badge** on the advert panel.
 - Fixed tests amended (stricter) and re-locked BEFORE the change: `~/LENSIQ-field/evals/adverts/locked.sha256` lock 3.
+
+## Rule work 2026-11-11 (owner order: improve the rules, misses first, false flags ≤ 5 per 100 compliant)
+
+> **Every number in this section is DEV, not independent.** The rules were tuned on the P3 dev split and on the
+> **spent** first fresh set (its one independent run is above; its texts are now development data). Figures on the spent
+> fresh set are therefore optimistic by construction and must not be quoted. The locked second fresh set
+> (`~/LENSIQ-field/evals/adverts/fresh2/`, texts in `product-check/texts-fresh-2/`) and the P3 held-out split were **not**
+> read; an independent agent scores fresh2 once after this commit. Until then the page keeps the old measured figures
+> (`docs/accuracy-figures.json` unchanged: 64.2 %, "about 2 in 3").
+
+### สรุปสำหรับเจ้าของ (Thai summary)
+
+- ปรับกฎตามคำสั่ง: เน้นคำอ้างรักษา / บรรเทาโรค (F09, D08, H05, H02), เปลี่ยนโครงสร้าง / การทำงานของร่างกาย (F10, F07),
+  ป้องกันโรค / ต้านเชื้อ (F08), อ้างงานวิจัย (F19), หมวดอาหารและสมุนไพร และภาษาจีน
+- เขียนเป็น "ตระกูลคำ" (คำกริยา + ชื่ออาการ / อวัยวะ / ค่าในเลือด / เชื้อโรค) ใน 3 ภาษา ไม่คัดลอกประโยคจากชุดข้อมูล
+- กันการแจ้งเตือนผิด: คำเตือนบังคับ ข้อความปฏิเสธ ("ไม่มีผลในการป้องกันหรือรักษาโรค", "not intended to diagnose, treat"),
+  คำแนะนำ "ผู้ป่วย… ควร", "หยุดใช้และปรึกษาแพทย์", "ไม่ใช่ยา ไม่ควรใช้แทนยา", วิธีชง "ทิ้งไว้ 5 นาที" และโปรโมชั่น "ลดราคา ภายใน 3 วัน"
+  ไม่ถูกจับ ข้อความกล่าวอ้างที่ได้รับอนุญาต (ประกาศฯ ฉบับที่ 447) ยังไม่ถูกจับเหมือนเดิม
+- ตัวเลข dev (โหมดที่หน้าเว็บใช้จริง: ผู้ใช้เลือกประเภทสินค้า): ชุดใหม่ที่ใช้แล้ว (spent) จับได้ 64.2 % -> 96.3 %,
+  แจ้งเตือนผิด 1.5 -> 1.5 ต่อ 100 ข้อความ; P3 dev ไม่ลดลง (100 %, 0.8 ต่อ 100) **ตัวเลขนี้มาจากข้อมูลที่ใช้ปรับกฎ จึงสูงเกินจริง**
+  ตัวเลขที่อ้างได้มาจากการวัดอิสระครั้งเดียวบนชุด fresh2 เท่านั้น หน้าเว็บยังแสดงตัวเลขเดิม (ราว 2 ใน 3) จนกว่าจะวัดเสร็จ
+
+### What changed (`RULE_WORK` in `tools/pc-rules-build.mjs`, listed in the generated file's `changes`)
+
+| Rule(s) | Family added (TH / EN / ZH) | Guard added |
+|---|---|---|
+| F09 | verbs ลด (not ลดความเสี่ยง), สยบ, ขจัด, คุม / ควบคุม, หยุดยั้ง, คลาย, ดีขึ้น; "reduce / lower / ease / soothe / improve / suffer / help with"; 消除 / 调理 / 控制 / 减轻. Symptom nouns: pain, inflammation, numbness, dizziness, fatigue, urinary and prostate problems, fatty liver, kidney failure / dialysis, parasites, colds / flu / fever, anxiety, named syndromes (ADHD, PCOS, IBS…), 便秘 / 抽筋 / 疼痛 / 冠心病 / 三高 … | warnings that name a condition: "ผู้ป่วย / ผู้ที่มี / หากมีอาการ …", "patients / people with …", "if you have …", "stop use / ask a doctor …", 不能代替药物治疗疾病 |
+| D08 | verbs "suffering from", "beneficial for", "improve" | same warning guard |
+| H05 | verbs ลด / "reduce, lower, dissolve, shrink"; โรค + organ with words between; "masses" | same warning guard |
+| F07 | control / lower / dissolve verbs before a marker with words between (Thai spacing is removed by the normaliser), uric acid, "fight / improve / reduce … cholesterol", "for high cholesterol", 控制 / 调节 / 降 + 血压 / 血糖 / 血脂 | — |
+| F08 | prevent / inhibit / destroy + germ nouns (ไวรัส / เชื้อ / ปรสิต / เซลล์มะเร็ง), ลดเสี่ยง…, ลดการติดเชื้อ; "fight off / combat / inhibit … virus / infection", "protection against", "reduced … risk", "prevention of"; 抗菌 / 抗病毒 / 抑制…癌 | — |
+| F10 | care verbs + organ nouns (บำรุง / ฟื้นฟู / ปกป้อง / ทำความสะอาด … ดวงตา, ต่อมลูกหมาก, เส้นประสาท, หลอดเลือด, ฮอร์โมน …), muscle mass / growth / recovery, hormone / fertility / cycle support, energy / focus / endurance, rejuvenation, "<organ> health", 调节…机能 / 骨密度 | approved statements stay suppressed (allowlist) |
+| F19 | จากการศึกษาพบว่า, นักวิจัย, ทางคลินิก; "studies reveal / found", "in one study", "clinical studies", hyphenated "clinically-tested"; 实验证明 / 临床研究 / 研究表明 | — |
+| F06, H02 | speed in minutes / hours / pills, "after two weeks of taking", "see results in N days" | preparation times (ชง / ต้ม / ทิ้งไว้ N นาที), sales / shipping deadlines (ลดราคา, ส่งฟรี, "delivered within") |
+| H02, C03, F02 | superlatives (สุดยอด, อันดับ 1, หนึ่งเดียว, "the best … formula", "#1", "the strongest", 世界级 / 唯一), "no laser / surgery needed", "look N years younger" | C03: sales deadlines |
+| D02 | elixir / anti-ageing (ยาอายุวัฒนะ, ชะลอวัย), "N เท่า", "ไม่ต้องผ่าตัด" | — |
+| F14, D07, H04, C04 | "แนะนำโดยแพทย์", doctor … แนะนำ further apart, "dermatologists recommend", "doctor-formulated" | "ภายใต้คำแนะนำของแพทย์", "ปรึกษาแพทย์", "ask / consult a doctor" |
+| F12, F13, F20, F05, F03, F11, C01 | skin elasticity / hair growth, 永葆青春 / 紧致 / 抗皱; รีด / สลาย…ไขมัน, 瘦了 N 斤; "no need for medicine", "alternative to statins"; "รับรองโดย อย.", "completely safe"; จบทุกปัญหา; "sex drive"; ลดปัญหาสิว, anaesthetic / swelling wording | F20 / C01: "ไม่ใช่ยา / ไม่ควรใช้แทนยา", "not a substitute for" |
+
+Not targeted on purpose: texts that use approved nutrient-function wording (MoPH No. 447 / EU-style "contributes to the
+maintenance of normal …"); RULES.md keeps those suppressed even when a labeller flagged them (3 misses on the spent set).
+
+Tests: `tests/unit/pc-advert-rules.test.js` (new, synthetic sentences written for the test): one positive per family and
+counter-cases that must not fire (disclaimers, mandatory warnings, directions, preparation times, sales deadlines, approved
+statements). Existing fixed tests (`pc-claims`, `pc-advert`, e2e) unchanged and passing.
+
+### Dev numbers, before / after (released mode = product type chosen by the user)
+
+Rules before `542b1be5…` (released), after `156ebae8875c9a63bea61bc9808026a1fa0df7815fa218b571cc0160fe89e0c0`;
+`lensiq-claims.js` and `lensiq-pc-advert.js` unchanged. Runs logged in `~/LENSIQ-field/evals/adverts/dev-runs.jsonl`
+(`node tools/pc-advert-eval.mjs` and `node tools/pc-advert-eval.mjs --fresh`).
+
+**Spent first fresh set** (source: public-page quotes, two AI labellers; consensus rule; 246 over-claim texts where both
+labellers flagged, 135 where both found nothing; **dev, not independent**):
+
+| Slice (n over-claim / n compliant) | Recall ≥ 1 signal, before → after | Consensus-rule recall | Rule precision / recall vs consensus | False flags / 100 compliant |
+|---|---|---|---|---|
+| **Overall** (246 / 135) | 64.2 % → **96.3 %** [93.2, 98.1] | 61.4 % → 94.3 % | 88.9 / 51.8 % → 89.0 / 94.7 % | 1.5 → **1.5** |
+| Thai (107 / 48) | 68.2 → 97.2 % | 67.3 → 97.2 % | 94.8 / 54.8 → 93.1 / 96.4 % | 2.1 → 2.1 |
+| English (119 / 75) | 63.0 → 95.8 % | 59.7 → 91.6 % | 84.1 / 50.3 → 85.0 / 92.5 % | 1.3 → 1.3 |
+| Chinese (20 / 12) | 50.0 → 95.0 % | 40.0 → 95.0 % | 78.6 / 40.7 → 86.7 / 96.3 % | 0.0 → 0.0 |
+| Supplement (158 / 31) | 70.3 → 98.7 % | 68.4 → 98.1 % | 90.8 / 55.1 → 89.4 / 97.0 % | 3.2 → 3.2 |
+| Food (30 / 18) | 46.7 → 93.3 % | 46.7 → 90.0 % | 85.0 / 37.0 → 85.4 / 89.1 % | 0.0 → 0.0 |
+| Herbal (31 / 29) | 48.4 → 87.1 % | 41.9 → 80.6 % | 76.5 / 44.8 → 86.7 / 89.7 % | 3.4 → 3.4 |
+| Drug (8 / 30) | 50.0 → 87.5 % | 50.0 → 87.5 % | 100 / 55.6 → 100 / 100 % | 0.0 → 0.0 |
+| Cosmetic (19 / 27) | 73.7 → 100 % | 63.2 → 94.7 % | 86.7 / 54.2 → 91.3 / 87.5 % | 0.0 → 0.0 |
+
+The two remaining false flags are the same texts as before (an "antioxidant" product line and one text both labellers left
+empty although it names a disease and a cure).
+
+**P3 dev split** (public-dataset quotes, agentA labels; 99 over-claim texts, 123 with no expected rule; **dev**):
+
+| Mode | Over-claim texts with an expected rule shown | Pairs recall / precision | False flags / 100 compliant |
+|---|---|---|---|
+| Type chosen (released), before → after | 99/99 → 99/99 | 95.6 / 98.0 % → 96.0 / 96.4 % | 0.8 → 0.8 |
+| Type guessed (not used by the page), before → after | 97/99 → 97/99 | 93.6 / 97.9 % → 94.0 / 96.3 % | 10.6 → 13.0 |
+
+By language and category (type chosen, after): every slice 100 % of over-claim texts; false flags per 100: th 1.6 (63),
+en 0 (56), zh 0 (4), supplement 0 (18), food 0 (32), herbal 0 (18), drug 0 (34), cosmetic 4.8 (21, the same pre-existing
+flag).
+
+**Not used by the page:** with no type (guessed mode) false flags rise on the spent fresh set from 23.0 to 29.6 per 100
+(more patterns, every family runs). The page only runs once the user has chosen the type, so this does not reach users;
+it matters if the guessed mode is ever brought back.
+
+### Risks
+
+1. **Over-fitting.** The spent set drove most changes; 96 % there says little about new text. The fresh2 run is the
+   number to quote. Expect a clear drop (P3: dev 94 % vs held-out 66 %).
+2. **False flags on new compliant text.** Broader verbs ("reduce", ลด) and nouns ("pain", อักเสบ) raise the chance of a
+   flag on compliant wording not seen in the sets; guarded by warning / direction / promotion exclusions and 30 synthetic
+   counter-cases, but the compliant samples are small (135 + 123).
+3. The page text stays "about 2 in 3" until the independent run; if fresh2 shows a different figure,
+   `docs/accuracy-figures.json` is updated from that run only.
