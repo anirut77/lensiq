@@ -15,6 +15,8 @@
   const C = () => kit.cfg();
   const evs = () => store.list("ev");
   const pay = { entry: null, exit: null, stamps: [], result: null, method: "" };
+  // sales demo mode (?demo=1, lensiq-demo.js): never a PromptPay ID and never a real payment QR (no real money destination)
+  const DEMO = !!(W.LQDemo && W.LQDemo.on);
   W.__LQ_PK = { kit, pay, store };
 
   /* ---------- tabs ---------- */
@@ -108,6 +110,11 @@
     computeFee();
   });
   function showQr() {
+    if (DEMO) {
+      $("#pkQrBox").hidden = true; pay.payload = null;
+      $("#pkPayMsg").textContent = T("demo.pk.noQr", "ตัวอย่าง / SAMPLE: โหมดสาธิตไม่สร้าง QR พร้อมเพย์จริง ไม่มีการโอนเงิน");
+      return;
+    }
     const id = C().ppId;
     if (!PP.validTarget(id)) { $("#pkPayMsg").textContent = T("pk.pp.noId", "ยังไม่ได้ตั้งค่าพร้อมเพย์ (แท็บ ตั้งค่า)"); $("#pkQrBox").hidden = true; return; }
     const payload = PP.payload(id, pay.result.fee);
@@ -244,7 +251,8 @@
   function fillSettings() {
     const f = C().fees;
     $$("[data-fee]").forEach(i => { const k = i.dataset.fee; if (i.type === "checkbox") i.checked = !!f[k]; else i.value = f[k] == null ? "" : f[k]; });
-    $("#pkSiteName").value = C().siteName || ""; $("#pkPpId").value = C().ppId || ""; $("#pkCapacity").value = C().capacity || ""; $("#pkDir").value = C().laneDir || "both";
+    $("#pkSiteName").value = C().siteName || ""; $("#pkPpId").value = DEMO ? "" : C().ppId || ""; $("#pkPpId").disabled = DEMO;
+    $("#pkCapacity").value = C().capacity || ""; $("#pkDir").value = C().laneDir || "both";
     kit.provinceOptions($("#pkMpProv"), C().common, "");
     renderLists();
   }
@@ -252,7 +260,7 @@
   $("#pkSetSave").addEventListener("click", () => {
     const fees = { ...C().fees };
     $$("[data-fee]").forEach(i => { const k = i.dataset.fee; fees[k] = i.type === "checkbox" ? i.checked : i.type === "time" ? i.value : i.value === "" ? (k === "firstRate" ? null : 0) : Math.max(0, +i.value); });
-    const ppId = $("#pkPpId").value.replace(/[^0-9]/g, "");
+    const ppId = DEMO ? "" : $("#pkPpId").value.replace(/[^0-9]/g, "");
     kit.setCfg({ fees, siteName: $("#pkSiteName").value.trim(), ppId: ppId && PP.validTarget(ppId) ? ppId : "", capacity: Math.max(0, +$("#pkCapacity").value || 0), laneDir: $("#pkDir").value });
     $("#pkSetMsg").textContent = T("pk.set.saved", "บันทึกแล้ว") + (ppId && !PP.validTarget(ppId) ? " · " + T("pk.pp.bad", "ใช้เบอร์มือถือ 10 หลัก หรือเลขประจำตัวผู้เสียภาษี 13 หลัก") : "");
     // the lane buttons follow the lane direction

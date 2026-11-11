@@ -143,6 +143,20 @@
 <li>${TH("3ฒพ 12")} — <span data-i18n="demo.vg.deny">อยู่ในรายการห้ามเข้า</span></li>
 <li>${TH("กท 4567")} — <span data-i18n="demo.vg.unk">รถไม่รู้จัก (ขึ้นแจ้งเตือน)</span></li></ul>
 <p data-i18n="demo.vg.over">บัตรผ่านตัวอย่างอีกใบ (บ้าน 12/3) หมดเวลาแล้วแต่รถยังไม่ออก จึงขึ้นแจ้งเตือนผู้มาเยือนอยู่เกินเวลา</p>`;
+      const auto = /** @type {any} */ (document.querySelector("#vgAutoOn"));
+      if (auto) {
+        auto.checked = false; auto.disabled = true;
+        const n = document.createElement("p"); n.className = "hint"; n.setAttribute("data-lq-demo", ""); n.setAttribute("data-i18n", "demo.vg.autoOff");
+        n.textContent = "โหมดสาธิต: เปิดไม้กั้นอัตโนมัติไม่ได้ ทุกการอ่านป้ายต้องให้ รปภ. กดยืนยันเอง (ตั้งค่านี้ได้ในระบบจริงเท่านั้น)";
+        const lab = auto.closest("label") || auto; lab.after(n);
+      }
+      const line = /** @type {any} */ (document.querySelector("#vgVisLine"));
+      if (line) {
+        line.hidden = true; line.removeAttribute("href");
+        const n = document.createElement("p"); n.className = "hint"; n.setAttribute("data-lq-demo", ""); n.setAttribute("data-i18n", "demo.vg.noLine");
+        n.textContent = "โหมดสาธิต: ไม่มีปุ่มส่งทาง LINE เพราะไม่ส่งข้อมูลออกนอกเว็บไซต์นี้";
+        line.after(n);
+      }
     });
   }
 
@@ -166,6 +180,13 @@
 ยืนยันประกาศด้านล่าง กด "ใช้ภาพตัวอย่าง" อ่านป้าย แล้วให้ รปภ. กด "รถออก: คิดค่าจอด" เพื่อคิดเงิน พร้อมเพย์ไม่ได้ตั้งไว้ในโหมดสาธิต เพื่อไม่ให้มีการโอนเงินจริง</p>
 <p data-i18n="demo.pk.codes">รหัสตราประทับร้านค้าตัวอย่าง (ใช้ได้ครั้งเดียว):</p>
 <div class="lq-demo-btns">${codes.map(c => `<button type="button" class="btn ghost lq-demo-code" data-demo-stamp="${esc(c)}" translate="no">${esc(c)}</button>`).join("")}</div>`;
+      const pp = /** @type {any} */ (document.querySelector("#pkPpId"));
+      if (pp) {
+        pp.value = ""; pp.disabled = true;
+        const n = document.createElement("p"); n.className = "hint"; n.setAttribute("data-lq-demo", ""); n.setAttribute("data-i18n", "demo.pk.noPp");
+        n.textContent = "โหมดสาธิต: ใส่พร้อมเพย์ไม่ได้ และไม่สร้าง QR รับเงินจริง เพื่อไม่ให้มีการโอนเงินจริง";
+        (pp.closest("label") || pp).after(n);
+      }
       body.addEventListener("click", e => {
         const b = /** @type {any} */ (e.target).closest("[data-demo-stamp]"), inp = /** @type {any} */ (document.querySelector("#pkStamp"));
         if (b && inp) { inp.value = b.dataset.demoStamp; if (!(/** @type {any} */ (document.querySelector("#pkPay"))).hidden) inp.focus(); }

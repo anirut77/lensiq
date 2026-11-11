@@ -22,6 +22,10 @@
   const deny = () => store.list("deny");
   const passes = () => store.list("pass");
   const state = { decision: null, relayLog: [] };
+  // sales demo mode (?demo=1, lensiq-demo.js): auto-open is always off (every read waits for the guard) and nothing links
+  // outside the site (no LINE share link)
+  const DEMO = !!(W.LQDemo && W.LQDemo.on);
+  const autoCfg = () => (DEMO ? { on: false, minConf: 1, minAgree: 1 } : C().autoOpen);
   W.__LQ_VG = { kit, state, store, residents };
 
   /* ---------- tabs ---------- */
@@ -90,7 +94,8 @@
     onRead(cur, read) {
       const x = $("#gkExtra"); if (!x) return;
       if (!cur.ok) { x.innerHTML = ""; state.decision = null; alertUnknown(null); return; }
-      const d = GR.decide({ key: cur.key, province: cur.province, conf: read ? read.conf : 0, agree: read ? read.agree : 0 }, { residents: residents(), deny: deny(), passes: passes(), autoOpen: C().autoOpen });
+      const d = GR.decide({ key: cur.key, province: cur.province, conf: read ? read.conf : 0, agree: read ? read.agree : 0 },
+        { residents: residents(), deny: deny(), passes: passes(), autoOpen: autoCfg() });
       // auto-open only for the system's own unedited read (a typed / edited plate always needs the guard)
       if (d.auto && !(read && !read.done && read.key === cur.key && $("#vgDir").value === "in")) d.auto = false;
       state.decision = d;
@@ -108,6 +113,7 @@
     }
   });
   async function autoOpen(cur, read, d) {
+    if (DEMO) return;
     const relay = await openRelay("auto");
     logEvent({ key: cur.key, province: cur.province, moto: cur.moto, auto: read, edited: false, at: Date.now() }, d, { opened: true, how: "auto", relay });
     read.done = true; kit.setRead(null);
@@ -203,7 +209,7 @@
     $("#vgVisCode").textContent = p.code;
     $("#vgVisWhen").textContent = T("vg.vis.when", "บ้าน {h} · {a} ถึง {b}", { h: house, a: fmtTime(from), b: fmtTime(to) });
     const text = T("vg.vis.msg", "บัตรผ่านเข้าโครงการ บ้าน {h} รหัส {c} ใช้ได้ {a} ถึง {b}", { h: house, c: p.code, a: fmtTime(from), b: fmtTime(to) });
-    $("#vgVisLine").href = "https://line.me/R/share?text=" + encodeURIComponent(text + "\n" + link);
+    if (DEMO) { $("#vgVisLine").hidden = true; $("#vgVisLine").removeAttribute("href"); } else $("#vgVisLine").href = "https://line.me/R/share?text=" + encodeURIComponent(text + "\n" + link);
     $("#vgVisOut").hidden = false; W.__LQ_VG.lastPass = p;
     renderVis();
   });
@@ -253,7 +259,8 @@
   function fillSettings() {
     const r = C().relay || {}, a = C().autoOpen || {};
     $("#vgRelayKind").value = r.kind || ""; $("#vgRelayUrl").value = r.url || ""; $("#vgRelayCh").value = r.channel || 0; $("#vgRelayPulse").value = r.pulseSec || 1; $("#vgRelayToken").value = r.token || "";
-    $("#vgAutoOn").checked = !!a.on; $("#vgAutoConf").value = a.minConf || 0.95; $("#vgAutoAgree").value = a.minAgree || 0.8; $("#vgGrace").value = C().graceMin; $("#vgMax").value = C().maxPlates;
+    $("#vgAutoOn").checked = !DEMO && !!a.on; $("#vgAutoOn").disabled = DEMO;
+    $("#vgAutoConf").value = a.minConf || 0.95; $("#vgAutoAgree").value = a.minAgree || 0.8; $("#vgGrace").value = C().graceMin; $("#vgMax").value = C().maxPlates;
     ["#vgResProv", "#vgDenyProv"].forEach(s => kit.provinceOptions($(s), C().common, $(s).value));
   }
   $("#vgAutoOn").addEventListener("change", () => {
@@ -263,7 +270,7 @@
     const url = $("#vgRelayUrl").value.trim(), kind = $("#vgRelayKind").value;
     if (kind && !GR.relayRequest({ kind, url })) { $("#vgSetMsg").textContent = T("vg.relay.badUrl", "ที่อยู่รีเลย์ไม่ถูกต้อง (ต้องขึ้นต้นด้วย http:// https:// หรือ /)"); return; }
     kit.setCfg({ relay: { kind, url, channel: Math.max(0, Math.min(3, +$("#vgRelayCh").value || 0)), pulseSec: Math.max(0.2, Math.min(30, +$("#vgRelayPulse").value || 1)), token: $("#vgRelayToken").value },
-      autoOpen: { on: $("#vgAutoOn").checked, minConf: Math.max(0.9, Math.min(0.99, +$("#vgAutoConf").value || 0.95)), minAgree: Math.max(0.6, Math.min(1, +$("#vgAutoAgree").value || 0.8)) },
+      autoOpen: { on: !DEMO && $("#vgAutoOn").checked, minConf: Math.max(0.9, Math.min(0.99, +$("#vgAutoConf").value || 0.95)), minAgree: Math.max(0.6, Math.min(1, +$("#vgAutoAgree").value || 0.8)) },
       graceMin: Math.max(0, +$("#vgGrace").value || 0), maxPlates: Math.max(1, Math.min(10, +$("#vgMax").value || 4)) });
     $("#vgSetMsg").textContent = T("vg.set.saved", "บันทึกแล้ว"); fillSettings();
   });

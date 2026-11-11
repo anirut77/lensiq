@@ -19,6 +19,10 @@
 //  10. TH / EN / ZH: banner and demo panels fully translated (0 Thai letters outside lang="th"/translate="no" sample data);
 //  11. phone: no horizontal overflow at 320 / 360 px; demo controls >= 44 px; demo text >= 12 px;
 //  12. without ?demo=1 the page is untouched: no banner, native localStorage / fetch / Blob / indexedDB, real data shown.
+// Amendment 2 (stricter, after the independent review of c97f735): real sessionStorage and cookies are unchanged too; the
+// panel says the demo covers this page only; Parking: no PromptPay ID can be saved and no payment QR is drawn even when a
+// PromptPay ID is forced into the settings; Village: auto-open cannot be switched on (control disabled, save and a forced
+// setting both keep every read waiting for the guard); no "send via LINE" (or any other off-site) link on a visitor pass.
 import { assert } from "./cdp.mjs";
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -60,6 +64,8 @@ async function seedReal(page, base) {
     const poly = [{ x: 0.1, y: 0.1 }, { x: 0.5, y: 0.1 }, { x: 0.5, y: 0.9 }, { x: 0.1, y: 0.9 }];
     localStorage.setItem("lqcr-zones", JSON.stringify([{ id: "zr", name: "REALZONE", role: "area", cap: 0, area: 0, poly }]));
     localStorage.setItem("lq-lang", "th");
+    sessionStorage.setItem("lq-real-session", "REAL-SESSION");
+    document.cookie = "lqreal=REALCOOKIE; path=/; max-age=3600";
     const put = (name, recs) => new Promise((res, rej) => {
       const r = indexedDB.open(name, 1);
       r.onupgradeneeded = () => { if (!r.result.objectStoreNames.contains("rec")) r.result.createObjectStore("rec", { keyPath: "id" }); };
@@ -92,13 +98,18 @@ async function snapshot(page, base) {
       }
       db.close(); dbs[d.name] = stores;
     }
-    return { ls, dbs };
+    const ss = {};
+    for (let i = 0; i < sessionStorage.length; i++) { const k = sessionStorage.key(i); ss[k] = sessionStorage.getItem(k); }
+    return { ls, dbs, ss, cookie: document.cookie.split(/;\s*/).filter(Boolean).sort().join("; ") };
   });
 }
 function sameStorage(before, after, label) {
   const lb = JSON.stringify(Object.keys(before.ls).sort().map(k => [k, before.ls[k]]));
   const la = JSON.stringify(Object.keys(after.ls).sort().map(k => [k, after.ls[k]]));
   assert(lb === la, `${label}: real localStorage changed by the demo\n before ${lb.slice(0, 600)}\n after  ${la.slice(0, 600)}`);
+  const sb = JSON.stringify(Object.keys(before.ss).sort().map(k => [k, before.ss[k]])), sa = JSON.stringify(Object.keys(after.ss).sort().map(k => [k, after.ss[k]]));
+  assert(sb === sa, `${label}: real sessionStorage changed by the demo\n before ${sb.slice(0, 300)}\n after  ${sa.slice(0, 300)}`);
+  assert(/lqreal=REALCOOKIE/.test(before.cookie) && before.cookie === after.cookie, `${label}: cookies changed by the demo: "${before.cookie}" -> "${after.cookie}"`);
   for (const name of Object.keys(before.dbs)) {
     assert(name in after.dbs, `${label}: real IndexedDB "${name}" disappeared`);
     assert(JSON.stringify(before.dbs[name]) === JSON.stringify(after.dbs[name]), `${label}: real IndexedDB "${name}" changed: ${JSON.stringify(after.dbs[name]).slice(0, 400)}`);
@@ -127,6 +138,10 @@ async function barCheck(page, lang = "th") {
   });
   assert(r.text.includes(BAR[lang]), `banner text (${lang}) "${r.text}" should contain "${BAR[lang]}"`);
   assert(r.top && r.bottom, "banner must stay in view at the top and the bottom of the page " + JSON.stringify(r));
+  if (lang === "th") {
+    const panel = await page.evaluate(() => (document.querySelector("#lqDemoPanel") || {}).innerText || "");
+    assert(/เฉพาะหน้านี้/.test(panel), "the demo panel says the demo covers this page only: " + panel.slice(0, 200));
+  }
 }
 async function networkCheck(page, base) {
   const refused = await page.evaluate(async () => {
@@ -352,6 +367,30 @@ export default async function ({ base, launch, check, fakeCams }) {
       assert((await read(s.pass.key, s.pass.province)) === "visitor", "sample visitor car -> visitor pass");
       assert((await read("ฮฮ1234", "")) === "unknown", "unlisted car -> unknown");
       assert((await page.evaluate(() => window.__LQ_VG.store.list("ev").length)) === s.evs + 1, "reads without the guard's button log nothing");
+      // auto-open cannot be switched on in the demo: control disabled, a forced save and a forced setting change nothing
+      const au = await page.evaluate(() => {
+        document.querySelector("#t-set").click();
+        const c = document.querySelector("#vgAutoOn"), dis = c.disabled;
+        c.checked = true; c.dispatchEvent(new Event("change", { bubbles: true })); document.querySelector("#vgSetSave").click();
+        return { dis, on: !!(window.__LQ_VG.kit.cfg().autoOpen || {}).on };
+      });
+      assert(au.dis && !au.on, "auto-open control disabled and stays off after a forced save " + JSON.stringify(au));
+      await page.evaluate(() => { window.__LQ_VG.kit.setCfg({ autoOpen: { on: true, minConf: 0.5, minAgree: 0 } }); document.querySelector("#t-gate").click(); });
+      const nAuto = await page.evaluate(() => ({ ev: window.__LQ_VG.store.list("ev").length, relay: window.__relay.length }));
+      await read(s.res.key, s.res.province);
+      await sleep(400);
+      const afterAuto = await page.evaluate(() => ({ ev: window.__LQ_VG.store.list("ev"), relay: window.__relay.length }));
+      assert(afterAuto.ev.length === nAuto.ev && afterAuto.relay === nAuto.relay && !afterAuto.ev.some(e => e.how === "auto"),
+        "even a forced auto-open setting never opens or logs by itself in the demo");
+      // a visitor pass: no LINE share link, no link that leaves the site
+      const vis = await page.evaluate(() => {
+        document.querySelector("#t-vis").click();
+        document.querySelector("#vgVisHouse").value = "99/1"; document.querySelector("#vgVisPlate").value = "ขค 790"; document.querySelector("#vgVisMake").click();
+        const ln = document.querySelector("#vgVisLine"), b = ln.getBoundingClientRect();
+        const off = [...document.querySelectorAll("#tab-vis a[href]")].map(a => a.href).filter(h => { try { return new URL(h).origin !== location.origin; } catch { return false; } });
+        return { code: document.querySelector("#vgVisCode").textContent, lineShown: !ln.hidden && b.width > 0 && b.height > 0, lineHref: ln.getAttribute("href") || "", off };
+      });
+      assert(vis.code && !vis.lineShown && !/line\.me/.test(vis.lineHref) && !vis.off.length, "visitor pass made without an off-site LINE link " + JSON.stringify(vis));
       await page.evaluate(() => { document.querySelector("#t-log").click(); document.querySelector("#vgCsv").click(); });
       csvLabelled(await lastDownload(page), "village CSV");
       await page.evaluate(() => document.querySelector("#t-gate").click());
@@ -394,7 +433,20 @@ export default async function ({ base, launch, check, fakeCams }) {
       await page.evaluate(code => { document.querySelector("#pkStamp").value = code; document.querySelector("#pkStampBtn").click(); }, s.stamps[0]);
       const sm = await page.evaluate(() => ({ kind: document.querySelector("#pkStampMsg").dataset.kind, text: document.querySelector("#pkStampMsg").textContent }));
       assert(sm.kind === "ok", "a sample shop stamp code is accepted: " + sm.text);
+      // no PromptPay ID can be saved and no payment QR is drawn, even with an ID forced into the settings
+      await page.evaluate(() => { window.__LQ_PK.kit.setCfg({ ppId: "0812345678" }); document.querySelector('[data-pay="promptpay"]').click(); });
+      const qr = await page.evaluate(() => ({ box: !document.querySelector("#pkQrBox").hidden, payload: window.__LQ_PK.pay.payload || null, msg: document.querySelector("#pkPayMsg").textContent }));
+      assert(!qr.box && !qr.payload && /SAMPLE/.test(qr.msg) && /ตัวอย่าง/.test(qr.msg), "no real payment QR in the demo, a SAMPLE note instead " + JSON.stringify(qr));
       await page.evaluate(() => document.querySelector("#pkPayCancel").click());
+      const pp = await page.evaluate(() => {
+        document.querySelector("#t-set").click();
+        const i = document.querySelector("#pkPpId"), dis = i.disabled;
+        i.value = "0812345678"; i.dispatchEvent(new Event("input", { bubbles: true })); document.querySelector("#pkSetSave").click();
+        const r = { dis, saved: window.__LQ_PK.kit.cfg().ppId };
+        document.querySelector("#t-lane").click();
+        return r;
+      });
+      assert(pp.dis && !pp.saved, "PromptPay ID field disabled and never saved in the demo " + JSON.stringify(pp));
       await page.evaluate(() => { document.querySelector("#t-log").click(); document.querySelector("#pkCsv").click(); });
       csvLabelled(await lastDownload(page), "parking CSV");
       await page.evaluate(() => document.querySelector("#t-lane").click());

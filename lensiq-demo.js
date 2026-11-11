@@ -199,7 +199,8 @@ html[data-lq-demo-mode] :is(#startCam,#gkCamBtn,#startScan,#hrQrCam){display:non
     const exit = location.pathname + location.search.replace(/([?&])demo=1(&|$)/, (m, a, b) => (b ? a : "")).replace(/[?&]$/, "") + location.hash;
     panel.innerHTML = `<h2 id="lqDemoH" data-i18n="demo.h">โหมดสาธิตสำหรับการนำเสนอ</h2>
 <p data-i18n="demo.p">หน้านี้ใช้ข้อมูลตัวอย่างที่สร้างขึ้นเอง ชื่อทั้งหมดเป็นชื่อสมมติ ไม่ใช้กล้อง ไม่มีภาพบุคคล
-ไม่ส่งข้อมูลออกจากเครื่อง และไม่เขียนทับข้อมูลจริงในเครื่องนี้ ไฟล์ที่ส่งออกมีคำว่า SAMPLE กำกับ</p>
+ไม่ส่งข้อมูลออกจากเครื่อง และไม่เขียนทับข้อมูลจริงในเครื่องนี้ ไฟล์ที่ส่งออกมีคำว่า SAMPLE กำกับ
+โหมดสาธิตใช้เฉพาะหน้านี้ ลิงก์ไปหน้าอื่นจะเปิดระบบจริง</p>
 <div class="lq-demo-body"></div>
 <div class="lq-demo-btns"><button type="button" class="btn ghost" id="lqDemoReset" data-i18n="demo.reset">เริ่มข้อมูลตัวอย่างใหม่</button>
 <a class="btn ghost" id="lqDemoExit" data-i18n="demo.exit">ออกจากโหมดสาธิต</a></div>`;
