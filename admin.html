@@ -211,6 +211,28 @@
         <p class="ad-muted" data-i18n="adg.prov.p">ปิดผู้ให้บริการใดก็ได้ ระบบจะไม่เรียกและไม่แสดงบนหน้าขอความยินยอม หน้านี้แสดงเพียงว่าตั้งคีย์แล้วหรือยัง ไม่แสดงค่าคีย์</p>
         <div id="adgProv"></div>
       </div>
+      <!-- AI provider keys (backend/src/ai/keystore.js): write-only, only the last 4 characters are ever shown -->
+      <div class="ad-card" id="adkCard">
+        <h2 data-i18n="adk.h">คีย์ของผู้ให้บริการ AI</h2>
+        <p class="ad-muted" data-i18n="adk.p">คีย์ที่ตั้งที่นี่ถูกเข้ารหัสก่อนเก็บ ใช้ก่อนคีย์ที่ตั้งไว้บนเซิร์ฟเวอร์ และจะไม่ถูกแสดงอีก เห็นได้เพียง 4 ตัวท้าย
+          การตั้ง เปลี่ยน หรือลบคีย์ต้องใส่รหัสผ่านและรหัส 6 หลักทุกครั้ง</p>
+        <div id="adkList" class="adk-list"></div>
+      </div>
+      <dialog id="adkDlg" class="ad-reauth adk-dlg">
+        <form id="adkForm" method="dialog" class="ad-form" novalidate>
+          <h3 id="adkDlgH"></h3>
+          <label><span data-i18n="adk.key">คีย์ใหม่</span>
+            <input name="key" type="text" class="adk-mask" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="300" data-lpignore="true"></label>
+          <label><span data-i18n="adm.pw">รหัสผ่าน</span> <input name="password" type="password" autocomplete="current-password" maxlength="200"></label>
+          <label><span data-i18n="adm.re.code">รหัส 6 หลักจากแอปยืนยันตัวตน</span>
+            <input name="totp" inputmode="numeric" maxlength="6" autocomplete="one-time-code"></label>
+          <p class="ad-alert" id="adkErr" role="alert" hidden></p>
+          <div class="ad-row">
+            <button class="ad-btn" type="submit" value="ok" id="adkOk" data-i18n="adk.save">บันทึก</button>
+            <button class="ad-btn ad-ghost" type="submit" value="cancel" formnovalidate data-i18n="adm.re.no">ยกเลิก</button>
+          </div>
+        </form>
+      </dialog>
       <div id="adgFeatures"></div>
       <div class="ad-card">
         <button class="ad-btn" id="adgSave" type="button" data-i18n="adg.save">บันทึก (ต้องยืนยันรหัสผ่านอีกครั้ง)</button>

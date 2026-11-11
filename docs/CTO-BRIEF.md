@@ -403,6 +403,14 @@ No module is production-ready. None has completed a field pilot, and the backend
   installer wording in five places (for example the command that sets a provider key) and are Thai only apart from
   the AI Gateway tab. They are replaced by the admin-panel key management that is next in the queue.
 
+### Admin key management (2026-11-11)
+
+- Built: AI provider keys set, replaced, tested and removed from the admin panel; write-only (last 4 only);
+  envelope-encrypted under `SECRETS_KEK`; panel key before the Worker secret; password + fresh 6-digit code per change;
+  audit with provider and last 4; spend per provider; TH / EN / ZH; phone widths. Installer wording removed from the
+  back-office tabs. Details: `docs/AI-GATEWAY.md` §3c.
+- Tests (synthetic, local): fixed set K1–K10 (11 tests), 3 wording / text checks, 4 browser checks.
+
 ## 7. Top 5 recommendations for sellability
 
 1. **Run one paid-shaped field pilot per lead product, with human ground truth** (Gate at one car park, Attendance at one office, Crowd at one event). Use the existing `docs/FIELD-PILOT.md` kit. Every accuracy claim is currently synthetic or comes from public datasets; real numbers are the main thing a buyer will ask for. **Effort: M.**

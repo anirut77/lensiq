@@ -28,14 +28,14 @@ const THAI = /[ก-ฺเ-๛]/;
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8" };
 
 /** The Worker on http://127.0.0.1:<port>: static admin shell through the ASSETS binding, everything else handle(). */
-export async function startWorker(repo) {
+export async function startWorker(repo, { vars = {}, deps = {} } = {}) {
   execFileSync(process.execPath, [join(repo, "backend", "scripts", "build-admin.mjs")], { stdio: "ignore" });
   const dist = join(repo, "backend", "admin-dist");
   const { createEnv } = require(join(repo, "tests", "unit", "backend-d1-shim.js"));
   const index = await import(pathToFileURL(join(repo, "backend", "src", "index.js")).href);
   const crypto = await import(pathToFileURL(join(repo, "backend", "src", "crypto.js")).href);
   const env = createEnv({
-    ADMIN_BOOTSTRAP_TOKEN: TOKEN, SECRETS_KEK: Buffer.alloc(32, 5).toString("base64"), ADMIN_ORIGINS: "", ALLOWED_ORIGINS: "",
+    ADMIN_BOOTSTRAP_TOKEN: TOKEN, SECRETS_KEK: Buffer.alloc(32, 5).toString("base64"), ADMIN_ORIGINS: "", ALLOWED_ORIGINS: "", ...vars,
     ASSETS: { fetch: async r => {
       const p = new URL(r.url).pathname, f = join(dist, p);
       if (p.includes("..") || !existsSync(f)) return new Response("not found", { status: 404 });
@@ -48,7 +48,7 @@ export async function startWorker(repo) {
     for (const [k, v] of Object.entries(q.headers)) if (typeof v === "string") headers.set(k, v);
     const init = { method: q.method, headers };
     if (!["GET", "HEAD"].includes(q.method)) init.body = Buffer.concat(chunks);
-    const r = await index.handle(new Request(origin + q.url, init), env);
+    const r = await index.handle(new Request(origin + q.url, init), env, deps);
     const out = {}; r.headers.forEach((v, k) => { if (k !== "set-cookie") out[k] = v; });
     const cookies = r.headers.getSetCookie ? r.headers.getSetCookie() : [];
     if (cookies.length) out["set-cookie"] = cookies;

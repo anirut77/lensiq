@@ -9,6 +9,7 @@
 //                     by the daily cron, like the monthly plan quotas).
 //   ai_usage_monthly  (migration 0010) monthly aggregates: (month 'YYYY-MM', feature, metric, n) — counts and sums only
 //   rate_limits       per-user / global limits (store.js hitAll, shared with fortune)
+//   ai_provider_keys  (migration 0012) provider keys set from the admin panel, envelope-encrypted (keystore.js)
 import { getSetting, putSetting } from "../store.js";
 
 export const BUDGET_SUBJECT = "ai:budget";
@@ -63,4 +64,27 @@ export async function readMonth(db, month) {
   /** @type {Record<string, number>} */
   const budget = Object.fromEntries(b.map(r => [r.feature, Number(r.n)]));
   return { agg, budget };
+}
+
+// ---- provider keys set from the admin panel (migration 0012; encryption in keystore.js) ------------------------------
+/** Every stored row (encrypted). */
+export async function keyRows(db) {
+  return (await db.prepare("SELECT provider, key_enc, last4, set_at, checked_at, check_ok FROM ai_provider_keys").all()).results || [];
+}
+/** Insert or replace one provider's key; returns the previous last 4 (null when there was none). */
+export async function putKeyRow(db, provider, keyEnc, last4, t) {
+  const prev = await db.prepare("SELECT last4 FROM ai_provider_keys WHERE provider = ?1").bind(provider).first();
+  await db.prepare("INSERT INTO ai_provider_keys (provider, key_enc, last4, set_at, checked_at, check_ok) VALUES (?1, ?2, ?3, ?4, NULL, NULL) " +
+    "ON CONFLICT (provider) DO UPDATE SET key_enc = excluded.key_enc, last4 = excluded.last4, set_at = excluded.set_at, checked_at = NULL, check_ok = NULL")
+    .bind(provider, keyEnc, last4, t).run();
+  return prev ? String(prev.last4) : null;
+}
+/** Removes one provider's key; returns its last 4 (null when there was none). */
+export async function deleteKeyRow(db, provider) {
+  const r = await db.prepare("DELETE FROM ai_provider_keys WHERE provider = ?1 RETURNING last4").bind(provider).first();
+  return r ? String(r.last4) : null;
+}
+/** Result of the last "test key". */
+export async function noteKeyCheck(db, provider, ok, t) {
+  await db.prepare("UPDATE ai_provider_keys SET checked_at = ?2, check_ok = ?3 WHERE provider = ?1").bind(provider, t, ok ? 1 : 0).run();
 }

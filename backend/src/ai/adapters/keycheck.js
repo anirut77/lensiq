@@ -67,3 +67,27 @@ export async function checkKeys(vars, fetchImpl) {
   }
   return out;
 }
+
+// ---- admin panel key management (ai/keystore.js; owner spec 2026-11-11) ---------------------------------------------
+/** Accepted key shapes. Only characters providers use in keys; documented prefixes where a provider has one. */
+export const KEY_CHARS = /^[A-Za-z0-9._-]+$/;
+/** @type {Record<string, RegExp>} */
+export const KEY_SHAPES = Object.freeze({
+  anthropic: /^sk-ant-[A-Za-z0-9_-]{20,200}$/,
+  openrouter: /^sk-or-v1-[A-Za-z0-9]{20,200}$/,
+  gemini: /^AIza[A-Za-z0-9_-]{30,60}$/,
+  // generic "sk-" shapes refuse the documented prefixes of other providers (an Anthropic or OpenRouter key pasted in
+  // the wrong row would otherwise be sent to this provider)
+  openai: /^sk-(?!ant-|or-)[A-Za-z0-9_-]{20,250}$/,
+  deepseek: /^sk-(?!ant-|or-)[A-Za-z0-9]{20,100}$/,
+  kimi: /^sk-(?!ant-|or-)[A-Za-z0-9]{20,100}$/,
+  dashscope: /^sk-(?!ant-|or-)[A-Za-z0-9]{20,100}$/,
+  zai: /^[A-Za-z0-9]{16,80}\.[A-Za-z0-9]{8,80}$/
+});
+/** Providers whose key check is documented as billing nothing (keycheck.js); others are not tested from the panel. */
+export const PANEL_TESTABLE = Object.freeze(PROVIDER_IDS.filter(id => id !== "zai"));
+/** Variables for checkKeys() testing ONE provider with `key`, plus the non-secret settings its check needs.
+ *  @param {Record<string, any>} env @param {string} id @param {string} key */
+export function checkVars(env, id, key) {
+  return { [PROVIDERS[id].secret]: key, DASHSCOPE_WORKSPACE_ID: env.DASHSCOPE_WORKSPACE_ID };
+}

@@ -177,9 +177,11 @@ export const adaptersWith = injected => ({ ...ADAPTERS, ...(injected || {}) });
  * @param {Env} env @param {string} id @param {{legacyKeyStore?: boolean}} [gw]
  * @returns {Promise<string|null>}
  */
-export async function keyFor(env, id, gw = {}) {
+export async function keyFor(env, id, gw = {}, panel = null) {
   const p = PROVIDERS[id];
   if (!p) return null;
+  // a key set in the admin panel (ai/keystore.js, envelope-encrypted in D1) comes first (owner decision 2026-11-11)
+  if (panel && typeof panel[id] === "string" && panel[id]) return panel[id];
   const v = env[p.secret];
   if (typeof v === "string" && v.trim()) return v.trim();
   if (id === "anthropic" && gw.legacyKeyStore) return getApiKey(env);

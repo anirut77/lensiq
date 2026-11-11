@@ -481,17 +481,19 @@
       Object.keys(s.domains).forEach(function (d) { box.appendChild(h("label", null, h("input", { type: "checkbox", name: "d_" + d, checked: !!s.domains[d] }), " " + d)); });
       var tsn = $("adTsNotice"), t = r.turnstile || {};
       tsn.hidden = !!t.configured;
-      tsn.textContent = t.configured ? "" : "⚠ Turnstile ยังไม่ได้ตั้งค่า — ผู้ช่วยเขียน AI ถูกปฏิเสธทุกคำขอ (fail closed) จนกว่าจะตั้ง TURNSTILE_SECRET (wrangler secret put) และ TURNSTILE_HOSTNAMES" +
-        (t.local_dev_bypass ? " · TURNSTILE_DISABLED_FOR_LOCAL_DEV เปิดอยู่: ยกเว้นเฉพาะคำขอจาก localhost" : "");
+      tsn.textContent = t.configured ? "" : "⚠ ระบบกันบอทยังไม่ได้ตั้งค่า ผู้ช่วยเขียน AI จะปฏิเสธทุกคำขอจนกว่าผู้ติดตั้งระบบจะตั้งให้เสร็จ" +
+        (t.local_dev_bypass ? " · โหมดทดสอบในเครื่องเปิดอยู่: ยกเว้นเฉพาะคำขอจากเครื่องนักพัฒนา" : "");
       var k = r.key;
-      $("adKeyStatus").textContent = "ที่มาของคีย์: " + ({ worker_secret: "Worker secret (แนะนำ)", admin_encrypted: "เก็บแบบเข้ารหัสจากหน้านี้", none: "ยังไม่มีคีย์ — AI ปิดอยู่" }[/** @type {"worker_secret"|"admin_encrypted"|"none"} */ (k.source)] || k.source) +
-        (k.stored_encrypted ? " · คีย์เข้ารหัสอัปเดต " + when(k.stored_updated_at) + (k.stored_readable ? "" : " (ถอดรหัสไม่ได้ — KEK เปลี่ยน?)") : "") +
-        " · SECRETS_KEK: " + (k.kek_configured ? "ตั้งแล้ว" : "ยังไม่ตั้ง") + (k.kek_error ? " (" + k.kek_error + ")" : "");
+      var srcText = { worker_secret: "ตั้งไว้บนเซิร์ฟเวอร์ตอนติดตั้ง (แนะนำ)", admin_encrypted: "เก็บแบบเข้ารหัสจากหน้านี้", none: "ยังไม่มีคีย์ AI ปิดอยู่" };
+      $("adKeyStatus").textContent = "ที่มาของคีย์: " + (srcText[/** @type {"worker_secret"|"admin_encrypted"|"none"} */ (k.source)] || k.source) +
+        (k.stored_encrypted ? " · คีย์เข้ารหัสอัปเดต " + when(k.stored_updated_at) + (k.stored_readable ? "" : " (อ่านไม่ได้แล้ว กรุณาตั้งใหม่)") : "") +
+        " · การเข้ารหัสบนเซิร์ฟเวอร์: " + (k.kek_configured && !k.kek_error ? "พร้อม" : "ยังไม่พร้อม (ติดต่อผู้ติดตั้งระบบ)");
       // round 17: a stored key the gateway does not read (legacyKeyStore off) — TH / EN / ZH via i18n/*-admin.js
       var lk = $("adKeyLegacy");
       lk.hidden = !r.legacy_key_unused;
       lk.textContent = r.legacy_key_unused
-        ? G("adg.legacyUnused", "มีคีย์ Anthropic ที่เก็บแบบเข้ารหัสไว้ แต่ไม่ได้ใช้ (legacyKeyStore ปิดอยู่) ตั้ง Worker secret ANTHROPIC_API_KEY หรือเปิด legacyKeyStore ในแท็บ AI Gateway")
+        ? G("adg.legacyUnused", "มีคีย์ Anthropic ที่เก็บแบบเข้ารหัสไว้จากแท็บนี้ แต่ไม่ได้ใช้ ตั้งคีย์ในการ์ด \"คีย์ของผู้ให้บริการ AI\" " +
+          "ของแท็บ AI Gateway แทน หรือเปิดสวิตช์อ่านคีย์แบบเดิมในแท็บนั้น")
         : "";
     }, fail);
   };
@@ -525,7 +527,7 @@
    * Global switch, legacy key store switch, provider allowlist (key set / not set only), per-feature switch, ordered
    * chain editor, budget and limits, monthly usage. Saving needs re-auth (call() asks for the password once). Thai is the
    * default text; English / Chinese come from i18n/en-admin.js / i18n/zh-admin.js (keys adg.*). */
-  var gw = /** @type {any} */ ({ data: null, usage: null });
+  var gw = /** @type {any} */ ({ data: null, usage: null, keys: null });
   var NUM_FIELDS = [
     ["timeoutMs", "adg.f.timeout", "เวลารอต่อครั้ง (มิลลิวินาที)", 1000, 120000, 1000],
     ["monthlyBudgetUsd", "adg.f.budget", "งบประมาณต่อเดือน (USD) — 0 = ไม่ให้ทำงาน", 0, 100000, 0.01],
@@ -625,8 +627,9 @@
       });
       pv.appendChild(ul);
     }
-    pv.appendChild(table([G("adg.t.provider", "ผู้ให้บริการ"), G("adg.t.secret", "ตั้งคีย์ด้วย"), G("adg.t.region", "ประมวลผลที่")],
-      d.providers.map(function (/** @type {any} */ p) { return [p.name[gLang()] || p.id, "wrangler secret put " + p.secret_name, p.region[gLang()]]; })));
+    pv.appendChild(table([G("adg.t.provider", "ผู้ให้บริการ"), G("adk.t.source", "คีย์ที่ใช้อยู่"), G("adg.t.region", "ประมวลผลที่")],
+      d.providers.map(function (/** @type {any} */ p) { return [p.name[gLang()] || p.id, keySourceText(p.key_source, p.key_last4), p.region[gLang()]]; })));
+    renderKeys();
     var fx = $("adgFeatures"); fx.textContent = "";
     d.features.forEach(function (/** @type {any} */ m) { fx.appendChild(featureCard(m, s.features[m.id] || {})); });
     var u = gw.usage, ub = $("adgUsage"); ub.textContent = "";
@@ -638,11 +641,118 @@
           return [r.feature, r.requests, r.ok, r.fallbacks, r.calls, r.cost_usd.toFixed(4), r.budget_used_usd.toFixed(4) + " / " + (r.budget_usd == null ? "∞" : r.budget_usd),
             r.p50_ms == null ? "—" : "≤ " + r.p50_ms + " ms", r.p95_ms == null ? "—" : "≤ " + r.p95_ms + " ms"];
         })));
+      var pc = u.providers_cost_usd || {}, names = /** @type {Record<string, string>} */ ({});
+      ((gw.data && gw.data.providers) || []).forEach(function (/** @type {any} */ p) { names[p.id] = p.name[gLang()] || p.id; });
+      ub.appendChild(h("h3", { text: G("adk.cost.h", "ค่าใช้จ่ายต่อผู้ให้บริการ (USD)") }));
+      ub.appendChild(Object.keys(pc).length
+        ? table([G("adg.t.provider", "ผู้ให้บริการ"), G("adg.u.cost", "ค่าใช้จ่าย (USD)")], Object.keys(pc).map(function (k) { return [names[k] || k, pc[k].toFixed(4)]; }))
+        : h("p", { class: "ad-muted", text: G("adk.cost.none", "ยังไม่มีค่าใช้จ่ายในเดือนนี้") }));
     }
   }
   loaders.aigw = function () {
-    Promise.all([call("/ai/gateway"), call("/ai/usage")]).then(function (/** @type {any[]} */ r) { gw.data = r[0]; gw.usage = r[1]; renderGateway(); }, fail);
+    Promise.all([call("/ai/gateway"), call("/ai/usage"), call("/ai/keys")]).then(function (/** @type {any[]} */ r) {
+      gw.data = r[0]; gw.usage = r[1]; gw.keys = r[2].keys; renderGateway();
+    }, fail);
   };
+
+  /* ---------------- AI provider keys (write-only; last 4 characters only) ---------------- */
+  /** @param {string} source @param {string|null} last4 */
+  function keySourceText(source, last4) {
+    if (source === "panel") return G("adk.src.panel", "ตั้งในแผงนี้ (ลงท้าย {l})", { l: last4 || "" });
+    if (source === "server") return G("adk.src.server", "ตั้งไว้บนเซิร์ฟเวอร์ตอนติดตั้ง");
+    return G("adk.src.none", "ยังไม่มีคีย์ ผู้ให้บริการนี้จะไม่ถูกใช้");
+  }
+  function renderKeys() {
+    var box = $("adkList"); box.textContent = "";
+    // a key set in the panel that can no longer be read: the server key (if any) is used instead; say so loudly
+    var bad = (gw.keys || []).filter(function (/** @type {any} */ k) { return k.unreadable; });
+    if (bad.length) box.appendChild(h("p", { class: "ad-warn", role: "alert",
+      text: G("adk.warn.unreadable", "คีย์ที่ตั้งในแผงนี้อ่านไม่ได้ {n} รายการ ระบบจะใช้คีย์บนเซิร์ฟเวอร์แทนถ้ามี กรุณาตั้งคีย์ใหม่", { n: bad.length }) }));
+    var names = /** @type {Record<string, string>} */ ({});
+    ((gw.data && gw.data.providers) || []).forEach(function (/** @type {any} */ p) { names[p.id] = p.name[gLang()] || p.id; });
+    (gw.keys || []).forEach(function (/** @type {any} */ k) {
+      var st = keySourceText(k.source, k.last4);
+      if (k.unreadable) st = G("adk.src.unreadable", "คีย์ที่ตั้งในแผง (ลงท้าย {l}) อ่านไม่ได้ จึงไม่ถูกใช้ กรุณาตั้งใหม่", { l: k.last4 || "" });
+      else if (k.panel_set && k.server_set) st += " · " + G("adk.src.both", "ใช้แทนคีย์บนเซิร์ฟเวอร์");
+      var test = k.checked_at ? (k.check_ok ? G("adk.test.ok", "ทดสอบล่าสุด: ใช้ได้") : G("adk.test.fail", "ทดสอบล่าสุด: ใช้ไม่ได้")) + " · " + when(k.checked_at) : "";
+      var row = h("div", { class: "adk-row", "data-provider": k.provider },
+        h("b", { text: names[k.provider] || k.provider }),
+        h("span", { class: "adk-st" + (k.unreadable ? " adk-bad" : ""), text: st }),
+        k.set_at ? h("span", { class: "ad-muted", text: G("adk.setAt", "ตั้งเมื่อ") + " " + when(k.set_at) }) : null,
+        test ? h("span", { class: "ad-muted adk-test", text: test }) : null);
+      var btns = h("div", { class: "ad-row" });
+      var bSet = h("button", { class: "ad-btn", type: "button", text: k.panel_set ? G("adk.replace", "เปลี่ยนคีย์") : G("adk.set", "ตั้งคีย์") });
+      bSet.addEventListener("click", function () { keyDialog(k.provider, names[k.provider] || k.provider, k.panel_set ? "replace" : "set"); });
+      btns.appendChild(bSet);
+      if (k.testable && k.source !== "none") {
+        var bTest = /** @type {HTMLButtonElement} */ (h("button", { class: "ad-btn ad-ghost", type: "button", text: G("adk.test", "ทดสอบคีย์") }));
+        bTest.addEventListener("click", function () {
+          bTest.disabled = true;
+          call("/ai/keys/" + k.provider + "/test", { method: "POST", body: {} }).then(function (/** @type {any} */ r) {
+            msg(r.status === "OK" ? G("adk.test.okMsg", "{p}: คีย์ใช้ได้", { p: names[k.provider] || k.provider })
+              : G("adk.test.failMsg", "{p}: คีย์ใช้ไม่ได้ ตรวจว่าคีย์ถูกต้องและยังไม่ถูกยกเลิก", { p: names[k.provider] || k.provider }), r.status !== "OK");
+            return call("/ai/keys").then(function (/** @type {any} */ x) { gw.keys = x.keys; renderKeys(); });
+          }, function (/** @type {any} */ e) { msg(friendly(e), true); }).then(function () { bTest.disabled = false; });
+        });
+        btns.appendChild(bTest);
+      } else if (!k.testable && k.source !== "none") {
+        btns.appendChild(h("span", { class: "ad-muted", text: G("adk.test.no", "ผู้ให้บริการนี้ไม่ได้ระบุว่าการทดสอบไม่มีค่าใช้จ่าย จึงไม่ทดสอบจากแผงนี้") }));
+      }
+      if (k.panel_set) {
+        var bDel = h("button", { class: "ad-btn ad-ghost", type: "button", text: G("adk.remove", "ลบคีย์ในแผงนี้") });
+        bDel.addEventListener("click", function () { keyDialog(k.provider, names[k.provider] || k.provider, "remove"); });
+        btns.appendChild(bDel);
+      }
+      row.appendChild(btns);
+      box.appendChild(row);
+    });
+  }
+  var keyDlg = /** @type {{id: string, what: string}|null} */ (null);
+  // closed in any way (Save, Cancel, Esc): nothing typed stays in the page
+  $("adkDlg").addEventListener("close", function () { /** @type {any} */ ($("adkForm")).reset(); keyDlg = null; $("adkErr").hidden = true; });
+  /** Heading and button of the open key dialog in the current language. */
+  function keyDlgTexts() {
+    if (!keyDlg) return;
+    var p = ((gw.data && gw.data.providers) || []).find(function (/** @type {any} */ x) { return x.id === keyDlg.id; });
+    var name = p ? p.name[gLang()] || p.id : keyDlg.id;
+    $("adkDlgH").textContent = keyDlg.what === "remove" ? G("adk.dlg.remove", "ลบคีย์ของ {p} ที่ตั้งในแผงนี้", { p: name })
+      : keyDlg.what === "replace" ? G("adk.dlg.replace", "เปลี่ยนคีย์ของ {p}", { p: name }) : G("adk.dlg.set", "ตั้งคีย์ของ {p}", { p: name });
+    $("adkOk").textContent = keyDlg.what === "remove" ? G("adk.remove", "ลบคีย์ในแผงนี้") : G("adk.save", "บันทึก");
+  }
+  /** Set / replace / remove dialog: the key, the password and the 6-digit code go only into this one request.
+   *  @param {string} id @param {string} name @param {"set"|"replace"|"remove"} what */
+  function keyDialog(id, name, what) {
+    var d = /** @type {any} */ ($("adkDlg")), f = /** @type {any} */ ($("adkForm")), err = $("adkErr");
+    f.reset(); err.hidden = true; err.textContent = "";
+    f.key.closest("label").hidden = what === "remove";
+    keyDlg = { id: id, what: what };
+    keyDlgTexts();
+    var done = function () { f.reset(); keyDlg = null; d.close(); };
+    f.onsubmit = function (/** @type {any} */ ev) {
+      if (!ev.submitter || ev.submitter.value !== "ok") { done(); ev.preventDefault(); return; }
+      ev.preventDefault();
+      var key = String(f.key.value || "").trim(), code = String(f.totp.value || "").replace(/\s/g, "");
+      var bad = function (/** @type {string} */ t) { err.textContent = t; err.hidden = false; err.classList.add("ad-bad"); };
+      if (what !== "remove" && !key) { bad(G("adk.v.key", "กรุณาวางคีย์")); return; }
+      if (!f.password.value) { bad(G("adm.v.pw", "กรุณากรอกรหัสผ่านก่อน")); return; }
+      if (!/^\d{6}$/.test(code)) { bad(G("adm.v.code", "รหัสจากแอปเป็นตัวเลข 6 หลัก")); return; }
+      var body = what === "remove" ? { password: f.password.value, totp: code } : { key: key, password: f.password.value, totp: code };
+      $("adkOk").disabled = true;
+      call("/ai/keys/" + id, { method: what === "remove" ? "DELETE" : "PUT", body: body, noReauth: true }).then(function (/** @type {any} */ r) {
+        done(); gw.keys = r.keys;
+        msg(what === "remove" ? G("adk.removed", "ลบคีย์ของ {p} แล้ว", { p: name }) : G("adk.saved", "บันทึกคีย์ของ {p} แล้ว", { p: name }));
+        loaders.aigw();
+      }, function (/** @type {any} */ e) {
+        f.password.value = ""; f.totp.value = ""; f.key.value = "";
+        bad(e && e.code === "invalid_key_format" ? G("adk.e.format", "คีย์นี้ไม่ใช่รูปแบบของผู้ให้บริการนี้ ตรวจว่าคัดลอกมาครบและเลือกผู้ให้บริการถูก")
+          : e && e.code === "owner_totp_required" ? G("adk.e.two", "ต้องเปิดการยืนยันตัวตนสองชั้นก่อน (แท็บความปลอดภัย)")
+          : e && e.code === "kek_missing" ? G("adk.e.kek", "เซิร์ฟเวอร์ยังไม่พร้อมเก็บคีย์ กรุณาติดต่อผู้ติดตั้งระบบ")
+          : e && (e.code === "reauth_failed" || e.code === "reauth_inline_required") ? G("adm.e.re", "รหัสผ่านหรือรหัสยืนยันไม่ถูกต้อง") : friendly(e));
+      }).then(function () { $("adkOk").disabled = false; });
+    };
+    if (typeof d.showModal === "function") d.showModal();
+    (what === "remove" ? f.password : f.key).focus();
+  }
   function collectGateway() {
     /** @type {Record<string, boolean>} */
     var providers = {};
@@ -694,6 +804,7 @@
     amsg(""); swapSecond(useRecovery); hideTyped();
     document.title = "LENSIQ " + G("adm.brand", "หลังบ้าน");
     if (gw.data) renderGateway();
+    keyDlgTexts();
   });
   $("adLang").value = gLang();
 
@@ -710,7 +821,7 @@
       $("adPricingOn").checked = !!b.settings.pricing_page_enabled;
       var bn = $("adBillTs"), bt = b.turnstile || {};
       bn.hidden = !!bt.configured;
-      bn.textContent = bt.configured ? "" : "⚠ Turnstile ยังไม่ได้ตั้งค่า — การชำระเงินผ่านหน้าราคาจะถูกปฏิเสธ (fail closed) จนกว่าจะตั้ง TURNSTILE_SECRET และ TURNSTILE_HOSTNAMES";
+      bn.textContent = bt.configured ? "" : "⚠ ระบบกันบอทยังไม่ได้ตั้งค่า การชำระเงินผ่านหน้าราคาจะถูกปฏิเสธจนกว่าผู้ติดตั้งระบบจะตั้งให้เสร็จ";
       var pl = $("adPlans"); pl.textContent = "";
       pl.appendChild(table(["แพ็กเกจ", "สถานะ", "รายเดือน (บาท)", "รายปี (บาท)", "AI/วัน"], b.plans.map(function (/** @type {any} */ p) {
         var ai = p.entitlements.ai_reading;
@@ -769,9 +880,9 @@
         box.appendChild(h("label", null, p.plan_id + " (" + (p.period === "month" ? "ต่อเดือน" : "ต่อวัน") + ") ", h("input", { type: "number", min: 0, max: 1000000, step: 1, name: "q_" + p.plan_id, value: p.quota == null ? "" : p.quota, placeholder: "ไม่จำกัด" })));
       });
       var w = [];
-      if (!r.google_client_id_set) w.push("ยังไม่ได้ตั้ง GOOGLE_CLIENT_ID (wrangler.toml) — สมาชิกเข้าสู่ระบบไม่ได้ และสวิตช์บังคับเข้าสู่ระบบจะไม่มีผล");
-      if (!(r.turnstile || {}).configured) w.push("Turnstile ยังไม่ได้ตั้งค่า — การเข้าสู่ระบบถูกปฏิเสธ (fail closed)");
-      if (s.membership_required && !r.effective_required) w.push("สวิตช์เปิดอยู่แต่ยังไม่มีผล (ต้องมี GOOGLE_CLIENT_ID)");
+      if (!r.google_client_id_set) w.push("ยังไม่ได้ตั้งการเข้าสู่ระบบด้วย Google บนเซิร์ฟเวอร์ สมาชิกเข้าสู่ระบบไม่ได้ และสวิตช์บังคับเข้าสู่ระบบจะไม่มีผล");
+      if (!(r.turnstile || {}).configured) w.push("ระบบกันบอทยังไม่ได้ตั้งค่า การเข้าสู่ระบบถูกปฏิเสธ");
+      if (s.membership_required && !r.effective_required) w.push("สวิตช์เปิดอยู่แต่ยังไม่มีผล (ต้องตั้งการเข้าสู่ระบบด้วย Google บนเซิร์ฟเวอร์ก่อน)");
       $("adMemWarn").hidden = !w.length; $("adMemWarn").textContent = w.map(function (x) { return "⚠ " + x; }).join(" · ");
     }, fail);
     memList("");

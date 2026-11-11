@@ -54,6 +54,7 @@ import { adminCspReports, ingestCspReport } from "./csp.js";
 import { adminMailLog, mailStatus } from "./mail.js";
 import { fortuneRun, fortuneStatus } from "./fortune.js";
 import { adminGateway, adminPutGateway, adminUsage, aiRoute, providersInfo } from "./ai/gateway.js";
+import * as keystore from "./ai/keystore.js";
 import { LEGACY_KEY_UNUSED, getGateway, legacyKeyUnused } from "./ai/settings.js";
 import { medRoute } from "./med.js";
 import { adminPcLookup, pcRoute, putPcSettings } from "./pc.js";
@@ -307,6 +308,46 @@ async function adminRoute(request, env, url, deps) {
   };
   /** Money operation: re-auth + owner TOTP while billing / live keys are on (auth.requireOwnerTotpFor). */
   const moneyOp = async () => { const b = await moneyReauthed(); await auth.requireOwnerTotpFor(env, "money operations"); return b; };
+
+  // AI provider keys from the admin panel (ai/keystore.js; owner spec 2026-11-11): write-only, envelope-encrypted.
+  // Every change needs 2-step verification on AND the password + a fresh 6-digit code in that very request (the sudo
+  // window does not count); audited with provider and last 4 only.
+  const km = /^\/ai\/keys\/([a-z]{2,20})(\/test)?$/.exec(route);
+  if (route === "/ai/keys" && m === "GET") return reply({ keys: await keystore.listKeys(env), test_per_hour: keystore.TEST_PER_HOUR });
+  if (km && !km[2] && (m === "PUT" || m === "DELETE")) {
+    const id = keystore.assertProvider(km[1]);
+    const o = await auth.getOwner(env.DB);
+    if (!o || !o.totp_enabled) throw new HttpError(403, "turn on 2-step verification before managing keys", { code: "owner_totp_required" });
+    const b = await body();
+    // refusals that need no secret first, so a 6-digit code is not used up on them: server not ready, wrong key shape
+    if (m === "PUT") { await keystore.kekOrFail(env); keystore.checkShape(id, b.key); }
+    await keystore.assertTable(env); // migration 0012 applied (else 503 before the code is used)
+    let rest;
+    try { rest = await auth.requireInlineReauth(env, sess, b); } catch (e) {
+      if (e && e.extra && e.extra.code === "reauth_inline_required") await act("reauth.failed", { route: "/ai/keys/" + id, missing: true, inline: true });
+      throw e;
+    }
+    if (m === "PUT") {
+      const r = await keystore.setKey(env, id, rest.key);
+      await act(r.previous_last4 ? "ai.provider_key.replaced" : "ai.provider_key.set",
+        r.previous_last4 ? { provider: id, last4: r.last4, previous_last4: r.previous_last4 } : { provider: id, last4: r.last4 });
+    } else {
+      const last4 = await keystore.removeKey(env, id);
+      await act("ai.provider_key.removed", { provider: id, last4 });
+    }
+    return reply({ keys: await keystore.listKeys(env) });
+  }
+  if (km && km[2] && m === "POST") {
+    const id = keystore.assertProvider(km[1]);
+    let used = "";
+    const r = await keystore.testKey(env, id, deps.fetch, async last4 => {
+      used = last4;
+      const rl = await hit(env.DB, "admin:key_test", keystore.TEST_PER_HOUR, 3600);
+      if (!rl.ok) throw new HttpError(429, "key test limit reached — try again later", { code: "too_many", retryAfter: rl.retryAfter });
+    });
+    if (r.status === "OK" || r.status === "FAIL") await act("ai.provider_key.tested", { provider: id, last4: used, status: r.status });
+    return reply(r);
+  }
 
   switch (`${m} ${route}`) {
     case "GET /me": {

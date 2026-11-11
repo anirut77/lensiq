@@ -238,6 +238,29 @@ read back, so for production run the check with the same keys in `backend/.dev.v
 file there imports / requires a provider SDK package (`openai`, `@google/genai`, `@google/generative-ai`,
 `@anthropic-ai/*`, `groq-sdk`, `@mistralai/*`).
 
+### 3c. Keys set from the admin panel (2026-11-11; `ai/keystore.js`, migration 0012)
+
+Owner spec 2026-11-11. Admin → AI Gateway → "AI provider keys".
+
+- **Write-only.** No answer carries a key; the panel shows the provider, where the key in use comes from (set in the
+  panel / set on the server / none), the last 4 characters, when it was set and the last test result.
+- **Envelope encryption.** A random 256-bit data key encrypts the provider key (AES-GCM, bound to the provider); the
+  data key is encrypted with `SECRETS_KEK` (bound to the provider). A row moved to another provider, or read with
+  another KEK, does not decrypt: it is shown as "cannot be read, set it again" and never used.
+- **Priority.** A key set in the panel is used before the Worker secret of the same provider; removing it falls back
+  to the Worker secret. The consent screen and the calls use the same resolution (`usableChain`).
+- **Re-authentication.** Set, replace and remove need 2-step verification on and the password plus a fresh 6-digit
+  code in that very request. The 5-minute confirmation window and recovery codes are not accepted. Malformed keys and
+  a missing KEK are refused before the code is checked, so no code is used up on them.
+- **Audit.** `ai.provider_key.set | replaced | removed | tested` with provider and last 4 only.
+- **Test key.** One request that bills nothing (§3a), key in a header, only OK / FAIL returned; 10 tests per hour
+  for the whole back office. z.ai is not tested from the panel: its check endpoint does not state that it is free.
+- **Spend per provider.** Each attempt adds `pcost:<provider>`; the monthly usage shows spend per provider.
+- **Default and fallback model per feature, budgets:** unchanged, in the feature cards of the same tab.
+- Fixed test set: `tests/unit/backend-ai-keys.test.js` (K1–K10, locked before the build; sha256 in
+  `~/LENSIQ-field/evals/keys-locked.sha256`, one amendment recorded in the file), `tests/unit/backend-ai-keys-ui.test.js`,
+  `tests/e2e/admin-keys.e2e.mjs`.
+
 ### 3b. Provider terms and prices checked (P6, 2026-11-10)
 
 Read on the official pages on 2026-11-10 without a key; summaries only, not legal advice. Counsel reviews each before
@@ -333,7 +356,8 @@ and provider, tokens, cost, latency histogram (p50 / p95 shown as "≤ bucket").
 
 ## 8. Admin
 
-- `GET /admin/api/ai/gateway`: settings, provider table with `key_set` (never values) and the `wrangler secret put`
+- `GET|PUT|DELETE /admin/api/ai/keys[/:provider]`, `POST /admin/api/ai/keys/:provider/test`: §3c.
+- `GET /admin/api/ai/gateway`: settings, provider table with `key_set`, `key_source`, `key_last4` (never values) and the `wrangler secret put`
   name, legacy key status, features, prices, efforts.
 - `PUT /admin/api/ai/gateway`: **re-auth required** (password, TOTP when on, or the 5-minute window) and audited
   (`ai.gateway.settings` with the changed keys; a missing re-auth is audited as `reauth.failed`).

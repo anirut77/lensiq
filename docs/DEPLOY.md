@@ -405,3 +405,13 @@ First real AI call: served provider name seen on the result card:
   15 minutes) and the password is needed as well; a keyed hash is a possible hardening if the database ever leaves
   Cloudflare.
 - Custom domain: `docs/CUSTOM-DOMAIN.md`.
+
+## AI provider keys from the admin panel (2026-11-11)
+
+- Order: `npm run backend:migrate` (adds `0012_ai_keys.sql`), then `npm run backend:deploy:test`. Without the table
+  the gateway keeps using the Worker secrets and `/health/deep` names `0012_ai_keys.sql` as missing.
+- Moving the OpenRouter key into the panel (owner): Admin → AI Gateway → "AI provider keys" → OpenRouter → Set key →
+  paste the key, password, 6-digit code → Save → Test key. The panel key is used from then on. The Worker secret
+  `OPENROUTER_API_KEY` can stay as a fallback or be deleted later by the owner.
+- `SECRETS_KEK` must not be changed while keys are stored in the panel: they would become unreadable (the panel then
+  says so) and must be set again.

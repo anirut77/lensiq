@@ -21,6 +21,7 @@ import { callerHash, hit, hitAll } from "../store.js";
 import { isLocalOrigin, verifyTurnstile } from "../turnstile.js";
 import { BKK_OFFSET, dayOf, log, now, readJson } from "../util.js";
 import { ADAPTERS, PROVIDERS, PROVIDER_IDS, SECRET_NAMES, adaptersWith, configState, keyFor, keyPresence, providerConfig, providerReady, publicProvider } from "./adapters/index.js";
+import { listKeys, readPanelKeys } from "./keystore.js";
 import { PRICES, costMicros, modelsOf, priceAt } from "./adapters/prices.js";
 import { addAggregates, adjustBudget, readMonth, reserveBudget } from "./db.js";
 import { POLICY, decide } from "./fallback.js";
@@ -63,12 +64,13 @@ const hasUsage = u => !!u && (Number(u.inputTokens) > 0 || Number(u.outputTokens
  *  on the consent screen. The consent screen (providersInfo) uses the same function, so what is shown is what runs. */
 async function usableChain(env, gw, fs, adapters, consentProviders) {
   const out = [];
+  const panel = (fs && fs.chain && fs.chain.length) ? await readPanelKeys(env) : {};
   for (const e of (fs && fs.chain) || []) {
     if (gw.providers[e.provider] === false || !adapters[e.provider] || !providerReady(env, e.provider)) continue;
     // a deployment that pins serving providers (deploy B6): a model without a pin is never offered and never called
     if (typeof adapters[e.provider].usable === "function" && !adapters[e.provider].usable(e.model, providerConfig(env, e.provider))) continue;
     if (consentProviders && !consentProviders.includes(e.provider)) continue;
-    const key = await keyFor(env, e.provider, gw);
+    const key = await keyFor(env, e.provider, gw, panel);
     if (key) out.push({ entry: e, key });
   }
   return out;
@@ -215,7 +217,7 @@ export async function runFeature(env, featureId, req0, opts = {}) {
       try {
         await addAggregates(env.DB, aggMonth, featureId, {
           calls: 1, cost, in_tok: Number(u.inputTokens) || 0, out_tok: (Number(u.outputTokens) || 0) + (Number(u.reasoningTokens) || 0),
-          ["k:" + kind]: 1, ["lat:" + latBucket(latencyMs)]: 1, ["prov:" + entry.provider]: 1
+          ["k:" + kind]: 1, ["lat:" + latBucket(latencyMs)]: 1, ["prov:" + entry.provider]: 1, ["pcost:" + entry.provider]: cost
         });
       } catch { /* best effort */ }
       if (r.ok) {
@@ -374,12 +376,14 @@ export async function providersInfo(env, featureId, deps = {}) {
 
 /** GET /admin/api/ai/gateway — settings, provider table with key presence (never values), features, prices. */
 export async function adminGateway(env) {
-  const keys = keyPresence(env);
+  const server = keyPresence(env);
+  const panel = Object.fromEntries((await listKeys(env)).map(k => [k.provider, k]));
+  const keys = Object.fromEntries(PROVIDER_IDS.map(id => [id, server[id] || panel[id].source === "panel"]));
   return {
     settings: await getGateway(env.DB),
     providers: PROVIDER_IDS.map(id => ({
       id, name: PROVIDERS[id].name, region: PROVIDERS[id].region, retention: PROVIDERS[id].retention,
-      secret_name: SECRET_NAMES[id], key_set: keys[id], implemented: !!ADAPTERS[id], models: modelsOf(id),
+      secret_name: SECRET_NAMES[id], key_set: keys[id], key_source: panel[id].source, key_last4: panel[id].last4, implemented: !!ADAPTERS[id], models: modelsOf(id),
       // when this deployment pins serving providers: the only models that can be used (others are refused)
       usable_models: ADAPTERS[id] && typeof /** @type {any} */ (ADAPTERS[id]).pinnedModels === "function" ? /** @type {any} */ (ADAPTERS[id]).pinnedModels(providerConfig(env, id)) : null,
       note: PROVIDERS[id].note || null, config_names: PROVIDERS[id].config || [], config_set: providerReady(env, id), config_state: configState(env, id)
@@ -425,5 +429,9 @@ export async function adminUsage(env, q = {}) {
       in_tok: a.in_tok || 0, out_tok: a.out_tok || 0, kinds: pick("k:"), providers: pick("prov:"), p50_ms: quantile(a, 0.5), p95_ms: quantile(a, 0.95)
     };
   });
-  return { month, features, last_eval: gw.last_eval };
+  /** @type {Record<string, number>} */
+  const providersCost = {};
+  for (const a of Object.values(agg)) for (const [k, v] of Object.entries(a)) if (k.startsWith("pcost:")) providersCost[k.slice(6)] = (providersCost[k.slice(6)] || 0) + v;
+  const providers_cost_usd = Object.fromEntries(Object.entries(providersCost).map(([k, v]) => [k, v / 1e6]));
+  return { month, features, providers_cost_usd, last_eval: gw.last_eval };
 }
