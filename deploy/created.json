@@ -8,14 +8,24 @@
     "first_version_id": "c0562341-11d5-4109-a88e-9a239a5544df",
     "cron": [
       "17 3 * * *"
-    ]
+    ],
+    "rollback_note": "Before the admin first-run deploy: 10e8c043-3118-4882-b7ab-46f66dd10e76 (pre-0011 code). Admin first-run code: 63439342-30ca-4b25-aa09-8cab8ba748ff. After closing the bootstrap token (2026-11-11): 901abb5a-bb32-46d3-8c4b-92b9d05f7bfa."
   },
   "d1": {
     "name": "lensiq-test",
     "id": "3385c7cc-d171-42ae-9d4c-8fdd8c12b21f",
-    "binding": "DB"
+    "binding": "DB",
+    "migrations_applied_through": "0011_admin_recovery.sql"
   },
-  "turnstile_widget": null,
+  "turnstile_widget": {
+    "name": "lensiq-test",
+    "site_key": "0x4AAAAAAF8DHx23TkGQgxdj",
+    "hostnames": [
+      "anirut77.github.io"
+    ],
+    "mode": "Managed",
+    "created_by": "owner (dashboard)"
+  },
   "never_touched": [
     "dearday-staging",
     "aidanex-staging",

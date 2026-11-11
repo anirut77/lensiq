@@ -759,12 +759,23 @@ test("B5 ai:deploy-defaults: one INSERT that never overwrites, accepted by a rea
 
 // ---- B1: per-page public-site config --------------------------------------------------------------------------------
 
-test("B1 site config: the committed file is inactive; an active one changes the listed page only (config script + CSP), nothing else", async () => {
+test("B1 site config: the committed file is inactive or exactly the approved closed test; an active one changes the listed page only (config script + CSP), nothing else", async () => {
   const S = await import(join(ROOT, "tools", "build-site.mjs"));
   const { policy, metaPolicy, normalizePolicy } = await import(join(ROOT, "tools", "csp-meta.mjs"));
-  assert.equal(S.readSiteConfig(), null, "repo default: apiBase empty = the site is built exactly as before");
+  // The committed file is either inactive, or exactly the closed test the owner approved (decision D0, 2026-11-11): the
+  // Worker recorded in deploy/created.json, the Turnstile site key recorded there, medicine.html only, analytics and
+  // member sign-in off, tester gate on. Nothing else may be committed.
   const committed = JSON.parse(readFileSync(join(ROOT, "deploy", "public-site.json"), "utf8"));
-  assert.deepEqual([committed.apiBase, committed.pages, committed.analytics, committed.member, committed.testerGate], ["", ["medicine.html"], false, false, true]);
+  const made = JSON.parse(readFileSync(join(ROOT, "deploy", "created.json"), "utf8"));
+  assert.deepEqual([committed.pages, committed.analytics, committed.member, committed.testerGate], [["medicine.html"], false, false, true]);
+  if (committed.apiBase === "") assert.equal(S.readSiteConfig(), null, "inactive: the site is built exactly as before");
+  else {
+    assert.equal(committed.apiBase, made.worker.url, "only LENSIQ's own test Worker");
+    assert.match(committed.apiBase, /^https:\/\/lensiq-api-test\.[a-z0-9-]+\.workers\.dev$/);
+    assert.equal(committed.turnstileSiteKey, made.turnstile_widget.site_key, "the site key of the widget the owner created");
+    assert.ok(S.isTurnstileSiteKey(committed.turnstileSiteKey));
+    assert.deepEqual(S.readSiteConfig(), { apiBase: made.worker.url, turnstileSiteKey: made.turnstile_widget.site_key, pages: ["medicine.html"], analytics: false, member: false, testerGate: true });
+  }
   assert.match(readFileSync(join(ROOT, "lensiq-config.js"), "utf8"), /^window\.LENSIQ_API_BASE = window\.LENSIQ_API_BASE \|\| "";$/m, "the repo default stays empty");
   const dir = mkdtempSync(join(tmpdir(), "lq-site-test-"));
   try {

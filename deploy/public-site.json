@@ -1,7 +1,7 @@
 {
   "note": "Closed-test site config, read by tools/build-site.mjs. apiBase empty = inactive (the site is built exactly as without this file). Set it with: npm run site:set-api -- --api-base https://lensiq-api-test.<subdomain>.workers.dev --sitekey <Turnstile SITE key>",
-  "apiBase": "",
-  "turnstileSiteKey": "",
+  "apiBase": "https://lensiq-api-test.anirut-s-4df.workers.dev",
+  "turnstileSiteKey": "0x4AAAAAAF8DHx23TkGQgxdj",
   "pages": [
     "medicine.html"
   ],
