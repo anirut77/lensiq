@@ -8,7 +8,9 @@
 //
 // Also checked: every {placeholder} names a figure, every figure's `md` evidence still occurs in ACCURACY.md (whitespace
 // collapsed), `value` equals `raw` rounded to the decimals of `value`, and no `banned` stale phrase is left in its files.
-import { readFileSync, writeFileSync } from "node:fs";
+// --check also applies docs/claim-rules.json (checkClaims): classes of wording that claim more than was measured, and the
+// status words that every page, card and one-pager must use for hall mode and Crowd (Sellable pack, 2026-11-11).
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -88,6 +90,53 @@ export function check(root = repo, doc = loadFigures(root)) {
   return errs;
 }
 
+export const RULES = "docs/claim-rules.json";
+/** files matching a glob with "*" only in the base name ("i18n/en-*.js") */
+function glob(root, pat) {
+  const i = pat.lastIndexOf("/"), dir = i < 0 ? "" : pat.slice(0, i), base = pat.slice(i + 1);
+  const re = new RegExp("^" + base.split("*").map(reEsc).join(".*") + "$");
+  let names = [];
+  try { names = readdirSync(join(root, dir || ".")); } catch { return []; }
+  return names.filter(n => re.test(n)).sort().map(n => (dir ? dir + "/" + n : n));
+}
+/** every problem with docs/claim-rules.json as a string (empty = fine); the rules file is optional here, required by --check */
+export function checkClaims(root = repo, rules = existsSync(join(root, RULES)) ? JSON.parse(read(root, RULES)) : null) {
+  if (!rules) return [];
+  const errs = [], cache = new Map();
+  const get = rel => { if (!cache.has(rel)) { try { cache.set(rel, read(root, rel)); } catch { cache.set(rel, null); } } return cache.get(rel); };
+  const skip = rules.exclude ? new RegExp(rules.exclude) : null;
+  const scan = [...new Set((rules.scan || []).flatMap(g => glob(root, g)))].filter(f => !(skip && skip.test(f)));
+  for (const o of rules.overclaims || []) {
+    const re = new RegExp(o.re, "g" + (o.flags || "").replace(/g/g, ""));
+    for (const rel of scan) {
+      const s = get(rel) || "";
+      for (const m of s.matchAll(re)) {
+        const line = s.slice(0, m.index).split("\n").length;
+        errs.push(`${rel}:${line}: overclaim [${o.id}] "${m[0]}" (${o.why})`);
+      }
+    }
+  }
+  for (const r of rules.mustSay || []) {
+    for (const page of r.html || []) {
+      const html = get(page), got = html == null ? [] : htmlTexts(html, r.key);
+      if (!got.length) { errs.push(`${page}: no element with data-i18n="${r.key}" (rule ${r.id})`); continue; }
+      for (const t of got) for (const w of r.th || []) if (!squash(t).includes(w)) errs.push(`${page} [${r.key}]: must say "${w}" (rule ${r.id})`);
+    }
+    for (const lang of ["en", "zh"]) {
+      const rel = `i18n/${lang}-${r.dict}.js`, js = get(rel), v = js == null ? undefined : dictValue(js, r.key);
+      if (v === undefined) { errs.push(`${rel}: missing "${r.key}" (rule ${r.id})`); continue; }
+      for (const w of r[lang] || []) if (!v.includes(w)) errs.push(`${rel} [${r.key}]: must say "${w}" (rule ${r.id})`);
+    }
+  }
+  for (const f of rules.files || []) {
+    const s = get(f.file);
+    if (s == null) { errs.push(`${f.file}: missing (rule ${f.id})`); continue; }
+    const hit = new RegExp(f.re).test(s);
+    if (f.not ? hit : !hit) errs.push(`${f.file}: rule ${f.id} ${f.not ? "must not match" : "must match"} /${f.re}/${f.why ? " (" + f.why + ")" : ""}`);
+  }
+  return errs;
+}
+
 /** rewrite pages + dictionaries -> list of files changed */
 export function sync(root = repo, doc = loadFigures(root)) {
   const files = new Map(), get = rel => { if (!files.has(rel)) files.set(rel, { orig: read(root, rel) }); const f = files.get(rel); return f.now ?? f.orig; };
@@ -103,9 +152,9 @@ export function sync(root = repo, doc = loadFigures(root)) {
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   if (process.argv.includes("--check")) {
-    const errs = check();
+    const errs = check().concat(existsSync(join(repo, RULES)) ? checkClaims() : [`${RULES} is missing`]);
     if (errs.length) { console.error(errs.map(e => "  ✗ " + e).join("\n")); console.error(`${errs.length} accuracy-text problem(s) — run node tools/accuracy-sync.mjs`); process.exit(1); }
-    console.log("accuracy texts in sync with docs/accuracy-figures.json");
+    console.log("accuracy texts in sync with docs/accuracy-figures.json; claim rules (docs/claim-rules.json) pass");
   } else {
     const ch = sync();
     console.log(ch.length ? "updated:\n  " + ch.join("\n  ") : "nothing to update");

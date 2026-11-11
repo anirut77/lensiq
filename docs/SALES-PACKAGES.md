@@ -18,7 +18,7 @@ Standing rules that every package below inherits (CLAUDE.md):
   **assisted reading, the guard taps to confirm**; Attendance lists exceptions for a manager to check.
 - No emotion inference in Exam, HR or Education, and no lie / deception detection anywhere.
 - Age / gender and expression models are **off in customer builds** (licence-limited; demo mode only).
-- Crowd is **not yet suitable for dense crowds** and gives a density estimate, not an exact headcount.
+- Crowd is **experimental** (events; owner order 2026-11-11), **not yet suitable for dense crowds** and gives a density estimate, not an exact headcount.
 - Every accuracy claim states its source (synthetic / public dataset / field). Field accuracy is **not measured yet**
   for any of these products (`docs/PRICING-RESEARCH.md` §2).
 

@@ -236,3 +236,21 @@ and the Security category page quote these rows:
 11. ONE-PAGER-RETAIL age / gender row: adds "optimistic, upper bound (overlap with training data)", Asian gender 92%
     (n = 319) and "when decided".
 12. Bond & DePaulo: n = 206 documents (24,483 judges), not "206 studies".
+13. Sellable pack (2026-11-11), attendance / customers / cameras banners: "checked in automatically under 0.05%" was
+    not true at 100 enrolled on LFW (0.05%, tuning set) or at 200 (0.07%). The generated banners now say "about 0.05%
+    (LFW)" and, on the cameras table, "at most 0.03% (CASIA, held out)"; the old wording is a `banned` stale text in
+    `docs/accuracy-figures.json`. ACCURACY.md's "Fewer than 0.05% of strangers are accepted without a person
+    confirming" is about the CASIA held-out rows and stays true there.
+14. Sellable pack: driver "real-time detection" (TH / EN / ZH lead) and the cameras card "immediate voice alert" claimed
+    more than the measured 25% of 2-s closures alerted; now "an extra awareness aid … catches only part of eye
+    closures". The "18–26% / 18% on real photos" warnings now name their source (public dataset, CEW).
+15. Sellable pack: home page "how customers feel" / "emotion second by second" became "facial expressions (an
+    estimate, not inner feelings)"; "see results in real time" became "while the camera runs".
+16. Sellable pack: hall mode's phone signal now says "front rows near the camera only; not measured"
+    (`docs/exam/HALL-NO-FACE-ASSESSMENT.md`: no phone claim at exam-room distance).
+17. Sellable pack: Crowd is "experimental, for events, not yet suitable for dense crowds" on every page, card, category
+    page and one-pager (it was pilot-ready on the category page and "available now" in the solutions catalogue).
+18. New machine check: `docs/claim-rules.json`, applied by `npm run accuracy:check` and `tests/unit/claim-rules.test.js`.
+    It bans the wording classes "real-time detection", "detects cheating", "highly accurate / reliably detects" and "how
+    customers feel" in TH / EN / ZH across the pages, dictionaries and one-pagers, and pins the hall-mode and Crowd
+    names and status words.

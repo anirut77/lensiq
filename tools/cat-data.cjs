@@ -243,10 +243,13 @@ const REASONS = {
   zone: { th: "ใช้งานได้ครบ แต่ยังไม่ได้วัดความแม่นยำสำหรับงานนี้",
     en: "Works end to end, but accuracy is not measured for this task",
     zh: "流程可用，但尚未针对此用途测量准确率" },
-  exam: { th: "หน้าผู้เข้าสอบ เครื่องในห้อง และแดชบอร์ดครบ คนตัดสินทุกสัญญาณ ความแม่นยำยังไม่ได้วัดและการนำร่องคือการวัด สัญญาอนุญาตโมเดลใบหน้ายังรอสรุป",
+  exam: {
+    th: "หน้าผู้เข้าสอบ เครื่องในห้อง และแดชบอร์ดครบ คนตัดสินทุกสัญญาณ ความแม่นยำยังไม่ได้วัดและการนำร่องคือการวัด " +
+      "โมเดลใบหน้าคือ MediaPipe Face Landmarker (Apache-2.0) ประเด็นสัญญาอนุญาต face-api (F5/F6) จึงไม่เกี่ยวกับ Exam แล้ว",
     en:
-      "Candidate page, room camera and dashboard are complete and a person decides every flag; accuracy is unmeasured and the pilot is the measurement; the face-model licence is still open (F5/F6)",
-    zh: "考生页、考场摄像头与看板齐全，每个信号由人判断；准确率尚未测量，试点即为测量；人脸模型许可仍待确定（F5/F6）" },
+      "Candidate page, room camera and dashboard are complete and a person decides every flag; accuracy is unmeasured and the pilot is the measurement; " +
+      "the face engine is MediaPipe Face Landmarker (Apache-2.0), so the face-api licence question (F5/F6) no longer applies to Exam",
+    zh: "考生页、考场摄像头与看板齐全，每个信号由人判断；准确率尚未测量，试点即为测量；人脸引擎为 MediaPipe Face Landmarker（Apache-2.0），因此 face-api 许可问题（F5/F6）不再涉及 Exam" },
   examHall: { th: "เครื่องกล้องในห้องสอบใช้งานได้ครบ แต่ใบหน้าเล็กในภาพมุมกว้างของห้องสอบยังตรวจได้ไม่ดี จึงเป็นรุ่นทดลองจนกว่าจะแก้ ยังไม่เปิดขาย หน้าผู้เข้าสอบ (ห้องคอมพิวเตอร์) พร้อมนำร่อง",
     en: "The room camera works end to end, but small faces in the wide exam-room view are still poorly detected, so it stays experimental until that is fixed and is not for sale yet; " +
       "the candidate page (computer lab) is pilot-ready",
@@ -263,9 +266,9 @@ const REASONS = {
   teamface: { th: "กิจกรรมเพื่อความบันเทิงที่ใช้ใบหน้า ไม่ใช้ประเมินพนักงาน",
     en: "An entertainment activity using faces; never used to assess staff",
     zh: "使用人脸的娱乐活动；绝不用于评估员工" },
-  crowd: { th: "นำร่องได้เฉพาะคนน้อยถึงปานกลางในโซนที่วาด ตัวเลขยังเป็นเบื้องต้น ยังไม่เหมาะกับฝูงชนหนาแน่น",
-    en: "Pilot only for sparse-to-medium crowds in a drawn zone; the figures are preliminary; not yet suitable for dense crowds",
-    zh: "仅限稀疏至中等人群在划定区域内试点；数据仍属初步；尚不适用于密集人群" },
+  crowd: { th: "รุ่นทดลอง สำหรับอีเวนต์ที่มีคนน้อยถึงปานกลางในโซนที่วาด ตัวเลขยังเป็นเบื้องต้น (ค่าอ้างอิงนับโดย AI ยังรอคนนับ) ยังไม่เหมาะกับฝูงชนหนาแน่น",
+    en: "Experimental: for events with sparse-to-medium crowds in a drawn zone; the figures are preliminary (AI reference, human count pending); not yet suitable for dense crowds",
+    zh: "实验性：用于稀疏至中等人群、在划定区域内的活动；数据仍属初步（AI 参考计数，待人工计数）；尚不适用于密集人群" },
   store: { th: "นับคนผ่านประตูวัดบนชุดข้อมูลสาธารณะแล้ว มีเครื่องมือตรวจหน้างาน ยังไม่มีข้อมูลภาคสนาม",
     en: "Door counting is measured on public datasets and an on-site check exists; no field data yet",
     zh: "门口计数已在公开数据集上测量，并有现场检查；尚无实地数据" },
@@ -345,7 +348,8 @@ const PAGES = {
   "case-review": { st: "pilot-ready", why: "people", claims: ["people"] },
   teamface: { st: "demo", why: "teamface", claims: ["teamface"] },
   // 4 Marketing, Retail & Events
-  crowd: { st: "pilot-ready", why: "crowd", claims: ["crowd", "crowdDense"] },
+  // Sellable pack order 2026-11-11 (CLAUDE.md: Crowd is not yet suitable for dense crowds; CTO-BRIEF rates it experimental): experimental, events
+  crowd: { st: "experimental", why: "crowd", claims: ["crowd", "crowdDense"] },
   store: { st: "pilot-ready", why: "store", claims: ["store"] },
   retail: { st: "pilot-ready", why: "store", claims: ["store"] },
   insights: { st: "experimental", why: "insights", claims: ["insights"] },

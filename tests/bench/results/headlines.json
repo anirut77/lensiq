@@ -196,6 +196,24 @@
    "fingerprinted": false,
    "status": "not reproducible here: datasets absent or not fingerprinted (lfwfull, casia)"
   },
+  "lfwAuto100": {
+   "value": "0.05",
+   "raw": 0.05,
+   "what": "faces, LFW (tuning set), 100 enrolled: strangers checked in with no person confirming",
+   "evidence": "| 100 | 84.9% → 85.0% | 57.3% | 0.89% → **0.42%** [0.27–0.60%] | 1,809 (36) | 0.05% [0.01–0.12%] |",
+   "bench": "face1n",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (lfwfull, casia)"
+  },
+  "casiaAutoMax": {
+   "value": "0.03",
+   "raw": 0.03,
+   "what": "faces, CASIA (held out), 5–200 enrolled: highest rate of strangers checked in with no person confirming",
+   "evidence": "| 0.03% [0.00–0.07%] | [0.7–1.1%] |",
+   "bench": "face1n",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (lfwfull, casia)"
+  },
   "confirmShare": {
    "value": "25–35",
    "raw": null,

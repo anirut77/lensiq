@@ -4,6 +4,8 @@
   "cr.doc.title": "Crowd counting & density | LENSIQ",
   "cr.doc.desc": "Count people in view or in drawn zones anonymously: density heatmap, peak hours, entry/exit line, time in zone, visitors per hour and conversion. Processed on the device; no images are kept.",
   "cr.h1": "Crowd counting & density",
+  "cr.st.b": "Experimental",
+  "cr.st": "For events with sparse to medium crowds · not yet suitable for dense crowds · every figure is preliminary",
   "cr.lead": "Count people in view or in zones you draw. See density as a heatmap and over time, find the peak hours, count people in and out with a line, measure time spent in each zone and compare it with the sales or sign-ups you type in. For events, booths and shopfronts. Processed in the browser; no images are saved.",
   "cr.acc": "Uses the same person detector as the store analytics page. In very dense crowds people hidden behind others can be missed, and a person who leaves the view and comes back is counted as a new visitor, so the numbers are estimates for planning, not an official headcount. Mount the camera high, looking down at an angle, and compare with a manual count for a while before relying on it.",
   "cr.gate.2": "This page counts person boxes anonymously. It does not recognise faces and does not save images or video; it keeps only summary numbers (counts, the heatmap as numbers, averages) on this device.",
