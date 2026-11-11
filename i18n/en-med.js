@@ -1,6 +1,7 @@
 /* i18n/en-med.js — English for medicine.html / medicine.js (md.*). Mirrors i18n/zh-med.js. Label text from openFDA stays in
  * its original English (never machine-translated); Thai registry names stay Thai (lang="th"). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
+  "md.pc.ad.acc": "Independent test, 246 over-claim / 135 compliant public advert texts, labelled by AI, pending expert review: finds 64% of over-claims with the product type chosen, 1.5 false flags per 100 compliant texts · n = 246 / 135 · source: public dataset",
   "md.title": "Medicine checker: read labels and registration numbers | LENSIQ",
   "md.eyebrow": "LENSIQ · Medicine checker",
   "md.h1": "Check medicine information from the box, the label or the pill",
@@ -492,7 +493,7 @@
   "md.pc.ad.p2": "Photograph or crop the advert only. Leave out comments, chats and other people's names",
   "md.pc.ad.p3": "The result is about the wording only. It does not name or accuse any seller; shop names, accounts, links and phone numbers are hidden in the result",
   "md.pc.ad.catL": "Product type in the advert",
-  "md.pc.ad.catAuto": "Not sure (guessed from the words in the text)",
+  "md.pc.ad.catAuto": "— Choose the product type —",
   "md.pc.ad.textL": "Advert text: paste or type it here, or take a photo below and tap read",
   "md.pc.ad.go": "Check the advert wording",
   "md.pc.ad.h": "Risk signals in the advert wording ({n})",
@@ -504,13 +505,19 @@
   "md.pc.ad.hidden": "{n} shop names, account names, links or phone numbers hidden. This result does not identify the seller",
   "md.pc.ad.endorse": "An endorsement or recommendation is cited (name not shown)",
   "md.pc.ad.inName": "This wording is part of a name, so it is hidden",
-  "md.pc.ad.basis": "Basis of rule {id}",
-  "md.pc.ad.none": "No wording covered by the rules was found in this text. This does not mean the advert follows the rules; only wording the tool knows is checked",
-  "md.pc.ad.source": "The wording rules were tuned on a set of public texts (labelled by AI, pharmacist review pending) and have not yet been measured on a fresh set of adverts. Differently worded claims may be missed",
+  "md.pc.ad.basis": "Verify with the official source ({id})",
+  "md.pc.ad.none": "No listed wording found. This does not mean the advert is accurate or approved. The check finds about 2 in 3 over-claims in testing.",
+  "md.pc.ad.source": "Experimental: the measured accuracy is shown in the panel above. Differently worded claims may be missed",
   "md.pc.ad.empty": "Paste or type the advert text first, or take a photo and tap read",
   "md.pc.ad.cat.supplement": "Dietary supplement",
   "md.pc.ad.cat.food": "Food",
   "md.pc.ad.cat.cosmetic": "Cosmetic",
   "md.pc.ad.cat.drug": "Medicine",
-  "md.pc.ad.cat.herbal": "Herbal product"
+  "md.pc.ad.cat.herbal": "Herbal product",
+  "md.pc.ad.rule": "May fall under rule {id}",
+  "md.pc.ad.limited": "Limited support: Chinese adverts have been measured on only a few texts so far, so more over-claims may be missed",
+  "md.pc.ad.needType": "Choose the product type in the advert first, then tap check again. This text has not been checked yet",
+  "md.pc.ad.useGuess": "Use the suggested type: {cat}",
+  "md.pc.ad.guessHint": "Guessed from the words in the text; make sure it is right before you tap",
+  "md.pc.ad.exp": "Experimental"
 } });

@@ -43,7 +43,13 @@
     "qcLift": { "value": "80", "raw": 80, "md": "(about 80% caught)", "what": "qc: 6 px cap lift caught with belt-stop jitter" },
     "bcWrong": { "value": "0.06", "raw": 0.06, "md": "1.69% with 1 read and 0.06% with 2", "what": "checkout: wrong code put through with 2 agreeing reads" },
     "neuroLo": { "value": "52", "raw": 52.0, "md": "| page pipeline (face found 49%) | 346 | 52.0%", "what": "neuro: FER-2013 accuracy, page pipeline" },
-    "neuroHi": { "value": "59", "raw": 59.1, "md": "| classifier alone on the face crop | 700 | 59.1%", "what": "neuro: FER-2013 accuracy, classifier alone" }
+    "neuroHi": { "value": "59", "raw": 59.1, "md": "| classifier alone on the face crop | 700 | 59.1%", "what": "neuro: FER-2013 accuracy, classifier alone" },
+    "adOver": {"value": "246", "raw": 246, "md": "246 over-claim texts and 135 compliant texts", "what": "adverts, fresh set: over-claim texts"},
+    "adComp": {"value": "135", "raw": 135, "md": "246 over-claim texts and 135 compliant texts", "what": "adverts, fresh set: compliant texts"},
+    "adRecallType": {"value": "64", "raw": 64.2, "md": "finds **64.2 %** of over-claim texts with the product type chosen", "what": "adverts, fresh set, type chosen: over-claim texts with a signal"},
+    "adFFType": {"value": "1.5", "raw": 1.5, "md": "**1.5** false flags per 100 compliant texts", "what": "adverts, fresh set, type chosen: false flags per 100 compliant texts"},
+    "adNum": {"value": "2", "md": "finds about 2 in 3 over-claims in testing", "what": "adverts: 'about N in M' (must stay within 5 points of adRecallType)"},
+    "adDen": {"value": "3", "md": "finds about 2 in 3 over-claims in testing", "what": "adverts: 'about N in M' denominator"}
   },
   "banned": [
     { "text": "54%", "files": ["cameras.html", "i18n/en-cameras.js", "i18n/zh-cameras.js"], "why": "round-4 Asian-face recognition (current: 66–76%)" },
@@ -190,6 +196,8 @@
       "th": "โมเดลใบอนุญาตวิจัย",
       "en": "Research-licence models",
       "zh": "研究许可模型"
-    }
+    },
+    {"key": "md.pc.ad.acc", "page": "medicine", "dict": "med", "th": "ผลทดสอบอิสระกับข้อความโฆษณาสาธารณะ (โฆษณาเกินจริง {adOver} ข้อความ ข้อความที่ไม่เกินจริง {adComp} ข้อความ ติดป้ายโดย AI รอผู้เชี่ยวชาญตรวจ): เมื่อเลือกประเภทสินค้า พบคำโฆษณาเกินจริง {adRecallType}% แจ้งเตือนผิด {adFFType} ครั้งต่อข้อความที่ไม่เกินจริง 100 ข้อความ · n = {adOver} / {adComp} · ที่มา: ชุดข้อมูลสาธารณะ", "en": "Independent test, {adOver} over-claim / {adComp} compliant public advert texts, labelled by AI, pending expert review: finds {adRecallType}% of over-claims with the product type chosen, {adFFType} false flags per 100 compliant texts · n = {adOver} / {adComp} · source: public dataset", "zh": "独立测试，{adOver} 条夸大宣传 / {adComp} 条合规的公开广告文字，由 AI 标注，待专家审核：选择产品类型后可发现 {adRecallType}% 的夸大宣传，每 100 条合规文字误报 {adFFType} 次 · n = {adOver} / {adComp} · 来源：公开数据集"},
+    {"key": "md.pc.ad.none", "page": "medicine", "dict": "med", "th": "ไม่พบถ้อยคำที่อยู่ในรายการ ไม่ได้แปลว่าโฆษณานี้ถูกต้องหรือได้รับอนุญาต ในการทดสอบ ระบบพบคำโฆษณาเกินจริงได้ราว {adNum} ใน {adDen}", "en": "No listed wording found. This does not mean the advert is accurate or approved. The check finds about {adNum} in {adDen} over-claims in testing.", "zh": "未发现列出的用语。这并不代表该广告准确或已获批准。在测试中，本检查约能发现每 {adDen} 条夸大宣传中的 {adNum} 条。"}
   ]
 }

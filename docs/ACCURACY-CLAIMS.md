@@ -254,3 +254,24 @@ and the Security category page quote these rows:
     It bans the wording classes "real-time detection", "detects cheating", "highly accurate / reliably detects" and "how
     customers feel" in TH / EN / ZH across the pages, dictionaries and one-pagers, and pins the hall-mode and Crowd
     names and status words.
+
+## 8. Product Check advert wording check (medicine.html, experimental; owner decision 2026-11-11)
+
+Released as **experimental**: the user chooses the product type first (no check runs before that; a type guessed from
+the words is only a suggestion the user confirms), so the headline figure is the **product-type-chosen** one. Evidence:
+[`ACCURACY.md`](../ACCURACY.md) §14 and [`docs/product-check/ADVERT-RESULTS.md`](product-check/ADVERT-RESULTS.md)
+("Independent run on the fresh set"). Source label: public dataset. Generated from `docs/accuracy-figures.json` (keys
+`md.pc.ad.acc`, `md.pc.ad.none`; `tools/accuracy-sync.mjs --check`), never hand-typed:
+
+| Language | Claim on the advert panel (`md.pc.ad.acc`) |
+|---|---|
+| English | Independent test, 246 over-claim / 135 compliant public advert texts, labelled by AI, pending expert review: finds 64% of over-claims with the product type chosen, 1.5 false flags per 100 compliant texts · n = 246 / 135 · source: public dataset |
+| Thai | ผลทดสอบอิสระกับข้อความโฆษณาสาธารณะ (โฆษณาเกินจริง 246 ข้อความ ข้อความที่ไม่เกินจริง 135 ข้อความ ติดป้ายโดย AI รอผู้เชี่ยวชาญตรวจ): เมื่อเลือกประเภทสินค้า พบคำโฆษณาเกินจริง 64% แจ้งเตือนผิด 1.5 ครั้งต่อข้อความที่ไม่เกินจริง 100 ข้อความ · n = 246 / 135 · ที่มา: ชุดข้อมูลสาธารณะ |
+| Chinese | 独立测试，246 条夸大宣传 / 135 条合规的公开广告文字，由 AI 标注，待专家审核：选择产品类型后可发现 64% 的夸大宣传，每 100 条合规文字误报 1.5 次 · n = 246 / 135 · 来源：公开数据集 |
+
+- When nothing is flagged the card says exactly: "No listed wording found. This does not mean the advert is accurate or
+  approved. The check finds about 2 in 3 over-claims in testing." (Thai and Chinese equivalents in the same JSON). "About
+  2 in 3" (66.7 %) must stay within 5 points of the chosen-type recall (64.2 %); `tests/unit/pc-advert.test.js` checks it.
+- Not claimed: the guessed-type figures (71.1 % recall, 23.0 false flags per 100), because the page does not run that way.
+- Chinese adverts: 50 % on 20 texts; the card shows "limited support" in TH / EN / ZH until a larger set is measured.
+- Recall target (80 %) not met; rule improvements come later on a new locked set.

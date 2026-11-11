@@ -1418,6 +1418,22 @@ geometry, which favours NEW. No skin-tone breakdown (no labels). If MediaPipe fa
 disabled; CI's Linux Chrome without reported WebGL runs it), the page switches the face signals off and says so
 instead of reporting "no face". Not measured: mouth movement, real exam rooms.
 
+## 14. Product Check: advert wording check (medicine.html, experimental, 2026-11-11)
+
+On-device wording rules on advert / post / leaflet text (`lensiq-pc-advert.js`), released as **experimental** (owner
+decision 2026-11-11). Independent test, scored once by a separate agent on a fresh set locked before scoring: 246
+over-claim texts and 135 compliant texts quoted from public advert pages (US FDA, UK ASA, Thai AFNC, Thai / Chinese
+press, NIH DSLD, openFDA, makers' pages), labelled blind by two AI labellers (κ 0.887), pending expert review. Details:
+`docs/product-check/ADVERT-RESULTS.md`.
+
+| Measure | Product type chosen (how the page runs) | Type guessed (not used on the page) |
+|---|---|---|
+| Over-claim texts with at least one signal | finds **64.2 %** of over-claim texts with the product type chosen [58.1–70.0] | 71.1 % |
+| False flags | **1.5** false flags per 100 compliant texts | 23.0 per 100 |
+
+On the page this is said as "finds about 2 in 3 over-claims in testing". Chinese adverts: 50 % on only 20 texts, shown as
+"limited support". Target 80 % recall: **not met**. Source label: public dataset.
+
 ## Datasets and licences
 
 | dataset | used for | source | licence / terms |

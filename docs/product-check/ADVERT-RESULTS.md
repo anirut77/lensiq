@@ -135,3 +135,22 @@ seen were generic claim words (COVID, HIV, "Supports").
 
 **Status:** built, not on the live site. Recall target missed; the owner decides whether it ships as "experimental" with
 these figures, or waits for rule work measured on a new locked set.
+
+## Release as "experimental" (owner decision 2026-11-11)
+
+Built on this branch, **no rule pattern changed** (`lensiq-claims-rules.js` still `542b1be5…`):
+
+- **Product type first.** No check runs until the user chooses the type. A type guessed from the words appears only as a
+  "use the suggested type" button the user must tap; the card then says "chosen". So the page runs in the
+  **type-chosen** mode: 64.2 % recall, 1.5 false flags per 100 compliant texts (the guessed mode, 23.0 per 100, is not
+  used).
+- **No signal:** exactly "No listed wording found. This does not mean the advert is accurate or approved. The check finds
+  about 2 in 3 over-claims in testing." (TH / ZH equivalents); no tick, no "no problem".
+- **Flagged:** the text found (seller parts hidden), "may fall under rule X" + the rule explanation, "verify with the
+  official source (X)" linked to the rule basis; no verdict words.
+- **Measured numbers on the panel**, generated from `docs/accuracy-figures.json` (`md.pc.ad.acc`, evidence in
+  `ACCURACY.md` §14, listed in `docs/ACCURACY-CLAIMS.md` §8, checked by `npm run accuracy:check`); "about 2 in 3" is tested
+  to stay within 5 points of 64.2 %.
+- **Chinese adverts:** "limited support" on the card (TH / EN / ZH) when Han characters are ≥ 30 % of the letters.
+- **"Experimental" badge** on the advert panel.
+- Fixed tests amended (stricter) and re-locked BEFORE the change: `~/LENSIQ-field/evals/adverts/locked.sha256` lock 3.

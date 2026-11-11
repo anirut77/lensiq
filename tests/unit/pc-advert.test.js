@@ -16,6 +16,13 @@
 //   6. TH / EN / ZH complete: every card string has an English and a Chinese entry, and an EN / ZH card has no Thai
 //      outside translate="no" quotes;
 //   7. no share / report / form controls; only https rule-basis links; HTML in the text is escaped.
+// AMENDMENT 2026-11-11 (owner decision: release as "experimental", type chosen first; stricter, re-locked):
+//   8. a no-signal card shows EXACTLY the owner's sentence (EXACT_NONE) in each language, never "no problem" or a tick;
+//   9. that sentence and the page's accuracy line are generated from docs/accuracy-figures.json (TH default in the module
+//      = the generated Thai), the figures match the independent fresh-set run (246 / 135, 64.2 %, 1.5 per 100), and
+//      "about 2 in 3" stays within 5 points of the chosen-type recall;
+//  10. a flagged line shows the text found, the rule id and "verify with the official source"; no verdict words;
+//  11. Chinese adverts are marked "limited support" in TH / EN / ZH; Thai and English adverts are not.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -39,6 +46,12 @@ const card = (res, lang) => A.cardHtml(res, { lang, t: tFor(lang) });
 const THAI = /[ก-๙]/;
 /** Text outside translate="no" elements (quotes of the advert keep their language). */
 const outsideNoTranslate = html => html.replace(/<(\w+)[^>]*translate="no"[^>]*>[\s\S]*?<\/\1>/g, " ").replace(/<[^>]+>/g, " ");
+// Amendment 2026-11-11 (owner decision "release as experimental"): exact no-signal wording, TH / EN / ZH.
+const EXACT_NONE = {
+  en: "No listed wording found. This does not mean the advert is accurate or approved. The check finds about 2 in 3 over-claims in testing.",
+  th: "ไม่พบถ้อยคำที่อยู่ในรายการ ไม่ได้แปลว่าโฆษณานี้ถูกต้องหรือได้รับอนุญาต ในการทดสอบ ระบบพบคำโฆษณาเกินจริงได้ราว 2 ใน 3",
+  zh: "未发现列出的用语。这并不代表该广告准确或已获批准。在测试中，本检查约能发现每 3 条夸大宣传中的 2 条。"
+};
 const BAN = /illegal|unlawful|fake|counterfeit|scam|fraud|ผิดกฎหมาย|ปลอม|หลอกลวง|ฉ้อโกง|โกง|มิจฉาชีพ|违法|违反|假冒|假货|诈骗|欺诈|骗子/i;
 
 // Synthetic adverts with seller identifiers in the usual places; `seller` lists every token that must never reach the card.
@@ -155,7 +168,10 @@ test("no verdict words in any language; 'about the wording, not a legal finding,
       assert.match(h, /data-note="wording"/, "wording-only note present");
     }
   }
-  const en = card(none, "en"), zh = card(none, "zh"), th = card(none, "th");
+  // owner decision 2026-11-11: the exact no-signal sentence (generated from docs/accuracy-figures.json, key md.pc.ad.none)
+  // is the ONLY place where "approved" / "ถูกต้อง" / "批准" may appear on a no-signal card; everything else stays banned
+  const strip = (h, s) => h.split(s).join(" ");
+  const en = strip(card(none, "en"), EXACT_NONE.en), zh = strip(card(none, "zh"), EXACT_NONE.zh), th = strip(card(none, "th"), EXACT_NONE.th);
   assert.match(en, /not a legal finding/i);
   assert.match(en, /seller/i);
   assert.match(en, /data-none/);
@@ -213,5 +229,85 @@ test("no share / report / form controls; only https rule-basis links; HTML in th
       assert.match(m[0], /href="https:\/\//, m[0]);
       assert.match(m[0], /rel="noopener noreferrer"/, m[0]);
     }
+  }
+});
+
+test("AMENDMENT: no-signal card = the exact owner sentence in TH / EN / ZH; never 'no problem' or a tick", () => {
+  const none = A.analyze("สินค้าดีมาก ส่งไว", { category: "food" });
+  assert.equal(none.flags.length, 0);
+  for (const lang of ["th", "en", "zh"]) {
+    const h = card(none, lang);
+    const p = h.match(/<p[^>]*data-none[^>]*>([^<]*)<\/p>/);
+    assert.ok(p, lang + " no-signal line");
+    assert.equal(p[1].replace(/&#39;/g, "'"), EXACT_NONE[lang], lang + " exact wording");
+    assert.doesNotMatch(h, /no problem|nothing wrong|all clear|ไม่มีปัญหา|ปลอดภัย|没有问题|没问题|✓|✔|✅|☑|data-kind="ok"/i, lang + ": " + h);
+  }
+});
+
+test("AMENDMENT: the no-signal sentence and the accuracy line are generated from docs/accuracy-figures.json; figures = fresh-set run", async () => {
+  const { loadFigures, expand } = await import(path.join(ROOT, "tools", "accuracy-sync.mjs"));
+  const doc = loadFigures(ROOT);
+  const rows = Object.fromEntries(expand(doc).map(r => [r.key, r]));
+  const none = rows["md.pc.ad.none"], acc = rows["md.pc.ad.acc"];
+  assert.ok(none && acc, "md.pc.ad.none and md.pc.ad.acc are generated texts");
+  assert.equal(none.page, "medicine");
+  assert.equal(acc.page, "medicine");
+  for (const lang of ["th", "en", "zh"]) assert.equal(none[lang], EXACT_NONE[lang], "generated no-signal text " + lang);
+  assert.equal(A.KEYS.find(([k]) => k === "md.pc.ad.none")[1], none.th, "module Thai default = generated Thai");
+  assert.equal(EN["md.pc.ad.none"], none.en);
+  assert.equal(ZH["md.pc.ad.none"], none.zh);
+  const f = doc.figures;
+  assert.equal(f.adOver.value, "246");
+  assert.equal(f.adComp.value, "135");
+  assert.equal(f.adRecallType.raw, 64.2);
+  assert.equal(f.adFFType.raw, 1.5);
+  // "about 2 in 3" must stay consistent with the chosen-type recall
+  assert.ok(Math.abs(100 * Number(f.adNum.value) / Number(f.adDen.value) - f.adRecallType.raw) <= 5, "about N in M within 5 points of the recall");
+  const results = fs.readFileSync(path.join(ROOT, "docs", "product-check", "ADVERT-RESULTS.md"), "utf8");
+  assert.match(results, /\*\*64\.2 %\*\*/);
+  assert.match(results, /\*\*1\.5\*\* \(1\.5 % of texts\)/);
+  assert.match(results, /246 over-claim texts/);
+  assert.match(results, /135 compliant/);
+  const claims = fs.readFileSync(path.join(ROOT, "docs", "ACCURACY-CLAIMS.md"), "utf8");
+  assert.ok(claims.includes(acc.en), "docs/ACCURACY-CLAIMS.md carries the same accuracy line");
+  // the accuracy line names the test, its size, its labels and its source in every language
+  const words = {
+    en: ["Independent test", "246", "135", "labelled by AI", "pending expert review", "64%", "1.5", "public dataset"],
+    th: ["246", "135", "AI", "64%", "1.5", "ชุดข้อมูลสาธารณะ"], zh: ["246", "135", "AI", "64%", "1.5", "公开数据集"]
+  };
+  for (const [lang, ws] of Object.entries(words)) for (const w of ws) assert.ok(acc[lang].includes(w), `${lang} accuracy line has "${w}": ${acc[lang]}`);
+});
+
+test("AMENDMENT: a flagged line shows the text found, the rule and 'verify with the official source' (TH / EN / ZH)", () => {
+  const r = A.analyze("ครีมทาผิว รักษาสิวหายขาด ใน 7 วัน", { category: "cosmetic" });
+  assert.ok(r.flags.length);
+  const VERIFY = { th: "ตรวจสอบกับแหล่งข้อมูลทางการ", en: "Verify with the official source", zh: "请与官方来源核实" };
+  for (const lang of ["th", "en", "zh"]) {
+    const h = card(r, lang);
+    const items = h.match(/<li[^>]*data-rule[\s\S]*?<\/li>/g) || [];
+    assert.ok(items.length, lang);
+    for (const li of items) {
+      assert.match(li, /<q translate="no">[^<]+<\/q>/, lang + " text found: " + li);
+      const id = li.match(/data-rule="([A-Z]\d{2})/)[1];
+      assert.ok(li.replace(/<[^>]+>/g, " ").includes(id), lang + " rule id shown");
+      assert.ok(li.includes(VERIFY[lang]), lang + " verify with the official source: " + li);
+    }
+    assert.doesNotMatch(h, BAN);
+  }
+});
+
+test("AMENDMENT: Chinese adverts are marked 'limited support' (TH / EN / ZH); Thai and English adverts are not", () => {
+  const zhAd = A.analyze("本品三天根治糖尿病，无副作用，效果最佳", { category: "supplement" });
+  assert.equal(zhAd.limited, "zh");
+  const LIMITED = { th: "รองรับแบบจำกัด", en: "Limited support", zh: "支持有限" };
+  for (const lang of ["th", "en", "zh"]) {
+    const h = card(zhAd, lang);
+    assert.match(h, /data-limited="zh"/, lang);
+    assert.ok(h.includes(LIMITED[lang]), lang + " limited support wording: " + h);
+  }
+  for (const t of ["อาหารเสริม รักษาเบาหวานหายขาด", "This supplement cures diabetes in 7 days"]) {
+    const r = A.analyze(t, { category: "supplement" });
+    assert.ok(!r.limited, t);
+    for (const lang of ["th", "en", "zh"]) assert.doesNotMatch(card(r, lang), /data-limited/, lang + " " + t);
   }
 });

@@ -37,8 +37,8 @@ export function render(tpl, figures) {
 export function expand(doc) {
   const out = [];
   for (const t of doc.texts) for (const key of t.keys || [t.key]) {
-    const page = key.split(".")[0];
-    out.push({ key, page, th: render(t.th, doc.figures), en: render(t.en, doc.figures), zh: render(t.zh, doc.figures) });
+    const page = t.page || key.split(".")[0], dict = t.dict || page; // page / dict: override when the key prefix is not the file name (md.* -> medicine.html, i18n/*-med.js)
+    out.push({ key, page, dict, th: render(t.th, doc.figures), en: render(t.en, doc.figures), zh: render(t.zh, doc.figures) });
   }
   return out;
 }
@@ -78,7 +78,7 @@ export function check(root = repo, doc = loadFigures(root)) {
     if (!got.length) errs.push(`${r.page}.html: no element with data-i18n="${r.key}"`);
     got.forEach(g => { if (squash(g) !== squash(r.th)) errs.push(`${r.page}.html [${r.key}] differs from docs/accuracy-figures.json`); });
     for (const lang of ["en", "zh"]) {
-      const rel = `i18n/${lang}-${r.page}.js`, js = get(rel), v = js == null ? undefined : dictValue(js, r.key);
+      const rel = `i18n/${lang}-${r.dict}.js`, js = get(rel), v = js == null ? undefined : dictValue(js, r.key);
       if (v === undefined) errs.push(`${rel}: missing "${r.key}"`);
       else if (squash(v) !== squash(r[lang])) errs.push(`${rel} [${r.key}] differs from docs/accuracy-figures.json`);
     }
@@ -143,7 +143,7 @@ export function sync(root = repo, doc = loadFigures(root)) {
   const put = (rel, s) => { get(rel); files.get(rel).now = s; };
   for (const r of expand(doc)) {
     put(`${r.page}.html`, setHtml(get(`${r.page}.html`), r.key, r.th));
-    for (const lang of ["en", "zh"]) put(`i18n/${lang}-${r.page}.js`, setDict(get(`i18n/${lang}-${r.page}.js`), r.key, r[lang], lang));
+    for (const lang of ["en", "zh"]) put(`i18n/${lang}-${r.dict}.js`, setDict(get(`i18n/${lang}-${r.dict}.js`), r.key, r[lang], lang));
   }
   const changed = [];
   for (const [rel, f] of files) if (f.now != null && f.now !== f.orig) { writeFileSync(join(root, rel), f.now); changed.push(rel); }

@@ -22,6 +22,11 @@
  *       endorsement, explain:{th,en,zh}, url}]}   category: the user's choice, else the guess, else null (every family)
  *   cardHtml(result, {lang, t}) -> HTML of the card (#pcAdCard); t(key, thaiDefault, vars) translates (LQI18N.tf)
  *   KEYS -> [[key, thaiDefault]] every card string (EN / ZH in i18n/en-med.js, i18n/zh-med.js, md.pc.ad.*)
+ * RELEASED AS EXPERIMENTAL (owner decision 2026-11-11): the panel carries an "experimental" badge and the measured accuracy
+ * line generated from docs/accuracy-figures.json; nothing is checked until the user chooses the product type (a guessed
+ * type is only a suggestion button); "no signal" shows exactly the generated md.pc.ad.none sentence; mostly-Chinese text
+ * gets "limited support" (result.limited = "zh"); each flagged line shows the text found, "may fall under rule X" and
+ * "verify with the official source".
  * Test hook (browser): window.__LQ_PCA = {st, run(text, category)}.
  */
 (function (root, factory) {
@@ -188,6 +193,14 @@
     return ranked[0][0];
   }
 
+  /** Mostly Chinese text (Han >= 30 % of the letters): the rules are measured on few Chinese adverts -> "limited support".
+   *  @param {string} s */
+  function chineseText(s) {
+    const han = (s.match(/[\u3400-\u9FFF]/gu) || []).length;
+    const other = (s.match(/[A-Za-z\u0E01-\u0E4E]/gu) || []).length;
+    return han >= 4 && han / (han + other) >= 0.3;
+  }
+
   /* ---------------- analysis ---------------- */
   /**
    * @param {any} input
@@ -205,7 +218,8 @@
       const evidence = endorsement ? "" : hide(s.slice(f.span.start, f.span.end), f.span.start, spans);
       return { rule_id: f.rule_id, family: f.family, evidence, endorsement, start: f.span.start, explain: f.explain, url: f.url };
     });
-    return { kind: KIND, sent: false, category, guessed: !!guess, hidden: spans.length, flags, error: Claims ? undefined : "rules-missing" };
+    return { kind: KIND, sent: false, category, guessed: !!guess, hidden: spans.length, flags, limited: chineseText(s) ? "zh" : undefined,
+      error: Claims ? undefined : "rules-missing" };
   }
 
   /* ---------------- card ---------------- */
@@ -220,9 +234,15 @@
     "md.pc.ad.hidden": "ซ่อนชื่อร้าน ชื่อบัญชี ลิงก์ หรือเบอร์โทร {n} จุด ผลนี้ไม่ระบุผู้ขาย",
     "md.pc.ad.endorse": "มีการอ้างถึงผู้รับรองหรือผู้แนะนำ (ไม่แสดงชื่อ)",
     "md.pc.ad.inName": "ถ้อยคำนี้อยู่ในชื่อ จึงซ่อนไว้",
-    "md.pc.ad.basis": "ที่มาของกฎ {id}",
-    "md.pc.ad.none": "ไม่พบถ้อยคำที่เข้าข่ายกฎในข้อความนี้ ไม่ได้แปลว่าโฆษณานี้เป็นไปตามกฎ ระบบตรวจเฉพาะถ้อยคำที่รู้จัก",
-    "md.pc.ad.source": "กฎถ้อยคำปรับจากชุดข้อความสาธารณะ (ป้ายกำกับโดย AI รอเภสัชกรตรวจ) ยังไม่ได้วัดกับโฆษณาชุดใหม่ อาจพลาดถ้อยคำที่เขียนต่างออกไป",
+    "md.pc.ad.rule": "อาจเข้าข่ายกฎ {id}",
+    "md.pc.ad.basis": "ตรวจสอบกับแหล่งข้อมูลทางการ ({id})",
+    // generated text (docs/accuracy-figures.json, key md.pc.ad.none; tests/unit/pc-advert.test.js checks they are equal)
+    "md.pc.ad.none": "ไม่พบถ้อยคำที่อยู่ในรายการ ไม่ได้แปลว่าโฆษณานี้ถูกต้องหรือได้รับอนุญาต ในการทดสอบ ระบบพบคำโฆษณาเกินจริงได้ราว 2 ใน 3",
+    "md.pc.ad.source": "ทดลองใช้: ตัวเลขความแม่นยำที่วัดได้อยู่ในแผงด้านบน อาจพลาดถ้อยคำที่เขียนต่างออกไป",
+    "md.pc.ad.limited": "รองรับแบบจำกัด: โฆษณาภาษาจีนยังวัดผลได้น้อยข้อความ ระบบอาจพลาดคำโฆษณาเกินจริงมากกว่านี้",
+    "md.pc.ad.needType": "เลือกประเภทสินค้าในโฆษณาก่อน แล้วกดตรวจอีกครั้ง ระบบยังไม่ได้ตรวจข้อความนี้",
+    "md.pc.ad.useGuess": "ใช้ประเภทที่ระบบแนะนำ: {cat}",
+    "md.pc.ad.guessHint": "ระบบเดาจากคำในข้อความ ตรวจว่าถูกต้องก่อนกด",
     "md.pc.ad.empty": "วางหรือพิมพ์ข้อความโฆษณาก่อน หรือถ่ายภาพแล้วกดอ่าน",
     "md.pc.ad.cat.supplement": "ผลิตภัณฑ์เสริมอาหาร",
     "md.pc.ad.cat.food": "อาหาร",
@@ -260,14 +280,17 @@
     if (res && res.category && !res.guessed) h += `<p class="hint" data-cat="${esc(res.category)}">${esc(T("md.pc.ad.catChosen", { cat }))}</p>`;
     else if (res && res.category) h += `<p class="hint" data-guess="${esc(res.category)}">${esc(T("md.pc.ad.catGuess", { cat }))}</p>`;
     else h += `<p class="hint" data-all-families>${esc(T("md.pc.ad.catAll"))}</p>`;
+    if (res && res.limited) h += `<p class="md-status" data-kind="warn" data-limited="${esc(res.limited)}">${esc(T("md.pc.ad.limited"))}</p>`;
     if (res && res.hidden) h += `<p class="hint" data-hidden="${Number(res.hidden) || 0}">${esc(T("md.pc.ad.hidden", { n: Number(res.hidden) || 0 }))}</p>`;
     if (groups.size) {
       h += `<ul class="md-list" id="pcAdList">` + [...groups.values()].map(g => {
         const f = g.f;
         const quote = f.endorsement ? esc(T("md.pc.ad.endorse"))
           : f.evidence && f.evidence.replace(/\[…\]|\s/g, "") ? `<q translate="no">${esc(f.evidence)}</q>` : esc(T("md.pc.ad.inName"));
-        const why = g.rules.map((/** @type {any} */ r) => esc((r.explain && r.explain[lg]) || r.rule_id) +
-          (/^https:\/\//.test(String(r.url || "")) ? ` <a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(T("md.pc.ad.basis", { id: r.rule_id }))}</a>` : "")).join(" · ");
+        // the text found, the rule it may fall under, and "verify with the official source" (owner decision 2026-11-11)
+        const why = g.rules.map((/** @type {any} */ r) => `<b>${esc(T("md.pc.ad.rule", { id: r.rule_id }))}</b> ${esc((r.explain && r.explain[lg]) || r.rule_id)} ` +
+          (/^https:\/\//.test(String(r.url || "")) ? `<a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(T("md.pc.ad.basis", { id: r.rule_id }))}</a>`
+            : `<span>${esc(T("md.pc.ad.basis", { id: r.rule_id }))}</span>`)).join(" · ");
         return `<li data-rule="${esc(g.rules.map((/** @type {any} */ r) => r.rule_id).join(" "))}">${quote} · ${why}</li>`;
       }).join("") + `</ul>`;
     } else h += `<p class="hint" data-none>${esc(T("md.pc.ad.none"))}</p>`;
@@ -293,13 +316,30 @@
     /** @param {string} text @param {string} [category] */
     function run(text, category) {
       if (!String(text || "").trim()) { st.last = null; out.innerHTML = `<p class="md-status" data-kind="warn">${esc(t("md.pc.ad.empty", STR["md.pc.ad.empty"]))}</p>`; return null; }
+      // owner decision 2026-11-11: nothing is checked until the user chooses the product type; a type guessed from the
+      // words is offered only as a suggestion the user must tap to confirm
+      if (!category || !CATS.includes(category)) {
+        st.last = null;
+        const g = guessCategory(text);
+        out.innerHTML = `<div data-need-type><p class="md-status" data-kind="warn">${esc(t("md.pc.ad.needType", STR["md.pc.ad.needType"]))}</p>` +
+          (g ? `<div class="md-row"><button class="btn ghost" type="button" id="pcAdUseGuess" data-cat="${esc(g)}">${esc(t("md.pc.ad.useGuess", STR["md.pc.ad.useGuess"],
+            { cat: t("md.pc.ad.cat." + g, STR["md.pc.ad.cat." + g]) }))}</button></div><p class="hint">${esc(t("md.pc.ad.guessHint", STR["md.pc.ad.guessHint"]))}</p>` : "") +
+          `</div>`;
+        return null;
+      }
       st.last = analyze(text, { category: category || undefined });
       render();
       return st.last;
     }
     W.__LQ_PCA = { st, run };
     $("#pcAdGo").addEventListener("click", () => run(box.value, sel.value));
-    sel.addEventListener("change", () => { if (st.last) run(box.value, sel.value); });
+    sel.addEventListener("change", () => { if (st.last || box.value.trim()) run(box.value, sel.value); });
+    out.addEventListener("click", (/** @type {any} */ e) => {
+      const b = e.target && e.target.closest ? e.target.closest("#pcAdUseGuess") : null;
+      if (!b) return;
+      sel.value = b.dataset.cat;
+      run(box.value, sel.value);
+    });
     // photo path: lensiq-pc-ui.js sends the OCR text of an advert capture here (never to the label lookup / AI card)
     W.addEventListener("lq-pc-ad-text", (/** @type {any} */ ev) => {
       const d = (ev && ev.detail) || {};
@@ -308,7 +348,7 @@
     });
     const clear = () => { st.last = null; out.innerHTML = ""; box.value = ""; };
     W.addEventListener("lq-pc-kind", (/** @type {any} */ ev) => { if (!ev || !ev.detail || ev.detail.kind !== KIND) clear(); });
-    W.addEventListener("lq-lang", () => { if (st.last) render(); });
+    W.addEventListener("lq-lang", () => { if (st.last) render(); else if (box.value.trim() && out.innerHTML) run(box.value, sel.value); });
     W.addEventListener("pagehide", clear);
   }
 

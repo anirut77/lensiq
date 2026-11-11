@@ -1,6 +1,7 @@
 /* i18n/zh-med.js — 简体中文 for medicine.html / medicine.js (md.*). Thai stays the default; English mirrors this file in
  * i18n/en-med.js. openFDA 标签原文保持英文（不做机器翻译）；泰国注册名称保持泰文（lang="th"）。 */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
+  "md.pc.ad.acc": "独立测试，246 条夸大宣传 / 135 条合规的公开广告文字，由 AI 标注，待专家审核：选择产品类型后可发现 64% 的夸大宣传，每 100 条合规文字误报 1.5 次 · n = 246 / 135 · 来源：公开数据集",
   "md.title": "药品信息核对：读取标签与注册号 | LENSIQ",
   "md.eyebrow": "LENSIQ · 药品信息核对",
   "md.h1": "从药盒、标签或药片核对药品信息",
@@ -492,7 +493,7 @@
   "md.pc.ad.p2": "只拍摄或框选广告本身。不要包含评论、聊天内容或他人的名字",
   "md.pc.ad.p3": "结果只针对用语，不指明也不指控任何卖家；店名、账号、链接和电话号码会在结果中隐藏",
   "md.pc.ad.catL": "广告中的产品类型",
-  "md.pc.ad.catAuto": "不确定（根据文字中的词语推测）",
+  "md.pc.ad.catAuto": "— 请选择产品类型 —",
   "md.pc.ad.textL": "广告文字：在此粘贴或输入，或在下方拍照后点击读取",
   "md.pc.ad.go": "检查广告用语",
   "md.pc.ad.h": "广告用语中的风险信号（{n}）",
@@ -504,13 +505,19 @@
   "md.pc.ad.hidden": "已隐藏 {n} 处店名、账号名、链接或电话号码。此结果不指明卖家",
   "md.pc.ad.endorse": "引用了背书或推荐（不显示姓名）",
   "md.pc.ad.inName": "此用语属于名称的一部分，因此已隐藏",
-  "md.pc.ad.basis": "规则 {id} 的依据",
-  "md.pc.ad.none": "在此文字中未发现规则涉及的用语。这并不代表该广告遵守了相关规定；本工具只检查已知的用语",
-  "md.pc.ad.source": "用语规则基于一组公开文本调整（由 AI 标注，待药剂师审核），尚未在新的广告集上测量。措辞不同的宣称可能被遗漏",
+  "md.pc.ad.basis": "请与官方来源核实（{id}）",
+  "md.pc.ad.none": "未发现列出的用语。这并不代表该广告准确或已获批准。在测试中，本检查约能发现每 3 条夸大宣传中的 2 条。",
+  "md.pc.ad.source": "实验性功能：实测准确度见上方面板。措辞不同的宣称可能被遗漏",
   "md.pc.ad.empty": "请先粘贴或输入广告文字，或拍照后点击读取",
   "md.pc.ad.cat.supplement": "膳食补充剂",
   "md.pc.ad.cat.food": "食品",
   "md.pc.ad.cat.cosmetic": "化妆品",
   "md.pc.ad.cat.drug": "药品",
-  "md.pc.ad.cat.herbal": "草本产品"
+  "md.pc.ad.cat.herbal": "草本产品",
+  "md.pc.ad.rule": "可能涉及规则 {id}",
+  "md.pc.ad.limited": "支持有限：中文广告目前只在少量文字上测量过，可能遗漏更多夸大宣传",
+  "md.pc.ad.needType": "请先选择广告中的产品类型，然后再次点击检查。此文字尚未检查",
+  "md.pc.ad.useGuess": "使用建议的类型：{cat}",
+  "md.pc.ad.guessHint": "根据文字中的词语推测；点击前请确认是否正确",
+  "md.pc.ad.exp": "实验性"
 } });

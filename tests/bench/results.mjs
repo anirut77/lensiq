@@ -40,7 +40,10 @@ export const BENCHES = Object.freeze({
   "driver-session": { datasets: ["lfwfull", "cew"], cmd: "LQ_BENCH_DATA=~/lq-bench-data node tests/bench/driver-session.bench.mjs --minutes 10 --json out.json" },
   neuro: { datasets: ["fer"], cmd: "LQ_BENCH_DATA=~/lq-bench-data node tests/bench/neuro.bench.mjs --json out.json" },
   qc: { datasets: [], cmd: "node tests/bench/qc.bench.mjs --json out.json" },
-  checkout: { datasets: [], cmd: "node tests/bench/checkout.bench.mjs --json out.json" }
+  checkout: { datasets: [], cmd: "node tests/bench/checkout.bench.mjs --json out.json" },
+  // Product Check advert wording (experimental): the fresh advert set is scored ONCE by an independent agent and is never
+  // committed or redistributed (owner licence decision); see docs/product-check/ADVERT-RESULTS.md
+  advert: { datasets: ["adverts-fresh"], cmd: "scored once by an independent agent on ~/LENSIQ-field/product-check/texts-fresh (see docs/product-check/ADVERT-RESULTS.md)" }
 });
 
 /** fingerprint of one folder: sha256 over "relpath\tsize\tsha256(file)\n" for every file, sorted; dot-paths skipped */
@@ -69,7 +72,7 @@ export function hashList(dir) {
 /** which bench produced each customer-facing figure (docs/accuracy-figures.json key prefix) */
 export const FIGURE_BENCH = Object.freeze([
   [/^store/, "people"], [/^(lfw|casia|stranger|autoStr|confirmShare|minEnrol)/, "face1n"], [/^boothTar/, "face"], [/^ag/, "face"],
-  [/^hand/, "hand"], [/^dr(FrameCatch|EarCatch|FallbackCatch)$/, "driver"], [/^dr/, "driver-session"], [/^qc/, "qc"], [/^bc/, "checkout"], [/^neuro/, "neuro"]
+  [/^hand/, "hand"], [/^dr(FrameCatch|EarCatch|FallbackCatch)$/, "driver"], [/^dr/, "driver-session"], [/^qc/, "qc"], [/^bc/, "checkout"], [/^neuro/, "neuro"], [/^ad[A-Z]/, "advert"]
 ]);
 export const benchOfFigure = k => (FIGURE_BENCH.find(([re]) => re.test(k)) || [])[1] || null;
 export const ABSENT = "not reproducible here: datasets absent";
