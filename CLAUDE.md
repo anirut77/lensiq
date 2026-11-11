@@ -16,8 +16,53 @@ https://anirut77.github.io/lensiq/. Owner-facing replies are in Thai.
 - Check the licence of every model, dataset and media file for commercial use. Record credits.
 - Every accuracy claim states its source: synthetic, public dataset or field.
 - All user-facing text complete in Thai, English and Chinese.
-- Report format: built / deferred + why / numbers vs targets / risks / next step. Then wait for approval.
+- Report format: built / deferred + why / numbers vs targets / risks / next step. For items on the approved work list
+  below, do not wait for approval after the report; continue with the next item.
 - Keep docs/CTO-BRIEF.md and docs/FIELD-PILOT.md updated each round.
+
+## Standing order: approved work list (owner decision 2026-11-11, replaces "wait for approval after each step")
+
+Work through this list in order without waiting for the owner between items:
+
+1. Test deployment follow-ups (bootstrap token off after the owner confirms sign-in, AI defaults, medicine.html
+   pointed at the Worker, phone checklist)
+2. Admin key management
+3. P7 option ข
+4. Adverts option B
+5. P8 extra evals
+6. Hall-mode detector switch
+7. P9
+8. Nutrition MVP
+9. Try-On MVP
+10. Merit MVP
+11. Style MVP
+12. Org accounts P1–P3
+
+Stop and ask the owner only when:
+- money would be spent or a plan upgraded;
+- a secret, password or key is needed;
+- anything would be deleted or changed outside the `lensiq-*` resources;
+- a measured result misses a safety or privacy target;
+- a decision changes what users see about privacy, pricing or claims;
+- scope or order would change;
+- a licence is unclear.
+
+Otherwise decide, record the decision and the reason in the round report, and continue.
+
+Every quality rule still applies: fixed test sets before building, an independent reviewer that re-measures, no
+loosened tests, CI green before stacking, run the tests and read the result before each commit, persistent eval logs.
+
+Speed:
+- Build queued items in parallel in separate worktrees while a gate or CI runs. Only pushes stay serial.
+- Use a faster or lower-effort model for translation, docs and repetitive edits. Keep high effort for reviewers and
+  for anything touching sign-in, keys, sync or privacy.
+- Changes to the gate or CI that would shorten it: propose them with the expected saving first; change only after the
+  owner agrees.
+- If the usage limit is near: finish and commit the current item cleanly, write a handover note in the repo
+  (`docs/HANDOVER.md`), and stop.
+
+Reporting: one short progress report per completed item, and a daily summary (done, in progress, blocked on the
+owner).
 
 ## Product structure
 
