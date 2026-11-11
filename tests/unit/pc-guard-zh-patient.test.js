@@ -1,40 +1,12 @@
 "use strict";
-// tests/unit/pc-guard-zh-patient.test.js — FIXED TEST SET for the lensiq-pc-guard.js false-positive fix of 2026-11-12
-// (fresh3 measurement: 11 Chinese indication / advert texts were read as dispensing labels). Written before the fix.
-// Synthetic look-alikes only (no measured text). (1) 病人 ("patients") inside running text and "各大医院" (major hospitals)
-// in advert prose are no name cue and no dispensing sign; (2) every field use of 病人 and every institution header still
-// is: the personal data is removed and the text / photo stays blocked exactly as before.
+// tests/unit/pc-guard-zh-patient.test.js — Chinese field uses of 病人 and institution headers (2026-11-12). Synthetic
+// texts only. Every field use of 病人 and every institution header removes the personal data and keeps the text and the
+// photo blocked. (A narrow change that let 病人 inside running text and hospital lists in advert prose through was
+// reverted after an independent privacy review; its "prose passes" test went with it. The reviewer's 154 frozen cases are
+// in pc-guard-zh-patient-regression.test.js.)
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const G = require("../../lensiq-pc-guard.js");
-
-const PROSE = [
-  "适用于治疗糖尿病病人的血糖控制，每日一次。",          // 病人 after a disease name
-  "用于改善第二型糖尿病成人病人之血糖控制。",            // 成人病人之
-  "治疗5-65岁病人因尘螨引起之过敏性鼻炎。",              // 岁病人因
-  "治疗患有某某缺乏症(2型)病人。",                       // after a closing bracket
-  "治療患有某某儲積症（第二型）病人。",                   // full-width bracket, traditional script
-  "早期糖尿病人早用早见效，中期糖尿病人降低并发症",       // 糖尿病人
-  "心脏病人，远离支架，健康长寿",
-  "对雌激素受体阴性的病人，可考虑使用本品。",
-  "北京某某、上海某某等各大医院临床验证，3个周期见效",   // a list of hospitals in advert prose
-  "全国各大药店有售",
-  "多家医院推荐使用",
-  "知名医院专家研发，权威医院认可"
-];
-
-test("Chinese running text: 病人 inside a noun phrase and hospitals named in prose are no dispensing sign and remove nothing", () => {
-  for (const t of PROSE) {
-    assert.equal(G.isDispensingLabel(t), false, t);
-    assert.notEqual(G.aiGate(t).reason, "dispensing", t);
-    assert.equal(G.redact(t).count, 0, "nothing removed: " + t);
-    assert.equal(G.imageCheck(t).block, false, t);
-  }
-  // a Chinese pack with a registration number and 病人 in the indication is allowed and sent whole
-  const pack = "国药准字Z20000000\n本品适用于高血压病人的辅助治疗。\n用法用量：口服，一次2粒，一日3次\n规格：0.5g×24粒";
-  assert.equal(G.aiGate(pack).allow, true);
-  assert.equal(G.redact(pack).text, pack);
-});
 
 test("Chinese field use of 病人 still removes the name and still marks a dispensing label (unchanged behaviour)", () => {
   // [text, the personal value that must be removed]

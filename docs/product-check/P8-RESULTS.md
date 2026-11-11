@@ -484,19 +484,29 @@ these are correctness fixes.
 | group | ids | cause | decision |
 |---|---|---|---|
 | 10 cosmetic (th 6, zh 4) | FR3-0039, 0163, 0184, 0243, 0365, 0428, 0447, 0466, 0692, 0842 | **Not a guard refusal.** Eval-only variant B asks the AI only about the "weak" rules, and the cosmetic family has none, so the variant's `buildClaims` throws "no AI rule for this category" and the gateway reports `bad_input`. These are all 10 cosmetic texts of the set. On main they reach the model in local evaluation mode. | Eval artefact, nothing to fix on main. The variant branch should skip a cosmetic item in the runner (device result only) and count it as such, not as `bad_input`. |
-| 10 zh drug / herbal / supplement | FR3-0118, 0367, 0449, 0462, 0541, 0559, 0573, 0626, 0820, 0854 | **Guard false positive.** `lensiq-pc-guard.js` treated 病人 ("patients") anywhere as a dispensing-label sign and as a name cue. In indications and adverts it ends a noun phrase ("糖尿病病人", "成人病人之", "…症)病人。"). 7 of the 10 also lost the rest of the sentence to `[removed]` (read as a name). | Fixed narrowly: 病人 counts only as a field word (token start, or followed by a colon, a space, a line end or 编号 / 編號 / 姓名 / 号 / 號 / 资料 / 信息 / ID / No). |
-| 1 zh herbal | FR3-0966 | **Guard false positive.** The CJK institution-header rule matched "…、…等各大医院" (a list of hospitals in advert prose) at a line start. | Fixed narrowly: the header may not run across 、，；。 and may not follow 各 / 各大 / 多家 / 等 / 众多 / 知名 / 权威. |
+| 10 zh drug / herbal / supplement | FR3-0118, 0367, 0449, 0462, 0541, 0559, 0573, 0626, 0820, 0854 | `lensiq-pc-guard.js` reads 病人 ("patients") anywhere as a patient field: a dispensing-label sign and a name cue. In indications and adverts it is part of a noun phrase ("糖尿病病人", "成人病人之", "…症)病人。"). 7 of the 10 also lose the rest of the sentence to `[removed]` (read as a name). | **Still refused (`ai_off_dispensing`; `ai_off_personal_data` if the device did not redact).** A narrow fix was built and then reverted, see below. |
+| 1 zh herbal | FR3-0966 | The CJK institution-header rule reads "…、…等各大医院" (a list of hospitals in advert prose) at a line start as a hospital header, so a dispensing sign. | **Still refused (`ai_off_dispensing`).** Fix reverted, see below. |
 
-None of the 21 is personal data. After the fix all 21 pass the name guard and the dispensing check; on a deployed
-Worker all 21 would be refused as `ai_off_no_product` (no product-label evidence), which is the owner-approved filter.
+None of the 21 is personal data. On a deployed Worker the 11 zh texts would be refused anyway: with the guard's
+dispensing reading set aside, all 11 have no product-label evidence (`ai_off_no_product`), like almost every advert
+text (below). The cost of the false positive is therefore limited to local advert evaluation.
 
-Guard check (no figure may get worse): every text of every locked or fixed set was run through the old and the new
-guard (`aiGate` reason, evidence, document cues, dispensing, every span, the redacted text, `imageCheck`,
-`possibleNames`): P7 filter locked set 470, p7b locked set 494, P7 guard dev 197 and hold-out 61, P7 evidence set 551,
-P7 AI set 26, P3 claim set 534, advert sets fresh 402 / fresh2 635 / fresh3 967. **Changed: 11 texts, all in fresh3,
-exactly the 11 above; 0 in every other set.** The P7 re-score script (`p7-filter-rescore-after-fixes.mjs`, same code,
-new guard) reproduces the recorded log and detail file exactly apart from the guard hash and the run time. Every
-existing `pc-guard` / P7 guard test passes unchanged.
+**Narrow guard fix reverted (2026-11-12).** Commit f4d06e0 let 病人 count only as a field word and kept the header
+rule from running across 、，；。 or after 各 / 等 / 多家 / 知名 / 权威. It changed only these 11 texts in every locked and
+fixed set (P7 filter 470, p7b 494, guard dev 197 / hold-out 61, evidence 551, AI 26, P3 534, adverts 402 / 635 / 967),
+and the P7 re-score reproduced the recorded figures. The independent privacy review then wrote 155 synthetic,
+realistic Chinese dispensing / patient texts that the locked sets do not contain, and found the change **weaker on
+79**. In some of them the AI gate went from "dispensing" to "ok" with the patient name left in the text and the photo
+allowed. Examples: `住院病人张三`, `急诊病人张三 床号12` or `3床病人张三` followed by a pack block with a 国药准字 number;
+separators U+3000, NBSP, CR, ∶, ︰; field words 名字 / 名称 / 代码; `三级甲等医院` lost through the 等 rule; a header
+after `1、`. The benefit (11 advert texts that a deployed Worker refuses anyway) does not justify that risk, so
+`lensiq-pc-guard.js` is back to its parent version (sha256 61aa058b…, the version the P7 figures were recorded with)
+and `medicine.html` loads it as `?v=1` again. A safe fix would have to cover the reviewer's broader patterns
+(whitespace and colon variants, ward / bed / department prefixes, more field words, ranked-hospital wording). It is
+**deferred**. The reviewer's cases are now a fixed regression set: `tests/unit/pc-guard-zh-patient-regression.test.js`
+freezes every protection the guard gives them today (154 of 155 cases: name removed 115, dispensing 153, photo
+blocked 153, AI refused 154). Run against the f4d06e0 guard, that test fails. One case has no protection today
+("住院病人" split one character per line, then a name and a pack block). It is a known gap, not frozen.
 
 Refusal codes: the Worker still answers `bad_input` (HTTP 400, no provider call; the page and the eval runner key on
 it) and now adds `code`: `ai_off_personal_data`, `ai_off_dispensing`, `ai_off_personal_doc` or `ai_off_no_product`
@@ -522,8 +532,9 @@ signal it receives). It sends a category only when the device inferred one from 
 sends a Thai food registration as `supplement`, so F22 is never offered from the page.
 
 Tests: `tests/unit/backend-pc-refusal-family.test.js` (8 tests: codes for all three features, no code on a malformed
-request, local evaluation mode, Chinese 病人 texts, family filter, F22, gateway metadata as counts only) and
-`tests/unit/pc-guard-zh-patient.test.js` (3 tests: prose is no dispensing sign; every field use and institution header
-still blocks and removes the name; the old guard fails the first test and passes the other two). The existing P7-4
+request, local evaluation mode, Chinese 病人 texts still refused with the right code, family filter, F22, gateway
+metadata as counts only), `tests/unit/pc-guard-zh-patient.test.js` (2 tests: every field use of 病人 and every
+institution header blocks and removes the name; the "prose passes" test of the reverted fix was removed with it) and
+`tests/unit/pc-guard-zh-patient-regression.test.js` (2 tests over the reviewer's 154 frozen cases). The existing P7-4
 test sent `category: "drug"` and expected an F04 signal back; its original assertions now run without a category
 (unchanged result), and the drug-category call asserts that F04 is dropped with `off_family_dropped: 1`.

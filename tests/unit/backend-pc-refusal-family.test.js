@@ -23,7 +23,7 @@ const WITH_NAME = "ชื่อผู้ป่วย: สมมติ ทดส�
 const DISPENSING = "โรงพยาบาลตัวอย่าง\nAMOXICILLIN 500 mg\nรับประทานครั้งละ 1 เม็ด วันละ 3 ครั้ง หลังอาหาร";
 const PERSONAL_DOC = "ผู้รับ: ร้านค้า\nน้ำดื่ม 600 มล.";
 const NO_PRODUCT = "ครีมช่วยให้ผิวกระจ่างใสทันใจ ไม่ต้องรอ";
-const ZH_ADVERT = "专为糖尿病病人研制，服用后降低血糖，远离并发症"; // 病人 inside running text: no dispensing sign
+const ZH_ADVERT = "专为糖尿病病人研制，服用后降低血糖，远离并发症"; // 病人 inside running text: read as a patient field (see F1-4)
 const ZH_PACK = "国药准字Z20000000\n本品适用于高血压病人的辅助治疗。\n用法用量：口服，一次2粒，一日3次\n规格：0.5g×24粒";
 
 function fake(id, script) {
@@ -102,22 +102,24 @@ test("F1-3 local evaluation mode: the product-label part is skipped (no code); d
   assert.equal(a.calls.length, 1, "only the advert snippet was sent");
 });
 
-test("F1-4 Chinese running text with 病人 (patients) is no dispensing label: an advert is refused only for missing label evidence, a pack is allowed", async () => {
-  const env = envOf();
-  await setup(env, ["pc_claims"]);
-  const a = fake("anthropic", () => ok({ signals: [] }));
-  const r1 = await post(env, "pc_claims", body({ text: ZH_ADVERT, category: "supplement" }), { anthropic: a.adapter });
-  assert.equal(r1.status, 400); assert.equal(r1.j.code, "ai_off_no_product", "deployed Worker: no label evidence (not dispensing, not personal data)");
-  const r2 = await post(env, "pc_claims", body({ text: ZH_PACK, category: "drug" }), { anthropic: a.adapter });
-  assert.equal(r2.status, 200, "a Chinese pack text with a registration number and 病人 in the indication reaches the model");
-  assert.equal(a.calls.length, 1);
-  assert.match(a.calls[0].r.text, /高血压病人的辅助治疗/, "sent whole: nothing after 病人 is removed as a name");
-  const local = envOf(LOCAL_ENV);
-  await setup(local, ["pc_claims"]);
-  const b = fake("anthropic", () => ok({ signals: [] }));
-  const r3 = await post(local, "pc_claims", body({ text: ZH_ADVERT, category: "supplement" }), { anthropic: b.adapter }, { origin: LOCAL, base: DEV });
-  assert.equal(r3.status, 200, "local evaluation mode: the advert snippet is scored");
-  assert.ok(b.calls[0].r.text.includes(ZH_ADVERT));
+test("F1-4 Chinese text with 病人 (patients) stays refused, deployed and in local evaluation mode, and the code says why", async () => {
+  // The guard reads 病人 as a patient field (a narrow change that let running text through was reverted after a privacy
+  // review): the rest of the line is removed as a name on the device, and the redacted text is a dispensing sign.
+  const G = require("../../lensiq-pc-guard.js");
+  for (const [envVars, opt] of [[{}, {}], [LOCAL_ENV, { origin: LOCAL, base: DEV }]]) {
+    const env = envOf(envVars);
+    await setup(env, ["pc_claims"]);
+    const a = fake("anthropic", () => ok({ signals: [] }));
+    for (const [text, cat] of [[ZH_ADVERT, "supplement"], [ZH_PACK, "drug"]]) {
+      const raw = await post(env, "pc_claims", body({ text, category: cat }), { anthropic: a.adapter }, opt);
+      assert.equal(raw.status, 400); assert.equal(raw.j.code, "ai_off_personal_data", "not redacted on the device: the 'name' is still in it");
+      const red = G.redact(text).text;
+      assert.ok(red.includes(G.PLACEHOLDER));
+      const r = await post(env, "pc_claims", body({ text: red, category: cat }), { anthropic: a.adapter }, opt);
+      assert.equal(r.status, 400); assert.equal(r.j.reason, "bad_input"); assert.equal(r.j.code, "ai_off_dispensing", "redacted as the page does: a dispensing sign");
+    }
+    assert.equal(a.calls.length, 0, "nothing sent");
+  }
 });
 
 /* ------------------------------ F2: rule family filter ------------------------------ */

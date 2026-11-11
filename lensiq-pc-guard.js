@@ -12,7 +12,7 @@
  *   name   1. after a field cue, greedily to the end of the line (names spaced by syllable, nicknames in brackets), cut at
  *             the next field word (อายุ, HN, โทร, DOB, Age, Tel, 电话 ...) or a digit: ชื่อผู้ป่วย, ชื่อ-สกุล, ชื่อเล่น, ชื่อ,
  *             ผู้ป่วย, คนไข้, ผู้รับยา, Patient: / Patient name - , NAME:, Pt:, Rx for, Dispensed to, Prepared for,
- *             Dr. order for, For: (dispensing labels only), 患者姓名, 姓名, 病人 (as a field word, not inside running text), 就诊人;
+ *             Dr. order for, For: (dispensing labels only), 患者姓名, 姓名, 病人, 就诊人;
  *          2. on a DISPENSING LABEL only: an honorific / rank / monk title + a person-like name (นาย, นาง, นางสาว, คุณ,
  *             ด.ช. ..., ร.ต.อ., พ.ต.ท. ..., พระ, พระครู, พระมหา ..., Mr / Mrs / Ms / Miss / Dr / Khun, 王先生 / 女士 / 小姐).
  *             On an ordinary product pack an honorific is kept (brands such as "Mrs. X's Herbal Tea", "นายห้าง ...").
@@ -99,11 +99,6 @@
     "should|must|taking|information|package|leaflet|insert|counsel)"
   ].join(""), "iu");
   const B = "(?:^|(?<=[\\s:：(,;/]))"; // token start (Thai has no spaces inside words, so "ในผู้ป่วย" is not a field)
-  // 病人 ("patient") is a field word when it starts a token ("病人：", "病人 王某", a line start) or when a colon, a space,
-  // a line end or a field word follows it ("门诊病人 王某", "住院病人：", "住院病人编号"). Glued between two words of running
-  // text it is part of a noun phrase ("糖尿病病人服…", "成人病人之…", "缺乏症)病人。": indications, adverts): no name cue and no
-  // dispensing sign (fresh3 measurement 2026-11-12: 10 such texts refused, all false)
-  const PATIENT_ZH = "(?:(?<![一-鿿)）])病人|病人(?=[ \\t]*[:：]|[ \\t\\n]|编号|編號|姓名|[号號]|资料|資料|信息|ID|No))";
   const PRODUCT_NAME_EN = "(?:product|brand|generic|trade|drug|company|chemical|common|proprietary|manufacturer|scientific|botanical|inci|latin|" +
     "english|thai|medicine|device|model|plant|herb|ingredient|substance|file|user|full\\s+product)";
 
@@ -116,7 +111,7 @@
     { re: new RegExp(`(?<!${PRODUCT_NAME_EN}\\s*)\\bname\\s*[:：\\-–]`, "giu"), always: true },
     { re: /\bPt\.?\s*[:：]|\bRx\s+for\b|\bDispensed\s+to\b|\bPrepared\s+for\b|\bDr\.?\s+order\s+for\b|\bCustomer\s*[:：]/giu, always: true },
     { re: /(?:^|(?<=\s))For\s*[:：]/gu, always: false }, // on a dispensing label or any label with usage text
-    { re: new RegExp(`(?:患者姓名|姓名|就诊人|${PATIENT_ZH}|患者(?=\\s*[:：]))\\s*[:：]?`, "gu"), always: true },
+    { re: /(?:患者姓名|姓名|就诊人|病人|患者(?=\s*[:：]))\s*[:：]?/gu, always: true },
     // a maker-printed responsible person (pharmacist in charge, production supervisor): the NAME is still removed
     { re: new RegExp("(?:เภสัชกรผู้มีหน้าที่ปฏิบัติการ|ผู้มีหน้าที่ปฏิบัติการ|เภสัชกรผู้ควบคุม(?:การผลิต)?|ผู้ควบคุมการผลิต)\\s*[:：.\\-–]?|" +
       "[監监][製制][藥药][師师]\\s*[:：]?|管理[藥药][師师]\\s*[:：]?|[駐驻][廠厂][藥药][師师]\\s*[:：]?|\\b(?:Pharmacist[- ]in[- ]charge|Responsible\\s+pharmacist|Qualified\\s+person)\\s*[:：\\-–]", "giu"),
@@ -129,7 +124,7 @@
   const STRONG = new RegExp("(?:ชื่อผู้ป่วย|ผู้ป่วย\\s*[:：]|คนไข้\\s*[:：]|ผู้รับยา|ใบสั่งยา|วันที่จ่ายยา|จ่ายยาโดย|ผู้จ่ายยา|เลขที่ผู้ป่วย|เลขประจำตัวผู้ป่วย|" +
     "\\bHN(?![A-Za-z])|\\bMRN(?![A-Za-z])|\\b(?:AN|VN)\\s*[:：.#]?\\s*\\d|\\bOPD\\s*No|Patient(?:'s)?\\s*(?:name)?\\s*[:：\\-–]|\\bPt\\.?\\s*[:：]|\\bRx\\s*(?:for|#|No\\.?|:)|℞|" +
     "\\bDispensed\\s+(?:to|by|on)\\b|\\bPrescription\\s*(?:No|#|:|for)|\\bDr\\.?\\s+order\\s+for|" +
-    "患者姓名|患者\\s*[:：]|" + PATIENT_ZH + "|就诊人|门诊号|病历号|住院号|处方笺|处方单|病歷號|藥袋|領藥號|調劑|\\bH\\.N\\.|\\bHosp(?:ital)?\\.?\\s*No|" +
+    "患者姓名|患者\\s*[:：]|病人|就诊人|门诊号|病历号|住院号|处方笺|处方单|病歷號|藥袋|領藥號|調劑|\\bH\\.N\\.|\\bHosp(?:ital)?\\.?\\s*No|" +
     // foreign dispensing labels (v5 independent check: a Taiwan clinic label and a Shanghai outpatient slip were missed).
     // Pack wording is avoided: 处方药 / 凭医师处方销售, 请及时就诊, 请咨询医师或药师 are NOT cues.
     "門診|门诊(?!就医)|就[诊診](?:卡|[号號]|日期|科|人|时间|時間)|病[歷历]|[处處]方(?:[笺箋单單号號医醫师師]|日期|来源|來源|\\s*[:：])|看診|科[别別]|[费費][别別]|健保(?:特約|卡)|医保\\s*[:：]|" +
@@ -140,9 +135,7 @@
   const HEADER = new RegExp([
     "^\\s*(?:โรงพยาบาล|รพ\\.|คลินิก|ร้านยา|ร้านขายยา|สถานพยาบาล|สถานีอนามัย|ศูนย์บริการสาธารณสุข|",
     "[A-Za-z .&'-]{0,40}\\b(?:Hospital|Clinic|Klinik|Polyclinic|Dispensary|Pharmacy|Drugstore|(?:Medical|Dental|Health)\\s+Cent(?:er|re))\\b|" +
-    // a CJK institution name at the line start; not a list or a group named in running text ("某某、某某等各大医院
-    // 临床验证", "全国各大药店有售"; fresh3 measurement 2026-11-12)
-    "[^\\n、，；。]{0,20}(?<!各[大级級家地]?|多家|等|众多|眾多|知名|权威|權威)(?:医院|诊所|药房|药店|卫生院|醫院|診所|藥局|藥房|衛生所|卫生服务中心|衛生服務中心|調剤薬局|クリニック)|[^\\n]{0,20}(?:약국|의원|병원)[ \\t]*$)"
+    "[^\\n]{0,20}(?:医院|诊所|药房|药店|卫生院|醫院|診所|藥局|藥房|衛生所|卫生服务中心|衛生服務中心|調剤薬局|クリニック)|[^\\n]{0,20}(?:약국|의원|병원)[ \\t]*$)"
   ].join(""), "imu");
   const USAGE = /วิธีใช้|รับประทาน|ครั้งละ|วันละ|ก่อนอาหาร|หลังอาหาร|ก่อนนอน|\bTake\s+\d|\btimes?\s+(?:a|per)\s+day|用法用量|每次|每日|一[天日][一二三四\d]次|[飯饭][後后]|1日\d回|毎食後|1회|식후/iu;
 
