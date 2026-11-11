@@ -336,3 +336,25 @@ registered and traditional indications, composition, warnings and "consult a doc
 
 Risk: this is the second round of hand-tuning on spent sets; expect the independent figure on `texts-fresh-3` to be lower
 than these dev numbers.
+
+## Third locked set "fresh-3" (locked 2026-11-12, before scoring)
+
+Owner order 2026-11-12: one set, used once, for (a) the on-device rules after the H02 / drug fix and (b) rules plus the
+tuned AI prompt (P8 extra round). 967 texts (`~/LENSIQ-field/product-check/texts-fresh-3/`, outside the repo; licence as
+L53): herbal 324, drug 237, Chinese 392 (herbal 157, drug 84), Thai 200; no single source above 50 % of the Thai
+over-claim cell. Two blind AI labellers: text-level κ = 0.915 (545 both flagged, 382 both clean, 40 disagree); rule
+labels A 864, B 845, agreed 775 (Jaccard 0.830). Files read-only in `~/LENSIQ-field/evals/adverts/fresh3/`:
+
+| File | sha256 |
+|---|---|
+| `blind-input.jsonl` | `7b8748b4ec2070ac15d39c5ca4c3de5919cea22bd506009dca164ff29938c6a3` |
+| `labels-A.jsonl` | `ecb521ba9300dd94838ed98af60419a88005771472c22c7ef8266a4075de92ae` |
+| `labels-B.jsonl` | `c884f074e64a7f5026959d85c84e496d23974f1d0b9f80d58362bec74bbe1ae8` |
+
+Scoring rule fixed now: over-claim = both labellers flagged; compliant = both empty; the 40 disagreements apart. Measured
+in the released mode (product type chosen): recall (≥ 1 signal), false flags per 100 compliant texts and share of
+compliant texts flagged, consensus rule precision / recall, by language and category, with 95 % Wilson intervals.
+(a) rules at commit `a335ca9` (rules sha256 `cc9ea9aa…`); (b) union of the same rules with prompt variant B on
+gpt-6.1-terra, claude-haiku-5.5 and gpt-6-luna (ZDR routes), each model reported separately. Targets: false flags ≤ 5
+per 100 compliant; recall ≥ 80 %; for (b) also precision ≥ 80 %. Chinese keeps "limited support" unless its subgroup
+meets both targets. One run each; the set is then spent.
