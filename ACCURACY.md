@@ -1421,18 +1421,36 @@ instead of reporting "no face". Not measured: mouth movement, real exam rooms.
 ## 14. Product Check: advert wording check (medicine.html, experimental, 2026-11-11)
 
 On-device wording rules on advert / post / leaflet text (`lensiq-pc-advert.js`), released as **experimental** (owner
-decision 2026-11-11). Independent test, scored once by a separate agent on a fresh set locked before scoring: 246
-over-claim texts and 135 compliant texts quoted from public advert pages (US FDA, UK ASA, Thai AFNC, Thai / Chinese
-press, NIH DSLD, openFDA, makers' pages), labelled blind by two AI labellers (κ 0.887), pending expert review. Details:
-`docs/product-check/ADVERT-RESULTS.md`.
+decision 2026-11-11). Details: `docs/product-check/ADVERT-RESULTS.md`. Source label: public dataset.
 
-| Measure | Product type chosen (how the page runs) | Type guessed (not used on the page) |
+### Current figures: independent run on fresh-2 (2026-11-11, rules `156ebae8…`, commit `c8d5e4a`)
+
+Scored once by a separate agent on the second locked set (fresh-2), locked before scoring: 455 over-claim texts and 159
+compliant texts quoted from public advert pages, labelled blind by two AI labellers (κ 0.916), pending expert review;
+21 texts where the labellers disagreed are left out. Fresh-2 **deliberately targeted the kinds of wording the first run
+missed** (more Chinese, herbal and food texts, more claims to treat, prevent or change body function), so the two runs are
+not directly comparable: the first run is kept below as history, not as a "before".
+
+| Measure (95 % Wilson) | Product type chosen (how the page runs) | Type guessed (not used on the page) |
+|---|---|---|
+| Over-claim texts with at least one signal | finds **67.3 %** of over-claim texts with the product type chosen [62.8–71.4] | 75.6 % |
+| False flags | **2.5** false flags per 100 compliant texts (2.5 % of texts [1.0–6.3]) | 69.2 per 100 |
+
+By language (type chosen): Thai 76.3 % (116 / 152), English 68.4 % (106 / 155), Chinese 56.8 % [48.7–64.5] (84 / 148; 0
+false flags on 66 compliant). Weakest: herbal 53.0 %, drug 31.3 % (5 / 16), Chinese herbal 13 % (3 / 23). On the page
+this is still said as "finds about 2 in 3 over-claims in testing" (66.7 %, within 5 points). Chinese stays "limited
+support". Target 80 % recall: **not met**; target ≤ 5 false flags per 100 compliant: met.
+
+### History: first independent run (fresh set, 2026-11-11, rules `542b1be5…`, commit `68bbc8b`; set now spent)
+
+246 over-claim texts and 135 compliant texts (two AI labellers, κ 0.887).
+
+| Measure | Product type chosen | Type guessed (not used on the page) |
 |---|---|---|
 | Over-claim texts with at least one signal | finds **64.2 %** of over-claim texts with the product type chosen [58.1–70.0] | 71.1 % |
 | False flags | **1.5** false flags per 100 compliant texts | 23.0 per 100 |
 
-On the page this is said as "finds about 2 in 3 over-claims in testing". Chinese adverts: 50 % on only 20 texts, shown as
-"limited support". Target 80 % recall: **not met**. Source label: public dataset.
+Chinese adverts: 50 % on only 20 texts. The rules were then tuned on this set (dev only); see `ADVERT-RESULTS.md`.
 
 ## Datasets and licences
 

@@ -1,7 +1,7 @@
 /* i18n/en-med.js — English for medicine.html / medicine.js (md.*). Mirrors i18n/zh-med.js. Label text from openFDA stays in
  * its original English (never machine-translated); Thai registry names stay Thai (lang="th"). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
-  "md.pc.ad.acc": "Independent test, 246 over-claim / 135 compliant public advert texts, labelled by AI, pending expert review: finds 64% of over-claims with the product type chosen, 1.5 false flags per 100 compliant texts · n = 246 / 135 · source: public dataset",
+  "md.pc.ad.acc": "Independent test, 455 over-claim / 159 compliant public advert texts, labelled by AI, pending expert review: finds 67% of over-claims with the product type chosen, 2.5 false flags per 100 compliant texts · n = 455 / 159 · source: public dataset",
   "md.title": "Medicine checker: read labels and registration numbers | LENSIQ",
   "md.eyebrow": "LENSIQ · Medicine checker",
   "md.h1": "Check medicine information from the box, the label or the pill",

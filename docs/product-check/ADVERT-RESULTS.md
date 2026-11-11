@@ -248,3 +248,49 @@ it matters if the guessed mode is ever brought back.
    counter-cases, but the compliant samples are small (135 + 123).
 3. The page text stays "about 2 in 3" until the independent run; if fresh2 shows a different figure,
    `docs/accuracy-figures.json` is updated from that run only.
+
+## Independent run on fresh-2 (2026-11-11, one run, set now spent)
+
+Source: public-page quotes, labelled blind by two AI labellers (κ 0.916), pending expert review; locked before scoring.
+Code `c8d5e4a` (`lensiq-claims-rules.js` `156ebae8…`, `lensiq-pc-advert.js` `d68d9449…`, `lensiq-claims.js` `f41bed9c…`).
+Scored once by an independent agent; nothing tuned. Log: `~/LENSIQ-field/evals/adverts/fresh2/score/run-20261111T235821.log`
+(summary `summary-20261111T235821.json`). 455 over-claim texts (both labellers flagged), 159 compliant (both empty), 21
+disagreements left out. **Fresh-2 deliberately targeted the kinds of wording the first run missed** (claims to treat,
+prevent or change body function; food, herbal; many more Chinese texts), so its figures and the first run's are **not
+directly comparable**; the first run above is kept as history.
+
+| Measure (95 % Wilson) | Product type chosen (page) | Type guessed (not used) | Target |
+|---|---|---|---|
+| Recall: over-claim texts with ≥ 1 signal | **67.3 %** [62.8–71.4] (306 / 455) | 75.6 % [71.5–79.3] | 80 % (missed) |
+| False flags per 100 compliant texts | **2.5** (2.5 % of texts) [1.0–6.3], 4 / 159 | 69.2 (49.1 % of texts) | ≤ 5 (met) |
+| Rule-id precision / recall vs consensus | 81.0 % / 55.6 % | 37.5 % / 54.8 % | — |
+
+By language (type chosen): Thai 76.3 % (116 / 152), English 68.4 % (106 / 155), Chinese 56.8 % [48.7–64.5] (84 / 148; 0
+false flags on 66 compliant). By category: supplement 79.0 % (94 / 119), food 70.8 % (148 / 209), cosmetic 54.5 % (6 /
+11), herbal 53.0 % (53 / 100), drug 31.3 % (5 / 16). Weakest cell: Chinese herbal 13 % (3 / 23).
+
+Seller-name check: no ®, ™, @, URL, phone-like or shop marker in any of the 553 spans shown in the page's mode; tokens
+caught by the capital-letter heuristics were claim words and disease acronyms (COVID, COPD, LDL, "Immune", "Support").
+
+สรุป (ไทย): วัดอิสระครั้งเดียวกับชุดใหม่ fresh-2 (โฆษณาเกินจริง 455 ข้อความ ไม่เกินจริง 159) ในโหมดที่หน้าเว็บใช้ (ผู้ใช้เลือกประเภทสินค้า)
+จับได้ 67.3 % แจ้งเตือนผิด 2.5 ต่อ 100 ข้อความ (เป้า ≤ 5 ผ่าน, เป้า recall 80 % ยังไม่ผ่าน) ภาษาจีน 56.8 % ยังเป็น "รองรับแบบจำกัด"
+ชุดนี้ตั้งใจเลือกถ้อยคำแบบที่รอบแรกพลาด จึงเทียบกับรอบแรก (64.2 %) ตรง ๆ ไม่ได้ จุดอ่อน: สมุนไพร 53 % ยา 31 %
+
+**Odd things:**
+
+1. **Type gating lowers recall**, most for drug and herbal: with the type guessed the same rules reach 75.6 %, with the
+   type chosen 67.3 %. Drug texts lose most (guessed 81.3 % → chosen 31.3 %): many drug-labelled over-claims are caught
+   only by food rules (F09 / F10), which do not run when "drug" is chosen; the drug rules (D02, D08) are narrow.
+   Herbal: 75.0 % → 53.0 % for the same reason (H02, H05 narrower than F09 / F10).
+2. **149 misses** (type chosen), mostly in F10, H02, F09, F07, H05, D02 and F19 (per-rule missed: F10 65, H02 26, F09 28,
+   F07 26, F08 27, F19 17, F06 15, H05 13, D02 9, F12 7, H01 7). H02 was 5 of 31.
+3. **The 4 compliant false flags**: FR2-0102, FR2-0237, FR2-0276, FR2-0544 (ids only; texts stay outside the repo).
+4. Development figures on the spent first set (96.3 %) vs this run (67.3 %): the expected over-fitting gap.
+
+**Status:** the page now quotes this run (`docs/accuracy-figures.json`: 455 / 159, 67.3 %, 2.5 per 100); "about 2 in 3"
+(66.7 %) stays within 5 points. Chinese keeps "limited support". Experimental badge kept.
+
+**Next steps:** (1) H02 herbal and the drug rules (D02, D08): exaggeration, fast-result and structure / function wording
+for drug and herbal types, so that type gating does not drop what the food rules catch; Chinese herbal wording.
+(2) fresh-2 is now spent too: **a third locked set is needed** to measure any further rule work; any tuning on fresh-2 is
+development only.

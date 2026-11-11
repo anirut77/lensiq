@@ -41,9 +41,9 @@ export const BENCHES = Object.freeze({
   neuro: { datasets: ["fer"], cmd: "LQ_BENCH_DATA=~/lq-bench-data node tests/bench/neuro.bench.mjs --json out.json" },
   qc: { datasets: [], cmd: "node tests/bench/qc.bench.mjs --json out.json" },
   checkout: { datasets: [], cmd: "node tests/bench/checkout.bench.mjs --json out.json" },
-  // Product Check advert wording (experimental): the fresh advert set is scored ONCE by an independent agent and is never
+  // Product Check advert wording (experimental): each locked advert set (now fresh-2) is scored ONCE by an independent agent and is never
   // committed or redistributed (owner licence decision); see docs/product-check/ADVERT-RESULTS.md
-  advert: { datasets: ["adverts-fresh"], cmd: "scored once by an independent agent on ~/LENSIQ-field/product-check/texts-fresh (see docs/product-check/ADVERT-RESULTS.md)" }
+  advert: { datasets: ["adverts-fresh-2"], cmd: "scored once by an independent agent on ~/LENSIQ-field/product-check/texts-fresh-2 (see docs/product-check/ADVERT-RESULTS.md)" }
 });
 
 /** fingerprint of one folder: sha256 over "relpath\tsize\tsha256(file)\n" for every file, sorted; dot-paths skipped */

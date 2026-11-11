@@ -19,7 +19,8 @@
 // AMENDMENT 2026-11-11 (owner decision: release as "experimental", type chosen first; stricter, re-locked):
 //   8. a no-signal card shows EXACTLY the owner's sentence (EXACT_NONE) in each language, never "no problem" or a tick;
 //   9. that sentence and the page's accuracy line are generated from docs/accuracy-figures.json (TH default in the module
-//      = the generated Thai), the figures match the independent fresh-set run (246 / 135, 64.2 %, 1.5 per 100), and
+//      = the generated Thai), the figures match the latest independent run (fresh-2: 455 / 159, 67.3 %, 2.5 per 100;
+//      lock 4, the first run's 246 / 135, 64.2 %, 1.5 per 100 stays in the docs as history), and
 //      "about 2 in 3" stays within 5 points of the chosen-type recall;
 //  10. a flagged line shows the text found, the rule id and "verify with the official source"; no verdict words;
 //  11. Chinese adverts are marked "limited support" in TH / EN / ZH; Thai and English adverts are not.
@@ -257,10 +258,10 @@ test("AMENDMENT: the no-signal sentence and the accuracy line are generated from
   assert.equal(EN["md.pc.ad.none"], none.en);
   assert.equal(ZH["md.pc.ad.none"], none.zh);
   const f = doc.figures;
-  assert.equal(f.adOver.value, "246");
-  assert.equal(f.adComp.value, "135");
-  assert.equal(f.adRecallType.raw, 64.2);
-  assert.equal(f.adFFType.raw, 1.5);
+  assert.equal(f.adOver.value, "455");
+  assert.equal(f.adComp.value, "159");
+  assert.equal(f.adRecallType.raw, 67.3);
+  assert.equal(f.adFFType.raw, 2.5);
   // "about 2 in 3" must stay consistent with the chosen-type recall
   assert.ok(Math.abs(100 * Number(f.adNum.value) / Number(f.adDen.value) - f.adRecallType.raw) <= 5, "about N in M within 5 points of the recall");
   const results = fs.readFileSync(path.join(ROOT, "docs", "product-check", "ADVERT-RESULTS.md"), "utf8");
@@ -268,12 +269,17 @@ test("AMENDMENT: the no-signal sentence and the accuracy line are generated from
   assert.match(results, /\*\*1\.5\*\* \(1\.5 % of texts\)/);
   assert.match(results, /246 over-claim texts/);
   assert.match(results, /135 compliant/);
+  // lock 4: the fresh-2 run is documented next to the first run (history kept)
+  assert.match(results, /\*\*67\.3 %\*\*/);
+  assert.match(results, /\*\*2\.5\*\* \(2\.5 % of texts\)/);
+  assert.match(results, /455 over-claim texts/);
+  assert.match(results, /159 compliant/);
   const claims = fs.readFileSync(path.join(ROOT, "docs", "ACCURACY-CLAIMS.md"), "utf8");
   assert.ok(claims.includes(acc.en), "docs/ACCURACY-CLAIMS.md carries the same accuracy line");
   // the accuracy line names the test, its size, its labels and its source in every language
   const words = {
-    en: ["Independent test", "246", "135", "labelled by AI", "pending expert review", "64%", "1.5", "public dataset"],
-    th: ["246", "135", "AI", "64%", "1.5", "ชุดข้อมูลสาธารณะ"], zh: ["246", "135", "AI", "64%", "1.5", "公开数据集"]
+    en: ["Independent test", "455", "159", "labelled by AI", "pending expert review", "67%", "2.5", "public dataset"],
+    th: ["455", "159", "AI", "67%", "2.5", "ชุดข้อมูลสาธารณะ"], zh: ["455", "159", "AI", "67%", "2.5", "公开数据集"]
   };
   for (const [lang, ws] of Object.entries(words)) for (const w of ws) assert.ok(acc[lang].includes(w), `${lang} accuracy line has "${w}": ${acc[lang]}`);
 });
