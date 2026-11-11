@@ -282,6 +282,8 @@
       st.res = { ...out, mode, sentText: text };
       st.removed = removed;
       st.text = String(P.text || "");
+      // P9: the travel card (lensiq-pc-travel.js) accepts the AI's ingredient list only when each INN resolves on the device
+      try { W.dispatchEvent(new CustomEvent("lq-pc-ai")); } catch { /* old browser: the travel card keeps the on-device list */ }
     }
     async function acceptOffer() {
       if (!st.offer || st.busy) return;
@@ -436,7 +438,16 @@
         h += `<h5>${esc(T("md.pc.ai.trH", "คำแปลฉลากโดย AI"))}</h5>`;
         if (!r.translate.ok) h += fbLine(r.translate);
         else {
-          h += `<dl class="md-kv" id="pcAiTr">${(r.translate.json.lines || []).map(l => `<dt>${raw(l.source)}</dt><dd translate="no">${esc(l.translation)}</dd>`).join("")}</dl>` +
+          // P9 travel mode (CTO-BRIEF L47): the original stays beside each line (translate="no"); dosing and warning lines carry
+          // "translated from the label, not advice, ask a pharmacist" (LQPCTravel.classifyPair; "other" when that module is absent)
+          const kindOf = l => (W.LQPCTravel && W.LQPCTravel.classifyPair ? W.LQPCTravel.classifyPair(l.source, l.translation) : "other");
+          const l47 = T("md.pc.tv.l47", "แปลจากฉลาก ไม่ใช่คำแนะนำ ถามเภสัชกร");
+          h += `<p class="md-status" data-kind="warn" id="pcAiTrMt">${esc(T("md.pc.tv.mt", "แปลด้วยเครื่องโดยบริการ AI ที่คุณเลือก อาจผิดได้ ฉลากต้นฉบับสำคัญกว่าเสมอ"))}</p>` +
+            `<dl class="md-kv" id="pcAiTr">${(r.translate.json.lines || []).map(l => {
+              const k = kindOf(l);
+              return `<dt>${raw(l.source)}</dt><dd data-kind="${k}"><span translate="no">${esc(l.translation)}</span>` +
+                (k === "other" ? "" : ` <span class="md-status" data-kind="warn" data-l47>${esc(l47)}</span>`) + `</dd>`;
+            }).join("")}</dl>` +
             `<p class="hint">${esc(T("md.pc.ai.trNote", "คำแปลอาจผิด ฉลากต้นฉบับและเภสัชกรสำคัญกว่าเสมอ"))}</p>` + by(r.translate);
         }
       }

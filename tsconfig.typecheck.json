@@ -235,6 +235,8 @@
     "lensiq-pc-lookup.js",
     "lensiq-pc-guard.js",
     "lensiq-pc-ai.js",
-    "lensiq-pc-advert.js"
+    "lensiq-pc-advert.js",
+    "lensiq-pc-travel.js",
+    "lensiq-pc-refimg.js"
   ]
 }

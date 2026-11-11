@@ -33,6 +33,11 @@ Integrated in P4, exactly as the verdicts below allow:
 - **S15** Thai FDA web service: testing only, behind the admin switch.
 - Health Canada recalls (design §4.4, OGL-Canada): sharded offline by `tools/pc-hc-build.mjs` into `vendor/pc-recalls/hc/`
   and searched on the device. The TMT table is also served as on-demand shards (`vendor/pc-drugs/tmt/`).
+- **P9 (2026-11-11)**: **S24** Health Canada DPD by DIN through the Worker (`backend/src/pc.js` source `dpd`; endpoints read live
+  2026-11-11): product, status, sponsor (company only) and a link. **S2** again for travel mode: `vendor/pc-drugs/tmt-ing/`
+  (`tools/pc-tmt-ing-build.mjs`) groups TMT 2020 products by ingredient set, loaded only when the owner's switch
+  `LENSIQ_PC_THAI_EQUIV` is on (default off: the Thai FDA register permission, L13, is still pending). INN names come from
+  LENSIQ's own table in `lensiq-pc-travel.js` and the TMT ingredient words; WHO INN lists are not used.
 
 Recall sources as used (coordinator decisions 2026-11-10):
 - **EU Safety Gate** (search API, Commission reuse notice; CC0 only for the weekly XML; L16): **testing only**, off in customer

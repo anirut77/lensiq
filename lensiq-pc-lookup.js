@@ -373,6 +373,8 @@
       if (r.country === "TH" && TH_OP[r.kind]) push("thfda", `/api/pc/thfda?op=${TH_OP[r.kind]}&q=${enc(r.norm)}`, r.norm, "reg");
       if (r.country === "SG" && r.kind === "sin") push("hsa", `/api/pc/hsa?q=${enc(r.norm)}`, r.norm, "reg");
       if (r.country === "US" && r.kind === "ndc") { push("ndc", `/api/pc/ndc?q=${enc(r.norm)}`, r.norm, "reg"); push("label", `/api/pc/label?by=ndc&q=${enc(r.norm)}`, r.norm, "reg"); }
+      // P9: Health Canada Drug Product Database by DIN (OGL-Canada; design §4.4)
+      if (r.country === "CA" && r.kind === "din") push("dpd", `/api/pc/dpd?q=${enc(r.norm)}`, r.norm, "reg");
     }
     for (const g of (f.gtins || []).slice(0, 2)) push("openfda", `/api/pc/openfda?by=gtin&q=${enc(g)}`, g, "gtin");
     for (const n of (f.names || []).slice(0, 2)) {
@@ -399,7 +401,7 @@
       const bad = items.find(x => x.status === "cancelled" || x.status === "expired");
       return bad ? { ...base, state: "signal", signal: "register_status", status: bad.status, status_text: bad.status_text } : { ...base, state: "found", signal: "registered" };
     }
-    if (["hsa", "ndc", "label", "dailymed", "rxnav"].includes(step.source)) return { ...base, state: items.length ? "found" : "none" };
+    if (["hsa", "ndc", "label", "dailymed", "rxnav", "dpd"].includes(step.source)) return { ...base, state: items.length ? "found" : "none" };
     // recall / alert sources: a hit by name is a POSSIBLE match the user compares; a hit by barcode is stronger
     return items.length ? { ...base, state: "signal", signal: step.kind === "gtin" ? "recall_gtin" : "recall_name" } : { ...base, state: "none" };
   }
@@ -443,7 +445,8 @@
       thfda: T("md.pc.l.s.thfda", "ทะเบียน อย. (ไทย)"), hsa: T("md.pc.l.s.hsa", "ทะเบียนยา HSA (สิงคโปร์)"), openfda: T("md.pc.l.s.openfda", "รายการเรียกคืน openFDA (สหรัฐฯ)"),
       ndc: T("md.pc.l.s.ndc", "รหัสยา NDC ของ openFDA (สหรัฐฯ)"), label: T("md.pc.l.s.label", "ฉลากยา openFDA (สหรัฐฯ)"), dailymed: T("md.pc.l.s.dailymed", "DailyMed (สหรัฐฯ)"),
       rxnav: T("md.pc.l.s.rxnav", "RxNorm ชื่อตัวยาสากล (สหรัฐฯ)"), safetygate: T("md.pc.l.s.safetygate", "EU Safety Gate (สหภาพยุโรป)"),
-      rasff: T("md.pc.l.s.rasff", "RASFF อาหารและอาหารสัตว์ (สหภาพยุโรป)"), healthcanada: T("md.pc.l.s.healthcanada", "การเรียกคืนสินค้าของ Health Canada (แคนาดา)")
+      rasff: T("md.pc.l.s.rasff", "RASFF อาหารและอาหารสัตว์ (สหภาพยุโรป)"), healthcanada: T("md.pc.l.s.healthcanada", "การเรียกคืนสินค้าของ Health Canada (แคนาดา)"),
+      dpd: T("md.pc.l.s.dpd", "ฐานข้อมูลยา Health Canada (แคนาดา)")
     });
     const REASON = () => ({ no_server: T("md.pc.l.r.noServer", "เว็บไซต์นี้ยังไม่ได้ตั้งเซิร์ฟเวอร์ LENSIQ สำหรับการตรวจนี้"),
       switched_off: T("md.pc.l.r.off", "ผู้ดูแลระบบปิดแหล่งนี้ไว้"), link_out: T("md.pc.l.r.link", "ปิดการค้นอัตโนมัติไว้ ตรวจเองที่ oryor.com"),
@@ -512,7 +515,10 @@
       const regs = P && P.findRegNumbers ? P.findRegNumbers(st.text || "").map(r => ({ norm: r.norm, country: r.country, kind: r.kind })) : [];
       const gtins = st.codes.map(c => (P && P.barcodeInfo ? P.barcodeInfo(c.rawValue, c.format) : {})).filter(c => c.gtin && c.gtinValid).map(c => c.gtin);
       const tmt = st.local && st.local.tmt ? st.local.tmt : [];
-      return { regs, gtins, names: tmt.filter(m => m.via !== "edit").map(m => m.name), ingredients: [...new Set(tmt.map(m => m.ingredients[0].name))], tmt };
+      // P9 travel mode: on a foreign label the INNs found on this device (lensiq-pc-travel.js hand table) can be confirmed with RxNorm
+      const TV = W.LQPCTravel, text = String(st.text || "");
+      const inns = TV && text.trim() && TV.isForeign(text) ? TV.extractInn(text, TV.baseIndex()).map((/** @type {any} */ x) => x.inn) : [];
+      return { regs, gtins, names: tmt.filter(m => m.via !== "edit").map(m => m.name), ingredients: [...new Set([...tmt.map(m => m.ingredients[0].name), ...inns])], tmt };
     };
 
     async function run(text, codes) {

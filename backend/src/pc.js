@@ -15,6 +15,8 @@
 //   GET /api/pc/ndc?q=<ndc | name>                      openFDA drug/ndc: derived facts                    cache 24 h
 //   GET /api/pc/dailymed?q=<name>                       DailyMed SPL list: set id, title, date, link      cache 24 h
 //   GET /api/pc/rxnav?q=<name>                          RxNav: name -> RxCUI -> ingredients (IN). Never RxClass   24 h
+//   GET /api/pc/dpd?q=<DIN, 8 digits>                   Health Canada Drug Product Database (OGL-Canada; P9 travel mode):
+//                                                        product, sponsor (a company only), status, link             24 h
 //   POST /api/pc/batch {lookups:[{source, op?, by?, q}]}  the card's one call per tap (<= 16 lookups, fanned out here,
 //                                                        ONE rate-limit count; review S6)
 //
@@ -83,9 +85,12 @@ export const SOURCES = Object.freeze({
     credit: "Source: National Library of Medicine, DailyMed, https://dailymed.nlm.nih.gov. Label content is the responsibility of the labeller. NLM does not endorse LENSIQ." },
   rxnav: { name: "RxNorm / RxNav (US NLM)", country: "US", licence: "no licence needed for RxNav APIs except RxClass (not used, L33)", testing_only: false,
     credit: "This product uses publicly available data from the U.S. National Library of Medicine (NLM), National Institutes of Health, " +
-      "Department of Health and Human Services; NLM is not responsible for the product and does not endorse or recommend this or any other product." }
+      "Department of Health and Human Services; NLM is not responsible for the product and does not endorse or recommend this or any other product." },
+  dpd: { name: "Health Canada Drug Product Database", country: "CA", licence: "Open Government Licence – Canada", testing_only: false,
+    credit: "Contains information licensed under the Open Government Licence – Canada. Source: Health Canada Drug Product Database. Health Canada does not endorse LENSIQ." }
 });
-const TTL = { thfda: 6 * 3600, openfda: 3600, safetygate: 3600, rasff: 3600, healthcanada: 3600, hsa: 6 * 3600, label: 86400, ndc: 86400, dailymed: 86400, rxnav: 86400 };
+const TTL = { thfda: 6 * 3600, openfda: 3600, safetygate: 3600, rasff: 3600, healthcanada: 3600, hsa: 6 * 3600, label: 86400, ndc: 86400, dailymed: 86400, rxnav: 86400,
+  dpd: 86400 };
 export const HSA_RESOURCE = "d_767279312753558cbf19d48344577084";
 
 /* ---------------- settings (admin switch) ---------------- */
@@ -408,7 +413,31 @@ async function rxnav(q, by, env, f) {
     url: `https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=${encodeURIComponent(String(c.rxcui || ""))}` }));
   return { items, total: items.length, matched_rxcui: id };
 }
-const FETCHERS = { openfda: openfdaRecalls, safetygate: safetyGate, rasff, hsa, label, ndc, dailymed, rxnav };
+/**
+ * Health Canada Drug Product Database by DIN (P9 travel mode; design §4.4, OGL-Canada; endpoints read live 2026-11-11):
+ * /drugproduct/?din= -> [{drug_code, drug_identification_number, brand_name, company_name, class_name, last_update_date}],
+ * then /status/?id=<drug_code> -> {status, history_date} for at most 3 products (a status that does not answer leaves the
+ * row without a status; the product facts still stand). The sponsor is kept only when it is clearly a company.
+ */
+async function dpd(q, by, env, f) {
+  const base = "https://health-products.canada.ca/api/drug/";
+  const r = await timed(f, `${base}drugproduct/?din=${encodeURIComponent(q)}&lang=en&type=json`, { headers: { Accept: "application/json" } });
+  const j = await must(r).json();
+  shape(Array.isArray(j) && j.every(isObj));
+  const rows = j.filter(x => /^\d+$/.test(String(x.drug_code || ""))).slice(0, 3);
+  const items = await Promise.all(rows.map(async x => {
+    let status = "", since = "";
+    try {
+      const s = await must(await timed(f, `${base}status/?id=${encodeURIComponent(String(x.drug_code))}&lang=en&type=json`, { headers: { Accept: "application/json" } })).json();
+      if (isObj(s)) { status = short(s.status, 40); since = isoYmd(String(s.history_date || "").replace(/-/g, "")); }
+    } catch { /* no status: the product row stays */ }
+    const company = String(x.company_name || "");
+    return { ref: String(x.drug_identification_number || q), title: short(x.brand_name), holder: isJuristic(company) ? short(company, 80) : "", class: short(x.class_name, 40),
+      status, date: since || isoYmd(String(x.last_update_date || "").replace(/-/g, "")), url: `https://health-products.canada.ca/dpd-bdpp/info?lang=eng&code=${encodeURIComponent(String(x.drug_code))}` };
+  }));
+  return { items, total: j.length };
+}
+const FETCHERS = { openfda: openfdaRecalls, safetygate: safetyGate, rasff, hsa, label, ndc, dailymed, rxnav, dpd };
 
 /** In-memory fixed-window limiter, used when there is no D1 (review S6). Keys are SHA-256 of the caller address, kept
  *  only in this isolate's memory. */
@@ -449,6 +478,7 @@ async function lookupOne(env, cfg, L, deps, testerOk = true) {
   const q = cleanTerm(L.q || "", 80);
   if (q.length < 2) return [{ error: "query too short" }, 400];
   if (by === "gtin" && !GTIN.test(q)) return [{ error: "bad gtin" }, 400];
+  if (route === "dpd" && !/^\d{8}$/.test(q)) return [{ error: "bad din" }, 400];
   const op = route === "thfda" ? String(L.op || "all") : "";
   if (route === "thfda" && !PUBLIC_OPS.includes(op)) return [{ error: "unknown op" }, 400];
   if (route === "thfda" && cfg.thfda === "link") {

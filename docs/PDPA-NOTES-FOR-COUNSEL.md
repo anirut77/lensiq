@@ -862,3 +862,17 @@ only in the browser (`localStorage["lq-fortune-straight"]`), is never sent to a 
 counsel: is a self-declared age checkbox enough for adult-only wording in an entertainment service, and does the existing fortune
 disclaimer cover plainly negative readings (they remain without death, terminal-illness or dated-accident predictions, without
 instructions about medication, investments or relationships, and never tied to a paid service)?
+
+### F8. Product Check travel mode and reference-image tooling (P9, 2026-11-11)
+
+(a) Travel mode runs on the device: INN names, country of origin and the coverage message are worked out from the label
+text already on the page; nothing new is sent. After the existing "check official sources" tap, two more derived facts
+may go to our Worker: an INN found on a foreign label (to RxNav, as P4 already did for TMT ingredients) and a Canadian DIN
+(to the Health Canada Drug Product Database). Neither is personal data. (b) The Thai-equivalents list is off by default
+(`LENSIQ_PC_THAI_EQUIV`) while the Thai FDA register permission is pending (L13); when switched on it comes from the
+TMT 2020 table on the device and is labelled a list, not a recommendation. (c) AI translations of dosing and warning
+lines are shown beside the original and labelled "translated from the label, not advice, ask a pharmacist" (L47 still
+open). (d) The reference-image tooling stores embeddings only, never a photo, and refuses own retail-pack photos until
+counsel answers L19; no library exists. Embeddings of packaging carry no personal data, but a photo of a pack may show a
+person (hand, face on the artwork): the owner's photo protocol keeps such photos out of the reference set, and user
+contributions are refused in this tooling (org-accounts PDPA work first).

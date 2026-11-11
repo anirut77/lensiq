@@ -55,6 +55,12 @@ window.LENSIQ_FORTUNE_STRAIGHT = false;
  *   (แก้บรรทัดนี้เป็น window.LENSIQ_RESEARCH_DEMO = false; ในชุดไฟล์ที่ส่งให้ลูกค้า) */
 /** @type {any} */ (window).LENSIQ_RESEARCH_DEMO = /** @type {any} */ (window).LENSIQ_RESEARCH_DEMO !== false; // customer installation: = false
 
+/* LENSIQ_PC_THAI_EQUIV (round 17 P9): การ์ด "โหมดเดินทาง" ในหน้าตรวจสินค้า (medicine.html, lensiq-pc-travel.js) แสดงรายชื่อสินค้าในไทย
+ *   ที่มีตัวยาเดียวกับสินค้าต่างประเทศ (จาก TMT ฉบับ 17 ก.พ. 2563, CC BY — เป็นรายชื่อ ไม่ใช่คำแนะนำ ไม่ใช่ทะเบียน อย.)
+ *   false (ค่าเริ่มต้น) = ปิด: การ์ดบอกว่ารอหนังสืออนุญาตใช้ข้อมูลทะเบียนจาก อย. (CTO-BRIEF L13) และให้ชื่อสามัญไปถามเภสัชกร
+ *   true = เปิด (เจ้าของตัดสินใจเท่านั้น) · ต้องเป็น true จริงเท่านั้น ค่าอื่นถือว่าปิด */
+window.LENSIQ_PC_THAI_EQUIV = window.LENSIQ_PC_THAI_EQUIV === true;
+
 /* LENSIQ_PROFILE: ชุดค่าการติดตั้ง — "commercial" (ค่าเริ่มต้นตั้งแต่ round 16: โหมดลูกค้า ทุกเว็บรวม GitHub Pages) | "demo"
  *   โหมดลูกค้า: LENSIQ_AGE_GENDER = LENSIQ_EXPRESSION = LENSIQ_FACEPARSE = false — ไม่โหลดและไม่แสดงโมเดลอายุ/เพศ (UTKFace)
  *   และโมเดลสีหน้า · BiSeNet (ไม่ใช่เชิงพาณิชย์) ปิดค่าเริ่มต้น แต่ลิงก์ทดสอบ ?faceparse=1 ใน studio.js / photobooth-hq.js ยังไม่อยู่ใต้ล็อกนี้

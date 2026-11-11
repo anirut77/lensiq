@@ -1,0 +1,1796 @@
+{
+ "schema": "lensiq-pc-p9-inn-testset/1",
+ "source": "synthetic: invented label text written for P9 on 2026-11-11 before the extractor was built; no real pack text, no person",
+ "targets": {
+  "inn_precision": ">= 0.95 (micro: every INN shown that is not expected counts as a false INN)",
+  "inn_recall": ">= 0.85 on items that are not out-of-table (out-of-table recall reported apart, no target)",
+  "negatives_clean": ">= 0.95 of negative and brand-only items show no INN",
+  "country": "reported, no target (an aid for the coverage message, never a verdict)",
+  "foreign": "reported, no target (decides whether the travel card is shown)"
+ },
+ "note": "The extractor is built after this file was locked; any tuning on it makes it a dev set. The independent reviewer writes a fresh hold-out set.",
+ "items": [
+  {
+   "id": "p9-001",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "LQ PAIN RELIEF\nActive ingredient (in each caplet): Acetaminophen 500 mg\nPurpose: Pain reliever/fever reducer\nNDC 12345-678-90\nMade in USA",
+   "inns": [
+    "paracetamol"
+   ],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-002",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Testa Ibuprofen Tablets 200 mg\nEach tablet contains Ibuprofen 200mg\nDirections: adults take 1 tablet every 4 to 6 hours\nProduct of Canada DIN 01234567",
+   "inns": [
+    "ibuprofen"
+   ],
+   "countries": [
+    "CA"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-003",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "DEMOFEN Naproxen Sodium 220 mg tablets\nWarnings: Allergy alert\nMade in India",
+   "inns": [
+    "naproxen"
+   ],
+   "countries": [
+    "IN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-004",
+   "cond": {
+    "lang": "en",
+    "kind": "salt"
+   },
+   "text": "LQ Allergy\nActive ingredient: Cetirizine HCl 10 mg\nAntihistamine\nDistributed by LQ Pharma Inc., New Jersey, USA",
+   "inns": [
+    "cetirizine"
+   ],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-005",
+   "cond": {
+    "lang": "en",
+    "kind": "salt"
+   },
+   "text": "Antihistamine tablets\nChlorpheniramine maleate 4 mg\nKeep out of reach of children\nMade in Malaysia MAL20012345A",
+   "inns": [
+    "chlorphenamine"
+   ],
+   "countries": [
+    "MY"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-006",
+   "cond": {
+    "lang": "en",
+    "kind": "combo"
+   },
+   "text": "COLD & FLU NIGHT\nActive ingredients (in each 30 mL): Acetaminophen 650 mg, Dextromethorphan HBr 30 mg, Doxylamine succinate 12.5 mg\nMade in USA",
+   "inns": [
+    "paracetamol",
+    "dextromethorphan",
+    "doxylamine"
+   ],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-007",
+   "cond": {
+    "lang": "en",
+    "kind": "combo"
+   },
+   "text": "Testa Sinus Day\nParacetamol 500 mg / Pseudoephedrine hydrochloride 30 mg\nMade in the United Kingdom",
+   "inns": [
+    "paracetamol",
+    "pseudoephedrine"
+   ],
+   "countries": [
+    "GB"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-008",
+   "cond": {
+    "lang": "en",
+    "kind": "combo"
+   },
+   "text": "Chesty Cough Syrup\nGuaifenesin 100 mg and Dextromethorphan hydrobromide 10 mg per 5 mL\nProduct of Australia AUST R 123456",
+   "inns": [
+    "guaifenesin",
+    "dextromethorphan"
+   ],
+   "countries": [
+    "AU"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-009",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "LQ Heartburn Relief\nOmeprazole 20 mg delayed-release tablets\nMade in USA",
+   "inns": [
+    "omeprazole"
+   ],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-010",
+   "cond": {
+    "lang": "en",
+    "kind": "lookalike"
+   },
+   "text": "LQ 24h Heartburn\nEsomeprazole magnesium 20 mg\nDo not use if you have trouble swallowing\nMade in USA",
+   "inns": [
+    "esomeprazole"
+   ],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-011",
+   "cond": {
+    "lang": "en",
+    "kind": "lookalike"
+   },
+   "text": "Allergy Relief 24 hour\nLevocetirizine dihydrochloride 5 mg\nMade in USA",
+   "inns": [
+    "levocetirizine"
+   ],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-012",
+   "cond": {
+    "lang": "en",
+    "kind": "lookalike"
+   },
+   "text": "Non-drowsy allergy\nDesloratadine 5 mg film-coated tablets\nMade in Singapore SIN12345P",
+   "inns": [
+    "desloratadine"
+   ],
+   "countries": [
+    "SG"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-013",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "LQ Loratadine 10 mg\nNon-drowsy\nMade in USA",
+   "inns": [
+    "loratadine"
+   ],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-014",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Diarrhea control\nLoperamide HCl 2 mg\nMade in USA",
+   "inns": [
+    "loperamide"
+   ],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-015",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Antacid & gas\nSimethicone 125 mg softgels\nMade in USA",
+   "inns": [
+    "simeticone"
+   ],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-016",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Aspirin 81 mg low dose\nEnteric coated\nMade in USA",
+   "inns": [
+    "acetylsalicylic acid"
+   ],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-017",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Travel sickness tablets\nMeclizine HCl 25 mg\nMade in USA",
+   "inns": [
+    "meclozine"
+   ],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-018",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Motion sickness\nDimenhydrinate 50 mg\nProduct of Canada",
+   "inns": [
+    "dimenhydrinate"
+   ],
+   "countries": [
+    "CA"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-019",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Eye drops\nTetrahydrozoline HCl 0.05%\nRedness reliever\nMade in USA",
+   "inns": [
+    "tetryzoline"
+   ],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-020",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Nasal spray\nOxymetazoline hydrochloride 0.05%\nMade in USA",
+   "inns": [
+    "oxymetazoline"
+   ],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-021",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Cold sore cream\nAcyclovir 5% w/w\nMade in Germany",
+   "inns": [
+    "aciclovir"
+   ],
+   "countries": [
+    "DE"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-022",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Antifungal cream\nClotrimazole 1%\nMade in the UK",
+   "inns": [
+    "clotrimazole"
+   ],
+   "countries": [
+    "GB"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-023",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Athlete's foot cream\nTerbinafine hydrochloride 1% w/w\nMade in Switzerland",
+   "inns": [
+    "terbinafine"
+   ],
+   "countries": [
+    "CH"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-024",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Anti-itch cream\nHydrocortisone 1%\nMade in USA",
+   "inns": [
+    "hydrocortisone"
+   ],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-025",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Inhaler\nAlbuterol sulfate HFA 90 mcg per actuation\nMade in USA",
+   "inns": [
+    "salbutamol"
+   ],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-026",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Mucus relief\nCarbocysteine 375 mg capsules\nMade in the United Kingdom",
+   "inns": [
+    "carbocisteine"
+   ],
+   "countries": [
+    "GB"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-027",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Expectorant\nAmbroxol hydrochloride 30 mg\nMade in Germany",
+   "inns": [
+    "ambroxol"
+   ],
+   "countries": [
+    "DE"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-028",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Numbing gel\nLidocaine 4%\nMade in USA",
+   "inns": [
+    "lidocaine"
+   ],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-029",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Sore throat lozenges\nBenzocaine 15 mg\nMade in USA",
+   "inns": [
+    "benzocaine"
+   ],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-030",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Hair regrowth foam\nMinoxidil 5%\nMade in USA",
+   "inns": [
+    "minoxidil"
+   ],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-031",
+   "cond": {
+    "lang": "en",
+    "kind": "out-of-table"
+   },
+   "text": "Allergy\nBilastine 20 mg tablets\nMade in Spain",
+   "inns": [
+    "bilastine"
+   ],
+   "countries": [
+    "ES"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-032",
+   "cond": {
+    "lang": "en",
+    "kind": "out-of-table"
+   },
+   "text": "Vertigo relief\nCinnarizine 25 mg\nMade in the United Kingdom",
+   "inns": [
+    "cinnarizine"
+   ],
+   "countries": [
+    "GB"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-033",
+   "cond": {
+    "lang": "en",
+    "kind": "out-of-table"
+   },
+   "text": "Stool softener\nDocusate sodium 100 mg softgel\nMade in USA",
+   "inns": [
+    "docusate"
+   ],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-034",
+   "cond": {
+    "lang": "en",
+    "kind": "brand-only"
+   },
+   "text": "LQ NIGHT RELIEF\nExtra strength\nMade in USA",
+   "inns": [],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-035",
+   "cond": {
+    "lang": "en",
+    "kind": "brand-only"
+   },
+   "text": "TESTAMOL\n24 caplets\nProduct of Canada",
+   "inns": [],
+   "countries": [
+    "CA"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-036",
+   "cond": {
+    "lang": "en",
+    "kind": "negative"
+   },
+   "text": "Organic oat drink\nIngredients: water, oats (10%), sunflower oil, sea salt\nNet 1 L\nProduct of Sweden",
+   "inns": [],
+   "countries": [
+    "SE"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-037",
+   "cond": {
+    "lang": "en",
+    "kind": "negative"
+   },
+   "text": "Moisturising lotion\nIngredients: Aqua, Glycerin, Cetearyl Alcohol, Niacinamide, Dimethicone, Phenoxyethanol, Parfum\nMade in France",
+   "inns": [],
+   "countries": [
+    "FR"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-038",
+   "cond": {
+    "lang": "en",
+    "kind": "negative"
+   },
+   "text": "Vitamin C 1000 mg with rose hips\nDietary supplement\nOther ingredients: cellulose, magnesium stearate\nMade in USA",
+   "inns": [],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-039",
+   "cond": {
+    "lang": "en",
+    "kind": "negative"
+   },
+   "text": "Chocolate chip cookies\nIngredients: wheat flour, sugar, butter, chocolate chips (sugar, cocoa butter), salt\nMade in Belgium",
+   "inns": [],
+   "countries": [
+    "BE"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-040",
+   "cond": {
+    "lang": "en",
+    "kind": "negative"
+   },
+   "text": "Hand sanitizer gel\nEthyl alcohol 70%\nInactive ingredients: water, glycerin, carbomer\nMade in China",
+   "inns": [],
+   "countries": [
+    "CN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-041",
+   "cond": {
+    "lang": "en",
+    "kind": "negative"
+   },
+   "text": "Fish oil 1000 mg\nOmega-3 EPA DHA\nGelatin capsule\nProduct of Norway",
+   "inns": [],
+   "countries": [
+    "NO"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-042",
+   "cond": {
+    "lang": "en",
+    "kind": "negative"
+   },
+   "text": "Sunscreen SPF 50\nActive: Zinc oxide 20%\nMade in Australia",
+   "inns": [],
+   "countries": [
+    "AU"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-043",
+   "cond": {
+    "lang": "vi",
+    "kind": "single"
+   },
+   "text": "Thuốc giảm đau LQ\nThành phần: Paracetamol 500 mg\nSản xuất tại Việt Nam",
+   "inns": [
+    "paracetamol"
+   ],
+   "countries": [
+    "VN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-044",
+   "cond": {
+    "lang": "vi",
+    "kind": "combo"
+   },
+   "text": "Thuốc cảm Testa\nParacetamol 500 mg, Clorpheniramin maleat 2 mg\nSản xuất tại Việt Nam",
+   "inns": [
+    "paracetamol",
+    "chlorphenamine"
+   ],
+   "countries": [
+    "VN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-045",
+   "cond": {
+    "lang": "id",
+    "kind": "single"
+   },
+   "text": "Obat demam LQ\nTiap tablet mengandung Parasetamol 500 mg\nDiproduksi oleh PT LQ Farma, Indonesia",
+   "inns": [
+    "paracetamol"
+   ],
+   "countries": [
+    "ID"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-046",
+   "cond": {
+    "lang": "id",
+    "kind": "single"
+   },
+   "text": "Testa Ibuprofen 400 mg\nKomposisi: Ibuprofen 400 mg\nIndonesia",
+   "inns": [
+    "ibuprofen"
+   ],
+   "countries": [
+    "ID"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-047",
+   "cond": {
+    "lang": "ms",
+    "kind": "single"
+   },
+   "text": "Ubat batuk LQ\nMengandungi Dekstrometorfan hidrobromida 15 mg\nMAL19998765X\nDibuat di Malaysia",
+   "inns": [
+    "dextromethorphan"
+   ],
+   "countries": [
+    "MY"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-048",
+   "cond": {
+    "lang": "de",
+    "kind": "single"
+   },
+   "text": "Schmerztabletten\nWirkstoff: Ibuprofen 400 mg\nHergestellt in Deutschland",
+   "inns": [
+    "ibuprofen"
+   ],
+   "countries": [
+    "DE"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-049",
+   "cond": {
+    "lang": "de",
+    "kind": "single"
+   },
+   "text": "Erkältungssaft\nWirkstoff: Acetylcystein 600 mg\nHergestellt in Deutschland",
+   "inns": [
+    "acetylcysteine"
+   ],
+   "countries": [
+    "DE"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-050",
+   "cond": {
+    "lang": "fr",
+    "kind": "single"
+   },
+   "text": "Comprimés\nSubstance active : paracétamol 1000 mg\nFabriqué en France",
+   "inns": [
+    "paracetamol"
+   ],
+   "countries": [
+    "FR"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-051",
+   "cond": {
+    "lang": "es",
+    "kind": "single"
+   },
+   "text": "Comprimidos\nPrincipio activo: Ibuprofeno 600 mg\nFabricado en España",
+   "inns": [
+    "ibuprofen"
+   ],
+   "countries": [
+    "ES"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-052",
+   "cond": {
+    "lang": "fr",
+    "kind": "negative"
+   },
+   "text": "Crème hydratante\nIngrédients : Aqua, Glycerin, Butyrospermum Parkii Butter, Parfum\nFabriqué en France",
+   "inns": [],
+   "countries": [
+    "FR"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-053",
+   "cond": {
+    "lang": "zh-Hans",
+    "kind": "single"
+   },
+   "text": "LQ牌 对乙酰氨基酚片\n【成份】本品每片含对乙酰氨基酚0.5克\n【用法用量】口服，成人一次1片\n国药准字H12345678\n中国制造",
+   "inns": [
+    "paracetamol"
+   ],
+   "countries": [
+    "CN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-054",
+   "cond": {
+    "lang": "zh-Hans",
+    "kind": "single"
+   },
+   "text": "布洛芬缓释胶囊\n【成份】布洛芬 0.3g\n【不良反应】偶见恶心\n国药准字H23456789",
+   "inns": [
+    "ibuprofen"
+   ],
+   "countries": [
+    "CN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-055",
+   "cond": {
+    "lang": "zh-Hans",
+    "kind": "salt"
+   },
+   "text": "马来酸氯苯那敏片\n【成份】马来酸氯苯那敏 4mg\n国药准字H34567890",
+   "inns": [
+    "chlorphenamine"
+   ],
+   "countries": [
+    "CN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-056",
+   "cond": {
+    "lang": "zh-Hans",
+    "kind": "combo"
+   },
+   "text": "复方感冒片\n【成份】本品为复方制剂，每片含对乙酰氨基酚325毫克，盐酸伪麻黄碱30毫克，氢溴酸右美沙芬15毫克，马来酸氯苯那敏2毫克\n国药准字H45678901",
+   "inns": [
+    "paracetamol",
+    "pseudoephedrine",
+    "dextromethorphan",
+    "chlorphenamine"
+   ],
+   "countries": [
+    "CN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-057",
+   "cond": {
+    "lang": "zh-Hans",
+    "kind": "single"
+   },
+   "text": "氯雷他定片\n【成份】氯雷他定 10mg\n生产企业：LQ制药有限公司（中国）",
+   "inns": [
+    "loratadine"
+   ],
+   "countries": [
+    "CN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-058",
+   "cond": {
+    "lang": "zh-Hans",
+    "kind": "lookalike"
+   },
+   "text": "地氯雷他定片\n【成份】地氯雷他定 5mg\n国药准字H56789012",
+   "inns": [
+    "desloratadine"
+   ],
+   "countries": [
+    "CN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-059",
+   "cond": {
+    "lang": "zh-Hans",
+    "kind": "single"
+   },
+   "text": "盐酸西替利嗪片\n【成份】盐酸西替利嗪 10mg\n国药准字H67890123",
+   "inns": [
+    "cetirizine"
+   ],
+   "countries": [
+    "CN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-060",
+   "cond": {
+    "lang": "zh-Hans",
+    "kind": "lookalike"
+   },
+   "text": "盐酸左西替利嗪片\n【成份】盐酸左西替利嗪 5mg\n国药准字H78901234",
+   "inns": [
+    "levocetirizine"
+   ],
+   "countries": [
+    "CN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-061",
+   "cond": {
+    "lang": "zh-Hans",
+    "kind": "single"
+   },
+   "text": "奥美拉唑肠溶胶囊\n【成份】奥美拉唑 20mg\n国药准字H89012345",
+   "inns": [
+    "omeprazole"
+   ],
+   "countries": [
+    "CN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-062",
+   "cond": {
+    "lang": "zh-Hans",
+    "kind": "single"
+   },
+   "text": "阿莫西林胶囊\n【成份】阿莫西林 0.25g\n国药准字H90123456",
+   "inns": [
+    "amoxicillin"
+   ],
+   "countries": [
+    "CN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-063",
+   "cond": {
+    "lang": "zh-Hans",
+    "kind": "single"
+   },
+   "text": "盐酸氨溴索口服溶液\n【成份】盐酸氨溴索\n国药准字H01234567",
+   "inns": [
+    "ambroxol"
+   ],
+   "countries": [
+    "CN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-064",
+   "cond": {
+    "lang": "zh-Hans",
+    "kind": "single"
+   },
+   "text": "盐酸洛哌丁胺胶囊\n【成份】盐酸洛哌丁胺 2mg\n国药准字H11223344",
+   "inns": [
+    "loperamide"
+   ],
+   "countries": [
+    "CN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-065",
+   "cond": {
+    "lang": "zh-Hans",
+    "kind": "single"
+   },
+   "text": "阿司匹林肠溶片\n【成份】阿司匹林 100mg\n国药准字H22334455",
+   "inns": [
+    "acetylsalicylic acid"
+   ],
+   "countries": [
+    "CN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-066",
+   "cond": {
+    "lang": "zh-Hans",
+    "kind": "single"
+   },
+   "text": "克霉唑乳膏\n【成份】克霉唑 1%\n国药准字H33445566",
+   "inns": [
+    "clotrimazole"
+   ],
+   "countries": [
+    "CN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-067",
+   "cond": {
+    "lang": "zh-Hans",
+    "kind": "single"
+   },
+   "text": "双氯芬酸钠缓释片\n【成份】双氯芬酸钠 75mg\n国药准字H44556677",
+   "inns": [
+    "diclofenac"
+   ],
+   "countries": [
+    "CN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-068",
+   "cond": {
+    "lang": "zh-Hans",
+    "kind": "out-of-table"
+   },
+   "text": "盐酸小檗碱片\n【成份】盐酸小檗碱 0.1g\n国药准字H55667788",
+   "inns": [
+    "berberine"
+   ],
+   "countries": [
+    "CN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-069",
+   "cond": {
+    "lang": "zh-Hans",
+    "kind": "out-of-table"
+   },
+   "text": "蒙脱石散\n【成份】蒙脱石 3g\n国药准字H66778899",
+   "inns": [
+    "diosmectite"
+   ],
+   "countries": [
+    "CN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-070",
+   "cond": {
+    "lang": "zh-Hans",
+    "kind": "brand-only"
+   },
+   "text": "LQ感冒灵\n每盒12袋\n中国制造",
+   "inns": [],
+   "countries": [
+    "CN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-071",
+   "cond": {
+    "lang": "zh-Hans",
+    "kind": "negative"
+   },
+   "text": "蜂蜜柚子茶\n配料：蜂蜜、柚子、白砂糖、水\n原产国：韩国",
+   "inns": [],
+   "countries": [
+    "KR"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-072",
+   "cond": {
+    "lang": "zh-Hans",
+    "kind": "negative"
+   },
+   "text": "保湿面霜\n成分：水、甘油、丁二醇、透明质酸钠\n中国制造",
+   "inns": [],
+   "countries": [
+    "CN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-073",
+   "cond": {
+    "lang": "zh-Hans",
+    "kind": "negative"
+   },
+   "text": "维生素C咀嚼片\n国食健字G20201234\n配料：维生素C、山梨糖醇",
+   "inns": [],
+   "countries": [
+    "CN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-074",
+   "cond": {
+    "lang": "zh-Hans",
+    "kind": "negative"
+   },
+   "text": "牛肉干\n配料：牛肉、白砂糖、食用盐、香辛料\n产地：内蒙古",
+   "inns": [],
+   "countries": [
+    "CN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-075",
+   "cond": {
+    "lang": "zh-Hant",
+    "kind": "single"
+   },
+   "text": "LQ止痛錠\n成分：乙醯胺酚 500毫克\n衛署藥製字第012345號\n台灣製造",
+   "inns": [
+    "paracetamol"
+   ],
+   "countries": [
+    "TW"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-076",
+   "cond": {
+    "lang": "zh-Hant",
+    "kind": "single"
+   },
+   "text": "布洛芬膜衣錠\n成分：布洛芬 200mg\n台灣製造",
+   "inns": [
+    "ibuprofen"
+   ],
+   "countries": [
+    "TW"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-077",
+   "cond": {
+    "lang": "zh-Hant",
+    "kind": "single"
+   },
+   "text": "阿斯匹靈錠 100mg\n成分：阿斯匹靈\n台灣製造",
+   "inns": [
+    "acetylsalicylic acid"
+   ],
+   "countries": [
+    "TW"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-078",
+   "cond": {
+    "lang": "zh-Hant",
+    "kind": "salt"
+   },
+   "text": "鹽酸西替利嗪錠\n成分：鹽酸西替利嗪 10mg\n香港製造",
+   "inns": [
+    "cetirizine"
+   ],
+   "countries": [
+    "HK"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-079",
+   "cond": {
+    "lang": "zh-Hant",
+    "kind": "negative"
+   },
+   "text": "烏龍茶\n成分：烏龍茶葉、水\n台灣製造",
+   "inns": [],
+   "countries": [
+    "TW"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-080",
+   "cond": {
+    "lang": "ja",
+    "kind": "single"
+   },
+   "text": "LQ解熱鎮痛薬\n成分 1錠中 アセトアミノフェン 300mg\n用法・用量 成人1回2錠 1日3回まで\n日本製",
+   "inns": [
+    "paracetamol"
+   ],
+   "countries": [
+    "JP"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-081",
+   "cond": {
+    "lang": "ja",
+    "kind": "salt"
+   },
+   "text": "ロキソプロフェンナトリウム水和物 68.1mg（無水物として60mg）\n第1類医薬品\n使用上の注意\n製造販売元 LQ製薬株式会社 東京都",
+   "inns": [
+    "loxoprofen"
+   ],
+   "countries": [
+    "JP"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-082",
+   "cond": {
+    "lang": "ja",
+    "kind": "single"
+   },
+   "text": "イブプロフェン 150mg\n指定第2類医薬品\n日本製",
+   "inns": [
+    "ibuprofen"
+   ],
+   "countries": [
+    "JP"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-083",
+   "cond": {
+    "lang": "ja",
+    "kind": "combo"
+   },
+   "text": "総合かぜ薬\n成分 3錠中 アセトアミノフェン 300mg クロルフェニラミンマレイン酸塩 2.5mg デキストロメトルファン臭化水素酸塩水和物 16mg 無水カフェイン 25mg\n日本製",
+   "inns": [
+    "paracetamol",
+    "chlorphenamine",
+    "dextromethorphan",
+    "caffeine"
+   ],
+   "countries": [
+    "JP"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-084",
+   "cond": {
+    "lang": "ja",
+    "kind": "single"
+   },
+   "text": "鼻炎薬\nフェキソフェナジン塩酸塩 60mg\n第2類医薬品\n日本製",
+   "inns": [
+    "fexofenadine"
+   ],
+   "countries": [
+    "JP"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-085",
+   "cond": {
+    "lang": "ja",
+    "kind": "single"
+   },
+   "text": "胃腸薬\nファモチジン 10mg\n第1類医薬品\n日本製",
+   "inns": [
+    "famotidine"
+   ],
+   "countries": [
+    "JP"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-086",
+   "cond": {
+    "lang": "ja",
+    "kind": "single"
+   },
+   "text": "せき止め\nデキストロメトルファン臭化水素酸塩水和物 48mg\n日本製",
+   "inns": [
+    "dextromethorphan"
+   ],
+   "countries": [
+    "JP"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-087",
+   "cond": {
+    "lang": "ja",
+    "kind": "single"
+   },
+   "text": "トラネキサム酸 750mg\nしみ（肝斑）改善薬\n第1類医薬品\n日本製",
+   "inns": [
+    "tranexamic acid"
+   ],
+   "countries": [
+    "JP"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-088",
+   "cond": {
+    "lang": "ja",
+    "kind": "lookalike"
+   },
+   "text": "エソメプラゾール 20mg\n医療用医薬品\n日本製",
+   "inns": [
+    "esomeprazole"
+   ],
+   "countries": [
+    "JP"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-089",
+   "cond": {
+    "lang": "ja",
+    "kind": "combo"
+   },
+   "text": "目薬\nナファゾリン塩酸塩 0.003%\nクロルフェニラミンマレイン酸塩 0.03%\n日本製",
+   "inns": [
+    "naphazoline",
+    "chlorphenamine"
+   ],
+   "countries": [
+    "JP"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-090",
+   "cond": {
+    "lang": "ja",
+    "kind": "single"
+   },
+   "text": "水虫薬\nテルビナフィン塩酸塩 1%\n日本製",
+   "inns": [
+    "terbinafine"
+   ],
+   "countries": [
+    "JP"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-091",
+   "cond": {
+    "lang": "ja",
+    "kind": "out-of-table"
+   },
+   "text": "鎮静薬\nブロモバレリル尿素 200mg\n日本製",
+   "inns": [
+    "bromisoval"
+   ],
+   "countries": [
+    "JP"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-092",
+   "cond": {
+    "lang": "ja",
+    "kind": "negative"
+   },
+   "text": "整腸薬\nビフィズス菌 30mg\n日本製",
+   "inns": [],
+   "countries": [
+    "JP"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-093",
+   "cond": {
+    "lang": "ja",
+    "kind": "brand-only"
+   },
+   "text": "LQかぜ錠\n30錠\n日本製",
+   "inns": [],
+   "countries": [
+    "JP"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-094",
+   "cond": {
+    "lang": "ja",
+    "kind": "negative"
+   },
+   "text": "緑茶\n原材料名：緑茶（国産）\n内容量 500ml\n日本製",
+   "inns": [],
+   "countries": [
+    "JP"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-095",
+   "cond": {
+    "lang": "ja",
+    "kind": "negative"
+   },
+   "text": "化粧水\n成分：水、グリセリン、BG、ヒアルロン酸Na\n日本製",
+   "inns": [],
+   "countries": [
+    "JP"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-096",
+   "cond": {
+    "lang": "ko",
+    "kind": "single"
+   },
+   "text": "LQ 해열진통제\n유효성분: 아세트아미노펜 500밀리그램\n용법·용량: 성인 1회 1~2정\n대한민국 제조",
+   "inns": [
+    "paracetamol"
+   ],
+   "countries": [
+    "KR"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-097",
+   "cond": {
+    "lang": "ko",
+    "kind": "single"
+   },
+   "text": "이부프로펜 200mg\n일반의약품\n제조국: 대한민국",
+   "inns": [
+    "ibuprofen"
+   ],
+   "countries": [
+    "KR"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-098",
+   "cond": {
+    "lang": "ko",
+    "kind": "salt"
+   },
+   "text": "세티리진염산염 10mg\n일반의약품\n대한민국",
+   "inns": [
+    "cetirizine"
+   ],
+   "countries": [
+    "KR"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-099",
+   "cond": {
+    "lang": "ko",
+    "kind": "combo"
+   },
+   "text": "종합감기약\n아세트아미노펜 300mg, 클로르페니라민말레산염 2mg, 슈도에페드린염산염 30mg\n대한민국 제조",
+   "inns": [
+    "paracetamol",
+    "chlorphenamine",
+    "pseudoephedrine"
+   ],
+   "countries": [
+    "KR"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-100",
+   "cond": {
+    "lang": "ko",
+    "kind": "single"
+   },
+   "text": "로라타딘 10mg\n일반의약품\n대한민국",
+   "inns": [
+    "loratadine"
+   ],
+   "countries": [
+    "KR"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-101",
+   "cond": {
+    "lang": "ko",
+    "kind": "out-of-table"
+   },
+   "text": "위장약\n알마게이트 1g\n대한민국",
+   "inns": [
+    "almagate"
+   ],
+   "countries": [
+    "KR"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-102",
+   "cond": {
+    "lang": "ko",
+    "kind": "negative"
+   },
+   "text": "유자차\n원재료: 유자, 설탕, 꿀\n원산지: 대한민국",
+   "inns": [],
+   "countries": [
+    "KR"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-103",
+   "cond": {
+    "lang": "ko",
+    "kind": "negative"
+   },
+   "text": "수분 크림\n전성분: 정제수, 글리세린, 나이아신아마이드\n대한민국",
+   "inns": [],
+   "countries": [
+    "KR"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-104",
+   "cond": {
+    "lang": "th",
+    "kind": "single"
+   },
+   "text": "ยาเม็ดพาราเซตามอล 500 มก.\nเลขทะเบียน 1A 123/45\nผลิตโดย บริษัท แอลคิว ฟาร์มา จำกัด",
+   "inns": [
+    "paracetamol"
+   ],
+   "countries": [],
+   "foreign": false
+  },
+  {
+   "id": "p9-105",
+   "cond": {
+    "lang": "th",
+    "kind": "single"
+   },
+   "text": "ไอบูโพรเฟน 400 มิลลิกรัม\nทะเบียนยา 1A 234/56",
+   "inns": [
+    "ibuprofen"
+   ],
+   "countries": [],
+   "foreign": false
+  },
+  {
+   "id": "p9-106",
+   "cond": {
+    "lang": "th",
+    "kind": "salt"
+   },
+   "text": "ลอราทาดีน 10 มก. ยาเม็ด\nทะเบียนยา 1A 345/60",
+   "inns": [
+    "loratadine"
+   ],
+   "countries": [],
+   "foreign": false
+  },
+  {
+   "id": "p9-107",
+   "cond": {
+    "lang": "th",
+    "kind": "negative"
+   },
+   "text": "น้ำผึ้งแท้ 100%\nเลขสารบบอาหาร 10-1-12345-1-0001",
+   "inns": [],
+   "countries": [],
+   "foreign": false
+  },
+  {
+   "id": "p9-108",
+   "cond": {
+    "lang": "th",
+    "kind": "negative"
+   },
+   "text": "โลชั่นบำรุงผิว\nส่วนประกอบ: น้ำ กลีเซอรีน\nเลขที่ใบรับแจ้ง 10-1-6100012345",
+   "inns": [],
+   "countries": [],
+   "foreign": false
+  },
+  {
+   "id": "p9-109",
+   "cond": {
+    "lang": "th",
+    "kind": "single"
+   },
+   "text": "Imported product\nIbuprofen 200 mg\nนำเข้าโดย บริษัท แอลคิว จำกัด\nMade in Japan",
+   "inns": [
+    "ibuprofen"
+   ],
+   "countries": [
+    "JP"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-110",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "LQ PAIN\nACETAMINOPHEN 500MG\nMADE IN U.S.A.",
+   "inns": [
+    "paracetamol"
+   ],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-111",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Testa Allergy Tabs - Fexofenadine HCl 180 mg - Made in India",
+   "inns": [
+    "fexofenadine"
+   ],
+   "countries": [
+    "IN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-112",
+   "cond": {
+    "lang": "en",
+    "kind": "salt"
+   },
+   "text": "Each capsule: Amoxicillin (as trihydrate) 500 mg\nRx only\nMade in Pakistan",
+   "inns": [
+    "amoxicillin"
+   ],
+   "countries": [
+    "PK"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-113",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Azithromycin 250 mg\nPrescription only medicine\nMade in India",
+   "inns": [
+    "azithromycin"
+   ],
+   "countries": [
+    "IN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-114",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Metronidazole 400 mg tablets\nMade in the Philippines",
+   "inns": [
+    "metronidazole"
+   ],
+   "countries": [
+    "PH"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-115",
+   "cond": {
+    "lang": "en",
+    "kind": "salt"
+   },
+   "text": "Montelukast sodium 10 mg\nMade in India",
+   "inns": [
+    "montelukast"
+   ],
+   "countries": [
+    "IN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-116",
+   "cond": {
+    "lang": "en",
+    "kind": "salt"
+   },
+   "text": "Sildenafil citrate 100 mg\nMade in India",
+   "inns": [
+    "sildenafil"
+   ],
+   "countries": [
+    "IN"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-117",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Head lice lotion\nPermethrin 1%\nMade in USA\nAlso contains: isopropyl alcohol",
+   "inns": [
+    "permethrin"
+   ],
+   "countries": [
+    "US"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-118",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Worm tablets\nMebendazole 100 mg\nMade in Belgium",
+   "inns": [
+    "mebendazole"
+   ],
+   "countries": [
+    "BE"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-119",
+   "cond": {
+    "lang": "en",
+    "kind": "single"
+   },
+   "text": "Dexamethasone 0.5 mg\nMade in Egypt",
+   "inns": [
+    "dexamethasone"
+   ],
+   "countries": [
+    "EG"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-120",
+   "cond": {
+    "lang": "en",
+    "kind": "salt"
+   },
+   "text": "Betamethasone valerate cream 0.1%\nMade in Ireland",
+   "inns": [
+    "betamethasone"
+   ],
+   "countries": [
+    "IE"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-121",
+   "cond": {
+    "lang": "en",
+    "kind": "negative"
+   },
+   "text": "Energy drink\nCaffeine content: 32 mg/100 ml\nIngredients: water, sugar, taurine, caffeine, niacinamide\nMade in Austria",
+   "inns": [],
+   "countries": [
+    "AT"
+   ],
+   "foreign": true
+  },
+  {
+   "id": "p9-122",
+   "cond": {
+    "lang": "en",
+    "kind": "negative"
+   },
+   "text": "Throat candy\nIngredients: sugar, glucose syrup, menthol, eucalyptus oil\nMade in Switzerland",
+   "inns": [],
+   "countries": [
+    "CH"
+   ],
+   "foreign": true
+  }
+ ]
+}
