@@ -280,6 +280,14 @@ export function isLocalRequestUrl(request) {
 export const evalLocalMode = (env, request) => String(env.AI_EVAL_LOCAL || "") === "1" && isLocalRequestUrl(request) && isLocalOrigin(request);
 
 /**
+ * P8b prompt tuning, local evaluation mode ONLY: the pc_claims prompt variant ("A" / "B", pc-features.js
+ * EVAL_CLAIMS_VARIANTS) from the Worker's own AI_EVAL_PC_CLAIMS_VARIANT (`wrangler dev --var`). The gateway reads it only
+ * after evalLocalMode is true; anything else (unset, another value) = null = the product prompt.
+ * @param {Env} env @returns {string|null}
+ */
+export const evalClaimsVariant = env => { const v = String(env.AI_EVAL_PC_CLAIMS_VARIANT || ""); return v === "A" || v === "B" ? v : null; };
+
+/**
  * POST /v1/ai/:feature (Origin is checked by the router). Returns [body, status]; every refusal carries fallback:true and
  * a reason so the page keeps its on-device result.
  * @param {Env} env @param {Request} request @param {string} featureId @param {any} [deps]
@@ -324,9 +332,10 @@ export async function aiRoute(env, request, featureId, deps = {}) {
   // is served under (localhost = local wrangler dev) and the Origin the router already checked against ALLOWED_ORIGINS. Nothing in the body, the query, a header or the stored settings
   // can switch it on (tests/unit/backend-pc-features.test.js P7-9).
   const evalLocal = evalLocalMode(env, request);
+  const evalVariant = evalLocal ? evalClaimsVariant(env) : null; // P8b: local evaluation mode only, never from the request
   let nreq;
   try {
-    nreq = meta.build(input, { mode, evalLocal });
+    nreq = meta.build(input, evalVariant ? { mode, evalLocal, evalVariant } : { mode, evalLocal });
     if (!nreq || typeof nreq.system !== "string" || typeof nreq.text !== "string" || !nreq.output || !nreq.output.schema) throw new Error("bad build");
   } catch { await lim.release(x => !!x.daily); return fb("bad_input", 400); }
   if (mode !== "image") delete nreq.images;

@@ -119,6 +119,30 @@ export const PROMPTS = Object.freeze({
     "translation = a faithful translation that keeps every number, unit and name as printed and adds nothing. Skip lines that are only numbers or codes."
 });
 
+/* Local evaluation only (P8b prompt tuning, 2026-11-11): two pc_claims prompt variants for tools/pc-ai-eval.mjs. A variant
+ * is used ONLY when the gateway passes evalLocal === true (AI_EVAL_LOCAL=1, local wrangler dev, localhost Origin) AND
+ * evalVariant "A" or "B" (the Worker's own AI_EVAL_PC_CLAIMS_VARIANT; never from the request or a stored setting). In
+ * every other case buildClaims sends PROMPTS.pc_claims with the full rule list: the product default does not change.
+ *   A: the AI is asked ONLY about the rules where the on-device checker is weak (P3 / P8 misses: claim-to-treat, body
+ *      function, prevention, research claims; food, supplement and herbal), must quote exact evidence and should leave a
+ *      finding out when unsure. A category with none of these rules (cosmetic) is not sent at all (device result only).
+ *   B: A plus the scope notes of docs/product-check/RULES.md / the labelling guide: a plain nutrient-content fact, a
+ *      registered-style indication for a minor condition, a warning or a disclaimer is not a finding; a structure /
+ *      function claim on a food or supplement still is, even next to a disclaimer. */
+export const EVAL_CLAIMS_WEAK_RULES = Object.freeze(["D08", "F07", "F08", "F09", "F10", "F19", "H02", "H05"]);
+export const EVAL_CLAIMS_VARIANTS = Object.freeze(["A", "B"]);
+const EVAL_A = COMMON + " Task: an on-device rule checker has already looked for most advertising risk wording. Look ONLY for the kinds of " +
+  "wording listed below, which that checker often misses. Report a finding only when the text itself clearly makes that kind of claim about " +
+  "the product; when you are unsure, leave it out. An empty list is a normal answer. For each finding return the rule id and evidence = the " +
+  "shortest exact substring of the input text (copy it character for character, same spacing) that shows the claim. " +
+  "Official warning lines and 'not for diagnosis, treatment or prevention of disease' disclaimers are not claims.";
+const EVAL_B = EVAL_A + " Not a finding: a plain nutrient-content fact ('source of calcium', 'high protein', 'no sugar added'); an ingredient " +
+  "list or '100%' in an ingredient name; a medicine or herbal product's registered-style indication for a minor condition ('relieves " +
+  "headache', 'บรรเทาอาการท้องอืด'): D08 and H05 cover only serious diseases, and only when the text claims to treat, prevent or relieve " +
+  "them; a warning, caution, storage or dosing line; a sentence that denies an effect. Still a finding: a food or supplement claim that it " +
+  "supports, nourishes, boosts, detoxes or balances an organ or body function (F10), even when a disclaimer is also printed.";
+export const EVAL_CLAIMS_PROMPTS = Object.freeze({ A: EVAL_A + "\nRules:\n", B: EVAL_B + "\nRules:\n" });
+
 const LANG_NAME = { th: "Thai", en: "English", zh: "Simplified Chinese" };
 
 /* ---------------------------------------- input checks ---------------------------------------- */
@@ -217,13 +241,19 @@ export function buildFields(input, o) {
   };
 }
 
-/** @param {any} input @param {{mode?: string, evalLocal?: boolean}} [o] */
+/** @param {any} input @param {{mode?: string, evalLocal?: boolean, evalVariant?: string}} [o] */
 export function buildClaims(input, o) {
   const text = cleanText(input, { evalLocal: !!o && o.evalLocal === true });
   const cat = CATEGORIES.includes(input.category) ? input.category : null;
-  const rules = cat ? PC_CLAIM_RULES.filter(r => r[0][0] === FAMILY[cat] && !(r[0] === "F22" && cat !== "food")) : PC_CLAIM_RULES;
+  let rules = cat ? PC_CLAIM_RULES.filter(r => r[0][0] === FAMILY[cat] && !(r[0] === "F22" && cat !== "food")) : PC_CLAIM_RULES;
+  // local evaluation only (see EVAL_CLAIMS_VARIANTS): both conditions come from the gateway, never from the input
+  const variant = !!o && o.evalLocal === true && typeof o.evalVariant === "string" && EVAL_CLAIMS_VARIANTS.includes(o.evalVariant) ? o.evalVariant : null;
+  if (variant) {
+    rules = rules.filter(r => EVAL_CLAIMS_WEAK_RULES.includes(r[0]));
+    if (!rules.length) throw new Error("eval variant " + variant + ": no AI rule for this category");
+  }
   return {
-    system: PROMPTS.pc_claims + rules.map(r => `${r[0]}: ${r[1]}`).join("\n"),
+    system: (variant ? EVAL_CLAIMS_PROMPTS[variant] : PROMPTS.pc_claims) + rules.map(r => `${r[0]}: ${r[1]}`).join("\n"),
     text: `Product category: ${cat || "unknown (consider every rule)"}.\nLabel text:\n<<<\n${text}\n>>>`,
     output: { name: "pc_claims", schema: CLAIMS_SCHEMA, verify: verifyClaims(text) }
   };

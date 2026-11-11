@@ -412,7 +412,9 @@ test("P7-9e not settable from the admin API / panel or any stored setting; produ
   assert.equal((gwSrc.match(/env\.AI_EVAL_LOCAL/g) || []).length, 1, "one read");
   assert.match(gwSrc, /export const evalLocalMode = \(env, request\) => String\(env\.AI_EVAL_LOCAL \|\| ""\) === "1" && isLocalRequestUrl\(request\) && isLocalOrigin\(request\);/);
   assert.match(gwSrc, /const evalLocal = evalLocalMode\(env, request\);/);
-  assert.match(gwSrc, /meta\.build\(input, \{ mode, evalLocal \}\)/);
+  // P8b: the build call also carries the eval-only prompt variant, which exists only when evalLocal is true (P8b-3 below)
+  assert.match(gwSrc, /const evalVariant = evalLocal \? evalClaimsVariant\(env\) : null;/);
+  assert.match(gwSrc, /meta\.build\(input, evalVariant \? \{ mode, evalLocal, evalVariant \} : \{ mode, evalLocal \}\)/);
   for (const f of src) {
     const s = readFileSync(f, "utf8");
     assert.ok(!/AI_EVAL_LOCAL\s*=[^=]/.test(s.replace(/AI_EVAL_LOCAL=1/g, "")), f + ": never assigned");
@@ -436,4 +438,131 @@ test("P7-9e not settable from the admin API / panel or any stored setting; produ
   const wf = join(ROOT, ".github", "workflows");
   if (existsSync(wf)) for (const f of readdirSync(wf)) assert.ok(!/AI_EVAL_LOCAL/.test(readFileSync(join(wf, f), "utf8")), f);
   // the only file that may carry it is the git-ignored backend/.dev.vars (tests/unit/backend-site.test.js checks the ignore rule)
+});
+
+// ---- P8b: eval-only pc_claims prompt variants (prompt tuning, 2026-11-11) ----------------------------------------------
+// The variants exist for tools/pc-ai-eval.mjs on a LOCAL wrangler dev only. The product prompt and every product build
+// must stay exactly as they were before P8b (main 13178dd): pinned hashes below.
+const sha = s => require("node:crypto").createHash("sha256").update(s).digest("hex");
+const MAIN_PROMPT_SHA = "ba52d64b798c0a10d06972f7718fea6881062dc28005ae880de6e9dad4b44d71";
+const MAIN_SYSTEM_SHA = { drug: "5f41b57d3d4d2baa456b0a806eca63a76d30d2403a86e23f65c9478dd8ae0c00",
+  supplement: "a2951122db3cae2702fab4ded2e8cb20b25c3882d786c9d6e8d3e2f6fa8b74ae", food: "d52aa897cca98467a740092d0b765ddeb398e79b92718a8b5b8b8ae9de48d8c1",
+  herbal: "ccf0644f9b546f48bfc979964d2a2c528d7f70e07e74334b23013684e59ab485", cosmetic: "6849296a863e14ac1c474cd2a945afb9a6f008fa6a9a871b8056427fcfb7a936",
+  unknown: "9d005fe9d4ae60a23fc9879b5edce3fde250860a78b072f5d5aa096b6b8b370f" };
+
+test("P8b-1 product default unchanged: same pc_claims prompt and the same system text per category as before P8b, whatever non-eval options are passed", async () => {
+  const P = await import(B + "ai/pc-features.js");
+  assert.equal(sha(P.PROMPTS.pc_claims), MAIN_PROMPT_SHA, "PROMPTS.pc_claims is byte-identical to main 13178dd");
+  const notEval = [undefined, { mode: "text" }, { mode: "text", evalLocal: true }, { mode: "text", evalLocal: false, evalVariant: "A" },
+    { mode: "text", evalVariant: "B" }, { mode: "text", evalLocal: "1", evalVariant: "A" }, { mode: "text", evalLocal: 1, evalVariant: "B" },
+    { mode: "text", evalLocal: true, evalVariant: "C" }, { mode: "text", evalLocal: true, evalVariant: "a" }, { mode: "text", evalLocal: true, evalVariant: ["A"] }];
+  for (const [cat, want] of Object.entries(MAIN_SYSTEM_SHA)) {
+    for (const o of notEval) {
+      const b = P.buildClaims({ text: LABEL, category: cat === "unknown" ? undefined : cat }, o);
+      assert.equal(sha(b.system), want, cat + " " + JSON.stringify(o));
+      assert.ok(b.system.startsWith(P.PROMPTS.pc_claims));
+    }
+  }
+  // fields and translate ignore the option entirely
+  for (const o of [{ mode: "text", evalLocal: true, evalVariant: "A" }, { mode: "text", evalLocal: true, evalVariant: "B" }]) {
+    assert.equal(P.buildFields({ text: LABEL }, o).system, P.PROMPTS.pc_fields);
+    assert.equal(P.buildTranslate({ text: LABEL }, o).system, P.PROMPTS.pc_translate);
+  }
+  // an input field can never select a variant
+  assert.equal(sha(P.buildClaims({ text: LABEL, category: "drug", evalVariant: "A", evalLocal: true }, { mode: "text" }).system), MAIN_SYSTEM_SHA.drug);
+});
+
+test("P8b-2 variants (local evaluation mode only): weak rules only, family scope kept, exact evidence still verified, no rule = not sent", async () => {
+  const P = await import(B + "ai/pc-features.js");
+  assert.deepEqual([...P.EVAL_CLAIMS_VARIANTS], ["A", "B"]);
+  for (const v of ["A", "B"]) {
+    const o = { mode: "text", evalLocal: true, evalVariant: v };
+    for (const [cat, fam] of [["drug", "D"], ["supplement", "F"], ["food", "F"], ["herbal", "H"]]) {
+      const b = P.buildClaims({ text: LABEL, category: cat }, o);
+      assert.ok(b.system.startsWith(P.EVAL_CLAIMS_PROMPTS[v]), cat);
+      const ids = [...b.system.matchAll(/^([A-Z]\d\d): /gm)].map(m => m[1]);
+      assert.ok(ids.length > 0, cat);
+      assert.ok(ids.every(i => P.EVAL_CLAIMS_WEAK_RULES.includes(i) && i[0] === fam), cat + ": " + ids.join());
+      assert.deepEqual(ids, P.EVAL_CLAIMS_WEAK_RULES.filter(i => i[0] === fam), cat);
+      assert.equal(b.output.schema, P.CLAIMS_SCHEMA, "same strict schema");
+      // the verify hook is the product's: an invented span is still rejected
+      assert.ok(b.output.verify({ signals: [{ rule_id: "D08", evidence: "not in the label" }] }).errors.length > 0);
+    }
+    assert.throws(() => P.buildClaims({ text: LABEL, category: "cosmetic" }, o), /no AI rule for this category/, "cosmetic: device result only");
+    const all = P.buildClaims({ text: LABEL }, o);
+    assert.deepEqual([...all.system.matchAll(/^([A-Z]\d\d): /gm)].map(m => m[1]), P.PC_CLAIM_RULES.map(r => r[0]).filter(i => P.EVAL_CLAIMS_WEAK_RULES.includes(i)));
+    // the variant prompts keep the product's common rules (no verdict, no advice, no invented text)
+    assert.ok(P.EVAL_CLAIMS_PROMPTS[v].includes("never judge whether the product is legal"));
+  }
+  assert.ok(P.EVAL_CLAIMS_PROMPTS.B.startsWith(P.EVAL_CLAIMS_PROMPTS.A.replace(/\nRules:\n$/, "")), "B = A + scope notes");
+  for (const id of P.EVAL_CLAIMS_WEAK_RULES) assert.ok(P.RULE_IDS.includes(id), id);
+});
+
+test("P8b-3 gateway: the variable selects a variant ONLY in local evaluation mode; a deployed Worker, a public Origin or the request cannot", async () => {
+  const P = await import(B + "ai/pc-features.js");
+  const sent = async (env, opts, bodyIn = body({ text: LABEL, category: "supplement" }), path = "") => {
+    const a = fake("anthropic", () => ok({ signals: [] }));
+    const r = await post(env, "pc_claims" + path, bodyIn, { anthropic: a.adapter }, opts);
+    return { r, a };
+  };
+  const local = { origin: LOCAL, base: DEV };
+  // (1) local evaluation mode + the variable: the variant prompt is sent
+  for (const v of ["A", "B"]) {
+    const env = envOf({ ...LOCAL_ENV, AI_EVAL_PC_CLAIMS_VARIANT: v });
+    await setup(env, ["pc_claims"]);
+    const { r, a } = await sent(env, local);
+    assert.equal(r.status, 200); assert.equal(a.calls.length, 1);
+    assert.ok(a.calls[0].r.system.startsWith(P.EVAL_CLAIMS_PROMPTS[v]), v);
+    // cosmetic: nothing is sent, the page keeps its device result
+    const c = await sent(env, local, body({ text: LABEL, category: "cosmetic" }));
+    assert.equal(c.r.status, 400); assert.equal(c.r.j.reason, "bad_input"); assert.equal(c.a.calls.length, 0);
+  }
+  // (2) every other case: the product prompt
+  const prodPrefix = P.PROMPTS.pc_claims;
+  const cases = [
+    [envOf({ ALLOWED_ORIGINS: "https://site.example," + LOCAL, TURNSTILE_DISABLED_FOR_LOCAL_DEV: "true", AI_EVAL_PC_CLAIMS_VARIANT: "A" }), local, "no AI_EVAL_LOCAL"],
+    [envOf({ ...LOCAL_ENV, AI_EVAL_PC_CLAIMS_VARIANT: "A" }), { origin: LOCAL }, "public request host (deployed Worker)"],
+    [envOf({ ...LOCAL_ENV, AI_EVAL_PC_CLAIMS_VARIANT: "A" }), {}, "public Origin"],
+    [envOf({ ...LOCAL_ENV, AI_EVAL_PC_CLAIMS_VARIANT: "C" }), local, "unknown value"],
+    [envOf({ ...LOCAL_ENV, AI_EVAL_PC_CLAIMS_VARIANT: "a" }), local, "exact value only"],
+    [envOf(LOCAL_ENV), local, "variable unset"]
+  ];
+  for (const [env, opts, why] of cases) {
+    await setup(env, ["pc_claims"]);
+    const { r, a } = await sent(env, opts, body({ text: LABEL, category: "supplement" }));
+    assert.equal(r.status, 200, why); assert.equal(a.calls.length, 1, why);
+    assert.ok(a.calls[0].r.system.startsWith(prodPrefix), why);
+  }
+  // (3) the request cannot select one: body, input, query string and headers
+  const env = envOf(LOCAL_ENV);
+  await setup(env, ["pc_claims"]);
+  const tries = { evalVariant: "A", AI_EVAL_PC_CLAIMS_VARIANT: "A", variant: "B", promptVariant: "A" };
+  const { r, a } = await sent(env, local, { ...body({ text: LABEL, category: "supplement", ...tries }), ...tries }, "?evalVariant=A&AI_EVAL_PC_CLAIMS_VARIANT=B");
+  assert.equal(r.status, 200); assert.ok(a.calls[0].r.system.startsWith(prodPrefix), "request fields are ignored");
+  assert.equal(env.AI_EVAL_PC_CLAIMS_VARIANT, undefined, "a request never changes the Worker's environment");
+});
+
+test("P8b-4 source and config: the variant variable is read once, by the gateway; production config, scripts, CI and the site never set it", () => {
+  const { readFileSync, readdirSync, statSync, existsSync } = require("node:fs");
+  const { join } = require("node:path");
+  const ROOT = join(__dirname, "..", "..");
+  const walk = d => readdirSync(d).flatMap(f => { const p = join(d, f); return statSync(p).isDirectory() ? walk(p) : [p]; });
+  const src = walk(join(ROOT, "backend", "src")).filter(f => f.endsWith(".js"));
+  const users = src.filter(f => /[.\[]\s*["'`]?AI_EVAL_PC_CLAIMS_VARIANT/.test(readFileSync(f, "utf8"))).map(f => f.slice(join(ROOT, "backend", "src").length + 1).replace(/\\/g, "/"));
+  assert.deepEqual(users, ["ai/gateway.js"]);
+  const gwSrc = readFileSync(join(ROOT, "backend", "src", "ai", "gateway.js"), "utf8");
+  assert.equal((gwSrc.match(/env\.AI_EVAL_PC_CLAIMS_VARIANT/g) || []).length, 1, "one read");
+  assert.equal((gwSrc.match(/evalClaimsVariant\(env\)/g) || []).length, 1, "called once, behind evalLocal");
+  for (const f of src) if (!/ai[/\\](gateway|pc-features)\.js$/.test(f)) assert.ok(!/evalVariant|EVAL_CLAIMS/.test(readFileSync(f, "utf8")), f);
+  const pcSrc = readFileSync(join(ROOT, "backend", "src", "ai", "pc-features.js"), "utf8");
+  assert.ok(!/input\.evalVariant|input\[["']evalVariant/.test(pcSrc), "never read from the input");
+  assert.ok(!/AI_EVAL_PC_CLAIMS_VARIANT/.test(readFileSync(join(ROOT, "backend", "wrangler.toml"), "utf8")), "wrangler.toml never mentions it");
+  for (const p of [join(ROOT, "backend", "package.json"), join(ROOT, "package.json")]) {
+    for (const [k, v] of Object.entries(JSON.parse(readFileSync(p, "utf8")).scripts || {})) assert.ok(!/AI_EVAL_PC_CLAIMS_VARIANT/.test(v), p + " " + k);
+  }
+  const wf = join(ROOT, ".github", "workflows");
+  if (existsSync(wf)) for (const f of readdirSync(wf)) assert.ok(!/AI_EVAL_PC_CLAIMS_VARIANT/.test(readFileSync(join(wf, f), "utf8")), f);
+  for (const f of ["admin.js", "admin.html", "lensiq-ai.js", "lensiq-pc-ai.js", "lensiq-config.js", "medicine.html"]) {
+    assert.ok(!/AI_EVAL_PC_CLAIMS_VARIANT|evalVariant/.test(readFileSync(join(ROOT, f), "utf8")), f);
+  }
 });
