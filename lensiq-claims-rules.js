@@ -215,6 +215,26 @@
      "rule": "wording.zh",
      "what": "draft zh wording ('may violate {rule}') -> '{rule} 风险信号'; status line, CM source citation and C03 note rephrased neutrally",
      "why": "post-review F3: no legal-verdict wording in any language"
+   },
+   {
+     "rule": "H02",
+     "what": "add detox wording (ล้างสารพิษ / ขับสารพิษ) and wound-healing wording ('allows wounds to heal', 'heals wounds')",
+     "why": "adverts, dev: herbal efficacy claims PCT-0042, PCT-0099, PCT-0168 were missed"
+   },
+   {
+     "rule": "C03",
+     "what": "exclude 'แท้ 100%' (composition: 'genuine 100% milk / coconut water')",
+     "why": "adverts, dev: with no product type every family runs and 'น้ำมะพร้าวแท้ 100%' (a food) was flagged by C03, D02 and H02"
+   },
+   {
+     "rule": "D02",
+     "what": "exclude 'แท้ 100%' (composition: 'genuine 100% milk / coconut water')",
+     "why": "adverts, dev: with no product type every family runs and 'น้ำมะพร้าวแท้ 100%' (a food) was flagged by C03, D02 and H02"
+   },
+   {
+     "rule": "H02",
+     "what": "exclude 'แท้ 100%' (composition: 'genuine 100% milk / coconut water')",
+     "why": "adverts, dev: with no product type every family runs and 'น้ำมะพร้าวแท้ 100%' (a food) was flagged by C03, D02 and H02"
    }
   ],
   "masks": [
@@ -687,7 +707,9 @@
      "note": "",
      "title_zh": "虚假或夸大的疗效",
      "claim_window": 0,
-     "exclude": []
+     "exclude": [
+       "แท้\\s*100\\s*%"
+     ]
    },
    {
      "id": "D03",
@@ -2383,13 +2405,16 @@
          "เห็นผล(?:เร็ว|ทันที)",
          "ปลอดภัย\\s*100",
          "(?:หาย|เห็นผล)\\S{0,4}(?:ภาย)?ใน\\s*\\d+\\s*(?:วัน|สัปดาห์|ชั่วโมง)",
-         "(?:สูง|ดี|แรง)กว่า\\S{0,40}\\d+\\s*เท่า"
+         "(?:สูง|ดี|แรง)กว่า\\S{0,40}\\d+\\s*เท่า",
+         "(?:ล้าง|ขับ)\\S{0,4}สารพิษ"
        ],
        "en": [
          "\\bno\\s+side[- ]effects?",
          "\\b100\\s*%\\s*(?:effective|safe|natural)",
          "\\bguaranteed",
-         "\\b(?:devoid|free)\\s+of\\s+side[- ]effects?"
+         "\\b(?:devoid|free)\\s+of\\s+side[- ]effects?",
+         "\\ballows?\\s+wounds?\\s+to\\s+heal",
+         "\\bheals?\\s+wounds?"
        ],
        "zh": [
          "无副作用",
@@ -2407,7 +2432,9 @@
      "note": "",
      "title_zh": "虚假、夸大或误导性的疗效",
      "claim_window": 0,
-     "exclude": []
+     "exclude": [
+       "แท้\\s*100\\s*%"
+     ]
    },
    {
      "id": "H03",
@@ -2780,7 +2807,8 @@
        "(?:บริโภค|รับประทาน|ทาน|ใช้|เก็บ|หลังเปิด)\\S{0,8}(?:ภาย)?ใน\\s*\\d+\\s*(?:วัน|ชั่วโมง|เดือน)",
        "\\buse\\s+within\\b",
        "\\b(?:consume|use|eat|drink|finish|store|keep)(?:d|ed|en)?\\s+within\\s+\\d+\\s+(?:days?|hours?|weeks?)",
-       "\\bafter\\s+opening\\b[^.]{0,60}"
+       "\\bafter\\s+opening\\b[^.]{0,60}",
+       "แท้\\s*100\\s*%"
      ]
    },
    {

@@ -1,5 +1,8 @@
 # Product Check: "advert" capture type for the AI claims check (proposal, design only)
 
+> Update 2026-11-11: the owner approved **option B** (approved work list item 4); it is built, on-device only, see
+> `ADVERT-RESULTS.md`. Option A (AI for adverts) is not built and still waits for counsel (§7).
+>
 > Status: **proposal for an owner decision. Nothing here is built.** Written 2026-11-10 after the product-label
 > evidence filter (P7-RESULTS §3.4). Numbers: P7-RESULTS §3.6, source **public dataset, labelled by two AI agents,
 > pharmacist adjudication pending**.

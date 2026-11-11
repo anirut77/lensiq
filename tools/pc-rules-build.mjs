@@ -675,6 +675,21 @@ export const POST_REVIEW = [
     why: "post-review F3: no legal-verdict wording in any language" }
 ];
 
+/** Adverts option B (approved item 4, 2026-11-11): tuned on the P3 DEV split only (tools/pc-advert-eval.mjs); the P3
+ *  held-out split is spent and the fresh advert set is scored once by a separate agent (docs/product-check/ADVERT-RESULTS.md). */
+export const ADVERT_CHANGES = [
+  {
+    rule: "H02", what: "add detox wording (ล้างสารพิษ / ขับสารพิษ) and wound-healing wording ('allows wounds to heal', 'heals wounds')",
+    why: "adverts, dev: herbal efficacy claims PCT-0042, PCT-0099, PCT-0168 were missed",
+    apply: all(add("th", ["(?:ล้าง|ขับ)\\S{0,4}สารพิษ"]), add("en", ["\\ballows?\\s+wounds?\\s+to\\s+heal", "\\bheals?\\s+wounds?"]))
+  },
+  ...["C03", "D02", "H02"].map(rule => ({
+    rule, what: "exclude 'แท้ 100%' (composition: 'genuine 100% milk / coconut water')",
+    why: "adverts, dev: with no product type every family runs and 'น้ำมะพร้าวแท้ 100%' (a food) was flagged by C03, D02 and H02",
+    apply: exclude(["แท้\\s*100\\s*%"])
+  }))
+];
+
 const clone = o => JSON.parse(JSON.stringify(o));
 
 /** Build the rule data object from the parsed draft. @param {any} draft */
@@ -688,7 +703,7 @@ export function build(draft) {
     return r;
   });
   const byId = Object.fromEntries(rules.map(r => [r.id, r]));
-  for (const c of CHANGES) {
+  for (const c of [...CHANGES, ...ADVERT_CHANGES]) {
     if (!byId[c.rule] && c.rule !== "*") throw new Error("CHANGES: unknown rule " + c.rule);
     c.apply(c.rule === "*" ? rules : byId[c.rule], { rules, byId });
   }
@@ -703,7 +718,8 @@ export function build(draft) {
     wording: { ...draft.wording, zh: "{rule} 风险信号" }, // post-review F3: the draft's "可能违反" ("may violate") removed
     claim_verbs: draft.claim_verbs,
     sources: draft.sources,
-    changes: [...CHANGES.map(c => ({ rule: c.rule, what: c.what, why: c.why })), ...POST_REVIEW],
+    changes: [...CHANGES.map(c => ({ rule: c.rule, what: c.what, why: c.why })), ...POST_REVIEW,
+      ...ADVERT_CHANGES.map(c => ({ rule: c.rule, what: c.what, why: c.why }))],
     masks: MASKS,
     warnings: WARNINGS,
     allow_source: N447_SOURCE,
@@ -762,7 +778,7 @@ function main() {
   const args = process.argv.slice(2);
   const src = render(build(JSON.parse(readFileSync(DRAFT, "utf8"))));
   if (args.includes("--changes")) {
-    for (const c of [...CHANGES, ...POST_REVIEW]) console.log(`- ${c.rule}: ${c.what} (${c.why})`);
+    for (const c of [...CHANGES, ...POST_REVIEW, ...ADVERT_CHANGES]) console.log(`- ${c.rule}: ${c.what} (${c.why})`);
     return;
   }
   if (args.includes("--check")) {

@@ -6,6 +6,9 @@
  * only, never the OCR text) are written only when the page's opt-in history is on (window.__LQ_MED.cfg.hist).
  * Extension point for the over-claim rules (P3): after every read or edit the tab fires
  * window "lq-pc-text" {detail: {text, script}} and leaves #pcClaimsSlot empty for that card.
+ * Capture type (adverts option B): with "advert / post / leaflet" chosen (input[name=pcKind] value "ad") the text goes to
+ * "lq-pc-ad-text" instead (lensiq-pc-advert.js, on-device wording rules only): no registration shapes, no barcode scan,
+ * no history, no lookup / AI card. "lq-pc-kind" {detail: {kind}} fires when the type changes.
  * Upload preview (owner decision 2026-11-10: blur faces, never block on a face): prepareUpload() blurs every detected face
  * region of the crop, shows the picture with "N face regions blurred" and waits for "Use this picture" / "Back"; text only
  * when the face detector cannot run. Not wired to the AI yet (P7 calls it); nothing is uploaded in this phase.
@@ -27,6 +30,8 @@
   const card = (k, inner, id) => `<section class="card md-res"${id ? ` id="${id}"` : ""} data-k="${k}">${inner}</section>`;
   const mb = b => Math.round(b / 1048576);
 
+  /** capture type chosen by the user: "label" (default) or "ad" (advert / post / leaflet, on-device wording rules only) */
+  const kindNow = () => { const r = /** @type {HTMLInputElement | null} */ (document.querySelector("input[name=pcKind]:checked")); return r && r.value === "ad" ? "ad" : "label"; };
   const st = { gen: 0, script: P.DEFAULT_SCRIPT, cam: null, still: false, crop: null, boxes: [], ocr: null, codes: null, quality: null, text: "", busy: false, read: false };
   W.__LQ_PC = { st };
 
@@ -296,8 +301,10 @@
     return true;
   }
   // P4: codes ride along so lensiq-pc-lookup.js (risk-signal card in #pcClaimsSlot) can use the GTINs
-  const announce = () => { try { window.dispatchEvent(new CustomEvent("lq-pc-text", { detail: { text: st.text, script: st.script,
-    codes: (st.codes && st.codes.codes) || [] } })); } catch { /* old browser */ } };
+  // Advert capture (adverts option B): the text goes ONLY to lensiq-pc-advert.js ("lq-pc-ad-text"), never to the label
+  // lookup / AI card, so nothing about an advert can be sent
+  const announce = () => { try { window.dispatchEvent(kindNow() === "ad" ? new CustomEvent("lq-pc-ad-text", { detail: { text: st.text, script: st.script } })
+    : new CustomEvent("lq-pc-text", { detail: { text: st.text, script: st.script, codes: (st.codes && st.codes.codes) || [] } })); } catch { /* old browser */ } };
 
   /* ---------- results ---------- */
   function renderHints() {
@@ -305,6 +312,8 @@
     $("#pcHints").innerHTML = q && q.hints.length ? q.hints.map(h => `<li data-q="${h}">${esc(H[h] || h)}</li>`).join("") : "";
   }
   function renderOut() {
+    // advert capture (lensiq-pc-advert.js): the text goes to the advert card only; no registration shapes, no lookup
+    if (kindNow() === "ad") { $("#pcOut").innerHTML = ""; return; }
     const C = COUNTRY(), K = KIND(), N = NOTE(), V = VLABEL(), today = P.localDate(new Date());
     const regs = P.findRegNumbers(st.text || "");
     const codes = ((st.codes && st.codes.codes) || []).map(c => P.barcodeInfo(c.rawValue, c.format));
@@ -387,6 +396,7 @@
   /** opt-in history (same list as the other tabs): registration numbers and barcodes only, never the OCR text or images */
   function remember() {
     const med = W.__LQ_MED;
+    if (kindNow() === "ad") return; // no history of adverts
     if (!med || !med.cfg || !med.cfg.hist || !M) return;
     const regs = P.findRegNumbers(st.text || "").map(r => r.norm), codes = ((st.codes && st.codes.codes) || []).map(c => P.barcodeInfo(c.rawValue, c.format)).map(c => c.gtin || "").filter(Boolean);
     const q = [...regs, ...codes].join(" · ");
@@ -405,6 +415,16 @@
     setImage(video, video.videoWidth, video.videoHeight);
   });
   $("#pcRun").addEventListener("click", read);
+  for (const r of /** @type {NodeListOf<HTMLInputElement>} */ (document.querySelectorAll("input[name=pcKind]"))) r.addEventListener("change", () => {
+    const ad = kindNow() === "ad";
+    const panel = $("#pcAdPanel"); if (panel) panel.hidden = !ad;
+    $("#pcBar").hidden = ad;
+    const side = $("#pcSideHint"); if (side) side.hidden = ad;
+    try { window.dispatchEvent(new CustomEvent("lq-pc-kind", { detail: { kind: kindNow() } })); } catch { /* old browser */ }
+    // entering advert mode clears the label lookup / AI card (an empty text makes lensiq-pc-lookup.js empty its slot)
+    if (ad) { try { window.dispatchEvent(new CustomEvent("lq-pc-text", { detail: { text: "", codes: [] } })); } catch { /* old browser */ } renderOut(); }
+    else if (st.read || st.text) { renderOut(); announce(); }
+  });
   $("#pcAuto").addEventListener("click", async () => { await autoCrop(); });
   $("#pcBar").addEventListener("click", scan);
   $("#pcClear").addEventListener("click", () => { clearImage(); status(T("md.pc.st.cleared", "ปิดกล้องและล้างรูปแล้ว ไม่มีภาพเหลือในเครื่อง"), ""); });
