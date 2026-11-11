@@ -205,3 +205,19 @@ on-device advert rules (approved item 4, adverts option B). Stored outside the r
 the README there lists every source and the licence of each row. **Owner decision 2026-11-11:** internal measurement only, not
 redistributed, not used for training, never committed; on the legal list as CTO-BRIEF L53. Rules are tuned on the old P3 data
 only; this set is labelled blind by two labellers, locked with sha256 recorded here, and scored once by an independent agent.
+
+**Locked 2026-11-11, before any scoring** (`~/LENSIQ-field/evals/adverts/fresh/`, files read-only). Two blind AI labellers
+(A and B, separate agents; each saw only id, language, category, text, the labelling guide and the rule list): text-level
+agreement κ = 0.887 (246 both flagged, 135 both clean, 21 disagree); rule labels A 367, B 372, agreed 342 (Jaccard 0.861).
+Both labellers are AI agents, not people (same as P3).
+
+| File | sha256 |
+|---|---|
+| `blind-input.jsonl` (402 rows: id, lang, category, text) | `2a7da71fefd9806acd5dc5e5f95ad75999c450ac211124599f93b73f437eed13` |
+| `labels-A.jsonl` | `582c86f59ba285996325c7cfe9cf33dda7232e8e0581868411a423e294998e49` |
+| `labels-B.jsonl` | `e25c605f4902f0f418a60abf2d156cd1fa589ae00188cfec1f375a3cab685e41` |
+
+Scoring rule fixed before scoring: an "over-claim text" is one both labellers flagged (≥ 1 rule each); a "compliant
+text" is one both left empty; the 21 disagreements are reported apart. Recall = over-claim texts with ≥ 1 on-device signal
+(target 80 %); false flags = signals on compliant texts per 100 compliant texts; both for the advert card default
+(product type guessed) and with the labelled category chosen. One independent run; the set is then spent.
