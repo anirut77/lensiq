@@ -112,3 +112,26 @@ figures in `P3-RESULTS.md` §3 belong to the earlier rules file; the effect of t
 5. **Field photos of adverts** (crop + OCR on real screenshots) are not measured; source "field" needs the owner's set.
 6. Counsel: defamation and PDPA notes of the proposal §7 still apply to the screenshot the user holds; the card never
    names the seller and has no share or report action.
+
+## Independent run on the fresh set (2026-11-11, one run, set now spent)
+
+Source: public-page quotes (US FDA, UK ASA, Thai AFNC, Thai/Chinese press, NIH DSLD, openFDA, makers' pages), labelled blind
+by two AI labellers (κ 0.887), locked before scoring (`docs/product-check/TEST-SETS.md` §4). Code `68bbc8b`
+(`lensiq-pc-advert.js` sha256 `81cca227…`, `lensiq-claims-rules.js` `542b1be5…`). Scored by an independent agent; nothing
+tuned. Log: `~/LENSIQ-field/evals/adverts/fresh/score/run-20261111T215402.log`. 246 over-claim texts (both labellers
+flagged), 135 compliant (both empty), 21 disagreements apart.
+
+| Measure (95 % Wilson) | Card default (type guessed) | Product type chosen | Target |
+|---|---|---|---|
+| Recall: over-claim texts with ≥ 1 signal | **71.1 %** [65.2–76.4] | **64.2 %** [58.1–70.0] | 80 % (missed) |
+| False flags per 100 compliant texts | **23.0** (16.3 % of texts) | **1.5** (1.5 % of texts) | — |
+| Rule-id precision vs consensus | 43.8 % | 88.9 % | — |
+| Rule-id recall vs consensus | 50.6 % | 51.8 % | — |
+
+By language (default / chosen): th 73.8 % / 68.2 %, en 72.3 % / 63.0 %, zh 50.0 % / 50.0 % (n = 20). Weakest: food
+(46.7 %), herbal with type chosen (48.4 %; H02 0/8, H04 0/3). Most missed: F09, F10, F08, F07, F19. Over-firing in
+default mode: C01, F09, D08, H05. Seller names: no ®/™, @, URL or phone-like token in any shown span; brand-like tokens
+seen were generic claim words (COVID, HIV, "Supports").
+
+**Status:** built, not on the live site. Recall target missed; the owner decides whether it ships as "experimental" with
+these figures, or waits for rule work measured on a new locked set.
