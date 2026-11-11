@@ -233,7 +233,7 @@ npm run backend:plan           # prints the targets and every command, runs noth
 | 5 | A | `npm run backend:d1:create` | **D1 `lensiq-test`** (new) | prints `TARGET D1 database "lensiq-test" (CREATE, new)`, then writes the database id into `backend/wrangler.toml [env.test]` (not a secret) |
 | 6 | A | `npm run backend:migrate` then `npm run backend:deploy:test` | D1 `lensiq-test` (tables), **Worker `lensiq-api-test`** (new) | each prints its target first. Then `npm run backend:smoke -- --base https://lensiq-api-test.<sub>.workers.dev`: all PASS (AI answers "tester code required", testing-only sources closed) |
 | 7 | **O** | In your **own** terminal, repo root: `npm run secrets:setup` | secrets on Worker `lensiq-api-test` only | see §4. Reply "done". The agent never runs this command (it refuses without a real terminal) |
-| 8 | **O** | Open `https://lensiq-api-test.<sub>.workers.dev/admin` → paste the bootstrap token → choose a user name and a password (12 characters or more) → sign in → Security → set up TOTP → scan the QR with your authenticator app → type the 6-digit code | the owner account in D1 `lensiq-test` | the admin back office. **If the page shows a Cloudflare error 1102 ("exceeded CPU") at sign-in: stop and tell the agent** (decision D7; see §8 point 1) |
+| 8 | **O** | Open `https://lensiq-api-test.<sub>.workers.dev/admin`. While no owner account exists it shows **First-time setup** (3 steps): (1) paste the setup code (the bootstrap token), choose a user name and a password of 12 characters or more, typed twice; (2) scan the QR code with an authenticator app and enter its 6-digit code; (3) save the ten one-time recovery codes, tick "saved", Finish. If an owner account already exists the page shows only the sign-in form; an owner without 2-step verification is taken to step 2 after signing in. | the owner account in D1 `lensiq-test` | the admin back office. **If the page shows a Cloudflare error 1102 ("exceeded CPU") at sign-in: stop and tell the agent** (decision D7; see §8 point 1) |
 | 9 | A | `npm run backend:bootstrap:close` (replaces `ADMIN_BOOTSTRAP_TOKEN` with a random value nobody knows; never printed) | one secret of `lensiq-api-test` | `ADMIN_BOOTSTRAP_TOKEN: closed.` The bootstrap can never be used again |
 | 10 | A | `npm run ai:deploy-defaults` (prints the settings and the SQL, runs nothing), then `npm run ai:deploy-defaults -- --apply` | D1 `lensiq-test`, table `settings`, 2 rows, only if absent | the all-OFF table of §1 |
 | 11 | A | `npm run backend:versions` → write the newest version id into DEPLOY-LOG.md as `ROLLBACK_BASE` | nothing | a list of version ids |
@@ -382,3 +382,26 @@ Admin sign-in on Free plan (step 8): ok / error 1102
 Created resources (npm run backend:list, step 17):
 First real AI call: served provider name seen on the result card:
 ```
+
+## First-time setup of the admin account (2026-11-11)
+
+- The setup screen is shown only while `GET /admin/api/state` says no owner exists. The page never learns whether the
+  setup code is configured; a missing code answers "setup is closed" on submit.
+- Wrong setup codes: 5 attempts per address per hour, then 429 for that address for the rest of the hour. A wrong
+  attempt does not use the code up and does not lock setup for other addresses. The code stops creating accounts as
+  soon as one owner exists (the insert is fixed to id 1), and `npm run backend:bootstrap:close` then replaces it.
+- CPU: creating the account hashes the password once (PBKDF2-SHA-256, 100,000 iterations, in WebCrypto) and signing
+  in hashes it once more. On the Free plan (10 ms CPU per request) this is the one place error 1102 could appear.
+  Observed on `lensiq-api-test`: account creation succeeded (audit `bootstrap.ok`, 2026-11-11). If 1102 ever
+  appears, stop and ask the owner; the plan is never upgraded by the agent.
+- Recovery codes: ten, shown once when 2-step verification is turned on; only SHA-256 hashes are stored
+  (migration `0011_admin_recovery.sql`); each works once at sign-in or to turn 2-step verification off; a wrong one
+  counts as a failed sign-in. A new set (Security tab) needs the password and a 6-digit code and voids the old set.
+- Session mode (cookie on the Worker's own origin, in-memory token elsewhere) is chosen by the page. Developers
+  only: `localStorage["lq-admin-dev"] = "1"` enables `?session=cookie|bearer` and shows the API host.
+- Order when deploying this change: `npm run backend:migrate` first, then `npm run backend:deploy:test`. `/health/deep`
+  probes the recovery-code table, and turning 2-step verification on is undone if the codes cannot be stored.
+- Recovery codes carry 50 random bits and are stored as plain SHA-256. Guessing online is not feasible (5 failures per
+  15 minutes) and the password is needed as well; a keyed hash is a possible hardening if the database ever leaves
+  Cloudflare.
+- Custom domain: `docs/CUSTOM-DOMAIN.md`.

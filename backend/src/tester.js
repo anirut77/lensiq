@@ -269,12 +269,16 @@ export function resetAdminState() { ADMIN.t = 0; ADMIN.writes = 0; ADMIN.callers
 /** A view of a D1 binding that holds writes back: reads run at once; write statements return a neutral result and are
  *  queued. flush() applies them in one batch; dropping the object discards them. Rows of admin_users are read with
  *  locked_until = 0 (the account delay is not applied while buffering). @param {any} db */
+const CLAIM = /^\s*UPDATE\s+(admin_recovery_codes\s+SET\s+used_at|admin_users\s+SET\s+totp_last_step)\b/i;
 export function bufferDb(db) {
   /** @type {any[]} */ const queue = [];
   const fake = { first: async () => ({ count: 1, failed_count: 1 }), run: async () => ({ success: true, meta: { changes: 1, last_row_id: 0 } }), all: async () => ({ results: [],
     success: true }) };
   const wrap = (st, sql) => {
-    const write = IS_WRITE.test(String(sql)) && !/\bdaily_salts\b/i.test(String(sql)), owner = !write && /\bFROM\s+admin_users\b/i.test(String(sql));
+    // not held back: the day salt, and the two "claim" statements of the second sign-in step (one-time recovery code,
+    // 6-digit code time step). They run only after the correct password, so a stranger cannot make them write, and they
+    // must really run so that one code signs in once even under parallel requests.
+    const write = IS_WRITE.test(String(sql)) && !/\bdaily_salts\b/i.test(String(sql)) && !CLAIM.test(String(sql)), owner = !write && /\bFROM\s+admin_users\b/i.test(String(sql));
     return {
       __sql: sql, __raw: st,
       bind: (...a) => wrap(st.bind(...a), sql),

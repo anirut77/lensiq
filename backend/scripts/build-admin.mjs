@@ -13,7 +13,8 @@ const repo = resolve(here, "..", "..");
 const out = resolve(here, "..", "admin-dist");
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
-for (const f of ["admin.js", "admin.css", "lensiq-api.js", "lensiq-i18n.js"]) copyFileSync(join(repo, f), join(out, f));
+// attendance-qr.js: the QR encoder (no dependencies) that draws the 2-step verification QR code on the device
+for (const f of ["admin.js", "admin.css", "lensiq-api.js", "lensiq-i18n.js", "attendance-qr.js"]) copyFileSync(join(repo, f), join(out, f));
 // round 17 P5: English / Chinese text of the AI Gateway section (lensiq-i18n.js loads en-admin.js on demand)
 mkdirSync(join(out, "i18n"), { recursive: true });
 for (const f of ["zh-admin.js", "en-admin.js"]) copyFileSync(join(repo, "i18n", f), join(out, "i18n", f));

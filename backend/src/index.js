@@ -246,7 +246,12 @@ async function adminRoute(request, env, url, deps) {
   if (!originAllowed(request, allow, { required: unsafe || m === "OPTIONS" })) return json({ error: "origin not allowed" }, 403, cors);
   if (m === "OPTIONS") return json(null, 204, cors);
   const reply = (body, status = 200, extra = {}) => json(body, status, { ...cors, ...extra });
-  const body = async () => (unsafe ? readJson(request, ADMIN_MAX_BODY) : {});
+  const body = async () => {
+    if (!unsafe) return {};
+    const b = await readJson(request, ADMIN_MAX_BODY);
+    if (!b || typeof b !== "object" || Array.isArray(b)) throw new HttpError(400, "invalid request body", { code: "bad_body" });
+    return b;
+  };
 
   // unauthenticated. ADMIN_UNAUTH_WRITES_HOUR (tester.js adminUnauth): failed sign-ins cannot write without bound, and no
   // ceiling ever refuses a correct sign-in; only a caller over the in-memory attempt limit gets "admin_busy"
@@ -306,7 +311,8 @@ async function adminRoute(request, env, url, deps) {
   switch (`${m} ${route}`) {
     case "GET /me": {
       const o = await auth.getOwner(env.DB);
-      return reply({ username: o.username, totp_enabled: !!o.totp_enabled, csrf: sess.viaCookie ? await auth.rotateCsrf(env, sess) : null, password_changed_at: o.password_changed_at });
+      return reply({ username: o.username, totp_enabled: !!o.totp_enabled, recovery_left: o.totp_enabled ? await auth.recoveryLeft(env.DB) : 0,
+        csrf: sess.viaCookie ? await auth.rotateCsrf(env, sess) : null, password_changed_at: o.password_changed_at });
     }
     case "POST /logout": await auth.logout(env, sess); return reply({ ok: true }, 200, { "Set-Cookie": auth.clearCookie() });
     case "POST /password": return reply(await auth.changePassword(env, sess, await body()));
@@ -316,6 +322,7 @@ async function adminRoute(request, env, url, deps) {
     case "POST /totp/setup": return reply(await auth.totpSetup(env, await body(), sess));
     case "POST /totp/enable": return reply(await auth.totpEnable(env, await body()));
     case "POST /totp/disable": return reply(await auth.totpDisable(env, await body(), sess));
+    case "POST /totp/recovery": return reply(await auth.recoveryRegenerate(env, await body(), sess));
     case "GET /devices": return reply(await auth.listDevices(env, request));
     case "DELETE /devices": { const r = await auth.revokeDevice(env, "all"); await act("device.revoked", { all: true, n: r.revoked }); return reply(r); }
 
@@ -483,7 +490,9 @@ async function adminRoute(request, env, url, deps) {
  *  backend/scripts/build-admin.mjs). HTTP headers a <meta> cannot carry: frame-ancestors 'none' + X-Frame-Options. */
 export const ADMIN_ASSETS = new Set(["/admin", "/admin/", "/admin.html", "/admin.js", "/admin.css", "/lensiq-api.js", "/lensiq-config.js",
   // round 17 P5: AI Gateway section text in English / Chinese (Thai stays the default)
-  "/lensiq-i18n.js", "/i18n/zh-admin.js", "/i18n/en-admin.js"]);
+  "/lensiq-i18n.js", "/i18n/zh-admin.js", "/i18n/en-admin.js",
+  // first-run setup: QR code of the 2-step verification secret, drawn in the browser (no request carries the secret)
+  "/attendance-qr.js"]);
 export const ADMIN_PAGE_HEADERS = {
   "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; " +
     "font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'; report-uri /v1/csp-report; report-to csp",

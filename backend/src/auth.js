@@ -21,6 +21,10 @@
 //     required on every login
 //  TOTP       optional, RFC 6238, secret AES-GCM encrypted with SECRETS_KEK; the used time step is claimed with an atomic
 //             conditional UPDATE, so one code cannot be used twice even by parallel requests
+//  recovery   ten one-time codes issued when TOTP is turned on (returned once, only SHA-256 stored, migration 0011);
+//             a code replaces the TOTP code at login and when turning TOTP off (lost phone); claimed atomically; a
+//             wrong code counts as a failed login like a wrong TOTP code; POST /admin/api/totp/recovery (password +
+//             TOTP) issues a new set and voids the old one
 //  re-auth    password change needs the current password (+ TOTP when on); TOTP setup needs the password. Every other
 //             sensitive route — money ops (refund, cancel / extend subscription, complimentary grant, admin test charge),
 //             retention/run, member status, price / plan / settings / membership / AI-key edits — needs a re-auth that
@@ -78,25 +82,25 @@ function readCookie(request, name) {
 export async function bootstrap(env, request, body) {
   const ip = await callerHash(env, request, "admin");
   const rl = await hit(env.DB, `boot:${ip}`, 5, 3600);
-  if (!rl.ok) throw new HttpError(429, "too many attempts", { retryAfter: rl.retryAfter });
-  if (await getOwner(env.DB)) throw new HttpError(409, "already set up");
+  if (!rl.ok) throw new HttpError(429, "too many attempts", { retryAfter: rl.retryAfter, code: "too_many" });
+  if (await getOwner(env.DB)) throw new HttpError(409, "already set up", { code: "already_setup" });
   const expected = String(env.ADMIN_BOOTSTRAP_TOKEN || "");
-  if (expected.length < 32) throw new HttpError(503, "bootstrap is not available");
+  if (expected.length < 32) throw new HttpError(503, "bootstrap is not available", { code: "setup_closed" });
   if (!timingSafeEqual(String(body.token || ""), expected)) {
     await audit(env, "anonymous", "bootstrap.denied", null, ip);
-    throw new HttpError(403, "invalid bootstrap token");
+    throw new HttpError(403, "invalid bootstrap token", { code: "invalid_token" });
   }
   const username = String(body.username || "owner");
-  if (!USERNAME_RE.test(username)) throw new HttpError(400, "invalid username");
+  if (!USERNAME_RE.test(username)) throw new HttpError(400, "invalid username", { code: "invalid_username" });
   const problem = passwordProblem(body.password);
-  if (problem) throw new HttpError(400, problem);
+  if (problem) throw new HttpError(400, problem, { code: "weak_password" });
   const t = now();
   const hash = await hashPassword(body.password);
   // INSERT with fixed id = 1 cannot succeed twice (primary key), even under a race
   const r = await env.DB.prepare(
     "INSERT OR IGNORE INTO admin_users (id, username, password_hash, created_at, updated_at, password_changed_at) VALUES (1, ?1, ?2, ?3, ?3, ?3)"
   ).bind(username, hash, t).run();
-  if (!r.meta || !r.meta.changes) throw new HttpError(409, "already set up");
+  if (!r.meta || !r.meta.changes) throw new HttpError(409, "already set up", { code: "already_setup" });
   await audit(env, "owner", "bootstrap.ok", { username }, ip);
   return { ok: true };
 }
@@ -141,32 +145,42 @@ export async function login(env, request, body) {
   const ip = await callerHash(env, request, "admin");
   const device = await trustedDevice(env, request, t);
   const rl = await hit(env.DB, `login:${ip}`, CALLER_ATTEMPTS, WINDOW, t);
-  if (!rl.ok) throw new HttpError(429, "too many login attempts", { retryAfter: rl.retryAfter });
-  if ((await peek(env.DB, `lfail:${ip}`, WINDOW, t)) >= CALLER_FAILURES) throw new HttpError(429, "too many failed attempts — try again later", { retryAfter: WINDOW - (t % WINDOW) });
+  if (!rl.ok) throw new HttpError(429, "too many login attempts", { retryAfter: rl.retryAfter, code: "too_many" });
+  if ((await peek(env.DB, `lfail:${ip}`, WINDOW, t)) >= CALLER_FAILURES) throw new HttpError(
+    429, "too many failed attempts — try again later", { retryAfter: WINDOW - (t % WINDOW), code: "too_many" });
   if (!device) {
     const g = await hit(env.DB, "login:global", GLOBAL_ATTEMPTS, WINDOW, t);
-    if (!g.ok) throw new HttpError(429, "login temporarily rate limited", { retryAfter: g.retryAfter });
+    if (!g.ok) throw new HttpError(429, "login temporarily rate limited", { retryAfter: g.retryAfter, code: "too_many" });
   }
   const owner = await getOwner(env.DB);
   // progressive account delay (decaying) for callers without a trusted device token
   if (owner && !device && owner.locked_until > t && t - owner.last_failed_at <= DECAY) {
     await audit(env, "anonymous", "login.delayed", null, ip);
-    throw new HttpError(429, "too many failed attempts — slow down", { retryAfter: owner.locked_until - t });
+    throw new HttpError(429, "too many failed attempts — slow down", { retryAfter: owner.locked_until - t, code: "too_many" });
   }
   // always spend the PBKDF2 time, also for an unknown user
   const pwOk = await verifyPassword(String(body.password || ""), owner ? owner.password_hash : DUMMY_HASH);
   const userOk = !!owner && timingSafeEqual(String(body.username || ""), owner.username);
   let totpOk = true;
+  // second step: the 6-digit code, or one of the one-time recovery codes (body.recovery) when the phone is not at hand
+  const viaRecovery = typeof body.recovery === "string" && body.recovery.trim() !== "";
   if (owner && owner.totp_enabled && pwOk && userOk) {
-    const secret = await totpSecret(env, owner);
-    const step = secret ? await verifyTotp(secret, body.totp, t, owner.totp_last_step) : -1;
-    totpOk = await claimTotpStep(env.DB, step);
+    if (viaRecovery) totpOk = await claimRecovery(env.DB, body.recovery, t);
+    else {
+      const secret = await totpSecret(env, owner);
+      const step = secret ? await verifyTotp(secret, body.totp, t, owner.totp_last_step) : -1;
+      totpOk = await claimTotpStep(env.DB, step);
+    }
   }
   if (!owner || !pwOk || !userOk || !totpOk) {
     const fails = await recordFailure(env, ip, userOk, t);
     await audit(env, "anonymous", "login.failed", { user: userOk ? "owner" : "other", totp: owner && owner.totp_enabled ? (totpOk ? "ok" : "bad") : "off", fails }, ip);
-    throw new HttpError(401, owner && owner.totp_enabled && pwOk && userOk ? "invalid TOTP code" : "invalid credentials");
+    const second = !!(owner && owner.totp_enabled && pwOk && userOk);
+    throw new HttpError(401, second ? (viaRecovery ? "invalid recovery code" : "invalid TOTP code") : "invalid credentials",
+      { code: second ? (viaRecovery ? "invalid_recovery" : "invalid_totp") : "invalid_credentials" });
   }
+  const usedRecovery = !!owner.totp_enabled && viaRecovery;
+  if (usedRecovery) await audit(env, "owner", "recovery.used", { left: await recoveryLeft(env.DB) }, ip);
   await env.DB.prepare("UPDATE admin_users SET failed_count = 0, locked_until = 0 WHERE id = 1").run();
   const s = await newSession(env);
   let deviceToken = null;
@@ -177,6 +191,7 @@ export async function login(env, request, body) {
   }
   await audit(env, "owner", "login.ok", { mode: body.mode === "bearer" ? "bearer" : "cookie", device: device ? "trusted" : "new" }, ip);
   const out = { ok: true, csrf: s.csrf, totp_enabled: !!owner.totp_enabled, expires_in: SESSION_ABSOLUTE };
+  if (usedRecovery) out.recovery_left = await recoveryLeft(env.DB);
   if (body.mode === "bearer") out.token = s.token;
   if (deviceToken) out.device = deviceToken;
   const cookies = [cookie(COOKIE, s.token, SESSION_ABSOLUTE)];
@@ -230,7 +245,7 @@ export const REAUTH_WINDOW = 300;
 const sessKey = sess => "reauth:" + (sess && sess.idHash ? String(sess.idHash).slice(0, 24) : "nosession");
 
 /** Re-authentication for sensitive changes: password, plus a fresh TOTP code when TOTP is on. Rate limited per session. */
-async function reauth(env, owner, password, code, sess = null, t = now()) {
+async function reauth(env, owner, password, code, sess = null, t = now(), recovery = null) {
   const key = sessKey(sess);
   if ((await peek(env.DB, key, WINDOW, t)) >= REAUTH_FAILURES) {
     throw new HttpError(429, "too many wrong re-authentications — try again later", { retryAfter: WINDOW - (t % WINDOW), code: "reauth_rate_limited" });
@@ -238,9 +253,13 @@ async function reauth(env, owner, password, code, sess = null, t = now()) {
   let why = null;
   if (!(await verifyPassword(String(password || ""), owner.password_hash))) why = "password";
   else if (owner.totp_enabled) {
-    const secret = await totpSecret(env, owner);
-    const step = secret ? await verifyTotp(secret, code, t, owner.totp_last_step) : -1;
-    if (!(await claimTotpStep(env.DB, step))) why = "totp";
+    // `recovery` is passed by totpDisable only (lost phone): a one-time recovery code instead of the 6-digit code
+    if (typeof recovery === "string" && recovery.trim() !== "") { if (!(await claimRecovery(env.DB, recovery, t))) why = "totp"; }
+    else {
+      const secret = await totpSecret(env, owner);
+      const step = secret ? await verifyTotp(secret, code, t, owner.totp_last_step) : -1;
+      if (!(await claimTotpStep(env.DB, step))) why = "totp";
+    }
   }
   if (!why) {
     if (sess && sess.idHash) await env.DB.prepare("UPDATE admin_sessions SET reauth_fails = 0 WHERE id_hash = ?1").bind(sess.idHash).run();
@@ -327,7 +346,7 @@ export async function changePassword(env, sess, body) {
   const owner = await getOwner(env.DB);
   await reauth(env, owner, body.current, body.totp, sess);
   const problem = passwordProblem(body.next);
-  if (problem) throw new HttpError(400, problem);
+  if (problem) throw new HttpError(400, problem, { code: "weak_password" });
   const t = now();
   await env.DB.prepare("UPDATE admin_users SET password_hash = ?1, updated_at = ?2, password_changed_at = ?2 WHERE id = 1")
     .bind(await hashPassword(body.next), t).run();
@@ -340,7 +359,7 @@ export async function changePassword(env, sess, body) {
 // ---- TOTP ------------------------------------------------------------------------------------------------------------
 async function kekOrFail(env) {
   const kek = await importKek(env.SECRETS_KEK);
-  if (!kek) throw new HttpError(503, "SECRETS_KEK secret is not set (needed to store the TOTP secret encrypted)");
+  if (!kek) throw new HttpError(503, "SECRETS_KEK secret is not set (needed to store the TOTP secret encrypted)", { code: "totp_unavailable" });
   return kek;
 }
 
@@ -353,7 +372,7 @@ async function totpSecret(env, owner) {
 
 export async function totpSetup(env, body = {}, sess = null) {
   const owner = await getOwner(env.DB);
-  if (owner.totp_enabled) throw new HttpError(409, "TOTP already enabled — disable it first");
+  if (owner.totp_enabled) throw new HttpError(409, "TOTP already enabled — disable it first", { code: "totp_already_on" });
   await reauth(env, owner, body.password, null, sess); // TOTP is off here: password only, rate limited per session
   const kek = await kekOrFail(env);
   const secret = base32Encode(randomBytes(20));
@@ -367,18 +386,79 @@ export async function totpSetup(env, body = {}, sess = null) {
 export async function totpEnable(env, body) {
   const owner = await getOwner(env.DB);
   const secret = await totpSecret(env, owner);
-  if (!secret) throw new HttpError(400, "run TOTP setup first");
+  if (owner.totp_enabled) throw new HttpError(409, "TOTP already enabled — disable it first", { code: "totp_already_on" });
+  if (!secret) throw new HttpError(400, "run TOTP setup first", { code: "totp_not_started" });
   const step = await verifyTotp(secret, body.code, now(), owner.totp_last_step);
-  if (!(await claimTotpStep(env.DB, step))) throw new HttpError(400, "invalid TOTP code");
-  await env.DB.prepare("UPDATE admin_users SET totp_enabled = 1, updated_at = ?1 WHERE id = 1").bind(now()).run();
-  await audit(env, "owner", "totp.enabled");
-  return { ok: true };
+  if (!(await claimTotpStep(env.DB, step))) throw new HttpError(400, "invalid TOTP code", { code: "invalid_totp" });
+  // only the request that flips 0 -> 1 issues the recovery codes (two parallel enables cannot both hand out a set)
+  const on = await env.DB.prepare("UPDATE admin_users SET totp_enabled = 1, updated_at = ?1 WHERE id = 1 AND totp_enabled = 0").bind(now()).run();
+  if (!on.meta || !on.meta.changes) throw new HttpError(409, "TOTP already enabled — disable it first", { code: "totp_already_on" });
+  let recovery_codes;
+  try { recovery_codes = await issueRecoveryCodes(env.DB); }
+  catch (e) {
+    // never leave 2-step on without recovery codes (for example: migration 0011 not applied yet)
+    await env.DB.prepare("UPDATE admin_users SET totp_enabled = 0, updated_at = ?1 WHERE id = 1").bind(now()).run();
+    throw e;
+  }
+  await audit(env, "owner", "totp.enabled", { recovery_codes: recovery_codes.length });
+  return { ok: true, recovery_codes };
+}
+
+// ---- recovery codes --------------------------------------------------------------------------------------------------
+export const RECOVERY_CODES = 10;
+const RECOVERY_RE = /^[A-Z2-7]{10}$/;
+/** "abcde-fghij", "ABCDE FGHIJ" … -> "ABCDEFGHIJ" (or "" when it cannot be a recovery code). */
+function normRecovery(code) {
+  const n = String(code == null ? "" : code).toUpperCase().replace(/[\s-]/g, "");
+  return RECOVERY_RE.test(n) ? n : "";
+}
+const recoveryHash = n => sha256Hex("recovery:" + n);
+
+/** Replaces every recovery code with a fresh set (50 random bits each); returns the plain codes ONCE. */
+async function issueRecoveryCodes(db) {
+  const t = now(), codes = [], stmts = [db.prepare("DELETE FROM admin_recovery_codes")];
+  for (let i = 0; i < RECOVERY_CODES; i++) {
+    const n = base32Encode(randomBytes(10)).slice(0, 10);
+    codes.push(n.slice(0, 5) + "-" + n.slice(5));
+    stmts.push(db.prepare("INSERT OR IGNORE INTO admin_recovery_codes (hash, created_at) VALUES (?1, ?2)").bind(await recoveryHash(n), t));
+  }
+  await db.batch(stmts);
+  return codes;
+}
+
+/** Claims one unused recovery code atomically: a code works exactly once, also under parallel requests. */
+async function claimRecovery(db, code, t) {
+  const n = normRecovery(code);
+  if (!n) return false;
+  const h = await recoveryHash(n);
+  // READ first: over the hour's write ceiling, login runs on a buffering database view (tester.js bufferDb) whose write
+  // statements report "1 row changed" without running. The read is always real, so an unknown code is refused there too.
+  const row = await db.prepare("SELECT hash FROM admin_recovery_codes WHERE hash = ?1 AND used_at IS NULL").bind(h).first();
+  if (!row) return false;
+  const r = await db.prepare("UPDATE admin_recovery_codes SET used_at = ?1 WHERE hash = ?2 AND used_at IS NULL").bind(t, h).run();
+  return !!(r.meta && r.meta.changes);
+}
+
+export async function recoveryLeft(db) {
+  const r = await db.prepare("SELECT COUNT(*) AS n FROM admin_recovery_codes WHERE used_at IS NULL").first();
+  return r ? Number(r.n) : 0;
+}
+
+/** POST /admin/api/totp/recovery {password, totp}: a new set of codes; the old ones stop working. */
+export async function recoveryRegenerate(env, body, sess = null) {
+  const owner = await getOwner(env.DB);
+  if (!owner.totp_enabled) throw new HttpError(409, "turn on TOTP first", { code: "totp_off" });
+  await reauth(env, owner, body && body.password, body && body.totp, sess);
+  const recovery_codes = await issueRecoveryCodes(env.DB);
+  await audit(env, "owner", "recovery.regenerated");
+  return { ok: true, recovery_codes };
 }
 
 export async function totpDisable(env, body, sess = null) {
   const owner = await getOwner(env.DB);
-  await reauth(env, owner, body.password, body.code, sess);
+  await reauth(env, owner, body.password, body.code, sess, now(), body.recovery);
   await env.DB.prepare("UPDATE admin_users SET totp_enabled = 0, totp_secret_enc = NULL, updated_at = ?1 WHERE id = 1").bind(now()).run();
+  await env.DB.prepare("DELETE FROM admin_recovery_codes").run();
   // weaker login from now on: sign out every other session and forget trusted devices (they must log in again)
   const others = await env.DB.prepare("DELETE FROM admin_sessions WHERE id_hash != ?1").bind(sess ? sess.idHash : "").run();
   const devs = await env.DB.prepare("DELETE FROM admin_devices").run();

@@ -18,52 +18,120 @@
 <meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0e1430">
-<title>LENSIQ Admin</title>
+<title>LENSIQ หลังบ้าน</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="admin.css?v=2">
+<link rel="stylesheet" href="admin.css?v=3">
 </head>
 <body>
 <!-- Back office for the LENSIQ API Worker (backend/, docs/BACKEND.md). Not linked from any page; static shell only —
      every piece of data comes from the Worker after the owner signs in. -->
 <header class="ad-top">
-  <span class="ad-brand">LENS<b>IQ</b> <small>Admin</small></span>
-  <span id="adConn" class="ad-pill">…</span>
-  <button id="adLogout" class="ad-btn ad-ghost" type="button" hidden>ออกจากระบบ</button>
+  <span class="ad-brand">
+    <svg class="ad-mark" viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
+      <rect x="1" y="1" width="30" height="30" rx="9" fill="#0e1430" stroke="#22d3ee" stroke-opacity=".35"/>
+      <path d="M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4" fill="none" stroke="#22d3ee" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="16" cy="16" r="3.4" fill="#22d3ee"/>
+    </svg>
+    <span>LENS<b>IQ</b></span> <small data-i18n="adm.brand">หลังบ้าน</small>
+  </span>
+  <span id="adConn" class="ad-pill" hidden>…</span>
+  <label class="ad-lang"><span class="ad-sr" data-i18n="adm.lang">ภาษา</span>
+    <select id="adLang"><option value="th">ไทย</option><option value="en">English</option><option value="zh">中文</option></select></label>
+  <button id="adLogout" class="ad-btn ad-ghost" type="button" hidden data-i18n="adm.logout">ออกจากระบบ</button>
 </header>
 
 <main id="adMain" class="ad-main">
-  <section id="adOffline" class="ad-card" hidden>
-    <h1>ยังไม่ได้ตั้งค่า API</h1>
-    <p>หน้านี้ใช้กับ Cloudflare Worker ใน <code>backend/</code> เท่านั้น ตั้ง <code>window.LENSIQ_API_BASE</code> ใน <code>lensiq-config.js</code>
-      แล้วรัน <code>node tools/csp-meta.mjs</code> (เพิ่ม origin ของ API ใน CSP) — ดูขั้นตอนใน <code>docs/BACKEND.md</code></p>
+  <section id="adOffline" class="ad-card ad-auth" hidden>
+    <h1 data-i18n="adm.off.h">หลังบ้านยังไม่พร้อมใช้งาน</h1>
+    <p data-i18n="adm.off.p">หน้านี้ยังไม่ได้เชื่อมต่อกับระบบของ LENSIQ กรุณาเปิดหน้านี้จากลิงก์ที่ผู้ดูแลระบบให้ไว้ หรือติดต่อผู้ดูแลระบบ</p>
   </section>
 
-  <section id="adBoot" class="ad-card" hidden>
-    <h1>ตั้งค่าบัญชีเจ้าของระบบ (ครั้งแรก)</h1>
-    <p class="ad-muted">ใช้ <code>ADMIN_BOOTSTRAP_TOKEN</code> ที่ตั้งด้วย <code>wrangler secret put</code> ใช้ได้ครั้งเดียว — ลบ secret นั้นหลังตั้งค่าเสร็จ</p>
-    <form id="adBootForm" class="ad-form" autocomplete="off">
-      <label>Bootstrap token <input name="token" type="password" required minlength="32" autocomplete="off"></label>
-      <label>ชื่อผู้ใช้ <input name="username" value="owner" required pattern="[A-Za-z0-9._@-]{3,64}" autocomplete="username"></label>
-      <label>รหัสผ่าน (อย่างน้อย 12 ตัวอักษร) <input name="password" type="password" required minlength="12" autocomplete="new-password"></label>
-      <button class="ad-btn" type="submit">สร้างบัญชี</button>
+  <!-- First run: shown only while no owner account exists (GET /admin/api/state). Three steps: account, 2-step
+       verification, recovery codes. The setup code is checked by the Worker; it is never stored by this page. -->
+  <section id="adBoot" class="ad-card ad-auth" hidden>
+    <ol class="ad-steps" data-step="1" aria-label="ขั้นตอนการตั้งค่า" data-i18n-attr="aria-label:adm.steps">
+      <li data-i18n="adm.step1">สร้างบัญชี</li><li data-i18n="adm.step2">ยืนยันตัวตนสองชั้น</li><li data-i18n="adm.step3">รหัสกู้คืน</li>
+    </ol>
+    <h1 data-i18n="adm.boot.h">ตั้งค่าครั้งแรก</h1>
+    <p class="ad-lede" data-i18n="adm.boot.p">สร้างบัญชีเจ้าของระบบ บัญชีนี้มีได้บัญชีเดียวและเป็นบัญชีที่ควบคุมการตั้งค่าทั้งหมด</p>
+    <p class="ad-alert" data-auth-msg role="alert" hidden></p>
+    <form id="adBootForm" class="ad-form" autocomplete="off" novalidate>
+      <label><span data-i18n="adm.boot.token">รหัสตั้งค่าครั้งแรก</span>
+        <span class="ad-field"><input id="adBootToken" name="token" type="password" required autocomplete="off" autocapitalize="none" spellcheck="false">
+          <button type="button" class="ad-eye" data-eye="adBootToken" data-i18n="adm.show">แสดง</button></span>
+        <small data-i18n="adm.boot.tokenHint">รหัสยาวที่ระบบแสดงให้ครั้งเดียวตอนติดตั้ง วางได้ทั้งชุด</small></label>
+      <label><span data-i18n="adm.user">ชื่อผู้ใช้</span>
+        <input name="username" required autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="64">
+        <small data-i18n="adm.boot.userHint">3 ถึง 64 ตัว ใช้ตัวอักษรอังกฤษ ตัวเลข จุด ขีด ขีดล่าง หรือ @</small></label>
+      <label><span data-i18n="adm.boot.pw">ตั้งรหัสผ่าน</span>
+        <span class="ad-field"><input id="adBootPw" name="password" type="password" required autocomplete="new-password" maxlength="200">
+          <button type="button" class="ad-eye" data-eye="adBootPw" data-i18n="adm.show">แสดง</button></span>
+        <small data-i18n="adm.boot.pwHint">อย่างน้อย 12 ตัวอักษร ยิ่งยาวยิ่งดี ไม่ใช้ตัวอักษรซ้ำกันเกือบทั้งหมด</small></label>
+      <label><span data-i18n="adm.boot.pw2">พิมพ์รหัสผ่านอีกครั้ง</span>
+        <input id="adBootPw2" name="password2" type="password" required autocomplete="new-password" maxlength="200"></label>
+      <button class="ad-btn ad-wide" type="submit" data-i18n="adm.boot.go">สร้างบัญชีและไปขั้นถัดไป</button>
     </form>
   </section>
 
-  <section id="adLogin" class="ad-card" hidden>
-    <h1>เข้าสู่ระบบ</h1>
-    <form id="adLoginForm" class="ad-form">
-      <label>ชื่อผู้ใช้ <input name="username" required autocomplete="username"></label>
-      <label>รหัสผ่าน <input name="password" type="password" required autocomplete="current-password"></label>
-      <label>รหัส TOTP (ถ้าเปิดใช้) <input name="totp" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="one-time-code"></label>
-      <label>โหมดเซสชัน
-        <select name="mode">
-          <option value="auto">อัตโนมัติ</option>
-          <option value="cookie">คุกกี้ httpOnly (หน้า admin เปิดจาก Worker เอง — origin เดียวกับ API)</option>
-          <option value="bearer">Bearer token ในหน่วยความจำ (หน้า admin อยู่คนละ origin เช่น github.io)</option>
-        </select>
-      </label>
-      <button class="ad-btn" type="submit">เข้าสู่ระบบ</button>
+  <section id="adLogin" class="ad-card ad-auth" hidden>
+    <h1 data-i18n="adm.login.h">เข้าสู่ระบบหลังบ้าน</h1>
+    <p class="ad-lede" data-i18n="adm.login.p">สำหรับเจ้าของระบบ LENSIQ เท่านั้น</p>
+    <p class="ad-alert" data-auth-msg role="alert" hidden></p>
+    <form id="adLoginForm" class="ad-form" novalidate>
+      <label><span data-i18n="adm.user">ชื่อผู้ใช้</span>
+        <input name="username" required autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="64"></label>
+      <label><span data-i18n="adm.pw">รหัสผ่าน</span>
+        <span class="ad-field"><input id="adLoginPw" name="password" type="password" required autocomplete="current-password" maxlength="200">
+          <button type="button" class="ad-eye" data-eye="adLoginPw" data-i18n="adm.show">แสดง</button></span></label>
+      <label id="adLoginCodeL"><span data-i18n="adm.login.code">รหัส 6 หลักจากแอปยืนยันตัวตน</span>
+        <input name="totp" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
+        <small data-i18n="adm.login.codeHint">เว้นว่างได้ถ้ายังไม่ได้เปิดการยืนยันตัวตนสองชั้น</small></label>
+      <label id="adLoginRecL" hidden><span data-i18n="adm.login.rec">รหัสกู้คืน</span>
+        <input name="recovery" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="24" placeholder="XXXXX-XXXXX">
+        <small data-i18n="adm.login.recHint">รหัสกู้คืนแต่ละรหัสใช้ได้ครั้งเดียว</small></label>
+      <button class="ad-btn ad-wide" type="submit" data-i18n="adm.login.go">เข้าสู่ระบบ</button>
+      <button type="button" class="ad-link" id="adLoginSwap" data-i18n="adm.login.useRec">ไม่มีโทรศัพท์อยู่กับตัว ใช้รหัสกู้คืนแทน</button>
     </form>
+  </section>
+
+  <!-- 2-step verification: step 2 of the first run, and offered after a sign-in while it is still off -->
+  <section id="adTwo" class="ad-card ad-auth" hidden>
+    <ol class="ad-steps" data-step="2" aria-label="ขั้นตอนการตั้งค่า" data-i18n-attr="aria-label:adm.steps">
+      <li data-i18n="adm.step1">สร้างบัญชี</li><li data-i18n="adm.step2">ยืนยันตัวตนสองชั้น</li><li data-i18n="adm.step3">รหัสกู้คืน</li>
+    </ol>
+    <h1 data-i18n="adm.two.h">เปิดการยืนยันตัวตนสองชั้น</h1>
+    <p class="ad-lede" data-i18n="adm.two.p">นอกจากรหัสผ่าน ทุกครั้งที่เข้าสู่ระบบจะต้องใช้รหัส 6 หลักจากโทรศัพท์ของคุณ คนที่รู้แค่รหัสผ่านจึงเข้าไม่ได้</p>
+    <p class="ad-alert" data-auth-msg role="alert" hidden></p>
+    <ol class="ad-how">
+      <li data-i18n="adm.two.s1">เปิดแอปยืนยันตัวตนบนโทรศัพท์ เช่น Google Authenticator หรือ Microsoft Authenticator</li>
+      <li data-i18n="adm.two.s2">สแกนคิวอาร์โค้ดนี้ หรือพิมพ์รหัสตั้งค่าด้านล่างลงในแอป</li>
+    </ol>
+    <div id="adTwoQr" class="ad-qr ad-qr-c"></div>
+    <p class="ad-key"><span data-i18n="adm.two.key">รหัสตั้งค่า (ถ้าสแกนไม่ได้)</span><br><code id="adTwoKey" translate="no"></code>
+      <button type="button" class="ad-link" id="adTwoCopy" data-i18n="adm.copy">คัดลอก</button></p>
+    <form id="adTwoForm" class="ad-form" novalidate>
+      <label><span data-i18n="adm.two.s3">กรอกรหัส 6 หลักที่แอปแสดง</span>
+        <input name="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required></label>
+      <button class="ad-btn ad-wide" type="submit" data-i18n="adm.two.go">ยืนยันและเปิดใช้</button>
+      <button type="button" class="ad-link" id="adTwoSkip" hidden data-i18n="adm.two.skip">ไว้ทำภายหลัง</button>
+    </form>
+  </section>
+
+  <section id="adCodes" class="ad-card ad-auth" hidden>
+    <ol class="ad-steps" data-step="3" aria-label="ขั้นตอนการตั้งค่า" data-i18n-attr="aria-label:adm.steps">
+      <li data-i18n="adm.step1">สร้างบัญชี</li><li data-i18n="adm.step2">ยืนยันตัวตนสองชั้น</li><li data-i18n="adm.step3">รหัสกู้คืน</li>
+    </ol>
+    <h1 data-i18n="adm.codes.h">เก็บรหัสกู้คืนไว้ในที่ปลอดภัย</h1>
+    <p class="ad-lede" data-i18n="adm.codes.p">ถ้าโทรศัพท์หายหรือเปลี่ยนเครื่อง ใช้รหัสเหล่านี้แทนรหัส 6 หลักได้ รหัสละหนึ่งครั้ง ระบบจะไม่แสดงรหัสชุดนี้อีก</p>
+    <p class="ad-alert" data-auth-msg role="alert" hidden></p>
+    <ol id="adCodesList" class="ad-codes" translate="no"></ol>
+    <div class="ad-row ad-row-c">
+      <button type="button" class="ad-btn ad-ghost" id="adCodesCopy" data-i18n="adm.codes.copy">คัดลอกทั้งหมด</button>
+      <button type="button" class="ad-btn ad-ghost" id="adCodesSave" data-i18n="adm.codes.save">บันทึกเป็นไฟล์</button>
+    </div>
+    <p class="ad-warn" data-i18n="adm.codes.warn">อย่าเก็บรหัสเหล่านี้ไว้ที่เดียวกับรหัสผ่าน และอย่าส่งให้ผู้อื่น</p>
+    <label class="ad-inline"><input type="checkbox" id="adCodesOk"> <span data-i18n="adm.codes.ok">ฉันเก็บรหัสกู้คืนไว้เรียบร้อยแล้ว</span></label>
+    <button class="ad-btn ad-wide" type="button" id="adCodesDone" disabled data-i18n="adm.codes.done">เสร็จสิ้น เข้าสู่หลังบ้าน</button>
   </section>
 
   <section id="adApp" hidden>
@@ -113,13 +181,12 @@
         </form>
       </div>
       <div class="ad-card">
-        <h2>API key</h2>
+        <h2>คีย์ของผู้ให้บริการ AI (Anthropic)</h2>
         <p id="adKeyStatus" class="ad-muted"></p>
         <p id="adKeyLegacy" class="ad-warn" role="status" hidden></p>
-        <p class="ad-muted">แนะนำ: <code>cd backend &amp;&amp; npx wrangler secret put ANTHROPIC_API_KEY</code> — คีย์ไม่ผ่านเบราว์เซอร์เลย
-          ช่องด้านล่างใช้เมื่อจำเป็นเท่านั้น: เข้ารหัส AES-GCM ด้วย <code>SECRETS_KEK</code> ก่อนเก็บ และจะไม่ถูกส่งกลับมาที่เบราว์เซอร์อีก</p>
+        <p class="ad-muted">คีย์ที่ตั้งไว้บนเซิร์ฟเวอร์ตอนติดตั้งจะถูกใช้ก่อนเสมอ ช่องด้านล่างใช้เมื่อจำเป็นเท่านั้น คีย์จะถูกเข้ารหัสก่อนเก็บ และจะไม่ถูกส่งกลับมาแสดงอีก</p>
         <form id="adKeyForm" class="ad-form" autocomplete="off">
-          <label>Anthropic API key <input name="key" type="password" autocomplete="off" pattern="sk-ant-[A-Za-z0-9_-]{20,300}"></label>
+          <label>คีย์ Anthropic <input name="key" type="password" autocomplete="off" pattern="sk-ant-[A-Za-z0-9_-]{20,300}"></label>
           <div class="ad-row"><button class="ad-btn" type="submit">บันทึกแบบเข้ารหัส</button><button class="ad-btn ad-ghost" type="button" id="adKeyDel">ลบคีย์ที่เก็บไว้</button></div>
         </form>
       </div>
@@ -136,7 +203,7 @@
           ผู้ใช้ต้องกดยินยอมก่อนทุกครั้ง ถ้างบหมดหรือถึงขีดจำกัด ผู้ใช้จะเห็นผลจากในเครื่องแทน</p>
         <label class="ad-inline"><input type="checkbox" id="adgOn"> <span data-i18n="adg.global">เปิดใช้ AI ทั้งระบบ (ติดตั้งใหม่: ปิด) — ผู้ช่วยเขียนคำทำนายใช้สวิตช์เดิมของตัวเอง</span></label>
         <label class="ad-inline"><input type="checkbox" id="adgLegacy">
-          <span data-i18n="adg.legacy">อ่านคีย์ Anthropic ที่เก็บแบบเข้ารหัสจากแท็บ "ตั้งค่า AI" (แบบเดิม ค่าเริ่มต้น: ปิด — ใช้ Worker secret ก่อนเสมอ)</span></label>
+          <span data-i18n="adg.legacy">อ่านคีย์ Anthropic ที่เก็บแบบเข้ารหัสจากแท็บ "ตั้งค่า AI" (แบบเดิม ค่าเริ่มต้น: ปิด — คีย์ที่ตั้งบนเซิร์ฟเวอร์ถูกใช้ก่อนเสมอ)</span></label>
         <p class="ad-muted"><span data-i18n="adg.lastEval">วันที่ประเมินโมเดลครั้งล่าสุด</span>: <b id="adgEval">—</b></p>
       </div>
       <div class="ad-card">
@@ -170,7 +237,7 @@
         <div id="adQr" class="ad-qr"></div>
       </div>
       <div class="ad-card"><h2>รายการชำระเงิน</h2><div id="adPayments"></div></div>
-      <div class="ad-card"><h2>Webhooks</h2><div id="adWebhooks"></div></div>
+      <div class="ad-card"><h2>การแจ้งผลจากผู้ให้บริการชำระเงิน</h2><div id="adWebhooks"></div></div>
       <div class="ad-card"><h2>แพ็กเกจ (ร่าง)</h2><div id="adPlans"></div></div>
     </div>
 
@@ -204,19 +271,22 @@
 
     <div class="ad-panel" data-panel="security" role="tabpanel" hidden>
       <div class="ad-card">
-        <h2>ยืนยันตัวตนสองชั้น (TOTP)</h2>
+        <h2 data-i18n="adm.sec.h">ยืนยันตัวตนสองชั้น</h2>
         <p id="adTotpState" class="ad-muted"></p>
-        <div class="ad-row"><label>รหัสผ่าน (ยืนยันตัวตนอีกครั้ง) <input id="adTotpPw" type="password" autocomplete="current-password"></label><button class="ad-btn" type="button" id="adTotpSetup">ตั้งค่า TOTP</button></div>
-        <div id="adTotpBox" hidden>
-          <p>เพิ่มรหัสนี้ในแอป Authenticator แล้วกรอกรหัส 6 หลักเพื่อยืนยัน</p>
-          <p><code id="adTotpSecret" class="ad-break"></code></p>
-          <p class="ad-muted ad-break" id="adTotpUri"></p>
-          <form id="adTotpEnable" class="ad-row"><input name="code" inputmode="numeric" pattern="\d{6}" maxlength="6" required aria-label="รหัส 6 หลัก"><button class="ad-btn" type="submit">ยืนยันและเปิดใช้</button></form>
+        <div class="ad-row" id="adTotpOn">
+          <label><span data-i18n="adm.sec.pw">รหัสผ่าน (ยืนยันว่าเป็นคุณ)</span> <input id="adTotpPw" type="password" autocomplete="current-password"></label>
+          <button class="ad-btn" type="button" id="adTotpSetup" data-i18n="adm.sec.on">เปิดการยืนยันตัวตนสองชั้น</button>
+        </div>
+        <div id="adRecBox" hidden>
+          <p><span data-i18n="adm.sec.left">รหัสกู้คืนที่ยังใช้ได้</span>: <b id="adRecLeft">0</b></p>
+          <button class="ad-btn ad-ghost" type="button" id="adRecNew" data-i18n="adm.sec.new">สร้างรหัสกู้คืนชุดใหม่ (ชุดเดิมจะใช้ไม่ได้)</button>
         </div>
         <form id="adTotpDisable" class="ad-form" hidden>
-          <label>รหัสผ่าน <input name="password" type="password" required autocomplete="current-password"></label>
-          <label>รหัส TOTP <input name="code" inputmode="numeric" pattern="\d{6}" maxlength="6" required></label>
-          <button class="ad-btn ad-ghost" type="submit">ปิด TOTP</button>
+          <h3 data-i18n="adm.sec.offH">ปิดการยืนยันตัวตนสองชั้น</h3>
+          <label><span data-i18n="adm.pw">รหัสผ่าน</span> <input name="password" type="password" required autocomplete="current-password"></label>
+          <label><span data-i18n="adm.sec.code">รหัส 6 หลัก หรือรหัสกู้คืน</span>
+            <input name="code" maxlength="24" required autocomplete="one-time-code" autocapitalize="characters" spellcheck="false"></label>
+          <button class="ad-btn ad-ghost" type="submit" data-i18n="adm.sec.off">ปิดการยืนยันตัวตนสองชั้น</button>
         </form>
       </div>
       <div class="ad-card">
@@ -224,11 +294,11 @@
         <form id="adPw" class="ad-form">
           <label>รหัสผ่านปัจจุบัน <input name="current" type="password" required autocomplete="current-password"></label>
           <label>รหัสผ่านใหม่ (อย่างน้อย 12 ตัวอักษร) <input name="next" type="password" required minlength="12" autocomplete="new-password"></label>
-          <label>รหัส TOTP (ถ้าเปิดใช้) <input name="totp" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="one-time-code"></label>
+          <label>รหัส 6 หลักจากแอปยืนยันตัวตน (ถ้าเปิดใช้) <input name="totp" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="one-time-code"></label>
           <button class="ad-btn" type="submit">เปลี่ยนรหัสผ่าน (ออกจากระบบอุปกรณ์อื่น)</button>
         </form>
       </div>
-      <div class="ad-card"><h2>บันทึกการตรวจสอบ (audit log)</h2><div id="adAudit"></div></div>
+      <div class="ad-card"><h2>บันทึกการใช้งานหลังบ้าน</h2><div id="adAudit"></div></div>
     </div>
 
     <div class="ad-panel" data-panel="retention" role="tabpanel" hidden>
@@ -242,10 +312,11 @@
   </section>
   <p id="adMsg" class="ad-msg" role="status" aria-live="polite"></p>
 </main>
-<script src="i18n/zh-admin.js?v=1"></script>
+<script src="i18n/zh-admin.js?v=2"></script>
 <script src="lensiq-i18n.js?v=1"></script>
+<script src="attendance-qr.js?v=1"></script>
 <script src="lensiq-api.js?v=2"></script>
 <script src="lensiq-config.js?v=3"></script>
-<script src="admin.js?v=3"></script>
+<script src="admin.js?v=4"></script>
 </body>
 </html>

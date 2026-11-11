@@ -9,14 +9,14 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { ALLOWED } from "./lib/cf-guard.mjs";
+import { ALLOWED, DOMAINS_FILE, approvedApiHosts, isOwnApiHost } from "./lib/cf-guard.mjs";
 import { SITE_CONFIG, isTurnstileSiteKey, readSiteConfig } from "./build-site.mjs";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const NOTE = "Closed-test site config, read by tools/build-site.mjs. apiBase empty = inactive (the site is built exactly as without this file). " +
   "Set it with: npm run site:set-api -- --api-base https://lensiq-api-test.<subdomain>.workers.dev --sitekey <Turnstile SITE key>";
 
-/** @param {string[]} argv @param {{file?: string, print?: (s: string) => void}} [io] */
+/** @param {string[]} argv @param {{file?: string, domains?: string, print?: (s: string) => void}} [io] */
 export function main(argv, io = {}) {
   const print = io.print || (s => console.log(s));
   const file = io.file || join(repo, SITE_CONFIG);
@@ -28,9 +28,12 @@ export function main(argv, io = {}) {
   if (!clear) {
     let host = "";
     try { host = new URL(apiBase).hostname; } catch { /* reported below */ }
-    // the public site may only be pointed at LENSIQ's own test Worker
-    if (!new RegExp(`^${ALLOWED.worker}\\.[a-z0-9-]+\\.workers\\.dev$`).test(host) || apiBase !== "https://" + host) {
-      print(`REFUSED: --api-base must be https://${ALLOWED.worker}.<your-subdomain>.workers.dev (no path).`);
+    // the public site may only be pointed at LENSIQ's own test Worker: its workers.dev host, or a custom hostname the
+    // owner approved in deploy/domains.json (docs/CUSTOM-DOMAIN.md)
+    let approved;
+    try { approved = approvedApiHosts(io.domains || join(repo, DOMAINS_FILE), p => readFileSync(p, "utf8")); } catch (e) { print("REFUSED: " + e.message); return 3; }
+    if (!isOwnApiHost(host, approved) || apiBase !== "https://" + host) {
+      print(`REFUSED: --api-base must be https://${ALLOWED.worker}.<your-subdomain>.workers.dev or https://<a hostname listed in ${DOMAINS_FILE}> (no path).`);
       return 3;
     }
     if (!sitekey) { print("REFUSED: --sitekey <Turnstile SITE key> is required (AI calls are refused without Turnstile)."); return 2; }

@@ -2,7 +2,12 @@
  *
  * Session: cookie mode (httpOnly __Host- cookie, credentials:"include", X-CSRF-Token on writes) when the page is served
  * from the API's own ORIGIN (recommended: the Worker serves admin.html at https://admin.<domain>, docs/BACKEND.md);
- * bearer mode (token kept in memory only — gone on reload) for any other origin. The only thing kept in localStorage is
+ * bearer mode (token kept in memory only — gone on reload) for any other origin. The mode is chosen automatically
+ * (sessionMode); nothing on the page offers it. Developers only: localStorage "lq-admin-dev" = "1" lets ?session=cookie
+ * or ?session=bearer override it and shows the API host in the header.
+ * First run (no owner yet): setup code + username + password -> signs in -> 2-step verification (QR drawn on this
+ * device by attendance-qr.js; the secret never goes into a URL) -> ten one-time recovery codes. Passwords and the setup
+ * code are only ever sent to the Worker; nothing secret is written to storage or logged. The only thing kept in localStorage is
  * the trusted-device token (it exempts this browser from the login slow-down but never replaces the password/TOTP).
  * All server data is rendered with textContent (no innerHTML of server strings).
  */
@@ -11,6 +16,13 @@
   var $ = function (/** @type {string} */ id) { return /** @type {any} */ (document.getElementById(id)); };
   var API = /** @type {any} */ (window).LQApi;
   var state = { mode: "cookie", token: "", csrf: "", me: /** @type {any} */ (null) };
+  /** Text in the current language: Thai is the default text given here; English / Chinese come from i18n/*-admin.js.
+   *  @param {string} key @param {string} thai @param {Record<string, any>} [vars] */
+  var G = function (key, thai, vars) {
+    var I = /** @type {any} */ (window).LQI18N;
+    return I && typeof I.tf === "function" ? I.tf(key, thai, vars) : thai.replace(/\{(\w+)\}/g, function (m, k) { return vars && vars[k] != null ? String(vars[k]) : m; });
+  };
+  var gLang = function () { var I = /** @type {any} */ (window).LQI18N; return I && (I.lang === "en" || I.lang === "zh") ? I.lang : "th"; };
 
   /** @param {string} tag @param {Record<string, any>} [attrs] @param {...any} kids */
   function h(tag, attrs) {
@@ -51,6 +63,7 @@
       return r.json().catch(function () { return {}; }).then(function (j) {
         if (!r.ok) {
           var e = /** @type {any} */ (new Error(j.error || ("HTTP " + r.status))); e.status = r.status; e.code = j.code;
+          e.retry = Number(r.headers.get("Retry-After")) || 0;
           // round 11: sensitive edits need a recent re-auth — ask once, open the 5-min window (POST /reauth), retry once
           if (j.code === "reauth_required" && !opt.noReauth && path !== "/reauth") {
             return askReauth().then(function (/** @type {any} */ cred) {
@@ -82,15 +95,16 @@
       var f = document.createElement("form");
       f.method = "dialog";
       var p = document.createElement("p");
-      p.textContent = "ยืนยันรหัสผ่านอีกครั้งก่อนแก้ไขรายการสำคัญ (มีผล 5 นาที)";
+      p.textContent = G("adm.re.p", "ยืนยันรหัสผ่านอีกครั้งก่อนแก้ไขรายการสำคัญ (มีผล 5 นาที)");
       var pw = document.createElement("input");
-      pw.type = "password"; pw.autocomplete = "current-password"; pw.required = true; pw.placeholder = "รหัสผ่าน";
-      pw.setAttribute("aria-label", "รหัสผ่าน");
+      pw.type = "password"; pw.autocomplete = "current-password"; pw.required = true; pw.placeholder = G("adm.pw", "รหัสผ่าน");
+      pw.setAttribute("aria-label", G("adm.pw", "รหัสผ่าน"));
       var tp = document.createElement("input");
-      tp.inputMode = "numeric"; tp.autocomplete = "one-time-code"; tp.placeholder = "รหัส TOTP 6 หลัก"; tp.setAttribute("aria-label", "รหัส TOTP");
+      tp.inputMode = "numeric"; tp.autocomplete = "one-time-code"; tp.placeholder = G("adm.re.code", "รหัส 6 หลักจากแอปยืนยันตัวตน");
+      tp.setAttribute("aria-label", G("adm.re.code", "รหัส 6 หลักจากแอปยืนยันตัวตน"));
       tp.hidden = !(state.me && state.me.totp_enabled);
-      var ok = document.createElement("button"); ok.type = "submit"; ok.value = "ok"; ok.textContent = "ยืนยัน";
-      var no = document.createElement("button"); no.type = "submit"; no.value = "cancel"; no.formNoValidate = true; no.textContent = "ยกเลิก";
+      var ok = document.createElement("button"); ok.type = "submit"; ok.value = "ok"; ok.textContent = G("adm.re.ok", "ยืนยัน");
+      var no = document.createElement("button"); no.type = "submit"; no.value = "cancel"; no.formNoValidate = true; no.textContent = G("adm.re.no", "ยกเลิก");
       f.append(p, pw, tp, ok, no);
       d.appendChild(f);
       document.body.appendChild(d);
@@ -114,59 +128,232 @@
     set: function (/** @type {string} */ v) { try { localStorage.setItem(DEV_KEY, v); } catch (e) { /* private mode */ } }
   };
 
+  var SCREENS = ["adOffline", "adBoot", "adLogin", "adTwo", "adCodes", "adApp"];
   function show(/** @type {string} */ which) {
-    ["adOffline", "adBoot", "adLogin", "adApp"].forEach(function (id) { $(id).hidden = id !== which; });
+    SCREENS.forEach(function (id) { $(id).hidden = id !== which; });
     $("adLogout").hidden = which !== "adApp";
+    amsg("");
+    var first = $(which).querySelector("input:not([type=checkbox]), button.ad-wide");
+    if (first && which !== "adApp") try { first.focus({ preventScroll: true }); } catch (e) { /* older browsers */ }
+  }
+  /** Message inside the visible sign-in / setup card (role=alert: read out, and next to the form, not below the page).
+   *  @param {string} t @param {boolean} [bad] */
+  function amsg(t, bad) {
+    document.querySelectorAll("[data-auth-msg]").forEach(function (m) {
+      var on = !!t && !(/** @type {HTMLElement} */ (m.closest("section"))).hidden;
+      m.textContent = on ? t : ""; /** @type {HTMLElement} */ (m).hidden = !on; m.classList.toggle("ad-bad", on && !!bad);
+    });
+  }
+  /** Owner-readable reason for a refused sign-in / setup request (never the server's English text or a status code). */
+  function friendly(/** @type {any} */ e) {
+    var mins = e && e.retry ? Math.max(1, Math.ceil(e.retry / 60)) : 0;
+    switch (e && e.code) {
+      case "invalid_token": return G("adm.e.token", "รหัสตั้งค่าครั้งแรกไม่ถูกต้อง ตรวจว่าคัดลอกมาครบทุกตัวและไม่มีช่องว่างเกิน");
+      case "already_setup": return G("adm.e.done", "ระบบนี้มีบัญชีเจ้าของอยู่แล้ว กรุณาเข้าสู่ระบบ");
+      case "setup_closed": return G("adm.e.closed", "การตั้งค่าครั้งแรกถูกปิดไว้ กรุณาติดต่อผู้ติดตั้งระบบเพื่อออกรหัสตั้งค่าใหม่");
+      case "invalid_username": return G("adm.e.user", "ชื่อผู้ใช้ต้องยาว 3 ถึง 64 ตัว และใช้ได้เฉพาะตัวอักษรอังกฤษ ตัวเลข จุด ขีด ขีดล่าง หรือ @");
+      case "weak_password": return G("adm.e.weak", "รหัสผ่านต้องยาวอย่างน้อย 12 ตัวอักษร และไม่ใช้ตัวอักษรซ้ำกันเกือบทั้งหมด");
+      case "invalid_credentials": return G("adm.e.cred", "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+      case "invalid_totp": return G("adm.e.code", "รหัส 6 หลักไม่ถูกต้องหรือหมดอายุแล้ว ดูรหัสล่าสุดในแอปแล้วลองอีกครั้ง");
+      case "invalid_recovery": return G("adm.e.rec", "รหัสกู้คืนไม่ถูกต้อง หรือเคยใช้ไปแล้ว");
+      case "reauth_failed": return G("adm.e.re", "รหัสผ่านหรือรหัสยืนยันไม่ถูกต้อง");
+      case "reauth_revoked": return G("adm.e.revoked", "ระบบออกจากระบบให้แล้วเพราะยืนยันผิดหลายครั้ง กรุณาเข้าสู่ระบบใหม่");
+      case "totp_unavailable": return G("adm.e.twoOff", "ยังเปิดการยืนยันตัวตนสองชั้นไม่ได้ กรุณาติดต่อผู้ติดตั้งระบบ");
+      case "totp_already_on": return G("adm.e.twoOn", "การยืนยันตัวตนสองชั้นเปิดใช้อยู่แล้ว");
+      case "too_many": case "admin_busy": case "reauth_rate_limited":
+        return mins ? G("adm.e.many", "ลองหลายครั้งเกินไป กรุณารอประมาณ {n} นาทีแล้วลองใหม่", { n: mins }) : G("adm.e.many0", "ลองหลายครั้งเกินไป กรุณารอสักครู่แล้วลองใหม่");
+    }
+    if (!e || !e.status) return G("adm.e.net", "เชื่อมต่อระบบไม่ได้ ตรวจอินเทอร์เน็ตแล้วลองใหม่อีกครั้ง");
+    return G("adm.e.other", "ทำรายการไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
+  }
+  /** Disables a form's buttons while its request is running (no double submit). @param {any} f @param {boolean} on */
+  function busy(f, on) { f.querySelectorAll("button").forEach(function (/** @type {HTMLButtonElement} */ b) { b.disabled = on; }); }
+
+  function devFlag() { try { return localStorage.getItem("lq-admin-dev") === "1"; } catch (e) { return false; } }
+  /** Cookie session when this page and the API share an origin, else an in-memory token. Chosen automatically. */
+  function sessionMode() {
+    var auto = sameOrigin() ? "cookie" : "bearer";
+    if (!devFlag()) return auto;
+    var m = null;
+    try { m = new URLSearchParams(location.search).get("session"); } catch (e) { /* no override */ }
+    return m === "cookie" || m === "bearer" ? m : auto;
   }
 
   /* ---------------- start ---------------- */
+  // first: true while the first-run steps are on screen; pw: the password just typed, kept in memory only until the
+  // 2-step setup request has been sent (that request needs it) and then dropped
+  var flow = { first: false, pw: "", back: "" };
   function start() {
-    if (!API || !API.enabled()) { $("adConn").textContent = "ออฟไลน์"; show("adOffline"); return; }
-    $("adConn").textContent = API.base().replace(/^https?:\/\//, "");
-    state.mode = sameOrigin() ? "cookie" : "bearer";
+    if (!API || !API.enabled()) { show("adOffline"); return; }
+    if (devFlag()) { $("adConn").textContent = API.base().replace(/^https?:\/\//, ""); $("adConn").hidden = false; }
+    state.mode = sessionMode();
     call("/state").then(function (st) {
       if (!st.bootstrapped) { show("adBoot"); return; }
       // cookie mode: maybe still signed in (GET /me also rotates the CSRF token)
       if (state.mode === "cookie") return call("/me").then(enter, function () { show("adLogin"); });
       show("adLogin");
-    }).catch(function () { msg("เชื่อมต่อ API ไม่ได้ (ตรวจ ALLOWED_ORIGINS / ADMIN_ORIGINS และ CSP)", true); show("adLogin"); });
+    }).catch(function (e) { show("adLogin"); amsg(friendly(e), true); });
   }
 
   function enter(/** @type {any} */ me) {
     state.me = me;
     if (me.csrf) state.csrf = me.csrf;
+    flow.first = false; flow.pw = ""; flow.back = "";
     show("adApp");
     msg("");
     tab("analytics");
   }
 
-  $("adBootForm").addEventListener("submit", function (/** @type {Event} */ ev) {
-    ev.preventDefault();
-    var f = /** @type {HTMLFormElement} */ (ev.target);
-    var d = Object.fromEntries(new FormData(f));
-    call("/bootstrap", { method: "POST", body: d }).then(function () { f.reset(); msg("สร้างบัญชีแล้ว — ลบ ADMIN_BOOTSTRAP_TOKEN ด้วย wrangler secret delete แล้วเข้าสู่ระบบ"); show("adLogin"); },
-      function (/** @type {any} */ e) { msg(e.message, true); });
+  // show / hide what was typed (setup code, passwords)
+  document.querySelectorAll(".ad-eye").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var i = $(b.getAttribute("data-eye") || ""), showing = i.type === "text";
+      i.type = showing ? "password" : "text";
+      b.setAttribute("aria-pressed", String(!showing));
+      b.textContent = showing ? G("adm.show", "แสดง") : G("adm.hide", "ซ่อน");
+    });
   });
+  function hideTyped() {
+    document.querySelectorAll(".ad-eye").forEach(function (b) { $(b.getAttribute("data-eye") || "").type = "password"; b.textContent = G("adm.show", "แสดง"); b.removeAttribute("aria-pressed"); });
+  }
 
-  $("adLoginForm").addEventListener("submit", function (/** @type {Event} */ ev) {
-    ev.preventDefault();
-    var f = /** @type {HTMLFormElement} */ (ev.target);
-    var d = /** @type {any} */ (Object.fromEntries(new FormData(f)));
-    if (d.mode === "cookie" || d.mode === "bearer") state.mode = d.mode;
-    var body = { username: d.username, password: d.password, totp: d.totp || undefined, mode: state.mode };
-    call("/login", { method: "POST", body: body }).then(function (/** @type {any} */ r) {
-      f.reset();
+  /** Signs in, then goes to the back office, or to the 2-step setup while that is still off.
+   *  @param {string} username @param {string} password @param {{totp?: string, recovery?: string}} second */
+  function signIn(username, password, second) {
+    var body = { username: username, password: password, totp: second.totp || undefined, recovery: second.recovery || undefined, mode: state.mode };
+    return call("/login", { method: "POST", body: body }).then(function (/** @type {any} */ r) {
       state.csrf = r.csrf || "";
       state.token = r.token || "";
       if (r.device) device.set(r.device);
-      return call("/me").then(enter);
-    }).catch(function (/** @type {any} */ e) { msg(e.message, true); });
+      return call("/me").then(function (/** @type {any} */ me) {
+        state.me = me;
+        if (me.csrf) state.csrf = me.csrf;
+        if (!me.totp_enabled) { flow.pw = password; startTwo(); return; }
+        enter(me);
+        if (r.recovery_left != null) msg(G("adm.rec.left", "เข้าสู่ระบบด้วยรหัสกู้คืนแล้ว เหลือรหัสที่ใช้ได้อีก {n} รหัส (สร้างชุดใหม่ได้ที่แท็บความปลอดภัย)", { n: r.recovery_left }));
+      });
+    });
+  }
+
+  $("adBootForm").addEventListener("submit", function (/** @type {Event} */ ev) {
+    ev.preventDefault();
+    var f = /** @type {any} */ (ev.target);
+    var token = String(f.token.value || "").trim(), username = String(f.username.value || "").trim(), pw = String(f.password.value || "");
+    if (token.length < 32) { amsg(G("adm.v.token", "รหัสตั้งค่าครั้งแรกยาวอย่างน้อย 32 ตัว กรุณาวางรหัสให้ครบ"), true); f.token.focus(); return; }
+    if (!/^[A-Za-z0-9._@-]{3,64}$/.test(username)) { amsg(friendly({ status: 400, code: "invalid_username" }), true); f.username.focus(); return; }
+    if (pw.length < 12) { amsg(friendly({ status: 400, code: "weak_password" }), true); f.password.focus(); return; }
+    if (pw !== f.password2.value) { amsg(G("adm.v.match", "รหัสผ่านสองช่องไม่ตรงกัน กรุณาพิมพ์ใหม่"), true); f.password2.focus(); return; }
+    amsg(""); busy(f, true);
+    call("/bootstrap", { method: "POST", body: { token: token, username: username, password: pw } }).then(function () {
+      f.reset(); hideTyped();
+      flow.first = true;
+      // the account exists from here on: sign in with what was just typed and continue with step 2
+      return signIn(username, pw, {}).catch(function () {
+        flow.first = false; show("adLogin");
+        amsg(G("adm.boot.made", "สร้างบัญชีแล้ว กรุณาเข้าสู่ระบบด้วยชื่อผู้ใช้และรหัสผ่านที่ตั้งไว้"));
+      });
+    }, function (/** @type {any} */ e) {
+      if (e && e.code === "already_setup") { f.reset(); hideTyped(); show("adLogin"); }
+      amsg(friendly(e), true);
+    }).then(function () { busy(f, false); });
+  });
+
+  var useRecovery = false;
+  function swapSecond(/** @type {boolean} */ rec) {
+    useRecovery = rec;
+    $("adLoginCodeL").hidden = rec; $("adLoginRecL").hidden = !rec;
+    $("adLoginSwap").textContent = rec ? G("adm.login.useCode", "ใช้รหัส 6 หลักจากแอปแทน") : G("adm.login.useRec", "ไม่มีโทรศัพท์อยู่กับตัว ใช้รหัสกู้คืนแทน");
+    $("adLoginSwap").setAttribute("data-i18n", rec ? "adm.login.useCode" : "adm.login.useRec");
+  }
+  $("adLoginSwap").addEventListener("click", function () { swapSecond(!useRecovery); });
+
+  $("adLoginForm").addEventListener("submit", function (/** @type {Event} */ ev) {
+    ev.preventDefault();
+    var f = /** @type {any} */ (ev.target);
+    var username = String(f.username.value || "").trim(), pw = String(f.password.value || "");
+    var code = String(f.totp.value || "").replace(/\s/g, ""), rec = String(f.recovery.value || "").trim();
+    if (!username || !pw) { amsg(G("adm.v.need", "กรุณากรอกชื่อผู้ใช้และรหัสผ่าน"), true); return; }
+    if (!useRecovery && code && !/^\d{6}$/.test(code)) { amsg(G("adm.v.code", "รหัสจากแอปเป็นตัวเลข 6 หลัก"), true); f.totp.focus(); return; }
+    amsg(""); busy(f, true);
+    signIn(username, pw, useRecovery ? { recovery: rec } : { totp: code }).then(function () { f.reset(); hideTyped(); swapSecond(false); },
+      function (/** @type {any} */ e) { f.totp.value = ""; amsg(friendly(e), true); }).then(function () { busy(f, false); });
   });
 
   $("adLogout").addEventListener("click", function () {
     call("/logout", { method: "POST", body: {} }).catch(function () { /* already gone */ }).then(function () {
-      state.token = ""; state.csrf = ""; show("adLogin"); msg("ออกจากระบบแล้ว");
+      state.token = ""; state.csrf = ""; state.me = null; show("adLogin"); amsg(G("adm.out", "ออกจากระบบแล้ว"));
     });
+  });
+
+  /* ---------------- 2-step verification + recovery codes ---------------- */
+  function steps(/** @type {string} */ id) { var o = $(id).querySelector(".ad-steps"); if (o) o.hidden = !flow.first; }
+  /** Asks the Worker for a new authenticator secret (needs the password once) and shows it as a QR code + text. */
+  function startTwo() {
+    var pw = flow.pw; flow.pw = "";
+    show("adTwo"); steps("adTwo");
+    $("adTwoSkip").hidden = flow.first; twoFailed = false;
+    $("adTwoQr").textContent = ""; $("adTwoKey").textContent = ""; $("adTwoForm").reset();
+    call("/totp/setup", { method: "POST", body: { password: pw }, noReauth: true }).then(function (/** @type {any} */ r) {
+      var QR = /** @type {any} */ (window).LQQR;
+      try {
+        // drawn on this device: the secret is not sent anywhere to make the picture
+        var img = h("img", { alt: G("adm.two.qrAlt", "คิวอาร์โค้ดสำหรับแอปยืนยันตัวตน"), width: 220, height: 220 });
+        img.setAttribute("src", "data:image/svg+xml;charset=utf-8," + encodeURIComponent(QR.svg(r.uri, { scale: 6 })));
+        $("adTwoQr").appendChild(img);
+      } catch (e) { $("adTwoQr").textContent = G("adm.two.noQr", "แสดงคิวอาร์โค้ดไม่ได้ กรุณาพิมพ์รหัสตั้งค่าด้านล่างลงในแอป"); }
+      $("adTwoKey").textContent = String(r.secret).replace(/(.{4})/g, "$1 ").trim();
+      $("adTwoKey").setAttribute("data-raw", r.secret);
+    }, function (/** @type {any} */ e) {
+      // no dead end: the account exists, so the owner can always go on and turn 2-step verification on later
+      $("adTwoSkip").hidden = false; twoFailed = true;
+      amsg(friendly(e), true);
+    });
+  }
+  var twoFailed = false;
+  function leaveTwo() {
+    $("adTwoQr").textContent = ""; $("adTwoKey").textContent = ""; $("adTwoKey").removeAttribute("data-raw");
+  }
+  /** @param {string} text */
+  function copyText(text) {
+    var n = /** @type {any} */ (navigator);
+    var p = n.clipboard && n.clipboard.writeText ? n.clipboard.writeText(text) : Promise.reject(new Error("no clipboard"));
+    return p.then(function () { amsg(G("adm.copied", "คัดลอกแล้ว")); }, function () { amsg(G("adm.copyNo", "คัดลอกอัตโนมัติไม่ได้ กรุณาเลือกข้อความแล้วคัดลอกเอง"), true); });
+  }
+  $("adTwoCopy").addEventListener("click", function () { copyText($("adTwoKey").getAttribute("data-raw") || ""); });
+  $("adTwoSkip").addEventListener("click", function () { leaveTwo(); call("/me").then(enter, function () { show("adLogin"); }); });
+  $("adTwoForm").addEventListener("submit", function (/** @type {Event} */ ev) {
+    ev.preventDefault();
+    var f = /** @type {any} */ (ev.target), code = String(f.code.value || "").replace(/\s/g, "");
+    if (!/^\d{6}$/.test(code)) { amsg(G("adm.v.code", "รหัสจากแอปเป็นตัวเลข 6 หลัก"), true); f.code.focus(); return; }
+    amsg(""); busy(f, true);
+    call("/totp/enable", { method: "POST", body: { code: code } }).then(function (/** @type {any} */ r) {
+      leaveTwo(); f.reset();
+      showCodes(r.recovery_codes || []);
+    }, function (/** @type {any} */ e) { f.code.value = ""; amsg(friendly(e), true); }).then(function () { busy(f, false); $("adTwoSkip").hidden = flow.first && !twoFailed; });
+  });
+
+  var codesShown = /** @type {string[]} */ ([]);
+  /** The ten one-time codes, shown once. Kept in memory only while this screen is open. @param {string[]} codes */
+  function showCodes(codes) {
+    codesShown = codes.slice();
+    show("adCodes"); steps("adCodes");
+    var ol = $("adCodesList"); ol.textContent = "";
+    codes.forEach(function (c) { ol.appendChild(h("li", { text: c })); });
+    $("adCodesOk").checked = false; $("adCodesDone").disabled = true;
+  }
+  var codesText = function () { return "LENSIQ " + G("adm.codes.file", "รหัสกู้คืน (ใช้ได้รหัสละหนึ่งครั้ง)") + "\n\n" + codesShown.join("\n") + "\n"; };
+  $("adCodesOk").addEventListener("change", function () { $("adCodesDone").disabled = !$("adCodesOk").checked; });
+  $("adCodesCopy").addEventListener("click", function () { copyText(codesShown.join("\n")); });
+  $("adCodesSave").addEventListener("click", function () {
+    var url = URL.createObjectURL(new Blob([codesText()], { type: "text/plain;charset=utf-8" }));
+    var a = h("a", { href: url, download: "lensiq-recovery-codes.txt" });
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  });
+  $("adCodesDone").addEventListener("click", function () {
+    var back = flow.back;
+    codesShown = []; $("adCodesList").textContent = "";
+    call("/me").then(function (/** @type {any} */ me) { enter(me); if (back) tab(back); }, function () { show("adLogin"); });
   });
 
   /* ---------------- tabs ---------------- */
@@ -338,11 +525,6 @@
    * Global switch, legacy key store switch, provider allowlist (key set / not set only), per-feature switch, ordered
    * chain editor, budget and limits, monthly usage. Saving needs re-auth (call() asks for the password once). Thai is the
    * default text; English / Chinese come from i18n/en-admin.js / i18n/zh-admin.js (keys adg.*). */
-  var G = function (/** @type {string} */ key, /** @type {string} */ thai) {
-    var I = /** @type {any} */ (window).LQI18N;
-    return I && typeof I.tf === "function" ? I.tf(key, thai) : thai;
-  };
-  var gLang = function () { var I = /** @type {any} */ (window).LQI18N; return I && (I.lang === "en" || I.lang === "zh") ? I.lang : "th"; };
   var gw = /** @type {any} */ ({ data: null, usage: null });
   var NUM_FIELDS = [
     ["timeoutMs", "adg.f.timeout", "เวลารอต่อครั้ง (มิลลิวินาที)", 1000, 120000, 1000],
@@ -503,7 +685,17 @@
     var I = /** @type {any} */ (window).LQI18N;
     if (I && typeof I.setLang === "function") I.setLang($("adgLang").value);
   });
-  window.addEventListener("lq-lang", function () { $("adgLang").value = gLang(); renderGateway(); });
+  $("adLang").addEventListener("change", function () {
+    var I = /** @type {any} */ (window).LQI18N;
+    if (I && typeof I.setLang === "function") I.setLang($("adLang").value);
+  });
+  window.addEventListener("lq-lang", function () {
+    $("adgLang").value = gLang(); $("adLang").value = gLang();
+    amsg(""); swapSecond(useRecovery); hideTyped();
+    document.title = "LENSIQ " + G("adm.brand", "หลังบ้าน");
+    if (gw.data) renderGateway();
+  });
+  $("adLang").value = gLang();
 
   /* ---------------- billing ---------------- */
   loaders.billing = function () {
@@ -630,32 +822,42 @@
   loaders.security = function () {
     call("/me").then(function (/** @type {any} */ me) {
       if (me.csrf) state.csrf = me.csrf;
-      $("adTotpState").textContent = me.totp_enabled ? "เปิดใช้งานอยู่" : "ยังไม่เปิด (แนะนำให้เปิด)";
-      $("adTotpSetup").hidden = !!me.totp_enabled;
+      state.me = me;
+      $("adTotpState").textContent = me.totp_enabled ? G("adm.sec.isOn", "เปิดใช้งานอยู่") : G("adm.sec.isOff", "ยังไม่เปิด (แนะนำให้เปิด)");
+      $("adTotpOn").hidden = !!me.totp_enabled;
       $("adTotpDisable").hidden = !me.totp_enabled;
-      $("adTotpBox").hidden = true;
+      $("adRecBox").hidden = !me.totp_enabled;
+      $("adRecLeft").textContent = String(me.recovery_left || 0);
     }, fail);
     call("/audit").then(function (/** @type {any} */ r) {
       var el = $("adAudit"); el.textContent = "";
       el.appendChild(table(["เวลา", "ผู้กระทำ", "การกระทำ", "รายละเอียด"], r.audit.map(function (/** @type {any} */ a) { return [when(a.ts), a.actor, a.action, a.detail]; })));
     }, fail);
   };
+  // same QR + recovery-code screens as the first run; "Done" comes back to this tab
   $("adTotpSetup").addEventListener("click", function () {
     var pw = /** @type {HTMLInputElement} */ ($("adTotpPw")).value;
     /** @type {HTMLInputElement} */ ($("adTotpPw")).value = "";
-    call("/totp/setup", { method: "POST", body: { password: pw } }).then(function (/** @type {any} */ r) {
-      $("adTotpSecret").textContent = r.secret; $("adTotpUri").textContent = r.uri; $("adTotpBox").hidden = false;
-    }, fail);
+    if (!pw) { msg(G("adm.v.pw", "กรุณากรอกรหัสผ่านก่อน"), true); return; }
+    flow.first = false; flow.back = "security"; flow.pw = pw;
+    msg("");
+    startTwo();
   });
-  $("adTotpEnable").addEventListener("submit", function (/** @type {Event} */ ev) {
-    ev.preventDefault();
-    var f = /** @type {any} */ (ev.target);
-    call("/totp/enable", { method: "POST", body: { code: f.code.value } }).then(function () { f.reset(); $("adTotpSecret").textContent = ""; $("adTotpUri").textContent = ""; msg("เปิด TOTP แล้ว"); loaders.security(); }, fail);
+  $("adRecNew").addEventListener("click", function () {
+    askReauth().then(function (/** @type {any} */ cred) {
+      if (!cred) return;
+      call("/totp/recovery", { method: "POST", body: cred, noReauth: true }).then(function (/** @type {any} */ r) {
+        flow.first = false; flow.back = "security";
+        showCodes(r.recovery_codes || []);
+      }, function (/** @type {any} */ e) { msg(friendly(e), true); });
+    });
   });
   $("adTotpDisable").addEventListener("submit", function (/** @type {Event} */ ev) {
     ev.preventDefault();
-    var f = /** @type {any} */ (ev.target);
-    call("/totp/disable", { method: "POST", body: { password: f.password.value, code: f.code.value } }).then(function () { f.reset(); msg("ปิด TOTP แล้ว"); loaders.security(); }, fail);
+    var f = /** @type {any} */ (ev.target), v = String(f.code.value || "").trim();
+    var body = /^\d{6}$/.test(v) ? { password: f.password.value, code: v } : { password: f.password.value, recovery: v };
+    call("/totp/disable", { method: "POST", body: body, noReauth: true }).then(function () { f.reset(); msg(G("adm.sec.offOk", "ปิดการยืนยันตัวตนสองชั้นแล้ว")); loaders.security(); },
+      function (/** @type {any} */ e) { msg(friendly(e), true); });
   });
   $("adPw").addEventListener("submit", function (/** @type {Event} */ ev) {
     ev.preventDefault();

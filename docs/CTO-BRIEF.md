@@ -384,6 +384,25 @@ No module is production-ready. None has completed a field pilot, and the backend
 - `faceread.js` 1,704
 - `qc.js` 1,676
 
+### Admin first-run setup and custom-domain readiness (2026-11-11)
+
+- Built: first-time setup on the admin page (setup code, user name, password, then 2-step verification with a QR
+  code drawn on the device, then ten one-time recovery codes); sign-in with a 6-digit code or a recovery code; plain
+  Thai / English / Chinese messages for every refusal; session mode chosen automatically (developer override behind
+  a flag); recovery codes in the backend (migration 0011, hashes only). Docs: `docs/DEPLOY.md` (last section).
+- Tests (source: synthetic, local): 12 backend tests for setup refusals and recovery codes (backend 282 / 282); 7 fixed checks of the
+  owner screens and the custom-domain configuration; a browser test of the whole flow against the real Worker code
+  on an in-memory database (7 checks, phone widths 320 / 360 / 390, English and Chinese).
+- Independent security review before deploy: no way round the second step found; three should-fix items fixed with
+  tests (2-step never left on without codes when the table is missing and `/health/deep` reports it; one code signs
+  in once also over the sign-in write ceiling; no dead end when the QR step fails). Open note: recovery codes are
+  stored as plain SHA-256 of 50 random bits (see `docs/DEPLOY.md`).
+- Custom domain: prepared as a configuration change, not done. Steps for a subdomain of an existing domain and for
+  a new domain are in `docs/CUSTOM-DOMAIN.md`. DNS, domains and GitHub Pages settings are the owner's steps.
+- Deferred: the tabs inside the back office (AI settings, AI Gateway provider table, billing, members) still show
+  installer wording in five places (for example the command that sets a provider key) and are Thai only apart from
+  the AI Gateway tab. They are replaced by the admin-panel key management that is next in the queue.
+
 ## 7. Top 5 recommendations for sellability
 
 1. **Run one paid-shaped field pilot per lead product, with human ground truth** (Gate at one car park, Attendance at one office, Crowd at one event). Use the existing `docs/FIELD-PILOT.md` kit. Every accuracy claim is currently synthetic or comes from public datasets; real numbers are the main thing a buyer will ask for. **Effort: M.**

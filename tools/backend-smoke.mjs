@@ -12,19 +12,22 @@
 // every Product Check AI feature answers "tester code required" / "disabled" without a code · analytics, demo requests,
 // billing, sign-in, fortune AI and CSP reports are not enabled (404 route_off) ·
 // the testing-only lookup sources are closed to a visitor while an open-licence source is on · kill switch state.
-import { pathToFileURL } from "node:url";
-import { ALLOWED } from "./lib/cf-guard.mjs";
+import { readFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { ALLOWED, DOMAINS_FILE, approvedApiHosts, isOwnApiHost } from "./lib/cf-guard.mjs";
 
 export const AI_FEATURES = ["pc_fields", "pc_translate", "pc_claims"];
 export const TESTING_ONLY = ["thfda", "safetygate", "rasff"];
 const UA = "Mozilla/5.0 (compatible; lensiq-smoke/1.0)"; // workers.dev runs Browser Integrity Check: library user agents can be refused (error 1010)
 
-/** The base must be LENSIQ's own test Worker or a local wrangler dev. */
-export function checkBase(base) {
+/** The base must be LENSIQ's own test Worker (its workers.dev host or a custom hostname approved in deploy/domains.json)
+ *  or a local wrangler dev. @param {string} base @param {string[]} [approved] */
+export function checkBase(base, approved = []) {
   let u;
   try { u = new URL(String(base)); } catch { return null; }
   const local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(u.hostname) && /^https?:$/.test(u.protocol);
-  const own = u.protocol === "https:" && new RegExp(`^${ALLOWED.worker}\\.[a-z0-9-]+\\.workers\\.dev$`).test(u.hostname);
+  const own = u.protocol === "https:" && isOwnApiHost(u.hostname, approved);
   return (local || own) && !u.username && !u.password ? { origin: u.origin, local } : null;
 }
 
@@ -100,13 +103,20 @@ export async function smoke(base, o = {}) {
   return { ok: results.every(r => r.ok), off, results };
 }
 
-/** @param {string[]} argv @param {{print?: (s: string) => void, env?: any, fetch?: typeof fetch}} [io] */
+/** @param {string[]} argv @param {{print?: (s: string) => void, env?: any, fetch?: typeof fetch, domains?: string}} [io] */
 export async function main(argv, io = {}) {
   const print = io.print || (s => console.log(s));
   const env = io.env || process.env;
   const arg = k => (argv.includes(k) ? String(argv[argv.indexOf(k) + 1] || "") : "");
-  const b = checkBase(arg("--base"));
-  if (!b) { print(`usage: npm run backend:smoke -- --base https://${ALLOWED.worker}.<subdomain>.workers.dev [--origin https://anirut77.github.io] [--expect off]`); return 2; }
+  let approved;
+  try { approved = approvedApiHosts(io.domains || join(resolve(dirname(fileURLToPath(import.meta.url)), ".."), DOMAINS_FILE), p => readFileSync(p, "utf8")); }
+  catch (e) { print("REFUSED: " + e.message); return 3; }
+  const b = checkBase(arg("--base"), approved);
+  if (!b) {
+    print(`usage: npm run backend:smoke -- --base https://${ALLOWED.worker}.<subdomain>.workers.dev (or https://<a hostname listed in ${DOMAINS_FILE}>) ` +
+      "[--origin https://anirut77.github.io] [--expect off]");
+    return 2;
+  }
   if (!b.local && (env.CI || env.GITHUB_ACTIONS)) { print("REFUSED: the live smoke check never runs in CI."); return 3; }
   print(`LENSIQ smoke check (read-only) · TARGET ${b.origin}`);
   const r = await smoke(b.origin, { origin: arg("--origin") || undefined, expectOff: arg("--expect") === "off", fetch: io.fetch });

@@ -1,0 +1,4 @@
+{
+  "note": "Owner-approved custom hostnames for the LENSIQ API Worker (docs/CUSTOM-DOMAIN.md). Empty = only https://lensiq-api-test.<subdomain>.workers.dev is accepted by `npm run site:set-api` and `npm run backend:smoke`. Each name must be a plain hostname with a label that starts with \"lensiq\" (for example lensiq-api.example.com or api.lensiq.example). Adding a name here changes no DNS record and no Cloudflare setting.",
+  "apiHosts": []
+}

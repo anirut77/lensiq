@@ -37,6 +37,28 @@ export const PROTECTED = Object.freeze([
 ]);
 /** The only resources LENSIQ scripts may create or change. */
 export const ALLOWED = Object.freeze({ worker: "lensiq-api-test", d1: "lensiq-test" });
+/** Owner-approved custom hostnames of the API Worker: deploy/domains.json "apiHosts" (docs/CUSTOM-DOMAIN.md). */
+export const DOMAINS_FILE = "deploy/domains.json";
+const HOST_RE = /^(?=.{4,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$/;
+/** Format check of a custom API hostname: a plain lower-case hostname with a label that starts with "lensiq". It only
+ *  catches typos and another project's name; it does NOT prove the host is ours ("lensiq.evil.example" passes). The real
+ *  control is that the owner-approved name is committed in deploy/domains.json and matched exactly. @param {unknown} h */
+export const isLensiqHost = h => typeof h === "string" && HOST_RE.test(h) && h.split(".").some(l => l.startsWith("lensiq"));
+/** Reads the approved list. A missing file = none. An invalid file or entry throws (nothing is guessed).
+ *  @param {string} file absolute path of deploy/domains.json @param {(p: string) => string} read */
+export function approvedApiHosts(file, read) {
+  let raw;
+  try { raw = read(file); } catch { return []; }
+  const j = JSON.parse(raw);
+  for (const k of Object.keys(j)) if (!["note", "apiHosts"].includes(k)) throw new GuardError(`${DOMAINS_FILE}: unknown key ${k}`);
+  const hosts = j.apiHosts ?? [];
+  if (!Array.isArray(hosts)) throw new GuardError(`${DOMAINS_FILE}: apiHosts must be a list`);
+  for (const h of hosts) if (!isLensiqHost(h)) throw new GuardError(`${DOMAINS_FILE}: "${h}" is not an accepted hostname (plain lower-case hostname with a label starting with "lensiq")`);
+  return [...hosts];
+}
+/** True for LENSIQ's own workers.dev host or an approved custom host. @param {string} host @param {string[]} approved */
+export const isOwnApiHost = (host, approved = []) => new RegExp(`^${ALLOWED.worker}\\.[a-z0-9-]+\\.workers\\.dev$`).test(host) || approved.includes(host);
+
 export const D1_PLACEHOLDER = "00000000-0000-0000-0000-000000000000";
 const NAME_RE = /^lensiq-[a-z0-9][a-z0-9-]{0,50}$/;
 
