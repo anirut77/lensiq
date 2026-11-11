@@ -1,7 +1,7 @@
 /* i18n/zh-med.js — 简体中文 for medicine.html / medicine.js (md.*). Thai stays the default; English mirrors this file in
  * i18n/en-med.js. openFDA 标签原文保持英文（不做机器翻译）；泰国注册名称保持泰文（lang="th"）。 */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
-  "md.pc.ad.acc": "独立测试，455 条夸大宣传 / 159 条合规的公开广告文字，由 AI 标注，待专家审核：选择产品类型后可发现 67% 的夸大宣传，每 100 条合规文字误报 2.5 次 · n = 455 / 159 · 来源：公开数据集",
+  "md.pc.ad.acc": "独立测试，545 条夸大宣传 / 382 条合规的公开广告文字，由 AI 标注，待专家审核：选择产品类型后可发现 60% 的夸大宣传，每 100 条合规文字误报 2.1 次 · n = 545 / 382 · 来源：公开数据集",
   "md.title": "药品信息核对：读取标签与注册号 | LENSIQ",
   "md.eyebrow": "LENSIQ · 药品信息核对",
   "md.h1": "从药盒、标签或药片核对药品信息",
@@ -506,7 +506,7 @@
   "md.pc.ad.endorse": "引用了背书或推荐（不显示姓名）",
   "md.pc.ad.inName": "此用语属于名称的一部分，因此已隐藏",
   "md.pc.ad.basis": "请与官方来源核实（{id}）",
-  "md.pc.ad.none": "未发现列出的用语。这并不代表该广告准确或已获批准。在测试中，本检查约能发现每 3 条夸大宣传中的 2 条。",
+  "md.pc.ad.none": "未发现列出的用语。这并不代表该广告准确或已获批准。在测试中，本检查约能发现每 5 条夸大宣传中的 3 条。",
   "md.pc.ad.source": "实验性功能：实测准确度见上方面板。措辞不同的宣称可能被遗漏",
   "md.pc.ad.empty": "请先粘贴或输入广告文字，或拍照后点击读取",
   "md.pc.ad.cat.supplement": "膳食补充剂",

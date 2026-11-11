@@ -1,7 +1,7 @@
 /* i18n/en-med.js — English for medicine.html / medicine.js (md.*). Mirrors i18n/zh-med.js. Label text from openFDA stays in
  * its original English (never machine-translated); Thai registry names stay Thai (lang="th"). */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ en: {
-  "md.pc.ad.acc": "Independent test, 455 over-claim / 159 compliant public advert texts, labelled by AI, pending expert review: finds 67% of over-claims with the product type chosen, 2.5 false flags per 100 compliant texts · n = 455 / 159 · source: public dataset",
+  "md.pc.ad.acc": "Independent test, 545 over-claim / 382 compliant public advert texts, labelled by AI, pending expert review: finds 60% of over-claims with the product type chosen, 2.1 false flags per 100 compliant texts · n = 545 / 382 · source: public dataset",
   "md.title": "Medicine checker: read labels and registration numbers | LENSIQ",
   "md.eyebrow": "LENSIQ · Medicine checker",
   "md.h1": "Check medicine information from the box, the label or the pill",
@@ -506,7 +506,7 @@
   "md.pc.ad.endorse": "An endorsement or recommendation is cited (name not shown)",
   "md.pc.ad.inName": "This wording is part of a name, so it is hidden",
   "md.pc.ad.basis": "Verify with the official source ({id})",
-  "md.pc.ad.none": "No listed wording found. This does not mean the advert is accurate or approved. The check finds about 2 in 3 over-claims in testing.",
+  "md.pc.ad.none": "No listed wording found. This does not mean the advert is accurate or approved. The check finds about 3 in 5 over-claims in testing.",
   "md.pc.ad.source": "Experimental: the measured accuracy is shown in the panel above. Differently worded claims may be missed",
   "md.pc.ad.empty": "Paste or type the advert text first, or take a photo and tap read",
   "md.pc.ad.cat.supplement": "Dietary supplement",

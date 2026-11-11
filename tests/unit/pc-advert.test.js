@@ -19,9 +19,9 @@
 // AMENDMENT 2026-11-11 (owner decision: release as "experimental", type chosen first; stricter, re-locked):
 //   8. a no-signal card shows EXACTLY the owner's sentence (EXACT_NONE) in each language, never "no problem" or a tick;
 //   9. that sentence and the page's accuracy line are generated from docs/accuracy-figures.json (TH default in the module
-//      = the generated Thai), the figures match the latest independent run (fresh-2: 455 / 159, 67.3 %, 2.5 per 100;
-//      lock 4, the first run's 246 / 135, 64.2 %, 1.5 per 100 stays in the docs as history), and
-//      "about 2 in 3" stays within 5 points of the chosen-type recall;
+//      = the generated Thai), the figures match the latest independent run (lock 5, owner-approved 2026-11-12: fresh-3,
+//      545 / 382, 60.0 %, 2.1 per 100, "about 3 in 5"; the first run 246 / 135, 64.2 %, 1.5 and fresh-2 455 / 159,
+//      67.3 %, 2.5 stay in the docs as history), and "about N in M" stays within 5 points of the chosen-type recall;
 //  10. a flagged line shows the text found, the rule id and "verify with the official source"; no verdict words;
 //  11. Chinese adverts are marked "limited support" in TH / EN / ZH; Thai and English adverts are not.
 const test = require("node:test");
@@ -49,9 +49,9 @@ const THAI = /[ก-๙]/;
 const outsideNoTranslate = html => html.replace(/<(\w+)[^>]*translate="no"[^>]*>[\s\S]*?<\/\1>/g, " ").replace(/<[^>]+>/g, " ");
 // Amendment 2026-11-11 (owner decision "release as experimental"): exact no-signal wording, TH / EN / ZH.
 const EXACT_NONE = {
-  en: "No listed wording found. This does not mean the advert is accurate or approved. The check finds about 2 in 3 over-claims in testing.",
-  th: "ไม่พบถ้อยคำที่อยู่ในรายการ ไม่ได้แปลว่าโฆษณานี้ถูกต้องหรือได้รับอนุญาต ในการทดสอบ ระบบพบคำโฆษณาเกินจริงได้ราว 2 ใน 3",
-  zh: "未发现列出的用语。这并不代表该广告准确或已获批准。在测试中，本检查约能发现每 3 条夸大宣传中的 2 条。"
+  en: "No listed wording found. This does not mean the advert is accurate or approved. The check finds about 3 in 5 over-claims in testing.",
+  th: "ไม่พบถ้อยคำที่อยู่ในรายการ ไม่ได้แปลว่าโฆษณานี้ถูกต้องหรือได้รับอนุญาต ในการทดสอบ ระบบพบคำโฆษณาเกินจริงได้ราว 3 ใน 5",
+  zh: "未发现列出的用语。这并不代表该广告准确或已获批准。在测试中，本检查约能发现每 5 条夸大宣传中的 3 条。"
 };
 const BAN = /illegal|unlawful|fake|counterfeit|scam|fraud|ผิดกฎหมาย|ปลอม|หลอกลวง|ฉ้อโกง|โกง|มิจฉาชีพ|违法|违反|假冒|假货|诈骗|欺诈|骗子/i;
 
@@ -258,11 +258,13 @@ test("AMENDMENT: the no-signal sentence and the accuracy line are generated from
   assert.equal(EN["md.pc.ad.none"], none.en);
   assert.equal(ZH["md.pc.ad.none"], none.zh);
   const f = doc.figures;
-  assert.equal(f.adOver.value, "455");
-  assert.equal(f.adComp.value, "159");
-  assert.equal(f.adRecallType.raw, 67.3);
-  assert.equal(f.adFFType.raw, 2.5);
-  // "about 2 in 3" must stay consistent with the chosen-type recall
+  assert.equal(f.adOver.value, "545");
+  assert.equal(f.adComp.value, "382");
+  assert.equal(f.adRecallType.raw, 60.0);
+  assert.equal(f.adFFType.raw, 2.1);
+  assert.equal(f.adNum.value, "3");
+  assert.equal(f.adDen.value, "5");
+  // "about N in M" must stay consistent with the chosen-type recall
   assert.ok(Math.abs(100 * Number(f.adNum.value) / Number(f.adDen.value) - f.adRecallType.raw) <= 5, "about N in M within 5 points of the recall");
   const results = fs.readFileSync(path.join(ROOT, "docs", "product-check", "ADVERT-RESULTS.md"), "utf8");
   assert.match(results, /\*\*64\.2 %\*\*/);
@@ -274,12 +276,18 @@ test("AMENDMENT: the no-signal sentence and the accuracy line are generated from
   assert.match(results, /\*\*2\.5\*\* \(2\.5 % of texts\)/);
   assert.match(results, /455 over-claim texts/);
   assert.match(results, /159 compliant/);
+  // lock 5: the fresh-3 run is documented next to the earlier runs (history kept)
+  assert.match(results, /\*\*60\.0 %\*\*/);
+  assert.match(results, /\*\*2\.1\*\* \(8 \/ 382/);
+  assert.match(results, /545 over-claim texts/);
+  assert.match(results, /382 compliant/);
+  assert.match(results, /pc_claims[^\n]*stays off|stays off[^\n]*pc_claims/);
   const claims = fs.readFileSync(path.join(ROOT, "docs", "ACCURACY-CLAIMS.md"), "utf8");
   assert.ok(claims.includes(acc.en), "docs/ACCURACY-CLAIMS.md carries the same accuracy line");
   // the accuracy line names the test, its size, its labels and its source in every language
   const words = {
-    en: ["Independent test", "455", "159", "labelled by AI", "pending expert review", "67%", "2.5", "public dataset"],
-    th: ["455", "159", "AI", "67%", "2.5", "ชุดข้อมูลสาธารณะ"], zh: ["455", "159", "AI", "67%", "2.5", "公开数据集"]
+    en: ["Independent test", "545", "382", "labelled by AI", "pending expert review", "60%", "2.1", "public dataset"],
+    th: ["545", "382", "AI", "60%", "2.1", "ชุดข้อมูลสาธารณะ"], zh: ["545", "382", "AI", "60%", "2.1", "公开数据集"]
   };
   for (const [lang, ws] of Object.entries(words)) for (const w of ws) assert.ok(acc[lang].includes(w), `${lang} accuracy line has "${w}": ${acc[lang]}`);
 });

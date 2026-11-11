@@ -965,6 +965,16 @@ export const RULE_WORK_2 = [
   }
 ];
 
+/** Bug fix 2026-11-12 (owner decision after the fresh-3 run): H05's English "\\bcorona" also matched "coronary" (heart
+ *  arteries), a false flag on a compliant hawthorn text (fresh-2 FR2-0544). No other rule changed. */
+export const RULE_FIX = [
+  {
+    rule: "H05", what: "'\\bcorona' -> '\\bcorona(?!ry)': 'coronary' (arteries) is not the coronavirus",
+    why: "bug fix 2026-11-12: 'coronary arteries' fired H05; 'coronavirus' and 'corona virus' still fire",
+    apply: swap("en", "\\bcorona", "\\bcorona(?!ry)")
+  }
+];
+
 const clone = o => JSON.parse(JSON.stringify(o));
 
 /** Build the rule data object from the parsed draft. @param {any} draft */
@@ -978,7 +988,7 @@ export function build(draft) {
     return r;
   });
   const byId = Object.fromEntries(rules.map(r => [r.id, r]));
-  for (const c of [...CHANGES, ...ADVERT_CHANGES, ...RULE_WORK, ...RULE_WORK_2]) {
+  for (const c of [...CHANGES, ...ADVERT_CHANGES, ...RULE_WORK, ...RULE_WORK_2, ...RULE_FIX]) {
     if (!byId[c.rule] && c.rule !== "*") throw new Error("CHANGES: unknown rule " + c.rule);
     c.apply(c.rule === "*" ? rules : byId[c.rule], { rules, byId });
   }
@@ -995,7 +1005,7 @@ export function build(draft) {
     sources: draft.sources,
     changes: [...CHANGES.map(c => ({ rule: c.rule, what: c.what, why: c.why })), ...POST_REVIEW,
       ...ADVERT_CHANGES.map(c => ({ rule: c.rule, what: c.what, why: c.why })), ...RULE_WORK.map(c => ({ rule: c.rule, what: c.what, why: c.why })),
-      ...RULE_WORK_2.map(c => ({ rule: c.rule, what: c.what, why: c.why }))],
+      ...RULE_WORK_2.map(c => ({ rule: c.rule, what: c.what, why: c.why })), ...RULE_FIX.map(c => ({ rule: c.rule, what: c.what, why: c.why }))],
     masks: MASKS,
     warnings: WARNINGS,
     allow_source: N447_SOURCE,
@@ -1054,7 +1064,7 @@ function main() {
   const args = process.argv.slice(2);
   const src = render(build(JSON.parse(readFileSync(DRAFT, "utf8"))));
   if (args.includes("--changes")) {
-    for (const c of [...CHANGES, ...POST_REVIEW, ...ADVERT_CHANGES, ...RULE_WORK, ...RULE_WORK_2]) console.log(`- ${c.rule}: ${c.what} (${c.why})`);
+    for (const c of [...CHANGES, ...POST_REVIEW, ...ADVERT_CHANGES, ...RULE_WORK, ...RULE_WORK_2, ...RULE_FIX]) console.log(`- ${c.rule}: ${c.what} (${c.why})`);
     return;
   }
   if (args.includes("--check")) {

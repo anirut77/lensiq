@@ -202,3 +202,15 @@ test("counter-cases (H02 / D02): registered and traditional indications, warning
   silent("ห้ามใช้ในผู้ที่แพ้ยานี้ หากอาการไม่ดีขึ้นควรปรึกษาแพทย์", "drug");
   silent("用于缓解轻度头痛。如症状持续，请咨询医生。", "drug");
 });
+
+/* ---------- bug fix 2026-11-12: H05 "coronary" is not the coronavirus ---------- */
+
+test("H05: 'coronary arteries' does not fire; 'coronavirus' / 'corona virus' still do", () => {
+  const listed = R.changes.filter((/** @type {any} */ c) => /bug fix 2026-11-12/.test(c.why)).map((/** @type {any} */ c) => c.rule);
+  assert.deepEqual(listed, ["H05"]);
+  silent("This hawthorn blend supports the heart and the coronary arteries.", "herbal");
+  silent("Promotes healthy coronary circulation as part of a balanced diet.", "herbal");
+  fires("Herbal drops to help treat the coronavirus", "herbal", "H05");
+  fires("A tea that helps fight corona virus infection", "herbal", "H05");
+  fires("Prevents Corona with natural herbs", "herbal", "H05");
+});

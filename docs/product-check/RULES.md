@@ -189,3 +189,5 @@ Machine-readable gating fields in `tools/pc-rules-draft.json` (documented in its
   (H02 anti-infection, efficacy-rate, comparison-with-medicine, superlative, "all kinds of" and mental-health families;
   D02 anti-virus / COVID, "back to normal" and Chinese "condition improves" wording; D08 unchanged). Dev numbers in
   `ADVERT-RESULTS.md` "Rule work 2026-11-12".
+- 2026-11-12 (bug fix, owner decision after the fresh-3 run): H05 English `\bcorona` -> `\bcorona(?!ry)` ("coronary
+  arteries" is not the coronavirus; `RULE_FIX` in `tools/pc-rules-build.mjs`). No item on fresh-3 changes.

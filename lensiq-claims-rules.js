@@ -360,6 +360,11 @@
      "rule": "D02",
      "what": "anti-virus / COVID claims for a drug ('kills the coronavirus', 'combat viral infections', 'COVID prevention', 'shorten the duration of'), 'กลับมาเป็นปกติ' (restored to normal), ZH 好转 / 自愈 / 病症减轻 / 多病化少",
      "why": "rule work 2026-11-12: drug recall with the type chosen was 5 of 16 on fresh2; most misses were anti-virus or 'back to normal' claims"
+   },
+   {
+     "rule": "H05",
+     "what": "'\\bcorona' -> '\\bcorona(?!ry)': 'coronary' (arteries) is not the coronavirus",
+     "why": "bug fix 2026-11-12: 'coronary arteries' fired H05; 'coronavirus' and 'corona virus' still fire"
    }
   ],
   "masks": [
@@ -2919,7 +2924,7 @@
          "\\bcovid",
          "\\bpsoriasis",
          "\\bhepatitis",
-         "\\bcorona",
+         "\\bcorona(?!ry)",
          "hyperglyc",
          "\\bmasses\\b"
        ],

@@ -358,3 +358,48 @@ compliant texts flagged, consensus rule precision / recall, by language and cate
 gpt-6.1-terra, claude-haiku-5.5 and gpt-6-luna (ZDR routes), each model reported separately. Targets: false flags ≤ 5
 per 100 compliant; recall ≥ 80 %; for (b) also precision ≥ 80 %. Chinese keeps "limited support" unless its subgroup
 meets both targets. One run each; the set is then spent.
+
+## Independent run on fresh-3 (2026-11-12, one run, set now spent)
+
+Source: public-page quotes, labelled blind by two AI labellers (κ 0.915), pending expert review; locked with the scoring
+rule above before any scoring. 545 over-claim texts (both flagged), 382 compliant (both empty), 40 disagreements apart.
+Logs: `~/LENSIQ-field/evals/adverts/fresh3/score/` (`run-20261112T014704.log` + `summary-…json` for (a),
+`b-run-20261111T215356.log` + `b-summary-20261111T215356.json` for (b), `run-rules222-20261112T050018.log` +
+`summary-rules222-20261112T050018.json` for the released rules). Fresh-3 again deliberately included the kinds of
+wording earlier runs missed (herbal, drug, Chinese), so fresh-3, fresh-2 and the first set are **not directly
+comparable**; the earlier runs are kept above as history.
+
+สรุป (ไทย): วัดอิสระครั้งเดียวกับชุดที่ 3 (โฆษณาเกินจริง 545 / ไม่เกินจริง 382) โหมดที่หน้าเว็บใช้ (เลือกประเภทสินค้า): กฎชุดใหม่ (a335ca9)
+จับได้ **60.0 %** แจ้งเตือนผิด **2.1** ต่อ 100 ข้อความ ดีกว่ากฎที่ปล่อยอยู่ (222e096) ซึ่งจับได้ 45.3 % ที่แจ้งเตือนผิดเท่ากัน เจ้าของเลือกชุดใหม่
+หน้าเว็บจึงเขียนว่า "พบได้ราว 3 ใน 5" ใช้ AI ภายนอกร่วมด้วยจับได้ 90–95 % แต่แจ้งเตือนผิด 13.6–29.1 ต่อ 100 จึงยังปิด AI (`pc_claims`) ไว้
+
+### (a) Rules alone, released mode (product type chosen)
+
+| Measure (95 % Wilson) | Released rules `222e096` (rules `542b1be5…`) | Rule work `a335ca9` (rules `cc9ea9aa…`) | Target |
+|---|---|---|---|
+| Recall: over-claim texts with ≥ 1 signal | 45.3 % [41.2–49.5] (247 / 545) | **60.0 %** [55.8–64.0] (327 / 545) | 80 % (missed) |
+| False flags per 100 compliant texts | 2.1 (8 / 382) | **2.1** (8 / 382; 2.1 % of texts [1.1–4.1]) | ≤ 5 (met) |
+| Rule-id precision / recall vs consensus | — | 80.2 % / 49.5 % | — |
+| Thai / English / Chinese recall | 67.4 / 48.0 / 31.4 % | 76.5 / 61.4 / 50.0 % | — |
+| Supplement / food / herbal / drug / cosmetic recall | 49.5 / 59.7 / 31.9 / 39.5 / 28.6 % | 70.6 / 79.8 / 39.6 / 44.4 / 28.6 % (2 / 7) | — |
+
+Guessed type (not used by the page): `a335ca9` 73.9 % recall, 66.5 false flags per 100; `222e096` 57.8 %, 44.8 per 100.
+**Owner decision 2026-11-12: `a335ca9` replaces the released rules.** The page now says "finds about 3 in 5 over-claims in
+testing" (`docs/accuracy-figures.json`: 545 / 382, 60.0 %, 2.1 per 100).
+
+**H05 "coronary" fix, re-checked on fresh-3** (`\bcorona` → `\bcorona(?!ry)`, rules `32ec8276…`, released mode): no item
+changes — still 327 / 545 recall and 8 / 382 false flags. On the spent fresh2 it removes one compliant false flag
+(FR2-0544: 1.9 → 1.3 per 100); P3 dev and the first set unchanged.
+
+### (b) Rules plus an external AI model (prompt B, union with the rules; P8 extra round)
+
+| Model (union with rules) | Recall | False flags per 100 compliant | Compliant texts flagged | Rule-id precision | Chinese recall / false flags |
+|---|---|---|---|---|---|
+| rules alone | 60.0 % | 2.1 | 8 / 382 | 80.2 % | 50.0 % / 1.4 |
+| gpt-6.1-terra | 90.1 % [87.3–92.3] | 13.6 | 52 / 382 | 68.0 % | 90.9 % / 9.7 |
+| claude-haiku-5.5 | 93.4 % [91.0–95.2] | 21.7 | 80 / 382 | 62.9 % | 94.6 % / 20.7 |
+| gpt-6-luna | 95.2 % [93.1–96.7] | 29.1 | 110 / 382 | 61.8 % | 94.2 % / 23.4 |
+
+AI alone (no rules): 84.4 / 89.0 / 91.7 % recall at 12.0 / 19.9 / 27.7 false flags per 100. No model meets ≤ 5 false flags
+or ≥ 80 % precision, so **`pc_claims` (the AI path for adverts) stays off**; Chinese keeps "limited support" (rules alone:
+50.0 %).

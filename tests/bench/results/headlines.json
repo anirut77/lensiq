@@ -5,7 +5,7 @@
  "source": "docs/accuracy-figures.json (transcribed from ACCURACY.md)",
  "reproduce": "see BENCHES in tests/bench/results.mjs — one command per bench; datasets via python3 -I tests/bench/fetch_datasets.py ~/lq-bench-data",
  "datasets": {
-  "adverts-fresh-2": {
+  "adverts-fresh-3": {
    "sha256": null,
    "status": "not reproducible here: datasets absent",
    "note": "not recorded: the round 3–6 runs that produced these figures predate fingerprinting; re-run the bench and `results.mjs record` to fill it"
@@ -427,58 +427,58 @@
    "status": "not reproducible here: datasets absent or not fingerprinted (fer)"
   },
   "adOver": {
-   "value": "455",
-   "raw": 455,
-   "what": "adverts, fresh-2 set: over-claim texts",
-   "evidence": "455 over-claim texts and 159 compliant texts",
+   "value": "545",
+   "raw": 545,
+   "what": "adverts, fresh-3 set: over-claim texts",
+   "evidence": "545 over-claim texts and 382 compliant texts",
    "bench": "advert",
    "fingerprinted": false,
-   "status": "not reproducible here: datasets absent or not fingerprinted (adverts-fresh-2)"
+   "status": "not reproducible here: datasets absent or not fingerprinted (adverts-fresh-3)"
   },
   "adComp": {
-   "value": "159",
-   "raw": 159,
-   "what": "adverts, fresh-2 set: compliant texts",
-   "evidence": "455 over-claim texts and 159 compliant texts",
+   "value": "382",
+   "raw": 382,
+   "what": "adverts, fresh-3 set: compliant texts",
+   "evidence": "545 over-claim texts and 382 compliant texts",
    "bench": "advert",
    "fingerprinted": false,
-   "status": "not reproducible here: datasets absent or not fingerprinted (adverts-fresh-2)"
+   "status": "not reproducible here: datasets absent or not fingerprinted (adverts-fresh-3)"
   },
   "adRecallType": {
-   "value": "67",
-   "raw": 67.3,
-   "what": "adverts, fresh-2 set, type chosen: over-claim texts with a signal",
-   "evidence": "finds **67.3 %** of over-claim texts with the product type chosen",
+   "value": "60",
+   "raw": 60,
+   "what": "adverts, fresh-3 set, type chosen: over-claim texts with a signal",
+   "evidence": "finds **60.0 %** of over-claim texts with the product type chosen",
    "bench": "advert",
    "fingerprinted": false,
-   "status": "not reproducible here: datasets absent or not fingerprinted (adverts-fresh-2)"
+   "status": "not reproducible here: datasets absent or not fingerprinted (adverts-fresh-3)"
   },
   "adFFType": {
-   "value": "2.5",
-   "raw": 2.5,
-   "what": "adverts, fresh-2 set, type chosen: false flags per 100 compliant texts",
-   "evidence": "**2.5** false flags per 100 compliant texts",
+   "value": "2.1",
+   "raw": 2.1,
+   "what": "adverts, fresh-3 set, type chosen: false flags per 100 compliant texts",
+   "evidence": "**2.1** false flags per 100 compliant texts",
    "bench": "advert",
    "fingerprinted": false,
-   "status": "not reproducible here: datasets absent or not fingerprinted (adverts-fresh-2)"
+   "status": "not reproducible here: datasets absent or not fingerprinted (adverts-fresh-3)"
   },
   "adNum": {
-   "value": "2",
-   "raw": null,
-   "what": "adverts: 'about N in M' (must stay within 5 points of adRecallType)",
-   "evidence": "finds about 2 in 3 over-claims in testing",
-   "bench": "advert",
-   "fingerprinted": false,
-   "status": "not reproducible here: datasets absent or not fingerprinted (adverts-fresh-2)"
-  },
-  "adDen": {
    "value": "3",
    "raw": null,
-   "what": "adverts: 'about N in M' denominator",
-   "evidence": "finds about 2 in 3 over-claims in testing",
+   "what": "adverts: 'about N in M' (must stay within 5 points of adRecallType)",
+   "evidence": "finds about 3 in 5 over-claims in testing",
    "bench": "advert",
    "fingerprinted": false,
-   "status": "not reproducible here: datasets absent or not fingerprinted (adverts-fresh-2)"
+   "status": "not reproducible here: datasets absent or not fingerprinted (adverts-fresh-3)"
+  },
+  "adDen": {
+   "value": "5",
+   "raw": null,
+   "what": "adverts: 'about N in M' denominator",
+   "evidence": "finds about 3 in 5 over-claims in testing",
+   "bench": "advert",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (adverts-fresh-3)"
   }
  }
 }

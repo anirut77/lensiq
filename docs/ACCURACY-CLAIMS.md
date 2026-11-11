@@ -260,25 +260,30 @@ and the Security category page quote these rows:
 Released as **experimental**: the user chooses the product type first (no check runs before that; a type guessed from
 the words is only a suggestion the user confirms), so the headline figure is the **product-type-chosen** one. Evidence:
 [`ACCURACY.md`](../ACCURACY.md) §14 and [`docs/product-check/ADVERT-RESULTS.md`](product-check/ADVERT-RESULTS.md)
-("Independent run on fresh-2"; the first run "Independent run on the fresh set" is kept as history). Source label: public dataset. Generated from `docs/accuracy-figures.json` (keys
-`md.pc.ad.acc`, `md.pc.ad.none`; `tools/accuracy-sync.mjs --check`), never hand-typed:
+("Independent run on fresh-3"; the fresh-2 and first-set runs are kept as history). Source label: public dataset.
+Generated from `docs/accuracy-figures.json` (keys `md.pc.ad.acc`, `md.pc.ad.none`; `tools/accuracy-sync.mjs --check`),
+never hand-typed:
 
 | Language | Claim on the advert panel (`md.pc.ad.acc`) |
 |---|---|
-| English | Independent test, 455 over-claim / 159 compliant public advert texts, labelled by AI, pending expert review: finds 67% of over-claims with the product type chosen, 2.5 false flags per 100 compliant texts · n = 455 / 159 · source: public dataset |
-| Thai | ผลทดสอบอิสระกับข้อความโฆษณาสาธารณะ (โฆษณาเกินจริง 455 ข้อความ ข้อความที่ไม่เกินจริง 159 ข้อความ ติดป้ายโดย AI รอผู้เชี่ยวชาญตรวจ): เมื่อเลือกประเภทสินค้า พบคำโฆษณาเกินจริง 67% แจ้งเตือนผิด 2.5 ครั้งต่อข้อความที่ไม่เกินจริง 100 ข้อความ · n = 455 / 159 · ที่มา: ชุดข้อมูลสาธารณะ |
-| Chinese | 独立测试，455 条夸大宣传 / 159 条合规的公开广告文字，由 AI 标注，待专家审核：选择产品类型后可发现 67% 的夸大宣传，每 100 条合规文字误报 2.5 次 · n = 455 / 159 · 来源：公开数据集 |
+| English | Independent test, 545 over-claim / 382 compliant public advert texts, labelled by AI, pending expert review: finds 60% of over-claims with the product type chosen, 2.1 false flags per 100 compliant texts · n = 545 / 382 · source: public dataset |
+| Thai | ผลทดสอบอิสระกับข้อความโฆษณาสาธารณะ (โฆษณาเกินจริง 545 ข้อความ ข้อความที่ไม่เกินจริง 382 ข้อความ ติดป้ายโดย AI รอผู้เชี่ยวชาญตรวจ): เมื่อเลือกประเภทสินค้า พบคำโฆษณาเกินจริง 60% แจ้งเตือนผิด 2.1 ครั้งต่อข้อความที่ไม่เกินจริง 100 ข้อความ · n = 545 / 382 · ที่มา: ชุดข้อมูลสาธารณะ |
+| Chinese | 独立测试，545 条夸大宣传 / 382 条合规的公开广告文字，由 AI 标注，待专家审核：选择产品类型后可发现 60% 的夸大宣传，每 100 条合规文字误报 2.1 次 · n = 545 / 382 · 来源：公开数据集 |
 
 - When nothing is flagged the card says exactly: "No listed wording found. This does not mean the advert is accurate or
-  approved. The check finds about 2 in 3 over-claims in testing." (Thai and Chinese equivalents in the same JSON). "About
-  2 in 3" (66.7 %) must stay within 5 points of the chosen-type recall (67.3 % on fresh-2); `tests/unit/pc-advert.test.js`
-  checks it.
-- Current figures: independent run on **fresh-2** (455 over-claim / 159 compliant, κ 0.916, rules `156ebae8…`). Fresh-2
-  deliberately targeted the wording the first run missed, so it is **not directly comparable** with the first run.
-- History (kept, not deleted): first independent run on the fresh set, 455 / 159: 64.2 % recall, 1.5 false flags per 100
-  compliant (type chosen); 71.1 % / 23.0 per 100 guessed. That set is spent.
-- Not claimed: the guessed-type figures (fresh-2: 75.6 % recall, 69.2 false flags per 100), because the page does not run
-  that way.
-- Chinese adverts: 56.8 % on 148 texts in fresh-2 (50 % on 20 in the first run); the card keeps "limited support" in
-  TH / EN / ZH.
-- Recall target (80 %) not met; false flags ≤ 5 per 100 met. Further rule work needs a third locked set to be measured.
+  approved. The check finds about 3 in 5 over-claims in testing." (owner-approved 2026-11-12; Thai and Chinese
+  equivalents in the same JSON). "About 3 in 5" (60 %) must stay within 5 points of the chosen-type recall (60.0 % on
+  fresh-3); `tests/unit/pc-advert.test.js` checks it.
+- Current figures: independent run on **fresh-3** (545 over-claim / 382 compliant, κ 0.915, rules `cc9ea9aa…` of commit
+  `a335ca9`, chosen by the owner over the released `222e096`, which scored 45.3 % / 2.1 per 100 on the same set). The
+  H05 "coronary" fix made afterwards was re-checked on fresh-3 and changes no item. Each locked set deliberately included
+  wording earlier runs missed, so the runs are **not directly comparable**.
+- History (kept, not deleted): fresh-2, 455 / 159: 67.3 % recall, 2.5 false flags per 100 (type chosen; rules
+  `156ebae8…`); first fresh set, 246 / 135: 64.2 % recall, 1.5 false flags per 100 (type chosen); 71.1 % / 23.0 per 100
+  guessed. Both sets are spent.
+- Not claimed: the guessed-type figures (fresh-3: 73.9 % recall, 66.5 false flags per 100), because the page does not run
+  that way; and rules plus an external AI model (90–95 % recall, 13.6–29.1 false flags per 100): the AI path (`pc_claims`)
+  stays off.
+- Chinese adverts: 50.0 % on 242 texts in fresh-3 (56.8 % on 148 in fresh-2, 50 % on 20 in the first run); the card keeps
+  "limited support" in TH / EN / ZH.
+- Recall target (80 %) not met; false flags ≤ 5 per 100 met. Measuring further rule work needs a new locked set.

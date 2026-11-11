@@ -1423,13 +1423,34 @@ instead of reporting "no face". Not measured: mouth movement, real exam rooms.
 On-device wording rules on advert / post / leaflet text (`lensiq-pc-advert.js`), released as **experimental** (owner
 decision 2026-11-11). Details: `docs/product-check/ADVERT-RESULTS.md`. Source label: public dataset.
 
-### Current figures: independent run on fresh-2 (2026-11-11, rules `156ebae8…`, commit `c8d5e4a`)
+### Current figures: independent run on fresh-3 (2026-11-12, rules `cc9ea9aa…`, commit `a335ca9`)
+
+Scored once by a separate agent on the third locked set (fresh-3, 967 texts, κ 0.915), locked with its scoring rule
+before any scoring: 545 over-claim texts and 382 compliant texts quoted from public advert pages, labelled blind by two
+AI labellers, pending expert review; 40 disagreements left out. It compared the released rules (`222e096`) with the
+rule work (`a335ca9`); the owner chose `a335ca9`. The later H05 "coronary" fix (`\bcorona(?!ry)`) was re-checked on
+fresh-3 and changes no item (still 327 / 545 and 8 / 382). Fresh-3 was collected after the earlier rounds and again
+includes kinds of wording earlier runs missed, so the three runs are not directly comparable.
+
+| Measure (95 % Wilson) | Product type chosen (how the page runs) | Type guessed (not used on the page) |
+|---|---|---|
+| Over-claim texts with at least one signal | finds **60.0 %** of over-claim texts with the product type chosen [55.8–64.0] | 73.9 % |
+| False flags | **2.1** false flags per 100 compliant texts (2.1 % of texts [1.1–4.1]) | 66.5 per 100 |
+
+By language (type chosen): Thai 76.5 % (101 / 132), English 61.4 % (105 / 171), Chinese 50.0 % (121 / 242; 1.4 false
+flags per 100 on 145). By category: food 79.8 %, supplement 70.6 %, drug 44.4 %, herbal 39.6 %, cosmetic 2 / 7. Released
+rules `222e096` on the same set: 45.3 % [41.2–49.5], 2.1 per 100. On the page this is said as "finds about 3 in 5
+over-claims in testing" (60 %). Chinese stays "limited support". Target 80 % recall: **not met**; ≤ 5 false flags per 100
+compliant: met. Rules plus an external AI model reached 90–95 % recall but 13.6–29.1 false flags per 100 (see
+`ADVERT-RESULTS.md`); the AI path (`pc_claims`) stays off.
+
+### History: independent run on fresh-2 (2026-11-11, rules `156ebae8…`, commit `c8d5e4a`; set now spent)
 
 Scored once by a separate agent on the second locked set (fresh-2), locked before scoring: 455 over-claim texts and 159
 compliant texts quoted from public advert pages, labelled blind by two AI labellers (κ 0.916), pending expert review;
 21 texts where the labellers disagreed are left out. Fresh-2 **deliberately targeted the kinds of wording the first run
 missed** (more Chinese, herbal and food texts, more claims to treat, prevent or change body function), so the two runs are
-not directly comparable: the first run is kept below as history, not as a "before".
+not directly comparable.
 
 | Measure (95 % Wilson) | Product type chosen (how the page runs) | Type guessed (not used on the page) |
 |---|---|---|
@@ -1438,8 +1459,8 @@ not directly comparable: the first run is kept below as history, not as a "befor
 
 By language (type chosen): Thai 76.3 % (116 / 152), English 68.4 % (106 / 155), Chinese 56.8 % [48.7–64.5] (84 / 148; 0
 false flags on 66 compliant). Weakest: herbal 53.0 %, drug 31.3 % (5 / 16), Chinese herbal 13 % (3 / 23). On the page
-this is still said as "finds about 2 in 3 over-claims in testing" (66.7 %, within 5 points). Chinese stays "limited
-support". Target 80 % recall: **not met**; target ≤ 5 false flags per 100 compliant: met.
+this was said as "finds about 2 in 3 over-claims in testing" (66.7 %). Target 80 % recall: not met; ≤ 5 false flags per
+100 compliant: met.
 
 ### History: first independent run (fresh set, 2026-11-11, rules `542b1be5…`, commit `68bbc8b`; set now spent)
 
