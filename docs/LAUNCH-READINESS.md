@@ -174,7 +174,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 |---|---|---|
 | **Pages** | `crowd.html`; sign A on `camera-notice.html` | `docs/PDPA-NOTES-FOR-COUNSEL.md` C1 |
 | **Works today** | People in view (5-frame median) and in a drawn zone; entry / exit line with an anonymous tracker; density heatmap; peak hours; "≈ estimate" label from 15 people or ≥ 2 people / m²; "people look small" hint; "expected crowd at peak" setting that warns when the detector collapses; marketing CSV with a caveat header; JSON summary; operator confirms a notice is posted before the camera starts; day records capped at 60 days | `docs/CROWD-ACCURACY.md` "What the page does with this"; `docs/ONE-PAGER-CROWD.md`; `docs/pdpa-notes/S1-A-crowd.md` |
-| **Status label** | Task wording and `docs/CTO-BRIEF.md:22`: experimental. `docs/PAGE-STATUS.md` now also says experimental (commit `72d733b`); every page, card and one-pager use the same words | in progress 2026-11-11 |
+| **Status label** | Task wording and `docs/CTO-BRIEF.md:22`: experimental. `docs/PAGE-STATUS.md` now also says experimental (commit `72d733b`); every page, card and one-pager use the same words | **done 2026-11-11** |
 | **All figures** | **Preliminary:** the reference is an AI reviewer looking at still frames, not two human counters | `docs/CROWD-ACCURACY.md` status box |
 | **Measured: dense crowd** | ≈ 300 people counted as about 1 per frame (0–2 on the 100+ person time-lapse) · n = 2 + 7 frames (2 clips) · public dataset, preliminary · **not yet suitable for dense crowds** | register C1; `docs/CROWD-ACCURACY.md` |
 | **Measured: 15–22 people, whole view** | Undercount 26 % · n = 12 frames (1 clip) · public dataset, preliminary | register C2 |
