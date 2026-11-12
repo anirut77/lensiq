@@ -102,7 +102,7 @@ A page may appear in two categories. Pages not listed under a category are platf
 | 2 | การศึกษาและการสอบ / Education & Exams | exam, exam-lab, exam-hall, exam-dashboard, omr |
 | 3 | HR และที่ทำงาน / HR & Workplace | attendance (PIN/QR default, face optional), hr, interview, case-review, teamface |
 | 4 | การตลาด ค้าปลีก และอีเวนต์ / Marketing, Retail & Events | crowd, store, insights, customers, retail, signage, neuro, queue, tables, bays, checkout, creative, creative-suite, booth |
-| 5 | สุขภาพ ความปลอดภัย และคุณภาพ / Health, Safety & Quality | medicine, driver, qc |
+| 5 | สุขภาพ ความปลอดภัย และคุณภาพ / Health, Safety & Quality | medicine, nutrition, driver, qc |
 | 6 | ดูดวงและฤกษ์มงคล / Fortune & Auspicious Planning | fortune, faceread, palm, horoscope, tarot, iching, bazi, taksa, lek7, numbers, fengshui, dream, zodiac, astro, lifegraph, planner, luckycolor, report |
 | 7 | สตูดิโอและสื่อ / Studio & Media | studio, photobooth, converter (+ booth) |
 | – | Platform (not a category) | index, solutions, about, help, pricing, account, admin, privacy, terms, camera-notice |
