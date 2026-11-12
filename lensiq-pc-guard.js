@@ -96,7 +96,9 @@
   ].join(""), "");
   // field words that end a name on the same line
   const STOP = new RegExp("(?:อายุ|เบอร์|โทร|เพศ|วันที่|ที่อยู่|น้ำหนัก|แพ้ยา|เลขที่|เลขประจำตัว|บัตร|เกิด|ว/ด/ป|ห้อง|แผนก|สิทธิ|" +
-    "\\b(?:HN|AN|VN|MRN|OPD|DOB|D\\.O\\.B|Date|Age|Sex|Gender|Tel|Phone|Mobile|Ward|ID|Room|Dept|on)\\b|年龄|性别|电话|手机|门诊号|病历号|住院号|科室|日期|出生|身份证|\\d|[|;]|\\[removed\\])", "iu");
+    "\\b(?:HN|AN|VN|MRN|OPD|DOB|D\\.O\\.B|Date|Age|Sex|Gender|Tel|Phone|Mobile|Ward|ID|Room|Dept|on)\\b|年龄|性别|电话|手机|门诊号|病历号|住院号|科室|日期|出生|身份证|" +
+    // Korean / Japanese field words (2026-11-12, after the live-scan review): registration no., birth date, age, sex, phone, address
+    "등\\s?록|생\\s?년|나이|성별|연락처|전화|주소|生年月日|年齢|電話|住所|\\d|[|;]|\\[removed\\])", "iu");
   const WARN_START = new RegExp([
     "^(?:โรค|ที่|ซึ่ง|ควร|ห้าม|ต้อง|เด็ก|ผู้|ภาวะ|ตับ|ไต|หัวใจ|เบาหวาน|ความดัน|ทุก|ทั่วไป|และ|หรือ|ใน|กลุ่ม|สูงอายุ|with|who|",
     "should|must|taking|information|package|leaflet|insert|counsel)"
@@ -115,6 +117,12 @@
     { re: /\bPt\.?\s*[:：]|\bRx\s+for\b|\bDispensed\s+to\b|\bPrepared\s+for\b|\bDr\.?\s+order\s+for\b|\bCustomer\s*[:：]/giu, always: true },
     { re: /(?:^|(?<=\s))For\s*[:：]/gu, always: false }, // on a dispensing label or any label with usage text
     { re: /(?:患者姓名|姓名|就诊人|病人|患者(?=\s*[:：]))\s*[:：]?/gu, always: true },
+    // Korean name fields (성명, 환자명, 수진자, 이름:) and an OCR-damaged "Patient:" ("Patiet:", "Patint:"), added 2026-11-12 after
+    // the live-scan review (a Korean lab report and a Hong Kong clinic label next to a product label); a product name field
+    // (제품 / 상품 / 약품 이름) is not a person
+    { re: /(?:^|(?<=[\s:：(]))(?:성\s?명|환자\s?(?:명|성명|이름)|수진자|(?<!(?:제품|상품|약품|의약품)\s?)이\s?름)\s*[:：]/gu, always: true },
+    { re: /(?:^|(?<=[\s(]))성\s?명(?=\s+[가-힯])/gu, always: true }, // 성명 (full name) needs no colon
+    { re: /\bPati(?:e?n?t|nt)\s*[:：]/giu, always: true },
     // a maker-printed responsible person (pharmacist in charge, production supervisor): the NAME is still removed
     { re: new RegExp("(?:เภสัชกรผู้มีหน้าที่ปฏิบัติการ|ผู้มีหน้าที่ปฏิบัติการ|เภสัชกรผู้ควบคุม(?:การผลิต)?|ผู้ควบคุมการผลิต)\\s*[:：.\\-–]?|" +
       "[監监][製制][藥药][師师]\\s*[:：]?|管理[藥药][師师]\\s*[:：]?|[駐驻][廠厂][藥药][師师]\\s*[:：]?|\\b(?:Pharmacist[- ]in[- ]charge|Responsible\\s+pharmacist|Qualified\\s+person)\\s*[:：\\-–]", "giu"),
@@ -327,7 +335,7 @@
   const DATE = `(?:\\d{1,4}\\s?[/.\\-]\\s?\\d{1,2}\\s?[/.\\-]\\s?\\d{1,4}|\\d{1,2}\\s*${TH_MONTH}\\s*(?:พ\\.ศ\\.\\s*)?\\d{2,4}|\\d{1,2}\\s+${EN_MONTH},?\\s+\\d{2,4}|` +
     `${EN_MONTH}\\s+\\d{1,2},?\\s+\\d{2,4}|\\d{2,4}\\s*年\\s*\\d{1,2}\\s*月(?:\\s*\\d{1,2}\\s*日)?)`;
   const DOB_RE = new RegExp(`(?:ว\\s?/\\s?ด\\s?/\\s?ป\\.?\\s*เกิด|ว\\.ด\\.ป\\.\\s*เกิด|วัน\\s?/\\s?เดือน\\s?/\\s?ปี\\s?เกิด|วันเดือนปีเกิด|วันเกิด|เกิด(?:วันที่)?|` +
-    `\\bD\\.?O\\.?B\\.?|\\bDate\\s+of\\s+birth|\\bBirth\\s*date|\\bBorn(?:\\s+on)?|出生日期|出生|生日)\\s*[:：.\\-–]?\\s*(${DATE})`, "giu");
+    `\\bD\\.?O\\.?B\\.?|\\bDate\\s+of\\s+birth|\\bBirth\\s*date|\\bBorn(?:\\s+on)?|出生日期|出生|生日|생\\s?년\\s?월\\s?일|생일|生年月日)\\s*[:：.\\-–]?\\s*(${DATE})`, "giu");
 
   /** @type {Array<{kind: string, re: RegExp, group?: number}>} */
   const RULES = [
@@ -337,6 +345,10 @@
       "(\\d(?: \\d){3,12}(?! ?\\d)|(?=[\\dOo\\-/]*\\d[\\dOo\\-/]*\\d)[A-Z]?[\\dOo][\\dOo\\-/]{2,14}[\\dOo]|\\d{3,})", "gu") },
     { kind: "hn", group: 1, re: /(?:เลขที่ผู้ป่วย|เลขประจำตัวผู้ป่วย)[\s:：]*([A-Z0-9][A-Z0-9\-/]{2,15})/gu },
     { kind: "hn", group: 1, re: /(?:门诊号|病历号码?|病歷號碼?|病歷號|住院号|住院號|領藥號|病人编号|MRN\/病歷號碼)[\s:：]*([A-Z0-9][A-Z0-9-]{2,15})/gu },
+    // Korean resident registration number (YYMMDD-Gxxxxxx), 2026-11-12
+    { kind: "id", re: /(?<![\d-])\d{6}\s?-\s?[1-8]\d{6}(?![\d-])/gu },
+    // Korean registration / chart / patient numbers (OCR may split the syllables), 2026-11-12
+    { kind: "hn", group: 1, re: /(?:등\s?록\s?번\s?호|환\s?자\s?번\s?호|차\s?트\s?번\s?호|병\s?록\s?번\s?호)[\s:：]*([A-Z0-9][A-Z0-9-]{2,15})/gu },
     { kind: "id", re: /(?<![\d-])\d[- ]\d{4}[- ]\d{5}[- ]\d{2}[- ]\d(?![\d-])/gu },
     { kind: "email", re: /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/gu },
     { kind: "id", group: 1, re: /(?:\bPassport(?:\s*(?:No\.?|number|#))?|หนังสือเดินทาง(?:เลขที่)?|护照(?:号码?)?|パスポート)\s*[:：.#]?\s*([A-Z]{1,2}\d{6,9}|\d{7,9})\b/giu },
@@ -471,7 +483,7 @@
         const cut = val.search(STOP);
         if (cut >= 0) val = val.slice(0, cut);
         val = capName(val).replace(/[\s,;:.\-–(]+$/u, "");
-        if (!val || !/[A-Za-zก-๙一-鿿]/u.test(val) || val.startsWith(PLACEHOLDER)) continue;
+        if (!val || !/[A-Za-zก-๙一-鿿가-힯ぁ-ヿ]/u.test(val) || val.startsWith(PLACEHOLDER)) continue;
         if (c.warnCheck && WARN_START.test(val)) continue;
         if (c.orgCheck && ORG_START.test(val)) continue;
         hits.push({ kind: "name", start: at, end: at + val.length });
@@ -984,9 +996,9 @@
     /様|さま|さん|殿|御中|님|씨|先生|女士|小姐|\b(?:dear|mr|mrs|ms|miss|dr|khun|hi|hello)\b|คุณ\s?[ก-๙]|นาย\s?[ก-๙]|นาง\s?[ก-๙]|น\.ส\.|ด\.ช\.|ด\.ญ\./iu,
     /おめでとう|ありがとう|ご連絡|拝啓|敬具|お大事に|谢谢|感谢|祝你|祝您|감사|축하|안녕|ขอบคุณ|ยินดีด้วย|ด้วยความเคารพ|regards|sincerely|thank you|thanks|congratulations|get well|reminder|เตือน|อย่าลืม|นัด|appointment|予約|预约|예약/iu
   ];
-  /** The same block list for the TESTER auto-send of the live scan (no preview): true = do not send automatically
+  /** The same block list for the TESTER one-tap send of the live scan (no preview): true = do not send automatically
    *  (a phone-like group of 9-11 digits, a non-Thai form of address, letter / note wording). Added 2026-11-12 after the independent
-   *  review found Japanese / Korean names and grouped phones the detectors miss reaching auto-send when a product label
+   *  review found Japanese / Korean names and grouped phones the detectors miss reaching one-tap send when a product label
    *  was in the same frame. @param {any} input */
   const AUTO_BLOCK = [
     // a phone-like group of 9 to 11 digits (a 13-digit Thai food / cosmetic number or a GTIN is not one)
