@@ -71,6 +71,7 @@
     "lensiq-research.js",
     "lensiq-fortune-hook.js",
     "fortune-crisis.js",
+    "fortune-straight.js",
     "lensiq-analytics.js",
     "lensiq-api.js",
     "lensiq-member.js",

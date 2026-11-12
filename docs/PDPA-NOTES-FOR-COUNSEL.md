@@ -826,3 +826,12 @@ tester code only as a Worker secret (in the browser: sessionStorage, for the ses
 personal is ever put in a URL. Switches: `npm run backend:off` (everything), admin global AI switch, tester-code
 rotation. Questions for counsel: L48 (lawful basis for real customers), L49 (this wording), L50 (processor terms and
 whether the model makers receive data on these routes, which the router does not state).
+
+## Fortune "read it straight" option (Part C, owner order 2026-11-12) — NOT DEPLOYED
+
+Built behind `window.LENSIQ_FORTUNE_STRAIGHT = false` (docs/FORTUNE-HONEST-READINGS.md). If the owner switches it on: the reader
+ticks "I am 18 or older" (self-declared; no ID check) and may choose plainer wording. The choice `{ adult, straight }` is stored
+only in the browser (`localStorage["lq-fortune-straight"]`), is never sent to a server and holds no personal data. Questions for
+counsel: is a self-declared age checkbox enough for adult-only wording in an entertainment service, and does the existing fortune
+disclaimer cover plainly negative readings (they remain without death, terminal-illness or dated-accident predictions, without
+instructions about medication, investments or relationships, and never tied to a paid service)?

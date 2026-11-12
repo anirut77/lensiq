@@ -45,6 +45,10 @@ interface Window {
   LENSIQ_AGE_GENDER?: boolean;
   /** fortune-crisis.js (loaded before fortune-ai.js) */
   LQFortuneCrisis?: any;
+  /** lensiq-config.js: Part C "read it straight" fortune option (owner order 2026-11-12); false until the owner approves */
+  LENSIQ_FORTUNE_STRAIGHT?: boolean;
+  /** fortune-straight.js (loaded before fortune-ai.js) */
+  LQFortuneStraight?: any;
   /** lensiq-config.js: "commercial" (default since round 16, customer mode) forces LENSIQ_AGE_GENDER, LENSIQ_EXPRESSION and
    *  LENSIQ_FACEPARSE off; "demo" = research demo (device toggle or operator preset) */
   LENSIQ_PROFILE?: string;

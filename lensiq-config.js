@@ -37,6 +37,11 @@ window.LENSIQ_FACEPARSE = window.LENSIQ_FACEPARSE === true;
  *   ใช้ได้เฉพาะในโหมดเดโมงานวิจัย (ดู LENSIQ_PROFILE ด้านล่าง) · false = ซ่อนตัวเลือกและไม่โหลดโมเดลเลยแม้ในโหมดเดโม */
 window.LENSIQ_AGE_GENDER = window.LENSIQ_AGE_GENDER !== false;
 
+/* LENSIQ_FORTUNE_STRAIGHT (owner order 2026-11-12, Part C "honest negative readings"): ตัวเลือก "ดูตรง ๆ / Read it straight / 直说"
+ *   บนหน้าดูดวง (ยืนยันอายุ 18+ ก่อน จำไว้ในเครื่อง) · ปิดไว้จนกว่าเจ้าของอนุมัติข้อความกฎและตัวอย่างใน docs/FORTUNE-HONEST-READINGS.md
+ *   ห้ามเปลี่ยนเป็น true ก่อนได้รับอนุมัติ (tests/unit/fortune-honest.test.js ตรวจค่านี้) */
+window.LENSIQ_FORTUNE_STRAIGHT = false;
+
 /* LENSIQ_EXPRESSION (round 16): โมเดลสีหน้า face-api.js faceExpressionNet (ข้อมูลฝึกไม่ชัดเรื่องสิทธิ์ — F5) ที่หน้า neuro,
  *   signage (ยิ้ม/Valence/อารมณ์), booth (สีหน้าหลัก/Valence) และ photobooth (ตรวจสีหน้ารูปติดบัตร) ใช้
  *   ใช้ได้เฉพาะในโหมดเดโมงานวิจัย · false = ไม่โหลดแม้ในโหมดเดโม */

@@ -383,7 +383,7 @@
   // ภาษาจีน: คำต้องห้ามเดียวกับภาษาไทย (ความตาย โรค อุบัติเหตุ หย่า นอกใจ ล้มละลาย คำสาป การพนัน/เลขเสี่ยงโชค) + คำสั่งเสี่ยง
   const BANNED_ZH = /死|病|癌|手术|事故|车祸|灾难|灾祸|离婚|出轨|外遇|破产|诅咒|厄运|倒霉|彩票|中奖号码|幸运号码|赌|下注|博彩|买码|六合彩|特码/;
   const RECKLESS_ZH = /(?:贷款|借钱|借贷|刷卡|抵押)[^。，！？]{0,8}(?:投资|炒|买币|加密|股票)|(?:全部|所有|全部身家)[^。，！？]{0,4}(?:投入|押上|梭哈)|梭哈|(?:立刻|马上|立即|今天就)辞职|(?:停药|别吃药|不用看医生|不必就医)|稳赚|保证赚钱|一定会发财/;
-  const BANNED_EN = /\b(death|die|dies|dying|dead|ill|illness|sick|sickness|disease|cancer|accident|divorce|bankrupt\w*|disaster|curse[sd]?|lottery|gambl\w*|suicide|kill\w*|infidelity|cheat\w*)\b/i;
+  const BANNED_EN = /\b(death|die|dies|dying|dead|ill|illness|sick|sickness|disease|cancer|accidents?|divorce|bankrupt\w*|disaster|curse[sd]?|lottery|gambl\w*|suicide|kill\w*|infidelity|cheat\w*)\b/i;
   /* ---------- หมวดเนื้อหาต้องห้ามแบบรูปแบบ (pattern) — ใช้กับทุกข้อความ โดยเฉพาะข้อความจาก AI ----------
      เขียนเป็นรูปประโยค ไม่ใช่รายการคำ เพื่อจับถ้อยคำที่เรียงต่างกัน ("คู่ของคุณอาจมีคนอื่น", "แฟนจะทิ้งคุณ", "ญาติผู้ใหญ่อาจจากไป")
      คำทำนายเป็นความบันเทิงเชิงบวก: ห้ามนอกใจ/เลิกรา/สุขภาพทรุด/ความตาย (รวมคำอ้อม)/คำสั่งทางการแพทย์/การพนันและเสี่ยงโชค/
@@ -632,7 +632,23 @@
   const NEGATED_ZH = /(?:不是|并非|不代表|不意味着|不等于|并不表示)(?:真的|真正的|字面上的|现实中的)?(?:死亡|死|疾病|生病|灾难|厄运|离婚|分手)/g;
   // ชื่อไพ่ (ไพ่ความตาย / Death / XIII / 死神牌) เป็นชื่อเฉพาะ ไม่ใช่คำทำนาย — ตัดชื่อออกก่อนตรวจ (เนื้อความที่เหลือยังตรวจตามปกติ)
   const CARD_NAME = /ไพ่(?:ใบ)?ความตาย(?:\s*[(（](?:Death|XIII|13)[)）])?|ความตาย\s*[(（](?:Death|XIII)[)）]|死神牌|死神\s*[(（]XIII[)）]|\bDeath\s*[(（]XIII[)）]|(?:the\s+)?Death\s+card/g;
-  function isSafe(text) {
+  /* ======================= ส่วน C (คำสั่งเจ้าของ 2026-11-12): คำอ่านตรง ๆ "ดูตรง ๆ / Read it straight / 直说" =======================
+     ยังไม่เปิดใช้ (window.LENSIQ_FORTUNE_STRAIGHT = false) · ข้อห้ามเด็ดขาด คำบอกผลไม่ดีที่ยอมให้ผ่าน ประโยคนำ และตัวเลือกของผู้ใช้อยู่ใน
+     fortune-straight.js (โหลดก่อนไฟล์นี้; ใน Node ใช้ require) · ไม่มีไฟล์นั้น = ไม่มีโหมดตรง และข้อห้ามเด็ดขาดใช้ตัวกรองเดิม */
+  const FS = (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-straight.js") : root.LQFortuneStraight) ||
+    { hardLimit: () => "", stripHonest: t => t, LABEL_NEG: /$^/, LEADS: null, enabled: () => false, active: () => false,
+      get: () => ({ adult: false, straight: true }), set: () => ({ adult: false, straight: true }) };
+  let STRAIGHT = false;
+  const preHL = t => String(t || "").normalize("NFC").replace(NEGATED_TH, " ").replace(NEGATED_ZH, "，").replace(CARD_NAME, " ");
+  const hardLimit = text => FS.hardLimit(preHL(text));
+  function isSafeStraight(text) {
+    const t = preHL(text);
+    if (hardLimit(t)) return false;
+    return isSafeGentle(FS.stripHonest(t), true);
+  }
+  function isSafe(text) { return STRAIGHT ? isSafeStraight(text) : isSafeGentle(text); }
+  function isSafeGentle(text, noHL) {
+    if (!noHL && hardLimit(text)) return false;
     const t = String(text || "").normalize("NFC").replace(NEGATED_TH, " ").replace(NEGATED_ZH, "，").replace(CARD_NAME, " ");
     const en = /Cancer/.test(t) && (ZODIAC_CTX.test(t) || !ILLNESS_CTX.test(t.replace(/มะเร็ง/g, ""))) && !ILLNESS_TH.test(t) ? t.replace(/\bCancer\b/g, "") : t;
     if (BANNED_EN.test(en) || RECKLESS_EN.test(t)) return false;
@@ -1888,11 +1904,17 @@
       const m = pickMeaning(ctx, it, pref, fitTo) || pickMeaning(ctx, it, rest, fitTo) || (plan.topicHasSection ? null : pickMeaning(ctx, it, [F.topic]));
       if (m) {
         // ภาพรวมบอกจุดที่ควรระวังตรง ๆ (ครั้งเดียว) พร้อมสิ่งที่ทำได้
-        const caut = toneOf(it) === "caution" && !ctx.cautionSec.overview;
+        const caut = cautS(it) && !ctx.cautionSec.overview;
         const iu = itemSentence(ctx, it, m, "first");
-        if (caut) { ctx.cautionSec.overview = 1; units.push(cautionUnit(ctx, it, "overview", iu)); } else units.push(iu);
+        if (caut) { ctx.cautionSec.overview = 1; units.push(cautionUnit(ctx, it, "overview", iu)); } else units.push(STRAIGHT && cautS(it) ? stepAfter(ctx, it, "overview", iu) : iu);
         ctx.secMeanings.overview.push({ it, m });
       }
+    }
+    // ส่วน C: โหมดตรงบอกผลไม่ดีที่ศาสตร์คำนวณได้เสมอ แม้สิ่งที่พบนั้นไม่มีความหมายด้านภาพรวม (เช่น กาลกิณีมีแต่คำแนะนำ)
+    const sc = STRAIGHT && !ctx.cautionSec.overview ? F.items.find(it => toneOf(it) === "caution") : null;
+    if (sc) {
+      ctx.cautionSec.overview = 1;
+      units.push({ text: cautionLead(ctx, sc, "overview").text + " จุดนั้นคือ" + refName(ctx, sc) + " " + cautionAction(ctx, sc, "overview").text, fixed: true, sub: true, noConn: true });
     }
     // ผสานสองสิ่งที่พบ เฉพาะเมื่อความหมายที่เล่าในภาพรวมพูดถึงแก่นเรื่องเดียวกันจริง
     ctx.avoid = null;
@@ -1961,14 +1983,15 @@
 
   function cautionLead(ctx, it, sec) {
     const area = cautionArea(it, sec);
-    return { text: pick(ctx.r, CAUTION_LEAD_TH[area]), fixed: true, sub: true, noConn: true };
+    return { text: pick(ctx.r, leadPool("th")[area]), fixed: true, sub: true, noConn: true };
   }
   // สิ่งที่ทำได้หลังจุดที่ควรระวัง: คำแนะนำของสิ่งที่พบเอง (ถ้าตรงหัวข้อ) ไม่งั้นคำแนะนำกลางของหัวข้อ
   function cautionAction(ctx, it, sec) {
     const area = cautionArea(it, sec);
     const rm = remedyFor(ctx.F, it, sec);
     // "ตามตำรา" เฉพาะวิธีที่ตำรากำหนดจริง (สี ธาตุ ทิศ); นิสัยทั่วไปบอกตรง ๆ ว่าเป็น "ข้อแนะนำทั่วไป"
-    if (rm && !ctx.remedyKeys.has(rm.key)) { ctx.remedyKeys.add(rm.key); return { text: (TRAD_REMEDY.has(rm.cat) ? "วิธีปรับตามตำราคือ" : "ข้อแนะนำทั่วไปคือ") + rm.th.replace(/^ตามตำรา/, ""), fixed: true, sub: true, noConn: true }; }
+    const frame = STRAIGHT ? (TRAD_REMEDY.has(rm && rm.cat) ? "สิ่งที่ควรทำตามตำราคือ" : "สิ่งที่ควรทำคือ") : TRAD_REMEDY.has(rm && rm.cat) ? "วิธีปรับตามตำราคือ" : "ข้อแนะนำทั่วไปคือ";
+    if (rm && !ctx.remedyKeys.has(rm.key)) { ctx.remedyKeys.add(rm.key); return { text: frame + rm.th.replace(/^ตามตำรา/, ""), fixed: true, sub: true, noConn: true }; }
     const own = (it.meanings.advice || []).map(cleanMeaning).find(m => m && !ctx.used.has(m) && isSafe(m) && isImperative(m) && !adviceOffTopic(m, area) && !overlapsUsed(ctx, m));
     let text = own || pick(ctx.r, CAUTION_ACTION_TH[area]);
     if (own) { markUsed(ctx, own); if (!/^(?:ควร|ลอง)/.test(text)) text = "ควร" + bareAdvice(text); }
@@ -1980,6 +2003,10 @@
   const REMEDY_FRAMES_GENERAL_TH = ["ข้อแนะนำทั่วไปจากจุดนี้คือ", "สิ่งที่ทำได้จากจุดนี้คือ", "ข้อแนะนำทั่วไปคือ"];
   // จุดที่ควรระวัง = ประโยคนำอย่างนุ่มนวล + ความหมายของสิ่งที่พบ + สิ่งที่ทำได้ เป็นหน่วยเดียว (ไม่เหลือคำเตือนลอย ๆ ถ้าส่วนใดถูกตัด)
   // ถ้าทั้งหน่วยไม่ผ่านด่าน ใช้ประโยคนำ + สิ่งที่ทำได้ (alt)
+  // ส่วน C: ในโหมดตรง สิ่งที่พบซึ่งตำราเรียกชื่อเองว่าไม่ดี (คู่อุปสรรค กาลกิณี ชง …) นับเป็นจุดที่ต้องระวังด้วย; โหมดนุ่มนวลเหมือนเดิม
+  const cautS = it => toneOf(it) === "caution" || (STRAIGHT && FS.LABEL_NEG.test(String(it.label || "")));
+  // จุดที่ต้องระวังจุดถัดไปในหัวข้อเดียวกัน (โหมดตรง): ไม่มีประโยคนำซ้ำ แต่มีสิ่งที่ทำได้ต่อท้ายเสมอ
+  function stepAfter(ctx, it, sec, iu) { const act = cautionAction(ctx, it, sec).text; return Object.assign({}, iu, { text: iu.text + " " + act, alt: [act], noConn: true }); }
   function cautionUnit(ctx, it, sec, iu) {
     const lead = cautionLead(ctx, it, sec).text, act = cautionAction(ctx, it, sec).text, area = cautionArea(it, sec);
     const alts = [lead + " " + act].concat(CAUTION_ACTION_TH[area].filter(a => a !== act).map(a => lead + " " + a));
@@ -2033,9 +2060,9 @@
       if (!m) return;
       ctx.secMeanings[id].push({ it, m });
       if (id === "advice") { const sp = splitLead(m); if (sp) m = sp.rest; body.push(adviceUnit(ctx, m, it)); ctx.mentioned.add(it.id); return; }
-      const caut = toneOf(it) === "caution" && !ctx.cautionSec[id];
+      const caut = cautS(it) && !ctx.cautionSec[id];
       const iu = itemSentence(ctx, it, m, ctx.mentioned.has(it.id) ? "next" : "first");
-      if (caut) { ctx.cautionSec[id] = 1; body.push(cautionUnit(ctx, it, id, iu)); } else body.push(iu);
+      if (caut) { ctx.cautionSec[id] = 1; body.push(cautionUnit(ctx, it, id, iu)); } else body.push(STRAIGHT && cautS(it) ? stepAfter(ctx, it, id, iu) : iu);
       // สิ่งที่พบ → ตำราว่าอย่างไร → ทำอะไรได้ (หัวข้อที่ถาม: สองจุดเด่นแรก)
       if (!caut && isTopic && i < 2) { const rm = remedyFor(ctx.F, it, id); if (rm && !ctx.remedyKeys.has(rm.key)) { ctx.remedyKeys.add(rm.key); body.push({ text: pick(r, TRAD_REMEDY.has(rm.cat) ? REMEDY_FRAMES_TH : REMEDY_FRAMES_GENERAL_TH) + rm.th.replace(/^ตามตำรา/, ""), fixed: true, sub: true, noConn: true }); } }
       if (isTopic && i < 2 && r() < 0.4) { const m2 = pickMeaning(ctx, it, keys, id); if (m2) body.push(itemSentence(ctx, it, m2, "more")); }
@@ -2352,7 +2379,21 @@
 
   const curLang = () => { try { const l = root.LQI18N && root.LQI18N.lang; return l === "zh" || l === "en" ? l : "th"; } catch (e) { return "th"; } };
   const langOf = opts => (opts && (opts.lang === "zh" || opts.lang === "th" || opts.lang === "en") ? opts.lang : curLang());
+  const straightEnabled = () => FS.enabled(), straightActive = () => FS.active();
+  const leadPool = lang => (STRAIGHT && FS.LEADS ? FS.LEADS[lang] : lang === "zh" ? CAUTION_LEAD_ZH : lang === "en" ? CAUTION_LEAD_EN : CAUTION_LEAD_TH);
+  /* compose: เลือกโหมดก่อน แล้วเรียกตัวเรียบเรียงเดิม — ตาข่ายวิกฤตมาก่อนเสมอเมื่อเป็นโหมดตรง (ข้อ 3) */
   function compose(facts, opts = {}) {
+    const straight = opts.straight != null ? !!opts.straight : straightActive();
+    if (straight && facts && crisisCheck(facts.subject && facts.subject.nickname, facts.question, opts.userText)) return supportResult(opts);
+    const prev = STRAIGHT;
+    STRAIGHT = straight;
+    try {
+      const out = composeBase(facts, opts);
+      if (out && out.source !== "support") out.mode = straight ? "straight" : "gentle";
+      return out;
+    } finally { STRAIGHT = prev; }
+  }
+  function composeBase(facts, opts = {}) {
     if (langOf(opts) === "zh") return composeZh(facts, opts);
     // English: composed natively from i18n/en-kb-*.js; a domain without English data falls back to the Thai reading
     if (langOf(opts) === "en") { const d = normalizeFacts(facts).domain; if (enLoad()[d]) return composeEn(facts, opts); opts = Object.assign({}, opts, { lang: "th" }); }
@@ -2584,10 +2625,11 @@
     let lastSubj = null, head = null;
     // 需要留意的地方：温和地说清楚，并马上给出能做的事（先用该项目自己的建议，否则用该主题的通用建议）
     const zCaut = {}, zLeadUsed = new Set(), zActUsed = new Set(), zRemedy = new Set();
-    const zLead = area => { const c = shuffle(r, CAUTION_LEAD_ZH[area] || CAUTION_LEAD_ZH.overview).find(x => !zLeadUsed.has(x)); if (!c) return null; zLeadUsed.add(c); return zhEnd(c); };
+    const zIsCaut = it => it.polarity === "challenge" || (STRAIGHT && toneOf(it) === "caution"); // 直说模式也看 tone
+    const zLead = area => { const L = leadPool("zh"), c = shuffle(r, L[area] || L.overview).find(x => !zLeadUsed.has(x)); if (!c) return null; zLeadUsed.add(c); return zhEnd(c); };
     function zhCautionAction(it, area) {
       const rm = remedyFor(F, it, area);
-      if (rm && !zRemedy.has(rm.key)) { zRemedy.add(rm.key); lastSubj = null; return zhEnd("调整的方法是：" + rm.zh); }
+      if (rm && !zRemedy.has(rm.key)) { zRemedy.add(rm.key); lastSubj = null; return zhEnd((STRAIGHT ? "建议这样调整：" : "调整的方法是：") + rm.zh); }
       const own = (it.meanings.advice || []).find(m => !used.has(m) && isSafe(m) && !adviceOffTopic(m, area));
       if (own) { used.add(own); return advice(own); }
       lastSubj = null;
@@ -2649,16 +2691,26 @@
       top.forEach(it => nameShown.add(it.id));
       head = top.length ? { ids: top.map(it => it.id), at: 0 } : null;
       secM.overview = [];
-      for (const it of withCaution(items, 3 + Math.floor(r() * 2), x => x.polarity === "challenge")) {
+      for (const it of withCaution(items, 3 + Math.floor(r() * 2), zIsCaut)) {
         const m = (topicHas ? takeOv(it) : take(it, ["overview", "personality"])) || (topicHas ? null : take(it, [F.topic]));
         if (!m) continue;
         if (!(head && head.ids[head.at] === it.id)) nameShown.delete(it.id);
-        const zc = it.polarity === "challenge" && !zCaut.overview;
+        const zc = zIsCaut(it) && !zCaut.overview;
+        if (zc && STRAIGHT) {
+          zCaut.overview = 1; const l = zLead("overview") || "", sen = sentence(it, m, "overview"); secM.overview.push({ it, m });
+          s.push(l + sen + zhCautionAction(it, "overview")); continue;
+        }
         if (zc) { zCaut.overview = 1; const l = zLead("overview"); if (l) s.push(l); }
         s.push(sentence(it, m, "overview")); secM.overview.push({ it, m });
         if (zc) s.push(zhCautionAction(it, "overview"));
       }
       head = null;
+      // 第 C 部分：直说模式下，命理规则给出的不利结果一定说出来（即使该项没有总览含义）
+      const zsc = STRAIGHT && !zCaut.overview ? items.find(zIsCaut) : null;
+      if (zsc) {
+        const l = zLead("overview"), nm = /[\u0E00-\u0E7F]/.test(zsc.label || "") ? "" : zhEnd("这一项是" + zsc.label);
+        if (l) { zCaut.overview = 1; s.push(l + nm + zhCautionAction(zsc, "overview")); }
+      }
       const p = pairLine(secM.overview, "overview"); if (p) s.push(p);
       if (topicHas) s.push(zhEnd(fill(pick(r, ZH_BRIDGE), { TW: ZH_TAG[F.topic] })));
       if (s.length > 1) sections.push({ id: "overview", title: ZH_TITLES.overview, paragraphs: paras(s) });
@@ -2687,11 +2739,14 @@
       const chosen = rel.slice(0, isTopic ? 4 : 2);
       for (const it of chosen) {
         const m = take(it, keys); if (!m) continue;
-        const zc = it.polarity === "challenge" && !zCaut[id];
+        const zc = zIsCaut(it) && !zCaut[id];
         const za = CAUTION_LEAD_ZH[id] ? id : "overview";
+        if (zc && STRAIGHT) { zCaut[id] = 1; const l = zLead(za) || "", sen = sentence(it, m, id); secM[id].push({ it, m }); s.push(l + sen + zhCautionAction(it, za)); }
+        else {
         if (zc) { zCaut[id] = 1; const l = zLead(za); if (l) s.push(l); }
         s.push(sentence(it, m, id)); secM[id].push({ it, m });
         if (zc) s.push(zhCautionAction(it, za));
+        }
         if (isTopic && secM[id].length <= 2) { const m2 = take(it, keys); if (m2) { s.push(sentence(it, m2, id)); secM[id].push({ it, m: m2 }); } }
       }
       if (!s.length) continue;
@@ -2911,16 +2966,19 @@
     const same = deck(r, EN_SAME);
     let lastSubj = null, head = null;
     const eCaut = {}, eLeadUsed = new Set(), eActUsed = new Set(), eRemedy = new Set();
-    const eLead = area => { const c = shuffle(r, CAUTION_LEAD_EN[area] || CAUTION_LEAD_EN.overview).find(x => !eLeadUsed.has(x)); if (!c) return null; eLeadUsed.add(c); return enEnd(c); };
+    const EN_DO = /\b(?:try|plan|set aside|check|rest|talk|listen|keep|review|make|take|ask|leave|note|pause|break)\b/i; // straight: the step after a caution names something to do
+    const eIsCaut = it => it.polarity === "challenge" || (STRAIGHT && toneOf(it) === "caution"); // straight mode also reads the tone
+    const eLead = area => { const L = leadPool("en"), c = shuffle(r, L[area] || L.overview).find(x => !eLeadUsed.has(x)); if (!c) return null; eLeadUsed.add(c); return enEnd(c); };
     // the first time an item with a gloss is named, explain the concept in one sentence (at most three per reading)
     // glosses that open the same way ("In Taksa, the Thai system of …") are shown once; at most three per reading
     const glossKey = g => String(g).toLowerCase().split(/\s+/).slice(0, 4).join(" ");
     const glossFor = it => { if (!it.gloss || glossShown.has(glossKey(it.gloss)) || glossShown.size >= 3 || !isSafe(it.gloss)) return ""; glossShown.add(glossKey(it.gloss)); return " " + enEnd(it.gloss); };
     function cautionAction(it, area) {
       const rm = remedyFor(F, it, area);
-      if (rm && rm.en && !eRemedy.has(rm.key)) { eRemedy.add(rm.key); lastSubj = null; return enEnd("A simple adjustment: " + lcFirst(rm.en.replace(/[.]+$/, ""))); }
+      const frame = STRAIGHT ? "Try this simple adjustment: " : "A simple adjustment: ";
+      if (rm && rm.en && !eRemedy.has(rm.key)) { eRemedy.add(rm.key); lastSubj = null; return enEnd(frame + lcFirst(rm.en.replace(/[.]+$/, ""))); }
       const own = (it.meanings.advice || []).find(m => !used.has(m) && ok(m) && !adviceOffTopic(m, area));
-      if (own) { used.add(own); return advice(own); }
+      if (own) { used.add(own); const a0 = advice(own); return STRAIGHT && !EN_DO.test(a0) ? "Try this: " + lcFirst(a0) : a0; }
       lastSubj = null;
       const pool = CAUTION_ACTION_EN[area] || CAUTION_ACTION_EN.overview, a = shuffle(r, pool).find(x => !eActUsed.has(x)) || shuffle(r, CAUTION_ACTION_EN.overview).find(x => !eActUsed.has(x)) || pool[0];
       eActUsed.add(a); return enEnd(a);
@@ -2957,7 +3015,7 @@
       claims.push({ kind: "item", ids: [it.id], sec, text: t });
       return t;
     }
-    function advice(m) { lastSubj = null; if (EN_ADV_PLAIN.test(m)) return enEnd(m); return enEnd(fill(dk.adv(), { A: lcFirst(m) })); }
+    function advice(m) { lastSubj = null; if (EN_ADV_PLAIN.test(m)) return enEnd(STRAIGHT && !EN_DO.test(m) ? "Try this: " + lcFirst(m) : m); return enEnd(fill(dk.adv(), { A: lcFirst(m) })); }
     function pairLine(entries, sec) {
       if (synN >= FILLER_BUDGET) return null;
       for (let i = 0; i < entries.length; i++) for (let j = i + 1; j < entries.length; j++) {
@@ -2984,17 +3042,23 @@
       head = top.length ? { ids: top.map(it => it.id), at: 0 } : null;
       secM.overview = [];
       // the items named in the headline are explained first, in the same order
-      for (const it of withCaution(top.concat(items.filter(x => top.indexOf(x) < 0)), 3 + Math.floor(r() * 2), x => x.polarity === "challenge")) {
+      for (const it of withCaution(top.concat(items.filter(x => top.indexOf(x) < 0)), 3 + Math.floor(r() * 2), eIsCaut)) {
         const m = (topicHas ? takeOv(it) : take(it, ["overview", "personality"])) || (topicHas ? null : take(it, [F.topic]));
         if (!m) continue;
         if (!(head && head.ids[head.at] === it.id)) nameShown.delete(it.id);
         // a caution stays in one unit with its lead and its practical step (paragraph trimming never separates them)
-        const ec = it.polarity === "challenge" && !eCaut.overview;
+        const ec = eIsCaut(it) && !eCaut.overview;
         const l = ec ? (eCaut.overview = 1, eLead("overview")) : null;
         const sen = sentence(it, m, "overview"); secM.overview.push({ it, m });
         s.push(ec ? [l, sen, cautionAction(it, "overview")].filter(Boolean).join(" ") : sen);
       }
       head = null;
+      // Part C: in straight mode the unfavourable result is always stated, even when that finding has no overview meaning
+      const esc = STRAIGHT && !eCaut.overview ? items.find(eIsCaut) : null;
+      if (esc) {
+        const l = eLead("overview"), nm = /[\u0E00-\u0E7F]/.test(esc.label || "") ? "" : " " + enEnd("The finding in question is " + esc.label);
+        if (l) { eCaut.overview = 1; s.push(l + nm + " " + cautionAction(esc, "overview")); }
+      }
       const p = pairLine(secM.overview, "overview"); if (p) s.push(p);
       if (topicHas) s.push(enEnd(fill(pick(r, EN_BRIDGE), { TW: EN_TAG[F.topic] })));
       if (s.length > 1) sections.push({ id: "overview", title: EN_TITLES.overview, paragraphs: paras(s) });
@@ -3022,7 +3086,7 @@
       const chosen = rel.slice(0, isTopic ? 4 : 2);
       for (const it of chosen) {
         const m = take(it, keys); if (!m) continue;
-        const ec = it.polarity === "challenge" && !eCaut[id];
+        const ec = eIsCaut(it) && !eCaut[id];
         const ea = CAUTION_LEAD_EN[id] ? id : "overview";
         const l = ec ? (eCaut[id] = 1, eLead(ea)) : null;
         const sen = sentence(it, m, id); secM[id].push({ it, m });
@@ -4129,7 +4193,10 @@
     // ข้อความที่ผู้ใช้พิมพ์เอง (ชื่อเล่น คำถาม) มีสัญญาณวิกฤต → การ์ดช่วยเหลือแทนคำทำนาย (ไม่ส่งไป AI)
     if (crisisCheck(facts && facts.subject && facts.subject.nickname, facts && facts.question, opts.userText, pageText())) return supportResult(opts);
     // Chinese and English are composed on the device only (the writing assistant and its grounding gate are Thai-only)
-    const useAI = langOf(opts) === "zh" || langOf(opts) === "en" ? false : opts.useAI != null ? !!opts.useAI : hasConsent();
+    // ส่วน C: โหมดตรงเรียบเรียงในเครื่องเท่านั้น (ผู้ช่วยเขียน AI ยังใช้ถ้อยคำนุ่มนวลจนกว่าเจ้าของอนุมัติ)
+    const straight = opts.straight != null ? !!opts.straight : straightActive();
+    if (straight) opts = Object.assign({}, opts, { straight: true });
+    const useAI = straight || langOf(opts) === "zh" || langOf(opts) === "en" ? false : opts.useAI != null ? !!opts.useAI : hasConsent();
     let note;
     if (useAI) {
       const st = await status();
@@ -4287,6 +4354,11 @@
       d.appendChild(ul); frag.appendChild(d);
     }
     if (res.reminder && opts.reminder !== false) { const n = el("p", "fa-reminder", res.reminder); n.setAttribute("role", "note"); frag.appendChild(n); }
+    // ส่วน C: ตัวเลือก "ดูตรง ๆ" — วาดเฉพาะเมื่อเปิดสวิตช์ (ปิดอยู่ในไฟล์ที่ส่งมอบ จึงไม่มีอะไรเปลี่ยนบนหน้า)
+    if (straightEnabled() && opts.straightControl !== false) {
+      try { container.setAttribute("data-fa-mode", res.mode === "straight" ? "straight" : "gentle"); frag.insertBefore(FS.control(container, res.lang), frag.firstChild); }
+      catch (e) { /* ไม่มี DOM */ }
+    }
     // the help line under every reading (owner order 2026-11-12): calm, verified numbers, no detection needed
     if (CR && CR.helpLine) { try { frag.appendChild(CR.helpLine(doc, res.lang, "lq-helpline-result")); } catch (e) { /* no DOM */ } }
     container.appendChild(frag);
@@ -4349,6 +4421,7 @@
   const api = {
     crisis: { check: crisisCheck, result: supportResult, render: renderSupport, fields: doc => pageText(doc),
       active: doc => !!(CR && CR.active && CR.active(doc)), allow: (kind, doc) => !(CR && CR.active && CR.active(doc)) },
+    straight: Object.assign({}, FS, { isSafe: isSafeStraight, hardLimit }),
     compose, interpret, regenerate, status, renderSections: renderWithHooks, registerHooks, toHTML, consentControl, hasConsent, setConsent,
     rng, pick, shuffle, SECTION_TITLES, SECTION_IDS, CONSENT_TEXT, DOMAIN_NAMES,
     lint, lintSemantic, lintZh, lintEn, nearDupPairs, lintRepeats, leadEcho, PHRASE_BUDGET, FILLER_BUDGET,
