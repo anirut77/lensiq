@@ -312,6 +312,14 @@ letter), `ai_off_no_product` (no product-label evidence). Source: `backend/src/a
 The page runs the same decision (`LQPCGuard.aiGate`) before sending, so in normal use the Worker's refusal is defence in
 depth; the page shows its generic fallback for it.
 
+Tester auto-send (2026-11-12, Product Check live scan; `docs/product-check/LIVE-SCAN-RESULTS.md`): a body with
+`auto: true` (top level, never passed to a provider; any non-boolean `auto` is `bad_request`) is accepted only when
+`TESTER_GATE=required` and the request's tester code is valid, and only by a feature with an `autoCheck` (pc_fields,
+pc_claims, pc_translate); otherwise `auto_not_allowed` (403, no provider call). After `build()`, `autoCheck` refuses with
+`bad_input` + `code: ai_off_auto_filter` (`AUTO_REFUSAL_CODES`) a text holding the placeholder, a possible name, session
+evidence, or no text. Auto requests also count against a per-caller allowance (`AUTO_PER_MINUTE` 6, `AUTO_PER_DAY` 150;
+given back when refused before a provider call). A request without `auto` is the unchanged path.
+
 Validator metadata (2026-11-12): a successful answer may carry `meta`, counts only (gateway `verifyMeta`: at most 8
 lower-case keys, non-negative integers). `pc_claims` with a product category: `meta.off_family_dropped` = signals whose
 rule is outside the category's family (the rules the prompt listed; F22 only for food) that were dropped, not

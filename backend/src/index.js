@@ -201,7 +201,7 @@ async function publicRoute(request, env, url, deps) {
     if (!originAllowed(request, allow, { required: true })) return reply({ error: "origin not allowed", fallback: true, reason: "bad_request" }, 403);
     const st = await gate();
     if (!st.ok) return json(testerBody(st), st.status, gateHeaders(st));
-    const [body, status] = await aiRoute(env, request, aim[1], deps);
+    const [body, status] = await aiRoute(env, request, aim[1], deps, { tester: st });
     return reply(body, status);
   }
   if (p === "/api/fortune/status" && m === "GET") {

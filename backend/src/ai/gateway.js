@@ -294,11 +294,24 @@ export function isLocalRequestUrl(request) {
 export const evalLocalMode = (env, request) => String(env.AI_EVAL_LOCAL || "") === "1" && isLocalRequestUrl(request) && isLocalOrigin(request);
 
 /**
+ * Tester-only auto-send of the Product Check live scan (owner order 2026-11-12). A request marked `auto: true` (top level of
+ * the body; never passed to a provider) skipped the per-capture preview on the page, so the Worker accepts it ONLY when the
+ * closed-test gate is on (TESTER_GATE=required) and the request carries a valid tester code, and only for a feature that
+ * has an autoCheck (pc_fields, pc_claims, pc_translate). On top of every feature limit it has its own per-caller
+ * budget: AUTO_PER_MINUTE requests a minute and AUTO_PER_DAY a day (one auto round = one request per switched-on feature).
+ * After build(), the feature's autoCheck applies the stricter auto filter (pc-features.js: nothing removed on the device,
+ * no possible name, no session evidence). The face check and "one round per product" are client-side (stated in
+ * docs/product-check/LIVE-SCAN-RESULTS.md); a request without `auto` is the unchanged public path.
+ */
+export const AUTO_PER_MINUTE = 6, AUTO_PER_DAY = 150;
+
+/**
  * POST /v1/ai/:feature (Origin is checked by the router). Returns [body, status]; every refusal carries fallback:true and
  * a reason so the page keeps its on-device result.
  * @param {Env} env @param {Request} request @param {string} featureId @param {any} [deps]
+ * @param {{tester?: {required?: boolean, ok?: boolean}}} [ctx] the router's tester-gate state for this request
  */
-export async function aiRoute(env, request, featureId, deps = {}) {
+export async function aiRoute(env, request, featureId, deps = {}, ctx = {}) {
   const reg = featuresWith(deps.aiFeatures);
   const meta = FEATURE_RE.test(featureId) ? reg[featureId] : null;
   if (!meta || meta.legacy || typeof meta.build !== "function") return fb("unavailable", 404);
@@ -308,6 +321,10 @@ export async function aiRoute(env, request, featureId, deps = {}) {
   let body;
   try { body = await readJson(request, fs.imageModeAllowed ? MAX_BODY_IMAGE : MAX_BODY_TEXT); } catch (e) { return fb("bad_request", e.status || 400); }
   if (!body || typeof body !== "object" || Array.isArray(body)) return fb("bad_request", 400);
+  if ("auto" in body && typeof body.auto !== "boolean") return fb("bad_request", 400);
+  const auto = body.auto === true;
+  // tester-only auto-send: the gate must be ON and this request's tester code valid, and the feature must allow it
+  if (auto && !(typeof meta.autoCheck === "function" && ctx.tester && ctx.tester.required === true && ctx.tester.ok === true)) return fb("auto_not_allowed", 403);
   const providers = body.providers;
   if (body.consent !== true || !Array.isArray(providers) || !providers.length || providers.length > 8 || !providers.every(p => PROVIDER_IDS.includes(p))) return fb("consent_required", 400);
   const mode = body.mode == null ? "text" : body.mode;
@@ -329,7 +346,9 @@ export async function aiRoute(env, request, featureId, deps = {}) {
   const specs = [
     { key: `ai:${featureId}:m:${who}`, limit: fs.perUserPerMinute, win: 60 },
     { key: `ai:${featureId}:d:${who}`, limit: fs.perUserDaily, ...DAY },
-    { key: `ai:${featureId}:g`, limit: fs.globalPerMinute, win: 60 }
+    { key: `ai:${featureId}:g`, limit: fs.globalPerMinute, win: 60 },
+    // auto-send has its own allowance per caller, across the Product Check features
+    ...(auto ? [{ key: `ai:auto:m:${who}`, limit: AUTO_PER_MINUTE, win: 60, auto: true }, { key: `ai:auto:d:${who}`, limit: AUTO_PER_DAY, ...DAY, auto: true }] : [])
   ];
   const lim = await hitAll(env.DB, specs);
   if (!lim.ok) return fb("limit", 429);
@@ -341,9 +360,10 @@ export async function aiRoute(env, request, featureId, deps = {}) {
   let nreq;
   try {
     nreq = meta.build(input, { mode, evalLocal });
+    if (auto) meta.autoCheck(input); // tester auto-send: the stricter filter, after every check of build()
     if (!nreq || typeof nreq.system !== "string" || typeof nreq.text !== "string" || !nreq.output || !nreq.output.schema) throw new Error("bad build");
   } catch (e) { // refused before any provider call; a documented refusal of this text adds its code (pc-features.js INPUT_REFUSAL_CODES)
-    await lim.release(x => !!x.daily);
+    await lim.release(x => !!x.daily || !!x.auto); // refused before any provider call: the day (and the auto allowance) given back
     const code = refusalCode(e);
     return fb("bad_input", 400, code ? { code } : {});
   }
@@ -361,7 +381,7 @@ export async function aiRoute(env, request, featureId, deps = {}) {
   const evalInfo = evalLocal
     ? { eval: { costMicros: run.costMicros, attempts: run.attempts.map(a => ({ provider: a.provider, model: a.model, kind: a.kind, costMicros: a.costMicros, latencyMs: a.latencyMs })) } } : {};
   if (!run.ok) {
-    if (!run.attempts.some(a => a.billed)) await lim.release(x => !!x.daily); // nothing was produced: the day's use is given back
+    if (!run.attempts.some(a => a.billed)) await lim.release(x => !!x.daily || !!x.auto); // nothing was produced: the day's use is given back
     return fb(run.reason, FB_STATUS[run.reason] || 502, evalInfo);
   }
   const pp = publicProvider(run.provider);
