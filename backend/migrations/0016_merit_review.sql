@@ -1,4 +1,4 @@
--- 0015_merit_review.sql — Merit reviewer accounts and the review queue (owner decision 2026-11-12; backend/src/reviewers.js,
+-- 0016_merit_review.sql — Merit reviewer accounts and the review queue (owner decision 2026-11-12; backend/src/reviewers.js,
 -- backend/src/merit.js, docs/MERIT-RESULTS.md §8).
 --
 -- admin_reviewers: a second, restricted back-office account type next to the single owner (admin_users id = 1). A

@@ -141,7 +141,7 @@ export async function publicGuidance(env) {
 }
 
 /* ---------------- admin (owner, and reviewers for merit content: index.js REVIEWER_ROUTES) ---------------- */
-// Review queue (owner decision 2026-11-12, migration 0015): draft -> reviewed -> published; rejected (with a comment) from
+// Review queue (owner decision 2026-11-12, migration 0016): draft -> reviewed -> published; rejected (with a comment) from
 // draft / reviewed / published; hidden by the owner. Only "published" is served (publicGuidance). A reviewer cannot set
 // the status or the sample flag directly, and any content edit by a reviewer sends the item back to "draft" (it needs an
 // approval again). The owner may still publish, hide or set back to draft directly (owner authority; in the history).

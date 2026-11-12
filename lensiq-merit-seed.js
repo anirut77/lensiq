@@ -2,7 +2,7 @@
  *
  * These are clearly marked samples ("ตัวอย่าง / Sample / 示例" in every title, sample: true) written in our own words
  * for the admin to replace; they are not copied from any source and name no real temple, fee or person. The SAME items
- * are inserted by backend/migrations/0014_merit.sql (tests/unit/backend-merit.test.js B2 keeps the two identical), so
+ * are inserted by backend/migrations/0015_merit.sql (tests/unit/backend-merit.test.js B2 keeps the two identical), so
  * the static site (no backend) and a fresh database show the same thing. Admins replace them in the back office.
  *
  * Shape: {id, type: place|offering|chong|lucky_item, tradition: thai_buddhist|chinese_folk|hindu_brahman|general,

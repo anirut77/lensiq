@@ -19,7 +19,9 @@ async function readZodiac(page) {
   });
   await page.waitFor("document.querySelectorAll('.fa-section').length >= 3", 15000);
 }
-async function tarotReading(page, question) {
+async function tarotReading(page, question, { afterCrisis = false } = {}) {
+  // re-lock 2026-11-12 (rebase onto main 3d37445): after a crisis the page never renders a reading again; wait for the new support card
+  if (afterCrisis) await page.evaluate(() => document.querySelectorAll(".fa-support").forEach(s => s.setAttribute("data-e2e-old", "")));
   await page.evaluate(q => {
     document.getElementById("trQuestion").value = q;
     document.querySelector('input[value="three"]').click(); document.querySelector('input[value="love"]').click();
@@ -29,7 +31,7 @@ async function tarotReading(page, question) {
   await page.evaluate(() => document.getElementById("trAuto").click());
   await sleep(900);
   await page.evaluate(() => document.getElementById("trReveal").click());
-  await page.waitFor("document.querySelectorAll('.fa-section').length >= 3", 25000);
+  await page.waitFor(afterCrisis ? "[...document.querySelectorAll('.fa-support')].some(s => !s.hasAttribute('data-e2e-old') && !s.closest('.lq-merit') && s.getClientRects().length > 0 && /1323/.test(s.textContent))" : "document.querySelectorAll('.fa-section').length >= 3", 25000);
 }
 const meritShown = `(() => ({ panels: [...document.querySelectorAll(".lq-merit")].filter(p => !p.hidden && p.getBoundingClientRect().height > 0).length,
   cards: document.querySelectorAll(".lq-merit-card").length, paid: document.querySelectorAll(".lq-merit-paid").length }))()`;
@@ -105,7 +107,7 @@ export default async function ({ base, launch, check, repo }) {
       assert(await page.evaluate(() => { try { localStorage.length; return false; } catch (e) { return true; } }), "storage is blocked in this page");
       await page.evaluate(() => { document.getElementById("trQuestion").value = "I want to die"; document.getElementById("trStart").click(); });
       await page.waitFor("(() => { const s = document.getElementById('trSupport'); return !!s && !s.hidden && /1323/.test(s.textContent); })()", 5000);
-      await tarotReading(page, "งานใหม่จะดีไหม");
+      await tarotReading(page, "งานใหม่จะดีไหม", { afterCrisis: true });
       await sleep(1500);
       const r = await page.evaluate(meritShown);
       assert(r.panels === 0 && r.cards === 0 && r.paid === 0, JSON.stringify(r));

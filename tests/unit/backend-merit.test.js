@@ -1,9 +1,9 @@
 "use strict";
 // tests/unit/backend-merit.test.js — Merit MVP on the API Worker (owner order 2026-11-12). FIXED TEST SET: written and
-// hash-locked (~/LENSIQ-field/evals/merit/locked.sha256) BEFORE backend/src/merit.js and migration 0014 were written.
+// hash-locked (~/LENSIQ-field/evals/merit/locked.sha256) BEFORE backend/src/merit.js and migration 0015 were written.
 // Local only: in-memory D1 (backend-d1-shim.js), mocked Turnstile.
 //
-//   B1 migration 0014_merit.sql: in health.js MIGRATIONS + a schema probe; /health/deep names it when it is missing
+//   B1 migration 0015_merit.sql: in health.js MIGRATIONS + a schema probe; /health/deep names it when it is missing
 //   B2 seeded sample items = lensiq-merit-seed.js exactly (one source for the static site and the database)
 //   B3 GET /v1/merit/guidance: published items only, every tradition (the device filters; nothing about the user is
 //      sent), no internal columns, interest_form false unless MERIT_INTEREST_FORM=on
@@ -16,7 +16,7 @@
 //   B7 retention: interest requests purged after MERIT_INTEREST_DAYS (default 90); admin can list and erase (re-auth, audited)
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { readFileSync, existsSync } = require("node:fs");
+const { readFileSync, existsSync, readdirSync } = require("node:fs");
 const { join } = require("node:path");
 const { createEnv, req } = require("./backend-d1-shim.js");
 
@@ -85,25 +85,30 @@ const interest = (o = {}) => ({ name: "Tum", channel: "line", contact: "tum_test
 const TS = { "X-Turnstile-Token": "good:merit" };
 
 /* ---------------- B1 migration + health probe ---------------- */
-test("B1: migration 0014_merit.sql exists, is listed in health.js MIGRATIONS, and has a schema probe", async () => {
-  const f = join(ROOT, "backend", "migrations", "0014_merit.sql");
+test("B1: migration 0015_merit.sql exists, is listed in health.js MIGRATIONS, and has a schema probe", async () => {
+  const f = join(ROOT, "backend", "migrations", "0015_merit.sql");
   assert.ok(existsSync(f));
   const { MIGRATIONS } = await import(B + "health.js");
-  // re-lock 2026-11-12: a later migration (0015) now ends the list; 0014 must still follow 0013 directly
-  assert.equal(MIGRATIONS[MIGRATIONS.indexOf("0013_recovery_slow_hash.sql") + 1], "0014_merit.sql");
+  // re-lock 2026-11-12: renumbered 0014 -> 0015 (0014_leads_viewed.sql from the quote-form branch merges first) and a
+  // later migration (0016) ends the list; 0015 must directly follow the migration file numbered just below it on disk
+  const onDisk = readdirSync(join(ROOT, "backend", "migrations")).filter((n) => n.endsWith(".sql")).sort();
+  const i = MIGRATIONS.indexOf("0015_merit.sql");
+  assert.ok(i > MIGRATIONS.indexOf("0013_recovery_slow_hash.sql"));
+  assert.equal(MIGRATIONS[i - 1], onDisk[onDisk.indexOf("0015_merit.sql") - 1]);
+  assert.equal(MIGRATIONS[i + 1], "0016_merit_review.sql");
   const health = readFileSync(join(ROOT, "backend", "src", "health.js"), "utf8");
-  assert.match(health, /\["0014_merit\.sql", "SELECT [^"]*FROM merit_items/);
-  assert.match(health, /\["0014_merit\.sql", "SELECT [^"]*FROM merit_interest/);
+  assert.match(health, /\["0015_merit\.sql", "SELECT [^"]*FROM merit_items/);
+  assert.match(health, /\["0015_merit\.sql", "SELECT [^"]*FROM merit_interest/);
 });
 
-test("B1: /health/deep is OK with every migration and names 0014 exactly when the merit tables are missing", async () => {
+test("B1: /health/deep is OK with every migration and names 0015 exactly when the merit tables are missing", async () => {
   const { env } = await setup();
   const { deepHealth } = await import(B + "health.js");
   assert.equal((await deepHealth(env)).ok, true);
   await env.DB.exec("DROP TABLE merit_interest");
   const h = await deepHealth(env);
   assert.equal(h.ok, false);
-  assert.deepEqual(h.migrations.missing, ["0014_merit.sql"]);
+  assert.deepEqual(h.migrations.missing, ["0015_merit.sql"]);
 });
 
 /* ---------------- B2 seed parity ---------------- */

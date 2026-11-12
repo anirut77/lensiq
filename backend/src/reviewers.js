@@ -1,6 +1,6 @@
 // @ts-check
 // backend/src/reviewers.js — restricted "reviewer" back-office accounts for merit content (owner decision 2026-11-12;
-// migration 0015_merit_review.sql). Reuses the owner's building blocks: PBKDF2 password hashing (crypto.js hashPassword /
+// migration 0016_merit_review.sql). Reuses the owner's building blocks: PBKDF2 password hashing (crypto.js hashPassword /
 // verifyPassword / passwordProblem), TOTP (verifyTotp, secret AES-GCM-encrypted with SECRETS_KEK), rate limits (store.js
 // hit), sessions (admin_sessions, reviewer_id set) and the audit log. No new crypto.
 //
@@ -32,7 +32,7 @@ const aad = (/** @type {string} */ id) => "totp:reviewer:" + id;
 const pub = r => ({ id: r.id, username: r.username, status: r.status, totp_enabled: !!r.totp_enabled, created_at: r.created_at,
   last_login_at: r.last_login_at || null, setup_pending: !!r.setup_hash, setup_expires_at: r.setup_hash ? r.setup_expires : null });
 
-/** Reviewer row by username (null when none, or before migration 0015). @param {any} db @param {string} username */
+/** Reviewer row by username (null when none, or before migration 0016). @param {any} db @param {string} username */
 export async function reviewerByName(db, username) {
   if (!USERNAME_RE.test(String(username || ""))) return null;
   try { return await db.prepare("SELECT * FROM admin_reviewers WHERE username = ?1").bind(String(username)).first(); } catch { return null; }

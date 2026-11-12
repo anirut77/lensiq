@@ -37,7 +37,7 @@
 | Part | Files | Notes |
 |---|---|---|
 | Panel on 14 fortune pages | `lensiq-merit-core.js` (pure logic), `lensiq-merit-lint.js` (wording lint shared with the Worker), `lensiq-merit.js` (DOM), loaded by `nav.js` on the 14 fortune pages that run FortuneAI readings: faceread, palm, horoscope, tarot, fengshui, numbers, iching, zodiac, astro, dream, bazi, taksa, lek7, lifegraph (planner and luckycolor do not run FortuneAI, so they get no panel) | **No fortune page file was edited.** The module wraps `FortuneAI.interpret` / `regenerate` (reads the facts on the device) and `FortuneAI.renderSections` (puts one panel after the reading container) from the outside, the same pattern as `lensiq-report.js`. The reading text is never changed and never mentions the panel, so the existing `remedy-safety` and `paid` lints in `fortune-ai.js` are untouched. |
-| Sample content | `lensiq-merit-seed.js` (16 items) = the rows seeded by migration 0014 | Used by the static site when there is no backend. A test keeps the two identical. |
+| Sample content | `lensiq-merit-seed.js` (16 items) = the rows seeded by migration 0015 | Used by the static site when there is no backend. A test keeps the two identical. |
 | Worker | `backend/src/merit.js`, routes in `backend/src/index.js`, retention in `retention.js`, probe in `health.js` | See §2 and §3. The crisis check is `FortuneAI.crisis.check` imported from `fortune-ai.js` (not a copy), and the wording lint is `lensiq-merit-lint.js`, the same module the page uses. |
 | Admin | `admin.html` / `admin.js` / `admin.css`, `i18n/en-admin.js`, `i18n/zh-admin.js` (`am.*`) | New tab "คำแนะนำตามความเชื่อ / Belief guidance / 信仰指引" behind the existing admin sign-in. |
 | Config | `lensiq-config.js` `LENSIQ_MERIT_INTEREST_FORM` (false), `backend/wrangler.toml` `MERIT_INTEREST_FORM = "off"`, `MERIT_INTEREST_DAYS = "90"`, `MERIT_INTEREST_GLOBAL_DAY = "100"` (top level and `[env.test]`) | |
@@ -64,7 +64,7 @@
 
 All three screens are complete in Thai, English and Chinese and work at 320 / 360 / 390 px.
 
-## 2. Data model (migration `0014_merit.sql`)
+## 2. Data model (migration `0015_merit.sql`)
 
 ```
 merit_items     id (sample-… | mi-<hex>), type (place|offering|chong|lucky_item),
@@ -78,7 +78,7 @@ merit_interest  id, created_at, item_id, name, channel (line|phone|email), conta
                 consent_version, status   -- the minimum; purged after MERIT_INTEREST_DAYS (90)
 ```
 
-`/health/deep` probes both tables (`health.js` MIGRATIONS + PROBES); a missing table names `0014_merit.sql`.
+`/health/deep` probes both tables (`health.js` MIGRATIONS + PROBES); a missing table names `0015_merit.sql`.
 
 **Matching keys from a reading** (on the device, `LQMeritCore.keysFromFacts`): `domain:<facts.domain>` (or the page
 name); `animal:<n>` from `animal.<n>`; `chong` from `rel.clash|same|harm|punish|break` (zodiac `isChong`) and
@@ -208,7 +208,7 @@ caller, 10 per 15 min; behind the admin unauthenticated-write ceiling like `/log
 
 ### 8.3 Accounts and sign-in
 
-- `admin_reviewers` (migration `0015_merit_review.sql`): username, PBKDF2 password hash (same function as the owner), TOTP
+- `admin_reviewers` (migration `0016_merit_review.sql`): username, PBKDF2 password hash (same function as the owner), TOTP
   secret AES-GCM-encrypted with SECRETS_KEK (additional data `totp:reviewer:<id>`), status pending / active / disabled,
   its own failure counter and slow-down. The setup code is random (24 bytes), stored only as SHA-256, valid 3 days, works
   once. At most 10 reviewers.

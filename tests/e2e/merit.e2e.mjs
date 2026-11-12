@@ -23,12 +23,15 @@ const PANEL = "document.querySelector('.lq-merit')";
 
 /** zodiac reading. kind "chong": the birth animal of the selected year itself (relation "same", a ชง); "calm": the
  *  animal four places on (a trine, never a ชง). Computed from the year in the form, so the test does not age. */
-async function readZodiac(page, kind) {
+async function readZodiac(page, kind, { afterCrisis = false } = {}) {
+  // re-lock 2026-11-12 (rebase onto main 3d37445): on main a page in the crisis state never renders a reading again; the
+  // next "reading" is a fresh support card (fortune-ai.js, owner order 2026-11-12). After a crisis we wait for that card.
+  if (afterCrisis) await page.evaluate(() => document.querySelectorAll(".fa-support").forEach(s => s.setAttribute("data-e2e-old", "")));
   await page.evaluate(k => {
     const y = +document.getElementById("zdYear").value, ya = ((y - 4) % 12 + 12) % 12, a = k === "chong" ? ya : (ya + 4) % 12;
     document.querySelector(`input[name="zdAnimal"][value="${a}"]`).click(); document.getElementById("zdForm").requestSubmit();
   }, kind);
-  await page.waitFor("document.querySelectorAll('.fa-section').length >= 3", 15000);
+  await page.waitFor(afterCrisis ? "[...document.querySelectorAll('.fa-support')].some(s => !s.hasAttribute('data-e2e-old') && !s.closest('.lq-merit') && s.getClientRects().length > 0 && /1323/.test(s.textContent))" : "document.querySelectorAll('.fa-section').length >= 3", 15000);
 }
 const panelOpen = `(() => { const p = ${PANEL}; return !!p && !p.hidden && p.getBoundingClientRect().height > 0 && p.querySelectorAll('.lq-merit-card').length > 0; })()`;
 const cards = page => page.evaluate(() => [...document.querySelectorAll(".lq-merit .lq-merit-card")].map(c => ({
@@ -164,7 +167,7 @@ export default async function ({ base, launch, check, repo }) {
       assert(await page.evaluate(() => window.__meritSent.length) === 0, "nothing sent");
       assert(await page.evaluate(() => !document.querySelector(".lq-merit-paid form")), "no form next to the support card");
       assert(await page.evaluate(() => Number(localStorage.getItem("lq-crisis-at")) > 0), "crisis state set");
-      await readZodiac(page, "calm");
+      await readZodiac(page, "calm", { afterCrisis: true });
       await sleep(1500);
       assert(await page.evaluate(() => !document.querySelector(".lq-merit-paid") && !document.querySelector(".lq-merit-card")), "no merit content on the next reading");
     });

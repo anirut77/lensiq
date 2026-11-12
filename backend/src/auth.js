@@ -2,7 +2,7 @@
 // backend/src/auth.js — the owner account of the admin back office (+ restricted merit reviewers, reviewers.js).
 //
 //  reviewers  (owner decision 2026-11-12) a second, restricted account type for merit content only (reviewers.js,
-//             migration 0015). The same login route: a username that is not the owner's is looked up in admin_reviewers;
+//             migration 0016). The same login route: a username that is not the owner's is looked up in admin_reviewers;
 //             only an ACTIVE reviewer with 2-step on can sign in, and the 6-digit code is always required. A reviewer's
 //             failures count on the reviewer's own row (never the owner's); a reviewer's trusted device skips only the
 //             reviewer's own slow-down (never the owner's). Sessions carry reviewer_id; requireAdmin re-checks that the
@@ -136,7 +136,7 @@ async function trustedDeviceRow(env, request, t) {
   const h = await sha256Hex(tok);
   let row = null;
   try { row = await env.DB.prepare("SELECT hash, reviewer_id FROM admin_devices WHERE hash = ?1 AND created_at > ?2").bind(h, t - DEVICE_TTL).first(); }
-  catch { row = await env.DB.prepare("SELECT hash FROM admin_devices WHERE hash = ?1 AND created_at > ?2").bind(h, t - DEVICE_TTL).first(); } // before 0015
+  catch { row = await env.DB.prepare("SELECT hash FROM admin_devices WHERE hash = ?1 AND created_at > ?2").bind(h, t - DEVICE_TTL).first(); } // before 0016
   return row ? { hash: h, reviewerId: row.reviewer_id || null } : null;
 }
 /** True when the request carries a device token issued by a previous successful login (any account). */

@@ -13,7 +13,7 @@ export const MIGRATIONS = [
   "0006_consumer_pricing.sql", "0007_member_session_labels.sql", "0008_round11_backend.sql",
   "0009_round12_backend.sql", "0010_ai_gateway.sql", "0011_admin_recovery.sql", "0012_ai_keys.sql", "0013_recovery_slow_hash.sql",
   "0014_leads_viewed.sql",
-  "0014_merit.sql", "0015_merit_review.sql"
+  "0015_merit.sql", "0016_merit_review.sql"
 ];
 /** Columns / tables added by migrations 0008 and later, with the migration that adds each (schema probe): a failing
  *  probe names exactly the migration that is missing. */
@@ -31,12 +31,12 @@ const PROBES = [
   ["0012_ai_keys.sql", "SELECT provider, key_enc, last4, set_at, checked_at, check_ok FROM ai_provider_keys LIMIT 0"],
   ["0013_recovery_slow_hash.sql", "SELECT salt, slow_hash, iterations FROM admin_recovery_codes LIMIT 0"],
   ["0014_leads_viewed.sql", "SELECT viewed_at FROM leads LIMIT 0"],
-  ["0014_merit.sql", "SELECT id, type, tradition, title, body, place, area, match_keys, sample, status, sort FROM merit_items LIMIT 0"],
-  ["0014_merit.sql", "SELECT id, created_at, item_id, name, channel, contact, date_from, date_to, consent_version, status FROM merit_interest LIMIT 0"],
-  ["0015_merit_review.sql", "SELECT id, username, password_hash, setup_hash, setup_expires, totp_secret_enc, totp_enabled, status FROM admin_reviewers LIMIT 0"],
-  ["0015_merit_review.sql", "SELECT id, item_id, ts, actor, actor_name, action, decision, fields, comment, from_status, to_status FROM merit_revisions LIMIT 0"],
-  ["0015_merit_review.sql", "SELECT reviewer_id FROM admin_sessions LIMIT 0"],
-  ["0015_merit_review.sql", "SELECT review_comment, reviewed_by, reviewed_at, source, review_meta FROM merit_items LIMIT 0"]
+  ["0015_merit.sql", "SELECT id, type, tradition, title, body, place, area, match_keys, sample, status, sort FROM merit_items LIMIT 0"],
+  ["0015_merit.sql", "SELECT id, created_at, item_id, name, channel, contact, date_from, date_to, consent_version, status FROM merit_interest LIMIT 0"],
+  ["0016_merit_review.sql", "SELECT id, username, password_hash, setup_hash, setup_expires, totp_secret_enc, totp_enabled, status FROM admin_reviewers LIMIT 0"],
+  ["0016_merit_review.sql", "SELECT id, item_id, ts, actor, actor_name, action, decision, fields, comment, from_status, to_status FROM merit_revisions LIMIT 0"],
+  ["0016_merit_review.sql", "SELECT reviewer_id FROM admin_sessions LIMIT 0"],
+  ["0016_merit_review.sql", "SELECT review_comment, reviewed_by, reviewed_at, source, review_meta FROM merit_items LIMIT 0"]
 ];
 
 /** @param {Env} env */

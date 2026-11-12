@@ -1,9 +1,9 @@
 "use strict";
 // tests/unit/backend-merit-reviewer.test.js — Merit reviewer role + review queue (owner decision 2026-11-12). FIXED TEST
 // SET: written and hash-locked (~/LENSIQ-field/evals/merit/locked.sha256) BEFORE the role, the queue, the import and
-// migration 0015 were written. Local only: in-memory D1 (backend-d1-shim.js).
+// migration 0016 were written. Local only: in-memory D1 (backend-d1-shim.js).
 //
-//   RV1 migration 0015_merit_review.sql: in health.js MIGRATIONS + probes; /health/deep names exactly it when missing
+//   RV1 migration 0016_merit_review.sql: in health.js MIGRATIONS + probes; /health/deep names exactly it when missing
 //   RV2 the owner creates a reviewer account (re-auth, audited, one-time setup code shown once, never stored in plain)
 //   RV3 first sign-in: setup code + own password + 2-step verification (required); code single-use and expiring
 //   RV4 the reviewer signs in with password + 6-digit code; GET /me says role "reviewer"
@@ -82,17 +82,17 @@ async function setup(vars = {}) {
 }
 
 /* ---------------- RV1 ---------------- */
-test("RV1: migration 0015_merit_review.sql is listed, probed, and named exactly when missing", async () => {
-  assert.ok(existsSync(join(ROOT, "backend", "migrations", "0015_merit_review.sql")));
+test("RV1: migration 0016_merit_review.sql is listed, probed, and named exactly when missing", async () => {
+  assert.ok(existsSync(join(ROOT, "backend", "migrations", "0016_merit_review.sql")));
   const { MIGRATIONS, deepHealth } = await import(B + "health.js");
-  assert.equal(MIGRATIONS[MIGRATIONS.length - 1], "0015_merit_review.sql");
+  assert.equal(MIGRATIONS[MIGRATIONS.length - 1], "0016_merit_review.sql");
   const src = readFileSync(join(ROOT, "backend", "src", "health.js"), "utf8");
-  assert.match(src, /\["0015_merit_review\.sql", "SELECT [^"]*FROM admin_reviewers/);
-  assert.match(src, /\["0015_merit_review\.sql", "SELECT [^"]*FROM merit_revisions/);
+  assert.match(src, /\["0016_merit_review\.sql", "SELECT [^"]*FROM admin_reviewers/);
+  assert.match(src, /\["0016_merit_review\.sql", "SELECT [^"]*FROM merit_revisions/);
   const env = createEnv();
   assert.equal((await deepHealth(env)).ok, true);
   await env.DB.exec("DROP TABLE merit_revisions");
-  assert.deepEqual((await deepHealth(env)).migrations.missing, ["0015_merit_review.sql"]);
+  assert.deepEqual((await deepHealth(env)).migrations.missing, ["0016_merit_review.sql"]);
 });
 
 /* ---------------- RV2 ---------------- */

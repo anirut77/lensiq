@@ -1,4 +1,4 @@
--- 0014_merit.sql — Merit MVP (owner order 2026-11-12; docs/MERIT-DESIGN.md, docs/MERIT-RESULTS.md, backend/src/merit.js).
+-- 0015_merit.sql — Merit MVP (owner order 2026-11-12; docs/MERIT-DESIGN.md, docs/MERIT-RESULTS.md, backend/src/merit.js).
 --
 -- merit_items: belief guidance managed by admins (places to pray, what to offer and how, ชง customs, lucky items), shown
 -- FREE under fortune readings; matching runs on the device. Every text column is JSON {th, en, zh}, complete in all
