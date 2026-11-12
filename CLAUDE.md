@@ -16,6 +16,10 @@ https://anirut77.github.io/lensiq/. Owner-facing replies are in Thai.
 - Check the licence of every model, dataset and media file for commercial use. Record credits.
 - Every accuracy claim states its source: synthetic, public dataset or field.
 - All user-facing text complete in Thai, English and Chinese.
+- Decision requests (owner rule 2026-11-12): every message that asks the owner for a decision is self-contained: the
+  question, the options, the numbers behind them, the recommendation and what happens if the owner does not answer.
+  Never refer to an earlier message for the details (the owner forwards messages one at a time). Put all pending
+  decisions together at the end of each report under "รอคุณตัดสิน", restated in full each time until answered.
 - Report format: built / deferred + why / numbers vs targets / risks / next step. For items on the approved work list
   below, do not wait for approval after the report; continue with the next item.
 - Keep docs/CTO-BRIEF.md and docs/FIELD-PILOT.md updated each round.
