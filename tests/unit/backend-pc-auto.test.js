@@ -17,8 +17,8 @@
 //       auto -> 403 auto_not_allowed;
 //   A6  an auto-only rate limit per caller (per minute and per day) on top of the feature limits; requests without auto
 //       do not use it up;
-//   A7  image mode: an auto request may carry the face-blurred photo (the face check itself is client-only, stated in
-//       docs/product-check/LIVE-SCAN-RESULTS.md); the provider never receives the auto flag, the tester code or the facts.
+//   A7  auto-send is text only: an auto request with a photo is refused (tightened after the independent review
+//       2026-11-12); the provider never receives the auto flag, the tester code or the facts.
 // Mocked providers only (deps.aiAdapters); no key, no network; synthetic label text.
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -174,14 +174,21 @@ test("A6 an auto-only rate limit per caller (minute and day); requests without a
   assert.equal(r.status, 200);
 });
 
-test("A7 image mode with auto: the face-blurred photo is accepted for a tester; the provider never sees the auto flag, the facts or the tester code", async () => {
+test("A7 auto-send is text only: a photo on an auto request is refused before any provider call (the same photo without auto is unchanged); " +
+  "the provider never sees the auto flag, the facts or the tester code", async () => {
   const env = envOf();
   await setup(env);
   const a = fake();
-  const r = await post(env, "pc_fields", body({ text: LABEL, images: [IMG], gtins: ["8850006939727"], regs: ["1A 844/39"] }, { auto: true }, "image"), a, { code: CODE });
-  assert.deepEqual([r.status, r.j.ok], [200, true], JSON.stringify(r.j));
+  let r = await post(env, "pc_fields", body({ text: LABEL, images: [IMG] }, { auto: true }, "image"), a, { code: CODE });
+  assert.deepEqual([r.status, r.j.reason, r.j.code], [400, "bad_input", "ai_off_auto_filter"], "photo + auto refused " + JSON.stringify(r.j));
+  assert.equal(a.calls.length, 0, "no provider call");
+  r = await post(env, "pc_fields", body({ text: LABEL, images: [IMG] }, {}, "image"), a, { code: CODE });
+  assert.deepEqual([r.status, r.j.ok], [200, true], "the preview path with a photo is unchanged " + JSON.stringify(r.j));
   assert.equal(a.calls.length, 1);
-  const sent = JSON.stringify(a.calls[0].r);
-  assert.ok(sent.includes(IMG.base64), "the photo reached the provider");
-  assert.ok(!/"auto"/.test(sent) && !sent.includes(CODE) && !sent.includes("8850006939727"), "no auto flag, tester code or barcode fact in the provider request");
+  r = await post(env, "pc_fields", body({ text: LABEL, gtins: ["8850006939727"], regs: ["1A 844/39"] }, { auto: true }), a, { code: CODE });
+  assert.deepEqual([r.status, r.j.ok], [200, true], JSON.stringify(r.j));
+  assert.equal(a.calls.length, 2);
+  const sent = JSON.stringify(a.calls[1].r);
+  assert.ok(!/"auto"/.test(sent) && !sent.includes(CODE) && !sent.includes("8850006939727") && !sent.includes(IMG.base64),
+    "no auto flag, tester code, barcode fact or photo in the provider request");
 });

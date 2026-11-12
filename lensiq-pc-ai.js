@@ -396,10 +396,11 @@
       paint(); paintAuto();
       if (autoOn()) maybeAuto();
     }
+    /** auto-send off at once: the choice is forgotten and anything queued is dropped (any withdraw does this) */
+    function autoOff() { try { ls().removeItem(AUTO_KEY); } catch { /* storage blocked */ } auto.epoch++; auto.skip = ""; }
     function autoStop() {
       W.LQAI.withdraw(GROUP);
-      try { ls().removeItem(AUTO_KEY); } catch { /* storage blocked */ }
-      auto.epoch++; auto.skip = "";
+      autoOff();
       auto.msg = T("md.pc.auto.stopped", "หยุดการส่งอัตโนมัติและถอนความยินยอมแล้ว ครั้งต่อไประบบจะถามใหม่");
       paint(); paintAuto();
       const b = /** @type {HTMLElement|null} */ (document.querySelector("#pcAiAutoOn")); if (b) b.focus();
@@ -591,7 +592,8 @@
       else if (t.closest("#pcAiAutoStop")) autoStop();
       else if (t.closest("#pcAiGo")) ask(false);
       else if (t.closest("#pcAiText")) ask(true);
-      else if (t.closest("#pcAiWithdraw")) { W.LQAI.withdraw(GROUP); paint(); const b = /** @type {HTMLElement | null} */ (document.querySelector("#pcAiGo")); if (b) b.focus(); }
+      else if (t.closest("#pcAiWithdraw")) { // any withdraw also switches the tester auto-send off at once
+        autoOff(); W.LQAI.withdraw(GROUP); paint(); paintAuto(); const b = /** @type {HTMLElement | null} */ (document.querySelector("#pcAiGo")); if (b) b.focus(); }
       else if (t.closest("#pcAiOfferGo")) acceptOffer();
       else if (t.closest("#pcAiOfferNo")) { st.offer = null; st.why = ""; st.notice = NOTE().declined; paint(); }
       else if (t.closest("#pcAiPrevSend")) previewSend();

@@ -316,8 +316,8 @@ Tester auto-send (2026-11-12, Product Check live scan; `docs/product-check/LIVE-
 `auto: true` (top level, never passed to a provider; any non-boolean `auto` is `bad_request`) is accepted only when
 `TESTER_GATE=required` and the request's tester code is valid, and only by a feature with an `autoCheck` (pc_fields,
 pc_claims, pc_translate); otherwise `auto_not_allowed` (403, no provider call). After `build()`, `autoCheck` refuses with
-`bad_input` + `code: ai_off_auto_filter` (`AUTO_REFUSAL_CODES`) a text holding the placeholder, a possible name, session
-evidence, or no text. Auto requests also count against a per-caller allowance (`AUTO_PER_MINUTE` 6, `AUTO_PER_DAY` 150;
+`bad_input` + `code: ai_off_auto_filter` (`AUTO_REFUSAL_CODES`) a text holding the placeholder, a possible name, a phone-like
+digit group / non-Thai form of address / letter wording (`LQPCGuard.autoBlock`), session evidence, a photo, or no text. Auto requests also count against a per-caller allowance (`AUTO_PER_MINUTE` 6, `AUTO_PER_DAY` 150;
 given back when refused before a provider call). A request without `auto` is the unchanged path.
 
 Validator metadata (2026-11-12): a successful answer may carry `meta`, counts only (gateway `verifyMeta`: at most 8

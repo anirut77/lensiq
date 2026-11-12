@@ -19,12 +19,15 @@
  *     (Levenshtein, >= CFG.lineSim); per cluster the most-voted reading wins, a tie goes to the longest; a line is kept
  *     when seen at least twice, or while fewer than three readings exist; the label's order is kept
  *   similarity(a, b) -> 0..1
+ *   sameObject(mergedLines, newLines) -> boolean   at least half of the new reading's lines match a merged line; otherwise
+ *     the new reading is another object and the merged reading starts over (a content-based scene cut, added after the
+ *     independent review: two objects must never end up in one text)
  * CHECKLIST · PRODUCT KEY
  *   checklist(text, codes, {P, G}) -> {barcode, reg, ingredients}   P = LQPC, G = LQPCGuard
  *   productKey({gtins, regs, text}) -> "g:<gtin>" | "r:<reg>" | "t:<8 hex>"   never the label text itself
  * TESTER-ONLY AUTO-SEND (owner order 2026-11-12; public flow unchanged: preview and confirm every time)
  *   autoTextCheck(G, text, facts, opts?) -> {gate, hits, maybe}   LQPCGuard.aiGate (session evidence is never passed on),
- *     guard hits (scan) and possible names (possibleNames)
+ *     guard hits (scan), possible names (possibleNames) + the stricter block list (LQPCGuard.autoBlock)
  *   autoDecision({tester, autoOn, hidden, gate, hits, maybe, face:{ran, faces}, key, sent, count, cap}) -> {send, reason}
  *     reasons, in this order: not-tester, no-auto-consent, hidden, gate:<aiGate reason>, name-guard, face / face-unknown,
  *     already-sent, session-cap; "ok" = send. Anything refused behaves as today (manual "ask AI" with the preview).
@@ -222,6 +225,14 @@
     return api;
   }
 
+  /** @param {string[]} merged @param {string[]} next @param {any} [cfg] */
+  function sameObject(merged, next, cfg) {
+    const c = cfg || CFG, a = (merged || []).map(normLine).filter(Boolean), b = (next || []).map(normLine).filter(Boolean);
+    if (!a.length || !b.length) return true;
+    const hit = b.filter(l => a.some(m => similarity(m, l) >= c.lineSim)).length;
+    return hit / b.length >= 0.5;
+  }
+
   /* ---------------- checklist, product key ---------------- */
   /** @param {string} text @param {{rawValue: string, format?: string}[]} codes @param {{P: any, G: any}} deps */
   function checklist(text, codes, deps) {
@@ -248,7 +259,8 @@
   function autoTextCheck(G, text, facts, _opts) {
     const t = String(text || "");
     const gate = G.aiGate(t, { gtins: (facts && facts.gtins) || [], regs: (facts && facts.regs) || [] });
-    return { gate, hits: G.scan(t).length, maybe: G.possibleNames ? G.possibleNames(t).length : 0 };
+    // a possible name, or the stricter block list (phone-like digits, a form of address, letter / note wording), stops it
+    return { gate, hits: G.scan(t).length, maybe: (G.possibleNames ? G.possibleNames(t).length : 0) + (G.autoBlock && G.autoBlock(t) ? 1 : 0) };
   }
   /** @param {any} o */
   function autoDecision(o) {
@@ -266,5 +278,5 @@
     return { send: true, reason: "ok" };
   }
 
-  return { CFG, frameStats, hintOf, interval, makeStabilizer, makeMerger, similarity, checklist, productKey, autoTextCheck, autoDecision };
+  return { CFG, frameStats, hintOf, interval, makeStabilizer, makeMerger, similarity, sameObject, checklist, productKey, autoTextCheck, autoDecision };
 });

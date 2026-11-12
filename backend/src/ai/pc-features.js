@@ -31,7 +31,7 @@
 import GuardModule from "../../../lensiq-pc-guard.js";
 
 /** @type {{scan: (t: string) => any[], isDispensingLabel: (t: string) => boolean, DEFAULTS: {dispensingAI: string}, PLACEHOLDER: string,
- *   possibleNames: (t: string) => any[], aiGate: (t: string, facts?: {gtins?: string[], regs?: string[]}, opts?: any) => {allow: boolean, reason: string}}} */
+ *   possibleNames: (t: string) => any[], autoBlock: (t: string) => boolean, aiGate: (t: string, facts?: {gtins?: string[], regs?: string[]}, opts?: any) => {allow: boolean, reason: string}}} */
 const Guard = GuardModule;
 export const MAX_TEXT = 8000;
 const S = (n = 200) => ({ type: ["string", "null"], maxLength: n });
@@ -148,7 +148,8 @@ export const INPUT_REFUSAL_CODES = Object.freeze(["ai_off_personal_data", "ai_of
  * valid tester with the gate on): after every check above, an auto request is also refused when
  *   ai_off_auto_filter    the text holds the placeholder (the device removed something: auto-send needs a capture where the
  *                         guard found nothing), a POSSIBLE name (LQPCGuard.possibleNames, underlined in the manual
- *                         preview), session evidence (option ข), or no text at all (the Worker cannot check a photo alone)
+ *                         preview), session evidence (option ข), no text at all, or a photo (auto-send is text only:
+ *                         a photo needs the user's own preview and confirmation)
  */
 export const AUTO_REFUSAL_CODES = Object.freeze(["ai_off_auto_filter"]);
 const GATE_CODE = /** @type {Record<string, string>} */ ({ dispensing: "ai_off_dispensing", "personal-doc": "ai_off_personal_doc", "no-product": "ai_off_no_product" });
@@ -183,12 +184,15 @@ function cleanText(input, o = {}) {
  * The stricter filter of a tester auto-send (no per-capture preview on the page). The gateway calls it AFTER the feature's
  * build() accepted the input (so every check above runs first and keeps its own code), only for a request marked auto by a
  * valid tester with the gate on. Refuses (ai_off_auto_filter) a capture without text, a text holding the placeholder (the
- * device removed something), a POSSIBLE name, or session evidence (option ข). @param {any} input
+ * device removed something), a POSSIBLE name, session evidence (option ข), or a photo. @param {any} input
  */
 export function autoCheck(input) {
   const t = typeof input.text === "string" ? input.text.normalize("NFC").replace(/\r\n?/g, "\n").trim() : "";
   const session = strList(input.sessionGtins).length > 0 || strList(input.sessionRegs).length > 0;
-  if (!t || t.includes(Guard.PLACEHOLDER) || Guard.possibleNames(t).length > 0 || session) throw refusal("ai_off_auto_filter", "auto-send filter");
+  const photo = Array.isArray(input.images) && input.images.length > 0;
+  if (!t || photo || t.includes(Guard.PLACEHOLDER) || Guard.possibleNames(t).length > 0 || Guard.autoBlock(t) || session) {
+    throw refusal("ai_off_auto_filter", "auto-send filter");
+  }
 }
 
 /* ---------------------------------------- verify ---------------------------------------- */

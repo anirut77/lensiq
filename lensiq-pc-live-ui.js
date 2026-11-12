@@ -140,6 +140,9 @@
         }
       });
       if (!r || !st.on || scene !== st.scene) return;
+      // another object in view (few lines in common with the merged reading): start over, never merge the two
+      const lines = r.ocr.lines.map((/** @type {any} */ l) => l.text);
+      if (merger.frames && !L.sameObject(merger.lines().map(l => l.text), lines)) { newScene(); st.captures++; }
       st.reads++; st.sceneReads++;
       merger.add(r.ocr.lines.map((/** @type {any} */ l) => ({ text: l.text, conf: l.conf })));
       st.codes = mergeCodes(st.codes, r.codes && r.codes.codes);

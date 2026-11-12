@@ -984,6 +984,19 @@
     /様|さま|さん|殿|御中|님|씨|先生|女士|小姐|\b(?:dear|mr|mrs|ms|miss|dr|khun|hi|hello)\b|คุณ\s?[ก-๙]|นาย\s?[ก-๙]|นาง\s?[ก-๙]|น\.ส\.|ด\.ช\.|ด\.ญ\./iu,
     /おめでとう|ありがとう|ご連絡|拝啓|敬具|お大事に|谢谢|感谢|祝你|祝您|감사|축하|안녕|ขอบคุณ|ยินดีด้วย|ด้วยความเคารพ|regards|sincerely|thank you|thanks|congratulations|get well|reminder|เตือน|อย่าลืม|นัด|appointment|予約|预约|예약/iu
   ];
+  /** The same block list for the TESTER auto-send of the live scan (no preview): true = do not send automatically
+   *  (a phone-like group of 9-11 digits, a non-Thai form of address, letter / note wording). Added 2026-11-12 after the independent
+   *  review found Japanese / Korean names and grouped phones the detectors miss reaching auto-send when a product label
+   *  was in the same frame. @param {any} input */
+  const AUTO_BLOCK = [
+    // a phone-like group of 9 to 11 digits (a 13-digit Thai food / cosmetic number or a GTIN is not one)
+    /(?<!\d[\s().-]{0,2})\+?\d(?:[\s().-]{0,2}\d){8,10}(?![\s().-]{0,2}\d)/u,
+    // a form of address outside Thai (Thai names and titles are the guard's own, measured, rules; คุณภาพ is not a title)
+    /様|さま|さん|殿|御中|님|씨|先生|女士|小姐|\b(?:dear|mr|mrs|ms|miss|dr|hi|hello)\b/iu,
+    // letter / note wording (not the label word คำเตือน)
+    /おめでとう|ありがとう|ご連絡|拝啓|敬具|お大事に|谢谢|感谢|祝你|祝您|감사|축하|안녕|ขอบคุณ|ยินดีด้วย|ด้วยความเคารพ|อย่าลืม|นัดหมาย|regards|sincerely|thank you|thanks|congratulations|get well|reminder|appointment|予約|预约|예약/iu
+  ];
+  const autoBlock = input => AUTO_BLOCK.some(re => re.test(String(input == null ? "" : input)));
   /** Session evidence usable for option ข: a barcode with a valid check digit, or a registration number of 5+ letters
    *  and digits, scanned earlier in the session by the page. @param {any} sf {gtins?, regs?} */
   function sessionOk(sf) {
@@ -1018,5 +1031,5 @@
   }
 
   return { scan, scanAll, redact, imageCheck, isDispensingLabel, fold, thaiIdOk, DEFAULTS, PLACEHOLDER, KINDS: ["name", "hn", "phone", "id", "email", "dob", "address"], possibleNames, provenance,
-    productEvidence, aiGate, twIdOk, gtinOk, nameLineCount: (/** @type {any} */ t) => nameLines(fold(String(t == null ? "" : t))).length };
+    productEvidence, aiGate, autoBlock, twIdOk, gtinOk, nameLineCount: (/** @type {any} */ t) => nameLines(fold(String(t == null ? "" : t))).length };
 });

@@ -23,7 +23,13 @@
   - **คนทั่วไปเหมือนเดิมทุกอย่าง**: กด "ขอความเห็นจาก AI" ดูข้อความก่อนส่งทุกครั้ง (มีเทสต์ยืนยัน)
 - **การรั่วของข้อมูลส่วนบุคคล (วัดซ้ำบนชุดล็อก P7 และ P7b แหล่งที่มา: สังเคราะห์): 0 ทั้งโหมดข้อความและภาพ** ทั้งอ่านครั้งเดียวและรวมหลายภาพ
   - p7: 0/260 รายการ · p7b: 0/614 รายการ (ผ่านเป้า 0)
-  - ราคาที่จ่าย: ฉลากสินค้าจริงที่ส่งอัตโนมัติได้ 230/360 = 63.9 % (แบบกดเองผ่านตัวกรอง 83.1 %) ที่เหลือใช้ปุ่มกดเองได้ตามเดิม
+  - ราคาที่จ่าย: ฉลากสินค้าจริงที่ส่งอัตโนมัติได้ 217/360 = 60.3 % (แบบกดเองผ่านตัวกรอง 83.1 %) ที่เหลือใช้ปุ่มกดเองได้ตามเดิม
+- **ผู้ตรวจอิสระพบช่องโหว่ 1 จุด (ร้ายแรง) และแก้แล้วบางส่วน — ยังไม่ถึงเป้า 0 ในกรณีทดสอบหนัก ต้องให้เจ้าของตัดสิน**
+  - กรณี: ฉลากสินค้าอยู่ในภาพเดียวกับเอกสารส่วนตัวภาษาญี่ปุ่น/เกาหลี (เช่น กล่องยาวางบนการ์ดอวยพรหรือผลแล็บ) ฉลากให้ "หลักฐานสินค้า" ตัวกันชื่อหาชื่อต่างประเทศไม่เจอ ข้อความจึงถูกส่งอัตโนมัติ
+  - ก่อนแก้ (ผู้ตรวจวัด): รวมหลายภาพ 430 ใน 7,700 กรณี 988 รายการ, ภาพเดียวกัน 13 ใน 308 ภาพ 30 รายการ
+  - แก้แล้ว: (1) ถ้าข้อความภาพใหม่ไม่ตรงกับที่รวมไว้อย่างน้อยครึ่งหนึ่ง ถือเป็นวัตถุใหม่ เริ่มอ่านใหม่และทิ้งบาร์โค้ดเดิม (2) ส่งอัตโนมัติไม่ได้ถ้ามีเลขคล้ายเบอร์โทร 9–11 หลัก คำเรียกคน (様 さん 님 Mr Dear …) หรือถ้อยคำจดหมาย/โน้ต ทั้งบนเครื่องและเซิร์ฟเวอร์ (3) เซิร์ฟเวอร์ปฏิเสธภาพในคำขออัตโนมัติ (4) ปุ่มถอนความยินยอมเดิมปิดการส่งอัตโนมัติด้วย
+  - หลังแก้ (ผมวัดด้วยสคริปต์ของผู้ตรวจ): รวมหลายภาพ **0** รายการ, **ภาพเดียวกัน 2 ใน 308 ภาพ 5 รายการ** (ผลแล็บเกาหลี และฉลากจ่ายยาฮ่องกง ที่อ่าน OCR เพี้ยน) ชุดล็อกยังเป็น 0
+  - **ข้อเสนอ: ยังไม่ให้ผู้ทดสอบเปิดการส่งอัตโนมัติจนกว่าเจ้าของตัดสิน** (ค่าเริ่มต้นปิดอยู่แล้ว ต้องเปิดเองทีละคน)
 - **ความเร็ว (เครื่อง Mac นี้ ไม่ใช่โทรศัพท์จริง แหล่งที่มา: ฉลากสังเคราะห์บนกล้องจำลอง ตัวเลข p50 / p90)**
   - ผลแรกบนจอ (บาร์โค้ด): 0.02 / 0.03 s บนคอมพิวเตอร์, 0.05 / 0.13 s เมื่อจำลองโทรศัพท์ระดับกลาง (CPU ช้าลง 4 เท่า): **ผ่านเป้า ≤ 1 s**
   - ตัวอักษร/เลขทะเบียนแรก: 0.58 / 0.67 s บนคอมพิวเตอร์ (ผ่าน) แต่ 2.4 / 3.1 s เมื่อจำลองโทรศัพท์ (**ไม่ผ่าน**) ฉลากที่ไม่มีบาร์โค้ดจะเห็นผลแรกช้าเท่านี้
@@ -35,6 +41,7 @@
   - ช่วงความเชื่อมั่นซ้อนกัน ความแม่นยำไม่ต่างกันอย่างมีนัยสำคัญ
   - **ข้อเสนอ: ใช้ Gemini 3.5 Flash-Lite เป็นตัวแรกของ pc_fields ในการสแกนสดของผู้ทดสอบ** (เพราะเป้า AI ≤ 3 s ทำได้กับ Gemini เท่านั้น) และ Haiku เป็นตัวสำรอง **แต่ต้องให้เจ้าของตัดสินคำถาม 18+ ของ Gemini ที่ค้างอยู่ก่อน** จนกว่าจะตัดสิน ค่าเริ่มต้นไม่เปลี่ยน (Haiku ก่อน)
 - **ต้องให้เจ้าของตัดสิน**
+  0. **(ความเป็นส่วนตัว พลาดเป้า)** ยอมรับความเสี่ยงที่เหลือ (ภาพเดียวกัน 2/308 ในการทดสอบหนัก) เพื่อเปิดให้ผู้ทดสอบใช้ หรือรอการแก้รอบถัดไป (เช่น ไม่ส่งอัตโนมัติเมื่อข้อความมีอักษรเกาหลี/ญี่ปุ่น/จีนตัวเต็มที่ไม่ใช่ส่วนของฉลาก)
   1. ส่งภาพอัตโนมัติสำหรับผู้ทดสอบหรือไม่ (ต้องแก้เทสต์เดิมที่ล็อกไว้ว่า "เข้ารหัสภาพได้ที่เดียว หลังผู้ใช้กดยืนยัน" ผมไม่ได้แก้เทสต์นั้น)
   2. ใช้ Gemini 3.5 Flash-Lite เป็นตัวแรกของ pc_fields หรือไม่ (คำถาม 18+)
   3. ข้อความทางกฎหมายด้านล่าง (§7) ใส่ในรายการให้ทนายตรวจ
@@ -59,7 +66,7 @@
 | Test | Checks | Result |
 |---|---|---|
 | `tests/unit/pc-live.test.js` | frame hints, <= 5 fps, auto-capture, merge, checklist, product key, every auto-send refusal reason, real guard on real texts | 8/8 |
-| `tests/unit/backend-pc-auto.test.js` | A1 gate + valid code needed; A2 public path unchanged; A3 auto filter; A4 boolean; A5 Product Check features only; A6 auto rate limit; A7 nothing auto / no facts / no code reaches the provider | 7/7 |
+| `tests/unit/backend-pc-auto.test.js` | A1 gate + valid code needed; A2 public path unchanged; A3 auto filter; A4 boolean; A5 Product Check features only; A6 auto rate limit; A7 photo refused on auto, nothing auto / no facts / no code reaches the provider | 7/7 |
 | `tests/e2e/product-check-live.e2e.mjs` | 10 checks: live default, merge, hidden page, public unchanged + lookup opt-in, tester auto-send once per product, filters, withdraw / cap / hidden, "photo" remembered stays text only, REAL models on the fake camera, EN / ZH + 360 px | 10/10 |
 | `live-leak-score.mjs` (outside the repo) | P7 leak measurement with the new flow | §5 |
 
@@ -119,7 +126,7 @@ Against the targets:
 - **Worker** (`gateway.js`): `auto` must be a boolean; `auto: true` is refused (403 `auto_not_allowed`, no provider call)
   unless `TESTER_GATE=required` and this request's tester code is valid, and only for features with an `autoCheck`
   (pc_fields, pc_claims, pc_translate). After `build()` (every existing check keeps its own code), `autoCheck` refuses
-  (`ai_off_auto_filter`) the placeholder, a possible name, session evidence or no text. An auto-only limit per caller:
+  (`ai_off_auto_filter`) the placeholder, a possible name, the `autoBlock` list (§5a), session evidence, a photo or no text. An auto-only limit per caller:
   6 a minute, 150 a day (given back when refused before a provider call). The flag, the tester code and the facts never
   reach a provider (A7).
 - **Client-only, stated plainly:** the face check, "one round per product / per steady view", the session cap and that the
@@ -128,9 +135,10 @@ Against the targets:
 
 ## 5. Leak measurement with the new flow (source: synthetic, the two locked sets; scored by the scorer fixed before building)
 
-Log: `~/LENSIQ-field/evals/live-scan/live-leak-run-2026-11-12T02-21-20-891Z.log` (detail JSON next to it; an earlier run at
-01:50 on the previous version of `lensiq-pc-live.js` gave identical numbers and is kept too). Guard sha256 `40673a2c…`,
-`lensiq-pc-live.js` sha256 `56ba9e78…`. Image mode counts every personal item on a capture whose photo
+Final log (after the review fixes, §5a): `~/LENSIQ-field/evals/live-scan/live-leak-run-2026-11-12T02-45-12-929Z.log`
+(detail JSON next to it). Guard sha256 `819247eb…` (adds `autoBlock`; no existing rule changed), `lensiq-pc-live.js` sha256
+`083946e8…`. Earlier runs (01:50, 02:21, and the reviewer's 02:33) on the earlier code are kept; their personal-item
+counts are the same (0), the product auto-send rate was 230/360 before the stricter block list. Image mode counts every personal item on a capture whose photo
 would be sent (worst case; auto-send sends no photo at all now).
 
 | Set | Flow | Text mode: personal items reaching the AI | Image mode: captures with personal data whose photo is sent |
@@ -142,13 +150,40 @@ would be sent (worst case; auto-send sends no photo at all now).
 | both | manual (unchanged) | 0/260; 0/614 | (as published in P7-RESULTS) |
 
 - Target (0 in both modes): **met**.
-- Cost of the stricter auto rule: real product labels auto-sent 230/360 = 63.9 % [58.8–68.7] on p7, against 83.1 % that
-  pass the manual gate (the rest are possible names such as Latin brand pairs, and maker persons). They keep the manual path.
+- Cost of the stricter auto rule: real product labels auto-sent 217/360 = 60.3 % [55.1–65.2] on p7, against 83.1 % that
+  pass the manual gate (the rest are possible names such as Latin brand pairs, maker persons, maker phones). They keep the
+  manual path.
 - A first run at 01:40 UTC on the same code as the 01:50 run gave identical results; its log was removed by mistake when
   re-running (stated so the log list is complete). The 01:50 and 02:21 logs are kept.
-- Not covered by these sets: a merged reading across two objects. The live scan resets the reading on a scene cut (large
-  motion, or the label leaving the frame for two frames; e2e check 2). A slow, steady move from a pack to a personal note
-  without a cut is a residual risk; the guard and the gate still run on the merged text.
+- These sets hold one object per capture. Two objects in one reading are measured in §5a.
+
+### 5a. Independent review (2026-11-12) and the fixes
+
+An independent reviewer agent re-ran the scorer (same numbers) and its own check (client path AND Worker path per item:
+p7 241 / p7b 55 captures sent, 0 personal items, 0 client / Worker disagreements), all unit tests of the change (44/44) and
+the live e2e (10/10). It found one **blocker**: two objects in one reading.
+
+| Stress case (reviewer's script; synthetic; worst-case counting of items literally in the sent text) | Before the fixes | After |
+|---|---|---|
+| A product reading merged with a personal capture (25 products x 308 personal captures, both orders) | 430 / 7,700 sent, 988 items | **0** items (the personal text is never merged; a cut drops the earlier barcodes) |
+| Product label and personal capture in the SAME frame (P001-clean + each of 308) | 13 / 308 sent, 30 items (ja 10, ko 1, hk 1, en 1) | **2 / 308 sent, 5 items** (a Korean lab report, a Hong Kong dispensing label read with OCR noise) |
+
+Fixes (all also in the Worker where it can check them):
+
+1. **Content-based scene cut** (`LQPCLive.sameObject`): a new reading that shares fewer than half of its lines with the merged
+   reading is another object: the reading starts over and the earlier barcodes are dropped.
+2. **Stricter auto block list** (`LQPCGuard.autoBlock`, client `autoTextCheck` and Worker `autoCheck`): a phone-like group of
+   9–11 digits (a 13-digit Thai food / cosmetic number or a GTIN is not one), a non-Thai form of address (様, さん, 님, 씨,
+   先生, Mr, Dear …) or letter / note wording stops the auto-send. Cost: 4 more product labels of 360 fall back to the
+   manual path (217/360).
+3. **No photo on an auto request at the Worker** (A7 now asserts the refusal; it was asserting acceptance — tightened).
+4. **The ordinary "withdraw / forget my choice" button** now also switches auto-send off at once (it only cleared the consent).
+
+**Still missing the 0 target in the same-frame stress case (2/308 captures, 5 items). By the standing rules this goes to
+the owner (Thai summary, decision 0).** Notes from the review that stay as stated limits: a label without a barcode or a
+registration number can be sent again after a scene cut (its key is a text hash; the cap of 10 still applies); one round is
+up to three requests (fields, claims, translate); the face check looks at the last frame read; the official lookup without
+a tap (owner decision 4) is already built.
 
 ## 6. Model comparison for the live flow (source: synthetic `docs/product-check/p7-ai-testset.json`)
 
