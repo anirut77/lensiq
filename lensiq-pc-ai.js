@@ -53,7 +53,24 @@
  * default "keep" (LQPCGuard.DEFAULTS).
  *   translateTarget(text, uiLang) -> "th"|"en"|"zh"|null   null = the label is already in the page language
  *   regAgree(aiRegs, deviceNorms) -> rows with agree flags
- * Test hook: window.__LQ_PCAI = {st, ask(forceText), paint()}.
+ * TESTER-ONLY AUTO-SEND (owner order 2026-11-12, live scan; replaces preview-and-confirm FOR TESTERS ONLY; the public flow
+ *   above is unchanged): shown in #pcAiAutoSlot only while the live scan runs, the closed-test gate is on and the visitor's
+ *   tester code is accepted (LQTester.gate() && LQTester.unlocked()). "Turn on" opens the consent screen again (force) with
+ *   the auto-send paragraph; auto-send is on only when "remember my choice" was ticked and stored ("lq-pc-auto" holds the
+ *   providers it was given for; a changed chain = off). Then, for each live reading, a round goes out by itself ONLY when
+ *   LQPCLive.autoDecision allows it: LQPCGuard.aiGate (product-label evidence, not dispensing, no personal-document sign;
+ *   session evidence never used), the guard finds nothing and no possible name, the on-device face detector ran and found
+ *   no face (lensiq-pc-ui.js prepareUploadAuto), the
+ *   product (LQPCLive.productKey) was not sent yet, one round per steady view, the per-session cap (LQPCLive.CFG.autoCap;
+ *   test override window.LENSIQ_PC_AUTO_CAP, only lower), and the page is visible (checked again right before the POST).
+ *   TEXT ONLY: a tester whose remembered choice is "photo" still gets the text sent automatically; the photo itself goes
+ *   only through "ask AI" with the face-blurred preview (the single image encoding of Product Check stays behind the
+ *   user's "Use this picture"; sending a photo without it needs the owner's decision).
+ *   Each request carries auto: true (the Worker accepts it only from a valid tester with the gate on, and applies its own
+ *   auto filter and per-caller auto limit). The text / photo sent is shown (#pcAiAutoText, #pcAiAutoImg). "Stop and
+ *   withdraw" (#pcAiAutoStop) clears the remembered consent AND the auto-send choice at once; queued requests are dropped
+ *   (an epoch counter). A capture that fails any filter behaves as today: the reason is shown, "ask AI" with the preview.
+ * Test hook: window.__LQ_PCAI = {st, ask(forceText), paint(), auto}.
  */
 (function (root, factory) {
   const m = factory();
@@ -265,21 +282,28 @@
       } finally { st.busy = false; paint(); }
     }
     /** @param {any} c @param {string} mode @param {string} text EXACTLY what the preview showed @param {any[]} removed */
-    async function sendAll(c, mode, text, removed, images, via) {
+    /** @param {any} c @param {string} mode @param {string} text @param {any[]} removed @param {any} images @param {string} via
+     *  @param {{auto?: boolean, epoch?: number}} [o] auto = a tester auto-send (no preview): marked for the Worker, never with
+     *  session evidence, and dropped when the page is hidden or the user withdrew in the meantime */
+    async function sendAll(c, mode, text, removed, images, via, o = {}) {
       st.via = via || "";
       if (!text.trim() && !images) { st.notice = NOTE().empty; return; }
-      const feats = c.info.features, P = pcl(), out = {}, own = facts(), sf = sessionFacts();
+      const feats = c.info.features, P = pcl(), out = {}, own = facts(), sf = o.auto ? undefined : sessionFacts();
       // the session evidence travels to the LENSIQ server (never to the AI provider), as the capture's own codes do
       const fx = sf && !own.gtins.length && !own.regs.length ? { ...own, sessionGtins: sf.gtins, sessionRegs: sf.regs } : own;
       const script = W.__LQ_PC && W.__LQ_PC.st ? W.__LQ_PC.st.script : "th";
       const tgt = translateTarget(text, lang());
+      const ex = o.auto ? { auto: true } : undefined;
+      const go = (/** @type {string} */ f, /** @type {string} */ m, /** @type {any} */ inp) => (o.auto && (document.hidden || o.epoch !== auto.epoch)
+        ? Promise.resolve({ fallback: true, reason: "consent_required", message: W.LQAI.fallbackMessage("consent_required") }) : W.LQAI.send(f, c.info, m, inp, ex));
       const jobs = [];
-      if (feats.includes("pc_fields")) jobs.push(W.LQAI.send("pc_fields", c.info, mode, mode === "image" ? { text, script, images, ...fx } : { text, script, ...fx }).then(r => { out.fields = r; }));
-      if (feats.includes("pc_claims") && text.trim()) jobs.push(W.LQAI.send("pc_claims", c.info, "text", { text,
+      if (feats.includes("pc_fields")) jobs.push(go("pc_fields", mode, mode === "image" ? { text, script, images, ...fx } : { text, script, ...fx }).then(r => { out.fields = r;
+        if (o.auto) auto.t.fields = now(); }));
+      if (feats.includes("pc_claims") && text.trim()) jobs.push(go("pc_claims", "text", { text,
         category: (P.local && P.local.category) || undefined, ...fx }).then(r => { out.claims = r; }));
-      if (feats.includes("pc_translate") && tgt && text.trim()) jobs.push(W.LQAI.send("pc_translate", c.info, "text", { text, target: tgt, ...fx }).then(r => { out.translate = r; }));
+      if (feats.includes("pc_translate") && tgt && text.trim()) jobs.push(go("pc_translate", "text", { text, target: tgt, ...fx }).then(r => { out.translate = r; }));
       await Promise.all(jobs);
-      st.res = { ...out, mode, sentText: text };
+      st.res = { ...out, mode, sentText: text, auto: !!o.auto };
       st.removed = removed;
       st.text = String(P.text || "");
       // P9: the travel card (lensiq-pc-travel.js) accepts the AI's ingredient list only when each INN resolves on the device
@@ -296,6 +320,111 @@
       } finally { st.busy = false; paint(); }
     }
     W.__LQ_PCAI.ask = ask;
+
+    /* ---------- TESTER-ONLY auto-send (live scan) ---------- */
+    const LV = W.LQPCLive, AUTO_KEY = "lq-pc-auto";
+    const now = () => (typeof performance !== "undefined" ? performance.now() : Date.now());
+    /** @type {any} */
+    const auto = { sent: new Set(), count: 0, sceneSent: -1, epoch: 0, last: null, skip: "", msg: "", busy: false, again: false, t: { stable: 0, sent: 0, fields: 0 } };
+    W.__LQ_PCAI.auto = auto;
+    const ls = () => { try { return W.localStorage; } catch { return null; } };
+    const tester = () => !!(W.LQTester && W.LQTester.gate() && W.LQTester.unlocked());
+    const liveOn = () => !!(W.__LQ_PC && W.__LQ_PC.st && W.__LQ_PC.st.live && W.__LQ_PCLIVE && W.__LQ_PCLIVE.st.on);
+    const autoRec = () => { try { const v = JSON.parse((ls() && ls().getItem(AUTO_KEY)) || "null"); return v && Array.isArray(v.providers) ? v : null; } catch { return null; } };
+    const autoOn = () => !!autoRec() && W.LQAI.consentState(GROUP).state === "remembered";
+    const cap = () => (Number.isInteger(W.LENSIQ_PC_AUTO_CAP) && W.LENSIQ_PC_AUTO_CAP > 0 ? Math.min(W.LENSIQ_PC_AUTO_CAP, LV.CFG.autoCap) : LV.CFG.autoCap);
+    const AUTO_WHY = () => ({
+      hidden: T("md.pc.auto.w.hidden", "ไม่ส่งขณะหน้านี้ถูกซ่อน"),
+      "no-auto-consent": T("md.pc.auto.w.consent", "การส่งอัตโนมัติปิดอยู่ หรือผู้ให้บริการ AI เปลี่ยนไป เปิดใหม่อีกครั้งเพื่อยืนยัน"),
+      "gate:dispensing": T("md.pc.auto.w.disp", "ไม่ส่งอัตโนมัติ: ดูเหมือนฉลากยาที่จ่ายให้ผู้ป่วยหรือใบสั่งยา"),
+      "gate:personal-doc": T("md.pc.auto.w.doc", "ไม่ส่งอัตโนมัติ: ดูเหมือนเอกสารส่วนบุคคล ไม่ใช่ฉลากสินค้า"),
+      "gate:no-product": T("md.pc.auto.w.noProduct", "ไม่ส่งอัตโนมัติ: ยังไม่พบข้อมูลฉลากสินค้า (เลขทะเบียน บาร์โค้ด หรือส่วนประกอบ) หันไปด้านที่มีข้อมูลเหล่านี้"),
+      "name-guard": T("md.pc.auto.w.name", "ไม่ส่งอัตโนมัติ: พบชื่อหรือข้อมูลส่วนตัวที่อาจเป็นของคน ถ้าต้องการ กด \"ขอความเห็นจาก AI\" เพื่อดูและแก้ข้อความก่อนส่ง"),
+      face: T("md.pc.auto.w.face", "ไม่ส่งอัตโนมัติ: พบใบหน้าในภาพ"),
+      "face-unknown": T("md.pc.auto.w.faceUnknown", "ไม่ส่งอัตโนมัติ: ตัวหาใบหน้าบนเครื่องนี้ทำงานไม่ได้"),
+      "already-sent": T("md.pc.auto.w.sent", "ส่งสินค้านี้ไปแล้ว ไม่ส่งซ้ำ"),
+      "session-cap": T("md.pc.auto.w.cap", "ส่งอัตโนมัติครบ {n} สินค้าในรอบนี้แล้ว ใช้ปุ่ม \"ขอความเห็นจาก AI\" แทน", { n: cap() })
+    });
+    const setSkip = (/** @type {string} */ why) => { auto.skip = why; paintAuto(); };
+    async function maybeAuto() {
+      if (auto.busy) { auto.again = true; return; }
+      if (!LV || !liveOn() || !tester() || !api()) return;
+      const lv = W.__LQ_PCLIVE.st, text = String(pcl().text || "").trim();
+      if (!text || !W.__LQ_PC.st.ocr || String(W.__LQ_PC.st.ocr.text || "").trim() !== text) return; // only the live reading itself
+      if (!autoOn()) { auto.skip = ""; paintAuto(); return; }
+      const scene = lv.scene;
+      if (auto.sceneSent === scene) return; // one round per steady view
+      const fx = facts(), key = LV.productKey({ ...fx, text });
+      const base = () => ({ tester: tester(), autoOn: autoOn(), hidden: !!document.hidden, ...LV.autoTextCheck(W.LQPCGuard, text, fx), key, sent: auto.sent, count: auto.count, cap: cap() });
+      let d = LV.autoDecision({ ...base(), face: { ran: true, faces: 0 } }); // everything but the face first: the detector only runs when it matters
+      if (!d.send) { setSkip(d.reason); return; }
+      auto.busy = true;
+      const ep = auto.epoch;
+      try {
+        // the remembered choice for exactly these providers; never a dialog here
+        const infos = await Promise.all(FEATURES.map(f => W.LQAI.providers(f)));
+        const info = W.LQAI.groupInfo(GROUP, infos, LABELS), rc = info && info.enabled ? W.LQAI.rememberedConsent(ls(), info) : null, rec = autoRec();
+        if (!rc || !rec || rec.providers.join(",") !== W.LQAI.procs(info).join(",")) { setSkip("no-auto-consent"); return; }
+        const fr = await W.__LQ_PC.prepareUploadAuto(); // the face check; no picture comes back (auto-send is text only)
+        if (fr.cancelled) return; // the picture changed: the next reading decides
+        const face = fr.face ? { ran: true, faces: fr.faces } : fr.textOnly ? { ran: false, faces: 0 } : { ran: true, faces: 0 };
+        // decided again on what is current (a withdraw, a hidden page or a new reading may have come in meanwhile)
+        if (ep !== auto.epoch || String(pcl().text || "").trim() !== text || lv.scene !== scene) return;
+        d = LV.autoDecision({ ...base(), face });
+        if (!d.send) { setSkip(d.reason); return; }
+        if (document.hidden || ep !== auto.epoch) return;
+        auto.sent.add(key); auto.count++; auto.sceneSent = scene;
+        auto.last = { text, photoMode: rc.mode === "image", at: Date.now() }; auto.skip = ""; auto.t = { stable: lv.t.stable || 0, sent: now(), fields: 0 };
+        paintAuto();
+        st.busy = true; st.offer = null; st.notice = ""; st.why = ""; paint();
+        await sendAll({ info, mode: "text" }, "text", text, [], null, "", { auto: true, epoch: ep });
+      } finally {
+        auto.busy = false; st.busy = false; paint(); paintAuto();
+        if (auto.again) { auto.again = false; setTimeout(maybeAuto, 0); }
+      }
+    }
+    async function autoEnable() {
+      auto.msg = "";
+      const c = await W.LQAI.ensureConsentGroup(GROUP, FEATURES, LABELS, { force: true, auto: true });
+      if (!c) auto.msg = T("md.pc.auto.declined", "ไม่ได้เปิดการส่งอัตโนมัติ ไม่มีอะไรถูกส่ง");
+      else if (!c.saved) auto.msg = T("md.pc.auto.needRemember", "ยังไม่เปิดการส่งอัตโนมัติ: ต้องเลือก \"จำการเลือกนี้\" ในหน้าขอความยินยอม");
+      else {
+        try { ls().setItem(AUTO_KEY, JSON.stringify({ providers: W.LQAI.procs(c.info), ts: Date.now() })); }
+        catch { auto.msg = T("md.pc.auto.noStorage", "เบราว์เซอร์นี้เก็บการเลือกไม่ได้ จึงเปิดการส่งอัตโนมัติไม่ได้"); }
+        auto.epoch++; auto.sceneSent = -1;
+      }
+      paint(); paintAuto();
+      if (autoOn()) maybeAuto();
+    }
+    function autoStop() {
+      W.LQAI.withdraw(GROUP);
+      try { ls().removeItem(AUTO_KEY); } catch { /* storage blocked */ }
+      auto.epoch++; auto.skip = "";
+      auto.msg = T("md.pc.auto.stopped", "หยุดการส่งอัตโนมัติและถอนความยินยอมแล้ว ครั้งต่อไประบบจะถามใหม่");
+      paint(); paintAuto();
+      const b = /** @type {HTMLElement|null} */ (document.querySelector("#pcAiAutoOn")); if (b) b.focus();
+    }
+    function paintAuto() {
+      const slot = document.querySelector("#pcAiAutoSlot");
+      if (!slot) return;
+      if (!LV || !liveOn() || !tester() || !api()) { slot.innerHTML = ""; return; }
+      const on = autoOn(), mode = W.LQAI.consentState(GROUP).mode, L0 = auto.last, why = AUTO_WHY();
+      let h = `<section class="md-cand pc-auto" id="pcAiAuto" data-on="${on ? 1 : 0}"><p><strong>${esc(T("md.pc.auto.h", "ส่งให้ AI อัตโนมัติขณะสแกน (เฉพาะผู้ทดสอบ)"))}</strong></p>`;
+      if (on) h += `<p class="md-status" data-kind="ok" id="pcAiAutoState">${esc(T("md.pc.auto.on", "เปิดอยู่: ส่ง{m}อัตโนมัติ สินค้าละ 1 ครั้ง เฉพาะภาพที่ผ่านตัวกรองทั้งหมด (ส่งแล้ว {n} จาก {cap})",
+        { m: T("md.pc.auto.mText", "ข้อความ"), n: auto.count, cap: cap() }))}</p>` +
+        (mode === "image" ? `<p class="hint" id="pcAiAutoPhoto">${esc(T("md.pc.auto.photoManual",
+          "ภาพถ่ายไม่ถูกส่งอัตโนมัติ ถ้าต้องการส่งภาพ กด \"ขอความเห็นจาก AI\" แล้วตรวจภาพที่เบลอใบหน้าก่อนส่งเหมือนเดิม"))}</p>` : "") +
+        `<div class="md-row"><button class="btn ghost" type="button" id="pcAiAutoStop">${esc(T("md.pc.auto.stop", "หยุดส่งอัตโนมัติและถอนความยินยอม"))}</button></div>`;
+      else h += `<p class="hint">${esc(T("md.pc.auto.offT",
+        "ปิดอยู่ (ค่าเริ่มต้น): ทุกครั้งต้องกด \"ขอความเห็นจาก AI\" และดูข้อความก่อนส่ง เปิดได้หลังยินยอมหนึ่งครั้งพร้อมเลือก \"จำการเลือกนี้\""))}</p>` +
+        `<div class="md-row"><button class="btn" type="button" id="pcAiAutoOn">${esc(T("md.pc.auto.turnOn", "เปิดการส่งอัตโนมัติ"))}</button></div>`;
+      if (auto.msg) h += `<p class="md-status" data-kind="warn" id="pcAiAutoMsg">${esc(auto.msg)}</p>`;
+      if (on && auto.skip) h += `<p class="md-status" data-kind="warn" id="pcAiAutoSkip" data-reason="${esc(auto.skip)}">${esc(why[auto.skip] || auto.skip)}</p>`;
+      if (L0) h += `<div id="pcAiAutoSent"><p class="hint">${esc(T("md.pc.auto.sentText", "ส่งอัตโนมัติล่าสุด: ข้อความนี้เท่านั้น ไม่ส่งภาพ"))}</p>` +
+        `<pre id="pcAiAutoText" translate="no">${esc(L0.text)}</pre></div>`;
+      slot.innerHTML = h + `</section>`;
+    }
+    W.__LQ_PCAI.autoPaint = paintAuto;
 
     function paint() {
       const slot = document.querySelector("#pcAiSlot");
@@ -391,7 +520,8 @@
     function results(r) {
       const k = KIND(), lg = lang();
       let h = `<div id="pcAiOut" data-mode="${esc(r.mode)}">`;
-      h += `<p class="hint" id="pcAiSent">${esc(r.mode === "image" ? T("md.pc.ai.sentImage", "ส่งแล้ว: ข้อความที่อ่านได้ และภาพสินค้าที่เบลอใบหน้าแล้วซึ่งคุณกดยืนยัน")
+      h += `<p class="hint" id="pcAiSent"${r.auto ? " data-auto" : ""}>${esc(r.auto ? T("md.pc.ai.sentAutoText", "ส่งอัตโนมัติแล้ว (ผู้ทดสอบ): เฉพาะข้อความที่อ่านได้ ไม่ส่งภาพ")
+        : r.mode === "image" ? T("md.pc.ai.sentImage", "ส่งแล้ว: ข้อความที่อ่านได้ และภาพสินค้าที่เบลอใบหน้าแล้วซึ่งคุณกดยืนยัน")
         : T("md.pc.ai.sentText", "ส่งแล้ว: เฉพาะข้อความที่อ่านได้ ไม่ส่งภาพ"))}</p>`;
       if (st.via && NOTE()[st.via]) h += `<p class="md-status" data-kind="warn" id="pcAiVia" data-via="${esc(st.via)}">${esc(NOTE()[st.via])}</p>`;
       if (st.removed.length) h += `<div id="pcAiRemoved"><p class="hint">${esc(T("md.pc.ai.removed", "ลบออกก่อนส่ง {n} จุด (อยู่ในเครื่องนี้เท่านั้น):", { n: st.removed.length }))}</p>` +
@@ -457,7 +587,9 @@
     document.addEventListener("click", e => {
       const t = /** @type {any} */ (e.target);
       if (!t || !t.closest) return;
-      if (t.closest("#pcAiGo")) ask(false);
+      if (t.closest("#pcAiAutoOn")) autoEnable();
+      else if (t.closest("#pcAiAutoStop")) autoStop();
+      else if (t.closest("#pcAiGo")) ask(false);
       else if (t.closest("#pcAiText")) ask(true);
       else if (t.closest("#pcAiWithdraw")) { W.LQAI.withdraw(GROUP); paint(); const b = /** @type {HTMLElement | null} */ (document.querySelector("#pcAiGo")); if (b) b.focus(); }
       else if (t.closest("#pcAiOfferGo")) acceptOffer();
@@ -482,10 +614,11 @@
       const d = /** @type {HTMLElement|null} */ (document.querySelector("#pcAiPrevDropped"));
       if (d) { const x = droppedHint(t.value); d.textContent = x; d.hidden = !x; }
     });
-    W.addEventListener("lq-pc-card", paint);
-    W.addEventListener("lq-lang", paint);
-    W.addEventListener("lq-tester", paint);
-    W.addEventListener("pagehide", () => { st.res = null; st.removed = []; st.offer = null; st.text = ""; st.ready = false; closePreview(null); });
+    W.addEventListener("lq-pc-card", () => { paint(); setTimeout(maybeAuto, 0); });
+    W.addEventListener("lq-lang", () => { paint(); paintAuto(); });
+    W.addEventListener("lq-tester", () => { paint(); paintAuto(); });
+    W.addEventListener("lq-pc-live", paintAuto);
+    W.addEventListener("pagehide", () => { st.res = null; st.removed = []; st.offer = null; st.text = ""; st.ready = false; closePreview(null); auto.last = null; auto.skip = ""; auto.epoch++; });
   }
 
   return { agreement, decide, gateNote, captureFacts, translateTarget, regAgree, mount, GROUP, FEATURES, LABELS };

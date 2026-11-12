@@ -20,7 +20,7 @@
 <title data-i18n="md.title">ตรวจข้อมูลยา: อ่านฉลากและเลขทะเบียน | LENSIQ</title>
 <meta name="description" content="ตรวจข้อมูลยาจากเลขทะเบียน อย. บาร์โค้ด หรือชื่อยา และหาเม็ดยาที่มีลักษณะตรงกับที่คุณเห็น แสดงข้อความฉลากตามต้นฉบับพร้อมแหล่งที่มา ยืนยันกับเภสัชกรทุกครั้ง">
 <link rel="stylesheet" href="styles.css?v=12">
-<link rel="stylesheet" href="medicine.css?v=3">
+<link rel="stylesheet" href="medicine.css?v=4">
 </head>
 <body>
 <header class="nav" id="siteNav"></header>
@@ -168,6 +168,8 @@
           <option value="latin" data-i18n="md.pc.sc.latin">อักษรละติน: มาเลย์ อินโดนีเซีย ยุโรป เวียดนาม (ไม่อ่านวรรณยุกต์) (โหลดครั้งแรก 12 MB)</option>
         </select></label>
       <p class="hint" id="pcSideHint" data-i18n="md.pc.sideHint">ถ่ายด้านที่มีส่วนประกอบ เลขทะเบียน หรือบาร์โค้ด</p>
+      <label class="md-check" id="pcLiveOnL"><input type="checkbox" id="pcLiveOn" checked> <span><b data-i18n="md.pc.live.on">สแกนสด: ระบบอ่านเองเมื่อภาพนิ่ง ไม่ต้องกดถ่าย</b><br><small
+        data-i18n="md.pc.live.onT">กล้องเปิดค้างไว้และอ่านบนเครื่องนี้ไม่เกิน 5 ภาพต่อวินาที หยุดเองเมื่อสลับไปแอปอื่น เอาเครื่องหมายออกเพื่อถ่ายทีละภาพและประหยัดแบตเตอรี่</small></span></label>
       <div class="md-row">
         <button class="btn primary" type="button" id="pcCamBtn" data-i18n="md.pc.cam">เปิดกล้อง</button>
         <label class="btn ghost md-file"><input type="file" id="pcFile" accept="image/*"> <span data-i18n="md.pc.file">เลือกรูปจากเครื่อง</span></label>
@@ -178,16 +180,26 @@
           <video id="pcVideo" muted playsinline aria-hidden="true"></video>
           <canvas id="pcStill" hidden aria-hidden="true"></canvas>
           <div class="md-guide pc-crop" id="pcCrop" aria-hidden="true"></div>
+          <div class="pc-live" id="pcLive" hidden>
+            <div class="pc-live-guide" id="pcLiveGuide" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+            <p class="pc-live-hint" id="pcLiveHint" role="status" aria-live="polite" data-hint=""></p>
+          </div>
         </div>
+        <ul class="pc-live-list" id="pcLiveList" hidden aria-label="สิ่งที่อ่านได้จากฉลาก" data-i18n-attr="aria-label:md.pc.live.listA">
+          <li data-item="barcode" data-ok="0"><span class="pc-live-mark" aria-hidden="true">○</span> <span data-i18n="md.pc.live.barcode">บาร์โค้ด</span></li>
+          <li data-item="reg" data-ok="0"><span class="pc-live-mark" aria-hidden="true">○</span> <span data-i18n="md.pc.live.reg">เลขทะเบียน</span></li>
+          <li data-item="ingredients" data-ok="0"><span class="pc-live-mark" aria-hidden="true">○</span> <span data-i18n="md.pc.live.ing">ส่วนประกอบ</span></li>
+        </ul>
         <p class="hint" id="pcCropHint" data-i18n="md.pc.cropHint">กรอบคือส่วนที่ระบบจะอ่าน ระบบวางกรอบให้รอบตัวอักษรที่พบ ลากบนรูปเพื่อวางกรอบใหม่ได้</p>
         <div class="md-row">
-          <button class="btn primary" type="button" id="pcSnap" data-i18n="md.pc.snap">ถ่ายภาพนี้</button>
+          <button class="btn ghost" type="button" id="pcSnap" data-i18n="md.pc.snap">ถ่ายภาพนี้</button>
           <button class="btn primary" type="button" id="pcRun" data-i18n="md.pc.run">อ่านฉลากในกรอบ</button>
           <button class="btn ghost" type="button" id="pcAuto" data-i18n="md.pc.auto">วางกรอบอัตโนมัติ</button>
           <button class="btn ghost" type="button" id="pcBar" data-i18n="md.pc.bar">สแกนบาร์โค้ด</button>
           <button class="btn ghost" type="button" id="pcClear" data-i18n="md.pc.clear">ปิดกล้อง / ล้างรูป</button>
         </div>
       </div>
+      <div id="pcAiAutoSlot"></div>
       <p class="md-status" id="pcStatus" aria-live="polite"></p>
       <ul class="md-list" id="pcHints" aria-live="polite"></ul>
       <p class="hint" data-i18n="md.pc.models">อ่านตัวอักษรด้วย PP-OCRv5 (Apache-2.0) บนเครื่องนี้ บาร์โค้ดอ่านด้วยตัวอ่านที่มากับเบราว์เซอร์ถ้ามี ถ้าไม่มีใช้ zxing-cpp (Apache-2.0)
@@ -242,16 +254,18 @@
 <script src="lensiq-med.js?v=1"></script>
 <script src="medicine.js?v=5"></script>
 <script src="lensiq-pc.js?v=1"></script>
-<script src="lensiq-pc-run.js?v=1"></script>
-<script src="lensiq-pc-ui.js?v=1"></script>
+<script src="lensiq-pc-live.js?v=1"></script>
+<script src="lensiq-pc-run.js?v=2"></script>
+<script src="lensiq-pc-ui.js?v=2"></script>
+<script src="lensiq-pc-live-ui.js?v=1"></script>
 <script src="lensiq-claims-rules.js?v=1"></script>
 <script src="lensiq-claims.js?v=1"></script>
 <script src="lensiq-pc-advert.js?v=1"></script>
 <script src="lensiq-tester.js?v=2"></script>
-<script src="lensiq-ai.js?v=4"></script>
+<script src="lensiq-ai.js?v=5"></script>
 <script src="lensiq-pc-guard.js?v=1"></script>
 <script src="lensiq-pc-travel.js?v=1"></script>
-<script src="lensiq-pc-lookup.js?v=5"></script>
-<script src="lensiq-pc-ai.js?v=3"></script>
+<script src="lensiq-pc-lookup.js?v=6"></script>
+<script src="lensiq-pc-ai.js?v=4"></script>
 </body>
 </html>

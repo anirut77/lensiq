@@ -12,8 +12,15 @@
  * Upload preview (owner decision 2026-11-10: blur faces, never block on a face): prepareUpload() blurs every detected face
  * region of the crop, shows the picture with "N face regions blurred" and waits for "Use this picture" / "Back"; text only
  * when the face detector cannot run. Not wired to the AI yet (P7 calls it); nothing is uploaded in this phase.
+ * LIVE SCAN (owner order 2026-11-12; default of the camera button while "#pcLiveOn" is ticked): the camera stays open and
+ * lensiq-pc-live-ui.js reads steady frames by itself through liveRead() / liveApply() below (the merged reading becomes
+ * st.ocr, so the AI step's OCR-provenance rule applies to it unchanged). "Take this picture" stays as the manual fallback
+ * and ends the live scan. prepareUploadAuto() is the no-preview face check of the TESTER auto-send (lensiq-pc-ai.js): it
+ * runs the face detector on the captured frame and returns NO picture at all: the tester auto-send is text only, because
+ * the one image encoding of Product Check stays in prepareUpload(), after the blur AND the user's "Use this picture"
+ * (tests/unit/pc-ondevice.test.js; a photo without that preview needs the owner's decision first).
  * Test hooks (any host; they only expose what the page already shows): window.__LQ_PC = {st, setImage(canvas), read(),
- * scan(), faceCheck(), prepareUpload(), reparse()}.
+ * scan(), faceCheck(), prepareUpload(), prepareUploadAuto(), reparse(), liveRead(), liveApply(), liveBlocked()}.
  */
 (function () {
   "use strict";
@@ -32,7 +39,7 @@
 
   /** capture type chosen by the user: "label" (default) or "ad" (advert / post / leaflet, on-device wording rules only) */
   const kindNow = () => { const r = /** @type {HTMLInputElement | null} */ (document.querySelector("input[name=pcKind]:checked")); return r && r.value === "ad" ? "ad" : "label"; };
-  const st = { gen: 0, script: P.DEFAULT_SCRIPT, cam: null, still: false, crop: null, boxes: [], ocr: null, codes: null, quality: null, text: "", busy: false, read: false };
+  const st = { gen: 0, script: P.DEFAULT_SCRIPT, cam: null, still: false, crop: null, boxes: [], ocr: null, codes: null, quality: null, text: "", busy: false, read: false, live: false };
   W.__LQ_PC = { st };
 
   /* ---------- labels (TH default; EN / ZH in i18n/en-med.js, i18n/zh-med.js) ---------- */
@@ -67,7 +74,7 @@
   function fit() { const r = box.getBoundingClientRect(), k = Math.min(r.width / still.width, r.height / still.height); return { r, k, x: (r.width - still.width * k) / 2,
     y: (r.height - still.height * k) / 2 }; }
   function placeCrop() {
-    if (!st.still || !st.crop) { cropEl.hidden = true; return; }
+    if (!st.still || !st.crop || st.live) { cropEl.hidden = true; return; }
     const f = fit(), c = st.crop;
     if (!(f.r.width > 0)) return;
     cropEl.hidden = false;
@@ -82,7 +89,7 @@
   }
   let drag = null;
   box.addEventListener("pointerdown", e => {
-    if (!st.still) return;
+    if (!st.still || st.live) return; // live scan: no box to draw, the whole view is read
     const f = fit();
     drag = { x: (e.clientX - f.r.left - f.x) / f.k, y: (e.clientY - f.r.top - f.y) / f.k };
     box.setPointerCapture(e.pointerId);
@@ -97,7 +104,7 @@
   box.addEventListener("pointerup", () => { drag = null; });
   box.addEventListener("keydown", e => { // arrows move the crop box, Shift + arrows resize it
     const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
-    if (!d || !st.still || !st.crop) return;
+    if (!d || !st.still || !st.crop || st.live) return;
     e.preventDefault();
     const c = { ...st.crop }, sx = Math.round(still.width * 0.02), sy = Math.round(still.height * 0.02), cl = (v, a, b) => Math.min(b, Math.max(a, v));
     if (e.shiftKey) { c.w = cl(c.w + d[0] * sx, 16, still.width - c.x); c.h = cl(c.h + d[1] * sy, 12, still.height - c.y); }
@@ -112,16 +119,23 @@
     $("#pcSnap").hidden = !live;
     for (const id of ["#pcRun", "#pcAuto"]) $(id).hidden = live;
   }
+  /** live scan is the default of the camera button; the box under it switches back to one photo at a time */
+  const liveWanted = () => { const c = /** @type {HTMLInputElement | null} */ (document.querySelector("#pcLiveOn")); return !c || c.checked; };
   async function startCam() {
     clearImage();
     showWrap(true);
     try {
       if (!st.cam) st.cam = W.LQCam.create(video, { facing: "environment", ideal: { width: 1920, height: 1080 }, mirror: false });
       await st.cam.start();
-      status(T("md.pc.st.camOn", "กล้องเปิดอยู่ หันไปที่ฉลากแล้วกด 'ถ่ายภาพนี้' ภาพไม่ถูกบันทึกหรือส่งออก"), "ok");
+      if (liveWanted() && W.LQPCLiveUI && kindNow() === "label") {
+        st.live = true;
+        W.LQPCLiveUI.start(video);
+        status(T("md.pc.st.liveOn", "สแกนสดอยู่ หันกล้องไปที่ฉลาก ระบบอ่านเองเมื่อภาพนิ่ง ไม่ต้องกดถ่าย ภาพไม่ถูกบันทึกหรือส่งออก"), "ok");
+      } else status(T("md.pc.st.camOn", "กล้องเปิดอยู่ หันไปที่ฉลากแล้วกด 'ถ่ายภาพนี้' ภาพไม่ถูกบันทึกหรือส่งออก"), "ok");
     } catch (err) { status(W.LQCam && W.LQCam.errorText ? W.LQCam.errorText(err) : T("md.pc.st.camErr", "เปิดกล้องไม่ได้ เลือกรูปจากเครื่องแทน"), "err"); }
   }
-  function stopCam() { if (st.cam) { try { st.cam.stop(); } catch { /* already stopped */ } } }
+  function stopLive() { if (st.live) { st.live = false; if (W.LQPCLiveUI) W.LQPCLiveUI.stop(); } }
+  function stopCam() { stopLive(); if (st.cam) { try { st.cam.stop(); } catch { /* already stopped */ } } }
   function clearImage() {
     stopCam();
     if (st.still) { sctx().clearRect(0, 0, still.width, still.height); still.width = still.height = 1; }
@@ -199,6 +213,46 @@
     });
   }
   W.__LQ_PC.read = read; W.__LQ_PC.scan = scan;
+
+  /* ---------- live scan hooks (lensiq-pc-live-ui.js) ---------- */
+  /**
+   * liveRead(frame, w, h, {onCodes}) -> {ocr, codes} | null: the camera frame is copied into the still canvas (<= 1600 px,
+   * memory only) WITHOUT stopping the camera; barcodes first (fast; onCodes(codes) lets the page show them at once), then
+   * the OCR of the whole frame (one text-detection pass); the crop for a later upload = the text boxes found. null = the
+   * page is busy (a manual analysis, an AI step or a preview is waiting): nothing is read.
+   */
+  async function liveRead(src, w, h, o = {}) {
+    if (!st.live || liveBlocked()) return null;
+    const k = Math.min(1, 1600 / Math.max(w, h));
+    still.width = Math.max(1, Math.round(w * k)); still.height = Math.max(1, Math.round(h * k));
+    sctx().drawImage(src, 0, 0, still.width, still.height);
+    st.gen++; st.still = true;
+    const gen = st.gen;
+    let codes;
+    try { codes = await R.barcodes(still); } catch { codes = { engine: "none", codes: [], error: true }; }
+    if (gen !== st.gen) return null;
+    if (o.onCodes) o.onCodes(codes);
+    const ocr = await R.ocr(still, { script: st.script, maxLines: 40 });
+    if (gen !== st.gen) return null;
+    st.boxes = ocr.boxes;
+    st.crop = P.cropFromBoxes(ocr.boxes, still.width, still.height) || { x: 0, y: 0, w: still.width, h: still.height };
+    return { ocr, codes };
+  }
+  /** liveApply({text, lines, codes, script, ms}): the MERGED reading becomes this capture's OCR output and text */
+  function liveApply(o) {
+    if (!st.live) return;
+    const lines = (o.lines || []).map(l => ({ text: l.text, conf: l.conf, boxes: [] }));
+    st.ocr = { script: o.script || st.script, boxes: st.boxes, lines, text: String(o.text || ""), ms: o.ms || { total: 0 }, merged: o.frames || 1 };
+    st.text = st.ocr.text;
+    st.codes = { engine: (o.codes && o.codes.engine) || "live", codes: (o.codes && o.codes.codes) || [] };
+    st.read = true;
+    status(st.text ? T("md.pc.st.liveRead", "อ่านบนเครื่องนี้แล้ว รวมผลจาก {n} ภาพ ตรวจและแก้ข้อความด้านล่างได้", { n: o.frames || 1 })
+      : T("md.pc.st.liveCodes", "พบบาร์โค้ด กำลังอ่านตัวอักษร…"), "ok");
+    emergency(); renderOut(); remember(); announce(true);
+  }
+  /** the live scan waits while the page is busy with something the user started */
+  function liveBlocked() { return st.busy || !!pending || !!(W.__LQ_PCAI && W.__LQ_PCAI.st && (W.__LQ_PCAI.st.busy || W.__LQ_PCAI.st.preview || W.__LQ_PCAI.st.offer)); }
+  Object.assign(W.__LQ_PC, { liveRead, liveApply, liveBlocked, stopLive });
   /** face gate on the current picture (whole frame + crop). Kept as a hook / API; the upload path does NOT use it any more
    *  (owner decision 2026-11-10: faces are blurred by prepareUpload, an upload is never blocked because of a face) */
   W.__LQ_PC.faceCheck = () => (st.still ? R.faceCheck(still, st.crop) : Promise.resolve({ ...P.faceGate(null), runs: [] }));
@@ -288,6 +342,30 @@
     else if (e.target.closest("#pcPrevUse")) closePrev("use");
   });
   W.__LQ_PC.prepareUpload = prepareUpload;
+  /**
+   * prepareUploadAuto() -> the face check of a TESTER auto-send (no preview; lensiq-pc-ai.js). It never encodes or returns
+   * a picture: the auto-send is text only (the only image encoding stays in prepareUpload, after the user's confirmation).
+   *   {faces: 0}                           no face found on the frame, its tiles or the crop
+   *   {face: true, faces: n}               a face was found: NO auto-send (the user can still ask AI with the preview)
+   *   {textOnly: true, reason}             the detector could not run or gave unreadable output: no picture, no auto-send
+   *   {cancelled: true, reason}            the picture changed meanwhile, or the page is busy
+   * Same picture guarantee as prepareUpload (st.gen). Nothing is shown and nothing is sent here.
+   */
+  async function prepareUploadAuto() {
+    if (!st.still) return { textOnly: true, reason: "no-image" };
+    if (st.busy) return { cancelled: true, reason: "busy" };
+    const set = P.FACE_BLUR, gen = st.gen;
+    let fr;
+    try { fr = await R.faceRuns(still, st.crop, { tiles: set.tiles, grid: set.grid, overlap: set.overlap, upscale: set.upscale, close: set.close, maxSide: 1024 }); }
+    catch (e) { fr = { loaded: false, error: String(e) }; }
+    if (gen !== st.gen) return { cancelled: true, reason: "changed" };
+    const plan = P.faceBlurPlan(fr, fr.w, fr.h, { threshold: set.threshold, pad: set.pad, tiles: set.tiles,
+      need: ["frame", ...(set.tiles ? ["tiles"] : []), ...(set.close ? ["close"] : []), "upload"], crop: fr.crop, scale: fr.scale });
+    if (plan.textOnly) return { textOnly: true, reason: plan.reason };
+    if (fr.upload) fr.upload.width = fr.upload.height = 1; // the picture is dropped here, never encoded
+    return plan.regions.length ? { face: true, faces: plan.regions.length } : { faces: 0 };
+  }
+  W.__LQ_PC.prepareUploadAuto = prepareUploadAuto;
 
   function reparse() { const t = $("#pcText"); if (t) st.text = t.value; emergency(); renderOut(); remember(); announce(); }
   W.__LQ_PC.reparse = reparse;
@@ -303,8 +381,10 @@
   // P4: codes ride along so lensiq-pc-lookup.js (risk-signal card in #pcClaimsSlot) can use the GTINs
   // Advert capture (adverts option B): the text goes ONLY to lensiq-pc-advert.js ("lq-pc-ad-text"), never to the label
   // lookup / AI card, so nothing about an advert can be sent
-  const announce = () => { try { window.dispatchEvent(kindNow() === "ad" ? new CustomEvent("lq-pc-ad-text", { detail: { text: st.text, script: st.script } })
-    : new CustomEvent("lq-pc-text", { detail: { text: st.text, script: st.script, codes: (st.codes && st.codes.codes) || [] } })); } catch { /* old browser */ } };
+  // live = the reading came from the live scan (lensiq-pc-lookup.js may then run the official lookup by itself, once per
+  // product, when the page's online-lookup opt-in is on; lensiq-pc-ai.js may auto-send for a tester)
+  const announce = (live = false) => { try { window.dispatchEvent(kindNow() === "ad" ? new CustomEvent("lq-pc-ad-text", { detail: { text: st.text, script: st.script } })
+    : new CustomEvent("lq-pc-text", { detail: { text: st.text, script: st.script, codes: (st.codes && st.codes.codes) || [], live: !!live && st.live } })); } catch { /* old browser */ } };
 
   /* ---------- results ---------- */
   function renderHints() {
@@ -417,6 +497,7 @@
   $("#pcRun").addEventListener("click", read);
   for (const r of /** @type {NodeListOf<HTMLInputElement>} */ (document.querySelectorAll("input[name=pcKind]"))) r.addEventListener("change", () => {
     const ad = kindNow() === "ad";
+    if (ad) stopLive(); // adverts: one photo at a time (the live scan reads labels)
     const panel = $("#pcAdPanel"); if (panel) panel.hidden = !ad;
     $("#pcBar").hidden = ad;
     const side = $("#pcSideHint"); if (side) side.hidden = ad;

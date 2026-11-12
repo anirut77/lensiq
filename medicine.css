@@ -80,6 +80,26 @@
 .pc-bottom{margin:8px auto 0}
 #pcHints li{color:#8a4b00}
 .pc-prev-img canvas{display:block;max-width:100%;height:auto;max-height:60vh;margin:8px 0;border:1px solid var(--line);border-radius:8px}
+/* Product Check live scan (lensiq-pc-live-ui.js): framing guide, one live hint, the checklist */
+.pc-live{position:absolute;inset:0;pointer-events:none}
+.pc-live-guide{position:absolute;left:7%;top:12%;width:86%;height:66%;border-radius:14px;box-shadow:0 0 0 999px rgba(0,0,0,.28)}
+.pc-live-guide i{position:absolute;width:34px;height:34px;border:4px solid #22d3ee}
+.pc-live-guide i:nth-child(1){left:-2px;top:-2px;border-right:0;border-bottom:0;border-top-left-radius:14px}
+.pc-live-guide i:nth-child(2){right:-2px;top:-2px;border-left:0;border-bottom:0;border-top-right-radius:14px}
+.pc-live-guide i:nth-child(3){left:-2px;bottom:-2px;border-right:0;border-top:0;border-bottom-left-radius:14px}
+.pc-live-guide i:nth-child(4){right:-2px;bottom:-2px;border-left:0;border-top:0;border-bottom-right-radius:14px}
+.md-cam .pc-live-hint{position:absolute;left:50%;bottom:4%;transform:translateX(-50%);max-width:92%;margin:0;padding:8px 14px;border-radius:99px;background:rgba(14,20,48,.82);
+  color:#fff;font-size:1rem;font-weight:600;text-align:center;line-height:1.35}
+.md-cam .pc-live-hint:empty{display:none}
+.md-cam .pc-live-hint[data-hint=ok],.md-cam .pc-live-hint[data-hint=reading],.md-cam .pc-live-hint[data-hint=done]{background:rgba(6,78,59,.92)}
+.pc-live-list{list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0;padding:0}
+.pc-live-list li{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:4px 12px;border-radius:99px;border:1.5px solid var(--line);background:#fff;color:var(--muted);
+  font-size:.95rem}
+.pc-live-list li[data-ok="1"]{border-color:#7fd1a8;background:#eefaf3;color:#0b4d31;font-weight:600}
+.pc-live-mark{font-weight:700}
+.pc-auto{margin:10px 0 0}
+.pc-auto pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;font-size:.92rem;margin:6px 0;padding:8px;border:1px solid var(--line);border-radius:8px;background:#f8f9fc}
+.pc-auto img{display:block;max-width:min(100%,320px);height:auto;margin:6px 0;border:1px solid var(--line);border-radius:8px}
 @media print{.nav,.md-tabs,.md-set,.md-row,.md-camwrap{display:none!important}}
 .pc-kind{border:0;padding:0;margin:4px 0 8px;min-width:0}.pc-kind legend{font-weight:600;font-size:.92rem;padding:0;margin:0 0 2px}
 .pc-ad{border-left:3px solid #f59e0b;padding:4px 0 4px 12px;margin:0 0 10px}#pcAdList q{font-weight:600}

@@ -10,8 +10,12 @@
  *
  *   LQAI.run(feature, input, {mode?})  -> Promise<{ok:true, json, provider, model, checkedBy} | {fallback:true, reason, message}>
  *   LQAI.ensureConsent(feature, {mode?}) -> Promise<{mode, info, remembered} | null>
- *   LQAI.ensureConsentGroup(id, features, labels?, {mode?}) -> same, ONE screen for several features (P7, groupInfo)
- *   LQAI.send(feature, info, mode, input) -> the POST alone (a page step such as a photo preview sits between)
+ *   LQAI.ensureConsentGroup(id, features, labels?, {mode?, force?, auto?}) -> same, ONE screen for several features (P7,
+ *       groupInfo). force = show the screen even when a choice is remembered; auto = the screen also says what the
+ *       TESTER auto-send of the Product Check live scan does ([data-auto]); the result then tells whether "remember my
+ *       choice" was ticked and stored (saved: true)
+ *   LQAI.send(feature, info, mode, input, {auto?}) -> the POST alone (a page step such as a photo preview sits between);
+ *       auto: true marks a tester auto-send (the Worker accepts it only from a valid tester with the gate on)
  *   LQAI.consentState(feature|group)     -> {state: "remembered"|"session"|"", mode}
  *   LQAI.withdraw(feature)              -> boolean
  *   LQAI.renderWithdraw(container, feature) -> HTMLElement   button shown while a remembered consent exists
@@ -42,7 +46,12 @@
       fbMember: "เข้าสู่ระบบเพื่อใช้การตรวจด้วย AI คุณกำลังดูผลจากในเครื่องเท่านั้น", fbNetwork: "เชื่อมต่อบริการ AI ไม่ได้ คุณกำลังดูผลจากในเครื่องเท่านั้น",
       fbError: "บริการ AI ขัดข้องชั่วคราว คุณกำลังดูผลจากในเครื่องเท่านั้น",
       fbTester: "การตรวจด้วย AI เปิดให้เฉพาะกลุ่มผู้ทดสอบ คุณกำลังดูผลจากในเครื่องเท่านั้น", fbOff: "บริการปิดชั่วคราว คุณกำลังดูผลจากในเครื่องเท่านั้น",
-      fbCap: "วันนี้มีการใช้งานครบจำนวนแล้ว ลองใหม่พรุ่งนี้ คุณกำลังดูผลจากในเครื่องเท่านั้น", via: "{router} แล้วส่งต่อไปยัง {served}"
+      fbCap: "วันนี้มีการใช้งานครบจำนวนแล้ว ลองใหม่พรุ่งนี้ คุณกำลังดูผลจากในเครื่องเท่านั้น", via: "{router} แล้วส่งต่อไปยัง {served}",
+      fbAuto: "การส่งอัตโนมัติเปิดให้เฉพาะผู้ทดสอบ คุณกำลังดูผลจากในเครื่องเท่านั้น",
+      autoNote: "ส่งอัตโนมัติขณะสแกน (เฉพาะผู้ทดสอบ): ถ้าเลือก \"จำการเลือกนี้\" ระบบจะส่งข้อความที่อ่านได้ให้ AI เองโดยไม่ถามและไม่ให้ดูก่อนทุกครั้ง (ไม่ส่งภาพอัตโนมัติ) " +
+        "เฉพาะภาพที่เป็นฉลากสินค้า ไม่ใช่ฉลากจ่ายยาหรือเอกสารส่วนบุคคล ไม่พบชื่อหรือข้อมูลส่วนตัว และไม่พบใบหน้า สินค้าละ 1 ครั้ง " +
+        "ไม่ส่งขณะซ่อนหน้านี้ หลังส่งจะแสดงข้อความที่ส่งไป หยุดและถอนความยินยอมได้ทันทีด้วยปุ่มใต้กล้อง ถ้าไม่เลือก \"จำการเลือกนี้\" " +
+        "จะไม่เปิดการส่งอัตโนมัติ"
     },
     en: {
       title: "Send this to AI for a check?", intro: "Data is sent to the AI provider below only if you agree.",
@@ -63,7 +72,13 @@
       fbMember: "Sign in to use AI checks; you are seeing the on-device result only", fbNetwork: "The AI service could not be reached; you are seeing the on-device result only",
       fbError: "The AI service is temporarily unavailable; you are seeing the on-device result only",
       fbTester: "AI checks are open to the closed tester group only; you are seeing the on-device result only", fbOff: "The service is switched off for now; you are seeing the on-device result only",
-      fbCap: "The daily request limit has been reached; try again tomorrow. You are seeing the on-device result only", via: "{router}, then on to {served}"
+      fbCap: "The daily request limit has been reached; try again tomorrow. You are seeing the on-device result only", via: "{router}, then on to {served}",
+      fbAuto: "Automatic sending is for testers only; you are seeing the on-device result only",
+      autoNote: "Send automatically while scanning (testers only): with \"Remember my choice\" ticked, the page sends the text it read to AI by itself (never a photo), without asking and " +
+        "without showing you a preview each time. It sends only captures that are a product label, not a dispensing label or a personal document, " +
+        "with no name or personal data found and no face found; once per product, and never while this page is hidden. After each send it shows the " +
+        "text that was sent. Stop and withdraw at any time with the button under the camera. Without \"Remember my choice\" automatic " +
+        "sending stays off."
     },
     zh: {
       title: "要发送给 AI 核查吗？", intro: "只有在您同意后，数据才会发送给下面的 AI 服务商。",
@@ -80,13 +95,16 @@
       fbMember: "登录后才能使用 AI 核查；您看到的仅是本机结果", fbNetwork: "无法连接 AI 服务；您看到的仅是本机结果",
       fbError: "AI 服务暂时不可用；您看到的仅是本机结果",
       fbTester: "AI 核查仅向封闭测试小组开放；您看到的仅是本机结果", fbOff: "服务暂时关闭；您看到的仅是本机结果",
-      fbCap: "今日请求次数已达上限，请明天再试；您看到的仅是本机结果", via: "{router}，再转至 {served}"
+      fbCap: "今日请求次数已达上限，请明天再试；您看到的仅是本机结果", via: "{router}，再转至 {served}",
+      fbAuto: "自动发送仅向测试人员开放；您看到的仅是本机结果",
+      autoNote: "扫描时自动发送（仅限测试人员）：勾选“记住我的选择”后，页面会自行将读取的文字发送给 AI（不自动发送照片），" +
+        "不再每次询问，也不先给您预览。只发送属于产品标签的画面，不是配药标签或个人文件，未发现姓名或个人信息，也未发现人脸；每个产品只发送一次，页面隐藏时不发送。每次发送后会显示所发送的文字。可随时用相机下方的按钮停止并撤回同意。不勾选“记住我的选择”则不会开启自动发送。"
     }
   };
   var CONSENT_KEY = "lq-ai-consent";
   var FB = { budget: "fbBudget", limit: "fbLimit", disabled: "fbDisabled", unavailable: "fbDisabled", not_configured: "fbDisabled", consent_required: "fbConsent",
     image_not_allowed: "fbImage", invalid_output: "fbInvalid", content_policy: "fbPolicy", turnstile: "fbTurnstile", member_required: "fbMember", network: "fbNetwork",
-    tester_required: "fbTester", tester_locked: "fbTester", service_off: "fbOff", daily_cap: "fbCap", d1_budget: "fbCap", route_off: "fbDisabled" };
+    tester_required: "fbTester", tester_locked: "fbTester", service_off: "fbOff", daily_cap: "fbCap", d1_budget: "fbCap", route_off: "fbDisabled", auto_not_allowed: "fbAuto" };
 
   /** @param {any} l @returns {"th"|"en"|"zh"} */
   function lang(l) { return l === "en" || l === "zh" ? l : "th"; }
@@ -177,11 +195,14 @@
     delete all[feature];
     try { storage.setItem(CONSENT_KEY, JSON.stringify(all)); return true; } catch (e) { return false; }
   }
-  /** POST body: consent + the providers the user saw (a provider not shown is never used). @param {any} info @param {string} mode @param {any} input */
-  function requestBody(info, mode, input) {
+  /** POST body: consent + the providers the user saw (a provider not shown is never used). extra.auto = a tester auto-send
+   *  (top level, never inside input: the Worker never passes it to a provider). @param {any} info @param {string} mode @param {any} input @param {{auto?: boolean}} [extra] */
+  function requestBody(info, mode, input, extra) {
     var m = pickMode(info, mode), inp = Object.assign({}, input || {});
     if (m !== "image") delete inp.images;
-    return { consent: true, providers: uniq(ids(info)), mode: m, input: inp };
+    var b = /** @type {any} */ ({ consent: true, providers: uniq(ids(info)), mode: m, input: inp });
+    if (extra && extra.auto === true) b.auto = true;
+    return b;
   }
   /** @param {string} reason @param {any} [l] */
   function fallbackMessage(reason, l) { return STR[lang(l)][/** @type {any} */ (FB)[reason] || "fbError"]; }
@@ -215,8 +236,9 @@
     return e;
   }
 
-  /** Consent dialog (built with textContent only). Resolves {mode, remember} or null. @param {any} info @param {string} mode */
-  function dialog(info, mode) {
+  /** Consent dialog (built with textContent only). Resolves {mode, remember} or null. @param {any} info @param {string} mode
+   *  @param {{auto?: boolean}} [o] auto = also say what the tester auto-send does */
+  function dialog(info, mode, o) {
     return new Promise(function (resolve) {
       var d = /** @type {any} */ (el("dialog", { "aria-labelledby": "lqAiT", class: "lq-ai-consent" }));
       d.style.maxWidth = "min(560px, calc(100vw - 32px))"; d.style.boxSizing = "border-box"; d.style.overflowWrap = "anywhere";
@@ -257,6 +279,7 @@
       var rem = /** @type {HTMLInputElement} */ (el("input", { type: "checkbox" }));
       remLab.appendChild(rem); remLab.appendChild(doc.createTextNode(" " + T("remember")));
       f.appendChild(remLab);
+      if (o && o.auto) f.appendChild(el("p", { "data-auto": "" }, T("autoNote"))); // tester auto-send: what changes, next to "remember"
       f.appendChild(el("p", undefined, v.withdrawHow)); // design §10.6: how to withdraw, next to "remember"
       var ok = el("button", { type: "submit", value: "ok" }, T("agree"));
       var no = el("button", { type: "submit", value: "cancel", formnovalidate: "" }, T("cancel"));
@@ -285,19 +308,20 @@
   }
 
   /** Consent for one consent-screen info (a feature, or a group from groupInfo). remembered = no screen was shown.
-   * @param {any} info @param {{mode?: string}} [o] */
+   *  o.force = always show the screen (a new, explicit choice); saved = "remember my choice" was ticked and stored.
+   * @param {any} info @param {{mode?: string, force?: boolean, auto?: boolean}} [o] */
   function consentFor(info, o) {
     if (!info || !info.enabled || !ids(info).length) return Promise.resolve(null);
     var key = String(info.feature);
-    var r = rememberedConsent(store(), info);
+    var r = o && o.force ? null : rememberedConsent(store(), info);
     if (r) return Promise.resolve({ mode: o && o.mode === "text" ? "text" : r.mode, info: info, remembered: true }); // the page may ask for less, never for more
-    var s = session[key];
+    var s = o && o.force ? null : session[key];
     if (s && s.providers === procs(info).join(",")) return Promise.resolve({ mode: o && o.mode === "text" ? "text" : pickMode(info, s.mode), info: info, remembered: false });
-    return dialog(info, (o && o.mode) || "text").then(function (/** @type {any} */ c) {
+    return dialog(info, (o && o.mode) || "text", { auto: !!(o && o.auto) }).then(function (/** @type {any} */ c) {
       if (!c) return null;
       session[key] = { mode: c.mode, providers: procs(info).join(",") };
-      saveConsent(store(), info, c.mode, c.remember);
-      return { mode: pickMode(info, c.mode), info: info, remembered: false };
+      var saved = saveConsent(store(), info, c.mode, c.remember);
+      return { mode: pickMode(info, c.mode), info: info, remembered: false, saved: saved };
     });
   }
   /** @param {string} feature @param {{mode?: string}} [o] */
@@ -313,8 +337,8 @@
 
   /** The POST alone, for a consent the page already holds (ensureConsent / ensureConsentGroup): lets a page put a step
    *  between consent and sending (Product Check: the blurred-photo preview). @param {string} feature @param {any} info
-   *  @param {string} mode @param {any} input */
-  function send(feature, info, mode, input) {
+   *  @param {string} mode @param {any} input @param {{auto?: boolean}} [extra] */
+  function send(feature, info, mode, input, extra) {
     var A = W.LQApi;
     if (!A || !A.enabled()) return Promise.resolve(fallback("disabled"));
     if (!info) return Promise.resolve(fallback("consent_required"));
@@ -325,7 +349,7 @@
       var M = W.LQMember;
       var bearer = M && typeof M.token === "function" ? M.token() : "";
       if (bearer) headers.Authorization = "Bearer " + bearer;
-      return A.call("/v1/ai/" + encodeURIComponent(feature), { method: "POST", body: requestBody(info, mode, input), headers: headers, timeoutMs: 90000 });
+      return A.call("/v1/ai/" + encodeURIComponent(feature), { method: "POST", body: requestBody(info, mode, input, extra), headers: headers, timeoutMs: 90000 });
     }).then(function (/** @type {any} */ r) {
       if (r && r.ok && r.j && r.j.ok) return { ok: true, json: r.j.json, provider: r.j.provider, model: r.j.model, checkedBy: checkedBy(r.j, cur()) };
       var why = r && r.j && r.j.reason ? String(r.j.reason) : r && r.status === 0 ? "network" : "provider_error";

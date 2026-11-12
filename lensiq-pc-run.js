@@ -19,7 +19,9 @@
  *   loaded() -> {det, rec:{th, cjk, ko, latin}, zxing, face}  (what has been downloaded in this tab)
  * Models load lazily (first use), one script at a time; ONNX Runtime Web WASM, one thread, no WebGL.
  * Test seams (localhost only): ?fakeface -> window.__LQ_FAKE_FACE(scope) returns [{score}] instead of running BlazeFace;
- * ?noface -> the face models are treated as missing (fail-closed test); ?pcbar=zxing|native forces a barcode engine.
+ * ?noface -> the face models are treated as missing (fail-closed test); ?pcbar=zxing|native forces a barcode engine;
+ * ?fakeocr -> window.__LQ_FAKE_PCOCR(canvas) returns the lines read (strings or {text, conf}) and window.__LQ_FAKE_PCBAR(canvas)
+ * the barcodes, instead of the models (live-scan rule tests; each only when the page defines it).
  */
 (function () {
   "use strict";
@@ -71,8 +73,13 @@
   const canvas = (w, h) => { const c = document.createElement("canvas"); c.width = Math.max(1, w); c.height = Math.max(1, h); return c; };
   const ctx = c => /** @type {CanvasRenderingContext2D} */ (c.getContext("2d", { willReadFrequently: true }));
 
+  /* ---------- test seam (?fakeocr, localhost only) ---------- */
+  const fakeOcr = () => flag("fakeocr") && typeof W.__LQ_FAKE_PCOCR === "function";
+  const fakeBox = src => ({ x0: Math.round(src.width * 0.05), y0: Math.round(src.height * 0.05), x1: Math.round(src.width * 0.95), y1: Math.round(src.height * 0.95), score: 1 });
+
   /* ---------- text detection (PP-OCRv5 mobile det, DB head) ---------- */
   async function detect(src, o = {}) {
+    if (fakeOcr()) { await Promise.resolve(); return { boxes: [fakeBox(src)], ms: 0 }; }
     const t0 = now(), s = await session(P.DET.model, "Text finder (PP-OCRv5 det)", P.DET.bytes), onnx = W.ort;
     state.det = true;
     const sw = src.width, sh = src.height, lim = o.maxSide || 960;
@@ -128,6 +135,12 @@
   /** full OCR of a canvas: boxes, lines in reading order (words of one line joined with a space), timings */
   async function ocr(src, o = {}) {
     const script = P.SCRIPTS[o.script] ? o.script : P.DEFAULT_SCRIPT, t0 = now();
+    if (fakeOcr()) {
+      await Promise.resolve();
+      const box = fakeBox(src), lines = (W.__LQ_FAKE_PCOCR(src) || []).map(l => (typeof l === "string" ? { text: l, conf: 0.9 } : { text: String(l.text || ""), conf: l.conf == null ? 0.9 : l.conf }))
+        .filter(l => l.text.trim()).map(l => ({ ...l, boxes: [box] }));
+      return { script, boxes: [box], lines, text: lines.map(l => l.text).join("\n"), ms: { det: 0, rec: 0, total: now() - t0 } };
+    }
     const det = await detect(src, o);
     const t1 = now(), lines = [];
     for (const line of P.sortLines(det.boxes).slice(0, o.maxLines || 80)) {
@@ -155,6 +168,10 @@
     return zxP;
   }
   async function barcodes(src, o = {}) {
+    if (flag("fakeocr") && typeof W.__LQ_FAKE_PCBAR === "function") {
+      await Promise.resolve();
+      return { engine: "seam", codes: (W.__LQ_FAKE_PCBAR(src) || []).map(c => ({ rawValue: String(c.rawValue), format: c.format })) };
+    }
     const engine = flagVal("pcbar") || o.engine || "auto";
     if (engine !== "zxing" && "BarcodeDetector" in W) {
       try {

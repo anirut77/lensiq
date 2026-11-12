@@ -22,7 +22,11 @@
  *   alertsFor(text, alerts, regs?) -> [{entry, via: "reg"|"name"}]
  *   inferCategory({regs, tmt}) -> drug | food | cosmetic | herbal | undefined
  *   planLookups(facts) -> [{source, path, fact, kind}]      rowFor(step, response, today) -> card row model
- * Test hooks (browser): window.__LQ_PCL = {st, run(text, codes), check()}; window.__LQ_PC_FETCH replaces fetch for /api/pc.
+ * LIVE SCAN (owner order 2026-11-12): a reading from the live scan (lq-pc-text detail.live) runs the official lookup by
+ *   itself ONLY when the page's own online-lookup opt-in is on (medicine.html "allow online lookups", this browser session;
+ *   window.__LQ_MED.cfg.online) and only once per set of derived facts (a steady product read three times = one request);
+ *   the same facts keep their answers across readings. Without the opt-in the tap stays, unchanged.
+ * Test hooks (browser): window.__LQ_PCL = {st, run(text, codes, live), check()}; window.__LQ_PC_FETCH replaces fetch for /api/pc.
  */
 (function (root, factory) {
   const node = typeof module !== "undefined" && module.exports;
@@ -438,7 +442,8 @@
     };
     const link = (href, text) => (/^https:\/\//.test(String(href || "")) ? `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(text)}</a>` : esc(text));
     /** @type {any} */
-    const st = { text: "", codes: [], tables: null, loading: null, local: null, plan: [], rows: null, busy: false, matcher: null, hc: null, mode: "" };
+    const st = { text: "", codes: [], tables: null, loading: null, local: null, plan: [], rows: null, busy: false, matcher: null, hc: null, mode: "",
+      planKey: "", autoDone: new Set(), cache: new Map() };
     W.__LQ_PCL = { st };
 
     const SRC = () => ({
@@ -521,7 +526,7 @@
       return { regs, gtins, names: tmt.filter(m => m.via !== "edit").map(m => m.name), ingredients: [...new Set([...tmt.map(m => m.ingredients[0].name), ...inns])], tmt };
     };
 
-    async function run(text, codes) {
+    async function run(text, codes, live = false) {
       st.text = String(text || ""); st.codes = Array.isArray(codes) ? codes : []; st.rows = null;
       if (!st.text.trim() && !st.codes.length) { slot.innerHTML = ""; return; }
       const t = await tables();
@@ -537,17 +542,24 @@
       local.category = inferCategory(f);
       if (W.LQClaims && st.text.trim()) { try { local.claims = W.LQClaims.detect(st.text, { category: local.category }); } catch { local.claims = null; } }
       st.plan = planLookups(f);
+      st.planKey = JSON.stringify(st.plan.filter(p => !p.local).map(p => p.req));
+      // live scan: the same facts read again keep their answers (no new request)
+      if (live && st.cache.has(st.planKey)) st.rows = st.cache.get(st.planKey);
       render();
+      // live scan + the page's online-lookup opt-in: the official lookup runs by itself, once per set of facts
+      const online = !!(W.__LQ_MED && W.__LQ_MED.cfg && W.__LQ_MED.cfg.online);
+      if (live && online && !st.rows && st.text.trim() && st.plan.some(p => !p.local) && !st.autoDone.has(st.planKey)) { st.autoDone.add(st.planKey); check(); }
     }
     W.__LQ_PCL.run = run;
 
     /** One POST /api/pc/batch per tap (review S6): the Worker fans out and counts ONE rate-limit hit. Derived facts only. */
     async function check() {
       if (st.busy || !st.plan.length) return;
+      const plan = st.plan, key = st.planKey; // a live reading may replace st.plan while the sources answer
       st.busy = true; render();
       const api = W.LQApi && W.LQApi.enabled && W.LQApi.enabled();
       const today = localDay();
-      const remote = st.plan.filter(p => !p.local), local = st.plan.filter(p => p.local);
+      const remote = plan.filter(p => !p.local), local = plan.filter(p => p.local);
       const localRows = Promise.all(local.map(async step => {
         try { return rowFor(step, { ok: true, status: 200, j: await hcSearch()(step.req.q) }, today); }
         catch { return rowFor(step, { ok: false, status: 0, j: { reason: "bad_response" } }, today); }
@@ -577,7 +589,9 @@
           : rowFor(step, { ok: false, status, j: { reason: why } }, today)));
       }
       const lr = await localRows;
-      st.rows = st.plan.map(p => (p.local ? lr[local.indexOf(p)] : rows[remote.indexOf(p)]));
+      const all = plan.map(p => (p.local ? lr[local.indexOf(p)] : rows[remote.indexOf(p)]));
+      st.cache.set(key, all);
+      if (st.planKey === key) st.rows = all;
       st.busy = false;
       render();
     }
@@ -686,10 +700,10 @@
     W.addEventListener("lq-pc-text", ev => {
       const d = /** @type {any} */ (ev).detail || {};
       const pc = W.__LQ_PC && W.__LQ_PC.st;
-      run(d.text || "", Array.isArray(d.codes) ? d.codes : (pc && pc.codes && pc.codes.codes) || []);
+      run(d.text || "", Array.isArray(d.codes) ? d.codes : (pc && pc.codes && pc.codes.codes) || [], d.live === true);
     });
     W.addEventListener("lq-lang", () => { if (st.local) render(); });
-    W.addEventListener("pagehide", () => { st.text = ""; st.codes = []; st.local = null; st.rows = null; slot.innerHTML = ""; });
+    W.addEventListener("pagehide", () => { st.text = ""; st.codes = []; st.local = null; st.rows = null; st.cache.clear(); slot.innerHTML = ""; });
   }
 
   return { normKey, baseKey, ocrFold, regKey, regCandidates, buildTmtIndex, matchTmt, buildNlemIndex, nlemFor, alertsFor, inferCategory, planLookups, rowFor, localDay, STOP, mount,
