@@ -26,6 +26,12 @@ window.LENSIQ_GOOGLE_CLIENT_ID = window.LENSIQ_GOOGLE_CLIENT_ID || "";
  *   เคารพ Do-Not-Track) และ lensiq-fortune-hook.js บนหน้าดูดวง — ตั้งเป็น false เพื่อปิดสถิติทั้งหมด */
 window.LENSIQ_ANALYTICS = window.LENSIQ_ANALYTICS !== false;
 
+/* LENSIQ_MERIT_INTEREST_FORM (Merit MVP, 2026-11-12): แบบฟอร์ม "แจ้งความสนใจบริการทำบุญแทน" ใต้คำแนะนำตามความเชื่อบนหน้าดูดวง
+ *   false (ค่าเริ่มต้น) = ไม่แสดงส่วนบริการแบบเสียเงินเลย — คำแนะนำฟรียังแสดงตามปกติ
+ *   ห้ามเปิดจนกว่าทนายตอบ CTO-BRIEF L42 / L43 และเจ้าของตัดสินใจ — ต้องเปิดคู่กับ MERIT_INTEREST_FORM = "on" บน Worker
+ *   (ตั้ง true อย่างเดียวไม่มีผล ถ้าเซิร์ฟเวอร์ไม่ตอบว่าเปิด) และไม่แสดงเลยเมื่อตาข่ายวิกฤตทำงานใน 24 ชั่วโมงที่ผ่านมา */
+window.LENSIQ_MERIT_INTEREST_FORM = window.LENSIQ_MERIT_INTEREST_FORM === true;
+
 /* LENSIQ_FACEPARSE: สตูดิโอแต่งชุดใช้ BiSeNet (vendor/models/faceparse-bisenet-r18-q8.onnx) แทนโมเดลค่าเริ่มต้น
  *   false (ค่าเริ่มต้น) = MediaPipe Selfie Multiclass (Apache-2.0, vendor/models/selfie-multiclass-256-f16.onnx — ใช้เชิงพาณิชย์ได้)
  *   true = BiSeNet: น้ำหนักฝึกจาก CelebAMask-HQ (ใช้ได้เฉพาะงานวิจัย/ไม่ใช่เชิงพาณิชย์) ไฟล์ไม่อยู่ใน git

@@ -146,6 +146,7 @@
       <button type="button" role="tab" data-tab="security" aria-selected="false">ความปลอดภัย</button>
       <button type="button" role="tab" data-tab="retention" aria-selected="false">การเก็บรักษาข้อมูล</button>
       <button type="button" role="tab" data-tab="fsources" aria-selected="false" data-i18n="adf.tab">แหล่งอ้างอิงดูดวง</button>
+      <button type="button" role="tab" data-tab="merit" aria-selected="false" data-i18n="am.tab">คำแนะนำตามความเชื่อ</button>
     </nav>
 
     <div class="ad-panel" data-panel="analytics" role="tabpanel">
@@ -395,10 +396,64 @@
         <div id="adFsrc"></div>
       </div>
     </div>
+
+    <!-- Merit MVP (backend/src/merit.js, docs/MERIT-RESULTS.md): free belief guidance under fortune readings + the
+         switched-off "request interest" inbox. TH default; EN / ZH in i18n/en-admin.js, i18n/zh-admin.js (am.*) -->
+    <div class="ad-panel" data-panel="merit" role="tabpanel" hidden>
+      <div class="ad-card">
+        <h2 data-i18n="am.h">คำแนะนำตามความเชื่อ (แสดงฟรีใต้คำทำนาย)</h2>
+        <p class="ad-muted" data-i18n="am.intro">สถานที่ไหว้หรือทำบุญ ของถวายและวิธีไหว้ ธรรมเนียมปีชง และของมงคล ผู้อ่านเลือกความเชื่อของตนเองบนเครื่อง
+          ทุกรายการแสดงป้าย "ตามความเชื่อ โปรดใช้วิจารณญาณ" ให้อัตโนมัติ ห้ามใส่ราคา ลิงก์ร้านค้า คำรับประกันผล คำขู่ให้กลัว หรือข้อมูลส่วนบุคคล
+          ระบบตรวจถ้อยคำก่อนบันทึกทุกครั้ง และทุกการแก้ไขถูกบันทึกไว้</p>
+        <div class="ad-row"><button class="ad-btn" type="button" id="amNew" data-i18n="am.new">เพิ่มรายการใหม่</button></div>
+        <div id="amList" class="am-list"></div>
+      </div>
+      <div class="ad-card" id="amEdit" hidden>
+        <h2 id="amEditH" data-i18n="am.edit.new">เพิ่มรายการใหม่</h2>
+        <form id="amForm" class="ad-form" novalidate>
+          <label><span data-i18n="am.f.type">ประเภท</span> <select name="type"></select></label>
+          <label><span data-i18n="am.f.tradition">ความเชื่อ</span> <select name="tradition"></select></label>
+          <fieldset><legend data-i18n="am.f.title">หัวข้อ (ครบ 3 ภาษา)</legend>
+            <label><span data-i18n="am.l.th">ภาษาไทย</span> <input name="title_th" maxlength="120" autocomplete="off"></label>
+            <label><span data-i18n="am.l.en">ภาษาอังกฤษ</span> <input name="title_en" maxlength="120" autocomplete="off"></label>
+            <label><span data-i18n="am.l.zh">ภาษาจีน</span> <input name="title_zh" maxlength="120" autocomplete="off"></label>
+          </fieldset>
+          <fieldset><legend data-i18n="am.f.body">เนื้อหา: สิ่งที่ผู้มีความเชื่อนิยมทำ (ครบ 3 ภาษา)</legend>
+            <label><span data-i18n="am.l.th">ภาษาไทย</span> <textarea name="body_th" rows="4" maxlength="1200"></textarea></label>
+            <label><span data-i18n="am.l.en">ภาษาอังกฤษ</span> <textarea name="body_en" rows="4" maxlength="1200"></textarea></label>
+            <label><span data-i18n="am.l.zh">ภาษาจีน</span> <textarea name="body_zh" rows="4" maxlength="1200"></textarea></label>
+          </fieldset>
+          <fieldset><legend data-i18n="am.f.place">ชื่อสถานที่ (ไม่บังคับ ถ้าใส่ต้องครบ 3 ภาษา)</legend>
+            <label><span data-i18n="am.l.th">ภาษาไทย</span> <input name="place_th" maxlength="120" autocomplete="off"></label>
+            <label><span data-i18n="am.l.en">ภาษาอังกฤษ</span> <input name="place_en" maxlength="120" autocomplete="off"></label>
+            <label><span data-i18n="am.l.zh">ภาษาจีน</span> <input name="place_zh" maxlength="120" autocomplete="off"></label>
+          </fieldset>
+          <fieldset><legend data-i18n="am.f.area">พื้นที่หรือจังหวัด (ไม่บังคับ ถ้าใส่ต้องครบ 3 ภาษา)</legend>
+            <label><span data-i18n="am.l.th">ภาษาไทย</span> <input name="area_th" maxlength="80" autocomplete="off"></label>
+            <label><span data-i18n="am.l.en">ภาษาอังกฤษ</span> <input name="area_en" maxlength="80" autocomplete="off"></label>
+            <label><span data-i18n="am.l.zh">ภาษาจีน</span> <input name="area_zh" maxlength="80" autocomplete="off"></label>
+          </fieldset>
+          <fieldset><legend data-i18n="am.f.keys">แสดงเมื่อผลดวงตรงกับ (เลือกได้ 1–12 ข้อ)</legend><div id="amKeys" class="ad-checks am-keys"></div></fieldset>
+          <label><span data-i18n="am.f.status">สถานะ</span> <select name="status"></select></label>
+          <label><span data-i18n="am.f.sort">ลำดับ (น้อยแสดงก่อน)</span> <input name="sort" type="number" min="0" max="9999" step="1" value="0"></label>
+          <label><input type="checkbox" name="sample"> <span data-i18n="am.f.sample">เป็นรายการตัวอย่าง (แสดงป้าย "ตัวอย่าง")</span></label>
+          <p class="ad-alert ad-bad" id="amErr" role="alert" hidden></p>
+          <div class="ad-row">
+            <button class="ad-btn" type="submit" id="amSave" data-i18n="am.save">บันทึก</button>
+            <button class="ad-btn ad-ghost" type="button" id="amCancel" data-i18n="am.cancel">ยกเลิก</button>
+          </div>
+        </form>
+      </div>
+      <div class="ad-card" id="amInterest">
+        <h2 data-i18n="am.int.h">แบบฟอร์มแจ้งความสนใจบริการทำบุญแทน</h2>
+        <p id="amIntState" class="ad-warn" role="status"></p>
+        <div id="amIntList"></div>
+      </div>
+    </div>
   </section>
   <p id="adMsg" class="ad-msg" role="status" aria-live="polite"></p>
 </main>
-<script src="i18n/zh-admin.js?v=4"></script>
+<script src="i18n/zh-admin.js?v=5"></script>
 <script src="lensiq-i18n.js?v=1"></script>
 <script src="attendance-qr.js?v=1"></script>
 <script src="lensiq-api.js?v=2"></script>

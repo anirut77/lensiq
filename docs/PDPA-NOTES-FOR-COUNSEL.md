@@ -876,3 +876,42 @@ open). (d) The reference-image tooling stores embeddings only, never a photo, an
 counsel answers L19; no library exists. Embeddings of packaging carry no personal data, but a photo of a pack may show a
 person (hand, face on the artwork): the owner's photo protocol keeps such photos out of the reference set, and user
 contributions are refused in this tooling (org-accounts PDPA work first).
+
+## G. Merit (2026-11-12)
+
+### G1. Belief guidance and the switched-off "merit on your behalf" interest form (Merit MVP; `docs/MERIT-RESULTS.md`)
+
+(a) **Free guidance (built, on by default).** Under a fortune reading the page shows admin-managed guidance: places to
+pray, what to offer and how, ชง customs and lucky items. The reader picks a tradition (Thai Buddhist, Chinese folk,
+Hindu / Brahman, none, or "don't show"). **Religious or philosophical belief is sensitive data (PDPA s.26).** Design
+choice so that we do not collect it: the choice is stored only in the reader's browser (`localStorage`
+"lq-merit-tradition"); the page downloads every published item (`GET /v1/merit/guidance`, no query, no cookie, no
+member token) and filters and matches on the device; the reading result never leaves the device for this feature. The
+Worker therefore never learns the tradition or the reading. Residual point for counsel: the Worker's normal request
+log (method, URL, Cloudflare metadata) shows that a device opened a fortune page and fetched the guidance list; it
+carries nothing about belief.
+
+(b) **Admin content.** Items hold no personal data by design: no person, no contact, no price, no shop link; a place
+name and an area (province) only. An admin save is refused if any text contains a phone number, an e-mail address or a
+link (automated check, TH / EN / ZH). Every create / edit / hide / delete is in the admin audit log with the item id and
+the changed field names only (no text). Delete needs the password again.
+
+(c) **Interest form (built, OFF; must stay off until CTO-BRIEF L42 / L43 and this note are answered).** Two switches
+must both be on: the Worker variable `MERIT_INTEREST_FORM = "on"` (shipped "off") and
+`window.LENSIQ_MERIT_INTEREST_FORM = true` on the page (shipped false). The form is never shown while the crisis net
+has fired on this device in the last 24 hours. What it would collect: name or nickname, one contact (LINE ID, phone or
+e-mail), the guidance item chosen, and a preferred date window (at most 60 days). The server refuses anything else
+(birth date, address, photo, note and any other field). No IP address or user agent is stored with a request; the rate
+limit uses the day-salted caller hash that is deleted daily. Retention: deleted automatically after
+`MERIT_INTEREST_DAYS` (90); the admin can erase one at any time (re-auth; the audit row has no personal details).
+**Sensitive-data point:** the chosen item (for example a shrine with a Tai Sui hall) can reveal a religious belief, so
+the form asks for explicit consent that says so (TH / EN / ZH text `f.consent` in `lensiq-merit-core.js`, consent
+version "m1"). The form states that booking is not open and no payment is taken.
+Questions for counsel: (1) is explicit consent the right basis for the implied-belief data, and is the wording enough;
+(2) is 90 days a reasonable retention for an interest list while no service exists; (3) does `privacy.html` need a
+merit paragraph before the form is switched on (not added yet because the form is off; owner decision); (4) crisis
+wording typed into the name or contact field is refused on the device and again on the server and is never stored or
+logged (a counter only): confirm this is adequate.
+
+(d) **Crisis net.** Whenever a support card (1323 / 1669 / 191 / 1300) appears on any fortune page, the device stores
+only the time (`localStorage` "lq-crisis-at", no text) and hides all merit content and any paid offer for 24 hours.

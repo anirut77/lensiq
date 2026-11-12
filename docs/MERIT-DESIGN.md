@@ -1,5 +1,9 @@
 # Fortune remedies, lucky items and "merit on your behalf": design
 
+> **Merit MVP built 2026-11-12** (owner order; results and switches: `docs/MERIT-RESULTS.md`). Built: the free
+> guidance panel, the admin editor, migration 0014 and a switched-off "request interest" form. Not built: booking,
+> payment, staff, proof (M6–M7), the source / mapping / revision tables (§3.1) and the hub page `merit.html`.
+
 > **Status: DESIGN ONLY, waiting for owner approval. Nothing is built.** Build order: third, after Product Check,
 > Nutrition and Try-On. Written 2026-11-10 from the current code (`fortune-ai.js`, `lifecal*.js`, `horoscope*.js`,
 > `zodiac*.js`, `numbers*.js`, `tarot*.js`, `iching*.js`, `faceread*.js`, `palm*.js`, `fengshui*.js`,

@@ -2,6 +2,7 @@
  "note": "Seconds per e2e file, measured locally (full gate 2026-11-11). Only used to balance CI shards; a file missing here gets the median. Any value is safe: tools/e2e-shards.mjs --check proves every file ran exactly once.",
  "seconds": {
   "admin-keys.e2e.mjs": 4,
+  "admin-merit.e2e.mjs": 17,
   "admin-setup.e2e.mjs": 8,
   "afterhours.e2e.mjs": 39,
   "agg.e2e.mjs": 10,
@@ -51,6 +52,7 @@
   "luckycolor.e2e.mjs": 8,
   "medicine.e2e.mjs": 11,
   "member.e2e.mjs": 12,
+  "merit.e2e.mjs": 20,
   "numbers.e2e.mjs": 1,
   "omr.e2e.mjs": 5,
   "palm-hands.e2e.mjs": 21,

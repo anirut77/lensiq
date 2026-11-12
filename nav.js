@@ -16,7 +16,8 @@
    - service worker registration (sw.js: cache-first for vendor/ models, versioned). Disable with ?nosw.
    - Legal footer: pages without their own <footer> get a slim one (terms / privacy / help / about links, keys foot.*);
      hidden in kiosk modes and in print. Pages with a <footer> (index, about) link the documents themselves.
-   - Fortune pages: loads lensiq-report.js ("report a problem with this reading", works without a backend). */
+   - Fortune pages: loads lensiq-report.js ("report a problem with this reading", works without a backend) and
+     lensiq-merit-core.js + lensiq-merit.js (free belief guidance under a reading, Merit MVP 2026-11-12). */
 (function () {
   "use strict";
 
@@ -165,7 +166,7 @@
   })();
 
   var header = /** @type {HTMLElement} */ (document.getElementById("siteNav") || document.querySelector("header.nav"));
-  if (!header) { thaiBreaks(); models(); registerSW(); legalFoot(); reportHook(); return; }
+  if (!header) { thaiBreaks(); models(); registerSW(); legalFoot(); reportHook(); meritHook(); return; }
   if (!header.classList.contains("nav")) header.classList.add("nav");
 
   var page = (location.pathname.split("/").pop() || "index.html").toLowerCase();
@@ -411,6 +412,7 @@
   registerSW();
   legalFoot();
   reportHook();
+  meritHook();
 
   // ---------- Thai line breaking: <wbr> at word boundaries ----------
   function thaiBreaks() {
@@ -640,6 +642,17 @@
     var sc = document.createElement("script");
     sc.src = "lensiq-report.js?v=1"; sc.async = true;
     (document.head || document.documentElement).appendChild(sc);
+  }
+  // ---------- fortune pages: belief guidance under a reading (lensiq-merit.js; Merit MVP, owner order 2026-11-12) ----------
+  function meritHook() {
+    var p = (location.pathname.split("/").pop() || "").toLowerCase();
+    if (!/^(faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph|planner|luckycolor)\.html$/.test(p)) return;
+    if (/** @type {any} */ (window).LQMerit || document.querySelector('script[src^="lensiq-merit.js"]')) return;
+    ["lensiq-merit-core.js?v=1", "lensiq-merit.js?v=1"].forEach(function (src) {
+      var sc = document.createElement("script");
+      sc.src = src; sc.async = false; // in order: the core first
+      (document.head || document.documentElement).appendChild(sc);
+    });
   }
   // ---------- service worker (offline cache for vendor/ models) ----------
   function registerSW() {

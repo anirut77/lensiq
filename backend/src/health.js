@@ -12,7 +12,8 @@ export const MIGRATIONS = [
   "0001_init.sql", "0002_billing.sql", "0003_seed_plans.sql", "0004_hardening.sql", "0005_members.sql",
   "0006_consumer_pricing.sql", "0007_member_session_labels.sql", "0008_round11_backend.sql",
   "0009_round12_backend.sql", "0010_ai_gateway.sql", "0011_admin_recovery.sql", "0012_ai_keys.sql", "0013_recovery_slow_hash.sql",
-  "0014_leads_viewed.sql"
+  "0014_leads_viewed.sql",
+  "0014_merit.sql"
 ];
 /** Columns / tables added by migrations 0008 and later, with the migration that adds each (schema probe): a failing
  *  probe names exactly the migration that is missing. */
@@ -29,7 +30,9 @@ const PROBES = [
   ["0011_admin_recovery.sql", "SELECT hash, created_at, used_at FROM admin_recovery_codes LIMIT 0"],
   ["0012_ai_keys.sql", "SELECT provider, key_enc, last4, set_at, checked_at, check_ok FROM ai_provider_keys LIMIT 0"],
   ["0013_recovery_slow_hash.sql", "SELECT salt, slow_hash, iterations FROM admin_recovery_codes LIMIT 0"],
-  ["0014_leads_viewed.sql", "SELECT viewed_at FROM leads LIMIT 0"]
+  ["0014_leads_viewed.sql", "SELECT viewed_at FROM leads LIMIT 0"],
+  ["0014_merit.sql", "SELECT id, type, tradition, title, body, place, area, match_keys, sample, status, sort FROM merit_items LIMIT 0"],
+  ["0014_merit.sql", "SELECT id, created_at, item_id, name, channel, contact, date_from, date_to, consent_version, status FROM merit_interest LIMIT 0"]
 ];
 
 /** @param {Env} env */

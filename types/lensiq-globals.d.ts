@@ -66,6 +66,9 @@ interface Window {
   LQResearch?: any;
   /** lensiq-config.js: false = never load lensiq-analytics.js */
   LENSIQ_ANALYTICS?: boolean;
+  /** lensiq-config.js (Merit MVP): true = the page may show the paid on-your-behalf interest form (default false; also needs the Worker's
+   *  MERIT_INTEREST_FORM = "on" and no crisis state) */
+  LENSIQ_MERIT_INTEREST_FORM?: boolean;
   /** lensiq-config.js: Cloudflare Turnstile site key for the AI writing assistant on the Worker ("" = off) */
   LENSIQ_TURNSTILE_SITEKEY?: string;
   /** lensiq-config.js: public OAuth Client ID for "Sign in with Google" ("" = no member sign-in) */

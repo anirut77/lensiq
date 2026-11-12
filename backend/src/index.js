@@ -34,6 +34,8 @@
 //   GET  /v1/ai/providers?feature=…      AI gateway consent-screen data (round 17 P5, ai/gateway.js; no secrets)
 //   POST /v1/ai/:feature                 AI gateway (consent, Turnstile action "ai", limits, budget, fallback chain)
 //   POST /v1/tester/check               closed test (tester.js): {ok:true} when X-Tester-Code is valid (or no gate is set)
+//   GET  /v1/merit/guidance              Merit MVP (merit.js): every published belief-guidance item (the device filters)
+//   POST /v1/merit/interest              "request interest" form — OFF unless MERIT_INTEREST_FORM=on (404 merit_interest_off)
 // Test deployment switches (tester.js; all unset by default = no change): PUBLIC_ROUTES (allow-list; other public routes
 //   404 route_off before D1), D1_WRITE_BUDGET (429 d1_budget), ADMIN_UNAUTH_WRITES_HOUR, SERVICE_OFF (every public route except /health
 //   -> 503 {off:true}), DAILY_REQUEST_CAP (429 daily_cap), TESTER_GATE + TESTER_ACCESS_CODE (X-Tester-Code on /v1/ai/*,
@@ -42,6 +44,8 @@
 //   /billing/test-charge needs re-auth and is capped (TEST_CHARGE_HOUR); money ops follow auth.moneyReauthMode
 // Admin round 17 P4: GET|PUT /admin/api/pc/lookup (Thai FDA live / link-out + per-source switches; PUT re-auth, audited)
 // Admin round 17: GET|PUT /admin/api/ai/gateway (PUT needs re-auth, audited), GET /admin/api/ai/usage?month=YYYY-MM
+// Admin Merit MVP: GET|POST /admin/api/merit/items, PUT|DELETE /admin/api/merit/items/:id (delete = re-auth),
+//   GET /admin/api/merit/interest, DELETE /admin/api/merit/interest/:id (re-auth); every write audited (merit.js)
 // Admin (ADMIN_ORIGINS, credentials; see auth.js): /admin/api/*
 import * as analytics from "./analytics.js";
 import * as auth from "./auth.js";
@@ -58,6 +62,7 @@ import { adminGateway, adminPutGateway, adminUsage, aiRoute, providersInfo } fro
 import * as keystore from "./ai/keystore.js";
 import { LEGACY_KEY_UNUSED, getGateway, legacyKeyUnused } from "./ai/settings.js";
 import { medRoute } from "./med.js";
+import * as merit from "./merit.js";
 import { adminPcLookup, pcRoute, putPcSettings } from "./pc.js";
 import { reconcilePending } from "./billing.js";
 import { turnstileStatus } from "./turnstile.js";
@@ -120,6 +125,16 @@ async function publicRoute(request, env, url, deps) {
   if (p === "/v1/leads" && m === "POST") {
     if (!originAllowed(request, allow, { required: true })) return reply({ error: "origin not allowed" }, 403);
     return reply(await leads.submitLead(env, request, await readJson(request, 8192), deps), 201);
+  }
+  if (p === "/v1/merit/guidance" && m === "GET") {
+    // Merit MVP: every published item; no query is read (the device filters by its own tradition choice and reading)
+    return json(await merit.publicGuidance(env), 200, { ...cors, "Cache-Control": "public, max-age=300" });
+  }
+  if (p === "/v1/merit/interest" && m === "POST") {
+    if (!merit.interestEnabled(env)) return reply({ error: "the interest form is not open (merit_interest_off)", code: "merit_interest_off" }, 404);
+    if (!originAllowed(request, allow, { required: true })) return reply({ error: "origin not allowed" }, 403);
+    const [b, st] = await merit.submitInterest(env, request, await readJson(request, 4096), deps);
+    return reply(b, st);
   }
   if (p === "/v1/csp-report" && m === "POST") {
     // round 12: CSP violation reports (csp.js) — counters only; always 204 (browsers never retry a report)
@@ -552,6 +567,41 @@ async function adminRoute(request, env, url, deps) {
     return reply(r);
   }
   if (ld && m === "DELETE" && !ld[2]) { await reauthed(); const r = await leads.deleteLead(env.DB, ld[1]); await act("lead.deleted", { lead: ld[1] }); return reply(r); }
+  // Merit MVP: belief-guidance items + the (switched-off) interest inbox. Audit details carry ids and field names only.
+  // Deletes need re-auth: {password, totp} in an optional JSON body, or the 5-min sudo window (a DELETE without a body).
+  const reauthedDelete = async () => {
+    const b = request.headers.get("Content-Type") ? await body() : {};
+    try { return await auth.requireReauth(env, sess, b); } catch (e) {
+      if (e && e.extra && e.extra.code === "reauth_required") await act("reauth.failed", { route, missing: true });
+      throw e;
+    }
+  };
+  if (route === "/merit/items" && m === "GET") return reply(await merit.adminListItems(env));
+  if (route === "/merit/items" && m === "POST") {
+    const item = await merit.adminCreateItem(env, await body());
+    await act("merit.item.created", { id: item.id, type: item.type, tradition: item.tradition });
+    return reply({ item }, 201);
+  }
+  const mi = /^\/merit\/items\/([a-z0-9][a-z0-9_-]{2,40})$/.exec(route);
+  if (mi && m === "PUT") {
+    const r = await merit.adminUpdateItem(env, mi[1], await body());
+    await act("merit.item.updated", { id: mi[1], changed: r.changed, status: r.item.status });
+    return reply({ item: r.item });
+  }
+  if (mi && m === "DELETE") {
+    await reauthedDelete();
+    const r = await merit.adminDeleteItem(env, mi[1]);
+    await act("merit.item.deleted", { id: mi[1] });
+    return reply(r);
+  }
+  if (route === "/merit/interest" && m === "GET") return reply(await merit.adminInterest(env, Object.fromEntries(url.searchParams)));
+  const mq = /^\/merit\/interest\/([a-f0-9]{24})$/.exec(route);
+  if (mq && m === "DELETE") {
+    await reauthedDelete();
+    const r = await merit.adminDeleteInterest(env, mq[1]);
+    await act("merit.interest.deleted", { id: mq[1] });
+    return reply(r);
+  }
   const dv = /^\/devices\/([a-f0-9]{16})$/.exec(route);
   if (dv && m === "DELETE") { const r = await auth.revokeDevice(env, dv[1]); await act("device.revoked", { device: dv[1] }); return reply(r); }
   return reply({ error: "not found" }, 404);

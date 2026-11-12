@@ -817,6 +817,7 @@
     document.title = "LENSIQ " + G("adm.brand", "หลังบ้าน");
     if (gw.data) renderGateway();
     keyDlgTexts();
+    if (am.data) amRender();
   });
   $("adLang").value = gLang();
 
@@ -1122,6 +1123,167 @@
     ev.preventDefault();
     var f = /** @type {any} */ (ev.target);
     call("/password", { method: "POST", body: { current: f.current.value, next: f.next.value, totp: f.totp.value || undefined } }).then(function () { f.reset(); msg("เปลี่ยนรหัสผ่านแล้ว"); }, fail);
+  });
+
+  /* ---------------- merit: belief guidance (Merit MVP, backend/src/merit.js) ---------------- */
+  var am = { data: /** @type {any} */ (null), interest: /** @type {any} */ (null), editing: /** @type {string|null} */ (null) };
+  var AM_LANGS = ["th", "en", "zh"];
+  /** @param {string} t */
+  var amType = function (t) {
+    return G("am.type." + t, ({ place: "สถานที่ไหว้หรือทำบุญ", offering: "ของถวายและวิธีไหว้", chong: "ธรรมเนียมปีชง", lucky_item: "ของมงคล" })[t] || t);
+  };
+  /** @param {string} t */
+  var amTrad = function (t) {
+    return G("am.trad." + t, ({ thai_buddhist: "พุทธแบบไทย", chinese_folk: "ความเชื่อแบบจีน", hindu_brahman: "ฮินดู–พราหมณ์", general: "ทั่วไป (ไม่ระบุความเชื่อ)" })[t] || t);
+  };
+  var AM_DOMAIN = /** @type {Record<string, string>} */ ({ zodiac: "ปีนักษัตร", bazi: "ปาจื้อ", taksa: "ทักษา", lek7: "เลข 7 ตัว", horoscope: "ดวงรายวัน", tarot: "ไพ่ยิปซี",
+    siamsee: "เซียมซี", iching: "อี้จิง", dream: "ทำนายฝัน", astro: "โหราศาสตร์ตะวันตก", numbers: "เลขศาสตร์", fengshui: "ฮวงจุ้ย", face: "โหงวเฮ้ง", palm: "ลายมือ",
+    lifegraph: "กราฟชีวิต", luckycolor: "สีมงคล", planner: "ฤกษ์" });
+  var AM_ANIMAL = ["ชวด", "ฉลู", "ขาล", "เถาะ", "มะโรง", "มะเส็ง", "มะเมีย", "มะแม", "วอก", "ระกา", "จอ", "กุน"];
+  var AM_ELEMENT = /** @type {Record<string, string>} */ ({ wood: "ไม้", fire: "ไฟ", earth: "ดิน", metal: "ทอง (โลหะ)", water: "น้ำ" });
+  /** Human label of a matching key (the picker never takes free text). @param {string} k */
+  function amKey(k) {
+    var p = k.split(":");
+    if (k === "any") return G("am.k.any", "ทุกผลดวง (ทั่วไป)");
+    if (k === "chong") return G("am.k.chong", "ผลดวงเป็นปีชง");
+    if (k === "weak") return G("am.k.weak", "ช่วงที่ควรใส่ใจเป็นพิเศษ");
+    if (p[0] === "domain") return G("am.k.domain", "ศาสตร์") + ": " + G("am.d." + p[1], AM_DOMAIN[p[1]] || p[1]);
+    if (p[0] === "animal") return G("am.k.animal", "ปีเกิด") + ": " + G("am.a." + p[1], AM_ANIMAL[+p[1]] || p[1]);
+    if (p[0] === "element") return G("am.k.element", "ธาตุ") + ": " + G("am.el." + p[1], AM_ELEMENT[p[1]] || p[1]);
+    return k;
+  }
+  /** @param {any} o */
+  var amText = function (o) { return o ? o[gLang()] || o.th || "" : ""; };
+  /** Plain message for a refused save (field and category named, no codes). @param {any} e */
+  function amError(e) {
+    var m = /in (\w+\.(?:th|en|zh)): ([a-z_, ]+)/.exec(String(e && e.message || ""));
+    if (e && e.code === "merit_wording" && m) {
+      var cats = m[2].split(/,\s*/).map(function (c) {
+        return G("am.w." + c, ({ guarantee: "คำรับประกันผล", fix_luck: "คำว่าแก้ดวงหรือเปลี่ยนดวง", fear: "คำขู่ให้กลัว", health: "เรื่องสุขภาพหรือการรักษา", lottery: "หวยหรือเลขเด็ด",
+          price: "ราคาหรือค่าใช้จ่าย", purchase: "การซื้อขายหรือร้านค้า", urgency: "การเร่งรัดหรือจำนวนจำกัด", link: "ลิงก์", personal: "เบอร์โทรหรืออีเมล" })[c] || c);
+      });
+      return G("am.e.wording", "ถ้อยคำในช่อง {field} ใช้ไม่ได้: {why} กรุณาแก้แล้วบันทึกอีกครั้ง", { field: m[1], why: cats.join(", ") });
+    }
+    if (e && e.code === "merit_invalid") return G("am.e.invalid", "ข้อมูลยังไม่ครบหรือไม่ถูกต้อง: {why}", { why: String(e.message || "").replace(/[{}]/g, "") });
+    if (e && e.code === "reauth_required") return G("am.e.reauth", "ต้องยืนยันรหัสผ่านก่อนลบ");
+    return friendly(e);
+  }
+
+  function amKeysPicker() {
+    var box = $("amKeys"), keep = {};
+    box.querySelectorAll("input[name=keys]").forEach(function (/** @type {any} */ c) { keep[c.value] = c.checked; });
+    box.textContent = "";
+    ((am.data && am.data.keys_allowed) || []).forEach(function (/** @type {string} */ k) {
+      var c = h("input", { type: "checkbox", name: "keys", value: k });
+      /** @type {any} */ (c).checked = !!keep[k];
+      box.appendChild(h("label", null, c, " " + amKey(k)));
+    });
+  }
+  function amSelects() {
+    var f = /** @type {any} */ ($("amForm"));
+    /** @param {any} sel @param {string[]} vals @param {(v: string) => string} label */
+    var fill = function (sel, vals, label) {
+      var v = sel.value; sel.textContent = "";
+      vals.forEach(function (x) { sel.appendChild(h("option", { value: x, text: label(x) })); });
+      if (v && vals.indexOf(v) >= 0) sel.value = v;
+    };
+    fill(f.type, (am.data && am.data.types) || [], amType);
+    fill(f.tradition, (am.data && am.data.traditions) || [], amTrad);
+    fill(f.status, ["published", "hidden"], function (x) { return x === "published" ? G("am.st.published", "เผยแพร่") : G("am.st.hidden", "ซ่อน"); });
+  }
+  function amRenderList() {
+    var box = $("amList"); box.textContent = "";
+    var items = (am.data && am.data.items) || [];
+    if (!items.length) { box.appendChild(h("p", { class: "ad-muted", text: G("am.none", "ยังไม่มีรายการ") })); return; }
+    items.forEach(function (/** @type {any} */ it) {
+      var t = h("div", { class: "am-title", lang: gLang() === "zh" ? "zh-Hans" : gLang() }, amText(it.title));
+      var hidden = it.status === "hidden";
+      var meta = h("div", { class: "am-meta" }, amType(it.type) + " · " + amTrad(it.tradition) + " · " +
+        (hidden ? G("am.st.hidden", "ซ่อน") : G("am.st.published", "เผยแพร่")) + " · " + G("am.keysN", "จับคู่ {n} ข้อ", { n: (it.keys || []).length }));
+      var row = h("div", { class: "am-row", "data-id": it.id, "data-status": it.status },
+        it.sample ? h("div", null, h("span", { class: "am-sample", text: G("am.sample", "ตัวอย่าง") })) : null, t, meta,
+        h("div", { class: "ad-row" },
+          h("button", { class: "ad-btn ad-ghost", type: "button", "data-act": "edit", text: G("am.act.edit", "แก้ไข") }),
+          h("button", { class: "ad-btn ad-ghost", type: "button", "data-act": hidden ? "show" : "hide", text: hidden ? G("am.act.show", "แสดง") : G("am.act.hide", "ซ่อน") }),
+          h("button", { class: "ad-btn ad-ghost", type: "button", "data-act": "delete", text: G("am.act.delete", "ลบ") })));
+      box.appendChild(row);
+    });
+  }
+  function amRenderInterest() {
+    var r = am.interest; if (!r) return;
+    $("amIntState").textContent = r.interest_form
+      ? G("am.int.on", "เปิดอยู่: ผู้ใช้ส่งคำขอแจ้งความสนใจได้ (ยังไม่มีการจองหรือเก็บเงิน) คำขอถูกลบอัตโนมัติหลัง {n} วัน", { n: r.retention_days })
+      : G("am.int.off", "ปิดอยู่ (ค่าเริ่มต้น) จะเปิดได้หลังทนายตอบเรื่องกฎหมายขายตรงและการเรี่ยไร (L42 / L43) และเจ้าของตัดสินใจ การเปิดทำที่การตั้งค่าเซิร์ฟเวอร์ ไม่ใช่ที่หน้านี้");
+    var box = $("amIntList"); box.textContent = "";
+    if (!r.requests.length) { box.appendChild(h("p", { class: "ad-muted", text: G("am.int.none", "ยังไม่มีคำขอ") })); return; }
+    r.requests.forEach(function (/** @type {any} */ q) {
+      var del = h("button", { class: "ad-btn ad-ghost", type: "button", text: G("am.int.del", "ลบคำขอนี้") });
+      del.addEventListener("click", function () {
+        if (!window.confirm(G("am.int.delQ", "ลบคำขอนี้ถาวร?"))) return;
+        call("/merit/interest/" + q.id, { method: "DELETE" }).then(function () { msg(G("am.int.deleted", "ลบคำขอแล้ว")); loaders.merit(); },
+          function (/** @type {any} */ e) { msg(amError(e), true); });
+      });
+      box.appendChild(h("div", { class: "am-row" },
+        h("div", { class: "am-title", lang: "th" }, q.name + " · " + q.channel + ": " + q.contact),
+        h("div", { class: "am-meta" }, q.item_id + " · " + q.date_from + " – " + q.date_to + " · " + when(q.created_at)), h("div", { class: "ad-row" }, del)));
+    });
+  }
+  function amRender() { amSelects(); amKeysPicker(); amRenderList(); amRenderInterest(); }
+  loaders.merit = function () {
+    Promise.all([call("/merit/items"), call("/merit/interest")]).then(function (r) { am.data = r[0]; am.interest = r[1]; amRender(); }, fail);
+  };
+  /** @param {any} it */
+  function amOpen(it) {
+    am.editing = it ? it.id : null;
+    var f = /** @type {any} */ ($("amForm"));
+    f.reset();
+    amSelects();
+    $("amEditH").setAttribute("data-i18n", it ? "am.edit.edit" : "am.edit.new");
+    $("amEditH").textContent = it ? G("am.edit.edit", "แก้ไขรายการ") : G("am.edit.new", "เพิ่มรายการใหม่");
+    ["title", "body", "place", "area"].forEach(function (k) { AM_LANGS.forEach(function (l) { f[k + "_" + l].value = it && it[k] ? it[k][l] || "" : ""; }); });
+    if (it) { f.type.value = it.type; f.tradition.value = it.tradition; f.status.value = it.status; f.sort.value = String(it.sort || 0); f.sample.checked = !!it.sample; }
+    amKeysPicker();
+    $("amKeys").querySelectorAll("input[name=keys]").forEach(function (/** @type {any} */ c) { c.checked = !!it && (it.keys || []).indexOf(c.value) >= 0; });
+    $("amErr").hidden = true; $("amErr").textContent = "";
+    $("amEdit").hidden = false;
+    try { $("amEdit").scrollIntoView({ block: "start" }); } catch (e) { /* older browsers */ }
+  }
+  $("amNew").addEventListener("click", function () { amOpen(null); });
+  $("amCancel").addEventListener("click", function () { $("amEdit").hidden = true; am.editing = null; });
+  $("amList").addEventListener("click", function (/** @type {any} */ ev) {
+    var b = ev.target && ev.target.closest && ev.target.closest("button[data-act]"); if (!b) return;
+    var id = b.closest(".am-row").getAttribute("data-id"), act = b.getAttribute("data-act");
+    var it = ((am.data && am.data.items) || []).filter(function (/** @type {any} */ x) { return x.id === id; })[0];
+    if (!it) return;
+    if (act === "edit") { amOpen(it); return; }
+    if (act === "hide" || act === "show") {
+      call("/merit/items/" + id, { method: "PUT", body: { status: act === "hide" ? "hidden" : "published" } })
+        .then(function () { msg(act === "hide" ? G("am.hidden", "ซ่อนแล้ว") : G("am.shown", "แสดงแล้ว")); loaders.merit(); }, function (/** @type {any} */ e) { msg(amError(e), true); });
+      return;
+    }
+    if (act === "delete") {
+      if (!window.confirm(G("am.delQ", "ลบรายการนี้ถาวร? (ต้องยืนยันรหัสผ่าน) ถ้าเพียงไม่อยากให้แสดง ให้กด \"ซ่อน\" แทน"))) return;
+      call("/merit/items/" + id, { method: "DELETE" }).then(function () { msg(G("am.deleted", "ลบแล้ว")); if (am.editing === id) $("amEdit").hidden = true; loaders.merit(); },
+        function (/** @type {any} */ e) { msg(amError(e), true); });
+    }
+  });
+  $("amForm").addEventListener("submit", function (/** @type {Event} */ ev) {
+    ev.preventDefault();
+    var f = /** @type {any} */ ($("amForm"));
+    /** @param {string} k */
+    var tri = function (k) { var o = /** @type {Record<string, string>} */ ({}); AM_LANGS.forEach(function (l) { o[l] = String(f[k + "_" + l].value || "").trim(); }); return o; };
+    /** @param {string} k */
+    var opt = function (k) { var o = tri(k); return AM_LANGS.every(function (l) { return !o[l]; }) ? null : o; };
+    var keys = [];
+    $("amKeys").querySelectorAll("input[name=keys]").forEach(function (/** @type {any} */ c) { if (c.checked) keys.push(c.value); });
+    var body = { type: f.type.value, tradition: f.tradition.value, title: tri("title"), body: tri("body"), place: opt("place"), area: opt("area"), keys: keys,
+      status: f.status.value, sort: Number(f.sort.value || 0), sample: !!f.sample.checked };
+    var err = $("amErr"); err.hidden = true; err.textContent = "";
+    $("amSave").disabled = true;
+    var p = am.editing ? call("/merit/items/" + am.editing, { method: "PUT", body: body }) : call("/merit/items", { method: "POST", body: body });
+    p.then(function () { $("amEdit").hidden = true; am.editing = null; msg(G("am.saved", "บันทึกแล้ว")); loaders.merit(); },
+      function (/** @type {any} */ e) { err.textContent = amError(e); err.hidden = false; })
+      .then(function () { $("amSave").disabled = false; });
   });
 
   /* ---------------- retention ---------------- */

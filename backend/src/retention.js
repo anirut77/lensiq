@@ -15,9 +15,11 @@
 //   quota tombstones            the Bangkok day they were written for (usage_counters subject 'x:…', round 11)
 //   e-mail delivery log         AUDIT_DAYS (400) (round 12; no addresses / bodies stored, member id cleared on erasure)
 //   CSP report counters         CSP_REPORT_DAYS (90) (round 12; aggregated counters only)
+//   merit interest requests     MERIT_INTEREST_DAYS (90) after they were received (Merit MVP 2026-11-12; form off by default)
 //   payments / receipts         kept (Thai Revenue Code: accounting & tax documents >= 5 years) — never purged here
 import { aggregatePending } from "./analytics.js";
 import { mailRenewalReminders } from "./mail.js";
+import { interestDays } from "./merit.js";
 import { audit } from "./store.js";
 import { addDays, bkkDay, dayOf, intVar, now } from "./util.js";
 
@@ -29,7 +31,8 @@ export function retentionConfig(env) {
     usageDays: 35,
     memberLedgerDays: intVar(env.MEMBER_LEDGER_DAYS, 400, 30, 3650),
     leadsDays: intVar(env.LEADS_DAYS, 180, 7, 3650),
-    cspReportDays: intVar(env.CSP_REPORT_DAYS, 90, 1, 3650)
+    cspReportDays: intVar(env.CSP_REPORT_DAYS, 90, 1, 3650),
+    meritInterestDays: interestDays(env)
   };
 }
 
@@ -56,7 +59,9 @@ export async function purge(env, t = now()) {
     quota_tombstones: await run("DELETE FROM usage_counters WHERE subject LIKE 'x:%' AND day < ?1", bkkDay(t)),
     // round 12: e-mail delivery log with the audit log; CSP report counters after CSP_REPORT_DAYS
     mail_log: await run("DELETE FROM mail_log WHERE ts < ?1", t - c.auditDays * 86400),
-    csp_reports: await run("DELETE FROM csp_reports WHERE day < ?1", addDays(today, -c.cspReportDays))
+    csp_reports: await run("DELETE FROM csp_reports WHERE day < ?1", addDays(today, -c.cspReportDays)),
+    // Merit MVP: "request interest" rows (name, contact, item, date window) after MERIT_INTEREST_DAYS
+    merit_interest: await run("DELETE FROM merit_interest WHERE created_at < ?1", t - c.meritInterestDays * 86400)
   };
   return out;
 }

@@ -1,0 +1,151 @@
+# Merit MVP: results (2026-11-12)
+
+> Owner order 2026-11-12 (moved ahead of Nutrition). Design: `docs/MERIT-DESIGN.md` (approved 2026-11-10). Rules:
+> CLAUDE.md "Remedies and merit" and the Fortune bans. Legal rows: CTO-BRIEF L42, L43 (must answer before charging),
+> L44 (wording review). PDPA: `docs/PDPA-NOTES-FOR-COUNSEL.md` §G1. Every figure below is **synthetic** (fixed test sets
+> written and hash-locked before the product code); no field data exists yet.
+
+## สรุปสำหรับเจ้าของ (ภาษาไทย)
+
+- **สร้างแล้ว**
+  1. **คำแนะนำตามความเชื่อ (ฟรี):** หลังอ่านดวงบนหน้าดูดวง 16 หน้า จะมีกล่อง "สิ่งที่ทำได้ตามความเชื่อ" ใต้คำทำนาย
+     - แสดงสถานที่ไหว้หรือทำบุญ ของถวายและวิธีไหว้ ธรรมเนียมปีชง และของมงคล
+     - ผู้ใช้เลือกความเชื่อเอง (พุทธแบบไทย / ความเชื่อแบบจีน / ฮินดู–พราหมณ์ / ไม่ระบุ / ไม่ต้องแสดง) ระบบจำไว้ในเครื่องนี้เท่านั้น
+     - การจับคู่กับผลดวงทำในเครื่อง ผลดวงและความเชื่อที่เลือกไม่ถูกส่งออกไป
+     - ทุกการ์ดมีป้าย "ตามความเชื่อ โปรดใช้วิจารณญาณ" และท้ายกล่องมี "ไม่มีสิ่งใดรับประกันผล" (ข้อความตายตัว แก้จากหลังบ้านไม่ได้)
+     - ไม่มีราคา ไม่มีลิงก์ร้านค้า ไม่มีปุ่มซื้อ ธรรมเนียมปีชงแสดงเฉพาะเมื่อผลดวงเป็นปีชงจริง
+  2. **หลังบ้าน:** แท็บใหม่ "คำแนะนำตามความเชื่อ" ใน admin เดิม (ใช้การเข้าสู่ระบบเดิม)
+     - เพิ่ม แก้ไข ซ่อน/แสดง และลบรายการได้ ครบ 3 ภาษา เลือกการจับคู่จากรายการตายตัว (ไม่พิมพ์เอง)
+     - ระบบตรวจถ้อยคำทุกครั้งก่อนบันทึก (ห้ามคำรับประกัน แก้ดวง ขู่ให้กลัว สุขภาพ หวย ราคา ร้านค้า เร่งรัด ลิงก์ เบอร์โทร/อีเมล)
+     - ทุกการแก้ไขอยู่ใน audit log การลบต้องใส่รหัสผ่านอีกครั้ง
+     - มีรายการตัวอย่าง 16 รายการ ติดป้าย "ตัวอย่าง" ทุกรายการ เขียนเอง ไม่มีชื่อวัดจริงหรือค่าใช้จ่ายจริง ให้ทีมแทนที่ด้วยข้อมูลจริง
+  3. **บริการทำบุญแทน (เสียเงิน):** สร้างเพียงแบบฟอร์ม "แจ้งความสนใจ" และ **ปิดไว้** (ต้องเปิดทั้งบนเซิร์ฟเวอร์และบนหน้าเว็บ)
+     - ถ้าเปิดในอนาคต จะอยู่ใต้คำแนะนำฟรี บอกชัดว่าค่าบริการแยกจากเงินทำบุญ เงินทำบุญส่งต่อเต็มจำนวน พร้อมรูป/วิดีโอและใบเสร็จ
+     - ไม่มีนับถอยหลัง ไม่มี "เหลือน้อย" ไม่มี "แก้ดวง"
+     - เก็บเฉพาะชื่อเล่น ช่องทางติดต่อ รายการที่สนใจ และช่วงวันที่ ลบอัตโนมัติใน 90 วัน
+     - **ไม่แสดงเลย** เมื่อตาข่ายวิกฤตทำงานใน 24 ชั่วโมงที่ผ่านมา (ทดสอบแล้ว)
+- **ผลทดสอบ (ข้อมูลสังเคราะห์):** unit 22/22, backend 20/20, e2e หน้าดูดวง 8/8, e2e หลังบ้าน 5/5
+  - ตัวตรวจถ้อยคำจับคำต้องห้ามได้ 44/44 ประโยค (TH 16, EN 15, ZH 13) และไม่จับผิดประโยคปกติ 0/23
+  - ข้อความวิกฤตในแบบฟอร์มถูกปฏิเสธ 100% ทั้งบนเครื่องและบนเซิร์ฟเวอร์ ไม่ถูกเก็บ
+- **ปิดอยู่และวิธีเปิด:** แบบฟอร์มแจ้งความสนใจปิดไว้ จนกว่าทนายตอบ L42/L43 และเจ้าของตัดสินใจ (ดู §4)
+- **เจ้าของต้องตัดสินใจ:** ดู §7 (เปิดแบบฟอร์มเมื่อไร, ย่อหน้าในหน้าความเป็นส่วนตัว, ผู้เขียนเนื้อหาจริง, ผู้ตรวจที่รู้ศาสตร์)
+
+---
+
+## 1. What was built
+
+| Part | Files | Notes |
+|---|---|---|
+| Panel on the fortune pages | `lensiq-merit-core.js` (pure logic), `lensiq-merit.js` (DOM), loaded by `nav.js` on faceread, palm, horoscope, tarot, fengshui, numbers, iching, zodiac, astro, dream, bazi, taksa, lek7, lifegraph, planner, luckycolor | **No fortune page file was edited.** The module wraps `FortuneAI.interpret` / `regenerate` (reads the facts on the device) and `FortuneAI.renderSections` (puts one panel after the reading container) from the outside, the same pattern as `lensiq-report.js`. The reading text is never changed and never mentions the panel, so the existing `remedy-safety` and `paid` lints in `fortune-ai.js` are untouched. |
+| Sample content | `lensiq-merit-seed.js` (16 items) = the rows seeded by migration 0014 | Used by the static site when there is no backend. A test keeps the two identical. |
+| Worker | `backend/src/merit.js`, routes in `backend/src/index.js`, retention in `retention.js`, probe in `health.js` | See §2 and §3. |
+| Admin | `admin.html` / `admin.js` / `admin.css`, `i18n/en-admin.js`, `i18n/zh-admin.js` (`am.*`) | New tab "คำแนะนำตามความเชื่อ / Belief guidance / 信仰指引" behind the existing admin sign-in. |
+| Config | `lensiq-config.js` `LENSIQ_MERIT_INTEREST_FORM` (false), `backend/wrangler.toml` `MERIT_INTEREST_FORM = "off"`, `MERIT_INTEREST_DAYS = "90"`, `MERIT_INTEREST_GLOBAL_DAY = "100"` (top level and `[env.test]`) | |
+
+### 1.1 Screens
+
+1. **Under a reading** ("สิ่งที่ทำได้ตามความเชื่อ / What believers do / 按习俗可以做的事"): intro, the tradition choice
+   (all traditions / Thai Buddhist / Chinese folk / Hindu–Brahman / no particular tradition / don't show this section),
+   a privacy line ("this choice and your reading stay on this device"), cards grouped by type (places, offerings, ชง
+   customs, lucky items; at most 2 per type, 8 in total), each with a "Sample" badge when it is a sample, the place and
+   area when given, and the fixed belief label; then the fixed no-guarantee line.
+2. **Paid section** (only with both switches on and no crisis state): heading "Merit on your behalf (optional)", "for
+   people who cannot travel … a service of staff time and travel, not a purchase of any result", the fee shown
+   separately from the donation, the donation passed on in full with photo or video proof and a receipt, "booking is
+   not open and no payment is taken", then the interest form (name or nickname, channel, contact, item, date window,
+   explicit consent naming the religious-belief point, PDPA notice with a link to `privacy.html`).
+3. **Crisis:** crisis wording typed into the form replaces the panel content with the existing FortuneAI support card
+   (1323 / 1669 / 191 / 1300) and sends nothing; a support card anywhere on a fortune page withdraws the whole panel
+   for 24 h (`localStorage` "lq-crisis-at", time only).
+4. **Admin tab:** list (title, type, tradition, status, number of match keys, "Sample" badge; Edit / Hide or Show /
+   Delete), the edit form (type, tradition, title / content / place / area in TH, EN and ZH, the fixed key picker,
+   status, order, sample flag; plain error messages naming the field and the problem), and the interest card (states
+   that the form is off and why; lists requests with erase when it is on).
+
+All three screens are complete in Thai, English and Chinese and work at 320 / 360 / 390 px.
+
+## 2. Data model (migration `0014_merit.sql`)
+
+```
+merit_items     id (sample-… | mi-<hex>), type (place|offering|chong|lucky_item),
+                tradition (thai_buddhist|chinese_folk|hindu_brahman|general),
+                title, body, place?, area?   -- JSON {th, en, zh}, complete in all three languages
+                match_keys  -- JSON array from KEYS_ALLOWED: any, chong, weak, domain:<17 disciplines>,
+                               animal:<0-11>, element:<wood|fire|earth|metal|water>
+                sample (0|1), status (published|hidden), sort, created_at, updated_at
+                -- no price, vendor, link or personal-data column
+merit_interest  id, created_at, item_id, name, channel (line|phone|email), contact, date_from, date_to, lang,
+                consent_version, status   -- the minimum; purged after MERIT_INTEREST_DAYS (90)
+```
+
+`/health/deep` probes both tables (`health.js` MIGRATIONS + PROBES); a missing table names `0014_merit.sql`.
+
+**Matching keys from a reading** (on the device, `LQMeritCore.keysFromFacts`): `domain:<facts.domain>` (or the page
+name); `animal:<n>` from `animal.<n>`; `chong` from `rel.clash|same|harm|punish|break` (zodiac `isChong`) and
+`today.clash` / `today|month.rel.<chong>`; `element:<el>` from `*.useful.<el>`, `*.lack.<el>`, `el.lo.<el>`,
+`element.<el>`; `weak` from a caution tone, a challenge polarity or `str.weak`. A chong-type item is shown only for a ชง
+reading, whatever keys an admin gives it.
+
+## 3. API
+
+| Route | Who | Notes |
+|---|---|---|
+| `GET /v1/merit/guidance` | public | every published item (max 500) + `interest_form`; no query read; `Cache-Control: public, max-age=300` |
+| `POST /v1/merit/interest` | public | 404 `merit_interest_off` unless `MERIT_INTEREST_FORM=on` (checked before anything else, nothing written); then Turnstile action "merit" (fail closed), unknown fields refused, crisis text → 403 `support` with the help lines (never stored, a counter only), consent, field checks, published item only, 5 per caller per hour, `MERIT_INTEREST_GLOBAL_DAY` per Bangkok day |
+| `GET/POST /admin/api/merit/items` | admin | list (+ fixed types, traditions, allowed keys) / create; audited `merit.item.created` |
+| `PUT /admin/api/merit/items/:id` | admin | partial update, merged and re-validated; audited `merit.item.updated` with field names only |
+| `DELETE /admin/api/merit/items/:id` | admin + re-auth | audited `merit.item.deleted` |
+| `GET /admin/api/merit/interest` | admin | requests + switch state + retention days |
+| `DELETE /admin/api/merit/interest/:id` | admin + re-auth | audited `merit.interest.deleted` (id only) |
+
+Wording lint (`lintMerit`, TH / EN / ZH; Thai is checked with spaces removed): guarantee, fix_luck, fear, health,
+lottery, price, purchase, urgency, link, personal (phone / e-mail). Every admin text and every seeded text must pass.
+
+## 4. What is OFF and how to turn it on
+
+| Switch | Default | Turn on (only after counsel answers L42 / L43 and the owner decides) |
+|---|---|---|
+| Worker `MERIT_INTEREST_FORM` | `"off"` | set `"on"` in `backend/wrangler.toml` (top level or `[env.test.vars]`) and deploy |
+| Page `window.LENSIQ_MERIT_INTEREST_FORM` | `false` | set `true` in `lensiq-config.js` (or a deploy config); the page also needs `LENSIQ_API_BASE`, and Turnstile site key for the token |
+| Crisis hide window | 24 h | constant `CRISIS_WINDOW_MS` in `lensiq-merit-core.js` |
+| Interest retention | 90 days | `MERIT_INTEREST_DAYS` (7–365) |
+
+Both switches are needed; either one alone shows nothing. Booking and payment are not built.
+The test deployment (`[env.test]`) does not list `/v1/merit/*` in `PUBLIC_ROUTES`, so there the page uses the bundled
+samples; adding the guidance route to the test deployment is a deploy decision, not made here.
+
+## 5. Tests and numbers (all synthetic; fixed sets locked before the product code)
+
+Lock file: `~/LENSIQ-field/evals/merit/locked.sha256` (one documented re-lock of `tests/e2e/admin-merit.e2e.mjs`: a
+selector picked the wrong `dialog.ad-reauth` element; no assertion changed).
+
+| Test | Set | Result | Target |
+|---|---|---|---|
+| `tests/unit/merit.test.js` (R1–R8) | labels, tradition filter, keys, ชง rule, paid gate, crisis window, seed, UI wording, crisis parity | 22 / 22 | all |
+| `tests/unit/backend-merit.test.js` (B1–B7) | migration + probe, seed parity, public API, admin CRUD + audit + re-auth, validation, interest off / on, retention | 20 / 20 | all |
+| Wording lint, refused | 44 fixed phrases (TH 16, EN 15, ZH 13) | 44 / 44 caught | 100 % |
+| Wording lint, false positives | 23 fixed ordinary phrases (TH 8, EN 8, ZH 7) | 0 / 23 flagged | 0 |
+| Crisis text in the interest form (server) | 5 phrases (TH, EN, ZH, abuse) | 5 / 5 refused, 0 stored | 100 % |
+| Crisis gate (browser) | form crisis text; support card on tarot then zodiac | paid offer and panel withdrawn in both; nothing sent | 100 % |
+| `tests/e2e/merit.e2e.mjs` | panel, filter, paid section, crisis, EN / ZH, 320–390 px | 8 / 8 | all |
+| `tests/e2e/admin-merit.e2e.mjs` | list, create + refusals, hide / show / delete + re-auth, interest card, phones + EN / ZH | 5 / 5 | all |
+
+Measured on 2026-11-12 in this branch; the independent re-measure is for the round reviewer.
+
+## 6. Risks
+
+- Sample content only: the 16 samples are generic and written by us; real places, offerings and ชง customs need a
+  knowledgeable editor and reviewer (design §5, T1) before the panel says anything specific.
+- The lint is a first filter (L44): it cannot judge tone or respectfulness; human review of real content is still needed.
+- Facts from pages that render without `FortuneAI.interpret` (cached results) fall back to the page's discipline only,
+  so element / ชง matching may be less specific there; ชง customs are then not shown (safe side).
+- The crisis state is per browser (`localStorage`); another browser or a private window does not know about it.
+
+## 7. Owner decisions needed
+
+1. When (if ever) to switch the interest form on: after counsel answers L42 / L43 and PDPA §G1 questions.
+2. Whether `privacy.html` gets a merit paragraph now or only when the form is switched on (counsel question G1(c)(3)).
+3. Who writes the real content (Thai editor who knows the traditions) and who reviews it (design §12); until then the
+   samples stay, clearly marked.
+4. Whether the test deployment should serve `/v1/merit/guidance` (add to `PUBLIC_ROUTES`) so admin edits appear on the
+   live test site; today it shows the bundled samples.
