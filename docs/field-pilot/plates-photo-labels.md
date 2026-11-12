@@ -47,6 +47,9 @@ The results carry the source label **"field (owner photos)"** and are always kep
    - `split` ไม่บังคับ (`dev` / `heldout` ถ้าจะแบ่งครึ่งไว้ทดสอบภายหลัง)
    - `sure` ใส่ `n` ถ้าไม่แน่ใจตัวอักษร (ไม่นับในอัตราอ่านถูก)
    - `notes` อะไรก็ได้ (ระยะ แสง ฝน สกปรก กรอบป้ายร้านรถ)
+5. ป้ายเล็กมากที่อ่านไม่ได้ (เช่น รถไกล ๆ ในภาพถนน) ไม่ต้องใส่เป็นป้าย ให้เพิ่มแถว "พื้นที่ไม่นับ": category `ignore`
+   ช่อง plate ว่าง และต้องมีกรอบ `x0,y0,x1,y1` (ชื่อไฟล์เดียวกับแถวหลักของภาพ) ถ้าระบบเสนอผลอ่านในพื้นที่นี้ จะไม่นับว่าถูก
+   และไม่นับว่าอ่านผิดที่ ภาพยังคงเป็นประเภทเดิม (เช่น `none`)
 
 ### 4. รันเครื่องมือ
 
@@ -97,6 +100,10 @@ node tools/plate-field-eval.mjs --out ~/LENSIQ-field/result.json   # เก็�
    the tool judges "found" by the read — within one character of the label — and counts a read that is far off as a
    false auto-read, the cautious choice) · `split` (optional `dev` / `heldout`) · `sure` (`n` = not sure of the letters;
    left out of the exact-read rate) · `notes`.
+5. A tiny plate nobody can read (far vehicles in a street photo) is not labelled as a plate: add an "ignore region" row
+   instead — category `ignore`, empty plate, a box `x0,y0,x1,y1` (required), same file name as the photo's main row. A
+   read the system proposes inside it is neither counted as right nor as a false auto-read; the photo keeps its own
+   category (e.g. `none`).
 
 ### 4. Run the tool
 

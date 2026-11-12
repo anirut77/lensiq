@@ -2,7 +2,7 @@
 
 **ใช้มือถือ โน้ตบุ๊ก หรือกล้องที่มีอยู่ ไม่ต้องซื้อกล้อง LPR ราคาหลายหมื่น ระบบเสนอเลขป้าย รปภ. ยืนยันทุกคัน**
 
-> **อ่านป้ายแบบช่วย รปภ.**: ระบบเสนอเลขป้าย และ รปภ. แตะยืนยันทุกคัน ยังไม่ใช่การอ่านอัตโนมัติเต็มรูปแบบจนกว่าจะมีตัวหาป้ายที่ฝึกด้วยภาพป้ายไทย ผลกับภาพถ่ายจริง 51 ภาพ (ชุดข้อมูลสาธารณะ Wikimedia Commons): อ่านถูกทั้งป้ายโดยไม่ต้องแตะ 32% (7 / 22 · n = 22 · บางภาพอยู่ในชุดที่ใช้ปรับค่า จึงดีเกินจริง) และต้องแตะเลือกกรอบป้าย 78% (25 / 32 · n = 32) (`docs/GATE.md` §3c)
+> **อ่านป้ายแบบช่วย รปภ.**: ระบบเสนอเลขป้าย และ รปภ. แตะยืนยันทุกคัน ยังไม่ใช่การอ่านอัตโนมัติเต็มรูปแบบจนกว่าจะมีตัวหาป้ายที่ฝึกด้วยภาพป้ายไทย ผลกับภาพถ่ายจริง 51 ภาพ (ชุดข้อมูลสาธารณะ Wikimedia Commons ป้ายกำกับ v3 ที่เจ้าของยืนยัน 2026-11-12): อ่านถูกทั้งป้ายโดยไม่ต้องแตะ 32% (7 / 22 · n = 22 · บางภาพอยู่ในชุดที่ใช้ปรับค่า จึงดีเกินจริง) และต้องแตะเลือกกรอบป้าย 78% (25 / 32 · n = 32) (`docs/GATE.md` §3c)
 
 > **ราคาที่อนุมัติแล้ว (ยังไม่เปิดขาย)** ราคาในเอกสารนี้มาจากรายการราคาที่เจ้าของอนุมัติ 2026-11-09 (`docs/PRICING-RESEARCH.md` §3.2) ยังไม่มีการเก็บเงิน
 
@@ -29,10 +29,10 @@
 | หาป้ายเจอ (กรอบแรก) ชุดเดโมที่ไม่ได้ใช้ปรับแต่ง | 97.1% (136 / 140) | n = 140 ฉาก (20 ต่อประเภท) | ข้อมูลจำลอง (ชุดเดโม seed 7) | `docs/GATE.md` §3b |
 | อ่านถูกทั้งป้ายจากภาพเดียว | 58% (81 / 140) | n = 140 ฉาก | ข้อมูลจำลอง (ชุดเดโม seed 7) | `docs/GATE.md` §3b |
 | ฉากที่ไม่มีป้ายถูกอ่านอัตโนมัติ | 0 / 20 | n = 20 ฉาก | ข้อมูลจำลอง (ชุดเดโม seed 7) | `docs/GATE.md` §3c |
-| ภาพถ่ายจริง กรอบแรกอยู่บนป้าย | 41% (13 / 32) | n = 32 ภาพที่มีป้าย | ชุดข้อมูลสาธารณะ (Wikimedia Commons) | `docs/GATE.md` §3c |
-| ภาพถ่ายจริง อ่านอัตโนมัติถูกทั้งป้าย | 32% (7 / 22); นับภาพที่ไม่แน่ใจอีก 1 ภาพ: 30% (7 / 23) | n = 22 ภาพที่อ่านป้ายได้แน่นอน (12 ภาพใช้ปรับการตรวจว่าเป็นป้าย จึงมองในแง่ดี) | ชุดข้อมูลสาธารณะ (Wikimedia Commons) | `docs/GATE.md` §3c |
-| ภาพถ่ายจริง ต้องแตะกรอบเอง | 78% (25 / 32) | n = 32 ภาพที่มีป้าย | ชุดข้อมูลสาธารณะ (Wikimedia Commons) | `docs/GATE.md` §3c |
-| ภาพถ่ายจริงที่ไม่มีป้ายแต่ถูกอ่านอัตโนมัติ | 0 / 19 (ก่อนมีการตรวจว่าเป็นป้าย 3 / 19; ช่วง 95%: 0–17%; ภาพที่ไม่ได้ใช้ปรับ 0 / 9: 0–30%) | n = 19 ภาพ | ชุดข้อมูลสาธารณะ (Wikimedia Commons) | `docs/GATE.md` §3c |
+| ภาพถ่ายจริง กรอบแรกอยู่บนป้าย | 44% (14 / 32) | n = 32 ภาพที่มีป้าย | ชุดข้อมูลสาธารณะ (Wikimedia Commons, ป้ายกำกับ v3 ที่เจ้าของยืนยัน 2026-11-12) | `docs/GATE.md` §3c |
+| ภาพถ่ายจริง อ่านอัตโนมัติถูกทั้งป้าย | 32% (7 / 22); นับภาพที่ไม่แน่ใจตัวอักษร 4 ภาพเป็นอ่านไม่ถูก: 27% (7 / 26) | n = 22 ภาพที่อ่านป้ายได้แน่นอน (12 ภาพใช้ปรับการตรวจว่าเป็นป้าย จึงมองในแง่ดี) | ชุดข้อมูลสาธารณะ (Wikimedia Commons) | `docs/GATE.md` §3c |
+| ภาพถ่ายจริง ต้องแตะกรอบเอง | 78% (25 / 32) | n = 32 ภาพที่มีป้าย | ชุดข้อมูลสาธารณะ (Wikimedia Commons, ป้ายกำกับ v3 ที่เจ้าของยืนยัน 2026-11-12) | `docs/GATE.md` §3c |
+| ภาพถ่ายจริงที่ไม่มีป้ายแต่ถูกอ่านอัตโนมัติ | 0 / 19 (ก่อนมีการตรวจว่าเป็นป้าย 3 / 19; ช่วง 95%: 0–17%; ภาพที่ไม่ได้ใช้ปรับ 0 / 8: 0–32%) | n = 19 ภาพ | ชุดข้อมูลสาธารณะ (Wikimedia Commons, ป้ายกำกับ v3 ที่เจ้าของยืนยัน 2026-11-12) | `docs/GATE.md` §3c |
 | ภาพมือถือของเจ้าของ (~100 ภาพ) | ยังไม่ได้วัด | — | หน้างานจริง (ภาพของเจ้าของ): ยังไม่ได้วัด | `docs/field-pilot/plates-photo-labels.md` |
 | ลานจอดหรือหมู่บ้านจริง | ยังไม่ได้วัด | — | หน้างานจริง: ยังไม่ได้วัด (ยังไม่มีโครงการนำร่อง) | `docs/pilot/PILOT-GATE.md` |
 
@@ -72,7 +72,7 @@ It uses a phone, a laptop or an existing camera, with no LPR camera to buy. The 
 guard confirms every vehicle. **Approved price list (not on sale yet)**: prices approved by the owner 2026-11-09
 (`docs/PRICING-RESEARCH.md` §3.2); nothing is charged yet.
 
-> **Assisted reading**: the system suggests the plate and the guard taps to confirm every vehicle. It is not fully automatic until a plate finder trained on Thai plates exists. On 51 real photos (public dataset, Wikimedia Commons): exact read with no tap 32% (7 / 22 · n = 22 · some photos are in the tuning set, so this is optimistic); a tap to pick the plate was needed in 78% (25 / 32 · n = 32) (`docs/GATE.md` §3c)
+> **Assisted reading**: the system suggests the plate and the guard taps to confirm every vehicle. It is not fully automatic until a plate finder trained on Thai plates exists. On 51 real photos (public dataset, Wikimedia Commons, labels v3 confirmed by the owner 2026-11-12): exact read with no tap 32% (7 / 22 · n = 22 · some photos are in the tuning set, so this is optimistic); a tap to pick the plate was needed in 78% (25 / 32 · n = 32) (`docs/GATE.md` §3c)
 
 **What you get:**
 - **Village / condo** (`village.html`): resident cars, visitor passes, a watch list (each entry needs a reason),
@@ -91,10 +91,10 @@ guard confirms every vehicle. **Approved price list (not on sale yet)**: prices 
 | Plate found (top box), demo set not used for tuning | 97.1% (136 / 140) | n = 140 scenes | synthetic (demo set, seed 7) | `docs/GATE.md` §3b |
 | Exact read from one frame | 58% (81 / 140) | n = 140 scenes | synthetic | `docs/GATE.md` §3b |
 | Plate-less scenes auto-read | 0 / 20 | n = 20 scenes | synthetic | `docs/GATE.md` §3c |
-| Real photos, top box on the plate | 41% (13 / 32) | n = 32 photos with a plate | public dataset (Wikimedia Commons) | `docs/GATE.md` §3c |
-| Real photos, exact automatic read | 32% (7 / 22); 30% (7 / 23) with one "unsure" photo counted | n = 22 (12 of them used for tuning, so optimistic) | public dataset | `docs/GATE.md` §3c |
-| Real photos, taps needed | 78% (25 / 32) | n = 32 | public dataset | `docs/GATE.md` §3c |
-| Real photos without a plate read automatically | 0 / 19 (3 / 19 before the check; 95% interval 0–17%; held-out half 0 / 9, 0–30%) | n = 19 | public dataset | `docs/GATE.md` §3c |
+| Real photos, top box on the plate | 44% (14 / 32) | n = 32 photos with a plate | public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12 | `docs/GATE.md` §3c |
+| Real photos, exact automatic read | 32% (7 / 22); 27% (7 / 26) counting the 4 "unsure letters" photos as misses | n = 22 (12 of them used for tuning, so optimistic) | public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12 | `docs/GATE.md` §3c |
+| Real photos, taps needed | 78% (25 / 32) | n = 32 | public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12 | `docs/GATE.md` §3c |
+| Real photos without a plate read automatically | 0 / 19 (3 / 19 before the check; 95% interval 0–17%; held-out half 0 / 8, 0–32%) | n = 19 | public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12 | `docs/GATE.md` §3c |
 | Owner's ~100 phone photos | not measured | — | field (owner photos): not measured | `docs/field-pilot/plates-photo-labels.md` |
 | Real car park or village | not measured | — | field: not measured (no pilot yet) | `docs/pilot/PILOT-GATE.md` |
 

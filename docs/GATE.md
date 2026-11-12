@@ -260,7 +260,7 @@ is in the repo or the product** (checked: `git ls-files` has no YOLOv9 / open-im
 detector is LPD-YuNet, MIT). Because of the GPL lineage it must not be shipped; plate text typed by hand; 6 plates are marked "unsure" (4 with unclear letters such as ณ / ฌ, 2 unreadable) and
 left out of exact reads, as are numbers-only and legacy plates (the reader does not support them).
 Split stratified by category into **dev (28 photos)**, used to tune the guard, and **held-out (23)**, run after the guard
-was frozen. Manifest, labels and photos stay in the scratch folder.
+was frozen (labels v3, 2026-11-12: w30 moved to dev because it is the same scene as w29 → dev 29 / held-out 22; see below). Manifest, labels and photos stay in the scratch folder.
 
 Two honest notes: (1) after the first dev run two labels were changed to "unsure", boxes unchanged: w08 (dev) and
 **w07, which is a held-out photo** (both: first letter ณ or ฌ). This was before any held-out run, so no held-out result
@@ -271,7 +271,7 @@ refused it, layout, so the shipped wrong reads stay 2; its tap read "กข4052"
 written for the e2e test ("ห้อง 1234"), not by a held-out result; both halves were re-run and the held-out numbers did
 not change.
 
-Measured 2026-11-09, macOS, Chrome headless, WASM (`node tools/plate-field-eval.mjs --dir <photos> --split dev|heldout`).
+Measured 2026-11-09 on **labels v1** (history; the current figures are the labels v3 table below), macOS, Chrome headless, WASM (`node tools/plate-field-eval.mjs --dir <photos> --split dev|heldout`).
 Arrows: round 15 (top box, no guard) → guard on the top box only → guard + first plate-like box (shipped).
 
 | Set | Plate is the top box | Exact automatic read | False auto-reads, photos WITHOUT a plate | False auto-reads, photos with a plate | Wrong text on a plate | Taps needed (shipped) |
@@ -300,7 +300,42 @@ photos were confirmed to show no readable plate. No plate text changed. Re-run w
 are unchanged**; "plate is the top box" goes 13 → **14 / 32 (44 %)** (dev 9 → 10 / 18, w26); tap read stays 4 of 15
 (dev 2 → 3, held-out 2 → 1). The v2 labels (`plates-photo-labels.v2.csv`, with a `box_source` column) and the per-photo
 report `BOX-RECHECK.md` stay with the photos in `~/LENSIQ-field/plates-public/` (outside the repo); the owner is asked to confirm the
-convention and 10 doubtful cases listed there. Use v2 for the YOLOX-nano comparison.
+convention and 10 doubtful cases listed there. Use v2 for the YOLOX-nano comparison (superseded by v3 below).
+
+**Labels v3 — confirmed by the owner (2026-11-12).** Source of every number in this block: **public dataset (Wikimedia
+Commons), labels v3 confirmed by the owner 2026-11-12**. New file `plates-photo-labels.v3.csv` next to the photos (v1 and
+v2 kept; built by `recheck/make_v3.py`). The owner confirmed the box convention (the plate itself, not the holder) and the
+proposed resolutions: img2 and w23 keep their v2 boxes; w24 keeps the visible-part box, text "01524", numbers-only, not
+in exact reads (now also `sure = n`); the w12 second box stays removed (decal); the small img1 motorcycle plate box stays
+added; w09 gets no extra box (trim recess); w20 unchanged. The letters of w07, w08, w23 (ณ / ฌ) and w26 (ธ) stay marked
+unsure and **out of the exact-read score**. Two changes:
+1. **Ignore regions.** The tiny unreadable plates in the plate-less photos w28 (3 far vehicles, plates 2–3 px), w34 (4
+   plates, 7–20 px) and w45 (1 truck plate, ~14 px) are labelled as *ignore* regions (rows with category `ignore` and a
+   box), not as "no plate". `tools/plate-field-eval.mjs` scores them this way: an auto-read proposal whose box falls in an
+   ignore region (IoU ≥ 0.3 with it, or at least half of the proposal inside it) is **neither rewarded nor counted**: not a
+   false auto-read, not a wrong read, never an exact read or a detection. A plate-less photo whose proposal is ignored
+   leaves that mode's plate-less denominator (neither clean nor false); the report prints "+k ignored". The photos stay
+   plate-less photos. Ignore regions cannot raise detection or exact-read numbers. Tests:
+   `tests/unit/gate-field-eval.test.js` ("ignore regions").
+2. **Split leak fixed.** w29 (dev) and w30 (held-out) are the same kilometre-post scene; **w30 moved from held-out to
+   dev**. Split now dev 29 photos (18 with a plate / 11 without), held-out 22 (14 / 8). Also recorded in `TESTSET.md`.
+
+Re-run with the same command (`--labels plates-photo-labels.v3.csv`, plus a v2 control run on the same build; logs in
+`~/LENSIQ-field/plates-public/recheck/runs/v3-20261112/`), shipped path unless arrows:
+
+| Set | Labels | Plate is the top box | Exact automatic read | False auto-reads, plate-less photos | False auto-reads, plate photos | Wrong text | Taps needed | Tap read exact |
+|---|---|---|---|---|---|---|---|---|
+| dev | v2 | 10 / 18 | 2 → 2 → 4 of 12 | 2 → 0 → 0 of 10 | 0 → 0 → 0 | 1 → 1 → 1 | 14 / 18 | 3 / 8 |
+| dev | v3 | 10 / 18 | 2 → 2 → 4 of 12 | 2 → 0 → 0 of **11** | 0 → 0 → 0 | 1 → 1 → 1 | 14 / 18 | 3 / 8 |
+| held-out | v2 | 4 / 14 | 1 → 1 → 3 of 10 | 1 → 0 → 0 of 9 | 0 → 0 → 0 | 1 → 1 → 2 | 11 / 14 | 1 / 7 |
+| held-out | v3 | 4 / 14 | 1 → 1 → 3 of 10 | 1 → 0 → 0 of **8** | 0 → 0 → 0 | 1 → 1 → 2 | 11 / 14 | 1 / 7 |
+| all 51 | v3 | **14 / 32 (44 %)** | 3 → 3 → **7 of 22 (32 %)** | 3 → 0 → **0 of 19** | 0 → 0 → 0 | 2 → 2 → 3 | **25 / 32 (78 %)** | 4 / 15 |
+
+The v2 control run reproduces the 2026-11-10 v2 numbers exactly. v2 → v3 changes only the plate-less split (w30); no
+proposal fell in an ignore region (0 in every mode); `sure = n` on w24 / w26 moves nothing (both were already outside
+the exact-read score). 95 % intervals: 0 / 19 → 0–17 %, held-out 0 / 8 → 0–32 %, 14 / 32 → 28–61 %. Counting the 4
+photos with unsure letters (img1, w07, w08, w23) as misses: 7 / 26 (27 %). **The published figures now come from v3**
+(pages, `ACCURACY.md` §15, `docs/ACCURACY-CLAIMS.md` §5): top box 13 / 32 (v1) → 14 / 32.
 
 ### Synthetic demo set with the guard (same scenes and metrics as section 3b)
 
@@ -319,7 +354,7 @@ WASM, one thread; not a phone). Extra reads happen only when the top box's read 
 - A plate-shaped sign whose text is exactly a plate pattern on one line (e.g. a board reading "กม. 794" on one line,
   "กม794") passes the pattern check; the drawn two-line kilometre post in the e2e test is refused (split key), a
   one-line one would not be. The guard confirms every read anyway.
-- Real-photo detection stays low (41 % top box). A detector trained on Thai plates with a clean licence remains the fix
+- Real-photo detection stays low (44 % top box, 14 / 32, labels v3). A detector trained on Thai plates with a clean licence remains the fix
   (`docs/PLATE-DATASETS.md`); the guard only makes misses safe (no false auto-read) and uses the next candidates.
 
 ### Owner field set (`tools/plate-field-eval.mjs`)

@@ -362,6 +362,10 @@ input. Rows without ground truth are skipped and counted.
   every non-product capture that still offers AI and every real pack that is refused. **Field: not measured.**
 - **2026-11-10 (round 17)**: face blur before upload built (no upload path until P7); its numbers are public-dataset
   only. A field check of the blurred preview on the owner's phone (photos with a hand or a face in frame) is still to do.
+- **2026-11-12 (Gate, labels v3)**: the owner confirmed the public-photo plate labels (v3). Gate public-photo figures
+  now: top box on the plate 14 / 32, exact automatic read 7 / 22, taps needed 25 / 32, photos without a plate auto-read
+  0 / 19 (held-out 0 / 8; w30 moved to dev, same scene as w29). Tiny unreadable plates are "ignore" regions in the scorer.
+  Source: public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12 — **field: not measured**.
 - **2026-11-10 (round 17)**: Product Check P2 tab (`medicine.html` → "ตรวจสินค้า (ทุกประเทศ)") ready for the owner's
   first phone test (checklist given in the round report). Numbers so far: synthetic labels and the public photo set
   only (`docs/product-check/P2-RESULTS.md`); **field and phone: not measured**. Photo protocol:

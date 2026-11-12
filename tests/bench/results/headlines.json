@@ -50,6 +50,11 @@
    "status": "not reproducible here: datasets absent",
    "note": "not recorded: the round 3–6 runs that produced these figures predate fingerprinting; re-run the bench and `results.mjs record` to fill it"
   },
+  "plates-public": {
+   "sha256": null,
+   "status": "not reproducible here: datasets absent",
+   "note": "not recorded: the round 3–6 runs that produced these figures predate fingerprinting; re-run the bench and `results.mjs record` to fill it"
+  },
   "utk": {
    "sha256": null,
    "status": "not reproducible here: datasets absent",
@@ -479,6 +484,150 @@
    "bench": "advert",
    "fingerprinted": false,
    "status": "not reproducible here: datasets absent or not fingerprinted (adverts-fresh-3)"
+  },
+  "gateTopPct": {
+   "value": "44",
+   "raw": 43.75,
+   "what": "Gate, public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12: plate is the top box, %",
+   "evidence": "| plate is the top box | 10 / 18 | 4 / 14 | 44% (14 / 32), n = 32 photos with a plate |",
+   "bench": "plate-photos",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (plates-public)"
+  },
+  "gateTopX": {
+   "value": "14",
+   "raw": null,
+   "what": "Gate, public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12: plate is the top box, photos",
+   "evidence": "44% (14 / 32), n = 32 photos with a plate",
+   "bench": "plate-photos",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (plates-public)"
+  },
+  "gateTopN": {
+   "value": "32",
+   "raw": null,
+   "what": "Gate, public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12: photos with a plate",
+   "evidence": "44% (14 / 32), n = 32 photos with a plate",
+   "bench": "plate-photos",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (plates-public)"
+  },
+  "gateExactPct": {
+   "value": "32",
+   "raw": 31.818,
+   "what": "Gate, public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12: exact automatic read, %",
+   "evidence": "| whole plate read right automatically | 4 / 12 | 3 / 10 | 32% (7 / 22), n = 22 photos with a sure, standard label |",
+   "bench": "plate-photos",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (plates-public)"
+  },
+  "gateExactX": {
+   "value": "7",
+   "raw": null,
+   "what": "Gate, public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12: exact automatic reads",
+   "evidence": "32% (7 / 22), n = 22 photos with a sure, standard label",
+   "bench": "plate-photos",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (plates-public)"
+  },
+  "gateExactN": {
+   "value": "22",
+   "raw": null,
+   "what": "Gate, public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12: photos scored for exact read",
+   "evidence": "32% (7 / 22), n = 22 photos with a sure, standard label",
+   "bench": "plate-photos",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (plates-public)"
+  },
+  "gateExactDev": {
+   "value": "12",
+   "raw": null,
+   "what": "Gate, public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12: exact-read photos in the dev (tuning) half",
+   "evidence": "12 of the 22 exact-read photos are in the dev half",
+   "bench": "plate-photos",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (plates-public)"
+  },
+  "gateExactUnsurePct": {
+   "value": "27",
+   "raw": 26.923,
+   "what": "Gate, public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12: exact read counting unsure-letter photos as misses",
+   "evidence": "counting the 4 photos with unsure letters as misses: 27% (7 / 26)",
+   "bench": "plate-photos",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (plates-public)"
+  },
+  "gateExactUnsureN": {
+   "value": "26",
+   "raw": null,
+   "what": "Gate, public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12: n with the unsure-letter photos",
+   "evidence": "counting the 4 photos with unsure letters as misses: 27% (7 / 26)",
+   "bench": "plate-photos",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (plates-public)"
+  },
+  "gateUnsure": {
+   "value": "4",
+   "raw": null,
+   "what": "Gate, public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12: photos with unsure letters",
+   "evidence": "counting the 4 photos with unsure letters as misses: 27% (7 / 26)",
+   "bench": "plate-photos",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (plates-public)"
+  },
+  "gateNoneN": {
+   "value": "19",
+   "raw": null,
+   "what": "Gate, public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12: photos without a plate",
+   "evidence": "| 0 / 19 (3 / 19), 95% interval 0–17%; held-out 0–32% |",
+   "bench": "plate-photos",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (plates-public)"
+  },
+  "gateNoneBefore": {
+   "value": "3",
+   "raw": null,
+   "what": "Gate, public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12: plate-less photos auto-read before the plate check",
+   "evidence": "| 0 / 19 (3 / 19), 95% interval 0–17%; held-out 0–32% |",
+   "bench": "plate-photos",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (plates-public)"
+  },
+  "gateNoneHi": {
+   "value": "17",
+   "raw": 16.818,
+   "what": "Gate, public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12: upper 95% bound for 0 / 19, %",
+   "evidence": "| 0 / 19 (3 / 19), 95% interval 0–17%; held-out 0–32% |",
+   "bench": "plate-photos",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (plates-public)"
+  },
+  "gateNoneDev": {
+   "value": "11",
+   "raw": null,
+   "what": "Gate, public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12: plate-less photos in the dev half",
+   "evidence": "11 of the 19 plate-less photos",
+   "bench": "plate-photos",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (plates-public)"
+  },
+  "gateNoneHoN": {
+   "value": "8",
+   "raw": null,
+   "what": "Gate, public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12: plate-less held-out photos",
+   "evidence": "| 0 / 11 (2 / 11) | 0 / 8 (1 / 8) |",
+   "bench": "plate-photos",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (plates-public)"
+  },
+  "gateNoneHoBefore": {
+   "value": "1",
+   "raw": null,
+   "what": "Gate, public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12: plate-less held-out photos auto-read before the check",
+   "evidence": "| 0 / 11 (2 / 11) | 0 / 8 (1 / 8) |",
+   "bench": "plate-photos",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (plates-public)"
   }
  }
 }

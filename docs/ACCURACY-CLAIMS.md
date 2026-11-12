@@ -200,9 +200,16 @@ and the Security category page quote these rows:
 
 | claim (round 16) | value | n | source |
 |---|---|---|---|
-| plate is the top box on real photos | 41% (13 / 32) | n = 32 photos with a plate | public dataset (Wikimedia Commons) |
-| whole plate read right automatically on real photos | 32% (7 / 22); 30% (7 / 23) counting one unsure label | n = 22 photos (12 of them dev / tuning, optimistic) | public dataset (Wikimedia Commons) |
-| photos without a plate read automatically | 0 / 19 (before the check 3 / 19); held-out 0 / 9 (before 1 / 9); 95% interval 0–17% | n = 19 photos (10 of them dev / tuning) | public dataset (Wikimedia Commons) |
+| plate is the top box on real photos | 44% (14 / 32) | n = 32 photos with a plate | public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12 |
+| whole plate read right automatically on real photos | 32% (7 / 22); 27% (7 / 26) counting the 4 unsure-letter photos as misses | n = 22 photos (12 of them dev / tuning, optimistic) | public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12 |
+| taps needed on real photos | 78% (25 / 32) | n = 32 photos with a plate | public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12 |
+| photos without a plate read automatically | 0 / 19 (before the check 3 / 19); held-out 0 / 8 (before 1 / 8); 95% interval 0–17% | n = 19 photos (11 of them dev / tuning) | public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12 |
+
+**Labels v3 (owner decision 2026-11-12).** Box convention "the plate itself, not its holder" and the box re-check
+confirmed; tiny unreadable plates in w28 / w34 / w45 are ignore regions (a detection there is neither rewarded nor
+counted as a false read); w30 moved held-out → dev (same scene as w29). Re-run with the same command: the top-box figure
+is 14 / 32 (was published as 13 / 32 on labels v1; the change comes from the 2026-11-10 box re-check, w26); every other
+figure is unchanged; the held-out plate-less half is now 0 / 8 (was 0 / 9). Evidence: ACCURACY.md §15, docs/GATE.md §3c.
 | owner phone photos; real gate / car park | not measured | — | field (owner photos and pilot pending) |
 
 ## 6. For the other round-16 stories

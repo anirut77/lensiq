@@ -25,10 +25,18 @@
 //   x0..y1   optional plate box in pixels of the photo as a viewer shows it; without a box, detection is judged by the
 //            read (the box is "on the plate" when the read is within one character of the label)
 //   sure     n = the person labelling could not read the plate for certain (left out of the exact-read count)
+//   ignore region: a row with category "ignore", an empty plate and a box (required) marks a region of that photo — a tiny,
+//            unreadable plate — where a detection is neither rewarded nor counted as false. The photo keeps its own
+//            category from its other row(s) (e.g. "none"). See "Ignore regions" below and docs/GATE.md.
 // Metrics (docs/GATE.md): det = the box the auto-read uses is on a labelled plate (IoU >= 0.5); exact = auto-read text ==
 // label (standard plates only); false auto-read = an auto-read proposal on something that is not a plate (IoU < 0.3 with
 // every labelled plate / every proposal on a "none" photo); wrong auto-read = on the plate, wrong text; taps needed = a
 // plate photo without an exact auto-read (the guard taps or types); tap read = the read on the labelled box.
+// Ignore regions (labels v3, 2026-11-12): an auto-read proposal whose box falls in an ignore region (IoU >= 0.3 with it, or
+// at least half of the proposal's area inside it) is "ignored" in that mode: not a false auto-read, not a wrong read, never
+// an exact read, never a detection. A plate-less photo whose proposal is ignored leaves that mode's plate-less denominator
+// (it is neither a clean photo nor a false auto-read); the report prints "+k ignored". Ignore regions never turn a miss
+// into a hit, so they cannot raise detection or exact-read numbers.
 // Photos Chrome cannot decode (iPhone HEIC / HEIF, RAW, TIFF, a broken file) never stop the run: each is listed as "could not
 // decode" with the reason (HEIC: convert to JPEG first) and left out of every number. The labelling sheet holds plate numbers
 // (personal data): inside the repo it is refused unless under field-data/ (or it is the unchanged template).
@@ -129,7 +137,7 @@ export function parseCsv(text) {
  * the template's example rows (file starting with "EXAMPLE") are skipped.
  */
 export function parseLabels(text) {
-  const rows = parseCsv(text), errors = [], photos = new Map();
+  const rows = parseCsv(text), errors = [], photos = new Map(), ignores = [];
   if (!rows.length) return { photos, errors: ["the labelling sheet is empty"] };
   const head = rows[0].map(h => h.trim().toLowerCase());
   const miss = ["file", "category", "plate"].filter(h => !head.includes(h));
@@ -140,6 +148,14 @@ export function parseLabels(text) {
     const line = i + 2, file = get("file");
     if (!file || file.startsWith("#") || /^EXAMPLE/i.test(file)) return;
     const cat = get("category").toLowerCase();
+    if (cat === "ignore") { // ignore region: box required, no plate text; attached to the photo after every row is read
+      const v = ["x0", "y0", "x1", "y1"].map(k => get(k)), b = v.map(Number);
+      if (get("plate")) { errors.push(`line ${line}: an ignore region has no plate text`); return; }
+      if (v.some(x => x === "") || b.some(x => !Number.isFinite(x)) || !(b[2] > b[0] && b[3] > b[1])) {
+        errors.push(`line ${line}: an ignore region needs a box x0,y0,x1,y1 with x1 > x0 and y1 > y0`); return;
+      }
+      ignores.push({ line, file, box: b }); return;
+    }
     if (!CATS.includes(cat)) { errors.push(`line ${line}: category "${cat}" (use ${CATS.join(" / ")})`); return; }
     const plate = get("plate"), split = get("split").toLowerCase() || "all", sureCell = get("sure").toLowerCase();
     const nums = ["x0", "y0", "x1", "y1"].map(k => get(k));
@@ -157,6 +173,11 @@ export function parseLabels(text) {
     ph.plates.push({ key: pr && pr.ok ? pr.key : P.normalize(plate === "?" ? "" : plate), text: plate, province: get("province"), box, cat, moto,
       standard: !!(pr && pr.ok && !pr.legacy), sure: sureCell !== "n" && sureCell !== "no" && plate !== "?" && plate !== "" });
   });
+  for (const g of ignores) {
+    const ph = photos.get(g.file);
+    if (!ph) { errors.push(`line ${g.line}: ignore region for "${g.file}", which has no plate / none row`); continue; }
+    (ph.ignore || (ph.ignore = [])).push(g.box);
+  }
   return { photos, errors };
 }
 
@@ -180,6 +201,12 @@ export function listConvert(dir) {
 }
 
 const toNorm = (b, W, H) => ({ x: b[0] / W, y: b[1] / H, w: (b[2] - b[0]) / W, h: (b[3] - b[1]) / H });
+/** a proposal box (normalised) falls in an ignore region r: IoU >= 0.3, or at least half of the box's area inside r */
+export function inRegion(box, r) {
+  if (!box || !r || !(box.w > 0 && box.h > 0)) return false;
+  const ix = Math.max(0, Math.min(box.x + box.w, r.x + r.w) - Math.max(box.x, r.x)), iy = Math.max(0, Math.min(box.y + box.h, r.y + r.h) - Math.max(box.y, r.y));
+  return P.iou(box, r) >= 0.3 || (ix * iy) / (box.w * box.h) >= 0.5;
+}
 
 export const MODES = ["before", "guard1", "after"];
 export const MODE_LABEL = { before: "round 15: top box, no guard", guard1: "guard, top box only", after: "guard + first plate-like box (shipped)" };
@@ -193,6 +220,7 @@ export const MODE_LABEL = { before: "round 15: top box, no guard", guard1: "guar
 export function scorePhoto(ph, res) {
   const [W, H] = res.size, A = res.auto || {};
   const truths = ph.plates.map(p => (p.box ? toNorm(p.box, W, H) : null));
+  const ignores = (ph.ignore || []).map(b => toNorm(b, W, H)), ignored = box => !!box && ignores.some(r => inRegion(box, r));
   const near = (k, p) => !!k && !!p.key && P.plateDist(k, p.key) <= 1;
   const target = ph.plates.find(p => p.standard && p.sure);
   const exactKey = k => !!k && ph.plates.some(p => p.standard && p.sure && P.normalize(k) === P.normalize(p.key));
@@ -207,6 +235,7 @@ export function scorePhoto(ph, res) {
   const top = (A.tried || []).find(t => t.i === 0) || null, trig = !!A.trigger;
   const pick = { before: top && top.read.key ? top : null, guard1: top && top.read.key && top.guard && top.guard.ok ? top : null, after: A.picked || null };
   const topBox = top ? top.read.box : (A.cands || [])[0] || null, d = onPlate(topBox, top && top.read.key);
+  if (d.on >= 0 && d.by === "read" && ignored(topBox)) { d.on = -1; d.by = "none"; } // never a hit inside an ignore region
   const f = { file: ph.file, cat: ph.cat, plates: ph.plates.length, hasBox: truths.some(Boolean), scorable: !!target,
     det: ph.cat !== "none" ? d.on >= 0 : null, detBy: d.by, trigger: trig, read: top ? top.read.key : "", guardReasons: top && top.guard ? top.guard.reasons : [],
     picked: A.picked ? A.picked.read.key : "", pickedIdx: A.picked ? A.picked.i : -1, tapRead: null, tapExact: null };
@@ -215,11 +244,13 @@ export function scorePhoto(ph, res) {
     const o = x ? onPlate(x.read.box, key) : null;
     // off the plate: every proposal on a "none" photo; else not on a labelled plate and not overlapping one (without
     // labelled boxes: a read more than one character away from every label — pessimistic, it may be a misread)
-    const off = !!x && (ph.cat === "none" || (o.on < 0 && !o.overlaps && (truths.some(Boolean) || ph.plates.every(p => !near(key, p)))));
+    // a proposal in an ignore region (and not on a labelled plate) is neither rewarded nor counted as false
+    const ign = !!x && (ph.cat === "none" || o.on < 0) && ignored(x.read.box);
+    const off = !!x && !ign && (ph.cat === "none" || (o.on < 0 && !o.overlaps && (truths.some(Boolean) || ph.plates.every(p => !near(key, p)))));
     // wrong = on the plate with the wrong text; only judged against a sure, standard label
-    f[m] = { proposal: !!x, false: off, wrong: !!target && !!x && !off && !exactKey(key), exact: !!target && !!x && exactKey(key) };
+    f[m] = { proposal: !!x, ignored: ign, false: off, wrong: !!target && !!x && !ign && !off && !exactKey(key), exact: !!target && !!x && !ign && exactKey(key) };
   }
-  f.detUsed = ph.cat !== "none" ? !!(f.after.proposal && !f.after.false) : null;
+  f.detUsed = ph.cat !== "none" ? !!(f.after.proposal && !f.after.false && !f.after.ignored) : null;
   f.tapNeeded = ph.cat !== "none" ? !f.after.exact : null;
   if (f.tapNeeded && target && res.taps) {
     const t = res.taps[ph.plates.indexOf(target)];
@@ -241,7 +272,7 @@ export function summarize(flags) {
       det: pl.length ? W95(pl.filter(f => f.det).length, pl.length) : null, detByRead: pl.filter(f => f.detBy === "read").length,
       tapsNeeded: pl.length ? W95(tn.length, pl.length) : null, tapFixed: tr.length ? `${tr.filter(f => f.tapExact).length}/${tr.length}` : "—" };
     for (const m of MODES) s[m] = { exact: sc.length ? W95(sc.filter(f => f[m].exact).length, sc.length) : null, false: F.filter(f => f[m].false).length,
-      wrong: F.filter(f => f[m].wrong).length, proposals: F.filter(f => f[m].proposal).length };
+      wrong: F.filter(f => f[m].wrong).length, proposals: F.filter(f => f[m].proposal).length, ignored: F.filter(f => f[m].ignored).length };
     out[k] = s;
   }
   return out;
@@ -272,7 +303,8 @@ export function formatReport(sum, o = {}) {
   const rows = order.map(c => {
     const s = sum[c], none = c === "none";
     return [c, s.photos, none ? "—" : pct(s.det) + (s.detByRead ? ` (${s.detByRead} by read)` : ""), none ? "—" : arrow(s, "exact", pct),
-      arrow(s, "false", String), none ? "—" : arrow(s, "wrong", String), none ? "—" : pct(s.tapsNeeded), none ? "—" : s.tapFixed, sy(c)];
+      MODES.map(m => String(s[m].false) + (s[m].ignored ? ` (+${s[m].ignored} ignored)` : "")).join(" → "),
+      none ? "—" : arrow(s, "wrong", String), none ? "—" : pct(s.tapsNeeded), none ? "—" : s.tapFixed, sy(c)];
   });
   return [`Source: ${src}. Columns with arrows: ${MODES.map(m => MODE_LABEL[m]).join(" → ")}.`,
     "Synthetic column: LENSIQ demo set (synthetic, separate), top box, without → with the guard.",

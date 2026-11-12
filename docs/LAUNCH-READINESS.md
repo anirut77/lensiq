@@ -134,10 +134,10 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 | **Pages** | `gate.html` (landing), `parking.html` (car park), `village.html` (village / condo), `gate-notice.html` (printable PDPA sign + privacy-notice template) | `docs/GATE.md` header |
 | **Works today** | Plate finder (classical) + LPD-YuNet proposals; PP-OCRv5 Thai recogniser; 5-frame vote; plate pattern check; 77-province pick-list; plate-likeness check before any auto-read; **the guard confirms or corrects every read**; hash-chained correction audit. Car park: entry / exit pairing, fee rules, shop stamps, static PromptPay QR, receipts, shift close. Village: residents, visitor passes, watch list with a recorded reason, optional relay through a same-origin bridge. On-site accuracy check (day / night, Wilson 95 %); owner photo tool. Crops off by default, logs 90 days, receipts 5 years | `docs/GATE.md` §1–§5 |
 | **Measured: synthetic** | Plate found (top box) 97.1 % (136 / 140); exact read from one frame 58 % (81 / 140); plate-less scenes auto-read 0 / 20 · n = 140 / 20 scenes (demo set, seed 7) · synthetic | `docs/ACCURACY-CLAIMS.md` §5; `docs/ONE-PAGER-GATE.md` |
-| **Measured: real photos, top box** | 41 % (13 / 32) · n = 32 photos with a plate · public dataset (Wikimedia Commons). ⚠ sources disagree: after the 2026-11-10 box re-check `docs/GATE.md:300` gives 14 / 32 (44 %) | `docs/ACCURACY-CLAIMS.md` §5 round 16; `docs/GATE.md` §3c |
+| **Measured: real photos, top box** | 44 % (14 / 32) · n = 32 photos with a plate · public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12 (the earlier 13 / 32 was labels v1; sources now agree) | `docs/ACCURACY-CLAIMS.md` §5 round 16; `docs/GATE.md` §3c |
 | **Measured: real photos, exact automatic read** | 32 % (7 / 22); 30 % (7 / 23) counting one "unsure" photo · n = 22 (12 of them dev / tuning, optimistic) · public dataset | `docs/ACCURACY-CLAIMS.md` §5 |
 | **Measured: real photos, taps needed** | 78 % (25 / 32) · n = 32 · public dataset | `docs/ONE-PAGER-GATE.md`; `docs/GATE.md` §3c |
-| **Measured: photos without a plate read automatically** | 0 / 19 (3 / 19 before the check; 95 % interval 0–17 %); held-out half 0 / 9 (0–30 %) · public dataset | `docs/ACCURACY-CLAIMS.md` §5 |
+| **Measured: photos without a plate read automatically** | 0 / 19 (3 / 19 before the check; 95 % interval 0–17 %); held-out half 0 / 8 (0–32 %; w30 moved to dev, same scene as w29) · public dataset, labels v3 | `docs/ACCURACY-CLAIMS.md` §5 |
 | **Measured: by category** | Motorcycle plates exact 0 / 6; tap read 4 of 15 exact · public dataset | `docs/GATE.md` §3c |
 | **Not measured** | Owner's ~100 phone photos; a real gate or car park (field) | `docs/ONE-PAGER-GATE.md` |
 | **Known limits** | The OCR is a general Thai text model, not trained on plates, and is now the main limit; no Thai-trained detector is shipped yet (YOLOX-nano waits for the owner's file; YOLOv9 not used, L41) ⚠; numbers-only and legacy plates are not supported; a one-line plate-shaped sign can pass the pattern check; PromptPay payments are not confirmed automatically; the 30-day trial is text only (no timer); go2rtc is not wired into the camera source; relays need a same-origin bridge; about 1.5 s median per photo on a Mac (not a phone) | `docs/GATE.md` §1, §3c "Known limits", "Cost", §4, §6; `docs/CTO-BRIEF.md` §5 |
@@ -258,7 +258,8 @@ accountant's invoices; see owner item O3).
    generated attendance / customers banners) say "fewer than 0.05 %". `docs/ACCURACY-CLAIMS.md:229` (correction 7) says
    this "was not true on LFW (0.05 % at 100, 0.07 % at 200 enrolled)".
 2. **Gate top box on real photos.** `docs/ACCURACY-CLAIMS.md:203`, `docs/ONE-PAGER-GATE.md` and `docs/PAGE-STATUS.md:84`
-   give 13 / 32 (41 %); `docs/GATE.md:300` gives 14 / 32 (44 %) after the 2026-11-10 box re-check.
+   give 13 / 32 (41 %); `docs/GATE.md:300` gives 14 / 32 (44 %) after the 2026-11-10 box re-check. **Resolved
+   2026-11-12:** the owner confirmed labels v3; every page and doc now gives 14 / 32 (44 %) (`ACCURACY.md` §15).
 3. **Gate detector licence.** `docs/GATE.md:260` says "the shipped plate detector is LPD-YuNet, MIT";
    `docs/GATE.md:20`, `docs/CTO-BRIEF.md` §2 and `vendor/models/plate-det/LICENSE` say Apache-2.0.
 4. **Thai plate detector.** `docs/GATE.md:353` says "The delivered detector is the Thai-trained YOLOX-nano"; the repo

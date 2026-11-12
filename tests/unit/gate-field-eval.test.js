@@ -112,6 +112,43 @@ test("plate-field-eval: scoring — detection, exact, false / wrong auto-reads b
   assert.match(rep, /none .*false auto-reads 1 → 0 of 20/);
 });
 
+test("plate-field-eval: ignore regions (labels v3) — a proposal inside one is neither rewarded nor a false auto-read", async () => {
+  const T = await load();
+  const { photos, errors } = T.parseLabels([
+    "file,category,plate,province,x0,y0,x1,y1,split,sure,notes",
+    "n.jpg,none,,,,,,,heldout,,street with a tiny far plate",
+    "n.jpg,ignore,,,600,100,800,150,heldout,,tiny unreadable plate",
+    "p.jpg,white,กข 1234,,100,100,300,190,dev,y,",
+    "p.jpg,ignore,,,600,100,800,150,dev,,",
+    "x.jpg,ignore,,,1,1,5,5,,,",
+    "n.jpg,ignore,กข 1,,1,1,5,5,,,",
+    "n.jpg,ignore,,,,,,,,,"
+  ].join("\n"));
+  assert.equal(errors.length, 3, errors.join(" | "));
+  assert.match(errors.join(" "), /no plate text/); assert.match(errors.join(" "), /needs a box/); assert.match(errors.join(" "), /"x.jpg", which has no plate/);
+  assert.equal(photos.get("n.jpg").cat, "none", "an ignore row never changes the photo's category");
+  assert.deepEqual(photos.get("n.jpg").ignore, [[600, 100, 800, 150]]);
+  assert.equal(photos.get("n.jpg").plates.length, 0);
+  const size = [1000, 500], inIgn = { x: 0.6, y: 0.2, w: 0.2, h: 0.1 }, elsewhere = { x: 0.1, y: 0.7, w: 0.2, h: 0.1 }, plateBox = { x: 0.1, y: 0.2, w: 0.2, h: 0.18 };
+  const auto = (key, box) => ({ trigger: { score: 0.9 }, tried: [{ i: 0, read: { key, box }, guard: { ok: true, reasons: [] } }], picked: { i: 0, read: { key, box } } });
+  // plate-less photo: a read inside the ignore region is ignored (not false); elsewhere it is still a false auto-read
+  const a = T.scorePhoto(photos.get("n.jpg"), { size, auto: auto("กข1234", inIgn) });
+  assert.deepEqual([a.after.proposal, a.after.ignored, a.after.false, a.before.false], [true, true, false, false]);
+  const b = T.scorePhoto(photos.get("n.jpg"), { size, auto: auto("กข1234", elsewhere) });
+  assert.deepEqual([b.after.ignored, b.after.false], [false, true]);
+  // a big box that only touches the region is not "in" it (IoU < 0.3 and less than half of it inside)
+  assert.equal(T.inRegion({ x: 0.5, y: 0, w: 0.5, h: 1 }, { x: 0.6, y: 0.2, w: 0.2, h: 0.1 }), false);
+  assert.equal(T.inRegion({ x: 0.61, y: 0.21, w: 0.05, h: 0.05 }, { x: 0.6, y: 0.2, w: 0.2, h: 0.1 }), true);
+  // plate photo: a read in the ignore region is not a detection, not exact and not wrong, even with the right text
+  const c = T.scorePhoto(photos.get("p.jpg"), { size, auto: auto("กข1234", inIgn), taps: [{ key: "" }] });
+  assert.deepEqual([c.det, c.after.ignored, c.after.exact, c.after.wrong, c.after.false, c.tapNeeded], [false, true, false, false, false, true]);
+  const d = T.scorePhoto(photos.get("p.jpg"), { size, auto: auto("กข1234", plateBox), taps: [{ key: "" }] });
+  assert.deepEqual([d.det, d.after.ignored, d.after.exact], [true, false, true]);
+  const s = T.summarize([a, b, c]);
+  assert.equal(s.none.after.false, 1); assert.equal(s.none.after.ignored, 1);
+  assert.match(T.formatReport(s), /none .*1 \(\+1 ignored\)/);
+});
+
 test("plate-field-eval: whole run on a tiny generated folder (browser step injected), missing / unlabelled photos listed", async () => {
   const T = await load();
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "lq-plate-field-"));

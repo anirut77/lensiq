@@ -1473,6 +1473,36 @@ this was said as "finds about 2 in 3 over-claims in testing" (66.7 %). Target 80
 
 Chinese adverts: 50 % on only 20 texts. The rules were then tuned on this set (dev only); see `ADVERT-RESULTS.md`.
 
+## 15. Gate: plate reading on real public photos (labels v3, 2026-11-12)
+
+**Source: public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12.** 51 photos (32 with a plate,
+19 without), photos and labels outside the repo (`~/LENSIQ-field/plates-public/`). Full method, per-photo notes and the
+v1 → v2 → v3 history: `docs/GATE.md` §3c. Labels v3: box convention "the plate itself, not its holder" confirmed; the
+tiny unreadable plates in three plate-less photos are **ignore regions** (a detection inside one is neither rewarded nor
+counted as a false read); w30 moved from held-out to dev (same scene as w29). Split: dev 29 (18 plate / 11 none),
+held-out 22 (14 / 8). Command: `node tools/plate-field-eval.mjs --dir <photos> --labels plates-photo-labels.v3.csv
+--source "public dataset (Wikimedia Commons)" --split dev|heldout`, macOS, Chrome headless, WASM.
+
+| metric (shipped path: guard + first plate-like box) | dev | held-out | all 51 |
+|---|---|---|---|
+| plate is the top box | 10 / 18 | 4 / 14 | 44% (14 / 32), n = 32 photos with a plate |
+| whole plate read right automatically | 4 / 12 | 3 / 10 | 32% (7 / 22), n = 22 photos with a sure, standard label |
+| taps needed | 14 / 18 | 11 / 14 | 78% (25 / 32), n = 32 photos with a plate |
+| tap read exact (reader on the labelled box) | 3 / 8 | 1 / 7 | 4 / 15 |
+| photos without a plate read automatically (before the plate check) | 0 / 11 (2 / 11) | 0 / 8 (1 / 8) | 0 / 19 (3 / 19), 95% interval 0–17%; held-out 0–32% |
+| false auto-reads on photos with a plate / wrong text | 0 / 1 | 0 / 2 | 0 / 3 |
+
+Detections inside ignore regions: 0 in every mode. 11 of the 19 plate-less photos are in the dev half the plate check
+was tuned on, and 12 of the 22 exact-read photos are in the dev half, so the "all 51" figures are optimistic. Four
+plates have letters the labeller could not be sure of (img1, w07, w08, w23); they stay out of the exact-read score
+(owner decision 2026-11-12); counting the 4 photos with unsure letters as misses: 27% (7 / 26).
+
+Labels v2 → v3 on the same build (control run of v2 in the same session): every number is the same except the split of
+the plate-less photos (dev 10 → 11, held-out 9 → 8, because w30 moved). The v2 → v3 label changes (sure = n on w24 and
+w26, ignore regions in w28 / w34 / w45) moved no result: w24 and w26 were already outside the exact-read score
+(numbers-only / legacy), and no proposal fell in or near an ignore region. Versus labels v1 (the 13 / 32 published until
+2026-11-12): plate is the top box 13 → 14 / 32 (w26: the top box is on the tight plate box, not on the holder box).
+
 ## Datasets and licences
 
 | dataset | used for | source | licence / terms |

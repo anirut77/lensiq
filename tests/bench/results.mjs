@@ -43,6 +43,11 @@ export const BENCHES = Object.freeze({
   checkout: { datasets: [], cmd: "node tests/bench/checkout.bench.mjs --json out.json" },
   // Product Check advert wording (experimental): each locked advert set (now fresh-3) is scored ONCE by an independent agent and is never
   // committed or redistributed (owner licence decision); see docs/product-check/ADVERT-RESULTS.md
+  // Gate plates on real public photos (51 Wikimedia Commons photos, labels v3 confirmed by the owner 2026-11-12); photos and
+  // labels stay outside the repo (~/LENSIQ-field/plates-public/); see docs/GATE.md §3c and ACCURACY.md §15
+  "plate-photos": { datasets: ["plates-public"], cmd: "node tools/plate-field-eval.mjs --dir ~/LENSIQ-field/plates-public/photos"
+    + " --labels ~/LENSIQ-field/plates-public/photos/plates-photo-labels.v3.csv --source \"public dataset (Wikimedia Commons)\""
+    + " --split dev|heldout --out out.json" },
   advert: { datasets: ["adverts-fresh-3"], cmd: "scored once by an independent agent on ~/LENSIQ-field/product-check/texts-fresh-3 (see docs/product-check/ADVERT-RESULTS.md)" }
 });
 
@@ -72,7 +77,8 @@ export function hashList(dir) {
 /** which bench produced each customer-facing figure (docs/accuracy-figures.json key prefix) */
 export const FIGURE_BENCH = Object.freeze([
   [/^store/, "people"], [/^(lfw|casia|stranger|autoStr|confirmShare|minEnrol)/, "face1n"], [/^boothTar/, "face"], [/^ag/, "face"],
-  [/^hand/, "hand"], [/^dr(FrameCatch|EarCatch|FallbackCatch)$/, "driver"], [/^dr/, "driver-session"], [/^qc/, "qc"], [/^bc/, "checkout"], [/^neuro/, "neuro"], [/^ad[A-Z]/, "advert"]
+  [/^hand/, "hand"], [/^dr(FrameCatch|EarCatch|FallbackCatch)$/, "driver"], [/^dr/, "driver-session"], [/^qc/, "qc"], [/^bc/, "checkout"], [/^neuro/, "neuro"], [/^ad[A-Z]/, "advert"],
+  [/^gate[A-Z]/, "plate-photos"]
 ]);
 export const benchOfFigure = k => (FIGURE_BENCH.find(([re]) => re.test(k)) || [])[1] || null;
 export const ABSENT = "not reproducible here: datasets absent";

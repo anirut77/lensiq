@@ -34,7 +34,7 @@
   "cat.src.none": "Not measured",
   "cat.src.na": "No accuracy claim",
   "cat.c.gateSyn": "Plate found (top box) in 97.1% (136/140) · n = 140 held-out scenes, 7 plate types (demo set, seed 7); whole plate read right from one frame in 58% (81/140), before multi-frame voting and the guard's check",
-  "cat.c.gatePub": "Real public photos (Wikimedia Commons): top box on the plate in 41% (13/32) · n = 32 photos with a plate; whole plate read right automatically in 32% (7/22) · n = 22 photos (partly the tuning set, optimistic); photos without a plate read automatically 0/19 · n = 19. A real gate or car park: not measured yet",
+  "cat.c.gatePub": "Real public photos (Wikimedia Commons, labels v3 confirmed by the owner 2026-11-12): top box on the plate in 44% (14/32) · n = 32 photos with a plate; whole plate read right automatically in 32% (7/22) · n = 22 photos (partly the tuning set, optimistic); photos without a plate read automatically 0/19 · n = 19. A real gate or car park: not measured yet",
   "cat.c.examNone": "Signals right or wrong in a real exam room: not measured. The pilot compares each signal with the invigilator's tally. The system never decides cheating",
   "cat.c.examHall": "Small faces in a wide exam-room view (24–48 px wide): 0% found (0/195) · n = 195 faces, Open Images V7 group photos, held-out half, not exam-room footage; the best option measured found 62.6% (122/195) but drew too many false boxes and was too slow on an emulated mid-range laptop, so it is not switched on",
   "cat.c.omrNone": "Not measured on real scanned sheets; only automated tests on synthetic sheets. The teacher reviews flagged sheets",

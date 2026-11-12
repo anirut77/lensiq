@@ -375,7 +375,7 @@ self-hosted try-on.
 - **Rights holder:** ankandrew (GitHub). Not contacted, by decision.
 - **Alternative:** the **Thai-trained YOLOX-nano** plate detector (Megvii YOLOX, Apache-2.0, trained on owner-licensed
   Thai plates with `tools/train-plate-detector.ipynb`), **in progress**. Meanwhile LPD-YuNet (Apache-2.0, shipped):
-  its top box is the plate on 13/32 (41 %) of 51 public photos (CTO-BRIEF §2). Labels for new real-photo sets are drawn
+  its top box is the plate on 14/32 (44 %) of 51 public photos (labels v3 confirmed by the owner 2026-11-12; CTO-BRIEF §2). Labels for new real-photo sets are drawn
   by hand or with LPD-YuNet proposals only.
 - **Follow-up for the records** (not done here, docs scope): `docs/GATE.md` §3c and CTO-BRIEF §2 still describe the
   round-16 labelling use; add the decision there in the next round.

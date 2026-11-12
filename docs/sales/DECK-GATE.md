@@ -64,7 +64,7 @@
 | หาป้ายเจอ (กรอบแรก) · plate found (top box) | 97.1% (136 / 140) | n = 140 ฉาก | **ข้อมูลจำลอง** (ชุดเดโม seed 7) / synthetic | `docs/GATE.md` §3b |
 | อ่านถูกทั้งป้ายจากภาพเดียว · whole plate right from one frame | 58% (81 / 140) | n = 140 ฉาก | ข้อมูลจำลอง / synthetic | `docs/GATE.md` §3b |
 | ฉากที่ไม่มีป้ายถูกอ่านอัตโนมัติ · plate-less scene read automatically | 0 / 20 | n = 20 ฉาก | ข้อมูลจำลอง / synthetic | `docs/GATE.md` §3c |
-| ภาพถ่ายจริง กรอบแรกอยู่บนป้าย · real photos, top box on the plate | 41% (13 / 32) | n = 32 ภาพที่มีป้าย | **ชุดข้อมูลสาธารณะ** (Wikimedia Commons) / public dataset | `docs/GATE.md` §3c |
+| ภาพถ่ายจริง กรอบแรกอยู่บนป้าย · real photos, top box on the plate | 44% (14 / 32) | n = 32 ภาพที่มีป้าย | **ชุดข้อมูลสาธารณะ** (Wikimedia Commons, ป้ายกำกับ v3 ที่เจ้าของยืนยัน 2026-11-12) / public dataset, labels v3 confirmed by the owner 2026-11-12 | `docs/GATE.md` §3c |
 | ภาพถ่ายจริง อ่านอัตโนมัติถูกทั้งป้าย · real photos, whole plate read right automatically | 32% (7 / 22) | n = 22 ภาพ (12 ภาพใช้ปรับการตรวจว่าเป็นป้าย จึงมองในแง่ดี / 12 tuning photos, optimistic) | ชุดข้อมูลสาธารณะ / public dataset | `docs/GATE.md` §3c |
 | ภาพถ่ายจริง ต้องแตะกรอบเอง · real photos, guard had to tap the box | 78% (25 / 32) | n = 32 ภาพที่มีป้าย | ชุดข้อมูลสาธารณะ / public dataset | `docs/GATE.md` §3c |
 | ภาพจริงที่ไม่มีป้ายแต่ถูกอ่านอัตโนมัติ · real photos without a plate read automatically | 0 / 19 (ช่วง 95%: 0–17%) | n = 19 ภาพ | ชุดข้อมูลสาธารณะ / public dataset | `docs/GATE.md` §3c |
@@ -142,6 +142,6 @@
 
 LENSIQ Gate suggests a Thai plate and a guard confirms every vehicle; it is a guard's assistant, not an automatic barrier. It runs on a phone, laptop or camera you already have, on the device, with no face recognition,
 no emotion or lie detection, and no age / gender / expression models in customer builds. Measured: synthetic data (n = 140 scenes) plate found 97.1% and whole plate right from one frame 58% (`docs/GATE.md` §3b);
-public dataset, real photos from Wikimedia Commons: whole plate read right automatically 32% (7 / 22, 12 of them tuning photos, optimistic), the guard had to tap the box in 78% (25 / 32), plate-less photos
+public dataset, real photos from Wikimedia Commons (labels v3 confirmed by the owner 2026-11-12): whole plate read right automatically 32% (7 / 22, 12 of them tuning photos, optimistic), the guard had to tap the box in 78% (25 / 32), plate-less photos
 read automatically 0 / 19 (§3c). A real car park or village: not measured. Auto-open of a barrier is off by default. Approved prices excl. 7% VAT, pilot stage: free 30-day trial; village 490 THB per lane per month;
 car park 790 THB per lane per month (PromptPay, receipts and shift close included); on-site set-up 2,500 THB per visit; hardware not sold. Sold by quotation and bank transfer.

@@ -70,17 +70,17 @@ const CLAIMS = {
     en:
       "Plate found (top box) in 97.1% (136/140) · n = 140 held-out scenes, 7 plate types (demo set, seed 7); whole plate read right from one frame in 58% (81/140), before multi-frame voting and the guard's check",
     zh: "找到车牌（首个候选框）97.1%（136/140）· n = 140 个留出场景，7 类车牌（演示集 seed 7）；单帧整牌读对 58%（81/140），尚未计入多帧投票与保安确认" },
-  gatePub: { src: "public", ref: "docs/ACCURACY-CLAIMS.md §5 round 16 (docs/GATE.md §3c, 51 real photos, plate check)", optimistic: true,
+  gatePub: { src: "public", ref: "docs/ACCURACY-CLAIMS.md §5 round 16 (docs/GATE.md §3c, 51 real photos, plate check, labels v3 2026-11-12)", optimistic: true,
     ev: { doc: "docs/ACCURACY-CLAIMS.md", quote: [
-      "| plate is the top box on real photos | 41% (13 / 32) | n = 32 photos with a plate | public dataset (Wikimedia Commons) |",
-      "| whole plate read right automatically on real photos | 32% (7 / 22); 30% (7 / 23) counting one unsure label | n = 22 photos (12 of them dev / tuning, optimistic) |",
-      "| photos without a plate read automatically | 0 / 19 (before the check 3 / 19); held-out 0 / 9 (before 1 / 9); 95% interval 0–17% | n = 19 photos (10 of them dev / tuning) |"] },
-    th: "ภาพถ่ายจริงสาธารณะ (Wikimedia Commons): กรอบแรกเป็นป้าย 41% (13/32) · n = 32 ภาพที่มีป้าย อ่านถูกทั้งป้ายอัตโนมัติ 32% (7/22) · n = 22 ภาพ " +
+      "| plate is the top box on real photos | 44% (14 / 32) | n = 32 photos with a plate | public dataset (Wikimedia Commons), labels v3 confirmed by the owner 2026-11-12 |",
+      "| whole plate read right automatically on real photos | 32% (7 / 22); 27% (7 / 26) counting the 4 unsure-letter photos as misses | n = 22 photos (12 of them dev / tuning, optimistic) |",
+      "| photos without a plate read automatically | 0 / 19 (before the check 3 / 19); held-out 0 / 8 (before 1 / 8); 95% interval 0–17% | n = 19 photos (11 of them dev / tuning) |"] },
+    th: "ภาพถ่ายจริงสาธารณะ (Wikimedia Commons, ป้ายกำกับ v3 ที่เจ้าของยืนยัน 2026-11-12): กรอบแรกเป็นป้าย 44% (14/32) · n = 32 ภาพที่มีป้าย อ่านถูกทั้งป้ายอัตโนมัติ 32% (7/22) · n = 22 ภาพ " +
       "(บางส่วนใช้ปรับค่า ดีเกินจริง) ภาพไม่มีป้ายถูกอ่านอัตโนมัติ 0/19 · n = 19 ภาพ ด่านหรือลานจอดจริงยังไม่ได้วัด",
-    en: "Real public photos (Wikimedia Commons): top box on the plate in 41% (13/32) · n = 32 photos with a plate; whole plate read right " +
+    en: "Real public photos (Wikimedia Commons, labels v3 confirmed by the owner 2026-11-12): top box on the plate in 44% (14/32) · n = 32 photos with a plate; whole plate read right " +
       "automatically in 32% (7/22) · n = 22 photos (partly the tuning set, optimistic); photos without a plate read automatically 0/19 · n = 19. " +
       "A real gate or car park: not measured yet",
-    zh: "真实公开照片（Wikimedia Commons）：首个候选框为车牌 41%（13/32）· n = 32 张有车牌的照片；自动整牌读对 32%（7/22）· n = 22 张" +
+    zh: "真实公开照片（Wikimedia Commons，标注 v3 已由业主于 2026-11-12 确认）：首个候选框为车牌 44%（14/32）· n = 32 张有车牌的照片；自动整牌读对 32%（7/22）· n = 22 张" +
       "（部分为调参集，偏乐观）；无车牌照片被自动读取 0/19 · n = 19。实际道闸或停车场：尚未测量" },
   examNone: { src: "none", ref: "docs/EXAM.md (Accuracy — not measured yet)", acr: ["E1"],
     th: "สัญญาณถูกหรือผิดในห้องสอบจริง: ยังไม่ได้วัด การนำร่องจะเทียบแต่ละสัญญาณกับบันทึกของผู้คุมสอบ ระบบไม่ตัดสินการทุจริต",
