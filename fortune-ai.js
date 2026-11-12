@@ -1912,10 +1912,8 @@
     }
     // ส่วน C: โหมดตรงบอกผลไม่ดีที่ศาสตร์คำนวณได้เสมอ แม้สิ่งที่พบนั้นไม่มีความหมายด้านภาพรวม (เช่น กาลกิณีมีแต่คำแนะนำ)
     const sc = STRAIGHT && !ctx.cautionSec.overview ? F.items.find(it => toneOf(it) === "caution") : null;
-    if (sc) {
-      ctx.cautionSec.overview = 1;
-      units.push({ text: cautionLead(ctx, sc, "overview").text + " จุดนั้นคือ" + refName(ctx, sc) + " " + cautionAction(ctx, sc, "overview").text, fixed: true, sub: true, noConn: true });
-    }
+    if (sc) units.push({ text: cautionLead(ctx, sc, "overview").text + " จุดนั้นคือ" + refName(ctx, sc) + " " + (ctx.cautionSec.overview = 1, cautionAction(ctx, sc, "overview").text),
+      fixed: true, sub: true, noConn: true });
     // ผสานสองสิ่งที่พบ เฉพาะเมื่อความหมายที่เล่าในภาพรวมพูดถึงแก่นเรื่องเดียวกันจริง
     ctx.avoid = null;
     const pu = pairUnit(ctx, ctx.secMeanings.overview, "overview");
@@ -2709,10 +2707,8 @@
       head = null;
       // 第 C 部分：直说模式下，命理规则给出的不利结果一定说出来（即使该项没有总览含义）
       const zsc = STRAIGHT && !zCaut.overview ? items.find(zIsCaut) : null;
-      if (zsc) {
-        const l = zLead("overview", zsc), nm = /[\u0E00-\u0E7F]/.test(zsc.label || "") ? "" : zhEnd("这一项是" + zsc.label);
-        if (l) { zCaut.overview = 1; s.push(l + nm + zhCautionAction(zsc, "overview")); }
-      }
+      const zl = zsc && zLead("overview", zsc), znm = zsc && !/[\u0E00-\u0E7F]/.test(zsc.label || "") ? zhEnd("这一项是" + zsc.label) : "";
+      if (zl) { zCaut.overview = 1; s.push(zl + znm + zhCautionAction(zsc, "overview")); }
       const p = pairLine(secM.overview, "overview"); if (p) s.push(p);
       if (topicHas) s.push(zhEnd(fill(pick(r, ZH_BRIDGE), { TW: ZH_TAG[F.topic] })));
       if (s.length > 1) sections.push({ id: "overview", title: ZH_TITLES.overview, paragraphs: paras(s) });
@@ -3057,10 +3053,8 @@
       head = null;
       // Part C: in straight mode the unfavourable result is always stated, even when that finding has no overview meaning
       const esc = STRAIGHT && !eCaut.overview ? items.find(eIsCaut) : null;
-      if (esc) {
-        const l = eLead("overview", esc), nm = /[\u0E00-\u0E7F]/.test(esc.label || "") ? "" : " " + enEnd("The finding in question is " + esc.label);
-        if (l) { eCaut.overview = 1; s.push(l + nm + " " + cautionAction(esc, "overview")); }
-      }
+      const el = esc && eLead("overview", esc), enm = esc && !/[\u0E00-\u0E7F]/.test(esc.label || "") ? " " + enEnd("The finding in question is " + esc.label) : "";
+      if (el) { eCaut.overview = 1; s.push(el + enm + " " + cautionAction(esc, "overview")); }
       const p = pairLine(secM.overview, "overview"); if (p) s.push(p);
       if (topicHas) s.push(enEnd(fill(pick(r, EN_BRIDGE), { TW: EN_TAG[F.topic] })));
       if (s.length > 1) sections.push({ id: "overview", title: EN_TITLES.overview, paragraphs: paras(s) });
@@ -4357,10 +4351,7 @@
     }
     if (res.reminder && opts.reminder !== false) { const n = el("p", "fa-reminder", res.reminder); n.setAttribute("role", "note"); frag.appendChild(n); }
     // ส่วน C: ตัวเลือก "ดูตรง ๆ" — วาดเฉพาะเมื่อเปิดสวิตช์ (ปิดอยู่ในไฟล์ที่ส่งมอบ จึงไม่มีอะไรเปลี่ยนบนหน้า)
-    if (straightEnabled() && opts.straightControl !== false) {
-      try { container.setAttribute("data-fa-mode", res.mode === "straight" ? "straight" : "gentle"); frag.insertBefore(FS.control(container, res.lang), frag.firstChild); }
-      catch (e) { /* ไม่มี DOM */ }
-    }
+    if (straightEnabled() && opts.straightControl !== false && FS.mount) FS.mount(container, frag, res);
     // the help line under every reading (owner order 2026-11-12): calm, verified numbers, no detection needed
     if (CR && CR.helpLine) { try { frag.appendChild(CR.helpLine(doc, res.lang, "lq-helpline-result")); } catch (e) { /* no DOM */ } }
     container.appendChild(frag);

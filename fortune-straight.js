@@ -227,7 +227,16 @@
     s.addEventListener("change", () => { straightSet({ straight: s.checked }); next.hidden = false; });
     return box;
   }
-  const api = { hardLimit, stripHonest, LABEL_NEG, LEADS: STRAIGHT_LEAD, NATAL_LEADS: NATAL_LEAD, isNatal, calm, enabled: straightEnabled, active: straightActive, get: straightGet, set: straightSet,
+  /** draw the control at the top of a reading and mark the reading's mode (FortuneAI.renderSections, flag on)
+   *  @param {any} container @param {any} frag @param {any} res */
+  function mount(container, frag, res) {
+    try {
+      container.setAttribute("data-fa-mode", res.mode === "straight" ? "straight" : "gentle");
+      frag.insertBefore(straightControl(container, res.lang), frag.firstChild);
+    } catch (e) { /* no DOM */ }
+  }
+  const api = { mount, hardLimit, stripHonest, LABEL_NEG, LEADS: STRAIGHT_LEAD, NATAL_LEADS: NATAL_LEAD, isNatal, calm,
+    enabled: straightEnabled, active: straightActive, get: straightGet, set: straightSet,
     text: straightText, controlHTML: straightControlHTML, control: straightControl };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else /** @type {any} */ (root).LQFortuneStraight = api;
 })(typeof window !== "undefined" ? window : globalThis);
