@@ -50,11 +50,12 @@ const isCaution = it => it.tone === "caution" || it.polarity === "challenge";
 const text = res => (res.sections || []).flatMap(s => s.paragraphs || []).join("\n");
 
 // ---------------------------------------------------------------- A. shipped config ----------------------------------
-// re-lock 2026-11-12: owner decision — straight mode APPROVED and switched on in the shipped config (was: must be false)
-test("A1 shipped config: lensiq-config.js sets window.LENSIQ_FORTUNE_STRAIGHT = true (owner approval 2026-11-12)", () => {
+// re-lock 2026-11-12 (2): switched OFF again — the fresh independent crisis review with straight on failed (owner's standing
+// order: turn it off immediately). Back to the original pre-approval assertion.
+test("A1 shipped config: lensiq-config.js sets window.LENSIQ_FORTUNE_STRAIGHT = false (off after the failed crisis review 2026-11-12)", () => {
   const cfg = fs.readFileSync(path.join(ROOT, "lensiq-config.js"), "utf8");
-  assert.match(cfg, /window\.LENSIQ_FORTUNE_STRAIGHT\s*=\s*true\s*;/);
-  assert.doesNotMatch(cfg, /window\.LENSIQ_FORTUNE_STRAIGHT\s*=\s*false/);
+  assert.match(cfg, /window\.LENSIQ_FORTUNE_STRAIGHT\s*=\s*false\s*;/);
+  assert.doesNotMatch(cfg, /window\.LENSIQ_FORTUNE_STRAIGHT\s*=\s*true/);
 });
 
 test("A2 flag off: straight mode is never active, even if this device stored adult + straight", () => {

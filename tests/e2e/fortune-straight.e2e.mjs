@@ -25,17 +25,16 @@ const PLAIN_TH = /ดวง(?:การเงิน|การงาน|ควา
 export default async function ({ base, launch, check }) {
   const browser = await launch();
   try {
-    // re-lock 2026-11-12: owner decision — the shipped config turns the option on; a visitor who has not confirmed being an
-    // adult still gets the gentle reading (was: no control at all with the shipped config)
-    await check("shipped config (approved, ON): the control is offered, the reading stays gentle until the adult confirmation", async () => {
+    // re-lock 2026-11-12 (2): switched OFF again after the failed fresh crisis review — back to the original assertion
+    await check("shipped config: no straight control, gentle reading", async () => {
       const page = await browser.newPage(null);
       try {
         await page.goto(`${base}/zodiac.html`);
         await page.evaluate(READ); await page.waitFor(READY, 15000);
         const s = await page.evaluate(STATE);
-        assert(s.control && s.adult === false && s.straightDisabled === true, "control with the adult step: " + JSON.stringify(s).slice(0, 160));
-        assert(s.mode === "gentle", "mode " + s.mode);
-        assert(await page.evaluate(() => window.LENSIQ_FORTUNE_STRAIGHT === true), "config flag is true");
+        assert(!s.control, "control drawn with the flag off");
+        assert(s.mode !== "straight", "mode " + s.mode);
+        assert(await page.evaluate(() => window.LENSIQ_FORTUNE_STRAIGHT === false), "config flag is false");
       } finally { await page.close(); }
     });
 
