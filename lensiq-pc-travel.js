@@ -636,6 +636,11 @@
       }
       h += `<p class="hint">${esc(T("md.pc.tv.innNote",
         "ชื่อสามัญหาจากตารางชื่อยาของ LENSIQ และรายชื่อตัวยาใน TMT (CC BY) บนเครื่องนี้ ยืนยันชื่อกับ RxNorm ได้เมื่อกด \"ตรวจกับแหล่งข้อมูลทางการ\" ในการ์ดด้านบน"))}</p>`;
+      // measured numbers + "may be incomplete" (owner decision 2026-11-12): the page's own element, generated from
+      // docs/accuracy-figures.json by tools/accuracy-sync.mjs and translated by LQI18N; no number is typed here
+      const acc = document.querySelector('[data-i18n="md.pc.tv.acc"]');
+      const accT = acc ? String(acc.textContent || "").replace(/\s+/g, " ").trim() : "";
+      if (accT.length > 1) h += `<p class="hint" id="pcTravelAcc">${esc(accT)}</p>`;
       // the list may be incomplete (a combination product, a name we do not know): always said; no "same ingredients" list then
       const partial = inns.length > 0 && maybeIncomplete(text, inns.length);
       h += `<p class="md-status" data-kind="warn" id="pcTravelPartial"${partial ? "" : " hidden"}>${esc(T("md.pc.tv.partial2",
@@ -676,7 +681,7 @@
     }
     W.addEventListener("lq-pc-card", paint);
     W.addEventListener("lq-pc-ai", paint);
-    W.addEventListener("lq-lang", paint);
+    W.addEventListener("lq-lang", () => setTimeout(paint, 0)); // after LQI18N has re-translated the page (the accuracy line is read from it)
     W.addEventListener("lq-pc-text", () => setTimeout(paint, 0));
     W.addEventListener("pagehide", () => { slot.innerHTML = ""; });
   }

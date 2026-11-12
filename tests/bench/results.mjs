@@ -48,7 +48,9 @@ export const BENCHES = Object.freeze({
   "plate-photos": { datasets: ["plates-public"], cmd: "node tools/plate-field-eval.mjs --dir ~/LENSIQ-field/plates-public/photos"
     + " --labels ~/LENSIQ-field/plates-public/photos/plates-photo-labels.v3.csv --source \"public dataset (Wikimedia Commons)\""
     + " --split dev|heldout --out out.json" },
-  advert: { datasets: ["adverts-fresh-3"], cmd: "scored once by an independent agent on ~/LENSIQ-field/product-check/texts-fresh-3 (see docs/product-check/ADVERT-RESULTS.md)" }
+  advert: { datasets: ["adverts-fresh-3"], cmd: "scored once by an independent agent on ~/LENSIQ-field/product-check/texts-fresh-3 (see docs/product-check/ADVERT-RESULTS.md)" },
+  // Product Check travel mode INN extraction (P9): synthetic hold-out written and scored once by an independent agent, kept outside the repo
+  travel: { datasets: ["p9-inn-holdout"], cmd: "node -e with LQPCTravel.measure on ~/LENSIQ-field/evals/p9/holdout/p9-inn-holdout.json (see docs/product-check/P9-RESULTS.md)" }
 });
 
 /** fingerprint of one folder: sha256 over "relpath\tsize\tsha256(file)\n" for every file, sorted; dot-paths skipped */
@@ -78,7 +80,8 @@ export function hashList(dir) {
 export const FIGURE_BENCH = Object.freeze([
   [/^store/, "people"], [/^(lfw|casia|stranger|autoStr|confirmShare|minEnrol)/, "face1n"], [/^boothTar/, "face"], [/^ag/, "face"],
   [/^hand/, "hand"], [/^dr(FrameCatch|EarCatch|FallbackCatch)$/, "driver"], [/^dr/, "driver-session"], [/^qc/, "qc"], [/^bc/, "checkout"], [/^neuro/, "neuro"], [/^ad[A-Z]/, "advert"],
-  [/^gate[A-Z]/, "plate-photos"]
+  [/^gate[A-Z]/, "plate-photos"],
+  [/^inn[A-Z]/, "travel"]
 ]);
 export const benchOfFigure = k => (FIGURE_BENCH.find(([re]) => re.test(k)) || [])[1] || null;
 export const ABSENT = "not reproducible here: datasets absent";

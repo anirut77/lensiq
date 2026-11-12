@@ -1503,6 +1503,18 @@ w26, ignore regions in w28 / w34 / w45) moved no result: w24 and w26 were alread
 (numbers-only / legacy), and no proposal fell in or near an ignore region. Versus labels v1 (the 13 / 32 published until
 2026-11-12): plate is the top box 13 → 14 / 32 (w26: the top box is on the tight plate box, not on the holder box).
 
+## 16. Product Check: travel mode, ingredient names (INN) on foreign labels (medicine.html, 2026-11-11)
+
+On-device extraction of international non-proprietary names from the label text (`lensiq-pc-travel.js`), released with
+the measured numbers on the card (owner decision 2026-11-12). Details: `docs/product-check/P9-RESULTS.md`. Source label:
+synthetic.
+
+Independent hold-out written and locked by a separate agent before measuring (173 invented label texts, 14 languages),
+measured once: INN recall **0.811** (129 / 159 ingredients, out-of-table items excluded; Wilson 95 % 0.743–0.865),
+precision **0.971** (135 / 139; 0.928–0.989), packs with no medicine ingredient left clean 0.964 (27 / 28). Target recall
+≥ 0.85: **not met** (the target stays). Combination products and OCR misreads are the main misses, so the card says
+the list may be incomplete. The builder's own fixed set (122 texts) scored 1.0; it is not evidence.
+
 ## Datasets and licences
 
 | dataset | used for | source | licence / terms |

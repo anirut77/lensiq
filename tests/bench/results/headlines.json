@@ -50,6 +50,11 @@
    "status": "not reproducible here: datasets absent",
    "note": "not recorded: the round 3–6 runs that produced these figures predate fingerprinting; re-run the bench and `results.mjs record` to fill it"
   },
+  "p9-inn-holdout": {
+   "sha256": null,
+   "status": "not reproducible here: datasets absent",
+   "note": "not recorded: the round 3–6 runs that produced these figures predate fingerprinting; re-run the bench and `results.mjs record` to fill it"
+  },
   "plates-public": {
    "sha256": null,
    "status": "not reproducible here: datasets absent",
@@ -628,6 +633,33 @@
    "bench": "plate-photos",
    "fingerprinted": false,
    "status": "not reproducible here: datasets absent or not fingerprinted (plates-public)"
+  },
+  "innRecall": {
+   "value": "0.811",
+   "raw": 0.811321,
+   "what": "travel mode, independent synthetic hold-out: INN recall",
+   "evidence": "INN recall **0.811** (129 / 159 ingredients",
+   "bench": "travel",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (p9-inn-holdout)"
+  },
+  "innPrec": {
+   "value": "0.971",
+   "raw": 0.971223,
+   "what": "travel mode, independent synthetic hold-out: INN precision",
+   "evidence": "precision **0.971** (135 / 139",
+   "bench": "travel",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (p9-inn-holdout)"
+  },
+  "innN": {
+   "value": "173",
+   "raw": 173,
+   "what": "travel mode: hold-out size",
+   "evidence": "173 invented label texts, 14 languages",
+   "bench": "travel",
+   "fingerprinted": false,
+   "status": "not reproducible here: datasets absent or not fingerprinted (p9-inn-holdout)"
   }
  }
 }

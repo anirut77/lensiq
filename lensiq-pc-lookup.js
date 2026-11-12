@@ -677,6 +677,9 @@
           { from: r.window_from, to: r.date }))}</p>` : "") +
         `<p class="hint">${TX(r.local ? "md.pc.l.searched" : "md.pc.l.sent", r.local ? "คำที่ค้นในเครื่อง: {fact}" : "ข้อมูลที่ส่ง: {fact}", {}, { fact: r.fact })}` +
         `${r.testing_only ? " · " + esc(T("md.pc.l.testing", "แหล่งนี้ใช้เพื่อทดสอบเท่านั้น (รอยืนยันสิทธิ์การใช้ข้อมูล)")) : ""}</p>` +
+        // P9 (owner decision 2026-11-12): the OGL-Canada attribution in the page language wherever DPD results appear
+        (r.source === "dpd" && r.state !== "could_not_check" ? `<p class="hint" data-attr="dpd">${esc(T("md.pc.l.cr.dpd",
+          "มีข้อมูลภายใต้สัญญาอนุญาต Open Government Licence – Canada ที่มา: ฐานข้อมูลยาของ Health Canada (Health Canada ไม่ได้รับรอง LENSIQ)"))}</p>` : "") +
         (r.credit ? `<p class="hint" lang="en" translate="no">${esc(r.credit)}</p>` : "") + `</div>`;
     }
 

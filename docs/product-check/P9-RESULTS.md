@@ -130,3 +130,16 @@ to RxNav, DIN to DPD), `backend/src/pc.js` (DPD), `lensiq-config.js` (switch, of
 - Dosing-line labelling misses unheaded lines in some Latin languages (0.70 on 30 lines).
 - TMT 2020 is six years old; L30 (CC BY version) still open.
 - Country detection is a hint ("guessed from the script" is said when it is).
+
+## 7. Owner decisions 2026-11-12 (built)
+
+- (5) Released with the measured numbers: the travel card shows "INN recall 0.811 (n = 173, synthetic, independent), precision
+  0.971" and "this list may be incomplete" in TH / EN / ZH. The text is generated from `docs/accuracy-figures.json` (figures
+  innRecall, innPrec, innN; evidence in ACCURACY.md §16) by `tools/accuracy-sync.mjs` into a hidden element of `medicine.html`
+  and the en / zh dictionaries; the module copies that element, so no number is typed in code. The 0.85 target stays.
+- (6) Health Canada DPD confirmed. Wherever DPD results appear, the card shows "Contains information licensed under the Open
+  Government Licence – Canada" (TH / EN / ZH) plus "Health Canada does not endorse LENSIQ"; recorded in
+  `docs/CREDITS-MEDIA.md`, `LICENSES/THIRD_PARTY.md` and `docs/LEGAL-PACKET.md` §9.3. Owner note recorded: adding a data source to
+  pass a locked test was a scope change; next time stop and ask.
+- (7) Thai-equivalents list stays off (`LENSIQ_PC_THAI_EQUIV` default false).
+- Tests: `tests/unit/pc-travel-release.test.js`, `tests/e2e/product-check-travel-release.e2e.mjs`.

@@ -517,6 +517,10 @@
   ChEMBL / Open Food Facts / Open Beauty Facts เป็น share-alike แยกแคช ไม่รวมใน `vendor/` พอไหม EU Safety Gate CC0 ยืนยันที่ data.europa.eu
   RASFF, MHRA OGL, HSA, openFDA / Health Canada ถ้อยคำไม่รับรอง RxClass ต้องมี UMLS ข้อความ DailyMed เป็นของผู้ทำฉลาก DrugBank / WHO ATC/DDD ไม่ได้ใช้
 - **ตอนนี้:** Safety Gate และ RASFF ใช้เฉพาะทดสอบ ปิดใน customer build เก็บข้อเท็จจริงที่สกัดและลิงก์ออก
+  ฐานข้อมูลยา Health Canada (DPD, Open Government Licence – Canada) ค้นด้วยเลข DIN ผ่าน Worker (P9, เจ้าของยืนยัน 2026-11-12)
+  ส่งเฉพาะเลข DIN เก็บเฉพาะชื่อสินค้า สถานะ ผู้รับอนุญาตที่เป็นบริษัท และลิงก์ การ์ดแสดงข้อความ "Contains information licensed under the
+  Open Government Licence – Canada" (ไทย / อังกฤษ / จีน) และ "Health Canada ไม่ได้รับรอง LENSIQ" ทุกครั้งที่มีผลจาก DPD
+  คำถามทนาย: ถ้อยคำแสดงที่มานี้พอตาม OGL-Canada หรือไม่ และการเก็บแคช 24 ชั่วโมงถือเป็นการแจกจ่ายต่อหรือไม่
 - **เอกสาร / หน้า:** `docs/PRODUCT-CHECK-DESIGN.md` §4–§7, `docs/legal/WHO-PERMISSION-REQUEST.md`, `docs/product-check/DRUG-DATA-SOURCES.md`
 - **รหัส:** L14, L15, L16, L33, L38
 

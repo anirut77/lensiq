@@ -1,6 +1,7 @@
 /* i18n/zh-med.js — 简体中文 for medicine.html / medicine.js (md.*). Thai stays the default; English mirrors this file in
  * i18n/en-med.js. openFDA 标签原文保持英文（不做机器翻译）；泰国注册名称保持泰文（lang="th"）。 */
 (window.LQI18N_Q = window.LQI18N_Q || []).push({ zh: {
+  "md.pc.tv.acc": "INN 召回率 0.811（n = 173，合成数据，独立测试），精确率 0.971 · 此列表可能不完整（例如复方制剂或读错的文字），请始终与包装上的成分表核对 · 来源：合成数据",
   "md.pc.ad.acc": "独立测试，545 条夸大宣传 / 382 条合规的公开广告文字，由 AI 标注，待专家审核：选择产品类型后可发现 60% 的夸大宣传，每 100 条合规文字误报 2.1 次 · n = 545 / 382 · 来源：公开数据集",
   "md.title": "药品信息核对：读取标签与注册号 | LENSIQ",
   "md.eyebrow": "LENSIQ · 药品信息核对",
@@ -553,5 +554,6 @@
   "md.pc.tv.l47": "译自标签，不是建议。请咨询药剂师。",
   "md.pc.l.s.dpd": "加拿大卫生部药品数据库（加拿大）",
   "md.pc.tv.partial2": "标签上的成分可能比找到的更多（例如复方制剂）。请与包装上的成分表核对，并咨询药剂师",
-  "md.pc.tv.eqPartial": "由于可能没有读全标签上的成分，因此不显示清单。请向药剂师出示包装询问"
+  "md.pc.tv.eqPartial": "由于可能没有读全标签上的成分，因此不显示清单。请向药剂师出示包装询问",
+  "md.pc.l.cr.dpd": "包含根据加拿大开放政府许可（Open Government Licence – Canada）授权的信息。来源：加拿大卫生部药品数据库（加拿大卫生部不为 LENSIQ 背书）"
 } });
