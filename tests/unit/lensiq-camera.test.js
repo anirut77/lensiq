@@ -36,12 +36,22 @@ test("(9) pickNext fairness: equal weights ±1, weight 2 ~2x, disabled skipped",
   assert.equal(C.pickNext([{ key: "b", vt: 1 }, { key: "a", vt: 1 }]), "a");
 });
 
-test("(9b) createScheduler: real loop gives equal turns with random-cost jobs", async () => {
+test("(9b) createScheduler: real loop gives equal turns with random-cost jobs", async (t) => {
+  // Fake clock (owner decision 2026-11-12, option ก): setTimeout, Date and performance.now are mocked; the loop below moves
+  // the clock 1 ms at a time and lets every due callback and promise settle before the next ms, so the scheduler sees the
+  // same 400 ms whatever the machine's load.
+  t.mock.timers.enable({ apis: ["setTimeout", "Date"], now: 0 });
+  t.mock.method(performance, "now", () => Date.now());
   const r = rng(9), S = C.createScheduler({ targetHz: 400, maxBusy: 0.9 });
   const sleep = ms => new Promise(res => setTimeout(res, ms));
   S.add("a", () => sleep(r() * 6)); S.add("b", () => sleep(r() * 6)); S.add("x", () => sleep(1));
   S.setEnabled("x", false);
-  S.start(); await sleep(400); S.stop();
+  const run = async ms => {
+    const done = sleep(ms);
+    for (let i = 0; i < ms; i++) { await new Promise(res => setImmediate(res)); t.mock.timers.tick(1); }
+    await done;
+  };
+  S.start(); await run(400); S.stop();
   const st = S.stats();
   assert.ok(st.a.n > 5, JSON.stringify(st));
   assert.ok(Math.abs(st.a.n - st.b.n) <= 1, JSON.stringify(st));

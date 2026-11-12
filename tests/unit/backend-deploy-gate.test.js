@@ -656,7 +656,19 @@ test("the Referer is NOT used: the right code passes with no Referer, an origin-
 
 const ADMIN_TOKEN = "gate-admin-bootstrap-token-0123456789abcdef";
 const ADMIN_PW = "the owner's long password 42";
-test("admin: a stranger cannot lock the owner out and cannot make failed sign-ins write without bound; attempts per caller are capped before any hashing", async () => {
+test("admin: a stranger cannot lock the owner out and cannot make failed sign-ins write without bound; attempts per caller are capped before any hashing", async (t) => {
+  // Fake clock (owner decision 2026-11-12, option ก): Date is mocked and starts 5 s into a fixed hour, so the hour's write
+  // ceiling and the 15-minute caller window never roll over mid-test. Time moves only by a fixed cost per PBKDF2 hash
+  // (HASH_MS, a modelled Workers hash): "40 refused attempts cost no password hashing" then measures hashes, not the
+  // machine's load. 10 allowed attempts = 10 hashes = 2000 ms < 4000 ms; hashing the 40 refused ones too = 10000 ms.
+  const HASH_MS = 200;
+  t.mock.timers.enable({ apis: ["Date"], now: Date.UTC(2026, 10, 12, 3, 0, 5) });
+  const deriveBits = globalThis.crypto.subtle.deriveBits;
+  t.mock.method(globalThis.crypto.subtle, "deriveBits", async function (alg, ...rest) {
+    const out = await deriveBits.call(globalThis.crypto.subtle, alg, ...rest);
+    if (alg && alg.name === "PBKDF2") t.mock.timers.tick(HASH_MS);
+    return out;
+  });
   const T = await resetAll();
   const CEIL = 40;
   const env = envOf({ ADMIN_UNAUTH_WRITES_HOUR: String(CEIL), ADMIN_BOOTSTRAP_TOKEN: ADMIN_TOKEN, SECRETS_KEK: Buffer.alloc(32, 7).toString("base64") });

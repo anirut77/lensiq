@@ -220,7 +220,11 @@ test("every rule has a complete TH / EN / ZH explanation that says 'risk signal'
   assert.ok(!banned.test(JSON.stringify(flags)));
 });
 
-test("robust input: empty / null / huge / regex-hostile text never throws; output is deterministic", () => {
+test("robust input: empty / null / huge / regex-hostile text never throws; output is deterministic", (ctx) => {
+  // Clock (owner decision 2026-11-12, option ก): the time budget below guards against runaway (catastrophic) regex work,
+  // which is CPU work. Date.now reads this process's CPU time, so time spent waiting for a CPU on a loaded machine does
+  // not count; a regex that burns CPU still does. lensiq-claims.js itself never reads the clock.
+  ctx.mock.method(Date, "now", () => { const u = process.cpuUsage(); return (u.user + u.system) / 1000; });
   assert.deepEqual(C.detect("", { category: "drug" }), []);
   assert.deepEqual(C.detect(null, { category: "drug" }), []);
   assert.deepEqual(C.detect("(((((+*?[", { category: "cosmetic" }), []);

@@ -123,10 +123,14 @@ for (const [kind, extra, attempts, next, billed] of MATRIX) {
   });
 }
 
-test("fallback walker: per-attempt deadline -> kind timeout (assumed billed), then the next provider", async () => {
+test("fallback walker: per-attempt deadline -> kind timeout (assumed billed), then the next provider", async (t) => {
   const env = envOf();
   await configure(env, { timeoutMs: 1000 });
-  const slow = fakeAdapter("gemini", () => new Promise(() => {})); // never answers
+  // Fake clock (owner decision 2026-11-12, option ก): setTimeout and Date are mocked, so time moves only when the test moves
+  // it. Once the gateway waits on the never-answering adapter, the clock moves by exactly the 30 ms attempt deadline; the
+  // database work between attempts takes no clock time, so a loaded machine cannot use up the request's overall deadline.
+  t.mock.timers.enable({ apis: ["setTimeout", "Date"], now: Date.now() });
+  const slow = fakeAdapter("gemini", () => { setImmediate(() => t.mock.timers.tick(30)); return new Promise(() => {}); }); // never answers
   const b = fakeAdapter("openai", () => ok());
   const { runFeature } = await gw();
   const deps = { aiAdapters: { gemini: slow.adapter, openai: b.adapter }, aiFeatures: FEATURE };
