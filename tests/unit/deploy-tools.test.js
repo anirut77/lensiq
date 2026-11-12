@@ -529,7 +529,7 @@ test("B2 secrets:setup: values go to wrangler's stdin only (`secret put --env te
   const sb = sandbox();
   try {
     const kek = Buffer.alloc(32, 1).toString("base64"), boot = Buffer.alloc(32, 2).toString("base64url");
-    const r = await setup([], ["\r", "\r", "\r", C.ts + "\r", C.or + "\r", C.code + "\r", C.hook + "\r", "s\r", "\r"], sb, { random: fixedRandom(), stray: "STRAY-TYPED-CANARY\r" });
+    const r = await setup([], ["\r", "\r", "\r", C.ts + "\r", C.or + "\r", C.code + "\r", C.hook + "\r", "s\r", "\r", "\r", "\r"], sb, { random: fixedRandom(), stray: "STRAY-TYPED-CANARY\r" });
     assert.equal(r.code, 0, r.screen);
     assert.equal(r.left, 0, "every prompt was answered");
     const calls = sb.calls();
@@ -537,7 +537,7 @@ test("B2 secrets:setup: values go to wrangler's stdin only (`secret put --env te
       "first: is the Worker deployed (read-only), then the secret names");
     const puts = sb.writes();
     assert.deepEqual(puts.map(c => c.argv), ["SECRETS_KEK", "ADMIN_BOOTSTRAP_TOKEN", "TURNSTILE_SECRET", "OPENROUTER_API_KEY", "TESTER_ACCESS_CODE", "ALERT_WEBHOOK_URL"]
-      .map(n => ["secret", "put", n, "--env", "test"]), "HEALTH_TOKEN and OPENFDA_API_KEY were skipped");
+      .map(n => ["secret", "put", n, "--env", "test"]), "HEALTH_TOKEN, OPENFDA_API_KEY and the two LINE values were skipped");
     assert.ok(calls.every(c => c.effective === "lensiq-api-test" && !c.draft), "every call resolved to lensiq-api-test; no draft Worker");
     assert.deepEqual(puts.map(c => c.stdinSha), [kek, boot, C.ts, C.or, C.code, C.hook].map(sha), "wrangler's stdin received exactly each value (stray typing between prompts is not part of any)");
     // the target is printed before the first command
@@ -554,7 +554,7 @@ test("B2 secrets:setup: values go to wrangler's stdin only (`secret put --env te
     assert.ok(r.screen.indexOf("\x1b[2K", r.screen.indexOf(boot)) > 0, "erased after Enter");
     assert.match(r.screen, /scroll-back, tmux or a screen recording may still hold it\. Clear the terminal[\s\S]*replaced by a random value right after the owner account is created/);
     assert.match(r.screen, /Required now: SECRETS_KEK, ADMIN_BOOTSTRAP_TOKEN, TURNSTILE_SECRET, OPENROUTER_API_KEY, TESTER_ACCESS_CODE/);
-    assert.match(r.screen, /Later \/ optional: ALERT_WEBHOOK_URL, HEALTH_TOKEN, OPENFDA_API_KEY/);
+    assert.match(r.screen, /Later \/ optional: ALERT_WEBHOOK_URL, HEALTH_TOKEN, OPENFDA_API_KEY, LINE_CHANNEL_ACCESS_TOKEN, LEAD_NOTIFY_LINE_TO/);
     for (const n of ["SECRETS_KEK", "TURNSTILE_SECRET", "OPENROUTER_API_KEY", "TESTER_ACCESS_CODE"]) assert.match(r.screen, new RegExp(`  ${n}: set\\n`));
     assert.match(r.screen, /HEALTH_TOKEN: skipped/);
     // echo stays off for the whole session and the terminal is restored at the end
@@ -654,7 +654,7 @@ test("B2 secrets:setup: skip, too-short and weak tester codes, Ctrl-C, an existi
     assert.match(r.screen, /OPENROUTER_API_KEY: skipped/);
     assert.deepEqual(sb.writes(), []);
     const before = sb.calls().length;
-    r = await setup(["--dry-run"], ["\r", "\r", C.ts + "\r", C.or + "\r", C.code + "\r", "\r", "s\r", "\r"], sb);
+    r = await setup(["--dry-run"], ["\r", "\r", C.ts + "\r", C.or + "\r", C.code + "\r", "\r", "s\r", "\r", "\r", "\r"], sb);
     assert.equal(r.code, 0, r.screen);
     assert.match(r.screen, /TESTER_ACCESS_CODE: would be set \(dry run, nothing sent\)/);
     assert.equal(sb.calls().length, before, "a dry run starts wrangler not even once");

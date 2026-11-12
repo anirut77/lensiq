@@ -46,7 +46,11 @@ export const SECRETS = Object.freeze([
     what: "the code you give to testers: you invent it, at least 16 characters, not one repeated character, not a run like 123456 / abcdef, no common word" },
   { name: "ALERT_WEBHOOK_URL", when: "later", min: 12, prefix: "https://", what: "optional: https webhook (Slack / Discord / ntfy) for owner alerts" },
   { name: "HEALTH_TOKEN", when: "later", gen: "token", min: 16, what: "optional: protects GET /health/deep (generated, shown once)", showOnce: true },
-  { name: "OPENFDA_API_KEY", when: "later", min: 20, what: "optional: free openFDA key (raises its daily request limit)" }
+  { name: "OPENFDA_API_KEY", when: "later", min: 20, what: "optional: free openFDA key (raises its daily request limit)" },
+  { name: "LINE_CHANNEL_ACCESS_TOKEN", when: "later", min: 20,
+    what: "optional: LINE Messaging API channel access token (LINE OA LENSIQ @632yliiw) for new quote-request notifications" },
+  { name: "LEAD_NOTIFY_LINE_TO", when: "later", min: 33, prefix: "U",
+    what: "optional: the owner's LINE user ID (U + 32 characters, LINE Developers console -> Basic settings) that receives lead notifications" }
 ]);
 export const REQUIRED_NOW = SECRETS.filter(s => s.when === "now").map(s => s.name);
 
