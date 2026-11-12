@@ -4,7 +4,26 @@
 > the capture as a live scan. Keep all privacy filters." Built on `main` at `7b7f1db`. **Nothing is deployed.** Every
 > number below states its source. **No real phone was measured: a real-phone measurement is still needed.**
 
-## รอบที่ 2: ทำตามคำตัดสินของเจ้าของ 2026-11-12 (อ่านส่วนนี้ก่อน ส่วนล่างเป็นรอบแรก)
+## รอบที่ 3: ปิดช่องโหว่ชื่อไทยในโน้ต (2026-11-12, อ่านส่วนนี้ก่อน)
+
+แหล่งที่มาของตัวเลขทั้งหมดในส่วนนี้: **สังเคราะห์** (ชุดล็อก P7 / P7b และกรณีทดสอบหนักที่สร้างจากชุดเหล่านั้น) ยังไม่มีข้อมูลภาคสนาม
+
+- **แก้แล้ว:** การส่งแบบแตะครั้งเดียวจะหยุดและเปิดหน้าตัวอย่างตามเดิม เมื่อข้อความดูเหมือนโน้ตถึงคน
+  - ไทย: "ไว้ให้" หรือ ให้ / ของ / ถึง / แด่ / สำหรับ ตามด้วยคำเรียกญาติหรือคำนำหน้า (ยาย ตา ปู่ ย่า พ่อ แม่ ลูก หลาน น้อง พี่ ป้า ลุง น้า อา คุณ นาย นาง น.ส. ด.ช. ด.ญ.)
+    ยกเว้นคำบนฉลาก เช่น คุณค่า คุณภาพ อาการ อาหาร ตาม ลูกค้า; "สำหรับ" ตัวเดียว (เช่น "สำหรับเด็ก") ไม่หยุด
+  - อังกฤษ: "for / to (my) grandma, mum, Mr …" · จีน: 给 / 給 + คำเรียกญาติ หรือ แซ่ + 先生 / 女士 / 小姐 / 老师
+  - กฎนี้หยุดเฉพาะการแตะครั้งเดียว ไม่ลบข้อความใด ไม่เปลี่ยนการตัดสินอื่น (เทียบกฎเก่า/ใหม่ 1,773 ข้อความ: เปลี่ยน 0)
+  - ใช้ทั้งบนเครื่องและที่เซิร์ฟเวอร์ (LQPCGuard.autoBlock) commit แยก `ad844fa`
+- **ตัวเลข (สังเคราะห์)**
+  - กรณีทดสอบหนักแบบกว้าง (25 ฉลาก × 308 เอกสารส่วนตัว × 2 ลำดับ = 15,400): **ส่ง 0 ครั้ง 0 รายการ** (ก่อนแก้ 22 ครั้ง 22 รายการ จากโน้ตไทยชิ้นเดียว)
+  - กรณีทดสอบของผู้ตรวจ (ฉลาก P001 + 308 เอกสาร): **0/308**
+  - ชุดล็อก P7 / P7b: ข้อมูลส่วนตัวถึง AI **0/260 และ 0/614** ทั้งโหมดข้อความและภาพ
+  - ฉลากสินค้าที่ส่งแบบแตะครั้งเดียวได้: **217/360 เท่าเดิม** (ผ่านตัวกรองแบบกดเอง 299/360 เท่าเดิม)
+- เทสต์: unit ที่เกี่ยวข้อง 89/89 (รวมไฟล์ใหม่ tests/unit/pc-guard-onetap-notes.test.js), e2e product-check-live + product-check-ai 18/18
+- log: ~/LENSIQ-field/evals/live-scan/stress-sameframe-2026-11-12-notes.log, live-leak-run-2026-11-12T16-03-09-672Z.log
+- ภาพหน้าจอ: ไม่ได้ถ่ายใหม่ (หน้าจอไม่เปลี่ยน เปลี่ยนเฉพาะว่าเมื่อใดการแตะครั้งเดียวกลับไปแสดงตัวอย่าง)
+
+## รอบที่ 2: ทำตามคำตัดสินของเจ้าของ 2026-11-12 (ส่วนล่างเป็นรอบแรก)
 
 - **ไม่มีการส่งอัตโนมัติแล้ว** ส่งให้ AI เฉพาะเมื่อมีคนกดเท่านั้น (มีเทสต์ยืนยัน: สแกนหลายสินค้าโดยเปิดการแตะครั้งเดียวไว้ ไม่มีคำขอใดถูกส่ง)
 - **ผู้ทดสอบ: แตะครั้งเดียว** หลังยินยอมหนึ่งครั้งพร้อมเลือก "จำการเลือกนี้" กด "ขอความเห็นจาก AI" ครั้งเดียวส่งทันที ไม่มีหน้าตัวอย่าง
@@ -23,14 +42,14 @@
   - เส้นทาง ZDR ของ Google บน Vertex เป็นแบบ "Safety Retention" (เก็บข้อความที่ถูกระบบความปลอดภัยตั้งธงได้ถึง 90 วัน) ไม่ใช่ ZDR เข้มงวด ข้อความใดที่บอกผู้ใช้ว่า "ไม่เก็บเลย" ต้องตรวจใหม่
 - **แก้ช่องโหว่ชื่อ/เลขภาษาเกาหลีและ "Patient" ที่ OCR อ่านผิด** (commit แยก ไม่ลดความเข้มของกฎเดิม)
   - กรณีทดสอบหนักเดิม (ฉลาก P001 + เอกสารส่วนตัว 308 ชิ้นในภาพเดียว): 2/308 ภาพ 5 รายการ → **0/308 ภาพ 0 รายการ**
-  - กรณีทดสอบที่กว้างกว่า (25 ฉลาก × 308 × 2 ลำดับ = 15,400): ส่งได้ 22 ครั้ง 22 รายการ **ทั้งหมดมาจากโน้ตเตือนกินยาภาษาไทยชิ้นเดียว** ("…ไว้ให้ยาย <ชื่อ>" ไม่มีคำนำหน้าชื่อ) ภาษาเกาหลี/ญี่ปุ่น 0 — ช่องโหว่ชื่อไทยแบบไม่มีคำนำหน้านี้ยังเหลือ (นอกขอบเขตรอบนี้) ต้องตัดสินว่าจะแก้รอบหน้าหรือไม่
+  - กรณีทดสอบที่กว้างกว่า (25 ฉลาก × 308 × 2 ลำดับ = 15,400): ส่งได้ 22 ครั้ง 22 รายการ **ทั้งหมดมาจากโน้ตเตือนกินยาภาษาไทยชิ้นเดียว** ("…ไว้ให้ยาย <ชื่อ>" ไม่มีคำนำหน้าชื่อ) ภาษาเกาหลี/ญี่ปุ่น 0 — **ปิดแล้วในรอบที่ 3: 0/15,400**
   - ชุดล็อก P7 / P7b: ข้อมูลส่วนตัวถึง AI ยังเป็น 0/260 และ 0/614 การปฏิเสธของตัวกรองไม่เปลี่ยน (ฉลากสินค้าผ่านแบบกดเอง 299/360 เท่าเดิม)
   - เทียบกฎเก่า/ใหม่ทุกข้อความที่มี (1,773 ข้อความ): ไม่มีการตรวจพบใดหายไป ไม่มีการตัดสินใดหลวมลง มีแต่เพิ่มการลบและเพิ่มการบล็อกภาพ 10 ข้อความ (ไม่ใช่ฉลากสินค้า)
 - **รอคุณตัดสิน**
   1. Haiku ก็วิ่งผ่าน Google Vertex: ยอมรับความเสี่ยงข้อ 20(d) ระหว่างทดสอบปิด (ผู้ทดสอบเป็นผู้ใหญ่) หรือให้ทนายดูก่อนเปิดสาธารณะ
   2. ถ้าต้องการ Gemini (เร็วกว่า): ต้องมีการยืนยันอายุ 18+ ก่อนใช้ AI และทนายยืนยัน
   3. ข้อความกฎหมาย §7 (ปรับเป็นแบบแตะครั้งเดียวแล้ว) ใส่ L57
-  4. ช่องโหว่ชื่อไทยที่ไม่มีคำนำหน้าในโน้ต (เช่น "ไว้ให้ยาย <ชื่อ>") เมื่ออยู่ในภาพเดียวกับฉลากสินค้า: แก้รอบหน้าหรือยอมรับระหว่างทดสอบ (ผู้ทดสอบยังเห็นข้อความที่ส่งทุกครั้ง)
+  4. ~~ช่องโหว่ชื่อไทยในโน้ต~~ แก้แล้วในรอบที่ 3 (0/15,400) ไม่ต้องตัดสิน
 
 ## สรุปสำหรับเจ้าของ (Thai summary, รอบแรก)
 
@@ -363,7 +382,7 @@ name value. Dev cases: `tests/unit/pc-guard-ko-ja.test.js` (with no-false-redact
 | Chinese patient regression set on main (`pc-guard-zh-patient-regression.test.js`) and every guard test | pass |
 | P7 / P7b locked figures (`live-leak-score.mjs`, log `live-leak-run-2026-11-12T04-13-03-938Z.log`) | personal items to AI 0/260, 0/614 (text and image); product labels passing the manual gate 299/360 (unchanged); one-tap eligible 217/360 |
 | Reviewer's stress case: P001-clean + each of 308 personal captures in one reading | 2/308 captures, 5 items → **0/308, 0 items** |
-| Wider stress (25 one-tap-eligible labels x 308 personal captures x 2 orders = 15,400 readings) | 22 sent, 22 items, **all from one Thai medicine-reminder note** (REQV-N050-2: a bare Thai name after the kinship word ยาย, no cue); Korean / Japanese 0. Before this commit: 23 sent, 25 items (the Korean insurance card too). The Thai bare-name gap is outside this round; owner decision |
+| Wider stress (25 one-tap-eligible labels x 308 personal captures x 2 orders = 15,400 readings) | 22 sent, 22 items, **all from one Thai medicine-reminder note** (REQV-N050-2: a bare Thai name after the kinship word ยาย, no cue); Korean / Japanese 0. Before this commit: 23 sent, 25 items (the Korean insurance card too). The Thai bare-name gap was closed in round 3 (§15): **0 sent, 0 items** |
 | Merged readings (25 x 308 x 2 orders) | 0 personal items in any sent text |
 
 ## 14. Round 2 checks and screenshots
@@ -378,3 +397,23 @@ name value. Dev cases: `tests/unit/pc-guard-ko-ja.test.js` (with no-false-redact
   07 consent screen with the one-tap note, 08 one tap: the text sent and "stop and withdraw", 09 AI fields in the card).
 - Latency (§3) is from round 1; the live scan itself did not change in round 2. "AI request leaves the page" is now
   measured from the tester's tap, not from a steady frame, and was not re-measured.
+
+## 15. Round 3: one-tap stops on a note to a person (source: synthetic)
+
+`LQPCGuard.autoBlock` (the page's one-tap check and the Worker's `autoCheck`) also stops one-tap, falling back to the usual
+preview, on a note to a person: Thai "ไว้ให้", or ให้ / ของ / ถึง / แด่ / สำหรับ + a kinship word or title (ยาย ตา ปู่ ย่า พ่อ
+แม่ ลูก หลาน น้อง พี่ ป้า ลุง น้า อา คุณ นาย นาง นางสาว น.ส. ด.ช. ด.ญ.; label words such as คุณค่า, คุณภาพ, อาการ, อาหาร,
+ตาม, ลูกค้า are excluded; bare สำหรับ is not a stop); English "for / to (my) grandma, mum, Mr …"; Chinese 给 / 給 + a kinship
+word or a surname + 先生 / 女士 / 小姐 / 老师. It removes nothing. Commit `ad844fa`.
+
+| Measure (synthetic) | Before | After |
+|---|---|---|
+| Wider stress: 25 one-tap-eligible labels x 308 personal captures x 2 orders = 15,400 readings | 22 sent, 22 items | **0 sent, 0 items** |
+| Reviewer's stress case: P001-clean + each of 308 personal captures | 0/308 | **0/308** |
+| Locked P7 / P7b: personal items reaching AI, text and image mode | 0/260; 0/614 | **0/260; 0/614** |
+| One-tap-eligible product labels (p7) | 217/360 | **217/360** |
+| Old vs new guard on 1,773 fixed texts (redaction, gate, photo, dispensing) | — | 0 changed |
+
+Tests: affected unit files 89/89 (new `tests/unit/pc-guard-onetap-notes.test.js`); e2e `product-check-live` +
+`product-check-ai` 18/18. Logs: `~/LENSIQ-field/evals/live-scan/stress-sameframe-2026-11-12-notes.log`,
+`live-leak-run-2026-11-12T16-03-09-672Z.log`. Screenshots not re-taken (no visible change).
