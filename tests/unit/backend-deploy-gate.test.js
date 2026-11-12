@@ -662,11 +662,12 @@ test("admin: a stranger cannot lock the owner out and cannot make failed sign-in
   // (HASH_MS, a modelled Workers hash): "40 refused attempts cost no password hashing" then measures hashes, not the
   // machine's load. 10 allowed attempts = 10 hashes = 2000 ms < 4000 ms; hashing the 40 refused ones too = 10000 ms.
   const HASH_MS = 200;
+  let pbkdf2N = 0;
   t.mock.timers.enable({ apis: ["Date"], now: Date.UTC(2026, 10, 12, 3, 0, 5) });
   const deriveBits = globalThis.crypto.subtle.deriveBits;
   t.mock.method(globalThis.crypto.subtle, "deriveBits", async function (alg, ...rest) {
     const out = await deriveBits.call(globalThis.crypto.subtle, alg, ...rest);
-    if (alg && alg.name === "PBKDF2") t.mock.timers.tick(HASH_MS);
+    if (alg && alg.name === "PBKDF2") { pbkdf2N++; t.mock.timers.tick(HASH_MS); }
     return out;
   });
   const T = await resetAll();
@@ -711,6 +712,7 @@ test("admin: a stranger cannot lock the owner out and cannot make failed sign-in
   const before = [m.reads, m.writes];
   let busyN = 0;
   const t0 = Date.now();
+  const h0 = pbkdf2N;
   for (let i = 0; i < T.ADMIN_CALLER_MAX + 40; i++) {
     const x = await admin("/login", { method: "POST", ip: "192.0.2.66", body: { username: "owner", password: "guess " + i } });
     if (x.j.code === "admin_busy") { busyN++; assert.ok(Number(x.headers.get("Retry-After")) > 0); }
@@ -718,6 +720,8 @@ test("admin: a stranger cannot lock the owner out and cannot make failed sign-in
   assert.equal(busyN, 40, "attempts beyond the per-caller limit are refused");
   assert.equal(m.writes, before[1], "and they write nothing");
   assert.ok(Date.now() - t0 < 4000, "40 refused attempts cost no password hashing");
+  // independent review 2026-11-12: count the hashes too, so even a few extra hashes on refused attempts fail
+  assert.equal(pbkdf2N - h0, T.ADMIN_CALLER_MAX, "exactly one password hash per allowed attempt, none for refused ones");
   // the owner's own address is not affected by another address being over its limit
   assert.equal((await admin("/login", { method: "POST", ip: "198.51.100.203", body: { username: "owner", password: ADMIN_PW } })).status, 200);
   // not configured (default): the action simply runs, as before
