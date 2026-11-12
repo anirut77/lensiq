@@ -24,7 +24,7 @@
     "astro.signsNote": "Date ranges are approximate (may shift by a day each year); use Birth chart for precision",
     "astro.statsOn": " Count sessions and signs on this device (birth dates are not saved)",
     "astro.method": "Sun and Moon positions use low-precision astronomical formulas (error about 0.01–0.02°, a few minutes of time); the ascendant is computed from local sidereal time. Latitudes beyond ±66° are not supported",
-    "astro.principle": "Principle: positive content only; no predictions about health, accidents or misfortune",
+    "astro.principle": "Principle: when you choose \"Read it straight\" (after confirming you are 18 or older), unfavourable results are stated plainly as the tradition's rules give them; otherwise the wording stays gentle. No predictions of death, terminal illness or an accident stated as certain or dated; no instructions to stop treatment, invest or end a relationship; no lottery numbers; no paid rituals",
     /* Sign names and attributes */
     "astro.signName": "{s}",
     "astro.sign.0": "Aries", "astro.sign.1": "Taurus", "astro.sign.2": "Gemini", "astro.sign.3": "Cancer",

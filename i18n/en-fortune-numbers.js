@@ -44,7 +44,7 @@
     "numbers.how.sum": "All digits are added and reduced further if above 99. A two-digit sum is read as a digit pair, alongside its reduced single digit. Sums that the tradition gives as positive examples are graded Excellent.",
     "numbers.how.scoreB": "Score:",
     "numbers.how.score": "Digit pairs 65% + sum 20% + memorable patterns 15% (repeats, sequences, mirrors, alternation, no zeros). Plates and names use the weights shown in the result.",
-    "numbers.src.principle": "Principle: always positive; pairs to watch are worded gently, with no ill predictions, no gambling numbers, and no storage of user numbers",
+    "numbers.src.principle": "Principle: when you choose \"Read it straight\" (after confirming you are 18 or older), unfavourable results are stated plainly as the tradition's rules give them; otherwise the wording stays gentle. No predictions of death, terminal illness or an accident stated as certain or dated; no instructions to stop treatment, invest or end a relationship; no lottery numbers; no paid rituals; your numbers are not stored",
 
     /* ---------- dynamic UI ---------- */
     "numbers.go.default": "Analyze number", "numbers.go.daily": "View daily energy", "numbers.go.compare": "Compare", "numbers.go.name": "Analyze name", "numbers.go.plate": "Analyze plate",

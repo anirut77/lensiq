@@ -12,7 +12,7 @@
   "iching.gridHint": "Tap a hexagram to see its meaning",
   "iching.statsOn": "Count casts, topics and hexagrams on this device",
   "iching.lineNote": "Changing-line meanings are general interpretations by line position, not full line-by-line translations",
-  "iching.principle": "Principles: positive content; hexagrams traditionally called difficult are read as life lessons and rhythms; no predictions about health, accidents or misfortune, and your question is never saved",
+  "iching.principle": "Principle: when you choose \"Read it straight\" (after confirming you are 18 or older), unfavourable results are stated plainly as the tradition's rules give them; otherwise the wording stays gentle. No predictions of death, terminal illness or an accident stated as certain or dated; no instructions to stop treatment, invest or end a relationship; no lottery numbers; no paid rituals; your question is not saved",
 
   /* Topics */
   "iching.topic.overall": "Overall",

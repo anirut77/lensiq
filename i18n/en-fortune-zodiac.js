@@ -17,7 +17,7 @@
   "zodiac.chongYearLabel": "Year",
   "zodiac.statsOn": "Count sessions and zodiac animals on this device (birth dates are not saved)",
   "zodiac.calcNote": "Chinese New Year and Lichun are computed with astronomical formulas (Beijing time)",
-  "zodiac.principle": "Principle: no predictions of illness, accidents or misfortune; Tai Sui text only suggests slowing down and planning ahead",
+  "zodiac.principle": "Principle: when you choose \"Read it straight\" (after confirming you are 18 or older), unfavourable results are stated plainly as the tradition's rules give them; otherwise the wording stays gentle. No predictions of death, terminal illness or an accident stated as certain or dated; no instructions to stop treatment, invest or end a relationship; no lottery numbers; no paid rituals",
 
   /* Options */
   "zodiac.dayPh": "Day",

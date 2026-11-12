@@ -13,7 +13,7 @@
     "dream.max8": "Select up to 8 symbols",
     "dream.cardAlt": "Shareable dream interpretation card",
     "dream.statsOn": " Count sessions and selected symbols on this device (dream text is not saved)",
-    "dream.principle": "Principle: dreams traditionally seen as unlucky (such as losing teeth) are read in terms of transition and letting go; no ominous predictions and no gambling numbers",
+    "dream.principle": "Principle: when you choose \"Read it straight\" (after confirming you are 18 or older), unfavourable results are stated plainly as the tradition's rules give them; otherwise the wording stays gentle. No predictions of death, terminal illness or an accident stated as certain or dated; no instructions to stop treatment, invest or end a relationship; no lottery numbers; no paid rituals",
     "dream.catAll": "All",
     "dream.cat.animal": "Animals", "dream.cat.nature": "Nature", "dream.cat.people": "People", "dream.cat.object": "Objects",
     "dream.cat.action": "Actions", "dream.cat.place": "Places", "dream.cat.body": "Body",

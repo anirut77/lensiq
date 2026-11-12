@@ -827,9 +827,9 @@ personal is ever put in a URL. Switches: `npm run backend:off` (everything), adm
 rotation. Questions for counsel: L48 (lawful basis for real customers), L49 (this wording), L50 (processor terms and
 whether the model makers receive data on these routes, which the router does not state).
 
-## Fortune "read it straight" option (Part C, owner order 2026-11-12) — NOT DEPLOYED
+## Fortune "read it straight" option (Part C, owner order 2026-11-12) — APPROVED and switched on 2026-11-12
 
-Built behind `window.LENSIQ_FORTUNE_STRAIGHT = false` (docs/FORTUNE-HONEST-READINGS.md). If the owner switches it on: the reader
+Switched on with `window.LENSIQ_FORTUNE_STRAIGHT = true` (docs/FORTUNE-HONEST-READINGS.md; rule text in CLAUDE.md). The reader
 ticks "I am 18 or older" (self-declared; no ID check) and may choose plainer wording. The choice `{ adult, straight }` is stored
 only in the browser (`localStorage["lq-fortune-straight"]`), is never sent to a server and holds no personal data. Questions for
 counsel: is a self-declared age checkbox enough for adult-only wording in an entertainment service, and does the existing fortune

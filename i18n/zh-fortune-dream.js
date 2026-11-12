@@ -15,7 +15,7 @@
     "dream.max8": "最多可选 8 个象征",
     "dream.cardAlt": "可分享的解梦卡片",
     "dream.statsOn": " 在本机统计次数和所选象征（不保存梦境文字）",
-    "dream.principle": "原则：旧说法里不太好的梦（例如掉牙）改从过渡与放下的角度解读，不做任何不吉利的预言，也不提供博彩号码",
+    "dream.principle": "原则：选择“直说”（并确认已满 18 岁）后，会按命理规则直接说明不利的结果；否则使用较温和的措辞。不预言死亡、绝症或确定、指定日期的意外；不叫你停止治疗、投资或结束一段关系；不提供彩票号码；不推销付费化解",
     "dream.catAll": "全部",
     "dream.cat.animal": "动物", "dream.cat.nature": "自然", "dream.cat.people": "人物", "dream.cat.object": "物品",
     "dream.cat.action": "行为", "dream.cat.place": "地点", "dream.cat.body": "身体",

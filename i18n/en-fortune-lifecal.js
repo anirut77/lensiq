@@ -47,7 +47,7 @@
   "lc.solarUsed": "The BaZi hour and day use true solar time {t} ({d} min from clock time · longitude {lon}° · equation of time {e} min)",
   "lc.tz7": "Thailand (UTC+7)", "lc.tz8": "China, Taiwan, Singapore, Malaysia (UTC+8)", "lc.tz9": "Japan, Korea (UTC+9)", "lc.tz0": "UTC",
   "lc.legendGender": "Gender (sets the direction of the 10-year luck pillars)", "lc.female": "Female", "lc.male": "Male", "lc.yearRange": "Supports birth years 1900–2100 CE",
-  "lc.principle": "Principles: no predictions of death, illness, accidents, infidelity, divorce or disaster, no lottery numbers, and no paid remedies; areas to watch are stated plainly but gently, with practical steps",
+  "lc.principle": "Principle: when you choose \"Read it straight\" (after confirming you are 18 or older), unfavourable results are stated plainly as the tradition's rules give them; otherwise the wording stays gentle. No predictions of death, terminal illness or an accident stated as certain or dated; no instructions to stop treatment, invest or end a relationship; no lottery numbers; no paid rituals",
   "lc.resTitle.bazi": "BaZi chart", "lc.resTitle.taksa": "Taksa chart", "lc.resTitle.lek7": "7-digit chart", "lc.resTitle.lifegraph": "Life graph", "lc.bornOn": "Born {d}/{m}/{y}",
   "lc.rdTitle": "Reading from traditional texts",
   "lc.pillarsCap": "Four pillars (heavenly stem · earthly branch)", "lc.p.year": "Year", "lc.p.month": "Month", "lc.p.day": "Day", "lc.p.hour": "Hour", "lc.noHour": "Time unknown",

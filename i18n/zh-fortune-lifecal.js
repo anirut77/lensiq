@@ -48,7 +48,7 @@
   "lc.solarUsed": "八字的时柱和日柱使用真太阳时 {t}（与钟表时间相差 {d} 分钟 · 经度 {lon}° · 时差方程 {e} 分钟）",
   "lc.tz7": "泰国（UTC+7）", "lc.tz8": "中国、台湾、新加坡、马来西亚（UTC+8）", "lc.tz9": "日本、韩国（UTC+9）", "lc.tz0": "UTC",
   "lc.legendGender": "性别（用来决定十年大运的顺逆）", "lc.female": "女", "lc.male": "男", "lc.yearRange": "支持公历 1900–2100 年出生",
-  "lc.principle": "原则：不预测死亡、疾病、意外、出轨、离婚或灾难，不给博彩号码，也没有付费改运；需要留意的地方会温和地直说，并附上可以做的事",
+  "lc.principle": "原则：选择“直说”（并确认已满 18 岁）后，会按命理规则直接说明不利的结果；否则使用较温和的措辞。不预言死亡、绝症或确定、指定日期的意外；不叫你停止治疗、投资或结束一段关系；不提供彩票号码；不推销付费化解",
   "lc.resTitle.bazi": "八字命盘", "lc.resTitle.taksa": "塔克萨命盘", "lc.resTitle.lek7": "七数盘", "lc.resTitle.lifegraph": "人生曲线", "lc.bornOn": "生于 {y}年{m}月{d}日",
   "lc.rdTitle": "依典籍的解读",
   "lc.pillarsCap": "四柱（天干 · 地支）", "lc.p.year": "年柱", "lc.p.month": "月柱", "lc.p.day": "日柱", "lc.p.hour": "时柱", "lc.noHour": "不知时辰",

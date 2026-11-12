@@ -29,7 +29,7 @@
     "fengshui.discMini": "For entertainment only, based on traditional belief, not science",
     "fengshui.card.alt": "Shareable feng shui result card",
     "fengshui.stats.chk": "Count uses and Kua numbers on this device",
-    "fengshui.principle": "Principles: positive content, no scare tactics, no predictions of misfortune, no selling of charms or products. Directions and stars that need care are always described as \"keep quiet / use less\"",
+    "fengshui.principle": "Principle: when you choose \"Read it straight\" (after confirming you are 18 or older), unfavourable results are stated plainly as the tradition's rules give them; otherwise the wording stays gentle. No predictions of death, terminal illness or an accident stated as certain or dated; no instructions to stop treatment, invest or end a relationship; no lottery numbers; no paid rituals; no lucky items or products are sold",
 
     /* ---------- dynamic UI ---------- */
     "fengshui.sel.day": "Day", "fengshui.sel.month": "Month",

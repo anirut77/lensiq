@@ -48,7 +48,7 @@
     "horoscope.cardAlt": "Shareable birth-date horoscope card",
     "horoscope.statsOn": "Count readings and zodiac animals on this device",
     "horoscope.calcNote": "Planet positions are computed with standard astronomical formulas and checked against published tables; interpretations vary between schools",
-    "horoscope.principle": "Principle: content stays positive with no frightening predictions; inauspicious days and clashes are framed only as reminders to stay calm and slow down",
+    "horoscope.principle": "Principle: when you choose \"Read it straight\" (after confirming you are 18 or older), unfavourable results are stated plainly as the tradition's rules give them; otherwise the wording stays gentle. No predictions of death, terminal illness or an accident stated as certain or dated; no instructions to stop treatment, invest or end a relationship; no lottery numbers; no paid rituals",
 
     /* ---------- horoscope.js dynamic text ---------- */
     "horoscope.x.el": "{n}",

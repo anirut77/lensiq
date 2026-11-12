@@ -240,7 +240,7 @@
     /* ---------- Display data from palm-kb.js ---------- */
     "palm.kb.disclaimerShort": "For entertainment only, based on palmistry tradition, not science",
     "palm.kb.lifeLineNote": "The life line has nothing to do with lifespan; modern palmistry reads it only as a sign of vitality, enthusiasm and pace of life.",
-    "palm.kb.ethics": "Principles: positive content only; no predictions about lifespan, death, health, accidents or infidelity; hand photos are never saved.",
+    "palm.kb.ethics": "Principle: when you choose \"Read it straight\" (after confirming you are 18 or older), unfavourable results are stated plainly as the tradition's rules give them; otherwise the wording stays gentle. No predictions of death, terminal illness or an accident stated as certain or dated; no instructions to stop treatment, invest or end a relationship; no lottery numbers; no paid rituals; hand photos are not saved",
     "palm.kb.elementsNote": "Palmistry books assign a hand element from palm shape (square/long) and finger length; criteria differ slightly between schools, and most hands combine traits of several elements.",
     "palm.kb.mountsNote": "It is hard to tell from a photo whether a mount is full (lighting and angle matter), so compare with your real palm and choose yourself, or skip it.",
     "palm.kb.mountEstNote": "Estimated from the related finger proportions, the shape of lines around each mount and skin smoothness in the photo; for entertainment only. You can add mounts yourself in the adjustment step.",

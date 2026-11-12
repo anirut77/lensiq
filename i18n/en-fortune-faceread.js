@@ -40,7 +40,7 @@
     "faceread.setReco": "Show \"Element-matched picks\"",
     "faceread.setLeads": "Enable customer contact form (consent required)",
     "faceread.leadsNote": "Customer details are stored only in this device's browser (localStorage \"fr-leads\") and contain no face photos. Export and delete them after the event, and state the purpose of collection as required by PDPA",
-    "faceread.principle": "Principle: content covers only positive meanings, makes no predictions about health, misfortune or negative relationships, does not judge looks, and does not touch on gender or ethnicity",
+    "faceread.principle": "Principle: when you choose \"Read it straight\" (after confirming you are 18 or older), unfavourable results are stated plainly as the tradition's rules give them; otherwise the wording stays gentle. No predictions of death, terminal illness or an accident stated as certain or dated; no instructions to stop treatment, invest or end a relationship; no lottery numbers; no paid rituals; no beauty scores, and nothing based on gender or ethnicity",
 
     /* ---------- status / engine ---------- */
     "faceread.eng.prep": "Preparing the system...",

@@ -240,7 +240,7 @@ export function pageHtml(cat, nav = navEntries()) {
     `  </div>`,
     ...(cat.slug === "fortune" ? [helpLine("lqHelpEnd", "  ")] : []),
     `</main>`,
-    '<script src="lensiq-config.js?v=4"></script>',
+    '<script src="lensiq-config.js?v=5"></script>',
     "</body>",
     "</html>",
     ""
