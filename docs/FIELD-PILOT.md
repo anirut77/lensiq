@@ -319,6 +319,10 @@ input. Rows without ground truth are skipped and counted.
 
 ## Changelog / last reviewed
 
+- **2026-11-12 (fortune help line)**: no change to the plate or medicine pilots. The fortune pages (not a field-pilot
+  product) now carry an always-visible help line with numbers verified in `docs/CRISIS-RESOURCES.md`; if fortune ever
+  runs at a pilot booth, staff should know the line is there and that 1669 is the medical emergency number. Last
+  reviewed: 2026-11-12.
 - **2026-11-10 (backend test deployment prepared)**: Product Check online parts are prepared for a **closed tester
   group** (`docs/DEPLOY.md`): official lookups on `medicine.html`, AI field reading and translation behind a tester code.
   This is a functional test, not a field pilot: no accuracy figure comes from it. Testers are asked to note, per label,

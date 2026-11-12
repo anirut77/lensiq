@@ -127,6 +127,13 @@ No module is production-ready. None has completed a field pilot, and the backend
    - Thai FDA data needs the Worker.
 7. **e-Tax invoice is not built**, and gate payments are not confirmed automatically.
 
+8. **Fortune crisis protection (2026-11-12):** keyword detection will never be complete, so every fortune page and every
+   reading now shows a calm help line (1323 free 24 h, 1669 medical emergency) in the HTML, TH/EN/ZH, verified from
+   official sources in `docs/CRISIS-RESOURCES.md`. Once the support card shows, that page stays in a crisis state: no
+   further reading, remedy, lucky item, recommendation, lead form, share card or hook (member, future merit / straight
+   mode) until reload. Remaining risks: the card and line wording still await a Thai mental-health professional (L-M14);
+   1669 hours/cost and Samaritans' languages are not claimed because they could not be read on the official pages.
+
 ### CI-only or loosened tests
 
 - The CI-only relaxation of the medicine test (`aaad9bf`) was reverted to strict in `8b9d6aa`.
@@ -144,6 +151,7 @@ No module is production-ready. None has completed a field pilot, and the backend
 | Crowd, store, queue and other zone pages, signage | Counts only. Frames stay in memory. | Local, or numbers-only through the LAN hub | Aggregate numbers only, when the hub is configured |
 | Medicine | Label text typed or OCR'd | Not stored | Text only, to openFDA/RxNav/Thai FDA, after opt-in |
 | Fortune | Birth data, question text | Local | Derived facts only, to Claude, when there is a server key and the user consents |
+| Fortune crisis state (2026-11-12) | None: a page-level flag on the open page only (`<html data-lq-crisis>`), set when the support card shows | Not stored (gone on reload); the existing `lq-support-n` counter is unchanged | No |
 | Studio / try-on | Portrait | Not stored | Photo goes to Replicate only if try-on is enabled (off by default) |
 | Members / billing | Google ID, email, plan, payment reference | D1 (not deployed) | To Google and Opn |
 

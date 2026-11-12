@@ -78,6 +78,12 @@ controller only for its own website, member accounts, billing and the optional b
   **derived facts** (element, card names, zodiac …) and an optional nickname to Anthropic (USA) after consent
   (`fa-consent`); no photo, birth date or contact. Crisis net and harsh-wording filter; "for entertainment and culture".
 - The faceread lead form (off by default, needs a tick) stores a nickname + contact locally.
+- **Help line and crisis state (2026-11-12).** Every fortune page shows a help line (1323 / 1669; sources in
+  `docs/CRISIS-RESOURCES.md`) that needs no detection and processes nothing. When the support card is shown, the page
+  sets a flag on the open document only (`<html data-lq-crisis>`): it is not written to storage, not sent anywhere and is
+  gone on reload. While it is set, remedies, lucky items, recommendations, the lead form and share cards are hidden. The
+  merit design's 24-hour `lq-crisis-at` flag (stored on the device) is NOT built; if it is, it would store the fact that
+  a crisis card was shown on this device and needs counsel's view (sensitive data, PDPA s.26) before it ships.
 
 ### A5. Members, billing, analytics and the backend — `account.html`, `pricing.html`, `backend/`
 

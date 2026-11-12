@@ -4064,7 +4064,9 @@
       title: "ขอหยุดคำทำนายไว้ก่อน",
       lead: "ขอบคุณที่เล่าให้ฟัง สิ่งที่คุณพิมพ์มาฟังดูหนักใจ และสำคัญกว่าคำทำนายใด ๆ ตอนนี้เราจึงขอไม่อ่านดวงให้",
       body: "ถ้าคุณกำลังคิดทำร้ายตัวเอง รู้สึกไม่ปลอดภัย หรือมีคนทำร้ายคุณ คุณไม่ต้องเผชิญเรื่องนี้คนเดียว มีคนพร้อมรับฟังและช่วยเหลือ",
-      lines: [["1323", "สายด่วนสุขภาพจิต กรมสุขภาพจิต — โทรฟรี ตลอด 24 ชั่วโมง"], ["1669", "เจ็บป่วยฉุกเฉิน / ต้องการรถพยาบาล"], ["191", "เหตุด่วนเหตุร้าย / แจ้งตำรวจ"], ["1300", "ศูนย์ช่วยเหลือสังคม — ความรุนแรงในครอบครัวและการถูกทำร้าย"]],
+      lines: [["1323", "สายด่วนสุขภาพจิต กรมสุขภาพจิต — โทรฟรี ตลอด 24 ชั่วโมง"], ["1669", "เจ็บป่วยฉุกเฉิน / ต้องการรถพยาบาล"], ["191", "เหตุด่วนเหตุร้าย / แจ้งตำรวจ"],
+        ["1300", "ศูนย์ช่วยเหลือสังคม กระทรวง พม. — ความรุนแรงในครอบครัว ปัญหาเด็กและเยาวชน ตลอด 24 ชั่วโมง"],
+        ["02 113 6789", "สมาคมสะมาริตันส์แห่งประเทศไทย — รับฟังทุกเรื่อง 12:00–22:00 น.", "021136789"]],
       after: "ถ้าทำได้ ลองบอกคนที่คุณไว้ใจสักคนว่ากำลังรู้สึกอย่างไร หรือไปที่โรงพยาบาลใกล้บ้าน ถ้าอยู่นอกประเทศไทย โทรเบอร์ฉุกเฉินของประเทศนั้น",
       foot: "ข้อความนี้ไม่ได้บันทึกหรือส่งไปที่ใด · ถ้อยคำบนการ์ดนี้กำลังรอผู้เชี่ยวชาญด้านสุขภาพจิตตรวจทาน",
       call: "โทร",
@@ -4073,7 +4075,9 @@
       title: "Let's pause the reading",
       lead: "Thank you for telling us. What you wrote sounds heavy, and it matters more than any reading, so we will not give a fortune right now.",
       body: "If you are thinking about hurting yourself, feel unsafe, or someone is hurting you, you do not have to face this alone. People are ready to listen and help.",
-      lines: [["1323", "Thai Department of Mental Health hotline — free, 24 hours"], ["1669", "Medical emergency / ambulance"], ["191", "Police emergency"], ["1300", "Social Assistance Center — domestic violence and abuse"]],
+      lines: [["1323", "Thai Department of Mental Health hotline — free, 24 hours"], ["1669", "Medical emergency / ambulance"], ["191", "Police emergency"],
+        ["1300", "Social Assistance Center (Ministry of Social Development and Human Security) — domestic violence, children and young people; 24 hours"],
+        ["02 113 6789", "Samaritans of Thailand — listening line, 12:00–22:00", "021136789"]],
       after: "If you can, tell someone you trust how you feel, or go to the nearest hospital. Outside Thailand, call your local emergency number.",
       foot: "Nothing you typed was saved or sent anywhere · The wording on this card is awaiting review by a mental-health professional",
       call: "Call",
@@ -4082,7 +4086,8 @@
       title: "先暂停这次解读",
       lead: "谢谢你愿意说出来。你写下的内容听起来很沉重，这比任何解读都重要，所以现在我们先不做占卜。",
       body: "如果你正在想伤害自己、觉得不安全，或者有人在伤害你，你不需要独自面对。有人愿意倾听并提供帮助。",
-      lines: [["1323", "泰国心理健康热线（泰国卫生部心理健康司）— 免费，24 小时"], ["1669", "医疗急救 / 救护车"], ["191", "报警（泰国警察）"], ["1300", "泰国社会援助中心 — 家庭暴力和受虐求助"]],
+      lines: [["1323", "泰国心理健康热线（泰国卫生部心理健康司）— 免费，24 小时"], ["1669", "医疗急救 / 救护车"], ["191", "报警（泰国警察）"], ["1300", "泰国社会援助中心（社会发展与人类安全部）— 家庭暴力、儿童和青少年问题，24 小时"],
+        ["02 113 6789", "泰国撒玛利亚会（Samaritans of Thailand）倾听热线 — 12:00–22:00", "021136789"]],
       after: "如果可以，请告诉一位你信任的人你现在的感受，或者去最近的医院。如果你不在泰国，请拨打当地的紧急电话。",
       foot: "你输入的内容没有被保存或发送 · 这张卡片的措辞正在等待心理健康专业人士审阅",
       call: "拨打",
@@ -4093,7 +4098,7 @@
     try { const ls = root.localStorage; if (ls) ls.setItem("lq-support-n", String((parseInt(ls.getItem("lq-support-n"), 10) || 0) + 1)); } catch (e) { /* โหมดส่วนตัว — นับไม่ได้ก็ไม่เป็นไร */ }
     return {
       source: "support", crisis: true, lang, reviewStatus: "pending-professional-review",
-      support: { title: S0.title, lead: S0.lead, body: S0.body, lines: S0.lines.map(([n, t]) => ({ n, t })), after: S0.after, foot: S0.foot, call: S0.call },
+      support: { title: S0.title, lead: S0.lead, body: S0.body, lines: S0.lines.map(([n, t, tel]) => ({ n, t, tel: tel || n })), after: S0.after, foot: S0.foot, call: S0.call },
       sections: [{ id: "support", title: S0.title, paragraphs: [S0.lead, S0.body].concat(S0.lines.map(([n, t]) => n + " — " + t), [S0.after]) }],
     };
   }
@@ -4110,9 +4115,14 @@
     h.id = "fa-h-" + (++uid); box.setAttribute("aria-labelledby", h.id); box.setAttribute("role", "region"); box.setAttribute("data-review", "pending-professional-review");
     box.appendChild(h); box.appendChild(el("p", null, s.lead)); box.appendChild(el("p", null, s.body));
     const ul = el("ul");
-    for (const l of s.lines) { const li = el("li"), a = el("a", "fa-tel", l.n); a.href = "tel:" + l.n; a.setAttribute("aria-label", s.call + " " + l.n); li.appendChild(a); li.appendChild(el("span", null, l.t)); ul.appendChild(li); }
+    for (const l of s.lines) {
+      const li = el("li"), a = el("a", "fa-tel", l.n); a.href = "tel:" + (l.tel || l.n); a.setAttribute("aria-label", s.call + " " + l.n);
+      li.appendChild(a); li.appendChild(el("span", null, l.t)); ul.appendChild(li);
+    }
     box.appendChild(ul); box.appendChild(el("p", null, s.after)); box.appendChild(el("p", "fa-support-foot", s.foot));
     container.appendChild(box);
+    // the page is now in the crisis state: no later reading, remedy, lucky item, paid / merit offer or straight mode on it
+    if (CR && CR.setActive) CR.setActive(doc);
     return box;
   }
   async function interpret(facts, opts = {}) {
@@ -4186,11 +4196,13 @@
     } catch (e) { /* ไม่มี DOM */ }
   }
   function toHTML(result, opts = {}) {
-    const res = result || { sections: [] };
+    let res = result || { sections: [] };
+    if (!res.crisis && CR && CR.active && CR.active(opts.doc)) res = supportResult({ lang: res.lang }); // crisis state: never a reading
     if (res.crisis && res.support) {
       const sp = res.support;
       return '<section class="fa-support" role="region" data-review="pending-professional-review"><h3>' + escapeHtml(sp.title) + "</h3><p>" + escapeHtml(sp.lead) + "</p><p>" + escapeHtml(sp.body) + "</p><ul>" +
-        sp.lines.map(l => '<li><a class="fa-tel" href="tel:' + escapeHtml(l.n) + '">' + escapeHtml(l.n) + "</a> <span>" + escapeHtml(l.t) + "</span></li>").join("") + "</ul><p>" + escapeHtml(sp.after) + '</p><p class="fa-support-foot">' + escapeHtml(sp.foot) + "</p></section>";
+        sp.lines.map(l => '<li><a class="fa-tel" href="tel:' + escapeHtml(l.tel || l.n) + '">' + escapeHtml(l.n) + "</a> <span>" + escapeHtml(l.t) + "</span></li>").join("") +
+        "</ul><p>" + escapeHtml(sp.after) + '</p><p class="fa-support-foot">' + escapeHtml(sp.foot) + "</p></section>";
     }
     let h = "";
     if (res.source === "ai" && opts.aiBadge !== false) h += '<p class="fa-ai-badge">' + escapeHtml(badgeText(opts)) + "</p>";
@@ -4204,7 +4216,8 @@
     const pl = res.plan;
     if (pl && Array.isArray(pl.items) && pl.items.length && opts.plan !== false) {
       const pid = "fa-h-" + (++uid);
-      h += '<section class="fa-plan" aria-labelledby="' + pid + '"><h3 id="' + pid + '" data-i18n="fa.plan.title">' + escapeHtml(pl.title) + "</h3><ol>" + pl.items.map(x => "<li><b>" + escapeHtml(x.for) + "</b> " + escapeHtml(x.t) + "</li>").join("") + "</ol></section>";
+      h += '<section class="fa-plan" data-lq-remedy aria-labelledby="' + pid + '"><h3 id="' + pid + '" data-i18n="fa.plan.title">' + escapeHtml(pl.title) + "</h3><ol>" +
+        pl.items.map(x => "<li><b>" + escapeHtml(x.for) + "</b> " + escapeHtml(x.t) + "</li>").join("") + "</ol></section>";
     }
     const secHTML = s => {
       const hid = "fa-h-" + (++uid), ps = s.paragraphs || [], k = s.collapsed ? ps.length : shownCount(s);
@@ -4220,6 +4233,7 @@
     // ที่มาของผล (หลักฐานแบบสูตรคำนวณที่ไม่ใส่ในประโยค)
     if (res.why && Array.isArray(res.why.lines) && res.why.lines.length && opts.why !== false) h += '<details class="fa-more fa-why"><summary data-i18n="fa.why">' + escapeHtml(res.why.title || "ที่มาของผล") + "</summary><ul>" + res.why.lines.map(l => "<li><b>" + escapeHtml(l.k) + "</b> " + escapeHtml(l.t) + "</li>").join("") + "</ul></details>";
     if (res.reminder && opts.reminder !== false) h += '<p class="fa-reminder" role="note">' + escapeHtml(res.reminder) + "</p>";
+    if (CR && CR.helpHTML) h += CR.helpHTML(res.lang, "lq-helpline-result"); // the help line under every reading
     return h;
   }
   function renderSections(container, result, opts = {}) {
@@ -4247,6 +4261,7 @@
     const pl = res.plan;
     if (pl && Array.isArray(pl.items) && pl.items.length && opts.plan !== false) {
       const box = el("section", "fa-plan"), h = el("h3", null, pl.title);
+      box.setAttribute("data-lq-remedy", ""); // remedies: hidden in the crisis state
       h.id = "fa-h-" + (++uid); h.setAttribute("data-i18n", "fa.plan.title"); box.setAttribute("aria-labelledby", h.id); box.appendChild(h);
       const ol = el("ol");
       for (const x of pl.items) { const li = el("li"); li.appendChild(el("b", null, x.for)); li.appendChild(doc.createTextNode(" " + x.t)); ol.appendChild(li); }
@@ -4272,6 +4287,8 @@
       d.appendChild(ul); frag.appendChild(d);
     }
     if (res.reminder && opts.reminder !== false) { const n = el("p", "fa-reminder", res.reminder); n.setAttribute("role", "note"); frag.appendChild(n); }
+    // the help line under every reading (owner order 2026-11-12): calm, verified numbers, no detection needed
+    if (CR && CR.helpLine) { try { frag.appendChild(CR.helpLine(doc, res.lang, "lq-helpline-result")); } catch (e) { /* no DOM */ } }
     container.appendChild(frag);
     try { if (root.LQI18N && typeof root.LQI18N.apply === "function") root.LQI18N.apply(container); } catch (e) { /* i18n ไม่พร้อม */ }
     return container;
@@ -4311,13 +4328,16 @@
   function notifyAIResponse(res) {
     for (const h of HOOKS) if (typeof h.onAIResponse === "function") { try { h.onAIResponse(res && typeof res.clone === "function" ? res.clone() : res); } catch (e) { /* observer error */ } }
   }
+  /* crisis state (owner order 2026-11-12): once the support card was shown on this page, every later reading is the card
+     again: no reading, plan, remedy or lucky item, and no hook runs (member light reading, merit or paid offers) */
+  const crisisOn = container => !!(CR && CR.active && CR.active(container && container.ownerDocument));
   function renderWithHooks(container, result, opts) {
     // crisis net first: any free-text field of the page (name, question, dream …) with a crisis signal → support card, never a reading
-    if (!(result && result.crisis) && crisisCheck(pageText(container && container.ownerDocument))) result = supportResult({ lang: result && result.lang });
+    if (!(result && result.crisis) && (crisisOn(container) || crisisCheck(pageText(container && container.ownerDocument)))) result = supportResult({ lang: result && result.lang });
     // round 3: ambiguous distress or an unusual name → the gentle "are you okay?" step first, never a reading first
     const sl = result && result.lang, card = box => renderSupport(box, supportResult({ lang: sl }));
     if (!(result && result.crisis) && CR && CR.softGate && CR.softGate(container, sl, () => renderWithHooks(container, result, opts), card)) return container;
-    if (!HOOKS.length) return renderSections(container, result, opts);
+    if (!HOOKS.length || (result && result.crisis)) return renderSections(container, result, opts); // a support card never goes through hooks
     let shown = result;
     for (const h of HOOKS) if (typeof h.gate === "function") { try { shown = h.gate(shown, opts, container); } catch (e) { /* keep the reading */ } }
     const out = renderSections(container, shown, opts);
@@ -4327,7 +4347,8 @@
   try { const q = root.LQFortuneHooks; if (Array.isArray(q)) for (const h of q) registerHooks(h); } catch (e) { /* no queue */ }
 
   const api = {
-    crisis: { check: crisisCheck, result: supportResult, render: renderSupport, fields: doc => pageText(doc) },
+    crisis: { check: crisisCheck, result: supportResult, render: renderSupport, fields: doc => pageText(doc),
+      active: doc => !!(CR && CR.active && CR.active(doc)), allow: (kind, doc) => !(CR && CR.active && CR.active(doc)) },
     compose, interpret, regenerate, status, renderSections: renderWithHooks, registerHooks, toHTML, consentControl, hasConsent, setConsent,
     rng, pick, shuffle, SECTION_TITLES, SECTION_IDS, CONSENT_TEXT, DOMAIN_NAMES,
     lint, lintSemantic, lintZh, lintEn, nearDupPairs, lintRepeats, leadEcho, PHRASE_BUDGET, FILLER_BUDGET,

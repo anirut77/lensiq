@@ -233,7 +233,7 @@
     K.wrapTh(c, opt.title || "", W - 160).slice(0, 2).forEach(function (l, k) { c.fillText(l, W / 2, y + k * 64); });
     y += (K.wrapTh(c, opt.title || "", W - 160).length > 1 ? 128 : 64);
     if (opt.sub) { c.font = "500 32px " + F; c.fillStyle = "#f3c969"; c.fillText(K.wrapTh(c, opt.sub, W - 160)[0], W / 2, y); y += 56; }
-    var msgs = (opt.msgs || []).slice(0, 3), space = 1250 - y, boxH = Math.min(124, (space - 2 * 16) / 3), fs = boxH < 100 ? 28 : 32;
+    var msgs = (opt.msgs || []).slice(0, 3), space = 1208 - y, boxH = Math.min(124, (space - 2 * 16) / 3), fs = boxH < 100 ? 28 : 32;
     c.font = "500 " + fs + "px " + F;
     msgs.forEach(function (m, k) {
       var yy = y + k * (boxH + 16);
@@ -243,8 +243,11 @@
       if (all.length > 2) ls[1] = ls[1].replace(/.$/, "") + "…";
       ls.forEach(function (l, j) { c.fillText(l, W / 2, yy + boxH / 2 + (j - (ls.length - 1) / 2) * (fs * 1.35)); });
     });
-    c.font = "400 24px " + F; c.fillStyle = "#8f9bc4";
-    K.wrapTh(c, opt.foot || T("fk.card.foot", "เพื่อความบันเทิงตามความเชื่อ ไม่ใช่วิทยาศาสตร์"), W - 160).slice(0, 2).forEach(function (l, k) { c.fillText(l, W / 2, 1290 + k * 30); });
+    // the help line travels with every shared card (owner order 2026-11-12; numbers verified in docs/CRISIS-RESOURCES.md)
+    c.font = "500 24px " + F; c.fillStyle = "#a5f3fc";
+    K.wrapTh(c, T("fk.card.help", "ถ้ากำลังรู้สึกไม่ไหว โทร 1323 สายด่วนสุขภาพจิต ฟรี ตลอด 24 ชั่วโมง"), W - 160).slice(0, 2).forEach(function (l, k) { c.fillText(l, W / 2, 1236 + k * 28); });
+    c.font = "400 22px " + F; c.fillStyle = "#8f9bc4";
+    K.wrapTh(c, opt.foot || T("fk.card.foot", "เพื่อความบันเทิงตามความเชื่อ ไม่ใช่วิทยาศาสตร์"), W - 160).slice(0, 2).forEach(function (l, k) { c.fillText(l, W / 2, 1298 + k * 26); });
     return cv;
   };
   var cardUrls = {};

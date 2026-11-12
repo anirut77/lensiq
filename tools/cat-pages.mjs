@@ -14,6 +14,7 @@ import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { metaPolicy, metaTag } from "./csp-meta.mjs";
+import { snippet as helpLine } from "./helpline.mjs";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
@@ -200,6 +201,8 @@ export function pageHtml(cat, nav = navEntries()) {
     '<header class="nav" id="siteNav"></header>',
     '<script src="nav.js?v=15"></script>',
     '<script src="i18n/zh-cat.js?v=1"></script>',
+    // the fortune category carries the always-visible help line (owner order 2026-11-12; tools/helpline.mjs)
+    ...(cat.slug === "fortune" ? [helpLine("lqHelpTop")] : []),
     `<main class="pd cat" id="main" data-cat="${cat.slug}">`,
     `  <section class="pd-hero" aria-labelledby="catH">`,
     `    <span class="eyebrow" data-i18n="cat.eyebrow">LENSIQ · หมวดงาน</span>`,
@@ -235,6 +238,7 @@ export function pageHtml(cat, nav = navEntries()) {
     `      </nav>`,
     `    </section>`,
     `  </div>`,
+    ...(cat.slug === "fortune" ? [helpLine("lqHelpEnd", "  ")] : []),
     `</main>`,
     '<script src="lensiq-config.js?v=4"></script>',
     "</body>",

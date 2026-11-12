@@ -27,6 +27,15 @@
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=15"></script>
 
+<aside class="lq-helpline" id="lqHelpTop" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
+  <span data-i18n="help.line.lead">ถ้ากำลังรู้สึกไม่ไหว โทรคุยได้ที่สายด่วนสุขภาพจิต</span>
+  <a class="lq-helpline-tel" href="tel:1323">1323</a>
+  <span data-i18n="help.line.free">ฟรี ตลอด 24 ชั่วโมง</span>
+  <span class="lq-helpline-sep" aria-hidden="true">·</span>
+  <span data-i18n="help.line.emerg">เจ็บป่วยฉุกเฉิน</span>
+  <a class="lq-helpline-tel" href="tel:1669">1669</a>
+  <span class="lq-helpline-note" data-i18n="help.line.note">อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น</span>
+</aside>
 <main class="fk dr" id="drApp">
   <div class="fk-head">
     <span class="eyebrow" data-i18n="dream.eyebrow">Dream reading · ทำนายฝัน</span>
@@ -71,7 +80,7 @@
     </div>
     <div id="drReadWrap"></div>
     <div class="fk-res-actions">
-      <button data-i18n="fortune.common.share" class="btn primary big" id="drShare" type="button">แชร์การ์ดผลลัพธ์</button>
+      <button data-i18n="fortune.common.share" class="btn primary big" id="drShare" data-lq-remedy type="button">แชร์การ์ดผลลัพธ์</button>
       <button data-i18n="fortune.common.print" class="btn ghost big" id="drPrint" type="button">พิมพ์</button>
       <button data-i18n="dream.drAgain" class="btn ghost big" id="drAgain" type="button">ทำนายฝันใหม่</button>
     </div>
@@ -92,6 +101,15 @@
       <p class="fk-small" data-i18n="dream.principle">หลักการ: ฝันที่ตำราเก่ามองว่าไม่ดี เช่น ฟันหลุด ตีความใหม่ในเชิงการเปลี่ยนผ่าน ไม่ทำนายความตาย โรคภัย อุบัติเหตุ และไม่ให้เลขเพื่อการพนัน</p>
     </section>
   </div>
+  <aside class="lq-helpline" id="lqHelpEnd" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
+    <span data-i18n="help.line.lead">ถ้ากำลังรู้สึกไม่ไหว โทรคุยได้ที่สายด่วนสุขภาพจิต</span>
+    <a class="lq-helpline-tel" href="tel:1323">1323</a>
+    <span data-i18n="help.line.free">ฟรี ตลอด 24 ชั่วโมง</span>
+    <span class="lq-helpline-sep" aria-hidden="true">·</span>
+    <span data-i18n="help.line.emerg">เจ็บป่วยฉุกเฉิน</span>
+    <a class="lq-helpline-tel" href="tel:1669">1669</a>
+    <span class="lq-helpline-note" data-i18n="help.line.note">อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น</span>
+  </aside>
 </main>
 
 <div class="fk-idle" id="drIdle" hidden role="status"></div>
@@ -101,9 +119,9 @@
 <script src="i18n/zh-fortune-dream.js?v=1"></script>
 <script src="i18n/zh-kb-dream.js?v=1"></script>
 <script src="lensiq-config.js?v=3"></script>
-<script src="fortune-crisis.js?v=3"></script>
-<script src="fortune-ai.js?v=14"></script>
-<script src="fortune-kit.js?v=3"></script>
+<script src="fortune-crisis.js?v=4"></script>
+<script src="fortune-ai.js?v=15"></script>
+<script src="fortune-kit.js?v=4"></script>
 <script src="dream-kb.js?v=3"></script>
 <script src="dream.js?v=4"></script>
 </body>

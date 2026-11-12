@@ -334,3 +334,23 @@ body[class*="-kiosk"] .lq-legal-foot{display:none}
 .site-foot .foot-docs a{color:#dfe4f5;text-decoration:underline;text-underline-offset:3px;display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px}
 .about-foot .foot-legal a{min-width:44px;justify-content:center}
 .about .hint a[href^="LICENSES/"]{display:inline-flex;align-items:center;min-height:44px;color:#3b2fc0;text-decoration:underline;text-underline-offset:3px}
+
+/* ---------- help line on every fortune page and under every reading (owner order 2026-11-12) ----------
+   Calm, always visible, no detection needed: verified numbers only (docs/CRISIS-RESOURCES.md). In the HTML so it shows
+   without JavaScript (tools/helpline.mjs); fortune-crisis.js builds the same line under each reading. */
+.lq-helpline{display:block;width:calc(100% - 24px);max-width:1120px;margin:10px auto;padding:10px 14px;border:1px solid #bcd3e6;border-radius:14px;
+  background:#eef5fb;color:#14324a;font-size:.95rem;line-height:1.7;overflow-wrap:anywhere}
+.lq-helpline-result{width:auto;margin:14px 0 4px}
+.lq-helpline-tel{display:inline-flex;align-items:center;justify-content:center;min-width:56px;min-height:44px;margin:2px;padding:0 12px;border-radius:12px;
+  background:#0b5d8f;color:#fff;font-weight:700;font-size:1.05em;text-decoration:none;vertical-align:middle}
+.lq-helpline-tel:hover{background:#094d77}
+.lq-helpline-tel:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}
+.lq-helpline-sep{margin:0 2px;color:#476580}
+.lq-helpline-note{display:block;margin-top:2px;font-size:.85rem;color:#33506a}
+/* crisis state (fortune-crisis.js): once the support card was shown, remedies, lucky items, recommendations, lead forms
+   and share cards stay hidden on that page */
+html[data-lq-crisis] [data-lq-remedy]{display:none!important}
+@media print{
+  .lq-helpline{background:#fff;border-color:#888;color:#000;break-inside:avoid}
+  .lq-helpline-tel{min-height:0;min-width:0;padding:0;background:none;color:#000;text-decoration:underline}
+}

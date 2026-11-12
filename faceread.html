@@ -26,6 +26,15 @@
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=15"></script>
 
+<aside class="lq-helpline" id="lqHelpTop" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
+  <span data-i18n="help.line.lead">ถ้ากำลังรู้สึกไม่ไหว โทรคุยได้ที่สายด่วนสุขภาพจิต</span>
+  <a class="lq-helpline-tel" href="tel:1323">1323</a>
+  <span data-i18n="help.line.free">ฟรี ตลอด 24 ชั่วโมง</span>
+  <span class="lq-helpline-sep" aria-hidden="true">·</span>
+  <span data-i18n="help.line.emerg">เจ็บป่วยฉุกเฉิน</span>
+  <a class="lq-helpline-tel" href="tel:1669">1669</a>
+  <span class="lq-helpline-note" data-i18n="help.line.note">อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น</span>
+</aside>
 <main class="fr" id="frApp">
   <div class="fr-head">
     <span class="eyebrow" data-i18n="faceread.eyebrow">Face reading · โหงวเฮ้ง</span>
@@ -166,20 +175,20 @@
       </section>
     </div>
 
-    <section class="fr-block fr-lucky">
+    <section class="fr-block fr-lucky" data-lq-remedy>
       <h3 data-i18n="fortune.common.luckTips">เคล็ดเสริมดวง &amp; สีมงคล</h3>
       <ul class="fr-colors" id="frColors"></ul>
       <ul class="fr-tips" id="frTips"></ul>
     </section>
 
-    <section class="fr-block fr-reco" id="frReco" hidden>
+    <section class="fr-block fr-reco" id="frReco" data-lq-remedy hidden>
       <h3 id="frRecoTitle"></h3>
       <ul class="reco-list" id="frRecoList"></ul>
       <p class="reco-promo" id="frRecoPromo"></p>
       <p class="fr-small" id="frRecoNote"></p>
     </section>
 
-    <section class="fr-block fr-lead" id="frLead" hidden>
+    <section class="fr-block fr-lead" id="frLead" data-lq-remedy hidden>
       <h3 id="frLeadTitle"></h3>
       <p class="fr-small" id="frLeadLead"></p>
       <form id="frLeadForm" novalidate>
@@ -203,7 +212,7 @@
     </details>
 
     <div class="fr-res-actions">
-      <button data-i18n="fortune.common.share" class="btn primary big" id="frShare" type="button">แชร์การ์ดผลลัพธ์</button>
+      <button data-i18n="fortune.common.share" class="btn primary big" id="frShare" data-lq-remedy type="button">แชร์การ์ดผลลัพธ์</button>
       <button data-i18n="fortune.common.print" class="btn ghost big" id="frPrint" type="button">พิมพ์</button>
       <button data-i18n="fortune.common.nextPerson" class="btn ghost big" id="frAgain" type="button">อ่านคนถัดไป</button>
       <label class="fr-check" data-i18n="faceread.photoCard"><input type="checkbox" id="frPhotoCard"> ใส่รูปของฉันในการ์ด</label>
@@ -238,6 +247,15 @@
       <p class="fr-small" data-i18n="faceread.principle">หลักการ: เนื้อหาเป็นเชิงบวกเท่านั้น ไม่ทำนายสุขภาพ เคราะห์ร้าย หรือความสัมพันธ์ในทางลบ ไม่ให้คะแนนความสวยงาม และไม่อ้างอิงเพศหรือเชื้อชาติ</p>
     </section>
   </div>
+  <aside class="lq-helpline" id="lqHelpEnd" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
+    <span data-i18n="help.line.lead">ถ้ากำลังรู้สึกไม่ไหว โทรคุยได้ที่สายด่วนสุขภาพจิต</span>
+    <a class="lq-helpline-tel" href="tel:1323">1323</a>
+    <span data-i18n="help.line.free">ฟรี ตลอด 24 ชั่วโมง</span>
+    <span class="lq-helpline-sep" aria-hidden="true">·</span>
+    <span data-i18n="help.line.emerg">เจ็บป่วยฉุกเฉิน</span>
+    <a class="lq-helpline-tel" href="tel:1669">1669</a>
+    <span class="lq-helpline-note" data-i18n="help.line.note">อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น</span>
+  </aside>
 </main>
 
 <div class="fr-idle" id="frIdle" hidden role="status"></div>
@@ -252,8 +270,8 @@
 <script src="lensiq-track.js?v=2"></script>
 <script src="lensiq-camera.js?v=2"></script>
 <script src="lensiq-detect.js?v=2"></script>
-<script src="fortune-crisis.js?v=3"></script>
-<script src="fortune-ai.js?v=14"></script>
+<script src="fortune-crisis.js?v=4"></script>
+<script src="fortune-ai.js?v=15"></script>
 <script src="faceread-kb.js?v=5"></script>
 <script src="faceread.js?v=9"></script>
 </body>

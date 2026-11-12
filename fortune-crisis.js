@@ -196,6 +196,90 @@
     renderSoft(container, lang, () => { ack(doc); proceed(); }, () => card(container));
     return true;
   }
-  const api = { check, fields, soft, softName, plainName, pageSoft, ack, renderSoft, softGate, softText };
+  /* ---------------- help line (owner order 2026-11-12) ----------------
+     A calm line with real help resources on every fortune page and under every reading; it needs no detection.
+     Numbers, hours and cost are only what docs/CRISIS-RESOURCES.md verified from official sources (checked 2026-11-12):
+     1323 (Department of Mental Health: free, 24 hours) and 1669 (medical emergency; hours and cost not shown, not read
+     directly on niems.go.th). No verified Chinese-language line exists in Thailand: the Chinese text says so.
+     HELP is the canonical wording: tools/helpline.mjs writes the static Thai line into every fortune page (it shows
+     without JavaScript), i18n/{en,zh}-common.js carry the same English / Chinese text under help.line.* (unit-tested). */
+  /** @type {{tel: string[], th: Record<string, string>, en: Record<string, string>, zh: Record<string, string>}} */
+  const HELP = {
+    tel: ["1323", "1669"],
+    th: { label: "สายด่วนช่วยเหลือ", lead: "ถ้ากำลังรู้สึกไม่ไหว โทรคุยได้ที่สายด่วนสุขภาพจิต", free: "ฟรี ตลอด 24 ชั่วโมง", emerg: "เจ็บป่วยฉุกเฉิน",
+      note: "อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น" },
+    en: { label: "Help lines", lead: "If things feel like too much, you can talk to someone: Thai mental health hotline", free: "free, 24 hours",
+      emerg: "Medical emergency", note: "Outside Thailand, call your local emergency number." },
+    zh: { label: "求助热线", lead: "如果你感觉撑不下去，可以打电话找人聊聊：泰国心理健康热线", free: "免费，24 小时", emerg: "医疗急救",
+      note: "目前没有经核实的泰国中文热线；不在泰国时请拨打当地紧急电话。" },
+  };
+  /** the help line's parts in order: [kind, field or number] */
+  const HELP_PARTS = [["t", "lead"], ["tel", "1323"], ["t", "free"], ["sep", ""], ["t", "emerg"], ["tel", "1669"], ["note", "note"]];
+  const helpLang = (/** @type {any} */ l) => (l === "en" || l === "zh" ? l : "th");
+  /** the help line as an element (textContent only). With the page's i18n present it is built in Thai with data-i18n keys
+   *  and translated by LQI18N (so it follows later language switches); without it, in the given language.
+   *  @param {any} [doc] @param {string} [lang] @param {string} [cls] extra class */
+  function helpLine(doc, lang, cls) {
+    const d = doc || root.document, I = /** @type {any} */ (root).LQI18N, i18n = !!(I && typeof I.apply === "function");
+    const L = HELP[i18n ? "th" : helpLang(lang)];
+    /** @param {string} tag @param {string} [c] @param {string} [t] */
+    const el = (tag, c, t) => { const e = d.createElement(tag); if (c) e.className = c; if (t != null) e.textContent = t; return e; };
+    const box = el("aside", "lq-helpline" + (cls ? " " + cls : ""));
+    box.setAttribute("role", "note"); box.setAttribute("aria-label", L.label); box.setAttribute("data-i18n-attr", "aria-label:help.line.label");
+    for (const [k, v] of HELP_PARTS) {
+      if (k === "tel") { const a = el("a", "lq-helpline-tel", v); a.setAttribute("href", "tel:" + v); box.appendChild(a); }
+      else if (k === "sep") { const x = el("span", "lq-helpline-sep", "·"); x.setAttribute("aria-hidden", "true"); box.appendChild(x); }
+      else { const x = el("span", k === "note" ? "lq-helpline-note" : "", L[v]); x.setAttribute("data-i18n", "help.line." + v); box.appendChild(x); }
+      if (k !== "note") box.appendChild(d.createTextNode(" "));
+    }
+    if (i18n) { try { I.apply(box); } catch (e) { /* i18n not ready: Thai stays */ } }
+    return box;
+  }
+  const escH = (/** @type {any} */ s) => String(s).replace(/[&<>"]/g, c => (/** @type {Record<string, string>} */ ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }))[c]);
+  /** the help line as HTML in one language (Thai carries the data-i18n keys) @param {string} [lang] @param {string} [cls] */
+  function helpHTML(lang, cls) {
+    const l = helpLang(lang), L = HELP[l], key = (/** @type {string} */ k) => (l === "th" ? ' data-i18n="help.line.' + k + '"' : "");
+    const parts = HELP_PARTS.map(([k, v]) => k === "tel" ? '<a class="lq-helpline-tel" href="tel:' + v + '">' + v + "</a>"
+      : k === "sep" ? '<span class="lq-helpline-sep" aria-hidden="true">·</span>'
+      : "<span" + (k === "note" ? ' class="lq-helpline-note"' : "") + key(v) + ">" + escH(L[v]) + "</span>");
+    return '<aside class="lq-helpline' + (cls ? " " + escH(cls) : "") + '" role="note" aria-label="' + escH(L.label) + '"' +
+      (l === "th" ? ' data-i18n-attr="aria-label:help.line.label"' : "") + ">" + parts.join(" ") + "</aside>";
+  }
+
+  /* ---------------- crisis state (owner order 2026-11-12) ----------------
+     Once the support card has been shown on a page (hard net, or the soft step's "talk" path), the PAGE is in the crisis
+     state until it is reloaded: FortuneAI shows the support card instead of any later reading, hooks (member, merit,
+     paid services) do not run, and <html data-lq-crisis="1"> hides every block marked data-lq-remedy (lucky items,
+     remedies, recommendations, lead forms, share cards) through styles.css. Any renderer of remedies, lucky items, paid
+     or merit services or straight-mode readings must ask allow(kind) first. Page-level only: nothing is stored. */
+  /** @type {WeakSet<object>|null} */
+  const ACTIVE = typeof WeakSet !== "undefined" ? new WeakSet() : null;
+  const CRISIS_CSS = "html[data-lq-crisis] [data-lq-remedy]{display:none!important}";
+  /** @param {any} [doc] @returns {any} */
+  const docOf = doc => doc || root.document || null;
+  /** true when this page is in the crisis state @param {any} [doc] */
+  function active(doc) {
+    const d = docOf(doc);
+    if (!d) return false;
+    if (ACTIVE && typeof d === "object" && ACTIVE.has(d)) return true;
+    try { return !!(d.documentElement && d.documentElement.getAttribute && d.documentElement.getAttribute("data-lq-crisis") === "1"); } catch (e) { return false; }
+  }
+  /** put this page into the crisis state (called when the support card is shown) @param {any} [doc] */
+  function setActive(doc) {
+    const d = docOf(doc);
+    if (!d || typeof d !== "object") return;
+    if (ACTIVE) ACTIVE.add(d);
+    try { if (d.documentElement && d.documentElement.setAttribute) d.documentElement.setAttribute("data-lq-crisis", "1"); } catch (e) { /* no DOM */ }
+    try {
+      if (d.getElementById && !d.getElementById("lq-crisis-style") && d.head) { const st = d.createElement("style"); st.id = "lq-crisis-style"; st.textContent = CRISIS_CSS; d.head.appendChild(st); }
+    } catch (e) { /* styles.css has the same rule */ }
+    try { if (typeof root.dispatchEvent === "function" && typeof root.CustomEvent === "function") root.dispatchEvent(new root.CustomEvent("lq-crisis")); } catch (e) { /* no events */ }
+  }
+  /** may a renderer show this kind of content ("remedy" | "lucky" | "paid" | "merit" | "straight" | "reco" | "lead" | "share")?
+   *  false while the page is in the crisis state @param {string} kind @param {any} [doc] */
+  // eslint-disable-next-line no-unused-vars
+  const allow = (kind, doc) => !active(doc);
+
+  const api = { check, fields, soft, softName, plainName, pageSoft, ack, renderSoft, softGate, softText, HELP, helpLine, helpHTML, active, setActive, allow };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else /** @type {any} */ (root).LQFortuneCrisis = api;
 })(typeof window !== "undefined" ? window : globalThis);

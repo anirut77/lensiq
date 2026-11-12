@@ -77,3 +77,5 @@
   .rp-plan30{break-inside:avoid;background:#fff;border:1px solid var(--rp-line)}
   .rp-plan30 .rp-weeks{grid-template-columns:1fr 1fr}
 }
+/* help line: the printed report keeps the one at its end (report.js); the page-level copies are not printed twice */
+@media print{#lqHelpTop,#lqHelpEnd{display:none!important}}

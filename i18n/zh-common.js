@@ -470,5 +470,11 @@
   "home.cv.interest": "关注度 {n}%",
   "home.cv.smile": "情绪：微笑",
   "home.cv.watching": "正在看屏幕 {n} 人",
-  "home.cv.avg": "平均关注度 {n}%"
+  "home.cv.avg": "平均关注度 {n}%",
+  // ---------- help line on every fortune page (fortune-crisis.js HELP; numbers verified in docs/CRISIS-RESOURCES.md) ----------
+  "help.line.label": "求助热线",
+  "help.line.lead": "如果你感觉撑不下去，可以打电话找人聊聊：泰国心理健康热线",
+  "help.line.free": "免费，24 小时",
+  "help.line.emerg": "医疗急救",
+  "help.line.note": "目前没有经核实的泰国中文热线；不在泰国时请拨打当地紧急电话。"
 } });

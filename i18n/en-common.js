@@ -467,5 +467,11 @@
   "home.cv.interest": "Attention {n}%",
   "home.cv.smile": "Emotion: smiling",
   "home.cv.watching": "{n} watching the screen",
-  "home.cv.avg": "Average attention {n}%"
+  "home.cv.avg": "Average attention {n}%",
+  // ---------- help line on every fortune page (fortune-crisis.js HELP; numbers verified in docs/CRISIS-RESOURCES.md) ----------
+  "help.line.label": "Help lines",
+  "help.line.lead": "If things feel like too much, you can talk to someone: Thai mental health hotline",
+  "help.line.free": "free, 24 hours",
+  "help.line.emerg": "Medical emergency",
+  "help.line.note": "Outside Thailand, call your local emergency number."
 } });

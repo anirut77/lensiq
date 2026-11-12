@@ -90,5 +90,11 @@
   "lucky.mean.sri": "财运与魅力",
   "lucky.mean.mula": "稳定与根基",
   "lucky.mean.utsaha": "勤奋与工作干劲",
-  "lucky.mean.montri": "长辈关照与支持"
+  "lucky.mean.montri": "长辈关照与支持",
+  // help line (same text as i18n/zh-common.js help.line.*; tools/helpline.mjs --check keeps them equal)
+  "help.line.label": "求助热线",
+  "help.line.lead": "如果你感觉撑不下去，可以打电话找人聊聊：泰国心理健康热线",
+  "help.line.free": "免费，24 小时",
+  "help.line.emerg": "医疗急救",
+  "help.line.note": "目前没有经核实的泰国中文热线；不在泰国时请拨打当地紧急电话。"
 } });

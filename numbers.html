@@ -26,6 +26,15 @@
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=15"></script>
 
+<aside class="lq-helpline" id="lqHelpTop" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
+  <span data-i18n="help.line.lead">ถ้ากำลังรู้สึกไม่ไหว โทรคุยได้ที่สายด่วนสุขภาพจิต</span>
+  <a class="lq-helpline-tel" href="tel:1323">1323</a>
+  <span data-i18n="help.line.free">ฟรี ตลอด 24 ชั่วโมง</span>
+  <span class="lq-helpline-sep" aria-hidden="true">·</span>
+  <span data-i18n="help.line.emerg">เจ็บป่วยฉุกเฉิน</span>
+  <a class="lq-helpline-tel" href="tel:1669">1669</a>
+  <span class="lq-helpline-note" data-i18n="help.line.note">อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น</span>
+</aside>
 <main class="nm" id="nmApp">
   <div class="nm-head">
     <span class="eyebrow" data-i18n="numbers.eyebrow">Lucky numbers · เลขมงคล</span>
@@ -145,19 +154,19 @@
       <button data-i18n="fortune.common.regen" class="btn ghost" id="nmAgain2" type="button">อ่านอีกสำนวน</button>
     </section>
 
-    <section class="nm-block" id="nmGoals" hidden>
+    <section class="nm-block" id="nmGoals" data-lq-remedy hidden>
       <h3 data-i18n="numbers.h36">แนะนำการเลือกเบอร์ตามเป้าหมาย</h3>
       <ul class="nm-goals" id="nmGoalList"></ul>
     </section>
 
-    <section class="nm-block" id="nmWordsBlock">
+    <section class="nm-block" id="nmWordsBlock" data-lq-remedy>
       <h3 data-i18n="numbers.h37">คำพลังจากผลนี้</h3>
       <div class="lk-words" id="nmWords"></div>
       <p class="nm-small" data-i18n="numbers.words.small">สรุปพลังเด่นของเลขนี้เป็นคำสั้น ๆ ไว้เป็นกำลังใจ</p>
     </section>
 
     <div class="nm-res-actions">
-      <button data-i18n="fortune.common.share" class="btn primary big" id="nmShare" type="button">แชร์การ์ดผลลัพธ์</button>
+      <button data-i18n="fortune.common.share" class="btn primary big" id="nmShare" data-lq-remedy type="button">แชร์การ์ดผลลัพธ์</button>
       <button data-i18n="fortune.common.print" class="btn ghost big" id="nmPrint" type="button">พิมพ์</button>
       <button data-i18n="numbers.nmAgain" class="btn ghost big" id="nmAgain" type="button">วิเคราะห์เลขใหม่</button>
     </div>
@@ -211,6 +220,15 @@
       <p class="nm-small" data-i18n="numbers.src.principle">หลักการ: เชิงบวกเสมอ คู่ที่ควรระวังใช้ถ้อยคำอ่อนโยน ไม่ทำนายเคราะห์ร้าย ไม่ให้เลขสำหรับการพนัน และไม่เก็บตัวเลขของผู้ใช้</p>
     </section>
   </div>
+  <aside class="lq-helpline" id="lqHelpEnd" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
+    <span data-i18n="help.line.lead">ถ้ากำลังรู้สึกไม่ไหว โทรคุยได้ที่สายด่วนสุขภาพจิต</span>
+    <a class="lq-helpline-tel" href="tel:1323">1323</a>
+    <span data-i18n="help.line.free">ฟรี ตลอด 24 ชั่วโมง</span>
+    <span class="lq-helpline-sep" aria-hidden="true">·</span>
+    <span data-i18n="help.line.emerg">เจ็บป่วยฉุกเฉิน</span>
+    <a class="lq-helpline-tel" href="tel:1669">1669</a>
+    <span class="lq-helpline-note" data-i18n="help.line.note">อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น</span>
+  </aside>
 </main>
 
 <div class="nm-idle" id="nmIdle" hidden role="status"></div>
@@ -221,8 +239,8 @@
 <script src="i18n/zh-fortune-numbers.js?v=1"></script>
 <script src="i18n/zh-kb-numbers.js?v=1"></script>
 <script src="lensiq-config.js?v=3"></script>
-<script src="fortune-crisis.js?v=3"></script>
-<script src="fortune-ai.js?v=14"></script>
+<script src="fortune-crisis.js?v=4"></script>
+<script src="fortune-ai.js?v=15"></script>
 <script src="numbers-kb.js?v=4"></script>
 <script src="numbers.js?v=4"></script>
 </body>

@@ -770,7 +770,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   $("#hsForm").addEventListener("submit", function (e) {
     e.preventDefault(); touch();
     // crisis net first (review 2026-11-12): the raw name and every other field, before any calculation or reading
-    if (crisisHit($("#hsName").value) || crisisHit(pageFields())) { $("#hsErr").textContent = ""; showCrisis(); return; }
+    if (crisisOn() || crisisHit($("#hsName").value) || crisisHit(pageFields())) { $("#hsErr").textContent = ""; showCrisis(); return; }
     // round 3: ambiguous distress or an unusual name → the gentle "are you okay?" step before ANY tab is drawn
     if (softHit()) { $("#hsErr").textContent = ""; showSoft(function () { $("#hsForm").requestSubmit(); }); return; }
     var err = $("#hsErr"); err.textContent = "";
@@ -1075,7 +1075,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var upd = function () {
       var o = $("#hsNameOut");
       var nameNum = $("#hsNameNum").value;
-      if (crisisHit(nameNum)) { crisisCard(o); return; } // crisis net first: the name-number field
+      if (crisisOn() || crisisHit(nameNum)) { crisisCard(o); return; } // crisis net first: the name-number field
       // round 3: only a plain name is broken into letters (nothing else typed is echoed back)
       if (nameNum.trim() && !plainName(nameNum)) { o.innerHTML = '<p class="muted">' + esc(T("horoscope.x.nameEmpty", "พิมพ์ชื่อเพื่อดูผลรวม")) + "</p>"; return; }
       var r = HS.thaiNameNumber(nameNum);
@@ -1108,7 +1108,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /* ---------- ดวงคู่ ---------- */
   $("#hsPartner").addEventListener("submit", function (e) {
     e.preventDefault(); touch();
-    if (crisisHit($("#hsPName").value)) { lastPartner = null; crisisCard($("#hsCompat")); return; } // crisis net first: the partner name
+    if (crisisOn() || crisisHit($("#hsPName").value)) { lastPartner = null; crisisCard($("#hsCompat")); return; } // crisis net first: the partner name
     if (!current) return;
     var err = $("#hsPErr"); err.textContent = "";
     var raw = $("#hsPYear").value.replace(/\D/g, ""); $("#hsPYear").value = raw;
@@ -1150,6 +1150,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /* crisis net (review 2026-11-12): a crisis signal in any field shows the support card INSTEAD of every reading tab;
      nothing typed is echoed (subtitle emptied) and the share card cannot be made */
   function crisisHit(v) { var FA = window.FortuneAI; return !!(v && FA && FA.crisis && FA.crisis.check(v)); }
+  /* crisis state (owner order 2026-11-12): once the support card was shown on this page, every later request shows it again
+     (no tab with lucky colours, boosting elements or remedies) until the page is reloaded */
+  function crisisOn() { var FA = window.FortuneAI; return !!(FA && FA.crisis && FA.crisis.active && FA.crisis.active()); }
   function pageFields() { var FA = window.FortuneAI; return FA && FA.crisis && FA.crisis.fields ? FA.crisis.fields() : ""; }
   function crisisCard(box) {
     var FA = window.FortuneAI; box.innerHTML = "";

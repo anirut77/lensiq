@@ -385,7 +385,8 @@
   function plainName(s) { return W.LQFortuneCrisis ? W.LQFortuneCrisis.plainName(s) : s; }
   function crisisStop() {
     var CRx = W.LQFortuneCrisis, out = $("rpOut");
-    var hard = !!(FA.crisis && FA.crisis.check(($("rpName") && $("rpName").value) || ""));
+    // crisis state (owner order 2026-11-12): after the support card on this page, every later report is the card again
+    var hard = !!(FA.crisis && ((FA.crisis.active && FA.crisis.active()) || FA.crisis.check(($("rpName") && $("rpName").value) || "")));
     var soft = !hard && !!(CRx && CRx.pageSoft()); // round 3: the gentle "are you okay?" step before any report
     if (!hard && !soft) return false;
     out.textContent = ""; out.hidden = false;
@@ -453,6 +454,9 @@
     }
     if (rep.reminder) out.appendChild(h("p", { class: "rp-reminder", role: "note", text: rep.reminder }));
     out.appendChild(h("p", { class: "rp-small", text: T("rp.disclaimer", "เพื่อความบันเทิงตามความเชื่อ ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์ ไม่ใช่คำแนะนำทางการแพทย์ การเงิน หรือการจ้างงาน") }));
+    // the help line at the end of every report, kept in the print / PDF view (owner order 2026-11-12)
+    var CRh = W.LQFortuneCrisis;
+    if (CRh && CRh.helpLine) out.appendChild(CRh.helpLine(document, rep.lang, "lq-helpline-result lq-helpline-print"));
     var act = h("div", { class: "rp-actions no-print" });
     var pr = h("button", { type: "button", class: "btn primary", id: "rpPrint", text: T("rp.print", "พิมพ์ / บันทึกเป็น PDF") });
     pr.addEventListener("click", function () { root.print(); });

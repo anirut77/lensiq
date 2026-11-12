@@ -90,5 +90,11 @@
   "lucky.mean.sri": "fortune, money and charm",
   "lucky.mean.mula": "stability and a solid base",
   "lucky.mean.utsaha": "diligence and energy for work",
-  "lucky.mean.montri": "kindness from seniors and support"
+  "lucky.mean.montri": "kindness from seniors and support",
+  // help line (same text as i18n/en-common.js help.line.*; tools/helpline.mjs --check keeps them equal)
+  "help.line.label": "Help lines",
+  "help.line.lead": "If things feel like too much, you can talk to someone: Thai mental health hotline",
+  "help.line.free": "free, 24 hours",
+  "help.line.emerg": "Medical emergency",
+  "help.line.note": "Outside Thailand, call your local emergency number."
 } });

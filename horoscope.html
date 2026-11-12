@@ -26,6 +26,15 @@
 <header class="nav" id="siteNav"></header>
 <script src="nav.js?v=15"></script>
 
+<aside class="lq-helpline" id="lqHelpTop" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
+  <span data-i18n="help.line.lead">ถ้ากำลังรู้สึกไม่ไหว โทรคุยได้ที่สายด่วนสุขภาพจิต</span>
+  <a class="lq-helpline-tel" href="tel:1323">1323</a>
+  <span data-i18n="help.line.free">ฟรี ตลอด 24 ชั่วโมง</span>
+  <span class="lq-helpline-sep" aria-hidden="true">·</span>
+  <span data-i18n="help.line.emerg">เจ็บป่วยฉุกเฉิน</span>
+  <a class="lq-helpline-tel" href="tel:1669">1669</a>
+  <span class="lq-helpline-note" data-i18n="help.line.note">อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น</span>
+</aside>
 <main class="hs" id="hsApp">
   <div class="hs-head">
     <span class="eyebrow" data-i18n="horoscope.eyebrow">Birth-date reading · ดวงวันเดือนปีเกิด</span>
@@ -145,7 +154,7 @@
     </div>
 
     <div class="hs-res-actions">
-      <button data-i18n="horoscope.hsShare" class="btn primary big" id="hsShare" type="button">แชร์การ์ดดวง</button>
+      <button data-i18n="horoscope.hsShare" class="btn primary big" id="hsShare" data-lq-remedy type="button">แชร์การ์ดดวง</button>
       <button data-i18n="fortune.common.print" class="btn ghost big" id="hsPrint" type="button">พิมพ์</button>
       <button data-i18n="horoscope.hsAgain" class="btn ghost big" id="hsAgain" type="button">ดูดวงคนถัดไป</button>
     </div>
@@ -166,6 +175,15 @@
       <p class="hs-small" data-i18n="horoscope.principle">หลักการ: เนื้อหาเป็นเชิงบวก ไม่ทำนายความตาย โรคภัย อุบัติเหตุ หรือภัยพิบัติ เรื่องกาลกิณีและปีชงใช้ถ้อยคำแนะนำให้ใจเย็นเท่านั้น</p>
     </section>
   </div>
+  <aside class="lq-helpline" id="lqHelpEnd" role="note" aria-label="สายด่วนช่วยเหลือ" data-i18n-attr="aria-label:help.line.label">
+    <span data-i18n="help.line.lead">ถ้ากำลังรู้สึกไม่ไหว โทรคุยได้ที่สายด่วนสุขภาพจิต</span>
+    <a class="lq-helpline-tel" href="tel:1323">1323</a>
+    <span data-i18n="help.line.free">ฟรี ตลอด 24 ชั่วโมง</span>
+    <span class="lq-helpline-sep" aria-hidden="true">·</span>
+    <span data-i18n="help.line.emerg">เจ็บป่วยฉุกเฉิน</span>
+    <a class="lq-helpline-tel" href="tel:1669">1669</a>
+    <span class="lq-helpline-note" data-i18n="help.line.note">อยู่ต่างประเทศ โทรเบอร์ฉุกเฉินของประเทศนั้น</span>
+  </aside>
 </main>
 
 <div class="hs-idle" id="hsIdle" hidden role="status"></div>
@@ -176,9 +194,9 @@
 <script src="i18n/zh-fortune-horoscope.js?v=2"></script>
 <script src="i18n/zh-kb-horoscope.js?v=2"></script>
 <script src="lensiq-config.js?v=3"></script>
-<script src="fortune-crisis.js?v=3"></script>
-<script src="fortune-ai.js?v=14"></script>
+<script src="fortune-crisis.js?v=4"></script>
+<script src="fortune-ai.js?v=15"></script>
 <script src="horoscope-kb.js?v=4"></script>
-<script src="horoscope.js?v=8"></script>
+<script src="horoscope.js?v=9"></script>
 </body>
 </html>

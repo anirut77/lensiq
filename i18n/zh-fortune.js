@@ -60,6 +60,7 @@
     "fk.src.ai": "由写作助手（Anthropic 的 Claude）撰写",
     "fk.src.local": "在本机撰写 · 每次说法都不同",
     "fk.card.foot": "仅供娱乐参考，并非科学结论",
+    "fk.card.help": "如果你感觉撑不下去，请拨打泰国心理健康热线 1323：免费，24 小时",
     "fk.share.text": "仅供娱乐参考",
     "fk.card.saved": "卡片已保存",
     "fk.card.fail": "卡片生成失败",
