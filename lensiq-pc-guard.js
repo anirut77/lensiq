@@ -997,7 +997,7 @@
     /おめでとう|ありがとう|ご連絡|拝啓|敬具|お大事に|谢谢|感谢|祝你|祝您|감사|축하|안녕|ขอบคุณ|ยินดีด้วย|ด้วยความเคารพ|regards|sincerely|thank you|thanks|congratulations|get well|reminder|เตือน|อย่าลืม|นัด|appointment|予約|预约|예약/iu
   ];
   /** The same block list for the TESTER one-tap send of the live scan (no preview): true = do not send automatically
-   *  (a phone-like group of 9-11 digits, a non-Thai form of address, letter / note wording). Added 2026-11-12 after the independent
+   *  (a phone-like group of 9-11 digits, a non-Thai form of address, letter / note wording, a note to a person). Added 2026-11-12 after the independent
    *  review found Japanese / Korean names and grouped phones the detectors miss reaching one-tap send when a product label
    *  was in the same frame. @param {any} input */
   const AUTO_BLOCK = [
@@ -1006,7 +1006,14 @@
     // a form of address outside Thai (Thai names and titles are the guard's own, measured, rules; คุณภาพ is not a title)
     /様|さま|さん|殿|御中|님|씨|先生|女士|小姐|\b(?:dear|mr|mrs|ms|miss|dr|hi|hello)\b/iu,
     // letter / note wording (not the label word คำเตือน)
-    /おめでとう|ありがとう|ご連絡|拝啓|敬具|お大事に|谢谢|感谢|祝你|祝您|감사|축하|안녕|ขอบคุณ|ยินดีด้วย|ด้วยความเคารพ|อย่าลืม|นัดหมาย|regards|sincerely|thank you|thanks|congratulations|get well|reminder|appointment|予約|预约|예약/iu
+    /おめでとう|ありがとう|ご連絡|拝啓|敬具|お大事に|谢谢|感谢|祝你|祝您|감사|축하|안녕|ขอบคุณ|ยินดีด้วย|ด้วยความเคารพ|อย่าลืม|นัดหมาย|regards|sincerely|thank you|thanks|congratulations|get well|reminder|appointment|予約|预约|예약/iu,
+    // a note to a person (2026-11-12, after the wider one-tap stress run: "…ไว้ให้ยาย <name>" next to a product label):
+    // Thai "for / of / to" + a kinship word or title, the note markers ไว้ให้ / สำหรับ + a kinship word or title, and the
+    // English / Chinese equivalents. One-tap only: nothing is removed from any text because of these.
+    new RegExp("(?:ไว้ให้|(?:ให้|ของ|ถึง|แด่|สำหรับ)\\s*(?:คุณ\\s*)?(?:ยาย|ปู่|ย่า|พ่อ|แม่|หลาน|ป้า|ลุง|น้า|คุณ(?!ค่า|ภาพ|สมบัติ|ประโยชน์|ลักษณะ)|นาย|นางสาว|นาง|น\\.ส\\.|ด\\.ช\\.|ด\\.ญ\\.|" +
+      "ตา(?!ม|ย|ราง|มิน)|อา(?!การ|หาร|ย|จ|รมณ์|บ)|ลูก(?!ค้า|อม|กลอน)|น้อง|พี่))", "u"),
+    /\b(?:for|to)\s+(?:my\s+|your\s+|dear\s+)?(?:grand(?:ma|pa|mother|father|son|daughter)|granny|nana|mum|mom|mother|dad|father|son|daughter|sister|brother|aunt(?:ie)?|uncle|mr|mrs|ms|miss)\b/iu,
+    /给(?:奶奶|爷爷|外婆|外公|姥姥|姥爷|妈妈|爸爸|母亲|父亲|儿子|女儿|孙子|孙女|宝宝|孩子|哥哥|姐姐|弟弟|妹妹|叔叔|阿姨|舅舅|姑姑|伯伯|老公|老婆|老人|[一-鿿]{1,2}(?:先生|女士|小姐|老师))|給(?:奶奶|爺爺|外婆|外公|媽媽|爸爸|兒子|女兒|寶寶|孩子)/u
   ];
   const autoBlock = input => AUTO_BLOCK.some(re => re.test(String(input == null ? "" : input)));
   /** Session evidence usable for option ข: a barcode with a valid check digit, or a registration number of 5+ letters
