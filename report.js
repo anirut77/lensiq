@@ -379,7 +379,16 @@
     });
     return f;
   }
+  // crisis net first (review 2026-11-12): a crisis signal typed into the name field shows the support card instead of a report
+  // (checked again by FortuneAI on every field); returns true when it stopped. No report is built and no credit is used.
+  function crisisStop() {
+    if (!FA.crisis || !FA.crisis.check(($("rpName") && $("rpName").value) || "")) return false;
+    var out = $("rpOut"); out.textContent = ""; out.hidden = false;
+    FA.crisis.render(out, FA.crisis.result({ lang: lang() }));
+    return true;
+  }
   function renderReport(rep) {
+    if (crisisStop()) return;
     var out = $("rpOut"); out.textContent = ""; out.hidden = false;
     out.setAttribute("lang", rep.lang === "zh" ? "zh-Hans" : rep.lang || "th");
     var head = h("header", { class: "rp-head" }, h("p", { class: "eyebrow", text: "LENSIQ" }), h("h2", { id: "rpOutH", tabindex: "-1", text: rep.title }));
@@ -472,6 +481,7 @@
   }
   $("rpForm").addEventListener("submit", function (/** @type {Event} */ e) {
     e.preventDefault();
+    if (crisisStop()) return;
     var msg = $("rpMsg"); msg.textContent = "";
     var r;
     try { r = build(); } catch (err) { msg.textContent = T("rp.err.build", "สร้างรายงานไม่สำเร็จ กรุณาลองใหม่ (ไม่มีการใช้เครดิต)"); return; }

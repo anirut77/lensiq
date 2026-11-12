@@ -43,6 +43,8 @@ interface Window {
   LENSIQ_FACEPARSE?: boolean;
   /** lensiq-config.js: false = hide the signage age/gender option and never load ageGenderNet (research-licence model) */
   LENSIQ_AGE_GENDER?: boolean;
+  /** fortune-crisis.js (loaded before fortune-ai.js) */
+  LQFortuneCrisis?: any;
   /** lensiq-config.js: "commercial" (default since round 16, customer mode) forces LENSIQ_AGE_GENDER, LENSIQ_EXPRESSION and
    *  LENSIQ_FACEPARSE off; "demo" = research demo (device toggle or operator preset) */
   LENSIQ_PROFILE?: string;

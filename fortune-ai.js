@@ -4046,11 +4046,14 @@
   const CRISIS_TH = /ฆ่าตัว(?:ตาย)?|อยากตาย|อยากจะตาย|ไม่อยาก(?:มีชีวิต(?:อยู่)?|อยู่(?:แล้ว|ต่อ|บนโลก)|ตื่น(?:ขึ้นมา)?อีก)|อยากหายไป(?:จากโลก)?|ไม่อยากตื่น(?:มา|ขึ้นมา)?เจอ(?:วัน)?พรุ่งนี้|ชีวิต(?:นี้)?ไม่มี(?:ความหมาย|ค่า)|(?:ควร|อยาก)จบ(?:ทุกอย่าง|ทุกสิ่ง|มันซะ)|ไม่อยากอยู่บนโลกนี้|อยากจบชีวิต|จบชีวิต(?:ตัวเอง|ตนเอง)|ทำร้ายตัวเอง|ทำร้ายตนเอง|กรีด(?:ข้อมือ|แขน|ตัวเอง)|ปลิดชีพ|กินยาตาย|กินยาเกินขนาด|กระโดด(?:ตึก|สะพาน)|ผูกคอ|(?:ถูก|โดน)(?:ทำร้าย(?:ร่างกาย)?|ทุบตี|ตบตี|ซ้อม|ข่มขืน|ล่วงละเมิด|ทารุณ|กักขัง)|ข่มขืน|ล่วงละเมิดทางเพศ|ความรุนแรงในครอบครัว|(?:แฟน|สามี|ภรรยา|พ่อ|แม่|พ่อเลี้ยง|แม่เลี้ยง)[^\s]{0,8}(?:ตบ|ตี|ทุบ|ทำร้าย|ซ้อม)(?:ฉัน|หนู|ผม|เรา|ดิฉัน)/;
   const CRISIS_EN = /\b(?:suicid\w*|kill(?:ing)? myself|end(?:ing)? my life|end it all|take my (?:own )?life|want(?:ed)? to die|wanna die|wish I (?:was|were) dead|self[- ]?harm\w*|hurt(?:ing)? myself|cut(?:ting)? myself|don'?t want to (?:live|be alive|wake up)|no reason to live|overdos\w*|can'?t go on(?: anymore| any longer)?|want(?:ed)? to disappear|(?:should I|I want to|I'll) (?:just )?end it(?! (?:with|between|off))(?: all)?|no point (?:in )?(?:living|being alive)|life (?:is|feels) (?:meaningless|pointless))\b|\b(?:he|she|they|my (?:partner|husband|wife|boyfriend|girlfriend|father|mother|dad|mum|mom|stepfather|stepmother))\s+(?:hits|beats|abuses|rapes|hurts|chokes)\s+me\b|\b(?:being|been|was|am|got)\s+(?:abused|raped|molested|assaulted|attacked|beaten up)\b|\bdomestic (?:violence|abuse)\b|\bsexual(?:ly)? (?:abuse|assault\w*)\b/i;
   const CRISIS_ZH = /自杀|自尽|轻生|想死|不想活|活不下去|活着没意思|活着好累|活着没有意义|不想再醒来|不想醒来|想消失|结束一切|结束(?:自己的)?生命|自残|自伤|割腕|跳楼|寻死|吞药|服药过量|家暴|家庭暴力|被(?:人)?(?:打|殴打|袭击|虐待|性侵|强奸|侵犯|猥亵)|性侵|强奸|(?:他|她|老公|老婆|丈夫|妻子|男朋友|女朋友|爸爸|妈妈|继父|继母)(?:经常|总是|一直)?(?:打|殴打|虐待)我/;
+  // fortune-crisis.js (review 2026-11-12): the widened net (tone-mark-insensitive Thai, traditional Chinese, slang) + every free-text field
+  const CR = (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-crisis.js") : root.LQFortuneCrisis) || null;
+  const pageText = doc => (CR ? CR.fields(doc) : "");
   function crisisCheck() {
     for (let i = 0; i < arguments.length; i++) {
       const t = String(arguments[i] == null ? "" : arguments[i]).normalize("NFC");
       if (!t) continue;
-      if (CRISIS_TH.test(t.replace(/\s+/g, "")) || CRISIS_EN.test(t) || CRISIS_ZH.test(t)) return true;
+      if (CRISIS_TH.test(t.replace(/\s+/g, "")) || CRISIS_EN.test(t) || CRISIS_ZH.test(t) || (CR && CR.check(t))) return true;
     }
     return false;
   }
@@ -4112,7 +4115,7 @@
   }
   async function interpret(facts, opts = {}) {
     // ข้อความที่ผู้ใช้พิมพ์เอง (ชื่อเล่น คำถาม) มีสัญญาณวิกฤต → การ์ดช่วยเหลือแทนคำทำนาย (ไม่ส่งไป AI)
-    if (facts && crisisCheck(facts.subject && facts.subject.nickname, facts.question, opts.userText)) return supportResult(opts);
+    if (crisisCheck(facts && facts.subject && facts.subject.nickname, facts && facts.question, opts.userText, pageText())) return supportResult(opts);
     // Chinese and English are composed on the device only (the writing assistant and its grounding gate are Thai-only)
     const useAI = langOf(opts) === "zh" || langOf(opts) === "en" ? false : opts.useAI != null ? !!opts.useAI : hasConsent();
     let note;
@@ -4307,6 +4310,8 @@
     for (const h of HOOKS) if (typeof h.onAIResponse === "function") { try { h.onAIResponse(res && typeof res.clone === "function" ? res.clone() : res); } catch (e) { /* observer error */ } }
   }
   function renderWithHooks(container, result, opts) {
+    // crisis net first: any free-text field of the page (name, question, dream …) with a crisis signal → support card, never a reading
+    if (!(result && result.crisis) && crisisCheck(pageText(container && container.ownerDocument))) result = supportResult({ lang: result && result.lang });
     if (!HOOKS.length) return renderSections(container, result, opts);
     let shown = result;
     for (const h of HOOKS) if (typeof h.gate === "function") { try { shown = h.gate(shown, opts, container); } catch (e) { /* keep the reading */ } }
@@ -4317,7 +4322,7 @@
   try { const q = root.LQFortuneHooks; if (Array.isArray(q)) for (const h of q) registerHooks(h); } catch (e) { /* no queue */ }
 
   const api = {
-    crisis: { check: crisisCheck, result: supportResult, render: renderSupport },
+    crisis: { check: crisisCheck, result: supportResult, render: renderSupport, fields: doc => pageText(doc) },
     compose, interpret, regenerate, status, renderSections: renderWithHooks, registerHooks, toHTML, consentControl, hasConsent, setConsent,
     rng, pick, shuffle, SECTION_TITLES, SECTION_IDS, CONSENT_TEXT, DOMAIN_NAMES,
     lint, lintSemantic, lintZh, lintEn, nearDupPairs, lintRepeats, leadEcho, PHRASE_BUDGET, FILLER_BUDGET,
