@@ -22,8 +22,14 @@
     /ทำร้ายตัวเอง|ทำร้ายตนเอง|กรีด(?:ข้อมือ|แขน|ตัวเอง)|ปลิดชีพ|กินยา(?:ตาย|เกินขนาด|ฆ่าตัว)|(?:กิน|ทาน)ยา(?:นอนหลับ|ฆ่าแมลง|พิษ|เบื่อ)|ยาพิษ|ผูกคอ|แขวนคอ/,
     /(?:โดด|กระโดด)(?:ตึก|สะพาน|น้ำตาย|ลงจาก|จากตึก|จากที่สูง|ลงมาตาย)/,
     /(?:ถูก|โดน)(?:ทำร้าย(?:ร่างกาย)?|ทุบตี|ตบตี|ซ้อม|ข่มขืน|ล่วงละเมิด|ลวนลาม|ทารุณ|กักขัง|อนาจาร)|ข่มขืน|ล่วงละเมิดทางเพศ|อนาจาร|ความรุนแรงในครอบครัว/,
-    new RegExp("(?:แฟน|สามี|ภรรยา|ผัว|เมีย|พ่อ|แม่|พ่อเลี้ยง|แม่เลี้ยง|ลุง|น้า|อา|พี่ชาย|ครู|ญาติ)[^\\s]{0,10}?" +
-      "(?:ตบ(?!มุก)|ตี(?!กอล์ฟ|เทนนิส|ลูกบอล|กลอง|ราคา|ความ)|ทุบ|ต่อย|เตะ|กระทืบ|ชก|ทำร้าย|ซ้อม|บีบคอ|ข่มขืน|ลวนลาม|ล่วงละเมิด|จับ(?:หน้าอก|ของสงวน))[^\\s]{0,8}?(?:ฉัน|หนู|ผม|เรา|ดิฉัน|กู)"),
+    // round 3 (review 2026-11-12): more ways to say it, plans and methods, threats, sexual abuse of children
+    /ไม่อยาก(?:เป็น)?อยู่(?:ใน|บน)?โลก|ไม่อยาก(?:เป็น)?อยู่(?:แล้ว|ต่อ|อีกต่อไป)|อยาก(?:นอน|หลับ)(?:หลับ)?(?:แล้ว|ไป)?(?:ไม่|ไม่ต้อง)ตื่น/,
+    /อยาก(?:จะ)?(?:ไป)?(?:ตุย|ม่องเท่ง)|จดหมายลาตาย|ลาโลก|ตาย(?:ๆ)?ไป(?:ซะ|เสีย)(?:ดีกว่า)?|ตายๆไป|ยาฆ่าหญ้า|ยาเบื่อหนู/,
+    /ขู่(?:จะ)?ฆ่า|มีด(?:มา)?จ่อ|(?:แฟน|สามี|ภรรยา|ผัว|เมีย|พ่อ|แม่|พ่อเลี้ยง|แม่เลี้ยง)[^\s]{0,10}บีบคอ/,
+    /ขืนใจ|บังคับ(?:ให้)?(?:หนู|ฉัน|ผม)?(?:ถอด|แก้)(?:เสื้อ|กางเกง|ผ้า)|แอบดู(?:หนู|ฉัน|ผม)?(?:อาบน้ำ|แก้ผ้า|เปลี่ยนเสื้อ)|จับ(?:หน้าอก|ของสงวน|นม(?!แม่))/,
+    new RegExp("(?:แฟน|สามี|ภรรยา|ผัว|เมีย|พ่อ|แม่|พ่อเลี้ยง|แม่เลี้ยง|ลุง|น้า|อา|พี่ชาย|ครู|ญาติ)[^\\s]{0,16}?" +
+      "(?:ตบ(?!มุก)|ตี(?!กอล์ฟ|เทนนิส|ลูกบอล|กลอง|ราคา|ความ)|ทุบ|ต่อย|เตะ|กระทืบ|ชก|ฟาด|หวด|เฆี่ยน|ทำร้าย|ซ้อม|บีบคอ|" +
+      "ข่มขืน|ลวนลาม|ล่วงละเมิด|จับ(?:หน้าอก|ของสงวน))[^\\s]{0,8}?(?:ฉัน|หนู|ผม|เรา|ดิฉัน|กู)"),
   ].map(toneless);
   const EN = [
     /\b(?:want(?:s|ed|ing)?|wanna|going) (?:to|2) die\b|\bwanna die\b|\bkill (?:my ?self|myself)\b|\bkms\b|\bunalive\b|\bend (?:my|my own) life\b|\bsuicidal\b/i,
@@ -33,16 +39,23 @@
     /\bwant (?:it|everything) (?:all )?to (?:stop|end)(?: forever)?\b(?! well| happily)/i,
     /\b(?:plan(?:ning)?|going|gonna) to end it\b(?! with| between| off)|\bend(?:ing)? things\b(?! with| between| off| on)|\bstockpil\w* (?:pills|meds|tablets|sleeping pills)\b/i,
     /\bmakes? me do things\b|\bwo xiang (?:qu )?si\b|\bbu xiang huo\b/i,
+    /\bsuicid\w*|\bunaliv\w*|\bsewer ?slide\b|\boff myself\b|\bdon'?t (?:want to|wanna) (?:be alive|live|exist|be here)\b/i,
+    /\b(?:no|don'?t see the|what'?s the) point (?:in |of )?(?:living|being alive|life|going on)\b|\bsleep forever\b|\bnever wake up\b/i,
+    /\bgoodbye (?:letters?|notes?)\b|\bsuicide note\b|\bplanning my exit\b|\b(?:bought|got|have) (?:a )?rope\b|\b(?:how many|how much)\b[^.?]{0,40}\b(?:to|2) die\b/i,
+    /\bthreaten\w* to kill me\b|\bforced (?:himself|herself|themselves) on me\b|\bcomes? into my (?:room|bed) at night\b|\bnudes?\b[^.]{0,40}\bsecret\b|\bsends? me nudes?\b/i,
+    /\bSA'?d\b|\bgot SA\b|\bnude pics\b/,
     new RegExp("\\b(?:my )?(?:bf|gf|boyfriend|girlfriend|husband|wife|partner|dad|father|mom|mum|mother|step-?dad|step-?father|step-?mom|step-?mother|uncle|brother|teacher|coach|cousin|grandpa)" +
       " (?:\\w+ )?(?:hits|hit|beats|beat|punches|punched|kicks|kicked|slaps|slapped|chokes|choked|abuses|abused|rapes|raped|touches|touched) me\\b(?!\\s+(?:at|in|to|up|on|off)\\b)" +
       "(?!\\s+with (?:a |an |the )?(?:surprise|news|question|idea|joke|gift|compliment|party))", "i"),
   ];
   const ZH = [
-    /自杀|自尽|轻生|想死|活不下去|活着没意思|活着好累|不想(?:再)?醒来|想消失|结束一切|结束(?:自己的)?生命|自残|自伤|割腕|跳楼|寻死|吞药|服药过量|家暴|家庭暴力|性侵|强奸/,
+    /自杀|自尽|轻生|想死(?!的心)|活不下去|活着没意思|活着好累|不想(?:再)?醒来|想消失|结束一切|结束(?:自己的)?生命|自残|自伤|割腕|跳楼|寻死|吞药|服药过量|家暴|家庭暴力|性侵|强奸/,
     /被(?:人)?(?:打|殴打|袭击|虐待|性侵|强奸|侵犯|猥亵)/,
     /想去死|一了百了|离开(?:这个)?(?:世界|人世)|不想活|安眠药|上吊|烧炭|跳河|跳桥|卧轨|(?:楼|窗|桥)(?:上)?跳下/,
-    /(?:男朋友|老公|丈夫|爸爸|爸|妈妈|妈|继父|继母|哥哥|叔叔|他|她)(?:经常|总是|一直|昨晚|又|天天|每天)?(?:打|揍|殴打|虐待|掐|踢|扇)我/,
-    /(?:继父|叔叔|爸爸|老师|哥哥|他)[^。，]{0,10}(?:摸|猥亵|性侵)我/,
+    /(?:男朋友|男友|老公|丈夫|爸爸|爸|妈妈|妈|继父|继母|哥哥|叔叔|舅舅|姑父|姨父|表哥|他|她)[^。，]{0,12}?(?:打|揍|殴打|虐待|掐|踢|扇|抽)我(?!电话|手机)/,
+    /(?:继父|叔叔|舅舅|姑父|姨父|爸爸|老师|哥哥|表哥|他)[^。，]{0,10}(?:摸|猥亵|性侵)我/,
+    /结束这一切|死了算了|不如死了|人间不值得|遗书|割(?:手)?腕|一整瓶药|吃一整瓶|强迫我?(?:发生关系|做爱|上床)|摸我下面/,
+    /죽고\s?싶|자살|\b(?:nak|mahu|ingin) mati\b|bunuh diri|muốn chết|tự tử|tự sát|消えて(?:しまい)?たい/i,
     /没有我[^。]{0,8}更好/,
     /死にたい|消えたい|自殺したい|生きていたくない|死のう/,
   ];
@@ -50,7 +63,8 @@
   /** @type {Record<string, string>} */
   const T2S = { 殺: "杀", 殘: "残", 結: "结", 輕: "轻", 樓: "楼", 從: "从", 經: "经", 繼: "继", 離: "离", 開: "开", 這: "这", 個: "个", 傷: "伤", 為: "为", 對: "对",
     媽: "妈", 強: "强", 姦: "奸", 藥: "药", 過: "过", 會: "会", 沒: "没", 義: "义", 時: "时", 讓: "让", 動: "动", 橋: "桥", 頂: "顶", 後: "后", 來: "来", 說: "说",
-    話: "话", 毆: "殴", 決: "决", 斷: "断", 盡: "尽", 尋: "寻", 燒: "烧", 掛: "挂", 臥: "卧", 軌: "轨", 師: "师", 褻: "亵", 跡: "迹", 剎: "刹", 襲: "袭", 擊: "击" };
+    話: "话", 毆: "殴", 決: "决", 斷: "断", 盡: "尽", 尋: "寻", 燒: "烧", 掛: "挂", 臥: "卧", 軌: "轨", 師: "师", 褻: "亵", 跡: "迹", 剎: "刹", 襲: "袭", 擊: "击",
+    著: "着", 撐: "撑", 遺: "遗", 書: "书", 發: "发", 關: "关", 係: "系", 間: "间", 帶: "带", 頸: "颈", 腳: "脚" };
   const T2S_RE = new RegExp("[" + Object.keys(T2S).join("") + "]", "g");
   /** true when the text shows a crisis signal @param {any} text */
   // English copies: leetspeak undone (0→o 1→i 3→e 4→a @→a $→s), spaces collapsed; letter-spaced runs ("I w a n t t o d i e") joined
@@ -63,14 +77,26 @@
     for (const w of t.split(/\s+/).concat([""])) { if (/^[a-z]$/i.test(w)) run.push(w); else { if (run.length >= 4) out.push(run.join("").toLowerCase()); run = []; } }
     return out;
   }
+  /** English copy (round 3): ! → i, "-" / "." between letters dropped (k-m-s), runs of ≥ 3 single letters joined in place ("d i e")
+   *  @param {string} t */
+  function enCopy(t) {
+    const words = t.replace(/!/g, "i").replace(/([a-z])[-.](?=[a-z])/gi, "$1").replace(/[0134@$]/g, c => LEET[c]).split(/\s+/), out = []; let run = [];
+    for (const w of words.concat([""])) {
+      if (/^[a-z]$/i.test(w)) { run.push(w); continue; }
+      if (run.length >= 3) out.push(run.join("")); else out.push(...run);
+      run = []; if (w) out.push(w);
+    }
+    return out.join(" ");
+  }
   /** true when the text shows a crisis signal @param {any} text */
   function check(text) {
     const t = String(text == null ? "" : text).normalize("NFC");
     if (!t.trim()) return false;
-    const th = t.replace(/บ่(?=\s*(?:อยาก|ไหว|อยู่|มี))/g, "ไม่").replace(/\s+/g, "").replace(TONE, "");
+    const th = t.replace(/(?:บ่|มะ|หม่าย|ม่าย)(?=\s*(?:อยาก|ไหว|อยู่|มี))/g, "ไม่").replace(/\s+/g, "").replace(TONE, "");
     const zh = t.replace(T2S_RE, c => T2S[c]).replace(/\s+/g, "");
     const leet = t.replace(/[0134@$]/g, c => LEET[c]).replace(/\s+/g, " ");
-    return TH.some(re => re.test(th)) || EN.some(re => re.test(t) || re.test(leet)) || ZH.some(re => re.test(zh)) ||
+    const en2 = enCopy(t);
+    return TH.some(re => re.test(th)) || EN.some(re => re.test(t) || re.test(leet) || re.test(en2)) || ZH.some(re => re.test(zh)) || ZH.some(re => re.test(t)) ||
       letterRuns(t.replace(/[0134@$]/g, c => LEET[c])).some(r => COMPACT.test(r));
   }
   const FREE_TEXT = 'textarea, input:not([type]), input[type="text"], input[type="search"]';
@@ -82,6 +108,94 @@
       return Array.from(d.querySelectorAll(FREE_TEXT)).map(e => String((e && e.value) || "")).filter(Boolean).join("\n");
     } catch (e) { return ""; }
   }
-  const api = { check, fields };
+  /* ---------------- round 3 (B): the soft check ----------------
+     Ambiguous distress words (or a name field with > 3 words, a pronoun / verb, digits mixed with letters) → a gentle
+     "are you okay?" step BEFORE any reading: "I'd like to talk to someone" → the support card, "Just the reading" → go on.
+     Fortune vocabulary (the Death card, 死神牌, dreams about a death, "kill time") is removed first; otherwise it errs on
+     the side of asking. */
+  const SOFT = [
+    toneless(/ตาย|ตุย|ลาโลก|เหนื่อย[^\s]{0,12}ไม่ไหว|ทน[^\s]{0,8}ไม่ไหว|ไม่ไหวแล้ว|กลัว|ทำร้าย|จับ[^\s]{0,6}หนู|เบื่อโลก|ไร้ค่า|อยากหายไป|เจ็บปวด/),
+    /\b(?:die|died|dying|dead|death|kill\w*|suicid\w*|end it|can'?t do this|hurts? me|touch(?:es|ed)? me|rope|pills|secret|hopeless|worthless|pointless)\b/i,
+    /死|自杀|走了|结束|打我|摸我|强迫|遗书|撑不下去|活着|没意义|죽|消え|\bmati\b|chết/i,
+  ];
+  const FORTUNE_CTX = [/ไพ่(?:ใบ)?ความตาย|ไพ่\s*Death|ฝัน[^\n]{0,30}/g,
+    /\b(?:the )?Death(?=[^.?]{0,25}\bcards?\b)|\bDeath card\b|\bDeath (?:reversed|upright)\b|\bdream\w*\b[^.?]{0,50}|\bdead tired\b|\bkill(?:ing)? (?:time|it)\b/gi,
+    /死神牌?|梦见[^。？]{0,12}|梦到[^。？]{0,12}|夢見[^。？]{0,12}/g];
+  /** ambiguous distress words (fortune vocabulary removed first) @param {any} text */
+  function soft(text) {
+    let t = String(text == null ? "" : text).normalize("NFC");
+    for (const re of FORTUNE_CTX) t = t.replace(re, " ");
+    const th = t.replace(/\s+/g, "").replace(TONE, ""), zh = t.replace(T2S_RE, c => T2S[c]).replace(/\s+/g, "");
+    return SOFT[0].test(th) || SOFT[1].test(enCopy(t)) || SOFT[2].test(zh);
+  }
+  const NAME_TH = toneless(/(?:ฉัน|หนู|ผม|กู|เรา|ดิฉัน)(?:อยาก|จะ|ไม่|กลัว|เหนื่อย|รู้สึก|โดน|ถูก|ต้อง)|อยาก|ไม่|ช่วยด้วย|กลัว|เหนื่อย/);
+  const NAME_EN = /\b(?:i|i'm|im|me|my|myself|you|we|he|she|they|want|wanna|need|help|hate|kill|die|am|is|are|was|can'?t|don'?t|please)\b/i;
+  const NAME_ZH = /我|你|他|她|想|要|不|死|打|救/;
+  /** a name field that is more than a plain name @param {any} name */
+  function softName(name) {
+    const n = String(name == null ? "" : name).normalize("NFC").trim();
+    if (!n) return false;
+    return n.split(/\s+/).length > 3 || NAME_TH.test(n.replace(/\s+/g, "").replace(TONE, "")) || NAME_EN.test(n) || NAME_ZH.test(n) ||
+      (/\d/.test(n) && /\p{L}/u.test(n)) || soft(n);
+  }
+  /** (A) the text if it is a plain name, else "" (never echo anything else) @param {any} name */
+  function plainName(name) {
+    const n = String(name == null ? "" : name).trim();
+    return n && n.length <= 40 && !softName(n) && !check(n) ? n : "";
+  }
+  const NAME_FIELDS = "#hsName, #hsPName, #hsNameNum, #frNick, #plNick, #nmName, #rpName";
+  /** the page's fields need the soft step (and it has not been answered for exactly these values) @param {any} [doc] */
+  function pageSoft(doc) {
+    const all = fields(doc);
+    if (!all || all === answered) return false;
+    if (soft(all)) return true;
+    try {
+      const d = doc || root.document;
+      return Array.from(d.querySelectorAll(NAME_FIELDS)).some(e => softName(e && e.value));
+    } catch (e) { return false; }
+  }
+  let answered = "";
+  /** the reader chose "Just the reading" for the current field values @param {any} [doc] */
+  const ack = doc => { answered = fields(doc); };
+  /** @type {Record<string, Record<string, string>>} */
+  const SOFT_TEXT = {
+    th: { title: "ข้อความนี้ฟังดูหนักใจ คุณโอเคไหม?", body: "ถ้ามีเรื่องหนักใจ มีคนพร้อมรับฟังเสมอ ถ้าแค่อยากดูดวง เลือกด้านล่างได้เลย",
+      talk: "อยากคุยกับใคร", go: "แค่ถามดวง", qHidden: "(คำถามที่คุณพิมพ์ไว้)" },
+    en: { title: "This sounds heavy — are you okay?", body: "If something is weighing on you, people are ready to listen. If you only want the reading, choose below.",
+      talk: "I'd like to talk to someone", go: "Just the reading", qHidden: "(the question you typed)" },
+    zh: { title: "这听起来很沉重，你还好吗？", body: "如果有心事，随时有人愿意倾听。如果只是想看解读，请在下面选择。", talk: "我想找人聊聊", go: "只是想算命", qHidden: "（你输入的问题）" },
+  };
+  const softText = (/** @type {string} */ lang) => SOFT_TEXT[lang === "en" || lang === "zh" ? lang : "th"];
+  const SOFT_CSS = ".fa-soft{border:2px solid #fcd34d;border-radius:16px;padding:16px;margin:8px 0;background:rgba(252,211,77,.08)}.fa-soft h3{margin:0 0 .4em}" +
+    ".fa-soft .fa-soft-act{display:flex;flex-wrap:wrap;gap:.6em;margin-top:.8em}.fa-soft button{min-height:44px;padding:.5em 1em;border-radius:12px;max-width:100%}";
+  /** draw the soft step into box (textContent only) @param {any} box @param {string} lang @param {() => void} onGo @param {() => void} onTalk */
+  function renderSoft(box, lang, onGo, onTalk) {
+    const doc = box.ownerDocument || root.document, t = softText(lang || (root.LQI18N && root.LQI18N.lang) || "th");
+    try {
+      if (!doc.getElementById("fa-soft-style")) { const st = doc.createElement("style"); st.id = "fa-soft-style"; st.textContent = SOFT_CSS; doc.head.appendChild(st); }
+    } catch (e) { /* no DOM */ }
+    /** @param {string} tag @param {string} [text] */
+    const el = (tag, text) => { const e = doc.createElement(tag); if (text) e.textContent = text; return e; };
+    box.textContent = "";
+    const sec = el("section"); sec.className = "fa-soft"; sec.setAttribute("role", "group");
+    const h = el("h3", t.title), act = el("div"); act.className = "fa-soft-act";
+    const talk = el("button", t.talk), go = el("button", t.go);
+    talk.type = "button"; go.type = "button"; talk.className = "btn primary"; go.className = "btn ghost";
+    talk.setAttribute("data-soft", "talk"); go.setAttribute("data-soft", "go");
+    talk.addEventListener("click", () => onTalk()); go.addEventListener("click", () => onGo());
+    act.appendChild(talk); act.appendChild(go); sec.appendChild(h); sec.appendChild(el("p", t.body)); sec.appendChild(act);
+    box.appendChild(sec);
+    try { h.tabIndex = -1; h.focus({ preventScroll: true }); } catch (e) { /* no DOM */ }
+    return sec;
+  }
+  /** before a reading is drawn: ask first when needed; true when the step was shown
+   *  @param {any} container @param {string} lang @param {() => void} proceed @param {(box: any) => void} card */
+  function softGate(container, lang, proceed, card) {
+    const doc = container && container.ownerDocument;
+    if (!container || !pageSoft(doc)) return false;
+    renderSoft(container, lang, () => { ack(doc); proceed(); }, () => card(container));
+    return true;
+  }
+  const api = { check, fields, soft, softName, plainName, pageSoft, ack, renderSoft, softGate, softText };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else /** @type {any} */ (root).LQFortuneCrisis = api;
 })(typeof window !== "undefined" ? window : globalThis);

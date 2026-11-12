@@ -313,11 +313,18 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   });
   $("#trSpreads").addEventListener("change", function (e) { st.spread = e.target.value; });
   /** รอบ 11: คำถามที่พิมพ์เองมีสัญญาณวิกฤต → แสดงการ์ดช่วยเหลือแทนการทำนาย (ไม่เก็บ/ไม่ส่งข้อความ) — คืน true เมื่อหยุด */
+  // round 3: the question is shown back only when it is plain; otherwise a neutral placeholder
+  function echoQ(s) { var CRx = window.LQFortuneCrisis; return !s || !CRx ? s : CRx.plainName(s) || CRx.softText((window.LQI18N && window.LQI18N.lang) || "th").qHidden; }
   function crisisStop(q) {
     var FAx = window.FortuneAI, box = document.getElementById("trSupport");
-    if (!FAx || !FAx.crisis || !FAx.crisis.check(q)) { if (box) { box.hidden = true; box.textContent = ""; } return false; }
+    var CRx = window.LQFortuneCrisis, lang = (window.LQI18N && window.LQI18N.lang) || "th";
+    var hard = !!(FAx && FAx.crisis && FAx.crisis.check(q)), soft = !hard && !!(CRx && CRx.pageSoft()); // round 3: the soft step
+    if (!hard && !soft) { if (box) { box.hidden = true; box.textContent = ""; } return false; }
     if (!box) { box = document.createElement("div"); box.id = "trSupport"; box.tabIndex = -1; $("#trSetup").insertAdjacentElement("afterend", box); }
-    box.hidden = false; FAx.crisis.render(box, FAx.crisis.result({ lang: (window.LQI18N && window.LQI18N.lang) || "th" }));
+    var card = function () { box.hidden = false; FAx.crisis.render(box, FAx.crisis.result({ lang: lang })); box.focus(); };
+    box.hidden = false;
+    if (soft) { CRx.renderSoft(box, lang, function () { CRx.ack(); box.hidden = true; box.textContent = ""; $("#trSetup").requestSubmit(); }, card); return true; }
+    FAx.crisis.render(box, FAx.crisis.result({ lang: lang }));
     box.focus();
     return true;
   }
@@ -558,7 +565,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /** วาดผลการเปิดไพ่จาก current (เรียกซ้ำเมื่อเปลี่ยนภาษา → เรียบเรียงคำทำนายใหม่ในภาษานั้น) */
   function renderResult() {
     var S = KB.spreads[current.spread], Y = current.synth, sk = current.spread, tk = current.topic, zh = trL();
-    var q = $("#trQuestion").value.trim();
+    var q = echoQ($("#trQuestion").value.trim());
     $("#trResMeta").innerHTML = esc(T("tarot.metaTopic", "หัวข้อ")) + " <b>" + esc(topicName(tk)) + "</b> · " + esc(spreadName(sk)) + " (" + esc(spreadSub(sk)) + ")" + (q ? "<br>" + esc(T("tarot.metaQ", "คำถาม: ")) + "<q>" + esc(q) + "</q>" : "");
     var bars = Object.keys(KB.elements).map(function (k) {
       var e = KB.elements[k], v = Y.elements[k];

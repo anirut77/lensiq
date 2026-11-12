@@ -89,6 +89,11 @@ export default async function ({ base, launch, check }) {
       try {
         await page.goto(`${base}/horoscope.html`);
         await page.evaluate(setVal("hsName", "my mom hit me with a surprise party")); await page.evaluate(birth);
+        // round 3 (owner order 2026-11-12): a name with > 3 words gets the gentle soft step first; "Just the reading" continues.
+        // This test still requires: no support card (no false crisis trigger) and a normal reading.
+        await page.waitFor(() => document.querySelector(".fa-soft [data-soft=go]") || document.querySelectorAll("#hsRd .fa-section").length >= 3, 20000);
+        assert(!(await page.evaluate(() => !!document.querySelector(".fa-support"))), "false trigger");
+        await page.evaluate(() => { const b = document.querySelector(".fa-soft [data-soft=go]"); if (b) b.click(); });
         await page.waitFor(() => document.querySelectorAll("#hsRd .fa-section").length >= 3, 20000);
         assert(!(await page.evaluate(() => !!document.querySelector(".fa-support"))), "false trigger");
       } finally { await page.close(); }

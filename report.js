@@ -381,10 +381,17 @@
   }
   // crisis net first (review 2026-11-12): a crisis signal typed into the name field shows the support card instead of a report
   // (checked again by FortuneAI on every field); returns true when it stopped. No report is built and no credit is used.
+  /** round 3: only a plain name goes on the cover @param {string} s */
+  function plainName(s) { return W.LQFortuneCrisis ? W.LQFortuneCrisis.plainName(s) : s; }
   function crisisStop() {
-    if (!FA.crisis || !FA.crisis.check(($("rpName") && $("rpName").value) || "")) return false;
-    var out = $("rpOut"); out.textContent = ""; out.hidden = false;
-    FA.crisis.render(out, FA.crisis.result({ lang: lang() }));
+    var CRx = W.LQFortuneCrisis, out = $("rpOut");
+    var hard = !!(FA.crisis && FA.crisis.check(($("rpName") && $("rpName").value) || ""));
+    var soft = !hard && !!(CRx && CRx.pageSoft()); // round 3: the gentle "are you okay?" step before any report
+    if (!hard && !soft) return false;
+    out.textContent = ""; out.hidden = false;
+    var card = function () { out.textContent = ""; FA.crisis.render(out, FA.crisis.result({ lang: lang() })); };
+    if (soft) { CRx.renderSoft(out, lang(), function () { CRx.ack(); $("rpForm").requestSubmit(); }, card); return true; }
+    card();
     return true;
   }
   function renderReport(rep) {
@@ -395,7 +402,7 @@
     head.appendChild(h("p", { class: "rp-meta", text: T("rp.meta", "สร้างเมื่อ {d} · คำนวณในเครื่องจากตำรา ไม่ได้ใช้ผู้ช่วยเขียน", { d: new Date().toLocaleString(locale(), { dateStyle: "medium", timeStyle: "short" }) }) }));
     if (st.mode === "sample") head.appendChild(h("p", { class: "rp-sample", role: "note", text: T("rp.sampleTag", "ตัวอย่างรายงาน (โหมดเดโม) — ไม่มีการชำระเงิน ไม่บันทึก") }));
     // personal cover line (name typed on this page only — never saved or sent) + table of contents
-    var forName = String(($("rpName") && $("rpName").value) || "").trim().slice(0, 60);
+    var forName = plainName(String(($("rpName") && $("rpName").value) || "").trim().slice(0, 60));
     if (forName) head.appendChild(h("p", { class: "rp-for", text: T("rp.for", "จัดทำสำหรับ {name}", { name: forName }) }));
     out.appendChild(head);
     var toc = h("nav", { class: "rp-toc", "aria-label": T("rp.toc", "สารบัญ") }, h("p", { class: "rp-toch", text: T("rp.toc", "สารบัญ") }));

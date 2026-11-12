@@ -1506,7 +1506,7 @@
     return {
       domain: DOMAINS.indexOf(f.domain) >= 0 ? f.domain : "face",
       topic: TOPICS.indexOf(f.topic) >= 0 ? f.topic : "overall",
-      nickname: f.subject && f.subject.nickname ? String(f.subject.nickname).replace(/[<>{}]/g, "").trim().slice(0, 24) : "",
+      nickname: f.subject && f.subject.nickname ? (CR ? CR.plainName : String)(String(f.subject.nickname)).replace(/[<>{}]/g, "").trim().slice(0, 24) : "",
       headline: f.headline ? String(f.headline) : "", items,
       extras: f.extras && typeof f.extras === "object" ? f.extras : {},
       register: f.register === "reflect" ? "reflect" : "",
@@ -3436,7 +3436,8 @@
       return o;
     });
     const out = { domain: F.domain, topic: F.topic || "overall", items };
-    if (F.subject) { out.subject = {}; if (F.subject.nickname) out.subject.nickname = clip(F.subject.nickname, 24); if (F.subject.ageBand) out.subject.ageBand = clip(F.subject.ageBand, 24); }
+    if (F.subject) { out.subject = {}; if (F.subject.nickname) out.subject.nickname = clip(CR ? CR.plainName(F.subject.nickname) : F.subject.nickname, 24);
+      if (F.subject.ageBand) out.subject.ageBand = clip(F.subject.ageBand, 24); }
     if (F.headline) out.headline = clip(F.headline, 200);
     if (F.extras) {
       out.extras = {};
@@ -4045,7 +4046,8 @@
      ต้องให้ผู้เชี่ยวชาญตรวจก่อนอ้างว่าเป็นถ้อยคำที่ผ่านการรับรอง */
   const CRISIS_TH = /ฆ่าตัว(?:ตาย)?|อยากตาย|อยากจะตาย|ไม่อยาก(?:มีชีวิต(?:อยู่)?|อยู่(?:แล้ว|ต่อ|บนโลก)|ตื่น(?:ขึ้นมา)?อีก)|อยากหายไป(?:จากโลก)?|ไม่อยากตื่น(?:มา|ขึ้นมา)?เจอ(?:วัน)?พรุ่งนี้|ชีวิต(?:นี้)?ไม่มี(?:ความหมาย|ค่า)|(?:ควร|อยาก)จบ(?:ทุกอย่าง|ทุกสิ่ง|มันซะ)|ไม่อยากอยู่บนโลกนี้|อยากจบชีวิต|จบชีวิต(?:ตัวเอง|ตนเอง)|ทำร้ายตัวเอง|ทำร้ายตนเอง|กรีด(?:ข้อมือ|แขน|ตัวเอง)|ปลิดชีพ|กินยาตาย|กินยาเกินขนาด|กระโดด(?:ตึก|สะพาน)|ผูกคอ|(?:ถูก|โดน)(?:ทำร้าย(?:ร่างกาย)?|ทุบตี|ตบตี|ซ้อม|ข่มขืน|ล่วงละเมิด|ทารุณ|กักขัง)|ข่มขืน|ล่วงละเมิดทางเพศ|ความรุนแรงในครอบครัว|(?:แฟน|สามี|ภรรยา|พ่อ|แม่|พ่อเลี้ยง|แม่เลี้ยง)[^\s]{0,8}(?:ตบ|ตี|ทุบ|ทำร้าย|ซ้อม)(?:ฉัน|หนู|ผม|เรา|ดิฉัน)/;
   const CRISIS_EN = /\b(?:suicid\w*|kill(?:ing)? myself|end(?:ing)? my life|end it all|take my (?:own )?life|want(?:ed)? to die|wanna die|wish I (?:was|were) dead|self[- ]?harm\w*|hurt(?:ing)? myself|cut(?:ting)? myself|don'?t want to (?:live|be alive|wake up)|no reason to live|overdos\w*|can'?t go on(?: anymore| any longer)?|want(?:ed)? to disappear|(?:should I|I want to|I'll) (?:just )?end it(?! (?:with|between|off))(?: all)?|no point (?:in )?(?:living|being alive)|life (?:is|feels) (?:meaningless|pointless))\b|\b(?:he|she|they|my (?:partner|husband|wife|boyfriend|girlfriend|father|mother|dad|mum|mom|stepfather|stepmother))\s+(?:hits|beats|abuses|rapes|hurts|chokes)\s+me\b|\b(?:being|been|was|am|got)\s+(?:abused|raped|molested|assaulted|attacked|beaten up)\b|\bdomestic (?:violence|abuse)\b|\bsexual(?:ly)? (?:abuse|assault\w*)\b/i;
-  const CRISIS_ZH = /自杀|自尽|轻生|想死|不想活|活不下去|活着没意思|活着好累|活着没有意义|不想再醒来|不想醒来|想消失|结束一切|结束(?:自己的)?生命|自残|自伤|割腕|跳楼|寻死|吞药|服药过量|家暴|家庭暴力|被(?:人)?(?:打|殴打|袭击|虐待|性侵|强奸|侵犯|猥亵)|性侵|强奸|(?:他|她|老公|老婆|丈夫|妻子|男朋友|女朋友|爸爸|妈妈|继父|继母)(?:经常|总是|一直)?(?:打|殴打|虐待)我/;
+  const CRISIS_ZH = new RegExp("自杀|自尽|轻生|想死(?!的心)|不想活|活不下去|活着没意思|活着好累|活着没有意义|不想再醒来|不想醒来|想消失|结束一切|结束(?:自己的)?生命|自残|自伤|割腕|跳楼|寻死|吞药|服药过量|家暴|家庭暴力|" +
+    "被(?:人)?(?:打|殴打|袭击|虐待|性侵|强奸|侵犯|猥亵)|性侵|强奸|(?:他|她|老公|老婆|丈夫|妻子|男朋友|女朋友|爸爸|妈妈|继父|继母)(?:经常|总是|一直)?(?:打|殴打|虐待)我");
   // fortune-crisis.js (review 2026-11-12): the widened net (tone-mark-insensitive Thai, traditional Chinese, slang) + every free-text field
   const CR = (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-crisis.js") : root.LQFortuneCrisis) || null;
   const pageText = doc => (CR ? CR.fields(doc) : "");
@@ -4312,6 +4314,9 @@
   function renderWithHooks(container, result, opts) {
     // crisis net first: any free-text field of the page (name, question, dream …) with a crisis signal → support card, never a reading
     if (!(result && result.crisis) && crisisCheck(pageText(container && container.ownerDocument))) result = supportResult({ lang: result && result.lang });
+    // round 3: ambiguous distress or an unusual name → the gentle "are you okay?" step first, never a reading first
+    const sl = result && result.lang, card = box => renderSupport(box, supportResult({ lang: sl }));
+    if (!(result && result.crisis) && CR && CR.softGate && CR.softGate(container, sl, () => renderWithHooks(container, result, opts), card)) return container;
     if (!HOOKS.length) return renderSections(container, result, opts);
     let shown = result;
     for (const h of HOOKS) if (typeof h.gate === "function") { try { shown = h.gate(shown, opts, container); } catch (e) { /* keep the reading */ } }

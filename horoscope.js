@@ -771,6 +771,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     e.preventDefault(); touch();
     // crisis net first (review 2026-11-12): the raw name and every other field, before any calculation or reading
     if (crisisHit($("#hsName").value) || crisisHit(pageFields())) { $("#hsErr").textContent = ""; showCrisis(); return; }
+    // round 3: ambiguous distress or an unusual name → the gentle "are you okay?" step before ANY tab is drawn
+    if (softHit()) { $("#hsErr").textContent = ""; showSoft(function () { $("#hsForm").requestSubmit(); }); return; }
     var err = $("#hsErr"); err.textContent = "";
     var dt = readDate($("#hsDay"), $("#hsMonth"), $("#hsYear"), eraVal());
     if (dt.err) { err.textContent = dt.err; return; }
@@ -1065,13 +1067,17 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var html = '<div class="hs-grid2"><section class="hs-block bignum"><span class="fact-k">' + esc(T("horoscope.x.lpK", "เลขชีวิต (Life Path)")) + '</span><b class="big">' + lp.value + "</b><h3>" + esc(n.k) + "</h3><p>" + esc(n.t) + "</p>" +
       '<p class="hs-small">' + esc(T("horoscope.x.lpHow", "วิธีคิด: เดือน {m} → {a} · วัน {d} → {b} · ปี ค.ศ. {y} → {c} · รวม {t}{r} (เก็บเลขมาสเตอร์ 11, 22, 33 ไว้ ไม่ลดต่อ)", { m: inp.m, a: lp.parts[0], d: inp.d, b: lp.parts[1], y: inp.y, c: lp.parts[2], t: lp.total, r: lp.total !== lp.value ? " → " + lp.value : "" })) + "</p></section>" +
       '<section class="hs-block bignum"><span class="fact-k">' + esc(T("horoscope.x.bdK", "เลขวันเกิด (Birthday Number)")) + '</span><b class="big">' + P.birthday + "</b><h3>" + esc(bd.k) + "</h3><p>" + esc(bd.t) + "</p><p class=\"hs-small\">" + esc(T("horoscope.x.bdHow", "จากวันที่ {d} ลดเหลือหลักเดียว (ยกเว้น 11, 22)", { d: inp.d })) + "</p></section></div>";
-    html += '<section class="hs-block"><h3>' + esc(T("horoscope.x.hName", "ผลรวมเลขชื่อ (เลขศาสตร์ไทย)")) + "</h3><label>" + esc(T("horoscope.x.nameLabel", "ชื่อที่ต้องการคำนวณ")) + '<input id="hsNameNum" type="text" maxlength="60" autocomplete="off" value="' + esc(inp.name || "") + '" placeholder="' + esc(T("horoscope.x.namePh", "พิมพ์ชื่อภาษาไทย")) + '"></label><div id="hsNameOut" aria-live="polite"></div>' +
+    html += '<section class="hs-block"><h3>' + esc(T("horoscope.x.hName", "ผลรวมเลขชื่อ (เลขศาสตร์ไทย)")) + "</h3><label>" + esc(T("horoscope.x.nameLabel", "ชื่อที่ต้องการคำนวณ")) +
+      '<input id="hsNameNum" type="text" maxlength="60" autocomplete="off" value="' + esc(plainName(inp.name)) + '" placeholder="' + esc(T("horoscope.x.namePh", "พิมพ์ชื่อภาษาไทย")) +
+      '"></label><div id="hsNameOut" aria-live="polite"></div>' +
       '<p class="hs-small">' + esc(T("horoscope.x.nameNote", "ค่าพยัญชนะตามตารางที่เผยแพร่ทั่วไป (ก ด ถ ท ภ = 1, ข บ ป ง ช = 2 …) ส่วนสระและวรรณยุกต์ใช้ค่าที่พบบ่อย แต่ละสำนักกำหนดต่างกันเล็กน้อย ชื่อไม่ถูกบันทึก")) + "</p></section>";
     $("#pn-nu").innerHTML = html;
     var upd = function () {
       var o = $("#hsNameOut");
       var nameNum = $("#hsNameNum").value;
       if (crisisHit(nameNum)) { crisisCard(o); return; } // crisis net first: the name-number field
+      // round 3: only a plain name is broken into letters (nothing else typed is echoed back)
+      if (nameNum.trim() && !plainName(nameNum)) { o.innerHTML = '<p class="muted">' + esc(T("horoscope.x.nameEmpty", "พิมพ์ชื่อเพื่อดูผลรวม")) + "</p>"; return; }
       var r = HS.thaiNameNumber(nameNum);
       if (!r.sum) { o.innerHTML = '<p class="muted">' + esc(T("horoscope.x.nameEmpty", "พิมพ์ชื่อเพื่อดูผลรวม")) + "</p>"; return; }
       var root = HS.reduceNum(r.sum, false), m = K.numbers[root];
@@ -1132,8 +1138,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /* ---------- แสดงผล ---------- */
   var resultSec = $("#hsResult");
   function resultSub(P) {
-    var inp = P.input;
-    return (inp.name ? inp.name + " · " : "") + (isZh()
+    var inp = P.input, nm = plainName(inp.name);
+    return (nm ? nm + " · " : "") + (isZh()
       ? T("horoscope.x.sub", "{day}出生 · {date}{time}", { day: dayTitle(P), date: thDateLong(inp.y, inp.m, inp.d), time: inp.time ? " " + hm(inp.time.h, inp.time.mi) : T("horoscope.x.noTimeSub", " (ไม่ระบุเวลา)") })
       : "เกิด" + dayTitle(P) + (P.thaiDay.rahu ? " " : "") + "ที่ " + thDateLong(inp.y, inp.m, inp.d) + (inp.time ? " เวลา " + hm(inp.time.h, inp.time.mi) + " น." : " (ไม่ระบุเวลา)"));
   }
@@ -1148,6 +1154,23 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function crisisCard(box) {
     var FA = window.FortuneAI; box.innerHTML = "";
     if (FA && FA.crisis) FA.crisis.render(box, FA.crisis.result({ lang: (window.LQI18N && window.LQI18N.lang) || "th" }));
+  }
+  /* round 3: names are shown only when they are plain names; the soft step comes before any tab */
+  function plainName(s) { var CRx = window.LQFortuneCrisis; return CRx ? CRx.plainName(s) : String(s || ""); }
+  function softHit() { var CRx = window.LQFortuneCrisis; return !!(CRx && CRx.pageSoft()); }
+  function clearResult() {
+    current = null; lastPartner = null;
+    ["pn-ov", "pn-th", "pn-bz", "pn-nu", "pn-td"].forEach(function (id) { document.getElementById(id).innerHTML = ""; });
+    $("#hsCompat").innerHTML = ""; $("#hsResSub").textContent = ""; $("#hsCardImg").hidden = true;
+    $("#hsTabs").hidden = true; $("#hsShare").hidden = true;
+  }
+  function showSoft(cont) {
+    var CRx = window.LQFortuneCrisis;
+    clearResult();
+    var box = document.createElement("div"); $("#pn-ov").appendChild(box);
+    CRx.renderSoft(box, (window.LQI18N && window.LQI18N.lang) || "th", function () { CRx.ack(); cont(); }, function () { showCrisis(); });
+    resultSec.hidden = false; selectTab(tabs[0], false, true);
+    resultSec.scrollIntoView({ block: "start" });
   }
   function showCrisis() {
     current = null; lastPartner = null;

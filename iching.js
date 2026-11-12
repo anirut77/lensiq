@@ -204,11 +204,18 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#icToss").textContent = n < 6 ? T("iching.tossBtn", "โยนเหรียญ ({n}/6)", { n: n + 1 }) : T("iching.seeResult", "ดูผล");
   }
   /** รอบ 11: คำถามที่พิมพ์เองมีสัญญาณวิกฤต → แสดงการ์ดช่วยเหลือแทนการทำนาย (ไม่เก็บ/ไม่ส่งข้อความ) — คืน true เมื่อหยุด */
+  // round 3: the question is shown back only when it is plain; otherwise a neutral placeholder
+  function echoQ(s) { var CRx = window.LQFortuneCrisis; return !s || !CRx ? s : CRx.plainName(s) || CRx.softText((window.LQI18N && window.LQI18N.lang) || "th").qHidden; }
   function crisisStop(q) {
     var FAx = window.FortuneAI, box = document.getElementById("icSupport");
-    if (!FAx || !FAx.crisis || !FAx.crisis.check(q)) { if (box) { box.hidden = true; box.textContent = ""; } return false; }
+    var CRx = window.LQFortuneCrisis, lang = (window.LQI18N && window.LQI18N.lang) || "th";
+    var hard = !!(FAx && FAx.crisis && FAx.crisis.check(q)), soft = !hard && !!(CRx && CRx.pageSoft()); // round 3: the soft step
+    if (!hard && !soft) { if (box) { box.hidden = true; box.textContent = ""; } return false; }
     if (!box) { box = document.createElement("div"); box.id = "icSupport"; box.tabIndex = -1; $("#icSetup").insertAdjacentElement("afterend", box); }
-    box.hidden = false; FAx.crisis.render(box, FAx.crisis.result({ lang: (window.LQI18N && window.LQI18N.lang) || "th" }));
+    var card = function () { box.hidden = false; FAx.crisis.render(box, FAx.crisis.result({ lang: lang })); box.focus(); };
+    box.hidden = false;
+    if (soft) { CRx.renderSoft(box, lang, function () { CRx.ack(); box.hidden = true; box.textContent = ""; $("#icStart").click(); }, card); return true; }
+    FAx.crisis.render(box, FAx.crisis.result({ lang: lang }));
     box.focus();
     return true;
   }
@@ -246,7 +253,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /** วาดผล (ใช้ทั้งตอนได้ผลและตอนสลับภาษา) — ประกอบคำทำนายใหม่ด้วย facts ชุดเดิม */
   function renderResult(c) {
     var fo = IC.focus(c);
-    var q = $("#icQuestion").value.trim();
+    var q = echoQ($("#icQuestion").value.trim());
     $("#icResMeta").innerHTML = esc(T("iching.resTopic", "หัวข้อ")) + " <b>" + esc(topicName(st.topic)) + "</b>" + (q ? "<br>" + esc(T("iching.resQ", "คำถาม:")) + " <q>" + esc(q) + "</q>" : "");
     $("#icHexes").innerHTML = hexCard(c.primary, c.bits, c.changing, T("iching.rolePrimary", "กว้าหลัก (สถานการณ์ตอนนี้)")) +
       (c.relating ? '<span class="ic-arrow" aria-hidden="true">→</span>' + hexCard(c.relating, c.relBits, [], T("iching.roleRelating", "กว้าที่จะกลายเป็น (แนวโน้ม)")) : "");
