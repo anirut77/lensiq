@@ -769,6 +769,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
 
   $("#hsForm").addEventListener("submit", function (e) {
     e.preventDefault(); touch();
+    // crisis net first (review 2026-11-12): the raw name and every other field, before any calculation or reading
+    if (crisisHit($("#hsName").value) || crisisHit(pageFields())) { $("#hsErr").textContent = ""; showCrisis(); return; }
     var err = $("#hsErr"); err.textContent = "";
     var dt = readDate($("#hsDay"), $("#hsMonth"), $("#hsYear"), eraVal());
     if (dt.err) { err.textContent = dt.err; return; }
@@ -1067,7 +1069,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       '<p class="hs-small">' + esc(T("horoscope.x.nameNote", "ค่าพยัญชนะตามตารางที่เผยแพร่ทั่วไป (ก ด ถ ท ภ = 1, ข บ ป ง ช = 2 …) ส่วนสระและวรรณยุกต์ใช้ค่าที่พบบ่อย แต่ละสำนักกำหนดต่างกันเล็กน้อย ชื่อไม่ถูกบันทึก")) + "</p></section>";
     $("#pn-nu").innerHTML = html;
     var upd = function () {
-      var r = HS.thaiNameNumber($("#hsNameNum").value), o = $("#hsNameOut");
+      var o = $("#hsNameOut");
+      var nameNum = $("#hsNameNum").value;
+      if (crisisHit(nameNum)) { crisisCard(o); return; } // crisis net first: the name-number field
+      var r = HS.thaiNameNumber(nameNum);
       if (!r.sum) { o.innerHTML = '<p class="muted">' + esc(T("horoscope.x.nameEmpty", "พิมพ์ชื่อเพื่อดูผลรวม")) + "</p>"; return; }
       var root = HS.reduceNum(r.sum, false), m = K.numbers[root];
       o.innerHTML = '<p class="namesum"><b>' + r.sum + "</b> → " + root + " · " + esc(m.k) + " — " + esc(m.t) + '</p><p class="letters">' + r.detail.map(function (x) { return "<span>" + esc(x[0]) + "<small>" + x[1] + "</small></span>"; }).join("") + "</p>";
@@ -1097,6 +1102,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /* ---------- ดวงคู่ ---------- */
   $("#hsPartner").addEventListener("submit", function (e) {
     e.preventDefault(); touch();
+    if (crisisHit($("#hsPName").value)) { lastPartner = null; crisisCard($("#hsCompat")); return; } // crisis net first: the partner name
     if (!current) return;
     var err = $("#hsPErr"); err.textContent = "";
     var raw = $("#hsPYear").value.replace(/\D/g, ""); $("#hsPYear").value = raw;
@@ -1135,8 +1141,28 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     $("#hsResSub").textContent = resultSub(P);
     renderOverview(P); renderThai(P); renderBazi(P); renderNum(P); renderToday(P);
   }
+  /* crisis net (review 2026-11-12): a crisis signal in any field shows the support card INSTEAD of every reading tab;
+     nothing typed is echoed (subtitle emptied) and the share card cannot be made */
+  function crisisHit(v) { var FA = window.FortuneAI; return !!(v && FA && FA.crisis && FA.crisis.check(v)); }
+  function pageFields() { var FA = window.FortuneAI; return FA && FA.crisis && FA.crisis.fields ? FA.crisis.fields() : ""; }
+  function crisisCard(box) {
+    var FA = window.FortuneAI; box.innerHTML = "";
+    if (FA && FA.crisis) FA.crisis.render(box, FA.crisis.result({ lang: (window.LQI18N && window.LQI18N.lang) || "th" }));
+  }
+  function showCrisis() {
+    current = null; lastPartner = null;
+    ["pn-ov", "pn-th", "pn-bz", "pn-nu", "pn-td"].forEach(function (id) { document.getElementById(id).innerHTML = ""; });
+    $("#hsCompat").innerHTML = ""; $("#hsResSub").textContent = ""; $("#hsCardImg").hidden = true;
+    $("#hsTabs").hidden = true; $("#hsShare").hidden = true;
+    var box = document.createElement("div"); box.id = "hsRd"; $("#pn-ov").appendChild(box);
+    crisisCard(box);
+    resultSec.hidden = false; selectTab(tabs[0], false, true);
+    resultSec.scrollIntoView({ block: "start" });
+    box.setAttribute("tabindex", "-1"); box.focus({ preventScroll: true });
+  }
   function show(P) {
     current = P; lastPartner = null;
+    $("#hsTabs").hidden = false; $("#hsShare").hidden = false;
     renderAll(P);
     $("#hsCompat").innerHTML = "";
     resultSec.hidden = false; selectTab(tabs[0]);
