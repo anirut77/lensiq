@@ -42,7 +42,7 @@
     "fortune.hub.card.horoscope.li1": "泰国占星、塔沙（Taksa）、吉祥色、星座、上升",
     "fortune.hub.card.horoscope.li2": "八字（四柱）、数字命理、今日运势、合盘",
     "fortune.hub.card.tarot.desc": "洗牌后亲手选牌，或摇动手机来求签",
-    "fortune.hub.card.tarot.li1": "78 张 Rider–Waite 塔罗牌（公有领域）",
+    "fortune.hub.card.tarot.li1": "78 张塔罗牌（公有领域图片）",
     "fortune.hub.card.tarot.li2": "按问题选择 1 / 3 / 5 / 10 张牌阵",
     "fortune.hub.card.fengshui.desc": "计算命卦与吉方，用手机罗盘规划居家布局",
     "fortune.hub.card.fengshui.li1": "你的四个吉方、年度飞星",

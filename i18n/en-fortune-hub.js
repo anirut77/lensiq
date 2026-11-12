@@ -42,7 +42,7 @@
     "fortune.hub.card.horoscope.li1": "Thai astrology, Taksa, lucky colors, sign, ascendant",
     "fortune.hub.card.horoscope.li2": "BaZi (Four Pillars), numerology, daily outlook, compatibility",
     "fortune.hub.card.tarot.desc": "Shuffle and pick cards yourself, or shake your phone for a Siam Si stick",
-    "fortune.hub.card.tarot.li1": "78 Rider–Waite tarot cards (public domain)",
+    "fortune.hub.card.tarot.li1": "78 tarot cards (public-domain images)",
     "fortune.hub.card.tarot.li2": "1 / 3 / 5 / 10-card spreads by question",
     "fortune.hub.card.fengshui.desc": "Calculates your Kua number and favorable directions; plan your home layout with the phone compass",
     "fortune.hub.card.fengshui.li1": "Your four favorable directions, annual flying stars",
