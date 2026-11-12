@@ -8,7 +8,7 @@
 ## สรุปสำหรับเจ้าของ (ภาษาไทย)
 
 - **สร้างแล้ว**
-  1. **คำแนะนำตามความเชื่อ (ฟรี):** หลังอ่านดวงบนหน้าดูดวง 16 หน้า จะมีกล่อง "สิ่งที่ทำได้ตามความเชื่อ" ใต้คำทำนาย
+  1. **คำแนะนำตามความเชื่อ (ฟรี):** หลังอ่านดวงบนหน้าดูดวง 14 หน้า (หน้าที่ใช้ FortuneAI) จะมีกล่อง "สิ่งที่ทำได้ตามความเชื่อ" ใต้คำทำนาย
      - แสดงสถานที่ไหว้หรือทำบุญ ของถวายและวิธีไหว้ ธรรมเนียมปีชง และของมงคล
      - ผู้ใช้เลือกความเชื่อเอง (พุทธแบบไทย / ความเชื่อแบบจีน / ฮินดู–พราหมณ์ / ไม่ระบุ / ไม่ต้องแสดง) ระบบจำไว้ในเครื่องนี้เท่านั้น
      - การจับคู่กับผลดวงทำในเครื่อง ผลดวงและความเชื่อที่เลือกไม่ถูกส่งออกไป
@@ -36,9 +36,9 @@
 
 | Part | Files | Notes |
 |---|---|---|
-| Panel on the fortune pages | `lensiq-merit-core.js` (pure logic), `lensiq-merit.js` (DOM), loaded by `nav.js` on faceread, palm, horoscope, tarot, fengshui, numbers, iching, zodiac, astro, dream, bazi, taksa, lek7, lifegraph, planner, luckycolor | **No fortune page file was edited.** The module wraps `FortuneAI.interpret` / `regenerate` (reads the facts on the device) and `FortuneAI.renderSections` (puts one panel after the reading container) from the outside, the same pattern as `lensiq-report.js`. The reading text is never changed and never mentions the panel, so the existing `remedy-safety` and `paid` lints in `fortune-ai.js` are untouched. |
+| Panel on 14 fortune pages | `lensiq-merit-core.js` (pure logic), `lensiq-merit-lint.js` (wording lint shared with the Worker), `lensiq-merit.js` (DOM), loaded by `nav.js` on the 14 fortune pages that run FortuneAI readings: faceread, palm, horoscope, tarot, fengshui, numbers, iching, zodiac, astro, dream, bazi, taksa, lek7, lifegraph (planner and luckycolor do not run FortuneAI, so they get no panel) | **No fortune page file was edited.** The module wraps `FortuneAI.interpret` / `regenerate` (reads the facts on the device) and `FortuneAI.renderSections` (puts one panel after the reading container) from the outside, the same pattern as `lensiq-report.js`. The reading text is never changed and never mentions the panel, so the existing `remedy-safety` and `paid` lints in `fortune-ai.js` are untouched. |
 | Sample content | `lensiq-merit-seed.js` (16 items) = the rows seeded by migration 0014 | Used by the static site when there is no backend. A test keeps the two identical. |
-| Worker | `backend/src/merit.js`, routes in `backend/src/index.js`, retention in `retention.js`, probe in `health.js` | See §2 and §3. |
+| Worker | `backend/src/merit.js`, routes in `backend/src/index.js`, retention in `retention.js`, probe in `health.js` | See §2 and §3. The crisis check is `FortuneAI.crisis.check` imported from `fortune-ai.js` (not a copy), and the wording lint is `lensiq-merit-lint.js`, the same module the page uses. |
 | Admin | `admin.html` / `admin.js` / `admin.css`, `i18n/en-admin.js`, `i18n/zh-admin.js` (`am.*`) | New tab "คำแนะนำตามความเชื่อ / Belief guidance / 信仰指引" behind the existing admin sign-in. |
 | Config | `lensiq-config.js` `LENSIQ_MERIT_INTEREST_FORM` (false), `backend/wrangler.toml` `MERIT_INTEREST_FORM = "off"`, `MERIT_INTEREST_DAYS = "90"`, `MERIT_INTEREST_GLOBAL_DAY = "100"` (top level and `[env.test]`) | |
 
@@ -98,8 +98,12 @@ reading, whatever keys an admin gives it.
 | `GET /admin/api/merit/interest` | admin | requests + switch state + retention days |
 | `DELETE /admin/api/merit/interest/:id` | admin + re-auth | audited `merit.interest.deleted` (id only) |
 
-Wording lint (`lintMerit`, TH / EN / ZH; Thai is checked with spaces removed): guarantee, fix_luck, fear, health,
-lottery, price, purchase, urgency, link, personal (phone / e-mail). Every admin text and every seeded text must pass.
+Wording lint (`lensiq-merit-lint.js`, one module for the Worker and the page; TH / EN / ZH): guarantee, fix_luck, fear
+(incl. threats such as "if you do not pray…"), health, lottery, price (incl. Thai digits and Thai / Chinese number
+words), purchase, urgency, link (any scheme, short links, "x . com", "[dot]"), markup, personal (phone numbers in any
+layout, e-mail, @handles, LINE IDs). Before matching it normalises NFKC, removes zero-width / soft-hyphen / word-joiner /
+BOM characters, maps Cyrillic and Greek look-alikes to Latin and Thai digits to 0-9; Thai and Chinese rules ignore spaces
+and punctuation. Every admin text and every seeded text must pass; the page also drops any item that fails it.
 
 ## 4. What is OFF and how to turn it on
 
@@ -107,8 +111,8 @@ lottery, price, purchase, urgency, link, personal (phone / e-mail). Every admin 
 |---|---|---|
 | Worker `MERIT_INTEREST_FORM` | `"off"` | set `"on"` in `backend/wrangler.toml` (top level or `[env.test.vars]`) and deploy |
 | Page `window.LENSIQ_MERIT_INTEREST_FORM` | `false` | set `true` in `lensiq-config.js` (or a deploy config); the page also needs `LENSIQ_API_BASE`, and Turnstile site key for the token |
-| Crisis hide window | 24 h | constant `CRISIS_WINDOW_MS` in `lensiq-merit-core.js` |
-| Interest retention | 90 days | `MERIT_INTEREST_DAYS` (7–365) |
+| Crisis hide window | 24 h | constant `CRISIS_WINDOW_MS` in `lensiq-merit-core.js`; kept in memory for the page when storage is blocked; another tab's support card withdraws the panel (storage event); checked again when the form is submitted |
+| Interest retention | 90 days | `MERIT_INTEREST_DAYS` (7–365); the form notice shows the configured number (sent with the guidance) |
 
 Both switches are needed; either one alone shows nothing. Booking and payment are not built.
 The test deployment (`[env.test]`) does not list `/v1/merit/*` in `PUBLIC_ROUTES`, so there the page uses the bundled
@@ -117,7 +121,7 @@ samples; adding the guidance route to the test deployment is a deploy decision, 
 ## 5. Tests and numbers (all synthetic; fixed sets locked before the product code)
 
 Lock file: `~/LENSIQ-field/evals/merit/locked.sha256` (one documented re-lock of `tests/e2e/admin-merit.e2e.mjs`: a
-selector picked the wrong `dialog.ad-reauth` element; no assertion changed).
+selector picked the wrong `dialog.ad-reauth` element; no assertion changed; and the review amendment in §5.1).
 
 | Test | Set | Result | Target |
 |---|---|---|---|
@@ -130,7 +134,22 @@ selector picked the wrong `dialog.ad-reauth` element; no assertion changed).
 | `tests/e2e/merit.e2e.mjs` | panel, filter, paid section, crisis, EN / ZH, 320–390 px | 8 / 8 | all |
 | `tests/e2e/admin-merit.e2e.mjs` | list, create + refusals, hide / show / delete + re-auth, interest card, phones + EN / ZH | 5 / 5 | all |
 
-Measured on 2026-11-12 in this branch; the independent re-measure is for the round reviewer.
+Measured on 2026-11-12 in this branch. The independent review of 4252648 re-measured 42/42 unit + backend and 58/58
+e2e and found the gaps fixed in §5.1.
+
+### 5.1 Review amendment (2026-11-12, stricter only; tests locked before the fixes)
+
+| Test | Set | Result | Target |
+|---|---|---|---|
+| `tests/unit/merit-review.test.js` V1 | the reviewer's disguised / new wordings (zero-width splits, fullwidth, Cyrillic, traditional Chinese, hype, threats, contacts, links, markup, prices in words) | 73 / 73 caught (was 23 / 73 before the fix) | 100 % |
+| V1 false flags | 5 reviewer clean phrases + 23 earlier ordinary phrases + 3 "call ahead / dates" phrases | 0 / 31 flagged | 0 |
+| V2 | one lint for Worker and page; the page drops items that fail it | pass | all |
+| V3 | Worker crisis check = `FortuneAI.crisis.check` (imported) | pass | all |
+| V4 | crisis state with blocked / missing / full storage | kept in memory | all |
+| V5 | notice shows configured retention days | pass | all |
+| V6 | panel only on the 14 FortuneAI pages | pass | all |
+| `tests/e2e/merit-crisis.e2e.mjs` | second tab; submit-time crisis check; blocked storage; horoscope overview tab | see the round numbers below | all |
+| `tests/unit/merit.test.js` R5, R8 (amended) | R5: blocked storage now keeps the crisis state; R8: reuse instead of copied patterns | pass | all |
 
 ## 6. Risks
 
@@ -139,7 +158,10 @@ Measured on 2026-11-12 in this branch; the independent re-measure is for the rou
 - The lint is a first filter (L44): it cannot judge tone or respectfulness; human review of real content is still needed.
 - Facts from pages that render without `FortuneAI.interpret` (cached results) fall back to the page's discipline only,
   so element / ชง matching may be less specific there; ชง customs are then not shown (safe side).
-- The crisis state is per browser (`localStorage`); another browser or a private window does not know about it.
+- The crisis state is per browser (`localStorage`, with an in-memory copy per page); another browser or a private window
+  does not know about it.
+- The lint is a pattern filter; new disguises will appear. The page re-checks every item with the same module, and
+  real content still needs a human editor and reviewer.
 
 ## 7. Owner decisions needed
 

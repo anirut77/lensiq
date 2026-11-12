@@ -14,8 +14,10 @@
  *     shows only when window.LENSIQ_MERIT_INTEREST_FORM === true AND the server says interest_form = true AND the crisis
  *     state is not set. Default: off.
  *   - Crisis net: whenever a FortuneAI support card (.fa-support) appears on the page, or the reading is a support
- *     result, "lq-crisis-at" is set and every panel is withdrawn for 24 h (no merit content next to a support card).
- *     Crisis wording typed into the interest form shows the support card and sends nothing.
+ *     result, "lq-crisis-at" is set (and kept in memory when storage is blocked) and every panel is withdrawn for 24 h
+ *     (no merit content next to a support card); another tab's support card withdraws it too (storage event). Crisis
+ *     wording typed into the form, or a crisis state at submit time, shows the support card and sends nothing.
+ *   - Every item is re-checked with the shared wording lint (lensiq-merit-lint.js) before it is shown.
  */
 (function (root) {
   "use strict";
@@ -26,7 +28,10 @@
   var C = W.LQMeritCore;
   if (!C || !doc) return;
 
-  var state = { items: /** @type {any[]|null} */ (null), serverFlag: false, loading: /** @type {Promise<void>|null} */ (null), facts: /** @type {any} */ (null) };
+  var state = { items: /** @type {any[]|null} */ (null), serverFlag: false, retentionDays: /** @type {any} */ (null), loading: /** @type {Promise<void>|null} */ (null),
+    facts: /** @type {any} */ (null) };
+  /** Defence in depth: whatever the server or the bundle holds, the page shows only items that pass the shared lint. @param {any} items */
+  var clean = function (items) { return C.safeItems(items, W.LQMeritLint && W.LQMeritLint.lintMerit); };
   /** @type {HTMLElement|null} */
   var panel = null;
   var page = (root.location && root.location.pathname.split("/").pop()) || "";
@@ -38,7 +43,7 @@
   /* ---------------- data: the Worker, else the bundled samples ---------------- */
   function seed() {
     return new Promise(function (resolve) {
-      var done = function () { state.items = Array.isArray(W.LQ_MERIT_SEED) ? W.LQ_MERIT_SEED : []; state.serverFlag = false; resolve(undefined); };
+      var done = function () { state.items = clean(W.LQ_MERIT_SEED); state.serverFlag = false; resolve(undefined); };
       if (W.LQ_MERIT_SEED) return done();
       var s = doc.createElement("script");
       s.src = "lensiq-merit-seed.js?v=1"; s.async = true;
@@ -55,7 +60,7 @@
         .then(function (/** @type {Response} */ r) { return r.ok ? r.json() : null; })
         .then(function (/** @type {any} */ j) {
           if (!j || !Array.isArray(j.items)) return seed();
-          state.items = j.items; state.serverFlag = j.interest_form === true;
+          state.items = clean(j.items); state.serverFlag = j.interest_form === true; state.retentionDays = j.interest_retention_days;
           return undefined;
         }, function () { return seed(); });
     return /** @type {Promise<void>} */ (state.loading);
@@ -136,7 +141,7 @@
     if (C.crisisActive(store())) { p.textContent = ""; p.hidden = true; return; }
     if (!state.items) { p.hidden = true; load().then(function () { if (p.isConnected) render(p); }); return; }
     var m = C.panelModel(state.items, { choice: C.loadChoice(store()), keys: C.keysFromFacts(state.facts, page), lang: L,
-      pageFlag: W.LENSIQ_MERIT_INTEREST_FORM === true, serverFlag: state.serverFlag, crisis: false });
+      pageFlag: W.LENSIQ_MERIT_INTEREST_FORM === true, serverFlag: state.serverFlag, crisis: false, retentionDays: state.retentionDays });
     if (!m) { p.textContent = ""; p.hidden = true; return; }
     p.textContent = "";
     p.hidden = false;
@@ -212,7 +217,7 @@
     var cl = el("label", "lq-merit-consent"), consent = input("consent", "checkbox");
     cl.appendChild(consent); cl.appendChild(el("span", null, U["f.consent"]));
     f.appendChild(cl);
-    var notice = el("p", "lq-merit-notice", U["f.notice"] + " ");
+    var notice = el("p", "lq-merit-notice", paid.text["f.notice"] + " ");
     var a = /** @type {HTMLAnchorElement} */ (el("a", null, U["f.privacy"])); a.href = "privacy.html";
     notice.appendChild(a);
     f.appendChild(notice);
@@ -224,7 +229,9 @@
       ev.preventDefault();
       status.className = "lq-merit-status"; status.textContent = "";
       var FA = W.FortuneAI;
-      // crisis net first, on the device: nothing is sent, the support card replaces the offer
+      // crisis net first, on the device: nothing is sent, the support card replaces the offer. The crisis state is checked
+      // again here too (it may have been set after the form was drawn, e.g. in another tab or with storage blocked).
+      if (C.crisisActive(store())) { showSupport(); return; }
       if (FA && FA.crisis && FA.crisis.check && FA.crisis.check(name.value, contact.value)) { showSupport(); return; }
       if (!consent.checked) { status.className = "lq-merit-status bad"; status.textContent = U["f.consentNeeded"]; return; }
       var body = { name: name.value.trim(), channel: ch.value, contact: contact.value.trim(), item_id: item.value, date_from: from.value, date_to: to.value,
@@ -252,9 +259,13 @@
     return sec;
   }
 
-  /** Put the (single) panel right after the reading container (after the report button when it is there). @param {Element} container */
+  /** @param {Element|null} e */
+  var inHiddenTab = function (e) { return !!(e && e.closest && e.closest("[role=tabpanel][hidden]")); };
+  /** Put the (single) panel right after the reading container (after the report button when it is there). A reading drawn
+   *  into a hidden tab (e.g. horoscope "today") never takes the panel away from a visible one. @param {Element} container */
   function place(container) {
     if (!container || !container.parentNode) return null;
+    if (panel && panel.isConnected && inHiddenTab(container) && !inHiddenTab(panel)) return panel;
     if (!panel) { panel = el("section", "lq-merit"); panel.hidden = true; }
     var anchor = container, nx = container.nextElementSibling;
     if (nx && nx.classList && nx.classList.contains("lq-rp-wrap")) anchor = nx;
@@ -307,6 +318,8 @@
   }
 
   root.addEventListener("lq-lang", function () { if (panel && !panel.hidden && panel.isConnected) render(panel); });
+  // a support card in another tab of this browser: withdraw the panel and any paid offer here too
+  root.addEventListener("storage", function (ev) { if (ev && ev.key === C.CRISIS_KEY && C.crisisActive(store())) hidePanels(); });
   W.LQMerit = { render: function () { if (panel) render(panel); }, load: load, state: state };
   watchCrisis();
   wrap();

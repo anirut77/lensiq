@@ -17,9 +17,12 @@
 //   DELETE /admin/api/merit/items/:id      delete (re-auth)
 //   GET    /admin/api/merit/interest       interest requests + switch state      DELETE /admin/api/merit/interest/:id (re-auth)
 //
-// Rules (CLAUDE.md "Remedies and merit", Fortune bans): every text is linted (lintMerit, TH/EN/ZH) for guarantees,
-// "fix your luck", fear, health, lottery, prices, purchase / shop words, urgency, links and personal data. Items have no
+// Rules (CLAUDE.md "Remedies and merit", Fortune bans): every text is linted (lensiq-merit-lint.js, TH/EN/ZH, disguises
+// normalised) for guarantees, "fix your luck", fear, health, lottery, prices, purchase / shop words, urgency, links,
+// markup and personal data. Items have no
 // price, vendor or link field. The belief label and the no-guarantee line are fixed strings on the page, not item text.
+import FortuneAIModule from "../../fortune-ai.js";
+import MeritLint from "../../lensiq-merit-lint.js";
 import { randomId } from "./crypto.js";
 import { callerHash, hit } from "./store.js";
 import { verifyTurnstile } from "./turnstile.js";
@@ -39,42 +42,10 @@ const REQ_ID_RE = /^[a-f0-9]{24}$/;
 const LIMITS = { title: 120, body: 1200, place: 120, area: 80 };
 export const MERIT_CONSENT_VERSION = "m1";
 
-/** Builds a RegExp from source chunks (kept under the line-width limit; same .source as one literal). @param {string[]} parts @param {string} [flags] */
-const rx = (parts, flags) => new RegExp(parts.join(""), flags);
-
-/* ---------------- crisis net (same patterns as fortune-ai.js; tests/unit/merit.test.js R8 keeps them equal) ---------------- */
-export const CRISIS_TH = rx([
-  String.raw`ฆ่าตัว(?:ตาย)?|อยากตาย|อยากจะตาย|ไม่อยาก(?:มีชีวิต(?:อยู่)?|อยู่(?:แล้ว|ต่อ|บนโลก)|ตื่น(?:ขึ้นมา)?อีก)|`,
-  String.raw`อยากหายไป(?:จากโลก)?|ไม่อยากตื่น(?:มา|ขึ้นมา)?เจอ(?:วัน)?พรุ่งนี้|ชีวิต(?:นี้)?ไม่มี(?:ความหมาย|ค่า)|(?:ควร|`,
-  String.raw`อยาก)จบ(?:ทุกอย่าง|ทุกสิ่ง|มันซะ)|ไม่อยากอยู่บนโลกนี้|อยากจบชีวิต|จบชีวิต(?:ตัวเอง|ตนเอง)|ทำร้ายตัวเอง|`,
-  String.raw`ทำร้ายตนเอง|กรีด(?:ข้อมือ|แขน|ตัวเอง)|ปลิดชีพ|กินยาตาย|กินยาเกินขนาด|กระโดด(?:ตึก|สะพาน)|ผูกคอ|(?:ถูก|`,
-  String.raw`โดน)(?:ทำร้าย(?:ร่างกาย)?|ทุบตี|ตบตี|ซ้อม|ข่มขืน|ล่วงละเมิด|ทารุณ|กักขัง)|ข่มขืน|ล่วงละเมิดทางเพศ|`,
-  String.raw`ความรุนแรงในครอบครัว|(?:แฟน|สามี|ภรรยา|พ่อ|แม่|พ่อเลี้ยง|แม่เลี้ยง)[^\s]{0,8}(?:ตบ|ตี|ทุบ|ทำร้าย|ซ้อม)(?:ฉัน|`,
-  String.raw`หนู|ผม|เรา|ดิฉัน)`
-]);
-export const CRISIS_EN = rx([
-  String.raw`\b(?:suicid\w*|kill(?:ing)? myself|end(?:ing)? my life|end it all|take my (?:own )?life|want(?:ed)? to die|`,
-  String.raw`wanna die|wish I (?:was|were) dead|self[- ]?harm\w*|hurt(?:ing)? myself|cut(?:ting)? myself|`,
-  String.raw`don'?t want to (?:live|be alive|wake up)|no reason to live|overdos\w*|can'?t go on(?: anymore| any longer)?|`,
-  String.raw`want(?:ed)? to disappear|(?:should I|I want to|I'll) (?:just )?end it(?! (?:with|between|off))(?: all)?|`,
-  String.raw`no point (?:in )?(?:living|being alive)|life (?:is|feels) (?:meaningless|pointless))\b|\b(?:he|she|they|`,
-  String.raw`my (?:partner|husband|wife|boyfriend|girlfriend|father|mother|dad|mum|mom|stepfather|stepmother))\s+(?:hits|`,
-  String.raw`beats|abuses|rapes|hurts|chokes)\s+me\b|\b(?:being|been|was|am|got)\s+(?:abused|raped|molested|assaulted|`,
-  String.raw`attacked|beaten up)\b|\bdomestic (?:violence|abuse)\b|\bsexual(?:ly)? (?:abuse|assault\w*)\b`
-], "i");
-export const CRISIS_ZH = rx([
-  String.raw`自杀|自尽|轻生|想死|不想活|活不下去|活着没意思|活着好累|活着没有意义|不想再醒来|不想醒来|想消失|结束一切|结束(?:自己的)?生命|自残|自伤|割腕|跳楼|寻死|吞药|服药过量|家暴|家庭暴力|`,
-  String.raw`被(?:人)?(?:打|殴打|袭击|虐待|性侵|强奸|侵犯|猥亵)|性侵|强奸|(?:他|她|老公|老婆|丈夫|妻子|男朋友|女朋友|爸爸|妈妈|继父|继母)(?:经常|总是|一直)?(?:打|殴打|虐待)我`
-]);
+/* ---------------- crisis net: the fortune pages' own check (fortune-ai.js FortuneAI.crisis.check), imported, not copied,
+   so a pattern change there applies to the interest form automatically ---------------- */
 /** @param {...any} texts */
-export function crisisCheck(...texts) {
-  for (const x of texts) {
-    const t = String(x == null ? "" : x).normalize("NFC");
-    if (!t) continue;
-    if (CRISIS_TH.test(t.replace(/\s+/g, "")) || CRISIS_EN.test(t) || CRISIS_ZH.test(t)) return true;
-  }
-  return false;
-}
+export function crisisCheck(...texts) { return !!FortuneAIModule.crisis.check(...texts); }
 /** Help lines returned with a refused request (same numbers as the fortune pages' support card). */
 export const SUPPORT_LINES = [
   { n: "1323", th: "สายด่วนสุขภาพจิต กรมสุขภาพจิต — โทรฟรี ตลอด 24 ชั่วโมง", en: "Thai Department of Mental Health hotline — free, 24 hours", zh: "泰国心理健康热线 — 免费，24 小时" },
@@ -83,87 +54,10 @@ export const SUPPORT_LINES = [
   { n: "1300", th: "ศูนย์ช่วยเหลือสังคม — ความรุนแรงในครอบครัวและการถูกทำร้าย", en: "Social Assistance Center — domestic violence and abuse", zh: "泰国社会援助中心 — 家庭暴力和受虐求助" }
 ];
 
-/* ---------------- wording lint (TH / EN / ZH) ---------------- */
-// Thai is tested with spaces removed (Thai has no word spaces; an inserted space must not dodge the rule).
-/** @type {Record<string, {th?: RegExp, en?: RegExp, zh?: RegExp, any?: RegExp}>} */
-const LINT = {
-  guarantee: {
-    th: /การันตี|รับประกัน|แน่นอน|ได้ผลแน่|ได้ผล100|ร้อยเปอร์เซ็นต์|ศักดิ์สิทธิ์ที่สุด|ขออะไรได้หมด|สมหวังแน่/,
-    en: /\bguarantee[ds]?\b|\bpromise[ds]?\b|\bdefinitely\b|\bcertain(?:ly)? to\b|\bsure to\b|\bwill (?:surely|certainly)\b|\b100 ?%|\bmost powerful\b/i,
-    zh: /保证|包准|保准|一定(?:会|能|灵)|百分之百|绝对|必定|有求必应|最灵/,
-    any: /\b100\s?%/
-  },
-  fix_luck: {
-    th: /แก้ดวง|เปลี่ยนดวง|แก้เคราะห์|ตัดกรรม|สะเดาะเคราะห์|หายชง|แก้ชงได้ผล|ดวงดีขึ้น|เสริมดวงทันที|รวยทันที|ปลดหนี้|แก้ซวย|พลิกดวง/,
-    en: rx([
-      String.raw`\bfix(?:es|ed|ing)? (?:your |the )?(?:bad )?(?:luck|fortune|clash)\b|\bremove[sd]? (?:your |the )?(?:bad luck|`,
-      String.raw`misfortune|clash|curse)|\bchange (?:your )?(?:luck|fortune|destiny)\b|\bturn (?:your )?luck\b|`,
-      String.raw`\bluck (?:will )?improves?\b|\bimproves? (?:your )?luck\b|\bend (?:your )?bad luck\b|\bget rich\b`
-    ], "i"),
-    zh: /改运|转运|化解一切|消灾|驱邪|破解|去霉运|改命|立即转运|好运马上/
-  },
-  fear: {
-    th: /ซวย|เคราะห์ร้าย|อัปมงคล|หายนะ|ภัยพิบัติ|อุบัติเหตุ|ความตาย|เสียชีวิต|ถึงชีวิต|ถึงตาย|โชคร้าย|ดวงไม่ดี|ภัยร้าย|คำสาป|ดวงตก/,
-    en: /\bbad luck\b|\bmisfortune\b|\bdisasters?\b|\bcatastroph\w*|\bdoom\w*|\bcurse[ds]?\b|\bdeath\b|\bdie\b|\baccidents?\b|\bdanger\w*|\bunlucky\b/i,
-    zh: /霉运|厄运|倒霉|灾祸|灾难|大难|血光|死亡|意外|诅咒|不吉利/
-  },
-  health: {
-    th: /รักษาโรค|หายป่วย|หายจากโรค|เจ็บป่วย|โรคร้าย|มะเร็ง|ตั้งครรภ์|มีลูกง่าย|ลดน้ำหนัก|รักษาอาการ/,
-    en: /\bcure[sd]?\b|\bheal(?:s|ing|ed)?\b|\billness\w*|\bdiseases?\b|\bsickness\b|\bpregnan\w*|\bfertility\b|\bweight loss\b/i,
-    zh: /治病|治疗|病愈|疾病|怀孕|求子|减肥/
-  },
-  lottery: {
-    th: /หวย|เลขเด็ด|ลอตเตอรี่|ล็อตเตอรี่|สลากกินแบ่ง|เลขนำโชค/,
-    en: /\blotter\w*|\blucky numbers?\b|\bwinning numbers?\b|\bjackpot\b/i,
-    zh: /彩票|中奖号码|幸运号码|六合彩|特码/
-  },
-  price: {
-    th: /\d[\d,.]*(?:บาท|฿)|฿\d|ราคา|ค่าบูชา|ค่าใช้จ่าย/,
-    en: /\b(?:thb|baht|usd)\b|[$฿€£]\s?\d|\bprices?\b|\bpriced\b|\bcosts?\b|\bfees?\b/i,
-    zh: /\d+\s*(?:元|块|泰铢|铢)|价格|费用|价钱/
-  },
-  purchase: {
-    th: /สั่งซื้อ|ซื้อได้ที่|ซื้อเลย|เช่าบูชา|จำหน่าย|โอนเงิน|ชำระเงิน|ร้านค้า|ร้านเรา|ช้อป/,
-    en: /\bbuy\w*|\bpurchas\w*|\bshop\w*|\border now\b|\bfor sale\b|\bsell(?:s|ing)?\b/i,
-    zh: /购买|下单|购物|出售|售卖|商店|网店|请购/
-  },
-  urgency: {
-    th: /ด่วน|วันนี้เท่านั้น|หมดเขต|จำนวนจำกัด|เหลือเพียง|เหลืออีก\d|นับถอยหลัง|ก่อนสาย|รีบ/,
-    en: rx([
-      String.raw`\blimited (?:time|offer|slots?|stock|spots?|places?)\b|\bonly \d+ (?:slots? |places? |spots? )?(?:left|`,
-      String.raw`remaining)\b|\bhurry\b|\blast chance\b|\bact now\b|\bcount ?down\b|\bdon'?t miss\b|\btoday only\b|\btoo late\b`
-    ], "i"),
-    zh: /限时|名额有限|仅剩|只剩|倒计时|立即|马上|错过|最后机会|今天截止/
-  },
-  link: {
-    any: /https?:\/\/|\bwww\.|\.(?:com|net|org|shop|co\.th|in\.th)\b|line\.me|lin\.ee/i
-  },
-  personal: {
-    any: /(?:\+?66[\s-]?|\b0)\d{1,2}[\s-]?\d{3}[\s-]?\d{3,4}\b|[^\s@<>"]+@[^\s@<>"]+\.[a-z]{2,}/i
-  }
-};
-export const LINT_CODES = Object.keys(LINT);
-
-/**
- * Wording check of one text in any of the three languages. Returns [] when clean, else [{code, match}].
- * @param {any} text @param {{only?: string[]}} [opts] only = limit to these categories
- */
-export function lintMerit(text, opts = {}) {
-  const t = String(text == null ? "" : text).normalize("NFC");
-  if (!t.trim()) return [];
-  const nospace = t.replace(/\s+/g, "");
-  const out = [];
-  for (const [code, rx] of Object.entries(LINT)) {
-    if (opts.only && !opts.only.includes(code)) continue;
-    let m = null;
-    if (rx.th) m = rx.th.exec(nospace);
-    if (!m && rx.en) m = rx.en.exec(t);
-    if (!m && rx.zh) m = rx.zh.exec(t);
-    if (!m && rx.any) m = rx.any.exec(t);
-    if (m) out.push({ code, match: m[0].slice(0, 40) });
-  }
-  return out;
-}
+/* ---------------- wording lint: one module shared with the page (lensiq-merit-lint.js) ---------------- */
+/** @type {(text: any, opts?: {only?: string[]}) => {code: string, match: string}[]} */
+export const lintMerit = MeritLint.lintMerit;
+export const LINT_CODES = MeritLint.LINT_CODES;
 
 /* ---------------- item validation ---------------- */
 const ITEM_FIELDS = ["id", "type", "tradition", "title", "body", "place", "area", "keys", "sample", "status", "sort"];
@@ -243,7 +137,7 @@ export const interestDays = env => intVar(env.MERIT_INTEREST_DAYS, 90, 7, 365);
 /** @param {any} env */
 export async function publicGuidance(env) {
   const rows = (await env.DB.prepare("SELECT * FROM merit_items WHERE status = 'published' ORDER BY tradition, type, sort, id LIMIT ?1").bind(PUBLIC_MAX).all()).results || [];
-  return { items: rows.map(rowItem), interest_form: interestEnabled(env) };
+  return { items: rows.map(rowItem), interest_form: interestEnabled(env), interest_retention_days: interestDays(env) };
 }
 
 /* ---------------- admin ---------------- */

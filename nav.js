@@ -17,7 +17,7 @@
    - Legal footer: pages without their own <footer> get a slim one (terms / privacy / help / about links, keys foot.*);
      hidden in kiosk modes and in print. Pages with a <footer> (index, about) link the documents themselves.
    - Fortune pages: loads lensiq-report.js ("report a problem with this reading", works without a backend) and
-     lensiq-merit-core.js + lensiq-merit.js (free belief guidance under a reading, Merit MVP 2026-11-12). */
+     lensiq-merit-core.js + lensiq-merit-lint.js + lensiq-merit.js (free belief guidance under a reading, Merit MVP). */
 (function () {
   "use strict";
 
@@ -646,9 +646,10 @@
   // ---------- fortune pages: belief guidance under a reading (lensiq-merit.js; Merit MVP, owner order 2026-11-12) ----------
   function meritHook() {
     var p = (location.pathname.split("/").pop() || "").toLowerCase();
-    if (!/^(faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph|planner|luckycolor)\.html$/.test(p)) return;
+    // the pages that run FortuneAI readings (planner / luckycolor do not: nothing to attach to)
+    if (!/^(faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph)\.html$/.test(p)) return;
     if (/** @type {any} */ (window).LQMerit || document.querySelector('script[src^="lensiq-merit.js"]')) return;
-    ["lensiq-merit-core.js?v=1", "lensiq-merit.js?v=1"].forEach(function (src) {
+    ["lensiq-merit-core.js?v=2", "lensiq-merit-lint.js?v=1", "lensiq-merit.js?v=2"].forEach(function (src) {
       var sc = document.createElement("script");
       sc.src = src; sc.async = false; // in order: the core first
       (document.head || document.documentElement).appendChild(sc);

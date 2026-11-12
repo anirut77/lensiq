@@ -192,6 +192,7 @@ test("R5: the page flag is OFF in the shipped config (lensiq-config.js never tur
 
 test("R5: crisis state — set by markCrisis, active for 24 h, then expires; garbage values count as no crisis", () => {
   const C = core();
+  C._resetCrisisMemory(); // review amendment 2026-11-12: markCrisis also keeps an in-memory per-page flag
   const s = store(), t0 = Date.UTC(2026, 10, 12, 10);
   assert.equal(C.crisisActive(s, t0), false);
   C.markCrisis(s, t0);
@@ -200,11 +201,14 @@ test("R5: crisis state — set by markCrisis, active for 24 h, then expires; gar
   assert.equal(C.crisisActive(s, t0 + 1000), true);
   assert.equal(C.crisisActive(s, t0 + C.CRISIS_WINDOW_MS - 1), true);
   assert.equal(C.crisisActive(s, t0 + C.CRISIS_WINDOW_MS + 1), false);
+  C._resetCrisisMemory();
   assert.equal(C.crisisActive(store({ [C.CRISIS_KEY]: "abc" }), t0), false);
   assert.equal(C.crisisActive(store({ [C.CRISIS_KEY]: String(t0 + 3600e3) }), t0), true, "a clock skew into the future still counts (safe side)");
   const broken = { getItem() { throw new Error("blocked"); }, setItem() { throw new Error("blocked"); } };
   assert.doesNotThrow(() => C.markCrisis(broken, t0));
-  assert.equal(C.crisisActive(broken, t0), false);
+  // review amendment 2026-11-12 (stricter): blocked storage no longer loses the crisis state; it is kept in memory per page
+  assert.equal(C.crisisActive(broken, t0), true);
+  C._resetCrisisMemory();
 });
 
 test("R5: panel model — crisis hides the whole panel (no free guidance and no paid offer next to a support card)", () => {
@@ -308,16 +312,13 @@ test("R7: UI strings complete in TH/EN/ZH (same keys) and free of countdown / sc
 });
 
 /* ---------------- R8 crisis parity ---------------- */
-test("R8: the Worker's crisis patterns equal the fortune pages' crisis net (fortune-ai.js) — one rule set on device and server", async () => {
-  const B = await backend();
-  const src = readFileSync(join(ROOT, "fortune-ai.js"), "utf8");
-  for (const name of ["CRISIS_TH", "CRISIS_EN", "CRISIS_ZH"]) {
-    const m = new RegExp("const " + name + " = (/.*/[a-z]*);").exec(src);
-    assert.ok(m, name + " found in fortune-ai.js");
-    const re = (0, eval)(m[1]);
-    assert.equal(B[name].source, re.source, name + " source");
-    assert.equal(B[name].flags, re.flags, name + " flags");
+// Review amendment 2026-11-12: the Worker no longer keeps a copy of the patterns; it calls the fortune pages' own
+// FortuneAI.crisis.check (imported from fortune-ai.js), so a pattern change there applies to both automatically.
+test("R8: the Worker's crisis check is the fortune pages' crisis net (fortune-ai.js) — one rule set on device and server", async () => {
+  const B = await backend(), FA = require("../../fortune-ai.js");
+  for (const t of ["ควรฆ่าตัวตายดีไหม", "I can't go on anymore", "活着好累", "โดนทำร้ายร่างกาย"]) {
+    assert.equal(B.crisisCheck(t), true, t); assert.equal(FA.crisis.check(t), true, t);
   }
-  for (const t of ["ควรฆ่าตัวตายดีไหม", "I can't go on anymore", "活着好累", "โดนทำร้ายร่างกาย"]) assert.equal(B.crisisCheck(t), true, t);
-  for (const t of ["สมชาย", "Somchai", "小明", "line: somchai_88"]) assert.equal(B.crisisCheck(t), false, t);
+  for (const t of ["สมชาย", "Somchai", "小明", "line: somchai_88"]) { assert.equal(B.crisisCheck(t), false, t); assert.equal(FA.crisis.check(t), false, t); }
+  assert.ok(!/const CRISIS_(TH|EN|ZH) =/.test(readFileSync(join(ROOT, "backend", "src", "merit.js"), "utf8")), "no copied patterns");
 });

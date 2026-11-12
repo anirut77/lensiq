@@ -67,7 +67,8 @@
       "f.from": "ช่วงวันที่สะดวก ตั้งแต่",
       "f.to": "ถึง",
       "f.consent": "ฉันยินยอมให้ LENSIQ เก็บชื่อ ช่องทางติดต่อ รายการที่สนใจ และช่วงวันที่ เพื่อติดต่อกลับเรื่องบริการนี้เท่านั้น ฉันเข้าใจว่ารายการที่เลือกอาจบอกถึงความเชื่อทางศาสนาของฉัน",
-      "f.notice": "เราเก็บเฉพาะข้อมูลข้างต้น ไม่เก็บวันเกิด ที่อยู่ หรือรูปภาพ ข้อมูลถูกลบอัตโนมัติภายใน 90 วัน ขอลบก่อนหน้านั้นได้ อ่านเพิ่มที่",
+      "f.notice": "เราเก็บเฉพาะข้อมูลข้างต้น ไม่เก็บวันเกิด ที่อยู่ หรือรูปภาพ ข้อมูลถูกลบอัตโนมัติภายใน {n} วัน ขอลบก่อนหน้านั้นได้ อ่านเพิ่มที่",
+      "f.noticeNoDays": "เราเก็บเฉพาะข้อมูลข้างต้น ไม่เก็บวันเกิด ที่อยู่ หรือรูปภาพ ข้อมูลถูกลบอัตโนมัติตามระยะเวลาที่กำหนด ขอลบก่อนหน้านั้นได้ อ่านเพิ่มที่",
       "f.privacy": "ความเป็นส่วนตัว",
       "f.send": "ส่งความสนใจ",
       "f.ok": "ได้รับแล้ว ทีมงานจะติดต่อกลับเมื่อบริการเปิด",
@@ -109,7 +110,8 @@
       "f.from": "Preferred dates from",
       "f.to": "to",
       "f.consent": "I agree that LENSIQ keeps my name, contact channel, chosen item and date window only to contact me about this service. I understand the chosen item may reveal my religious belief.",
-      "f.notice": "We keep only the details above: no birth date, address or photo. They are deleted automatically within 90 days, or earlier on request. Read more:",
+      "f.notice": "We keep only the details above: no birth date, address or photo. They are deleted automatically within {n} days, or earlier on request. Read more:",
+      "f.noticeNoDays": "We keep only the details above: no birth date, address or photo. They are deleted automatically after a set period, or earlier on request. Read more:",
       "f.privacy": "Privacy",
       "f.send": "Register interest",
       "f.ok": "Received. Our team will contact you when the service opens.",
@@ -151,7 +153,8 @@
       "f.from": "方便的日期：从",
       "f.to": "到",
       "f.consent": "我同意 LENSIQ 保存我的姓名、联系方式、所选项目和日期范围，仅用于就此服务联系我。我明白所选项目可能透露我的宗教信仰。",
-      "f.notice": "我们只保存上述信息，不保存生日、地址或照片。信息会在 90 天内自动删除，也可提前要求删除。详见：",
+      "f.notice": "我们只保存上述信息，不保存生日、地址或照片。信息会在 {n} 天内自动删除，也可提前要求删除。详见：",
+      "f.noticeNoDays": "我们只保存上述信息，不保存生日、地址或照片。信息会在规定期限后自动删除，也可提前要求删除。详见：",
       "f.privacy": "隐私",
       "f.send": "登记意向",
       "f.ok": "已收到。服务开放时我们的团队会联系你。",
@@ -177,16 +180,41 @@
   function loadChoice(store) { try { return store ? normChoice(store.getItem(STORE_KEY)) : ""; } catch (e) { return ""; } }
   /** @param {any} store @param {any} v */
   function saveChoice(store, v) { try { if (store) store.setItem(STORE_KEY, normChoice(v)); } catch (e) { /* private mode: not remembered */ } }
+  // In-memory copy for this page: the crisis state must hold even when storage is blocked, full or missing.
+  var memCrisisAt = 0;
+  /** @param {number} at @param {number} t */
+  var within = function (at, t) { return isFinite(at) && at > 0 && t - at < CRISIS_WINDOW_MS; }; // a future time (clock skew) also counts
   /** @param {any} store @param {number} [nowMs] */
   function crisisActive(store, nowMs) {
+    var t = nowMs == null ? Date.now() : nowMs;
+    if (within(memCrisisAt, t)) return true;
     var at;
     try { at = store ? Number(store.getItem(CRISIS_KEY)) : NaN; } catch (e) { return false; }
-    if (!isFinite(at) || at <= 0) return false;
-    var t = nowMs == null ? Date.now() : nowMs;
-    return t - at < CRISIS_WINDOW_MS; // a timestamp in the future (clock skew) also counts: the safe side
+    return within(at, t);
   }
   /** @param {any} store @param {number} [nowMs] */
-  function markCrisis(store, nowMs) { try { if (store) store.setItem(CRISIS_KEY, String(nowMs == null ? Date.now() : nowMs)); } catch (e) { /* blocked storage */ } }
+  function markCrisis(store, nowMs) {
+    var t = nowMs == null ? Date.now() : nowMs;
+    memCrisisAt = t;
+    try { if (store) store.setItem(CRISIS_KEY, String(t)); } catch (e) { /* blocked storage: the in-memory copy holds it */ }
+  }
+  /** Tests only: forget the in-memory crisis state. */
+  function _resetCrisisMemory() { memCrisisAt = 0; }
+
+  /** Items whose every text passes the wording lint (the page re-checks what the server sent). No lint: nothing.
+   *  @param {any[]} items @param {any} lint */
+  function safeItems(items, lint) {
+    if (typeof lint !== "function") return [];
+    return (Array.isArray(items) ? items : []).filter(function (it) {
+      if (!it || typeof it !== "object") return false;
+      return ["title", "body", "place", "area"].every(function (f) {
+        var o = it[f];
+        if (o == null) return f === "place" || f === "area";
+        if (typeof o !== "object") return false;
+        return ["th", "en", "zh"].every(function (l) { return o[l] == null || !lint(String(o[l])).length; });
+      });
+    });
+  }
 
   /** Matching keys of a reading, from FortuneAI facts (never sent anywhere). @param {any} facts @param {string} [page] */
   function keysFromFacts(facts, page) {
@@ -246,7 +274,7 @@
   /** @param {{pageFlag?: any, serverFlag?: any, crisis?: any}} o */
   function paidAllowed(o) { return !!o && o.pageFlag === true && o.serverFlag === true && o.crisis === false; }
 
-  /** @param {any[]} items @param {{choice?: string, keys?: string[], lang?: string, pageFlag?: any, serverFlag?: any, crisis?: boolean}} o */
+  /** @param {any[]} items @param {{choice?: string, keys?: string[], lang?: string, pageFlag?: any, serverFlag?: any, crisis?: boolean, retentionDays?: any}} o */
   function panelModel(items, o) {
     var opt = o || {};
     if (opt.crisis) return null;
@@ -261,6 +289,8 @@
       /** @type {Record<string, string>} */
       var t = {};
       PAID_KEYS.forEach(function (k) { t[k] = U[k]; });
+      var days = Number(opt.retentionDays);
+      t["f.notice"] = Number.isInteger(days) && days > 0 && days <= 3650 ? U["f.notice"].replace("{n}", String(days)) : U["f.noticeNoDays"];
       paid = { after: "guidance", text: t, fields: PAID_FIELDS.slice(), items: cards.map(function (c) { return { id: c.id, title: c.title }; }) };
     }
     return { lang: lang, choice: choice, off: choice === "off", cards: cards, footer: NO_GUARANTEE[lang], paid: paid };
@@ -270,6 +300,7 @@
     VERSION: 1, TRADITIONS: TRADITIONS, CHOICES: CHOICES, TYPES: TYPES, DOMAINS: DOMAINS, KEY_RE: KEY_RE, STORE_KEY: STORE_KEY, CRISIS_KEY: CRISIS_KEY,
     CRISIS_WINDOW_MS: CRISIS_WINDOW_MS, LABEL: LABEL, NO_GUARANTEE: NO_GUARANTEE, UI: UI,
     normChoice: normChoice, normLang: normLang, text: text, loadChoice: loadChoice, saveChoice: saveChoice, crisisActive: crisisActive, markCrisis: markCrisis,
+    _resetCrisisMemory: _resetCrisisMemory, safeItems: safeItems,
     keysFromFacts: keysFromFacts, match: match, paidAllowed: paidAllowed, panelModel: panelModel
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

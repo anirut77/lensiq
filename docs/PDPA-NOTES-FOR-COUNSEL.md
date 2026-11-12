@@ -891,27 +891,36 @@ Worker therefore never learns the tradition or the reading. Residual point for c
 log (method, URL, Cloudflare metadata) shows that a device opened a fortune page and fetched the guidance list; it
 carries nothing about belief.
 
-(b) **Admin content.** Items hold no personal data by design: no person, no contact, no price, no shop link; a place
-name and an area (province) only. An admin save is refused if any text contains a phone number, an e-mail address or a
-link (automated check, TH / EN / ZH). Every create / edit / hide / delete is in the admin audit log with the item id and
-the changed field names only (no text). Delete needs the password again.
+(b) **Admin content.** Items have no field for a person, contact, price or shop link; a place name and an area
+(province) only. An admin save is refused when the automated wording check (TH / EN / ZH, `lensiq-merit-lint.js`) finds
+what looks like a phone number (9 or more digits in a run, Thai digits included), an e-mail address, an @handle or LINE ID,
+a link or web address, or markup; the page applies the same check again and hides any item that fails. This is a pattern
+filter, not a guarantee: a name or a contact written out in words can still pass, so content review stays human.
+The audit log records each create (item id, type, tradition), edit (item id, changed field names, status), hide / show
+and delete (item id); no item text. Delete needs the admin password again (or a re-confirmation made in the last
+5 minutes).
 
 (c) **Interest form (built, OFF; must stay off until CTO-BRIEF L42 / L43 and this note are answered).** Two switches
 must both be on: the Worker variable `MERIT_INTEREST_FORM = "on"` (shipped "off") and
 `window.LENSIQ_MERIT_INTEREST_FORM = true` on the page (shipped false). The form is never shown while the crisis net
 has fired on this device in the last 24 hours. What it would collect: name or nickname, one contact (LINE ID, phone or
-e-mail), the guidance item chosen, and a preferred date window (at most 60 days). The server refuses anything else
-(birth date, address, photo, note and any other field). No IP address or user agent is stored with a request; the rate
-limit uses the day-salted caller hash that is deleted daily. Retention: deleted automatically after
-`MERIT_INTEREST_DAYS` (90); the admin can erase one at any time (re-auth; the audit row has no personal details).
+e-mail), the guidance item chosen, a preferred date window (at most 60 days), plus the page language and the consent
+version. The server refuses any other field (birth date, address, photo, note and so on). No IP address or user agent
+is stored with a request; the rate limit counts per caller under a hash salted per day (salts deleted the next day,
+counters after one day). Retention: deleted by the daily maintenance job once older than `MERIT_INTEREST_DAYS` (90; the
+notice shows the configured number); the admin can erase one at any time (re-auth; the audit row holds the request id
+only).
 **Sensitive-data point:** the chosen item (for example a shrine with a Tai Sui hall) can reveal a religious belief, so
 the form asks for explicit consent that says so (TH / EN / ZH text `f.consent` in `lensiq-merit-core.js`, consent
 version "m1"). The form states that booking is not open and no payment is taken.
 Questions for counsel: (1) is explicit consent the right basis for the implied-belief data, and is the wording enough;
 (2) is 90 days a reasonable retention for an interest list while no service exists; (3) does `privacy.html` need a
 merit paragraph before the form is switched on (not added yet because the form is off; owner decision); (4) crisis
-wording typed into the name or contact field is refused on the device and again on the server and is never stored or
-logged (a counter only): confirm this is adequate.
+wording typed into the name or contact field is refused on the device and again on the server (the same check as the
+fortune pages, imported from `fortune-ai.js`); the text is never stored and the server writes only a log line without
+the text: confirm this is adequate.
 
 (d) **Crisis net.** Whenever a support card (1323 / 1669 / 191 / 1300) appears on any fortune page, the device stores
-only the time (`localStorage` "lq-crisis-at", no text) and hides all merit content and any paid offer for 24 hours.
+only the time (`localStorage` "lq-crisis-at", no text; an in-memory copy for the page when storage is blocked) and hides
+all merit content and any paid offer for 24 hours, also in other open tabs of the same browser; the form re-checks the
+state when it is submitted.
