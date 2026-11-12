@@ -232,6 +232,8 @@
     "lensiq-pc.js",
     "lensiq-pc-run.js",
     "lensiq-pc-ui.js",
+    "lensiq-nut.js",
+    "lensiq-nut-ui.js",
     "lensiq-pc-lookup.js",
     "lensiq-pc-guard.js",
     "lensiq-pc-ai.js",

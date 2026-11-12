@@ -1,0 +1,68 @@
+/* nutrition.css — nutrition label reader (nutrition.html). Page-scoped under .nut-page; shared tokens come from styles.css.
+   Phone first: one column, 44 px targets, text >= 12 px, no horizontal page scroll at 320 px.
+   Wellbeing rule (docs/NUTRITION-DESIGN.md §7): values in ONE neutral colour; a status chip is text, never a colour verdict. */
+.nut-page{max-width:980px;margin:auto;padding:28px 16px 48px;min-width:0}
+.nut-page [hidden]{display:none!important}
+.nut-page h1{font-size:clamp(1.5rem,4vw,2.3rem);text-align:center;color:var(--navy);font-weight:600;margin:6px 0 8px;overflow-wrap:anywhere}
+.nut-page .lead{text-align:center;margin:0 auto 14px;max-width:760px}
+.nut-page h2{font-size:1.12rem;color:var(--navy);font-weight:600;text-align:left;margin:0 0 10px;overflow-wrap:anywhere}
+.nut-page h3{font-size:1rem;color:var(--navy);font-weight:600;margin:12px 0 6px;overflow-wrap:anywhere}
+.nut-page .card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:var(--shadow);margin-bottom:16px;min-width:0;display:block}
+.nut-page p,.nut-page li,.nut-page dd{overflow-wrap:anywhere}
+.nut-page .btn{padding:10px 18px;min-height:44px;max-width:100%;white-space:normal;text-align:center}
+.nut-page .btn.small{padding:8px 14px;font-size:.88rem;min-height:44px;min-width:44px}
+.nut-page .btn:disabled{opacity:.45;cursor:not-allowed}
+.nut-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.nut-field{display:flex;flex-direction:column;gap:4px;font-size:.9rem;margin:0 0 10px;min-width:0}
+.nut-field input,.nut-field select,.nut-field textarea{font:inherit;min-height:44px;padding:8px 12px;border:1.5px solid #c9cfdd;border-radius:10px;width:100%;min-width:0;
+  background:#fff;color:var(--text)}
+.nut-field textarea{font-size:.92rem;min-height:140px;resize:vertical}
+.nut-check{display:flex;gap:10px;align-items:flex-start;font-size:.92rem;min-height:44px;padding:8px 0;cursor:pointer}
+.nut-check input{width:22px;height:22px;flex:none;margin-top:2px}
+.nut-check small{font-size:.84rem;color:var(--muted)}
+.nut-list{padding-left:20px;margin:8px 0;display:grid;gap:6px;font-size:.92rem}
+.nut-status{font-size:.9rem;min-height:1.4em;color:var(--muted);margin:6px 0}
+.nut-status[data-kind=err]{font-weight:600;color:var(--text)}
+.nut-file{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center}
+.nut-file input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.nut-textbox{border-top:1px solid var(--line);margin-top:10px;padding-top:4px}
+.nut-textbox summary,.nut-srcw summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:600;color:var(--navy)}
+/* camera + crop */
+.nut-cam{position:relative;background:#1b2140;border-radius:12px;overflow:hidden;aspect-ratio:4/3;touch-action:none;max-width:640px}
+.nut-cam video,.nut-cam canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.nut-crop{position:absolute;border:3px solid #22d3ee;border-radius:8px;box-shadow:0 0 0 999px rgba(0,0,0,.35);pointer-events:none}
+/* result card: one neutral colour for every value */
+.nut-badges{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px}
+.nut-badge{display:inline-block;font-size:.8rem;padding:3px 10px;border-radius:99px;background:#eef1f8;color:var(--navy);border:1px solid var(--line)}
+.nut-kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;font-size:.9rem;margin:8px 0}
+.nut-kv dt{color:var(--muted)}.nut-kv dd{margin:0}
+.nut-amt{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:0 12px;margin:8px 0 0}
+.nut-calcmsg{font-size:.86rem;color:var(--muted);margin:0 0 8px}
+.nut-items{display:grid;gap:8px}
+.nut-item{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr);gap:4px 12px;
+  align-items:start;min-width:0}
+.nut-name small{display:block;font-size:.8rem;color:var(--muted)}
+.nut-lab{display:block;font-size:.78rem;color:var(--muted)}
+.nut-printed{font-weight:600;font-variant-numeric:tabular-nums}
+.nut-calc{font-variant-numeric:tabular-nums}
+.nut-conv{display:block;font-size:.84rem;color:var(--muted);margin-top:2px}
+.nut-meta{grid-column:1 / -1;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.nut-st{font-size:.8rem;padding:3px 10px;border-radius:99px;border:1px solid var(--line);background:#f6f7fb;color:var(--navy)}
+.nut-st[data-st=check]{border-style:dashed;font-weight:600}
+.nut-st[data-st=edited]{font-style:italic}
+.nut-srcw{grid-column:1 / -1}
+.nut-src{font-size:.86rem;color:var(--muted);margin:0 0 4px}
+.nut-edit-form{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.nut-edit-in{font:inherit;min-height:44px;width:7em;padding:6px 10px;border:1.5px solid #c9cfdd;border-radius:10px}
+.nut-nf{font-size:.9rem;margin:10px 0 0}
+.nut-hidden-note{font-size:.9rem;margin:6px 0;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.nut-allergen{margin-top:12px;padding:12px 14px;border:1.5px solid var(--navy2);border-radius:12px;background:#f8f9fd}
+.nut-allergen h3{margin-top:0}
+.nut-allergen mark{background:#e6e9f5;color:var(--text);font-weight:700;padding:0 2px;border-radius:3px}
+.nut-al-check{margin:8px 0 0}
+.nut-footer{max-width:900px;margin:0 auto 16px;padding:12px 14px;border-radius:14px;background:#eef1f8;border:1px solid var(--line);font-size:.92rem}
+.nut-support{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.nut-call{display:inline-flex;gap:8px;align-items:center}
+.nut-call b{font-size:1.1rem}
+@media (max-width:560px){.nut-item{grid-template-columns:minmax(0,1fr)}}
+@media print{.nav,.nut-set,.nut-row,.nut-camwrap{display:none!important}}

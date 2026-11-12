@@ -164,6 +164,18 @@ No module is production-ready. None has completed a field pilot, and the backend
 
 ## 5. Backlog (deferred, with reasons)
 
+**Nutrition MVP (branch `nutrition-mvp`, 2026-11-13; label mode only)**
+- Built: `nutrition.html` (category 5), `lensiq-nut.js` (parser, conversions, amount-eaten calculation, allergen words),
+  `lensiq-nut-ui.js`, TH / EN / ZH. On the device only: no AI, no food database, no backend, nothing stored except the
+  "hide calories" setting.
+- Measured (synthetic only, `docs/nutrition/NUTRITION-ACCURACY.md`): parser 100 % on ideal text; on-device images 82.2 %
+  exact. **Safety target missed:** silent wrong values 3.0 % [2.0–4.3] pooled, all on 4° tilted pictures (22.6 %);
+  waiting for the owner's decision before any fix.
+- Not built (owner decision needed): back-office basics (design N3 / N4) and USDA FDC data, which only the photo mode
+  uses; the AI step `nut_label`; the barcode / Open Food Facts cross-check; the Product Check link; the food log; photo mode.
+- Real-label accuracy needs the owner's 200 label photos (design §11).
+
+
 **Gate**
 - Real-site plate accuracy (≥100 vehicles): needs a field pilot.
 - Trained Thai YOLOX-nano detector: no torch here, and the Roboflow downloads are blocked. Colab notebook and dataset list are R15 deliverables.
