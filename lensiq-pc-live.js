@@ -25,7 +25,7 @@
  * CHECKLIST · PRODUCT KEY
  *   checklist(text, codes, {P, G}) -> {barcode, reg, ingredients}   P = LQPC, G = LQPCGuard
  *   productKey({gtins, regs, text}) -> "g:<gtin>" | "r:<reg>" | "t:<8 hex>"   never the label text itself
- * TESTER-ONLY AUTO-SEND (owner order 2026-11-12; public flow unchanged: preview and confirm every time)
+ * TESTER-ONLY ONE-TAP SEND (no preview, never automatic) (owner order 2026-11-12; public flow unchanged: preview and confirm every time)
  *   autoTextCheck(G, text, facts, opts?) -> {gate, hits, maybe}   LQPCGuard.aiGate (session evidence is never passed on),
  *     guard hits (scan), possible names (possibleNames) + the stricter block list (LQPCGuard.autoBlock)
  *   autoDecision({tester, autoOn, hidden, gate, hits, maybe, face:{ran, faces}, key, sent, count, cap}) -> {send, reason}
@@ -252,8 +252,8 @@
     return "t:" + fnv(String((o && o.text) || "").normalize("NFKC").split("\n").map(l => l.replace(/\s+/g, "")).filter(Boolean).join("\n").toLowerCase());
   }
 
-  /* ---------------- tester-only auto-send ---------------- */
-  /** The text-side checks of an auto-send. Session evidence (option ข) is never passed on. @param {any} G LQPCGuard
+  /* ---------------- tester-only one-tap send ---------------- */
+  /** The text-side checks of an one-tap send. Session evidence (option ข) is never passed on. @param {any} G LQPCGuard
    *  @param {string} text @param {{gtins?: string[], regs?: string[]}} facts @param {any} [_opts] ignored on purpose (no session facts) */
   // eslint-disable-next-line no-unused-vars
   function autoTextCheck(G, text, facts, _opts) {

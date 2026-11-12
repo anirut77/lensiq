@@ -294,7 +294,8 @@ export function isLocalRequestUrl(request) {
 export const evalLocalMode = (env, request) => String(env.AI_EVAL_LOCAL || "") === "1" && isLocalRequestUrl(request) && isLocalOrigin(request);
 
 /**
- * Tester-only auto-send of the Product Check live scan (owner order 2026-11-12). A request marked `auto: true` (top level of
+ * Tester-only one-tap send without preview, Product Check (owner decisions 2026-11-12: no automatic sending; a request is
+ * only ever sent on the tester's tap). A request marked `auto: true` (top level of
  * the body; never passed to a provider) skipped the per-capture preview on the page, so the Worker accepts it ONLY when the
  * closed-test gate is on (TESTER_GATE=required) and the request carries a valid tester code, and only for a feature that
  * has an autoCheck (pc_fields, pc_claims, pc_translate). On top of every feature limit it has its own per-caller
@@ -323,7 +324,7 @@ export async function aiRoute(env, request, featureId, deps = {}, ctx = {}) {
   if (!body || typeof body !== "object" || Array.isArray(body)) return fb("bad_request", 400);
   if ("auto" in body && typeof body.auto !== "boolean") return fb("bad_request", 400);
   const auto = body.auto === true;
-  // tester-only auto-send: the gate must be ON and this request's tester code valid, and the feature must allow it
+  // tester-only one-tap send: the gate must be ON and this request's tester code valid, and the feature must allow it
   if (auto && !(typeof meta.autoCheck === "function" && ctx.tester && ctx.tester.required === true && ctx.tester.ok === true)) return fb("auto_not_allowed", 403);
   const providers = body.providers;
   if (body.consent !== true || !Array.isArray(providers) || !providers.length || providers.length > 8 || !providers.every(p => PROVIDER_IDS.includes(p))) return fb("consent_required", 400);
@@ -347,7 +348,7 @@ export async function aiRoute(env, request, featureId, deps = {}, ctx = {}) {
     { key: `ai:${featureId}:m:${who}`, limit: fs.perUserPerMinute, win: 60 },
     { key: `ai:${featureId}:d:${who}`, limit: fs.perUserDaily, ...DAY },
     { key: `ai:${featureId}:g`, limit: fs.globalPerMinute, win: 60 },
-    // auto-send has its own allowance per caller, across the Product Check features
+    // one-tap send has its own allowance per caller, across the Product Check features
     ...(auto ? [{ key: `ai:auto:m:${who}`, limit: AUTO_PER_MINUTE, win: 60, auto: true }, { key: `ai:auto:d:${who}`, limit: AUTO_PER_DAY, ...DAY, auto: true }] : [])
   ];
   const lim = await hitAll(env.DB, specs);
@@ -360,7 +361,7 @@ export async function aiRoute(env, request, featureId, deps = {}, ctx = {}) {
   let nreq;
   try {
     nreq = meta.build(input, { mode, evalLocal });
-    if (auto) meta.autoCheck(input); // tester auto-send: the stricter filter, after every check of build()
+    if (auto) meta.autoCheck(input); // tester one-tap send: the stricter filter, after every check of build()
     if (!nreq || typeof nreq.system !== "string" || typeof nreq.text !== "string" || !nreq.output || !nreq.output.schema) throw new Error("bad build");
   } catch (e) { // refused before any provider call; a documented refusal of this text adds its code (pc-features.js INPUT_REFUSAL_CODES)
     await lim.release(x => !!x.daily || !!x.auto); // refused before any provider call: the day (and the auto allowance) given back

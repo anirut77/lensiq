@@ -12,10 +12,10 @@
  *   LQAI.ensureConsent(feature, {mode?}) -> Promise<{mode, info, remembered} | null>
  *   LQAI.ensureConsentGroup(id, features, labels?, {mode?, force?, auto?}) -> same, ONE screen for several features (P7,
  *       groupInfo). force = show the screen even when a choice is remembered; auto = the screen also says what the
- *       TESTER auto-send of the Product Check live scan does ([data-auto]); the result then tells whether "remember my
+ *       TESTER one-tap send (no preview) of Product Check does ([data-auto]); the result then tells whether "remember my
  *       choice" was ticked and stored (saved: true)
  *   LQAI.send(feature, info, mode, input, {auto?}) -> the POST alone (a page step such as a photo preview sits between);
- *       auto: true marks a tester auto-send (the Worker accepts it only from a valid tester with the gate on)
+ *       auto: true marks a tester one-tap send (no preview) (the Worker accepts it only from a valid tester with the gate on)
  *   LQAI.consentState(feature|group)     -> {state: "remembered"|"session"|"", mode}
  *   LQAI.withdraw(feature)              -> boolean
  *   LQAI.renderWithdraw(container, feature) -> HTMLElement   button shown while a remembered consent exists
@@ -47,11 +47,11 @@
       fbError: "บริการ AI ขัดข้องชั่วคราว คุณกำลังดูผลจากในเครื่องเท่านั้น",
       fbTester: "การตรวจด้วย AI เปิดให้เฉพาะกลุ่มผู้ทดสอบ คุณกำลังดูผลจากในเครื่องเท่านั้น", fbOff: "บริการปิดชั่วคราว คุณกำลังดูผลจากในเครื่องเท่านั้น",
       fbCap: "วันนี้มีการใช้งานครบจำนวนแล้ว ลองใหม่พรุ่งนี้ คุณกำลังดูผลจากในเครื่องเท่านั้น", via: "{router} แล้วส่งต่อไปยัง {served}",
-      fbAuto: "การส่งอัตโนมัติเปิดให้เฉพาะผู้ทดสอบ คุณกำลังดูผลจากในเครื่องเท่านั้น",
-      autoNote: "ส่งอัตโนมัติขณะสแกน (เฉพาะผู้ทดสอบ): ถ้าเลือก \"จำการเลือกนี้\" ระบบจะส่งข้อความที่อ่านได้ให้ AI เองโดยไม่ถามและไม่ให้ดูก่อนทุกครั้ง (ไม่ส่งภาพอัตโนมัติ) " +
-        "เฉพาะภาพที่เป็นฉลากสินค้า ไม่ใช่ฉลากจ่ายยาหรือเอกสารส่วนบุคคล ไม่พบชื่อหรือข้อมูลส่วนตัว และไม่พบใบหน้า สินค้าละ 1 ครั้ง " +
-        "ไม่ส่งขณะซ่อนหน้านี้ หลังส่งจะแสดงข้อความที่ส่งไป หยุดและถอนความยินยอมได้ทันทีด้วยปุ่มใต้กล้อง ถ้าไม่เลือก \"จำการเลือกนี้\" " +
-        "จะไม่เปิดการส่งอัตโนมัติ"
+      fbAuto: "การส่งแบบแตะครั้งเดียวเปิดให้เฉพาะผู้ทดสอบ คุณกำลังดูผลจากในเครื่องเท่านั้น",
+      autoNote: "สำหรับผู้ทดสอบ: ถ้าเลือก \"จำการเลือกนี้\" ครั้งต่อไปที่กด \"ขอความเห็นจาก AI\" ระบบจะส่งข้อความที่อ่านได้ทันทีด้วยการแตะครั้งเดียว " +
+        "โดยไม่แสดงตัวอย่างก่อนส่ง ไม่มีการส่งเองโดยที่คุณไม่ได้กด และไม่ส่งภาพ ส่งทันทีเฉพาะภาพที่เป็นฉลากสินค้า ไม่ใช่ฉลากจ่ายยาหรือเอกสารส่วนบุคคล " +
+        "ไม่พบชื่อหรือข้อมูลส่วนตัว และไม่พบใบหน้า นอกนั้นจะแสดงข้อความให้ตรวจก่อนเหมือนเดิม หลังส่งจะแสดงข้อความที่ส่งไป " +
+        "หยุดและถอนความยินยอมได้ทันทีด้วยปุ่มใต้กล้อง"
     },
     en: {
       title: "Send this to AI for a check?", intro: "Data is sent to the AI provider below only if you agree.",
@@ -73,12 +73,11 @@
       fbError: "The AI service is temporarily unavailable; you are seeing the on-device result only",
       fbTester: "AI checks are open to the closed tester group only; you are seeing the on-device result only", fbOff: "The service is switched off for now; you are seeing the on-device result only",
       fbCap: "The daily request limit has been reached; try again tomorrow. You are seeing the on-device result only", via: "{router}, then on to {served}",
-      fbAuto: "Automatic sending is for testers only; you are seeing the on-device result only",
-      autoNote: "Send automatically while scanning (testers only): with \"Remember my choice\" ticked, the page sends the text it read to AI by itself (never a photo), without asking and " +
-        "without showing you a preview each time. It sends only captures that are a product label, not a dispensing label or a personal document, " +
-        "with no name or personal data found and no face found; once per product, and never while this page is hidden. After each send it shows the " +
-        "text that was sent. Stop and withdraw at any time with the button under the camera. Without \"Remember my choice\" automatic " +
-        "sending stays off."
+      fbAuto: "One-tap sending is for testers only; you are seeing the on-device result only",
+      autoNote: "For testers: with \"Remember my choice\" ticked, the next time you press \"Ask AI\" the text read is sent at once with that one tap, " +
+        "without a preview first. Nothing is ever sent without your tap, and no photo is sent this way. It is sent at once only for a product label that is " +
+        "not a dispensing label or a personal document, with no name, personal data or face found; otherwise you see the text first, as before. " +
+        "The text that was sent is shown afterwards. Stop and withdraw at any time with the button under the camera."
     },
     zh: {
       title: "要发送给 AI 核查吗？", intro: "只有在您同意后，数据才会发送给下面的 AI 服务商。",
@@ -96,9 +95,10 @@
       fbError: "AI 服务暂时不可用；您看到的仅是本机结果",
       fbTester: "AI 核查仅向封闭测试小组开放；您看到的仅是本机结果", fbOff: "服务暂时关闭；您看到的仅是本机结果",
       fbCap: "今日请求次数已达上限，请明天再试；您看到的仅是本机结果", via: "{router}，再转至 {served}",
-      fbAuto: "自动发送仅向测试人员开放；您看到的仅是本机结果",
-      autoNote: "扫描时自动发送（仅限测试人员）：勾选“记住我的选择”后，页面会自行将读取的文字发送给 AI（不自动发送照片），" +
-        "不再每次询问，也不先给您预览。只发送属于产品标签的画面，不是配药标签或个人文件，未发现姓名或个人信息，也未发现人脸；每个产品只发送一次，页面隐藏时不发送。每次发送后会显示所发送的文字。可随时用相机下方的按钮停止并撤回同意。不勾选“记住我的选择”则不会开启自动发送。"
+      fbAuto: "一键发送仅向测试人员开放；您看到的仅是本机结果",
+      autoNote: "测试人员：勾选“记住我的选择”后，下次点“请 AI 查看”时，读取的文字会在这一次点击后立即发送，不先预览。" +
+        "未经您点击绝不会发送，也不会以此方式发送照片。只有属于产品标签、不是配药标签或个人文件、未发现姓名、个人信息或人脸时才会立即发送；" +
+        "否则仍像以前一样先显示文字。发送后会显示所发送的文字。可随时用相机下方的按钮停止并撤回同意。"
     }
   };
   var CONSENT_KEY = "lq-ai-consent";
@@ -279,7 +279,7 @@
       var rem = /** @type {HTMLInputElement} */ (el("input", { type: "checkbox" }));
       remLab.appendChild(rem); remLab.appendChild(doc.createTextNode(" " + T("remember")));
       f.appendChild(remLab);
-      if (o && o.auto) f.appendChild(el("p", { "data-auto": "" }, T("autoNote"))); // tester auto-send: what changes, next to "remember"
+      if (o && o.auto) f.appendChild(el("p", { "data-auto": "" }, T("autoNote"))); // tester one-tap send: what changes, next to "remember"
       f.appendChild(el("p", undefined, v.withdrawHow)); // design §10.6: how to withdraw, next to "remember"
       var ok = el("button", { type: "submit", value: "ok" }, T("agree"));
       var no = el("button", { type: "submit", value: "cancel", formnovalidate: "" }, T("cancel"));
@@ -354,7 +354,9 @@
       if (r && r.ok && r.j && r.j.ok) return { ok: true, json: r.j.json, provider: r.j.provider, model: r.j.model, checkedBy: checkedBy(r.j, cur()) };
       var why = r && r.j && r.j.reason ? String(r.j.reason) : r && r.status === 0 ? "network" : "provider_error";
       if (why === "tester_required" && W.LQTester) W.LQTester.refused();
-      return fallback(why);
+      var fb = /** @type {any} */ (fallback(why));
+      if (r && r.j && typeof r.j.code === "string" && /^ai_off_[a-z_]{1,40}$/.test(r.j.code)) fb.code = r.j.code; // documented refusal of this text
+      return fb;
     });
   }
   /** @param {string} feature @param {any} input @param {{mode?: string}} [o] */

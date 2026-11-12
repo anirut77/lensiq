@@ -79,7 +79,7 @@
     show(false);
     if (was) fire();
   }
-  /** "lq-pc-live" {detail: {on}}: the AI step shows its tester auto-send control only while the live scan runs */
+  /** "lq-pc-live" {detail: {on}}: the AI step shows its tester one-tap send control only while the live scan runs */
   const fire = () => { try { W.dispatchEvent(new CustomEvent("lq-pc-live", { detail: { on: st.on } })); } catch { /* old browser */ } };
   function schedule(d) { clearTimeout(timer); timer = 0; if (st.on && !document.hidden) timer = setTimeout(tick, Math.max(0, d)); }
   // a hidden page analyses nothing (LQCam pauses the camera itself); back on screen the view may be another object

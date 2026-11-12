@@ -11,7 +11,7 @@
 //   overallMs      deadline for the WHOLE request (all attempts); default min(120 s, timeoutMs x 2 x chain length)
 //   gatewayRetries false = never retry the same model (the §10.3 "once" retries are skipped; next provider still used)
 //   sdkRetries     retries inside the provider SDK (default 0: the gateway owns retries)
-//   autoCheck      present = accepts the tester-only auto-send of the Product Check live scan (gateway.js aiRoute: gate on +
+//   autoCheck      present = accepts the tester-only one-tap send of the Product Check live scan (gateway.js aiRoute: gate on +
 //                  valid tester code); autoCheck(input) is the stricter auto filter, run after build(). Absent = an auto
 //                  request is refused (403 auto_not_allowed).
 //   build(input, {mode}) -> provider-neutral request {system, text, images?, output: {name, schema}} — only for features

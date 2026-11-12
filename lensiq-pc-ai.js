@@ -53,23 +53,21 @@
  * default "keep" (LQPCGuard.DEFAULTS).
  *   translateTarget(text, uiLang) -> "th"|"en"|"zh"|null   null = the label is already in the page language
  *   regAgree(aiRegs, deviceNorms) -> rows with agree flags
- * TESTER-ONLY AUTO-SEND (owner order 2026-11-12, live scan; replaces preview-and-confirm FOR TESTERS ONLY; the public flow
- *   above is unchanged): shown in #pcAiAutoSlot only while the live scan runs, the closed-test gate is on and the visitor's
- *   tester code is accepted (LQTester.gate() && LQTester.unlocked()). "Turn on" opens the consent screen again (force) with
- *   the auto-send paragraph; auto-send is on only when "remember my choice" was ticked and stored ("lq-pc-auto" holds the
- *   providers it was given for; a changed chain = off). Then, for each live reading, a round goes out by itself ONLY when
+ * TESTER ONE-TAP SEND (owner decision 2026-11-12; replaces the per-send preview FOR TESTERS ONLY; NO automatic sending —
+ *   nothing is ever sent without a tap; the public flow above is unchanged): for a visitor with the closed-test gate on and
+ *   an accepted tester code (LQTester.gate() && LQTester.unlocked()), the consent screen also explains one-tap sending
+ *   ([data-auto]). Once "remember my choice" was ticked and stored ("lq-pc-auto" holds the providers it was given for; a
+ *   changed chain = off), a tap on "ask AI" sends the label TEXT at once, without the preview, ONLY when
  *   LQPCLive.autoDecision allows it: LQPCGuard.aiGate (product-label evidence, not dispensing, no personal-document sign;
- *   session evidence never used), the guard finds nothing and no possible name, the on-device face detector ran and found
- *   no face (lensiq-pc-ui.js prepareUploadAuto), the
- *   product (LQPCLive.productKey) was not sent yet, one round per steady view, the per-session cap (LQPCLive.CFG.autoCap;
- *   test override window.LENSIQ_PC_AUTO_CAP, only lower), and the page is visible (checked again right before the POST).
- *   TEXT ONLY: a tester whose remembered choice is "photo" still gets the text sent automatically; the photo itself goes
- *   only through "ask AI" with the face-blurred preview (the single image encoding of Product Check stays behind the
- *   user's "Use this picture"; sending a photo without it needs the owner's decision).
- *   Each request carries auto: true (the Worker accepts it only from a valid tester with the gate on, and applies its own
- *   auto filter and per-caller auto limit). The text / photo sent is shown (#pcAiAutoText, #pcAiAutoImg). "Stop and
- *   withdraw" (#pcAiAutoStop) clears the remembered consent AND the auto-send choice at once; queued requests are dropped
- *   (an epoch counter). A capture that fails any filter behaves as today: the reason is shown, "ask AI" with the preview.
+ *   session evidence never used), the guard finds nothing, no possible name, LQPCGuard.autoBlock finds nothing, the text is
+ *   exactly this capture's on-device OCR (no edit), the face detector ran on the capture and found no face
+ *   (lensiq-pc-ui.js prepareUploadAuto), and the page is visible. Otherwise the reason is shown (#pcAiAutoSkip) and the tap
+ *   continues with the usual preview. TEXT ONLY: a photo is sent only after the user's explicit "Use this picture".
+ *   Requests carry auto: true (the no-preview path: the Worker accepts it only from a valid tester with the gate on, applies
+ *   its own filter and a per-caller limit). The text sent is shown (#pcAiAutoText) with "stop one-tap and withdraw"
+ *   (#pcAiAutoStop); any withdraw clears the consent AND the one-tap choice at once.
+ * SERVER REFUSALS: a refusal with a documented code (ai_off_dispensing / ai_off_personal_doc / ai_off_no_product /
+ *   ai_off_personal_data / ai_off_auto_filter) shows its own notice instead of the generic "AI unavailable".
  * Test hook: window.__LQ_PCAI = {st, ask(forceText), paint(), auto}.
  */
 (function (root, factory) {
@@ -264,8 +262,12 @@
       const g = W.LQPCGuard.redact(text, gopt()), img = W.LQPCGuard.imageCheck(text, gopt());
       st.busy = true; paint();
       try {
-        const c = await W.LQAI.ensureConsentGroup(GROUP, FEATURES, LABELS, forceText ? { mode: "text" } : undefined);
+        // tester one-tap: sent at once when every filter passes; otherwise the usual consent / preview below
+        if (await oneTap(text)) return;
+        const c = await W.LQAI.ensureConsentGroup(GROUP, FEATURES, LABELS, { ...(forceText ? { mode: "text" } : {}), auto: tester() });
         if (!c) { st.notice = NOTE().declined; return; }
+        // a tester who ticked "remember my choice" on the screen that explains one-tap: the next taps send at once
+        if (c.saved && tester()) { oneTapRemember(c.info); if (await oneTap(text)) return; }
         const d = decide({ mode: c.mode, image: img, features: c.info.features });
         if (d.offer) { st.offer = { c, g, img }; return; } // image blocked: the user chooses text only (after the preview) or nothing
         // mandatory text preview: open when anything was removed, the text looks like a dispensing label, or nothing is
@@ -321,107 +323,97 @@
     }
     W.__LQ_PCAI.ask = ask;
 
-    /* ---------- TESTER-ONLY auto-send (live scan) ---------- */
+    /* ---------- TESTER one-tap send (no preview; never automatic) ---------- */
     const LV = W.LQPCLive, AUTO_KEY = "lq-pc-auto";
     const now = () => (typeof performance !== "undefined" ? performance.now() : Date.now());
     /** @type {any} */
-    const auto = { sent: new Set(), count: 0, sceneSent: -1, epoch: 0, last: null, skip: "", msg: "", busy: false, again: false, t: { stable: 0, sent: 0, fields: 0 } };
+    const auto = { epoch: 0, last: null, skip: "", msg: "", t: { tap: 0, sent: 0, fields: 0 } };
     W.__LQ_PCAI.auto = auto;
     const ls = () => { try { return W.localStorage; } catch { return null; } };
     const tester = () => !!(W.LQTester && W.LQTester.gate() && W.LQTester.unlocked());
-    const liveOn = () => !!(W.__LQ_PC && W.__LQ_PC.st && W.__LQ_PC.st.live && W.__LQ_PCLIVE && W.__LQ_PCLIVE.st.on);
     const autoRec = () => { try { const v = JSON.parse((ls() && ls().getItem(AUTO_KEY)) || "null"); return v && Array.isArray(v.providers) ? v : null; } catch { return null; } };
     const autoOn = () => !!autoRec() && W.LQAI.consentState(GROUP).state === "remembered";
-    const cap = () => (Number.isInteger(W.LENSIQ_PC_AUTO_CAP) && W.LENSIQ_PC_AUTO_CAP > 0 ? Math.min(W.LENSIQ_PC_AUTO_CAP, LV.CFG.autoCap) : LV.CFG.autoCap);
     const AUTO_WHY = () => ({
-      hidden: T("md.pc.auto.w.hidden", "ไม่ส่งขณะหน้านี้ถูกซ่อน"),
-      "no-auto-consent": T("md.pc.auto.w.consent", "การส่งอัตโนมัติปิดอยู่ หรือผู้ให้บริการ AI เปลี่ยนไป เปิดใหม่อีกครั้งเพื่อยืนยัน"),
-      "gate:dispensing": T("md.pc.auto.w.disp", "ไม่ส่งอัตโนมัติ: ดูเหมือนฉลากยาที่จ่ายให้ผู้ป่วยหรือใบสั่งยา"),
-      "gate:personal-doc": T("md.pc.auto.w.doc", "ไม่ส่งอัตโนมัติ: ดูเหมือนเอกสารส่วนบุคคล ไม่ใช่ฉลากสินค้า"),
-      "gate:no-product": T("md.pc.auto.w.noProduct", "ไม่ส่งอัตโนมัติ: ยังไม่พบข้อมูลฉลากสินค้า (เลขทะเบียน บาร์โค้ด หรือส่วนประกอบ) หันไปด้านที่มีข้อมูลเหล่านี้"),
-      "name-guard": T("md.pc.auto.w.name", "ไม่ส่งอัตโนมัติ: พบชื่อหรือข้อมูลส่วนตัวที่อาจเป็นของคน ถ้าต้องการ กด \"ขอความเห็นจาก AI\" เพื่อดูและแก้ข้อความก่อนส่ง"),
-      face: T("md.pc.auto.w.face", "ไม่ส่งอัตโนมัติ: พบใบหน้าในภาพ"),
-      "face-unknown": T("md.pc.auto.w.faceUnknown", "ไม่ส่งอัตโนมัติ: ตัวหาใบหน้าบนเครื่องนี้ทำงานไม่ได้"),
-      "already-sent": T("md.pc.auto.w.sent", "ส่งสินค้านี้ไปแล้ว ไม่ส่งซ้ำ"),
-      "session-cap": T("md.pc.auto.w.cap", "ส่งอัตโนมัติครบ {n} สินค้าในรอบนี้แล้ว ใช้ปุ่ม \"ขอความเห็นจาก AI\" แทน", { n: cap() })
+      hidden: T("md.pc.tap.w.hidden", "ไม่ส่งขณะหน้านี้ถูกซ่อน"),
+      "no-auto-consent": T("md.pc.tap.w.consent", "ผู้ให้บริการ AI เปลี่ยนไป จึงต้องยืนยันใหม่ก่อนส่งแบบแตะครั้งเดียว"),
+      "gate:dispensing": T("md.pc.tap.w.disp", "ไม่ส่งทันที: ดูเหมือนฉลากยาที่จ่ายให้ผู้ป่วยหรือใบสั่งยา"),
+      "gate:personal-doc": T("md.pc.tap.w.doc", "ไม่ส่งทันที: ดูเหมือนเอกสารส่วนบุคคล ไม่ใช่ฉลากสินค้า"),
+      "gate:no-product": T("md.pc.tap.w.noProduct", "ไม่ส่งทันที: ยังไม่พบข้อมูลฉลากสินค้า (เลขทะเบียน บาร์โค้ด หรือส่วนประกอบ)"),
+      "name-guard": T("md.pc.tap.w.name", "ไม่ส่งทันที: พบชื่อ เบอร์โทร หรือถ้อยคำที่อาจเป็นข้อมูลส่วนตัว ตรวจข้อความด้านล่างก่อนส่ง"),
+      face: T("md.pc.tap.w.face", "ไม่ส่งทันที: พบใบหน้าในภาพ ตรวจข้อความด้านล่างก่อนส่ง"),
+      "face-unknown": T("md.pc.tap.w.faceUnknown", "ไม่ส่งทันที: ตัวหาใบหน้าบนเครื่องนี้ทำงานไม่ได้ ตรวจข้อความด้านล่างก่อนส่ง"),
+      edited: T("md.pc.tap.w.edited", "ไม่ส่งทันที: ข้อความถูกแก้ หรือไม่ได้มาจากการอ่านฉลากบนเครื่องนี้ ตรวจข้อความด้านล่างก่อนส่ง")
     });
     const setSkip = (/** @type {string} */ why) => { auto.skip = why; paintAuto(); };
-    async function maybeAuto() {
-      if (auto.busy) { auto.again = true; return; }
-      if (!LV || !liveOn() || !tester() || !api()) return;
-      const lv = W.__LQ_PCLIVE.st, text = String(pcl().text || "").trim();
-      if (!text || !W.__LQ_PC.st.ocr || String(W.__LQ_PC.st.ocr.text || "").trim() !== text) return; // only the live reading itself
-      if (!autoOn()) { auto.skip = ""; paintAuto(); return; }
-      const scene = lv.scene;
-      if (auto.sceneSent === scene) return; // one round per steady view
-      const fx = facts(), key = LV.productKey({ ...fx, text });
-      const base = () => ({ tester: tester(), autoOn: autoOn(), hidden: !!document.hidden, ...LV.autoTextCheck(W.LQPCGuard, text, fx), key, sent: auto.sent, count: auto.count, cap: cap() });
-      let d = LV.autoDecision({ ...base(), face: { ran: true, faces: 0 } }); // everything but the face first: the detector only runs when it matters
-      if (!d.send) { setSkip(d.reason); return; }
-      auto.busy = true;
-      const ep = auto.epoch;
-      try {
-        // the remembered choice for exactly these providers; never a dialog here
-        const infos = await Promise.all(FEATURES.map(f => W.LQAI.providers(f)));
-        const info = W.LQAI.groupInfo(GROUP, infos, LABELS), rc = info && info.enabled ? W.LQAI.rememberedConsent(ls(), info) : null, rec = autoRec();
-        if (!rc || !rec || rec.providers.join(",") !== W.LQAI.procs(info).join(",")) { setSkip("no-auto-consent"); return; }
-        const fr = await W.__LQ_PC.prepareUploadAuto(); // the face check; no picture comes back (auto-send is text only)
-        if (fr.cancelled) return; // the picture changed: the next reading decides
-        const face = fr.face ? { ran: true, faces: fr.faces } : fr.textOnly ? { ran: false, faces: 0 } : { ran: true, faces: 0 };
-        // decided again on what is current (a withdraw, a hidden page or a new reading may have come in meanwhile)
-        if (ep !== auto.epoch || String(pcl().text || "").trim() !== text || lv.scene !== scene) return;
-        d = LV.autoDecision({ ...base(), face });
-        if (!d.send) { setSkip(d.reason); return; }
-        if (document.hidden || ep !== auto.epoch) return;
-        auto.sent.add(key); auto.count++; auto.sceneSent = scene;
-        auto.last = { text, photoMode: rc.mode === "image", at: Date.now() }; auto.skip = ""; auto.t = { stable: lv.t.stable || 0, sent: now(), fields: 0 };
-        paintAuto();
-        st.busy = true; st.offer = null; st.notice = ""; st.why = ""; paint();
-        await sendAll({ info, mode: "text" }, "text", text, [], null, "", { auto: true, epoch: ep });
-      } finally {
-        auto.busy = false; st.busy = false; paint(); paintAuto();
-        if (auto.again) { auto.again = false; setTimeout(maybeAuto, 0); }
-      }
+    /** the one-tap choice, tied to the providers the tester saw @param {any} info */
+    function oneTapRemember(info) {
+      try { ls().setItem(AUTO_KEY, JSON.stringify({ providers: W.LQAI.procs(info), ts: Date.now() })); auto.epoch++; auto.msg = ""; }
+      catch { auto.msg = T("md.pc.tap.noStorage", "เบราว์เซอร์นี้เก็บการเลือกไม่ได้ จึงใช้การส่งแบบแตะครั้งเดียวไม่ได้"); }
+      paintAuto();
     }
-    async function autoEnable() {
+    /**
+     * The tap on "ask AI" for a tester with one-tap on: true = sent (no preview), false = the usual flow continues (the
+     * reason is shown when a filter stopped it). Never called without a tap. @param {string} text
+     */
+    async function oneTap(text) {
+      if (!LV || !tester() || !autoOn()) return false;
+      const pc = W.__LQ_PC && W.__LQ_PC.st;
+      if (!pc || !pc.ocr || String(pc.ocr.text || "").trim() !== text) { setSkip("edited"); return false; } // only the device's own reading
+      const fx = facts(), key = LV.productKey({ ...fx, text });
+      const base = () => ({ tester: tester(), autoOn: autoOn(), hidden: !!document.hidden, ...LV.autoTextCheck(W.LQPCGuard, text, fx), key, sent: [], count: 0, cap: 1 });
+      let d = LV.autoDecision({ ...base(), face: { ran: true, faces: 0 } }); // the face detector runs only when it matters
+      if (!d.send) { setSkip(d.reason); return false; }
+      const ep = auto.epoch;
+      auto.t = { tap: now(), sent: 0, fields: 0 };
+      const infos = await Promise.all(FEATURES.map(f => W.LQAI.providers(f)));
+      const info = W.LQAI.groupInfo(GROUP, infos, LABELS), rc = info && info.enabled ? W.LQAI.rememberedConsent(ls(), info) : null, rec = autoRec();
+      if (!rc || !rec || rec.providers.join(",") !== W.LQAI.procs(info).join(",")) { setSkip("no-auto-consent"); return false; }
+      const fr = await W.__LQ_PC.prepareUploadAuto(); // the face check; no picture comes back (text only)
+      const face = fr.face ? { ran: true, faces: fr.faces } : fr.textOnly || fr.cancelled ? { ran: false, faces: 0 } : { ran: true, faces: 0 };
+      if (ep !== auto.epoch || String(pcl().text || "").trim() !== text) return false; // withdrawn or a new capture meanwhile
+      d = LV.autoDecision({ ...base(), face });
+      if (!d.send) { setSkip(d.reason); return false; }
+      if (document.hidden) { setSkip("hidden"); return false; }
+      auto.last = { text, at: Date.now() }; auto.skip = ""; auto.t.sent = now();
+      st.offer = null; st.notice = ""; st.why = "";
+      paintAuto();
+      await sendAll({ info, mode: "text" }, "text", text, [], null, "", { auto: true, epoch: ep });
+      return true;
+    }
+    async function oneTapEnable() {
       auto.msg = "";
       const c = await W.LQAI.ensureConsentGroup(GROUP, FEATURES, LABELS, { force: true, auto: true });
-      if (!c) auto.msg = T("md.pc.auto.declined", "ไม่ได้เปิดการส่งอัตโนมัติ ไม่มีอะไรถูกส่ง");
-      else if (!c.saved) auto.msg = T("md.pc.auto.needRemember", "ยังไม่เปิดการส่งอัตโนมัติ: ต้องเลือก \"จำการเลือกนี้\" ในหน้าขอความยินยอม");
-      else {
-        try { ls().setItem(AUTO_KEY, JSON.stringify({ providers: W.LQAI.procs(c.info), ts: Date.now() })); }
-        catch { auto.msg = T("md.pc.auto.noStorage", "เบราว์เซอร์นี้เก็บการเลือกไม่ได้ จึงเปิดการส่งอัตโนมัติไม่ได้"); }
-        auto.epoch++; auto.sceneSent = -1;
-      }
-      paint(); paintAuto();
-      if (autoOn()) maybeAuto();
+      if (!c) auto.msg = T("md.pc.tap.declined", "ไม่ได้เปิดการส่งแบบแตะครั้งเดียว ไม่มีอะไรถูกส่ง");
+      else if (!c.saved) auto.msg = T("md.pc.tap.needRemember", "ยังไม่เปิด: ต้องเลือก \"จำการเลือกนี้\" ในหน้าขอความยินยอม");
+      else oneTapRemember(c.info);
+      paint(); paintAuto(); // nothing is sent here
     }
-    /** auto-send off at once: the choice is forgotten and anything queued is dropped (any withdraw does this) */
+    /** one-tap off at once: the choice is forgotten and a send in progress is dropped (any withdraw does this) */
     function autoOff() { try { ls().removeItem(AUTO_KEY); } catch { /* storage blocked */ } auto.epoch++; auto.skip = ""; }
     function autoStop() {
       W.LQAI.withdraw(GROUP);
       autoOff();
-      auto.msg = T("md.pc.auto.stopped", "หยุดการส่งอัตโนมัติและถอนความยินยอมแล้ว ครั้งต่อไประบบจะถามใหม่");
+      auto.msg = T("md.pc.tap.stopped", "หยุดการส่งแบบแตะครั้งเดียวและถอนความยินยอมแล้ว ครั้งต่อไประบบจะถามใหม่และแสดงข้อความก่อนส่ง");
       paint(); paintAuto();
       const b = /** @type {HTMLElement|null} */ (document.querySelector("#pcAiAutoOn")); if (b) b.focus();
     }
     function paintAuto() {
       const slot = document.querySelector("#pcAiAutoSlot");
       if (!slot) return;
-      if (!LV || !liveOn() || !tester() || !api()) { slot.innerHTML = ""; return; }
+      if (!LV || !tester() || !api()) { slot.innerHTML = ""; return; }
       const on = autoOn(), mode = W.LQAI.consentState(GROUP).mode, L0 = auto.last, why = AUTO_WHY();
-      let h = `<section class="md-cand pc-auto" id="pcAiAuto" data-on="${on ? 1 : 0}"><p><strong>${esc(T("md.pc.auto.h", "ส่งให้ AI อัตโนมัติขณะสแกน (เฉพาะผู้ทดสอบ)"))}</strong></p>`;
-      if (on) h += `<p class="md-status" data-kind="ok" id="pcAiAutoState">${esc(T("md.pc.auto.on", "เปิดอยู่: ส่ง{m}อัตโนมัติ สินค้าละ 1 ครั้ง เฉพาะภาพที่ผ่านตัวกรองทั้งหมด (ส่งแล้ว {n} จาก {cap})",
-        { m: T("md.pc.auto.mText", "ข้อความ"), n: auto.count, cap: cap() }))}</p>` +
-        (mode === "image" ? `<p class="hint" id="pcAiAutoPhoto">${esc(T("md.pc.auto.photoManual",
-          "ภาพถ่ายไม่ถูกส่งอัตโนมัติ ถ้าต้องการส่งภาพ กด \"ขอความเห็นจาก AI\" แล้วตรวจภาพที่เบลอใบหน้าก่อนส่งเหมือนเดิม"))}</p>` : "") +
-        `<div class="md-row"><button class="btn ghost" type="button" id="pcAiAutoStop">${esc(T("md.pc.auto.stop", "หยุดส่งอัตโนมัติและถอนความยินยอม"))}</button></div>`;
-      else h += `<p class="hint">${esc(T("md.pc.auto.offT",
-        "ปิดอยู่ (ค่าเริ่มต้น): ทุกครั้งต้องกด \"ขอความเห็นจาก AI\" และดูข้อความก่อนส่ง เปิดได้หลังยินยอมหนึ่งครั้งพร้อมเลือก \"จำการเลือกนี้\""))}</p>` +
-        `<div class="md-row"><button class="btn" type="button" id="pcAiAutoOn">${esc(T("md.pc.auto.turnOn", "เปิดการส่งอัตโนมัติ"))}</button></div>`;
+      let h = `<section class="md-cand pc-auto" id="pcAiAuto" data-on="${on ? 1 : 0}"><p><strong>${esc(T("md.pc.tap.h", "ส่งให้ AI ด้วยการแตะครั้งเดียว (เฉพาะผู้ทดสอบ)"))}</strong></p>`;
+      if (on) h += `<p class="md-status" data-kind="ok" id="pcAiAutoState">${esc(T("md.pc.tap.on",
+        "เปิดอยู่: กด \"ขอความเห็นจาก AI\" ครั้งเดียวจะส่งข้อความที่อ่านได้ทันที ไม่แสดงตัวอย่าง เฉพาะภาพที่ผ่านตัวกรองทั้งหมด ไม่มีการส่งเองโดยไม่ได้กด"))}</p>` +
+        (mode === "image" ? `<p class="hint" id="pcAiAutoPhoto">${esc(T("md.pc.tap.photoManual",
+          "ภาพถ่ายไม่ถูกส่งแบบแตะครั้งเดียว ถ้าต้องการส่งภาพ ต้องตรวจภาพที่เบลอใบหน้าแล้วกด \"ใช้ภาพนี้\" เหมือนเดิม"))}</p>` : "") +
+        `<div class="md-row"><button class="btn ghost" type="button" id="pcAiAutoStop">${esc(T("md.pc.tap.stop", "หยุดส่งแบบแตะครั้งเดียวและถอนความยินยอม"))}</button></div>`;
+      else h += `<p class="hint">${esc(T("md.pc.tap.offT",
+        "ปิดอยู่ (ค่าเริ่มต้น): ทุกครั้งที่กด \"ขอความเห็นจาก AI\" จะแสดงข้อความก่อนส่ง เปิดได้หลังยินยอมหนึ่งครั้งพร้อมเลือก \"จำการเลือกนี้\""))}</p>` +
+        `<div class="md-row"><button class="btn" type="button" id="pcAiAutoOn">${esc(T("md.pc.tap.turnOn", "เปิดการส่งแบบแตะครั้งเดียว"))}</button></div>`;
       if (auto.msg) h += `<p class="md-status" data-kind="warn" id="pcAiAutoMsg">${esc(auto.msg)}</p>`;
       if (on && auto.skip) h += `<p class="md-status" data-kind="warn" id="pcAiAutoSkip" data-reason="${esc(auto.skip)}">${esc(why[auto.skip] || auto.skip)}</p>`;
-      if (L0) h += `<div id="pcAiAutoSent"><p class="hint">${esc(T("md.pc.auto.sentText", "ส่งอัตโนมัติล่าสุด: ข้อความนี้เท่านั้น ไม่ส่งภาพ"))}</p>` +
+      if (L0) h += `<div id="pcAiAutoSent"><p class="hint">${esc(T("md.pc.tap.sentText", "ส่งล่าสุดแบบแตะครั้งเดียว: ข้อความนี้เท่านั้น ไม่ส่งภาพ"))}</p>` +
         `<pre id="pcAiAutoText" translate="no">${esc(L0.text)}</pre></div>`;
       slot.innerHTML = h + `</section>`;
     }
@@ -516,12 +508,19 @@
         n(146, 34, "1") + n(18, 92, "2") + n(198, 92, "3") + `</svg>` +
         `<figcaption class="hint">${esc(T("md.pc.ai.guideImg", "ตัวอย่างด้านที่ใช้ได้: ① รายการส่วนประกอบ ② เลขทะเบียน ③ บาร์โค้ด"))}</figcaption></figure>`;
     }
-    function fbLine(x) { return `<p class="md-status" data-kind="warn" data-fb="${esc(x.reason)}">${esc(x.message)}</p>`; }
+    /** a server refusal with a documented code gets its own notice (not the generic "AI unavailable") */
+    const CODE_NOTE = () => ({ ai_off_dispensing: NOTE().dispOff, ai_off_personal_doc: NOTE().personalDoc, ai_off_no_product: NOTE().noProduct,
+      ai_off_personal_data: T("md.pc.ai.n.personalData", "เซิร์ฟเวอร์ไม่ส่งข้อความนี้ให้ AI เพราะยังพบชื่อหรือข้อมูลส่วนตัว ผลตรวจในเครื่องด้านบนยังใช้ได้ตามเดิม"),
+      ai_off_auto_filter: T("md.pc.ai.n.tapFilter", "เซิร์ฟเวอร์ไม่รับการส่งแบบแตะครั้งเดียวสำหรับข้อความนี้ กด \"ขอความเห็นจาก AI\" อีกครั้งเพื่อดูข้อความก่อนส่ง") });
+    function fbLine(x) {
+      const own = x && x.code ? CODE_NOTE()[x.code] : "";
+      return `<p class="md-status" data-kind="warn" data-fb="${esc(x.reason)}"${own ? ` data-code="${esc(x.code)}"` : ""}>${esc(own || x.message)}</p>`;
+    }
     function by(x) { return `<p class="hint" data-by>${esc(T("md.pc.ai.estimate", "ค่าประมาณจาก AI อาจผิดได้"))} · ${esc(x.checkedBy || "")}</p>`; }
     function results(r) {
       const k = KIND(), lg = lang();
       let h = `<div id="pcAiOut" data-mode="${esc(r.mode)}">`;
-      h += `<p class="hint" id="pcAiSent"${r.auto ? " data-auto" : ""}>${esc(r.auto ? T("md.pc.ai.sentAutoText", "ส่งอัตโนมัติแล้ว (ผู้ทดสอบ): เฉพาะข้อความที่อ่านได้ ไม่ส่งภาพ")
+      h += `<p class="hint" id="pcAiSent"${r.auto ? " data-auto" : ""}>${esc(r.auto ? T("md.pc.ai.sentTapText", "ส่งแล้วแบบแตะครั้งเดียว (ผู้ทดสอบ): เฉพาะข้อความที่อ่านได้ ไม่ส่งภาพ")
         : r.mode === "image" ? T("md.pc.ai.sentImage", "ส่งแล้ว: ข้อความที่อ่านได้ และภาพสินค้าที่เบลอใบหน้าแล้วซึ่งคุณกดยืนยัน")
         : T("md.pc.ai.sentText", "ส่งแล้ว: เฉพาะข้อความที่อ่านได้ ไม่ส่งภาพ"))}</p>`;
       if (st.via && NOTE()[st.via]) h += `<p class="md-status" data-kind="warn" id="pcAiVia" data-via="${esc(st.via)}">${esc(NOTE()[st.via])}</p>`;
@@ -588,7 +587,7 @@
     document.addEventListener("click", e => {
       const t = /** @type {any} */ (e.target);
       if (!t || !t.closest) return;
-      if (t.closest("#pcAiAutoOn")) autoEnable();
+      if (t.closest("#pcAiAutoOn")) oneTapEnable();
       else if (t.closest("#pcAiAutoStop")) autoStop();
       else if (t.closest("#pcAiGo")) ask(false);
       else if (t.closest("#pcAiText")) ask(true);
@@ -616,7 +615,7 @@
       const d = /** @type {HTMLElement|null} */ (document.querySelector("#pcAiPrevDropped"));
       if (d) { const x = droppedHint(t.value); d.textContent = x; d.hidden = !x; }
     });
-    W.addEventListener("lq-pc-card", () => { paint(); setTimeout(maybeAuto, 0); });
+    W.addEventListener("lq-pc-card", () => { paint(); paintAuto(); }); // never sends: one-tap needs a tap on "ask AI"
     W.addEventListener("lq-lang", () => { paint(); paintAuto(); });
     W.addEventListener("lq-tester", () => { paint(); paintAuto(); });
     W.addEventListener("lq-pc-live", paintAuto);

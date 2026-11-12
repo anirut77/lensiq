@@ -11,14 +11,19 @@
 //   4. PUBLIC flow unchanged: with a remembered consent and no tester gate NOTHING is sent automatically, no auto control is
 //      shown, "ask AI" still shows the preview and sends only after "Send this text"; the official lookup runs by itself
 //      only when the page's online-lookup opt-in is on;
-//   5. TESTER auto-send: ONE consent with "remember my choice" (without it auto-send stays off), then exactly one AI round
-//      per distinct product (auto flag + tester header; the text sent = the merged reading = what the page shows as sent),
-//      none while the same product stays in view;
-//   6. filters: a dispensing label, a personal document, a phone on the label, a possible name, a face, a front panel ->
-//      no auto-send and the reason is shown; the manual flow behaves as today;
-//   7. withdraw clears the consent and the auto-send choice at once and stops auto-send; a session cap; nothing while hidden;
-//   8. "photo" remembered: the auto-send stays TEXT ONLY (the one image encoding stays behind the user's "Use this picture";
-//      changed 2026-11-12 after the build, see locked.sha256); a face in the frame -> no send;
+//   (Checks 5-8 were rewritten 2026-11-12 for the owner's decision "no automatic sending; testers send with ONE TAP and no
+//   preview"; the earlier auto-send checks are in the history; see locked.sha256.)
+//   5. TESTER one-tap: NOTHING is sent without a tap (several products scanned with one-tap on); ONE consent with
+//      "remember my choice" (without it one-tap stays off); then one tap on "ask AI" sends at once with NO preview (auto
+//      flag + tester header; the text sent = the merged reading = what the page shows as sent); a first tap that opens the
+//      consent screen sends at once after "remember" is ticked;
+//   6. filters: a dispensing label, a personal document, a front panel -> refused as today (no consent, no send); a phone
+//      on the label, a possible name, a face, an edited text -> the tap does NOT send at once: the reason is shown and the
+//      usual preview opens; nothing is sent before "Send this text";
+//   7. "stop and withdraw" and the ordinary withdraw both clear the consent AND the one-tap choice at once; the next tap
+//      asks again;
+//   8. "photo" remembered: one-tap is TEXT ONLY (a photo only after "Use this picture"); server refusals with a documented
+//      code show their own notice instead of the generic "AI unavailable";
 //   9. REAL models: a synthetic label shown by the fake camera is read without a tap (TH registration shape + EAN-13);
 //  10. English / 中文: no Thai left in the live and auto panels; 360 px: no horizontal scroll, touch targets >= 44 px.
 // Synthetic scenes only (canvas text and bars); no photo of a person; fake Worker only (no key, no provider).
@@ -84,6 +89,7 @@ const NET = gate => `window.LENSIQ_API_BASE="https://api.example.test";window.LE
     if(p.pathname==="/api/pc/batch"){const L=JSON.parse(init.body).lookups;return J({ok:true,results:L.map(x=>({status:200,source:x.source,ok:true,found:0,total:0,items:[],
       fetched:"2026-11-12T03:00:00Z"}))});}
     if(!ok)return J({fallback:true,reason:"tester_required"},403);
+    if(window.__refuse)return J({fallback:true,reason:"bad_input",code:window.__refuse},400);
     const f=p.pathname.replace("/v1/ai/","");
     const who={ok:true,provider:"anthropic",model:"claude-haiku-5-5",region:"global",providerName:{th:"Anthropic",en:"Anthropic",zh:"Anthropic"},regionText:{th:"สหรัฐฯ",en:"USA",zh:"美国"}};
     if(f==="pc_fields")return J({...who,json:{product_type:"drug",brand:"TESTOL",product_name:"TESTOL 500",active_ingredients:[],dosage_form:"tablet",
@@ -238,130 +244,152 @@ export default async function ({ base, launch, check }) {
       await page2.close();
     });
 
-    await check("live, TESTER: ONE consent with 'remember my choice' turns auto-send on; one AI round per product, auto flag + tester header; the text sent is shown", async () => {
+    const tap = page => page.evaluate(() => document.querySelector("#pcAiGo").click());
+    const AIGO = `document.querySelector("#pcAiGo") && !document.querySelector("#pcAiGo").disabled`;
+    /** the card shows the reading of scene s (its first and last lines), so a tap acts on that capture, not the one before */
+    const readOf = (page, s) => page.waitFor(`window.__LQ_PCL && window.__LQ_PCL.st.text.includes(window.__SC[${JSON.stringify(s)}][0]) &&
+      window.__LQ_PCL.st.text.includes(window.__SC[${JSON.stringify(s)}].slice(-1)[0]) &&
+      window.__LQ_PCL.st.text.split("\\n").length === window.__SC[${JSON.stringify(s)}].length && document.querySelector("#pcAiGo") && !document.querySelector("#pcAiGo").disabled`, 20000);
+    await check("live, TESTER one-tap: nothing is sent without a tap; ONE consent with 'remember my choice'; then one tap sends at once with no preview, " +
+      "auto flag + tester header; the text sent is shown", async () => {
       const page = await browser.newPage(null, { initScripts: [INIT, SCENES, CAM, NET(true)], isolated: true });
       await page.goto(URL_(base));
       await openTab(page);
       await scene(page, "label");
       await startLive(page);
       await page.waitFor(`document.querySelector("#pcAiAutoOn")`, 20000);
-      // without "remember my choice" auto-send stays off
+      // without "remember my choice" one-tap stays off
       await page.evaluate(() => document.querySelector("#pcAiAutoOn").click());
       await page.waitFor(DIALOG, 8000);
       const d = await page.evaluate(() => { const x = document.querySelector("dialog.lq-ai-consent"); const a = x.querySelector("[data-auto]"); return a ? a.innerText : ""; });
-      assert(/อัตโนมัติ/.test(d) && /ผู้ทดสอบ/.test(d), "the consent screen says what auto-send does: " + d);
+      assert(/แตะครั้งเดียว/.test(d) && /ผู้ทดสอบ/.test(d) && /ไม่มีการส่งเองโดยที่คุณไม่ได้กด/.test(d), "the consent screen explains one-tap: " + d);
       await agree(page);
       await page.waitFor(`document.querySelector("#pcAiAutoMsg") && /จำการเลือก/.test(document.querySelector("#pcAiAutoMsg").innerText)`, 8000);
-      assert(await page.evaluate(() => document.querySelector("#pcAiAuto").dataset.on === "0" && !localStorage.getItem("lq-pc-auto")), "auto-send stays off without 'remember'");
-      assert((await aiPosts(page)).length === 0, "nothing sent");
+      assert(await page.evaluate(() => document.querySelector("#pcAiAuto").dataset.on === "0" && !localStorage.getItem("lq-pc-auto")), "off without 'remember'");
       await autoOn(page);
-      await page.waitFor(`window.__ai.filter(c => c.m === "POST" && /pc_fields/.test(c.url)).length === 1 && document.querySelector("#pcAiAutoSent")`, 20000);
-      await sleep(4000);
-      let p = await aiPosts(page);
-      const per = f => p.filter(x => x.f === f).length;
-      assert(per("pc_fields") === 1 && per("pc_claims") === 1 && p.length === 2, "one round for the product while it stays in view: " + JSON.stringify(p.map(x => x.f)));
-      const text = await page.evaluate(() => window.__LQ_PC.st.ocr.text);
-      assert(p.every(x => x.auto === true && x.code === CODE && x.mode === "text" && x.text === text && x.images === 0), "auto flag, tester header, the merged text " + JSON.stringify(p));
-      const shown = await page.evaluate(() => document.querySelector("#pcAiAutoText").textContent);
-      assert(shown === text, "the page shows exactly the text that was sent");
-      assert(await page.evaluate(() => !!document.querySelector("#pcAiAutoStop")), "a visible stop / withdraw control");
-      await scene(page, "blank"); await hint(page, "nolabel");
-      await scene(page, "label2");
-      await page.waitFor(`window.__ai.filter(c => c.m === "POST" && /pc_fields/.test(c.url)).length === 2`, 20000);
+      // one-tap on: scanning products sends NOTHING by itself
+      for (const s of ["label2", "label3", "label"]) { await scene(page, "blank"); await hint(page, "nolabel"); await scene(page, s); await sleep(2500); }
+      await page.waitFor(AIGO, 15000);
+      await sleep(1500);
+      assert((await aiPosts(page)).length === 0, "nothing is sent without a tap");
+      await tap(page);
+      await page.waitFor(`window.__ai.filter(c => c.m === "POST" && /pc_fields/.test(c.url)).length === 1 && document.querySelector("#pcAiAutoText") && document.querySelector("#pcAiOut")`, 20000);
+      assert(!(await page.evaluate(() => !!document.querySelector("#pcAiPreview") || !!document.querySelector("dialog.lq-ai-consent"))), "no preview, no consent screen");
       await sleep(3000);
-      p = await aiPosts(page);
-      assert(p.length === 4 && /SAMPLEX/.test(p[3].text + p[2].text), "a second product, a second round: " + p.length);
+      const p = await aiPosts(page);
+      const per = f => p.filter(x => x.f === f).length;
+      assert(per("pc_fields") === 1 && per("pc_claims") === 1 && p.length === 2, "one tap = one round: " + JSON.stringify(p.map(x => x.f)));
+      const text = await page.evaluate(() => window.__LQ_PC.st.ocr.text);
+      assert(p.every(x => x.auto === true && x.code === CODE && x.mode === "text" && x.text === text && x.images === 0), "no-preview flag, tester header, the reading " + JSON.stringify(p));
+      assert(await page.evaluate(t => document.querySelector("#pcAiAutoText").textContent === t && !!document.querySelector("#pcAiAutoStop") &&
+        !!document.querySelector("#pcAiSent[data-auto]"), text), "the text sent is shown, with stop / withdraw");
       await page.close();
+      // a first tap: the consent screen (with the one-tap note); "remember" ticked -> sent at once, no preview
+      const page2 = await browser.newPage(null, { initScripts: [INIT, SCENES, CAM, NET(true)], isolated: true });
+      await page2.goto(URL_(base));
+      await openTab(page2);
+      await scene(page2, "label");
+      await startLive(page2);
+      await page2.waitFor(AIGO, 20000);
+      await tap(page2);
+      await page2.waitFor(DIALOG, 8000);
+      assert(await page2.evaluate(() => !!document.querySelector("dialog.lq-ai-consent [data-auto]")), "the tester's consent screen explains one-tap");
+      await agree(page2, { remember: true });
+      await page2.waitFor(`window.__ai.filter(c => c.m === "POST" && /pc_fields/.test(c.url)).length === 1`, 20000);
+      assert(!(await page2.evaluate(() => !!document.querySelector("#pcAiPreview"))) && (await aiPosts(page2)).every(x => x.auto === true), "sent at once after the one consent");
+      await page2.close();
     });
 
-    await check("live, TESTER filters: dispensing label, receipt, a phone on the label, a possible name, a face, a front panel -> no auto-send, the reason shown; " +
-      "the manual flow as today", async () => {
+    await check("live, TESTER one-tap filters: dispensing / personal document / front panel refused as today; a phone, a possible name, a face or an edited text " +
+      "-> no immediate send, the reason shown, the usual preview, nothing before 'Send this text'", async () => {
       const page = await browser.newPage(null, { initScripts: [INIT, SCENES, CAM, NET(true)], isolated: true });
       await page.goto(URL_(base));
       await openTab(page);
       await scene(page, "blank");
       await startLive(page);
-      await autoOn(page); // the auto-send switch is there before anything is read
-      await page.evaluate(() => { window.__ai.length = 0; });
-      for (const [s, why, face] of [["disp", "gate:dispensing"], ["receipt", "gate:personal-doc"], ["phone", "name-guard"], ["maybe", "name-guard"], ["label", "face", true],
-        ["front", "gate:no-product"]]) {
+      await autoOn(page);
+      for (const [s, why] of [["disp", "dispensing"], ["receipt", "personal-doc"], ["front", "no-product"]]) {
+        await scene(page, "blank"); await hint(page, "nolabel");
+        await scene(page, s);
+        await readOf(page, s);
+        await tap(page);
+        await page.waitFor(`document.querySelector("#pcAiNotice") && document.querySelector("#pcAiNotice").dataset.reason === ${JSON.stringify(why)}`, 8000);
+        assert((await aiPosts(page)).length === 0 && !(await page.evaluate(() => !!document.querySelector("dialog.lq-ai-consent"))), s + ": refused as today, nothing sent");
+      }
+      for (const [s, why, face, edit] of [["phone", "name-guard"], ["maybe", "name-guard"], ["label", "face", true], ["label2", "edited", false, true]]) {
         await scene(page, "blank"); await hint(page, "nolabel");
         await page.evaluate(f => { window.__faceOn = !!f; }, face);
         await scene(page, s);
-        await page.waitFor(`document.querySelector("#pcAiAutoSkip") && document.querySelector("#pcAiAutoSkip").dataset.reason === ${JSON.stringify(why)}`, 20000);
-        await sleep(1500);
-        assert((await aiPosts(page)).length === 0, s + ": nothing sent automatically");
+        await readOf(page, s); await sleep(700);
+        if (edit) await page.evaluate(() => { const t = document.querySelector("#pcText"); t.value = t.value + "\nแก้เอง"; document.querySelector("#pcReparse").click(); });
+        await page.waitFor(AIGO, 8000);
+        await tap(page);
+        await page.waitFor(`document.querySelector("#pcAiAutoSkip") && document.querySelector("#pcAiAutoSkip").dataset.reason === ${JSON.stringify(why)} &&
+          document.querySelector("#pcAiPreview")`, 20000);
+        assert((await aiPosts(page)).length === 0, s + ": not sent at once; the preview is open");
+        await page.evaluate(() => document.querySelector("#pcAiPrevCancel").click());
       }
       await page.evaluate(() => { window.__faceOn = false; });
-      // the manual flow behaves as today on a filtered capture: "ask AI" -> the open preview with the phone removed
+      // the preview still sends only on "Send this text", without the no-preview flag
       await scene(page, "blank"); await hint(page, "nolabel");
       await scene(page, "phone");
-      await page.waitFor(`document.querySelector("#pcAiAutoSkip") && document.querySelector("#pcAiAutoSkip").dataset.reason === "name-guard"`, 20000);
-      await page.evaluate(() => document.querySelector("#pcAiGo").click());
+      await readOf(page, "phone");
+      await tap(page);
       await page.waitFor(`document.querySelector("#pcAiPreview") && document.querySelector("#pcAiPrevDetails").open`, 8000);
       assert(await page.evaluate(() => !document.querySelector("#pcAiPrevEdit").value.includes("081-234-5678")), "the phone is removed in the preview");
-      assert((await aiPosts(page)).length === 0, "nothing sent before 'Send this text'");
+      await page.evaluate(() => document.querySelector("#pcAiPrevSend").click());
+      await page.waitFor(`document.querySelector("#pcAiOut")`, 8000);
+      const p = await aiPosts(page);
+      assert(p.length >= 1 && p.every(x => x.auto === undefined && !x.text.includes("081-234-5678")), "sent after 'Send this text' only, without the flag " + JSON.stringify(p));
       await page.close();
     });
 
-    await check("live, TESTER: withdraw clears the consent and the auto-send choice at once and stops auto-send; a session cap; nothing is sent while the page is hidden", async () => {
-      const page = await browser.newPage(null, { initScripts: [INIT, SCENES, CAM, NET(true), "window.LENSIQ_PC_AUTO_CAP=2;"], isolated: true });
-      await page.goto(URL_(base));
-      await openTab(page);
-      await scene(page, "label");
-      await startLive(page);
-      await autoOn(page);
-      await page.waitFor(`window.__ai.filter(c => c.m === "POST" && /pc_fields/.test(c.url)).length === 1`, 20000);
-      for (const s of ["label2", "label3"]) { await scene(page, "blank"); await hint(page, "nolabel"); await scene(page, s); await sleep(4000); }
-      let n = (await aiPosts(page)).filter(x => x.f === "pc_fields").length;
-      assert(n === 2, "session cap of 2 products: " + n);
-      await page.waitFor(`document.querySelector("#pcAiAutoSkip") && document.querySelector("#pcAiAutoSkip").dataset.reason === "session-cap"`, 8000);
-      await page.close();
-      // hidden: nothing; then withdraw
-      const page2 = await browser.newPage(null, { initScripts: [INIT, SCENES, CAM, NET(true)], isolated: true });
-      await page2.goto(URL_(base));
-      await openTab(page2);
-      await scene(page2, "blank");
-      await startLive(page2);
-      await scene(page2, "label");
-      await autoOn(page2);
-      await page2.waitFor(`window.__ai.filter(c => c.m === "POST" && /pc_fields/.test(c.url)).length === 1`, 20000);
-      await page2.evaluate(() => window.__setHidden(true));
-      await scene(page2, "label2");
-      await sleep(4000);
-      assert((await aiPosts(page2)).every(x => !x.hidden) && (await aiPosts(page2)).filter(x => x.f === "pc_fields").length === 1, "nothing sent while hidden");
-      await page2.evaluate(() => window.__setHidden(false));
-      await page2.waitFor(`window.__ai.filter(c => c.m === "POST" && /pc_fields/.test(c.url)).length === 2`, 20000);
-      await page2.evaluate(() => document.querySelector("#pcAiAutoStop").click());
-      const st = await page2.evaluate(() => ({ consent: JSON.parse(localStorage.getItem("lq-ai-consent") || "{}").pc, auto: localStorage.getItem("lq-pc-auto"),
-        on: document.querySelector("#pcAiAuto") ? document.querySelector("#pcAiAuto").dataset.on : "" }));
-      assert(st.consent === undefined && st.auto === null && st.on === "0", "withdraw clears both at once " + JSON.stringify(st));
-      n = (await aiPosts(page2)).length;
-      await scene(page2, "blank"); await hint(page2, "nolabel");
-      await scene(page2, "label3");
-      await sleep(5000);
-      assert((await aiPosts(page2)).length === n, "no auto-send after withdraw");
-      await page2.close();
+    await check("live, TESTER: 'stop and withdraw' and the ordinary withdraw both clear the consent AND the one-tap choice at once; the next tap asks again", async () => {
+      for (const btn of ["#pcAiAutoStop", "#pcAiWithdraw"]) {
+        const page = await browser.newPage(null, { initScripts: [INIT, SCENES, CAM, NET(true)], isolated: true });
+        await page.goto(URL_(base));
+        await openTab(page);
+        await scene(page, "label");
+        await startLive(page);
+        await autoOn(page);
+        await page.waitFor(`document.querySelector(${JSON.stringify(btn)})`, 15000);
+        await page.evaluate(b => document.querySelector(b).click(), btn);
+        const st = await page.evaluate(() => ({ consent: JSON.parse(localStorage.getItem("lq-ai-consent") || "{}").pc, auto: localStorage.getItem("lq-pc-auto"),
+          on: document.querySelector("#pcAiAuto") ? document.querySelector("#pcAiAuto").dataset.on : "" }));
+        assert(st.consent === undefined && st.auto === null && st.on === "0", btn + ": both cleared at once " + JSON.stringify(st));
+        await page.waitFor(AIGO, 8000);
+        await tap(page);
+        await page.waitFor(DIALOG, 8000);
+        await agree(page, { cancel: true });
+        await sleep(800);
+        assert((await aiPosts(page)).length === 0, btn + ": the next tap asks again; nothing sent");
+        await page.close();
+      }
     });
 
-    await check("live, TESTER with 'photo' remembered: the auto-send is TEXT ONLY (a photo still needs the preview), the page says so; a face in the frame -> no auto-send", async () => {
+    await check("live, TESTER with 'photo' remembered: one-tap is TEXT ONLY; server refusals with a documented code show their own notice", async () => {
       const page = await browser.newPage(null, { initScripts: [INIT, SCENES, CAM, NET(true)], isolated: true });
       await page.goto(URL_(base));
       await openTab(page);
       await scene(page, "label");
       await startLive(page);
       await autoOn(page, "image");
+      await page.waitFor(AIGO, 20000); await sleep(1000);
+      await tap(page);
       await page.waitFor(`window.__ai.filter(c => c.m === "POST" && /pc_fields/.test(c.url)).length === 1 && document.querySelector("#pcAiAutoText")`, 20000);
-      await sleep(1500);
       const p = await aiPosts(page);
-      assert(p.length >= 1 && p.every(x => x.auto === true && x.mode === "text" && x.images === 0), "auto-send carries no photo " + JSON.stringify(p));
-      assert(await page.evaluate(() => !!document.querySelector("#pcAiAutoPhoto") && !document.querySelector("#pcAiAutoImg") && !document.querySelector("#pcPrevCard")),
-        "the page says photos go only through 'ask AI' with the preview; no photo shown as sent, no preview opened");
-      await scene(page, "blank"); await hint(page, "nolabel");
-      await page.evaluate(() => { window.__faceOn = true; });
-      await scene(page, "label2");
-      await page.waitFor(`document.querySelector("#pcAiAutoSkip") && document.querySelector("#pcAiAutoSkip").dataset.reason === "face"`, 20000);
-      assert((await aiPosts(page)).filter(x => x.f === "pc_fields").length === 1, "no auto-send with a face in the frame");
+      assert(p.length >= 1 && p.every(x => x.auto === true && x.mode === "text" && x.images === 0), "no photo with one tap " + JSON.stringify(p));
+      assert(await page.evaluate(() => !!document.querySelector("#pcAiAutoPhoto") && !document.querySelector("#pcPrevCard")), "the page says a photo needs 'Use this picture'");
+      // documented refusal codes: their own notice, not the generic one
+      const want = { ai_off_dispensing: /ฉลากยาที่จ่ายให้ผู้ป่วย/, ai_off_personal_doc: /เอกสารส่วนบุคคล/, ai_off_no_product: /ไม่เหมือนฉลากสินค้า/, ai_off_personal_data: /ชื่อหรือข้อมูลส่วนตัว/ };
+      for (const [code, re] of Object.entries(want)) {
+        await page.evaluate(c => { window.__refuse = c; }, code);
+        await page.waitFor(AIGO, 8000);
+        await tap(page);
+        await page.waitFor(`document.querySelector("#pcAiOut [data-code=${code}]")`, 15000);
+        const t = await page.evaluate(c => document.querySelector(`#pcAiOut [data-code=${c}]`).innerText, code);
+        assert(re.test(t), code + ": own notice " + t);
+      }
       await page.close();
     });
 

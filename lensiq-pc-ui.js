@@ -15,8 +15,8 @@
  * LIVE SCAN (owner order 2026-11-12; default of the camera button while "#pcLiveOn" is ticked): the camera stays open and
  * lensiq-pc-live-ui.js reads steady frames by itself through liveRead() / liveApply() below (the merged reading becomes
  * st.ocr, so the AI step's OCR-provenance rule applies to it unchanged). "Take this picture" stays as the manual fallback
- * and ends the live scan. prepareUploadAuto() is the no-preview face check of the TESTER auto-send (lensiq-pc-ai.js): it
- * runs the face detector on the captured frame and returns NO picture at all: the tester auto-send is text only, because
+ * and ends the live scan. prepareUploadAuto() is the no-preview face check of the TESTER one-tap send (lensiq-pc-ai.js): it
+ * runs the face detector on the captured frame and returns NO picture at all: the tester one-tap send is text only, because
  * the one image encoding of Product Check stays in prepareUpload(), after the blur AND the user's "Use this picture"
  * (tests/unit/pc-ondevice.test.js; a photo without that preview needs the owner's decision first).
  * Test hooks (any host; they only expose what the page already shows): window.__LQ_PC = {st, setImage(canvas), read(),
@@ -343,11 +343,11 @@
   });
   W.__LQ_PC.prepareUpload = prepareUpload;
   /**
-   * prepareUploadAuto() -> the face check of a TESTER auto-send (no preview; lensiq-pc-ai.js). It never encodes or returns
-   * a picture: the auto-send is text only (the only image encoding stays in prepareUpload, after the user's confirmation).
+   * prepareUploadAuto() -> the face check of a TESTER one-tap send (no preview; lensiq-pc-ai.js). It never encodes or returns
+   * a picture: the one-tap send is text only (the only image encoding stays in prepareUpload, after the user's confirmation).
    *   {faces: 0}                           no face found on the frame, its tiles or the crop
-   *   {face: true, faces: n}               a face was found: NO auto-send (the user can still ask AI with the preview)
-   *   {textOnly: true, reason}             the detector could not run or gave unreadable output: no picture, no auto-send
+   *   {face: true, faces: n}               a face was found: NO one-tap send (the user can still ask AI with the preview)
+   *   {textOnly: true, reason}             the detector could not run or gave unreadable output: no picture, no one-tap send
    *   {cancelled: true, reason}            the picture changed meanwhile, or the page is busy
    * Same picture guarantee as prepareUpload (st.gen). Nothing is shown and nothing is sent here.
    */
@@ -382,7 +382,7 @@
   // Advert capture (adverts option B): the text goes ONLY to lensiq-pc-advert.js ("lq-pc-ad-text"), never to the label
   // lookup / AI card, so nothing about an advert can be sent
   // live = the reading came from the live scan (lensiq-pc-lookup.js may then run the official lookup by itself, once per
-  // product, when the page's online-lookup opt-in is on; lensiq-pc-ai.js may auto-send for a tester)
+  // product, when the page's online-lookup opt-in is on; lensiq-pc-ai.js never sends without a tap)
   const announce = (live = false) => { try { window.dispatchEvent(kindNow() === "ad" ? new CustomEvent("lq-pc-ad-text", { detail: { text: st.text, script: st.script } })
     : new CustomEvent("lq-pc-text", { detail: { text: st.text, script: st.script, codes: (st.codes && st.codes.codes) || [], live: !!live && st.live } })); } catch { /* old browser */ } };
 
