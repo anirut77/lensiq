@@ -1,9 +1,11 @@
 # ดีไซน์: ช่องทางติดต่อ / ขอใบเสนอราคา (ข้อมูลส่วนบุคคลน้อยที่สุด) / Design: contact and request-a-quote (minimum personal data)
 
-> **สถานะ: ดีไซน์เท่านั้น ยังไม่สร้าง ยังไม่เปิดอะไร** (คำสั่งประจำเจ้าของ "Sellable pack" ข้อ 9, 11 พ.ย. 2569)
-> **ยังไม่มีแบบฟอร์มใดถูกเปิดใช้ จนกว่าเจ้าของจะอนุมัติ** เอกสารนี้ไม่แก้โค้ด ไม่แก้ `backend/wrangler.toml` ไม่แก้ `lensiq-config.js` ไม่ deploy
-> ข้อความแจ้ง PDPA ในภาคผนวกเป็นร่างให้ทนายตรวจก่อนใช้ (`docs/PDPA-NOTES-FOR-COUNSEL.md`)
-> **Status: design only; nothing is built or switched on. No form is switched on until the owner approves.** English: second half.
+> **สถานะ 12 พ.ย. 2569 (บ่าย): เจ้าของสั่งเปิดแบบฟอร์มขอใบเสนอราคา** เมื่อกล่องรับ (มีตัวนับยังไม่อ่าน) ข้อความความเป็นส่วนตัว (แสดงจริง 3 ภาษา)
+> ช่องทางติดต่อ LINE OA @632yliiw ช่องข้อมูลขั้นต่ำ และ Turnstile + จำกัดอัตรา + เพดานรายวัน พร้อม และเกตผ่าน ดูข้อ 8 ท้ายเอกสาร
+> ข้อความในข้อ 8.2 เป็นข้อความเดียวกับใน `privacy.html` ทนายยังต้องตรวจก่อนขายจริง (`docs/PDPA-NOTES-FOR-COUNSEL.md` F7)
+> **Status 2026-11-12 (afternoon): the owner switched the quote form ON** (inbox with unread badge, public privacy text, LINE OA
+> @632yliiw as the only public contact, minimum fields, Turnstile + rate limit + daily cap). See section 8. English: second half.
+> (11 พ.ย. 2569: ดีไซน์เท่านั้น / 2026-11-11: design only. ข้อ 1 ถึง 7 ด้านล่างคือดีไซน์เดิม เก็บไว้ตามเดิม / sections 1 to 7 below are the original design, kept as written.)
 
 ---
 
@@ -270,3 +272,86 @@ Stop-and-ask triggers of `CLAUDE.md` that apply: item 3 (possible cost), item 6 
 ## Appendix: draft notice (option C; counsel reviews; all three languages)
 
 The Thai, English and Chinese texts are in the Thai half's appendix above. Placeholders in [brackets] are for the owner: the person who can see the data, the retention days, and the PDPA e-mail.
+
+---
+
+# 8. สร้างแล้วและเปิดใช้ 12 พ.ย. 2569 / Built and switched on 2026-11-12
+
+## 8.1 สิ่งที่สร้าง / What was built
+
+| ส่วน / Part | ไฟล์ / File | สรุป / Summary |
+|---|---|---|
+| กล่องรับในหลังบ้าน / admin inbox | `admin.html` (แท็บ "คำขอใบเสนอราคา" / "Leads" / "询价请求"), `admin.js`, `admin.css`, `i18n/en-admin.js`, `i18n/zh-admin.js` | ตัวนับ "ยังไม่อ่าน" บนแท็บ (เปิดดูหรือเปลี่ยนสถานะแล้วหาย) รายการใหม่สุดก่อน สถานะ ใหม่ / ติดต่อแล้ว / ปิดแล้ว กรองตามสถานะ เปิดดูทีละรายการ (อีเมล เบอร์ ข้อความ วันลบอัตโนมัติ) เปลี่ยนสถานะ ลบทีละรายการ (ยืนยัน + รหัสผ่านอีกครั้ง) ส่งออก CSV (รหัสผ่านอีกครั้ง) ใช้บนมือถือได้ 3 ภาษา · unread badge on the tab (cleared by opening or a status change), newest first, status new / contacted / closed, filter, view one, mark status, delete one (confirm + re-auth), CSV export (re-auth), phone widths, TH / EN / ZH |
+| API | `backend/src/leads.js`, `backend/src/index.js` | `GET /admin/api/leads` แสดงเฉพาะสรุป (ไม่มีอีเมล เบอร์ ข้อความ) · `GET /admin/api/leads/:id` · `POST /admin/api/leads/:id/status` · `DELETE /admin/api/leads/:id` (ต้องยืนยันตัวตนอีกครั้ง) · `POST /admin/api/leads/export` (ต้องยืนยันตัวตนอีกครั้ง) · ทุกการกระทำลง audit log เฉพาะเลขที่คำขอ / จำนวน ไม่มีข้อมูลส่วนบุคคล · list = summary only; view, status, delete (re-auth), export (re-auth); audit holds ids / counts only |
+| แจ้งเจ้าของทาง LINE / owner LINE alert | `backend/src/leads.js` `notifyLine()`, `lineTest()`, `tools/notify-test.mjs` | ปิดจนกว่าเจ้าของตั้ง Worker secret 2 ตัวเองด้วย `npm run secrets:setup -- --only LINE_CHANNEL_ACCESS_TOKEN` และ `-- --only LEAD_NOTIFY_LINE_TO` (LINE user ID ของเจ้าของ U + 32 ตัว) ข้อความมีเพียง "LENSIQ: คำขอใบเสนอราคาใหม่ #<id> <เวลา>" ไม่มีข้อมูลผู้ขอ ไม่เกิน 50 ต่อวัน LINE ล้มเหลวคำขอไม่หาย ทดสอบด้วย `npm run backend:notify-test` (HEALTH_TOKEN, 3 ครั้งต่อชั่วโมง) ใช้เฉพาะ push ไม่มี webhook จึงไม่ต้องใช้ channel secret · off until the owner sets both; id + time only; daily cap; failure never loses the request |
+| สวิตช์แบบฟอร์ม / form switch | `lensiq-config.js` `window.LENSIQ_LEADS_FORM` (ค่าเริ่มต้น **เปิด** ตั้งแต่ 12 พ.ย. 2569), `lensiq-leads.js` `serverOn()`, `home.js` | ส่งได้เฉพาะหน้าที่ตั้ง API ไว้ (index.html) ปิด (`false`): ไม่ส่งอะไรออกจากเครื่อง · default ON; off: nothing leaves the device |
+| ช่องทาง LINE สำหรับคำขอ / quote LINE contact | `lensiq-config.js` `LENSIQ_SELLER.quote_line` = `"@632yliiw"` (LINE Official Account "LENSIQ" ของแบรนด์ เจ้าของให้มา 12 พ.ย. 2569; ลิงก์เพิ่มเพื่อน https://line.me/R/ti/p/@632yliiw) | แสดงเมื่อแบบฟอร์มเปิด (ตอนนี้เปิด): ข้อความยืนยันหลังส่ง (3 ภาษา) และข้อ "คำขอใบเสนอราคา" ใน `privacy.html` · `LENSIQ_SELLER.line` ยังว่าง เพราะถ้ากรอก ID จะขึ้นบนหน้าเว็บทันที (ปุ่ม LINE ของแบบฟอร์มทั่วไปและหน้า ช่วยเหลือ / ข้อกำหนด / ความเป็นส่วนตัว) · shown only while the form is on; `LENSIQ_SELLER.line` stays empty because filling it would show the ID on pages today |
+| ข้อความความเป็นส่วนตัว / privacy text | `privacy.html` `#p-quote`, `#en-p-quote`, `#zh-p-quote` (`data-leads-notice`), `legal.js` | แสดงจริง ซ่อนเฉพาะเมื่อปิดสวิตช์ ข้อความเดียวกันอยู่ในข้อ 8.2 · shown; hidden only when switched off; identical text in 8.2 |
+| เทสต์ / tests | `tests/unit/backend-leads-inbox.test.js`, `tests/unit/leads-form-off.test.js`, `tests/e2e/admin-leads.e2e.mjs`, `tests/e2e/leads-off.e2e.mjs` | ชุดเทสต์คงที่เขียนก่อนสร้าง sha256 ใน `~/LENSIQ-field/evals/leads/locked.sha256` · fixed set written before the build |
+
+สถานะ "acked" ของแถวเดิมแสดงและกรองเป็น "ติดต่อแล้ว" (contacted) ไม่ต้องเพิ่ม migration · legacy "acked" rows show as "contacted"; no migration.
+
+## 8.2 ข้อความความเป็นส่วนตัวของแบบฟอร์มขอใบเสนอราคา (ตรงกับ `privacy.html`; ให้ทนายตรวจ) / Quote-form privacy text (identical to `privacy.html`; for counsel)
+
+ช่อง "ประกาศก่อนเปิดใช้ / ประกาศก่อนเปิดขาย" เติมจาก `LENSIQ_SELLER.quote_line` และ `.dpo_email` เมื่อแสดง · the "announced before …" placeholders are filled from `LENSIQ_SELLER.quote_line` and `.dpo_email` when shown.
+
+**ไทย / Thai**
+
+#### คำขอใบเสนอราคาและการติดต่อกลับ
+
+ข้อนี้ใช้กับแบบฟอร์มขอใบเสนอราคาที่หน้าแรก
+
+- ข้อมูลที่เก็บ: ชื่อหรือชื่อเล่น ช่องทางติดต่ออย่างน้อยหนึ่งช่อง (อีเมลหรือเบอร์โทร) ผลิตภัณฑ์หรือด้านที่สนใจ และถ้าคุณกรอก: ชื่อองค์กร และข้อความ (ไม่เกิน 1,000 ตัวอักษร) พร้อมภาษาของหน้า หน้าที่ส่งคำขอ เวลาที่ได้รับ และเวอร์ชันของข้อความยินยอม
+- สิ่งที่ไม่เก็บ: ระบบไม่เก็บ IP ข้อมูลเบราว์เซอร์ (user agent) หรือตำแหน่งของคุณไว้กับคำขอ และใช้ Cloudflare Turnstile ตรวจว่าผู้ส่งไม่ใช่บอท
+- วัตถุประสงค์และฐานทางกฎหมาย: เพื่อติดต่อกลับและเสนอราคาตามที่คุณขอเท่านั้น (ดำเนินการตามคำขอของคุณก่อนเข้าทำสัญญา และความยินยอมที่คุณติ๊กไว้) ไม่ใช้ส่งข่าวสารการตลาด และไม่ส่งต่อให้ผู้อื่น
+- ที่เก็บและผู้ที่เห็นข้อมูล: เก็บในฐานข้อมูลของ LENSIQ บน Cloudflare (อาจประมวลผลนอกประเทศไทย ดูข้อ 6) ผู้ที่เห็นได้คือผู้ดูแลระบบของ LENSIQ ที่เข้าสู่ระบบหลังบ้านเท่านั้น การเปิดดู เปลี่ยนสถานะ ลบ และส่งออกทุกครั้งถูกบันทึกไว้ โดยบันทึกเฉพาะเลขที่คำขอ ไม่บันทึกข้อมูลส่วนตัวของคุณ การแจ้งเตือนเจ้าของเมื่อมีคำขอใหม่มีเพียงเลขที่คำขอและเวลา
+- ระยะเวลาเก็บ: ลบอัตโนมัติเมื่อครบ 180 วันหลังจากได้รับคำขอ หรือเร็วกว่านั้นเมื่อคุณขอให้ลบ
+- ขอดูหรือขอให้ลบข้อมูล: แจ้งทาง LINE Official Account ของ LENSIQ หรืออีเมลด้านข้อมูลส่วนบุคคล ประกาศก่อนเปิดขาย เราจะลบคำขอนั้นเมื่อยืนยันได้ว่าเป็นของคุณ และคุณถอนความยินยอมได้ทุกเมื่อ
+- เมื่อคุณติดต่อเราทาง LINE: ข้อความและโปรไฟล์ LINE ของคุณผ่านผู้ให้บริการ LINE และเป็นไปตามข้อกำหนดของ LINE
+- อย่าใส่เลขบัตรประชาชน ข้อมูลสุขภาพ หรือข้อมูลของบุคคลอื่น แบบฟอร์มนี้สำหรับผู้ใหญ่และธุรกิจ
+
+**English**
+
+#### Quote requests and replies
+
+This part covers the request-a-quote form on the home page.
+
+- What we keep: your name or nickname, at least one contact detail (e-mail or phone), the product or area you are interested in and, if you fill them in, your organisation and your message (up to 1,000 characters), together with the page language, the page the request came from, the time it was received and the version of the consent text.
+- What we do not keep: we do not store your IP address, browser details (user agent) or location with the request. Cloudflare Turnstile checks that the sender is not a bot.
+- Purpose and legal basis: only to reply to you and send the quote you asked for (steps taken at your request before a contract, and the consent you ticked). We do not use it for marketing and do not pass it on.
+- Where it is kept and who sees it: in LENSIQ's database on Cloudflare (it may be processed outside Thailand, see section 6). Only LENSIQ administrators signed in to the back office can see it. Every view, status change, deletion and export is logged with the request number only, never your personal data. The owner's alert about a new request carries only the request number and the time.
+- How long: deleted automatically 180 days after it was received, or sooner if you ask.
+- To see or delete your request: contact us on LINE LENSIQ's Official Account or at the privacy e-mail announced before sales open. We delete the request once we can confirm it is yours. You can withdraw your consent at any time.
+- If you contact us on LINE: your messages and LINE profile pass through the LINE service and its terms apply.
+- Do not enter ID card numbers, health data or other people's data. This form is for adults and businesses.
+
+**中文 / Chinese**
+
+#### 询价请求与答复
+
+本节适用于首页的询价表单。
+
+- 我们保存的信息：您的姓名或昵称、至少一种联系方式（邮箱或电话）、您感兴趣的产品或方向；如您填写，还包括机构名称和留言（不超过 1,000 字），以及页面语言、提交请求的页面、收到时间和同意文本的版本。
+- 我们不保存的信息：不会把您的 IP 地址、浏览器信息（user agent）或位置与请求一起保存。使用 Cloudflare Turnstile 验证提交者不是机器人。
+- 目的与法律依据：仅用于答复您并提供您所要求的报价（应您的请求在订立合同前采取的步骤，以及您勾选的同意）。不用于营销，也不会转给他人。
+- 保存位置与可查看者：保存在 LENSIQ 位于 Cloudflare 的数据库中（可能在泰国境外处理，见第 6 节）。只有登录后台的 LENSIQ 管理员可以查看。每次查看、更改状态、删除和导出都会记录，但只记录请求编号，不记录您的个人信息。新请求的负责人通知只包含请求编号和时间。
+- 保存期限：收到请求 180 天后自动删除；如您要求，可提前删除。
+- 查看或删除您的请求：请通过 LINE LENSIQ 官方账号 或个人数据联系邮箱 开售前公布 联系我们。确认是您的请求后我们会将其删除。您可随时撤回同意。
+- 如果您通过 LINE 联系我们：您的消息和 LINE 个人资料经由 LINE 服务传送，并适用 LINE 的条款。
+- 请勿填写身份证号、健康信息或他人的信息。本表单面向成年人和企业。
+
+## 8.3 การเปิดใช้ (คำสั่งเจ้าของ 12 พ.ย. 2569) / Switch-on (owner decision 2026-11-12)
+
+| เรื่อง / Item | ค่า / Value |
+|---|---|
+| สวิตช์หน้าเว็บ / page switch | `lensiq-config.js` `window.LENSIQ_LEADS_FORM` ค่าเริ่มต้น **เปิด** (ปิดได้ด้วย `false` ก่อนโหลดไฟล์) · default ON |
+| หน้าที่ส่งได้ / page that can send | `deploy/public-site.json` `pages`: `medicine.html`, `index.html` (API + Turnstile site key + CSP เฉพาะหน้านี้) |
+| เซิร์ฟเวอร์ / Worker | `PUBLIC_ROUTES` ของ `[env.test.vars]` เพิ่ม `/v1/leads` และ `/health/notify-test`; `LEADS_GLOBAL_DAY = "50"`, `LEAD_NOTIFY_LINE_DAY = "50"`, `LEADS_DAYS = "180"` |
+| ฐานข้อมูล / database | migration `0014_leads_viewed.sql` (คอลัมน์ `viewed_at` สำหรับตัวนับยังไม่อ่าน) ต้อง apply ก่อน deploy Worker |
+| ช่องข้อมูล / fields | ชื่อ องค์กร อีเมลหรือเบอร์โทร (อย่างน้อยหนึ่งช่อง) ผลิตภัณฑ์ที่สนใจ (เพิ่ม Exam / Gate / Crowd / Attendance) ข้อความ ≤ 1,000 · ตัดช่อง "แพ็กเกจ" ออก (เซิร์ฟเวอร์ปฏิเสธช่องอื่น) |
+| กันสแปม / spam | Turnstile action `lead` (fail closed) · 5 ครั้งต่อผู้ส่งต่อชั่วโมง · 50 ต่อวัน · ไม่เก็บ IP |
+| ติดต่อสาธารณะ / public contact | LINE OA "LENSIQ" `@632yliiw` เท่านั้น (`LENSIQ_SELLER.quote_line`) ลิงก์ https://line.me/R/ti/p/@632yliiw |
+| แจ้งเจ้าของ / owner alert | ไม่จำเป็นต่อการเปิด: ปิดจนกว่าเจ้าของตั้ง `LINE_CHANNEL_ACCESS_TOKEN` และ `LEAD_NOTIFY_LINE_TO` (`docs/DEPLOY.md`); ทดสอบด้วย `npm run backend:notify-test` |
+
+ยังค้าง / still open: ทนายตรวจข้อความข้อ 8.2 · อีเมล PDPA (`LENSIQ_SELLER.dpo_email`) ยังว่าง ช่องทางขอลบตอนนี้คือ LINE OA ·
+counsel review of 8.2; the PDPA e-mail is still empty, so deletion requests go through the LINE OA for now.

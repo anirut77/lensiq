@@ -81,6 +81,16 @@
       var el = /** @type {HTMLElement} */ (node), k = el.getAttribute("data-seller") || "", v = s[k];
       if (k === "draft") { el.title = (prefix() === "zh-" ? "草案数值，待律师确认" : prefix() === "en-" ? "draft value, to be confirmed by counsel" : "ค่าร่าง รอทนายความยืนยัน"); return; }
       if (k === "counsel") { if (s.counsel_confirmed === true) el.hidden = true; return; }
+      // the quote-request LINE Official Account is shown only while the quote form is switched on
+      if (k === "quote_line" && !leadsOn()) return;
+      if (k === "quote_line" && /^@?[A-Za-z0-9._-]{2,40}$/.test(String(v || "").trim())) {
+        var id = String(v).trim(), oa = id.charAt(0) === "@" ? id : "@" + id, ql = doc.createElement("a");
+        ql.href = "https://line.me/R/ti/p/" + oa; ql.target = "_blank"; ql.rel = "noopener"; ql.textContent = oa;
+        ql.setAttribute("data-quote-line", ""); ql.setAttribute("translate", "no");
+        // the link replaces the placeholder, so it sits in the running sentence (an inline text link, WCAG 2.5.8)
+        if (el.parentNode) el.parentNode.replaceChild(ql, el);
+        return;
+      }
       if (!has(v)) return;
       var t = String(v).trim();
       el.textContent = "";
@@ -94,7 +104,11 @@
     });
     var ready = s.sales_open === true && REQUIRED.every(function (k) { return has(s[k]); });
     doc.querySelectorAll("[data-seller-demo]").forEach(function (n) { /** @type {HTMLElement} */ (n).hidden = ready; });
+    // privacy.html "quote requests" section (owner decision 2026-11-12): rendered only while the form is on
+    doc.querySelectorAll("[data-leads-notice]").forEach(function (n) { /** @type {HTMLElement} */ (n).hidden = !leadsOn(); });
   }
+  /** Quote-request form switch (lensiq-config.js; false as shipped). Only a literal true counts. */
+  function leadsOn() { return /** @type {any} */ (window).LENSIQ_LEADS_FORM === true; }
   // lensiq-config.js comes after this file: fill once the document (and every sync script) has run
   if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", seller); else seller();
   window.addEventListener("lq-lang", function () { seller(); });

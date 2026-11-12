@@ -479,7 +479,8 @@ test("B6 consent data: /v1/ai/providers names the pinned serving provider and pl
 
 // ---- the deployment's public route allow-list, D1 write budget, strict limits, Referer, admin ceiling ------------------
 
-const TEST_ROUTES = "/health,/health/deep,/v1/config,/v1/tester/check,/v1/ai/*,/api/pc/*,/api/med/*";
+// 2026-11-12, explicit owner decision: the quote form is ON (/v1/leads) and the owner's LINE test route is open
+const TEST_ROUTES = "/health,/health/deep,/health/notify-test,/v1/config,/v1/tester/check,/v1/leads,/v1/ai/*,/api/pc/*,/api/med/*";
 /** env.DB replaced by a statement counter (the Worker's own meter): {reads, writes} of everything that runs on it. */
 async function counted(env) {
   const T = await import(B + "tester.js");
@@ -496,7 +497,7 @@ test("route allow-list: every public route that is not in PUBLIC_ROUTES is refus
   const m = await counted(env);
   const events = { events: Array.from({ length: 50 }, (_, i) => ({ t: "page_view", feature: "medicine", n: i })) };
   const OFF = [["/v1/events", { method: "POST", body: events }], ["/v1/events", { method: "POST", body: JSON.stringify(events), headers: { "Content-Type": "text/plain" } }],
-    ["/v1/leads", { method: "POST", body: { name: "A B", email: "a@example.com", phone: "0812345678", message: "x" } }], ["/v1/csp-report", { method: "POST", body: {} }],
+    ["/v1/csp-report", { method: "POST", body: {} }],
     ["/v1/billing/plans", {}], ["/v1/billing/checkout", { method: "POST", body: {} }], ["/v1/billing/claim", { method: "POST", body: {} }],
     ["/v1/billing/payments/" + "a".repeat(32), {}], ["/v1/billing/webhook/opn", { method: "POST", body: {} }], ["/api/auth/nonce", { method: "POST", body: {} }],
     ["/api/auth/google", { method: "POST", body: {} }], ["/api/me", {}], ["/api/me/export", {}], ["/api/fortune/status", { code: CODE }],

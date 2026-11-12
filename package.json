@@ -50,6 +50,7 @@
     "backend:versions": "node tools/backend-deploy.mjs versions",
     "backend:rollback": "node tools/backend-deploy.mjs rollback",
     "backend:smoke": "node tools/backend-smoke.mjs",
+    "backend:notify-test": "node tools/notify-test.mjs",
     "site:set-api": "node tools/site-config.mjs",
     "fonts:check": "node tools/self-host-fonts.mjs --check",
     "zh:coverage": "node tools/zh-coverage.mjs",

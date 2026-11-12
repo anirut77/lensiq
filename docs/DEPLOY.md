@@ -276,6 +276,25 @@ Each secret that was set shows `NAME: set`; a failure shows `NAME: FAILED (exit 
 set / not set), `-- --dry-run` (asks, sends nothing). An existing `SECRETS_KEK` is never replaced (the stored TOTP
 secret could not be decrypted any more).
 
+**LINE alert for new quote requests (optional, 2026-11-12).** The quote form works without it; the alert stays off
+until BOTH values below are on the Worker. The token is never printed, logged or committed. Owner steps:
+
+1. LINE Official Account Manager (the OA "LENSIQ", @632yliiw): Settings → Messaging API → **Enable Messaging API**
+   (this creates a channel in the LINE Developers console). No webhook is needed: LENSIQ only sends.
+2. LINE Developers console → that channel → **Messaging API** tab → *Channel access token (long-lived)* → **Issue**.
+3. `npm run secrets:setup -- --only LINE_CHANNEL_ACCESS_TOKEN` and paste the token at the hidden prompt.
+4. LINE Developers console → the same channel → **Basic settings** → *Your user ID* (U + 32 characters). Then
+   `npm run secrets:setup -- --only LEAD_NOTIFY_LINE_TO` and paste it at the hidden prompt.
+5. On your phone, add the OA @632yliiw as a friend (LINE only delivers pushes to people who added the account).
+6. Check it: `npm run backend:notify-test` (prints the target Worker, asks for the `HEALTH_TOKEN` at a hidden prompt;
+   set it first with `npm run secrets:setup -- --only HEALTH_TOKEN` if you have not). It sends one message
+   "LENSIQ: ทดสอบการแจ้งเตือน <time>" and prints OK or LINE's HTTP status (3 tests per hour).
+
+Each new request then sends one LINE message "LENSIQ: คำขอใบเสนอราคาใหม่ #<id> <time>" with no name, contact detail
+or message, at most `LEAD_NOTIFY_LINE_DAY` (50) a day. A LINE failure never loses the request (it is in the admin
+inbox either way). To stop the alerts: `npx wrangler secret delete LINE_CHANNEL_ACCESS_TOKEN --env test` (from
+`backend/`), or revoke the token in the LINE Developers console.
+
 Change or revoke the tester code: `npm run secrets:setup -- --only TESTER_ACCESS_CODE` (the old code stops working
 within seconds; testers' pages forget it on their next request). Revoke with no replacement:
 `npm run backend:tester:revoke` (the code becomes a random value nobody knows; the gate stays "required", so everyone

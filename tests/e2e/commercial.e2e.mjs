@@ -14,7 +14,8 @@ const API = "https://api.lensiq.test";
 const CLIENT = "test-client.apps.example";
 const THAI = "/[\\u0E00-\\u0E7F]/";
 
-const mock = ({ freeMode = true, credits = 1, plan = null, leads = true } = {}) => `(() => {
+const mock = ({ freeMode = true, credits = 1, plan = null, leads = true, leadsForm = false } = {}) => `(() => {
+  ${leadsForm ? "window.LENSIQ_LEADS_FORM = true; // the owner's switch (2026-11-12: off until approved)" : ""}
   window.LENSIQ_API_BASE = ${JSON.stringify(API)};
   window.LENSIQ_GOOGLE_CLIENT_ID = ${JSON.stringify(CLIENT)};
   window.LENSIQ_ANALYTICS = false;
@@ -207,8 +208,8 @@ export default async function ({ base, launch, check }) {
     });
     await page.close();
 
-    page = await browser.newPage(null, { initScripts: [mock({ freeMode: false, plan: "plus" })], isolated: true });
-    await check("API: contact form POSTs /v1/leads; account renewal banner + consent date only; sign-in dialog consent first", async () => {
+    page = await browser.newPage(null, { initScripts: [mock({ freeMode: false, plan: "plus", leadsForm: true })], isolated: true });
+    await check("API (form switched on): contact form POSTs /v1/leads; account renewal banner + consent date only; sign-in dialog consent first", async () => {
       await page.goto(`${base}/index.html#contact`);
       await page.waitFor(() => document.getElementById("leadNote").getAttribute("data-mode") === "api", 8000);
       await page.evaluate(() => {

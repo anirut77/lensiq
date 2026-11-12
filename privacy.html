@@ -181,6 +181,26 @@
     <p>เราจะแสดงเวอร์ชันและวันที่มีผลไว้ด้านบนทุกครั้งที่ปรับปรุง การเปลี่ยนแปลงสำคัญจะแจ้งบนหน้าเว็บหรือทางอีเมล และจะขอความยินยอมใหม่เมื่อวัตถุประสงค์เปลี่ยน</p>
     <p>ติดต่อ: <span class="ph pend" data-seller="dpo_email">ประกาศก่อนเปิดขาย · ระหว่างนี้ใช้<a href="index.html#contact">แบบฟอร์มติดต่อ</a></span> · <span class="ph pend" data-seller="address">ประกาศก่อนเปิดขาย</span> · สำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล: www.pdpc.or.th</p>
   </section>
+  <!-- quote-request form (owner decision 2026-11-12, form ON): legal.js hides it only if window.LENSIQ_LEADS_FORM is
+       switched off; the same text is in docs/LEADS-DESIGN.md §8.2 for counsel -->
+  <section id="p-quote" class="lq-quote" data-leads-notice><h2>คำขอใบเสนอราคาและการติดต่อกลับ</h2>
+    <p>ข้อนี้ใช้กับแบบฟอร์มขอใบเสนอราคาที่หน้าแรก</p>
+    <ul>
+      <li><b>ข้อมูลที่เก็บ:</b> ชื่อหรือชื่อเล่น ช่องทางติดต่ออย่างน้อยหนึ่งช่อง (อีเมลหรือเบอร์โทร) ผลิตภัณฑ์หรือด้านที่สนใจ และถ้าคุณกรอก: ชื่อองค์กร และข้อความ
+        (ไม่เกิน 1,000 ตัวอักษร) พร้อมภาษาของหน้า หน้าที่ส่งคำขอ เวลาที่ได้รับ และเวอร์ชันของข้อความยินยอม</li>
+      <li><b>สิ่งที่ไม่เก็บ:</b> ระบบไม่เก็บ IP ข้อมูลเบราว์เซอร์ (user agent) หรือตำแหน่งของคุณไว้กับคำขอ และใช้ Cloudflare Turnstile ตรวจว่าผู้ส่งไม่ใช่บอท</li>
+      <li><b>วัตถุประสงค์และฐานทางกฎหมาย:</b> เพื่อติดต่อกลับและเสนอราคาตามที่คุณขอเท่านั้น (ดำเนินการตามคำขอของคุณก่อนเข้าทำสัญญา และความยินยอมที่คุณติ๊กไว้)
+        ไม่ใช้ส่งข่าวสารการตลาด และไม่ส่งต่อให้ผู้อื่น</li>
+      <li><b>ที่เก็บและผู้ที่เห็นข้อมูล:</b> เก็บในฐานข้อมูลของ LENSIQ บน Cloudflare (อาจประมวลผลนอกประเทศไทย ดูข้อ 6) ผู้ที่เห็นได้คือผู้ดูแลระบบของ LENSIQ
+        ที่เข้าสู่ระบบหลังบ้านเท่านั้น การเปิดดู เปลี่ยนสถานะ ลบ และส่งออกทุกครั้งถูกบันทึกไว้ โดยบันทึกเฉพาะเลขที่คำขอ ไม่บันทึกข้อมูลส่วนตัวของคุณ
+        การแจ้งเตือนเจ้าของเมื่อมีคำขอใหม่มีเพียงเลขที่คำขอและเวลา</li>
+      <li><b>ระยะเวลาเก็บ:</b> ลบอัตโนมัติเมื่อครบ 180 วันหลังจากได้รับคำขอ หรือเร็วกว่านั้นเมื่อคุณขอให้ลบ</li>
+      <li><b>ขอดูหรือขอให้ลบข้อมูล:</b> แจ้งทาง LINE <span class="ph pend" data-seller="quote_line">Official Account ของ LENSIQ</span> หรืออีเมลด้านข้อมูลส่วนบุคคล
+        <span class="ph pend" data-seller="dpo_email">ประกาศก่อนเปิดขาย</span> เราจะลบคำขอนั้นเมื่อยืนยันได้ว่าเป็นของคุณ และคุณถอนความยินยอมได้ทุกเมื่อ</li>
+      <li><b>เมื่อคุณติดต่อเราทาง LINE:</b> ข้อความและโปรไฟล์ LINE ของคุณผ่านผู้ให้บริการ LINE และเป็นไปตามข้อกำหนดของ LINE</li>
+      <li>อย่าใส่เลขบัตรประชาชน ข้อมูลสุขภาพ หรือข้อมูลของบุคคลอื่น แบบฟอร์มนี้สำหรับผู้ใหญ่และธุรกิจ</li>
+    </ul>
+  </section>
   <p class="doc-related"><a class="btn ghost" href="terms.html">ข้อกำหนดการใช้บริการ</a><a class="btn ghost" href="camera-notice.html">ป้ายแจ้งการใช้กล้อง</a><a class="btn ghost" href="help.html">ช่วยเหลือ</a></p>
 </article>
 
@@ -336,6 +356,27 @@
     <p>Each update shows its version and effective date at the top. Important changes are announced on the site or by e-mail, and we ask for consent again when a purpose changes.</p>
     <p>Contact: <span class="ph pend" data-seller="dpo_email">announced before sales open · until then use the <a href="index.html#contact">contact form</a></span> · <span class="ph pend" data-seller="address">announced before sales open</span> · Personal Data Protection Committee: www.pdpc.or.th</p>
   </section>
+  <section id="en-p-quote" class="lq-quote" data-leads-notice><h2>Quote requests and replies</h2>
+    <p>This part covers the request-a-quote form on the home page.</p>
+    <ul>
+      <li><b>What we keep:</b> your name or nickname, at least one contact detail (e-mail or phone), the product or area you are interested in and, if you fill them in,
+        your organisation and your message (up to 1,000 characters), together with the page language, the page the request came from, the time it was
+        received and the version of the consent text.</li>
+      <li><b>What we do not keep:</b> we do not store your IP address, browser details (user agent) or location with the request. Cloudflare Turnstile checks that the
+        sender is not a bot.</li>
+      <li><b>Purpose and legal basis:</b> only to reply to you and send the quote you asked for (steps taken at your request before a contract, and the consent you
+        ticked). We do not use it for marketing and do not pass it on.</li>
+      <li><b>Where it is kept and who sees it:</b> in LENSIQ's database on Cloudflare (it may be processed outside Thailand, see section 6). Only LENSIQ administrators
+        signed in to the back office can see it. Every view, status change, deletion and export is logged with the request number only, never your personal data. The
+        owner's alert about a new request carries only the request number and the time.</li>
+      <li><b>How long:</b> deleted automatically 180 days after it was received, or sooner if you ask.</li>
+      <li><b>To see or delete your request:</b> contact us on LINE <span class="ph pend" data-seller="quote_line">LENSIQ's Official Account</span> or at the privacy e-mail
+        <span class="ph pend" data-seller="dpo_email">announced before sales open</span>. We delete the request once we can confirm it is yours. You can withdraw your
+        consent at any time.</li>
+      <li><b>If you contact us on LINE:</b> your messages and LINE profile pass through the LINE service and its terms apply.</li>
+      <li>Do not enter ID card numbers, health data or other people's data. This form is for adults and businesses.</li>
+    </ul>
+  </section>
   <p class="doc-related"><a class="btn ghost" href="terms.html">Terms of Service</a><a class="btn ghost" href="camera-notice.html">Camera notice signs</a><a class="btn ghost" href="help.html">Help</a></p>
 </article>
 
@@ -489,10 +530,24 @@
     <p>每次更新都会在顶部标明版本和生效日期。重要变更会在网站或通过邮件通知；用途改变时我们会重新征求同意。</p>
     <p>联系：<span class="ph pend" data-seller="dpo_email">开售前公布 · 在此之前请使用<a href="index.html#contact">联系表单</a></span> · <span class="ph pend" data-seller="address">开售前公布</span> · 个人数据保护委员会：www.pdpc.or.th</p>
   </section>
+  <section id="zh-p-quote" class="lq-quote" data-leads-notice><h2>询价请求与答复</h2>
+    <p>本节适用于首页的询价表单。</p>
+    <ul>
+      <li><b>我们保存的信息：</b>您的姓名或昵称、至少一种联系方式（邮箱或电话）、您感兴趣的产品或方向；如您填写，还包括机构名称和留言（不超过 1,000 字），以及页面语言、提交请求的页面、收到时间和同意文本的版本。</li>
+      <li><b>我们不保存的信息：</b>不会把您的 IP 地址、浏览器信息（user agent）或位置与请求一起保存。使用 Cloudflare Turnstile 验证提交者不是机器人。</li>
+      <li><b>目的与法律依据：</b>仅用于答复您并提供您所要求的报价（应您的请求在订立合同前采取的步骤，以及您勾选的同意）。不用于营销，也不会转给他人。</li>
+      <li><b>保存位置与可查看者：</b>保存在 LENSIQ 位于 Cloudflare 的数据库中（可能在泰国境外处理，见第 6 节）。只有登录后台的 LENSIQ 管理员可以查看。每次查看、更改状态、删除和导出都会记录，但只记录请求编号，不记录您的个人信息。新请求的负责人通知只包含请求编号和时间。</li>
+      <li><b>保存期限：</b>收到请求 180 天后自动删除；如您要求，可提前删除。</li>
+      <li><b>查看或删除您的请求：</b>请通过 LINE <span class="ph pend" data-seller="quote_line">LENSIQ 官方账号</span> 或个人数据联系邮箱 <span class="ph pend" data-seller="dpo_email">开售前公布</span> 联系我们。<wbr
+        >确认是您的请求后我们会将其删除。您可随时撤回同意。</li>
+      <li><b>如果您通过 LINE 联系我们：</b>您的消息和 LINE 个人资料经由 LINE 服务传送，并适用 LINE 的条款。</li>
+      <li>请勿填写身份证号、健康信息或他人的信息。本表单面向成年人和企业。</li>
+    </ul>
+  </section>
   <p class="doc-related"><a class="btn ghost" href="terms.html">服务条款</a><a class="btn ghost" href="camera-notice.html">摄像头告示</a><a class="btn ghost" href="help.html">帮助</a></p>
 </article>
 </main>
-<script src="legal.js?v=2"></script>
+<script src="legal.js?v=4"></script>
 <script src="lensiq-config.js?v=8"></script>
 </body>
 </html>

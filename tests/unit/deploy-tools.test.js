@@ -764,17 +764,19 @@ test("B1 site config: the committed file is inactive or exactly the approved clo
   const { policy, metaPolicy, normalizePolicy } = await import(join(ROOT, "tools", "csp-meta.mjs"));
   // The committed file is either inactive, or exactly the closed test the owner approved (decision D0, 2026-11-11): the
   // Worker recorded in deploy/created.json, the Turnstile site key recorded there, medicine.html only, analytics and
-  // member sign-in off, tester gate on. Nothing else may be committed.
+  // member sign-in off, tester gate on. Nothing else may be committed. 2026-11-12 (explicit owner decision): index.html
+  // joins it so that the quote-request form can reach /v1/leads with Turnstile.
   const committed = JSON.parse(readFileSync(join(ROOT, "deploy", "public-site.json"), "utf8"));
   const made = JSON.parse(readFileSync(join(ROOT, "deploy", "created.json"), "utf8"));
-  assert.deepEqual([committed.pages, committed.analytics, committed.member, committed.testerGate], [["medicine.html"], false, false, true]);
+  assert.deepEqual([committed.pages, committed.analytics, committed.member, committed.testerGate], [["medicine.html", "index.html"], false, false, true]);
   if (committed.apiBase === "") assert.equal(S.readSiteConfig(), null, "inactive: the site is built exactly as before");
   else {
     assert.equal(committed.apiBase, made.worker.url, "only LENSIQ's own test Worker");
     assert.match(committed.apiBase, /^https:\/\/lensiq-api-test\.[a-z0-9-]+\.workers\.dev$/);
     assert.equal(committed.turnstileSiteKey, made.turnstile_widget.site_key, "the site key of the widget the owner created");
     assert.ok(S.isTurnstileSiteKey(committed.turnstileSiteKey));
-    assert.deepEqual(S.readSiteConfig(), { apiBase: made.worker.url, turnstileSiteKey: made.turnstile_widget.site_key, pages: ["medicine.html"], analytics: false, member: false, testerGate: true });
+    assert.deepEqual(S.readSiteConfig(), { apiBase: made.worker.url, turnstileSiteKey: made.turnstile_widget.site_key, pages: ["medicine.html", "index.html"], analytics: false,
+      member: false, testerGate: true });
   }
   assert.match(readFileSync(join(ROOT, "lensiq-config.js"), "utf8"), /^window\.LENSIQ_API_BASE = window\.LENSIQ_API_BASE \|\| "";$/m, "the repo default stays empty");
   const dir = mkdtempSync(join(tmpdir(), "lq-site-test-"));
@@ -822,7 +824,7 @@ test("B1 site config: the committed file is inactive or exactly the approved clo
     }
     assert.ok(!existsSync(file));
     assert.equal(main(["--api-base", "https://lensiq-api-test.my-sub.workers.dev", "--sitekey", "0x4AAAAAAADnPIDROrmt1Wwj"], { file, print: () => {} }), 0);
-    assert.deepEqual(S.readSiteConfig(file).pages, ["medicine.html"]);
+    assert.deepEqual(S.readSiteConfig(file).pages, ["medicine.html", "index.html"]);
     assert.equal(S.readSiteConfig(file).analytics, false);
     // the site key is PUBLISHED: only the site-key shape passes, never a secret-shaped value
     for (const secret of ["0x4AAAAAAADnPIDROrmt1Wwj1234567890A", "1x0000000000000000000000000000000AA", "sk-or-v1-0123456789abcdef0123", "TURNSTILE-SECRET-VALUE", "0x4short", "x".repeat(24)]) {

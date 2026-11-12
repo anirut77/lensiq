@@ -447,7 +447,8 @@ test("wrangler.toml ships the gate in enforce mode with legal readiness false", 
 
 test("leads: Turnstile fail-closed, validation, stored with retention, admin inbox list / ack / delete, push without PII", async () => {
   const { call, A, env, net } = await setup({ ALERT_WEBHOOK_URL: "https://hooks.example/x" });
-  const lead = { name: "สมชาย ใจดี", org: "ร้านตัวอย่าง", email: "Buyer@Shop.example", phone: "081-234-5678", interest: "store", plan: "Starter", message: "ขอเดโมหน้าร้าน", source: "index", lang: "th", consent: true };
+  const lead = { name: "สมชาย ใจดี", org: "ร้านตัวอย่าง", email: "Buyer@Shop.example", phone: "081-234-5678", interest: "store",
+    message: "ขอเดโมหน้าร้าน", source: "index", lang: "th", consent: true };
   const post = (body, tok = "good:lead", o = {}) => call("/v1/leads", { method: "POST", headers: tok ? { "X-Turnstile-Token": tok } : {}, body, ...o });
   assert.equal((await post(lead, null)).status, 403, "no Turnstile token");
   assert.equal((await post(lead, "good:checkout")).status, 403, "wrong action");
@@ -469,7 +470,9 @@ test("leads: Turnstile fail-closed, validation, stored with retention, admin inb
   assert.equal((await A(`/leads/${ok.j.id}/ack`, { method: "POST", body: {} })).status, 404);
   assert.equal((await A("/leads")).j.open, 4);
   assert.equal((await A("/leads?status=acked")).j.leads.length, 1);
-  assert.equal((await A(`/leads/${ok.j.id}`, { method: "DELETE" })).status, 200);
+  const noReauth = await A(`/leads/${ok.j.id}`, { method: "DELETE", body: {} });
+  assert.equal(noReauth.status, 403, "deleting a request needs re-auth (2026-11-12)"); assert.equal(noReauth.j.code, "reauth_required");
+  assert.equal((await A(`/leads/${ok.j.id}`, { method: "DELETE", body: { password: ADMIN_PW } })).status, 200);
   assert.equal((await call("/admin/api/leads")).status, 401, "admin only");
   await env.DB.prepare("UPDATE leads SET created_at = created_at - 181 * 86400").run();
   const { purge } = await import(B + "retention.js");

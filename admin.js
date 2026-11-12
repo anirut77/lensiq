@@ -9,7 +9,7 @@
  * device by attendance-qr.js; the secret never goes into a URL) -> ten one-time recovery codes. Passwords and the setup
  * code are only ever sent to the Worker; nothing secret is written to storage or logged. The only thing kept in localStorage is
  * the trusted-device token (it exempts this browser from the login slow-down but never replaces the password/TOTP).
- * All server data is rendered with textContent (no innerHTML of server strings).
+ * All server data is rendered with textContent (server strings are never parsed as HTML).
  */
 (function () {
   "use strict";
@@ -202,6 +202,7 @@
     show("adApp");
     msg("");
     tab("analytics");
+    leadBadge();
   }
 
   // show / hide what was typed (setup code, passwords)
@@ -939,6 +940,141 @@
     f.querySelectorAll("input[name^=q_]").forEach(function (/** @type {HTMLInputElement} */ i) { plans[i.name.slice(2)] = i.value === "" ? null : parseInt(i.value, 10); });
     call("/membership", { method: "PUT", body: { settings: settings, plan_ai_quotas: plans } }).then(function () { msg("บันทึกการตั้งค่าสมาชิกแล้ว"); loaders.members(); }, fail);
   });
+
+  /* ---------------- quote requests (owner decision 2026-11-12; backend/src/leads.js) ----------------
+   * List newest first (summary only), view one (contact details, message, automatic deletion date), mark status, delete
+   * one (confirmation + re-auth), CSV export (re-auth). The public form stays off (window.LENSIQ_LEADS_FORM). The Worker
+   * audits every action with the request id only. TH default; EN / ZH in i18n/*-admin.js (keys adl.*). */
+  var lq = /** @type {any} */ ({ open: "", rows: [], days: 180 });
+  var LOC = /** @type {Record<string, string>} */ ({ th: "th-TH", en: "en-GB", zh: "zh-CN" });
+  /** @param {number|null} t @param {boolean} [day] */
+  var dt = function (t, day) {
+    if (!t) return "—";
+    /** @type {Intl.DateTimeFormatOptions} */
+    var o = { year: "numeric", month: "short", day: "numeric" };
+    if (!day) { o.hour = "2-digit"; o.minute = "2-digit"; }
+    try { return new Date(t * 1000).toLocaleString(LOC[gLang()], o); } catch (e) { return new Date(t * 1000).toISOString().slice(0, 16).replace("T", " "); }
+  };
+  /** @param {string} s */
+  var stText = function (s) {
+    return s === "contacted" ? G("adl.st.contacted", "ติดต่อแล้ว") : s === "closed" ? G("adl.st.closed", "ปิดแล้ว") : G("adl.st.new", "ใหม่");
+  };
+  loaders.leads = function () {
+    var f = /** @type {HTMLSelectElement} */ ($("adlFilter")).value || "all";
+    call("/leads?status=" + encodeURIComponent(f)).then(function (/** @type {any} */ r) {
+      lq.rows = r.leads || [];
+      lq.counts = r.counts || { new: 0, contacted: 0, closed: 0 };
+      setBadge(r.unread);
+      renderLeads();
+    }, fail);
+  };
+  /** Unread badge on the tab: new requests not opened yet (count only, from the Worker). @param {any} n */
+  function setBadge(n) {
+    lq.unread = Math.max(0, Number(n) || 0);
+    var b = $("adlBadge");
+    b.hidden = !lq.unread;
+    b.textContent = lq.unread > 99 ? "99+" : String(lq.unread);
+    b.setAttribute("aria-label", G("adl.unread", "ยังไม่ได้อ่าน {n} รายการ", { n: lq.unread }));
+    b.title = b.getAttribute("aria-label") || "";
+  }
+  function leadBadge() { call("/leads/unread").then(function (/** @type {any} */ r) { setBadge(r.unread); }, function () { /* badge only */ }); }
+  function renderLeads() {
+    var c = lq.counts || { new: 0, contacted: 0, closed: 0 };
+    $("adlCounts").textContent = G("adl.counts", "ใหม่ {n} · ติดต่อแล้ว {c} · ปิดแล้ว {x}", { n: c.new, c: c.contacted, x: c.closed }) +
+      " · " + G("adl.unread", "ยังไม่ได้อ่าน {n} รายการ", { n: lq.unread || 0 });
+    var ul = $("adlList"); ul.textContent = "";
+    if (!lq.rows.length) { ul.appendChild(h("li", { class: "adl-empty ad-muted", text: G("adl.empty", "ยังไม่มีคำขอในรายการนี้") })); return; }
+    lq.rows.forEach(function (/** @type {any} */ l) {
+      var view = h("button", { type: "button", class: "ad-btn ad-ghost", "data-act": "view", text: G("adl.view", "ดูรายละเอียด") });
+      view.addEventListener("click", function () { openLead(l.id); });
+      ul.appendChild(h("li", { class: "adl-item" + (l.id === lq.open ? " adl-on" : "") + (l.unread ? " adl-unread" : ""), "data-lead": l.id, "data-status": l.status },
+        h("div", { class: "adl-main" },
+          h("b", { class: "adl-name", text: l.name || "—" }),
+          l.company ? h("span", { class: "ad-muted", text: " · " + l.company }) : null,
+          h("div", { class: "ad-muted adl-meta" },
+            h("span", { class: "adl-chip adl-" + l.status, text: stText(l.status) }), " ",
+            G("adl.interest", "สนใจ") + ": ", h("span", { translate: "no", text: l.interest || "—" }), " · " + dt(l.created_at))),
+        view));
+    });
+  }
+  /** @param {string} id */
+  function openLead(id) {
+    call("/leads/" + encodeURIComponent(id)).then(function (/** @type {any} */ r) {
+      lq.open = r.lead.id; lq.lead = r.lead; lq.days = r.retention_days || 180;
+      renderDetail();
+      /** @type {HTMLSelectElement} */ ($("adlStatus")).value = r.lead.status;
+      $("adlDetail").hidden = false;
+      var row = lq.rows.find(function (/** @type {any} */ x) { return x.id === r.lead.id; });
+      if (row && row.unread) leadBadge(); // opening it marked it read on the Worker
+      if (row) row.unread = false;
+      renderLeads();
+    }, fail);
+  }
+  /** Detail card from the request already loaded (no new request, so a language switch is not a second "view"). */
+  function renderDetail() {
+    var l = lq.lead;
+    if (!l) return;
+    $("adlName").textContent = l.name || "—";
+    var dl = $("adlFields"); dl.textContent = "";
+    /** @param {string} k @param {string} th @param {any} v @param {string} [href] */
+    var row = function (k, th, v, href) {
+      var dd = h("dd");
+      if (v == null || v === "") dd.textContent = "—";
+      else if (href) dd.appendChild(h("a", { href: href, text: String(v), translate: "no" }));
+      else dd.textContent = String(v);
+      dl.append(h("dt", { text: G(k, th) }), dd);
+    };
+    row("adl.f.received", "ได้รับเมื่อ", dt(l.created_at));
+    row("adl.f.org", "องค์กร", l.company);
+    row("adl.f.email", "อีเมล", l.email, l.email ? "mailto:" + l.email : undefined);
+    row("adl.f.phone", "เบอร์โทร", l.phone, l.phone ? "tel:" + String(l.phone).replace(/[^0-9+]/g, "") : undefined);
+    row("adl.interest", "สนใจ", l.interest);
+    row("adl.f.plan", "แพ็กเกจ", l.plan);
+    row("adl.f.source", "ส่งจากหน้า", l.source);
+    row("adl.f.lang", "ภาษา", l.lang);
+    row("adl.f.message", "ข้อความ", l.message);
+    row("adl.f.consent", "เวอร์ชันข้อความยินยอม", l.consent_version);
+    row("adl.f.delete", "ลบอัตโนมัติ", dt(l.delete_after, true) + " " + G("adl.f.deleteNote", "({n} วันหลังได้รับ)", { n: lq.days }));
+  }
+  function closeLead() { lq.open = ""; lq.lead = null; $("adlDetail").hidden = true; $("adlFields").textContent = ""; $("adlName").textContent = ""; renderLeads(); }
+  $("adlFilter").addEventListener("change", function () { loaders.leads(); });
+  $("adlRefresh").addEventListener("click", function () { loaders.leads(); });
+  $("adlClose").addEventListener("click", closeLead);
+  $("adlStatus").addEventListener("change", function () {
+    var id = lq.open, s = /** @type {HTMLSelectElement} */ ($("adlStatus")).value;
+    if (!id) return;
+    call("/leads/" + encodeURIComponent(id) + "/status", { method: "POST", body: { status: s } }).then(function () {
+      msg(G("adl.saved", "บันทึกสถานะแล้ว: {s}", { s: stText(s) }));
+      loaders.leads();
+    }, fail);
+  });
+  $("adlDelete").addEventListener("click", function () {
+    var id = lq.open, d = /** @type {HTMLDialogElement} */ ($("adlConfirm"));
+    if (!id || typeof d.showModal !== "function") return;
+    d.returnValue = "";
+    d.showModal();
+    d.addEventListener("close", function () {
+      if (d.returnValue !== "ok") return;
+      call("/leads/" + encodeURIComponent(id), { method: "DELETE", body: {} }).then(function () {
+        closeLead(); msg(G("adl.deleted", "ลบคำขอแล้ว")); loaders.leads();
+      }, function (/** @type {any} */ e) {
+        if (e && (e.code === "reauth_required" || e.code === "reauth_failed")) msg(G("adl.notDeleted", "ยังไม่ได้ลบ: ต้องยืนยันรหัสผ่านก่อน"), true); else fail(e);
+      });
+    }, { once: true });
+  });
+  $("adlExport").addEventListener("click", function () {
+    var f = /** @type {HTMLSelectElement} */ ($("adlFilter")).value || "all";
+    call("/leads/export", { method: "POST", body: { status: f }, raw: true }).then(function (/** @type {Response} */ r) { return r.blob(); }).then(function (/** @type {Blob} */ b) {
+      var a = h("a", { href: URL.createObjectURL(b), download: "lensiq-quote-requests.csv" });
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.getAttribute("href") || ""); }, 5000);
+      msg(G("adl.exported", "ส่งออกแล้ว เก็บไฟล์ไว้ในที่ปลอดภัย และลบเมื่อไม่ใช้แล้ว (มีข้อมูลส่วนบุคคล)"));
+    }, function (/** @type {any} */ e) {
+      if (e && (e.code === "reauth_required" || e.code === "reauth_failed")) msg(G("adl.notExported", "ยังไม่ได้ส่งออก: ต้องยืนยันรหัสผ่านก่อน"), true); else fail(e);
+    });
+  });
+  // language switch: redraw from what is already loaded (no new request, nothing extra in the audit log)
+  window.addEventListener("lq-lang", function () { if (lq.counts) renderLeads(); renderDetail(); setBadge(lq.unread); });
 
   /* ---------------- security ---------------- */
   loaders.security = function () {

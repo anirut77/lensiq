@@ -5,7 +5,8 @@
 //   npm run site:set-api -- --api-base https://lensiq-api-test.<subdomain>.workers.dev --sitekey <Turnstile site key>
 //   npm run site:set-api -- --clear        back to inactive (apiBase ""): the site is built exactly as before
 //   npm run site:set-api -- --show
-// Scope is fixed by the owner's decision D0: medicine.html only, analytics off, member sign-in off, tester gate on.
+// Scope is fixed by the owner's decision D0: medicine.html, analytics off, member sign-in off, tester gate on; plus
+// index.html for the quote-request form (owner decision 2026-11-12: POST /v1/leads with Turnstile).
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -44,11 +45,12 @@ export function main(argv, io = {}) {
       return 3;
     }
   }
-  const j = { note: NOTE, apiBase, turnstileSiteKey: sitekey, pages: ["medicine.html"], analytics: false, member: false, testerGate: true };
+  const j = { note: NOTE, apiBase, turnstileSiteKey: sitekey, pages: ["medicine.html", "index.html"], analytics: false, member: false, testerGate: true };
   const before = (() => { try { return readFileSync(file, "utf8"); } catch { return null; } })();
   writeFileSync(file, JSON.stringify(j, null, 2) + "\n");
   try { readSiteConfig(file); } catch (e) { if (before != null) writeFileSync(file, before); print("REFUSED: " + e.message); return 2; }
-  print(clear ? `${SITE_CONFIG}: inactive (no page calls the API).` : `${SITE_CONFIG}: API ${apiBase} on medicine.html only · analytics off · tester gate on. Build with: node tools/build-site.mjs`);
+  print(clear ? `${SITE_CONFIG}: inactive (no page calls the API).` : `${SITE_CONFIG}: API ${apiBase} on medicine.html and index.html (quote form) only · analytics off · tester gate on. ` +
+    "Build with: node tools/build-site.mjs");
   return 0;
 }
 

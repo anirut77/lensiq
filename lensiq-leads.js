@@ -1,7 +1,7 @@
 /* lensiq-leads.js — one transport for the contact / demo-request form (index.html), the "notify me" boxes (pricing.html,
  * account.html) and any other lead form. TH / EN / 中文 texts stay in the calling page.
  *
- *   1) API configured (LENSIQ_API_BASE): POST <api>/v1/leads {name, org, email, phone, interest, plan, message, source,
+ *   1) Form switched on (LENSIQ_LEADS_FORM, ON since the owner decision 2026-11-12) and API configured: POST <api>/v1/leads {name, org, email, phone, interest, plan, message, source,
  *      lang, consent: true} with a fresh Cloudflare Turnstile token (X-Turnstile-Token, action "lead") — the Worker keeps
  *      it in the admin inbox and notifies the owner. Resolves {via: "api", ok: true}.
  *   2) No API, or the Worker refused / is not deployed yet: a mailto: link to LENSIQ_SELLER.email (subject + body filled
@@ -18,7 +18,7 @@
 (function (root) {
   "use strict";
   var QUEUE_KEY = "lq-leads", QUEUE_MAX = 10;
-  var LIMITS = /** @type {Record<string, number>} */ ({ name: 120, org: 160, email: 254, phone: 32, interest: 40, plan: 40, message: 1000, source: 40, lang: 5 });
+  var LIMITS = /** @type {Record<string, number>} */ ({ name: 120, org: 160, email: 254, phone: 32, interest: 40, message: 1000, source: 40, lang: 5 });
 
   /** A config value that is really filled in (not empty, not a "[placeholder]"). @param {any} v */
   function filled(v) { var s = typeof v === "string" ? v.trim() : ""; return !!s && !/^\[.*\]$/.test(s); }
@@ -92,6 +92,12 @@
   /* ============================ browser ============================ */
   /** @type {any} */
   var W = root;
+  /** The quote-request form sends to the server only while the owner has switched it on (window.LENSIQ_LEADS_FORM ===
+   *  true in lensiq-config.js, off as shipped — owner decision 2026-11-12) AND the API is configured. Off: nothing leaves
+   *  the device; the request stays in this browser (or goes through the visitor's own mail / LINE app if configured). */
+  var serverOn = function () { var A = W.LQApi; return W.LENSIQ_LEADS_FORM === true && !!(A && A.enabled && A.enabled() && typeof A.call === "function"); };
+  /** The LINE ID offered on the quote-request confirmation (LENSIQ_SELLER.quote_line), "" while the form is off. */
+  var quoteLine = function () { var s = sellerOf(W.LENSIQ_SELLER); return W.LENSIQ_LEADS_FORM === true && /^@?[A-Za-z0-9._-]{2,40}$/.test(s.quote_line || "") ? s.quote_line : ""; };
   /**
    * Sends a lead (see the header). Never rejects.
    * @param {any} lead @param {{subject?: string}} [opts]
@@ -106,7 +112,7 @@
       return { via: href ? "mailto" : f.line ? "line" : "none", ok: false, href: href || undefined, line: f.line || undefined, lineId: f.lineId || undefined, status: status };
     };
     var A = W.LQApi;
-    if (!A || !A.enabled() || typeof A.call !== "function") return Promise.resolve(fb(0));
+    if (!serverOn()) return Promise.resolve(fb(0));
     return Promise.resolve(A.turnstile ? A.turnstile("lead") : "").then(function (/** @type {string} */ tok) {
       return A.call("/v1/leads", { method: "POST", body: body, headers: tok ? { "X-Turnstile-Token": tok } : {} });
     }).then(function (/** @type {any} */ r) {
@@ -138,7 +144,7 @@
   });
   /** @param {string} k @param {string} th @param {any} [v] */
   var T = function (k, th, v) { return W.LQI18N && typeof W.LQI18N.tf === "function" ? W.LQI18N.tf(k, th, v) : String(th).replace(/\{(\w+)\}/g, function (m, x) { return v && v[x] != null ? v[x] : m; }); };
-  var apiOn = function () { var A = W.LQApi; return !!(A && A.enabled && A.enabled() && typeof A.call === "function"); };
+  var apiOn = serverOn;
   /** @param {string} tag @param {string} [cls] @param {string} [text] */
   var mk = function (tag, cls, text) { var e = W.document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
   function renderPending() {
@@ -191,5 +197,6 @@
     W.addEventListener("load", renderPending);
     W.addEventListener("lq-lang", renderPending);
   }
-  W.LQLeads = Object.assign({ submit: submit, queue: queue, queued: readQ, clearQueue: clearQueue, renderPending: renderPending, fallback: function () { return fallbackOf(W.LENSIQ_SELLER); } }, pure);
+  W.LQLeads = Object.assign({ submit: submit, serverOn: serverOn, quoteLine: quoteLine, queue: queue, queued: readQ, clearQueue: clearQueue,
+    renderPending: renderPending, fallback: function () { return fallbackOf(W.LENSIQ_SELLER); } }, pure);
 })(typeof window !== "undefined" ? window : /** @type {any} */ (globalThis));

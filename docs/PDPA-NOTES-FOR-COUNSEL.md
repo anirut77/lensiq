@@ -827,6 +827,25 @@ personal is ever put in a URL. Switches: `npm run backend:off` (everything), adm
 rotation. Questions for counsel: L48 (lawful basis for real customers), L49 (this wording), L50 (processor terms and
 whether the model makers receive data on these routes, which the router does not state).
 
+### F7. Quote-request inbox and privacy text; form switched ON by the owner (2026-11-12; `docs/LEADS-DESIGN.md` §8)
+
+Built: the admin "Quote requests" inbox (list with summary fields only; view one; status new / contacted / closed; delete
+one with re-auth; CSV export with re-auth; every action audited with the request id or a count, never personal data) and
+the privacy text for the quote form in `privacy.html` (`#p-quote`, `#en-p-quote`, `#zh-p-quote`), hidden while
+`window.LENSIQ_LEADS_FORM` is false (as shipped). The same text is in `docs/LEADS-DESIGN.md` §8.2 for review. Nothing is
+collected yet: the page sends nothing while the switch is off, and the test deployment keeps `/v1/leads` closed.
+Owner input the same day: quote contact = the brand LINE Official Account "LENSIQ", `@632yliiw` (`LENSIQ_SELLER.quote_line`, shown only while the form is on)
+and an optional LINE push to the owner (secrets the owner enters; the message holds only the request number and time).
+Questions for counsel before the form is switched on: (a) the wording in §8.2 in all three languages; (b) the lawful basis
+stated ("steps at your request before a contract" plus the consent tick); (c) whether visitors who choose to contact us on
+LINE need a further notice about LINE as a separate service; (d) whether 180 days from receipt is right, or handled
+requests should be deleted sooner; (e) the CSV export (personal data leaves the system on the owner's device).
+Update the same afternoon (owner decision): the form is ON. The privacy section is public in all three languages; the
+fields are cut to name, organisation, e-mail or phone (one is enough), product of interest and message (the package
+field is gone); Turnstile fail closed, 5 per caller per hour, 50 a day; an unread count in the back office
+(`viewed_at`, migration 0014, no personal data). The PDPA e-mail is still empty, so the deletion channel shown is the
+LINE OA @632yliiw. Counsel's review of §8.2 is still needed before paid sales.
+
 ## Fortune "read it straight" option (Part C, owner order 2026-11-12) — APPROVED and switched on 2026-11-12
 
 Switched on with `window.LENSIQ_FORTUNE_STRAIGHT = true` (docs/FORTUNE-HONEST-READINGS.md; rule text in CLAUDE.md). The reader

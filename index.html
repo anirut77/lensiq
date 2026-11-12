@@ -381,30 +381,35 @@
         <div class="f2">
           <div class="field">
             <label for="lqName"><span data-i18n="home.form.name">ชื่อ–นามสกุล</span> <span class="req" aria-hidden="true">*</span></label>
-            <input id="lqName" name="name" autocomplete="name" required aria-describedby="lqNameErr">
+            <input id="lqName" name="name" autocomplete="name" maxlength="120" required aria-describedby="lqNameErr">
             <p class="err" id="lqNameErr" aria-live="polite"></p>
           </div>
           <div class="field">
             <label for="lqOrg" data-i18n="home.form.org">บริษัท / หน่วยงาน</label>
-            <input id="lqOrg" name="org" autocomplete="organization">
+            <input id="lqOrg" name="org" autocomplete="organization" maxlength="160">
           </div>
         </div>
         <div class="f2">
           <div class="field">
-            <label for="lqEmail"><span data-i18n="home.form.email">อีเมล</span> <span class="req" aria-hidden="true">*</span></label>
-            <input id="lqEmail" name="email" type="email" autocomplete="email" inputmode="email" required aria-describedby="lqEmailErr">
+            <label for="lqEmail" data-i18n="home.form.email">อีเมล</label>
+            <input id="lqEmail" name="email" type="email" autocomplete="email" inputmode="email" maxlength="254" aria-describedby="lqContactHint lqEmailErr">
             <p class="err" id="lqEmailErr" aria-live="polite"></p>
           </div>
           <div class="field">
             <label for="lqPhone" data-i18n="home.form.phone">เบอร์โทร</label>
-            <input id="lqPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel" aria-describedby="lqPhoneErr">
+            <input id="lqPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="32" aria-describedby="lqContactHint lqPhoneErr">
             <p class="err" id="lqPhoneErr" aria-live="polite"></p>
           </div>
         </div>
+        <p class="hint" id="lqContactHint" data-i18n="home.form.contactHint">กรอกอีเมลหรือเบอร์โทรอย่างน้อยหนึ่งช่อง เพื่อให้ทีมงานติดต่อกลับ</p>
         <div class="field">
           <label for="lqInterest"><span data-i18n="home.form.interest">สนใจด้านใด</span> <span class="req" aria-hidden="true">*</span></label>
           <select id="lqInterest" name="interest" required aria-describedby="lqInterestErr">
             <option value="" data-i18n="home.form.choose">— เลือก —</option>
+            <option value="exam" data-i18n="home.form.i9">LENSIQ Exam คุมสอบ</option>
+            <option value="gate" data-i18n="home.form.i10">LENSIQ Gate ประตูและที่จอดรถ</option>
+            <option value="crowd" data-i18n="home.form.i11">LENSIQ Crowd นับคนและความหนาแน่น</option>
+            <option value="attendance" data-i18n="home.form.i12">LENSIQ Attendance ลงเวลาทำงาน</option>
             <option value="marketing" data-i18n="home.form.i1">การตลาด (Neuromarketing / ป้ายโฆษณาดิจิทัล / บูธ)</option>
             <option value="store" data-i18n="home.form.i2">การวิเคราะห์หน้าร้าน</option>
             <option value="photobooth" data-i18n="home.form.i3">ตู้ถ่ายรูป</option>
@@ -417,21 +422,14 @@
           <p class="err" id="lqInterestErr" aria-live="polite"></p>
         </div>
         <div class="field">
-          <label for="lqPlan" data-i18n="home.form.plan">แพ็กเกจที่สนใจ</label>
-          <select id="lqPlan" name="plan">
-            <option value="" data-i18n="home.form.plan.none">ยังไม่ระบุ</option>
-            <option value="Starter">Starter</option>
-            <option value="Event">Event</option>
-            <option value="Enterprise">Enterprise</option>
-          </select>
-        </div>
-        <div class="field">
           <label for="lqMsg" data-i18n="home.form.msg">รายละเอียดเพิ่มเติม</label>
           <textarea id="lqMsg" name="message" rows="3" maxlength="1000" placeholder="เช่น จำนวนสาขา วันจัดงาน หรือคำถามอื่น ๆ" data-i18n-attr="placeholder:home.form.msg.ph"></textarea>
         </div>
         <div class="field">
           <label class="check"><input type="checkbox" id="lqConsent" name="consent" required aria-describedby="lqConsentErr"> <span data-i18n="home.form.consent">ยินยอมให้ติดต่อกลับตามข้อมูลที่ให้ไว้</span></label>
           <p class="err" id="lqConsentErr" aria-live="polite"></p>
+          <p class="hint" id="lqPrivacyNote"><span data-i18n="home.form.privacy">เราใช้ข้อมูลนี้เพื่อติดต่อกลับเท่านั้น และลบอัตโนมัติภายใน 180 วัน</span>
+            <a href="privacy.html#p-quote" data-i18n="home.form.privacyLink">อ่านรายละเอียดและวิธีขอให้ลบ</a></p>
         </div>
         <button class="btn primary full" type="submit" data-i18n="home.form.submit">ส่งคำขอเดโม</button>
         <p class="form-msg" id="leadMsg" role="status" aria-live="polite"></p>
@@ -466,8 +464,8 @@
 </footer>
 
 
-<script src="lensiq-leads.js?v=2"></script>
-<script src="home.js?v=4"></script>
+<script src="lensiq-leads.js?v=4"></script>
+<script src="home.js?v=6"></script>
 <script src="lensiq-config.js?v=8"></script>
 </body>
 </html>

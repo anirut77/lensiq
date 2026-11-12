@@ -3,7 +3,8 @@
   "apiBase": "https://lensiq-api-test.anirut-s-4df.workers.dev",
   "turnstileSiteKey": "0x4AAAAAAF8DHx23TkGQgxdj",
   "pages": [
-    "medicine.html"
+    "medicine.html",
+    "index.html"
   ],
   "analytics": false,
   "member": false,

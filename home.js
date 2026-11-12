@@ -223,7 +223,11 @@
     var msg = $("leadMsg");
     var rules = {
       lqName: function (v) { return v.trim().length >= 2 ? "" : T("home.err.name", "กรุณากรอกชื่ออย่างน้อย 2 ตัวอักษร"); },
-      lqEmail: function (v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()) ? "" : T("home.err.email", "กรุณากรอกอีเมลให้ถูกต้อง เช่น name@company.com"); },
+      // one contact is enough (owner decision 2026-11-12: only what a quote needs): e-mail or phone
+      lqEmail: function (v) {
+        if (!v.trim()) return $("lqPhone").value.trim() ? "" : T("home.err.contact", "กรุณากรอกอีเมลหรือเบอร์โทรอย่างน้อยหนึ่งช่อง");
+        return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()) ? "" : T("home.err.email", "กรุณากรอกอีเมลให้ถูกต้อง เช่น name@company.com");
+      },
       lqPhone: function (v) { var d = v.replace(/[\s\-()+]/g, ""); return !d || /^\d{9,12}$/.test(d) ? "" : T("home.err.phone", "เบอร์โทรควรเป็นตัวเลข 9–12 หลัก (เว้นว่างได้)"); },
       lqInterest: function (v) { return v ? "" : T("home.err.interest", "กรุณาเลือกด้านที่สนใจ"); },
       lqConsent: function (_, el) { return el.checked ? "" : T("home.err.consent", "กรุณายืนยันการให้ติดต่อกลับ"); }
@@ -241,9 +245,12 @@
       el.addEventListener(el.type === "checkbox" || el.tagName === "SELECT" ? "change" : "blur", function () { check(id); });
       el.addEventListener("input", function () { if (el.classList.contains("invalid")) check(id); });
     });
+    // a phone number typed after the "e-mail or phone" message clears it
+    $("lqPhone").addEventListener("input", function () { if ($("lqEmail").classList.contains("invalid")) check("lqEmail"); });
 
     document.querySelectorAll("[data-plan]").forEach(function (a) {
-      a.addEventListener("click", function () { $("lqPlan").value = a.getAttribute("data-plan"); });
+      // the package choice is no longer collected (owner decision 2026-11-12); the buttons only jump to the form
+      a.addEventListener("click", function () { var p = $("lqPlan"); if (p) p.value = a.getAttribute("data-plan") || ""; });
     });
     // product pages link here as index.html?interest=store#contact (retail / hr / creative / fortune)
     try {
@@ -255,8 +262,9 @@
     // neither -> not sent (honest wording, stored in this browser only as before)
     var note = document.getElementById("leadNote");
     var mode = function () {
-      var L = /** @type {any} */ (window).LQLeads, A = /** @type {any} */ (window).LQApi;
-      if (A && A.enabled && A.enabled()) return "api";
+      // "api" only while the owner has switched the quote-request form on (LENSIQ_LEADS_FORM, off as shipped)
+      var L = /** @type {any} */ (window).LQLeads;
+      if (L && typeof L.serverOn === "function" && L.serverOn()) return "api";
       var f = L ? L.fallback() : { any: false };
       return f.any ? "fallback" : "none";
     };
@@ -287,7 +295,7 @@
       var lead = {
         id: Date.now().toString(36), createdAt: new Date().toISOString(),
         name: $("lqName").value.trim(), org: $("lqOrg").value.trim(), email: $("lqEmail").value.trim(),
-        phone: $("lqPhone").value.trim(), interest: $("lqInterest").value, plan: $("lqPlan").value,
+        phone: $("lqPhone").value.trim(), interest: $("lqInterest").value,
         message: $("lqMsg").value.trim()
       };
       var keepLocal = function () {
@@ -317,7 +325,10 @@
         if (r && r.ok) {
           done();
           msg.className = "form-msg ok";
-          msg.textContent = T("home.ok.sent", "ขอบคุณคุณ{name} ส่งคำขอเดโมถึงทีมงานแล้ว ทีมงานจะติดต่อกลับทางอีเมลที่ให้ไว้", { name: lead.name });
+          var ql = L && typeof L.quoteLine === "function" ? L.quoteLine() : "";
+          msg.textContent = ql
+            ? T("home.ok.sentLine", "ขอบคุณคุณ{name} ส่งคำขอถึงทีมงานแล้ว เราจะติดต่อกลับตามข้อมูลที่ให้ไว้ หรือแอด LINE: {id}", { name: lead.name, id: ql })
+            : T("home.ok.sent", "ขอบคุณคุณ{name} ส่งคำขอเดโมถึงทีมงานแล้ว ทีมงานจะติดต่อกลับทางอีเมลที่ให้ไว้", { name: lead.name });
           return;
         }
         var saved = keepLocal();

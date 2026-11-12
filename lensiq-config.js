@@ -89,7 +89,8 @@ window.LENSIQ_SELLER = window.LENSIQ_SELLER || {
   tax_id: "",            // เลขประจำตัวผู้เสียภาษี 13 หลัก (= SELLER_TAX_ID)
   address: "",           // ที่อยู่ (= SELLER_ADDRESS)
   email: "",             // อีเมลฝ่ายช่วยเหลือ
-  line: "",              // LINE Official Account เช่น "@lensiq"
+  line: "",              // LINE Official Account เช่น "@lensiq" (ช่องทางสำรองของแบบฟอร์มทั่วไป: กรอกแล้วแสดงบนหน้าเว็บทันที)
+  quote_line: "@632yliiw", // LINE Official Account "LENSIQ" ของแบรนด์ สำหรับขอใบเสนอราคา (12 พ.ย. 2569) แสดงเฉพาะเมื่อ LENSIQ_LEADS_FORM เปิด
   dpo_name: "",          // ชื่อ / ตำแหน่ง DPO หรือผู้ติดต่อด้านข้อมูลส่วนบุคคล
   dpo_email: "",         // อีเมล DPO
   status_url: "",        // หน้าสถานะระบบ (https://…)
@@ -101,6 +102,13 @@ window.LENSIQ_SELLER = window.LENSIQ_SELLER || {
   anthropic_retention: "",
   counsel_confirmed: false // ทนายความยืนยันเกณฑ์อายุ ฐานการส่งข้อมูลต่างประเทศ และระยะเวลาเก็บแล้ว
 };
+
+/* LENSIQ_LEADS_FORM: แบบฟอร์มขอใบเสนอราคาส่งถึงเซิร์ฟเวอร์ (POST /v1/leads แล้วเข้ากล่องรับในหลังบ้าน) ค่าเริ่มต้น: เปิด
+ *   (คำสั่งเจ้าของ 12 พ.ย. 2569: เปิดแบบฟอร์มเมื่อกล่องรับ ข้อความความเป็นส่วนตัว และเกตพร้อม)
+ *   เปิด: ส่งได้เฉพาะหน้าที่ตั้ง API ไว้ (deploy/public-site.json: index.html) พร้อม Turnstile; ข้อ "คำขอใบเสนอราคา" ใน
+ *   privacy.html แสดง · ปิด (ตั้ง false ก่อนโหลดไฟล์นี้): ไม่ส่งอะไรออกจากเครื่อง เก็บคำขอไว้ในเบราว์เซอร์เท่านั้น และซ่อนข้อนั้น
+ *   (docs/LEADS-DESIGN.md) */
+window.LENSIQ_LEADS_FORM = window.LENSIQ_LEADS_FORM !== false;
 
 /* round 12 (round 16 wording): ป้องกันการติดตั้งให้ลูกค้าที่ยังเปิดเดโมงานวิจัยค้างไว้ — บนหน้ากล้อง เมื่อเครื่องนี้เปิด
  *   "เดโมงานวิจัย" อยู่และหน้าเว็บไม่ได้เปิดจากเว็บสาธิต (github.io) หรือเครื่องนักพัฒนา (localhost) จะแสดงแถบเตือนด้านบน

@@ -24,6 +24,7 @@
 //   GET  /api/me/payments/:id/refunds/:n/credit-note[?format=json]   credit note (ใบลดหนี้) of a refunded tax invoice
 //   POST /v1/leads                       B2B demo / quotation request (Turnstile action "lead"; leads.js)
 //   GET  /health/deep                    D1 reachable + migrations current (HEALTH_TOKEN bearer when set)
+//   POST /health/notify-test             one LINE test push to the owner (Bearer HEALTH_TOKEN, 3/hour; leads.js lineTest)
 //   POST /api/auth/refresh               rotate the member bearer token (round 12; short sessions: +12 h, max 7 days)
 //   POST /v1/csp-report                  CSP violation reports (round 12, csp.js; counters only, always 204)
 //   GET  /api/med/status|thfda|openfda|rxnav   medicine checker text proxy (round 14, med.js; MED_ENABLED, text only)
@@ -107,6 +108,14 @@ async function publicRoute(request, env, url, deps) {
     if (tok && request.headers.get("Authorization") !== "Bearer " + tok) return reply({ error: "unauthorized" }, 401);
     const h = await deepHealth(env);
     return reply(h, h.ok ? 200 : 503);
+  }
+  // owner-only LINE test push (`npm run backend:notify-test`): Bearer HEALTH_TOKEN, refused while HEALTH_TOKEN is unset;
+  // 3 per hour; answers ok + LINE's HTTP status only (never the token or the recipient)
+  if (p === "/health/notify-test" && m === "POST") {
+    const tok = String(env.HEALTH_TOKEN || "");
+    if (!tok) return reply({ error: "HEALTH_TOKEN is not set on this Worker", code: "health_token_not_set" }, 503);
+    if (request.headers.get("Authorization") !== "Bearer " + tok) return reply({ error: "unauthorized" }, 401);
+    return reply(await leads.lineTest(env, deps.fetch));
   }
   if (p === "/v1/leads" && m === "POST") {
     if (!originAllowed(request, allow, { required: true })) return reply({ error: "origin not allowed" }, 403);
@@ -360,7 +369,20 @@ async function adminRoute(request, env, url, deps) {
     case "POST /password": return reply(await auth.changePassword(env, sess, await body()));
     case "POST /reauth": return reply(await auth.reauthSession(env, sess, await body()));
     case "GET /go-live": return reply(await goLiveStatus(env));
-    case "GET /leads": return reply(await leads.adminLeads(env.DB, Object.fromEntries(url.searchParams)));
+    case "GET /leads": {
+      // quote-request inbox (2026-11-12): summary only; reading it is audited without personal data
+      const r = await leads.adminLeads(env.DB, Object.fromEntries(url.searchParams));
+      await act("lead.list", { status: r.status, n: r.leads.length });
+      return reply(r);
+    }
+    case "GET /leads/unread": return reply({ unread: await leads.unreadLeads(env.DB) }); // count only (tab badge)
+    case "POST /leads/export": {
+      const b = await reauthed();
+      const r = await leads.exportLeads(env, b);
+      await act("lead.export", { n: r.n, status: r.status });
+      return new Response(r.csv, { headers: { ...cors, "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="${r.filename}"`,
+        "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } });
+    }
     case "POST /totp/setup": return reply(await auth.totpSetup(env, await body(), sess));
     case "POST /totp/enable": return reply(await auth.totpEnable(env, await body()));
     case "POST /totp/disable": return reply(await auth.totpDisable(env, await body(), sess));
@@ -520,9 +542,16 @@ async function adminRoute(request, env, url, deps) {
   }
   const al = /^\/alerts\/(\d{1,12})\/ack$/.exec(route);
   if (al && m === "POST") { const r = await billingAdmin.ackAlert(env.DB, al[1]); await act("alert.ack", { alert: Number(al[1]) }); return reply(r); }
-  const ld = /^\/leads\/([a-f0-9]{24})(\/ack)?$/.exec(route);
-  if (ld && m === "POST" && ld[2]) { const r = await leads.ackLead(env.DB, ld[1]); await act("lead.ack", { lead: ld[1] }); return reply(r); }
-  if (ld && m === "DELETE" && !ld[2]) { const r = await leads.deleteLead(env.DB, ld[1]); await act("lead.deleted", { lead: ld[1] }); return reply(r); }
+  // quote-request inbox: every action audited with the request id only (never name / contact / message)
+  const ld = /^\/leads\/([a-z0-9-]{1,40})(\/ack|\/status)?$/.exec(route);
+  if (ld && m === "GET" && !ld[2]) { const r = await leads.getLead(env, ld[1]); await act("lead.viewed", { lead: ld[1] }); return reply(r); }
+  if (ld && m === "POST" && ld[2] === "/ack") { const r = await leads.ackLead(env.DB, ld[1]); await act("lead.ack", { lead: ld[1] }); return reply(r); }
+  if (ld && m === "POST" && ld[2] === "/status") {
+    const r = await leads.setLeadStatus(env.DB, ld[1], (await body()).status);
+    await act("lead.status", { lead: ld[1], status: r.status });
+    return reply(r);
+  }
+  if (ld && m === "DELETE" && !ld[2]) { await reauthed(); const r = await leads.deleteLead(env.DB, ld[1]); await act("lead.deleted", { lead: ld[1] }); return reply(r); }
   const dv = /^\/devices\/([a-f0-9]{16})$/.exec(route);
   if (dv && m === "DELETE") { const r = await auth.revokeDevice(env, dv[1]); await act("device.revoked", { device: dv[1] }); return reply(r); }
   return reply({ error: "not found" }, 404);

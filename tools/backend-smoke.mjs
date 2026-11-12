@@ -9,8 +9,9 @@
 //   --expect off      expect the kill switch to be ON (every public route 503); default: expect the service to answer
 //   --json            print the result list as JSON
 // Checks: /health · CORS for the Pages origin and refusal of a foreign origin · the preflight allows X-Tester-Code ·
-// every Product Check AI feature answers "tester code required" / "disabled" without a code · analytics, demo requests,
-// billing, sign-in, fortune AI and CSP reports are not enabled (404 route_off) ·
+// every Product Check AI feature answers "tester code required" / "disabled" without a code · analytics,
+// billing, sign-in, fortune AI and CSP reports are not enabled (404 route_off) · the quote form (/v1/leads, ON since the
+// owner's decision 2026-11-12) refuses a request without a bot-check token (403 turnstile_failed; nothing is stored) ·
 // the testing-only lookup sources are closed to a visitor while an open-licence source is on · kill switch state.
 import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -92,11 +93,16 @@ export async function smoke(base, o = {}) {
       `${r.status} ${reason}`);
   }
   // routes that are NOT part of this deployment answer 404 "route_off" (and never touch the database): empty requests only
-  for (const [method, path] of [["POST", "/v1/events"], ["POST", "/v1/leads"], ["GET", "/v1/billing/plans"], ["POST", "/api/auth/nonce"], ["GET", "/api/fortune/status"], ["POST",
+  for (const [method, path] of [["POST", "/v1/events"], ["GET", "/v1/billing/plans"], ["POST", "/api/auth/nonce"], ["GET", "/api/fortune/status"], ["POST",
     "/v1/csp-report"]]) {
     const r = await get(path, { method, headers: method === "POST" ? { ...O, "Content-Type": "application/json" } : O, ...(method === "POST" ? { body: "{}" } : {}) });
     add(`${method} ${path} is not enabled in this deployment`, r.status === 404 && r.j && r.j.code === "route_off", `${r.status} ${r.j && r.j.code}`);
   }
+  // the quote form is on (owner decision 2026-11-12): an EMPTY request without a Turnstile token is refused before
+  // anything is read or stored (fail closed); "turnstile_not_configured" means the secret is missing on the Worker
+  const ld = await get("/v1/leads", { method: "POST", headers: { ...O, "Content-Type": "application/json" }, body: "{}" });
+  add("POST /v1/leads without a bot-check token is refused (403 turnstile_failed)", ld.status === 403 && ld.j && ld.j.code === "turnstile_failed",
+    `${ld.status} ${ld.j && ld.j.code}`);
   const cfg = await get("/v1/config", { headers: O });
   add("config: analytics off, sign-in off, billing off, free mode", cfg.status === 200 && cfg.j && cfg.j.analytics === false && cfg.j.free_mode === true && cfg.j.pricing_enabled === false &&
     cfg.j.billing_enabled === false && cfg.j.membership && cfg.j.membership.google_client_id == null, `${cfg.status} ${JSON.stringify(cfg.j).slice(0, 110)}`);
