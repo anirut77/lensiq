@@ -147,6 +147,8 @@
   "nav.luckycolor.desc": "用摄像头看看今天的衣服颜色与当日幸运色",
   "nav.medicine.title": "药品信息核对",
   "nav.medicine.desc": "泰国FDA注册号、条形码、药名与药片外观，务必向药剂师确认",
+  "nav.nutrition.title": "营养标签读取",
+  "nav.nutrition.desc": "按标签显示的数值、实际食用分量与过敏原信息，在本设备上读取",
 
   // round 16 (item 1): 7 work categories, category landing pages, platform group "About"
   "nav.group.health": "健康、安全与质量",

@@ -144,6 +144,8 @@
   "nav.luckycolor.desc": "Check today's outfit colour against the lucky colour of the day",
   "nav.medicine.title": "Medicine checker",
   "nav.medicine.desc": "Thai FDA number, barcode, drug name and pill look-up; always confirm with a pharmacist",
+  "nav.nutrition.title": "Nutrition label reader",
+  "nav.nutrition.desc": "Values as printed, the amount you ate and allergen information, read on this device",
 
   // round 16 (item 1): 7 work categories, category landing pages, platform group "About"
   "nav.group.health": "Health, Safety & Quality",

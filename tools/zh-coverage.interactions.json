@@ -57,5 +57,8 @@
     "#t-log",
     "#t-set",
     "#t-check"
+  ],
+  "nutrition.html": [
+    "#nutSample"
   ]
 }

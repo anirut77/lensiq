@@ -83,6 +83,7 @@
       intro: "ตรวจข้อมูลยาให้เภสัชกรยืนยัน เตือนเมื่อคนขับหลับตานาน และตรวจคุณภาพสินค้าบนสายการผลิต", items: [
       { href: "cat-health.html", title: "ภาพรวมหมวด", desc: "เครื่องมือ สถานะ และความแม่นยำที่วัดได้พร้อมที่มา" },
       { href: "medicine.html", title: "ตรวจข้อมูลยา", desc: "เลขทะเบียน อย. บาร์โค้ด ชื่อยา และเม็ดยา ยืนยันกับเภสัชกรทุกครั้ง" },
+      { href: "nutrition.html", title: "อ่านฉลากโภชนาการ", desc: "ค่าตามฉลาก ปริมาณที่กินจริง และข้อมูลผู้แพ้อาหาร อ่านบนเครื่องนี้" },
       { href: "driver.html", title: "เฝ้าระวังความง่วงคนขับ", desc: "แจ้งเตือนเมื่อหลับตานานหรือหาว" },
       { href: "qc.html", title: "ตรวจคุณภาพสินค้า", desc: "ตรวจชิ้นงานบนสายการผลิต" }
     ] },
@@ -136,9 +137,11 @@
   // through): the page stays blank and we try to break out. Server headers (frame-ancestors / X-Frame-Options) do the
   // same where the host can send them; GitHub Pages cannot, and a <meta> CSP cannot carry frame-ancestors.
   var NOFRAME = /^(account|pricing|report|checkout|attendance|booth|customers|driver|faceread|fengshui|interview|neuro|palm|photobooth|qc|signage|store|studio|teamface|exam-lab|exam-hall|exam-dashboard|queue|tables|afterhours|bays|parking|village|crowd|case-review|medicine|omr|luckycolor)\.html$/;
+  var NOFRAME_MORE = /^(nutrition)\.html$/; // camera pages added after round 17 (kept on their own line: line width)
   var framed = false;
   try { framed = window.top !== window.self; } catch (e) { framed = true; }
-  if (framed && NOFRAME.test((location.pathname.split("/").pop() || "").toLowerCase())) {
+  var pageName = (location.pathname.split("/").pop() || "").toLowerCase();
+  if (framed && (NOFRAME.test(pageName) || NOFRAME_MORE.test(pageName))) {
     var fb = document.createElement("style");
     fb.textContent = "html{display:none!important}";
     (document.head || document.documentElement).appendChild(fb);

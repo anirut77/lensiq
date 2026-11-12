@@ -398,3 +398,8 @@ input. Rows without ground truth are skipped and counted.
   each read was tapped and reports taps (day, with the 10 % proposal) and taps (night). Last reviewed: 2026-11-08.
 - **2026-11-08 (round 15)** — first version: test plan (TH/EN), CSV templates with synthetic rows, metrics script, unit
   tests. Thresholds are a PROPOSAL awaiting the owner. Last reviewed: 2026-11-08.
+
+## ภาคผนวก: Nutrition (อ่านฉลากโภชนาการ) — 2026-11-13
+
+ยังไม่มีการนำร่องภาคสนาม ตัวเลขทั้งหมดมาจากฉลากสังเคราะห์ (`docs/nutrition/NUTRITION-ACCURACY.md`) การวัดกับฉลากจริงต้องใช้ภาพฉลากจริง
+อย่างน้อย 200 ภาพจากเจ้าของ (`docs/NUTRITION-DESIGN.md` §5.1, §11) เก็บไว้นอก repo ที่ `~/LENSIQ-field/nutrition/labels/`

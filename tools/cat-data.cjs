@@ -190,6 +190,10 @@ const CLAIMS = {
     th: "มีแผนนำร่องกับกล่องยาจริง 100 กล่อง เภสัชกรยืนยันทุกครั้ง",
     en: "A pilot plan for 100 real boxes exists. A pharmacist confirms every result",
     zh: "已有 100 个真实药盒的试点计划。每次结果均由药剂师确认" },
+  nut: { src: "none", ref: "docs/nutrition/NUTRITION-ACCURACY.md (synthetic labels only; real label photos not measured yet)",
+    th: "ยังไม่ได้วัดกับภาพฉลากจริง ผลทดสอบมีเฉพาะกับฉลากที่สร้างขึ้นเอง ค่าทุกค่าแสดงพร้อมบรรทัดที่มาให้ผู้ใช้ตรวจกับฉลาก",
+    en: "Not measured on photos of real labels yet; tested on generated labels only. Every value is shown with its source line for the user to check",
+    zh: "尚未用真实标签照片测量，仅用生成的标签测试。每个数值都附来源行，供用户与标签核对" },
   studio: { src: "public", ref: "ACCURACY.md §11 (35 held-out people, AI-rated)",
     ev: { doc: "ACCURACY.md", quote: ["| no-outfit version (new background + retouch) with a defect | 22.9 % [11.4–39.0] (8/35) |"] },
     th:
@@ -296,6 +300,10 @@ const REASONS = {
   medicine: { th: "ยังไม่ได้วัด ข้อมูลยาไทยครอบคลุมน้อย และการค้น อย. ต้องใช้ระบบหลังบ้านที่ยังไม่ได้เปิด",
     en: "Not measured; Thai product coverage is low and the Thai FDA lookup needs the backend, which is not deployed",
     zh: "尚未测量；泰国药品覆盖较少，泰国 FDA 查询需要尚未部署的后端" },
+  nutrition: { th: "อ่านฉลากบนเครื่องได้ครบขั้นตอน แสดงค่าตามฉลากพร้อมบรรทัดที่มาและให้ผู้ใช้แก้ได้ ยังไม่ได้วัดกับภาพฉลากจริง ยังไม่มีโหมดประมาณจากภาพอาหาร",
+    en: "Reads a label on the device end to end, shows values as printed with their source line and lets the user correct them; " +
+      "not measured on real label photos; the food-photo mode is not built yet",
+    zh: "可在本机完整读取标签，按标签显示数值并附来源行，用户可修改；尚未用真实标签照片测量；食物照片估算模式尚未开发" },
   driver: { th: "ตัวช่วยเตือนตาปิด ไม่ใช่อุปกรณ์ความปลอดภัย ยังไม่ทดสอบกับคนขับที่ง่วงจริง",
     en: "An eyes-closed awareness aid, not a safety device; not tested with really drowsy drivers",
     zh: "闭眼提醒辅助，不是安全设备；尚未在真正困倦的驾驶员身上测试" },
@@ -365,6 +373,7 @@ const PAGES = {
   booth: { st: "experimental", why: "booth", claims: ["boothNone", "boothFace"] },
   // 5 Health, Safety & Quality
   medicine: { st: "experimental", why: "medicine", claims: ["med"] },
+  nutrition: { st: "experimental", why: "nutrition", claims: ["nut"] },
   driver: { st: "experimental", why: "driver", claims: ["driverPub", "driverSyn"] },
   qc: { st: "experimental", why: "qc", claims: ["qc"] },
   // 6 Fortune & Auspicious Planning
@@ -443,7 +452,7 @@ const CATEGORIES = [
     intro: { th: "ตรวจข้อมูลยาให้เภสัชกรยืนยัน เตือนเมื่อคนขับหลับตานาน และตรวจคุณภาพสินค้าบนสายการผลิต",
       en: "Medicine information for a pharmacist to confirm, alerts when a driver's eyes stay closed, and product inspection on the production line.",
       zh: "药品信息供药剂师确认，驾驶员长时间闭眼时提醒，以及产线上的产品质检。" },
-    pages: ["medicine", "driver", "qc"] },
+    pages: ["medicine", "nutrition", "driver", "qc"] },
   { n: 6, slug: "fortune", id: "fortune", icon: "🔮",
     name: { th: "ดูดวงและฤกษ์มงคล", en: "Fortune & Auspicious Planning", zh: "占卜与择吉" },
     short: { th: "ดูดวง", en: "Fortune", zh: "占卜" },
