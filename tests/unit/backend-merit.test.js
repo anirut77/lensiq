@@ -89,7 +89,8 @@ test("B1: migration 0014_merit.sql exists, is listed in health.js MIGRATIONS, an
   const f = join(ROOT, "backend", "migrations", "0014_merit.sql");
   assert.ok(existsSync(f));
   const { MIGRATIONS } = await import(B + "health.js");
-  assert.equal(MIGRATIONS[MIGRATIONS.length - 1], "0014_merit.sql");
+  // re-lock 2026-11-12: a later migration (0015) now ends the list; 0014 must still follow 0013 directly
+  assert.equal(MIGRATIONS[MIGRATIONS.indexOf("0013_recovery_slow_hash.sql") + 1], "0014_merit.sql");
   const health = readFileSync(join(ROOT, "backend", "src", "health.js"), "utf8");
   assert.match(health, /\["0014_merit\.sql", "SELECT [^"]*FROM merit_items/);
   assert.match(health, /\["0014_merit\.sql", "SELECT [^"]*FROM merit_interest/);

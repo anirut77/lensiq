@@ -26,9 +26,11 @@ test("admin sign-in and first-run markup: no session-mode choice, no developer w
   assert.ok(!/<code>/.test(auth), "no code snippets on the owner screens");
   for (const id of ["adBoot", "adLogin", "adTwo", "adCodes", "adBootForm", "adLoginForm", "adTwoForm", "adTwoQr", "adTwoKey", "adCodesList", "adCodesOk", "adCodesDone", "adLoginSwap", "adLang"])
     assert.match(html, new RegExp(`id="${id}"`), id);
-  // every input of the four forms sits inside a <label>
+  // every input of the sign-in / setup forms sits inside a <label> (2026-11-12: + the merit reviewer's first sign-in,
+  // two forms: own password, then the 2-step code — the same checks apply to them)
+  for (const id of ["adRSetup", "adRSetupForm", "adRSetupTotpForm", "adRSetupQr", "adRSetupKey"]) assert.match(html, new RegExp(`id="${id}"`), id);
   const forms = auth.match(/<form[\s\S]*?<\/form>/g) || [];
-  assert.equal(forms.length, 3);
+  assert.equal(forms.length, 5);
   for (const f of forms) {
     const labelled = (f.match(/<label[\s\S]*?<\/label>/g) || []).join("");
     for (const m of f.matchAll(/<input[^>]*name="([^"]+)"/g)) assert.ok(labelled.includes(`name="${m[1]}"`), "unlabelled input " + m[1]);

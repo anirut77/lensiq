@@ -1,5 +1,13 @@
 // @ts-check
-// backend/src/auth.js — single owner account for the admin back office.
+// backend/src/auth.js — the owner account of the admin back office (+ restricted merit reviewers, reviewers.js).
+//
+//  reviewers  (owner decision 2026-11-12) a second, restricted account type for merit content only (reviewers.js,
+//             migration 0015). The same login route: a username that is not the owner's is looked up in admin_reviewers;
+//             only an ACTIVE reviewer with 2-step on can sign in, and the 6-digit code is always required. A reviewer's
+//             failures count on the reviewer's own row (never the owner's); a reviewer's trusted device skips only the
+//             reviewer's own slow-down (never the owner's). Sessions carry reviewer_id; requireAdmin re-checks that the
+//             reviewer is still active on EVERY request (disable / reset / delete sign them out at once) and returns
+//             role "reviewer"; index.js then allows only the merit-content routes (403 forbidden_role otherwise).
 //
 //  bootstrap  POST /admin/api/bootstrap {token, username, password}   only while no owner exists; token = Worker secret
 //                                                                     ADMIN_BOOTSTRAP_TOKEN (>= 32 chars), compared in
@@ -43,6 +51,7 @@ import {
   base32Decode, base32Encode, decryptString, encryptString, fromB64, hashPassword, importKek, kekHmacHex, passwordProblem, pbkdf2B64,
   randomBytes, randomToken, sha256Hex, timingSafeEqual, toB64, totpUri, verifyPassword, verifyTotp
 } from "./crypto.js";
+import { reviewerById, reviewerByName, reviewerFailure, reviewerTotpOk } from "./reviewers.js";
 import { audit, callerHash, hit, peek } from "./store.js";
 import { HttpError, now } from "./util.js";
 
@@ -107,20 +116,33 @@ export async function bootstrap(env, request, body) {
   return { ok: true };
 }
 
-async function newSession(env) {
+/** @param {any} env @param {string|null} [reviewerId] a reviewer's session (null = the owner's) */
+async function newSession(env, reviewerId = null) {
   const token = randomToken(32), csrf = randomToken(24), t = now();
-  await env.DB.prepare("INSERT INTO admin_sessions (id_hash, csrf_hash, created_at, last_seen, expires_at) VALUES (?1, ?2, ?3, ?3, ?4)")
-    .bind(await sha256Hex(token), await sha256Hex(csrf), t, t + SESSION_ABSOLUTE).run();
+  if (reviewerId) {
+    await env.DB.prepare("INSERT INTO admin_sessions (id_hash, csrf_hash, created_at, last_seen, expires_at, reviewer_id) VALUES (?1, ?2, ?3, ?3, ?4, ?5)")
+      .bind(await sha256Hex(token), await sha256Hex(csrf), t, t + SESSION_ABSOLUTE, reviewerId).run();
+  } else {
+    await env.DB.prepare("INSERT INTO admin_sessions (id_hash, csrf_hash, created_at, last_seen, expires_at) VALUES (?1, ?2, ?3, ?3, ?4)")
+      .bind(await sha256Hex(token), await sha256Hex(csrf), t, t + SESSION_ABSOLUTE).run();
+  }
   return { token, csrf };
 }
 
-/** True when the request carries a device token issued by a previous successful login. */
-async function trustedDevice(env, request, t) {
+/** The device token issued by a previous successful login: {hash, reviewerId} (reviewerId null = an owner device), or null. */
+async function trustedDeviceRow(env, request, t) {
   const tok = request.headers.get("X-LQ-Device") || readCookie(request, DEVICE_COOKIE);
   if (!tok || !TOKEN_RE.test(tok)) return null;
   const h = await sha256Hex(tok);
-  const row = await env.DB.prepare("SELECT hash FROM admin_devices WHERE hash = ?1 AND created_at > ?2").bind(h, t - DEVICE_TTL).first();
-  return row ? h : null;
+  let row = null;
+  try { row = await env.DB.prepare("SELECT hash, reviewer_id FROM admin_devices WHERE hash = ?1 AND created_at > ?2").bind(h, t - DEVICE_TTL).first(); }
+  catch { row = await env.DB.prepare("SELECT hash FROM admin_devices WHERE hash = ?1 AND created_at > ?2").bind(h, t - DEVICE_TTL).first(); } // before 0015
+  return row ? { hash: h, reviewerId: row.reviewer_id || null } : null;
+}
+/** True when the request carries a device token issued by a previous successful login (any account). */
+async function trustedDevice(env, request, t) {
+  const d = await trustedDeviceRow(env, request, t);
+  return d ? d.hash : null;
 }
 
 /** Claims a TOTP step atomically: only one request can move totp_last_step forward to `step`. */
@@ -145,7 +167,8 @@ async function recordFailure(env, ip, usernameMatched, t) {
 export async function login(env, request, body) {
   const t = now();
   const ip = await callerHash(env, request, "admin");
-  const device = await trustedDevice(env, request, t);
+  const dev = await trustedDeviceRow(env, request, t);
+  const device = dev ? dev.hash : null;
   const rl = await hit(env.DB, `login:${ip}`, CALLER_ATTEMPTS, WINDOW, t);
   if (!rl.ok) throw new HttpError(429, "too many login attempts", { retryAfter: rl.retryAfter, code: "too_many" });
   if ((await peek(env.DB, `lfail:${ip}`, WINDOW, t)) >= CALLER_FAILURES) throw new HttpError(
@@ -155,8 +178,12 @@ export async function login(env, request, body) {
     if (!g.ok) throw new HttpError(429, "login temporarily rate limited", { retryAfter: g.retryAfter, code: "too_many" });
   }
   const owner = await getOwner(env.DB);
-  // progressive account delay (decaying) for callers without a trusted device token
-  if (owner && !device && owner.locked_until > t && t - owner.last_failed_at <= DECAY) {
+  // a reviewer's name (never the owner's): the reviewer path below, with the reviewer's own counters
+  const uname = String(body.username || "");
+  const rev = owner && timingSafeEqual(uname, owner.username) ? null : await reviewerByName(env.DB, uname);
+  if (rev) return reviewerLogin(env, request, body, rev, dev, ip, t);
+  // progressive account delay (decaying) for callers without a trusted OWNER device token (a reviewer's device does not count)
+  if (owner && !(dev && !dev.reviewerId) && owner.locked_until > t && t - owner.last_failed_at <= DECAY) {
     await audit(env, "anonymous", "login.delayed", null, ip);
     throw new HttpError(429, "too many failed attempts — slow down", { retryAfter: owner.locked_until - t, code: "too_many" });
   }
@@ -186,14 +213,51 @@ export async function login(env, request, body) {
   await env.DB.prepare("UPDATE admin_users SET failed_count = 0, locked_until = 0 WHERE id = 1").run();
   const s = await newSession(env);
   let deviceToken = null;
-  if (device) await env.DB.prepare("UPDATE admin_devices SET last_used = ?1 WHERE hash = ?2").bind(t, device).run();
+  const ownerDevice = dev && !dev.reviewerId ? dev.hash : null; // a reviewer's device is never reused as the owner's
+  if (ownerDevice) await env.DB.prepare("UPDATE admin_devices SET last_used = ?1 WHERE hash = ?2").bind(t, ownerDevice).run();
   else {
     deviceToken = randomToken(32);
     await env.DB.prepare("INSERT INTO admin_devices (hash, created_at, last_used) VALUES (?1, ?2, ?2)").bind(await sha256Hex(deviceToken), t).run();
   }
-  await audit(env, "owner", "login.ok", { mode: body.mode === "bearer" ? "bearer" : "cookie", device: device ? "trusted" : "new" }, ip);
+  await audit(env, "owner", "login.ok", { mode: body.mode === "bearer" ? "bearer" : "cookie", device: ownerDevice ? "trusted" : "new" }, ip);
   const out = { ok: true, csrf: s.csrf, totp_enabled: !!owner.totp_enabled, expires_in: SESSION_ABSOLUTE };
   if (usedRecovery) out.recovery_left = await recoveryLeft(env.DB);
+  if (body.mode === "bearer") out.token = s.token;
+  if (deviceToken) out.device = deviceToken;
+  const cookies = [cookie(COOKIE, s.token, SESSION_ABSOLUTE)];
+  if (deviceToken) cookies.push(cookie(DEVICE_COOKIE, deviceToken, DEVICE_TTL));
+  return { body: out, cookies };
+}
+
+/** Reviewer sign-in (called by login after the shared caller / global limits). Password + 6-digit code, both always
+ *  required; only an active reviewer with 2-step on. Same answers and timing shape as the owner path. */
+async function reviewerLogin(env, request, body, rev, dev, ip, t) {
+  const ownDevice = !!(dev && dev.reviewerId === rev.id);
+  if (!ownDevice && rev.locked_until > t && t - rev.last_failed_at <= DECAY) {
+    await audit(env, "anonymous", "login.delayed", { user: "reviewer" }, ip);
+    throw new HttpError(429, "too many failed attempts — slow down", { retryAfter: rev.locked_until - t, code: "too_many" });
+  }
+  const usable = rev.status === "active" && !!rev.totp_enabled && !!rev.password_hash;
+  const pwOk = await verifyPassword(String(body.password || ""), usable ? rev.password_hash : DUMMY_HASH);
+  let totpOk = false;
+  if (usable && pwOk) totpOk = await reviewerTotpOk(env, rev, body.totp, t);
+  if (!usable || !pwOk || !totpOk) {
+    await hit(env.DB, `lfail:${ip}`, CALLER_FAILURES, WINDOW, t);
+    const fails = usable ? await reviewerFailure(env, rev, t, accountDelay, DECAY) : 0;
+    await audit(env, "anonymous", "login.failed", { user: "reviewer", totp: usable && pwOk ? "bad" : "n/a", fails }, ip);
+    const second = usable && pwOk;
+    throw new HttpError(401, second ? "invalid TOTP code" : "invalid credentials", { code: second ? "invalid_totp" : "invalid_credentials" });
+  }
+  await env.DB.prepare("UPDATE admin_reviewers SET failed_count = 0, locked_until = 0, last_login_at = ?1 WHERE id = ?2").bind(t, rev.id).run();
+  const s = await newSession(env, rev.id);
+  let deviceToken = null;
+  if (ownDevice) await env.DB.prepare("UPDATE admin_devices SET last_used = ?1 WHERE hash = ?2").bind(t, dev.hash).run();
+  else {
+    deviceToken = randomToken(32);
+    await env.DB.prepare("INSERT INTO admin_devices (hash, created_at, last_used, reviewer_id) VALUES (?1, ?2, ?2, ?3)").bind(await sha256Hex(deviceToken), t, rev.id).run();
+  }
+  await audit(env, "reviewer:" + rev.id, "login.ok", { mode: body.mode === "bearer" ? "bearer" : "cookie", device: ownDevice ? "trusted" : "new" }, ip);
+  const out = { ok: true, csrf: s.csrf, totp_enabled: true, role: "reviewer", expires_in: SESSION_ABSOLUTE };
   if (body.mode === "bearer") out.token = s.token;
   if (deviceToken) out.device = deviceToken;
   const cookies = [cookie(COOKIE, s.token, SESSION_ABSOLUTE)];
@@ -219,8 +283,18 @@ export async function requireAdmin(env, request) {
     const csrf = request.headers.get("X-CSRF-Token") || "";
     if (!csrf || !timingSafeEqual(await sha256Hex(csrf), s.csrf_hash)) throw new HttpError(403, "CSRF token missing or invalid");
   }
+  // a reviewer's session: the account must still be active on every request (disable / reset / delete sign out at once)
+  let role = "owner", reviewerId = null, reviewerName = null;
+  if (s.reviewer_id) {
+    const r = await reviewerById(env.DB, s.reviewer_id);
+    if (!r || r.status !== "active" || !r.totp_enabled) {
+      await env.DB.prepare("DELETE FROM admin_sessions WHERE id_hash = ?1").bind(idHash).run();
+      throw new HttpError(401, "session expired");
+    }
+    role = "reviewer"; reviewerId = String(r.id); reviewerName = String(r.username);
+  }
   await env.DB.prepare("UPDATE admin_sessions SET last_seen = ?1 WHERE id_hash = ?2").bind(t, idHash).run();
-  return { idHash, viaCookie: !bearer, reauthAt: Number(s.reauth_at) || 0 };
+  return { idHash, viaCookie: !bearer, reauthAt: Number(s.reauth_at) || 0, role, reviewerId, reviewerName };
 }
 
 /** Fresh CSRF token for the current session (e.g. after a page reload). Readable only by allowlisted origins (CORS). */
@@ -232,7 +306,7 @@ export async function rotateCsrf(env, sess) {
 
 export async function logout(env, sess) {
   await env.DB.prepare("DELETE FROM admin_sessions WHERE id_hash = ?1").bind(sess.idHash).run();
-  await audit(env, "owner", "logout");
+  await audit(env, sess && sess.role === "reviewer" ? "reviewer:" + sess.reviewerId : "owner", "logout");
 }
 
 /** Re-auth limits (round 11): per admin session, REAUTH_FAILURES wrong answers per WINDOW -> 429; after

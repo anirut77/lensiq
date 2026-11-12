@@ -46,6 +46,10 @@
 // Admin round 17: GET|PUT /admin/api/ai/gateway (PUT needs re-auth, audited), GET /admin/api/ai/usage?month=YYYY-MM
 // Admin Merit MVP: GET|POST /admin/api/merit/items, PUT|DELETE /admin/api/merit/items/:id (delete = re-auth),
 //   GET /admin/api/merit/interest, DELETE /admin/api/merit/interest/:id (re-auth); every write audited (merit.js)
+// Merit reviewers (owner decision 2026-11-12, reviewers.js): POST /admin/api/reviewer-setup[/confirm] (no session; one-time
+//   setup code), GET|POST /admin/api/reviewers, POST /admin/api/reviewers/:id/disable|enable|reset, DELETE …/:id (owner,
+//   re-auth); merit review: POST /admin/api/merit/items/:id/review, GET …/:id/history, POST /admin/api/merit/import (owner,
+//   re-auth). A reviewer session may use ONLY REVIEWER_ROUTES; every other admin route answers 403 forbidden_role.
 // Admin (ADMIN_ORIGINS, credentials; see auth.js): /admin/api/*
 import * as analytics from "./analytics.js";
 import * as auth from "./auth.js";
@@ -63,6 +67,7 @@ import * as keystore from "./ai/keystore.js";
 import { LEGACY_KEY_UNUSED, getGateway, legacyKeyUnused } from "./ai/settings.js";
 import { medRoute } from "./med.js";
 import * as merit from "./merit.js";
+import * as reviewers from "./reviewers.js";
 import { adminPcLookup, pcRoute, putPcSettings } from "./pc.js";
 import { reconcilePending } from "./billing.js";
 import { turnstileStatus } from "./turnstile.js";
@@ -79,6 +84,15 @@ import {
 } from "./util.js";
 
 const ADMIN_MAX_BODY = 16 * 1024;
+const IMPORT_MAX_BODY = 1024 * 1024;
+const MERIT_ITEM = "\\/merit\\/items\\/[a-z0-9][a-z0-9_-]{2,40}";
+/** The only admin routes a reviewer session may use (merit content). Everything else: 403 forbidden_role (default deny). */
+export const REVIEWER_ROUTES = [
+  ["GET", /^\/me$/], ["POST", /^\/logout$/], ["GET", /^\/merit\/items$/], ["POST", /^\/merit\/items$/],
+  ["PUT", new RegExp("^" + MERIT_ITEM + "$")], ["POST", new RegExp("^" + MERIT_ITEM + "\\/review$")], ["GET", new RegExp("^" + MERIT_ITEM + "\\/history$")]
+];
+/** @param {string} m @param {string} route */
+export const reviewerAllowed = (m, route) => REVIEWER_ROUTES.some(([rm, re]) => rm === m && /** @type {RegExp} */ (re).test(route));
 export const RECONCILE_CRON = "*/15 * * * *";
 /** Admin test charges per hour (all sessions together); override with the TEST_CHARGE_HOUR var (1–100). */
 export const TEST_CHARGE_HOUR = 10;
@@ -308,9 +322,29 @@ async function adminRoute(request, env, url, deps) {
     return resp;
   }
 
+  // a reviewer's first sign-in: the one-time setup code (no session yet)
+  if ((route === "/reviewer-setup" || route === "/reviewer-setup/confirm") && m === "POST") {
+    const b = await body();
+    const r = await adminUnauth(env, request, e => (route === "/reviewer-setup" ? reviewers.setupStart(e, request, b) : reviewers.setupConfirm(e, request, b)));
+    if (r && r.busy) return busy(r);
+    return reply(r);
+  }
+
   const sess = await auth.requireAdmin(env, request);
   const ipHash = await callerHash(env, request, "admin");
-  const act = (action, detail) => audit(env, "owner", action, detail, ipHash);
+  const isReviewer = sess.role === "reviewer";
+  const who = isReviewer ? { actor: "reviewer:" + sess.reviewerId, name: String(sess.reviewerName), role: "reviewer" } : { actor: "owner", name: "owner", role: "owner" };
+  const act = (action, detail) => audit(env, who.actor, action, detail, ipHash);
+  if (isReviewer) {
+    // enforced here, on the Worker, for every request (the page only hides what it cannot use)
+    if (!reviewerAllowed(m, route)) {
+      await act("role.denied", { route: (m + " " + route).slice(0, 80) });
+      throw new HttpError(403, "not allowed for a reviewer account (forbidden_role)", { code: "forbidden_role" });
+    }
+    if (m === "GET" && route === "/me") {
+      return reply({ role: "reviewer", username: sess.reviewerName, totp_enabled: true, csrf: sess.viaCookie ? await auth.rotateCsrf(env, sess) : null });
+    }
+  }
   /** Sensitive action: body {password, totp} (auth.reauthOwner — rate limited per session, failures audited there) or
    *  the 5-min sudo window of POST /reauth. Returns the body without password / totp. A missing re-auth is audited. */
   const reauthed = async () => {
@@ -327,6 +361,15 @@ async function adminRoute(request, env, url, deps) {
     const b = await body();
     try { return await auth.requireInlineReauth(env, sess, b); } catch (e) {
       if (e && e.extra && e.extra.code === "reauth_inline_required") await act("reauth.failed", { route, missing: true, inline: true });
+      throw e;
+    }
+  };
+  /** Re-auth for actions that may come without a body (DELETE, POST {}): {password, totp} when a JSON body is sent, or the
+   *  5-min sudo window. */
+  const reauthedOptional = async () => {
+    const b = request.headers.get("Content-Type") ? await body() : {};
+    try { return await auth.requireReauth(env, sess, b); } catch (e) {
+      if (e && e.extra && e.extra.code === "reauth_required") await act("reauth.failed", { route, missing: true });
       throw e;
     }
   };
@@ -376,7 +419,7 @@ async function adminRoute(request, env, url, deps) {
   switch (`${m} ${route}`) {
     case "GET /me": {
       const o = await auth.getOwner(env.DB);
-      return reply({ username: o.username, totp_enabled: !!o.totp_enabled, recovery_left: o.totp_enabled ? await auth.recoveryLeft(env.DB) : 0,
+      return reply({ role: "owner", username: o.username, totp_enabled: !!o.totp_enabled, recovery_left: o.totp_enabled ? await auth.recoveryLeft(env.DB) : 0,
         recovery_legacy: o.totp_enabled ? await auth.recoveryLegacy(env.DB) : 0,
         csrf: sess.viaCookie ? await auth.rotateCsrf(env, sess) : null, password_changed_at: o.password_changed_at });
     }
@@ -567,37 +610,69 @@ async function adminRoute(request, env, url, deps) {
     return reply(r);
   }
   if (ld && m === "DELETE" && !ld[2]) { await reauthed(); const r = await leads.deleteLead(env.DB, ld[1]); await act("lead.deleted", { lead: ld[1] }); return reply(r); }
-  // Merit MVP: belief-guidance items + the (switched-off) interest inbox. Audit details carry ids and field names only.
-  // Deletes need re-auth: {password, totp} in an optional JSON body, or the 5-min sudo window (a DELETE without a body).
-  const reauthedDelete = async () => {
-    const b = request.headers.get("Content-Type") ? await body() : {};
-    try { return await auth.requireReauth(env, sess, b); } catch (e) {
-      if (e && e.extra && e.extra.code === "reauth_required") await act("reauth.failed", { route, missing: true });
-      throw e;
-    }
-  };
+  // Merit MVP: belief-guidance items + the (switched-off) interest inbox. Audit details carry ids, field names and review
+  // decisions only (comments live in the item history, merit_revisions). Deletes need re-auth (reauthedOptional).
   if (route === "/merit/items" && m === "GET") return reply(await merit.adminListItems(env));
   if (route === "/merit/items" && m === "POST") {
-    const item = await merit.adminCreateItem(env, await body());
-    await act("merit.item.created", { id: item.id, type: item.type, tradition: item.tradition });
+    const item = await merit.adminCreateItem(env, await body(), who);
+    await act("merit.item.created", { id: item.id, type: item.type, tradition: item.tradition, status: item.status });
     return reply({ item }, 201);
   }
-  const mi = /^\/merit\/items\/([a-z0-9][a-z0-9_-]{2,40})$/.exec(route);
-  if (mi && m === "PUT") {
-    const r = await merit.adminUpdateItem(env, mi[1], await body());
+  const mi = /^\/merit\/items\/([a-z0-9][a-z0-9_-]{2,40})(\/review|\/history)?$/.exec(route);
+  if (mi && !mi[2] && m === "PUT") {
+    const r = await merit.adminUpdateItem(env, mi[1], await body(), who);
     await act("merit.item.updated", { id: mi[1], changed: r.changed, status: r.item.status });
     return reply({ item: r.item });
   }
-  if (mi && m === "DELETE") {
-    await reauthedDelete();
-    const r = await merit.adminDeleteItem(env, mi[1]);
+  if (mi && mi[2] === "/review" && m === "POST") {
+    const r = await merit.reviewItem(env, mi[1], await body(), who);
+    await act("merit.item.reviewed", { id: mi[1], decision: r.decision, from: r.from, to: r.to });
+    return reply(r);
+  }
+  if (mi && mi[2] === "/history" && m === "GET") return reply(await merit.itemHistory(env, mi[1]));
+  if (mi && !mi[2] && m === "DELETE") {
+    await reauthedOptional();
+    const r = await merit.adminDeleteItem(env, mi[1], who);
     await act("merit.item.deleted", { id: mi[1] });
+    return reply(r);
+  }
+  if (route === "/merit/import" && m === "POST") {
+    // drafts file (up to 300 items): a larger body than other admin requests; owner + re-auth; everything comes in as draft
+    const raw = await readJson(request, IMPORT_MAX_BODY);
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new HttpError(400, "invalid request body", { code: "bad_body" });
+    let b;
+    try { b = await auth.requireReauth(env, sess, raw); } catch (e) {
+      if (e && e.extra && e.extra.code === "reauth_required") await act("reauth.failed", { route, missing: true });
+      throw e;
+    }
+    const r = await merit.importItems(env, b, who);
+    if (!r.dry_run) await act("merit.import", { imported: r.imported, refused: r.refused.length });
+    return reply(r);
+  }
+  // reviewer accounts (owner only; REVIEWER_ROUTES keeps reviewers out)
+  if (route === "/reviewers" && m === "GET") return reply(await reviewers.listReviewers(env));
+  if (route === "/reviewers" && m === "POST") {
+    const b = await reauthed();
+    const r = await reviewers.createReviewer(env, b, await auth.getOwner(env.DB));
+    await act("reviewer.created", { id: r.reviewer.id, username: r.reviewer.username });
+    return reply(r, 201);
+  }
+  const rvm = /^\/reviewers\/([a-f0-9]{12})(\/disable|\/enable|\/reset)?$/.exec(route);
+  if (rvm && ((m === "POST" && rvm[2]) || (m === "DELETE" && !rvm[2]))) {
+    await reauthedOptional();
+    let r;
+    if (m === "DELETE") { r = await reviewers.deleteReviewer(env, rvm[1]); await act("reviewer.deleted", { id: rvm[1] }); }
+    else if (rvm[2] === "/reset") { r = await reviewers.resetReviewer(env, rvm[1]); await act("reviewer.reset", { id: rvm[1] }); }
+    else {
+      r = await reviewers.setReviewerStatus(env, rvm[1], rvm[2] === "/disable" ? "disabled" : "active");
+      await act(rvm[2] === "/disable" ? "reviewer.disabled" : "reviewer.enabled", { id: rvm[1] });
+    }
     return reply(r);
   }
   if (route === "/merit/interest" && m === "GET") return reply(await merit.adminInterest(env, Object.fromEntries(url.searchParams)));
   const mq = /^\/merit\/interest\/([a-f0-9]{24})$/.exec(route);
   if (mq && m === "DELETE") {
-    await reauthedDelete();
+    await reauthedOptional();
     const r = await merit.adminDeleteInterest(env, mq[1]);
     await act("merit.interest.deleted", { id: mq[1] });
     return reply(r);

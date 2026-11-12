@@ -924,3 +924,19 @@ the text: confirm this is adequate.
 only the time (`localStorage` "lq-crisis-at", no text; an in-memory copy for the page when storage is blocked) and hides
 all merit content and any paid offer for 24 hours, also in other open tabs of the same browser; the form re-checks the
 state when it is submitted.
+
+### G2. Merit reviewer accounts and review history (owner decision 2026-11-12; `docs/MERIT-RESULTS.md` §8)
+
+(a) **Staff data held.** For each content reviewer (at most 10): a username chosen by the owner, a password hash
+(PBKDF2), an encrypted 2-step secret, status, created / updated / last sign-in times and failure counters
+(`admin_reviewers`). No e-mail, phone, ID number or photo is collected. Sessions and trusted-device rows link to the
+reviewer id; the audit log records the reviewer id with each action (`reviewer:<id>`), ids and field names only.
+
+(b) **Review history.** `merit_revisions` keeps, per guidance item, who (owner or the reviewer's username at the time),
+when, which fields changed, review decisions and the reviewer's comment text. It is kept after a reviewer account is
+deleted, as the record of who approved what. Retention is not limited yet. Questions for counsel: is keeping a former
+reviewer's username in the content history for as long as the content exists acceptable (legitimate interest:
+accountability for published belief guidance), and should a reviewer contract / notice say so.
+
+(c) **Reviewer notes from the drafts file** (`review_meta`: draft id, discipline names, source links, "uncertain" notes)
+are internal working notes about content, not personal data, and are never served to users.

@@ -128,7 +128,7 @@
     set: function (/** @type {string} */ v) { try { localStorage.setItem(DEV_KEY, v); } catch (e) { /* private mode */ } }
   };
 
-  var SCREENS = ["adOffline", "adBoot", "adLogin", "adTwo", "adCodes", "adApp"];
+  var SCREENS = ["adOffline", "adBoot", "adLogin", "adTwo", "adCodes", "adRSetup", "adApp"];
   function show(/** @type {string} */ which) {
     SCREENS.forEach(function (id) { $(id).hidden = id !== which; });
     $("adLogout").hidden = which !== "adApp";
@@ -187,6 +187,14 @@
     if (!API || !API.enabled()) { show("adOffline"); return; }
     if (devFlag()) { $("adConn").textContent = API.base().replace(/^https?:\/\//, ""); $("adConn").hidden = false; }
     state.mode = sessionMode();
+    // a merit reviewer's one-time setup link (admin#rsetup=<code>): read once, kept in memory, removed from the address bar
+    var hm = /^#rsetup=([A-Za-z0-9_-]{24,128})$/.exec(location.hash || "");
+    if (hm) {
+      rs.code = hm[1];
+      try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { location.hash = ""; }
+      show("adRSetup"); $("adRSetupTwo").hidden = true; $("adRSetupForm").hidden = false;
+      return;
+    }
     call("/state").then(function (st) {
       if (!st.bootstrapped) { show("adBoot"); return; }
       // cookie mode: maybe still signed in (GET /me also rotates the CSRF token)
@@ -199,11 +207,55 @@
     state.me = me;
     if (me.csrf) state.csrf = me.csrf;
     flow.first = false; flow.pw = ""; flow.back = "";
+    // a merit reviewer sees the merit tab only (the Worker refuses everything else anyway: 403 forbidden_role)
+    var reviewer = me.role === "reviewer";
+    document.querySelectorAll(".ad-tabs [role=tab]").forEach(function (b) { /** @type {HTMLElement} */ (b).hidden = reviewer && b.getAttribute("data-tab") !== "merit"; });
     show("adApp");
     msg("");
-    tab("analytics");
-    leadBadge();
+    tab(reviewer ? "merit" : "analytics");
+    if (!reviewer) leadBadge();
   }
+  var isReviewer = function () { return !!(state.me && state.me.role === "reviewer"); };
+
+  /* ---------------- merit reviewer: first sign-in with the one-time setup code ---------------- */
+  var rs = { code: "", username: "" };
+  $("adRSetupForm").addEventListener("submit", function (/** @type {Event} */ ev) {
+    ev.preventDefault();
+    var f = /** @type {any} */ (ev.target);
+    if (!f.password.value) { amsg(G("adm.v.pw", "กรุณากรอกรหัสผ่านก่อน"), true); return; }
+    if (f.password.value !== f.password2.value) { amsg(G("adm.v.pw2", "รหัสผ่านสองช่องไม่ตรงกัน"), true); return; }
+    busy(f, true);
+    call("/reviewer-setup", { method: "POST", body: { code: rs.code, password: f.password.value }, noReauth: true }).then(function (/** @type {any} */ r) {
+      rs.username = r.username; f.reset(); f.hidden = true; amsg("");
+      $("adRSetupTwo").hidden = false; $("adRSetupQr").textContent = "";
+      var QR = /** @type {any} */ (window).LQQR;
+      try {
+        var img = h("img", { alt: G("adm.two.qrAlt", "คิวอาร์โค้ดสำหรับแอปยืนยันตัวตน"), width: 220, height: 220 });
+        img.setAttribute("src", "data:image/svg+xml;charset=utf-8," + encodeURIComponent(QR.svg(r.uri, { scale: 6 })));
+        $("adRSetupQr").appendChild(img);
+      } catch (e) { $("adRSetupQr").textContent = G("adm.two.noQr", "แสดงคิวอาร์โค้ดไม่ได้ กรุณาพิมพ์รหัสตั้งค่าด้านล่างลงในแอป"); }
+      $("adRSetupKey").textContent = String(r.secret).replace(/(.{4})/g, "$1 ").trim();
+      $("adRSetupKey").setAttribute("data-raw", r.secret);
+    }, function (/** @type {any} */ e) { amsg(e && e.code === "invalid_setup" ? G("ar.e.setup", "ลิงก์ตั้งค่านี้ใช้ไม่ได้หรือหมดอายุแล้ว กรุณาขอลิงก์ใหม่จากเจ้าของระบบ") : friendly(e), true); })
+      .then(function () { busy(f, false); });
+  });
+  $("adRSetupTotpForm").addEventListener("submit", function (/** @type {Event} */ ev) {
+    ev.preventDefault();
+    var f = /** @type {any} */ (ev.target), code = String(f.code.value || "").replace(/\s+/g, "");
+    busy(f, true);
+    call("/reviewer-setup/confirm", { method: "POST", body: { code: rs.code, totp: code }, noReauth: true }).then(function () {
+      var u = rs.username;
+      rs.code = ""; rs.username = "";
+      $("adRSetupQr").textContent = ""; $("adRSetupKey").textContent = ""; $("adRSetupKey").removeAttribute("data-raw");
+      show("adLogin");
+      /** @type {any} */ ($("adLoginForm")).username.value = u;
+      amsg(G("ar.setup.ok", "ตั้งค่าบัญชีเรียบร้อย เข้าสู่ระบบด้วยรหัสผ่านและรหัส 6 หลักจากแอป"));
+    }, function (/** @type {any} */ e) {
+      f.code.value = "";
+      amsg(e && e.code === "invalid_setup" ? G("ar.e.setup", "ลิงก์ตั้งค่านี้ใช้ไม่ได้หรือหมดอายุแล้ว กรุณาขอลิงก์ใหม่จากเจ้าของระบบ") : friendly(e), true);
+    })
+      .then(function () { busy(f, false); });
+  });
 
   // show / hide what was typed (setup code, passwords)
   document.querySelectorAll(".ad-eye").forEach(function (b) {
@@ -818,6 +870,7 @@
     if (gw.data) renderGateway();
     keyDlgTexts();
     if (am.data) amRender();
+    if (ar.data) arRender();
   });
   $("adLang").value = gLang();
 
@@ -1089,6 +1142,7 @@
       $("adRecLeft").textContent = String(me.recovery_left || 0);
       $("adRecLegacy").hidden = !(me.totp_enabled && me.recovery_legacy > 0);
     }, fail);
+    arLoad();
     call("/audit").then(function (/** @type {any} */ r) {
       var el = $("adAudit"); el.textContent = "";
       el.appendChild(table(["เวลา", "ผู้กระทำ", "การกระทำ", "รายละเอียด"], r.audit.map(function (/** @type {any} */ a) { return [when(a.ts), a.actor, a.action, a.detail]; })));
@@ -1126,7 +1180,8 @@
   });
 
   /* ---------------- merit: belief guidance (Merit MVP, backend/src/merit.js) ---------------- */
-  var am = { data: /** @type {any} */ (null), interest: /** @type {any} */ (null), editing: /** @type {string|null} */ (null) };
+  var am = { data: /** @type {any} */ (null), interest: /** @type {any} */ (null), editing: /** @type {string|null} */ (null),
+    editStatus: /** @type {string|null} */ (null), viewing: /** @type {string|null} */ (null) };
   var AM_LANGS = ["th", "en", "zh"];
   /** @param {string} t */
   var amType = function (t) {
@@ -1190,23 +1245,39 @@
     };
     fill(f.type, (am.data && am.data.types) || [], amType);
     fill(f.tradition, (am.data && am.data.traditions) || [], amTrad);
-    fill(f.status, ["published", "hidden"], function (x) { return x === "published" ? G("am.st.published", "เผยแพร่") : G("am.st.hidden", "ซ่อน"); });
+    fill(f.status, ["published", "hidden", "draft"], amStatus);
   }
+  /** @param {string} st */
+  var amStatus = function (st) {
+    return G("am.st." + st, ({ draft: "ร่าง (รอตรวจ)", reviewed: "ตรวจแล้ว (รออนุมัติ)", published: "เผยแพร่", rejected: "ตีกลับ", hidden: "ซ่อน" })[st] || st);
+  };
+  function amFilterFill() {
+    var sel = $("amFilter"), v = sel.value || "all";
+    sel.textContent = "";
+    ["all", "draft", "reviewed", "rejected", "published", "hidden"].forEach(function (x) {
+      sel.appendChild(h("option", { value: x, text: x === "all" ? G("am.f.all", "ทั้งหมด") : amStatus(x) }));
+    });
+    sel.value = v;
+  }
+  $("amFilter").addEventListener("change", function () { loaders.merit(); });
   function amRenderList() {
     var box = $("amList"); box.textContent = "";
-    var items = (am.data && am.data.items) || [];
+    var flt = $("amFilter").value || "all";
+    var items = ((am.data && am.data.items) || []).filter(function (/** @type {any} */ x) { return flt === "all" || x.status === flt || x.id === am.viewing; }); // the open item stays listed
     if (!items.length) { box.appendChild(h("p", { class: "ad-muted", text: G("am.none", "ยังไม่มีรายการ") })); return; }
     items.forEach(function (/** @type {any} */ it) {
       var t = h("div", { class: "am-title", lang: gLang() === "zh" ? "zh-Hans" : gLang() }, amText(it.title));
-      var hidden = it.status === "hidden";
+      var hidden = it.status === "hidden", owner = !isReviewer();
       var meta = h("div", { class: "am-meta" }, amType(it.type) + " · " + amTrad(it.tradition) + " · " +
-        (hidden ? G("am.st.hidden", "ซ่อน") : G("am.st.published", "เผยแพร่")) + " · " + G("am.keysN", "จับคู่ {n} ข้อ", { n: (it.keys || []).length }));
+        amStatus(it.status) + " · " + G("am.keysN", "จับคู่ {n} ข้อ", { n: (it.keys || []).length }));
       var row = h("div", { class: "am-row", "data-id": it.id, "data-status": it.status },
         it.sample ? h("div", null, h("span", { class: "am-sample", text: G("am.sample", "ตัวอย่าง") })) : null, t, meta,
         h("div", { class: "ad-row" },
+          h("button", { class: "ad-btn ad-ghost", type: "button", "data-act": "view", text: G("am.act.view", "ดูและตรวจ") }),
           h("button", { class: "ad-btn ad-ghost", type: "button", "data-act": "edit", text: G("am.act.edit", "แก้ไข") }),
-          h("button", { class: "ad-btn ad-ghost", type: "button", "data-act": hidden ? "show" : "hide", text: hidden ? G("am.act.show", "แสดง") : G("am.act.hide", "ซ่อน") }),
-          h("button", { class: "ad-btn ad-ghost", type: "button", "data-act": "delete", text: G("am.act.delete", "ลบ") })));
+          owner && (hidden || it.status === "published")
+            ? h("button", { class: "ad-btn ad-ghost", type: "button", "data-act": hidden ? "show" : "hide", text: hidden ? G("am.act.show", "แสดง") : G("am.act.hide", "ซ่อน") }) : null,
+          owner ? h("button", { class: "ad-btn ad-ghost", type: "button", "data-act": "delete", text: G("am.act.delete", "ลบ") }) : null));
       box.appendChild(row);
     });
   }
@@ -1229,10 +1300,115 @@
         h("div", { class: "am-meta" }, q.item_id + " · " + q.date_from + " – " + q.date_to + " · " + when(q.created_at)), h("div", { class: "ad-row" }, del)));
     });
   }
-  function amRender() { amSelects(); amKeysPicker(); amRenderList(); amRenderInterest(); }
+  function amRender() { amFilterFill(); amSelects(); amKeysPicker(); amRenderList(); amRenderInterest(); if (am.viewing && !$("amView").hidden) amShowView(am.viewing); }
   loaders.merit = function () {
-    Promise.all([call("/merit/items"), call("/merit/interest")]).then(function (r) { am.data = r[0]; am.interest = r[1]; amRender(); }, fail);
+    var rev = isReviewer();
+    // a reviewer never asks for the interest inbox (personal data) or the import: the Worker refuses both for them
+    $("amInterest").hidden = rev; $("amImportBox").hidden = rev; $("amImportOut").hidden = rev;
+    amFilterFill();
+    (rev ? Promise.all([call("/merit/items")]) : Promise.all([call("/merit/items"), call("/merit/interest")]))
+      .then(function (r) { am.data = r[0]; if (r[1]) am.interest = r[1]; amRender(); }, fail);
   };
+
+  /* review view: item, status, review buttons, history (who changed which field, when, decisions and comments) */
+  /** @param {string} id */
+  function amShowView(id) {
+    var it = ((am.data && am.data.items) || []).filter(function (/** @type {any} */ x) { return x.id === id; })[0];
+    if (!it) { $("amView").hidden = true; am.viewing = null; return; }
+    am.viewing = id;
+    var L = gLang() === "zh" ? "zh-Hans" : gLang();
+    $("amViewTitle").textContent = amText(it.title); $("amViewTitle").setAttribute("lang", L);
+    $("amViewStatus").textContent = amStatus(it.status);
+    $("amViewMeta").textContent = amType(it.type) + " · " + amTrad(it.tradition) + (it.sample ? " · " + G("am.sample", "ตัวอย่าง") : "") +
+      (it.reviewed_by ? " · " + G("am.v.lastBy", "ตรวจล่าสุดโดย {who}", { who: it.reviewed_by === "owner" ? G("am.h.owner", "เจ้าของ") : it.reviewed_by }) : "");
+    // reviewer notes (drafts file): the writer's "uncertain" note first and prominent, then the sources
+    var meta = it.review_meta || {};
+    $("amViewNote").hidden = !meta.uncertain;
+    $("amViewNoteText").textContent = meta.uncertain ? " " + meta.uncertain : "";
+    var srcs = $("amViewSources"); srcs.textContent = "";
+    (meta.sources || []).forEach(function (/** @type {any} */ x) {
+      var a = h("a", { href: /^https?:\/\//.test(String(x.url)) ? x.url : null, target: "_blank", rel: "noopener noreferrer", translate: "no" }, String(x.url));
+      srcs.appendChild(h("li", null, (x.publisher ? x.publisher + " · " : "") + (x.title ? x.title + " · " : ""), a, x.accessed ? " (" + x.accessed + ")" : ""));
+    });
+    $("amViewSourcesBox").hidden = !(meta.sources && meta.sources.length);
+    var bodyBox = $("amViewBody"); bodyBox.textContent = "";
+    ["th", "en", "zh"].forEach(function (l) {
+      bodyBox.appendChild(h("p", { lang: l === "zh" ? "zh-Hans" : l }, (it.title && it.title[l] || "") + "\n" + (it.body && it.body[l] || "")));
+    });
+    var can = { reviewed: ["draft", "rejected"], approve: ["reviewed"], reject: ["draft", "reviewed", "published"] };
+    $("amView").querySelectorAll("button[data-review]").forEach(function (/** @type {any} */ b) {
+      b.hidden = /** @type {any} */ (can)[b.getAttribute("data-review")].indexOf(it.status) < 0;
+    });
+    $("amViewErr").hidden = true; $("amViewErr").textContent = "";
+    $("amView").hidden = false;
+    call("/merit/items/" + id + "/history").then(function (/** @type {any} */ r) {
+      if (am.viewing !== id) return;
+      var ol = $("amHistory"); ol.textContent = "";
+      (r.history || []).slice().reverse().forEach(function (/** @type {any} */ x) {
+        var who = x.actor === "owner" ? G("am.h.owner", "เจ้าของ") : x.actor;
+        var what = x.action === "review" ? G("am.h.rv." + x.decision, ({ reviewed: "ตรวจแล้ว", approve: "อนุมัติและเผยแพร่", reject: "ตีกลับ" })[x.decision] || x.decision)
+          : G("am.h." + x.action, ({ create: "สร้าง", edit: "แก้ไข", status: "เปลี่ยนสถานะ", "import": "นำเข้าเป็นร่าง", "delete": "ลบ" })[x.action] || x.action);
+        var line = when(x.ts) + " · " + who + " · " + what +
+          (x.fields && x.fields.length && x.action === "edit" ? " (" + x.fields.join(", ") + ")" : "") +
+          (x.from_status && x.to_status && x.from_status !== x.to_status ? " · " + amStatus(x.from_status) + " → " + amStatus(x.to_status) : "");
+        var li = h("li", null, h("span", { translate: "no" }, line));
+        if (x.comment) li.appendChild(h("span", { class: "am-comment-text", lang: "th" }, G("am.h.comment", "ความเห็น") + ": " + x.comment));
+        ol.appendChild(li);
+      });
+    }, function (/** @type {any} */ e) { if (e && e.status === 401) fail(e); });
+    try { $("amView").scrollIntoView({ block: "start" }); } catch (e) { /* older browsers */ }
+  }
+  $("amViewClose").addEventListener("click", function () { $("amView").hidden = true; am.viewing = null; });
+  $("amView").addEventListener("click", function (/** @type {any} */ ev) {
+    var b = ev.target && ev.target.closest && ev.target.closest("button"); if (!b || !am.viewing) return;
+    var id = am.viewing;
+    if (b.getAttribute("data-act") === "edit") {
+      var it = ((am.data && am.data.items) || []).filter(function (/** @type {any} */ x) { return x.id === id; })[0];
+      if (it) amOpen(it);
+      return;
+    }
+    var decision = b.getAttribute("data-review"); if (!decision) return;
+    var comment = String(/** @type {any} */ ($("amComment")).value || "").trim(), err = $("amViewErr");
+    err.hidden = true; err.textContent = "";
+    if (decision === "reject" && !comment) { err.textContent = G("am.e.comment", "กรุณาเขียนความเห็นว่าต้องแก้อะไรก่อนตีกลับ"); err.hidden = false; return; }
+    call("/merit/items/" + id + "/review", { method: "POST", body: { decision: decision, comment: comment || undefined } }).then(function () {
+      /** @type {any} */ ($("amComment")).value = "";
+      msg(G("am.rv.done", "บันทึกผลการตรวจแล้ว")); loaders.merit();
+    }, function (/** @type {any} */ e) {
+      err.textContent = e && e.code === "bad_transition" ? G("am.e.transition", "สถานะของรายการเปลี่ยนไปแล้ว กรุณาเปิดรายการใหม่")
+        : e && e.code === "comment_required" ? G("am.e.comment", "กรุณาเขียนความเห็นว่าต้องแก้อะไรก่อนตีกลับ") : amError(e);
+      err.hidden = false;
+    });
+  });
+
+  /* import drafts (owner): check the file first (dry run), then import; everything comes in as a draft */
+  var amImp = { items: /** @type {any[]|null} */ (null) };
+  /** @param {any} r */
+  function amImportReport(r) {
+    var lines = [G(r.dry_run ? "am.imp.ready" : "am.imp.done", r.dry_run ? "พร้อมนำเข้า {n} รายการ" : "นำเข้าเป็นร่างแล้ว {n} รายการ", { n: r.dry_run ? r.ok_count : r.imported })];
+    if (r.refused.length) lines.push(G("am.imp.refused", "ไม่ผ่าน {n} รายการ (ไม่นำเข้า):", { n: r.refused.length }));
+    r.refused.slice(0, 30).forEach(function (/** @type {any} */ x) { lines.push("#" + (x.index + 1) + ": " + amError({ code: x.code, message: x.error })); });
+    $("amImportOut").textContent = lines.join("\n");
+  }
+  $("amImport").addEventListener("click", function () {
+    var inp = /** @type {any} */ ($("amImportFile")), file = inp.files && inp.files[0];
+    $("amImportGo").hidden = true; amImp.items = null;
+    if (!file) { msg(G("am.imp.pick", "กรุณาเลือกไฟล์ร่างก่อน"), true); return; }
+    file.text().then(function (/** @type {string} */ t) {
+      var j = JSON.parse(t), items = Array.isArray(j) ? j : j && Array.isArray(j.items) ? j.items : null;
+      if (!items) throw new Error("format");
+      amImp.items = items;
+      return call("/merit/import", { method: "POST", body: { items: items, dry_run: true } });
+    }).then(function (/** @type {any} */ r) { amImportReport(r); $("amImportGo").hidden = !r.ok_count; },
+      function (/** @type {any} */ e) { msg(e && e.status ? amError(e) : G("am.imp.bad", "อ่านไฟล์ไม่ได้ ต้องเป็นไฟล์ JSON ที่มีรายการ (items)"), true); });
+  });
+  $("amImportGo").addEventListener("click", function () {
+    if (!amImp.items) return;
+    call("/merit/import", { method: "POST", body: { items: amImp.items } }).then(function (/** @type {any} */ r) {
+      amImportReport(r); $("amImportGo").hidden = true; amImp.items = null; /** @type {any} */ ($("amImportFile")).value = "";
+      $("amFilter").value = "draft"; loaders.merit();
+    }, function (/** @type {any} */ e) { msg(amError(e), true); });
+  });
   /** @param {any} it */
   function amOpen(it) {
     am.editing = it ? it.id : null;
@@ -1242,7 +1418,11 @@
     $("amEditH").setAttribute("data-i18n", it ? "am.edit.edit" : "am.edit.new");
     $("amEditH").textContent = it ? G("am.edit.edit", "แก้ไขรายการ") : G("am.edit.new", "เพิ่มรายการใหม่");
     ["title", "body", "place", "area"].forEach(function (k) { AM_LANGS.forEach(function (l) { f[k + "_" + l].value = it && it[k] ? it[k][l] || "" : ""; }); });
+    if (it && ["published", "hidden", "draft"].indexOf(it.status) < 0) f.status.appendChild(h("option", { value: it.status, text: amStatus(it.status) }));
     if (it) { f.type.value = it.type; f.tradition.value = it.tradition; f.status.value = it.status; f.sort.value = String(it.sort || 0); f.sample.checked = !!it.sample; }
+    am.editStatus = it ? it.status : null;
+    // a reviewer never sets the status or the sample flag (the Worker refuses it: 403 forbidden_field)
+    $("amStatusL").hidden = isReviewer(); $("amSampleL").hidden = isReviewer();
     amKeysPicker();
     $("amKeys").querySelectorAll("input[name=keys]").forEach(function (/** @type {any} */ c) { c.checked = !!it && (it.keys || []).indexOf(c.value) >= 0; });
     $("amErr").hidden = true; $("amErr").textContent = "";
@@ -1257,6 +1437,7 @@
     var it = ((am.data && am.data.items) || []).filter(function (/** @type {any} */ x) { return x.id === id; })[0];
     if (!it) return;
     if (act === "edit") { amOpen(it); return; }
+    if (act === "view") { amShowView(id); return; }
     if (act === "hide" || act === "show") {
       call("/merit/items/" + id, { method: "PUT", body: { status: act === "hide" ? "hidden" : "published" } })
         .then(function () { msg(act === "hide" ? G("am.hidden", "ซ่อนแล้ว") : G("am.shown", "แสดงแล้ว")); loaders.merit(); }, function (/** @type {any} */ e) { msg(amError(e), true); });
@@ -1277,14 +1458,70 @@
     var opt = function (k) { var o = tri(k); return AM_LANGS.every(function (l) { return !o[l]; }) ? null : o; };
     var keys = [];
     $("amKeys").querySelectorAll("input[name=keys]").forEach(function (/** @type {any} */ c) { if (c.checked) keys.push(c.value); });
+    /** @type {any} */
     var body = { type: f.type.value, tradition: f.tradition.value, title: tri("title"), body: tri("body"), place: opt("place"), area: opt("area"), keys: keys,
       status: f.status.value, sort: Number(f.sort.value || 0), sample: !!f.sample.checked };
+    if (isReviewer()) { delete body.status; delete body.sample; }
+    else if (am.editing && body.status === am.editStatus) delete body.status; // unchanged: keep the review state
     var err = $("amErr"); err.hidden = true; err.textContent = "";
     $("amSave").disabled = true;
     var p = am.editing ? call("/merit/items/" + am.editing, { method: "PUT", body: body }) : call("/merit/items", { method: "POST", body: body });
     p.then(function () { $("amEdit").hidden = true; am.editing = null; msg(G("am.saved", "บันทึกแล้ว")); loaders.merit(); },
       function (/** @type {any} */ e) { err.textContent = amError(e); err.hidden = false; })
       .then(function () { $("amSave").disabled = false; });
+  });
+
+  /* ---------------- merit reviewer accounts (owner; Security tab) ---------------- */
+  var ar = { data: /** @type {any} */ (null) };
+  function arLoad() { call("/reviewers").then(function (/** @type {any} */ r) { ar.data = r; arRender(); }, fail); }
+  /** @param {string} st */
+  var arStatus = function (st) {
+    return G("ar.st." + st, ({ pending: "รอผู้ตรวจตั้งค่าครั้งแรก", active: "ใช้งานได้", disabled: "ปิดการใช้งาน" })[st] || st);
+  };
+  function arRender() {
+    var box = $("arList"); box.textContent = "";
+    var list = (ar.data && ar.data.reviewers) || [];
+    if (!list.length) { box.appendChild(h("p", { class: "ad-muted", text: G("ar.none", "ยังไม่มีบัญชีผู้ตรวจ") })); return; }
+    list.forEach(function (/** @type {any} */ r) {
+      /** @param {string} act @param {string} key @param {string} th */
+      var btn = function (act, key, th) { return h("button", { class: "ad-btn ad-ghost", type: "button", "data-act": act, text: G(key, th) }); };
+      box.appendChild(h("div", { class: "ar-row", "data-id": r.id, "data-status": r.status },
+        h("div", { class: "am-title", translate: "no" }, r.username),
+        h("div", { class: "am-meta" }, arStatus(r.status) + (r.last_login_at ? " · " + G("ar.last", "เข้าใช้ล่าสุด") + " " + when(r.last_login_at) : "")),
+        h("div", { class: "ad-row" },
+          btn("reset", "ar.act.reset", "ออกลิงก์ตั้งค่าใหม่"),
+          r.status === "disabled" ? btn("enable", "ar.act.enable", "เปิดใช้งาน") : btn("disable", "ar.act.disable", "ปิดการใช้งาน"),
+          btn("delete", "ar.act.delete", "ลบบัญชี"))));
+    });
+  }
+  /** @param {any} r */
+  function arShowLink(r) {
+    $("arLink").value = location.origin + location.pathname + "#rsetup=" + r.setup_code;
+    $("arLinkNote").textContent = G("ar.linkNote", "ลิงก์ใช้ได้ครั้งเดียว หมดอายุ {t} ถ้าหาย ให้กด \"ออกลิงก์ตั้งค่าใหม่\"", { t: when(r.setup_expires_at) });
+    $("arLinkBox").hidden = false;
+  }
+  $("arCreate").addEventListener("click", function () {
+    var f = /** @type {any} */ ($("arForm")), u = String(f.username.value || "").trim();
+    if (!u) { msg(G("ar.v.user", "กรุณาใส่ชื่อผู้ใช้ของผู้ตรวจ"), true); return; }
+    call("/reviewers", { method: "POST", body: { username: u } }).then(function (/** @type {any} */ r) {
+      f.reset(); arShowLink(r); msg(G("ar.created", "สร้างบัญชีแล้ว ส่งลิงก์ตั้งค่าให้ผู้ตรวจ")); arLoad();
+    }, function (/** @type {any} */ e) {
+      msg(e && e.code === "username_taken" ? G("ar.e.taken", "ชื่อนี้ถูกใช้แล้ว") : e && e.code === "too_many_reviewers" ? G("ar.e.max", "มีบัญชีผู้ตรวจครบจำนวนสูงสุดแล้ว") : friendly(e), true);
+    });
+  });
+  $("arCopy").addEventListener("click", function () {
+    var n = /** @type {any} */ (navigator), t = $("arLink").value;
+    (n.clipboard && n.clipboard.writeText ? n.clipboard.writeText(t) : Promise.reject(new Error("no clipboard")))
+      .then(function () { msg(G("adm.copied", "คัดลอกแล้ว")); }, function () { $("arLink").select(); });
+  });
+  $("arList").addEventListener("click", function (/** @type {any} */ ev) {
+    var b = ev.target && ev.target.closest && ev.target.closest("button[data-act]"); if (!b) return;
+    var id = b.closest(".ar-row").getAttribute("data-id"), act = b.getAttribute("data-act");
+    var Q = { reset: G("ar.q.reset", "ออกลิงก์ตั้งค่าใหม่? รหัสผ่านและการยืนยันตัวตนเดิมของผู้ตรวจจะใช้ไม่ได้ทันที"),
+      disable: G("ar.q.disable", "ปิดการใช้งานบัญชีนี้? ผู้ตรวจจะถูกออกจากระบบทันที"), delete: G("ar.q.delete", "ลบบัญชีนี้ถาวร? (ประวัติการตรวจยังเก็บไว้)") };
+    if (/** @type {any} */ (Q)[act] && !window.confirm(/** @type {any} */ (Q)[act])) return;
+    var p = act === "delete" ? call("/reviewers/" + id, { method: "DELETE" }) : call("/reviewers/" + id + "/" + act, { method: "POST", body: {} });
+    p.then(function (/** @type {any} */ r) { if (act === "reset") arShowLink(r); msg(G("ar.done", "บันทึกแล้ว")); arLoad(); }, function (/** @type {any} */ e) { msg(friendly(e), true); });
   });
 
   /* ---------------- retention ---------------- */

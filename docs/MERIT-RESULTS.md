@@ -171,3 +171,70 @@ e2e and found the gaps fixed in §5.1.
    samples stay, clearly marked.
 4. Whether the test deployment should serve `/v1/merit/guidance` (add to `PUBLIC_ROUTES`) so admin edits appear on the
    live test site; today it shows the bundled samples.
+
+## 8. Reviewer role and review queue (owner decision 2026-11-12)
+
+### 8.1 คำแนะนำสำหรับเจ้าของ: สร้างบัญชีผู้ตรวจ (ภาษาไทย ย่อ)
+
+1. เข้าหลังบ้าน แท็บ **ความปลอดภัย** การ์ด **บัญชีผู้ตรวจเนื้อหา**
+2. ใส่ชื่อผู้ใช้ของผู้ตรวจ (ตัวอักษรอังกฤษ ตัวเลข จุด ขีด 3–64 ตัว) กด **สร้างบัญชีและลิงก์ตั้งค่า**
+3. ระบบถามรหัสผ่านและรหัส 6 หลักของคุณอีกครั้ง
+4. คัดลอก **ลิงก์ตั้งค่าครั้งแรก** ส่งให้ผู้ตรวจทางช่องทางส่วนตัว (ลิงก์แสดงครั้งเดียว ใช้ได้ครั้งเดียว หมดอายุใน 3 วัน)
+5. ส่งไฟล์ `docs/MERIT-REVIEWER-GUIDE-TH.md` ให้ผู้ตรวจด้วย ผู้ตรวจตั้งรหัสผ่านเองและต้องเปิดการยืนยันตัวตนสองชั้น
+6. ในการ์ดเดียวกัน คุณ **ออกลิงก์ตั้งค่าใหม่** (เช่น ผู้ตรวจลืมรหัสหรือโทรศัพท์หาย) **ปิดการใช้งาน** (ออกจากระบบทันที)
+   **เปิดใช้งาน** หรือ **ลบบัญชี** ได้ ทุกครั้งระบบถามรหัสผ่านอีกครั้ง และบันทึกไว้ในบันทึกการใช้งานหลังบ้าน
+7. นำเข้าร่าง 108 รายการ: แท็บ **คำแนะนำตามความเชื่อ** เลือกไฟล์ `drafts-2026-11-12.json` กด **ตรวจไฟล์ก่อนนำเข้า**
+   แล้วกด **นำเข้าเป็นร่าง** (ถามรหัสผ่านอีกครั้ง) ทุกรายการเข้าเป็น **ร่าง** ยังไม่แสดงต่อผู้ใช้จนกว่าจะอนุมัติ
+   ตรวจไฟล์ในเครื่องก่อนได้ด้วย `node tools/merit-drafts-check.mjs ~/LENSIQ-field/merit-content/drafts-2026-11-12.json`
+   (ผลวันนี้: ผ่าน 108 จาก 108) ยังไม่ได้นำเข้าในเซิร์ฟเวอร์ทดสอบ (ตามคำสั่ง)
+
+### 8.2 Role / route matrix (enforced on the Worker per request: `index.js` REVIEWER_ROUTES, default deny)
+
+| Route (admin API) | Owner | Reviewer |
+|---|---|---|
+| `GET /me`, `POST /logout` | yes | yes (own account) |
+| `GET /merit/items`, `POST /merit/items` | yes | yes; a reviewer's new item is always a draft; `status` / `sample` refused (403 forbidden_field) |
+| `PUT /merit/items/:id` | yes (may set draft / published / hidden) | yes, content only; the item goes back to draft; `status` / `sample` refused |
+| `POST /merit/items/:id/review` (reviewed / approve / reject + comment) | yes | yes |
+| `GET /merit/items/:id/history` | yes | yes |
+| `DELETE /merit/items/:id` (re-auth) | yes | 403 forbidden_role |
+| `POST /merit/import` (re-auth) | yes | 403 |
+| `GET /merit/interest`, `DELETE /merit/interest/:id` (personal data) | yes | 403 |
+| `GET/POST /reviewers`, `POST /reviewers/:id/disable|enable|reset`, `DELETE /reviewers/:id` (re-auth) | yes | 403 |
+| every other admin route: settings, AI, AI keys, gateway, Product Check lookup, billing, refunds, plans, members, membership, leads, alerts, audit, mail, CSP reports, analytics, retention, devices, password, 2-step, recovery codes, re-auth, unknown routes | yes | 403 forbidden_role (audited as `role.denied`, no side effect) |
+
+Unauthenticated: `POST /reviewer-setup` and `POST /reviewer-setup/confirm` (the one-time setup code; rate limited per
+caller, 10 per 15 min; behind the admin unauthenticated-write ceiling like `/login`).
+
+### 8.3 Accounts and sign-in
+
+- `admin_reviewers` (migration `0015_merit_review.sql`): username, PBKDF2 password hash (same function as the owner), TOTP
+  secret AES-GCM-encrypted with SECRETS_KEK (additional data `totp:reviewer:<id>`), status pending / active / disabled,
+  its own failure counter and slow-down. The setup code is random (24 bytes), stored only as SHA-256, valid 3 days, works
+  once. At most 10 reviewers.
+- Sign-in is the normal `/login`. A reviewer must give the 6-digit code every time (no recovery codes; the owner resets).
+  A reviewer's failures never count on the owner; a reviewer's trusted device does not skip the owner's slow-down.
+- Every request of a reviewer session re-reads the reviewer row: disable, reset or delete sign the reviewer out at once.
+  Sessions use the same idle (30 min) and absolute (12 h) limits as the owner's.
+
+### 8.4 Queue and history
+
+- Status: draft → reviewed → published; rejected (comment required) from draft, reviewed or published; hidden by the
+  owner. Approve only from reviewed. Only `published` is served by `GET /v1/merit/guidance`.
+- `merit_revisions`: one row per create, edit (changed field names), status change, review decision (with comment),
+  import and delete, with the account name and time; shown in the review view. The audit log keeps ids, field names and
+  decisions only (no item text, no comment text).
+- Import: owner + re-auth, up to 300 items and 1 MB per file; every item becomes a non-sample draft (a status, sample flag
+  or id in the file is ignored); invalid items are listed by number and skipped; "check first" (dry run) writes nothing.
+  Reviewer notes in the file (`draft_id`, `disciplines`, `sources`, `uncertain`) are kept in `review_meta` and shown in
+  the review view only (the "uncertain" note in a yellow box at the top); they are never served to users.
+- The 16 samples stay published and labelled as samples.
+
+### 8.5 Tests (locked before the code, except the drafts-notes file; `~/LENSIQ-field/evals/merit/locked.sha256`)
+
+| Test | Result |
+|---|---|
+| `tests/unit/backend-merit-reviewer.test.js` RV1–RV11 (role matrix of 64 denied routes, queue, history, import, account life cycle, device / counter separation) | 12 / 12 |
+| `tests/unit/backend-merit-drafts.test.js` D1–D3 (reviewer notes kept and never served; malformed notes refused; offline checker) | 3 / 3 (written after the code, at the coordinator's request) |
+| `tests/e2e/admin-merit-review.e2e.mjs` (owner creates a reviewer, setup link, password + 2-step, sign-in, merit tab only, edit / review / approve / reject with history, Worker 403s, disable signs out, phones + EN / ZH) | 6 / 6 |
+| Real drafts file through the offline checker | 108 / 108 pass |

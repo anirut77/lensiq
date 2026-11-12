@@ -100,7 +100,7 @@ export function cleanItem(body) {
   if (!TYPES.includes(body.type)) throw bad("type must be one of " + TYPES.join(", "));
   if (!TRADITIONS.includes(body.tradition)) throw bad("tradition must be one of " + TRADITIONS.join(", "));
   const status = body.status == null ? "published" : body.status;
-  if (status !== "published" && status !== "hidden") throw bad("status must be published or hidden");
+  if (!["published", "hidden", "draft"].includes(status)) throw bad("status must be draft, published or hidden (reviewed / rejected come from the review step)");
   if (!Array.isArray(body.keys) || body.keys.length < 1 || body.keys.length > 12) throw bad("choose 1 to 12 matching keys");
   const keys = [];
   for (const k of body.keys) {
@@ -140,61 +140,207 @@ export async function publicGuidance(env) {
   return { items: rows.map(rowItem), interest_form: interestEnabled(env), interest_retention_days: interestDays(env) };
 }
 
-/* ---------------- admin ---------------- */
-/** @param {any} env */
-export async function adminListItems(env) {
-  const rows = (await env.DB.prepare("SELECT * FROM merit_items ORDER BY tradition, type, sort, id").all()).results || [];
-  return { items: rows.map(rowItem), types: TYPES, traditions: TRADITIONS, keys_allowed: KEYS_ALLOWED, interest_form: interestEnabled(env) };
+/* ---------------- admin (owner, and reviewers for merit content: index.js REVIEWER_ROUTES) ---------------- */
+// Review queue (owner decision 2026-11-12, migration 0015): draft -> reviewed -> published; rejected (with a comment) from
+// draft / reviewed / published; hidden by the owner. Only "published" is served (publicGuidance). A reviewer cannot set
+// the status or the sample flag directly, and any content edit by a reviewer sends the item back to "draft" (it needs an
+// approval again). The owner may still publish, hide or set back to draft directly (owner authority; in the history).
+// who = {actor: "owner" | "reviewer:<id>", name: "owner" | username, role: "owner" | "reviewer"}
+export const STATUSES = ["draft", "reviewed", "published", "rejected", "hidden"];
+const OWNER_SETS = ["draft", "published", "hidden"];
+const CONTENT = ["type", "tradition", "title", "body", "place", "area", "keys", "sort"];
+const IMPORT_MAX = 300;
+const forbiddenField = (/** @type {string} */ f) => new HttpError(403, `a reviewer cannot set ${f} (forbidden_field)`, { code: "forbidden_field" });
+
+/** Admin view of a row: the public fields + review fields (review_meta: notes for reviewers, never served). @param {any} r */
+function adminRow(r) {
+  let meta = null;
+  try { meta = r.review_meta ? JSON.parse(r.review_meta) : null; } catch { meta = null; }
+  return { ...rowItem(r), review_comment: r.review_comment || null, reviewed_by: r.reviewed_by || null, reviewed_at: Number(r.reviewed_at) || null,
+    source: r.source || (r.sample ? "sample" : "admin"), review_meta: meta };
 }
 
-/** @param {any} env @param {any} item */
-async function writeItem(env, item, create) {
-  const t = now();
-  const j = (/** @type {any} */ v) => (v == null ? null : JSON.stringify(v));
-  if (create) {
-    await env.DB.prepare("INSERT INTO merit_items (id, type, tradition, title, body, place, area, match_keys, sample, status, sort, created_at, updated_at) " +
-      "VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?12)")
-      .bind(item.id, item.type, item.tradition, j(item.title), j(item.body), j(item.place), j(item.area), j(item.keys), item.sample ? 1 : 0, item.status, item.sort, t).run();
-  } else {
-    await env.DB.prepare("UPDATE merit_items SET type = ?2, tradition = ?3, title = ?4, body = ?5, place = ?6, area = ?7, match_keys = ?8, sample = ?9, status = ?10, " +
-      "sort = ?11, updated_at = ?12 WHERE id = ?1")
-      .bind(item.id, item.type, item.tradition, j(item.title), j(item.body), j(item.place), j(item.area), j(item.keys), item.sample ? 1 : 0, item.status, item.sort, t).run();
+/** Reviewer notes that a drafts file may carry next to an item: draft_id, disciplines, sources, uncertain. They are kept
+ *  for the review screen only (sources are where the writer found the belief; links are allowed here and nowhere else).
+ *  Returns {meta (null when none), rest (the item without these fields)}; throws 400 on a malformed note.
+ *  @param {any} raw */
+export function splitReviewMeta(raw) {
+  const rest = { ...raw };
+  /** @type {any} */
+  const meta = {};
+  if ("draft_id" in rest) {
+    if (typeof rest.draft_id !== "string" || !/^[A-Za-z0-9._-]{1,80}$/.test(rest.draft_id)) throw bad("draft_id: 1 to 80 letters, digits, . _ -");
+    meta.draft_id = rest.draft_id;
   }
-  return rowItem(await env.DB.prepare("SELECT * FROM merit_items WHERE id = ?1").bind(item.id).first());
+  if ("disciplines" in rest) {
+    const d = rest.disciplines;
+    if (!Array.isArray(d) || d.length > 20 || !d.every(x => typeof x === "string" && /^[a-z0-9_-]{1,30}$/.test(x))) throw bad("disciplines: a list of up to 20 short names");
+    meta.disciplines = d;
+  }
+  if ("sources" in rest) {
+    const s = rest.sources;
+    if (!Array.isArray(s) || s.length > 10) throw bad("sources: a list of up to 10 sources");
+    meta.sources = s.map((x, i) => {
+      if (!x || typeof x !== "object" || typeof x.url !== "string" || !/^https?:\/\/[^\s<>"]{3,500}$/.test(x.url)) throw bad(`sources[${i}].url must be an http(s) address`);
+      const t = (/** @type {any} */ v, n) => (v == null ? null : cleanText(String(v)).slice(0, n));
+      return { url: x.url, publisher: t(x.publisher, 200), title: t(x.title, 300), accessed: t(x.accessed, 20) };
+    });
+  }
+  if ("uncertain" in rest) {
+    const u = Array.isArray(rest.uncertain) ? rest.uncertain.join("\n") : rest.uncertain;
+    if (u != null && (typeof u !== "string" || [...u].length > 2000)) throw bad("uncertain: a note of at most 2000 characters");
+    if (u) meta.uncertain = cleanText(u);
+  }
+  for (const k of ["draft_id", "disciplines", "sources", "uncertain"]) delete rest[k];
+  return { meta: Object.keys(meta).length ? meta : null, rest };
 }
-
-/** @param {any} env @param {any} body */
-export async function adminCreateItem(env, body) {
-  const b = { ...(body || {}) };
-  delete b.id; // ids are made here
-  const item = cleanItem(b);
-  item.id = "mi-" + randomId(6);
-  return writeItem(env, item, true);
+/** One history row. @param {any} env @param {string} itemId @param {any} who @param {string} action
+ *  @param {{decision?: string|null, fields?: string[]|null, comment?: string|null, from?: string|null, to?: string|null}} [o] */
+function revision(env, itemId, who, action, o = {}) {
+  return env.DB.prepare("INSERT INTO merit_revisions (item_id, ts, actor, actor_name, action, decision, fields, comment, from_status, to_status) " +
+    "VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)")
+    .bind(itemId, now(), who.actor, who.name, action, o.decision || null, o.fields ? JSON.stringify(o.fields) : null, o.comment || null, o.from || null, o.to || null);
 }
-
-/** Partial update: the stored item merged with the given fields, then validated as a whole. @param {any} env @param {string} id @param {any} body */
-export async function adminUpdateItem(env, id, body) {
+/** @param {any} env @param {string} id */
+async function rowOr404(env, id) {
   if (!ID_RE.test(String(id || ""))) throw new HttpError(404, "item not found");
   const row = await env.DB.prepare("SELECT * FROM merit_items WHERE id = ?1").bind(id).first();
   if (!row) throw new HttpError(404, "item not found");
+  return row;
+}
+
+/** @param {any} env */
+export async function adminListItems(env) {
+  const rows = (await env.DB.prepare("SELECT * FROM merit_items ORDER BY tradition, type, sort, id").all()).results || [];
+  return { items: rows.map(adminRow), types: TYPES, traditions: TRADITIONS, statuses: STATUSES, keys_allowed: KEYS_ALLOWED, interest_form: interestEnabled(env) };
+}
+
+/** @param {any} env @param {any} item @param {number} t @param {string} source @param {any} [meta] */
+function insertStmt(env, item, t, source, meta = null) {
+  const j = (/** @type {any} */ v) => (v == null ? null : JSON.stringify(v));
+  return env.DB.prepare("INSERT INTO merit_items (id, type, tradition, title, body, place, area, match_keys, sample, status, sort, created_at, updated_at, source, review_meta) " +
+    "VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?12, ?13, ?14)")
+    .bind(item.id, item.type, item.tradition, j(item.title), j(item.body), j(item.place), j(item.area), j(item.keys), item.sample ? 1 : 0, item.status, item.sort, t,
+      source, j(meta));
+}
+
+/** @param {any} env @param {any} body @param {any} who */
+export async function adminCreateItem(env, body, who) {
+  const b = { ...(body || {}) };
+  delete b.id; // ids are made here
+  if (who.role === "reviewer") {
+    for (const f of ["status", "sample"]) if (f in b) throw forbiddenField(f);
+    b.status = "draft";
+  }
+  const item = cleanItem(b);
+  item.id = "mi-" + randomId(6);
+  await env.DB.batch([insertStmt(env, item, now(), "admin"), revision(env, item.id, who, "create", { fields: CONTENT.filter(k => k in b), to: item.status })]);
+  return adminRow(await env.DB.prepare("SELECT * FROM merit_items WHERE id = ?1").bind(item.id).first());
+}
+
+/** Partial update: the stored item merged with the given fields, then validated as a whole. @param {any} env @param {string} id @param {any} body @param {any} who */
+export async function adminUpdateItem(env, id, body, who) {
+  const row = await rowOr404(env, id);
   if (!body || typeof body !== "object" || Array.isArray(body)) throw bad("invalid item");
+  if (who.role === "reviewer") for (const f of ["status", "sample"]) if (f in body) throw forbiddenField(f);
   const changed = Object.keys(body).filter(k => k !== "id");
   const cur = rowItem(row);
   /** @type {any} */
   const merged = { id: cur.id, type: cur.type, tradition: cur.tradition, title: cur.title, body: cur.body, place: cur.place, area: cur.area, keys: cur.keys,
     sample: cur.sample, status: cur.status, sort: cur.sort };
   for (const k of changed) merged[k] = body[k];
+  if (!("status" in body)) merged.status = OWNER_SETS.includes(cur.status) ? cur.status : "draft"; // validated below, restored after
   const item = cleanItem(merged);
   item.id = cur.id;
-  return { item: await writeItem(env, item, false), changed };
+  const content = changed.filter(k => CONTENT.includes(k));
+  item.status = "status" in body ? item.status : who.role === "reviewer" && content.length ? "draft" : cur.status;
+  const t = now(), j = (/** @type {any} */ v) => (v == null ? null : JSON.stringify(v));
+  await env.DB.batch([
+    env.DB.prepare("UPDATE merit_items SET type = ?2, tradition = ?3, title = ?4, body = ?5, place = ?6, area = ?7, match_keys = ?8, sample = ?9, status = ?10, " +
+      "sort = ?11, updated_at = ?12 WHERE id = ?1")
+      .bind(item.id, item.type, item.tradition, j(item.title), j(item.body), j(item.place), j(item.area), j(item.keys), item.sample ? 1 : 0, item.status, item.sort, t),
+    revision(env, item.id, who, content.length ? "edit" : "status", { fields: changed, from: cur.status, to: item.status })
+  ]);
+  return { item: adminRow(await env.DB.prepare("SELECT * FROM merit_items WHERE id = ?1").bind(item.id).first()), changed };
+}
+
+/** Review decision. @param {any} env @param {string} id @param {any} body @param {any} who */
+export async function reviewItem(env, id, body, who) {
+  const row = await rowOr404(env, id);
+  const decision = body && body.decision;
+  const FROM = /** @type {Record<string, string[]>} */ ({ reviewed: ["draft", "rejected"], approve: ["reviewed"], reject: ["draft", "reviewed", "published"] });
+  const TO = /** @type {Record<string, string>} */ ({ reviewed: "reviewed", approve: "published", reject: "rejected" });
+  if (!FROM[decision]) throw new HttpError(400, "decision must be reviewed, approve or reject", { code: "merit_invalid" });
+  const comment = body.comment == null ? "" : cleanText(String(body.comment));
+  if ([...comment].length > 1000) throw bad("comment: at most 1000 characters");
+  if (decision === "reject" && !comment) throw new HttpError(400, "a rejection needs a comment saying what to fix", { code: "comment_required" });
+  if (!FROM[decision].includes(row.status)) {
+    throw new HttpError(409, `cannot ${decision} an item that is ${row.status} (bad_transition)`, { code: "bad_transition" });
+  }
+  const to = TO[decision], t = now();
+  const r = await env.DB.batch([
+    env.DB.prepare("UPDATE merit_items SET status = ?1, review_comment = ?2, reviewed_by = ?3, reviewed_at = ?4, updated_at = ?4 WHERE id = ?5 AND status = ?6")
+      .bind(to, comment || null, who.name, t, id, row.status),
+    revision(env, id, who, "review", { decision, comment: comment || null, from: row.status, to })
+  ]);
+  if (!r[0].meta || !r[0].meta.changes) throw new HttpError(409, "the item changed meanwhile — reload (bad_transition)", { code: "bad_transition" });
+  return { item: adminRow(await env.DB.prepare("SELECT * FROM merit_items WHERE id = ?1").bind(id).first()), decision, from: row.status, to };
 }
 
 /** @param {any} env @param {string} id */
-export async function adminDeleteItem(env, id) {
+export async function itemHistory(env, id) {
+  await rowOr404(env, id);
+  const rows = (await env.DB.prepare("SELECT * FROM merit_revisions WHERE item_id = ?1 ORDER BY id").bind(id).all()).results || [];
+  return {
+    history: rows.map(r => ({ ts: Number(r.ts), actor: r.actor_name, action: r.action, decision: r.decision || null,
+      fields: r.fields ? JSON.parse(r.fields) : [], comment: r.comment || null, from_status: r.from_status || null, to_status: r.to_status || null }))
+  };
+}
+
+/** @param {any} env @param {string} id @param {any} who */
+export async function adminDeleteItem(env, id, who) {
   if (!ID_RE.test(String(id || ""))) throw new HttpError(404, "item not found");
-  const r = await env.DB.prepare("DELETE FROM merit_items WHERE id = ?1").bind(id).run();
-  if (!r.meta || !r.meta.changes) throw new HttpError(404, "item not found");
+  const row = await env.DB.prepare("SELECT status FROM merit_items WHERE id = ?1").bind(id).first();
+  if (!row) throw new HttpError(404, "item not found");
+  await env.DB.batch([env.DB.prepare("DELETE FROM merit_items WHERE id = ?1").bind(id), revision(env, id, who, "delete", { from: row.status })]);
   return { ok: true };
+}
+
+/**
+ * Import drafts (owner, re-auth in index.js). body {items: [...], dry_run?}. Each item is validated like an admin save
+ * (complete TH/EN/ZH, fixed keys, wording lint); a status, sample flag or id in the file is ignored: everything comes in
+ * as a non-sample DRAFT and must go through review. Reviewer notes (draft_id, disciplines, sources, uncertain) are kept
+ * in review_meta for the review screen only. Invalid items are reported with their index and skipped.
+ * @param {any} env @param {any} body @param {any} who
+ */
+export async function importItems(env, body, who) {
+  const list = body && Array.isArray(body.items) ? body.items : null;
+  if (!list || !list.length) throw bad("items: a non-empty list is needed");
+  if (list.length > IMPORT_MAX) throw bad(`at most ${IMPORT_MAX} items per import`);
+  const ok = [], refused = [];
+  for (let i = 0; i < list.length; i++) {
+    const raw = list[i];
+    try {
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw bad("not an item");
+      const { meta, rest } = splitReviewMeta(raw);
+      const b = { ...rest };
+      delete b.id; delete b.status; delete b.sample;
+      b.status = "draft";
+      const item = cleanItem(b);
+      item.sample = false;
+      ok.push({ item, meta });
+    } catch (e) {
+      refused.push({ index: i, error: String((e && e.message) || "invalid").slice(0, 300), code: (e && e.extra && e.extra.code) || "merit_invalid" });
+    }
+  }
+  if (body.dry_run === true) return { dry_run: true, ok_count: ok.length, imported: 0, refused };
+  const t = now(), stmts = [];
+  for (const { item, meta } of ok) {
+    item.id = "mi-" + randomId(6);
+    stmts.push(insertStmt(env, item, t, "import", meta), revision(env, item.id, who, "import", { fields: CONTENT, to: "draft" }));
+  }
+  for (let i = 0; i < stmts.length; i += 100) await env.DB.batch(stmts.slice(i, i + 100));
+  return { dry_run: false, ok_count: ok.length, imported: ok.length, refused, ids: ok.map(x => x.item.id) };
 }
 
 /** @param {any} env @param {Record<string, string>} q */

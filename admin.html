@@ -20,7 +20,7 @@
 <meta name="theme-color" content="#0e1430">
 <title>LENSIQ หลังบ้าน</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="admin.css?v=4">
+<link rel="stylesheet" href="admin.css?v=5">
 </head>
 <body>
 <!-- Back office for the LENSIQ API Worker (backend/, docs/BACKEND.md). Not linked from any page; static shell only —
@@ -92,6 +92,35 @@
       <button class="ad-btn ad-wide" type="submit" data-i18n="adm.login.go">เข้าสู่ระบบ</button>
       <button type="button" class="ad-link" id="adLoginSwap" data-i18n="adm.login.useRec">ไม่มีโทรศัพท์อยู่กับตัว ใช้รหัสกู้คืนแทน</button>
     </form>
+  </section>
+
+  <!-- Merit reviewer's first sign-in (one-time link admin#rsetup=<code> from the owner; reviewers.js). The code is read from
+       the address once, kept in memory and removed from the address bar. 2-step verification is required for reviewers. -->
+  <section id="adRSetup" class="ad-card ad-auth" hidden>
+    <h1 data-i18n="ar.setup.h">ตั้งค่าบัญชีผู้ตรวจเนื้อหา</h1>
+    <p class="ad-lede" data-i18n="ar.setup.p">เจ้าของระบบสร้างบัญชีนี้ให้คุณเพื่อตรวจคำแนะนำตามความเชื่อ ตั้งรหัสผ่านของคุณเอง แล้วเปิดการยืนยันตัวตนสองชั้น (จำเป็น)</p>
+    <p class="ad-alert" data-auth-msg role="alert" hidden></p>
+    <form id="adRSetupForm" class="ad-form" novalidate>
+      <label><span data-i18n="adm.boot.pw">ตั้งรหัสผ่าน</span>
+        <input name="password" type="password" required autocomplete="new-password" maxlength="200">
+        <small data-i18n="adm.boot.pwHint">อย่างน้อย 12 ตัวอักษร ยิ่งยาวยิ่งดี ไม่ใช้ตัวอักษรซ้ำกันเกือบทั้งหมด</small></label>
+      <label><span data-i18n="adm.boot.pw2">พิมพ์รหัสผ่านอีกครั้ง</span>
+        <input name="password2" type="password" required autocomplete="new-password" maxlength="200"></label>
+      <button class="ad-btn ad-wide" type="submit" data-i18n="ar.setup.next">ตั้งรหัสผ่านและไปขั้นถัดไป</button>
+    </form>
+    <div id="adRSetupTwo" hidden>
+      <ol class="ad-how">
+        <li data-i18n="adm.two.s1">เปิดแอปยืนยันตัวตนบนโทรศัพท์ เช่น Google Authenticator หรือ Microsoft Authenticator</li>
+        <li data-i18n="adm.two.s2">สแกนคิวอาร์โค้ดนี้ หรือพิมพ์รหัสตั้งค่าด้านล่างลงในแอป</li>
+      </ol>
+      <div id="adRSetupQr" class="ad-qr ad-qr-c"></div>
+      <p class="ad-key"><span data-i18n="adm.two.key">รหัสตั้งค่า (ถ้าสแกนไม่ได้)</span><br><code id="adRSetupKey" translate="no"></code></p>
+      <form id="adRSetupTotpForm" class="ad-form" novalidate>
+        <label><span data-i18n="adm.two.s3">กรอกรหัส 6 หลักที่แอปแสดง</span>
+          <input name="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required></label>
+        <button class="ad-btn ad-wide" type="submit" data-i18n="ar.setup.done">ยืนยันและเปิดใช้บัญชี</button>
+      </form>
+    </div>
   </section>
 
   <!-- 2-step verification: step 2 of the first run, and offered after a sign-in while it is still off -->
@@ -367,6 +396,24 @@
           <button class="ad-btn ad-ghost" type="submit" data-i18n="adm.sec.off">ปิดการยืนยันตัวตนสองชั้น</button>
         </form>
       </div>
+      <!-- Merit reviewer accounts (owner only; reviewers.js). Creating, resetting, disabling and deleting ask for the password again. -->
+      <div class="ad-card" id="arCard">
+        <h2 data-i18n="ar.h">บัญชีผู้ตรวจเนื้อหา (คำแนะนำตามความเชื่อ)</h2>
+        <p class="ad-muted" data-i18n="ar.p">ผู้ตรวจเข้าได้เฉพาะแท็บคำแนะนำตามความเชื่อ อ่าน แก้ อนุมัติ หรือตีกลับรายการได้
+          แต่เปลี่ยนการตั้งค่า คีย์ AI บัญชีผู้ใช้ การชำระเงิน หรือดูบันทึกไม่ได้ ผู้ตรวจต้องตั้งรหัสผ่านเองและเปิดการยืนยันตัวตนสองชั้น</p>
+        <form id="arForm" class="ad-row" autocomplete="off" novalidate>
+          <label><span data-i18n="ar.user">ชื่อผู้ใช้ของผู้ตรวจ</span>
+            <input name="username" maxlength="64" autocapitalize="none" spellcheck="false" autocomplete="off"></label>
+          <button class="ad-btn" type="button" id="arCreate" data-i18n="ar.create">สร้างบัญชีและลิงก์ตั้งค่า</button>
+        </form>
+        <div id="arLinkBox" hidden>
+          <label class="ad-form"><span data-i18n="ar.link">ลิงก์ตั้งค่าครั้งแรก (แสดงครั้งเดียว ส่งให้ผู้ตรวจทางช่องทางส่วนตัว)</span>
+            <input id="arLink" readonly translate="no"></label>
+          <p class="ad-muted" id="arLinkNote"></p>
+          <button class="ad-btn ad-ghost" type="button" id="arCopy" data-i18n="adm.copy">คัดลอก</button>
+        </div>
+        <div id="arList" class="am-list"></div>
+      </div>
       <div class="ad-card">
         <h2>เปลี่ยนรหัสผ่าน</h2>
         <form id="adPw" class="ad-form">
@@ -405,8 +452,40 @@
         <p class="ad-muted" data-i18n="am.intro">สถานที่ไหว้หรือทำบุญ ของถวายและวิธีไหว้ ธรรมเนียมปีชง และของมงคล ผู้อ่านเลือกความเชื่อของตนเองบนเครื่อง
           ทุกรายการแสดงป้าย "ตามความเชื่อ โปรดใช้วิจารณญาณ" ให้อัตโนมัติ ห้ามใส่ราคา ลิงก์ร้านค้า คำรับประกันผล คำขู่ให้กลัว หรือข้อมูลส่วนบุคคล
           ระบบตรวจถ้อยคำก่อนบันทึกทุกครั้ง และทุกการแก้ไขถูกบันทึกไว้</p>
-        <div class="ad-row"><button class="ad-btn" type="button" id="amNew" data-i18n="am.new">เพิ่มรายการใหม่</button></div>
+        <div class="ad-row">
+          <button class="ad-btn" type="button" id="amNew" data-i18n="am.new">เพิ่มรายการใหม่</button>
+          <label><span data-i18n="am.filter">แสดงสถานะ</span> <select id="amFilter"></select></label>
+        </div>
+        <div class="ad-row" id="amImportBox">
+          <label><span data-i18n="am.imp.file">ไฟล์ร่าง (JSON)</span> <input type="file" id="amImportFile" accept=".json,application/json"></label>
+          <button class="ad-btn ad-ghost" type="button" id="amImport" data-i18n="am.imp.check">ตรวจไฟล์ก่อนนำเข้า</button>
+          <button class="ad-btn" type="button" id="amImportGo" hidden data-i18n="am.imp.go">นำเข้าเป็นร่าง</button>
+        </div>
+        <p class="ad-muted" id="amImportOut" role="status"></p>
         <div id="amList" class="am-list"></div>
+      </div>
+      <div class="ad-card" id="amView" hidden>
+        <h2 id="amViewTitle"></h2>
+        <p><span data-i18n="am.v.status">สถานะ</span>: <b id="amViewStatus"></b></p>
+        <p class="ad-muted" id="amViewMeta"></p>
+        <!-- reviewer notes from the drafts file: shown here only, never to users -->
+        <div class="ad-warn" id="amViewNote" role="note" hidden><b data-i18n="am.v.uncertain">ผู้เขียนยังไม่แน่ใจ โปรดตรวจเรื่องนี้ก่อน:</b><span id="amViewNoteText" lang="en"></span></div>
+        <div id="amViewBody" class="am-view-body"></div>
+        <div id="amViewSourcesBox" hidden><h3 data-i18n="am.v.sources">แหล่งที่มา (สำหรับผู้ตรวจเท่านั้น)</h3><ul id="amViewSources" class="am-history"></ul></div>
+        <div class="ad-row">
+          <button class="ad-btn ad-ghost" type="button" data-act="edit" data-i18n="am.act.edit">แก้ไข</button>
+        </div>
+        <label class="ad-form"><span data-i18n="am.v.comment">ความเห็นของผู้ตรวจ (จำเป็นเมื่อตีกลับ)</span>
+          <textarea id="amComment" rows="3" maxlength="1000"></textarea></label>
+        <p class="ad-alert ad-bad" id="amViewErr" role="alert" hidden></p>
+        <div class="ad-row" id="amReviewBtns">
+          <button class="ad-btn ad-ghost" type="button" data-review="reviewed" data-i18n="am.rv.reviewed">ตรวจแล้ว (รออนุมัติ)</button>
+          <button class="ad-btn" type="button" data-review="approve" data-i18n="am.rv.approve">อนุมัติและเผยแพร่</button>
+          <button class="ad-btn ad-ghost" type="button" data-review="reject" data-i18n="am.rv.reject">ตีกลับพร้อมความเห็น</button>
+          <button class="ad-btn ad-ghost" type="button" id="amViewClose" data-i18n="am.v.close">ปิด</button>
+        </div>
+        <h3 data-i18n="am.v.history">ประวัติการแก้ไขและการตรวจ</h3>
+        <ol id="amHistory" class="am-history"></ol>
       </div>
       <div class="ad-card" id="amEdit" hidden>
         <h2 id="amEditH" data-i18n="am.edit.new">เพิ่มรายการใหม่</h2>
@@ -434,9 +513,9 @@
             <label><span data-i18n="am.l.zh">ภาษาจีน</span> <input name="area_zh" maxlength="80" autocomplete="off"></label>
           </fieldset>
           <fieldset><legend data-i18n="am.f.keys">แสดงเมื่อผลดวงตรงกับ (เลือกได้ 1–12 ข้อ)</legend><div id="amKeys" class="ad-checks am-keys"></div></fieldset>
-          <label><span data-i18n="am.f.status">สถานะ</span> <select name="status"></select></label>
+          <label id="amStatusL"><span data-i18n="am.f.status">สถานะ</span> <select name="status"></select></label>
           <label><span data-i18n="am.f.sort">ลำดับ (น้อยแสดงก่อน)</span> <input name="sort" type="number" min="0" max="9999" step="1" value="0"></label>
-          <label><input type="checkbox" name="sample"> <span data-i18n="am.f.sample">เป็นรายการตัวอย่าง (แสดงป้าย "ตัวอย่าง")</span></label>
+          <label id="amSampleL"><input type="checkbox" name="sample"> <span data-i18n="am.f.sample">เป็นรายการตัวอย่าง (แสดงป้าย "ตัวอย่าง")</span></label>
           <p class="ad-alert ad-bad" id="amErr" role="alert" hidden></p>
           <div class="ad-row">
             <button class="ad-btn" type="submit" id="amSave" data-i18n="am.save">บันทึก</button>
@@ -453,12 +532,12 @@
   </section>
   <p id="adMsg" class="ad-msg" role="status" aria-live="polite"></p>
 </main>
-<script src="i18n/zh-admin.js?v=5"></script>
+<script src="i18n/zh-admin.js?v=6"></script>
 <script src="lensiq-i18n.js?v=1"></script>
 <script src="attendance-qr.js?v=1"></script>
 <script src="lensiq-api.js?v=2"></script>
 <script src="lensiq-config.js?v=8"></script>
 <script src="fortune-sources.js?v=2"></script>
-<script src="admin.js?v=7"></script>
+<script src="admin.js?v=8"></script>
 </body>
 </html>
