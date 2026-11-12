@@ -109,8 +109,19 @@ A page may appear in two categories. Pages not listed under a category are platf
   plate read.
 - Nothing leaves the device without the user's opt-in, and external AI also needs a server key. Only derived facts are
   sent. No images of people are stored or committed.
-- Fortune hard bans: no predictions of death, illness, accident, disaster or infidelity; no lottery numbers; no medical
-  or cosmetic advice.
+- Fortune readings (owner decision 2026-11-12, replaces "Fortune hard bans"): readings state unfavourable results
+  plainly when the discipline's rules produce them: weak periods; what to be careful about in money, work,
+  relationships, health habits and travel; conflict, obstacles, loss and ill-wishers. Plain wording is offered as
+  "read it straight / ดูตรง ๆ / 直说" to users who confirm they are 18 or older, remembered per device; anyone who has
+  not confirmed, or who switches it off, gets the gentler wording. Hard limits in every mode, each with tests in
+  TH/EN/ZH:
+  1. no prediction of death, terminal illness or a specific accident stated as certain or dated;
+  2. no instruction to stop medication or treatment, to make a specific investment, or to end a relationship;
+  3. the crisis net always takes priority; straight mode never bypasses it, and when it triggers no remedies, paid
+     service or straight reading is shown;
+  4. no wording that says the bad result will happen unless the user pays or performs something (no fear-selling;
+     see Remedies and merit).
+  Also: no lottery numbers; no medical or cosmetic advice; no emotion or deception inference.
 - Remedies and merit (owner decision 2026-11-10, replaces "no paid remedies"):
   - Never sell a remedy, a change of fortune or any outcome. No wording like "pay and your luck improves" or
     "guaranteed to fix ชง".
