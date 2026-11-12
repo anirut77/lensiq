@@ -322,3 +322,53 @@ test("F1 the control's text is complete in Thai, English and Chinese (label, adu
   assert.match(h, /type="checkbox"[^>]*data-fs="adult"/);
   assert.match(h, /type="checkbox"[^>]*data-fs="straight"/);
 });
+
+// ---------------------------------------------------------------- AMENDMENT 1 (independent review 2026-11-12) ---------
+// Stricter only: every earlier test is unchanged. The review found that straight mode removed honest phrases
+// ("ระวังอุบัติเหตุ", "小心意外", "risk of accidents", "misfortune") BEFORE the filter, so dated / fatal accident wording
+// and pay-or-else wording got through, and listed gaps in both modes. Each probe must be blocked in straight AND gentle mode.
+const AMEND = {
+  "1-accident-dated-or-fatal": [
+    "ควรระวังอุบัติเหตุในวันที่ 15", "ระวังอุบัติเหตุช่วงสงกรานต์", "ระวังอุบัติเหตุวันจันทร์หน้า", "ระวังอุบัติเหตุเดือน 5", "ปีหน้ามีเกณฑ์อุบัติเหตุ",
+    "ระวังอุบัติเหตุถึงชีวิต", "มีเกณฑ์พิการจากอุบัติเหตุ", "ปี 2569 ระวังอุบัติเหตุ",
+    "Be careful: risk of accidents next Tuesday", "risk of accidents in March", "beware of a fatal accident", "risk of accidents over New Year",
+    "risk of accidents on 15/4", "risk of accidents next year",
+    "小心意外，下周三", "春节期间小心意外", "明年小心意外", "三月小心意外", "小心意外身亡",
+  ],
+  "1-death-illness-wording": [
+    "อาจถึงแก่กรรมก่อนวัย", "หมดอายุขัยเร็ว", "มีเกณฑ์เป็นเนื้องอก", "อาจป่วยติดเตียง", "your days are numbered", "a tumour may grow", "you may end up bedridden",
+    "命不久矣", "阳寿将尽", "你的家人將離世", "可能长肿瘤", "可能卧床不起", "家人亡故",
+  ],
+  "4-pay-or-else": [
+    "if you won't pay, misfortune follows", "หากไม่ทำบุญ เคราะห์จะตามมา", "ถ้าคุณไม่ทำบุญ ดวงจะตกต่อ", "ต้องทำบุญถึงจะรอด", "เคราะห์จะไม่หายจนกว่าจะทำพิธี",
+    "without an offering, the loss will come", "要想转运必须捐钱", "买这个护身符运气就会变好",
+  ],
+  "2-medication": ["ทิ้งยา", "หยุดให้คีโม", "ไม่ต้องฟอกไต", "stop chemo", "把药停了", "放弃化疗"],
+  "2-investment": ["ควรลงทุนในหุ้น", "ซื้อทองเลย", "buy Tesla stock", "invest in Apple", "buy property", "投资房地产", "买点黄金"],
+  "2-end-relationship": ["เลิกกับเขาซะ", "leave your husband", "离开他吧", "分开吧"],
+  "keep-lottery": ["play 27 in the draw", "下期号码 18"],
+  "keep-emotion": ["your eyes look sad", "你看起来很难过"],
+  "1-cancer-capitalised": ["you will get Cancer this year", "Cancer may spread in your body"],
+  // re-lock 2026-11-12: the categories above hold 63 probes, not the 65 the count below asserts; two probes added (stricter)
+  "1-accident-dated-extra": ["ระวังอุบัติเหตุช่วงตรุษจีน", "you may be bedridden after an accident next year"],
+};
+
+test("A-B1 amendment: dated/fatal accidents, death and illness wording, pay-or-else and the listed gaps are blocked in straight AND gentle mode", () => {
+  let n = 0;
+  for (const [cat, list] of Object.entries(AMEND)) for (const t of list) {
+    n++;
+    assert.equal(ST.isSafe(t), false, `straight lets through [${cat}] ${t}`);
+    assert.equal(S.isSafe(t), false, `gentle lets through [${cat}] ${t}`);
+  }
+  assert.equal(n, 65);
+});
+
+test("A-B2 amendment: the hard limit is checked on the original sentence (stripping honest phrases never hides a date, a fatal word or a payment)", () => {
+  for (const t of ["ควรระวังอุบัติเหตุในวันที่ 15", "小心意外身亡", "if you won't pay, misfortune follows", "without an offering, the loss will come", "risk of accidents in March"]) {
+    assert.ok(ST.hardLimit(t), `hardLimit misses: ${t}`);
+  }
+});
+
+test("A-C1 amendment: zodiac Cancer and plain honest negatives still pass after the stricter limits", () => {
+  for (const t of ["Your Sun is in Cancer, a water sign", "ราศีกรกฎ (Cancer) เป็นธาตุน้ำ"].concat(PLAIN)) assert.equal(ST.isSafe(t), true, t);
+});

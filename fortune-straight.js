@@ -16,59 +16,72 @@
   const rx = (flags, ...parts) => new RegExp(parts.map(p => p.source).join("|"), flags);
   /** @type {Record<string, RegExp>} */
   const HL_TH = {
-    "1:death": /เสียชีวิต|ความตาย(?!ตัว)|ตายก่อน|ตายเร็ว|จะตาย(?!ตัว)|ถึงตาย|ตายโหง|อายุสั้น|สิ้นใจ|มรณะ/,
-    "1:terminal": /ระยะสุดท้าย|โรคร้าย|รักษาไม่หาย|ป่วยหนัก|ป่วยเป็นมะเร็ง|เป็นมะเร็ง/,
-    "2:medication": /(?:หยุด|เลิก|งด)(?:การ)?(?:กิน|ทาน|ใช้)?ยา(?![กวมยงนสใ])|ไม่ต้อง(?:รักษา|กินยา|ทานยา)|(?:เลิก|หยุด)(?:การ)?รักษา/,
-    "2:invest": /(?:ลงทุน|ซื้อ)(?:ซื้อ)?(?:หุ้น|ทองคำ|ทอง(?=\s|$|และ|หรือ|แท่ง|รูปพรรณ)|บิตคอยน์|คริปโต|กองทุน|ที่ดิน|คอนโด)/,
-    "2:end-relationship": /(?:ควร|ต้อง|ให้|ลอง)(?:จะ)?(?:เลิกกับ|เลิกรา|เลิกคบ|บอกเลิก|หย่า|ตัดขาด(?:กับ)?(?:แฟน|คนรัก|คู่))/,
-    "4:fear-selling": rx("", /ถ้าไม่(?:ได้)?(?:ทำบุญ|แก้(?:ชง|ดวง|กรรม)?|สะเดาะ|ทำพิธี|บูชา|จ่าย|ซื้อ|ถวาย)/,
+    "1:death": /เสียชีวิต|ความตาย(?!ตัว)|ตายก่อน|ตายเร็ว|จะตาย(?!ตัว)|ถึงตาย|ตายโหง|อายุสั้น|สิ้นใจ|มรณะ|ถึงแก่ชีวิต|(?:อุบัติเหตุ|อันตราย|เจ็บ)[^\s]{0,6}ถึงชีวิต|ถึงแก่กรรม|หมดอายุขัย/,
+    "1:terminal": /ระยะสุดท้าย|โรคร้าย|รักษาไม่หาย|ป่วยหนัก|ป่วยเป็นมะเร็ง|เป็นมะเร็ง|พิการ|เนื้องอก|ติดเตียง/,
+    "2:medication": rx("", /(?:หยุด|เลิก|งด)(?:การ)?(?:กิน|ทาน|ใช้)?ยา(?![กวมยงนสใ])|ไม่ต้อง(?:รักษา|กินยา|ทานยา|ฟอกไต|ทำคีโม|ให้คีโม|ฉายแสง)|(?:เลิก|หยุด)(?:การ)?รักษา/,
+      /ทิ้งยา|หยุด(?:ให้|ทำ)?(?:คีโม|เคมีบำบัด|ฉายแสง|ฟอกไต)/),
+    "2:invest": /(?:ลงทุน|ซื้อ)(?:ใน)?(?:ซื้อ)?(?:หุ้น|ทองคำ|ทอง(?=\s|$|และ|หรือ|แท่ง|รูปพรรณ|เลย|ไว้)|บิตคอยน์|คริปโต|กองทุน|ที่ดิน|คอนโด|อสังหา)/,
+    "2:end-relationship": /(?:ควร|ต้อง|ให้|ลอง)(?:จะ)?(?:เลิกกับ|เลิกรา|เลิกคบ|บอกเลิก|หย่า|ตัดขาด(?:กับ)?(?:แฟน|คนรัก|คู่))|เลิกกับ(?:เขา|เธอ|แฟน|คนนี้)(?:ซะ|เถอะ|เลย|ไปเลย)/,
+    "4:fear-selling": rx("", /(?:ถ้า|หาก)(?:คุณ)?ไม่(?:ได้)?(?:ทำบุญ|แก้(?:ชง|ดวง|กรรม)?|สะเดาะ|ทำพิธี|บูชา|จ่าย|ซื้อ|ถวาย)/,
+      /ต้อง(?:ทำบุญ|ทำพิธี|จ่าย|บริจาค|บูชา|สะเดาะเคราะห์|ถวาย)[^\s]{0,10}ถึงจะ|(?:ไม่หาย|ไม่พ้น|ไม่ดีขึ้น|ไม่ผ่าน)จนกว่า(?:จะ)?(?:ทำบุญ|ทำพิธี|จ่าย|บูชา|สะเดาะ|บริจาค)/,
       /(?:ทำบุญ|แก้ชง|สะเดาะ|ทำพิธี|บูชา|จ่าย|ซื้อ|ถวาย)[\s\S]{0,40}?(?:ไม่งั้น|ไม่อย่างนั้น|มิฉะนั้น)/, /(?:หาย|พ้น|รอด|ผ่าน)(?:เคราะห์)?(?:ก็)?ต่อเมื่อ/),
     "keep:emotion": /(?:จาก|ดู)(?:สีหน้า|ใบหน้า|แววตา|ท่าทาง|น้ำเสียง)(?:ของคุณ)?[\s\S]{0,12}(?:เศร้า|เครียด|โกรธ|กังวล|ไม่มีความสุข|โกหก|ซึมเศร้า)/,
   };
   /** @type {Record<string, RegExp>} */
   const HL_EN = {
-    "1:death": /\b(?:die|dies|dying|death|dead|pass(?:es|ed)? away|short life|early grave)\b/i,
-    "1:terminal": /\bterminal(?:ly)?\b|\bincurable\b|\bcancer\b/,
-    "2:medication": /\b(?:stop|skip|quit|drop)(?:ping)? (?:taking )?(?:your )?(?:medication|medicine|meds|pills|treatment)\b/i,
+    "1:death": /\b(?:die|dies|dying|death|dead|pass(?:es|ed)? away|short life|early grave|fatal|days are numbered)\b/i,
+    "1:terminal": /\bterminal(?:ly)?\b|\bincurable\b|\bcancer\b|\btumou?rs?\b|\bbedridden\b/i,
+    "2:medication": /\b(?:stop|skip|quit|drop)(?:ping)? (?:taking )?(?:your )?(?:medication|medicine|meds|pills|treatment|chemo\w*|dialysis)\b/i,
     "2:invest": rx("i", /\binvest(?:ing)? (?:in|your (?:money|savings) in) (?:gold|stocks?|shares|bitcoin|crypto\w*|funds?|property|real estate|land)\b/,
-      /\binvest(?:ing)? in this (?:company|stock|fund|coin)\b/, /\bbuy(?:ing)? (?:shares|stocks?|gold|bitcoin|crypto\w*)\b/),
+      /\binvest(?:ing)? in this (?:company|stock|fund|coin)\b/, /\bbuy(?:ing)? (?:shares|stocks?|gold|bitcoin|crypto\w*|property|real estate|land)\b/,
+      /\bbuy(?:ing)? [A-Z]\w+ (?:stock|shares)\b/, /\binvest(?:ing)? in [A-Z]\w+\b/),
     "2:end-relationship": rx("i", /\b(?:should|need to|must|better|time to|have to)\s+(?:break up|divorce|split up|end (?:it|the relationship|your relationship))\b/,
-      /\b(?:should|need to|must|better|time to|have to)\s+leave (?:him|her|them|your (?:partner|husband|wife|boyfriend|girlfriend))\b/, /\bend your relationship\b/),
+      /\b(?:should|need to|must|better|time to|have to)\s+leave (?:him|her|them|your (?:partner|husband|wife|boyfriend|girlfriend))\b/, /\bend your relationship\b/,
+      /\bleave your (?:husband|wife|partner|boyfriend|girlfriend)\b/),
     "4:fear-selling": rx("i", /\bunless you (?:pay|donate|buy|make (?:an )?offering|perform|do (?:a|the) ritual|make merit)/,
-      /\bif you (?:don'?t|do not) (?:pay|donate|buy|make (?:an )?offering|perform|make merit|do (?:a|the) ritual)/, /\b(?:pay|donate|buy)\b[^.]{0,40}\bor (?:else )?(?:your|the|this)\b/),
-    "keep:emotion":
-      /\byour (?:face|expression|eyes|voice) (?:shows?|says?|tells?|reveals?)(?: (?:me|us))?(?: that)? you(?:'re| are)? (?:\w+ )?(?:sad|angry|stressed|anxious|lying|unhappy|depressed)\b/i,
+      /\bif you (?:don'?t|do not|won'?t|will not|refuse to) (?:pay|donate|buy|make (?:an )?offering|perform|make merit|do (?:a|the) ritual)/,
+      /\b(?:pay|donate|buy)\b[^.]{0,40}\bor (?:else )?(?:your|the|this)\b/, /\bwithout (?:an? )?(?:offering|donation|payment|ritual|ceremony|merit)\b[^.]{0,40}\b(?:will|would)\b/),
+    "keep:lottery": /\bplay \d+ (?:in|on) the (?:draw|lottery|lotto)\b|\blottery\b|\blotto\b/i,
+    "keep:emotion": rx("i",
+      /\byour (?:face|expression|eyes|voice) (?:shows?|says?|tells?|reveals?)(?: (?:me|us))?(?: that)? you(?:'re| are)? (?:\w+ )?(?:sad|angry|stressed|anxious|lying|unhappy|depressed)\b/,
+      /\byour (?:eyes|face|expression|voice) (?:look|looks|seem|seems|sound|sounds) (?:\w+ )?(?:sad|angry|stressed|anxious|unhappy|depressed|tired)\b/),
   };
   /** @type {Record<string, RegExp>} */
   const HL_ZH = {
-    "1:death": /死|去世|过世|离世|寿命不长|短命|活不长|大限/,
-    "1:terminal": /绝症|癌|晚期|不治之症/,
-    "2:medication": /停药|(?:别|不用|不要|不必)(?:再)?(?:吃药|服药)|(?:不必|不用|停止|放弃)(?:继续)?治疗/,
-    "2:invest": /(?:买入|买进|购买|投资|买)(?:这只|这支)?(?:股票|黄金|比特币|基金|加密货币|房产)/,
-    "2:end-relationship": /(?:应该|最好|该|必须|赶紧)(?:和[^。，]{0,4})?(?:分手|离婚|断绝|离开他|离开她)/,
-    "4:fear-selling": /除非(?:你)?(?:花钱|付钱|付费|捐|做法事|化解|供奉|请)|不(?:化解|做法事|捐|付钱|供奉|请符)[^。]{0,12}(?:就|会)|不做法事的话/,
-    "keep:emotion": /(?:从|看)(?:你的)?(?:表情|面部|脸|眼神|声音)[^。，]{0,6}(?:伤心|难过|生气|焦虑|在说谎|不开心|抑郁)/,
+    "1:death": /死|去世|过世|离世|離世|亡|寿命不长|短命|活不长|大限|命不久|阳寿/,
+    "1:terminal": /绝症|癌|晚期|不治之症|肿瘤|卧床不起/,
+    "2:medication": /停药|把药停|(?:别|不用|不要|不必)(?:再)?(?:吃药|服药)|(?:不必|不用|停止|放弃)(?:继续)?(?:治疗|化疗|透析|放疗)/,
+    "2:invest": /(?:买入|买进|购买|投资|买)(?:点|些|这只|这支)?(?:股票|黄金|比特币|基金|加密货币|房产|房地产)/,
+    "2:end-relationship": /(?:应该|最好|该|必须|赶紧)(?:和[^。，]{0,4})?(?:分手|离婚|断绝|离开他|离开她)|离开(?:他|她)吧|分(?:开|手)吧/,
+    "4:fear-selling": rx("", /除非(?:你)?(?:花钱|付钱|付费|捐|做法事|化解|供奉|请)|不(?:化解|做法事|捐|付钱|供奉|请符)[^。]{0,12}(?:就|会)|不做法事的话/,
+      /要想(?:转运|改运|化解|好运)[^。]{0,6}(?:必须|得|要)(?:捐|花钱|付|做法事|供奉|买)|买[^。]{0,8}(?:护身符|符|开运物|吉祥物)[^。]{0,10}(?:就会|就能|会)/),
+    "keep:emotion": /(?:从|看)(?:你的)?(?:表情|面部|脸|眼神|声音)[^。，]{0,6}(?:伤心|难过|生气|焦虑|在说谎|不开心|抑郁)|你(?:看起来|看上去|显得)(?:很|有点|非常)?(?:难过|伤心|悲伤|不开心|焦虑|生气|抑郁)/,
+    "keep:lottery": /下期(?:号码|开奖)|开奖号码|彩票/,
   };
   // อุบัติเหตุ: ใช้ได้เฉพาะแบบ "ควรระวัง" ที่ไม่ฟันธงและไม่ระบุวัน; ชนิดเฉพาะ (รถชน / car crash / 车祸) ห้ามเสมอ
   const ACC_TH = /อุบัติเหตุ|ประสบเหตุ|บาดเจ็บ/, ACC_SPECIFIC_TH = /รถชน|ชนรถ|รถคว่ำ|รถพลิก|(?:ถูก|โดน)รถ/;
   const CERT_TH = /แน่นอน|แน่\s?ๆ|ต้อง(?:เกิด|เจอ|โดน|ประสบ)|จะ(?:เกิด|ประสบ|โดน|เจอ|มี)|ฟันธง/;
   const DATE_TH = rx("", /วันที่\s*\d|\d{1,2}\s*(?:ม\.ค|ก\.พ|มี\.ค|เม\.ย|พ\.ค|มิ\.ย|ก\.ค|ส\.ค|ก\.ย|ต\.ค|พ\.ย|ธ\.ค)/,
     /มกราคม|กุมภาพันธ์|มีนาคม|เมษายน|พฤษภาคม|มิถุนายน|กรกฎาคม|สิงหาคม|กันยายน|ตุลาคม|พฤศจิกายน|ธันวาคม/,
-    /สัปดาห์นี้|สัปดาห์หน้า|อาทิตย์หน้า|เดือนหน้า|พรุ่งนี้|มะรืน|วันนี้|คืนนี้|ภายใน\s*\d/);
+    /สัปดาห์นี้|สัปดาห์หน้า|อาทิตย์หน้า|เดือนหน้า|พรุ่งนี้|มะรืน|วันนี้|คืนนี้|ภายใน\s*\d/,
+    /วัน(?:จันทร์|อังคาร|พุธ|พฤหัส(?:บดี)?|ศุกร์|เสาร์|อาทิตย์)(?:หน้า|นี้)|สงกรานต์|ปีใหม่|ลอยกระทง|ตรุษจีน|\d{1,2}\/\d{1,2}|เดือน\s*\d|ปี\s*(?:25|20)\d\d|ปีหน้า/);
   const ACC_EN = /\baccidents?\b|\binjur\w*/i;
   const ACC_SPECIFIC_EN = rx("i", /\b(?:car|road|traffic|motorbike|motorcycle|bike|bus) (?:crash|accident|collision|wreck)/, /\bcrash(?:es|ed|ing)? (?:your|the|a|into)\b/,
     /\bhit by a (?:car|bus|truck)\b/);
   const CERT_EN = /\bwill\b|\bcertain(?:ly)?\b|\bdefinitely\b|\bfor sure\b|\bbound to\b|\b(?:is|are) going to\b|\bdestined\b/i;
   const DAYS = /(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/.source;
   const DATE_EN = rx("i", /\bon \d|\b\d{1,2}(?:st|nd|rd|th)?\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*|\b(?:Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s+\d/,
-    new RegExp("\\b(?:this|next) (?:week|weekend|month|" + DAYS.slice(3, -1) + ")\\b|\\bon " + DAYS + "\\b"), /\btomorrow\b|\btonight\b|\btoday\b|\bwithin \d/);
+    new RegExp("\\b(?:this|next) (?:week|weekend|month|year|" + DAYS.slice(3, -1) + ")\\b|\\bon " + DAYS + "\\b"), /\btomorrow\b|\btonight\b|\btoday\b|\bwithin \d/,
+    /\b(?:in|during|over|at|by) (?:January|February|March|April|May|June|July|August|September|October|November|December|New Year|Christmas|Songkran|Easter)\b/,
+    /\b(?:New Year|Christmas|Songkran|Lunar New Year|Chinese New Year)\b|\b\d{1,2}\/\d{1,2}\b|\bin (?:19|20)\d\d\b/);
   const ACC_ZH = /意外|事故|受伤/, ACC_SPECIFIC_ZH = /车祸|撞车|翻车|被车撞/;
   const CERT_ZH = /一定|肯定|必定|必然|注定|铁定|会出|会发生|会遇到/;
-  const DATE_ZH = /\d+\s*(?:月|日|号)|下(?:个)?(?:月|周|星期|礼拜)|这(?:个)?(?:周|星期|礼拜)|本周|明天|后天|今天|今晚/;
+  const DATE_ZH = /\d+\s*(?:月|日|号)|下(?:个)?(?:月|周|星期|礼拜)|这(?:个)?(?:周|星期|礼拜)|本周|明天|后天|今天|今晚|明年|今年|[一二三四五六七八九十]{1,2}月|春节|中秋|清明|端午|元旦|过年/;
   /** ข้อห้ามเด็ดขาด (ทั้งสองโหมด) → "1:death" | "1:accident" | "2:…" | "4:fear-selling" | "keep:emotion" | ""
    *  @param {string} t text already normalised by fortune-ai.js (negations and card names removed) */
   function hardLimit(t) {
-    const en = t.replace(/\bCancer\b/g, "");
+    const ZOD = /\b(?:signs?|zodiac|astrology|Sun|Moon|Rising|Ascendant|season|Aries|Taurus|Gemini|Leo|Virgo|Libra|Scorpio|Sagittarius|Capricorn|Aquarius|Pisces)\b|♋|ราศี|กรกฎ|巨蟹/;
+    const en = ZOD.test(t) || /^\s*Cancer\s*$/.test(t) ? t.replace(/\bCancer\b/g, "") : t;
     for (const k in HL_TH) if (HL_TH[k].test(t)) { if (k === "1:terminal" && /มะเร็ง/.test(t) && !/ป่วย|โรค|ระยะ/.test(t)) continue; return k; }
     for (const k in HL_EN) if (HL_EN[k].test(k === "1:terminal" || k === "1:death" ? en : t)) return k;
     for (const k in HL_ZH) if (HL_ZH[k].test(t)) return k;
@@ -136,6 +149,40 @@
         "Straight answer: by the rules of this tradition there is an unfavourable sign in your chart, a weak period when obstacles come more often than usual"],
     },
   };
+  /* owner decision 2026-11-12: a permanent birth-chart feature (BaZi strength / weakest element, Taksa kalakini bhumi, lek 7 base)
+     is not "this period": it gets a birth-chart lead; "this period" stays for time-based findings (ชง, luck pillars, yearly) */
+  const NATAL_RE = /^(?:str\.|el\.lo\.|bazi\.lack\.|tk\.kalakini\.|l\d+\.\d+\.caution)/;
+  const isNatal = (/** @type {any} */ it) => !!(it && NATAL_RE.test(String(it.id || "")));
+  const NATAL_LEAD = {
+    th: {
+      money: ["ตามดวงกำเนิด จุดที่ต้องระวังของคุณคือเรื่องเงิน ดวงการเงินอ่อนโดยพื้นฐาน เก็บเงินได้ยากกว่าคนทั่วไป"],
+      work: ["ตามดวงกำเนิด จุดที่ต้องระวังของคุณคือเรื่องงาน งานมักมีอุปสรรคและติดขัดง่าย"],
+      love: ["ตามดวงกำเนิด จุดที่ต้องระวังของคุณคือเรื่องความรัก มักมีเกณฑ์ขัดแย้งหรือผิดใจกันง่าย"],
+      overview: ["ตามดวงกำเนิด จุดที่ต้องระวังของคุณคือจุดนี้ ซึ่งตามหลักของศาสตร์นี้เป็นจุดที่ดวงอ่อน"],
+    },
+    zh: {
+      money: ["按命盘，你需要注意的是财运，容易破财或有计划外的开支"], work: ["按命盘，你需要注意的是事业，容易遇到阻碍和拖延"],
+      love: ["按命盘，你需要注意的是感情，容易争执、互不相让"], overview: ["按命盘，你需要注意的是这一点，按规则属于不顺的一面"],
+    },
+    en: {
+      money: ["By your birth chart, the point to watch is money, where losses or costs you did not plan for come more easily"],
+      work: ["By your birth chart, the point to watch is work, where obstacles and delays come more easily"],
+      love: ["By your birth chart, the point to watch is your relationships, where arguments and conflict come easily"],
+      overview: ["By your birth chart, the point to watch is this one, which by the tradition's rules is a weak patch"],
+    },
+  };
+  /* owner decision 2026-11-12: while the crisis state (FortuneAI.crisis.active), the soft step or the support card is active, readings are
+     gentle and carry no remedy or lucky-item text (fortune-crisis.js: the fields and the soft words; the DOM: a card or a step) */
+  const CRM = (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-crisis.js") : root.LQFortuneCrisis) || null;
+  /** @param {any} [doc] */
+  function calm(doc) {
+    try {
+      const d = doc || root.document, t = CRM && d ? CRM.fields(d) : "";
+      // one crisis state: the page-level state (fortune-crisis.js active(), <html data-lq-crisis>) plus the field checks
+      if (CRM && CRM.active && CRM.active(d)) return true;
+      return !!((t && CRM && (CRM.check(t) || CRM.soft(t))) || (d && typeof d.querySelector === "function" && d.querySelector(".fa-support, .fa-soft")));
+    } catch (e) { return false; }
+  }
   // ข้อความของตัวเลือก (ไทย / อังกฤษ / จีน)
   const STRAIGHT_TEXT = {
     th: { label: "ดูตรง ๆ", adult: "ฉันอายุ 18 ปีขึ้นไป และขอให้บอกผลตามศาสตร์แบบไม่อ้อมค้อม",
@@ -180,7 +227,7 @@
     s.addEventListener("change", () => { straightSet({ straight: s.checked }); next.hidden = false; });
     return box;
   }
-  const api = { hardLimit, stripHonest, LABEL_NEG, LEADS: STRAIGHT_LEAD, enabled: straightEnabled, active: straightActive, get: straightGet, set: straightSet,
+  const api = { hardLimit, stripHonest, LABEL_NEG, LEADS: STRAIGHT_LEAD, NATAL_LEADS: NATAL_LEAD, isNatal, calm, enabled: straightEnabled, active: straightActive, get: straightGet, set: straightSet,
     text: straightText, controlHTML: straightControlHTML, control: straightControl };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else /** @type {any} */ (root).LQFortuneStraight = api;
 })(typeof window !== "undefined" ? window : globalThis);

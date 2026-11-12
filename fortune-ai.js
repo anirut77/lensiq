@@ -638,7 +638,7 @@
   const FS = (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-straight.js") : root.LQFortuneStraight) ||
     { hardLimit: () => "", stripHonest: t => t, LABEL_NEG: /$^/, LEADS: null, enabled: () => false, active: () => false,
       get: () => ({ adult: false, straight: true }), set: () => ({ adult: false, straight: true }) };
-  let STRAIGHT = false;
+  let STRAIGHT = false, CALM = false; // CALM: crisis net / soft step / support card active on the page (no straight, no remedies)
   const preHL = t => String(t || "").normalize("NFC").replace(NEGATED_TH, " ").replace(NEGATED_ZH, "，").replace(CARD_NAME, " ");
   const hardLimit = text => FS.hardLimit(preHL(text));
   function isSafeStraight(text) {
@@ -1381,7 +1381,7 @@
   /** วิธีปรับของสิ่งที่พบ 1 รายการ → { key, cat, family, th, zh } หรือ null
       八字: วิธีเสริมธาตุต้องเป็นธาตุที่ผังต้องการ (F.helpful) — ไม่งั้นใช้ธาตุแรกที่ผังต้องการ (วิธีของเจ้าชะตา) */
   function remedyFor(F, it, sec) {
-    const r = remedyFor0(F, it, sec);
+    const r = CALM ? null : remedyFor0(F, it, sec);
     if (!r || !F || !F.helpful || !F.helpful.length || r.family !== "element") return r;
     const e = (/^el\.(\w+)$/.exec(r.key) || [])[1];
     if (!e || F.helpful.indexOf(e) >= 0) return r;
@@ -1983,7 +1983,7 @@
 
   function cautionLead(ctx, it, sec) {
     const area = cautionArea(it, sec);
-    return { text: pick(ctx.r, leadPool("th")[area]), fixed: true, sub: true, noConn: true };
+    return { text: pick(ctx.r, leadPool("th", it)[area]), fixed: true, sub: true, noConn: true };
   }
   // สิ่งที่ทำได้หลังจุดที่ควรระวัง: คำแนะนำของสิ่งที่พบเอง (ถ้าตรงหัวข้อ) ไม่งั้นคำแนะนำกลางของหัวข้อ
   function cautionAction(ctx, it, sec) {
@@ -2380,18 +2380,20 @@
   const curLang = () => { try { const l = root.LQI18N && root.LQI18N.lang; return l === "zh" || l === "en" ? l : "th"; } catch (e) { return "th"; } };
   const langOf = opts => (opts && (opts.lang === "zh" || opts.lang === "th" || opts.lang === "en") ? opts.lang : curLang());
   const straightEnabled = () => FS.enabled(), straightActive = () => FS.active();
-  const leadPool = lang => (STRAIGHT && FS.LEADS ? FS.LEADS[lang] : lang === "zh" ? CAUTION_LEAD_ZH : lang === "en" ? CAUTION_LEAD_EN : CAUTION_LEAD_TH);
+  const leadPool = (lang, it) => (STRAIGHT && FS.LEADS ? (FS.isNatal && FS.isNatal(it) ? FS.NATAL_LEADS : FS.LEADS)[lang]
+    : lang === "zh" ? CAUTION_LEAD_ZH : lang === "en" ? CAUTION_LEAD_EN : CAUTION_LEAD_TH);
   /* compose: เลือกโหมดก่อน แล้วเรียกตัวเรียบเรียงเดิม — ตาข่ายวิกฤตมาก่อนเสมอเมื่อเป็นโหมดตรง (ข้อ 3) */
   function compose(facts, opts = {}) {
-    const straight = opts.straight != null ? !!opts.straight : straightActive();
-    if (straight && facts && crisisCheck(facts.subject && facts.subject.nickname, facts.question, opts.userText)) return supportResult(opts);
-    const prev = STRAIGHT;
-    STRAIGHT = straight;
+    const calm = FS.calm ? FS.calm() : false, straight = !calm && (opts.straight != null ? !!opts.straight : straightActive());
+    if (straight && crisisCheck(facts && facts.subject && facts.subject.nickname, facts && facts.question, opts.userText, pageText())) return supportResult(opts);
+    const prev = STRAIGHT, prevC = CALM;
+    STRAIGHT = straight; CALM = calm;
     try {
-      const out = composeBase(facts, opts);
+      const out = composeBase(calm && facts ? Object.assign({}, facts, { extras: {} }) : facts, opts);
       if (out && out.source !== "support") out.mode = straight ? "straight" : "gentle";
+      if (calm && out) delete out.plan;
       return out;
-    } finally { STRAIGHT = prev; }
+    } finally { STRAIGHT = prev; CALM = prevC; }
   }
   function composeBase(facts, opts = {}) {
     if (langOf(opts) === "zh") return composeZh(facts, opts);
@@ -2626,7 +2628,7 @@
     // 需要留意的地方：温和地说清楚，并马上给出能做的事（先用该项目自己的建议，否则用该主题的通用建议）
     const zCaut = {}, zLeadUsed = new Set(), zActUsed = new Set(), zRemedy = new Set();
     const zIsCaut = it => it.polarity === "challenge" || (STRAIGHT && toneOf(it) === "caution"); // 直说模式也看 tone
-    const zLead = area => { const L = leadPool("zh"), c = shuffle(r, L[area] || L.overview).find(x => !zLeadUsed.has(x)); if (!c) return null; zLeadUsed.add(c); return zhEnd(c); };
+    const zLead = (area, it) => { const L = leadPool("zh", it), c = shuffle(r, L[area] || L.overview).find(x => !zLeadUsed.has(x)); if (!c) return null; zLeadUsed.add(c); return zhEnd(c); };
     function zhCautionAction(it, area) {
       const rm = remedyFor(F, it, area);
       if (rm && !zRemedy.has(rm.key)) { zRemedy.add(rm.key); lastSubj = null; return zhEnd((STRAIGHT ? "建议这样调整：" : "调整的方法是：") + rm.zh); }
@@ -2697,10 +2699,10 @@
         if (!(head && head.ids[head.at] === it.id)) nameShown.delete(it.id);
         const zc = zIsCaut(it) && !zCaut.overview;
         if (zc && STRAIGHT) {
-          zCaut.overview = 1; const l = zLead("overview") || "", sen = sentence(it, m, "overview"); secM.overview.push({ it, m });
+          zCaut.overview = 1; const l = zLead("overview", it) || "", sen = sentence(it, m, "overview"); secM.overview.push({ it, m });
           s.push(l + sen + zhCautionAction(it, "overview")); continue;
         }
-        if (zc) { zCaut.overview = 1; const l = zLead("overview"); if (l) s.push(l); }
+        if (zc) { zCaut.overview = 1; const l = zLead("overview", it); if (l) s.push(l); }
         s.push(sentence(it, m, "overview")); secM.overview.push({ it, m });
         if (zc) s.push(zhCautionAction(it, "overview"));
       }
@@ -2708,7 +2710,7 @@
       // 第 C 部分：直说模式下，命理规则给出的不利结果一定说出来（即使该项没有总览含义）
       const zsc = STRAIGHT && !zCaut.overview ? items.find(zIsCaut) : null;
       if (zsc) {
-        const l = zLead("overview"), nm = /[\u0E00-\u0E7F]/.test(zsc.label || "") ? "" : zhEnd("这一项是" + zsc.label);
+        const l = zLead("overview", zsc), nm = /[\u0E00-\u0E7F]/.test(zsc.label || "") ? "" : zhEnd("这一项是" + zsc.label);
         if (l) { zCaut.overview = 1; s.push(l + nm + zhCautionAction(zsc, "overview")); }
       }
       const p = pairLine(secM.overview, "overview"); if (p) s.push(p);
@@ -2741,9 +2743,9 @@
         const m = take(it, keys); if (!m) continue;
         const zc = zIsCaut(it) && !zCaut[id];
         const za = CAUTION_LEAD_ZH[id] ? id : "overview";
-        if (zc && STRAIGHT) { zCaut[id] = 1; const l = zLead(za) || "", sen = sentence(it, m, id); secM[id].push({ it, m }); s.push(l + sen + zhCautionAction(it, za)); }
+        if (zc && STRAIGHT) { zCaut[id] = 1; const l = zLead(za, it) || "", sen = sentence(it, m, id); secM[id].push({ it, m }); s.push(l + sen + zhCautionAction(it, za)); }
         else {
-        if (zc) { zCaut[id] = 1; const l = zLead(za); if (l) s.push(l); }
+        if (zc) { zCaut[id] = 1; const l = zLead(za, it); if (l) s.push(l); }
         s.push(sentence(it, m, id)); secM[id].push({ it, m });
         if (zc) s.push(zhCautionAction(it, za));
         }
@@ -2968,7 +2970,7 @@
     const eCaut = {}, eLeadUsed = new Set(), eActUsed = new Set(), eRemedy = new Set();
     const EN_DO = /\b(?:try|plan|set aside|check|rest|talk|listen|keep|review|make|take|ask|leave|note|pause|break)\b/i; // straight: the step after a caution names something to do
     const eIsCaut = it => it.polarity === "challenge" || (STRAIGHT && toneOf(it) === "caution"); // straight mode also reads the tone
-    const eLead = area => { const L = leadPool("en"), c = shuffle(r, L[area] || L.overview).find(x => !eLeadUsed.has(x)); if (!c) return null; eLeadUsed.add(c); return enEnd(c); };
+    const eLead = (area, it) => { const L = leadPool("en", it), c = shuffle(r, L[area] || L.overview).find(x => !eLeadUsed.has(x)); if (!c) return null; eLeadUsed.add(c); return enEnd(c); };
     // the first time an item with a gloss is named, explain the concept in one sentence (at most three per reading)
     // glosses that open the same way ("In Taksa, the Thai system of …") are shown once; at most three per reading
     const glossKey = g => String(g).toLowerCase().split(/\s+/).slice(0, 4).join(" ");
@@ -3048,7 +3050,7 @@
         if (!(head && head.ids[head.at] === it.id)) nameShown.delete(it.id);
         // a caution stays in one unit with its lead and its practical step (paragraph trimming never separates them)
         const ec = eIsCaut(it) && !eCaut.overview;
-        const l = ec ? (eCaut.overview = 1, eLead("overview")) : null;
+        const l = ec ? (eCaut.overview = 1, eLead("overview", it)) : null;
         const sen = sentence(it, m, "overview"); secM.overview.push({ it, m });
         s.push(ec ? [l, sen, cautionAction(it, "overview")].filter(Boolean).join(" ") : sen);
       }
@@ -3056,7 +3058,7 @@
       // Part C: in straight mode the unfavourable result is always stated, even when that finding has no overview meaning
       const esc = STRAIGHT && !eCaut.overview ? items.find(eIsCaut) : null;
       if (esc) {
-        const l = eLead("overview"), nm = /[\u0E00-\u0E7F]/.test(esc.label || "") ? "" : " " + enEnd("The finding in question is " + esc.label);
+        const l = eLead("overview", esc), nm = /[\u0E00-\u0E7F]/.test(esc.label || "") ? "" : " " + enEnd("The finding in question is " + esc.label);
         if (l) { eCaut.overview = 1; s.push(l + nm + " " + cautionAction(esc, "overview")); }
       }
       const p = pairLine(secM.overview, "overview"); if (p) s.push(p);
@@ -3088,7 +3090,7 @@
         const m = take(it, keys); if (!m) continue;
         const ec = eIsCaut(it) && !eCaut[id];
         const ea = CAUTION_LEAD_EN[id] ? id : "overview";
-        const l = ec ? (eCaut[id] = 1, eLead(ea)) : null;
+        const l = ec ? (eCaut[id] = 1, eLead(ea, it)) : null;
         const sen = sentence(it, m, id); secM[id].push({ it, m });
         s.push(ec ? [l, sen, cautionAction(it, ea)].filter(Boolean).join(" ") : sen);
         if (isTopic && secM[id].length <= 2) { const m2 = take(it, keys); if (m2) { s.push(sentence(it, m2, id)); secM[id].push({ it, m: m2 }); } }
