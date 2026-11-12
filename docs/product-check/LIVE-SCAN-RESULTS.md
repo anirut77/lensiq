@@ -4,7 +4,35 @@
 > the capture as a live scan. Keep all privacy filters." Built on `main` at `7b7f1db`. **Nothing is deployed.** Every
 > number below states its source. **No real phone was measured: a real-phone measurement is still needed.**
 
-## สรุปสำหรับเจ้าของ (Thai summary)
+## รอบที่ 2: ทำตามคำตัดสินของเจ้าของ 2026-11-12 (อ่านส่วนนี้ก่อน ส่วนล่างเป็นรอบแรก)
+
+- **ไม่มีการส่งอัตโนมัติแล้ว** ส่งให้ AI เฉพาะเมื่อมีคนกดเท่านั้น (มีเทสต์ยืนยัน: สแกนหลายสินค้าโดยเปิดการแตะครั้งเดียวไว้ ไม่มีคำขอใดถูกส่ง)
+- **ผู้ทดสอบ: แตะครั้งเดียว** หลังยินยอมหนึ่งครั้งพร้อมเลือก "จำการเลือกนี้" กด "ขอความเห็นจาก AI" ครั้งเดียวส่งทันที ไม่มีหน้าตัวอย่าง
+  - ส่งทันทีเฉพาะเมื่อผ่านตัวกรองครบ (หลักฐานฉลากสินค้า ไม่ใช่ฉลากจ่ายยา/เอกสารส่วนตัว ตัวกันชื่อ autoBlock ไม่พบใบหน้า ข้อความไม่ถูกแก้)
+  - ไม่ผ่าน: แสดงเหตุผล แล้วเปิดหน้าตัวอย่างตามเดิม (ไม่มีอะไรส่งจนกว่าจะกด "ส่งข้อความนี้")
+  - แสดงข้อความที่ส่งไป ปุ่ม "หยุดส่งแบบแตะครั้งเดียวและถอนความยินยอม" และปุ่มถอนความยินยอมเดิม ล้างทั้งสองอย่างทันที
+  - ส่งเฉพาะข้อความ ภาพส่งได้หลังกด "ใช้ภาพนี้" เท่านั้น (เหมือนเดิม)
+  - เซิร์ฟเวอร์ยังบังคับ: คำขอแบบไม่มีตัวอย่าง (`auto: true`) รับเฉพาะผู้ทดสอบที่รหัสถูกต้อง
+  - คนทั่วไป: ดูตัวอย่างและยืนยันทุกครั้งเหมือนเดิม
+- **ข้อความปฏิเสธเฉพาะเรื่อง**: เมื่อเซิร์ฟเวอร์ปฏิเสธด้วยรหัส ai_off_dispensing / personal_doc / no_product / personal_data หน้าจอแสดงเหตุผลนั้น (ไทย อังกฤษ จีน) แทน "AI ใช้ไม่ได้"
+- **ตรวจแหล่งทางการอัตโนมัติ** สินค้าละครั้ง เฉพาะผู้ที่เปิด "อนุญาตค้นข้อมูลออนไลน์" (เจ้าของยืนยันแล้ว)
+- **Gemini 3.5 Flash-Lite: ไม่เปลี่ยนเป็นค่าเริ่มต้น ยังใช้ Haiku** เพราะเงื่อนไขขัดกัน (§10)
+  - เส้นทางของเรา (OpenRouter → Google Vertex) ใช้เงื่อนไข Google Cloud ข้อ 20(d): ห้ามใช้ Generative AI ในเว็บที่ "น่าจะมีผู้อายุต่ำกว่า 18 ปีเข้าใช้" เว็บเราไม่มีการยืนยันอายุ
+  - ข้อ 20(e): ห้ามใช้ "แทนคำแนะนำทางการแพทย์" (หน้ายาต้องบอกชัดว่าเป็นข้อมูลเท่านั้น ซึ่งมีอยู่แล้ว)
+  - **ข้อสังเกตสำคัญ: Haiku ที่ใช้อยู่ก็ถูกส่งผ่าน Google Vertex เช่นกัน** ข้อ 20(d) อาจใช้กับ Haiku ด้วย ต้องให้ทนายหรือเจ้าของตัดสิน
+  - เส้นทาง ZDR ของ Google บน Vertex เป็นแบบ "Safety Retention" (เก็บข้อความที่ถูกระบบความปลอดภัยตั้งธงได้ถึง 90 วัน) ไม่ใช่ ZDR เข้มงวด ข้อความใดที่บอกผู้ใช้ว่า "ไม่เก็บเลย" ต้องตรวจใหม่
+- **แก้ช่องโหว่ชื่อ/เลขภาษาเกาหลีและ "Patient" ที่ OCR อ่านผิด** (commit แยก ไม่ลดความเข้มของกฎเดิม)
+  - กรณีทดสอบหนักเดิม (ฉลาก P001 + เอกสารส่วนตัว 308 ชิ้นในภาพเดียว): 2/308 ภาพ 5 รายการ → **0/308 ภาพ 0 รายการ**
+  - กรณีทดสอบที่กว้างกว่า (25 ฉลาก × 308 × 2 ลำดับ = 15,400): ส่งได้ 22 ครั้ง 22 รายการ **ทั้งหมดมาจากโน้ตเตือนกินยาภาษาไทยชิ้นเดียว** ("…ไว้ให้ยาย <ชื่อ>" ไม่มีคำนำหน้าชื่อ) ภาษาเกาหลี/ญี่ปุ่น 0 — ช่องโหว่ชื่อไทยแบบไม่มีคำนำหน้านี้ยังเหลือ (นอกขอบเขตรอบนี้) ต้องตัดสินว่าจะแก้รอบหน้าหรือไม่
+  - ชุดล็อก P7 / P7b: ข้อมูลส่วนตัวถึง AI ยังเป็น 0/260 และ 0/614 การปฏิเสธของตัวกรองไม่เปลี่ยน (ฉลากสินค้าผ่านแบบกดเอง 299/360 เท่าเดิม)
+  - เทียบกฎเก่า/ใหม่ทุกข้อความที่มี (1,773 ข้อความ): ไม่มีการตรวจพบใดหายไป ไม่มีการตัดสินใดหลวมลง มีแต่เพิ่มการลบและเพิ่มการบล็อกภาพ 10 ข้อความ (ไม่ใช่ฉลากสินค้า)
+- **รอคุณตัดสิน**
+  1. Haiku ก็วิ่งผ่าน Google Vertex: ยอมรับความเสี่ยงข้อ 20(d) ระหว่างทดสอบปิด (ผู้ทดสอบเป็นผู้ใหญ่) หรือให้ทนายดูก่อนเปิดสาธารณะ
+  2. ถ้าต้องการ Gemini (เร็วกว่า): ต้องมีการยืนยันอายุ 18+ ก่อนใช้ AI และทนายยืนยัน
+  3. ข้อความกฎหมาย §7 (ปรับเป็นแบบแตะครั้งเดียวแล้ว) ใส่ L57
+  4. ช่องโหว่ชื่อไทยที่ไม่มีคำนำหน้าในโน้ต (เช่น "ไว้ให้ยาย <ชื่อ>") เมื่ออยู่ในภาพเดียวกับฉลากสินค้า: แก้รอบหน้าหรือยอมรับระหว่างทดสอบ (ผู้ทดสอบยังเห็นข้อความที่ส่งทุกครั้ง)
+
+## สรุปสำหรับเจ้าของ (Thai summary, รอบแรก)
 
 - **สร้างแล้ว: สแกนสด เป็นค่าเริ่มต้นของปุ่ม "เปิดกล้อง" ในแท็บตรวจสินค้า**
   - กล้องเปิดค้าง มีกรอบนำสายตา ไม่ต้องกดถ่าย ไม่ต้องวาดกรอบ
@@ -106,7 +134,7 @@ Against the targets:
 - **Still needed: a real phone** (mid-range Android, Thai label, store light). CPU throttling 4x is only a proxy; it does
   not model the camera pipeline, thermal limits or WebAssembly speed on ARM.
 
-## 4. Tester-only auto-send: the rules
+## 4. Tester-only auto-send: the rules (round 1; SUPERSEDED by §12: no automatic sending, one tap)
 
 - Shown only while the live scan runs, the closed-test gate is on and the tester code is accepted. Off by default.
 - One consent: "Turn on" opens the consent screen again with the auto-send paragraph. Auto-send is on only if "remember my
@@ -207,23 +235,25 @@ to the local Worker (includes OpenRouter routing). Accuracy: the P7 scorer (5 fi
   on-device part inside the 3 s AI target. **Not switched**: Gemini is held out of the default chains by the owner's open 18+
   question (P8). The chain is an admin setting; nothing in the code changes.
 
-## 7. Legal list text (for the owner to add; draft for counsel)
+## 7. Legal list text (L57; for the owner to add; draft for counsel) — one-tap version (round 2)
 
 **TH:** สำหรับกลุ่มผู้ทดสอบแบบปิดเท่านั้น (รหัสผู้ทดสอบถูกต้อง และเปิดประตูผู้ทดสอบ): หลังผู้ทดสอบยินยอมหนึ่งครั้งและเลือก "จำการเลือกนี้"
-ระบบส่งข้อความที่อ่านได้บนเครื่องจากการสแกนสดให้ผู้ให้บริการ AI ที่ระบุในหน้าขอความยินยอมโดยอัตโนมัติ **แทนการแสดงตัวอย่างและให้กดยืนยันทุกครั้ง**
-เฉพาะภาพที่ผ่านตัวกรองทั้งหมดบนเครื่อง (เป็นฉลากสินค้า ไม่ใช่ฉลากจ่ายยาหรือเอกสารส่วนบุคคล ไม่พบชื่อ ข้อมูลส่วนตัว หรือคำที่อาจเป็นชื่อคน และไม่พบใบหน้า)
-สินค้าละหนึ่งครั้ง ไม่เกิน 10 สินค้าต่อรอบ ไม่ส่งขณะหน้าถูกซ่อน ไม่ส่งภาพโดยอัตโนมัติ ข้อความที่ส่งแสดงบนจอหลังส่ง ผู้ทดสอบหยุดและถอนความยินยอมได้ทันที
-เซิร์ฟเวอร์ปฏิเสธคำขอแบบอัตโนมัติที่ไม่ได้มาจากผู้ทดสอบ ผู้ใช้ทั่วไปยังต้องดูข้อความและกดยืนยันก่อนส่งทุกครั้ง
-ข้อจำกัด: ตัวกันชื่อแบบกฎ (recall อิสระล่าสุด 62 %) อาจพลาดชื่อที่ไม่มีคำนำหน้า การตรวจใบหน้าและการจำกัดหนึ่งครั้งต่อสินค้าบังคับได้เฉพาะบนเครื่อง
+การกด "ขอความเห็นจาก AI" หนึ่งครั้งจะส่งข้อความที่อ่านได้บนเครื่องให้ผู้ให้บริการ AI ที่ระบุในหน้าขอความยินยอมทันที **แทนการแสดงตัวอย่างและให้กดยืนยันอีกครั้ง**
+เฉพาะข้อความที่ผ่านตัวกรองทั้งหมดบนเครื่อง (เป็นฉลากสินค้า ไม่ใช่ฉลากจ่ายยาหรือเอกสารส่วนบุคคล ไม่พบชื่อ ข้อมูลส่วนตัว คำที่อาจเป็นชื่อคน
+เลขคล้ายเบอร์โทร หรือถ้อยคำจดหมาย ไม่พบใบหน้าในภาพ และข้อความไม่ถูกแก้) ไม่มีการส่งโดยที่ผู้ทดสอบไม่ได้กด ไม่ส่งภาพด้วยวิธีนี้
+ข้อความที่ส่งแสดงบนจอหลังส่ง ผู้ทดสอบหยุดและถอนความยินยอมได้ทันที เซิร์ฟเวอร์ปฏิเสธคำขอแบบไม่มีตัวอย่างที่ไม่ได้มาจากผู้ทดสอบ
+ผู้ใช้ทั่วไปยังต้องดูข้อความและกดยืนยันก่อนส่งทุกครั้ง ข้อจำกัด: ตัวกันชื่อแบบกฎอาจพลาดชื่อที่ไม่มีคำนำหน้า การตรวจใบหน้าบังคับได้เฉพาะบนเครื่อง
+ผู้ให้บริการปลายทาง (Google Vertex ผ่าน OpenRouter) อาจเก็บข้อความที่ระบบความปลอดภัยตั้งธงไว้ได้ถึง 90 วัน (§10)
 
-**EN:** Closed tester group only (valid tester code, tester gate on): after one consent with "Remember my choice", the text
-read on the device by the live scan is sent automatically to the AI provider named on the consent screen, **replacing
-the per-capture preview and confirmation**, only for captures that pass every on-device filter (a product label; not a
-dispensing label or a personal document; no name, personal data or possible name found; no face found); once per
-product, at most 10 products per session, never while the page is hidden, never a photo. The text sent is shown after
-sending; the tester can stop and withdraw at once. The server refuses automatic requests that do not come from a tester.
-Everyone else still sees and confirms the text before every send. Limits: the rule-based name guard (latest independent
-recall 62 %) can miss names without a cue; the face check and "once per product" are enforced on the device only.
+**EN:** Closed tester group only (valid tester code, tester gate on): after one consent with "Remember my choice", one tap on
+"Ask AI" sends the text read on the device to the AI provider named on the consent screen at once, **replacing the
+preview and second confirmation**, only for text that passes every on-device filter (a product label; not a dispensing
+label or a personal document; no name, personal data, possible name, phone-like number or letter wording found; no face
+in the picture; text not edited). Nothing is sent without the tester's tap, and no photo is sent this way. The text sent
+is shown afterwards; the tester can stop and withdraw at once. The server refuses no-preview requests that do not come
+from a tester. Everyone else still sees and confirms the text before every send. Limits: the rule-based name guard can
+miss names without a cue; the face check is enforced on the device only; the downstream provider (Google Vertex via
+OpenRouter) may keep prompts flagged by its safety classifiers for up to 90 days (§10).
 
 ## 8. Checks run
 
@@ -254,3 +284,97 @@ recall 62 %) can miss names without a cue; the face check and "once per product"
 4. The official lookup now runs without a tap when the user already allowed online lookups (owner to confirm).
 5. Next: a real-phone session (Exam / Gate / Crowd pilots unaffected), the owner's decisions in the Thai summary, then an
    independent reviewer re-measures the leak sets and the e2e.
+
+## 10. Gemini 3.5 Flash-Lite as primary: terms check (round 2, owner decision 3)
+
+Fetched 2026-11-12 from official pages by a research agent (raw copies kept in the session scratch; quotes verbatim).
+How our route maps: OpenRouter's public provider list gives slug `google-vertex` with `"terms_of_service_url":
+"https://cloud.google.com/terms/"`; `openrouter.ai/api/v1/endpoints/zdr` lists 5 ZDR endpoints for
+google/gemini-3.5-flash-lite, all google-vertex, all `"safety_retention": true` (no AI Studio endpoint, so the Gemini API
+terms do not apply with `zdr: true`).
+
+| Term | Applies to our route? | Quote | URL (page date) |
+|---|---|---|---|
+| Gemini API Additional Terms, age | No (we do not use the Gemini API; the terms exclude Google Cloud services) | "You must be 18 years of age or older to use the APIs. You also will not use the Services as part of a website, application, or other service (collectively, "API Clients") that is directed towards or is likely to be accessed by individuals under the age of 18." / "For clarity, these Terms do not govern your direct use of any Google Cloud Platform service" | https://ai.google.dev/gemini-api/terms (→ aistudio.google.com/docs/terms; effective March 23, 2026) |
+| Google Cloud Service Specific Terms §20(d) Age Restrictions | **Yes** (binds OpenRouter as Google's customer; passed on to us by OpenRouter §5) | "Customer will not, and will not allow End Users to, use a Generative AI Service as part of a website, Customer Application, or other online service that is directed towards or is likely to be accessed by individuals under the age of 18." | https://cloud.google.com/terms/service-terms (last modified November 11, 2026) |
+| §20(f) | Yes | "Google may immediately suspend or terminate Customer's use of a Generative AI Service based on any suspected violation of Section 17(b) or subsection (d) above." | same |
+| §20(e) Healthcare Restrictions | **Yes** | "Customer will not, and will not allow End Users to, use the Generative AI Services for clinical purposes … as a substitute for professional medical advice, or in any manner that is overseen by or requires clearance or approval from any applicable regulatory authority." | same |
+| Training | Yes | §18: "Google will not use Customer Data to train or fine-tune any AI/ML models without Customer's prior permission or instruction." | same |
+| OpenRouter pass-through | **Yes** | §5.1: "By accessing or using any Model through the Service, you agree, and will ensure that your Authorized Users and customers agree, to comply with the applicable terms for each Model ("Model Terms")…"; §2: "You must be at least 18 years of age to use the Service." (about us, the customer) | https://openrouter.ai/terms (last updated August 31, 2026) |
+| OpenRouter ZDR on Vertex | Yes | "Starting October 18, 2026, Google requires Safety Retention for Google models served through Vertex. … it may retain prompts that its safety classifiers flag, for up to 90 days, for abuse monitoring. … These endpoints don't meet a strict Zero Data Retention requirement." | https://openrouter.ai/docs/guides/features/zdr (modified 2026-11-11) |
+
+Gemini API (AI Studio) data use, commercial use and retention, for comparison (these terms do NOT govern our Vertex route;
+https://ai.google.dev/gemini-api/terms → aistudio.google.com/docs/terms, effective March 23, 2026):
+
+| Topic | Quote |
+|---|---|
+| Unpaid tier: used to improve Google products | "When you use Unpaid Services, including, for example, Google AI Studio and the unpaid quota on Gemini API, Google uses the content you submit to the Services and any generated responses to provide, improve, and develop Google products and services and machine learning technologies…" and "human reviewers may read, annotate, and process your API input and output. … Do not submit sensitive, confidential, or personal information to the Unpaid Services." |
+| Paid tier: not used to improve products | "Your access to Gemini API is a "Paid Service" only when accessing the API through a Cloud Project associated with an active billing account." / "When you use Paid Services … Google doesn't use your prompts … or responses to improve our products, and will process your prompts and responses in accordance with the Data Processing Addendum…" |
+| Paid tier: retention | "For Paid Services, Google logs prompts and responses for a limited period of time, solely for detecting and preventing violations of the Prohibited Use Policy … This data may be stored transiently or cached in any country in which Google or its agents maintain facilities." (no number of days given) |
+| Commercial / consumer use | "Use of Google AI Studio and Gemini API is for developers building with Google AI models for professional or business purposes, not for consumer use." (no "you may use … for commercial purposes" wording; "consumer use" is not defined) |
+| Medical | "You may not use the Services in clinical practice, to provide medical advice…" |
+| Vertex (our route), training | "Google won't use your data to train or fine-tune any AI/ML models without your prior permission or instruction. This applies to all managed models on Gemini Enterprise Agent Platform, including GA and pre-GA models." (docs.cloud.google.com …/zero-data-retention, updated 2026-11-10); implicit cache "deleted no later than 24 hours after it's written" and "never used to train or fine-tune models" |
+
+Summary: on our route (Vertex via OpenRouter, ZDR) there is **no training on our data**; retention is **Safety Retention** (flagged
+prompts up to 90 days) plus a cache of at most 24 h; commercial use of Vertex is ordinary Google Cloud use, but the
+**under-18 rule (§20(d)) and the medical rule (§20(e)) apply**. The Gemini API itself would be worse for us (unpaid tier
+trains and allows human review; "not for consumer use"; the same 18+ rule). **No provider was switched.**
+
+**Finding: conflict.** A medicine / product-label checker open to the public without an age gate is plausibly "likely to be
+accessed by individuals under the age of 18" (§20(d)), with immediate suspension as the remedy (§20(f)). **Gemini is not
+made the default; Haiku 5.5 stays primary** (no chain or `ai-deploy-defaults` change). Two further points for the owner:
+
+1. **Haiku 5.5 on our route is also served by Google Vertex** (P8: `anthropic/claude-haiku-5.5` → google-vertex/global).
+   Whether §20(d) / §20(e) also cover a partner model served on Vertex was not settled from these pages; counsel (or a
+   non-Vertex route for Claude) should confirm before a public launch. During the closed adult tester group the age
+   clause is less of a concern.
+2. Safety Retention: flagged prompts may be kept up to 90 days by Google; user-facing text must not say "never stored by
+   anyone". The consent screen shows each provider's retention text from the configured chain; it should be checked.
+
+## 11. Server refusal codes (round 2, owner decision 13)
+
+`LQAI.send` now keeps the Worker's documented refusal `code`; the AI card shows the existing translated notices for
+`ai_off_dispensing`, `ai_off_personal_doc`, `ai_off_no_product`, and two new TH / EN / ZH notices for
+`ai_off_personal_data` and `ai_off_auto_filter`, instead of the generic "AI unavailable" (e2e check 8, all four main codes).
+
+## 12. No automatic sending; tester one-tap (round 2, owner decisions 1 and 2)
+
+- The automatic path is **removed** (not just switched off): the live scan never triggers an AI request; one-tap runs only
+  inside the "Ask AI" click handler. e2e check 5 scans three products with one-tap on and asserts zero AI requests.
+- One-tap rules (`lensiq-pc-ai.js` `oneTap`): tester; one-tap on ("lq-pc-auto" set on a consent screen that explains
+  one-tap, with "remember my choice"; same providers); page visible; `LQPCGuard.aiGate`; guard finds nothing; no possible
+  name; `autoBlock` finds nothing; the text is this capture's on-device OCR exactly (no edit); the face detector ran on the
+  capture and found no face. Any miss: the reason (`#pcAiAutoSkip`) and the usual preview. A first tap that opens the
+  consent screen sends at once once "remember" is ticked.
+- Text only; a photo still needs "Use this picture". Any withdraw clears the consent and the one-tap choice at once.
+- Worker: unchanged from round 1 (`auto: true` = the no-preview path: tester + valid code only, `autoCheck`, 6 / min).
+
+## 13. Japanese / Korean guard gaps (round 2, separate commit)
+
+Added to `lensiq-pc-guard.js` (no rule removed or loosened): Korean name fields 성명 (with or without a colon), 환자명 /
+환자 성명 / 환자 이름, 수진자, 이름: (not after 제품 / 상품 / 약품); an OCR-damaged "Patient:" (Patiet:, Patint:); Korean
+registration / chart / patient numbers with split syllables (등록번호 …); the Korean resident registration number;
+생년월일 / 생일 / 生年月日 birth dates; Korean and Japanese field words that end a name; Korean and kana letters count as a
+name value. Dev cases: `tests/unit/pc-guard-ko-ja.test.js` (with no-false-redaction counter-cases).
+
+| Check | Result |
+|---|---|
+| Old vs new guard on every fixed text (p7, p7b locked sets; guard dev + hold-out; evidence dev set: 1,773 texts) (`~/LENSIQ-field/evals/live-scan/guard-diff.mjs`) | 15 texts changed, **0 detections lost, 0 gate decisions changed**; photo blocked on 10 more texts (all non-product documents / dispensing labels); no product label changed |
+| Chinese patient regression set on main (`pc-guard-zh-patient-regression.test.js`) and every guard test | pass |
+| P7 / P7b locked figures (`live-leak-score.mjs`, log `live-leak-run-2026-11-12T04-13-03-938Z.log`) | personal items to AI 0/260, 0/614 (text and image); product labels passing the manual gate 299/360 (unchanged); one-tap eligible 217/360 |
+| Reviewer's stress case: P001-clean + each of 308 personal captures in one reading | 2/308 captures, 5 items → **0/308, 0 items** |
+| Wider stress (25 one-tap-eligible labels x 308 personal captures x 2 orders = 15,400 readings) | 22 sent, 22 items, **all from one Thai medicine-reminder note** (REQV-N050-2: a bare Thai name after the kinship word ยาย, no cue); Korean / Japanese 0. Before this commit: 23 sent, 25 items (the Korean insurance card too). The Thai bare-name gap is outside this round; owner decision |
+| Merged readings (25 x 308 x 2 orders) | 0 personal items in any sent text |
+
+## 14. Round 2 checks and screenshots
+
+- Rebased on `main` (5c5779d). Checks on the final state: lint, format-check, typecheck (ratchet 627 ≤ 627) OK; unit
+  1567/1568: the one failure is the timing test "fallback walker: per-attempt deadline" in `backend-ai-gateway.test.js`
+  under a machine load average of ~70 (other sessions); the file passes 32/32 twice when run alone. e2e `product-check*`,
+  `medicine`, `camera-mobile`: 83/83 (live file 10/10 with the rewritten one-tap checks).
+- Screenshots after all round-2 changes (360 px, Thai, fake camera, synthetic label, no person):
+  `~/LENSIQ-field/evals/live-scan/screens/01-…09-*.png` (01 tab with live scan on by default, 02 "point at the label",
+  03 "hold still", 04 reading without a shutter, 05 checklist and first results, 06 tester one-tap off by default,
+  07 consent screen with the one-tap note, 08 one tap: the text sent and "stop and withdraw", 09 AI fields in the card).
+- Latency (§3) is from round 1; the live scan itself did not change in round 2. "AI request leaves the page" is now
+  measured from the tester's tap, not from a steady frame, and was not re-measured.
