@@ -943,7 +943,7 @@
 
   /* ---------------- quote requests (owner decision 2026-11-12; backend/src/leads.js) ----------------
    * List newest first (summary only), view one (contact details, message, automatic deletion date), mark status, delete
-   * one (confirmation + re-auth), CSV export (re-auth). The public form stays off (window.LENSIQ_LEADS_FORM). The Worker
+   * one (confirmation + re-auth), CSV export (re-auth). The public form is on (window.LENSIQ_LEADS_FORM, owner 2026-11-12). The Worker
    * audits every action with the request id only. TH default; EN / ZH in i18n/*-admin.js (keys adl.*). */
   var lq = /** @type {any} */ ({ open: "", rows: [], days: 180 });
   var LOC = /** @type {Record<string, string>} */ ({ th: "th-TH", en: "en-GB", zh: "zh-CN" });

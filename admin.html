@@ -294,13 +294,14 @@
       </div>
     </div>
 
-    <!-- quote-request inbox (owner decision 2026-11-12; backend/src/leads.js). The public form stays off
-         (window.LENSIQ_LEADS_FORM); every view / status / delete / export is audited with the request id only.
+    <!-- quote-request inbox (owner decision 2026-11-12; backend/src/leads.js). The public form is on
+         (window.LENSIQ_LEADS_FORM, owner 2026-11-12); every view / status / delete / export is audited with the request id only.
          TH default; EN / ZH in i18n/en-admin.js, i18n/zh-admin.js (keys adl.*) -->
     <div class="ad-panel" data-panel="leads" role="tabpanel" hidden>
       <div class="ad-card">
         <h2 data-i18n="adl.h">คำขอใบเสนอราคา</h2>
-        <p class="ad-muted" data-i18n="adl.intro">คำขอจากแบบฟอร์มหน้าแรกเมื่อเปิดใช้แล้ว (ตอนนี้แบบฟอร์มยังปิดอยู่) ระบบลบแต่ละคำขออัตโนมัติเมื่อครบกำหนด
+        <p class="ad-muted" data-i18n="adl.intro">แบบฟอร์มขอใบเสนอราคาในหน้าแรกเปิดใช้อยู่ คำขอที่ส่งมาจะแสดงที่นี่
+          และมีแจ้งเตือนทาง LINE @632yliiw (มีแค่เลขที่คำขอกับเวลา ไม่มีข้อมูลส่วนตัว) ระบบลบแต่ละคำขออัตโนมัติเมื่อครบกำหนด
           ใช้ข้อมูลเพื่อติดต่อกลับเท่านั้น การเปิดดู เปลี่ยนสถานะ ลบ และส่งออกถูกบันทึกโดยไม่เก็บข้อมูลส่วนตัว</p>
         <p id="adlCounts" class="ad-muted" role="status"></p>
         <div class="ad-row adl-tools">

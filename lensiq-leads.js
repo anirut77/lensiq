@@ -93,7 +93,7 @@
   /** @type {any} */
   var W = root;
   /** The quote-request form sends to the server only while the owner has switched it on (window.LENSIQ_LEADS_FORM ===
-   *  true in lensiq-config.js, off as shipped — owner decision 2026-11-12) AND the API is configured. Off: nothing leaves
+   *  true in lensiq-config.js, on by default since the owner decision of 2026-11-12) AND the API is configured. Off: nothing leaves
    *  the device; the request stays in this browser (or goes through the visitor's own mail / LINE app if configured). */
   var serverOn = function () { var A = W.LQApi; return W.LENSIQ_LEADS_FORM === true && !!(A && A.enabled && A.enabled() && typeof A.call === "function"); };
   /** The LINE ID offered on the quote-request confirmation (LENSIQ_SELLER.quote_line), "" while the form is off. */

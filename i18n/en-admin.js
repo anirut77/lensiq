@@ -186,7 +186,7 @@
   "adl.unread": "{n} unread",
   "adl.tab": "Quote requests",
   "adl.h": "Quote requests",
-  "adl.intro": "Requests from the home-page form once it is switched on (the form is still off). Each request is deleted automatically when its time is up and is used only to reply. Every view, status change, deletion and export is logged without personal data.",
+  "adl.intro": "The quote-request form on the home page is on. Requests appear here, and a LINE notification goes out through @632yliiw with only the request number and time (no personal data). Each request is deleted automatically when its time is up and is used only to reply. Every view, status change, deletion and export is logged without personal data.",
   "adl.filter": "Show",
   "adl.f.all": "All",
   "adl.st.new": "New",

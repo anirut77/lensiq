@@ -59,7 +59,10 @@ const clean = (v, max) => {
 /** Validates a lead body; returns the row to store. Throws 400 with a code the page can show. */
 export function cleanLead(body) {
   if (!body || typeof body !== "object" || Array.isArray(body)) throw new HttpError(400, "invalid request");
-  for (const k of Object.keys(body)) if (!(k in LIMITS) && k !== "consent" && k !== "consent_version" && k !== "company") throw new HttpError(400, `unknown field ${String(k).slice(0, 32)}`);
+  // own keys only: `k in LIMITS` let Object.prototype names (constructor, toString, __proto__ ...) through (review S1)
+  for (const k of Object.keys(body)) {
+    if (!Object.hasOwn(LIMITS, k) && k !== "consent" && k !== "consent_version" && k !== "company") throw new HttpError(400, `unknown field ${String(k).slice(0, 32)}`);
+  }
   if (body.consent !== true) throw new HttpError(400, "please agree to be contacted (consent_required)", { code: "consent_required" });
   const out = {};
   for (const [k, max] of Object.entries(LIMITS)) out[k] = clean(body[k], max);

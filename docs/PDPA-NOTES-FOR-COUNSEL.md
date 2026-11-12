@@ -845,6 +845,14 @@ fields are cut to name, organisation, e-mail or phone (one is enough), product o
 field is gone); Turnstile fail closed, 5 per caller per hour, 50 a day; an unread count in the back office
 (`viewed_at`, migration 0014, no personal data). The PDPA e-mail is still empty, so the deletion channel shown is the
 LINE OA @632yliiw. Counsel's review of §8.2 is still needed before paid sales.
+Added after the security review (2026-11-12, N3), question for counsel: (f) to check the Turnstile token, the Worker
+sends Cloudflare's siteverify the token and the visitor's IP address (`remoteip`, `backend/src/turnstile.js`); the IP is
+not stored by LENSIQ, but it does reach Cloudflare Turnstile as a processor. (g) The test deployment has Workers
+observability on with `head_sampling_rate = 0.5` (`[env.test.observability]` in `backend/wrangler.toml`), so about half of
+all requests, including `/v1/leads`, are logged by Cloudflare with request metadata (for example time, path, status,
+country and possibly the IP address in Cloudflare's own request fields), even though our own log lines hold no personal
+data and never the form fields. Do the privacy text in §8.2 and the processor list need to name these two flows, and is a
+shorter Cloudflare log retention or a lower sampling rate needed for the quote form?
 
 ## Fortune "read it straight" option (Part C, owner order 2026-11-12) — APPROVED and switched on 2026-11-12
 

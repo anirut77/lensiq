@@ -262,7 +262,7 @@
     // neither -> not sent (honest wording, stored in this browser only as before)
     var note = document.getElementById("leadNote");
     var mode = function () {
-      // "api" only while the owner has switched the quote-request form on (LENSIQ_LEADS_FORM, off as shipped)
+      // "api" only while the owner has switched the quote-request form on (LENSIQ_LEADS_FORM, on by default since 2026-11-12)
       var L = /** @type {any} */ (window).LQLeads;
       if (L && typeof L.serverOn === "function" && L.serverOn()) return "api";
       var f = L ? L.fallback() : { any: false };
