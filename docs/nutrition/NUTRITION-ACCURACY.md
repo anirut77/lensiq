@@ -133,3 +133,25 @@ characters ("ー部" for "一部", "アレルギ一"), so the verbatim match is 
 ("アレル一物質") and were not found. The single US silent wrong value (carbohydrate 229 g for 22 g, 2° tilt) is the same
 reading problem. Candidate fix (not built: it needs a fifth fresh set): straighten the picture by the estimated tilt
 before reading when it is between about 1° and 3°; accept "アレル.?物質".
+
+## Round 5 (2026-11-13): straighten before reading (1–3°), measured on a FIFTH locked set (v5) — all targets met
+
+Fix: the page estimates the tilt from the detector's boxes and, between 1° and 3° (`LQNut.straightenAngle`), turns the
+picture back before reading; "アレル.?物質" is accepted as the Japanese statement keyword. The 90 % verbatim rule for
+allergen statements is unchanged. Measured ONCE on v5: `~/LENSIQ-field/evals/nutrition/v5/` (336 new PNGs, 9 conditions =
+v4's 7 + 1° and 3° tilt; 8 labels per format at 1°, 2° and 3°, 4 per format otherwise; 232 allergen statements;
+`locked.sha256` sha256 `a68d5794ce8c44df28463b8d7775d1feb58dca00dfddb537e8419f810ced1e4b`, locked before the code with
+tests/unit/nut-straighten.test.js and tests/e2e/nutrition-tilt.e2e.mjs). Source: synthetic.
+
+| # | Target | v5 result | Met? |
+|---|---|---|---|
+| I1 | Thai new: energy, sugar, sodium, fat >= 90 % each | 48 / 48 each; 100 % in every condition | yes |
+| I2 | silent wrong, Wilson upper <= 3 % pooled | 1 / 1912 = 0.1 % [0.0–0.3] | yes |
+| I2 | per format | th-new 0 / 274 [0–1.4], th-old 0 / 307 [0–1.2], th-gda 0 / 143 [0–2.6], us 0 / 278 [0–1.4], eu 0 / 507 [0–0.8], cn 0 / 202 [0–1.9], jp 1 / 201 [0.1–2.8] | yes, all |
+| I2 | per condition | clean 0 / 203, blur 0 / 176, glare 0 / 191, small 0 / 194, 1° 0 / 391, 2° 1 / 389, 3° 0 / 368 (all upper <= 2.1 %); 4° and 6°: every value "please check" | yes |
+| I3 | allergen statement found >= 95 %, 0 false | 231 / 232 = 99.6 % [97.6–99.9], 0 false | yes |
+| I4 | exact match | all 91.2 %; th-new 98.5, th-old 96.6, th-gda 95.8, us 88.0, eu 91.8, cn 82.9, jp 83.3 %; clean 93.0, blur 90.1, glare 91.6, small 95.5, 4° 93.3, 1° 88.5, 2° 93.2, 3° 87.2, 6° 93.2 % | reported |
+
+Serving weight exact 245 / 251 = 97.6 %; servings per pack 141 / 144 = 97.9 %. OCR + parse median 2.7 s, p90 3.8 s per
+label (M1, headless Chrome; not a phone). The single silent wrong value: Japanese protein 8.7 g read for 8.1 g at 2°.
+All of this is synthetic: real label photos are still unmeasured (owner's 200-photo set, design §5.1).

@@ -223,7 +223,7 @@
   // the keyword is matched with the OCR misreads seen on device (v3 set): a dropped / swapped Thai vowel or tone mark
   // ("ผู้พ้อาหาร", "สําหรับ"), and the Japanese long-vowel mark read as 一, -, ― or －
   const STATEMENT = new RegExp([
-    "ข้อมูล\\s*ส.{0,3}หรับ\\s*ผ.{0,5}อาหาร", "ผู.{0,3}แพ.{0,2}อาหาร", "アレルギ[ーｰ一\\-―－‐]物質",
+    "ข้อมูล\\s*ส.{0,3}หรับ\\s*ผ.{0,5}อาหาร", "ผู.{0,3}แพ.{0,2}อาหาร", "アレルギ[ーｰ一\\-―－‐]物質", "アレル.?物質",
     "ข้อมูลสำหรับผู้แพ้อาหาร", "สำหรับผู้แพ้อาหาร", "ข้อมูลผู้แพ้อาหาร", "สารก่อภูมิแพ้", "allergy advice", "allergens?\\b", "allergy information",
     "\\bcontains\\s*:", "\\bmay contain\\b", "致敏物质", "过敏原", "过敏物质", "アレルギー物質", "アレルゲン", "特定原材料", "알레르기", "mengandungi\\s*:"
   ].join("|"), "i");
@@ -384,6 +384,13 @@
     };
   }
 
+  /**
+   * straightenAngle(tilt) -> degrees to turn the picture by before reading (0 = leave it): only between 1 and 3 degrees,
+   * where the text detector still returns level boxes and a long line drifts out of the strip the reader sees. Above that
+   * the detector's boxes follow the tilt and the values are marked "please check" instead.
+   */
+  const straightenAngle = t => (typeof t === "number" && Math.abs(t) >= 1 && Math.abs(t) <= 3 ? -t : 0);
+
   /** consistency checks -> status "check" (never a correction) */
   function checks(items, serving) {
     const by = (f, b) => items.filter(i => i.field === f && i.basis === b);
@@ -487,5 +494,6 @@
     return p.format !== "generic" ? p.items.length >= 2 : p.items.length >= 3;
   };
 
-  return { FIELDS, UNIT_OF, CORE, TILT_LIMIT, linesFromParts, ALLERGENS, norm, tokens, labelOf, basesIn, formatOf, parseLabel, convert, recalc, round, findAllergenWords, looksLikePanel };
+  return { FIELDS, UNIT_OF, CORE, TILT_LIMIT, linesFromParts, straightenAngle,
+    ALLERGENS, norm, tokens, labelOf, basesIn, formatOf, parseLabel, convert, recalc, round, findAllergenWords, looksLikePanel };
 });
