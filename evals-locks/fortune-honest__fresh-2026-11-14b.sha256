@@ -4,3 +4,6 @@ cc82f0770dcacbe100a2015a620c69d6f346542f15bc62cb44c96421b4d56127  set.json
 # locked 2026-11-13T20:59:39Z (tools/eval-guard.mjs lock, 2 files)
 b3af8924cf02e4702670bda85868aa8b7c35a0d615652cde4075bdf1fe5edf6c  harness.mjs
 52c57651404c849514d778653e6ca1a19eb347a45463db211e035828c2bb206a  probe.json
+# locked 2026-11-13T21:12:26Z (tools/eval-guard.mjs lock, 1 file)
+a56ec5cd1e340aff10ca8aae1b3c3da2b07a365c55b345f5134ed6b177bdf29a  harness.mjs
+# reviewer 3: harness amended after a NON-measured smoke (4 inputs not in set.json): ZH straight regex narrowed (bare 直说 matched gentle "有话直说"), link check limited to pricing/plan/refund hrefs and price words ("plan" matched card text). Pass rules otherwise unchanged. No measured run before this line.
