@@ -5,7 +5,8 @@
 //   I. image set: each PNG -> the page's own on-device path in headless Chrome (nutrition.html: LQPCRun.detect ->
 //      LQPC.cropFromBoxes -> LQNutRun.readCanvas on the crop in the label's script (boxes read one by one, rows paired along
 //      the tilt) -> LQNut.parseLabel with the line confidences and the tilt), exactly as lensiq-nut-ui.js does.
-// The set is checked against locked.sha256 first; a changed file stops the run. Results go next to the set (never into the
+// The set is checked against locked.sha256 first, then tools/eval-guard.mjs (the hashes committed in evals-locks/<phase>.sha256);
+// a changed or unlocked file stops the run. Results go next to the set (never into the
 // repo), then the locked score.mjs prints the tables.
 //   node tools/nut-eval.mjs [--set <dir>] [--text-only] [--limit N] [--out <json>]
 import { createHash } from "node:crypto";
@@ -15,6 +16,7 @@ import { createRequire } from "node:module";
 import { cpus, homedir, platform, release, totalmem } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { assertLocked, phaseOf } from "./eval-guard.mjs";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
@@ -43,6 +45,13 @@ console.log(`nut-eval: ${lock.length} locked hashes verified`);
 const set = JSON.parse(readFileSync(join(SET, "set.json"), "utf8"));
 let labels = set.labels;
 if (LIMIT) labels = [...labels.filter(l => l.part === "text").slice(0, LIMIT), ...labels.filter(l => l.part === "image").slice(0, LIMIT)];
+/* ---------- eval-guard (owner rule 2026-11-13): every input is in ~/LENSIQ-field/evals/<phase>/ and committed in evals-locks/ ---------- */
+try {
+  const inputs = ["set.json", ...(existsSync(join(SET, "score.mjs")) ? ["score.mjs"] : []),
+    ...(argv.includes("--text-only") ? [] : labels.filter(l => l.part === "image").map(l => l.file))];
+  const g = assertLocked(phaseOf(SET), inputs);
+  console.log(`nut-eval: eval-guard OK, phase ${g.phase}, ${g.files.length} files in ${g.lockFile} (commit ${g.lockCommit})`);
+} catch (e) { console.error(String(/** @type {any} */ (e).message || e)); process.exit(3); }
 const out = { tool: "tools/nut-eval.mjs", date: new Date().toISOString(), commit: execFileSync("git", ["rev-parse", "--short", "HEAD"], { cwd: repo }).toString().trim(),
   source: "synthetic", machine: { cpu: cpus()[0] && cpus()[0].model, cores: cpus().length, ramGB: Math.round(totalmem() / 1073741824), os: `${platform()} ${release()}` }, labels: [] };
 
