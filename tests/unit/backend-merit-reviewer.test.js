@@ -87,7 +87,10 @@ async function setup(vars = {}) {
 test("RV1: migration 0016_merit_review.sql is listed, probed, and named exactly when missing", async () => {
   assert.ok(existsSync(join(ROOT, "backend", "migrations", "0016_merit_review.sql")));
   const { MIGRATIONS, deepHealth } = await import(B + "health.js");
-  assert.equal(MIGRATIONS[MIGRATIONS.length - 1], "0016_merit_review.sql");
+  // re-lock 2026-11-13 (forced by 0017_tryon.sql, same intent): 0016 sits right after 0015 and right before the next file on disk
+  const onDisk = require("node:fs").readdirSync(join(ROOT, "backend", "migrations")).filter(f => f.endsWith(".sql")).sort(), i = MIGRATIONS.indexOf("0016_merit_review.sql");
+  assert.equal(MIGRATIONS[i - 1], "0015_merit.sql");
+  assert.equal(MIGRATIONS[i + 1], onDisk[onDisk.indexOf("0016_merit_review.sql") + 1]);
   const src = readFileSync(join(ROOT, "backend", "src", "health.js"), "utf8");
   assert.match(src, /\["0016_merit_review\.sql", "SELECT [^"]*FROM admin_reviewers/);
   assert.match(src, /\["0016_merit_review\.sql", "SELECT [^"]*FROM merit_revisions/);

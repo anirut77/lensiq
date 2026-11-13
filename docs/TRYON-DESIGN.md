@@ -4,6 +4,18 @@
 
 > **ช่องทางชำระเงิน (เจ้าของตัดสิน 2026-11-13):** ตอนนี้รับโอนผ่านธนาคารตามใบเสนอราคาและใบแจ้งหนี้เท่านั้น ไม่มี PromptPay QR บัตร หรือ Opn ข้อความด้านล่างที่พูดถึง PromptPay หรือค่าธรรมเนียม Opn ของการเติมเครดิต เป็นแบบสำหรับระบบชำระเงินออนไลน์ในอนาคต ซึ่งพักไว้ (รอ KYC ของ Opn) ไม่ใช่วิธีรับชำระในปัจจุบัน
 
+> **Build status 2026-11-13 (branch `tryon-fit`, not merged, nothing deployed, migration not applied).**
+> Built: studio garment fit (item 24: per-point warp to neck / shoulder tips / hem + 7 draggable handles); T2 subset
+> (back-office tab in `admin.html` + `admin-tryon.js` on the existing admin login with roles owner / `tryon_admin` /
+> `tryon_editor`, catalogue CRUD, publish / hide, upload limits, Product Check face blur + "no face remains" tick,
+> audit); Worker routes `backend/src/tryon.js` + store interface `tryon-store.js` (R2 when bound, D1 fallback) +
+> `0017_tryon.sql`; T4 subset (`tryon.html`: consent first, live camera only, face-anchored glasses / hats / earrings /
+> necklaces, segmentation-anchored tops, burned-in preview mark, nothing sent or stored).
+> Numbers (source: **synthetic**, `tests/unit/fixtures/studio-fit-set.js`, 72 people × 3 garments): shoulder-tip error
+> mean 7.9 → 1.4 px (p90 16.6 → 2.0), neck 3.8 → 3.3 px, hem edge 9.5 → 0.5 px, rendered shoulder 7.6 → 1.9 px
+> (face width 70 px). Not measured on real pictures. Designed only: cloud try-on (T5), cut-out fix tool (T3 MagicTouch),
+> outfit mixing (T6), share / embed / LINE (T7), eval with raters (T8), pricing (T9), CSV bulk import, org accounts.
+
 > **Status: DESIGN ONLY, waiting for owner approval.** This document adds no code, no migration and no deploy, and
 > nothing in it has been committed. It builds on the existing try-on relay (`tryon.py`, `/api/tryon`, the
 > `photobooth.js` AI panel) and the on-device studio (`studio.html`, `studio-core.js`, `photobooth-outfits.js`), and

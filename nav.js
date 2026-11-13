@@ -137,7 +137,7 @@
   // through): the page stays blank and we try to break out. Server headers (frame-ancestors / X-Frame-Options) do the
   // same where the host can send them; GitHub Pages cannot, and a <meta> CSP cannot carry frame-ancestors.
   var NOFRAME = /^(account|pricing|report|checkout|attendance|booth|customers|driver|faceread|fengshui|interview|neuro|palm|photobooth|qc|signage|store|studio|teamface|exam-lab|exam-hall|exam-dashboard|queue|tables|afterhours|bays|parking|village|crowd|case-review|medicine|omr|luckycolor)\.html$/;
-  var NOFRAME_MORE = /^(nutrition)\.html$/; // camera pages added after round 17 (kept on their own line: line width)
+  var NOFRAME_MORE = /^(nutrition|tryon)\.html$/; // camera pages added after round 17 (kept on their own line: line width)
   var framed = false;
   try { framed = window.top !== window.self; } catch (e) { framed = true; }
   var pageName = (location.pathname.split("/").pop() || "").toLowerCase();

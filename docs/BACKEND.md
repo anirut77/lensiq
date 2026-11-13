@@ -484,6 +484,13 @@ Local dev with the Turnstile bypass: put `GO_LIVE_GATE=report` in `.dev.vars` (t
 > sign-ins stop writing over this many statements an hour; a correct sign-in is never refused). All are unset in the default configuration, where nothing changes. `POST /v1/tester/check`
 > answers `{ok:true}` for a valid code. The generic steps below describe a fresh install on an account of its own.
 
+> **Try-On MVP (2026-11-14): apply migration `0017_tryon.sql` BEFORE deploying this Worker.** From this version on,
+> creating any restricted back-office account writes `admin_reviewers.role` and the try-on routes read `tryon_items` /
+> `tryon_assets`; a Worker deployed on a database without 0017 refuses new reviewer accounts and `/health/deep` names
+> the missing migration. Order: `npm run backend:migrate` (or `wrangler d1 migrations apply`) first, then deploy. The
+> try-on public routes (`/v1/tryon/catalog`, `/v1/tryon/asset/*`) must be added to `PUBLIC_ROUTES` where that list is set.
+> Images: R2 binding `TRYON_BUCKET` when the owner enables R2 (not today); otherwise the D1 fallback (≤ 1 MB per image).
+
 1. `cd backend && npm install`
 2. `npx wrangler login`
 3. `npx wrangler d1 create lensiq` → copy the printed `database_id` into `backend/wrangler.toml`.
