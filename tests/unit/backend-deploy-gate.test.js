@@ -2,7 +2,17 @@
 // tests/unit/backend-deploy-gate.test.js — closed-test controls of the test deployment (deploy plan B3, B4, B6, B8 and
 // the shared-account request cap): backend/src/tester.js + the router, pc.js, med.js, the router adapter's pinned routes.
 // Mocked providers and upstreams only: no key, no network.
-const test = require("node:test");
+const nodeTest = require("node:test");
+// test-bug re-lock 2026-11-14: a rate-limit window (900 s per caller, 3600 s in total, UTC / Bangkok days for the caps) can roll over in
+// the middle of a test when the machine is loaded: the per-caller counter restarts and the expected 429 comes back as 403 (seen once in
+// CI). Every test now runs on a frozen Date placed 37.5 minutes into the current hour (mid-window for both windows), so no window can
+// roll over inside a test. The one test that already installs its own fake clock keeps it. No assertion changed.
+const FROZEN_AT = Math.floor(Date.now() / 3600000) * 3600000 + 2250000;
+const OWN_CLOCK = /^admin: a stranger cannot lock the owner out/;
+const test = (name, fn) => nodeTest(name, async (t) => {
+  if (!OWN_CLOCK.test(name)) t.mock.timers.enable({ apis: ["Date"], now: FROZEN_AT });
+  return fn(t);
+});
 const assert = require("node:assert/strict");
 const { createEnv, req } = require("./backend-d1-shim.js");
 

@@ -1,0 +1,10 @@
+# backend-deploy-gate.test.js made deterministic (2026-11-14). TEST-BUG RE-LOCK, append-only: earlier hashes of this file stay as history.
+# Reason: "B3 gate: wrong codes are throttled per caller ..." failed once under CPU load with 403 where 429 was expected. The tester limiter
+# counts wrong codes in aligned 900 s windows (per caller) and 3600 s windows (in total); when the wall clock crosses a window boundary in
+# the middle of the test, the per-caller counter restarts and the 429 never comes. Reproduced deterministically: the unchanged file with the
+# clock read 901 s later inside backend/src after the AT-th testerState() read fails exactly this test for AT = 32..60 (every point inside it).
+# Fix: every test runs on a frozen Date (node:test mock.timers) 37.5 minutes into the current hour, mid-window for both windows and the
+# same UTC and Bangkok day for the daily caps. The one test that installs its own fake clock ("admin: a stranger ...") keeps it.
+# No assertion, fixture or expectation was changed, removed or weakened (a wrapper around test() and one constant were added).
+# With the fix: the same skew sweep AT = 1..70: 0 failures of 70; 30 consecutive plain runs: 30 of 30 green (18 tests each).
+22145777b3198997ea9e93ec089766c04137bf11b476fdd19e44090699f2df00  tests/unit/backend-deploy-gate.test.js

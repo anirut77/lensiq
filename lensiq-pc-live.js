@@ -264,8 +264,9 @@
   function autoTextCheck(G, text, facts, _opts) {
     const t = String(text || "");
     const gate = G.aiGate(t, { gtins: (facts && facts.gtins) || [], regs: (facts && facts.regs) || [] });
+    // possible names are counted on the canonical copy (thai-canon-2: a name split by an invisible character still counts)
     // a possible name, or the stricter block list (phone-like digits, a form of address, letter / note wording), stops it
-    return { gate, hits: G.scan(t).length, maybe: (G.possibleNames ? G.possibleNames(t).length : 0) + (G.autoBlock && G.autoBlock(t) ? 1 : 0) };
+    return { gate, hits: G.scan(t).length, maybe: (G.possibleNames ? G.possibleNames(canon(t)).length : 0) + (G.autoBlock && G.autoBlock(t) ? 1 : 0) };
   }
   /** @param {any} o */
   function autoDecision(o) {

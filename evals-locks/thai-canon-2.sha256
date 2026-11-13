@@ -1,0 +1,4 @@
+# locked 2026-11-13T18:48:11Z (tools/eval-guard.mjs lock, 1 file)
+c2891385b68ce40fd972e63d8147d0bef5d58ce715324906726b3a50d1d2fa2a  thai-canon-2.test.js
+# thai-canon-2: the review's should-fix items S1-S3 of thai-sara-am-safety; the repo copy tests/unit/thai-canon-2.test.js has the same sha256.
+# Locked before the fix (base origin/main 78a9cdc): 7 of 8 tests fail there (before-main-78a9cdc.log in the evals folder).
