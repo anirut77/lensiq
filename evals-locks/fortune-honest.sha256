@@ -103,3 +103,10 @@ a7b505d7f5051f4b3b030fa1aa4ccee573711d31bd34626384f2a35ede3ad258  tests/unit/for
 33dab0b7892448f4cc391aaea9b6c8ef6dd8de305a933fe6455d0708bac75bf9  tests/e2e/fortune-crisis-calm-text.e2e.mjs  # repo file  # re-locked 2026-11-13T19:55:12Z
 # RE-LOCK 2026-11-13T20:01:59Z fortune-crisis-flow-v2.e2e.mjs (after merging origin/main): the 'one new sessionStorage key' check ignores 'lq-heavy', the camera crash guard from main (lensiq-crashguard.js, PDPA notes H), which faceread / palm set while the camera runs; the crisis flow must still add exactly lq-fortune-calm=1.
 dd183b210f34a502a88be0588bebd81b71da22da100b2b0cc0f486d0b5834bf9  tests/e2e/fortune-crisis-flow-v2.e2e.mjs  # repo file  # re-locked 2026-11-13T20:01:59Z
+#
+# CRISIS DETECTION V4 (coordinator order after independent review 3; branch crisis-detect-v4 from origin/crisis-flow-v2 5522e91). Locked 2026-11-13T23:36:45Z BEFORE the change. Dev: spent sets fresh-2026-11-14b and fortune-honest__fresh-2026-11-14; held-out variants builder-written.
+54d96c765894296d5a458f2483d2f51e3f7567e24f7e13cd35da1ccab998add6  tests/unit/fortune-crisis-detect-v4.test.js  # repo file  # locked 2026-11-13T23:36:45Z
+# dev data (paths from ~/LENSIQ-field/evals/):
+cc82f0770dcacbe100a2015a620c69d6f346542f15bc62cb44c96421b4d56127  fortune-honest/fresh-2026-11-14b/set.json
+66d8c75087b2b8ada86768ea945ee08a0f4e056dbe6a2db9a76b595f2c381640  fortune-honest/fresh-2026-11-14b/results-A.analysis.txt
+bd04016ee6604ad6325c0ecef43c34658a44070e738be4cc15289ded95c9169a  fortune-honest__fresh-2026-11-14/set.json
