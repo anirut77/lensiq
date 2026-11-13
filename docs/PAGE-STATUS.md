@@ -149,6 +149,7 @@ are added:
 | `account.html` | Platform | **support** | Member and payment scaffold, off by default; the backend has never been deployed and Opn KYC is pending | โครงระบบสมาชิกและชำระเงินปิดไว้ ระบบหลังบ้านยังไม่เคยเปิดใช้ และ Opn KYC ยังรอ | **No accuracy claim:** An information or document page; no accuracy figure of its own | — |
 | `index.html` | Platform | **support** | An information page with no figure or decision of its own | หน้าข้อมูล ไม่มีตัวเลขหรือการตัดสินใจของตัวเอง | **No accuracy claim:** An information or document page; no accuracy figure of its own | — |
 | `admin.html` | Platform | **support** | Member and payment scaffold, off by default; the backend has never been deployed and Opn KYC is pending | โครงระบบสมาชิกและชำระเงินปิดไว้ ระบบหลังบ้านยังไม่เคยเปิดใช้ และ Opn KYC ยังรอ | **No accuracy claim:** An information or document page; no accuracy figure of its own | — |
+| `tryon.html` | Platform | **experimental** | Try glasses, hats, earrings and tops on the live camera picture on the device, with a shop catalogue back office; not measured on real pictures and the backend is not deployed | ลองแว่น หมวก ต่างหู และเสื้อบนภาพกล้องสดบนเครื่อง พร้อมหลังบ้านแคตตาล็อกร้าน ยังไม่ได้วัดกับภาพจริงและยังไม่ได้เปิดระบบหลังบ้าน | **Not measured:** Not measured on real camera pictures; placing glasses, hats, earrings and tops is tested on synthetic data only. A preview, not a real fit | docs/TRYON-DESIGN.md §4 (real-camera measurement not done; garment fit tested on a synthetic set only) |
 | `cat-security.html` (new) | 1 Security & Access | landing page | Lists the category's 6 tools with status and accuracy | หน้ารวมหมวด แสดงเครื่องมือ สถานะ และความแม่นยำ | — | tools/cat-data.cjs |
 | `cat-education.html` (new) | 2 Education & Exams | landing page | Lists the category's 5 tools with status and accuracy | หน้ารวมหมวด แสดงเครื่องมือ สถานะ และความแม่นยำ | — | tools/cat-data.cjs |
 | `cat-hr.html` (new) | 3 HR & Workplace | landing page | Lists the category's 5 tools with status and accuracy | หน้ารวมหมวด แสดงเครื่องมือ สถานะ และความแม่นยำ | — | tools/cat-data.cjs |
@@ -157,7 +158,7 @@ are added:
 | `cat-fortune.html` (new) | 6 Fortune & Auspicious Planning | landing page | Lists the category's 18 tools with status and accuracy | หน้ารวมหมวด แสดงเครื่องมือ สถานะ และความแม่นยำ | — | tools/cat-data.cjs |
 | `cat-studio.html` (new) | 7 Studio & Media | landing page | Lists the category's 4 tools with status and accuracy | หน้ารวมหมวด แสดงเครื่องมือ สถานะ และความแม่นยำ | — | tools/cat-data.cjs |
 
-Totals over the 65 existing pages: **53 product pages** — pilot-ready 13 · experimental 19 · demo 21 — and **12 support pages** (directory, notices, information, legal, account; no readiness status, not counted with the products).
+Totals over the 66 existing pages: **54 product pages** — pilot-ready 13 · experimental 20 · demo 21 — and **12 support pages** (directory, notices, information, legal, account; no readiness status, not counted with the products).
 
 Per category (tools; booth counts in 4 and 7):
 

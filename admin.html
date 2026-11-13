@@ -176,6 +176,7 @@
       <button type="button" role="tab" data-tab="retention" aria-selected="false">การเก็บรักษาข้อมูล</button>
       <button type="button" role="tab" data-tab="fsources" aria-selected="false" data-i18n="adf.tab">แหล่งอ้างอิงดูดวง</button>
       <button type="button" role="tab" data-tab="merit" aria-selected="false" data-i18n="am.tab">คำแนะนำตามความเชื่อ</button>
+      <button type="button" role="tab" data-tab="tryon" aria-selected="false" data-i18n="at.tab">แคตตาล็อกลองสินค้า</button>
     </nav>
 
     <div class="ad-panel" data-panel="analytics" role="tabpanel">
@@ -404,6 +405,12 @@
         <form id="arForm" class="ad-row" autocomplete="off" novalidate>
           <label><span data-i18n="ar.user">ชื่อผู้ใช้ของผู้ตรวจ</span>
             <input name="username" maxlength="64" autocapitalize="none" spellcheck="false" autocomplete="off"></label>
+          <label><span data-i18n="ar.roleL">บทบาท</span>
+            <select name="role">
+              <option value="merit" data-i18n="ar.role.merit">ผู้ตรวจคำแนะนำตามความเชื่อ</option>
+              <option value="tryon_admin" data-i18n="ar.role.tryon_admin">ผู้ดูแลแคตตาล็อกลองสินค้า</option>
+              <option value="tryon_editor" data-i18n="ar.role.tryon_editor">ผู้แก้ไขแคตตาล็อกลองสินค้า</option>
+            </select></label>
           <button class="ad-btn" type="button" id="arCreate" data-i18n="ar.create">สร้างบัญชีและลิงก์ตั้งค่า</button>
         </form>
         <div id="arLinkBox" hidden>
@@ -529,15 +536,69 @@
         <div id="amIntList"></div>
       </div>
     </div>
+
+    <!-- Try-On MVP catalogue (backend/src/tryon.js; docs/TRYON-DESIGN.md T2 subset). Owner + tryon_admin publish / hide /
+         delete; tryon_editor drafts and sends for review. Images: garment cut-outs only, Product Check face blur on this
+         device before upload (admin-tryon.js). TH default; EN / ZH in i18n/en-admin.js, i18n/zh-admin.js (at.*) -->
+    <div class="ad-panel" data-panel="tryon" role="tabpanel" hidden>
+      <div class="ad-card">
+        <h2 data-i18n="at.h">แคตตาล็อกลองสินค้า (Try-On)</h2>
+        <p class="ad-muted" data-i18n="at.intro">สินค้าที่เผยแพร่แล้วจะแสดงในหน้าลองสินค้า (tryon.html) ลูกค้าลองบนภาพกล้องสดบนเครื่องของตนเอง
+          เก็บเฉพาะภาพสินค้าที่ตัดพื้นหลังแล้ว ไม่เก็บภาพลูกค้าหรือนายแบบ ระบบเบลอใบหน้าในภาพบนเครื่องนี้ก่อนอัปโหลดทุกครั้ง
+          ไม่มีหมวดชุดชั้นใน ชุดว่ายน้ำ หรือชุดนอน</p>
+        <p class="ad-muted" id="atStore" role="status"></p>
+        <div class="ad-row"><button class="ad-btn" type="button" id="atNew" data-i18n="at.new">เพิ่มสินค้าใหม่</button></div>
+        <div id="atList" class="am-list"></div>
+      </div>
+      <div class="ad-card" id="atEdit" hidden>
+        <h2 id="atEditH" data-i18n="at.edit.h">รายละเอียดสินค้า</h2>
+        <form id="atForm" class="ad-form" autocomplete="off" novalidate>
+          <label><span data-i18n="at.f.cat">หมวด</span> <select name="category" id="atCat"></select></label>
+          <p class="ad-muted" id="atCatNote"></p>
+          <label><span data-i18n="at.f.th">ชื่อสินค้า (ไทย)</span> <input name="name_th" maxlength="120" required></label>
+          <label><span data-i18n="at.f.en">ชื่อสินค้า (อังกฤษ ไม่บังคับ)</span> <input name="name_en" maxlength="120"></label>
+          <label><span data-i18n="at.f.zh">ชื่อสินค้า (จีน ไม่บังคับ)</span> <input name="name_zh" maxlength="120"></label>
+          <label><span data-i18n="at.f.price">ราคา (บาท)</span> <input name="price" inputmode="decimal"></label>
+          <label><span data-i18n="at.f.sale">ราคาลด (บาท ไม่บังคับ)</span> <input name="sale_price" inputmode="decimal"></label>
+          <label class="ad-check"><input type="checkbox" name="vat_included" checked> <span data-i18n="at.f.vat">ราคารวม VAT แล้ว</span></label>
+          <label><span data-i18n="at.f.sizes">ไซซ์ (คั่นด้วยจุลภาค)</span> <input name="sizes" placeholder="S, M, L"></label>
+          <label><span data-i18n="at.f.colours">สี (ชื่อ:#รหัสสี คั่นด้วยจุลภาค)</span> <input name="colours" placeholder="ดำ:#111111, ขาว:#ffffff"></label>
+          <label><span data-i18n="at.f.url">ลิงก์หน้าสินค้า (https)</span> <input name="product_url" inputmode="url"></label>
+          <label><span data-i18n="at.f.notes">บันทึกภายในร้าน (ไม่แสดงต่อลูกค้า)</span> <textarea name="notes" rows="2" maxlength="2000"></textarea></label>
+          <label><span data-i18n="at.f.status">สถานะ</span> <select name="status" id="atStatus"></select></label>
+          <p class="ad-alert ad-bad" id="atErr" role="alert" hidden></p>
+          <div class="ad-row">
+            <button class="ad-btn" type="submit" id="atSave" data-i18n="at.save">บันทึก</button>
+            <button class="ad-btn ad-ghost" type="button" id="atCancel" data-i18n="at.cancel">ยกเลิก</button>
+          </div>
+        </form>
+        <div id="atImgBox" hidden>
+          <h3 data-i18n="at.img.h">ภาพสินค้า (ตัดพื้นหลัง)</h3>
+          <p class="ad-muted" data-i18n="at.img.p">ใช้ภาพสินค้าวางราบหรือบนไม้แขวนบนพื้นเรียบ ไม่มีคน ระบบย่อภาพบนเครื่องนี้ หาใบหน้าและเบลอก่อนอัปโหลด
+            ภาพที่ส่งออกไปคือภาพหลังเบลอเท่านั้น</p>
+          <label><span data-i18n="at.img.file">เลือกภาพ (PNG, WebP หรือ JPEG ไม่เกิน 10 MB)</span>
+            <input type="file" id="atFile" accept="image/png,image/webp,image/jpeg"></label>
+          <label class="ad-check"><input type="checkbox" id="atCut" checked> <span data-i18n="at.img.cut">ตัดพื้นหลังเรียบออกอัตโนมัติ</span></label>
+          <p class="ad-muted" id="atBlurInfo" role="status"></p>
+          <canvas id="atPrev" class="at-prev" hidden></canvas>
+          <label class="ad-check"><input type="checkbox" id="atNoFace"> <span data-i18n="at.img.noFace">ตรวจแล้ว: ไม่มีใบหน้าหรือคนเหลืออยู่ในภาพ</span></label>
+          <button class="ad-btn" type="button" id="atUpload" disabled data-i18n="at.img.upload">อัปโหลดภาพนี้</button>
+        </div>
+      </div>
+    </div>
   </section>
   <p id="adMsg" class="ad-msg" role="status" aria-live="polite"></p>
 </main>
-<script src="i18n/zh-admin.js?v=6"></script>
+<script src="i18n/zh-admin.js?v=7"></script>
 <script src="lensiq-i18n.js?v=1"></script>
 <script src="attendance-qr.js?v=1"></script>
 <script src="lensiq-api.js?v=2"></script>
 <script src="lensiq-config.js?v=10"></script>
 <script src="fortune-sources.js?v=2"></script>
-<script src="admin.js?v=8"></script>
+<script src="admin.js?v=9"></script>
+<script src="lensiq-pc.js?v=1"></script>
+<script src="lensiq-pc-run.js?v=2"></script>
+<script src="studio-core.js?v=7"></script>
+<script src="admin-tryon.js?v=1"></script>
 </body>
 </html>
