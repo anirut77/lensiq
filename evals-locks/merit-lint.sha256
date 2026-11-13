@@ -1,0 +1,4 @@
+# Merit lint SARA AM fix (stream D1 finding, 2026-11-13). Fixed tests locked BEFORE lensiq-merit-lint.js was changed.
+# Branch merit-lint-sara-am, base 2789d73. Paths relative to the repo root. A changed hash means the test was edited after locking.
+# State at locking: S1, S2, S4, S5 fail (the bug); S3 (no false positives) and S6 (nothing weakened) pass.
+27a0b5634dc1b3aa9ea2f275e018f5c96ed5098684eee9f26f0f172fb3adfe3b  tests/unit/merit-lint-sara-am.test.js
