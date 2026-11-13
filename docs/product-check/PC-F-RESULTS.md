@@ -128,3 +128,63 @@ storage or send; now a unit test); stale ticks after a scene cut also happen on 
 - Hold-out sets are synthetic; real OCR of real Japanese / Korean labels is not measured.
 - New CJK honorific and kinship rules can remove ordinary words on packs (3 / 54 product labels on hold-out 2).
 - The live-scan change is not measured for latency yet.
+
+## 7. Stream F2 (branch `pc-f2`, 2026-11-13/14): guard speed, latency harness, names without a field word
+
+> Coordinator's order after the pc-f merge: no change to one-tap, the card figure or any spend (owner decisions 1-3 pending).
+> Source of every number: synthetic. Locks appended to `evals-locks/pc-f.sha256` (reasons for each re-lock in the file).
+
+สรุป (ไทย): ตัวกันชื่อทำงานเร็วขึ้นแบบเส้นตรงแล้ว (ข้อความเบอร์โทรยาว 8,000 ตัวอักษร จากหลายนาทีเหลือราว 0.05 วินาที ผลการตัดสินเหมือนเดิมทุกข้อความ)
+เครื่องมือวัดเวลาสแกนสดแก้และล็อกใหม่แล้ว ยังไม่ได้วัด (เครื่องยังถูกใช้หนัก) รอบชื่อที่ไม่มีคำบอก: ชุดอิสระใหม่ (ชุดที่ 3 เน้นชื่อเปล่าบนกล่องสินค้า)
+ข้อความส่วนตัวถึง AI จาก main **61 → 55** (ข้อความ) **57 → 50** (ภาพ) **48 → 26** (แตะครั้งเดียว) ยังห่างเป้า 0 มาก ชื่อเปล่าบนกล่องเกือบทั้งหมดกฎจับไม่ได้
+
+### 7.1 Guard speed (a)
+
+- Cause (independent review of pc-f): phone stretches tried pairwise on a run of groups, the maker-block check re-read per phone,
+  `\d+…` / e-mail / road-word patterns re-scanned from every character, `^\s*` and `\n\s*` across new lines, and a lookbehind
+  run at every position (`name:` cue). All rewritten to equivalent linear forms.
+- Same answers: main vs the speed commit `6021ade`: 0 of 1,773 fixed texts and 0 of 1,517 JA / KO / P7 / P7b items changed.
+- 8,000 characters of "010-1234-5678 " on one line: main 88-175 s (loaded machine), branch about 53 ms (CPU, fastest of 7).
+- Locked relative test `tests/unit/pc-guard-complexity.test.js` (16 adversarial shapes; 8x text must cost ≤ 24x CPU time, and
+  ≤ 25x an ordinary label of the same length). On main it times out (> 180 s; `~/LENSIQ-field/evals/pc-f/complexity-on-main-5ef01b5.log`).
+  Two re-locks: measurement method (warm-up, then CPU time, interleaved, fastest of 7: wall-clock runs spread 5-176 ms at load
+  10-40) and 5 more shapes from the review; the bounds never changed.
+
+### 7.2 Latency harness (b)
+
+`~/LENSIQ-field/evals/pc-f/live/live-latency.mjs` v2: the wait for the "point at the label" hint between trials was 30 s while the
+previous view's readings still ran; now 120 s / 240 s at 4x. Nothing else changed (v1 kept). **Not run**: load stayed 10-40.
+
+### 7.3 Names without a field word (c, option ค)
+
+Fresh hold-out 3 (`holdout-jako-3/`, 201 items, 205 personal values, 140 of them with no cue; independent agent; sha256
+`57c98929…`, locked before the guard round). Rules added: class / group lines, family word + full name, a given name before
+할머니 / 할아버지, "to" lines (〜へ, 〜에게), spaced kana full-name lines, more person words (送り主, 注文者, 회원명, 원아, 이름은,
+Name …), LINE / KakaoTalk IDs, member numbers, phones read with OCR letters; short bare kana / Korean name lines and a name before
+a dose only stop the tester one-tap (preview highlight, nothing removed).
+
+| Hold-out 3 (n = 201 / 205 values) | main `5ef01b5` | `f218dbf` (first measurement) | `e1549ff` (after the review fixes) | Target |
+|---|---|---|---|---|
+| Values reaching AI, text mode | 61 | 52 | **55** | 0 (missed) |
+| Image mode | 57 | 47 | **50** | 0 (missed) |
+| Tester one-tap | 48 | 23 | **26** | 0 (missed) |
+| Recall, all values [95 %] | 0.385 [0.32-0.45] | 0.454 | **0.429** [0.36-0.50] | reported |
+| Values without a cue removed (of 140) | 24 | 38 | **33** | reported |
+| Recall, cued values (n = 65) | 0.846 | 0.846 | 0.846 | ≥ 0.90 (missed) |
+| Products refused / false redaction (n = 70) | 0 / 7 | 0 / 8 | **0 / 7** | 0 added |
+
+The `e1549ff` column is a second run on hold-out 3, after fixes driven by the independent reviewer's findings on other texts (not
+tuned on hold-out 3). It gives back part of the gain (Korean class lines now need a nursery / school word; kanji-only two-word
+lines are no longer names) to stop false removals on Chinese and Korean packs. Every measure is still better than main. Dev sets
+(hold-outs 1 and 2, now dev): hold-out 2 text leaks 7 → 1.
+
+Regression (synthetic): P7 / P7b locked sets 0/260, 0/614 (text, image, single, merged); 1,773 fixed texts vs main: 3 changed, all
+added removals, no gate decision; unit `pc-*` + `backend-pc-*` 244/244.
+
+Independent review of F2 (re-measured every claim: all match): blocker (a Korean given name starting like a family word, 형숙, lost
+its removal) fixed with a test; false removals on Chinese / Korean packs fixed; remaining quadratic shapes (spaces, road words)
+fixed and added to the locked test. Note: one-tap now also stops on short kana product words ("のどあめ"); preview only.
+
+**Conclusion for the owner:** rules cannot find most bare names written on a pack (107 of 140 still missed on hold-out 3). Zero
+leaks on Japanese / Korean labels needs a control that does not depend on finding the name, for example option ข of decision 1
+(no tester one-tap on Japanese / Korean script) plus always the preview, or no photo, for Japanese / Korean labels.
