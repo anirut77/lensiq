@@ -3,12 +3,15 @@
 // Every fixed test / eval set lives in ~/LENSIQ-field/evals/<phase>/ and its sha256 is committed in the repo
 // (evals-locks/<phase>.sha256) BEFORE any measurement. Every measuring harness calls assertLocked() first; it refuses
 // unless each input file is under ~/LENSIQ-field/evals/<phase>/ (symlinks resolved; no temp folder, scratchpad or
-// worktree), its sha256 is listed in evals-locks/<phase>.sha256, and that file is committed with no uncommitted change.
+// worktree), its sha256 is listed in the COMMITTED evals-locks/<phase>.sha256 (read from HEAD), and that file has no
+// uncommitted change.
 //   node tools/eval-guard.mjs check <phase> <files...>   exit 0 = locked and committed, 1 = refused (reasons on stderr)
-//   node tools/eval-guard.mjs lock  <phase> <files...>   append the hashes to ~/LENSIQ-field/evals/<phase>/locked.sha256
-//                                                        and evals-locks/<phase>.sha256, print the git command to commit
-// <phase> = the folder under ~/LENSIQ-field/evals; nested folders as a__b (evals/nutrition/v5 -> nutrition__v5).
-// <files> = absolute, or relative to ~/LENSIQ-field/evals/<phase>/. Docs: docs/EVAL-LOCKS.md.
+//   node tools/eval-guard.mjs lock  <phase> <files...>   append "# locked <UTC>" + "<sha256>  <path>" lines to
+//                                                        evals-locks/<phase>.sha256, then ~/LENSIQ-field/evals/<phase>/locked.sha256;
+//                                                        prints the git command to commit
+// <phase> = the folder under ~/LENSIQ-field/evals, lowercase; nested folders as a__b (evals/nutrition/v5 -> nutrition__v5).
+// <files> = absolute, or relative to ~/LENSIQ-field/evals/<phase>/. Lock lines: only "^<sha256><space>..." lines count.
+// Docs: docs/EVAL-LOCKS.md.
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, realpathSync, statSync } from "node:fs";
@@ -18,8 +21,9 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 export const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const EVALS_ROOT = join(homedir(), "LENSIQ-field", "evals");
-const PHASE_RE = /^[A-Za-z0-9][A-Za-z0-9._-]*(__[A-Za-z0-9][A-Za-z0-9._-]*)*$/;
-const HASH_RE = /\b[0-9a-f]{64}\b/g;
+const SHOWN_ROOT = "~/" + relative(homedir(), EVALS_ROOT).split(sep).join("/");
+const SEGMENT_RE = /^[a-z0-9][a-z0-9._-]*$/;
+const LINE_RE = /^([0-9a-f]{64})\s+(\S.*)$/;
 
 /** @param {string} p @returns {string} */
 const real = p => { try { return realpathSync(p); } catch { return resolve(p); } };
@@ -31,8 +35,19 @@ const utcNow = () => new Date().toISOString().replace(/\.\d+Z$/, "Z");
 
 /** @param {string} phase */
 function checkPhase(phase) {
-  if (typeof phase !== "string" || !PHASE_RE.test(phase)) {
-    throw new Error(`eval-guard: invalid phase "${phase}" (a folder name under ~/LENSIQ-field/evals; nested folders as a__b)`);
+  const bad = (/** @type {string} */ why) => new Error(`eval-guard: invalid phase "${phase}": ${why} (a folder name under ${SHOWN_ROOT}; nested folders as a__b)`);
+  if (typeof phase !== "string" || !phase) throw bad("empty");
+  if (phase !== phase.toLowerCase()) throw bad("phase names must be lowercase");
+  if (phase.includes("___")) throw bad("three underscores in a row");
+  for (const seg of phase.split("__")) {
+    if (!SEGMENT_RE.test(seg) || seg.endsWith("_") || seg === "." || seg === "..") throw bad(`bad folder segment "${seg}"`);
+  }
+}
+
+/** root / repo overrides exist for the unit tests only (node --test sets NODE_TEST_CONTEXT) @param {{root?: string, repo?: string}} opts */
+function checkOverrides(opts) {
+  if ((opts.root || opts.repo) && !process.env.NODE_TEST_CONTEXT) {
+    throw new Error("eval-guard: the root / repo options are for tests only; harnesses use the real evals folder and this repo");
   }
 }
 
@@ -61,26 +76,26 @@ export function forbiddenLocation(p) {
   return null;
 }
 
-/** hashes listed in a lock file (comment lines and text after " #" do not count) -> Map(hash -> paths) @param {string} text */
+/**
+ * Hashes of a lock file -> Map(hash -> paths). Only lines that START with a sha256 followed by whitespace count; the path
+ * is the next token. Comment lines, "LOCK <hash>", "x#<hash>" and further hashes on the same line do not count.
+ * @param {string} text
+ */
 export function parseLock(text) {
   /** @type {Map<string, string[]>} */ const out = new Map();
   for (const raw of text.split(/\r?\n/)) {
-    const line = raw.trim();
-    if (!line || line.startsWith("#")) continue;
-    const body = line.split(/\s#/)[0];
-    for (const m of body.matchAll(HASH_RE)) {
-      const after = body.slice((m.index || 0) + 64).trim().split(/\s+/)[0] || "";
-      const list = out.get(m[0]) || [];
-      list.push(after);
-      out.set(m[0], list);
-    }
+    const m = raw.match(LINE_RE);
+    if (!m) continue;
+    const list = out.get(m[1]) || [];
+    list.push(m[2].split(/\s+/)[0]);
+    out.set(m[1], list);
   }
   return out;
 }
 
 /** @param {string} repo @param {string[]} args */
 function gitRun(repo, args) {
-  try { return { ok: true, out: execFileSync("git", args, { cwd: repo, stdio: ["ignore", "pipe", "pipe"] }).toString() }; }
+  try { return { ok: true, out: execFileSync("git", args, { cwd: repo, stdio: ["ignore", "pipe", "pipe"], maxBuffer: 64 << 20 }).toString() }; }
   catch (e) { return { ok: false, out: String(/** @type {any} */ (e).stderr || "") }; }
 }
 
@@ -116,34 +131,35 @@ function resolveFiles(phase, files, opts) {
 
 /** @param {string} phase @param {string[]} problems */
 const refuse = (phase, problems) => new Error(`eval-guard: refusing to measure phase "${phase}":\n  - ${problems.join("\n  - ")}\n` +
-  `  Rule: the set lives in ~/LENSIQ-field/evals/<phase>/ and its sha256 is committed in evals-locks/<phase>.sha256 BEFORE measuring` +
+  `  Rule: the set lives in ${SHOWN_ROOT}/<phase>/ and its sha256 is committed in evals-locks/<phase>.sha256 BEFORE measuring` +
   ` (docs/EVAL-LOCKS.md).`);
 
 /**
- * Refuse to measure unless every file is in ~/LENSIQ-field/evals/<phase>/ and its sha256 is in the committed
- * evals-locks/<phase>.sha256. Throws an Error naming everything that is missing.
+ * Refuse to measure unless every file is in ~/LENSIQ-field/evals/<phase>/ and its sha256 is in evals-locks/<phase>.sha256
+ * as committed at HEAD (no uncommitted change). Throws an Error naming everything that is missing.
  * @param {string} phase @param {string[]} files @param {{root?: string, repo?: string}} [opts] (root / repo: tests only)
  * @returns {{phase: string, files: {path: string, sha256: string}[], lockFile: string, lockCommit: string}}
  */
 export function assertLocked(phase, files, opts = {}) {
   checkPhase(phase);
+  checkOverrides(opts);
   const repo = opts.repo || REPO;
   const { ok, problems } = resolveFiles(phase, files, opts);
   const rel = `evals-locks/${phase}.sha256`;
-  const lockPath = join(repo, rel);
-  /** @type {Map<string, string[]>} */ let locked = new Map();
+  /** @type {Map<string, string[]> | null} */ let locked = null;
   let lockCommit = "";
-  if (!existsSync(lockPath)) problems.push(`${rel} does not exist in the repo (run: node tools/eval-guard.mjs lock ${phase} <files>, then commit it)`);
+  if (!existsSync(join(repo, rel))) problems.push(`${rel} does not exist in the repo (run: node tools/eval-guard.mjs lock ${phase} <files>, then commit it)`);
+  else if (!gitRun(repo, ["ls-files", "--error-unmatch", "--", rel]).ok) problems.push(`${rel} is not committed (git add + git commit it before measuring)`);
+  else if (!gitRun(repo, ["diff", "--quiet", "HEAD", "--", rel]).ok) problems.push(`${rel} has uncommitted changes (commit them before measuring)`);
   else {
-    locked = parseLock(readFileSync(lockPath, "utf8"));
-    if (!gitRun(repo, ["ls-files", "--error-unmatch", "--", rel]).ok) problems.push(`${rel} is not committed (git add + git commit it before measuring)`);
-    else if (!gitRun(repo, ["diff", "--quiet", "HEAD", "--", rel]).ok) problems.push(`${rel} has uncommitted changes (commit them before measuring)`);
-    else lockCommit = gitRun(repo, ["log", "-1", "--format=%h", "--", rel]).out.trim();
+    const head = gitRun(repo, ["show", `HEAD:${rel}`]);
+    if (!head.ok) problems.push(`${rel} could not be read from HEAD: ${head.out.trim()}`);
+    else { locked = parseLock(head.out); lockCommit = gitRun(repo, ["log", "-1", "--format=%h", "--", rel]).out.trim(); }
   }
   /** @type {{path: string, sha256: string}[]} */ const out = [];
   for (const f of ok) {
     const h = sha256(readFileSync(f.path));
-    if (existsSync(lockPath) && !locked.has(h)) problems.push(`${f.arg}: sha256 ${h} is not in ${rel} (changed after locking, or never locked)`);
+    if (locked && !locked.has(h)) problems.push(`${f.arg}: sha256 ${h} is not in ${rel} at HEAD (changed after locking, or never locked)`);
     out.push({ path: f.path, sha256: h });
   }
   if (problems.length) throw refuse(phase, problems);
@@ -151,26 +167,37 @@ export function assertLocked(phase, files, opts = {}) {
 }
 
 /**
- * Lock files of a phase: append "sha256  relative-path  # locked <UTC>" to ~/LENSIQ-field/evals/<phase>/locked.sha256 and
- * evals-locks/<phase>.sha256 (append-only) and print the git command that commits the repo copy.
+ * Lock files of a phase: append a "# locked <UTC>" comment line and one "<sha256>  <relative-path>" line per file (no
+ * trailing comment: readers take the rest of the line as the name) to evals-locks/<phase>.sha256 FIRST, then to
+ * ~/LENSIQ-field/evals/<phase>/locked.sha256 (append-only). Fails loudly when either write fails. Prints the git command.
  * @param {string} phase @param {string[]} files @param {{root?: string, repo?: string, log?: (m: string) => void}} [opts]
  */
 export function lock(phase, files, opts = {}) {
   checkPhase(phase);
+  checkOverrides(opts);
   const repo = opts.repo || REPO, log = opts.log || console.log;
   const { dirReal, ok, problems } = resolveFiles(phase, files, opts);
   if (problems.length) throw new Error(`eval-guard: refusing to lock phase "${phase}":\n  - ${problems.join("\n  - ")}`);
   const t = utcNow();
   const items = ok.map(f => ({ path: f.path, rel: relative(dirReal, f.path).split(sep).join("/"), sha256: sha256(readFileSync(f.path)) }));
-  const lines = items.map(i => `${i.sha256}  ${i.rel}  # locked ${t}\n`).join("");
+  const block = `# locked ${t} (tools/eval-guard.mjs lock, ${items.length} file${items.length === 1 ? "" : "s"})\n` +
+    items.map(i => `${i.sha256}  ${i.rel}\n`).join("");
   /** @param {string} file */
   const append = file => {
     const prev = existsSync(file) ? readFileSync(file, "utf8") : "";
-    appendFileSync(file, (prev && !prev.endsWith("\n") ? "\n" : "") + lines);
+    appendFileSync(file, (prev && !prev.endsWith("\n") ? "\n" : "") + block);
   };
-  append(join(dirReal, "locked.sha256"));
-  mkdirSync(join(repo, "evals-locks"), { recursive: true });
-  append(join(repo, "evals-locks", `${phase}.sha256`));
+  const repoFile = join(repo, "evals-locks", `${phase}.sha256`), fieldFile = join(dirReal, "locked.sha256");
+  try {
+    mkdirSync(join(repo, "evals-locks"), { recursive: true });
+    append(repoFile);
+  } catch (e) {
+    throw new Error(`eval-guard: could not write the repo copy evals-locks/${phase}.sha256 (${/** @type {any} */ (e).message}); nothing was locked`);
+  }
+  try { append(fieldFile); } catch (e) {
+    throw new Error(`eval-guard: the repo copy evals-locks/${phase}.sha256 was appended, but writing ${fieldFile} failed ` +
+      `(${/** @type {any} */ (e).message}). Fix the permission and append the same lines there by hand; do not commit until both match.`);
+  }
   const git = `cd "${repo}" && git add evals-locks/${phase}.sha256 && git commit -m "evals-locks: lock ${phase} (${items.length} files)"`;
   log(`eval-guard: locked ${items.length} file(s) of phase "${phase}" at ${t}:\n` + items.map(i => `  ${i.sha256}  ${i.rel}`).join("\n") +
     `\nNow commit the repo copy BEFORE measuring:\n  ${git}`);

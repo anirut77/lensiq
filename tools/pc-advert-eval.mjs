@@ -30,7 +30,7 @@ import { createRequire } from "node:module";
 import { homedir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { assertLocked, phaseOf } from "./eval-guard.mjs";
+import { assertLocked, EVALS_ROOT, phaseOf } from "./eval-guard.mjs";
 import { assertOutsideRepo, REPO, score, sha256File, wilson } from "./pc-claims-eval.mjs";
 
 const req = createRequire(import.meta.url);
@@ -161,7 +161,15 @@ function main() {
   const log = resolve(opt("--log", join(homedir(), "LENSIQ-field", "evals", "adverts", "dev-runs.jsonl")) || "");
   if (args.includes("--fresh")) return mainFresh(args, opt, log);
   /** @type {any} */ let res;
-  try { assertOutsideRepo(dir); assertOutsideRepo(log); assertNotLocked(dir); res = runDev(dir); } catch (e) { console.error(String(/** @type {any} */ (e).message || e)); process.exit(2); }
+  try {
+    assertOutsideRepo(dir); assertOutsideRepo(log); assertNotLocked(dir);
+    // eval-guard (owner rule 2026-11-13): a dev set kept in the evals folder must be locked and committed like any other set
+    if ((resolve(dir) + "/").startsWith(EVALS_ROOT + "/")) {
+      const g = assertLocked(phaseOf(dir), ["set.jsonl", "split.json"]);
+      console.error(`eval-guard OK: phase ${g.phase}, ${g.files.length} files in ${g.lockFile} (commit ${g.lockCommit})`);
+    }
+    res = runDev(dir);
+  } catch (e) { console.error(String(/** @type {any} */ (e).message || e)); process.exit(2); }
   const hashes = { rules_sha256: sha256File(join(REPO, "lensiq-claims-rules.js")), engine_sha256: sha256File(join(REPO, "lensiq-claims.js")) };
   /** @type {Record<string, any>} */ const summary = { at: new Date().toISOString(), source: SOURCE, data: basename(dir), split: "dev", texts: res.texts, ...hashes };
   for (const m of MODES) {
