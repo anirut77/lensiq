@@ -122,8 +122,9 @@ export default async function ({ base, launch, check }) {
       assert(await page.evaluate(() => !document.querySelector("#gkTick").hidden), "tick buttons shown during the check");
       // the guard corrects it (counts as ✗) and confirms the entry
       await page.evaluate(() => { const p = document.querySelector("#gkPlate"); p.value = "กข 1284"; p.dispatchEvent(new Event("input")); document.querySelector('[data-act="in"]').click(); });
-      // same plate again within the debounce window is skipped
-      await sleep(2200);
+      // same plate again within the debounce window is skipped (owner decision 2026-11-13, option ก: wait until the
+      // "ป้ายเดิม" status appears, at most 8 s, instead of a fixed 2.2 s; the assertion below is unchanged)
+      await page.waitFor(`/ป้ายเดิม/.test(document.querySelector("#gkStatus").textContent)`, 8000);
       const st = await page.evaluate(() => ({ v: document.querySelector("#gkPlate").value, s: document.querySelector("#gkStatus").textContent }));
       assert(st.v === "" && /ป้ายเดิม/.test(st.s), "debounced " + JSON.stringify(st));
       await page.evaluate(() => { window.__plate = { text: "ขข 55", conf: 0.92, province: "bangkok" }; });
