@@ -21,7 +21,6 @@ const L = require(join(ROOT, "lensiq-merit-lint.js"));
 
 const SA = "ำ";          // ำ
 const NIK = "ํ", AA = "า";
-const TONES = ["่", "้", "๊", "๋"];
 // phrase (written with U+0E33), expected code
 const CASES = [
   ["ถ้าไม่ทำบุญ", "fear"],
@@ -74,13 +73,11 @@ test("S2: disguises around SARA AM are caught", () => {
       ["leading emoji-free noise", "***" + p + "***"]
     ]) assert.ok(codes(text).includes(code), `${p} (${label}) -> ${code}; got ${JSON.stringify(codes(text))}`);
   }
-  // a tone mark in any position next to the decomposed vowel
-  for (const t of TONES) {
-    const w = "ล" + "ด" + "น" + t + NIK + AA + "หนัก";
-    const w2 = "ล" + "ด" + "น" + NIK + t + AA + "หนัก";
-    assert.ok(codes(w).includes("health"), "tone " + t.charCodeAt(0).toString(16) + " before nikhahit");
-    assert.ok(codes(w2).includes("health"), "tone " + t.charCodeAt(0).toString(16) + " after nikhahit");
-  }
+  // the tone mark ไม้โท (U+0E49) before or after the decomposed vowel (the word ลดน้ำหนัก needs exactly this tone mark)
+  const w = "ลดน" + "\u0E49" + NIK + AA + "หนัก";
+  const w2 = "ลดน" + NIK + "\u0E49" + AA + "หนัก";
+  assert.ok(codes(w).includes("health"), "tone before nikhahit");
+  assert.ok(codes(w2).includes("health"), "tone after nikhahit");
 });
 
 test("S3: ordinary Thai text with SARA AM stays clean", () => {
