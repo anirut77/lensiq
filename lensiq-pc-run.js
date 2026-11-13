@@ -146,7 +146,11 @@
     for (const line of P.sortLines(det.boxes).slice(0, o.maxLines || 80)) {
       const parts = [];
       for (const b of line) { const r = await recognize(src, b, script); if (r.text.trim()) parts.push({ ...r, box: b }); }
-      if (parts.length) lines.push({ text: parts.map(p => p.text.trim()).join(" "), conf: Math.min(...parts.map(p => p.conf)), boxes: parts.map(p => p.box) });
+      if (parts.length) {
+        lines.push({ text: parts.map(p => p.text.trim()).join(" "), conf: Math.min(...parts.map(p => p.conf)), boxes: parts.map(p => p.box) });
+        // progressive reading (live scan, stream F): the lines read so far, so the checklist can tick before the last line
+        if (o.onLine) { try { o.onLine(lines.slice()); } catch { /* the caller's problem, never the OCR's */ } }
+      }
     }
     const t2 = now();
     return { script, boxes: det.boxes, lines, text: lines.map(l => l.text).join("\n"), ms: { det: t1 - t0, rec: t2 - t1, total: t2 - t0 } };
