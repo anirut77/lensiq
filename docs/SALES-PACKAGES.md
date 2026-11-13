@@ -7,7 +7,8 @@
 > listed in section C and need a lawyer before any of this is offered.
 >
 > All prices are in THB and **excl. 7% VAT** ("ไม่รวม VAT 7%" / "不含 7% 增值税"); the customer pays the figure + 7%.
-> Yearly = 10 × monthly (BILLING-PLAN rule). "Pilot stage" applies now; "after pilot" applies to a site only once it
+> **Price labels (owner decision 2026-11-13, option B):** both levels are shown everywhere, clearly labelled, excl. 7% VAT: "pilot price" and "regular price after the pilot thresholds are met" (written "regular" in the dense lists below). Quotations use the pilot price and show the regular price beside it. No number changed.
+> Yearly = 10 × monthly (BILLING-PLAN rule). "Pilot price" applies now; the "regular price after the pilot thresholds are met" applies to a site only once it
 > has passed the thresholds in its pilot kit (`docs/pilot/PILOT-*.md`). Written 2026-11-09, round 16.
 >
 > **Owner decisions of 2026-11-13 that apply to this file:** payment is by bank transfer only (no PromptPay QR, card or Opn); the owner issues receipts from the template and the system does not number them (questions for the accountant: `docs/sales/ACCOUNTANT-QUESTIONS-TH.md`); the business products have a limited free tier (Gate 30-day trial, 1 lane, 100 plates per day · Attendance up to 5 people · Exam up to 5 candidates per session · Crowd 2 hours per device per day) and a licence is needed beyond it. The limits are not enforced in the product yet: they apply from a date to be announced with at least 30 days' notice, and the owner enforces them by contract (a limit on the user's device can be bypassed by someone who edits the code; the contract binds). The bundle and partner prices below are unchanged by this decision.
@@ -32,7 +33,7 @@ Standing rules that every package below inherits (CLAUDE.md):
 
 | Part | Approved line used | What the institution gets |
 |---|---|---|
-| **Exam** | Institution licence (`exam_institution`) | Whole-institution licence, unlimited rooms, computer-room / online mode (`exam-lab.html`) and camera-hall mode (`exam-hall.html`, **experimental, not sold until the small-face issue is fixed**: owner decision 2026-11-10, `docs/exam/FACE-ENGINE-RESULTS.md` §7), invigilator dashboard, invigilator training. Pilot stage covers up to 1,000 candidates. |
+| **Exam** | Institution licence (`exam_institution`) | Whole-institution licence, unlimited rooms, computer-room / online mode (`exam-lab.html`) and camera-hall mode (`exam-hall.html`, **experimental, not sold until the small-face issue is fixed**: owner decision 2026-11-10, `docs/exam/FACE-ENGINE-RESULTS.md` §7), invigilator dashboard, invigilator training. The pilot price covers up to 1,000 candidates. |
 | **Attendance** | Standard (`attendance_employee`), yearly = 10 × monthly | Staff time attendance with PIN / QR by default (face optional, with consent), shifts, OT, holidays, payroll CSV. Training / event check-in mode is on the same page. |
 | **Crowd** | Event day / event week (`crowd_event_day`, `crowd_event_week`) as a yearly allowance | Zone counts, entry / exit line and density estimate for open days, graduation, exam-hall entrances and canteens, sparse to medium crowds only. **Crowd monthly is not in the bundle**: it waits for a fixed-site pilot (owner decision 4). |
 | Set-up (optional) | Attendance set-up help (`attendance_setup`) | Shift tables, payroll CSV mapping, DPIA template filled with the institution. |
@@ -55,7 +56,7 @@ bundle = Exam institution licence
 **Worked example S — a school or one faculty:** ≤ 1,000 candidates a year, 30 staff on time attendance, Crowd for
 2 event weeks (open house, graduation week) and 4 single event days.
 
-| Line | Pilot stage (now) | After pilot |
+| Line | Pilot price (now) | Regular price after the pilot thresholds are met |
 |---|---|---|
 | Exam institution licence | 19,900 | 30,000 (low end of 30,000–120,000 "by size") |
 | Attendance 30 staff × 10 months | 30 × 19 × 10 = 5,700 (monthly 570 ≥ minimum 190) | 30 × 29 × 10 = 8,700 (monthly 870 ≥ minimum 290) |
@@ -66,21 +67,21 @@ bundle = Exam institution licence
 | Total to pay incl. VAT | 35,245.80 | 53,992.20 |
 | Optional one-off set-up help | + 2,900 (+ 203 VAT) | + 4,900 (+ 343 VAT) |
 
-**Worked example L — a large faculty / small university (after pilot, upper end):** Exam 120,000 (top of the approved
+**Worked example L — a large faculty / small university (regular price after the pilot thresholds are met, upper end):** Exam 120,000 (top of the approved
 range) + Attendance 60 staff × 29 × 10 = 17,400 + Crowd 4 event weeks × 3,900 = 15,600 + 8 event days × 990 = 7,920
 → **160,920 excl. 7% VAT** (VAT 11,264.40; total 172,184.40).
 
 Notes on the arithmetic:
 
 - Each part can be at a different stage: Exam may have passed its pilot while Crowd has not. Each line uses its own
-  stage; the price of a part moves to "after pilot" only for the site that passed.
+  stage; the price of a part moves to "regular price after the pilot thresholds are met" only for the site that passed.
 - **No bundle discount is applied.** A bundle discount (for example 10% off the yearly total for all three parts) is
   a new pricing decision for the owner (question B-1 below), not part of the approved list.
 - Attendance today keeps data in the browser of each device (about 20 employees × 2 years per device,
   `docs/ATTENDANCE-READINESS.md`). Example S assumes 2 time clocks (e.g. two offices) merged with the built-in file
   export / import; example L assumes 3–4 time clocks merged the same way. Much larger staff numbers (or live
   multi-campus sync) need organisation accounts (item 4) before they are sold.
-- The Exam institution licence covers up to 1,000 candidates at the pilot-stage price; above that the after-pilot
+- The Exam institution licence covers up to 1,000 candidates at the pilot price; above that the regular-price
   "by size" range applies and must be quoted (the size bands inside 30,000–120,000 are not defined yet — owner
   question B-2).
 
@@ -98,12 +99,12 @@ Notes on the arithmetic:
 ### A.4 Pilot-first path
 
 1. **Free Exam field pilot** (1 institution, ≤ 4 weeks, ≤ 3 rooms; free in exchange for invigilator tallies;
-   `docs/pilot/PILOT-EXAM.md`). Attendance free tier (≤ 5 people) and a Crowd event day at pilot-stage price can run in
+   `docs/pilot/PILOT-EXAM.md`). Attendance free tier (≤ 5 people) and a Crowd event day at pilot price can run in
    the same period.
 2. Report the measured numbers per condition with their source ("field") to the institution.
-3. Year 1 at **pilot-stage** prices (example S: 32,940 excl. 7% VAT).
-4. A part moves to the after-pilot price at the next renewal only if that site passed its pilot thresholds; otherwise
-   it stays at the pilot-stage price.
+3. Year 1 at **pilot** prices (example S: 32,940 excl. 7% VAT).
+4. A part moves to the regular price after the pilot thresholds are met at the next renewal only if that site passed its pilot thresholds; otherwise
+   it stays at the pilot price.
 
 ### A.5 Thai public procurement fit (research 2026-11-09; **to be verified by a lawyer / procurement officer**)
 
@@ -186,13 +187,13 @@ statement: data stays on the institution's devices; LENSIQ receives no images an
 
 | | Partner sells and keeps 100% | LENSIQ licenses (monthly software, approved prices) |
 |---|---|---|
-| Gate | cameras, barriers, relays, poles, cabling, network, PCs / tablets at the guard post, installation labour, hardware warranty and maintenance | village / condo lane (pilot 490, after pilot 990 per lane per month; 1,990 for 3 lanes), car park lane (pilot 790, after pilot 1,490 per lane per month; PromptPay, receipts and shift close included), free 30-day trial |
-| Crowd | cameras, mounts, laptops / phones, network, on-site operation | event day (pilot 590, after pilot 990 per device), event week (pilot 2,490, after pilot 3,900 per device). **Monthly fixed-site Crowd is not sold** until a fixed-site pilot passes (owner decision 4); partners can register fixed-site leads for that pilot |
-| Set-up visit | a **certified** partner may perform the set-up visit and charge the approved set-up price (pilot 2,500, after pilot 3,000–5,000 per visit) if it submits the joint accuracy check sheet | uncertified partners: LENSIQ does the set-up visit and keeps the fee |
+| Gate | cameras, barriers, relays, poles, cabling, network, PCs / tablets at the guard post, installation labour, hardware warranty and maintenance | village / condo lane (pilot price 490, regular 990 per lane per month; 1,990 for 3 lanes), car park lane (pilot price 790, regular 1,490 per lane per month; PromptPay, receipts and shift close included), free 30-day trial |
+| Crowd | cameras, mounts, laptops / phones, network, on-site operation | event day (pilot price 590, regular 990 per device), event week (pilot price 2,490, regular 3,900 per device). **Monthly fixed-site Crowd is not sold** until a fixed-site pilot passes (owner decision 4); partners can register fixed-site leads for that pilot |
+| Set-up visit | a **certified** partner may perform the set-up visit and charge the approved set-up price (pilot price 2,500, regular 3,000–5,000 per visit) if it submits the joint accuracy check sheet | uncertified partners: LENSIQ does the set-up visit and keeps the fee |
 
 LENSIQ Gate is **assisted reading, the guard taps to confirm**. It does not open a barrier by itself: a relay may be
 wired only so that the **guard** presses Open after confirming. Barrier / relay integration beyond that is quoted
-separately after the pilot stage (`docs/PRICING-RESEARCH.md` §3.2).
+separately after the pilot (`docs/PRICING-RESEARCH.md` §3.2).
 
 ### B.3 Revenue share proposal (new — needs owner approval)
 
@@ -208,14 +209,14 @@ the number of paid lanes / Crowd devices the partner manages.
 | **Premier reseller** | ≥ 50 paid lanes / devices, gives first-line support (B.6) | 30% | partner does them and keeps the fee |
 
 Hard rules for the share: the customer price is always the approved list price (no partner mark-up on software; any
-discount comes out of the partner's share); the site moves to the after-pilot price only after its own pilot passed.
+discount comes out of the partner's share); the site moves to the regular price after the pilot thresholds are met only after its own pilot passed.
 
 **Worked example 1 — Certified reseller, Gate, one month:**
 
 | Item | Calculation | Excl. 7% VAT |
 |---|---|---|
 | 2 villages that passed their pilot, 3 lanes each (Pro) | 2 × 1,990 | 3,980 |
-| 1 car park still at pilot stage, 4 lanes | 4 × 790 | 3,160 |
+| 1 car park still at the pilot price, 4 lanes | 4 × 790 | 3,160 |
 | Software fee billed by the partner (10 paid lanes → Certified) | 3,980 + 3,160 | **7,140** |
 | Partner share 25% | 7,140 × 0.25 | **1,785** |
 | LENSIQ receives | 7,140 − 1,785 | **5,355** |
@@ -224,9 +225,9 @@ The partner also keeps its hardware margin and installation labour, which LENSIQ
 figures + 7% VAT (7,140 → 7,639.80 incl. VAT).
 
 **Worked example 2 — Registered reseller, Crowd, one event week:** an AV company runs 3 camera devices for a 7-day
-trade show at pilot stage: 3 × 2,490 = 7,470 excl. 7% VAT; partner share 20% = 1,494; LENSIQ receives 5,976.
+trade show at the pilot price: 3 × 2,490 = 7,470 excl. 7% VAT; partner share 20% = 1,494; LENSIQ receives 5,976.
 
-**Worked example 3 — Referral:** an installer introduces a village with 3 lanes at pilot stage; LENSIQ bills
+**Worked example 3 — Referral:** an installer introduces a village with 3 lanes at the pilot price; LENSIQ bills
 3 × 490 = 1,470 per month; the referral fee is 10% × 1,470 × 12 = 1,764 over the first year (paid monthly, 147).
 
 ### B.4 Why these shares
@@ -278,7 +279,7 @@ owner may prefer a flat 20%.
 - **Customer builds only:** do not turn on licence-limited models (age / gender, expression) for customers; they are
   for demo mode.
 - **Crowd:** sparse and medium crowds only; never use it for crowd-safety decisions; dense crowds are not sold.
-- **Prices:** the approved list, excl. 7% VAT stated on every quotation; the pilot-stage price until the site passed
+- **Prices:** the approved list, excl. 7% VAT stated on every quotation; the pilot price until the site passed
   its pilot.
 - Breach of these rules ends the partner share and, for repeated breaches, the agreement.
 
@@ -310,7 +311,7 @@ owner may prefer a flat 20%.
 ### Owner questions raised by this draft
 
 - **B-1.** Bundle discount for the institution bundle: none (as drafted), or a percentage off the yearly total?
-- **B-2.** Size bands inside the approved Exam after-pilot range 30,000–120,000 THB / year.
+- **B-2.** Size bands inside the approved Exam regular-price range 30,000–120,000 THB / year.
 - **B-3.** Revenue-share tiers 10 / 20 / 25 / 30% as proposed, or a flat share?
 - **B-4.** May certified partners do Gate set-up visits and keep the fee?
 - **B-5.** Partner listing on the LENSIQ site.
