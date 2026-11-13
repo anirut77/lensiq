@@ -5,7 +5,7 @@ Every number below states its source. **No number here is from a real phone**: t
 measurements (CI `ubuntu-latest` and a Mac). Field checks on real iPhones and Android phones are the owner checklists in
 [`docs/owner-checklists/`](owner-checklists/README.md).
 
-Locked test set: `docs/evals/phone-quality.locked.sha256` (copy of `~/LENSIQ-field/evals/phone-quality/locked.sha256`),
+Locked test set: `evals-locks/phone-quality.sha256` (copy of `~/LENSIQ-field/evals/phone-quality/locked.sha256`),
 written before any product change of this stream.
 
 ## 1. WebKit (iOS engine) flows at iPhone width
