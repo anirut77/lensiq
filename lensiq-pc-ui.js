@@ -232,7 +232,7 @@
     try { codes = await R.barcodes(still); } catch { codes = { engine: "none", codes: [], error: true }; }
     if (gen !== st.gen) return null;
     if (o.onCodes) o.onCodes(codes);
-    const ocr = await R.ocr(still, { script: st.script, maxLines: 40 });
+    const ocr = await R.ocr(still, { script: st.script, maxLines: 40, onLine: o.onLines ? (/** @type {any[]} */ ls) => { if (gen === st.gen) o.onLines(ls); } : undefined });
     if (gen !== st.gen) return null;
     st.boxes = ocr.boxes;
     st.crop = P.cropFromBoxes(ocr.boxes, still.width, still.height) || { x: 0, y: 0, w: still.width, h: still.height };
