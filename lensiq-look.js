@@ -24,7 +24,8 @@
   /** @type {any} */ var ART = NODE ? require("./lensiq-look-art.js") : null;
   /** @type {any} */ var FS = NODE ? require("./fortune-straight.js") : null;
   /** @type {any} */ var CRM = NODE ? require("./fortune-crisis.js") : null;
-  var lint = function () { return LINT || /** @type {any} */ (root).LQLookLint || null; };
+  /** @type {any} */ var LINT_OVR; // test seam (__setLintForTest): null = lint missing; undefined = normal
+  var lint = function () { if (LINT_OVR !== undefined) return LINT_OVR; return LINT || /** @type {any} */ (root).LQLookLint || null; };
   var art = function () { return ART || /** @type {any} */ (root).LQLookArt || null; };
   var straight = function () { return FS || /** @type {any} */ (root).LQFortuneStraight || null; };
   var crisis = function () { return CRM || /** @type {any} */ (root).LQFortuneCrisis || null; };
@@ -147,7 +148,7 @@
         en: "Middle zone prominent (brows to nose base) — by tradition: drive and building a career", zh: "中停突出（眉到鼻底）——按传统：进取心、成家立业" },
       text: { th: "ลองทรงผมซอยปลายระดับโหนกแก้ม หรือปล่อยผมด้านหน้าเล็กน้อยให้เป็นกรอบใบหน้าช่วงกลาง",
         en: "Try layers that end at cheekbone level, or a few face-framing strands at the front around the middle of the face",
-        zh: "可以剪到颧骨位置的层次发型，或在前面留几缕修饰脸型的碎发" } },
+        zh: "可以剪到颧骨位置的层次发型，或在前面留几缕垂在脸旁的碎发" } },
     { id: "hair-chin-volume", cat: "hair", slot: "hair", prio: 25, when: function (c) { return c.chin.cat === "pointed" || c.zones.dominant === "lower"; },
       card: "hair-chin", preview: null, look: null,
       reading: { th: "คางเรียวหรือส่วนล่างเด่น — ตามตำรา: ไหวพริบดี หรือมีความมั่นคงในวัยหลัง",
@@ -208,9 +209,9 @@
     { id: "acc-necklace-lower", cat: "accessories", slot: "accessories", prio: 30, when: function (c) { return c.zones.dominant === "lower"; },
       card: "necklace-long", preview: null, look: null,
       reading: { th: "ส่วนล่างเด่น (ฐานจมูกถึงคาง) — ตามตำรา: ความมั่นคง ครอบครัว", en: "Lower zone prominent (nose base to chin) — by tradition: stability and family", zh: "下停突出（鼻底到下巴）——按传统：安稳、家庭" },
-      text: { th: "ลองสร้อยเส้นยาวระดับอก จี้เล็กทรงกลม ให้ช่วงคอดูยาวต่อเนื่อง",
-        en: "Try a long necklace at chest level with a small round pendant, so the neckline reads long and continuous",
-        zh: "可以戴到胸口长度的长项链，配小圆形吊坠，让颈部线条更修长连贯" } },
+      text: { th: "ลองสร้อยเส้นยาวระดับอก กับจี้เล็กทรงกลม",
+        en: "Try a long necklace at chest level with a small round pendant",
+        zh: "可以戴到胸口长度的长项链，配小圆形吊坠" } },
     { id: "acc-wood", cat: "accessories", slot: "accessories", prio: 10, when: function (c, el) { return el === "wood"; },
       card: "ear-drop", preview: null, look: null,
       reading: { th: "ธาตุไม้ตามรูปหน้า — ตามตำรา: รูปทรงยาว สีเขียวและฟ้า", en: "Wood face shape — by tradition: long shapes, green and blue", zh: "木形脸——按传统：修长的形状，绿色和蓝色" },
@@ -249,7 +250,7 @@
   /** @type {Record<string, boolean>} */ var CLEAN = {};
   function clean(r, l) {
     var L = lint();
-    if (!L) return true;
+    if (!L) return false; // fail closed: no wording check, no text (independent review S4)
     var k = r.id + "|" + l;
     if (!(k in CLEAN)) CLEAN[k] = !L.lintLook(r.reading[l]).length && !L.lintLook(r.text[l]).length;
     return CLEAN[k];
@@ -333,7 +334,7 @@
   function itemClean(it) {
     var L = lint();
     var bad = function (/** @type {any} */ t) { return L.lintLook(t).some(function (/** @type {any} */ e) { return e.code !== "markup"; }); };
-    return !L || (!bad(it.reading) && !bad(it.text));
+    return !!L && !bad(it.reading) && !bad(it.text); // fail closed without the lint
   }
   /** the list of the tool's own suggestions (escaped). Generated items only: any item whose wording fails the strict lint is
    *  dropped, whatever it claims to be (salon text goes through salonItem() / salonHTML()) @param {any[]} items @param {string} lang */
@@ -363,7 +364,8 @@
    *  text and do not block an entry (the Merit "markup" code guards text that could be inserted as HTML; this never is).
    *  @param {any} L @param {string} text */
   function salonErrors(L, text) {
-    return L ? L.lintLook(text, { source: "salon" }).filter(function (/** @type {any} */ e) { return e.code !== "markup"; }) : [];
+    if (!L) return [{ code: "nolint", match: "" }]; // fail closed without the lint
+    return L.lintLook(text, { source: "salon" }).filter(function (/** @type {any} */ e) { return e.code !== "markup"; });
   }
   /** a salon catalogue entry {id, kind, shape, name: {th, en, zh}} -> {ok, item} | {ok: false, errors}
    *  @param {any} entry @param {string} lang */
@@ -423,7 +425,12 @@
     css(d); watch(d);
     container.setAttribute("data-lq-look", "");
     var st = canShow(d), l = curLang(), t = TXT[l];
-    if (!lastR || st.why === "calm") { container.hidden = true; container.innerHTML = ""; return; }
+    if (!lastR || st.why === "calm") {
+      container.hidden = true; container.innerHTML = "";
+      // an open camera preview closes too (calm or crisis): its dialog would be hidden by CSS while the camera runs (review S2)
+      var P0 = /** @type {any} */ (root).LQLookPreview; if (st.why === "calm" && P0 && P0.close) { try { P0.close(); } catch (e) { /* no DOM */ } }
+      return;
+    }
     container.hidden = false;
     container.setAttribute("lang", l === "zh" ? "zh-Hans" : l);
     var head = "<h3>" + esc(t.title) + '</h3><p class="lq-look-intro">' + esc(t.intro) + "</p>";
@@ -457,7 +464,8 @@
     } catch (e) { /* no observer: the CSS still hides the block */ }
   }
 
-  var api = { RULES: RULES, LABEL: LABEL, SALON_LABEL: SALON_LABEL, SALON_TEXT: SALON_TEXT, salonItem: salonItem, salonHTML: salonHTML, CSS: CSS, SLOTS: SLOTS,
+  var api = { __setLintForTest: function (/** @type {any} */ L) { LINT_OVR = L; },
+    RULES: RULES, LABEL: LABEL, SALON_LABEL: SALON_LABEL, SALON_TEXT: SALON_TEXT, salonItem: salonItem, salonHTML: salonHTML, CSS: CSS, SLOTS: SLOTS,
     suggest: suggest, canShow: canShow, confirmAdult: confirmAdult, html: html, render: render, TEXT: TXT };
   if (NODE) module.exports = api; else /** @type {any} */ (root).LQLook = api;
 })(typeof window !== "undefined" ? window : globalThis);

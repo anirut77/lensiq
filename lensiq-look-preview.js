@@ -219,7 +219,21 @@
     });
   }
 
-  var S = /** @type {any} */ ({ stream: null, raf: 0, lm: null, dlg: null, look: null, smooth: null });
+  var S = /** @type {any} */ ({ stream: null, raf: 0, lm: null, dlg: null, look: null, smooth: null, token: null });
+  /* one token per open(): close() and a new open() cancel it, so a camera that starts after the dialog was closed (permission
+     prompt still open, slow camera) is stopped at once and never drawn (independent review S1) */
+  function newToken() {
+    if (S.token) S.token.cancel();
+    var t = { cancelled: false, cancel: function () { t.cancelled = true; } };
+    S.token = t;
+    return t;
+  }
+  /** @param {() => Promise<any>} gum @param {{cancelled: boolean}} token @returns {Promise<any>} */
+  async function acquire(gum, token) {
+    var s = await gum();
+    if (token.cancelled) { try { s.getTracks().forEach(function (/** @type {any} */ x) { x.stop(); }); } catch (e) { /* gone */ } return null; }
+    return s;
+  }
   async function engine() {
     if (S.lm) return S.lm;
     var base = new URL(".", root.location.href).href;
@@ -230,6 +244,7 @@
     return S.lm;
   }
   function stop() {
+    if (S.token) { S.token.cancel(); S.token = null; }
     if (S.raf) { root.cancelAnimationFrame(S.raf); S.raf = 0; }
     if (S.stream) { S.stream.getTracks().forEach(function (/** @type {any} */ t) { t.stop(); }); S.stream = null; }
     var v = S.dlg && S.dlg.querySelector("video");
@@ -281,19 +296,24 @@
   }
   /** open the dialog for one suggestion @param {any} it @param {string} lang */
   async function open(it, lang) {
-    var l = langOf(lang), dlg = /** @type {any} */ (dialog(l)), k = kindOf(it);
+    stop(); // a previous session (and its pending camera start) ends here
+    var l = langOf(lang), dlg = /** @type {any} */ (dialog(l)), k = kindOf(it), token = newToken();
     S.look = Object.assign({ kind: k, shade: 0 }, it.look || {});
     if (k === "brow" && S.look.brow === "arch") S.look.brow = "fill"; // arch change only when brow-arch itself passed
     styleChips(dlg, it, l);
     if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
     var v = dlg.querySelector("video"), cv = dlg.querySelector("canvas"), ctx = cv.getContext("2d", { willReadFrequently: true });
     try {
-      S.stream = await root.navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
-      v.srcObject = S.stream; await v.play();
+      var gum = function () { return root.navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }, audio: false }); };
+      var stream = await acquire(gum, token);
+      if (!stream) return; // closed (or opened again) while the camera was starting: already stopped
+      S.stream = stream;
+      v.srcObject = stream; await v.play();
       var lm = await engine();
+      if (token.cancelled) return; // closed while the model loaded: stop() has run
       S.smooth = smoother();
       var tick = function () {
-        if (!S.stream) return;
+        if (!S.stream || token.cancelled) return;
         var W = v.videoWidth || 640, H = v.videoHeight || 480;
         if (cv.width !== W) { cv.width = W; cv.height = H; }
         ctx.save(); ctx.translate(W, 0); ctx.scale(-1, 1); ctx.drawImage(v, 0, 0, W, H); ctx.restore(); // mirror, like a mirror
@@ -305,10 +325,10 @@
         S.raf = root.requestAnimationFrame(tick);
       };
       tick();
-    } catch (e) { unavailable(); }
+    } catch (e) { if (!token.cancelled) unavailable(); }
   }
 
   var api = { IDX: IDX, MP_OPTIONS: MP_OPTIONS, LIVE: LIVE, lips: lips, liner: liner, brows: brows, glasses: glasses, smoother: smoother, draw: draw,
-    eraseBrows: eraseBrows, available: available, buttonHTML: buttonHTML, bind: bind, open: open, close: close, TEXT: TXT };
+    eraseBrows: eraseBrows, available: available, buttonHTML: buttonHTML, bind: bind, open: open, close: close, acquire: acquire, newToken: newToken, TEXT: TXT };
   if (NODE) module.exports = api; else /** @type {any} */ (root).LQLookPreview = api;
 })(typeof window !== "undefined" ? window : globalThis);

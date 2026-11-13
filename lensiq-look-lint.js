@@ -61,6 +61,44 @@
       zh: /否则|否則|不然|不改的话|不改的話|(?:运势|運勢|运气|運氣)(?:会|會)?(?:下降|变差|變差|变坏|變壞|受损|受損)|影响运势|影響運勢|破财|破財|失运|倒运/
     }
   };
+  /* added after the independent review (2026-11-13, S3): more procedures, whitening, "feature is too big / small" framing, age-look,
+     "luck / help is lost otherwise" and order wording, TH / EN / ZH. Same codes; checked after the rules above. */
+  /** @type {Record<string, {th?: RegExp, en?: RegExp, zh?: RegExp, sq?: RegExp}>} */
+  var EXTRA = {
+    procedure: {
+      th: /ทำคิ้ว\d|คิ้ว\dd|ฝังสี|ฝังเข็ม|ถาวร|กรีดตา|เสริม(?:คาง|จมูก|โหนก|หน้าผาก|ขมับ)|ดูดไขมัน|คลินิก|ไฮฟู|ร้อยไหม|ต่อขนตา|ลิฟติ้งขนตา/,
+      en: new RegExp("\\bfill-?ers?\\b|\\bhifu\\b|\\bmicroneedl\\w*|\\bchemical peels?\\b|\\bpeels?\\b|\\blash (?:lifts?|extensions?|perms?|tints?)\\b|" +
+        "\\bbrow (?:lamination|tint\\w*)\\b|\\blamination\\b|\\blipo\\w*|\\bdermaplan\\w*|\\bclinics?\\b|\\bneedl\\w*"),
+      sq: /b[o0]t[o0]x|hifu|microneedl/,
+      zh: /水光针|热玛吉|瘦脸针|割眼皮|开眼角|皮秒|光子嫩肤|打针|嫁接睫毛|种睫毛|吸脂|垫下巴|诊所/
+    },
+    whitening: {
+      th: /สว่างขึ้น|กระจ่าง|ผ่อง|ขาวอมชมพู|หน้าใส/,
+      en: /\bpaler\b|\bwhiter\b|\bdusky\b|\bfairer\b|\bbrightening\b/,
+      zh: /更白|冷白皮|提亮气色|去黄|白一度|显白/
+    },
+    negative: {
+      th: /(?:(?<!เ)ปิด|แก้|พราง|ซ่อน)(?:คิ้ว|หน้า|จมูก|ปาก|ตา|คาง|โหนก|กราม)|หน้าใหญ่|เรียวลง|(?:ใหญ่|เล็ก|บาง|หนา|กลม|กว้าง|แคบ|สั้น|ยาว|โต)เกินไป|(?:ใหญ่|เล็ก|บาง|กลม)ไป/,
+      en: new RegExp("\\bslim\\w* (?:a|your|the)\\b|\\b(?:wide|big|flat|broad|crooked|small|large) (?:nose|forehead|face|jaw)\\b|\\bweak chin\\b|\\bconceal\\w*|" +
+        "\\btoo (?:small|big|large|thin|wide|round|narrow|short|long|thick|flat)\\b|\\bdouble chin\\b|\\bslimming\\b|\\bnarrow(?:s|ing)? (?:the|your) (?:face|nose)\\b"),
+      zh: /修饰|显脸小|脸小|大脸|太(?:圆|薄|小|大|宽|短|长|厚|扁)|瘦脸|遮盖/
+    },
+    score: {
+      th: /อ่อนวัย|ดูเด็ก|ย้อนวัย/,
+      en: /\byounger\b|\bglow[- ]?up\b|\byouthful\b|\bage-?defying\b|\banti-?ag\w*/,
+      zh: /年轻|显嫩|逆龄|冻龄/
+    },
+    threat: {
+      th: /ไม่(?:ทำ|แต่ง|เขียน|เติม|ลอง|ใส่)[^]{0,24}(?:แล้ว|จะ)|จะไม่(?:รุ่ง|มีคน|ก้าวหน้า|มีใคร)|ไม่รุ่ง|ขาด[^]{0,16}จะ/,
+      en: /\bskip (?:this|it)\b|\bstall\w*|\bwithout\b[^.]{0,40}\bwill\b|\bdrift away\b|\bnobody will\b/,
+      zh: /不(?:画|改|做|修|染|戴)的话|没人帮|没有人帮/
+    },
+    purchase: {
+      th: /สั่งเลย|สั่งได้|ทักแชท|ทักไลน์|ทักมา|อินบ็อกซ์/,
+      en: /\bdm (?:us|me)\b|\b(?:to|please|now) order\b|\binbox us\b|\bmessage us\b/,
+      zh: /淘宝|天猫|拼多多|京东|链接|私信/
+    }
+  };
   var OWN = Object.keys(LINT);
   var CODES = OWN.concat(ML && ML.LINT_CODES ? ML.LINT_CODES.filter(function (c) { return OWN.indexOf(c) < 0; }) : []);
 
@@ -82,6 +120,16 @@
       if (!m && rx.en) m = rx.en.exec(lower);
       if (!m && rx.sq) m = rx.sq.exec(squash);
       if (m) out.push({ code: OWN[i], match: m[0].slice(0, 40) });
+    }
+    for (var code in EXTRA) {
+      if (salon && code === "procedure") continue;
+      if (out.some(function (h) { return h.code === code; })) continue;
+      var x = EXTRA[code], k = null;
+      if (x.th) k = x.th.exec(squash);
+      if (!k && x.zh) k = x.zh.exec(squash);
+      if (!k && x.en) k = x.en.exec(lower);
+      if (!k && x.sq) k = x.sq.exec(squash);
+      if (k) out.push({ code: code, match: k[0].slice(0, 40) });
     }
     if (ML) out = out.concat(ML.lintMerit(t));
     return out;

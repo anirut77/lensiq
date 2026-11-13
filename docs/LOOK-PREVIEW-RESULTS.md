@@ -21,6 +21,12 @@
 
 At an IPD of 60 px, 0.012 IPD ≈ 0.7 px.
 
+**Independent re-measure (2026-11-13, reviewer agent, same tool and set):** identical held-out and dev numbers, all 120
+per-face records byte-identical; speed 42.0 fps (report only). Review findings S1 (camera could stay on if the dialog was
+closed while the camera was starting), S2 (crisis / calm did not close an open preview), S3 (lint gaps for salon free
+text), S4 (fail-open without the lint) are fixed with tests (`tests/unit/look-review-fixes.test.js`, locked first).
+Notes: `~/LENSIQ-field/evals/beauty-look/review/`.
+
 ## Decisions (recorded, agent, 2026-11-13)
 
 - **Live now:** lip colour, eyeliner, brow thicken / darken / fill / extend / lift (`LQLookPreview.LIVE`).
