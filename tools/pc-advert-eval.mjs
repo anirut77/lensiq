@@ -25,10 +25,10 @@
 //   - pairs: (text, rule) recall / precision vs agentA over the rules in the row's category scope (as tools/pc-claims-eval)
 //   - over-claim texts: share of over-claim texts with at least one expected rule where at least one expected rule is shown
 //   - false flags per 100 compliant texts: every rule the card would show on a text with no expected rule
-import { appendFileSync, mkdirSync, readFileSync } from "node:fs";
+import { appendFileSync, mkdirSync, readFileSync, realpathSync } from "node:fs";
 import { createRequire } from "node:module";
 import { homedir } from "node:os";
-import { basename, dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { assertLocked, EVALS_ROOT, phaseOf } from "./eval-guard.mjs";
 import { assertOutsideRepo, REPO, score, sha256File, wilson } from "./pc-claims-eval.mjs";
@@ -55,6 +55,17 @@ export function textMeasures(rows) {
     overclaim: { n: over.length, hit, recall: over.length ? hit / over.length : null, ci: wilson(hit, over.length), anyFlag },
     compliant: { n: clean.length, flags, per100: clean.length ? 100 * flags / clean.length : null, flagged, flagged_ci: wilson(flagged, clean.length) }
   };
+}
+
+/**
+ * Is dir the evals folder or inside it? Decided on real paths (realpathSync.native: symlinks resolved, and on a
+ * case-insensitive disk the stored case), so a symlink or a case-different path cannot skip the guard.
+ * @param {string} dir @param {string} [root]
+ */
+export function inEvalsFolder(dir, root = EVALS_ROOT) {
+  const real = (/** @type {string} */ p) => { try { return realpathSync.native(p); } catch { return resolve(p); } };
+  const d = real(dir), r = real(root);
+  return d === r || d.startsWith(r.endsWith(sep) ? r : r + sep);
 }
 
 /** Dev split only. @param {string} dir */
@@ -164,7 +175,7 @@ function main() {
   try {
     assertOutsideRepo(dir); assertOutsideRepo(log); assertNotLocked(dir);
     // eval-guard (owner rule 2026-11-13): a dev set kept in the evals folder must be locked and committed like any other set
-    if ((resolve(dir) + "/").startsWith(EVALS_ROOT + "/")) {
+    if (inEvalsFolder(dir)) {
       const g = assertLocked(phaseOf(dir), ["set.jsonl", "split.json"]);
       console.error(`eval-guard OK: phase ${g.phase}, ${g.files.length} files in ${g.lockFile} (commit ${g.lockCommit})`);
     }

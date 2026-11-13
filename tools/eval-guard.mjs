@@ -26,7 +26,7 @@ const SEGMENT_RE = /^[a-z0-9][a-z0-9._-]*$/;
 const LINE_RE = /^([0-9a-f]{64})\s+(\S.*)$/;
 
 /** @param {string} p @returns {string} */
-const real = p => { try { return realpathSync(p); } catch { return resolve(p); } };
+const real = p => { try { return realpathSync.native(p); } catch { return resolve(p); } };
 /** @param {string} p @param {string} dir */
 const inside = (p, dir) => p.startsWith(dir.endsWith(sep) ? dir : dir + sep);
 /** @param {string|Buffer} b */
