@@ -6,3 +6,16 @@
 ba7715859ca8409e6e0935960550d5d1986310c83e8c178d5739f5b08a1589db  tests/unit/backend-tryon.test.js
 d7c925126780d1a9d72641076f693ad2b05156c3bba8fb50ef61ae7e3fc17d75  tests/unit/tryon-core.test.js
 dd3abd92528c4a1480a02d8fb4fbbbf9fb10b57e8e378816c854286c77d14d25  tests/e2e/tryon.e2e.mjs
+#
+# Re-lock 2026-11-14 (independent review of tryon-fit, coordinator list B1, B2 + minors; STRICTER ONLY), locked BEFORE the
+# fixes, base 341dcc6 (origin/main merged):
+#  - backend-tryon.test.js: deleting an item now needs fresh re-auth (owner: sudo window or password + code; tryon_admin:
+#    own password + code in the request, 403 reauth_inline_required otherwise, a wrong password changes nothing); JPEG and
+#    WebP sizes are read from the file and must equal the declared size (size_mismatch), unreadable = size_unreadable.
+#    The jpeg() / webp() helpers now build real SOF0 / VP8X headers; every earlier case and assertion is kept.
+#    Hash ba771585… is superseded.
+#  - new tryon-review.test.js: V1–V10 (editor status never "", separate checkbox / message keys, drawable categories only,
+#    nothing drawn with more than one face, 24-px handle radius + hem-free hint, EN / ZH for every error code, price
+#    validation, THIRD_PARTY.md, scorer refuses to overwrite, BACKEND.md migration order).
+bd08aaeca2df276917062920505405e4a596beaeeefceff4f31b2fecfb2bacfd  tests/unit/backend-tryon.test.js
+fd77111481fef2adc021f5e39b441ea64876d177a5ead845536d368e1e13d17d  tests/unit/tryon-review.test.js

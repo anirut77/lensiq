@@ -24,6 +24,11 @@
 //   T8 store behind an interface: with a bound R2 bucket (env.TRYON_BUCKET) bytes go to R2 and the D1 row keeps no data;
 //      without it the D1 fallback is used; deleting an item deletes its image from the store
 //   T9 audit: every write writes one audit row with ids and field names only (never the image, never the price value)
+//
+// AMENDMENT 2026-11-14 (independent review of tryon-fit; STRICTER ONLY; re-locked in evals-locks/tryon-mvp.sha256 BEFORE
+// the fixes): T3 / T8 deleting an item needs fresh re-auth (owner: password + code or the sudo window; tryon_admin: their
+// own password + code in the request); T5 JPEG and WebP sizes are read from the file (SOF / VP8X / VP8 / VP8L) and must
+// equal the declared size, an unreadable size is refused (size_unreadable). The test helpers now build real headers.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { readFileSync, existsSync } = require("node:fs");
@@ -44,8 +49,18 @@ function png(w, h, pad = 64) {
   b.writeUInt32BE(13, 8); b.write("IHDR", 12, "latin1"); b.writeUInt32BE(w, 16); b.writeUInt32BE(h, 20); b[24] = 8; b[25] = 6;
   return b;
 }
-const webp = (pad = 64) => { const b = Buffer.alloc(12 + pad); b.write("RIFF", 0, "latin1"); b.writeUInt32LE(4 + pad, 4); b.write("WEBP", 8, "latin1"); return b; };
-const jpeg = (pad = 64) => Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(pad)]);
+/** WebP with a VP8X chunk (canvas width-1 / height-1 as 24-bit little endian), or without any size chunk (sized = false) */
+function webp(w = 800, h = 800, pad = 64, sized = true) {
+  const b = Buffer.alloc(30 + pad); b.write("RIFF", 0, "latin1"); b.writeUInt32LE(22 + pad, 4); b.write("WEBP", 8, "latin1");
+  if (sized) { b.write("VP8X", 12, "latin1"); b.writeUInt32LE(10, 16); b.writeUIntLE(w - 1, 24, 3); b.writeUIntLE(h - 1, 27, 3); }
+  return b;
+}
+/** JPEG: SOI, APP0, SOF0 with height / width (big endian), or without a SOF segment (sized = false) */
+function jpeg(w = 640, h = 480, pad = 64, sized = true) {
+  const app0 = Buffer.from([0xff, 0xe0, 0x00, 0x04, 0x00, 0x00]);
+  const sof = Buffer.from([0xff, 0xc0, 0x00, 0x0b, 0x08, h >> 8, h & 255, w >> 8, w & 255, 0x01, 0x01, 0x11, 0x00]);
+  return Buffer.concat([Buffer.from([0xff, 0xd8]), app0, sized ? sof : Buffer.alloc(0), Buffer.alloc(pad)]);
+}
 const FACE_OK = { ran: true, faces: 0, confirmed: true };
 const asset = (o = {}) => ({ mime: "image/png", data: png(400, 500).toString("base64"), w: 400, h: 500, face_check: FACE_OK, ...o });
 const item = (o = {}) => ({ category: "glasses", name_th: "แว่นกรอบดำ", name_en: "Black frame glasses", name_zh: "黑框眼镜", price: 59000, sizes: ["M"], colours: [{ name: "black", hex: "#111111" }], product_url: "https://shop.example/p/1", ...o });
@@ -94,7 +109,7 @@ async function setup(vars = {}, extra = {}) {
     assert.equal(s2.status, 200, JSON.stringify(s2.j));
     const l = await call("/admin/api/login", { method: "POST", body: { username, password: ACC_PW, totp: await totp(s1.j.secret), mode: "bearer" } });
     assert.equal(l.status, 200, JSON.stringify(l.j));
-    return { id: c.j.reviewer.id, token: l.j.token, username, created: c.j };
+    return { id: c.j.reviewer.id, token: l.j.token, username, created: c.j, secret: s1.j.secret };
   };
   const A = (acc, path, o = {}) => call("/admin/api" + path, { ...o, token: acc.token });
   const audits = async prefix => ((await env.DB.prepare("SELECT actor, action, detail FROM audit_log WHERE action LIKE ?1 ORDER BY id").bind(prefix + "%").all()).results || []);
@@ -108,7 +123,9 @@ async function setup(vars = {}, extra = {}) {
     assert.equal((await O(`/tryon/items/${c.j.item.id}/status`, { method: "POST", body: { status: "published" } })).status, 200);
     return c.j.item.id;
   };
-  return { env, call, O, sudo, account, A, audits, statusOf, catalog, published };
+  /** the account's own password + a fresh 6-digit code (inline re-auth of a try-on account) */
+  const accReauth = async acc => { await env.DB.prepare("UPDATE admin_reviewers SET totp_last_step = 0").run(); return { password: ACC_PW, totp: await totp(acc.secret) }; };
+  return { env, call, O, sudo, account, A, audits, statusOf, catalog, published, accReauth };
 }
 
 /* ---------------- T1 ---------------- */
@@ -161,7 +178,7 @@ test("T3: try-on accounts get 403 forbidden_role outside the catalogue; merit re
 });
 
 test("T3: editor creates / edits / uploads but cannot publish, hide or delete; admin and owner can", async () => {
-  const { O, account, A, statusOf } = await setup();
+  const { O, account, A, statusOf, accReauth } = await setup();
   const adm = await account("shopadmin", "tryon_admin"), ed = await account("shopeditor", "tryon_editor");
   const c = await A(ed, "/tryon/items", { method: "POST", body: item() });
   assert.equal(c.status, 201, JSON.stringify(c.j)); const id = c.j.item.id;
@@ -180,7 +197,12 @@ test("T3: editor creates / edits / uploads but cannot publish, hide or delete; a
   assert.equal((await A(adm, `/tryon/items/${id}/status`, { method: "POST", body: { status: "published" } })).status, 200);
   assert.equal(await statusOf(id), "published");
   assert.equal((await A(adm, `/tryon/items/${id}/status`, { method: "POST", body: { status: "hidden" } })).status, 200);
-  assert.equal((await A(adm, `/tryon/items/${id}`, { method: "DELETE" })).status, 200);
+  const noRe = await A(adm, `/tryon/items/${id}`, { method: "DELETE" });
+  assert.equal(noRe.status, 403); assert.equal(noRe.j.code, "reauth_inline_required", "a try-on admin confirms their own password + code to delete");
+  const badRe = await A(adm, `/tryon/items/${id}`, { method: "DELETE", body: { password: "wrong password 123", totp: "000000" } });
+  assert.equal(badRe.status, 401, "wrong password refused");
+  assert.equal(await statusOf(id), "hidden", "nothing deleted without re-auth");
+  assert.equal((await A(adm, `/tryon/items/${id}`, { method: "DELETE", body: await accReauth(adm) })).status, 200);
   assert.equal(await statusOf(id), undefined);
   const c2 = await O("/tryon/items", { method: "POST", body: item() });
   assert.equal(c2.status, 201);
@@ -231,6 +253,10 @@ test("T5: image upload limits: type + magic bytes, PNG size from IHDR, ≤ 2048 
     [asset({ w: 401 }), "size_mismatch"],
     [asset({ data: png(2049, 100).toString("base64"), w: 2049, h: 100 }), "too_large_px"],
     [asset({ mime: "image/webp", data: webp().toString("base64"), w: 0, h: 10 }), "too_large_px"],
+    [asset({ mime: "image/jpeg", data: jpeg(640, 480).toString("base64"), w: 640, h: 481 }), "size_mismatch"],
+    [asset({ mime: "image/jpeg", data: jpeg(640, 480, 64, false).toString("base64"), w: 640, h: 480 }), "size_unreadable"],
+    [asset({ mime: "image/webp", data: webp(800, 800).toString("base64"), w: 801, h: 800 }), "size_mismatch"],
+    [asset({ mime: "image/webp", data: webp(800, 800, 64, false).toString("base64"), w: 800, h: 800 }), "size_unreadable"],
     [asset({ data: png(400, 500, 1000001).toString("base64") }), "too_large_bytes"],
     [asset({ face_check: undefined }), "face_check_required"],
     [asset({ face_check: { ran: false, faces: 0, confirmed: true } }), "face_check_required"],
@@ -241,7 +267,7 @@ test("T5: image upload limits: type + magic bytes, PNG size from IHDR, ≤ 2048 
     const r = await put(b);
     assert.equal(r.status, 400, code); assert.equal(r.j.code, code, code + " " + JSON.stringify(r.j));
   }
-  for (const b of [asset(), asset({ mime: "image/webp", data: webp().toString("base64"), w: 800, h: 800 }), asset({ mime: "image/jpeg", data: jpeg().toString("base64"), w: 640, h: 480 })]) {
+  for (const b of [asset(), asset({ mime: "image/webp", data: webp(800, 800).toString("base64"), w: 800, h: 800 }), asset({ mime: "image/jpeg", data: jpeg(640, 480).toString("base64"), w: 640, h: 480 })]) {
     const r = await put(b);
     assert.equal(r.status, 200, b.mime + " " + JSON.stringify(r.j));
   }
@@ -284,12 +310,17 @@ test("T8: store interface: R2 when bound (D1 keeps no bytes), D1 fallback otherw
   assert.equal(row.store, "r2"); assert.equal(row.data, null);
   assert.equal(bucket._m.size, 1);
   assert.equal((await r2.call(`/v1/tryon/asset/${id}`)).status, 200);
+  const nr = await r2.O(`/tryon/items/${id}`, { method: "DELETE" });
+  assert.equal(nr.status, 403); assert.equal(nr.j.code, "reauth_required", "the owner re-authenticates to delete");
+  assert.equal(bucket._m.size, 1, "nothing removed without re-auth");
+  await r2.sudo();
   assert.equal((await r2.O(`/tryon/items/${id}`, { method: "DELETE" })).status, 200);
   assert.equal(bucket._m.size, 0, "bytes removed from R2");
   const d1 = await setup();
   const id2 = await d1.published();
   const row2 = await d1.env.DB.prepare("SELECT store, data FROM tryon_assets WHERE item_id = ?1").bind(id2).first();
   assert.equal(row2.store, "d1"); assert.ok(row2.data && row2.data.length > 0);
+  await d1.sudo();
   assert.equal((await d1.O(`/tryon/items/${id2}`, { method: "DELETE" })).status, 200);
   assert.equal((await d1.env.DB.prepare("SELECT COUNT(*) AS n FROM tryon_assets").first()).n, 0);
   assert.equal((await d1.O("/tryon/items")).j.store, "d1", "the back-office says which store is in use");
