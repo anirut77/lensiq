@@ -1,0 +1,11 @@
+# evals-locks/p9.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/p9/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
+# --- imported 2026-11-13T14:18:08Z from ~/LENSIQ-field/evals/p9/locked.sha256 (lines verbatim; non-hash text lines prefixed "# "; lines for files inside the repo marked "# repo file") ---
+# P9 travel mode + reference-image tooling: fixed tests locked 2026-11-11T16:19:52Z BEFORE lensiq-pc-travel.js, lensiq-pc-refimg.js and tools/pc-refimg.mjs existed (base 301fa59)
+e264de13247b548da097703e6382edb89204a803153bcf4e387bd8e57cae3cc0  docs/product-check/p9-inn-testset.json  # repo file
+737009d8ca701261b8f4b00d36426350b859a60302863319805e0c6cdc8d7ac9  tools/pc-travel-testset.mjs  # repo file
+65608f3f2ab07eb046472dc472ddc035fd0f17a661d9d8e921e84d01c8993f07  tests/unit/pc-travel.test.js  # repo file
+9061eac41191aaaf5d561f172a12e8ba71c77585319a3570d3deefe344b9ddf5  tests/unit/pc-refimg.test.js  # repo file
+fe694f2d198e262942745f56f559f61eb293e1fb74e157fe551e4261e9e6bcbb  tests/e2e/product-check-travel.e2e.mjs  # repo file
+# re-lock 2026-11-11 (formatting only, required by tools/format-check.mjs max 200 chars): one line wrapped in each file below; no assertion, data item or expected value changed; p9-inn-testset.json (the data) unchanged and still matches the generator
+53dbb593844eb0ecec77725fada36f4d761b15fa13594c1522ca81404dd63750  tools/pc-travel-testset.mjs  # repo file
+efb2d7700a08d36a00c1ae62632788885567bcfa04957cd3b7bc922d3bac5fc4  tests/e2e/product-check-travel.e2e.mjs  # repo file

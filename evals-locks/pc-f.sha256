@@ -24,3 +24,13 @@ a5a02ca8f2b5438e97f16cbcd53a05a6f43695242fcb0ca76ae481020fb7dec7  tests/unit/pc-
 9e1edb8d0815d3ae910978763b0be11f59720747eb2d3639487acdc394bd963d  live/live-latency.mjs  # RE-LOCK v2 2026-11-13T16:54:48Z: harness wait bug only (the wait for the 'point at the label' hint between trials was 30 s while the previous view's readings still ran; now 120 s / 240 s at 4x, as for the reading). What is measured, the conditions and the label are unchanged; v1 kept as live/live-latency-v1-locked.mjs. Not run yet: needs a quiet machine.
 725372ab685b57084edeea832b928b87ea356910c3d2aeaa9f3f9a0c8073cba2  dev2/pc-guard-complexity.test.js  # RE-LOCK 2 2026-11-13T17:33:21Z: STRICTER (5 shapes added from the independent review: spaces, spaces + new lines, road words, class / family / to lines, OCR phones + member numbers) and the measurement now uses this process's CPU time, the two texts interleaved, fastest of 7 (wall-clock runs spread 5-176 ms at load 10-40). Bounds unchanged (24x, 25x, 30 ms floor)
 725372ab685b57084edeea832b928b87ea356910c3d2aeaa9f3f9a0c8073cba2  tests/unit/pc-guard-complexity.test.js  # repo file, re-lock 2 above
+# evals-locks/pc-f.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/pc-f/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
+# --- from ~/LENSIQ-field/evals/pc-f/locked.sha256 (tools/eval-locks-import.mjs 2026-11-13) ---
+7df58ddd4748e65a4fddbab4e0a7f59908d4125661c14d940a6287fe5c5232ec  docs/product-check/pcf-jako-testset.json  # repo file  # repo file
+0f1c2341656f492ae4996abd6915d1dbb6e22018439263d1bd19df3c5e41bb37  tools/pc-jako-testset.mjs  # repo file  # repo file
+138e5583473d8ddd8c92806e9f1ac0aa5a8b1f0ce6367f8c7c5fce19875ea71d  tools/pc-guard-jako-score.mjs  # repo file  # repo file
+081b774ed1c025b1dd977b6898d6064cb04aac128a15aeaee5fc31c6ca44c2bb  tools/pc-travel-score.mjs  # repo file  # repo file
+6ad187b934e3a3d6a64449ecbd28a58871a04f8a4ee874b7a9ada497d40cfd5a  tests/unit/pc-guard-jako.test.js  # repo file  # repo file
+# locked 2026-11-13T18:10:27Z — RE-LOCK of the two scorers after merging eval-guard: each now calls assertLocked() on a set under ~/LENSIQ-field/evals before scoring (refuses unlocked sets and sets outside the evals folder / repo); the scoring code is unchanged
+fec2a67a961b2ce39270d29a5bd725be72e3aa78f471574a81f37e562315ffbf  tools/pc-guard-jako-score.mjs
+ca5454a5ee67ec5a3b8434bfe5942030d166e18d75ecd1ed38a2c085f64ffbed  tools/pc-travel-score.mjs

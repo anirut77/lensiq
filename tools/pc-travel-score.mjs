@@ -5,12 +5,25 @@
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { assertLocked, EVALS_ROOT, REPO } from "./eval-guard.mjs";
+import { realpathSync } from "node:fs";
+import { isAbsolute, relative, sep } from "node:path";
+/** eval-guard (owner rule 2026-11-13): a set under ~/LENSIQ-field/evals/<phase>/ is scored only when its sha256 is committed in
+ *  evals-locks/<phase>.sha256 (phase = the first folder under the evals root, e.g. pc-f); a set in the repo itself (a committed dev
+ *  set) is allowed; anything else is refused. @param {string} f */
+function guardSet(f) {
+  const p = realpathSync(f), under = (/** @type {string} */ root) => { const r = relative(realpathSync(root), p); return r && !r.startsWith("..") && !isAbsolute(r) ? r : ""; };
+  const inEvals = under(EVALS_ROOT);
+  if (inEvals) { assertLocked(inEvals.split(sep)[0], [p]); return; }
+  if (!under(REPO)) throw new Error(`eval-guard: ${f} is neither a locked set under ${EVALS_ROOT} nor a committed file in the repo`);
+}
 
 const require = createRequire(import.meta.url);
 const TV = require(fileURLToPath(new URL("../lensiq-pc-travel.js", import.meta.url)));
 const META = JSON.parse(readFileSync(fileURLToPath(new URL("../vendor/pc-drugs/tmt/meta.json", import.meta.url)), "utf8"));
 const file = process.argv.slice(2).find(a => !a.startsWith("--"));
 if (!file) { console.error("usage: node tools/pc-travel-score.mjs <set.json> [--json]"); process.exit(2); }
+guardSet(file);
 const set = JSON.parse(readFileSync(file, "utf8"));
 const m = TV.measure(set.items, TV.buildInnIndex(META.ing));
 const wilson = (/** @type {number} */ k, /** @type {number} */ n) => {

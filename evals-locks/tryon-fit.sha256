@@ -1,0 +1,8 @@
+# evals-locks/tryon-fit.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/tryon-fit/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
+# --- imported 2026-11-13T14:18:08Z from ~/LENSIQ-field/evals/tryon-fit/locked.sha256 (lines verbatim; non-hash text lines prefixed "# "; lines for files inside the repo marked "# repo file") ---
+# Studio garment fit (owner-approved item 24) — fixed tests, locked 2026-11-13 BEFORE SC.personTargets, SC.templateWarpTo
+# and the seven fit handles in studio.js were written. Branch tryon-fit, base 1ef19c6. Source label: synthetic.
+# Paths relative to the repo root. A changed hash means the set, the scorer or the targets changed after locking.
+2c892e47ffedb5795f123756ccaf1823a146ac418387037c80836f6974c06684  tests/unit/fixtures/studio-fit-set.js  # repo file
+1fa3423bc04ffc5c86e5871f7a309c8536b17a8c1bf3b6ef746387ad44ed0e47  tests/unit/studio-fit-warp.test.js  # repo file
+cdc086de37f4c8e49046a2d6ed06d8581b3d8f09d7bd8f6108e4ca2110fffda7  tools/studio-fit-eval.mjs  # repo file

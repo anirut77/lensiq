@@ -1,0 +1,36 @@
+# evals-locks/live-scan.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/live-scan/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
+# --- imported 2026-11-13T14:18:08Z from ~/LENSIQ-field/evals/live-scan/locked.sha256 (lines verbatim; non-hash text lines prefixed "# "; lines for files inside the repo marked "# repo file") ---
+691dd37a6572554ee6e487f30cfa5bbfe64c4a0afcd19317c52216f9ad1e95e0  tests/unit/pc-live.test.js  # repo file
+70b64a948da70f2f6919e2d9553d5594827f33f09bb933f3bbfe2599b3ecacbd  tests/unit/backend-pc-auto.test.js  # repo file
+231313a56ef9dc000d757b4fd6c02668bba4a2237a70728a62061207e98323d2  tests/e2e/product-check-live.e2e.mjs  # repo file
+4dce3292c310a644736dcf26fd65e6018acc0d8e9a4a7e00f80c836492dbfbe9  live-leak-score.mjs
+# Product Check live scan: fixed test set, locked 2026-11-12T01:18:39Z BEFORE lensiq-pc-live.js and the auto-send
+# code were built (worktree agent-af8a51e12a9ad6efc, base 7b7f1db). Test paths are relative to the repo root; the
+# scorer lives in this folder. Any later change to these files is listed below with its reason.
+#
+# CHANGES AFTER THE LOCK (none loosens a check):
+# 1. backend-pc-auto.test.js: fixture perUserPerMinute 1000 -> 600 (the settings validator accepts 0-600; the test could
+#    not start). No assertion changed.
+# 2. pc-live.test.js, product-check-live.e2e.mjs: lines over 200 characters wrapped (format-check). No assertion changed.
+# 3. product-check-live.e2e.mjs check "TESTER image mode": the locked version expected an automatic, face-checked JPEG.
+#    Building it broke the older fixed test tests/unit/pc-ondevice.test.js ("exactly one image encoding, after the blur
+#    AND after the user confirmed the preview"). That older privacy test was NOT changed; the product was changed instead
+#    (auto-send is text only; a photo still needs the preview) and this check now asserts the stricter behaviour: no
+#    photo in any auto request, the page says so, a face still stops the auto-send. Owner decision needed to send photos
+#    automatically (it would require changing the older test).
+# 4. backend-pc-auto.test.js A7 (after the independent review, 2026-11-12): it asserted that the Worker ACCEPTS a photo on
+#    an auto request; it now asserts the refusal (400 ai_off_auto_filter, 0 provider calls), keeps the "same photo without
+#    auto is unchanged" check and the "nothing auto / no facts / no code / no photo reaches the provider" check. Tightened.
+#    New sha256: 33a054cb19c844a81b23d3e51a3bc7d874eb4ad689a4171946fbbd2362a2fb07  tests/unit/backend-pc-auto.test.js
+# 5. ROUND 2 (owner decisions 2026-11-12: no automatic sending; testers send with one tap, no preview): the e2e checks 5-8
+#    were REWRITTEN for the new requirement (the old checks asserted automatic sending, which the owner removed). The new
+#    checks assert that NOTHING is sent without a tap (several products scanned with one-tap on), one tap sends at once
+#    with no preview, every filter falls back to the preview, both withdraw buttons clear consent + one-tap, text only,
+#    and the documented server refusal codes show their own notice. Requirement change by the owner, not a loosening.
+#    New sha256: cbc9430a501bb8e057d3791cd436f910ae058a65af470fbdfe3ce0a048c1dd9b  tests/e2e/product-check-live.e2e.mjs
+#    New dev test for the Korean / OCR "Patient" guard additions:
+#    1fd46475c2ca110479f7b18747ecd4563c51bd18e7e68cb9080301989c2ebeb0  tests/unit/pc-guard-ko-ja.test.js
+# Current hashes after changes 1-3:
+# 7746decb50fdb69e9c9e7a95f2c750f697e74cd4defbabc360593af4ba9f3801  tests/unit/pc-live.test.js
+# 3e9c6fc8d00c6af4e3b79c1a18784ea393399f3b7bbaf4ea760a2d178e83547d  tests/unit/backend-pc-auto.test.js
+# 7eef9dbf103e69d9b018eb83eaa5d9f8e78792dbc98f374a318e9eb043a96a77  tests/e2e/product-check-live.e2e.mjs

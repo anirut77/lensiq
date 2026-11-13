@@ -1,0 +1,5 @@
+# evals-locks/p9__holdout.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/p9/holdout/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
+# --- imported 2026-11-13T14:18:08Z from ~/LENSIQ-field/evals/p9/holdout/locked.sha256 (lines verbatim; non-hash text lines prefixed "# "; lines for files inside the repo marked "# repo file") ---
+43cdc1d09413a90847904eddef32638456739c8fdcca0af1bd698da1c7900038  /Users/Aniroot/LENSIQ-field/evals/p9/holdout/p9-inn-holdout.json
+d35a8aaa8fb517eb5ba7a070a7b63d3af2726e2b623dd7c6f7adf6d8d790ed3f  /Users/Aniroot/LENSIQ-field/evals/p9/holdout/p9-lines-holdout.json
+# locked-utc 2026-11-11T16:58:30Z

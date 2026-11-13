@@ -1,0 +1,8 @@
+# Merit lint SARA AM fix (stream D1 finding, 2026-11-13). Fixed tests locked BEFORE lensiq-merit-lint.js was changed.
+# Branch merit-lint-sara-am, base 2789d73. Paths relative to the repo root. A changed hash means the test was edited after locking.
+# State at the first lock (commit cc8841c, hash 27a0b563...): S1, S2, S4, S5 fail (the bug); S3 (no false positives) and S6 (nothing weakened) pass.
+# One documented re-lock (same day, while writing the fix): the "tone mark" loop in S2 iterated over all four Thai tone marks, but the
+# word ลดน้ำหนัก exists only with ไม้โท (U+0E49); with another tone mark it is a different string that the pattern rightly does not match.
+# The loop now checks U+0E49 before and after the nikhahit. Nothing else changed (no assertion removed or weakened; the unused TONES
+# constant was deleted). The fix itself also covers the spaced-apart case "ท ํ า" that S2 found (join again after squashing).
+2fcbb16711924f11ff27852114b01de346f85a3c38b8619787e28b4f56bca75a  tests/unit/merit-lint-sara-am.test.js
