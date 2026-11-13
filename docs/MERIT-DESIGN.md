@@ -1,5 +1,9 @@
 # Fortune remedies, lucky items and "merit on your behalf": design
 
+> **Payment path (owner decision 2026-11-13):** bank transfer against a quotation and invoice only, for now; no PromptPay QR, no card and no Opn checkout. Where this document describes PromptPay through Opn as the way to pay for a merit request, read it as the design for a later online checkout, which is on hold (Opn KYC pending); it is not how LENSIQ is paid today.
+
+> **ช่องทางชำระเงิน (เจ้าของตัดสิน 2026-11-13):** ตอนนี้รับโอนผ่านธนาคารตามใบเสนอราคาและใบแจ้งหนี้เท่านั้น ไม่มี PromptPay QR บัตร หรือ Opn ข้อความด้านล่างที่พูดถึง PromptPay ผ่าน Opn เป็นวิธีจ่ายค่าขอทำบุญแทน เป็นแบบสำหรับระบบชำระเงินออนไลน์ในอนาคต ซึ่งพักไว้ (รอ KYC ของ Opn) ไม่ใช่วิธีรับชำระในปัจจุบัน
+
 > **Merit MVP built 2026-11-12** (owner order; results and switches: `docs/MERIT-RESULTS.md`). Built: the free
 > guidance panel, the admin editor, migration 0015 and a switched-off "request interest" form. Not built: booking,
 > payment, staff, proof (M6–M7), the source / mapping / revision tables (§3.1) and the hub page `merit.html`.
