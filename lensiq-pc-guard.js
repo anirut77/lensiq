@@ -119,7 +119,9 @@
     { re: new RegExp(`${B}ชื่อ(?!การค้า|สามัญ|ผลิตภัณฑ์|ยา|สินค้า|ผู้ผลิต|บริษัท|ทาง|ผู้ป่วย|สกุล|นามสกุล|เล่น|และ|ตัวยา|วิทยาศาสตร์|อื่น|\\s*[-–])\\s*[:：.]?`, "gu"), always: true },
     { re: new RegExp(`${B}(?:ผู้ป่วย|คนไข้)\\s*[:：.\\-–]?`, "gu"), always: true, warnCheck: true },
     { re: new RegExp(`\\bPatient(?:'s)?\\s*(?:name)?\\s*[:：\\-–]|\\bPatient\\s+(?=${HON_EN}\\s)`, "giu"), always: true },
-    { re: new RegExp(`(?<!${PRODUCT_NAME_EN}\\s*)\\bname\\s*[:：\\-–]`, "giu"), always: true },
+    // (the "not after a product word" check sits AFTER \bname, so it runs only where "name" stands; at the start it ran at every
+    // position and a long run of spaces was quadratic. Same matches; stream F2, independent review)
+    { re: new RegExp(`\\bname(?<!${PRODUCT_NAME_EN}\\s*name)\\s*[:：\\-–]`, "giu"), always: true },
     { re: /\bPt\.?\s*[:：]|\bRx\s+for\b|\bDispensed\s+to\b|\bPrepared\s+for\b|\bDr\.?\s+order\s+for\b|\bCustomer\s*[:：]/giu, always: true },
     { re: /(?:^|(?<=\s))For\s*[:：]/gu, always: false }, // on a dispensing label or any label with usage text
     { re: /(?:患者姓名|姓名|就诊人|病人|患者(?=\s*[:：]))\s*[:：]?/gu, always: true },
@@ -148,10 +150,11 @@
     { re: /(?:^|(?<=[\s(]))(?:회원명|고객명|복약자|법정\s?대리인|받으시는\s?분|면회객|면회자|이름은|원아|원생|수령\s?확인|보호자\s?확인|입소자|대상자명|성명란)(?=\s*[:：]?\s*[가-힣]{2,4}(?:[\s,(]|$))/gmu,
       always: true },
     // stream F2: "Name 허재윤" (an English field word before a Korean / Japanese name, no colon)
-    { re: /\bName(?=[ \t]+[가-힣ぁ-ヿ一-鿿])/gu, always: true },
+    { re: new RegExp(`(?<!\\b(?:Product|Brand|Item|Trade|Generic|Drug|Chemical|Common|Scientific)\\s{1,3})\\bName(?=[ \\t]+(?:${KO_NAME_NS}(?:[ \\t]|$)|[ぁ-ヿ]))`, "gu"),
+      always: true },
     // Japanese person words before a name ("患者 小野寺 光", "患者さま 中 島 明", "保護者 北村 幸江", 世帯主, 被扶養者, 受給者, 利用者); "保護者の指導" is not
     { re: new RegExp("(?:^|(?<=[\\s(（:：]))(?:患者(?:さま|様|さん)?|保護者|世帯主|被扶養者|受給者(?:氏名|名)?|利用者(?:氏名|名)?|入所者|園児(?:氏名|名)?|児童(?:氏名|名)?|" +
-      "生徒(?:氏名|名)?|本人(?:氏名)?|申請者|契約者|送り主|ご?注文者|購入者|代理人|幹事|入居者|面会者?|申込者|依頼者|届出人|受取人|お届け先氏名)(?=[ \\t\\u3000]*[:：]|[ \\t\\u3000]+[一-鿿々ァ-ヺぁ-ゖ])", "gu"), always: true },
+      "生徒(?:氏名|名)?|本人(?:氏名)?|申請者|契約者|送り主|ご?注文者|購入者|代理人|幹事|入居者|面会者?|申込者|依頼者|届出人|受取人|お届け先氏名)(?=[ \\t\\u3000]*[:：]|[ \\t\\u3000]+[一-鿿々ァ-ヺぁ-ゖ])", "gu"), always: true, orgJa: true },
     // a maker-printed responsible person (pharmacist in charge, production supervisor): the NAME is still removed
     { re: new RegExp("(?:เภสัชกรผู้มีหน้าที่ปฏิบัติการ|ผู้มีหน้าที่ปฏิบัติการ|เภสัชกรผู้ควบคุม(?:การผลิต)?|ผู้ควบคุมการผลิต)\\s*[:：.\\-–]?|" +
       "[監监][製制][藥药][師师]\\s*[:：]?|管理[藥药][師师]\\s*[:：]?|[駐驻][廠厂][藥药][師师]\\s*[:：]?|\\b(?:Pharmacist[- ]in[- ]charge|Responsible\\s+pharmacist|Qualified\\s+person)\\s*[:：\\-–]", "giu"),
@@ -173,7 +176,7 @@
   // a Taiwan medicine bag (藥袋): a name field with a Republic-of-China date (民國 113 年 / 113/11/10)
   const ROC = /(?:姓名)[\s\S]*(?:民國\s*\d{2,3}\s*年|(?<!\d)1[01]\d[./]\d{1,2}[./]\d{1,2}(?!\d))|(?:民國\s*\d{2,3}\s*年|(?<!\d)1[01]\d[./]\d{1,2}[./]\d{1,2}(?!\d))[\s\S]*姓名/u;
   const HEADER = new RegExp([
-    "^\\s*(?:โรงพยาบาล|รพ\\.|คลินิก|ร้านยา|ร้านขายยา|สถานพยาบาล|สถานีอนามัย|ศูนย์บริการสาธารณสุข|",
+    "^[^\\S\\n]*(?:โรงพยาบาล|รพ\\.|คลินิก|ร้านยา|ร้านขายยา|สถานพยาบาล|สถานีอนามัย|ศูนย์บริการสาธารณสุข|",
     "[A-Za-z .&'-]{0,40}\\b(?:Hospital|Clinic|Klinik|Polyclinic|Dispensary|Pharmacy|Drugstore|(?:Medical|Dental|Health)\\s+Cent(?:er|re))\\b|" +
     "[^\\n]{0,20}(?:医院|诊所|药房|药店|卫生院|醫院|診所|藥局|藥房|衛生所|卫生服务中心|衛生服務中心|調剤薬局|クリニック)|[^\\n]{0,20}(?:약국|의원|병원)[ \\t]*$)"
   ].join(""), "imu");
@@ -422,7 +425,7 @@
     { kind: "hn", group: 1, re: /(?<!(?:Product|Item|Batch|Lot|Device|Model|UDI|Ref)[\s.]?)\bID\s?(?:No\.?|#)?[\s:：#]+([A-Z]{0,2}\d[\dA-Z\-]{3,15})\b/gu },
     // stream F2: member / user / certificate / coupon / donation numbers, chat IDs
     { kind: "id", group: 1, re: /(?:会員番号|利用者番号|交付番号|受付番号|인정\s?번호|쿠폰\s?번호|헌혈\s?번호|회원\s?번호|주민\s?번호\s?앞자리)[\s:：#]*(?:第\s?)?([A-Z0-9][A-Z0-9\-]{1,15}(?:[ ][0-9]{2,6}){0,3})/gu },
-    { kind: "id", group: 1, re: /(?:LINE\s?ID|ライン\s?ID|카톡\s?(?:아이디|ID)|카카오톡\s?(?:아이디|ID)|kakao\s?(?:talk\s?)?id|WeChat\s?ID|微信号?)\s*[:：]?\s*([A-Za-z0-9._\-]{3,30})/giu },
+    { kind: "id", group: 1, re: /(?:LINE\s?ID|ライン\s?ID|카톡\s?(?:아이디|ID)|카카오톡\s?(?:아이디|ID)|kakao\s?(?:talk\s?)?id)\s*[:：]?\s*([A-Za-z0-9._\-]{3,30})/giu },
     { kind: "id", group: 1, re: /(?:個人番号|マイナンバー)[\s:：]*(\d{4}[\s-]?\d{4}[\s-]?\d{4})(?!\d)/gu },
     { kind: "email", re: /(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/gu },
     { kind: "id", group: 1, re: /(?:\bPassport(?:\s*(?:No\.?|number|#))?|หนังสือเดินทาง(?:เลขที่)?|护照(?:号码?)?|パスポート)\s*[:：.#]?\s*([A-Z]{1,2}\d{6,9}|\d{7,9})\b/giu },
@@ -529,15 +532,27 @@
   }
   const ADDRESS = new RegExp([
     "บ้านเลขที่|เลขที่\\s?\\d+(?:/\\d+)?|หมู่(?:ที่)?\\s?\\d|ม\\.\\s?\\d|ซอย|ซ\\.\\s?[ก-๙\\d]|ถนน|ถ\\.\\s?[ก-๙]|ตำบล|ต\\.\\s?[ก-๙]|แขวง|อำเภอ|อ\\.\\s?[ก-๙]|เขต[ก-๙]|จังหวัด|จ\\.\\s?[ก-๙]|",
-    "(?<!\\d)\\d{5}(?!\\d)(?=\\s*$)|\\b(?:Room|Rm\\.?|Floor|Fl\\.|Road|Rd\\.?|Street|St\\.|Soi|Moo|District|Province|Apt\\.?|Unit)\\b[^\\n]*\\d|",
-      // "a digit, then later on the line a road word", written word-first (the old form "\d[^\n]*\bRoad" re-scanned the rest of the line
-      // from every digit: quadratic on a long digit run; stream F2, same matches)
-      "\\b(?:Road|Rd\\.?|Street|St\\.|Soi|Moo)\\b(?<=\\d[^\\n]*\\b(?:Road|Rd\\.?|Street|St\\.|Soi|Moo)\\b)|",
+    "(?<!\\d)\\d{5}(?!\\d)(?=\\s*$)|",
     "[省市区县][^\\n]{0,15}[路街道巷][^\\n]{0,10}号|",
     // Japanese (〒, 都道府県 + 市区町村 + 1-2-3, 丁目 / 番地) and Korean (시 / 도 + 구 / 군 + 로 / 길 number) addresses (stream F, 2026-11-13)
     "〒\\s?\\d{3}-\\d{4}|[都道府県][^\\n]{0,12}[市区町村郡][^\\n]{0,20}(?:\\d+(?:[-－]\\d+){1,2}|丁目|番地)|",
     "[가-힣]{1,6}(?:시|도)\\s[가-힣]{1,5}(?:구|군|시)\\s[^\\n]{0,20}(?:로|길)\\s?\\d"
   ].join(""), "iu");
+  // Two more ADDRESS forms, tested in linear time (stream F2; as regexes "word[^\n]*\d" and "\d[^\n]*word" they re-scanned the line
+  // from every occurrence, quadratic on "Road Road …" or a long digit run). Same answers: "an address word, then a digit later on
+  // the line" holds iff it holds for the FIRST address word; "a digit, then a road word later" iff a road word follows the FIRST digit.
+  const ADDR_WORD = /\b(?:Room|Rm\.?|Floor|Fl\.|Road|Rd\.?|Street|St\.|Soi|Moo|District|Province|Apt\.?|Unit)\b/iu;
+  const ROAD_WORD = /\b(?:Road|Rd\.?|Street|St\.|Soi|Moo)\b/giu; // global: searched from a position (word edges read on the whole line)
+  /** @param {string} line one line */
+  function addressLine(line) {
+    if (ADDRESS.test(line)) return true;
+    const w = ADDR_WORD.exec(line);
+    if (w && /\d/.test(line.slice(w.index + w[0].length))) return true;
+    const d = /\d/.exec(line);
+    if (!d) return false;
+    ROAD_WORD.lastIndex = d.index + 1;
+    return ROAD_WORD.test(line);
+  }
   const COMPANY = new RegExp([
     "ผลิตโดย|ผลิตและจำหน่าย|จำหน่ายโดย|นำเข้าโดย|นำเข้าและจัดจำหน่าย|ผู้ผลิต|ผู้จัดจำหน่าย|ผู้นำเข้า|บริษัท|บจก\\.|",
     "ห้างหุ้นส่วน|หจก\\.|\\bManufactured\\s+(?:by|for)\\b|\\bDistributed\\s+by\\b|\\bImported\\s+by\\b|\\bMarketed\\s+by\\b|\\bMade\\s+by\\b|",
@@ -586,7 +601,7 @@
     "([一-鿿々]{1,3}(?:[ \\t\\u3000][一-鿿々]{1,3}(?=[ \\t\\u3000)）、。]|$|\\d))?|[ァ-ヺーぁ-ゖ]{1,4}子|[ァ-ヺー]{2,5}|(?![のはがにをともへで])[ぁ-ゖ]{2,4})(?=[ \\t\\u3000)）、。→]|$|の|は|が|へ|に|より|用|から|と)", "gmu");
   const KO_KIN = "(?:할머니|할아버지|할매|할배|외할머니|외할아버지|엄마|아빠|어머니|아버지|어머님|아버님|큰아들|작은아들|막내아들|아들|큰딸|작은딸|막내딸|딸|막내|손자|손녀|" +
     "남편|아내|와이프|동생|언니|오빠|누나|형|삼촌|이모|고모|외삼촌|숙모|조카|며느리|사위|시어머니|시아버지|장모|장인)";
-  const KO_KIN_RE = new RegExp(`(?:^|(?<=[\\s(:：,]))${KO_KIN}[ \\t]+(?!${KO_KIN})([가-힣]{2,3})` +
+  const KO_KIN_RE = new RegExp(`(?:^|(?<=[\\s(:：,]))${KO_KIN}[ \\t]+(?!${KO_KIN}(?:[ \\t]|$|[가이은는도의께에한]))([가-힣]{2,3})` +
     "(?=[ \\t]*(?:$|[,.)!\\-/✔]|\\(|\\d|한테|에게|께|이[ \\t]|가[ \\t]|의|은|는|도|님|씨|생신|생일|올림|드림|퇴원|입원|약|병원|전화|용|것|" +
     // stream F2: everyday note words after "kinship + given name" (school, clinic, pick-up, meals)
     "학원|치과|혈압약|당뇨약|영양제|눈|어린이집|유치원|학교|선물|용돈|출근|퇴근|약국|간식|우유|계란|아침|점심|저녁|면회|방문|통원|복용|담당)|한테|에게|께)", "gmu");
@@ -595,8 +610,12 @@
     "(?=$|[\\s,.)✔]|께|에게|의|은|는|이|가)", "gmu");
   // stream F2: a class / group marker, then the names on the rest of the line ("3年2組 小林 かな", "5학년 3반 이도현", "햇살반 성은유",
   // "3호차 고은서 / 라온 / 시율"), or a name right before a class in brackets ("北村 陽翔(3年2組)")
-  const CLASS = "(?:\\d+\\s*年\\s*\\d+\\s*組|[ぁ-んァ-ヶ一-鿿]{1,5}(?:ぐみ|組)|\\d+\\s*학년\\s*\\d+\\s*반|(?<![가-힣])(?!일반|절반|과반|반반|위반|동반|수반|기반|전반|후반|상반|하반|초반|중반)[가-힣]{1,4}반|\\d+\\s*호차|\\d+\\s*반)";
+  const CLASS = "(?:\\d+\\s*年\\s*\\d+\\s*組|[ぁ-んァ-ヶ]{1,5}(?:ぐみ|組)|\\d+\\s*학년\\s*\\d+\\s*반|\\d+\\s*호차)";
+  const CLASS_KO_LOOSE = "(?:(?<![가-힣])(?!일반|절반|과반|반반|위반|동반|수반|기반|전반|후반|상반|하반|초반|중반)[가-힣]{1,4}반|\\d+\\s*반)";
+  // nursery / school words: only with one of them in the text does a bare "…반" read as a class (review F2: "초코반 쿠키")
+  const SCHOOL_KO = /어린이집|유치원|학교|원아|원생|선생님|담임|등원|하원|알림장|준비물|학부모|반\s?친구|통학|셔틀/u;
   const CLASS_RE = new RegExp(`(?:^|(?<=[\\s(（:：]))${CLASS}(?![가-힣ぁ-ゖ])[ \\t\\u3000]*([^\\n]{1,60})`, "gmu");
+  const CLASS_RE_KO = new RegExp(`(?:^|(?<=[\\s(（:：]))${CLASS_KO_LOOSE}(?![가-힣ぁ-ゖ])[ \\t\\u3000]*([^\\n]{1,60})`, "gmu");
   const CLASS_BEFORE = new RegExp(`(?:^|(?<=[\\s:：]))([一-鿿々]{1,3}[ \\t\\u3000][一-鿿々]{1,3}|${KO_SUR}[가-힣]{2})[ \\t]*[(（][ \\t]*${CLASS}`, "gmu");
   const NAME_TOK = /^(?:[一-鿿々]{1,3}(?:[ \t　](?:[一-鿿々]{1,3}|[ぁ-ゖ]{2,4}))?|[ァ-ヺーぁ-ゖ]{1,4}子|[ァ-ヺー]{2,5}(?:[ \t　][ァ-ヺー]{2,5})?|[ぁ-ゖ]{2,5}(?:[ \t　][ぁ-ゖ]{2,5})?|[가-힣]{2,4})$/u;
   // words that are never a person in those positions (labels, doses, meals, school words)
@@ -605,7 +624,7 @@
   // stream F2: a name followed by "to" at the start of a line ("ひろとへ お薬のんでね", "지우에게")
   const TO_RE = /(?:^|(?<=\n))[ \t]*([一-鿿々]{1,4}|[ァ-ヺー]{2,5}|[ぁ-ゖ]{2,5}|[가-힣]{2,3})(?:へ|에게|께|한테)(?=[ \t　]|$)/gmu;
   // stream F2: a line that is only a spaced full name in kanji or kana ("中島 光代", "さいとう こうた")
-  const JA_FULL_LINE = /^[ \t　]*([一-鿿々]{1,3}[ \t　][一-鿿々]{1,3}|[ぁ-ゖ]{2,5}[ \t　][ぁ-ゖ]{2,5}|[ァ-ヺー]{2,6}[ \t　][ァ-ヺー]{2,6})[ \t　]*$/gmu;
+  const JA_FULL_LINE = /^[ \t　]*([ぁ-ゖ]{2,5}[ \t　][ぁ-ゖ]{2,5}|[ァ-ヺー]{2,6}[ \t　][ァ-ヺー]{2,6})[ \t　]*$/gmu;
   const JA_LABEL_KANJI = /[錠散液包薬剤用分回日後前朝夜服成表示量内容製造販売元効能果注意保管期限使用番号名称原材料品類医部外指定第記号社式株会味食塩糖脂質熱炭水化物税込円]/u;
   // a sender line: "현우 드림", "지훈 올림" / "そら より", "花子より"
   const KO_FROM = /(?:^|(?<=[\s(:：,]))([가-힣]{2,3})[ \t]+(?:드림|올림|씀)(?=[ \t]*(?:$|[.!]))/gmu;
@@ -640,7 +659,7 @@
     // stream F2: names without a field word in notes (class lines, "to" lines, a family word after the name, full-name lines)
     const okName = (/** @type {string} */ v) => NAME_TOK.test(v) && !NOTE_NOT.test(v) && !KO_NOT.test(v) && !KO_NOT.test(v.replace(/님$/u, "")) &&
       !JA_NOT.test(v.replace(/[ \t　]/g, "")) && !FROM_NOT.test(v);
-    for (const m of t.matchAll(CLASS_RE)) {
+    for (const m of [...t.matchAll(CLASS_RE), ...(SCHOOL_KO.test(t) ? t.matchAll(CLASS_RE_KO) : [])]) {
       const rest = m[1], base = /** @type {number} */ (m.index) + m[0].length - rest.length;
       let at = 0;
       for (const part of rest.split(/([/、,・|]|\s{2,}|\s-\s|\s→\s)/u)) {
@@ -697,6 +716,7 @@
         if (!val || !/[A-Za-zก-๙一-鿿가-힯ぁ-ヿ]/u.test(val) || val.startsWith(PLACEHOLDER)) continue;
         if (c.warnCheck && WARN_START.test(val)) continue;
         if (c.orgCheck && ORG_START.test(val)) continue;
+        if (c.orgJa && /^(?:株式会社|有限会社|合同会社|会社|協会|組合|法人|社団|財団|㈱|\(株\)|（株）)/u.test(val)) continue;
         hits.push({ kind: "name", start: at, end: at + val.length });
       }
     }
@@ -756,7 +776,7 @@
       lines.forEach((line, i) => {
         const ls = at;
         at += line.length + 1;
-        if (!ADDRESS.test(line) || COMPANY.test(line)) return;
+        if (!addressLine(line) || COMPANY.test(line)) return;
         const back = lines.slice(Math.max(0, i - 3), i + 1).join("\n");
         const nearPerson = names.some(n => n.start >= ls - back.length + line.length && n.start < ls + line.length) ||
           /บ้านเลขที่|ที่อยู่ผู้ป่วย|ที่อยู่\s*[:：]|Address\s*[:：]|住址|家庭住址|住所(?:\s*[:：]|[ \t]+(?=\S))|주소(?:\s*[:：]|[ \t]+(?=\S))/iu.test(line) ||
@@ -803,6 +823,7 @@
     for (const m of t.matchAll(/(?<![\w-])[0O](?:\s?[0-9Ol]){1,3}\s?-\s?[0-9OlI]{3,4}\s?-\s?[0-9OlI]{3,4}(?![\w-])/gu)) {
       const raw = m[0];
       if (!/[OlI]|\d\s\d/.test(raw)) continue;
+      if (/(?:lot|batch|no\.?|ロット|製造番号|제조번호|批号)\s*[:：#.]?\s*$/iu.test(t.slice(Math.max(0, /** @type {number} */ (m.index) - 14), m.index))) continue; // "Lot O12-345-678"
       const fixed = raw.replace(/O/g, "0").replace(/[lI]/g, "1").replace(/(\d)\s(?=\d)/g, "$1");
       if (!phoneOk(fixed.replace(/\s?-\s?/g, "-"))) continue;
       const at = /** @type {number} */ (m.index);
@@ -1023,7 +1044,7 @@
       l: latin(["\\b(?:recipient|consignee|shipper|sender|addressee)\\b|\\bship(?:ped|ping)?\\s*to\\b|\\bdeliver(?:y|ed)?\\s*to\\b|\\bdelivery\\s+(?:address|note|date|instructions?|order)|",
         "\\bshipping\\s+(?:address|label|method|fee|date)|\\bbill(?:ed|ing)?\\s*(?:to|address)\\b|",
           "\\bsold\\s+to\\b|\\btracking\\s*(?:no|number|#|id|code|:)|\\btracked\\b|\\bwaybill|\\bawb\\b|\\bairway\\s+bill|",
-        "\\bparcel\\b|\\bpostage\\b|\\bcourier\\b|\\breturn\\s+address|(?:^|\\n)\\s*(?:from|to)\\s*:|",
+        "\\bparcel\\b|\\bpostage\\b|\\bcourier\\b|\\breturn\\s+address|(?:^|\\n)[^\\S\\n]*(?:from|to)\\s*:|",
           "\\bcash\\s+on\\s+delivery|\\bcod\\s*(?:amount|:|฿|\\d)|\\breceived\\s+by\\b|\\bexpress\\s+worldwide|",
         "\\b(?:flash|kerry|j&t|ninja|best|scg|shopee|lazada)\\s+(?:express|xpress|van)\\b|",
           "\\bpenerima\\b|\\bpengirim\\b|\\bno\\.?\\s*resi\\b|\\bngười (?:nhận|gửi)|\\bmã (?:vận đơn|đơn hàng)"]),

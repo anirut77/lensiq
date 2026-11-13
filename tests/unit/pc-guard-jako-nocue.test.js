@@ -9,8 +9,8 @@ const removed = t => G.redact(t).removed.map(r => r.text);
 
 test("names in class / group lines, after or before a family word, before 'to', on a spaced full-name line", () => {
   const CASES = [
-    ["5年1組 小林 かな 発熱のため", "小林 かな"], ["ぞうぐみ  いけだ そうた", "いけだ そうた"], ["5학년 3반 이도현", "이도현"], ["햇살반 성은유", "성은유"],
-    ["해바라기반 하윤이", "하윤"], ["北村 陽翔(3年2組)", "北村 陽翔"], ["長男 川端 修 090-6623-1180", "川端 修"], ["母 マサ子 → 薬 取りに", "マサ子"],
+    ["5年1組 小林 かな 発熱のため", "小林 かな"], ["ぞうぐみ  いけだ そうた", "いけだ そうた"], ["5학년 3반 이도현", "이도현"], ["어린이집 알림장\n햇살반 성은유", "성은유"],
+    ["유치원 준비물\n해바라기반 하윤이", "하윤"], ["北村 陽翔(3年2組)", "北村 陽翔"], ["長男 川端 修 090-6623-1180", "川端 修"], ["母 マサ子 → 薬 取りに", "マサ子"],
     ["형 민혁 학원 5시", "민혁"], ["복순 할머니 ✔ 아침", "복순"], ["ひろとへ お薬のんでね", "ひろと"], ["지우에게", "지우"], ["さいとう こうた", "さいとう こうた"],
     ["원아 다빈", "다빈"], ["이름은 오세린", "오세린"], ["Name 허재윤  Sex M", "허재윤"], ["LINE ID: haruka_0412k", "haruka_0412k"],
     ["TEL 09O-3318-2276", "09O-3318-2276"], ["連絡先 0 70-5528-3061", "0 70-5528-3061"]
@@ -23,6 +23,17 @@ test("names in class / group lines, after or before a family word, before 'to', 
 test("label wording, foods, brands and Chinese packs are kept", () => {
   for (const t of ["일반 의약품", "할머니 손맛 김치", "할머니 인절미", "엄마 아빠가 안심하는 순한 원단", "おばあちゃんの梅干し", "がんこ爺さんの番茶", "第2類 医薬品",
     "苏打 饼干\n配料：小麦粉", "고객님께 감사드립니다", "大人 1回2錠 1日3回", "성인 1회 1정", "お客様相談室 0120-123-456"]) {
+    assert.equal(G.redact(t).count, 0, t + " -> " + JSON.stringify(removed(t)));
+  }
+});
+
+test("independent review F2: a given name starting like a family word is still removed; ordinary packs are not touched", () => {
+  for (const [t, v] of [["할머니 형숙 퇴원 후 복용\n타이레놀정 500mg", "형숙"], ["엄마 형준이한테 전화", "형준"], ["代理人 柳田 弥生", "柳田 弥生"]]) {
+    assert.ok(removed(t).some(r => r.includes(v)), t + " -> " + JSON.stringify(removed(t)));
+    assert.equal(G.imageCheck(t).block, true, "photo blocked: " + t);
+  }
+  for (const t of ["超值組 綠茶 300ml", "禮盒組 烏龍茶", "초코반 쿠키", "비빔반 소스", "새싹반 이유식", "3반 세트", "特選 緑茶\nお茶", "国産 黒豆\n内容量 200g",
+    "Product Name 绿茶", "Name 维生素C片", "WeChat ID: brand_official", "微信号: shop", "代理人 株式会社サンプル", "幹事 会社", "Lot O12-345-678"]) {
     assert.equal(G.redact(t).count, 0, t + " -> " + JSON.stringify(removed(t)));
   }
 });
