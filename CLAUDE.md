@@ -89,6 +89,24 @@ Speed:
 Reporting: one short progress report per completed item, and a daily summary (done, in progress, blocked on the
 owner).
 
+## Operating mode: parallel teams (owner order 2026-11-13, replaces waiting between items)
+
+- Run all workstreams in parallel with sub-agent teams: one team per workstream, each in its own worktree and branch,
+  with builder agent(s) and one independent reviewer who did not build it (reviewers stay independent of builders even
+  with many teams). The full gate runs on the branch in GitHub Actions; merge to main only when green; deploy only from
+  green main. The coordinator merges and deploys; teams never merge to main.
+- Run as many teams at once as the usage limit allows; do not hold teams back to save quota. Locally run only affected
+  suites (at most one headless browser per team) so the owner's Mac stays light. If the limit is close, finish and hand
+  over cleanly (`docs/HANDOVER.md`) rather than leaving half-merged work.
+- Pending owner decisions: do not wait. State the recommendation and proceed on it, unless it hits a stop condition:
+  spending money, secrets, deleting data, a missed safety or privacy target, legal exposure, or a change to prices.
+  List every such decision in the status board so the owner can reverse it.
+- Status board at 08:00 and 20:00 (Bangkok): every stream with state, percent done, what shipped, what is waiting on
+  the owner (restated in full), the decisions taken on the owner's behalf, teams running and expected finish times.
+- Streams, in priority order when resources are short: A urgent fixes (quote form on iPhone; crisis flow; straight-mode
+  review), B real-phone quality (WebKit in CI at phone width, memory budgets, crash guard, owner test checklists),
+  C Sellable pack, D Beauty & Image, E Merit, F Product Check, G accounts and billing groundwork, H Gate and Exam hall.
+
 ## Product structure
 
 - Never delete or freeze existing work. Merge, extend and regroup only.
@@ -130,7 +148,16 @@ A page may appear in two categories. Pages not listed under a category are platf
      service or straight reading is shown;
   4. no wording that says the bad result will happen unless the user pays or performs something (no fear-selling;
      see Remedies and merit).
-  Also: no lottery numbers; no medical or cosmetic advice; no emotion or deception inference.
+  Also: no lottery numbers; no medical advice and no cosmetic or medical procedure advice (reversible styling
+  suggestions below are allowed); no emotion or deception inference.
+- Look suggestions (owner request 2026-11-13; rule text applied on the agent's recommendation under the parallel
+  operating mode, owner may reverse): reversible styling suggestions are allowed with a fortune reading: brows (shape,
+  thickness, arch), hairstyle, hair colour, facial hair, make-up (lip colour, eye make-up, eyeliner, emphasis or
+  softening with make-up) and accessories (earrings, glasses, necklaces). Each names the reading it relates to and is
+  labelled "according to belief, please use your own judgement". Still banned in every mode: surgery, injections,
+  thread lifts, laser, tattooing or semi-permanent pigment, skin-whitening, and any medical or cosmetic procedure;
+  wording that a feature is bad, must be fixed, or that luck suffers otherwise; beauty scores. Adults only; hidden when
+  the crisis net triggers or the tab is calm; no photos stored by default; never tied to a purchase.
 - Remedies and merit (owner decision 2026-11-10, replaces "no paid remedies"):
   - Never sell a remedy, a change of fortune or any outcome. No wording like "pay and your luck improves" or
     "guaranteed to fix ชง".
