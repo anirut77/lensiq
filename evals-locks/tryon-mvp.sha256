@@ -1,0 +1,8 @@
+# Try-On MVP (docs/TRYON-DESIGN.md T2–T4 subset: merchant back-office section, Worker routes + migration 0017, customer
+# tryon.html on-device overlay) — fixed tests, locked 2026-11-13 BEFORE backend/src/tryon.js, backend/src/tryon-store.js,
+# backend/migrations/0017_tryon.sql, lensiq-tryon-core.js, tryon.html / tryon.js, admin-tryon.js and their i18n were written.
+# Branch tryon-fit, base 272d9d8. Source label: synthetic (landmark sets and images built in the tests). Paths relative
+# to the repo root. Copy: ~/LENSIQ-field/evals/tryon-mvp/locked.sha256. A changed hash means a test changed after locking.
+ba7715859ca8409e6e0935960550d5d1986310c83e8c178d5739f5b08a1589db  tests/unit/backend-tryon.test.js
+d7c925126780d1a9d72641076f693ad2b05156c3bba8fb50ef61ae7e3fc17d75  tests/unit/tryon-core.test.js
+dd3abd92528c4a1480a02d8fb4fbbbf9fb10b57e8e378816c854286c77d14d25  tests/e2e/tryon.e2e.mjs
