@@ -92,7 +92,7 @@ for reloads, the crash-guard note, heat and battery on a real iPhone instead.
 | Check | Mac (local, WebKit 26 / Chrome) | CI ubuntu-latest |
 |---|---|---|
 | WebKit flows part A (home + 4 fortune) | 5 / 5 pass | 5 / 5 pass |
-| WebKit flows part B (9 work flows) | 9 / 9 pass | run 43455270399: 6 / 9; attendance passes since the LQCam fix; exam-lab, studio and photobooth fail because Linux WebKit plays no camera video at all (they need frames) |
+| WebKit flows part B (9 work flows) | 9 / 9 pass | run 43455270399: 6 / 9; run 43464365351: 7 / 9. Attendance passes since the LQCam fix; studio and photobooth fail (and exam-lab sometimes) because Linux WebKit plays no camera video at all and these flows need real frames |
 | Crash guard unit / e2e | 10 / 10, 5 / 5 | pass (run 43455270399) |
 | Camera with no frames (`camera-noframes.e2e.mjs`) | fails before the fix, passes after | pass (run 43455270399) |
 | Memory budgets | measured (table above) | all 9 within budget in run 43455270399 (second CI run: photobooth RSS 868 MB, product check 571 MB, faceread 525 MB) |
