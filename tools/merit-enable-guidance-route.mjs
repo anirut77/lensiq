@@ -30,7 +30,7 @@ export const LOCKED_TESTS_TO_UPDATE = Object.freeze([
   "tests/unit/backend-deploy-gate.test.js (TEST_ROUTES constant and the wrangler.toml includes check)",
   "tests/unit/backend-leads-inbox.test.js (the PUBLIC_ROUTES deepEqual in the 'form ON' test)",
   "tests/unit/deploy-tools.test.js (the committed public-site.json pages list, two assertions in 'B1 site config')",
-  "tests/unit/merit-enable-route.test.js (ME1-ME5 assert 'NOT applied' and flip to 'applied'; a documented re-lock in evals-locks/merit-e.sha256 and ~/LENSIQ-field/evals/merit-e/)",
+  "tests/unit/merit-enable-route.test.js (ME1-ME5 assert 'NOT applied' and flip to 'applied'; a documented re-lock in evals-locks/merit-e.sha256 and the field copy of the merit-e lock file)",
 ]);
 
 /** Adds GUIDANCE_ROUTE to PUBLIC_ROUTES of [env.test.vars] only. Idempotent. @param {string} toml */

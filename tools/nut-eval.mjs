@@ -5,16 +5,18 @@
 //   I. image set: each PNG -> the page's own on-device path in headless Chrome (nutrition.html: LQPCRun.detect ->
 //      LQPC.cropFromBoxes -> LQNutRun.readCanvas on the crop in the label's script (boxes read one by one, rows paired along
 //      the tilt) -> LQNut.parseLabel with the line confidences and the tilt), exactly as lensiq-nut-ui.js does.
-// The set is checked against locked.sha256 first; a changed file stops the run. Results go next to the set (never into the
+// The set is checked against locked.sha256 first, then tools/eval-guard.mjs (the hashes committed in evals-locks/<phase>.sha256);
+// a changed or unlocked file stops the run. Results go next to the set (never into the
 // repo), then the locked score.mjs prints the tables.
 //   node tools/nut-eval.mjs [--set <dir>] [--text-only] [--limit N] [--out <json>]
-import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { cpus, homedir, platform, release, totalmem } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { assertLocked, phaseOf } from "./eval-guard.mjs";
+import { checkNutLock } from "./lib/nut-lock.mjs";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
@@ -26,23 +28,24 @@ const OUT = resolve(opt("--out", join(SET, `results-${new Date().toISOString().s
 const LIMIT = +opt("--limit", 0) || 0;
 if (OUT.startsWith(repo + "/")) { console.error("nut-eval: --out must be outside the repo"); process.exit(2); }
 
-/* ---------- lock check ---------- */
-const sha = f => createHash("sha256").update(readFileSync(f)).digest("hex");
-const lock = readFileSync(join(SET, "locked.sha256"), "utf8").split("\n").filter(l => /^[0-9a-f]{64} {2}/.test(l));
-for (const l of lock) {
-  const [h, ...rest] = l.split("  "), name = rest.join("  ").trim();
-  if (name.startsWith("images/*.png")) {
-    const list = execFileSync("/bin/sh", ["-c", "cd images && shasum -a 256 *.png | shasum -a 256"], { cwd: SET }).toString().split(" ")[0];
-    if (list !== h) { console.error("nut-eval: images changed after locking"); process.exit(3); }
-  } else if (name.startsWith("tests/")) {
-    if (sha(join(repo, name)) !== h) { console.error("nut-eval: locked test changed: " + name); process.exit(3); }
-  } else if (sha(join(SET, name)) !== h) { console.error("nut-eval: locked file changed: " + name); process.exit(3); }
-}
-console.log(`nut-eval: ${lock.length} locked hashes verified`);
+/* ---------- lock check (the set's own locked.sha256; " # ..." suffixes are comments) ---------- */
+try {
+  console.log(`nut-eval: ${checkNutLock(SET, repo).checked} locked hashes verified`);
+} catch (e) { console.error(String(/** @type {any} */ (e).message || e)); process.exit(3); }
 
+/* ---------- eval-guard (owner rule 2026-11-13): every input is in the evals folder and committed in evals-locks/ ---------- */
+/** @param {string[]} inputs */
+const guard = inputs => {
+  try {
+    const g = assertLocked(phaseOf(SET), inputs);
+    console.log(`nut-eval: eval-guard OK, phase ${g.phase}, ${g.files.length} files in ${g.lockFile} (commit ${g.lockCommit})`);
+  } catch (e) { console.error(String(/** @type {any} */ (e).message || e)); process.exit(3); }
+};
+guard(["set.json", ...(existsSync(join(SET, "score.mjs")) ? ["score.mjs"] : [])]);
 const set = JSON.parse(readFileSync(join(SET, "set.json"), "utf8"));
 let labels = set.labels;
 if (LIMIT) labels = [...labels.filter(l => l.part === "text").slice(0, LIMIT), ...labels.filter(l => l.part === "image").slice(0, LIMIT)];
+if (!argv.includes("--text-only")) guard(labels.filter(l => l.part === "image").map(l => l.file));
 const out = { tool: "tools/nut-eval.mjs", date: new Date().toISOString(), commit: execFileSync("git", ["rev-parse", "--short", "HEAD"], { cwd: repo }).toString().trim(),
   source: "synthetic", machine: { cpu: cpus()[0] && cpus()[0].model, cores: cpus().length, ramGB: Math.round(totalmem() / 1073741824), os: `${platform()} ${release()}` }, labels: [] };
 
