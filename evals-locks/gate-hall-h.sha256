@@ -14,3 +14,10 @@ c25349705e36375e6814f4932c2a9dd384ebbb740ce162801824d2373644cdc7  tests/unit/pla
 63d7376146d046935b2239d8d0307b2ae0bdbdb4d2ef1a8a39dd7e18d1edf5dd  tests/unit/plate-train-prep.test.js  # repo file
 752de5c52cc16e48352fd3b5de5ee44322002012ca6c0bd5ee10a20cbc0b4365  tests/unit/hall-seatwatch-replay.test.js  # repo file
 b5bd0417f9d4f0eb8cb2abe0f77bb7f384ffbcf0ba28b802c9fbf48bc0b6eeab  tests/python/test_plate_train.py  # repo file
+# Earlier hashes: commits 585d5cb, 77c8ab8, 3cccfd4.
+# plate-train-owner-1113.test.js re-locked: a test bug fixed (plain.files.f0 -> plain.files["f0.jpg"]: the key is the file name);
+# the assertion is the same, nothing measured.
+df07fd0c6dca2943a6a1ae064d8518a5f2b68450cc634dfd0ba84f800f4800e2  tests/unit/plate-train-owner-1113.test.js  # repo file
+a39eea0ae7341532127fcc04166113f801ec8172b0d5ce58e9f9da4ab1b73ec9  tests/python/test_plate_train_busy.py  # repo file
+# Appended 2026-11-13 (review of bac5e17: B1 traversal, B2 rebinding, S2-S4), before the fixes
+f08c18af6dad0eb6f44d1ed772864e331a7f1b6db4d0c5358c45f7b3c6453bd6  tests/unit/plate-labeller-security.test.js  # repo file

@@ -13,3 +13,7 @@ ace43a2cca68f155bb8a3cd87736bb411f2bd148442f1560ec8ea5777acbdba2  tests/e2e/phon
 1baaa367522ea5bd31286892c82529acf3bb2d57fa0feb24547ea8fadd914055  tests/e2e/phone-memory.e2e.mjs  # repo file
 # memory procedure v2 2026-11-13T15:04:39Z: set-up only, before any number was used — renderer RSS = the LARGEST renderer process instead of the sum (the sum added Chrome's spare / exiting about:blank renderer: first Mac run showed peak 474 MB vs end 262 MB on exam-lab). Budgets still 0 placeholders.
 6489601b64daf8ff3d0c61baa7c376b35d1b88f54c50382af2655c4d4c210d41  tests/e2e/phone-memory.e2e.mjs  # repo file
+# memory budgets v3 2026-11-13T15:28:36Z: BUDGET set from the measured peaks only (Mac run + CI run 43449439495; highest peak x1.5, heap to next 5 MB, RSS to next 10 MB); a comment added. No page, duration, sampling or metric changed.
+acffc930e122977c78b2ab1139e6cd90c4c7df47c82f072154c8beff77b90f26  tests/e2e/phone-memory.e2e.mjs  # repo file
+# camera-noframes 2026-11-13T15:30:29Z: new test locked BEFORE the LQCam fix (fails on the current code: attendance never ready with a frozen camera).
+677e4714b360c68a02908ac3bb5220c76f0b282ac6cc3fdb2ff0d4387603e138  tests/e2e/camera-noframes.e2e.mjs  # repo file

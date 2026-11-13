@@ -31,3 +31,13 @@ c8a6aa2fe220ef481c675162f4c9efbde2285de8975cf02de12752fccff3593e  tests/e2e/look
 #   lives on branch beauty-colour (moved off beauty-look after the first run failed C4; see colour-run-1.log)
 e6b5eae388d7000c6e9a7efeaa93d96b44ee7f6a91ca4a9b66fcf879c0dcd316  tests/unit/style-colour.test.js  # repo file
 baab02cbcf75839d1aa53e8cb983a79dc5dbfedeb8b3e48304fec1aad687e4ae  tests/e2e/style.e2e.mjs  # repo file
+# NOTE 2026-11-13 (coordinator: lock files are append-only): earlier in this session the lines above were rewritten as a whole
+#   file (to add the re-lock note for look.e2e.mjs and part 2/3 lines). No earlier hash was removed or altered except the
+#   documented look.e2e.mjs re-lock; the full history is in the repo copy evals-locks/beauty-look.sha256 (git log -p). From now
+#   on this file is only appended to.
+# 2026-11-13: style-* lines above belong to branch beauty-colour (moved off beauty-look after the first run failed C4).
+# 2026-11-13: harness now calls tools/eval-guard.mjs assertLocked() on set/LOOK-PREVIEW-EVAL.md + set/look-synth-face.js
+#   (copies of the locked repo files, same hashes). Guard only, no scoring change. New harness hash:
+30f9556122eb80b82eda19ea9aee8a26c205343fb49b6a3e31bd40b1481095f8  tools/look-preview-eval.mjs  # repo file
+# 2026-11-13 review fixes (independent review S1-S4), locked before the fixes:
+4be55fb7e6f67e590cafc52a60a9de7ba5c44dff4bfeb4664c35f2e92a256fe5  tests/unit/look-review-fixes.test.js  # repo file
