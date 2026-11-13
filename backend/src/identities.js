@@ -66,6 +66,8 @@ export async function startLine(env, request, body, deps = {}) {
     const m = await requireMember(env, request);
     const rl = await hit(env.DB, `linestart:u:${m.user.id}`, 20, 900, t);
     if (!rl.ok) throw new HttpError(429, "too many attempts — try again later", { retryAfter: rl.retryAfter });
+    // security review H1: adding a sign-in method needs a fresh confirmation (a bearer token alone is not enough)
+    if (mode === "link") await requireFreshMember(env, m, body, { ...deps, nowSec: t });
     userId = m.user.id; sessionHash = m.idHash;
   }
   const state = randomToken(32), binding = randomToken(32), nonce = randomToken(24), verifier = randomToken(48);
@@ -105,7 +107,12 @@ export async function finishLine(env, request, body, deps = {}) {
   let m = null;
   if (row.mode !== "signin") {
     m = await optionalMember(env, request, t);
-    if (!m || m.user.id !== row.user_id) throw new HttpError(403, "please finish in the account that started this (line_wrong_session)", { code: "line_wrong_session" });
+    // security review L3: the very session that started the flow must finish it
+    if (!m || m.user.id !== row.user_id || m.idHash !== row.session_hash) {
+      throw new HttpError(403, "please finish in the account that started this (line_wrong_session)", { code: "line_wrong_session" });
+    }
+    // security review H1: the fresh confirmation must still be valid when the link is made
+    if (row.mode === "link") await requireFreshMember(env, m, null, { nowSec: t });
   }
   let c;
   try {
@@ -120,8 +127,11 @@ export async function finishLine(env, request, body, deps = {}) {
       await audit(env, "member", "member.reauth.wrong_account", { user: m.user.id, provider: "line" });
       throw new HttpError(403, "please confirm with the same LINE account (reauth_wrong_account)", { code: "reauth_wrong_account" });
     }
-    const at = typeof c.auth_time === "number" ? c.auth_time : c.iat;
-    if (typeof at !== "number" || t - at > REAUTH_MAX_AGE) throw new HttpError(401, "please sign in with LINE again — the confirmation must be recent (reauth_stale)", { code: "reauth_stale" });
+    // security review M1: max_age must have been honoured — a numeric auth_time within REAUTH_MAX_AGE is required (a token
+    // without it, e.g. max_age stripped from the request and answered from the LINE session, is refused)
+    if (typeof c.auth_time !== "number" || t - c.auth_time > REAUTH_MAX_AGE || c.auth_time > t + 60) {
+      throw new HttpError(401, "please sign in with LINE again — the confirmation must be recent (reauth_stale)", { code: "reauth_stale" });
+    }
     await env.DB.prepare("UPDATE member_sessions SET reauth_at = ?1 WHERE id_hash = ?2").bind(t, m.idHash).run();
     return { ok: true, valid_until: t + REAUTH_MAX_AGE, valid_for: REAUTH_MAX_AGE };
   }
@@ -190,10 +200,19 @@ export async function unlinkIdentity(env, m, body, deps = {}) {
   const line = await env.DB.prepare("SELECT 1 AS x FROM user_identities WHERE user_id = ?1 AND provider = 'line'").bind(m.user.id).first();
   const have = { google: hasGoogle(m.user), line: !!line };
   if (!have[provider]) throw new HttpError(409, "this sign-in method is not linked (not_linked)", { code: "not_linked" });
-  if (!have.google || !have.line) throw new HttpError(409, "you cannot remove your only sign-in method (last_sign_in_method)", { code: "last_sign_in_method" });
-  if (provider === "line") await env.DB.prepare("DELETE FROM user_identities WHERE user_id = ?1 AND provider = 'line'").bind(m.user.id).run();
-  // Google: the account e-mail stays (receipts / support); the Google account id is replaced by the placeholder
-  else await env.DB.prepare("UPDATE users SET google_sub = ?1 WHERE id = ?2").bind(NO_GOOGLE + m.user.id, m.user.id).run();
+  const last = () => new HttpError(409, "you cannot remove your only sign-in method (last_sign_in_method)", { code: "last_sign_in_method" });
+  // security review L4: ONE conditional write that refuses when it would leave no sign-in method (no check-then-act race)
+  let r;
+  if (provider === "line") {
+    r = await env.DB.prepare("DELETE FROM user_identities WHERE user_id = ?1 AND provider = 'line' AND EXISTS " +
+      "(SELECT 1 FROM users WHERE id = ?1 AND google_sub NOT LIKE 'nogoogle:%')").bind(m.user.id).run();
+  } else {
+    // Google: the Google account id AND the e-mail that came from Google are removed (security review L6; decision: an
+    // account without Google keeps no Google e-mail — receipts already issued keep their own buyer fields)
+    r = await env.DB.prepare("UPDATE users SET google_sub = ?1, email = '', email_verified = 0 WHERE id = ?2 AND google_sub NOT LIKE 'nogoogle:%' AND EXISTS " +
+      "(SELECT 1 FROM user_identities WHERE user_id = ?2 AND provider = 'line')").bind(NO_GOOGLE + m.user.id, m.user.id).run();
+  }
+  if (!r.meta || !r.meta.changes) throw last();
   await audit(env, "member", "member.identity.unlinked", { user: m.user.id, provider });
   return { ok: true, unlinked: provider };
 }
@@ -205,6 +224,9 @@ export async function linkGoogle(env, m, body, deps = {}) {
   if (!clientId) throw new HttpError(503, "Google sign-in is not configured (google_not_configured)", { code: "google_not_configured" });
   const rl = await hit(env.DB, `linkg:${m.user.id}`, 10, 900, t);
   if (!rl.ok) throw new HttpError(429, "too many attempts — try again later", { retryAfter: rl.retryAfter });
+  // security review H1: adding Google needs a fresh confirmation of THIS account first (the 5-minute window; the body's
+  // credential belongs to the Google account being added, so it cannot serve as the confirmation)
+  await requireFreshMember(env, m, null, { nowSec: t });
   if (!body || !(await claimNonce(env.DB, body.nonce, t))) throw new HttpError(401, "sign-in expired — please try again (nonce)", { code: "nonce" });
   let c;
   try {

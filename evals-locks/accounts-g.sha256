@@ -30,3 +30,5 @@ ac117c9520fdaac062c036739abc6383303dc7ef27344d85ea24f9068ae2f7ac  tests/unit/bac
 a124e785524f7eb888b36c2e7f03c39946db19da08caeb835d6db1b1ab7f72a2  tests/unit/backend-hardening.test.js
 f88eab4fb9bc20c57730d9e98b27ad727dc4236dfa91fa0197fae6ebd94656b7  tests/unit/backend-fulfilment-refunds.test.js
 32ccb42bd0ed19f0164a0b3d15db15993026c9c74eec87d856ba17db39dd4ede  tests/unit/backend-billing-receipts.test.js
+# 2026-11-13T17:56:38Z amendment A-G7: tests/e2e/admin-orgs.e2e.mjs — after A-G6 the org creation asks for the password and opens the 5-minute re-auth window, so the licence step closed the window first (reauth_at = 0) to keep proving that an order asks for the password. Expectation unchanged.
+e1035fde0a54207bc9f5a86890a758137440dc0ad517b377fd829d18f59bac84  tests/e2e/admin-orgs.e2e.mjs

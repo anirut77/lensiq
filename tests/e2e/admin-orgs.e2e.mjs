@@ -60,6 +60,9 @@ export default async function ({ launch, check, repo }) {
     });
 
     await check("orgs tab: licence order: four products only, password asked, order listed", async () => {
+      // amendment A-G7: creating the org (review L2) opened the 5-minute re-auth window; close it so this step still
+      // proves that a licence order asks for the password
+      await W.env.DB.prepare("UPDATE admin_sessions SET reauth_at = 0").run();
       const opts = await page.evaluate(() => [...document.querySelectorAll("#adoLic select[name=plan_id] option")].map(o => o.value).filter(Boolean).sort());
       assert(JSON.stringify(opts) === JSON.stringify(["attendance_person", "crowd_report", "exam_lab_candidate", "exam_lab_room", "gate_lane", "gate_trial"]), JSON.stringify(opts));
       await page.evaluate(() => {

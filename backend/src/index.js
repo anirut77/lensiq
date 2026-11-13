@@ -172,7 +172,11 @@ async function publicRoute(request, env, url, deps) {
   if (p.startsWith("/api/auth/") || p === "/api/me" || p.startsWith("/api/me/")) {
     if (!originAllowed(request, allow, { required: true })) return reply({ error: "origin not allowed" }, 403);
     const body = async () => readJson(request, 8192);
-    if (p === "/api/auth/nonce" && m === "POST") return reply(await members.issueNonce(env, request), 201);
+    if (p === "/api/auth/nonce" && m === "POST") {
+      let nb = null;
+      try { nb = request.headers.get("Content-Type") ? await readJson(request, 1024) : null; } catch { nb = null; }
+      return reply(await members.issueNonce(env, request, nb), 201);
+    }
     if (p === "/api/auth/google" && m === "POST") return reply(await members.signInGoogle(env, request, await readJson(request, 8192), deps));
     // stream G: LINE Login (start checks the member itself for link / reauth; finish reads the optional bearer)
     if (p === "/api/auth/line/start" && m === "POST") return reply(await identities.startLine(env, request, await readJson(request, 4096), deps), 201);
@@ -596,7 +600,7 @@ async function adminRoute(request, env, url, deps) {
     case "GET /members": return reply(await members.adminMembers(env, Object.fromEntries(url.searchParams)));
     // stream G: organisation accounts (lite) and back-office licence orders (orgs.js)
     case "GET /orgs": return reply(await orgs.adminListOrgs(env));
-    case "POST /orgs": return reply(await orgs.adminCreateOrg(env, await body()), 201);
+    case "POST /orgs": return reply(await orgs.adminCreateOrg(env, await reauthed()), 201); // issues an owner link: re-auth (review L2)
     case "GET /licence-plans": return reply(await orgs.adminLicencePlans(env));
     case "GET /membership": return reply({ ...(await members.adminMembershipInfo(env)), turnstile: turnstileStatus(env) });
     case "PUT /membership": {

@@ -38,6 +38,7 @@ const PROBES = [
   ["0016_merit_review.sql", "SELECT reviewer_id FROM admin_sessions LIMIT 0"],
   ["0016_merit_review.sql", "SELECT review_comment, reviewed_by, reviewed_at, source, review_meta FROM merit_items LIMIT 0"],
   ["0017_accounts.sql", "SELECT provider, sub, user_id, created_at, last_login_at FROM user_identities LIMIT 0"],
+  ["0017_accounts.sql", "SELECT hash, purpose FROM auth_nonces LIMIT 0"],
   ["0017_accounts.sql", "SELECT state_hash, binding_hash, nonce, code_verifier, mode, session_kind, expires_at FROM line_auth_flows LIMIT 0"],
   ["0017_accounts.sql", "SELECT id, name, status, billing_tax_id FROM orgs LIMIT 0"],
   ["0017_accounts.sql", "SELECT org_id, user_id, role, is_owner FROM org_members LIMIT 0"],

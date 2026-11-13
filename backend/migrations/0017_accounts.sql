@@ -43,6 +43,11 @@ CREATE TABLE line_auth_flows (
 );
 CREATE INDEX line_auth_flows_exp ON line_auth_flows(expires_at);
 
+-- Security review 2026-11-14 (M1): a nonce knows what it was issued for. NULL = sign-in; 'reauth' = a fresh
+-- confirmation (export, erasure, linking / unlinking a sign-in method, org role changes). A Google ID token without
+-- auth_time is accepted as a fresh confirmation only with a 'reauth' nonce; a 'reauth' nonce never signs anyone in.
+ALTER TABLE auth_nonces ADD COLUMN purpose TEXT;
+
 -- Organisation account (lite).
 CREATE TABLE orgs (
   id TEXT PRIMARY KEY,

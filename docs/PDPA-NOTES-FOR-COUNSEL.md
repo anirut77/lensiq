@@ -977,6 +977,11 @@ personal data and describe the friend-add option shown on LINE's consent page? (
 "personal data collected from another source" needing notice under s.25? (3) For a LINE-only account there is no
 e-mail: is the in-account notice (and LINE OA message, once used) enough for renewal / change notices?
 
+(d) **Unlinking Google (decision 2026-11-14, security review L6).** When a member removes Google from an account that
+also has LINE, the Google account id **and the e-mail that came from Google** are removed from the account; the account
+then has no e-mail. Receipts already issued keep their own buyer fields (tax records). Linking or unlinking a sign-in
+method always needs a fresh confirmation with the account's current method.
+
 ### H2. Organisation account (lite)
 
 (a) **Data held** (Cloudflare D1, outside Thailand): organisation name; billing details (name on documents, 13-digit tax

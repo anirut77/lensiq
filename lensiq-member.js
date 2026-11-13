@@ -856,7 +856,7 @@
       cancel.addEventListener("click", function () { finish(false); });
       box.addEventListener("cancel", function () { finish(false); });
       try { if (typeof box.showModal === "function") box.showModal(); else box.setAttribute("open", ""); } catch (e) { box.setAttribute("open", ""); }
-      Promise.all([loadGsi(), call("/api/auth/nonce", { method: "POST", body: {}, auth: false })]).then(function (x) {
+      Promise.all([loadGsi(), call("/api/auth/nonce", { method: "POST", body: { purpose: "reauth" }, auth: false })]).then(function (x) {
         var gid = x[0], n = x[1];
         if (!gid || !n.ok || !n.j || !n.j.nonce) { say(T("mem.err.load", "เปิดหน้าต่างเข้าสู่ระบบของ Google ไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่"), true); return; }
         var nonce = n.j.nonce;
@@ -969,8 +969,8 @@
     /* stream G: sign-in methods (Google + LINE) and organisation account lite */
     googleOn: googleOn, lineOn: lineOn, lineNote: function () { return lineNote; },
     identities: function () { return call("/api/me/identities"); },
-    linkLine: function () { return startLine("link"); },
-    linkGoogle: linkGoogle,
+    linkLine: function () { return withFresh(function () { return startLine("link"); }); },
+    linkGoogle: function () { return withFresh(linkGoogle); },
     unlink: function (/** @type {string} */ provider) { return withFresh(function () { return call("/api/me/identities/unlink", { method: "POST", body: { provider: provider } }); }); },
     orgs: function () { return call("/api/me/orgs"); },
     org: function (/** @type {string} */ id) { return call("/api/orgs/" + encodeURIComponent(id)); },

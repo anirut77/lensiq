@@ -489,6 +489,15 @@ accounts exist only when the owner creates one in the back office; free-tier lim
   `POST /api/me/identities/unlink`. Export lists the methods (never the provider ids); erasure deletes them.
 * `bot_prompt=normal` asks LINE to offer adding the linked official account (@632yliiw) as a friend on the consent
   screen; we never receive or store the friendship status.
+* **Security review fixes (2026-11-14).** Linking LINE or Google needs a fresh confirmation (the 5-minute window) at the
+  start and still valid at the finish; a link / reauth flow must be finished by the very session that started it; LINE
+  re-auth needs a numeric `auth_time` within `max_age` (300 s); a Google re-auth token without `auth_time` is accepted only
+  for a nonce issued with `POST /api/auth/nonce {"purpose":"reauth"}` (a re-auth nonce never signs anyone in) — residual:
+  Google Identity Services cannot force Google to ask for the password, so a Google confirmation proves control of the
+  Google account in that browser now; removing a sign-in method is one conditional write; unlinking Google also removes
+  the Google e-mail; creating an organisation (which issues an owner link) needs the owner's re-auth, and an accepted owner
+  link revokes the other open owner links and logs `org.owner_replaced` when it replaces an owner. Migration 0017 adds
+  `auth_nonces.purpose`.
 
 **Organisation account lite** (`backend/src/orgs.js`, `backend/src/orgaudit.js`; tests `tests/unit/backend-orgs.test.js`,
 `tests/e2e/admin-orgs.e2e.mjs`): organisation name, billing details (name, 13-digit tax id, address, branch, e-mail),

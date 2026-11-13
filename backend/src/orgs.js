@@ -180,6 +180,7 @@ export async function revokeInvite(env, mem, orgId, inviteId) {
 
 export async function acceptInvite(env, mem, body) {
   if (!body || typeof body.token !== "string" || !TOKEN_RE.test(body.token)) throw new HttpError(400, "invitation token required");
+  onlyKeys(body, ["token"]);
   const t = now();
   const rl = await hit(env.DB, `orgacc:${mem.user.id}`, 20, 900, t);
   if (!rl.ok) throw new HttpError(429, "too many attempts — try again later", { retryAfter: rl.retryAfter });
@@ -197,12 +198,20 @@ export async function acceptInvite(env, mem, body) {
   if (!claim.meta || !claim.meta.changes) throw gone();
   const owner = inv.owner_invite === 1;
   const role = owner ? "admin" : String(inv.role);
+  const prevOwner = owner ? await env.DB.prepare("SELECT user_id FROM org_members WHERE org_id = ?1 AND is_owner = 1").bind(inv.org_id).first() : null;
+  const others = owner ? ((await env.DB.prepare("SELECT id FROM org_invites WHERE org_id = ?1 AND owner_invite = 1 AND accepted_at IS NULL AND revoked_at IS NULL AND id != ?2")
+    .bind(inv.org_id, inv.id).all()).results || []).map(r => String(r.id)) : [];
   await env.DB.batch([
-    ...(owner ? [env.DB.prepare("UPDATE org_members SET is_owner = 0 WHERE org_id = ?1").bind(inv.org_id)] : []),
+    ...(owner ? [env.DB.prepare("UPDATE org_members SET is_owner = 0 WHERE org_id = ?1").bind(inv.org_id),
+      // security review L2: an accepted owner link revokes every other open owner link of the organisation
+      env.DB.prepare("UPDATE org_invites SET revoked_at = ?1 WHERE org_id = ?2 AND owner_invite = 1 AND accepted_at IS NULL AND revoked_at IS NULL AND id != ?3").bind(t, inv.org_id, inv.id)] : []),
     env.DB.prepare("INSERT INTO org_members (org_id, user_id, role, is_owner, status, created_at) VALUES (?1, ?2, ?3, ?4, 'active', ?5)").bind(inv.org_id, mem.user.id, role, owner ? 1 : 0, t)
   ]);
   const ref = await actorRef(mem.user.id);
-  await orgAudit(env.DB, String(inv.org_id), { actorKind: "user", actorRef: ref, action: "member.joined", ref: inv.id, detail: { role, owner } }, t);
+  const org = String(inv.org_id);
+  for (const id of others) await orgAudit(env.DB, org, { actorKind: "system", action: "invite.revoked", ref: id, detail: { reason: "owner_link_used" } }, t);
+  if (prevOwner) await orgAudit(env.DB, org, { actorKind: "system", action: "org.owner_replaced", ref: await actorRef(String(prevOwner.user_id)), detail: { via: "owner_invite" } }, t);
+  await orgAudit(env.DB, org, { actorKind: "user", actorRef: ref, action: "member.joined", ref: inv.id, detail: { role, owner } }, t);
   return { org: { id: inv.org_id, name: inv.org_name }, role, is_owner: owner };
 }
 
@@ -217,6 +226,7 @@ const ownerProtected = () => new HttpError(403, "the organisation owner cannot b
 export async function setRole(env, mem, orgId, userId, body, deps = {}) {
   const ms = await membership(env, mem, orgId);
   needAdmin(ms); needActive(ms);
+  onlyKeys(body, ["role", "credential", "nonce"]);
   await requireFreshMember(env, mem, body, deps);
   const role = body && body.role;
   if (!ROLES.includes(role)) throw new HttpError(400, "role must be admin or staff");
@@ -231,6 +241,7 @@ export async function setRole(env, mem, orgId, userId, body, deps = {}) {
 export async function removeMember(env, mem, orgId, userId, body, deps = {}) {
   const ms = await membership(env, mem, orgId);
   const self = userId === mem.user.id;
+  onlyKeys(body, ["credential", "nonce"]);
   const tg = await targetOf(env.DB, orgId, userId);
   if (tg.is_owner === 1) throw ownerProtected();
   if (!self) { needAdmin(ms); needActive(ms); await requireFreshMember(env, mem, body, deps); }
@@ -244,6 +255,7 @@ export async function transferOwner(env, mem, orgId, body, deps = {}) {
   const ms = await membership(env, mem, orgId);
   if (!ms.owner) throw forbidden();
   needActive(ms);
+  onlyKeys(body, ["user_id", "credential", "nonce"]);
   await requireFreshMember(env, mem, body, deps);
   const uid = body && body.user_id;
   const tg = ID_RE.test(String(uid || "")) ? await env.DB.prepare("SELECT * FROM org_members WHERE org_id = ?1 AND user_id = ?2").bind(orgId, uid).first() : null;

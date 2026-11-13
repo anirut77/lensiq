@@ -94,21 +94,31 @@ export async function publicMembership(env) {
 
 // ---- sign-in ---------------------------------------------------------------------------------------------------------
 
-export async function issueNonce(env, request) {
+export const NONCE_PURPOSES = ["signin", "reauth"];
+export async function issueNonce(env, request, body = null) {
+  const purpose = body && body.purpose != null ? body.purpose : "signin";
+  if (!NONCE_PURPOSES.includes(purpose)) throw new HttpError(400, "purpose must be signin or reauth");
   const who = await callerHash(env, request, "signin");
   const rl = await hit(env.DB, `nonce:${who}`, 30, 900);
   if (!rl.ok) throw new HttpError(429, "too many sign-in attempts — try again later", { retryAfter: rl.retryAfter });
   if (!googleClientId(env)) throw new HttpError(503, "Google sign-in is not configured (google_not_configured)", { code: "google_not_configured" });
   const nonce = randomToken(24), t = now();
-  await env.DB.prepare("INSERT INTO auth_nonces (hash, created_at, expires_at) VALUES (?1, ?2, ?3)").bind(await sha256Hex(nonce), t, t + NONCE_TTL).run();
+  await env.DB.prepare("INSERT INTO auth_nonces (hash, created_at, expires_at, purpose) VALUES (?1, ?2, ?3, ?4)")
+    .bind(await sha256Hex(nonce), t, t + NONCE_TTL, purpose === "reauth" ? "reauth" : null).run();
   return { nonce, expires_in: NONCE_TTL };
 }
 
-/** Atomically consumes a nonce we issued (single use, unexpired). */
+/** Atomically consumes a SIGN-IN nonce we issued (single use, unexpired). A re-auth nonce is never accepted here. */
 export async function claimNonce(db, nonce, t) {
   if (typeof nonce !== "string" || !/^[A-Za-z0-9_-]{20,64}$/.test(nonce)) return false;
-  const r = await db.prepare("DELETE FROM auth_nonces WHERE hash = ?1 AND expires_at > ?2 RETURNING hash").bind(await sha256Hex(nonce), t).first();
+  const r = await db.prepare("DELETE FROM auth_nonces WHERE hash = ?1 AND expires_at > ?2 AND purpose IS NULL RETURNING hash").bind(await sha256Hex(nonce), t).first();
   return !!r;
+}
+/** Consumes a nonce of either purpose; returns "signin" | "reauth" | null (unknown / used / expired). */
+async function claimAnyNonce(db, nonce, t) {
+  if (typeof nonce !== "string" || !/^[A-Za-z0-9_-]{20,64}$/.test(nonce)) return null;
+  const r = await db.prepare("DELETE FROM auth_nonces WHERE hash = ?1 AND expires_at > ?2 RETURNING purpose").bind(await sha256Hex(nonce), t).first();
+  return r ? (r.purpose === "reauth" ? "reauth" : "signin") : null;
 }
 
 /** Stream G: a LINE-only account has no Google account (placeholder google_sub "nogoogle:<id>") and no e-mail (""). */
@@ -498,7 +508,8 @@ async function verifyFresh(env, m, body, deps = {}) {
   if (!clientId) throw new HttpError(503, "Google sign-in is not configured (google_not_configured)", { code: "google_not_configured" });
   const rl = await hit(env.DB, `mreauth:${m.user.id}`, 10, 900, t);
   if (!rl.ok) throw new HttpError(429, "too many attempts — try again later", { retryAfter: rl.retryAfter });
-  if (!body || !(await claimNonce(env.DB, body.nonce, t))) throw new HttpError(401, "confirmation expired — please sign in with Google again (nonce)", { code: "nonce" });
+  const purpose = body ? await claimAnyNonce(env.DB, body.nonce, t) : null;
+  if (!purpose) throw new HttpError(401, "confirmation expired — please sign in with Google again (nonce)", { code: "nonce" });
   let c;
   try {
     c = await verifyGoogleIdToken(String(body.credential || ""), { clientId, nonce: body.nonce, fetchImpl: deps.fetch, now: t });
@@ -510,8 +521,14 @@ async function verifyFresh(env, m, body, deps = {}) {
     await audit(env, "member", "member.reauth.wrong_account", { user: m.user.id });
     throw new HttpError(403, "please confirm with the same Google account (reauth_wrong_account)", { code: "reauth_wrong_account" });
   }
-  const at = typeof c.auth_time === "number" ? c.auth_time : c.iat;
-  if (typeof at !== "number" || t - at > REAUTH_MAX_AGE) throw new HttpError(401, "please sign in with Google again — the confirmation must be recent (reauth_stale)", { code: "reauth_stale" });
+  // security review M1 (2026-11-14): auth_time, when Google sends it, must be recent. Google Identity Services tokens
+  // usually carry no auth_time: then the token must have been minted for a nonce issued for this re-authentication
+  // ({purpose:"reauth"}) within REAUTH_MAX_AGE — a token obtained for a sign-in nonce is not a fresh confirmation.
+  // Residual: GIS cannot force Google to ask for the password again; the confirmation proves control of the Google
+  // account in this browser now (see docs/BACKEND.md "Stream G").
+  const stale = () => new HttpError(401, "please sign in with Google again — the confirmation must be recent (reauth_stale)", { code: "reauth_stale" });
+  if (typeof c.auth_time === "number") { if (t - c.auth_time > REAUTH_MAX_AGE || c.auth_time > t + 60) throw stale(); }
+  else if (purpose !== "reauth" || typeof c.iat !== "number" || t - c.iat > REAUTH_MAX_AGE) throw stale();
   return t;
 }
 
