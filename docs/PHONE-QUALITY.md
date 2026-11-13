@@ -87,6 +87,23 @@ budget with a written reason, never a silent raise.
 WebKit gives Playwright no memory figure, so iPhone memory is not measured automatically; the owner checklists ask
 for reloads, the crash-guard note, heat and battery on a real iPhone instead.
 
-## 4. Results
+## 4. Results (2026-11-13)
 
-(filled in below)
+| Check | Mac (local, WebKit 26 / Chrome) | CI ubuntu-latest |
+|---|---|---|
+| WebKit flows part A (home + 4 fortune) | 5 / 5 pass | 5 / 5 pass |
+| WebKit flows part B (9 work flows) | 9 / 9 pass | attendance failed before the LQCam fix (see below); studio and photobooth fail: Linux WebKit plays no camera video at all |
+| Crash guard unit / e2e | 10 / 10, 5 / 5 | see the CI run in the stream report |
+| Camera with no frames (`camera-noframes.e2e.mjs`) | fails before the fix, passes after | see the CI run |
+| Memory budgets | measured (table above) | measured (table above) |
+
+**Product finding 1 (fixed):** a camera that opens but never delivers a frame made `LQCam.start()` wait for ever on
+`video.play()`. attendance.html then stayed on "opening the camera" and even the PIN / QR clock (which needs no camera)
+never became ready. `lensiq-camera.js` now waits at most 4 s for the first frame and carries on; the page shows what it
+can. Locked test: `tests/e2e/camera-noframes.e2e.mjs` (frozen fake camera).
+
+**Test-environment finding (not a product bug):** Playwright's Linux WebKit never delivers frames from any
+MediaStream (its own mock camera or a canvas stream) to a `<video>`, headless or headed under xvfb (diagnostic runs
+43448812499, 43449439495, 43452863022, 43453981652 on the temporary branch `phone-quality-dbg`). On macOS WebKit the
+same flows pass. Flows that need real frames (studio shoot, photobooth shoot) therefore need a macOS runner for the
+WebKit files; that changes the approved CI layout (3 Linux shards) and waits for the owner (stream report).
