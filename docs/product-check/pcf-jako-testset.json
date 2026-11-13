@@ -1,0 +1,2578 @@
+{
+ "schema": "lensiq-pcf-jako-testset/1",
+ "source": "synthetic: invented Japanese / Korean documents, notes and labels written by the builder on 2026-11-13 BEFORE the guard change; no real person or pack",
+ "targets": {
+  "leak": "0 personal values reaching the AI in text mode, image mode and the tester one-tap path (privacy target, never worse)",
+  "recallCued": ">= 0.95 of personal values with a field word or an honorific removed (dev); >= 0.90 on the independent hold-out",
+  "recallAll": "reported (bare names without any cue are the stated limit)",
+  "productFalseRedaction": "<= 0.02 of product labels get anything removed",
+  "productGateAddedRefusal": "0 product labels refused by the gate that were allowed before the change"
+ },
+ "note": "Builder's dev set: the builder wrote both the set and the rules, so its numbers are not evidence. The independent hold-out decides.",
+ "items": [
+  {
+   "id": "dJ001",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese prescription",
+   "text": "処 方 箋\n保険者番号 46658534\n患者氏名 伊藤 和夫\n生年月日 平成12年12月3日\nロキソプロフェン錠60mg 1日3回 毎食後",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "伊藤 和夫",
+     "cue": "field"
+    },
+    {
+     "kind": "dob",
+     "value": "平成12年12月3日",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ002",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese prescription",
+   "text": "処 方 箋\n保険者番号 40319389\n患者氏名 山口和夫\n生年月日 昭和51年6月12日\nロキソプロフェン錠60mg 1日3回 毎食後",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "山口和夫",
+     "cue": "field"
+    },
+    {
+     "kind": "dob",
+     "value": "昭和51年6月12日",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ003",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese prescription",
+   "text": "処 方 箋\n保険者番号 77286819\n患者氏名 加藤 幸子\n生年月日 平成44年6月5日\nロキソプロフェン錠60mg 1日3回 毎食後",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "加藤 幸子",
+     "cue": "field"
+    },
+    {
+     "kind": "dob",
+     "value": "平成44年6月5日",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ004",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese prescription",
+   "text": "処 方 箋\n保険者番号 38759655\n患者氏名 木村太郎\n生年月日 昭和19年12月4日\nロキソプロフェン錠60mg 1日3回 毎食後",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "木村太郎",
+     "cue": "field"
+    },
+    {
+     "kind": "dob",
+     "value": "昭和19年12月4日",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ005",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese pharmacy medicine bag",
+   "text": "ひまわり調剤薬局\n山口健一 様\n内服薬 1日3回 毎食後 7日分\n調剤日 2026年11月10日",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "山口健一",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dJ006",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese pharmacy medicine bag",
+   "text": "ひまわり調剤薬局\n松本 花子 様\n内服薬 1日3回 毎食後 7日分\n調剤日 2026年11月11日",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "松本 花子",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dJ007",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese pharmacy medicine bag",
+   "text": "ひまわり調剤薬局\n伊藤翔太 様\n内服薬 1日3回 毎食後 7日分\n調剤日 2026年11月12日",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "伊藤翔太",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dJ008",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese pharmacy medicine bag",
+   "text": "ひまわり調剤薬局\n吉田 由美 様\n内服薬 1日3回 毎食後 7日分\n調剤日 2026年11月13日",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "吉田 由美",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dJ009",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese pharmacy medicine bag",
+   "text": "みどり調剤薬局\n山本真由美 様\n内服薬 1日3回 毎食後 7日分\n調剤日 2026年11月14日",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "山本真由美",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dJ010",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese medicine-notebook sticker",
+   "text": "お薬手帳\n田中和夫様\n調剤日 R8.11.01\nカロナール錠200 1回1錠 頓服",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "田中和夫",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dJ011",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese medicine-notebook sticker",
+   "text": "お薬手帳\n小林拓也様\n調剤日 R8.11.02\nカロナール錠200 1回1錠 頓服",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "小林拓也",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dJ012",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese medicine-notebook sticker",
+   "text": "お薬手帳\n山本久美子様\n調剤日 R8.11.03\nカロナール錠200 1回1錠 頓服",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "山本久美子",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dJ013",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese medicine-notebook sticker",
+   "text": "お薬手帳\n中村直樹様\n調剤日 R8.11.04\nカロナール錠200 1回1錠 頓服",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "中村直樹",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dJ014",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese lab result",
+   "text": "検査結果報告書\n氏名: 森 花子\n患者ID: 64925523\nHbA1c 6.0 %  LDL 102 mg/dL",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "森 花子",
+     "cue": "field"
+    },
+    {
+     "kind": "hn",
+     "value": "64925523",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ015",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese lab result",
+   "text": "検査結果報告書\n氏名: 斎藤直樹\n患者ID: 71573730\nHbA1c 6.1 %  LDL 112 mg/dL",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "斎藤直樹",
+     "cue": "field"
+    },
+    {
+     "kind": "hn",
+     "value": "71573730",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ016",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese lab result",
+   "text": "検査結果報告書\n氏名: 山口 真由美\n患者ID: 40305219\nHbA1c 6.2 %  LDL 122 mg/dL",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "山口 真由美",
+     "cue": "field"
+    },
+    {
+     "kind": "hn",
+     "value": "40305219",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ017",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese lab result",
+   "text": "検査結果報告書\n氏名: 松本健一\n患者ID: 54108614\nHbA1c 6.3 %  LDL 132 mg/dL",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "松本健一",
+     "cue": "field"
+    },
+    {
+     "kind": "hn",
+     "value": "54108614",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ018",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese patient card (kana)",
+   "text": "診察券\n中央内科クリニック\nフリガナ サトウ ハナコ\n診察券番号 100001\nTEL 03-298-1473",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "サトウ ハナコ",
+     "cue": "field"
+    },
+    {
+     "kind": "hn",
+     "value": "100001",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ019",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese patient card (kana)",
+   "text": "診察券\n中央内科クリニック\nフリガナ ヤマダ タロウ\n診察券番号 481022\nTEL 011-122-1215",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "ヤマダ タロウ",
+     "cue": "field"
+    },
+    {
+     "kind": "hn",
+     "value": "481022",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ020",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese patient card (kana)",
+   "text": "診察券\n桜台内科クリニック\nフリガナ ナカムラ ダイスケ\n診察券番号 495144\nTEL 052-350-3206",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "ナカムラ ダイスケ",
+     "cue": "field"
+    },
+    {
+     "kind": "hn",
+     "value": "495144",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ021",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese patient card (kana)",
+   "text": "診察券\n中央内科クリニック\nフリガナ いとう まさお\n診察券番号 680677\nTEL 052-583-3744",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "いとう まさお",
+     "cue": "field"
+    },
+    {
+     "kind": "hn",
+     "value": "680677",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ022",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese insurance card",
+   "text": "健康保険 被保険者証\n記号 341 番号 04\n氏名 小林 翔太\n生年月日 平成39年7月23日\n保険者番号 73973172",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "小林 翔太",
+     "cue": "field"
+    },
+    {
+     "kind": "dob",
+     "value": "平成39年7月23日",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ023",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese insurance card",
+   "text": "健康保険 被保険者証\n記号 058 番号 23\n氏名 清水 陽子\n生年月日 平成41年4月4日\n保険者番号 45689974",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "清水 陽子",
+     "cue": "field"
+    },
+    {
+     "kind": "dob",
+     "value": "平成41年4月4日",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ024",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese insurance card",
+   "text": "健康保険 被保険者証\n記号 267 番号 35\n氏名 渡辺 拓也\n生年月日 平成34年5月11日\n保険者番号 65070200",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "渡辺 拓也",
+     "cue": "field"
+    },
+    {
+     "kind": "dob",
+     "value": "平成34年5月11日",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ025",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese insurance card",
+   "text": "健康保険 被保険者証\n記号 342 番号 00\n氏名 山田 拓也\n生年月日 平成33年3月1日\n保険者番号 35356144",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "山田 拓也",
+     "cue": "field"
+    },
+    {
+     "kind": "dob",
+     "value": "平成33年3月1日",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ026",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese My Number card",
+   "text": "個人番号カード\n氏名 井上真由美\n個人番号 9232 3540 8625",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "井上真由美",
+     "cue": "field"
+    },
+    {
+     "kind": "id",
+     "value": "9232 3540 8625",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ027",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese My Number card",
+   "text": "個人番号カード\n氏名 山田幸子\n個人番号 4110 5349 7349",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "山田幸子",
+     "cue": "field"
+    },
+    {
+     "kind": "id",
+     "value": "4110 5349 7349",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ028",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese My Number card",
+   "text": "個人番号カード\n氏名 吉田翔太\n個人番号 7792 1150 8260",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "吉田翔太",
+     "cue": "field"
+    },
+    {
+     "kind": "id",
+     "value": "7792 1150 8260",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ029",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese delivery slip",
+   "text": "お届け先\n〒150-0000 東京都世田谷区桜1-2-3\n高橋 翔太 様\nTEL 090-8052-8649\nご依頼主 通販ショップ",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "高橋 翔太",
+     "cue": "honorific"
+    },
+    {
+     "kind": "phone",
+     "value": "090-8052-8649",
+     "cue": "field"
+    },
+    {
+     "kind": "address",
+     "value": "東京都世田谷区桜1-2-3",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ030",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese delivery slip",
+   "text": "お届け先\n〒150-0001 東京都世田谷区桜2-2-3\n渡辺拓也 様\nTEL 090-9429-2616\nご依頼主 通販ショップ",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "渡辺拓也",
+     "cue": "honorific"
+    },
+    {
+     "kind": "phone",
+     "value": "090-9429-2616",
+     "cue": "field"
+    },
+    {
+     "kind": "address",
+     "value": "東京都世田谷区桜2-2-3",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ031",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese delivery slip",
+   "text": "お届け先\n〒150-0002 東京都渋谷区神宮前3-2-3\n佐々木 直樹 様\nTEL 090-7486-9842\nご依頼主 通販ショップ",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "佐々木 直樹",
+     "cue": "honorific"
+    },
+    {
+     "kind": "phone",
+     "value": "090-7486-9842",
+     "cue": "field"
+    },
+    {
+     "kind": "address",
+     "value": "東京都渋谷区神宮前3-2-3",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ032",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese delivery slip",
+   "text": "お届け先\n〒150-0003 東京都世田谷区桜4-2-3\n清水久美子 様\nTEL 070-7837-0614\nご依頼主 通販ショップ",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "清水久美子",
+     "cue": "honorific"
+    },
+    {
+     "kind": "phone",
+     "value": "070-7837-0614",
+     "cue": "field"
+    },
+    {
+     "kind": "address",
+     "value": "東京都世田谷区桜4-2-3",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ033",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese delivery slip",
+   "text": "お届け先\n〒150-0004 東京都世田谷区桜5-2-3\n木村 直樹 様\nTEL 090-1559-0496\nご依頼主 通販ショップ",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "木村 直樹",
+     "cue": "honorific"
+    },
+    {
+     "kind": "phone",
+     "value": "090-1559-0496",
+     "cue": "field"
+    },
+    {
+     "kind": "address",
+     "value": "東京都世田谷区桜5-2-3",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ034",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese note to a person",
+   "text": "松本さんへ\nお薬は朝と夜に飲んでください\nお大事に 真由美より",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "松本",
+     "cue": "honorific"
+    },
+    {
+     "kind": "name",
+     "value": "真由美",
+     "cue": "none"
+    }
+   ]
+  },
+  {
+   "id": "dJ035",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese note to a person",
+   "text": "伊藤さんへ\nお薬は朝と夜に飲んでください\nお大事に 陽子より",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "伊藤",
+     "cue": "honorific"
+    },
+    {
+     "kind": "name",
+     "value": "陽子",
+     "cue": "none"
+    }
+   ]
+  },
+  {
+   "id": "dJ036",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese note to a person",
+   "text": "松本さんへ\nお薬は朝と夜に飲んでください\nお大事に 真由美より",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "松本",
+     "cue": "honorific"
+    },
+    {
+     "kind": "name",
+     "value": "真由美",
+     "cue": "none"
+    }
+   ]
+  },
+  {
+   "id": "dJ037",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese note to a person",
+   "text": "井上さんへ\nお薬は朝と夜に飲んでください\nお大事に 健一より",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "井上",
+     "cue": "honorific"
+    },
+    {
+     "kind": "name",
+     "value": "健一",
+     "cue": "none"
+    }
+   ]
+  },
+  {
+   "id": "dJ038",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese note to a person",
+   "text": "佐藤さんへ\nお薬は朝と夜に飲んでください\nお大事に 真由美より",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "佐藤",
+     "cue": "honorific"
+    },
+    {
+     "kind": "name",
+     "value": "真由美",
+     "cue": "none"
+    }
+   ]
+  },
+  {
+   "id": "dJ039",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese card",
+   "text": "井上久美子様\n退院おめでとうございます\n早く元気になってね",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "井上久美子",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dJ040",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese card",
+   "text": "伊藤翔太様\n退院おめでとうございます\n早く元気になってね",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "伊藤翔太",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dJ041",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese card",
+   "text": "斎藤恵子様\n退院おめでとうございます\n早く元気になってね",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "斎藤恵子",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dJ042",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese card",
+   "text": "佐々木結衣様\n退院おめでとうございます\n早く元気になってね",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "佐々木結衣",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dJ043",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese kana name, honorific",
+   "text": "いとうまさおさま\nこのお薬は1日2回\n食後にのんでね",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "いとうまさお",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dJ044",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese kana name, honorific",
+   "text": "きむらあおいさま\nこのお薬は1日2回\n食後にのんでね",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "きむらあおい",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dJ045",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese kana name, honorific",
+   "text": "タナカユミさま\nこのお薬は1日2回\n食後にのんでね",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "タナカユミ",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dJ046",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese kana name, honorific",
+   "text": "ヤマダタロウさま\nこのお薬は1日2回\n食後にのんでね",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "ヤマダタロウ",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dJ047",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese hospital discharge note",
+   "text": "市立総合病院\n患者名 山口 由美\nカルテ番号 6139448\n連絡先 090-5408-6811\n退院時処方 アムロジピン錠5mg",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "山口 由美",
+     "cue": "field"
+    },
+    {
+     "kind": "hn",
+     "value": "6139448",
+     "cue": "field"
+    },
+    {
+     "kind": "phone",
+     "value": "090-5408-6811",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ048",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese hospital discharge note",
+   "text": "県立総合病院\n患者名 森 久美子\nカルテ番号 5254282\n連絡先 080-4504-0606\n退院時処方 アムロジピン錠5mg",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "森 久美子",
+     "cue": "field"
+    },
+    {
+     "kind": "hn",
+     "value": "5254282",
+     "cue": "field"
+    },
+    {
+     "kind": "phone",
+     "value": "080-4504-0606",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ049",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese hospital discharge note",
+   "text": "県立総合病院\n患者名 吉田 恵子\nカルテ番号 1944659\n連絡先 080-6926-3222\n退院時処方 アムロジピン錠5mg",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "吉田 恵子",
+     "cue": "field"
+    },
+    {
+     "kind": "hn",
+     "value": "1944659",
+     "cue": "field"
+    },
+    {
+     "kind": "phone",
+     "value": "080-6926-3222",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ050",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese hospital discharge note",
+   "text": "県立総合病院\n患者名 伊藤 幸子\nカルテ番号 1554095\n連絡先 080-6144-1820\n退院時処方 アムロジピン錠5mg",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "伊藤 幸子",
+     "cue": "field"
+    },
+    {
+     "kind": "hn",
+     "value": "1554095",
+     "cue": "field"
+    },
+    {
+     "kind": "phone",
+     "value": "080-6144-1820",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ051",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese form, お名前",
+   "text": "問診票\nお名前 井上和夫\n生年月日 昭和25年5月19日\nアレルギー なし",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "井上和夫",
+     "cue": "field"
+    },
+    {
+     "kind": "dob",
+     "value": "昭和25年5月19日",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ052",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese form, お名前",
+   "text": "問診票\nお名前 清水翔太\n生年月日 昭和16年1月1日\nアレルギー なし",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "清水翔太",
+     "cue": "field"
+    },
+    {
+     "kind": "dob",
+     "value": "昭和16年1月1日",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ053",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese form, お名前",
+   "text": "問診票\nお名前 佐々木拓也\n生年月日 昭和24年9月13日\nアレルギー なし",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "佐々木拓也",
+     "cue": "field"
+    },
+    {
+     "kind": "dob",
+     "value": "昭和24年9月13日",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ054",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese form, お名前",
+   "text": "問診票\nお名前 高橋大輔\n生年月日 平成26年3月25日\nアレルギー なし",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "高橋大輔",
+     "cue": "field"
+    },
+    {
+     "kind": "dob",
+     "value": "平成26年3月25日",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ055",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese family memo, bare name",
+   "text": "おばあちゃんの薬\n美咲 朝1錠 夜1錠",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "美咲",
+     "cue": "none"
+    }
+   ]
+  },
+  {
+   "id": "dJ056",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese family memo, bare name",
+   "text": "おばあちゃんの薬\n久美子 朝1錠 夜1錠",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "久美子",
+     "cue": "none"
+    }
+   ]
+  },
+  {
+   "id": "dJ057",
+   "lang": "ja",
+   "type": "personal",
+   "doc": "Japanese family memo, bare name",
+   "text": "おばあちゃんの薬\n蓮 朝1錠 夜1錠",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "蓮",
+     "cue": "none"
+    }
+   ]
+  },
+  {
+   "id": "dK001",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean prescription",
+   "text": "처 방 전\n환자 성명 신하은\n주민등록번호 130710-1199887\n처방의약품 아목시실린캡슐 500mg 1일 3회",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "신하은",
+     "cue": "field"
+    },
+    {
+     "kind": "id",
+     "value": "130710-1199887",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK002",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean prescription",
+   "text": "처 방 전\n환자 성명 한 하은\n주민등록번호 271113-1809427\n처방의약품 아목시실린캡슐 500mg 1일 3회",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "한 하은",
+     "cue": "field"
+    },
+    {
+     "kind": "id",
+     "value": "271113-1809427",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK003",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean prescription",
+   "text": "처 방 전\n환자 성명 장예준\n주민등록번호 220506-1879236\n처방의약품 아목시실린캡슐 500mg 1일 3회",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "장예준",
+     "cue": "field"
+    },
+    {
+     "kind": "id",
+     "value": "220506-1879236",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK004",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean prescription",
+   "text": "처 방 전\n환자 성명 김 민수\n주민등록번호 390124-2289617\n처방의약품 아목시실린캡슐 500mg 1일 3회",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "김 민수",
+     "cue": "field"
+    },
+    {
+     "kind": "id",
+     "value": "390124-2289617",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK005",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean prescription",
+   "text": "처 방 전\n환자 성명 조도윤\n주민등록번호 880425-2717887\n처방의약품 아목시실린캡슐 500mg 1일 3회",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "조도윤",
+     "cue": "field"
+    },
+    {
+     "kind": "id",
+     "value": "880425-2717887",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK006",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean pharmacy bag",
+   "text": "온누리약국\n김예준 님\n1일 3회 식후 30분 5일분\n조제일자 2026.11.10",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "김예준",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dK007",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean pharmacy bag",
+   "text": "하나약국\n임수빈 님\n1일 3회 식후 30분 5일분\n조제일자 2026.11.11",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "임수빈",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dK008",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean pharmacy bag",
+   "text": "온누리약국\n윤은지 님\n1일 3회 식후 30분 5일분\n조제일자 2026.11.12",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "윤은지",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dK009",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean pharmacy bag",
+   "text": "하나약국\n임철수 님\n1일 3회 식후 30분 5일분\n조제일자 2026.11.13",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "임철수",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dK010",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean pharmacy bag",
+   "text": "하나약국\n안은지 님\n1일 3회 식후 30분 5일분\n조제일자 2026.11.14",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "안은지",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dK011",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean lab result",
+   "text": "검사결과지\n이름: 한 예준\n등록번호 17255492\n생년월일 1952.04.13\n공복혈당 100 mg/dL",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "한 예준",
+     "cue": "field"
+    },
+    {
+     "kind": "hn",
+     "value": "17255492",
+     "cue": "field"
+    },
+    {
+     "kind": "dob",
+     "value": "1952.04.13",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK012",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean lab result",
+   "text": "검사결과지\n이름: 조하은\n등록번호 80036381\n생년월일 1968.01.21\n공복혈당 101 mg/dL",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "조하은",
+     "cue": "field"
+    },
+    {
+     "kind": "hn",
+     "value": "80036381",
+     "cue": "field"
+    },
+    {
+     "kind": "dob",
+     "value": "1968.01.21",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK013",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean lab result",
+   "text": "검사결과지\n이름: 조 영희\n등록번호 69281714\n생년월일 1968.08.26\n공복혈당 102 mg/dL",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "조 영희",
+     "cue": "field"
+    },
+    {
+     "kind": "hn",
+     "value": "69281714",
+     "cue": "field"
+    },
+    {
+     "kind": "dob",
+     "value": "1968.08.26",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK014",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean lab result",
+   "text": "검사결과지\n이름: 이정숙\n등록번호 56405222\n생년월일 1989.10.01\n공복혈당 103 mg/dL",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "이정숙",
+     "cue": "field"
+    },
+    {
+     "kind": "hn",
+     "value": "56405222",
+     "cue": "field"
+    },
+    {
+     "kind": "dob",
+     "value": "1989.10.01",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK015",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean insurance card",
+   "text": "건강보험증\n성명 한지아\n주민등록번호 390301-1446608\n가입자 본인",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "한지아",
+     "cue": "field"
+    },
+    {
+     "kind": "id",
+     "value": "390301-1446608",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK016",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean insurance card",
+   "text": "건강보험증\n성명 신동현\n주민등록번호 041224-1990549\n가입자 본인",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "신동현",
+     "cue": "field"
+    },
+    {
+     "kind": "id",
+     "value": "041224-1990549",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK017",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean insurance card",
+   "text": "건강보험증\n성명 송순자\n주민등록번호 930422-2827161\n가입자 본인",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "송순자",
+     "cue": "field"
+    },
+    {
+     "kind": "id",
+     "value": "930422-2827161",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK018",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean insurance card",
+   "text": "건강보험증\n성명 최정숙\n주민등록번호 480913-2555903\n가입자 본인",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "최정숙",
+     "cue": "field"
+    },
+    {
+     "kind": "id",
+     "value": "480913-2555903",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK019",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean parcel slip",
+   "text": "받는분 박서연\n010-5363-7943\n서울시 마포구 월드컵로 10길 3\n보내는분 엘큐몰\n배송메모 문앞",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "박서연",
+     "cue": "field"
+    },
+    {
+     "kind": "phone",
+     "value": "010-5363-7943",
+     "cue": "field"
+    },
+    {
+     "kind": "address",
+     "value": "서울시 마포구 월드컵로 10길 3",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK020",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean parcel slip",
+   "text": "받는분 서서연\n010-4718-4888\n서울시 강남구 테헤란로 11길 4\n보내는분 엘큐몰\n배송메모 문앞",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "서서연",
+     "cue": "field"
+    },
+    {
+     "kind": "phone",
+     "value": "010-4718-4888",
+     "cue": "field"
+    },
+    {
+     "kind": "address",
+     "value": "서울시 강남구 테헤란로 11길 4",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK021",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean parcel slip",
+   "text": "받는분 오도윤\n010-8875-1137\n서울시 마포구 월드컵로 12길 5\n보내는분 엘큐몰\n배송메모 문앞",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "오도윤",
+     "cue": "field"
+    },
+    {
+     "kind": "phone",
+     "value": "010-8875-1137",
+     "cue": "field"
+    },
+    {
+     "kind": "address",
+     "value": "서울시 마포구 월드컵로 12길 5",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK022",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean parcel slip",
+   "text": "받는분 이동현\n010-3336-7019\n서울시 마포구 월드컵로 13길 6\n보내는분 엘큐몰\n배송메모 문앞",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "이동현",
+     "cue": "field"
+    },
+    {
+     "kind": "phone",
+     "value": "010-3336-7019",
+     "cue": "field"
+    },
+    {
+     "kind": "address",
+     "value": "서울시 마포구 월드컵로 13길 6",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK023",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean parcel slip",
+   "text": "받는분 이예준\n010-5044-5608\n서울시 마포구 월드컵로 14길 7\n보내는분 엘큐몰\n배송메모 문앞",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "이예준",
+     "cue": "field"
+    },
+    {
+     "kind": "phone",
+     "value": "010-5044-5608",
+     "cue": "field"
+    },
+    {
+     "kind": "address",
+     "value": "서울시 마포구 월드컵로 14길 7",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK024",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean note with 님",
+   "text": "오정숙님 약 꼭 챙겨 드세요\n아침 저녁 한 알씩",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "오정숙",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dK025",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean note with 님",
+   "text": "조말순님 약 꼭 챙겨 드세요\n아침 저녁 한 알씩",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "조말순",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dK026",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean note with 님",
+   "text": "윤지아님 약 꼭 챙겨 드세요\n아침 저녁 한 알씩",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "윤지아",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dK027",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean note with 님",
+   "text": "조예준님 약 꼭 챙겨 드세요\n아침 저녁 한 알씩",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "조예준",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dK028",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean note with 님",
+   "text": "이정숙님 약 꼭 챙겨 드세요\n아침 저녁 한 알씩",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "이정숙",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dK029",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean note with 씨",
+   "text": "은지 씨\n생일 축하해요\n건강하세요",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "은지",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dK030",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean note with 씨",
+   "text": "동현 씨\n생일 축하해요\n건강하세요",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "동현",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dK031",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean note with 씨",
+   "text": "지아 씨\n생일 축하해요\n건강하세요",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "지아",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dK032",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean note with 씨",
+   "text": "예준 씨\n생일 축하해요\n건강하세요",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "예준",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dK033",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean clinic card",
+   "text": "튼튼내과의원\n환자: 최 순자\n환자번호 9212388\n연락처 010-8018-3621",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "최 순자",
+     "cue": "field"
+    },
+    {
+     "kind": "hn",
+     "value": "9212388",
+     "cue": "field"
+    },
+    {
+     "kind": "phone",
+     "value": "010-8018-3621",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK034",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean clinic card",
+   "text": "서울내과의원\n환자: 강 지아\n환자번호 9468727\n연락처 010-6909-5309",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "강 지아",
+     "cue": "field"
+    },
+    {
+     "kind": "hn",
+     "value": "9468727",
+     "cue": "field"
+    },
+    {
+     "kind": "phone",
+     "value": "010-6909-5309",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK035",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean clinic card",
+   "text": "우리내과의원\n환자: 안 하은\n환자번호 1294795\n연락처 010-5507-7959",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "안 하은",
+     "cue": "field"
+    },
+    {
+     "kind": "hn",
+     "value": "1294795",
+     "cue": "field"
+    },
+    {
+     "kind": "phone",
+     "value": "010-5507-7959",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK036",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean clinic card",
+   "text": "서울내과의원\n환자: 안 미경\n환자번호 5661943\n연락처 010-8519-2722",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "안 미경",
+     "cue": "field"
+    },
+    {
+     "kind": "hn",
+     "value": "5661943",
+     "cue": "field"
+    },
+    {
+     "kind": "phone",
+     "value": "010-8519-2722",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK037",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean consent / guardian form",
+   "text": "진료 동의서\n수진자: 박예준\n보호자: 박미경\n보호자 연락처 010-6651-4687",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "박예준",
+     "cue": "field"
+    },
+    {
+     "kind": "name",
+     "value": "박미경",
+     "cue": "field"
+    },
+    {
+     "kind": "phone",
+     "value": "010-6651-4687",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK038",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean consent / guardian form",
+   "text": "진료 동의서\n수진자: 송민수\n보호자: 오동현\n보호자 연락처 010-3664-6546",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "송민수",
+     "cue": "field"
+    },
+    {
+     "kind": "name",
+     "value": "오동현",
+     "cue": "field"
+    },
+    {
+     "kind": "phone",
+     "value": "010-3664-6546",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK039",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean consent / guardian form",
+   "text": "진료 동의서\n수진자: 김미경\n보호자: 임하은\n보호자 연락처 010-6859-0214",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "김미경",
+     "cue": "field"
+    },
+    {
+     "kind": "name",
+     "value": "임하은",
+     "cue": "field"
+    },
+    {
+     "kind": "phone",
+     "value": "010-6859-0214",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK040",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean consent / guardian form",
+   "text": "진료 동의서\n수진자: 안정숙\n보호자: 윤지훈\n보호자 연락처 010-7842-2354",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "안정숙",
+     "cue": "field"
+    },
+    {
+     "kind": "name",
+     "value": "윤지훈",
+     "cue": "field"
+    },
+    {
+     "kind": "phone",
+     "value": "010-7842-2354",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK041",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean 성함 form",
+   "text": "접수증\n성함: 윤수빈\n진료과 정형외과",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "윤수빈",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK042",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean 성함 form",
+   "text": "접수증\n성함: 이수빈\n진료과 정형외과",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "이수빈",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK043",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean 성함 form",
+   "text": "접수증\n성함: 한미경\n진료과 정형외과",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "한미경",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK044",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean 성함 form",
+   "text": "접수증\n성함: 김지훈\n진료과 정형외과",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "김지훈",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK045",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean family memo, bare name",
+   "text": "할머니 약\n권정숙 아침 1알 저녁 1알",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "권정숙",
+     "cue": "none"
+    }
+   ]
+  },
+  {
+   "id": "dK046",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean family memo, bare name",
+   "text": "할머니 약\n박정숙 아침 1알 저녁 1알",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "박정숙",
+     "cue": "none"
+    }
+   ]
+  },
+  {
+   "id": "dK047",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean family memo, bare name",
+   "text": "할머니 약\n이성호 아침 1알 저녁 1알",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "이성호",
+     "cue": "none"
+    }
+   ]
+  },
+  {
+   "id": "dK048",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean delivery, landline",
+   "text": "수령인 황민수\n전화 02-466-2017\n부재시 경비실",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "황민수",
+     "cue": "field"
+    },
+    {
+     "kind": "phone",
+     "value": "02-466-2017",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK049",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean delivery, landline",
+   "text": "수령인 장영희\n전화 02-999-4577\n부재시 경비실",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "장영희",
+     "cue": "field"
+    },
+    {
+     "kind": "phone",
+     "value": "02-999-4577",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dK050",
+   "lang": "ko",
+   "type": "personal",
+   "doc": "Korean delivery, landline",
+   "text": "수령인 최은지\n전화 02-557-0611\n부재시 경비실",
+   "personal": [
+    {
+     "kind": "name",
+     "value": "최은지",
+     "cue": "field"
+    },
+    {
+     "kind": "phone",
+     "value": "02-557-0611",
+     "cue": "field"
+    }
+   ]
+  },
+  {
+   "id": "dJ058",
+   "lang": "ja",
+   "type": "product+personal",
+   "doc": "Japanese OTC pack with a handwritten note",
+   "text": "第2類医薬品\nLQかぜ薬 顆粒\n成分 アセトアミノフェン 900mg\n内容量 12包\n製造販売元 エルキュー製薬株式会社\n4987637759265\n吉田さん 朝晩1包",
+   "facts": {
+    "gtins": [
+     "4987637759265"
+    ]
+   },
+   "personal": [
+    {
+     "kind": "name",
+     "value": "吉田",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dJ059",
+   "lang": "ja",
+   "type": "product+personal",
+   "doc": "Japanese OTC pack with a handwritten note",
+   "text": "第2類医薬品\nLQかぜ薬 顆粒\n成分 アセトアミノフェン 900mg\n内容量 12包\n製造販売元 エルキュー製薬株式会社\n4987553152706\n高橋さん 朝晩1包",
+   "facts": {
+    "gtins": [
+     "4987553152706"
+    ]
+   },
+   "personal": [
+    {
+     "kind": "name",
+     "value": "高橋",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dJ060",
+   "lang": "ja",
+   "type": "product+personal",
+   "doc": "Japanese OTC pack with a handwritten note",
+   "text": "第2類医薬品\nLQかぜ薬 顆粒\n成分 アセトアミノフェン 900mg\n内容量 12包\n製造販売元 エルキュー製薬株式会社\n4987094984675\n井上さん 朝晩1包",
+   "facts": {
+    "gtins": [
+     "4987094984675"
+    ]
+   },
+   "personal": [
+    {
+     "kind": "name",
+     "value": "井上",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dJ061",
+   "lang": "ja",
+   "type": "product+personal",
+   "doc": "Japanese OTC pack with a handwritten note",
+   "text": "第2類医薬品\nLQかぜ薬 顆粒\n成分 アセトアミノフェン 900mg\n内容量 12包\n製造販売元 エルキュー製薬株式会社\n4987294021132\n佐藤さん 朝晩1包",
+   "facts": {
+    "gtins": [
+     "4987294021132"
+    ]
+   },
+   "personal": [
+    {
+     "kind": "name",
+     "value": "佐藤",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dJ062",
+   "lang": "ja",
+   "type": "product+personal",
+   "doc": "Japanese OTC pack with a handwritten note",
+   "text": "第2類医薬品\nLQかぜ薬 顆粒\n成分 アセトアミノフェン 900mg\n内容量 12包\n製造販売元 エルキュー製薬株式会社\n4987080867753\n山田さん 朝晩1包",
+   "facts": {
+    "gtins": [
+     "4987080867753"
+    ]
+   },
+   "personal": [
+    {
+     "kind": "name",
+     "value": "山田",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dK051",
+   "lang": "ko",
+   "type": "product+personal",
+   "doc": "Korean OTC pack with a note",
+   "text": "일반의약품\n엘큐 두통정\n성분 아세트아미노펜 500mg\n용법·용량 1회 1정 1일 3회\n제조원 (주)엘큐제약\n8801213820100\n황은지님 하루 두 번",
+   "facts": {
+    "gtins": [
+     "8801213820100"
+    ]
+   },
+   "personal": [
+    {
+     "kind": "name",
+     "value": "황은지",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dK052",
+   "lang": "ko",
+   "type": "product+personal",
+   "doc": "Korean OTC pack with a note",
+   "text": "일반의약품\n엘큐 두통정\n성분 아세트아미노펜 500mg\n용법·용량 1회 1정 1일 3회\n제조원 (주)엘큐제약\n8801282909171\n서지아님 하루 두 번",
+   "facts": {
+    "gtins": [
+     "8801282909171"
+    ]
+   },
+   "personal": [
+    {
+     "kind": "name",
+     "value": "서지아",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dK053",
+   "lang": "ko",
+   "type": "product+personal",
+   "doc": "Korean OTC pack with a note",
+   "text": "일반의약품\n엘큐 두통정\n성분 아세트아미노펜 500mg\n용법·용량 1회 1정 1일 3회\n제조원 (주)엘큐제약\n8801177841531\n한말순님 하루 두 번",
+   "facts": {
+    "gtins": [
+     "8801177841531"
+    ]
+   },
+   "personal": [
+    {
+     "kind": "name",
+     "value": "한말순",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dK054",
+   "lang": "ko",
+   "type": "product+personal",
+   "doc": "Korean OTC pack with a note",
+   "text": "일반의약품\n엘큐 두통정\n성분 아세트아미노펜 500mg\n용법·용량 1회 1정 1일 3회\n제조원 (주)엘큐제약\n8801275515068\n임철수님 하루 두 번",
+   "facts": {
+    "gtins": [
+     "8801275515068"
+    ]
+   },
+   "personal": [
+    {
+     "kind": "name",
+     "value": "임철수",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dK055",
+   "lang": "ko",
+   "type": "product+personal",
+   "doc": "Korean OTC pack with a note",
+   "text": "일반의약품\n엘큐 두통정\n성분 아세트아미노펜 500mg\n용법·용량 1회 1정 1일 3회\n제조원 (주)엘큐제약\n8801523351691\n이정숙님 하루 두 번",
+   "facts": {
+    "gtins": [
+     "8801523351691"
+    ]
+   },
+   "personal": [
+    {
+     "kind": "name",
+     "value": "이정숙",
+     "cue": "honorific"
+    }
+   ]
+  },
+  {
+   "id": "dJ063",
+   "lang": "ja",
+   "type": "product",
+   "doc": "Japanese product label",
+   "text": "第3類医薬品\nLQビタミンB錠\n成分 チアミン硝化物 25mg\n内容量 90錠\n用法・用量 1日1回2錠\n製造販売元 山田製薬株式会社\nお客様相談室 0120-123-456",
+   "facts": {
+    "gtins": [
+     "4580955475109"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dJ064",
+   "lang": "ja",
+   "type": "product",
+   "doc": "Japanese product label",
+   "text": "第2類医薬品\nエルキュー胃腸薬\n次の人は服用前に医師、薬剤師に相談してください\n医師の治療を受けている人\n内容量 30包\n製造販売元 小林薬品工業株式会社\n大阪府大阪市中央区道修町1-2-3\nJAN 4987423438138",
+   "facts": {
+    "gtins": [
+     "4987423438138"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dJ065",
+   "lang": "ja",
+   "type": "product",
+   "doc": "Japanese product label",
+   "text": "化粧水\nLQモイストローション\n全成分 水、グリセリン、BG\n内容量 200mL\n販売元 株式会社エルキュー\nお客様相談室 0120-987-654",
+   "facts": {
+    "gtins": [
+     "4901483681266"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dJ066",
+   "lang": "ja",
+   "type": "product",
+   "doc": "Japanese product label",
+   "text": "栄養機能食品\nLQマルチビタミン\n名称 ビタミン含有食品\n原材料名 デキストリン、ビタミンC\n内容量 60粒\n賞味期限 2027.10\n製造者 株式会社佐藤食品\nJAN 4580631537923",
+   "facts": {
+    "gtins": [
+     "4580631537923"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dJ067",
+   "lang": "ja",
+   "type": "product",
+   "doc": "Japanese product label",
+   "text": "指定医薬部外品\nLQ目薬クール\n有効成分 タウリン 1%\n内容量 12mL\n使用上の注意 コンタクトレンズ装着時は使用しないこと\n製造販売元 エルキュー製薬株式会社\nロット 26A3 使用期限 2028.03",
+   "facts": {
+    "gtins": [
+     "4901609950351"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dJ068",
+   "lang": "ja",
+   "type": "product",
+   "doc": "Japanese product label",
+   "text": "販売名 LQ鼻炎カプセル\n第2類医薬品\n成分 クロルフェニラミンマレイン酸塩 12mg\n効能 鼻水、鼻づまり\n患者様へ: 眠気があらわれることがあります\n製造販売元 鈴木製薬株式会社\nJAN 4987180791118",
+   "facts": {
+    "gtins": [
+     "4987180791118"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dJ069",
+   "lang": "ja",
+   "type": "product",
+   "doc": "Japanese product label",
+   "text": "LQのど飴\n名称 キャンディ\n原材料名 砂糖、水あめ、ハーブエキス\n内容量 80g\n保存方法 直射日光を避けてください\n製造者 株式会社田中製菓 静岡県静岡市葵区1-1",
+   "facts": {
+    "gtins": [
+     "4987534361608"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dJ070",
+   "lang": "ja",
+   "type": "product",
+   "doc": "Japanese product label",
+   "text": "医薬部外品\nLQ薬用ハミガキ\n有効成分 フッ化ナトリウム\n内容量 120g\nご使用上の注意 6歳未満の子供には使用しないでください\n発売元 株式会社エルキュー\nJAN 4580683287852",
+   "facts": {
+    "gtins": [
+     "4580683287852"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dJ071",
+   "lang": "ja",
+   "type": "product",
+   "doc": "Japanese product label",
+   "text": "第3類医薬品\nLQビタミンB錠\n成分 チアミン硝化物 25mg\n内容量 90錠\n用法・用量 1日1回2錠\n製造販売元 山田製薬株式会社\nお客様相談室 0120-123-456",
+   "facts": {
+    "gtins": [
+     "4901195286858"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dJ072",
+   "lang": "ja",
+   "type": "product",
+   "doc": "Japanese product label",
+   "text": "第2類医薬品\nエルキュー胃腸薬\n次の人は服用前に医師、薬剤師に相談してください\n医師の治療を受けている人\n内容量 30包\n製造販売元 小林薬品工業株式会社\n大阪府大阪市中央区道修町1-2-3\nJAN 4580559554781",
+   "facts": {
+    "gtins": [
+     "4580559554781"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dJ073",
+   "lang": "ja",
+   "type": "product",
+   "doc": "Japanese product label",
+   "text": "化粧水\nLQモイストローション\n全成分 水、グリセリン、BG\n内容量 200mL\n販売元 株式会社エルキュー\nお客様相談室 0120-987-654",
+   "facts": {
+    "gtins": [
+     "4901529392217"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dJ074",
+   "lang": "ja",
+   "type": "product",
+   "doc": "Japanese product label",
+   "text": "栄養機能食品\nLQマルチビタミン\n名称 ビタミン含有食品\n原材料名 デキストリン、ビタミンC\n内容量 60粒\n賞味期限 2027.10\n製造者 株式会社佐藤食品\nJAN 4987028013457",
+   "facts": {
+    "gtins": [
+     "4987028013457"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dJ075",
+   "lang": "ja",
+   "type": "product",
+   "doc": "Japanese product label",
+   "text": "指定医薬部外品\nLQ目薬クール\n有効成分 タウリン 1%\n内容量 12mL\n使用上の注意 コンタクトレンズ装着時は使用しないこと\n製造販売元 エルキュー製薬株式会社\nロット 26A3 使用期限 2028.03",
+   "facts": {
+    "gtins": [
+     "4901912084477"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dJ076",
+   "lang": "ja",
+   "type": "product",
+   "doc": "Japanese product label",
+   "text": "販売名 LQ鼻炎カプセル\n第2類医薬品\n成分 クロルフェニラミンマレイン酸塩 12mg\n効能 鼻水、鼻づまり\n患者様へ: 眠気があらわれることがあります\n製造販売元 鈴木製薬株式会社\nJAN 4901653181367",
+   "facts": {
+    "gtins": [
+     "4901653181367"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dJ077",
+   "lang": "ja",
+   "type": "product",
+   "doc": "Japanese product label",
+   "text": "LQのど飴\n名称 キャンディ\n原材料名 砂糖、水あめ、ハーブエキス\n内容量 80g\n保存方法 直射日光を避けてください\n製造者 株式会社田中製菓 静岡県静岡市葵区1-1",
+   "facts": {
+    "gtins": [
+     "4580003979894"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dJ078",
+   "lang": "ja",
+   "type": "product",
+   "doc": "Japanese product label",
+   "text": "医薬部外品\nLQ薬用ハミガキ\n有効成分 フッ化ナトリウム\n内容量 120g\nご使用上の注意 6歳未満の子供には使用しないでください\n発売元 株式会社エルキュー\nJAN 4987348248645",
+   "facts": {
+    "gtins": [
+     "4987348248645"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dK056",
+   "lang": "ko",
+   "type": "product",
+   "doc": "Korean product label",
+   "text": "일반의약품\n엘큐 비타민C 1000\n성분 아스코르브산 1000mg\n효능·효과 비타민C 결핍증\n용법·용량 1일 1회 1정\n제조원 (주)김정문제약\n고객상담실 080-123-4567",
+   "facts": {
+    "gtins": [
+     "8809964315647"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dK057",
+   "lang": "ko",
+   "type": "product",
+   "doc": "Korean product label",
+   "text": "건강기능식품\n엘큐 홍삼정\n원재료명 홍삼농축액 100%\n내용량 240g\n섭취방법 1일 1회 1스푼\n판매원 (주)이가네식품\n서울특별시 중구 세종대로 110\n8809316852646",
+   "facts": {
+    "gtins": [
+     "8809316852646"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dK058",
+   "lang": "ko",
+   "type": "product",
+   "doc": "Korean product label",
+   "text": "일반의약품\n엘큐 감기시럽\n성분 덱스트로메토르판브롬화수소산염\n사용상의 주의사항 어린이는 보호자의 지도 감독하에 복용\n환자는 의사와 상의할 것\n제조번호 2611A 사용기한 2028.06",
+   "facts": {
+    "gtins": [
+     "8809342768102"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dK059",
+   "lang": "ko",
+   "type": "product",
+   "doc": "Korean product label",
+   "text": "화장품\n엘큐 수분크림\n전성분 정제수, 글리세린, 나이아신아마이드\n용량 50mL\n제조판매업자 주식회사 엘큐코스\n고객센터 1588-1234\n8801122028369",
+   "facts": {
+    "gtins": [
+     "8801122028369"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dK060",
+   "lang": "ko",
+   "type": "product",
+   "doc": "Korean product label",
+   "text": "제품명 엘큐 유산균\n품목명 프로바이오틱스\n내용량 30포\n소비기한 2027.12.31\n제조원 박씨네바이오(주)\n보관방법 직사광선을 피할 것",
+   "facts": {
+    "gtins": [
+     "8801049639204"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dK061",
+   "lang": "ko",
+   "type": "product",
+   "doc": "Korean product label",
+   "text": "의약외품\n엘큐 구강청결제\n유효성분 세틸피리디늄염화물\n용량 500mL\n사용상의 주의 7세 이하 어린이 사용 금지\n제조원 (주)엘큐 경기도 성남시 분당구 판교로 1\n8809656382322",
+   "facts": {
+    "gtins": [
+     "8809656382322"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dK062",
+   "lang": "ko",
+   "type": "product",
+   "doc": "Korean product label",
+   "text": "일반의약품\n엘큐 소화정\n성분 판크레아틴 175mg\n이름 있는 의약품 바로 알기\n용법 1회 1정\n판매원 최고제약(주)",
+   "facts": {
+    "gtins": [
+     "8806855452245"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dK063",
+   "lang": "ko",
+   "type": "product",
+   "doc": "Korean product label",
+   "text": "엘큐 녹차티백\n식품유형 침출차\n원재료명 녹차잎 100%\n내용량 40g\n품질유지기한 2027.09\n제조원 한국차농원 전남 보성군 보성읍 녹차로 1\n8806045308253",
+   "facts": {
+    "gtins": [
+     "8806045308253"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dK064",
+   "lang": "ko",
+   "type": "product",
+   "doc": "Korean product label",
+   "text": "일반의약품\n엘큐 비타민C 1000\n성분 아스코르브산 1000mg\n효능·효과 비타민C 결핍증\n용법·용량 1일 1회 1정\n제조원 (주)김정문제약\n고객상담실 080-123-4567",
+   "facts": {
+    "gtins": [
+     "8801286098123"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dK065",
+   "lang": "ko",
+   "type": "product",
+   "doc": "Korean product label",
+   "text": "건강기능식품\n엘큐 홍삼정\n원재료명 홍삼농축액 100%\n내용량 240g\n섭취방법 1일 1회 1스푼\n판매원 (주)이가네식품\n서울특별시 중구 세종대로 110\n8809490312202",
+   "facts": {
+    "gtins": [
+     "8809490312202"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dK066",
+   "lang": "ko",
+   "type": "product",
+   "doc": "Korean product label",
+   "text": "일반의약품\n엘큐 감기시럽\n성분 덱스트로메토르판브롬화수소산염\n사용상의 주의사항 어린이는 보호자의 지도 감독하에 복용\n환자는 의사와 상의할 것\n제조번호 2611A 사용기한 2028.06",
+   "facts": {
+    "gtins": [
+     "8801292554101"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dK067",
+   "lang": "ko",
+   "type": "product",
+   "doc": "Korean product label",
+   "text": "화장품\n엘큐 수분크림\n전성분 정제수, 글리세린, 나이아신아마이드\n용량 50mL\n제조판매업자 주식회사 엘큐코스\n고객센터 1588-1234\n8806389934910",
+   "facts": {
+    "gtins": [
+     "8806389934910"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dK068",
+   "lang": "ko",
+   "type": "product",
+   "doc": "Korean product label",
+   "text": "제품명 엘큐 유산균\n품목명 프로바이오틱스\n내용량 30포\n소비기한 2027.12.31\n제조원 박씨네바이오(주)\n보관방법 직사광선을 피할 것",
+   "facts": {
+    "gtins": [
+     "8809224174342"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dK069",
+   "lang": "ko",
+   "type": "product",
+   "doc": "Korean product label",
+   "text": "의약외품\n엘큐 구강청결제\n유효성분 세틸피리디늄염화물\n용량 500mL\n사용상의 주의 7세 이하 어린이 사용 금지\n제조원 (주)엘큐 경기도 성남시 분당구 판교로 1\n8801143458398",
+   "facts": {
+    "gtins": [
+     "8801143458398"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dK070",
+   "lang": "ko",
+   "type": "product",
+   "doc": "Korean product label",
+   "text": "일반의약품\n엘큐 소화정\n성분 판크레아틴 175mg\n이름 있는 의약품 바로 알기\n용법 1회 1정\n판매원 최고제약(주)",
+   "facts": {
+    "gtins": [
+     "8806387495130"
+    ]
+   },
+   "personal": []
+  },
+  {
+   "id": "dK071",
+   "lang": "ko",
+   "type": "product",
+   "doc": "Korean product label",
+   "text": "엘큐 녹차티백\n식품유형 침출차\n원재료명 녹차잎 100%\n내용량 40g\n품질유지기한 2027.09\n제조원 한국차농원 전남 보성군 보성읍 녹차로 1\n8806557729614",
+   "facts": {
+    "gtins": [
+     "8806557729614"
+    ]
+   },
+   "personal": []
+  }
+ ]
+}

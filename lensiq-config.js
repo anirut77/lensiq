@@ -121,6 +121,9 @@ window.LENSIQ_SELLER = window.LENSIQ_SELLER || {
  *   privacy.html แสดง · ปิด (ตั้ง false ก่อนโหลดไฟล์นี้): ไม่ส่งอะไรออกจากเครื่อง เก็บคำขอไว้ในเบราว์เซอร์เท่านั้น และซ่อนข้อนั้น
  *   (docs/LEADS-DESIGN.md) */
 window.LENSIQ_LEADS_FORM = window.LENSIQ_LEADS_FORM !== false;
+/* LENSIQ_LEADS_NOTICE: ข้อความสั้นข้างแบบฟอร์มขอใบเสนอราคา "หากส่งไม่ได้ ติดต่อทาง LINE" พร้อม ID จาก LENSIQ_SELLER.quote_line (คำสั่งเจ้าของ 13 พ.ย. 2569:
+ *   แสดงไว้จนกว่าแก้ปัญหาส่งบน iPhone และเจ้าของตรวจบน iPhone แล้ว) ปิดได้โดยตั้ง false */
+window.LENSIQ_LEADS_NOTICE = window.LENSIQ_LEADS_NOTICE !== false;
 
 /* round 12 (round 16 wording): ป้องกันการติดตั้งให้ลูกค้าที่ยังเปิดเดโมงานวิจัยค้างไว้ — บนหน้ากล้อง เมื่อเครื่องนี้เปิด
  *   "เดโมงานวิจัย" อยู่และหน้าเว็บไม่ได้เปิดจากเว็บสาธิต (github.io) หรือเครื่องนักพัฒนา (localhost) จะแสดงแถบเตือนด้านบน
@@ -164,7 +167,7 @@ window.LENSIQ_LEADS_FORM = window.LENSIQ_LEADS_FORM !== false;
   var load = function (file, global) {
     if (/** @type {any} */ (window)[global] || document.querySelector('script[src*="' + file + '"]')) return;
     var s = document.createElement("script");
-    s.src = dir + file + "?v=2";
+    s.src = dir + file + "?v=3";
     s.async = false; // keep order: api before analytics
     (document.head || document.documentElement).appendChild(s);
   };

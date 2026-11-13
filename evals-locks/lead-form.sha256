@@ -1,0 +1,7 @@
+# Quote form on iPhone (stream A1). Fixed tests locked BEFORE the product change; paths relative to the repo root.
+# lead-form-webkit.e2e.mjs: locked 2026-11-13 before the fix (base 1ef19c6); v2 set-up only (service workers blocked).
+# lead-form-webkit-slow.e2e.mjs: locked 2026-11-13T15:31:20Z before the review B1/B2 fix (base b62ac88 + merge of main). A changed hash means the test was edited after locking.
+227d026198f61b467515e3a378019242ba4fe8723e2fcad2be88df18e6fcba07  tests/e2e/lead-form-webkit.e2e.mjs
+# v1 (superseded by v2 below): 6d97d199b203ebce7d10962ad23157455b97aed352d65696591ec46a3aa41029  tests/e2e/lead-form-webkit-slow.e2e.mjs
+# lead-form-webkit-slow.e2e.mjs v2 2026-11-13T15:34:41Z (stricter, before the fix): also rejects 'ยังไม่เปิด / not open / 尚未开放' (the pricing case passed on b62ac88 while saying 'online requests are not open').
+9a1b9c938ca24b9b0090124ce7868ebc83dbae815af8ad819c5f46f06787c691  tests/e2e/lead-form-webkit-slow.e2e.mjs

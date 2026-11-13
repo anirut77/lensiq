@@ -166,6 +166,16 @@ jobs:
           key: ci-fonts-${{ hashFiles('tools/ci-fonts.lock') }}
       - name: Thai + CJK fonts (line-breaking checks need real glyphs)
         run: node tools/ci-fonts.mjs install ~/.cache/ci-fonts
+      # WebKit (iOS Safari engine) for the phone-width e2e files, e.g. tests/e2e/lead-form-webkit.e2e.mjs (owner bug report
+      # 2026-11-13: the quote form on an iPhone). Playwright is pinned in package.json; the browser build is cached by
+      # that version, the system libraries come from apt (--with-deps). Every shard installs it, so any shard can run
+      # any file (same pass rule as locally, no skips).
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-webkit-${{ hashFiles('package-lock.json') }}
+      - name: WebKit for the iPhone-width e2e files
+        run: npx playwright install --with-deps webkit
       - name: e2e shard ${{ matrix.shard }}/3 (one retry per failing file)
         run: npm run test:e2e:ci -- --shard=${{ matrix.shard }}/3 --manifest=e2e-shard-${{ matrix.shard }}.json
         env:
