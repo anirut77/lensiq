@@ -46,11 +46,17 @@
  *     count as one type together). Dev numbers: docs/product-check/P7-RESULTS.md §3.4 (dev only; not a measurement).
  */
 (function (root, factory) {
-  const m = factory();
-  if (typeof module !== "undefined" && module.exports) module.exports = m;
+  const node = typeof module !== "undefined" && module.exports;
+  const m = factory(root, node ? require("./lensiq-thai-canon.js") : null);
+  if (node) module.exports = m;
   else /** @type {any} */ (root).LQPCGuard = m;
-})(typeof self !== "undefined" ? self : this, function () {
+})(typeof self !== "undefined" ? self : this, function (/** @type {any} */ root, /** @type {any} */ TC) {
   "use strict";
+  /* review 2026-11-14: live-scan text (NFKC) and some OCR / copy-paste hold sara am ำ decomposed (nikhahit + sara aa), a tone
+     mark after ำ or zero-width characters; the patterns are written with ำ, so every entry point below works on the canonical
+     copy (lensiq-thai-canon.js). redact() returns that copy with the spans removed. */
+  /** @param {any} s @returns {string} */
+  const canon = s => { const C = TC || (root && root.LQThaiCanon); return C ? C.canon(s) : String(s == null ? "" : s).normalize("NFC"); };
   const PLACEHOLDER = "[removed]";
   /** Owner decision pending (2026-11-10): company / maker phones are kept by default. */
   const DEFAULTS = Object.freeze({
@@ -351,7 +357,7 @@
   }
   /** @param {any} input */
   function isDispensingLabel(input) {
-    const t0 = fold(String(input == null ? "" : input));
+    const t0 = fold(canon(input));
     if (HEADER.test(t0) || ROC.test(t0) || twIds(t0).length > 0) return true;
     const t = withoutMakerRoles(t0);
     if (STRONG.test(t)) return true;
@@ -593,7 +599,7 @@
 
   /** @param {any} input @returns {{kind: string, start: number, end: number, company?: boolean}[]} */
   function scanAll(input) {
-    const raw = String(input == null ? "" : input);
+    const raw = canon(input);
     const t = fold(raw);
     const disp = isDispensingLabel(t);
     /** @type {{kind: string, start: number, end: number, company?: boolean}[]} */
@@ -1087,7 +1093,7 @@
    * @returns {{product: boolean, strong: boolean, evidence: string[], personalDoc: boolean, docCues: string[]}}
    */
   function productEvidence(input, facts) {
-    const raw = String(input == null ? "" : input);
+    const raw = canon(input);
     const { ev, strong, types, weak, n, nm, sk, thai } = labelCues(raw, facts);
     const product = strong || types + (weak ? 1 : 0) >= 2;
     // personal-document signs
@@ -1111,6 +1117,7 @@
    * @param {{dispensingAI?: string, companyPhones?: "keep"|"remove", sessionEvidence?: string, sessionFacts?: {gtins?: any[], regs?: any[]}}} [opts]
    */
   function aiGate(input, facts, opts) {
+    input = canon(input);
     const pe = productEvidence(input, facts);
     const dispensing = isDispensingLabel(input);
     const off = ((opts && opts.dispensingAI) || DEFAULTS.dispensingAI) === "off";
@@ -1156,7 +1163,7 @@
     /\b(?:for|to)\s+(?:my\s+|your\s+|dear\s+)?(?:grand(?:ma|pa|mother|father|son|daughter)|granny|nana|mum|mom|mother|dad|father|son|daughter|sister|brother|aunt(?:ie)?|uncle|mr|mrs|ms|miss)\b/iu,
     /给(?:奶奶|爷爷|外婆|外公|姥姥|姥爷|妈妈|爸爸|母亲|父亲|儿子|女儿|孙子|孙女|宝宝|孩子|哥哥|姐姐|弟弟|妹妹|叔叔|阿姨|舅舅|姑姑|伯伯|老公|老婆|老人|[一-鿿]{1,2}(?:先生|女士|小姐|老师))|給(?:奶奶|爺爺|外婆|外公|媽媽|爸爸|兒子|女兒|寶寶|孩子)/u
   ];
-  const autoBlock = input => AUTO_BLOCK.some(re => re.test(String(input == null ? "" : input)));
+  const autoBlock = input => { const t = canon(input); return AUTO_BLOCK.some(re => re.test(t)); };
   /** Session evidence usable for option ข: a barcode with a valid check digit, or a registration number of 5+ letters
    *  and digits, scanned earlier in the session by the page. @param {any} sf {gtins?, regs?} */
   function sessionOk(sf) {
@@ -1175,7 +1182,7 @@
   }
   /** @param {any} input @param {{companyPhones?: "keep"|"remove"}} [opts] */
   function redact(input, opts) {
-    const text = String(input == null ? "" : input);
+    const text = canon(input);
     const spans = scan(text, opts);
     let out = "", at = 0;
     for (const s of spans) { out += text.slice(at, s.start) + PLACEHOLDER; at = s.end; }
@@ -1185,6 +1192,7 @@
   /** Photo allowed? Blocked by any personal span (company phones per the setting) or by a dispensing-label look.
    * @param {any} input @param {{companyPhones?: "keep"|"remove"}} [opts] */
   function imageCheck(input, opts) {
+    input = canon(input);
     const personal = scan(input, opts).length;
     const dispensing = isDispensingLabel(input);
     return { block: personal > 0 || dispensing, personal, dispensing };
