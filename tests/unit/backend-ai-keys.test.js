@@ -14,6 +14,8 @@
 //   K8 spend per provider in the monthly usage;
 //   K9 no KEK -> 503 with a plain code; unreadable rows are reported, never used.
 const test = require("node:test");
+// test-bug re-lock 2026-11-14: one frozen clock for the code generator and the Worker (tests/unit/totp-clock.js; CI run 43464554484)
+require("./totp-clock.js").freeze();
 const assert = require("node:assert/strict");
 const { createEnv, req } = require("./backend-d1-shim.js");
 
