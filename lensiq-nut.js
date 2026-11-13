@@ -220,7 +220,10 @@
     }
     return found;
   }
+  // the keyword is matched with the OCR misreads seen on device (v3 set): a dropped / swapped Thai vowel or tone mark
+  // ("ผู้พ้อาหาร", "สําหรับ"), and the Japanese long-vowel mark read as 一, -, ― or －
   const STATEMENT = new RegExp([
+    "ข้อมูล\\s*ส.{0,3}หรับ\\s*ผ.{0,5}อาหาร", "ผู.{0,3}แพ.{0,2}อาหาร", "アレルギ[ーｰ一\\-―－‐]物質",
     "ข้อมูลสำหรับผู้แพ้อาหาร", "สำหรับผู้แพ้อาหาร", "ข้อมูลผู้แพ้อาหาร", "สารก่อภูมิแพ้", "allergy advice", "allergens?\\b", "allergy information",
     "\\bcontains\\s*:", "\\bmay contain\\b", "致敏物质", "过敏原", "过敏物质", "アレルギー物質", "アレルゲン", "特定原材料", "알레르기", "mengandungi\\s*:"
   ].join("|"), "i");
