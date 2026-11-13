@@ -1,0 +1,5 @@
+# gate-hall-h (stream H) locked 2026-11-13, before product code and before any measurement. Format: sha256  path (repo-relative)
+b1e7284f51b0b3db5976ca8c9ef808adfb90ebc580859ed093545f21a333cca9  tests/unit/exam-hall-placement.test.js
+8755341fbbaf4967749bdf26d4e3e33b35bc37c1ddda065fb94dceaa7a2f7584  tests/e2e/exam-hall-placement.e2e.mjs
+5d27aa54fb792a180bebbe4c4e67cb2b52352ade78790eb09661da79a7f8211e  tests/unit/hall-seatwatch-score.test.js
+c25349705e36375e6814f4932c2a9dd384ebbb740ce162801824d2373644cdc7  tests/unit/plate-train-prep.test.js
