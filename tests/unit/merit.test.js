@@ -190,25 +190,57 @@ test("R5: the page flag is OFF in the shipped config (lensiq-config.js never tur
   assert.match(cfg, /LENSIQ_MERIT_INTEREST_FORM\s*=\s*window\.LENSIQ_MERIT_INTEREST_FORM\s*===\s*true/, "declared, default off");
 });
 
-test("R5: crisis state — set by markCrisis, active for 24 h, then expires; garbage values count as no crisis", () => {
+// re-lock 2026-11-12 (owner decision 2026-11-12, session-only, L59): Merit keeps no crisis state of its own; it reads the
+// shared fortune crisis state and writes nothing about a crisis (the earlier 24 h "lq-crisis-at" flag is gone).
+test("R5: crisis state — Merit asks the shared fortune crisis state for \"merit\" and keeps none of its own", () => {
   const C = core();
-  C._resetCrisisMemory(); // review amendment 2026-11-12: markCrisis also keeps an in-memory per-page flag
-  const s = store(), t0 = Date.UTC(2026, 10, 12, 10);
-  assert.equal(C.crisisActive(s, t0), false);
-  C.markCrisis(s, t0);
-  assert.equal(s.getItem(C.CRISIS_KEY), String(t0));
-  assert.equal(C.CRISIS_WINDOW_MS, 24 * 3600 * 1000);
-  assert.equal(C.crisisActive(s, t0 + 1000), true);
-  assert.equal(C.crisisActive(s, t0 + C.CRISIS_WINDOW_MS - 1), true);
-  assert.equal(C.crisisActive(s, t0 + C.CRISIS_WINDOW_MS + 1), false);
-  C._resetCrisisMemory();
-  assert.equal(C.crisisActive(store({ [C.CRISIS_KEY]: "abc" }), t0), false);
-  assert.equal(C.crisisActive(store({ [C.CRISIS_KEY]: String(t0 + 3600e3) }), t0), true, "a clock skew into the future still counts (safe side)");
-  const broken = { getItem() { throw new Error("blocked"); }, setItem() { throw new Error("blocked"); } };
-  assert.doesNotThrow(() => C.markCrisis(broken, t0));
-  // review amendment 2026-11-12 (stricter): blocked storage no longer loses the crisis state; it is kept in memory per page
-  assert.equal(C.crisisActive(broken, t0), true);
-  C._resetCrisisMemory();
+  const asked = [];
+  const fa = on => ({ FortuneAI: { crisis: { allow: (kind, d) => { asked.push([kind, d]); return !on; } } } });
+  const d = {};
+  assert.equal(C.crisisActive(fa(false), d), false);
+  assert.equal(C.crisisActive(fa(true), d), true);
+  assert.deepEqual(asked, [["merit", d], ["merit", d]], "asks allow(\"merit\", doc)");
+  assert.equal(C.crisisActive({ LQFortuneCrisis: { allow: () => false } }, d), true, "falls back to fortune-crisis.js");
+  assert.equal(C.crisisActive({ FortuneAI: { crisis: { allow: () => { throw new Error("x"); } } }, LQFortuneCrisis: { allow: () => false } }, d), true,
+    "a throwing FortuneAI falls back to the shared state");
+  // the real shared state (fortune-crisis.js): off until the support card puts the page into it, then on
+  const CR = require("../../fortune-crisis.js"), doc = {};
+  assert.equal(C.crisisActive({ LQFortuneCrisis: CR }, doc), false);
+  CR.setActive(doc);
+  assert.equal(C.crisisActive({ LQFortuneCrisis: CR }, doc), true);
+  assert.equal(C.crisisActive({ LQFortuneCrisis: CR }, {}), false, "another page is not affected by this page's state");
+  // nothing of Merit's own: no stored flag, no window, no writer
+  for (const k of ["markCrisis", "CRISIS_KEY", "CRISIS_WINDOW_MS", "_resetCrisisMemory"]) assert.equal(C[k], undefined, k);
+});
+
+test("R5: Merit writes nothing about a crisis to device storage (only the tradition choice is ever stored)", () => {
+  const coreSrc = readFileSync(join(ROOT, "lensiq-merit-core.js"), "utf8"), pageSrc = readFileSync(join(ROOT, "lensiq-merit.js"), "utf8");
+  for (const [n, src] of [["core", coreSrc], ["page", pageSrc]]) {
+    assert.ok(!/lq-crisis-at/.test(src), n + ": no lq-crisis-at");
+    assert.ok(!/sessionStorage/.test(src), n + ": no sessionStorage of its own");
+    assert.ok(!/addEventListener\(\s*"storage"/.test(src), n + ": no storage-event crisis channel");
+  }
+  assert.equal((coreSrc.match(/\.setItem\(/g) || []).length, 1, "core: one write, the tradition choice");
+  assert.match(coreSrc, /store\.setItem\(STORE_KEY,/);
+  assert.equal((pageSrc.match(/\.setItem\(/g) || []).length, 0, "page: no storage writes");
+  // a crisis on a page leaves storage untouched
+  const C = core(), CR = require("../../fortune-crisis.js"), doc = {}, s = store();
+  CR.setActive(doc);
+  assert.equal(C.crisisActive({ LQFortuneCrisis: CR }, doc), true);
+  assert.equal(s.getItem("lq-crisis-at"), null);
+});
+
+// added 2026-11-12 (coordinator check): every free belief-guidance block is a data-lq-remedy block, so the page-wide crisis
+// rule hides it. lensiq-merit.js draws the one panel used on all 14 fortune pages nav.js loads it on.
+test("R5: the merit panel carries data-lq-remedy on every fortune page it is loaded on; the crisis rule hides such blocks", () => {
+  const pageSrc = readFileSync(join(ROOT, "lensiq-merit.js"), "utf8");
+  assert.match(pageSrc, /panel = el\("section", "lq-merit"\);[^\n]*\n\s*\/\/[^\n]*\n\s*panel\.setAttribute\("data-lq-remedy", "merit"\)/);
+  assert.equal((pageSrc.match(/el\("section", "lq-merit"\)/g) || []).length, 1, "one panel constructor");
+  assert.match(readFileSync(join(ROOT, "styles.css"), "utf8"), /html\[data-lq-crisis\] \[data-lq-remedy\]\{display:none!important\}/);
+  const nav = readFileSync(join(ROOT, "nav.js"), "utf8");
+  const m = /function meritHook\(\)[\s\S]*?\/\^\(([a-z0-9|]+)\)\\\.html\$\//.exec(nav);
+  assert.ok(m, "nav.js merit page list");
+  assert.equal(m[1].split("|").length, 14, "14 fortune pages");
 });
 
 test("R5: panel model — crisis hides the whole panel (no free guidance and no paid offer next to a support card)", () => {

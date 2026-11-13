@@ -13,10 +13,11 @@
  *   - The optional paid "on your behalf" section (a request-interest form only; booking stays off until legal review)
  *     shows only when window.LENSIQ_MERIT_INTEREST_FORM === true AND the server says interest_form = true AND the crisis
  *     state is not set. Default: off.
- *   - Crisis net: whenever a FortuneAI support card (.fa-support) appears on the page, or the reading is a support
- *     result, "lq-crisis-at" is set (and kept in memory when storage is blocked) and every panel is withdrawn for 24 h
- *     (no merit content next to a support card); another tab's support card withdraws it too (storage event). Crisis
- *     wording typed into the form, or a crisis state at submit time, shows the support card and sends nothing.
+ *   - Crisis net (owner decision 2026-11-12, session only, L59): Merit keeps no crisis state of its own and stores nothing
+ *     about a crisis. It reads the shared fortune crisis state (FortuneAI.crisis.allow("merit")) before drawing anything and
+ *     at submit time, withdraws the panel when a support card appears or the "lq-crisis" event fires, and the panel carries
+ *     data-lq-remedy so <html data-lq-crisis> hides it too. Crisis wording typed into the form shows the support card
+ *     (which puts the page into the shared state) and sends nothing.
  *   - Every item is re-checked with the shared wording lint (lensiq-merit-lint.js) before it is shown.
  */
 (function (root) {
@@ -103,7 +104,9 @@
   function hidePanels() {
     if (panel && !panel.querySelector(".fa-support")) { panel.textContent = ""; panel.hidden = true; }
   }
-  function onCrisis() { C.markCrisis(store()); hidePanels(); }
+  // Merit writes nothing about a crisis: the shared state (fortune-crisis.js) is set by FortuneAI's support card itself
+  var crisisOn = function () { return C.crisisActive(W, doc); };
+  function onCrisis() { hidePanels(); }
   /** @param {Node} n */
   function isOutsideSupport(n) {
     if (!n || n.nodeType !== 1) return false;
@@ -124,7 +127,6 @@
   }
   /** Support card in place of the panel's content (crisis wording typed into the form, or the server said so). */
   function showSupport() {
-    C.markCrisis(store());
     var FA = W.FortuneAI;
     if (!panel) return;
     panel.textContent = "";
@@ -138,7 +140,7 @@
   /** @param {HTMLElement} p */
   function render(p) {
     var L = lang(), U = C.UI[L];
-    if (C.crisisActive(store())) { p.textContent = ""; p.hidden = true; return; }
+    if (crisisOn()) { p.textContent = ""; p.hidden = true; return; }
     if (!state.items) { p.hidden = true; load().then(function () { if (p.isConnected) render(p); }); return; }
     var m = C.panelModel(state.items, { choice: C.loadChoice(store()), keys: C.keysFromFacts(state.facts, page), lang: L,
       pageFlag: W.LENSIQ_MERIT_INTEREST_FORM === true, serverFlag: state.serverFlag, crisis: false, retentionDays: state.retentionDays });
@@ -231,7 +233,7 @@
       var FA = W.FortuneAI;
       // crisis net first, on the device: nothing is sent, the support card replaces the offer. The crisis state is checked
       // again here too (it may have been set after the form was drawn, e.g. in another tab or with storage blocked).
-      if (C.crisisActive(store())) { showSupport(); return; }
+      if (crisisOn()) { showSupport(); return; }
       if (FA && FA.crisis && FA.crisis.check && FA.crisis.check(name.value, contact.value)) { showSupport(); return; }
       if (!consent.checked) { status.className = "lq-merit-status bad"; status.textContent = U["f.consentNeeded"]; return; }
       var body = { name: name.value.trim(), channel: ch.value, contact: contact.value.trim(), item_id: item.value, date_from: from.value, date_to: to.value,
@@ -266,7 +268,11 @@
   function place(container) {
     if (!container || !container.parentNode) return null;
     if (panel && panel.isConnected && inHiddenTab(container) && !inHiddenTab(panel)) return panel;
-    if (!panel) { panel = el("section", "lq-merit"); panel.hidden = true; }
+    if (!panel) {
+      panel = el("section", "lq-merit"); panel.hidden = true;
+      // free belief guidance counts as a remedy block: <html data-lq-crisis> hides it (styles.css / fortune-crisis.js)
+      panel.setAttribute("data-lq-remedy", "merit");
+    }
     var anchor = container, nx = container.nextElementSibling;
     if (nx && nx.classList && nx.classList.contains("lq-rp-wrap")) anchor = nx;
     if (anchor.nextElementSibling !== panel) anchor.parentNode.insertBefore(panel, anchor.nextSibling);
@@ -275,7 +281,7 @@
   /** @param {Element} container @param {any} result */
   function afterReading(container, result) {
     if (result && result.crisis) { onCrisis(); return; }
-    if (C.crisisActive(store())) { hidePanels(); return; }
+    if (crisisOn()) { hidePanels(); return; }
     if (!result || !(result.sections || []).length) return;
     var p = place(container);
     if (!p) return;
@@ -318,8 +324,8 @@
   }
 
   root.addEventListener("lq-lang", function () { if (panel && !panel.hidden && panel.isConnected) render(panel); });
-  // a support card in another tab of this browser: withdraw the panel and any paid offer here too
-  root.addEventListener("storage", function (ev) { if (ev && ev.key === C.CRISIS_KEY && C.crisisActive(store())) hidePanels(); });
+  // the shared crisis state was set on this page (fortune-crisis.js setActive dispatches "lq-crisis"): withdraw everything
+  root.addEventListener("lq-crisis", function () { hidePanels(); });
   W.LQMerit = { render: function () { if (panel) render(panel); }, load: load, state: state };
   watchCrisis();
   wrap();

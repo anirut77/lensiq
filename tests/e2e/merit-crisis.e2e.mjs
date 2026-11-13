@@ -71,21 +71,26 @@ export default async function ({ base, launch, check, repo }) {
   const seed = require(join(repo, "lensiq-merit-seed.js")).map(x => ({ ...x, updated_at: 1 }));
   const browser = await launch();
   try {
-    // two tabs of one browser profile (same storage): the default context
-    const a = await browser.newPage(null, { initScripts: [stubScript(seed)] });
-    const b = await browser.newPage(null, { initScripts: [stubScript(seed)] });
-    await check("1. a support card in another tab withdraws the open panel and its paid offer", async () => {
+    // re-lock 2026-11-12 (owner decision 2026-11-12, session-only, L59): no cross-tab channel and no stored flag of Merit's
+    // own; Merit follows the shared fortune crisis state. Test 1 now checks that state on the page itself.
+    const a = await browser.newPage(null, { isolated: true, initScripts: [stubScript(seed)] });
+    await check("1. a support card on the page withdraws the open panel and its paid offer; Merit stores nothing about it", async () => {
       await a.goto(`${base}/zodiac.html`);
-      await a.evaluate(() => localStorage.removeItem("lq-crisis-at"));
       await readZodiac(a);
       await a.waitFor("!!document.querySelector('.lq-merit-paid form')", 8000);
-      await b.goto(`${base}/tarot.html`);
-      await b.evaluate(() => { document.getElementById("trQuestion").value = "I want to die"; document.getElementById("trStart").click(); });
-      await b.waitFor("(() => { const s = document.getElementById('trSupport'); return !!s && !s.hidden && /1323/.test(s.textContent); })()", 5000);
-      await a.waitFor(`(() => { const r = ${meritShown}; return r.cards === 0 && r.paid === 0; })()`, 5000);
+      assert(await a.evaluate(() => document.querySelector(".lq-merit").getAttribute("data-lq-remedy") === "merit"), "panel is a data-lq-remedy block");
+      const before = await a.evaluate(() => Object.keys(localStorage).sort());
+      // the shared path every fortune page uses: FortuneAI's support card puts the page into the crisis state
+      await a.evaluate(() => { const box = document.createElement("div"); document.querySelector("main").appendChild(box); FortuneAI.crisis.render(box, FortuneAI.crisis.result({ lang: "th" })); });
+      assert(await a.evaluate(() => FortuneAI.crisis.active(document) && !FortuneAI.crisis.allow("merit", document)), "shared crisis state is on");
+      await a.waitFor(`(() => { const r = ${meritShown}; return r.panels === 0 && r.cards === 0 && r.paid === 0; })()`, 5000);
+      const after = await a.evaluate(() => Object.keys(localStorage).sort());
+      assert(await a.evaluate(() => localStorage.getItem("lq-crisis-at") === null), "no lq-crisis-at");
+      const added = after.filter(k => !before.includes(k));
+      assert(!added.some(k => /crisis|merit/i.test(k)), "nothing about the crisis written: " + JSON.stringify(added));
       assert(await a.evaluate(() => window.__meritSent.length) === 0);
     });
-    await a.close(); await b.close();
+    await a.close();
 
     let page = await browser.newPage(null, { isolated: true, initScripts: [stubScript(seed)] });
     await check("2. crisis state set after the form was drawn: submit sends nothing and shows the support card", async () => {
@@ -93,7 +98,10 @@ export default async function ({ base, launch, check, repo }) {
       await readZodiac(page);
       await page.waitFor("!!document.querySelector('.lq-merit-paid form')", 8000);
       assert(/30/.test(await page.evaluate(() => document.querySelector(".lq-merit-paid").innerText)), "notice shows the configured 30 days");
-      await page.evaluate(() => localStorage.setItem("lq-crisis-at", String(Date.now()))); // same page: no storage event
+      // re-lock 2026-11-12 (session-only, L59): the shared state is switched on underneath the drawn form (attribute only, no
+      // "lq-crisis" event, so the form is still there): the submit-time check must catch it
+      await page.evaluate(() => document.documentElement.setAttribute("data-lq-crisis", "1"));
+      assert(await page.evaluate(() => !FortuneAI.crisis.allow("merit", document)), "shared crisis state is on");
       await fill(page, "Tum");
       await page.waitFor("[...document.querySelectorAll('.lq-merit .fa-support')].some(s => /1323/.test(s.textContent))", 5000);
       await sleep(400);
@@ -107,6 +115,7 @@ export default async function ({ base, launch, check, repo }) {
       assert(await page.evaluate(() => { try { localStorage.length; return false; } catch (e) { return true; } }), "storage is blocked in this page");
       await page.evaluate(() => { document.getElementById("trQuestion").value = "I want to die"; document.getElementById("trStart").click(); });
       await page.waitFor("(() => { const s = document.getElementById('trSupport'); return !!s && !s.hidden && /1323/.test(s.textContent); })()", 5000);
+      assert(await page.evaluate(() => FortuneAI.crisis.active(document)), "shared crisis state is on (storage blocked)");
       await tarotReading(page, "งานใหม่จะดีไหม", { afterCrisis: true });
       await sleep(1500);
       const r = await page.evaluate(meritShown);
@@ -128,9 +137,14 @@ export default async function ({ base, launch, check, repo }) {
       await sleep(800);
       const r = await page.evaluate(() => {
         const p = document.querySelector(".lq-merit"), tab = p.closest("[role=tabpanel]");
-        return { tab: tab && tab.id, hiddenTab: !!p.closest("[role=tabpanel][hidden]"), visible: p.getBoundingClientRect().height > 0 };
+        return { tab: tab && tab.id, hiddenTab: !!p.closest("[role=tabpanel][hidden]"), visible: p.getBoundingClientRect().height > 0,
+          remedy: p.getAttribute("data-lq-remedy") };
       });
-      assert(r.tab === "pn-ov" && !r.hiddenTab && r.visible, JSON.stringify(r));
+      assert(r.tab === "pn-ov" && !r.hiddenTab && r.visible && r.remedy === "merit", JSON.stringify(r));
+      // the page-wide rule alone hides it: <html data-lq-crisis> + [data-lq-remedy] (added 2026-11-12)
+      const hid = await page.evaluate(() => { document.documentElement.setAttribute("data-lq-crisis", "1");
+        const h = document.querySelector(".lq-merit").getBoundingClientRect().height; document.documentElement.removeAttribute("data-lq-crisis"); return h; });
+      assert(hid === 0, "hidden by html[data-lq-crisis] [data-lq-remedy]: " + hid);
     });
     await page.close();
   } finally {

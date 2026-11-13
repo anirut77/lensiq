@@ -6,7 +6,7 @@
  *   LQMeritCore.panelModel(items, {choice, keys, lang, pageFlag, serverFlag, crisis})  -> what lensiq-merit.js draws, or
  *                                               null while the crisis state is set (nothing next to a support card)
  *   LQMeritCore.paidAllowed({pageFlag, serverFlag, crisis})  -> true only for pageFlag === true && serverFlag === true && !crisis
- *   loadChoice / saveChoice (device storage "lq-merit-tradition"), crisisActive / markCrisis ("lq-crisis-at", 24 h)
+ *   loadChoice / saveChoice (device storage "lq-merit-tradition"), crisisActive (reads the shared fortune crisis state; Merit stores nothing about a crisis)
  *   LABEL / NO_GUARANTEE   fixed strings (TH / EN / ZH), never admin-editable;   UI  every panel string in TH / EN / ZH
  * Nothing here sends anything anywhere. Used by lensiq-merit.js (browser) and tests/unit/merit.test.js (Node).
  */
@@ -21,7 +21,7 @@
   var PAGE_DOMAIN = { "faceread.html": "face", "palm.html": "palm", "horoscope.html": "horoscope", "tarot.html": "tarot", "fengshui.html": "fengshui",
     "numbers.html": "numbers", "iching.html": "iching", "zodiac.html": "zodiac", "astro.html": "astro", "dream.html": "dream", "bazi.html": "bazi",
     "taksa.html": "taksa", "lek7.html": "lek7", "lifegraph.html": "lifegraph", "luckycolor.html": "luckycolor", "planner.html": "planner" };
-  var STORE_KEY = "lq-merit-tradition", CRISIS_KEY = "lq-crisis-at", CRISIS_WINDOW_MS = 24 * 3600 * 1000;
+  var STORE_KEY = "lq-merit-tradition";
   var CHONG_REL = /^(?:(?:today|month)\.)?rel\.(?:clash|same|harm|punish|break)$/;
 
   var LABEL = Object.freeze({ th: "ตามความเชื่อ โปรดใช้วิจารณญาณ", en: "According to belief, please use your own judgement", zh: "依据民间信仰，请自行判断" });
@@ -180,26 +180,24 @@
   function loadChoice(store) { try { return store ? normChoice(store.getItem(STORE_KEY)) : ""; } catch (e) { return ""; } }
   /** @param {any} store @param {any} v */
   function saveChoice(store, v) { try { if (store) store.setItem(STORE_KEY, normChoice(v)); } catch (e) { /* private mode: not remembered */ } }
-  // In-memory copy for this page: the crisis state must hold even when storage is blocked, full or missing.
-  var memCrisisAt = 0;
-  /** @param {number} at @param {number} t */
-  var within = function (at, t) { return isFinite(at) && at > 0 && t - at < CRISIS_WINDOW_MS; }; // a future time (clock skew) also counts
-  /** @param {any} store @param {number} [nowMs] */
-  function crisisActive(store, nowMs) {
-    var t = nowMs == null ? Date.now() : nowMs;
-    if (within(memCrisisAt, t)) return true;
-    var at;
-    try { at = store ? Number(store.getItem(CRISIS_KEY)) : NaN; } catch (e) { return false; }
-    return within(at, t);
+  /* Crisis state (owner decision 2026-11-12, session only, L59): Merit keeps NO crisis state of its own and writes nothing
+   * about a crisis anywhere. It asks the shared fortune crisis state: FortuneAI.crisis.allow("merit") (fortune-ai.js), else
+   * LQFortuneCrisis.allow("merit") (fortune-crisis.js). Whatever that state covers (the page, or the browser session once
+   * fortune-crisis.js keeps it there) Merit follows automatically. With neither API on the page there is no reading to
+   * attach to, so nothing is shown anyway.
+   * @param {any} [win] the window (default: this one) @param {any} [d] the document */
+  function crisisActive(win, d) {
+    var w = win || root;
+    try {
+      var FA = w && w.FortuneAI;
+      if (FA && FA.crisis && typeof FA.crisis.allow === "function") return !FA.crisis.allow("merit", d);
+    } catch (e) { /* fall through */ }
+    try {
+      var CR = w && w.LQFortuneCrisis;
+      if (CR && typeof CR.allow === "function") return !CR.allow("merit", d);
+    } catch (e) { /* no shared state */ }
+    return false;
   }
-  /** @param {any} store @param {number} [nowMs] */
-  function markCrisis(store, nowMs) {
-    var t = nowMs == null ? Date.now() : nowMs;
-    memCrisisAt = t;
-    try { if (store) store.setItem(CRISIS_KEY, String(t)); } catch (e) { /* blocked storage: the in-memory copy holds it */ }
-  }
-  /** Tests only: forget the in-memory crisis state. */
-  function _resetCrisisMemory() { memCrisisAt = 0; }
 
   /** Items whose every text passes the wording lint (the page re-checks what the server sent). No lint: nothing.
    *  @param {any[]} items @param {any} lint */
@@ -297,10 +295,10 @@
   }
 
   var api = {
-    VERSION: 1, TRADITIONS: TRADITIONS, CHOICES: CHOICES, TYPES: TYPES, DOMAINS: DOMAINS, KEY_RE: KEY_RE, STORE_KEY: STORE_KEY, CRISIS_KEY: CRISIS_KEY,
-    CRISIS_WINDOW_MS: CRISIS_WINDOW_MS, LABEL: LABEL, NO_GUARANTEE: NO_GUARANTEE, UI: UI,
-    normChoice: normChoice, normLang: normLang, text: text, loadChoice: loadChoice, saveChoice: saveChoice, crisisActive: crisisActive, markCrisis: markCrisis,
-    _resetCrisisMemory: _resetCrisisMemory, safeItems: safeItems,
+    VERSION: 1, TRADITIONS: TRADITIONS, CHOICES: CHOICES, TYPES: TYPES, DOMAINS: DOMAINS, KEY_RE: KEY_RE, STORE_KEY: STORE_KEY,
+    LABEL: LABEL, NO_GUARANTEE: NO_GUARANTEE, UI: UI,
+    normChoice: normChoice, normLang: normLang, text: text, loadChoice: loadChoice, saveChoice: saveChoice, crisisActive: crisisActive,
+    safeItems: safeItems,
     keysFromFacts: keysFromFacts, match: match, paidAllowed: paidAllowed, panelModel: panelModel
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

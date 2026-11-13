@@ -55,8 +55,10 @@
    not open and no payment is taken", then the interest form (name or nickname, channel, contact, item, date window,
    explicit consent naming the religious-belief point, PDPA notice with a link to `privacy.html`).
 3. **Crisis:** crisis wording typed into the form replaces the panel content with the existing FortuneAI support card
-   (1323 / 1669 / 191 / 1300) and sends nothing; a support card anywhere on a fortune page withdraws the whole panel
-   for 24 h (`localStorage` "lq-crisis-at", time only).
+   (1323 / 1669 / 191 / 1300) and sends nothing; a support card anywhere on a fortune page withdraws the whole panel.
+   Owner decision 2026-11-12 (session only, L59): Merit keeps no crisis state and stores nothing about a crisis; it
+   reads the shared fortune crisis state (`FortuneAI.crisis.allow("merit")`, fortune-crisis.js) and the panel carries
+   `data-lq-remedy`, so `<html data-lq-crisis>` hides it. The earlier 24 h `lq-crisis-at` flag is removed.
 4. **Admin tab:** list (title, type, tradition, status, number of match keys, "Sample" badge; Edit / Hide or Show /
    Delete), the edit form (type, tradition, title / content / place / area in TH, EN and ZH, the fixed key picker,
    status, order, sample flag; plain error messages naming the field and the problem), and the interest card (states
@@ -111,7 +113,7 @@ and punctuation. Every admin text and every seeded text must pass; the page also
 |---|---|---|
 | Worker `MERIT_INTEREST_FORM` | `"off"` | set `"on"` in `backend/wrangler.toml` (top level or `[env.test.vars]`) and deploy |
 | Page `window.LENSIQ_MERIT_INTEREST_FORM` | `false` | set `true` in `lensiq-config.js` (or a deploy config); the page also needs `LENSIQ_API_BASE`, and Turnstile site key for the token |
-| Crisis hide window | 24 h | constant `CRISIS_WINDOW_MS` in `lensiq-merit-core.js`; kept in memory for the page when storage is blocked; another tab's support card withdraws the panel (storage event); checked again when the form is submitted |
+| Crisis hide window | as long as the shared fortune crisis state | none of Merit's own (owner decision 2026-11-12, session only; 24 h waits for counsel, L59); checked before drawing and again when the form is submitted |
 | Interest retention | 90 days | `MERIT_INTEREST_DAYS` (7–365); the form notice shows the configured number (sent with the guidance) |
 
 Both switches are needed; either one alone shows nothing. Booking and payment are not built.

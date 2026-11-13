@@ -199,7 +199,7 @@ export function pageHtml(cat, nav = navEntries()) {
     "</head>",
     "<body>",
     '<header class="nav" id="siteNav"></header>',
-    '<script src="nav.js?v=15"></script>',
+    '<script src="nav.js?v=16"></script>',
     '<script src="i18n/zh-cat.js?v=1"></script>',
     // the fortune category carries the always-visible help line (owner order 2026-11-12; tools/helpline.mjs)
     ...(cat.slug === "fortune" ? [helpLine("lqHelpTop")] : []),

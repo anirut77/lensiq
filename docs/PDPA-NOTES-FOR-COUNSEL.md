@@ -82,7 +82,7 @@ controller only for its own website, member accounts, billing and the optional b
   `docs/CRISIS-RESOURCES.md`) that needs no detection and processes nothing. When the support card is shown, the page
   sets a flag on the open document only (`<html data-lq-crisis>`): it is not written to storage, not sent anywhere and is
   gone on reload. While it is set, remedies, lucky items, recommendations, the lead form and share cards are hidden. The
-  merit design's 24-hour `lq-crisis-at` flag (stored on the device) is NOT built; if it is, it would store the fact that
+  merit design's 24-hour `lq-crisis-at` flag (stored on the device) is NOT built (the Merit MVP follows the shared state); if it is, it would store the fact that
   a crisis card was shown on this device and needs counsel's view (sensitive data, PDPA s.26) before it ships.
 
 ### A5. Members, billing, analytics and the backend — `account.html`, `pricing.html`, `backend/`
@@ -903,7 +903,7 @@ and delete (item id); no item text. Delete needs the admin password again (or a 
 (c) **Interest form (built, OFF; must stay off until CTO-BRIEF L42 / L43 and this note are answered).** Two switches
 must both be on: the Worker variable `MERIT_INTEREST_FORM = "on"` (shipped "off") and
 `window.LENSIQ_MERIT_INTEREST_FORM = true` on the page (shipped false). The form is never shown while the crisis net
-has fired on this device in the last 24 hours. What it would collect: name or nickname, one contact (LINE ID, phone or
+is active (shared fortune crisis state, session only). What it would collect: name or nickname, one contact (LINE ID, phone or
 e-mail), the guidance item chosen, a preferred date window (at most 60 days), plus the page language and the consent
 version. The server refuses any other field (birth date, address, photo, note and so on). No IP address or user agent
 is stored with a request; the rate limit counts per caller under a hash salted per day (salts deleted the next day,
@@ -920,10 +920,10 @@ wording typed into the name or contact field is refused on the device and again 
 fortune pages, imported from `fortune-ai.js`); the text is never stored and the server writes only a log line without
 the text: confirm this is adequate.
 
-(d) **Crisis net.** Whenever a support card (1323 / 1669 / 191 / 1300) appears on any fortune page, the device stores
-only the time (`localStorage` "lq-crisis-at", no text; an in-memory copy for the page when storage is blocked) and hides
-all merit content and any paid offer for 24 hours, also in other open tabs of the same browser; the form re-checks the
-state when it is submitted.
+(d) **Crisis net.** Whenever a support card (1323 / 1669 / 191 / 1300) appears on any fortune page, all merit content
+and any paid offer are hidden while the shared fortune crisis state lasts (owner decision 2026-11-12: browser session
+only, no timestamp; 24-hour persistence waits for counsel, L59). Merit itself stores nothing about a crisis; the form
+re-checks the shared state when it is submitted.
 
 ### G2. Merit reviewer accounts and review history (owner decision 2026-11-12; `docs/MERIT-RESULTS.md` §8)
 

@@ -166,7 +166,9 @@ export default async function ({ base, launch, check, repo }) {
       await sleep(500);
       assert(await page.evaluate(() => window.__meritSent.length) === 0, "nothing sent");
       assert(await page.evaluate(() => !document.querySelector(".lq-merit-paid form")), "no form next to the support card");
-      assert(await page.evaluate(() => Number(localStorage.getItem("lq-crisis-at")) > 0), "crisis state set");
+      // re-lock 2026-11-12 (owner decision 2026-11-12, session-only, L59): the shared state, nothing stored by Merit
+      assert(await page.evaluate(() => FortuneAI.crisis.active(document)), "shared crisis state set");
+      assert(await page.evaluate(() => localStorage.getItem("lq-crisis-at") === null), "no lq-crisis-at stored");
       await readZodiac(page, "calm", { afterCrisis: true });
       await sleep(1500);
       assert(await page.evaluate(() => !document.querySelector(".lq-merit-paid") && !document.querySelector(".lq-merit-card")), "no merit content on the next reading");
@@ -178,7 +180,7 @@ export default async function ({ base, launch, check, repo }) {
       await page.goto(`${base}/tarot.html`);
       await page.evaluate(() => { document.getElementById("trQuestion").value = "I want to die"; document.getElementById("trStart").click(); });
       await page.waitFor("(() => { const b = document.getElementById('trSupport'); return !!b && !b.hidden && /1323/.test(b.textContent); })()", 5000);
-      await page.waitFor("Number(localStorage.getItem('lq-crisis-at')) > 0", 5000); // crisis state set by the support card
+      await page.waitFor("FortuneAI.crisis.active(document)", 5000); // shared crisis state set by the support card (re-lock: session-only, L59)
       await page.goto(`${base}/zodiac.html`);
       await readZodiac(page, "chong");
       await sleep(2000);

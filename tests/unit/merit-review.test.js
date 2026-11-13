@@ -127,21 +127,18 @@ test("V3: the Worker's crisis check is the fortune pages' own FortuneAI.crisis.c
 });
 
 /* ---------------- V4 crisis state with blocked storage ---------------- */
-test("V4: blocked or missing storage — the crisis state is kept in memory for this page", () => {
-  const C = core();
-  C._resetCrisisMemory();
-  const t0 = Date.UTC(2026, 10, 12, 10);
-  const broken = { getItem() { throw new Error("blocked"); }, setItem() { throw new Error("blocked"); } };
-  assert.equal(C.crisisActive(broken, t0), false);
-  C.markCrisis(broken, t0);
-  assert.equal(C.crisisActive(broken, t0 + 1000), true, "blocked storage");
-  assert.equal(C.crisisActive(null, t0 + 1000), true, "no storage at all");
-  assert.equal(C.crisisActive(broken, t0 + C.CRISIS_WINDOW_MS + 1), false, "still expires after the window");
-  C._resetCrisisMemory();
-  const empty = { getItem() { return null; }, setItem() { throw new Error("quota"); } };
-  C.markCrisis(empty, t0);
-  assert.equal(C.crisisActive(empty, t0 + 1000), true, "storage readable but the write failed");
-  C._resetCrisisMemory();
+// re-lock 2026-11-12 (owner decision 2026-11-12, session-only, L59): the state is the shared fortune crisis state, which
+// does not depend on device storage; Merit keeps no copy of its own.
+test("V4: blocked or missing storage — the shared crisis state still holds for this page", () => {
+  const C = core(), CR = require("../../fortune-crisis.js");
+  const win = { LQFortuneCrisis: CR };
+  Object.defineProperty(win, "localStorage", { get() { throw new Error("blocked"); } });
+  Object.defineProperty(win, "sessionStorage", { get() { throw new Error("blocked"); } });
+  const doc = {};
+  assert.equal(C.crisisActive(win, doc), false);
+  CR.setActive(doc);
+  assert.equal(C.crisisActive(win, doc), true, "blocked storage");
+  assert.equal(C.crisisActive({ LQFortuneCrisis: CR }, doc), true, "no storage at all");
 });
 
 /* ---------------- V5 retention days in the notice ---------------- */

@@ -649,7 +649,7 @@
     // the pages that run FortuneAI readings (planner / luckycolor do not: nothing to attach to)
     if (!/^(faceread|palm|horoscope|tarot|fengshui|numbers|iching|zodiac|astro|dream|bazi|taksa|lek7|lifegraph)\.html$/.test(p)) return;
     if (/** @type {any} */ (window).LQMerit || document.querySelector('script[src^="lensiq-merit.js"]')) return;
-    ["lensiq-merit-core.js?v=2", "lensiq-merit-lint.js?v=1", "lensiq-merit.js?v=2"].forEach(function (src) {
+    ["lensiq-merit-core.js?v=3", "lensiq-merit-lint.js?v=1", "lensiq-merit.js?v=3"].forEach(function (src) {
       var sc = document.createElement("script");
       sc.src = src; sc.async = false; // in order: the core first
       (document.head || document.documentElement).appendChild(sc);
