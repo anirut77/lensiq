@@ -1000,8 +1000,11 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   /** สถานะคำแนะนำจากรายการตรวจที่มีอยู่แล้ว (FR.quality) + กรอบใบหน้า — ไม่มีโมเดลใหม่ ไม่เก็บภาพ; ปุ่มอ่านใช้เกณฑ์เดิม */
   function updateHint(det, n, q, light, W, H) {
     var it = function (id) { return q.filter(function (x) { return x.id === id; })[0]; }, size = it("size"), yaw = it("yaw"), roll = it("roll");
-    var st = hintTrack.update({ subject: det ? { x: det.box.x, y: det.box.y, w: det.box.width, h: det.box.height } : null, frame: ovalBox(W, H), image: { w: W, h: H }, n: n,
-      small: !!(size && !size.ok), tilt: !!((yaw && !yaw.ok) || (roll && !roll.ok)), dark: !!(light && light.mean < FR.QUALITY.lumaLo), blocked: !qOk(q) }, performance.now()).state;
+    var r = hintTrack.update({ subject: det ? { x: det.box.x, y: det.box.y, w: det.box.width, h: det.box.height } : null, frame: ovalBox(W, H), image: { w: W, h: H }, n: n,
+      small: !!(size && !size.ok), tilt: !!((yaw && !yaw.ok) || (roll && !roll.ok)), dark: !!(light && light.mean < FR.QUALITY.lumaLo), blocked: !qOk(q) }, performance.now());
+    // "ok" (green) only while the Read button's own rule passes: the tracker's hold may keep ok for 0.4 s after the face goes
+    // bad, but the Read button turns off at once, so the line shows the new state at once (independent review B1)
+    var st = r.state === "ok" && !qOk(q) ? (r.raw !== "ok" ? r.raw : "wait") : r.state;
     hintUi.el.hidden = false; hintUi.set(st);
     return st;
   }

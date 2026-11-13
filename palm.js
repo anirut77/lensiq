@@ -1256,7 +1256,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function updateHint(r, n, q, tpl, W, H, wrong) {
     var it = function (id) { return q.filter(function (x) { return x.id === id; })[0]; }, size = it("size"), light = it("light");
     var st = hintTrack.update({ subject: r ? r.box : null, frame: bboxOf(tpl.contour), image: { w: W, h: H }, n: n, small: !!(size && !size.ok),
-      tilt: r ? tiltDeg(r.pts, tpl.raw) : null, dark: !!(light && light.lum <= 80), blocked: !!wrong }, performance.now()).state;
+      tilt: r ? tiltDeg(r.pts, tpl.raw) : null, dark: !!(light && light.lum <= 80),
+      // every item of the page's own checklist (light too bright, fingertips at the picture edge, wrong side ...) must pass
+      // before the hint says ok (independent review B2)
+      blocked: !!wrong || !q.every(function (x) { return x.ok; }) }, performance.now()).state;
     hintUi.el.hidden = false; hintUi.set(st);
     return st;
   }
