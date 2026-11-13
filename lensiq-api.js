@@ -114,8 +114,11 @@
       var s = d.createElement("script");
       s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
       s.async = true;
-      s.onload = function () { resolve(W.turnstile || null); };
-      s.onerror = function () { resolve(null); };
+      // a load that fails or hangs (> 15 s) resolves null and is forgotten, so the next call loads it again
+      var settle = function (/** @type {any} */ ts) { clearTimeout(tm); if (!ts) tsLoad = null; resolve(ts); };
+      var tm = setTimeout(function () { settle(W.turnstile || null); }, 15000);
+      s.onload = function () { settle(W.turnstile || null); };
+      s.onerror = function () { try { s.remove(); } catch (e) { /* gone */ } settle(null); };
       d.head.appendChild(s);
     });
     return tsLoad;
@@ -142,9 +145,14 @@
           if (o.onDone) { try { o.onDone(t ? "" : why || "timeout"); } catch (e) { /* page hook */ } }
           resolve(t || "");
         };
-        var arm = function (/** @type {number} */ ms) { clearTimeout(timer); timer = /** @type {any} */ (setTimeout(function () { w.busy = false; finish("", "timeout"); }, ms)); };
+        var hook = function () { arm(180000); if (o.onInteractive) { try { o.onInteractive(); } catch (e) { /* page hook */ } } };
+        var drop = function () { var i = w.q.indexOf(finish); if (i >= 0) w.q.splice(i, 1); i = w.hooks.indexOf(hook); if (i >= 0) w.hooks.splice(i, 1); };
+        var arm = function (/** @type {number} */ ms) {
+          clearTimeout(timer);
+          timer = /** @type {any} */ (setTimeout(function () { w.busy = false; drop(); finish("", "timeout"); }, ms));
+        };
         w.q.push(finish);
-        w.hooks.push(function () { arm(180000); if (o.onInteractive) { try { o.onInteractive(); } catch (e) { /* page hook */ } } });
+        w.hooks.push(hook);
         arm(20000);
         var flush = function (/** @type {string} */ t, /** @type {string} */ why) {
           w.busy = false; var q = w.q.splice(0); w.hooks.length = 0; q.forEach(function (/** @type {any} */ f) { f(t, why); });

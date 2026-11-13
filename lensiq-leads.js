@@ -119,6 +119,9 @@
     };
     return apiReady().then(function () {
       var A = W.LQApi;
+      // the server form is configured and on, but lensiq-api.js did not arrive (slow or failed load): an honest error with
+      // LINE and the text kept, never the browser-only "announced before sales" path
+      if (String(W.LENSIQ_API_BASE || "").trim() && W.LENSIQ_LEADS_FORM === true && !(A && typeof A.call === "function")) return failApi("network", 0);
       if (!serverOn()) return fb(0);
       return Promise.resolve(A.turnstile ? A.turnstile("lead", o.turnstile) : "").then(function (/** @type {string} */ tok) {
         // with a site key (every real deployment) no token = no send; without one (local development) the Worker decides
