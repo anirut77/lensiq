@@ -1,0 +1,7 @@
+# Merit stream E (owner steps, reviewer guide, prepared guidance-route change). Fixed tests locked 2026-11-13 BEFORE
+# tools/merit-enable-guidance-route.mjs, docs/MERIT-OWNER-STEPS-TH.md and the reviewer-guide update were written.
+# Branch merit-e, base 1ef19c6. Paths relative to the repo root. A changed hash means the test was edited after locking.
+# One documented re-lock (same day, before any document was written): ME4's regex matched the wrong hook in nav.js
+# (reportHook at line 643, which lists fortune|planner|luckycolor) instead of meritHook(); it now searches
+# only after "function meritHook()". The assertion itself is unchanged (the 14 pages must equal the merit hook's list).
+f03c6b97cdd706f634ce5567c03afe575bf413e18e3fe56523160812f4ad6471  tests/unit/merit-enable-route.test.js
