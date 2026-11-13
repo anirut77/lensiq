@@ -174,6 +174,31 @@ const MAGIC = {
   "image/webp": b => b.length >= 12 && String.fromCharCode(...b.subarray(0, 4)) === "RIFF" && String.fromCharCode(...b.subarray(8, 12)) === "WEBP"
 };
 const u32 = (b, o) => ((b[o] << 24) >>> 0) + (b[o + 1] << 16) + (b[o + 2] << 8) + b[o + 3];
+const u16 = (b, o) => (b[o] << 8) + b[o + 1], le24 = (b, o) => b[o] + (b[o + 1] << 8) + (b[o + 2] << 16), le16 = (b, o) => b[o] + (b[o + 1] << 8);
+/** {w, h} read from the file itself (PNG IHDR, JPEG SOF0–SOF15 except DHT / JPG / DAC, WebP VP8X / VP8 / VP8L), or null */
+export function imageSize(mime, b) {
+  if (mime === "image/png") return { w: u32(b, 16), h: u32(b, 20) };
+  if (mime === "image/jpeg") {
+    let o = 2;
+    while (o + 9 < b.length) {
+      if (b[o] !== 0xff) return null;
+      const m = b[o + 1];
+      if (m === 0xff) { o++; continue; }
+      if (m === 0xd8 || (m >= 0xd0 && m <= 0xd7)) { o += 2; continue; }
+      if (m === 0xd9 || m === 0xda) return null; // end of image / start of scan before any frame header
+      if (m >= 0xc0 && m <= 0xcf && m !== 0xc4 && m !== 0xc8 && m !== 0xcc) return { h: u16(b, o + 5), w: u16(b, o + 7) };
+      o += 2 + u16(b, o + 2);
+    }
+    return null;
+  }
+  if (mime === "image/webp" && b.length >= 30) {
+    const c = String.fromCharCode(...b.subarray(12, 16));
+    if (c === "VP8X") return { w: le24(b, 24) + 1, h: le24(b, 27) + 1 };
+    if (c === "VP8 " && b[23] === 0x9d && b[24] === 0x01 && b[25] === 0x2a) return { w: le16(b, 26) & 0x3fff, h: le16(b, 28) & 0x3fff };
+    if (c === "VP8L" && b[20] === 0x2f) { const v = b[21] | (b[22] << 8) | (b[23] << 16) | (b[24] << 24); return { w: (v & 0x3fff) + 1, h: ((v >>> 14) & 0x3fff) + 1 }; }
+  }
+  return null;
+}
 
 /** Checks an upload; returns {bytes, mime, w, h, faces}. Order: type, data, magic, PNG size, pixels, bytes, face check. */
 export function checkAsset(body, maxBytes) {
@@ -184,8 +209,11 @@ export function checkAsset(body, maxBytes) {
   let bytes; try { bytes = fromB64(data); } catch { throw bad("invalid_data", "image data must be base64"); }
   if (!MAGIC[mime](bytes)) throw bad("magic_mismatch", "the file content is not the declared type");
   const w = body.w, h = body.h;
-  if (mime === "image/png" && (u32(bytes, 16) !== w || u32(bytes, 20) !== h)) throw bad("size_mismatch", "declared size differs from the image");
   if (!Number.isInteger(w) || !Number.isInteger(h) || w < 1 || h < 1 || w > MAX_PX || h > MAX_PX) throw bad("too_large_px", `1–${MAX_PX} px per side`);
+  // the size written in the file must be the declared one (PNG, JPEG and WebP alike); a file whose size cannot be read is refused
+  const sz = imageSize(mime, bytes);
+  if (!sz) throw bad("size_unreadable", "the image size cannot be read from the file");
+  if (sz.w !== w || sz.h !== h) throw bad("size_mismatch", "declared size differs from the image");
   if (bytes.length > maxBytes) throw bad("too_large_bytes", `at most ${maxBytes} bytes`);
   const fc = body.face_check;
   if (!fc || fc.ran !== true || fc.confirmed !== true || !Number.isInteger(fc.faces) || fc.faces < 0) {

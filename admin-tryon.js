@@ -22,7 +22,38 @@
   const NOTE = { face: "วางบนใบหน้าแบบสด: ใช้ภาพด้านหน้าของสินค้าชิ้นเดียว พื้นเรียบ", pose: "วางตามคอ ไหล่ และชายเสื้อ (ภาพ 2 มิติ ไม่แสดงการทิ้งตัว): ภาพวางราบด้านหน้า กางแขนเสื้อ พื้นเรียบ" };
   const STATUS = { draft: "ร่าง", in_review: "รออนุมัติ", published: "เผยแพร่แล้ว", hidden: "ซ่อน" };
   const catName = c => G("at.cat." + c, CAT[c] || c), stName = s => G("at.st." + s, STATUS[s] || s);
-  const err = e => (e && e.code ? G("at.e." + e.code, A.friendly(e)) : A.friendly(e));
+  const ERR = {
+    bad_body: "คำขอไม่ถูกต้อง ลองใหม่อีกครั้ง",
+    unknown_field: "มีช่องข้อมูลที่ระบบไม่รู้จัก",
+    invalid_category: "ไม่รู้จักหมวดนี้",
+    invalid_name: "ชื่อไทย 1–120 ตัวอักษร ชื่ออื่นไม่เกิน 120 ตัวอักษร",
+    invalid_price: "ราคาต้องเป็นจำนวนบาท 0 ขึ้นไป",
+    invalid_vat: "เลือกว่าราคารวม VAT หรือไม่",
+    invalid_sizes: "ไซซ์ไม่เกิน 20 รายการ รายการละไม่เกิน 16 ตัวอักษร",
+    invalid_colours: "สีไม่เกิน 12 รายการ เขียนแบบ ชื่อ:#RRGGBB",
+    invalid_url: "ลิงก์สินค้าต้องขึ้นต้นด้วย https",
+    invalid_notes: "บันทึกไม่เกิน 2000 ตัวอักษร",
+    invalid_status: "สถานะไม่ถูกต้อง",
+    invalid_type: "ใช้ได้เฉพาะ PNG, WebP หรือ JPEG",
+    invalid_data: "ข้อมูลภาพเสีย ลองเลือกภาพใหม่",
+    magic_mismatch: "เนื้อไฟล์ไม่ใช่ชนิดภาพที่ระบุ",
+    too_large_px: "ภาพกว้างหรือสูงได้ไม่เกิน 2048 พิกเซล",
+    size_unreadable: "อ่านขนาดภาพจากไฟล์ไม่ได้ ลองบันทึกภาพใหม่เป็น PNG",
+    size_mismatch: "ขนาดภาพที่ส่งไม่ตรงกับไฟล์ ลองเลือกภาพใหม่",
+    too_large_bytes: "ภาพใหญ่เกินไป",
+    face_check_required: "ต้องเบลอใบหน้าและติ๊กยืนยันก่อนอัปโหลด",
+    invalid_role: "บทบาทไม่ถูกต้อง",
+    not_found: "ไม่พบรายการนี้ (อาจถูกลบไปแล้ว)",
+    forbidden_status: "ผู้แก้ไขบันทึกร่างหรือส่งให้อนุมัติได้ การเผยแพร่เป็นหน้าที่ของผู้ดูแลร้าน",
+    asset_required: "เพิ่มภาพก่อนเผยแพร่",
+    forbidden_role: "บัญชีของคุณทำรายการนี้ไม่ได้",
+    reauth_required: "ยืนยันรหัสผ่านอีกครั้งก่อนลบ",
+    reauth_inline_required: "ยืนยันรหัสผ่านและรหัส 6 หลักของคุณก่อนลบ",
+    invalid_credentials: "รหัสผ่านไม่ถูกต้อง",
+    invalid_totp: "รหัส 6 หลักไม่ถูกต้อง"
+  };
+  const err = e => (e && e.code ? G("at.e." + e.code, ERR[e.code] || A.friendly(e)) : A.friendly(e));
+  const TO = W.LQTryOn;
 
   function load() {
     A.call("/tryon/items").then(r => { st.data = r; render(); }, e => A.msg(err(e), true));
@@ -55,7 +86,8 @@
     if (act === "edit") return edit(it);
     if (act === "delete") {
       if (!window.confirm(G("at.q.delete", "ลบสินค้านี้และภาพของสินค้าถาวร?"))) return;
-      return A.call("/tryon/items/" + id, { method: "DELETE" }).then(() => { A.msg(G("at.done", "บันทึกแล้ว")); load(); }, e => A.msg(err(e), true));
+      // fresh re-auth (owner: password or the 5-minute window; try-on admin: own password + code, sent with this request)
+      return A.call("/tryon/items/" + id, { method: "DELETE", body: {} }).then(() => { A.msg(G("at.done", "บันทึกแล้ว")); load(); }, e => A.msg(err(e), true));
     }
     A.call("/tryon/items/" + id + "/status", { method: "POST", body: { status: act } }).then(() => { A.msg(G("at.done", "บันทึกแล้ว")); load(); }, e => A.msg(err(e), true));
   });
@@ -66,7 +98,10 @@
     const cat = $("atCat"); cat.textContent = "";
     (st.data ? st.data.categories : []).forEach(c => cat.appendChild(h("option", { value: c.id, text: catName(c.id) })));
     const s = $("atStatus"); s.textContent = "";
-    (canPublish() ? ["draft", "in_review", "published", "hidden"] : ["draft", "in_review"]).forEach(v => s.appendChild(h("option", { value: v, text: stName(v) })));
+    // an editor sees a live item's current status (kept unless changed: TO.formStatus) next to draft / in review
+    const cur = st.cur && st.cur.status, opts = canPublish() ? ["draft", "in_review", "published", "hidden"] : ["draft", "in_review"];
+    if (cur && !opts.includes(cur)) opts.unshift(cur);
+    opts.forEach(v => s.appendChild(h("option", { value: v, text: stName(v), disabled: !canPublish() && (v === "published" || v === "hidden") ? true : null })));
   }
   const catNote = () => { const c = (st.data.categories || []).find(x => x.id === $("atCat").value); $("atCatNote").textContent = c ? G("at.note." + c.anchor, NOTE[c.anchor]) : ""; };
   $("atCat").addEventListener("change", catNote);
@@ -84,15 +119,16 @@
   }
   $("atNew").addEventListener("click", () => edit(null));
   $("atCancel").addEventListener("click", () => { $("atEdit").hidden = true; st.cur = null; });
-  const satang = v => { const t = String(v || "").trim(); if (!t) return null; const n = Math.round(Number(t.replace(/,/g, "")) * 100); return Number.isFinite(n) ? n : NaN; };
   f.addEventListener("submit", ev => {
     ev.preventDefault();
     const list = v => String(v || "").split(",").map(x => x.trim()).filter(Boolean);
+    const price = TO.parseBaht(f.price.value), sale = TO.parseBaht(f.sale_price.value);
+    if (Number.isNaN(price) || Number.isNaN(sale)) { $("atErr").textContent = G("at.v.price", "ราคาใส่เป็นตัวเลขบาท เช่น 590 หรือ 1,290.50"); $("atErr").hidden = false; return; }
     const body = {
       category: f.category.value, name_th: f.name_th.value.trim(), name_en: f.name_en.value.trim() || null, name_zh: f.name_zh.value.trim() || null,
-      price: satang(f.price.value), sale_price: satang(f.sale_price.value), vat_included: !!f.vat_included.checked, sizes: list(f.sizes.value),
+      price, sale_price: sale, vat_included: !!f.vat_included.checked, sizes: list(f.sizes.value),
       colours: list(f.colours.value).map(c => { const [name, hex] = c.split(":").map(x => x.trim()); return { name, hex }; }),
-      product_url: f.product_url.value.trim() || null, notes: f.notes.value.trim() || null, status: f.status.value
+      product_url: f.product_url.value.trim() || null, notes: f.notes.value.trim() || null, status: TO.formStatus(f.status.value, st.cur && st.cur.status)
     };
     const p = st.cur ? A.call("/tryon/items/" + st.cur.id, { method: "PUT", body }) : A.call("/tryon/items", { method: "POST", body });
     $("atSave").disabled = true;

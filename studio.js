@@ -848,7 +848,10 @@
     mode = b.dataset.m; $("#stMode").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
     $("#stBrushRow").hidden = !(mode === "restore" || mode === "erase");
     $("#stCompare").dataset.mode = mode;
-    $("#stHint").textContent = mode === "fit" ? T("studio.js.hint.fitPts", "ลากจุดเพื่อให้ชุดเข้ารูป: ม่วง = โคนคอ, ชมพู = ปกคอ, ฟ้า = ปลายไหล่, ส้ม = ชายเสื้อ (ชุดดัดตามทุกจุด)")
+    // the hem points are named only when their handles are inside the picture (a tight crop hides them)
+    const hemShown = mode === "fit" && fitHandleKeys().some(k => k === "hl" || k === "hr");
+    $("#stHint").textContent = mode === "fit" && hemShown ? T("studio.js.hint.fitPts", "ลากจุดเพื่อให้ชุดเข้ารูป: ม่วง = โคนคอ, ชมพู = ปกคอ, ฟ้า = ปลายไหล่, ส้ม = ชายเสื้อ (ชุดดัดตามทุกจุด)")
+      : mode === "fit" ? T("studio.js.hint.fitPtsNoHem", "ลากจุดเพื่อให้ชุดเข้ารูป: ม่วง = โคนคอ, ชมพู = ปกคอ, ฟ้า = ปลายไหล่ (ชุดดัดตามทุกจุด)")
       : mode === "view" ? T("studio.js.hint.view", "เลื่อนแถบ ก่อน | หลัง เพื่อเทียบภาพ")
       : mode === "restore" ? T("studio.js.hint.restore", "ระบายบนภาพ: คืนส่วนของตัวคนที่ถูกตัดหาย") : T("studio.js.hint.erase", "ระบายบนภาพ: ลบพื้นหลังที่ติดมา");
     drawOverlay();
@@ -880,7 +883,9 @@
     if (mode === "view" || !ST.alpha) return;
     const p = cvPt(ov, e);
     if (mode === "fit" && ST.targets) {
-      let best = null, bd = Math.max(24, ST.W / 25);
+      // touch radius: at least 24 CSS px on screen, whatever the canvas is scaled to (a phone shows a 900-px photo at ~360 px)
+      const box = ov.getBoundingClientRect(), k = box.width > 0 ? ST.W / box.width : 1;
+      let best = null, bd = Math.max(24 * k, ST.W / 25);
       for (const k of fitHandleKeys()) { const d = Math.hypot(ST.targets[k].x - p.x, ST.targets[k].y - p.y); if (d < bd) { bd = d; best = k; } }
       if (!best) return;
       drag = { k: best }; ov.setPointerCapture(e.pointerId); e.preventDefault();

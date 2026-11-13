@@ -35,9 +35,11 @@
     let items = null;
     if (!flag("demo") && W.LQApi && W.LQApi.enabled()) {
       const j = await W.LQApi.getJSON("/v1/tryon/catalog");
-      if (j && Array.isArray(j.items) && j.items.length) { items = j.items.filter(i => TO.CATEGORIES.some(c => c.id === i.category)); state.source = "shop"; }
+      // only what this page can draw (no skirts / trousers yet)
+      if (j && Array.isArray(j.items) && j.items.length) { items = j.items.filter(i => TO.DRAWABLE.includes(i.category)); state.source = "shop"; }
     }
     state.items = items && items.length ? items : TO.DEMO.slice();
+    if (!(items && items.length)) state.source = "demo";
     $("#toSrc").textContent = state.source === "shop" ? T("to.items.shop", "สินค้าจากแคตตาล็อกของร้าน ({n} รายการ)", { n: state.items.length })
       : T("to.items.demo", "สินค้าตัวอย่าง (ภาพวาด) — ยังไม่ได้เชื่อมแคตตาล็อกของร้าน");
     renderItems();
@@ -136,7 +138,7 @@
     if (cv.width !== video.videoWidth || cv.height !== video.videoHeight) { cv.width = video.videoWidth; cv.height = video.videoHeight; }
     cx.drawImage(video, 0, 0, cv.width, cv.height);
     const F = faces(ts); state.faces = F.length; state.frames++;
-    const A = F.length ? TO.faceAnchors(F[0], cv.width, cv.height) : null;
+    const A = TO.anchorsFor(F, cv.width, cv.height); // more than one face: nothing is drawn
     $("#toSnap").disabled = F.length > 1;
     if (F.length > 1) status("to.st.many", "พบมากกว่าหนึ่งคนในภาพ ลองทีละคน");
     else if (!A && state.engine) status("to.st.noFace", "ยังไม่พบใบหน้า หันหน้าเข้ากล้องในที่สว่าง");

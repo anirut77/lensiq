@@ -19,7 +19,7 @@ for (const f of ["admin.js", "admin.css", "lensiq-api.js", "lensiq-i18n.js", "at
 // Try-On catalogue tab (admin-tryon.js): the Product Check face blur runs on the merchant's device before any product
 // photo is uploaded (lensiq-pc.js, lensiq-pc-run.js, MediaPipe Tasks runtime + BlazeFace short range, Apache-2.0) and
 // studio-core.js cuts out a plain background
-for (const f of ["admin-tryon.js", "lensiq-pc.js", "lensiq-pc-run.js", "studio-core.js", "vendor/mediapipe/vision_bundle.mjs", "vendor/mediapipe/wasm/vision_wasm_internal.js",
+for (const f of ["admin-tryon.js", "lensiq-tryon-core.js", "lensiq-pc.js", "lensiq-pc-run.js", "studio-core.js", "vendor/mediapipe/vision_bundle.mjs", "vendor/mediapipe/wasm/vision_wasm_internal.js",
   "vendor/mediapipe/wasm/vision_wasm_internal.wasm", "vendor/mediapipe/wasm/vision_wasm_nosimd_internal.js", "vendor/mediapipe/wasm/vision_wasm_nosimd_internal.wasm",
   "vendor/models/face-gate/blaze_face_short_range.tflite"]) {
   mkdirSync(dirname(join(out, f)), { recursive: true });

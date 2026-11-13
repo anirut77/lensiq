@@ -102,7 +102,20 @@
     return c;
   }
 
-  const api = { CATEGORIES, LM, faceAnchors, place, faceForStudio, MARK, stamp, DEMO, drawDemo };
+  /** categories this page can draw today (skirts / trousers need a lower-body anchor: not built, so not listed) */
+  const DRAWABLE = ["glasses", "hats", "earrings", "necklaces", "tops", "outerwear", "dresses"];
+  /** anchors of the ONE face in the picture; with no face or more than one face nothing is drawn (null) */
+  const anchorsFor = (faces, W, H) => (Array.isArray(faces) && faces.length === 1 ? faceAnchors(faces[0], W, H) : null);
+  /** back-office form: the status to send — the chosen one, or undefined when empty or unchanged (never "") */
+  const formStatus = (selected, current) => (selected && selected !== current ? String(selected) : undefined);
+  /** "1,200.50" baht -> 120050 satang; "" -> null; anything else (letters, minus, 3 decimals, symbols) -> NaN */
+  function parseBaht(v) {
+    const t = String(v == null ? "" : v).trim().replace(/,/g, "");
+    if (!t) return null;
+    return /^\d+(\.\d{1,2})?$/.test(t) ? Math.round(Number(t) * 100) : NaN;
+  }
+
+  const api = { CATEGORIES, DRAWABLE, LM, faceAnchors, anchorsFor, place, faceForStudio, formStatus, parseBaht, MARK, stamp, DEMO, drawDemo };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof window !== "undefined") root.LQTryOn = api;
 })(typeof window !== "undefined" ? window : globalThis);

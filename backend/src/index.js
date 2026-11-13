@@ -650,6 +650,15 @@ async function adminRoute(request, env, url, deps) {
     return reply(r);
   }
   if (ti && !ti[2] && m === "DELETE") {
+    // fresh re-auth like lead / merit deletes: the owner (password + code, or the sudo window); a try-on admin confirms
+    // their OWN password + 6-digit code in this request (restricted accounts cannot open the owner's sudo window)
+    if (isReviewer) {
+      const b = request.headers.get("Content-Type") ? await body() : {};
+      try { await auth.reauthReviewerInline(env, sess, b); } catch (e) {
+        if (e && e.extra && e.extra.code === "reauth_inline_required") await act("reauth.failed", { route, missing: true, inline: true });
+        throw e;
+      }
+    } else await reauthedOptional();
     const r = await tryon.adminDelete(env, ti[1]);
     await act("tryon.item.deleted", { id: ti[1] });
     return reply(r);
@@ -737,7 +746,7 @@ export const ADMIN_ASSETS = new Set(["/admin", "/admin/", "/admin.html", "/admin
   "/fortune-sources.js",
   // Try-On catalogue tab: face blur of product photos on the merchant's device before upload (Product Check detector,
   // BlazeFace short range + MediaPipe Tasks runtime, Apache-2.0) and the plain-background cut-out (studio-core.js)
-  "/admin-tryon.js", "/lensiq-pc.js", "/lensiq-pc-run.js", "/studio-core.js", "/vendor/mediapipe/vision_bundle.mjs",
+  "/admin-tryon.js", "/lensiq-tryon-core.js", "/lensiq-pc.js", "/lensiq-pc-run.js", "/studio-core.js", "/vendor/mediapipe/vision_bundle.mjs",
   "/vendor/mediapipe/wasm/vision_wasm_internal.js", "/vendor/mediapipe/wasm/vision_wasm_internal.wasm",
   "/vendor/mediapipe/wasm/vision_wasm_nosimd_internal.js", "/vendor/mediapipe/wasm/vision_wasm_nosimd_internal.wasm",
   "/vendor/models/face-gate/blaze_face_short_range.tflite"]);

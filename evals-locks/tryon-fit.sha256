@@ -9,3 +9,9 @@ cdc086de37f4c8e49046a2d6ed06d8581b3d8f09d7bd8f6108e4ca2110fffda7  tools/studio-f
 # committed unchanged in 9353f72 before any measurement; the first measurement ran after that commit. This file was added
 # when the rule arrived; the hashes are identical to ~/LENSIQ-field/evals/tryon-fit/locked.sha256. Copies of the set,
 # test and scorer: ~/LENSIQ-field/evals/tryon-fit/set/.
+#
+# Re-lock 2026-11-14 (independent review of tryon-fit: "the fit scorer must refuse to overwrite an existing results file";
+# persistent eval logs). tools/studio-fit-eval.mjs now exits 2 before measuring when the output file exists. The set, the
+# targets and the locked test are unchanged; the check is covered by tests/unit/tryon-review.test.js V9 (locked first).
+# Hash cdc086de… is superseded.
+0f71e361ce321a285e96f423f9c8de87eb837904b5aab44b3a3a44d42970356a  tools/studio-fit-eval.mjs

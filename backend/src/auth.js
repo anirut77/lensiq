@@ -389,6 +389,35 @@ export async function requireReauth(env, sess, body) {
   throw new HttpError(403, "please confirm your password first (reauth_required)", { code: "reauth_required" });
 }
 
+/**
+ * Inline re-auth of a restricted account (try-on admin delete): the account's OWN password + a fresh 6-digit code in this
+ * request. Same per-session rate limit as the owner's re-auth; a wrong password or code counts on the reviewer row like a
+ * failed sign-in. 403 reauth_inline_required when the body carries no password.
+ * @param {any} env @param {any} sess @param {any} body
+ */
+export async function reauthReviewerInline(env, sess, body) {
+  const b = body && typeof body === "object" ? body : {};
+  const { password, totp, ...rest } = b;
+  if (password == null || password === "") {
+    throw new HttpError(403, "confirm your password and code with this request (reauth_inline_required)", { code: "reauth_inline_required" });
+  }
+  const t = now(), key = sessKey(sess);
+  if ((await peek(env.DB, key, WINDOW, t)) >= REAUTH_FAILURES) {
+    throw new HttpError(429, "too many wrong re-authentications — try again later", { retryAfter: WINDOW - (t % WINDOW), code: "reauth_rate_limited" });
+  }
+  const rev = sess && sess.reviewerId ? await reviewerById(env.DB, sess.reviewerId) : null;
+  const usable = !!rev && rev.status === "active" && !!rev.totp_enabled && !!rev.password_hash;
+  const pwOk = await verifyPassword(String(password), usable ? rev.password_hash : DUMMY_HASH);
+  const totpOk = usable && pwOk ? await reviewerTotpOk(env, rev, totp, t) : false;
+  if (!usable || !pwOk || !totpOk) {
+    await hit(env.DB, key, REAUTH_FAILURES, WINDOW, t);
+    if (usable) await reviewerFailure(env, rev, t, accountDelay, DECAY);
+    await audit(env, "reviewer:" + (sess && sess.reviewerId), "reauth.failed", { inline: true, step: usable && pwOk ? "totp" : "password" });
+    throw new HttpError(401, usable && pwOk ? "invalid TOTP code" : "invalid credentials", { code: usable && pwOk ? "invalid_totp" : "invalid_credentials" });
+  }
+  return rest;
+}
+
 /** How money operations re-authenticate (round 12): "inline" = {password, totp} in the request body only (MONEY_REAUTH=
  *  inline, or live keys with OPN_ALLOW_LIVE=true unless MONEY_REAUTH=window is set explicitly); "window" = body or the
  *  5-min sudo window (default in test mode). */
