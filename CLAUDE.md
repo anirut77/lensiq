@@ -9,6 +9,11 @@ https://anirut77.github.io/lensiq/. Owner-facing replies are in Thai.
   refers to another project (for example Anumat), do nothing and tell the owner it was sent to the wrong window.
 - Never loosen or skip a test to make CI pass. Fix the product. No CI-only allowances.
 - CI must be green before stacking new work. Push risky fixes as their own commit.
+- Gates run on GitHub Actions (owner decision 2026-11-13): push each change to its own branch and run the full gate
+  there (`gh workflow run ci.yml --ref <branch>`: every suite, no skips, same retry rule). Merge to main only when that
+  run is green; deploy only from green main. Before every commit, run the affected suites locally and read the result;
+  the full gate must be green on the branch in CI before merging to main. No local full gates while agents are working
+  (at most one, with other CPU-heavy agents paused).
 - Ask the owner before changing approved scope or order. Don't start and report later.
 - Every round: fixed test set before building, real numbers per condition, an independent reviewer agent that re-measures.
 - On-device processing by default. A human confirms any decision affecting money, access or a person. No emotion or
