@@ -16,6 +16,9 @@
 //   e-mail delivery log         AUDIT_DAYS (400) (round 12; no addresses / bodies stored, member id cleared on erasure)
 //   CSP report counters         CSP_REPORT_DAYS (90) (round 12; aggregated counters only)
 //   merit interest requests     MERIT_INTEREST_DAYS (90) after they were received (Merit MVP 2026-11-12; form off by default)
+//   LINE sign-in flows          at expiry (10 minutes; stream G)
+//   organisation invitations    30 days after they expired (accepted or not; the join is in the organisation audit log)
+//   organisation audit log      kept with the organisation (pseudonymous refs only; stream G)
 //   payments / receipts         kept (Thai Revenue Code: accounting & tax documents >= 5 years) — never purged here
 import { aggregatePending } from "./analytics.js";
 import { mailRenewalReminders } from "./mail.js";
@@ -61,7 +64,10 @@ export async function purge(env, t = now()) {
     mail_log: await run("DELETE FROM mail_log WHERE ts < ?1", t - c.auditDays * 86400),
     csp_reports: await run("DELETE FROM csp_reports WHERE day < ?1", addDays(today, -c.cspReportDays)),
     // Merit MVP: "request interest" rows (name, contact, item, date window) after MERIT_INTEREST_DAYS
-    merit_interest: await run("DELETE FROM merit_interest WHERE created_at < ?1", t - c.meritInterestDays * 86400)
+    merit_interest: await run("DELETE FROM merit_interest WHERE created_at < ?1", t - c.meritInterestDays * 86400),
+    // stream G: unfinished LINE flows; invitation links (hashes only) 30 days after expiry
+    line_auth_flows: await run("DELETE FROM line_auth_flows WHERE expires_at < ?1", t),
+    org_invites: await run("DELETE FROM org_invites WHERE expires_at < ?1", t - 30 * 86400)
   };
   return out;
 }

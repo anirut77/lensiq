@@ -86,6 +86,7 @@
   function renderMap(now) {
     const lv = board.levels(now), prof = board.profiles;
     const ids = [...new Set([...board.seats(), ...Object.keys(lv)])].sort(seatSort);
+    if (/** @type {any} */ (window).LQFreeTier) /** @type {any} */ (window).LQFreeTier.level("exam", "candidates_per_session", ids.length); // counting only (stream G)
     $("#seatMap").innerHTML = ids.length ? ids.map(id => {
       const l = (lv[id] && lv[id].level) || "ok";
       return `<div class="seat lv-${l}${prof[id] ? " acc" : ""}" role="img" aria-label="${U.esc(T("exam.db.seatL", "ที่นั่ง {s}: {l}", { s: id, l: U.lvl(l) }))}"><b>${U.esc(id)}</b><span>${U.esc(U.lvl(l))}</span></div>`;

@@ -29,6 +29,8 @@ controller only for its own website, member accounts, billing and the optional b
   E3 organisation accounts (design only — the main PDPA change)
 - **F. Round 17** — F1 Product Check + AI Gateway (design approved; cloud AI providers, image mode, cross-border
   processing, Thai FDA data) · F2 AI Gateway core as built in P5 (consent screen, remembered consent, image mode, logs)
+- **I. Accounts groundwork (2026-11-13)** — I1 LINE Login · I2 organisation account lite (no customer people data) ·
+  I3 free-tier counting on the device
 - **D. Questions that cut across products**
 - **H. Camera pages: device-only technical keys** — `lq-heavy` (crash guard, sessionStorage) and `lq-camcap` (localStorage)
 
@@ -962,3 +964,74 @@ an identifier; nothing is sent anywhere. `privacy.html` is not changed yet (owne
 
 Question for counsel: do these purely technical keys need to be named in the privacy notice (storage section), or is a
 general sentence ("the site keeps technical settings on your device") enough?
+
+## I. Accounts and billing groundwork (stream G, owner decisions 2026-11-13; branch `accounts-g`)
+
+Built, **off until the owner switches it on**, not deployed. Detail: `docs/BACKEND.md` "Stream G". Migration
+`0018_accounts.sql`. Not legal advice; questions for counsel at the end of each part.
+
+### I1. LINE Login next to Google sign-in
+
+(a) **Data held.** For a member who signs in with LINE: the LINE user id (`U` + 32 hex, the provider's stable id, kept
+only to recognise the sign-in), the LINE display name (first 40 characters, used as the account name when there is no
+Google name), link time and last LINE sign-in time (`user_identities`). LINE Login is used with scope `openid profile`
+only: **no e-mail is requested**, no profile picture, no LINE access or refresh token is stored (they are discarded as
+soon as the ID token is verified), and the "friend of the official account" status LINE may report is not read or
+stored. A sign-in flow row (hashes of the state and the browser binding, the PKCE verifier and the nonce) lives at most
+10 minutes and is deleted when used or by the daily purge.
+
+(b) **Basis and rights.** Same as the Google member account (contract, s.24(3)); consent to the terms / privacy notice
+is taken before the first sign-in. Export lists the linked methods and their dates (never the provider ids); erasure
+deletes the LINE link with the account; the quota tombstone for a LINE account uses a daily-salted HMAC of the LINE id
+(as for Google). LINE Corporation / LY Corporation is the controller of the LINE account itself; LENSIQ receives the id
+token over TLS from LINE's token endpoint. Cross-border: LINE's servers (Japan / Thailand / other) and Cloudflare.
+
+(c) **Questions for counsel.** (1) Does the privacy notice need to name LINE (LY Corporation) as a separate source of
+personal data and describe the friend-add option shown on LINE's consent page? (2) Is the display name from LINE
+"personal data collected from another source" needing notice under s.25? (3) For a LINE-only account there is no
+e-mail: is the in-account notice (and LINE OA message, once used) enough for renewal / change notices?
+
+(d) **Unlinking Google (decision 2026-11-14, security review L6).** When a member removes Google from an account that
+also has LINE, the Google account id **and the e-mail that came from Google** are removed from the account; the account
+then has no e-mail. Receipts already issued keep their own buyer fields (tax records). Linking or unlinking a sign-in
+method always needs a fresh confirmation with the account's current method.
+
+### I2. Organisation account (lite)
+
+(a) **Data held** (Cloudflare D1, outside Thailand): organisation name; billing details (name on documents, 13-digit tax
+id, address, branch, e-mail for quotations and receipts — personal data when the customer is a natural person or sole
+proprietor); membership rows (which LENSIQ member is admin / staff / owner, since when); invitation rows (SHA-256 of the
+link token, role, expiry, and — only when the admin binds the invitation to an e-mail — an HMAC of that e-mail, never the
+address); a per-organisation audit log (time, action, field names; people only as a pseudonymous ref = SHA-256 of
+"org-actor|" + member id); licence orders (plan, quantity, dates, quotation / transfer reference, quoted amount, note)
+entered by the LENSIQ owner. **No data about the customer's own people** (employees, residents, plates, candidates,
+attendance, exam events) is collected: the design's sync part (`docs/ORG-ACCOUNTS-DESIGN.md` §5–9) is not built, and the
+API refuses unknown fields.
+
+(b) **Who sees what.** Organisation admins see members' display names and account e-mails (LINE-only members have none)
+— a member is told this on the invitation screen before accepting. Staff see only the organisation name and their role.
+The LENSIQ owner (back office) sees organisation name, billing details, member display names and roles (not e-mails),
+licences and the audit log. Role changes, removals and ownership transfer need a fresh Google / LINE confirmation.
+
+(c) **Roles under PDPA.** For this lite version LENSIQ is the **controller** of the account data (it is our customer /
+billing relationship, s.24(3) contract; tax records s.24(6)), not a processor of the customer's people data (none is
+held). The billing details are kept with the organisation; licence orders are accounting records (keep ≥ 5 years with
+payments). When a member erases their account, their membership is removed and the organisation's log keeps only the
+pseudonymous ref plus a "member.erased" entry; an organisation whose owner erased their account is flagged "needs an
+owner" and the LENSIQ owner can issue a new owner invitation.
+
+(d) **Questions for counsel.** (1) Is showing a member's account e-mail to the organisation's admins acceptable on the
+basis of the invitation notice, or should it be opt-in? (2) Retention of billing details and licence orders after an
+organisation closes (proposal: with the accounting records, ≥ 5 years; the rest deleted 30 days after closing — closing
+does not delete anything yet). (3) Does an e-mail-bound invitation (HMAC only) still count as processing the invitee's
+e-mail (we compute the HMAC from the address the admin types)? (4) Contract wording: the organisation account does not
+store the customer's people data; if sync is added later, a DPA is required (design §9).
+
+### I3. Free-tier counting on the device
+
+Counts only numbers per product (Gate plate reads per Bangkok day and trial start date, Attendance active staff count,
+Exam candidates on the dashboard, Crowd running seconds per day) in the browser's localStorage (`lq-ft-*`). No plate,
+name or other personal data, nothing sent to LENSIQ, nothing enforced (`FREE_TIER_ENFORCE = false`). Legal item L62
+(free-tier limits) covers the announcement (≥ 30 days ahead, start 30 days after) and the "export is always available"
+promise. Question for counsel: wording of the announcement and whether the contract (not the device) is the binding
+limit, as the CTO brief notes.

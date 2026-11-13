@@ -98,7 +98,7 @@ async function setup(vars = {}) {
   };
   /** Fresh Google confirmation {credential, nonce} for member `s` (DELETE /api/me, export). */
   const fresh = async (s, extra = {}) => {
-    const n = await call("/api/auth/nonce", { method: "POST", body: {} });
+    const n = await call("/api/auth/nonce", { method: "POST", body: { purpose: "reauth" } }); // amendment A-G5 (security review 2026-11-14): a fresh confirmation uses a re-auth nonce
     return { credential: jwt(claims({ nonce: n.j.nonce, sub: s.sub, ...extra })), nonce: n.j.nonce };
   };
   let adminTok = null;

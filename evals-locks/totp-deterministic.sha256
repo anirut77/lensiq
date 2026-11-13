@@ -19,3 +19,12 @@ b46285a43e695d0a80ce00cc2df81aa042c6d65e9ec57c11382a733b476745bc  tests/unit/bac
 be46661a2dbb9051949b4375bf70fc8ec5da724232ac174b5e809fc4b44ef018  tests/unit/backend-ai-keys-review.test.js
 9a958dbe7e92c3b4abfd842ac959dcadb238a90934053ce912cfa860d8478d22  tests/unit/backend-recovery-slow.test.js
 e0deccc17d439216d4094b36bf50a379a49235f2ed51112fe84a56c64b572735  tests/unit/backend-recovery-transition.test.js
+# --- from ~/LENSIQ-field/evals/totp-deterministic/locked.sha256 (tools/eval-locks-import.mjs 2026-11-13) ---
+# 2026-11-13T17:46:02Z stream G amendment A-G5 (security review M1): fresh-confirmation fixture requests a re-auth nonce; recorded in ../accounts-g/locked.sha256
+a124e785524f7eb888b36c2e7f03c39946db19da08caeb835d6db1b1ab7f72a2  tests/unit/backend-hardening.test.js  # repo file
+f88eab4fb9bc20c57730d9e98b27ad727dc4236dfa91fa0197fae6ebd94656b7  tests/unit/backend-fulfilment-refunds.test.js  # repo file
+32ccb42bd0ed19f0164a0b3d15db15993026c9c74eec87d856ba17db39dd4ede  tests/unit/backend-billing-receipts.test.js  # repo file
+# 2026-11-13T20:50:00Z merge of origin/main (3ba4b8a) into accounts-g: these files now carry BOTH main's TOTP-clock re-lock (one require line) and stream G's A-G5 re-auth-nonce fixture; no assertion changed by the merge. Combined hashes:
+bea9de2a0c405108b42b04714427b1f8aa10466245e597ff9ac25335f710fd7c  tests/unit/backend-hardening.test.js  # repo file
+aa124f53be41e62426c4dfdf04473d8b6f8cd6125d7830ca7dca0c092c77e28a  tests/unit/backend-fulfilment-refunds.test.js  # repo file
+ed6a7100d900a6b54afbe919d045b251041028228f0bc1d6f8d6d841d693691c  tests/unit/backend-billing-receipts.test.js  # repo file

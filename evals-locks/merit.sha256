@@ -97,3 +97,8 @@ b4da3cdfb31bec1a5ff8d53554e293783631238f0942f470fa10874a63f67b9d  tests/e2e/meri
 # directly follows 0015_merit.sql and is directly followed by the next migration file on disk; the probes and the
 # /health/deep check are unchanged. Hash d92a8a87… is superseded.
 9b2bb401ce3f94411e0b293cd6e7bc5633ec6e8e7c4151ebd541598624e0df67  tests/unit/backend-merit-reviewer.test.js  # repo file
+# 2026-11-14 TEST-BUG RE-LOCK (append-only; earlier hashes stay as history): TOTP clock frozen via tests/unit/totp-clock.js (one added require line, no assertion changed); reason and full list in evals-locks/totp-deterministic.sha256 (CI run 43464554484, RV6 step-boundary race).
+638742da3cb716349042c5a4c2254aab2190edbe2492fe310be2f876899e6213  tests/unit/backend-merit-reviewer.test.js  # repo file
+cf9be33a44d0e8893f658f5fd171bfd53c2c5a7d5d29c8f440aaf5b364bd7dfd  tests/unit/backend-merit.test.js  # repo file
+# 2026-11-13T20:44:16Z stream G: accounts-g merged main and takes tryon-fit's RV1 (0016 right after 0015 and before the next file; with the totp-clock re-lock); amendment A-G1 superseded. Hash = main's file.
+50209f2c402bb4009c8cbe6d5f8bde802ddcff5c0524bb1c7f25ec899c019d68  tests/unit/backend-merit-reviewer.test.js  # repo file

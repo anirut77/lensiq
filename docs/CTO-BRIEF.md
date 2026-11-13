@@ -22,6 +22,10 @@ Sources: the repo, `ACCURACY.md`, `LICENSES/THIRD_PARTY.md`, `docs/*.md` and the
 - **Offline licence:** a licence works offline for 14 days (planned, not built).
 - **Organisation accounts (lite), planned, not built:** organisation name, billing details, admins and staff, invitations; no syncing of the customer's people data.
 - **Plans in the database:** only Gate, Attendance, Exam (lab room) and Crowd report get back-office order plans; no online purchase.
+- **Stream G built (2026-11-13, branch `accounts-g`, not merged / not deployed):** LINE Login next to Google (off until the owner sets
+  the LINE channel id and secret), organisation account lite with invitations and an audit log, back-office licence orders
+  (plans without prices), the 14-day offline licence window, free-tier counting on the device (not enforced), and the
+  free-tier wording + 30-day notice on pricing, home and the four product pages (TH / EN / ZH). Migration 0018 (`0018_accounts.sql`).
 - **Privacy contact:** a separate privacy-contact (DPO) e-mail will be added, the owner will send the address; until then documents show LINE @632yliiw (legal item L61).
 - **Legal list:** L57 text approved to list as drafted (`docs/product-check/LIVE-SCAN-RESULTS.md` §7); new L60 (Claude Haiku via Google Vertex for the live label scan), L61 (privacy contact), L62 (free-tier limits).
 

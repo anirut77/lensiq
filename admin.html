@@ -20,7 +20,7 @@
 <meta name="theme-color" content="#0e1430">
 <title>LENSIQ หลังบ้าน</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%230e1430'/%3E%3Cpath d='M8 12V8h4M24 12V8h-4M8 20v4h4M24 20v4h-4' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='4.2' fill='%23674ff2'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="admin.css?v=5">
+<link rel="stylesheet" href="admin.css?v=6">
 </head>
 <body>
 <!-- Back office for the LENSIQ API Worker (backend/, docs/BACKEND.md). Not linked from any page; static shell only —
@@ -172,6 +172,7 @@
       <button type="button" role="tab" data-tab="members" aria-selected="false">สมาชิก</button>
       <button type="button" role="tab" data-tab="leads" aria-selected="false"><span data-i18n="adl.tab">คำขอใบเสนอราคา</span><span
         id="adlBadge" class="adl-badge" hidden></span></button>
+      <button type="button" role="tab" data-tab="orgs" aria-selected="false" data-i18n="ado.tab">บัญชีองค์กร</button>
       <button type="button" role="tab" data-tab="security" aria-selected="false">ความปลอดภัย</button>
       <button type="button" role="tab" data-tab="retention" aria-selected="false">การเก็บรักษาข้อมูล</button>
       <button type="button" role="tab" data-tab="fsources" aria-selected="false" data-i18n="adf.tab">แหล่งอ้างอิงดูดวง</button>
@@ -374,6 +375,30 @@
           </div>
         </form>
       </dialog>
+    </div>
+
+    <!-- stream G (owner decisions 2026-11-13): organisation accounts LITE + back-office licence orders (backend/src/orgs.js).
+         TH default; EN / ZH in i18n/en-admin.js, i18n/zh-admin.js (ado.*) -->
+    <div class="ad-panel" data-panel="orgs" role="tabpanel" hidden>
+      <div class="ad-card">
+        <h2 data-i18n="ado.h">บัญชีองค์กร (แบบย่อ)</h2>
+        <p class="ad-muted" data-i18n="ado.lead">ชื่อองค์กร ข้อมูลออกเอกสาร ผู้ดูแลและเจ้าหน้าที่ คำเชิญ และใบอนุญาตที่บันทึกหลังรับโอนเงินผ่านธนาคาร ไม่มีการซิงก์ข้อมูลบุคคลของลูกค้า
+          (พนักงาน ทะเบียนรถ ผู้สอบ) และไม่มีราคาในฐานข้อมูล</p>
+        <form id="adoCreate" class="ad-row">
+          <label><span data-i18n="ado.name">ชื่อองค์กร</span> <input name="name" required minlength="2" maxlength="120" autocomplete="off"></label>
+          <button class="ad-btn" type="submit" data-i18n="ado.create">สร้างองค์กรและลิงก์เชิญเจ้าของ</button>
+        </form>
+        <div id="adoInvite" hidden>
+          <p class="ad-muted" data-i18n="ado.inviteNote">ส่งลิงก์นี้ให้ผู้ที่จะเป็นเจ้าของบัญชีองค์กร ใช้ได้ครั้งเดียวภายใน 72 ชั่วโมง ระบบแสดงลิงก์นี้ครั้งเดียว
+            ถ้าลิงก์ขึ้นต้นด้วย account.html ให้เติมที่อยู่เว็บไซต์สาธารณะไว้ข้างหน้า (หรือตั้ง SITE_URL ใน Worker เพื่อให้ได้ลิงก์เต็ม)</p>
+          <input id="adoInviteLink" class="ado-link" readonly aria-label="ลิงก์เชิญเจ้าของ" data-i18n-attr="aria-label:ado.inviteLink">
+        </div>
+      </div>
+      <div class="ad-card">
+        <h3 data-i18n="ado.listH">องค์กรทั้งหมด</h3>
+        <ul id="adoList" class="ado-list"></ul>
+      </div>
+      <div class="ad-card" id="adoDetail" hidden></div>
     </div>
 
     <div class="ad-panel" data-panel="security" role="tabpanel" hidden>
@@ -601,5 +626,6 @@
 <script src="studio-core.js?v=7"></script>
 <script src="lensiq-tryon-core.js?v=2"></script>
 <script src="admin-tryon.js?v=2"></script>
+<script src="admin-orgs.js?v=1"></script>
 </body>
 </html>

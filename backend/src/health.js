@@ -13,7 +13,7 @@ export const MIGRATIONS = [
   "0006_consumer_pricing.sql", "0007_member_session_labels.sql", "0008_round11_backend.sql",
   "0009_round12_backend.sql", "0010_ai_gateway.sql", "0011_admin_recovery.sql", "0012_ai_keys.sql", "0013_recovery_slow_hash.sql",
   "0014_leads_viewed.sql",
-  "0015_merit.sql", "0016_merit_review.sql", "0017_tryon.sql"
+  "0015_merit.sql", "0016_merit_review.sql", "0017_tryon.sql", "0018_accounts.sql"
 ];
 /** Columns / tables added by migrations 0008 and later, with the migration that adds each (schema probe): a failing
  *  probe names exactly the migration that is missing. */
@@ -39,7 +39,16 @@ const PROBES = [
   ["0016_merit_review.sql", "SELECT review_comment, reviewed_by, reviewed_at, source, review_meta FROM merit_items LIMIT 0"],
   ["0017_tryon.sql", "SELECT role FROM admin_reviewers LIMIT 0"],
   ["0017_tryon.sql", "SELECT id, shop, category, anchor, name_th, name_en, name_zh, price, sale_price, vat_included, sizes, colours, product_url, notes, status FROM tryon_items LIMIT 0"],
-  ["0017_tryon.sql", "SELECT id, item_id, mime, bytes, w, h, sha256, store, data, face_check FROM tryon_assets LIMIT 0"]
+  ["0017_tryon.sql", "SELECT id, item_id, mime, bytes, w, h, sha256, store, data, face_check FROM tryon_assets LIMIT 0"],
+  ["0018_accounts.sql", "SELECT provider, sub, user_id, created_at, last_login_at FROM user_identities LIMIT 0"],
+  ["0018_accounts.sql", "SELECT hash, purpose FROM auth_nonces LIMIT 0"],
+  ["0018_accounts.sql", "SELECT state_hash, binding_hash, nonce, code_verifier, mode, session_kind, expires_at FROM line_auth_flows LIMIT 0"],
+  ["0018_accounts.sql", "SELECT id, name, status, billing_tax_id FROM orgs LIMIT 0"],
+  ["0018_accounts.sql", "SELECT org_id, user_id, role, is_owner FROM org_members LIMIT 0"],
+  ["0018_accounts.sql", "SELECT id, token_hash, email_hmac, owner_invite FROM org_invites LIMIT 0"],
+  ["0018_accounts.sql", "SELECT id, org_id, actor_ref, prev_hash, hash FROM org_audit LIMIT 0"],
+  ["0018_accounts.sql", "SELECT id, product, unit FROM licence_plans LIMIT 0"],
+  ["0018_accounts.sql", "SELECT id, org_id, plan_id, quantity, amount_satang FROM org_licences LIMIT 0"]
 ];
 
 /** @param {Env} env */

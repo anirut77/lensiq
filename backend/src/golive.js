@@ -13,12 +13,13 @@
 //
 // Enforcement:
 //   * LIVE money (a live Opn key with OPN_ALLOW_LIVE=true) is ALWAYS refused while any problem exists (no override)
-//   * GO_LIVE_GATE = "enforce" (backend/wrangler.toml): checkout (BILLING_ENABLED) and new Google sign-ins
-//     (GOOGLE_CLIENT_ID) are refused too — 503 {code:"go_live_blocked"}. "report" only reports (staging / test-mode
+//   * GO_LIVE_GATE = "enforce" (backend/wrangler.toml): checkout (BILLING_ENABLED) and new Google / LINE sign-ins
+//     (GOOGLE_CLIENT_ID; LINE_LOGIN_CHANNEL_ID + _SECRET, stream G 2026-11-13) are refused too — 503 {code:"go_live_blocked"}. "report" only reports (staging / test-mode
 //     runs, `wrangler dev`); a missing var means "report" so unit tests and local dev keep working.
 // Reported to the owner in GET /admin/api/state (signed in), GET /admin/api/go-live and GET /admin/api/billing.
 import { getOwner } from "./auth.js";
 import { turnstileStatus } from "./turnstile.js";
+import { lineConfig } from "./line.js";
 import { HttpError, flag, publicOrigins } from "./util.js";
 
 const LOCALHOST = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/;
@@ -34,7 +35,7 @@ const billingOn = env => flag(env.BILLING_ENABLED) && String(env.FREE_MODE ?? "t
  * @returns {Promise<{ok: boolean, mode: string, switches: Record<string, boolean>, problems: {code: string, detail: string}[], blocks: Record<string, boolean>}>}
  */
 export async function goLiveStatus(env) {
-  const switches = { billing: billingOn(env), live_keys: liveKeys(env), google_signin: !!String(env.GOOGLE_CLIENT_ID || "").trim() };
+  const switches = { billing: billingOn(env), live_keys: liveKeys(env), google_signin: !!String(env.GOOGLE_CLIENT_ID || "").trim(), line_signin: !!lineConfig(env) };
   const problems = [];
   const seller = ["SELLER_NAME", "SELLER_TAX_ID", "SELLER_ADDRESS"].filter(k => !String(env[k] || "").trim());
   if (seller.length) problems.push({ code: "seller_missing", detail: seller.join(", ") });
@@ -52,11 +53,12 @@ export async function goLiveStatus(env) {
   const bad = problems.length > 0;
   return {
     ok: !bad, mode, switches, problems,
-    blocks: { live_money: bad && switches.live_keys, checkout: bad && mode === "enforce" && switches.billing, google_signin: bad && mode === "enforce" && switches.google_signin }
+    blocks: { live_money: bad && switches.live_keys, checkout: bad && mode === "enforce" && switches.billing, google_signin: bad && mode === "enforce" && switches.google_signin,
+      line_signin: bad && mode === "enforce" && switches.line_signin }
   };
 }
 
-/** Throws 503 go_live_blocked when `what` (live_money | checkout | google_signin) is blocked by the gate. */
+/** Throws 503 go_live_blocked when `what` (live_money | checkout | google_signin | line_signin) is blocked by the gate. */
 export async function assertGoLive(env, what) {
   const s = await goLiveStatus(env);
   if (s.blocks[what]) {

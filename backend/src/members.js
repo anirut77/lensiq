@@ -33,6 +33,8 @@ import { activeSub, consumeCredit, consumeUse, creditBalance, isPaying, periodKe
 import { audit, callerHash, dailySalt, getSetting, hit, putSetting } from "./store.js";
 import { assertGoLive } from "./golive.js";
 import { verifyTurnstile } from "./turnstile.js";
+import { lineConfig } from "./line.js";
+import { actorRef, orgAudit } from "./orgaudit.js";
 import { HttpError, bkkDay, bkkDayStart, intVar, log, now } from "./util.js";
 
 export const MEMBER_CONSENT_VERSION = "m1";
@@ -85,32 +87,53 @@ export async function membership(env) {
 export async function publicMembership(env) {
   const m = await membership(env);
   return {
-    required: m.required, google_client_id: googleClientId(env) || null, consent_version: MEMBER_CONSENT_VERSION,
+    required: m.required, google_client_id: googleClientId(env) || null, line_enabled: !!lineConfig(env), consent_version: MEMBER_CONSENT_VERSION,
     guest_daily_readings: m.guest_daily_readings, guest_light_sections: m.guest_light_sections, member_ai_daily: m.member_ai_daily
   };
 }
 
 // ---- sign-in ---------------------------------------------------------------------------------------------------------
 
-export async function issueNonce(env, request) {
+export const NONCE_PURPOSES = ["signin", "reauth"];
+export async function issueNonce(env, request, body = null) {
+  const purpose = body && body.purpose != null ? body.purpose : "signin";
+  if (!NONCE_PURPOSES.includes(purpose)) throw new HttpError(400, "purpose must be signin or reauth");
   const who = await callerHash(env, request, "signin");
   const rl = await hit(env.DB, `nonce:${who}`, 30, 900);
   if (!rl.ok) throw new HttpError(429, "too many sign-in attempts — try again later", { retryAfter: rl.retryAfter });
   if (!googleClientId(env)) throw new HttpError(503, "Google sign-in is not configured (google_not_configured)", { code: "google_not_configured" });
   const nonce = randomToken(24), t = now();
-  await env.DB.prepare("INSERT INTO auth_nonces (hash, created_at, expires_at) VALUES (?1, ?2, ?3)").bind(await sha256Hex(nonce), t, t + NONCE_TTL).run();
+  await env.DB.prepare("INSERT INTO auth_nonces (hash, created_at, expires_at, purpose) VALUES (?1, ?2, ?3, ?4)")
+    .bind(await sha256Hex(nonce), t, t + NONCE_TTL, purpose === "reauth" ? "reauth" : null).run();
   return { nonce, expires_in: NONCE_TTL };
 }
 
-/** Atomically consumes a nonce we issued (single use, unexpired). */
-async function claimNonce(db, nonce, t) {
+/** Atomically consumes a SIGN-IN nonce we issued (single use, unexpired). A re-auth nonce is never accepted here. */
+export async function claimNonce(db, nonce, t) {
   if (typeof nonce !== "string" || !/^[A-Za-z0-9_-]{20,64}$/.test(nonce)) return false;
-  const r = await db.prepare("DELETE FROM auth_nonces WHERE hash = ?1 AND expires_at > ?2 RETURNING hash").bind(await sha256Hex(nonce), t).first();
+  const r = await db.prepare("DELETE FROM auth_nonces WHERE hash = ?1 AND expires_at > ?2 AND purpose IS NULL RETURNING hash").bind(await sha256Hex(nonce), t).first();
   return !!r;
 }
+/** Consumes a nonce of either purpose; returns "signin" | "reauth" | null (unknown / used / expired). */
+async function claimAnyNonce(db, nonce, t) {
+  if (typeof nonce !== "string" || !/^[A-Za-z0-9_-]{20,64}$/.test(nonce)) return null;
+  const r = await db.prepare("DELETE FROM auth_nonces WHERE hash = ?1 AND expires_at > ?2 RETURNING purpose").bind(await sha256Hex(nonce), t).first();
+  return r ? (r.purpose === "reauth" ? "reauth" : "signin") : null;
+}
 
-const publicUser = u => ({
-  id: u.id, email: u.email, display_name: u.display_name || null, created_at: u.created_at, last_login_at: u.last_login_at,
+/** Stream G: a LINE-only account has no Google account (placeholder google_sub "nogoogle:<id>") and no e-mail (""). */
+export const NO_GOOGLE = "nogoogle:";
+export const hasGoogle = u => !!(u && u.google_sub && !String(u.google_sub).startsWith(NO_GOOGLE));
+/** Sign-in methods linked to an account, in a fixed order (google, line). Never returns the provider account ids. */
+export async function signInMethods(db, user) {
+  const out = hasGoogle(user) ? ["google"] : [];
+  const l = await db.prepare("SELECT 1 AS x FROM user_identities WHERE user_id = ?1 AND provider = 'line'").bind(user.id).first();
+  if (l) out.push("line");
+  return out;
+}
+
+export const publicUser = u => ({
+  id: u.id, email: u.email || null, display_name: u.display_name || null, created_at: u.created_at, last_login_at: u.last_login_at,
   marketing_opt_in: !!u.marketing_opt_in, consent_version: u.consent_version, consent_at: u.consent_at, status: u.status,
   email_receipts: u.email_receipts == null ? true : !!u.email_receipts, email_reminders: u.email_reminders == null ? true : !!u.email_reminders
 });
@@ -135,7 +158,7 @@ export const SHORT_SESSION_CHAIN = 7 * 86400;
 export const sessionKindOf = v => (v === "short" ? "short" : "long");
 const idleOf = kind => (kind === "short" ? SHORT_SESSION_IDLE : SESSION_IDLE);
 
-async function newSession(db, userId, t, request = null, kind = "long") {
+export async function newSession(db, userId, t, request = null, kind = "long") {
   const token = randomToken(32);
   const exp = t + (kind === "short" ? SHORT_SESSION_TTL : SESSION_TTL);
   await db.prepare("INSERT INTO member_sessions (id_hash, user_id, created_at, last_seen, expires_at, ua_label, kind, signed_in_at) VALUES (?1, ?2, ?3, ?3, ?4, ?5, ?6, ?3)")
@@ -363,7 +386,7 @@ export async function me(env, m) {
   const readsToday = await env.DB.prepare("SELECT COUNT(*) AS n FROM member_ledger WHERE user_id = ?1 AND kind = 'reading' AND ts >= ?2")
     .bind(m.user.id, bkkDayStart(t)).first();
   return {
-    user: publicUser(m.user), tier: ai.tier,
+    user: publicUser(m.user), tier: ai.tier, sign_in_methods: await signInMethods(env.DB, m.user),
     plan: sub ? { id: sub.plan_id, name_th: sub.name_th, name_en: sub.name_en, name_zh: sub.name_zh || null, period: sub.period, source: sub.source || "purchase", subscription_id: sub.id, current_period_end: sub.current_period_end } : null,
     ...renewalOf(sub, t),
     paying: await isPaying(env.DB, { userId: m.user.id }, t),
@@ -485,7 +508,8 @@ async function verifyFresh(env, m, body, deps = {}) {
   if (!clientId) throw new HttpError(503, "Google sign-in is not configured (google_not_configured)", { code: "google_not_configured" });
   const rl = await hit(env.DB, `mreauth:${m.user.id}`, 10, 900, t);
   if (!rl.ok) throw new HttpError(429, "too many attempts — try again later", { retryAfter: rl.retryAfter });
-  if (!body || !(await claimNonce(env.DB, body.nonce, t))) throw new HttpError(401, "confirmation expired — please sign in with Google again (nonce)", { code: "nonce" });
+  const purpose = body ? await claimAnyNonce(env.DB, body.nonce, t) : null;
+  if (!purpose) throw new HttpError(401, "confirmation expired — please sign in with Google again (nonce)", { code: "nonce" });
   let c;
   try {
     c = await verifyGoogleIdToken(String(body.credential || ""), { clientId, nonce: body.nonce, fetchImpl: deps.fetch, now: t });
@@ -497,8 +521,14 @@ async function verifyFresh(env, m, body, deps = {}) {
     await audit(env, "member", "member.reauth.wrong_account", { user: m.user.id });
     throw new HttpError(403, "please confirm with the same Google account (reauth_wrong_account)", { code: "reauth_wrong_account" });
   }
-  const at = typeof c.auth_time === "number" ? c.auth_time : c.iat;
-  if (typeof at !== "number" || t - at > REAUTH_MAX_AGE) throw new HttpError(401, "please sign in with Google again — the confirmation must be recent (reauth_stale)", { code: "reauth_stale" });
+  // security review M1 (2026-11-14): auth_time, when Google sends it, must be recent. Google Identity Services tokens
+  // usually carry no auth_time: then the token must have been minted for a nonce issued for this re-authentication
+  // ({purpose:"reauth"}) within REAUTH_MAX_AGE — a token obtained for a sign-in nonce is not a fresh confirmation.
+  // Residual: GIS cannot force Google to ask for the password again; the confirmation proves control of the Google
+  // account in this browser now (see docs/BACKEND.md "Stream G").
+  const stale = () => new HttpError(401, "please sign in with Google again — the confirmation must be recent (reauth_stale)", { code: "reauth_stale" });
+  if (typeof c.auth_time === "number") { if (t - c.auth_time > REAUTH_MAX_AGE || c.auth_time > t + 60) throw stale(); }
+  else if (purpose !== "reauth" || typeof c.iat !== "number" || t - c.iat > REAUTH_MAX_AGE) throw stale();
   return t;
 }
 
@@ -522,9 +552,11 @@ export async function requireFreshMember(env, m, body, deps = {}) {
 async function tombstoneSubject(db, googleSub, t) {
   return "x:" + (await hmacHex(await dailySalt(db, bkkDay(t)), "quota-tomb|" + googleSub)).slice(0, 32);
 }
+/** Tombstone key of a sign-in identity: the Google sub as before; a LINE account uses "line|" + its LINE user id. */
+export const lineTombKey = lineSub => "line|" + lineSub;
 
 /** On sign-up: a tombstone written today for this Google account seeds the new account's counters (MAX, never less). */
-async function restoreTombstone(env, googleSub, userId, t) {
+export async function restoreTombstone(env, googleSub, userId, t) {
   const tomb = await tombstoneSubject(env.DB, googleSub, t);
   await env.DB.prepare("INSERT INTO usage_counters (day, subject, feature, n) SELECT day, ?1, feature, n FROM usage_counters WHERE subject = ?2 AND day = ?3 " +
     "ON CONFLICT (day, subject, feature) DO UPDATE SET n = MAX(n, excluded.n)").bind(userSubject(userId), tomb, bkkDay(t)).run();
@@ -538,7 +570,7 @@ export async function exportData(env, m, body = null, deps = {}) {
   const saved = (await all("SELECT id, created_at, domain, title, data FROM saved_readings WHERE user_id = ?1 ORDER BY created_at")).map(r => ({ ...r, data: JSON.parse(r.data) }));
   return {
     format: "lensiq-member-export", version: 1, exported_at: now(),
-    note: "Google account id (sub) is kept only to recognise your sign-in and is not included; no photo, password or reading content is stored unless you saved it.",
+    note: "Your Google / LINE account ids are kept only to recognise your sign-in and are not included; no photo, password or reading content is stored unless you saved it.",
     profile: u,
     sessions: await all("SELECT created_at, last_seen, expires_at, ua_label FROM member_sessions WHERE user_id = ?1"),
     ledger: await all("SELECT ts, kind, domain, ref, amount_satang FROM member_ledger WHERE user_id = ?1 ORDER BY id"),
@@ -547,7 +579,15 @@ export async function exportData(env, m, body = null, deps = {}) {
     subscriptions: await all("SELECT plan_id, status, period, source, current_period_start, current_period_end, cancelled_at FROM subscriptions WHERE user_id = ?1"),
     credits: await all("SELECT feature, granted, remaining, source, created_at, expires_at FROM credits WHERE user_id = ?1 ORDER BY created_at"),
     email_notices: await all("SELECT ts, kind, ref, status FROM mail_log WHERE user_id = ?1 ORDER BY id"),
-    email_preferences: { receipts: !!(u && u.email_receipts), reminders: !!(u && u.email_reminders) }
+    email_preferences: { receipts: !!(u && u.email_receipts), reminders: !!(u && u.email_reminders) },
+    // stream G: which sign-in methods are linked (never the Google / LINE account ids) and organisation memberships
+    sign_in_methods: [
+      ...(hasGoogle(m.user) ? [{ provider: "google", linked_at: null }] : []),
+      ...(await all("SELECT provider, created_at AS linked_at, last_login_at FROM user_identities WHERE user_id = ?1 ORDER BY created_at"))
+    ],
+    organisations: (await all("SELECT o.id, o.name, m.role, m.is_owner, m.status, m.created_at AS joined_at " +
+      "FROM org_members m JOIN orgs o ON o.id = m.org_id WHERE m.user_id = ?1 ORDER BY m.created_at"))
+      .map(r => ({ ...r, is_owner: !!r.is_owner }))
   };
 }
 
@@ -559,7 +599,10 @@ export async function deleteAccount(env, m, body, deps = {}) {
   const db = env.DB, id = m.user.id, t = now();
   // today's used quota survives as a day-only tombstone (HMAC of the Google sub with the day salt) so delete + re-join
   // cannot reset limits; nothing else about the person is kept
-  const tomb = m.user.google_sub ? await tombstoneSubject(db, m.user.google_sub, t) : null;
+  const line = await db.prepare("SELECT sub FROM user_identities WHERE user_id = ?1 AND provider = 'line'").bind(id).first();
+  const tombKey = hasGoogle(m.user) ? m.user.google_sub : line ? lineTombKey(line.sub) : null;
+  const tomb = tombKey ? await tombstoneSubject(db, tombKey, t) : null;
+  const orgsOf = ((await db.prepare("SELECT org_id FROM org_members WHERE user_id = ?1").bind(id).all()).results || []).map(r => String(r.org_id));
   await db.batch([
     ...(tomb ? [db.prepare("INSERT INTO usage_counters (day, subject, feature, n) SELECT day, ?1, feature, n FROM usage_counters WHERE subject = ?2 AND day = ?3 " +
       "ON CONFLICT (day, subject, feature) DO UPDATE SET n = MAX(n, excluded.n)").bind(tomb, userSubject(id), bkkDay(t))] : []),
@@ -572,8 +615,15 @@ export async function deleteAccount(env, m, body, deps = {}) {
     db.prepare("UPDATE customers SET user_id = NULL, email = NULL WHERE user_id = ?1").bind(id),
     db.prepare("DELETE FROM credits WHERE user_id = ?1").bind(id),
     db.prepare("UPDATE mail_log SET user_id = NULL WHERE user_id = ?1").bind(id),
+    // stream G: linked sign-in identities, unfinished LINE flows and organisation memberships go with the account
+    db.prepare("DELETE FROM user_identities WHERE user_id = ?1").bind(id),
+    db.prepare("DELETE FROM line_auth_flows WHERE user_id = ?1").bind(id),
+    db.prepare("DELETE FROM org_members WHERE user_id = ?1").bind(id),
     db.prepare("DELETE FROM users WHERE id = ?1").bind(id)
   ]);
+  // each organisation's log notes that a member left (pseudonymous ref only; an owner's organisation then needs an owner)
+  const ref = await actorRef(id);
+  for (const org of orgsOf) await orgAudit(db, org, { actorKind: "system", action: "member.erased", ref }, t);
   // the audit log must not keep the erased member's id: earlier rows are rewritten to a one-way pseudonym and the
   // erasure itself is logged with that pseudonym only (lets the owner prove the erasure happened, links to nobody)
   const pseud = "erased:" + (await sha256Hex("member-erasure|" + id)).slice(0, 16);

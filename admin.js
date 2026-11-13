@@ -1546,5 +1546,8 @@
 
   // the try-on catalogue section (admin-tryon.js) uses the same session, request helper and tab loaders
   /** @type {any} */ (window).__LQAdmin = { call: call, loaders: loaders, h: h, G: G, msg: msg, friendly: friendly, me: function () { return state.me; } };
+  // stream G: the Organisations tab lives in admin-orgs.js (admin.js is at its size cap); it uses these helpers
+  /** @type {any} */ (window).LQAdminKit = { call: call, h: h, G: G, gLang: gLang, msg: msg, fail: fail, baht: baht, loaders: loaders, $: $ };
+
   start();
 })();

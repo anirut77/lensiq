@@ -125,6 +125,7 @@
       status: d ? d.status : "manual", house: d ? d.house : "", pass: d && d.pass ? d.pass.code : "", opened: !!o.opened, how: o.how, relay: o.relay ? o.relay.how : "",
       conf: fin.auto ? fin.auto.conf : null, agree: fin.auto ? fin.auto.agree : null, auto: !!fin.auto, edited: !!fin.edited });
     if (d && d.pass && dir === "in" && o.opened) { const p = store.get(d.pass.id) || d.pass; p.used = (p.used || 0) + 1; store.put(p); }
+    if (/** @type {any} */ (window).LQFreeTier) /** @type {any} */ (window).LQFreeTier.count("gate", "plates", 1); // free-tier counting only (stream G), never blocks
     renderRecent(); renderAlerts();
     return ev;
   }

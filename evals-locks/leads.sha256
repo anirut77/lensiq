@@ -47,3 +47,10 @@ e740efc5748a853e605cc30eceb05c44d6143b4a595f8047b467d518b00072fb  tests/unit/bac
 df383279ed9b2011a11cf2594a04f437c793169c6776e60a6ab1295f03b3a678  tests/unit/deploy-tools.test.js  # repo file
 # 2026-11-14 TEST-BUG RE-LOCK (append-only): every test runs on a frozen Date (rate-limit window rollover mid-test); see evals-locks/deploy-gate-deterministic.sha256. No assertion changed.
 22145777b3198997ea9e93ec089766c04137bf11b476fdd19e44090699f2df00  tests/unit/backend-deploy-gate.test.js
+# --- from ~/LENSIQ-field/evals/leads/locked.sha256 (tools/eval-locks-import.mjs 2026-11-13) ---
+# 2026-11-14 TEST-BUG RE-LOCK (append-only): TOTP clock frozen via tests/unit/totp-clock.js (one added require line, no assertion changed); see evals-locks/totp-deterministic.sha256 (CI run 43464554484).
+4d0f632e9a7919be1d82c7c7031e38f4fdfa2de7911707be629d8eb2dc77bbef  tests/unit/backend-fulfilment-refunds.test.js  # repo file
+# 2026-11-13T17:46:02Z stream G amendment A-G5 (security review M1): fresh-confirmation fixture requests a re-auth nonce; recorded in ../accounts-g/locked.sha256
+f88eab4fb9bc20c57730d9e98b27ad727dc4236dfa91fa0197fae6ebd94656b7  tests/unit/backend-fulfilment-refunds.test.js  # repo file
+# 2026-11-13T20:50:00Z merge of origin/main (3ba4b8a) into accounts-g: these files now carry BOTH main's TOTP-clock re-lock (one require line) and stream G's A-G5 re-auth-nonce fixture; no assertion changed by the merge. Combined hashes:
+aa124f53be41e62426c4dfdf04473d8b6f8cd6125d7830ca7dca0c092c77e28a  tests/unit/backend-fulfilment-refunds.test.js  # repo file

@@ -12,6 +12,8 @@
 #                          "LENSIQ: คำขอใบเสนอราคาใหม่ #id time" to the owner (no personal data). The owner enters both.
 #   HEALTH_TOKEN           optional bearer token that protects GET /health/deep
 #   MAIL_API_KEY           optional (round 12) — Resend / MailChannels API key for transactional e-mail (src/mail.js)
+#   LINE_LOGIN_CHANNEL_ID / LINE_LOGIN_CHANNEL_SECRET   optional (stream G, 2026-11-13): LINE Login channel of the
+#                          LENSIQ provider. Without both, LINE sign-in answers 503 line_not_configured. The owner enters both.
 # The top-level configuration below is the on-premise / template default (placeholder D1 id: it cannot be deployed as is).
 # The owner's Cloudflare account is SHARED with other projects: deploy ONLY through `npm run backend:deploy:test`
 # (tools/backend-deploy.mjs: prints the target, passes --env test, refuses any name that is not lensiq-*). See [env.test]
@@ -37,6 +39,8 @@ ANALYTICS_FEATURES = ""
 # "Sign in with Google" OAuth 2.0 Client ID (Web application) from Google Cloud Console — PUBLIC, not a secret.
 # Empty = member sign-in off (no gating anywhere). Same value as window.LENSIQ_GOOGLE_CLIENT_ID in lensiq-config.js.
 GOOGLE_CLIENT_ID = ""
+# LINE Login (stream G): the public account page registered as the LINE channel callback URL (https, on ALLOWED_ORIGINS).
+LINE_LOGIN_REDIRECT_URI = ""
 # Global cap on Google sign-ins per 15 min (on top of 10 per caller)
 SIGNIN_GLOBAL_15MIN = "300"
 # Member usage ledger rows (readings / AI uses) are kept this many days; payment rows are kept with the payment
@@ -170,6 +174,7 @@ TURNSTILE_HOSTNAMES = "anirut77.github.io"
 CHECKOUT_GLOBAL_HOUR = "30"
 ANALYTICS_FEATURES = ""
 GOOGLE_CLIENT_ID = ""
+LINE_LOGIN_REDIRECT_URI = "https://anirut77.github.io/lensiq/account.html"
 SIGNIN_GLOBAL_15MIN = "300"
 MEMBER_LEDGER_DAYS = "400"
 FREE_MODE = "true"

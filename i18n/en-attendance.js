@@ -330,14 +330,15 @@
   "attendance.hr.empCsv": "Export this employee's records (PDPA access request)",
   "attendance.hr.normOver": "Normal working hours over 48 h/week (to check): {n} people",
   "attendance.price.h": "Employee time attendance: approved price list (not on sale yet)",
-  "attendance.price.stages": "The pilot-stage price applies now. The after-pilot price applies only once the workplace has passed the thresholds measured in its pilot.",
+  "attendance.price.stages": "The pilot price applies now. The regular price after the pilot thresholds are met applies only once the workplace has passed the thresholds measured in its pilot.",
   "attendance.p1.t": "Free",
   "attendance.p1.p": "Up to 5 people, PIN / QR check-in, 1 device",
   "attendance.p2.t": "Standard",
-  "attendance.p2.p": "฿19 per active person per month (minimum ฿190 / month) · after pilot ฿29 (minimum ฿290), excl. 7% VAT",
+  "attendance.p2.p": "pilot price ฿19 per active person per month (minimum ฿190 / month) · regular price after the pilot thresholds are met ฿29 (minimum ฿290), excl. 7% VAT",
   "attendance.p3.t": "Set-up help (optional)",
-  "attendance.p3.p": "฿2,900 one-off · after pilot ฿4,900 (excl. 7% VAT)",
+  "attendance.p3.p": "pilot price ฿2,900 one-off · regular price after the pilot thresholds are met ฿4,900 (excl. 7% VAT)",
   "attendance.p4.t": "Multi-branch sync / cloud backup",
   "attendance.p4.p": "Not sold yet: waits for organisation accounts",
-  "attendance.price.note": "Approved prices, but not on sale yet and nothing is charged. Every price excludes 7% VAT (you pay the price + 7%). Use a phone or tablet you already have, no hardware to buy. Face check-in is optional and needs the employee's consent."
+  "attendance.price.note": "Approved prices, but not on sale yet and nothing is charged. Every price excludes 7% VAT (you pay the price + 7%). Use a phone or tablet you already have, no hardware to buy. Face check-in is optional and needs the employee's consent.",
+  "ft.attendance": "Free tier: up to 5 people"
 } });
