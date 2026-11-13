@@ -47,6 +47,8 @@
 | ช่วยตั้งค่า (ตารางกะ จับคู่คอลัมน์ CSV เงินเดือน DPIA) | 2,900 บาท ครั้งเดียว ไม่รวม VAT 7% (ไม่บังคับ) | 4,900 บาท ไม่รวม VAT 7% |
 | ซิงก์หลายสาขา / สำรองข้อมูลบนคลาวด์ | ยังไม่ขาย (รอระบบบัญชีองค์กร) | ใบเสนอราคา |
 
+ระดับฟรี (ถึง 5 คน) เกินนั้นต้องมีใบอนุญาต ยังไม่บังคับในระบบ ข้อจำกัดเริ่มใช้ตั้งแต่วันที่จะประกาศล่วงหน้าอย่างน้อย 30 วัน เจ้าของบังคับใช้ผ่านสัญญา ข้อจำกัดบนเครื่องผู้ใช้อาจถูกข้ามได้โดยผู้ที่แก้โค้ด สัญญาเป็นสิ่งที่ผูกพัน ลูกค้าส่งออกข้อมูลของตนได้เสมอ ชำระโดยโอนผ่านธนาคารเท่านั้น (เจ้าของตัดสินใจ 2026-11-13)
+
 เทียบตลาด: แอปลงเวลาในไทย 25–60 บาทต่อคนต่อเดือน (TimeMint, แต้มต่อ) หรือเหมา 5,000 บาท/เดือนสำหรับ 1–50 คน (TikTrack) และเครื่องสแกน
 2,699–10,700 บาท (`docs/PRICING-RESEARCH.md` §1E–1F) ราคาช่วงนำร่องต่ำกว่า เพราะยังไม่มีซิงก์คลาวด์และยังไม่มีผลวัดที่ทำงานจริง
 ราคาตลาดเป็นราคาตามที่แหล่งที่มาแสดง ร้านในไทยมักรวม VAT แล้ว จึงเทียบกับราคา LENSIQ (ไม่รวม VAT) ได้โดยประมาณ ต่างกันราว 7%
@@ -113,6 +115,8 @@ The face figures apply only when face check-in is switched on. PIN / QR involves
 | Standard | 19 THB per active person / month excl. 7% VAT (minimum 190 THB / month excl. 7% VAT) | 29 THB per person / month excl. 7% VAT (minimum 290 THB / month excl. 7% VAT) |
 | Set-up help | 2,900 THB one-off excl. 7% VAT (optional) | 4,900 THB excl. 7% VAT |
 | Multi-branch sync / cloud backup | not sold (waits for organisation accounts) | quotation |
+
+Beyond 5 people a licence is needed. This is not enforced in the product yet: the limit applies from a date to be announced at least 30 days ahead, and the owner enforces it by contract. A limit on the user's device can be bypassed by someone who edits the code; the contract is what binds. Customers can always export their data. Payment is by bank transfer only (owner decision 2026-11-13).
 
 Market comparison (`docs/PRICING-RESEARCH.md` §1E–1F):
 - Thai cloud apps: 25–60 THB per user per month, or a 5,000 THB / month flat fee for 1–50 staff.

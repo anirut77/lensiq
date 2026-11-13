@@ -102,7 +102,7 @@
 # 8. ทดลองฟรีและโครงการนำร่อง
 *Free trial and pilot*
 
-- **ทดลองใช้ฟรี 30 วัน:** 1 ช่องทาง · 100 ครั้งต่อวัน · เก็บบันทึก 7 วัน (นับวันด้วยมือ ยังไม่มีตัวจับเวลาในระบบ OP-20)
+- **ทดลองใช้ฟรี 30 วัน:** 1 ช่องทาง · 100 ป้ายต่อวัน · เก็บบันทึก 7 วัน (นับวันด้วยมือ ยังไม่มีตัวจับเวลาในระบบ OP-20 เกินนี้ต้องมีใบอนุญาต)
 - **นำร่อง:** ขั้น 0 ภาพมือถือของเจ้าของ ~100 ภาพ → ขั้น 1 ลานจอด 1 + หมู่บ้าน 1 อย่างน้อย 5 วัน ≥ 200 การอ่านจริง (กลางคืน ≥ 40)
 - เกณฑ์ที่เสนอ: อ่านถูกทั้งป้าย ≥ 95% กลางวัน ≥ 85% กลางคืน ไม่มีค่าผิดที่บันทึกโดยไม่มีใครเห็น ตัดสินด้วยขอบล่าง Wilson 95% และรายงานค่าเฉลี่ยธรรมดาคู่กัน
 - ผลเป็นตัวเลข "หน้างานจริง" ของไซต์คุณเอง
@@ -121,7 +121,8 @@
 | ติดตั้งหน้างาน (มุมกล้อง แสง ตรวจความแม่นยำร่วมกัน) | 2,500 บาท/ครั้ง | 3,000–5,000 บาท/ครั้ง |
 
 - ตัวอย่าง: หมู่บ้าน 2 ช่องทาง × 490 = 980 บาท/เดือน + ติดตั้ง 2,500 = 3,480 บาท ก่อน VAT (VAT 243.60 รวม 3,723.60)
-- ลูกค้าชำระราคา + VAT 7% ผ่านใบเสนอราคาและโอนธนาคาร ไม่มีชำระออนไลน์ (OP-02) · ราคา "หลังนำร่อง" ใช้เมื่อผ่านเกณฑ์เท่านั้น (OP-10)
+- ลูกค้าชำระราคา + VAT 7% ผ่านใบเสนอราคาและโอนธนาคารเท่านั้น (OP-02) · ราคา "หลังนำร่อง" ใช้เมื่อผ่านเกณฑ์เท่านั้น (OP-10)
+- ระดับฟรีเป็นข้อความ ยังไม่บังคับในระบบ ข้อจำกัดเริ่มตามวันที่จะประกาศล่วงหน้าอย่างน้อย 30 วัน เจ้าของบังคับผ่านสัญญา (OP-26)
 - ไม้กั้น/รีเลย์: ไม่ขาย ใบเสนอราคาแยกหลังช่วงนำร่อง · ค่าเดินทางติดตั้งไม่อยู่ในราคาอนุมัติ (OP-19)
 - เทียบตลาด: ระบบแลกบัตรผู้มาติดต่อเริ่ม 300 บาท/เดือน (G-Visitor) · ไฟล์: `docs/PRICING-RESEARCH.md` §1B, §3.2 · การเสนอขายต้องเจ้าของยืนยัน (OP-09)
 
@@ -143,5 +144,5 @@
 LENSIQ Gate suggests a Thai plate and a guard confirms every vehicle; it is a guard's assistant, not an automatic barrier. It runs on a phone, laptop or camera you already have, on the device, with no face recognition,
 no emotion or lie detection, and no age / gender / expression models in customer builds. Measured: synthetic data (n = 140 scenes) plate found 97.1% and whole plate right from one frame 58% (`docs/GATE.md` §3b);
 public dataset, real photos from Wikimedia Commons (labels v3 confirmed by the owner 2026-11-12): whole plate read right automatically 32% (7 / 22, 12 of them tuning photos, optimistic), the guard had to tap the box in 78% (25 / 32), plate-less photos
-read automatically 0 / 19 (§3c). A real car park or village: not measured. Auto-open of a barrier is off by default. Approved prices excl. 7% VAT, pilot stage: free 30-day trial; village 490 THB per lane per month;
+read automatically 0 / 19 (§3c). A real car park or village: not measured. Auto-open of a barrier is off by default. Approved prices excl. 7% VAT, pilot stage: free 30-day trial (1 lane, 100 plates per day; beyond the free tier a licence is needed, enforced by contract from a date announced at least 30 days ahead, not by the product yet); village 490 THB per lane per month;
 car park 790 THB per lane per month (PromptPay, receipts and shift close included); on-site set-up 2,500 THB per visit; hardware not sold. Sold by quotation and bank transfer.

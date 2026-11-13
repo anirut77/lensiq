@@ -27,7 +27,7 @@ every figure is copied from the file named next to it. Where two sources disagre
   **legal** (needs counsel or a data owner).
 - **Status words:** *in progress 2026-11-11* = being fixed by another agent today (named by the owner); *open* = nobody
   is working on it; *decided* = an owner decision is recorded in the cited file.
-- **L-numbers** are the rows of `docs/CTO-BRIEF.md` §8 (L1–L53). Other documents reuse "L" for their own lists
+- **L-numbers** are the rows of `docs/CTO-BRIEF.md` §8 (L1–L62). Other documents reuse "L" for their own lists
   (`docs/LEGAL-REVIEW-PACK.md` §3.7 L1–L5, `docs/pdpa/DPIA.md` §9 L1–L20); this file writes those as LRP-… and DPIA-….
 - **Prices** are only the approved levels in `docs/PRICING-RESEARCH.md` §3 (approved 2026-11-09, not on sale yet). Every
   price is **excl. 7 % VAT**; the customer pays the price + 7 %. `docs/SALES-PACKAGES.md` is a draft and is not used.
@@ -36,9 +36,12 @@ every figure is copied from the file named next to it. Where two sources disagre
 
 | Topic | State today | Source |
 |---|---|---|
-| Sales channel | Quotation + bank transfer. No online checkout for these lines: no plan in the D1 `plans` table, no migration; `pricing.html` (consumer checkout, VAT-inclusive) is unchanged | `docs/PRICING-RESEARCH.md` header |
+| Sales channel | Quotation + **bank transfer only** (no PromptPay QR, card or Opn; owner decision 2026-11-13). No online checkout for these lines: back-office order plans are planned only for Gate, Attendance, Exam (lab room) and Crowd report, with no online purchase; `pricing.html` (consumer checkout, VAT-inclusive) is unchanged | `docs/PRICING-RESEARCH.md` header; `docs/BILLING-PLAN.md` §4.1 |
+| Free tiers and limits | Fortune and general tools stay free. Gate 30-day trial (1 lane, 100 plates / day) · Attendance free up to 5 people · Exam free up to 5 candidates per session · Crowd free 2 hours per device per day; a licence is needed beyond them. **Not enforced in the product yet** (membership and billing come later): the limits apply from a date to be announced with at least 30 days' notice, starting 30 days after the announcement, enforced by the owner by contract; a limit on the user's device can be bypassed by someone who edits the code, the contract binds. Customers can always export their data. A licence works offline for 14 days (planned) | Owner decision 2026-11-13; legal item L62 |
+| Organisation accounts | Planned "lite" version, not built: organisation name, billing details, admins and staff, invitations; no syncing of the customer's people data | Owner decision 2026-11-13 |
+| Privacy contact | LINE @632yliiw until a separate privacy-contact (DPO) e-mail is added; the owner will send the address | Owner decision 2026-11-13; legal item L61 |
 | Seller details | **Missing:** name, tax_id, address, email, effective_date, dpo_email; Worker `SELLER_NAME`, `SELLER_TAX_ID`, `SELLER_ADDRESS` missing; counsel not confirmed. Go-live checklist 0 done, 11 open | `node tools/check-legal.mjs` output, 2026-11-11 |
-| Tax invoices | e-Tax Invoice by Email not built; VAT only if the seller is VAT-registered (mandatory above 1.8 M THB a year) | `docs/BILLING-PLAN.md` §5; `docs/CTO-BRIEF.md` §3 item 7 |
+| Tax invoices | e-Tax Invoice by Email not built; VAT only if the seller is VAT-registered (mandatory above 1.8 M THB a year). The owner issues receipts from the template and the system does not number them (2026-11-13); numbering series and tax-invoice content are questions for the accountant (`docs/sales/ACCOUNTANT-QUESTIONS-TH.md`) | `docs/BILLING-PLAN.md` §5; `docs/CTO-BRIEF.md` §3 item 7 |
 | Where data lives | On the customer's device (browser storage). No organisation accounts, no sync, no backup; clearing the browser loses records | `docs/CTO-BRIEF.md` §3 item 5; `docs/ORG-ACCOUNTS-DESIGN.md` (design only) |
 | Customer build | Customer mode is the default on every host; an installer locks the research models off with `LENSIQ_RESEARCH_DEMO = false`. Checklist items `config.profile` and `config.age_gender` are still open | `docs/CTO-BRIEF.md` §2; `tools/check-legal.mjs` output |
 | Field accuracy | Not measured for any product. No field pilot has run | `docs/FIELD-PILOT.md` "Status per round" (round 16: not started) |
@@ -64,7 +67,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 | **Not measured** | Phone / book detection on exam footage; misses by skin tone; mouth movement | `docs/EXAM.md`; `docs/ONE-PAGER-EXAM.md` |
 | **Known limits** | A web page cannot see other apps, a second device, earpieces or people out of frame. Lab mode has **no live view on another machine** (the relay endpoint does not exist; file export / import only; owner accepted 2026-11-10). Face signals switch off where the detector cannot run (some browsers without GL). Faces under ~48 px are not found. Thresholds are research defaults. Data stays on each lab computer | `docs/EXAM.md` "What a web page cannot see", "Transport and privacy"; `docs/FIELD-PILOT.md` changelog 2026-11-10 |
 | **Pilot plan** | 1 institution, ≤ 4 weeks, ≤ 3 rooms, free; phase 0 light check, phase 1 staged exam, phase 2 real exam with tallies. Targets are a **proposal**; the owner must decide before phase 2 whether "Wilson lower bound ≥ 70 %" stays | `docs/pilot/PILOT-EXAM.md` §6 |
-| **Price (pilot stage, now)** | Free trial: 1 room, 10 seats. Field pilot: free. **10 THB per candidate per exam excl. 7 % VAT** (minimum 300 THB per session excl. 7 % VAT). Lab package **990 THB / month per lab excl. 7 % VAT**. Institution licence **from 19,900 THB / year excl. 7 % VAT** (≤ 1,000 candidates). Hall rows: approved but **not on sale** | `docs/PRICING-RESEARCH.md` §3.1 |
+| **Price (pilot stage, now)** | Free tier (owner decision 2026-11-13): up to 5 candidates per session, not enforced in code yet (`exam.html` may still show the earlier wording "1 room, 10 seats" until the page is changed). Field pilot: free. **10 THB per candidate per exam excl. 7 % VAT** (minimum 300 THB per session excl. 7 % VAT). Lab package **990 THB / month per lab excl. 7 % VAT**. Institution licence **from 19,900 THB / year excl. 7 % VAT** (≤ 1,000 candidates). Hall rows: approved but **not on sale** | `docs/PRICING-RESEARCH.md` §3.1 |
 | **Price (after pilot)** | 15–30 THB per candidate per exam; 990–1,490 THB / month; 30,000–120,000 THB / year (all excl. 7 % VAT). Only after the site passes `docs/pilot/PILOT-EXAM.md` | `docs/PRICING-RESEARCH.md` §3.1 |
 
 **Must-fix-before-launch items that apply**
@@ -77,6 +80,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 | — | Retention cron confirmed on | **done 2026-11-11** (ran 03:17 UTC on lensiq-test; audit `retention.run`) |
 | L23 | Face model licences. For Exam: resolved by the switch to MediaPipe (`docs/CTO-BRIEF.md` §5 "L23: Exam resolved"), but the L23 row still says "open" and `docs/PAGE-STATUS.md` still names F5/F6 for the Exam pages ⚠ | open (row); resolved for Exam (text) |
 | L25 | Pricing terms and VAT, refund and contract terms | open (counsel) |
+| L62 | Free-tier limits and the change from "free, every feature" (notice period, consumer-protection angle, contract wording) | open (counsel) |
 | L26, L27 | Public procurement fit; vendor-neutral TOR wording (schools and universities) | open (counsel) |
 | L28 | Partner agreement (only if sold through installers) | open (counsel) |
 | L22 | Organisation accounts (only if central sync is sold; it is not today) | open (counsel) |
@@ -104,7 +108,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 | **Known limits** | Browser storage ≈ 5 MB, about 20 employees × 2 years (warning from 3.5 MB); no rotating rosters, split shifts or early-in OT; no online leave approval; no wage, tax or social-security calculation; no employee register (s.112); device clock only (clock set back is warned); reloading with no network fails (only models are cached); camera badge scan needs `BarcodeDetector` (Chrome on Android / macOS / ChromeOS); a PIN or badge can be shared; Buddhist lunar holidays filled for 2026 only; no live sync between branches | `docs/ATTENDANCE-READINESS.md` §1–§6 |
 | **Face licence** | face-api.js recognition weights are CC0 / MIT but trained on research-only data (F6 / L23). Owner decision 2026-11-10: PIN / QR default, face optional, no swap yet; Part B options await the owner (B10) | `docs/ATTENDANCE-READINESS.md` Part B; `docs/CTO-BRIEF.md` §2 |
 | **Pilot plan** | 2 weeks at a shop or company with 5–20 staff; face only with consenting volunteers: false accept ≤ 1 %, false reject ≤ 10 %; one month's payroll CSV matched with the shop's records | `docs/PILOT-PLAN.md` §3.2; `docs/ONE-PAGER-ATTENDANCE.md` |
-| **Price (pilot stage, now)** | Free: up to 5 people, PIN / QR, 1 device. Standard: **19 THB per active person / month excl. 7 % VAT** (minimum 190 THB / month excl. 7 % VAT). Set-up help: **2,900 THB one-off excl. 7 % VAT** (optional). Multi-branch sync / cloud backup: not sold | `docs/PRICING-RESEARCH.md` §3.4 |
+| **Price (pilot stage, now)** | Free: up to 5 people, PIN / QR, 1 device (not enforced in code yet; a licence is needed beyond 5 people from a date to be announced). Standard: **19 THB per active person / month excl. 7 % VAT** (minimum 190 THB / month excl. 7 % VAT). Set-up help: **2,900 THB one-off excl. 7 % VAT** (optional). Multi-branch sync / cloud backup: not sold | `docs/PRICING-RESEARCH.md` §3.4 |
 | **Price (after pilot)** | 29 THB per active person / month (minimum 290 THB / month); set-up 4,900 THB one-off (excl. 7 % VAT) | `docs/PRICING-RESEARCH.md` §3.4 |
 
 **Must-fix-before-launch items that apply**
@@ -116,6 +120,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 | — | Retention cron confirmed on | **done 2026-11-11** (ran 03:17 UTC on lensiq-test; audit `retention.run`) |
 | L23 | Face model licence (research-only training data) for the optional face mode | open (counsel; letters A / B in `docs/LICENCE-REQUESTS.md` not sent) |
 | L25 | Pricing terms and VAT, refund and contract terms | open (counsel) |
+| L62 | Free-tier limits and the change from "free, every feature" (notice period, consumer-protection angle, contract wording) | open (counsel) |
 | L28 | Partner agreement (if sold through partners) | open (counsel) |
 | L22 | Organisation accounts (multi-branch is not sold today) | open (counsel) |
 
@@ -143,7 +148,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 | **Known limits** | The OCR is a general Thai text model, not trained on plates, and is now the main limit; no Thai-trained detector is shipped yet (YOLOX-nano waits for the owner's file; YOLOv9 not used, L41) ⚠; numbers-only and legacy plates are not supported; a one-line plate-shaped sign can pass the pattern check; PromptPay payments are not confirmed automatically; the 30-day trial is text only (no timer); go2rtc is not wired into the camera source; relays need a same-origin bridge; about 1.5 s median per photo on a Mac (not a phone) | `docs/GATE.md` §1, §3c "Known limits", "Cost", §4, §6; `docs/CTO-BRIEF.md` §5 |
 | **Positioning** | "Assisted reading: the guard taps to confirm" (owner decision 2026-11-09) | `docs/CTO-BRIEF.md` §5 Gate |
 | **Pilot plan** | Phase 0: ~100 owner phone photos; phase 1: 1 car park + 1 village, ≥ 5 days, ≥ 200 reads (night ≥ 40, motorcycle ≥ 30). Targets (proposal): exact read ≥ 95 % day, ≥ 85 % night (Wilson 95 % lower bound), 0 silent wrong saves, taps ≤ 10 % (upper bound). ⚠ `docs/GATE.md:51` still says "≥ 100 vehicles incl. ≥ 30 at night" | `docs/pilot/PILOT-GATE.md` §5; `docs/ONE-PAGER-GATE.md` |
-| **Price (pilot stage, now)** | Trial: **free 30-day trial**, 1 lane, 100 reads / day, logs kept 7 days. Village / condo: **490 THB / month per lane excl. 7 % VAT**. Car park (PromptPay, receipts, shift close included): **790 THB / month per lane excl. 7 % VAT**. Set-up visit: **2,500 THB per visit excl. 7 % VAT**. Hardware not sold | `docs/PRICING-RESEARCH.md` §3.2 |
+| **Price (pilot stage, now)** | Trial: **free 30-day trial**, 1 lane, 100 reads / day, logs kept 7 days (not enforced in code yet; a licence is needed beyond it). Village / condo: **490 THB / month per lane excl. 7 % VAT**. Car park (PromptPay, receipts, shift close included): **790 THB / month per lane excl. 7 % VAT**. Set-up visit: **2,500 THB per visit excl. 7 % VAT**. Hardware not sold | `docs/PRICING-RESEARCH.md` §3.2 |
 | **Price (after pilot)** | Village 990 THB / month per lane, 1,990 THB / month for 3 lanes; car park 1,490 THB / month per lane; set-up 3,000–5,000 THB per visit (excl. 7 % VAT) | `docs/PRICING-RESEARCH.md` §3.2 |
 
 **Must-fix-before-launch items that apply**
@@ -155,6 +160,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 | — | Retention cron confirmed on | **done 2026-11-11** (ran 03:17 UTC on lensiq-test; audit `retention.run`) |
 | L24 | Gate sign wording, legal basis (s.24(5) / s.24(3)), plate retention; owner photos of public streets | open (counsel) |
 | L25 | Pricing terms and VAT, incl. the 30-day trial wording (not enforced in code) | open (counsel) |
+| L62 | Free-tier limits and the change from "free, every feature" (notice period, consumer-protection angle, contract wording) | open (counsel) |
 | L26, L27 | Public procurement and TOR wording (public car parks) | open (counsel) |
 | L28 | Partner (installer) agreement | open (counsel) |
 | L41 | YOLOv9 plate detector | closed: not used (2026-11-10) |
@@ -186,7 +192,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 | **Not measured** | Final accuracy (human count pending); a real customer site (field) | register C8; `docs/ONE-PAGER-CROWD.md` |
 | **Known limits** | Dense crowds: the count collapses and shows **no warning** unless "expected crowd at peak" is set; people smaller than about a tenth of the frame height are missed 37–59 %; near people hide others; zone edges flicker; a moving camera gives per-frame counts only; test clips are streets, not events or shops; never for crowd-safety decisions. The 640-input / tiles option (whole-frame error about 7–33 % on four clips) is **not shipped**; no density model has a clean licence | `docs/CROWD-ACCURACY.md` "Where it breaks", "Deferred"; `docs/CTO-BRIEF.md` §3; `docs/CROWD-DENSITY-MODELS.md` |
 | **Pilot plan** | Phase 0: two-person human count of the existing clips + timing on a real mid-range phone; phase 1: 1–2 sites with 5–40 people at peak, 2–3 days, two counters every 5 minutes. Targets (proposal): zone MAPE ≤ 20 %, in-view MAPE ≤ 25 %, ≥ 70 % of snapshots within band, line ≤ 10 % per 15 min, phone ≥ 2 calls / s | `docs/pilot/PILOT-CROWD.md` §5 |
-| **Price (pilot stage, now)** | Event day: **590 THB per device per day excl. 7 % VAT**. Event week: **2,490 THB per device excl. 7 % VAT**. Monthly fixed site: 290 THB / month per device excl. 7 % VAT, approved but **held back** until a fixed-site pilot passes. Dense crowds (≈ 50+ in view): **not sold** | `docs/PRICING-RESEARCH.md` §3.3 |
+| **Price (pilot stage, now)** | Free tier (owner decision 2026-11-13): 2 hours per device per day, not enforced in code yet. Event day: **590 THB per device per day excl. 7 % VAT**. Event week: **2,490 THB per device excl. 7 % VAT**. Monthly fixed site: 290 THB / month per device excl. 7 % VAT, approved but **held back** until a fixed-site pilot passes. Dense crowds (≈ 50+ in view): **not sold** | `docs/PRICING-RESEARCH.md` §3.3 |
 | **Price (after pilot)** | Event day 990 THB; event week 3,900 THB; monthly 490 THB per device (excl. 7 % VAT). Sales text must say "density estimate, not an exact count" | `docs/PRICING-RESEARCH.md` §3.3 |
 
 **Must-fix-before-launch items that apply**
@@ -198,6 +204,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 | — | No page claims more than was measured | **done 2026-11-11** (commit `72d733b`; claim-rules check added) |
 | — | Retention cron confirmed on | **done 2026-11-11** (ran 03:17 UTC on lensiq-test; audit `retention.run`) |
 | L25 | Pricing terms and VAT, refund and contract terms | open (counsel) |
+| L62 | Free-tier limits and the change from "free, every feature" (notice period, consumer-protection angle, contract wording) | open (counsel) |
 | L28 | Partner agreement (event agencies, installers) | open (counsel) |
 
 **What blocks selling Crowd**
@@ -228,9 +235,9 @@ accountant's invoices; see owner item O3).
 
 | # | Blocker | Products |
 |---|---|---|
-| O1 | Seller details in `LENSIQ_SELLER` and the Worker: name, tax ID, address, e-mail, effective date, DPO e-mail (all empty today) | all |
+| O1 | Seller details in `LENSIQ_SELLER` and the Worker: name, tax ID, address, e-mail, effective date, DPO e-mail (all empty today; the separate DPO e-mail is pending, the owner will send the address; documents show LINE @632yliiw until then, legal item L61) | all |
 | O2 | VAT registration decision (prices are quoted excl. 7 % VAT; no VAT line if not registered, `docs/PRICING-RESEARCH.md` header) | all |
-| O3 | Quotation, invoice / tax-invoice and receipt template; bank account for transfers; who issues them | all |
+| O3 | Quotation, invoice / tax-invoice and receipt template; bank account for transfers; who issues them (decided 2026-11-13: the owner issues receipts from the template, bank transfer only; accountant's answers on the numbering series and tax invoice: `docs/sales/ACCOUNTANT-QUESTIONS-TH.md`) | all |
 | O4 | At least one field pilot per product; until then only pilot-stage prices apply | all |
 | O5 | Confirm the pilot targets (all are proposals) and, for Exam, the Wilson rule before phase 2 | all |
 | O6 | Engage counsel and send `docs/LEGAL-PACKET.md` | all |
@@ -242,7 +249,7 @@ accountant's invoices; see owner item O3).
 | # | Blocker | Products |
 |---|---|---|
 | G1 | Review of `privacy.html`, `terms.html`, `camera-notice.html`, `gate-notice.html`, the exam notice, consent texts and the pilot agreement | all |
-| G2 | L25 pricing terms, VAT basis, refunds, contract terms | all |
+| G2 | L25 pricing terms, VAT basis, refunds, contract terms; L62 free-tier limits | all |
 | G3 | Controller / processor roles and a DPA template (LRP-G1; `docs/PDPA-NOTES-FOR-COUNSEL.md` D1) | all |
 | G4 | L26, L27 public procurement and TOR wording | Exam, Gate (public buyers) |
 | G5 | L28 partner agreement | all sold through partners |

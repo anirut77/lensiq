@@ -9,6 +9,8 @@
 > All prices are in THB and **excl. 7% VAT** ("ไม่รวม VAT 7%" / "不含 7% 增值税"); the customer pays the figure + 7%.
 > Yearly = 10 × monthly (BILLING-PLAN rule). "Pilot stage" applies now; "after pilot" applies to a site only once it
 > has passed the thresholds in its pilot kit (`docs/pilot/PILOT-*.md`). Written 2026-11-09, round 16.
+>
+> **Owner decisions of 2026-11-13 that apply to this file:** payment is by bank transfer only (no PromptPay QR, card or Opn); the owner issues receipts from the template and the system does not number them (questions for the accountant: `docs/sales/ACCOUNTANT-QUESTIONS-TH.md`); the business products have a limited free tier (Gate 30-day trial, 1 lane, 100 plates per day · Attendance up to 5 people · Exam up to 5 candidates per session · Crowd 2 hours per device per day) and a licence is needed beyond it. The limits are not enforced in the product yet: they apply from a date to be announced with at least 30 days' notice, and the owner enforces them by contract (a limit on the user's device can be bypassed by someone who edits the code; the contract binds). The bundle and partner prices below are unchanged by this decision.
 
 Standing rules that every package below inherits (CLAUDE.md):
 
@@ -302,7 +304,8 @@ owner may prefer a flat 20%.
    expression off.
 9. Consumer-protection and advertising rules for the accuracy wording in sales material and partner material.
 10. Quotation and invoice format (Thai tax invoice, VAT-registered seller; if not VAT-registered, no VAT line —
-    `docs/BILLING-PLAN.md` §5).
+    `docs/BILLING-PLAN.md` §5). Receipts are issued by the owner from the template and the system does not number them (2026-11-13): numbering series and tax-invoice content are with the accountant (`docs/sales/ACCOUNTANT-QUESTIONS-TH.md`).
+11. Free-tier limits and the change from "free, every feature" to a limited free tier with a licence beyond it (legal item L62): notice period, consumer-protection angle, contract wording.
 
 ### Owner questions raised by this draft
 

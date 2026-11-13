@@ -107,7 +107,8 @@
 - ☐ ตัวเลขความแม่นยำเป็นผลจากข้อมูลจำลองหรือชุดข้อมูลสาธารณะตามที่ระบุ ผลหน้างานจริงยังไม่ได้วัด ไม่มีการรับประกันตัวเลข
 - ☐ Crowd เหมาะกับฝูงชนเบาบางถึงปานกลาง ไม่ใช้ตัดสินความปลอดภัยของฝูงชน
 - ☐ ลูกค้าจัดหาอุปกรณ์ เครือข่าย และไฟฟ้าเอง ผู้ขายไม่ขายอุปกรณ์
-- ☐ ค่าบริการชำระโดยโอนผ่านธนาคารตามใบแจ้งหนี้ ไม่มีชำระออนไลน์
+- ☐ ค่าบริการชำระโดยโอนผ่านธนาคารตามใบแจ้งหนี้เท่านั้น (ไม่มี PromptPay QR บัตร หรือชำระออนไลน์)
+- ☐ ระดับฟรี: Gate ทดลอง 30 วัน (1 ช่องทาง 100 ป้ายต่อวัน) · Attendance ถึง 5 คน · Exam ถึง 5 ผู้สอบต่อรอบสอบ · Crowd 2 ชั่วโมงต่อเครื่องต่อวัน เกินกว่านั้นต้องมีใบอนุญาต **ข้อจำกัดนี้ยังไม่ถูกบังคับในระบบ** จะเริ่มใช้ตั้งแต่วันที่จะประกาศ โดยประกาศล่วงหน้าอย่างน้อย 30 วัน และเริ่มใช้หลังประกาศ 30 วัน เจ้าของบังคับใช้ผ่านสัญญา ข้อจำกัดที่ทำงานบนเครื่องของผู้ใช้อาจถูกข้ามได้โดยผู้ที่แก้โค้ด สัญญาเป็นสิ่งที่ผูกพัน ลูกค้าส่งออกข้อมูลของตนได้เสมอ (OP-26)
 - ☐ ข้อกำหนดการใช้บริการ การยกเลิก การคืนเงิน ความรับผิด: [ยังไม่มีเอกสารสำหรับการขาย ต้องยืนยัน / to confirm] (OP-13)
 
 ## 8. ลงนาม
@@ -180,7 +181,8 @@ Gate plate text and logs; Crowd counts. The seller does not ask for or accept ca
 - Accuracy figures come from synthetic data or public datasets as stated. Field accuracy is not yet measured. No figure is guaranteed.
 - Crowd suits sparse and medium crowds and is not used for crowd-safety decisions.
 - The customer supplies devices, network and power. The seller sells no hardware.
-- Fees are paid by bank transfer against the invoice. There is no online payment.
+- Fees are paid by bank transfer against the invoice only (no PromptPay QR, card or online payment).
+- Free tiers: Gate 30-day trial (1 lane, 100 plates per day) · Attendance up to 5 people · Exam up to 5 candidates per session · Crowd 2 hours per device per day; beyond them a licence is needed. **These limits are not enforced in the product yet.** They apply from a date to be announced, with at least 30 days' notice, and start 30 days after the announcement. The owner enforces them by contract. A limit that runs on the user's device can be bypassed by someone who edits the code; the contract is what binds. Customers can always export their own data. (OP-26)
 - Terms of service, cancellation, refund and liability: [no sales document exists yet; to confirm] (OP-13).
 
 ## 8. Signatures

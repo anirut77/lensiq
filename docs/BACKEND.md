@@ -2,6 +2,11 @@
 
 > Status: **scaffold, not deployed.** The public site keeps working with no backend at all (`LENSIQ_API_BASE = ""`).
 > The service is **free** (`FREE_MODE=true`); billing code is ready but switched off.
+>
+> **Owner decisions of 2026-11-13:** payment is by **bank transfer only** for now, so the Opn / PromptPay billing code below is a dormant scaffold, not the way customers pay. Receipts for transfers are issued by the owner
+> from the template (`docs/sales/RECEIPT-TEMPLATE.md`); the system does not number them yet (plan: system numbering `LQ-YYYYMM-000001` after the accountant confirms). Only Gate, Attendance, Exam (lab room) and Crowd report
+> get back-office order plans, with no online purchase. Free-tier limits are not enforced in the code yet (`docs/PRICING-RESEARCH.md`, `docs/BILLING-PLAN.md`). Planned, not built: a licence that works offline for 14 days,
+> and organisation accounts (lite: organisation name, billing details, admins and staff, invitations, no syncing of the customer's people data).
 
 ## 1. Architecture
 

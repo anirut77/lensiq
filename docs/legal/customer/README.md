@@ -33,7 +33,7 @@ No document describes emotion inference or lie / deception detection as a featur
 
 ## รายการที่ต้องกรอกก่อนใช้จริง / What must be filled in before use
 
-- รายละเอียดผู้ให้บริการ: ชื่อนิติบุคคล เลขทะเบียน/เลขผู้เสียภาษี ที่อยู่ บัญชีธนาคาร ผู้ติดต่อด้านข้อมูลส่วนบุคคล ผู้มีอำนาจลงนาม (ใช้ชุดเดียวกับ `LENSIQ_SELLER` ใน `lensiq-config.js` และ `tools/check-legal.mjs`)
+- รายละเอียดผู้ให้บริการ: ชื่อนิติบุคคล เลขทะเบียน/เลขผู้เสียภาษี ที่อยู่ บัญชีธนาคาร ผู้ติดต่อด้านข้อมูลส่วนบุคคล ผู้มีอำนาจลงนาม (ใช้ชุดเดียวกับ `LENSIQ_SELLER` ใน `lensiq-config.js` และ `tools/check-legal.mjs`) ผู้ติดต่อด้านข้อมูลส่วนบุคคล: จะมีอีเมลแยก (DPO) เจ้าของจะแจ้งที่อยู่ ระหว่างนี้ใช้ LINE @632yliiw และช่อง `[อีเมลติดต่อเรื่องข้อมูลส่วนบุคคล — เจ้าของจะแจ้ง]` (L61)
   *Seller details: legal name, registration / tax ID, address, bank account, privacy contact, signatory (the same set as `LENSIQ_SELLER` in `lensiq-config.js` and `tools/check-legal.mjs`).*
 - ตัวเลขในวงเล็บ (ระยะเวลา อัตรา เพดาน) เป็นค่าเสนอที่ดึงจากเอกสารในโปรเจกต์ ไม่ใช่ค่าที่ตกลงแล้ว
   *Numbers in brackets (periods, rates, caps) are proposals taken from project documents, not agreed values.*

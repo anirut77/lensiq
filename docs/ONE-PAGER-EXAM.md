@@ -52,6 +52,8 @@
 
 ราคาหลังผ่านเกณฑ์ใช้เมื่อสถานที่ผ่านเกณฑ์ใน `docs/pilot/PILOT-EXAM.md` แล้วเท่านั้น โครงการนำร่องภาคสนาม (1 สถาบัน ≤ 4 สัปดาห์ ≤ 3 ห้อง) ฟรี
 
+**ระดับฟรี (เจ้าของตัดสินใจ 2026-11-13):** ห้องคอมพิวเตอร์ฟรีถึง 5 ผู้สอบต่อรอบสอบ เกินกว่านั้นต้องมีใบอนุญาต ยังไม่บังคับในระบบ ข้อจำกัดเริ่มใช้ตั้งแต่วันที่จะประกาศล่วงหน้าอย่างน้อย 30 วัน เจ้าของบังคับใช้ผ่านสัญญา ข้อจำกัดบนเครื่องผู้ใช้อาจถูกข้ามได้โดยผู้ที่แก้โค้ด สัญญาเป็นสิ่งที่ผูกพัน ลูกค้าส่งออกข้อมูลของตนได้เสมอ ชำระโดยโอนผ่านธนาคารเท่านั้น
+
 เทียบตลาด: ใบอนุญาตคุมสอบผ่านเว็บแคมจากต่างประเทศราว 196 บาทต่อผู้สอบต่อวิชา (Respondus Monitor, 1,000 ที่นั่งแรก เป็นราคาอเมริกาเหนือ อาจไม่เปิดขายในไทย และต้องซื้อ LockDown Browser เพิ่ม) และค่าตอบแทนผู้คุมสอบ
 ไม่เกิน 600 บาทต่อชั่วโมงในประกาศของมหาวิทยาลัยแห่งหนึ่ง (แหล่งที่มาและวันที่ใน `docs/PRICING-RESEARCH.md` §1C)
 ราคาตลาดเป็นราคาตามที่แหล่งที่มาแสดง ร้านในไทยมักรวม VAT แล้ว จึงเทียบกับราคา LENSIQ (ไม่รวม VAT) ได้โดยประมาณ ต่างกันราว 7%
@@ -119,6 +121,8 @@ sale. The computer-room mode (`exam-lab.html`) is ready for a field pilot.
 
 The "after pilot" price applies only once the site has passed `docs/pilot/PILOT-EXAM.md`. The field pilot (1
 institution, ≤ 4 weeks, ≤ 3 rooms) is free.
+
+**Free tier (owner decision 2026-11-13):** the computer room is free up to 5 candidates per session; beyond that a licence is needed. Not enforced in the product yet: the limit applies from a date to be announced at least 30 days ahead, and the owner enforces it by contract. A limit on the user's device can be bypassed by someone who edits the code; the contract is what binds. Customers can always export their data. Payment is by bank transfer only.
 
 Market comparison: about 196 THB per student per course for an international webcam-proctoring licence (Respondus;
 North-American price, may not be offered in Thailand, LockDown Browser licence extra), and up to

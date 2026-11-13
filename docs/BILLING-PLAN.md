@@ -3,15 +3,18 @@
 > **Draft for the owner's decision. Not an offer, not legal or tax advice.** All prices are placeholders marked "ร่าง".
 > Today the service is **free** (`FREE_MODE=true`); the billing code in `backend/` is ready but off. Items marked
 > **[ตรวจทานกฎหมาย]** need a Thai lawyer / accountant before go-live.
+>
+> **Owner decisions of 2026-11-13 that change this plan:** (1) **Payment is by bank transfer only for now.** No PromptPay QR, no card, no Opn. The Opn / PromptPay parts of this file (sections 1, 2, 5, 6, 7, 8 and the checkout plans of section 3) describe a design that is **on hold**, not the current way of getting paid. Prices stay excluding 7 % VAT for the four business products. (2) **Receipts are issued by the owner from the template** (`docs/sales/RECEIPT-TEMPLATE.md`); the system does not number them yet. The `LQ-YYYYMM-000001` counter below is the planned numbering: once the accountant confirms (one series shared with the system, or a separate series for transfers; questions in `docs/sales/ACCOUNTANT-QUESTIONS-TH.md`) the plan is to switch to system numbering. (3) **Free tiers (option B):** Fortune and the general tools stay free; Gate 30-day trial (1 lane, 100 plates per day), Attendance free up to 5 people, Exam free up to 5 candidates per session, Crowd free 2 hours per device per day; a licence is needed beyond them. Not enforced in the product yet (membership and billing are built later); limits apply from a date to be announced with at least 30 days' notice, starting 30 days after the announcement; the owner enforces them by contract (a limit on the user's device can be bypassed by someone who edits the code; the contract binds); customers can always export their data. (4) **A licence works offline for 14 days** (planned). (5) **Plans in the database:** only Gate, Attendance, Exam (lab room) and Crowd report get back-office order plans; no online purchase. (6) **Organisation accounts (lite)**, planned, not built: organisation name, billing details, admins and staff, invitations; no syncing of the customer's people data.
 
 ## 1. Principles
 
 1. **On-device stays free.** Everything that runs in the browser (camera analytics, booth, photobooth, studio, fortune
-   pages with the local composer) costs us nothing per use — it stays free for everyone, forever. That is the product's
+   pages with the local composer) costs us nothing per use. **Fortune and the general tools stay free for everyone** (signed-out users keep the full fortune reading); since 2026-11-13 the four business products (Gate, Attendance, Exam, Crowd) have a
+   limited free tier instead of "free, every feature" (see the note above and §4.1). That is the product's
    privacy promise and its acquisition funnel.
 2. **Charge only where we carry a variable cost or deliver business value:** the Claude writing assistant (per-reading
    model cost), cloud analytics history/exports, multi-site hub, support/SLA, on-premise installs.
-3. **No surprise charges.** PromptPay is a push payment — the customer approves every payment in their bank app; there
+3. **No surprise charges.** (PromptPay / Opn are on hold; payment is by bank transfer only for now, see the note at the top.) PromptPay is a push payment — the customer approves every payment in their bank app; there
    is no stored card and no silent auto-renewal. Renewal = a reminder + a new QR.
 4. **Thai-SME friendly:** THB, VAT-inclusive prices for the self-serve checkout plans on `pricing.html` (B2B product
    prices for Exam, Gate, Crowd and Attendance are shown **excluding 7 % VAT**, owner decision 2026-11-09, see §4.1), PromptPay first, tax invoice on request, monthly *and* yearly
@@ -147,6 +150,8 @@ and after pilot, `docs/PRICING-RESEARCH.md` §3) are **approved**. They are stil
 sold, listed on pricing.html or enforced, and no migration has been written. Each product page shows them as
 "approved price list (not on sale yet)". A migration for any line needs its own owner decision.
 
+**Owner decision 2026-11-13:** only Gate, Attendance, Exam (lab room) and Crowd report get back-office order plans in the database; there is no online purchase (orders are entered by the owner after a quotation and a bank transfer). The free tiers are: Gate trial (30 days, 1 lane, 100 plates per day), Attendance free (up to 5 people), Exam free (up to 5 candidates per session), Crowd free (2 hours per device per day). They are not enforced by the product yet; the owner enforces them by contract from a date announced at least 30 days ahead (start 30 days after the announcement), customers can always export their data, and a licence works offline for 14 days (planned). Exam and Crowd have no separate free-tier plan row below; the free tier is stated in the quotation and the contract (legal item L62).
+
 Every price in this table is **excluding 7 % VAT** (the customer pays price + 7 %), and the Gate free tier is a **free
 30-day trial**, not a permanent free plan. The checkout plans above (§3) stay VAT-inclusive because that is the amount
 `pricing.html` actually charges; moving them to excl. VAT would change what customers pay and needs a separate owner
@@ -195,6 +200,7 @@ They are not added yet because no plan references them and an unused perk would 
   browser. VAT lines appear only when the payment carried VAT; the document says **ฉบับร่าง / DRAFT** until
   `SELLER_NAME`, `SELLER_TAX_ID` and `SELLER_ADDRESS` are set. e-Tax Invoice by Email is still **not built** — an
   accountant should confirm the layout before the first real tax invoice is issued.
+* **Receipt numbering for bank-transfer sales (2026-11-13):** the owner issues receipts from the template and numbers them by hand; the system does not number them. After the accountant confirms the series (`docs/sales/ACCOUNTANT-QUESTIONS-TH.md`), the plan is to switch to system numbering `LQ-YYYYMM-000001`.
 * **Withholding tax:** Thai juristic customers paying for services usually withhold 3 % and send a 50 ทวิ certificate.
   PromptPay QR is for the full amount → B2B packages should be invoiced (bank transfer of 97 % + certificate) rather than
   self-serve QR. Self-serve PromptPay targets individuals/sole proprietors.
@@ -238,7 +244,7 @@ They are not added yet because no plan references them and an unused perk would 
 ## 8. Go-live checklist
 
 1. Decide prices/quotas (this doc), VAT registration, refund policy, terms of service; legal review of §5–§7.
-2. Opn: complete KYC, enable PromptPay, test in test mode end-to-end (admin → Billing → test QR → mark successful in the
+2. (**On hold since 2026-11-13: bank transfer only; do not start this step until the owner decides otherwise.**) Opn: complete KYC, enable PromptPay, test in test mode end-to-end (admin → Billing → test QR → mark successful in the
    Opn dashboard → status updates, webhook row appears, receipt number assigned).
 3. Set `SELLER_*`, `VAT_REGISTERED`; set live keys with `wrangler secret put`, then `OPN_ALLOW_LIVE=true`.
 4. Admin → Billing → enable the pricing page; set plan `status='active'` for sold plans — via the admin API
@@ -248,5 +254,5 @@ They are not added yet because no plan references them and an unused perk would 
    bought. With `BILLING_ENABLED=true` checkout requires Google sign-in (`ALLOW_GUEST_CHECKOUT` stays `false`).
    Perks with status `coming_soon` (cloud analytics history, hub nodes) must be labelled "เร็ว ๆ นี้" on the pricing
    page — they are listed but not delivered yet.
-5. `FREE_MODE=false`, `BILLING_ENABLED=true`, deploy; announce ≥ 30 days ahead to existing users (grandfather period).
+5. `FREE_MODE=false`, `BILLING_ENABLED=true`, deploy; announce ≥ 30 days ahead to existing users (grandfather period); limits start 30 days after the announcement; customers can always export their data (owner decision 2026-11-13).
 6. Monitor: payments tab, webhook results, refund requests, AI cost vs. quota usage weekly for the first 3 months.

@@ -46,10 +46,13 @@
 
 | แพ็กเกจ | ช่วงนำร่อง (ตอนนี้) | หลังผ่านเกณฑ์นำร่อง |
 |---|---|---|
+| ระดับฟรี | ฟรี 2 ชั่วโมงต่อเครื่องต่อวัน | ฟรี 2 ชั่วโมงต่อเครื่องต่อวัน |
 | วันงาน (1 กล้อง/เครื่อง) | 590 บาท/วัน ไม่รวม VAT 7% | 990 บาท/วัน ไม่รวม VAT 7% |
 | สัปดาห์งาน (7 วัน, 1 กล้อง) | 2,490 บาท ไม่รวม VAT 7% | 3,900 บาท ไม่รวม VAT 7% |
 | รายเดือน (พื้นที่ถาวร) | ยังไม่ขาย จนกว่าโครงการนำร่องพื้นที่ถาวรผ่านเกณฑ์ (ราคาที่อนุมัติ 290 บาท/เดือน/กล้อง ไม่รวม VAT 7%) | 490 บาท/เดือน/กล้อง ไม่รวม VAT 7% |
 | ฝูงชนหนาแน่น (ประมาณ 50 คนขึ้นไปต่อภาพ) | ไม่ขาย | ไม่ขาย จนกว่าจะมีโมเดลที่ใบอนุญาตใช้เชิงพาณิชย์ได้และเจ้าของอนุมัติ |
+
+ระดับฟรีเกิน 2 ชั่วโมงต่อเครื่องต่อวันต้องมีใบอนุญาต ยังไม่บังคับในระบบ ข้อจำกัดเริ่มใช้ตั้งแต่วันที่จะประกาศล่วงหน้าอย่างน้อย 30 วัน เจ้าของบังคับใช้ผ่านสัญญา ข้อจำกัดบนเครื่องผู้ใช้อาจถูกข้ามได้โดยผู้ที่แก้โค้ด สัญญาเป็นสิ่งที่ผูกพัน ลูกค้าส่งออกข้อมูลของตนได้เสมอ ชำระโดยโอนผ่านธนาคารเท่านั้น (เจ้าของตัดสินใจ 2026-11-13)
 
 เทียบตลาด: เครื่องนับคนที่ประตู 7,900–19,900 บาท (ซื้อขาด) บริการรายเดือนต่างประเทศราว 290–315 บาทต่ออุปกรณ์ต่อเดือน
 (`docs/PRICING-RESEARCH.md` §1D) ราคาช่วงนำร่องอยู่ล่างสุดของช่วง เพราะระบบนับต่ำกว่าจริง 26–59% (n = 12–20 ภาพต่อคลิป 4 คลิป) และยังไม่มีผลหน้างานจริง
@@ -109,10 +112,13 @@ Event day and event week are sold first; the monthly level waits for a fixed-sit
 
 | Package | Pilot stage (now) | After pilot |
 |---|---|---|
+| Free tier | free 2 hours per device per day | free 2 hours per device per day |
 | Event day, 1 camera device | 590 THB / day excl. 7% VAT | 990 THB / day excl. 7% VAT |
 | Event week, 1 device | 2,490 THB excl. 7% VAT | 3,900 THB excl. 7% VAT |
 | Monthly, fixed site | not sold until a fixed-site pilot passes (approved level: 290 THB / month per device excl. 7% VAT) | 490 THB / month per device excl. 7% VAT |
 | Dense crowds (about 50+ per view) | not sold | not sold until a model with a commercial-use licence is approved |
+
+Beyond the free 2 hours per device per day a licence is needed. This is not enforced in the product yet: the limit applies from a date to be announced at least 30 days ahead, and the owner enforces it by contract. A limit on the user's device can be bypassed by someone who edits the code; the contract is what binds. Customers can always export their data. Payment is by bank transfer only (owner decision 2026-11-13).
 
 Market comparison: door counters cost 7,900–19,900 THB one-off, and international subscriptions about 290–315 THB per
 device per month (`docs/PRICING-RESEARCH.md` §1D).

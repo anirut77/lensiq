@@ -22,7 +22,7 @@
 ## ข้อ 1 คู่สัญญาและนิยาม
 
 1.1 **“ผู้ให้บริการ”** คือ [ชื่อนิติบุคคลผู้ให้บริการ] เลขทะเบียนนิติบุคคล / เลขประจำตัวผู้เสียภาษี [เลข 13 หลัก] ที่อยู่ [ที่อยู่]
-ผู้ติดต่อด้านข้อมูลส่วนบุคคล [ชื่อ / อีเมล]
+ผู้ติดต่อด้านข้อมูลส่วนบุคคล LINE @632yliiw (ชั่วคราว) / [อีเมลติดต่อเรื่องข้อมูลส่วนบุคคล — เจ้าของจะแจ้ง] (L61)
 
 1.2 **“ลูกค้า”** คือ [ชื่อนิติบุคคลลูกค้า] เลขทะเบียน [เลข 13 หลัก] ที่อยู่ [ที่อยู่] ผู้มีอำนาจลงนาม [ชื่อ ตำแหน่ง]
 
@@ -149,6 +149,8 @@
 
 8.5 การคืนเงิน เป็นไปตามใบเสนอราคา ผู้ให้บริการคืนโดยโอนเข้าบัญชีของลูกค้า และออกใบลดหนี้เมื่อจำเป็น
 
+8.6 **ระดับฟรีและข้อจำกัด** [ร่าง ตามเจ้าของตัดสินใจ 2026-11-13 — คำถามสำหรับทนาย: L62 ระยะเวลาแจ้ง มุมมองผู้บริโภค และถ้อยคำ] ผลิตภัณฑ์บางตัวมีระดับฟรีแบบจำกัด (Gate ทดลอง 30 วัน 1 ช่องทาง 100 ป้ายต่อวัน · Attendance ถึง 5 คน · Exam ถึง 5 ผู้สอบต่อรอบสอบ · Crowd 2 ชั่วโมงต่อเครื่องต่อวัน) เกินกว่านั้นต้องมีใบอนุญาตตามใบเสนอราคา ข้อจำกัดเริ่มใช้ตั้งแต่วันที่ผู้ให้บริการประกาศ โดยประกาศล่วงหน้าอย่างน้อย 30 วัน และเริ่มใช้หลังประกาศ 30 วัน ผู้ให้บริการบังคับใช้ข้อจำกัดตามสัญญานี้ ไม่ได้บังคับด้วยตัวผลิตภัณฑ์ ลูกค้าส่งออกข้อมูลของตนได้ทุกเมื่อ ใบอนุญาตใช้งานออฟไลน์ได้ 14 วัน [วางแผน ยังไม่สร้าง]
+
 ## ข้อ 9 การสนับสนุน
 
 9.1 แผนสนับสนุนระบุในใบเสนอราคา: ☐ Basic ☐ Standard ☐ Premium (ชั่วโมง ช่องทาง เวลาตอบรับ ตาม `docs/SUPPORT.md` ข้อ 2–3)
@@ -245,7 +247,7 @@ These terms apply together with the signed or accepted **quotation / order form*
 
 ## 1. Parties and definitions
 
-1.1 **"Provider"**: [Provider legal name], registration / tax ID [13 digits], address [address]. Privacy contact [name / e-mail].
+1.1 **"Provider"**: [Provider legal name], registration / tax ID [13 digits], address [address]. Privacy contact LINE @632yliiw (for now) / [privacy contact e-mail: the owner will provide] (L61).
 
 1.2 **"Customer"**: [Customer legal name], registration [13 digits], address [address], signatory [name, title].
 
@@ -370,6 +372,8 @@ The Product stores no card or bank-account data of the Customer.
 [Question for counsel: a reasonable interest rate under Civil and Commercial Code s.224, and the pause right.]
 
 8.5 Refunds follow the Quotation. The Provider refunds by transfer to the Customer's account and issues a credit note where needed.
+
+8.6 **Free tiers and limits** [draft, from the owner's decision of 2026-11-13; question for counsel: L62 notice period, consumer-protection angle and wording] Some products have a limited free tier (Gate 30-day trial, 1 lane, 100 plates per day · Attendance up to 5 people · Exam up to 5 candidates per session · Crowd 2 hours per device per day); beyond it a licence under the Quotation is needed. The limits apply from a date the Provider announces with at least 30 days' notice, and start 30 days after the announcement. The Provider enforces the limits under this contract, not through the Product itself. The Customer can export its data at any time. A licence works offline for 14 days [planned, not built].
 
 ## 9. Support
 
