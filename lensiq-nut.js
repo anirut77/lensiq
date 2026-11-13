@@ -63,8 +63,8 @@
     [new RegExp(`^(โพแทสเซียม|potassium${W}|钾|カリウム)`, "i"), null],
     [new RegExp(`^(includes?${W}|incl\\.|added sugars?${W})`, "i"), null],
     [/^(糖質|糖质)/, null],
-    [new RegExp(`^(ไขมันอิ่มตัว|saturated fat${W}|of which saturates${W}|saturates${W}|sat\\.? fat${W}|饱和脂肪|飽和脂肪酸|포화지방|lemak tepu)`, "i"), "satfat"],
-    [new RegExp(`^(ไขมันทั้งหมด|ไขมัน|total fat${W}|fat${W}|脂肪|脂質|지방|lemak${W})`, "i"), "fat"],
+    [new RegExp(`^(ไขมันอ[\u0E34-\u0E37\u0E47-\u0E4B]{0,3}มตัว|saturated fat${W}|of which saturates${W}|saturates${W}|sat\\.? fat${W}|饱和脂肪|飽和脂肪酸|포화지방|lemak tepu)`, "i"), "satfat"],
+    [new RegExp(`^(ไขมันทั้งหมด|ไขมัน(?![\u0E01-\u0E4E])|total fat${W}|fat${W}|脂肪|脂質|지방|lemak${W})`, "i"), "fat"],
     [new RegExp(`^(พลังงานทั้งหมด|พลังงาน|calories${W}|energy${W}|能量|热量|エネルギー|熱量|열량|tenaga${W})`, "i"), "energy"],
     [new RegExp(`^(โปรตีน|protein${W}|蛋白质|たんぱく質|タンパク質|蛋白質|단백질)`, "i"), "protein"],
     [new RegExp(`^(คาร์โบไฮเดรตทั้งหมด|คาร์โบไฮเดรต|total carbohydrates?${W}|carbohydrates?${W}|total carbs?${W}|碳水化合物|炭水化物|탄수화물|karbohidrat${W})`, "i"), "carb"],
@@ -113,9 +113,11 @@
   const stripParens = s => s.replace(/\([^()]*\)/g, " ").replace(/（[^（）]*）/g, " ");
 
   /* ---------- basis ---------- */
+  /** "per pack" (GDA) is taken only with one of these pack words; a misread "ต่อหนึ่งหน่วยบริโภค" header is not per pack */
+  const PACK_WORD = "(ซองเล็ก|ซอง|ถุง|ห่อ|กล่อง|ขวด|ถ้วย|กระป๋อง|กระปุก|แพ็ค|แพค|ชิ้น|หลอด|แท่ง|ถาด)";
   const BASIS_PATTERNS = [ // [regex, basis | (match) => basis]
-    [/ต่อ\s*(หนึ่ง|1)\s*หน่วยบริโภค/, "serving"],
-    [/คุณค่าทางโภชนาการต่อ\s*(หนึ่ง|1)\s*(?!หน่วยบริโภค)\S+/, "pack"],
+    [/ต่อ\s*(หนึ่ง|1)\s*หน่วยบริ/, "serving"],
+    [new RegExp(`คุณค่าทางโภชนาการต่อ\\s*(หนึ่ง|1)\\s*${PACK_WORD}`), "pack"],
     [/ต่อ\s*100\s*(กรัม|ก\.?|g)/, "100g"],
     [/ต่อ\s*100\s*(มล\.?|มิลลิลิตร|ml)/, "100ml"],
     [/per\s*100\s*ml/i, "100ml"],
@@ -151,7 +153,7 @@
     if (/营养成分表|營養成分表/.test(all)) return "cn";
     if (/栄養成分表示/.test(all)) return "jp";
     if (/nutrition facts/i.test(all)) return "us";
-    if (/ควรแบ่งกิน|ปริมาณสูงสุดที่บริโภคได้ต่อวัน/.test(all) || (/คุณค่าทางโภชนาการต่อ\s*(1|หนึ่ง)\s*(?!หน่วยบริโภค)/.test(all) && !/หน่วยบริโภค/.test(all))) return "th-gda";
+    if (/ควรแบ่งกิน|ปริมาณสูงสุดที่บริโภคได้ต่อวัน/.test(all) || (new RegExp(`คุณค่าทางโภชนาการต่อ\\s*(1|หนึ่ง)\\s*${PACK_WORD}`).test(all) && !/หน่วยบริโภค/.test(all))) return "th-gda";
     if (/ข้อมูลโภชนาการ|หน่วยบริโภค/.test(all)) return /พลังงานจากไขมัน|ใยอาหาร/.test(all) ? "th-old" : "th-new";
     if (/per\s*100\s*(g|ml)|typical values|nutrition (declaration|information)|energy\s+\d+\s*kj/i.test(all)) return "eu";
     return "generic";
@@ -385,7 +387,7 @@
     const one = (f, b) => { const a = by(f, b); return a.length === 1 ? a[0] : null; };
     const flag = (it, why) => { if (it && !it.why.includes(why)) it.why.push(why); };
     for (const it of items) {
-      if (by(it.field, it.basis).some(o => o !== it && o.value !== it.value)) flag(it, "duplicate");
+      if (by(it.field, it.basis).some(o => o !== it)) flag(it, "duplicate"); // two values for one field, even when equal
       const v = it.value, b = it.basis;
       const lim = b === "100g" || b === "100ml" ? { g: 100, mg: 40000, kcal: 900, kJ: 3800 } : null;
       if (lim && it.unit in lim && v > lim[it.unit]) flag(it, "plausibility");
