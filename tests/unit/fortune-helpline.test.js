@@ -7,7 +7,7 @@
 // 3) Every number published (the line, HELP, the support card) is in the "Verified" table of docs/CRISIS-RESOURCES.md
 //    with an official https source and a date; "free" and "24 hours" are only claimed where that table says so.
 // 4) Crisis state: once the support card is shown on a page, the page is in the crisis state (page-level flag on the
-//    document): no reading, no plan, no remedy text and no hook output (merit / paid / straight mode come as hooks or
+//    document): (re-lock 2026-11-13, crisis flow v2: later readings are calm readings, not the card) no plan, no remedy text and no hook output (merit / paid / straight mode come as hooks or
 //    renderers that must ask FortuneAI.crisis.allow()) is rendered on that page any more. Another document is not
 //    affected. A normal reading carries the help line under it.
 // 5) Blocks that show lucky items, recommendations, lead forms or share cards on pages where the net can trigger are
@@ -174,7 +174,9 @@ test("a normal reading carries the help line (tel:1323, tel:1669) under it; the 
   assert.match(html, /<section class="fa-plan"[^>]*data-lq-remedy/, "toHTML plan marked");
 });
 
-test("crisis state: after the support card, the page shows no reading, plan, remedy text or hook output; allow() says no; other pages unaffected", () => {
+// RE-LOCK 2026-11-13 (owner decision 2026-11-13 crisis flow v2: "never block the reading"): after the card, a later reading on the
+// page (no new hard-net signal) is a CALM reading (sections, no plan, no remedy text, help line kept), not the card again.
+test("crisis state: after the support card, a later reading on the page is calm (no plan, remedy text or hook output); allow() says no; other pages unaffected", () => {
   delete require.cache[require.resolve(join(ROOT, "fortune-ai.js"))];
   const FA = require(join(ROOT, "fortune-ai.js")), doc = fakeDoc();
   assert.equal(typeof FA.crisis.active, "function"); assert.equal(typeof FA.crisis.allow, "function");
@@ -191,14 +193,15 @@ test("crisis state: after the support card, the page shows no reading, plan, rem
       const box = doc.createElement("div");
       FA.renderSections(box, Object.assign({}, READING, { lang }), { aiBadge: false });
       const h = ser(box), t = box.textContent;
-      assert.match(h, /fa-support/, lang + ": support card instead");
-      assert.doesNotMatch(h, /fa-section|fa-plan|fa-summary/, lang + ": no reading / plan");
+      assert.doesNotMatch(h, /fa-support/, lang + ": no card again without a new signal (re-lock: crisis flow v2)");
+      assert.match(h, /fa-section/, lang + ": the reading is shown (re-lock: crisis flow v2, never block)");
+      assert.doesNotMatch(h, /fa-plan/, lang + ": no plan");
       assert.ok(!/วิธีปรับ|ข้อแนะนำทั่วไปคือ|เสื้อสีขาว|A simple adjustment|调整的方法/.test(t), lang + ": no remedy text");
       assert.match(t, /1323/, lang + ": card keeps 1323");
     }
     assert.equal(calls, 0, "no hook (merit / paid / straight) runs in the crisis state");
     const html = FA.toHTML(READING, { doc });
-    assert.match(html, /fa-support/); assert.doesNotMatch(html, /fa-plan|fa-section/);
+    assert.doesNotMatch(html, /fa-support|fa-plan/); assert.match(html, /fa-section/); // re-lock: crisis flow v2, a calm reading
   } finally { off(); }
   // page-level: another document is not in the crisis state
   const other = fakeDoc(), b2 = other.createElement("div");

@@ -209,13 +209,16 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
   function crisisStop(q) {
     var FAx = window.FortuneAI, box = document.getElementById("icSupport");
     var CRx = window.LQFortuneCrisis, lang = (window.LQI18N && window.LQI18N.lang) || "th";
-    var hard = !!(FAx && FAx.crisis && FAx.crisis.check(q)), soft = !hard && !!(CRx && CRx.pageSoft()); // round 3: the soft step
+    // crisis flow v2: the card again only for a hard-net signal the reader has not continued past
+    var hard = !!(FAx && FAx.crisis && FAx.crisis.check(q) && !(FAx.crisis.acked && FAx.crisis.acked())), soft = !hard && !!(CRx && CRx.pageSoft()); // round 3: the soft step
     if (!hard && !soft) { if (box) { box.hidden = true; box.textContent = ""; } return false; }
     if (!box) { box = document.createElement("div"); box.id = "icSupport"; box.tabIndex = -1; $("#icSetup").insertAdjacentElement("afterend", box); }
-    var card = function () { box.hidden = false; FAx.crisis.render(box, FAx.crisis.result({ lang: lang })); box.focus(); };
+    // "continue" (crisis flow v2): the card collapses and the cast goes on; the reading follows in the calm state
+    var cont = { onContinue: function () { box.hidden = true; box.textContent = ""; $("#icStart").click(); } };
+    var card = function () { box.hidden = false; FAx.crisis.render(box, FAx.crisis.result({ lang: lang }), cont); box.focus(); };
     box.hidden = false;
     if (soft) { CRx.renderSoft(box, lang, function () { CRx.ack(); box.hidden = true; box.textContent = ""; $("#icStart").click(); }, card); return true; }
-    FAx.crisis.render(box, FAx.crisis.result({ lang: lang }));
+    FAx.crisis.render(box, FAx.crisis.result({ lang: lang }), cont);
     box.focus();
     return true;
   }

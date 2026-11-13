@@ -148,12 +148,27 @@ A page may appear in two categories. Pages not listed under a category are platf
   TH/EN/ZH:
   1. no prediction of death, terminal illness or a specific accident stated as certain or dated;
   2. no instruction to stop medication or treatment, to make a specific investment, or to end a relationship;
-  3. the crisis net always takes priority; straight mode never bypasses it, and when it triggers no remedies, paid
-     service or straight reading is shown;
+  3. the crisis net always takes priority and straight mode never bypasses it (crisis flow below);
   4. no wording that says the bad result will happen unless the user pays or performs something (no fear-selling;
      see Remedies and merit).
   Also: no lottery numbers; no medical advice and no cosmetic or medical procedure advice (reversible styling
   suggestions below are allowed); no emotion or deception inference.
+- Crisis flow (owner decision 2026-11-13, replaces "hide and block"): respond, support and keep the door open. When the
+  crisis net sees signs of distress, on every fortune page (zodiac included), each rule tested in TH/EN/ZH:
+  1. never block the reading: first a short, warm acknowledgement and encouragement (no judgement, no echo of what the
+     user typed) with the verified help resources clearly visible and pinned (1323 Department of Mental Health, 24 hours,
+     and the others in docs/CRISIS-RESOURCES.md) and a gentle invitation to talk to someone they trust; then the user
+     can continue;
+  2. the reading uses the gentle, hope-oriented wording: no fatalistic statements; hard periods pass; what the person
+     can do;
+  3. free, comforting belief-based guidance may be shown (making merit, praying, chanting, meditation), labelled
+     "according to belief";
+  4. not shown while the flag is set: straight-mode negative predictions and anything involving payment or purchase
+     (the on-your-behalf service entry, quote or interest forms, suggestions to buy or carry lucky items). Neutral lucky
+     colours for the day are fine;
+  5. no chat or "vent to AI" feature: the route for talking is the hotline and trusted people.
+  The wording is reviewed by a mental-health professional before launch (legal / launch item L63). Every change to the
+  flow gets an independent review on a fresh set, and the owner sees example screens (Thai) before it is deployed.
 - Look suggestions (owner request and wording 2026-11-13): the tool suggests reversible styling with a fortune reading
   and previews it: brows (shape, thickness, arch), hairstyle, hair colour, facial hair, make-up (lip colour, eye
   make-up, eyeliner, emphasis or softening with make-up) and accessories (earrings, glasses, necklaces). Each names the
@@ -172,7 +187,8 @@ A page may appear in two categories. Pages not listed under a category are platf
     receipt.
   - Remedy, place and lucky-item recommendations are free information, labelled "according to belief, please use your
     own judgement", and are never tied to a purchase.
-  - Never offer the paid service when the crisis net triggers; show help resources instead.
+  - Never offer the paid service when the crisis net triggers; show help resources instead (free belief guidance
+    may still be shown, see Crisis flow).
 - No AGPL, GPL or non-commercial models, code or data in the product. No Ultralytics.
   `vendor/models/faceparse-*.onnx` is never committed. Datasets, test videos and photos stay out of the repo.
 - PDPA: keep privacy defaults and add notes to `docs/PDPA-NOTES-FOR-COUNSEL.md`. A lawyer reviews before sale.

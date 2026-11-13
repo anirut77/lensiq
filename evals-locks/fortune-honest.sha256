@@ -82,3 +82,24 @@ aece1c6aa162199cc328b58a91ad5d131e6bbf4be6f6b5266ff7be0eac60a688  tests/e2e/cris
 # ONE HELP BAR (coordinator review 2026-11-13: two help bars on screen in the zodiac screen) locked BEFORE the fix on crisis-flow-v2 (base 3ebced7).
 eefb2c196acbe2a39e0ecac3f27e608699e06726004395a428586bfb1c0912e4  tests/e2e/fortune-crisis-one-bar.e2e.mjs  # repo file
 # AFTER one-bar fix: fortune-crisis-one-bar 1/1 (before 0/1: 20 positions with 2 bars on zodiac, horoscope, astro, tarot); crisis / calm / helpline / merit e2e 58/58; affected unit 259/259.
+# evals-locks/fortune-honest.sha256 — owner rule 2026-11-13: every locked test / eval set used on this branch, hashed in the repo
+# BEFORE any further measurement. Branch crisis-flow-v2 (crisis flow v2 + detection v2). Repo test files (path from the repo root):
+cff3ef3445a4ee5df2cb71d47d241193dd4b9ce3f836336ebe3bd7c0db26fb7e  tests/unit/fortune-crisis-flow-v2.test.js
+9c033d51371d5e8eba0ddef934eeac6f8e7035b13feb16e82f95e32d8f9100e6  tests/e2e/fortune-crisis-flow-v2.e2e.mjs
+8806d1126d5189b9054916a3be0a5307731013458c474f586c99b4879b286085  tests/e2e/fortune-crisis-flow-v2-pages.e2e.mjs
+aece1c6aa162199cc328b58a91ad5d131e6bbf4be6f6b5266ff7be0eac60a688  tests/e2e/crisis-flow-lib.mjs
+988abf5cafd854c1a0063d55bafa8fb2862d1852c09929ba6b01be5cb009db0f  tests/unit/fortune-crisis-detect-v2.test.js
+5aee9ecee7ad22c7c78243e66cc7e901160108e8a17d1e4efceacbd143d0fbde  tests/unit/fortune-helpline.test.js
+c8421600a895e5332448a2a29e9244c75e09c2f0452000e355429fe9dd87a46e  tests/e2e/fortune-helpline.e2e.mjs
+# dev data outside the repo (path from ~/LENSIQ-field/evals/; the 2026-11-13 fresh review set, SPENT, dev data only):
+3df729f4d8706611c45cff71469f78a0d43ae878eb98bca63676aa9c302f4366  fortune-honest/fresh-2026-11-13/set.json
+3e737cba6f19b8c213c1acf0ff0b111bb627a9506a2a71c45b09e491de45c8d6  fortune-honest/fresh-2026-11-13/run1/runs.jsonl
+eefb2c196acbe2a39e0ecac3f27e608699e06726004395a428586bfb1c0912e4  tests/e2e/fortune-crisis-one-bar.e2e.mjs
+#
+# CRISIS DETECTION V3 + CALM TEXT (rules d, e) — independent review 2026-11-14 of a0ec6f0 (set fortune-honest__fresh-2026-11-14, SPENT, dev data only). Locked 2026-11-13T19:37:43Z BEFORE the change on crisis-flow-v2 (base 5fcac32). Copies in ~/LENSIQ-field/evals/fortune-honest/repo-copies/.
+a7b505d7f5051f4b3b030fa1aa4ccee573711d31bd34626384f2a35ede3ad258  tests/unit/fortune-crisis-detect-v3.test.js  # repo file  # locked 2026-11-13T19:37:43Z
+7491d27cc6ec9a6a0b28e3efca7cb308d122b2cb1bf1627009029c03074b5310  tests/e2e/fortune-crisis-calm-text.e2e.mjs  # repo file  # locked 2026-11-13T19:37:43Z
+# RE-LOCK 2026-11-13T19:55:12Z fortune-crisis-calm-text.e2e.mjs: the Chinese straight-option pattern matched the ordinary word 直说 ('有话直说', speak frankly) inside a numbers reading; it now matches the option's name as shown on the pages (“直说” in quotes, or 直说模式). TH and EN patterns unchanged; paid checks unchanged.
+33dab0b7892448f4cc391aaea9b6c8ef6dd8de305a933fe6455d0708bac75bf9  tests/e2e/fortune-crisis-calm-text.e2e.mjs  # repo file  # re-locked 2026-11-13T19:55:12Z
+# RE-LOCK 2026-11-13T20:01:59Z fortune-crisis-flow-v2.e2e.mjs (after merging origin/main): the 'one new sessionStorage key' check ignores 'lq-heavy', the camera crash guard from main (lensiq-crashguard.js, PDPA notes H), which faceread / palm set while the camera runs; the crisis flow must still add exactly lq-fortune-calm=1.
+dd183b210f34a502a88be0588bebd81b71da22da100b2b0cc0f486d0b5834bf9  tests/e2e/fortune-crisis-flow-v2.e2e.mjs  # repo file  # re-locked 2026-11-13T20:01:59Z

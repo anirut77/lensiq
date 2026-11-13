@@ -350,6 +350,11 @@ body[class*="-kiosk"] .lq-legal-foot{display:none}
 /* crisis state (fortune-crisis.js): once the support card was shown, remedies, lucky items, recommendations, lead forms
    and share cards stay hidden on that page */
 html[data-lq-crisis] [data-lq-remedy]{display:none!important}
+/* crisis flow v2 (review 2026-11-14, rules d and e): in a calm or crisis tab the fixed paragraph about the straight option and
+   every link to pricing, plans or refunds are hidden on every fortune page */
+html[data-lq-calm] [data-lq-straight],html[data-lq-crisis] [data-lq-straight],html[data-lq-calm] [data-lq-paid-link],html[data-lq-crisis] [data-lq-paid-link],
+html[data-lq-calm] a[href*="pricing.html"],html[data-lq-crisis] a[href*="pricing.html"],
+html[data-lq-calm] a[href*="terms.html#t9"],html[data-lq-crisis] a[href*="terms.html#t9"]{display:none!important}
 @media print{
   .lq-helpline{background:#fff;border-color:#888;color:#000;break-inside:avoid}
   .lq-helpline-tel{min-height:0;min-width:0;padding:0;background:none;color:#000;text-decoration:underline}

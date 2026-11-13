@@ -102,3 +102,7 @@ b4da3cdfb31bec1a5ff8d53554e293783631238f0942f470fa10874a63f67b9d  tests/e2e/meri
 cf9be33a44d0e8893f658f5fd171bfd53c2c5a7d5d29c8f440aaf5b364bd7dfd  tests/unit/backend-merit.test.js  # repo file
 # 2026-11-13T20:44:16Z stream G: accounts-g merged main and takes tryon-fit's RV1 (0016 right after 0015 and before the next file; with the totp-clock re-lock); amendment A-G1 superseded. Hash = main's file.
 50209f2c402bb4009c8cbe6d5f8bde802ddcff5c0524bb1c7f25ec899c019d68  tests/unit/backend-merit-reviewer.test.js  # repo file
+# evals-locks/merit.sha256 — owner rule 2026-11-13: merit tests re-locked on branch crisis-flow-v2 (crisis flow v2 §3)
+4aef66bfb72eae841e7e2a20d9ead68084db460aee2cece945db4f2084819aa7  tests/unit/merit.test.js
+b1a5419c4b3508d65246571dc8da494976c83e0dbd11c97156e0dcf159e255b9  tests/e2e/merit.e2e.mjs
+b4da3cdfb31bec1a5ff8d53554e293783631238f0942f470fa10874a63f67b9d  tests/e2e/merit-crisis.e2e.mjs

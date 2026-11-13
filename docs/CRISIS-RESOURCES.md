@@ -51,7 +51,9 @@ Notes on the table:
 | Always-visible line on every fortune page (top and end of the page, in the HTML so it shows without JavaScript) and under every reading | 1323 (free, 24 hours), 1669 (medical emergency) | `fortune-crisis.js` `HELP` (canonical), `tools/helpline.mjs` writes the static HTML, `i18n/{en,zh}-common.js` keys `help.line.*` |
 | Printed / PDF report (`report.html`) | same line at the end of the report, kept in the print view | `report.js` |
 | Share card made with `fortune-kit.js` `makeCard` (I Ching, Zodiac, Dream, Astro) | 1323 | `fortune-kit.js` |
-| Crisis support card (`fortune-ai.js` `SUPPORT`) | 1323, 1669, 191, 1300, 02 113 6789 | `fortune-ai.js` |
+| Crisis acknowledgement card (crisis flow v2; `fortune-crisis.js` `CARD`, shown by `fortune-ai.js` `SUPPORT`) | 1323, 1669, 191, 1300, 02 113 6789 | `fortune-crisis.js` |
+| Pinned help bar in a calm tab (crisis flow v2; `fortune-crisis.js` `helpBar`): 1323 always visible, the others behind "more help lines" | 1323 (free, 24 hours); 02 113 6789 (12:00–22:00), 1300 (24 hours), 191, 1669 (no hours or cost) | `fortune-crisis.js` `BAR` |
+| Hope frame closing line of a calm reading (`fortune-crisis.js` `HOPE`) | 1323 (free, 24 hours) | `fortune-crisis.js` |
 
 Wording of the always-visible line (final):
 

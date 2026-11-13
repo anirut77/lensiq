@@ -55,6 +55,8 @@
   "lucky.recMain": "主色",
   "lucky.recSecond": "辅助色",
   "lucky.bhumiOf": "{b}宫：{m}",
+  "lucky.calm.h": "{day}的颜色",
+  "lucky.calm.note": "依据民间信仰。穿让自己舒服的任何颜色都可以，今天好好照顾自己就够了。",
   "lucky.or": "或",
   "lucky.weekCap": "按日子和方面的吉祥色",
   "lucky.weekDay": "日子",
