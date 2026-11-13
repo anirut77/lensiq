@@ -12,3 +12,5 @@ b1e7284f51b0b3db5976ca8c9ef808adfb90ebc580859ed093545f21a333cca9  tests/unit/exa
 b5bd0417f9d4f0eb8cb2abe0f77bb7f384ffbcf0ba28b802c9fbf48bc0b6eeab  tests/python/test_plate_train.py
 df07fd0c6dca2943a6a1ae064d8518a5f2b68450cc634dfd0ba84f800f4800e2  tests/unit/plate-train-owner-1113.test.js
 a39eea0ae7341532127fcc04166113f801ec8172b0d5ce58e9f9da4ab1b73ec9  tests/python/test_plate_train_busy.py
+# Appended 2026-11-13 (review of bac5e17: B1 traversal, B2 rebinding, S2-S4), before the fixes
+f08c18af6dad0eb6f44d1ed772864e331a7f1b6db4d0c5358c45f7b3c6453bd6  tests/unit/plate-labeller-security.test.js
