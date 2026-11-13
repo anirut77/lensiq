@@ -15,3 +15,7 @@ f91d003ee9976c85a2b748ceab9d3f57c0a8c1d78f98497267855ec4e36c8b8d  holdout-p9/p9-
 081b774ed1c025b1dd977b6898d6064cb04aac128a15aeaee5fc31c6ca44c2bb  tools/pc-travel-score.mjs  # repo file
 6ad187b934e3a3d6a64449ecbd28a58871a04f8a4ee874b7a9ada497d40cfd5a  tests/unit/pc-guard-jako.test.js  # repo file
 ec63d49b104e7c8b9083363b26d6946e8deb8c582da3a9e17c04e330a807e5a9  live/live-latency.mjs  # live-scan on-device latency harness (synthetic label, with / without barcode), locked 2026-11-13T15:00:57Z before the live-scan change
+# stream F2 (branch pc-f2, 2026-11-13), appended; earlier lines unchanged
+57c98929a3290194b35cd1eabf6531ea51455768be6f34bbfc39a90d15b20928  holdout-jako-3/pcf-jako-holdout-3.json  # THIRD independent JA/KO hold-out (names without cue words), locked 2026-11-13T16:42:37Z, before the F2 guard round
+898cf1fb75d92072bd2e6ea3aa1f5256681412bd92ebdee76611361227186c93  dev2/pc-guard-complexity.test.js  # relative complexity test, locked 2026-11-13T16:46:29Z (written with the phone-scan fix; shown to fail on main 5ef01b5)
+898cf1fb75d92072bd2e6ea3aa1f5256681412bd92ebdee76611361227186c93  tests/unit/pc-guard-complexity.test.js  # repo file
