@@ -3,3 +3,5 @@ b1e7284f51b0b3db5976ca8c9ef808adfb90ebc580859ed093545f21a333cca9  tests/unit/exa
 8755341fbbaf4967749bdf26d4e3e33b35bc37c1ddda065fb94dceaa7a2f7584  tests/e2e/exam-hall-placement.e2e.mjs
 5d27aa54fb792a180bebbe4c4e67cb2b52352ade78790eb09661da79a7f8211e  tests/unit/hall-seatwatch-score.test.js
 c25349705e36375e6814f4932c2a9dd384ebbb740ce162801824d2373644cdc7  tests/unit/plate-train-prep.test.js
+2299a46f33f2a5a83c663318db0896cf3a6850b95d173c4232f117cd0144777d  tests/unit/hall-seatwatch-replay.test.js
+b5bd0417f9d4f0eb8cb2abe0f77bb7f384ffbcf0ba28b802c9fbf48bc0b6eeab  tests/python/test_plate_train.py
