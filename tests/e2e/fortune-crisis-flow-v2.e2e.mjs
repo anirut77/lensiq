@@ -38,7 +38,9 @@ export default async function ({ base, launch, check, fakeCams }) {
         const inView = await pg.evaluate(BAR_IN_VIEW);
         if (!inView.every(Boolean)) bad.push("pinned help bar not in the viewport while the reading is on screen " + S(inView));
         const after = await pg.evaluate(sessionDump);
-        const added = Object.keys(after).filter(k => !(k in before));
+        // re-lock 2026-11-14: "lq-heavy" is the camera crash guard merged from main (lensiq-crashguard.js; one boolean while a camera
+        // runs, PDPA notes section H), not part of the crisis flow; every other new key is still counted
+        const added = Object.keys(after).filter(k => !(k in before) && k !== "lq-heavy");
         if (added.length !== 1 || after[added[0]] !== "1" || added[0] !== "lq-fortune-calm") bad.push("session storage: " + S(after));
         const errs = pg.consoleErrors.filter(e => e.kind === "exception");
         if (errs.length) bad.push("script errors " + S(errs).slice(0, 300));
