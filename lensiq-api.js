@@ -120,29 +120,55 @@
     });
     return tsLoad;
   }
-  /** @param {string} action */
-  function turnstile(action) {
+  /**
+   * A fresh Turnstile token for `action` ("" when none could be had). opts (quote form, owner bug report 2026-11-13):
+   *   container  render the widget INSIDE this element (in the page flow) instead of a corner overlay
+   *   onInteractive()  Cloudflare wants the person to tick the box: the page shows its prompt
+   *   onDone(reason)   "" with a token, else "error" | "unsupported" | "timeout" | "expired"
+   * Without an interactive check it gives up after 20 s; once the person is asked, it waits up to 3 minutes. A check that
+   * is still running is never reset: a second call waits for the same result.
+   * @param {string} action @param {{container?: any, onInteractive?: () => void, onDone?: (reason: string) => void}} [opts] */
+  function turnstile(action, opts) {
+    var o = opts || {};
     var key = String(/** @type {any} */ (root).LENSIQ_TURNSTILE_SITEKEY || "").trim();
     if (!key) return Promise.resolve("");
     return turnstileLib().then(function (ts) {
-      if (!ts) return "";
+      if (!ts) { if (o.onDone) o.onDone("unsupported"); return ""; }
+      var w = tsWidgets[action] || (tsWidgets[action] = { id: null, q: [], busy: false, box: null, hooks: [] });
       return new Promise(function (resolve) {
-        var w = tsWidgets[action] || (tsWidgets[action] = { id: null, q: [] });
-        var done = false;
-        var finish = function (/** @type {string} */ t) { if (!done) { done = true; resolve(t || ""); } };
-        setTimeout(function () { finish(""); }, 15000);
+        var done = false, timer = 0;
+        var finish = function (/** @type {string} */ t, /** @type {string} */ why) {
+          if (done) return; done = true; clearTimeout(timer);
+          if (o.onDone) { try { o.onDone(t ? "" : why || "timeout"); } catch (e) { /* page hook */ } }
+          resolve(t || "");
+        };
+        var arm = function (/** @type {number} */ ms) { clearTimeout(timer); timer = /** @type {any} */ (setTimeout(function () { w.busy = false; finish("", "timeout"); }, ms)); };
         w.q.push(finish);
-        var flush = function (/** @type {string} */ t) { var q = w.q.splice(0); q.forEach(function (/** @type {any} */ f) { f(t); }); };
+        w.hooks.push(function () { arm(180000); if (o.onInteractive) { try { o.onInteractive(); } catch (e) { /* page hook */ } } });
+        arm(20000);
+        var flush = function (/** @type {string} */ t, /** @type {string} */ why) {
+          w.busy = false; var q = w.q.splice(0); w.hooks.length = 0; q.forEach(function (/** @type {any} */ f) { f(t, why); });
+        };
+        if (w.busy) return; // a check is already running: wait for its result
         try {
+          var want = o.container || null;
+          if (w.id != null && w.box && want && w.box.parentNode !== want) { try { ts.remove(w.id); } catch (e) { /* gone */ } w.id = null; }
           if (w.id == null) {
-            var box = root.document.createElement("div");
+            var box = want || root.document.createElement("div");
             box.setAttribute("data-lq-turnstile", action);
-            box.style.cssText = "position:fixed;right:12px;bottom:12px;z-index:2147483000";
-            root.document.body.appendChild(box);
-            w.id = ts.render(box, { sitekey: key, action: action, execution: "execute", appearance: "interaction-only", callback: flush, "error-callback": function () { flush(""); } });
+            if (!want) { box.style.cssText = "position:fixed;right:12px;bottom:12px;z-index:2147483000"; root.document.body.appendChild(box); }
+            w.box = box;
+            w.id = ts.render(box, { sitekey: key, action: action, execution: "execute", appearance: "interaction-only",
+              callback: function (/** @type {string} */ t) { flush(t, ""); },
+              "error-callback": function () { flush("", "error"); return true; },
+              "expired-callback": function () { flush("", "expired"); },
+              "timeout-callback": function () { flush("", "timeout"); },
+              "unsupported-callback": function () { flush("", "unsupported"); },
+              "before-interactive-callback": function () { w.hooks.slice().forEach(function (/** @type {any} */ h) { h(); }); } });
           } else ts.reset(w.id);
+          w.busy = true;
           ts.execute(w.id);
-        } catch (e) { finish(""); }
+        } catch (e) { w.busy = false; finish("", "error"); }
       });
     });
   }

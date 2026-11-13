@@ -111,13 +111,31 @@
       var href = f.email ? mailtoHref(f.email, lead, o.subject) : "";
       return { via: href ? "mailto" : f.line ? "line" : "none", ok: false, href: href || undefined, line: f.line || undefined, lineId: f.lineId || undefined, status: status };
     };
-    var A = W.LQApi;
-    if (!serverOn()) return Promise.resolve(fb(0));
-    return Promise.resolve(A.turnstile ? A.turnstile("lead") : "").then(function (/** @type {string} */ tok) {
-      return A.call("/v1/leads", { method: "POST", body: body, headers: tok ? { "X-Turnstile-Token": tok } : {} });
-    }).then(function (/** @type {any} */ r) {
-      return r && r.ok ? { via: "api", ok: true, status: r.status } : fb(r ? r.status : 0);
-    }, function () { return fb(0); });
+    // the server form (owner bug report 2026-11-13): never POST without a Turnstile token, never fall back silently;
+    // a failure says why and offers the LINE ID, and the page keeps what the customer typed
+    var failApi = function (/** @type {string} */ reason, /** @type {number} */ status) {
+      var id = quoteLine();
+      return { via: "api", ok: false, reason: reason, status: status, lineId: id || undefined, line: id ? lineUrl(id) || undefined : undefined };
+    };
+    return apiReady().then(function () {
+      var A = W.LQApi;
+      if (!serverOn()) return fb(0);
+      return Promise.resolve(A.turnstile ? A.turnstile("lead", o.turnstile) : "").then(function (/** @type {string} */ tok) {
+        if (!tok) return failApi("turnstile", 0);
+        return Promise.resolve(A.call("/v1/leads", { method: "POST", body: body, headers: { "X-Turnstile-Token": tok } })).then(function (/** @type {any} */ r) {
+          return r && r.ok ? { via: "api", ok: true, status: r.status } : failApi(r && r.status === 403 ? "turnstile" : r && r.status ? "server" : "network", r ? r.status : 0);
+        }, function () { return failApi("network", 0); });
+      });
+    });
+  }
+  /** lensiq-config.js loads lensiq-api.js after the page: when an API is configured, wait for it (up to 8 s) so a quick
+   *  "send" never takes the browser-only path by mistake */
+  function apiReady() {
+    if (!String(W.LENSIQ_API_BASE || "").trim() || W.LENSIQ_LEADS_FORM !== true) return Promise.resolve();
+    return new Promise(function (resolve) {
+      var t0 = Date.now();
+      (function poll() { if ((W.LQApi && W.LQApi.call) || Date.now() - t0 > 8000) resolve(undefined); else setTimeout(poll, 100); })();
+    });
   }
   /* ---- local queue (this browser only) + the "not sent yet" box ---- */
   function readQ() { try { var l = JSON.parse(W.localStorage.getItem(QUEUE_KEY) || "[]"); return Array.isArray(l) ? l.filter(function (x) { return x && typeof x === "object"; }) : []; } catch (e) { return []; } }

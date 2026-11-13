@@ -377,6 +377,8 @@
         </ul>
       </div>
       <form id="leadForm" novalidate>
+        <p class="lead-notice" id="leadNotice" role="note" hidden><span data-i18n="home.notice.text">หากส่งแบบฟอร์มไม่ได้ ติดต่อเราทาง LINE @632yliiw ได้ทันที</span>
+          <a class="btn ghost" href="https://line.me/R/ti/p/%40632yliiw" target="_blank" rel="noopener" data-i18n="home.notice.line">แชตทาง LINE</a></p>
         <p class="demo-note" id="leadNote" role="note"><b>โหมดเดโม:</b> <span>แบบฟอร์มนี้ไม่ได้ส่งข้อมูลไปที่ใด ข้อมูลจะถูกเก็บไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น</span></p>
         <div class="f2">
           <div class="field">
@@ -431,6 +433,8 @@
           <p class="hint" id="lqPrivacyNote"><span data-i18n="home.form.privacy">เราใช้ข้อมูลนี้เพื่อติดต่อกลับเท่านั้น และลบอัตโนมัติภายใน 180 วัน</span>
             <a href="privacy.html#p-quote" data-i18n="home.form.privacyLink">อ่านรายละเอียดและวิธีขอให้ลบ</a></p>
         </div>
+        <div id="lqTurnstile" class="lq-turnstile"></div>
+        <p class="hint" id="lqTurnstileHint" role="status" aria-live="polite" hidden data-i18n="home.ts.hint">กรุณาแตะช่องยืนยันด้านบนเพื่อยืนยันว่าเป็นคน แล้วระบบจะส่งคำขอให้อัตโนมัติ</p>
         <button class="btn primary full" type="submit" data-i18n="home.form.submit">ส่งคำขอเดโม</button>
         <p class="form-msg" id="leadMsg" role="status" aria-live="polite"></p>
         <div class="lq-pending" data-lq-pending hidden></div>

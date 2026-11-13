@@ -113,6 +113,9 @@ svg.i{width:18px;height:18px;flex:none}
 .ct-points li{display:flex;align-items:center;gap:10px}
 .ct-points svg{width:20px;height:20px;color:var(--gold);flex:none}
 #leadForm{padding:clamp(20px,4vw,28px);gap:12px}
+.lead-notice{font-size:.92rem;background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;border-radius:10px;padding:10px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}.lead-notice[hidden]{display:none}.lead-notice .btn{min-height:44px}
+.lq-turnstile:empty{display:none}.lq-turnstile{margin:8px 0;min-height:0}
+.form-msg .btn{margin:6px 6px 0 0;min-height:44px}
 .demo-note{font-size:.85rem;background:#f3f0ff;border:1px solid #ddd5ff;color:#3d2fa3;border-radius:10px;padding:10px 12px}
 .f2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .field{display:grid;gap:4px;min-width:0}
