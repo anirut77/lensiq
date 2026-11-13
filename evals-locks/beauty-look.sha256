@@ -8,3 +8,9 @@
 4b12bc7b2fd9e0bf2f1cf24782604628e9a7fee1498e74526d22dbe5f20b3761  tests/e2e/look.e2e.mjs
 # part 1b: salon catalogue text vs generated wording (owner wording 2026-11-13; locked before the salon code)
 5fabec531fdc9b44347ad7813de878938abf2c195e6bfb4d1cd1908d091bb22c  tests/unit/look-salon.test.js
+# part 2: live preview (locked 2026-11-13, before lensiq-look-preview.js and before any measurement; the feasibility probe
+#   tools/look-probe.mjs used seeds 9000-9013 only, outside the set). Protocol, targets, set generator and tests:
+20d0836b37e43fd0dae34f2e742b7a9d15644c116628275295c75c6978119283  docs/LOOK-PREVIEW-EVAL.md
+c8fe7cbea9218d64a4bb7d07d75ddaf67c091dbe5733e238a2eecc8a2b4df822  tools/look-synth-face.js
+d98d4a82071c6c8e0feea1eb3e5675515cd03ecc64d2e6ee2bbc797423b6dbf6  tests/unit/look-preview.test.js
+c8a6aa2fe220ef481c675162f4c9efbde2285de8975cf02de12752fccff3593e  tests/e2e/look-preview.e2e.mjs
