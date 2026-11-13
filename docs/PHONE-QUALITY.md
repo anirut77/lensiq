@@ -60,7 +60,29 @@ canvases and video frames). The check fails when a page's peak goes above its bu
 
 Budget rule: budget = the highest peak measured (CI or Mac) x 1.5, rounded up to the next 10 MB (heap: next 5 MB).
 
-(Numbers: section 4.)
+Measured peaks over 60 s, MB (source: synthetic, headless Chrome; "Mac" = local run 2026-11-13, "CI" = GitHub Actions
+`ubuntu-latest`, run 43449439495). Renderer RSS = the largest renderer process (v2 of the procedure). With `?fakedet`
+most pages skip their detector model, so these are camera + page + frame-loop figures; studio and photobooth load their
+real segmentation models.
+
+| Page | JS heap Mac | JS heap CI | Renderer RSS Mac | Renderer RSS CI | Budget heap | Budget RSS |
+|---|---|---|---|---|---|---|
+| exam-lab | 4.7 | 4.3 | 116.6 | 293.4 | 10 | 450 |
+| attendance | 5.7 | 5.6 | 122.5 | 289.7 | 10 | 440 |
+| parking | 2.6 | 2.6 | 136.6 | 281.0 | 5 | 430 |
+| crowd | 5.1 | 5.5 | 172.7 | 235.1 | 10 | 360 |
+| product-check (medicine.html) | 3.4 | 3.1 | 119.2 | 553.6 | 10 | 840 |
+| nutrition | 2.0 | 2.1 | 108.1 | 203.2 | 5 | 310 |
+| faceread | 5.5 | 5.0 | 154.7 | 513.8 | 10 | 780 |
+| studio | 5.3 | 5.6 | 118.6 | 408.3 | 10 | 620 |
+| photobooth | 4.7 | 4.8 | 187.5 | 873.1 | 10 | 1310 |
+
+Reading: the JS heap is small everywhere (models and frames live outside it). Renderer memory on Linux is the
+figure to watch: **photobooth (873 MB) and product check (554 MB) are the heaviest**; on an iPhone, Safari may kill a
+tab well below 1 GB on older models, so these two pages are the first to check with the owner checklist (a reload or
+the crash-guard note is the symptom). Mac figures are lower because macOS compresses memory. One run per platform:
+the 1.5x headroom covers run-to-run noise; if CI flakes on a budget, the fix is in the page or a new measured
+budget with a written reason, never a silent raise.
 
 WebKit gives Playwright no memory figure, so iPhone memory is not measured automatically; the owner checklists ask
 for reloads, the crash-guard note, heat and battery on a real iPhone instead.
