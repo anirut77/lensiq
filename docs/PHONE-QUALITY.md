@@ -106,4 +106,10 @@ can. Locked test: `tests/e2e/camera-noframes.e2e.mjs` (frozen fake camera).
 MediaStream (its own mock camera or a canvas stream) to a `<video>`, headless or headed under xvfb (diagnostic runs
 43448812499, 43449439495, 43452863022, 43453981652 on the temporary branch `phone-quality-dbg`). On macOS WebKit the
 same flows pass. Flows that need real frames (studio shoot, photobooth shoot) therefore need a macOS runner for the
-WebKit files; that changes the approved CI layout (3 Linux shards) and waits for the owner (stream report).
+WebKit files.
+
+**CI layout since 2026-11-14 (coordinator decision, option 1; public repo, macOS runners cost nothing):** every WebKit
+file (`*webkit*.e2e.mjs`: the phone flows and the quote-form files) runs in shard 4/4 on `macos-latest` (job
+`e2e-webkit-mac`); the other files keep their 3 balanced Linux shards (`--shard=i/4 --mac-last`, same split as before).
+The "every test file ran exactly once" job checks all 4 manifests. Same `--retry=1`, no skips. The Linux shards no
+longer install WebKit. macOS is also the closer WebKit port to iOS Safari.
