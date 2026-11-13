@@ -1181,7 +1181,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var w = ov.width, h = ov.height; octx.clearRect(0, 0, w, h);
     tpl = tpl || currentGuide();
     octx.lineWidth = Math.max(3, w / 240); octx.setLineDash([w / 60, w / 90]); octx.lineJoin = "round";
-    octx.strokeStyle = ok ? "#22d3ee" : "rgba(255,255,255,.85)";
+    octx.strokeStyle = LQHint.color(ok ? "ok" : "wait");
     octx.beginPath(); tpl.contour.forEach(function (q, i) { if (i) octx.lineTo(q[0], q[1]); else octx.moveTo(q[0], q[1]); }); octx.closePath();
     octx.fillStyle = "rgba(34,211,238,.06)"; octx.fill(); octx.stroke(); octx.setLineDash([]);
     if (pts) {
@@ -1224,7 +1224,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var x = probe.getContext("2d", { willReadFrequently: true }); x.drawImage(src, c[0] - r, c[1] - r, 2 * r, 2 * r, 0, 0, 32, 32);
     var d = x.getImageData(0, 0, 32, 32).data, s = 0; for (var i = 0; i < d.length; i += 4) s += 0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2];
     var lum = s / (d.length / 4);
-    q.push({ id: "light", label: ["palm.qc.light", "แสงพอดี"], ok: lum > 80 && lum < 235, tip: lum <= 80 ? ["palm.qc.dark", "แสงน้อย ลองเปิดไฟฉายหรือหันเข้าหาแสง"] : ["palm.qc.bright", "แสงจ้าเกินไป ลองเลี่ยงแสงสะท้อน"] });
+    q.push({ id: "light", lum: lum, label: ["palm.qc.light", "แสงพอดี"], ok: lum > 80 && lum < 235,
+      tip: lum <= 80 ? ["palm.qc.dark", "แสงน้อย ลองเปิดไฟฉายหรือหันเข้าหาแสง"] : ["palm.qc.bright", "แสงจ้าเกินไป ลองเลี่ยงแสงสะท้อน"] });
     return q;
   }
   var lastQ = null, prevHand = null;
@@ -1239,6 +1240,30 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     wEl.hidden = !seenWrong;
     if (seenWrong) wEl.textContent = S.sideMode === "both" ? T("palm.guide.wrongBoth", "ตอนนี้เห็น{seen} — รอบนี้อ่าน{side}ไว้", { seen: sideTh(seenWrong), side: sideTh(exp) }) : T("palm.guide.wrong", "ตอนนี้เห็น{seen} — เลือก{side}ไว้", { seen: sideTh(seenWrong), side: sideTh(exp) });
   }
+  /* ---------- คำแนะนำสดใต้ภาพกล้อง (lensiq-capture-hint.js): ไกลไป / ใกล้ไป / ให้อยู่ในกรอบ / ดีแล้ว ถือนิ่ง ๆ ---------- */
+  var hintUi = LQHint.mount(cam, { id: "plHint", kind: "hand" }), hintTrack = LQHint.createTracker({ far: 0.65, near: 1.2, center: 0.25, tiltMax: 20 });
+  hintUi.el.hidden = true;
+  var bboxOf = function (pp) {
+    var xs = pp.map(function (q) { return q[0]; }), ys = pp.map(function (q) { return q[1]; }), x0 = Math.min.apply(null, xs), y0 = Math.min.apply(null, ys);
+    return { x: x0, y: y0, w: Math.max.apply(null, xs) - x0, h: Math.max.apply(null, ys) - y0 };
+  };
+  /** มุมเอียงของมือเทียบกับกรอบ (องศา): ทิศข้อมือ → โคนนิ้วกลาง ของมือจริง เทียบกับของแม่แบบ */
+  var tiltDeg = function (pts, raw) {
+    var a = function (p) { return Math.atan2(p[9][0] - p[0][0], p[0][1] - p[9][1]); }, d = (a(pts) - a(raw)) * 180 / Math.PI;
+    return ((d + 540) % 360) - 180;
+  };
+  /** สถานะคำแนะนำจากสิ่งที่วัดอยู่แล้ว (กรอบมือ จำนวนมือ ขนาด แสง ข้างมือ) — ไม่มีโมเดลใหม่ ไม่เก็บภาพ */
+  function updateHint(r, n, q, tpl, W, H, wrong) {
+    var it = function (id) { return q.filter(function (x) { return x.id === id; })[0]; }, size = it("size"), light = it("light");
+    var st = hintTrack.update({ subject: r ? r.box : null, frame: bboxOf(tpl.contour), image: { w: W, h: H }, n: n, small: !!(size && !size.ok),
+      tilt: r ? tiltDeg(r.pts, tpl.raw) : null, dark: !!(light && light.lum <= 80),
+      // every item of the page's own checklist (light too bright, fingertips at the picture edge, wrong side ...) must pass
+      // before the hint says ok (independent review B2)
+      blocked: !!wrong || !q.every(function (x) { return x.ok; }) }, performance.now()).state;
+    hintUi.el.hidden = false; hintUi.set(st);
+    return st;
+  }
+  function hideHint() { hintTrack.reset(); hintUi.set("wait"); hintUi.el.hidden = true; }
   /** ป้ายเตือนบนภาพกล้องเมื่อเห็นมากกว่า 1 มือ */
   function renderMulti(n) { var el = $("#plMulti"); if (el) el.hidden = !(n > 1); }
   async function startLoop() {
@@ -1255,12 +1280,16 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
           if (exp && rs) lastQ.push({ id: "side", label: ["palm.qc.side", "เป็น{side}ตามที่เลือก", { side: sideTh(exp) }], ok: !wrong, tip: ["palm.qc.side.tip", "ตอนนี้เห็น{side}", { side: sideTh(rs.side) }] });
           var tpl = currentGuide(), fit = r ? PC.fitScore(r.pts, tpl) : null;
           S.guide = { side: tpl.side, fit: fit, wrong: wrong, seen: rs ? rs.side : null, mirrored: tpl.mirrored, thumbOnScreen: tpl.thumbOnScreen };
-          if (!S.busy) { renderQc(lastQ); drawGuide(r && r.pts, lastQ.every(function (q) { return q.ok; }), ph.others, tpl); renderMulti(ph.n); renderGuideBar(tpl, fit, wrong ? rs.side : null, exp); }
+          if (!S.busy) {
+            var hs = updateHint(r, ph.n, lastQ, tpl, W, H, wrong);
+            renderQc(lastQ); drawGuide(r && r.pts, hs === "ok", ph.others, tpl); renderMulti(ph.n); renderGuideBar(tpl, fit, wrong ? rs.side : null, exp);
+          }
         } catch (e) { console.warn(e); }
       } else if (!ready && video.videoWidth) drawGuide(null, false);
       await sleep(400);
     }
     looping = false;
+    hideHint();
   }
 
   btnCam.addEventListener("click", async function () {

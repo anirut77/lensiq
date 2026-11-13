@@ -9,7 +9,7 @@ import globals from "globals";
 // globals the pages share (vendor libraries + LENSIQ modules loaded with <script>)
 const LENSIQ = Object.fromEntries([
   "faceapi", "tf", "ort", "pdfjsLib", "docx", "cocoSsd", "handPoseDetection", "mobilenet",
-  "LQCam", "LQDetect", "LQTrack", "LQHand", "LQStats", "LQAgg", "LQSite", "LENSIQ_AGE_GENDER", "LQVault", "LQI18N", "LQI18N_Q", "LQModels", "LQFortune",
+  "LQCam", "LQHint", "LQDetect", "LQTrack", "LQHand", "LQStats", "LQAgg", "LQSite", "LENSIQ_AGE_GENDER", "LQVault", "LQI18N", "LQI18N_Q", "LQModels", "LQFortune",
   "LQStudio", "LQKit", "LENSIQ_API_BASE", "LENSIQ_FACEPARSE", "LENSIQ_BRAND", "LENSIQ_ANALYTICS", "LENSIQ_TURNSTILE_SITEKEY", "LQApi", "LQAnalytics",
   "LQInsightsAnalysis", "LQInsightsCards", "LQInsightsCharts", "LQInsightsData", "LQInsightsDemo", "LQInsightsUI",
   "PBHQ", "PBOutfits", "PBTpl", "StudioCore", "StudioQA", "NMCore", "FR_KB",
