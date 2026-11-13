@@ -507,7 +507,8 @@
     return box;
   }
   // only one bar is sticky: the dock in the reading's section (or the line under it until the dock exists); the page bar is fixed
-  const BAR_CSS = ".lq-helpbar.lq-helpline-dock,.lq-helpbar.lq-helpline-calm{position:sticky;bottom:0;z-index:6}.lq-helpbar{margin:10px 0 0;padding:8px 12px;border-radius:12px;background:#0b3b5a;color:#fff;" +
+  const BAR_CSS = ".lq-helpbar.lq-helpline-dock,.lq-helpbar.lq-helpline-calm{position:sticky;bottom:0;z-index:6}" +
+    ".lq-helpbar{margin:10px 0 0;padding:8px 12px;border-radius:12px;background:#0b3b5a;color:#fff;" +
     "box-shadow:0 -2px 10px rgba(20,50,74,.25);font-size:.95rem;line-height:1.45}.lq-helpbar p{margin:0}.lq-helpbar a.lq-helpline-tel{color:#fff;font-weight:700;" +
     "display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:0 10px;border-radius:10px;background:rgba(255,255,255,.16);" +
     "text-decoration:none}.lq-helpbar details{margin-top:2px}.lq-helpbar summary{cursor:pointer;min-height:44px;display:flex;align-items:center}" +
