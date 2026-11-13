@@ -33,7 +33,7 @@
     },
     // skin-whitening and colourism (same rule as Style: no "ใส่แล้วผิวขาว / 显白")
     whitening: {
-      th: /ผิวขาว|ขาวใส|ขาวขึ้น|หน้าขาว|ไวท์เทนนิ่ง|ผิวสว่าง|หน้าสว่าง|ผิวคล้ำ|ดำคล้ำ|ผิวดำ|ผิวเข้ม|ผิวกระจ่าง|ขาวออร่า|ผิวดูขาว|หน้าดูขาว/,
+      th: /ผิวขาว|ขาวใส(?![\u0E48-\u0E4B])|ขาวขึ้น|หน้าขาว|ไวท์เทนนิ่ง|ผิวสว่าง|หน้าสว่าง|ผิวคล้ำ|ดำคล้ำ|ผิวดำ|ผิวเข้ม|ผิวกระจ่าง|ขาวออร่า|ผิวดูขาว|หน้าดูขาว/,
       en: new RegExp("\\bwhiten\\w*|\\blighten\\w* (?:your |the )?(?:skin|complexion|face)|\\bskin[- ]?lighten\\w*|\\bbrighten\\w* (?:your |the )?(?:skin|complexion|face)\\b|" +
         "\\bfair(?:er)? (?:skin|complexion)\\b|\\blooks? fair(?:er)?\\b|\\b(?:dark|darker|light|lighter) skin\\b|\\bskin bleach\\w*|\\bbleach\\w* (?:your |the )?skin\\b"),
       zh: /美白|显白|顯白|提亮肤色|提亮膚色|变白|變白|肤色暗|膚色暗|皮肤黑|皮膚黑|黑皮|白皙|显黑|顯黑/
@@ -55,7 +55,8 @@
     },
     // luck suffers if the user does not follow the suggestion
     threat: {
-      th: /(?:ถ้า|หาก)ไม่(?:แต่ง|ทำ|เปลี่ยน|ลอง|ใส่|ใช้|ตัด|เขียน|เติม)|ไม่งั้น|ไม่อย่างนั้น|มิฉะนั้น|ดวงจะ(?:ตก|เสีย|แย่|ไม่ดี)|โชคจะ(?:หาย|หมด|เสีย|ไม่ดี)|เสียโชค|เสียดวง/,
+      th: new RegExp("(?:ถ้า|หาก)ไม่(?:แต่ง|ทำ|เปลี่ยน|ลอง|ใส่|ใช้|ตัด|เขียน|เติม)[^]{0,30}(?:ดวง|โชค|ลาภ|เงิน|ทรัพย์|การงาน|รุ่ง|ซวย|เสีย|ตก|หาย|หมด|ไม่ดี|ไม่มีคน)|" +
+        "ไม่งั้น|ไม่อย่างนั้น|มิฉะนั้น|ดวงจะ(?:ตก|เสีย|แย่|ไม่ดี)|โชคจะ(?:หาย|หมด|เสีย|ไม่ดี)|เสียโชค|เสียดวง"),
       en: new RegExp("\\botherwise\\b|\\bor else\\b|\\bif you (?:don'?t|do not|won'?t|will not)\\b|\\bunless you\\b|\\b(?:luck|fortune)(?: will)? (?:suffer|drop|fall|decline)\\w*|" +
         "\\blose (?:your |some )?luck\\b|\\bbad for (?:your )?(?:luck|fortune)\\b|\\bhurts? (?:your )?(?:luck|fortune)\\b"),
       zh: /否则|否則|不然|不改的话|不改的話|(?:运势|運勢|运气|運氣)(?:会|會)?(?:下降|变差|變差|变坏|變壞|受损|受損)|影响运势|影響運勢|破财|破財|失运|倒运/
@@ -78,8 +79,9 @@
       zh: /更白|冷白皮|提亮气色|去黄|白一度|显白/
     },
     negative: {
-      th: /(?:(?<!เ)ปิด|แก้|พราง|ซ่อน)(?:คิ้ว|หน้า|จมูก|ปาก|ตา|คาง|โหนก|กราม)|หน้าใหญ่|เรียวลง|(?:ใหญ่|เล็ก|บาง|หนา|กลม|กว้าง|แคบ|สั้น|ยาว|โต)เกินไป|(?:ใหญ่|เล็ก|บาง|กลม)ไป/,
-      en: new RegExp("\\bslim\\w* (?:a|your|the)\\b|\\b(?:wide|big|flat|broad|crooked|small|large) (?:nose|forehead|face|jaw)\\b|\\bweak chin\\b|\\bconceal\\w*|" +
+      th: /(?<!เ)ปิด(?:คิ้ว|จมูก|คาง|โหนก|กราม)|(?:แก้|พราง|ซ่อน)(?:คิ้ว|หน้า|จมูก|ปาก|ตา|คาง|โหนก|กราม)|หน้าใหญ่|เรียวลง|(?:ใหญ่|เล็ก|บาง|หนา|กลม|กว้าง|แคบ|สั้น|ยาว|โต)เกินไป/,
+      en: new RegExp("\\bslim\\w* (?:a|your|the)\\b|\\b(?:wide|big|flat|broad|crooked|small|large) (?:nose|forehead|face|jaw)\\b|\\bweak chin\\b|" +
+        "\\bconceal(?:s|ed|ing)? (?:your|the|a|that|those|this)\\b|" +
         "\\btoo (?:small|big|large|thin|wide|round|narrow|short|long|thick|flat)\\b|\\bdouble chin\\b|\\bslimming\\b|\\bnarrow(?:s|ing)? (?:the|your) (?:face|nose)\\b"),
       zh: /修饰|显脸小|脸小|大脸|太(?:圆|薄|小|大|宽|短|长|厚|扁)|瘦脸|遮盖/
     },
@@ -89,7 +91,8 @@
       zh: /年轻|显嫩|逆龄|冻龄/
     },
     threat: {
-      th: /ไม่(?:ทำ|แต่ง|เขียน|เติม|ลอง|ใส่)[^]{0,24}(?:แล้ว|จะ)|จะไม่(?:รุ่ง|มีคน|ก้าวหน้า|มีใคร)|ไม่รุ่ง|ขาด[^]{0,16}จะ/,
+      th: new RegExp("ไม่(?:ทำ|แต่ง|เขียน|เติม|ลอง|ใส่)[^]{0,24}(?:แล้ว|จะ)[^]{0,12}(?:ดวง|โชค|ลาภ|เงิน|การงาน|รุ่ง|ซวย|เสีย|ตก|หาย|หมด|ไม่มีคน|ไม่มีใคร)|" +
+        "จะไม่(?:รุ่ง|มีคน|ก้าวหน้า|มีใคร)|ไม่รุ่ง|ขาด[^]{0,16}จะ"),
       en: /\bskip (?:this|it)\b|\bstall\w*|\bwithout\b[^.]{0,40}\bwill\b|\bdrift away\b|\bnobody will\b/,
       zh: /不(?:画|改|做|修|染|戴)的话|没人帮|没有人帮/
     },
@@ -102,6 +105,7 @@
   /* word FAMILIES (coordinator review @34b6f0a, 2026-11-13): stems and patterns rather than single strings, so new phrasings of
      the same idea are caught. Thai runs on the squashed text; English on the lower-cased text and, where marked sq, on squashed
      Latin ("W h i t e n i n g", "ug ly"). */
+  var FEAT_TH = "(?:คิ้ว|หน้าผาก|หน้า|จมูก|ปาก|ริมฝีปาก|ตา|คาง|กราม|โหนกแก้ม|แก้ม|หู|คอ|ไรผม|ผม)";
   var ADJ_TH = "(?:กว้าง|แคบ|ใหญ่|เล็ก|บาง|หนา|สั้น|ยาว|กลม|โต|แบน|ต่ำ|สูง|ห่าง|ชิด|เหลี่ยม|แหลม|เหี่ยว|โหนก)";
   /** @type {Record<string, {th?: RegExp, en?: RegExp, zh?: RegExp, sq?: RegExp}>} */
   var FAMILY = {
@@ -112,23 +116,24 @@
       en: new RegExp("\\b(?:ombre|ombré|powder|nano|micro\\w*|hybrid|combo|feather\\w*|\\dd|machine) ?(?:brows?|lips?|liner|eyeliner)\\b|\\blip blush\\w*|" +
         "\\bembroider\\w*|\\bmicropigment\\w*|\\bpigment(?:ed|ation)? (?:brows?|lips?|liner|eyeliner)\\b|\\bnanoblad\\w*|\\bshading brows?\\b|\\bink(?:ed)? (?:brows?|lips?)\\b"),
       sq: /microblad|micropigment|nanoblad|embroider|tattoo|ombrebrow|powderbrow|nanobrow|lipblush/,
-      zh: new RegExp("(?<![方指别胸])针(?![对织线])|(?:飘|雾|粉雾|水雾|丝雾|韩式|半永久|立体)眉|纹(?:眉|唇|眼|绣|身|发际)|绣(?:眉|唇|眼)|植眉|眉毛种植|" +
+      zh: new RegExp("(?<![方指别胸耳])针(?![对织线])|(?:飘|雾|粉雾|水雾|丝雾|韩式|半永久|立体)眉|纹(?:眉|唇|眼|绣|身|发际)|绣(?:眉|唇|眼)|植眉|眉毛种植|" +
         "唇(?:部)?(?:纹|绣|漂)|漂唇|美瞳线|微整|医美|整形")
     },
     whitening: {
       th: /คล้ำ|ขาวขึ้น|ขาวกระจ่าง|หน้าหมอง|ผิวหมอง|ผิวโทรม|ปรับผิว|ผิวดูสว่าง/,
       en: /\bbright(?:er|en\w*) (?:complexion|skin|face)\b|\btone[- ]?up\b|\bdull(?:ness)? (?:skin|complexion)\b|\beven(?:s|ing)? (?:out )?(?:your |the )?skin\b|\bskin tone\b/,
       sq: /whiten|bleach|lightening|skinlighten|fairness|brighterskin|brightercomplexion|toneup/,
-      zh: /暗沉|发黄|蜡黄|提亮|亮白|嫩白|透白|白皙|变白|黑黄|肤色不均|素颜霜/
+      zh: /暗沉|发黄|蜡黄|提亮(?:肤|气|脸|皮|面|整体)|亮白|嫩白|透白|白皙|变白|黑黄|肤色不均|素颜霜/
     },
     negative: {
-      th: new RegExp(ADJ_TH + "(?:เกิน(?!กว่า)|ไป(?!ทาง|ที่|ถึง|ยัง|หา|ด้วย|ให้|เล็กน้อย|ข้าง|อีก|ตาม|เลย|แล้ว))|จุดอ่อน|ข้อเสีย|" +
+      th: new RegExp(FEAT_TH + "[^]{0,8}" + ADJ_TH + "(?:เกิน(?!กว่า)|ไป(?!จน|จรด|ทาง|ที่|ถึง|ยัง|หา|ด้วย|ให้|เล็กน้อย|ข้าง|ด้าน|อีก|ตาม|เลย|แล้ว|ก่อน|ทีละ|เรื่อย))|" +
+        FEAT_TH + "[^]{0,10}(?:จุดด้อย|ข้อด้อย|ไม่ค่อยดี|ไม่สวย|ไม่เป็นมงคล|อัปมงคล|เสียเปรียบ|แย่|ด้อย)|จุดอ่อน|ข้อเสีย|" +
         "ไม่(?:เป็น)?มงคล|เป็นปัญหา|ปัญหา(?:ของ|ที่|เรื่อง)?(?:หน้า|คิ้ว|จมูก|ปาก|ตา|คาง|ผิว|ผม)|ไม่ค่อย(?:สวย|ดี|หล่อ|เข้า|งาม)|ไม่(?:สวย|หล่อ|งาม|เข้ากับหน้า)|" +
         "เสียโฉม|ขัดลาภ|(?:ทำลาย|ขวาง|บัง|ปิด)(?:โชค|ลาภ|ดวง)|ดวงเสีย"),
       en: new RegExp("\\bproblem\\w*|\\bbreaks? (?:the |your )?(?:luck|fortune)\\b|\\binauspicious\\b|\\bweak (?:point|spot|feature|area)s?\\b|" +
-        "\\bnot (?:so |very |that )?(?:pretty|nice|good|great|attractive)\\b|\\bfaults?\\b|\\bshortcomings?\\b|\\btoo (?!much\\b)[a-z]+\\b|\\bunfortunate\\b"),
+        "\\bnot (?:so |very |that )?(?:pretty|nice|good|great|attractive)\\b|\\bfaults?\\b|\\bshortcomings?\\b|\\bunfortunate\\b"),
       sq: /ugly|ugli|unattractive/,
-      zh: new RegExp("问题|不吉|不旺|破相|短板|不够(?:好看|漂亮|大|高|挺|美)|过(?:宽|窄|大|小|高|低|短|长|厚|薄|圆|方)|太[^\\d，。、\\s]|不好看|丑")
+      zh: new RegExp("问题|不吉|不旺|破相|短板|不够(?:好看|漂亮|大|高|挺|美)|过(?:宽|窄|大|小|高|低|短|长|厚|薄|圆|方)|太(?:圆|薄|小|大|宽|短|长|厚|扁|高|低|窄|尖|方|塌|肿|胖|瘦|粗|细|淡|浓|黑|黄|老)|不好看|丑")
     },
     score: {
       th: /\d+(?:เต็ม|จาก|ใน)\d+|เต็ม(?:10|สิบ|100|ร้อย)|อันดับ\d|อันดับที่|ที่\d(?:ของ|ใน)|เปอร์เซ็นต์ความ|ระดับ\d/,
@@ -141,10 +146,43 @@
       zh: /购物车|立即购买|马上买|下单|拍下/
     }
   };
+  /** second family table (held-out measure of 9b2d28b, 2026-11-14) @type {Record<string, {th?: RegExp, en?: RegExp, zh?: RegExp, sq?: RegExp}>} */
+  var FAMILY2 = {
+    negative: {
+      en: new RegExp("\\b(?:brows?|eyebrows?|nose|lips?|mouth|eyes?|chin|jaw(?:line)?|forehead|face|cheeks?|cheekbones?|ears?|hairline|smile)(?: shape)? " +
+        "(?:is|are|looks?|seems?)(?: \\w+)? (?:bad|weak|unlucky|wrong|poor|unfortunate|not ideal|less than ideal|problematic|a weak\\w*|a flaw|a minus|a drawback|inauspicious)\\b"),
+      zh: /(?:眉|鼻|嘴|唇|眼|下巴|额头|脸|颧骨|耳|发际线)[^，。]{0,4}(?:不理想|欠佳|不佳|减分|是缺点|是弱点|有问题|不旺)/
+    },
+    score: {
+      th: /(?:สวย|หล่อ|ดูดี|เด็ก|อ่อน|น่ามอง|เด่น)กว่า(?:คนอื่น|เพื่อน|ใคร|ทุกคน|คนทั่วไป|อายุ|วัย)|ดูดีกว่า|อ่อนกว่าอายุ/,
+      en: new RegExp("\\b(?:better|prettier|younger|nicer|hotter|more (?:beautiful|handsome|attractive))(?:[- ]looking)? than\\b|" +
+        "\\bthan (?:everyone|others|other people|your friends|most people)\\b|\\bturns? heads\\b|\\bhead-?turn\\w*"),
+      zh: /比(?:别人|其他人|同龄人|朋友|以前|旁人)[^，。]{0,6}(?:美|好看|年轻|漂亮|帅|小)|回头率|更好看|变好看/
+    },
+    threat: {
+      th: /(?:เสีย|สูญ|หมด)(?:เงิน|ทรัพย์|ลาภ|โชค)|ทรัพย์รั่ว|เงินรั่ว|รั่วไหล|เงินจะ(?:รั่ว|หาย|ไหล)|โชคหาย|ขาดลาภ/,
+      en: new RegExp("\\b(?:lose|loses|losing|lost|leak\\w*|drain\\w*|bleed\\w*) (?:your |some |all )?(?:money|wealth|luck|fortune|income|savings)\\b|" +
+        "\\b(?:money|wealth|luck|fortune)(?: will)? (?:leaks?|drains?|slips?|bleeds?)\\w*"),
+      zh: /漏财|散财|财运(?:差|下降|流失|不好)|守不住财|失财|运气(?:变)?差/
+    },
+    procedure: {
+      th: /ทรีตเมนต์|เมโส|ยิงเลเซอร์|โปรแกรม(?:หน้า|ผิว)/,
+      en: /\bthermage\b|\bultherap\w*|\bhyaluron\w*|\bmesotherap\w*|\bbotulinum\b|\bthread(?:ing)? lift/,
+      sq: /filler|laser|thermage|ultherap|hyaluron|mesotherap|inject|tattoo|surgery|botox/
+    },
+    whitening: { sq: /whiter|whiten|bleach/ },
+    purchase: {
+      th: /จองคิว|จองได้|นัดคิว/,
+      en: /\bpre-?orders?\b|\bbook (?:now|today|a slot)\b|\breserve now\b/,
+      zh: /加购|预约|预订/
+    }
+  };
   // Thai marks that are often mistyped or used to break a word (tone marks, thanthakhat, phinthu, nikhahit, yamakkan, mai taikhu)
   var MARKS = /[็-๎ฺ]/g;
   /** "bare" Thai: SARA AM -> SARA AA and every mark removed, so "สัก์คิ้ว", "ผิวขำว" read like "สักคิว", "ผิวขาว" @param {string} s */
-  var bare = function (s) { return s.replace(/ำ/g, "า").replace(MARKS, ""); };
+  var bare = function (s) { return s.replace(/\u0E33/g, "\u0E32").replace(MARKS, ""); };
+  /** a pattern alternative without marks; SARA AM is kept (and such alternatives are skipped) so "ทา" never reads as "ทำ" @param {string} s */
+  var bareAlt = function (s) { return s.replace(MARKS, ""); };
   /** bare variants of the Thai alternatives that are long enough not to collide with ordinary words (>= 4 bare letters)
    *  @param {RegExp} rx @returns {RegExp|null} */
   function bareRx(rx) {
@@ -157,12 +195,12 @@
       if (c === "|" && depth === 0) { alts.push(cur); cur = ""; } else cur += c;
     }
     alts.push(cur);
-    var keep = alts.map(bare).filter(function (a) { return (a.match(/[ก-ฮ]/g) || []).length >= 4 && !/\(\?<!/.test(a); });
+    var keep = alts.map(bareAlt).filter(function (a) { return (a.match(/[\u0E01-\u0E2E]/g) || []).length >= 4 && !/\(\?<!/.test(a) && !/\u0E33/.test(a); });
     return keep.length ? new RegExp(keep.join("|")) : null;
   }
   /** @type {{code: string, rx: RegExp}[]} */
   var BARE = [];
-  [LINT, EXTRA, FAMILY].forEach(function (T) {
+  [LINT, EXTRA, FAMILY, FAMILY2].forEach(function (T) {
     Object.keys(T).forEach(function (code) { var r = T[code].th && bareRx(T[code].th); if (r) BARE.push({ code: code, rx: r }); });
   });
   var OWN = Object.keys(LINT);
@@ -189,7 +227,7 @@
       if (m) out.push({ code: OWN[i], match: m[0].slice(0, 40) });
     }
     var has = function (/** @type {string} */ c) { return out.some(function (h) { return h.code === c; }); };
-    [EXTRA, FAMILY].forEach(function (T) {
+    [EXTRA, FAMILY, FAMILY2].forEach(function (T) {
       for (var code in T) {
         if ((salon && code === "procedure") || has(code)) continue;
         var x = T[code], k = null;
