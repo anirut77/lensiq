@@ -142,6 +142,7 @@
   "exam.hall.drawing": "在画面上点击放置座位 {id} 的角点（3 个或以上），然后按“闭合座位形状”",
   "exam.hall.dupSeat": "座位号不能为空，也不能重复",
   "exam.hall.engine0": "尚未打开摄像头",
+  "exam.hall.exportSeats": "导出座位布局（用于测量的 JSON 文件）",
   "exam.hall.export": "导出事件（供无网络的面板使用的文件）",
   "exam.hall.faceErr": "人脸计数（实验性）无法在本设备运行，已关闭。座位观察照常工作",
   "exam.hall.faceOn": "统计画面中的人脸（实验性：目前找不到小脸或远处的脸；仅在本设备显示，不发送到面板）",

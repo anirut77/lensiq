@@ -21,9 +21,12 @@ def main():
     a.add_argument("-b", "--batch", type=int, default=16)
     a.add_argument("--device", choices=["cpu", "mps"], default="cpu")
     a.add_argument("--out", required=True)
+    a.add_argument("--export", default="", help="write this ONNX file from the checkpoint -c instead of training")
     o = a.parse_args()
     sys.path.insert(0, o.yolox)
     import torch
+    if o.export:
+        return export(o)
     dev = o.device if (o.device == "cpu" or torch.backends.mps.is_available()) else "cpu"
     torch.cuda.set_device = lambda *x, **k: None
     import yolox.core.trainer as T
@@ -51,6 +54,8 @@ def main():
         self.amp_training = False
 
     T.Trainer.__init__ = init
+    # no COCO evaluation during training (its evaluator is CUDA-bound in 0.3.0): keep the checkpoint instead
+    T.Trainer.evaluate_and_save_model = lambda self: self.save_ckpt("last_epoch")
 
     exp = get_exp(o.exp, None)
     exp.output_dir = o.out
@@ -68,7 +73,32 @@ def main():
                               resume=False, ckpt=o.ckpt, start_epoch=None, num_machines=1, machine_rank=0, fp16=False, cache=False,
                               occupy=False, logger="tensorboard", opts=[])
     os.makedirs(o.out, exist_ok=True)
-    T.Trainer(exp, args).train()
+    try:
+        T.Trainer(exp, args).train()
+    except BaseException:
+        import traceback
+        traceback.print_exc(file=sys.__stderr__)
+        raise
+
+
+def export(o):
+    """ONNX as YOLOX 0.3.0 tools/export_onnx.py writes it (raw head: decode_in_inference = False, input "images", output
+    "output", opset 13), done here because that script calls torch.onnx._export, which current PyTorch no longer has"""
+    import torch
+    from yolox.exp import get_exp
+    exp = get_exp(o.exp, None)
+    model = exp.get_model()
+    ck = torch.load(o.ckpt, map_location="cpu")
+    model.load_state_dict(ck["model"] if "model" in ck else ck)
+    model.eval()
+    model.head.decode_in_inference = False
+    dummy = torch.randn(1, 3, exp.test_size[0], exp.test_size[1])
+    torch.onnx.export(model, dummy, o.export, input_names=["images"], output_names=["output"], opset_version=13, dynamo=False)
+    import onnx
+    m = onnx.load(o.export)
+    onnx.checker.check_model(m)
+    print("onnx:", o.export, [(i.name, [d.dim_value for d in i.type.tensor_type.shape.dim]) for i in m.graph.input],
+          [(x.name, [d.dim_value for d in x.type.tensor_type.shape.dim]) for x in m.graph.output])
 
 
 if __name__ == "__main__":

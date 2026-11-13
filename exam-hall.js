@@ -153,6 +153,12 @@
     seats = keep.concat(E.gridSeats({ x: 0.04, y: 0.3, w: 0.92, h: 0.66 }, rows, cols, ids));
     saveSeats();
   });
+  // seat layout export (numbers only: seat ids and polygons; used by tools/hall-seatwatch-replay.mjs and the session record)
+  $("#exportSeats").addEventListener("click", () => {
+    const b = new Blob([JSON.stringify({ format: "lensiq-exam-seats", v: 1, room, frame: { w: video.videoWidth || 0, h: video.videoHeight || 0 }, seats })], { type: "application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = `lensiq-exam-seats-${room || "room"}.json`; document.body.append(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  });
   $("#clearSeats").addEventListener("click", () => { if (!seats.length || confirm(T("exam.hall.clearQ", "ลบที่นั่งทั้งหมดในมุมกล้องนี้?"))) { seats = []; saveSeats(); } });
 
   /* ---------- drawing ---------- */
@@ -239,7 +245,7 @@
   const loadScript = src => new Promise((res, rej) => {
     const el = document.createElement("script"); el.src = src; el.onload = res; el.onerror = () => rej(new Error(src)); document.head.appendChild(el);
   });
-  const DET = { yolox: { person: 0, phone: 67 }, coco: { person: 0, phone: 76 } };
+  const D = E.HALL_DET, DET = { yolox: D.yolox, coco: D.coco }; // one source with tools/hall-seatwatch-replay.mjs
   async function loadDetector() {
     if ($("#detector").value === "yolox") {
       try {
@@ -266,9 +272,9 @@
     const src = tiles && video.videoWidth > PROC_W ? procFrame() : video;
     const c = DET[detKind === "yolox" ? "yolox" : "coco"];
     const d = detKind === "yolox"
-      ? await LQDetect.detectPeople(yx, src, { classes: [c.person, c.phone], minScore: 0.35, max: 40, detW: 416, split: "auto", tiles })
-      : await LQDetect.detectCoco(coco, src, { classes: [c.person, c.phone], minScore: 0.35, max: 40, tiles });
-    return { persons: d.filter(b => b.cls === c.person && b.score >= 0.4), phones: d.filter(b => b.cls === c.phone), faces: await facePass() };
+      ? await LQDetect.detectPeople(yx, src, { classes: [c.person, c.phone], minScore: D.minScore, max: D.max, detW: D.detW, split: "auto", tiles })
+      : await LQDetect.detectCoco(coco, src, { classes: [c.person, c.phone], minScore: D.minScore, max: D.max, tiles });
+    return { persons: d.filter(b => b.cls === c.person && b.score >= D.personScore), phones: d.filter(b => b.cls === c.phone), faces: await facePass() };
   }
   /** experimental face pass -> normalised boxes [{x, y, w, h}] ([] when off or not working on this device) */
   async function facePass() {
@@ -469,6 +475,7 @@
      1,280 x 720 frame the detector was measured on, against the ACTIVE detector's measured minimum (public dataset), seats
      hidden behind the row in front, seats cut by the frame edge. Numbers on this device only: nothing stored or sent. */
   const pc = { on: false, res: null };
+  const PC_KIND = { noseats: "warn", nocount: "warn", fix: "err", partial: "warn", good: "ok" };
   const detChosen = () => (detKind || $("#detector").value) === "yolox" ? "yolox" : "coco";
   function pcSet(on) { pc.on = !!on && !monitoring; pc.res = null; renderPc(); draw(); }
   function pcUpdate() {
@@ -501,15 +508,14 @@
     else if (!video.videoWidth) { state = "nocam"; kind = "warn"; text = T("exam.hall.pcNoCam", "เปิดกล้องก่อน แล้วจึงตรวจตำแหน่งกล้อง"); }
     else if (!r) { state = "wait"; text = T("exam.hall.pcWait", "กำลังตรวจ..."); }
     else {
-      state = r.state;
+      state = r.state; kind = PC_KIND[r.state] || "warn"; // the panel's look follows the verdict (one table, not per branch)
       const m = r.atMin, rate = () => (m && m.recall != null
         ? T("exam.hall.pcRate", "ที่ขนาดนี้ ({range} px) ตัวตรวจหาคนเจอ {r}% (n = {n}, ชุดข้อมูลสาธารณะ ภาพนิ่ง ไม่ใช่ห้องสอบจริง)",
           { range: m.hi == null ? m.lo + "+" : m.lo + "–" + m.hi, r: m.recall.toFixed(1), n: m.n })
         : T("exam.hall.pcRateNone", "ขนาดนี้เล็กกว่าทุกขนาดที่เคยวัด จึงไม่รู้ว่าตัวตรวจหาเจอแค่ไหน"));
-      if (r.state === "noseats") { kind = "warn"; text = T("exam.hall.pcNoSeats", "วาดหรือสร้างที่นั่งก่อน แล้วจึงตรวจตำแหน่งกล้อง"); }
-      else if (r.state === "nocount") { kind = "warn"; text = T("exam.hall.pcNoCount", "ยังนับคนในภาพไม่ได้ รอสักครู่ ถ้าข้อความนี้ไม่หายไป ให้กด “เปิดกล้อง” อีกครั้ง"); }
+      if (r.state === "noseats") { text = T("exam.hall.pcNoSeats", "วาดหรือสร้างที่นั่งก่อน แล้วจึงตรวจตำแหน่งกล้อง"); }
+      else if (r.state === "nocount") { text = T("exam.hall.pcNoCount", "ยังนับคนในภาพไม่ได้ รอสักครู่ ถ้าข้อความนี้ไม่หายไป ให้กด “เปิดกล้อง” อีกครั้ง"); }
       else if (r.state === "fix") {
-        kind = "err";
         const small = r.perSeat.filter(s => s.small), lines = [];
         if (small.length) {
           const px = Math.min(...small.map(s => s.px));
@@ -522,10 +528,8 @@
         if (r.unseen.length) lines.push(T("exam.hall.pcUnseen", "ยังไม่เห็นคนที่ที่นั่ง {ids}", { ids: ids(r.unseen) }));
         text = lines.join(" · ");
       } else if (r.state === "partial") {
-        kind = "warn";
         text = T("exam.hall.pcPartial", "ยังไม่เห็นคนที่ที่นั่ง {ids} — ให้คนนั่งทุกที่นั่งก่อนตรวจ ถ้ามีคนนั่งอยู่แล้ว ตัวตรวจหาไม่เจอ: ขยับกล้องเข้าใกล้หรือเพิ่มกล้อง", { ids: ids(r.unseen) });
       } else {
-        kind = "ok";
         text = T("exam.hall.pcGood", "ตำแหน่งกล้องผ่าน: เห็นคนครบ {n} ที่นั่ง คนเล็กสุดสูง {px} px (ขั้นต่ำ {need} px) ไม่มีที่นั่งถูกบังหรือชิดขอบภาพ", { n: r.seats, px: r.minPx, need: r.need })
           + " · " + rate() + " · " + T("exam.hall.pcNoGuar", "ผ่านแล้วไม่ได้รับประกันว่าจะไม่พลาด");
       }
@@ -690,7 +694,8 @@
   function hint() {
     $("#drawHint").textContent = draft != null ? T("exam.hall.drawing", "แตะบนภาพเพื่อวางมุมของที่นั่ง {id} (3 จุดขึ้นไป) แล้วกด “ปิดรูปที่นั่ง”", { id: U.cleanSeat($("#seatId").value) || nextSeatId() }) : T("exam.hall.drawHint", "แตะบนภาพเพื่อวางมุมของที่นั่ง (3 จุดขึ้นไป) แล้วกด “ปิดรูปที่นั่ง”");
   }
-  window.addEventListener("lq-lang", () => { renderSeats(); renderRecent(); status(); hint(); runLabel(); renderSc(); renderPc(); renderClipOff(); if (lastEngine) engine(lastEngine[0], lastEngine[1]); });
+  window.addEventListener("lq-lang", () => { renderSeats(); renderRecent(); status(); hint(); runLabel(); renderSc(); renderPc(); renderClipOff();
+    if (lastEngine) engine(lastEngine[0], lastEngine[1]); });
   engine(() => T("exam.hall.engine0", "ยังไม่ได้เปิดกล้อง"));
   renderSeats(); renderRecent(); runLabel(); hint(); renderSc(); renderPc();
 

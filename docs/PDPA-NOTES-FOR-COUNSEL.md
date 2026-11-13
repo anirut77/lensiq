@@ -943,3 +943,16 @@ accountability for published belief guidance), and should a reviewer contract / 
 
 (c) **Reviewer notes from the drafts file** (`review_meta`: draft id, discipline names, source links, "uncertain" notes)
 are internal working notes about content, not personal data, and are never served to users.
+
+## H. Stream H (2026-11-13): plate training photos and seat-watch recordings
+
+(a) **Owner photos of vehicles to train the plate detector** (`docs/PLATE-TRAINING.md`): taken at sites with the site
+owner's written permission and the PDPA camera sign posted; faces and other personal text blurred and checked by a person
+before training; training files hold boxes only (no plate text); plate text kept only in the held-out evaluation labels;
+originals deleted within 30 days of export (proposal); everything on the owner's computer. Questions: legal basis for
+using plate images to train a model that is sold (legitimate interest?), whether the sign is enough notice, the retention
+period, and whether the trained weights carry any obligation. **Uploading these photos to Google Colab (free GPU) is not
+done** until counsel answers whether it is a cross-border transfer needing safeguards (s. 28 / 29).
+(b) **Replay of a consented seat-watch recording** (`tools/hall-seatwatch-replay.mjs`): only when every person in the
+room ticked consent option B; frames are extracted to a temporary folder and deleted at the end of the run; the output is
+an event log (seat numbers, times, signal names). Same retention as the consent form (proposal ≤ 14 days for the video).

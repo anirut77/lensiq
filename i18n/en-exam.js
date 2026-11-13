@@ -142,6 +142,7 @@
   "exam.hall.drawing": "Tap the image to place the corners of seat {id} (3 or more), then press “Close seat shape”",
   "exam.hall.dupSeat": "Seat numbers must not be empty or repeated",
   "exam.hall.engine0": "Camera not opened yet",
+  "exam.hall.exportSeats": "Export seat layout (JSON file for the measurement)",
   "exam.hall.export": "Export events (file for a dashboard without a network)",
   "exam.hall.faceErr": "The face counter (experimental) cannot run on this device, so it is off. Seat monitoring works as usual",
   "exam.hall.faceOn": "Count faces in the view (experimental: small or distant faces are not found yet; shown on this device only, not sent to the dashboard)",

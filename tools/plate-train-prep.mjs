@@ -85,7 +85,8 @@ export function lockSplit(split, lockFile) {
   const line = have.split("\n").find(l => l.startsWith(split.rule + " "));
   if (line) {
     if (line.split(" ")[1] === split.sha256) return { locked: false };
-    throw new Error(`a different ${split.rule} split is already locked (${line.split(" ")[1].slice(0, 12)}…): photos or labels changed after the lock. A new split needs a new rule version and is a new held-out set`);
+    throw new Error(`a different ${split.rule} split is already locked (${line.split(" ")[1].slice(0, 12)}…): photos or labels changed after the lock. `
+      + `A new split needs a new rule version and is a new held-out set`);
   }
   mkdirSync(dirname(lockFile), { recursive: true });
   appendFileSync(lockFile, `${split.rule} ${split.sha256}\n`);

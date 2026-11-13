@@ -40,7 +40,9 @@ export function decide(base, cand) {
     [`median time per photo at most +${RULE.maxExtraMs} ms`, cand.msMedian != null && base.msMedian != null && cand.msMedian <= base.msMedian + RULE.maxExtraMs]
   ].map(([rule, pass]) => ({ rule, pass }));
   if (base.platePhotos < RULE.minPlatePhotos || base.nonePhotos < RULE.minNonePhotos)
-    return { adopt: null, rules, note: `not enough photos in the locked test split (${base.platePhotos} with a plate, ${base.nonePhotos} without; need ${RULE.minPlatePhotos} / ${RULE.minNonePhotos}): no decision` };
+    return { adopt: null, rules, note: `not enough photos in the locked test split `
+      + `(${base.platePhotos} with a plate, ${base.nonePhotos} without; need ${RULE.minPlatePhotos} / ${RULE.minNonePhotos}): `
+      + "no decision" };
   return { adopt: rules.every(r => r.pass), rules, note: "" };
 }
 export function format(base, cand, d) {

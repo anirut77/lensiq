@@ -115,6 +115,12 @@ def py(p):
     return os.path.join(p["venv"], "bin", "python")
 
 
+def yolox_env(p):
+    env = dict(os.environ, TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD="1")
+    env["PYTHONPATH"] = p["yolox"] + (os.pathsep + env["PYTHONPATH"] if env.get("PYTHONPATH") else "")
+    return env
+
+
 def setup(root):
     p = paths(root)
     check_sources(YOLOX_GIT, START_WEIGHTS)
@@ -129,7 +135,8 @@ def setup(root):
     lic = open(os.path.join(p["yolox"], "LICENSE"), encoding="utf-8").read()
     if "Apache License" not in lic:
         raise SystemExit("plate_train: YOLOX LICENSE is not Apache-2.0: stop")
-    run([py(p), "-m", "pip", "install", "-q", "--no-build-isolation", "--no-deps", "-e", p["yolox"]])
+    # YOLOX is NOT pip-installed (its 0.3.0 setup.py cannot be installed editable by current pip): the YOLOX folder is put
+    # on PYTHONPATH of every training / export process instead (yolox_env)
     if not os.path.exists(p["weights"]):
         run(["curl", "-fsSL", "-o", p["weights"], START_WEIGHTS])
     commit = subprocess.run(["git", "-C", p["yolox"], "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
@@ -144,7 +151,7 @@ def train(root, epochs, inp, name, device, batch=16):
     os.makedirs(run_dir, exist_ok=True)
     exp = os.path.join(run_dir, "exp.py")
     open(exp, "w").write(exp_text(p["dataset"], epochs, inp, name))
-    env = dict(os.environ, TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD="1")
+    env = yolox_env(p)
     # YOLOX 0.3.0 tools/train.py: -d 0 = CPU is not supported upstream; one device ("-d 1") uses CUDA when present. On a Mac
     # without CUDA the patched launcher below keeps the run on CPU (or MPS with --device mps).
     run([py(p), os.path.join(REPO, "tools", "plate_train_launch.py"), "--yolox", p["yolox"], "-f", exp, "-c", p["weights"],
@@ -159,9 +166,13 @@ def onnx(root, name, inp=416):
     if not os.path.exists(best):
         best = os.path.join(run_dir, name, "latest_ckpt.pth")
     out = os.path.join(run_dir, f"plate_yolox_nano_{inp}.onnx")
-    env = dict(os.environ, TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD="1")
-    run([py(p), os.path.join(p["yolox"], "tools", "export_onnx.py"), "--output-name", out, "-f", os.path.join(run_dir, "exp.py"),
-         "-c", best, "--opset", "13", "--no-onnxsim"], env=env, cwd=p["yolox"])
+    env = yolox_env(p)
+    if os.path.exists(out):
+        os.remove(out)
+    run([py(p), os.path.join(REPO, "tools", "plate_train_launch.py"), "--yolox", p["yolox"], "-f", os.path.join(run_dir, "exp.py"),
+         "-c", best, "--out", run_dir, "--export", out], env=env)
+    if not os.path.exists(out):
+        raise SystemExit("plate_train: the ONNX export failed (no file written)")
     setup_info = json.load(open(os.path.join(p["work"], "setup.json")))
     card = [f"# Thai licence-plate detector — YOLOX-nano {inp} (LENSIQ Gate, owner photos)", "",
             f"- File: `{os.path.basename(out)}`, one class `plate`, raw YOLOX head output, opset 13 (LQDetect.decodeYolox)",

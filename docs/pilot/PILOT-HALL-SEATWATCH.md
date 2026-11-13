@@ -164,7 +164,9 @@ Every false alert gets one **cause code** from a fixed list: `person-missed` · 
 | Late alerts, repeats, room events, held alerts, unsure | counts | – | block |
 
 Seat-hours count only seats that are drawn **and** assigned to a volunteer. Draw no polygons on unused desks.
-Wilson and Poisson are worked in a spreadsheet (the `wilson` helper exists in `LQExam`; no scoring tool exists for this
+Update 2026-11-13 (stream H): the scoring tool now exists — `tools/hall-seatwatch-score.mjs`, rule `seatwatch-score-v1`, locked
+in `tests/unit/hall-seatwatch-score.test.js`; steps in Thai in `SEATWATCH-SCORING-TH.md`; replay of a consented recording:
+`tools/hall-seatwatch-replay.mjs`. Original text: Wilson and Poisson are worked in a spreadsheet (the `wilson` helper exists in `LQExam`; no scoring tool exists for this
 kit: building one needs the owner's approval).
 
 ## 7. Targets — **[proposed] for the owner to confirm before the date is set**

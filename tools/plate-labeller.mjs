@@ -39,7 +39,8 @@ export function start({ root, port = 0 }) {
   const P = paths(root);
   for (const d of [P.photos, dirname(P.labels), P.blurred]) mkdirSync(d, { recursive: true });
   const send = (res, code, type, data) => { res.writeHead(code, { "Content-Type": type, "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" }); res.end(data); };
-  const file = (res, f) => { if (!existsSync(f) || !statSync(f).isFile()) return send(res, 404, "text/plain", "not found"); res.writeHead(200, { "Content-Type": TYPES[extname(f).toLowerCase()] || "application/octet-stream", "Cache-Control": "no-store" }); createReadStream(f).pipe(res); };
+  const file = (res, f) => { if (!existsSync(f) || !statSync(f).isFile()) return send(res, 404, "text/plain", "not found");
+    res.writeHead(200, { "Content-Type": TYPES[extname(f).toLowerCase()] || "application/octet-stream", "Cache-Control": "no-store" }); createReadStream(f).pipe(res); };
   const server = createServer(async (req, res) => {
     let p; try { p = decodeURIComponent(new URL(req.url, "http://x").pathname); } catch { return send(res, 400, "text/plain", "bad url"); }
     try {

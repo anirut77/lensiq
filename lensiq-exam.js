@@ -483,6 +483,10 @@
     return { seats, cfg, frame, state, mute: (t, ms) => room.mute(t, ms), suppressedUntil: () => room.until };
   }
 
+  /* hall detector call (exam-hall.js detect() and tools/hall-seatwatch-replay.mjs): COCO-SSD default, YOLOX-Nano option;
+     class ids per model (YOLOX uses the 80-class order); persons kept at personScore; phones at DEFAULTS.hallPhoneConf */
+  const HALL_DET = Object.freeze({ minScore: 0.35, personScore: 0.4, max: 40, detW: 416, coco: Object.freeze({ person: 0, phone: 76 }), yolox: Object.freeze({ person: 0, phone: 67 }) });
+
   /* ---------- camera placement check (exam-hall.html, before monitoring; stream H 2026-11-13) ----------
      Measured person recall of the hall detector by box HEIGHT in a 1,280 x 720 frame (docs/exam/HALL-DETECTOR-RESULTS.md
      §2, run 2026-11-11; source: public dataset, Open Images V7 still images, not exam-room footage). Bands: 24–72, 72–144,
@@ -799,7 +803,7 @@
     SIGNALS, LEVELS, LEVEL_TH, POINTS, DEFAULTS, PROFILE_KEYS, ACTIONS, SEAT_RE, ROOM_RE, CLIP_ST,
     levelOf, createGate, createRisk, createRoomMonitor, cleanProfile, isPlainProfile, applyAccommodation,
     poseFrom68, pitchDeg, synth68, calibrate, lightingVerdict, createFrozen, isVirtualCamLabel, createLabMonitor,
-    pointInPoly, polyArea, polyCentroid, boxFracInPoly, seatOf, gridSeats, cleanSeats, createHallMonitor, HALL_PLACE, hallPlacement,
+    pointInPoly, polyArea, polyCentroid, boxFracInPoly, seatOf, gridSeats, cleanSeats, createHallMonitor, HALL_DET, HALL_PLACE, hallPlacement,
     cleanMsg, createBoard, wilson, median, fmtDur
   };
 });

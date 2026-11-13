@@ -71,7 +71,8 @@
       const plan = W.LQPC.faceBlurPlan(st, c.width, c.height, { scale: st.scale });
       if (plan.textOnly) { msg("ตัวหาใบหน้าทำงานไม่ได้ ให้วาดกรอบเบลอเอง / face finder failed: draw the blur boxes by hand", "err"); }
       else {
-        e.blur = e.blur.filter(r => r[4] !== "auto-face").concat(plan.regions.map(r => [r.x / st.scale, r.y / st.scale, (r.x + r.w) / st.scale, (r.y + r.h) / st.scale].map(Math.round).concat(["auto-face"])));
+        e.blur = e.blur.filter(r => r[4] !== "auto-face").concat(plan.regions.map(r =>
+          [r.x / st.scale, r.y / st.scale, (r.x + r.w) / st.scale, (r.y + r.h) / st.scale].map(Math.round).concat(["auto-face"])));
         msg(`เสนอกรอบใบหน้า ${plan.regions.length} กรอบ ตรวจทุกใบหน้าเอง / ${plan.regions.length} face box(es) proposed: check every face yourself`, "warn");
       }
     } catch (err) { msg("face finder: " + (err && err.message || err), "err"); }
@@ -99,7 +100,8 @@
   const pt = ev => { const r = cv.getBoundingClientRect(); return [Math.round((ev.clientX - r.left) * cv.width / r.width), Math.round((ev.clientY - r.top) * cv.height / r.height)]; };
   const inside = (b, p) => p[0] >= b[0] && p[0] <= b[2] && p[1] >= b[1] && p[1] <= b[3];
   cv.addEventListener("pointerdown", ev => { if (!img) return; drag = { a: pt(ev), b: null }; });
-  cv.addEventListener("pointermove", ev => { if (!drag) return; const p = pt(ev), a = drag.a; drag.b = [Math.min(a[0], p[0]), Math.min(a[1], p[1]), Math.max(a[0], p[0]), Math.max(a[1], p[1])]; draw(); });
+  cv.addEventListener("pointermove", ev => { if (!drag) return; const p = pt(ev), a = drag.a;
+    drag.b = [Math.min(a[0], p[0]), Math.min(a[1], p[1]), Math.max(a[0], p[0]), Math.max(a[1], p[1])]; draw(); });
   cv.addEventListener("pointerup", ev => {
     const e = entry(cur), d = drag; drag = null;
     if (d && d.b && d.b[2] - d.b[0] >= 4 && d.b[3] - d.b[1] >= 3) {

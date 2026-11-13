@@ -86,13 +86,20 @@ function lgamma(z) {
 }
 function gammaP(a, x) {
   if (x <= 0) return 0;
-  if (x < a + 1) { let sum = 1 / a, d = sum, ap = a; for (let n = 0; n < 500; n++) { ap++; d *= x / ap; sum += d; if (Math.abs(d) < Math.abs(sum) * 1e-15) break; } return sum * Math.exp(-x + a * Math.log(x) - lgamma(a)); }
+  if (x < a + 1) {
+    let sum = 1 / a, d = sum, ap = a;
+    for (let n = 0; n < 500; n++) { ap++; d *= x / ap; sum += d; if (Math.abs(d) < Math.abs(sum) * 1e-15) break; }
+    return sum * Math.exp(-x + a * Math.log(x) - lgamma(a)); }
   let b = x + 1 - a, c = 1e300, d = 1 / b, h = d;
-  for (let i = 1; i < 500; i++) { const an = -i * (i - a); b += 2; d = an * d + b; if (Math.abs(d) < 1e-300) d = 1e-300; c = b + an / c; if (Math.abs(c) < 1e-300) c = 1e-300; d = 1 / d; const del = d * c; h *= del; if (Math.abs(del - 1) < 1e-15) break; }
+  for (let i = 1; i < 500; i++) {
+    const an = -i * (i - a); b += 2; d = an * d + b; if (Math.abs(d) < 1e-300) d = 1e-300; c = b + an / c;
+    if (Math.abs(c) < 1e-300) c = 1e-300; d = 1 / d; const del = d * c; h *= del; if (Math.abs(del - 1) < 1e-15) break; }
   return 1 - Math.exp(-x + a * Math.log(x) - lgamma(a)) * h;
 }
 /** x with P(a, x) = p (bisection) */
-function gammaInv(a, p) { let lo = 0, hi = Math.max(10, a * 10); while (gammaP(a, hi) < p) hi *= 2; for (let i = 0; i < 200; i++) { const m = (lo + hi) / 2; if (gammaP(a, m) < p) lo = m; else hi = m; } return (lo + hi) / 2; }
+function gammaInv(a, p) {
+  let lo = 0, hi = Math.max(10, a * 10); while (gammaP(a, hi) < p) hi *= 2;
+  for (let i = 0; i < 200; i++) { const m = (lo + hi) / 2; if (gammaP(a, m) < p) lo = m; else hi = m; } return (lo + hi) / 2; }
 /** exact Poisson 95 % interval for k events: lo / hi two-sided, hi1 one-sided upper */
 export function poisson(k) {
   return { k, lo: k === 0 ? 0 : gammaInv(k, 0.025), hi: gammaInv(k + 1, 0.975), hi1: gammaInv(k + 1, 0.95) };
@@ -222,7 +229,8 @@ export function scoreBlock({ events, alerts, block }) {
   return { block: block.block, split: block.split, variant: block.variant, seatHours, bySig, falseAlerts, camMoved, misses, nonAlerts, awayErr,
     fps: block.fps || [], expected: exp.map(x => ({ sig: x.sig, seat: x.seat, ref: x.ref, end: x.end, row: x.row, scoreable: x.scoreable, grey: x.grey,
       cooldown: !!x.cooldown, staff: !!x.staff, found: !!x.alert, late: !!x.late, alert: x.alert ? x.alert.id : "" })),
-    alerts: all.map(a => ({ id: a.id, sig: a.sig, seat: a.seat, lvl: a.lvl, s: Math.round(a.s * 10) / 10, role: used.get(a) || (RULE.alertSigs.includes(a.sig) ? (camMoved.includes(a) ? "camera-moved" : "false") : "not-an-alert") })) };
+    alerts: all.map(a => ({ id: a.id, sig: a.sig, seat: a.seat, lvl: a.lvl, s: Math.round(a.s * 10) / 10,
+      role: used.get(a) || (RULE.alertSigs.includes(a.sig) ? (camMoved.includes(a) ? "camera-moved" : "false") : "not-an-alert") })) };
 }
 
 /* ---------- summary over blocks, per split, with the targets ---------- */
@@ -296,7 +304,8 @@ export function formatSheet(S, meta = {}) {
       if (!t && sig === "phone") continue;
       if (!t) { L.push(`| ${sig} | 0 | 0 | — | — | ${TG[sig]} | — | 0 | — | 0 | 0 | 0 |`); continue; }
       const tg = (s.targets.T1[sig] || s.targets.T2[sig] || {});
-      L.push(`| ${sig} | ${t.scoreable} | ${t.found} | ${pc(t.recall)} | ${ci(t.recall)} | ${TG[sig]} | ${tg.note ? tg.note : yn(tg.pass)} | ${t.late} | ${t.median == null ? "—" : t.median} / ${t.p90 == null ? "—" : t.p90} | ${t.falseN} | ${t.repeats} | ${t.greyHits} |`);
+      L.push(`| ${sig} | ${t.scoreable} | ${t.found} | ${pc(t.recall)} | ${ci(t.recall)} | ${TG[sig]} | ${tg.note ? tg.note : yn(tg.pass)} | ${t.late} `
+        + `| ${t.median == null ? "—" : t.median} / ${t.p90 == null ? "—" : t.p90} | ${t.falseN} | ${t.repeats} | ${t.greyHits} |`);
     }
     const p = s.poisson, f = v => (v == null ? "—" : v.toFixed(3));
     L.push("", "| False alerts | Count | Seat-hours | Per seat-hour | Poisson 95 % (per seat-hour) | Per 30-seat 3-h exam | Target | Unsure (worst case) |",
@@ -304,7 +313,9 @@ export function formatSheet(S, meta = {}) {
       `| all signals | ${s.falseMain} | ${s.seatHours.toFixed(1)} | ${f(s.falsePerSeatHour)} | ${s.seatHours ? `${f(p.lo / s.seatHours)} – ${f(p.hi / s.seatHours)} (one-sided upper ${f(p.hi1 / s.seatHours)})` : "—"} | ${s.perExam30x3 == null ? "—" : s.perExam30x3.toFixed(1)} | ≤ 3 (variant A): ${s.targets.T4.note || yn(s.targets.T4.pass)} | ${s.unsure} → worst case ${s.falseWorst} |`,
       `| Watch / Check only | ${s.falseWatch} | | | | | ≤ 1 | |`, "",
       `Causes: ${Object.entries(s.causes).map(([k, v]) => `${k} ${v}`).join(" · ") || "—"} · alerts in the camera-moved window: ${s.camMoved} · not alerts: ${Object.entries(s.nonAlerts).map(([k, v]) => `${k} ${v}`).join(" · ") || "—"}`,
-      `T5 time to alert: ${Object.entries(s.targets.T5).map(([k, v]) => `${k} ${v.median} / ${v.p90} s ${yn(v.pass)}`).join(" · ") || "—"} · T6 time-away error median ${s.targets.T6.median == null ? "—" : s.targets.T6.median + " s"} ${yn(s.targets.T6.pass)} · T7 rounds per second min ${s.targets.T7.min == null ? "—" : s.targets.T7.min} ${yn(s.targets.T7.pass)}`, "");
+      `T5 time to alert: ${Object.entries(s.targets.T5).map(([k, v]) => `${k} ${v.median} / ${v.p90} s ${yn(v.pass)}`).join(" · ") || "—"}`
+        + ` · T6 time-away error median ${s.targets.T6.median == null ? "—" : s.targets.T6.median + " s"} ${yn(s.targets.T6.pass)}`
+        + ` · T7 rounds per second min ${s.targets.T7.min == null ? "—" : s.targets.T7.min} ${yn(s.targets.T7.pass)}`, "");
   }
   return L.join("\n");
 }
