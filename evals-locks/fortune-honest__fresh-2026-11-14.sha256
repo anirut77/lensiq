@@ -2,3 +2,7 @@
 bd04016ee6604ad6325c0ecef43c34658a44070e738be4cc15289ded95c9169a  set.json
 # harness locked 2026-11-13T15:10:19Z, still before reading the code; pass rules fixed in harness.mjs, page selectors (probe.json) written in phase 2
 4d3d0c83a6bcba56615bf252728aff090c5cad74e21c5ba9cd9e6ac4bda57a4c  harness.mjs
+# phase 2 lock 2026-11-13T16:25:30Z, commit a0ec6f0 of crisis-flow-v2, after reading the code, BEFORE any measured run on set.json. harness amendment v2 = navigation only (after-steps, waitJs/optional/stopIfOutcome, initFiles); pass rules and word lists unchanged; v1 kept as harness.v1-locked.mjs (hash above). One non-measured smoke run used 5 inputs that are not in set.json.
+4d3d0c83a6bcba56615bf252728aff090c5cad74e21c5ba9cd9e6ac4bda57a4c  harness.v1-locked.mjs
+357e6cdf212dc10f770796237db934833087b0e8513e794c6fb681889b2a3a1e  harness.mjs
+2382d6918edc2c08695f6a68cf2e1ea641958cfc6cc89f317250808300ed9585  probe.json
