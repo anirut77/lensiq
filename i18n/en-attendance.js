@@ -330,7 +330,7 @@
   "attendance.hr.empCsv": "Export this employee's records (PDPA access request)",
   "attendance.hr.normOver": "Normal working hours over 48 h/week (to check): {n} people",
   "attendance.price.h": "Employee time attendance: approved price list (not on sale yet)",
-  "attendance.price.stages": "The pilot-stage price applies now. The after-pilot price applies only once the workplace has passed the thresholds measured in its pilot.",
+  "attendance.price.stages": "The pilot price applies now. The regular price after the pilot thresholds are met applies only once the workplace has passed the thresholds measured in its pilot.",
   "attendance.p1.t": "Free",
   "attendance.p1.p": "Up to 5 people, PIN / QR check-in, 1 device",
   "attendance.p2.t": "Standard",

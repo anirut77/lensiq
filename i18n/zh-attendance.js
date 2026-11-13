@@ -332,7 +332,7 @@
   "attendance.hr.empCsv": "导出该员工的记录（PDPA 查阅请求）",
   "attendance.hr.normOver": "每周正常工作时间超过 48 小时（待核查）：{n} 人",
   "attendance.price.h": "员工考勤：已批准价目表（尚未开售）",
-  "attendance.price.stages": "试点阶段价格现在适用。试点达标后价格仅在工作场所通过试点中测得的门槛后适用。",
+  "attendance.price.stages": "试点价格现在适用。达到试点标准后的正式价格仅在工作场所通过试点中测得的门槛后适用。",
   "attendance.p1.t": "免费",
   "attendance.p1.p": "最多 5 人，PIN / 二维码打卡，1 台设备",
   "attendance.p2.t": "标准版",

@@ -307,7 +307,7 @@
   "exam.l.p4n": "Site licence (up to 1,000 candidates) with invigilator training",
   "exam.l.p4a": "Regular price after the pilot thresholds are met: ฿30,000–120,000 per year by size, excl. 7% VAT",
   "exam.l.priceH": "Pricing",
-  "exam.l.priceStages": "Computer rooms and online exams are priced per candidate; exam halls with cameras per room. The pilot-stage price applies now; the after-pilot price applies only once the institution has passed the thresholds measured in its pilot.",
+  "exam.l.priceStages": "Computer rooms and online exams are priced per candidate; exam halls with cameras per room. The pilot price applies now; the regular price after the pilot thresholds are met applies only once the institution has passed the thresholds measured in its pilot.",
   "exam.l.priceNote": "Approved prices, but not on sale yet: nothing is charged on this page. Every price excludes 7% VAT (you pay the price + 7%). The field pilot (1 institution, up to 4 weeks, up to 3 rooms) is free.",
   "exam.l.print": "Print the notice",
   "exam.l.s1": "Face not visible",

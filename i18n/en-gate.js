@@ -55,7 +55,7 @@
   "gate.pdpa.go": "Open the signage and notice kit",
   "gate.pdpa.cam": "General camera sign",
   "gate.price.h": "Approved price list (not on sale yet)",
-  "gate.price.stages": "The pilot-stage price applies now. The after-pilot price applies only once the site has passed its on-site accuracy thresholds.",
+  "gate.price.stages": "The pilot price applies now. The regular price after the pilot thresholds are met applies only once the site has passed its on-site accuracy thresholds.",
   "gate.p1.t": "Free 30-day trial",
   "gate.p1.p": "฿0",
   "gate.p1.d": "For 30 days: 1 lane, 100 reads per day, 7-day log",

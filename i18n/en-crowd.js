@@ -227,7 +227,7 @@
   "cr.mk.ps": "Total person-seconds",
   "cr.mk.hotH": "Share in the busiest 10% of the area (%)",
   "cr.price.h": "Approved price list (not on sale yet)",
-  "cr.price.stages": "The pilot-stage price applies now. The after-pilot price applies only once the site has passed the thresholds measured in its pilot.",
+  "cr.price.stages": "The pilot price applies now. The regular price after the pilot thresholds are met applies only once the site has passed the thresholds measured in its pilot.",
   "cr.p1.t": "Event day (1 camera device)",
   "cr.p1.p": "pilot price 590 THB per day · regular price after the pilot thresholds are met 990 THB per day (excl. 7% VAT)",
   "cr.p2.t": "Event week (7 days, 1 camera)",
