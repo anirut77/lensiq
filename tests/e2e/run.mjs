@@ -7,13 +7,15 @@
 //   --shard=i/n              run only shard i of n (tools/e2e-shards.mjs assign(); CI runs n jobs); no filter words with it
 //   --manifest=path          write {shard, total, assigned, ran, passed, failed} as JSON at the end; CI's shard check job
 //                            (tools/e2e-shards.mjs --check) turns CI red unless every test file ran exactly once
+// Throw-away Chrome profiles (owner request 2026-11-13): profile folders left by an earlier killed run are swept first; a
+// file that leaves a Chrome open FAILS (the runner closes it); the run FAILS if any profile folder it made is still on disk.
 // Each *.e2e.mjs exports `default async function (ctx)`; ctx = {base, launch, check(name, fn), skip(name, why), fakeCams}.
 import { spawn } from "node:child_process";
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { launch } from "./cdp.mjs";
+import { closeAll, launch, leftoverProfiles, openBrowsers, sweepStale } from "./cdp.mjs";
 import { allFiles, assign, parseShard, weights } from "../../tools/e2e-shards.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -52,6 +54,10 @@ const stopServer = () => { if (server && server.exitCode == null) server.kill();
 process.on("exit", stopServer);
 process.on("SIGINT", () => { stopServer(); process.exit(130); });
 
+{
+  const sw = sweepStale();
+  if (sw.removed.length) console.log(`removed ${sw.removed.length} Chrome test profile folder(s) left by an earlier stopped run`);
+}
 const fakeCams = readFileSync(join(here, "fake-cams.js"), "utf8");
 const files = SHARD ? assign(allFiles(), weights(), SHARD.n)[SHARD.i - 1]
   : readdirSync(here).filter(f => f.endsWith(".e2e.mjs") && (!filters.length || filters.some(w => f.includes(w)))).sort();
@@ -80,6 +86,11 @@ for (const f of files) {
       await Promise.race([mod.default(ctx), new Promise((_, rej) => { timer = setTimeout(() => rej(new Error(`timed out after ${FILE_TIMEOUT} ms`)), FILE_TIMEOUT); })]);
     } catch (e) { ff++; console.log(`  FAIL ${f} crashed: ${e && e.stack || e}`); }
     finally { clearTimeout(timer); }
+    const open = openBrowsers();
+    if (open) {
+      await closeAll(); ff++;
+      console.log(`  FAIL ${f} left ${open} Chrome browser(s) open — close every launch() in a finally block (the runner closed it)`);
+    }
     if (!ff || last) {
       pass += fp; fail += ff; skipped += fs;
       if (!ff && attempt) flaky.push(f);
@@ -88,6 +99,11 @@ for (const f of files) {
     console.log(`  (${ff} failure(s) — retrying ${f})`);
   }
   ran.push(f);
+}
+const left = leftoverProfiles();
+if (left.length) {
+  fail++;
+  console.log(`\nFAIL ${left.length} throw-away Chrome profile folder(s) still on disk after the run:\n  ${left.slice(0, 10).join("\n  ")}`);
 }
 if (flaky.length) console.log(`\nflaky (passed on retry): ${flaky.join(", ")}`);
 console.log(`\n${pass} passed, ${fail} failed, ${skipped} skipped — ${((Date.now() - t0) / 1000).toFixed(1)} s`);

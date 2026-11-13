@@ -1,8 +1,8 @@
 // tests/e2e/cdp.mjs — zero-dependency Chrome DevTools Protocol client (Node 22: global WebSocket + fetch).
 // Launches headless Chrome WITHOUT WebGL, with fake media flags, in a throw-away profile under os.tmpdir().
 // Never writes screenshots or anything else into the repo.
-import { spawn } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, existsSync } from "node:fs";
+import { spawn, spawnSync } from "node:child_process";
+import { mkdtempSync, readFileSync, readdirSync, rmSync, existsSync, lstatSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -17,8 +17,82 @@ export const CHROME = process.env.LQ_CHROME || process.env.CHROME_PATH || CANDID
 const CI_ARGS = process.env.CI ? ["--no-sandbox", "--disable-dev-shm-usage"] : [];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+// ---------- throw-away profile bookkeeping (owner request 2026-11-13: 41 left-over profiles, 1.5 GB, filled the disk) ----------
+// Every profile folder is "lq-e2e-*" under os.tmpdir() with ".lq-owner" = this Node process id and ".lq-chrome" = Chrome's.
+// close() removes it; the exit / SIGINT / SIGTERM / SIGHUP handlers below kill Chrome and remove every folder still open;
+// a SIGKILLed test process cannot clean up, so sweepStale() (run.mjs calls it first) removes folders whose owner is gone.
+const PREFIX = "lq-e2e-";
+const live = new Map(); // dir -> Chrome ChildProcess
+const created = [];     // every profile folder this process made (run.mjs checks none is left at the end)
+const rmOnce = dir => { try { rmSync(dir, { recursive: true, force: true, maxRetries: 3, retryDelay: 50 }); } catch { /* retried */ } };
+const pause = ms => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+/** remove a profile folder; Chrome helper processes that are still exiting can write into it, so retry up to ~1.5 s */
+function rmDir(dir) {
+  for (let i = 0; i < 15; i++) { rmOnce(dir); if (!existsSync(dir)) return; pause(100); }
+}
+/** kill Chrome and every helper it started: Chrome runs in its own process group (detached), so -pid reaches them all */
+function killTree(proc) {
+  if (!proc || !proc.pid) return;
+  if (process.platform !== "win32") { try { process.kill(-proc.pid, "SIGKILL"); return; } catch { /* group gone */ } }
+  try { if (proc.exitCode == null) proc.kill("SIGKILL"); } catch { /* gone */ }
+}
+function killAllSync() {
+  for (const proc of live.values()) killTree(proc);
+  for (const dir of live.keys()) rmDir(dir);
+  live.clear();
+}
+process.on("exit", killAllSync);
+for (const [sig, n] of [["SIGINT", 2], ["SIGTERM", 15], ["SIGHUP", 1]]) {
+  process.on(sig, () => { killAllSync(); process.exit(128 + n); });
+}
+/** Chrome browsers this process launched and has not closed yet. */
+export const openBrowsers = () => live.size;
+/** Profile folders this process created that still exist on disk. */
+export const leftoverProfiles = () => created.filter(d => existsSync(d));
+/** Close every browser this process still has open (run.mjs: after each test file). */
+export async function closeAll() {
+  for (const [dir, proc] of [...live]) {
+    const exited = proc.exitCode == null ? new Promise(r => proc.once("exit", r)) : null;
+    killTree(proc);
+    if (exited) await Promise.race([exited, sleep(3000)]);
+    rmDir(dir); live.delete(dir);
+  }
+}
+const alive = pid => { try { process.kill(pid, 0); return true; } catch (e) { return e.code === "EPERM"; } };
+const readPid = f => { try { const t = readFileSync(f, "utf8").trim(); return /^[1-9]\d{0,9}$/.test(t) ? +t : 0; } catch { return 0; } };
+/**
+ * Remove "lq-e2e-*" profile folders under root whose ".lq-owner" process has exited. Folders without a valid owner
+ * file, with a running owner, or with any other name are never touched. An orphaned Chrome still using the folder is
+ * killed first, but only after `ps` confirms that pid is a process started with this exact --user-data-dir.
+ * @param {string} [root] @returns {{removed: string[], kept: string[]}}
+ */
+export function sweepStale(root = tmpdir()) {
+  const removed = [], kept = [];
+  let names = [];
+  try { names = readdirSync(root); } catch { return { removed, kept }; }
+  for (const name of names) {
+    if (!name.startsWith(PREFIX) || name.length === PREFIX.length) continue;
+    const dir = join(root, name);
+    try { if (!lstatSync(dir).isDirectory()) continue; } catch { continue; }
+    const owner = readPid(join(dir, ".lq-owner"));
+    if (!owner || alive(owner) || live.has(dir)) { kept.push(dir); continue; }
+    const chrome = readPid(join(dir, ".lq-chrome"));
+    if (chrome && alive(chrome) && process.platform !== "win32") {
+      const cmd = spawnSync("ps", ["-p", String(chrome), "-o", "command="], { encoding: "utf8" }).stdout || "";
+      if (cmd.includes(`--user-data-dir=${dir}`)) {
+        try { process.kill(-chrome, "SIGKILL"); } catch { try { process.kill(chrome, "SIGKILL"); } catch { /* gone */ } }
+      }
+    }
+    rmDir(dir);
+    (existsSync(dir) ? kept : removed).push(dir);
+  }
+  return { removed, kept };
+}
+
 export async function launch({ headless = true, extraArgs = [] } = {}) {
-  const dir = mkdtempSync(join(tmpdir(), "lq-e2e-"));
+  const dir = mkdtempSync(join(tmpdir(), PREFIX));
+  created.push(dir);
+  writeFileSync(join(dir, ".lq-owner"), String(process.pid));
   const args = [
     headless ? "--headless=new" : "", "--disable-gpu", "--disable-webgl", "--disable-3d-apis",
     "--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", "--autoplay-policy=no-user-gesture-required",
@@ -27,24 +101,30 @@ export async function launch({ headless = true, extraArgs = [] } = {}) {
     "--disable-extensions", "--disable-component-update", "--disable-sync", "--metrics-recording-only", "--mute-audio",
     ...CI_ARGS, ...extraArgs, "about:blank"
   ].filter(Boolean);
-  const proc = spawn(CHROME, args, { stdio: ["ignore", "ignore", "pipe"] });
+  let proc;
+  try { proc = spawn(CHROME, args, { stdio: ["ignore", "ignore", "pipe"], detached: process.platform !== "win32" }); } catch (e) { rmDir(dir); throw e; }
+  live.set(dir, proc);
+  proc.once("error", () => {}); // a missing binary surfaces as "Chrome exited" below
+  if (proc.pid) writeFileSync(join(dir, ".lq-chrome"), String(proc.pid));
+  const fail = msg => { killTree(proc); live.delete(dir); rmDir(dir); return new Error(msg); };
   let stderr = "";
   proc.stderr.on("data", d => { stderr += d; if (stderr.length > 20000) stderr = stderr.slice(-10000); });
   const portFile = join(dir, "DevToolsActivePort");
   let wsUrl = null;
   const startMs = +process.env.LQ_CHROME_START_MS || 30000; // busy CI runners can take > 10 s to start Chrome
   for (let i = 0; i < startMs / 50 && !wsUrl; i++) {
-    if (proc.exitCode != null) throw new Error("Chrome exited: " + stderr.slice(-2000));
+    if (proc.exitCode != null || proc.signalCode != null || !proc.pid) throw fail("Chrome exited: " + stderr.slice(-2000));
     if (existsSync(portFile)) {
       const [port, path] = readFileSync(portFile, "utf8").trim().split("\n");
       if (port && path) wsUrl = `ws://127.0.0.1:${port}${path}`;
     }
     if (!wsUrl) await sleep(50);
   }
-  if (!wsUrl) { proc.kill("SIGKILL"); throw new Error("Chrome did not expose DevToolsActivePort"); }
+  if (!wsUrl) throw fail("Chrome did not expose DevToolsActivePort");
 
   const ws = new WebSocket(wsUrl);
-  await new Promise((res, rej) => { ws.onopen = res; ws.onerror = () => rej(new Error("CDP websocket failed")); });
+  try { await new Promise((res, rej) => { ws.onopen = res; ws.onerror = () => rej(new Error("CDP websocket failed")); }); }
+  catch (e) { throw fail(e.message); }
   let seq = 0;
   const pending = new Map(), listeners = new Set();
   ws.onmessage = ev => {
@@ -139,12 +219,14 @@ export async function launch({ headless = true, extraArgs = [] } = {}) {
     try { await send("Browser.close"); } catch { /* ignore */ }
     try { ws.close(); } catch { /* ignore */ }
     await Promise.race([new Promise(r => proc.once("exit", r)), sleep(3000)]);
-    if (proc.exitCode == null) proc.kill("SIGKILL");
-    try { rmSync(dir, { recursive: true, force: true }); } catch { /* ignore */ }
+    if (proc.exitCode == null) { const ex = new Promise(r => proc.once("exit", r)); killTree(proc); await Promise.race([ex, sleep(3000)]); }
+    else killTree(proc); // helpers of an exited browser
+    live.delete(dir);
+    rmDir(dir);
   }
   // on(fn): raw CDP events ({method, params, sessionId}) — e.g. Debugger.paused when diagnosing a hung page
   const on = fn => { listeners.add(fn); return () => listeners.delete(fn); };
-  return { newPage, close, send, proc, on };
+  return { newPage, close, send, proc, on, dir };
 }
 
 // ---------- shared assertions ----------
