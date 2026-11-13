@@ -24,12 +24,21 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const PREFIX = "lq-e2e-";
 const live = new Map(); // dir -> Chrome ChildProcess
 const created = [];     // every profile folder this process made (run.mjs checks none is left at the end)
-const rmDir = dir => { try { rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); } catch { /* checked by leftoverProfiles() */ } };
+const rmOnce = dir => { try { rmSync(dir, { recursive: true, force: true, maxRetries: 3, retryDelay: 50 }); } catch { /* retried */ } };
+const pause = ms => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+/** remove a profile folder; Chrome helper processes that are still exiting can write into it, so retry up to ~1.5 s */
+function rmDir(dir) {
+  for (let i = 0; i < 15; i++) { rmOnce(dir); if (!existsSync(dir)) return; pause(100); }
+}
+/** kill Chrome and every helper it started: Chrome runs in its own process group (detached), so -pid reaches them all */
+function killTree(proc) {
+  if (!proc || !proc.pid) return;
+  if (process.platform !== "win32") { try { process.kill(-proc.pid, "SIGKILL"); return; } catch { /* group gone */ } }
+  try { if (proc.exitCode == null) proc.kill("SIGKILL"); } catch { /* gone */ }
+}
 function killAllSync() {
-  for (const [dir, proc] of live) {
-    try { if (proc.exitCode == null) proc.kill("SIGKILL"); } catch { /* gone */ }
-    rmDir(dir);
-  }
+  for (const proc of live.values()) killTree(proc);
+  for (const dir of live.keys()) rmDir(dir);
   live.clear();
 }
 process.on("exit", killAllSync);
@@ -43,7 +52,9 @@ export const leftoverProfiles = () => created.filter(d => existsSync(d));
 /** Close every browser this process still has open (run.mjs: after each test file). */
 export async function closeAll() {
   for (const [dir, proc] of [...live]) {
-    if (proc.exitCode == null) { proc.kill("SIGKILL"); await Promise.race([new Promise(r => proc.once("exit", r)), sleep(3000)]); }
+    const exited = proc.exitCode == null ? new Promise(r => proc.once("exit", r)) : null;
+    killTree(proc);
+    if (exited) await Promise.race([exited, sleep(3000)]);
     rmDir(dir); live.delete(dir);
   }
 }
@@ -68,7 +79,9 @@ export function sweepStale(root = tmpdir()) {
     const chrome = readPid(join(dir, ".lq-chrome"));
     if (chrome && alive(chrome) && process.platform !== "win32") {
       const cmd = spawnSync("ps", ["-p", String(chrome), "-o", "command="], { encoding: "utf8" }).stdout || "";
-      if (cmd.includes(`--user-data-dir=${dir}`)) { try { process.kill(chrome, "SIGKILL"); } catch { /* gone */ } }
+      if (cmd.includes(`--user-data-dir=${dir}`)) {
+        try { process.kill(-chrome, "SIGKILL"); } catch { try { process.kill(chrome, "SIGKILL"); } catch { /* gone */ } }
+      }
     }
     rmDir(dir);
     (existsSync(dir) ? kept : removed).push(dir);
@@ -89,11 +102,11 @@ export async function launch({ headless = true, extraArgs = [] } = {}) {
     ...CI_ARGS, ...extraArgs, "about:blank"
   ].filter(Boolean);
   let proc;
-  try { proc = spawn(CHROME, args, { stdio: ["ignore", "ignore", "pipe"] }); } catch (e) { rmDir(dir); throw e; }
+  try { proc = spawn(CHROME, args, { stdio: ["ignore", "ignore", "pipe"], detached: process.platform !== "win32" }); } catch (e) { rmDir(dir); throw e; }
   live.set(dir, proc);
   proc.once("error", () => {}); // a missing binary surfaces as "Chrome exited" below
   if (proc.pid) writeFileSync(join(dir, ".lq-chrome"), String(proc.pid));
-  const fail = msg => { try { if (proc.exitCode == null) proc.kill("SIGKILL"); } catch { /* gone */ } live.delete(dir); rmDir(dir); return new Error(msg); };
+  const fail = msg => { killTree(proc); live.delete(dir); rmDir(dir); return new Error(msg); };
   let stderr = "";
   proc.stderr.on("data", d => { stderr += d; if (stderr.length > 20000) stderr = stderr.slice(-10000); });
   const portFile = join(dir, "DevToolsActivePort");
@@ -206,7 +219,8 @@ export async function launch({ headless = true, extraArgs = [] } = {}) {
     try { await send("Browser.close"); } catch { /* ignore */ }
     try { ws.close(); } catch { /* ignore */ }
     await Promise.race([new Promise(r => proc.once("exit", r)), sleep(3000)]);
-    if (proc.exitCode == null) { proc.kill("SIGKILL"); await Promise.race([new Promise(r => proc.once("exit", r)), sleep(3000)]); }
+    if (proc.exitCode == null) { const ex = new Promise(r => proc.once("exit", r)); killTree(proc); await Promise.race([ex, sleep(3000)]); }
+    else killTree(proc); // helpers of an exited browser
     live.delete(dir);
     rmDir(dir);
   }
