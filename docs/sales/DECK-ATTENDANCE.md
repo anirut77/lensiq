@@ -106,7 +106,7 @@ PIN / QR ไม่มีความคลาดเคลื่อนจาก�
 
 - ตัวอย่าง: 12 คน × 19 = 228 บาทต่อเดือน (มากกว่าขั้นต่ำ 190) + ช่วยตั้งค่า 2,900 = 3,128 บาท ก่อน VAT (VAT 218.96 รวม 3,346.96)
 - ลูกค้าชำระราคา + VAT 7% ผ่านใบเสนอราคาและโอนธนาคารเท่านั้น (OP-02) · ไม่ขายอุปกรณ์ (ใช้มือถือ/แท็บเล็ตที่มี)
-- ฟรีถึง 5 คน เกินนั้นต้องมีใบอนุญาต ยังไม่บังคับในระบบ ข้อจำกัดเริ่มตามวันที่จะประกาศล่วงหน้าอย่างน้อย 30 วัน เจ้าของบังคับผ่านสัญญา (OP-26)
+- ฟรีถึง 5 คน เกินนั้นต้องมีใบอนุญาต ยังไม่บังคับในระบบ ข้อจำกัดเริ่มตามวันที่จะประกาศ โดยประกาศล่วงหน้าอย่างน้อย 30 วันและเริ่มใช้หลังประกาศ 30 วัน เจ้าของบังคับผ่านสัญญา (OP-26)
 - นิยาม "คนที่ใช้งาน" รอเจ้าของยืนยัน (OP-08) · ราคา "หลังนำร่อง" ใช้เมื่อผ่านเกณฑ์เท่านั้น (OP-10)
 - ไฟล์: `docs/PRICING-RESEARCH.md` §3.4 · การเสนอขายต้องเจ้าของยืนยัน (OP-09)
 
@@ -129,5 +129,5 @@ LENSIQ Attendance records staff time with a PIN or QR badge by default; a face i
 keeps data on the device and stores no image. It has no emotion analysis, no staff scoring and no lie detection, and age / gender / expression models are not in customer builds. Shifts, OT, holidays and a payroll CSV
 are included; no wage, tax or social-security calculation, no cloud sync, no rotating rosters. Measured (face option only; PIN / QR has no recognition error): Asian faces recognised per scan 66–76%
 (n = 500 people x 5 photos, public dataset CASIA-FaceV5, held out but not perfectly blind, `ACCURACY.md` §2); strangers checked in with no confirmation at most 0.03% (n about 12,000 visits per row, public dataset).
-Not measured: a real workplace, the liveness option. Approved prices excl. 7% VAT, pilot stage: free up to 5 people (beyond that a licence is needed, enforced by contract from a date announced at least 30 days ahead, not by the product yet); 19 THB per active person per month (minimum 190 THB per month); set-up help 2,900 THB one-off.
+Not measured: a real workplace, the liveness option. Approved prices excl. 7% VAT, pilot stage: free up to 5 people (beyond that a licence is needed, enforced by contract from a date announced at least 30 days ahead and starting 30 days after the announcement, not by the product yet); 19 THB per active person per month (minimum 190 THB per month); set-up help 2,900 THB one-off.
 Sold by quotation and bank transfer.

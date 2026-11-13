@@ -1,7 +1,7 @@
 /* lensiq-demo-data.js — built-in sample data for the sales demo mode (?demo=1, lensiq-demo.js). Every name, plate, house,
  * shop and event here is invented ("ตัวอย่าง 01" / "Sample 01" / "示例 01", house "99/1" …); there are no real people, no photos and no faces.
  * Only used when LQDemo.on; data is generated relative to "now" so the demo always looks current.
- * Pages: exam-lab, attendance (employee mode), village, parking, crowd. Text: i18n/{en,zh}-demo.js ("demo.*"). */
+ * Pages: exam-lab, exam-dashboard, attendance (employee mode), village, parking, crowd. Text: i18n/{en,zh}-demo.js ("demo.*"). */
 (function () {
   "use strict";
   const W = /** @type {any} */ (window), D = W.LQDemo;
@@ -44,6 +44,51 @@
       body.addEventListener("click", e => {
         const b = /** @type {any} */ (e.target).closest("[data-demo-sig]");
         if (b && W.__LQ_EXAM_LAB && W.__LQ_EXAM_LAB.demoEvent) W.__LQ_EXAM_LAB.demoEvent(b.dataset.demoSig);
+      });
+    });
+  }
+
+  /* ================================================================ Exam: invigilator dashboard (pre-filled on-site tally) */
+  if (page === "exam-dashboard") {
+    // Room DEMO, 12 seats, 18 made-up flags with a made-up invigilator, 15 of them already marked "flag was right / wrong" so the
+    // precision table is full: phone 3/1, noface 2/3, multiface 1/2, fsexit 2/0, lean 0/1 (8 of 15). These numbers show HOW the
+    // tally works; they are not a measured accuracy of LENSIQ (the panel says so). Built with the real board (LQExam.createBoard),
+    // so every figure on the page is computed by the same code as in a real exam.
+    const ROOM = "DEMO", NAME = L("ผู้คุมสอบตัวอย่าง", "Sample invigilator", "示例监考老师");
+    D.seed("lq-exam-db", { room: ROOM, who: NAME, seats: "1-12" });
+    D.seed("lq-exam-board-" + ROOM, () => {
+      const b = W.LQExam.createBoard({ room: ROOM });
+      const LAB = "demolab0001", HALL = "demohall0001";
+      const noteOk = L("ตรวจแล้วเป็นปกติ (ตัวอย่าง)", "Checked, normal (sample)", "已检查，正常（示例）");
+      const noteEsc = L("ส่งต่อคณะกรรมการ (ตัวอย่าง)", "Passed to the committee (sample)", "已提交委员会（示例）");
+      // [minutes ago, seat, signal, level, source, verdict (1 right / 0 wrong / null), outcome (n = no issue / e = escalate / null = still open)]
+      const rows = [
+        [52, "3", "phone", "check", "lab", 1, "e"], [44, "6", "phone", "check", "lab", 1, "e"], [35, "9", "phone", "check", "lab", 1, "e"], [21, "11", "phone", "check", "lab", 0, "n"],
+        [50, "2", "noface", "watch", "lab", 1, "n"], [41, "5", "noface", "watch", "lab", 1, "n"], [33, "8", "noface", "watch", "lab", 0, "n"], [27, "10", "noface", "watch", "lab", 0, "n"], [18, "12", "noface", "watch", "lab", 0, "n"],
+        [47, "4", "multiface", "check", "lab", 1, "e"], [30, "7", "multiface", "check", "lab", 0, "n"], [15, "1", "multiface", "check", "lab", 0, "n"],
+        [38, "6", "fsexit", "watch", "lab", 1, "n"], [24, "9", "fsexit", "watch", "lab", 1, "n"],
+        [12, "5", "lean", "watch", "hall", 0, "n"],
+        [4, "3", "object", "watch", "lab", null, null], [3, "12", "lean", "watch", "hall", null, null], [2, "", "aisle", "watch", "hall", null, null]
+      ];
+      for (const [min, seat, sig, lvl, src, verdict, out] of rows) {
+        const t = now - min * MIN, r = b.ingest({ v: 1, type: "ev", room: ROOM, node: src === "hall" ? HALL : LAB, src, seat, sig, lvl, t }, now);
+        if (!r.ok || r.kind !== "alert") continue;
+        if (out) {
+          b.act(r.id, "going", { who: NAME }, t + 25000);
+          b.act(r.id, out === "e" ? "escalate" : "noissue", { who: NAME, note: out === "e" ? noteEsc : noteOk }, t + 70000);
+        }
+        if (verdict != null) b.verdict(r.id, verdict === 1);
+      }
+      b.setProfile("4", { breaks: true });
+      b.setProfile("9", { readAloud: true, gazeOff: true });
+      return b.toJSON();
+    });
+    D.onReady(body => {
+      body.innerHTML = `<p data-i18n="demo.exdb.p">ห้องสอบสมมติ DEMO 12 ที่นั่ง มีการแจ้งตัวอย่าง 18 รายการ ผู้คุมสอบตัวอย่างตรวจไปแล้ว 15 รายการและกด "แจ้งถูก" หรือ "แจ้งผิด" ไว้ ตารางความแม่นยำต่อสัญญาณจึงมีตัวเลขแล้ว (รวม 8 ถูก จาก 15) ยังเหลือ 3 รายการในคิวให้ลองกดเอง ตัวเลขนี้เป็นข้อมูลจำลองเพื่อสาธิตวิธีนับ ไม่ใช่ความแม่นยำที่วัดได้ของ LENSIQ ในห้องสอบจริงยังไม่ได้วัด ผู้คุมสอบเป็นผู้ตัดสินเสมอ</p>
+<div class="lq-demo-btns">${btn("data-demo-tally", "demo.exdb.tally", "ไปที่ตารางความแม่นยำ")}</div>`;
+      body.addEventListener("click", e => {
+        if (!(/** @type {any} */ (e.target).closest("[data-demo-tally]"))) return;
+        const el = document.querySelector("#precBody"); if (el) el.scrollIntoView({ block: "center" });
       });
     });
   }

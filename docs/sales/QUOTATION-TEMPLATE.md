@@ -85,7 +85,7 @@
    ทุกการตัดสินใจเกี่ยวกับเงิน สิทธิ์เข้าออก หรือบุคคล คนเป็นผู้ยืนยัน
 6. **ความแม่นยำ:** ตัวเลขความแม่นยำที่ให้ลูกค้าต้องมีที่มา (ข้อมูลจำลอง / ชุดข้อมูลสาธารณะ / หน้างานจริง) ตาม `docs/ACCURACY-CLAIMS.md`
    ผลหน้างานจริงยังไม่ได้วัด ห้ามเขียนรับประกันตัวเลขในใบเสนอราคา
-7. **เงื่อนไขอื่น:** ข้อกำหนดการใช้บริการ การยกเลิก การคืนเงิน ความรับผิด ยังไม่มีเอกสารสำหรับการขาย (มีเฉพาะสัญญานำร่อง
+7. **เงื่อนไขอื่น:** ข้อกำหนดการใช้บริการ การยกเลิก การคืนเงิน ความรับผิด มีร่างอยู่ที่ `docs/legal/customer/TERMS-OF-SERVICE-B2B.md` (ร่างสำหรับทนายตรวจ ยังไม่ใช่ฉบับใช้จริง; สัญญานำร่อง
    `docs/pilot/AGREEMENT-TH.md`) **[ต้องยืนยัน / to confirm]** (OP-13)
 8. **การประมวลผลข้อมูล:** ดู `ORDER-FORM.md` ข้อ 6 (OP-12)
 
@@ -233,7 +233,7 @@ Conditions:
    decision about money, access or a person.
 6. **Accuracy:** any figure given to the customer states its source (synthetic / public dataset / field), as in `docs/ACCURACY-CLAIMS.md`. Field accuracy
    is not yet measured. Never write a guarantee into a quotation.
-7. **Other terms:** terms of service, cancellation, refund and liability for sale do not exist yet (only the pilot agreement `docs/pilot/AGREEMENT-TH.md`).
+7. **Other terms:** terms of service, cancellation, refund and liability for sale exist only as a draft for legal review, `docs/legal/customer/TERMS-OF-SERVICE-B2B.md` (not final; the pilot agreement is `docs/pilot/AGREEMENT-TH.md`).
    **[to confirm]** (OP-13).
 8. **Data processing:** see `ORDER-FORM.md` section 6 (OP-12).
 

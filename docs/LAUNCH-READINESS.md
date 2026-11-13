@@ -5,6 +5,8 @@ the owner plans to sell **by quotation and bank transfer (no online payment)**. 
 every figure is copied from the file named next to it. Where two sources disagree, both are shown and the row is marked
 **⚠ sources disagree** (list in section 7).
 
+**Refreshed 2026-11-13 (stream C, branch `sellable-c`):** the must-fix rows now carry their evidence (commit or file); the four code items are confirmed done and "in progress" no longer applies to any row; the sales kit and demo mode are listed in section 1; section 8 is the Thai "how to sell this week" checklist per product. No measured figure was changed by this refresh.
+
 ## สรุปภาษาไทย (สั้น)
 
 - **ขายได้แบบใบเสนอราคา + โอนเงิน** 4 ตัว: Exam (เฉพาะห้องคอมพิวเตอร์ / lab mode), Attendance (PIN/QR เป็นค่าเริ่มต้น
@@ -25,7 +27,7 @@ every figure is copied from the file named next to it. Where two sources disagre
   photos / videos), **field** (a real customer site or the owner's own photos). No product has a field figure yet.
 - **Blocker class:** **code** (the agent can fix it), **owner** (needs the owner's decision, money, data or site),
   **legal** (needs counsel or a data owner).
-- **Status words:** *in progress 2026-11-11* = being fixed by another agent today (named by the owner); *open* = nobody
+- **Status words:** *done* = finished with evidence (commit or file) named in the row; *in progress* = being worked on (no row has this status since 2026-11-13); *open* = nobody
   is working on it; *decided* = an owner decision is recorded in the cited file.
 - **L-numbers** are the rows of `docs/CTO-BRIEF.md` §8 (L1–L62). Other documents reuse "L" for their own lists
   (`docs/LEGAL-REVIEW-PACK.md` §3.7 L1–L5, `docs/pdpa/DPIA.md` §9 L1–L20); this file writes those as LRP-… and DPIA-….
@@ -38,6 +40,8 @@ every figure is copied from the file named next to it. Where two sources disagre
 |---|---|---|
 | Sales channel | Quotation + **bank transfer only** (no PromptPay QR, card or Opn; owner decision 2026-11-13). No online checkout for these lines: back-office order plans are planned only for Gate, Attendance, Exam (lab room) and Crowd report, with no online purchase; `pricing.html` (consumer checkout, VAT-inclusive) is unchanged | `docs/PRICING-RESEARCH.md` header; `docs/BILLING-PLAN.md` §4.1 |
 | Free tiers and limits | Fortune and general tools stay free. Gate 30-day trial (1 lane, 100 plates / day) · Attendance free up to 5 people · Exam free up to 5 candidates per session · Crowd free 2 hours per device per day; a licence is needed beyond them. **Not enforced in the product yet** (membership and billing come later): the limits apply from a date to be announced with at least 30 days' notice, starting 30 days after the announcement, enforced by the owner by contract; a limit on the user's device can be bypassed by someone who edits the code, the contract binds. Customers can always export their data. A licence works offline for 14 days (planned) | Owner decision 2026-11-13; legal item L62 |
+| Sales kit | Quotation, invoice, receipt, order form, a 10-minute demo script, onboarding guide and a short deck for each of Exam, Attendance, Gate and Crowd; all marked draft; price lines checked against `docs/PRICING-RESEARCH.md` §3 on 2026-11-13; open points OP-01 to OP-27 | `docs/sales/README.md` |
+| Demo mode (`?demo=1`) | Sample data only, no camera, nothing written to the device's real records, exports named SAMPLE, a bar "sample data, not real data" always on screen. Pages: `exam-lab.html`, `exam-dashboard.html` (pre-filled sample tally, simulated: it shows how the tally works and is not an accuracy), `attendance.html?mode=employee`, `village.html`, `parking.html`, `crowd.html` | `lensiq-demo.js`, `lensiq-demo-data.js`; tests `tests/e2e/demo-mode.e2e.mjs`, `tests/e2e/exam-dashboard-demo.e2e.mjs` |
 | Organisation accounts | Planned "lite" version, not built: organisation name, billing details, admins and staff, invitations; no syncing of the customer's people data | Owner decision 2026-11-13 |
 | Privacy contact | LINE @632yliiw until a separate privacy-contact (DPO) e-mail is added; the owner will send the address | Owner decision 2026-11-13; legal item L61 |
 | Seller details | **Missing:** name, tax_id, address, email, effective_date, dpo_email; Worker `SELLER_NAME`, `SELLER_TAX_ID`, `SELLER_ADDRESS` missing; counsel not confirmed. Go-live checklist 0 done, 11 open | `node tools/check-legal.mjs` output, 2026-11-11 |
@@ -74,10 +78,10 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 
 | Item | What | Status |
 |---|---|---|
-| L51 | Admin recovery codes: slow, salted hash | **done 2026-11-11** (deployed; owner re-issued; 10 salted codes, 0 old) |
-| — | Hall mode labelled "experimental, not on sale yet" consistently everywhere | **done 2026-11-11** (commit `72d733b`) |
-| — | No page claims more than was measured | **done 2026-11-11** (commit `72d733b`; claim-rules check added) |
-| — | Retention cron confirmed on | **done 2026-11-11** (ran 03:17 UTC on lensiq-test; audit `retention.run`) |
+| L51 | Admin recovery codes: slow, salted hash | **done 2026-11-11.** Evidence: code `128d111`, test `ff31a0d` (what happens to existing codes at migration 0013), deploy record `4653700` (deployed on `lensiq-api-test`; owner re-issued; read-only check 10 salted codes, 0 old) |
+| — | Hall mode labelled "experimental, not on sale yet" consistently everywhere | **done 2026-11-11.** Evidence: commit `72d733b`; name and status pins in `docs/claim-rules.json` (`tests/unit/claim-rules.test.js`) |
+| — | No page claims more than was measured | **done 2026-11-11.** Evidence: commit `72d733b`; `docs/claim-rules.json` applied by `npm run accuracy:check` and `tests/unit/claim-rules.test.js` |
+| — | Retention cron confirmed on | **done 2026-11-11.** Evidence: deploy record `4653700` (ran 03:17 UTC on `lensiq-api-test`; audit event `retention.run`) |
 | L23 | Face model licences. For Exam: resolved by the switch to MediaPipe (`docs/CTO-BRIEF.md` §5 "L23: Exam resolved"), but the L23 row still says "open" and `docs/PAGE-STATUS.md` still names F5/F6 for the Exam pages ⚠ | open (row); resolved for Exam (text) |
 | L25 | Pricing terms and VAT, refund and contract terms | open (counsel) |
 | L62 | Free-tier limits and the change from "free, every feature" (notice period, consumer-protection angle, contract wording) | open (counsel) |
@@ -89,7 +93,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 
 | Class | Blocker |
 |---|---|
-| code | The four in-progress items above |
+| code | None open. The four code items (L51, retention cron, labels, claims) are done (evidence above); C5 is set per customer install |
 | owner | Seller details and VAT decision (section 1); one pilot institution; confirm the pilot targets (`docs/pilot/PILOT-EXAM.md` §6) |
 | legal | Notice and consent text (`exam.html#notice`, `i18n/*-exam.js`); lawful basis public vs private institution and minors (`docs/PDPA-NOTES-FOR-COUNSEL.md` B1); evidence-clip questions if clips are offered (C2); MediaPipe mesh and human-oversight wording (F5); L25–L27 |
 
@@ -115,9 +119,9 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 
 | Item | What | Status |
 |---|---|---|
-| L51 | Admin recovery codes: slow, salted hash | **done 2026-11-11** (deployed; owner re-issued; 10 salted codes, 0 old) |
-| — | No page claims more than was measured (the "fewer than 0.05 %" banner above is one candidate) | **done 2026-11-11** (commit `72d733b`; claim-rules check added) |
-| — | Retention cron confirmed on | **done 2026-11-11** (ran 03:17 UTC on lensiq-test; audit `retention.run`) |
+| L51 | Admin recovery codes: slow, salted hash | **done 2026-11-11.** Evidence: code `128d111`, test `ff31a0d` (what happens to existing codes at migration 0013), deploy record `4653700` (deployed on `lensiq-api-test`; owner re-issued; read-only check 10 salted codes, 0 old) |
+| — | No page claims more than was measured (the "fewer than 0.05 %" banner above is one candidate) | **done 2026-11-11.** Evidence: commit `72d733b`; `docs/claim-rules.json` applied by `npm run accuracy:check` and `tests/unit/claim-rules.test.js` |
+| — | Retention cron confirmed on | **done 2026-11-11.** Evidence: deploy record `4653700` (ran 03:17 UTC on `lensiq-api-test`; audit event `retention.run`) |
 | L23 | Face model licence (research-only training data) for the optional face mode | open (counsel; letters A / B in `docs/LICENCE-REQUESTS.md` not sent) |
 | L25 | Pricing terms and VAT, refund and contract terms | open (counsel) |
 | L62 | Free-tier limits and the change from "free, every feature" (notice period, consumer-protection angle, contract wording) | open (counsel) |
@@ -128,7 +132,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 
 | Class | Blocker |
 |---|---|
-| code | The in-progress items above |
+| code | None open. The code items above are done (evidence above); C5 is set per customer install |
 | owner | Seller details and VAT decision; one pilot site with 5–20 staff; decide whether face mode is quoted before L23 is answered (`docs/ATTENDANCE-READINESS.md` B10) |
 | legal | Employee notice and consent text; whether biometric consent is free in employment with the PIN / QR alternative (`docs/PDPA-NOTES-FOR-COUNSEL.md` B2; DPIA-L1; LRP-P2, LRP-L5); s.114 wording and 2-year minimum; works-rules wording for lateness beyond grace and OT rounding; 13-holiday text (`docs/ATTENDANCE-READINESS.md` "Needs outside resources"); L23 for face mode; L25 |
 
@@ -155,9 +159,9 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 
 | Item | What | Status |
 |---|---|---|
-| L51 | Admin recovery codes: slow, salted hash | **done 2026-11-11** (deployed; owner re-issued; 10 salted codes, 0 old) |
-| — | No page claims more than was measured | **done 2026-11-11** (commit `72d733b`; claim-rules check added) |
-| — | Retention cron confirmed on | **done 2026-11-11** (ran 03:17 UTC on lensiq-test; audit `retention.run`) |
+| L51 | Admin recovery codes: slow, salted hash | **done 2026-11-11.** Evidence: code `128d111`, test `ff31a0d` (what happens to existing codes at migration 0013), deploy record `4653700` (deployed on `lensiq-api-test`; owner re-issued; read-only check 10 salted codes, 0 old) |
+| — | No page claims more than was measured | **done 2026-11-11.** Evidence: commit `72d733b`; `docs/claim-rules.json` applied by `npm run accuracy:check` and `tests/unit/claim-rules.test.js` |
+| — | Retention cron confirmed on | **done 2026-11-11.** Evidence: deploy record `4653700` (ran 03:17 UTC on `lensiq-api-test`; audit event `retention.run`) |
 | L24 | Gate sign wording, legal basis (s.24(5) / s.24(3)), plate retention; owner photos of public streets | open (counsel) |
 | L25 | Pricing terms and VAT, incl. the 30-day trial wording (not enforced in code) | open (counsel) |
 | L62 | Free-tier limits and the change from "free, every feature" (notice period, consumer-protection angle, contract wording) | open (counsel) |
@@ -170,7 +174,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 
 | Class | Blocker |
 |---|---|
-| code | The in-progress items above |
+| code | None open. The code items above are done (evidence above); C5 is set per customer install |
 | owner | Seller details and VAT decision; ~100 phone photos for phase 0; one car park and one village for phase 1; the Thai YOLOX-nano ONNX file |
 | legal | L24 (sign, basis, retention); visitor names / phones typed by guards and the deny list (`docs/PDPA-NOTES-FOR-COUNSEL.md` B3, E2); L25–L28 |
 
@@ -199,10 +203,10 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 
 | Item | What | Status |
 |---|---|---|
-| L51 | Admin recovery codes: slow, salted hash | **done 2026-11-11** (deployed; owner re-issued; 10 salted codes, 0 old) |
-| — | Crowd labelled consistently (experimental, not for dense crowds) everywhere | **done 2026-11-11** (commit `72d733b`) |
-| — | No page claims more than was measured | **done 2026-11-11** (commit `72d733b`; claim-rules check added) |
-| — | Retention cron confirmed on | **done 2026-11-11** (ran 03:17 UTC on lensiq-test; audit `retention.run`) |
+| L51 | Admin recovery codes: slow, salted hash | **done 2026-11-11.** Evidence: code `128d111`, test `ff31a0d` (what happens to existing codes at migration 0013), deploy record `4653700` (deployed on `lensiq-api-test`; owner re-issued; read-only check 10 salted codes, 0 old) |
+| — | Crowd labelled consistently (experimental, not for dense crowds) everywhere | **done 2026-11-11.** Evidence: commit `72d733b`; name and status pins in `docs/claim-rules.json` (`tests/unit/claim-rules.test.js`) |
+| — | No page claims more than was measured | **done 2026-11-11.** Evidence: commit `72d733b`; `docs/claim-rules.json` applied by `npm run accuracy:check` and `tests/unit/claim-rules.test.js` |
+| — | Retention cron confirmed on | **done 2026-11-11.** Evidence: deploy record `4653700` (ran 03:17 UTC on `lensiq-api-test`; audit event `retention.run`) |
 | L25 | Pricing terms and VAT, refund and contract terms | open (counsel) |
 | L62 | Free-tier limits and the change from "free, every feature" (notice period, consumer-protection angle, contract wording) | open (counsel) |
 | L28 | Partner agreement (event agencies, installers) | open (counsel) |
@@ -211,7 +215,7 @@ Hall mode (`exam-hall.html`, Mode A) is **experimental, not on sale** (owner dec
 
 | Class | Blocker |
 |---|---|
-| code | The in-progress items above |
+| code | None open. The code items above are done (evidence above); C5 is set per customer install |
 | owner | Seller details and VAT decision; two people for the human count (about 1–2 hours, `docs/CROWD-ACCURACY.md` "Deferred"); one event site; a real mid-range phone for timing; confirm the status label |
 | legal | Lawful basis for anonymous counting at events (notice + legitimate interest, or also ticket terms) and the default retention of day records (`docs/PDPA-NOTES-FOR-COUNSEL.md` C1); sign A wording; L25, L28 |
 
@@ -292,3 +296,65 @@ accountant's invoices; see owner item O3).
 13. ~~**L51 row incomplete.**~~ Fixed 2026-11-11 (the row now has where, status and date).
 14. **Duplicate L-numbering.** `docs/LEGAL-REVIEW-PACK.md` §3.7 (L1–L5) and `docs/pdpa/DPIA.md` §9 (L1–L20) use the same
     IDs as `docs/CTO-BRIEF.md` §8 for different questions.
+
+## 8. วิธีขายภายในสัปดาห์นี้ (checklist ภาษาไทย ต่อผลิตภัณฑ์)
+
+> ร่าง 2026-11-13 สำหรับเจ้าของ ขายด้วยใบเสนอราคาและโอนผ่านธนาคารเท่านั้น (ไม่มี PromptPay QR บัตร หรือชำระออนไลน์ ตามที่เจ้าของตัดสิน 2026-11-13) ราคาทุกบรรทัดมาจากรายการราคาที่อนุมัติ 2026-11-09
+> (`docs/PRICING-RESEARCH.md` §3) ไม่รวม VAT 7% และใช้ **ราคาช่วงนำร่อง** เท่านั้น ราคา "หลังนำร่อง" ใช้เมื่อไซต์ผ่านเกณฑ์ของตัวเองแล้ว (OP-10) เอกสารทุกฉบับอยู่ใน `docs/sales/` (ดัชนี: `docs/sales/README.md`)
+> ตัวเลขความแม่นยำที่พูดกับลูกค้าต้องมีที่มาตาม `docs/ACCURACY-CLAIMS.md` ผลหน้างานจริงยังไม่มีสำหรับทุกผลิตภัณฑ์
+
+### 8.0 ต้องเสร็จก่อนส่งใบเสนอราคาใบแรก (ทุกผลิตภัณฑ์)
+
+| # | สิ่งที่ต้องทำ | ใคร | สถานะ 2026-11-13 |
+|---|---|---|---|
+| 1 | กรอกข้อมูลผู้ขาย: ชื่อ เลขผู้เสียภาษี ที่อยู่ สาขา บัญชีธนาคารสำหรับโอน ผู้ติดต่อ (OP-01) ใน `LENSIQ_SELLER` และ Worker | เจ้าของ | **ยังว่าง** (`node tools/check-legal.mjs`: 0 จาก 11 ข้อ) |
+| 2 | ตัดสินเรื่องจดทะเบียน VAT (OP-02) ถ้าไม่จด ไม่มีบรรทัด VAT และออกใบกำกับภาษีไม่ได้ | เจ้าของ + นักบัญชี | รอ ส่งคำถามได้ทันที: `docs/sales/ACCOUNTANT-QUESTIONS-TH.md` และฉบับหน้าเดียว `docs/sales/ACCOUNTANT-ONE-PAGE-TH.md` |
+| 3 | นักบัญชียืนยันเลขที่เอกสารไม่ขาดตอน ภาษีหัก ณ ที่จ่าย 3% และใบเสร็จ/ใบกำกับ (OP-03 ถึง OP-05, OP-07) ระหว่างนี้เจ้าของออกเลขเองจากแม่แบบ | นักบัญชี | รอคำตอบ |
+| 4 | ให้ทนายตรวจชุดเอกสารลูกค้า `docs/legal/customer/` (ข้อกำหนด DPA ประกาศ ความยินยอม สัญญานำร่อง) และข้อความระดับฟรี (L62) ก่อนขายครั้งแรก (OP-24) | ทนาย | รอ ส่งชุด `docs/LEGAL-PACKET.md` |
+| 5 | ยืนยันว่าเสนอราคาได้แล้ว และอัปเดตป้าย "ราคาที่อนุมัติแล้ว ยังไม่เปิดขาย" บนหน้าเว็บ (OP-09) | เจ้าของ | รอ |
+| 6 | กำหนดอายุใบเสนอราคา กำหนดชำระ มัดจำ (OP-06) | เจ้าของ | รอ (ร่าง 30 วัน) |
+| 7 | ช่องทางติดต่อและสนับสนุนที่จะใส่ในเอกสาร (OP-16) ระหว่างนี้ LINE @632yliiw | เจ้าของ | รอ |
+
+ข้อ 1, 2, 4 เป็นเงื่อนไขที่ทำให้ "ขายได้จริง" ยังไม่ผ่าน ส่วนที่ทำได้ทันทีโดยไม่ต้องรอ: เดโม สไลด์ ส่งคำถามนักบัญชี และนัดไซต์นำร่อง
+
+### 8.1 ขั้นตอนเดียวกันทุกผลิตภัณฑ์ (ใบเสนอราคา → ใบสั่งซื้อ → ใบแจ้งหนี้ → โอนเงิน → ใบเสร็จ → เริ่มใช้งาน)
+
+1. **เดโม 10 นาที** ตามสคริปต์ของผลิตภัณฑ์ ใช้โหมด `?demo=1` (ข้อมูลตัวอย่างเท่านั้น) แล้วส่งสไลด์ (`DECK-*.md`)
+2. **ใบเสนอราคา** (`QUOTATION-TEMPLATE.md`): ใช้ตารางราคา §2 คอลัมน์ "นำร่อง" เท่านั้น ใส่ "ไม่รวม VAT 7%" ทุกบรรทัด ไม่เพิ่มบรรทัดนอกตาราง (ค่าเดินทาง ไม่อยู่ในราคาอนุมัติ OP-19) ระบุเงื่อนไขโอนผ่านธนาคารเท่านั้น
+3. **ใบสั่งซื้อ** (`ORDER-FORM.md`): ลูกค้าเซ็นยืนยัน พร้อมข้อ 6 การประมวลผลข้อมูล (DPA) และข้อความระดับฟรี (ข้อจำกัดบังคับผ่านสัญญา ประกาศล่วงหน้า 30 วันขึ้นไป เริ่มใช้หลังประกาศ 30 วัน ลูกค้าส่งออกข้อมูลได้เสมอ)
+4. **ใบแจ้งหนี้** (`INVOICE-TEMPLATE.md`): เจ้าของออกเลขที่เอง ใส่เลขที่ใบแจ้งหนี้ให้ลูกค้าระบุในบันทึกการโอน
+5. **ลูกค้าโอนเงิน** เข้าบัญชีที่ระบุ ส่งหลักฐานทางอีเมลหรือ LINE เจ้าของตรวจยอดเข้าบัญชีจริงก่อนออกใบเสร็จ (ถ้าลูกค้าหัก ณ ที่จ่าย ให้โอนยอดหลังหัก และรอหนังสือรับรอง 50 ทวิ OP-05)
+6. **ใบเสร็จ** (`RECEIPT-TEMPLATE.md`): ออกหลังเงินเข้าบัญชีแล้วเท่านั้น เจ้าของออกเองจากแม่แบบ ถ้าจด VAT ให้ถามนักบัญชีว่าออกใบกำกับภาษีเป็นฉบับเดียวกันหรือแยก (OP-07)
+7. **เริ่มใช้งาน** ตามคู่มือ `ONBOARDING-*.md` ของผลิตภัณฑ์ (ติดตั้ง วันแรก ปัญหาที่พบบ่อย ติดต่อใคร) และเก็บเอกสารทั้งหมดไว้ 5 ปี (R5 ถามนักบัญชี)
+
+### 8.2 Exam (ห้องคอมพิวเตอร์ / lab mode)
+
+- **เดโม:** `DEMO-SCRIPT-EXAM.md` เปิด `exam-dashboard.html?demo=1` (มี tally ตัวอย่างเติมไว้แล้ว ตัวเลขเป็นข้อมูลจำลอง ไม่ใช่ความแม่นยำ) และ `exam-lab.html?demo=1` ไม่ต้องใช้กล้อง
+- **ข้อเสนอสัปดาห์นี้:** (ก) โครงการนำร่องฟรี 1 สถาบัน ไม่เกิน 4 สัปดาห์ ไม่เกิน 3 ห้อง แลกกับการจดแจ้งถูก/แจ้งผิด (ชุดนำร่อง `docs/pilot/exam-lab/`, `docs/pilot/PILOT-EXAM.md`) หรือ (ข) ใบเสนอราคาช่วงนำร่อง: 10 บาทต่อผู้สอบต่อการสอบ (ขั้นต่ำ 300 บาทต่อรอบ) หรือ 990 บาทต่อห้องปฏิบัติการต่อเดือน ไม่รวม VAT 7% ระดับฟรี: ถึง 5 ผู้สอบต่อรอบสอบ
+- **ห้ามใส่ในใบเสนอราคา:** ห้องสอบที่มีกล้อง (`exam-hall.html`) เป็นรุ่นทดลอง ไม่ขาย
+- **ต้องบอกลูกค้า:** ผู้คุมสอบตัดสินเสมอ สัญญาณ "มากกว่าหนึ่งคน" แจ้งได้ 28.8% (15 / 52 ภาพ ชุดข้อมูลสาธารณะ ไม่ใช่ห้องสอบจริง) ในห้องสอบจริงยังไม่ได้วัด ยังดูสดข้ามเครื่องไม่ได้ ต้องส่งออกไฟล์หลังสอบ (OP-25) ผู้ไม่ยินยอมสอบโดยไม่เปิดกล้อง ประกาศผู้สอบ ≥ 7 วันก่อนสอบ ผู้สอบที่ยังไม่บรรลุนิติภาวะต้องรอทนาย (OP-22)
+- **หลังโอน:** `ONBOARDING-EXAM.md` อบรมผู้คุมสอบ 1 ชั่วโมง ตรวจกล้องและแสงก่อนวันสอบ
+
+### 8.3 Attendance (PIN / QR เป็นค่าเริ่มต้น)
+
+- **เดโม:** `DEMO-SCRIPT-ATTENDANCE.md` เปิด `attendance.html?mode=employee&demo=1` (พนักงานสมมติ 8 คน ข้อมูลเดือนที่แล้ว ส่งออก CSV ขึ้นต้น SAMPLE)
+- **ข้อเสนอสัปดาห์นี้:** ใบเสนอราคาช่วงนำร่อง: 19 บาทต่อคนที่ใช้งานต่อเดือน (ขั้นต่ำ 190 บาทต่อเดือน) ช่วยตั้งค่า 2,900 บาทครั้งเดียว (ไม่บังคับ) ไม่รวม VAT 7% ระดับฟรี: ถึง 5 คน PIN/QR 1 เครื่อง นำร่อง 2 สัปดาห์ เทียบ CSV เงินเดือนกับของเดิมหนึ่งรอบเดือน (`docs/PILOT-PLAN.md`)
+- **ห้ามเสนอ:** ใบหน้าเป็นจุดขาย (รอสรุปใบอนุญาตโมเดล L23 / OP-14) ซิงก์หลายสาขา (ยังไม่ขาย) ค่าจ้างภาษีประกันสังคม (ระบบไม่คำนวณ)
+- **ต้องบอกลูกค้า:** พื้นที่เบราว์เซอร์ราว 20 คน × 2 ปีต่อเครื่อง ไม่มีซิงก์คลาวด์ ต้องแจ้งพนักงานก่อนใช้ (ประกาศ PDPA ในหน้า) ที่ทำงานจริงยังไม่ได้วัด นิยาม "คนที่ใช้งาน" รอเจ้าของ (OP-08)
+- **หลังโอน:** `ONBOARDING-ATTENDANCE.md`
+
+### 8.4 Gate (ช่วย รปภ. อ่านป้าย)
+
+- **เดโม:** `DEMO-SCRIPT-GATE.md` เปิด `village.html?demo=1` และ `parking.html?demo=1` (บ้านและรถสมมติ ไม่มีหมายเลขพร้อมเพย์จริง รปภ. ต้องกดยืนยันทุกป้าย)
+- **ข้อเสนอสัปดาห์นี้:** ทดลองฟรี 30 วัน (1 ช่องทาง 100 ป้ายต่อวัน เก็บบันทึก 7 วัน นับวันด้วยมือ ยังไม่มีตัวจับเวลาในระบบ) แล้วใบเสนอราคาช่วงนำร่อง: หมู่บ้าน/คอนโด 490 บาทต่อช่องทางต่อเดือน ลานจอดรถ 790 บาทต่อช่องทางต่อเดือน (รวมพร้อมเพย์ ใบเสร็จ ปิดกะ) ติดตั้งหน้างาน 2,500 บาทต่อครั้ง ไม่รวม VAT 7% ไม่รวมอุปกรณ์
+- **ห้ามเสนอ:** ไม้กั้นหรือรีเลย์อัตโนมัติ กล้อง หรืออุปกรณ์ (ไม่ขาย) การเปิดไม้กั้นอัตโนมัติ (ปิดเป็นค่าเริ่มต้น)
+- **ต้องบอกลูกค้า:** รปภ. ยืนยันทุกป้าย ภาพจริงต้องแตะกรอบเอง 78% (ชุดข้อมูลสาธารณะ ไม่ใช่หน้างาน) ต้องติดป้ายแจ้งก่อนใช้ (รอทนาย L24) ความแม่นยำหน้างานจริงยังไม่ได้วัด
+- **หลังโอน:** `ONBOARDING-GATE.md` ตามเกณฑ์นำร่อง `docs/pilot/PILOT-GATE.md`
+
+### 8.5 Crowd (งานอีเวนต์ ทดลอง)
+
+- **เดโม:** `DEMO-SCRIPT-CROWD.md` เปิด `crowd.html?demo=1` (ฉากจำลอง ไม่มีภาพบุคคล) พูดทุกครั้งว่า "ค่าประมาณ ไม่ใช่จำนวนแน่นอน ยังไม่เหมาะกับฝูงชนหนาแน่น"
+- **ข้อเสนอสัปดาห์นี้:** ใบเสนอราคาช่วงนำร่อง: วันงาน 590 บาทต่อเครื่องต่อวัน หรือสัปดาห์งาน 2,490 บาทต่อเครื่อง (7 วัน) ไม่รวม VAT 7% ไม่รวมอุปกรณ์ ระดับฟรี 2 ชั่วโมงต่อเครื่องต่อวัน นำร่องที่ไซต์ 2–3 วัน เทียบกับคนนับ 2 คนทุก 5 นาที (`docs/pilot/PILOT-CROWD.md`)
+- **ห้ามเสนอ:** รายเดือนพื้นที่ถาวร (ยังไม่ขายจนกว่าโครงการนำร่องพื้นที่ถาวรผ่าน) ฝูงชนหนาแน่น (ประมาณ 50 คนขึ้นไปในภาพ) การใช้ตัดสินความปลอดภัยของฝูงชน
+- **ต้องบอกลูกค้า:** นับต่ำกว่าจริง 26–59% ในคลิปคนเบาบางถึงปานกลาง (ผลเบื้องต้น เทียบ AI ไม่ใช่คนนับ) ต้องติดป้าย A ที่ทางเข้าพื้นที่ ไม่ประมาณอายุ เพศ หรือสีหน้า
+- **หลังโอน:** `ONBOARDING-CROWD.md`

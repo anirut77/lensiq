@@ -40,6 +40,7 @@
 | | [`INVOICE-TEMPLATE.md`](INVOICE-TEMPLATE.md) ใบแจ้งหนี้ | ลูกค้ายอมรับใบเสนอราคาแล้ว |
 | | [`RECEIPT-TEMPLATE.md`](RECEIPT-TEMPLATE.md) ใบเสร็จรับเงิน | เงินโอนเข้าบัญชีแล้ว |
 | | [`ORDER-FORM.md`](ORDER-FORM.md) ใบสั่งซื้อ | ลูกค้าเซ็นยืนยัน พร้อมข้อ 6 การประมวลผลข้อมูล (DPA) |
+| | [`ACCOUNTANT-ONE-PAGE-TH.md`](ACCOUNTANT-ONE-PAGE-TH.md) คำถามถึงนักบัญชีฉบับหน้าเดียว (ส่ง LINE/อีเมลได้ทันที) | ส่งก่อนฉบับเต็ม |
 | | [`ACCOUNTANT-QUESTIONS-TH.md`](ACCOUNTANT-QUESTIONS-TH.md) คำถามถึงนักบัญชี | ก่อนออกใบเสร็จหรือใบกำกับภาษีจริงครั้งแรก (ชุดเลขที่เอกสาร ใบกำกับภาษี) |
 | เดโม 10 นาที | [`DEMO-SCRIPT-EXAM.md`](DEMO-SCRIPT-EXAM.md) · [`DEMO-SCRIPT-ATTENDANCE.md`](DEMO-SCRIPT-ATTENDANCE.md) · [`DEMO-SCRIPT-GATE.md`](DEMO-SCRIPT-GATE.md) · [`DEMO-SCRIPT-CROWD.md`](DEMO-SCRIPT-CROWD.md) | พบลูกค้า (ข้อมูลตัวอย่างเท่านั้น มีรายการ "ห้ามพูด") |
 | เริ่มต้นใช้งาน | [`ONBOARDING-EXAM.md`](ONBOARDING-EXAM.md) · [`ONBOARDING-ATTENDANCE.md`](ONBOARDING-ATTENDANCE.md) · [`ONBOARDING-GATE.md`](ONBOARDING-GATE.md) · [`ONBOARDING-CROWD.md`](ONBOARDING-CROWD.md) | หลังตกลงซื้อ: ติดตั้ง วันแรก ปัญหาที่พบบ่อย ติดต่อใคร |
@@ -69,9 +70,9 @@
 | OP-10 | O, L | ราคาช่วงนำร่อง vs หลังนำร่อง: ข้อความในสัญญาว่าเมื่อใดไซต์ "ผ่านเกณฑ์" และใครตัดสิน | ใบเสนอราคา ใบแจ้งหนี้ ใบสั่งซื้อ สไลด์ | `PRICING-RESEARCH.md` §3 · `docs/pilot/PILOT-*.md` (เกณฑ์ยังเป็น "ข้อเสนอ") |
 | OP-11 | O | แพ็กเกจรวมเป็นร่างยังไม่อนุมัติ: ส่วนลดบันเดิล (คำถาม B-1) ขนาดของใบอนุญาต Exam ในช่วง 30,000–120,000 (B-2) | ใบเสนอราคา ใบแจ้งหนี้ ใบเสร็จ | `SALES-PACKAGES.md` ท้ายเอกสาร |
 | OP-12 | L | ร่าง DPA อยู่ที่ `docs/legal/customer/DPA-TEMPLATE.md` (ร่างสำหรับทนายตรวจ) ต้องให้ทนายตรวจก่อนขายครั้งแรก | ใบเสนอราคา ใบสั่งซื้อ | LENSIQ จะเป็นผู้ประมวลผล (ม.40) เมื่อเข้าถึงอุปกรณ์ระยะไกลหรือซิงก์ |
-| OP-13 | O, L | ไม่มีข้อกำหนดการใช้บริการ การยกเลิก การคืนเงิน ความรับผิด สำหรับการขายด้วยใบเสนอราคา (มีเฉพาะสัญญานำร่อง `docs/pilot/AGREEMENT-TH.md`) | ใบเสนอราคา ใบเสร็จ ใบสั่งซื้อ | `SUPPORT.md` §10.4 เป็นแม่แบบคืนเงินของผู้ใช้ทั่วไป |
+| OP-13 | O, L | ข้อกำหนดการใช้บริการ การยกเลิก การคืนเงิน ความรับผิด สำหรับการขายด้วยใบเสนอราคา มีเป็นร่างสำหรับทนายตรวจที่ `docs/legal/customer/TERMS-OF-SERVICE-B2B.md` (ยังไม่ใช่ฉบับใช้จริง) และสัญญานำร่อง `docs/pilot/AGREEMENT-TH.md` | ใบเสนอราคา ใบเสร็จ ใบสั่งซื้อ | `SUPPORT.md` §10.4 เป็นแม่แบบคืนเงินของผู้ใช้ทั่วไป |
 | OP-14 | L, O | โมเดลใบหน้า (Attendance ตัวเลือกใบหน้า) ฝึกจากชุดข้อมูลวิจัย รอความเห็นทางกฎหมายก่อนใช้เชิงพาณิชย์ จนกว่าจะได้ข้อสรุปไม่เสนอใบหน้าเป็นจุดขาย | ใบสั่งซื้อ เดโม Attendance คู่มือ สไลด์ | `ONE-PAGER-ATTENDANCE.md` PDPA · `DEPLOYMENT-CHECKLIST.md` ข้อ 1 · F5/F6 ใน `PAGE-STATUS.md` |
-| OP-15 | P | โหมดเดโม `?demo=1` มีแล้วบน 5 หน้า (exam-lab, attendance โหมดพนักงาน, village, parking, crowd) เหลือ: แดชบอร์ด Exam ที่เติม tally ตัวอย่างไว้ | DEMO-SCRIPT-EXAM | ใช้ปุ่มสาธิตของแดชบอร์ดแทน |
+| OP-15 | P | โหมดเดโม `?demo=1` มีแล้วบน 6 หน้า (exam-lab, exam-dashboard, attendance โหมดพนักงาน, village, parking, crowd) รวมแดชบอร์ด Exam `exam-dashboard.html?demo=1` (ห้อง DEMO 12 ที่นั่ง 18 การแจ้ง tally ตัวอย่าง 8 ถูกจาก 15 เป็นข้อมูลจำลอง ไม่ใช่ความแม่นยำ) ปิดจุดนี้แล้ว 2026-11-13 ทดสอบ `tests/e2e/exam-dashboard-demo.e2e.mjs` | DEMO-SCRIPT-EXAM | — (เสร็จ) |
 | OP-16 | O | ช่องทางติดต่อและสนับสนุน (อีเมล LINE OA โทรศัพท์ หน้าสถานะ) ยังไม่ประกาศ | เอกสารทุกฉบับ คู่มือ สไลด์ | `SUPPORT.md` · `lensiq-config.js` `LENSIQ_SELLER` |
 | OP-17 | O | แผนสนับสนุนที่ขายและเวลาตอบรับ: ค่าใน `SUPPORT.md` §2–3 อยู่ในวงเล็บ ต่อรองได้ ยังไม่อนุมัติ และไม่มีราคาแผนสนับสนุนในรายการราคาอนุมัติ จึงไม่ใส่ในใบเสนอราคา | คู่มือเริ่มต้น 4 ไฟล์ | `SUPPORT.md` §2–3 |
 | OP-18 | O | นิยามหน่วยขาย: "รอบสอบ" "ห้องปฏิบัติการ" (Exam) "วัน" (Crowd) "ช่องทาง" (Gate) | ใบเสนอราคา ใบสั่งซื้อ | `PRICING-RESEARCH.md` §3 ไม่นิยามไว้ |
@@ -138,11 +139,11 @@ Deciders: owner (O), accountant (A), lawyer (L), product team (P). The table abo
 - **OP-09 (O)** Product pages and source docs still say "approved price list, not on sale yet"; the owner confirms quoting may start and updates the labels.
 - **OP-10 (O, L)** Pilot-stage versus after-pilot price: contract wording on when a site "passed" and who decides.
 - **OP-11 (O)** Combined packages are draft: bundle discount (B-1) and Exam licence size bands inside 30,000–120,000 (B-2).
-- **OP-12 (L)** No DPA draft exists as a file; the order form points to `SUPPORT.md` §5 and `PDPA-NOTES-FOR-COUNSEL.md` E3. Counsel must draft it before the first sale.
-- **OP-13 (O, L)** No sales terms (service, cancellation, refund, liability); only the pilot agreement exists.
+- **OP-12 (L)** A DPA draft exists at `docs/legal/customer/DPA-TEMPLATE.md` ("draft for legal review", not final); the order form also points to `SUPPORT.md` §5 and `PDPA-NOTES-FOR-COUNSEL.md` E3. Counsel must review it before the first sale.
+- **OP-13 (O, L)** Sales terms (service, cancellation, refund, liability) exist as a draft for legal review, `docs/legal/customer/TERMS-OF-SERVICE-B2B.md` (not final), besides the pilot agreement.
 - **OP-14 (L, O)** Face model licence (Attendance face option) awaits legal opinion; the face option is not offered as a selling point until then.
-- **OP-15 (P)** Demo mode `?demo=1` is available on `exam-lab.html`, `attendance.html?mode=employee`, `village.html`, `parking.html`, `crowd.html`.
-  Still open: an Exam dashboard with a pre-filled sample tally (use the dashboard's own demo button meanwhile).
+- **OP-15 (P)** Demo mode `?demo=1` is available on `exam-lab.html`, `exam-dashboard.html`, `attendance.html?mode=employee`, `village.html`, `parking.html`, `crowd.html`.
+  Closed 2026-11-13: `exam-dashboard.html?demo=1` opens a pre-filled sample board (room DEMO, 12 seats, 18 flags, simulated tally 8 right out of 15, which is not a measured accuracy); test `tests/e2e/exam-dashboard-demo.e2e.mjs`.
 - **OP-16 (O)** Contact and support channels (e-mail, LINE OA, phone, status page) not announced.
 - **OP-17 (O)** Support plan sold and response times: `SUPPORT.md` §2–3 values are bracketed drafts, and no support price is in the approved list, so none is quoted.
 - **OP-18 (O)** Definition of units: "exam session" and "lab" (Exam), "day" (Crowd), "lane" (Gate).
@@ -156,4 +157,4 @@ Deciders: owner (O), accountant (A), lawyer (L), product team (P). The table abo
 - **OP-26 (O, L)** Contract wording for the free-tier limits: start date, 30 days' notice, start 30 days after the announcement, the right to export data at any time, and the fact that a limit on the user's device can be bypassed (the contract binds). Legal item L62.
 - **OP-27 (O)** A separate privacy-contact (DPO) e-mail; the owner will send it. Until then LINE @632yliiw. Legal item L61.
 
-**Not found in the repository (not invented):** seller company details, bank account, DPA draft, sales terms, support price, travel price, unit definitions, reference customers, field results for any product.
+**Not found in the repository (not invented):** seller company details, bank account, a lawyer-approved DPA and sales terms (only drafts exist), support price, travel price, unit definitions, reference customers, field results for any product.
