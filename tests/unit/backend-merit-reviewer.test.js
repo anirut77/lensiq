@@ -85,7 +85,8 @@ async function setup(vars = {}) {
 test("RV1: migration 0016_merit_review.sql is listed, probed, and named exactly when missing", async () => {
   assert.ok(existsSync(join(ROOT, "backend", "migrations", "0016_merit_review.sql")));
   const { MIGRATIONS, deepHealth } = await import(B + "health.js");
-  assert.equal(MIGRATIONS[MIGRATIONS.length - 1], "0016_merit_review.sql");
+  // amended 2026-11-13 (stream G): 0017_accounts.sql now follows; 0016 must still directly follow 0015 (was: "is the last one")
+  assert.equal(MIGRATIONS[MIGRATIONS.indexOf("0015_merit.sql") + 1], "0016_merit_review.sql");
   const src = readFileSync(join(ROOT, "backend", "src", "health.js"), "utf8");
   assert.match(src, /\["0016_merit_review\.sql", "SELECT [^"]*FROM admin_reviewers/);
   assert.match(src, /\["0016_merit_review\.sql", "SELECT [^"]*FROM merit_revisions/);
