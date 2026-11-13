@@ -41,7 +41,7 @@ export default async function ({ base, launch, check, fakeCams }) {
     const page = await browser.newPage(null, { initScripts: [lang(l), fakeCams, detScript, `window.__LBL = ${JSON.stringify(LABEL[l])};`].concat(inits) });
     await page.send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
     await page.goto(`${base}/faceread.html?cpu&fakedet`);
-    await page.waitFor(`document.documentElement.lang === ${JSON.stringify(l)}`, 8000);
+    await page.waitFor(`document.documentElement.lang === ${JSON.stringify(l === "zh" ? "zh-Hans" : l)}`, 8000); // re-lock 2026-11-13: the site sets zh-Hans
     await sleep(700);
     return page;
   };
