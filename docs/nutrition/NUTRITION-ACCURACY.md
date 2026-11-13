@@ -84,3 +84,27 @@ What is left (all 9 errors are "phantom" reads, none on the 4° / 6° pictures):
 Candidate fixes (not built in this round; they need a third fresh set to be measured): accept the common misreads of
 "อิ่มตัว"; never read "ไขมัน" + other Thai letters as total fat; flag two values for one field even when equal; accept
 "per pack" only with a pack word ("ซอง", "ถุง", "ห่อ", …).
+
+## Round 3 (2026-11-13): four small fixes, measured on a THIRD locked set (v3)
+
+Fixes (coordinator instruction, option 1, branch only): common OCR misreads of "อิ่มตัว" read as saturated fat; "ไขมัน"
+followed by other Thai letters is never total fat; two values for one field are "please check" even when equal; "per
+pack" only with a pack word (ซอง, ถุง, ห่อ, กล่อง, ขวด, ถ้วย, …). Developed against v1 / v2 (dev data only). Measured ONCE on
+v3: `~/LENSIQ-field/evals/nutrition/v3/` (252 new PNGs, new seeds; 8 labels per condition for Thai new and Thai old,
+4 for the other formats; same 7 conditions; `locked.sha256` sha256
+`4ed1b1790865586a7242098943fc2aa3c9dd3698d13cd971e17c08e38fcab8c3`, locked before the fixes with
+tests/unit/nut-fix3.test.js). Source: synthetic.
+
+| # | Target | v3 result | Met? |
+|---|---|---|---|
+| I1 | Thai new: energy, sugar, sodium, fat >= 90 % each | 56 / 56 each, every condition 8 / 8 | yes |
+| I2 | silent wrong, Wilson upper <= 3 % pooled | 0 / 1245 [0.0–0.3] | yes |
+| I2 | per format | th-new 0 / 276 [0–1.4], th-old 0 / 292 [0–1.3], us 0 / 138 [0–2.7], eu 0 / 260 [0–1.5] yes; th-gda 0 / 69, cn 0 / 103, jp 0 / 107: zero errors, n too small to show the bar | yes where n allows |
+| I2 | per condition | clean 0 / 265, blur 0 / 239, glare 0 / 246, small 0 / 243, tilt 2° 0 / 252 (all upper <= 1.6 %); rotate 4° and tilt 6°: every value "please check", none read | yes |
+| I3 | allergen statement found >= 95 %, 0 false | 102 / 109 = 93.6 % [87.3–96.9], 0 false | **no** |
+| I4 | exact match | all 93.3 %; th-new 99.0, th-old 94.0, th-gda 98.2, us 88.8, eu 95.6, cn 83.6, jp 84.0 %; clean 95.4, blur 95.1, glare 93.0, small 94.4, rotate 4° 92.0, tilt 2° 90.7, tilt 6° 92.3 % | reported |
+
+I3 misses: 5 of 7 are Thai panels at 2° tilt and 2 are Japanese; in every case the OCR misread the statement's keyword
+("ข้อมูลสำหรับผู้พ้อาหาร" for "ผู้แพ้อาหาร"; "アレルギ一物質" with the kanji 一 for the long-vowel mark ー), so the statement was not
+recognised and the card said "no allergen text found … that does not mean there is none". No false statement. Candidate
+fix (not built: it needs a fourth fresh set): accept those keyword misreads.
