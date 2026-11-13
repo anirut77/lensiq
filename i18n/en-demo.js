@@ -20,6 +20,8 @@
   "demo.exam.engine": "Demo mode: the camera is not on; the events in the log are samples",
   "demo.att.p": "8 fictitious employees (sample 01–08) with time records from the 1st of last month to yesterday, punched by PIN or QR badge (no face). Try a PIN punch on the PIN tab: codes S01 to S08 use PINs 1001 to 1008 in order.",
   "demo.att.cam": "Demo mode: the camera stays off; punch in with a PIN or QR badge as usual",
+  "demo.exdb.p": "A made-up exam room, DEMO, with 12 seats and 18 sample flags. The sample invigilator has already checked 15 of them and pressed \"flag was right\" or \"flag was wrong\", so the precision-per-signal table is already filled (8 right out of 15 in total). 3 flags are still in the queue for you to mark yourself. These numbers only show how the tally works; they are not a measured accuracy of LENSIQ, which has not been measured in a real exam room. The invigilator always decides.",
+  "demo.exdb.tally": "Go to the precision table",
   "demo.att.month": "Show last month's summary and CSV export",
   "demo.vg.p": "Fictitious houses and cars, visitor passes and a deny list are loaded. Confirm the notice below, then press \"Use sample image\" and \"Next car (sample)\" to see each kind of decision. Every plate read waits for the guard to press a button; auto-open is off.",
   "demo.vg.res": "Resident car (house 99/1)",

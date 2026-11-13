@@ -80,7 +80,7 @@ Items as in the invoice. Totals: subtotal; VAT 7% (Form V); **grand total**; wit
 with the accountant, OP-05); **amount actually received** = grand total minus tax withheld. If tax was withheld, record the certificate (50 ทวิ) or write
 "certificate pending" in the note. Signature of the person who received the money, with name, position and date.
 
-## 2. Worked examples per product (approved pilot-stage prices; the customer withholds nothing; they show the method, they are not real documents)
+## 2. Worked examples per product (approved pilot prices; the customer withholds nothing; they show the method, they are not real documents)
 
 | Product | Items paid | Subtotal | Form V: VAT / received | Form N: received |
 |---|---|---|---|---|
