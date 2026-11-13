@@ -116,8 +116,8 @@
               "ยังไม่ได้เชื่อม")));
         if (!it.linked) {
           // a provider the owner has not switched on is shown, but its button is disabled
-          var lk = h("button", { type: "button", "data-link": pv[0], disabled: !on, text: on ? T("acct.meth.link", "เชื่อม {p}", { p: pv[1] }) : T("acct.meth.soon",
-              "เชื่อม {p} (ยังไม่เปิดใช้)", { p: pv[1] }) });
+          var lk = /** @type {any} */ (h("button", { type: "button", "data-link": pv[0], disabled: !on, text: on ? T("acct.meth.link", "เชื่อม {p}", { p: pv[1] }) : T("acct.meth.soon",
+              "เชื่อม {p} (ยังไม่เปิดใช้)", { p: pv[1] }) }));
           lk.addEventListener("click", function () {
             lk.disabled = true;
             (pv[0] === "line" ? m.linkLine() : m.linkGoogle()).then(function (/** @type {any} */ x) {
@@ -128,7 +128,7 @@
           });
           li.appendChild(lk);
         } else if (it.linked && linked > 1) {
-          var un = h("button", { type: "button", "data-unlink": pv[0], text: T("acct.meth.unlink", "ยกเลิกการเชื่อม") });
+          var un = /** @type {any} */ (h("button", { type: "button", "data-unlink": pv[0], text: T("acct.meth.unlink", "ยกเลิกการเชื่อม") }));
           un.addEventListener("click", function () {
             un.disabled = true;
             m.unlink(pv[0]).then(function (/** @type {any} */ x) {

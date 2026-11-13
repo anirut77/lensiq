@@ -30,7 +30,7 @@
     t.appendChild(tb);
     return h("div", { class: "ad-scroll" }, t);
   }
-  window.addEventListener("lq-lang", function () { if (!$("adApp").hidden && !document.querySelector('[data-panel="orgs"]').hidden) loaders.orgs(); });
+  window.addEventListener("lq-lang", function () { if (!$("adApp").hidden && !/** @type {HTMLElement} */ (document.querySelector('[data-panel="orgs"]')).hidden) loaders.orgs(); });
   var planName = function (/** @type {any} */ p) { return gLang() === "en" ? p.name_en : gLang() === "zh" ? p.name_zh : p.name_th; };
   loaders.orgs = function () {
     Promise.all([call("/orgs"), ado.plans.length ? Promise.resolve({ plans: ado.plans }) : call("/licence-plans")]).then(function (/** @type {any[]} */ x) {
