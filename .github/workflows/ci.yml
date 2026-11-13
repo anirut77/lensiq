@@ -152,6 +152,10 @@ jobs:
         with:
           chrome-version: stable
       - run: npm ci
+      # WebKit (the iOS Safari engine) for the iPhone-width tests (tests/e2e/*webkit*.e2e.mjs, crash guard); the version is
+      # the one pinned by the playwright devDependency (package-lock.json). Any shard may get a WebKit file, so every shard installs it.
+      - name: WebKit for the iPhone-engine e2e tests (Playwright)
+        run: npx playwright install --with-deps webkit
       # Thai + CJK fonts from a cache keyed by the exact package list (tools/ci-fonts.lock: name, version, SHA-256). Every
       # .deb is checked against its SHA-256 before dpkg -i; a cache file with a wrong hash fails the job. The log says
       # whether the fonts came from the cache or the network. Owner decision 2026-11-11 (runners failed to resolve the
