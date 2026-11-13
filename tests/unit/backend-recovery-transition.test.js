@@ -5,6 +5,8 @@
 // and the whole old set stops working the moment the owner issues a new set. Also: the new Worker on a database where
 // 0013 is not applied yet (deploy order mistake) still serves /me and old codes.
 const test = require("node:test");
+// test-bug re-lock 2026-11-14: one frozen clock for the code generator and the Worker (tests/unit/totp-clock.js; CI run 43464554484)
+require("./totp-clock.js").freeze();
 const assert = require("node:assert/strict");
 const { createHash } = require("node:crypto");
 const { createEnv, req } = require("./backend-d1-shim.js");
