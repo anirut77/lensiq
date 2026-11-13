@@ -1,0 +1,7 @@
+# Beauty & Image stream D team 1 (branch beauty-look): locked test sets. Copy of ~/LENSIQ-field/evals/beauty-look/locked.sha256.
+# Each hash was recorded BEFORE the product code it tests was written and before any measurement. Never edited to make a test pass.
+# part 1: look suggestions (locked 2026-11-13, before lensiq-look*.js)
+35244e4b4bf8486e91a84cb43ffae84a9b17a2bc33fbc43540ec688401100f4a  tests/unit/look-suggest.test.js
+90b526a8455455f122211bfb08ef93519223674388201fd208569b3bb8064cf6  tests/e2e/look.e2e.mjs
+# part 1b: salon catalogue text vs generated wording (owner wording 2026-11-13; locked before the salon code)
+5fabec531fdc9b44347ad7813de878938abf2c195e6bfb4d1cd1908d091bb22c  tests/unit/look-salon.test.js
