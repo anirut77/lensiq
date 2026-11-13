@@ -45,3 +45,6 @@ b1a080935d3ca772caea886d7cfb64745994097a1bcee994a4fd84d2a6990b94  tests/unit/loo
 a18e0c1525ba36bc4f7b3b0cf443c71f09f0576af22a1ff4e58dac7874023173  tools/look-synth-face.js
 # 2026-11-13 coordinator review @34b6f0a (lint gaps by family + salon Thai-name fallback), locked before the fix:
 f84cc9b66dfb8571f89c499b0bcaaf9caed58391639b5ce38bc6adaea22fa05d  tests/unit/look-lint-families.test.js
+# 2026-11-14 coordinator held-out measure of 9b2d28b (false positives + missed families): must-pass / must-block set, locked
+#   before the lint change:
+2b3c76a8b48d8caf036bfc5672c8ea24ace3b4bbea39d25a4ab659d5ec70a754  tests/unit/look-lint-benign.test.js
