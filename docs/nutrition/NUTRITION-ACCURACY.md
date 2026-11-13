@@ -57,3 +57,30 @@ Candidate fixes, to be measured on a NEW synthetic set (this one is used up for 
 by the tilt of the OCR boxes instead of the line grouping; flag "please check" when a whole column looks shifted
 (units that do not fit the field, energy vs macros) or when the picture is tilted beyond ~2°; never accept sodium in g
 silently. Real-photo measurement still needs the owner's 200 photos.
+
+## Round 2 (2026-11-13): tilt fix, option (a), measured on a NEW locked set (v2)
+
+Coordinator instruction 2026-11-13 (branch only; nothing ships until the owner decides). Fix: rows are paired along the
+picture's tilt (`LQNut.linesFromParts`: the angle that lines up box centres across rows and box edges down columns);
+a tilt above 2.5° marks every value "please check" (why "tilt"); a unit that does not fit its field (sodium in g, salt in
+mg, …) is never accepted silently; two or more such units mark the label's values "please check" (why "shifted").
+Developed against the v1 images (now dev data only). Measured ONCE on v2: `~/LENSIQ-field/evals/nutrition/v2/`
+(196 new PNGs, fresh seeds, 7 conditions = v1's 5 + 2° and 6° tilt; `locked.sha256` sha256
+`4ae9a25fcb3eda7e5dec7871b7935b2ebf74df8913e3c99dbfebb888b3ec873c`, locked before the fix with tests/unit/nut-tilt.test.js).
+Source: synthetic.
+
+| # | Target | v2 result | Met? |
+|---|---|---|---|
+| I1 | Thai new: energy, sugar, sodium, fat >= 90 % each | 27 / 28 = 96.4 % each (tilt2 alone 3 / 4) | yes (pooled) |
+| **I2** | silent wrong, Wilson upper <= 3 % pooled | **9 / 911 = 1.0 % [0.5–1.9]** | **yes, pooled** |
+| I2 | same bar per format / condition | th-new 7 / 118 [2.9–11.7] no; th-old 2 / 123 [0.4–5.7] no; blur 4 / 175 [0.9–5.7] no; tilt2 5 / 185 [1.2–6.2] no; us, eu, clean, glare, small: 0 errors and upper <= 3 % yes; th-gda, cn, jp: 0 errors, n too small; rotate 4° and tilt 6°: every value "please check", 0 read | partly |
+| I3 | allergen statement found >= 95 %, 0 false | 87 / 92 = 94.6 % [87.9–97.7], 0 false (tilt2 11 / 14) | no (just below) |
+| I4 | exact match | all 90.7 % (v1 before the fix: 82.2 %); clean 93.0, blur 89.1, glare 91.1, small 90.6, rotate 4° 93.0, tilt 2° 85.8, tilt 6° 92.1 % | reported |
+
+What is left (all 9 errors are "phantom" reads, none on the 4° / 6° pictures):
+- OCR misreads "ไขมันอิ่มตัว" as "ไขมันอื่มตัว" / "ไขมันอ่มตัว"; the parser then reads that line as a SECOND total-fat value
+  (equal values, so it was not flagged as a duplicate): 4 of 9, blur (Thai sat fat exact is also low, 36–43 %).
+- One 2°-tilted Thai panel whose misread header made the parser take the values as "per pack" (5 of 9).
+Candidate fixes (not built in this round; they need a third fresh set to be measured): accept the common misreads of
+"อิ่มตัว"; never read "ไขมัน" + other Thai letters as total fat; flag two values for one field even when equal; accept
+"per pack" only with a pack word ("ซอง", "ถุง", "ห่อ", …).

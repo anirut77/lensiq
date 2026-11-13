@@ -240,7 +240,8 @@
 
   /* ---------- the parser ---------- */
   const isNum = x => typeof x === "number" && Number.isFinite(x);
-  function parseLabel(input) {
+  /** @param {any} input @param {{tilt?: number}} [opts] */
+  function parseLabel(input, opts) {
     const src = (Array.isArray(input) ? input : String(input || "").split(/\r?\n/)).map(l => (typeof l === "string" ? { text: l } : { text: String((l && l.text) || ""), conf: l && l.conf }));
     const raw = src.map(l => l.text), lines = raw.map(norm), all = lines.join("\n");
     const format = formatOf(all);
@@ -260,6 +261,7 @@
     }
     if (format === "th-gda" && basis[0] !== "pack") basis = ["pack"];
     const items = [], used = new Set();
+    let mismatches = 0;
     const push = (field, tok, i, basisIdx, why0) => {
       const unitDefault = field === "energy" ? "" : UNIT_OF[field];
       let f = field;
@@ -267,7 +269,8 @@
       const why = [...(why0 || [])];
       if (!tok.unit && !(field === "energy" && tok.calories)) why.push("unit");
       const unit = tok.unit || (field === "energy" ? (f === "energy_kj" ? "kJ" : "kcal") : unitDefault);
-      if (tok.unit && UNIT_OF[f] !== tok.unit && !(f === "sodium" && tok.unit === "g") && !(f === "salt" && tok.unit === "mg")) why.push("unit");
+      // a unit that does not fit the field is never accepted silently (sodium in g, salt in mg, energy in g, a mass in mg …)
+      if (tok.unit && UNIT_OF[f] !== tok.unit) { why.push("unit"); mismatches++; }
       if (src[i].conf != null && src[i].conf < 0.75) why.push("ocr-confidence");
       if (basisGuessed) why.push("basis");
       items.push({ field: f, basis: basis[Math.min(basisIdx, basis.length - 1)] || "serving", value: tok.num, cmp: tok.cmp, value_text: tok.text, unit, shown: tok.shown,
@@ -310,9 +313,70 @@
       }
     }
     checks(items, serving);
+    // a column that looks shifted by a row: two or more values whose unit does not fit their field -> check them all
+    if (mismatches >= 2) for (const it of items) { if (!it.why.includes("shifted")) it.why.push("shifted"); it.status = "check"; }
+    // a picture tilted beyond what the row pairing is trusted for: every value is "please check"
+    const tilt = opts && typeof opts.tilt === "number" ? opts.tilt : 0;
+    if (Math.abs(tilt) > TILT_LIMIT) for (const it of items) { if (!it.why.includes("tilt")) it.why.push("tilt"); it.status = "check"; }
     const fieldsFound = new Set(items.map(i => i.field));
     const notFound = CORE[format].filter(f => (f === "energy_kcal" ? !fieldsFound.has("energy_kcal") && !fieldsFound.has("energy_kj") : !fieldsFound.has(f)));
     return { format, basis, items, serving, servingsPerPack, allergen: allergenOf(raw), notFound, gdaSplit: gda ? parseFloat(gda[1]) : null };
+  }
+
+  /* ---------- rows from text boxes, tilt-aware ---------- */
+  /** degrees of tilt beyond which values are marked "please check" even after the tilt-aware pairing */
+  const TILT_LIMIT = 2.5;
+  /**
+   * linesFromParts(parts) -> {lines: [{text, conf}], tilt (degrees, clockwise positive)}. parts: [{text, conf, box}] with the
+   * detector's box (axis-aligned x0..y1; cx, cy, angle when the detector found a tilted line). The tilt is the angle that best lines
+   * up the boxes: centres across a row and left / right edges down a column (search -8..8 degrees in 0.25 degree steps;
+   * the smallest angle wins a tie). The detector's own box
+   * angles are not used: short boxes such as "1,1g" get spurious 3–7 degree angles on straight labels. Boxes are then grouped into printed rows along that angle, so a name
+   * on the left is paired with the value of the SAME row on a tilted picture, and read left to right.
+   */
+  function linesFromParts(parts) {
+    const ps = (parts || []).filter(p => p && p.box && String(p.text || "").trim()).map(p => {
+      const b = p.box;
+      return { text: String(p.text).trim(), conf: typeof p.conf === "number" ? p.conf : 1, cx: b.cx != null ? b.cx : (b.x0 + b.x1) / 2, cy: b.cy != null ? b.cy : (b.y0 + b.y1) / 2,
+        x0: b.x0, x1: b.x1, h: b.rh != null ? b.rh : b.y1 - b.y0 };
+    });
+    if (!ps.length) return { lines: [], tilt: 0 };
+    const hs = ps.map(p => p.h).sort((a, b) => a - b), h = Math.max(4, hs[Math.floor(hs.length / 4)]);
+    const yOf = (p, t) => -p.cx * Math.sin(t) + p.cy * Math.cos(t), xOf = (p, t) => p.cx * Math.cos(t) + p.cy * Math.sin(t);
+    let t = 0;
+    if (ps.length >= 3) {
+      // two cues, both maximal at the true tilt: boxes side by side share a row (centres line up across), and boxes in one
+      // column share a left or right edge (edges line up down). Row pairs alone are ambiguous on a tilted two-column panel
+      // (a name lines up with the next row's value at another angle); the column edges break that tie.
+      const sr = h / 6, se = h / 4, g = (d, s) => Math.exp(-(d * d) / (2 * s * s));
+      const score = th => {
+        const c = Math.cos(th), sn = Math.sin(th);
+        const P = ps.map(p => ({ y: -p.cx * sn + p.cy * c, x: p.cx * c + p.cy * sn, l: p.x0 * c + p.cy * sn, r: p.x1 * c + p.cy * sn }));
+        let sc = 0;
+        for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) {
+          const A = P[i], B = P[j], dy = A.y - B.y, dx = A.x - B.x;
+          if (Math.abs(dx) > 2 * h) sc += g(dy, sr);
+          if (Math.abs(dy) > 1.5 * h) sc += g(A.l - B.l, se) + g(A.r - B.r, se);
+        }
+        return sc;
+      };
+      let best = score(0) + 1e-9;
+      for (let k = 1; k <= 32; k++) for (const sgn of [1, -1]) {
+        const th = (sgn * k * 0.25 * Math.PI) / 180, sc = score(th);
+        if (sc > best * 1.02) { best = sc; t = th; }
+      }
+    }
+    const rows = [];
+    for (const p of [...ps].sort((a, b) => yOf(a, t) - yOf(b, t))) {
+      const y = yOf(p, t), row = rows.find(r => Math.abs(r.y - y) <= 0.5 * h);
+      if (row) { row.items.push(p); row.y = (row.y * (row.items.length - 1) + y) / row.items.length; }
+      else rows.push({ y, items: [p] });
+    }
+    rows.sort((a, b) => a.y - b.y);
+    return {
+      lines: rows.map(r => { const it = r.items.sort((a, b) => xOf(a, t) - xOf(b, t)); return { text: it.map(p => p.text).join(" "), conf: Math.min(...it.map(p => p.conf)) }; }),
+      tilt: Math.round(((t * 180) / Math.PI) * 10) / 10
+    };
   }
 
   /** consistency checks -> status "check" (never a correction) */
@@ -418,5 +482,5 @@
     return p.format !== "generic" ? p.items.length >= 2 : p.items.length >= 3;
   };
 
-  return { FIELDS, UNIT_OF, CORE, ALLERGENS, norm, tokens, labelOf, basesIn, formatOf, parseLabel, convert, recalc, round, findAllergenWords, looksLikePanel };
+  return { FIELDS, UNIT_OF, CORE, TILT_LIMIT, linesFromParts, ALLERGENS, norm, tokens, labelOf, basesIn, formatOf, parseLabel, convert, recalc, round, findAllergenWords, looksLikePanel };
 });

@@ -2,9 +2,9 @@
 // tools/nut-eval.mjs — Nutrition MVP (label mode) measurement on the LOCKED synthetic set (outside the repo:
 // ~/LENSIQ-field/evals/nutrition/, README.md there = parts, metrics, targets; locked.sha256 = hashes). Source label: synthetic.
 //   T. text set: the ideal label lines -> LQNut.parseLabel (Node, the same file the page loads).
-//   I. image set: each PNG -> the page's own on-device path in headless Chrome (nutrition.html: LQPCRun.detect -> LQPC.cropFromBoxes
-//      -> LQPCRun.ocr on the crop in the label's script -> LQNut.parseLabel with the OCR line confidences), exactly as
-//      lensiq-nut-ui.js does after "choose a picture".
+//   I. image set: each PNG -> the page's own on-device path in headless Chrome (nutrition.html: LQPCRun.detect ->
+//      LQPC.cropFromBoxes -> LQNutRun.readCanvas on the crop in the label's script (boxes read one by one, rows paired along
+//      the tilt) -> LQNut.parseLabel with the line confidences and the tilt), exactly as lensiq-nut-ui.js does.
 // The set is checked against locked.sha256 first; a changed file stops the run. Results go next to the set (never into the
 // repo), then the locked score.mjs prints the tables.
 //   node tools/nut-eval.mjs [--set <dir>] [--text-only] [--limit N] [--out <json>]
@@ -59,7 +59,7 @@ if (!argv.includes("--text-only")) {
   try {
     const page = await browser.newPage(null, { isolated: true });
     await page.goto(`${srv.base}/nutrition.html`);
-    await page.waitFor("window.LQPCRun && window.LQPC && window.LQNut", 15000);
+    await page.waitFor("window.LQPCRun && window.LQPC && window.LQNut && window.LQNutRun", 15000);
     out.machine.ua = await page.evaluate(() => navigator.userAgent);
     const imgs = labels.filter(l => l.part === "image");
     for (const [i, L] of imgs.entries()) {
@@ -74,9 +74,9 @@ if (!argv.includes("--text-only")) {
         const crop = P.cropFromBoxes(d.boxes, c.width, c.height) || { x: 0, y: 0, w: c.width, h: c.height };
         const cc = document.createElement("canvas"); cc.width = Math.max(1, crop.w); cc.height = Math.max(1, crop.h);
         cc.getContext("2d").drawImage(c, crop.x, crop.y, crop.w, crop.h, 0, 0, crop.w, crop.h);
-        const o = await R.ocr(cc, { script });
-        const parse = window.LQNut.parseLabel(o.lines.map(l => ({ text: l.text, conf: l.conf })));
-        return { parse, ms: performance.now() - t0, ocrText: o.text };
+        const o = await window.LQNutRun.readCanvas(cc, script); // the page's own read (tilt-aware rows)
+        const parse = window.LQNutRun.parse(o);
+        return { parse, ms: performance.now() - t0, ocrText: o.text, tilt: o.tilt };
       }, b64, L.script);
       out.labels.push({ id: L.id, ...r });
       if ((i + 1) % 20 === 0) console.log(`  image ${i + 1} / ${imgs.length}`);
