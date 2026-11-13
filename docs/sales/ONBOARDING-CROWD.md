@@ -6,6 +6,8 @@
 > **ขอบเขต:** ฝูงชนเบาบางถึงปานกลางเท่านั้น (ประมาณต่ำกว่า 50 คนในภาพเดียว) **ยังไม่เหมาะกับฝูงชนหนาแน่น** ห้ามใช้ตัดสินความปลอดภัยของฝูงชน
 > ระบบให้ "ค่าประมาณความหนาแน่น" ไม่ใช่จำนวนที่แน่นอน
 
+> ระดับฟรี: Crowd 2 ชั่วโมงต่อเครื่องต่อวัน เกินนั้นต้องมีใบอนุญาต ยังไม่บังคับในระบบ (ไม่มีตัวนับหรือตัวจับเวลาในโค้ด) ข้อจำกัดเริ่มตามวันที่จะประกาศ ประกาศล่วงหน้าอย่างน้อย 30 วันและเริ่มใช้หลังประกาศ 30 วัน เจ้าของบังคับผ่านสัญญา ลูกค้าส่งออกข้อมูลของตนได้เสมอ (OP-20, OP-26)
+
 ## 1. ก่อนติดตั้ง: สิ่งที่ลูกค้าต้องมี
 
 | หัวข้อ | รายละเอียด |
@@ -67,6 +69,8 @@
 > **DRAFT 2026-11-11.** For customers after purchase, for `crowd.html`. Based on `docs/CROWD-ACCURACY.md`, `docs/pilot/PILOT-CROWD.md`, `docs/DEPLOYMENT-CHECKLIST.md` and `docs/SUPPORT.md`.
 > Open points (OP-xx) are in `docs/sales/README.md`. Fields in [brackets] are for the owner. **Scope:** sparse to medium crowds only (roughly under 50 people in one view). **Not yet suitable for
 > dense crowds.** Never use it for crowd-safety decisions. It gives a density estimate, not an exact count.
+
+> Free tier: Crowd 2 hours per device per day; beyond it a licence is needed. Not enforced in the product yet (no counter or timer in the code). The limits start on a date to be announced at least 30 days ahead and begin 30 days after the announcement; the owner enforces them by contract. Customers can always export their own data (OP-20, OP-26).
 
 ## 1. Before installing
 

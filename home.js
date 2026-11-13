@@ -282,8 +282,27 @@
     window.addEventListener("load", showMode);
     window.addEventListener("lq-lang", showMode);
 
+    // owner bug report 2026-11-13 (iPhone): one send at a time; the notice with the LINE contact next to the form
+    var sending = false;
+    var notice = document.getElementById("leadNotice");
+    // shown while the quote form is on (LENSIQ_LEADS_FORM), unless LENSIQ_LEADS_NOTICE = false; lensiq-config.js loads
+    // after this file, so it is checked again on load
+    var showNotice = function () {
+      var w = /** @type {any} */ (window);
+      if (!notice) return;
+      // the LINE ID comes from the one place it is configured (LENSIQ_SELLER.quote_line, via lensiq-leads.js)
+      var L = w.LQLeads, id = L && typeof L.quoteLine === "function" ? L.quoteLine() : "", url = id && L.lineUrl ? L.lineUrl(id) : "";
+      notice.hidden = w.LENSIQ_LEADS_NOTICE === false || w.LENSIQ_LEADS_FORM === false || !url;
+      var tx = document.getElementById("leadNoticeText"), a = document.getElementById("leadNoticeLine");
+      if (tx) tx.textContent = T("home.notice.text", "หากส่งแบบฟอร์มไม่ได้ ติดต่อเราทาง LINE {id} ได้ทันที", { id: id });
+      if (a && url) a.setAttribute("href", url);
+    };
+    window.addEventListener("lq-lang", showNotice);
+    showNotice(); window.addEventListener("load", showNotice);
+    var tsBox = document.getElementById("lqTurnstile"), tsHint = document.getElementById("lqTurnstileHint");
     form.addEventListener("submit", function (e) {
       e.preventDefault();
+      if (sending) return;
       msg.className = "form-msg"; msg.textContent = "";
       var bad = Object.keys(rules).filter(function (id) { return !check(id); });
       if (bad.length) {
@@ -317,11 +336,30 @@
       var L = /** @type {any} */ (window).LQLeads;
       var btn = /** @type {HTMLButtonElement|null} */ (form.querySelector("button[type=submit]"));
       if (btn) btn.disabled = true;
+      sending = true;
       msg.textContent = T("home.form.sending", "กำลังส่ง…");
-      var sent = L ? L.submit(Object.assign({}, lead, { source: "index", lang: window.LQI18N ? window.LQI18N.lang : "th" }), { subject: "LENSIQ demo request" }) : Promise.resolve({ via: "none", ok: false });
+      var tsOpts = { container: tsBox || undefined,
+        onInteractive: function () { if (tsHint) tsHint.hidden = false; msg.textContent = ""; try { if (tsBox) tsBox.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (err) { /* old browser */ } },
+        onDone: function () { if (tsHint) tsHint.hidden = true; } };
+      var sent = L ? L.submit(Object.assign({}, lead, { source: "index", lang: window.LQI18N ? window.LQI18N.lang : "th" }), { subject: "LENSIQ demo request", turnstile: tsOpts }) : Promise.resolve({ via: "none", ok: false });
       sent.then(function (/** @type {any} */ r) {
+        sending = false;
         if (btn) btn.disabled = false;
+        if (tsHint) tsHint.hidden = true;
         msg.textContent = "";
+        if (r && r.via === "api" && !r.ok) {
+          // the server form failed: keep everything the customer typed, say so plainly, offer LINE (never a silent loss)
+          msg.className = "form-msg err";
+          msg.appendChild(document.createTextNode(r.reason === "turnstile"
+            ? T("home.err.ts", "ยังไม่ได้ส่ง: ยืนยันว่าเป็นคนไม่สำเร็จ ข้อความของคุณยังอยู่ในแบบฟอร์ม กดส่งอีกครั้ง หรือติดต่อเราทาง LINE {id}", { id: r.lineId || "" })
+            : T("home.err.send", "ส่งไม่สำเร็จ (ระบบหรือเครือข่ายขัดข้อง) ข้อความของคุณยังอยู่ในแบบฟอร์ม กดส่งอีกครั้ง หรือติดต่อเราทาง LINE {id}", { id: r.lineId || "" })));
+          if (r.line) {
+            msg.appendChild(document.createElement("br"));
+            var la = document.createElement("a"); la.href = r.line; la.target = "_blank"; la.rel = "noopener"; la.className = "btn ghost";
+            la.textContent = T("home.ok.line", "แชตทาง LINE {id}", { id: r.lineId || "" }); msg.appendChild(la);
+          }
+          return;
+        }
         if (r && r.ok) {
           done();
           msg.className = "form-msg ok";

@@ -2,6 +2,8 @@
 // tests/unit/backend-ai-keys-review.test.js — behaviour checks added after the independent review of admin key management
 // (2026-11-11): parallel and replayed codes, missing migration, no-op removal audited, other providers' key prefixes.
 const test = require("node:test");
+// test-bug re-lock 2026-11-14: one frozen clock for the code generator and the Worker (tests/unit/totp-clock.js; CI run 43464554484)
+require("./totp-clock.js").freeze();
 const assert = require("node:assert/strict");
 const { createEnv, req } = require("./backend-d1-shim.js");
 

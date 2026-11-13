@@ -16,6 +16,10 @@ https://anirut77.github.io/lensiq/. Owner-facing replies are in Thai.
   (at most one, with other CPU-heavy agents paused).
 - Ask the owner before changing approved scope or order. Don't start and report later.
 - Every round: fixed test set before building, real numbers per condition, an independent reviewer agent that re-measures.
+- Locked sets persist (owner rule 2026-11-13, after a locked set was lost twice): every fixed test / eval set is written
+  to `~/LENSIQ-field/evals/<phase>/` and its sha256 is committed in the repo (`evals-locks/<phase>.sha256`) BEFORE any
+  measurement. Every measuring harness calls `tools/eval-guard.mjs`, which refuses to measure unless each input file
+  exists there and matches a committed hash. A set that lives only in an agent's session or a temp folder does not count.
 - On-device processing by default. A human confirms any decision affecting money, access or a person. No emotion or
   deception scoring.
 - Check the licence of every model, dataset and media file for commercial use. Record credits.
@@ -89,6 +93,24 @@ Speed:
 Reporting: one short progress report per completed item, and a daily summary (done, in progress, blocked on the
 owner).
 
+## Operating mode: parallel teams (owner order 2026-11-13, replaces waiting between items)
+
+- Run all workstreams in parallel with sub-agent teams: one team per workstream, each in its own worktree and branch,
+  with builder agent(s) and one independent reviewer who did not build it (reviewers stay independent of builders even
+  with many teams). The full gate runs on the branch in GitHub Actions; merge to main only when green; deploy only from
+  green main. The coordinator merges and deploys; teams never merge to main.
+- Run as many teams at once as the usage limit allows; do not hold teams back to save quota. Locally run only affected
+  suites (at most one headless browser per team) so the owner's Mac stays light. If the limit is close, finish and hand
+  over cleanly (`docs/HANDOVER.md`) rather than leaving half-merged work.
+- Pending owner decisions: do not wait. State the recommendation and proceed on it, unless it hits a stop condition:
+  spending money, secrets, deleting data, a missed safety or privacy target, legal exposure, or a change to prices.
+  List every such decision in the status board so the owner can reverse it.
+- Status board at 08:00 and 20:00 (Bangkok): every stream with state, percent done, what shipped, what is waiting on
+  the owner (restated in full), the decisions taken on the owner's behalf, teams running and expected finish times.
+- Streams, in priority order when resources are short: A urgent fixes (quote form on iPhone; crisis flow; straight-mode
+  review), B real-phone quality (WebKit in CI at phone width, memory budgets, crash guard, owner test checklists),
+  C Sellable pack, D Beauty & Image, E Merit, F Product Check, G accounts and billing groundwork, H Gate and Exam hall.
+
 ## Product structure
 
 - Never delete or freeze existing work. Merge, extend and regroup only.
@@ -129,7 +151,8 @@ A page may appear in two categories. Pages not listed under a category are platf
   3. the crisis net always takes priority and straight mode never bypasses it (crisis flow below);
   4. no wording that says the bad result will happen unless the user pays or performs something (no fear-selling;
      see Remedies and merit).
-  Also: no lottery numbers; no medical or cosmetic advice; no emotion or deception inference.
+  Also: no lottery numbers; no medical advice and no cosmetic or medical procedure advice (reversible styling
+  suggestions below are allowed); no emotion or deception inference.
 - Crisis flow (owner decision 2026-11-13, replaces "hide and block"): respond, support and keep the door open. When the
   crisis net sees signs of distress, on every fortune page (zodiac included), each rule tested in TH/EN/ZH:
   1. never block the reading: first a short, warm acknowledgement and encouragement (no judgement, no echo of what the
@@ -146,6 +169,16 @@ A page may appear in two categories. Pages not listed under a category are platf
   5. no chat or "vent to AI" feature: the route for talking is the hotline and trusted people.
   The wording is reviewed by a mental-health professional before launch (legal / launch item L63). Every change to the
   flow gets an independent review on a fresh set, and the owner sees example screens (Thai) before it is deployed.
+- Look suggestions (owner request and wording 2026-11-13): the tool suggests reversible styling with a fortune reading
+  and previews it: brows (shape, thickness, arch), hairstyle, hair colour, facial hair, make-up (lip colour, eye
+  make-up, eyeliner, emphasis or softening with make-up) and accessories (earrings, glasses, necklaces). Each names the
+  reading it relates to and is labelled "according to belief, please use your own judgement". The tool itself never
+  recommends a procedure (tattooing, microblading or other semi-permanent pigment, injections, thread lifts, laser,
+  surgery) or skin-whitening, never says a feature is bad or must be fixed or that luck suffers otherwise, and gives no
+  beauty scores. Salon mode serves salons, including those that do semi-permanent brows, as a consultation aid on SHAPE
+  (brow shapes, lip and liner styles from the salon's own catalogue); the method is left to the salon and the tool's
+  wording never names or recommends it. Adults only; hidden when the crisis net triggers or the tab is calm; no photos
+  stored by default; never tied to a purchase.
 - Remedies and merit (owner decision 2026-11-10, replaces "no paid remedies"):
   - Never sell a remedy, a change of fortune or any outcome. No wording like "pay and your luck improves" or
     "guaranteed to fix ชง".

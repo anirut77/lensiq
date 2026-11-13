@@ -638,8 +638,12 @@
   const FS = (typeof module !== "undefined" && module.exports && typeof require === "function" ? require("./fortune-straight.js") : root.LQFortuneStraight) ||
     { hardLimit: () => "", stripHonest: t => t, LABEL_NEG: /$^/, LEADS: null, enabled: () => false, active: () => false,
       get: () => ({ adult: false, straight: true }), set: () => ({ adult: false, straight: true }) };
-  let STRAIGHT = false, CALM = false; // CALM: crisis net / soft step / support card active on the page (no straight, no remedies)
-  const preHL = t => String(t || "").normalize("NFC").replace(NEGATED_TH, " ").replace(NEGATED_ZH, "，").replace(CARD_NAME, " ");
+  /* review 2026-11-14: sara am ำ decomposed (nikhahit + sara aa), a tone mark after ำ or zero-width characters inside a word
+     slipped past the filters and the crisis patterns; they all run on the canonical copy (lensiq-thai-canon.js) */
+  /** @param {any} s @returns {string} */
+  const canon = s => { const C = TC || (TC = typeof require === "function" ? require("./lensiq-thai-canon.js") : root.LQThaiCanon); return C ? C.canon(s) : String(s ?? "").normalize("NFC"); };
+  let STRAIGHT = false, CALM = false, /** @type {any} */ TC = null; // CALM: crisis net / soft step / support card active on the page (no straight, no remedies)
+  const preHL = t => canon(t || "").replace(NEGATED_TH, " ").replace(NEGATED_ZH, "，").replace(CARD_NAME, " ");
   const hardLimit = text => FS.hardLimit(preHL(text));
   function isSafeStraight(text) {
     const t = preHL(text);
@@ -648,8 +652,7 @@
   }
   function isSafe(text) { return STRAIGHT ? isSafeStraight(text) : isSafeGentle(text); }
   function isSafeGentle(text, noHL) {
-    if (!noHL && hardLimit(text)) return false;
-    const t = String(text || "").normalize("NFC").replace(NEGATED_TH, " ").replace(NEGATED_ZH, "，").replace(CARD_NAME, " ");
+    const t = preHL(text); if (!noHL && FS.hardLimit(t)) return false; // preHL: the canonical copy without negated / card-name phrases
     const en = /Cancer/.test(t) && (ZODIAC_CTX.test(t) || !ILLNESS_CTX.test(t.replace(/มะเร็ง/g, ""))) && !ILLNESS_TH.test(t) ? t.replace(/\bCancer\b/g, "") : t;
     if (BANNED_EN.test(en) || RECKLESS_EN.test(t)) return false;
     if (RECKLESS_TH.test(t) || BANNED_ZH.test(t) || RECKLESS_ZH.test(t)) return false;
@@ -4113,7 +4116,7 @@
   const pageText = doc => (CR ? CR.fields(doc) : "");
   function crisisCheck() {
     for (let i = 0; i < arguments.length; i++) {
-      const t = (CR && CR.unjoke ? CR.unjoke(arguments[i]) : String(arguments[i] == null ? "" : arguments[i])).normalize("NFC"); if (!t.trim()) continue;
+      const t = canon(CR && CR.unjoke ? CR.unjoke(arguments[i]) : arguments[i]); if (!t.trim()) continue;
       if (CRISIS_TH.test(t.replace(/\s+/g, "")) || CRISIS_EN.test(t) || CRISIS_ZH.test(t) || (CR && CR.check(t))) return true;
     }
     return false;

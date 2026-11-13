@@ -137,6 +137,19 @@
           const before = st.codes.length;
           st.codes = mergeCodes(st.codes, c.codes);
           if (st.codes.length > before && !merger.frames) apply({ total: 0 }); // barcodes first: shown before the OCR finishes
+        },
+        // progressive reading (stream F, 2026-11-13): while the first reading of a view runs, the checklist ticks as soon as a
+        // line read so far shows a registration number / ingredients. Ticks only: the partial text is not applied, not
+        // merged and not shown as the capture's text (that stays the full merged reading below); nothing is sent.
+        onLines: (/** @type {any[]} */ ls) => {
+          if (!st.on || scene !== st.scene || merger.frames) return;
+          const partial = L.checklist(ls.map(l => l.text).join("\n"), st.codes, { P: W.LQPC, G: W.LQPCGuard });
+          const next = { barcode: st.list.barcode || partial.barcode, reg: st.list.reg || partial.reg, ingredients: st.list.ingredients || partial.ingredients };
+          if (next.reg !== st.list.reg || next.ingredients !== st.list.ingredients || next.barcode !== st.list.barcode) {
+            st.list = next; paintList();
+            if (!st.t.firstResult) st.t.firstResult = now();
+            if (!st.t.firstPartial) st.t.firstPartial = now();
+          }
         }
       });
       if (!r || !st.on || scene !== st.scene) return;

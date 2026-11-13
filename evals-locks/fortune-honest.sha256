@@ -1,3 +1,87 @@
+# evals-locks/fortune-honest.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/fortune-honest/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
+# --- imported 2026-11-13T14:18:08Z from ~/LENSIQ-field/evals/fortune-honest/locked.sha256 (lines verbatim; non-hash text lines prefixed "# "; lines for files inside the repo marked "# repo file") ---
+# Fortune Part C (honest negative readings, "read it straight / ดูตรง ๆ / 直说") — fixed tests, locked 2026-11-12 BEFORE
+# any product code for the straight mode was written (fortune-ai.js / lensiq-config.js untouched for Part C at this point).
+# Owner order 2026-11-12. Worktree branch worktree-agent-a290bd6610f47274e, base commit fed446b (Part B work uncommitted in
+# the same tree; it does not touch these files). Paths relative to the repo root. A changed hash = the test was edited after locking.
+14fb9169608ccfb48c59256028d5dcad8f8bd2ceae23e1d515965d40bce49c6d  tests/unit/fortune-honest.test.js  # repo file
+a7106a2a1e0a3b9ea9fd06ca3e0358a6913c5d8fe167d7b14f7b70bbc852accb  tests/e2e/fortune-straight.e2e.mjs  # repo file
+#
+# crisis net — independent review 2026-11-12 (19/52 caught). Fixed tests locked BEFORE the crisis-net fix (base fe740ab). Baseline: 29/65 must-trigger caught, 0/28 counter-cases triggered.
+b441dc70d8572ffef9efd4c6c73bc1ad42cf49a1c6b08ce9fc43ba1ac7a6a7ea  tests/unit/fortune-crisis-net.test.js  # repo file
+e23015e3aa330310427e40d73f9c590bf9ce6753640932dd02e7297d4a490616  tests/e2e/fortune-crisis-fields.e2e.mjs  # repo file
+#
+# Part C AMENDMENT 1 (independent review 2026-11-12), locked BEFORE the fix: stricter only, every earlier test unchanged; adds 65 probes (dated/fatal accidents, death/illness wording, pay-or-else, medication/investment/relationship/lottery/emotion gaps, capitalised Cancer) blocked in both modes, hard limit on the original sentence, zodiac Cancer + honest negatives still allowed.
+c818326bf8f5f37942d93f1ceb3fb2835a2bfb85f8db57cf7200fdb30dd218b4  tests/unit/fortune-honest.test.js  # repo file
+#
+# crisis net AMENDMENT 2 (independent re-measure 2026-11-12 of 0f0ae99: old 46/52, new 10/40, benign 1/30 false), locked BEFORE the fix on branch crisis-net-2 (base 0f0ae99). Stricter only; the first crisis-net files are unchanged. Before fix: 0/5 unit tests pass.
+6de5788542ebafb0bee79fb3326a0dc1a3ed052c3374d722adefdf32e811ce24  tests/unit/fortune-crisis-net-2.test.js  # repo file
+83cff7cf0fcdab9212af3f483e5e036d8d18c0ac0b6bb65f1dd0d10e3bbf9049  tests/e2e/fortune-crisis-fields-2.e2e.mjs  # repo file
+#
+# crisis net ROUND 3 (independent set at 23c47d4: must 9/60, child sexual abuse 0/7, benign 1/40), locked BEFORE the change on branch crisis-net-3 (base 23c47d4). The reviewer's 100 inputs are dev data from now on. Adds fail-safe display (A), soft check (B), patterns (C).
+377fd96de5f68a95f7dcb31f177de4a4cb8f96b950fa66c015dd485514ebd362  tests/unit/fortune-crisis-net-3.test.js  # repo file
+a3658e9445a27b0aa2815f039dbe68638c940fb88334fc3b9e4a59e3c7033b31  tests/e2e/fortune-crisis-soft.e2e.mjs  # repo file
+#
+# crisis net amendment 2 e2e RE-LOCK for round 3 (2026-11-12): the benign-name check ('my mom hit me with a surprise party') now passes through the round-3 soft step ('Just the reading') before requiring the normal reading; it still asserts no support card and a full reading. No other line changed.
+b2b1047dd9c30107c09f7fdae3f1a8f9583462a65cf86e4a2f3e88a0ac50f60f  tests/e2e/fortune-crisis-fields-2.e2e.mjs  # repo file
+#
+# help line (owner order 2026-11-12: always-visible verified help resources on every fortune page + crisis suppression), locked BEFORE the build on branch crisis-helpline (base 05366cc). Before the build: unit 1/7 pass (only the verified-sources table), e2e fails (no line on any page).
+128f6ab180f932be7b3caea6587b1266771b70d6bc6db1545c5e6339299e5da2  tests/unit/fortune-helpline.test.js  # repo file
+5d0c4972991f60118407cfaaa66cb501d2e3f2903f9156261603ada874a4089c  tests/e2e/fortune-helpline.e2e.mjs  # repo file
+# help line e2e RE-LOCK (2026-11-12, before any run against the built code): format-only rewrap to the 200-character limit (tools/format-check.mjs); ignoring whitespace the only change is { } around one single-statement if-body (line 54). No assertion changed.
+d99310642fa1f0890220f97b217d1a90896fcf3679c91cea56b3883a433b581e  tests/e2e/fortune-helpline.e2e.mjs  # repo file
+#
+# Part C AMENDMENT 2 (owner decision 2026-11-12: straight approved; no straight reading and no remedy / lucky-item text while the crisis net, soft step or support card is active), locked BEFORE the change on the rebased branch (base 05366cc).
+a26d561f1c67c5fa6677e0b6a85feb1fdfd184403b22c8b31794e699bc78b8e0  tests/unit/fortune-straight-crisis.test.js  # repo file
+# Part C AMENDMENT 1 RE-LOCK 2026-11-12: the amendment's probe count assertion said 65 but the lists held 63 (my miscount); two probes added to reach 65 (stricter: both must be blocked in both modes). No assertion removed or weakened.
+fcd23a19240a9fee7d8c40089f8e512d1703e05b253f07b167781f6d27a1d417  tests/unit/fortune-honest.test.js  # repo file
+#
+# Part C RE-LOCK for the owner's approval 2026-11-12 (straight mode switched ON): fortune-honest A1 now requires the shipped flag = true (was false); fortune-straight e2e 'shipped config' now requires the control with the adult step and a gentle reading until confirmation (was: no control). No other assertion changed.
+ffa66b3be6189bd250cc7628250fd1c73d0d8385d24034a58d8ba872d416f511  tests/unit/fortune-honest.test.js  # repo file
+73ca4f6d5560f3565d16f25d750f1e7a4b6aa4bc41f0df74b6cf33320cfe6555  tests/e2e/fortune-straight.e2e.mjs  # repo file
+#
+# RE-LOCK 2026-11-12 (2): straight mode switched OFF after the fresh independent crisis review failed (owner's standing order). A1 and the e2e "shipped config" check are back to the original OFF assertions (stricter state).
+f43b594b8d64cc252f6255fc88390601fb7cfc95bcc0063d0c380c9a169fa99b  tests/unit/fortune-honest.test.js  # repo file
+6b99e9327fa339b858615a5895d6acb7499ad83fae26ac0a937ec645f2506ae5  tests/e2e/fortune-straight.e2e.mjs  # repo file
+#
+# CRISIS FIX 4 (incident 2026-11-12, straight OFF after the fresh crisis review), locked BEFORE the product change on branch crisis-fix-4 (base 5f89d03). (a) calm() sees typed text whatever the script order; (b) one sessionStorage boolean crisis/calm state for the tab; (c) soft step 'Just the reading' -> gentle for the session, help line in the viewport; (d) the reviewer's 12 misses (fresh set now SPENT, dev data only) + laughing control. Before the change on 5f89d03: unit 0/5, e2e 1/5 (only the storage-blocked page-level guard passes).
+595c792344599f8ce1df9669a3181a44c3689f2a75fb94c27d464dda2826ecc9  tests/unit/fortune-crisis-session.test.js  # repo file
+52cc148d33e3400000fe158fecd19dacd547515d61c24cafdb6ba92bb6dc0f24  tests/e2e/fortune-crisis-session.e2e.mjs  # repo file
+# crisis fix 4 e2e RE-LOCK (2026-11-13, format only): tools/format-check.mjs flagged one 217-character line (the tarot ask helper); it is rewrapped onto three lines with identical tokens. No assertion, input or threshold changed.
+c6739e4ab48730bb38d87a138c1112823e26b6648f398745654438491ff18105  tests/e2e/fortune-crisis-session.e2e.mjs  # repo file
+#
+# CRISIS FIX 4b (coordinator order 2026-11-13): the fortune hub, planner and luckycolor respect the calm session flag (lq-fortune-calm): no lucky / remedy / paid / merit block visible, help line in view. Locked BEFORE the change on branch crisis-fix-4 (base 89fedf8). Before: unit 0/2, e2e 2/4 (the no-flag baseline and the storage-blocked guard pass).
+415ffb61a219858790cfc93e5da48fa25eb532369b98c0f389f922bc66a53498  tests/unit/fortune-calm-pages.test.js  # repo file
+ed7b6ce57f9b25cb4bc3b918f32e6b153698107502b2653fe39fa9ddd24e4a21  tests/e2e/fortune-calm-pages.e2e.mjs  # repo file
+#
+# CRISIS FLOW V2 (owner decision 2026-11-13) locked BEFORE the product change on crisis-flow-v2 (base 8b36934). Spec docs/CRISIS-FLOW-V2.md §1-§5 in TH/EN/ZH on every §6 page.
+# Before the change: unit fortune-crisis-flow-v2 2/16 pass (only the two §5 'nothing sent / no chat' checks); e2e fortune-crisis-flow-v2-pages 0/6, fortune-crisis-flow-v2 0/7 (log: crisis-flow-v2-before.log).
+cff3ef3445a4ee5df2cb71d47d241193dd4b9ce3f836336ebe3bd7c0db26fb7e  tests/unit/fortune-crisis-flow-v2.test.js  # repo file
+9c033d51371d5e8eba0ddef934eeac6f8e7035b13feb16e82f95e32d8f9100e6  tests/e2e/fortune-crisis-flow-v2.e2e.mjs  # repo file
+8a79f76c45a02ae9b4e871c76a0e79ba71415c4f53faab2eacfc35ef43ca4e67  tests/e2e/fortune-crisis-flow-v2-pages.e2e.mjs  # repo file
+ac23437aa8a6071a6fc8ad5097587c2e78b351822f0654e7891caede6db8f13f  tests/e2e/crisis-flow-lib.mjs  # repo file
+#
+# RE-LOCK 2026-11-13 (owner decision 2026-11-13 crisis flow v2), before the product change on crisis-flow-v2. Changed assertions only; detection, help-line, straight and paid assertions unchanged:
+#  - fortune-helpline.test.js 'crisis state': after the card a later reading on the page (no new signal) must be a calm reading: fa-section present (was: fa-support instead, no fa-section/fa-summary); fa-support absent; toHTML in the calm state: fa-section, no fa-support (was: fa-support, no fa-section). Kept: no plan, no remedy text, 1323 kept, no hook runs, allow() refuses remedy/lucky/paid/merit/straight. Reason: 'never block the reading' (rule 1).
+#  - fortune-helpline.e2e.mjs dream hard net + horoscope 'talk': harmless text / plain name afterwards gets a calm reading (sections >= 2, no card) instead of the card again (rule 1); the marker list no longer counts ทำบุญ and colour words (rule 3: free belief guidance and neutral colours allowed); remedy frames, tips, boosting elements, straight and 开运 still counted; plan still 0; added: help line with the reading, no straight control. Unchanged: data-lq-remedy blocks hidden in the crisis state.
+5aee9ecee7ad22c7c78243e66cc7e901160108e8a17d1e4efceacbd143d0fbde  tests/unit/fortune-helpline.test.js  # repo file
+c8421600a895e5332448a2a29e9244c75e09c2f0452000e355429fe9dd87a46e  tests/e2e/fortune-helpline.e2e.mjs  # repo file
+#  - merit.test.js R5, merit-crisis.e2e.mjs 3/4, merit.e2e.mjs 4a/4b: re-locked in ~/LENSIQ-field/evals/merit/locked.sha256 (same date and reason).
+#
+# crisis flow v2 RE-LOCK 2026-11-13 (test-setup fixes found on the first run after the build; no assertion, input or threshold changed):
+#  - crisis-flow-lib.mjs report reader: choose the Buddhist era (พ.ศ.) before typing 2533; English / 中文 default to the Common Era, where 2533 is not a valid birth year, so no report could be made in EN/ZH with or without the change.
+#  - fortune-crisis-flow-v2-pages.e2e.mjs: no merit server stub on the report page; the stub's API base switches report.html into the paid, sign-in-only mode (report.js modeOf), which is not under test here (the report has no merit panel).
+aece1c6aa162199cc328b58a91ad5d131e6bbf4be6f6b5266ff7be0eac60a688  tests/e2e/crisis-flow-lib.mjs  # repo file
+8806d1126d5189b9054916a3be0a5307731013458c474f586c99b4879b286085  tests/e2e/fortune-crisis-flow-v2-pages.e2e.mjs  # repo file
+#
+# CRISIS DETECTION V2 (owner decision item 7 option ก, coordinator 2026-11-13) locked BEFORE the detection change on crisis-flow-v2 (base 9c17019 + uncommitted flow-v2 product files; fortune-crisis.js detection patterns unchanged so far). Dev: the 18 misses + idiom / name-field false soft steps of the 2026-11-13 fresh review (spent); held-out variants builder-written.
+# Before: unit 1/5 pass (only 'not weaker'). Counts: dev clear 0/12 card; dev farewell 0/6 card-or-soft; held-out clear 3/15 card; held-out farewell 1/5; idioms dev 10/10 still trigger (1 card: 想死你了), held-out 11/11 trigger (1 card); ordinary name phrases 10/12 trigger the soft step; distress names 8/8 trigger.
+988abf5cafd854c1a0063d55bafa8fb2862d1852c09929ba6b01be5cb009db0f  tests/unit/fortune-crisis-detect-v2.test.js  # repo file
+# --- from ~/LENSIQ-field/evals/fortune-honest/locked.sha256 (tools/eval-locks-import.mjs 2026-11-13) ---
+# AFTER (crisis flow v2 + detection v2, 3ebced7): unit fortune-crisis-flow-v2 16/16, fortune-crisis-detect-v2 5/5, full unit 1800/1800; e2e fortune-crisis-flow-v2-pages 6/6, fortune-crisis-flow-v2 7/7; older crisis / helpline / calm / merit-crisis e2e all green (log crisis-flow-v2-after.log).
+# ONE HELP BAR (coordinator review 2026-11-13: two help bars on screen in the zodiac screen) locked BEFORE the fix on crisis-flow-v2 (base 3ebced7).
+eefb2c196acbe2a39e0ecac3f27e608699e06726004395a428586bfb1c0912e4  tests/e2e/fortune-crisis-one-bar.e2e.mjs  # repo file
+# AFTER one-bar fix: fortune-crisis-one-bar 1/1 (before 0/1: 20 positions with 2 bars on zodiac, horoscope, astro, tarot); crisis / calm / helpline / merit e2e 58/58; affected unit 259/259.
 # evals-locks/fortune-honest.sha256 — owner rule 2026-11-13: every locked test / eval set used on this branch, hashed in the repo
 # BEFORE any further measurement. Branch crisis-flow-v2 (crisis flow v2 + detection v2). Repo test files (path from the repo root):
 cff3ef3445a4ee5df2cb71d47d241193dd4b9ce3f836336ebe3bd7c0db26fb7e  tests/unit/fortune-crisis-flow-v2.test.js

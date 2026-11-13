@@ -1,0 +1,6 @@
+# evals-locks/demo.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/demo/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
+# --- imported 2026-11-13T14:18:08Z from ~/LENSIQ-field/evals/demo/locked.sha256 (lines verbatim; non-hash text lines prefixed "# "; lines for files inside the repo marked "# repo file") ---
+fe30614723f686c04baedf9e31077a18780cf2e119e64141496d94c3aa520590  tests/e2e/demo-mode.e2e.mjs  # repo file
+# Wed Nov 11 20:35:10 +07 2026
+2984553ec5486948913168aaa6c36d8b96c927a42c9fd078a81463f7affd4b56  tests/e2e/demo-mode.e2e.mjs (after amendment 1)  # repo file
+be8476ac8a79a3c58759a75a2a6ef993caf5c716325bb54aaff1da49ffee8162  tests/e2e/demo-mode.e2e.mjs (after amendment 2)  # repo file

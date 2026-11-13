@@ -36,11 +36,15 @@
  */
 (function (root, factory) {
   const node = typeof module !== "undefined" && module.exports;
-  const m = factory(node ? require("./lensiq-pc.js") : /** @type {any} */ (root).LQPC);
+  const m = factory(node ? require("./lensiq-pc.js") : /** @type {any} */ (root).LQPC, root, node ? require("./lensiq-thai-canon.js") : null);
   if (node) module.exports = m;
   else { /** @type {any} */ (root).LQPCTravel = m; m.mount(root); }
-})(typeof self !== "undefined" ? self : this, function (/** @type {any} */ LQPC) {
+})(typeof self !== "undefined" ? self : this, function (/** @type {any} */ LQPC, /** @type {any} */ root, /** @type {any} */ TC) {
   "use strict";
+  /* review 2026-11-14: NFKC decomposes sara am ำ (nikhahit + sara aa), and the Thai headings below are written with ำ
+     ("คำเตือน"); a line is classified on its canonical copy (lensiq-thai-canon.js) */
+  /** @param {any} s @returns {string} */
+  const canon = s => { const C = TC || (root && root.LQThaiCanon); return C ? C.canon(s) : String(s == null ? "" : s).normalize("NFC"); };
 
   /* ---------------- INN hand table (LENSIQ's own; names are facts) ----------------
    * [INN as LENSIQ shows it, Latin-script names as printed (US / BP / local spellings), Chinese (simplified and
@@ -127,10 +131,45 @@
     ["pyrantel", ["pyrantel", "pirantel"], ["噻嘧啶"], ["ピランテル"], ["피란텔"], ["ไพแรนเทล"]],
     ["permethrin", ["permethrin", "permetrina", "permetrin"], ["氯菊酯"], ["ペルメトリン"], ["퍼메트린"], ["เพอร์เมทริน"]],
     ["mupirocin", ["mupirocin", "mupirocina"], ["莫匹罗星"], ["ムピロシン"], ["무피로신"], ["มิวพิโรซิน"]],
-    ["fusidic acid", ["fusidic acid", "acido fusidico", "asam fusidat"], ["夫西地酸"], ["フシジン酸"], ["푸시드산"], ["กรดฟิวซิดิก"]]
+    ["fusidic acid", ["fusidic acid", "acido fusidico", "asam fusidat"], ["夫西地酸"], ["フシジン酸"], ["푸시드산"], ["กรดฟิวซิดิก"]],
+    // stream F (2026-11-13), P9 recall: names missed on the (now dev) P9 hold-out; LENSIQ's own table (names are facts)
+    ["codeine", ["codeine", "codein", "codeina", "kodein", "kodeina", "codeinum"], ["可待因"], ["コデイン"], ["코데인"], ["โคเดอีน"]],
+    ["dihydrocodeine", ["dihydrocodeine", "dihydrocodein", "diidrocodeina", "dihidrocodeina", "dihidrokodein"], ["双氢可待因", "雙氫可待因"], ["ジヒドロコデイン"], ["디히드로코데인"],
+      ["ไดไฮโดรโคดีอีน"]],
+    ["dexpanthenol", ["dexpanthenol", "dexpantenol", "dekspantenol", "dexpanthenolum"], ["右泛醇"], ["デクスパンテノール"], ["덱스판테놀"], ["เดกซ์แพนทีนอล"]],
+    ["xylometazoline", ["xylometazoline", "xylometazolin", "xilometazolina", "ksilometazolin"], ["赛洛唑啉", "賽洛唑啉"], ["キシロメタゾリン"], ["자일로메타졸린"], ["ไซโลเมตาโซลีน"]],
+    ["ketoprofen", ["ketoprofen", "ketoprofene", "ketoprofeno", "cetoprofeno", "kétoprofène"], ["酮洛芬"], ["ケトプロフェン"], ["케토프로펜"], ["คีโตโปรเฟน"]],
+    ["amantadine", ["amantadine", "amantadin", "amantadina"], ["金刚烷胺", "金剛烷胺"], ["アマンタジン"], ["아만타딘"], ["อะแมนตาดีน"]],
+    ["aluminium hydroxide", ["aluminium hydroxide", "aluminum hydroxide", "hidroxido de aluminio", "idrossido di alluminio", "hydroxyde d'aluminium", "aluminiumhydroxid",
+      "aluminium hidroksida", "aluminum hidroksida", "nhom hydroxyd", "algeldrate"], ["氢氧化铝", "氫氧化鋁"], ["水酸化アルミニウム", "乾燥水酸化アルミニウムゲル"], ["수산화알루미늄"],
+      ["อะลูมิเนียมไฮดรอกไซด์", "อลูมิเนียมไฮดรอกไซด์"]],
+    ["magnesium hydroxide", ["magnesium hydroxide", "hidroxido de magnesio", "idrossido di magnesio", "hydroxyde de magnesium", "magnesiumhydroxid", "magnesium hidroksida",
+      "magie hydroxyd"], ["氢氧化镁", "氫氧化鎂"], ["水酸化マグネシウム"], ["수산화마그네슘"], ["แมกนีเซียมไฮดรอกไซด์"]],
+    ["metamizole", ["metamizole", "metamizol", "dipyrone", "dipirona", "novaminsulfon", "metamizolo", "metamizolum"], ["安乃近"], ["メタミゾール"], ["메타미졸"], ["เมทามิโซล"]],
+    ["nimesulide", ["nimesulide", "nimesulida", "nimesulid"], ["尼美舒利"], ["ニメスリド"], ["니메술리드"], ["ไนมีซูไลด์"]],
+    ["diosmectite", ["diosmectite", "diosmectita", "diosmektit", "dioctahedral smectite"], ["蒙脱石"], ["ジオスメクタイト"], ["디오스멕타이트"], ["ไดออสเมคไทต์"]],
+    ["berberine", ["berberine", "berberin", "berberina"], ["小檗碱", "小蘗鹼", "黄连素", "黃連素"], ["ベルベリン"], ["베르베린"], ["เบอร์เบอรีน"]],
+    ["trimebutine", ["trimebutine", "trimebutina", "trimebutin"], ["曲美布汀"], ["トリメブチン"], ["트리메부틴"], ["ไตรมีบูทีน"]],
+    ["phloroglucinol", ["phloroglucinol", "floroglucinol", "phloroglucinolum"], ["间苯三酚", "間苯三酚"], ["フロログルシノール"], ["플로로글루시놀"], ["ฟลอโรกลูซินอล"]],
+    ["dexibuprofen", ["dexibuprofen", "dexibuprofeno"], ["右布洛芬"], ["デキシブプロフェン"], ["덱시부프로펜"], ["เดกซ์ไอบูโพรเฟน"]],
+    ["methylephedrine", ["methylephedrine", "dl-methylephedrine", "metilefedrina"], ["甲基麻黄碱", "甲基麻黃鹼"], ["メチルエフェドリン", "dl-メチルエフェドリン"], ["메틸에페드린"],
+      ["เมทิลอีเฟดรีน"]],
+    ["ethenzamide", ["ethenzamide", "etenzamida"], ["乙水杨胺"], ["エテンザミド"], ["에텐자미드"], ["เอเทนซาไมด์"]],
+    ["allylisopropylacetylurea", ["allylisopropylacetylurea"], ["烯丙异丙乙酰脲"], ["アリルイソプロピルアセチル尿素"], ["알릴이소프로필아세틸요소"], []],
+    ["hydrotalcite", ["hydrotalcite", "hidrotalcita", "idrotalcite", "hydrotalcit"], ["铝碳酸镁", "鋁碳酸鎂"], ["ヒドロタルサイト"], ["히드로탈시트"], ["ไฮโดรทัลไซต์"]],
+    ["almagate", ["almagate", "almagato"], [], ["アルマゲート"], ["알마게이트"], []],
+    ["orphenadrine", ["orphenadrine", "orphenadrin", "orfenadrina"], ["奥芬那君"], ["オルフェナドリン"], ["오르페나드린"], ["ออร์เฟนาดรีน"]],
+    ["clavulanic acid", ["clavulanic acid", "clavulanate", "acido clavulanico", "acide clavulanique", "asam klavulanat", "clavulansaure"], ["克拉维酸"], ["クラブラン酸"], ["클라불란산"],
+      ["กรดคลาวูลานิก"]]
   ];
   /** Names that are also everyday food / cosmetic words: found only when the text also reads like a medicine label. */
-  const WEAK = new Set(["caffeine", "tranexamic acid"]);
+  const WEAK = new Set(["caffeine", "tranexamic acid", "dexpanthenol"]);
+  /** Alias spellings added to existing rows (stream F, P9 recall: German / Portuguese / Malay / Thai / Chinese forms). */
+  const MORE_ALIAS = /** @type {Record<string, string[]>} */ ({
+    dimenhydrinate: ["dimenhydrinat", "dimenidrinato", "dimenhydrinatum", "ไดเมนไฮดริเนท"], chlorphenamine: ["chlorphenamin", "klorfeniramina", "clorfenamina", "chlorpheniraminum"],
+    phenylephrine: ["phenylephrin"], dextromethorphan: ["เด็กซ์โตรเมทอร์แฟน", "เดกซ์โตรเมทอร์แฟน", "dextromethorphanum"], simeticone: ["二甲基矽油", "二甲基硅油", "simeticon"],
+    cetirizine: ["cetirizinum"], ibuprofen: ["ibuprofenum"], loratadine: ["loratadinum"], xylometazoline: ["xylometazolinum"]
+  });
 
   /* ---------------- normalisation ---------------- */
   const SALT = new Set(["hydrochloride", "dihydrochloride", "hcl", "hbr", "hydrobromide", "maleate", "hydrogen maleate", "sodium", "potassium", "calcium", "magnesium",
@@ -164,7 +203,10 @@
   const MEDCUE = new RegExp(["\\bactive ingredients?\\b", "\\beach (?:tablet|caplet|capsule|softgel|ml|5 ml)\\b",
     "\\b(?:tablets?|caplets?|capsules?|softgels?|lozenges?|ointment|inhaler|suppositor\\w*|injection|eye drops|nasal spray)\\b",
     "\\brx only\\b", "prescription", "\\bwirkstoff", "substance active", "principio activo", "thanh phan", "komposisi", "mengandung", "成份", "【成分】", "医薬品", "医药", "藥", "药", "薬",
-    "錠", "胶囊", "膠囊", "의약품", "유효성분", "정\\b", "\\bndc\\b", "\\bdin\\b", "国药准字", "ทะเบียนยา", "ยาเม็ด"].join("|"), "i");
+    "錠", "胶囊", "膠囊", "의약품", "유효성분", "정\\b", "\\bndc\\b", "\\bdin\\b", "国药准字", "ทะเบียนยา", "ยาเม็ด",
+    // stream F: tablet / capsule / ointment words in more languages, Chinese "each tablet contains"
+    "\\b(?:film)?tabletten\\b", "\\bdragees?\\b", "\\bkapseln\\b", "\\bsalbe\\b", "\\bcompresse\\b", "\\bcomprim(?:e|es|idos?)\\b", "\\btabletas?\\b", "\\bcapsulas?\\b",
+    "\\bgranulato\\b", "\\bsirop\\b", "\\bjarabe\\b", "\\bxarope\\b", "\\bvien (?:nen|nang|sui)\\b", "\\bkapsul\\b", "每片", "每粒", "每包", "每袋", "每錠", "片剂", "片劑"].join("|"), "i");
 
   /**
    * Index of every name -> INN, longest first. tmtIngredients = the TMT 2020 ingredient strings (vendor/pc-drugs/tmt/meta.json
@@ -180,7 +222,7 @@
       exact.set(a, inn);
       list.push({ alias: a, inn, via, latin: isLatinAlias(a) });
     };
-    for (const [inn, lat, zh, ja, ko, th] of INN_TABLE) for (const a of [inn, ...lat, ...zh, ...ja, ...ko, ...th]) add(a, inn, "synonym");
+    for (const [inn, lat, zh, ja, ko, th] of INN_TABLE) for (const a of [inn, ...lat, ...zh, ...ja, ...ko, ...th, ...(MORE_ALIAS[inn] || [])]) add(a, inn, "synonym");
     for (const s of tmtIngredients || []) {
       for (const part of String(s).split(/\s*\+\s*/)) {
         const b = saltStrip(part);
@@ -194,6 +236,10 @@
   /** @type {any} */ let BASE = null;
   const baseIndex = () => (BASE = BASE || buildInnIndex());
 
+  /** OCR look-alikes folded, one character for one (offsets kept): 0 -> o next to a letter, i / l / 1 / | / ı -> l. @param {string} s folded text */
+  const ocrSkeleton = s => s.replace(/0(?=[a-z])|(?<=[a-z])0/g, "o").replace(/[il1|ı]/g, "l");
+  /** Salt words written into a German / Dutch name (the INN stays a word of its own). */
+  const GLUED_SALT = /^(?:di)?(?:hydrochlorid|hydrobromid|maleat|hydrogenmaleat|natrium|kalium|citrat|sulfat|phosphat|mesilat|besilat|tartrat|fumarat|acetat|nitrat|monohydrat)(?![a-z])/;
   /** The folded text with a map back to the original character offsets. @param {string} text */
   function folded(text) {
     let out = "";
@@ -232,21 +278,31 @@
     const medWeak = med && !(/薬用/.test(src) && !/医薬品/.test(src));
     const used = new Uint8Array(out.length);
     /** @type {Array<{inn: string, matched: string, via: string, strength: string, start: number}>} */ const hits = [];
-    for (const e of I.list) {
-      if ((e.via === "tmt" && !med) || (WEAK.has(e.inn) && !medWeak)) continue;
-      let from = 0;
-      for (;;) {
-        const i = out.indexOf(e.alias, from);
-        if (i < 0) break;
-        from = i + 1;
-        const j = i + e.alias.length;
-        if (e.latin && ((i > 0 && LATIN.test(out[i - 1])) || (j < out.length && LATIN.test(out[j])))) continue;
-        let free = true;
-        for (let k = i; k < j; k++) if (used[k]) { free = false; break; }
-        if (!free) continue;
-        used.fill(1, i, j);
-        const s0 = at[i], s1 = at[j];
-        hits.push({ inn: e.inn, matched: src.slice(s0, s1), via: e.via, strength: strengthAfter(src, s1), start: s0 });
+    // pass 1: the folded text as read. pass 2 (stream F, 2026-11-13): OCR look-alikes folded on both sides (0 -> o inside or
+    // before letters, i / l / 1 / | -> one letter), Latin names of 7+ letters only, on characters no pass-1 name took.
+    const skel = ocrSkeleton(out);
+    for (const pass of [1, 2]) {
+      const hay = pass === 1 ? out : skel;
+      for (const e of I.list) {
+        if ((e.via === "tmt" && !med) || (WEAK.has(e.inn) && !medWeak)) continue;
+        if (pass === 2 && (!e.latin || e.alias.length < 7)) continue;
+        const needle = pass === 1 ? e.alias : ocrSkeleton(e.alias);
+        let from = 0;
+        for (;;) {
+          const i = hay.indexOf(needle, from);
+          if (i < 0) break;
+          from = i + 1;
+          const j = i + needle.length;
+          // a German salt written into the word ("Xylometazolinhydrochlorid", "Chlorphenaminmaleat") is still a word edge
+          const glued = j < out.length && GLUED_SALT.test(out.slice(j, j + 20));
+          if (e.latin && ((i > 0 && LATIN.test(out[i - 1])) || (j < out.length && LATIN.test(out[j]) && !glued))) continue;
+          let free = true;
+          for (let k = i; k < j; k++) if (used[k]) { free = false; break; }
+          if (!free) continue;
+          used.fill(1, i, j);
+          const s0 = at[i], s1 = at[j];
+          hits.push({ inn: e.inn, matched: src.slice(s0, s1), via: e.via, strength: strengthAfter(src, s1), start: s0 });
+        }
       }
     }
     hits.sort((a, b) => a.start - b.start);
@@ -315,7 +371,7 @@
     "liver warning", "side effects?", "drowsiness", "孕妇", "孕婦", "慎用", "禁用", "过敏", "過敏", "妊娠", "授乳", "임부", "임산부", "ห้าม", "ตั้งครรภ์", "แพ้ยา", "เด็กเล็ก"]);
   /** @param {any} line */
   function classifyLine(line) {
-    const t = String(line || "").normalize("NFKC").trim();
+    const t = canon(String(line || "").normalize("NFKC")).trim();
     if (!t) return "other";
     if (DOSE_HEAD.test(t)) return "dose";
     if (WARN_HEAD.test(t)) return "warning";
@@ -339,9 +395,13 @@
     NZ: ["new zealand"], GB: ["united kingdom", "uk", "u.k.", "england", "great britain", "scotland", "wales"], DE: ["germany", "deutschland", "allemagne"],
     FR: ["france"], ES: ["spain", "espana"], IT: ["italy", "italia"], IE: ["ireland"], BE: ["belgium", "belgique"], NL: ["netherlands", "the netherlands", "holland"],
     CH: ["switzerland", "schweiz", "suisse"], SE: ["sweden"], NO: ["norway"], AT: ["austria", "osterreich"], DK: ["denmark"], FI: ["finland"], PT: ["portugal"],
-    PL: ["poland"], EG: ["egypt"], TR: ["turkey", "turkiye"], MX: ["mexico"], BR: ["brazil", "brasil"], IL: ["israel"], ZA: ["south africa"], KH: ["cambodia"],
-    LA: ["laos", "lao pdr"], MM: ["myanmar"], TH: ["thailand"]
+    PL: ["poland"], EG: ["egypt"], TR: ["turkey", "turkiye"], MX: ["mexico"], BR: ["brazil", "brasil", "brasileira"], IL: ["israel"], ZA: ["south africa"], KH: ["cambodia"],
+    LA: ["laos", "lao pdr"], MM: ["myanmar"], TH: ["thailand"],
+    // stream F (P9 recall): more origin names as printed
+    AR: ["argentina"], MA: ["morocco", "maroc"], CL: ["chile"], CO: ["colombia"], PE: ["peru"], RU: ["russia"], SA: ["saudi arabia"], AE: ["united arab emirates", "uae"]
   };
+  /** OCR fixes on a folded line before reading a country: "madein", "made in lndia" (l for i before a country name). @param {string} l */
+  const originFix = l => l.replace(/\bmadein\b/g, "made in").replace(/(?<![a-z])l(?=ndia|ndonesia|taly|reland|srael)/g, "i");
   /** @type {Array<[RegExp, string]>} CJK / Korean / Thai origin wording -> country */
   const LOCAL = [
     [/日本製|日本製造|日本国内製造|原産国[：:]\s*日本|生産国[：:]\s*日本|製造国[：:]\s*日本|ประเทศญี่ปุ่น/, "JP"], [/中国制造|中國製造|中国製造|原产国[：:]\s*中国|产地[：:]\s*中国|（中国）|\(中国\)|ประเทศจีน/, "CN"],
@@ -350,7 +410,9 @@
     [/原产国[：:]\s*德国/, "DE"], [/原产国[：:]\s*法国/, "FR"], [/原产国[：:]\s*澳大利亚/, "AU"]
   ];
   const ORIGIN_CUE = alt(["made", "manufactured", "produced", "packed", "product", "products", "produce", "produit", "hergestellt", "fabrique", "fabricado", "prodotto",
-    "san xuat", "dibuat", "diproduksi", "origin", "imported from", "distributed by"]);
+    "san xuat", "dibuat", "diproduksi", "origin", "imported from", "distributed by",
+    // stream F (P9 recall): "Mfd. in", "Dikilangkan di", "Buatan", "Diperbuat di", "Hecho en", "Elaborado en", "Industria Argentina", "Fabbricato in"
+    "mfd", "mfg", "dikilangkan", "buatan", "diperbuat", "hecho", "elaborado", "industria", "fabbricato", "geproduceerd"]);
   const ORIGIN_RE = new RegExp(ORIGIN_CUE.source + "\\b[^\\n]{0,40}$", "i"); // the cue word, then at most 40 characters up to the country
   const SIMPLIFIED = /[药国产盐维剂应乐选广东质钠钙铁锌复颗粒胶囊颗为释贮说书]/;
   const KANA = /[぀-ヿ]/, HANGUL = /[가-힯]/, THAI = /[฀-๿]/;
@@ -365,7 +427,7 @@
     /** @type {Map<string, string>} */ const found = new Map();
     const put = (/** @type {string} */ c, /** @type {string} */ via) => { if (c && c !== "TH" && !found.has(c)) found.set(c, via); };
     for (const [re, c] of LOCAL) if (re.test(src)) put(c, "printed");
-    const lines = src.split(/\n/).map(l => fold(l));
+    const lines = src.split(/\n/).map(l => originFix(fold(l)));
     for (const [code, names] of Object.entries(NAMES)) {
       for (const n of names) {
         const re = new RegExp(`(^|[^a-z.])${n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![a-z])`, "g");
