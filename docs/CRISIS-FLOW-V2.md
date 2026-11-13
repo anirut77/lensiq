@@ -145,3 +145,18 @@ Changes in `fortune-crisis.js` (and the same 想死你 exception in `fortune-ai.
   a death dream wished true, 楼顶 / 天台 + 跳, 用刀划自己, 想s / 自sha, 威胁要杀我, 一睡不醒, 消失算了; farewell hand-overs of a pet
   get the soft step. Hyperbole taken out before the soft check: X แทบตาย, ตายแล้ว! + a slip, a pet that died, workload
   หนักจะตาย, starving (to death), killed it, drop-dead …, a phone / laptop that died, 夢到 … dream questions.
+
+### Detection v4 (branch crisis-detect-v4; review 3 on fresh-2026-11-14b, spent: dev data)
+
+Families escalated to the card: overdose already taken (TH / EN / ZH), at the edge now (rooftop, bridge, overpass, ledge, 天台边上),
+not coming down from a rooftop, driving off a bridge / into a river, means ready (charcoal in a closed room or car, rope or cord
+already tied, sleeping-pill strips counted for tonight), self-harm with a body part or a method (cutter / blade / knife on thigh,
+forearm, wrist; head-banging until bleeding; cigarette burns), abuse disclosures by partner, parent, stepparent or teacher
+(slapping, choking, a belt or hanger, entering the room at night, photos with threats, groping, "แฟน hit me"), threats to kill
+("says he will kill me", 说…杀了我), "how to die" / 怎么死, "today I want to end it" (今天就想了结), "จะตายคืนนี้", not planning to
+be here. Soft step added for indirect wishes and hand-overs (รถชน…จบ, จะไม่มีเราให้ห่วง, last reading, giving things away,
+"stop existing", "tired of being alive", scheduled letters, "when I'm gone", "if I jump", 不用醒来, 没有我会更好, 不想再撑).
+Names: one-token distress names (wanttodie, killme) and 最后一天 give the soft step; proper Latin names (Killian O'Brien) and
+Thai words containing ตาย (ตายตะวัน, ตายใจ) do not. Hyperbole removed before the soft check: "X จะตาย" not said of oneself and
+not with a time (คืนนี้ …), ปลาหมอตายเพราะปาก, "show killed me", "feet are killing me", "the death of me", killer …, kill two
+birds, could murder a …, battery died, 吓死 / 热死.

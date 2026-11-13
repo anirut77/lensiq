@@ -61,8 +61,38 @@
     new RegExp(String.raw`วางแผน[^\s]{0,30}(?:วันสุดท้าย|จะจากไป)|(?:หลับ|นอน)[^\s]{0,10}ไม่(?:ต้อง)?ตื่น(?:มา|ขึ้นมา)?(?:อีก)?(?:เลย)?(?:คง` +
       String.raw`|ก็)?ดี|ตาย[^\n]{0,30}อยากให้(?:มัน)?เป็น(?:เรื่อง)?จริง|จบมัน(?:เลย|ซะ(?:ที)?)ดีกว่า`),
     /\bcut(?:แขน|ข้อมือ|ตัวเอง)|jump(?:off)?(?:ลง)?(?:จาก)?(?:ตึก|สะพาน|ดาดฟ้า)/i,
+    // detection v4 (review 3 on fresh-2026-11-14b, spent: dev data): high-acuity families escalate to the card
+    toneless(new RegExp(String.raw`ยานอนหลับ[^\s]{0,10}(?:สอง|สาม|สี่|หลาย|\d)แผง|(?:เก็บ|สะสม|ตุน)ยา[^\s]{0,14}(?:แผง|ขวด|กล่อง)[^\s]{0,8}(?:คืนนี้|วันนี้|พรุ่งนี้)|` +
+      String.raw`กินยา[^\s]{0,6}(?:หลับยาว|หลับไม่ตื่น|หลับไปเลย|หลับไปตลอด)`, "i")),
+    toneless(new RegExp(String.raw`ดาดฟ้า[^\s]{0,40}(?:ไม่ลงมา|ไม่กลับลงไป)|(?:ยืน|นั่ง)(?:อยู่)?(?:บน|ริม|ขอบ)(?:ดาดฟ้า|สะพาน|ตึก|ระเบียง)[^\s]{0,12}(?:ตอนนี้|ข้างล่าง|โดด|กระโดด|ลงไป)|` +
+      String.raw`ขับรถ(?:ตก|พุ่งลง)(?:สะพาน|เหว|แม่น้ำ|คลอง)|ขับรถ(?:ลง|พุ่ง)(?:สะพาน|แม่น้ำ|คลอง|เหว)[^\s]{0,16}(?:ตอนตี|คืนนี้|ตอนนี้|ให้ตาย|ไปเลย)`, "i")),
+    toneless(new RegExp(String.raw`(?:จุด|เผา)(?:เตา)?ถ่าน[^\s]{0,16}(?:ห้องปิด|ในห้อง|ในรถ|ปิดกระจก|ปิดประตู)|เอาหัว(?:โขก|กระแทก|ชน)(?:ผนัง|กำแพง|พื้น)[^\s]{0,10}(?:เลือด|จนเจ็บ)|` +
+      String.raw`(?:คัตเตอร์|มีด|ใบมีด|มีดโกน)[^\s]{0,3}(?:กรีด|เฉือน|ปาด)(?:ต้นขา|ขา|แขน|ข้อมือ|ท้อง|ตัวเอง)`, "i")),
+    toneless(new RegExp(String.raw`(?:แฟน|สามี|ผัว|เมีย|ภรรยา|พ่อ|แม่|พ่อเลี้ยง|แม่เลี้ยง)[^\s]{0,10}(?:ตบหน้า|บีบคอ)|บีบคอ[^\s]{0,8}หายใจไม่ออก|` +
+      String.raw`(?:พ่อ|แม่|สามี|ผัว|แฟน|พ่อเลี้ยง|แม่เลี้ยง|ลุง|ป้า|ครู)เอา(?:เข็มขัด|ไม้แขวนเสื้อ|ไม้เรียว|ไม้|สายไฟ)(?:ตี|ฟาด|หวด|เฆี่ยน)|` +
+      String.raw`(?:พ่อเลี้ยง|แม่เลี้ยง|ลุง|น้า|อา|ญาติ|พี่ชาย)[^\s]{0,6}(?:เข้า(?:มา)?(?:ใน)?ห้อง|มานอน)[^\s]{0,8}(?:กลางคืน|ดึก)|` +
+      String.raw`(?:ครู|อาจารย์|ติวเตอร์|โค้ช)[^\s]{0,10}(?:ส่งรูป|ลวนลาม|แตะต้อง|จับตัว|จับหน้าอก)|ขู่[^\s]{0,6}ห้ามบอก`, "i")),
+    toneless(new RegExp(String.raw`(?:จะ|ขอ)ตาย(?:คืนนี้|วันนี้|พรุ่งนี้|ตอนนี้)|ไม่เหลือเหตุผล(?:ให้|ที่จะ)?(?:อยู่|มีชีวิต)|อยากให้ทุกอย่างจบ(?:วันนี้|คืนนี้)|` +
+      String.raw`(?:แฟน|สามี|ผัว|พ่อ|แม่)(?:hits?|beats?|chokes?|choked|hit)(?:me|us)`, "i")),
   ].map(toneless);
   const EN = [
+    // detection v4 (review 3, spent set as dev data): overdose taken, at the edge now, means ready, self-harm with a body part,
+    // abuse by partner / family / teacher, threats to kill, "how to die", not planning to be here
+    new RegExp(String.raw`\b(?:took|swallowed|taken|downed)\b[^.]{0,24}\b(?:tablets|pills|meds|medication|sleeping pills|painkillers)\b[^.]{0,30}\b(?:ago|already|just now|tonight)\b|` +
+      String.raw`\b(?:took|swallowed|downed) all (?:of )?(?:my |the |her |his |\w+'s )?(?:tablets|pills|meds|medication)\b`, "i"),
+    new RegExp(String.raw`\b(?:standing|sitting|i'?m) (?:on|at) (?:the )?(?:edge of (?:the )?)?(?:overpass|bridge|roof|rooftop|ledge|balcony)\b|` +
+      String.raw`\b(?:tied|tie|hung|knotted) (?:the |a |my )?(?:cord|rope|belt|noose)\b[^.]{0,30}\b(?:rail|beam` +
+      String.raw`|ceiling|fan|door|closet|already)\b|\b(?:rope|cord|noose) is (?:already )?(?:tied|ready|up)\b` +
+      String.raw`|` +
+      String.raw`\bdriv(?:e|ing) (?:my car )?(?:into|off) (?:the |a )?(?:river|bridge|cliff|lake|sea|wall|truck|traffic)\b|\bbought charcoal\b`, "i"),
+    new RegExp(String.raw`\b(?:cut|sliced|slashed|carved)\b[^.]{0,6}\b(?:my )?(?:forearm|arms?|wrists?|thighs?|legs?|stomach|skin)\b[^.]{0,24}\b(?:again|deeper|open|on purpose|bleed\w*|myself)\b|` +
+      String.raw`\b(?:husband|wife|boyfriend|girlfriend|partner|dad|father|mom|mum|mother|stepdad|stepmom|stepfather` +
+      String.raw`|stepmother)\b[^.]{0,20}\b(?:hit|choked|strangled|slapped|punched|kicked|beat) (?:me|us)\b(?! (?:at` +
+      String.raw`|in|up|with a surprise))`, "i"),
+    new RegExp(String.raw`\b(?:teacher|tutor|coach|priest|pastor|uncle|stepdad|stepfather)\b[^.]{0,40}\b(?:photos|pictures|nudes|pics)\b[^.]{0,40}\b(?:tell|threat\w*|secret)\b|` +
+      String.raw`\b(?:says?|said|threaten(?:s|ed)?)\b[^.]{0,15}\b(?:he|she|they)?(?:'ll| will| would| is going to| gonna)? ?kill me\b|\bwill kill me if\b|` +
+      String.raw`\b(?:least painful|painless|easiest|quickest) way to (?:die|go|end it)\b|\bhow to die\b`, "i"),
+    new RegExp(String.raw`\bdon'?t plan on being (?:here|alive|around)\b|\b(?:pain|suffering) would (?:finally )?stop\b|\bno reason to (?:keep )?(?:going|go on)\b|\bwant it (?:all )?over\b`, "i"),
     // detection v2 (2026-11-13): no reason to live, not worth living, done with life, method + myself, preparing the means,
     // "want to diee" (stretched letters)
     /\bno (?:reason|point) (?:to|in) (?:keep(?:ing)? )?(?:living|live|go(?:ing)? on|be(?:ing)? alive|stay(?:ing)? alive)\b|\bnothing (?:left )?to live for\b/i,
@@ -100,6 +130,13 @@
       "(?!\\s+with (?:a |an |the )?(?:surprise|news|question|idea|joke|gift|compliment|party))", "i"),
   ];
   const ZH = [
+    // detection v4 (review 3): at the edge, charcoal, blades on a body part, burns, a stepparent at night, a whole bottle swallowed,
+    // the rope tied, a teacher groping + threats, threats to kill, how to die, ending it today
+    new RegExp(String.raw`(?:天台|楼顶|桥|楼)(?:的)?(?:边上|边缘|栏杆外)|(?:买|准备)(?:了|好)?(?:木)?炭[^。]{0,10}(?:烧|车里|房间)|` +
+      String.raw`(?:刀片|美工刀|刀|剪刀)[^。]{0,3}(?:划|割|刺)(?:了)?(?:手腕|手臂|大腿|腿|胳膊|自己)|(?:烟头|打火机)[^。]{0,3}烫(?:伤)?自己|` +
+      String.raw`(?:继父|继母|叔叔|舅舅|姑父)[^。]{0,4}(?:晚上|半夜)?(?:进|来)(?:我|我的)?房间|(?:整瓶|整盒|一瓶|一盒)[^。]{0,4}(?:药|安眠药)[^。]{0,3}(?:都|全)?(?:吞|吃)|` +
+      String.raw`绳子[^。]{0,4}(?:绑|系|挂)好|(?:老师|教练|补习)[^。]{0,8}(?:毛手毛脚|摸我|偷拍|威胁我不(?:准|许)说)|(?:说|威胁)[^。]{0,10}杀(?:了)?我|` +
+      String.raw`怎么死|怎样死|如何死|(?:今天|今晚|现在)就?想(?:了结|结束(?:这一切|一切|生命)?)`),
     // detection v2 (2026-11-13): 了结 / 了断 oneself, preparing the means, no reason to live
     // detection v3 (review 2026-11-14): rooftop / bridge + jump, cutting oneself, 想s / 自sha, threats to kill, never waking up, disappearing
     /(?:楼顶|天台|楼上|桥上)[^。]{0,8}跳|(?:用刀|拿刀|刀片)[^。]{0,3}(?:划|割|刺)自己|(?:割|划伤)自己|想s(?![a-z])|自sha|威胁(?:说)?要杀(?:了)?我|一睡不醒|再也不(?:要)?醒|消失算了|消失就好/i,
@@ -122,7 +159,7 @@
     媽: "妈", 強: "强", 姦: "奸", 藥: "药", 過: "过", 會: "会", 沒: "没", 義: "义", 時: "时", 讓: "让", 動: "动", 橋: "桥", 頂: "顶", 後: "后", 來: "来", 說: "说",
     話: "话", 無: "无", 戀: "恋", 毆: "殴", 決: "决", 斷: "断", 盡: "尽", 尋: "寻", 燒: "烧", 掛: "挂", 臥: "卧", 軌: "轨", 師: "师", 褻: "亵", 跡: "迹", 剎: "刹", 襲: "袭", 擊: "击",
     著: "着", 撐: "撑", 遺: "遗", 書: "书", 發: "发", 關: "关", 係: "系", 間: "间", 帶: "带", 頸: "颈", 腳: "脚",
-    脅: "胁", 準: "准", 備: "备", 繩: "绳", 別: "别", 條: "条", 訊: "讯", 見: "见", 們: "们", 麼: "么", 夢: "梦", 歡: "欢" };
+    脅: "胁", 劃: "划", 煙: "烟", 燙: "烫", 補: "补", 習: "习", 樣: "样", 較: "较", 嚇: "吓", 熱: "热", 綁: "绑", 繫: "系", 準: "准", 備: "备", 繩: "绳", 別: "别", 條: "条", 訊: "讯", 見: "见", 們: "们", 麼: "么", 夢: "梦", 歡: "欢" };
   const T2S_RE = new RegExp("[" + Object.keys(T2S).join("") + "]", "g");
   /** true when the text shows a crisis signal @param {any} text */
   // English copies: leetspeak undone (0→o 1→i 3→e 4→a @→a $→s), spaces collapsed; letter-spaced runs ("I w a n t t o d i e") joined
@@ -183,7 +220,14 @@
   ];
   /* detection v2 (2026-11-13): everyday hyperbole is taken out before the soft check (หิวจะตาย, dying of laughter, 笑死了 …);
      the hard net never sees this list (it runs on the raw text) */
-  const IDIOMS = [toneless(/(?:หิว|ร้อน|ขำ|ง่วง|หนาว|อร่อย|สวย|น่ารัก|ตลก|เผ็ด|เมื่อย|เบื่อ|หอม|ฮา|หนัก)(?:จน)?(?:แทบ)?(?:จะ)?ตาย(?:อยู่แล้ว|แล้ว|เลย)?/g),
+  const IDIOMS = [
+    // detection v4: "X จะตาย" hyperbole not said of oneself, a proverb and names / words that contain ตาย; English hyperbole with
+    // killed / killing / death of me / killer; 吓死 / 热死 handled by the folded Chinese list below
+    toneless(/(?<!อยาก|ฉัน|หนู|ผม|กู|เรา|ดิฉัน)(?:จน)?จะตาย(?!คืนนี้|วันนี้|พรุ่งนี้|ตอนนี้|เร็ว|แน่|ไปจริง)(?:อยู่)?(?:แล้ว)?|ปลาหมอตายเพราะปาก|ตายตะวัน|ตายใจ|ตายตัว/g),
+    new RegExp(String.raw`\b(?:show|joke|movie|video|episode|meme|it|this|that|set)\b[^.]{0,14}\bkilled me\b|` +
+      String.raw`\b(?:feet|back|knees|legs|shoes|head|neck|stomach|eyes|hands|calves)\b (?:is|are) killing me\b|\bthe death of me\b|\bkiller (?!instinct)\w+|` +
+      String.raw`\bkill two birds\b|\bcould (?:murder|kill) (?:a|an|for a)\b|\b(?:battery|phone battery)\b[^.]{0,10}\b(?:died` +
+      String.raw`|is dead|dead)\b`, "gi"),toneless(/(?:หิว|ร้อน|ขำ|ง่วง|หนาว|อร่อย|สวย|น่ารัก|ตลก|เผ็ด|เมื่อย|เบื่อ|หอม|ฮา|หนัก)(?:จน)?(?:แทบ)?(?:จะ)?ตาย(?:อยู่แล้ว|แล้ว|เลย)?/g),
     // detection v3: "X แทบตาย" (เหนื่อยแทบตาย, รักเธอแทบตาย), the exclamation ตายแล้ว! before a slip, a pet or a plant that died
     toneless(new RegExp(String.raw`(?<!อยาก|จะ)[^\sอ]{0,10}แทบ(?:จะ)?ตาย|(?<!อยาก|จะ|ไม่)ตายแล้ว[!！]*(?=ลืม|เผลอ|พลาด|สาย|ทำ(?:ของ)?หาย|โทรศัพท์)` +
       String.raw`|(?:แมว|หมา|สุนัข|ปลา|นก|กระต่าย|ต้นไม้)(?:ที่บ้าน|ของ(?:ฉัน|เรา|หนู|ผม))?ตาย`, "g")),
@@ -208,16 +252,28 @@
     return SOFT[0].test(th) || SOFT[1].test(enCopy(t)) || SOFT[2].test(zh) || FAREWELL.some(re => re.test(th) || re.test(t) || re.test(zh));
   }
   // detection v2 (2026-11-13): farewell / last-time wording gets at least the soft step
-  const FAREWELL = [toneless(new RegExp(String.raw`คงไม่ได้(?:เจอ(?:กัน)?|กลับมา)(?:อีก)?แล้ว|ฝาก(?:ดูแล|เลี้ยง)(?:แมว|หมา|สุนัข|ลูก)|คงไม่ได้เจอ(?:กัน)?อีก|` +
+  const FAREWELL = [
+    // detection v4 (review 3): indirect wishes, hand-overs, last reading, gone-for-good wording
+    toneless(new RegExp(String.raw`รถชน[^\s]{0,16}(?:จบ|ตาย)|จบ(?:ๆ)?ไปสักที|จะไม่มี(?:เรา|ฉัน|หนู|ผม)(?:ให้|ให้ใคร)?(?:ห่วง|เป็นห่วง)|(?:ดูดวง|คำทำนาย)ครั้งสุดท้าย|` +
+      String.raw`ฝากบอก(?:แม่|พ่อ|ทุกคน)[^\s]{0,6}(?:ว่า)?รัก|(?:ยก|แจก)ของ(?:ทั้งหมด)?ให้[^\s]{0,18}ไม่ต้องรอ|จากไป(?:แบบ|โดย)?ไม่(?:ต้อง)?กลับมา|(?:good)?byeทุกคน|finalดูดวง`, "i")),
+    new RegExp(String.raw`\bstop(?:ped)? existing\b|\bnobody would (?:notice|care|miss me)\b|\b(?:tired|sick) of (?:being alive|living)\b|` +
+      String.raw`\bschedul\w* (?:them|it|messages?|letters?) to (?:send|go out)\b|\bmy (?:last|final) reading\b|\b(?:wasn'?t|was not|isn'?t) (?:his|her|their|your) fault\b|` +
+      String.raw`\bwhen (?:i'?m|im|i am) gone\b|\bdone after tonight\b|\bif i jump\b|\bbetter off without me\b`, "i"),
+    /不用醒来|醒不来就好|没有我[^。]{0,4}(?:会)?(?:比较|更)好|不想再撑/,
+    toneless(new RegExp(String.raw`คงไม่ได้(?:เจอ(?:กัน)?|กลับมา)(?:อีก)?แล้ว|ฝาก(?:ดูแล|เลี้ยง)(?:แมว|หมา|สุนัข|ลูก)|คงไม่ได้เจอ(?:กัน)?อีก|` +
     String.raw`ครั้งสุดท้าย(?:ก่อน|ที่ได้)|สุดท้ายก่อนไป|จดหมายถึง[^\s]{0,12}ไว้แล้ว`)),
     new RegExp(String.raw`\b(?:this is )?my (?:last|final) (?:message|goodbye|post|words|note)\b|\b(?:good)?bye (?:everyone|everybody` +
       String.raw`|world|all)\b|\bfinal goodbye\b|\b(?:look after|take care of) my (?:dog|cat|pets?|kids?) (?:when|after) I'?m gone\b`, "i"),
     /永别|再见了.{0,8}最后|这是(?:我)?最后一次|最后一条(?:消息|信息)|遗言/];
   // detection v2 (2026-11-13): a name field gets the soft step for a distress word; an ordinary short question or topic phrase
   // ("will I get the job?", "ปีนี้จะได้ย้ายงานไหม", "今年会升职吗") or everyday hyperbole does not; otherwise the round-3 rules
+  // detection v4: a name written as one distress token (wanttodie, killme …) is distress; a name that only looks like a proper
+  // Latin name (Killian O'Brien, Mortimer Death) is not, unless it carries a distress word
+  const NAME_COMPACT = /wan(?:t|na)to?die|killme|killmyself|endmylife|suicid/i;
+  const PROPER_LATIN = /^[A-Z][a-z'’-]+(?:\s+[A-Z][A-Za-z'’-]+){0,2}$/;
   const NAME_DISTRESS = [toneless(/กลัว|เหนื่อย|ช่วยด้วย|ช่วยที|เจ็บ|ร้องไห้|เศร้า|ทนไม่|ไม่ไหว|ตาย|โดน|ถูกทำ|ทำร้าย|เกลียด|เหงา/),
     /\b(?:help|scared|afraid|alone|hurt|hurts|pain|cry|crying|hate|kill|die|dead|abuse\w*|hit|hits|beat|beats|tired|sad|lonely|unsafe|please)\b/i,
-    /救|怕|痛|疼|哭|累|打我|死|孤单|难过|伤心|想你/];
+    /救|怕|痛|疼|哭|累|打我|死|孤单|难过|伤心|想你|最后一天/];
   const NAME_ORDINARY = [toneless(/ไหม|มั้ย|หรือเปล่า|อย่างไร|ยังไง|เมื่อไร|งาน|ตำแหน่ง|สอบ|ปีนี้|เดือน|ดวง|ฝัน|ไพ่|โชค|ความรัก|เงิน/),
     /\?\s*$|\b(?:job|career|work|exams?|promotion|interview|business|shop|money|love|marriage|year|month|lucky|luck|cards?|tarot|dream\w*|funeral|horoscope|zodiac|mean)\b/i,
     /吗|么|什么|怎么|如何|运|梦|牌|工作|升职|考试|今年|代表/];
@@ -228,6 +284,8 @@
   function softName(name) {
     const n = canon(name).trim();
     if (!n) return false;
+    if (NAME_COMPACT.test(n.replace(/[\s_.-]+/g, ""))) return true;
+    if (PROPER_LATIN.test(n) && !NAME_DISTRESS[1].test(n.replace(/\b(?:kill\w+|death)\b/gi, " "))) return false;
     if (soft(n)) return true;
     let n0 = unjoke(n);
     for (const re of FORTUNE_CTX) n0 = n0.replace(re, " ");
