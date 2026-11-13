@@ -406,7 +406,7 @@
     { kind: "id", group: 1, re: /記号[^\n]{1,20}?(?<!製造|承認|許可|届出|登録|認証|管理|品|型式)番号[\s:：]*([0-9A-Z][0-9A-Z\-]{0,12})/gu },
     { kind: "hn", group: 1, re: /(?<!(?:Product|Item|Batch|Lot|Device|Model|UDI|Ref)[\s.]?)\bID\s?(?:No\.?|#)?[\s:：#]+([A-Z]{0,2}\d[\dA-Z\-]{3,15})\b/gu },
     { kind: "id", group: 1, re: /(?:個人番号|マイナンバー)[\s:：]*(\d{4}[\s-]?\d{4}[\s-]?\d{4})(?!\d)/gu },
-    { kind: "email", re: /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/gu },
+    { kind: "email", re: /(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/gu },
     { kind: "id", group: 1, re: /(?:\bPassport(?:\s*(?:No\.?|number|#))?|หนังสือเดินทาง(?:เลขที่)?|护照(?:号码?)?|パスポート)\s*[:：.#]?\s*([A-Z]{1,2}\d{6,9}|\d{7,9})\b/giu },
     { kind: "dob", group: 1, re: DOB_RE },
     { kind: "dob", group: 1, re: DOB_AFTER }
@@ -492,7 +492,15 @@
     while (i < g.length) {
       let best = -1;
       if (i === 0 || /\s/.test(run.slice(g[i - 1].e, g[i].s))) {
-        for (let j = g.length - 1; j >= i; j--) {
+        // no phone holds more than 16 digits (+66 / +86 and the number): stretches longer than that are never tried, so a long
+        // run of groups costs linear time, not quadratic (stream F2; the longest valid stretch is still the one taken)
+        let last = i, nd = 0;
+        while (last < g.length) {
+          nd += run.slice(g[last].s, g[last].e).replace(/\D/g, "").length;
+          if (nd > 16) break;
+          last++;
+        }
+        for (let j = Math.max(i, last - 1); j >= i; j--) {
           if (j < g.length - 1 && !/\s/.test(run.slice(g[j].e, g[j + 1].s))) continue;
           if (phoneOk(run.slice(g[i].s, g[j].e))) { best = j; break; }
         }
@@ -504,7 +512,9 @@
   const ADDRESS = new RegExp([
     "บ้านเลขที่|เลขที่\\s?\\d+(?:/\\d+)?|หมู่(?:ที่)?\\s?\\d|ม\\.\\s?\\d|ซอย|ซ\\.\\s?[ก-๙\\d]|ถนน|ถ\\.\\s?[ก-๙]|ตำบล|ต\\.\\s?[ก-๙]|แขวง|อำเภอ|อ\\.\\s?[ก-๙]|เขต[ก-๙]|จังหวัด|จ\\.\\s?[ก-๙]|",
     "(?<!\\d)\\d{5}(?!\\d)(?=\\s*$)|\\b(?:Room|Rm\\.?|Floor|Fl\\.|Road|Rd\\.?|Street|St\\.|Soi|Moo|District|Province|Apt\\.?|Unit)\\b[^\\n]*\\d|",
-      "\\d[^\\n]*\\b(?:Road|Rd\\.?|Street|St\\.|Soi|Moo)\\b|",
+      // "a digit, then later on the line a road word", written word-first (the old form "\d[^\n]*\bRoad" re-scanned the rest of the line
+      // from every digit: quadratic on a long digit run; stream F2, same matches)
+      "\\b(?:Road|Rd\\.?|Street|St\\.|Soi|Moo)\\b(?<=\\d[^\\n]*\\b(?:Road|Rd\\.?|Street|St\\.|Soi|Moo)\\b)|",
     "[省市区县][^\\n]{0,15}[路街道巷][^\\n]{0,10}号|",
     // Japanese (〒, 都道府県 + 市区町村 + 1-2-3, 丁目 / 番地) and Korean (시 / 도 + 구 / 군 + 로 / 길 number) addresses (stream F, 2026-11-13)
     "〒\\s?\\d{3}-\\d{4}|[都道府県][^\\n]{0,12}[市区町村郡][^\\n]{0,20}(?:\\d+(?:[-－]\\d+){1,2}|丁目|番地)|",
@@ -689,7 +699,17 @@
       });
     }
     /** A maker / distributor / contact block around [at, at+len): this line and up to 4 lines above, no person in it. */
+    // the answer depends only on the line (and the e-mail text); cached per line for phones, so a line with many phones is
+    // read once, not once per phone (stream F2, same answers)
+    /** @type {Map<number, boolean>} */ const companyLine = new Map();
     const companyAt = (/** @type {number} */ at, /** @type {string} */ extra) => {
+      const ls0 = t.lastIndexOf("\n", at - 1) + 1;
+      if (!extra && companyLine.has(ls0)) return /** @type {boolean} */ (companyLine.get(ls0));
+      const v = companyAtRaw(at, extra);
+      if (!extra) companyLine.set(ls0, v);
+      return v;
+    };
+    const companyAtRaw = (/** @type {number} */ at, /** @type {string} */ extra) => {
       const ls = t.lastIndexOf("\n", at - 1) + 1, le = t.indexOf("\n", at) < 0 ? t.length : t.indexOf("\n", at);
       let bs = ls;
       for (let k = 0; k < 4 && bs > 0; k++) bs = t.lastIndexOf("\n", bs - 2) + 1;
@@ -989,13 +1009,14 @@
   }).flatMap(([group, words]) => words.map(w => ({ group, w: unmark(w).replace(/\s+/g, "") }))).filter(x => x.w.length >= 8);
   // a postal ADDRESS that is not a maker's: at least two address parts on one line (three for CJK) and no company / maker
   // cue on the line, the three lines above or the two below. Read on the text without Thai marks.
+  // (?<!\d) before a leading \d+: a run of digits is tried once from its start, not from every digit (linear time; stream F2)
   const ADDR_PARTS = [
     dense(["หมู่(?:ที่)?\\s?\\d|(?<![ก-๙])ม\\.\\s?\\d"]), dense(["ซอย|(?<![ก-๙])ซ\\.\\s?[ก-๙\\d]"]), dense(["ถนน|(?<![ก-๙])ถ\\.\\s?[ก-๙]"]), dense(["ตำบล|(?<![ก-๙])ต\\.\\s?[ก-๙]|แขวง"]),
     dense(["อำเภอ|(?<![ก-๙])อ\\.\\s?[ก-๙]|เขต[ก-๙]"]), dense(["จังหวัด|(?<![ก-๙])จ\\.\\s?[ก-๙]|กรุงเทพ"]), /(?<![\d\-/.])\d{5}(?![\d\-/.])\s*$|\b[a-z]{1,2}\d[a-z\d]?\s\d[a-z]{2}\b|〒\s?\d{3}-\d{4}/u,
-    /\b(?:road|rd|street|lane|avenue|ave|soi|moo|jl|jalan)\b\.?/u, /\b(?:apt|unit|room|rm|floor)\b\.?\s?\d|\d+\/\d+\s+(?:[ก-๙]|soi\b|moo\b)|\b\d{6}\s*$/u,
+    /\b(?:road|rd|street|lane|avenue|ave|soi|moo|jl|jalan)\b\.?/u, /\b(?:apt|unit|room|rm|floor)\b\.?\s?\d|(?<!\d)\d+\/\d+\s+(?:[ก-๙]|soi\b|moo\b)|\b\d{6}\s*$/u,
     /^\s*\d+[a-z]?\s+[a-z .]{2,30}\b(?:road|rd|street|lane|avenue|ave)\b/u,
-    /[省]/u, /[市]/u, /[区區县縣]/u, /[路街道巷]/u, /\d+\s*[号號]/u, /\d+\s*(?:[栋棟楼樓室]|单元)/u, /[都道府県][^\n]{0,12}[市区町村]/u, /\d+-\d+-\d+|丁目|番地/u,
-    /[시도]\s/u, /[구군]\s/u, /(?:로|길)\s?\d/u, /\d+\s?(?:동|호|층)/u
+    /[省]/u, /[市]/u, /[区區县縣]/u, /[路街道巷]/u, /(?<!\d)\d+\s*[号號]/u, /(?<!\d)\d+\s*(?:[栋棟楼樓室]|单元)/u, /[都道府県][^\n]{0,12}[市区町村]/u, /(?<!\d)\d+-\d+-\d+|丁目|番地/u,
+    /[시도]\s/u, /[구군]\s/u, /(?:로|길)\s?\d/u, /(?<!\d)\d+\s?(?:동|호|층)/u
   ];
   // maker words that survive low-quality OCR (stray spaces, lost or wrong characters). On the Thai letters of the block
   // only, marks and spaces removed: ONE exact word, or TWO different words each within a small edit distance (1 for a
