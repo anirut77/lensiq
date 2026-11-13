@@ -48,7 +48,7 @@
     <span><b data-i18n="lucky.disc.b">เพื่อความบันเทิงตามความเชื่อ ไม่ใช่การพยากรณ์ทางวิทยาศาสตร์</b>
     <span data-i18n="lucky.disc.rest">ภาพจากกล้องประมวลผลในเครื่องนี้เท่านั้น ไม่บันทึก ไม่ส่งออก ไม่จดจำใบหน้า ใช้ตำแหน่งใบหน้าเพียงเพื่อแยกเสื้อผ้าออกจากศีรษะ</span></span></p>
 
-  <section class="fk-block lc-opts" aria-labelledby="optH">
+  <section class="fk-block lc-opts" aria-labelledby="optH" data-lq-remedy>
     <h2 id="optH" data-i18n="lucky.optH">อยากเสริมเรื่องอะไรวันนี้</h2>
     <div class="lc-goals" role="group" aria-labelledby="optH" id="goals">
       <button class="lc-goal" type="button" data-goal="work" aria-pressed="true">
@@ -74,7 +74,7 @@
     <div id="recBox" class="lc-rec" aria-live="polite"></div>
   </section>
 
-  <div class="lc-grid">
+  <div class="lc-grid" data-lq-remedy>
     <section class="fk-block" aria-labelledby="camH">
       <h2 id="camH" data-i18n="lucky.camH">กระจก</h2>
       <div class="lc-cam" id="cam"><video id="video" autoplay muted playsinline></video>
@@ -96,9 +96,9 @@
     </section>
   </div>
 
-  <section class="fk-block" aria-labelledby="weekH">
+  <section class="fk-block" aria-labelledby="weekH" data-lq-remedy>
     <h2 id="weekH" data-i18n="lucky.weekH">ตารางสีเสื้อมงคลทั้งสัปดาห์</h2>
-    <div class="lc-week-wrap"><table class="lc-week" id="week"></table></div>
+    <div class="lc-week-wrap"><table class="lc-week" id="week" data-lq-remedy></table></div>
   </section>
 
   <div class="fk-foot">
@@ -132,6 +132,7 @@
 <script src="vendor/ort/ort.wasm.min.js"></script>
 <script src="photobooth-hq.js?v=7"></script>
 <script src="lensiq-luckycolor.js?v=1"></script>
+<script src="fortune-crisis.js?v=9"></script>
 <script src="luckycolor.js?v=1"></script>
 </body>
 </html>

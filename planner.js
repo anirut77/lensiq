@@ -124,7 +124,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
         ' <span class="pl-date">' + esc(fmtDate(x)) + "</span></label>" +
         '<div class="pl-meta"><span class="pl-chip">' + swatch(x.colour.day) + esc(T("pl.dayColour", "สีประจำวัน: {c}", { c: colourName(x.colour.day) })) + "</span>" +
         '<span class="pl-chip">' + esc(lunarText(x.lunar)) + "</span>" +
-        '<span class="pl-chip">' + swatch(x.colour.lucky) + esc(T("pl.luckyColour", "สีเสื้อเสริมมงคล: {c}", { c: colourName(x.colour.lucky) })) + "</span>" +
+        '<span class="pl-chip" data-lq-remedy>' + swatch(x.colour.lucky) + esc(T("pl.luckyColour", "สีเสื้อเสริมมงคล: {c}", { c: colourName(x.colour.lucky) })) + "</span>" +
         '<span class="pl-chip pl-score">' + esc(T("pl.score", "ตรงเกณฑ์ {s} จาก {max} คะแนน", { s: x.score, max: max })) + "</span></div>" +
         '<ul class="pl-why">' + main.map(function (r) { return "<li>" + esc(reasonText(r)) + "</li>"; }).join("") + "</ul>" +
         (notes.length ? '<p class="fk-small pl-note">' + notes.map(function (r) { return esc(reasonText(r)); }).join(" ") + "</p>" : "") +

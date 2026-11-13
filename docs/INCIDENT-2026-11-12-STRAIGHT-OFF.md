@@ -45,5 +45,7 @@ Source of the 12 inputs: the reviewer's fresh set, which is now **spent** (dev d
    a car, mixed EN + TH, "kil myself", "sucide", 生无可恋, 想紫砂, 伤害自己); the "dying of laughter" idiom (อยากตายเพราะหัวเราะ)
    no longer shows the card but still gets the soft step.
 
-Not covered: planner, luckycolor and the fortune hub do not load `fortune-crisis.js` (no free-text field there), so their
-lucky-item content is not hidden in a calm session.
+Fix 4b (same branch): the fortune hub, planner and luckycolor now load `fortune-crisis.js` and honour the calm session flag.
+Hidden there in a calm tab: the lucky-colour mirror's goal picker, recommendation, result and week table; the planner's lucky
+shirt-colour chip; and the hub's promotion block. Each page's help line at the top stays in view. Tests locked first
+(`tests/unit/fortune-calm-pages.test.js`, `tests/e2e/fortune-calm-pages.e2e.mjs`). Before: unit 0/2, e2e 2/4. After: 2/2, 4/4.
