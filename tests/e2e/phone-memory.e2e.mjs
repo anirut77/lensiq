@@ -153,6 +153,8 @@ export default async function ({ base, launch, check, fakeCams }) {
       rows.push({ name, ...r });
       console.log(`       ${name}: heap peak ${r.heapPeak} MB (end ${r.heapEnd}) · renderer RSS peak ${r.rssPeak} MB (end ${r.rssEnd}) · ${r.samples} samples`);
       assert(r.heapPeak <= BUDGET[name].heap, `${name}: JS heap peak ${r.heapPeak} MB > budget ${BUDGET[name].heap} MB`);
+      // Linux and macOS always give a renderer RSS: a 0 there means the measurement failed, which fails the check
+      if (process.platform === "linux" || process.platform === "darwin") assert(r.rssPeak > 0, `${name}: no renderer memory figure (ps gave nothing)`);
       assert(r.rssPeak === 0 || r.rssPeak <= BUDGET[name].rss, `${name}: renderer RSS peak ${r.rssPeak} MB > budget ${BUDGET[name].rss} MB`);
     });
   }

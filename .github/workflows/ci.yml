@@ -250,7 +250,7 @@ jobs:
         with:
           pattern: e2e-shard-*
           path: e2e-shards
-      - name: every *.e2e.mjs ran in exactly one shard; all 3 shards reported
+      - name: every *.e2e.mjs ran in exactly one shard; all 4 shards reported
         run: |
           mkdir -p e2e-shards
           node tools/e2e-shards.mjs --check e2e-shards

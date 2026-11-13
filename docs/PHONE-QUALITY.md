@@ -48,6 +48,11 @@ reloads a tab whose page was killed for memory; no `pagehide` runs then.
   "the page restarted; we switched to a lighter mode", and this load runs light: every LQCam camera is asked for at
   most 640 px wide (aspect kept, never raised). The marker is consumed, so the next normal load is clean.
   Pages can read `LQCrashGuard.lite` to choose a smaller model or a lower analysis rate (none does yet).
+- Known edge case (`window.open`): browsers copy a tab's sessionStorage into a tab it opens with `window.open` /
+  `target="_blank"` from the same origin. If a camera page opens another LENSIQ camera page in a new tab while its
+  camera runs, the new tab starts with `lq-heavy` = "1" and shows the restart note once (and runs light for that load),
+  although nothing crashed. Harmless (one note, lower camera resolution, nothing stored or sent); no camera page opens
+  another camera page today. The crash-guard e2e test reproduces a restart the same way: it copies the dying page's sessionStorage into a new tab.
 - Tests: `tests/unit/crashguard.test.js` (10 checks), `tests/e2e/crash-guard.e2e.mjs` (5 checks, TH / EN / ZH, the
   restart reproduced with the dying page's own sessionStorage).
 
@@ -89,13 +94,16 @@ for reloads, the crash-guard note, heat and battery on a real iPhone instead.
 
 ## 4. Results (2026-11-13)
 
-| Check | Mac (local, WebKit 26 / Chrome) | CI ubuntu-latest |
+**Gate of record: CI run 43473246688 (2026-11-13), all jobs green.** WebKit runs on `macos-latest` (shard 4/4).
+
+| Check | Mac (local, WebKit 26 / Chrome) | CI (run 43473246688) |
 |---|---|---|
-| WebKit flows part A (home + 4 fortune) | 5 / 5 pass | 5 / 5 pass |
-| WebKit flows part B (9 work flows) | 9 / 9 pass | run 43455270399: 6 / 9; run 43464365351: 7 / 9. Attendance passes since the LQCam fix; studio and photobooth fail (and exam-lab sometimes) because Linux WebKit plays no camera video at all and these flows need real frames |
-| Crash guard unit / e2e | 10 / 10, 5 / 5 | pass (run 43455270399) |
-| Camera with no frames (`camera-noframes.e2e.mjs`) | fails before the fix, passes after | pass (run 43455270399) |
-| Memory budgets | measured (table above) | all 9 within budget in run 43455270399 (second CI run: photobooth RSS 868 MB, product check 571 MB, faceread 525 MB) |
+| WebKit, all WebKit files (phone flows A + B, quote form) | 31 / 31 | macOS shard 4/4: 31 / 31, no retry (143.9 s of tests, job 3 min 48 s) |
+| WebKit flows part A (home + 4 fortune) | 5 / 5 | included above |
+| WebKit flows part B (9 work flows) | 9 / 9 | included above (on Linux WebKit, earlier runs 43455270399 / 43464365351 got 6 / 9 and 7 / 9: no camera video there, hence the macOS shard) |
+| Crash guard unit / e2e | 10 / 10, 5 / 5 | pass (Linux shard) |
+| Camera with no frames (`camera-noframes.e2e.mjs`) | fails before the fix, passes after | pass (Linux shard) |
+| Memory budgets | measured (table above) | all 9 within budget (Linux shard; earlier CI run: photobooth RSS 868 MB, product check 571 MB, faceread 525 MB) |
 
 **Product finding 1 (fixed):** a camera that opens but never delivers a frame made `LQCam.start()` wait for ever on
 `video.play()`. attendance.html then stayed on "opening the camera" and even the PIN / QR clock (which needs no camera)
