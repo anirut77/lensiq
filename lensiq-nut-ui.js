@@ -23,7 +23,7 @@
     set(v) { try { if (v) localStorage.setItem(KEY, "1"); else localStorage.removeItem(KEY); } catch { /* blocked storage: the setting lasts for this visit */ } } };
 
   const st = { gen: 0, script: (P && P.DEFAULT_SCRIPT) || "th", cam: null, still: false, crop: null, boxes: [], text: "", parsed: null, reveal: false,
-    hide: store.get(), amount: { kind: "servings", n: 1 }, busy: false, editing: null, ms: null };
+    tilt: 0, hide: store.get(), amount: { kind: "servings", n: 1 }, busy: false, editing: null, ms: null };
   W.__LQ_NUT = { st };
   $("#nutHideKcal").checked = st.hide;
 
@@ -44,7 +44,8 @@
     "satfat-above-fat": T("nut.why.sat", "มากกว่าไขมันทั้งหมด"), "sugar-above-carb": T("nut.why.sugar", "มากกว่าคาร์โบไฮเดรตทั้งหมด") });
   const HINT = () => ({ blur: T("nut.q.blur", "ภาพอาจไม่คมชัด ถือกล้องให้นิ่งแล้วถ่ายใหม่"), glare: T("nut.q.glare", "มีแสงสะท้อนบนฉลาก เอียงบรรจุภัณฑ์เล็กน้อยหรือย้ายจากแสงไฟ"),
     dark: T("nut.q.dark", "ภาพมืดเกินไป ถ่ายในที่สว่างขึ้น"), bright: T("nut.q.bright", "ภาพสว่างจ้าเกินไป บางส่วนของฉลากอาจหายไป"),
-    small: T("nut.q.small", "ตัวอักษรในภาพเล็กมาก เข้าใกล้ฉลากมากขึ้น"), notext: T("nut.q.notext", "ไม่พบตัวอักษรในภาพ ลองถ่ายด้านที่มีกรอบข้อมูลโภชนาการ") });
+    small: T("nut.q.small", "ตัวอักษรในภาพเล็กมาก เข้าใกล้ฉลากมากขึ้น"),
+    tilt: T("nut.q.tilt", "ภาพเอียง ระบบจึงให้ตรวจทุกค่า ถือฉลากให้ตรงแล้วถ่ายใหม่จะอ่านได้ดีขึ้น"), notext: T("nut.q.notext", "ไม่พบตัวอักษรในภาพ ลองถ่ายด้านที่มีกรอบข้อมูลโภชนาการ") });
   const isEnergy = f => f === "energy_kcal" || f === "energy_kj";
   const num = (v, unit) => { const x = N.round(v, unit); return typeof x === "number" ? x.toLocaleString("en-US", { maximumFractionDigits: 1 }) : String(x); };
   const valText = (cmp, v, unit) => `${cmp ? T("nut.lt", "น้อยกว่า") + " " : ""}${num(v, unit)} ${UNIT()[unit] || unit}`;
@@ -55,9 +56,9 @@
   $("#nutScript").addEventListener("change", e => { st.script = e.target.value; });
 
   /* ---------- text path ---------- */
-  function parseText(text, lines) {
+  function parseText(text, lines, tilt) {
     st.text = String(text || "");
-    st.parsed = N.parseLabel(lines || st.text.split(/\r?\n/));
+    st.parsed = N.parseLabel(lines || st.text.split(/\r?\n/), { tilt: lines ? tilt || 0 : 0 });
     st.reveal = false; st.editing = null;
     render();
     const n = st.parsed.items.length;
@@ -255,6 +256,17 @@
   }
   W.__LQ_NUT.setImage = c => setImage(c, c.width, c.height);
 
+  /**
+   * the on-device read of one picture (also used by tools/nut-eval.mjs): text boxes (PP-OCRv5 det) -> each box read in the
+   * chosen script -> rows paired along the picture's tilt (LQNut.linesFromParts) -> {lines, text, tilt, ms}
+   */
+  async function readCanvas(c, script) {
+    const t0 = performance.now(), d = await R.detect(c), parts = [];
+    for (const b of d.boxes.slice(0, 240)) { const r = await R.recognize(c, b, script); if (r.text.trim()) parts.push({ text: r.text.trim(), conf: r.conf, box: b }); }
+    const g = N.linesFromParts(parts);
+    return { lines: g.lines, tilt: g.tilt, text: g.lines.map(l => l.text).join("\n"), ms: performance.now() - t0 };
+  }
+  W.LQNutRun = { readCanvas, parse: (/** @type {any} */ o) => N.parseLabel(o.lines, { tilt: o.tilt }) };
   const mb = b => Math.round(b / 1048576);
   const firstLoad = () => (R && R.loaded().det ? "" : " " + T("nut.st.first", "(ครั้งแรกโหลดโมเดลประมาณ {mb} MB)", { mb: mb(P.downloadBytes(st.script)) }));
   async function busy(fn) {
@@ -297,13 +309,14 @@
     await busy(async () => {
       status(T("nut.st.reading", "กำลังอ่านฉลากในเครื่องนี้…") + firstLoad(), "");
       let o;
-      try { o = await R.ocr(cropCanvas(), { script: st.script }); } catch { status(T("nut.st.modelerr", "โหลดหรือรันโมเดลไม่ได้ พิมพ์ข้อความจากฉลากในช่องด้านล่างแทน"), "err"); return; }
+      try { o = await readCanvas(cropCanvas(), st.script); } catch { status(T("nut.st.modelerr", "โหลดหรือรันโมเดลไม่ได้ พิมพ์ข้อความจากฉลากในช่องด้านล่างแทน"), "err"); return; }
       if (gen !== st.gen) return;
-      st.ms = o.ms.total;
+      st.ms = o.ms; st.tilt = o.tilt;
       $("#nutText").value = o.text;
-      parseText(o.text, o.lines.map(l => ({ text: l.text, conf: l.conf })));
-      status(T("nut.st.done", "อ่านเสร็จใน {s} วินาทีบนเครื่องนี้ พบค่าบนฉลาก {n} ค่า ตรวจกับฉลากจริงทุกครั้ง", { s: (o.ms.total / 1000).toFixed(1), n: st.parsed.items.length }),
+      parseText(o.text, o.lines, o.tilt);
+      status(T("nut.st.done", "อ่านเสร็จใน {s} วินาทีบนเครื่องนี้ พบค่าบนฉลาก {n} ค่า ตรวจกับฉลากจริงทุกครั้ง", { s: (o.ms / 1000).toFixed(1), n: st.parsed.items.length }),
         st.parsed.items.length ? "ok" : "warn");
+      if (Math.abs(o.tilt) > N.TILT_LIMIT) renderHints({ hints: ["tilt"] });
     });
   }
 

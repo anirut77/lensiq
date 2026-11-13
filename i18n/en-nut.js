@@ -85,6 +85,7 @@
   "nut.q.dark": "The picture is too dark. Take it somewhere brighter.",
   "nut.q.bright": "The picture is too bright; parts of the label may be lost.",
   "nut.q.small": "The text in the picture is very small. Move closer to the label.",
+  "nut.q.tilt": "The picture is tilted, so every value is marked for checking. Hold the label straight and take it again for a better read.",
   "nut.q.notext": "No text found in the picture. Try the side with the nutrition panel.",
   "nut.lt": "less than",
   "nut.st.parsed": "{n} values found on the label. Always compare with the actual label.",
