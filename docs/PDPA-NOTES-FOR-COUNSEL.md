@@ -854,9 +854,12 @@ country and possibly the IP address in Cloudflare's own request fields), even th
 data and never the form fields. Do the privacy text in §8.2 and the processor list need to name these two flows, and is a
 shorter Cloudflare log retention or a lower sampling rate needed for the quote form?
 
-## Fortune "read it straight" option (Part C, owner order 2026-11-12) — APPROVED and switched on 2026-11-12
+## Fortune "read it straight" option (Part C, owner order 2026-11-12) — APPROVED; currently OFF
 
-Switched on with `window.LENSIQ_FORTUNE_STRAIGHT = true` (docs/FORTUNE-HONEST-READINGS.md; rule text in CLAUDE.md). The reader
+Approved and switched on 2026-11-12, then switched OFF again the same night after the fresh independent crisis review failed
+(`docs/INCIDENT-2026-11-12-STRAIGHT-OFF.md`); today `window.LENSIQ_FORTUNE_STRAIGHT = false`. The owner pre-approved switching it
+back on only after a new fresh-set review shows 0 crisis inputs reaching a straight reading or remedy without the help line in
+view (2026-11-13). When on (docs/FORTUNE-HONEST-READINGS.md; rule text in CLAUDE.md), the reader
 ticks "I am 18 or older" (self-declared; no ID check) and may choose plainer wording. The choice `{ adult, straight }` is stored
 only in the browser (`localStorage["lq-fortune-straight"]`), is never sent to a server and holds no personal data. Questions for
 counsel: is a self-declared age checkbox enough for adult-only wording in an entertainment service, and does the existing fortune
