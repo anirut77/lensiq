@@ -291,8 +291,8 @@
     // crisis fix 4: under a reading on a calm page (crisis state, calm session, soft step answered or distress typed) the line is
     // sticky, so it stays in the viewport next to the reading
     const calmHere = !!cls && /lq-helpline-result/.test(cls) && (calmOn(d) || distress(d));
-    if (calmHere) { markCalm(d); return helpBar(d, i18n ? I.lang : lang, cls + " lq-helpline-calm"); } // crisis flow v2: the pinned bar
-    const box = el("aside", "lq-helpline" + (cls ? " " + cls : "") + (calmHere ? " lq-helpline-calm" : ""));
+    if (calmHere) { markCalm(d); pinBar(d, i18n ? I.lang : lang, null); } // crisis flow v2: the page's ONE pinned bar (fixed, in view)
+    const box = el("aside", "lq-helpline" + (cls ? " " + cls : ""));
     box.setAttribute("role", "note"); box.setAttribute("aria-label", L.label); box.setAttribute("data-i18n-attr", "aria-label:help.line.label");
     for (const [k, v] of HELP_PARTS) {
       if (k === "tel") { const a = el("a", "lq-helpline-tel", v); a.setAttribute("href", "tel:" + v); box.appendChild(a); }
@@ -352,11 +352,10 @@
       const up = container.parentElement;
       let sec = up && up.closest ? up.closest('[id$="Result"]') : null;
       for (let e = up; !sec && e && e !== d.body; e = e.parentElement) if (e.tagName === "SECTION" && !(e.parentElement && e.parentElement.closest("section"))) sec = e;
-      if (!sec) return null;
-      let dock = sec.querySelector(":scope > .lq-helpline-dock");
-      if (!dock) { dock = helpBar(d, lang, "lq-helpline-result lq-helpline-dock"); sec.appendChild(dock); } // crisis flow v2: 1323 + more lines
-      Array.from(container.querySelectorAll(".lq-helpline-calm")).forEach(e => e.classList.remove("lq-helpline-calm")); // one sticky line
-      return dock;
+      // crisis flow v2 (coordinator review 2026-11-13): ONE pinned bar per page, fixed at the bottom of the viewport; it is
+      // moved into the section of the latest reading (or the reading's container), so it stays next to the reading
+      Array.from(container.querySelectorAll(".lq-helpline-calm")).forEach(e => e.classList.remove("lq-helpline-calm"));
+      return pinBar(d, lang, sec || container);
     } catch (e) { return null; }
   }
   /** the reader answered the soft step with "Just the reading" (or saw the card): calm for the rest of the session @param {any} [doc] */
@@ -568,12 +567,17 @@
     const st = d.createElement("style"); st.id = "lq-helpbar-style"; st.textContent = BAR_CSS; d.head.appendChild(st);
   }
   /** a calm page without a reading (fortune hub, planner, lucky-colour mirror): one help bar fixed at the bottom @param {any} [doc] */
-  function pageBar(doc) {
+  function pageBar(doc) { return pinBar(doc, undefined, null); }
+  /** the page's ONE pinned help bar (fixed at the bottom): created once, then moved into `host` (default: the body)
+   *  @param {any} doc @param {string|undefined} lang @param {any} host */
+  function pinBar(doc, lang, host) {
     try {
       const d = doc || root.document;
-      if (!d || !d.body || d.querySelector(".lq-helpbar-page")) return null;
-      const bar = helpBar(d, undefined, "lq-helpbar-page");
-      d.body.appendChild(bar); d.body.classList.add("lq-has-helpbar");
+      if (!d || !d.body) return null;
+      let bar = d.querySelector(".lq-helpbar-pin");
+      if (!bar) { bar = helpBar(d, lang, "lq-helpbar-page lq-helpbar-pin"); d.body.classList.add("lq-has-helpbar"); }
+      const to = host || d.body;
+      if (bar.parentNode !== to) to.appendChild(bar);
       return bar;
     } catch (e) { return null; }
   }
