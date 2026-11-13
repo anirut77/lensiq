@@ -16,6 +16,10 @@ https://anirut77.github.io/lensiq/. Owner-facing replies are in Thai.
   (at most one, with other CPU-heavy agents paused).
 - Ask the owner before changing approved scope or order. Don't start and report later.
 - Every round: fixed test set before building, real numbers per condition, an independent reviewer agent that re-measures.
+- Locked sets persist (owner rule 2026-11-13, after a locked set was lost twice): every fixed test / eval set is written
+  to `~/LENSIQ-field/evals/<phase>/` and its sha256 is committed in the repo (`evals-locks/<phase>.sha256`) BEFORE any
+  measurement. Every measuring harness calls `tools/eval-guard.mjs`, which refuses to measure unless each input file
+  exists there and matches a committed hash. A set that lives only in an agent's session or a temp folder does not count.
 - On-device processing by default. A human confirms any decision affecting money, access or a person. No emotion or
   deception scoring.
 - Check the licence of every model, dataset and media file for commercial use. Record credits.
@@ -150,14 +154,16 @@ A page may appear in two categories. Pages not listed under a category are platf
      see Remedies and merit).
   Also: no lottery numbers; no medical advice and no cosmetic or medical procedure advice (reversible styling
   suggestions below are allowed); no emotion or deception inference.
-- Look suggestions (owner request 2026-11-13; rule text applied on the agent's recommendation under the parallel
-  operating mode, owner may reverse): reversible styling suggestions are allowed with a fortune reading: brows (shape,
-  thickness, arch), hairstyle, hair colour, facial hair, make-up (lip colour, eye make-up, eyeliner, emphasis or
-  softening with make-up) and accessories (earrings, glasses, necklaces). Each names the reading it relates to and is
-  labelled "according to belief, please use your own judgement". Still banned in every mode: surgery, injections,
-  thread lifts, laser, tattooing or semi-permanent pigment, skin-whitening, and any medical or cosmetic procedure;
-  wording that a feature is bad, must be fixed, or that luck suffers otherwise; beauty scores. Adults only; hidden when
-  the crisis net triggers or the tab is calm; no photos stored by default; never tied to a purchase.
+- Look suggestions (owner request and wording 2026-11-13): the tool suggests reversible styling with a fortune reading
+  and previews it: brows (shape, thickness, arch), hairstyle, hair colour, facial hair, make-up (lip colour, eye
+  make-up, eyeliner, emphasis or softening with make-up) and accessories (earrings, glasses, necklaces). Each names the
+  reading it relates to and is labelled "according to belief, please use your own judgement". The tool itself never
+  recommends a procedure (tattooing, microblading or other semi-permanent pigment, injections, thread lifts, laser,
+  surgery) or skin-whitening, never says a feature is bad or must be fixed or that luck suffers otherwise, and gives no
+  beauty scores. Salon mode serves salons, including those that do semi-permanent brows, as a consultation aid on SHAPE
+  (brow shapes, lip and liner styles from the salon's own catalogue); the method is left to the salon and the tool's
+  wording never names or recommends it. Adults only; hidden when the crisis net triggers or the tab is calm; no photos
+  stored by default; never tied to a purchase.
 - Remedies and merit (owner decision 2026-11-10, replaces "no paid remedies"):
   - Never sell a remedy, a change of fortune or any outcome. No wording like "pay and your luck improves" or
     "guaranteed to fix ชง".
