@@ -86,7 +86,11 @@ async function main(argv) {
       const evs = await page.evaluate(async (o) => {
         const X = window.LQExam, D = X.HALL_DET, LD = window.LQDetect, c = D[o.detector];
         let model;
-        if (o.detector === "yolox") { await new Promise((res, rej) => { const s = document.createElement("script"); s.src = "vendor/ort/ort.wasm.min.js"; s.onload = res; s.onerror = rej; document.head.append(s); }); model = await LD.loadYolox(); }
+        if (o.detector === "yolox") {
+          await new Promise((res, rej) => { const s = document.createElement("script"); s.src = "vendor/ort/ort.wasm.min.js"; s.onload = res; s.onerror = rej;
+            document.head.append(s); });
+          model = await LD.loadYolox();
+        }
         else { await LD.tfBackend(); model = await LD.loadCoco("vendor/models/cocossd/model.json"); }
         const mon = X.createHallMonitor(o.seats, { minLeaveMin: o.minLeave }), out = [], tiles = o.tiles ? { cols: 2, rows: 2, overlap: 0.2 } : null;
         for (let i = 0; i < o.frames.length; i++) {

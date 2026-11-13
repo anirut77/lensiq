@@ -534,7 +534,11 @@ removed; a closed item keeps its row with the answer and date. Not legal advice.
   mandatory human "checked"; export blurs irreversibly, drops EXIF), locked split `plate-split-v1` (plate-group union,
   70/15/15), boxes-only training files, local YOLOX-nano training (Apache-2.0, pinned 0.3.0, not vendored; CPU / MPS),
   locked comparison `plate-compare-v1` vs the shipped detector on the field test split. No model trained (no photos).
-  Colab for owner photos waits for owner + counsel (data upload). Measured: nothing (smoke runs only).
+  Owner 2026-11-13: Mac-only training, overnight, refused automatically when the machine is busy; no Colab for owner photos;
+  basis B (vehicle owners who agree) for a ~170-photo first batch at the owner's factory (dev only), basis A (site-owner
+  permission + PDPA sign + no people) for the main set after counsel (PDPA notes H(c)). Per-type results under 20 test photos
+  are UNMEASURED. Measured: nothing (smoke runs only).
+- Exam hall mock session: variant B with 8 adult volunteers; no date until counsel clears the consent form.
 - Exam hall: `tools/hall-seatwatch-score.mjs` (locked rule `seatwatch-score-v1`), `tools/hall-seatwatch-replay.mjs`
   (consented recordings only), Thai steps `docs/pilot/SEATWATCH-SCORING-TH.md`; on-page camera placement check
   (`LQExam.hallPlacement`, TH / EN / ZH; minimum person height per detector from the public-dataset numbers: COCO-SSD 288 px,

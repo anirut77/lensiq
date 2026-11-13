@@ -67,7 +67,10 @@
     c.getContext("2d").drawImage(img, 0, 0);
     msg("กำลังหาใบหน้า... / finding faces...");
     try {
-      const st = await W.LQPCRun.faceRuns(c, null, { maxSide: Math.max(c.width, c.height), tiles: true, grid: W.LQPC.FACE_BLUR.grid, overlap: W.LQPC.FACE_BLUR.overlap });
+      // exactly the measured Product Check setting (FACE_BLUR, round 2: 3 x 3 tiles, 20 % overlap, threshold 0.5, pad 0.15,
+      // the whole frame + tiles + the image at upload size 1,024 px; docs/product-check/FACE-BLUR-RESULTS.md §5)
+      const F = W.LQPC.FACE_BLUR;
+      const st = await W.LQPCRun.faceRuns(c, null, { tiles: F.tiles, grid: F.grid, overlap: F.overlap, upscale: F.upscale, close: F.close });
       const plan = W.LQPC.faceBlurPlan(st, c.width, c.height, { scale: st.scale });
       if (plan.textOnly) { msg("ตัวหาใบหน้าทำงานไม่ได้ ให้วาดกรอบเบลอเอง / face finder failed: draw the blur boxes by hand", "err"); }
       else {

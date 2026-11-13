@@ -457,6 +457,9 @@ async function main() {
         if (out.failed.length > 20) console.log(`  … ${out.failed.length - 20} more (use --json for the full list)`);
       }
       console.log(formatReport(out.summary, { synthetic: out.synthetic, source: out.source }));
+      // owner rule 2026-11-13: a plate type with fewer than 20 photos here is UNMEASURED (no claim for that type)
+      const few = Object.entries(out.summary).filter(([k, s]) => k !== "all plates" && k !== "none" && s.photos < 20).map(([k, s]) => `${k} (n = ${s.photos})`);
+      if (few.length) console.log(`UNMEASURED types (fewer than 20 photos, no claim): ${few.join(", ")}`);
     }
     return 0;
   } catch (e) { console.error("plate-field-eval:", e && e.message || e); return 2; }

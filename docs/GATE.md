@@ -358,7 +358,7 @@ WASM, one thread; not a phone). Extra reads happen only when the top box's read 
   (`docs/PLATE-DATASETS.md`); the guard only makes misses safe (no false auto-read) and uses the next candidates.
 
 ### Training on the owner's photos (stream H, 2026-11-13)
-`docs/PLATE-TRAINING.md`: what to photograph (~600 plate + 100 plate-less photos, conditions, consent / notice, folder
+`docs/PLATE-TRAINING.md`: what to photograph (main set ~635 plate + 100 plate-less photos; ~170-photo first factory batch, dev only), conditions, basis A / B for the photos, folder
 layout), local labeller with face-blur proposals and a mandatory "checked" tick, the locked split `plate-split-v1`, local
 YOLOX-nano training (`tools/plate_train.py`), and the locked comparison `plate-compare-v1`
 (`tools/plate-det-compare.mjs`, `plate-field-eval.mjs --det-model`). No model trained yet (no owner photos yet).

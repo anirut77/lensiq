@@ -10,7 +10,7 @@
 //
 // Also worth running (report only, no decision): the 51-photo public Wikimedia set, held-out half:
 //   node tools/plate-field-eval.mjs --dir ~/LENSIQ-field/plates-public/photos --labels …/plates-photo-labels.v3.csv --split heldout --det-model …
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -18,6 +18,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const RULE = Object.freeze({ version: "plate-compare-v1", minPlatePhotos: 60, minNonePhotos: 15, maxExtraMs: 600 });
 export const SOURCE = "field (owner photos, locked test split)";
+/** owner rule 2026-11-13: a plate type with fewer test photos than this is UNMEASURED (no claim for that type) */
+export const TYPE_MIN = 20;
 
 const median = a => { const s = a.filter(Number.isFinite).sort((x, y) => x - y); if (!s.length) return null; const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 /** a plate-field-eval run -> the numbers the rule reads (shipped path = "after") */
@@ -28,8 +30,24 @@ export function fromRun(run) {
     falseNone: N.after.false, falsePlate: A.after.false, wrong: A.after.wrong, taps: A.tapsNeeded ? A.tapsNeeded.x : 0,
     msMedian: median((run.results || []).map(r => r.ms)) };
 }
-/** adopt = true only if every rule holds; null when the split is too small to decide */
-export function decide(base, cand) {
+/** per plate type (shipped vs shipped + model): det / exact / taps, and UNMEASURED below TYPE_MIN test photos */
+export function perType(baseRun, candRun) {
+  const skip = new Set(["all plates", "none"]);
+  return Object.keys(baseRun.summary).filter(k => !skip.has(k)).map(cat => {
+    const b = baseRun.summary[cat], c = (candRun.summary || {})[cat] || b, n = b.photos;
+    const pick = s => ({ det: s.det ? s.det.x : 0, exact: s.after && s.after.exact ? s.after.exact.x : 0, taps: s.tapsNeeded ? s.tapsNeeded.x : 0 });
+    const measured = n >= TYPE_MIN;
+    return { cat, n, measured, base: pick(b), cand: pick(c), note: measured ? "" : `UNMEASURED (n = ${n} < ${TYPE_MIN}): no claim for this type` };
+  });
+}
+export function formatTypes(rows) {
+  return ["| Type | Test photos | Plate is the top box (shipped → +model) | Exact auto reads | Taps needed |", "|---|---|---|---|---|",
+    ...rows.map(r => (r.measured
+      ? `| ${r.cat} | ${r.n} | ${r.base.det} → ${r.cand.det} | ${r.base.exact} → ${r.cand.exact} | ${r.base.taps} → ${r.cand.taps} |`
+      : `| ${r.cat} | ${r.n} | ${r.note} | — | — |`))].join("\n");
+}
+/** adopt = true only if every rule holds; null when the split is too small to decide or the set is a dev batch */
+export function decide(base, cand, o = {}) {
   const rules = [
     ["detection (plate is the top box) strictly better", cand.det > base.det],
     ["exact automatic reads not lower", cand.exact >= base.exact],
@@ -39,6 +57,7 @@ export function decide(base, cand) {
     ["taps needed not higher", cand.taps <= base.taps],
     [`median time per photo at most +${RULE.maxExtraMs} ms`, cand.msMedian != null && base.msMedian != null && cand.msMedian <= base.msMedian + RULE.maxExtraMs]
   ].map(([rule, pass]) => ({ rule, pass }));
+  if (o.devBatch) return { adopt: null, rules, note: "dev batch (first factory batch): pipeline check and dev numbers only, no adoption decision" };
   if (base.platePhotos < RULE.minPlatePhotos || base.nonePhotos < RULE.minNonePhotos)
     return { adopt: null, rules, note: `not enough photos in the locked test split `
       + `(${base.platePhotos} with a plate, ${base.nonePhotos} without; need ${RULE.minPlatePhotos} / ${RULE.minNonePhotos}): `
@@ -66,9 +85,12 @@ async function main(argv) {
   try {
     const base = await E.run(E.parseArgs(args));
     const cand = await E.run(E.parseArgs([...args, "--det-model", model]));
-    const b = fromRun(base), c = fromRun(cand), d = decide(b, c);
+    let devBatch = false;
+    try { devBatch = !!JSON.parse(readFileSync(join(root, "dataset", "MANIFEST.json"), "utf8")).devBatch; } catch { /* no manifest: not a dev batch */ }
+    const b = fromRun(base), c = fromRun(cand), d = decide(b, c, { devBatch }), types = perType(base, cand);
     console.log(format(b, c, d));
-    if (out) writeFileSync(out, JSON.stringify({ rule: RULE.version, source: SOURCE, base: b, cand: c, decision: d, runs: { base, cand } }, null, 1));
+    console.log("\nPer plate type (types under " + TYPE_MIN + " test photos are UNMEASURED: no claim):\n" + formatTypes(types));
+    if (out) writeFileSync(out, JSON.stringify({ rule: RULE.version, source: SOURCE, base: b, cand: c, decision: d, types, devBatch, runs: { base, cand } }, null, 1));
     return 0;
   } catch (e) { console.error("plate-det-compare:", e && e.message || e); return 2; }
 }

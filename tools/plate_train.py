@@ -154,8 +154,13 @@ def train(root, epochs, inp, name, device, batch=16):
     env = yolox_env(p)
     # YOLOX 0.3.0 tools/train.py: -d 0 = CPU is not supported upstream; one device ("-d 1") uses CUDA when present. On a Mac
     # without CUDA the patched launcher below keeps the run on CPU (or MPS with --device mps).
-    run([py(p), os.path.join(REPO, "tools", "plate_train_launch.py"), "--yolox", p["yolox"], "-f", exp, "-c", p["weights"],
-         "-b", str(batch), "--device", device, "--out", run_dir], env=env)
+    try:
+        run([py(p), os.path.join(REPO, "tools", "plate_train_launch.py"), "--yolox", p["yolox"], "-f", exp, "-c", p["weights"],
+             "-b", str(batch), "--device", device, "--out", run_dir], env=env)
+    except subprocess.CalledProcessError as e:
+        if e.returncode == 3:  # the launcher refused: machine busy (message printed above)
+            raise SystemExit(3)
+        raise
     json.dump({"epochs": epochs, "input": inp, "device": device, "batch": batch}, open(os.path.join(run_dir, "train.json"), "w"))
 
 

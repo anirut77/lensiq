@@ -14,36 +14,69 @@
 
 ### 2. สิ่งที่เจ้าของต้องเตรียม
 
-**จำนวนภาพ (ขั้นต่ำเพื่อให้ตัดสินผลได้):** ภาพที่มีป้าย **600 ภาพ** + ภาพที่ไม่มีป้าย **100 ภาพ** (รวมราว 700)
-- เหตุผล: กฎแบ่งชุดเก็บ 15 % ไว้ทดสอบ → ราว 90 ภาพมีป้าย / 15 ภาพไม่มีป้ายในชุดทดสอบ กฎเปรียบเทียบ (ข้อ 7) ต้องมีอย่างน้อย
-  **60 ภาพมีป้าย และ 15 ภาพไม่มีป้าย** ในชุดทดสอบ ถ้าน้อยกว่านี้ เครื่องมือจะตอบว่า "ภาพไม่พอ ยังตัดสินไม่ได้" [คำนวณ]
-- ถ้าได้ 300 ภาพ ฝึกได้ แต่ชุดทดสอบจะมีราว 45 ภาพ ตัดสินไม่ได้ ต้องเก็บเพิ่ม
+**จำนวนภาพ (ชุดหลัก, ปรับตามคำตอบเจ้าของ 13 พ.ย. 2569):** ภาพที่มีป้ายราว **635 ภาพ** + ภาพไม่มีป้าย **100 ภาพ** (รวมราว 735)
+- กฎแบ่งชุดเก็บ 15 % ไว้ทดสอบ → ราว 95 ภาพมีป้าย / 15 ภาพไม่มีป้ายในชุดทดสอบ กฎเปรียบเทียบ (ข้อ 7) ต้องมีอย่างน้อย
+  **60 ภาพมีป้าย และ 15 ภาพไม่มีป้าย** ในชุดทดสอบ ถ้าน้อยกว่านี้ เครื่องมือตอบว่า "ภาพไม่พอ ยังตัดสินไม่ได้" [คำนวณ]
+- **รายประเภท:** ประเภทที่มีภาพในชุดทดสอบ**น้อยกว่า 20 ภาพ = "ยังไม่ได้วัด" (UNMEASURED)** ไม่มีการอ้างผลสำหรับประเภทนั้น
+  (เครื่องมือเขียนกำกับให้เองในตารางรายประเภท) การจะได้ 20 ภาพในชุดทดสอบ ต้องถ่ายประเภทนั้นราว 135 ภาพ [คำนวณ: 20 ÷ 0.15]
 
-**แยกตามสภาพ (เป้าขั้นต่ำต่อประเภท):**
-
-| ประเภท (`category`) | ภาพ | หมายเหตุ |
-|---|---|---|
-| `white` ป้ายขาวตัวดำ | 150 | รถเก๋ง กระบะ |
-| `yellow` ป้ายเหลือง (แท็กซี่ สาธารณะ) | 60 | |
-| `green` ป้ายเขียว / ตัวเขียว | 40 | |
-| `red` ตัวแดง / ป้ายแดง | 40 | |
-| `blue` ตัวน้ำเงิน | 30 | |
-| `moto` ป้ายมอเตอร์ไซค์ 3 บรรทัด | 120 | |
-| `night` กลางคืน (ทุกสี) | 100 | ใต้ไฟถนน ไฟหน้ารถ ไฟอินฟราเรดของกล้อง |
-| `graphic` ป้ายประมูลลายกราฟิก | 30 | |
-| `other` ตัวเลขล้วน / ชั่วคราว / ต่างประเทศ | 30 | |
-| `none` ไม่มีป้าย | 100 | ป้ายจราจร ป้ายร้าน ป้ายบ้านเลขที่ หลักกิโล |
+| ประเภท (`category`) | ภาพที่ขอ | คาดว่าอยู่ในชุดทดสอบ (15 %) | วัดผลรายประเภทได้หรือไม่ | หมายเหตุ |
+|---|---|---|---|---|
+| `white` ป้ายขาวตัวดำ | 180 | ~27 | วัดได้ | รถเก๋ง กระบะ |
+| `moto` ป้ายมอเตอร์ไซค์ 3 บรรทัด | 140 | ~21 | วัดได้ (เฉียดเกณฑ์) | |
+| `night` กลางคืน (ทุกสี) | 140 | ~21 | วัดได้ (เฉียดเกณฑ์) | ใต้ไฟถนน ไฟหน้ารถ ไฟอินฟราเรดของกล้อง |
+| `yellow` ป้ายเหลือง (แท็กซี่ สาธารณะ) | 60 | ~9 | **ยังไม่ได้วัด** | ช่วยฝึก แต่ไม่อ้างผลรายประเภท |
+| `green` ป้ายเขียว / ตัวเขียว | 40 | ~6 | **ยังไม่ได้วัด** | |
+| `other` ตัวเลขล้วน / ชั่วคราว / ต่างประเทศ | 30 | ~4 | **ยังไม่ได้วัด** | |
+| `graphic` ป้ายประมูลลายกราฟิก | 20 | ~3 | **ยังไม่ได้วัด** | หายาก เก็บเท่าที่เจอ |
+| `red` ตัวแดง / ป้ายแดง | 15 | ~2 | **ยังไม่ได้วัด** | หายาก เก็บเท่าที่เจอ |
+| `blue` ตัวน้ำเงิน | 10 | ~1–2 | **ยังไม่ได้วัด** | หายากมาก เก็บเท่าที่เจอ |
+| `none` ไม่มีป้าย | 100 | ~15 | (ใช้วัดอ่านผิดที่) | ป้ายจราจร ป้ายร้าน ป้ายบ้านเลขที่ หลักกิโล |
 
 **มุมและระยะ:** ถ่ายจากจุดที่กล้องไม้กั้นจะติดจริง สูง 1–1.5 ม. ระยะ 2–6 ม. มุมไม่เกิน 30° (ตามคู่มือฮาร์ดแวร์ `docs/GATE.md` §4)
 อย่างน้อย **3 สถานที่** (หรือกล้อง) ต่างกัน และบางส่วนถ่ายจากกล้องหน้างานจริง (ภาพนิ่งจากกล้อง IP / มือถือที่ยึดไว้)
 iPhone: ตั้ง การตั้งค่า > กล้อง > รูปแบบ > "เข้ากันได้มากที่สุด" (JPEG) ก่อนถ่าย
 
-**ความยินยอม / ประกาศ (ทำก่อนถ่าย):**
-- ถ่ายในที่ที่เจ้าของสถานที่อนุญาตเป็นลายลักษณ์อักษร (ลานจอดของตัวเอง หมู่บ้าน / คอนโดที่เป็นลูกค้านำร่อง) และ**ติดป้ายแจ้งกล้อง PDPA**
-  (`gate-notice.html`) ระหว่างเก็บภาพ ภาพรถพนักงาน / คนรู้จัก: ขอความยินยอม
-- หลีกเลี่ยงคนในภาพ ถ้ามีใบหน้า คนขับ หรือคนเดินผ่าน **ต้องเบลอทุกคนก่อนฝึก** (ข้อ 4) ไม่ใช้ภาพจากอินเทอร์เน็ต / โซเชียล
-- กรอก `CONSENT.md` ในโฟลเดอร์ฝึก (สถานที่ วันที่ ใครถ่าย ประกาศ / ความยินยอม วันลบภาพต้นฉบับ ใครเข้าถึงได้)
+### 2.1 ฐานในการถ่ายภาพ (ความยินยอมของใคร)
+
+"บันทึกความยินยอม" (`CONSENT.md`) **ไม่ได้หมายถึงความยินยอมของคนขับทุกคน** การขอความยินยอมจากเจ้าของรถ 600 คันทำไม่ได้จริง จึงมีสองแบบ
+ให้เลือกต่อชุดภาพ (ติ๊กแบบเดียวใน `CONSENT.md`):
+
+| แบบ | คืออะไร | ข้อดี | ข้อจำกัด |
+|---|---|---|---|
+| **ก. (A) อนุญาตจากเจ้าของสถานที่ + ป้าย PDPA + ไม่ถ่ายคน** | เจ้าของ / นิติบุคคลของสถานที่ (ลานจอด หมู่บ้าน คอนโด โรงงาน) อนุญาตเป็นหนังสือ, ติดป้ายแจ้งกล้อง PDPA (`gate-notice.html`) ที่ทางเข้าตลอดช่วงถ่าย, ไม่ถ่ายคน (ถ้าติดมาต้องเบลอ) | ทำได้ในปริมาณ 600+ คัน ใช้ฐาน "ประโยชน์อันชอบธรรม" (มาตรา 24(5)) เหมือนกล้องไม้กั้นทั่วไป | ทนายต้องยืนยันก่อนว่าการใช้ภาพป้ายฝึกโมเดลที่ขายได้ใช้ฐานนี้ได้ และต้องทำการประเมินประโยชน์อันชอบธรรม (LIA) |
+| **ข. (B) เฉพาะรถของเจ้าของรถที่ตกลง** | ถ่ายเฉพาะรถที่เจ้าของรถ (หรือผู้ขับประจำ) ตกลงก่อนถ่าย เช่น รถพนักงานในโรงงานของเจ้าของ ใบตกลงเก็บเป็นกระดาษในสำนักงาน ในโฟลเดอร์จดแค่จำนวน | ฐานชัดที่สุด (ความยินยอม) ไม่ต้องรอทนายสำหรับชุดเล็ก | ได้ภาพน้อย (หลักสิบคัน) ป้ายสีพิเศษแทบไม่มี ต้องให้ถอนความยินยอมได้ (ลบภาพของรถคันนั้น) พนักงานต้องตกลงได้โดยอิสระ |
+
+**ข้อเสนอ:** ชุดแรกที่โรงงาน (ข้อ 2.2) ใช้ **แบบ ข.** ทันที ชุดหลัก 600+ ภาพใช้ **แบบ ก.** หลังทนายตอบ (คำถามใน
+`docs/PDPA-NOTES-FOR-COUNSEL.md` หัวข้อ H(c)) ถ้าทนายไม่รับแบบ ก. ชุดหลักต้องใช้แบบ ข. ที่หลายสถานที่ ซึ่งใช้เวลานานกว่ามาก
+
+- ทั้งสองแบบ: หลีกเลี่ยงคนในภาพ ถ้ามีใบหน้า คนขับ หรือคนเดินผ่าน **ต้องเบลอทุกคนก่อนฝึก** (ข้อ 4) ไม่ใช้ภาพจากอินเทอร์เน็ต / โซเชียล
+- กรอก `CONSENT.md` (แม่แบบสร้างให้โดย `init`): แบบที่ใช้ หนังสืออนุญาตของเจ้าของสถานที่ (แบบ ก.) ป้าย PDPA ติดที่ไหน ตั้งแต่-ถึง
+  จำนวนเจ้าของรถที่ตกลง (แบบ ข. จำนวนเท่านั้น ไม่มีชื่อ) วันที่ ผู้ถ่าย (ตำแหน่ง ไม่ใช่ชื่อ) วันลบภาพต้นฉบับ ใครเข้าถึงได้
   เครื่องมือจะไม่ยอมแบ่งชุดถ้าไม่มีไฟล์นี้
+
+### 2.2 ชุดแรก (ทดลอง) ที่โรงงานของเจ้าของ
+
+ใช้**แบบ ข.**: รถของพนักงาน / คนที่ตกลงเท่านั้น เก็บในโฟลเดอร์แยก `~/LENSIQ-field/plates-train-batch1/`
+
+| | จำนวน | หมายเหตุ |
+|---|---|---|
+| รถยนต์ (ป้ายขาว ส่วนใหญ่) | ~30 คัน × 3 ภาพ = ~90 ภาพ | ระยะ 2 ม. / 4 ม. / 6 ม. หรือมุมตรง / เฉียง 20–30° จากจุดที่จะติดกล้อง |
+| มอเตอร์ไซค์ | ~15 คัน × 2 ภาพ = ~30 ภาพ | |
+| กลางคืน | ~20 ภาพ (จากรถชุดเดียวกัน) | ใต้ไฟโรงงาน / ไฟหน้ารถคันอื่น |
+| ไม่มีป้าย | ~30 ภาพ | ป้ายในโรงงาน ป้ายห้อง ป้ายหลักเลข |
+| **รวม** | **~170 ภาพ** | ป้ายสีอื่น (เหลือง เขียว แดง น้ำเงิน) ถ้าไม่มีก็ไม่ต้องหา |
+
+**เข้ากับการแบ่งชุดอย่างไร:** แบ่งด้วยกฎเดียวกัน (รถหนึ่งคัน = หนึ่งกลุ่ม) แต่ใช้ `split --dev-batch` ซึ่งล็อกในชื่อ
+`plate-split-v1-devbatch` จึง**ไม่ใช้สิทธิ์ล็อกชุดทดสอบหลัก** ~45 คัน → ชุดทดสอบราว 7 คัน ≈ 20 ภาพมีป้าย [คำนวณ] ต่ำกว่าเกณฑ์ 60
+`plate-det-compare` จะตอบว่า "dev batch: ไม่มีการตัดสินรับโมเดล" เสมอ เมื่อทำชุดหลัก ให้ใส่ภาพชุดแรกรวมได้ แต่ใช้
+`split --train-only ~/LENSIQ-field/plates-train-batch1/dataset/MANIFEST.json` เพื่อ**ไม่ให้ภาพชุดแรกอยู่ในชุดทดสอบของชุดหลัก**
+(เพราะเคยดูผลแล้ว)
+
+**ชุดแรกพิสูจน์ได้:** เส้นทางทั้งหมดใช้ได้กับภาพจริง (ติดป้ายกำกับ เบลอ แบ่งชุด ส่งออก ฝึกข้ามคืน ส่งออก ONNX โหลดในเบราว์เซอร์)
+เวลาที่ใช้ติดป้ายต่อภาพ ปัญหาภาพ (HEIC เบลอ แสง) และตัวเลขชุดซ้อม (dev) ที่ติดป้าย "dev, factory batch, not a claim"
+**ชุดแรกพิสูจน์ไม่ได้:** ความแม่นยำใด ๆ การตัดสินรับโมเดล ผลรายประเภท (ทุกประเภทต่ำกว่า 20 ภาพทดสอบ = ยังไม่ได้วัด)
+ผลที่สถานที่อื่น / กล้องอื่น ห้ามใช้ตัวเลขชุดแรกในเอกสารขายหรือหน้าเว็บ
 - ระยะเก็บ (ข้อเสนอ): ภาพต้นฉบับใน `photos/` ลบภายใน 30 วันหลังส่งออกชุดฝึก ภาพที่เบลอแล้วเก็บจนทำการ์ดโมเดลเสร็จ แล้วลบ
 - คำถามถึงทนาย: `docs/LEGAL-PACKET.md` / `docs/PDPA-NOTES-FOR-COUNSEL.md` (ใช้ภาพป้ายทะเบียนฝึกโมเดลเพื่อขาย ฐานกฎหมาย ระยะเก็บ)
 
@@ -81,8 +114,11 @@ node tools/plate-det-compare.mjs --model ~/LENSIQ-field/plates-train/runs/run1/p
 - เปิดเฉพาะบน 127.0.0.1 (เครื่องนี้) อ่านภาพจาก `photos/` เขียนได้แค่ `labels/` และ `blurred/` ไม่ส่งอะไรออกนอกเครื่อง
 - **กรอบป้าย:** ลากรอบตัวป้าย (ไม่รวมกรอบป้ายร้านรถ) กรอกเลขทะเบียนบรรทัดแรก (มอเตอร์ไซค์: บรรทัด 1 + 3) ประเภท จังหวัด (ไม่บังคับ)
   ติ๊ก "ไม่แน่ใจตัวอักษร" ถ้าอ่านไม่ชัด ป้ายเล็กมากที่อ่านไม่ได้ ใช้ "ไม่นับ" ภาพไม่มีป้าย ติ๊ก "ภาพนี้ไม่มีป้าย"
-- **กรอบเบลอ:** ระบบเสนอกรอบใบหน้าอัตโนมัติด้วย BlazeFace (Apache-2.0 ตัวเดียวกับ Product Check) แต่ตัวนี้**พลาดใบหน้าจริงประมาณ 4 ใน 10**
-  (41.4 % ของใบหน้าในชุด held-out ไม่ถูกเบลอ ที่มา: ชุดข้อมูลสาธารณะ Open Images, `docs/product-check/FACE-BLUR-RESULTS.md`)
+- **กรอบเบลอ:** ระบบเสนอกรอบใบหน้าอัตโนมัติด้วย BlazeFace (Apache-2.0 ตัวเดียวกับ Product Check) **ค่าตั้งเดียวกับที่วัดแล้วทุกค่า**
+  (`LQPC.FACE_BLUR` รอบ 2: ตัดภาพ 3 × 3 ซ้อน 20 % เกณฑ์ 0.5 ขยายกรอบ 15 % ทั้งภาพ + ช่องตัด + ภาพขนาดอัปโหลด 1,024 px) แต่ตัวนี้**พลาดใบหน้าจริง**:
+  **27.6 % ของใบหน้าไม่ถูกเบลอ (42 / 152, ชุด held-out รอบ 2)** และใบหน้าเล็กพลาดมากกว่ามาก: กว้าง 20–40 px พลาด 63.6 % (28 / 44),
+  40–80 px พลาด 26.1 % (6 / 23) ที่มา: ชุดข้อมูลสาธารณะ Open Images V7, `docs/product-check/FACE-BLUR-RESULTS.md` §5.2
+  ใบหน้าในภาพรถ (คนขับหลังกระจก คนเดินไกล) มักเล็ก จึงคาดว่าพลาดมากกว่านี้ (ยังไม่ได้วัดกับภาพรถ)
   ดังนั้น**คนต้องตรวจทุกภาพ** และวาดกรอบเบลอเพิ่มทับทุกใบหน้า ทุกคน เบอร์โทร ชื่อ หรือข้อความส่วนตัวบนรถ แล้วติ๊ก "ตรวจแล้ว"
 - "ส่งออกภาพที่เบลอแล้ว" เขียน `blurred/<ภาพ>` โดยเบลอและทำเป็นช่อง (pixelate) ทุกกรอบแบบย้อนกลับไม่ได้ และตัดข้อมูล EXIF (รวม GPS) ทิ้ง
   ภาพที่ยังไม่ติ๊ก "ตรวจแล้ว" จะไม่ถูกส่งออกและไม่ถูกใช้ฝึก
@@ -100,11 +136,14 @@ node tools/plate-det-compare.mjs --model ~/LENSIQ-field/plates-train/runs/run1/p
 
 ### 6. การฝึก
 
-- **ค่าเริ่มต้น: ฝึกบนเครื่องของเจ้าของ** (`tools/plate_train.py`) ภาพไม่ออกจากเครื่อง Mac ไม่มี CUDA จึงฝึกด้วย CPU (หรือ `--device mps`)
-  ผ่านตัวเรียก `tools/plate_train_launch.py` ที่เปลี่ยนเฉพาะส่วนที่ YOLOX 0.3.0 ผูกกับ CUDA (โค้ด YOLOX บนดิสก์ไม่ถูกแก้)
+- **ฝึกบน Mac ของเจ้าของเท่านั้น (คำตอบเจ้าของ 13 พ.ย. 2569: แบบ ก.)** (`tools/plate_train.py`) ภาพไม่ออกจากเครื่อง Mac ไม่มี CUDA
+  จึงฝึกด้วย CPU (หรือ `--device mps`) ผ่านตัวเรียก `tools/plate_train_launch.py` ที่เปลี่ยนเฉพาะส่วนที่ YOLOX 0.3.0 ผูกกับ CUDA
+- **ฝึกข้ามคืน และเฉพาะเมื่อไม่มีทีมอื่นรันงานหนัก:** ตัวเรียก**ไม่ยอมเริ่มฝึก** (ไม่รอ ไม่ลองซ้ำ บอกเหตุผลแล้วจบ, รหัสออก 3) ถ้า
+  (1) load เฉลี่ย 1 นาที > ครึ่งหนึ่งของจำนวนคอร์ (ขั้นต่ำ 2; Mac 8 คอร์ = 4.0) (2) มี Chrome ของชุดทดสอบ e2e (`lq-e2e`) หรือกำลังรัน
+  `tests/e2e/run.mjs` / `node --test` (3) มีการฝึกอีกตัวรันอยู่ (4) มีโปรเซส node / python / Chrome ตัวใดใช้ CPU ≥ 50 %
+  ให้ปิดงานเหล่านั้นหรือรอจนเสร็จ แล้วสั่งใหม่ (ทดสอบ: `tests/python/test_plate_train_busy.py`)
 - สูตร: YOLOX-nano, 1 คลาส `plate`, ภาพเข้า 416, 150 รอบ, mosaic 0.5, สุ่มสี HSV, หมุน ±5°, ไม่กลับซ้ายขวา (เหมือนโน้ตบุ๊ก Colab)
-- **Colab (GPU ฟรี) ใช้กับภาพของเจ้าของได้เมื่อเจ้าของและทนายเห็นชอบเท่านั้น** เพราะต้องอัปโหลดภาพไป Google (ข้ามพรมแดน)
-  แม้ภาพจะเบลอแล้ว ป้ายทะเบียนยังเป็นข้อมูลส่วนบุคคล ไม่มีค่าใช้จ่าย แต่เป็นเรื่องกฎหมาย จึงอยู่ใน "รอคุณตัดสิน"
+- **ไม่ใช้ Colab กับภาพของเจ้าของ** (เจ้าของเลือกแบบ ก. 13 พ.ย. 2569) โน้ตบุ๊ก Colab ยังใช้กับชุดข้อมูลสาธารณะได้ตาม `docs/PLATE-DATASETS.md`
 - การทดลองรอบสั้น (smoke): `python3 tools/plate_train.py smoke --root <โฟลเดอร์ชั่วคราว>` ฝึก 1 รอบกับภาพสังเคราะห์ 8 ภาพ ใช้ตรวจว่าเครื่องพร้อม
   ไม่ใช่โมเดลที่ใช้งาน
 
@@ -117,7 +156,9 @@ node tools/plate-det-compare.mjs --model ~/LENSIQ-field/plates-train/runs/run1/p
 3. อ่านอัตโนมัติผิดที่ในภาพไม่มีป้ายไม่มากกว่าเดิม 4. และในภาพมีป้าย ไม่มากกว่าเดิม
 5. อ่านผิดตัวอักษรไม่มากกว่าเดิม 6. ต้องแตะกรอบเองไม่มากกว่าเดิม
 7. เวลาต่อภาพ (มัธยฐาน) ช้าลงไม่เกิน 600 ms
-ชุดทดสอบต้องมีอย่างน้อย 60 ภาพมีป้าย และ 15 ภาพไม่มีป้าย มิฉะนั้น "ยังตัดสินไม่ได้"
+ชุดทดสอบต้องมีอย่างน้อย 60 ภาพมีป้าย และ 15 ภาพไม่มีป้าย มิฉะนั้น "ยังตัดสินไม่ได้" ชุดแรก (dev batch) ไม่มีการตัดสินเสมอ
+ผลพิมพ์ตารางรายประเภทด้วย: ประเภทที่มีภาพทดสอบน้อยกว่า 20 ภาพเขียนว่า **UNMEASURED: ไม่อ้างผลสำหรับประเภทนี้**
+(`plate-field-eval` ก็พิมพ์บรรทัด "UNMEASURED types" แบบเดียวกัน)
 ชุดสาธารณะ Wikimedia 51 ภาพ (ครึ่ง held-out) รายงานเพิ่มได้ แต่ไม่ใช้ตัดสิน ผ่านแล้ว**เจ้าของยืนยัน**ก่อนใส่ในหน้าเว็บ (คนยังยืนยันทุกการอ่านป้าย)
 
 ### 8. นำเข้าใช้งาน (หลังผ่านและเจ้าของยืนยัน)
@@ -132,12 +173,34 @@ MODEL_CARD.md แล้ว `LQPlate.registerDetector(fn, {proposals: true})` ต
 real photos (44 %; public dataset, Wikimedia Commons, labels v3, `docs/GATE.md` §3c). A detector trained on Thai plates
 from real gate cameras is the fix. This path trains **on the owner's machine**; the photos never leave it.
 
-**What the owner provides.** ~600 photos with a plate + ~100 without (white 150, yellow 60, green 40, red 40, blue 30,
-motorcycle 120, night 100, graphic 30, other 30, none 100), from the real gate camera position (1–1.5 m high, 2–6 m,
-≤ 30°), at ≥ 3 sites / cameras, JPEG. Why 600: the fixed split keeps 15 % for test, and the comparison rule needs ≥ 60
-plate photos and ≥ 15 plate-less photos in the test split [calc]. Before shooting: written permission of the site owner,
-the PDPA camera sign (`gate-notice.html`) posted, consent for staff / known vehicles, avoid people; fill `CONSENT.md`
-(the split step refuses without it). Retention proposal: originals deleted within 30 days of the export.
+**What the owner provides (main set, adjusted 2026-11-13).** ~635 photos with a plate + 100 without: white 180,
+motorcycle 140, night 140, yellow 60, green 40, other 30, graphic 20, red 15, blue 10 (red, blue and graphic are rare:
+collect what you find), none 100; from the real gate camera position (1–1.5 m high, 2–6 m, ≤ 30°), at ≥ 3 sites /
+cameras, JPEG. The fixed split keeps 15 % for test; the comparison rule needs ≥ 60 plate and ≥ 15 plate-less test photos
+[calc]. **Per type, fewer than 20 test photos = UNMEASURED, no claim for that type** (about 135 photos of a type are needed
+for 20 in test [calc]); with these quotas only white, motorcycle and night can be measured per type, the other types help
+training but carry no per-type claim. The compare tool and `plate-field-eval` print the UNMEASURED types.
+
+**Whose consent (`CONSENT.md`).** Not every driver's: per-driver consent for 600 cars is not workable. One basis per batch:
+**A** — the site owner's written permission + the PDPA camera notice sign (`gate-notice.html`) posted at the entrance for
+the whole shoot + no people photographed (blurred if caught); scales to 600+ cars, relies on legitimate interest
+(s. 24(5)), needs counsel's OK and a legitimate-interest assessment before the photos train a model that is sold.
+**B** — only vehicles whose owner (or regular driver) agreed before the photo, e.g. staff at the owner's factory; clearest
+basis (consent), no need to wait for counsel, but small (tens of cars), few special plates, withdrawal must be honoured
+(delete that car's photos), and staff must be free to say no. Agreement sheets stay on paper in the office; the folder
+holds the count only, no names. **Recommendation:** B for the first factory batch now; A for the main set once counsel
+answers (`docs/PDPA-NOTES-FOR-COUNSEL.md` H(c)). Retention proposal: originals deleted within 30 days of the export.
+
+**First batch at the owner's factory (basis B, folder `~/LENSIQ-field/plates-train-batch1/`).** ~30 cars × 3 photos (2 / 4 /
+6 m, or straight / 20–30° from the planned camera spot) ≈ 90, ~15 motorcycles × 2 ≈ 30, ~20 night photos of the same
+vehicles, ~30 plate-less photos: **~170 photos**. Same split rule, but `split --dev-batch` locks it as
+`plate-split-v1-devbatch` (it does not use the main held-out lock); ~45 vehicles leave about 7 in test, ≈ 20 plate photos
+[calc], below the 60 rule, and `plate-det-compare` always answers "dev batch: no adoption decision". For the main set,
+`split --train-only …/plates-train-batch1/dataset/MANIFEST.json` keeps the first batch out of the main test split (it has
+been looked at). **It can prove:** the whole path works on real photos (label, blur, split, export, overnight training,
+ONNX in the browser), labelling time per photo, photo problems, and dev numbers labelled "dev, factory batch, not a claim".
+**It cannot prove:** any accuracy, an adoption decision, any per-type result (every type is under 20 test photos), or
+anything about other sites or cameras; its numbers never go into sales material or pages.
 
 **Folder layout** (outside the repo): `~/LENSIQ-field/plates-train/{CONSENT.md, photos/, labels/, blurred/, splits/,
 dataset/, runs/}` (Thai section §2).
@@ -147,8 +210,11 @@ dataset/, runs/}` (Thai section §2).
 → `plate_train.py setup / train / onnx` → `plate-det-compare --model …`.
 
 **Labelling and privacy.** Plate boxes + text + category; ignore boxes for tiny unreadable plates; blur boxes. BlazeFace
-proposes face boxes but misses about 4 in 10 faces (41.4 % of held-out faces left unblurred; public dataset, Open Images,
-`docs/product-check/FACE-BLUR-RESULTS.md`), so a person checks every photo, adds blur boxes over every face, person, phone
+proposes face boxes with exactly the measured Product Check setting (`LQPC.FACE_BLUR`, round 2: 3 × 3 tiles, 20 % overlap,
+threshold 0.5, pad 0.15, whole frame + tiles + 1,024-px upload image) and still misses faces: **27.6 % of real faces left
+unblurred (42 / 152, round-2 held-out)**, 63.6 % of faces 20–40 px wide (28 / 44), 26.1 % at 40–80 px (6 / 23); public
+dataset, Open Images V7, `docs/product-check/FACE-BLUR-RESULTS.md` §5.2. Faces in vehicle photos are often small (drivers
+behind glass), so expect more misses (not measured on vehicle photos). A person therefore checks every photo, adds blur boxes over every face, person, phone
 number or name on a vehicle, and ticks "checked". Export blurs + pixelates irreversibly and drops EXIF (incl. GPS). Only
 checked + blurred photos are exported. Training files carry boxes only: no plate text, no province; the plate text exists
 only in the held-out labels for the evaluation. Everything stays outside the repo.
@@ -157,10 +223,12 @@ only in the held-out labels for the evaluation. Everything stays outside the rep
 train and test); plate-less photo = own group; sha256("lensiq-plate-split:v1:" + group) → first 8 hex mod 100: < 70 train,
 < 85 val, else test. Changing photos or labels after the lock is refused (new rule version = new held-out set).
 
-**Training.** Default: local (`tools/plate_train.py`, YOLOX 0.3.0 Apache-2.0 cloned at a pinned tag, YOLOX-nano COCO
+**Training.** Mac only (owner answer 2026-11-13, option ก), overnight, and only when no other team runs heavy jobs: the
+launcher refuses to start (exit 3, clear message) when the 1-minute load is above half the cores (at least 2), an e2e
+Chrome (`lq-e2e`) or test runner is running, another training is running, or any node / python / Chrome process uses
+≥ 50 % CPU. Local (`tools/plate_train.py`, YOLOX 0.3.0 Apache-2.0 cloned at a pinned tag, YOLOX-nano COCO
 start weights Apache-2.0; same recipe as the notebook; CPU or MPS via `tools/plate_train_launch.py`, which replaces only the
-CUDA-bound pieces of YOLOX 0.3.0 in memory). Colab (free GPU) for owner photos only after the owner and counsel agree
-(upload to Google = cross-border transfer of personal data). Never Ultralytics; never YOLOv9 / open-image-models.
+CUDA-bound pieces of YOLOX 0.3.0 in memory). No Colab for owner photos. Never Ultralytics; never YOLOv9 / open-image-models.
 
 **Comparison rule `plate-compare-v1` (locked).** Adopt the trained model as an extra proposal source only if, on the locked
 field test split (source "field (owner photos, locked test split)"): detection strictly better; exact automatic reads not

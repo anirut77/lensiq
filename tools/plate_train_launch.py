@@ -10,7 +10,55 @@ unchanged and the training recipe (exp file) is the same as the Colab notebook's
 import argparse
 import os
 import random
+import re
+import subprocess
 import sys
+
+# Owner rule 2026-11-13: train on the Mac only overnight and ONLY when no other team runs heavy jobs. Training refuses to
+# start (it does not wait or retry) when the machine is busy; run it again later.
+HEAVY_CPU = 50.0                                   # % CPU of one process
+HEAVY_CMD = re.compile(r"node|python|chrome", re.I)
+OTHER_RUNS = [(re.compile(r"lq-e2e"), "an e2e headless Chrome (lq-e2e profile) is running"),
+              (re.compile(r"tests/e2e/run\.mjs"), "an e2e test run is in progress"),
+              (re.compile(r"node --test"), "a unit test run is in progress"),
+              (re.compile(r"plate_train_launch\.py"), "another plate-detector training is running")]
+
+
+def busy_reasons(load1, cores, ps_lines, self_pid=None):
+    """why the machine is too busy to train now ([] = free). ps_lines: "PID %CPU COMMAND" (ps -A -o pid=,%cpu=,command=)"""
+    out = []
+    limit = max(2.0, (cores or 1) * 0.5)
+    if load1 > limit:
+        out.append(f"1-minute load {load1:.1f} > {limit:.1f} (half of {cores} cores, at least 2)")
+    ignore = {self_pid, os.getppid() if self_pid == os.getpid() else None}
+    seen = set()
+    for line in ps_lines:
+        m = re.match(r"\s*(\d+)\s+([\d.]+)\s+(.*)", line)
+        if not m:
+            continue
+        pid, cpu, cmd = int(m.group(1)), float(m.group(2)), m.group(3)
+        if pid in ignore:
+            continue
+        hit = next((why for rx, why in OTHER_RUNS if rx.search(cmd)), None)
+        if hit:
+            if hit not in seen:
+                seen.add(hit)
+                out.append(f"{hit} (pid {pid})")
+            continue
+        if cpu >= HEAVY_CPU and HEAVY_CMD.search(cmd):
+            out.append(f"heavy process pid {pid} at {cpu:.0f} % CPU: {cmd[:80]}")
+    return out
+
+
+def busy_message(reasons):
+    return ("plate_train: training not started — the machine is busy (owner rule 2026-11-13: train only when no other team runs "
+            "heavy jobs, ideally overnight):\n  - " + "\n  - ".join(reasons) + "\nRun it again when these have finished.")
+
+
+def machine_busy():
+    load1 = os.getloadavg()[0]
+    ps = subprocess.run(["ps", "-A", "-o", "pid=,%cpu=,command="], capture_output=True, text=True).stdout.splitlines()
+    return busy_reasons(load1, os.cpu_count() or 1, ps, self_pid=os.getpid())
 
 
 def main():
@@ -23,6 +71,11 @@ def main():
     a.add_argument("--out", required=True)
     a.add_argument("--export", default="", help="write this ONNX file from the checkpoint -c instead of training")
     o = a.parse_args()
+    if not o.export:
+        reasons = machine_busy()
+        if reasons:
+            print(busy_message(reasons), file=sys.stderr)
+            sys.exit(3)
     sys.path.insert(0, o.yolox)
     import torch
     if o.export:

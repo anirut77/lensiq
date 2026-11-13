@@ -15,7 +15,10 @@
 //
 //   node tools/plate-train-prep.mjs init   [--root DIR]   create the folders + CONSENT.md template
 //   node tools/plate-train-prep.mjs status [--root DIR]   counts: photos, labelled, privacy-checked, blurred, per category
-//   node tools/plate-train-prep.mjs split  [--root DIR]   make the fixed split and LOCK it (evals-locks/plate-train-split.sha256 + ~/LENSIQ-field/evals/plate-train/)
+//   node tools/plate-train-prep.mjs split  [--root DIR] [--dev-batch] [--train-only FIRST-BATCH/MANIFEST.json]
+//        --dev-batch: the first factory batch (dev only, never an adoption decision; locked as plate-split-v1-devbatch)
+//        --train-only: photos of the first batch never go to the test split of the main set
+//   (split) make the fixed split and LOCK it (evals-locks/plate-train-split.sha256 + ~/LENSIQ-field/evals/plate-train/)
 //   node tools/plate-train-prep.mjs export [--root DIR]   write dataset/ from blurred photos of the locked split (checked photos only)
 //
 // SPLIT RULE (plate-split-v1, locked in tests/unit/plate-train-prep.test.js): photos that share a plate are one group
@@ -70,15 +73,26 @@ export function groups(photos) {
   }
   return out;
 }
-export function makeSplit(photos) {
-  const g = groups(photos), files = {}, counts = { train: {}, val: {}, test: {} };
+/**
+ * o.trainOnly: Set of files that must never be in the test split (the first factory dev batch, already looked at): a file
+ * whose group lands in test goes to train instead. Without it the split is exactly plate-split-v1.
+ */
+export function makeSplit(photos, o = {}) {
+  const g = groups(photos), files = {}, counts = { train: {}, val: {}, test: {} }, only = o.trainOnly || new Set();
+  let moved = 0;
   for (const f of [...g.keys()].sort()) {
-    const part = bucket(g.get(f)); files[f] = part;
+    let part = bucket(g.get(f));
+    if (part === "test" && only.has(f)) { part = "train"; moved++; }
+    files[f] = part;
     const cat = photos.get(f).cat; counts[part][cat] = (counts[part][cat] || 0) + 1;
   }
   const canon = JSON.stringify({ rule: SPLIT_RULE.version, files });
-  return { rule: SPLIT_RULE.version, files, groups: new Set(g.values()).size, counts, sha256: createHash("sha256").update(canon).digest("hex") };
+  const out = { rule: SPLIT_RULE.version, files, groups: new Set(g.values()).size, counts, sha256: createHash("sha256").update(canon).digest("hex") };
+  if (only.size) out.trainOnly = moved;
+  return out;
 }
+/** the first factory batch: same rule, locked under its own label so it never takes the held-out lock of plate-split-v1 */
+export const devBatchRule = s => ({ ...s, rule: SPLIT_RULE.version + "-devbatch", devBatch: true });
 /** append "<rule> <sha256>" once; a different hash under the same rule version is refused */
 export function lockSplit(split, lockFile) {
   const have = existsSync(lockFile) ? readFileSync(lockFile, "utf8") : "";
@@ -170,17 +184,27 @@ export function exportDataset({ root, photos, privacy, split }) {
     for (const b of ph.ignore || []) rows.push([it.name, "ignore", "", "", ...b, "heldout", "", ""].map(csvCell).join(","));
   }
   writeFileSync(join(P.dataset, "test2017", "plates-photo-labels.csv"), rows.join("\n") + "\n");
-  writeFileSync(join(P.dataset, "MANIFEST.json"), JSON.stringify({ rule: split.rule, sha256: split.sha256, files: manifest }, null, 1));
+  writeFileSync(join(P.dataset, "MANIFEST.json"), JSON.stringify({ rule: split.rule, sha256: split.sha256, devBatch: !!split.devBatch, files: manifest }, null, 1));
   return { refused, counts: Object.fromEntries(Object.entries(parts).map(([k, v]) => [k, v.length])) };
 }
 
-const CONSENT_TEMPLATE = `# Photo set record (ข้อมูลชุดภาพ) — stays in this folder, never in the repo
+export const CONSENT_TEMPLATE = `# Photo set record (บันทึกชุดภาพ) — stays in this folder, never in the repo. No names in this folder.
+
+Basis for this batch / ฐานของชุดภาพนี้ (tick ONE; docs/PLATE-TRAINING.md §2.1):
+- [ ] A. Site owner's written permission + PDPA camera notice sign posted during shooting + no people photographed
+      ได้รับอนุญาตเป็นหนังสือจากเจ้าของสถานที่ + ติดป้ายแจ้ง PDPA ระหว่างถ่าย + ไม่ถ่ายคน
+      (needs counsel's OK before use for a model that is sold: docs/PDPA-NOTES-FOR-COUNSEL.md H(c))
+- [ ] B. Only vehicles whose vehicle owner (or regular driver) agreed before the photo, e.g. staff at our own factory
+      ถ่ายเฉพาะรถที่เจ้าของรถ (หรือผู้ขับประจำ) ตกลงก่อนถ่าย เช่น รถพนักงานในโรงงานของเรา
+      The signed agreement sheets are kept ON PAPER in the office, not in this folder; write only the count below.
 
 - Site(s) / สถานที่:
+- Site owner's written permission (A) — document and date / หนังสืออนุญาตของเจ้าของสถานที่ (เลขที่ / วันที่):
+- PDPA sign posted (A) — where, from / to / ติดป้าย PDPA ที่ไหน ตั้งแต่-ถึง:
+- Vehicle owners who agreed (B) — count only, no names / จำนวนเจ้าของรถที่ตกลง (จำนวนเท่านั้น ไม่มีชื่อ):
 - Date(s) / วันที่ถ่าย:
-- Who took the photos / ผู้ถ่าย:
-- Notice / consent / ประกาศหรือความยินยอม: (e.g. site owner's written OK; PDPA camera sign posted at the entrance; staff vehicles with consent)
-- People in the photos / มีคนในภาพหรือไม่: faces are blurred before training (labeller), and checked by a person
+- Who took the photos / ผู้ถ่าย (role, not name):
+- People in the photos / มีคนในภาพหรือไม่: avoided; any face or person is blurred and checked by a person before training
 - Retention / ลบเมื่อ: originals (photos/) deleted on ____ (proposal: 30 days after export); blurred set kept until the model card is done
 - Who can open this folder / ผู้เข้าถึงได้:
 `;
@@ -216,11 +240,19 @@ export async function main(argv, io = {}) {
     if (lab.errors.length) { err("labelling sheet:\n  " + lab.errors.join("\n  ")); return 2; }
     if (cmd === "split") {
       if (!existsSync(P.consent)) { err(`no ${P.consent}: write down how the photos were taken (notice / consent, retention) first`); return 2; }
-      const s = makeSplit(lab.photos);
+      const devBatch = argv.includes("--dev-batch"), ti = argv.indexOf("--train-only");
+      // --train-only FILE: the first batch's MANIFEST.json (or a plain list, one photo name per line) -> never in test
+      let trainOnly = new Set();
+      if (ti >= 0) {
+        const t = readFileSync(argv[ti + 1], "utf8");
+        try { trainOnly = new Set(JSON.parse(t).files.map(x => x.file)); } catch { trainOnly = new Set(t.split(/\r?\n/).map(x => x.trim()).filter(Boolean)); }
+      }
+      const s0 = makeSplit(lab.photos, { trainOnly }), s = devBatch ? devBatchRule(s0) : s0;
       mkdirSync(P.splits, { recursive: true });
-      const file = join(P.splits, `split-${s.rule}.json`);
+      const file = join(P.splits, `split-${SPLIT_RULE.version}.json`);
       const r1 = lockSplit(s, lockField);
       lockSplit(s, lockRepo);
+      if (trainOnly.size) s.trainOnlyFiles = [...trainOnly].filter(f => s.files[f]).sort();
       writeFileSync(file, JSON.stringify(s, null, 1));
       mkdirSync(dirname(lockField), { recursive: true }); copyFileSync(file, join(dirname(lockField), basename(file)));
       log(`${s.rule}: ${Object.keys(s.files).length} photos in ${s.groups} groups -> ${JSON.stringify(s.counts)}\nsha256 ${s.sha256} ${r1.locked ? "LOCKED now" : "(already locked)"}`);
@@ -230,7 +262,8 @@ export async function main(argv, io = {}) {
     if (cmd === "export") {
       const file = join(P.splits, `split-${SPLIT_RULE.version}.json`);
       if (!existsSync(file)) { err("no locked split: run `split` first"); return 2; }
-      const s = JSON.parse(readFileSync(file, "utf8")), now = makeSplit(lab.photos);
+      const s = JSON.parse(readFileSync(file, "utf8"));
+      const now = makeSplit(lab.photos, { trainOnly: new Set(Object.keys(s.files).filter(f => s.trainOnlyFiles && s.trainOnlyFiles.includes(f))) });
       if (now.sha256 !== s.sha256) { err("the labels changed after the split was locked (photos added / plate text changed): new split = new version"); return 2; }
       const pv = parsePrivacy(readFileSync(P.privacy, "utf8"));
       if (pv.errors.length) { err("privacy.json:\n  " + pv.errors.join("\n  ")); return 2; }
