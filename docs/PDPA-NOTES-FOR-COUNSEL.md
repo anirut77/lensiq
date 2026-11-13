@@ -943,3 +943,19 @@ accountability for published belief guidance), and should a reviewer contract / 
 
 (c) **Reviewer notes from the drafts file** (`review_meta`: draft id, discipline names, source links, "uncertain" notes)
 are internal working notes about content, not personal data, and are never served to users.
+
+## H. Beauty & Image (2026-11-13; `docs/BEAUTY-IMAGE-DESIGN.md`, branch beauty-look)
+
+### H1. Look suggestions and live preview on faceread
+
+(a) **Live preview** (`lensiq-look-preview.js`): face landmarks are computed in the browser frame by frame to place lip
+colour, eyeliner and brow drawings; nothing is stored, uploaded or exported, no save button, the camera stops when the
+dialog closes. Question: are transient landmarks "biometric data" (s.26) when nothing leaves the device (same question as
+STYLE-DESIGN L-S1)?
+
+(b) **Adults only** by self-confirmation (the straight-mode 18+ checkbox). A teenager can tick it; say so in the terms?
+
+(c) **Cosmetics Act B.E. 2558**: suggestions are generic styling, never a product, brand, price or link. Salon mode (later)
+shows the salon's own catalogue names labelled as the salon's text; may a salon name its semi-permanent method there?
+
+(d) **Volunteer set** for field numbers: `docs/LOOK-VOLUNTEER-PROTOCOL.md` (Thai consent form, draft for legal review).
