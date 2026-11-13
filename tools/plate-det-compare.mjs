@@ -10,7 +10,7 @@
 //
 // Also worth running (report only, no decision): the 51-photo public Wikimedia set, held-out half:
 //   node tools/plate-field-eval.mjs --dir ~/LENSIQ-field/plates-public/photos --labels …/plates-photo-labels.v3.csv --split heldout --det-model …
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -18,6 +18,16 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const RULE = Object.freeze({ version: "plate-compare-v1", minPlatePhotos: 60, minNonePhotos: 15, maxExtraMs: 600 });
 export const SOURCE = "field (owner photos, locked test split)";
+/** review S4: the dataset being compared must be the one whose split was locked (rule + sha256 in the lock file) */
+export function checkManifest(root, lockFile) {
+  const man = JSON.parse(readFileSync(join(root, "dataset", "MANIFEST.json"), "utf8"));
+  const lock = existsSync(lockFile) ? readFileSync(lockFile, "utf8") : "";
+  const line = lock.split("\n").find(l => l.startsWith(man.rule + " "));
+  if (!line) throw new Error(`the split ${man.rule} of this dataset is not locked (${lockFile}): run plate-train-prep split first`);
+  if (line.split(" ")[1].trim() !== man.sha256) throw new Error(`dataset/MANIFEST.json (${String(man.sha256).slice(0, 12)}…) does not match the locked split `
+    + `(${line.split(" ")[1].slice(0, 12)}…): export again from the locked split`);
+  return true;
+}
 /** owner rule 2026-11-13: a plate type with fewer test photos than this is UNMEASURED (no claim for that type) */
 export const TYPE_MIN = 20;
 
@@ -83,6 +93,7 @@ async function main(argv) {
   const dir = join(root, "dataset", "test2017");
   const args = ["--dir", dir, "--source", SOURCE, "--synthetic", "0"];
   try {
+    checkManifest(root, get("--lock", join(homedir(), "LENSIQ-field", "evals", "plate-train", "locked.sha256")));
     const base = await E.run(E.parseArgs(args));
     const cand = await E.run(E.parseArgs([...args, "--det-model", model]));
     let devBatch = false;

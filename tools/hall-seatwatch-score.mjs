@@ -289,7 +289,8 @@ const pc = w => (w && w.p != null ? `${(w.p * 100).toFixed(1)} %` : "—");
 const ci = w => (w && w.lo != null ? `${(w.lo * 100).toFixed(1)} – ${(w.hi * 100).toFixed(1)} %` : "—");
 const yn = p => (p === true ? "pass" : p === false ? "**fail**" : "—");
 export function formatSheet(S, meta = {}) {
-  const L = [`# Seat-watch result sheet — ${meta.session || ""} ${meta.date || ""}`.trim(), "",
+  const names = meta.sessions && meta.sessions.length ? meta.sessions.join(", ") : meta.session || "";
+  const L = [`# Seat-watch result sheet — ${names} ${meta.date || ""}`.trim(), "",
     `> ${SOURCE_EN}. ${SOURCE_TH}. Scoring rule ${RULE.version} (locked, tests/unit/hall-seatwatch-score.test.js).`,
     "> Seats only, no names. An independent reviewer recomputes this sheet from the exported logs and the label CSV before it goes to the owner.", ""];
   const TG = { empty: "LB ≥ 80 %", back: "LB ≥ 80 %", aisle: "LB ≥ 80 %", extra: "LB ≥ 70 %", lean: "LB ≥ 70 %", early: "report", phone: "report" };
@@ -342,10 +343,10 @@ export async function main(argv, io = {}) {
   if (insideRepo(o.out)) { err("hall-seatwatch-score: --out must be outside the repo (results of sessions with people stay out of git)"); return 2; }
   try {
     const blocks = [], events = [], errors = [];
-    let meta = {};
+    const meta = { sessions: [], date: "" };
     for (const sf of sessions) {
       const S = JSON.parse(readFileSync(sf, "utf8")), base = dirname(resolve(sf));
-      meta = { session: S.session, date: S.date };
+      meta.sessions.push(S.session); meta.date = [meta.date, S.date].filter(Boolean).filter((x, i, a) => a.indexOf(x) === i).join(", ");
       const lab = parseLabelSheet(readFileSync(resolve(base, S.labels), "utf8"));
       errors.push(...lab.errors.map(e => `${S.session}: ${e}`));
       for (const b0 of S.blocks || []) {

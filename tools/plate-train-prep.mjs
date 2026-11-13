@@ -86,13 +86,41 @@ export function makeSplit(photos, o = {}) {
     files[f] = part;
     const cat = photos.get(f).cat; counts[part][cat] = (counts[part][cat] || 0) + 1;
   }
-  const canon = JSON.stringify({ rule: SPLIT_RULE.version, files });
+  // the hash covers each photo's labels too (review S2): editing a held-out label after the lock is refused at export
+  const labels = Object.fromEntries(Object.keys(files).map(f => { const ph = photos.get(f); return [f, [ph.cat,
+    ph.plates.map(p => [p.text, p.key, p.cat, p.box || null, p.sure, p.province || ""]), (ph.ignore || []).map(b => b.slice())]]; }));
+  const canon = JSON.stringify({ rule: SPLIT_RULE.version, files, labels });
   const out = { rule: SPLIT_RULE.version, files, groups: new Set(g.values()).size, counts, sha256: createHash("sha256").update(canon).digest("hex") };
   if (only.size) out.trainOnly = moved;
   return out;
 }
 /** the first factory batch: same rule, locked under its own label so it never takes the held-out lock of plate-split-v1 */
 export const devBatchRule = s => ({ ...s, rule: SPLIT_RULE.version + "-devbatch", devBatch: true });
+/** hash of a photo's blur boxes (order-insensitive, kind ignored): recorded at blurred export, checked at dataset export */
+export function regionsHash(regions) {
+  const r = (regions || []).map(b => b.slice(0, 4).map(v => Math.round(Number(v)))).map(b => b.join(",")).sort();
+  return createHash("sha256").update(JSON.stringify(r)).digest("hex");
+}
+/** EXIF in a JPEG (APP1 "Exif") or PNG (eXIf chunk) */
+export function hasExif(buf) {
+  const b = Buffer.from(buf || []);
+  if (b.length > 4 && b[0] === 0xff && b[1] === 0xd8) {
+    let i = 2;
+    while (i + 4 <= b.length && b[i] === 0xff) {
+      const m = b[i + 1];
+      if (m === 0xda || m === 0xd9) break;
+      const len = b.readUInt16BE(i + 2);
+      if (m === 0xe1 && b.toString("latin1", i + 4, i + 10).startsWith("Exif")) return true;
+      i += 2 + len;
+    }
+    return false;
+  }
+  if (b.length > 8 && b.readUInt32BE(0) === 0x89504e47) {
+    let i = 8;
+    while (i + 8 <= b.length) { const len = b.readUInt32BE(i), t = b.toString("latin1", i + 4, i + 8); if (t === "eXIf") return true; if (t === "IEND") break; i += 12 + len; }
+  }
+  return false;
+}
 /** append "<rule> <sha256>" once; a different hash under the same rule version is refused */
 export function lockSplit(split, lockFile) {
   const have = existsSync(lockFile) ? readFileSync(lockFile, "utf8") : "";
@@ -166,8 +194,9 @@ export function exportDataset({ root, photos, privacy, split }) {
     if (!pv || !pv.checked) { refused.push({ file: f, why: "not checked for faces / personal data by a person (labeller: 'faces checked')" }); continue; }
     const src = join(P.blurred, f);
     if (!existsSync(src)) { refused.push({ file: f, why: "not blurred yet (labeller: 'export blurred photos')" }); continue; }
-    const size = imageSize(readFileSync(src));
+    const buf = readFileSync(src), size = imageSize(buf);
     if (!size) { refused.push({ file: f, why: "not a JPEG / PNG" }); continue; }
+    if (hasExif(buf)) { refused.push({ file: f, why: "the blurred photo carries EXIF (export blurred photos again)" }); continue; }
     const part = split.files[f], name = `${part}_${String(parts[part].length).padStart(6, "0")}${extname(f).toLowerCase()}`;
     copyFileSync(src, join(P.dataset, part + "2017", name));
     parts[part].push({ name, width: size[0], height: size[1], plates: ph.plates, ph });
@@ -267,7 +296,18 @@ export async function main(argv, io = {}) {
       if (now.sha256 !== s.sha256) { err("the labels changed after the split was locked (photos added / plate text changed): new split = new version"); return 2; }
       const pv = parsePrivacy(readFileSync(P.privacy, "utf8"));
       if (pv.errors.length) { err("privacy.json:\n  " + pv.errors.join("\n  ")); return 2; }
-      const r = exportDataset({ root, photos: lab.photos, privacy: pv.files, split: s });
+      // review S3: a photo whose blur boxes changed after its blurred export (or with no record of it) is left out
+      const idxFile = join(dirname(P.labels), "blurred-index.json");
+      const idx = existsSync(idxFile) ? JSON.parse(readFileSync(idxFile, "utf8")).files || {} : {};
+      const stale = [], privacy = {};
+      for (const [f, v] of Object.entries(pv.files)) {
+        const rec = idx[f];
+        if (v.checked && (!rec || rec.regions !== regionsHash(v.regions))) stale.push({ file: f, why: rec ? "blur boxes changed after the blurred export: export blurred photos again"
+          : "no record of a blurred export (blurred-index.json): export blurred photos again" });
+        else privacy[f] = v;
+      }
+      const r = exportDataset({ root, photos: lab.photos, privacy, split: s });
+      r.refused = stale.filter(x => s.files[x.file]).concat(r.refused.filter(x => !stale.some(y => y.file === x.file)));
       log(`dataset: ${JSON.stringify(r.counts)} -> ${P.dataset}`);
       if (r.refused.length) { log(`left out (${r.refused.length}):`); for (const x of r.refused.slice(0, 30)) log(`  ${x.file}: ${x.why}`); }
       return 0;

@@ -53,8 +53,11 @@
     <label><input type="checkbox" id="unsure"> ไม่แน่ใจตัวอักษร / not sure of the letters</label>
     <button class="b" id="del">ลบกรอบที่เลือก / delete selected box</button>
     <h3>ข้อมูลส่วนบุคคล / personal data</h3>
-    <p class="note">ระบบเสนอกรอบใบหน้าอัตโนมัติ (BlazeFace) แต่<b>พลาดได้</b> (วัดบนภาพสาธารณะ: ใบหน้าจริงไม่ถูกเบลอ 27.6 % และใบหน้ากว้าง 20–40 px ไม่ถูกเบลอ 63.6 %) ·
-      the automatic face boxes MISS faces (27.6 % of real faces left unblurred, 63.6 % of faces 20–40 px wide; public dataset): add a blur box over every face, person, phone number
+    <p class="note">ระบบเสนอกรอบใบหน้าอัตโนมัติ (BlazeFace) แต่<b>พลาดได้</b>
+      (ภาพสาธารณะ Open Images ไม่ใช่ภาพหน้าไม้กั้น: ใบหน้าเบลอไม่ถึงครึ่ง 27.6 % (42/152) เบลอไม่ถึง 90 % 38.2 % (58/152) ใบหน้าหลังกระจกรถยังไม่ได้วัด) ·
+      the automatic face boxes MISS faces
+      (public dataset Open Images, not gate scenes: 42/152 = 27.6 % of faces under 50 % covered, 58/152 = 38.2 % under 90 %; faces behind windscreens unmeasured):
+      add a blur box over every face, person, phone number
       or name on a vehicle yourself.</p>
     <button class="b" id="auto">หาใบหน้าอัตโนมัติอีกครั้ง / auto faces again</button>
     <label class="warn"><input type="checkbox" id="checked"> ตรวจแล้ว: ทุกใบหน้าและข้อมูลส่วนบุคคลอื่นอยู่ในกรอบเบลอ / checked: every face and other personal data is inside a blur box</label>

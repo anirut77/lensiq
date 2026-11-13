@@ -11,6 +11,9 @@
   const CATS = ["white", "yellow", "green", "red", "blue", "moto", "night", "graphic", "other"];
   /** state: file -> {none, plates: [{box, text, cat, province, sure}], ignore: [box], blur: [[x0,y0,x1,y1,kind]], checked} */
   const S = {}; let photos = [], blurredSet = new Set(), cur = null, img = null, mode = "plate", sel = null, drag = null, dirty = false;
+  // this run's key from the start URL (tools/plate-labeller.mjs): required on /api/* and /photos/*
+  const TOKEN = new URLSearchParams(location.search).get("t") || "", H = { "X-LQ-Token": TOKEN };
+  const photoUrl = f => "/photos/" + encodeURIComponent(f) + "?t=" + encodeURIComponent(TOKEN);
   const msg = (t, k) => { $("#msg").textContent = t; $("#msg").className = "note " + (k || ""); };
 
   function parseCsv(text) {
@@ -55,7 +58,7 @@
     $("#stat").textContent = `${photos.length} photos · ${done} labelled + checked · ${blurredSet.size} blurred`;
   }
   async function open(f) {
-    cur = f; sel = null; img = new Image(); img.src = "/photos/" + encodeURIComponent(f);
+    cur = f; sel = null; img = new Image(); img.src = photoUrl(f);
     await img.decode();
     cv.width = img.naturalWidth; cv.height = img.naturalHeight;
     const e = entry(f);
@@ -151,7 +154,7 @@
     return { labels: rows.join("\n") + "\n", privacy: { v: 1, files } };
   }
   async function save() {
-    const r = await fetch("/api/save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(serialise()) });
+    const r = await fetch("/api/save", { method: "POST", headers: { ...H, "Content-Type": "application/json" }, body: JSON.stringify(serialise()) });
     const j = await r.json().catch(() => ({}));
     if (r.ok) { dirty = false; msg("บันทึกแล้ว / saved", "ok"); } else msg("บันทึกไม่ได้ / not saved: " + (j.errors || []).slice(0, 5).join(" · "), "err");
     renderList();
@@ -163,12 +166,12 @@
     for (const f of photos) {
       const e = S[f];
       if (!e || !e.checked || !(e.none || e.plates.length)) { skipped++; continue; }
-      const im = new Image(); im.src = "/photos/" + encodeURIComponent(f); await im.decode();
+      const im = new Image(); im.src = photoUrl(f); await im.decode();
       const c = document.createElement("canvas"); c.width = im.naturalWidth; c.height = im.naturalHeight; c.getContext("2d").drawImage(im, 0, 0);
       W.LQPCRun.faceBlur(c, e.blur.map(b => ({ x: b[0], y: b[1], w: b[2] - b[0], h: b[3] - b[1] })));
       const type = /\.png$/i.test(f) ? "image/png" : "image/jpeg";
       const blob = await new Promise(res => c.toBlob(res, type, 0.92));
-      const r = await fetch("/api/blurred/" + encodeURIComponent(f), { method: "POST", body: blob });
+      const r = await fetch("/api/blurred/" + encodeURIComponent(f), { method: "POST", headers: H, body: blob });
       if (r.ok) { n++; blurredSet.add(f); }
       msg(`ส่งออก / exported ${n} …`);
     }
@@ -176,6 +179,6 @@
     renderList();
   };
   window.addEventListener("beforeunload", ev => { if (dirty) { ev.preventDefault(); ev.returnValue = ""; } });
-  fetch("/api/state").then(r => r.json()).then(load).catch(e => msg("load: " + e.message, "err"));
+  fetch("/api/state", { headers: H }).then(r => r.json()).then(load).catch(e => msg("load: " + e.message, "err"));
   W.__LQ_LABELLER = { get state() { return S; }, serialise, open };
 })();

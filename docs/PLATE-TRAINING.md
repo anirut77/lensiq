@@ -111,14 +111,22 @@ node tools/plate-det-compare.mjs --model ~/LENSIQ-field/plates-train/runs/run1/p
 
 ### 4. การติดป้ายกำกับและความเป็นส่วนตัว (เครื่องมือ `tools/plate-labeller.mjs`)
 
+- **ความปลอดภัยของเครื่องมือ (แก้ตามผู้ตรวจอิสระ 13 พ.ย. 2569):** เปิดลิงก์ที่เครื่องมือพิมพ์ (มีกุญแจสุ่มของรอบนั้น `?t=…`) เท่านั้น
+  เครื่องมือเสิร์ฟไฟล์ใน repo เฉพาะรายการที่กำหนดไว้ (หน้าเครื่องมือ โค้ดเบลอ และโมเดลหาใบหน้าที่อยู่ใน git) ไม่ยอมรับ path ที่มี `..` `\` หรือ `%2f`
+  ไม่ยอมรับคำขอที่ Host ไม่ใช่ `127.0.0.1:พอร์ต` / `localhost:พอร์ต` (กันเว็บอื่นเข้ามาทาง DNS rebinding) การบันทึกต้องมาจากหน้าเครื่องมือเอง
+- **เบลอแล้วแก้กรอบทีหลัง:** ตอนส่งออกภาพที่เบลอ เครื่องมือจดค่าแฮชของกรอบเบลอไว้ (`labels/blurred-index.json`) ถ้าแก้กรอบเบลอหลังจากนั้น
+  `export` จะไม่เอาภาพนั้นเข้าชุดฝึกจนกว่าจะส่งออกภาพที่เบลอใหม่ ภาพที่มี EXIF ถูกปฏิเสธทั้งตอนบันทึกและตอนส่งออก
+- **ล็อกชุดครอบคลุมป้ายกำกับด้วย:** ค่า sha256 ของการแบ่งชุดรวมเลขทะเบียน กรอบ ประเภท "ไม่แน่ใจ" และกรอบไม่นับของทุกภาพ แก้ป้ายกำกับหลังล็อก = `export` ไม่ยอม
+
 - เปิดเฉพาะบน 127.0.0.1 (เครื่องนี้) อ่านภาพจาก `photos/` เขียนได้แค่ `labels/` และ `blurred/` ไม่ส่งอะไรออกนอกเครื่อง
 - **กรอบป้าย:** ลากรอบตัวป้าย (ไม่รวมกรอบป้ายร้านรถ) กรอกเลขทะเบียนบรรทัดแรก (มอเตอร์ไซค์: บรรทัด 1 + 3) ประเภท จังหวัด (ไม่บังคับ)
   ติ๊ก "ไม่แน่ใจตัวอักษร" ถ้าอ่านไม่ชัด ป้ายเล็กมากที่อ่านไม่ได้ ใช้ "ไม่นับ" ภาพไม่มีป้าย ติ๊ก "ภาพนี้ไม่มีป้าย"
 - **กรอบเบลอ:** ระบบเสนอกรอบใบหน้าอัตโนมัติด้วย BlazeFace (Apache-2.0 ตัวเดียวกับ Product Check) **ค่าตั้งเดียวกับที่วัดแล้วทุกค่า**
   (`LQPC.FACE_BLUR` รอบ 2: ตัดภาพ 3 × 3 ซ้อน 20 % เกณฑ์ 0.5 ขยายกรอบ 15 % ทั้งภาพ + ช่องตัด + ภาพขนาดอัปโหลด 1,024 px) แต่ตัวนี้**พลาดใบหน้าจริง**:
-  **27.6 % ของใบหน้าไม่ถูกเบลอ (42 / 152, ชุด held-out รอบ 2)** และใบหน้าเล็กพลาดมากกว่ามาก: กว้าง 20–40 px พลาด 63.6 % (28 / 44),
-  40–80 px พลาด 26.1 % (6 / 23) ที่มา: ชุดข้อมูลสาธารณะ Open Images V7, `docs/product-check/FACE-BLUR-RESULTS.md` §5.2
-  ใบหน้าในภาพรถ (คนขับหลังกระจก คนเดินไกล) มักเล็ก จึงคาดว่าพลาดมากกว่านี้ (ยังไม่ได้วัดกับภาพรถ)
+  **ใบหน้าที่ถูกเบลอไม่ถึงครึ่ง 42 / 152 = 27.6 % และถูกเบลอไม่ถึง 90 % ของใบหน้า 58 / 152 = 38.2 % [30.8–46.1]** (ชุด held-out รอบ 2)
+  ใบหน้าเล็กพลาดมากกว่ามาก: กว้าง 20–40 px เบลอไม่ถึงครึ่ง 63.6 % (28 / 44), 40–80 px 26.1 % (6 / 23)
+  ที่มา: ชุดข้อมูลสาธารณะ Open Images V7 (ภาพทั่วไป ไม่ใช่ภาพหน้าไม้กั้น), `docs/product-check/FACE-BLUR-RESULTS.md` §5
+  ใบหน้าหลังกระจกรถ**ยังไม่ได้วัดเลย** และมักเล็ก จึงคาดว่าพลาดมากกว่านี้
   ดังนั้น**คนต้องตรวจทุกภาพ** และวาดกรอบเบลอเพิ่มทับทุกใบหน้า ทุกคน เบอร์โทร ชื่อ หรือข้อความส่วนตัวบนรถ แล้วติ๊ก "ตรวจแล้ว"
 - "ส่งออกภาพที่เบลอแล้ว" เขียน `blurred/<ภาพ>` โดยเบลอและทำเป็นช่อง (pixelate) ทุกกรอบแบบย้อนกลับไม่ได้ และตัดข้อมูล EXIF (รวม GPS) ทิ้ง
   ภาพที่ยังไม่ติ๊ก "ตรวจแล้ว" จะไม่ถูกส่งออกและไม่ถูกใช้ฝึก
@@ -211,13 +219,21 @@ dataset/, runs/}` (Thai section §2).
 
 **Labelling and privacy.** Plate boxes + text + category; ignore boxes for tiny unreadable plates; blur boxes. BlazeFace
 proposes face boxes with exactly the measured Product Check setting (`LQPC.FACE_BLUR`, round 2: 3 × 3 tiles, 20 % overlap,
-threshold 0.5, pad 0.15, whole frame + tiles + 1,024-px upload image) and still misses faces: **27.6 % of real faces left
-unblurred (42 / 152, round-2 held-out)**, 63.6 % of faces 20–40 px wide (28 / 44), 26.1 % at 40–80 px (6 / 23); public
-dataset, Open Images V7, `docs/product-check/FACE-BLUR-RESULTS.md` §5.2. Faces in vehicle photos are often small (drivers
-behind glass), so expect more misses (not measured on vehicle photos). A person therefore checks every photo, adds blur boxes over every face, person, phone
+threshold 0.5, pad 0.15, whole frame + tiles + 1,024-px upload image) and still misses faces: **42 / 152 = 27.6 % of real
+faces under 50 % covered and 58 / 152 = 38.2 % [30.8–46.1] under 90 % covered (round-2 held-out)**; small faces far worse
+(20–40 px: 28 / 44 = 63.6 % under 50 % covered; 40–80 px: 6 / 23 = 26.1 %). Source: public dataset, Open Images V7
+(general photos, not gate scenes), `docs/product-check/FACE-BLUR-RESULTS.md` §5. Faces behind windscreens are unmeasured
+and usually small, so expect more misses. A person therefore checks every photo, adds blur boxes over every face, person, phone
 number or name on a vehicle, and ticks "checked". Export blurs + pixelates irreversibly and drops EXIF (incl. GPS). Only
 checked + blurred photos are exported. Training files carry boxes only: no plate text, no province; the plate text exists
 only in the held-out labels for the evaluation. Everything stays outside the repo.
+
+**Labeller security and integrity (independent review 2026-11-13).** Open only the printed link (it holds this run's
+random key, `?t=…`, required on `/api/*` and `/photos/*`). Repo files are served from an exact allow-list (the page, the
+blur code, the git-tracked face detector); raw paths with `..`, `\` or encoded slashes / dots are refused; every request
+must carry Host `127.0.0.1:PORT` or `localhost:PORT` (DNS rebinding) and every POST the matching Origin. The blur boxes'
+hash is recorded at blurred export (`labels/blurred-index.json`); `export` leaves out a photo whose boxes changed since, and
+any blurred photo with EXIF. The locked split hash covers every photo's labels (text, box, category, unsure, ignore).
 
 **Split rule `plate-split-v1` (locked).** Union of photos that share a plate key (same car on different days never in
 train and test); plate-less photo = own group; sha256("lensiq-plate-split:v1:" + group) → first 8 hex mod 100: < 70 train,
