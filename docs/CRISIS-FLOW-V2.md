@@ -131,3 +131,17 @@ Changes in `fortune-crisis.js` (and the same 想死你 exception in `fortune-ai.
 - Name fields: a distress word always gives the soft step; a short ordinary question or topic phrase ("will I get the job?",
   "ปีนี้จะได้ย้ายงานไหม", "今年会升职吗") or hyperbole does not; otherwise the round-3 rules (more than 3 words, pronoun / verb,
   digits) stay, so every older locked name case keeps its soft step.
+
+### Review 2026-11-14 fixes (independent review of a0ec6f0; set fortune-honest__fresh-2026-11-14 now spent)
+
+- Rule d: the fixed "principle" paragraph that names the straight option (14 fortune pages, palm's ethics line) carries
+  `data-lq-straight` and is hidden in a calm or crisis tab (`styles.css` and the calm styles in `fortune-crisis.js`).
+- Rule e: links to pricing / plans and to the report refund terms (`a[href*="pricing.html"]`, `terms.html#t9`, the report
+  footer's `data-lq-paid-link`) are hidden in a calm or crisis tab on every page, including the site menu.
+- Detection v3, by family (dev = the spent set; held-out variants builder-written; the calm filter now also reads the Thai
+  canonical copy): stockpiled or finished pills, rooftop / bridge / jump now or tonight, rope bought, burns and cuts (incl.
+  "cut แขน"), abuse disclosures (touching, threats to kill, beatings with an object, starving / locking in), "end it all",
+  done for good, checking out, ctb, overdose questions, notes written for the family, a planned last day, not waking up,
+  a death dream wished true, 楼顶 / 天台 + 跳, 用刀划自己, 想s / 自sha, 威胁要杀我, 一睡不醒, 消失算了; farewell hand-overs of a pet
+  get the soft step. Hyperbole taken out before the soft check: X แทบตาย, ตายแล้ว! + a slip, a pet that died, workload
+  หนักจะตาย, starving (to death), killed it, drop-dead …, a phone / laptop that died, 夢到 … dream questions.

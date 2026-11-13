@@ -49,6 +49,18 @@
     /เตรียม(?:เชือก|ถ่าน)|เตรียมยา(?:นอนหลับ|ฆ่าแมลง|พิษ)|เตรียมยา[^\s]{0,12}(?:หลายแผง|หลายขวด|ทีเดียว|ให้หมด)|ยา[^\s]{0,16}(?:กิน|ทาน|กลืน)[^\s]{0,4}(?:ทีเดียว|รวดเดียว)/,
     /ตั้งใจ(?:กิน|ทาน|กลืน)[^\s]{0,8}(?:ให้หมด|ทีเดียว|รวดเดียว)|จบ[^\s]{0,10}ด้วยมือ(?:ของ)?(?:ตัวเอง|ตนเอง)|ไม่มีเหตุผล(?:ที่)?(?:จะ)?(?:อยู่|มีชีวิต)/,
     /ไม่อยาก(?:live|exist|bealive|alive|stayalive)/i,
+    // detection v3 (review 2026-11-14, spent set as dev data): stockpiled / taken pills, rooftop, rope bought, burns and cuts,
+    // abuse disclosures (touching, threats to kill, beatings with an object), a planned last day, not waking up, a death dream wished true
+    /(?:เก็บ|สะสม|ตุน)ยา[^\s]{0,12}(?:หลายแผง|หลายขวด|หลายกล่อง|เป็นกล่อง|เป็นกำ|ไว้เยอะ)|(?:กิน|ทาน|กลืน)ยา[^\s]{0,6}หมด(?:แผง|ขวด|กระปุก|กล่อง)(?!ตาม)/,
+    /ดาดฟ้า[^\s]{0,26}(?:กระโดด|โดด)|(?:กระโดด|โดด)(?:ลง)?(?:จาก)?(?:ตึก|สะพาน|ดาดฟ้า|ที่สูง)|(?:ซื้อ|เตรียม)เชือก(?:มา)?(?:แล้ว|ไว้แล้ว|ไว้ใน(?:ห้อง|บ้าน))/,
+    new RegExp(String.raw`(?:บุหรี่|ไฟแช็ก|ไฟแช็ค|เหล็กร้อน)[^\s]{0,6}(?:จี้|ลน|นาบ)[^\s]{0,6}(?:แขน|ขา|มือ|ตัว)|(?:มีด|ใบมีด|คัตเตอร์)[^\s]{0,4}(?:กรีด` +
+      String.raw`|แทง|เฉือน|ปาด)(?:แขน|ข้อมือ|ขา|คอ|ตัวเอง)|(?:แทง|กรีด)(?:คอ|แขน|ข้อมือ)?ตัวเอง`),
+    new RegExp(String.raw`(?:พ่อเลี้ยง|แม่เลี้ยง|ลุง|น้า|อา|ครู|พี่ชาย|ญาติ|พ่อ)[^\s]{0,6}(?:แตะต้อง|ลูบคลำ|ลูบ|จับ)(?:ตัว)?(?:หนู` +
+      String.raw`|ฉัน|ผม)|(?:สามี|ผัว|แฟน|เมีย|ภรรยา|พ่อ|แม่|พ่อเลี้ยง|แม่เลี้ยง)[^\s]{0,4}ขู่(?:ว่า)?(?:จะ)?ฆ่า`),
+    /(?:พ่อ|แม่|สามี|ผัว|แฟน|พ่อเลี้ยง|แม่เลี้ยง|ลุง|ป้า)[^\s]{0,3}ตี(?:หนู|ฉัน|ผม|เรา)?ด้วย(?:ไม้แขวนเสื้อ|เข็มขัด|ไม้|สายไฟ|ไม้เรียว)/,
+    new RegExp(String.raw`วางแผน[^\s]{0,30}(?:วันสุดท้าย|จะจากไป)|(?:หลับ|นอน)[^\s]{0,10}ไม่(?:ต้อง)?ตื่น(?:มา|ขึ้นมา)?(?:อีก)?(?:เลย)?(?:คง` +
+      String.raw`|ก็)?ดี|ตาย[^\n]{0,30}อยากให้(?:มัน)?เป็น(?:เรื่อง)?จริง|จบมัน(?:เลย|ซะ(?:ที)?)ดีกว่า`),
+    /\bcut(?:แขน|ข้อมือ|ตัวเอง)|jump(?:off)?(?:ลง)?(?:จาก)?(?:ตึก|สะพาน|ดาดฟ้า)/i,
   ].map(toneless);
   const EN = [
     // detection v2 (2026-11-13): no reason to live, not worth living, done with life, method + myself, preparing the means,
@@ -57,6 +69,18 @@
     /\b(?:life|living) (?:is ?n['’]?t|is not|ain['’]?t) worth (?:living|it)\b|\bnot worth living\b|\bdone with (?:life|living)\b/i,
     /\b(?:shoot|hang|drown|stab|poison|gas|electrocute) myself\b|\bend (?:my|this) (?:suffering|pain)\b/i,
     /\b(?:bought|got|have|saved(?: up)?|collected|stocked up on|ready) (?:a |the |some |enough |all the )?(?:rope|pills)\b|\bwan(?:t(?:ed)?|na) (?:to |2 )?di+e+\b/i,
+    // detection v3 (review 2026-11-14, spent set as dev data)
+    /\bend(?:ing)? (?:it all|everything)\b|\bdone for good\b|\bno point anymore\b|\bctb\b|\bcheck(?:ing)? out (?:of life|for good|permanently)\b/i,
+    /\b(?:standing |sitting )?(?:on|at) (?:the )?(?:edge of (?:the )?)?(?:bridge|roof|rooftop|ledge)\b.{0,24}\b(?:right now|tonight|jump)\b|\bstanding on the (?:bridge|roof|rooftop|ledge)\b/i,
+    /\b(?:going to|gonna|will|about to|want to) jump(?: off)?\b(?! (?:rope|start|in|on board|into))|\bjump(?: off)? (?:\w+ )?tonight\b/i,
+    new RegExp(String.raw`\b(?:took|taken|swallowed|downed) (?:all|every one of) (?:my|the) (?:meds|medication|medicine|pills|tablets)\b` +
+      String.raw`|\bhow many (?:paracetamol|tylenol|panadol|pills|sleeping pills|tablets)\b.{0,24}\b(?:take|kill|enough` +
+      String.raw`|overdose)\b`, "i"),
+    /\bwr(?:ote|itten) (?:the |my )?(?:goodbye|suicide|farewell|last) (?:notes?|letters?)\b|\bwr(?:ote|itten) the notes? for my family\b/i,
+    /\bburn(?:ing|ed|s)? (?:my ?self|my (?:arms?|skin|wrists?|legs?))\b|\bcigarette burns?\b|\bburning myself\b/i,
+    new RegExp(String.raw`\b(?:dad|father|mom|mum|mother|stepdad|stepmom|stepfather|stepmother|uncle|brother|husband|boyfriend|partner)\b[^.]{0,20}\b(?:beats` +
+      String.raw`|hits|whips|kicks|touches|starves|locks) (?:me|us)\b(?! up)|\bstarv(?:es|ed|ing) (?:me|us)\b|\block(?:s` +
+      String.raw`|ed)? (?:me|us) (?:in|up)\b`, "i"),
     /\b(?:want(?:s|ed|ing)?|wanna|going) (?:to|2) die\b|\bwanna die\b|\bkill (?:my ?self|myself)\b|\bkms\b|\bunalive\b|\bend (?:my|my own) life\b|\bsuicidal\b/i,
     /\bdon'?t want to (?:be here|exist|live|be alive|wake up)\b|\bjump(?:ing)? off (?:a|the) (?:bridge|building|roof|cliff)\b|\bbetter off dead\b/i,
     /\btake (?:all|all of) (?:my|the) (?:pills|meds|tablets|sleeping pills)\b|\bhang myself\b|\bslit my wrists?\b/i,
@@ -77,6 +101,8 @@
   ];
   const ZH = [
     // detection v2 (2026-11-13): 了结 / 了断 oneself, preparing the means, no reason to live
+    // detection v3 (review 2026-11-14): rooftop / bridge + jump, cutting oneself, 想s / 自sha, threats to kill, never waking up, disappearing
+    /(?:楼顶|天台|楼上|桥上)[^。]{0,8}跳|(?:用刀|拿刀|刀片)[^。]{0,3}(?:划|割|刺)自己|(?:割|划伤)自己|想s(?![a-z])|自sha|威胁(?:说)?要杀(?:了)?我|一睡不醒|再也不(?:要)?醒|消失算了|消失就好/i,
     /了结(?:自己|此生|生命|我自己|一切)|了断(?:自己|此生)?|准备(?:好)?了?(?:绳子|药|炭|刀)|活着没有?(?:任何)?理由|没有活下去的理由/,
     /自杀|自尽|轻生|想死(?!的心|你|您|妳)|活不下去|活着没意思|活着好累|不想(?:再)?醒来|想消失|结束一切|结束(?:自己的)?生命|自残|自伤|割腕|跳楼|寻死|吞药|服药过量|家暴|家庭暴力|性侵|强奸/,
     /被(?:人)?(?:打|殴打|袭击|虐待|性侵|强奸|侵犯|猥亵)/,
@@ -96,7 +122,7 @@
     媽: "妈", 強: "强", 姦: "奸", 藥: "药", 過: "过", 會: "会", 沒: "没", 義: "义", 時: "时", 讓: "让", 動: "动", 橋: "桥", 頂: "顶", 後: "后", 來: "来", 說: "说",
     話: "话", 無: "无", 戀: "恋", 毆: "殴", 決: "决", 斷: "断", 盡: "尽", 尋: "寻", 燒: "烧", 掛: "挂", 臥: "卧", 軌: "轨", 師: "师", 褻: "亵", 跡: "迹", 剎: "刹", 襲: "袭", 擊: "击",
     著: "着", 撐: "撑", 遺: "遗", 書: "书", 發: "发", 關: "关", 係: "系", 間: "间", 帶: "带", 頸: "颈", 腳: "脚",
-    準: "准", 備: "备", 繩: "绳", 別: "别", 條: "条", 訊: "讯", 見: "见", 們: "们", 麼: "么", 夢: "梦", 歡: "欢" };
+    脅: "胁", 準: "准", 備: "备", 繩: "绳", 別: "别", 條: "条", 訊: "讯", 見: "见", 們: "们", 麼: "么", 夢: "梦", 歡: "欢" };
   const T2S_RE = new RegExp("[" + Object.keys(T2S).join("") + "]", "g");
   /** true when the text shows a crisis signal @param {any} text */
   // English copies: leetspeak undone (0→o 1→i 3→e 4→a @→a $→s), spaces collapsed; letter-spaced runs ("I w a n t t o d i e") joined
@@ -157,7 +183,11 @@
   ];
   /* detection v2 (2026-11-13): everyday hyperbole is taken out before the soft check (หิวจะตาย, dying of laughter, 笑死了 …);
      the hard net never sees this list (it runs on the raw text) */
-  const IDIOMS = [toneless(/(?:หิว|ร้อน|ขำ|ง่วง|หนาว|อร่อย|สวย|น่ารัก|ตลก|เผ็ด|เมื่อย|เบื่อ|หอม|ฮา)(?:จน)?(?:แทบ)?(?:จะ)?ตาย(?:อยู่แล้ว|แล้ว|เลย)?/g),
+  const IDIOMS = [toneless(/(?:หิว|ร้อน|ขำ|ง่วง|หนาว|อร่อย|สวย|น่ารัก|ตลก|เผ็ด|เมื่อย|เบื่อ|หอม|ฮา|หนัก)(?:จน)?(?:แทบ)?(?:จะ)?ตาย(?:อยู่แล้ว|แล้ว|เลย)?/g),
+    // detection v3: "X แทบตาย" (เหนื่อยแทบตาย, รักเธอแทบตาย), the exclamation ตายแล้ว! before a slip, a pet or a plant that died
+    toneless(new RegExp(String.raw`(?<!อยาก|จะ)[^\sอ]{0,10}แทบ(?:จะ)?ตาย|(?<!อยาก|จะ|ไม่)ตายแล้ว[!！]*(?=ลืม|เผลอ|พลาด|สาย|ทำ(?:ของ)?หาย|โทรศัพท์)` +
+      String.raw`|(?:แมว|หมา|สุนัข|ปลา|นก|กระต่าย|ต้นไม้)(?:ที่บ้าน|ของ(?:ฉัน|เรา|หนู|ผม))?ตาย`, "g")),
+    /\bstarving(?: to death)?\b|\bkill(?:ed|ing)? it\b|\bdrop[- ]dead \w+|\b(?:phone|laptop|battery|car|computer|tv|printer|plant)s? (?:just |has |have )?(?:died|is dead|is dying)\b/gi,
     new RegExp(String.raw`\bdying (?:of|from) (?:laughter|laughing)\b|\bdying to (?:know|see|try|hear|meet|go|find out|read|get)\b|` +
       String.raw`\b(?:traffic|heat|weather|work|job|homework|exams?|commute|deadlines?|this|it|wait(?:ing)?|suspense|boss|cold|noise|joke|cramp)\b[^.?!]{0,12}\b(?:is|are|was) killing me\b|` +
       String.raw`\b(?:could|would|'d) kill for\b|\bkilling it\b|\bdead tired\b|\b(?:bored|scared|worried|tickled|freezing) to death\b|\b(?:this|that) joke killed me\b`, "gi"),
@@ -168,7 +198,7 @@
   const hasIdiom = (/** @type {string} */ t) => { const x = idiomBase(t); return IDIOMS.some(re => { re.lastIndex = 0; const r = re.test(x); re.lastIndex = 0; return r; }); };
   const FORTUNE_CTX = [/ไพ่(?:ใบ)?ความตาย|ไพ่\s*Death|ฝัน[^\n]{0,30}/g,
     /\b(?:the )?Death(?=[^.?]{0,25}\bcards?\b)|\bDeath card\b|\bDeath (?:reversed|upright)\b|\bdream\w*\b[^.?]{0,50}|\bdead tired\b|\bkill(?:ing)? (?:time|it)\b/gi,
-    /死神牌?|梦见[^。？]{0,12}|梦到[^。？]{0,12}|夢見[^。？]{0,12}/g];
+    /死神牌?|梦见[^。？]{0,12}|梦到[^。？]{0,12}|夢見[^。？]{0,12}|夢到[^。？]{0,12}/g];
   /** ambiguous distress words (fortune vocabulary removed first) @param {any} text */
   function soft(text) {
     let t = unjoke(text);
@@ -178,8 +208,10 @@
     return SOFT[0].test(th) || SOFT[1].test(enCopy(t)) || SOFT[2].test(zh) || FAREWELL.some(re => re.test(th) || re.test(t) || re.test(zh));
   }
   // detection v2 (2026-11-13): farewell / last-time wording gets at least the soft step
-  const FAREWELL = [toneless(/คงไม่ได้เจอ(?:กัน)?อีก|ครั้งสุดท้าย(?:ก่อน|ที่ได้)|สุดท้ายก่อนไป|จดหมายถึง[^\s]{0,12}ไว้แล้ว/),
-    /\b(?:this is )?my (?:last|final) (?:message|goodbye|post|words|note)\b|\bgoodbye (?:everyone|everybody|world|all)\b|\bfinal goodbye\b/i,
+  const FAREWELL = [toneless(new RegExp(String.raw`คงไม่ได้(?:เจอ(?:กัน)?|กลับมา)(?:อีก)?แล้ว|ฝาก(?:ดูแล|เลี้ยง)(?:แมว|หมา|สุนัข|ลูก)|คงไม่ได้เจอ(?:กัน)?อีก|` +
+    String.raw`ครั้งสุดท้าย(?:ก่อน|ที่ได้)|สุดท้ายก่อนไป|จดหมายถึง[^\s]{0,12}ไว้แล้ว`)),
+    new RegExp(String.raw`\b(?:this is )?my (?:last|final) (?:message|goodbye|post|words|note)\b|\b(?:good)?bye (?:everyone|everybody` +
+      String.raw`|world|all)\b|\bfinal goodbye\b|\b(?:look after|take care of) my (?:dog|cat|pets?|kids?) (?:when|after) I'?m gone\b`, "i"),
     /永别|再见了.{0,8}最后|这是(?:我)?最后一次|最后一条(?:消息|信息)|遗言/];
   // detection v2 (2026-11-13): a name field gets the soft step for a distress word; an ordinary short question or topic phrase
   // ("will I get the job?", "ปีนี้จะได้ย้ายงานไหม", "今年会升职吗") or everyday hyperbole does not; otherwise the round-3 rules
@@ -335,6 +367,9 @@
   function sessionOn() { try { const st = root.sessionStorage; return !!(st && st.getItem(SESSION_KEY) === "1"); } catch (e) { return false; } }
   function sessionSet() { try { const st = root.sessionStorage; if (st) st.setItem(SESSION_KEY, "1"); } catch (e) { /* private mode: page-level only */ } }
   const CALM_CSS = "html[data-lq-calm] [data-lq-remedy],html[data-lq-calm] [data-lq-upsell],html[data-lq-crisis] [data-lq-upsell]{display:none!important}" +
+    // review 2026-11-14 (rules d, e): the straight-option paragraph and links to pricing / plans / refunds (same rule in styles.css)
+    "html[data-lq-calm] [data-lq-straight],html[data-lq-calm] [data-lq-paid-link],html[data-lq-calm] a[href*=\"pricing.html\"]," +
+    "html[data-lq-calm] a[href*=\"terms.html#t9\"]{display:none!important}" +
     "html[data-lq-calm] .fa-straight{display:none!important}" +
     ".lq-helpline-calm,.lq-helpline-dock{position:sticky;bottom:0;z-index:5;box-shadow:0 -2px 10px rgba(20,50,74,.18)}";
   /** mark this page calm (attribute + styles; page-level, nothing stored) @param {any} [doc] */
