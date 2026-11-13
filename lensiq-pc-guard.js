@@ -642,8 +642,11 @@
       const before = t.slice(Math.max(0, at - 40), at);
       const barcode = eanOk(m[0]) && (/^885/.test(m[0]) || /(?:บาร์โค้ด|บาร์โค๊ด|barcode|bar\s*code|EAN|GTIN|GS1|UPC|\(01\)|条码|條碼)[^\n\d]{0,20}$/iu.test(before));
       if (barcode) continue;
-      // a valid Korean (880) / Japanese (45, 49) EAN-13 printed alone on a Korean / Japanese label is a barcode (stream F)
-      if (eanOk(m[0]) && ((/^880/.test(m[0]) && /[가-힯]/u.test(t)) || (/^4[59]/.test(m[0]) && /[ぁ-ヿ]/u.test(t))) && !ID_KEY.test(t.slice(Math.max(0, at - 60), at))) continue;
+      // a valid Korean (880) / Japanese (45, 49) EAN-13 on a Korean / Japanese label is a barcode (stream F), but ONLY when the
+      // text has no Thai at all: a Thai ID with those first digits passes the EAN check about 1 time in 10 (independent review
+      // 2026-11-13: "ยาแก้ไอ … 4500001662994 … パブロン" lost the ID), and a Thai text keeps the Thai-ID rule unchanged
+      if (eanOk(m[0]) && !/[ก-๙]/u.test(t) && ((/^880/.test(m[0]) && /[가-힯]/u.test(t)) || (/^4[59]/.test(m[0]) && /[ぁ-ヿ]/u.test(t))) &&
+        !ID_KEY.test(t.slice(Math.max(0, at - 60), at))) continue;
       if (ID_KEY.test(t.slice(Math.max(0, at - 60), at)) || (alone && thaiIdOk(m[0]) && /^[1-8]/.test(m[0]))) hits.push({ kind: "id", start: at, end: at + 13 });
     }
     for (const m of t.matchAll(/(?<![\dA-Za-z])\d{17}[\dXx](?![\dA-Za-z])/gu)) {
