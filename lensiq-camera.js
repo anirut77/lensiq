@@ -438,8 +438,13 @@
       video.muted = true; video.playsInline = true; video.autoplay = true;
       video.setAttribute("playsinline", ""); video.setAttribute("muted", "");
       video.srcObject = s;
-      try { await video.play(); } catch (e) { if (e.name !== "AbortError") throw e; }
-      if (!video.videoWidth) await new Promise(r => { const t = setTimeout(r, 4000); video.addEventListener("loadedmetadata", () => { clearTimeout(t); r(); }, { once: true }); });
+      // play() settles only when a frame arrives: a camera that opens but sends nothing (seen on Linux WebKit; a stalled
+      // phone camera) must not hang start() for ever. Wait at most 4 s, like the metadata wait below.
+      let playT = 0, noFrame = false;
+      try { await Promise.race([video.play(), new Promise(r => { playT = setTimeout(() => { noFrame = true; r(); }, 4000); })]); }
+      catch (e) { if (e.name !== "AbortError") throw e; }
+      finally { clearTimeout(playT); }
+      if (!video.videoWidth && !noFrame) await new Promise(r => { const t = setTimeout(r, 4000); video.addEventListener("loadedmetadata", () => { clearTimeout(t); r(); }, { once: true }); });
       if (my !== gen) throw named("AbortError", "superseded");
       if (opt.persistKey && deviceId) lsSet(opt.persistKey, JSON.stringify({ deviceId, label }));
       if (opt.torch && torchSupported) { torchOn = false; await setTorch(true); }
