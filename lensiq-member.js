@@ -190,7 +190,14 @@
   }
   function token() { return sess && sess.t ? String(sess.t) : ""; }
   function active() { return gateOn(st.cfg, clientId()); }
-  function possible() { return signInPossible(st.cfg, clientId()); }
+  function googleOn() { return signInPossible(st.cfg, clientId()); }
+  /** stream G: LINE Login offered by the Worker (/v1/config membership.line_enabled; the Worker refuses it otherwise) */
+  function lineOn() { return !!(st.cfg && st.cfg.membership && st.cfg.membership.line_enabled); }
+  function possible() { return googleOn() || lineOn(); }
+  /** sign-in label for the header / buttons: names the provider(s) that are actually on */
+  function signInLabel() {
+    return googleOn() && lineOn() ? T("mem.chip.signinAny", "เข้าสู่ระบบ") : lineOn() ? T("mem.chip.signinLine", "เข้าสู่ระบบด้วย LINE") : T("mem.chip.signin", "เข้าสู่ระบบด้วย Google");
+  }
   function ms() { return (st.cfg && st.cfg.membership) || {}; }
 
   /** fetch helper that keeps the error code ({ok, status, j}); bearer auth when signed in. Goes through LQApi.call
@@ -238,10 +245,13 @@
     };
     Promise.resolve(a.config()).then(function (/** @type {any} */ cfg) {
       if (cfg) { st.cfg = cfg; ss.set(CFG_KEY, { membership: cfg.membership || null, pricing_enabled: !!cfg.pricing_enabled, billing_enabled: !!cfg.billing_enabled, free_mode: cfg.free_mode }); }
+      return lineReturn();
+    }).then(function () {
       return possible() || token() ? refresh() : null;
     }).then(function () {
       if (st.me) claimPending();
       done();
+      if (lineNote) { toast(lineNote.text); try { root.dispatchEvent(new CustomEvent("lq-line", { detail: lineNote })); } catch (e) { /* old browser */ } }
     }).catch(function () { done(); }); // a failed probe must not leave pages waiting for "lq-member-ready"
   }
 
@@ -280,6 +290,7 @@
     ".lq-toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2147483000;padding:10px 16px;border-radius:999px;background:#0e1430;color:#fff;font-size:.9rem;max-width:calc(100vw - 32px - env(safe-area-inset-left) - env(safe-area-inset-right));pointer-events:none;box-shadow:0 8px 24px rgba(14,20,48,.25);text-align:center}" +
     "@media print{.lq-up,.lq-gate .lq-gate-alt,.lq-toast{display:none}}" +
     ".lq-acct-btn{position:relative}.lq-dot{position:absolute;top:2px;right:2px;width:10px;height:10px;border-radius:50%;background:#d39400;border:2px solid #fff}.lq-acct-menu a.lq-renew{color:#7a4d00;font-weight:600}" +
+    ".lq-btn.lq-line{background:#06C755;border-color:#06C755;color:#fff}" +
     "@media (prefers-color-scheme:dark){.lq-gate{border-color:rgba(169,155,255,.4)}}";
   function ensureStyle() {
     if (doc.getElementById("lq-member-style") || !doc.head) return;
@@ -332,7 +343,8 @@
         el("li", { text: T("mem.gate.b2", "แผนปรับ 3 ข้อที่ทำได้จริง") }),
         el("li", { text: T("mem.gate.b3", "บันทึกประวัติการดูดวงและพิมพ์ / บันทึกเป็น PDF") })));
     if (light && light.hiddenSections && !over) box.appendChild(el("p", { class: "lq-gate-n", text: T("mem.gate.hidden", "ยังมีอีก {n} หัวข้อในฉบับเต็ม", { n: light.hiddenSections }) }));
-    var b = el("button", { type: "button", class: "lq-btn", "data-lq-signin": "", text: T("mem.signin.free", "เข้าสู่ระบบฟรีด้วย Google") });
+    var b = el("button", { type: "button", class: "lq-btn", "data-lq-signin": "", text: googleOn() ? T("mem.signin.free", "เข้าสู่ระบบฟรีด้วย Google") : T("mem.signin.freeLine",
+        "เข้าสู่ระบบฟรีด้วย LINE") });
     b.addEventListener("click", function () { openSignIn(); });
     box.appendChild(b);
     // a one-time full report as the paid alternative — only while the owner has the pricing page on
@@ -491,6 +503,87 @@
   /** For pages without FortuneAI.renderSections (fortune-kit.js plain fallback): the gated result + card. */
   function gate(res) { return gateResult(res); }
 
+  /* ---------------- LINE Login (stream G): redirect round trip, no LINE script on our pages ---------------- */
+  var LINE_KEY = "lq-line-flow";
+  /** @type {any} */
+  var lineNote = null;
+  var LINE_ERR = {
+    line_state: ["mem.line.state", "การเข้าสู่ระบบด้วย LINE หมดเวลาหรือไม่ได้เริ่มจากแท็บนี้ กรุณาลองใหม่"],
+    line_already_linked: ["mem.line.taken", "บัญชี LINE นี้เชื่อมกับบัญชี LENSIQ อื่นอยู่แล้ว เราไม่รวมสองบัญชีเข้าด้วยกัน"],
+    reauth_wrong_account: ["mem.line.wrong", "กรุณาใช้บัญชี LINE เดียวกับที่เชื่อมไว้"],
+    reauth_stale: ["mem.line.stale", "การยืนยันต้องทำใหม่ล่าสุด กรุณาลองอีกครั้ง"],
+    line_not_configured: ["mem.err.unavailable", "ระบบสมาชิกยังไม่พร้อมใช้งาน"],
+    consent_required: ["mem.err.consent", "กรุณายอมรับข้อกำหนดและนโยบายความเป็นส่วนตัว"],
+    account_disabled: ["mem.err.disabled", "บัญชีนี้ถูกระงับ กรุณาติดต่อฝ่ายสนับสนุน"]
+  };
+  var lineErrText = function (/** @type {any} */ r) { var e = LINE_ERR[r && r.j && r.j.code] || ["mem.line.fail", "เข้าสู่ระบบด้วย LINE ไม่สำเร็จ กรุณาลองใหม่"]; return T(e[0], e[1]); };
+  /** Starts a LINE round trip: signin (Turnstile), link or reauth (member token). Keeps the browser binding in this tab's
+   *  sessionStorage and leaves for LINE's consent page. Resolves the start response when it could not leave.
+   *  @param {"signin"|"link"|"reauth"} mode @param {{accept?: boolean, marketing?: boolean, remember?: boolean}} [o] */
+  function startLine(mode, o) {
+    o = o || {};
+    var a = API();
+    var tk = mode === "signin" && a && a.turnstile ? a.turnstile("signin") : "";
+    return Promise.resolve(tk).then(function (t) {
+      return call("/api/auth/line/start", { method: "POST", auth: mode !== "signin", headers: t ? { "X-Turnstile-Token": t } : {},
+        body: { mode: mode, accept_terms: !!o.accept, consent_version: CONSENT_VERSION, marketing_opt_in: !!o.marketing } });
+    }).then(function (r) {
+      var u = r && r.ok && r.j ? String(r.j.authorize_url || "") : "";
+      // only LINE's own consent page (or this site) — never an address of another site
+      if (!u || !(/^https:\/\/access\.line\.me\//.test(u) || u.indexOf(root.location.origin + "/") === 0)) return Object.assign({ left: false }, r);
+      ss.set(LINE_KEY, { binding: String(r.j.binding), mode: mode, remember: !!o.remember, at: Date.now() });
+      root.location.assign(u);
+      return Object.assign({ left: true }, r);
+    });
+  }
+  /** Back from LINE (?code&state, or ?error when the person cancelled): finish once, then clean the address bar. */
+  function lineReturn() {
+    var flow = ss.get(LINE_KEY), q;
+    try { q = new URLSearchParams(root.location.search); } catch (e) { return null; }
+    var code = q.get("code"), state = q.get("state"), err = q.get("error");
+    if (!flow || (!code && !err)) return null;
+    ss.set(LINE_KEY, null);
+    try { root.history.replaceState(null, "", root.location.pathname + root.location.hash); } catch (e) { /* old browser */ }
+    if (err || !code || !state || Date.now() - Number(flow.at || 0) > 600000) {
+      lineNote = { mode: flow.mode, ok: false, text: err ? T("mem.line.cancel", "ยกเลิกการเข้าสู่ระบบด้วย LINE แล้ว") : T("mem.line.state",
+          "การเข้าสู่ระบบด้วย LINE หมดเวลาหรือไม่ได้เริ่มจากแท็บนี้ กรุณาลองใหม่") };
+      return null;
+    }
+    return call("/api/auth/line/finish", { method: "POST", auth: flow.mode !== "signin", body: { code: code, state: state, binding: flow.binding } }).then(function (r) {
+      if (flow.mode === "signin" && r.ok && r.j && r.j.token) {
+        saveSession({ t: r.j.token, exp: r.j.expires_at }, !!flow.remember);
+        lineNote = { mode: "signin", ok: true, text: T("mem.welcome", "เข้าสู่ระบบแล้ว ยินดีต้อนรับ") };
+      } else if (flow.mode === "link" && r.ok) lineNote = { mode: "link", ok: true, text: T("mem.line.linked", "เชื่อมบัญชี LINE แล้ว") };
+      else if (flow.mode === "reauth" && r.ok) lineNote = { mode: "reauth", ok: true, text: T("mem.line.reauthOk", "ยืนยันตัวตนแล้ว ทำรายการต่อได้ภายใน 5 นาที") };
+      else lineNote = { mode: flow.mode, ok: false, code: r.j && r.j.code, text: lineErrText(r) };
+    });
+  }
+  /** Fresh confirmation with LINE (accounts without Google): a small dialog, then the round trip (the page leaves; the
+   *  5-minute window is open when it comes back). Resolves false when cancelled. */
+  function confirmWithLine() {
+    ensureStyle();
+    return new Promise(function (resolve) {
+      var go = el("button", { type: "button", class: "lq-btn", "data-lq-line-reauth": "", text: T("mem.line.reauthGo", "ยืนยันด้วย LINE") });
+      var cancel = el("button", { type: "button", class: "lq-btn ghost", text: T("mem.dlg.cancel", "ยกเลิก") });
+      var stEl = el("p", { class: "st", role: "status", "aria-live": "polite" });
+      var box = el("dialog", { class: "lq-dlg", "aria-labelledby": "lqReLH" },
+        el("div", { class: "lq-dlg-in" },
+          el("h2", { id: "lqReLH", text: T("mem.re.title", "ยืนยันตัวตนอีกครั้ง") }),
+          el("p", { text: T("mem.line.reauthLead", "เพื่อความปลอดภัย การดาวน์โหลด ลบข้อมูล หรือเปลี่ยนสิทธิ์ ต้องยืนยันด้วยบัญชี LINE เดิมอีกครั้ง หลังยืนยันแล้วกดทำรายการอีกครั้งภายใน 5 นาที") })),
+        el("div", { class: "lq-dlg-foot" }, el("div", { class: "row" }, go, cancel), stEl));
+      doc.body.appendChild(box);
+      var done = false;
+      var finish = function (/** @type {boolean} */ ok) { if (done) return; done = true; try { box.close(); } catch (e) { /* old browser */ } box.remove(); resolve(ok); };
+      cancel.addEventListener("click", function () { finish(false); });
+      box.addEventListener("cancel", function () { finish(false); });
+      go.addEventListener("click", function () {
+        go.disabled = true;
+        startLine("reauth").then(function (r) { if (!r.left) { go.disabled = false; stEl.textContent = lineErrText(r); stEl.classList.add("bad"); } });
+      });
+      try { if (typeof box.showModal === "function") box.showModal(); else box.setAttribute("open", ""); } catch (e) { box.setAttribute("open", ""); }
+    });
+  }
+
   /* ---------------- Google Identity Services: loaded on click only ---------------- */
   /** @type {Promise<any>|null} */
   var gsiP = null;
@@ -526,7 +619,9 @@
     var terms = el("input", { type: "checkbox", name: "terms", required: true, autofocus: true, "data-lq-terms": "" });
     var mkt = el("input", { type: "checkbox", name: "marketing" });
     var keep = el("input", { type: "checkbox", name: "remember" });
-    var go = el("button", { type: "button", class: "lq-btn", disabled: true, "data-lq-continue": "", text: T("mem.dlg.continue", "ดำเนินการต่อด้วย Google") });
+    var go = el("button", { type: "button", class: "lq-btn", disabled: true, "data-lq-continue": "", hidden: !googleOn(), text: T("mem.dlg.continue", "ดำเนินการต่อด้วย Google") });
+    // stream G: LINE Login next to Google (scope openid profile: LINE account id + display name; no e-mail, no picture)
+    var lineBtn = lineOn() ? el("button", { type: "button", class: "lq-btn lq-line", disabled: true, "data-lq-line": "", text: T("mem.dlg.line", "ดำเนินการต่อด้วย LINE") }) : null;
     var cancel = el("button", { type: "button", class: "lq-btn ghost", text: T("mem.dlg.cancel", "ยกเลิก") });
     var slot = el("div", { class: "lq-gsi", "data-lq-gsi": "", hidden: true });
     var stEl = el("p", { class: "st", role: "status", "aria-live": "polite" });
@@ -535,12 +630,14 @@
     var roomy = !!(root.matchMedia && root.matchMedia("(min-width: 700px) and (min-height: 700px)").matches);
     dlg = el("dialog", { class: "lq-dlg", "aria-labelledby": "lqDlgH", "data-lq-shared": "" },
       el("div", { class: "lq-dlg-in" },
-        el("h2", { id: "lqDlgH", text: T("mem.dlg.title", "เข้าสู่ระบบด้วย Google") }),
+        el("h2", { id: "lqDlgH", text: googleOn() && lineOn() ? T("mem.dlg.titleAny", "เข้าสู่ระบบด้วย Google หรือ LINE") : lineOn() ? T("mem.dlg.titleLine", "เข้าสู่ระบบด้วย LINE")
+            : T("mem.dlg.title", "เข้าสู่ระบบด้วย Google") }),
         el("p", { text: T("mem.dlg.lead", "สมัครสมาชิกฟรี: อ่านคำทำนายฉบับเต็ม แผนปรับ 3 ข้อ ผู้ช่วยเขียน AI วันละ {n} ครั้ง และเก็บประวัติของคุณไว้ในบัญชี", { n: q.member_ai_daily == null ? 3 : q.member_ai_daily }) }),
         el("details", { class: "lq-notice", open: roomy, "data-lq-keep": "" },
           el("summary", { text: T("mem.dlg.privacy", "ข้อมูลที่เราเก็บและเหตุผล") }),
           el("ul", null,
-            el("li", { text: T("mem.dlg.p1", "อีเมลที่ Google ยืนยันแล้ว รหัสบัญชี Google และชื่อเล่น (ถ้ามี) — ไม่เก็บรูปโปรไฟล์ ไม่เก็บรูปถ่ายหรือข้อมูลใบหน้า") }),
+            googleOn() ? el("li", { text: T("mem.dlg.p1", "อีเมลที่ Google ยืนยันแล้ว รหัสบัญชี Google และชื่อเล่น (ถ้ามี) — ไม่เก็บรูปโปรไฟล์ ไม่เก็บรูปถ่ายหรือข้อมูลใบหน้า") }) : null,
+            lineOn() ? el("li", { text: T("mem.dlg.pLine", "LINE: รหัสบัญชี LINE และชื่อที่แสดง — ไม่ขออีเมล ไม่เก็บรูปโปรไฟล์ ไม่เก็บโทเค็นของ LINE") }) : null,
             el("li", { text: T("mem.dlg.p2", "ใช้เพื่อให้บริการบัญชีสมาชิก นับโควตาการใช้งาน และเก็บประวัติการใช้งาน/การชำระเงิน (ฐานสัญญา ม.24(3) พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล)") }),
             el("li", { text: T("mem.dlg.p3", "ไม่เก็บเนื้อหาคำทำนาย เว้นแต่คุณกดบันทึกเอง · ไม่ใช้อีเมลส่งข่าวสารการตลาด เว้นแต่คุณเลือกรับด้านล่าง") }),
             el("li", { text: T("mem.dlg.p4", "จัดเก็บบน Cloudflare (อาจอยู่นอกประเทศไทย) · ดาวน์โหลดหรือลบข้อมูลและบัญชีได้ทุกเมื่อที่หน้า บัญชีของฉัน") }))),
@@ -552,8 +649,12 @@
       el("div", { class: "lq-dlg-foot", "data-lq-dlg-foot": "" },
         el("div", { class: "row" }, go, slot, cancel),
         stEl));
+    // stream G: the LINE button sits in the same sticky row, before Cancel
+    if (lineBtn) cancel.parentNode.insertBefore(lineBtn, cancel);
     doc.body.appendChild(dlg);
     terms.addEventListener("change", function () {
+      if (lineBtn) lineBtn.disabled = !terms.checked;
+      if (!googleOn()) { say(""); return; }
       go.disabled = !terms.checked;
       if (!terms.checked) { slot.hidden = true; if (go.hidden) { go.hidden = false; go.disabled = true; } say(""); return; }
       if (prepared) { slot.hidden = false; go.hidden = true; say(T("mem.dlg.choose", "เลือกบัญชี Google ของคุณ")); return; }
@@ -564,6 +665,14 @@
     var say = function (t, bad) { stEl.textContent = t; stEl.classList.toggle("bad", !!bad); };
     var nonce = "", prepared = false, preparing = false;
     go.addEventListener("click", function () { if (terms.checked) prepare(); });
+    if (lineBtn) lineBtn.addEventListener("click", function () {
+      if (!terms.checked) return;
+      lineBtn.disabled = true;
+      say(T("mem.line.going", "กำลังไปที่หน้า LINE…"));
+      startLine("signin", { accept: true, marketing: !!mkt.checked, remember: !!keep.checked }).then(function (r) {
+        if (!r.left) { lineBtn.disabled = !terms.checked; say(lineErrText(r), true); }
+      });
+    });
     function prepare() {
       if (!terms.checked || preparing) return;
       preparing = true;
@@ -682,13 +791,13 @@
     var list = h.querySelector(".nav-list");
     if (!st.me) {
       // label text on desktop; a person icon (44 px) on phones — the aria-label keeps the name in both
-      var b = el("button", { type: "button", class: "lq-acct-btn signin", "data-lq-signin": "", "aria-label": T("mem.chip.signin", "เข้าสู่ระบบด้วย Google") });
+      var b = el("button", { type: "button", class: "lq-acct-btn signin", "data-lq-signin": "", "aria-label": signInLabel() });
       b.innerHTML = '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>';
-      b.appendChild(el("span", { class: "lbl", text: T("mem.chip.signin", "เข้าสู่ระบบด้วย Google") }));
+      b.appendChild(el("span", { class: "lbl", text: signInLabel() }));
       b.addEventListener("click", function () { openSignIn(); });
       box.appendChild(b);
       if (list) {
-        var li = el("li", { class: "nav-item lq-acct-item" }), lb = el("button", { type: "button", class: "nav-link", text: T("mem.chip.signin", "เข้าสู่ระบบด้วย Google") });
+        var li = el("li", { class: "nav-item lq-acct-item" }), lb = el("button", { type: "button", class: "nav-link", text: signInLabel() });
         lb.addEventListener("click", function () { openSignIn(); });
         li.appendChild(lb); list.insertBefore(li, list.firstChild);
       }
@@ -697,7 +806,7 @@
       var btn = el("button", { type: "button", class: "lq-acct-btn", "aria-haspopup": "menu", "aria-expanded": "false", "aria-label": T("mem.chip.menu", "บัญชีของฉัน") + ": " + name },
         el("span", { class: "lq-av", "aria-hidden": "true", text: initialOf(st.me) }), el("span", { class: "lbl", text: name }));
       var menu = el("ul", { class: "lq-acct-menu", role: "menu", hidden: true },
-        el("li", { class: "who", role: "presentation", text: st.me.user.email }),
+        el("li", { class: "who", role: "presentation", text: st.me.user.email || st.me.user.display_name || "" }),
         el("li", { role: "presentation" }, el("a", { role: "menuitem", href: "account.html#history", text: T("mem.menu.history", "ประวัติการดูดวงของฉัน") })),
         el("li", { role: "presentation" }, el("a", { role: "menuitem", href: "account.html#plan", text: T("mem.menu.plan", "แพ็กเกจและโควตา") })),
         el("li", { role: "presentation" }, el("a", { role: "menuitem", href: "report.html", text: T("mem.menu.reports", "รายงานดวงของฉัน") })),
@@ -770,7 +879,43 @@
   function withFresh(/** @type {() => Promise<any>} */ fn) {
     return fn().then(function (r) {
       if (!r || r.ok || r.status !== 401 || !r.j || r.j.code !== "reauth_required") return r;
+      // stream G: an account without Google confirms with LINE (round trip; the person repeats the action afterwards)
+      var methods = (st.me && st.me.sign_in_methods) || ["google"];
+      if (methods.indexOf("google") < 0 || !googleOn()) {
+        return (methods.indexOf("line") >= 0 && lineOn() ? confirmWithLine() : Promise.resolve(false)).then(function () { return Object.assign({ cancelled: true }, r); });
+      }
       return confirmWithGoogle().then(function (ok) { return ok ? fn() : Object.assign({ cancelled: true }, r); });
+    });
+  }
+  /** Link Google to a signed-in account without one (POST /api/auth/link/google with a fresh ID token + nonce). */
+  function linkGoogle() {
+    ensureStyle();
+    return new Promise(function (resolve) {
+      var slot = el("div", { class: "lq-gsi", "data-lq-gsi": "" });
+      var stEl = el("p", { class: "st", role: "status", "aria-live": "polite", text: T("mem.dlg.loading", "กำลังเปิดหน้าต่าง Google…") });
+      var cancel = el("button", { type: "button", class: "lq-btn ghost", text: T("mem.dlg.cancel", "ยกเลิก") });
+      var box = el("dialog", { class: "lq-dlg", "aria-labelledby": "lqLinkGH" },
+        el("div", { class: "lq-dlg-in" }, el("h2", { id: "lqLinkGH", text: T("mem.link.gTitle", "เชื่อมบัญชี Google") }),
+          el("p", { text: T("mem.link.gLead", "เลือกบัญชี Google ที่จะใช้เข้าบัญชีนี้ด้วย เราเก็บอีเมลที่ Google ยืนยันแล้วและรหัสบัญชี Google เท่านั้น") })),
+        el("div", { class: "lq-dlg-foot" }, el("div", { class: "row" }, slot, cancel), stEl));
+      doc.body.appendChild(box);
+      var done = false;
+      var finish = function (/** @type {any} */ r) { if (done) return; done = true; try { box.close(); } catch (e) { /* old browser */ } box.remove(); resolve(r); };
+      cancel.addEventListener("click", function () { finish({ ok: false, cancelled: true }); });
+      box.addEventListener("cancel", function () { finish({ ok: false, cancelled: true }); });
+      try { if (typeof box.showModal === "function") box.showModal(); else box.setAttribute("open", ""); } catch (e) { box.setAttribute("open", ""); }
+      Promise.all([loadGsi(), call("/api/auth/nonce", { method: "POST", body: {}, auth: false })]).then(function (x) {
+        var gid = x[0], n = x[1];
+        if (!gid || !n.ok || !n.j || !n.j.nonce) { stEl.textContent = T("mem.err.load", "เปิดหน้าต่างเข้าสู่ระบบของ Google ไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่"); stEl.classList.add("bad"); return; }
+        var nonce = n.j.nonce;
+        gid.initialize({ client_id: clientId(), nonce: nonce, auto_select: false, context: "use", ux_mode: "popup", itp_support: true,
+          callback: function (/** @type {any} */ resp) {
+            call("/api/auth/link/google", { method: "POST", body: { credential: resp && resp.credential, nonce: nonce } }).then(function (r) { finish(r); });
+          } });
+        var lang = W.LQI18N ? W.LQI18N.lang : "th";
+        gid.renderButton(slot, { type: "standard", theme: "outline", size: "large", text: "continue_with", shape: "pill", locale: lang === "zh" ? "zh_CN" : lang });
+        stEl.textContent = T("mem.dlg.choose", "เลือกบัญชี Google ของคุณ");
+      });
     });
   }
 
@@ -820,13 +965,33 @@
         return r;
       });
     },
-    gate: gate, mountNav: mountNav, toast: toast
+    gate: gate, mountNav: mountNav, toast: toast,
+    /* stream G: sign-in methods (Google + LINE) and organisation account lite */
+    googleOn: googleOn, lineOn: lineOn, lineNote: function () { return lineNote; },
+    identities: function () { return call("/api/me/identities"); },
+    linkLine: function () { return startLine("link"); },
+    linkGoogle: linkGoogle,
+    unlink: function (/** @type {string} */ provider) { return withFresh(function () { return call("/api/me/identities/unlink", { method: "POST", body: { provider: provider } }); }); },
+    orgs: function () { return call("/api/me/orgs"); },
+    org: function (/** @type {string} */ id) { return call("/api/orgs/" + encodeURIComponent(id)); },
+    orgProfile: function (/** @type {string} */ id, /** @type {any} */ b) { return call("/api/orgs/" + encodeURIComponent(id) + "/profile", { method: "POST", body: b }); },
+    orgInvite: function (/** @type {string} */ id, /** @type {any} */ b) { return call("/api/orgs/" + encodeURIComponent(id) + "/invites", { method: "POST", body: b }); },
+    orgRevoke: function (/** @type {string} */ id, /** @type {string} */ iid) { return call("/api/orgs/" + encodeURIComponent(id) + "/invites/" + encodeURIComponent(iid), { method: "DELETE" }); },
+    orgAccept: function (/** @type {string} */ tok) { return call("/api/org-invites/accept", { method: "POST", body: { token: tok } }); },
+    orgRole: function (/** @type {string} */ id, /** @type {string} */ uid, /** @type {string} */ role) { return withFresh(function () { return call("/api/orgs/" + encodeURIComponent(id) +
+        "/members/" + encodeURIComponent(uid) + "/role", { method: "POST", body: { role: role } }); }); },
+    orgRemove: function (/** @type {string} */ id, /** @type {string} */ uid) { return withFresh(function () { return call("/api/orgs/" + encodeURIComponent(id) + "/members/" +
+        encodeURIComponent(uid), { method: "DELETE" }); }); },
+    orgTransfer: function (/** @type {string} */ id, /** @type {string} */ uid) { return withFresh(function () { return call("/api/orgs/" + encodeURIComponent(id) + "/transfer",
+        { method: "POST", body: { user_id: uid } }); }); },
+    orgAudit: function (/** @type {string} */ id) { return call("/api/orgs/" + encodeURIComponent(id) + "/audit"); },
+    orgLicences: function (/** @type {string} */ id) { return call("/api/orgs/" + encodeURIComponent(id) + "/licences"); }
   };
   W.LQMember = api;
   // UI strings for 中文 / English (Thai is the default in this file); loaded here because this module itself is
   // injected late — the i18n core's English sibling loader only sees script tags present when the language is applied
   ["zh", "en"].forEach(function (l) {
-    var src = dir + "i18n/" + l + "-member.js?v=1";
+    var src = dir + "i18n/" + l + "-member.js?v=2";
     if (doc.querySelector('script[src*="i18n/' + l + '-member.js"]')) return;
     var sc = doc.createElement("script"); sc.src = src; sc.async = true;
     sc.onload = function () { if (W.LQI18N && W.LQI18N.lang === l) { renderChip(); rerender(); } };

@@ -484,5 +484,7 @@
   "help.line.lead": "If things feel like too much, you can talk to someone: Thai mental health hotline",
   "help.line.free": "free, 24 hours",
   "help.line.emerg": "Medical emergency",
-  "help.line.note": "Outside Thailand, call your local emergency number."
+  "help.line.note": "Outside Thailand, call your local emergency number.",
+  "ft.notice": "The free-tier limits are not enforced yet. We will announce the start date at least 30 days ahead, and the limits start 30 days after the announcement. You can always export your data.",
+  "home.pk.ft": "Fortune and the general tools are free. The business products have a limited free tier: Gate 30-day trial (1 lane, 100 plates per day) · Attendance up to 5 people · Exam up to 5 candidates per session · Crowd 2 hours per device per day"
 } });

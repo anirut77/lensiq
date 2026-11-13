@@ -1540,5 +1540,8 @@
     call("/retention/run", { method: "POST", body: {} }).then(function (/** @type {any} */ r) { $("adRetOut").textContent = JSON.stringify(r, null, 2); }, fail);
   });
 
+  // stream G: the Organisations tab lives in admin-orgs.js (admin.js is at its size cap); it uses these helpers
+  /** @type {any} */ (window).LQAdminKit = { call: call, h: h, G: G, gLang: gLang, msg: msg, fail: fail, baht: baht, loaders: loaders, $: $ };
+
   start();
 })();

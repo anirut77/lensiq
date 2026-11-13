@@ -110,7 +110,8 @@ export default async function ({ base, launch, check }) {
       await page.evaluate(() => { const f = document.getElementById("acOrgInvite"); f.elements.role.value = "staff"; f.requestSubmit(); });
       await page.waitFor(() => /#org_invite=k{43}$/.test((document.getElementById("acOrgInviteLink") || {}).value || ""), 4000);
       const link = await page.evaluate(() => document.getElementById("acOrgInviteLink").value);
-      assert(link.startsWith(location.origin), "absolute link on this site: " + link);
+      assert(link.startsWith(new URL(base).origin), // amendment A-G3: location is not defined in Node
+        "absolute link on this site: " + link);
       await page.evaluate(() => {
         const f = document.getElementById("acOrgBilling");
         f.elements.name.value = "Wat Pho School Foundation"; f.elements.tax_id.value = "0105555555555"; f.elements.address.value = "1 Placeholder Road"; f.elements.branch.value = "Head office"; f.elements.email.value = "billing@example.test";
@@ -142,7 +143,7 @@ export default async function ({ base, launch, check }) {
 
     page = await browser.newPage(null, { initScripts: [MOCK("staff")], isolated: true });
     await check("accounts: invitation link: accept card, accepted with the member token, fragment cleared; staff view hides billing", async () => {
-      await page.goto(`${base}/account.html`);
+      await page.goto(`${base}/help.html`); // amendment A-G4: a hash-only navigation on the same page never fires "load"
       await page.evaluate(() => sessionStorage.setItem("lq-member-session", JSON.stringify({ t: "t".repeat(43), exp: Math.floor(Date.now() / 1000) + 3600 })));
       await page.goto(`${base}/account.html#org_invite=${"k".repeat(43)}`);
       await page.waitFor(() => window.LQMember && window.LQMember.signedIn() && !document.getElementById("acInvite").hidden, 8000);

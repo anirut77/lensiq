@@ -62,6 +62,7 @@
     lastNow = now;
     if (!rule) rule = mkRule(s);
     if (P.zc.demo && !(P.day && P.day.demo)) enterDemo(P); // also after a day rollover during the demo
+    if (!P.zc.demo && /** @type {any} */ (window).LQFreeTier) /** @type {any} */ (window).LQFreeTier.tick("crowd", now); // free-tier counting only (stream G), never blocks
     if (dayRef !== P.day) { if (dayRef && !P.day.demo) pruneDays(); C.ensureDay(P.day); dayRef = P.day; passSeen = new Set(); stopSeen = new Set(); hourSeen = new Set(); counted.clear(); }
     const day = P.day, d = new Date(), h = d.getHours();
     const people = dets.filter(x => x.label === "person");

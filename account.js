@@ -103,7 +103,7 @@
   function renderMe(/** @type {any} */ me) {
     var u = me.user, dl = $("acProfile");
     dl.textContent = "";
-    [[T("acct.p.email", "อีเมล"), u.email], [T("acct.p.name", "ชื่อ"), u.display_name || "—"], [T("acct.p.since", "เป็นสมาชิกตั้งแต่"), day(u.created_at)],
+    [[T("acct.p.email", "อีเมล"), u.email || "—"], [T("acct.p.name", "ชื่อ"), u.display_name || "—"], [T("acct.p.since", "เป็นสมาชิกตั้งแต่"), day(u.created_at)],
       [T("acct.p.last", "เข้าสู่ระบบล่าสุด"), when(u.last_login_at)], [T("acct.p.consentOn", "ยอมรับข้อกำหนดเมื่อ"), day(u.consent_at)]]
       .forEach(function (x) { dl.appendChild(h("dt", { text: x[0] })); dl.appendChild(h("dd", { text: x[1] })); });
     $("acMarketing").checked = !!u.marketing_opt_in;

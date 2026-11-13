@@ -30,6 +30,8 @@ const APPROVED = {
   crowd: { hours_per_device_per_day: 2 }
 };
 const DAY = 86400 * 1000;
+// amendment A-G2 (2026-11-13, before any run passed): arrays made inside the vm context have another realm's prototype, so
+// strict deepEqual against [] always failed; the "over" lists are copied with Array.from (same values compared).
 
 function loadClient() {
   const w = { console };
@@ -82,11 +84,11 @@ test("F3: counting on the device (Bangkok day, levels, trial days); over the lim
   for (let i = 0; i < 100; i++) C.add(s, "gate", "plates", 1, t0);
   let st = C.status(s, "gate", t0);
   assert.equal(st.usage.plates, 100);
-  assert.deepEqual(st.over, []);
+  assert.deepEqual(Array.from(st.over), []);
   assert.equal(st.allowed, true); assert.equal(st.enforced, false);
   C.add(s, "gate", "plates", 1, t0);
   st = C.status(s, "gate", t0);
-  assert.deepEqual(st.over, ["plates_per_day"]);
+  assert.deepEqual(Array.from(st.over), ["plates_per_day"]);
   assert.equal(st.allowed, true, "counting only: never blocks while enforcement is off");
   // a new Bangkok day starts at 00:00 +07:00 (17:00 UTC)
   assert.equal(C.status(s, "gate", Date.parse("2026-11-13T23:59:00+07:00")).usage.plates, 101);
@@ -101,15 +103,15 @@ test("F3: counting on the device (Bangkok day, levels, trial days); over the lim
   assert.ok(C.status(s, "gate", t0 + 30 * DAY).over.includes("trial_days"));
   // attendance people, exam candidates, crowd hours
   C.setLevel(s, "attendance", "people", 5, t0);
-  assert.deepEqual(C.status(s, "attendance", t0).over, []);
+  assert.deepEqual(Array.from(C.status(s, "attendance", t0).over), []);
   C.setLevel(s, "attendance", "people", 6, t0);
-  assert.deepEqual(C.status(s, "attendance", t0).over, ["people"]);
+  assert.deepEqual(Array.from(C.status(s, "attendance", t0).over), ["people"]);
   C.setLevel(s, "exam", "candidates_per_session", 5, t0);
-  assert.deepEqual(C.status(s, "exam", t0).over, []);
+  assert.deepEqual(Array.from(C.status(s, "exam", t0).over), []);
   C.add(s, "crowd", "seconds", 2 * 3600, t0);
-  assert.deepEqual(C.status(s, "crowd", t0).over, []);
+  assert.deepEqual(Array.from(C.status(s, "crowd", t0).over), []);
   C.add(s, "crowd", "seconds", 1, t0);
-  assert.deepEqual(C.status(s, "crowd", t0).over, ["hours_per_device_per_day"]);
+  assert.deepEqual(Array.from(C.status(s, "crowd", t0).over), ["hours_per_device_per_day"]);
   assert.equal(C.status(s, "crowd", t0).allowed, true);
   // bad input is ignored, never throws
   C.add(s, "gate", "plates", -5, t0); C.add(s, "gate", "plates", NaN, t0); C.add(s, "nope", "x", 1, t0);

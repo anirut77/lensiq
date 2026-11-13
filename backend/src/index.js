@@ -36,6 +36,10 @@
 //   POST /v1/tester/check               closed test (tester.js): {ok:true} when X-Tester-Code is valid (or no gate is set)
 //   GET  /v1/merit/guidance              Merit MVP (merit.js): every published belief-guidance item (the device filters)
 //   POST /v1/merit/interest              "request interest" form — OFF unless MERIT_INTEREST_FORM=on (404 merit_interest_off)
+//   Stream G (owner decisions 2026-11-13; identities.js, orgs.js): POST /api/auth/line/start|finish (LINE Login, refused
+//     with 503 line_not_configured until LINE_LOGIN_CHANNEL_ID / _SECRET / _REDIRECT_URI are set), POST /api/auth/link/google,
+//     GET /api/me/identities, POST /api/me/identities/unlink, GET /api/me/orgs, /api/orgs/:id[/profile|invites|members|
+//     transfer|audit|licences], POST /api/org-invites/accept
 // Test deployment switches (tester.js; all unset by default = no change): PUBLIC_ROUTES (allow-list; other public routes
 //   404 route_off before D1), D1_WRITE_BUDGET (429 d1_budget), ADMIN_UNAUTH_WRITES_HOUR, SERVICE_OFF (every public route except /health
 //   -> 503 {off:true}), DAILY_REQUEST_CAP (429 daily_cap), TESTER_GATE + TESTER_ACCESS_CODE (X-Tester-Code on /v1/ai/*,
@@ -77,6 +81,8 @@ import {
 } from "./tester.js";
 import { runMaintenance, retentionConfig } from "./retention.js";
 import * as members from "./members.js";
+import * as identities from "./identities.js";
+import * as orgs from "./orgs.js";
 import * as settings from "./settings.js";
 import { audit, callerHash, hit } from "./store.js";
 import {
@@ -168,7 +174,14 @@ async function publicRoute(request, env, url, deps) {
     const body = async () => readJson(request, 8192);
     if (p === "/api/auth/nonce" && m === "POST") return reply(await members.issueNonce(env, request), 201);
     if (p === "/api/auth/google" && m === "POST") return reply(await members.signInGoogle(env, request, await readJson(request, 8192), deps));
+    // stream G: LINE Login (start checks the member itself for link / reauth; finish reads the optional bearer)
+    if (p === "/api/auth/line/start" && m === "POST") return reply(await identities.startLine(env, request, await readJson(request, 4096), deps), 201);
+    if (p === "/api/auth/line/finish" && m === "POST") return reply(await identities.finishLine(env, request, await readJson(request, 4096), deps));
     const mem = await members.requireMember(env, request);
+    if (p === "/api/auth/link/google" && m === "POST") return reply(await identities.linkGoogle(env, mem, await body(), deps));
+    if (p === "/api/me/identities" && m === "GET") return reply(await identities.listIdentities(env, mem));
+    if (p === "/api/me/identities/unlink" && m === "POST") return reply(await identities.unlinkIdentity(env, mem, await body(), deps));
+    if (p === "/api/me/orgs" && m === "GET") return reply(await orgs.myOrgs(env, mem));
     if (p === "/api/auth/logout" && m === "POST") return reply(await members.logout(env, mem));
     if (p === "/api/auth/refresh" && m === "POST") return reply(await members.refreshSession(env, mem));
     if (p === "/api/me" && m === "GET") return reply(await members.me(env, mem));
@@ -203,6 +216,30 @@ async function publicRoute(request, env, url, deps) {
     const sm = /^\/api\/me\/saved\/([a-f0-9]{32})$/.exec(p);
     if (sm && m === "GET") return reply(await members.getSaved(env, mem, sm[1]));
     if (sm && m === "DELETE") return reply(await members.deleteSaved(env, mem, sm[1]));
+    return reply({ error: "not found" }, 404);
+  }
+  if (p.startsWith("/api/orgs/") || p === "/api/org-invites/accept") {
+    // stream G: organisation account lite (orgs.js). Member bearer required; no customer people data is accepted.
+    if (!originAllowed(request, allow, { required: true })) return reply({ error: "origin not allowed" }, 403);
+    const mem = await members.requireMember(env, request);
+    const body = async () => {
+      const b = request.headers.get("Content-Type") ? await readJson(request, 8192) : {};
+      if (!b || typeof b !== "object" || Array.isArray(b)) throw new HttpError(400, "invalid request body");
+      return b;
+    };
+    if (p === "/api/org-invites/accept" && m === "POST") return reply(await orgs.acceptInvite(env, mem, await body()));
+    const om = /^\/api\/orgs\/([a-f0-9]{32})(?:\/(profile|invites|members|transfer|audit|licences)(?:\/([a-f0-9]{32}))?(?:\/(role))?)?$/.exec(p);
+    if (!om) return reply({ error: "not found" }, 404);
+    const [, id, sub, sid, leaf] = om;
+    if (!sub && m === "GET") return reply(await orgs.orgView(env, mem, id));
+    if (sub === "profile" && !sid && m === "POST") return reply(await orgs.updateProfile(env, mem, id, await body()));
+    if (sub === "invites" && !sid && m === "POST") return reply(await orgs.createInvite(env, mem, id, await body()), 201);
+    if (sub === "invites" && sid && !leaf && m === "DELETE") return reply(await orgs.revokeInvite(env, mem, id, sid));
+    if (sub === "members" && sid && leaf === "role" && m === "POST") return reply(await orgs.setRole(env, mem, id, sid, await body(), deps));
+    if (sub === "members" && sid && !leaf && m === "DELETE") return reply(await orgs.removeMember(env, mem, id, sid, await body(), deps));
+    if (sub === "transfer" && !sid && m === "POST") return reply(await orgs.transferOwner(env, mem, id, await body(), deps));
+    if (sub === "audit" && !sid && m === "GET") return reply(await orgs.orgAuditView(env, mem, id));
+    if (sub === "licences" && !sid && m === "GET") return reply(await orgs.orgLicences(env, mem, id));
     return reply({ error: "not found" }, 404);
   }
   if (p.startsWith("/api/med/")) {
@@ -416,6 +453,29 @@ async function adminRoute(request, env, url, deps) {
     return reply(r);
   }
 
+  // stream G: one organisation (orgs.js). Status changes, owner invitations and licence orders need the owner's re-auth.
+  const og = /^\/orgs\/([a-f0-9]{32})(?:\/(owner-invite|licences|audit)(?:\/([a-f0-9]{32}))?)?$/.exec(route);
+  if (og) {
+    const [, oid, sub, lid] = og;
+    if (!sub && m === "GET") return reply(await orgs.adminOrg(env, oid));
+    if (!sub && m === "PUT") {
+      const b = await body();
+      let rest;
+      if ("status" in b) {
+        try { rest = await auth.requireReauth(env, sess, b); } catch (e) {
+          if (e && e.extra && e.extra.code === "reauth_required") await act("reauth.failed", { route, missing: true });
+          throw e;
+        }
+      } else { const { password: _p, totp: _t, ...r } = b; rest = r; }
+      return reply(await orgs.adminUpdateOrg(env, oid, rest));
+    }
+    if (sub === "owner-invite" && !lid && m === "POST") { await reauthed(); return reply(await orgs.adminOwnerInvite(env, oid), 201); }
+    if (sub === "licences" && !lid && m === "POST") return reply(await orgs.adminAddLicence(env, oid, await reauthed()), 201);
+    if (sub === "licences" && lid && m === "PUT") return reply(await orgs.adminSetLicence(env, oid, lid, await reauthed()));
+    if (sub === "audit" && !lid && m === "GET") return reply(await orgs.adminOrgAudit(env, oid));
+    return reply({ error: "not found" }, 404);
+  }
+
   switch (`${m} ${route}`) {
     case "GET /me": {
       const o = await auth.getOwner(env.DB);
@@ -534,6 +594,10 @@ async function adminRoute(request, env, url, deps) {
       return reply({ audit: rows });
     }
     case "GET /members": return reply(await members.adminMembers(env, Object.fromEntries(url.searchParams)));
+    // stream G: organisation accounts (lite) and back-office licence orders (orgs.js)
+    case "GET /orgs": return reply(await orgs.adminListOrgs(env));
+    case "POST /orgs": return reply(await orgs.adminCreateOrg(env, await body()), 201);
+    case "GET /licence-plans": return reply(await orgs.adminLicencePlans(env));
     case "GET /membership": return reply({ ...(await members.adminMembershipInfo(env)), turnstile: turnstileStatus(env) });
     case "PUT /membership": {
       const input = await reauthed();
@@ -684,7 +748,7 @@ async function adminRoute(request, env, url, deps) {
 
 /** Static admin shell served from the Worker's own origin (Workers Static Assets binding ASSETS, built by
  *  backend/scripts/build-admin.mjs). HTTP headers a <meta> cannot carry: frame-ancestors 'none' + X-Frame-Options. */
-export const ADMIN_ASSETS = new Set(["/admin", "/admin/", "/admin.html", "/admin.js", "/admin.css", "/lensiq-api.js", "/lensiq-config.js",
+export const ADMIN_ASSETS = new Set(["/admin", "/admin/", "/admin.html", "/admin.js", "/admin-orgs.js", "/admin.css", "/lensiq-api.js", "/lensiq-config.js",
   // round 17 P5: AI Gateway section text in English / Chinese (Thai stays the default)
   "/lensiq-i18n.js", "/i18n/zh-admin.js", "/i18n/en-admin.js",
   // first-run setup: QR code of the 2-step verification secret, drawn in the browser (no request carries the secret)

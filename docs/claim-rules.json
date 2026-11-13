@@ -1,5 +1,5 @@
 {
-  "$comment": "Claim and status rules checked by `node tools/accuracy-sync.mjs --check` (npm run accuracy:check) next to docs/accuracy-figures.json. overclaims: a class of wording that claims more than was measured, banned in every user-facing page, nav.js, the en / zh dictionaries and the one-pagers (Fortune content excluded: entertainment, with its own bans). mustSay: the Thai text of every element with data-i18n=key in the listed pages, and the en / zh dictionary value, must contain each token. files: a regex that must (or, with \"not\": true, must not) match a file. Added in the Sellable pack (2026-11-11): hall mode and Crowd labels consistent everywhere, and no page claims more than was measured.",
+  "$comment": "Claim and status rules checked by `node tools/accuracy-sync.mjs --check` (npm run accuracy:check) next to docs/accuracy-figures.json. overclaims: a class of wording that claims more than was measured, banned in every user-facing page, nav.js, the en / zh dictionaries and the one-pagers (Fortune content excluded: entertainment, with its own bans). mustSay: the Thai text of every element with data-i18n=key in the listed pages, and the en / zh dictionary value, must contain each token. files: a regex that must (or, with \"not\": true, must not) match a file. Added in the Sellable pack (2026-11-11): hall mode and Crowd labels consistent everywhere, and no page claims more than was measured. Stream G (2026-11-13): no 'free, every feature' wording; the free tiers and the 30-day notice must be stated (ft.notice, pr.free).",
   "scan": ["*.html", "nav.js", "i18n/en-*.js", "i18n/zh-*.js", "docs/ONE-PAGER-*.md"],
   "exclude": "^(dream|fortune|horoscope|tarot|iching|bazi|taksa|lek7|numbers|fengshui|zodiac|astro|lifegraph|planner|luckycolor|palm|faceread|report)\\.html$|^i18n/(en|zh)-(kb-|rt-fortune|fortune|dream|horoscope|tarot|iching|bazi|taksa|lek7|numbers|fengshui|zodiac|astro|lifegraph|planner|luckycolor|palm|faceread|report)",
   "overclaims": [
@@ -14,7 +14,10 @@
     { "id": "superlative-zh", "re": "(高度|极其|100%)(准确|精准|可靠)|准确(检测|识别|计数)", "why": "accuracy words without a measured number and its source" },
     { "id": "feelings-en", "re": "\\bhow (they|customers|people|viewers) feel\\b", "flags": "i", "why": "facial expressions are estimates, not inner feelings (Barrett et al., 2019)" },
     { "id": "feelings-th", "re": "ลูกค้า[^<\"]{0,20}รู้สึกอย่างไร", "why": "facial expressions are estimates, not inner feelings" },
-    { "id": "feelings-zh", "re": "感受如何", "why": "facial expressions are estimates, not inner feelings" }
+    { "id": "feelings-zh", "re": "感受如何", "why": "facial expressions are estimates, not inner feelings" },
+    { "id": "free-every-feature-th", "re": "ฟรีทุกฟีเจอร์|ทุกฟีเจอร์ฟรี|ใช้งานฟรีทุกระบบ", "why": "free tiers since the owner decision of 2026-11-13: Fortune and the general tools are free; Gate, Attendance, Exam and Crowd have a limited free tier, so 'free, every feature' is no longer true" },
+    { "id": "free-every-feature-en", "re": "\\bfree\\b[^<\"]{0,40}\\bevery feature\\b|\\bevery feature\\b[^<\"]{0,20}\\bfree\\b|\\ball features (are )?free\\b", "flags": "i", "why": "free tiers since the owner decision of 2026-11-13: Fortune and the general tools are free; Gate, Attendance, Exam and Crowd have a limited free tier, so 'free, every feature' is no longer true" },
+    { "id": "free-every-feature-zh", "re": "所有功能免费|全部功能免费", "why": "free tiers since the owner decision of 2026-11-13: Fortune and the general tools are free; Gate, Attendance, Exam and Crowd have a limited free tier, so 'free, every feature' is no longer true" }
   ],
   "mustSay": [
     { "id": "hall-name", "key": "nav.exam-hall.title", "html": ["cameras.html", "cat-education.html"], "dict": "common",
@@ -51,7 +54,11 @@
     { "id": "driver-lead", "key": "driver.s3", "html": ["driver.html"], "dict": "driver",
       "th": ["เพียงบางส่วน"], "en": ["only part of eye closures"], "zh": ["部分闭眼"] },
     { "id": "driver-card", "key": "cameras.s158", "html": ["cameras.html"], "dict": "cameras",
-      "th": ["เพียงบางส่วน"], "en": ["only part of eye closures"], "zh": ["部分闭眼"] }
+      "th": ["เพียงบางส่วน"], "en": ["only part of eye closures"], "zh": ["部分闭眼"] },
+    { "id": "free-tier-notice", "key": "ft.notice", "html": ["pricing.html", "index.html", "gate.html", "attendance.html", "exam.html", "crowd.html"], "dict": "common",
+      "th": ["ยังไม่บังคับใช้", "ล่วงหน้าอย่างน้อย 30 วัน", "30 วันหลัง", "ส่งออกข้อมูล"], "en": ["not enforced yet", "at least 30 days", "30 days after", "export"], "zh": ["尚未执行", "至少提前 30 天", "公告 30 天后", "导出"] },
+    { "id": "free-tier-pricing", "key": "pr.free", "html": ["pricing.html"], "dict": "pricing",
+      "th": ["30 วัน", "100 ป้าย", "5 คน", "5 ผู้สอบ", "2 ชั่วโมง"], "en": ["30-day", "100 plates", "5 people", "5 candidates", "2 hours"], "zh": ["30 天", "100 个车牌", "5 人", "5 名考生", "2 小时"] }
   ],
   "files": [
     { "id": "hall-nav-js", "file": "nav.js", "re": "href: \"exam-hall\\.html\", title: \"เครื่องกล้องในห้องสอบ\"[^}]*ทดลอง" },

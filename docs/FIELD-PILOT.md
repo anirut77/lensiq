@@ -403,3 +403,10 @@ input. Rows without ground truth are skipped and counted.
 
 ยังไม่มีการนำร่องภาคสนาม ตัวเลขทั้งหมดมาจากฉลากสังเคราะห์ (`docs/nutrition/NUTRITION-ACCURACY.md`) การวัดกับฉลากจริงต้องใช้ภาพฉลากจริง
 อย่างน้อย 200 ภาพจากเจ้าของ (`docs/NUTRITION-DESIGN.md` §5.1, §11) เก็บไว้นอก repo ที่ `~/LENSIQ-field/nutrition/labels/`
+
+## Status 2026-11-13 — accounts groundwork (stream G)
+
+No field figure changed. Field pilots of Gate, Attendance, Exam and Crowd now run inside the free tiers (Gate 30-day trial,
+1 lane, 100 reads per day; Attendance up to 5 people; Exam up to 5 candidates per session; Crowd 2 hours per device per
+day), which are counted on the device and not enforced. A pilot beyond those sizes needs a licence order entered by the
+owner after the quotation and transfer (admin → Organisations), or the pilot terms in the contract (the Exam field pilot stays free).

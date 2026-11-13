@@ -455,6 +455,70 @@ in admin → Members (D1 `settings.membership`; paid-plan AI quotas update `enti
   page load. On the very first visit the reading can render before `/v1/config` arrives; it is re-rendered (light)
   within the round-trip, later visits use the cached config.
 
+### Stream G (owner decisions 2026-11-13): LINE Login, organisation account lite, licences, free tiers — groundwork
+
+Built on branch `accounts-g`; migration `0017_accounts.sql` (additive). **Nothing changes for visitors until the owner
+switches it on**: LINE Login answers `503 line_not_configured` until the three LINE settings below exist; organisation
+accounts exist only when the owner creates one in the back office; free-tier limits are counted on the device and are
+**not enforced** (code constant `FREE_TIER_ENFORCE = false`).
+
+**LINE Login** (`backend/src/line.js` primitives, `backend/src/identities.js` routes; tests
+`tests/unit/backend-line-signin.test.js`, `tests/e2e/accounts.e2e.mjs`):
+
+* Settings: `LINE_LOGIN_CHANNEL_ID` and `LINE_LOGIN_CHANNEL_SECRET` (the owner sets both with `wrangler secret put`; the
+  agent never sees them) and `LINE_LOGIN_REDIRECT_URI` (var): the public account page, `https`, on an `ALLOWED_ORIGINS`
+  origin, registered as the channel's callback URL. Today: `https://anirut77.github.io/lensiq/account.html` (after a
+  custom domain: add the new address in the LINE console and change the var). `GET /v1/config` reports
+  `membership.line_enabled` (never the secret).
+* Flow (OpenID Connect, authorisation code + PKCE S256, scope `openid profile` only — no e-mail permission):
+  `POST /api/auth/line/start {mode}` → `{authorize_url, binding}`; the page keeps `binding` in this tab's
+  sessionStorage and goes to `access.line.me`; LINE returns to `account.html?code&state`; the page posts
+  `POST /api/auth/line/finish {code, state, binding}`. The Worker stores only SHA-256 of `state` and of `binding`
+  (10 minutes, single use, purged daily), exchanges the code at `api.line.me/oauth2/v2.1/token` with the channel secret
+  and the PKCE verifier, and verifies the ID token itself: HS256 (channel secret) or ES256 (LINE JWKS by `kid`), `iss`,
+  `aud` = channel id, `exp` / `iat` (60 s skew), `nonce`, `sub` = `U` + 32 hex. LINE's access / refresh tokens are
+  dropped at once; no picture is stored. The binding stops login CSRF (a planted `code/state` link lacks it).
+* Modes: `signin` (Turnstile action `signin`, go-live gate `line_signin`, consent at start as for Google), `link`
+  (signed-in member; must start and finish in the same account), `reauth` (`max_age=300`; opens the same 5-minute
+  window as the Google re-auth, so a LINE-only account can export / delete / change org roles).
+* Accounts: a LINE-only account has no e-mail (`users.email = ''`) and the placeholder `users.google_sub =
+  'nogoogle:<id>'`; the LINE id lives in `user_identities`. Linking rules: one LINE account belongs to at most one
+  LENSIQ account; an account has at most one Google and one LINE; nothing is ever merged (`line_already_linked`,
+  `google_already_linked`); no linking by e-mail; unlinking needs a fresh confirmation and never removes the last
+  method (`last_sign_in_method`). Routes: `POST /api/auth/link/google`, `GET /api/me/identities`,
+  `POST /api/me/identities/unlink`. Export lists the methods (never the provider ids); erasure deletes them.
+* `bot_prompt=normal` asks LINE to offer adding the linked official account (@632yliiw) as a friend on the consent
+  screen; we never receive or store the friendship status.
+
+**Organisation account lite** (`backend/src/orgs.js`, `backend/src/orgaudit.js`; tests `tests/unit/backend-orgs.test.js`,
+`tests/e2e/admin-orgs.e2e.mjs`): organisation name, billing details (name, 13-digit tax id, address, branch, e-mail),
+admins and staff (one admin is the owner), invitation links (`account.html#org_invite=<token>`, 72 h, single use,
+SHA-256 stored; optional e-mail binding stored as an HMAC under a key derived from `SECRETS_KEK`), and a per-organisation
+audit log (SHA-256 hash chain, people as pseudonymous refs, field names only). **No customer people data**: there is no
+table or field for employees, plates, residents or candidates, and unknown request fields are refused
+(`unknown_field`). The LENSIQ owner creates organisations in admin → Organisations, which also shows a one-time owner
+invitation link (absolute when `SITE_URL` — the public site, may include `/lensiq` — is set), billing details, members
+(names and roles only), status (suspend / close need re-auth) and the audit log. Member routes: `GET /api/me/orgs`,
+`GET /api/orgs/:id`, `POST /api/orgs/:id/profile|invites|transfer`, `DELETE /api/orgs/:id/invites/:id`,
+`POST /api/orgs/:id/members/:user/role`, `DELETE /api/orgs/:id/members/:user`, `GET /api/orgs/:id/audit|licences`,
+`POST /api/org-invites/accept`. Role changes, removals and ownership transfer need a fresh Google / LINE confirmation.
+
+**Licences (back-office orders, bank transfer only).** `licence_plans` seeds only Gate (`gate_trial`, `gate_lane`),
+Attendance (`attendance_person`), Exam lab (`exam_lab_candidate`, `exam_lab_room`) and Crowd report (`crowd_report`),
+**without a price column**: prices stay in the quotation and the approved price list. The owner records an order after
+the quotation and the transfer (`POST /admin/api/orgs/:id/licences`, re-auth: plan, quantity, dates, quotation /
+transfer reference, quoted amount excl. VAT, note); members see the licence status per product, never the amount.
+`GET /api/orgs/:id/licences` returns `offline_until` = min(check + 14 days, licence end): a device may use a cached
+status offline for 14 days (`LQFreeTier.offlineValid`). There is no signed licence token yet (it would need a signing
+key — an owner secret); the honest note applies: a check on the device can be bypassed, the contract binds.
+
+**Free tiers** (`backend/src/freetier.js` = `lensiq-freetier.js`; test `tests/unit/free-tier.test.js`): Gate 30-day trial,
+1 lane, 100 plate reads per day; Attendance up to 5 people; Exam up to 5 candidates per session; Crowd 2 hours per device
+per day; Fortune and the general tools unlimited. Counted on the device only (numbers and dates in localStorage
+`lq-ft-*`; nothing is sent): parking / village reads, the attendance staff list, the exam dashboard's seats, Crowd running
+time outside the demo. `status().allowed` is always true. Limits may start only 30 days after an announcement made at
+least 30 days ahead (`announcementOk`); export always works.
+
 ## 2. Local development (no Cloudflare account needed)
 
 ```sh
