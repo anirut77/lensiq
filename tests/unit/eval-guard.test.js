@@ -374,3 +374,23 @@ test("repo lock files: phase-named, and this test file is locked in evals-locks/
   const own = sha(readFileSync(__filename));
   assert.ok(G.parseLock(readFileSync(join(dir, "eval-guard.sha256"), "utf8")).has(own), "tests/unit/eval-guard.test.js changed after locking");
 });
+
+/* ---------- v3 (re-review 2026-11-13): pc-advert-eval dev mode decides "inside the evals folder" on real paths ---------- */
+test("pc-advert-eval inEvalsFolder: symlinks from outside into the evals folder and case-different paths still count as inside", async () => {
+  const s = sandbox();
+  try {
+    const { inEvalsFolder } = await import(pathToFileURL(join(REPO, "tools", "pc-advert-eval.mjs")).href);
+    mkdirSync(join(s.root, "adverts", "dev"), { recursive: true });
+    assert.equal(inEvalsFolder(join(s.root, "adverts", "dev"), s.root), true);
+    assert.equal(inEvalsFolder(join(s.base, "repo"), s.root), false);
+    assert.equal(inEvalsFolder(s.root, s.root), true);
+    symlinkSync(join(s.root, "adverts", "dev"), join(s.base, "outside-link"));
+    assert.equal(inEvalsFolder(join(s.base, "outside-link"), s.root), true, "a symlink outside that points into evals is inside");
+    symlinkSync(s.root, join(s.base, "root-link"));
+    assert.equal(inEvalsFolder(join(s.root, "adverts", "dev"), join(s.base, "root-link")), true, "the evals root itself may be a symlink");
+    const upper = join(s.root, "ADVERTS", "dev");
+    let caseInsensitive = false;
+    try { statSync(upper); caseInsensitive = true; } catch { /* case-sensitive disk */ }
+    if (caseInsensitive) assert.equal(inEvalsFolder(upper, s.root), true, "a case-different path on a case-insensitive disk is inside");
+  } finally { s.done(); }
+});

@@ -6,3 +6,7 @@
 # locked 2026-11-13T15:13:07Z
 a1924421c9b6d4495753c90bc1eaf1c76c2e04842c7dca1e9f24bb1866a2a020  tests/unit/eval-guard.test.js
 a1924421c9b6d4495753c90bc1eaf1c76c2e04842c7dca1e9f24bb1866a2a020  eval-guard.test.v2.js
+# v3 re-lock 2026-11-13T15:57:11Z: re-review 2026-11-13: one case added (pc-advert-eval dev mode must compare real paths: symlink into evals, case-different path). Nothing else changed. Locked BEFORE the fix.
+# locked 2026-11-13T15:57:11Z
+7e39a05ec6796a18c9a0511677b5bc9c08d7c46db154f0f4b33691d5d643f8a1  tests/unit/eval-guard.test.js
+7e39a05ec6796a18c9a0511677b5bc9c08d7c46db154f0f4b33691d5d643f8a1  eval-guard.test.v3.js
