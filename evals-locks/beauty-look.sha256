@@ -43,3 +43,5 @@ a5b4f8bedd7b7089149663a46fa11dbaf3422bce31a0fb29227eae3a6c0b58fc  tests/e2e/look
 b1a080935d3ca772caea886d7cfb64745994097a1bcee994a4fd84d2a6990b94  tests/unit/look-review-fixes.test.js
 10f8a4760d731673a5f64eafec0e90556cab280315e886450f4914c37540ba98  tools/look-preview-eval.mjs
 a18e0c1525ba36bc4f7b3b0cf443c71f09f0576af22a1ff4e58dac7874023173  tools/look-synth-face.js
+# 2026-11-13 coordinator review @34b6f0a (lint gaps by family + salon Thai-name fallback), locked before the fix:
+f84cc9b66dfb8571f89c499b0bcaaf9caed58391639b5ce38bc6adaea22fa05d  tests/unit/look-lint-families.test.js
