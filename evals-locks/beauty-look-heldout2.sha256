@@ -1,0 +1,5 @@
+# beauty-look-heldout2: independent reviewer's FRESH held-out set for lensiq-look-lint.js (2026-11-14), written and locked
+# before the next lint fix was seen; never shown to the builder. 104 must-block phrases (procedure 35, whitening 17,
+# negative 21, score 13, purchase 11, threat 7) + 62 ordinary styling sentences that must pass; TH/EN/ZH with disguises.
+# Append-only. Repo copy: evals-locks/beauty-look-heldout2.sha256 (branch review-locks-look).
+1dd8588c07d6ee9136456417f87e29520f1f7da84e2b69705660256b452301e3  phrases.json
