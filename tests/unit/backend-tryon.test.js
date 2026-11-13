@@ -63,7 +63,8 @@ function jpeg(w = 640, h = 480, pad = 64, sized = true) {
 }
 const FACE_OK = { ran: true, faces: 0, confirmed: true };
 const asset = (o = {}) => ({ mime: "image/png", data: png(400, 500).toString("base64"), w: 400, h: 500, face_check: FACE_OK, ...o });
-const item = (o = {}) => ({ category: "glasses", name_th: "แว่นกรอบดำ", name_en: "Black frame glasses", name_zh: "黑框眼镜", price: 59000, sizes: ["M"], colours: [{ name: "black", hex: "#111111" }], product_url: "https://shop.example/p/1", ...o });
+const item = (o = {}) => ({ category: "glasses", name_th: "แว่นกรอบดำ", name_en: "Black frame glasses", name_zh: "黑框眼镜",
+  price: 59000, sizes: ["M"], colours: [{ name: "black", hex: "#111111" }], product_url: "https://shop.example/p/1", ...o });
 
 function fakeR2() {
   const m = new Map();
@@ -267,7 +268,8 @@ test("T5: image upload limits: type + magic bytes, PNG size from IHDR, ≤ 2048 
     const r = await put(b);
     assert.equal(r.status, 400, code); assert.equal(r.j.code, code, code + " " + JSON.stringify(r.j));
   }
-  for (const b of [asset(), asset({ mime: "image/webp", data: webp(800, 800).toString("base64"), w: 800, h: 800 }), asset({ mime: "image/jpeg", data: jpeg(640, 480).toString("base64"), w: 640, h: 480 })]) {
+  for (const b of [asset(), asset({ mime: "image/webp", data: webp(800, 800).toString("base64"), w: 800, h: 800 }),
+    asset({ mime: "image/jpeg", data: jpeg(640, 480).toString("base64"), w: 640, h: 480 })]) {
     const r = await put(b);
     assert.equal(r.status, 200, b.mime + " " + JSON.stringify(r.j));
   }

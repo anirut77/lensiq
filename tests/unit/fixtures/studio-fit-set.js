@@ -18,7 +18,8 @@
 // Errors are in pixels; fw (face width) is 70 px in every case, so 0.1 fw = 7 px.
 const W = 360, H = 460, FW = 70;
 
-function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+  let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const lerp = (a, b, t) => a + (b - a) * t;
 
 /** One person's parameters for condition c, case i (all lengths in px). */
@@ -90,13 +91,16 @@ function garment(kind) {
   for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) {
     const dx = Math.abs(x - 100); let on = 0;
     if (kind === "jacket") {
-      if (y >= 20 && y <= 190 && !(dx < 18 && y < 20 + (18 - dx) * 1.4)) { const top = 20 + Math.max(0, dx - 18) * .25; on = dx > 80 ? (y > top + (dx - 80) * 3 && dx < 95 ? 1 : 0) : (y >= top ? 1 : 0); }
+      if (y >= 20 && y <= 190 && !(dx < 18 && y < 20 + (18 - dx) * 1.4)) {
+        const top = 20 + Math.max(0, dx - 18) * .25; on = dx > 80 ? (y > top + (dx - 80) * 3 && dx < 95 ? 1 : 0) : (y >= top ? 1 : 0); }
     } else if (kind === "tee") {
       // round neck, short sleeves angled out, body narrower than the sleeves
-      if (y >= 22 && y <= 196 && !((dx / 22) ** 2 + ((y - 22) / 16) ** 2 < 1)) { const top = 22 + Math.max(0, dx - 20) * .3; on = dx > 72 ? (y > top + (dx - 72) * 2.2 && y < 95 && dx < 96 ? 1 : 0) : (y >= top ? 1 : 0); }
+      if (y >= 22 && y <= 196 && !((dx / 22) ** 2 + ((y - 22) / 16) ** 2 < 1)) {
+        const top = 22 + Math.max(0, dx - 20) * .3; on = dx > 72 ? (y > top + (dx - 72) * 2.2 && y < 95 && dx < 96 ? 1 : 0) : (y >= top ? 1 : 0); }
     } else {
       // shirt: narrow collar, square shoulders, long sleeves close to the body
-      if (y >= 16 && y <= 200 && !(dx < 14 && y < 16 + (14 - dx) * 2)) { const top = 16 + Math.max(0, dx - 14) * .18; on = dx > 84 ? (y > top + (dx - 84) * 4 && dx < 94 ? 1 : 0) : (y >= top ? 1 : 0); }
+      if (y >= 16 && y <= 200 && !(dx < 14 && y < 16 + (14 - dx) * 2)) {
+        const top = 16 + Math.max(0, dx - 14) * .18; on = dx > 84 ? (y > top + (dx - 84) * 4 && dx < 94 ? 1 : 0) : (y >= top ? 1 : 0); }
     }
     a[y * GW + x] = on;
   }

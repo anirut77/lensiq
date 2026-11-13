@@ -81,7 +81,8 @@ test("C3: page categories = the Worker's categories; no underwear / swimwear", a
 test("C4: the preview mark is burned into every snapshot in TH / EN / ZH", () => {
   assert.equal(TO.MARK, "ภาพจำลอง · Virtual try-on preview · 虚拟试穿预览");
   const calls = [];
-  const ctx = new Proxy({}, { get: (t, k) => (k in t ? t[k] : typeof k === "string" && /^(fillText|strokeText)$/.test(k) ? (...a) => calls.push(a) : () => ({ width: 100 })), set: (t, k, v) => { t[k] = v; return true; } });
+  const ctx = new Proxy({}, { get: (t, k) => (k in t ? t[k] : typeof k === "string" && /^(fillText|strokeText)$/.test(k) ? (...a) => calls.push(a) : () => ({ width: 100 })),
+    set: (t, k, v) => { t[k] = v; return true; } });
   TO.stamp(ctx, 640, 480);
   assert.ok(calls.some(a => a[0] === TO.MARK), "mark drawn");
   assert.match(read("tryon.js"), /TO\.stamp\(/);

@@ -16,7 +16,8 @@ const ADMIN_TOKEN = "bootstrap-" + "r".repeat(40);
 const OWNER_PW = "correct horse battery staple reauth";
 const ACC_PW = "a long try-on admin passphrase 2026";
 const nowS = () => Math.floor(Date.now() / 1000);
-const PNG = (() => { const b = Buffer.alloc(8 + 25 + 64); Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(b, 0); b.writeUInt32BE(13, 8); b.write("IHDR", 12, "latin1"); b.writeUInt32BE(40, 16); b.writeUInt32BE(50, 20); return b; })();
+const PNG = (() => { const b = Buffer.alloc(8 + 25 + 64); Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(b, 0); b.writeUInt32BE(13, 8);
+  b.write("IHDR", 12, "latin1"); b.writeUInt32BE(40, 16); b.writeUInt32BE(50, 20); return b; })();
 
 async function setup() {
   const { handle } = await import(B + "index.js");
@@ -46,7 +47,8 @@ async function setup() {
   const A = (p, o = {}) => call("/admin/api" + p, { ...o, token: acc.token });
   const item = async () => {
     const it = (await O("/tryon/items", { method: "POST", body: { category: "glasses", name_th: "แว่น" } })).j.item;
-    assert.equal((await O(`/tryon/items/${it.id}/asset`, { method: "PUT", body: { mime: "image/png", data: PNG.toString("base64"), w: 40, h: 50, face_check: { ran: true, faces: 0, confirmed: true } } })).status, 200);
+    assert.equal((await O(`/tryon/items/${it.id}/asset`, { method: "PUT", body: { mime: "image/png", data: PNG.toString("base64"), w: 40, h: 50,
+      face_check: { ran: true, faces: 0, confirmed: true } } })).status, 200);
     return it.id;
   };
   const good = async () => { await env.DB.prepare("UPDATE admin_reviewers SET totp_last_step = 0").run(); return { password: ACC_PW, totp: await totp(acc.secret) }; };

@@ -17,3 +17,13 @@ cdc086de37f4c8e49046a2d6ed06d8581b3d8f09d7bd8f6108e4ca2110fffda7  tools/studio-f
 # targets and the locked test are unchanged; the check is covered by tests/unit/tryon-review.test.js V9 (locked first).
 # Hash cdc086de… is superseded.
 0f71e361ce321a285e96f423f9c8de87eb837904b5aab44b3a3a44d42970356a  tools/studio-fit-eval.mjs
+#
+# Re-lock 2026-11-14 (merge of origin/main a976aca; coordinator):
+#  - tools/studio-fit-eval.mjs: eval-guard wiring (owner rule "locked sets persist"): the scorer now reads the set only from
+#    ~/LENSIQ-field/evals/tryon-fit/set/studio-fit-set.js after assertLocked(phaseOf(<set folder>), ["set/studio-fit-set.js"])
+#    and refuses when the repo fixture differs from that copy. Scoring, targets and output unchanged. Hash 0f71e361… superseded.
+#  - tests/unit/fixtures/studio-fit-set.js: WHITESPACE-ONLY (four lines over 200 characters wrapped; identical tokens).
+#    Hash 2c892e47… superseded; the field copy ~/LENSIQ-field/evals/tryon-fit/set/ is updated to the same bytes.
+7709520ac419600eaec710665a9dba1c9dfd07d40dd6cd67c7a8052a7df514d8  tools/studio-fit-eval.mjs
+316f589c9c4be969424118e9b629dfc429b135e425405f5ec603b32680eb6cb5  tests/unit/fixtures/studio-fit-set.js
+316f589c9c4be969424118e9b629dfc429b135e425405f5ec603b32680eb6cb5  set/studio-fit-set.js

@@ -18,7 +18,8 @@ export default async function ({ base, launch, check, fakeCams }) {
     await check("tryon: consent before the camera; no file input; demo catalogue drawn", async () => {
       page = await browser.newPage(null, { initScripts: [fakeCams, "window.__LQ_FAKE_CAMS = { n: 1, mode: 'ok' };", FAKE_LM] });
       await page.goto(`${base}/tryon.html?demo=1&fakelm=1`);
-      const s0 = await page.evaluate(() => ({ start: document.getElementById("toStart").disabled, files: document.querySelectorAll("input[type=file]").length, items: document.querySelectorAll("#toItems [data-item]").length }));
+      const s0 = await page.evaluate(() => ({ start: document.getElementById("toStart").disabled,
+        files: document.querySelectorAll("input[type=file]").length, items: document.querySelectorAll("#toItems [data-item]").length }));
       assert(s0.start === true, "start disabled before consent");
       assert(s0.files === 0, "no file input");
       assert(s0.items >= 4, "demo items listed: " + s0.items);

@@ -27,3 +27,10 @@ fd77111481fef2adc021f5e39b441ea64876d177a5ead845536d368e1e13d17d  tests/unit/try
 #  - new tryon-reauth.test.js: inline re-auth refuses a locked account like sign-in (429 too_many); 10 wrong inline
 #    re-auths in one session revoke it (401 reauth_revoked); the right answer on an unlocked account still deletes.
 68acc3799e398d5b1c91368628cddee07f7f76fc4c4a01b11ae84baf640cddd2  tests/unit/tryon-reauth.test.js
+#
+# Re-lock 2026-11-14 (merge of origin/main a976aca; coordinator): WHITESPACE-ONLY — lines over 200 characters wrapped
+# (format check), identical tokens, no case or assertion changed. Hashes dd3abd92…, bd08aaec…, d7c92512…, 68acc379… superseded.
+d05517c871d320109f4da1903f993f59a0c022d0d6ee63de653783a86d624021  tests/e2e/tryon.e2e.mjs
+4b4c5805b3c46855b9449b3d0a78f4b8cf7a9db4bd8c4a485f48dc982231fa71  tests/unit/backend-tryon.test.js
+c554b76f47f85eacd240940d5ce47d7d34eb9132f678feb72fb0a73ede72107e  tests/unit/tryon-core.test.js
+e7fd40f572796c2d46f89ea323110e85bfe10a510fc42e472d327b4eae1469f9  tests/unit/tryon-reauth.test.js
