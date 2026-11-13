@@ -196,7 +196,8 @@ test("intervals: Wilson; exact Poisson (0 seen: 3.689 two-sided upper, 2.996 one
 test("summary and targets: held-out only, 'not enough events' under 55, false alerts per seat-hour judged on variant A", async () => {
   const { summarize } = await load();
   const mk = (sig, n, found) => ({ scoreable: n, found, late: 0, repeats: 0, greyHits: 0, trueAlerts: found, times: Array(found).fill(21), cooldownGrey: 0 });
-  const blockRes = (split, variant, bySig, falses = 0) => ({ split, variant, seatHours: 8 * 0.4, bySig, falseAlerts: Array.from({ length: falses }, (_, i) => ({ id: "f" + i, sig: "empty", lvl: "info" })),
+  const blockRes = (split, variant, bySig, falses = 0) => ({ split, variant, seatHours: 8 * 0.4, bySig,
+    falseAlerts: Array.from({ length: falses }, (_, i) => ({ id: "f" + i, sig: "empty", lvl: "info" })),
     camMoved: [], misses: [], nonAlerts: {}, awayErr: [3, 5, 12], fps: [3, 2.8] });
   const S = summarize([
     blockRes("dev", "B", { empty: mk("empty", 14, 10) }, 4),
@@ -216,7 +217,8 @@ test("summary and targets: held-out only, 'not enough events' under 55, false al
 
 test("result sheet: source line, dev and held-out apart, every target row, no names", async () => {
   const { summarize, formatSheet } = await load();
-  const S = summarize([{ split: "heldout", variant: "B", seatHours: 3.2, bySig: { empty: { scoreable: 2, found: 2, late: 0, repeats: 0, greyHits: 0, trueAlerts: 2, times: [21, 22], cooldownGrey: 0 } },
+  const S = summarize([{ split: "heldout", variant: "B", seatHours: 3.2,
+    bySig: { empty: { scoreable: 2, found: 2, late: 0, repeats: 0, greyHits: 0, trueAlerts: 2, times: [21, 22], cooldownGrey: 0 } },
     falseAlerts: [], camMoved: [], misses: [], nonAlerts: {}, awayErr: [], fps: [3] }], {});
   const md = formatSheet(S, { session: "S1", date: "2026-11-20" });
   assert.match(md, /source: field \(mock exam, adult volunteers, scripted\)/i);

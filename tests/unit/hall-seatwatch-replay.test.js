@@ -56,6 +56,7 @@ test("event file: exam-hall export format, room-timer seconds, the replay settin
   assert.equal(f.msgs.length, 2);
   assert.equal(f.msgs[0].type, "ev"); assert.equal(f.msgs[0].src, "hall"); assert.equal(f.msgs[0].ts, 33);
   assert.equal(f.msgs[0].dur, 20000);
-  assert.deepEqual(f.replay, { fps: 3, detector: "coco", tiles: false, startTimer: 12, frames: 100, video: "s.mp4", note: "replayed at a fixed frame rate; the live page runs at a variable 2-5 rounds per second" });
+  assert.deepEqual(f.replay, { fps: 3, detector: "coco", tiles: false, startTimer: 12, frames: 100, video: "s.mp4",
+    note: "replayed at a fixed frame rate; the live page runs at a variable 2-5 rounds per second" });
   assert.doesNotMatch(JSON.stringify(f), /data:|base64|blob:/);
 });

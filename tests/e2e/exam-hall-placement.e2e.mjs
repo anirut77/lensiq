@@ -105,7 +105,8 @@ export default async function ({ base, launch, check, fakeCams }) {
 
       // nothing stored, nothing sent
       await sleep(800);
-      const after = await page.evaluate(() => ({ ls: JSON.stringify(Object.keys(localStorage).sort().map(k => [k, localStorage.getItem(k)])), sent: __LQ_EXAM_HALL.sent, recent: __LQ_EXAM_HALL.recent.length }));
+      const after = await page.evaluate(() => ({ ls: JSON.stringify(Object.keys(localStorage).sort().map(k => [k, localStorage.getItem(k)])),
+        sent: __LQ_EXAM_HALL.sent, recent: __LQ_EXAM_HALL.recent.length }));
       const strip = s => s.replace(/\["lq-exam-hall","[^\]]*"\]/, ""); // the node settings (tiles is not one of them; seats are saved by the grid)
       assert(strip(after.ls) === strip(lsBefore), "the placement check stores nothing: " + after.ls.slice(0, 300));
       assert(after.sent.length === sentBefore && after.recent === 0, "the placement check sends no event");
