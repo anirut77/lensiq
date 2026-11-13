@@ -19,3 +19,9 @@ dd3abd92528c4a1480a02d8fb4fbbbf9fb10b57e8e378816c854286c77d14d25  tests/e2e/tryo
 #    validation, THIRD_PARTY.md, scorer refuses to overwrite, BACKEND.md migration order).
 bd08aaeca2df276917062920505405e4a596beaeeefceff4f31b2fecfb2bacfd  tests/unit/backend-tryon.test.js
 fd77111481fef2adc021f5e39b441ea64876d177a5ead845536d368e1e13d17d  tests/unit/tryon-review.test.js
+#
+# Addition 2026-11-14 (re-review of tryon-fit @ 95d8e55, should-fix S1; STRICTER ONLY), locked BEFORE the fix — at lock
+# time S1a and S1b fail (probe reproduced: a locked try-on admin with the right password + code deleted an item):
+#  - new tryon-reauth.test.js: inline re-auth refuses a locked account like sign-in (429 too_many); 10 wrong inline
+#    re-auths in one session revoke it (401 reauth_revoked); the right answer on an unlocked account still deletes.
+68acc3799e398d5b1c91368628cddee07f7f76fc4c4a01b11ae84baf640cddd2  tests/unit/tryon-reauth.test.js
