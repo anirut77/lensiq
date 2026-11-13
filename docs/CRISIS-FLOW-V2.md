@@ -112,4 +112,22 @@ Decisions taken under ambiguity (safer reading chosen):
 9. **Help bar order:** 1323 always visible; behind "more help lines": Samaritans 02 113 6789, 1300, 191, 1669 (no hours or
    cost for 1669, as verified). Calm pages without a reading (hub, planner, lucky colour) get the bar fixed at the bottom.
 10. The advice section title "คำแนะนำและเคล็ดเสริมดวง" reads "คำแนะนำ / Advice / 建议" in the calm state.
-11. Detection patterns are unchanged (open owner decision 7).
+11. Detection: owner decision item 7 was taken on the recommendation (option ก, coordinator 2026-11-13); see below.
+
+### Detection v2 (owner decision item 7, option ก; same branch)
+
+Tests first: `tests/unit/fortune-crisis-detect-v2.test.js` (locked before the change; dev = the 18 misses and the idiom /
+name-field false soft steps of the 2026-11-13 fresh review, which is spent; held-out variants written by the builder).
+Changes in `fortune-crisis.js` (and the same 想死你 exception in `fortune-ai.js`):
+
+- Hard net, by family: preparing the means (เตรียมเชือก / ถ่าน, ยา … กินทีเดียว, bought / saved up rope or pills, 准备了绳子 / 药),
+  by one's own hand (จบ … ด้วยมือตัวเอง), no reason to live / not worth living / done with life / nothing left to live for,
+  method + myself (shoot, hang, drown …), end my suffering / pain, stretched "diee", 了结 / 了断自己, 活着没有理由, mixed
+  "ไม่อยาก live / exist". Traditional characters 準 備 繩 別 條 訊 見 們 麼 夢 歡 are folded too.
+- Soft step for farewell wording (คงไม่ได้เจอกันอีก, ครั้งสุดท้ายก่อน…, my last message, goodbye everyone, 永别, 这是最后一次).
+- Everyday hyperbole is taken out before the soft check only (หิว / ร้อน / ขำ / ง่วง … จะตาย, dying of laughter, dying to know,
+  "<traffic / heat / work …> is killing me", could kill for, 笑 / 累 / 饿 / 热 / 困 … 死了, 想死你了); the hard net still reads the raw text,
+  except 想死你 ("I miss you"), which no longer triggers the card. เหนื่อยจะตาย still gets the soft step (exhaustion, safer).
+- Name fields: a distress word always gives the soft step; a short ordinary question or topic phrase ("will I get the job?",
+  "ปีนี้จะได้ย้ายงานไหม", "今年会升职吗") or hyperbole does not; otherwise the round-3 rules (more than 3 words, pronoun / verb,
+  digits) stay, so every older locked name case keeps its soft step.
