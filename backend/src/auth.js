@@ -406,15 +406,32 @@ export async function reauthReviewerInline(env, sess, body) {
     throw new HttpError(429, "too many wrong re-authentications — try again later", { retryAfter: WINDOW - (t % WINDOW), code: "reauth_rate_limited" });
   }
   const rev = sess && sess.reviewerId ? await reviewerById(env.DB, sess.reviewerId) : null;
+  // a locked account gets the answer sign-in gives (no trusted-device exemption here), before any secret is checked
+  if (rev && rev.locked_until > t && t - rev.last_failed_at <= DECAY) {
+    await audit(env, "reviewer:" + rev.id, "reauth.delayed", { inline: true });
+    throw new HttpError(429, "too many failed attempts — slow down", { retryAfter: rev.locked_until - t, code: "too_many" });
+  }
   const usable = !!rev && rev.status === "active" && !!rev.totp_enabled && !!rev.password_hash;
   const pwOk = await verifyPassword(String(password), usable ? rev.password_hash : DUMMY_HASH);
   const totpOk = usable && pwOk ? await reviewerTotpOk(env, rev, totp, t) : false;
   if (!usable || !pwOk || !totpOk) {
     await hit(env.DB, key, REAUTH_FAILURES, WINDOW, t);
     if (usable) await reviewerFailure(env, rev, t, accountDelay, DECAY);
-    await audit(env, "reviewer:" + (sess && sess.reviewerId), "reauth.failed", { inline: true, step: usable && pwOk ? "totp" : "password" });
+    // like the owner's re-auth: count wrong answers on the session; after REAUTH_REVOKE_AFTER the session is revoked
+    let fails = 0;
+    if (sess && sess.idHash) {
+      const r = await env.DB.prepare("UPDATE admin_sessions SET reauth_fails = reauth_fails + 1 WHERE id_hash = ?1 RETURNING reauth_fails").bind(sess.idHash).first();
+      fails = r ? Number(r.reauth_fails) : 0;
+    }
+    await audit(env, "reviewer:" + (sess && sess.reviewerId), "reauth.failed", { inline: true, step: usable && pwOk ? "totp" : "password", fails });
+    if (fails >= REAUTH_REVOKE_AFTER) {
+      await env.DB.prepare("DELETE FROM admin_sessions WHERE id_hash = ?1").bind(sess.idHash).run();
+      await audit(env, "reviewer:" + (sess && sess.reviewerId), "reauth.session_revoked", { fails });
+      throw new HttpError(401, "signed out after too many wrong re-authentications", { code: "reauth_revoked" });
+    }
     throw new HttpError(401, usable && pwOk ? "invalid TOTP code" : "invalid credentials", { code: usable && pwOk ? "invalid_totp" : "invalid_credentials" });
   }
+  if (sess && sess.idHash) await env.DB.prepare("UPDATE admin_sessions SET reauth_fails = 0 WHERE id_hash = ?1").bind(sess.idHash).run();
   return rest;
 }
 
