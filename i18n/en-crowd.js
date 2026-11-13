@@ -237,5 +237,6 @@
   "cr.p4.t": "Dense crowds",
   "cr.p4.p": "Not sold: the system is not yet suitable for dense crowds",
   "cr.price.note": "Approved prices, but not on sale yet and nothing is charged. Every price excludes 7% VAT (you pay the price + 7%) and hardware. The figures are a density estimate, not an exact headcount.",
-  "ft.crowd": "Free tier: 2 hours per device per day"
+  "ft.crowd": "Free tier: 2 hours per device per day",
+  "ft.notice": "The free-tier limits are not enforced yet. We will announce the start date at least 30 days ahead, and the limits start 30 days after the announcement. You can always export your data."
 } });

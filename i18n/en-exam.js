@@ -294,16 +294,16 @@
   "exam.l.p1b": "Up to 5 candidates per session",
   "exam.l.p1n": "Runs on the device, no charge",
   "exam.l.p2": "Computer room / online (per candidate)",
-  "exam.l.p2b": "Pilot price: ฿10 per candidate per exam excl. 7% VAT",
+  "exam.l.p2b": "฿10 per candidate per exam excl. 7% VAT",
   "exam.l.p2n": "minimum ฿300 per exam session, or a ฿990 / month / lab plan, excl. 7% VAT",
   "exam.l.p2a": "Regular price after the pilot thresholds are met: ฿15–30 per candidate, or ฿990–1,490 / month, excl. 7% VAT",
   "exam.l.p3": "Exam hall with cameras (per room)",
-  "exam.l.p3b": "Pilot price: ฿290 per room per exam day excl. 7% VAT",
+  "exam.l.p3b": "฿290 per room per exam day excl. 7% VAT",
   "exam.l.p3n": "or ฿990 per month per room (number of cameras depends on room size, ask us for the camera placement guide) excl. 7% VAT",
   "exam.l.p3a": "Regular price after the pilot thresholds are met: ฿300–600 per room per day, or ฿1,990 / month / room, excl. 7% VAT",
   "exam.l.p3x": "Experimental: not on sale until the small-face issue is fixed; this price applies once it is on sale",
   "exam.l.p4": "Institution",
-  "exam.l.p4b": "Pilot price: from ฿19,900 per year excl. 7% VAT",
+  "exam.l.p4b": "from ฿19,900 per year excl. 7% VAT",
   "exam.l.p4n": "Site licence (up to 1,000 candidates) with invigilator training",
   "exam.l.p4a": "Regular price after the pilot thresholds are met: ฿30,000–120,000 per year by size, excl. 7% VAT",
   "exam.l.priceH": "Pricing",
@@ -553,5 +553,6 @@
   "exam.lab.leadC": "This computer’s camera helps invigilators note what can be seen. Images are processed on this computer only; only events (time and type) go to the invigilator — no images sent, no audio, no continuous video (a short evidence clip is stored on this computer only when a flag is raised). The system does not judge misconduct",
   "exam.lab.needPin": "Invigilator: set the evidence-clip PIN in the “Evidence clips on this device” box first, or switch evidence clips off",
   "exam.lab.reread": "The notice has changed — please read it again and tick consent again",
-  "ft.exam": "Free tier: up to 5 candidates per session"
+  "ft.exam": "Free tier: up to 5 candidates per session",
+  "exam.l.lvlPilot": "Pilot price"
 } });
