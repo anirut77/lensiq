@@ -1,0 +1,9 @@
+/* lensiq-capture-hint.css — live capture hint line under a camera box + frame outline (lensiq-capture-hint.js, LQHint.mount) */
+.lq-chint{display:flex;align-items:center;justify-content:center;gap:10px;min-height:48px;margin:10px 0 0;padding:10px 14px;border-radius:12px;
+  background:#0e1430;color:#fff;font-size:1.15rem;font-weight:700;line-height:1.3;text-align:center}
+.lq-chint[hidden]{display:none}
+.lq-chint[data-state="wait"]{visibility:hidden}
+.lq-chint[data-state="ok"]{background:#15803d}
+.lq-chint-ic{flex:none;display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;border:2px solid currentColor;font-size:1rem;line-height:1}
+[data-chint]{outline:4px solid transparent;outline-offset:2px}
+[data-chint="ok"]{outline-color:#16a34a}

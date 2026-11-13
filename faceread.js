@@ -980,7 +980,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
     var w = ov.width, h = ov.height; octx.clearRect(0, 0, w, h);
     var rx = Math.min(w, h) * 0.24, ry = rx * 1.3;
     octx.lineWidth = Math.max(3, w / 220); octx.setLineDash([w / 60, w / 90]);
-    octx.strokeStyle = ok ? "#22d3ee" : "rgba(255,255,255,.85)";
+    octx.strokeStyle = LQHint.color(ok ? "ok" : "wait");
     octx.beginPath(); octx.ellipse(w / 2, h * 0.48, rx, ry, 0, 0, Math.PI * 2); octx.stroke(); octx.setLineDash([]);
     if (det) { // จุดบนใบหน้า (พิกัดภาพดิบ: canvas ถูก mirror ด้วย CSS ไปพร้อมวิดีโอ)
       octx.fillStyle = ok ? "rgba(34,211,238,.9)" : "rgba(255,255,255,.7)";
@@ -992,6 +992,20 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
       octx.strokeStyle = "rgba(255,255,255,.35)"; octx.lineWidth = Math.max(2, w / 400); octx.strokeRect(b.x, b.y, b.width, b.height);
     });
   }
+  /* ---------- คำแนะนำสดใต้ภาพกล้อง (lensiq-capture-hint.js): ไกลไป / ใกล้ไป / ให้อยู่ในกรอบ / ดีแล้ว อยู่นิ่ง ๆ ---------- */
+  var hintUi = LQHint.mount(cam, { id: "frHint", kind: "face" }), hintTrack = LQHint.createTracker({ far: 0.5, near: 1.05, center: 0.3 });
+  hintUi.el.hidden = true;
+  /** กรอบวงรีนำทาง (ตรงกับ drawGuide) เป็นกล่อง {x,y,w,h} พิกเซลภาพดิบ */
+  var ovalBox = function (W, H) { var rx = Math.min(W, H) * 0.24, ry = rx * 1.3; return { x: W / 2 - rx, y: H * 0.48 - ry, w: 2 * rx, h: 2 * ry }; };
+  /** สถานะคำแนะนำจากรายการตรวจที่มีอยู่แล้ว (FR.quality) + กรอบใบหน้า — ไม่มีโมเดลใหม่ ไม่เก็บภาพ; ปุ่มอ่านใช้เกณฑ์เดิม */
+  function updateHint(det, n, q, light, W, H) {
+    var it = function (id) { return q.filter(function (x) { return x.id === id; })[0]; }, size = it("size"), yaw = it("yaw"), roll = it("roll");
+    var st = hintTrack.update({ subject: det ? { x: det.box.x, y: det.box.y, w: det.box.width, h: det.box.height } : null, frame: ovalBox(W, H), image: { w: W, h: H }, n: n,
+      small: !!(size && !size.ok), tilt: !!((yaw && !yaw.ok) || (roll && !roll.ok)), dark: !!(light && light.mean < FR.QUALITY.lumaLo), blocked: !qOk(q) }, performance.now()).state;
+    hintUi.el.hidden = false; hintUi.set(st);
+    return st;
+  }
+  function hideHint() { hintTrack.reset(); hintUi.set("wait"); hintUi.el.hidden = true; }
   async function startLoop() {
     if (looping) return; looping = true;
     while (camera.active && looping) {
@@ -1003,12 +1017,16 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && document
           var light = null;
           if (det) { grabFrame(probe, false); light = FR.lightStats(pctx.getImageData(0, 0, probe.width, probe.height), det.box); }
           lastQ = FR.quality(det, W, H, light, list.length);
-          if (!busy) { renderQc(lastQ); drawGuide(det, qOk(lastQ), list.filter(function (d) { return d !== det; })); btnRead.disabled = !qOk(lastQ); }
+          if (!busy) {
+            var hs = updateHint(det, list.length, lastQ, light, W, H);
+            renderQc(lastQ); drawGuide(det, hs === "ok", list.filter(function (d) { return d !== det; })); btnRead.disabled = !qOk(lastQ);
+          }
         } catch (e) { console.warn(e); }
       }
       await sleep(250);
     }
     looping = false;
+    hideHint();
   }
 
   btnCam.addEventListener("click", async function () {
