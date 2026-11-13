@@ -29,3 +29,7 @@ d98d4a82071c6c8e0feea1eb3e5675515cd03ecc64d2e6ee2bbc797423b6dbf6  tests/unit/loo
 c8a6aa2fe220ef481c675162f4c9efbde2285de8975cf02de12752fccff3593e  tests/e2e/look-preview.e2e.mjs
 # part 2 measurement tool, locked after a 6-face DEV smoke run and BEFORE the full held-out run (held-out not looked at before):
 8ec5830b0ce6f7645118b42b91d73a7b0c611c5c25b42acb0a32383c09bb4aeb  tools/look-preview-eval.mjs
+# 2026-11-13 (after the held-out run and the independent re-measure): the harness now calls tools/eval-guard.mjs assertLocked()
+#   on the set copies in ~/LENSIQ-field/evals/beauty-look/set/ (protocol + face generator, same hashes as above). Guard only;
+#   no scoring change. New harness hash:
+30f9556122eb80b82eda19ea9aee8a26c205343fb49b6a3e31bd40b1481095f8  tools/look-preview-eval.mjs

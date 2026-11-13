@@ -6,12 +6,24 @@
 //
 //   node tools/look-preview-eval.mjs [--limit N]      per-face results -> ~/LENSIQ-field/evals/beauty-look/preview-<date>.json
 //                                                      summary          -> tools/look-preview-results.json (read by the unit test)
-import { mkdtempSync, writeFileSync, chmodSync, existsSync, mkdirSync } from "node:fs";
+import { mkdtempSync, writeFileSync, chmodSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { tmpdir, homedir, cpus, platform, release } from "node:os";
 import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createHash } from "node:crypto";
+import { assertLocked } from "./eval-guard.mjs";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+// eval guard (docs/EVAL-LOCKS.md): the locked set (protocol + face generator) lives in ~/LENSIQ-field/evals/beauty-look/set/,
+// its sha256 is committed in evals-locks/beauty-look.sha256; the page runs the repo copy of the generator, which must be the
+// same bytes as the guarded copy.
+const SET = ["set/LOOK-PREVIEW-EVAL.md", "set/look-synth-face.js"];
+const guard = assertLocked("beauty-look", SET);
+const sha = p => createHash("sha256").update(readFileSync(p)).digest("hex");
+for (const [rel, f] of [["docs/LOOK-PREVIEW-EVAL.md", guard.files[0]], ["tools/look-synth-face.js", guard.files[1]]]) {
+  if (sha(join(repo, rel)) !== f.sha256) { console.error(`look-preview-eval: ${rel} differs from the locked set copy ${f.path}`); process.exit(1); }
+}
+console.log(`eval-guard: beauty-look locked (${guard.lockFile} @ ${guard.lockCommit})`);
 const argv = process.argv.slice(2);
 const LIMIT = +(argv[argv.indexOf("--limit") + 1] || 0) || 0;
 const OUTDIR = join(homedir(), "LENSIQ-field", "evals", "beauty-look");
