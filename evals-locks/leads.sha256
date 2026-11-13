@@ -1,0 +1,47 @@
+# evals-locks/leads.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/leads/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
+# --- imported 2026-11-13T14:18:08Z from ~/LENSIQ-field/evals/leads/locked.sha256 (lines verbatim; non-hash text lines prefixed "# "; lines for files inside the repo marked "# repo file") ---
+# LENSIQ quote-request inbox + form-off (Sellable pack item 9, owner decision 2026-11-12)
+# Fixed test set locked 2026-11-12T03:30Z before any product code (base d9329bb):
+ad3206945e1875b030c0e5e76141985c414495afd26dcd9ecad390157be2f770  tests/unit/backend-leads-inbox.test.js  # repo file
+b8bdcd4cbb5f17bec8b0df4ef37d1273b22255555417dbe78fd52a6d769b0f8c  tests/unit/leads-form-off.test.js  # repo file
+1ef6cca11dc8060b25f5255f7c49fa3497407446ea53b3e6a21b388e869ebeb6  tests/e2e/admin-leads.e2e.mjs  # repo file
+1f5a741f03850e3ce3055ad1534fc37bd4d1826e7bd95780a856621fcc5e5966  tests/e2e/leads-off.e2e.mjs  # repo file
+3f4181f772dc266c14eefaec054ad216f62320224d2b03be5c685f1f116981ea  tests/e2e/commercial.e2e.mjs  # repo file
+52bad9d079492d5a5c9a00d1d11f8915d3e875b191c3c1f3ebec5b2c2d08d076  tests/unit/backend-fulfilment-refunds.test.js  # repo file
+#
+# Amendments (recorded; none loosens a check):
+#  A1 backend-leads-inbox.test.js: the second CSV export assumed an inline password opens the 5-minute re-auth window; it
+#     does not (auth.requireReauth). Now: export without password -> 403, then with password -> 200 (stricter).
+#  A2 leads-off.e2e.mjs: "three requests sent" counted a page-local log that restarts on each navigation; now exactly one
+#     request per language page (same strength, correct scope).
+#  A3 leads-off.e2e.mjs + leads-form-off.test.js: two lines wrapped for format-check (no change in meaning).
+#  A4 owner update 2026-11-12: the quote contact is the brand LINE Official Account @632yliiw; the earlier personal LINE ID
+#     was replaced by @632yliiw in leads-form-off.test.js and leads-off.e2e.mjs (expected values only).
+#  A5 new file leads-public-id.test.js (written in the same step as the owner-update changes, not before them): the personal ID is in no published site file
+#     and nowhere in the repository; the OA is configured once and linked as https://line.me/R/ti/p/@632yliiw; the LINE
+#     notification secrets are set only with `npm run secrets:setup -- --only NAME` and never committed.
+# sha256 after A1-A5:
+2e77162ecb8c096bcd404e98befac3976dd8399fb561170c295403616a3450a4  tests/unit/backend-leads-inbox.test.js  # repo file
+01a8ab3fab2082ee1e118e37b46c1e2e5e4499a7b20a4844737b64948b4230b8  tests/unit/leads-form-off.test.js  # repo file
+195546e9fd3c8f5bc9cb311ab4db27d942cb7474a0409e7e752b2f8e24d48d47  tests/unit/leads-public-id.test.js  # repo file
+1ef6cca11dc8060b25f5255f7c49fa3497407446ea53b3e6a21b388e869ebeb6  tests/e2e/admin-leads.e2e.mjs  # repo file
+180af9a51d042ced7a993ba2aaa642f089128b375b10e5e916e2cabc6f1254ff  tests/e2e/leads-off.e2e.mjs  # repo file
+3f4181f772dc266c14eefaec054ad216f62320224d2b03be5c685f1f116981ea  tests/e2e/commercial.e2e.mjs  # repo file
+52bad9d079492d5a5c9a00d1d11f8915d3e875b191c3c1f3ebec5b2c2d08d076  tests/unit/backend-fulfilment-refunds.test.js  # repo file
+#
+#  A6 explicit owner decision 2026-11-12 (afternoon): the quote form goes ON. Expected values changed ONLY where the
+#     decision changes the product: default flag ON (off still tested by switching it off), privacy section visible,
+#     PUBLIC_ROUTES + /v1/leads + /health/notify-test (backend-deploy-gate TEST_ROUTES, /v1/leads removed from its
+#     "closed" list), public-site pages + index.html (deploy-tools B1), package field dropped (fulfilment test lead
+#     without plan), LINE secret names from main ffb96e1 (LINE_CHANNEL_ACCESS_TOKEN, LEAD_NOTIFY_LINE_TO). Added: unread
+#     badge, minimum fields + caps, daily cap, LINE push daily cap, /health/notify-test (HEALTH_TOKEN, 3/hour), notify CLI.
+# sha256 after A6 (final):
+cfdfa0294ba55822658ab087c3714d8389ecdfb71786fe2fc53aef1f7614c840  tests/unit/backend-leads-inbox.test.js  # repo file
+7ed0dbb82299c6505fea60e1c8161ec643885289b21a5c464a97b057fa1d9e29  tests/unit/leads-form-off.test.js  # repo file
+9d12c231a6b7b61773516a54bc0c6d8cc0a389f640716452f34b855d6f112621  tests/unit/leads-public-id.test.js  # repo file
+57d9cb91d35a495eb5b156f42aaae1385b52606b5d4e06da476fa3a5eed26179  tests/e2e/admin-leads.e2e.mjs  # repo file
+f52ddcee046ae79b6399d34d7f18aa86adf6b369f2f07953f80e166a642f3434  tests/e2e/leads-off.e2e.mjs  # repo file
+3f4181f772dc266c14eefaec054ad216f62320224d2b03be5c685f1f116981ea  tests/e2e/commercial.e2e.mjs  # repo file
+5c6246a649a12e67944a119e97dabd9ca2cd1e70685f9c817908140ae715def0  tests/unit/backend-fulfilment-refunds.test.js  # repo file
+e740efc5748a853e605cc30eceb05c44d6143b4a595f8047b467d518b00072fb  tests/unit/backend-deploy-gate.test.js  # repo file
+df383279ed9b2011a11cf2594a04f437c793169c6776e60a6ab1295f03b3a678  tests/unit/deploy-tools.test.js  # repo file

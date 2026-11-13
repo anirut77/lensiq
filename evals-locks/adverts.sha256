@@ -1,0 +1,26 @@
+# evals-locks/adverts.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/adverts/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
+# --- imported 2026-11-13T14:18:08Z from ~/LENSIQ-field/evals/adverts/locked.sha256 (lines verbatim; non-hash text lines prefixed "# "; lines for files inside the repo marked "# repo file") ---
+# Adverts option B (on-device advert capture) — fixed tests, locked 2026-11-11 BEFORE lensiq-pc-advert.js was written
+# and before any rule in tools/pc-rules-build.mjs was changed. Paths relative to the repo root (worktree branch
+# worktree-agent-a7bac360dde89d5ac, base commit 128d111). A changed hash means the test was edited after locking.
+#
+# Lock 1 (before any product code):
+#   bb5e9cbca4ddb161383821b8bb9c60570ea27400354cb88d1e50589a45ee45e0  tests/unit/pc-advert.test.js   (superseded, see re-lock)
+9fdf3e7c18a5d16acd9701a0b33cfb43e85f59dff3f3e553fa2a860a6fed2725  tests/e2e/product-check-advert.e2e.mjs  # repo file
+#
+# Re-lock 2026-11-11 (FORMAT ONLY, no assertion changed): tools/format-check.mjs refused one 208-character line in the
+# endorsement test; the three-string array was wrapped onto two lines. Same strings, same assertions
+# (diff: one line split after the second array element).
+dc61d1f1813eacee9e761bdf2e0bd2e03262840c2e6cea9902d85ca688ddae0e  tests/unit/pc-advert.test.js  # repo file
+#
+# Lock 3, 2026-11-11, AMENDMENT before implementing the owner decision "release as experimental" (type chosen first,
+# exact no-signal sentence, generated accuracy line, Chinese "limited support", experimental badge). Stricter only: every
+# earlier assertion kept; the no-signal ban list now exempts exactly the owner's required sentence (which itself is
+# asserted verbatim), and the e2e paste helper chooses a product type because a check no longer runs without one.
+5102d6461d009a6b121e0700624de272227f4886a5ba279261eb25932a3f6c1a  tests/unit/pc-advert.test.js  # repo file
+c9d488fef0c809231b548875e504ec70addf8b50e6154a3faf6f22c789362ae1  tests/e2e/product-check-advert.e2e.mjs  # repo file
+# lock 5 (2026-11-12, owner-approved: "New lock 5 replaces lock 4"): figures and no-signal sentence from the independent
+# fresh-3 run of rules a335ca9 (545 / 382, 60.0 %, 2.1 per 100, "about 3 in 5"); every earlier check kept. Lock 4
+# (fresh-2 figures, 089d132c…) was never recorded and is superseded. Commit b8021a0 on branch advert-rules.
+bdc23c0a89f727e687510606a26595c3de752b039034147f0e051ba49343f855  tests/unit/pc-advert.test.js  # repo file
+c9d488fef0c809231b548875e504ec70addf8b50e6154a3faf6f22c789362ae1  tests/e2e/product-check-advert.e2e.mjs  # repo file

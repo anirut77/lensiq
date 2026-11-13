@@ -1,0 +1,12 @@
+# evals-locks/beauty-look.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/beauty-look/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
+# --- imported 2026-11-13T14:18:08Z from ~/LENSIQ-field/evals/beauty-look/locked.sha256 (lines verbatim; non-hash text lines prefixed "# "; lines for files inside the repo marked "# repo file") ---
+# Beauty & Image stream D team 1 (look suggestions + live preview + Personal Colour MVP) — fixed tests, locked BEFORE any
+# product code of the matching part was written. Branch beauty-look, base origin/main 1ef19c6 + design note b3c5800.
+# Paths relative to the repo root. A changed hash = the test was edited after locking (never allowed to make product pass).
+# Repo copy: evals-locks/beauty-look.sha256 (coordinator rule 2026-11-13).
+#
+# Part 1 (look suggestions on faceread), locked 2026-11-13 before lensiq-look.js / lensiq-look-lint.js / lensiq-look-art.js:
+35244e4b4bf8486e91a84cb43ffae84a9b17a2bc33fbc43540ec688401100f4a  tests/unit/look-suggest.test.js  # repo file
+90b526a8455455f122211bfb08ef93519223674388201fd208569b3bb8064cf6  tests/e2e/look.e2e.mjs  # repo file
+# Part 1b (owner wording 2026-11-13: salon catalogue text vs generated wording), locked before the salon code:
+5fabec531fdc9b44347ad7813de878938abf2c195e6bfb4d1cd1908d091bb22c  tests/unit/look-salon.test.js  # repo file

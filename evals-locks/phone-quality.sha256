@@ -1,0 +1,8 @@
+# evals-locks/phone-quality.sha256 — committed copy of the locks of ~/LENSIQ-field/evals/phone-quality/ (owner rule 2026-11-13, locked sets persist). Append-only. Checked by tools/eval-guard.mjs.
+# --- imported 2026-11-13T14:18:08Z from ~/LENSIQ-field/evals/phone-quality/locked.sha256 (lines verbatim; non-hash text lines prefixed "# "; lines for files inside the repo marked "# repo file") ---
+# phone-quality (stream B) — WebKit iPhone flows + crash guard tests locked 2026-11-13T14:17:33Z BEFORE any product code on branch phone-quality (base 1ef19c6)
+e6b6b0f33fe94c4e121ba418e273fed5e5f168be101bf08ca52d7e6fb2337542  tests/e2e/phone-kit.mjs  # repo file
+1b104bd27f33ce5e09c6aaaa38c50592e51937ca749df70131510ff6ad6c96f4  tests/e2e/phone-webkit-a.e2e.mjs  # repo file
+ace43a2cca68f155bb8a3cd87736bb411f2bd148442f1560ec8ea5777acbdba2  tests/e2e/phone-webkit-b.e2e.mjs  # repo file
+6af9753764d9747deb7883765b873f5aac61a8744eac1b1c7e927b514442633b  tests/unit/crashguard.test.js  # repo file
+641d7684f6fa545aca15c74d9a8d09309b3755531988a5151e095f17846205e3  tests/e2e/crash-guard.e2e.mjs  # repo file
