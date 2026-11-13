@@ -1,2 +1,4 @@
 # locked 2026-11-13T15:07:25Z before reading the code; reviewer phase 1
 bd04016ee6604ad6325c0ecef43c34658a44070e738be4cc15289ded95c9169a  set.json
+# harness locked 2026-11-13T15:10:19Z, still before reading the code; pass rules fixed in harness.mjs, page selectors (probe.json) written in phase 2
+4d3d0c83a6bcba56615bf252728aff090c5cad74e21c5ba9cd9e6ac4bda57a4c  harness.mjs
