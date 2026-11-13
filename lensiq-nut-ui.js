@@ -260,11 +260,23 @@
    * the on-device read of one picture (also used by tools/nut-eval.mjs): text boxes (PP-OCRv5 det) -> each box read in the
    * chosen script -> rows paired along the picture's tilt (LQNut.linesFromParts) -> {lines, text, tilt, ms}
    */
-  async function readCanvas(c, script) {
-    const t0 = performance.now(), d = await R.detect(c), parts = [];
+  async function readCanvas(c0, script) {
+    const t0 = performance.now();
+    let c = c0, d = await R.detect(c0), straightened = 0;
+    // a 1-3 degree tilt: turn the picture back first (the detector's boxes are level there, so long lines would be cut)
+    const est = N.linesFromParts(d.boxes.map(b => ({ text: "x", conf: 1, box: b }))).tilt, a = N.straightenAngle(est);
+    if (a) {
+      const r = (a * Math.PI) / 180, w = c0.width, h = c0.height;
+      const W2 = Math.ceil(w * Math.abs(Math.cos(r)) + h * Math.abs(Math.sin(r))), H2 = Math.ceil(w * Math.abs(Math.sin(r)) + h * Math.abs(Math.cos(r)));
+      const t = document.createElement("canvas"); t.width = W2; t.height = H2;
+      const x = /** @type {CanvasRenderingContext2D} */ (t.getContext("2d"));
+      x.fillStyle = "#fff"; x.fillRect(0, 0, W2, H2); x.translate(W2 / 2, H2 / 2); x.rotate(r); x.drawImage(c0, -w / 2, -h / 2);
+      c = t; d = await R.detect(c); straightened = a;
+    }
+    const parts = [];
     for (const b of d.boxes.slice(0, 240)) { const r = await R.recognize(c, b, script); if (r.text.trim()) parts.push({ text: r.text.trim(), conf: r.conf, box: b }); }
     const g = N.linesFromParts(parts);
-    return { lines: g.lines, tilt: g.tilt, text: g.lines.map(l => l.text).join("\n"), ms: performance.now() - t0 };
+    return { lines: g.lines, tilt: g.tilt, straightened, text: g.lines.map(l => l.text).join("\n"), ms: performance.now() - t0 };
   }
   W.LQNutRun = { readCanvas, parse: (/** @type {any} */ o) => N.parseLabel(o.lines, { tilt: o.tilt }) };
   const mb = b => Math.round(b / 1048576);
