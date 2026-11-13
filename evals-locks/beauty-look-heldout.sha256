@@ -1,0 +1,5 @@
+# beauty-look-heldout: independent reviewer's held-out adversarial phrase set for lensiq-look-lint.js (2026-11-13).
+# Written and locked BEFORE the builder's lint fix was seen; never shown to the builder. 97 phrases, TH/EN/ZH,
+# families procedure / whitening / negative / score / purchase / threat, with disguises. Append-only.
+# Repo copy: evals-locks/beauty-look-heldout.sha256 (branch review-locks-look).
+e7b12cd1d614f8892bf80de08da85e804376eebfcf1701fdad141528b9284c67  phrases.json
