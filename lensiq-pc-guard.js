@@ -107,6 +107,12 @@
   const PRODUCT_NAME_EN = "(?:product|brand|generic|trade|drug|company|chemical|common|proprietary|manufacturer|scientific|botanical|inci|latin|" +
     "english|thai|medicine|device|model|plant|herb|ingredient|substance|file|user|full\\s+product)";
 
+  // a Korean personal name: a common surname + 1-3 syllables, or the surname spaced from the given name (stream F, 2026-11-13)
+  const KO_SUR = "(?:남궁|황보|제갈|선우|독고|사공|김|이|박|최|정|강|조|윤|장|임|한|오|서|신|권|황|안|송|류|유|전|홍|고|문|양|손|배|백|허|남|심|노|하|곽|성|차|주|우|구|" +
+    "민|진|나|엄|원|천|방|공|현|함|변|염|여|추|도|석|선|설|마|길|연|위|표|명|기|반|왕|금|옥|육|인|맹|제|모|탁|국|어|은|편|용|예|경|봉|사|부|가|복|태|목|형|계|" +
+    "피|두|감|음|빈|동|온|좌|호|범|팽|승|간|상|시|갈|단|견|당|화|창|옹|순|빙|지|독|채|소|라|뇌)";
+  const KO_NAME = `(?:${KO_SUR}[가-힣]{1,3}|${KO_SUR}[ \\t][가-힣]{1,3})`;
+  const KO_NAME_NS = `${KO_SUR}[가-힣]{1,3}`; // unspaced only ("이 제품" is not a name)
   /** Field cues (on folded text). always: a cue anywhere; dispensing: only on a dispensing label. */
   const CUES = [
     { re: new RegExp(`${B}(?:ชื่อผู้ป่วย|ชื่อ\\s*[-–]\\s*(?:นาม)?สกุล|ชื่อสกุล|ชื่อและนามสกุล|ชื่อเล่น|ผู้รับยา|ผู้รับบริการ|ผู้ใช้ยา)\\s*[:：.\\-–]?`, "gu"), always: true },
@@ -120,9 +126,27 @@
     // Korean name fields (성명, 환자명, 수진자, 이름:) and an OCR-damaged "Patient:" ("Patiet:", "Patint:"), added 2026-11-12 after
     // the live-scan review (a Korean lab report and a Hong Kong clinic label next to a product label); a product name field
     // (제품 / 상품 / 약품 이름) is not a person
-    { re: /(?:^|(?<=[\s:：(]))(?:성\s?명|환자\s?(?:명|성명|이름)|수진자|(?<!(?:제품|상품|약품|의약품)\s?)이\s?름)\s*[:：]/gu, always: true },
-    { re: /(?:^|(?<=[\s(]))성\s?명(?=\s+[가-힯])/gu, always: true }, // 성명 (full name) needs no colon
+    { re: /(?:^|(?<=[\s:：(]))(?:성\s?명|환\s?자\s?(?:명|성\s?명|이\s?름)|수진자|(?<!(?:제품|상품|약품|의약품)\s?)이\s?름)\s*[:：]/gu, always: true },
+    { re: /(?:^|(?<=[\s(]))성\s?명(?=\s+[가-힯A-Za-z])/gu, always: true }, // 성명 (full name) needs no colon
     { re: /\bPati(?:e?n?t|nt)\s*[:：]/giu, always: true },
+    // Japanese name fields (stream F, 2026-11-13): 氏名, 患者氏名 / 患者名, お名前 / 名前, フリガナ, 受診者, 被保険者, 受取人, 宛名, 差出人,
+    // ご依頼主; a product name field (製品名, 商品名, 販売名, 名称) is not a person
+    { re: /(?<!(?:製品|商品|販売|会社|品|物|成分|薬|社)\s?)(?:患\s?者\s?(?:氏\s?名|名)|受診者(?:氏名|名)?|被保険者(?:氏名)?|氏\s?名|お\s?名\s?前|名\s?前|フリガナ|ふりがな|受取人|宛\s?名|差出人|ご依頼主)(?:\s*[(（][^)）\n]{0,8}[)）])?\s*[:：]?/gu,
+      always: true },
+    // Korean name fields (stream F): 환자 / 보호자 / 성함 / 수령인 / 받는분 / 보내는분 / 수신인 / 예금주 with a colon ...
+    { re: /(?:^|(?<=[\s(]))(?:환\s?자|보\s?호\s?자|성\s?함|수\s?령\s?인|수\s?취\s?인|받는\s?(?:분|사람)|보내는\s?(?:분|사람)|수\s?신\s?인|예\s?금\s?주|가\s?입\s?자|피\s?보\s?험\s?자)\s*[:：]/gu,
+      always: true },
+    // ... or with no colon: words that never stand on a pack (받는분, 수령인, 성함 ...) before a name-shaped word, and 환자 / 보호자 only
+    // before a name-shaped word that ends the line or meets a number ("환자 김민수", not "환자 사용 시", "환자는", "보호자의")
+    { re: new RegExp(`(?:^|(?<=[\\s(]))(?:성함|수령인|수취인|받는\\s?분|받는\\s?사람|보내는\\s?분|보내는\\s?사람|수신인|예금주)(?=[ \\t]+${KO_NAME}(?:[ \\t]|$))`, "gmu"),
+      always: true },
+    { re: new RegExp(`(?:^|(?<=[\\s(]))(?:환자|보호자)(?=[ \\t]+${KO_NAME}[ \\t]*(?:$|\\d|\\(|[|/,]))`, "gmu"), always: true },
+    // form words for a person (applicant, insured, household head, student, parent, examinee, name tag ...) before an unspaced name
+    { re: new RegExp("(?:^|(?<=[\\s(]))(?:환\\s?자\\s?(?:명|성\\s?명|이\\s?름)|이\\s?름표?|이용자|발신인|환자분|신청인|세대주|세대원(?:[ \\t]+배우자)?|가입자|수검자|원아|학부모|학생|계약자|피보험자|수진자|대상자|입소자|" +
+      `수급자|어르신|아동|자녀|본인)(?=[ \\t]+${KO_NAME_NS}(?:[ \\t]|$|[(,]))`, "gmu"), always: true },
+    // Japanese person words before a name ("患者 小野寺 光", "患者さま 中 島 明", "保護者 北村 幸江", 世帯主, 被扶養者, 受給者, 利用者); "保護者の指導" is not
+    { re: new RegExp("(?:^|(?<=[\\s(（:：]))(?:患者(?:さま|様|さん)?|保護者|世帯主|被扶養者|受給者(?:氏名|名)?|利用者(?:氏名|名)?|入所者|園児(?:氏名|名)?|児童(?:氏名|名)?|" +
+      "生徒(?:氏名|名)?|本人(?:氏名)?|申請者|契約者)(?=[ \\t\\u3000]*[:：]|[ \\t\\u3000]+[一-鿿々ァ-ヺぁ-ゖ])", "gu"), always: true },
     // a maker-printed responsible person (pharmacist in charge, production supervisor): the NAME is still removed
     { re: new RegExp("(?:เภสัชกรผู้มีหน้าที่ปฏิบัติการ|ผู้มีหน้าที่ปฏิบัติการ|เภสัชกรผู้ควบคุม(?:การผลิต)?|ผู้ควบคุมการผลิต)\\s*[:：.\\-–]?|" +
       "[監监][製制][藥药][師师]\\s*[:：]?|管理[藥药][師师]\\s*[:：]?|[駐驻][廠厂][藥药][師师]\\s*[:：]?|\\b(?:Pharmacist[- ]in[- ]charge|Responsible\\s+pharmacist|Qualified\\s+person)\\s*[:：\\-–]", "giu"),
@@ -221,6 +245,21 @@
     if (w.every(x => new RegExp(`^${THN}$`, "u").test(x) && x.length <= 20 && !LABEL_TH.test(x))) return true;
     return w.every(x => new RegExp(`^${ENN}$`, "u").test(x) && !LABEL_EN.test(x));
   }
+  // a line that is only a Japanese / Korean person name (used on DISPENSING labels only: "국진솔 (여)", "藤井 悠"); stream F
+  const CJK_NAME_LINE = new RegExp(`^[ \\t]*(?:${KO_SUR}[가-힣]{1,2}|[一-鿿]{1,3}[ \\t\\u3000][一-鿿]{1,3}|[ァ-ヺー]{2,6}[ \\t\\u3000][ァ-ヺー]{2,6})` +
+    "(?:[ \\t]*[(（](?:남|여|男|女|M|F)[)）])?[ \\t]*$", "gmu");
+  const CJK_NAME_NOT = /錠|散|液|包|薬|剤|用|分|回|日|後|前|朝|夜|内服|外用|頓服|정|캡슐|시럽|연고|약|회|일|분|식후|식전|아침|저녁|복용/u;
+  /** @param {string} t */
+  function cjkNameLines(t) {
+    /** @type {{start: number, end: number}[]} */ const out = [];
+    for (const m of t.matchAll(CJK_NAME_LINE)) {
+      const v = m[0].trim().replace(/[ \t]*[(（].*$/u, "");
+      if (CJK_NAME_NOT.test(v)) continue;
+      const start = /** @type {number} */ (m.index) + m[0].indexOf(v);
+      out.push({ start, end: start + v.length });
+    }
+    return out;
+  }
   /** Start / end of every standalone name-like line. @param {string} t */
   function nameLines(t) {
     /** @type {{start: number, end: number}[]} */ const out = [];
@@ -252,7 +291,8 @@
       if (n >= 1 && (QUESTION.test(w) || PRODUCT_WORDS_EN.test(w) || PRODUCT_WORDS_TH.test(w) || (w.length > 3 && LABEL_TH.test(w)) || (latin && DRUG_LIKE.test(w)) ||
         (thai && latin) || (thai && /^[A-Z]{4,}$/.test(w)))) break;
       // a short Thai syllable (a name spaced syllable by syllable) counts as half a token
-      const cost = /^[ก-๙]{1,3}$/.test(w) ? 0.5 : 1;
+      // (and a name spaced character by character in Japanese / Korean OCR: "ハ ヤ シ ダ ケシ", "中 島 明"; stream F)
+      const cost = /^[ก-๙]{1,3}$/.test(w) ? 0.5 : /^[ぁ-ヿ一-鿿가-힯]{1,2}$/u.test(w) ? 0.4 : 1;
       if (n + cost > max) break;
       out += w + (parts[i + 1] || "");
       n += cost;
@@ -333,9 +373,14 @@
     "มกราคม|กุมภาพันธ์|มีนาคม|เมษายน|พฤษภาคม|มิถุนายน|กรกฎาคม|สิงหาคม|กันยายน|ตุลาคม|พฤศจิกายน|ธันวาคม)";
   const EN_MONTH = "(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\\.?";
   const DATE = `(?:\\d{1,4}\\s?[/.\\-]\\s?\\d{1,2}\\s?[/.\\-]\\s?\\d{1,4}|\\d{1,2}\\s*${TH_MONTH}\\s*(?:พ\\.ศ\\.\\s*)?\\d{2,4}|\\d{1,2}\\s+${EN_MONTH},?\\s+\\d{2,4}|` +
-    `${EN_MONTH}\\s+\\d{1,2},?\\s+\\d{2,4}|\\d{2,4}\\s*年\\s*\\d{1,2}\\s*月(?:\\s*\\d{1,2}\\s*日)?)`;
+    `${EN_MONTH}\\s+\\d{1,2},?\\s+\\d{2,4}|\\d{2,4}\\s*年\\s*\\d{1,2}\\s*月(?:\\s*\\d{1,2}\\s*日)?|` +
+    // Japanese era years (昭和45年3月2日, 平成2年, S45.3.2, H2/5/6) and Korean 1970년 1월 2일 (stream F, 2026-11-13)
+    `(?:明治|大正|昭和|平成|令和)\\s*(?:\\d{1,2}|元)\\s*年\\s*\\d{1,2}\\s*月(?:\\s*\\d{1,2}\\s*日)?|[MTSHR]\\s?\\d{1,2}\\s?[/.\\-]\\s?\\d{1,2}\\s?[/.\\-]\\s?\\d{1,2}|` +
+    `\\d{2,4}\\s*년\\s*\\d{1,2}\\s*월(?:\\s*\\d{1,2}\\s*일)?)`;
   const DOB_RE = new RegExp(`(?:ว\\s?/\\s?ด\\s?/\\s?ป\\.?\\s*เกิด|ว\\.ด\\.ป\\.\\s*เกิด|วัน\\s?/\\s?เดือน\\s?/\\s?ปี\\s?เกิด|วันเดือนปีเกิด|วันเกิด|เกิด(?:วันที่)?|` +
     `\\bD\\.?O\\.?B\\.?|\\bDate\\s+of\\s+birth|\\bBirth\\s*date|\\bBorn(?:\\s+on)?|出生日期|出生|生日|생\\s?년\\s?월\\s?일|생일|生年月日)\\s*[:：.\\-–]?\\s*(${DATE})`, "giu");
+  // a date followed by "born" (昭和44年7月7日生, 1975年10月8日生まれ, 1970년생), stream F
+  const DOB_AFTER = new RegExp(`(${DATE})\\s*(?:生まれ|生(?![産活薬])|년생|생(?![산활]))`, "gu");
 
   /** @type {Array<{kind: string, re: RegExp, group?: number}>} */
   const RULES = [
@@ -346,13 +391,25 @@
     { kind: "hn", group: 1, re: /(?:เลขที่ผู้ป่วย|เลขประจำตัวผู้ป่วย)[\s:：]*([A-Z0-9][A-Z0-9\-/]{2,15})/gu },
     { kind: "hn", group: 1, re: /(?:门诊号|病历号码?|病歷號碼?|病歷號|住院号|住院號|領藥號|病人编号|MRN\/病歷號碼)[\s:：]*([A-Z0-9][A-Z0-9-]{2,15})/gu },
     // Korean resident registration number (YYMMDD-Gxxxxxx), 2026-11-12
-    { kind: "id", re: /(?<![\d-])\d{6}\s?-\s?[1-8]\d{6}(?![\d-])/gu },
+    { kind: "id", re: /(?<![\d-])\d{6}\s?-\s?[1-8]\s?\d{6}(?![\d-])/gu },
     // Korean registration / chart / patient numbers (OCR may split the syllables), 2026-11-12
     { kind: "hn", group: 1, re: /(?:등\s?록\s?번\s?호|환\s?자\s?번\s?호|차\s?트\s?번\s?호|병\s?록\s?번\s?호)[\s:：]*([A-Z0-9][A-Z0-9-]{2,15})/gu },
     { kind: "id", re: /(?<![\d-])\d[- ]\d{4}[- ]\d{5}[- ]\d{2}[- ]\d(?![\d-])/gu },
+    // Japanese patient / chart / card / insurance numbers and the My Number (個人番号, 12 digits), Korean visit / card numbers (stream F)
+    { kind: "hn", group: 1, re: new RegExp("(?:患者\\s?(?:ID|番号|No\\.?)|診察券\\s?(?:番号|No\\.?)|カルテ\\s?(?:番号|No\\.?|ID)|受付番号|被保険者\\s?番号|保険者\\s?番号|保険証\\s?番号|" +
+      "記号\\s?・?\\s?番号|ID\\s?番号|受給者\\s?番号|受給者証\\s?番号|母子健康手帳\\s?番号|社員\\s?番号|会員\\s?番号|学籍\\s?番号|" +
+      "진\\s?료\\s?번\\s?호|접\\s?수\\s?번\\s?호|수\\s?진\\s?자\\s?번\\s?호|보\\s?험\\s?증\\s?번\\s?호|증\\s?번\\s?호|카\\s?드\\s?번\\s?호|회\\s?원\\s?번\\s?호|" +
+      "가\\s?입\\s?자\\s?번\\s?호|고\\s?객\\s?번\\s?호|증\\s?권\\s?번\\s?호|사\\s?번|학\\s?번|주\\s?민\\s?번\\s?호|여\\s?권\\s?번\\s?호|외\\s?국\\s?인\\s?등\\s?록\\s?번\\s?호)" +
+      "[\\s:：#]*([A-Z0-9ぁ-ゖ][A-Z0-9・\\-]{1,15}(?:[ ][0-9]{6})?)", "giu") },
+    // Japanese insurance card: 記号 12-345 番号 678 (both parts), a bare patient ID ("ID A0027316")
+    { kind: "id", group: 1, re: /記号[\s:：]*([0-9A-Zぁ-ゖ][0-9A-Z・\-]{0,12})/gu },
+    { kind: "id", group: 1, re: /記号[^\n]{1,20}?(?<!製造|承認|許可|届出|登録|認証|管理|品|型式)番号[\s:：]*([0-9A-Z][0-9A-Z\-]{0,12})/gu },
+    { kind: "hn", group: 1, re: /(?<!(?:Product|Item|Batch|Lot|Device|Model|UDI|Ref)[\s.]?)\bID\s?(?:No\.?|#)?[\s:：#]+([A-Z]{0,2}\d[\dA-Z\-]{3,15})\b/gu },
+    { kind: "id", group: 1, re: /(?:個人番号|マイナンバー)[\s:：]*(\d{4}[\s-]?\d{4}[\s-]?\d{4})(?!\d)/gu },
     { kind: "email", re: /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/gu },
     { kind: "id", group: 1, re: /(?:\bPassport(?:\s*(?:No\.?|number|#))?|หนังสือเดินทาง(?:เลขที่)?|护照(?:号码?)?|パスポート)\s*[:：.#]?\s*([A-Z]{1,2}\d{6,9}|\d{7,9})\b/giu },
-    { kind: "dob", group: 1, re: DOB_RE }
+    { kind: "dob", group: 1, re: DOB_RE },
+    { kind: "dob", group: 1, re: DOB_AFTER }
   ];
   const ID_KEY = /(เลขประจำตัวประชาชน|บัตรประชาชน|ปชช\.?|เลขบัตร|เลขประจำตัว|\bID\s*(?:card|no\.?|number)?|身份证(?:号码?)?)[^\n\d]{0,30}$/iu;
   /** Chinese resident ID: 17 digits + check (ISO 7064 MOD 11-2; X = 10). @param {string} d */
@@ -418,6 +475,12 @@
     if (intl) d = "0" + d.replace(/^0/, "");
     if (/^0[689]\d{8}$/.test(d) || /^0[2-7]\d{7}$/.test(d)) return true;
     if (/^1[ \-.]?8\d\d[ \-.]/.test(s)) return false; // 1-800 / 1-8xx toll-free call-centre numbers are not personal
+    // Japanese / Korean phones written in groups (stream F, 2026-11-13): mobiles 0[789]0-xxxx-xxxx, 01x-xxx(x)-xxxx; landlines
+    // 0x(x)-xxx(x)-xxxx of 9-10 digits. Toll-free / shared-cost numbers (0120, 0800, 0570, Korean 080-xxx-xxxx) are not personal.
+    // Only the printed phone shape counts: 0xx(x) - xxx(x) - xxxx in three groups (a damaged Thai food number "0-11235-5-0099" is not one).
+    if (!intl && /^\(?0\d{1,4}\)?[ \-]\d{2,4}[ \-]\d{3,4}$/.test(s) && !/^(?:0120|0800|0570|0990)/.test(d) && !/^080\d{7}$/.test(d)) {
+      if (/^0[789]0\d{8}$/.test(d) || /^01[016789]\d{7,8}$/.test(d) || /^0[1-9]\d{7,9}$/.test(d)) return true;
+    }
     return !intl && /^1[3-9]\d{9}$/.test(d) && /[ \-]/.test(s); // Chinese mobile: grouped
   }
   /** Phones inside one run: the longest valid stretch of whole groups; a stretch may start or end inside the run only at a
@@ -442,7 +505,10 @@
     "บ้านเลขที่|เลขที่\\s?\\d+(?:/\\d+)?|หมู่(?:ที่)?\\s?\\d|ม\\.\\s?\\d|ซอย|ซ\\.\\s?[ก-๙\\d]|ถนน|ถ\\.\\s?[ก-๙]|ตำบล|ต\\.\\s?[ก-๙]|แขวง|อำเภอ|อ\\.\\s?[ก-๙]|เขต[ก-๙]|จังหวัด|จ\\.\\s?[ก-๙]|",
     "(?<!\\d)\\d{5}(?!\\d)(?=\\s*$)|\\b(?:Room|Rm\\.?|Floor|Fl\\.|Road|Rd\\.?|Street|St\\.|Soi|Moo|District|Province|Apt\\.?|Unit)\\b[^\\n]*\\d|",
       "\\d[^\\n]*\\b(?:Road|Rd\\.?|Street|St\\.|Soi|Moo)\\b|",
-    "[省市区县][^\\n]{0,15}[路街道巷][^\\n]{0,10}号"
+    "[省市区县][^\\n]{0,15}[路街道巷][^\\n]{0,10}号|",
+    // Japanese (〒, 都道府県 + 市区町村 + 1-2-3, 丁目 / 番地) and Korean (시 / 도 + 구 / 군 + 로 / 길 number) addresses (stream F, 2026-11-13)
+    "〒\\s?\\d{3}-\\d{4}|[都道府県][^\\n]{0,12}[市区町村郡][^\\n]{0,20}(?:\\d+(?:[-－]\\d+){1,2}|丁目|番地)|",
+    "[가-힣]{1,6}(?:시|도)\\s[가-힣]{1,5}(?:구|군|시)\\s[^\\n]{0,20}(?:로|길)\\s?\\d"
   ].join(""), "iu");
   const COMPANY = new RegExp([
     "ผลิตโดย|ผลิตและจำหน่าย|จำหน่ายโดย|นำเข้าโดย|นำเข้าและจัดจำหน่าย|ผู้ผลิต|ผู้จัดจำหน่าย|ผู้นำเข้า|บริษัท|บจก\\.|",
@@ -463,6 +529,67 @@
     "Call\\s*cent(?:er|re)|Hotline|Contact\\s+us|Enquir(?:y|ies)|Shop|Store|Branch|Head\\s*office|Factory|Website)\\b|www\\.|https?://|\\.co\\.th\\b|\\.com\\b|",
     "[省市县区][^\\n]{0,12}[路街道巷]|客服|热线|地址|网址|服务电话|販売者|住所|주소|홈페이지"
   ].join(""), "iu");
+
+  /* ---------------- Japanese / Korean names marked by a form of address (stream F, 2026-11-13) ---------------- */
+  // Japanese: a kanji / katakana run (or a hiragana name of 2-8) before 様 / さま / さん / 殿 / くん / ちゃん, with an optional
+  // given name; NOT a word for a group or a role (お客様, 皆様, 患者様, お子さま, 薬剤師さん, お母さん, たくさん, おかげさま) and not 様々 /
+  // 様子 / 様式 / お客様相談室. Korean: a name-shaped word before 님 / 씨, not 고객님, 선생님, 환자분, 어머님, 호박씨, 날씨 ...
+  const JA_TOK = "(?:[一-鿿々]{1,4}[ぁ-ゖ]{2,4}|[一-鿿々ァ-ヺー]{1,6}|[ぁ-ゖ]{2,8})"; // (kanji + hiragana: 近藤さくら)
+  const JA_HON = new RegExp(`(${JA_TOK}(?:[ \\t\\u3000]${JA_TOK})?)[ \\t\\u3000]?(?:様|さま|さん|殿|くん|ちゃん)(?![々子式相方])`, "gu");
+  const JA_NOT = new RegExp("^(?:客|皆|みな|みんな|患者|利用者|使用者|購入者|家族|子|子供|子ども|赤|あか|奥|神|王|仏|医者|医師|薬剤師|看護師|母|父|姉|兄|妹|弟|娘|息子|孫|先生|方|" +
+    "妊婦|高齢者|小児|大人|女性|男性|会員|消費者|生産者|農家|職人|坊|嬢|姫|殿|お客|ご利用|ご購入|ご使用|たく|おかげ|お疲れ|おつかれ|ご苦労|ごくろう|お世話|おせわ|お互い|" +
+    "ごちそう|おばあ|おじい|おかあ|おとう|おにい|おねえ|ばあ|じい|かあ|とう|にい|ねえ|みなさ|どなた|あなた|皆々|各位|ユーザー|ゲスト|メンバー|スタッフ|ドクター|ママ|パパ|" +
+    "お嬢|お坊|お医者|歯医者|新人|主人|ご主人|奥さ|お得意|様|さま|ご本人|本人|担当者|責任者|代表者|保護者|ご家族|皆さ|お天道|お日|お月|仏さ|閻魔|恵比寿|大黒|" +
+    "ペット|ワン|ネコ|猫|犬|苦労|疲れ|世話|馳走|陰|愁傷|屋|八百屋|近所|隣|大家|店員|日|月|旦那|主人|社長|部長|課長|上司|先輩|後輩|皆様|患者様|殿様|王子|王女|天使|鬼|" +
+    "医療関係者|関係者|ご家族様|親御|お父|お母|お兄|お姉|お爺|お婆|叔父|叔母|伯父|伯母|彼|彼女|みなさま|みなさん|お客さま)$", "u");
+  const KO_HON = new RegExp(`(?:^|(?<=[\\s:：(,]))(${KO_NAME}|[가-힣]{2,3})[ \\t]?(?:님|씨)(?=$|[\\s,.!~)?]|께|에게|한테|의|은|는|이|가|도|을|를)`, "gmu");
+  const KO_NOT = new RegExp("^(?:고객|환자|회원|선생|사장|부모|어머|아버|할머|할아버|손|여러|주|하느|하나|부처|원장|약사|의사|간호사|대표|교수|형|누|언니|오빠|동생|" +
+    "따|아드|사모|장모|장인|시어머|시아버|이모|고모|삼촌|외삼촌|당신|그분|이분|저분|우리|사용자|소비자|구매자|임|선배|후배|팀장|부장|과장|기사|아가|솜|글|날|말|" +
+    "마음|맵|불|맘|사|발|목|눈|호박|수박|해바라기|포도|들깨|참깨|깨|아마|치아|대마|목화|겨자|살구|복숭아|매실|석류|씨앗|햄프|피마자|면실|홍화|올리브|아보카도|카카오|" +
+    "커피|코코아|자몽|사과|딸기|레몬|오렌지|자두|대추|연|율무|은행|잣|볍|꽃|맏|아저|아주머|아줌|총각|아가|도련|서방|며느|사위|손자|손녀|할매|할배|조상|스승|목사|" +
+    "신부|스님|원님|사또|임금|공주|왕자|님|씨|이웃|친구|가족|모든|각|여러분|팬|구독자|시청자|학부모|보호자|어르신|형제|자매|공급자|판매자|제조자)$", "u");
+  // a kinship word, then a given name (母 ヒデコ, 祖母 ミツ, おじいちゃん(正雄), 長男 剛 / 할머니 복례, 손자 지훈, 엄마 정애한테); the name must be
+  // spaced from the kinship word ("おばあちゃんの梅干し", "엄마손 왕만두" are brands) and end at a space, a particle or the line
+  const JA_KIN = "(?:祖母|祖父|母|父|妻|夫|娘|息子|長男|長女|次男|次女|三男|三女|孫|まご|姉|兄|妹|弟|おばあちゃん|おじいちゃん|ばあば|じいじ|おばあさん|おじいさん|お母さん|お父さん|" +
+    "ママ|パパ|叔母|叔父|伯母|伯父|家内|主人|嫁|婿)";
+  const JA_KIN_RE = new RegExp(`(?:^|(?<=[\\s(（、。:：]))${JA_KIN}(?:[ \\t\\u3000]+|[ \\t\\u3000]*[(（][ \\t\\u3000]*)(?!${JA_KIN}(?:[ \\t\\u3000(（]|$))` +
+    "([一-鿿々]{1,3}|[ァ-ヺー]{2,5}|(?![のはがにをともへで])[ぁ-ゖ]{2,4})(?=[ \\t\\u3000)）、。]|$|の|は|が|へ|に|より|用|から|と)", "gmu");
+  const KO_KIN = "(?:할머니|할아버지|할매|할배|외할머니|외할아버지|엄마|아빠|어머니|아버지|어머님|아버님|큰아들|작은아들|막내아들|아들|큰딸|작은딸|막내딸|딸|막내|손자|손녀|" +
+    "남편|아내|와이프|동생|언니|오빠|누나|형|삼촌|이모|고모|외삼촌|숙모|조카|며느리|사위|시어머니|시아버지|장모|장인)";
+  const KO_KIN_RE = new RegExp(`(?:^|(?<=[\\s(:：,]))${KO_KIN}[ \\t]+(?!${KO_KIN}(?:[ \\t]|$))([가-힣]{2,3})` +
+    "(?=[ \\t]*(?:$|[,.)!]|\\(|한테|에게|께|이[ \\t]|가[ \\t]|의|은|는|도|님|씨|생신|생일|올림|드림|퇴원|입원|약|병원|전화|용|것)|한테|에게|께)", "gmu");
+  // a sender line: "현우 드림", "지훈 올림" / "そら より", "花子より"
+  const KO_FROM = /(?:^|(?<=[\s(:：,]))([가-힣]{2,3})[ \t]+(?:드림|올림|씀)(?=[ \t]*(?:$|[.!]))/gmu;
+  const JA_FROM = new RegExp("(?:^|(?<=[\\s(（、。]))([一-鿿々]{1,3}|[ァ-ヺー]{2,5}|[ぁ-ゖ]{2,4})[ \\t\\u3000]*より(?=[ \\t\\u3000]*(?:$|[。!！]))", "gmu");
+  const FROM_NOT = /^(?:医師|薬剤師|店長|スタッフ|当店|弊社|会社|メーカー|病院|薬局|事務局|担当|本社|工場|これ|それ|以前|以上|成分|天然|食後|食前|우리|저희|회사|본사|약국|병원|직원|담당자)$/u;
+  // Korean forms of address after a full name: 어르신, 어린이, 환자분 ("방치수 어르신", "이도윤어린이")
+  const KO_HON2 = new RegExp(`(?:^|(?<=[\\s:：(,]))(${KO_SUR}[가-힣]{2})[ \\t]?(?:어르신|어린이|환자분|학생|군|양)(?=$|[\\s,.)]|께|에게|의|은|는|이|가)`, "gmu");
+  /** @param {string} t folded text @returns {{start: number, end: number}[]} */
+  function cjkHonorificNames(t) {
+    /** @type {{start: number, end: number}[]} */ const out = [];
+    const SP = /[ \t　]/;
+    for (const m of t.matchAll(JA_HON)) {
+      const val = m[1], toks = val.split(SP);
+      if (JA_NOT.test(toks[toks.length - 1]) || JA_NOT.test(val.replace(/[ \t　]/g, ""))) continue;
+      const start = /** @type {number} */ (m.index);
+      out.push({ start, end: start + val.length });
+    }
+    for (const m of t.matchAll(KO_HON)) {
+      const val = m[1];
+      if (KO_NOT.test(val.replace(/[ \t]/g, "")) || KO_NOT.test(val.split(/[ \t]/)[0]) && val.length <= 2) continue;
+      const start = /** @type {number} */ (m.index) + m[0].indexOf(val);
+      out.push({ start, end: start + val.length });
+    }
+    for (const re of [JA_KIN_RE, KO_KIN_RE, KO_FROM, JA_FROM, KO_HON2]) {
+      for (const m of t.matchAll(re)) {
+        const val = m[1];
+        if (FROM_NOT.test(val) || KO_NOT.test(val) || ((re === JA_FROM || re === JA_KIN_RE) && JA_NOT.test(val))) continue;
+        const start = /** @type {number} */ (m.index) + m[0].lastIndexOf(val);
+        out.push({ start, end: start + val.length });
+      }
+    }
+    return out;
+  }
 
   /** @param {any} input @returns {{kind: string, start: number, end: number, company?: boolean}[]} */
   function scanAll(input) {
@@ -491,8 +618,10 @@
     }
     // 2. honorific names, on dispensing labels only
     for (const h of honorificNames(t, disp)) hits.push({ kind: "name", ...h });
+    // 2a. Japanese / Korean names before a form of address (様 / さん / 님 / 씨 ...), on any text
+    for (const h of cjkHonorificNames(t)) hits.push({ kind: "name", ...h });
     // 2b. on a dispensing label, a line that is only a name (no cue, no title) is removed too
-    if (disp) for (const h of nameLines(t)) hits.push({ kind: "name", ...h });
+    if (disp) for (const h of nameLines(t).concat(cjkNameLines(t))) hits.push({ kind: "name", ...h });
     // 3. numbers, e-mail, birth dates
     for (const r of RULES) {
       r.re.lastIndex = 0;
@@ -513,6 +642,8 @@
       const before = t.slice(Math.max(0, at - 40), at);
       const barcode = eanOk(m[0]) && (/^885/.test(m[0]) || /(?:บาร์โค้ด|บาร์โค๊ด|barcode|bar\s*code|EAN|GTIN|GS1|UPC|\(01\)|条码|條碼)[^\n\d]{0,20}$/iu.test(before));
       if (barcode) continue;
+      // a valid Korean (880) / Japanese (45, 49) EAN-13 printed alone on a Korean / Japanese label is a barcode (stream F)
+      if (eanOk(m[0]) && ((/^880/.test(m[0]) && /[가-힯]/u.test(t)) || (/^4[59]/.test(m[0]) && /[ぁ-ヿ]/u.test(t))) && !ID_KEY.test(t.slice(Math.max(0, at - 60), at))) continue;
       if (ID_KEY.test(t.slice(Math.max(0, at - 60), at)) || (alone && thaiIdOk(m[0]) && /^[1-8]/.test(m[0]))) hits.push({ kind: "id", start: at, end: at + 13 });
     }
     for (const m of t.matchAll(/(?<![\dA-Za-z])\d{17}[\dXx](?![\dA-Za-z])/gu)) {
@@ -540,7 +671,11 @@
         at += line.length + 1;
         if (!ADDRESS.test(line) || COMPANY.test(line)) return;
         const back = lines.slice(Math.max(0, i - 3), i + 1).join("\n");
-        const nearPerson = names.some(n => n.start >= ls - back.length + line.length && n.start < ls + line.length) || /บ้านเลขที่|ที่อยู่ผู้ป่วย|ที่อยู่\s*[:：]|Address\s*[:：]|住址|家庭住址/iu.test(line);
+        const nearPerson = names.some(n => n.start >= ls - back.length + line.length && n.start < ls + line.length) ||
+          /บ้านเลขที่|ที่อยู่ผู้ป่วย|ที่อยู่\s*[:：]|Address\s*[:：]|住址|家庭住址|住所(?:\s*[:：]|[ \t]+(?=\S))|주소(?:\s*[:：]|[ \t]+(?=\S))/iu.test(line) ||
+          // Japanese / Korean slips put the address before the name: a person name in the two lines below, or a recipient cue above
+          names.some(n => n.start >= ls && n.start < ls + lines.slice(i, i + 3).join("\n").length) ||
+          /お届け先|ご依頼主|受取人|宛先|받는\s?(?:분|사람)|보내는\s?(?:분|사람)|수령인|수취인|배송지/u.test(lines.slice(Math.max(0, i - 3), i + 1).join("\n"));
         const maker = COMPANY.test(lines.slice(Math.max(0, i - 3), i).join("\n"));
         if (!(disp || nearPerson) || (maker && !disp)) return;
         const lead = line.length - line.trimStart().length;
@@ -561,7 +696,10 @@
     };
     for (const m of t.matchAll(PHONE_RUN)) for (const p of phonesIn(m[0])) {
       const at = /** @type {number} */ (m.index) + p.s, len = p.e - p.s;
-      hits.push({ kind: "phone", start: at, end: at + len, ...(companyAt(at, "") ? { company: true } : {}) });
+      // a Japanese / Korean MOBILE (0[789]0-xxxx-xxxx, 01x-...) is a person's, even next to a maker block (stream F)
+      const digits = t.slice(at, at + len).replace(/\D/g, "");
+      const mobile = (/^0[789]0\d{8}$/.test(digits) && /[ぁ-ヿ]/u.test(t)) || (/^01[016789]\d{7,8}$/.test(digits) && /[가-힯]/u.test(t));
+      hits.push({ kind: "phone", start: at, end: at + len, ...(!mobile && companyAt(at, "") ? { company: true } : {}) });
     }
     // maker / customer-service e-mails are kept like maker phones (owner decision 2026-11-10)
     for (const h of hits) if (h.kind === "email" && companyAt(h.start, t.slice(h.start, h.end))) h.company = true;
