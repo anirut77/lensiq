@@ -30,6 +30,7 @@ controller only for its own website, member accounts, billing and the optional b
 - **F. Round 17** — F1 Product Check + AI Gateway (design approved; cloud AI providers, image mode, cross-border
   processing, Thai FDA data) · F2 AI Gateway core as built in P5 (consent screen, remembered consent, image mode, logs)
 - **D. Questions that cut across products**
+- **H. Camera pages: device-only technical keys** — `lq-heavy` (crash guard, sessionStorage) and `lq-camcap` (localStorage)
 
 ---
 
@@ -948,3 +949,16 @@ accountability for published belief guidance), and should a reviewer contract / 
 
 (c) **Reviewer notes from the drafts file** (`review_meta`: draft id, discipline names, source links, "uncertain" notes)
 are internal working notes about content, not personal data, and are never served to users.
+
+## H. Camera pages: device-only technical keys (stream B, 2026-11-13)
+
+Two technical keys written by the shared camera code on the user's own device. Neither holds personal data, an image or
+an identifier; nothing is sent anywhere. `privacy.html` is not changed yet (owner decision pending).
+
+| Key | Where | Content | When written / removed | Pages |
+|---|---|---|---|---|
+| `lq-heavy` | `sessionStorage` (this tab only; gone when the tab closes) | the single value `"1"` | set while a camera stream is live (crash guard, `lensiq-crashguard.js`); removed when the camera stops, pauses or is lost, when the page is left normally, and on the next load after a crash (read once, then deleted) | the 24 camera pages that load the crash guard; NOT interview, qc, store, teamface (they promise that nothing is stored) |
+| `lq-camcap` | `localStorage` (this browser; note: not sessionStorage) | `{v:1, maxLive, at}`: how many cameras this device could run at once, and when that was learned | written only when a multi-camera page proves the device cannot open one more camera; expires after 7 days; the camera "reset" deletes it | multi-camera pages (camera hub of `lensiq-camera.js`) |
+
+Question for counsel: do these purely technical keys need to be named in the privacy notice (storage section), or is a
+general sentence ("the site keeps technical settings on your device") enough?

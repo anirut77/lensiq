@@ -17,3 +17,7 @@ ace43a2cca68f155bb8a3cd87736bb411f2bd148442f1560ec8ea5777acbdba2  tests/e2e/phon
 acffc930e122977c78b2ab1139e6cd90c4c7df47c82f072154c8beff77b90f26  tests/e2e/phone-memory.e2e.mjs  # repo file
 # camera-noframes 2026-11-13T15:30:29Z: new test locked BEFORE the LQCam fix (fails on the current code: attendance never ready with a frozen camera).
 677e4714b360c68a02908ac3bb5220c76f0b282ac6cc3fdb2ff0d4387603e138  tests/e2e/camera-noframes.e2e.mjs  # repo file
+# locked 2026-11-13T17:24:27Z re-lock: tests/unit/e2e-shards.test.js (locked by the CI-shards work) changed ONLY for the coordinator-approved macOS WebKit shard (option 1, 2026-11-14): the CI wiring check now expects --shard=i/4 --mac-last on the 3 Linux shards, the e2e-webkit-mac job (shard 4/4, manifest e2e-shard-4) and needs: [e2e, e2e-webkit-mac]; a new test proves the macOS split keeps every guarantee. Every earlier assertion kept unchanged.
+41c0208c1466ea864ab651e1b695d2497e2a8d9b96b21cbe5819f4783dd9ca42  tests/unit/e2e-shards.test.js
+# locked 2026-11-13T18:09:31Z re-lock (STRICTER, reviewer finding): phone-memory.e2e.mjs now FAILS when the renderer RSS figure is 0 on Linux or macOS (before, a 0 skipped the RSS budget). Budgets, pages, duration and sampling unchanged.
+e51f5ffac84b73074179fa1a543985bb5a35d0af1020108eb91f7f8e1ebf677d  tests/e2e/phone-memory.e2e.mjs
