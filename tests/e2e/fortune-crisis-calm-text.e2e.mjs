@@ -11,7 +11,8 @@ import { ADULT, CALM, CRISIS, FLAG_ON, LANGS, PAGES, S, ask, open } from "./cris
 const SCAN = `(() => {
   const vis = e => { if (!e || e.closest("[hidden]")) return false; const cs = getComputedStyle(e); if (cs.display === "none" || cs.visibility === "hidden") return false;
     const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
-  const STRAIGHT = /ดูตรง ?ๆ|read it straight|直说|直說/i;
+  // re-lock 2026-11-14: in Chinese the option is named in quotes (“直说”) or as 直说模式; bare 直说 is an ordinary word ("speak frankly")
+  const STRAIGHT = /ดูตรง ?ๆ|read it straight|[“"「]直[说說][”"」]|直[说說]模式/i;
   const PAID = /แพ็กเกจและราคา|การคืนเงิน|plans and pricing|\\brefund|\\bupgrade|套餐与价格|套餐與價格|退款|升级/i;
   const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n; const straight = [], paid = [];
   while ((n = w.nextNode())) {

@@ -99,3 +99,5 @@ eefb2c196acbe2a39e0ecac3f27e608699e06726004395a428586bfb1c0912e4  tests/e2e/fort
 # CRISIS DETECTION V3 + CALM TEXT (rules d, e) — independent review 2026-11-14 of a0ec6f0 (set fortune-honest__fresh-2026-11-14, SPENT, dev data only). Locked 2026-11-13T19:37:43Z BEFORE the change on crisis-flow-v2 (base 5fcac32). Copies in ~/LENSIQ-field/evals/fortune-honest/repo-copies/.
 a7b505d7f5051f4b3b030fa1aa4ccee573711d31bd34626384f2a35ede3ad258  tests/unit/fortune-crisis-detect-v3.test.js  # repo file  # locked 2026-11-13T19:37:43Z
 7491d27cc6ec9a6a0b28e3efca7cb308d122b2cb1bf1627009029c03074b5310  tests/e2e/fortune-crisis-calm-text.e2e.mjs  # repo file  # locked 2026-11-13T19:37:43Z
+# RE-LOCK 2026-11-13T19:55:12Z fortune-crisis-calm-text.e2e.mjs: the Chinese straight-option pattern matched the ordinary word 直说 ('有话直说', speak frankly) inside a numbers reading; it now matches the option's name as shown on the pages (“直说” in quotes, or 直说模式). TH and EN patterns unchanged; paid checks unchanged.
+33dab0b7892448f4cc391aaea9b6c8ef6dd8de305a933fe6455d0708bac75bf9  tests/e2e/fortune-crisis-calm-text.e2e.mjs  # repo file  # re-locked 2026-11-13T19:55:12Z
