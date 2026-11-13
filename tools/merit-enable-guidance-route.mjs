@@ -9,8 +9,8 @@
 //      form /v1/merit/interest, analytics, billing and sign-in stay closed).
 //   2. deploy/public-site.json "pages": add the 14 fortune pages that load the merit script (nav.js meritHook). Without this
 //      the pages are built with LENSIQ_API_BASE = "" and never ask the Worker (the CSP of those pages also lacks the API origin).
-// After applying: update the three locked constants listed below in the SAME commit (a deliberate, owner-approved route
-// change; they assert the exact old lists), run the affected suites, push the branch, run the full gate in CI, merge only
+// After applying: update the four locked test files listed below in the SAME commit (a deliberate, owner-approved route
+// change; they assert the exact old lists; this tool's own test flips from "not applied" to "applied"), run the affected suites, push the branch, run the full gate in CI, merge only
 // when green, then `npm run backend:deploy:test` and let the Pages workflow publish the site. The coordinator does this.
 //
 // Usage (nothing is written unless --apply AND --confirm-published are both given):
@@ -30,6 +30,7 @@ export const LOCKED_TESTS_TO_UPDATE = Object.freeze([
   "tests/unit/backend-deploy-gate.test.js (TEST_ROUTES constant and the wrangler.toml includes check)",
   "tests/unit/backend-leads-inbox.test.js (the PUBLIC_ROUTES deepEqual in the 'form ON' test)",
   "tests/unit/deploy-tools.test.js (the committed public-site.json pages list, two assertions in 'B1 site config')",
+  "tests/unit/merit-enable-route.test.js (ME1-ME5 assert 'NOT applied' and flip to 'applied'; a documented re-lock in evals-locks/merit-e.sha256 and ~/LENSIQ-field/evals/merit-e/)",
 ]);
 
 /** Adds GUIDANCE_ROUTE to PUBLIC_ROUTES of [env.test.vars] only. Idempotent. @param {string} toml */
@@ -71,7 +72,7 @@ function main(a) {
   console.log("*** " + WARNING + " ***\n");
   console.log("1. backend/wrangler.toml [env.test.vars] PUBLIC_ROUTES: " + (t1 === t0 ? "already contains " : "add ") + GUIDANCE_ROUTE);
   console.log("2. deploy/public-site.json pages: " + (s1 === s0 ? "already contains the 14 merit pages" : "add " + MERIT_PAGES.filter(p => !JSON.parse(s0).pages.includes(p)).join(", ")));
-  console.log("\nIn the same commit update these locked tests (they assert the exact old lists):");
+  console.log("\nIn the same commit update these locked tests (they assert the exact old lists / the not-applied state):");
   for (const x of LOCKED_TESTS_TO_UPDATE) console.log("  - " + x);
   if (!apply) { console.log("\nDry run: nothing written. To apply: --apply --confirm-published (only after at least one item is published)."); return 0; }
   if (!confirmed) { console.error("\nRefused: --apply needs --confirm-published (the owner has published at least one item). Nothing written."); return 1; }
