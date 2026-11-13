@@ -55,6 +55,8 @@
   "lucky.recMain": "Main colour",
   "lucky.recSecond": "Extra colour",
   "lucky.bhumiOf": "{b} bhumi: {m}",
+  "lucky.calm.h": "Colour of {day}",
+  "lucky.calm.note": "According to belief. Wear any colour you feel comfortable in; looking after yourself today is enough.",
   "lucky.or": " or ",
   "lucky.weekCap": "Lucky colours by day and goal",
   "lucky.weekDay": "Day",

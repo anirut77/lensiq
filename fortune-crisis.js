@@ -245,7 +245,7 @@
     // crisis fix 4: under a reading on a calm page (crisis state, calm session, soft step answered or distress typed) the line is
     // sticky, so it stays in the viewport next to the reading
     const calmHere = !!cls && /lq-helpline-result/.test(cls) && (calmOn(d) || distress(d));
-    if (calmHere) markCalm(d);
+    if (calmHere) { markCalm(d); return helpBar(d, i18n ? I.lang : lang, cls + " lq-helpline-calm"); } // crisis flow v2: the pinned bar
     const box = el("aside", "lq-helpline" + (cls ? " " + cls : "") + (calmHere ? " lq-helpline-calm" : ""));
     box.setAttribute("role", "note"); box.setAttribute("aria-label", L.label); box.setAttribute("data-i18n-attr", "aria-label:help.line.label");
     for (const [k, v] of HELP_PARTS) {
@@ -308,7 +308,7 @@
       for (let e = up; !sec && e && e !== d.body; e = e.parentElement) if (e.tagName === "SECTION" && !(e.parentElement && e.parentElement.closest("section"))) sec = e;
       if (!sec) return null;
       let dock = sec.querySelector(":scope > .lq-helpline-dock");
-      if (!dock) { dock = helpLine(d, lang, "lq-helpline-result lq-helpline-dock"); sec.appendChild(dock); }
+      if (!dock) { dock = helpBar(d, lang, "lq-helpline-result lq-helpline-dock"); sec.appendChild(dock); } // crisis flow v2: 1323 + more lines
       Array.from(container.querySelectorAll(".lq-helpline-calm")).forEach(e => e.classList.remove("lq-helpline-calm")); // one sticky line
       return dock;
     } catch (e) { return null; }
@@ -340,9 +340,10 @@
     try { if (typeof root.dispatchEvent === "function" && typeof root.CustomEvent === "function") root.dispatchEvent(new root.CustomEvent("lq-crisis")); } catch (e) { /* no events */ }
   }
   /** may a renderer show this kind of content ("remedy" | "lucky" | "paid" | "merit" | "straight" | "reco" | "lead" | "share")?
-   *  false while the page is in the crisis state @param {string} kind @param {any} [doc] */
-  // eslint-disable-next-line no-unused-vars
-  const allow = (kind, doc) => !active(doc) && !calmOn(doc);
+   *  false while the page is in the crisis state. Crisis flow v2 §3 (owner decision 2026-11-13): free belief guidance ("belief":
+   *  merit, prayer, chanting, meditation, labelled "according to belief") and neutral colours ("colour") are always allowed;
+   *  "merit" stays the merit SERVICE (paid / on your behalf) and is refused. @param {string} kind @param {any} [doc] */
+  const allow = (kind, doc) => kind === "belief" || kind === "colour" || kind === "color" || (!active(doc) && !calmOn(doc));
   /** true when this page is calm: the crisis state, the tab's session flag, or the soft step answered here @param {any} [doc] */
   function calmOn(doc) {
     if (active(doc) || sessionOn()) return true;
@@ -356,10 +357,286 @@
     if (all && (check(all) || soft(all))) return true;
     try { const d = docOf(doc); return !!d && Array.from(d.querySelectorAll(NAME_FIELDS)).some(e => softName(e && e.value)); } catch (e) { return false; }
   }
+
+  /* ---------------- crisis flow v2 (owner decision 2026-11-13, docs/CRISIS-FLOW-V2.md) ----------------
+     "Respond, support and keep the door open": the acknowledgement card comes first, the reading follows on "continue".
+     Here: (1) the advice classifier and the fatalistic filter that calm readings pass through (word lists per language,
+     tests/unit/fortune-crisis-flow-v2.test.js); (2) the hope frame; (3) the pinned help bar (1323 + the other verified lines);
+     (4) the in-memory "continued" state: the field values the reader continued past are kept in memory only (never stored,
+     never sent), so the card comes back only when a NEW hard-net signal is typed.
+     REVIEW: the hope frame and the help-bar wording are pending review by a Thai mental-health professional (launch item L63). */
+  /** advice kinds in priority order: anything that sells, buys or carries an object wins over belief and colour words */
+  const KINDS = ["lucky", "purchase", "remedy", "belief", "colour"];
+  /** @type {Record<string, RegExp[]>} word lists per kind: [Thai, English, Chinese] */
+  const WORDS = {
+    lucky: [
+      /ของมงคล|เครื่องราง|ของขลัง|วัตถุมงคล|พระเครื่อง|ตะกรุด|หินมงคล|หินนำโชค|กำไล|คริสตัล|ของนำโชค|เครื่องประดับ|ผ้ายันต์|ยันต์|ปี่เซียะ|พวงกุญแจ|เหรียญนำโชค|รูปเคารพ|เครื่องรางของขลัง/,
+      new RegExp(String.raw`\b(?:amulets?|talisman\w*|lucky charms?|good[- ]luck charms?|charm bracelets?|crystals?(?! clear)|gemstones?|lucky (?:items?` +
+        String.raw`|objects?|stones?|bracelets?|coins?|tokens?)|pendants?|bracelets?|figurines?|sacred images?|statuettes?|keychains?)\b`, "i"),
+      /吉祥物|护身符|开运物|开运|水晶|手链|手串|貔貅|饰品|摆件|佛牌|符咒|平安符|转运|神像|幸运物/,
+    ],
+    purchase: [
+      /ซื้อ(?!ใจ)|สั่งซื้อ|เช่า(?:พระ|บูชา)|ราคา|\d[\d,]*\s*บาท|฿|โอนเงิน|จ่ายเงิน|ชำระเงิน|ค่าบริการ|ทำบุญแทน|บริการ[^\s]{0,8}แทน/,
+      /\b(?:buy|buying|bought|purchas\w*|prices?|priced|fees?|baht|shop|on your behalf|pay(?:ment|ing)? (?:for|us|the fee))\b|฿/i,
+      /购买|买(?!单)|价格|付款|支付|下单|商店|泰铢|代办|代为|费用/,
+    ],
+    remedy: [
+      new RegExp(String.raw`(?:เปลี่ยน|ตั้ง)(?:ชื่อ|นามสกุล|เบอร์|เลขทะเบียน|ทะเบียน)|เลขมงคล|เบอร์มงคล|เลขนำโชค|วาง[^\s]{0,14}(?:ในบ้าน|ที่บ้าน` +
+        String.raw`|หน้าบ้าน|บนโต๊ะ|ในห้อง)|แขวน|ทำพิธี|สะเดาะเคราะห์|ตัดกรรม|แก้กรรม|เสริมฮวงจุ้ย|วิธีปรับ|ข้อแนะนำทั่วไปคือ|เคล็ดเสริมดวง` +
+        String.raw`|วิธีเสริมจุดนี้|สิ่งที่ควรทำตามตำรา|สีที่เข้ากับผลครั้งนี้|ถ้าอยากใช้สีช่วยเสริม|ทิศที่ส่งเสริม|ทิศมงคล`),
+      new RegExp(String.raw`\b(?:change (?:your )?(?:name|phone number|number|plate)|lucky numbers?|place (?:a|an|the|some) [^.]{0,30}\b(?:in` +
+        String.raw`|at|on|by) (?:your|the) (?:home|house|desk|door|bedroom|room)|hang (?:a|an)|rituals?|ceremon\w*|a simple adjustment` +
+        String.raw`|try this simple adjustment|for colou?r, you could add|tones suit you)\b`, "i"),
+      /改名|换号|吉祥号码|幸运数字|摆放|挂在|放在家|办公桌上|仪式|法事|调整的方法是|建议这样调整|颜色上可以多用|这段时间和你比较合/,
+    ],
+    belief: [
+      /ทำบุญ|ไหว้|ขอพร|สวดมนต์|สมาธิ|ใส่บาตร|กรวดน้ำ|แผ่เมตตา|รักษาศีล|ทำความดี|ทำทาน|ปฏิบัติธรรม/,
+      /\b(?:merit|pray\w*|chant\w*|meditat\w*|temples?|shrines?|good deeds?|alms|kindness)\b/i,
+      /行善|祈祷|祈福|诵经|念经|冥想|静坐|拜佛|参拜|拜太岁|布施|做好事|上香|礼佛/,
+    ],
+    colour: [
+      /สี(?:ประจำ|มงคล|เสื้อ|แดง|เหลือง|ชมพู|เขียว|ส้ม|ฟ้า|น้ำเงิน|ม่วง|ดำ|เทา|ขาว|ครีม|ทอง|เงิน|น้ำตาล|ของวัน)|โทนสี/,
+      /\b(?:colou?rs?|red|yellow|pink|green|orange|blue|navy|purple|black|grey|gray|white|cream|gold)\b/i,
+      /颜色|红色|黄色|粉色|绿色|橙色|蓝色|紫色|黑色|灰色|白色|色系/,
+    ],
+  };
+  /** the kind of an advice line: "lucky" | "purchase" | "remedy" | "belief" | "colour" | "" @param {any} text */
+  function adviceKind(text) {
+    const t = String(text == null ? "" : text).normalize("NFC");
+    if (!t.trim()) return "";
+    for (const k of KINDS) if (WORDS[k].some(re => re.test(t))) return k;
+    return "";
+  }
+  /** fatalistic: an unavoidable bad outcome, or a bad period with no way forward. [Thai, English, Chinese] */
+  const FATAL = [
+    new RegExp(String.raw`หลีกเลี่ยงไม่ได้|หนีไม่พ้น|ไม่มีทาง(?:แก้|รอด|ออก|ดีขึ้น|หนี)|หมดหวัง|สิ้นหวัง|ไม่มีวัน(?:ดีขึ้น|สำเร็จ|หาย|สมหวัง)` +
+      String.raw`|ชะตาขาด|ถึงฆาต|เคราะห์หนัก|ดวงซวย|ซวยหนัก|ล่มจม|พังทลาย|หายนะ|จุดจบ|ย่อยยับ|(?:จะ|ต้อง)(?:ล้มเหลว|สูญเสียทุกอย่าง` +
+      String.raw`|พังพินาศ)|ไม่มีอะไรช่วยได้|ทำอะไรก็ไม่ขึ้น|อับจน|ดวงตกหนัก|ตกต่ำที่สุด`),
+    new RegExp(String.raw`\b(?:inevitabl\w*|unavoidabl\w*|doom(?:ed)?|hopeless\w*|no way out|nothing (?:you can do|can help)|bound to (?:fail` +
+      String.raw`|lose|suffer)|will (?:surely |certainly )?(?:fail|lose everything|be ruined)|ruin(?:ed|ous|s)?|disaster\w*|catastroph\w*` +
+      String.raw`|cursed|never (?:get better|recover|succeed)|no escape|cannot escape)\b`, "i"),
+    /注定|无法避免|不可避免|难逃|在劫难逃|必然失败|必定失败|毫无希望|没有希望|绝望|绝境|无路可走|厄运|灾难|劫数|大凶|一败涂地|永远不会好|无可挽回|走投无路/,
+  ];
+  const BAD = [
+    /ดวงตก|ดวงอ่อน|ดวงไม่ดี|ช่วงขาลง|ช่วงไม่ดี|ช่วงวิกฤต|ตกต่ำ|เคราะห์|มีเกณฑ์(?:เสีย|สูญ|เจ็บ|ป่วย)|ดวงถดถอย/,
+    /\b(?:weak (?:period|patch|phase|spot)|bad (?:period|luck|time|year|patch)|low (?:period|point|phase)|hard (?:period|year)|losses|setbacks?|misfortune|unlucky)\b/i,
+    /运势低迷|运势不佳|低谷|不顺|坏运|凶|破财|损失|阻碍|倒霉/,
+  ];
+  const FORWARD = [
+    /ผ่านไป|ค่อย ?ๆ|ทำได้|ลอง|ควร|ช่วย|ดีขึ้น|เริ่ม|วางแผน|ดูแล|พัก|ปรึกษา|ทีละ|รับมือ|แก้ไข|ป้องกัน|เตรียม|ระวัง|เติบโต|เรียนรู้|โอกาส/,
+    /\b(?:pass(?:es)?|can|could|try|step|plan\w*|help\w*|improv\w*|ease|recover\w*|look after|rest|talk|prepar\w*|watch|steady|careful\w*|learn\w*|grow\w*|chance)\b/i,
+    /会过去|可以|试着|慢慢|好转|一步|计划|照顾|休息|聊聊|准备|注意|帮助|调整|稳|学习|成长|机会/,
+  ];
+  const any = (/** @type {RegExp[]} */ list, /** @type {string} */ t) => list.some(re => re.test(t));
+  /** true when the sentence states an unavoidable bad outcome or a bad period without a way forward @param {any} text @param {string} [lang] */
+  // eslint-disable-next-line no-unused-vars
+  function fatalistic(text, lang) {
+    const t = String(text == null ? "" : text).normalize("NFC");
+    if (!t.trim()) return false;
+    return any(FATAL, t) || (any(BAD, t) && !any(FORWARD, t));
+  }
+  /** the sentences of a paragraph; Thai clauses are separated by spaces @param {string} t */
+  function pieces(t) {
+    const out = [];
+    for (const s of String(t).match(/[^.!?。！？]+[.!?。！？]*\s*/g) || []) {
+      if (/[฀-๿]/.test(s)) out.push(...s.trim().split(/\s+/).filter(Boolean));
+      else if (s.trim()) out.push(s.trim());
+    }
+    return out;
+  }
+  /** a paragraph for a calm reading: lucky-object, purchase, other-remedy and fatalistic sentences removed; free belief
+   *  guidance and colours stay ("" when nothing is left) @param {any} text @param {string} [lang] */
+  function calmText(text, lang) {
+    const ps = pieces(String(text == null ? "" : text).normalize("NFC"));
+    const keep = ps.filter((p, i) => {
+      const k = adviceKind(p);
+      if (k === "lucky" || k === "purchase" || k === "remedy") return false;
+      if (any(FATAL, p)) return false;
+      // a Thai clause may get its way forward from the clause next to it
+      if (any(BAD, p) && !any(FORWARD, p) && !(/[฀-๿]/.test(p) && (any(FORWARD, ps[i + 1] || "") || any(FORWARD, ps[i - 1] || "")))) return false;
+      return true;
+    });
+    void lang;
+    return keep.join(" ").replace(/\s+([,.!?。！？，])/g, "$1").trim();
+  }
+  /** the hope frame of a calm reading (a fixed opening and closing line) */
+  const HOPE = {
+    reviewStatus: "pending-professional-review",
+    th: { open: "ช่วงที่หนักใจไม่ได้อยู่ตลอดไป อ่านคำทำนายต่อไปนี้เป็นแนวทางเบา ๆ ได้ สิ่งที่คุณทำได้ในแต่ละวันสำคัญกว่าดวงเสมอ",
+      close: "ทุกช่วงเวลาค่อย ๆ ผ่านไปได้ทีละวัน ดูแลเรื่องเล็ก ๆ อย่างกินข้าว พักผ่อน และคุยกับคนที่ไว้ใจ ถ้าอยากคุยกับใครตอนนี้ โทร 1323 ได้ฟรี ตลอด 24 ชั่วโมง" },
+    en: { open: "Hard periods do not last forever. Read what follows as a gentle guide; what you can do each day matters more than any reading.",
+      close: "Every period can be taken one day at a time. Look after the small things: eating, resting and talking to someone you trust. " +
+        "If you would like to talk to someone now, call 1323, free, 24 hours." },
+    zh: { open: "艰难的时期不会一直持续。下面的内容可以当作温和的参考；你每天能做的事，比任何解读都重要。",
+      close: "每段时期都可以一天一天地走过。照顾好小事：按时吃饭、好好休息、和信任的人聊聊。如果现在想找人聊聊，可以拨打 1323，免费，24 小时。" },
+  };
+  /** the hope frame in one language @param {any} lang */
+  const hope = lang => { const L = /** @type {any} */ (HOPE)[helpLang(lang)]; return { open: L.open, close: L.close, reviewStatus: HOPE.reviewStatus }; };
+  /** the pinned help bar: 1323 always visible, the other verified lines (docs/CRISIS-RESOURCES.md) behind "more help lines" */
+  const BAR = {
+    th: { label: "สายด่วนช่วยเหลือ", lead: "อยากคุยกับใครตอนนี้ โทร", free: "ฟรี ตลอด 24 ชั่วโมง", more: "เบอร์ช่วยเหลืออื่น ๆ",
+      lines: [["02 113 6789", "สมาคมสะมาริตันส์แห่งประเทศไทย รับฟังทุกเรื่อง 12:00–22:00 น.", "021136789"],
+        ["1300", "ศูนย์ช่วยเหลือสังคม กระทรวง พม. ความรุนแรงในครอบครัว ปัญหาเด็กและเยาวชน ตลอด 24 ชั่วโมง"], ["191", "เหตุด่วนเหตุร้าย / แจ้งตำรวจ"],
+        ["1669", "เจ็บป่วยฉุกเฉิน / ต้องการรถพยาบาล"]] },
+    en: { label: "Help lines", lead: "Want to talk to someone now? Call", free: "free, 24 hours", more: "More help lines",
+      lines: [["02 113 6789", "Samaritans of Thailand, listening line, 12:00–22:00", "021136789"],
+        ["1300", "Social Assistance Center (Ministry of Social Development and Human Security): domestic violence, children and young people; 24 hours"],
+        ["191", "Police emergency"], ["1669", "Medical emergency / ambulance"]] },
+    zh: { label: "求助热线", lead: "现在想找人聊聊？请拨打", free: "免费，24 小时", more: "更多求助热线",
+      lines: [["02 113 6789", "泰国撒玛利亚会（Samaritans of Thailand）倾听热线，12:00–22:00", "021136789"],
+        ["1300", "泰国社会援助中心（社会发展与人类安全部）：家庭暴力、儿童和青少年问题，24 小时"], ["191", "报警（泰国警察）"], ["1669", "医疗急救 / 救护车"]] },
+  };
+  /** the pinned help bar as an element (textContent only) @param {any} [doc] @param {string} [lang] @param {string} [cls] */
+  function helpBar(doc, lang, cls) {
+    const d = doc || root.document, I = /** @type {any} */ (root).LQI18N;
+    const l = helpLang(lang || (I && I.lang) || "th"), L = BAR[l];
+    const el = (tag, c, t) => { const e = d.createElement(tag); if (c) e.className = c; if (t != null) e.textContent = t; return e; };
+    const tel = (n, t) => { const a = el("a", "lq-helpline-tel", n); a.setAttribute("href", "tel:" + (t || n).replace(/\s+/g, "")); return a; };
+    const box = el("aside", "lq-helpline lq-helpbar" + (cls ? " " + cls : ""));
+    box.setAttribute("role", "note"); box.setAttribute("aria-label", L.label); box.setAttribute("data-review", "pending-professional-review");
+    box.setAttribute("lang", l === "zh" ? "zh-Hans" : l);
+    const row = el("p", "lq-helpbar-main");
+    row.appendChild(el("span", null, L.lead + " ")); row.appendChild(tel("1323")); row.appendChild(el("span", null, " " + L.free));
+    box.appendChild(row);
+    const more = el("details", "lq-helpbar-more"); more.setAttribute("data-lq-more", "");
+    more.appendChild(el("summary", null, L.more));
+    const ul = el("ul");
+    for (const [n, t, x] of L.lines) { const li = el("li"); li.appendChild(tel(n, x)); li.appendChild(el("span", null, " " + t)); ul.appendChild(li); }
+    more.appendChild(ul); box.appendChild(more);
+    try { ensureBarStyle(d); } catch (e) { /* no DOM */ }
+    return box;
+  }
+  // only one bar is sticky: the dock in the reading's section (or the line under it until the dock exists); the page bar is fixed
+  const BAR_CSS = ".lq-helpbar.lq-helpline-dock,.lq-helpbar.lq-helpline-calm{position:sticky;bottom:0;z-index:6}.lq-helpbar{margin:10px 0 0;padding:8px 12px;border-radius:12px;background:#0b3b5a;color:#fff;" +
+    "box-shadow:0 -2px 10px rgba(20,50,74,.25);font-size:.95rem;line-height:1.45}.lq-helpbar p{margin:0}.lq-helpbar a.lq-helpline-tel{color:#fff;font-weight:700;" +
+    "display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:0 10px;border-radius:10px;background:rgba(255,255,255,.16);" +
+    "text-decoration:none}.lq-helpbar details{margin-top:2px}.lq-helpbar summary{cursor:pointer;min-height:44px;display:flex;align-items:center}" +
+    ".lq-helpbar ul{list-style:none;margin:4px 0 0;padding:0;display:grid;gap:4px}.lq-helpbar li{display:flex;gap:8px;align-items:center;flex-wrap:wrap}" +
+    ".lq-helpbar-page{position:fixed;left:8px;right:8px;bottom:8px;max-width:900px;margin:0 auto}body.lq-has-helpbar{padding-bottom:120px}" +
+    ".fa-hope{margin:.4em 0 1em;padding:.7em .9em;border-left:3px solid #38bdf8;background:rgba(56,189,248,.08);border-radius:8px;line-height:1.6}" +
+    "@media print{.lq-helpbar{position:static;box-shadow:none}.lq-helpbar-page{display:none}}";
+  /** @param {any} d */
+  function ensureBarStyle(d) {
+    if (!d || !d.head || typeof d.getElementById !== "function" || d.getElementById("lq-helpbar-style")) return;
+    const st = d.createElement("style"); st.id = "lq-helpbar-style"; st.textContent = BAR_CSS; d.head.appendChild(st);
+  }
+  /** a calm page without a reading (fortune hub, planner, lucky-colour mirror): one help bar fixed at the bottom @param {any} [doc] */
+  function pageBar(doc) {
+    try {
+      const d = doc || root.document;
+      if (!d || !d.body || d.querySelector(".lq-helpbar-page")) return null;
+      const bar = helpBar(d, undefined, "lq-helpbar-page");
+      d.body.appendChild(bar); d.body.classList.add("lq-has-helpbar");
+      return bar;
+    } catch (e) { return null; }
+  }
+  const CARD = {
+    th: {
+      title: "เราอยู่ตรงนี้นะ",
+      lead: "ขอบคุณที่บอกให้เรารู้ ช่วงนี้คุณอาจกำลังแบกเรื่องหนักใจอยู่ ความรู้สึกแบบนี้เกิดขึ้นได้กับทุกคน และคุณไม่ต้องผ่านมันไปคนเดียว",
+      body: "ถ้าอยากคุยกับใครสักคนตอนนี้ มีคนพร้อมรับฟังและช่วยเหลือ แตะที่เบอร์เพื่อโทรได้เลย",
+      lines: [["1323", "สายด่วนสุขภาพจิต กรมสุขภาพจิต — โทรฟรี ตลอด 24 ชั่วโมง"], ["1669", "เจ็บป่วยฉุกเฉิน / ต้องการรถพยาบาล"], ["191", "เหตุด่วนเหตุร้าย / แจ้งตำรวจ"],
+        ["1300", "ศูนย์ช่วยเหลือสังคม กระทรวง พม. — ความรุนแรงในครอบครัว ปัญหาเด็กและเยาวชน ตลอด 24 ชั่วโมง"],
+        ["02 113 6789", "สมาคมสะมาริตันส์แห่งประเทศไทย — รับฟังทุกเรื่อง 12:00–22:00 น.", "021136789"]],
+      after: "ถ้าทำได้ ลองบอกคนที่คุณไว้ใจสักคนว่ากำลังรู้สึกอย่างไร ถ้ารู้สึกไม่ปลอดภัยตอนนี้ ไปโรงพยาบาลใกล้บ้านหรือโทร 1669 ถ้าอยู่นอกประเทศไทย โทรเบอร์ฉุกเฉินของประเทศนั้น",
+      cont: "ดูคำทำนายต่อ",
+      contNote: "คำทำนายยังอยู่ และเบอร์ช่วยเหลือจะอยู่ด้านล่างของหน้าจอตลอด",
+      foot: "ข้อความที่คุณพิมพ์ไม่ได้ถูกบันทึกหรือส่งไปที่ใด · ถ้อยคำบนการ์ดนี้กำลังรอผู้เชี่ยวชาญด้านสุขภาพจิตตรวจทาน",
+      call: "โทร",
+    },
+    en: {
+      title: "We're here with you",
+      lead: "Thank you for letting us know. You may be carrying something heavy right now. Feelings like this can happen to anyone, and you don't have to go through them alone.",
+      body: "If you'd like to talk to someone now, people are ready to listen and help. Tap a number to call.",
+      lines: [["1323", "Thai Department of Mental Health hotline — free, 24 hours"], ["1669", "Medical emergency / ambulance"], ["191", "Police emergency"],
+        ["1300", "Social Assistance Center (Ministry of Social Development and Human Security) — domestic violence, children and young people; 24 hours"],
+        ["02 113 6789", "Samaritans of Thailand — listening line, 12:00–22:00", "021136789"]],
+      after: "If you can, tell someone you trust how you are feeling. If you feel unsafe right now, go to the nearest hospital or call 1669. Outside Thailand, call your local emergency number.",
+      cont: "Continue to the reading",
+      contNote: "Your reading is still here, and the help lines stay at the bottom of the screen.",
+      foot: "Nothing you typed was saved or sent anywhere · The wording on this card is awaiting review by a mental-health professional",
+      call: "Call",
+    },
+    zh: {
+      title: "我们在这里陪着你",
+      lead: "谢谢你告诉我们。你现在可能正承受着很沉重的事情。有这样的感受并不奇怪，你不需要独自面对。",
+      body: "如果你现在想找人聊聊，有人愿意倾听和帮助。点一下号码就可以拨打。",
+      lines: [["1323", "泰国心理健康热线（泰国卫生部心理健康司）— 免费，24 小时"], ["1669", "医疗急救 / 救护车"], ["191", "报警（泰国警察）"], ["1300", "泰国社会援助中心（社会发展与人类安全部）— 家庭暴力、儿童和青少年问题，24 小时"],
+        ["02 113 6789", "泰国撒玛利亚会（Samaritans of Thailand）倾听热线 — 12:00–22:00", "021136789"]],
+      after: "如果可以，请告诉一位你信任的人你现在的感受。如果你现在觉得不安全，请去最近的医院或拨打 1669。如果你不在泰国，请拨打当地的紧急电话。",
+      cont: "继续查看解读",
+      contNote: "解读还在，求助热线会一直显示在屏幕下方。",
+      foot: "你输入的内容没有被保存或发送 · 这张卡片的措辞正在等待心理健康专业人士审阅",
+      call: "拨打",
+    },
+  };
+  const CALM_ADVICE = { th: "คำแนะนำ", en: "Advice", zh: "建议" };
+  /** crisis flow v2 §2–§4: a reading for the calm state. Gentle only (a straight reading is never calmed, see renderWithHooks),
+   *  no plan, every paragraph through the calm filter (lucky objects, purchases, other remedies and fatalistic sentences out;
+   *  free belief guidance and colours stay), the hope frame added. Idempotent. @param {any} res */
+  function calmReading(res) {
+    if (!res || res.crisis || !Array.isArray(res.sections)) return res;
+    if (res.calm) return res;
+    const lang = res.lang === "en" || res.lang === "zh" ? res.lang : "th", ct = t => calmText(t, lang);
+    const out = Object.assign({}, res);
+    delete out.plan;
+    let secs = res.sections.map(s => {
+      const ps = (s.paragraphs || []).map(ct).filter(p => p.trim());
+      const n = (s.paragraphs || []).length, main = typeof s.main === "number" && s.main > 0 && s.main < n ? Math.max(1, Math.min(ps.length, s.main)) : s.main;
+      const o = Object.assign({}, s, { paragraphs: ps, main });
+      if (s.id === "advice" || (s.title && adviceKind(s.title) && /^(?:lucky|purchase|remedy)$/.test(adviceKind(s.title)))) o.title = CALM_ADVICE[lang]; // "…และเคล็ดเสริมดวง" → "คำแนะนำ"
+      return o;
+    }).filter(s => s.paragraphs.length);
+    if (!secs.length) secs = [{ id: "overview", title: (res.sections[0] && res.sections[0].title) || "", paragraphs: [HOPE[lang].open] }];
+    out.sections = secs;
+    if (res.summary && Array.isArray(res.summary.lines)) out.summary = Object.assign({}, res.summary, { lines: res.summary.lines.map(l => Object.assign({}, l, { t: ct(l.t) })).filter(l => l.t) });
+    if (res.why && Array.isArray(res.why.lines)) out.why = Object.assign({}, res.why, { lines: res.why.lines.map(l => Object.assign({}, l, { t: ct(l.t) })).filter(l => l.t) });
+    out.hope = hope(lang);
+    out.calm = true;
+    return out;
+  }
+  /** the facts without what the reader typed (crisis flow v2: never echo it): no question, the nickname only when it is a plain name
+   *  @param {any} facts @param {(t: any) => boolean} [isCrisis] the caller's crisis check (default: check) */
+  function withoutTyped(facts, isCrisis) {
+    if (!facts || typeof facts !== "object") return facts;
+    const sub = Object.assign({}, facts.subject || {}), nick = sub.nickname;
+    if (nick != null) { const plain = plainName(nick); if (plain && !(isCrisis || check)(plain)) sub.nickname = plain; else delete sub.nickname; }
+    const out = Object.assign({}, facts, { subject: sub });
+    delete out.question;
+    return out;
+  }
+  /** @type {WeakMap<object, string>|null} the field values the reader continued past, per page (memory only) */
+  const CONTINUED = typeof WeakMap !== "undefined" ? new WeakMap() : null;
+  /** the reader pressed "continue" on the card: these field values do not show the card (or the soft step) again
+   *  @param {any} [doc] */
+  function continued(doc) {
+    const d = docOf(doc);
+    if (!d || typeof d !== "object") return;
+    const f = fields(d);
+    if (CONTINUED) CONTINUED.set(d, f);
+    answered = f;
+    setCalm(d);
+  }
+  /** the page's current field values are the ones the reader continued past @param {any} [doc] */
+  function acked(doc) {
+    const d = docOf(doc);
+    if (!d || typeof d !== "object" || !CONTINUED || !CONTINUED.has(d)) return false;
+    return fields(d) === CONTINUED.get(d);
+  }
+  /** a hard-net signal in the page's fields that the reader has not continued past @param {any} [doc] */
+  function pending(doc) { const f = fields(doc); return !!f && check(f) && !acked(doc); }
+
   // a fortune page opened later in a calm session is calm from the start
   try { if (root.document && sessionOn()) markCalm(root.document); } catch (e) { /* no DOM */ }
+  // crisis flow v2: a calm page without a reading (fortune hub, planner, lucky colour) gets the pinned help bar at the bottom
+  try {
+    const d = root.document;
+    const bar = () => { try { if (calmOn(d) && !(/** @type {any} */ (root).FortuneAI)) pageBar(d); } catch (e) { /* no DOM */ } };
+    if (d && typeof d.addEventListener === "function") { if (d.readyState === "loading") d.addEventListener("DOMContentLoaded", bar); else bar(); }
+  } catch (e) { /* no DOM */ }
 
   const api = { check, unjoke, fields, soft, softName, plainName, pageSoft, ack, renderSoft, softGate, softText, HELP, helpLine, helpHTML, active, setActive, allow,
-    calmOn, setCalm, markCalm, calmDock, distress, SESSION_KEY };
+    calmOn, setCalm, markCalm, calmDock, distress, SESSION_KEY,
+    adviceKind, fatalistic, calmText, HOPE, hope, helpBar, pageBar, continued, acked, pending, WORDS, CARD, calmReading, withoutTyped };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else /** @type {any} */ (root).LQFortuneCrisis = api;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -450,7 +450,8 @@
   function renderResult(r, quiet) {
     const sec = $("#nmResult"); sec.hidden = false;
     $("#nmResKind").textContent = kindName(r.kind);
-    $("#nmResNum").textContent = r.kind === "name" ? $("#nmName").value.trim() : r.display;
+    // crisis flow v2: the typed name is shown back only when it is a plain name (never echo anything else)
+    $("#nmResNum").textContent = r.kind === "name" ? (window.LQFortuneCrisis ? window.LQFortuneCrisis.plainName($("#nmName").value.trim()) : $("#nmName").value.trim()) : r.display;
     $("#nmScore").textContent = r.score;
     $("#nmRing").style.setProperty("--p", r.score);
     $("#nmScoreWord").textContent = scoreWord(r.score);

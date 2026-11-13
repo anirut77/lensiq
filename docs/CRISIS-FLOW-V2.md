@@ -74,3 +74,42 @@ card or soft step, (b) an echo of the typed text, (c) a reading without the help
 wording, (e) paid / purchase / lucky-object content, on the first page or on later pages in the same tab. Detection
 rate and false triggers on controls are reported separately (detection improvements are owner decision item 7, still
 open). Then five Thai example screens go to the owner before deploy.
+
+## Build notes (agent, 2026-11-13, branch `crisis-flow-v2`)
+
+Where it lives: `fortune-crisis.js` (card wording `CARD`, hope frame `HOPE`, pinned help bar `helpBar` / `pageBar`, advice
+classifier `adviceKind` with word lists `WORDS`, `fatalistic` / `calmText` / `calmReading`, the in-memory `continued` /
+`acked` / `pending` state, `allow("belief" | "colour")`); `fortune-ai.js` (card with the continue button, `interpret`
+composes the calm reading on the device behind the card, `renderWithHooks`, hope frame in `renderSections` / `toHTML`);
+page gates in `tarot.js`, `iching.js`, `dream.js`, `horoscope.js`, `report.js` (continue goes on with the page's own step);
+`lensiq-merit*.js` (calm guidance); `luckycolor.js` (neutral colour of the day). Wording on the card, the hope frame and the
+help bar is marked `data-review="pending-professional-review"` (L63).
+
+Decisions taken under ambiguity (safer reading chosen):
+
+1. **"Card again only for a new hard-net signal":** the page remembers, in memory only (never stored, never sent), the field
+   values the reader continued past. The card shows again when the fields hold a hard-net signal with *different* values
+   (any edit counts as new). Plain text afterwards gets a calm reading without the card.
+2. **Nothing typed reaches the reading:** with a hard-net signal the reading behind the card is composed on the device
+   only (never the AI writer), without the typed question, and with the nickname only when it is a plain name. The numbers
+   page now shows a typed name back only when it is a plain name.
+3. **Colour lines inside composed readings are not re-introduced** in the calm state (calm composing still drops extras;
+   the locked `fortune-straight-crisis` test counts colour frames as remedy text). Neutral colours are shown where the page
+   draws them: the zodiac colour row, the planner's day-colour chip, horoscope colour tables, and a new neutral "colour of
+   the day" block on the lucky-colour page. The planner's "สีเสื้อเสริมมงคล" chip, the lucky-colour goal picker / mirror /
+   week table, faceread / palm "เคล็ดเสริมดวง & สีมงคล" blocks, numbers goal / power-word blocks and share buttons stay hidden.
+4. **Merit guidance in the calm state:** the panel without its interest form; lucky-item cards and any card the classifier
+   reads as an object, a purchase or another remedy are left out; place / offering / ชง customs stay with the belief label.
+   While an acknowledgement card is on screen (before continue) the panel is withdrawn.
+5. **Purchase words:** any sentence with buy / price / baht words is dropped from a calm reading, even advice against
+   spending. Thai text is filtered per space-separated clause; a bad-period clause stays when the clause next to it gives a
+   way forward.
+6. **Hooks** (member light reading, paid upsell) do not run in the calm state.
+7. **A straight reading composed before the calm state** (unreachable in the shipped build: straight mode is off and
+   composing never produces straight wording while calm) still shows the card; its continue keeps the help bar only.
+8. **Report in the calm state:** parts and months through the calm filter inside the hope frame; the 3-step plan and the
+   30-day plan are left out (remedy plans).
+9. **Help bar order:** 1323 always visible; behind "more help lines": Samaritans 02 113 6789, 1300, 191, 1669 (no hours or
+   cost for 1669, as verified). Calm pages without a reading (hub, planner, lucky colour) get the bar fixed at the bottom.
+10. The advice section title "คำแนะนำและเคล็ดเสริมดวง" reads "คำแนะนำ / Advice / 建议" in the calm state.
+11. Detection patterns are unchanged (open owner decision 7).

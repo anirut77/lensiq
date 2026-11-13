@@ -245,7 +245,22 @@
   window.addEventListener("lq-lang", () => { renderRec(); renderWeek(); renderResult(false); if (st.engine && cam.active) setEngine(st.engine); });
   window.addEventListener("pagehide", () => { if (cam.active) stop(); });
 
-  renderRec(); renderWeek();
+  /* crisis flow v2 (owner decision 2026-11-13 §3): in a calm tab the goal picker, mirror and week table stay hidden
+     (data-lq-remedy) and a neutral colour of the day is shown instead (the day planet's colour, no goal, no object) */
+  function renderCalmDay() {
+    const CR = window.LQFortuneCrisis;
+    if (!CR || !CR.calmOn || !CR.calmOn(document)) return;
+    let box = $("#lcCalmDay");
+    if (!box) { box = el("section", "fk-block lc-calmday"); box.id = "lcCalmDay"; const ref = document.querySelector(".lc-opts"); if (ref) ref.before(box); else return; }
+    box.textContent = "";
+    const d = today(), fams = L.familiesOf(d);
+    box.append(el("h2", null, T("lucky.calm.h", "สีประจำ{day}", { day: dayN(d) })));
+    const row = el("p", "lc-rec-row"), sw = el("span", "lc-dots"); fams.forEach(k => sw.append(dot(k, true)));
+    row.append(sw, el("b", null, famList(fams))); box.append(row);
+    box.append(el("p", "fk-small", T("lucky.calm.note", "ตามความเชื่อ ใส่สีไหนก็ได้ตามที่สบายใจ วันนี้ดูแลตัวเองให้ดีก็พอ")));
+  }
+  renderRec(); renderWeek(); renderCalmDay();
+  window.addEventListener("lq-lang", renderCalmDay);
   // test hook (numbers and colour names only — never pixels)
   window.__LQLC = { st, evaluate: () => L.evaluate(st.list, today(), st.goal), today };
 })();
