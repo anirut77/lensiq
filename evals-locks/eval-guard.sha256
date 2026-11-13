@@ -1,0 +1,4 @@
+# eval-guard (owner rule 2026-11-13 "Locked sets persist") — the guard's own unit tests, locked 2026-11-13T14:15:55Z BEFORE tools/eval-guard.mjs
+# was written (branch eval-guard, base origin/main 1ef19c6). A copy of the test is kept in ~/LENSIQ-field/evals/eval-guard/.
+9e50c7f8bc08c578cf76cb6ea4ee46af1c88f9b926360e22891b5b72c34a4c35  tests/unit/eval-guard.test.js  # repo file  # locked 2026-11-13T14:15:55Z
+9e50c7f8bc08c578cf76cb6ea4ee46af1c88f9b926360e22891b5b72c34a4c35  eval-guard.test.js  # locked 2026-11-13T14:15:55Z
