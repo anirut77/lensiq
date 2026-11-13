@@ -303,6 +303,10 @@ No module is production-ready. None has completed a field pilot, and the backend
   P9 recall 0.741 → 0.907 / precision 0.971 on a fresh independent hold-out (targets met; card figure unchanged pending the
   owner), live-scan progressive checklist (latency not measured: loaded machine), adverts scoped-AI plan (no spend).
   `docs/product-check/PC-F-RESULTS.md`, `ADVERT-AI-SCOPED-EVAL.md`.
+- Stream F2 (branch `pc-f2`, not merged): guard now linear time (8,000-character phone line: minutes → ~0.05 s, same answers;
+  locked relative test); latency harness wait bug fixed and re-locked (not run: machine loaded); names without a field word on a
+  fresh independent hold-out 3 (synthetic): leaks to AI text 61 → 55, image 57 → 50, one-tap 48 → 26; target 0 still missed,
+  bare names on packs need a non-rule control (owner decision 1). `PC-F-RESULTS.md` §7.
 - P7 product-label evidence filter (owner decision 2026-11-10, option 1), the rule and its dev figures:
   One decision for text and image mode (`LQPCGuard.aiGate`): AI only when the capture shows product-label evidence (a
   registration-number shape, a decoded barcode, or two label cue types), no personal-document sign and is not a
