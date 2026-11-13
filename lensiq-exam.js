@@ -33,6 +33,7 @@
  *   pointInPoly(x, y, poly) · polyArea(poly) · polyCentroid(poly) · boxFracInPoly(box, poly, g=8) · seatOf(pt, seats)
  *   gridSeats({x, y, w, h}, rows, cols, ids?) -> [{id, poly}]
  *   createHallMonitor(seats, cfg?) -> {frame(t, {persons, phones}, {walk, elapsedMin}), mute(t, ms), state()} -> events
+ *   HALL_PLACE · hallPlacement({seats, persons, frameW, frameH, det, tiles}) -> camera placement verdict (numbers only)
  *   cleanMsg(msg) -> {ok, msg}|{ok:false, error}   strict allowlist for everything sent between pages (no images, no names)
  *   createBoard({room}) -> dashboard state: ingest(msg, now), act(id, action, {who, note}, now), verdict(id, right), mute(now, ms),
  *     setProfile(seat, p), levels(now), queue(now), log(), summary(), precision(), csv(labels), spark(seat, now), toJSON(), load(json),
@@ -482,6 +483,80 @@
     return { seats, cfg, frame, state, mute: (t, ms) => room.mute(t, ms), suppressedUntil: () => room.until };
   }
 
+  /* ---------- camera placement check (exam-hall.html, before monitoring; stream H 2026-11-13) ----------
+     Measured person recall of the hall detector by box HEIGHT in a 1,280 x 720 frame (docs/exam/HALL-DETECTOR-RESULTS.md
+     §2, run 2026-11-11; source: public dataset, Open Images V7 still images, not exam-room footage). Bands: 24–72, 72–144,
+     144–288, >= 288 px; n persons per band. minPx per detector follows a FIXED rule: the lower edge of the smallest band in
+     which that detector found at least half of the people. */
+  const PLACE_RECALL = { coco: [3.5, 19.5, 46.2, 75.3], "coco-t2": [8.4, 38.5, 56.3, 70.2], yolox: [25.2, 48.7, 65.2, 66.9], "yolox-t2": [21.7, 43.1, 66.4, 76.0] };
+  const PLACE_BANDS = [24, 72, 144, 288];
+  const HALL_PLACE = Object.freeze({
+    procW: 1280, procH: 720, bands: Object.freeze(PLACE_BANDS.slice()), n: Object.freeze([143, 195, 247, 275]),
+    recall: Object.freeze(Object.fromEntries(Object.entries(PLACE_RECALL).map(([k, v]) => [k, Object.freeze(v.slice())]))),
+    minPx: Object.freeze(Object.fromEntries(Object.entries(PLACE_RECALL).map(([k, v]) => [k, PLACE_BANDS[v.findIndex(p => p >= 50)]]))),
+    hiddenFrac: 0.5, edgeMargin: 0.02,
+    source: "public dataset (Open Images V7 validation still images, CC BY 2.0; not exam-room footage) — docs/exam/HALL-DETECTOR-RESULTS.md"
+  });
+  /** share of a polygon's area inside a box (grid samples inside the polygon's bounding box) */
+  function polyFracInBoxes(poly, boxes, g = 12) {
+    const xs = poly.map(p => p[0]), ys = poly.map(p => p[1]), x0 = Math.min(...xs), y0 = Math.min(...ys), w = Math.max(...xs) - x0, h = Math.max(...ys) - y0;
+    let n = 0, k = 0;
+    for (let i = 0; i < g; i++) for (let j = 0; j < g; j++) {
+      const x = x0 + ((i + 0.5) / g) * w, y = y0 + ((j + 0.5) / g) * h;
+      if (!pointInPoly(x, y, poly)) continue;
+      n++;
+      if (boxes.some(b => x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h)) k++;
+    }
+    return n ? k / n : 0;
+  }
+  /**
+   * hallPlacement({seats, persons|null, frameW, frameH, det: "coco"|"yolox", tiles}) -> verdict for the invigilator.
+   * persons = normalised boxes of the latest finished detection turn (null = no fresh count). Numbers only, nothing stored.
+   * state: noseats · nocount · fix (a seated person under the detector's measured minimum, a seat hidden behind the row in
+   * front, a seat touching the frame edge) · partial (some seats show nobody) · good.
+   */
+  function hallPlacement(o) {
+    o = o || {};
+    const seats = cleanSeats(o.seats), HP = HALL_PLACE;
+    const key = (o.det === "yolox" ? "yolox" : "coco") + (o.tiles ? "-t2" : ""), need = HP.minPx[key], rec = HP.recall[key];
+    const base = { seats: seats.length, need, det: key };
+    if (!seats.length) return Object.assign({ state: "noseats" }, base);
+    if (!Array.isArray(o.persons)) return Object.assign({ state: "nocount" }, base);
+    const W = o.frameW > 0 ? o.frameW : HP.procW, H = o.frameH > 0 ? o.frameH : HP.procH, k = Math.min(HP.procW / W, HP.procH / H);
+    const by = {}; let outside = 0;
+    for (const b of o.persons) {
+      if (!b || !fin(b.x) || !fin(b.h)) continue;
+      const s = seatOf([b.x + b.w / 2, b.y + b.h / 2], seats);
+      if (!s) { outside++; continue; }
+      (by[s.id] || (by[s.id] = [])).push(b);
+    }
+    const hOf = poly => { const ys = poly.map(p => p[1]); return Math.max(...ys) - Math.min(...ys); };
+    const perSeat = seats.map(s => {
+      const bs = by[s.id] || [], px = bs.length ? Math.round(Math.max(...bs.map(b => b.h)) * H * k) : null;
+      const c = polyCentroid(s.poly), h = hOf(s.poly);
+      // people of seats in the rows in FRONT (lower in the picture, another row) that cover this seat
+      const front = seats.filter(z => z !== s && polyCentroid(z.poly)[1] - c[1] >= 0.6 * h).flatMap(z => by[z.id] || []);
+      const hidden = front.length > 0 && polyFracInBoxes(s.poly, front) > HP.hiddenFrac;
+      const m = HP.edgeMargin, edge = s.poly.some(p => p[0] < m || p[0] > 1 - m || p[1] < m || p[1] > 1 - m);
+      return { id: s.id, px, small: px != null && px < need, hidden, edge };
+    });
+    const seen = perSeat.filter(s => s.px != null);
+    let minPx = null, minSeat = null;
+    for (const s of seen) if (minPx == null || s.px < minPx) { minPx = s.px; minSeat = s.id; }
+    let atMin = null;
+    if (minPx != null) {
+      let band = -1; for (let i = 0; i < HP.bands.length; i++) if (minPx >= HP.bands[i]) band = i;
+      atMin = band < 0 ? { band: -1, recall: null, n: 0, lo: 0, hi: HP.bands[0] }
+        : { band, recall: rec[band], n: HP.n[band], lo: HP.bands[band], hi: band + 1 < HP.bands.length ? HP.bands[band + 1] : null };
+    }
+    const ids = f => perSeat.filter(f).map(s => s.id);
+    const small = ids(s => s.small), hidden = ids(s => s.hidden), edge = ids(s => s.edge), unseen = ids(s => s.px == null);
+    // the 2 x 2 tiles option has a lower measured minimum for COCO-SSD: say so when it would fix the small seats
+    const tilesHelp = !o.tiles && key === "coco" && small.length > 0 && perSeat.filter(s => s.small).every(s => s.px >= HP.minPx["coco-t2"]);
+    const state = small.length || hidden.length || edge.length ? "fix" : unseen.length ? "partial" : "good";
+    return Object.assign({ state }, base, { seen: seen.length, unseen, small, hidden, edge, minPx, minSeat, atMin, tilesHelp, outside, perSeat });
+  }
+
   /* ---------- messages between pages (BroadcastChannel / relay / file) ---------- */
   const MSG_TYPES = ["ev", "hb", "prof", "mute", "clip", "keep"];
   const ROOM_RE = /^[A-Za-z0-9_.-]{1,24}$/, NODE_RE = /^[a-z0-9]{6,24}$/, CODE_RE = /^[a-z0-9_-]{1,16}$/i;
@@ -724,7 +799,7 @@
     SIGNALS, LEVELS, LEVEL_TH, POINTS, DEFAULTS, PROFILE_KEYS, ACTIONS, SEAT_RE, ROOM_RE, CLIP_ST,
     levelOf, createGate, createRisk, createRoomMonitor, cleanProfile, isPlainProfile, applyAccommodation,
     poseFrom68, pitchDeg, synth68, calibrate, lightingVerdict, createFrozen, isVirtualCamLabel, createLabMonitor,
-    pointInPoly, polyArea, polyCentroid, boxFracInPoly, seatOf, gridSeats, cleanSeats, createHallMonitor,
+    pointInPoly, polyArea, polyCentroid, boxFracInPoly, seatOf, gridSeats, cleanSeats, createHallMonitor, HALL_PLACE, hallPlacement,
     cleanMsg, createBoard, wilson, median, fmtDur
   };
 });

@@ -94,7 +94,7 @@
     const ars = U.store.get(K.seatsAr, {}) || {};
     if (seats.length && frameAr()) ars[camKey()] = seatAr = frameAr(); else { delete ars[camKey()]; seatAr = 0; }
     U.store.set(K.seatsAr, ars);
-    renderSeats(); if (monitoring) rebuild(); heartbeat();
+    renderSeats(); if (monitoring) rebuild(); heartbeat(); pcUpdate();
   }
   /** seats saved on a frame of another shape (more than 2 % apart): say so until they are saved again on this one */
   function renderSeatAr() {
@@ -464,6 +464,77 @@
   $("#scBtn").addEventListener("click", () => scSet(!sc.on));
   for (const ev of ["loadedmetadata", "resize"]) video.addEventListener(ev, () => { renderSc(); renderSeatAr(); }); // the size the camera really delivers
 
+  /* ---------- camera placement check (before monitoring; stream H 2026-11-13) ----------
+     LQExam.hallPlacement on the loop's own person boxes: seats that show a person, the seated person's height in px of the
+     1,280 x 720 frame the detector was measured on, against the ACTIVE detector's measured minimum (public dataset), seats
+     hidden behind the row in front, seats cut by the frame edge. Numbers on this device only: nothing stored or sent. */
+  const pc = { on: false, res: null };
+  const detChosen = () => (detKind || $("#detector").value) === "yolox" ? "yolox" : "coco";
+  function pcSet(on) { pc.on = !!on && !monitoring; pc.res = null; renderPc(); draw(); }
+  function pcUpdate() {
+    if (!pc.on) return;
+    pc.res = video.videoWidth ? E.hallPlacement({ seats, persons: peopleNow() == null ? null : lastDets.persons, frameW: video.videoWidth, frameH: video.videoHeight,
+      det: detChosen(), tiles: $("#tiles").checked }) : null;
+    renderPc();
+  }
+  function renderPc() {
+    const btn = $("#pcBtn"), st = $("#pcState"), kv = $("#pcKv"), list = $("#pcList"), r = pc.on ? pc.res : null;
+    btn.setAttribute("aria-pressed", String(pc.on)); btn.disabled = monitoring;
+    btn.textContent = pc.on ? T("exam.hall.pcStop", "หยุดตรวจตำแหน่งกล้อง") : T("exam.hall.pcStart", "เริ่มตรวจตำแหน่งกล้อง");
+    const parts = [], ids = a => a.join(", ");
+    if (r && r.state !== "noseats") {
+      parts.push(T("exam.hall.pcSeats", "ที่นั่ง {n}", { n: r.seats }));
+      if (r.state !== "nocount") {
+        parts.push(T("exam.hall.pcSeen", "เห็นคน {k} จาก {n} ที่นั่ง", { k: r.seen, n: r.seats }));
+        if (r.minPx != null) parts.push(T("exam.hall.pcMin", "คนเล็กสุด {px} px (ที่นั่ง {s})", { px: r.minPx, s: r.minSeat }));
+      }
+      parts.push(T("exam.hall.pcNeed", "ขั้นต่ำของตัวตรวจ {px} px", { px: r.need }));
+    }
+    kv.innerHTML = parts.map(p => `<span>${U.esc(p)}</span>`).join("");
+    const showList = !!(r && r.perSeat && r.seen);
+    list.hidden = !showList;
+    list.textContent = showList ? T("exam.hall.pcList", "ความสูงของคนในแต่ละที่นั่ง (px): {l}", {
+      l: r.perSeat.map(s => s.id + ": " + (s.px == null ? "—" : s.px + " px") + (s.small || s.hidden || s.edge ? " ⚠" : "")).join(" · ") }) : "";
+    let text, kind = "", state = "idle";
+    if (monitoring) { state = "mon"; text = T("exam.hall.pcMon", "กำลังเฝ้าดูอยู่ ตรวจตำแหน่งกล้องได้เมื่อหยุดเฝ้าดู"); }
+    else if (!pc.on) text = T("exam.hall.pcIdle", "ยังไม่ได้ตรวจตำแหน่งกล้อง");
+    else if (!video.videoWidth) { state = "nocam"; kind = "warn"; text = T("exam.hall.pcNoCam", "เปิดกล้องก่อน แล้วจึงตรวจตำแหน่งกล้อง"); }
+    else if (!r) { state = "wait"; text = T("exam.hall.pcWait", "กำลังตรวจ..."); }
+    else {
+      state = r.state;
+      const m = r.atMin, rate = () => (m && m.recall != null
+        ? T("exam.hall.pcRate", "ที่ขนาดนี้ ({range} px) ตัวตรวจหาคนเจอ {r}% (n = {n}, ชุดข้อมูลสาธารณะ ภาพนิ่ง ไม่ใช่ห้องสอบจริง)",
+          { range: m.hi == null ? m.lo + "+" : m.lo + "–" + m.hi, r: m.recall.toFixed(1), n: m.n })
+        : T("exam.hall.pcRateNone", "ขนาดนี้เล็กกว่าทุกขนาดที่เคยวัด จึงไม่รู้ว่าตัวตรวจหาเจอแค่ไหน"));
+      if (r.state === "noseats") { kind = "warn"; text = T("exam.hall.pcNoSeats", "วาดหรือสร้างที่นั่งก่อน แล้วจึงตรวจตำแหน่งกล้อง"); }
+      else if (r.state === "nocount") { kind = "warn"; text = T("exam.hall.pcNoCount", "ยังนับคนในภาพไม่ได้ รอสักครู่ ถ้าข้อความนี้ไม่หายไป ให้กด “เปิดกล้อง” อีกครั้ง"); }
+      else if (r.state === "fix") {
+        kind = "err";
+        const small = r.perSeat.filter(s => s.small), lines = [];
+        if (small.length) {
+          const px = Math.min(...small.map(s => s.px));
+          lines.push(T("exam.hall.pcSmall", "ที่นั่ง {ids}: คนในภาพสูง {px} px ต่ำกว่าขั้นต่ำ {need} px — ขยับกล้องเข้าใกล้ ใช้ภาพความละเอียดสูงขึ้น หรือเพิ่มกล้อง",
+            { ids: ids(r.small), px, need: r.need }) + " · " + rate());
+          if (r.tilesHelp) lines.push(T("exam.hall.pcTiles", "หรือเปิด “ห้องใหญ่: แบ่งภาพ 2×2” (ขั้นต่ำที่วัดได้ {px} px แต่ช้าลง)", { px: E.HALL_PLACE.minPx["coco-t2"] }));
+        }
+        if (r.hidden.length) lines.push(T("exam.hall.pcHidden", "ที่นั่ง {ids}: ถูกคนแถวหน้าบังเกินครึ่ง — ยกกล้องให้สูงขึ้น (2.6 ม. ขึ้นไป) แล้วก้มลงมองที่นั่ง", { ids: ids(r.hidden) }));
+        if (r.edge.length) lines.push(T("exam.hall.pcEdge", "ที่นั่ง {ids}: ชิดขอบภาพ — หันหรือถอยกล้องให้ที่นั่งอยู่ในภาพทั้งหมด", { ids: ids(r.edge) }));
+        if (r.unseen.length) lines.push(T("exam.hall.pcUnseen", "ยังไม่เห็นคนที่ที่นั่ง {ids}", { ids: ids(r.unseen) }));
+        text = lines.join(" · ");
+      } else if (r.state === "partial") {
+        kind = "warn";
+        text = T("exam.hall.pcPartial", "ยังไม่เห็นคนที่ที่นั่ง {ids} — ให้คนนั่งทุกที่นั่งก่อนตรวจ ถ้ามีคนนั่งอยู่แล้ว ตัวตรวจหาไม่เจอ: ขยับกล้องเข้าใกล้หรือเพิ่มกล้อง", { ids: ids(r.unseen) });
+      } else {
+        kind = "ok";
+        text = T("exam.hall.pcGood", "ตำแหน่งกล้องผ่าน: เห็นคนครบ {n} ที่นั่ง คนเล็กสุดสูง {px} px (ขั้นต่ำ {need} px) ไม่มีที่นั่งถูกบังหรือชิดขอบภาพ", { n: r.seats, px: r.minPx, need: r.need })
+          + " · " + rate() + " · " + T("exam.hall.pcNoGuar", "ผ่านแล้วไม่ได้รับประกันว่าจะไม่พลาด");
+      }
+    }
+    st.textContent = text; st.className = "status" + (kind ? " " + kind : ""); st.dataset.state = state;
+  }
+  $("#pcBtn").addEventListener("click", () => pcSet(!pc.on));
+  $("#tiles").addEventListener("change", pcUpdate);
+
   async function loop() {
     if (!running) return;
     const t0 = performance.now();
@@ -478,7 +549,7 @@
           const now = Date.now();
           for (const ev of mon.frame(now, d, { walk, elapsedMin: (now - examStart) / 60000 })) send(ev);
         }
-        draw(); status();
+        draw(); status(); pcUpdate();
       }
     } catch (e) { console.warn(e); peopleAt = 0; } // a failing turn: the people count is unknown, not 0
     const period = 1000 / Math.max(2, Math.min(5, +$("#fps").value || 3));
@@ -588,9 +659,9 @@
     if (!monitoring && !seats.length) { engine(() => T("exam.hall.seatsFirst", "วาดหรือสร้างที่นั่งก่อนเริ่มเฝ้าดู"), "warn"); return; }
     monitoring = !monitoring;
     clips.lock(); // the kept-clip list is re-locked whenever monitoring starts or stops (invigilator PIN)
-    if (monitoring) { scSet(false); rebuild(); examStart = Date.now(); if (clipCfg.on) armClips(); } // the setup check never runs during the exam
+    if (monitoring) { scSet(false); pcSet(false); rebuild(); examStart = Date.now(); if (clipCfg.on) armClips(); } // the setup check never runs during the exam
     else { clips.disarm(); clipSourceStop(); } // ring stops; pending clips stay keepable until their 10-min window ends
-    clipUI(); renderSc();
+    clipUI(); renderSc(); renderPc();
     runLabel();
     engine(() => (monitoring ? T("exam.hall.on", "กำลังเฝ้าดู — ส่งเฉพาะเหตุการณ์ไปที่แดชบอร์ด") : T("exam.hall.off", "หยุดเฝ้าดูแล้ว")), "ok");
     heartbeat(); status();
@@ -619,9 +690,9 @@
   function hint() {
     $("#drawHint").textContent = draft != null ? T("exam.hall.drawing", "แตะบนภาพเพื่อวางมุมของที่นั่ง {id} (3 จุดขึ้นไป) แล้วกด “ปิดรูปที่นั่ง”", { id: U.cleanSeat($("#seatId").value) || nextSeatId() }) : T("exam.hall.drawHint", "แตะบนภาพเพื่อวางมุมของที่นั่ง (3 จุดขึ้นไป) แล้วกด “ปิดรูปที่นั่ง”");
   }
-  window.addEventListener("lq-lang", () => { renderSeats(); renderRecent(); status(); hint(); runLabel(); renderSc(); renderClipOff(); if (lastEngine) engine(lastEngine[0], lastEngine[1]); });
+  window.addEventListener("lq-lang", () => { renderSeats(); renderRecent(); status(); hint(); runLabel(); renderSc(); renderPc(); renderClipOff(); if (lastEngine) engine(lastEngine[0], lastEngine[1]); });
   engine(() => T("exam.hall.engine0", "ยังไม่ได้เปิดกล้อง"));
-  renderSeats(); renderRecent(); runLabel(); hint(); renderSc();
+  renderSeats(); renderRecent(); runLabel(); hint(); renderSc(); renderPc();
 
   /** @type {any} */ (window).__LQ_EXAM_HALL = {
     get seats() { return seats; }, get mon() { return mon; }, get monitoring() { return monitoring; }, get walk() { return walk; },
@@ -629,6 +700,7 @@
     get detector() { return { chosen: $("#detector").value, loaded: detKind }; },
     get faceOn() { return faceOn; }, get faceErr() { return faceErr; }, get faces() { return lastDets.faces || []; },
     get faceCfg() { return faceEng ? { engine: faceEng.engine, numFaces: faceEng.numFaces, conf: faceEng.conf } : null; },
+    get placement() { return { on: pc.on, res: pc.res, people: peopleNow() }; },
     get setup() { return { on: sc.on, err: sc.err, res: sc.res, everyMs: SC.everyMs, cap: SC.numFaces, people: peopleNow(), engine: scEng ? { numFaces: scEng.numFaces } : null }; },
     get frame() { return { w: video.videoWidth, h: video.videoHeight, overlayW: overlay.width, clipW: clipOff ? 0 : clipW || video.videoWidth, clipOff }; }
   };

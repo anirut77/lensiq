@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' data: blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LENSIQ plate labeller (local, owner only)</title>
+<style>
+  body { margin: 0; font: 14px/1.4 system-ui, sans-serif; background: #0e1430; color: #e8ecff; }
+  header { padding: 8px 14px; background: #161d40; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  main { display: grid; grid-template-columns: 220px 1fr 300px; gap: 10px; padding: 10px; height: calc(100vh - 60px); box-sizing: border-box; }
+  #list { overflow: auto; background: #161d40; border-radius: 8px; padding: 6px; }
+  #list button { display: block; width: 100%; text-align: left; background: none; color: inherit; border: 0; padding: 4px 6px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+  #list button.on { background: #2a3570; }
+  #wrap { position: relative; overflow: auto; background: #000; border-radius: 8px; }
+  canvas { display: block; max-width: 100%; cursor: crosshair; }
+  aside { background: #161d40; border-radius: 8px; padding: 10px; overflow: auto; }
+  label { display: block; margin: 6px 0; }
+  input[type=text], select { width: 100%; box-sizing: border-box; padding: 5px; background: #0e1430; color: inherit; border: 1px solid #3a4580; border-radius: 4px; }
+  button.b { padding: 6px 10px; margin: 3px 2px; border-radius: 6px; border: 1px solid #3a4580; background: #22306a; color: inherit; cursor: pointer; }
+  button.b[aria-pressed=true] { background: #674ff2; }
+  .note { color: #a9b3e0; font-size: 12px; }
+  .warn { color: #ffd23f; } .ok { color: #3ddc84; } .err { color: #ff6b5e; }
+  ul { padding-left: 18px; margin: 4px 0; } li.sel { color: #22d3ee; }
+</style>
+</head>
+<body>
+<header>
+  <b>LENSIQ plate labeller</b>
+  <span class="note">เครื่องนี้เท่านั้น ไม่ส่งข้อมูลออก · this machine only, nothing leaves it</span>
+  <span id="root" class="note"></span>
+  <span id="stat" class="note" role="status"></span>
+</header>
+<main>
+  <nav id="list" aria-label="photos"></nav>
+  <div id="wrap"><canvas id="cv" width="640" height="360" aria-label="photo"></canvas></div>
+  <aside>
+    <div>
+      <button class="b" id="modePlate" aria-pressed="true">กรอบป้าย / plate box</button>
+      <button class="b" id="modeBlur" aria-pressed="false">กรอบเบลอ / blur box</button>
+      <button class="b" id="modeIgnore" aria-pressed="false">ไม่นับ / ignore</button>
+    </div>
+    <p class="note">ลากบนภาพเพื่อวาดกรอบ คลิกกรอบเพื่อเลือก · drag to draw, click to select. Del = ลบ / delete.</p>
+    <label><input type="checkbox" id="none"> ภาพนี้ไม่มีป้าย / no plate in this photo (category none)</label>
+    <h3>ป้ายที่เลือก / selected plate</h3>
+    <label>ประเภท / category <select id="cat">
+      <option>white</option><option>yellow</option><option>green</option><option>red</option><option>blue</option>
+      <option>moto</option><option>night</option><option>graphic</option><option>other</option></select></label>
+    <label>เลขทะเบียน / plate (e.g. 1กข 2345; "?" = unreadable) <input type="text" id="text" autocomplete="off"></label>
+    <label>จังหวัด / province (optional) <input type="text" id="prov" autocomplete="off"></label>
+    <label><input type="checkbox" id="unsure"> ไม่แน่ใจตัวอักษร / not sure of the letters</label>
+    <button class="b" id="del">ลบกรอบที่เลือก / delete selected box</button>
+    <h3>ข้อมูลส่วนบุคคล / personal data</h3>
+    <p class="note">ระบบเสนอกรอบใบหน้าอัตโนมัติ (BlazeFace) แต่<b>พลาดได้</b> (วัดบนภาพสาธารณะ: ไม่เบลอใบหน้าจริงประมาณ 4 ใน 10) ·
+      the automatic face boxes MISS faces (about 4 in 10 on public photos): add a blur box over every face, person, phone number
+      or name on a vehicle yourself.</p>
+    <button class="b" id="auto">หาใบหน้าอัตโนมัติอีกครั้ง / auto faces again</button>
+    <label class="warn"><input type="checkbox" id="checked"> ตรวจแล้ว: ทุกใบหน้าและข้อมูลส่วนบุคคลอื่นอยู่ในกรอบเบลอ / checked: every face and other personal data is inside a blur box</label>
+    <ul id="boxes"></ul>
+    <div>
+      <button class="b" id="save">บันทึก / save</button>
+      <button class="b" id="export">ส่งออกภาพที่เบลอแล้ว / export blurred photos</button>
+    </div>
+    <p id="msg" class="note" role="status"></p>
+    <p class="note">ภาพที่ใช้ฝึกมาจากโฟลเดอร์ blurred/ เท่านั้น · training uses blurred/ only. Plate text is used for the held-out evaluation only, never in the training files.</p>
+  </aside>
+</main>
+<script src="lensiq-med.js"></script>
+<script src="lensiq-pc.js"></script>
+<script src="lensiq-pc-run.js"></script>
+<script src="plate-labeller.js"></script>
+</body>
+</html>
