@@ -233,7 +233,7 @@ Note: data that [Customer name] must keep by law (for example time records, rece
 
 # Part B (English): LENSIQ's own notice as processor
 
-**Provider:** [Provider legal name], registration [13 digits], address [address], privacy contact [e-mail].
+**Provider:** [Provider legal name], registration [13 digits], address [address], privacy contact LINE @632yliiw (for now) / [privacy contact e-mail: the owner will provide] (L61).
 
 **Role.** For Customer data from Exam, Attendance, Gate and Crowd, the Provider is a **data processor** (s.40) and the Customer is the controller.
 The Provider processes only on the Customer's written instructions (see the DPA). For its website, member accounts, payments and its own sales,

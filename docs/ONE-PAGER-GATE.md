@@ -45,10 +45,12 @@
 ## ราคา (ราคาที่อนุมัติแล้ว ยังไม่เปิดขาย — ราคาไม่รวม VAT 7% ลูกค้าชำระราคา + 7% ไม่รวมอุปกรณ์)
 | แพ็กเกจ | ช่วงนำร่อง (ตอนนี้) | หลังผ่านเกณฑ์นำร่อง |
 |---|---|---|
-| ทดลองใช้ | ทดลองใช้ฟรี 30 วัน: 1 ช่องทาง อ่านได้ 100 ครั้ง/วัน เก็บบันทึก 7 วัน | ทดลองใช้ฟรี 30 วัน: 1 ช่องทาง อ่านได้ 100 ครั้ง/วัน เก็บบันทึก 7 วัน |
+| ทดลองใช้ | ทดลองใช้ฟรี 30 วัน: 1 ช่องทาง อ่านได้ 100 ครั้ง/วัน เก็บบันทึก 7 วัน (เกินนี้ต้องมีใบอนุญาต) | ทดลองใช้ฟรี 30 วัน: 1 ช่องทาง อ่านได้ 100 ครั้ง/วัน เก็บบันทึก 7 วัน (เกินนี้ต้องมีใบอนุญาต) |
 | หมู่บ้าน / คอนโด | 490 บาท/เดือน/ช่องทาง ไม่รวม VAT 7% | 990 บาท/เดือน/ช่องทาง ไม่รวม VAT 7% · 1,990 บาท/เดือน (3 ช่องทาง) ไม่รวม VAT 7% |
 | ลานจอดรถ (รวมพร้อมเพย์ ใบเสร็จ ปิดกะ ไม่มีค่าเสริม) | 790 บาท/เดือน/ช่องทาง ไม่รวม VAT 7% | 1,490 บาท/เดือน/ช่องทาง ไม่รวม VAT 7% |
 | ติดตั้งหน้างาน (มุมกล้อง แสง ตรวจความแม่นยำร่วมกัน) | 2,500 บาท/ครั้ง ไม่รวม VAT 7% | 3,000–5,000 บาท/ครั้ง ไม่รวม VAT 7% |
+
+ระดับทดลองยังไม่บังคับในระบบ ข้อจำกัดเริ่มใช้ตั้งแต่วันที่จะประกาศล่วงหน้าอย่างน้อย 30 วัน เจ้าของบังคับใช้ผ่านสัญญา ข้อจำกัดบนเครื่องผู้ใช้อาจถูกข้ามได้โดยผู้ที่แก้โค้ด สัญญาเป็นสิ่งที่ผูกพัน ลูกค้าส่งออกข้อมูลของตนได้เสมอ ชำระโดยโอนผ่านธนาคารเท่านั้น (เจ้าของตัดสินใจ 2026-11-13)
 
 เทียบตลาด (ซื้อขาด): กล้อง LPR อย่างเดียว 29,900 บาทขึ้นไป กล้องติดกับไม้กั้นที่มีอยู่ 55,000 บาท ชุดไม้กั้นพร้อมกล้อง 85,000 บาท (ราคาปกติ 115,000) ระบบแลกบัตรผู้มาติดต่อเริ่ม
 300 บาท/เดือน (แหล่งที่มาและวันที่ใน `docs/PRICING-RESEARCH.md` §1A–1B) ราคาช่วงนำร่องต่ำกว่า เพราะยังไม่มีผลวัดหน้างานจริง
@@ -112,10 +114,12 @@ not as an automatic barrier.
 
 | Package | Pilot stage (now) | After pilot |
 |---|---|---|
-| Trial | free 30-day trial: 1 lane, 100 reads / day, logs kept 7 days | free 30-day trial: 1 lane, 100 reads / day, logs kept 7 days |
+| Trial | free 30-day trial: 1 lane, 100 reads / day, logs kept 7 days (beyond it a licence is needed) | free 30-day trial: 1 lane, 100 reads / day, logs kept 7 days (beyond it a licence is needed) |
 | Village / condo | 490 THB / month per lane excl. 7% VAT | 990 THB / month per lane excl. 7% VAT; 1,990 THB / month for 3 lanes excl. 7% VAT |
 | Car park (PromptPay, receipts and shift close included, no add-on) | 790 THB / month per lane excl. 7% VAT | 1,490 THB / month per lane excl. 7% VAT |
 | Set-up visit | 2,500 THB per visit excl. 7% VAT | 3,000–5,000 THB per visit excl. 7% VAT |
+
+The trial limits are not enforced in the product yet: they apply from a date to be announced at least 30 days ahead, and the owner enforces them by contract. A limit on the user's device can be bypassed by someone who edits the code; the contract is what binds. Customers can always export their data. Payment is by bank transfer only (owner decision 2026-11-13).
 
 Market comparison (`docs/PRICING-RESEARCH.md` §1A–1B):
 - LPR camera only: from 29,900 THB one-off.

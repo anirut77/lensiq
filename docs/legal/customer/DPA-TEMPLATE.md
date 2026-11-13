@@ -19,7 +19,7 @@
 ## ข้อ 1 คู่สัญญา
 
 **ผู้ควบคุมข้อมูลส่วนบุคคล (“ลูกค้า”):** [ชื่อนิติบุคคล] เลขทะเบียน [เลข 13 หลัก] ที่อยู่ [ที่อยู่] ผู้ติดต่อ [ชื่อ / อีเมล]
-**ผู้ประมวลผลข้อมูลส่วนบุคคล (“ผู้ให้บริการ”):** [ชื่อนิติบุคคล] เลขทะเบียน [เลข 13 หลัก] ที่อยู่ [ที่อยู่] ผู้ติดต่อด้านข้อมูลส่วนบุคคล [ชื่อ / อีเมล]
+**ผู้ประมวลผลข้อมูลส่วนบุคคล (“ผู้ให้บริการ”):** [ชื่อนิติบุคคล] เลขทะเบียน [เลข 13 หลัก] ที่อยู่ [ที่อยู่] ผู้ติดต่อด้านข้อมูลส่วนบุคคล LINE @632yliiw (ชั่วคราว) / [อีเมลติดต่อเรื่องข้อมูลส่วนบุคคล — เจ้าของจะแจ้ง] (L61)
 **สัญญาหลัก:** ข้อกำหนดการให้บริการสำหรับองค์กร / ใบเสนอราคาเลขที่ [..] ลงวันที่ [..] (“สัญญาหลัก”)
 
 ## ข้อ 2 ใช้เมื่อใด และขอบเขต
@@ -220,7 +220,7 @@
 ## 1. Parties
 
 **Controller ("Customer"):** [legal name], registration [13 digits], address [address], contact [name / e-mail]
-**Processor ("Provider"):** [legal name], registration [13 digits], address [address], privacy contact [name / e-mail]
+**Processor ("Provider"):** [legal name], registration [13 digits], address [address], privacy contact LINE @632yliiw (for now) / [privacy contact e-mail: the owner will provide] (L61)
 **Main agreement:** Terms of Service for Organisations / Quotation no. [..] dated [..] (the "Main Agreement")
 
 ## 2. When this applies, and scope

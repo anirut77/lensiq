@@ -10,7 +10,7 @@
 - **ใบกำกับภาษี (ใบกำกับภาษีเต็มรูป)** ต้องมีการจดทะเบียน VAT เท่านั้น (แบบ V) ข้อมูลที่ต้องมีตาม `docs/BILLING-PLAN.md` §5 (มาตรา 86/4):
   ชื่อ เลขผู้เสียภาษี ที่อยู่ สาขาของผู้ขายและผู้ซื้อ เลขที่เอกสาร วันที่ รายการ ยอดก่อน VAT VAT ยอดรวม
 - สิ่งที่ยังไม่ชัด **[ต้องยืนยัน / to confirm]**: (1) ผู้ขายจดทะเบียน VAT หรือไม่ (OP-02) (2) ออกใบกำกับจากระบบบัญชี หรือ e-Tax Invoice by
-  Email (OP-03) (3) รูปแบบเลขที่เอกสารไม่ขาดตอน (BILLING-PLAN ใช้ `LQ-YYYYMM-000001` สำหรับใบเสร็จในระบบ ยังไม่ยืนยันว่าใช้กับใบแจ้งหนี้) (OP-04)
+  Email (OP-03) (3) รูปแบบเลขที่เอกสารไม่ขาดตอน (ตอนนี้เจ้าของออกเลขเองจากแม่แบบ ระบบไม่ออกเลขให้ 2026-11-13 คำถามถึงนักบัญชีอยู่ที่ `ACCOUNTANT-QUESTIONS-TH.md` หลังยืนยันแผนคือใช้เลขระบบ `LQ-YYYYMM-000001`) (OP-04)
   (4) ใบแจ้งหนี้ใบเดียวกันใช้เป็นใบกำกับภาษีได้เมื่อใด และต้องออกเมื่อใด (OP-07) (5) ภาษีหัก ณ ที่จ่าย (OP-05) ทั้งหมดต้องให้นักบัญชียืนยัน
   (`docs/LEGAL-REVIEW-PACK.md` §3.5 R1–R5)
 - ระบบ Worker ของ LENSIQ สร้างใบเสร็จ/ใบกำกับฉบับร่างได้ แต่ขึ้น "ฉบับร่าง" จนกว่าจะตั้งค่า `SELLER_NAME`, `SELLER_TAX_ID`, `SELLER_ADDRESS`
@@ -101,7 +101,7 @@ Exam ใบอนุญาตทั้งสถาบัน 19,900.00 + Attendan
 - A **tax invoice** (ใบกำกับภาษี) needs VAT registration (Form V). Required fields per `docs/BILLING-PLAN.md` §5 (Revenue Code s.86/4):
   seller and buyer name, tax ID, address and branch, document number, date, items, subtotal, VAT, total.
 - Still open **[to confirm]**: (1) is the seller VAT-registered (OP-02); (2) tax invoices from an accounting system or by e-Tax Invoice by Email (OP-03);
-  (3) the gap-free number format (BILLING-PLAN uses `LQ-YYYYMM-000001` for receipts in the system; not confirmed for invoices) (OP-04); (4) when one invoice may
+  (3) the gap-free number format (for now the owner numbers documents by hand from the templates and the system does not number them, 2026-11-13; the questions for the accountant are in `ACCOUNTANT-QUESTIONS-TH.md`; once confirmed, the plan is system numbering `LQ-YYYYMM-000001`) (OP-04); (4) when one invoice may
   serve as the tax invoice and when it must be issued (OP-07); (5) withholding tax (OP-05). The accountant must confirm all of these
   (`docs/LEGAL-REVIEW-PACK.md` §3.5 R1–R5).
 - The LENSIQ Worker can render a draft receipt / tax invoice, but it prints "DRAFT" until `SELLER_NAME`, `SELLER_TAX_ID` and `SELLER_ADDRESS` are set

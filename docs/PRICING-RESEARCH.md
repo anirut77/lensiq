@@ -8,6 +8,8 @@
 > `docs/BILLING-PLAN.md` §4.1. Bundles and the installer partner programme built from these levels:
 > `docs/SALES-PACKAGES.md` (DRAFT).
 >
+> **Owner decisions of 2026-11-13 (free tiers, option B):** payment is by bank transfer only (no PromptPay QR, card or Opn). Fortune and the general tools stay free. The four business products have a limited free tier, and a licence is needed beyond it: Gate 30-day trial (1 lane, 100 plates per day) · Attendance free up to 5 people · Exam free up to 5 candidates per session · Crowd free 2 hours per device per day. The price levels in section 3 are unchanged. The limits are **not enforced in the product yet** (membership and billing come later): they apply from a date to be announced with at least 30 days' notice, start 30 days after the announcement, and the owner enforces them by contract; a limit on the user's device can be bypassed by someone who edits the code, the contract binds. Customers can always export their data. A licence works offline for 14 days (planned).
+>
 > Round 16, item 6. Researched 2026-11-09 (all prices were read on that date unless a page gives its own date). Prices
 > are in THB. "One-off" = paid once (hardware, lifetime licence); "monthly" = recurring.
 >
@@ -152,7 +154,7 @@ exam halls with cameras. `exam.html` shows both stages since 2026-11-09.
 | Level | Pilot stage (now) | After pilot (thresholds in `docs/pilot/PILOT-EXAM.md` met) |
 |---|---|---|
 | Field pilot (1 institution, ≤ 4 weeks, ≤ 3 rooms) | **free** (in exchange for the invigilator tallies) | — |
-| Free trial (on the device, as shown on `exam.html`) | **free: 1 room, 10 seats** | free: 1 room, 10 seats |
+| Free tier (owner decision 2026-11-13, replaces the earlier "1 room, 10 seats" trial; `exam.html` may still show the earlier wording until the page is changed; not enforced in code) | **free: up to 5 candidates per session** | free: up to 5 candidates per session |
 | Computer room / online, per candidate (Mode B, `exam-lab.html`) | **10 THB per candidate per exam excl. 7% VAT** (minimum 300 THB per exam session excl. 7% VAT) | 15–30 THB per candidate per exam excl. 7% VAT |
 | Computer room / online, monthly lab package (`exam_lab`) | **990 THB / month per lab excl. 7% VAT** (the low end of the after-pilot range) | 990–1,490 THB / month excl. 7% VAT |
 | Exam hall with cameras, per day (Mode A, `exam-hall.html`; the number of cameras depends on room size, see the guide: `docs/EXAM.md` "Hall camera placement guide"). **Experimental, not on sale** (owner decision 2026-11-10); the price applies only once it is on sale | **290 THB per room per exam day excl. 7% VAT** | 300–600 THB per room per exam day excl. 7% VAT |
@@ -203,6 +205,7 @@ wrong saves.
 
 | Level | Pilot stage (now) | After pilot (thresholds in `docs/pilot/PILOT-CROWD.md` met) |
 |---|---|---|
+| Free tier (owner decision 2026-11-13; not enforced in code) | **free 2 hours per device per day** | free 2 hours per device per day |
 | Event day (1 camera device, sparse / medium areas, density estimate) | **590 THB per device per day excl. 7% VAT** | 990 THB per device per day excl. 7% VAT |
 | Event week (7 days) | **2,490 THB per device excl. 7% VAT** | 3,900 THB per device excl. 7% VAT |
 | Monthly (zone / line monitoring at a fixed site) — **not sold until a fixed-site pilot has passed** (decision 4) | 290 THB / month per device excl. 7% VAT (approved, held back) | 490 THB / month per device excl. 7% VAT |
@@ -253,7 +256,11 @@ line above (BILLING-PLAN §4 / §4.1 updated 2026-11-09).
    k / n) is shown next to it. `tools/field-pilot-metrics.mjs --lower-bound` prints both. The target numbers and the
    minimum of 40 night reads are unchanged (at n = 40 the night target needs 39 / 40 observed).
 
+10. **Free tiers and payment.** **Decided 2026-11-13:** option B. Fortune and general tools stay free; Gate 30-day trial (1 lane, 100 plates per day), Attendance free up to 5 people, Exam free up to 5 candidates per session, Crowd free 2 hours per device per day; a licence is needed beyond them. Approved prices (excl. 7% VAT) stay as in section 3. Limits are not enforced in code yet; the owner enforces them by contract from a date announced at least 30 days ahead, starting 30 days after the announcement; customers can always export their data. Payment is by bank transfer only. Legal item L62.
+
 ## 5. Changelog
+
+- 2026-11-13 (owner decisions): free tiers (option B) and bank-transfer-only payment recorded (question 10; header; sections 3.1 and 3.3). The earlier Exam "1 room, 10 seats" trial is replaced by "up to 5 candidates per session".
 
 - 2026-11-09 (round 16, S56, owner decisions on questions 1–6): section 3 levels **approved** as drafted; the file is
   now the approved price list (not on sale yet) and the outdated "DRAFT, product pages unchanged" header is replaced.

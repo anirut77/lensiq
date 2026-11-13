@@ -22,6 +22,7 @@
    - ยังไม่ชัด (`docs/LEGAL-REVIEW-PACK.md` §3.5 R1–R6): จดทะเบียนตอนเปิดขายหรือไม่ (R1) ออกใบกำกับจากระบบบัญชีหรือใช้
      e-Tax Invoice by Email และเลขที่เอกสารไม่ขาดตอน (R2) การหักภาษี ณ ที่จ่าย 3% ของลูกค้านิติบุคคล (R4)
      การเก็บเอกสาร 5 ปี (R5) **[ต้องยืนยัน / to confirm] OP-02, OP-03, OP-04, OP-05**
+   - ตอนนี้ **เจ้าของออกเลขที่เอกสารและใบเสร็จเองจากแม่แบบ ระบบไม่ออกเลขให้** (2026-11-13) คำถามถึงนักบัญชีอยู่ที่ `ACCOUNTANT-QUESTIONS-TH.md`
 3. ราคา: ใช้ **ราคาช่วงนำร่อง** ไปก่อน ราคา "หลังนำร่อง" ใช้ได้เมื่อไซต์นั้นผ่านเกณฑ์ในชุดนำร่องของตัวเองแล้วเท่านั้น
    (`docs/PRICING-RESEARCH.md` §3) ข้อความในสัญญาเรื่องนี้ **[ต้องยืนยัน / to confirm] OP-10**
 4. หน้าเว็บยังติดป้าย "ราคาที่อนุมัติแล้ว ยังไม่เปิดขาย" (`PRICING-RESEARCH.md` หัวเรื่อง) เจ้าของต้องยืนยันว่าเสนอราคาได้แล้ว
@@ -99,26 +100,30 @@
 | ผลิตภัณฑ์ | รายการ (รหัสแผน) | หน่วย | นำร่อง (บาท) | หลังนำร่อง (บาท) |
 |---|---|---|---|---|
 | Exam | โครงการนำร่องภาคสนาม (`exam_pilot`) 1 สถาบัน ≤ 4 สัปดาห์ ≤ 3 ห้อง | โครงการ | ฟรี (แลกกับการจดผลของผู้คุมสอบ) | — |
+| Exam | ระดับฟรี: ไม่เกิน 5 ผู้สอบต่อรอบสอบ (เกินนั้นต้องมีใบอนุญาต; ข้อจำกัดเริ่มตามวันที่จะประกาศ) | รอบสอบ | ฟรี | ฟรี |
 | Exam | ห้องคอมพิวเตอร์/ออนไลน์ ต่อผู้สอบ (`exam_lab`) | ผู้สอบต่อการสอบ | 10 (ขั้นต่ำ 300 ต่อรอบ) | 15–30 |
 | Exam | ห้องคอมพิวเตอร์/ออนไลน์ รายเดือน (`exam_lab`) | ห้องปฏิบัติการต่อเดือน | 990 | 990–1,490 |
 | Exam | ใบอนุญาตทั้งสถาบัน (`exam_institution`) | ปี (≤ 1,000 ผู้สอบ) | เริ่ม 19,900 | 30,000–120,000 ตามขนาด |
 | Exam | ห้องสอบที่มีกล้อง (`exam_hall`) | — | **รุ่นทดลอง ไม่ขาย ห้ามใส่ในใบเสนอราคา** | — |
-| Attendance | ฟรี (`attendance_free`) ไม่เกิน 5 คน PIN/QR 1 เครื่อง | — | ฟรี | ฟรี |
+| Attendance | ฟรี (`attendance_free`) ไม่เกิน 5 คน PIN/QR 1 เครื่อง (เกินนั้นต้องมีใบอนุญาต; ข้อจำกัดเริ่มตามวันที่จะประกาศ) | — | ฟรี | ฟรี |
 | Attendance | มาตรฐาน (`attendance_employee`) | คนที่ใช้งานต่อเดือน | 19 (ขั้นต่ำ 190 ต่อเดือน) | 29 (ขั้นต่ำ 290 ต่อเดือน) |
 | Attendance | ช่วยตั้งค่า (`attendance_setup`) ไม่บังคับ | ครั้งเดียว | 2,900 | 4,900 |
 | Attendance | ซิงก์หลายสาขา/สำรองบนคลาวด์ | — | **ไม่ขาย** (รอระบบบัญชีองค์กร) | ใบเสนอราคาแยกหลังระบบเสร็จ |
-| Gate | ทดลองใช้ 30 วัน (`gate_trial`) 1 ช่องทาง 100 ครั้ง/วัน เก็บบันทึก 7 วัน | 30 วัน | ฟรี | ฟรี |
+| Gate | ทดลองใช้ 30 วัน (`gate_trial`) 1 ช่องทาง 100 ป้ายต่อวัน เก็บบันทึก 7 วัน | 30 วัน | ฟรี | ฟรี |
 | Gate | หมู่บ้าน/คอนโด (`gate_village_basic`) | ช่องทางต่อเดือน | 490 | 990 |
 | Gate | หมู่บ้าน Pro 3 ช่องทาง (`gate_village_pro`) | เดือน | 490 ต่อช่องทาง | 1,990 (3 ช่องทาง) |
 | Gate | ลานจอดรถ (`gate_parking`) รวมพร้อมเพย์ ใบเสร็จ ปิดกะ | ช่องทางต่อเดือน | 790 | 1,490 |
 | Gate | ติดตั้งหน้างาน (`gate_setup`) | ครั้ง | 2,500 | 3,000–5,000 |
 | Gate | ไม้กั้น/รีเลย์/อุปกรณ์ | — | **ไม่ขาย** | ใบเสนอราคาแยกหลังนำร่อง |
+| Crowd | ระดับฟรี: 2 ชั่วโมงต่อเครื่องต่อวัน (เกินนั้นต้องมีใบอนุญาต; ข้อจำกัดเริ่มตามวันที่จะประกาศ) | เครื่องต่อวัน | ฟรี | ฟรี |
 | Crowd | วันงาน (`crowd_event_day`) | เครื่องต่อวัน | 590 | 990 |
 | Crowd | สัปดาห์งาน 7 วัน (`crowd_event_week`) | เครื่อง | 2,490 | 3,900 |
 | Crowd | รายเดือนพื้นที่ถาวร (`crowd_monthly`) | — | **ไม่ขาย** จนกว่าโครงการนำร่องพื้นที่ถาวรผ่าน | — |
 | Crowd | ฝูงชนหนาแน่น (ประมาณ 50 คนขึ้นไปในภาพ) | — | **ไม่ขาย** | **ไม่ขาย** |
 
 ปี = 10 × เดือน (กฎใน `BILLING-PLAN.md`) ใช้กับรายการรายเดือนที่ขายเป็นรายปี
+
+**ข้อความที่ต้องใส่ในใบเสนอราคาเมื่อมีระดับฟรี (เจ้าของตัดสินใจ 2026-11-13, OP-26):** ดูดวงและเครื่องมือทั่วไปยังฟรี ผลิตภัณฑ์ธุรกิจมีระดับฟรีแบบจำกัด (Gate ทดลอง 30 วัน 1 ช่องทาง 100 ป้ายต่อวัน · Attendance ถึง 5 คน · Exam ถึง 5 ผู้สอบต่อรอบสอบ · Crowd 2 ชั่วโมงต่อเครื่องต่อวัน) เกินกว่านั้นต้องมีใบอนุญาต **ข้อจำกัดนี้ยังไม่ถูกบังคับในระบบ** จะเริ่มใช้ตั้งแต่วันที่จะประกาศ โดยประกาศล่วงหน้าอย่างน้อย 30 วัน และเริ่มใช้หลังประกาศ 30 วัน เจ้าของบังคับใช้ผ่านสัญญา ข้อจำกัดที่ทำงานบนเครื่องของผู้ใช้อาจถูกข้ามได้โดยผู้ที่แก้โค้ด สัญญาเป็นสิ่งที่ผูกพัน ลูกค้าส่งออกข้อมูลของตนได้เสมอ ใบอนุญาตใช้ออฟไลน์ได้ 14 วัน (วางแผน ยังไม่สร้าง) การชำระเงิน: โอนผ่านธนาคารเท่านั้น
 
 คำจำกัดความที่ยังไม่มี: "รอบสอบ" และ "ห้องปฏิบัติการ" (Exam) "คนที่ใช้งาน" (Attendance) "วัน" (Crowd) "ช่องทาง" (Gate)
 **[ต้องยืนยัน / to confirm]** (OP-08, OP-18)
@@ -203,6 +208,7 @@ Never invent seller details, prices or document numbers. Fields in [brackets] ar
    - Open (`docs/LEGAL-REVIEW-PACK.md` §3.5, R1–R6): whether to register at launch (R1); issue tax invoices from an accounting system or by
      e-Tax Invoice by Email, and gap-free numbering (R2); the 3% withholding of juristic customers (R4); record keeping for 5 years (R5).
      **[to confirm] OP-02, OP-03, OP-04, OP-05**
+   - For now **the owner numbers documents and issues receipts by hand from the templates; the system does not number them** (2026-11-13). The questions for the accountant are in `ACCOUNTANT-QUESTIONS-TH.md` (Thai).
 3. Price stage: use the **pilot-stage price** now. The "after pilot" price applies only after that site passes the thresholds of its own
    pilot kit (`PRICING-RESEARCH.md` §3). Contract wording: **[to confirm] OP-10**.
 4. The product pages still say "approved price list, not on sale yet". The owner must confirm that quotations may go out **[to confirm] OP-09**.
@@ -240,26 +246,30 @@ Source: `docs/PRICING-RESEARCH.md` §3.1–3.4 and `BILLING-PLAN.md` §4.1. Use 
 | Product | Item (plan id) | Unit | Pilot stage (THB) | After pilot (THB) |
 |---|---|---|---|---|
 | Exam | Field pilot (`exam_pilot`), 1 institution, up to 4 weeks, up to 3 rooms | project | free (in exchange for invigilator tallies) | — |
+| Exam | Free tier: up to 5 candidates per session (beyond it a licence is needed; limits apply from a date to be announced) | session | free | free |
 | Exam | Computer room / online, per candidate (`exam_lab`) | candidate per exam | 10 (minimum 300 per session) | 15–30 |
 | Exam | Computer room / online, monthly (`exam_lab`) | lab per month | 990 | 990–1,490 |
 | Exam | Institution licence (`exam_institution`) | year (up to 1,000 candidates) | from 19,900 | 30,000–120,000 by size |
 | Exam | Camera exam hall (`exam_hall`) | — | **experimental, not sold, do not quote** | — |
-| Attendance | Free (`attendance_free`), up to 5 people, PIN/QR, 1 device | — | free | free |
+| Attendance | Free (`attendance_free`), up to 5 people, PIN/QR, 1 device (beyond it a licence is needed; limits apply from a date to be announced) | — | free | free |
 | Attendance | Standard (`attendance_employee`) | active person per month | 19 (minimum 190 per month) | 29 (minimum 290 per month) |
 | Attendance | Set-up help (`attendance_setup`), optional | one-off | 2,900 | 4,900 |
 | Attendance | Multi-branch sync / cloud backup | — | **not sold** (waits for organisation accounts) | quoted separately later |
-| Gate | Trial (`gate_trial`): 1 lane, 100 reads per day, 7-day log | 30 days | free | free |
+| Gate | Trial (`gate_trial`): 1 lane, 100 plates per day, 7-day log | 30 days | free | free |
 | Gate | Village / condo (`gate_village_basic`) | lane per month | 490 | 990 |
 | Gate | Village Pro, 3 lanes (`gate_village_pro`) | month | 490 per lane | 1,990 (3 lanes) |
 | Gate | Car park (`gate_parking`), PromptPay, receipts and shift close included | lane per month | 790 | 1,490 |
 | Gate | On-site set-up (`gate_setup`) | visit | 2,500 | 3,000–5,000 |
 | Gate | Barrier / relay / hardware | — | **not sold** | quoted separately after the pilot |
+| Crowd | Free tier: 2 hours per device per day (beyond it a licence is needed; limits apply from a date to be announced) | device per day | free | free |
 | Crowd | Event day (`crowd_event_day`) | device per day | 590 | 990 |
 | Crowd | Event week, 7 days (`crowd_event_week`) | device | 2,490 | 3,900 |
 | Crowd | Monthly, fixed site (`crowd_monthly`) | — | **not sold** until a fixed-site pilot passes | — |
 | Crowd | Dense crowds (about 50+ people in view) | — | **not sold** | **not sold** |
 
 Yearly = 10 × monthly (BILLING-PLAN rule) for monthly lines sold yearly.
+
+**Text required on a quotation that mentions a free tier (owner decision 2026-11-13, OP-26):** Fortune and the general tools stay free. The business products have a limited free tier (Gate 30-day trial, 1 lane, 100 plates per day · Attendance up to 5 people · Exam up to 5 candidates per session · Crowd 2 hours per device per day); beyond it a licence is needed. **These limits are not enforced in the product yet.** They apply from a date to be announced, with at least 30 days' notice, and start 30 days after the announcement. The owner enforces them by contract. A limit that runs on the user's device can be bypassed by someone who edits the code; the contract is what binds. Customers can always export their own data. A licence works offline for 14 days (planned, not built). Payment: bank transfer only.
 Definitions still missing: "exam session" and "lab" (Exam), "active person" (Attendance), "day" (Crowd), "lane" (Gate) **[to confirm]** (OP-08, OP-18).
 Travel and out-of-area installation are not in the approved prices. Do not add a line yourself (OP-19).
 

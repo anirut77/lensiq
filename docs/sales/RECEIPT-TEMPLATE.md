@@ -11,7 +11,7 @@
   และต้องออกเมื่อใด เป็นเรื่องที่ **[ต้องยืนยัน / to confirm] กับนักบัญชี** (OP-07, OP-03) `docs/BILLING-PLAN.md` §5 ระบุข้อมูลที่ต้องมี (มาตรา 86/4)
   และใบลดหนี้ (มาตรา 86/10) เมื่อคืนเงิน ไม่มีการจดทะเบียน VAT ก็ไม่มีใบกำกับและไม่มีใบลดหนี้ ใบเสร็จจะประทับ "คืนเงินแล้ว"
 - เก็บสำเนาเอกสารอย่างน้อย 5 ปี (`LEGAL-REVIEW-PACK.md` §3.5 R5 ยังต้องยืนยัน)
-- เลขที่ใบเสร็จต้องไม่ขาดตอน (BILLING-PLAN ใช้ `LQ-YYYYMM-000001` กับระบบออกใบเสร็จของ Worker ยังไม่ยืนยันว่าใช้กับเอกสารที่ทำเองนี้) (OP-04)
+- เลขที่ใบเสร็จต้องไม่ขาดตอน **ตอนนี้เจ้าของออกใบเสร็จเองจากแม่แบบนี้ ระบบไม่ออกเลขที่ให้** (เจ้าของตัดสินใจ 2026-11-13) ระบบหลังบ้านมีตัวออกเลข `LQ-YYYYMM-000001` แต่ยังไม่ใช้กับการขายแบบโอนเงิน จะเลือกชุดเดียวร่วมกับระบบหรือแยกชุด และใบกำกับภาษีต้องมีอะไร ถามนักบัญชีที่ `docs/sales/ACCOUNTANT-QUESTIONS-TH.md` หลังนักบัญชียืนยัน แผนคือเปลี่ยนไปใช้เลขจากระบบ `LQ-YYYYMM-000001` (OP-04)
 
 ## 1. แม่แบบ
 
@@ -70,7 +70,7 @@
   is **[to confirm] with the accountant** (OP-07, OP-03). `docs/BILLING-PLAN.md` §5 lists the required fields (s.86/4) and the credit note (s.86/10) on
   a refund. Without VAT registration there is no tax invoice and no credit note; the receipt is stamped "refunded".
 - Keep copies for at least 5 years (`LEGAL-REVIEW-PACK.md` §3.5 R5, still to confirm).
-- Receipt numbers must have no gaps (BILLING-PLAN uses `LQ-YYYYMM-000001` in the Worker's receipt system; not confirmed for documents made by hand) (OP-04).
+- Receipt numbers must have no gaps. **For now the owner issues receipts from this template and the system does not number them** (owner decision 2026-11-13). The back office has a `LQ-YYYYMM-000001` counter, but it is not used for bank-transfer sales yet. One shared series or a separate one, and what a tax invoice must contain, are questions for the accountant in `docs/sales/ACCOUNTANT-QUESTIONS-TH.md` (Thai). After the accountant confirms, the plan is to switch to system numbering `LQ-YYYYMM-000001` (OP-04).
 
 ## 1. Template
 

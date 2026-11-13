@@ -4,6 +4,8 @@
 > approval and a lawyer's review of section 9 before any build starts. Target is Cloudflare **staging** only (Workers +
 > D1, test data, no real keys). Not legal advice: every lawful basis below is a draft "to be confirmed by counsel".
 >
+> **Update 2026-11-13 (owner decision):** the first version of organisation accounts is the **lite** one, planned and not built: organisation name, billing details, admins and staff, invitations, and **no syncing of the customer's people data**. The sync design below (sections on sync, data model for synced records, and the PDPA analysis for central storage) stays on file as a later option and is not the next build. A licence works offline for 14 days (planned).
+>
 > Written 2026-11-08 from the code as it is today: `backend/migrations/0001–0009`, `docs/BACKEND.md`, `docs/EXAM.md`,
 > `docs/GATE.md`, `docs/ATTENDANCE-READINESS.md`, `docs/pdpa/*`, `docs/PDPA-NOTES-FOR-COUNSEL.md`, `gate-kit.js`,
 > `gate-rules.js`, `parking.js`, `village.js`, `attendance-hr.js`, `lensiq-timeclock.js`, `lensiq-exam-clip.js`,
