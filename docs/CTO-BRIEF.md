@@ -151,6 +151,11 @@ No module is production-ready. None has completed a field pilot, and the backend
    further reading, remedy, lucky item, recommendation, lead form, share card or hook (member, future merit / straight
    mode) until reload. Remaining risks: the card and line wording still await a Thai mental-health professional (L-M14);
    1669 hours/cost and Samaritans' languages are not claimed because they could not be read on the official pages.
+   Thai sara am (branch `thai-sara-am-safety`, 2026-11-14, not merged): ำ arriving decomposed (nikhahit + sara aa, from
+   NFKC / PDF / OCR / some keyboards), with the tone mark after it, or with zero-width characters, slipped past the crisis
+   net, the medicine self-harm check, the Product Check privacy guard (home addresses on live-scan text) and the fortune
+   filter. All of them now match on one canonical copy (`lensiq-thai-canon.js`); locked tests
+   `evals-locks/thai-sara-am.sha256` (synthetic, the review's examples in every shape): 14/20 failed on main, 20/20 pass.
 
 ### CI-only or loosened tests
 
