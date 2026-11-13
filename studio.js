@@ -440,7 +440,9 @@
   }
   // ---------- จุดยึดชุด 7 จุด (item 24): คอ ปกคอ ×2 ปลายไหล่ ×2 ชายเสื้อ ×2 — ลากได้ทุกจุด ชุดดัดตามจุด (thin-plate spline) ----------
   const FIT_KEYS = ["chin", "cl", "cr", "l", "r", "hl", "hr"];
-  const STD_UV = () => { const C = PBOutfits.CANON; return { chin: [0, 0], cl: [-.33, C.collarY], cr: [.33, C.collarY], l: [C.L.x, C.L.y], r: [C.R.x, C.R.y], hl: [-1.5, 2.6], hr: [1.5, 2.6] }; };
+  const STD_UV = () => {
+    const C = /** @type {any} */ (window).PBOutfits.CANON;
+    return { chin: [0, 0], cl: [-.33, C.collarY], cr: [.33, C.collarY], l: [C.L.x, C.L.y], r: [C.R.x, C.R.y], hl: [-1.5, 2.6], hr: [1.5, 2.6] }; };
   /** ตำแหน่งมาตรฐานของ 7 จุดตาม fit (N, s, theta) — ชุดสำเร็จรูปและชุดที่ไม่มีจุดยึด */
   function canonPts(fit) {
     const cs = Math.cos(fit.theta || 0), sn = Math.sin(fit.theta || 0), o = {}, U = STD_UV();
@@ -452,7 +454,7 @@
   function autoHandles(g) {
     const F = ST.fitAuto, fit3 = { chin: { ...F.chin }, l: { ...F.l }, r: { ...F.r } }, key = (g ? g.key : "") + "|" + JSON.stringify(g && g.anchors || null);
     if (ST.cache.ahKey === key) return ST.cache.ah;
-    const fit = SC.fitFromTargets(fit3, PBOutfits.CANON), handles = canonPts(fit);
+    const fit = SC.fitFromTargets(fit3, /** @type {any} */ (window).PBOutfits.CANON), handles = canonPts(fit);
     ST.fitSrc = "canon";
     if (hasAnchors(g)) {
       const Ly = ST.layers || {}, pt = SC.personTargets(g.anchors, fit, ST.alpha, ST.W, ST.H, ST.face, { side: F.side, hair: Ly.hair || null, keep: Ly.keep || null });

@@ -1847,7 +1847,7 @@
     }
     // ปลายไหล่: ขอบบนในแนวไหล่ (u ออกจากคอ, v ลง) จนชันลงเป็นแขน (> 2) หรือสุดตัวคน; ผมอยู่ติดเหนือขอบบน = วัดไม่ได้ ใช้ค่าเดิม
     const st = 2, topAt = u => { for (let v = -fw * .6; v <= fw * 1.8; v += 1) { const p = img(u, v); if (body(p.x, p.y)) return v; } return null; };
-    for (const [k, sd] of [["l", -1], ["r", 1]]) {
+    for (const [k, sd] of /** @type {[string, number][]} */ ([["l", -1], ["r", 1]])) {
       let tip = null;
       for (let a = fw * .6; a <= fw * 2.6; a += st) {
         const u = sd * a, t0 = topAt(u); if (t0 == null) break; const t1 = topAt(u + sd * st); tip = { u, v: t0 }; if (t1 == null || t1 - t0 > st * 2) break;
@@ -1857,7 +1857,7 @@
       if (!occ) { const p = img(tip.u, tip.v); put(k, p.x, p.y); }
     }
     // มุมชายเสื้อ: ขอบนอกของตัวคนที่แถวเดิม (เดินจากแกนกลางลำตัวออกไป); ตัวคนชนขอบภาพ = ไม่รู้ความกว้างจริง ใช้ค่าเดิม
-    for (const [k, sd] of [["hl", -1], ["hr", 1]]) {
+    for (const [k, sd] of /** @type {[string, number][]} */ ([["hl", -1], ["hr", 1]])) {
       const t = at(k), y = t ? Math.round(t.y) : -1; if (y < 0 || y >= H) continue;
       const xc = N.x - sn * (y - N.y) / cs; if (!body(xc, y)) continue;
       let x = Math.round(xc); while (x > 0 && x < W - 1 && body(x + sd, y)) x += sd;
