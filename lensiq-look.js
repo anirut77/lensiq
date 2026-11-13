@@ -314,6 +314,8 @@
   /** @type {Record<string, string>} */
   var ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
   var esc = function (/** @type {any} */ s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return ESC[c]; }); };
+  /** escape for element text only (never for attributes): quotes may stay as they are */
+  var escText = function (/** @type {any} */ s) { return String(s == null ? "" : s).replace(/[&<>]/g, function (c) { return ESC[c]; }); };
   var TXT = {
     th: { title: "แนะนำการแต่งลุค", intro: "ข้อแนะนำการแต่งที่ย้อนกลับได้ (คิ้ว ผม แต่งหน้า เครื่องประดับ) ตามผลอ่านด้านบน เป็นความเชื่อ ไม่ใช่ข้อเท็จจริง ไม่มีการทำหัตถการ และไม่ผูกกับสินค้าใด ๆ",
       from: "จากผลอ่าน:", adult: "ฉันอายุ 18 ปีขึ้นไป และอยากดูข้อแนะนำการแต่งลุคตามโหงวเฮ้ง", adultWhy: "ส่วนนี้สำหรับผู้ใหญ่เท่านั้น",
@@ -369,13 +371,19 @@
   }
   /** a salon catalogue entry {id, kind, shape, name: {th, en, zh}} -> {ok, item} | {ok: false, errors}
    *  @param {any} entry @param {string} lang */
+  /* decision (agent, 2026-11-13): a salon may enter a Thai name only. On an EN / ZH page it is shown as it is, marked lang="th",
+     with a neutral note that it is the salon's own name in Thai; we never translate or rewrite salon text. The back office may
+     later ask for EN / ZH names, but does not require them. */
+  var SALON_TH_NOTE = { th: "", en: "(the salon's own name, in Thai)", zh: "（店家自己的名称，泰文）" };
   function salonItem(entry, lang) {
-    var l = langOf(lang), name = entry && entry.name ? String(entry.name[l] || entry.name.th || "") : "";
+    var l = langOf(lang), names = (entry && entry.name) || {};
+    var own = names[l] ? String(names[l]) : "", name = own || String(names.th || ""), nameLang = own ? l : "th";
     var L = lint(), errors = salonErrors(L, name);
     if (!name.trim()) errors = errors.concat([{ code: "empty", match: "" }]);
     if (errors.length) return { ok: false, errors: errors };
     return { ok: true, item: { id: String(entry.id || ""), source: "salon", kind: entry.kind || null, card: entry.shape || null,
-      preview: entry.kind === "brow" || entry.kind === "lip" || entry.kind === "liner" ? entry.kind : null, text: name, label: SALON_LABEL[l] } };
+      preview: entry.kind === "brow" || entry.kind === "lip" || entry.kind === "liner" ? entry.kind : null, text: name, nameLang: nameLang,
+      note: nameLang !== l ? SALON_TH_NOTE[l] : "", label: SALON_LABEL[l] } };
   }
   /** @param {any[]} items salon items from salonItem() @param {string} lang */
   function salonHTML(items, lang) {
@@ -385,7 +393,8 @@
       ok.map(function (it) {
         var card = it.card && A ? A.svg(it.card) : "";
         return '<li class="lq-look-item lq-look-salon-item" data-look-id="' + esc(it.id) + '" data-lq-look>' + (card ? '<div class="lq-look-card">' + card + "</div>" : "") +
-          '<div class="lq-look-body"><p class="lq-look-text">' + esc(it.text) + '</p><p class="lq-look-label">' + esc(SALON_LABEL[l]) + "</p></div></li>";
+          '<div class="lq-look-body"><p class="lq-look-text"><span lang="' + esc(it.nameLang || l) + '">' + esc(it.text) + "</span>" +
+          (it.note ? ' <small class="lq-look-note">' + escText(it.note) + "</small>" : "") + '</p><p class="lq-look-label">' + esc(SALON_LABEL[l]) + "</p></div></li>";
       }).join("") + "</ul></div>";
   }
 
